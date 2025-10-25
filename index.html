@@ -4,67 +4,66 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Parallel Vision</title>
-<meta name="description" content="Parallel Vision — Berlin-based tech-noir electronic label. Vision EP out now." />
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600&family=Michroma&display=swap" rel="stylesheet" />
 <style>
 :root{
-  --bg:#050505;
-  --fg:#e8e8e8;
-  --muted:#9aa0a6;
-  --line:#181818;
-  --card:#0d0d0d;
-  --neon:#00e8ff;          /* cyan edges */
-  --subtitle:#ffc04d;      /* 80s amber subtitle */
-  --accent:#ff9a2f;        /* orange accent */
-  --max:1080px;
+  --bg:#050505; --fg:#e8e8e8; --muted:#9aa0a6; --line:#171717; --card:#0c0c0c;
+  --neon:#00e8ff; --amber:#ffc04d; --orange:#ff9a2f; --link:#bfbfbf; --max:1080px;
 }
 *{box-sizing:border-box}
 html,body{margin:0;background:var(--bg);color:var(--fg);font-family:"Space Grotesk",system-ui,Arial,sans-serif;line-height:1.6}
-a{color:var(--fg);text-decoration:none;border-bottom:1px solid transparent;transition:.25s}
-a:hover{border-color:var(--fg)}
+a{color:var(--link);text-decoration:none;border-bottom:1px solid transparent;transition:.25s}
+a:hover{color:var(--orange);border-color:var(--orange)}
 header{text-align:center;padding:86px 20px 36px}
 h1{margin:0 0 6px;font-family:"Michroma",sans-serif;letter-spacing:.16em;text-transform:uppercase}
-.subtitle{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--subtitle)} /* amber subs */
+.subtitle{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--amber)}
 main{max-width:var(--max);margin:0 auto;padding:0 20px 80px}
 section{padding:56px 0;border-top:1px solid var(--line)} section:first-of-type{border-top:0}
-h2{font-family:"Michroma",sans-serif;font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);margin:0 0 22px;text-align:center}
+h2{font-family:"Michroma",sans-serif;font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--amber);margin:0 0 22px;text-align:center}
 .about p{max-width:760px;margin:0 auto;color:#d2d2d2;text-align:center}
-hr.neon{border:none;height:1px;background:linear-gradient(90deg,transparent,var(--neon),transparent);margin:52px 0}
+hr.neon{border:none;height:1px;background:linear-gradient(90deg,transparent,var(--neon),transparent);box-shadow:0 0 12px rgba(0,232,255,.35);margin:52px 0}
 
 /* RELEASE */
 .release{
   display:grid;grid-template-columns:300px 1fr;gap:24px;align-items:start;
-  padding:22px;background:var(--card);border:1px solid var(--line);border-radius:12px;
-  box-shadow:0 0 0 1px rgba(0,232,255,.06), 0 10px 30px rgba(0,0,0,.35);
+  padding:22px;background:var(--card);border:1px solid var(--line);border-radius:14px;
+  box-shadow:0 0 0 1px rgba(0,232,255,.06), 0 12px 36px rgba(0,0,0,.55);
 }
-.cover img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:10px;border:1px solid var(--line)}
+.cover{position:relative}
+.cover img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:12px;border:1px solid var(--line);display:block}
 .meta h3{margin:0 0 8px;letter-spacing:.02em}
 .meta p{margin:6px 0 12px;color:#cfcfcf}
 .kv{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:8px 0}
 .kv div{padding:10px 12px;border:1px dashed var(--line);border-radius:10px;color:#d6d6d6;font-size:14px}
-.links a{display:inline-block;margin-right:12px;margin-top:14px;border:1px solid var(--line);padding:8px 12px;border-radius:999px;font-size:14px;color:#cfcfcf}
-.links a:hover{color:var(--accent);border-color:var(--accent)}
-.tags{margin-top:10px;color:var(--muted);font-size:14px}
+.links{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+.btn{
+  display:inline-block;padding:9px 14px;border-radius:999px;font-size:14px;
+  border:1px solid var(--line);color:#cfcfcf;background:transparent;transition:.25s
+}
+.btn:hover{border-color:var(--orange);color:var(--orange)}
+.btn-spot{border-color:#1db95426}
+.btn-sc{border-color:#ff770026}
 
 /* ARTISTS */
 .artist-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
 .artist{
   display:grid;grid-template-columns:92px 1fr;gap:14px;align-items:center;
   background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;
-  box-shadow:0 0 0 1px rgba(255,154,47,.05);
+  box-shadow:0 0 0 1px rgba(255,154,47,.05); transition:.25s;
 }
+.artist:hover{box-shadow:0 0 0 1px rgba(255,154,47,.25), 0 0 22px rgba(255,154,47,.1)}
 .pic{width:92px;height:92px;border-radius:12px;overflow:hidden;border:1px solid var(--line);background:#111}
 .pic img{width:100%;height:100%;object-fit:cover;display:block}
 .artist h4{margin:0 0 6px;font-weight:600}
 .out a{margin-right:10px;font-size:14px;border:1px solid var(--line);padding:6px 10px;border-radius:999px;display:inline-block;color:#bfbfbf}
-.out a:hover{border-color:var(--accent);color:var(--accent)} /* orange hover */
+.out a:hover{border-color:var(--orange);color:var(--orange)}
 
 /* Footer */
 footer{text-align:center;color:#7a7a7a;padding:40px 20px;border-top:1px solid var(--line);font-size:13px}
 
 /* Responsive */
-@media (max-width:980px){ .release{grid-template-columns:1fr} .artist-grid{grid-template-columns:1fr 1fr} }
-@media (max-width:580px){ .artist-grid{grid-template-columns:1fr} h1{font-size:28px} }
+@media (max-width:980px){ .release{grid-template-columns:1fr} .artist-grid{grid-template-columns:1fr 1fr}}
+@media (max-width:580px){ .artist-grid{grid-template-columns:1fr} h1{font-size:28px}}
 </style>
 </head>
 <body>
@@ -85,8 +84,9 @@ footer{text-align:center;color:#7a7a7a;padding:40px 20px;border-top:1px solid va
     <h2>Releases</h2>
     <div class="release">
       <div class="cover">
-        <!-- Use the new, working filename -->
-<img src="/assets/vision.jpg" alt="Vision EP cover">
+        <!-- Fallback: if /assets/vision.jpg fails, swap to Alejandro1.jpg so layout never breaks -->
+        <img src="/assets/vision.jpg" alt="Vision EP cover"
+             onerror="this.onerror=null; this.src='/assets/Alejandro1.jpg'; this.alt='Vision EP';">
       </div>
       <div class="meta">
         <h3>Vision EP</h3>
@@ -98,9 +98,10 @@ footer{text-align:center;color:#7a7a7a;padding:40px 20px;border-top:1px solid va
           <div><strong>Format:</strong> Digital</div>
         </div>
         <div class="links">
-          <a href="https://open.spotify.com/album/4YzXh8LJdBrMnJe4089bpe?si=Zf43lv6ETMWI08KfKyfF4A" target="_blank" rel="noopener">Listen on Spotify</a>
+          <a class="btn btn-spot" href="https://open.spotify.com/album/4YzXh8LJdBrMnJe4089bpe?si=Zf43lv6ETMWI08KfKyfF4A" target="_blank" rel="noopener">Listen on Spotify</a>
+          <a class="btn btn-sc" href="https://soundcloud.com/parallel-vision-label/sets/alejandro-molinari-vision-1?si=bed307a601974a7882a19a425d12bf6e&utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing" target="_blank" rel="noopener">Listen on SoundCloud</a>
         </div>
-        <div class="tags">Indie Dance · Electro · New Wave</div>
+        <div class="tags" style="margin-top:10px;color:#9aa0a6">Indie Dance · Electro · New Wave</div>
       </div>
     </div>
   </section>
@@ -112,69 +113,69 @@ footer{text-align:center;color:#7a7a7a;padding:40px 20px;border-top:1px solid va
     <div class="artist-grid">
 
       <div class="artist">
-        <div class="pic"><img src="https://parallelvisionberlin.github.io/assets/Alejandro1.jpg?v=2" alt="Alejandro Molinari" loading="lazy"></div>
+        <div class="pic"><img src="/assets/Alejandro1.jpg" alt="Alejandro Molinari" loading="lazy"></div>
         <div>
           <h4>Alejandro Molinari</h4>
           <div class="out">
             <a href="https://soundcloud.com/alejandromolinari" target="_blank">SoundCloud</a>
-            <a href="https://open.spotify.com/artist/6MVmGh11Jf6bh8FfwiLblE?si=6V4CAblpRcyMgKKC4gg9oQ" target="_blank">Spotify</a>
+            <a href="https://open.spotify.com/artist/6MVmGh11Jf6bh8FfwiLblE" target="_blank">Spotify</a>
             <a href="https://ra.co/dj/alejandromolinari" target="_blank">Resident Advisor</a>
           </div>
         </div>
       </div>
 
       <div class="artist">
-        <div class="pic"><img src="https://parallelvisionberlin.github.io/assets/badwolfprofile.jpg?v=2" alt="Badwolf" loading="lazy"></div>
+        <div class="pic"><img src="/assets/badwolfprofile.jpg" alt="Badwolf" loading="lazy"></div>
         <div>
           <h4>Badwolf</h4>
           <div class="out">
             <a href="https://soundcloud.com/bad-wolf1" target="_blank">SoundCloud</a>
-            <a href="https://open.spotify.com/artist/6MyKIMrr222sdw8idnPVSd?si=UMnVp-NlTnWYm2hS3Irx7g" target="_blank">Spotify</a>
+            <a href="https://open.spotify.com/artist/6MyKIMrr222sdw8idnPVSd" target="_blank">Spotify</a>
           </div>
         </div>
       </div>
 
       <div class="artist">
-        <div class="pic"><img src="https://parallelvisionberlin.github.io/assets/rolivaprofile.jpg?v=2" alt="Roliva" loading="lazy"></div>
+        <div class="pic"><img src="/assets/rolivaprofile.jpg" alt="Roliva" loading="lazy"></div>
         <div>
           <h4>Roliva</h4>
           <div class="out">
             <a href="https://soundcloud.com/roliva" target="_blank">SoundCloud</a>
-            <a href="https://open.spotify.com/artist/1uXG2VIlypvjoTDTgqGYoN?si=HuDT28RjTTyZlTiQeYNRdg" target="_blank">Spotify</a>
+            <a href="https://open.spotify.com/artist/1uXG2VIlypvjoTDTgqGYoN" target="_blank">Spotify</a>
             <a href="https://ra.co/dj/roliva" target="_blank">Resident Advisor</a>
           </div>
         </div>
       </div>
 
       <div class="artist">
-        <div class="pic"><img src="https://parallelvisionberlin.github.io/assets/Elorean1.jpg?v=2" alt="Elorean" loading="lazy"></div>
+        <div class="pic"><img src="/assets/Elorean1.jpg" alt="Elorean" loading="lazy"></div>
         <div>
           <h4>Elorean</h4>
           <div class="out">
             <a href="https://soundcloud.com/elorian_ofc" target="_blank">SoundCloud</a>
-            <a href="https://open.spotify.com/artist/6HD8nRuK1Tt3Gc2xQ6qmnk?si=dMNIDw1SSUGrEMIcxbSgWw" target="_blank">Spotify</a>
+            <a href="https://open.spotify.com/artist/6HD8nRuK1Tt3Gc2xQ6qmnk" target="_blank">Spotify</a>
           </div>
         </div>
       </div>
 
       <div class="artist">
-        <div class="pic"><img src="https://parallelvisionberlin.github.io/assets/Margaryan1.jpg?v=2" alt="Margaryan" loading="lazy"></div>
+        <div class="pic"><img src="/assets/Margaryan1.jpg" alt="Margaryan" loading="lazy"></div>
         <div>
           <h4>Margaryan</h4>
           <div class="out">
             <a href="https://soundcloud.com/user-932974362" target="_blank">SoundCloud</a>
-            <a href="https://open.spotify.com/artist/0fOe07euakUFcf5FxNmDuR?si=ZEVPhmdgQ_mhok5Y8cPjbg" target="_blank">Spotify</a>
+            <a href="https://open.spotify.com/artist/0fOe07euakUFcf5FxNmDuR" target="_blank">Spotify</a>
           </div>
         </div>
       </div>
 
       <div class="artist">
-        <div class="pic"><img src="https://parallelvisionberlin.github.io/assets/Cabizbajo1.jpg?v=2" alt="Cabizbajo" loading="lazy"></div>
+        <div class="pic"><img src="/assets/Cabizbajo1.jpg" alt="Cabizbajo" loading="lazy"></div>
         <div>
           <h4>Cabizbajo</h4>
           <div class="out">
             <a href="https://soundcloud.com/cabizbajo" target="_blank">SoundCloud</a>
-            <a href="https://open.spotify.com/artist/3sZkCrbHsAo7OS6CuB7F6Q?si=pTIGcJMwRhab37n8KGryog" target="_blank">Spotify</a>
+            <a href="https://open.spotify.com/artist/3sZkCrbHsAo7OS6CuB7F6Q" target="_blank">Spotify</a>
             <a href="https://ra.co/dj/cabizbajo" target="_blank">Resident Advisor</a>
           </div>
         </div>
@@ -192,5 +193,3 @@ footer{text-align:center;color:#7a7a7a;padding:40px 20px;border-top:1px solid va
 <footer>© 2025 Parallel Vision · Berlin</footer>
 </body>
 </html>
-
-
