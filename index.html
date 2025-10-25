@@ -11,25 +11,32 @@
   --neon:#00e8ff; --amber:#ffc04d; --orange:#ff9a2f; --link:#bfbfbf; --max:1080px;
 }
 *{box-sizing:border-box}
-html,body{margin:0;background:var(--bg);color:var(--fg);font-family:"Space Grotesk",system-ui,Arial,sans-serif;line-height:1.6}
+html,body{margin:0;background:radial-gradient(1200px 600px at 50% -10%, #0b0b0b 0,#050505 60%, #030303 100%);color:var(--fg);font-family:"Space Grotesk",system-ui,Arial,sans-serif;line-height:1.6}
 a{color:var(--link);text-decoration:none;border-bottom:1px solid transparent;transition:.25s}
 a:hover{color:var(--orange);border-color:var(--orange)}
 header{text-align:center;padding:86px 20px 36px}
 h1{margin:0 0 6px;font-family:"Michroma",sans-serif;letter-spacing:.16em;text-transform:uppercase}
-.subtitle{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--amber)}
+.subtitle{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--amber);text-shadow:0 0 .6px var(--amber),0 0 8px rgba(255,192,77,.25)}
 main{max-width:var(--max);margin:0 auto;padding:0 20px 80px}
 section{padding:56px 0;border-top:1px solid var(--line)} section:first-of-type{border-top:0}
-h2{font-family:"Michroma",sans-serif;font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--amber);margin:0 0 22px;text-align:center}
+h2{font-family:"Michroma",sans-serif;font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--amber);margin:0 0 22px;text-align:center;text-shadow:0 0 .6px var(--amber),0 0 10px rgba(255,192,77,.25)}
 .about p{max-width:760px;margin:0 auto;color:#d2d2d2;text-align:center}
 hr.neon{border:none;height:1px;background:linear-gradient(90deg,transparent,var(--neon),transparent);box-shadow:0 0 12px rgba(0,232,255,.35);margin:52px 0}
 
 /* RELEASE */
 .release{
   display:grid;grid-template-columns:300px 1fr;gap:24px;align-items:start;
-  padding:22px;background:var(--card);border:1px solid var(--line);border-radius:14px;
-  box-shadow:0 0 0 1px rgba(0,232,255,.06), 0 12px 36px rgba(0,0,0,.55);
+  padding:22px;background:var(--card);
+  border:1px solid var(--line);border-radius:14px;
+  box-shadow:0 0 0 1px rgba(255,154,47,.06), 0 12px 36px rgba(0,0,0,.55);
 }
-.cover img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:12px;border:1px solid var(--line);display:block}
+.cover{position:relative}
+.cover img{
+  width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:12px;
+  border:1px solid var(--line);display:block;filter:saturate(1) contrast(1.02);
+  transition:transform .25s ease, box-shadow .25s ease;
+}
+.cover img:hover{transform:translateY(-2px);box-shadow:0 14px 28px rgba(0,0,0,.45),0 0 24px rgba(255,154,47,.15)}
 .meta h3{margin:0 0 8px;letter-spacing:.02em}
 .meta p{margin:6px 0 12px;color:#cfcfcf}
 .kv{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:8px 0}
@@ -81,8 +88,8 @@ footer{text-align:center;color:#7a7a7a;padding:40px 20px;border-top:1px solid va
     <h2>Releases</h2>
     <div class="release">
       <div class="cover">
-        <!-- Use the PNG you renamed. If it fails, fall back to Alejandro1.jpg -->
-      <img src="/assets/vision-neo.jpg" alt="Vision EP cover">
+        <!-- Cover uses ONLY vision-neo.jpg -->
+        <img src="/assets/vision-neo.jpg" alt="Vision EP cover">
       </div>
       <div class="meta">
         <h3>Vision EP</h3>
@@ -189,5 +196,3 @@ footer{text-align:center;color:#7a7a7a;padding:40px 20px;border-top:1px solid va
 <footer>© 2025 Parallel Vision · Berlin</footer>
 </body>
 </html>
-
-
