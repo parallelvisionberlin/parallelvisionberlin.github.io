@@ -1,297 +1,181 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Parallel Vision</title>
-<meta name="description" content="Parallel Vision — Berlin-based tech-noir label. Vision EP out now." />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parallel Vision</title>
+    <style>
+        body {
+            background-color: #050505;
+            color: #d0e0ff;
+            font-family: 'Arial', sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
 
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600&family=Michroma&display=swap" rel="stylesheet">
+        h1, h2 {
+            font-family: 'Arial Black', sans-serif;
+            letter-spacing: 4px;
+        }
 
-<style>
-:root{
-  --bg:#050505;
-  --fg:#e3e3e3;
-  --muted:#8b8b8b;
-  --line:#181818;
-  --card:#0d0d0d;
-  --neon:#00e8ff;
-}
+        .section {
+            width: 90%;
+            max-width: 1000px;
+            margin: 80px auto;
+            text-align: center;
+        }
 
-*{box-sizing:border-box;}
-html,body{margin:0;background:var(--bg);color:var(--fg);font-family:"Space Grotesk",sans-serif;}
+        .release-card, .artist-card {
+            background-color: #0d0d0d;
+            border: 1px solid #1a1a1a;
+            border-radius: 10px;
+            padding: 25px;
+            margin: 25px auto;
+            max-width: 900px;
+            box-shadow: 0 0 40px rgba(0, 255, 200, 0.05);
+        }
 
-header{
-  text-align:center;
-  padding:85px 18px 45px;
-}
-h1{
-  margin:0 0 10px;
-  font-family:"Michroma",sans-serif;
-  letter-spacing:.16em;
-  text-transform:uppercase;
-}
-.subtitle{
-  font-size:12px;
-  text-transform:uppercase;
-  letter-spacing:.2em;
-  color:var(--muted);
-}
+        img {
+            width: 150px;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #111;
+        }
 
-main{
-  max-width:1080px;
-  margin:0 auto;
-  padding:0 20px 80px;
-}
+        .artist-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 25px;
+        }
 
-section{padding:60px 0;border-top:1px solid var(--line);}
-section:first-of-type{border-top:0;}
+        .artist-card {
+            width: 250px;
+        }
 
-h2{
-  font-family:"Michroma",sans-serif;
-  font-size:12px;
-  letter-spacing:.22em;
-  text-transform:uppercase;
-  text-align:center;
-  margin-bottom:24px;
-  color:var(--muted);
-}
+        a {
+            color: #68c8ff;
+            text-decoration: none;
+            font-size: 13px;
+        }
 
-/* Release */
-.release{
-  display:grid;
-  grid-template-columns:300px 1fr;
-  gap:25px;
-  padding:22px;
-  background:var(--card);
-  border:1px solid var(--line);
-  border-radius:12px;
-}
-.cover img{
-  width:100%;
-  border-radius:10px;
-  border:1px solid var(--line);
-  aspect-ratio:1/1;
-  object-fit:cover;
-}
-.meta h3{margin:0 0 8px;}
-.meta p{color:#cfcfcf;margin:0 0 12px;}
-.kv{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0;}
-.kv div{
-  border:1px dashed var(--line);
-  padding:8px 10px;
-  border-radius:8px;
-  font-size:13px;
-  color:#cfcfcf;
-}
-.btn{
-  display:inline-block;
-  margin-top:12px;
-  padding:8px 14px;
-  font-size:14px;
-  border:1px solid var(--line);
-  border-radius:999px;
-  text-decoration:none;
-  color:var(--muted);
-}
-.btn:hover{
-  color:var(--neon);
-  border-color:var(--neon);
-}
-.tags{text-align:left;margin-top:8px;font-size:13px;color:var(--muted);}
+        a:hover {
+            color: #00baff;
+        }
 
-hr.neon{
-  margin:60px 0;
-  border:none;
-  height:1px;
-  background:linear-gradient(90deg,transparent,var(--neon),transparent);
-}
-
-/* ARTISTS */
-.artist-grid{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:16px;
-}
-.artist{
-  display:grid;
-  grid-template-columns:92px 1fr;
-  gap:14px;
-  align-items:center;
-  padding:16px;
-  background:var(--card);
-  border:1px solid var(--line);
-  border-radius:14px;
-}
-.pic{
-  width:92px;height:92px;overflow:hidden;
-  border-radius:12px;border:1px solid var(--line);
-}
-.pic img{
-  width:100%;height:100%;object-fit:cover;display:block;
-}
-.artist h4{margin:0 0 6px;font-weight:600;}
-.out a{
-  display:inline-block;
-  margin:6px 10px 0 0;
-  padding:6px 12px;
-  font-size:13px;
-  border:1px solid var(--line);
-  border-radius:999px;
-  text-decoration:none;
-  color:var(--muted);
-}
-.out a:hover{color:var(--neon);border-color:var(--neon);}
-
-footer{
-  text-align:center;
-  padding:40px;
-  color:var(--muted);
-  font-size:12px;
-  border-top:1px solid var(--line);
-}
-
-/* RESPONSIVE */
-@media(max-width:900px){
-  .release{grid-template-columns:1fr;}
-  .artist-grid{grid-template-columns:repeat(2,1fr);}
-}
-@media(max-width:580px){
-  .artist-grid{grid-template-columns:1fr;}
-  h1{font-size:28px;}
-}
-</style>
+        footer {
+            margin-top: 80px;
+            padding: 40px;
+            font-size: 13px;
+            color: #555;
+        }
+    </style>
 </head>
 
 <body>
 
-<header>
-  <h1>PARALLEL VISION</h1>
-  <div class="subtitle">Independent Label From Berlin</div>
-</header>
+    <h1>PARALLEL VISION</h1>
+    <p>INDEPENDENT LABEL FROM BERLIN</p>
 
-<main>
-<section>
-  <h2>About</h2>
-  <p style="max-width:760px;margin:0 auto;text-align:center;color:#d4d4d4;">
-    Parallel Vision is a Berlin-based imprint for raw, emotional electronic music.
-    Dark yet luminous. Futuristic yet ancient. Created for the cinematic dance floor.
-  </p>
-</section>
-
-<hr class="neon"/>
-
-<section>
-  <h2>Releases</h2>
-
-  <div class="release">
-    <div class="cover">
-      <img src="/assets/vision.jpg" alt="Vision EP">
+    <!-- ABOUT -->
+    <div class="section">
+        <h2>ABOUT</h2>
+        <p>
+            Parallel Vision is a Berlin-based imprint for raw, emotional electronic music.  
+            The catalog moves where new wave, electro, and indie dance collide — dark yet luminous,  
+            minimal yet powerful. Founded by Alejandro Molinari in 2025, the label curates  
+            forward-thinking works that feel ritualistic and cinematic on the floor.
+        </p>
     </div>
-    <div class="meta">
-      <h3>Vision EP</h3>
-      <p>Deep cinematic energy, industrial textures, and future-shock melodies. With remixes by Badwolf & Roliva.</p>
 
-      <div class="kv">
-        <div><strong>Released:</strong> 25 Jul 2025</div>
-        <div><strong>Catalog:</strong> CAT1392334</div>
-        <div><strong>Format:</strong> Digital</div>
-        <div><strong>Label:</strong> Parallel Vision</div>
-      </div>
+    <!-- RELEASES -->
+    <div class="section">
+        <h2>RELEASES</h2>
 
-      <a class="btn" target="_blank" href="https://open.spotify.com/album/4YzXh8LJdBrMnJe4089bpe?si=Zf43lv6ETMWI08KfKyfF4A">Listen on Spotify</a>
-      <div class="tags">Indie Dance · Electro · New Wave</div>
+        <div class="release-card">
+            <img src="https://parallelvisionberlin.github.io/assets/vision.jpg?v=4" alt="Vision EP">
+            <h3>Vision EP</h3>
+            <p>A hypnotic ignition for Parallel Vision: deep cinematic energy, industrial textures,  
+               and melodies carved from ancient echoes of the future. Includes remixes by  
+               <strong>Badwolf</strong> and <strong>Roliva</strong>.
+            </p>
+
+            <p><strong>Release:</strong> 25 Jul 2025</p>
+            <p><strong>Catalog:</strong> CAT1392334</p>
+            <p><strong>Format:</strong> Digital</p>
+
+            <a href="#">Listen on Spotify</a>
+        </div>
     </div>
-  </div>
-</section>
 
-<hr class="neon"/>
+    <!-- ARTIST ROSTER -->
+    <div class="section">
+        <h2>ARTIST ROSTER</h2>
 
-<section>
-<h2>Artist Roster</h2>
+        <div class="artist-grid">
 
-<div class="artist-grid">
+            <!-- Alejandro -->
+            <div class="artist-card">
+                <img src="https://parallelvisionberlin.github.io/assets/Alejandro1.jpg?v=4" alt="Alejandro Molinari">
+                <h3>Alejandro Molinari</h3>
+                <a href="#">SoundCloud</a><br>
+                <a href="#">Spotify</a><br>
+                <a href="#">Resident Advisor</a>
+            </div>
 
-  <div class="artist">
-    <div class="pic"><img src="/assets/Alejandro1.jpg"></div>
-    <div>
-      <h4>Alejandro Molinari</h4>
-      <div class="out">
-        <a target="_blank" href="https://soundcloud.com/alejandromolinari">SoundCloud</a>
-        <a target="_blank" href="https://open.spotify.com/artist/6MVmGh11Jf6bh8FfwiLblE">Spotify</a>
-        <a target="_blank" href="https://ra.co/dj/alejandromolinari">RA</a>
-      </div>
+            <!-- Badwolf -->
+            <div class="artist-card">
+                <img src="https://parallelvisionberlin.github.io/assets/badwolfprofile?v=4" alt="Badwolf">
+                <h3>Badwolf</h3>
+                <a href="#">SoundCloud</a><br>
+                <a href="#">Spotify</a>
+            </div>
+
+            <!-- Roliva -->
+            <div class="artist-card">
+                <img src="https://parallelvisionberlin.github.io/assets/rolivaprofile?v=4" alt="Roliva">
+                <h3>Roliva</h3>
+                <a href="#">SoundCloud</a><br>
+                <a href="#">Spotify</a><br>
+                <a href="#">Resident Advisor</a>
+            </div>
+
+            <!-- Elorean -->
+            <div class="artist-card">
+                <img src="https://parallelvisionberlin.github.io/assets/Elorean1.jpg?v=4" alt="Elorean">
+                <h3>Elorean</h3>
+                <a href="#">SoundCloud</a><br>
+                <a href="#">Spotify</a>
+            </div>
+
+            <!-- Margaryan -->
+            <div class="artist-card">
+                <img src="https://parallelvisionberlin.github.io/assets/Margaryan1.jpg?v=4" alt="Margaryan">
+                <h3>Margaryan</h3>
+                <a href="#">SoundCloud</a><br>
+                <a href="#">Spotify</a>
+            </div>
+
+            <!-- Cabizbajo -->
+            <div class="artist-card">
+                <img src="https://parallelvisionberlin.github.io/assets/Cabizbajo1.jpg?v=4" alt="Cabizbajo">
+                <h3>Cabizbajo</h3>
+                <a href="#">SoundCloud</a><br>
+                <a href="#">Spotify</a><br>
+                <a href="#">Resident Advisor</a>
+            </div>
+
+        </div>
     </div>
-  </div>
 
-  <div class="artist">
-    <div class="pic"><img src="/assets/badwolfprofile.jpg"></div>
-    <div>
-      <h4>Badwolf</h4>
-      <div class="out">
-        <a target="_blank" href="https://soundcloud.com/bad-wolf1">SoundCloud</a>
-        <a target="_blank" href="https://open.spotify.com/artist/6MyKIMrr222sdw8idnPVSd">Spotify</a>
-      </div>
-    </div>
-  </div>
-
-  <div class="artist">
-    <div class="pic"><img src="/assets/rolivaprofile.jpg"></div>
-    <div>
-      <h4>Roliva</h4>
-      <div class="out">
-        <a target="_blank" href="https://soundcloud.com/roliva">SoundCloud</a>
-        <a target="_blank" href="https://open.spotify.com/artist/1uXG2VIlypvjoTDTgqGYoN">Spotify</a>
-        <a target="_blank" href="https://ra.co/dj/roliva">RA</a>
-      </div>
-    </div>
-  </div>
-
-  <div class="artist">
-    <div class="pic"><img src="/assets/Elorean1.jpg"></div>
-    <div>
-      <h4>Elorean</h4>
-      <div class="out">
-        <a target="_blank" href="https://soundcloud.com/elorian_ofc">SoundCloud</a>
-        <a target="_blank" href="https://open.spotify.com/artist/6HD8nRuK1Tt3Gc2xQ6qmnk">Spotify</a>
-      </div>
-    </div>
-  </div>
-
-  <div class="artist">
-    <div class="pic"><img src="/assets/Margaryan1.jpg"></div>
-    <div>
-      <h4>Margaryan</h4>
-      <div class="out">
-        <a target="_blank" href="https://soundcloud.com/user-932974362">SoundCloud</a>
-        <a target="_blank" href="https://open.spotify.com/artist/0fOe07euakUFcf5FxNmDuR">Spotify</a>
-      </div>
-    </div>
-  </div>
-
-  <div class="artist">
-    <div class="pic"><img src="/assets/Cabizbajo1.jpg"></div>
-    <div>
-      <h4>Cabizbajo</h4>
-      <div class="out">
-        <a target="_blank" href="https://soundcloud.com/cabizbajo">SoundCloud</a>
-        <a target="_blank" href="https://open.spotify.com/artist/3sZkCrbHsAo7OS6CuB7F6Q">Spotify</a>
-        <a target="_blank" href="https://ra.co/dj/cabizbajo">RA</a>
-      </div>
-    </div>
-  </div>
-
-</div>
-</section>
-
-<section>
-  <h2>Contact</h2>
-  <p style="text-align:center;">parallelvision.label@gmail.com</p>
-</section>
-
-</main>
-
-<footer>© 2025 Parallel Vision · Berlin</footer>
+    <!-- CONTACT -->
+    <footer>
+        For demos, press, and collaborations:<br>
+        <strong>parallelvision.label@gmail.com</strong>
+    </footer>
 
 </body>
 </html>
