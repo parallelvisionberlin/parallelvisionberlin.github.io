@@ -4,236 +4,294 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Parallel Vision</title>
-<meta name="description" content="Parallel Vision — Berlin-based label for raw, emotional electronic music. Vision EP out now." />
+<meta name="description" content="Parallel Vision — Berlin-based tech-noir label. Vision EP out now." />
 
-<!-- Tech-noir fonts -->
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600&family=Michroma&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600&family=Michroma&display=swap" rel="stylesheet">
 
 <style>
 :root{
-  --bg:#0a0a0a;
+  --bg:#050505;
+  --fg:#e3e3e3;
+  --muted:#8b8b8b;
+  --line:#181818;
   --card:#0d0d0d;
-  --fg:#e6e6e6;
-  --muted:#9aa0a6;
-  --line:#1c1c1c;
-  --neon:#00e5ff;   /* cyan */
-  --crimson:#ff2a6d;/* magenta-red */
-  --max:1080px;
+  --neon:#00e8ff;
 }
 
-*{box-sizing:border-box}
-html,body{margin:0;background:var(--bg);color:var(--fg);line-height:1.6}
-body{font-family:"Space Grotesk", system-ui, -apple-system, Segoe UI, Helvetica, Arial, sans-serif}
+*{box-sizing:border-box;}
+html,body{margin:0;background:var(--bg);color:var(--fg);font-family:"Space Grotesk",sans-serif;}
 
-/* Links */
-a{color:var(--fg);text-decoration:none;border-bottom:1px solid transparent;transition:.25s}
-a:hover{border-color:var(--fg)}
-
-/* Header */
-header{padding:86px 20px 40px;text-align:center}
+header{
+  text-align:center;
+  padding:85px 18px 45px;
+}
 h1{
-  font-family:"Michroma", sans-serif;
-  letter-spacing:.16em;text-transform:uppercase;margin:0 0 10px;font-size:36px}
+  margin:0 0 10px;
+  font-family:"Michroma",sans-serif;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+}
 .subtitle{
-  font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)
+  font-size:12px;
+  text-transform:uppercase;
+  letter-spacing:.2em;
+  color:var(--muted);
 }
 
-/* Sections */
-main{max-width:var(--max);margin:0 auto;padding:0 20px 80px}
-section{padding:56px 0;border-top:1px solid var(--line)}
-section:first-of-type{border-top:0}
+main{
+  max-width:1080px;
+  margin:0 auto;
+  padding:0 20px 80px;
+}
+
+section{padding:60px 0;border-top:1px solid var(--line);}
+section:first-of-type{border-top:0;}
+
 h2{
-  font-family:"Michroma", sans-serif;
-  font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);
-  margin:0 0 22px;text-align:center
+  font-family:"Michroma",sans-serif;
+  font-size:12px;
+  letter-spacing:.22em;
+  text-transform:uppercase;
+  text-align:center;
+  margin-bottom:24px;
+  color:var(--muted);
 }
-.about p{max-width:760px;margin:0 auto;color:#c9c9c9;text-align:center}
 
-/* Release card */
+/* Release */
 .release{
-  display:grid;grid-template-columns:300px 1fr;gap:24px;align-items:start;
-  padding:24px;border:1px solid var(--line);border-radius:14px;background:var(--card);
-  box-shadow:0 0 0 1px rgba(0,229,255,.06), 0 8px 30px rgba(0,0,0,.35);
+  display:grid;
+  grid-template-columns:300px 1fr;
+  gap:25px;
+  padding:22px;
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:12px;
 }
-.cover{position:relative}
-.cover img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:12px;border:1px solid var(--line)}
-.meta h3{margin:0 0 8px;font-weight:600;letter-spacing:.02em}
-.meta p{margin:6px 0 12px;color:#d0d0d0}
-.kv{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:10px 0 4px}
-.kv div{padding:10px 12px;border:1px dashed var(--line);border-radius:10px;color:#cfcfcf;font-size:14px}
-.links a{display:inline-block;margin-right:12px;margin-top:14px;border:1px solid var(--line);padding:8px 12px;border-radius:999px;font-size:14px}
-.tags{margin-top:10px;color:var(--muted);font-size:14px}
+.cover img{
+  width:100%;
+  border-radius:10px;
+  border:1px solid var(--line);
+  aspect-ratio:1/1;
+  object-fit:cover;
+}
+.meta h3{margin:0 0 8px;}
+.meta p{color:#cfcfcf;margin:0 0 12px;}
+.kv{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0;}
+.kv div{
+  border:1px dashed var(--line);
+  padding:8px 10px;
+  border-radius:8px;
+  font-size:13px;
+  color:#cfcfcf;
+}
+.btn{
+  display:inline-block;
+  margin-top:12px;
+  padding:8px 14px;
+  font-size:14px;
+  border:1px solid var(--line);
+  border-radius:999px;
+  text-decoration:none;
+  color:var(--muted);
+}
+.btn:hover{
+  color:var(--neon);
+  border-color:var(--neon);
+}
+.tags{text-align:left;margin-top:8px;font-size:13px;color:var(--muted);}
 
-/* Artists grid with photos */
-.artist-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+hr.neon{
+  margin:60px 0;
+  border:none;
+  height:1px;
+  background:linear-gradient(90deg,transparent,var(--neon),transparent);
+}
+
+/* ARTISTS */
+.artist-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:16px;
+}
 .artist{
-  display:grid;grid-template-columns:92px 1fr;gap:14px;align-items:center;
-  background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;
-  box-shadow:0 0 0 1px rgba(255,42,109,.05);
+  display:grid;
+  grid-template-columns:92px 1fr;
+  gap:14px;
+  align-items:center;
+  padding:16px;
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:14px;
 }
-.pic{width:92px;height:92px;border-radius:12px;overflow:hidden;border:1px solid var(--line);background:#111}
-.pic img{width:100%;height:100%;object-fit:cover;display:block}
-.artist h4{margin:0 0 6px;font-weight:600}
-.out a{margin-right:10px;font-size:14px;border:1px solid var(--line);padding:6px 10px;border-radius:999px;display:inline-block}
-.out a:hover{border-color:var(--neon);color:var(--neon)}
+.pic{
+  width:92px;height:92px;overflow:hidden;
+  border-radius:12px;border:1px solid var(--line);
+}
+.pic img{
+  width:100%;height:100%;object-fit:cover;display:block;
+}
+.artist h4{margin:0 0 6px;font-weight:600;}
+.out a{
+  display:inline-block;
+  margin:6px 10px 0 0;
+  padding:6px 12px;
+  font-size:13px;
+  border:1px solid var(--line);
+  border-radius:999px;
+  text-decoration:none;
+  color:var(--muted);
+}
+.out a:hover{color:var(--neon);border-color:var(--neon);}
 
-/* Neon rule */
-hr.neon{border:none;height:1px;background:linear-gradient(90deg,transparent, var(--neon), transparent);margin:64px 0}
+footer{
+  text-align:center;
+  padding:40px;
+  color:var(--muted);
+  font-size:12px;
+  border-top:1px solid var(--line);
+}
 
-/* Footer */
-footer{text-align:center;color:#7a7a7a;padding:40px 20px;border-top:1px solid var(--line);font-size:13px}
-
-/* Reveal */
-.reveal{opacity:0;transform:translateY(12px);transition:opacity .6s ease, transform .6s ease}
-.reveal.on{opacity:1;transform:none}
-
-/* Responsive */
-@media (max-width:980px){ .artist-grid{grid-template-columns:1fr 1fr} .release{grid-template-columns:1fr} header{padding-top:72px}}
-@media (max-width:580px){ .artist-grid{grid-template-columns:1fr} h1{font-size:28px} }
+/* RESPONSIVE */
+@media(max-width:900px){
+  .release{grid-template-columns:1fr;}
+  .artist-grid{grid-template-columns:repeat(2,1fr);}
+}
+@media(max-width:580px){
+  .artist-grid{grid-template-columns:1fr;}
+  h1{font-size:28px;}
+}
 </style>
 </head>
 
 <body>
-<header class="reveal">
-  <h1>Parallel Vision</h1>
-  <div class="subtitle">Independent label from Berlin</div>
+
+<header>
+  <h1>PARALLEL VISION</h1>
+  <div class="subtitle">Independent Label From Berlin</div>
 </header>
 
 <main>
-  <section class="about reveal">
-    <h2>About</h2>
-    <p>
-      Parallel Vision is a Berlin-based imprint for raw, emotional electronic music. The catalog moves where
-      new wave, electro, and indie dance collide — dark yet luminous, minimal yet powerful. Founded by
-      Alejandro Molinari in 2025, the label curates forward-thinking works that feel ritualistic and cinematic on the floor.
-    </p>
-  </section>
+<section>
+  <h2>About</h2>
+  <p style="max-width:760px;margin:0 auto;text-align:center;color:#d4d4d4;">
+    Parallel Vision is a Berlin-based imprint for raw, emotional electronic music.
+    Dark yet luminous. Futuristic yet ancient. Created for the cinematic dance floor.
+  </p>
+</section>
 
-  <hr class="neon" />
+<hr class="neon"/>
 
-  <section id="releases" class="releases reveal">
-    <h2>Releases</h2>
+<section>
+  <h2>Releases</h2>
 
-    <div class="release">
-      <div class="cover">
-        <img src="/assets/vision.jpg" alt="Vision EP cover">
+  <div class="release">
+    <div class="cover">
+      <img src="/assets/vision.jpg" alt="Vision EP">
+    </div>
+    <div class="meta">
+      <h3>Vision EP</h3>
+      <p>Deep cinematic energy, industrial textures, and future-shock melodies. With remixes by Badwolf & Roliva.</p>
+
+      <div class="kv">
+        <div><strong>Released:</strong> 25 Jul 2025</div>
+        <div><strong>Catalog:</strong> CAT1392334</div>
+        <div><strong>Format:</strong> Digital</div>
+        <div><strong>Label:</strong> Parallel Vision</div>
       </div>
-      <div class="meta">
-        <h3>Vision EP</h3>
-        <p>
-          A hypnotic ignition for Parallel Vision: deep cinematic energy, industrial textures, and melodies carved from
-          ancient echoes of the future. Includes remixes by <strong>Badwolf</strong> and <strong>Roliva</strong>.
-        </p>
 
-        <div class="kv">
-          <div><strong>Release date:</strong> 25 Jul 2025</div>
-          <div><strong>Catalog:</strong> CAT1392334</div>
-          <div><strong>Label:</strong> Parallel Vision</div>
-          <div><strong>Format:</strong> Digital</div>
-        </div>
+      <a class="btn" target="_blank" href="https://open.spotify.com/album/4YzXh8LJdBrMnJe4089bpe?si=Zf43lv6ETMWI08KfKyfF4A">Listen on Spotify</a>
+      <div class="tags">Indie Dance · Electro · New Wave</div>
+    </div>
+  </div>
+</section>
 
-        <div class="links">
-          <a href="https://open.spotify.com/album/4YzXh8LJdBrMnJe4089bpe?si=Zf43lv6ETMWI08KfKyfF4A" target="_blank" rel="noopener">Listen on Spotify</a>
-        </div>
+<hr class="neon"/>
 
-        <div class="tags">Indie Dance · Electro · New Wave</div>
+<section>
+<h2>Artist Roster</h2>
+
+<div class="artist-grid">
+
+  <div class="artist">
+    <div class="pic"><img src="/assets/Alejandro1.jpg"></div>
+    <div>
+      <h4>Alejandro Molinari</h4>
+      <div class="out">
+        <a target="_blank" href="https://soundcloud.com/alejandromolinari">SoundCloud</a>
+        <a target="_blank" href="https://open.spotify.com/artist/6MVmGh11Jf6bh8FfwiLblE">Spotify</a>
+        <a target="_blank" href="https://ra.co/dj/alejandromolinari">RA</a>
       </div>
     </div>
-  </section>
+  </div>
 
-  <hr class="neon" />
-
-  <section id="artists" class="reveal">
-    <h2>Artist Roster</h2>
-
-    <div class="artist-grid">
-      <div class="artist">
-        <div class="pic"><img src="/assets/Alejandro.jpg" alt="Alejandro Molinari" loading="lazy"></div>
-        <div>
-          <h4>Alejandro Molinari</h4>
-          <div class="out">
-            <a href="https://soundcloud.com/alejandromolinari" target="_blank">SoundCloud</a>
-            <a href="https://open.spotify.com/artist/6MVmGh11Jf6bh8FfwiLblE?si=6V4CAblpRcyMgKKC4gg9oQ" target="_blank">Spotify</a>
-            <a href="https://ra.co/dj/alejandromolinari" target="_blank">Resident Advisor</a>
-          </div>
-        </div>
-      </div>
-
-      <div class="artist">
-        <div class="pic"><img src="/assets/badwolfprofile.jpg" alt="Badwolf" loading="lazy"></div>
-        <div>
-          <h4>Badwolf</h4>
-          <div class="out">
-            <a href="https://soundcloud.com/bad-wolf1" target="_blank">SoundCloud</a>
-            <a href="https://open.spotify.com/artist/6MyKIMrr222sdw8idnPVSd?si=UMnVp-NlTnWYm2hS3Irx7g" target="_blank">Spotify</a>
-          </div>
-        </div>
-      </div>
-
-      <div class="artist">
-        <div class="pic"><img src="/assets/rolivaprofile.jpg" alt="Roliva" loading="lazy"></div>
-        <div>
-          <h4>Roliva</h4>
-          <div class="out">
-            <a href="https://soundcloud.com/roliva" target="_blank">SoundCloud</a>
-            <a href="https://open.spotify.com/artist/1uXG2VIlypvjoTDTgqGYoN?si=HuDT28RjTTyZlTiQeYNRdg" target="_blank">Spotify</a>
-            <a href="https://ra.co/dj/roliva" target="_blank">Resident Advisor</a>
-          </div>
-        </div>
-      </div>
-
-      <div class="artist">
-        <div class="pic"><img src="/assets/Elorean1.jpg" alt="Elorean" loading="lazy"></div>
-        <div>
-          <h4>Elorean</h4>
-          <div class="out">
-            <a href="https://soundcloud.com/elorian_ofc" target="_blank">SoundCloud</a>
-            <a href="https://open.spotify.com/artist/6HD8nRuK1Tt3Gc2xQ6qmnk?si=dMNIDw1SSUGrEMIcxbSgWw" target="_blank">Spotify</a>
-          </div>
-        </div>
-      </div>
-
-      <div class="artist">
-        <div class="pic"><img src="/assets/Margaryan1.jpg" alt="Margaryan" loading="lazy"></div>
-        <div>
-          <h4>Margaryan</h4>
-          <div class="out">
-            <a href="https://soundcloud.com/user-932974362" target="_blank">SoundCloud</a>
-            <a href="https://open.spotify.com/artist/0fOe07euakUFcf5FxNmDuR?si=ZEVPhmdgQ_mhok5Y8cPjbg" target="_blank">Spotify</a>
-          </div>
-        </div>
-      </div>
-
-      <div class="artist">
-        <div class="pic"><img src="/assets/Cabizbajo1.jpg" alt="Cabizbajo" loading="lazy"></div>
-        <div>
-          <h4>Cabizbajo</h4>
-          <div class="out">
-            <a href="https://soundcloud.com/cabizbajo" target="_blank">SoundCloud</a>
-            <a href="https://open.spotify.com/artist/3sZkCrbHsAo7OS6CuB7F6Q?si=pTIGcJMwRhab37n8KGryog" target="_blank">Spotify</a>
-            <a href="https://ra.co/dj/cabizbajo" target="_blank">Resident Advisor</a>
-          </div>
-        </div>
+  <div class="artist">
+    <div class="pic"><img src="/assets/badwolfprofile.jpg"></div>
+    <div>
+      <h4>Badwolf</h4>
+      <div class="out">
+        <a target="_blank" href="https://soundcloud.com/bad-wolf1">SoundCloud</a>
+        <a target="_blank" href="https://open.spotify.com/artist/6MyKIMrr222sdw8idnPVSd">Spotify</a>
       </div>
     </div>
-  </section>
+  </div>
 
-  <section class="contact reveal">
-    <h2>Contact</h2>
-    <p>For demos, press, and collaborations:<br>
-      <a href="mailto:parallelvision.label@gmail.com">parallelvision.label@gmail.com</a>
-    </p>
-  </section>
+  <div class="artist">
+    <div class="pic"><img src="/assets/rolivaprofile.jpg"></div>
+    <div>
+      <h4>Roliva</h4>
+      <div class="out">
+        <a target="_blank" href="https://soundcloud.com/roliva">SoundCloud</a>
+        <a target="_blank" href="https://open.spotify.com/artist/1uXG2VIlypvjoTDTgqGYoN">Spotify</a>
+        <a target="_blank" href="https://ra.co/dj/roliva">RA</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="artist">
+    <div class="pic"><img src="/assets/Elorean1.jpg"></div>
+    <div>
+      <h4>Elorean</h4>
+      <div class="out">
+        <a target="_blank" href="https://soundcloud.com/elorian_ofc">SoundCloud</a>
+        <a target="_blank" href="https://open.spotify.com/artist/6HD8nRuK1Tt3Gc2xQ6qmnk">Spotify</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="artist">
+    <div class="pic"><img src="/assets/Margaryan1.jpg"></div>
+    <div>
+      <h4>Margaryan</h4>
+      <div class="out">
+        <a target="_blank" href="https://soundcloud.com/user-932974362">SoundCloud</a>
+        <a target="_blank" href="https://open.spotify.com/artist/0fOe07euakUFcf5FxNmDuR">Spotify</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="artist">
+    <div class="pic"><img src="/assets/Cabizbajo1.jpg"></div>
+    <div>
+      <h4>Cabizbajo</h4>
+      <div class="out">
+        <a target="_blank" href="https://soundcloud.com/cabizbajo">SoundCloud</a>
+        <a target="_blank" href="https://open.spotify.com/artist/3sZkCrbHsAo7OS6CuB7F6Q">Spotify</a>
+        <a target="_blank" href="https://ra.co/dj/cabizbajo">RA</a>
+      </div>
+    </div>
+  </div>
+
+</div>
+</section>
+
+<section>
+  <h2>Contact</h2>
+  <p style="text-align:center;">parallelvision.label@gmail.com</p>
+</section>
+
 </main>
 
 <footer>© 2025 Parallel Vision · Berlin</footer>
 
-<script>
-  // reveal on scroll
-  const io = new IntersectionObserver((es)=>es.forEach(e=>{
-    if(e.isIntersecting){ e.target.classList.add('on'); io.unobserve(e.target); }
-  }),{threshold:.12});
-  document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
-</script>
 </body>
 </html>
