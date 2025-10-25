@@ -29,7 +29,6 @@ hr.neon{border:none;height:1px;background:linear-gradient(90deg,transparent,var(
   padding:22px;background:var(--card);border:1px solid var(--line);border-radius:14px;
   box-shadow:0 0 0 1px rgba(0,232,255,.06), 0 12px 36px rgba(0,0,0,.55);
 }
-.cover{position:relative}
 .cover img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:12px;border:1px solid var(--line);display:block}
 .meta h3{margin:0 0 8px;letter-spacing:.02em}
 .meta p{margin:6px 0 12px;color:#cfcfcf}
@@ -42,7 +41,7 @@ hr.neon{border:none;height:1px;background:linear-gradient(90deg,transparent,var(
 }
 .btn:hover{border-color:var(--orange);color:var(--orange)}
 .btn-spot{border-color:#1db95426}
-.btn-sc{border-color:#ff770026}
+.btn-sc{border-color:#ff550026}
 
 /* ARTISTS */
 .artist-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
@@ -57,8 +56,6 @@ hr.neon{border:none;height:1px;background:linear-gradient(90deg,transparent,var(
 .artist h4{margin:0 0 6px;font-weight:600}
 .out a{margin-right:10px;font-size:14px;border:1px solid var(--line);padding:6px 10px;border-radius:999px;display:inline-block;color:#bfbfbf}
 .out a:hover{border-color:var(--orange);color:var(--orange)}
-
-/* Footer */
 footer{text-align:center;color:#7a7a7a;padding:40px 20px;border-top:1px solid var(--line);font-size:13px}
 
 /* Responsive */
@@ -84,8 +81,8 @@ footer{text-align:center;color:#7a7a7a;padding:40px 20px;border-top:1px solid va
     <h2>Releases</h2>
     <div class="release">
       <div class="cover">
-        <!-- Fallback: if /assets/vision.jpg fails, swap to Alejandro1.jpg so layout never breaks -->
-        <img src="/assets/vision.jpg" alt="Vision EP cover"
+        <!-- Use the PNG you renamed. If it fails, fall back to Alejandro1.jpg -->
+        <img src="/assets/vision-neo.png?cb=1" alt="Vision EP cover"
              onerror="this.onerror=null; this.src='/assets/Alejandro1.jpg'; this.alt='Vision EP';">
       </div>
       <div class="meta">
