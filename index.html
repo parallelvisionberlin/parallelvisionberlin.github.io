@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,19 +17,50 @@ padding:0;
 box-sizing:border-box;
 }
 
-html,body{
+body{
 background:#000;
-color:white;
+color:#fff;
 font-family:'Inter',sans-serif;
-height:100%;
 overflow-x:hidden;
 }
 
-.hero{
-position:relative;
-height:100vh;
+a{
+text-decoration:none;
+color:white;
+}
+
+nav{
+position:fixed;
+top:0;
+left:0;
 width:100%;
-overflow:hidden;
+padding:28px 60px;
+display:flex;
+justify-content:center;
+gap:60px;
+z-index:100;
+backdrop-filter:blur(10px);
+background:rgba(0,0,0,.35);
+}
+
+nav a{
+font-size:12px;
+letter-spacing:.35em;
+text-transform:uppercase;
+opacity:.8;
+}
+
+nav a:hover{
+opacity:1;
+}
+
+.hero{
+height:100vh;
+position:relative;
+display:flex;
+justify-content:center;
+align-items:center;
+text-align:center;
 }
 
 .hero img{
@@ -37,156 +69,142 @@ inset:0;
 width:100%;
 height:100%;
 object-fit:cover;
+opacity:.45;
 }
 
 .hero::after{
 content:'';
 position:absolute;
 inset:0;
-background:
-linear-gradient(
-180deg,
-rgba(0,0,0,.25) 0%,
-rgba(0,0,0,.40) 40%,
-rgba(0,0,0,.65) 100%
-);
+background:linear-gradient(to bottom,
+rgba(0,0,0,.15),
+rgba(0,0,0,.75));
 }
 
-nav{
-position:absolute;
-top:40px;
-left:50%;
-transform:translateX(-50%);
-z-index:10;
-display:flex;
-gap:50px;
+.hero-content{
+position:relative;
+z-index:2;
 }
 
-nav a{
-color:white;
-text-decoration:none;
-font-size:12px;
-letter-spacing:.25em;
-text-transform:uppercase;
-opacity:.8;
-transition:.3s;
-}
-
-nav a:hover{
-opacity:1;
-}
-
-.content{
-position:absolute;
-inset:0;
-z-index:5;
-
-display:flex;
-flex-direction:column;
-justify-content:center;
-align-items:center;
-
-text-align:center;
-padding:20px;
-}
-
-.logo{
+.hero h1{
 font-family:'Michroma',sans-serif;
-font-size:clamp(32px,6vw,90px);
-letter-spacing:.35em;
-text-transform:uppercase;
-margin-bottom:20px;
+font-size:clamp(50px,10vw,180px);
+letter-spacing:.25em;
 }
 
-.subtitle{
+.hero p{
+margin-top:20px;
+letter-spacing:.5em;
+text-transform:uppercase;
 font-size:12px;
-letter-spacing:.6em;
-text-transform:uppercase;
-opacity:.8;
-margin-bottom:25px;
-}
-
-.text{
-max-width:700px;
-font-size:15px;
-line-height:1.8;
-opacity:.9;
-}
-
-.bottom{
-position:absolute;
-bottom:40px;
-left:50%;
-transform:translateX(-50%);
-z-index:10;
-font-size:11px;
-letter-spacing:.4em;
-text-transform:uppercase;
-opacity:.7;
 }
 
 .section{
-padding:140px 30px;
-background:#050505;
+padding:120px 8%;
 }
 
-.wrapper{
-max-width:900px;
-margin:auto;
-}
-
-h2{
+.section-title{
 font-family:'Michroma',sans-serif;
-font-size:14px;
+font-size:16px;
 letter-spacing:.35em;
 text-transform:uppercase;
-margin-bottom:40px;
+margin-bottom:50px;
 }
 
-.list{
+.artists{
 display:flex;
-flex-direction:column;
-gap:18px;
+justify-content:center;
+gap:60px;
+flex-wrap:wrap;
 }
 
-.item{
-font-size:20px;
-border-bottom:1px solid #111;
-padding-bottom:18px;
+.artist{
+letter-spacing:.2em;
+text-transform:uppercase;
+font-size:14px;
+opacity:.9;
+}
+
+.release-grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+gap:25px;
+}
+
+.release{
+transition:.3s;
+}
+
+.release img{
+width:100%;
+aspect-ratio:1/1;
+object-fit:cover;
+display:block;
+}
+
+.release:hover{
+transform:translateY(-5px);
+}
+
+.release h3{
+margin-top:15px;
+font-size:14px;
+letter-spacing:.15em;
+text-transform:uppercase;
+}
+
+.release p{
+font-size:11px;
+opacity:.6;
+margin-top:5px;
+letter-spacing:.2em;
+}
+
+.berlin{
+display:grid;
+grid-template-columns:2fr 1fr;
+gap:50px;
+align-items:center;
+}
+
+.berlin img{
+width:100%;
+display:block;
+}
+
+.berlin-text{
+line-height:2;
+opacity:.85;
 }
 
 .contact{
 text-align:center;
-padding:120px 20px;
-border-top:1px solid #111;
 }
 
 .contact a{
-color:white;
-text-decoration:none;
-opacity:.8;
+font-size:18px;
 }
 
 footer{
+padding:50px;
 text-align:center;
-padding:40px;
-font-size:12px;
 opacity:.5;
+font-size:12px;
 }
 
-@media(max-width:700px){
+@media(max-width:900px){
+
+.berlin{
+grid-template-columns:1fr;
+}
+
+.hero h1{
+letter-spacing:.1em;
+}
 
 nav{
-gap:18px;
-}
-
-nav a{
-font-size:10px;
-letter-spacing:.15em;
-}
-
-.logo{
-letter-spacing:.15em;
+gap:20px;
+padding:20px;
 }
 
 }
@@ -196,10 +214,6 @@ letter-spacing:.15em;
 
 <body>
 
-<section class="hero">
-
-<img src="assets/cover.jpg" alt="Parallel Vision">
-
 <nav>
 <a href="#artists">Artists</a>
 <a href="#releases">Releases</a>
@@ -207,87 +221,93 @@ letter-spacing:.15em;
 <a href="#contact">Contact</a>
 </nav>
 
-<div class="content">
+<section class="hero">
 
-<div class="logo">
-PARALLEL VISION
-</div>
+<img src="cover.jpg">
 
-<div class="subtitle">
-BERLIN 2063
-</div>
-
-<div class="text">
-A cinematic world of electronic music, memory, machines and nightlife.
-</div>
-
-</div>
-
-<div class="bottom">
-SCROLL
-</div>
-
-</section>
-
-<section id="berlin" class="section">
-
-<div class="wrapper">
-
-<h2>Berlin 2063</h2>
-
-<p style="line-height:2;color:#cfcfcf;">
-Artificial intelligence predicts reality.
-Synthetic guardians patrol the city.
-Human memory is stored in the cloud.
-Music remains the last unexplained anomaly.
-</p>
-
+<div class="hero-content">
+<h1>PARALLEL<br>VISION</h1>
+<p>Berlin 2063</p>
 </div>
 
 </section>
 
 <section id="artists" class="section">
 
-<div class="wrapper">
+<div class="section-title">Artists</div>
 
-<h2>Artists</h2>
-
-<div class="list">
-
-<div class="item">Alejandro Molinari</div>
-<div class="item">REFRAKT</div>
-<div class="item">Blex</div>
-<div class="item">Badwolf</div>
-<div class="item">Cabizbajo</div>
-
-</div>
-
+<div class="artists">
+<div class="artist">Alejandro Molinari</div>
+<div class="artist">REFRAKT</div>
+<div class="artist">Blex</div>
+<div class="artist">Badwolf</div>
+<div class="artist">Cabizbajo</div>
 </div>
 
 </section>
 
 <section id="releases" class="section">
 
-<div class="wrapper">
+<div class="section-title">Releases</div>
 
-<h2>Releases</h2>
+<div class="release-grid">
 
-<div class="list">
+<div class="release">
+<img src="vision-neo.jpg">
+<h3>Vision EP</h3>
+<p>PV001</p>
+</div>
 
-<div class="item">Dark Rock</div>
-<div class="item">Built To Last</div>
-<div class="item">Vision EP</div>
-<div class="item">Funky Beat</div>
+<div class="release">
+<img src="darkrockart.png">
+<h3>Dark Rock</h3>
+<p>PV002</p>
+</div>
 
+<div class="release">
+<img src="builtrefkrakt.png">
+<h3>Built To Last</h3>
+<p>PV003</p>
+</div>
+
+<div class="release">
+<img src="funkybeat.png">
+<h3>Funky Beat</h3>
+<p>PV004</p>
+</div>
+
+<div class="release">
+<img src="ravesia.png">
+<h3>Ravesia</h3>
+<p>PV005</p>
 </div>
 
 </div>
 
 </section>
 
-<section id="contact" class="contact">
+<section id="berlin" class="section">
 
-<h2>Contact</h2>
+<div class="section-title">Berlin 2063</div>
+
+<div class="berlin">
+
+<img src="berlin2063.jpg">
+
+<div class="berlin-text">
+Artificial intelligence predicts reality.<br>
+Synthetic guardians patrol the city.<br>
+Human memory is stored in the cloud.<br>
+Music remains the last unexplained anomaly.
+</div>
+
+</div>
+
+</section>
+
+<section id="contact" class="section contact">
+
+<div class="section-title">Contact</div>
 
 <a href="mailto:parallelvision.label@gmail.com">
 parallelvision.label@gmail.com
