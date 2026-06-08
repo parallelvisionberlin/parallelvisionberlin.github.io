@@ -3,253 +3,325 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Parallel Vision | Berlin 2063</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Michroma&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Michroma&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-html{scroll-behavior:smooth}
-body{background:#000;color:white;font-family:Inter,sans-serif;overflow-x:hidden}
-a{text-decoration:none;color:white}
 
-body:before{
+html,body{
+background:#000;
+color:#fff;
+font-family:'Inter',sans-serif;
+overflow-x:hidden;
+scroll-behavior:smooth;
+}
+
+a{color:inherit;text-decoration:none}
+
+body::before{
 content:"";
 position:fixed;
 inset:0;
 pointer-events:none;
-z-index:50;
+z-index:999;
 background:
 linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
 linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px);
-background-size:80px 80px;
-opacity:.25;
+background-size:3px 3px;
+opacity:.18;
+mix-blend-mode:screen;
 }
-
-nav{
-position:fixed;
-top:0;left:0;width:100%;
-z-index:20;
-display:flex;
-justify-content:center;
-gap:60px;
-padding:28px 20px;
-background:rgba(0,0,0,.72);
-backdrop-filter:blur(14px);
-border-bottom:1px solid rgba(255,255,255,.08);
-}
-
-nav a{
-font-size:12px;
-letter-spacing:.35em;
-text-transform:uppercase;
-opacity:.78;
-}
-
-nav a:hover{opacity:1}
 
 .hero{
+position:relative;
 min-height:100vh;
 display:flex;
 align-items:center;
 justify-content:center;
 text-align:center;
-padding:120px 20px 80px;
-position:relative;
+overflow:hidden;
+border-bottom:1px solid #111;
 }
 
-.hero:after{
+.hero-bg{
+position:absolute;
+inset:0;
+width:100%;
+height:100%;
+object-fit:cover;
+opacity:.32;
+filter:grayscale(.2) contrast(1.15) brightness(.75);
+}
+
+.hero::after{
 content:"";
 position:absolute;
-bottom:0;
-left:8%;
-right:8%;
-height:1px;
-background:linear-gradient(90deg,transparent,#555,transparent);
+inset:0;
+background:
+radial-gradient(circle at center, rgba(0,0,0,.2), rgba(0,0,0,.9) 72%),
+linear-gradient(to bottom, rgba(0,0,0,.15), #000 96%);
 }
 
-.hero h1{
-font-family:Michroma,sans-serif;
-font-size:clamp(46px,10vw,150px);
-letter-spacing:.24em;
-line-height:1.2;
-text-shadow:0 0 28px rgba(255,255,255,.18);
+nav{
+position:absolute;
+top:38px;
+left:50%;
+transform:translateX(-50%);
+z-index:10;
+display:flex;
+gap:46px;
+font-size:11px;
+letter-spacing:.32em;
+text-transform:uppercase;
+opacity:.86;
 }
 
-.hero .sub{
-margin-top:28px;
-font-size:12px;
+nav a:hover{opacity:.55}
+
+.hero-content{
+position:relative;
+z-index:5;
+padding:20px;
+}
+
+.logo{
+font-family:'Michroma',sans-serif;
+font-size:clamp(42px,8vw,118px);
+letter-spacing:.34em;
+line-height:1.35;
+text-transform:uppercase;
+margin-bottom:24px;
+}
+
+.kicker{
+font-size:11px;
 letter-spacing:.55em;
 text-transform:uppercase;
-opacity:.75;
+opacity:.78;
+margin-bottom:28px;
 }
 
-.hero .tagline{
-max-width:720px;
-margin:30px auto 0;
-line-height:1.9;
+.hero-text{
+max-width:760px;
+margin:auto;
 font-size:15px;
-color:#cfcfcf;
+line-height:1.9;
+opacity:.84;
+}
+
+.scroll{
+position:absolute;
+bottom:36px;
+left:50%;
+transform:translateX(-50%);
+z-index:10;
+font-size:10px;
+letter-spacing:.45em;
+text-transform:uppercase;
+opacity:.55;
 }
 
 .section{
-padding:110px 7%;
-border-top:1px solid #111;
-position:relative;
+padding:115px 26px;
+border-bottom:1px solid #111;
+background:#030303;
 }
 
-.section:before{
-content:attr(data-number);
-position:absolute;
-top:105px;
-left:3%;
+.wrapper{
+max-width:1180px;
+margin:auto;
+}
+
+.section-head{
+display:flex;
+justify-content:space-between;
+align-items:flex-end;
+gap:30px;
+margin-bottom:42px;
+}
+
+.number{
 font-size:11px;
-letter-spacing:.3em;
-color:#555;
+letter-spacing:.35em;
+opacity:.45;
+margin-bottom:12px;
 }
 
-.section-title{
-font-family:Michroma,sans-serif;
-font-size:18px;
-letter-spacing:.38em;
+h2{
+font-family:'Michroma',sans-serif;
+font-size:14px;
+letter-spacing:.34em;
 text-transform:uppercase;
-margin-bottom:55px;
 }
 
-.story-block{
-max-width:920px;
-line-height:2;
-color:#cfcfcf;
-font-size:16px;
+.small{
+max-width:520px;
+color:#bdbdbd;
+font-size:14px;
+line-height:1.9;
 }
 
 .artists{
-display:flex;
-flex-wrap:wrap;
-justify-content:center;
-gap:55px;
+display:grid;
+grid-template-columns:repeat(5,1fr);
+gap:1px;
+background:#111;
+border:1px solid #111;
 }
 
 .artist{
-font-size:13px;
-letter-spacing:.25em;
+background:#050505;
+padding:26px 18px;
+text-align:center;
+font-size:11px;
+letter-spacing:.28em;
 text-transform:uppercase;
-opacity:.88;
+transition:.25s;
+}
+
+.artist:hover{
+background:#111;
 }
 
 .release-grid{
 display:grid;
-grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-gap:36px;
+grid-template-columns:repeat(5,1fr);
+gap:24px;
 }
 
-.release{
-transition:.35s;
+.release-card{
+display:block;
 }
 
-.release:hover{
-transform:translateY(-6px);
-}
-
-.release img{
+.release-card img{
 width:100%;
 aspect-ratio:1/1;
 object-fit:cover;
-display:block;
-border:1px solid #222;
 background:#111;
-filter:contrast(1.06) saturate(.9);
+border:1px solid #151515;
+filter:contrast(1.05) brightness(.9);
+transition:.3s;
 }
 
-.release h3{
-margin-top:16px;
-font-size:15px;
+.release-card:hover img{
+transform:scale(1.025);
+filter:contrast(1.1) brightness(1);
+}
+
+.release-title{
+display:block;
+margin-top:13px;
+font-size:12px;
+letter-spacing:.22em;
+text-transform:uppercase;
+}
+
+.release-meta{
+display:block;
+margin-top:4px;
+font-size:10px;
 letter-spacing:.18em;
 text-transform:uppercase;
+color:#777;
 }
 
-.release p{
-margin-top:5px;
-font-size:12px;
-letter-spacing:.25em;
-opacity:.55;
-}
-
-.berlin{
+.story{
 display:grid;
-grid-template-columns:1.25fr 1fr;
-gap:60px;
-align-items:center;
+grid-template-columns:1.15fr .85fr;
+gap:0;
+border:1px solid #111;
+background:#050505;
 }
 
-.berlin img{
+.story img{
 width:100%;
-aspect-ratio:16/9;
+height:100%;
+min-height:420px;
 object-fit:cover;
-border:1px solid #222;
-filter:brightness(.85) contrast(1.08);
+filter:grayscale(.15) contrast(1.1) brightness(.75);
 }
 
-.berlin-text{
-line-height:2;
-color:#ccc;
+.story-text{
+padding:60px;
+display:flex;
+flex-direction:column;
+justify-content:center;
+}
+
+.story-text p{
 font-size:15px;
-}
-
-.berlin-text strong{
-color:#fff;
-font-weight:400;
-letter-spacing:.12em;
-text-transform:uppercase;
-}
-
-.quote{
-margin-top:35px;
-padding-left:20px;
-border-left:1px solid #555;
-color:#aaa;
-font-size:14px;
 line-height:2;
+color:#cfcfcf;
+margin-bottom:24px;
 }
 
-.contact{text-align:center}
+.statement{
+font-family:'Michroma',sans-serif;
+font-size:13px;
+letter-spacing:.24em;
+line-height:2;
+text-transform:uppercase;
+color:#fff;
+margin-top:20px;
+}
+
+.contact{
+text-align:center;
+padding:100px 20px 70px;
+background:#000;
+}
+
+.contact h2{
+margin-bottom:30px;
+}
 
 .contact a{
-font-size:18px;
-opacity:.85;
-}
-
-.socials{
-margin-top:35px;
-display:flex;
-justify-content:center;
-gap:35px;
-flex-wrap:wrap;
-font-size:12px;
-letter-spacing:.25em;
-text-transform:uppercase;
-opacity:.7;
+display:inline-block;
+font-size:14px;
+letter-spacing:.08em;
+color:#d7d7d7;
+margin:10px 20px;
 }
 
 footer{
 text-align:center;
-padding:45px;
-font-size:12px;
-letter-spacing:.2em;
-opacity:.45;
+padding:38px;
+font-size:10px;
+letter-spacing:.32em;
+text-transform:uppercase;
+color:#666;
 }
 
-@media(max-width:800px){
-nav{gap:18px;padding:22px 10px}
-nav a{font-size:10px;letter-spacing:.16em}
-.hero h1{letter-spacing:.1em}
-.berlin{grid-template-columns:1fr}
-.section:before{display:none}
+@media(max-width:950px){
+.release-grid{grid-template-columns:repeat(2,1fr)}
+.artists{grid-template-columns:1fr 1fr}
+.story{grid-template-columns:1fr}
+nav{gap:22px;font-size:10px}
+.logo{letter-spacing:.18em}
+}
+
+@media(max-width:560px){
+nav{
+top:24px;
+gap:14px;
+font-size:9px;
+letter-spacing:.12em;
+}
+.release-grid{grid-template-columns:1fr}
+.artists{grid-template-columns:1fr}
+.section{padding:82px 20px}
+.story-text{padding:34px 24px}
 }
 </style>
 </head>
 
 <body>
+
+<section class="hero">
+<img class="hero-bg" src="assets/cover.jpg" alt="Parallel Vision Berlin 2063">
 
 <nav>
 <a href="#artists">Artists</a>
@@ -258,18 +330,69 @@ nav a{font-size:10px;letter-spacing:.16em}
 <a href="#contact">Contact</a>
 </nav>
 
-<section class="hero">
-<div>
-<h1>PARALLEL<br>VISION</h1>
-<div class="sub">Berlin 2063</div>
-<div class="tagline">
-A cinematic label universe where electronic music, memory, machines and nightlife collide inside a future Berlin governed by prediction.
+<div class="hero-content">
+<div class="logo">Parallel<br>Vision</div>
+<div class="kicker">Berlin 2063</div>
+<p class="hero-text">
+A cinematic music label from Berlin. Electronic club culture, artificial memory,
+machines, romance and the last human frequencies inside a predicted world.
+</p>
 </div>
+
+<div class="scroll">Scroll</div>
+</section>
+
+<section id="berlin" class="section">
+<div class="wrapper">
+
+<div class="section-head">
+<div>
+<div class="number">01</div>
+<h2>Berlin 2063</h2>
+</div>
+<p class="small">
+Parallel Vision is not only a label. It is a future city, a sound archive and a visual world.
+</p>
+</div>
+
+<div class="story">
+<img src="assets/cover.jpg" alt="Berlin 2063">
+
+<div class="story-text">
+<p>
+In 2063, artificial intelligence predicts reality before it happens.
+Synthetic guardians patrol the city. Human memory is stored in the cloud.
+The night still belongs to the few signals that cannot be calculated.
+</p>
+
+<p>
+Parallel Vision documents those signals through music, images and fragments
+from a future Berlin that feels ancient, romantic and dangerous.
+</p>
+
+<div class="statement">
+Music remains<br>
+the last unexplained<br>
+anomaly.
+</div>
+</div>
+</div>
+
 </div>
 </section>
 
-<section id="artists" class="section" data-number="01">
-<div class="section-title">Artists</div>
+<section id="artists" class="section">
+<div class="wrapper">
+
+<div class="section-head">
+<div>
+<div class="number">02</div>
+<h2>Artists</h2>
+</div>
+<p class="small">
+A growing constellation of producers connected by dark groove, emotional tension and cinematic club music.
+</p>
+</div>
 
 <div class="artists">
 <div class="artist">Alejandro Molinari</div>
@@ -278,95 +401,71 @@ A cinematic label universe where electronic music, memory, machines and nightlif
 <div class="artist">Badwolf</div>
 <div class="artist">Cabizbajo</div>
 </div>
+
+</div>
 </section>
 
-<section id="releases" class="section" data-number="02">
-<div class="section-title">Releases</div>
+<section id="releases" class="section">
+<div class="wrapper">
+
+<div class="section-head">
+<div>
+<div class="number">03</div>
+<h2>Releases</h2>
+</div>
+<p class="small">
+Sound objects from the Parallel Vision archive. Each release is treated as a fragment of the same world.
+</p>
+</div>
 
 <div class="release-grid">
 
-<div class="release">
-<img src="./assets/vision-neo.jpg" alt="Vision EP">
-<h3>Vision EP</h3>
-<p>PV001</p>
+<a class="release-card">
+<img src="assets/vision-neo.jpg" alt="Vision EP">
+<span class="release-title">Vision EP</span>
+<span class="release-meta">PV001</span>
+</a>
+
+<a class="release-card">
+<img src="assets/darkrockart.png" alt="Dark Rock">
+<span class="release-title">Dark Rock</span>
+<span class="release-meta">PV002</span>
+</a>
+
+<a class="release-card">
+<img src="assets/builtrefkrakt.png" alt="Built To Last">
+<span class="release-title">Built To Last</span>
+<span class="release-meta">PV003</span>
+</a>
+
+<a class="release-card">
+<img src="assets/Artwork Ravesia .png" alt="Ravesia">
+<span class="release-title">Ravesia</span>
+<span class="release-meta">PV004</span>
+</a>
+
+<a class="release-card">
+<img src="assets/funkybeat.png" alt="Funky Beat">
+<span class="release-title">Funky Beat</span>
+<span class="release-meta">PV005</span>
+</a>
+
 </div>
 
-<div class="release">
-<img src="./assets/darkrockart.png" alt="Dark Rock">
-<h3>Dark Rock</h3>
-<p>PV002</p>
-</div>
-
-<div class="release">
-<img src="./assets/builtrefrakt.png" alt="Built To Last">
-<h3>Built To Last</h3>
-<p>PV003</p>
-</div>
-
-<div class="release">
-<img src="./assets/funkybeat.png" alt="Funky Beat">
-<h3>Funky Beat</h3>
-<p>PV004</p>
-</div>
-
-<div class="release">
-<img src="./assets/Artwork%20Ravesia.%20.png" alt="Ravesia">
-<h3>Ravesia</h3>
-<p>PV005</p>
-</div>
-
-</div>
-</section>
-
-<section id="berlin" class="section" data-number="03">
-<div class="section-title">Berlin 2063</div>
-
-<div class="berlin">
-<img src="./assets/vision-neo.jpg" alt="Berlin 2063">
-
-<div class="berlin-text">
-<strong>Nebula does not govern through law.</strong><br>
-It governs through probability.<br><br>
-
-Berlin is no longer one city, but a vertical archive of collapsed streets, night markets, data towers and forgotten metro stations.<br><br>
-
-Artificial intelligence predicts reality.<br>
-Synthetic guardians patrol the city.<br>
-Human memory is stored in the cloud.<br>
-Music remains the last unexplained anomaly.
-
-<div class="quote">
-Somewhere beneath Alexanderplatz, a child touches a field of sound and sees the end of Berlin before it happens.
-</div>
-</div>
 </div>
 </section>
 
-<section class="section" data-number="04">
-<div class="section-title">The Anomaly</div>
-
-<div class="story-block">
-Camila was born in 1997, but Berlin 2063 remembers her as a statistical error.  
-A woman moving across timelines.  
-A presence Nebula cannot simulate.  
-Every release in Parallel Vision opens another fragment of this future: the machines, the clubs beneath the city, the resonant frequencies, and the moments where reality begins to fracture.
-</div>
-</section>
-
-<section id="contact" class="section contact" data-number="05">
-<div class="section-title">Contact</div>
+<section id="contact" class="contact">
+<h2>Contact</h2>
 
 <a href="mailto:parallelvision.label@gmail.com">parallelvision.label@gmail.com</a>
-
-<div class="socials">
 <a href="https://www.instagram.com/parallelvision.label/" target="_blank">Instagram</a>
 <a href="https://soundcloud.com/parallelvisionlabel" target="_blank">SoundCloud</a>
 <a href="https://ra.co/labels/25295" target="_blank">Resident Advisor</a>
-</div>
 </section>
 
 <footer>
-© 2026 PARALLEL VISION · BERLIN 2063
+© 2026 Parallel Vision · Berlin 2063
 </footer>
 
 </body>
