@@ -5,162 +5,70 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Parallel Vision | Berlin 2063</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Michroma&family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Michroma&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-
-body{
-  background:#000;
-  color:#fff;
-  font-family:'Inter',sans-serif;
-  overflow-x:hidden;
-}
-
-a{color:#fff;text-decoration:none}
+body{background:#000;color:white;font-family:Inter,sans-serif;overflow-x:hidden}
+a{text-decoration:none;color:white}
 
 nav{
-  position:fixed;
-  top:0;
-  left:0;
-  width:100%;
-  z-index:20;
-  display:flex;
-  justify-content:center;
-  gap:60px;
-  padding:28px 20px;
-  background:rgba(0,0,0,.45);
-  backdrop-filter:blur(10px);
+position:fixed;top:0;left:0;width:100%;z-index:10;
+display:flex;justify-content:center;gap:60px;
+padding:28px 20px;background:rgba(0,0,0,.65)
 }
-
-nav a{
-  font-size:12px;
-  letter-spacing:.35em;
-  text-transform:uppercase;
-  opacity:.8;
-}
+nav a{font-size:12px;letter-spacing:.35em;text-transform:uppercase}
 
 .hero{
-  min-height:100vh;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  text-align:center;
-  padding:120px 20px 80px;
+min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;
+padding:120px 20px 80px;
 }
-
 .hero h1{
-  font-family:'Michroma',sans-serif;
-  font-size:clamp(42px,9vw,150px);
-  letter-spacing:.24em;
-  line-height:1.2;
+font-family:Michroma,sans-serif;
+font-size:clamp(46px,10vw,150px);
+letter-spacing:.24em;line-height:1.2;
 }
+.hero p{margin-top:25px;font-size:12px;letter-spacing:.55em;text-transform:uppercase;opacity:.7}
 
-.hero p{
-  margin-top:28px;
-  font-size:12px;
-  letter-spacing:.55em;
-  text-transform:uppercase;
-  opacity:.75;
-}
-
-.section{
-  padding:110px 8%;
-  border-top:1px solid #111;
-}
-
+.section{padding:100px 7%;border-top:1px solid #111}
 .section-title{
-  font-family:'Michroma',sans-serif;
-  font-size:18px;
-  letter-spacing:.38em;
-  text-transform:uppercase;
-  margin-bottom:55px;
+font-family:Michroma,sans-serif;font-size:18px;
+letter-spacing:.38em;text-transform:uppercase;margin-bottom:55px;
 }
 
-.artists{
-  display:flex;
-  flex-wrap:wrap;
-  gap:45px;
-}
-
-.artist{
-  font-size:13px;
-  letter-spacing:.25em;
-  text-transform:uppercase;
-  opacity:.85;
-}
+.artists{display:flex;flex-wrap:wrap;justify-content:center;gap:55px}
+.artist{font-size:13px;letter-spacing:.25em;text-transform:uppercase}
 
 .release-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-  gap:36px;
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+gap:36px;
 }
 
 .release img{
-  width:100%;
-  aspect-ratio:1/1;
-  object-fit:cover;
-  display:block;
-  border:1px solid #222;
-  background:#050505;
+width:100%;
+aspect-ratio:1/1;
+object-fit:cover;
+display:block;
+border:1px solid #222;
+background:#111;
 }
+.release h3{margin-top:16px;font-size:15px;letter-spacing:.18em;text-transform:uppercase}
+.release p{margin-top:5px;font-size:12px;letter-spacing:.25em;opacity:.55}
 
-.release h3{
-  margin-top:16px;
-  font-size:15px;
-  letter-spacing:.18em;
-  text-transform:uppercase;
-}
+.berlin{display:grid;grid-template-columns:1.3fr 1fr;gap:60px;align-items:center}
+.berlin img{width:100%;aspect-ratio:16/9;object-fit:cover;border:1px solid #222}
+.berlin-text{line-height:2;color:#ccc;font-size:15px}
 
-.release p{
-  margin-top:5px;
-  font-size:12px;
-  letter-spacing:.25em;
-  opacity:.55;
-}
-
-.berlin{
-  display:grid;
-  grid-template-columns:1.4fr 1fr;
-  gap:60px;
-  align-items:center;
-}
-
-.berlin img{
-  width:100%;
-  aspect-ratio:16/9;
-  object-fit:cover;
-  border:1px solid #222;
-}
-
-.berlin-text{
-  line-height:2;
-  color:#ccc;
-  font-size:15px;
-}
-
-.contact{
-  text-align:center;
-}
-
-.contact a{
-  font-size:18px;
-  opacity:.85;
-}
-
-footer{
-  text-align:center;
-  padding:45px 20px;
-  font-size:12px;
-  letter-spacing:.2em;
-  opacity:.45;
-}
+.contact{text-align:center}
+.contact a{font-size:18px;opacity:.85}
+footer{text-align:center;padding:45px;font-size:12px;letter-spacing:.2em;opacity:.45}
 
 @media(max-width:800px){
-  nav{gap:18px;padding:22px 10px}
-  nav a{font-size:10px;letter-spacing:.16em}
-  .hero h1{letter-spacing:.1em}
-  .berlin{grid-template-columns:1fr}
+nav{gap:18px}
+nav a{font-size:10px;letter-spacing:.16em}
+.hero h1{letter-spacing:.1em}
+.berlin{grid-template-columns:1fr}
 }
 </style>
 </head>
@@ -168,90 +76,85 @@ footer{
 <body>
 
 <nav>
-  <a href="#artists">Artists</a>
-  <a href="#releases">Releases</a>
-  <a href="#berlin">Berlin 2063</a>
-  <a href="#contact">Contact</a>
+<a href="#artists">Artists</a>
+<a href="#releases">Releases</a>
+<a href="#berlin">Berlin 2063</a>
+<a href="#contact">Contact</a>
 </nav>
 
 <section class="hero">
-  <div>
-    <h1>PARALLEL<br>VISION</h1>
-    <p>Berlin 2063</p>
-  </div>
+<div>
+<h1>PARALLEL<br>VISION</h1>
+<p>Berlin 2063</p>
+</div>
 </section>
 
 <section id="artists" class="section">
-  <div class="section-title">Artists</div>
-
-  <div class="artists">
-    <div class="artist">Alejandro Molinari</div>
-    <div class="artist">REFRAKT</div>
-    <div class="artist">Blex</div>
-    <div class="artist">Badwolf</div>
-    <div class="artist">Cabizbajo</div>
-  </div>
+<div class="section-title">Artists</div>
+<div class="artists">
+<div class="artist">Alejandro Molinari</div>
+<div class="artist">REFRAKT</div>
+<div class="artist">Blex</div>
+<div class="artist">Badwolf</div>
+<div class="artist">Cabizbajo</div>
+</div>
 </section>
 
 <section id="releases" class="section">
-  <div class="section-title">Releases</div>
+<div class="section-title">Releases</div>
 
-  <div class="release-grid">
+<div class="release-grid">
 
-    <div class="release">
-      <img src="assets/vision-neo.jpg" alt="Vision EP">
-      <h3>Vision EP</h3>
-      <p>PV001</p>
-    </div>
+<div class="release">
+<img src="./assets/vision-neo.jpg" alt="Vision EP">
+<h3>Vision EP</h3>
+<p>PV001</p>
+</div>
 
-    <div class="release">
-      <img src="assets/darkrockart.png" alt="Dark Rock">
-      <h3>Dark Rock</h3>
-      <p>PV002</p>
-    </div>
+<div class="release">
+<img src="./assets/darkrockart.png" alt="Dark Rock">
+<h3>Dark Rock</h3>
+<p>PV002</p>
+</div>
 
-    <div class="release">
-      <img src="assets/builtrefkrakt.png" alt="Built To Last">
-      <h3>Built To Last</h3>
-      <p>PV003</p>
-    </div>
+<div class="release">
+<img src="./assets/builtrefkrakt.png" alt="Built To Last">
+<h3>Built To Last</h3>
+<p>PV003</p>
+</div>
 
-    <div class="release">
-      <img src="assets/funkybeat.png" alt="Funky Beat">
-      <h3>Funky Beat</h3>
-      <p>PV004</p>
-    </div>
+<div class="release">
+<img src="./assets/funkybeat.png" alt="Funky Beat">
+<h3>Funky Beat</h3>
+<p>PV004</p>
+</div>
 
-    <div class="release">
-      <img src="assets/Artwork Ravesia .png" alt="Ravesia">
-      <h3>Ravesia</h3>
-      <p>PV005</p>
-    </div>
+<div class="release">
+<img src="./assets/Artwork%20Ravesia%20.png" alt="Ravesia">
+<h3>Ravesia</h3>
+<p>PV005</p>
+</div>
 
-  </div>
+</div>
 </section>
 
 <section id="berlin" class="section">
-  <div class="section-title">Berlin 2063</div>
+<div class="section-title">Berlin 2063</div>
 
-  <div class="berlin">
-    <img src="assets/vision-neo.jpg" alt="Berlin 2063">
-
-    <div class="berlin-text">
-      Artificial intelligence predicts reality.<br>
-      Synthetic guardians patrol the city.<br>
-      Human memory is stored in the cloud.<br>
-      Music remains the last unexplained anomaly.
-    </div>
-  </div>
+<div class="berlin">
+<img src="./assets/vision-neo.jpg" alt="Berlin 2063">
+<div class="berlin-text">
+Artificial intelligence predicts reality.<br>
+Synthetic guardians patrol the city.<br>
+Human memory is stored in the cloud.<br>
+Music remains the last unexplained anomaly.
+</div>
+</div>
 </section>
 
 <section id="contact" class="section contact">
-  <div class="section-title">Contact</div>
-
-  <a href="mailto:parallelvision.label@gmail.com">
-    parallelvision.label@gmail.com
-  </a>
+<div class="section-title">Contact</div>
+<a href="mailto:parallelvision.label@gmail.com">parallelvision.label@gmail.com</a>
 </section>
 
 <footer>
