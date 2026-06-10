@@ -52,8 +52,8 @@ inset:0;
 width:100%;
 height:100%;
 object-fit:cover;
-opacity:.32;
-filter:grayscale(.2) contrast(1.15) brightness(.75);
+opacity:.28;
+filter:grayscale(.15) contrast(1.2) brightness(.7);
 }
 
 .hero::after{
@@ -61,8 +61,8 @@ content:"";
 position:absolute;
 inset:0;
 background:
-radial-gradient(circle at center, rgba(0,0,0,.2), rgba(0,0,0,.9) 72%),
-linear-gradient(to bottom, rgba(0,0,0,.15), #000 96%);
+radial-gradient(circle at center, rgba(0,0,0,.15), rgba(0,0,0,.92) 72%),
+linear-gradient(to bottom, rgba(0,0,0,.2), #000 96%);
 }
 
 nav{
@@ -77,6 +77,7 @@ font-size:11px;
 letter-spacing:.32em;
 text-transform:uppercase;
 opacity:.86;
+white-space:nowrap;
 }
 
 nav a:hover{opacity:.55}
@@ -200,9 +201,10 @@ display:block;
 width:100%;
 aspect-ratio:1/1;
 object-fit:cover;
+display:block;
 background:#111;
 border:1px solid #151515;
-filter:contrast(1.05) brightness(.9);
+filter:contrast(1.05) brightness(.92);
 transition:.3s;
 }
 
@@ -321,7 +323,7 @@ letter-spacing:.12em;
 <body>
 
 <section class="hero">
-<img class="hero-bg" src="assets/cover.jpg" alt="Parallel Vision Berlin 2063">
+<img class="hero-bg" src="./assets/cover.jpg" alt="Parallel Vision Berlin 2063">
 
 <nav>
 <a href="#artists">Artists</a>
@@ -356,7 +358,7 @@ Parallel Vision is not only a label. It is a future city, a sound archive and a 
 </div>
 
 <div class="story">
-<img src="assets/cover.jpg" alt="Berlin 2063">
+<img src="./assets/cover.jpg" alt="Berlin 2063">
 
 <div class="story-text">
 <p>
@@ -421,31 +423,31 @@ Sound objects from the Parallel Vision archive. Each release is treated as a fra
 <div class="release-grid">
 
 <a class="release-card">
-<img src="assets/vision-neo.jpg" alt="Vision EP">
+<img src="./assets/vision-neo.jpg" alt="Vision EP">
 <span class="release-title">Vision EP</span>
 <span class="release-meta">PV001</span>
 </a>
 
 <a class="release-card">
-<img src="assets/darkrockart.png" alt="Dark Rock">
+<img src="./assets/darkrockart.png" alt="Dark Rock">
 <span class="release-title">Dark Rock</span>
 <span class="release-meta">PV002</span>
 </a>
 
 <a class="release-card">
-<img src="assets/builtrefkrakt.png" alt="Built To Last">
+<img src="./assets/builtrefkrakt.png" alt="Built To Last">
 <span class="release-title">Built To Last</span>
 <span class="release-meta">PV003</span>
 </a>
 
 <a class="release-card">
-<img src="assets/Artwork Ravesia .png" alt="Ravesia">
-<span class="release-title">Ravesia</span>
+<img src="./assets/Ravesiamolinariremix.png" alt="Ravesia Remix">
+<span class="release-title">Ravesia Remix</span>
 <span class="release-meta">PV004</span>
 </a>
 
 <a class="release-card">
-<img src="assets/funkybeat.png" alt="Funky Beat">
+<img src="./assets/funkybeat.png" alt="Funky Beat">
 <span class="release-title">Funky Beat</span>
 <span class="release-meta">PV005</span>
 </a>
@@ -459,9 +461,9 @@ Sound objects from the Parallel Vision archive. Each release is treated as a fra
 <h2>Contact</h2>
 
 <a href="mailto:parallelvision.label@gmail.com">parallelvision.label@gmail.com</a>
-<a href="https://www.instagram.com/parallelvision.label/" target="_blank">Instagram</a>
-<a href="https://soundcloud.com/parallelvisionlabel" target="_blank">SoundCloud</a>
-<a href="https://ra.co/labels/25295" target="_blank">Resident Advisor</a>
+<a href="https://www.instagram.com/parallelvision.label/" target="_blank" rel="noopener">Instagram</a>
+<a href="https://soundcloud.com/parallel-vision-label" target="_blank" rel="noopener">SoundCloud</a>
+<a href="https://ra.co/labels/25295" target="_blank" rel="noopener">Resident Advisor</a>
 </section>
 
 <footer>
