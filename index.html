@@ -20,6 +20,20 @@ scroll-behavior:smooth;
 
 a{color:inherit;text-decoration:none}
 
+body::before{
+content:"";
+position:fixed;
+inset:0;
+pointer-events:none;
+z-index:999;
+background:
+linear-gradient(rgba(255,255,255,.028) 1px, transparent 1px),
+linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px);
+background-size:3px 3px;
+opacity:.14;
+mix-blend-mode:screen;
+}
+
 .hero{
 position:relative;
 min-height:100vh;
@@ -29,6 +43,7 @@ justify-content:center;
 text-align:center;
 overflow:hidden;
 border-bottom:1px solid #111;
+background:#000;
 }
 
 .hero-bg{
@@ -39,6 +54,7 @@ height:100%;
 object-fit:cover;
 opacity:.28;
 filter:grayscale(.15) contrast(1.2) brightness(.7);
+transform:scale(1.02);
 }
 
 .hero::after{
@@ -46,7 +62,7 @@ content:"";
 position:absolute;
 inset:0;
 background:
-radial-gradient(circle at center, rgba(0,0,0,.15), rgba(0,0,0,.92) 72%),
+radial-gradient(circle at center, rgba(0,0,0,.10), rgba(0,0,0,.92) 72%),
 linear-gradient(to bottom, rgba(0,0,0,.2), #000 96%);
 }
 
@@ -64,6 +80,8 @@ text-transform:uppercase;
 opacity:.86;
 white-space:nowrap;
 }
+
+nav a:hover{opacity:.55}
 
 .hero-content{
 position:relative;
@@ -150,7 +168,7 @@ line-height:1.9;
 
 .artists{
 display:grid;
-grid-template-columns:repeat(5,1fr);
+grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
 gap:1px;
 background:#111;
 border:1px solid #111;
@@ -193,6 +211,7 @@ margin-top:13px;
 font-size:12px;
 letter-spacing:.22em;
 text-transform:uppercase;
+line-height:1.45;
 }
 
 .release-meta{
@@ -217,6 +236,29 @@ font-size:13px;
 letter-spacing:.28em;
 text-transform:uppercase;
 margin-bottom:22px;
+line-height:1.7;
+}
+
+.selection-grid{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:24px;
+margin-top:28px;
+}
+
+.selection-card{
+border:1px solid #151515;
+background:#050505;
+padding:18px;
+}
+
+.selection-title{
+font-size:11px;
+letter-spacing:.20em;
+text-transform:uppercase;
+line-height:1.55;
+margin-bottom:14px;
+color:#e8e8e8;
 }
 
 .story{
@@ -285,7 +327,7 @@ color:#666;
 
 @media(max-width:950px){
 .release-grid{grid-template-columns:repeat(2,1fr)}
-.artists{grid-template-columns:1fr 1fr}
+.selection-grid{grid-template-columns:1fr}
 .story{grid-template-columns:1fr}
 nav{gap:22px;font-size:10px}
 .logo{letter-spacing:.18em}
@@ -294,9 +336,9 @@ nav{gap:22px;font-size:10px}
 @media(max-width:560px){
 nav{top:24px;gap:14px;font-size:9px;letter-spacing:.12em}
 .release-grid{grid-template-columns:1fr}
-.artists{grid-template-columns:1fr}
 .section{padding:82px 20px}
 .story-text{padding:34px 24px}
+.player{padding:20px;margin-top:62px}
 }
 </style>
 </head>
@@ -379,10 +421,12 @@ A growing constellation of producers connected by dark groove, emotional tension
 
 <div class="artists">
 <div class="artist">Alejandro Molinari</div>
-<div class="artist">REFRAKT</div>
+<div class="artist">REFRAKT (NY)</div>
+<div class="artist">Ëlorian</div>
+<div class="artist">Octave (RO)</div>
+<div class="artist">Cabizbajo</div>
 <div class="artist">Blex</div>
 <div class="artist">Badwolf</div>
-<div class="artist">Cabizbajo</div>
 </div>
 
 </div>
@@ -422,12 +466,6 @@ Sound objects from the Parallel Vision archive. Each release is treated as a fra
 </a>
 
 <a class="release-card">
-<img src="./assets/Ravesiamolinariremix.png" alt="Ravesia">
-<span class="release-title">Ravesia</span>
-<span class="release-meta">PV005</span>
-</a>
-
-<a class="release-card">
 <img src="./assets/Builttolast.png" alt="Built To Last">
 <span class="release-title">Built To Last</span>
 <span class="release-meta">PV003</span>
@@ -455,11 +493,34 @@ Sound objects from the Parallel Vision archive. Each release is treated as a fra
 
 <div class="player">
 <div class="player-title">Listen · Ravesia Alejandro Molinari Remix</div>
-
 <iframe width="100%" height="166" scrolling="no" frameborder="no" allow="autoplay"
-src="https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/alejandromolinari/ravesia-alejandro-molinari-1&color=%23000000&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false">
-</iframe>
+src="https://w.soundcloud.com/player/?url=https%3A%2F%2Fsoundcloud.com%2Falejandromolinari%2Fravesia-alejandro-molinari-1&color=%23000000&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false"></iframe>
+</div>
 
+<div class="player">
+<div class="player-title">Selection by Alejandro Molinari</div>
+
+<div class="selection-grid">
+
+<div class="selection-card">
+<div class="selection-title">Blex (AR) · Carmesi Cotton Bud Master 2</div>
+<iframe width="100%" height="166" scrolling="no" frameborder="no" allow="autoplay"
+src="https://w.soundcloud.com/player/?url=https%3A%2F%2Fsoundcloud.com%2Fparallelvisionlabel%2Fblex-ar-carmesi-cotton-bud-master-2%3Fin%3Dparallelvisionlabel%2Fsets%2Fravesia&color=%23000000&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false"></iframe>
+</div>
+
+<div class="selection-card">
+<div class="selection-title">Blex (AR) · Dark Rock Alejandro Molinari Remix</div>
+<iframe width="100%" height="166" scrolling="no" frameborder="no" allow="autoplay"
+src="https://w.soundcloud.com/player/?url=https%3A%2F%2Fsoundcloud.com%2Falejandromolinari%2Fblex-ar-dark-rock-alejandro-molinari-remix%3Fin%3Dparallelvisionlabel%2Fsets%2Fdark-rock-ep&color=%23000000&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false"></iframe>
+</div>
+
+<div class="selection-card">
+<div class="selection-title">REFRAKT (NY) · Built To Last Matt FX Remix</div>
+<iframe width="100%" height="166" scrolling="no" frameborder="no" allow="autoplay"
+src="https://w.soundcloud.com/player/?url=https%3A%2F%2Fsoundcloud.com%2Fibizasonica%2Fpremiere-refrakt-ny-built-to-last-matt-fx-remix-parallel-vision%3Fin%3Dparallelvisionlabel%2Fsets%2Frefrakt-ny-built-to-last-matt&color=%23000000&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false"></iframe>
+</div>
+
+</div>
 </div>
 
 </div>
