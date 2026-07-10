@@ -531,15 +531,15 @@ footer {
   display: flex;
   align-items: center;
 
-  gap: 13px;
+  gap: 17px;
 
-  padding: 12px 15px;
+  padding: 16px 20px;
 
   border:
-    1px solid rgba(255, 255, 255, .18);
+    1px solid rgba(255, 255, 255, .22);
 
   background:
-    rgba(2, 2, 3, .78);
+    rgba(2, 2, 3, .82);
 
   backdrop-filter:
     blur(18px);
@@ -548,7 +548,7 @@ footer {
     blur(18px);
 
   color:
-    rgba(255, 255, 255, .92);
+    rgba(255, 255, 255, .94);
 
   cursor: pointer;
 
@@ -559,38 +559,38 @@ footer {
     opacity .3s ease;
 
   box-shadow:
-    0 14px 45px
-    rgba(0, 0, 0, .45);
+    0 16px 55px
+    rgba(0, 0, 0, .52);
 }
 
 .nina-signal:hover {
   transform:
-    translateY(-2px);
+    translateY(-3px);
 
   background:
-    rgba(7, 7, 9, .94);
+    rgba(7, 7, 9, .96);
 
   border-color:
-    rgba(255, 255, 255, .46);
+    rgba(255, 255, 255, .52);
 }
 
 .nina-signal-dot {
-  width: 5px;
-  height: 5px;
+  width: 7px;
+  height: 7px;
 
   flex-shrink: 0;
 
   border-radius: 50%;
 
   background:
-    rgba(255, 255, 255, .96);
+    rgba(255, 255, 255, 1);
 
   box-shadow:
-    0 0 8px
-    rgba(255, 255, 255, .85),
+    0 0 10px
+    rgba(255, 255, 255, .9),
 
-    0 0 24px
-    rgba(130, 155, 255, .34);
+    0 0 30px
+    rgba(130, 155, 255, .42);
 
   animation:
     ninaPulse
@@ -609,7 +609,7 @@ footer {
 
   50% {
     opacity: 1;
-    transform: scale(1.16);
+    transform: scale(1.18);
   }
 
 }
@@ -618,7 +618,7 @@ footer {
   display: flex;
   flex-direction: column;
 
-  gap: 4px;
+  gap: 5px;
 
   text-align: left;
 }
@@ -628,7 +628,7 @@ footer {
     'Michroma',
     sans-serif;
 
-  font-size: 8px;
+  font-size: 10px;
 
   letter-spacing: .19em;
 
@@ -638,14 +638,14 @@ footer {
 }
 
 .nina-signal-sub {
-  font-size: 7px;
+  font-size: 9px;
 
   letter-spacing: .20em;
 
   text-transform: uppercase;
 
   color:
-    rgba(255, 255, 255, .38);
+    rgba(255, 255, 255, .42);
 
   white-space: nowrap;
 }
@@ -821,15 +821,17 @@ footer {
     right: 13px;
     bottom: 13px;
 
-    padding: 11px 13px;
+    gap: 13px;
+
+    padding: 14px 16px;
   }
 
   .nina-signal-main {
-    font-size: 7px;
+    font-size: 8px;
   }
 
   .nina-signal-sub {
-    font-size: 6px;
+    font-size: 7px;
   }
 
   .nina-portal-frame {
@@ -1409,8 +1411,6 @@ footer {
 
 
 
-<!-- NINA / SIGNAL ENTRY -->
-
 <button
   class="nina-signal"
   id="openNina"
@@ -1434,8 +1434,6 @@ footer {
 </button>
 
 
-
-<!-- NINA / FULL SCREEN PORTAL -->
 
 <div
   class="nina-portal-overlay"
