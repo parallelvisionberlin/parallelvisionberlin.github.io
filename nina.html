@@ -5,411 +5,283 @@
 
 <meta charset="UTF-8">
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta
+  name="viewport"
+  content="width=device-width, initial-scale=1.0"
+>
 
 <title>Parallel Vision | Berlin 2063</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Michroma&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<link
+  href="https://fonts.googleapis.com/css2?family=Michroma&family=Inter:wght@300;400;500&display=swap"
+  rel="stylesheet"
+>
 
 <style>
 
-*{
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 html,
-body{
-  background:#000;
-  color:#fff;
-  font-family:'Inter',sans-serif;
-  overflow-x:hidden;
-  scroll-behavior:smooth;
+body {
+  background: #000;
+  color: #fff;
+  font-family: 'Inter', sans-serif;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
 }
 
-a{
-  color:inherit;
-  text-decoration:none;
+a {
+  color: inherit;
+  text-decoration: none;
 }
 
-body::before{
-  content:"";
-  position:fixed;
-  inset:0;
-  pointer-events:none;
-  z-index:999;
+button {
+  font: inherit;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 999;
 
   background:
     linear-gradient(
-      rgba(255,255,255,.028) 1px,
+      rgba(255, 255, 255, .028) 1px,
       transparent 1px
     ),
     linear-gradient(
       90deg,
-      rgba(255,255,255,.018) 1px,
+      rgba(255, 255, 255, .018) 1px,
       transparent 1px
     );
 
-  background-size:3px 3px;
-  opacity:.14;
-  mix-blend-mode:screen;
+  background-size: 3px 3px;
+  opacity: .14;
+  mix-blend-mode: screen;
 }
 
-.hero{
-  position:relative;
-  min-height:100vh;
 
-  display:flex;
-  align-items:center;
-  justify-content:center;
+/* HERO */
 
-  text-align:center;
-  overflow:hidden;
+.hero {
+  position: relative;
+  min-height: 100vh;
 
-  border-bottom:1px solid #111;
-  background:#000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  text-align: center;
+  overflow: hidden;
+
+  border-bottom: 1px solid #111;
+  background: #000;
 }
 
-.hero-bg{
-  position:absolute;
-  inset:0;
+.hero-bg {
+  position: absolute;
+  inset: 0;
 
-  width:100%;
-  height:100%;
+  width: 100%;
+  height: 100%;
 
-  object-fit:cover;
+  object-fit: cover;
 
-  opacity:.28;
+  opacity: .28;
 
   filter:
     grayscale(.15)
     contrast(1.2)
     brightness(.7);
 
-  transform:scale(1.02);
+  transform: scale(1.02);
 }
 
-.hero::after{
-  content:"";
+.hero::after {
+  content: "";
 
-  position:absolute;
-  inset:0;
+  position: absolute;
+  inset: 0;
 
   background:
     radial-gradient(
       circle at center,
-      rgba(0,0,0,.10),
-      rgba(0,0,0,.92) 72%
+      rgba(0, 0, 0, .10),
+      rgba(0, 0, 0, .92) 72%
     ),
     linear-gradient(
       to bottom,
-      rgba(0,0,0,.2),
+      rgba(0, 0, 0, .2),
       #000 96%
     );
 }
 
-nav{
-  position:absolute;
+nav {
+  position: absolute;
 
-  top:38px;
-  left:50%;
+  top: 38px;
+  left: 50%;
 
-  transform:translateX(-50%);
+  transform: translateX(-50%);
 
-  z-index:10;
+  z-index: 10;
 
-  display:flex;
-  gap:46px;
+  display: flex;
+  gap: 46px;
 
-  font-size:11px;
-  letter-spacing:.32em;
+  font-size: 11px;
+  letter-spacing: .32em;
 
-  text-transform:uppercase;
+  text-transform: uppercase;
 
-  opacity:.86;
+  opacity: .86;
 
-  white-space:nowrap;
+  white-space: nowrap;
 }
 
-nav a:hover{
-  opacity:.55;
+nav a:hover {
+  opacity: .55;
 }
 
-.hero-content{
-  position:relative;
-  z-index:5;
-  padding:20px;
+.hero-content {
+  position: relative;
+  z-index: 5;
+  padding: 20px;
 }
 
-.logo{
-  font-family:'Michroma',sans-serif;
+.logo {
+  font-family: 'Michroma', sans-serif;
 
-  font-size:clamp(42px,8vw,118px);
+  font-size: clamp(42px, 8vw, 118px);
 
-  letter-spacing:.34em;
-  line-height:1.35;
+  letter-spacing: .34em;
+  line-height: 1.35;
 
-  text-transform:uppercase;
+  text-transform: uppercase;
 
-  margin-bottom:24px;
+  margin-bottom: 24px;
 }
 
-.kicker{
-  font-size:11px;
-  letter-spacing:.55em;
+.kicker {
+  font-size: 11px;
+  letter-spacing: .55em;
 
-  text-transform:uppercase;
+  text-transform: uppercase;
 
-  opacity:.78;
+  opacity: .78;
 
-  margin-bottom:28px;
+  margin-bottom: 28px;
 }
 
-.hero-text{
-  max-width:760px;
-  margin:auto;
+.hero-text {
+  max-width: 760px;
+  margin: auto;
 
-  font-size:15px;
-  line-height:1.9;
+  font-size: 15px;
+  line-height: 1.9;
 
-  opacity:.84;
+  opacity: .84;
 }
 
-.scroll{
-  position:absolute;
+.scroll {
+  position: absolute;
 
-  bottom:36px;
-  left:50%;
+  bottom: 36px;
+  left: 50%;
 
-  transform:translateX(-50%);
+  transform: translateX(-50%);
 
-  z-index:10;
+  z-index: 10;
 
-  font-size:10px;
-  letter-spacing:.45em;
+  font-size: 10px;
+  letter-spacing: .45em;
 
-  text-transform:uppercase;
+  text-transform: uppercase;
 
-  opacity:.55;
+  opacity: .55;
 }
 
-.section{
-  padding:115px 26px;
 
-  border-bottom:1px solid #111;
+/* GENERAL SECTIONS */
 
-  background:#030303;
+.section {
+  padding: 115px 26px;
+
+  border-bottom: 1px solid #111;
+
+  background: #030303;
 }
 
-.wrapper{
-  max-width:1180px;
-  margin:auto;
+.wrapper {
+  max-width: 1180px;
+  margin: auto;
 }
 
-.section-head{
-  display:flex;
+.section-head {
+  display: flex;
 
-  justify-content:space-between;
-  align-items:flex-end;
+  justify-content: space-between;
+  align-items: flex-end;
 
-  gap:30px;
+  gap: 30px;
 
-  margin-bottom:42px;
+  margin-bottom: 42px;
 }
 
-.number{
-  font-size:11px;
-  letter-spacing:.35em;
+.number {
+  font-size: 11px;
+  letter-spacing: .35em;
 
-  opacity:.45;
+  opacity: .45;
 
-  margin-bottom:12px;
+  margin-bottom: 12px;
 }
 
-h2{
-  font-family:'Michroma',sans-serif;
+h2 {
+  font-family: 'Michroma', sans-serif;
 
-  font-size:14px;
-  letter-spacing:.34em;
+  font-size: 14px;
+  letter-spacing: .34em;
 
-  text-transform:uppercase;
+  text-transform: uppercase;
 }
 
-.small{
-  max-width:520px;
+.small {
+  max-width: 520px;
 
-  color:#bdbdbd;
+  color: #bdbdbd;
 
-  font-size:14px;
-  line-height:1.9;
+  font-size: 14px;
+  line-height: 1.9;
 }
 
-.artists{
-  display:grid;
 
-  grid-template-columns:
-    repeat(
-      auto-fit,
-      minmax(170px,1fr)
-    );
+/* BERLIN 2063 */
 
-  gap:1px;
-
-  background:#111;
-
-  border:1px solid #111;
-}
-
-.artist{
-  background:#050505;
-
-  padding:26px 18px;
-
-  text-align:center;
-
-  font-size:11px;
-  letter-spacing:.28em;
-
-  text-transform:uppercase;
-}
-
-.release-grid{
-  display:grid;
-
-  grid-template-columns:
-    repeat(3,1fr);
-
-  gap:34px;
-}
-
-.release-card img{
-  width:100%;
-
-  aspect-ratio:1/1;
-
-  object-fit:cover;
-
-  display:block;
-
-  background:#111;
-
-  border:1px solid #151515;
-
-  filter:
-    contrast(1.05)
-    brightness(.92);
-
-  transition:.3s;
-}
-
-.release-card:hover img{
-  transform:scale(1.025);
-
-  filter:
-    contrast(1.1)
-    brightness(1);
-}
-
-.release-title{
-  display:block;
-
-  margin-top:13px;
-
-  font-size:12px;
-  letter-spacing:.22em;
-
-  text-transform:uppercase;
-
-  line-height:1.45;
-}
-
-.release-meta{
-  display:block;
-
-  margin-top:4px;
-
-  font-size:10px;
-  letter-spacing:.18em;
-
-  text-transform:uppercase;
-
-  color:#777;
-}
-
-.player{
-  margin-top:90px;
-
-  border:1px solid #151515;
-
-  background:#050505;
-
-  padding:28px;
-}
-
-.player-title{
-  font-family:'Michroma',sans-serif;
-
-  font-size:13px;
-  letter-spacing:.28em;
-
-  text-transform:uppercase;
-
-  margin-bottom:22px;
-
-  line-height:1.7;
-}
-
-.selection-grid{
-  display:grid;
-
-  grid-template-columns:
-    repeat(3,1fr);
-
-  gap:24px;
-
-  margin-top:28px;
-}
-
-.selection-card{
-  border:1px solid #151515;
-
-  background:#050505;
-
-  padding:18px;
-}
-
-.selection-title{
-  font-size:11px;
-  letter-spacing:.20em;
-
-  text-transform:uppercase;
-
-  line-height:1.55;
-
-  margin-bottom:14px;
-
-  color:#e8e8e8;
-}
-
-.story{
-  display:grid;
+.story {
+  display: grid;
 
   grid-template-columns:
     1.15fr .85fr;
 
-  border:1px solid #111;
+  border: 1px solid #111;
 
-  background:#050505;
+  background: #050505;
 }
 
-.story img{
-  width:100%;
-  height:100%;
+.story img {
+  width: 100%;
+  height: 100%;
 
-  min-height:420px;
+  min-height: 420px;
 
-  object-fit:cover;
+  object-fit: cover;
 
   filter:
     grayscale(.15)
@@ -417,134 +289,567 @@ h2{
     brightness(.75);
 }
 
-.story-text{
-  padding:60px;
+.story-text {
+  padding: 60px;
 
-  display:flex;
-  flex-direction:column;
+  display: flex;
+  flex-direction: column;
 
-  justify-content:center;
+  justify-content: center;
 }
 
-.story-text p{
-  font-size:15px;
-  line-height:2;
+.story-text p {
+  font-size: 15px;
+  line-height: 2;
 
-  color:#cfcfcf;
+  color: #cfcfcf;
 
-  margin-bottom:24px;
+  margin-bottom: 24px;
 }
 
-.statement{
-  font-family:'Michroma',sans-serif;
+.statement {
+  font-family: 'Michroma', sans-serif;
 
-  font-size:13px;
-  letter-spacing:.24em;
+  font-size: 13px;
+  letter-spacing: .24em;
 
-  line-height:2;
+  line-height: 2;
 
-  text-transform:uppercase;
+  text-transform: uppercase;
 
-  color:#fff;
+  color: #fff;
 
-  margin-top:20px;
+  margin-top: 20px;
 }
 
-.contact{
-  text-align:center;
 
-  padding:100px 20px 70px;
+/* ARTISTS */
 
-  background:#000;
+.artists {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      auto-fit,
+      minmax(170px, 1fr)
+    );
+
+  gap: 1px;
+
+  background: #111;
+
+  border: 1px solid #111;
 }
 
-.contact h2{
-  margin-bottom:30px;
+.artist {
+  background: #050505;
+
+  padding: 26px 18px;
+
+  text-align: center;
+
+  font-size: 11px;
+  letter-spacing: .28em;
+
+  text-transform: uppercase;
 }
 
-.contact a{
-  display:inline-block;
 
-  font-size:14px;
-  letter-spacing:.08em;
+/* RELEASES */
 
-  color:#d7d7d7;
+.release-grid {
+  display: grid;
 
-  margin:10px 20px;
+  grid-template-columns:
+    repeat(3, 1fr);
+
+  gap: 34px;
 }
 
-footer{
-  text-align:center;
+.release-card img {
+  width: 100%;
 
-  padding:38px;
+  aspect-ratio: 1 / 1;
 
-  font-size:10px;
-  letter-spacing:.32em;
+  object-fit: cover;
 
-  text-transform:uppercase;
+  display: block;
 
-  color:#666;
+  background: #111;
+
+  border: 1px solid #151515;
+
+  filter:
+    contrast(1.05)
+    brightness(.92);
+
+  transition: .3s;
 }
 
-@media(max-width:950px){
+.release-card:hover img {
+  transform: scale(1.025);
 
-  .release-grid{
+  filter:
+    contrast(1.1)
+    brightness(1);
+}
+
+.release-title {
+  display: block;
+
+  margin-top: 13px;
+
+  font-size: 12px;
+  letter-spacing: .22em;
+
+  text-transform: uppercase;
+
+  line-height: 1.45;
+}
+
+.release-meta {
+  display: block;
+
+  margin-top: 4px;
+
+  font-size: 10px;
+  letter-spacing: .18em;
+
+  text-transform: uppercase;
+
+  color: #777;
+}
+
+
+/* PLAYERS */
+
+.player {
+  margin-top: 90px;
+
+  border: 1px solid #151515;
+
+  background: #050505;
+
+  padding: 28px;
+}
+
+.player-title {
+  font-family: 'Michroma', sans-serif;
+
+  font-size: 13px;
+  letter-spacing: .28em;
+
+  text-transform: uppercase;
+
+  margin-bottom: 22px;
+
+  line-height: 1.7;
+}
+
+.selection-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, 1fr);
+
+  gap: 24px;
+
+  margin-top: 28px;
+}
+
+.selection-card {
+  border: 1px solid #151515;
+
+  background: #050505;
+
+  padding: 18px;
+}
+
+.selection-title {
+  font-size: 11px;
+  letter-spacing: .20em;
+
+  text-transform: uppercase;
+
+  line-height: 1.55;
+
+  margin-bottom: 14px;
+
+  color: #e8e8e8;
+}
+
+
+/* CONTACT */
+
+.contact {
+  text-align: center;
+
+  padding: 100px 20px 70px;
+
+  background: #000;
+}
+
+.contact h2 {
+  margin-bottom: 30px;
+}
+
+.contact a {
+  display: inline-block;
+
+  font-size: 14px;
+  letter-spacing: .08em;
+
+  color: #d7d7d7;
+
+  margin: 10px 20px;
+}
+
+footer {
+  text-align: center;
+
+  padding: 38px;
+
+  font-size: 10px;
+  letter-spacing: .32em;
+
+  text-transform: uppercase;
+
+  color: #666;
+}
+
+
+/* NINA SIGNAL */
+
+.nina-signal {
+  position: fixed;
+
+  right: 28px;
+  bottom: 28px;
+
+  z-index: 9998;
+
+  display: flex;
+  align-items: center;
+
+  gap: 13px;
+
+  padding: 12px 15px;
+
+  border:
+    1px solid rgba(255, 255, 255, .18);
+
+  background:
+    rgba(2, 2, 3, .78);
+
+  backdrop-filter:
+    blur(18px);
+
+  -webkit-backdrop-filter:
+    blur(18px);
+
+  color:
+    rgba(255, 255, 255, .92);
+
+  cursor: pointer;
+
+  transition:
+    border-color .3s ease,
+    background .3s ease,
+    transform .3s ease,
+    opacity .3s ease;
+
+  box-shadow:
+    0 14px 45px
+    rgba(0, 0, 0, .45);
+}
+
+.nina-signal:hover {
+  transform:
+    translateY(-2px);
+
+  background:
+    rgba(7, 7, 9, .94);
+
+  border-color:
+    rgba(255, 255, 255, .46);
+}
+
+.nina-signal-dot {
+  width: 5px;
+  height: 5px;
+
+  flex-shrink: 0;
+
+  border-radius: 50%;
+
+  background:
+    rgba(255, 255, 255, .96);
+
+  box-shadow:
+    0 0 8px
+    rgba(255, 255, 255, .85),
+
+    0 0 24px
+    rgba(130, 155, 255, .34);
+
+  animation:
+    ninaPulse
+    2.8s
+    ease-in-out
+    infinite;
+}
+
+@keyframes ninaPulse {
+
+  0%,
+  100% {
+    opacity: .38;
+    transform: scale(.82);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.16);
+  }
+
+}
+
+.nina-signal-copy {
+  display: flex;
+  flex-direction: column;
+
+  gap: 4px;
+
+  text-align: left;
+}
+
+.nina-signal-main {
+  font-family:
+    'Michroma',
+    sans-serif;
+
+  font-size: 8px;
+
+  letter-spacing: .19em;
+
+  text-transform: uppercase;
+
+  white-space: nowrap;
+}
+
+.nina-signal-sub {
+  font-size: 7px;
+
+  letter-spacing: .20em;
+
+  text-transform: uppercase;
+
+  color:
+    rgba(255, 255, 255, .38);
+
+  white-space: nowrap;
+}
+
+
+/* NINA FULL SCREEN PORTAL */
+
+.nina-portal-overlay {
+  position: fixed;
+
+  inset: 0;
+
+  z-index: 10000;
+
+  background:
+    rgba(0, 0, 0, .98);
+
+  opacity: 0;
+
+  visibility: hidden;
+
+  pointer-events: none;
+
+  transition:
+    opacity .6s ease,
+    visibility .6s ease;
+}
+
+.nina-portal-overlay.is-open {
+  opacity: 1;
+
+  visibility: visible;
+
+  pointer-events: auto;
+}
+
+.nina-portal-frame {
+  position: absolute;
+
+  inset: 14px;
+
+  overflow: hidden;
+
+  background: #000;
+
+  border:
+    1px solid
+    rgba(255, 255, 255, .14);
+
+  box-shadow:
+    0 0 100px
+    rgba(0, 0, 0, .9);
+}
+
+.nina-portal-frame iframe {
+  width: 100%;
+  height: 100%;
+
+  display: block;
+
+  border: 0;
+
+  background: #000;
+}
+
+.nina-close {
+  position: absolute;
+
+  top: 25px;
+  right: 25px;
+
+  z-index: 10002;
+
+  width: 38px;
+  height: 38px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border:
+    1px solid
+    rgba(255, 255, 255, .20);
+
+  background:
+    rgba(0, 0, 0, .78);
+
+  color:
+    rgba(255, 255, 255, .78);
+
+  font-family:
+    'Courier New',
+    monospace;
+
+  font-size: 17px;
+
+  cursor: pointer;
+
+  transition:
+    background .25s ease,
+    color .25s ease,
+    border-color .25s ease;
+}
+
+.nina-close:hover {
+  background:
+    rgba(255, 255, 255, .92);
+
+  color: #000;
+
+  border-color:
+    rgba(255, 255, 255, .92);
+}
+
+
+/* RESPONSIVE */
+
+@media (max-width: 950px) {
+
+  .release-grid {
     grid-template-columns:
-      repeat(2,1fr);
+      repeat(2, 1fr);
   }
 
-  .selection-grid{
-    grid-template-columns:1fr;
+  .selection-grid {
+    grid-template-columns: 1fr;
   }
 
-  .story{
-    grid-template-columns:1fr;
+  .story {
+    grid-template-columns: 1fr;
   }
 
-  nav{
-    gap:22px;
-    font-size:10px;
+  nav {
+    gap: 22px;
+    font-size: 10px;
   }
 
-  .logo{
-    letter-spacing:.18em;
+  .logo {
+    letter-spacing: .18em;
   }
+
 }
 
-@media(max-width:560px){
+@media (max-width: 560px) {
 
-  nav{
-    top:24px;
+  nav {
+    top: 24px;
 
-    gap:14px;
+    gap: 14px;
 
-    font-size:9px;
-    letter-spacing:.12em;
+    font-size: 9px;
+    letter-spacing: .12em;
   }
 
-  .release-grid{
-    grid-template-columns:1fr;
+  .release-grid {
+    grid-template-columns: 1fr;
   }
 
-  .section{
-    padding:82px 20px;
+  .section {
+    padding: 82px 20px;
   }
 
-  .story-text{
-    padding:34px 24px;
+  .story-text {
+    padding: 34px 24px;
   }
 
-  .player{
-    padding:20px;
-    margin-top:62px;
+  .player {
+    padding: 20px;
+    margin-top: 62px;
   }
+
+  .nina-signal {
+    right: 13px;
+    bottom: 13px;
+
+    padding: 11px 13px;
+  }
+
+  .nina-signal-main {
+    font-size: 7px;
+  }
+
+  .nina-signal-sub {
+    font-size: 6px;
+  }
+
+  .nina-portal-frame {
+    inset: 5px;
+  }
+
+  .nina-close {
+    top: 14px;
+    right: 14px;
+  }
+
 }
 
 </style>
 
 </head>
 
+
 <body>
+
 
 <section class="hero">
 
@@ -574,6 +879,7 @@ footer{
 
   </nav>
 
+
   <div class="hero-content">
 
     <div class="logo">
@@ -588,13 +894,17 @@ footer{
     <p class="hero-text">
 
       A cinematic music label from Berlin.
-      Electronic club culture, artificial memory,
-      machines, romance and the last human frequencies
+      Electronic club culture,
+      artificial memory,
+      machines,
+      romance
+      and the last human frequencies
       inside a predicted world.
 
     </p>
 
   </div>
+
 
   <div class="scroll">
     Scroll
@@ -603,11 +913,13 @@ footer{
 </section>
 
 
+
 <section
   id="berlin"
   class="section">
 
   <div class="wrapper">
+
 
     <div class="section-head">
 
@@ -623,9 +935,11 @@ footer{
 
       </div>
 
+
       <p class="small">
 
         Parallel Vision is not only a label.
+
         It is a future city,
         a sound archive
         and a visual world.
@@ -642,6 +956,7 @@ footer{
         alt="Berlin 2063"
       >
 
+
       <div class="story-text">
 
         <p>
@@ -654,10 +969,12 @@ footer{
 
           Human memory is stored in the cloud.
 
-          The night still belongs to the few signals
+          The night still belongs
+          to the few signals
           that cannot be calculated.
 
         </p>
+
 
         <p>
 
@@ -670,6 +987,7 @@ footer{
           and dangerous.
 
         </p>
+
 
         <div class="statement">
 
@@ -690,11 +1008,13 @@ footer{
 </section>
 
 
+
 <section
   id="artists"
   class="section">
 
   <div class="wrapper">
+
 
     <div class="section-head">
 
@@ -710,10 +1030,12 @@ footer{
 
       </div>
 
+
       <p class="small">
 
-        A growing constellation of producers
-        connected by dark groove,
+        A growing constellation
+        of producers connected
+        by dark groove,
         emotional tension
         and cinematic club music.
 
@@ -759,11 +1081,13 @@ footer{
 </section>
 
 
+
 <section
   id="releases"
   class="section">
 
   <div class="wrapper">
+
 
     <div class="section-head">
 
@@ -779,19 +1103,24 @@ footer{
 
       </div>
 
+
       <p class="small">
 
-        Sound objects from the Parallel Vision archive.
+        Sound objects
+        from the Parallel Vision archive.
 
         Each release is treated
-        as a fragment of the same world.
+        as a fragment
+        of the same world.
 
       </p>
 
     </div>
 
 
+
     <div class="release-grid">
+
 
       <a class="release-card">
 
@@ -809,6 +1138,7 @@ footer{
         </span>
 
       </a>
+
 
 
       <a class="release-card">
@@ -830,6 +1160,7 @@ footer{
       </a>
 
 
+
       <a class="release-card">
 
         <img
@@ -847,6 +1178,7 @@ footer{
         </span>
 
       </a>
+
 
 
       <a class="release-card">
@@ -867,6 +1199,7 @@ footer{
       </a>
 
 
+
       <a class="release-card">
 
         <img
@@ -885,6 +1218,7 @@ footer{
       </a>
 
 
+
       <a class="release-card">
 
         <img
@@ -901,6 +1235,7 @@ footer{
         </span>
 
       </a>
+
 
 
       <a class="release-card">
@@ -923,6 +1258,7 @@ footer{
     </div>
 
 
+
     <div class="player">
 
       <div class="player-title">
@@ -939,6 +1275,7 @@ footer{
       </iframe>
 
     </div>
+
 
 
     <div class="player">
@@ -969,6 +1306,7 @@ footer{
         </div>
 
 
+
         <div class="selection-card">
 
           <div class="selection-title">
@@ -985,6 +1323,7 @@ footer{
           </iframe>
 
         </div>
+
 
 
         <div class="selection-card">
@@ -1014,6 +1353,7 @@ footer{
 </section>
 
 
+
 <section
   id="contact"
   class="contact">
@@ -1022,9 +1362,11 @@ footer{
     Contact
   </h2>
 
+
   <a href="mailto:parallelvision.label@gmail.com">
     parallelvision.label@gmail.com
   </a>
+
 
   <a
     href="https://www.instagram.com/parallelvision.label/"
@@ -1035,14 +1377,16 @@ footer{
 
   </a>
 
+
   <a
-    href="https://soundcloud.com/parallel-vision-label"
+    href="https://soundcloud.com/parallelvisionlabel"
     target="_blank"
     rel="noopener">
 
     SoundCloud
 
   </a>
+
 
   <a
     href="https://ra.co/labels/25295"
@@ -1056,6 +1400,7 @@ footer{
 </section>
 
 
+
 <footer>
 
   © 2026 Parallel Vision · Berlin 2063
@@ -1063,11 +1408,153 @@ footer{
 </footer>
 
 
-<script src="https://unpkg.com/@tavus/widget@beta"></script>
 
-<tavus-widget
-  deployment-id="d7dc959e-ea36-4a63-8e92-cd369a8df73a">
-</tavus-widget>
+<!-- NINA / SIGNAL ENTRY -->
+
+<button
+  class="nina-signal"
+  id="openNina"
+  type="button"
+  aria-label="Transmit to 2063">
+
+  <span class="nina-signal-dot"></span>
+
+  <span class="nina-signal-copy">
+
+    <span class="nina-signal-main">
+      Transmit to 2063
+    </span>
+
+    <span class="nina-signal-sub">
+      Nina / Signal online
+    </span>
+
+  </span>
+
+</button>
+
+
+
+<!-- NINA / FULL SCREEN PORTAL -->
+
+<div
+  class="nina-portal-overlay"
+  id="ninaPortal"
+  aria-hidden="true">
+
+  <div class="nina-portal-frame">
+
+    <iframe
+      id="ninaFrame"
+      src=""
+      title="Nina FOK Live Signal"
+      allow="camera; microphone; autoplay">
+    </iframe>
+
+  </div>
+
+
+  <button
+    class="nina-close"
+    id="closeNina"
+    type="button"
+    aria-label="Close Nina signal">
+
+    ×
+
+  </button>
+
+</div>
+
+
+
+<script>
+
+const openNina =
+  document.getElementById("openNina");
+
+const closeNina =
+  document.getElementById("closeNina");
+
+const ninaPortal =
+  document.getElementById("ninaPortal");
+
+const ninaFrame =
+  document.getElementById("ninaFrame");
+
+
+function openNinaPortal() {
+
+  if (!ninaFrame.getAttribute("src")) {
+
+    ninaFrame.setAttribute(
+      "src",
+      "/nina.html"
+    );
+
+  }
+
+  ninaPortal.classList.add(
+    "is-open"
+  );
+
+  ninaPortal.setAttribute(
+    "aria-hidden",
+    "false"
+  );
+
+  document.body.style.overflow =
+    "hidden";
+
+}
+
+
+function closeNinaPortal() {
+
+  ninaPortal.classList.remove(
+    "is-open"
+  );
+
+  ninaPortal.setAttribute(
+    "aria-hidden",
+    "true"
+  );
+
+  document.body.style.overflow =
+    "";
+
+}
+
+
+openNina.addEventListener(
+  "click",
+  openNinaPortal
+);
+
+
+closeNina.addEventListener(
+  "click",
+  closeNinaPortal
+);
+
+
+document.addEventListener(
+  "keydown",
+  event => {
+
+    if (
+      event.key === "Escape" &&
+      ninaPortal.classList.contains("is-open")
+    ) {
+
+      closeNinaPortal();
+
+    }
+
+  }
+);
+
+</script>
 
 
 </body>
