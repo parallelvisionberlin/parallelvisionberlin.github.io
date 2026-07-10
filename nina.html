@@ -1,612 +1,1075 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
 
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
-  >
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Parallel Vision | Berlin 2063</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Michroma&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+
+<style>
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
+
+html,
+body{
+  background:#000;
+  color:#fff;
+  font-family:'Inter',sans-serif;
+  overflow-x:hidden;
+  scroll-behavior:smooth;
+}
 
-  <title>Nina FOK</title>
+a{
+  color:inherit;
+  text-decoration:none;
+}
 
-  <style>
-    :root {
-      --black: #020203;
-      --line: rgba(255, 255, 255, 0.16);
-      --soft: rgba(255, 255, 255, 0.42);
-      --text: rgba(255, 255, 255, 0.88);
-    }
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:999;
 
-    * {
-      box-sizing: border-box;
-    }
+  background:
+    linear-gradient(
+      rgba(255,255,255,.028) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      rgba(255,255,255,.018) 1px,
+      transparent 1px
+    );
 
-    html,
-    body {
-      margin: 0;
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      background: #000;
-    }
+  background-size:3px 3px;
+  opacity:.14;
+  mix-blend-mode:screen;
+}
 
-    body {
-      display: flex;
-      align-items: center;
-      justify-content: center;
+.hero{
+  position:relative;
+  min-height:100vh;
 
-      font-family:
-        "Helvetica Neue",
-        Helvetica,
-        Arial,
-        sans-serif;
+  display:flex;
+  align-items:center;
+  justify-content:center;
 
-      color: var(--text);
+  text-align:center;
+  overflow:hidden;
 
-      background:
-        radial-gradient(
-          circle at 50% 45%,
-          rgba(35, 42, 60, 0.08),
-          transparent 34%
-        ),
-        #000;
-    }
+  border-bottom:1px solid #111;
+  background:#000;
+}
 
-    .portal {
-      position: relative;
+.hero-bg{
+  position:absolute;
+  inset:0;
 
-      width: calc(100vw - 60px);
-      height: calc(100vh - 60px);
+  width:100%;
+  height:100%;
 
-      max-width: 1800px;
+  object-fit:cover;
 
-      overflow: hidden;
+  opacity:.28;
 
-      background: var(--black);
+  filter:
+    grayscale(.15)
+    contrast(1.2)
+    brightness(.7);
 
-      border: 1px solid var(--line);
+  transform:scale(1.02);
+}
 
-      box-shadow:
-        0 40px 160px rgba(0, 0, 0, 0.9);
-    }
+.hero::after{
+  content:"";
 
-    .topbar {
-      position: absolute;
+  position:absolute;
+  inset:0;
 
-      top: 0;
-      left: 0;
-      right: 0;
+  background:
+    radial-gradient(
+      circle at center,
+      rgba(0,0,0,.10),
+      rgba(0,0,0,.92) 72%
+    ),
+    linear-gradient(
+      to bottom,
+      rgba(0,0,0,.2),
+      #000 96%
+    );
+}
 
-      height: 44px;
+nav{
+  position:absolute;
 
-      z-index: 100;
+  top:38px;
+  left:50%;
 
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+  transform:translateX(-50%);
 
-      padding: 0 13px;
+  z-index:10;
 
-      background: rgba(2, 2, 3, 0.98);
+  display:flex;
+  gap:46px;
 
-      border-bottom:
-        1px solid rgba(255, 255, 255, 0.09);
+  font-size:11px;
+  letter-spacing:.32em;
 
-      font-family:
-        "Courier New",
-        monospace;
+  text-transform:uppercase;
 
-      font-size: 9px;
+  opacity:.86;
 
-      letter-spacing: 0.16em;
+  white-space:nowrap;
+}
 
-      text-transform: uppercase;
+nav a:hover{
+  opacity:.55;
+}
 
-      color: rgba(255, 255, 255, 0.52);
-    }
+.hero-content{
+  position:relative;
+  z-index:5;
+  padding:20px;
+}
 
-    .identity {
-      color: rgba(255, 255, 255, 0.78);
-    }
+.logo{
+  font-family:'Michroma',sans-serif;
 
-    .status {
-      display: flex;
-      align-items: center;
-      gap: 9px;
-    }
+  font-size:clamp(42px,8vw,118px);
 
-    .dot {
-      width: 4px;
-      height: 4px;
+  letter-spacing:.34em;
+  line-height:1.35;
 
-      border-radius: 50%;
+  text-transform:uppercase;
 
-      background: rgba(255, 255, 255, 0.75);
+  margin-bottom:24px;
+}
 
-      box-shadow:
-        0 0 7px rgba(255, 255, 255, 0.45);
-    }
+.kicker{
+  font-size:11px;
+  letter-spacing:.55em;
 
-    .viewport {
-      position: absolute;
+  text-transform:uppercase;
 
-      top: 45px;
-      left: 0;
-      right: 0;
-      bottom: 0;
+  opacity:.78;
 
-      overflow: hidden;
+  margin-bottom:28px;
+}
 
-      background: #000;
-    }
+.hero-text{
+  max-width:760px;
+  margin:auto;
 
-    tavus-embed {
-      position: absolute;
+  font-size:15px;
+  line-height:1.9;
 
-      inset: 0;
+  opacity:.84;
+}
 
-      width: 100%;
-      height: 100%;
+.scroll{
+  position:absolute;
 
-      opacity: 0;
-      visibility: hidden;
+  bottom:36px;
+  left:50%;
 
-      background: #000;
+  transform:translateX(-50%);
 
-      transition:
-        opacity 0.9s ease;
-    }
+  z-index:10;
 
-    body.live tavus-embed {
-      opacity: 1;
-      visibility: visible;
-    }
+  font-size:10px;
+  letter-spacing:.45em;
 
-    .cover {
-      position: absolute;
+  text-transform:uppercase;
 
-      top: 45px;
-      left: 0;
-      right: 0;
-      bottom: 0;
+  opacity:.55;
+}
 
-      z-index: 50;
+.section{
+  padding:115px 26px;
 
-      display: flex;
-      align-items: center;
-      justify-content: center;
+  border-bottom:1px solid #111;
 
-      background: #020203;
+  background:#030303;
+}
 
-      opacity: 1;
-      visibility: visible;
+.wrapper{
+  max-width:1180px;
+  margin:auto;
+}
 
-      transition:
-        opacity 1s ease,
-        visibility 1s ease;
-    }
+.section-head{
+  display:flex;
 
-    body.reveal .cover {
-      opacity: 0;
-      visibility: hidden;
-      pointer-events: none;
-    }
+  justify-content:space-between;
+  align-items:flex-end;
 
-    .entry {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+  gap:30px;
 
-      transform: translateY(-10px);
-    }
+  margin-bottom:42px;
+}
 
-    .name {
-      margin-bottom: 31px;
+.number{
+  font-size:11px;
+  letter-spacing:.35em;
 
-      font-family:
-        "Courier New",
-        monospace;
+  opacity:.45;
 
-      font-size: 10px;
+  margin-bottom:12px;
+}
 
-      letter-spacing: 0.27em;
+h2{
+  font-family:'Michroma',sans-serif;
 
-      text-transform: uppercase;
+  font-size:14px;
+  letter-spacing:.34em;
 
-      color: rgba(255, 255, 255, 0.66);
-    }
+  text-transform:uppercase;
+}
 
-    .aperture {
-      position: relative;
+.small{
+  max-width:520px;
 
-      width: 1px;
-      height: 76px;
+  color:#bdbdbd;
 
-      margin-bottom: 34px;
+  font-size:14px;
+  line-height:1.9;
+}
 
-      background:
-        rgba(255, 255, 255, 0.32);
+.artists{
+  display:grid;
 
-      box-shadow:
-        0 0 16px rgba(180, 200, 255, 0.08);
+  grid-template-columns:
+    repeat(
+      auto-fit,
+      minmax(170px,1fr)
+    );
 
-      transition:
-        height 1.8s cubic-bezier(.16, 1, .3, 1),
-        box-shadow 1.8s ease;
-    }
+  gap:1px;
 
-    .aperture::after {
-      content: "";
+  background:#111;
 
-      position: absolute;
+  border:1px solid #111;
+}
 
-      top: 50%;
-      left: 50%;
+.artist{
+  background:#050505;
 
-      width: 1px;
-      height: 1px;
+  padding:26px 18px;
 
-      transform: translate(-50%, -50%);
+  text-align:center;
 
-      background: white;
+  font-size:11px;
+  letter-spacing:.28em;
 
-      box-shadow:
-        0 0 12px rgba(255, 255, 255, 0.65);
-    }
+  text-transform:uppercase;
+}
 
-    body.opening .aperture {
-      height: 190px;
+.release-grid{
+  display:grid;
 
-      box-shadow:
-        0 0 28px rgba(175, 195, 255, 0.15);
-    }
+  grid-template-columns:
+    repeat(3,1fr);
 
-    .enter {
-      appearance: none;
+  gap:34px;
+}
 
-      padding: 11px 17px;
+.release-card img{
+  width:100%;
 
-      border:
-        1px solid rgba(255, 255, 255, 0.20);
+  aspect-ratio:1/1;
 
-      background: transparent;
+  object-fit:cover;
 
-      color: rgba(255, 255, 255, 0.78);
+  display:block;
 
-      font-family:
-        "Courier New",
-        monospace;
+  background:#111;
 
-      font-size: 9px;
+  border:1px solid #151515;
 
-      letter-spacing: 0.22em;
+  filter:
+    contrast(1.05)
+    brightness(.92);
 
-      text-transform: uppercase;
+  transition:.3s;
+}
 
-      cursor: pointer;
+.release-card:hover img{
+  transform:scale(1.025);
 
-      transition:
-        background 0.25s ease,
-        color 0.25s ease,
-        opacity 0.25s ease;
-    }
+  filter:
+    contrast(1.1)
+    brightness(1);
+}
 
-    .enter:hover {
-      background: rgba(255, 255, 255, 0.92);
-      color: #000;
-    }
+.release-title{
+  display:block;
 
-    .enter:disabled {
-      opacity: 0.25;
-      cursor: default;
-    }
+  margin-top:13px;
 
-    body.opening .enter {
-      opacity: 0;
-      pointer-events: none;
-    }
+  font-size:12px;
+  letter-spacing:.22em;
 
-    .opening-label {
-      position: absolute;
+  text-transform:uppercase;
 
-      margin-top: 160px;
+  line-height:1.45;
+}
 
-      opacity: 0;
+.release-meta{
+  display:block;
 
-      font-family:
-        "Courier New",
-        monospace;
+  margin-top:4px;
 
-      font-size: 8px;
+  font-size:10px;
+  letter-spacing:.18em;
 
-      letter-spacing: 0.24em;
+  text-transform:uppercase;
 
-      text-transform: uppercase;
+  color:#777;
+}
 
-      color: rgba(255, 255, 255, 0.34);
+.player{
+  margin-top:90px;
 
-      transition:
-        opacity 0.7s ease 0.4s;
-    }
+  border:1px solid #151515;
 
-    body.opening .opening-label {
-      opacity: 1;
-    }
+  background:#050505;
 
-    .corner {
-      position: absolute;
+  padding:28px;
+}
 
-      z-index: 120;
+.player-title{
+  font-family:'Michroma',sans-serif;
 
-      width: 24px;
-      height: 24px;
+  font-size:13px;
+  letter-spacing:.28em;
 
-      pointer-events: none;
-    }
+  text-transform:uppercase;
 
-    .tl {
-      top: 10px;
-      left: 10px;
+  margin-bottom:22px;
 
-      border-top:
-        1px solid rgba(255, 255, 255, 0.25);
+  line-height:1.7;
+}
 
-      border-left:
-        1px solid rgba(255, 255, 255, 0.25);
-    }
+.selection-grid{
+  display:grid;
 
-    .tr {
-      top: 10px;
-      right: 10px;
+  grid-template-columns:
+    repeat(3,1fr);
 
-      border-top:
-        1px solid rgba(255, 255, 255, 0.25);
+  gap:24px;
 
-      border-right:
-        1px solid rgba(255, 255, 255, 0.25);
-    }
+  margin-top:28px;
+}
 
-    .bl {
-      bottom: 10px;
-      left: 10px;
+.selection-card{
+  border:1px solid #151515;
 
-      border-bottom:
-        1px solid rgba(255, 255, 255, 0.25);
+  background:#050505;
 
-      border-left:
-        1px solid rgba(255, 255, 255, 0.25);
-    }
+  padding:18px;
+}
 
-    .br {
-      bottom: 10px;
-      right: 10px;
+.selection-title{
+  font-size:11px;
+  letter-spacing:.20em;
 
-      border-bottom:
-        1px solid rgba(255, 255, 255, 0.25);
+  text-transform:uppercase;
 
-      border-right:
-        1px solid rgba(255, 255, 255, 0.25);
-    }
+  line-height:1.55;
 
-    @media (max-width: 700px) {
-      .portal {
-        width: calc(100vw - 14px);
-        height: calc(100vh - 14px);
-      }
-    }
-  </style>
+  margin-bottom:14px;
+
+  color:#e8e8e8;
+}
+
+.story{
+  display:grid;
+
+  grid-template-columns:
+    1.15fr .85fr;
+
+  border:1px solid #111;
+
+  background:#050505;
+}
+
+.story img{
+  width:100%;
+  height:100%;
+
+  min-height:420px;
+
+  object-fit:cover;
+
+  filter:
+    grayscale(.15)
+    contrast(1.1)
+    brightness(.75);
+}
+
+.story-text{
+  padding:60px;
+
+  display:flex;
+  flex-direction:column;
+
+  justify-content:center;
+}
+
+.story-text p{
+  font-size:15px;
+  line-height:2;
+
+  color:#cfcfcf;
+
+  margin-bottom:24px;
+}
+
+.statement{
+  font-family:'Michroma',sans-serif;
+
+  font-size:13px;
+  letter-spacing:.24em;
+
+  line-height:2;
+
+  text-transform:uppercase;
+
+  color:#fff;
+
+  margin-top:20px;
+}
+
+.contact{
+  text-align:center;
+
+  padding:100px 20px 70px;
+
+  background:#000;
+}
+
+.contact h2{
+  margin-bottom:30px;
+}
+
+.contact a{
+  display:inline-block;
+
+  font-size:14px;
+  letter-spacing:.08em;
+
+  color:#d7d7d7;
+
+  margin:10px 20px;
+}
+
+footer{
+  text-align:center;
+
+  padding:38px;
+
+  font-size:10px;
+  letter-spacing:.32em;
+
+  text-transform:uppercase;
+
+  color:#666;
+}
+
+@media(max-width:950px){
+
+  .release-grid{
+    grid-template-columns:
+      repeat(2,1fr);
+  }
+
+  .selection-grid{
+    grid-template-columns:1fr;
+  }
+
+  .story{
+    grid-template-columns:1fr;
+  }
+
+  nav{
+    gap:22px;
+    font-size:10px;
+  }
+
+  .logo{
+    letter-spacing:.18em;
+  }
+}
+
+@media(max-width:560px){
+
+  nav{
+    top:24px;
+
+    gap:14px;
+
+    font-size:9px;
+    letter-spacing:.12em;
+  }
+
+  .release-grid{
+    grid-template-columns:1fr;
+  }
+
+  .section{
+    padding:82px 20px;
+  }
+
+  .story-text{
+    padding:34px 24px;
+  }
+
+  .player{
+    padding:20px;
+    margin-top:62px;
+  }
+}
+
+</style>
+
 </head>
 
 <body>
 
-  <main class="portal">
+<section class="hero">
 
-    <div class="corner tl"></div>
-    <div class="corner tr"></div>
-    <div class="corner bl"></div>
-    <div class="corner br"></div>
+  <img
+    class="hero-bg"
+    src="./assets/ebers2063.png"
+    alt="Parallel Vision Berlin 2063"
+  >
 
-    <header class="topbar">
+  <nav>
 
-      <div class="identity">
-        PV / NINA_FOK
+    <a href="#artists">
+      Artists
+    </a>
+
+    <a href="#releases">
+      Releases
+    </a>
+
+    <a href="#berlin">
+      Berlin 2063
+    </a>
+
+    <a href="#contact">
+      Contact
+    </a>
+
+  </nav>
+
+  <div class="hero-content">
+
+    <div class="logo">
+      Parallel<br>
+      Vision
+    </div>
+
+    <div class="kicker">
+      Berlin 2063
+    </div>
+
+    <p class="hero-text">
+
+      A cinematic music label from Berlin.
+      Electronic club culture, artificial memory,
+      machines, romance and the last human frequencies
+      inside a predicted world.
+
+    </p>
+
+  </div>
+
+  <div class="scroll">
+    Scroll
+  </div>
+
+</section>
+
+
+<section
+  id="berlin"
+  class="section">
+
+  <div class="wrapper">
+
+    <div class="section-head">
+
+      <div>
+
+        <div class="number">
+          01
+        </div>
+
+        <h2>
+          Berlin 2063
+        </h2>
+
       </div>
 
-      <div class="status">
-        <span class="dot"></span>
-        <span id="statusText">
-          Link ready
+      <p class="small">
+
+        Parallel Vision is not only a label.
+        It is a future city,
+        a sound archive
+        and a visual world.
+
+      </p>
+
+    </div>
+
+
+    <div class="story">
+
+      <img
+        src="./assets/ebers2063.png"
+        alt="Berlin 2063"
+      >
+
+      <div class="story-text">
+
+        <p>
+
+          In 2063,
+          artificial intelligence predicts reality
+          before it happens.
+
+          Synthetic guardians patrol the city.
+
+          Human memory is stored in the cloud.
+
+          The night still belongs to the few signals
+          that cannot be calculated.
+
+        </p>
+
+        <p>
+
+          Parallel Vision documents those signals
+          through music,
+          images
+          and fragments from a future Berlin
+          that feels ancient,
+          romantic
+          and dangerous.
+
+        </p>
+
+        <div class="statement">
+
+          Music remains<br>
+
+          the last unexplained<br>
+
+          anomaly.
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<section
+  id="artists"
+  class="section">
+
+  <div class="wrapper">
+
+    <div class="section-head">
+
+      <div>
+
+        <div class="number">
+          02
+        </div>
+
+        <h2>
+          Artists
+        </h2>
+
+      </div>
+
+      <p class="small">
+
+        A growing constellation of producers
+        connected by dark groove,
+        emotional tension
+        and cinematic club music.
+
+      </p>
+
+    </div>
+
+
+    <div class="artists">
+
+      <div class="artist">
+        Alejandro Molinari
+      </div>
+
+      <div class="artist">
+        REFRAKT (NY)
+      </div>
+
+      <div class="artist">
+        Ëlorian
+      </div>
+
+      <div class="artist">
+        Octave (RO)
+      </div>
+
+      <div class="artist">
+        Cabizbajo
+      </div>
+
+      <div class="artist">
+        Blex
+      </div>
+
+      <div class="artist">
+        Badwolf
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<section
+  id="releases"
+  class="section">
+
+  <div class="wrapper">
+
+    <div class="section-head">
+
+      <div>
+
+        <div class="number">
+          03
+        </div>
+
+        <h2>
+          Releases
+        </h2>
+
+      </div>
+
+      <p class="small">
+
+        Sound objects from the Parallel Vision archive.
+
+        Each release is treated
+        as a fragment of the same world.
+
+      </p>
+
+    </div>
+
+
+    <div class="release-grid">
+
+      <a class="release-card">
+
+        <img
+          src="./assets/tanzenfinal.jpeg"
+          alt="Tanzen Im Kreis"
+        >
+
+        <span class="release-title">
+          Tanzen Im Kreis
         </span>
+
+        <span class="release-meta">
+          PV009
+        </span>
+
+      </a>
+
+
+      <a class="release-card">
+
+        <img
+          src="./assets/Ravesiamolinariremix.png"
+          alt="Ravesia Alejandro Molinari Remix"
+        >
+
+        <span class="release-title">
+          Ravesia<br>
+          Alejandro Molinari Remix
+        </span>
+
+        <span class="release-meta">
+          PV007
+        </span>
+
+      </a>
+
+
+      <a class="release-card">
+
+        <img
+          src="./assets/Ravesiaremixesart.png"
+          alt="Ravesia Remixes"
+        >
+
+        <span class="release-title">
+          Ravesia<br>
+          Remixes
+        </span>
+
+        <span class="release-meta">
+          PV006
+        </span>
+
+      </a>
+
+
+      <a class="release-card">
+
+        <img
+          src="./assets/Builttolast.png"
+          alt="Built To Last"
+        >
+
+        <span class="release-title">
+          Built To Last
+        </span>
+
+        <span class="release-meta">
+          PV003
+        </span>
+
+      </a>
+
+
+      <a class="release-card">
+
+        <img
+          src="./assets/artfunkybeats.png"
+          alt="Funky Beat"
+        >
+
+        <span class="release-title">
+          Funky Beat
+        </span>
+
+        <span class="release-meta">
+          PV002
+        </span>
+
+      </a>
+
+
+      <a class="release-card">
+
+        <img
+          src="./assets/Artdarkrock.png"
+          alt="Dark Rock"
+        >
+
+        <span class="release-title">
+          Dark Rock
+        </span>
+
+        <span class="release-meta">
+          PV001
+        </span>
+
+      </a>
+
+
+      <a class="release-card">
+
+        <img
+          src="./assets/vision-neo.jpg"
+          alt="Vision EP"
+        >
+
+        <span class="release-title">
+          Vision EP
+        </span>
+
+        <span class="release-meta">
+          2025
+        </span>
+
+      </a>
+
+    </div>
+
+
+    <div class="player">
+
+      <div class="player-title">
+        Listen · Ravesia Alejandro Molinari Remix
       </div>
 
-    </header>
+      <iframe
+        width="100%"
+        height="166"
+        scrolling="no"
+        frameborder="no"
+        allow="autoplay"
+        src="https://w.soundcloud.com/player/?url=https%3A%2F%2Fsoundcloud.com%2Falejandromolinari%2Fravesia-alejandro-molinari-1&color=%23000000&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false">
+      </iframe>
 
-    <section class="viewport">
+    </div>
 
-      <tavus-embed
-        id="nina"
-        deployment-id="79e246c0-70c7-4c2c-930b-3bf421a01e46">
-      </tavus-embed>
 
-    </section>
+    <div class="player">
 
-    <section class="cover">
+      <div class="player-title">
+        Selection by Alejandro Molinari
+      </div>
 
-      <div class="entry">
 
-        <div class="name">
-          Nina FOK
+      <div class="selection-grid">
+
+
+        <div class="selection-card">
+
+          <div class="selection-title">
+            Blex (AR) · Carmesi Cotton Bud Master 2
+          </div>
+
+          <iframe
+            width="100%"
+            height="166"
+            scrolling="no"
+            frameborder="no"
+            allow="autoplay"
+            src="https://w.soundcloud.com/player/?url=https%3A%2F%2Fsoundcloud.com%2Fparallelvisionlabel%2Fblex-ar-carmesi-cotton-bud-master-2%3Fin%3Dparallelvisionlabel%2Fsets%2Fravesia&color=%23000000&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false">
+          </iframe>
+
         </div>
 
-        <div class="aperture"></div>
 
-        <button
-          id="enterButton"
-          class="enter"
-          disabled>
-          Connect
-        </button>
+        <div class="selection-card">
 
-        <div class="opening-label">
-          Opening channel
+          <div class="selection-title">
+            Blex (AR) · Dark Rock Alejandro Molinari Remix
+          </div>
+
+          <iframe
+            width="100%"
+            height="166"
+            scrolling="no"
+            frameborder="no"
+            allow="autoplay"
+            src="https://w.soundcloud.com/player/?url=https%3A%2F%2Fsoundcloud.com%2Falejandromolinari%2Fblex-ar-dark-rock-alejandro-molinari-remix%3Fin%3Dparallelvisionlabel%2Fsets%2Fdark-rock-ep&color=%23000000&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false">
+          </iframe>
+
         </div>
+
+
+        <div class="selection-card">
+
+          <div class="selection-title">
+            REFRAKT (NY) · Built To Last Matt FX Remix
+          </div>
+
+          <iframe
+            width="100%"
+            height="166"
+            scrolling="no"
+            frameborder="no"
+            allow="autoplay"
+            src="https://w.soundcloud.com/player/?url=https%3A%2F%2Fsoundcloud.com%2Fibizasonica%2Fpremiere-refrakt-ny-built-to-last-matt-fx-remix-parallel-vision%3Fin%3Dparallelvisionlabel%2Fsets%2Frefrakt-ny-built-to-last-matt&color=%23000000&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false">
+          </iframe>
+
+        </div>
+
 
       </div>
 
-    </section>
+    </div>
 
-  </main>
+  </div>
 
-  <script src="https://unpkg.com/@tavus/embed@beta"></script>
+</section>
 
-  <script>
-    const nina =
-      document.getElementById("nina");
 
-    const button =
-      document.getElementById("enterButton");
+<section
+  id="contact"
+  class="contact">
 
-    const statusText =
-      document.getElementById("statusText");
+  <h2>
+    Contact
+  </h2>
 
-    async function waitForTavus() {
+  <a href="mailto:parallelvision.label@gmail.com">
+    parallelvision.label@gmail.com
+  </a>
 
-      const startTime = Date.now();
+  <a
+    href="https://www.instagram.com/parallelvision.label/"
+    target="_blank"
+    rel="noopener">
 
-      while (!nina.tavus?.start) {
+    Instagram
 
-        if (Date.now() - startTime > 15000) {
+  </a>
 
-          button.disabled = false;
+  <a
+    href="https://soundcloud.com/parallel-vision-label"
+    target="_blank"
+    rel="noopener">
 
-          button.textContent = "Retry";
+    SoundCloud
 
-          statusText.textContent =
-            "Link unavailable";
+  </a>
 
-          return;
-        }
+  <a
+    href="https://ra.co/labels/25295"
+    target="_blank"
+    rel="noopener">
 
-        await new Promise(
-          resolve => setTimeout(resolve, 100)
-        );
-      }
+    Resident Advisor
 
-      button.disabled = false;
+  </a>
 
-      button.textContent = "Connect";
+</section>
 
-      statusText.textContent =
-        "Link ready";
-    }
 
-    button.addEventListener(
-      "click",
-      async () => {
+<footer>
 
-        if (!nina.tavus?.start) {
-          return;
-        }
+  © 2026 Parallel Vision · Berlin 2063
 
-        button.disabled = true;
+</footer>
 
-        document.body.classList.add(
-          "opening"
-        );
 
-        statusText.textContent =
-          "Opening channel";
+<script src="https://unpkg.com/@tavus/widget@beta"></script>
 
-        try {
+<tavus-widget
+  deployment-id="d7dc959e-ea36-4a63-8e92-cd369a8df73a">
+</tavus-widget>
 
-          await nina.tavus.start();
-
-        } catch (error) {
-
-          console.error(error);
-
-          document.body.classList.remove(
-            "opening"
-          );
-
-          button.disabled = false;
-
-          button.textContent = "Retry";
-
-          statusText.textContent =
-            "Connection failed";
-        }
-      }
-    );
-
-    nina.addEventListener(
-      "tavus:conversation-started",
-      () => {
-
-        statusText.textContent =
-          "Live";
-
-        document.body.classList.add(
-          "live"
-        );
-
-        setTimeout(() => {
-
-          document.body.classList.add(
-            "reveal"
-          );
-
-        }, 700);
-      }
-    );
-
-    nina.addEventListener(
-      "tavus:conversation-ended",
-      () => {
-
-        document.body.classList.remove(
-          "opening",
-          "live",
-          "reveal"
-        );
-
-        button.disabled = false;
-
-        button.textContent =
-          "Connect";
-
-        statusText.textContent =
-          "Link ready";
-      }
-    );
-
-    nina.addEventListener(
-      "tavus:error",
-      event => {
-
-        console.error(
-          event.detail
-        );
-
-        document.body.classList.remove(
-          "opening",
-          "live",
-          "reveal"
-        );
-
-        button.disabled = false;
-
-        button.textContent =
-          "Retry";
-
-        statusText.textContent =
-          "Signal interrupted";
-      }
-    );
-
-    waitForTavus();
-  </script>
 
 </body>
+
 </html>
