@@ -2580,7 +2580,30 @@ function openNinaWindow() {
 
 
 
-async function closeNinaWindow() {
+function closeNinaWindow() {
+
+  ninaOverlay.classList.remove(
+    "is-open"
+  );
+
+
+  ninaOverlay.setAttribute(
+    "aria-hidden",
+    "true"
+  );
+
+
+  document.body.style.overflow =
+    "";
+
+
+  resetNinaInterface();
+
+}
+
+
+
+async function closeNinaFromButton() {
 
   if (
     ninaConversationActive &&
@@ -2606,22 +2629,7 @@ async function closeNinaWindow() {
   }
 
 
-  ninaOverlay.classList.remove(
-    "is-open"
-  );
-
-
-  ninaOverlay.setAttribute(
-    "aria-hidden",
-    "true"
-  );
-
-
-  document.body.style.overflow =
-    "";
-
-
-  resetNinaInterface();
+  closeNinaWindow();
 
 }
 
@@ -2830,7 +2838,7 @@ openNina.addEventListener(
 
 closeNina.addEventListener(
   "click",
-  closeNinaWindow
+  closeNinaFromButton
 );
 
 
