@@ -1140,6 +1140,128 @@ tavus-embed {
   pointer-events: auto;
 }
 
+.nina-call-scrim {
+  position: absolute;
+
+  inset: 0;
+
+  z-index: 70;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  background: #020203;
+
+  opacity: 0;
+
+  pointer-events: none;
+
+  transition:
+    opacity
+    .35s
+    ease;
+}
+
+body.nina-scrim-visible
+.nina-call-scrim {
+  opacity: 1;
+
+  pointer-events: auto;
+}
+
+.nina-call-scrim-content {
+  width:
+    min(
+      620px,
+      calc(
+        100%
+        -
+        48px
+      )
+    );
+
+  text-align: center;
+}
+
+.nina-call-scrim-title {
+  margin: 0;
+
+  font-family:
+    'Michroma',
+    sans-serif;
+
+  font-size:
+    clamp(
+      30px,
+      5vw,
+      64px
+    );
+
+  font-weight: 400;
+
+  letter-spacing: .14em;
+
+  line-height: 1.05;
+
+  text-transform: uppercase;
+}
+
+.nina-call-scrim-subtitle {
+  margin-top: 22px;
+
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      .52
+    );
+
+  font-family:
+    'Courier New',
+    monospace;
+
+  font-size: 10px;
+
+  letter-spacing: .32em;
+
+  text-transform: uppercase;
+}
+
+.nina-call-scrim-message {
+  margin:
+    24px
+    auto
+    0;
+
+  max-width: 560px;
+
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      .68
+    );
+
+  font-size: 15px;
+
+  line-height: 1.6;
+
+  word-break: break-word;
+}
+
+.nina-scrim-button {
+  display: none;
+}
+
+body.nina-scrim-action
+.nina-scrim-button {
+  display: inline-flex;
+}
+
 
 /* =========================================================
    CINEMATIC INTRO
@@ -2432,6 +2554,58 @@ body.nina-connecting-mode
       </tavus-embed>
 
 
+      <section
+        class="nina-call-scrim"
+        aria-hidden="true"
+      >
+
+
+        <div class="nina-call-scrim-content">
+
+
+          <h3
+            class="nina-call-scrim-title"
+            id="ninaScrimTitle"
+          >
+
+            SIGNAL OPENING
+
+          </h3>
+
+
+          <div
+            class="nina-call-scrim-subtitle"
+            id="ninaScrimSubtitle"
+          >
+
+            BERLIN 2063
+
+          </div>
+
+
+          <div
+            class="nina-call-scrim-message"
+            id="ninaScrimMessage"
+          ></div>
+
+
+          <button
+            class="nina-open-live nina-scrim-button"
+            id="ninaScrimButton"
+            type="button"
+          >
+
+            RETRY SIGNAL
+
+          </button>
+
+
+        </div>
+
+
+      </section>
+
+
 
       <section class="nina-intro">
 
@@ -2559,6 +2733,30 @@ const ninaStatus =
   );
 
 
+const ninaScrimTitle =
+  document.getElementById(
+    "ninaScrimTitle"
+  );
+
+
+const ninaScrimSubtitle =
+  document.getElementById(
+    "ninaScrimSubtitle"
+  );
+
+
+const ninaScrimMessage =
+  document.getElementById(
+    "ninaScrimMessage"
+  );
+
+
+const ninaScrimButton =
+  document.getElementById(
+    "ninaScrimButton"
+  );
+
+
 let ninaConversationActive =
   false;
 
@@ -2587,6 +2785,40 @@ function openNinaWindow() {
 
   document.body.style.overflow =
     "hidden";
+
+}
+
+
+
+function setNinaScrim(
+  title,
+  subtitle,
+  message,
+  buttonText
+) {
+
+  ninaScrimTitle.textContent =
+    title;
+
+
+  ninaScrimSubtitle.textContent =
+    subtitle;
+
+
+  ninaScrimMessage.textContent =
+    message || "";
+
+
+  ninaScrimButton.textContent =
+    buttonText || "";
+
+
+  document.body.classList.toggle(
+    "nina-scrim-action",
+    Boolean(
+      buttonText
+    )
+  );
 
 }
 
@@ -2660,7 +2892,17 @@ function resetNinaInterface() {
   document.body.classList.remove(
     "nina-connecting-mode",
     "nina-call-visible",
-    "nina-conversation-live"
+    "nina-conversation-live",
+    "nina-scrim-visible",
+    "nina-scrim-action"
+  );
+
+
+  setNinaScrim(
+    "SIGNAL OPENING",
+    "BERLIN 2063",
+    "",
+    ""
   );
 
 
@@ -2724,9 +2966,8 @@ async function waitForNina() {
 
     await new Promise(
       resolve =>
-        setTimeout(
-          resolve,
-          100
+        requestAnimationFrame(
+          resolve
         )
     );
 
@@ -2754,22 +2995,65 @@ async function waitForNina() {
 
 async function startNinaConversation() {
 
+  console.log(
+    "NINA: custom button clicked"
+  );
+
+
   if (
     !ninaEmbed.tavus ||
     typeof ninaEmbed.tavus.start
       !== "function"
   ) {
 
-    await waitForNina();
+    setNinaScrim(
+      "SIGNAL LOST",
+      "BERLIN 2063",
+      "Tavus start is unavailable.",
+      "RETRY SIGNAL"
+    );
+
+
+    document.body.classList.add(
+      "nina-call-visible",
+      "nina-scrim-visible"
+    );
+
+
+    ninaStatus.textContent =
+      "SIGNAL LOST";
+
 
     return;
 
   }
 
 
+  ninaConversationActive =
+    false;
+
+
+  ninaConversationStarted =
+    false;
+
+
+  setNinaScrim(
+    "SIGNAL OPENING",
+    "BERLIN 2063",
+    "",
+    ""
+  );
+
+
   document.body.classList.add(
     "nina-connecting-mode",
-    "nina-call-visible"
+    "nina-call-visible",
+    "nina-scrim-visible"
+  );
+
+
+  document.body.classList.remove(
+    "nina-scrim-action"
   );
 
 
@@ -2789,9 +3073,29 @@ async function startNinaConversation() {
   );
 
 
+  const ninaEmbedBounds =
+    ninaEmbed.getBoundingClientRect();
+
+
+  console.log(
+    "NINA: embed visible and sized",
+    `${Math.round(ninaEmbedBounds.width)}x${Math.round(ninaEmbedBounds.height)}`
+  );
+
+
   try {
 
+    console.log(
+      "NINA: calling tavus.start()"
+    );
+
+
     await ninaEmbed.tavus.start();
+
+
+    console.log(
+      "NINA: tavus.start resolved"
+    );
 
   }
 
@@ -2804,8 +3108,23 @@ async function startNinaConversation() {
 
     document.body.classList.remove(
       "nina-connecting-mode",
-      "nina-call-visible",
       "nina-conversation-live"
+    );
+
+
+    document.body.classList.add(
+      "nina-call-visible",
+      "nina-scrim-visible"
+    );
+
+
+    setNinaScrim(
+      "SIGNAL LOST",
+      "BERLIN 2063",
+      getNinaErrorText(
+        error
+      ),
+      "RETRY SIGNAL"
     );
 
 
@@ -2814,11 +3133,11 @@ async function startNinaConversation() {
 
 
     startNina.textContent =
-      "Retry connection";
+      "RETRY SIGNAL";
 
 
     ninaStatus.textContent =
-      "Signal interrupted";
+      "SIGNAL LOST";
 
   }
 
@@ -2827,6 +3146,11 @@ async function startNinaConversation() {
 
 
 function markNinaOnline() {
+
+  console.log(
+    "NINA: conversation-started"
+  );
+
 
   ninaConversationActive =
     true;
@@ -2845,6 +3169,13 @@ function markNinaOnline() {
     "nina-conversation-live"
   );
 
+
+  document.body.classList.remove(
+    "nina-connecting-mode",
+    "nina-scrim-visible",
+    "nina-scrim-action"
+  );
+
 }
 
 
@@ -2855,7 +3186,7 @@ function getNinaErrorText(detail) {
     !detail
   ) {
 
-    return "CONNECTION FAILED";
+    return "UNKNOWN_ERROR: No error detail was provided.";
 
   }
 
@@ -2887,7 +3218,54 @@ function getNinaErrorText(detail) {
     );
 
 
-  return `CONNECTION FAILED: ${code} - ${message}`;
+  return `${code}: ${message}`;
+
+}
+
+
+
+function showNinaEnded() {
+
+  if (
+    ninaConversationStarted
+  ) {
+
+    ninaStatus.textContent =
+      "SIGNAL ENDED";
+
+
+    setNinaScrim(
+      "SIGNAL ENDED",
+      "BERLIN 2063",
+      "",
+      "REOPEN SIGNAL"
+    );
+
+
+    document.body.classList.remove(
+      "nina-connecting-mode",
+      "nina-conversation-live"
+    );
+
+
+    document.body.classList.add(
+      "nina-call-visible",
+      "nina-scrim-visible"
+    );
+
+
+    startNina.disabled =
+      false;
+
+
+    startNina.textContent =
+      "REOPEN SIGNAL";
+
+  }
+
+
+  ninaConversationActive =
+    false;
 
 }
 
@@ -2914,6 +3292,13 @@ startNina.addEventListener(
 
 
 
+ninaScrimButton.addEventListener(
+  "click",
+  startNinaConversation
+);
+
+
+
 ninaEmbed.addEventListener(
   "tavus:conversation-started",
   markNinaOnline
@@ -2934,18 +3319,7 @@ ninaEmbed.addEventListener(
       state === "ended"
     ) {
 
-      if (
-        ninaConversationStarted
-      ) {
-
-        ninaStatus.textContent =
-          "SIGNAL ENDED";
-
-      }
-
-
-      ninaConversationActive =
-        false;
+      showNinaEnded();
 
     }
 
@@ -2959,18 +3333,12 @@ ninaEmbed.addEventListener(
 
   () => {
 
-    if (
-      ninaConversationStarted
-    ) {
-
-      ninaStatus.textContent =
-        "SIGNAL ENDED";
-
-    }
+    console.log(
+      "NINA: conversation-ended"
+    );
 
 
-    ninaConversationActive =
-      false;
+    showNinaEnded();
 
   }
 );
@@ -2982,6 +3350,18 @@ ninaEmbed.addEventListener(
 
   event => {
 
+    const ninaErrorText =
+      getNinaErrorText(
+        event.detail
+      );
+
+
+    console.log(
+      "NINA: tavus:error code/message",
+      ninaErrorText
+    );
+
+
     console.error(
       event.detail
     );
@@ -2989,8 +3369,21 @@ ninaEmbed.addEventListener(
 
     document.body.classList.remove(
       "nina-connecting-mode",
-      "nina-call-visible",
       "nina-conversation-live"
+    );
+
+
+    document.body.classList.add(
+      "nina-call-visible",
+      "nina-scrim-visible"
+    );
+
+
+    setNinaScrim(
+      "SIGNAL LOST",
+      "BERLIN 2063",
+      ninaErrorText,
+      "RETRY SIGNAL"
     );
 
 
@@ -3003,13 +3396,11 @@ ninaEmbed.addEventListener(
 
 
     startNina.textContent =
-      "Retry connection";
+      "RETRY SIGNAL";
 
 
     ninaStatus.textContent =
-      getNinaErrorText(
-        event.detail
-      );
+      "SIGNAL LOST";
 
   }
 );
