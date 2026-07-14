@@ -1133,7 +1133,7 @@ tavus-embed {
     ease;
 }
 
-body.nina-conversation-live
+body.nina-call-visible
 tavus-embed {
   opacity: 1;
 
@@ -1240,7 +1240,7 @@ tavus-embed {
     );
 }
 
-body.nina-reveal-live
+body.nina-call-visible
 .nina-intro {
   opacity: 0;
 
@@ -1642,7 +1642,15 @@ body.nina-connecting-mode
   }
 
   .nina-window-status {
-    display: none;
+    max-width:
+      min(
+        46vw,
+        220px
+      );
+
+    line-height: 1.4;
+
+    word-break: break-word;
   }
 
   .nina-intro h3 {
@@ -2559,6 +2567,10 @@ let ninaReady =
   false;
 
 
+let ninaConversationStarted =
+  false;
+
+
 
 function openNinaWindow() {
 
@@ -2641,10 +2653,14 @@ function resetNinaInterface() {
     false;
 
 
+  ninaConversationStarted =
+    false;
+
+
   document.body.classList.remove(
     "nina-connecting-mode",
-    "nina-conversation-live",
-    "nina-reveal-live"
+    "nina-call-visible",
+    "nina-conversation-live"
   );
 
 
@@ -2752,16 +2768,25 @@ async function startNinaConversation() {
 
 
   document.body.classList.add(
-    "nina-connecting-mode"
+    "nina-connecting-mode",
+    "nina-call-visible"
   );
 
 
   ninaStatus.textContent =
-    "Establishing connection";
+    "ESTABLISHING SIGNAL";
 
 
   startNina.disabled =
     true;
+
+
+  await new Promise(
+    resolve =>
+      requestAnimationFrame(
+        resolve
+      )
+  );
 
 
   try {
@@ -2778,7 +2803,9 @@ async function startNinaConversation() {
 
 
     document.body.classList.remove(
-      "nina-connecting-mode"
+      "nina-connecting-mode",
+      "nina-call-visible",
+      "nina-conversation-live"
     );
 
 
@@ -2791,7 +2818,7 @@ async function startNinaConversation() {
 
 
     ninaStatus.textContent =
-      "Connection failed";
+      "Signal interrupted";
 
   }
 
@@ -2799,31 +2826,68 @@ async function startNinaConversation() {
 
 
 
-function revealLiveNina() {
+function markNinaOnline() {
 
   ninaConversationActive =
     true;
 
 
+  ninaConversationStarted =
+    true;
+
+
   ninaStatus.textContent =
-    "Live";
+    "SIGNAL ONLINE";
 
 
   document.body.classList.add(
+    "nina-call-visible",
     "nina-conversation-live"
   );
 
+}
 
-  setTimeout(
-    () => {
 
-      document.body.classList.add(
-        "nina-reveal-live"
-      );
 
-    },
-    850
-  );
+function getNinaErrorText(detail) {
+
+  if (
+    !detail
+  ) {
+
+    return "CONNECTION FAILED";
+
+  }
+
+
+  const source =
+    detail.error &&
+    typeof detail.error === "object"
+      ? detail.error
+      : detail;
+
+
+  const code =
+    source.code ||
+    source.errorCode ||
+    source.name ||
+    "UNKNOWN_ERROR";
+
+
+  const message =
+    source.message ||
+    source.reason ||
+    (
+      typeof detail.error === "string"
+        ? detail.error
+        : ""
+    ) ||
+    JSON.stringify(
+      detail
+    );
+
+
+  return `CONNECTION FAILED: ${code} - ${message}`;
 
 }
 
@@ -2852,7 +2916,7 @@ startNina.addEventListener(
 
 ninaEmbed.addEventListener(
   "tavus:conversation-started",
-  revealLiveNina
+  markNinaOnline
 );
 
 
@@ -2867,19 +2931,21 @@ ninaEmbed.addEventListener(
 
 
     if (
-      state === "connected"
-    ) {
-
-      revealLiveNina();
-
-    }
-
-
-    if (
       state === "ended"
     ) {
 
-      resetNinaInterface();
+      if (
+        ninaConversationStarted
+      ) {
+
+        ninaStatus.textContent =
+          "SIGNAL ENDED";
+
+      }
+
+
+      ninaConversationActive =
+        false;
 
     }
 
@@ -2893,7 +2959,18 @@ ninaEmbed.addEventListener(
 
   () => {
 
-    resetNinaInterface();
+    if (
+      ninaConversationStarted
+    ) {
+
+      ninaStatus.textContent =
+        "SIGNAL ENDED";
+
+    }
+
+
+    ninaConversationActive =
+      false;
 
   }
 );
@@ -2912,8 +2989,8 @@ ninaEmbed.addEventListener(
 
     document.body.classList.remove(
       "nina-connecting-mode",
-      "nina-conversation-live",
-      "nina-reveal-live"
+      "nina-call-visible",
+      "nina-conversation-live"
     );
 
 
@@ -2930,7 +3007,9 @@ ninaEmbed.addEventListener(
 
 
     ninaStatus.textContent =
-      "Signal interrupted";
+      getNinaErrorText(
+        event.detail
+      );
 
   }
 );
