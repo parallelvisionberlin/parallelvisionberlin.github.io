@@ -2682,6 +2682,7 @@ body.nina-connecting-mode
 }
 .fashion-card {
   min-height: 0;
+  justify-content: flex-start;
   padding: 0 0 28px;
   border: 0;
   border-bottom: 1px solid rgba(255,255,255,.15);
@@ -2709,9 +2710,15 @@ body.nina-connecting-mode
   filter: saturate(.9) contrast(1.08) brightness(.96);
 }
 
-.fashion-card h3 { font-size: clamp(16px, 1.6vw, 24px); }
+.fashion-card h3 {
+  min-height: 2.35em;
+  font-size: clamp(16px, 1.6vw, 24px);
+}
 .fashion-card p { margin-top: 15px; }
-.fashion-card span { margin-top: 18px; }
+.fashion-card span {
+  margin-top: auto;
+  padding-top: 18px;
+}
 .fashion-card:focus-visible { outline: 1px solid #666; outline-offset: 8px; }
 .fashion-card.magnetic { order: 3; }
 .fashion-card.bio { order: 4; }
@@ -2743,6 +2750,8 @@ body.nina-connecting-mode
   .artist, .artist:nth-child(2n), .artist:nth-child(4n) { border-right: 0; }
   .fashion-links { grid-template-columns: 1fr; }
   .fashion-hero-media { aspect-ratio: 4 / 5; }
+  .fashion-card h3 { min-height: 0; }
+  .fashion-card span { margin-top: 18px; padding-top: 0; }
 }
 
 /* Mobile homepage: signal first, interface second */
