@@ -2471,6 +2471,210 @@ body.nina-connecting-mode
 
 }
 
+/* 2026 archive hierarchy */
+[hidden] { display: none !important; }
+
+.hero {
+  justify-content: flex-start;
+  text-align: left;
+}
+
+.hero-content {
+  width: min(1180px, calc(100% - 52px));
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(240px, 1fr);
+  align-items: center;
+  padding: 150px 0 120px;
+}
+
+.hero-copy {
+  max-width: 860px;
+}
+
+.hero-status {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 34px;
+  color: #9b9b9b;
+  font-family: 'Courier New', monospace;
+  font-size: 10px;
+  letter-spacing: .22em;
+  line-height: 1.7;
+  text-transform: uppercase;
+}
+
+.hero-status span:last-child::before {
+  content: "";
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  margin: 0 10px 1px 0;
+  border-radius: 50%;
+  background: #a9c4b7;
+  box-shadow: 0 0 12px rgba(169, 196, 183, .55);
+}
+
+.logo {
+  margin-bottom: 34px;
+  font-size: clamp(48px, 7vw, 106px);
+  letter-spacing: .23em;
+  line-height: 1.12;
+}
+
+.hero-text {
+  max-width: 650px;
+  margin: 0;
+  font-size: clamp(15px, 1.4vw, 18px);
+  line-height: 1.9;
+}
+
+.hero-visual-reserve {
+  min-height: 440px;
+  border-left: 1px solid rgba(255,255,255,.08);
+  opacity: .28;
+}
+
+.audio-toggle {
+  position: absolute;
+  left: 34px;
+  bottom: 32px;
+  z-index: 12;
+  padding: 10px 0;
+  border: 0;
+  border-bottom: 1px solid rgba(255,255,255,.25);
+  background: none;
+  color: #aaa;
+  font: 10px 'Courier New', monospace;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.audio-toggle:hover,
+.audio-toggle:focus-visible { color: #fff; }
+.audio-toggle:focus-visible { outline: 1px solid #666; outline-offset: 5px; }
+
+.section { padding: 140px 26px; }
+.section-head { align-items: flex-start; margin-bottom: 64px; }
+
+.story { grid-template-columns: .9fr 1.1fr; }
+
+.berlin-visual {
+  position: relative;
+  min-height: 620px;
+  overflow: hidden;
+  border-right: 1px solid #151515;
+  background:
+    linear-gradient(120deg, transparent 0 42%, rgba(255,255,255,.04) 42.2% 42.5%, transparent 42.7%),
+    linear-gradient(70deg, transparent 0 58%, rgba(255,255,255,.035) 58.2% 58.5%, transparent 58.7%),
+    radial-gradient(circle at 68% 32%, rgba(127,150,142,.18), transparent 24%),
+    linear-gradient(180deg, #090c0c, #020303 65%, #000);
+}
+
+.berlin-visual::before {
+  content: "";
+  position: absolute;
+  inset: 12% 13% 0;
+  border: 1px solid rgba(255,255,255,.08);
+  border-bottom: 0;
+  transform: perspective(700px) rotateY(-9deg);
+  box-shadow: inset 0 0 80px rgba(145,180,164,.04);
+}
+
+.berlin-visual::after {
+  content: "BERLIN VISUAL ARCHIVE / ASSET HOOK 01";
+  position: absolute;
+  left: 28px;
+  bottom: 26px;
+  color: rgba(255,255,255,.38);
+  font: 9px 'Courier New', monospace;
+  letter-spacing: .24em;
+}
+
+.story-text { padding: clamp(42px, 6vw, 84px); }
+
+.artists {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+  background: transparent;
+}
+
+.artist {
+  min-height: 116px;
+  display: flex;
+  align-items: flex-end;
+  border-right: 1px solid #151515;
+  border-bottom: 1px solid #151515;
+  background: #030303;
+  font-family: 'Michroma', sans-serif;
+  font-size: 11px;
+  letter-spacing: .16em;
+}
+
+.artist:nth-child(4n) { border-right: 0; }
+
+.fashion-landing { min-height: auto; margin-bottom: 82px; }
+.fashion-card {
+  min-height: 0;
+  padding: 0 0 28px;
+  border: 0;
+  border-bottom: 1px solid rgba(255,255,255,.15);
+  background: transparent !important;
+}
+
+.fashion-card-media {
+  aspect-ratio: 4 / 5;
+  margin-bottom: 28px;
+  overflow: hidden;
+  background: #080808;
+}
+
+.fashion-card-media img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  filter: saturate(.72) contrast(1.06) brightness(.86);
+  transition: transform .5s ease, filter .5s ease;
+}
+
+.fashion-card:hover .fashion-card-media img {
+  transform: scale(1.018);
+  filter: saturate(.9) contrast(1.08) brightness(.96);
+}
+
+.fashion-card h3 { font-size: clamp(16px, 1.6vw, 24px); }
+.fashion-card p { margin-top: 15px; }
+.fashion-card span { margin-top: 18px; }
+.fashion-card:focus-visible { outline: 1px solid #666; outline-offset: 8px; }
+.fashion-card.magnetic { order: 3; }
+.fashion-card.bio { order: 4; }
+.fashion-overview-link { margin-top: -48px; }
+
+@media (max-width: 900px) {
+  .hero-content { grid-template-columns: 1fr; }
+  .hero-visual-reserve { display: none; }
+  .artists { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .artist:nth-child(4n) { border-right: 1px solid #151515; }
+  .artist:nth-child(2n) { border-right: 0; }
+  .story { grid-template-columns: 1fr; }
+  .berlin-visual { min-height: 440px; border-right: 0; border-bottom: 1px solid #151515; }
+}
+
+@media (max-width: 620px) {
+  .hero-content { width: calc(100% - 36px); padding: 140px 0 110px; }
+  .hero-status { display: block; }
+  .hero-status span { display: block; margin-top: 6px; }
+  .logo { letter-spacing: .14em; }
+  .audio-toggle { top: 88px; left: 18px; right: auto; bottom: auto; }
+  .scroll { left: 18px; transform: none; }
+  .section { padding: 100px 18px; }
+  .section-head { margin-bottom: 46px; }
+  .artists { grid-template-columns: 1fr; }
+  .artist, .artist:nth-child(2n), .artist:nth-child(4n) { border-right: 0; }
+}
+
 </style>
 
 </head>
@@ -2503,7 +2707,7 @@ body.nina-connecting-mode
       Releases
     </a>
 
-    <a href="#future-fashion">
+    <a href="./future-fashion.html">
       Future Fashion
     </a>
 
@@ -2520,35 +2724,36 @@ body.nina-connecting-mode
 
   <div class="hero-content">
 
-    <div class="logo">
+    <div class="hero-copy">
 
-      Parallel<br>
+      <div class="hero-status" aria-label="Parallel Vision archive status">
+        <span>PV_ARCHIVE / BERLIN NODE</span>
+        <span>SIGNAL STABILITY 87%</span>
+      </div>
 
-      Vision
+      <div class="logo">
+        Parallel<br>
+        Vision
+      </div>
+
+      <p class="hero-text">
+        A record label transmitting music, bodies and imagined futures from Berlin in 2063.
+      </p>
 
     </div>
 
-
-    <div class="kicker">
-
-      Berlin 2063
-
-    </div>
-
-
-    <p class="hero-text">
-
-      A cinematic music label from Berlin.
-      Electronic club culture,
-      artificial memory,
-      machines,
-      romance
-      and the last human frequencies
-      inside a predicted world.
-
-    </p>
+    <div class="hero-visual-reserve" aria-hidden="true"></div>
 
   </div>
+
+  <button
+    class="audio-toggle"
+    id="audioToggle"
+    type="button"
+    aria-pressed="false"
+  >
+    Audio Off
+  </button>
 
 
   <div class="scroll">
@@ -2589,13 +2794,9 @@ body.nina-connecting-mode
 
 
       <p class="small">
-
-        Parallel Vision is not only a label.
-
-        It is a future city,
-        a sound archive
-        and a visual world.
-
+        Parallel Vision documents Berlin 2063: a city of managed systems,
+        artificial memory, nightlife residues and emotional signals that
+        prediction cannot fully contain.
       </p>
 
     </div>
@@ -2603,51 +2804,36 @@ body.nina-connecting-mode
 
     <div class="story">
 
-      <img
-        src="./assets/ebers2063.png"
-        alt="Berlin 2063"
-      >
+      <div
+        class="berlin-visual"
+        role="img"
+        aria-label="Reserved cinematic visual field for the Berlin 2063 archive"
+      ></div>
 
 
       <div class="story-text">
 
         <p>
 
-          In 2063,
-          artificial intelligence predicts reality
-          before it happens.
-
-          Synthetic guardians patrol the city.
-
-          Human memory is stored in the cloud.
-
-          The night still belongs
-          to the few signals
-          that cannot be calculated.
+          In this version of Berlin, infrastructure still runs after collapse.
+          Trains move, towers breathe, archives remember, and desire survives
+          inside machine order.
 
         </p>
 
 
         <p>
 
-          Parallel Vision documents those signals
-          through music,
-          images
-          and fragments from a future Berlin
-          that feels ancient,
-          romantic
-          and dangerous.
+          Parallel Vision follows the unstable frequencies left between bodies,
+          music, architecture and memory. Not prophecy. Not nostalgia. A living
+          fragment from a future already rehearsing itself.
 
         </p>
 
 
         <div class="statement">
 
-          Music remains<br>
-
-          the last unexplained<br>
-
-          anomaly.
+          Music remains the last unstable signal.
 
         </div>
 
@@ -2689,13 +2875,8 @@ body.nina-connecting-mode
 
 
       <p class="small">
-
-        A growing constellation
-        of producers connected
-        by dark groove,
-        emotional tension
-        and cinematic club music.
-
+        A growing constellation of artists connected by dark groove, emotional
+        tension, cinematic club music and future-facing atmosphere.
       </p>
 
     </div>
@@ -3135,35 +3316,28 @@ body.nina-connecting-mode
 
 
           <p class="fashion-lede">
-
-            Clothing as nightlife armor,
-            body-interface
-            and living signal.
-
-            A fashion extension of Parallel Vision:
-            premium,
-            dangerous,
-            sensual
-            and built for a city after prediction.
+            Clothing as nightlife armor, body-interface and living signal. The
+            fashion extension of Parallel Vision: reactive materials, future
+            ceremony and emotional architecture for Berlin 2063.
 
           </p>
 
 
           <div class="fashion-links">
 
-            <a href="#chromia">
+            <a href="./chromia.html">
               Chromia
             </a>
 
-            <a href="#lotus-2063">
+            <a href="./lotus-2063.html">
               Lotus 2063
             </a>
 
-            <a href="#magnetic-tape">
+            <a href="./magnetic-tape.html">
               Magnetic Tape
             </a>
 
-            <a href="#dna-mutation">
+            <a href="./dna-mutation.html">
               DNA Mutation
             </a>
 
@@ -3207,8 +3381,12 @@ body.nina-connecting-mode
 
       <a
         class="fashion-card chromia"
-        href="#chromia"
+        href="./chromia.html"
       >
+
+        <div class="fashion-card-media">
+          <img src="./assets/liquid-metal-hero.png" alt="Chromia collection preview">
+        </div>
 
         <h3>
           Chromia
@@ -3230,8 +3408,12 @@ body.nina-connecting-mode
 
       <a
         class="fashion-card lotus"
-        href="#lotus-2063"
+        href="./lotus-2063.html"
       >
+
+        <div class="fashion-card-media">
+          <img src="./assets/lotus-hero.png" alt="Lotus 2063 collection preview">
+        </div>
 
         <h3>
           Lotus 2063
@@ -3253,8 +3435,12 @@ body.nina-connecting-mode
 
       <a
         class="fashion-card bio"
-        href="#dna-mutation"
+        href="./dna-mutation.html"
       >
+
+        <div class="fashion-card-media">
+          <img src="./assets/dna-mutation-soon.png" alt="DNA Mutation collection preview">
+        </div>
 
         <h3>
           DNA Mutation
@@ -3277,8 +3463,12 @@ body.nina-connecting-mode
 
       <a
         class="fashion-card magnetic"
-        href="#magnetic-tape"
+        href="./magnetic-tape.html"
       >
+
+        <div class="fashion-card-media">
+          <img src="./assets/magnetic-tape-look-01.png" alt="Magnetic Tape collection preview">
+        </div>
 
         <h3>
           Magnetic Tape
@@ -3301,7 +3491,7 @@ body.nina-connecting-mode
     </div>
 
 
-    <article
+    <article hidden
       id="chromia"
       class="fashion-collection"
     >
@@ -3416,7 +3606,7 @@ body.nina-connecting-mode
     </article>
 
 
-    <article
+    <article hidden
       id="lotus-2063"
       class="fashion-collection"
     >
@@ -3494,7 +3684,7 @@ body.nina-connecting-mode
     </article>
 
 
-    <article
+    <article hidden
       id="magnetic-tape"
       class="fashion-collection"
     >
@@ -3584,7 +3774,7 @@ body.nina-connecting-mode
     </article>
 
 
-    <article
+    <article hidden
       id="dna-mutation"
       class="fashion-collection dna-collection"
     >
@@ -3952,6 +4142,62 @@ body.nina-connecting-mode
 </div>
 
 
+
+<script>
+(function () {
+  const toggle = document.getElementById("audioToggle");
+  if (!toggle) return;
+
+  const storageKey = "pvAmbientAudio";
+  let context;
+  let master;
+  let active = localStorage.getItem(storageKey) === "on";
+
+  function render() {
+    toggle.textContent = active ? "Audio On" : "Audio Off";
+    toggle.setAttribute("aria-pressed", String(active));
+  }
+
+  function createAmbientLayer() {
+    if (context) return;
+    context = new (window.AudioContext || window.webkitAudioContext)();
+    master = context.createGain();
+    master.gain.value = 0;
+    master.connect(context.destination);
+
+    [43.65, 65.41, 87.31].forEach(function (frequency, index) {
+      const oscillator = context.createOscillator();
+      const gain = context.createGain();
+      oscillator.type = index === 1 ? "triangle" : "sine";
+      oscillator.frequency.value = frequency;
+      gain.gain.value = [0.035, 0.012, 0.008][index];
+      oscillator.connect(gain).connect(master);
+      oscillator.start();
+    });
+  }
+
+  async function applyAudio() {
+    createAmbientLayer();
+    if (context.state === "suspended") await context.resume();
+    master.gain.cancelScheduledValues(context.currentTime);
+    master.gain.linearRampToValueAtTime(active ? 0.32 : 0, context.currentTime + 1.4);
+  }
+
+  toggle.addEventListener("click", function () {
+    active = !active;
+    localStorage.setItem(storageKey, active ? "on" : "off");
+    render();
+    applyAudio();
+  });
+
+  if (active) {
+    document.addEventListener("pointerdown", applyAudio, { once: true });
+    document.addEventListener("keydown", applyAudio, { once: true });
+  }
+
+  render();
+}());
+</script>
 
 <script src="https://unpkg.com/@tavus/embed"></script>
 
