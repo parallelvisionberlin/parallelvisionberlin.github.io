@@ -2583,31 +2583,27 @@ body.nina-connecting-mode
   min-height: 620px;
   overflow: hidden;
   border-right: 1px solid #151515;
-  background:
-    linear-gradient(120deg, transparent 0 42%, rgba(255,255,255,.04) 42.2% 42.5%, transparent 42.7%),
-    linear-gradient(70deg, transparent 0 58%, rgba(255,255,255,.035) 58.2% 58.5%, transparent 58.7%),
-    radial-gradient(circle at 68% 32%, rgba(127,150,142,.18), transparent 24%),
-    linear-gradient(180deg, #090c0c, #020303 65%, #000);
+  background: #050606;
 }
 
 .berlin-visual::before {
   content: "";
   position: absolute;
-  inset: 12% 13% 0;
-  border: 1px solid rgba(255,255,255,.08);
-  border-bottom: 0;
-  transform: perspective(700px) rotateY(-9deg);
-  box-shadow: inset 0 0 80px rgba(145,180,164,.04);
+  z-index: 1;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(0,0,0,.08), rgba(0,0,0,.38));
 }
 
-.berlin-visual::after {
-  content: "BERLIN VISUAL ARCHIVE / ASSET HOOK 01";
+.berlin-visual img {
   position: absolute;
-  left: 28px;
-  bottom: 26px;
-  color: rgba(255,255,255,.38);
-  font: 9px 'Courier New', monospace;
-  letter-spacing: .24em;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  object-position: center;
+  filter: saturate(.72) brightness(.78) contrast(1.08);
 }
 
 .story-text { padding: clamp(42px, 6vw, 84px); }
@@ -2967,11 +2963,12 @@ body.nina-connecting-mode
 
     <div class="story">
 
-      <div
-        class="berlin-visual"
-        role="img"
-        aria-label="Reserved cinematic visual field for the Berlin 2063 archive"
-      ></div>
+      <figure class="berlin-visual">
+        <img
+          src="./assets/ebers2063.png"
+          alt="Berlin 2063 transit architecture"
+        >
+      </figure>
 
 
       <div class="story-text">
