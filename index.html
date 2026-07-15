@@ -2675,6 +2675,138 @@ body.nina-connecting-mode
   .artist, .artist:nth-child(2n), .artist:nth-child(4n) { border-right: 0; }
 }
 
+/* Mobile homepage: signal first, interface second */
+@media (max-width: 620px) {
+  html,
+  body {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .hero {
+    min-height: auto;
+    display: block;
+    padding: 0;
+  }
+
+  .hero::after {
+    background:
+      linear-gradient(to bottom, rgba(0,0,0,.35), #000 94%);
+  }
+
+  .hero nav {
+    top: 20px;
+    left: 18px;
+    width: calc(100% - 36px);
+    transform: none;
+    display: grid;
+    grid-template-columns: repeat(3, max-content);
+    justify-content: space-between;
+    gap: 11px 14px;
+    font-size: 8px;
+    letter-spacing: .11em;
+    line-height: 1.35;
+    white-space: normal;
+  }
+
+  .hero-content {
+    width: 100%;
+    min-height: 0;
+    display: block;
+    padding: 118px 18px 54px;
+  }
+
+  .hero-copy {
+    width: 100%;
+    max-width: none;
+  }
+
+  .hero-status {
+    margin-bottom: 28px;
+    font-size: 9px;
+    letter-spacing: .18em;
+  }
+
+  .hero-status span {
+    margin: 0;
+  }
+
+  .hero-status span:last-child,
+  .hero-status span:last-child::before,
+  .hero-visual-reserve,
+  .audio-toggle,
+  .scroll {
+    display: none;
+  }
+
+  .logo {
+    max-width: 100%;
+    margin-bottom: 28px;
+    font-size: clamp(3.5rem, 16vw, 5.8rem);
+    letter-spacing: .075em;
+    line-height: 1.08;
+    white-space: normal;
+    overflow-wrap: normal;
+    animation: none;
+    text-shadow: none;
+  }
+
+  .hero-text {
+    max-width: 34rem;
+    font-size: 15px;
+    line-height: 1.75;
+  }
+
+  .nina-signal {
+    position: static;
+    width: 100%;
+    min-width: 0;
+    margin-top: 34px;
+    justify-content: flex-start;
+    padding: 16px 17px;
+    transform: none;
+  }
+
+  .nina-signal:hover {
+    transform: none;
+  }
+
+  .nina-signal-main,
+  .nina-signal-sub {
+    white-space: normal;
+  }
+
+  #artists .artists {
+    display: block;
+    border-top: 1px solid #191919;
+    border-right: 0;
+    border-bottom: 0;
+    border-left: 0;
+  }
+
+  #artists .artist,
+  #artists .artist:nth-child(2n),
+  #artists .artist:nth-child(4n) {
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 17px 3px;
+    border: 0;
+    border-bottom: 1px solid #191919;
+    background: transparent;
+    font-size: 10px;
+    letter-spacing: .14em;
+  }
+
+  #artists .artist::after {
+    content: "—";
+    color: #555;
+    font-family: 'Courier New', monospace;
+    font-size: 9px;
+  }
+}
+
 </style>
 
 </head>
@@ -2739,6 +2871,19 @@ body.nina-connecting-mode
       <p class="hero-text">
         A record label transmitting music, bodies and imagined futures from Berlin in 2063.
       </p>
+
+      <button
+        class="nina-signal"
+        id="openNina"
+        type="button"
+        aria-label="Transmit to 2063"
+      >
+        <span class="nina-signal-dot"></span>
+        <span class="nina-signal-copy">
+          <span class="nina-signal-main">Transmit to 2063</span>
+          <span class="nina-signal-sub">Talk live with Nina FOK</span>
+        </span>
+      </button>
 
     </div>
 
@@ -3894,44 +4039,6 @@ body.nina-connecting-mode
   © 2026 Parallel Vision · Berlin 2063
 
 </footer>
-
-
-
-<!-- ======================================================
-     CUSTOM NINA SIGNAL
-====================================================== -->
-
-
-<button
-  class="nina-signal"
-  id="openNina"
-  type="button"
-  aria-label="Transmit to 2063"
->
-
-  <span class="nina-signal-dot"></span>
-
-
-  <span class="nina-signal-copy">
-
-
-    <span class="nina-signal-main">
-
-      Transmit to 2063
-
-    </span>
-
-
-    <span class="nina-signal-sub">
-
-      Talk live with Nina FOK
-
-    </span>
-
-
-  </span>
-
-</button>
 
 
 
