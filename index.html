@@ -460,6 +460,22 @@ h2 {
   gap: 34px;
 }
 
+.release-card {
+  display: block;
+
+  height: 100%;
+
+  color: inherit;
+
+  text-decoration: none;
+
+  cursor: pointer;
+
+  transition:
+    transform .3s ease,
+    opacity .3s ease;
+}
+
 .release-card img {
   display: block;
 
@@ -482,13 +498,35 @@ h2 {
     .3s;
 }
 
-.release-card:hover img {
-  transform:
-    scale(1.025);
+.release-card:focus {
+  outline:
+    1px solid #777;
 
-  filter:
-    contrast(1.1)
-    brightness(1);
+  outline-offset: 6px;
+}
+
+@supports selector(:focus-visible) {
+  .release-card:focus:not(:focus-visible) {
+    outline: none;
+  }
+}
+
+@media (hover: hover) {
+  .release-card:hover {
+    transform:
+      translateY(-2px);
+
+    opacity: .94;
+  }
+
+  .release-card:hover img {
+    transform:
+      scale(1.025);
+
+    filter:
+      contrast(1.1)
+      brightness(1);
+  }
 }
 
 .release-title {
@@ -2749,7 +2787,12 @@ body.nina-connecting-mode
     <div class="release-grid">
 
 
-      <a class="release-card">
+      <a
+        class="release-card"
+        href="https://soundcloud.com/parallelvisionlabel/sets/alejandro-molinari-tanzen-im"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
 
         <img
           src="./assets/tanzenfinal.jpeg"
@@ -2772,7 +2815,12 @@ body.nina-connecting-mode
 
 
 
-      <a class="release-card">
+      <a
+        class="release-card"
+        href="https://soundcloud.com/alejandromolinari/ravesia-alejandro-molinari-1"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
 
         <img
           src="./assets/Ravesiamolinariremix.png"
@@ -2797,7 +2845,12 @@ body.nina-connecting-mode
 
 
 
-      <a class="release-card">
+      <a
+        class="release-card"
+        href="https://soundcloud.com/parallelvisionlabel/sets/ravesia-remixes"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
 
         <img
           src="./assets/Ravesiaremixesart.png"
@@ -2822,7 +2875,12 @@ body.nina-connecting-mode
 
 
 
-      <a class="release-card">
+      <a
+        class="release-card"
+        href="https://soundcloud.com/parallelvisionlabel/sets/refrakt-ny-built-to-last-matt"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
 
         <img
           src="./assets/Builttolast.png"
@@ -2845,7 +2903,12 @@ body.nina-connecting-mode
 
 
 
-      <a class="release-card">
+      <a
+        class="release-card"
+        href="https://soundcloud.com/parallelvisionlabel/sets/alejandro-molinari-badwolf"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
 
         <img
           src="./assets/artfunkybeats.png"
@@ -2868,7 +2931,12 @@ body.nina-connecting-mode
 
 
 
-      <a class="release-card">
+      <a
+        class="release-card"
+        href="https://soundcloud.com/parallelvisionlabel/sets/dark-rock-ep"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
 
         <img
           src="./assets/Artdarkrock.png"
@@ -2891,7 +2959,12 @@ body.nina-connecting-mode
 
 
 
-      <a class="release-card">
+      <a
+        class="release-card"
+        href="https://soundcloud.com/parallelvisionlabel/sets/alejandro-molinari-vision-1"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
 
         <img
           src="./assets/vision-neo.jpg"
@@ -2906,7 +2979,7 @@ body.nina-connecting-mode
 
         <span class="release-meta">
 
-          2025
+          CAT1392334
 
         </span>
 
