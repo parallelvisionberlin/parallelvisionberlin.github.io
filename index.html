@@ -575,8 +575,14 @@ h2 {
   display: grid;
 
   grid-template-columns:
-    .88fr
-    1.12fr;
+    minmax(
+      0,
+      .96fr
+    )
+    minmax(
+      0,
+      1.04fr
+    );
 
   gap: 42px;
 
@@ -586,6 +592,8 @@ h2 {
 }
 
 .fashion-copy {
+  min-width: 0;
+
   display: flex;
 
   flex-direction: column;
@@ -620,7 +628,7 @@ h2 {
 }
 
 .fashion-title {
-  max-width: 660px;
+  max-width: 760px;
 
   font-family:
     'Michroma',
@@ -628,14 +636,14 @@ h2 {
 
   font-size:
     clamp(
-      42px,
-      7vw,
-      104px
+      40px,
+      5.6vw,
+      86px
     );
 
   font-weight: 400;
 
-  letter-spacing: .16em;
+  letter-spacing: .08em;
 
   line-height: 1;
 
@@ -699,8 +707,6 @@ h2 {
 }
 
 .fashion-hero-media,
-.fashion-video-slot,
-.fashion-gallery-item,
 .collection-image {
   position: relative;
 
@@ -726,7 +732,6 @@ h2 {
 }
 
 .fashion-hero-media img,
-.fashion-gallery-item img,
 .collection-image img {
   width: 100%;
   height: 100%;
@@ -737,7 +742,7 @@ h2 {
 
   filter:
     contrast(1.04)
-    brightness(.96);
+    brightness(1.08);
 }
 
 .fashion-hero-media img {
@@ -745,33 +750,8 @@ h2 {
 }
 
 .fashion-hero-media::after,
-.fashion-gallery-item::after,
-.collection-image::after,
-.fashion-video-slot::after {
-  content: attr(data-label);
-
-  position: absolute;
-
-  left: 22px;
-  bottom: 20px;
-
-  color:
-    rgba(
-      255,
-      255,
-      255,
-      .62
-    );
-
-  font-family:
-    'Courier New',
-    monospace;
-
-  font-size: 10px;
-
-  letter-spacing: .28em;
-
-  text-transform: uppercase;
+.collection-image::after {
+  content: none;
 }
 
 .fashion-hero-media::before,
@@ -793,44 +773,15 @@ h2 {
         0,
         0,
         0,
-        .02
+        0
       ),
       rgba(
         0,
         0,
         0,
-        .24
+        .10
       )
     );
-}
-
-.fashion-video-slot {
-  min-height: 360px;
-
-  display: flex;
-
-  align-items: center;
-  justify-content: center;
-
-  margin-bottom: 46px;
-
-  color:
-    rgba(
-      255,
-      255,
-      255,
-      .34
-    );
-
-  font-family:
-    'Michroma',
-    sans-serif;
-
-  font-size: 12px;
-
-  letter-spacing: .3em;
-
-  text-transform: uppercase;
 }
 
 .fashion-collections {
@@ -838,8 +789,11 @@ h2 {
 
   grid-template-columns:
     repeat(
-      3,
-      1fr
+      4,
+      minmax(
+        0,
+        1fr
+      )
     );
 
   gap: 24px;
@@ -848,7 +802,7 @@ h2 {
 }
 
 .fashion-card {
-  min-height: 520px;
+  min-height: 430px;
 
   display: flex;
 
@@ -856,7 +810,7 @@ h2 {
 
   justify-content: flex-end;
 
-  padding: 28px;
+  padding: 24px;
 
   border:
     1px solid
@@ -873,7 +827,27 @@ h2 {
   overflow: hidden;
 }
 
-.fashion-card h3,
+.fashion-card h3 {
+  font-family:
+    'Michroma',
+    sans-serif;
+
+  font-size:
+    clamp(
+      20px,
+      2vw,
+      34px
+    );
+
+  font-weight: 400;
+
+  letter-spacing: .10em;
+
+  line-height: 1.05;
+
+  text-transform: uppercase;
+}
+
 .collection-copy h3 {
   font-family:
     'Michroma',
@@ -881,16 +855,16 @@ h2 {
 
   font-size:
     clamp(
-      24px,
-      3vw,
-      45px
+      34px,
+      4.8vw,
+      72px
     );
 
   font-weight: 400;
 
-  letter-spacing: .16em;
+  letter-spacing: .10em;
 
-  line-height: 1.05;
+  line-height: 1.02;
 
   text-transform: uppercase;
 }
@@ -1093,33 +1067,15 @@ h2 {
   aspect-ratio: 3 / 4;
 }
 
-.fashion-gallery {
-  display: grid;
+.collection-image.hero.portrait {
+  max-width: 640px;
 
+  justify-self: center;
+}
+
+.dna-collection .collection-visuals {
   grid-template-columns:
-    1.2fr
-    .8fr
     1fr;
-
-  gap: 18px;
-
-  margin-top: 72px;
-}
-
-.fashion-gallery-item {
-  aspect-ratio: 16 / 9;
-
-  min-height: auto;
-}
-
-.fashion-gallery-item.tall {
-  aspect-ratio: 16 / 9;
-
-  min-height: auto;
-}
-
-.fashion-gallery-item.portrait {
-  aspect-ratio: 3 / 4;
 }
 
 
@@ -2312,23 +2268,19 @@ body.nina-connecting-mode
       1fr;
   }
 
-  .fashion-hero-media {
-    min-height: 540px;
-  }
-
   .fashion-collections {
     grid-template-columns:
-      1fr;
+      repeat(
+        2,
+        minmax(
+          0,
+          1fr
+        )
+      );
   }
 
   .fashion-card {
     min-height: 390px;
-  }
-
-  .fashion-gallery {
-    grid-template-columns:
-      1fr
-      1fr;
   }
 
   nav {
@@ -2377,23 +2329,21 @@ body.nina-connecting-mode
     letter-spacing: .08em;
   }
 
+  .fashion-collections {
+    grid-template-columns:
+      1fr;
+  }
+
   .fashion-lede {
     font-size: 15px;
   }
 
   .fashion-hero-media,
-  .collection-image,
-  .fashion-gallery-item,
-  .fashion-gallery-item.tall {
-    min-height: 360px;
+  .collection-image {
+    min-height: auto;
   }
 
-  .fashion-video-slot {
-    min-height: 240px;
-  }
-
-  .collection-visuals,
-  .fashion-gallery {
+  .collection-visuals {
     grid-template-columns:
       1fr;
   }
@@ -3165,7 +3115,7 @@ body.nina-connecting-mode
 
       <figure
         class="fashion-hero-media"
-        data-label="Hero video slot / Replace with fashion film"
+        data-label="Future Fashion hero"
       >
 
         <img
@@ -3175,16 +3125,6 @@ body.nina-connecting-mode
 
       </figure>
 
-
-    </div>
-
-
-    <div
-      class="fashion-video-slot"
-      data-label="Video placeholder"
-    >
-
-      Future fashion hero video
 
     </div>
 
@@ -3573,7 +3513,7 @@ body.nina-connecting-mode
 
     <article
       id="dna-mutation"
-      class="fashion-collection"
+      class="fashion-collection dna-collection"
     >
 
       <div class="collection-copy">
@@ -3623,47 +3563,6 @@ body.nina-connecting-mode
       </div>
 
     </article>
-
-
-    <div class="fashion-gallery">
-
-      <figure
-        class="fashion-gallery-item tall"
-        data-label="Gallery / Runway vertical"
-      >
-
-        <img
-          src="./assets/chromia-phase-aureole-sheet.png"
-          alt="Chromia runway vertical"
-        >
-
-      </figure>
-
-      <figure
-        class="fashion-gallery-item"
-        data-label="Gallery / Material scan"
-      >
-
-        <img
-          src="./assets/lotus-look-02.png"
-          alt="Lotus 2063 gallery look"
-        >
-
-      </figure>
-
-      <figure
-        class="fashion-gallery-item portrait"
-        data-label="Gallery / Backstage frame"
-      >
-
-        <img
-          src="./assets/magnetic-tape-look-04.png"
-          alt="Magnetic Tape backstage frame"
-        >
-
-      </figure>
-
-    </div>
 
 
   </div>
