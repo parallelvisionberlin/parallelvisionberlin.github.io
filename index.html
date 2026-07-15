@@ -720,7 +720,9 @@ h2 {
 }
 
 .fashion-hero-media {
-  min-height: 680px;
+  aspect-ratio: 16 / 9;
+
+  min-height: auto;
 }
 
 .fashion-hero-media img,
@@ -731,12 +733,15 @@ h2 {
 
   display: block;
 
-  object-fit: cover;
+  object-fit: contain;
 
   filter:
-    grayscale(.1)
-    contrast(1.12)
-    brightness(.72);
+    contrast(1.04)
+    brightness(.96);
+}
+
+.fashion-hero-media img {
+  object-fit: cover;
 }
 
 .fashion-hero-media::after,
@@ -788,13 +793,13 @@ h2 {
         0,
         0,
         0,
-        .08
+        .02
       ),
       rgba(
         0,
         0,
         0,
-        .78
+        .24
       )
     );
 }
@@ -1070,7 +1075,9 @@ h2 {
 }
 
 .collection-image {
-  min-height: 520px;
+  aspect-ratio: 16 / 9;
+
+  min-height: auto;
 }
 
 .collection-image.hero {
@@ -1079,7 +1086,11 @@ h2 {
     /
     -1;
 
-  min-height: 640px;
+  min-height: auto;
+}
+
+.collection-image.portrait {
+  aspect-ratio: 3 / 4;
 }
 
 .fashion-gallery {
@@ -1096,11 +1107,19 @@ h2 {
 }
 
 .fashion-gallery-item {
-  min-height: 310px;
+  aspect-ratio: 16 / 9;
+
+  min-height: auto;
 }
 
 .fashion-gallery-item.tall {
-  min-height: 520px;
+  aspect-ratio: 16 / 9;
+
+  min-height: auto;
+}
+
+.fashion-gallery-item.portrait {
+  aspect-ratio: 3 / 4;
 }
 
 
@@ -3133,11 +3152,10 @@ body.nina-connecting-mode
 
         <p class="small">
 
-          Replace the placeholder stills and future video spaces
-          with campaign films,
-          catwalk footage,
-          garment studies
-          and backstage images.
+          Campaign stills,
+          lookbook sheets
+          and material studies
+          from the Parallel Vision fashion archive.
 
         </p>
 
@@ -3501,7 +3519,7 @@ body.nina-connecting-mode
       <div class="collection-visuals">
 
         <figure
-          class="collection-image hero"
+          class="collection-image hero portrait"
           data-label="Magnetic Tape hero"
         >
 
@@ -3513,7 +3531,7 @@ body.nina-connecting-mode
         </figure>
 
         <figure
-          class="collection-image"
+          class="collection-image portrait"
           data-label="Magnetic Tape look 02"
         >
 
@@ -3525,7 +3543,7 @@ body.nina-connecting-mode
         </figure>
 
         <figure
-          class="collection-image"
+          class="collection-image portrait"
           data-label="Magnetic Tape look 03"
         >
 
@@ -3537,7 +3555,7 @@ body.nina-connecting-mode
         </figure>
 
         <figure
-          class="collection-image"
+          class="collection-image portrait"
           data-label="Magnetic Tape look 04"
         >
 
@@ -3634,7 +3652,7 @@ body.nina-connecting-mode
       </figure>
 
       <figure
-        class="fashion-gallery-item"
+        class="fashion-gallery-item portrait"
         data-label="Gallery / Backstage frame"
       >
 
