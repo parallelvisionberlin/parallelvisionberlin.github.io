@@ -450,8 +450,11 @@ h2 {
 
   grid-template-columns:
     repeat(
-      3,
-      1fr
+      auto-fit,
+      minmax(
+        220px,
+        1fr
+      )
     );
 
   gap: 34px;
@@ -956,6 +959,16 @@ h2 {
     );
 }
 
+.fashion-card.magnetic {
+  background:
+    linear-gradient(
+      135deg,
+      #030303,
+      #181818,
+      #050505
+    );
+}
+
 .fashion-collection {
   display: grid;
 
@@ -1058,6 +1071,15 @@ h2 {
 
 .collection-image {
   min-height: 520px;
+}
+
+.collection-image.hero {
+  grid-column:
+    1
+    /
+    -1;
+
+  min-height: 640px;
 }
 
 .fashion-gallery {
@@ -3095,8 +3117,12 @@ body.nina-connecting-mode
               Lotus 2063
             </a>
 
-            <a href="#bio-material">
-              Bio-Material
+            <a href="#magnetic-tape">
+              Magnetic Tape
+            </a>
+
+            <a href="#dna-mutation">
+              DNA Mutation
             </a>
 
           </div>
@@ -3125,8 +3151,8 @@ body.nina-connecting-mode
       >
 
         <img
-          src="./assets/ebers2063.png"
-          alt="Future Fashion placeholder editorial"
+          src="./assets/fashion-hero.png"
+          alt="Future Fashion editorial campaign"
         >
 
       </figure>
@@ -3196,11 +3222,11 @@ body.nina-connecting-mode
 
       <a
         class="fashion-card bio"
-        href="#bio-material"
+        href="#dna-mutation"
       >
 
         <h3>
-          Bio-Material
+          DNA Mutation
         </h3>
 
         <p>
@@ -3213,6 +3239,29 @@ body.nina-connecting-mode
 
         <span>
           Living / Bacterial / Mutation
+        </span>
+
+      </a>
+
+
+      <a
+        class="fashion-card magnetic"
+        href="#magnetic-tape"
+      >
+
+        <h3>
+          Magnetic Tape
+        </h3>
+
+        <p>
+          Ribboned archive garments,
+          black signal strips,
+          analog memory
+          and future body recordings.
+        </p>
+
+        <span>
+          Tape / Archive / Signal
         </span>
 
       </a>
@@ -3260,25 +3309,73 @@ body.nina-connecting-mode
       <div class="collection-visuals">
 
         <figure
-          class="collection-image"
-          data-label="Chromia campaign still"
+          class="collection-image hero"
+          data-label="Chromia / Liquid metal hero"
         >
 
           <img
-            src="./assets/Ravesiaremixesart.png"
-            alt="Chromia placeholder image"
+            src="./assets/liquid-metal-hero.png"
+            alt="Chromia liquid metal hero"
           >
 
         </figure>
 
         <figure
           class="collection-image"
-          data-label="Chromia garment detail"
+          data-label="Chromia vessel sheet"
         >
 
           <img
-            src="./assets/Builttolast.png"
-            alt="Chromia garment detail placeholder"
+            src="./assets/chromia-vessel-sheet.png"
+            alt="Chromia vessel sheet"
+          >
+
+        </figure>
+
+        <figure
+          class="collection-image"
+          data-label="Chromia dermis sheet"
+        >
+
+          <img
+            src="./assets/chromia-dermis-sheet.png"
+            alt="Chromia dermis sheet"
+          >
+
+        </figure>
+
+        <figure
+          class="collection-image"
+          data-label="Phase aureole sheet"
+        >
+
+          <img
+            src="./assets/chromia-phase-aureole-sheet.png"
+            alt="Chromia phase aureole sheet"
+          >
+
+        </figure>
+
+        <figure
+          class="collection-image"
+          data-label="Liquid chroma veil"
+        >
+
+          <img
+            src="./assets/liquid-chroma-veil.png"
+            alt="Liquid chroma veil"
+          >
+
+        </figure>
+
+        <figure
+          class="collection-image"
+          data-label="Ether shroud sheet"
+        >
+
+          <img
+            src="./assets/ether-shorud-sheet.png"
+            alt="Ether shroud sheet"
           >
 
         </figure>
@@ -3326,25 +3423,37 @@ body.nina-connecting-mode
       <div class="collection-visuals">
 
         <figure
-          class="collection-image"
-          data-label="Lotus 2063 silhouette"
+          class="collection-image hero"
+          data-label="Lotus 2063 hero"
         >
 
           <img
-            src="./assets/RedArtwork.png.png"
-            alt="Lotus 2063 silhouette placeholder"
+            src="./assets/lotus-hero.png"
+            alt="Lotus 2063 hero"
           >
 
         </figure>
 
         <figure
           class="collection-image"
-          data-label="Lotus 2063 nightlife film"
+          data-label="Lotus look 01"
         >
 
           <img
-            src="./assets/Artdarkrock.png"
-            alt="Lotus 2063 nightlife placeholder"
+            src="./assets/lotus-look-01.png"
+            alt="Lotus 2063 look 01"
+          >
+
+        </figure>
+
+        <figure
+          class="collection-image"
+          data-label="Lotus look 02"
+        >
+
+          <img
+            src="./assets/lotus-look-02.png"
+            alt="Lotus 2063 look 02"
           >
 
         </figure>
@@ -3355,18 +3464,108 @@ body.nina-connecting-mode
 
 
     <article
-      id="bio-material"
+      id="magnetic-tape"
       class="fashion-collection"
     >
 
       <div class="collection-copy">
 
         <div class="collection-meta">
-          Collection 03 / Living Garments
+          Collection 03 / Analog Signal Garments
         </div>
 
         <h3>
-          Bio-Material
+          Magnetic Tape
+        </h3>
+
+        <p>
+          Magnetic Tape turns archive media
+          into body architecture:
+          signal ribbons,
+          black reflective strips,
+          recorded movement
+          and clothing that feels pulled
+          from a damaged future cassette.
+        </p>
+
+        <div class="collection-tags">
+          <span>Magnetic tape</span>
+          <span>Analog archive</span>
+          <span>Signal strips</span>
+          <span>Body recording</span>
+        </div>
+
+      </div>
+
+
+      <div class="collection-visuals">
+
+        <figure
+          class="collection-image hero"
+          data-label="Magnetic Tape hero"
+        >
+
+          <img
+            src="./assets/magnetic-tape-look-01.png"
+            alt="Magnetic Tape look 01"
+          >
+
+        </figure>
+
+        <figure
+          class="collection-image"
+          data-label="Magnetic Tape look 02"
+        >
+
+          <img
+            src="./assets/magnetic-tape-look-02.png"
+            alt="Magnetic Tape look 02"
+          >
+
+        </figure>
+
+        <figure
+          class="collection-image"
+          data-label="Magnetic Tape look 03"
+        >
+
+          <img
+            src="./assets/magnetic-tape-look-03.png"
+            alt="Magnetic Tape look 03"
+          >
+
+        </figure>
+
+        <figure
+          class="collection-image"
+          data-label="Magnetic Tape look 04"
+        >
+
+          <img
+            src="./assets/magnetic-tape-look-04.png"
+            alt="Magnetic Tape look 04"
+          >
+
+        </figure>
+
+      </div>
+
+    </article>
+
+
+    <article
+      id="dna-mutation"
+      class="fashion-collection"
+    >
+
+      <div class="collection-copy">
+
+        <div class="collection-meta">
+          Collection 04 / Living Garments
+        </div>
+
+        <h3>
+          DNA Mutation
         </h3>
 
         <p>
@@ -3392,25 +3591,13 @@ body.nina-connecting-mode
       <div class="collection-visuals">
 
         <figure
-          class="collection-image"
-          data-label="Bio-material study"
+          class="collection-image hero"
+          data-label="DNA mutation coming soon"
         >
 
           <img
-            src="./assets/vision-neo.jpg"
-            alt="Bio-material garment placeholder"
-          >
-
-        </figure>
-
-        <figure
-          class="collection-image"
-          data-label="Living garment prototype"
-        >
-
-          <img
-            src="./assets/artfunkybeats.png"
-            alt="Living garment prototype placeholder"
+            src="./assets/dna-mutation-soon.png"
+            alt="DNA mutation coming soon"
           >
 
         </figure>
@@ -3428,8 +3615,8 @@ body.nina-connecting-mode
       >
 
         <img
-          src="./assets/tanzenfinal.jpeg"
-          alt="Future Fashion runway placeholder"
+          src="./assets/chromia-phase-aureole-sheet.png"
+          alt="Chromia runway vertical"
         >
 
       </figure>
@@ -3440,8 +3627,8 @@ body.nina-connecting-mode
       >
 
         <img
-          src="./assets/Ravesiamolinariremix.png"
-          alt="Future Fashion material placeholder"
+          src="./assets/lotus-look-02.png"
+          alt="Lotus 2063 gallery look"
         >
 
       </figure>
@@ -3452,8 +3639,8 @@ body.nina-connecting-mode
       >
 
         <img
-          src="./assets/ebers2063.png"
-          alt="Future Fashion backstage placeholder"
+          src="./assets/magnetic-tape-look-04.png"
+          alt="Magnetic Tape backstage frame"
         >
 
       </figure>
