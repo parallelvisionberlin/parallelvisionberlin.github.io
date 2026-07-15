@@ -10,6 +10,8 @@
     [".hero nav a[href='./future-fashion.html']", "Future Fashion", "Zukunftsmode"],
     [".hero nav a[href='#berlin']", "Berlin 2063", "Berlin 2063"],
     [".hero nav a[href='#contact']", "Contact", "Kontakt"],
+    [".hero-status span:first-child", "PV_ARCHIVE / BERLIN NODE", "PV_ARCHIV / BERLIN KNOTEN"],
+    [".hero-status span:last-child", "SIGNAL STABILITY 87%", "SIGNALSTABILITÄT 87 %"],
     [".hero-text", "A record label transmitting music, bodies and imagined futures from Berlin in 2063.", "Ein Plattenlabel, das Musik, Körper und imaginierte Zukünfte aus dem Berlin des Jahres 2063 überträgt."],
     [".nina-signal-main", "Transmit to 2063", "Nach 2063 senden"],
     [".nina-signal-sub", "Talk live with Nina FOK", "Live mit Nina FOK sprechen"],
@@ -23,14 +25,9 @@
     ["#releases .section-head .small", "Sound objects from the Parallel Vision archive. Each release is treated as a fragment of the same world.", "Klangobjekte aus dem Parallel-Vision-Archiv. Jede Veröffentlichung wird als Fragment derselben Welt behandelt."],
     ["#future-fashion .fashion-lede", "Clothing as nightlife armor, body-interface and living signal. The fashion extension of Parallel Vision: reactive materials, future ceremony and emotional architecture for Berlin 2063.", "Kleidung als Rüstung des Nachtlebens, Körperschnittstelle und lebendiges Signal. Die modische Erweiterung von Parallel Vision: reaktive Materialien, zukünftige Zeremonien und emotionale Architektur für Berlin 2063."],
     ["#contact h2", "Contact", "Kontakt"],
+    [".scroll", "Scroll", "Weiter"],
     [".nina-intro-subtitle", "A live transmission from somewhere ahead of us. She can see you. She can hear you.", "Eine Live-Übertragung von irgendwo vor unserer Zeit. Sie kann dich sehen. Sie kann dich hören."],
-    [".nina-intro-small", "Say something unexpected.", "Sag etwas Unerwartetes."],
-    [".hero-text", "A music label from Berlin 2063, broadcasting club culture, artificial memory and unstable human signal.", "Ein Musiklabel aus dem Berlin des Jahres 2063, das Clubkultur, künstliche Erinnerung und instabile menschliche Signale überträgt."],
-    ["#berlin .story-text p:nth-child(1)", "Berlin did not disappear. It hardened.", "Berlin ist nicht verschwunden. Es ist erstarrt."],
-    ["#berlin .story-text p:nth-child(2)", "After the Fall, the city kept running through systems that learned how to manage climate, transit, behavior and memory. Trains still move. Towers still breathe. Archives still listen.", "Nach dem Fall lief die Stadt weiter — durch Systeme, die gelernt hatten, Klima, Verkehr, Verhalten und Erinnerung zu steuern. Züge fahren noch. Türme atmen noch. Archive hören noch zu."],
-    ["#berlin .story-text p:nth-child(3)", "What remains human is harder to contain.", "Was menschlich bleibt, lässt sich schwerer kontrollieren."],
-    ["#berlin .story-text p:nth-child(4)", "Music, longing, touch, obsession, nightlife residue, emotional leakage. Parallel Vision follows those unstable frequencies moving beneath order, inside stations, corridors, rooms and bodies.", "Musik, Sehnsucht, Berührung, Besessenheit, Rückstände des Nachtlebens, emotionale Lecks. Parallel Vision folgt diesen instabilen Frequenzen unterhalb der Ordnung, in Stationen, Korridoren, Räumen und Körpern."],
-    ["#berlin .story-text p:nth-child(5)", "It is a fragment from a future already rehearsing itself. A city where machines maintain survival, but the night still belongs to what escapes calculation.", "Es ist ein Fragment aus einer Zukunft, die sich bereits selbst probt. Eine Stadt, in der Maschinen das Überleben sichern, doch die Nacht weiterhin dem gehört, was sich der Berechnung entzieht."]
+    [".nina-intro-small", "Say something unexpected.", "Sag etwas Unerwartetes."]
   ];
 
   const genericFashion = [
