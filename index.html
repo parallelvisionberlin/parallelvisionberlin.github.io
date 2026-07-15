@@ -2628,7 +2628,58 @@ body.nina-connecting-mode
 
 .artist:nth-child(4n) { border-right: 0; }
 
-.fashion-landing { min-height: auto; margin-bottom: 82px; }
+.fashion-landing {
+  min-height: auto;
+  grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr);
+  gap: clamp(64px, 6vw, 96px);
+  align-items: center;
+  margin-bottom: 82px;
+}
+
+.fashion-copy {
+  min-width: 0;
+  padding: 42px 0;
+}
+
+.fashion-title {
+  max-width: 100%;
+  font-size: clamp(44px, 4.25vw, 66px);
+  letter-spacing: .055em;
+  line-height: 1.08;
+}
+
+.fashion-lede {
+  max-width: 520px;
+  margin-top: 34px;
+  line-height: 1.85;
+}
+
+.fashion-links {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  max-width: 520px;
+  margin-top: 38px;
+}
+
+.fashion-links a {
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+  padding: 12px 14px;
+  line-height: 1.4;
+}
+
+.fashion-copy > .small {
+  max-width: 500px;
+  margin-top: 34px;
+  line-height: 1.75;
+}
+
+.fashion-hero-media {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+}
 .fashion-card {
   min-height: 0;
   padding: 0 0 28px;
@@ -2674,6 +2725,9 @@ body.nina-connecting-mode
   .artist:nth-child(2n) { border-right: 0; }
   .story { grid-template-columns: 1fr; }
   .berlin-visual { min-height: 440px; border-right: 0; border-bottom: 1px solid #151515; }
+  .fashion-landing { grid-template-columns: 1fr; gap: 46px; }
+  .fashion-copy { padding: 0; }
+  .fashion-title { font-size: clamp(42px, 10vw, 72px); }
 }
 
 @media (max-width: 620px) {
@@ -2687,6 +2741,8 @@ body.nina-connecting-mode
   .section-head { margin-bottom: 46px; }
   .artists { grid-template-columns: 1fr; }
   .artist, .artist:nth-child(2n), .artist:nth-child(4n) { border-right: 0; }
+  .fashion-links { grid-template-columns: 1fr; }
+  .fashion-hero-media { aspect-ratio: 4 / 5; }
 }
 
 /* Mobile homepage: signal first, interface second */
