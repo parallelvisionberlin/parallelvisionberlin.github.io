@@ -13,6 +13,17 @@
 <title>Parallel Vision | Berlin 2063</title>
 
 <link
+  rel="icon"
+  type="image/png"
+  href="./favicon.png"
+>
+
+<link
+  rel="apple-touch-icon"
+  href="./favicon.png"
+>
+
+<link
   href="https://fonts.googleapis.com/css2?family=Michroma&family=Inter:wght@300;400;500&display=swap"
   rel="stylesheet"
 >
@@ -159,8 +170,11 @@ nav {
   z-index: 10;
 
   display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
 
   gap: 46px;
+  row-gap: 14px;
 
   font-size: 11px;
 
@@ -500,6 +514,571 @@ h2 {
   letter-spacing: .18em;
 
   text-transform: uppercase;
+}
+
+
+/* =========================================================
+   FUTURE FASHION
+========================================================= */
+
+.fashion-section {
+  position: relative;
+
+  overflow: hidden;
+
+  background: #010101;
+}
+
+.fashion-section::before {
+  content: "";
+
+  position: absolute;
+
+  inset: 0;
+
+  pointer-events: none;
+
+  background:
+    linear-gradient(
+      90deg,
+      rgba(
+        255,
+        255,
+        255,
+        .05
+      ),
+      transparent 28%,
+      transparent 72%,
+      rgba(
+        145,
+        180,
+        164,
+        .08
+      )
+    );
+
+  opacity: .38;
+}
+
+.fashion-section .wrapper {
+  position: relative;
+
+  z-index: 2;
+}
+
+.fashion-landing {
+  min-height: 82vh;
+
+  display: grid;
+
+  grid-template-columns:
+    .88fr
+    1.12fr;
+
+  gap: 42px;
+
+  align-items: stretch;
+
+  margin-bottom: 74px;
+}
+
+.fashion-copy {
+  display: flex;
+
+  flex-direction: column;
+
+  justify-content: space-between;
+
+  padding:
+    34px
+    0;
+}
+
+.fashion-kicker {
+  margin-bottom: 22px;
+
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      .48
+    );
+
+  font-family:
+    'Courier New',
+    monospace;
+
+  font-size: 10px;
+
+  letter-spacing: .38em;
+
+  text-transform: uppercase;
+}
+
+.fashion-title {
+  max-width: 660px;
+
+  font-family:
+    'Michroma',
+    sans-serif;
+
+  font-size:
+    clamp(
+      42px,
+      7vw,
+      104px
+    );
+
+  font-weight: 400;
+
+  letter-spacing: .16em;
+
+  line-height: 1;
+
+  text-transform: uppercase;
+}
+
+.fashion-lede {
+  max-width: 610px;
+
+  margin-top: 32px;
+
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      .72
+    );
+
+  font-size: 17px;
+
+  line-height: 1.9;
+}
+
+.fashion-links {
+  display: flex;
+  flex-wrap: wrap;
+
+  gap: 14px;
+
+  margin-top: 42px;
+}
+
+.fashion-links a {
+  padding:
+    13px
+    16px;
+
+  border:
+    1px solid
+    rgba(
+      255,
+      255,
+      255,
+      .18
+    );
+
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      .78
+    );
+
+  font-size: 10px;
+
+  letter-spacing: .24em;
+
+  text-transform: uppercase;
+}
+
+.fashion-hero-media,
+.fashion-video-slot,
+.fashion-gallery-item,
+.collection-image {
+  position: relative;
+
+  overflow: hidden;
+
+  background:
+    #080808;
+
+  border:
+    1px solid
+    rgba(
+      255,
+      255,
+      255,
+      .11
+    );
+}
+
+.fashion-hero-media {
+  min-height: 680px;
+}
+
+.fashion-hero-media img,
+.fashion-gallery-item img,
+.collection-image img {
+  width: 100%;
+  height: 100%;
+
+  display: block;
+
+  object-fit: cover;
+
+  filter:
+    grayscale(.1)
+    contrast(1.12)
+    brightness(.72);
+}
+
+.fashion-hero-media::after,
+.fashion-gallery-item::after,
+.collection-image::after,
+.fashion-video-slot::after {
+  content: attr(data-label);
+
+  position: absolute;
+
+  left: 22px;
+  bottom: 20px;
+
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      .62
+    );
+
+  font-family:
+    'Courier New',
+    monospace;
+
+  font-size: 10px;
+
+  letter-spacing: .28em;
+
+  text-transform: uppercase;
+}
+
+.fashion-hero-media::before,
+.collection-image::before {
+  content: "";
+
+  position: absolute;
+
+  inset: 0;
+
+  z-index: 1;
+
+  pointer-events: none;
+
+  background:
+    linear-gradient(
+      to bottom,
+      rgba(
+        0,
+        0,
+        0,
+        .08
+      ),
+      rgba(
+        0,
+        0,
+        0,
+        .78
+      )
+    );
+}
+
+.fashion-video-slot {
+  min-height: 360px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  margin-bottom: 46px;
+
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      .34
+    );
+
+  font-family:
+    'Michroma',
+    sans-serif;
+
+  font-size: 12px;
+
+  letter-spacing: .3em;
+
+  text-transform: uppercase;
+}
+
+.fashion-collections {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      3,
+      1fr
+    );
+
+  gap: 24px;
+
+  margin-bottom: 96px;
+}
+
+.fashion-card {
+  min-height: 520px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  justify-content: flex-end;
+
+  padding: 28px;
+
+  border:
+    1px solid
+    rgba(
+      255,
+      255,
+      255,
+      .12
+    );
+
+  background:
+    #050505;
+
+  overflow: hidden;
+}
+
+.fashion-card h3,
+.collection-copy h3 {
+  font-family:
+    'Michroma',
+    sans-serif;
+
+  font-size:
+    clamp(
+      24px,
+      3vw,
+      45px
+    );
+
+  font-weight: 400;
+
+  letter-spacing: .16em;
+
+  line-height: 1.05;
+
+  text-transform: uppercase;
+}
+
+.fashion-card p,
+.collection-copy p {
+  margin-top: 22px;
+
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      .70
+    );
+
+  font-size: 14px;
+
+  line-height: 1.8;
+}
+
+.fashion-card span {
+  margin-top: 26px;
+
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      .44
+    );
+
+  font-family:
+    'Courier New',
+    monospace;
+
+  font-size: 10px;
+
+  letter-spacing: .26em;
+
+  text-transform: uppercase;
+}
+
+.fashion-card.chromia {
+  background:
+    linear-gradient(
+      135deg,
+      #090909,
+      #222,
+      #050505
+    );
+}
+
+.fashion-card.lotus {
+  background:
+    linear-gradient(
+      135deg,
+      #010101,
+      #151311,
+      #020202
+    );
+}
+
+.fashion-card.bio {
+  background:
+    linear-gradient(
+      135deg,
+      #050606,
+      #122018,
+      #020202
+    );
+}
+
+.fashion-collection {
+  display: grid;
+
+  grid-template-columns:
+    .78fr
+    1.22fr;
+
+  gap: 34px;
+
+  align-items: stretch;
+
+  margin-top: 48px;
+  padding-top: 48px;
+
+  border-top:
+    1px solid
+    rgba(
+      255,
+      255,
+      255,
+      .12
+    );
+}
+
+.collection-copy {
+  padding:
+    30px
+    0;
+}
+
+.collection-meta {
+  margin-bottom: 20px;
+
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      .42
+    );
+
+  font-family:
+    'Courier New',
+    monospace;
+
+  font-size: 10px;
+
+  letter-spacing: .32em;
+
+  text-transform: uppercase;
+}
+
+.collection-tags {
+  display: flex;
+  flex-wrap: wrap;
+
+  gap: 10px;
+
+  margin-top: 28px;
+}
+
+.collection-tags span {
+  padding:
+    9px
+    10px;
+
+  border:
+    1px solid
+    rgba(
+      255,
+      255,
+      255,
+      .13
+    );
+
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      .58
+    );
+
+  font-size: 9px;
+
+  letter-spacing: .18em;
+
+  text-transform: uppercase;
+}
+
+.collection-visuals {
+  display: grid;
+
+  grid-template-columns:
+    1fr
+    1fr;
+
+  gap: 18px;
+}
+
+.collection-image {
+  min-height: 520px;
+}
+
+.fashion-gallery {
+  display: grid;
+
+  grid-template-columns:
+    1.2fr
+    .8fr
+    1fr;
+
+  gap: 18px;
+
+  margin-top: 72px;
+}
+
+.fashion-gallery-item {
+  min-height: 310px;
+}
+
+.fashion-gallery-item.tall {
+  min-height: 520px;
 }
 
 
@@ -1686,6 +2265,31 @@ body.nina-connecting-mode
       1fr;
   }
 
+  .fashion-landing,
+  .fashion-collection {
+    grid-template-columns:
+      1fr;
+  }
+
+  .fashion-hero-media {
+    min-height: 540px;
+  }
+
+  .fashion-collections {
+    grid-template-columns:
+      1fr;
+  }
+
+  .fashion-card {
+    min-height: 390px;
+  }
+
+  .fashion-gallery {
+    grid-template-columns:
+      1fr
+      1fr;
+  }
+
   nav {
     gap: 22px;
 
@@ -1714,6 +2318,49 @@ body.nina-connecting-mode
   .release-grid {
     grid-template-columns:
       1fr;
+  }
+
+  .fashion-landing {
+    min-height: auto;
+
+    gap: 28px;
+
+    margin-bottom: 54px;
+  }
+
+  .fashion-copy {
+    padding: 0;
+  }
+
+  .fashion-title {
+    letter-spacing: .08em;
+  }
+
+  .fashion-lede {
+    font-size: 15px;
+  }
+
+  .fashion-hero-media,
+  .collection-image,
+  .fashion-gallery-item,
+  .fashion-gallery-item.tall {
+    min-height: 360px;
+  }
+
+  .fashion-video-slot {
+    min-height: 240px;
+  }
+
+  .collection-visuals,
+  .fashion-gallery {
+    grid-template-columns:
+      1fr;
+  }
+
+  .fashion-card {
+    min-height: 330px;
+
+    padding: 24px;
   }
 
   .section {
@@ -1825,6 +2472,10 @@ body.nina-connecting-mode
 
     <a href="#releases">
       Releases
+    </a>
+
+    <a href="#future-fashion">
+      Future Fashion
     </a>
 
     <a href="#berlin">
@@ -2381,6 +3032,434 @@ body.nina-connecting-mode
       </div>
 
     </div>
+
+  </div>
+
+</section>
+
+
+
+<section
+  id="future-fashion"
+  class="section fashion-section"
+>
+
+  <div class="wrapper">
+
+
+    <div class="fashion-landing">
+
+
+      <div class="fashion-copy">
+
+
+        <div>
+
+
+          <div class="fashion-kicker">
+
+            Parallel Vision Atelier / Berlin 2063
+
+          </div>
+
+
+          <h2 class="fashion-title">
+
+            Future Fashion
+
+          </h2>
+
+
+          <p class="fashion-lede">
+
+            Clothing as nightlife armor,
+            body-interface
+            and living signal.
+
+            A fashion extension of Parallel Vision:
+            premium,
+            dangerous,
+            sensual
+            and built for a city after prediction.
+
+          </p>
+
+
+          <div class="fashion-links">
+
+            <a href="#chromia">
+              Chromia
+            </a>
+
+            <a href="#lotus-2063">
+              Lotus 2063
+            </a>
+
+            <a href="#bio-material">
+              Bio-Material
+            </a>
+
+          </div>
+
+
+        </div>
+
+
+        <p class="small">
+
+          Replace the placeholder stills and future video spaces
+          with campaign films,
+          catwalk footage,
+          garment studies
+          and backstage images.
+
+        </p>
+
+
+      </div>
+
+
+      <figure
+        class="fashion-hero-media"
+        data-label="Hero video slot / Replace with fashion film"
+      >
+
+        <img
+          src="./assets/ebers2063.png"
+          alt="Future Fashion placeholder editorial"
+        >
+
+      </figure>
+
+
+    </div>
+
+
+    <div
+      class="fashion-video-slot"
+      data-label="Video placeholder"
+    >
+
+      Future fashion hero video
+
+    </div>
+
+
+    <div class="fashion-collections">
+
+
+      <a
+        class="fashion-card chromia"
+        href="#chromia"
+      >
+
+        <h3>
+          Chromia
+        </h3>
+
+        <p>
+          Liquid metal clothing,
+          reactive alloy skins,
+          mercury surfaces
+          and chrome body-interface.
+        </p>
+
+        <span>
+          Silver / Monochrome / Catwalk
+        </span>
+
+      </a>
+
+
+      <a
+        class="fashion-card lotus"
+        href="#lotus-2063"
+      >
+
+        <h3>
+          Lotus 2063
+        </h3>
+
+        <p>
+          Oversized black silhouettes
+          for tropical-dark ceremonies,
+          brutal elegance
+          and future Berlin nightlife.
+        </p>
+
+        <span>
+          Black / Ceremonial / Night
+        </span>
+
+      </a>
+
+
+      <a
+        class="fashion-card bio"
+        href="#bio-material"
+      >
+
+        <h3>
+          Bio-Material
+        </h3>
+
+        <p>
+          Bacteria-grown garments,
+          genetic modification,
+          spikes,
+          mutation
+          and living future materials.
+        </p>
+
+        <span>
+          Living / Bacterial / Mutation
+        </span>
+
+      </a>
+
+
+    </div>
+
+
+    <article
+      id="chromia"
+      class="fashion-collection"
+    >
+
+      <div class="collection-copy">
+
+        <div class="collection-meta">
+          Collection 01 / Reactive Alloy
+        </div>
+
+        <h3>
+          Chromia
+        </h3>
+
+        <p>
+          CHROMIA imagines liquid metal future clothing
+          as a second skin:
+          monochrome alloy,
+          mercury movement,
+          chrome membranes
+          and garments that react to heat,
+          sound
+          and pulse.
+        </p>
+
+        <div class="collection-tags">
+          <span>Liquid metal</span>
+          <span>Reactive alloy</span>
+          <span>Body-interface</span>
+          <span>Berlin 2063 catwalk</span>
+        </div>
+
+      </div>
+
+
+      <div class="collection-visuals">
+
+        <figure
+          class="collection-image"
+          data-label="Chromia campaign still"
+        >
+
+          <img
+            src="./assets/Ravesiaremixesart.png"
+            alt="Chromia placeholder image"
+          >
+
+        </figure>
+
+        <figure
+          class="collection-image"
+          data-label="Chromia garment detail"
+        >
+
+          <img
+            src="./assets/Builttolast.png"
+            alt="Chromia garment detail placeholder"
+          >
+
+        </figure>
+
+      </div>
+
+    </article>
+
+
+    <article
+      id="lotus-2063"
+      class="fashion-collection"
+    >
+
+      <div class="collection-copy">
+
+        <div class="collection-meta">
+          Collection 02 / Tropical-Dark Ceremony
+        </div>
+
+        <h3>
+          Lotus 2063
+        </h3>
+
+        <p>
+          LOTUS 2063 is black high fashion
+          inflated into oversized ritual silhouettes:
+          elegant,
+          brutal,
+          ceremonial
+          and built for humid club corridors
+          after midnight.
+        </p>
+
+        <div class="collection-tags">
+          <span>Oversized black</span>
+          <span>Tropical-dark</span>
+          <span>Ceremonial</span>
+          <span>Future nightlife</span>
+        </div>
+
+      </div>
+
+
+      <div class="collection-visuals">
+
+        <figure
+          class="collection-image"
+          data-label="Lotus 2063 silhouette"
+        >
+
+          <img
+            src="./assets/RedArtwork.png.png"
+            alt="Lotus 2063 silhouette placeholder"
+          >
+
+        </figure>
+
+        <figure
+          class="collection-image"
+          data-label="Lotus 2063 nightlife film"
+        >
+
+          <img
+            src="./assets/Artdarkrock.png"
+            alt="Lotus 2063 nightlife placeholder"
+          >
+
+        </figure>
+
+      </div>
+
+    </article>
+
+
+    <article
+      id="bio-material"
+      class="fashion-collection"
+    >
+
+      <div class="collection-copy">
+
+        <div class="collection-meta">
+          Collection 03 / Living Garments
+        </div>
+
+        <h3>
+          Bio-Material
+        </h3>
+
+        <p>
+          The upcoming bio-material collection treats fashion
+          as mutation:
+          bacterial surfaces,
+          spikes,
+          genetic alteration,
+          living membranes
+          and garments that behave like organisms.
+        </p>
+
+        <div class="collection-tags">
+          <span>Bacteria</span>
+          <span>Spikes</span>
+          <span>Genetic modification</span>
+          <span>Body mutation</span>
+        </div>
+
+      </div>
+
+
+      <div class="collection-visuals">
+
+        <figure
+          class="collection-image"
+          data-label="Bio-material study"
+        >
+
+          <img
+            src="./assets/vision-neo.jpg"
+            alt="Bio-material garment placeholder"
+          >
+
+        </figure>
+
+        <figure
+          class="collection-image"
+          data-label="Living garment prototype"
+        >
+
+          <img
+            src="./assets/artfunkybeats.png"
+            alt="Living garment prototype placeholder"
+          >
+
+        </figure>
+
+      </div>
+
+    </article>
+
+
+    <div class="fashion-gallery">
+
+      <figure
+        class="fashion-gallery-item tall"
+        data-label="Gallery / Runway vertical"
+      >
+
+        <img
+          src="./assets/tanzenfinal.jpeg"
+          alt="Future Fashion runway placeholder"
+        >
+
+      </figure>
+
+      <figure
+        class="fashion-gallery-item"
+        data-label="Gallery / Material scan"
+      >
+
+        <img
+          src="./assets/Ravesiamolinariremix.png"
+          alt="Future Fashion material placeholder"
+        >
+
+      </figure>
+
+      <figure
+        class="fashion-gallery-item"
+        data-label="Gallery / Backstage frame"
+      >
+
+        <img
+          src="./assets/ebers2063.png"
+          alt="Future Fashion backstage placeholder"
+        >
+
+      </figure>
+
+    </div>
+
 
   </div>
 
