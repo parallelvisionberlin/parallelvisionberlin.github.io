@@ -17,6 +17,11 @@ img { max-width: 100%; }
 .archive-nav a { opacity: .7; transition: opacity .25s; }
 .archive-nav a:hover, .archive-nav a:focus-visible { opacity: 1; }
 .archive-nav a:focus-visible { outline: 1px solid #777; outline-offset: 6px; }
+.pv-language-switch { border: 0; background: none; color: inherit; font: inherit; letter-spacing: inherit; text-transform: uppercase; cursor: pointer; opacity: .7; }
+.pv-language-switch i { padding: 0 5px; font-style: normal; opacity: .35; }
+.pv-language-switch span { opacity: .45; }
+.pv-language-switch span.is-active { opacity: 1; color: #fff; }
+.pv-language-switch:focus-visible { outline: 1px solid #777; outline-offset: 5px; }
 
 .fashion-page-hero {
   position: relative; min-height: 86vh; display: grid; align-items: end;
