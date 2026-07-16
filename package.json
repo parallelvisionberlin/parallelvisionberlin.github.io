@@ -1,0 +1,7 @@
+{
+  "name": "parallel-vision-berlin",
+  "private": true,
+  "scripts": {
+    "build": "node scripts/verify-build.js"
+  }
+}

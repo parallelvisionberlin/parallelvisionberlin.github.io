@@ -1456,6 +1456,120 @@ footer {
 
 
 /* =========================================================
+   NINA ACCESS GATE
+========================================================= */
+
+.nina-access {
+  position: fixed;
+  inset: 0;
+  z-index: 10001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, .92);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity .3s ease, visibility .3s ease;
+}
+
+.nina-access.is-open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.nina-access-panel {
+  width: min(440px, 100%);
+  padding: 34px;
+  border: 1px solid rgba(255, 255, 255, .2);
+  background: #020203;
+  box-shadow: 0 35px 120px rgba(0, 0, 0, .85);
+}
+
+.nina-access-title {
+  margin: 0 0 14px;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 400;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+}
+
+.nina-access-description,
+.nina-access-error {
+  color: rgba(255, 255, 255, .52);
+  font-family: 'Courier New', monospace;
+  font-size: 10px;
+  line-height: 1.7;
+  letter-spacing: .1em;
+}
+
+.nina-access-form {
+  margin-top: 26px;
+}
+
+.nina-access-input {
+  width: 100%;
+  padding: 14px 15px;
+  border: 1px solid rgba(255, 255, 255, .2);
+  border-radius: 0;
+  outline: none;
+  background: #000;
+  color: #fff;
+  font-family: 'Courier New', monospace;
+  letter-spacing: .14em;
+}
+
+.nina-access-input:focus {
+  border-color: rgba(255, 255, 255, .7);
+}
+
+.nina-access-error {
+  min-height: 17px;
+  margin: 10px 0 0;
+  color: rgba(255, 255, 255, .72);
+}
+
+.nina-access-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.nina-access-submit,
+.nina-access-cancel {
+  border-radius: 0;
+  font-family: 'Courier New', monospace;
+  font-size: 9px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.nina-access-submit {
+  padding: 13px 16px;
+  border: 1px solid #fff;
+  background: #fff;
+  color: #000;
+}
+
+.nina-access-submit:disabled {
+  opacity: .48;
+  cursor: wait;
+}
+
+.nina-access-cancel {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: rgba(255, 255, 255, .52);
+}
+
+
+/* =========================================================
    NINA LIVE WINDOW
 ========================================================= */
 
@@ -4123,6 +4237,41 @@ body.nina-connecting-mode
 
 
 <!-- ======================================================
+     NINA ACCESS GATE
+====================================================== -->
+
+<div
+  class="nina-access"
+  id="ninaAccess"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="ninaAccessTitle"
+  aria-hidden="true"
+>
+  <section class="nina-access-panel">
+    <h2 class="nina-access-title" id="ninaAccessTitle">PRIVATE SIGNAL</h2>
+    <p class="nina-access-description">Enter your access code to open the transmission.</p>
+    <form class="nina-access-form" id="ninaAccessForm">
+      <input
+        class="nina-access-input"
+        id="ninaAccessCode"
+        name="code"
+        type="password"
+        autocomplete="current-password"
+        aria-label="Access code"
+        required
+      >
+      <p class="nina-access-error" id="ninaAccessError" role="status" aria-live="polite"></p>
+      <div class="nina-access-actions">
+        <button class="nina-access-submit" id="ninaAccessSubmit" type="submit">OPEN SIGNAL</button>
+        <button class="nina-access-cancel" id="ninaAccessCancel" type="button">CANCEL</button>
+      </div>
+    </form>
+  </section>
+</div>
+
+
+<!-- ======================================================
      NINA OVERLAY
 ====================================================== -->
 
@@ -4185,11 +4334,7 @@ body.nina-connecting-mode
     <div class="nina-stage">
 
 
-      <tavus-embed
-        id="ninaEmbed"
-        deployment-id="d70bc773-bd96-44e2-ad08-abf2cac262be"
-      >
-      </tavus-embed>
+      <div id="ninaEmbedMount"></div>
 
 
       <section
@@ -4391,10 +4536,6 @@ body.nina-connecting-mode
 }());
 </script>
 
-<script src="https://unpkg.com/@tavus/embed"></script>
-
-
-
 <script>
 
 const ninaOverlay =
@@ -4406,6 +4547,42 @@ const ninaOverlay =
 const openNina =
   document.getElementById(
     "openNina"
+  );
+
+
+const ninaAccess =
+  document.getElementById(
+    "ninaAccess"
+  );
+
+
+const ninaAccessForm =
+  document.getElementById(
+    "ninaAccessForm"
+  );
+
+
+const ninaAccessCode =
+  document.getElementById(
+    "ninaAccessCode"
+  );
+
+
+const ninaAccessError =
+  document.getElementById(
+    "ninaAccessError"
+  );
+
+
+const ninaAccessSubmit =
+  document.getElementById(
+    "ninaAccessSubmit"
+  );
+
+
+const ninaAccessCancel =
+  document.getElementById(
+    "ninaAccessCancel"
   );
 
 
@@ -4421,10 +4598,13 @@ const startNina =
   );
 
 
-const ninaEmbed =
+const ninaEmbedMount =
   document.getElementById(
-    "ninaEmbed"
+    "ninaEmbedMount"
   );
+
+
+let ninaEmbed = null;
 
 
 const ninaStatus =
@@ -4467,6 +4647,117 @@ let ninaReady =
 
 let ninaConversationStarted =
   false;
+
+
+let ninaInitializing = null;
+
+
+const ninaAccessSessionKey =
+  "pv-nina-access-granted";
+
+
+function openNinaAccess() {
+  ninaAccess.classList.add("is-open");
+  ninaAccess.setAttribute("aria-hidden", "false");
+  ninaAccessError.textContent = "";
+  ninaAccessCode.value = "";
+  document.body.style.overflow = "hidden";
+  requestAnimationFrame(() => ninaAccessCode.focus());
+}
+
+
+function closeNinaAccess() {
+  ninaAccess.classList.remove("is-open");
+  ninaAccess.setAttribute("aria-hidden", "true");
+  ninaAccessError.textContent = "";
+  ninaAccessCode.value = "";
+  document.body.style.overflow = "";
+  openNina.focus();
+}
+
+
+function loadNinaEmbedLibrary() {
+  if (customElements.get("tavus-embed")) {
+    return Promise.resolve();
+  }
+
+  return new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = "https://unpkg.com/@tavus/embed";
+    script.onload = resolve;
+    script.onerror = () => reject(new Error("Unable to load Tavus."));
+    document.head.appendChild(script);
+  });
+}
+
+
+async function initializeNina() {
+  if (ninaEmbed) {
+    return;
+  }
+
+  if (!ninaInitializing) {
+    ninaInitializing = (async () => {
+      await loadNinaEmbedLibrary();
+      ninaEmbed = document.createElement("tavus-embed");
+      ninaEmbed.id = "ninaEmbed";
+      ninaEmbed.setAttribute(
+        "deployment-id",
+        "d70bc773-bd96-44e2-ad08-abf2cac262be"
+      );
+      bindNinaEvents();
+      ninaEmbedMount.replaceWith(ninaEmbed);
+      await waitForNina();
+    })();
+  }
+
+  return ninaInitializing;
+}
+
+
+async function requestNinaWindow() {
+  if (sessionStorage.getItem(ninaAccessSessionKey) !== "true") {
+    openNinaAccess();
+    return;
+  }
+
+  await initializeNina();
+  openNinaWindow();
+}
+
+
+async function verifyNinaAccess(event) {
+  event.preventDefault();
+  ninaAccessSubmit.disabled = true;
+  ninaAccessSubmit.textContent = "VERIFYING";
+  ninaAccessError.textContent = "";
+
+  try {
+    const response = await fetch("/api/verify-nina-access", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code: ninaAccessCode.value })
+    });
+    const result = await response.json().catch(() => ({}));
+
+    if (!response.ok || result.authorized !== true) {
+      throw new Error(result.error || "Unable to verify access.");
+    }
+
+    sessionStorage.setItem(ninaAccessSessionKey, "true");
+    closeNinaAccess();
+    await initializeNina();
+    openNinaWindow();
+  }
+  catch (error) {
+    ninaAccessError.textContent = error.message;
+    ninaAccessCode.select();
+  }
+  finally {
+    ninaAccessSubmit.disabled = false;
+    ninaAccessSubmit.textContent = "OPEN SIGNAL";
+  }
+}
 
 
 
@@ -4935,7 +5226,21 @@ function showNinaEnded() {
 
 openNina.addEventListener(
   "click",
-  openNinaWindow
+  requestNinaWindow
+);
+
+
+
+ninaAccessForm.addEventListener(
+  "submit",
+  verifyNinaAccess
+);
+
+
+
+ninaAccessCancel.addEventListener(
+  "click",
+  closeNinaAccess
 );
 
 
@@ -4954,14 +5259,16 @@ startNina.addEventListener(
 
 
 
-ninaEmbed.addEventListener(
+function bindNinaEvents() {
+
+  ninaEmbed.addEventListener(
   "tavus:conversation-started",
   markNinaOnline
 );
 
 
 
-ninaEmbed.addEventListener(
+  ninaEmbed.addEventListener(
   "tavus:state-change",
 
   event => {
@@ -4983,7 +5290,7 @@ ninaEmbed.addEventListener(
 
 
 
-ninaEmbed.addEventListener(
+  ninaEmbed.addEventListener(
   "tavus:conversation-ended",
 
   () => {
@@ -5000,7 +5307,7 @@ ninaEmbed.addEventListener(
 
 
 
-ninaEmbed.addEventListener(
+  ninaEmbed.addEventListener(
   "tavus:error",
 
   event => {
@@ -5058,7 +5365,9 @@ ninaEmbed.addEventListener(
       "SIGNAL LOST";
 
   }
-);
+  );
+
+}
 
 
 
@@ -5068,6 +5377,17 @@ document.addEventListener(
   event => {
 
     if (
+      event.key === "Escape" &&
+      ninaAccess.classList.contains(
+        "is-open"
+      )
+    ) {
+
+      closeNinaAccess();
+
+    }
+
+    else if (
       event.key === "Escape" &&
       ninaOverlay.classList.contains(
         "is-open"
@@ -5082,8 +5402,6 @@ document.addEventListener(
 );
 
 
-
-waitForNina();
 
 </script>
 
