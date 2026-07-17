@@ -2348,20 +2348,6 @@ body.nina-call-visible
     );
 }
 
-body.nina-connect-pressed
-.nina-scrim-button {
-  background: #fff;
-  color: #000;
-  transform: scale(.96);
-}
-
-body.nina-scrim-action
-.nina-stage:hover
-.nina-scrim-button {
-  background: #fff;
-  color: #000;
-}
-
 .nina-open-live:disabled {
   opacity: .35;
 
@@ -5143,7 +5129,11 @@ function showNinaReady() {
 
 
   document.body.classList.add(
-    "nina-call-visible",
+    "nina-call-visible"
+  );
+
+
+  document.body.classList.remove(
     "nina-scrim-visible",
     "nina-scrim-action"
   );
@@ -5388,25 +5378,6 @@ closeNina.addEventListener(
 
 
 
-ninaStage.addEventListener(
-  "pointerdown",
-  () => {
-    if (
-      document.body.classList.contains("nina-scrim-action") &&
-      !ninaConversationStarted
-    ) {
-      document.body.classList.add("nina-connect-pressed");
-      setTimeout(
-        () => document.body.classList.remove("nina-connect-pressed"),
-        160
-      );
-    }
-  },
-  true
-);
-
-
-
 function bindNinaEvents() {
 
   ninaEmbed.addEventListener(
@@ -5489,7 +5460,9 @@ function bindNinaEvents() {
         "CONNECT"
       );
       document.body.classList.add(
-        "nina-call-visible",
+        "nina-call-visible"
+      );
+      document.body.classList.remove(
         "nina-scrim-visible",
         "nina-scrim-action"
       );
