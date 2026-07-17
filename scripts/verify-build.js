@@ -34,6 +34,22 @@ if (!index.includes('crypto.subtle.digest("SHA-256", encodedCode)')) {
   throw new Error("The access gate must use browser SHA-256 verification.");
 }
 
+if (!index.includes('"nina_access_verified_v2"')) {
+  throw new Error("The access gate must use the versioned session key.");
+}
+
+if (index.includes('"pv-nina-access-granted"')) {
+  throw new Error("The obsolete session authorization key must not be trusted.");
+}
+
+if (!index.includes("let ninaTavusInitialized = false")) {
+  throw new Error("The Tavus initializer must have a strict one-time guard.");
+}
+
+if (!index.includes("initializeNinaTavusAfterAccess")) {
+  throw new Error("The post-access Tavus initializer is missing.");
+}
+
 const inlineScripts = [...index.matchAll(/<script>([\s\S]*?)<\/script>/g)];
 
 for (const [, source] of inlineScripts) {
