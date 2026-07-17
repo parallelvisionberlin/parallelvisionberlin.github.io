@@ -34,12 +34,12 @@ if (!index.includes('crypto.subtle.digest("SHA-256", encodedCode)')) {
   throw new Error("The access gate must use browser SHA-256 verification.");
 }
 
-if (!index.includes('"nina_access_verified_v2"')) {
-  throw new Error("The access gate must use the versioned session key.");
+if (index.includes("sessionStorage")) {
+  throw new Error("The access portal must not trust stored authorization.");
 }
 
-if (index.includes('"pv-nina-access-granted"')) {
-  throw new Error("The obsolete session authorization key must not be trusted.");
+if (!index.includes("let ninaAccessVerifiedForCurrentOpen = false")) {
+  throw new Error("The access gate must use per-opening in-memory authorization.");
 }
 
 if (!index.includes("let ninaTavusInitialized = false")) {
@@ -48,6 +48,21 @@ if (!index.includes("let ninaTavusInitialized = false")) {
 
 if (!index.includes("initializeNinaTavusAfterAccess")) {
   throw new Error("The post-access Tavus initializer is missing.");
+}
+
+if (!index.includes("pointer-events: auto !important")) {
+  throw new Error("The Tavus embed must accept pointer events after access.");
+}
+
+if (!index.includes("pointer-events: none !important")) {
+  throw new Error("The visual CONNECT scrim must pass pointer events through.");
+}
+
+if (
+  index.includes("ninaScrimButton.addEventListener") ||
+  index.includes("startNina.addEventListener")
+) {
+  throw new Error("Custom CONNECT controls must not intercept native Tavus clicks.");
 }
 
 const inlineScripts = [...index.matchAll(/<script>([\s\S]*?)<\/script>/g)];

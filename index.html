@@ -1919,7 +1919,7 @@ body.nina-call-visible
 tavus-embed {
   opacity: 1;
 
-  pointer-events: auto;
+  pointer-events: auto !important;
 }
 
 .nina-call-scrim {
@@ -1938,7 +1938,7 @@ tavus-embed {
 
   opacity: 0;
 
-  pointer-events: none;
+  pointer-events: none !important;
 
   transition:
     opacity
@@ -1950,12 +1950,17 @@ body.nina-scrim-visible
 .nina-call-scrim {
   opacity: 1;
 
-  pointer-events: none;
+  pointer-events: none !important;
 }
 
-.nina-call-scrim
-* {
-  pointer-events: none;
+.nina-call-scrim,
+.nina-call-scrim * {
+  pointer-events: none !important;
+}
+
+body.nina-scrim-action
+.nina-stage {
+  cursor: pointer;
 }
 
 .nina-call-scrim-content {
@@ -2348,6 +2353,13 @@ body.nina-connect-pressed
   background: #fff;
   color: #000;
   transform: scale(.96);
+}
+
+body.nina-scrim-action
+.nina-stage:hover
+.nina-scrim-button {
+  background: #fff;
+  color: #000;
 }
 
 .nina-open-live:disabled {
@@ -4705,8 +4717,7 @@ let ninaTavusInitializationPromise = null;
 let ninaAccessSubmitting = false;
 
 
-const ninaAccessSessionKey =
-  "nina_access_verified_v2";
+let ninaAccessVerifiedForCurrentOpen = false;
 
 
 const ninaAccessHash =
@@ -4730,6 +4741,7 @@ async function hashNinaAccessCode(code) {
 
 function openNinaAccess() {
   console.log("ACCESS PORTAL OPENED");
+  ninaAccessVerifiedForCurrentOpen = false;
   ninaOverlay.classList.remove("is-open");
   ninaOverlay.setAttribute("aria-hidden", "true");
   document.body.classList.remove(
@@ -4751,7 +4763,11 @@ function openNinaAccess() {
 }
 
 
-function closeNinaAccess() {
+function closeNinaAccess(keepCurrentVerification = false) {
+  if (!keepCurrentVerification) {
+    ninaAccessVerifiedForCurrentOpen = false;
+  }
+
   ninaAccess.classList.remove("is-open");
   ninaAccess.setAttribute("aria-hidden", "true");
   ninaAccessError.textContent = "";
@@ -4778,7 +4794,7 @@ function loadNinaEmbedLibrary() {
 
 
 async function initializeNinaTavusAfterAccess() {
-  if (sessionStorage.getItem(ninaAccessSessionKey) !== "true") {
+  if (!ninaAccessVerifiedForCurrentOpen) {
     return null;
   }
 
@@ -4806,14 +4822,8 @@ async function initializeNinaTavusAfterAccess() {
 }
 
 
-async function requestNinaWindow() {
-  if (sessionStorage.getItem(ninaAccessSessionKey) !== "true") {
-    openNinaAccess();
-    return;
-  }
-
-  await initializeNinaTavusAfterAccess();
-  openNinaWindow();
+function requestNinaWindow() {
+  openNinaAccess();
 }
 
 
@@ -4843,11 +4853,11 @@ async function verifyNinaAccess(event) {
 
     console.log("ACCESS KEY VERIFIED");
     ninaAccessError.textContent = "IDENTITY VERIFIED";
-    sessionStorage.setItem(ninaAccessSessionKey, "true");
+    ninaAccessVerifiedForCurrentOpen = true;
     await waitForAccessMessage(500);
     ninaAccessError.textContent = "OPENING CHANNEL...";
     await waitForAccessMessage(650);
-    closeNinaAccess();
+    closeNinaAccess(true);
     await initializeNinaTavusAfterAccess();
     openNinaWindow();
   }
@@ -4941,6 +4951,24 @@ function closeNinaWindow() {
 
 
   resetNinaInterface();
+
+
+  ninaAccessVerifiedForCurrentOpen = false;
+
+
+  if (ninaEmbed) {
+    ninaEmbed.remove();
+    ninaStage.insertBefore(
+      ninaEmbedMount,
+      ninaStage.firstChild
+    );
+    ninaEmbed = null;
+  }
+
+
+  ninaTavusInitialized = false;
+  ninaTavusInitializationPromise = null;
+  ninaReady = false;
 
 }
 
@@ -5101,7 +5129,7 @@ function showNinaReady() {
 
 
   setNinaScrim(
-    "ESTABLISHING SIGNAL...",
+    "SIGNAL READY",
     "BERLIN 2063",
     "",
     "CONNECT"
@@ -5122,7 +5150,7 @@ function showNinaReady() {
 
 
   ninaStatus.textContent =
-    "ESTABLISHING SIGNAL...";
+    "SIGNAL READY";
 
 
   startNina.disabled =
@@ -5141,14 +5169,6 @@ function showNinaReady() {
     "NINA: embed visible and sized",
     `${Math.round(ninaEmbedBounds.width)}x${Math.round(ninaEmbedBounds.height)}`
   );
-
-}
-
-
-
-function startNinaConversation() {
-
-  showNinaReady();
 
 }
 
@@ -5356,7 +5376,7 @@ ninaAccess.addEventListener(
 
 ninaAccessCancel.addEventListener(
   "click",
-  closeNinaAccess
+  () => closeNinaAccess()
 );
 
 
@@ -5364,13 +5384,6 @@ ninaAccessCancel.addEventListener(
 closeNina.addEventListener(
   "click",
   closeNinaFromButton
-);
-
-
-
-startNina.addEventListener(
-  "click",
-  startNinaConversation
 );
 
 
