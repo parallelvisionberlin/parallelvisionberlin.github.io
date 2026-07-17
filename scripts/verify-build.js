@@ -65,6 +65,10 @@ if (
   throw new Error("Custom CONNECT controls must not intercept native Tavus clicks.");
 }
 
+if (!index.includes("styleNativeNinaConnectButton")) {
+  throw new Error("The native Tavus CONNECT hover treatment is missing.");
+}
+
 const inlineScripts = [...index.matchAll(/<script>([\s\S]*?)<\/script>/g)];
 
 for (const [, source] of inlineScripts) {

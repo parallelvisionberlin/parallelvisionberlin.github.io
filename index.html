@@ -4779,6 +4779,44 @@ function loadNinaEmbedLibrary() {
 }
 
 
+function styleNativeNinaConnectButton() {
+  const ninaShadowRoot = ninaEmbed?.shadowRoot;
+
+  if (!ninaShadowRoot || ninaShadowRoot.getElementById("pv-nina-connect-style")) {
+    return;
+  }
+
+  const ninaConnectStyle = document.createElement("style");
+  ninaConnectStyle.id = "pv-nina-connect-style";
+  ninaConnectStyle.textContent = `
+    .btn-neutral {
+      cursor: pointer !important;
+      transition:
+        background-color .18s ease,
+        color .18s ease,
+        border-color .18s ease,
+        transform .12s ease,
+        box-shadow .18s ease !important;
+    }
+
+    .btn-neutral:hover,
+    .btn-neutral:focus-visible {
+      background: #fff !important;
+      border-color: #fff !important;
+      color: #000 !important;
+      box-shadow: 0 0 24px rgba(255, 255, 255, .42) !important;
+    }
+
+    .btn-neutral:active {
+      background: #fff !important;
+      color: #000 !important;
+      transform: scale(.96) !important;
+    }
+  `;
+  ninaShadowRoot.appendChild(ninaConnectStyle);
+}
+
+
 async function initializeNinaTavusAfterAccess() {
   if (!ninaAccessVerifiedForCurrentOpen) {
     return null;
@@ -4799,6 +4837,7 @@ async function initializeNinaTavusAfterAccess() {
       );
       bindNinaEvents();
       ninaEmbedMount.replaceWith(ninaEmbed);
+      styleNativeNinaConnectButton();
       console.log("TAVUS ELEMENT CREATED");
       await waitForNina();
       return ninaEmbed;
