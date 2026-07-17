@@ -4656,6 +4656,25 @@ const ninaAccessSessionKey =
   "pv-nina-access-granted";
 
 
+const ninaAccessHash =
+  "d3ec7a14e4fefc8da57d4045a6ee28d28b328b78126c1e22bc0b541adf0f215c";
+
+
+function waitForAccessMessage(delay) {
+  return new Promise(resolve => setTimeout(resolve, delay));
+}
+
+
+async function hashNinaAccessCode(code) {
+  const encodedCode = new TextEncoder().encode(code);
+  const digest = await crypto.subtle.digest("SHA-256", encodedCode);
+
+  return Array.from(new Uint8Array(digest))
+    .map(byte => byte.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+
 function openNinaAccess() {
   ninaAccess.classList.add("is-open");
   ninaAccess.setAttribute("aria-hidden", "false");
@@ -4733,24 +4752,26 @@ async function verifyNinaAccess(event) {
   ninaAccessError.textContent = "";
 
   try {
-    const response = await fetch("/api/verify-nina-access", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ code: ninaAccessCode.value })
-    });
-    const result = await response.json().catch(() => ({}));
+    const submittedHash = await hashNinaAccessCode(ninaAccessCode.value);
 
-    if (!response.ok || result.authorized !== true) {
-      throw new Error(result.error || "Unable to verify access.");
+    if (submittedHash !== ninaAccessHash) {
+      ninaAccessError.textContent = "RESONANCE MISMATCH / ACCESS DENIED";
+      ninaAccessCode.select();
+      return;
     }
 
+    ninaAccessError.textContent = "IDENTITY VERIFIED";
     sessionStorage.setItem(ninaAccessSessionKey, "true");
+    await waitForAccessMessage(500);
+    ninaAccessError.textContent = "OPENING CHANNEL...";
+    await waitForAccessMessage(650);
     closeNinaAccess();
     await initializeNina();
     openNinaWindow();
   }
   catch (error) {
-    ninaAccessError.textContent = error.message;
+    console.error("Nina access verification unavailable.", error);
+    ninaAccessError.textContent = "RESONANCE MISMATCH / ACCESS DENIED";
     ninaAccessCode.select();
   }
   finally {

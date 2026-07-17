@@ -5,8 +5,7 @@ const root = path.resolve(__dirname, "..");
 const index = fs.readFileSync(path.join(root, "index.html"), "utf8");
 
 const requiredFiles = [
-  "index.html",
-  "api/verify-nina-access.js"
+  "index.html"
 ];
 
 for (const file of requiredFiles) {
@@ -21,6 +20,18 @@ if (index.includes("<tavus-embed")) {
 
 if (index.includes('src="https://unpkg.com/@tavus/embed"')) {
   throw new Error("The Tavus library must be loaded only after access is granted.");
+}
+
+if (index.includes("/api/verify-nina-access")) {
+  throw new Error("The static gate must not call a serverless endpoint.");
+}
+
+if (fs.existsSync(path.join(root, "api/verify-nina-access.js"))) {
+  throw new Error("The unused serverless endpoint must be removed.");
+}
+
+if (!index.includes('crypto.subtle.digest("SHA-256", encodedCode)')) {
+  throw new Error("The access gate must use browser SHA-256 verification.");
 }
 
 const inlineScripts = [...index.matchAll(/<script>([\s\S]*?)<\/script>/g)];
