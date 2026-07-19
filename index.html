@@ -1922,6 +1922,125 @@ tavus-embed {
   pointer-events: auto !important;
 }
 
+.nina-private-call {
+  position: absolute;
+  inset: 0;
+  z-index: 90;
+  overflow: hidden;
+  background: #000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .22s ease;
+}
+
+.nina-private-call,
+.nina-private-call * {
+  pointer-events: none;
+}
+
+body.nina-private-call-visible .nina-private-call {
+  opacity: 1;
+}
+
+body.nina-private-call-visible .nina-window-id,
+body.nina-private-call-visible .nina-window-status {
+  display: none;
+}
+
+.nina-private-call-label {
+  position: absolute;
+  top: clamp(24px, 4vw, 48px);
+  left: clamp(24px, 4vw, 54px);
+  color: rgba(255, 255, 255, .52);
+  font: 9px 'Courier New', monospace;
+  letter-spacing: .28em;
+  text-transform: uppercase;
+}
+
+.nina-private-call-copy {
+  position: absolute;
+  top: var(--nina-private-copy-anchor, 52%);
+  left: 50%;
+  width: min(720px, calc(100% - 48px));
+  text-align: center;
+  transform: translate(-50%, -100%);
+}
+
+.nina-private-call-title {
+  margin: 0;
+  font: 400 clamp(34px, 5.4vw, 72px)/1.08 'Michroma', sans-serif;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+
+.nina-private-call-text {
+  margin-top: 24px;
+  color: rgba(255, 255, 255, .62);
+  font-size: clamp(15px, 1.5vw, 18px);
+  line-height: 1.7;
+}
+
+.nina-private-call-button {
+  position: absolute;
+  top: var(--nina-native-button-top, 64%);
+  left: var(--nina-native-button-left, 50%);
+  width: var(--nina-native-button-width, min(280px, calc(100% - 48px)));
+  min-height: max(48px, var(--nina-native-button-height, 48px));
+  display: none;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, .42);
+  background: rgba(0, 0, 0, .82);
+  color: #fff;
+  font: 10px 'Michroma', sans-serif;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  transform: var(--nina-native-button-transform, translateX(-50%));
+  transition: background .16s ease, color .16s ease, transform .1s ease;
+}
+
+body.nina-private-call-actionable .nina-private-call-button {
+  display: flex;
+}
+
+body.nina-private-call-button-hover .nina-private-call-button {
+  border-color: #fff;
+  background: #fff;
+  color: #000;
+}
+
+body.nina-private-call-button-active .nina-private-call-button {
+  transform: scale(.97);
+}
+
+.nina-private-call-status {
+  position: absolute;
+  right: clamp(24px, 4vw, 54px);
+  bottom: clamp(24px, 4vw, 44px);
+  color: rgba(255, 255, 255, .42);
+  font: 9px 'Courier New', monospace;
+  letter-spacing: .24em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 620px) {
+  .nina-private-call-copy {
+    width: calc(100% - 36px);
+  }
+
+  .nina-private-call-title {
+    font-size: clamp(30px, 10vw, 46px);
+    letter-spacing: .06em;
+  }
+
+  .nina-private-call-status {
+    right: 18px;
+    bottom: 22px;
+    left: 18px;
+    text-align: center;
+  }
+}
+
 .nina-mock-call {
   position: absolute;
   inset: 0;
@@ -2861,7 +2980,7 @@ body.nina-connecting-mode
 
 .fashion-title {
   max-width: 100%;
-  font-size: clamp(44px, 4.25vw, 66px);
+  font-size: clamp(44px, 3.75vw, 60px);
   letter-spacing: .055em;
   line-height: 1.08;
 }
@@ -4441,6 +4560,17 @@ body.nina-connecting-mode
       <div id="ninaEmbedMount"></div>
 
 
+      <section class="nina-private-call" id="ninaPrivateCall" aria-hidden="true">
+        <div class="nina-private-call-label">PV / NINA FOK / PRIVATE CALL</div>
+        <div class="nina-private-call-copy">
+          <h3 class="nina-private-call-title" id="ninaPrivateCallTitle">NINA IS LOADING</h3>
+          <p class="nina-private-call-text" id="ninaPrivateCallText"></p>
+        </div>
+        <div class="nina-private-call-button" id="ninaPrivateCallButton" aria-hidden="true">CONNECT</div>
+        <div class="nina-private-call-status">CAMERA + MICROPHONE READY</div>
+      </section>
+
+
       <section class="nina-mock-call" id="ninaMockCall" aria-hidden="true">
         <div>
           <h3 class="nina-mock-title">NINA FOK / TEST MODE</h3>
@@ -4732,6 +4862,18 @@ const ninaMockCall = document.getElementById("ninaMockCall");
 const ninaMockState = document.getElementById("ninaMockState");
 
 
+const ninaPrivateCall = document.getElementById("ninaPrivateCall");
+
+
+const ninaPrivateCallTitle = document.getElementById("ninaPrivateCallTitle");
+
+
+const ninaPrivateCallText = document.getElementById("ninaPrivateCallText");
+
+
+const ninaPrivateCallButton = document.getElementById("ninaPrivateCallButton");
+
+
 const ninaMockMode =
   (
     location.hostname === "localhost" ||
@@ -4801,6 +4943,9 @@ let ninaMockSessionActive = false;
 
 
 let ninaMockConversationStarted = false;
+
+
+let ninaNativeConnectButton = null;
 
 
 let ninaAccessSubmitting = false;
@@ -4932,6 +5077,7 @@ function styleNativeNinaConnectButton() {
   ninaConnectStyle.textContent = `
     .btn-neutral {
       cursor: pointer !important;
+      min-height: 48px !important;
       transition:
         background-color .18s ease,
         color .18s ease,
@@ -4955,6 +5101,226 @@ function styleNativeNinaConnectButton() {
     }
   `;
   ninaShadowRoot.appendChild(ninaConnectStyle);
+}
+
+
+function getNativeNinaConnectButton() {
+  const ninaShadowRoot = ninaEmbed?.shadowRoot;
+
+  if (!ninaShadowRoot) {
+    return null;
+  }
+
+  const buttons = Array.from(ninaShadowRoot.querySelectorAll("button"));
+  const availableButtons = buttons.filter(button => {
+    const bounds = button.getBoundingClientRect();
+    return !button.disabled && bounds.width > 0 && bounds.height > 0;
+  });
+  const namedButton = availableButtons.find(button =>
+    /connect|transmit|join|start|try again/i.test(button.textContent || "")
+  );
+  const neutralButton = ninaShadowRoot.querySelector(".btn-neutral");
+
+  return namedButton || (
+    neutralButton && availableButtons.includes(neutralButton)
+      ? neutralButton
+      : null
+  );
+}
+
+
+function alignNinaPrivateButton(nativeButton) {
+  if (!nativeButton) {
+    return false;
+  }
+
+  const nativeBounds = nativeButton.getBoundingClientRect();
+  const stageBounds = ninaStage.getBoundingClientRect();
+
+  if (nativeBounds.width < 1 || nativeBounds.height < 1) {
+    return false;
+  }
+
+  ninaPrivateCall.style.setProperty(
+    "--nina-native-button-left",
+    `${nativeBounds.left - stageBounds.left}px`
+  );
+  ninaPrivateCall.style.setProperty(
+    "--nina-native-button-top",
+    `${nativeBounds.top - stageBounds.top}px`
+  );
+  ninaPrivateCall.style.setProperty(
+    "--nina-private-copy-anchor",
+    `${nativeBounds.top - stageBounds.top - 30}px`
+  );
+  ninaPrivateCall.style.setProperty(
+    "--nina-native-button-width",
+    `${nativeBounds.width}px`
+  );
+  ninaPrivateCall.style.setProperty(
+    "--nina-native-button-height",
+    `${Math.max(48, nativeBounds.height)}px`
+  );
+  ninaPrivateCall.style.setProperty("--nina-native-button-transform", "none");
+  return true;
+}
+
+
+function clearNinaPrivateButtonState() {
+  document.body.classList.remove(
+    "nina-private-call-button-hover",
+    "nina-private-call-button-active"
+  );
+}
+
+
+async function revealNinaNativeFlowAfterClick(clickedButton) {
+  const started = Date.now();
+
+  while (Date.now() - started < 4000) {
+    const shadowRoot = ninaEmbed?.shadowRoot;
+    const shadowText = shadowRoot?.textContent || "";
+    const buttonBounds = clickedButton.getBoundingClientRect();
+    const nativeFlowChanged =
+      !clickedButton.isConnected ||
+      buttonBounds.width < 1 ||
+      buttonBounds.height < 1 ||
+      /captcha|verify|verification|human/i.test(shadowText);
+
+    if (nativeFlowChanged) {
+      hideNinaPrivateCall();
+      return;
+    }
+
+    await new Promise(resolve => requestAnimationFrame(resolve));
+  }
+
+  hideNinaPrivateCall();
+}
+
+
+function bindNativeNinaConnectButton(nativeButton) {
+  if (!nativeButton || ninaNativeConnectButton === nativeButton) {
+    return;
+  }
+
+  ninaNativeConnectButton = nativeButton;
+  nativeButton.addEventListener("pointerenter", () => {
+    document.body.classList.add("nina-private-call-button-hover");
+  });
+  nativeButton.addEventListener("pointerleave", clearNinaPrivateButtonState);
+  nativeButton.addEventListener("pointerdown", () => {
+    document.body.classList.add("nina-private-call-button-active");
+  });
+  nativeButton.addEventListener("pointerup", () => {
+    document.body.classList.remove("nina-private-call-button-active");
+  });
+  nativeButton.addEventListener("click", () => {
+    showNinaPrivateLoading();
+    revealNinaNativeFlowAfterClick(nativeButton);
+  });
+}
+
+
+function showNinaPrivateLoading() {
+  ninaPrivateCallTitle.textContent = "NINA IS LOADING";
+  ninaPrivateCallText.textContent = "";
+  ninaPrivateCallButton.textContent = "CONNECT";
+  ninaPrivateCall.setAttribute("aria-hidden", "false");
+  ninaWindowId.textContent = "PV / NINA FOK / PRIVATE CALL";
+  document.body.classList.add(
+    "nina-call-visible",
+    "nina-private-call-visible"
+  );
+  document.body.classList.remove(
+    "nina-private-call-ready",
+    "nina-private-call-failed",
+    "nina-private-call-actionable"
+  );
+  clearNinaPrivateButtonState();
+}
+
+
+function showNinaPrivateReady(nativeButton) {
+  if (!alignNinaPrivateButton(nativeButton)) {
+    return false;
+  }
+
+  bindNativeNinaConnectButton(nativeButton);
+  ninaPrivateCallTitle.textContent = "NINA IS READY";
+  ninaPrivateCallText.textContent = "Enter when you\u2019re ready.";
+  ninaPrivateCallButton.textContent = "CONNECT";
+  document.body.classList.remove(
+    "nina-connecting-mode",
+    "nina-private-call-failed"
+  );
+  document.body.classList.add(
+    "nina-call-visible",
+    "nina-private-call-visible",
+    "nina-private-call-ready",
+    "nina-private-call-actionable"
+  );
+  return true;
+}
+
+
+async function alignNinaPrivateRetryButton() {
+  const started = Date.now();
+
+  while (
+    document.body.classList.contains("nina-private-call-failed") &&
+    Date.now() - started < 5000
+  ) {
+    const nativeButton = getNativeNinaConnectButton();
+
+    if (alignNinaPrivateButton(nativeButton)) {
+      bindNativeNinaConnectButton(nativeButton);
+      document.body.classList.add("nina-private-call-actionable");
+      return;
+    }
+
+    await new Promise(resolve => requestAnimationFrame(resolve));
+  }
+}
+
+
+function showNinaPrivateFailure() {
+  const nativeButton = getNativeNinaConnectButton();
+  ninaPrivateCallTitle.textContent = "CONNECTION FAILED";
+  ninaPrivateCallText.textContent = "";
+  ninaPrivateCallButton.textContent = "TRY AGAIN";
+  ninaPrivateCall.setAttribute("aria-hidden", "false");
+  document.body.classList.remove(
+    "nina-connecting-mode",
+    "nina-private-call-ready",
+    "nina-private-call-actionable"
+  );
+  document.body.classList.add(
+    "nina-call-visible",
+    "nina-private-call-visible",
+    "nina-private-call-failed"
+  );
+
+  if (alignNinaPrivateButton(nativeButton)) {
+    bindNativeNinaConnectButton(nativeButton);
+    document.body.classList.add("nina-private-call-actionable");
+  }
+  else {
+    alignNinaPrivateRetryButton();
+  }
+}
+
+
+function hideNinaPrivateCall() {
+  ninaPrivateCall.setAttribute("aria-hidden", "true");
+  document.body.classList.remove(
+    "nina-private-call-visible",
+    "nina-private-call-ready",
+    "nina-private-call-failed",
+    "nina-private-call-actionable",
+    "nina-private-call-actionable"
+  );
+  clearNinaPrivateButtonState();
 }
 
 
@@ -5074,6 +5440,9 @@ function showNinaPermissionGate(message = "") {
   document.body.classList.remove(
     "nina-call-visible",
     "nina-mock-call-visible",
+    "nina-private-call-visible",
+    "nina-private-call-ready",
+    "nina-private-call-failed",
     "nina-connecting-mode",
     "nina-scrim-visible",
     "nina-scrim-action",
@@ -5166,6 +5535,7 @@ async function enableNinaTransmission() {
 
   ninaPermissionRequestActive = true;
   const expectedGeneration = ninaTavusGeneration;
+  let permissionsGranted = false;
   startNina.disabled = true;
   startNina.textContent = "REQUESTING ACCESS...";
 
@@ -5176,6 +5546,7 @@ async function enableNinaTransmission() {
     });
 
     permissionStream.getTracks().forEach(track => track.stop());
+    permissionsGranted = true;
     console.log("PERMISSIONS GRANTED");
 
     if (expectedGeneration !== ninaTavusGeneration) {
@@ -5185,6 +5556,10 @@ async function enableNinaTransmission() {
     ninaStatus.textContent = "ESTABLISHING SIGNAL...";
     startNina.textContent = "ESTABLISHING SIGNAL...";
     document.body.classList.add("nina-connecting-mode");
+
+    if (!ninaMockMode) {
+      showNinaPrivateLoading();
+    }
 
     const initializedEmbed = ninaMockMode
       ? await initializeNinaMockAfterPermission(expectedGeneration)
@@ -5204,9 +5579,14 @@ async function enableNinaTransmission() {
     ninaTavusInitializationPromise = null;
 
     if (expectedGeneration === ninaTavusGeneration) {
-      showNinaPermissionGate(
-        "Camera and microphone access was denied. Allow access and try again."
-      );
+      if (permissionsGranted && !ninaMockMode) {
+        showNinaPrivateFailure();
+      }
+      else {
+        showNinaPermissionGate(
+          "Camera and microphone access was denied. Allow access and try again."
+        );
+      }
     }
   }
   finally {
@@ -5285,6 +5665,7 @@ function closeNinaWindow() {
   ninaTavusInitialized = false;
   ninaTavusInitializationPromise = null;
   ninaPermissionRequestActive = false;
+  ninaNativeConnectButton = null;
   ninaReady = false;
 
 }
@@ -5334,10 +5715,19 @@ function resetNinaInterface() {
     "nina-connecting-mode",
     "nina-call-visible",
     "nina-mock-call-visible",
+    "nina-private-call-visible",
+    "nina-private-call-ready",
+    "nina-private-call-failed",
+    "nina-private-call-actionable",
+    "nina-private-call-button-hover",
+    "nina-private-call-button-active",
     "nina-conversation-live",
     "nina-scrim-visible",
     "nina-scrim-action"
   );
+
+  ninaPrivateCall.setAttribute("aria-hidden", "true");
+  ninaNativeConnectButton = null;
 
 
   setNinaScrim(
@@ -5373,9 +5763,16 @@ async function waitForNina() {
     Date.now();
 
 
-  while (
-    !ninaEmbed.tavus
-  ) {
+  while (true) {
+
+    const nativeButton = getNativeNinaConnectButton();
+
+    if (ninaEmbed.tavus && nativeButton) {
+      styleNativeNinaConnectButton();
+      ninaReady = true;
+      ninaNativeConnectButton = null;
+      return nativeButton;
+    }
 
     if (
       Date.now() - started
@@ -5383,23 +5780,8 @@ async function waitForNina() {
       15000
     ) {
 
-      ninaReady =
-        false;
-
-
-      startNina.disabled =
-        false;
-
-
-      startNina.textContent =
-        "CONNECT";
-
-
-      ninaStatus.textContent =
-        "ESTABLISHING SIGNAL...";
-
-
-      return;
+      ninaReady = false;
+      return null;
 
     }
 
@@ -5413,21 +5795,6 @@ async function waitForNina() {
 
   }
 
-
-  ninaReady =
-    true;
-
-
-  startNina.disabled =
-    false;
-
-
-  startNina.textContent =
-    "CONNECT";
-
-
-  ninaStatus.textContent =
-    "ESTABLISHING SIGNAL...";
 
 }
 
@@ -5443,41 +5810,12 @@ function showNinaReady() {
     false;
 
 
-  setNinaScrim(
-    "SIGNAL READY",
-    "BERLIN 2063",
-    "",
-    "CONNECT"
-  );
+  const nativeButton = getNativeNinaConnectButton();
 
-
-  document.body.classList.remove(
-    "nina-connecting-mode",
-    "nina-conversation-live"
-  );
-
-
-  document.body.classList.add(
-    "nina-call-visible"
-  );
-
-
-  document.body.classList.remove(
-    "nina-scrim-visible",
-    "nina-scrim-action"
-  );
-
-
-  ninaStatus.textContent =
-    "SIGNAL READY";
-
-
-  startNina.disabled =
-    false;
-
-
-  startNina.textContent =
-    "CONNECT";
+  if (!nativeButton || !showNinaPrivateReady(nativeButton)) {
+    showNinaPrivateFailure();
+    return;
+  }
 
 
   const ninaEmbedBounds =
@@ -5548,6 +5886,9 @@ function markNinaOnline() {
 
   ninaConversationStarted =
     true;
+
+
+  hideNinaPrivateCall();
 
 
   ninaStatus.textContent =
@@ -5811,20 +6152,7 @@ function bindNinaEvents() {
       showNinaLost(ninaErrorText);
     }
     else {
-      ninaStatus.textContent = "ESTABLISHING SIGNAL...";
-      setNinaScrim(
-        "ESTABLISHING SIGNAL...",
-        "BERLIN 2063",
-        "",
-        "CONNECT"
-      );
-      document.body.classList.add(
-        "nina-call-visible"
-      );
-      document.body.classList.remove(
-        "nina-scrim-visible",
-        "nina-scrim-action"
-      );
+      showNinaPrivateFailure();
     }
 
   }
@@ -5868,6 +6196,11 @@ document.addEventListener(
 
 window.addEventListener("pagehide", endAndRemoveNinaTavus);
 window.addEventListener("beforeunload", endAndRemoveNinaTavus);
+window.addEventListener("resize", () => {
+  if (document.body.classList.contains("nina-private-call-ready")) {
+    alignNinaPrivateButton(getNativeNinaConnectButton());
+  }
+});
 
 
 

@@ -121,6 +121,34 @@ if (!index.includes("styleNativeNinaConnectButton")) {
   throw new Error("The native Tavus CONNECT hover treatment is missing.");
 }
 
+if (!index.includes('class="nina-private-call"')) {
+  throw new Error("The Nina private-call overlay is missing.");
+}
+
+if (!index.includes(".nina-private-call,\n.nina-private-call * {\n  pointer-events: none;")) {
+  throw new Error("Every part of the Nina private-call overlay must pass clicks through.");
+}
+
+if (index.includes("ninaPrivateCallButton.addEventListener")) {
+  throw new Error("The visual private-call CONNECT button must not handle clicks.");
+}
+
+if (!index.includes("alignNinaPrivateButton(nativeButton)")) {
+  throw new Error("The visual CONNECT button must align to the native Tavus button.");
+}
+
+if (!index.includes('nativeButton.addEventListener("click"')) {
+  throw new Error("The native Tavus button must retain ownership of the start click.");
+}
+
+if (!index.includes("hideNinaPrivateCall();")) {
+  throw new Error("The private-call overlay must be removed when the conversation starts.");
+}
+
+if (index.includes("tavus.start(")) {
+  throw new Error("The site must never start Tavus manually.");
+}
+
 const inlineScripts = [...index.matchAll(/<script>([\s\S]*?)<\/script>/g)];
 
 for (const [, source] of inlineScripts) {
