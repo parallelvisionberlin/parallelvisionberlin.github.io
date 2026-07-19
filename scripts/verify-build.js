@@ -76,6 +76,47 @@ if (!index.includes('window.addEventListener("pagehide", endAndRemoveNinaTavus)'
   throw new Error("The Tavus page lifecycle cleanup is missing.");
 }
 
+const mockActivation = `(
+    location.hostname === "localhost" ||
+    location.hostname === "127.0.0.1"
+  ) &&
+  new URLSearchParams(location.search).get("nina_mock") === "1"`;
+
+if (!index.includes(mockActivation)) {
+  throw new Error("Mock mode must require both an approved local hostname and nina_mock=1.");
+}
+
+if (/location\.hostname\s*===\s*["'](?:parallelvisionlabel\.com|[^"']*github\.io)/.test(index)) {
+  throw new Error("A production hostname must never be allowed to activate Nina mock mode.");
+}
+
+const mockInitializerStart = index.indexOf("async function initializeNinaMockAfterPermission");
+const mockInitializerEnd = index.indexOf("function cleanupNinaMock", mockInitializerStart);
+const mockInitializer = index.slice(mockInitializerStart, mockInitializerEnd);
+
+if (mockInitializerStart < 0 || mockInitializerEnd < 0) {
+  throw new Error("The local Nina mock initializer is missing.");
+}
+
+if (/loadNinaEmbedLibrary|initializeNinaTavusAfterAccess|createElement\(["']tavus-embed/.test(mockInitializer)) {
+  throw new Error("Nina mock mode must contain no Tavus initialization path.");
+}
+
+if (!index.includes(": await initializeNinaTavusAfterAccess(expectedGeneration)")) {
+  throw new Error("Production Tavus initialization must remain available outside mock mode.");
+}
+
+for (const assertion of [
+  "TAVUS NETWORK REQUESTS:",
+  "TAVUS ELEMENTS:",
+  "TAVUS SCRIPTS:",
+  "assertNinaMockIsolation()"
+]) {
+  if (!index.includes(assertion)) {
+    throw new Error(`Mock isolation check is missing: ${assertion}`);
+  }
+}
+
 if (!index.includes("styleNativeNinaConnectButton")) {
   throw new Error("The native Tavus CONNECT hover treatment is missing.");
 }

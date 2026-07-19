@@ -1922,6 +1922,69 @@ tavus-embed {
   pointer-events: auto !important;
 }
 
+.nina-mock-call {
+  position: absolute;
+  inset: 0;
+  z-index: 60;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  background:
+    radial-gradient(circle at center, rgba(42, 42, 42, .45), transparent 58%),
+    #020203;
+  text-align: center;
+}
+
+body.nina-mock-call-visible .nina-mock-call {
+  display: flex;
+}
+
+.nina-mock-title {
+  margin: 0;
+  font-family: 'Michroma', sans-serif;
+  font-size: clamp(28px, 5vw, 58px);
+  font-weight: 400;
+  letter-spacing: .1em;
+}
+
+.nina-mock-subtitle,
+.nina-mock-state {
+  margin-top: 20px;
+  color: rgba(255, 255, 255, .65);
+  font-family: 'Courier New', monospace;
+  letter-spacing: .2em;
+}
+
+.nina-mock-badge {
+  display: inline-flex;
+  margin-top: 24px;
+  padding: 8px 12px;
+  border: 1px solid #7dffb2;
+  color: #7dffb2;
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  letter-spacing: .16em;
+}
+
+.nina-mock-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 30px;
+}
+
+.nina-mock-controls button {
+  padding: 10px 13px;
+  border: 1px solid rgba(255, 255, 255, .38);
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  font: 10px 'Courier New', monospace;
+  letter-spacing: .1em;
+}
+
 .nina-call-scrim {
   position: absolute;
 
@@ -4330,7 +4393,7 @@ body.nina-connecting-mode
     <header class="nina-window-bar">
 
 
-      <div class="nina-window-id">
+      <div class="nina-window-id" id="ninaWindowId">
 
         PV / NINA_FOK / LIVE CHANNEL
 
@@ -4376,6 +4439,22 @@ body.nina-connecting-mode
 
 
       <div id="ninaEmbedMount"></div>
+
+
+      <section class="nina-mock-call" id="ninaMockCall" aria-hidden="true">
+        <div>
+          <h3 class="nina-mock-title">NINA FOK / TEST MODE</h3>
+          <div class="nina-mock-subtitle">LOCAL SIGNAL SIMULATION</div>
+          <div class="nina-mock-badge">ZERO CVI USAGE</div>
+          <div class="nina-mock-state" id="ninaMockState">SIGNAL READY</div>
+          <div class="nina-mock-controls">
+            <button type="button" data-nina-mock-action="start">CONVERSATION STARTED</button>
+            <button type="button" data-nina-mock-action="end">CONVERSATION ENDED</button>
+            <button type="button" data-nina-mock-action="error">TEMPORARY ERROR</button>
+            <button type="button" data-nina-mock-action="reset">RESET TEST</button>
+          </div>
+        </div>
+      </section>
 
 
       <section
@@ -4644,6 +4723,23 @@ const ninaStage =
   ninaEmbedMount.parentElement;
 
 
+const ninaWindowId = document.getElementById("ninaWindowId");
+
+
+const ninaMockCall = document.getElementById("ninaMockCall");
+
+
+const ninaMockState = document.getElementById("ninaMockState");
+
+
+const ninaMockMode =
+  (
+    location.hostname === "localhost" ||
+    location.hostname === "127.0.0.1"
+  ) &&
+  new URLSearchParams(location.search).get("nina_mock") === "1";
+
+
 let ninaEmbed = null;
 
 
@@ -4701,6 +4797,12 @@ let ninaPermissionRequestActive = false;
 let ninaTavusGeneration = 0;
 
 
+let ninaMockSessionActive = false;
+
+
+let ninaMockConversationStarted = false;
+
+
 let ninaAccessSubmitting = false;
 
 
@@ -4709,6 +4811,44 @@ let ninaAccessVerifiedForCurrentOpen = false;
 
 const ninaAccessHash =
   "d3ec7a14e4fefc8da57d4045a6ee28d28b328b78126c1e22bc0b541adf0f215c";
+
+
+function getNinaMockIsolationCounts() {
+  const tavusNetworkPattern = /(?:tavus|daily\.co|unpkg\.com\/@tavus)/i;
+  const networkRequests = performance
+    .getEntriesByType("resource")
+    .filter(entry => tavusNetworkPattern.test(entry.name))
+    .length;
+
+  return {
+    networkRequests,
+    elements: document.querySelectorAll("tavus-embed").length,
+    scripts: Array.from(document.scripts)
+      .filter(script => tavusNetworkPattern.test(script.src))
+      .length
+  };
+}
+
+
+function assertNinaMockIsolation() {
+  if (!ninaMockMode) {
+    return;
+  }
+
+  const counts = getNinaMockIsolationCounts();
+  console.log(`TAVUS NETWORK REQUESTS: ${counts.networkRequests}`);
+  console.log(`TAVUS ELEMENTS: ${counts.elements}`);
+  console.log(`TAVUS SCRIPTS: ${counts.scripts}`);
+  console.assert(counts.networkRequests === 0, "Mock mode contacted Tavus or Daily.");
+  console.assert(counts.elements === 0, "Mock mode inserted a Tavus element.");
+  console.assert(counts.scripts === 0, "Mock mode loaded a Tavus script.");
+}
+
+
+if (ninaMockMode) {
+  console.log("MOCK MODE ENABLED");
+  assertNinaMockIsolation();
+}
 
 
 function waitForAccessMessage(delay) {
@@ -4933,16 +5073,89 @@ function openNinaWindow() {
 function showNinaPermissionGate(message = "") {
   document.body.classList.remove(
     "nina-call-visible",
+    "nina-mock-call-visible",
     "nina-connecting-mode",
     "nina-scrim-visible",
     "nina-scrim-action",
     "nina-conversation-live"
   );
   ninaStatus.textContent = "SIGNAL READY";
+  ninaWindowId.textContent = "PV / NINA_FOK / LIVE CHANNEL";
+  ninaMockCall.setAttribute("aria-hidden", "true");
   startNina.disabled = false;
   startNina.textContent = "ENABLE TRANSMISSION";
   document.querySelector(".nina-intro-subtitle").textContent =
     message || "Camera and microphone are required.";
+}
+
+
+function startNinaMockConversation() {
+  if (!ninaMockMode) {
+    return;
+  }
+
+  ninaMockSessionActive = true;
+  ninaMockConversationStarted = true;
+  ninaMockState.textContent = "CONVERSATION STARTED";
+  ninaStatus.textContent = "SIGNAL ONLINE";
+  console.log("MOCK CONVERSATION STARTED");
+  assertNinaMockIsolation();
+}
+
+
+function endNinaMockConversation() {
+  if (!ninaMockMode || !ninaMockConversationStarted) {
+    return;
+  }
+
+  ninaMockConversationStarted = false;
+  ninaMockState.textContent = "CONVERSATION ENDED";
+  ninaStatus.textContent = "SIGNAL ENDED";
+  console.log("MOCK CONVERSATION ENDED");
+  assertNinaMockIsolation();
+}
+
+
+function showNinaMockError() {
+  if (!ninaMockMode) {
+    return;
+  }
+
+  ninaMockState.textContent = "TEMPORARY ERROR / SIGNAL INTERRUPTED";
+  ninaStatus.textContent = "SIGNAL LOST";
+  assertNinaMockIsolation();
+}
+
+
+async function initializeNinaMockAfterPermission(expectedGeneration) {
+  await waitForAccessMessage(700);
+
+  if (expectedGeneration !== ninaTavusGeneration) {
+    return null;
+  }
+
+  ninaMockSessionActive = true;
+  ninaWindowId.textContent = "NINA FOK / TEST MODE";
+  ninaMockCall.setAttribute("aria-hidden", "false");
+  document.body.classList.remove("nina-connecting-mode");
+  document.body.classList.add("nina-call-visible", "nina-mock-call-visible");
+  startNinaMockConversation();
+  return ninaMockCall;
+}
+
+
+function cleanupNinaMock() {
+  if (!ninaMockMode || !ninaMockSessionActive) {
+    return;
+  }
+
+  endNinaMockConversation();
+  ninaMockSessionActive = false;
+  ninaMockConversationStarted = false;
+  ninaMockCall.setAttribute("aria-hidden", "true");
+  document.body.classList.remove("nina-mock-call-visible");
+  console.log("MOCK CLEANUP COMPLETE");
+  assertNinaMockIsolation();
 }
 
 
@@ -4963,20 +5176,25 @@ async function enableNinaTransmission() {
     });
 
     permissionStream.getTracks().forEach(track => track.stop());
+    console.log("PERMISSIONS GRANTED");
 
     if (expectedGeneration !== ninaTavusGeneration) {
       return;
     }
 
-    ninaStatus.textContent = "ESTABLISHING SIGNAL";
+    ninaStatus.textContent = "ESTABLISHING SIGNAL...";
     startNina.textContent = "ESTABLISHING SIGNAL...";
     document.body.classList.add("nina-connecting-mode");
 
-    const initializedEmbed = await initializeNinaTavusAfterAccess(
-      expectedGeneration
-    );
+    const initializedEmbed = ninaMockMode
+      ? await initializeNinaMockAfterPermission(expectedGeneration)
+      : await initializeNinaTavusAfterAccess(expectedGeneration);
 
-    if (initializedEmbed && expectedGeneration === ninaTavusGeneration) {
+    if (
+      initializedEmbed &&
+      !ninaMockMode &&
+      expectedGeneration === ninaTavusGeneration
+    ) {
       showNinaReady();
     }
   }
@@ -5075,6 +5293,7 @@ function closeNinaWindow() {
 
 function endAndRemoveNinaTavus() {
   ninaTavusGeneration += 1;
+  cleanupNinaMock();
   const embedToEnd = ninaEmbed;
 
   if (
@@ -5114,6 +5333,7 @@ function resetNinaInterface() {
   document.body.classList.remove(
     "nina-connecting-mode",
     "nina-call-visible",
+    "nina-mock-call-visible",
     "nina-conversation-live",
     "nina-scrim-visible",
     "nina-scrim-action"
@@ -5455,6 +5675,30 @@ startNina.addEventListener(
   "click",
   enableNinaTransmission
 );
+
+
+ninaMockCall.addEventListener("click", event => {
+  const action = event.target.closest("[data-nina-mock-action]")
+    ?.dataset.ninaMockAction;
+
+  if (!ninaMockMode || !action) {
+    return;
+  }
+
+  if (action === "start") {
+    startNinaMockConversation();
+  }
+  else if (action === "end") {
+    endNinaMockConversation();
+  }
+  else if (action === "error") {
+    showNinaMockError();
+  }
+  else if (action === "reset") {
+    endAndRemoveNinaTavus();
+    showNinaPermissionGate();
+  }
+});
 
 
 

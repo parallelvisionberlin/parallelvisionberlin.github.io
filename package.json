@@ -2,6 +2,7 @@
   "name": "parallel-vision-berlin",
   "private": true,
   "scripts": {
-    "build": "node scripts/verify-build.js"
+    "build": "node scripts/verify-build.js",
+    "test": "node scripts/test-nina-mock.js"
   }
 }
