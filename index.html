@@ -845,7 +845,7 @@ h2 {
 
   grid-template-columns:
     repeat(
-      4,
+      5,
       minmax(
         0,
         1fr
@@ -1349,6 +1349,29 @@ footer {
   background: #fff;
 
   color: #000;
+}
+
+.fashion-card.flesh-zero {
+  background:
+    linear-gradient(
+      135deg,
+      #030303,
+      #202020,
+      #050505
+    );
+}
+
+.flesh-zero-collection .collection-image figcaption {
+  position: absolute;
+  right: 16px;
+  bottom: 14px;
+  left: 16px;
+  z-index: 2;
+  color: rgba(255, 255, 255, .76);
+  font-family: 'Courier New', monospace;
+  font-size: 9px;
+  letter-spacing: .24em;
+  text-transform: uppercase;
 }
 
 .nina-signal:hover .nina-signal-sub {
@@ -2875,8 +2898,11 @@ body.nina-connecting-mode
   padding-top: 18px;
 }
 .fashion-card:focus-visible { outline: 1px solid #666; outline-offset: 8px; }
-.fashion-card.magnetic { order: 3; }
-.fashion-card.bio { order: 4; }
+.fashion-card.chromia { order: 1; }
+.fashion-card.flesh-zero { order: 2; }
+.fashion-card.lotus { order: 3; }
+.fashion-card.magnetic { order: 4; }
+.fashion-card.bio { order: 5; }
 .fashion-overview-link { margin-top: -48px; }
 
 @media (max-width: 900px) {
@@ -3709,6 +3735,10 @@ body.nina-connecting-mode
               Chromia
             </a>
 
+            <a href="#flesh-zero">
+              Flesh Zero
+            </a>
+
             <a href="./lotus-2063.html">
               Lotus 2063
             </a>
@@ -3787,6 +3817,32 @@ body.nina-connecting-mode
 
 
       <a
+        class="fashion-card flesh-zero"
+        href="#flesh-zero"
+      >
+
+        <div class="fashion-card-media">
+          <img src="assets/LOOK03.png" alt="Flesh Zero liquid metal collection preview">
+        </div>
+
+        <h3>
+          Flesh Zero
+        </h3>
+
+        <p>
+          A liquid-metal body system where chrome, gas, foam and synthetic
+          tissue collapse into one living surface. In Berlin 2063, the garment
+          no longer covers the body. It replaces the first layer of flesh.
+        </p>
+
+        <span>
+          Liquid Metal Collection
+        </span>
+
+      </a>
+
+
+      <a
         class="fashion-card lotus"
         href="./lotus-2063.html"
       >
@@ -3808,6 +3864,33 @@ body.nina-connecting-mode
 
         <span>
           Black / Ceremonial / Night
+        </span>
+
+      </a>
+
+
+      <a
+        class="fashion-card magnetic"
+        href="./magnetic-tape.html"
+      >
+
+        <div class="fashion-card-media">
+          <img src="./assets/magnetic-tape-look-01.png" alt="Magnetic Tape collection preview">
+        </div>
+
+        <h3>
+          Magnetic Tape
+        </h3>
+
+        <p>
+          Ribboned archive garments,
+          black signal strips,
+          analog memory
+          and future body recordings.
+        </p>
+
+        <span>
+          Tape / Archive / Signal
         </span>
 
       </a>
@@ -3836,33 +3919,6 @@ body.nina-connecting-mode
 
         <span>
           Living / Bacterial / Mutation
-        </span>
-
-      </a>
-
-
-      <a
-        class="fashion-card magnetic"
-        href="./magnetic-tape.html"
-      >
-
-        <div class="fashion-card-media">
-          <img src="./assets/magnetic-tape-look-01.png" alt="Magnetic Tape collection preview">
-        </div>
-
-        <h3>
-          Magnetic Tape
-        </h3>
-
-        <p>
-          Ribboned archive garments,
-          black signal strips,
-          analog memory
-          and future body recordings.
-        </p>
-
-        <span>
-          Tape / Archive / Signal
         </span>
 
       </a>
@@ -3986,6 +4042,117 @@ body.nina-connecting-mode
     </article>
 
 
+    <article
+      id="flesh-zero"
+      class="fashion-collection flesh-zero-collection"
+    >
+
+      <div class="collection-copy">
+
+        <div class="collection-meta">
+          Collection 02 / Liquid Metal Collection
+        </div>
+
+        <h3>
+          Flesh Zero
+        </h3>
+
+        <p>
+          Flesh Zero is the point where the body stops being dressed and begins
+          being replaced. Chrome, gas, foam and volatile synthetic tissue form a
+          ceremonial surface around the human silhouette. The collection belongs
+          to the Parallel Vision Berlin 2063 timeline and expands the Liquid Metal
+          language into something more organic, ritualistic and unstable than
+          Chromia.
+        </p>
+
+        <div class="collection-tags">
+          <span>Liquid chrome</span>
+          <span>Gas / Foam / Smoke</span>
+          <span>Ritual body mutation</span>
+          <span>Berlin 2063</span>
+        </div>
+
+      </div>
+
+
+      <div class="collection-visuals">
+
+        <figure
+          class="collection-image hero portrait"
+          data-label="LOOK 03 / FLESH ZERO"
+        >
+
+          <img
+            src="assets/LOOK03.png"
+            alt="Look 03 from the Flesh Zero liquid metal collection"
+          >
+
+          <figcaption>LOOK 03 / FLESH ZERO</figcaption>
+
+        </figure>
+
+        <figure
+          class="collection-image portrait"
+          data-label="LOOK 04"
+        >
+
+          <img
+            src="assets/LOOK04.png"
+            alt="Look 04 from the Flesh Zero collection"
+          >
+
+          <figcaption>LOOK 04</figcaption>
+
+        </figure>
+
+        <figure
+          class="collection-image portrait"
+          data-label="LOOK 05"
+        >
+
+          <img
+            src="assets/LOOK05.png"
+            alt="Look 05 from the Flesh Zero collection"
+          >
+
+          <figcaption>LOOK 05</figcaption>
+
+        </figure>
+
+        <figure
+          class="collection-image portrait"
+          data-label="RADIUM"
+        >
+
+          <img
+            src="assets/01RADIUM-FRONT.png"
+            alt="Radium look from the Flesh Zero collection"
+          >
+
+          <figcaption>RADIUM</figcaption>
+
+        </figure>
+
+        <figure
+          class="collection-image portrait"
+          data-label="REPTARE"
+        >
+
+          <img
+            src="assets/02REPTARE.png"
+            alt="Reptare look from the Flesh Zero collection"
+          >
+
+          <figcaption>REPTARE</figcaption>
+
+        </figure>
+
+      </div>
+
+    </article>
+
+
     <article hidden
       id="lotus-2063"
       class="fashion-collection"
@@ -3994,7 +4161,7 @@ body.nina-connecting-mode
       <div class="collection-copy">
 
         <div class="collection-meta">
-          Collection 02 / Tropical-Dark Ceremony
+          Collection 03 / Tropical-Dark Ceremony
         </div>
 
         <h3>
@@ -4072,7 +4239,7 @@ body.nina-connecting-mode
       <div class="collection-copy">
 
         <div class="collection-meta">
-          Collection 03 / Analog Signal Garments
+          Collection 04 / Analog Signal Garments
         </div>
 
         <h3>
@@ -4162,7 +4329,7 @@ body.nina-connecting-mode
       <div class="collection-copy">
 
         <div class="collection-meta">
-          Collection 04 / Living Garments
+          Collection 05 / Living Garments
         </div>
 
         <h3>
