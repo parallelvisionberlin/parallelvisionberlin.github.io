@@ -2905,6 +2905,222 @@ body.nina-connecting-mode
 .fashion-card.bio { order: 5; }
 .fashion-overview-link { margin-top: -48px; }
 
+/* Future Fashion / open transmission */
+.fashion-transmission {
+  position: relative;
+  min-height: min(920px, 92vh);
+  grid-template-columns: minmax(0, .76fr) minmax(440px, 1.24fr);
+  gap: clamp(72px, 8vw, 138px);
+  align-items: center;
+  margin-bottom: 120px;
+}
+
+.fashion-transmission::after {
+  content: "PV_FF / 2063 / CHANNEL 05";
+  position: absolute;
+  right: -48px;
+  bottom: 26px;
+  color: rgba(255,255,255,.24);
+  font: 8px 'Courier New', monospace;
+  letter-spacing: .42em;
+  text-transform: uppercase;
+  transform: rotate(90deg);
+  transform-origin: right bottom;
+}
+
+.fashion-transmission .fashion-copy { padding: 0; }
+
+.fashion-channel-status {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  color: rgba(255,255,255,.38);
+  font: 8px 'Courier New', monospace;
+  letter-spacing: .32em;
+  text-transform: uppercase;
+}
+
+.fashion-channel-status span:last-child {
+  margin-left: auto;
+  color: rgba(255,255,255,.6);
+}
+
+.fashion-channel-pulse {
+  width: 5px;
+  height: 5px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: #dce7e2;
+  box-shadow: 0 0 12px rgba(220,231,226,.72);
+  animation: fashionSignalPulse 2.8s ease-in-out infinite;
+}
+
+@keyframes fashionSignalPulse {
+  0%, 100% { opacity: .35; }
+  50% { opacity: 1; }
+}
+
+.fashion-transmission .fashion-kicker {
+  margin: 40px 0 18px;
+  font-size: 8px;
+  letter-spacing: .48em;
+}
+
+.fashion-transmission .fashion-title {
+  font-size: clamp(48px, 5.25vw, 78px);
+  letter-spacing: .09em;
+  line-height: .93;
+}
+
+.fashion-transmission .fashion-title span { display: block; }
+
+.fashion-transmission .fashion-title span:last-child {
+  margin-left: clamp(24px, 3.8vw, 62px);
+  color: rgba(255,255,255,.76);
+}
+
+.fashion-transmission .fashion-lede {
+  max-width: 470px;
+  margin-top: 34px;
+  color: rgba(255,255,255,.56);
+  font-size: 12px;
+  letter-spacing: .055em;
+  line-height: 2;
+}
+
+.fashion-frequency-label {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  max-width: 520px;
+  margin-top: 48px;
+  color: rgba(255,255,255,.29);
+  font: 8px 'Courier New', monospace;
+  letter-spacing: .35em;
+  text-transform: uppercase;
+}
+
+.fashion-transmission .fashion-links {
+  display: block;
+  max-width: 520px;
+  margin-top: 15px;
+}
+
+.fashion-transmission .fashion-links a {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) 18px;
+  align-items: center;
+  min-height: 48px;
+  padding: 0 4px;
+  border: 0;
+  border-top: 1px solid rgba(255,255,255,.13);
+  color: rgba(255,255,255,.68);
+  transition: color .3s ease, padding-left .3s ease, background .3s ease;
+}
+
+.fashion-transmission .fashion-links a:last-child {
+  border-bottom: 1px solid rgba(255,255,255,.13);
+}
+
+.fashion-transmission .fashion-links a:hover,
+.fashion-transmission .fashion-links a:focus-visible {
+  padding-left: 12px;
+  color: #fff;
+  background: linear-gradient(90deg, rgba(255,255,255,.045), transparent 72%);
+}
+
+.fashion-frequency-index,
+.fashion-frequency-arrow {
+  color: rgba(255,255,255,.3);
+  font: 8px 'Courier New', monospace;
+  letter-spacing: .18em;
+}
+
+.fashion-frequency-name {
+  font-family: 'Michroma', sans-serif;
+  font-size: 10px;
+  letter-spacing: .2em;
+}
+
+.fashion-frequency-arrow {
+  justify-self: end;
+  transition: transform .3s ease, color .3s ease;
+}
+
+.fashion-transmission .fashion-links a:hover .fashion-frequency-arrow,
+.fashion-transmission .fashion-links a:focus-visible .fashion-frequency-arrow {
+  color: rgba(255,255,255,.85);
+  transform: translate(2px, -2px);
+}
+
+.fashion-transmission .fashion-copy > .small {
+  max-width: 440px;
+  margin-top: 28px;
+  color: rgba(255,255,255,.3);
+  font: 8px/1.9 'Courier New', monospace;
+  letter-spacing: .26em;
+  text-transform: uppercase;
+}
+
+.fashion-transmission .fashion-hero-media {
+  width: min(100%, 650px);
+  max-height: 760px;
+  aspect-ratio: 4 / 5;
+  justify-self: end;
+  overflow: hidden;
+  border-color: rgba(255,255,255,.16);
+  background: #020202;
+}
+
+.fashion-transmission .fashion-hero-media img {
+  object-fit: cover;
+  object-position: center;
+  filter: saturate(.58) brightness(.72) contrast(1.12);
+  transition: filter .8s ease, transform 1.2s ease;
+}
+
+.fashion-transmission .fashion-hero-media:hover img {
+  filter: saturate(.82) brightness(.86) contrast(1.08);
+  transform: scale(1.012);
+}
+
+.fashion-transmission .fashion-hero-media::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(0deg, rgba(255,255,255,.018) 0 1px, transparent 1px 5px),
+    linear-gradient(180deg, rgba(0,0,0,.1), transparent 42%, rgba(0,0,0,.58));
+}
+
+.fashion-transmission .fashion-hero-media::after {
+  content: "LIVE / FF-02";
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  z-index: 3;
+  color: rgba(255,255,255,.66);
+  font: 8px 'Courier New', monospace;
+  letter-spacing: .34em;
+}
+
+.fashion-transmission .fashion-hero-media figcaption {
+  position: absolute;
+  right: 18px;
+  bottom: 16px;
+  left: 18px;
+  z-index: 3;
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  color: rgba(255,255,255,.55);
+  font: 8px 'Courier New', monospace;
+  letter-spacing: .3em;
+  text-transform: uppercase;
+}
+
 @media (max-width: 900px) {
   .hero-content { grid-template-columns: 1fr; }
   .hero-visual-reserve { display: none; }
@@ -2916,6 +3132,17 @@ body.nina-connecting-mode
   .fashion-landing { grid-template-columns: 1fr; gap: 46px; }
   .fashion-copy { padding: 0; }
   .fashion-title { font-size: clamp(42px, 10vw, 72px); }
+  .fashion-transmission {
+    min-height: auto;
+    grid-template-columns: 1fr;
+    gap: 72px;
+    margin-bottom: 100px;
+  }
+  .fashion-transmission::after { display: none; }
+  .fashion-transmission .fashion-hero-media {
+    width: min(82%, 620px);
+    justify-self: end;
+  }
 }
 
 @media (max-width: 620px) {
@@ -2933,6 +3160,30 @@ body.nina-connecting-mode
   .fashion-hero-media { aspect-ratio: 4 / 5; }
   .fashion-card h3 { min-height: 0; }
   .fashion-card span { margin-top: 18px; padding-top: 0; }
+  .fashion-channel-status { flex-wrap: wrap; row-gap: 10px; }
+  .fashion-channel-status span:last-child { width: 100%; margin-left: 21px; }
+  .fashion-transmission .fashion-kicker { margin-top: 34px; }
+  .fashion-transmission .fashion-title { font-size: clamp(42px, 13.5vw, 60px); }
+  .fashion-transmission .fashion-title span:last-child { margin-left: 18px; }
+  .fashion-transmission .fashion-lede { font-size: 11px; }
+  .fashion-frequency-label { margin-top: 42px; }
+  .fashion-transmission .fashion-links a { min-height: 52px; }
+  .fashion-transmission .fashion-hero-media {
+    width: calc(100% - 26px);
+    aspect-ratio: 4 / 5;
+  }
+  .fashion-transmission .fashion-hero-media figcaption {
+    display: block;
+    line-height: 1.8;
+  }
+  .fashion-transmission .fashion-hero-media figcaption span { display: block; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fashion-channel-pulse { animation: none; }
+  .fashion-transmission .fashion-hero-media img,
+  .fashion-transmission .fashion-links a,
+  .fashion-frequency-arrow { transition: none; }
 }
 
 /* Mobile homepage: signal first, interface second */
@@ -3698,13 +3949,22 @@ body.nina-connecting-mode
   <div class="wrapper">
 
 
-    <div class="fashion-landing">
+    <div class="fashion-landing fashion-transmission">
 
 
       <div class="fashion-copy">
 
 
         <div>
+
+
+          <div class="fashion-channel-status">
+
+            <span class="fashion-channel-pulse" aria-hidden="true"></span>
+            <span>PV_FF / NODE 05</span>
+            <span>Transmission open</span>
+
+          </div>
 
 
           <div class="fashion-kicker">
@@ -3716,7 +3976,8 @@ body.nina-connecting-mode
 
           <h2 class="fashion-title">
 
-            Future Fashion
+            <span>Future</span>
+            <span>Fashion</span>
 
           </h2>
 
@@ -3729,26 +3990,44 @@ body.nina-connecting-mode
           </p>
 
 
+          <div class="fashion-frequency-label">
+
+            <span>Select frequency</span>
+            <span>05 signals detected</span>
+
+          </div>
+
+
           <div class="fashion-links">
 
             <a href="./chromia.html">
-              Chromia
+              <span class="fashion-frequency-index">01</span>
+              <span class="fashion-frequency-name">Chromia</span>
+              <span class="fashion-frequency-arrow">↗</span>
             </a>
 
             <a href="./flesh-zero.html">
-              Flesh Zero
+              <span class="fashion-frequency-index">02</span>
+              <span class="fashion-frequency-name">Flesh Zero</span>
+              <span class="fashion-frequency-arrow">↗</span>
             </a>
 
             <a href="./lotus-2063.html">
-              Lotus 2063
+              <span class="fashion-frequency-index">03</span>
+              <span class="fashion-frequency-name">Lotus 2063</span>
+              <span class="fashion-frequency-arrow">↗</span>
             </a>
 
             <a href="./magnetic-tape.html">
-              Magnetic Tape
+              <span class="fashion-frequency-index">04</span>
+              <span class="fashion-frequency-name">Magnetic Tape</span>
+              <span class="fashion-frequency-arrow">↗</span>
             </a>
 
             <a href="./dna-mutation.html">
-              DNA Mutation
+              <span class="fashion-frequency-index">05</span>
+              <span class="fashion-frequency-name">DNA Mutation</span>
+              <span class="fashion-frequency-arrow">↗</span>
             </a>
 
           </div>
@@ -3759,10 +4038,8 @@ body.nina-connecting-mode
 
         <p class="small">
 
-          Campaign stills,
-          lookbook sheets
-          and material studies
-          from the Parallel Vision fashion archive.
+          Five material signals recovered from the Parallel Vision archive.
+          Choose a frequency to enter the transmission.
 
         </p>
 
@@ -3779,6 +4056,11 @@ body.nina-connecting-mode
           src="assets/LOOK04.png"
           alt="Flesh Zero Look 04 Future Fashion editorial campaign"
         >
+
+        <figcaption>
+          <span>Feed 02 / Look 04</span>
+          <span>Berlin node / 2063</span>
+        </figcaption>
 
       </figure>
 
