@@ -59,10 +59,21 @@ if (!index.includes("pointer-events: none !important")) {
 }
 
 if (
-  index.includes("ninaScrimButton.addEventListener") ||
-  index.includes("startNina.addEventListener")
+  index.includes("ninaScrimButton.addEventListener")
 ) {
   throw new Error("Custom CONNECT controls must not intercept native Tavus clicks.");
+}
+
+if (!index.includes("enableNinaTransmission")) {
+  throw new Error("The pre-Tavus permission gate is missing.");
+}
+
+if (!index.includes("navigator.mediaDevices.getUserMedia")) {
+  throw new Error("Camera and microphone permission must precede Tavus initialization.");
+}
+
+if (!index.includes('window.addEventListener("pagehide", endAndRemoveNinaTavus)')) {
+  throw new Error("The Tavus page lifecycle cleanup is missing.");
 }
 
 if (!index.includes("styleNativeNinaConnectButton")) {

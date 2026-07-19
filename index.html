@@ -4447,25 +4447,21 @@ body.nina-connecting-mode
 
           <h3>
 
-            Nina FOK
+            SIGNAL READY
 
           </h3>
 
 
           <p class="nina-intro-subtitle">
 
-            A live transmission from somewhere
-            ahead of us.
-
-            She can see you.
-            She can hear you.
+            Camera and microphone are required.
 
           </p>
 
 
           <div class="nina-intro-small">
 
-            Say something unexpected.
+            Tavus remains disconnected until you continue.
 
           </div>
 
@@ -4475,10 +4471,9 @@ body.nina-connecting-mode
             class="nina-open-live"
             id="startNina"
             type="button"
-            disabled
           >
 
-            Initializing
+            ENABLE TRANSMISSION
 
           </button>
 
@@ -4700,6 +4695,12 @@ let ninaTavusInitialized = false;
 let ninaTavusInitializationPromise = null;
 
 
+let ninaPermissionRequestActive = false;
+
+
+let ninaTavusGeneration = 0;
+
+
 let ninaAccessSubmitting = false;
 
 
@@ -4817,7 +4818,7 @@ function styleNativeNinaConnectButton() {
 }
 
 
-async function initializeNinaTavusAfterAccess() {
+async function initializeNinaTavusAfterAccess(expectedGeneration) {
   if (!ninaAccessVerifiedForCurrentOpen) {
     return null;
   }
@@ -4829,12 +4830,18 @@ async function initializeNinaTavusAfterAccess() {
   ninaTavusInitialized = true;
   ninaTavusInitializationPromise = (async () => {
       await loadNinaEmbedLibrary();
+
+      if (expectedGeneration !== ninaTavusGeneration) {
+        return null;
+      }
+
       ninaEmbed = document.createElement("tavus-embed");
       ninaEmbed.id = "ninaEmbed";
       ninaEmbed.setAttribute(
         "deployment-id",
         "d70bc773-bd96-44e2-ad08-abf2cac262be"
       );
+      ninaEmbed.setAttribute("participant-absent-timeout", "60");
       bindNinaEvents();
       ninaEmbedMount.replaceWith(ninaEmbed);
       styleNativeNinaConnectButton();
@@ -4883,7 +4890,6 @@ async function verifyNinaAccess(event) {
     ninaAccessError.textContent = "OPENING CHANNEL...";
     await waitForAccessMessage(650);
     closeNinaAccess(true);
-    await initializeNinaTavusAfterAccess();
     openNinaWindow();
   }
   catch (error) {
@@ -4918,10 +4924,77 @@ function openNinaWindow() {
     "hidden";
 
 
-  showNinaReady();
+  showNinaPermissionGate();
 
 }
 
+
+
+function showNinaPermissionGate(message = "") {
+  document.body.classList.remove(
+    "nina-call-visible",
+    "nina-connecting-mode",
+    "nina-scrim-visible",
+    "nina-scrim-action",
+    "nina-conversation-live"
+  );
+  ninaStatus.textContent = "SIGNAL READY";
+  startNina.disabled = false;
+  startNina.textContent = "ENABLE TRANSMISSION";
+  document.querySelector(".nina-intro-subtitle").textContent =
+    message || "Camera and microphone are required.";
+}
+
+
+async function enableNinaTransmission() {
+  if (ninaPermissionRequestActive || ninaTavusInitialized) {
+    return;
+  }
+
+  ninaPermissionRequestActive = true;
+  const expectedGeneration = ninaTavusGeneration;
+  startNina.disabled = true;
+  startNina.textContent = "REQUESTING ACCESS...";
+
+  try {
+    const permissionStream = await navigator.mediaDevices.getUserMedia({
+      video: true,
+      audio: true
+    });
+
+    permissionStream.getTracks().forEach(track => track.stop());
+
+    if (expectedGeneration !== ninaTavusGeneration) {
+      return;
+    }
+
+    ninaStatus.textContent = "ESTABLISHING SIGNAL";
+    startNina.textContent = "ESTABLISHING SIGNAL...";
+    document.body.classList.add("nina-connecting-mode");
+
+    const initializedEmbed = await initializeNinaTavusAfterAccess(
+      expectedGeneration
+    );
+
+    if (initializedEmbed && expectedGeneration === ninaTavusGeneration) {
+      showNinaReady();
+    }
+  }
+  catch (error) {
+    console.error("Camera and microphone permission unavailable.", error);
+    ninaTavusInitialized = false;
+    ninaTavusInitializationPromise = null;
+
+    if (expectedGeneration === ninaTavusGeneration) {
+      showNinaPermissionGate(
+        "Camera and microphone access was denied. Allow access and try again."
+      );
+    }
+  }
+  finally {
+    ninaPermissionRequestActive = false;
+  }
+}
 
 
 function setNinaScrim(
@@ -4993,40 +5066,37 @@ function closeNinaWindow() {
 
   ninaTavusInitialized = false;
   ninaTavusInitializationPromise = null;
+  ninaPermissionRequestActive = false;
   ninaReady = false;
 
 }
 
 
 
-async function closeNinaFromButton() {
+function endAndRemoveNinaTavus() {
+  ninaTavusGeneration += 1;
+  const embedToEnd = ninaEmbed;
 
   if (
-    ninaConversationActive &&
-    ninaEmbed.tavus &&
-    typeof ninaEmbed.tavus.end
-      === "function"
+    embedToEnd?.tavus &&
+    typeof embedToEnd.tavus.end === "function"
   ) {
-
     try {
-
-      await ninaEmbed.tavus.end();
-
+      const endResult = embedToEnd.tavus.end();
+      endResult?.catch?.(error => console.error(error));
     }
-
     catch (error) {
-
-      console.error(
-        error
-      );
-
+      console.error(error);
     }
-
   }
 
+  embedToEnd?.remove();
+}
 
+
+function closeNinaFromButton() {
+  endAndRemoveNinaTavus();
   closeNinaWindow();
-
 }
 
 
@@ -5381,6 +5451,12 @@ openNina.addEventListener(
 );
 
 
+startNina.addEventListener(
+  "click",
+  enableNinaTransmission
+);
+
+
 
 ninaAccessForm.addEventListener(
   "submit",
@@ -5538,12 +5614,16 @@ document.addEventListener(
       )
     ) {
 
-      closeNinaWindow();
+      closeNinaFromButton();
 
     }
 
   }
 );
+
+
+window.addEventListener("pagehide", endAndRemoveNinaTavus);
+window.addEventListener("beforeunload", endAndRemoveNinaTavus);
 
 
 
