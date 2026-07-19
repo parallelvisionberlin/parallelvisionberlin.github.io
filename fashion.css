@@ -78,6 +78,59 @@ h1 { font: 400 clamp(48px, 8vw, 120px)/.96 Michroma, sans-serif; letter-spacing:
 .placeholder-study { min-height: 320px; display: grid; place-items: center; border: 1px solid var(--line); background: linear-gradient(135deg,#070707,#111 55%,#030303); color: rgba(255,255,255,.32); font: 9px 'Courier New', monospace; letter-spacing: .25em; text-transform: uppercase; }
 .archive-footer { display: flex; justify-content: space-between; padding: 36px; border-top: 1px solid var(--line); color: var(--muted); font: 9px 'Courier New', monospace; letter-spacing: .2em; text-transform: uppercase; }
 
+/* Flesh Zero / distant-future editorial typography */
+.flesh-zero-page .collection-hero h1 {
+  max-width: 900px;
+  font-size: clamp(46px, 7.4vw, 112px);
+  letter-spacing: .16em;
+  line-height: 1.02;
+}
+.flesh-zero-page .eyebrow {
+  margin-bottom: 28px;
+  font-size: 8px;
+  letter-spacing: .46em;
+}
+.flesh-zero-page .archive-main { padding-top: 112px; }
+.flesh-zero-page .collection-intro {
+  grid-template-columns: minmax(150px, .46fr) minmax(0, 1.54fr);
+  gap: clamp(52px, 9vw, 150px);
+  align-items: start;
+  padding-bottom: 88px;
+}
+.flesh-zero-page .chapter-index {
+  padding-top: 7px;
+  font-size: 8px;
+  letter-spacing: .42em;
+  line-height: 1.8;
+}
+.flesh-zero-page .collection-intro p {
+  max-width: 760px;
+  color: rgba(255,255,255,.72);
+  font-family: Michroma, sans-serif;
+  font-size: clamp(11px, .82vw, 13px);
+  font-weight: 400;
+  letter-spacing: .085em;
+  line-height: 2.15;
+  text-transform: uppercase;
+}
+.flesh-zero-page .material-tags {
+  gap: 8px;
+  margin-top: 30px;
+}
+.flesh-zero-page .material-tags span {
+  padding: 9px 11px;
+  font-size: 8px;
+  letter-spacing: .26em;
+}
+.flesh-zero-page .block-label {
+  font-size: 8px;
+  letter-spacing: .42em;
+}
+.flesh-zero-page .gallery figcaption {
+  font-size: 8px;
+  letter-spacing: .34em;
+}
+
 @media (max-width: 760px) {
   .archive-nav { padding: 22px 18px; }
   .archive-nav-links { gap: 14px; }
@@ -90,4 +143,8 @@ h1 { font: 400 clamp(48px, 8vw, 120px)/.96 Michroma, sans-serif; letter-spacing:
   .preview-arrow { display: block; margin-top: 22px; }
   .collection-block { padding-top: 80px; }
   .archive-footer { display: block; line-height: 2; padding: 28px 18px; }
+  .flesh-zero-page .collection-hero h1 { letter-spacing: .11em; }
+  .flesh-zero-page .archive-main { padding-top: 82px; }
+  .flesh-zero-page .collection-intro { gap: 30px; padding-bottom: 72px; }
+  .flesh-zero-page .collection-intro p { font-size: 10px; line-height: 2.05; }
 }
