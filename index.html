@@ -3121,6 +3121,140 @@ body.nina-connecting-mode
   text-transform: uppercase;
 }
 
+/* Future Fashion / cinematic stack */
+.fashion-transmission-stack {
+  min-height: 0;
+  grid-template-columns: 1fr;
+  gap: 0;
+  margin-bottom: 118px;
+}
+
+.fashion-transmission-stack::after { display: none; }
+
+.fashion-transmission-stack .fashion-hero-media {
+  width: 100%;
+  max-height: none;
+  aspect-ratio: 16 / 9;
+  justify-self: stretch;
+}
+
+.fashion-transmission-stack .fashion-hero-media img {
+  object-position: center 46%;
+  filter: saturate(.64) brightness(.68) contrast(1.13);
+}
+
+.fashion-transmission-stack .fashion-hero-media::before {
+  background:
+    repeating-linear-gradient(0deg, rgba(255,255,255,.016) 0 1px, transparent 1px 5px),
+    linear-gradient(90deg, rgba(0,0,0,.7), rgba(0,0,0,.14) 56%, rgba(0,0,0,.08)),
+    linear-gradient(0deg, rgba(0,0,0,.72), transparent 52%);
+}
+
+.fashion-transmission-stack .fashion-hero-media::after {
+  right: 24px;
+  left: auto;
+}
+
+.fashion-hero-copy {
+  position: absolute;
+  inset: 30px 34px 38px;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  pointer-events: none;
+}
+
+.fashion-transmission-stack .fashion-channel-status {
+  max-width: 520px;
+}
+
+.fashion-transmission-stack .fashion-kicker {
+  margin: auto 0 18px;
+  color: rgba(255,255,255,.48);
+}
+
+.fashion-transmission-stack .fashion-title {
+  max-width: 760px;
+  font-size: clamp(54px, 7.2vw, 108px);
+  line-height: .88;
+  text-shadow: 0 2px 26px rgba(0,0,0,.5);
+}
+
+.fashion-transmission-stack .fashion-title span:last-child {
+  margin-left: clamp(20px, 3vw, 48px);
+  color: rgba(255,255,255,.78);
+}
+
+.fashion-transmission-stack .fashion-hero-media figcaption {
+  right: 24px;
+  bottom: 18px;
+  left: auto;
+  width: min(42%, 420px);
+}
+
+.fashion-transmission-stack .fashion-copy {
+  display: block;
+  padding: 34px 0 0;
+}
+
+.fashion-transmission-intro {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(260px, .95fr);
+  gap: clamp(52px, 9vw, 150px);
+  align-items: start;
+}
+
+.fashion-transmission-stack .fashion-lede {
+  max-width: 580px;
+  margin: 0;
+}
+
+.fashion-transmission-stack .fashion-copy .small {
+  max-width: 430px;
+  margin: 0;
+  color: rgba(255,255,255,.3);
+  font: 8px/1.9 'Courier New', monospace;
+  letter-spacing: .26em;
+  text-transform: uppercase;
+}
+
+.fashion-transmission-stack .fashion-frequency-label {
+  max-width: none;
+  margin-top: 36px;
+}
+
+.fashion-transmission-stack .fashion-links {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  max-width: none;
+  margin-top: 14px;
+  border-top: 1px solid rgba(255,255,255,.15);
+  border-bottom: 1px solid rgba(255,255,255,.15);
+}
+
+.fashion-transmission-stack .fashion-links a,
+.fashion-transmission-stack .fashion-links a:last-child {
+  grid-template-columns: 28px minmax(0, 1fr) 14px;
+  min-height: 76px;
+  padding: 0 14px;
+  border: 0;
+  border-left: 1px solid rgba(255,255,255,.12);
+}
+
+.fashion-transmission-stack .fashion-links a:first-child { border-left: 0; }
+
+.fashion-transmission-stack .fashion-links a:hover,
+.fashion-transmission-stack .fashion-links a:focus-visible {
+  padding-left: 20px;
+  background:
+    linear-gradient(0deg, rgba(255,255,255,.06), transparent 78%);
+}
+
+.fashion-transmission-stack .fashion-frequency-name {
+  font-size: clamp(8px, .72vw, 10px);
+  line-height: 1.55;
+}
+
 @media (max-width: 900px) {
   .hero-content { grid-template-columns: 1fr; }
   .hero-visual-reserve { display: none; }
@@ -3143,6 +3277,27 @@ body.nina-connecting-mode
     width: min(82%, 620px);
     justify-self: end;
   }
+  .fashion-transmission-stack { gap: 0; }
+  .fashion-transmission-stack .fashion-hero-media {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    justify-self: stretch;
+  }
+  .fashion-transmission-stack .fashion-title {
+    font-size: clamp(42px, 10vw, 78px);
+  }
+  .fashion-transmission-intro {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  .fashion-transmission-stack .fashion-frequency-label { margin-top: 32px; }
+  .fashion-transmission-stack .fashion-links {
+    grid-template-columns: repeat(5, minmax(175px, 1fr));
+    overflow-x: auto;
+    scrollbar-width: thin;
+    scroll-snap-type: x proximity;
+  }
+  .fashion-transmission-stack .fashion-links a { scroll-snap-align: start; }
 }
 
 @media (max-width: 620px) {
@@ -3177,6 +3332,40 @@ body.nina-connecting-mode
     line-height: 1.8;
   }
   .fashion-transmission .fashion-hero-media figcaption span { display: block; }
+  .fashion-hero-copy { inset: 18px 18px 20px; }
+  .fashion-transmission-stack .fashion-channel-status span:last-child {
+    width: auto;
+    margin-left: auto;
+  }
+  .fashion-transmission-stack .fashion-kicker {
+    max-width: 250px;
+    margin-bottom: 12px;
+    line-height: 1.7;
+  }
+  .fashion-transmission-stack .fashion-title {
+    font-size: clamp(34px, 11vw, 52px);
+  }
+  .fashion-transmission-stack .fashion-hero-media {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+  }
+  .fashion-transmission-stack .fashion-hero-media figcaption {
+    right: 14px;
+    bottom: 10px;
+    width: auto;
+  }
+  .fashion-transmission-stack .fashion-hero-media figcaption span:first-child {
+    display: none;
+  }
+  .fashion-transmission-stack .fashion-copy { padding-top: 26px; }
+  .fashion-transmission-stack .fashion-links {
+    grid-template-columns: repeat(5, minmax(158px, 1fr));
+  }
+  .fashion-transmission-stack .fashion-links a,
+  .fashion-transmission-stack .fashion-links a:last-child {
+    min-height: 68px;
+    padding: 0 12px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -3949,102 +4138,7 @@ body.nina-connecting-mode
   <div class="wrapper">
 
 
-    <div class="fashion-landing fashion-transmission">
-
-
-      <div class="fashion-copy">
-
-
-        <div>
-
-
-          <div class="fashion-channel-status">
-
-            <span class="fashion-channel-pulse" aria-hidden="true"></span>
-            <span>PV_FF / NODE 05</span>
-            <span>Transmission open</span>
-
-          </div>
-
-
-          <div class="fashion-kicker">
-
-            Parallel Vision Atelier / Berlin 2063
-
-          </div>
-
-
-          <h2 class="fashion-title">
-
-            <span>Future</span>
-            <span>Fashion</span>
-
-          </h2>
-
-
-          <p class="fashion-lede">
-            Clothing as nightlife armor, body-interface and living signal. The
-            fashion extension of Parallel Vision: reactive materials, future
-            ceremony and emotional architecture for Berlin 2063.
-
-          </p>
-
-
-          <div class="fashion-frequency-label">
-
-            <span>Select frequency</span>
-            <span>05 signals detected</span>
-
-          </div>
-
-
-          <div class="fashion-links">
-
-            <a href="./chromia.html">
-              <span class="fashion-frequency-index">01</span>
-              <span class="fashion-frequency-name">Chromia</span>
-              <span class="fashion-frequency-arrow">↗</span>
-            </a>
-
-            <a href="./flesh-zero.html">
-              <span class="fashion-frequency-index">02</span>
-              <span class="fashion-frequency-name">Flesh Zero</span>
-              <span class="fashion-frequency-arrow">↗</span>
-            </a>
-
-            <a href="./lotus-2063.html">
-              <span class="fashion-frequency-index">03</span>
-              <span class="fashion-frequency-name">Lotus 2063</span>
-              <span class="fashion-frequency-arrow">↗</span>
-            </a>
-
-            <a href="./magnetic-tape.html">
-              <span class="fashion-frequency-index">04</span>
-              <span class="fashion-frequency-name">Magnetic Tape</span>
-              <span class="fashion-frequency-arrow">↗</span>
-            </a>
-
-            <a href="./dna-mutation.html">
-              <span class="fashion-frequency-index">05</span>
-              <span class="fashion-frequency-name">DNA Mutation</span>
-              <span class="fashion-frequency-arrow">↗</span>
-            </a>
-
-          </div>
-
-
-        </div>
-
-
-        <p class="small">
-
-          Five material signals recovered from the Parallel Vision archive.
-          Choose a frequency to enter the transmission.
-
-        </p>
-
-
-      </div>
+    <div class="fashion-landing fashion-transmission fashion-transmission-stack">
 
 
       <figure
@@ -4057,12 +4151,98 @@ body.nina-connecting-mode
           alt="Flesh Zero Look 04 Future Fashion editorial campaign"
         >
 
+        <div class="fashion-hero-copy">
+
+          <div class="fashion-channel-status">
+
+            <span class="fashion-channel-pulse" aria-hidden="true"></span>
+            <span>PV_FF / NODE 05</span>
+            <span>Transmission open</span>
+
+          </div>
+
+          <div class="fashion-kicker">
+
+            Parallel Vision Atelier / Berlin 2063
+
+          </div>
+
+          <h2 class="fashion-title">
+
+            <span>Future</span>
+            <span>Fashion</span>
+
+          </h2>
+
+        </div>
+
         <figcaption>
           <span>Feed 02 / Look 04</span>
           <span>Berlin node / 2063</span>
         </figcaption>
 
       </figure>
+
+
+      <div class="fashion-copy">
+
+        <div class="fashion-transmission-intro">
+
+          <p class="fashion-lede">
+            Clothing as nightlife armor, body-interface and living signal. The
+            fashion extension of Parallel Vision: reactive materials, future
+            ceremony and emotional architecture for Berlin 2063.
+          </p>
+
+          <p class="small">
+            Five material signals recovered from the Parallel Vision archive.
+            Choose a frequency to enter the transmission.
+          </p>
+
+        </div>
+
+        <div class="fashion-frequency-label">
+
+          <span>Select frequency</span>
+          <span>05 signals detected</span>
+
+        </div>
+
+        <div class="fashion-links">
+
+          <a href="./chromia.html">
+            <span class="fashion-frequency-index">01</span>
+            <span class="fashion-frequency-name">Chromia</span>
+            <span class="fashion-frequency-arrow">↗</span>
+          </a>
+
+          <a href="./flesh-zero.html">
+            <span class="fashion-frequency-index">02</span>
+            <span class="fashion-frequency-name">Flesh Zero</span>
+            <span class="fashion-frequency-arrow">↗</span>
+          </a>
+
+          <a href="./lotus-2063.html">
+            <span class="fashion-frequency-index">03</span>
+            <span class="fashion-frequency-name">Lotus 2063</span>
+            <span class="fashion-frequency-arrow">↗</span>
+          </a>
+
+          <a href="./magnetic-tape.html">
+            <span class="fashion-frequency-index">04</span>
+            <span class="fashion-frequency-name">Magnetic Tape</span>
+            <span class="fashion-frequency-arrow">↗</span>
+          </a>
+
+          <a href="./dna-mutation.html">
+            <span class="fashion-frequency-index">05</span>
+            <span class="fashion-frequency-name">DNA Mutation</span>
+            <span class="fashion-frequency-arrow">↗</span>
+          </a>
+
+        </div>
+
+      </div>
 
 
     </div>
