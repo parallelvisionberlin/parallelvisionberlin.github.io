@@ -45,9 +45,10 @@
     "future-fashion.html": [
       [".eyebrow", "Parallel Vision Atelier / Berlin 2063", "Parallel Vision Atelier / Berlin 2063"],
       [".hero-lede", "Clothing as nightlife armor, body-interface and living signal. The fashion extension of Parallel Vision: reactive materials, future ceremony and emotional architecture for Berlin 2063.", "Kleidung als Rüstung des Nachtlebens, Körperschnittstelle und lebendiges Signal. Die modische Erweiterung von Parallel Vision: reaktive Materialien, zukünftige Zeremonien und emotionale Architektur für Berlin 2063."],
-      [".chapter-index", "Archive / 04 Collections", "Archiv / 04 Kollektionen"],
-      [".chapter-copy", "Four material systems for bodies moving through the humid, unstable and ceremonial spaces of Berlin 2063.", "Vier Materialsysteme für Körper, die sich durch die feuchten, instabilen und zeremoniellen Räume Berlins im Jahr 2063 bewegen."],
+      [".chapter-index", "Archive / 05 Collections", "Archiv / 05 Kollektionen"],
+      [".chapter-copy", "Five material systems for bodies moving through the humid, unstable and ceremonial spaces of Berlin 2063.", "Fünf Materialsysteme für Körper, die sich durch die feuchten, instabilen und zeremoniellen Räume Berlins im Jahr 2063 bewegen."],
       [".preview-card[href='./chromia.html'] p", "Reactive alloy skins and liquid-metal body interfaces.", "Reaktive Legierungshäute und Körperschnittstellen aus Flüssigmetall."],
+      [".preview-card[href='./flesh-zero.html'] p", "Chrome, gas, foam and synthetic tissue collapsing into one living surface.", "Chrom, Gas, Schaum und synthetisches Gewebe verschmelzen zu einer lebendigen Oberfläche."],
       [".preview-card[href='./lotus-2063.html'] p", "Oversized black ritual silhouettes for future nightlife.", "Übergroße schwarze Ritualsilhouetten für das Nachtleben der Zukunft."],
       [".preview-card[href='./magnetic-tape.html'] p", "Analog memory translated into ribboned body architecture.", "Analoge Erinnerung, übersetzt in bandförmige Körperarchitektur."],
       [".preview-card[href='./dna-mutation.html'] p", "Living surfaces, altered membranes and speculative bio-material.", "Lebende Oberflächen, veränderte Membranen und spekulatives Biomaterial."],
@@ -56,6 +57,10 @@
     ],
     "chromia.html": [
       [".collection-intro p", "CHROMIA imagines liquid metal clothing as a second skin: monochrome alloy, mercury movement, chrome membranes and garments that react to heat, sound and pulse.", "CHROMIA denkt Kleidung aus Flüssigmetall als zweite Haut: monochrome Legierungen, Quecksilberbewegung, Chrommembranen und Kleidungsstücke, die auf Wärme, Klang und Puls reagieren."],
+      [".archive-footer a", "Next: Flesh Zero →", "Weiter: Flesh Zero →"]
+    ],
+    "flesh-zero.html": [
+      [".collection-intro p", "Flesh Zero is the point where the body stops being dressed and begins being replaced. Chrome, gas, foam and volatile synthetic tissue form a ceremonial surface around the human silhouette. The collection belongs to the Parallel Vision Berlin 2063 timeline and expands the Liquid Metal language into something more organic, ritualistic and unstable than Chromia.", "Flesh Zero ist der Punkt, an dem der Körper nicht länger bekleidet, sondern ersetzt wird. Chrom, Gas, Schaum und flüchtiges synthetisches Gewebe bilden eine zeremonielle Oberfläche um die menschliche Silhouette. Die Kollektion gehört zur Zeitlinie Parallel Vision Berlin 2063 und erweitert die Sprache des flüssigen Metalls um etwas Organischeres, Ritualistischeres und Instabileres als Chromia."],
       [".archive-footer a", "Next: Lotus 2063 →", "Weiter: Lotus 2063 →"]
     ],
     "lotus-2063.html": [
