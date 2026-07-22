@@ -38,7 +38,7 @@ img { max-width: 100%; }
 .fashion-page-hero-content { position: relative; z-index: 2; max-width: 920px; }
 .eyebrow { margin-bottom: 24px; color: var(--muted); font: 10px 'Courier New', monospace; letter-spacing: .3em; text-transform: uppercase; }
 h1 { font: 400 clamp(48px, 8vw, 120px)/.96 Michroma, sans-serif; letter-spacing: .08em; text-transform: uppercase; }
-.hero-lede { max-width: 720px; margin-top: 32px; color: rgba(255,255,255,.77); font-size: clamp(15px, 1.6vw, 20px); line-height: 1.85; }
+.hero-lede { max-width: 720px; margin-top: 32px; color: rgba(255,255,255,.77); font-size: clamp(15px, 1.6vw, 20px); line-height: 1.85; white-space: pre-line; }
 
 .archive-main { max-width: 1280px; margin: auto; padding: 130px 26px 150px; }
 .chapter-head { display: grid; grid-template-columns: 180px 1fr; gap: 34px; margin-bottom: 60px; }

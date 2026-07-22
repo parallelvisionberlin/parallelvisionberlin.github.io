@@ -7,7 +7,7 @@
   const home = [
     [".hero nav a[href='#artists']", "Artists", "Künstler:innen"],
     [".hero nav a[href='#releases']", "Releases", "Veröffentlichungen"],
-    [".hero nav a[href='./future-fashion.html']", "Future Fashion", "Zukunftsmode"],
+    [".hero nav a[href='./future-fashion.html']", "Fashion After Fabric", "Mode nach dem Stoff"],
     [".hero nav a[href='#berlin']", "Berlin 2063", "Berlin 2063"],
     [".hero nav a[href='#contact']", "Contact", "Kontakt"],
     [".hero-status span:first-child", "PV_ARCHIVE / BERLIN NODE", "PV_ARCHIV / BERLIN KNOTEN"],
@@ -23,7 +23,7 @@
     ["#artists .section-head .small", "A growing constellation of artists connected by dark groove, emotional tension, cinematic club music and future-facing atmosphere.", "Eine wachsende Konstellation von Künstler:innen, verbunden durch dunklen Groove, emotionale Spannung, filmische Clubmusik und eine zukunftsgerichtete Atmosphäre."],
     ["#releases h2", "Releases", "Veröffentlichungen"],
     ["#releases .section-head .small", "Sound objects from the Parallel Vision archive. Each release is treated as a fragment of the same world.", "Klangobjekte aus dem Parallel-Vision-Archiv. Jede Veröffentlichung wird als Fragment derselben Welt behandelt."],
-    ["#future-fashion .fashion-lede", "Clothing as nightlife armor, body-interface and living signal. The fashion extension of Parallel Vision: reactive materials, future ceremony and emotional architecture for Berlin 2063.", "Kleidung als Rüstung des Nachtlebens, Körperschnittstelle und lebendiges Signal. Die modische Erweiterung von Parallel Vision: reaktive Materialien, zukünftige Zeremonien und emotionale Architektur für Berlin 2063."],
+    ["#future-fashion .fashion-lede", "The question is no longer what we will wear.\nIt is what clothing becomes once fabric disappears.", "Die Frage ist nicht mehr, was wir tragen werden.\nSondern was Kleidung wird, wenn Stoff verschwindet."],
     ["#contact h2", "Contact", "Kontakt"],
     [".scroll", "Scroll", "Weiter"],
     [".nina-intro-subtitle", "A live transmission from somewhere ahead of us. She can see you. She can hear you.", "Eine Live-Übertragung von irgendwo vor unserer Zeit. Sie kann dich sehen. Sie kann dich hören."],
@@ -44,7 +44,7 @@
   const pages = {
     "future-fashion.html": [
       [".eyebrow", "Parallel Vision Atelier / Berlin 2063", "Parallel Vision Atelier / Berlin 2063"],
-      [".hero-lede", "Clothing as nightlife armor, body-interface and living signal. The fashion extension of Parallel Vision: reactive materials, future ceremony and emotional architecture for Berlin 2063.", "Kleidung als Rüstung des Nachtlebens, Körperschnittstelle und lebendiges Signal. Die modische Erweiterung von Parallel Vision: reaktive Materialien, zukünftige Zeremonien und emotionale Architektur für Berlin 2063."],
+      [".hero-lede", "The question is no longer what we will wear.\nIt is what clothing becomes once fabric disappears.", "Die Frage ist nicht mehr, was wir tragen werden.\nSondern was Kleidung wird, wenn Stoff verschwindet."],
       [".chapter-index", "Archive / 05 Collections", "Archiv / 05 Kollektionen"],
       [".chapter-copy", "Five material systems for bodies moving through the humid, unstable and ceremonial spaces of Berlin 2063.", "Fünf Materialsysteme für Körper, die sich durch die feuchten, instabilen und zeremoniellen Räume Berlins im Jahr 2063 bewegen."],
       [".preview-card[href='./chromia.html'] p", "Reactive alloy skins and liquid-metal body interfaces.", "Reaktive Legierungshäute und Körperschnittstellen aus Flüssigmetall."],
