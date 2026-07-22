@@ -41,6 +41,66 @@ h1 { font: 400 clamp(48px, 8vw, 120px)/.96 Michroma, sans-serif; letter-spacing:
 .hero-lede { max-width: 720px; margin-top: 32px; color: rgba(255,255,255,.77); font-size: clamp(15px, 1.6vw, 20px); line-height: 1.85; white-space: pre-line; }
 
 .archive-main { max-width: 1280px; margin: auto; padding: 130px 26px 150px; }
+.archive-research {
+  display: grid;
+  grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr);
+  gap: clamp(72px, 9vw, 150px);
+  margin-bottom: 100px;
+  padding-bottom: clamp(90px, 9vw, 140px);
+  border-bottom: 1px solid var(--line);
+}
+.archive-research-label {
+  margin-bottom: 28px;
+  color: var(--muted);
+  font: 9px 'Courier New', monospace;
+  letter-spacing: .28em;
+  text-transform: uppercase;
+}
+.archive-research-title {
+  max-width: 600px;
+  font: 400 clamp(30px, 3.5vw, 52px)/1.22 Michroma, sans-serif;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+.archive-research-copy {
+  max-width: 580px;
+  display: grid;
+  gap: 22px;
+  margin-top: 40px;
+  color: rgba(255,255,255,.7);
+  font-size: 15px;
+  line-height: 1.85;
+}
+.archive-research-directions {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.archive-research-directions li {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  gap: 18px;
+  padding: 23px 0;
+  border-top: 1px solid var(--line);
+}
+.archive-research-directions li:last-child { border-bottom: 1px solid var(--line); }
+.archive-research-index {
+  padding-top: 2px;
+  color: rgba(255,255,255,.36);
+  font: 8px 'Courier New', monospace;
+  letter-spacing: .2em;
+}
+.archive-research-directions h3 {
+  font: 400 11px/1.5 Michroma, sans-serif;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+}
+.archive-research-directions p {
+  margin-top: 7px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
 .chapter-head { display: grid; grid-template-columns: 180px 1fr; gap: 34px; margin-bottom: 60px; }
 .chapter-index { color: var(--muted); font: 10px 'Courier New', monospace; letter-spacing: .25em; text-transform: uppercase; }
 .chapter-copy { max-width: 740px; font-size: clamp(17px, 2vw, 25px); line-height: 1.75; }
@@ -77,6 +137,15 @@ h1 { font: 400 clamp(48px, 8vw, 120px)/.96 Michroma, sans-serif; letter-spacing:
 .gallery .wide { grid-column: 1 / -1; }
 .placeholder-study { min-height: 320px; display: grid; place-items: center; border: 1px solid var(--line); background: linear-gradient(135deg,#070707,#111 55%,#030303); color: rgba(255,255,255,.32); font: 9px 'Courier New', monospace; letter-spacing: .25em; text-transform: uppercase; }
 .archive-footer { display: flex; justify-content: space-between; padding: 36px; border-top: 1px solid var(--line); color: var(--muted); font: 9px 'Courier New', monospace; letter-spacing: .2em; text-transform: uppercase; }
+
+@media (max-width: 980px) {
+  .archive-research { grid-template-columns: 1fr; gap: 60px; }
+  .archive-research-directions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 30px;
+  }
+}
 
 /* Flesh Zero / distant-future editorial typography */
 .flesh-zero-page .collection-hero h1 {
@@ -136,6 +205,10 @@ h1 { font: 400 clamp(48px, 8vw, 120px)/.96 Michroma, sans-serif; letter-spacing:
   .archive-nav-links { gap: 14px; }
   .fashion-page-hero { min-height: 78vh; padding: 130px 18px 54px; }
   .archive-main { padding: 90px 18px 110px; }
+  .archive-research { gap: 48px; margin-bottom: 72px; padding-bottom: 82px; }
+  .archive-research-title { font-size: clamp(26px, 8vw, 38px); }
+  .archive-research-copy { margin-top: 32px; font-size: 14px; line-height: 1.8; }
+  .archive-research-directions { grid-template-columns: 1fr; }
   .chapter-head, .collection-intro { grid-template-columns: 1fr; gap: 24px; }
   .preview-grid, .gallery { grid-template-columns: 1fr; }
   .gallery .wide { grid-column: auto; }
