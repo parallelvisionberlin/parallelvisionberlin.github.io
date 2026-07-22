@@ -2924,6 +2924,77 @@ body.nina-connecting-mode
 .fashion-card.bio { order: 5; }
 .fashion-overview-link { margin-top: -48px; }
 
+.fashion-research {
+  display: grid;
+  grid-template-columns: minmax(0, .88fr) minmax(0, 1.12fr);
+  gap: clamp(72px, 9vw, 148px);
+  margin-bottom: 140px;
+  padding: clamp(76px, 8vw, 120px) 0;
+  border-top: 1px solid rgba(255,255,255,.14);
+  border-bottom: 1px solid rgba(255,255,255,.14);
+}
+
+.fashion-research-title {
+  max-width: 560px;
+  font-family: 'Michroma', sans-serif;
+  font-size: clamp(24px, 2.35vw, 38px);
+  font-weight: 400;
+  letter-spacing: .075em;
+  line-height: 1.28;
+  text-transform: uppercase;
+}
+
+.fashion-research-copy {
+  max-width: 570px;
+  display: grid;
+  gap: 20px;
+  margin-top: 34px;
+  color: rgba(255,255,255,.7);
+  font-size: 15px;
+  line-height: 1.85;
+}
+
+.fashion-research-directions {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fashion-research-directions li {
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr);
+  gap: 18px;
+  padding: 22px 0;
+  border-top: 1px solid rgba(255,255,255,.14);
+}
+
+.fashion-research-directions li:last-child {
+  border-bottom: 1px solid rgba(255,255,255,.14);
+}
+
+.fashion-research-index {
+  padding-top: 2px;
+  color: rgba(255,255,255,.34);
+  font: 8px 'Courier New', monospace;
+  letter-spacing: .22em;
+}
+
+.fashion-research-directions h3 {
+  font-family: 'Michroma', sans-serif;
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: .18em;
+  line-height: 1.5;
+  text-transform: uppercase;
+}
+
+.fashion-research-directions p {
+  margin-top: 7px;
+  color: rgba(255,255,255,.56);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
 /* Fashion After Fabric / open transmission */
 .fashion-section { padding-top: clamp(72px, 7vw, 100px); }
 
@@ -3165,6 +3236,16 @@ body.nina-connecting-mode
   .fashion-landing { grid-template-columns: 1fr; gap: 46px; }
   .fashion-copy { padding: 0; }
   .fashion-title { font-size: clamp(42px, 10vw, 72px); }
+  .fashion-research {
+    grid-template-columns: 1fr;
+    gap: 58px;
+    margin-bottom: 110px;
+  }
+  .fashion-research-directions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 32px;
+  }
   .fashion-cinematic-header { margin-bottom: 54px; }
   .fashion-cinematic-statement { font-size: clamp(20px, 3.8vw, 30px); }
   .fashion-transmission {
@@ -3195,6 +3276,22 @@ body.nina-connecting-mode
   .fashion-hero-media { aspect-ratio: 4 / 5; }
   .fashion-card h3 { min-height: 0; }
   .fashion-card span { margin-top: 18px; padding-top: 0; }
+  .fashion-research {
+    gap: 48px;
+    margin-bottom: 90px;
+    padding: 68px 0;
+  }
+  .fashion-research-title {
+    font-size: clamp(23px, 7.4vw, 30px);
+  }
+  .fashion-research-copy {
+    margin-top: 28px;
+    font-size: 14px;
+    line-height: 1.8;
+  }
+  .fashion-research-directions {
+    grid-template-columns: 1fr;
+  }
   .fashion-channel-status { flex-wrap: wrap; row-gap: 10px; }
   .fashion-channel-status span:last-child { width: 100%; margin-left: 21px; }
   .fashion-cinematic-header {
@@ -4260,6 +4357,63 @@ body.nina-connecting-mode
 
 
     </div>
+
+
+    <section
+      class="fashion-research"
+      aria-labelledby="fashion-research-title"
+    >
+
+      <div>
+
+        <h2
+          id="fashion-research-title"
+          class="fashion-research-title"
+        >
+          Material Research for Bodies in Transition
+        </h2>
+
+        <div class="fashion-research-copy">
+          <p>Fashion After Fabric explores what clothing becomes when textiles are replaced by responsive, biological and synthetic systems.</p>
+          <p>Each collection develops a distinct material hypothesis—from liquid metal and programmable surfaces to engineered tissue, magnetic structures and living membranes.</p>
+          <p>Together, they form an evolving archive of possible relationships between clothing, technology and the human body.</p>
+        </div>
+
+      </div>
+
+      <ol
+        class="fashion-research-directions"
+        aria-label="Research directions"
+      >
+
+        <li>
+          <span class="fashion-research-index" aria-hidden="true">01</span>
+          <div><h3>Chromia</h3><p>Responsive metallic skin</p></div>
+        </li>
+
+        <li>
+          <span class="fashion-research-index" aria-hidden="true">02</span>
+          <div><h3>Flesh Zero</h3><p>Garment as synthetic tissue</p></div>
+        </li>
+
+        <li>
+          <span class="fashion-research-index" aria-hidden="true">03</span>
+          <div><h3>Lotus 2063</h3><p>Protective volume and nightlife architecture</p></div>
+        </li>
+
+        <li>
+          <span class="fashion-research-index" aria-hidden="true">04</span>
+          <div><h3>Magnetic Tape</h3><p>Memory, media and reconstructed material</p></div>
+        </li>
+
+        <li>
+          <span class="fashion-research-index" aria-hidden="true">05</span>
+          <div><h3>DNA Mutation</h3><p>Biological adaptation and altered anatomy</p></div>
+        </li>
+
+      </ol>
+
+    </section>
 
 
     <article hidden
