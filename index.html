@@ -3000,25 +3000,34 @@ body.nina-connecting-mode
 
 .fashion-cinematic-header {
   width: 100%;
-  padding: clamp(36px, 5vw, 72px) 0;
-  margin-bottom: clamp(52px, 5vw, 76px);
+  padding: clamp(64px, 7vw, 104px) 0 clamp(60px, 6vw, 88px);
+  margin-bottom: clamp(56px, 5vw, 76px);
   border-bottom: 1px solid rgba(255,255,255,.12);
   text-align: center;
 }
 
 .fashion-cinematic-statement {
-  max-width: 960px;
+  max-width: 920px;
   margin: 0 auto;
   color: #fff;
-  font-size: clamp(22px, 2.15vw, 34px);
-  font-weight: 400;
-  letter-spacing: .01em;
-  line-height: 1.48;
+  font-size: clamp(20px, 1.85vw, 30px);
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 1.38;
   text-align: center;
   white-space: pre-line;
 }
 
 .fashion-cinematic-statement span { display: block; }
+
+.fashion-cinematic-definition {
+  max-width: 740px;
+  margin: 22px auto 0;
+  color: rgba(255,255,255,.68);
+  font-size: clamp(13px, .95vw, 15px);
+  line-height: 1.75;
+  text-align: center;
+}
 
 .fashion-transmission {
   position: relative;
@@ -3247,7 +3256,7 @@ body.nina-connecting-mode
     column-gap: 32px;
   }
   .fashion-cinematic-header { margin-bottom: 54px; }
-  .fashion-cinematic-statement { font-size: clamp(20px, 3.8vw, 30px); }
+  .fashion-cinematic-statement { font-size: clamp(19px, 3vw, 25px); }
   .fashion-transmission {
     min-height: auto;
     grid-template-columns: 1fr;
@@ -3295,12 +3304,17 @@ body.nina-connecting-mode
   .fashion-channel-status { flex-wrap: wrap; row-gap: 10px; }
   .fashion-channel-status span:last-child { width: 100%; margin-left: 21px; }
   .fashion-cinematic-header {
-    padding: 30px 0 40px;
+    padding: 46px 0 48px;
     margin-bottom: 46px;
   }
   .fashion-cinematic-statement {
-    font-size: clamp(18px, 5.4vw, 22px);
-    line-height: 1.55;
+    font-size: clamp(17px, 5vw, 20px);
+    line-height: 1.48;
+  }
+  .fashion-cinematic-definition {
+    margin-top: 18px;
+    font-size: 13px;
+    line-height: 1.65;
   }
   .fashion-transmission .fashion-kicker { margin-top: 34px; }
   .fashion-transmission .fashion-title {
@@ -4102,6 +4116,10 @@ body.nina-connecting-mode
       <p class="fashion-cinematic-statement fashion-lede">
         <span>The question is no longer what we will wear.</span>
         <span>It is what clothing becomes once fabric disappears.</span>
+      </p>
+
+      <p class="fashion-cinematic-definition">
+        A speculative material research project exploring clothing beyond textiles through responsive matter, biotechnology, synthetic systems and new relationships between technology and the human body.
       </p>
 
     </header>
