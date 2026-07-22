@@ -2929,31 +2929,20 @@ body.nina-connecting-mode
 
 .fashion-cinematic-header {
   width: 100%;
-  padding: clamp(4px, 1.4vw, 18px) 0 clamp(52px, 5vw, 76px);
+  padding: clamp(36px, 5vw, 72px) 0;
+  margin-bottom: clamp(52px, 5vw, 76px);
+  border-bottom: 1px solid rgba(255,255,255,.12);
   text-align: center;
 }
 
-.fashion-cinematic-title {
-  margin: 0;
-  color: #fff;
-  font-family: 'Michroma', sans-serif;
-  font-size: clamp(32px, 3.35vw, 54px);
-  font-weight: 400;
-  letter-spacing: .11em;
-  line-height: 1.14;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-.fashion-cinematic-title span + span { margin-left: .3em; }
-
 .fashion-cinematic-statement {
-  max-width: 780px;
-  margin: 26px auto 0;
-  color: rgba(255,255,255,.9);
-  font-size: clamp(14px, 1.05vw, 17px);
-  letter-spacing: .025em;
-  line-height: 1.75;
+  max-width: 960px;
+  margin: 0 auto;
+  color: #fff;
+  font-size: clamp(22px, 2.15vw, 34px);
+  font-weight: 400;
+  letter-spacing: .01em;
+  line-height: 1.48;
   text-align: center;
   white-space: pre-line;
 }
@@ -3019,6 +3008,18 @@ body.nina-connecting-mode
   font-size: 8px;
   letter-spacing: .48em;
 }
+
+.fashion-transmission .fashion-title {
+  max-width: 100%;
+  margin: 0 0 42px;
+  font-size: clamp(27px, 2vw, 32px);
+  font-weight: 500;
+  letter-spacing: .045em;
+  line-height: 1.16;
+  text-align: left;
+}
+
+.fashion-transmission .fashion-title span { display: block; }
 
 .fashion-frequency-label {
   display: flex;
@@ -3164,14 +3165,8 @@ body.nina-connecting-mode
   .fashion-landing { grid-template-columns: 1fr; gap: 46px; }
   .fashion-copy { padding: 0; }
   .fashion-title { font-size: clamp(42px, 10vw, 72px); }
-  .fashion-cinematic-header { padding-bottom: 54px; }
-  .fashion-cinematic-title {
-    font-size: clamp(30px, 5.8vw, 46px);
-    line-height: 1.25;
-    white-space: normal;
-  }
-  .fashion-cinematic-title span { display: block; }
-  .fashion-cinematic-title span + span { margin-left: 0; }
+  .fashion-cinematic-header { margin-bottom: 54px; }
+  .fashion-cinematic-statement { font-size: clamp(20px, 3.8vw, 30px); }
   .fashion-transmission {
     min-height: auto;
     grid-template-columns: 1fr;
@@ -3202,20 +3197,19 @@ body.nina-connecting-mode
   .fashion-card span { margin-top: 18px; padding-top: 0; }
   .fashion-channel-status { flex-wrap: wrap; row-gap: 10px; }
   .fashion-channel-status span:last-child { width: 100%; margin-left: 21px; }
-  .fashion-cinematic-header { padding-bottom: 46px; }
-  .fashion-cinematic-title {
-    max-width: 100%;
-    margin-inline: auto;
-    font-size: clamp(27px, 8.6vw, 38px);
-    letter-spacing: .07em;
-    line-height: 1.22;
+  .fashion-cinematic-header {
+    padding: 30px 0 40px;
+    margin-bottom: 46px;
   }
   .fashion-cinematic-statement {
-    margin-top: 22px;
-    font-size: 14px;
-    line-height: 1.65;
+    font-size: clamp(18px, 5.4vw, 22px);
+    line-height: 1.55;
   }
   .fashion-transmission .fashion-kicker { margin-top: 34px; }
+  .fashion-transmission .fashion-title {
+    margin-bottom: 36px;
+    font-size: clamp(26px, 7.2vw, 28px);
+  }
   .fashion-frequency-label { margin-top: 42px; }
   .fashion-transmission .fashion-links a { min-height: 52px; }
   .fashion-transmission .fashion-hero-media {
@@ -4008,11 +4002,6 @@ body.nina-connecting-mode
 
     <header class="fashion-cinematic-header">
 
-      <h2 class="fashion-cinematic-title">
-        <span>Fashion After</span>
-        <span>Fabric</span>
-      </h2>
-
       <p class="fashion-cinematic-statement fashion-lede">
         <span>The question is no longer what we will wear.</span>
         <span>It is what clothing becomes once fabric disappears.</span>
@@ -4044,6 +4033,14 @@ body.nina-connecting-mode
             Parallel Vision Atelier / Berlin 2063
 
           </div>
+
+
+          <h2 class="fashion-title">
+
+            <span>Fashion After</span>
+            <span>Fabric</span>
+
+          </h2>
 
 
           <div class="fashion-frequency-label">
