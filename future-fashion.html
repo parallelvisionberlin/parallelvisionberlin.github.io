@@ -3,7 +3,30 @@
 <body>
 <header class="fashion-page-hero overview-hero">
   <nav class="archive-nav"><a href="./index.html">Parallel Vision</a><div class="archive-nav-links"><a href="./index.html#releases">Releases</a><a href="./index.html#contact">Contact</a></div></nav>
-  <img src="./assets/fashion-hero.png" alt="Fashion After Fabric editorial campaign">
+  <div class="fashion-hero-media">
+    <img class="fashion-hero-poster" src="./assets/fashion-hero.png" alt="Fashion After Fabric editorial campaign">
+    <video class="fashion-hero-video" autoplay muted loop playsinline preload="metadata" poster="./assets/fashion-hero.png" aria-hidden="true">
+      <source src="./heroafterfabricvideo.mp4" type="video/mp4">
+    </video>
+  </div>
+  <script>
+    (() => {
+      const video = document.querySelector('.fashion-hero-video');
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+      const syncMotionPreference = () => {
+        if (reducedMotion.matches) {
+          video.removeAttribute('autoplay');
+          video.pause();
+          return;
+        }
+        video.autoplay = true;
+        video.play().catch(() => {});
+      };
+      video.addEventListener('error', () => { video.hidden = true; });
+      reducedMotion.addEventListener?.('change', syncMotionPreference);
+      syncMotionPreference();
+    })();
+  </script>
   <div class="fashion-page-hero-content"><div class="eyebrow">Parallel Vision Atelier / Berlin 2063</div><h1>Fashion After<br>Fabric</h1><p class="hero-lede">The question is no longer what we will wear.<br>It is what clothing becomes once fabric disappears.</p><p class="fashion-research-definition">A speculative material research project exploring clothing beyond textiles through responsive matter, biotechnology, synthetic systems and new relationships between technology and the human body.</p></div>
 </header>
 <main class="archive-main">
