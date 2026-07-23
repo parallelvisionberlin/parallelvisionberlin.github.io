@@ -3237,6 +3237,7 @@ body.nina-connecting-mode
 /* Berlin 2063 / living archive */
 .berlin-archive {
   overflow: hidden;
+  --archive-section-title: clamp(1.1rem, 1.55vw, 1.55rem);
 }
 
 .berlin-archive-intro {
@@ -3283,10 +3284,10 @@ body.nina-connecting-mode
 
 .berlin-transmission {
   display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(280px, .65fr);
-  gap: clamp(48px, 8vw, 120px);
+  grid-template-columns: minmax(0, 58fr) minmax(300px, 42fr);
+  gap: clamp(32px, 4vw, 64px);
   align-items: center;
-  padding: clamp(72px, 10vw, 140px) 0;
+  padding: clamp(52px, 5.5vw, 82px) 0;
   border-bottom: 1px solid #1a1a1a;
 }
 
@@ -3294,8 +3295,13 @@ body.nina-connecting-mode
   order: 2;
 }
 
+.berlin-transmission:nth-child(even) {
+  grid-template-columns: minmax(300px, 42fr) minmax(0, 58fr);
+}
+
 .berlin-transmission-media {
   min-width: 0;
+  aspect-ratio: 16 / 10;
   overflow: hidden;
   background: #030303;
 }
@@ -3303,8 +3309,7 @@ body.nina-connecting-mode
 .berlin-transmission-media img {
   display: block;
   width: 100%;
-  height: auto;
-  max-height: 760px;
+  height: 100%;
   object-fit: cover;
   filter: saturate(.72) brightness(.76) contrast(1.08);
 }
@@ -3317,11 +3322,15 @@ body.nina-connecting-mode
   margin-top: 18px;
   color: #fff;
   font-family: 'Michroma', sans-serif;
-  font-size: clamp(20px, 2.4vw, 34px);
+  max-width: 100%;
+  font-size: var(--archive-section-title);
   font-weight: 400;
-  letter-spacing: .1em;
-  line-height: 1.25;
+  letter-spacing: .035em;
+  line-height: 1.35;
   text-transform: uppercase;
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: none;
 }
 
 .berlin-transmission-caption {
@@ -3331,29 +3340,49 @@ body.nina-connecting-mode
 
 .berlin-archive-closing {
   max-width: 860px;
-  margin: clamp(100px, 14vw, 190px) auto 0;
+  margin: clamp(64px, 7vw, 96px) auto 0;
   color: #fff;
   font-family: 'Michroma', sans-serif;
-  font-size: clamp(18px, 2.8vw, 34px);
-  letter-spacing: .08em;
-  line-height: 1.65;
+  font-size: clamp(15px, 1.35vw, 21px);
+  letter-spacing: .025em;
+  line-height: 1.55;
   text-align: center;
   text-transform: uppercase;
 }
 
 .berlin-archive-closing span {
   display: block;
+  white-space: nowrap;
 }
 
-.nina-archive-note {
-  position: fixed;
-  right: 28px;
-  bottom: 118px;
-  z-index: 9997;
-  width: 270px;
+.berlin-nina-invitation {
+  width: min(100%, 420px);
+  margin: clamp(42px, 5vw, 70px) auto 0;
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  text-align: center;
+}
+
+.berlin-nina-invitation .nina-archive-note {
+  position: static;
+  width: auto;
+  margin: 0;
   color: rgba(255,255,255,.45);
   font: 9px/1.7 'Courier New', monospace;
   letter-spacing: .08em;
+  text-align: inherit;
+}
+
+.berlin-nina-invitation .nina-signal {
+  position: static;
+  width: min(100%, 300px);
+  min-width: 0;
+  transform: none;
+}
+
+.berlin-nina-invitation .nina-signal:hover {
+  transform: translateY(-2px);
 }
 
 @media (max-width: 900px) {
@@ -3389,9 +3418,22 @@ body.nina-connecting-mode
   .fashion-transmission .fashion-hero-media {
     width: min(82%, 620px);
     justify-self: end;
+  }
   .berlin-transmission {
-    grid-template-columns: minmax(0, 1.15fr) minmax(240px, .85fr);
-    gap: 42px;
+    grid-template-columns: 1fr;
+    gap: 30px;
+    padding: 58px 0;
+  }
+  .berlin-transmission:nth-child(even) { grid-template-columns: 1fr; }
+  .berlin-transmission:nth-child(even) .berlin-transmission-media { order: 0; }
+  .berlin-transmission-copy { order: 1; }
+  .berlin-transmission-media { width: 100%; aspect-ratio: 16 / 10; }
+  .berlin-archive-closing span { white-space: normal; }
+}
+
+@media (min-width: 901px) and (max-width: 1280px) {
+  .berlin-transmission:last-of-type .berlin-transmission-copy h3 span {
+    display: block;
   }
 }
 
@@ -3468,21 +3510,19 @@ body.nina-connecting-mode
   .berlin-archive-definition { margin-left: 0; }
   .berlin-transmission {
     grid-template-columns: 1fr;
-    gap: 34px;
-    padding: 72px 0;
+    gap: 30px;
+    padding: 56px 0;
   }
   .berlin-transmission:nth-child(even) .berlin-transmission-media { order: 0; }
   .berlin-transmission-media img { max-height: none; }
   .berlin-transmission-caption { margin-top: 22px; }
   .berlin-archive-closing {
-    margin-top: 90px;
-    font-size: 17px;
-    text-align: left;
+    margin-top: 64px;
+    font-size: 16px;
   }
-  .nina-archive-note {
-    position: static;
-    width: auto;
-    margin-top: 14px;
+  .berlin-nina-invitation {
+    width: min(100%, 340px);
+    margin-top: 44px;
   }
 }
 
@@ -3690,23 +3730,6 @@ body.nina-connecting-mode
         A record label transmitting music, bodies and imagined futures from Berlin in 2063.
       </p>
 
-      <button
-        class="nina-signal"
-        id="openNina"
-        type="button"
-        aria-label="Transmit to 2063"
-      >
-        <span class="nina-signal-dot"></span>
-        <span class="nina-signal-copy">
-          <span class="nina-signal-main">Transmit to 2063</span>
-          <span class="nina-signal-sub">Talk live with Nina FOK</span>
-        </span>
-      </button>
-
-      <p class="nina-archive-note">
-        Nina is one of its inhabitants—and the only one visitors can speak to directly.
-      </p>
-
     </div>
 
     <div class="hero-visual-reserve" aria-hidden="true"></div>
@@ -3799,7 +3822,7 @@ body.nina-connecting-mode
         </figure>
         <div class="berlin-transmission-copy">
           <p class="berlin-transmission-index">Transmission 03</p>
-          <h3>The Inhabitants</h3>
+          <h3><span>The</span> <span>Inhabitants</span></h3>
           <p class="berlin-transmission-caption">
             The archive follows individuals moving through this future—not as
             anonymous models, but as witnesses shaped by its architecture,
@@ -3813,6 +3836,24 @@ body.nina-connecting-mode
       <span>Berlin 2063 is not presented as a finished world.</span>
       <span>It is an archive that continues to remember itself.</span>
     </p>
+
+    <div class="berlin-nina-invitation">
+      <p class="nina-archive-note">
+        Nina is one of its inhabitants—and the only one visitors can speak to directly.
+      </p>
+      <button
+        class="nina-signal"
+        id="openNina"
+        type="button"
+        aria-label="Transmit to 2063"
+      >
+        <span class="nina-signal-dot"></span>
+        <span class="nina-signal-copy">
+          <span class="nina-signal-main">Transmit to 2063</span>
+          <span class="nina-signal-sub">Talk live with Nina FOK</span>
+        </span>
+      </button>
+    </div>
 
   </div>
 
