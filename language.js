@@ -26,7 +26,8 @@
     ["#berlin .berlin-transmission:nth-child(2) h3", "The City", "Die Stadt"],
     ["#berlin .berlin-transmission:nth-child(2) .berlin-transmission-caption", "Berlin has expanded vertically, but its historical structures remain embedded within it. Old monuments, transport lines and social rituals survive inside new technological systems.", "Berlin hat sich vertikal ausgedehnt, doch seine historischen Strukturen bleiben darin verankert. Alte Denkmäler, Verkehrswege und soziale Rituale bestehen innerhalb neuer technologischer Systeme fort."],
     ["#berlin .berlin-transmission:nth-child(3) .berlin-transmission-index", "Transmission 03", "Übertragung 03"],
-    ["#berlin .berlin-transmission:nth-child(3) h3", "The Inhabitants", "Die Bewohner:innen"],
+    ["#berlin .berlin-transmission:nth-child(3) h3 span:first-child", "The", "Die"],
+    ["#berlin .berlin-transmission:nth-child(3) h3 span:nth-child(2)", "Inhabitants", "Bewohner:innen"],
     ["#berlin .berlin-transmission:nth-child(3) .berlin-transmission-caption", "The archive follows individuals moving through this future—not as anonymous models, but as witnesses shaped by its architecture, materials and social conditions.", "Das Archiv folgt Menschen, die sich durch diese Zukunft bewegen—nicht als anonyme Modelle, sondern als Zeug:innen, geprägt von ihrer Architektur, ihren Materialien und sozialen Bedingungen."],
     ["#berlin .berlin-archive-closing span:first-child", "Berlin 2063 is not presented as a finished world.", "Berlin 2063 wird nicht als abgeschlossene Welt präsentiert."],
     ["#berlin .berlin-archive-closing span:nth-child(2)", "It is an archive that continues to remember itself.", "Es ist ein Archiv, das sich immer weiter an sich selbst erinnert."],
@@ -58,6 +59,7 @@
     "future-fashion.html": [
       [".eyebrow", "Parallel Vision Atelier / Berlin 2063", "Parallel Vision Atelier / Berlin 2063"],
       [".hero-lede", "The question is no longer what we will wear.\nIt is what clothing becomes once fabric disappears.", "Die Frage ist nicht mehr, was wir tragen werden.\nSondern was Kleidung wird, wenn Stoff verschwindet."],
+      [".fashion-research-definition", "A speculative material research project exploring clothing beyond textiles through responsive matter, biotechnology, synthetic systems and new relationships between technology and the human body.", "Ein spekulatives Materialforschungsprojekt, das Kleidung jenseits von Textilien durch reaktive Materie, Biotechnologie, synthetische Systeme und neue Beziehungen zwischen Technologie und dem menschlichen Körper untersucht."],
       [".chapter-index", "Archive / 05 Collections", "Archiv / 05 Kollektionen"],
       [".chapter-copy", "Five material systems for bodies moving through the humid, unstable and ceremonial spaces of Berlin 2063.", "Fünf Materialsysteme für Körper, die sich durch die feuchten, instabilen und zeremoniellen Räume Berlins im Jahr 2063 bewegen."],
       [".preview-card[href='./chromia.html'] p", "Reactive alloy skins and liquid-metal body interfaces.", "Reaktive Legierungshäute und Körperschnittstellen aus Flüssigmetall."],
