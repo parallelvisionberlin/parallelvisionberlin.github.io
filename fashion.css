@@ -73,6 +73,15 @@ h1 { font: 400 clamp(48px, 8vw, 120px)/.96 Michroma, sans-serif; letter-spacing:
   margin-inline: auto;
   font-size: clamp(3.5rem, 7.5vw, 7.5rem);
 }
+.fashion-hero-support {
+  margin-top: 22px;
+  color: rgba(255,255,255,.68);
+  font: var(--type-micro) 'Courier New', monospace;
+  letter-spacing: .24em;
+  line-height: 1.6;
+  text-align: center;
+  text-transform: uppercase;
+}
 .hero-lede { max-width: 720px; margin-top: 22px; color: rgba(255,255,255,.77); font-size: var(--type-body); line-height: 1.7; white-space: pre-line; }
 .overview-hero .hero-lede {
   max-width: 950px;
@@ -91,7 +100,129 @@ h1 { font: 400 clamp(48px, 8vw, 120px)/.96 Michroma, sans-serif; letter-spacing:
   text-align: center;
 }
 
+.fashion-statement {
+  min-height: 68svh;
+  display: grid;
+  place-items: center;
+  padding: clamp(100px, 12vw, 180px) 26px;
+  border-bottom: 1px solid var(--line);
+  background: #000;
+}
+.fashion-statement p,
+.fashion-closing p {
+  max-width: 1050px;
+  color: #fff;
+  font-family: Michroma, sans-serif;
+  font-size: clamp(1.6rem, 3.25vw, 3.6rem);
+  font-weight: 400;
+  letter-spacing: .035em;
+  line-height: 1.45;
+  text-align: center;
+  text-transform: uppercase;
+}
+
 .archive-main { max-width: 1280px; margin: auto; padding: 130px 26px 150px; }
+.fashion-editorial { padding-top: 0; }
+.fashion-chapter {
+  padding: clamp(96px, 10vw, 150px) 0;
+  border-bottom: 1px solid var(--line);
+}
+.fashion-chapter-label {
+  margin-bottom: 30px;
+  color: rgba(255,255,255,.42);
+  font: var(--type-micro) 'Courier New', monospace;
+  letter-spacing: .28em;
+  line-height: 1.65;
+  text-transform: uppercase;
+}
+.fashion-chapter h2 {
+  max-width: 760px;
+  font-family: Michroma, sans-serif;
+  font-size: var(--type-section);
+  font-weight: 400;
+  letter-spacing: .055em;
+  line-height: 1.16;
+  text-transform: uppercase;
+}
+.fashion-definition-layout,
+.fashion-collaboration {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(300px, .85fr);
+  gap: clamp(56px, 8vw, 120px);
+  align-items: start;
+}
+.fashion-chapter-copy {
+  max-width: 600px;
+  color: rgba(255,255,255,.68);
+  font-size: var(--type-body);
+  line-height: 1.8;
+}
+.fashion-chapter-copy p + p { margin-top: 22px; }
+.fashion-organism {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(300px, .55fr);
+  gap: clamp(48px, 7vw, 100px);
+  align-items: center;
+}
+.fashion-organism-media {
+  min-width: 0;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background: #080808;
+}
+.fashion-organism-media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(.7) brightness(.82) contrast(1.08);
+}
+.fashion-organism-copy h2 { font-size: clamp(1.8rem, 3vw, 3.6rem); }
+.fashion-organism-copy .fashion-chapter-copy { margin-top: 34px; }
+.fashion-material-archive {
+  display: grid;
+  grid-template-columns: minmax(0, .8fr) minmax(380px, 1.2fr);
+  gap: clamp(56px, 9vw, 140px);
+  align-items: start;
+}
+.fashion-material-index {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--line);
+}
+.fashion-material-index li {
+  display: grid;
+  grid-template-columns: minmax(180px, .8fr) minmax(0, 1.2fr);
+  gap: 28px;
+  padding: 24px 0;
+  border-bottom: 1px solid var(--line);
+}
+.fashion-material-index span {
+  font: 10px/1.6 'Courier New', monospace;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+}
+.fashion-material-index p {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.65;
+}
+.fashion-editorial .preview-grid {
+  padding: clamp(80px, 9vw, 130px) 0;
+  border-bottom: 1px solid var(--line);
+}
+.fashion-development .fashion-definition-layout { align-items: start; }
+.fashion-closing {
+  min-height: 62svh;
+  display: grid;
+  place-items: center;
+  padding: clamp(100px, 12vw, 170px) 0 0;
+}
+.fashion-closing p {
+  max-width: 980px;
+  font-size: clamp(1.45rem, 2.8vw, 3rem);
+}
 .chapter-head { display: grid; grid-template-columns: 180px 1fr; gap: 34px; margin-bottom: 60px; }
 .chapter-index { color: var(--muted); font: 10px 'Courier New', monospace; letter-spacing: .25em; text-transform: uppercase; }
 .chapter-copy { max-width: 740px; font-size: var(--type-body); line-height: 1.75; }
@@ -194,10 +325,50 @@ h1 { font: 400 clamp(48px, 8vw, 120px)/.96 Michroma, sans-serif; letter-spacing:
   .overview-hero { min-height: 74svh; align-items: center; padding-top: 104px; padding-bottom: 42px; }
   .overview-hero .fashion-page-hero-content { transform: translateY(-2vh); }
   .overview-hero h1 { font-size: clamp(2.75rem, 13vw, 5rem); }
+  .fashion-hero-support { margin-top: 18px; letter-spacing: .18em; }
   .overview-hero .hero-lede { margin-top: 14px; font-size: 1rem; }
   .fashion-research-definition { margin-top: 10px; font-size: .88rem; }
   .hero-lede { margin-top: 18px; line-height: 1.6; }
   .archive-main { padding: 90px 18px 110px; }
+  .fashion-statement {
+    min-height: 58svh;
+    padding: 90px 18px;
+  }
+  .fashion-statement p,
+  .fashion-closing p {
+    font-size: clamp(1.35rem, 6.2vw, 2rem);
+    line-height: 1.5;
+  }
+  .fashion-editorial { padding-top: 0; }
+  .fashion-chapter { padding: 82px 0; }
+  .fashion-definition-layout,
+  .fashion-organism,
+  .fashion-material-archive,
+  .fashion-collaboration {
+    grid-template-columns: 1fr;
+    gap: 42px;
+  }
+  .fashion-chapter h2,
+  .fashion-organism-copy h2 {
+    font-size: clamp(1.75rem, 8vw, 2.7rem);
+  }
+  .fashion-chapter-copy { font-size: 1rem; }
+  .fashion-organism-media {
+    order: 0;
+    width: 100%;
+    aspect-ratio: 4 / 5;
+  }
+  .fashion-organism-copy { order: 1; }
+  .fashion-material-index li {
+    grid-template-columns: 1fr;
+    gap: 7px;
+    padding: 20px 0;
+  }
+  .fashion-editorial .preview-grid { padding: 76px 0; }
+  .fashion-closing {
+    min-height: 52svh;
+    padding-top: 90px;
+  }
   .chapter-head, .collection-intro { grid-template-columns: 1fr; gap: 24px; }
   .preview-grid, .gallery { grid-template-columns: 1fr; }
   .gallery .wide { grid-column: auto; }
