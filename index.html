@@ -2840,7 +2840,8 @@ body.nina-connecting-mode
   display: grid;
   grid-template-columns: minmax(0, 2fr) minmax(240px, 1fr);
   align-items: center;
-  padding: 150px 0 120px;
+  padding: 112px 0 76px;
+  transform: translateY(-2vh);
 }
 
 .hero-copy {
@@ -3057,13 +3058,226 @@ body.nina-connecting-mode
   padding-top: 18px;
 }
 .fashion-card:focus-visible { outline: 1px solid #666; outline-offset: 8px; }
-.fashion-card.magnetic { order: 3; }
-.fashion-card.bio { order: 4; }
+.fashion-card.chromia { order: 1; }
+.fashion-card.flesh-zero { order: 2; }
+.fashion-card.lotus { order: 3; }
+.fashion-card.magnetic { order: 4; }
+.fashion-card.bio { order: 5; }
 .fashion-overview-link { margin-top: -48px; }
+
+/* Fashion After Fabric / open transmission */
+.fashion-transmission {
+  position: relative;
+  min-height: auto;
+  grid-template-columns: minmax(320px, .72fr) minmax(0, 1.28fr);
+  gap: clamp(64px, 7vw, 112px);
+  align-items: center;
+  margin-bottom: 110px;
+}
+
+.fashion-transmission::after {
+  content: none;
+}
+
+.fashion-transmission .fashion-copy { padding: 0; }
+
+.fashion-channel-status {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  color: rgba(255,255,255,.38);
+  font: 8px 'Courier New', monospace;
+  letter-spacing: .32em;
+  text-transform: uppercase;
+}
+
+.fashion-channel-status span:last-child {
+  margin-left: auto;
+  color: rgba(255,255,255,.6);
+}
+
+.fashion-channel-pulse {
+  width: 5px;
+  height: 5px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: #dce7e2;
+  box-shadow: 0 0 12px rgba(220,231,226,.72);
+  animation: fashionSignalPulse 2.8s ease-in-out infinite;
+}
+
+@keyframes fashionSignalPulse {
+  0%, 100% { opacity: .35; }
+  50% { opacity: 1; }
+}
+
+.fashion-transmission .fashion-kicker {
+  margin: 0 0 20px;
+  font-size: clamp(10px, .7vw, 12px);
+  letter-spacing: .28em;
+}
+
+.fashion-transmission .fashion-title {
+  max-width: 100%;
+  font-size: clamp(34px, 3.4vw, 52px);
+  letter-spacing: .06em;
+  line-height: 1.02;
+  overflow-wrap: normal;
+}
+
+.fashion-transmission .fashion-title span { display: block; }
+
+.fashion-transmission .fashion-title span:last-child {
+  margin-left: 0;
+  color: rgba(255,255,255,.76);
+}
+
+.fashion-transmission .fashion-lede {
+  max-width: 470px;
+  margin-top: 26px;
+  color: rgba(255,255,255,.68);
+  font-size: clamp(15px, 1.1vw, 18px);
+  letter-spacing: .01em;
+  line-height: 1.75;
+  white-space: pre-line;
+}
+
+.fashion-archive-label {
+  max-width: 520px;
+  margin-top: 46px;
+  color: rgba(255,255,255,.5);
+  font: clamp(10px, .7vw, 12px) 'Courier New', monospace;
+  letter-spacing: .26em;
+  text-transform: uppercase;
+}
+
+.fashion-transmission .fashion-links {
+  display: block;
+  max-width: 520px;
+  margin-top: 15px;
+}
+
+.fashion-transmission .fashion-links a {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  align-items: center;
+  min-height: 58px;
+  padding: 0 2px;
+  border: 0;
+  border-top: 1px solid rgba(255,255,255,.13);
+  color: rgba(255,255,255,.72);
+  transition: color .3s ease, padding-left .3s ease;
+}
+
+.fashion-transmission .fashion-links a:last-child {
+  border-bottom: 1px solid rgba(255,255,255,.13);
+}
+
+.fashion-transmission .fashion-links a:hover,
+.fashion-transmission .fashion-links a:focus-visible {
+  padding-left: 10px;
+  color: #fff;
+  background: transparent;
+}
+
+.fashion-frequency-index,
+.fashion-frequency-arrow {
+  color: rgba(255,255,255,.3);
+  font: 8px 'Courier New', monospace;
+  letter-spacing: .18em;
+}
+
+.fashion-frequency-name {
+  font-family: 'Michroma', sans-serif;
+  font-size: clamp(11px, .85vw, 14px);
+  letter-spacing: .14em;
+}
+
+.fashion-frequency-arrow {
+  justify-self: end;
+  transition: transform .3s ease, color .3s ease;
+}
+
+.fashion-transmission .fashion-links a:hover .fashion-frequency-arrow,
+.fashion-transmission .fashion-links a:focus-visible .fashion-frequency-arrow {
+  color: rgba(255,255,255,.85);
+  transform: translate(2px, -2px);
+}
+
+.fashion-transmission .fashion-copy > .small {
+  max-width: 440px;
+  margin-top: 24px;
+  color: rgba(255,255,255,.46);
+  font: clamp(12px, .9vw, 14px)/1.75 Inter, sans-serif;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.fashion-transmission .fashion-hero-media {
+  width: 100%;
+  max-height: 820px;
+  aspect-ratio: 4 / 5;
+  justify-self: end;
+  overflow: hidden;
+  border-color: rgba(255,255,255,.16);
+  background: #020202;
+}
+
+.fashion-transmission .fashion-hero-media img {
+  object-fit: cover;
+  object-position: center;
+  filter: saturate(.58) brightness(.72) contrast(1.12);
+  transition: filter .8s ease, transform 1.2s ease;
+}
+
+.fashion-transmission .fashion-hero-media:hover img {
+  filter: saturate(.82) brightness(.86) contrast(1.08);
+  transform: scale(1.012);
+}
+
+.fashion-transmission .fashion-hero-media::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(0deg, rgba(255,255,255,.018) 0 1px, transparent 1px 5px),
+    linear-gradient(180deg, rgba(0,0,0,.1), transparent 42%, rgba(0,0,0,.58));
+}
+
+.fashion-transmission .fashion-hero-media::after {
+  content: "LIVE / FF-02";
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  z-index: 3;
+  color: rgba(255,255,255,.66);
+  font: 8px 'Courier New', monospace;
+  letter-spacing: .34em;
+}
+
+.fashion-transmission .fashion-hero-media figcaption {
+  position: absolute;
+  right: 18px;
+  bottom: 16px;
+  left: 18px;
+  z-index: 3;
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  color: rgba(255,255,255,.55);
+  font: 8px 'Courier New', monospace;
+  letter-spacing: .3em;
+  text-transform: uppercase;
+}
 
 /* Berlin 2063 / living archive */
 .berlin-archive {
   overflow: hidden;
+  --archive-section-title: clamp(1.35rem, 2.05vw, 2rem);
+  --archive-body: clamp(.95rem, 1.05vw, 1.1rem);
+  --archive-label: clamp(.68rem, .72vw, .78rem);
 }
 
 .berlin-archive-intro {
@@ -3074,8 +3288,8 @@ body.nina-connecting-mode
 .berlin-archive-label,
 .berlin-transmission-index {
   color: rgba(255,255,255,.42);
-  font: 9px 'Courier New', monospace;
-  letter-spacing: .34em;
+  font: var(--archive-label) 'Courier New', monospace;
+  letter-spacing: .28em;
   text-transform: uppercase;
 }
 
@@ -3096,8 +3310,8 @@ body.nina-connecting-mode
 .berlin-archive-definition p,
 .berlin-transmission-caption {
   color: rgba(255,255,255,.66);
-  font-size: 14px;
-  line-height: 1.9;
+  font-size: var(--archive-body);
+  line-height: 1.8;
 }
 
 .berlin-archive-definition p + p {
@@ -3110,10 +3324,10 @@ body.nina-connecting-mode
 
 .berlin-transmission {
   display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(280px, .65fr);
-  gap: clamp(48px, 8vw, 120px);
+  grid-template-columns: minmax(0, 58fr) minmax(300px, 42fr);
+  gap: clamp(44px, 6vw, 88px);
   align-items: center;
-  padding: clamp(72px, 10vw, 140px) 0;
+  padding: clamp(76px, 8vw, 116px) 0;
   border-bottom: 1px solid #1a1a1a;
 }
 
@@ -3121,8 +3335,13 @@ body.nina-connecting-mode
   order: 2;
 }
 
+.berlin-transmission:nth-child(even) {
+  grid-template-columns: minmax(300px, 42fr) minmax(0, 58fr);
+}
+
 .berlin-transmission-media {
   min-width: 0;
+  aspect-ratio: 16 / 10;
   overflow: hidden;
   background: #030303;
 }
@@ -3130,8 +3349,7 @@ body.nina-connecting-mode
 .berlin-transmission-media img {
   display: block;
   width: 100%;
-  height: auto;
-  max-height: 760px;
+  height: 100%;
   object-fit: cover;
   filter: saturate(.72) brightness(.76) contrast(1.08);
 }
@@ -3144,11 +3362,15 @@ body.nina-connecting-mode
   margin-top: 18px;
   color: #fff;
   font-family: 'Michroma', sans-serif;
-  font-size: clamp(20px, 2.4vw, 34px);
+  max-width: 100%;
+  font-size: var(--archive-section-title);
   font-weight: 400;
-  letter-spacing: .1em;
-  line-height: 1.25;
+  letter-spacing: .06em;
+  line-height: 1.3;
   text-transform: uppercase;
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: none;
 }
 
 .berlin-transmission-caption {
@@ -3157,19 +3379,20 @@ body.nina-connecting-mode
 }
 
 .berlin-archive-closing {
-  max-width: 860px;
-  margin: clamp(100px, 14vw, 190px) auto 0;
+  max-width: 1180px;
+  margin: clamp(94px, 11vw, 148px) auto 0;
   color: #fff;
   font-family: 'Michroma', sans-serif;
-  font-size: clamp(18px, 2.8vw, 34px);
-  letter-spacing: .08em;
-  line-height: 1.65;
+  font-size: clamp(18px, 2vw, 28px);
+  letter-spacing: .035em;
+  line-height: 1.55;
   text-align: center;
   text-transform: uppercase;
 }
 
 .berlin-archive-closing span {
   display: block;
+  white-space: nowrap;
 }
 
 .nina-archive-note {
@@ -3194,10 +3417,26 @@ body.nina-connecting-mode
   .fashion-landing { grid-template-columns: 1fr; gap: 46px; }
   .fashion-copy { padding: 0; }
   .fashion-title { font-size: clamp(42px, 10vw, 72px); }
-  .berlin-transmission {
-    grid-template-columns: minmax(0, 1.15fr) minmax(240px, .85fr);
-    gap: 42px;
+  .fashion-transmission {
+    min-height: auto;
+    grid-template-columns: 1fr;
+    gap: 72px;
+    margin-bottom: 100px;
   }
+  .fashion-transmission::after { display: none; }
+  .fashion-transmission .fashion-hero-media {
+    width: min(82%, 620px);
+    justify-self: end;
+  }
+  .berlin-transmission {
+    grid-template-columns: 1fr;
+    gap: 34px;
+    padding: 72px 0;
+  }
+  .berlin-transmission:nth-child(even) { grid-template-columns: 1fr; }
+  .berlin-transmission:nth-child(even) .berlin-transmission-media { order: 0; }
+  .berlin-transmission-media { width: 100%; aspect-ratio: 16 / 10; }
+  .berlin-archive-closing span { white-space: normal; }
 }
 
 @media (max-width: 620px) {
@@ -3215,6 +3454,23 @@ body.nina-connecting-mode
   .fashion-hero-media { aspect-ratio: 4 / 5; }
   .fashion-card h3 { min-height: 0; }
   .fashion-card span { margin-top: 18px; padding-top: 0; }
+  .fashion-channel-status { flex-wrap: wrap; row-gap: 10px; }
+  .fashion-channel-status span:last-child { width: 100%; margin-left: 21px; }
+  .fashion-transmission .fashion-kicker { margin-top: 34px; }
+  .fashion-transmission .fashion-title { font-size: clamp(32px, 10vw, 44px); }
+  .fashion-transmission .fashion-title span:last-child { margin-left: 0; }
+  .fashion-transmission .fashion-lede { font-size: 15px; }
+  .fashion-archive-label { margin-top: 38px; }
+  .fashion-transmission .fashion-links a { min-height: 52px; }
+  .fashion-transmission .fashion-hero-media {
+    width: calc(100% - 26px);
+    aspect-ratio: 4 / 5;
+  }
+  .fashion-transmission .fashion-hero-media figcaption {
+    display: block;
+    line-height: 1.8;
+  }
+  .fashion-transmission .fashion-hero-media figcaption span { display: block; }
   .berlin-archive-intro { margin-bottom: 80px; }
   .berlin-archive-definition { margin-left: 0; }
   .berlin-transmission {
@@ -3223,7 +3479,6 @@ body.nina-connecting-mode
     padding: 72px 0;
   }
   .berlin-transmission:nth-child(even) .berlin-transmission-media { order: 0; }
-  .berlin-transmission-media img { max-height: none; }
   .berlin-transmission-caption { margin-top: 22px; }
   .berlin-archive-closing {
     margin-top: 90px;
@@ -3235,6 +3490,13 @@ body.nina-connecting-mode
     width: auto;
     margin-top: 14px;
   }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fashion-channel-pulse { animation: none; }
+  .fashion-transmission .fashion-hero-media img,
+  .fashion-transmission .fashion-links a,
+  .fashion-frequency-arrow { transition: none; }
 }
 
 /* Mobile homepage: signal first, interface second */
@@ -4009,7 +4271,7 @@ body.nina-connecting-mode
   <div class="wrapper">
 
 
-    <div class="fashion-landing">
+    <div class="fashion-landing fashion-transmission">
 
 
       <div class="fashion-copy">
@@ -4027,35 +4289,48 @@ body.nina-connecting-mode
 
           <h2 class="fashion-title">
 
-            Future Fashion
+            <span>Fashion</span>
+            <span>After</span>
+            <span>Fabric</span>
 
           </h2>
 
 
           <p class="fashion-lede">
-            Clothing as nightlife armor, body-interface and living signal. The
-            fashion extension of Parallel Vision: reactive materials, future
-            ceremony and emotional architecture for Berlin 2063.
+            The question is no longer what we will wear.<br>
+            It is what clothing becomes once fabric disappears.
 
           </p>
+
+
+          <div class="fashion-archive-label">Collections</div>
 
 
           <div class="fashion-links">
 
             <a href="./chromia.html">
-              Chromia
+              <span class="fashion-frequency-index">01</span>
+              <span class="fashion-frequency-name">Chromia</span>
+            </a>
+
+            <a href="./flesh-zero.html">
+              <span class="fashion-frequency-index">02</span>
+              <span class="fashion-frequency-name">Flesh Zero</span>
             </a>
 
             <a href="./lotus-2063.html">
-              Lotus 2063
+              <span class="fashion-frequency-index">03</span>
+              <span class="fashion-frequency-name">Lotus 2063</span>
             </a>
 
             <a href="./magnetic-tape.html">
-              Magnetic Tape
+              <span class="fashion-frequency-index">04</span>
+              <span class="fashion-frequency-name">Magnetic Tape</span>
             </a>
 
             <a href="./dna-mutation.html">
-              DNA Mutation
+              <span class="fashion-frequency-index">05</span>
+              <span class="fashion-frequency-name">DNA Mutation</span>
             </a>
 
           </div>
@@ -4066,10 +4341,7 @@ body.nina-connecting-mode
 
         <p class="small">
 
-          Campaign stills,
-          lookbook sheets
-          and material studies
-          from the Parallel Vision fashion archive.
+          Five material studies from the Parallel Vision fashion archive.
 
         </p>
 
@@ -4079,13 +4351,18 @@ body.nina-connecting-mode
 
       <figure
         class="fashion-hero-media"
-        data-label="Future Fashion hero"
+        data-label="Fashion After Fabric hero"
       >
 
         <img
-          src="./assets/fashion-hero.png"
-          alt="Future Fashion editorial campaign"
+          src="assets/LOOK04.png"
+          alt="Flesh Zero Look 04 Fashion After Fabric editorial campaign"
         >
+
+        <figcaption>
+          <span>Feed 02 / Look 04</span>
+          <span>Berlin node / 2063</span>
+        </figcaption>
 
       </figure>
 
