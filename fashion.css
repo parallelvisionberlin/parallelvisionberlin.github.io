@@ -59,6 +59,28 @@ img { max-width: 100%; }
 .overview-hero .fashion-hero-media img,
 .overview-hero .fashion-hero-media video { object-position: center top; }
 .fashion-hero-media { background: #030303; }
+.fashion-sound-toggle {
+  position: absolute;
+  right: 34px;
+  bottom: 28px;
+  z-index: 3;
+  border: 0;
+  padding: 0;
+  background: none;
+  color: rgba(255,255,255,.5);
+  font: 9px 'Courier New', monospace;
+  letter-spacing: .24em;
+  line-height: 1.5;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color .25s ease;
+}
+.fashion-sound-toggle:hover,
+.fashion-sound-toggle[aria-pressed="true"] { color: #fff; }
+.fashion-sound-toggle:focus-visible {
+  outline: 1px solid #777;
+  outline-offset: 6px;
+}
 .fashion-page-hero-content { position: relative; z-index: 2; max-width: 920px; }
 .overview-hero .fashion-page-hero-content {
   width: min(100%, 950px);
@@ -325,6 +347,7 @@ h1 { font: 400 clamp(48px, 8vw, 120px)/.96 Michroma, sans-serif; letter-spacing:
   .overview-hero { min-height: 74svh; align-items: center; padding-top: 104px; padding-bottom: 42px; }
   .overview-hero .fashion-page-hero-content { transform: translateY(-2vh); }
   .overview-hero h1 { font-size: clamp(2.75rem, 13vw, 5rem); }
+  .fashion-sound-toggle { right: 18px; bottom: 18px; }
   .fashion-hero-support { margin-top: 18px; letter-spacing: .18em; }
   .overview-hero .hero-lede { margin-top: 14px; font-size: 1rem; }
   .fashion-research-definition { margin-top: 10px; font-size: .88rem; }
