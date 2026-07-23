@@ -9,10 +9,46 @@
       <source src="./heroafterfabricvideo.mp4" type="video/mp4">
     </video>
   </div>
+  <audio id="fashionSoundtrack" loop preload="metadata">
+    <source src="assets/alejandromolinari-das-signale.mp3" type="audio/mpeg">
+  </audio>
+  <button
+    class="fashion-sound-toggle"
+    id="fashionSoundToggle"
+    type="button"
+    aria-pressed="false"
+    aria-label="Turn soundtrack on"
+  >
+    Sound Off
+  </button>
   <script>
     (() => {
       const video = document.querySelector('.fashion-hero-video');
+      const soundtrack = document.getElementById('fashionSoundtrack');
+      const soundToggle = document.getElementById('fashionSoundToggle');
       const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+      let wasPlayingBeforeHidden = false;
+
+      const setSoundState = (playing) => {
+        soundToggle.textContent = playing ? 'Sound On' : 'Sound Off';
+        soundToggle.setAttribute('aria-pressed', String(playing));
+        soundToggle.setAttribute(
+          'aria-label',
+          playing ? 'Turn soundtrack off' : 'Turn soundtrack on'
+        );
+      };
+
+      const startSoundtrack = async () => {
+        try {
+          await soundtrack.play();
+          setSoundState(true);
+          return true;
+        } catch {
+          setSoundState(false);
+          return false;
+        }
+      };
+
       const syncMotionPreference = () => {
         if (reducedMotion.matches) {
           video.removeAttribute('autoplay');
@@ -24,6 +60,40 @@
       };
       video.addEventListener('error', () => { video.hidden = true; });
       reducedMotion.addEventListener?.('change', syncMotionPreference);
+      soundToggle.addEventListener('click', async () => {
+        if (soundtrack.paused) {
+          await startSoundtrack();
+          return;
+        }
+        soundtrack.pause();
+        setSoundState(false);
+      });
+      soundtrack.addEventListener('error', () => {
+        soundtrack.pause();
+        wasPlayingBeforeHidden = false;
+        setSoundState(false);
+      });
+      document.addEventListener('visibilitychange', async () => {
+        if (document.hidden) {
+          wasPlayingBeforeHidden = !soundtrack.paused;
+          if (wasPlayingBeforeHidden) {
+            soundtrack.pause();
+            setSoundState(false);
+          }
+          return;
+        }
+        if (wasPlayingBeforeHidden) {
+          wasPlayingBeforeHidden = false;
+          await startSoundtrack();
+        }
+      });
+      window.addEventListener('pagehide', () => {
+        soundtrack.pause();
+        soundtrack.currentTime = 0;
+        wasPlayingBeforeHidden = false;
+        setSoundState(false);
+      });
+      setSoundState(false);
       syncMotionPreference();
     })();
   </script>
