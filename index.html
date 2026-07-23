@@ -3234,6 +3234,128 @@ body.nina-connecting-mode
   text-transform: uppercase;
 }
 
+/* Berlin 2063 / living archive */
+.berlin-archive {
+  overflow: hidden;
+}
+
+.berlin-archive-intro {
+  max-width: 900px;
+  margin-bottom: clamp(88px, 12vw, 160px);
+}
+
+.berlin-archive-label,
+.berlin-transmission-index {
+  color: rgba(255,255,255,.42);
+  font: 9px 'Courier New', monospace;
+  letter-spacing: .34em;
+  text-transform: uppercase;
+}
+
+.berlin-archive-intro h2 {
+  margin-top: 22px;
+  font-size: clamp(44px, 8vw, 104px);
+  letter-spacing: .08em;
+  line-height: .95;
+}
+
+.berlin-archive-definition {
+  max-width: 680px;
+  margin: clamp(42px, 6vw, 72px) 0 0 auto;
+  border-top: 1px solid #1a1a1a;
+  padding-top: 30px;
+}
+
+.berlin-archive-definition p,
+.berlin-transmission-caption {
+  color: rgba(255,255,255,.66);
+  font-size: 14px;
+  line-height: 1.9;
+}
+
+.berlin-archive-definition p + p {
+  margin-top: 18px;
+}
+
+.berlin-transmissions {
+  border-top: 1px solid #1a1a1a;
+}
+
+.berlin-transmission {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(280px, .65fr);
+  gap: clamp(48px, 8vw, 120px);
+  align-items: center;
+  padding: clamp(72px, 10vw, 140px) 0;
+  border-bottom: 1px solid #1a1a1a;
+}
+
+.berlin-transmission:nth-child(even) .berlin-transmission-media {
+  order: 2;
+}
+
+.berlin-transmission-media {
+  min-width: 0;
+  overflow: hidden;
+  background: #030303;
+}
+
+.berlin-transmission-media img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 760px;
+  object-fit: cover;
+  filter: saturate(.72) brightness(.76) contrast(1.08);
+}
+
+.berlin-transmission-copy {
+  min-width: 0;
+}
+
+.berlin-transmission-copy h3 {
+  margin-top: 18px;
+  color: #fff;
+  font-family: 'Michroma', sans-serif;
+  font-size: clamp(20px, 2.4vw, 34px);
+  font-weight: 400;
+  letter-spacing: .1em;
+  line-height: 1.25;
+  text-transform: uppercase;
+}
+
+.berlin-transmission-caption {
+  max-width: 430px;
+  margin-top: 32px;
+}
+
+.berlin-archive-closing {
+  max-width: 860px;
+  margin: clamp(100px, 14vw, 190px) auto 0;
+  color: #fff;
+  font-family: 'Michroma', sans-serif;
+  font-size: clamp(18px, 2.8vw, 34px);
+  letter-spacing: .08em;
+  line-height: 1.65;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.berlin-archive-closing span {
+  display: block;
+}
+
+.nina-archive-note {
+  position: fixed;
+  right: 28px;
+  bottom: 118px;
+  z-index: 9997;
+  width: 270px;
+  color: rgba(255,255,255,.45);
+  font: 9px/1.7 'Courier New', monospace;
+  letter-spacing: .08em;
+}
+
 @media (max-width: 900px) {
   .hero-content { grid-template-columns: 1fr; }
   .hero-visual-reserve { display: none; }
@@ -3267,6 +3389,9 @@ body.nina-connecting-mode
   .fashion-transmission .fashion-hero-media {
     width: min(82%, 620px);
     justify-self: end;
+  .berlin-transmission {
+    grid-template-columns: minmax(0, 1.15fr) minmax(240px, .85fr);
+    gap: 42px;
   }
 }
 
@@ -3339,6 +3464,26 @@ body.nina-connecting-mode
   .fashion-transmission .fashion-hero-media img,
   .fashion-transmission .fashion-links a,
   .fashion-frequency-arrow { transition: none; }
+  .berlin-archive-intro { margin-bottom: 80px; }
+  .berlin-archive-definition { margin-left: 0; }
+  .berlin-transmission {
+    grid-template-columns: 1fr;
+    gap: 34px;
+    padding: 72px 0;
+  }
+  .berlin-transmission:nth-child(even) .berlin-transmission-media { order: 0; }
+  .berlin-transmission-media img { max-height: none; }
+  .berlin-transmission-caption { margin-top: 22px; }
+  .berlin-archive-closing {
+    margin-top: 90px;
+    font-size: 17px;
+    text-align: left;
+  }
+  .nina-archive-note {
+    position: static;
+    width: auto;
+    margin-top: 14px;
+  }
 }
 
 /* Mobile homepage: signal first, interface second */
@@ -3558,6 +3703,10 @@ body.nina-connecting-mode
         </span>
       </button>
 
+      <p class="nina-archive-note">
+        Nina is one of its inhabitants—and the only one visitors can speak to directly.
+      </p>
+
     </div>
 
     <div class="hero-visual-reserve" aria-hidden="true"></div>
@@ -3589,76 +3738,81 @@ body.nina-connecting-mode
   class="section"
 >
 
-  <div class="wrapper">
+  <div class="wrapper berlin-archive">
 
-
-    <div class="section-head">
-
-      <div>
-
-        <div class="number">
-
-          01
-
-        </div>
-
-        <h2>
-
-          Berlin 2063
-
-        </h2>
-
+    <header class="berlin-archive-intro">
+      <p class="berlin-archive-label">Parallel Vision / Living Archive</p>
+      <h2>Berlin 2063</h2>
+      <div class="berlin-archive-definition">
+        <p>
+          Berlin 2063 is an evolving audiovisual archive built from imagined
+          documents, environments, characters and memories of a possible future.
+        </p>
+        <p>
+          The project uses fiction to examine the systems already shaping the
+          present—from technology and architecture to nightlife, identity and
+          collective memory.
+        </p>
       </div>
-
-
-      <p class="small">
-        Parallel Vision documents Berlin 2063: a city of managed systems,
-        artificial memory, nightlife residues and emotional signals that
-        prediction cannot fully contain.
-      </p>
-
+    </header>
+    <div class="berlin-transmissions">
+      <article class="berlin-transmission">
+        <figure class="berlin-transmission-media">
+          <img
+            src="./assets/ebers2063.png"
+            alt="Berlin 2063 U-Bahn infrastructure"
+          >
+        </figure>
+        <div class="berlin-transmission-copy">
+          <p class="berlin-transmission-index">Transmission 01</p>
+          <h3>Infrastructure</h3>
+          <p class="berlin-transmission-caption">
+            The city continues to function long after its original systems have
+            begun to fail. Transport, surveillance and public space remain active,
+            carrying fragments of the society that built them.
+          </p>
+        </div>
+      </article>
+      <article class="berlin-transmission">
+        <figure class="berlin-transmission-media">
+          <img
+            src="./assets/thecitysuperhd1.png"
+            alt="Berlin 2063 vertical city and historic structures"
+          >
+        </figure>
+        <div class="berlin-transmission-copy">
+          <p class="berlin-transmission-index">Transmission 02</p>
+          <h3>The City</h3>
+          <p class="berlin-transmission-caption">
+            Berlin has expanded vertically, but its historical structures remain
+            embedded within it. Old monuments, transport lines and social rituals
+            survive inside new technological systems.
+          </p>
+        </div>
+      </article>
+      <article class="berlin-transmission">
+        <figure class="berlin-transmission-media">
+          <img
+            src="./assets/cabizwalkone.png"
+            alt="An inhabitant walking through Berlin 2063"
+          >
+        </figure>
+        <div class="berlin-transmission-copy">
+          <p class="berlin-transmission-index">Transmission 03</p>
+          <h3>The Inhabitants</h3>
+          <p class="berlin-transmission-caption">
+            The archive follows individuals moving through this future—not as
+            anonymous models, but as witnesses shaped by its architecture,
+            materials and social conditions.
+          </p>
+        </div>
+      </article>
     </div>
 
-
-    <div class="story">
-
-      <figure class="berlin-visual">
-        <img
-          src="./assets/ebers2063.png"
-          alt="Berlin 2063 transit architecture"
-        >
-      </figure>
-
-
-      <div class="story-text">
-
-        <p>
-
-          In this version of Berlin, infrastructure still runs after collapse.
-          Trains move, towers breathe, archives remember, and desire survives
-          inside machine order.
-
-        </p>
-
-
-        <p>
-
-          Parallel Vision follows the unstable frequencies left between bodies,
-          music, architecture and memory. Not prophecy. Not nostalgia. A living
-          fragment from a future already rehearsing itself.
-
-        </p>
-
-
-        <div class="statement">
-
-          Music remains the last unstable signal.
-
-        </div>
-
-      </div>
-
-    </div>
+    <p class="berlin-archive-closing">
+      <span>Berlin 2063 is not presented as a finished world.</span>
+      <span>It is an archive that continues to remember itself.</span>
+    </p>
 
   </div>
 
