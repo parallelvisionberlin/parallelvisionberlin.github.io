@@ -58,10 +58,11 @@
   const pages = {
     "future-fashion.html": [
       [".fashion-hero-support", "A material future by Parallel Vision", "Eine materielle Zukunft von Parallel Vision"],
-      [".fashion-statement p", "The question is no longer what we will wear.\nIt is what clothing becomes once fabric disappears.", "Die Frage ist nicht mehr, was wir tragen werden.\nSondern was Kleidung wird, wenn Stoff verschwindet."],
+      [".fashion-statement-copy", "The question is no longer what we will wear. It is what clothing becomes once fabric disappears.", "Die Frage ist nicht mehr, was wir tragen werden. Sondern was Kleidung wird, wenn Stoff verschwindet."],
+      [".fashion-statement-label", "Parallel Vision / Material Research", "Parallel Vision / Materialforschung"],
       [".fashion-project-definition .fashion-chapter-label", "Parallel Vision / Material Research", "Parallel Vision / Materialforschung"],
       ["#fashion-research-title", "Material Research for Bodies in Transition", "Materialforschung für Körper im Übergang"],
-      [".fashion-project-definition .fashion-chapter-copy p:nth-child(1)", "Fashion After Fabric investigates clothing beyond textiles through speculative materials, biological systems and responsive technologies.", "Fashion After Fabric untersucht Kleidung jenseits von Textilien durch spekulative Materialien, biologische Systeme und reaktive Technologien."],
+      [".fashion-project-definition .fashion-chapter-copy p:nth-child(1)", "A speculative material research project exploring clothing beyond textiles through responsive matter, biotechnology, synthetic systems and new relationships between technology and the human body.", "Ein spekulatives Materialforschungsprojekt, das Kleidung jenseits von Textilien durch reaktive Materie, Biotechnologie, synthetische Systeme und neue Beziehungen zwischen Technologie und dem menschlichen Körper untersucht."],
       [".fashion-project-definition .fashion-chapter-copy p:nth-child(2)", "Across its collections, garments become synthetic skin, protective architecture, memory systems and interfaces between the body and its environment.", "In den Kollektionen werden Kleidungsstücke zu synthetischer Haut, schützender Architektur, Erinnerungssystemen und Schnittstellen zwischen Körper und Umwelt."],
       [".fashion-project-definition .fashion-chapter-copy p:nth-child(3)", "The project exists across images, moving works, artist collaborations and future physical experiments.", "Das Projekt entfaltet sich in Bildern, Bewegtbildarbeiten, künstlerischen Kollaborationen und zukünftigen physischen Experimenten."],
       [".fashion-organism .fashion-chapter-label", "Berlin 2063 / Central Thesis", "Berlin 2063 / Zentrale These"],
