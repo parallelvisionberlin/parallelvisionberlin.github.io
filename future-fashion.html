@@ -1,12 +1,25 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Fashion After Fabric / Parallel Vision</title><link rel="stylesheet" href="./fashion.css"><script src="./language.js" defer></script></head>
-<body>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Fashion After Fabric / Parallel Vision</title>
+  <link rel="stylesheet" href="./fashion.css">
+  <script src="./language.js" defer></script>
+</head>
+<body class="fashion-overview-page">
 <header class="fashion-page-hero overview-hero">
-  <nav class="archive-nav"><a href="./index.html">Parallel Vision</a><div class="archive-nav-links"><a href="./index.html#releases">Releases</a><a href="./index.html#contact">Contact</a></div></nav>
+  <nav class="archive-nav">
+    <a href="./index.html">Parallel Vision</a>
+    <div class="archive-nav-links">
+      <a href="./index.html#releases">Releases</a>
+      <a href="./index.html#contact">Contact</a>
+    </div>
+  </nav>
   <div class="fashion-hero-media">
     <img class="fashion-hero-poster" src="./assets/fashion-hero.png" alt="Fashion After Fabric editorial campaign">
     <video class="fashion-hero-video" autoplay muted loop playsinline preload="metadata" poster="./assets/fashion-hero.png" aria-hidden="true">
-      <source src="./heroafterfabricvideo.mp4" type="video/mp4">
+      <source src="heroafterfabricvideo.mp4" type="video/mp4">
     </video>
   </div>
   <audio id="fashionSoundtrack" loop preload="metadata">
@@ -97,28 +110,61 @@
       syncMotionPreference();
     })();
   </script>
-  <div class="fashion-page-hero-content"><div class="eyebrow">Parallel Vision Atelier / Berlin 2063</div><h1>Fashion After<br>Fabric</h1><p class="hero-lede">The question is no longer what we will wear.<br>It is what clothing becomes once fabric disappears.</p><p class="fashion-research-definition">A speculative material research project exploring clothing beyond textiles through responsive matter, biotechnology, synthetic systems and new relationships between technology and the human body.</p></div>
+  <div class="fashion-page-hero-content">
+    <h1>Fashion After<br>Fabric</h1>
+    <p class="fashion-hero-support">A material future by Parallel Vision</p>
+  </div>
 </header>
-<main class="archive-main">
-  <section class="archive-research" aria-labelledby="archive-research-title">
-    <div>
-      <p class="archive-research-label">Parallel Vision / Material Research</p>
-      <h2 id="archive-research-title" class="archive-research-title">Material Research for Bodies in Transition</h2>
-      <div class="archive-research-copy">
-        <p>Fashion After Fabric explores what clothing becomes when textiles are replaced by responsive, biological and synthetic systems.</p>
-        <p>Each collection develops a distinct material hypothesis—from liquid metal and programmable surfaces to engineered tissue, magnetic structures and living membranes.</p>
-        <p>Together, they form an evolving archive of possible relationships between clothing, technology and the human body.</p>
+
+<section class="fashion-statement" aria-label="Fashion After Fabric statement">
+  <div class="fashion-statement-inner">
+    <p class="fashion-statement-copy">The question is no longer what we will wear. It is what clothing becomes once fabric disappears.</p>
+    <p class="fashion-statement-label">Parallel Vision / Material Research</p>
+  </div>
+</section>
+
+<main class="archive-main fashion-editorial">
+  <section class="fashion-chapter fashion-project-definition" aria-labelledby="fashion-research-title">
+    <p class="fashion-chapter-label">Parallel Vision / Material Research</p>
+    <div class="fashion-definition-layout">
+      <h2 id="fashion-research-title">Material Research for Bodies in Transition</h2>
+      <div class="fashion-chapter-copy">
+        <p>A speculative material research project exploring clothing beyond textiles through responsive matter, biotechnology, synthetic systems and new relationships between technology and the human body.</p>
+        <p>Across its collections, garments become synthetic skin, protective architecture, memory systems and interfaces between the body and its environment.</p>
+        <p>The project exists across images, moving works, artist collaborations and future physical experiments.</p>
       </div>
     </div>
-    <ol class="archive-research-directions" aria-label="Research directions">
-      <li><span class="archive-research-index" aria-hidden="true">01</span><div><h3>Chromia</h3><p>Responsive metallic skin</p></div></li>
-      <li><span class="archive-research-index" aria-hidden="true">02</span><div><h3>Flesh Zero</h3><p>Garment as synthetic tissue</p></div></li>
-      <li><span class="archive-research-index" aria-hidden="true">03</span><div><h3>Lotus 2063</h3><p>Protective volume and nightlife architecture</p></div></li>
-      <li><span class="archive-research-index" aria-hidden="true">04</span><div><h3>Magnetic Tape</h3><p>Memory, media and reconstructed material</p></div></li>
-      <li><span class="archive-research-index" aria-hidden="true">05</span><div><h3>DNA Mutation</h3><p>Biological adaptation and altered anatomy</p></div></li>
+  </section>
+
+  <section class="fashion-chapter fashion-organism" aria-labelledby="fashion-organism-title">
+    <figure class="fashion-organism-media">
+      <img src="./assets/liquid-metal-hero.png" alt="Liquid-metal material system from Fashion After Fabric">
+    </figure>
+    <div class="fashion-organism-copy">
+      <p class="fashion-chapter-label">Berlin 2063 / Central Thesis</p>
+      <h2 id="fashion-organism-title">From Garment to Organism</h2>
+      <div class="fashion-chapter-copy">
+        <p>In the world of Berlin 2063, clothing is no longer an external layer.</p>
+        <p>Liquid-metal alloys respond to movement, temperature and bioelectric activity. Synthetic membranes merge with the body. Materials adapt, protect, record and transform.</p>
+        <p>The garment becomes a second dermal system: part clothing, part technology, part living structure.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="fashion-chapter fashion-material-archive" aria-labelledby="fashion-archive-title">
+    <div class="fashion-archive-heading">
+      <p class="fashion-chapter-label">Archive / 05 Material Systems</p>
+      <h2 id="fashion-archive-title">The Material Archive</h2>
+    </div>
+    <ol class="fashion-material-index">
+      <li><span>01 — Chromia</span><p>Responsive metallic skin</p></li>
+      <li><span>02 — Flesh Zero</span><p>Synthetic tissue replacing the first layer of flesh</p></li>
+      <li><span>03 — Lotus 2063</span><p>Protective volume and nightlife architecture</p></li>
+      <li><span>04 — Magnetic Tape</span><p>Memory, media and reconstructed material</p></li>
+      <li><span>05 — DNA Mutation</span><p>Biological adaptation and altered anatomy</p></li>
     </ol>
   </section>
-  <div class="chapter-head"><div class="chapter-index">The Material Archive</div><p class="chapter-copy">Five Research Directions</p></div>
+
   <section class="preview-grid" aria-label="Fashion After Fabric collections">
     <a class="preview-card" href="./chromia.html"><div class="preview-image"><img src="./assets/liquid-metal-hero.png" alt="Chromia preview"></div><div class="preview-meta"><div><h2>Chromia</h2><p>Reactive alloy skins and liquid-metal body interfaces.</p></div><span class="preview-arrow">Open archive →</span></div></a>
     <a class="preview-card" href="./flesh-zero.html"><div class="preview-image"><img src="./assets/LOOK03.png" alt="Flesh Zero preview"></div><div class="preview-meta"><div><h2>Flesh Zero</h2><p>Chrome, gas, foam and synthetic tissue collapsing into one living surface.</p></div><span class="preview-arrow">Open archive →</span></div></a>
@@ -126,6 +172,38 @@
     <a class="preview-card" href="./magnetic-tape.html"><div class="preview-image"><img src="./assets/magnetic-tape-look-01.png" alt="Magnetic Tape preview"></div><div class="preview-meta"><div><h2>Magnetic Tape</h2><p>Analog memory translated into ribboned body architecture.</p></div><span class="preview-arrow">Open archive →</span></div></a>
     <a class="preview-card" href="./dna-mutation.html"><div class="preview-image"><img src="./assets/dna-mutation-soon.png" alt="DNA Mutation preview"></div><div class="preview-meta"><div><h2>DNA Mutation</h2><p>Living surfaces, altered membranes and speculative bio-material.</p></div><span class="preview-arrow">Open archive →</span></div></a>
   </section>
+
+  <section class="fashion-chapter fashion-collaboration" aria-labelledby="fashion-collaboration-title">
+    <div>
+      <p class="fashion-chapter-label">Artist Collaboration / Moving Image</p>
+      <h2 id="fashion-collaboration-title">Worn by the Inhabitants</h2>
+    </div>
+    <div class="fashion-chapter-copy">
+      <p>Fashion After Fabric expands through collaborations with musicians, performers and visual artists.</p>
+      <p>Artists are reimagined as inhabitants of Berlin 2063, wearing evolving material systems inside films, projected runways and live audiovisual environments.</p>
+      <p>The same garment may transform between bodies, performances and realities.</p>
+    </div>
+  </section>
+
+  <section class="fashion-chapter fashion-development" aria-labelledby="fashion-development-title">
+    <p class="fashion-chapter-label">Future Development</p>
+    <div class="fashion-definition-layout">
+      <h2 id="fashion-development-title">Beyond the Image</h2>
+      <div class="fashion-chapter-copy">
+        <p>Fashion After Fabric is an evolving archive of visual research, moving-image experiments and material propositions.</p>
+        <p>Its next stages move toward physical prototypes, installations, performance, projection and collaborations across fashion, music and technology.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="fashion-closing" aria-label="Fashion After Fabric closing statement">
+    <p>The future of clothing may not be something we wear.<br>It may be something we enter.</p>
+  </section>
 </main>
-<footer class="archive-footer"><span>PV_ATELIER / BERLIN NODE</span><a href="./index.html">Return to main archive</a></footer>
-</body></html>
+
+<footer class="archive-footer">
+  <span>PV_ATELIER / BERLIN NODE</span>
+  <a href="./index.html">Return to main archive</a>
+</footer>
+</body>
+</html>
