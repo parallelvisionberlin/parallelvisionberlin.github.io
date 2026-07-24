@@ -3273,6 +3273,91 @@ body.nina-connecting-mode
 }
 
 /* Berlin 2063 / living archive */
+.berlin-entry {
+  position: relative;
+  min-height: clamp(520px, 68vw, 760px);
+  display: grid;
+  align-items: end;
+  overflow: hidden;
+  padding: 0;
+  border-top: 1px solid #151515;
+  border-bottom: 1px solid #151515;
+  isolation: isolate;
+}
+
+.berlin-entry-media,
+.berlin-entry-media::after {
+  position: absolute;
+  inset: 0;
+}
+
+.berlin-entry-media {
+  z-index: -2;
+  margin: 0;
+}
+
+.berlin-entry-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 58%;
+  filter: saturate(.65) brightness(.66) contrast(1.08);
+  transition: transform 1.2s cubic-bezier(.2,.7,.2,1);
+}
+
+.berlin-entry-media::after {
+  content: "";
+  background:
+    linear-gradient(90deg, rgba(0,0,0,.88), rgba(0,0,0,.26) 68%, rgba(0,0,0,.7)),
+    linear-gradient(0deg, #000 0%, rgba(0,0,0,.12) 60%, rgba(0,0,0,.5) 100%);
+}
+
+.berlin-entry:hover .berlin-entry-media img {
+  transform: scale(1.018);
+}
+
+.berlin-entry-content {
+  width: min(100% - 52px, 1280px);
+  margin: 0 auto;
+  padding: clamp(74px, 9vw, 120px) 0;
+}
+
+.berlin-entry h2 {
+  font-size: clamp(46px, 8.5vw, 112px);
+  letter-spacing: .075em;
+  line-height: .95;
+}
+
+.berlin-entry-line {
+  max-width: 520px;
+  margin-top: 28px;
+  color: rgba(255,255,255,.68);
+  font-size: clamp(15px, 1.25vw, 18px);
+  line-height: 1.7;
+}
+
+.berlin-entry-cta {
+  display: inline-flex;
+  align-items: center;
+  min-height: 52px;
+  margin-top: 38px;
+  border: 1px solid rgba(255,255,255,.48);
+  padding: 0 26px;
+  color: #fff;
+  font: 10px 'Courier New', monospace;
+  letter-spacing: .24em;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: background .25s ease, color .25s ease, border-color .25s ease;
+}
+
+.berlin-entry-cta:hover,
+.berlin-entry-cta:focus-visible {
+  border-color: #fff;
+  background: #fff;
+  color: #000;
+}
+
 .berlin-archive {
   overflow: hidden;
   --archive-section-title: clamp(1.1rem, 1.55vw, 1.55rem);
@@ -3467,6 +3552,24 @@ body.nina-connecting-mode
   .audio-toggle { top: 88px; left: 18px; right: auto; bottom: auto; }
   .scroll { left: 18px; transform: none; }
   .section { padding: 100px 18px; }
+  .berlin-entry {
+    min-height: 68svh;
+  }
+  .berlin-entry-content {
+    width: calc(100% - 36px);
+    padding: 72px 0;
+  }
+  .berlin-entry-media img {
+    object-position: 58% center;
+  }
+  .berlin-entry-line {
+    margin-top: 22px;
+  }
+  .berlin-entry-cta {
+    width: 100%;
+    justify-content: center;
+    margin-top: 30px;
+  }
   .section-head { margin-bottom: 46px; }
   .artists { grid-template-columns: 1fr; }
   .artist, .artist:nth-child(2n), .artist:nth-child(4n) { border-right: 0; }
@@ -3691,7 +3794,7 @@ body.nina-connecting-mode
       Future Fashion
     </a>
 
-    <a href="#berlin">
+    <a href="./berlin-2063.html">
       Berlin 2063
     </a>
 
@@ -3748,182 +3851,16 @@ body.nina-connecting-mode
 
 <section
   id="berlin"
-  class="section"
+  class="berlin-entry"
 >
-
-  <div class="wrapper berlin-archive">
-
-    <header class="berlin-archive-intro">
-      <p class="berlin-archive-label">Parallel Vision / Living Archive</p>
-      <h2>Berlin 2063</h2>
-      <div class="berlin-archive-definition">
-        <p>
-          Berlin 2063 is an evolving audiovisual archive built from imagined
-          documents, environments, characters and memories of a possible future.
-        </p>
-        <p>
-          The project uses fiction to examine the systems already shaping the
-          present—from technology and architecture to nightlife, identity and
-          collective memory.
-        </p>
-      </div>
-    </header>
-    <div class="berlin-transmissions">
-      <article class="berlin-transmission">
-        <figure class="berlin-transmission-media">
-          <img
-            src="./assets/ebers2063.png"
-            alt="Berlin 2063 U-Bahn infrastructure"
-          >
-        </figure>
-        <div class="berlin-transmission-copy">
-          <p class="berlin-transmission-index">Transmission 01</p>
-          <h3>Infrastructure</h3>
-          <p class="berlin-transmission-caption">
-            The city continues to function long after its original systems have
-            begun to fail. Transport, surveillance and public space remain active,
-            carrying fragments of the society that built them.
-          </p>
-        </div>
-      </article>
-      <article class="berlin-transmission">
-        <figure class="berlin-transmission-media">
-          <img
-            src="./assets/thecitysuperhd1.png"
-            alt="Berlin 2063 vertical city and historic structures"
-          >
-        </figure>
-        <div class="berlin-transmission-copy">
-          <p class="berlin-transmission-index">Transmission 02</p>
-          <h3>The City</h3>
-          <p class="berlin-transmission-caption">
-            Berlin has expanded vertically, but its historical structures remain
-            embedded within it. Old monuments, transport lines and social rituals
-            survive inside new technological systems.
-          </p>
-        </div>
-      </article>
-      <article class="berlin-transmission">
-        <figure class="berlin-transmission-media">
-          <img
-            src="./assets/cabizwalkone.png"
-            alt="An inhabitant walking through Berlin 2063"
-          >
-        </figure>
-        <div class="berlin-transmission-copy">
-          <p class="berlin-transmission-index">Transmission 03</p>
-          <h3><span>The</span> <span>Inhabitants</span></h3>
-          <p class="berlin-transmission-caption">
-            The archive follows individuals moving through this future—not as
-            anonymous models, but as witnesses shaped by its architecture,
-            materials and social conditions.
-          </p>
-        </div>
-      </article>
-    </div>
-
-    <p class="berlin-archive-closing">
-      <span>Berlin 2063 is not presented as a finished world.</span>
-      <span>It is an archive that continues to remember itself.</span>
-    </p>
-
-    <div class="berlin-nina-invitation">
-      <p class="nina-archive-note">
-        Nina is one of its inhabitants—and the only one visitors can speak to directly.
-      </p>
-      <button
-        class="nina-signal"
-        id="openNina"
-        type="button"
-        aria-label="Transmit to 2063"
-      >
-        <span class="nina-signal-dot"></span>
-        <span class="nina-signal-copy">
-          <span class="nina-signal-main">Transmit to 2063</span>
-          <span class="nina-signal-sub">Talk live with Nina FOK</span>
-        </span>
-      </button>
-    </div>
-
+  <figure class="berlin-entry-media" aria-hidden="true">
+    <img src="./assets/ebers2063.png" alt="">
+  </figure>
+  <div class="berlin-entry-content">
+    <h2>Berlin 2063</h2>
+    <p class="berlin-entry-line">An evolving audiovisual archive of a possible future.</p>
+    <a class="berlin-entry-cta" href="./berlin-2063.html">Enter the world</a>
   </div>
-
-</section>
-
-
-
-<section
-  id="artists"
-  class="section"
->
-
-  <div class="wrapper">
-
-
-    <div class="section-head">
-
-      <div>
-
-        <div class="number">
-
-          02
-
-        </div>
-
-        <h2>
-
-          Artists
-
-        </h2>
-
-      </div>
-
-
-      <p class="small">
-        A growing constellation of artists connected by dark groove, emotional
-        tension, cinematic club music and future-facing atmosphere.
-      </p>
-
-    </div>
-
-
-    <div class="artists">
-
-      <div class="artist">
-        Alejandro Molinari
-      </div>
-
-      <div class="artist">
-        Nina FOK
-      </div>
-
-      <div class="artist">
-        REFRAKT (NY)
-      </div>
-
-      <div class="artist">
-        Ëlorian
-      </div>
-
-      <div class="artist">
-        Octave (RO)
-      </div>
-
-      <div class="artist">
-        Cabizbajo
-      </div>
-
-      <div class="artist">
-        Blex
-      </div>
-
-      <div class="artist">
-        Badwolf
-      </div>
-
-    </div>
-
-  </div>
-
 </section>
 
 
@@ -4854,6 +4791,83 @@ body.nina-connecting-mode
 
 
 <section
+  id="artists"
+  class="section"
+>
+
+  <div class="wrapper">
+
+
+    <div class="section-head">
+
+      <div>
+
+        <div class="number">
+
+          02
+
+        </div>
+
+        <h2>
+
+          Artists
+
+        </h2>
+
+      </div>
+
+
+      <p class="small">
+        A growing constellation of artists connected by dark groove, emotional
+        tension, cinematic club music and future-facing atmosphere.
+      </p>
+
+    </div>
+
+
+    <div class="artists">
+
+      <div class="artist">
+        Alejandro Molinari
+      </div>
+
+      <div class="artist">
+        Nina FOK
+      </div>
+
+      <div class="artist">
+        REFRAKT (NY)
+      </div>
+
+      <div class="artist">
+        Ëlorian
+      </div>
+
+      <div class="artist">
+        Octave (RO)
+      </div>
+
+      <div class="artist">
+        Cabizbajo
+      </div>
+
+      <div class="artist">
+        Blex
+      </div>
+
+      <div class="artist">
+        Badwolf
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+
+<section
   id="contact"
   class="contact"
 >
@@ -5502,7 +5516,9 @@ function closeNinaAccess(keepCurrentVerification = false) {
   ninaAccessError.textContent = "";
   ninaAccessCode.value = "";
   document.body.style.overflow = "";
-  openNina.focus();
+  if (openNina) {
+    openNina.focus();
+  }
 }
 
 
@@ -6463,10 +6479,12 @@ function showNinaEnded() {
 
 
 
-openNina.addEventListener(
-  "click",
-  requestNinaWindow
-);
+if (openNina) {
+  openNina.addEventListener(
+    "click",
+    requestNinaWindow
+  );
+}
 
 
 startNina.addEventListener(
@@ -6658,6 +6676,10 @@ window.addEventListener("resize", () => {
     alignNinaPrivateButton(getNativeNinaConnectButton());
   }
 });
+
+if (new URLSearchParams(window.location.search).get("nina") === "1") {
+  requestNinaWindow();
+}
 
 
 
