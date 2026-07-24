@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Berlin 2063 / Parallel Vision</title>
+  <meta name="description" content="Berlin 2063 is an evolving audiovisual archive of a possible future.">
+  <link rel="icon" type="image/png" href="./favicon.png">
+  <link rel="apple-touch-icon" href="./favicon.png">
+  <link rel="stylesheet" href="./fashion.css">
+  <script src="./language.js" defer></script>
+  <style>
+    .berlin-page {
+      --archive-line: rgba(255,255,255,.13);
+      --archive-muted: rgba(255,255,255,.62);
+      background: #000;
+    }
+
+    .berlin-hero {
+      position: relative;
+      min-height: 88svh;
+      display: grid;
+      align-items: end;
+      overflow: hidden;
+      isolation: isolate;
+      border-bottom: 1px solid var(--archive-line);
+    }
+
+    .berlin-hero-media,
+    .berlin-hero-media::after {
+      position: absolute;
+      inset: 0;
+    }
+
+    .berlin-hero-media {
+      z-index: -2;
+      margin: 0;
+    }
+
+    .berlin-hero-media img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 58%;
+      filter: saturate(.68) brightness(.68) contrast(1.1);
+      animation: berlinHeroResolve 1.4s cubic-bezier(.2,.7,.2,1) both;
+    }
+
+    .berlin-hero-media::after {
+      content: "";
+      background:
+        linear-gradient(90deg, rgba(0,0,0,.87), rgba(0,0,0,.2) 68%, rgba(0,0,0,.7)),
+        linear-gradient(0deg, #000 0%, rgba(0,0,0,.08) 58%, rgba(0,0,0,.62) 100%);
+    }
+
+    .berlin-hero-content {
+      width: min(100% - 52px, 1280px);
+      margin: 0 auto;
+      padding: 150px 0 clamp(74px, 9vw, 120px);
+    }
+
+    .berlin-hero-label,
+    .berlin-archive-label,
+    .berlin-transmission-index {
+      color: rgba(255,255,255,.46);
+      font: clamp(.68rem,.72vw,.78rem) 'Courier New', monospace;
+      letter-spacing: .28em;
+      text-transform: uppercase;
+    }
+
+    .berlin-hero h1 {
+      max-width: 1050px;
+      margin-top: 24px;
+      font-family: Michroma, sans-serif;
+      font-size: clamp(54px, 10vw, 138px);
+      font-weight: 400;
+      letter-spacing: .075em;
+      line-height: .92;
+      text-transform: uppercase;
+    }
+
+    .berlin-hero-line {
+      max-width: 540px;
+      margin-top: 34px;
+      color: rgba(255,255,255,.7);
+      font-size: clamp(15px,1.2vw,18px);
+      line-height: 1.7;
+    }
+
+    .berlin-archive-section {
+      padding: clamp(100px,11vw,170px) 26px clamp(110px,13vw,190px);
+    }
+
+    .berlin-archive {
+      width: min(100%,1280px);
+      margin: 0 auto;
+      overflow: hidden;
+      --archive-section-title: clamp(1.1rem,1.55vw,1.55rem);
+      --archive-body: clamp(.95rem,1.05vw,1.1rem);
+    }
+
+    .berlin-archive-intro {
+      max-width: 900px;
+      margin-bottom: clamp(88px,12vw,160px);
+    }
+
+    .berlin-archive-intro h2 {
+      margin-top: 22px;
+      font-family: Michroma, sans-serif;
+      font-size: clamp(44px,8vw,104px);
+      font-weight: 400;
+      letter-spacing: .08em;
+      line-height: .95;
+      text-transform: uppercase;
+    }
+
+    .berlin-archive-definition {
+      max-width: 680px;
+      margin: clamp(42px,6vw,72px) 0 0 auto;
+      border-top: 1px solid var(--archive-line);
+      padding-top: 30px;
+    }
+
+    .berlin-archive-definition p,
+    .berlin-transmission-caption {
+      color: var(--archive-muted);
+      font-size: var(--archive-body);
+      line-height: 1.8;
+    }
+
+    .berlin-archive-definition p + p {
+      margin-top: 18px;
+    }
+
+    .berlin-transmissions {
+      border-top: 1px solid var(--archive-line);
+    }
+
+    .berlin-transmission {
+      display: grid;
+      grid-template-columns: minmax(0,58fr) minmax(300px,42fr);
+      gap: clamp(32px,4vw,64px);
+      align-items: center;
+      padding: clamp(52px,5.5vw,82px) 0;
+      border-bottom: 1px solid var(--archive-line);
+    }
+
+    .berlin-transmission:nth-child(even) {
+      grid-template-columns: minmax(300px,42fr) minmax(0,58fr);
+    }
+
+    .berlin-transmission:nth-child(even) .berlin-transmission-media {
+      order: 2;
+    }
+
+    .berlin-transmission-media {
+      min-width: 0;
+      aspect-ratio: 16 / 10;
+      overflow: hidden;
+      background: #030303;
+    }
+
+    .berlin-transmission-media img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: saturate(.72) brightness(.76) contrast(1.08);
+      transition: transform .8s cubic-bezier(.2,.7,.2,1), filter .8s ease;
+    }
+
+    .berlin-transmission:hover .berlin-transmission-media img {
+      transform: scale(1.018);
+      filter: saturate(.82) brightness(.82) contrast(1.05);
+    }
+
+    .berlin-transmission-copy {
+      min-width: 0;
+    }
+
+    .berlin-transmission-copy h3 {
+      max-width: 100%;
+      margin-top: 18px;
+      color: #fff;
+      font-family: Michroma, sans-serif;
+      font-size: var(--archive-section-title);
+      font-weight: 400;
+      letter-spacing: .035em;
+      line-height: 1.35;
+      text-transform: uppercase;
+    }
+
+    .berlin-transmission-caption {
+      max-width: 430px;
+      margin-top: 32px;
+    }
+
+    .berlin-archive-closing {
+      max-width: 860px;
+      margin: clamp(64px,7vw,96px) auto 0;
+      color: #fff;
+      font-family: Michroma, sans-serif;
+      font-size: clamp(15px,1.35vw,21px);
+      letter-spacing: .025em;
+      line-height: 1.55;
+      text-align: center;
+      text-transform: uppercase;
+    }
+
+    .berlin-archive-closing span {
+      display: block;
+    }
+
+    .berlin-nina-invitation {
+      width: min(100%,430px);
+      margin: clamp(42px,5vw,70px) auto 0;
+      display: grid;
+      justify-items: center;
+      gap: 18px;
+      text-align: center;
+    }
+
+    .nina-archive-note {
+      color: rgba(255,255,255,.48);
+      font: 10px/1.75 'Courier New', monospace;
+      letter-spacing: .08em;
+    }
+
+    .nina-signal {
+      width: min(100%,310px);
+      min-height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 13px;
+      border: 1px solid rgba(255,255,255,.48);
+      background: transparent;
+      color: #fff;
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: transform .25s ease, background .25s ease, color .25s ease;
+    }
+
+    .nina-signal:hover,
+    .nina-signal:focus-visible {
+      background: #fff;
+      color: #000;
+      transform: translateY(-2px);
+    }
+
+    .nina-signal-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 12px currentColor;
+      animation: ninaSignal 2.2s ease-in-out infinite;
+    }
+
+    .nina-signal-copy {
+      display: grid;
+      gap: 4px;
+      text-align: left;
+    }
+
+    .nina-signal-main {
+      font: 10px 'Courier New', monospace;
+      letter-spacing: .18em;
+    }
+
+    .nina-signal-sub {
+      opacity: .55;
+      font: 8px 'Courier New', monospace;
+      letter-spacing: .1em;
+    }
+
+    .berlin-footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      border-top: 1px solid var(--archive-line);
+      padding: 28px 34px;
+      color: rgba(255,255,255,.5);
+      font: 9px 'Courier New', monospace;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+    }
+
+    @keyframes berlinHeroResolve {
+      from { opacity: 0; transform: scale(1.035); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    @keyframes ninaSignal {
+      50% { opacity: .35; box-shadow: 0 0 4px currentColor; }
+    }
+
+    @media (max-width: 900px) {
+      .berlin-transmission,
+      .berlin-transmission:nth-child(even) {
+        grid-template-columns: 1fr;
+        gap: 30px;
+        padding: 58px 0;
+      }
+      .berlin-transmission:nth-child(even) .berlin-transmission-media {
+        order: 0;
+      }
+      .berlin-transmission-copy {
+        order: 1;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .archive-nav {
+        padding: 22px 18px;
+      }
+      .archive-nav-links {
+        gap: 14px;
+      }
+      .berlin-hero {
+        min-height: 78svh;
+      }
+      .berlin-hero-content {
+        width: calc(100% - 36px);
+        padding: 130px 0 68px;
+      }
+      .berlin-hero-media img {
+        object-position: 58% center;
+      }
+      .berlin-archive-section {
+        padding: 90px 18px 110px;
+      }
+      .berlin-archive-intro {
+        margin-bottom: 80px;
+      }
+      .berlin-archive-definition {
+        margin-left: 0;
+      }
+      .berlin-transmission {
+        padding: 56px 0;
+      }
+      .berlin-transmission-caption {
+        margin-top: 22px;
+      }
+      .berlin-archive-closing {
+        margin-top: 64px;
+        font-size: 16px;
+      }
+      .berlin-footer {
+        display: grid;
+        padding: 26px 18px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .berlin-hero-media img,
+      .berlin-transmission-media img,
+      .nina-signal-dot {
+        animation: none;
+        transition: none;
+      }
+    }
+  </style>
+</head>
+<body class="berlin-page">
+  <header class="berlin-hero">
+    <nav class="archive-nav" aria-label="Berlin 2063 navigation">
+      <a href="./index.html">Return to homepage</a>
+      <div class="archive-nav-links">
+        <a href="#archive">Archive</a>
+        <a href="./index.html#releases">Releases</a>
+        <a href="./future-fashion.html">Fashion After Fabric</a>
+      </div>
+    </nav>
+    <figure class="berlin-hero-media" aria-hidden="true">
+      <img src="./assets/ebers2063.png" alt="">
+    </figure>
+    <div class="berlin-hero-content">
+      <p class="berlin-hero-label">Parallel Vision / Living Archive</p>
+      <h1>Berlin 2063</h1>
+      <p class="berlin-hero-line">An evolving audiovisual archive of a possible future.</p>
+    </div>
+  </header>
+
+  <main id="archive" class="berlin-archive-section">
+    <div class="berlin-archive">
+      <header class="berlin-archive-intro">
+        <p class="berlin-archive-label">Parallel Vision / Living Archive</p>
+        <h2>Berlin 2063</h2>
+        <div class="berlin-archive-definition">
+          <p>Berlin 2063 is an evolving audiovisual archive built from imagined documents, environments, characters and memories of a possible future.</p>
+          <p>The project uses fiction to examine the systems already shaping the present—from technology and architecture to nightlife, identity and collective memory.</p>
+        </div>
+      </header>
+
+      <div class="berlin-transmissions">
+        <article class="berlin-transmission">
+          <figure class="berlin-transmission-media">
+            <img src="./assets/ebers2063.png" alt="Berlin 2063 U-Bahn infrastructure">
+          </figure>
+          <div class="berlin-transmission-copy">
+            <p class="berlin-transmission-index">Transmission 01</p>
+            <h3>Infrastructure</h3>
+            <p class="berlin-transmission-caption">The city continues to function long after its original systems have begun to fail. Transport, surveillance and public space remain active, carrying fragments of the society that built them.</p>
+          </div>
+        </article>
+
+        <article class="berlin-transmission">
+          <figure class="berlin-transmission-media">
+            <img src="./assets/thecitysuperhd1.png" alt="Berlin 2063 vertical city and historic structures">
+          </figure>
+          <div class="berlin-transmission-copy">
+            <p class="berlin-transmission-index">Transmission 02</p>
+            <h3>The City</h3>
+            <p class="berlin-transmission-caption">Berlin has expanded vertically, but its historical structures remain embedded within it. Old monuments, transport lines and social rituals survive inside new technological systems.</p>
+          </div>
+        </article>
+
+        <article class="berlin-transmission">
+          <figure class="berlin-transmission-media">
+            <img src="./assets/cabizwalkone.png" alt="An inhabitant walking through Berlin 2063">
+          </figure>
+          <div class="berlin-transmission-copy">
+            <p class="berlin-transmission-index">Transmission 03</p>
+            <h3><span>The</span> <span>Inhabitants</span></h3>
+            <p class="berlin-transmission-caption">The archive follows individuals moving through this future—not as anonymous models, but as witnesses shaped by its architecture, materials and social conditions.</p>
+          </div>
+        </article>
+      </div>
+
+      <p class="berlin-archive-closing">
+        <span>Berlin 2063 is not presented as a finished world.</span>
+        <span>It is an archive that continues to remember itself.</span>
+      </p>
+
+      <div class="berlin-nina-invitation">
+        <p class="nina-archive-note">Nina is one of its inhabitants—and the only one visitors can speak to directly.</p>
+        <button class="nina-signal" id="openNina" type="button" aria-label="Transmit to 2063">
+          <span class="nina-signal-dot" aria-hidden="true"></span>
+          <span class="nina-signal-copy">
+            <span class="nina-signal-main">Transmit to 2063</span>
+            <span class="nina-signal-sub">Talk live with Nina FOK</span>
+          </span>
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <footer class="berlin-footer">
+    <span>© 2026 Parallel Vision / Berlin 2063</span>
+    <a href="./index.html">Return to homepage</a>
+  </footer>
+
+  <script>
+    document.getElementById("openNina").addEventListener("click", function () {
+      window.location.href = "./index.html?nina=1";
+    });
+  </script>
+</body>
+</html>
