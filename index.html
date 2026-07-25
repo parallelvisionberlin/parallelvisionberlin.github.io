@@ -3236,73 +3236,57 @@ body.nina-connecting-mode
 
 /* Berlin 2063 / living archive */
 .berlin-entry {
-  position: relative;
-  min-height: clamp(520px, 68vw, 760px);
-  display: grid;
-  align-items: end;
-  overflow: hidden;
-  padding: 0;
+  padding: clamp(88px, 10vw, 140px) 0;
+  background: #000;
   border-top: 1px solid #151515;
   border-bottom: 1px solid #151515;
-  isolation: isolate;
-}
-
-.berlin-entry-media,
-.berlin-entry-media::after {
-  position: absolute;
-  inset: 0;
-}
-
-.berlin-entry-media {
-  z-index: -2;
-  margin: 0;
-}
-
-.berlin-entry-media img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center 58%;
-  filter: saturate(.65) brightness(.66) contrast(1.08);
-  transition: transform 1.2s cubic-bezier(.2,.7,.2,1);
-}
-
-.berlin-entry-media::after {
-  content: "";
-  background:
-    linear-gradient(90deg, rgba(0,0,0,.88), rgba(0,0,0,.26) 68%, rgba(0,0,0,.7)),
-    linear-gradient(0deg, #000 0%, rgba(0,0,0,.12) 60%, rgba(0,0,0,.5) 100%);
-}
-
-.berlin-entry:hover .berlin-entry-media img {
-  transform: scale(1.018);
 }
 
 .berlin-entry-content {
-  width: min(100% - 52px, 1280px);
+  width: min(100% - 80px, 1180px);
   margin: 0 auto;
-  padding: clamp(74px, 9vw, 120px) 0;
+  display: grid;
+  grid-template-columns: minmax(300px, .78fr) minmax(0, 1.22fr);
+  gap: clamp(56px, 8vw, 120px);
+  align-items: start;
+}
+
+.berlin-entry-label {
+  margin: 0 0 24px;
+  color: rgba(255,255,255,.46);
+  font: 10px 'Courier New', monospace;
+  letter-spacing: .24em;
+  text-transform: uppercase;
 }
 
 .berlin-entry h2 {
-  font-size: clamp(46px, 8.5vw, 112px);
-  letter-spacing: .075em;
-  line-height: .95;
+  margin: 0;
+  font-size: clamp(48px, 6.6vw, 88px);
+  letter-spacing: .055em;
+  line-height: 1;
+}
+
+.berlin-entry-copy {
+  max-width: 760px;
+  padding-top: 34px;
 }
 
 .berlin-entry-line {
-  max-width: 520px;
-  margin-top: 28px;
-  color: rgba(255,255,255,.68);
-  font-size: clamp(15px, 1.25vw, 18px);
-  line-height: 1.7;
+  margin: 0;
+  color: rgba(255,255,255,.72);
+  font-size: clamp(15px, 1.15vw, 17px);
+  line-height: 1.75;
+}
+
+.berlin-entry-line + .berlin-entry-line {
+  margin-top: 18px;
 }
 
 .berlin-entry-cta {
   display: inline-flex;
   align-items: center;
   min-height: 52px;
-  margin-top: 38px;
+  margin-top: 34px;
   border: 1px solid rgba(255,255,255,.48);
   padding: 0 26px;
   color: #fff;
@@ -3531,17 +3515,15 @@ body.nina-connecting-mode
   .scroll { left: 18px; transform: none; }
   .section { padding: 100px 18px; }
   .berlin-entry {
-    min-height: 68svh;
+    padding: 72px 0;
   }
   .berlin-entry-content {
     width: calc(100% - 36px);
-    padding: 72px 0;
+    grid-template-columns: 1fr;
+    gap: 42px;
   }
-  .berlin-entry-media img {
-    object-position: 58% center;
-  }
-  .berlin-entry-line {
-    margin-top: 22px;
+  .berlin-entry-copy {
+    padding-top: 0;
   }
   .berlin-entry-cta {
     width: 100%;
@@ -3863,14 +3845,95 @@ body.nina-connecting-mode
   id="berlin"
   class="berlin-entry"
 >
-  <figure class="berlin-entry-media" aria-hidden="true">
-    <img src="./assets/ebers2063.png" alt="">
-  </figure>
   <div class="berlin-entry-content">
-    <h2>Berlin 2063</h2>
-    <p class="berlin-entry-line">An evolving audiovisual archive of a possible future.</p>
-    <a class="berlin-entry-cta" href="./berlin-2063.html">Enter the world</a>
+    <div class="berlin-entry-heading">
+      <p class="berlin-entry-label">Parallel Vision / Living Archive</p>
+      <h2>Berlin 2063</h2>
+      <a class="berlin-entry-cta" href="./berlin-2063.html">Enter the world</a>
+    </div>
+    <div class="berlin-entry-copy">
+      <p class="berlin-entry-line">Berlin 2063 is an evolving audiovisual archive built from imagined environments, inhabitants and memories of a possible future.</p>
+      <p class="berlin-entry-line">Through film, sound, fashion, architecture and artificial intelligence, the project constructs a city shaped by the systems already transforming contemporary life.</p>
+      <p class="berlin-entry-line">It is not presented as a distant spectacle, but as a lived world with routines, contradictions, desires and personal histories.</p>
+    </div>
   </div>
+</section>
+
+
+
+<section
+  id="artists"
+  class="section"
+>
+
+  <div class="wrapper">
+
+
+    <div class="section-head">
+
+      <div>
+
+        <div class="number">
+
+          02
+
+        </div>
+
+        <h2>
+
+          Artists
+
+        </h2>
+
+      </div>
+
+
+      <p class="small">
+        A growing constellation of artists connected by dark groove, emotional
+        tension, cinematic club music and future-facing atmosphere.
+      </p>
+
+    </div>
+
+
+    <div class="artists">
+
+      <div class="artist">
+        Alejandro Molinari
+      </div>
+
+      <div class="artist">
+        Nina FOK
+      </div>
+
+      <div class="artist">
+        REFRAKT (NY)
+      </div>
+
+      <div class="artist">
+        Ëlorian
+      </div>
+
+      <div class="artist">
+        Octave (RO)
+      </div>
+
+      <div class="artist">
+        Cabizbajo
+      </div>
+
+      <div class="artist">
+        Blex
+      </div>
+
+      <div class="artist">
+        Badwolf
+      </div>
+
+    </div>
+
+  </div>
+
 </section>
 
 
@@ -5013,83 +5076,6 @@ body.nina-connecting-mode
 
     </article>
 
-
-  </div>
-
-</section>
-
-
-
-<section
-  id="artists"
-  class="section"
->
-
-  <div class="wrapper">
-
-
-    <div class="section-head">
-
-      <div>
-
-        <div class="number">
-
-          02
-
-        </div>
-
-        <h2>
-
-          Artists
-
-        </h2>
-
-      </div>
-
-
-      <p class="small">
-        A growing constellation of artists connected by dark groove, emotional
-        tension, cinematic club music and future-facing atmosphere.
-      </p>
-
-    </div>
-
-
-    <div class="artists">
-
-      <div class="artist">
-        Alejandro Molinari
-      </div>
-
-      <div class="artist">
-        Nina FOK
-      </div>
-
-      <div class="artist">
-        REFRAKT (NY)
-      </div>
-
-      <div class="artist">
-        Ëlorian
-      </div>
-
-      <div class="artist">
-        Octave (RO)
-      </div>
-
-      <div class="artist">
-        Cabizbajo
-      </div>
-
-      <div class="artist">
-        Blex
-      </div>
-
-      <div class="artist">
-        Badwolf
-      </div>
-
-    </div>
 
   </div>
 
