@@ -3235,6 +3235,153 @@ body.nina-connecting-mode
 }
 
 /* Berlin 2063 / living archive */
+.fashion-portal {
+  padding: clamp(76px, 8vw, 112px) 0;
+  border-bottom: 1px solid #111;
+  background: #000;
+}
+
+.fashion-portal-inner {
+  width: min(1180px, calc(100% - 52px));
+  margin: 0 auto;
+  border-top: 1px solid rgba(255,255,255,.18);
+  border-bottom: 1px solid rgba(255,255,255,.18);
+}
+
+.fashion-portal-label {
+  margin: 0;
+  padding: 20px 0 18px;
+  border-bottom: 1px solid rgba(255,255,255,.12);
+  color: rgba(255,255,255,.48);
+  font: 10px 'Courier New', monospace;
+  letter-spacing: .28em;
+  text-transform: uppercase;
+}
+
+.fashion-portal-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(300px, .85fr);
+  gap: clamp(54px, 8vw, 118px);
+  padding: clamp(42px, 5vw, 68px) 0 clamp(48px, 5.5vw, 76px);
+}
+
+.fashion-portal-heading,
+.fashion-portal-description {
+  min-width: 0;
+}
+
+.fashion-portal h2 {
+  max-width: 720px;
+  margin: 0;
+  color: #fff;
+  font-family: 'Michroma', sans-serif;
+  font-size: clamp(40px, 5.2vw, 72px);
+  font-weight: 400;
+  letter-spacing: .055em;
+  line-height: 1.08;
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+
+.fashion-portal-thesis {
+  max-width: 660px;
+  margin: clamp(32px, 4vw, 52px) 0 0;
+  color: rgba(255,255,255,.84);
+  font-size: clamp(21px, 2vw, 29px);
+  font-weight: 300;
+  letter-spacing: -.015em;
+  line-height: 1.45;
+  text-wrap: balance;
+}
+
+.fashion-portal-description {
+  align-self: end;
+  max-width: 500px;
+}
+
+.fashion-portal-description p {
+  margin: 0;
+  color: rgba(255,255,255,.66);
+  font-size: 14px;
+  line-height: 1.85;
+}
+
+.fashion-portal-description p + p {
+  margin-top: 20px;
+}
+
+.fashion-portal-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  margin-top: 26px;
+  padding: 0 22px;
+  border: 1px solid rgba(255,255,255,.45);
+  color: #fff;
+  font-size: 9px;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  transition: background .25s ease, color .25s ease;
+}
+
+.fashion-portal-cta:hover,
+.fashion-portal-cta:focus-visible {
+  background: #fff;
+  color: #000;
+}
+
+@media (max-width: 900px) {
+  .fashion-portal-inner {
+    width: min(100% - 48px, 760px);
+  }
+
+  .fashion-portal-grid {
+    grid-template-columns: minmax(0, 1.05fr) minmax(260px, .95fr);
+    gap: 46px;
+  }
+
+  .fashion-portal h2 {
+    font-size: clamp(38px, 6.2vw, 54px);
+  }
+}
+
+@media (max-width: 680px) {
+  .fashion-portal {
+    padding: 64px 0;
+  }
+
+  .fashion-portal-inner {
+    width: calc(100% - 40px);
+  }
+
+  .fashion-portal-label {
+    padding: 17px 0 15px;
+    letter-spacing: .2em;
+  }
+
+  .fashion-portal-grid {
+    grid-template-columns: 1fr;
+    gap: 40px;
+    padding: 34px 0 42px;
+  }
+
+  .fashion-portal h2 {
+    font-size: clamp(32px, 10vw, 46px);
+    letter-spacing: .035em;
+    overflow-wrap: anywhere;
+  }
+
+  .fashion-portal-thesis {
+    margin-top: 28px;
+    font-size: clamp(19px, 5.8vw, 24px);
+  }
+
+  .fashion-portal-cta {
+    width: 100%;
+  }
+}
+
 .berlin-entry {
   padding: clamp(88px, 10vw, 140px) 0;
   background: #000;
@@ -4300,26 +4447,28 @@ body.nina-connecting-mode
 
 <section
   id="future-fashion"
-  class="section fashion-section"
+  class="fashion-portal"
+  aria-labelledby="fashion-portal-title"
 >
 
-  <div class="wrapper">
+  <div class="fashion-portal-inner">
 
 
-    <header class="fashion-cinematic-header">
+    <p class="fashion-portal-label">Parallel Vision / Material Research</p>
+    <div class="fashion-portal-grid">
+      <div class="fashion-portal-heading">
+        <h2 id="fashion-portal-title">Fashion After Fabric</h2>
+        <p class="fashion-portal-thesis">The question is no longer what we will wear.<br>It is what clothing becomes once fabric disappears.</p>
+      </div>
+      <div class="fashion-portal-description">
+        <p>Fashion After Fabric is a speculative material research project exploring what clothing becomes when textiles are replaced by responsive, biological and synthetic systems.</p>
+        <p>Each collection develops a distinct material hypothesis—from liquid metal and programmable surfaces to engineered tissue, magnetic structures and living membranes.</p>
+        <a class="fashion-portal-cta" href="./future-fashion.html">Discover the project</a>
+      </div>
+    </div>
 
-      <p class="fashion-cinematic-statement fashion-lede">
-        <span>The question is no longer what we will wear.</span>
-        <span>It is what clothing becomes once fabric disappears.</span>
-      </p>
 
-      <p class="fashion-cinematic-definition">
-        A speculative material research project exploring clothing beyond textiles through responsive matter, biotechnology, synthetic systems and new relationships between technology and the human body.
-      </p>
-
-    </header>
-
-
+    <div hidden>
     <div class="fashion-landing fashion-transmission">
 
 
@@ -5077,6 +5226,7 @@ body.nina-connecting-mode
     </article>
 
 
+    </div>
   </div>
 
 </section>
