@@ -2825,6 +2825,17 @@ body.nina-connecting-mode
 
 .artist:nth-child(4n) { border-right: 0; }
 
+.artist[href] {
+  transition: background .25s ease, color .25s ease;
+}
+
+.artist[href]:hover,
+.artist[href]:focus-visible {
+  background: #fff;
+  color: #000;
+  outline: 0;
+}
+
 .fashion-landing {
   min-height: auto;
   grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr);
@@ -4053,9 +4064,13 @@ body.nina-connecting-mode
         Nina FOK
       </div>
 
-      <div class="artist">
+      <a
+        class="artist"
+        href="https://parallelvisionlabel.com/refrakt/"
+        aria-label="Open REFRAKT artist page"
+      >
         REFRAKT (NY)
-      </div>
+      </a>
 
       <div class="artist">
         Ëlorian
