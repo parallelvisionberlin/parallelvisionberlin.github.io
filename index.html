@@ -28,7 +28,7 @@
   rel="stylesheet"
 >
 
-<script src="./language.js?v=20260727-3" defer></script>
+<script src="./language.js?v=20260728-2" defer></script>
 
 <style>
 
@@ -3316,6 +3316,145 @@ body.nina-connecting-mode
   .nina-identity-media img { transition: none; }
 }
 
+/* Artists / typographic archive index */
+.artist-index-list {
+  border-top: 1px solid rgba(255,255,255,.2);
+}
+
+.artist-index-row {
+  min-height: 92px;
+  display: grid;
+  grid-template-columns: 70px minmax(0, 1fr) minmax(190px, .45fr) 130px;
+  gap: 24px;
+  align-items: center;
+  border-bottom: 1px solid rgba(255,255,255,.14);
+  color: rgba(255,255,255,.86);
+  overflow: hidden;
+}
+
+.artist-index-number,
+.artist-index-city,
+.artist-index-action {
+  font: 9px 'Courier New', monospace;
+  letter-spacing: .24em;
+  text-transform: uppercase;
+}
+
+.artist-index-number {
+  color: rgba(255,255,255,.34);
+}
+
+.artist-index-name {
+  font-family: 'Michroma', sans-serif;
+  font-size: clamp(14px, 1.45vw, 20px);
+  letter-spacing: .1em;
+  line-height: 1.35;
+  text-transform: uppercase;
+  transition: transform .3s ease, color .3s ease;
+}
+
+.artist-index-city {
+  color: rgba(255,255,255,.44);
+}
+
+.artist-index-action {
+  justify-self: end;
+  color: rgba(255,255,255,.68);
+  opacity: 0;
+  transform: translateX(-10px);
+  transition: opacity .25s ease, transform .3s ease;
+}
+
+.artist-index-row:hover .artist-index-name,
+.artist-index-row:focus-visible .artist-index-name {
+  color: #fff;
+  transform: translateX(8px);
+}
+
+.artist-index-row:hover .artist-index-action,
+.artist-index-row:focus-visible .artist-index-action {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.artist-index-row[href]:focus-visible {
+  outline: 1px solid rgba(255,255,255,.7);
+  outline-offset: -1px;
+}
+
+.nina-identity-index {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, .65fr);
+  gap: clamp(46px, 8vw, 120px);
+  align-items: end;
+  margin-top: clamp(82px, 10vw, 136px);
+  padding: clamp(48px, 6vw, 78px) 0;
+  border-top: 1px solid rgba(255,255,255,.2);
+  border-bottom: 1px solid rgba(255,255,255,.2);
+}
+
+.nina-identity-index h3 {
+  margin-top: 22px;
+  font-family: 'Michroma', sans-serif;
+  font-size: clamp(38px, 5.4vw, 76px);
+  font-weight: 400;
+  letter-spacing: .08em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.nina-identity-index-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.nina-identity-index .nina-identity-cta {
+  margin-top: 30px;
+}
+
+@media (max-width: 680px) {
+  .artist-index-row {
+    min-height: 112px;
+    grid-template-columns: 42px minmax(0, 1fr) auto;
+    grid-template-areas:
+      "number name action"
+      ". city action";
+    gap: 8px 12px;
+    padding: 20px 0;
+  }
+
+  .artist-index-number { grid-area: number; }
+  .artist-index-name { grid-area: name; font-size: clamp(13px, 4vw, 17px); }
+  .artist-index-city { grid-area: city; }
+  .artist-index-action {
+    grid-area: action;
+    opacity: .48;
+    transform: none;
+  }
+
+  .nina-identity-index {
+    grid-template-columns: 1fr;
+    gap: 34px;
+    align-items: start;
+  }
+
+  .nina-identity-index h3 {
+    font-size: clamp(38px, 13vw, 56px);
+  }
+
+  .nina-identity-index .nina-identity-cta {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .artist-index-name,
+  .artist-index-action {
+    transition: none;
+  }
+}
+
 /* Fashion After Fabric / open transmission */
 .fashion-section { padding-top: clamp(72px, 7vw, 100px); }
 
@@ -4341,79 +4480,61 @@ body.nina-connecting-mode
         <p class="artists-label">02 / Artists</p>
         <h2 id="artists-title">The Inhabitants</h2>
       </div>
-      <p class="artists-intro-copy">A growing constellation of artists, performers and artificial identities shaping the sound and visual language of Parallel Vision.</p>
+      <p class="artists-intro-copy">A constellation of artists, performers and artificial identities shaping the sound and visual language of Parallel Vision.</p>
     </header>
 
-    <div class="artists-featured">
-      <article class="artist-featured-card artist-card-alejandro">
-        <div class="artist-card-media">
-          <img src="./assets/artist-alejandro.webp" alt="Alejandro Molinari portrait">
-        </div>
-        <div class="artist-card-copy">
-          <span class="artist-card-index">PV / 01</span>
-          <span class="artist-card-city">Berlin</span>
-          <h3 class="artist-card-name">Alejandro Molinari</h3>
-          <p class="artist-card-description">Founder, producer and live performer building the central sound of Parallel Vision.</p>
-        </div>
-      </article>
-
-      <a class="artist-featured-card artist-card-refrakt" href="https://parallelvisionlabel.com/refrakt/" aria-label="View REFRAKT artist page">
-        <div class="artist-card-media">
-          <img src="./assets/artist-refrakt.webp" alt="REFRAKT black-and-white artist portrait">
-        </div>
-        <div class="artist-card-copy">
-          <span class="artist-card-index">PV / 02</span>
-          <span class="artist-card-city">New York</span>
-          <h3 class="artist-card-name">REFRAKT (NY)</h3>
-          <p class="artist-card-description">Dark club pressure, cinematic tension and transatlantic electronics.</p>
-          <span class="artist-card-action">View artist</span>
-        </div>
+    <div class="artist-index-list" aria-label="Parallel Vision musical artists">
+      <div class="artist-index-row">
+        <span class="artist-index-number">01</span>
+        <span class="artist-index-name">Alejandro Molinari</span>
+        <span class="artist-index-city">Berlin</span>
+        <span class="artist-index-action" aria-hidden="true">→</span>
+      </div>
+      <a class="artist-index-row artist-index-refrakt" href="https://parallelvisionlabel.com/refrakt/" aria-label="View REFRAKT artist page">
+        <span class="artist-index-number">02</span>
+        <span class="artist-index-name">REFRAKT</span>
+        <span class="artist-index-city">New York</span>
+        <span class="artist-index-action">View artist</span>
       </a>
-
-      <article class="artist-featured-card artist-card-elorian">
-        <div class="artist-card-media">
-          <img src="./assets/artist-elorian.webp" alt="Ëlorian black-and-white artist portrait">
-        </div>
-        <div class="artist-card-copy">
-          <span class="artist-card-index">PV / 03</span>
-          <span class="artist-card-city">Mexico City</span>
-          <h3 class="artist-card-name">Ëlorian</h3>
-          <p class="artist-card-description">Hypnotic movement, synthetic atmosphere and emotional rhythm.</p>
-        </div>
-      </article>
+      <div class="artist-index-row">
+        <span class="artist-index-number">03</span>
+        <span class="artist-index-name">Ëlorian</span>
+        <span class="artist-index-city">Mexico City</span>
+        <span class="artist-index-action" aria-hidden="true">→</span>
+      </div>
+      <div class="artist-index-row">
+        <span class="artist-index-number">04</span>
+        <span class="artist-index-name">Cabizbajo</span>
+        <span class="artist-index-city">Mexico City</span>
+        <span class="artist-index-action" aria-hidden="true">→</span>
+      </div>
+      <div class="artist-index-row">
+        <span class="artist-index-number">05</span>
+        <span class="artist-index-name">Octave</span>
+        <span class="artist-index-city">Romania</span>
+        <span class="artist-index-action" aria-hidden="true">→</span>
+      </div>
+      <div class="artist-index-row">
+        <span class="artist-index-number">06</span>
+        <span class="artist-index-name">Blex</span>
+        <span class="artist-index-city">Argentina</span>
+        <span class="artist-index-action" aria-hidden="true">→</span>
+      </div>
+      <div class="artist-index-row">
+        <span class="artist-index-number">07</span>
+        <span class="artist-index-name">Badwolf</span>
+        <span class="artist-index-city">Mexico</span>
+        <span class="artist-index-action" aria-hidden="true">→</span>
+      </div>
     </div>
 
-    <section class="artists-secondary" aria-labelledby="secondary-artists-title">
-      <h3 id="secondary-artists-title" class="artists-secondary-label">Associated artists / Archive</h3>
-      <div class="artists-secondary-grid">
-        <article class="artist-secondary-card">
-          <div class="artist-secondary-media"><img src="./assets/artist-cabizbajo.webp" alt="Cabizbajo artist portrait"></div>
-          <div class="artist-secondary-copy"><span class="artist-secondary-name">Cabizbajo</span><span class="artist-secondary-index">04</span></div>
-        </article>
-        <article class="artist-secondary-card">
-          <div class="artist-secondary-media"><img src="./assets/artist-octave.webp" alt="Octave visual archive"></div>
-          <div class="artist-secondary-copy"><span class="artist-secondary-name">Octave (RO)</span><span class="artist-secondary-index">05</span></div>
-        </article>
-        <article class="artist-secondary-card">
-          <div class="artist-secondary-media"><img src="./assets/artist-blex.webp" alt="Blex visual archive"></div>
-          <div class="artist-secondary-copy"><span class="artist-secondary-name">Blex</span><span class="artist-secondary-index">06</span></div>
-        </article>
-        <article class="artist-secondary-card">
-          <div class="artist-secondary-media"><img src="./assets/artist-badwolf.webp" alt="Badwolf artist portrait"></div>
-          <div class="artist-secondary-copy"><span class="artist-secondary-name">Badwolf</span><span class="artist-secondary-index">07</span></div>
-        </article>
-      </div>
-    </section>
-
-    <section class="nina-identity" aria-labelledby="nina-identity-title">
-      <div class="nina-identity-copy">
-        <p class="nina-identity-label">Artificial Identity / Berlin 2063</p>
+    <section class="nina-identity-index" aria-labelledby="nina-identity-title">
+      <div>
         <h3 id="nina-identity-title">Nina FOK</h3>
-        <p class="nina-identity-description">An autonomous intelligence inhabiting the Parallel Vision world.</p>
-        <button id="openNinaArtist" class="nina-identity-cta" type="button">Enter the signal</button>
       </div>
-      <div class="nina-identity-media">
-        <img src="./assets/ninamain-page.webp" alt="Nina FOK surrounded by masks in the Parallel Vision archive">
+      <div class="nina-identity-index-meta">
+        <p class="nina-identity-label">Artificial Identity / Berlin 2063</p>
+        <button id="openNinaArtist" class="nina-identity-cta" type="button">Enter the signal</button>
       </div>
     </section>
 
