@@ -21,7 +21,7 @@
     ["#berlin .berlin-entry-cta", "Enter the world", "Die Welt betreten"],
     ["#artists .artists-label", "02 / ARTISTS", "02 / ARTISTS"],
     ["#artists #artists-title", "Artists", "Artists"],
-    ["#artists .artists-roster-meta span:first-child", "CURRENT ROSTER / 07 ARTISTS", "CURRENT ROSTER / 07 ARTISTS"],
+    ["#artists .artists-roster-meta span:first-child", "CURRENT ROSTER / 08 ARTISTS", "CURRENT ROSTER / 08 ARTISTS"],
     ["#artists .artists-roster-meta span:last-child", "BERLIN — NEW YORK — MEXICO CITY — BUCHAREST — ARGENTINA", "BERLIN — NEW YORK — MEXICO CITY — BUCHAREST — ARGENTINA"],
     ["#artists .nina-identity-label", "Artificial Identity / Berlin 2063", "Künstliche Identität / Berlin 2063"],
     ["#artists .nina-identity-description", "An autonomous intelligence inhabiting the Parallel Vision world.", "Eine autonome Intelligenz, die die Welt von Parallel Vision bewohnt."],
@@ -54,6 +54,25 @@
   ];
 
   const pages = {
+    "nina-fok.html": [
+      [".nav a[href='#releases']", "Releases", "Veröffentlichungen"],
+      [".nav a[href='#editorial']", "Editorial", "Editorial"],
+      [".nav a[href='#socials']", "Socials", "Socials"],
+      [".intro-label", "Artist / Berlin", "Künstlerin / Berlin"],
+      [".intro-body p:nth-of-type(1)", "Nina FOK is a Berlin-based DJ and producer working between hypnotic techno, industrial tension and speculative aesthetics. Her work combines physical club music with a visual language shaped by fashion, architecture and artificial identities.", "Nina FOK ist eine in Berlin lebende DJ und Produzentin, die zwischen hypnotischem Techno, industrieller Spannung und spekulativer Ästhetik arbeitet. Ihre Arbeit verbindet physische Clubmusik mit einer visuellen Sprache, die von Mode, Architektur und künstlichen Identitäten geprägt ist."],
+      [".intro-body p:nth-of-type(2)", "Her sets feel engineered rather than performed. Heavy low-end pressure, metallic percussion and restrained melodic movement create a space somewhere between warehouse ritual and runway soundtrack. For Nina, the dancefloor is not simply a place to escape—it is a controlled experiment in tension, repetition and release.", "Ihre Sets wirken konstruiert statt aufgeführt. Massiver Tieftondruck, metallische Percussion und zurückhaltende melodische Bewegung schaffen einen Raum zwischen Warehouse-Ritual und Runway-Soundtrack. Für Nina ist der Dancefloor nicht einfach ein Ort der Flucht – er ist ein kontrolliertes Experiment mit Spannung, Wiederholung und Auflösung."],
+      ["#releases .section-kicker", "Selected Works", "Ausgewählte Arbeiten"],
+      ["#releases .section-head h2", "Releases", "Veröffentlichungen"],
+      [".release-empty", "Coming Soon", "Demnächst"],
+      ["#editorial .section-kicker", "Editorial", "Editorial"],
+      ["#editorial .section-head h2", "Studies", "Studien"],
+      [".campaign-main .campaign-caption", "Editorial / 01", "Editorial / 01"],
+      [".campaign-side .campaign-caption", "Editorial / 02", "Editorial / 02"],
+      ["#socials .section-kicker", "Connect", "Kontakt"],
+      ["#socials .section-head h2", "Socials", "Socials"],
+      [".social-placeholder small", "Link forthcoming", "Link folgt"],
+      [".footer-return", "Parallel Vision", "Parallel Vision"]
+    ],
     "berlin-2063.html": [
       [".archive-nav > a", "Return to homepage", "Zurück zur Startseite"],
       [".archive-nav a[href='#archive']", "Archive", "Archiv"],
