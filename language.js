@@ -35,6 +35,8 @@
     ["#artists .nina-identity-cta", "Enter the signal", "Das Signal betreten"],
     ["#releases h2", "Releases", "Veröffentlichungen"],
     ["#releases .section-head .small", "Sound objects from the Parallel Vision archive. Each release is treated as a fragment of the same world.", "Klangobjekte aus dem Parallel-Vision-Archiv. Jede Veröffentlichung wird als Fragment derselben Welt behandelt."],
+    ["#releases .listening-featured .player-title", "Listen · Tanzen Im Kreis EP", "Hören · Tanzen Im Kreis EP"],
+    ["#releases .listening-selection .player-title", "Selection by Alejandro Molinari", "Auswahl von Alejandro Molinari"],
     ["#future-fashion .fashion-portal-label", "Parallel Vision / Material Research", "Parallel Vision / Materialforschung"],
     ["#future-fashion #fashion-portal-title", "Fashion After Fabric", "Fashion After Fabric"],
     ["#future-fashion .fashion-portal-thesis", "The question is no longer what we will wear.\nIt is what clothing becomes once fabric disappears.", "Die Frage ist nicht mehr, was wir tragen werden.\nEs geht darum, was Kleidung wird, wenn Stoff verschwindet."],

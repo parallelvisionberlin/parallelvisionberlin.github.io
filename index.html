@@ -1190,8 +1190,11 @@ h2 {
 
   grid-template-columns:
     repeat(
-      3,
-      1fr
+      2,
+      minmax(
+        0,
+        1fr
+      )
     );
 
   gap: 24px;
@@ -1200,6 +1203,8 @@ h2 {
 }
 
 .selection-card {
+  min-width: 0;
+
   padding: 18px;
 
   border:
@@ -1220,6 +1225,13 @@ h2 {
   text-transform: uppercase;
 
   line-height: 1.55;
+}
+
+.player iframe,
+.selection-card iframe {
+  display: block;
+
+  max-width: 100%;
 }
 
 
@@ -2507,7 +2519,13 @@ body.nina-connecting-mode
 
   .selection-grid {
     grid-template-columns:
-      1fr;
+      repeat(
+        2,
+        minmax(
+          0,
+          1fr
+        )
+      );
   }
 
   .story {
@@ -2562,6 +2580,11 @@ body.nina-connecting-mode
   }
 
   .release-grid {
+    grid-template-columns:
+      1fr;
+  }
+
+  .selection-grid {
     grid-template-columns:
       1fr;
   }
@@ -4670,22 +4693,22 @@ body.nina-connecting-mode
 
 
 
-    <div class="player">
+    <div class="player listening-featured">
 
       <div class="player-title">
 
-        Listen · Ravesia Alejandro Molinari Remix
+        Listen · Tanzen Im Kreis EP
 
       </div>
 
 
       <iframe
         width="100%"
-        height="166"
+        height="450"
         scrolling="no"
         frameborder="no"
-        allow="autoplay"
-        src="https://w.soundcloud.com/player/?url=https%3A%2F%2Fsoundcloud.com%2Falejandromolinari%2Fravesia-alejandro-molinari-1&color=%23000000&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false"
+        allow="autoplay; encrypted-media"
+        src="https://w.soundcloud.com/player/?visual=true&amp;url=https%3A%2F%2Fapi.soundcloud.com%2Fplaylists%2F2272835627&amp;show_artwork=true&amp;auto_play=false"
       >
       </iframe>
 
@@ -4693,7 +4716,7 @@ body.nina-connecting-mode
 
 
 
-    <div class="player">
+    <div class="player listening-selection">
 
       <div class="player-title">
 
@@ -4709,7 +4732,8 @@ body.nina-connecting-mode
 
           <div class="selection-title">
 
-            Blex (AR) · Carmesi Cotton Bud Master 2
+            01<br>
+            Blex (AR) · Carmesi
 
           </div>
 
@@ -4732,7 +4756,8 @@ body.nina-connecting-mode
 
           <div class="selection-title">
 
-            Blex (AR) · Dark Rock Alejandro Molinari Remix
+            02<br>
+            Blex (AR) · Dark Rock — Alejandro Molinari Remix
 
           </div>
 
@@ -4755,7 +4780,8 @@ body.nina-connecting-mode
 
           <div class="selection-title">
 
-            REFRAKT (NY) · Built To Last Matt FX Remix
+            03<br>
+            REFRAKT (NY) · Built To Last — Matt FX Remix
 
           </div>
 
@@ -4767,6 +4793,28 @@ body.nina-connecting-mode
             frameborder="no"
             allow="autoplay"
             src="https://w.soundcloud.com/player/?url=https%3A%2F%2Fsoundcloud.com%2Fibizasonica%2Fpremiere-refrakt-ny-built-to-last-matt-fx-remix-parallel-vision%3Fin%3Dparallelvisionlabel%2Fsets%2Frefrakt-ny-built-to-last-matt&color=%23000000&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false"
+          >
+          </iframe>
+
+        </div>
+
+        <div class="selection-card">
+
+          <div class="selection-title">
+
+            04<br>
+            Blex (AR) · Tuya Es La Tierra
+
+          </div>
+
+
+          <iframe
+            width="100%"
+            height="166"
+            scrolling="no"
+            frameborder="no"
+            allow="autoplay; encrypted-media"
+            src="https://w.soundcloud.com/player/?url=https%3A%2F%2Fapi.soundcloud.com%2Ftracks%2F2247094541&amp;color=%23000000&amp;auto_play=false&amp;hide_related=true&amp;show_comments=false&amp;show_user=true&amp;show_reposts=false&amp;show_teaser=false"
           >
           </iframe>
 
