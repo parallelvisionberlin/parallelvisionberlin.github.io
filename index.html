@@ -3228,131 +3228,100 @@ body.nina-connecting-mode
   letter-spacing: .2em;
 }
 
-.artist-roster-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 1px;
-  border: 1px solid rgba(255,255,255,.15);
-  background: rgba(255,255,255,.15);
-}
-
-.artist-roster-card {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  background: #030303;
-  overflow: hidden;
-}
-
-.artist-roster-media {
-  position: relative;
-  aspect-ratio: 4 / 5;
-  overflow: hidden;
-  background: #080808;
-}
-
-.artist-roster-media::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background:
-    linear-gradient(to bottom, transparent 58%, rgba(0,0,0,.5)),
-    repeating-linear-gradient(0deg, rgba(255,255,255,.015) 0 1px, transparent 1px 5px);
-  mix-blend-mode: screen;
-  opacity: .72;
-}
-
-.artist-roster-media img {
-  display: block;
+.artist-index {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
-  filter: grayscale(.72) saturate(.45) contrast(1.1) brightness(.76);
-  transition: transform .65s ease, filter .45s ease;
+  border-top: 1px solid rgba(255,255,255,.2);
 }
 
-.artist-roster-card:hover .artist-roster-media img,
-.artist-roster-card:focus-visible .artist-roster-media img {
-  transform: scale(1.025);
-  filter: grayscale(.5) saturate(.58) contrast(1.08) brightness(.86);
-}
-
-.artist-roster-card:focus-visible {
-  outline: 1px solid #fff;
-  outline-offset: -1px;
-}
-
-.artist-roster-alejandro img { object-position: 50% 42%; }
-.artist-roster-refrakt img { object-position: 52% center; }
-.artist-roster-elorian img { object-position: 62% center; }
-.artist-roster-cabizbajo img { object-position: 50% 38%; }
-.artist-roster-octave img { object-position: 50% center; }
-.artist-roster-blex img { object-position: 50% 42%; }
-.artist-roster-badwolf img { object-position: 50% center; }
-
-.artist-roster-copy {
-  min-height: 224px;
+.artist-index-row {
+  position: relative;
+  min-width: 0;
+  min-height: clamp(108px, 9vw, 138px);
   display: grid;
-  grid-template-rows: 1.5em auto minmax(3.4em, auto) auto;
-  align-content: start;
-  padding: 24px 22px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 40px;
+  align-items: center;
+  padding: 24px 48px 24px 0;
+  border-bottom: 1px solid rgba(255,255,255,.2);
 }
 
-.artist-roster-location,
-.artist-roster-action {
-  color: rgba(255,255,255,.48);
-  font: 9px 'Courier New', monospace;
-  letter-spacing: .24em;
-  line-height: 1.5;
-  text-transform: uppercase;
-}
-
-.artist-roster-name {
-  margin-top: 14px;
+.artist-index-name {
+  min-width: 0;
+  color: #fff;
   font-family: 'Michroma', sans-serif;
-  font-size: clamp(15px, 1.35vw, 20px);
+  font-size: clamp(24px, 3vw, 42px);
   font-weight: 400;
-  letter-spacing: .065em;
-  line-height: 1.3;
+  letter-spacing: .055em;
+  line-height: 1.18;
   text-transform: uppercase;
+  transition: transform .25s ease;
 }
 
-.artist-roster-description {
-  margin-top: 18px;
-  color: rgba(255,255,255,.62);
-  font-size: 12px;
-  line-height: 1.7;
+.artist-index-city {
+  color: rgba(255,255,255,.46);
+  font: 9px 'Courier New', monospace;
+  letter-spacing: .3em;
+  line-height: 1.5;
+  text-align: right;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
-.artist-roster-action {
-  display: flex;
-  justify-content: space-between;
-  gap: 18px;
-  align-self: end;
-  margin-top: 24px;
-  color: rgba(255,255,255,.72);
+.artist-index-arrow {
+  position: absolute;
+  top: 50%;
+  right: 2px;
+  color: rgba(255,255,255,.68);
+  font-size: 16px;
+  line-height: 1;
+  opacity: 0;
+  transform: translate(-8px, -50%);
+  transition: opacity .2s ease, transform .25s ease;
 }
 
-.artist-roster-action::after { content: "↗"; }
+.artist-index-row:focus-visible {
+  outline: 1px solid #fff;
+  outline-offset: 4px;
+}
 
-@media (max-width: 950px) {
-  .artist-roster-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+@media (hover: hover) {
+  .artist-index-row:hover .artist-index-name,
+  .artist-index-row:focus-visible .artist-index-name {
+    transform: translateX(12px);
+  }
+
+  .artist-index-row[href]:hover .artist-index-arrow,
+  .artist-index-row[href]:focus-visible .artist-index-arrow {
+    opacity: 1;
+    transform: translate(0, -50%);
   }
 }
 
 @media (max-width: 680px) {
-  .artist-roster-grid { grid-template-columns: 1fr; }
-  .artist-roster-copy {
-    min-height: 210px;
-    padding: 24px 22px;
+  .artist-index-row {
+    min-height: 96px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 10px;
+    padding: 22px 36px 22px 0;
   }
-  .artist-roster-name { font-size: clamp(18px, 6vw, 24px); }
+
+  .artist-index-name {
+    font-size: clamp(18px, 6vw, 24px);
+    line-height: 1.25;
+  }
+
+  .artist-index-city {
+    font-size: 8px;
+    text-align: left;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .artist-roster-media img { transition: none; }
+  .artist-index-name,
+  .artist-index-arrow { transition: none; }
 }
 
 .nina-identity {
@@ -4491,86 +4460,44 @@ body.nina-connecting-mode
         <p class="artists-label">02 / ARTISTS</p>
         <h2 id="artists-title">Artists</h2>
       </div>
-      <p class="artists-intro-copy">A growing roster of artists shaping the sound and visual language of Parallel Vision.</p>
+      <p class="artists-intro-copy">A constellation of artists shaping the Parallel Vision archive.</p>
     </header>
 
-    <div class="artist-roster-grid">
-      <article class="artist-roster-card artist-roster-alejandro">
-        <div class="artist-roster-media">
-          <img src="./assets/artist-alejandro.webp" alt="Alejandro Molinari portrait">
-        </div>
-        <div class="artist-roster-copy">
-          <span class="artist-roster-location">Berlin</span>
-          <h3 class="artist-roster-name">Alejandro Molinari</h3>
-          <p class="artist-roster-description">Founder, producer and live performer.</p>
-        </div>
+    <div class="artist-index" role="list">
+      <article class="artist-index-row" role="listitem">
+        <span class="artist-index-name">ALEJANDRO MOLINARI</span>
+        <span class="artist-index-city">BERLIN</span>
       </article>
 
-      <a class="artist-roster-card artist-roster-refrakt" href="https://parallelvisionlabel.com/refrakt/" aria-label="View REFRAKT artist page">
-        <div class="artist-roster-media">
-          <img src="./assets/artist-refrakt.webp" alt="REFRAKT black-and-white artist portrait">
-        </div>
-        <div class="artist-roster-copy">
-          <span class="artist-roster-location">New York</span>
-          <h3 class="artist-roster-name">REFRAKT (NY)</h3>
-          <p class="artist-roster-description">Cinematic club pressure and tension.</p>
-          <span class="artist-roster-action">View artist</span>
-        </div>
+      <a class="artist-index-row" href="https://parallelvisionlabel.com/refrakt/" aria-label="View REFRAKT artist page" role="listitem">
+        <span class="artist-index-name">REFRAKT</span>
+        <span class="artist-index-city">NEW YORK</span>
+        <span class="artist-index-arrow" aria-hidden="true">↗</span>
       </a>
 
-      <article class="artist-roster-card artist-roster-elorian">
-        <div class="artist-roster-media">
-          <img src="./assets/artist-elorian.webp" alt="Ëlorian black-and-white artist portrait">
-        </div>
-        <div class="artist-roster-copy">
-          <span class="artist-roster-location">Mexico City</span>
-          <h3 class="artist-roster-name">Ëlorian</h3>
-          <p class="artist-roster-description">Hypnotic electronic movement and atmosphere.</p>
-        </div>
+      <article class="artist-index-row" role="listitem">
+        <span class="artist-index-name">ËLORIAN</span>
+        <span class="artist-index-city">MEXICO CITY</span>
       </article>
 
-      <article class="artist-roster-card artist-roster-cabizbajo">
-        <div class="artist-roster-media">
-          <img src="./assets/artist-cabizbajo.webp" alt="Cabizbajo artist portrait">
-        </div>
-        <div class="artist-roster-copy">
-          <span class="artist-roster-location" aria-hidden="true">&nbsp;</span>
-          <h3 class="artist-roster-name">Cabizbajo</h3>
-          <p class="artist-roster-description">Dark rhythmic electronics.</p>
-        </div>
+      <article class="artist-index-row" role="listitem">
+        <span class="artist-index-name">CABIZBAJO</span>
+        <span class="artist-index-city">MEXICO CITY</span>
       </article>
 
-      <article class="artist-roster-card artist-roster-octave">
-        <div class="artist-roster-media">
-          <img src="./assets/artist-octave.webp" alt="Octave visual archive">
-        </div>
-        <div class="artist-roster-copy">
-          <span class="artist-roster-location" aria-hidden="true">&nbsp;</span>
-          <h3 class="artist-roster-name">Octave (RO)</h3>
-          <p class="artist-roster-description">Atmospheric club dynamics.</p>
-        </div>
+      <article class="artist-index-row" role="listitem">
+        <span class="artist-index-name">OCTAVE</span>
+        <span class="artist-index-city">ROMANIA</span>
       </article>
 
-      <article class="artist-roster-card artist-roster-blex">
-        <div class="artist-roster-media">
-          <img src="./assets/artist-blex.webp" alt="Blex visual archive">
-        </div>
-        <div class="artist-roster-copy">
-          <span class="artist-roster-location" aria-hidden="true">&nbsp;</span>
-          <h3 class="artist-roster-name">Blex</h3>
-          <p class="artist-roster-description">Ritual indie dance.</p>
-        </div>
+      <article class="artist-index-row" role="listitem">
+        <span class="artist-index-name">BLEX</span>
+        <span class="artist-index-city">ARGENTINA</span>
       </article>
 
-      <article class="artist-roster-card artist-roster-badwolf">
-        <div class="artist-roster-media">
-          <img src="./assets/artist-badwolf.webp" alt="Badwolf artist portrait">
-        </div>
-        <div class="artist-roster-copy">
-          <span class="artist-roster-location" aria-hidden="true">&nbsp;</span>
-          <h3 class="artist-roster-name">Badwolf</h3>
-          <p class="artist-roster-description">Shadowed dancefloor energy.</p>
-        </div>
+      <article class="artist-index-row" role="listitem">
+        <span class="artist-index-name">BADWOLF</span>
+        <span class="artist-index-city">MEXICO</span>
       </article>
     </div>
 
