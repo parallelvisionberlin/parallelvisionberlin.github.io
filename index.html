@@ -3067,11 +3067,22 @@ body.nina-connecting-mode
   text-transform: uppercase;
 }
 
-.artists-intro-copy {
+.artists-roster-meta {
   max-width: 510px;
-  color: rgba(255,255,255,.66);
-  font-size: clamp(15px, 1.3vw, 18px);
-  line-height: 1.8;
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+  color: rgba(255,255,255,.44);
+  font: clamp(7px, .65vw, 9px) 'Courier New', monospace;
+  letter-spacing: .16em;
+  line-height: 1.7;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.artists-roster-meta span {
+  display: block;
+  white-space: nowrap;
 }
 
 .artists-featured {
@@ -4460,7 +4471,10 @@ body.nina-connecting-mode
         <p class="artists-label">02 / ARTISTS</p>
         <h2 id="artists-title">Artists</h2>
       </div>
-      <p class="artists-intro-copy">A constellation of artists shaping the Parallel Vision archive.</p>
+      <div class="artists-roster-meta">
+        <span>CURRENT ROSTER / 07 ARTISTS</span>
+        <span>BERLIN — NEW YORK — MEXICO CITY — BUCHAREST — ARGENTINA</span>
+      </div>
     </header>
 
     <div class="artist-index" role="list">
