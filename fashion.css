@@ -6,7 +6,8 @@
   --muted: rgba(255,255,255,.58);
   --type-hero: clamp(4rem, 9vw, 9rem);
   --type-section: clamp(2.2rem, 4vw, 4.5rem);
-  --type-statement: clamp(2rem, 3.8vw, 4.5rem);
+  --type-manifesto: clamp(2rem, 4vw, 4.75rem);
+  --type-collection: clamp(1.8rem, 3vw, 3.5rem);
   --type-body: clamp(1rem, 1.2vw, 1.25rem);
   --type-micro: clamp(.68rem, .72vw, .8rem);
 }
@@ -122,15 +123,12 @@ h1 { font: 400 clamp(48px, 8vw, 120px)/.96 Michroma, sans-serif; letter-spacing:
   text-align: center;
 }
 
-.fashion-statement {
+.fashion-manifesto {
   position: relative;
-  min-height: 58svh;
-  display: grid;
-  place-items: center;
-  padding: clamp(82px, 9vw, 132px) 26px;
+  padding: clamp(92px, 11vw, 170px) 26px;
   background: #000;
 }
-.fashion-statement::after {
+.fashion-manifesto::after {
   content: "";
   position: absolute;
   right: max(26px, calc((100% - 1280px) / 2));
@@ -139,35 +137,34 @@ h1 { font: 400 clamp(48px, 8vw, 120px)/.96 Michroma, sans-serif; letter-spacing:
   height: 1px;
   background: var(--line);
 }
-.fashion-statement-inner {
-  width: min(100%, 880px);
-  text-align: center;
+.fashion-manifesto-inner {
+  width: min(100%, 1120px);
+  margin-inline: auto;
 }
-.fashion-statement-copy,
-.fashion-closing p {
+.fashion-manifesto-questions {
   max-width: 1050px;
-  color: #fff;
+}
+.fashion-manifesto-questions h2 {
+  color: rgba(255,255,255,.94);
   font-family: Michroma, sans-serif;
-  font-size: clamp(1.8rem, 3.4vw, 3.8rem);
-  font-weight: 500;
-  letter-spacing: .012em;
-  line-height: 1.36;
-  text-align: center;
+  font-size: var(--type-manifesto);
+  font-weight: 400;
+  letter-spacing: .018em;
+  line-height: 1.28;
   text-wrap: balance;
-  text-transform: uppercase;
 }
-.fashion-statement-copy {
-  font-size: clamp(1.9rem, 2.65vw, 3.1rem);
-  line-height: 1.42;
-  text-transform: none;
+.fashion-manifesto-questions h2 + h2 {
+  margin-top: clamp(64px, 8vw, 110px);
 }
-.fashion-statement-label {
-  margin-top: clamp(34px, 4vw, 52px);
-  color: rgba(255,255,255,.42);
-  font: 9px/1.6 'Courier New', monospace;
-  letter-spacing: .18em;
-  text-align: center;
-  text-transform: uppercase;
+.fashion-manifesto-support {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(34px, 6vw, 90px);
+  max-width: 900px;
+  margin-top: clamp(78px, 10vw, 140px);
+  color: rgba(255,255,255,.64);
+  font-size: var(--type-body);
+  line-height: 1.8;
 }
 
 .archive-main { max-width: 1280px; margin: auto; padding: 130px 26px 150px; }
@@ -257,15 +254,18 @@ h1 { font: 400 clamp(48px, 8vw, 120px)/.96 Michroma, sans-serif; letter-spacing:
   border-top: 1px solid var(--line);
 }
 .fashion-material-index li {
+  border-bottom: 1px solid var(--line);
+}
+.fashion-material-index a {
   display: grid;
   grid-template-columns: minmax(180px, .8fr) minmax(0, 1.2fr);
   gap: 28px;
   padding: 24px 0;
-  border-bottom: 1px solid var(--line);
+  transition: opacity .25s ease, transform .25s ease;
 }
 .fashion-material-index span {
-  font: 10px/1.6 'Courier New', monospace;
-  letter-spacing: .2em;
+  font: 400 var(--type-collection)/1.2 Michroma, sans-serif;
+  letter-spacing: .04em;
   text-transform: uppercase;
 }
 .fashion-material-index p {
@@ -273,9 +273,42 @@ h1 { font: 400 clamp(48px, 8vw, 120px)/.96 Michroma, sans-serif; letter-spacing:
   font-size: 14px;
   line-height: 1.65;
 }
+.fashion-material-index a:hover { opacity: .72; transform: translateX(4px); }
+.fashion-material-index a:focus-visible { outline: 1px solid #777; outline-offset: 7px; }
 .fashion-editorial .preview-grid {
   padding: clamp(80px, 9vw, 130px) 0;
   border-bottom: 1px solid var(--line);
+}
+.fashion-project-relationships {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(38px, 6vw, 84px);
+  padding: clamp(92px, 10vw, 145px) 0;
+  border-bottom: 1px solid var(--line);
+}
+.fashion-project-relationships h2 {
+  margin-bottom: 22px;
+  color: rgba(255,255,255,.9);
+  font: 400 clamp(1rem, 1.55vw, 1.35rem)/1.4 Michroma, sans-serif;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.fashion-project-relationships p {
+  max-width: 350px;
+  color: rgba(255,255,255,.62);
+  font-size: var(--type-body);
+  line-height: 1.75;
+}
+.fashion-closing p {
+  max-width: 1050px;
+  color: #fff;
+  font-family: Michroma, sans-serif;
+  font-weight: 500;
+  letter-spacing: .012em;
+  line-height: 1.36;
+  text-align: center;
+  text-wrap: balance;
+  text-transform: uppercase;
 }
 .fashion-development .fashion-definition-layout { align-items: start; }
 .fashion-closing {
@@ -306,7 +339,7 @@ h1 { font: 400 clamp(48px, 8vw, 120px)/.96 Michroma, sans-serif; letter-spacing:
 .collection-hero { min-height: 94vh; }
 .collection-hero h1 { font-size: clamp(54px, 10vw, 148px); }
 .collection-intro { display: grid; grid-template-columns: .7fr 1.3fr; gap: 60px; padding-bottom: 100px; border-bottom: 1px solid var(--line); }
-.collection-intro p { max-width: 720px; font-size: clamp(18px, 2.1vw, 27px); line-height: 1.75; }
+.collection-intro p { max-width: 720px; font-size: clamp(18px, 2.1vw, 27px); line-height: 1.75; white-space: pre-line; }
 .material-tags { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 34px; }
 .material-tags span { padding: 10px 12px; border: 1px solid var(--line); color: var(--muted); font: 9px 'Courier New', monospace; letter-spacing: .18em; text-transform: uppercase; }
 .collection-block { padding-top: 110px; }
@@ -384,7 +417,7 @@ h1 { font: 400 clamp(48px, 8vw, 120px)/.96 Michroma, sans-serif; letter-spacing:
 }
 
 @media (max-width: 980px) {
-  .fashion-statement-inner { width: min(100%, 680px); }
+  .fashion-manifesto-inner { width: min(100%, 900px); }
 }
 
 @media (max-width: 760px) {
@@ -400,21 +433,25 @@ h1 { font: 400 clamp(48px, 8vw, 120px)/.96 Michroma, sans-serif; letter-spacing:
   .fashion-research-definition { margin-top: 10px; font-size: .88rem; }
   .hero-lede { margin-top: 18px; line-height: 1.6; }
   .archive-main { padding: 90px 18px 110px; }
-  .fashion-statement {
-    min-height: 52svh;
-    padding: 72px 24px;
+  .fashion-manifesto {
+    padding: 76px 24px 84px;
   }
-  .fashion-statement-inner { width: 100%; }
-  .fashion-statement::after {
+  .fashion-manifesto-inner { width: 100%; }
+  .fashion-manifesto::after {
     right: 24px;
     left: 24px;
   }
-  .fashion-statement-copy,
-  .fashion-closing p {
-    font-size: clamp(1.45rem, 7vw, 2.15rem);
-    line-height: 1.42;
+  .fashion-manifesto-questions h2 {
+    font-size: clamp(1.65rem, 7.5vw, 2.55rem);
+    line-height: 1.34;
   }
-  .fashion-statement-label { margin-top: 30px; letter-spacing: .14em; }
+  .fashion-manifesto-questions h2 + h2 { margin-top: 52px; }
+  .fashion-manifesto-support {
+    grid-template-columns: 1fr;
+    gap: 22px;
+    margin-top: 64px;
+    font-size: 1rem;
+  }
   .fashion-editorial { padding-top: 0; }
   .fashion-chapter { padding: 82px 0; }
   .fashion-definition-layout,
@@ -437,12 +474,18 @@ h1 { font: 400 clamp(48px, 8vw, 120px)/.96 Michroma, sans-serif; letter-spacing:
   }
   .fashion-material-test-copy h2 { font-size: clamp(1.55rem, 7vw, 2.15rem); }
   .fashion-material-test-copy p { font-size: 1rem; }
-  .fashion-material-index li {
+  .fashion-material-index a {
     grid-template-columns: 1fr;
     gap: 7px;
     padding: 20px 0;
   }
+  .fashion-material-index span { font-size: clamp(1.35rem, 7vw, 2rem); }
   .fashion-editorial .preview-grid { padding: 76px 0; }
+  .fashion-project-relationships {
+    grid-template-columns: 1fr;
+    gap: 50px;
+    padding: 82px 0;
+  }
   .fashion-closing {
     min-height: 52svh;
     padding-top: 90px;
