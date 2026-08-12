@@ -4209,9 +4209,11 @@ body.nina-connecting-mode
   }
 }
 
-/* Keep the wide hero wordmark inside tablet and phone viewports. */
+/* Keep the homepage wordmark inside tablet and phone viewports. */
 @media (max-width: 768px) {
   .hero {
+    width: 100%;
+    max-width: 100vw;
     overflow-x: hidden;
   }
 
@@ -4219,26 +4221,39 @@ body.nina-connecting-mode
     width: 100%;
     max-width: 100vw;
     box-sizing: border-box;
-    padding-left: clamp(18px, 6vw, 32px);
-    padding-right: clamp(18px, 6vw, 32px);
+    padding-left: 20px;
+    padding-right: 20px;
+    overflow: hidden;
   }
 
-  .hero-copy,
-  .logo {
+  .hero-copy {
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
+    overflow: hidden;
   }
 
-  .logo {
-    font-size: clamp(2.75rem, 12vw, 5.5rem);
-    line-height: .96;
-    letter-spacing: .04em;
+  .hero .hero-wordmark {
+    display: block;
+    width: 100%;
+    max-width: calc(100vw - 40px);
+    box-sizing: border-box;
+    margin-left: 0;
+    margin-right: 0;
+    font-size: clamp(40px, 11vw, 64px);
+    line-height: .9;
+    letter-spacing: .01em;
     white-space: normal;
     overflow-wrap: normal;
     word-break: normal;
-    text-align: center;
+    text-align: left;
     transform: none;
+  }
+
+  .hero .hero-wordmark span {
+    display: block;
+    width: 100%;
+    max-width: 100%;
   }
 }
 
@@ -4440,9 +4455,9 @@ body.nina-connecting-mode
         <span>SIGNAL STABILITY 87%</span>
       </div>
 
-      <div class="logo">
-        Parallel<br>
-        Vision
+      <div class="logo hero-wordmark" aria-label="Parallel Vision">
+        <span>Parallel</span>
+        <span>Vision</span>
       </div>
 
       <p class="hero-text">
