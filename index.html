@@ -4209,6 +4209,39 @@ body.nina-connecting-mode
   }
 }
 
+/* Keep the wide hero wordmark inside tablet and phone viewports. */
+@media (max-width: 768px) {
+  .hero {
+    overflow-x: hidden;
+  }
+
+  .hero-content {
+    width: 100%;
+    max-width: 100vw;
+    box-sizing: border-box;
+    padding-left: clamp(18px, 6vw, 32px);
+    padding-right: clamp(18px, 6vw, 32px);
+  }
+
+  .hero-copy,
+  .logo {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .logo {
+    font-size: clamp(2.75rem, 12vw, 5.5rem);
+    line-height: .96;
+    letter-spacing: .04em;
+    white-space: normal;
+    overflow-wrap: normal;
+    word-break: normal;
+    text-align: center;
+    transform: none;
+  }
+}
+
 /* Mobile homepage: signal first, interface second */
 @media (max-width: 620px) {
   html,
@@ -4274,13 +4307,16 @@ body.nina-connecting-mode
   }
 
   .logo {
+    width: 100%;
     max-width: 100%;
     margin-bottom: 28px;
-    font-size: clamp(3.5rem, 16vw, 5.8rem);
-    letter-spacing: .075em;
-    line-height: 1.08;
+    font-size: clamp(2.75rem, 12vw, 5.5rem);
+    letter-spacing: .04em;
+    line-height: .96;
     white-space: normal;
     overflow-wrap: normal;
+    word-break: normal;
+    text-align: center;
     animation: none;
     text-shadow: none;
   }
