@@ -194,7 +194,7 @@ h1 { font: 400 clamp(48px, 8vw, 120px)/.96 Michroma, sans-serif; letter-spacing:
   text-transform: uppercase;
 }
 .fashion-definition-layout,
-.fashion-collaboration {
+.fashion-collaboration-intro {
   display: grid;
   grid-template-columns: minmax(0, 1.15fr) minmax(300px, .85fr);
   gap: clamp(56px, 8vw, 120px);
@@ -277,6 +277,57 @@ h1 { font: 400 clamp(48px, 8vw, 120px)/.96 Michroma, sans-serif; letter-spacing:
   padding: clamp(80px, 9vw, 130px) 0;
   border-bottom: 1px solid var(--line);
 }
+.fashion-collaboration { display: block; }
+.fashion-collaboration-intro {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(300px, .85fr);
+  gap: clamp(56px, 8vw, 120px);
+  align-items: start;
+  margin-bottom: clamp(72px, 9vw, 128px);
+}
+.artist-study-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1.18fr) minmax(280px, .82fr);
+  gap: clamp(32px, 5vw, 72px);
+  align-items: end;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+}
+.artist-study-image { aspect-ratio: 4 / 5; overflow: hidden; background: #080808; }
+.artist-study-image img { display: block; width: 100%; height: 100%; object-fit: cover; filter: saturate(.78) brightness(.88); transition: transform .55s ease, filter .55s ease; }
+.artist-study-card:hover .artist-study-image img { transform: scale(1.012); filter: saturate(.92) brightness(.98); }
+.artist-study-meta { padding-bottom: 6px; }
+.artist-study-meta h3 { font: 400 clamp(2rem, 4.3vw, 4.6rem)/1.08 Michroma, sans-serif; letter-spacing: .05em; text-transform: uppercase; }
+.artist-study-meta h3 span { font-size: .42em; line-height: 1.45; }
+.artist-study-foot { display: flex; justify-content: space-between; gap: 24px; margin-top: clamp(44px, 8vw, 110px); padding-top: 18px; border-top: 1px solid var(--line); color: var(--muted); font: 9px/1.6 'Courier New', monospace; letter-spacing: .2em; text-transform: uppercase; }
+.artist-study-card:focus-visible { outline: 1px solid #777; outline-offset: 8px; }
+
+/* Cabizbajo / Artist Study 01 */
+.cabizbajo-study-page .archive-nav { position: fixed; background: rgba(2,2,2,.82); }
+.artist-study-hero { max-width: 1440px; min-height: 100svh; margin: auto; padding: 138px 26px 72px; border-bottom: 1px solid var(--line); }
+.artist-study-hero-heading { position: relative; z-index: 2; display: grid; grid-template-columns: 1fr minmax(240px, .38fr); align-items: end; gap: 32px; margin-bottom: 46px; }
+.artist-study-hero-heading > .fashion-chapter-label { grid-column: 1 / -1; margin-bottom: 0; }
+.artist-study-hero h1 { max-width: 1040px; font-size: clamp(2.65rem, 6.7vw, 6.8rem); line-height: .98; }
+.artist-study-hero h1 span { font-size: .52em; }
+.artist-study-hero-meta { padding-bottom: 6px; border-bottom: 1px solid var(--line); color: var(--muted); font: 9px/2 'Courier New', monospace; letter-spacing: .23em; text-transform: uppercase; }
+.artist-study-hero-media { display: grid; place-items: center; min-height: 64svh; overflow: hidden; background: #050505; }
+.artist-study-hero-media video { display: block; width: 100%; height: min(78svh, 920px); object-fit: contain; background: #050505; }
+.artist-study-main { max-width: 1440px; padding-top: 0; }
+.artist-study-intro { display: grid; grid-template-columns: minmax(150px, .45fr) minmax(0, 1.2fr); gap: clamp(42px, 8vw, 120px); padding: clamp(88px, 10vw, 150px) 0; border-bottom: 1px solid var(--line); }
+.artist-study-intro > div { max-width: 780px; font-size: clamp(1.15rem, 1.8vw, 1.65rem); line-height: 1.65; }
+.artist-study-intro > div p + p { margin-top: 24px; }
+.artist-study-figure { padding-top: clamp(90px, 11vw, 160px); }
+.artist-study-figure figcaption { margin-bottom: 24px; color: var(--muted); font: 9px/1.6 'Courier New', monospace; letter-spacing: .25em; text-transform: uppercase; }
+.artist-study-figure img { display: block; width: 100%; background: #080808; }
+.artist-study-figure--portrait { width: min(72%, 900px); margin-left: auto; }
+.artist-study-figure--detail { width: min(66%, 820px); }
+.artist-study-figure--wide { width: calc(100% + 52px); margin-left: -26px; }
+.artist-study-vertical-closing { display: grid; grid-template-columns: minmax(0, .72fr) minmax(240px, .42fr); gap: clamp(44px, 9vw, 130px); align-items: end; padding: clamp(110px, 13vw, 190px) 0; }
+.artist-study-figure--social { width: min(100%, 640px); padding-top: 0; }
+.artist-study-vertical-meta { padding: 0 0 20px; border-bottom: 1px solid var(--line); color: rgba(255,255,255,.72); font: 10px/2 'Courier New', monospace; letter-spacing: .2em; text-transform: uppercase; }
+.artist-study-back { padding: 38px 0; border-top: 1px solid var(--line); font: 9px/1.6 'Courier New', monospace; letter-spacing: .22em; text-transform: uppercase; }
+.artist-study-back a { opacity: .65; }
+.artist-study-back a:hover, .artist-study-back a:focus-visible { opacity: 1; }
 .fashion-development .fashion-definition-layout { align-items: start; }
 .fashion-closing {
   min-height: 62svh;
@@ -419,7 +470,7 @@ h1 { font: 400 clamp(48px, 8vw, 120px)/.96 Michroma, sans-serif; letter-spacing:
   .fashion-chapter { padding: 82px 0; }
   .fashion-definition-layout,
   .fashion-material-archive,
-  .fashion-collaboration {
+  .fashion-collaboration-intro {
     grid-template-columns: 1fr;
     gap: 42px;
   }
@@ -458,4 +509,21 @@ h1 { font: 400 clamp(48px, 8vw, 120px)/.96 Michroma, sans-serif; letter-spacing:
   .flesh-zero-page .archive-main { padding-top: 82px; }
   .flesh-zero-page .collection-intro { gap: 30px; padding-bottom: 72px; }
   .flesh-zero-page .collection-intro p { font-size: 10px; line-height: 2.05; }
+  .artist-study-card { grid-template-columns: 1fr; gap: 32px; }
+  .artist-study-meta h3 { font-size: clamp(2rem, 10vw, 3.1rem); }
+  .artist-study-foot { margin-top: 38px; }
+  .cabizbajo-study-page .archive-nav { position: absolute; }
+  .artist-study-hero { min-height: auto; padding: 112px 18px 58px; }
+  .artist-study-hero-heading { grid-template-columns: 1fr; gap: 26px; margin-bottom: 34px; }
+  .artist-study-hero h1 { font-size: clamp(2.35rem, 11.4vw, 4.3rem); overflow-wrap: anywhere; }
+  .artist-study-hero-meta { padding-bottom: 14px; }
+  .artist-study-hero-media { min-height: 58svh; }
+  .artist-study-hero-media video { height: 68svh; }
+  .artist-study-main { padding-top: 0; }
+  .artist-study-intro { grid-template-columns: 1fr; gap: 28px; padding: 80px 0; }
+  .artist-study-intro > div { font-size: 1.08rem; }
+  .artist-study-figure { width: 100%; margin-left: 0; padding-top: 88px; }
+  .artist-study-figure--wide { width: calc(100% + 36px); margin-left: -18px; }
+  .artist-study-vertical-closing { grid-template-columns: 1fr; gap: 42px; padding: 100px 0; }
+  .artist-study-figure--social { width: min(88%, 520px); padding-top: 0; }
 }
