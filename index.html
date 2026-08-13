@@ -6072,8 +6072,10 @@ body.nina-connecting-mode
   if (!toggle) return;
 
   const storageKey = "pvAmbientAudio";
-  let context;
-  let master;
+  const soundtrack = new Audio("./assets/alejandromolinari-das-signale.mp3");
+  soundtrack.loop = true;
+  soundtrack.preload = "metadata";
+  soundtrack.volume = 0.55;
   let active = localStorage.getItem(storageKey) === "on";
 
   function render() {
@@ -6084,43 +6086,39 @@ body.nina-connecting-mode
     toggle.setAttribute("aria-pressed", String(active));
   }
 
-  function createAmbientLayer() {
-    if (context) return;
-    context = new (window.AudioContext || window.webkitAudioContext)();
-    master = context.createGain();
-    master.gain.value = 0;
-    master.connect(context.destination);
-
-    [43.65, 65.41, 87.31].forEach(function (frequency, index) {
-      const oscillator = context.createOscillator();
-      const gain = context.createGain();
-      oscillator.type = index === 1 ? "triangle" : "sine";
-      oscillator.frequency.value = frequency;
-      gain.gain.value = [0.035, 0.012, 0.008][index];
-      oscillator.connect(gain).connect(master);
-      oscillator.start();
-    });
-  }
-
-  async function applyAudio() {
-    createAmbientLayer();
-    if (context.state === "suspended") await context.resume();
-    master.gain.cancelScheduledValues(context.currentTime);
-    master.gain.linearRampToValueAtTime(active ? 0.32 : 0, context.currentTime + 1.4);
-  }
-
-  toggle.addEventListener("click", function () {
-    active = !active;
-    localStorage.setItem(storageKey, active ? "on" : "off");
+  async function startAudio() {
+    try {
+      await soundtrack.play();
+      active = true;
+      localStorage.setItem(storageKey, "on");
+    } catch {
+      active = false;
+      localStorage.setItem(storageKey, "off");
+    }
     render();
-    applyAudio();
+  }
+
+  toggle.addEventListener("click", async function () {
+    if (soundtrack.paused) {
+      await startAudio();
+      return;
+    }
+    soundtrack.pause();
+    active = false;
+    localStorage.setItem(storageKey, "off");
+    render();
   });
 
   window.addEventListener("pv-language-change", render);
+  soundtrack.addEventListener("error", function () {
+    active = false;
+    localStorage.setItem(storageKey, "off");
+    render();
+  });
 
   if (active) {
-    document.addEventListener("pointerdown", applyAudio, { once: true });
-    document.addEventListener("keydown", applyAudio, { once: true });
+    document.addEventListener("pointerdown", startAudio, { once: true });
+    document.addEventListener("keydown", startAudio, { once: true });
   }
 
   render();
