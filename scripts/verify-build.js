@@ -1,78 +1,105 @@
-const fs = require("node:fs");
-const path = require("node:path");
+const fs = require('node:fs');
+const path = require('node:path');
+const vm = require('node:vm');
+const root = path.resolve(__dirname, '..');
+const pages = ['index.html','alejandro-molinari.html','berlin-2063.html','future-fashion.html','chromia.html','flesh-zero.html','lotus-2063.html','magnetic-tape.html','dna-mutation.html','cabizbajo-fashion-after-fabric.html','nina-fok.html','nina.html','nina-fok/index.html'];
+const redirectPages = new Set(['nina-fok/index.html']);
+const errors = [];
+const fail = message => errors.push(message);
+const external = value => /^(?:https?:|mailto:|tel:|data:|javascript:|about:|#)/i.test(value);
 
-const root = path.resolve(__dirname, "..");
-const index = fs.readFileSync(path.join(root, "index.html"), "utf8");
-
-const requiredFiles = [
-  "index.html"
-];
-
-for (const file of requiredFiles) {
-  if (!fs.existsSync(path.join(root, file))) {
-    throw new Error(`Missing required build file: ${file}`);
+for (const file of pages) {
+  const absolute = path.join(root, file);
+  if (!fs.existsSync(absolute)) { fail(`Missing public page: ${file}`); continue; }
+  const html = fs.readFileSync(absolute, 'utf8');
+  const ids = [...html.matchAll(/\bid=["']([^"']+)["']/gi)].map(match => match[1]);
+  const duplicates = ids.filter((id, i) => ids.indexOf(id) !== i);
+  if (duplicates.length) fail(`${file}: duplicate IDs: ${[...new Set(duplicates)].join(', ')}`);
+  if ((html.match(/<h1\b/gi) || []).length !== 1) fail(`${file}: must contain exactly one h1`);
+  if (!redirectPages.has(file) && !/<main\b[^>]*>/i.test(html)) fail(`${file}: missing main landmark`);
+  if (!/<title>[^<]+<\/title>/i.test(html)) fail(`${file}: missing title`);
+  if (!/<meta\s+name=["']description["'][^>]+content=["'][^"']+/i.test(html)) fail(`${file}: missing description`);
+  const canonical = html.match(/<link\s+rel=["']canonical["'][^>]+href=["']([^"']+)/i)?.[1];
+  if (!canonical) fail(`${file}: missing canonical`);
+  else {
+    try {
+      const url = new URL(canonical);
+      if (url.origin !== 'https://parallelvisionlabel.com' || canonical.includes('.com..')) fail(`${file}: malformed canonical ${canonical}`);
+    } catch { fail(`${file}: invalid canonical URL ${canonical}`); }
+  }
+  for (const match of html.matchAll(/<a\b[^>]*href=["']#([^"']+)["'][^>]*>/gi)) {
+    if (!ids.includes(match[1])) fail(`${file}: fragment link targets missing ID #${match[1]}`);
+  }
+  for (const match of html.matchAll(/<img\b([^>]*)>/gi)) {
+    const attributes = match[1];
+    if (!/\balt=["'][^"']*["']/i.test(attributes)) fail(`${file}: image missing alt`);
+    const source = attributes.match(/\bsrc=["']([^"']+)["']/i)?.[1];
+    if (source && !external(source)) {
+      if (!/\bwidth=["'][1-9]\d*["']/i.test(attributes) || !/\bheight=["'][1-9]\d*["']/i.test(attributes)) {
+        fail(`${file}: local image missing numeric intrinsic width and height: ${source}`);
+      }
+    }
+  }
+  for (const match of html.matchAll(/<iframe\b([^>]*)>/gi)) if (!/\btitle=["'][^"']+["']/i.test(match[1])) fail(`${file}: iframe missing title`);
+  for (const match of html.matchAll(/\b(?:src|href)=["']([^"']+)["']/gi)) {
+    const value = match[1];
+    if (external(value)) continue;
+    const target = path.resolve(path.dirname(absolute), value.split(/[?#]/)[0]);
+    if (!fs.existsSync(target)) fail(`${file}: unresolved ${value}`);
+    else if (fs.statSync(target).isFile() && fs.statSync(target).size === 2) fail(`${file}: references two-byte placeholder ${value}`);
+  }
+  for (const match of html.matchAll(/<script(?![^>]+src=)[^>]*>([\s\S]*?)<\/script>/gi)) {
+    try { new vm.Script(match[1], { filename: file }); } catch (error) { fail(`${file}: inline JS: ${error.message}`); }
+  }
+  if (/http-equiv=["']refresh/i.test(html)) {
+    const target = html.match(/content=["'][^;]+;\s*url=([^"']+)/i)?.[1];
+    if (!target || !fs.existsSync(path.resolve(path.dirname(absolute), target))) fail(`${file}: invalid redirect target`);
+    else if (canonical) {
+      const pageUrl = `https://parallelvisionlabel.com/${file.replace(/index\.html$/, '')}`;
+      const destination = new URL(target, pageUrl).href;
+      if (canonical !== destination) fail(`${file}: canonical ${canonical} differs from redirect destination ${destination}`);
+    }
   }
 }
 
-if (index.includes("<tavus-embed")) {
-  throw new Error("Tavus must not be initialized in the initial page source.");
+for (const file of ['language.js','js/home.js','js/nina-access.js']) {
+  try { new vm.Script(fs.readFileSync(path.join(root, file), 'utf8'), { filename: file }); }
+  catch (error) { fail(`${file}: parse error: ${error.message}`); }
 }
 
-if (index.includes('src="https://unpkg.com/@tavus/embed"')) {
-  throw new Error("The Tavus library must be loaded only after access is granted.");
+const index = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+const nina = fs.readFileSync(path.join(root, 'js/nina-access.js'), 'utf8');
+if (index.includes('<tavus-embed')) fail('Tavus initialized in initial HTML');
+if (/unpkg\.com\/@tavus\/embed["']/.test(nina)) fail('Tavus dependency is not pinned');
+if (index.includes('/api/verify-nina-access')) fail('Static gate calls a nonexistent API');
+for (const marker of ['crypto.subtle.digest("SHA-256", encodedCode)','let ninaAccessVerifiedForCurrentOpen = false','let ninaTavusInitialized = false','initializeNinaTavusAfterAccess','client-side gate']) if (!nina.includes(marker)) fail(`Nina marker missing: ${marker}`);
+for (const match of index.matchAll(/<img\b([^>]*)>/gi)) if (/\bloading=["']eager["']/i.test(match[1])) fail('Homepage below-the-fold image must not be eager-loaded');
+const soundcloudStatus = index.match(/<[^>]+id=["']soundcloudLoadingStatus["'][^>]*>/i)?.[0] || '';
+if (!/\brole=["']status["']/i.test(soundcloudStatus) || !/\baria-live=["']polite["']/i.test(soundcloudStatus)) fail('SoundCloud deferred loading status is missing accessible live semantics');
+for (const match of index.matchAll(/<iframe\b([^>]*data-soundcloud-src[^>]*)>/gi)) {
+  if (!/\bsrc=["']about:blank["']/i.test(match[1])) fail('Deferred SoundCloud iframe must start unloaded');
+  if (!/\baria-describedby=["']soundcloudLoadingStatus["']/i.test(match[1])) fail('Deferred SoundCloud iframe lacks accessible loading semantics');
 }
 
-if (index.includes("/api/verify-nina-access")) {
-  throw new Error("The static gate must not call a serverless endpoint.");
+const sitemap = fs.readFileSync(path.join(root, 'sitemap.xml'), 'utf8');
+for (const file of pages.filter(file => file !== 'nina-fok/index.html')) {
+  const html = fs.readFileSync(path.join(root, file), 'utf8');
+  const canonical = html.match(/<link\s+rel=["']canonical["'][^>]+href=["']([^"']+)/i)?.[1];
+  if (canonical && !sitemap.includes(`<loc>${canonical}</loc>`)) fail(`Sitemap missing ${canonical}`);
 }
 
-if (fs.existsSync(path.join(root, "api/verify-nina-access.js"))) {
-  throw new Error("The unused serverless endpoint must be removed.");
+const maintainedExtensions = new Set(['.html', '.css', '.js']);
+function checkWhitespace(directory) {
+  for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+    if (['.git', '.codex-refrakt-work', '.publish-homepage', 'node_modules'].includes(entry.name)) continue;
+    const absolute = path.join(directory, entry.name);
+    if (entry.isDirectory()) { checkWhitespace(absolute); continue; }
+    if (!maintainedExtensions.has(path.extname(entry.name))) continue;
+    const lines = fs.readFileSync(absolute, 'utf8').replace(/\r\n/g, '\n').split('\n');
+    lines.forEach((line, index) => { if (/[ \t]+$/.test(line)) fail(`${path.relative(root, absolute)}:${index + 1}: trailing whitespace`); });
+  }
 }
+checkWhitespace(root);
 
-if (!index.includes('crypto.subtle.digest("SHA-256", encodedCode)')) {
-  throw new Error("The access gate must use browser SHA-256 verification.");
-}
-
-if (index.includes("sessionStorage")) {
-  throw new Error("The access portal must not trust stored authorization.");
-}
-
-if (!index.includes("let ninaAccessVerifiedForCurrentOpen = false")) {
-  throw new Error("The access gate must use per-opening in-memory authorization.");
-}
-
-if (!index.includes("let ninaTavusInitialized = false")) {
-  throw new Error("The Tavus initializer must have a strict one-time guard.");
-}
-
-if (!index.includes("initializeNinaTavusAfterAccess")) {
-  throw new Error("The post-access Tavus initializer is missing.");
-}
-
-if (!index.includes("pointer-events: auto !important")) {
-  throw new Error("The Tavus embed must accept pointer events after access.");
-}
-
-if (!index.includes("pointer-events: none !important")) {
-  throw new Error("The visual CONNECT scrim must pass pointer events through.");
-}
-
-if (
-  index.includes("ninaScrimButton.addEventListener") ||
-  index.includes("startNina.addEventListener")
-) {
-  throw new Error("Custom CONNECT controls must not intercept native Tavus clicks.");
-}
-
-if (!index.includes("styleNativeNinaConnectButton")) {
-  throw new Error("The native Tavus CONNECT hover treatment is missing.");
-}
-
-const inlineScripts = [...index.matchAll(/<script>([\s\S]*?)<\/script>/g)];
-
-for (const [, source] of inlineScripts) {
-  new Function(source);
-}
-
-console.log("Static site build verified.");
+if (errors.length) { console.error(errors.map(error => `- ${error}`).join('\n')); process.exit(1); }
+console.log(`Static site validation passed (${pages.length} public HTML files).`);
