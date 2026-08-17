@@ -153,7 +153,7 @@
       ["#fashion-material-test-title", "Reactive matter replacing fabric.", "Reaktive Materie ersetzt Stoff."],
       [".fashion-material-test-copy p", "Fashion After Fabric explores clothing as a living interface where responsive materials, synthetic biology and engineered systems replace traditional textiles and become part of the human body.", "Fashion After Fabric erforscht Kleidung als lebendige Schnittstelle, in der reaktive Materialien, synthetische Biologie und technische Systeme traditionelle Textilien ersetzen und Teil des menschlichen Körpers werden."],
       [".fashion-material-archive .fashion-chapter-label", "Archive / 05 Material Systems", "Archiv / 05 Materialsysteme"],
-      ["#fashion-archive-title", "The Material Archive", "Das Materialarchiv"],
+      ["#fashion-archive-title", "The Material Archive", "Das\nMaterial\nArchiv"],
       [".fashion-material-index li:nth-child(1) p", "Responsive metallic skin", "Reaktive metallische Haut"],
       [".fashion-material-index li:nth-child(2) p", "Synthetic tissue replacing the first layer of flesh", "Synthetisches Gewebe ersetzt die erste Hautschicht"],
       [".fashion-material-index li:nth-child(3) p", "Protective volume and nightlife architecture", "Schützendes Volumen und Architektur des Nachtlebens"],
