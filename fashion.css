@@ -261,8 +261,8 @@ html[lang="de"] .fashion-project-definition #fashion-research-title {
   align-items: start;
 }
 html[lang="de"] .fashion-material-archive {
-  grid-template-columns: minmax(0, .8fr) minmax(360px, 1fr);
-  column-gap: clamp(3rem, 8vw, 8rem);
+  grid-template-columns: minmax(0, .72fr) minmax(420px, 1fr);
+  column-gap: clamp(4rem, 8vw, 9rem);
 }
 html[lang="de"] .fashion-material-archive #fashion-archive-title {
   max-width: 100%;
@@ -270,8 +270,9 @@ html[lang="de"] .fashion-material-archive #fashion-archive-title {
   word-break: keep-all;
   hyphens: none;
   white-space: pre-line;
-  font-size: clamp(3rem, 6vw, 5.5rem);
+  font-size: clamp(3rem, 5.2vw, 5.8rem);
   line-height: .9;
+  letter-spacing: .02em;
 }
 .fashion-material-index {
   margin: 0;
@@ -622,7 +623,7 @@ html[lang="de"] .fashion-material-archive #fashion-archive-title {
   .fashion-project-definition .fashion-definition-layout { grid-template-columns: 1fr; }
   html[lang="de"] .fashion-project-definition #fashion-research-title { font-size: clamp(1.85rem, 7.5vw, 2.75rem); }
   html[lang="de"] .fashion-material-archive { grid-template-columns: 1fr; }
-  html[lang="de"] .fashion-material-archive #fashion-archive-title { font-size: clamp(2.4rem, 10vw, 3.25rem); }
+  html[lang="de"] .fashion-material-archive #fashion-archive-title { font-size: clamp(2.5rem, 12vw, 4rem); }
   .fashion-chapter h2 {
     font-size: clamp(1.75rem, 8vw, 2.7rem);
   }
