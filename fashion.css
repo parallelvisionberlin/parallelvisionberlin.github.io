@@ -337,10 +337,18 @@ h1 { font: 400 clamp(48px, 8vw, 120px)/.96 Michroma, sans-serif; letter-spacing:
 .alejandro-look figure { justify-self: end; width: min(100%, 650px); }
 .alejandro-look img { display: block; width: 100%; height: auto; background: #080808; }
 .alejandro-look figcaption { margin-top: 15px; text-align: right; }
-.alejandro-image-moment { padding-bottom: clamp(110px, 13vw, 185px); }
 .alejandro-crop { background-repeat: no-repeat; background-color: #080808; }
-.alejandro-crop-wide { width: 100%; aspect-ratio: 16 / 8.2; background-image: url('./assets/fashion-after-fabric/artists/alejandro/lotus02heroale.png'); background-size: 118%; background-position: 54% 43%; }
-.alejandro-image-note { display: flex; justify-content: space-between; gap: 24px; padding-top: 16px; }
+.alejandro-lookbook { padding: 0 0 clamp(110px, 13vw, 185px); }
+.alejandro-lookbook-heading { display: grid; grid-template-columns: minmax(190px, .55fr) minmax(0, 1.45fr); gap: clamp(38px, 7vw, 110px); align-items: end; margin-bottom: clamp(48px, 7vw, 90px); }
+.alejandro-lookbook-heading h2 { max-width: 790px; font: 400 clamp(1.8rem, 3.3vw, 3.5rem)/1.18 Michroma, sans-serif; letter-spacing: .05em; text-transform: uppercase; }
+.alejandro-lookbook-grid { display: grid; grid-template-columns: minmax(0, .78fr) minmax(0, 1.22fr); gap: clamp(18px, 2vw, 30px); align-items: end; }
+.alejandro-lookbook-grid figure { min-width: 0; }
+.alejandro-lookbook-grid img { display: block; width: 100%; aspect-ratio: 4 / 5; object-fit: cover; background: #080808; }
+.alejandro-lookbook-grid .alejandro-lookbook-wide { grid-column: 1 / -1; }
+.alejandro-lookbook-grid .alejandro-lookbook-wide img { aspect-ratio: 16 / 8.2; object-position: center 44%; }
+.alejandro-lookbook-grid .alejandro-lookbook-offset { grid-column: 2; width: 100%; }
+.alejandro-lookbook-grid .alejandro-lookbook-offset img { aspect-ratio: 4 / 5; object-position: 52% center; }
+.alejandro-lookbook-grid figcaption { margin-top: 14px; color: var(--muted); font: 9px/1.8 'Courier New', monospace; letter-spacing: .22em; text-transform: uppercase; }
 .alejandro-material { padding: clamp(105px, 12vw, 175px) 0 clamp(120px, 14vw, 200px); border-top: 1px solid var(--line); }
 .alejandro-material-copy { display: grid; grid-template-columns: minmax(250px, .8fr) minmax(300px, 1.2fr); column-gap: clamp(50px, 9vw, 130px); align-items: end; margin-bottom: clamp(58px, 8vw, 110px); }
 .alejandro-material-copy .alejandro-section-label { grid-column: 1 / -1; margin-bottom: 24px; }
@@ -350,6 +358,14 @@ h1 { font: 400 clamp(48px, 8vw, 120px)/.96 Michroma, sans-serif; letter-spacing:
 .alejandro-detail-one { grid-row: 1 / 3; background-image: url('./assets/fashion-after-fabric/artists/alejandro/lotus02heroale.png'); background-size: auto 155%; background-position: 67% 47%; }
 .alejandro-detail-two { background-image: url('./assets/fashion-after-fabric/artists/alejandro/alelook02.9.16.png'); background-size: 180%; background-position: 50% 20%; }
 .alejandro-detail-three { background-image: url('./assets/fashion-after-fabric/artists/alejandro/lotus02heroale.png'); background-size: 205%; background-position: 39% 72%; }
+.alejandro-next-study { display: grid; grid-template-columns: minmax(260px, .72fr) minmax(320px, 1.28fr); gap: clamp(42px, 7vw, 100px); align-items: end; padding: clamp(90px, 10vw, 140px) 0; border-top: 1px solid var(--line); }
+.alejandro-next-image { aspect-ratio: 4 / 5; overflow: hidden; background: #080808; }
+.alejandro-next-image img { display: block; width: 100%; height: 100%; object-fit: cover; filter: saturate(.78) brightness(.88); transition: transform .55s ease, filter .55s ease; }
+.alejandro-next-study:hover .alejandro-next-image img { transform: scale(1.012); filter: saturate(.92) brightness(.98); }
+.alejandro-next-copy { padding-bottom: 8px; }
+.alejandro-next-copy h2 { margin-top: 18px; font: 400 clamp(2rem, 4vw, 4.2rem)/1.12 Michroma, sans-serif; letter-spacing: .055em; text-transform: uppercase; }
+.alejandro-next-copy > span { display: block; margin-top: clamp(42px, 7vw, 90px); padding-top: 18px; border-top: 1px solid var(--line); color: var(--muted); font: 9px/1.6 'Courier New', monospace; letter-spacing: .2em; text-transform: uppercase; }
+.alejandro-next-study:focus-visible { outline: 1px solid #777; outline-offset: 8px; }
 .alejandro-return { padding: 40px 0; border-top: 1px solid var(--line); font: 9px/1.6 'Courier New', monospace; letter-spacing: .22em; text-transform: uppercase; }
 .alejandro-return a { opacity: .65; }
 .alejandro-return a:hover, .alejandro-return a:focus-visible { opacity: 1; }
@@ -625,8 +641,16 @@ h1 { font: 400 clamp(48px, 8vw, 120px)/.96 Michroma, sans-serif; letter-spacing:
   .alejandro-look-copy { order: 2; }
   .alejandro-look figure { order: 1; justify-self: center; width: min(100%, 560px); }
   .alejandro-look figcaption { text-align: left; }
-  .alejandro-crop-wide { aspect-ratio: 4 / 5; background-size: auto 100%; background-position: 59% center; }
-  .alejandro-image-note { display: grid; gap: 5px; }
+  .alejandro-lookbook { padding-bottom: 105px; }
+  .alejandro-lookbook-heading { grid-template-columns: 1fr; gap: 24px; margin-bottom: 42px; }
+  .alejandro-lookbook-grid { grid-template-columns: 1fr; gap: 36px; }
+  .alejandro-lookbook-grid .alejandro-lookbook-wide,
+  .alejandro-lookbook-grid .alejandro-lookbook-offset { grid-column: auto; }
+  .alejandro-lookbook-grid .alejandro-lookbook-wide img,
+  .alejandro-lookbook-grid img,
+  .alejandro-lookbook-grid .alejandro-lookbook-offset img { aspect-ratio: 4 / 5; }
+  .alejandro-lookbook-grid .alejandro-lookbook-wide img { object-position: 57% center; }
+  .alejandro-lookbook-grid .alejandro-lookbook-offset img { object-position: 52% center; }
   .alejandro-material { padding: 90px 0 120px; }
   .alejandro-material-copy { grid-template-columns: 1fr; gap: 27px; margin-bottom: 55px; }
   .alejandro-material-copy .alejandro-section-label { margin-bottom: 0; }
@@ -636,6 +660,9 @@ h1 { font: 400 clamp(48px, 8vw, 120px)/.96 Michroma, sans-serif; letter-spacing:
   .alejandro-detail-three { aspect-ratio: 4 / 3; }
   .alejandro-detail-two { background-size: 155%; background-position: 50% 18%; }
   .alejandro-detail-three { background-size: 180%; background-position: 42% 70%; }
+  .alejandro-next-study { grid-template-columns: 1fr; gap: 36px; padding: 88px 0; }
+  .alejandro-next-image { width: min(100%, 560px); }
+  .alejandro-next-copy > span { margin-top: 34px; }
   .cabizbajo-study { padding: 0 18px; }
   .cabizbajo-hero-copy { top: 31%; left: 18px; bottom: auto; max-width: calc(100% - 36px); }
   .cabizbajo-kicker { margin-bottom: 16px; }
