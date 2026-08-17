@@ -301,6 +301,58 @@ h1 { font: 400 clamp(48px, 8vw, 120px)/.96 Michroma, sans-serif; letter-spacing:
 .artist-study-meta h3 span { font-size: .42em; line-height: 1.45; }
 .artist-study-foot { display: flex; justify-content: space-between; gap: 24px; margin-top: clamp(44px, 8vw, 110px); padding-top: 18px; border-top: 1px solid var(--line); color: var(--muted); font: 9px/1.6 'Courier New', monospace; letter-spacing: .2em; text-transform: uppercase; }
 .artist-study-card:focus-visible { outline: 1px solid #777; outline-offset: 8px; }
+.artist-study-card + .artist-study-card { margin-top: clamp(86px, 11vw, 160px); }
+.artist-study-image-alejandro img { object-position: 58% center; }
+
+/* Alejandro Molinari / Artist Study 02 */
+.alejandro-study-page { background: #000; }
+.alejandro-study-page .archive-nav { position: relative; border-bottom-color: rgba(255,255,255,.18); background: #000; }
+.alejandro-study { max-width: 1440px; margin: auto; padding: 0 26px; }
+.alejandro-hero {
+  position: relative;
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  min-height: min(78svh, 900px);
+  overflow: hidden;
+  background: #050505;
+}
+.alejandro-hero::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(0,0,0,.74), transparent 56%), linear-gradient(0deg, rgba(0,0,0,.3), transparent 45%); pointer-events: none; }
+.alejandro-hero > img { display: block; width: 100%; height: 100%; min-height: min(78svh, 900px); object-fit: cover; object-position: center; }
+.alejandro-hero-copy { position: absolute; z-index: 2; left: max(34px, calc((100vw - 1368px) / 2)); top: 50%; max-width: 770px; transform: translateY(-44%); text-shadow: 0 1px 20px #000; }
+.alejandro-kicker,
+.alejandro-meta,
+.alejandro-section-label,
+.alejandro-look figcaption,
+.alejandro-image-note { color: var(--muted); font: 9px/1.8 'Courier New', monospace; letter-spacing: .24em; text-transform: uppercase; }
+.alejandro-kicker { margin-bottom: 28px; }
+.alejandro-hero h1 { font: 400 clamp(2.65rem, 5.3vw, 5.6rem)/1.02 Michroma, sans-serif; letter-spacing: .07em; text-transform: uppercase; }
+.alejandro-meta { margin-top: 28px; color: rgba(255,255,255,.78); }
+.alejandro-intro { display: grid; grid-template-columns: minmax(170px, .45fr) minmax(0, 1.55fr); gap: clamp(38px, 7vw, 110px); padding: clamp(92px, 10vw, 145px) 0; border-bottom: 1px solid var(--line); }
+.alejandro-intro h2,
+.alejandro-material h2 { font: 400 clamp(2rem, 4vw, 4.2rem)/1.12 Michroma, sans-serif; letter-spacing: .055em; text-transform: uppercase; }
+.alejandro-intro div > p { max-width: 760px; margin-top: 34px; color: rgba(255,255,255,.76); font-size: clamp(1.12rem, 1.5vw, 1.4rem); line-height: 1.72; }
+.alejandro-look { display: grid; grid-template-columns: minmax(260px, .7fr) minmax(420px, 1.3fr); gap: clamp(50px, 9vw, 140px); align-items: center; padding: clamp(110px, 13vw, 190px) clamp(0px, 5vw, 70px); }
+.alejandro-look-copy { max-width: 380px; }
+.alejandro-look-copy > p:last-child { margin-top: 28px; color: rgba(255,255,255,.74); font-size: clamp(1.15rem, 1.6vw, 1.5rem); line-height: 1.65; }
+.alejandro-look figure { justify-self: end; width: min(100%, 650px); }
+.alejandro-look img { display: block; width: 100%; height: auto; background: #080808; }
+.alejandro-look figcaption { margin-top: 15px; text-align: right; }
+.alejandro-image-moment { padding-bottom: clamp(110px, 13vw, 185px); }
+.alejandro-crop { background-repeat: no-repeat; background-color: #080808; }
+.alejandro-crop-wide { width: 100%; aspect-ratio: 16 / 8.2; background-image: url('./assets/fashion-after-fabric/artists/alejandro/lotus02heroale.png'); background-size: 118%; background-position: 54% 43%; }
+.alejandro-image-note { display: flex; justify-content: space-between; gap: 24px; padding-top: 16px; }
+.alejandro-material { padding: clamp(105px, 12vw, 175px) 0 clamp(120px, 14vw, 200px); border-top: 1px solid var(--line); }
+.alejandro-material-copy { display: grid; grid-template-columns: minmax(250px, .8fr) minmax(300px, 1.2fr); column-gap: clamp(50px, 9vw, 130px); align-items: end; margin-bottom: clamp(58px, 8vw, 110px); }
+.alejandro-material-copy .alejandro-section-label { grid-column: 1 / -1; margin-bottom: 24px; }
+.alejandro-material-copy > p:last-child { max-width: 520px; color: rgba(255,255,255,.7); font-size: clamp(1.05rem, 1.3vw, 1.22rem); line-height: 1.72; }
+.alejandro-detail-grid { display: grid; grid-template-columns: 1.15fr .85fr; grid-template-rows: repeat(2, minmax(260px, 32vw)); gap: 16px; }
+.alejandro-detail-grid .alejandro-crop { min-width: 0; overflow: hidden; }
+.alejandro-detail-one { grid-row: 1 / 3; background-image: url('./assets/fashion-after-fabric/artists/alejandro/lotus02heroale.png'); background-size: auto 155%; background-position: 67% 47%; }
+.alejandro-detail-two { background-image: url('./assets/fashion-after-fabric/artists/alejandro/alelook02.9.16.png'); background-size: 180%; background-position: 50% 20%; }
+.alejandro-detail-three { background-image: url('./assets/fashion-after-fabric/artists/alejandro/lotus02heroale.png'); background-size: 205%; background-position: 39% 72%; }
+.alejandro-return { padding: 40px 0; border-top: 1px solid var(--line); font: 9px/1.6 'Courier New', monospace; letter-spacing: .22em; text-transform: uppercase; }
+.alejandro-return a { opacity: .65; }
+.alejandro-return a:hover, .alejandro-return a:focus-visible { opacity: 1; }
 
 /* Cabizbajo / Artist Study 01 */
 .cabizbajo-study-page { background: #000; }
@@ -558,6 +610,32 @@ h1 { font: 400 clamp(48px, 8vw, 120px)/.96 Michroma, sans-serif; letter-spacing:
   .artist-study-card { grid-template-columns: 1fr; gap: 32px; }
   .artist-study-meta h3 { font-size: clamp(2rem, 10vw, 3.1rem); }
   .artist-study-foot { margin-top: 38px; }
+  .artist-study-card + .artist-study-card { margin-top: 92px; }
+  .alejandro-study { padding: 0 18px; }
+  .alejandro-hero { min-height: 70svh; }
+  .alejandro-hero > img { min-height: 70svh; object-position: 57% center; }
+  .alejandro-hero::after { background: linear-gradient(90deg, rgba(0,0,0,.64), transparent 88%), linear-gradient(0deg, rgba(0,0,0,.5), transparent 52%); }
+  .alejandro-hero-copy { left: 18px; top: auto; bottom: 38px; max-width: calc(100% - 36px); transform: none; }
+  .alejandro-kicker { margin-bottom: 16px; }
+  .alejandro-hero h1 { font-size: clamp(2rem, 10.5vw, 3.2rem); letter-spacing: .045em; }
+  .alejandro-meta { margin-top: 15px; }
+  .alejandro-intro { grid-template-columns: 1fr; gap: 25px; padding: 82px 0 92px; }
+  .alejandro-intro div > p { margin-top: 28px; font-size: 1.05rem; }
+  .alejandro-look { grid-template-columns: 1fr; gap: 44px; padding: 92px 0 105px; }
+  .alejandro-look-copy { order: 2; }
+  .alejandro-look figure { order: 1; justify-self: center; width: min(100%, 560px); }
+  .alejandro-look figcaption { text-align: left; }
+  .alejandro-crop-wide { aspect-ratio: 4 / 5; background-size: auto 100%; background-position: 59% center; }
+  .alejandro-image-note { display: grid; gap: 5px; }
+  .alejandro-material { padding: 90px 0 120px; }
+  .alejandro-material-copy { grid-template-columns: 1fr; gap: 27px; margin-bottom: 55px; }
+  .alejandro-material-copy .alejandro-section-label { margin-bottom: 0; }
+  .alejandro-detail-grid { grid-template-columns: 1fr; grid-template-rows: none; gap: 12px; }
+  .alejandro-detail-one { grid-row: auto; aspect-ratio: 4 / 5; background-size: auto 120%; background-position: 62% center; }
+  .alejandro-detail-two,
+  .alejandro-detail-three { aspect-ratio: 4 / 3; }
+  .alejandro-detail-two { background-size: 155%; background-position: 50% 18%; }
+  .alejandro-detail-three { background-size: 180%; background-position: 42% 70%; }
   .cabizbajo-study { padding: 0 18px; }
   .cabizbajo-hero-copy { top: 31%; left: 18px; bottom: auto; max-width: calc(100% - 36px); }
   .cabizbajo-kicker { margin-bottom: 16px; }
