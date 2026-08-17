@@ -466,17 +466,30 @@ h1 { font: 400 clamp(48px, 8vw, 120px)/.96 Michroma, sans-serif; letter-spacing:
 .gallery.contain img { object-fit: contain; }
 .gallery .wide { grid-column: 1 / -1; }
 .placeholder-study { min-height: 320px; display: grid; place-items: center; border: 1px solid var(--line); background: linear-gradient(135deg,#070707,#111 55%,#030303); color: rgba(255,255,255,.32); font: 9px 'Courier New', monospace; letter-spacing: .25em; text-transform: uppercase; }
-.lotus-artist-section { padding-top: clamp(105px, 11vw, 150px); }
-.lotus-artist-heading { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(280px, .8fr); gap: clamp(48px, 8vw, 120px); align-items: end; margin-bottom: clamp(54px, 7vw, 96px); }
-.lotus-artist-heading h2 { font: 400 clamp(2rem, 4vw, 4.25rem)/1.14 Michroma, sans-serif; letter-spacing: .055em; text-transform: uppercase; }
-.lotus-artist-heading p { max-width: 500px; color: rgba(255,255,255,.68); font-size: var(--type-body); line-height: 1.8; }
-.lotus-artist-gallery { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(16px, 2vw, 28px); align-items: start; }
-.lotus-artist-image { aspect-ratio: 4 / 5; overflow: hidden; background: #080808; }
-.lotus-artist-image img { display: block; width: 100%; height: 100%; object-fit: cover; filter: saturate(.78) brightness(.88); }
+.lotus-artist-section {
+  width: min(calc(100vw - 52px), 1540px);
+  margin-left: 50%;
+  padding: clamp(140px, 13vw, 210px) 0 clamp(120px, 11vw, 170px);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  transform: translateX(-50%);
+}
+.lotus-artist-section > .block-label { margin-bottom: clamp(40px, 5vw, 68px); }
+.lotus-artist-heading { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(300px, .75fr); gap: clamp(64px, 10vw, 160px); align-items: end; margin-bottom: clamp(76px, 8vw, 126px); }
+.lotus-artist-heading h2 { max-width: 900px; font: 400 clamp(2.65rem, 5vw, 5.75rem)/1.1 Michroma, sans-serif; letter-spacing: .052em; text-transform: uppercase; }
+.lotus-artist-heading p { max-width: 540px; padding-bottom: 8px; color: rgba(255,255,255,.68); font-size: clamp(1.05rem, 1.25vw, 1.25rem); line-height: 1.85; }
+.lotus-artist-gallery { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(18px, 2.1vw, 34px); align-items: start; }
+.lotus-artist-gallery figure { overflow: hidden; border: 1px solid rgba(255,255,255,.12); background: #050505; transition: border-color .45s ease, background-color .45s ease; }
+.lotus-artist-image { aspect-ratio: 3 / 4; overflow: hidden; background: #080808; }
+.lotus-artist-image img { display: block; width: 100%; height: 100%; object-fit: cover; filter: saturate(.78) brightness(.88); transition: transform .65s cubic-bezier(.2,.7,.2,1), filter .55s ease, opacity .55s ease; }
 .lotus-artist-gallery figure:nth-child(1) img { object-position: 57% center; }
 .lotus-artist-gallery figure:nth-child(2) img { object-position: 52% center; }
-.lotus-artist-gallery figcaption { display: flex; justify-content: space-between; gap: 18px; padding-top: 16px; border-top: 1px solid var(--line); color: rgba(255,255,255,.86); font: 9px/1.6 'Courier New', monospace; letter-spacing: .16em; text-transform: uppercase; }
-.lotus-artist-gallery figcaption small { color: var(--muted); font: inherit; text-align: right; }
+.lotus-artist-gallery figure:nth-child(3) img { object-position: 50% 38%; }
+.lotus-artist-gallery figure:hover { border-color: rgba(255,255,255,.24); background: #090909; }
+.lotus-artist-gallery figure:hover img { transform: scale(1.025); filter: saturate(.66) brightness(.68); opacity: .92; }
+.lotus-artist-gallery figcaption { display: grid; gap: 10px; min-height: 98px; padding: 22px 20px 20px; border-top: 1px solid rgba(255,255,255,.1); color: rgba(255,255,255,.92); font: 10px/1.5 'Courier New', monospace; letter-spacing: .18em; text-transform: uppercase; }
+.lotus-artist-gallery figcaption span { font-size: 11px; }
+.lotus-artist-gallery figcaption small { color: var(--muted); font: 9px/1.6 'Courier New', monospace; letter-spacing: .16em; }
 .archive-footer { display: flex; justify-content: space-between; padding: 36px; border-top: 1px solid var(--line); color: var(--muted); font: 9px 'Courier New', monospace; letter-spacing: .2em; text-transform: uppercase; }
 
 @media (prefers-reduced-motion: reduce) {
@@ -610,11 +623,14 @@ h1 { font: 400 clamp(48px, 8vw, 120px)/.96 Michroma, sans-serif; letter-spacing:
   .chapter-head, .collection-intro { grid-template-columns: 1fr; gap: 24px; }
   .preview-grid, .gallery { grid-template-columns: 1fr; }
   .gallery .wide { grid-column: auto; }
-  .lotus-artist-heading { grid-template-columns: 1fr; gap: 28px; margin-bottom: 46px; }
-  .lotus-artist-heading p { font-size: 1rem; }
-  .lotus-artist-gallery { grid-template-columns: 1fr; gap: 52px; }
-  .lotus-artist-image { aspect-ratio: 4 / 5; }
-  .lotus-artist-gallery figcaption { gap: 12px; }
+  .lotus-artist-section { width: 100%; margin-left: 0; padding: 105px 0 120px; transform: none; }
+  .lotus-artist-section > .block-label { margin-bottom: 34px; }
+  .lotus-artist-heading { grid-template-columns: 1fr; gap: 30px; margin-bottom: 58px; }
+  .lotus-artist-heading h2 { font-size: clamp(2rem, 10vw, 3.25rem); }
+  .lotus-artist-heading p { max-width: 460px; padding-bottom: 0; font-size: 1rem; }
+  .lotus-artist-gallery { grid-template-columns: 1fr; gap: 48px; }
+  .lotus-artist-image { aspect-ratio: 3 / 4; }
+  .lotus-artist-gallery figcaption { min-height: 0; padding: 20px 18px; }
   .preview-meta { display: block; }
   .preview-arrow { display: block; margin-top: 22px; }
   .collection-block { padding-top: 80px; }
