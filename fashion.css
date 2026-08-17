@@ -607,7 +607,7 @@ html[lang="de"] .fashion-project-definition #fashion-research-title {
     gap: 42px;
   }
   .fashion-project-definition .fashion-definition-layout { grid-template-columns: 1fr; }
-  html[lang="de"] .fashion-project-definition #fashion-research-title { font-size: clamp(1.85rem, 7.5vw, 2.75rem); }
+  html[lang="de"] .fashion-project-definition #fashion-research-title { font-size: clamp(1.35rem, 5.5vw, 2.25rem); }
   .fashion-chapter h2 {
     font-size: clamp(1.75rem, 8vw, 2.7rem);
   }
