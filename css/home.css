@@ -3378,10 +3378,15 @@ body.nina-connecting-mode
   padding: clamp(48px, 7vw, 92px) clamp(28px, 6vw, 78px) clamp(48px, 7vw, 92px) 0;
 }
 
+.nina-identity-label {
+  font-size: 10px;
+  letter-spacing: .3em;
+}
+
 .nina-identity h3 {
-  margin-top: 26px;
+  margin-top: 29px;
   font-family: 'Michroma', sans-serif;
-  font-size: clamp(40px, 5vw, 72px);
+  font-size: clamp(44px, 5.5vw, 79px);
   font-weight: 400;
   letter-spacing: .08em;
   line-height: 1;
@@ -3390,22 +3395,27 @@ body.nina-connecting-mode
 
 .nina-identity-description {
   max-width: 460px;
-  margin-top: 30px;
+  margin-top: 33px;
   color: rgba(255,255,255,.68);
-  font-size: clamp(16px, 1.4vw, 20px);
+  font-size: clamp(17.5px, 1.54vw, 22px);
   line-height: 1.7;
 }
 
 .nina-identity-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: fit-content;
-  min-height: 48px;
-  margin-top: 42px;
-  padding: 0 22px;
+  min-height: 53px;
+  margin-top: 46px;
+  padding: 0 24px;
   border: 1px solid rgba(255,255,255,.46);
   border-radius: 0;
   background: transparent;
   color: #fff;
-  font-size: 9px;
+  font-family: 'Courier New', monospace;
+  font-size: 10px;
+  line-height: 1;
   letter-spacing: .24em;
   text-transform: uppercase;
   cursor: pointer;
@@ -3417,16 +3427,15 @@ body.nina-connecting-mode
   flex-wrap: wrap;
   width: fit-content;
   max-width: 100%;
-  gap: 12px;
-  margin-top: 42px;
+  gap: 13px;
+  margin-top: 46px;
 }
 
 .nina-identity-actions .nina-identity-cta {
   width: auto;
   margin-top: 0;
-  min-height: 48px;
-  padding: 0 22px;
-  justify-content: center;
+  min-height: 53px;
+  padding: 0 24px;
   text-decoration: none;
 }
 
@@ -3491,9 +3500,11 @@ body.nina-connecting-mode
   .artist-secondary-media { aspect-ratio: 4 / 3; }
   .nina-identity { grid-template-columns: 1fr; }
   .nina-identity-copy { padding: 52px 0; }
-  .nina-identity h3 { font-size: clamp(38px, 13vw, 56px); }
+  .nina-identity-label { font-size: 9.5px; }
+  .nina-identity h3 { font-size: clamp(42px, 13.5vw, 60px); }
+  .nina-identity-description { font-size: 17.5px; }
   .nina-identity-actions { display: flex; }
-  .nina-identity-cta { width: 100%; }
+  .nina-identity-actions .nina-identity-cta { width: auto; min-height: 52px; padding-inline: 18px; font-size: 9px; }
   .nina-identity-media { min-height: 0; aspect-ratio: 4 / 5; }
 }
 
