@@ -3,7 +3,7 @@ import { createClient, AnamEvent } from "https://esm.sh/@anam-ai/js-sdk@4.23.1?b
 
 // Paste the deployed Cloudflare Worker endpoint here (the only configuration point).
 const ANAM_SESSION_TOKEN_ENDPOINT =
-  "https://REPLACE-WITH-WORKER.workers.dev/session-token";
+  "https://parallel-vision-anam-token.parallelvision.workers.dev/session-token";
 const ANAM_PERSONA_ID = "a5663da5-5f5c-4600-b545-cbb58bd4e155";
 const DEVELOPMENT = ["localhost", "127.0.0.1"].includes(window.location.hostname);
 const byId = id => document.getElementById(id);
