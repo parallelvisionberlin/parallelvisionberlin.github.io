@@ -1915,7 +1915,7 @@ footer {
   background: #000;
 }
 
-tavus-embed {
+#nina-anam-video {
   position: absolute;
 
   inset: 0;
@@ -1931,6 +1931,8 @@ tavus-embed {
 
   background: #000;
 
+  object-fit: cover;
+
   transition:
     opacity
     1s
@@ -1938,7 +1940,7 @@ tavus-embed {
 }
 
 body.nina-call-visible
-tavus-embed {
+#nina-anam-video {
   opacity: 1;
 
   pointer-events: auto !important;
@@ -2074,6 +2076,8 @@ body.nina-scrim-action
 body.nina-scrim-action
 .nina-scrim-button {
   display: inline-flex;
+
+  pointer-events: auto !important;
 }
 
 

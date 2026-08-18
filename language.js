@@ -38,7 +38,7 @@
     ["#future-fashion .fashion-portal-cta", "Discover the project", "Projekt entdecken"],
     ["#contact h2", "Contact", "Kontakt"],
     [".scroll", "Scroll", "Weiter"],
-    [".nina-intro-subtitle", "A live transmission from somewhere ahead of us. She can see you. She can hear you.", "Eine Live-Übertragung von irgendwo vor unserer Zeit. Sie kann dich sehen. Sie kann dich hören."],
+    [".nina-intro-subtitle", "A live transmission from somewhere ahead of us. She can hear you.", "Eine Live-Übertragung von irgendwo vor unserer Zeit. Sie kann dich hören."],
     [".nina-intro-small", "Say something unexpected.", "Sag etwas Unerwartetes."]
   ];
 

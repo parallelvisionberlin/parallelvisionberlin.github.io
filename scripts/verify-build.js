@@ -62,17 +62,36 @@ for (const file of pages) {
   }
 }
 
-for (const file of ['language.js','js/home.js','js/nina-access.js']) {
-  try { new vm.Script(fs.readFileSync(path.join(root, file), 'utf8'), { filename: file }); }
+for (const file of ['language.js','js/home.js','js/nina-access.js','anam-token-worker/src/index.js']) {
+  try {
+    const source = fs.readFileSync(path.join(root, file), 'utf8').replace(/^import .*;$/m, '').replace(/^export default /m, 'const __defaultExport = ');
+    new vm.Script(source, { filename: file });
+  }
   catch (error) { fail(`${file}: parse error: ${error.message}`); }
 }
 
 const index = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const nina = fs.readFileSync(path.join(root, 'js/nina-access.js'), 'utf8');
-if (index.includes('<tavus-embed')) fail('Tavus initialized in initial HTML');
-if (/unpkg\.com\/@tavus\/embed["']/.test(nina)) fail('Tavus dependency is not pinned');
+const ninaStandalone = fs.readFileSync(path.join(root, 'nina.html'), 'utf8');
+const activeNinaRuntime = `${index}\n${nina}\n${ninaStandalone}`;
+if (/tavus-embed|@tavus\/embed|tavus:|\.tavus\b/i.test(activeNinaRuntime)) fail('Tavus remains in active Nina runtime code');
+if (/d70bc773-bd96-44e2-ad08-abf2cac262be|79e246c0-70c7-4c2c-930b-3bf421a01e46/.test(activeNinaRuntime)) fail('A Tavus deployment ID remains in active Nina runtime code');
 if (index.includes('/api/verify-nina-access')) fail('Static gate calls a nonexistent API');
-for (const marker of ['crypto.subtle.digest("SHA-256", encodedCode)','let ninaAccessVerifiedForCurrentOpen = false','let ninaTavusInitialized = false','initializeNinaTavusAfterAccess','client-side gate']) if (!nina.includes(marker)) fail(`Nina marker missing: ${marker}`);
+for (const marker of [
+  'a5663da5-5f5c-4600-b545-cbb58bd4e155',
+  'crypto.subtle.digest("SHA-256", encodedCode)',
+  'let ninaAccessVerifiedForCurrentOpen = false',
+  'let ninaConnecting = false',
+  'if (ninaConnecting || ninaClient',
+  'streamToVideoElement("nina-anam-video")',
+  'stopStreaming()',
+  'window.addEventListener("pagehide"',
+  'window.addEventListener("beforeunload"',
+  'client-side UI'
+]) if (!nina.includes(marker)) fail(`Nina marker missing: ${marker}`);
+if (!index.includes('id="nina-anam-video"') || !index.includes('autoplay playsinline')) fail('Nina Anam video element is missing');
+if ((nina.match(/const ANAM_SESSION_TOKEN_ENDPOINT\s*=/g) || []).length !== 1) fail('Anam token endpoint must have exactly one client configuration point');
+if (/ANAM_API_KEY/.test(`${index}\n${nina}\n${ninaStandalone}`)) fail('ANAM_API_KEY appears in client code');
 for (const match of index.matchAll(/<img\b([^>]*)>/gi)) if (/\bloading=["']eager["']/i.test(match[1])) fail('Homepage below-the-fold image must not be eager-loaded');
 const soundcloudStatus = index.match(/<[^>]+id=["']soundcloudLoadingStatus["'][^>]*>/i)?.[0] || '';
 if (!/\brole=["']status["']/i.test(soundcloudStatus) || !/\baria-live=["']polite["']/i.test(soundcloudStatus)) fail('SoundCloud deferred loading status is missing accessible live semantics');
