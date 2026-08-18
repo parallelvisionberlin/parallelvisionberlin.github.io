@@ -1,3 +1,32 @@
+(function keepHomepageHeroPlaying() {
+  const heroVideo = document.querySelector(".hero-video");
+  if (!heroVideo) return;
+
+  const isAtEnd = () => Number.isFinite(heroVideo.duration)
+    && heroVideo.duration > 0
+    && heroVideo.currentTime >= heroVideo.duration - 0.35;
+
+  const restart = () => {
+    heroVideo.currentTime = 0;
+    heroVideo.play().catch(() => {});
+  };
+
+  heroVideo.addEventListener("ended", restart);
+  heroVideo.addEventListener("stalled", () => {
+    if (isAtEnd()) restart();
+  });
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+      heroVideo.pause();
+      return;
+    }
+    if (!heroVideo.autoplay) return;
+    if (isAtEnd()) heroVideo.currentTime = 0;
+    heroVideo.play().catch(() => {});
+  });
+}());
+
 (function () {
   const toggle = document.getElementById("audioToggle");
   if (!toggle) return;
