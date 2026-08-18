@@ -3412,6 +3412,29 @@ body.nina-connecting-mode
   transition: background .25s ease, color .25s ease;
 }
 
+.nina-identity-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 42px;
+}
+
+.nina-identity-actions .nina-identity-cta {
+  margin-top: 0;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.nina-identity-cta-secondary {
+  border-color: rgba(255,255,255,.26);
+  color: rgba(255,255,255,.72);
+}
+
+.nina-identity-cta-primary {
+  border-color: rgba(255,255,255,.68);
+  background: rgba(255,255,255,.06);
+}
+
 .nina-identity-cta:hover,
 .nina-identity-cta:focus-visible {
   background: #fff;
@@ -3464,6 +3487,7 @@ body.nina-connecting-mode
   .nina-identity { grid-template-columns: 1fr; }
   .nina-identity-copy { padding: 52px 0; }
   .nina-identity h3 { font-size: clamp(38px, 13vw, 56px); }
+  .nina-identity-actions { display: grid; }
   .nina-identity-cta { width: 100%; }
   .nina-identity-media { min-height: 0; aspect-ratio: 4 / 5; }
 }

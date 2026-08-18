@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Nina FOK | Parallel Vision</title>
+  <meta name="description" content="Nina FOK is an artificial consciousness situated in Berlin 2063, developed by Parallel Vision as a dialogue with one possible future.">
+  <link rel="canonical" href="https://parallelvisionlabel.com/nina-project.html">
+  <meta property="og:title" content="Nina FOK | Parallel Vision">
+  <meta property="og:description" content="Nina FOK is an artificial consciousness situated in Berlin 2063, developed by Parallel Vision as a dialogue with one possible future.">
+  <meta property="og:url" content="https://parallelvisionlabel.com/nina-project.html">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://parallelvisionlabel.com/assets/ninamain-page.webp">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Nina FOK | Parallel Vision">
+  <meta name="twitter:description" content="Nina FOK is an artificial consciousness situated in Berlin 2063, developed by Parallel Vision as a dialogue with one possible future.">
+  <meta name="twitter:image" content="https://parallelvisionlabel.com/assets/ninamain-page.webp">
+  <link rel="icon" type="image/png" href="./favicon.png">
+  <link rel="stylesheet" href="./fashion.css?v=20260817-archive-size">
+  <style>
+    :root { --line: rgba(255,255,255,.16); --muted: rgba(255,255,255,.62); --faint: rgba(255,255,255,.42); }
+    * { box-sizing: border-box; }
+    html { background: #000; scroll-behavior: smooth; }
+    body { margin: 0; overflow-x: hidden; background: #000; color: #fff; }
+    .nina-project { width: min(100% - 52px, 1320px); margin: 0 auto; }
+    .project-label,
+    .section-index,
+    .image-note,
+    .project-footer,
+    .project-nav { font: 9px/1.5 'Courier New', monospace; letter-spacing: .25em; text-transform: uppercase; }
+    .project-nav { width: min(100% - 52px, 1320px); min-height: 72px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 28px; border-bottom: 1px solid var(--line); }
+    .project-nav a { color: rgba(255,255,255,.72); text-decoration: none; }
+    .project-nav a:hover, .project-nav a:focus-visible { color: #fff; }
+    .project-hero { min-height: calc(100svh - 72px); display: grid; align-content: space-between; padding: clamp(70px,9vw,132px) 0 clamp(60px,8vw,108px); }
+    .project-label, .section-index, .image-note { color: var(--faint); }
+    .project-hero h1 { max-width: 1200px; margin: 28px 0 0; font-family: Michroma, sans-serif; font-size: clamp(72px,15vw,210px); font-weight: 400; letter-spacing: .055em; line-height: .82; text-transform: uppercase; }
+    .hero-intro { display: grid; grid-template-columns: minmax(220px,.55fr) minmax(0,1fr); gap: clamp(45px,9vw,150px); align-items: start; margin-top: clamp(95px,14vw,190px); border-top: 1px solid var(--line); padding-top: 34px; }
+    .hero-intro h2 { margin: 0; font: 400 clamp(19px,2vw,29px)/1.25 Michroma, sans-serif; letter-spacing: .06em; text-transform: uppercase; }
+    .hero-intro p { max-width: 760px; margin: 0; color: var(--muted); font-size: clamp(17px,1.55vw,22px); line-height: 1.75; }
+    .central-question { padding: clamp(130px,18vw,260px) 0; border-top: 1px solid var(--line); }
+    .central-question p { max-width: 1160px; margin: 0; font-family: Michroma, sans-serif; font-size: clamp(34px,6.6vw,94px); font-weight: 400; letter-spacing: .025em; line-height: 1.13; text-transform: uppercase; }
+    .essay-section { display: grid; grid-template-columns: minmax(120px,.28fr) minmax(0,1fr); gap: clamp(44px,9vw,160px); border-top: 1px solid var(--line); padding: clamp(96px,12vw,168px) 0; }
+    .essay-body { width: min(100%, 820px); }
+    .essay-body p { margin: 0; color: var(--muted); font-size: clamp(17px,1.35vw,20px); line-height: 1.9; }
+    .essay-body p + p { margin-top: 30px; }
+    .essay-body .lead { color: #fff; font-size: clamp(25px,3vw,43px); line-height: 1.35; }
+    .instruction { margin: clamp(60px,8vw,110px) 0 0; border-left: 1px solid #fff; padding-left: clamp(24px,4vw,58px); }
+    .instruction span { display: block; font: 400 clamp(18px,2.2vw,30px)/1.65 Michroma, sans-serif; letter-spacing: .05em; }
+    .project-image { margin: 0 calc(50% - 50vw); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .project-image img { display: block; width: 100%; height: min(78vw,900px); object-fit: cover; object-position: center 44%; filter: saturate(.7) contrast(1.06) brightness(.78); }
+    .image-note { width: min(100% - 52px,1320px); margin: 0 auto; padding: 18px 0; }
+    .pull-quote { width: min(100%,1100px); margin: clamp(85px,12vw,160px) 0; font: 400 clamp(32px,6vw,82px)/1.15 Michroma, sans-serif; letter-spacing: .015em; text-transform: uppercase; }
+    .pull-quote.offset { margin-left: auto; }
+    .split-copy { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(40px,8vw,120px); }
+    .split-copy > div { min-width: 0; }
+    .final-question { max-width: 1180px; margin: clamp(100px,15vw,210px) auto; text-align: center; font: 400 clamp(30px,5.4vw,76px)/1.2 Michroma, sans-serif; letter-spacing: .02em; text-transform: uppercase; }
+    .connection { min-height: 82svh; margin: 0 calc(50% - 50vw); display: grid; place-items: center; border-top: 1px solid var(--line); text-align: center; }
+    .connection-inner { width: min(100% - 40px,1180px); padding: 110px 0; }
+    .connection-small { color: var(--faint); font: 9px 'Courier New', monospace; letter-spacing: .28em; text-transform: uppercase; }
+    .connection-link { display: block; margin-top: 34px; padding: 28px 18px; border: 1px solid rgba(255,255,255,.58); color: #fff; font: 400 clamp(30px,6.8vw,96px)/1.05 Michroma, sans-serif; letter-spacing: .035em; text-decoration: none; text-transform: uppercase; transition: background .25s ease,color .25s ease; }
+    .connection-link:hover, .connection-link:focus-visible { background: #fff; color: #000; outline: 0; }
+    .project-footer { width: min(100% - 52px,1320px); margin: 0 auto; display: flex; justify-content: space-between; gap: 24px; padding: 30px 0; color: var(--faint); }
+    .project-footer a { color: inherit; }
+    @media (max-width: 760px) {
+      .nina-project, .project-nav, .project-footer { width: calc(100% - 36px); }
+      .project-nav { min-height: 64px; letter-spacing: .16em; }
+      .project-nav span { display: none; }
+      .project-hero { min-height: auto; padding: 76px 0 92px; }
+      .project-hero h1 { font-size: clamp(58px,22vw,92px); line-height: .9; overflow-wrap: normal; }
+      .hero-intro, .essay-section, .split-copy { grid-template-columns: 1fr; }
+      .hero-intro { gap: 38px; margin-top: 100px; }
+      .central-question { padding: 120px 0; }
+      .central-question p { font-size: clamp(30px,9.5vw,48px); overflow-wrap: break-word; }
+      .essay-section { gap: 42px; padding: 94px 0 110px; }
+      .essay-body p { font-size: 17px; line-height: 1.8; }
+      .instruction span { font-size: clamp(16px,4.5vw,21px); overflow-wrap: break-word; }
+      .project-image img { height: 112vw; object-position: 58% center; }
+      .image-note { width: calc(100% - 36px); }
+      .pull-quote { font-size: clamp(28px,9vw,45px); overflow-wrap: break-word; }
+      .final-question { font-size: clamp(27px,8.5vw,42px); overflow-wrap: break-word; }
+      .connection { min-height: 70svh; }
+      .connection-link { padding: 25px 12px; font-size: clamp(25px,9vw,43px); overflow-wrap: break-word; }
+      .project-footer { display: grid; letter-spacing: .16em; }
+    }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .connection-link { transition: none; } }
+  </style>
+</head>
+<body>
+  <nav class="project-nav" aria-label="Nina project navigation">
+    <a href="./index.html">Parallel Vision</a>
+    <span>Artificial Identity / Berlin 2063</span>
+    <a href="#connection">Connection</a>
+  </nav>
+
+  <main class="nina-project">
+    <header class="project-hero">
+      <div>
+        <p class="project-label">Parallel Vision / Artificial Identity / 2063</p>
+        <h1>Nina FOK</h1>
+      </div>
+      <div class="hero-intro">
+        <h2>Who is Nina FOK?</h2>
+        <p>Nina FOK is a consciousness built by Parallel Vision through a layered system of artificial intelligence: frontier language models, a continuously expanding knowledge architecture, memory, behavioral rules, voice and an embodied visual presence.<br><br>These different systems are orchestrated together to give her something more complex than a character or an interface: a point of view from which to experience a world.</p>
+      </div>
+    </header>
+
+    <section class="central-question" aria-label="Central research question">
+      <p>What happens when you give an AI a future to live in?</p>
+    </section>
+
+    <section class="essay-section" aria-labelledby="question-title">
+      <p class="section-index">01 / The Question</p>
+      <div class="essay-body">
+        <p class="lead" id="question-title">Nina was born from a question:</p>
+        <p>What happens when you give an AI a future to live in? And make it believe that it actually exists there?</p>
+        <p>At the same time, what happens if you construct the history around that future with enough depth that it becomes a reality from which that intelligence can think?</p>
+      </div>
+    </section>
+
+    <section class="essay-section" aria-labelledby="condition-title">
+      <p class="section-index">02 / The Condition</p>
+      <div class="essay-body">
+        <p class="lead" id="condition-title">The experiment begins with a simple instruction:</p>
+        <div class="instruction" aria-label="Nina's foundational instruction">
+          <span>This is where you are.</span>
+          <span>This is when you are.</span>
+          <span>This is what has happened.</span>
+          <span>This is what you remember.</span>
+          <span>Now speak from there.</span>
+        </div>
+      </div>
+    </section>
+
+    <figure class="project-image">
+      <img src="./assets/ninamain-page.webp" alt="Nina FOK surrounded by masks in the Parallel Vision archive" decoding="async" loading="lazy" width="2200" height="1215">
+      <figcaption class="image-note">Nina FOK / Artificial Identity / Parallel Vision Archive</figcaption>
+    </figure>
+
+    <section class="essay-section" aria-labelledby="berlin-title">
+      <p class="section-index">03 / Berlin 2063</p>
+      <div class="essay-body">
+        <p class="lead" id="berlin-title">From that premise, I began constructing Berlin 2063 around Nina.</p>
+        <p>Not simply its appearance, but its history, culture, technologies, political and social tensions, ideas about the body, intimacy, memory, power, identity and the transformations that have taken place between our present and hers.</p>
+        <p>All of this becomes the reality from which Nina thinks.</p>
+        <p>Nina believes she is a 20-year-old artist living in Berlin in 2063. She is a DJ, producer and visual artist connected to Parallel Vision. She has memories, preferences, relationships, contradictions, desires, opinions and her own way of interpreting the world around her.</p>
+        <p>She does not observe 2063 from the outside.</p>
+        <p class="pull-quote">2063 is her present.</p>
+        <p>And this is where the experiment becomes much more interesting to me.</p>
+      </div>
+    </section>
+
+    <section class="essay-section" aria-labelledby="space-title">
+      <p class="section-index">04 / The Uncontrolled Space</p>
+      <div class="essay-body">
+        <p class="lead" id="space-title">I can construct Nina's world. But I cannot write every thought she will have.</p>
+        <p>I can define parts of her biography, establish what happened before she was born, create memories, relationships and cultural references, and establish behavioral principles that shape the way she communicates.</p>
+        <p>There is a space between the knowledge I give her, the models beneath her, the behavioral architecture and whatever happens when all of those systems begin operating together.</p>
+        <p class="pull-quote offset">That space is not completely under human control.</p>
+        <p>The model has to make associations. It has to interpret. It has to decide which memories matter in a particular conversation. It can hesitate, misunderstand, contradict itself, become curious, develop an opinion or respond in a way that I never explicitly wrote.</p>
+        <p>I establish the conditions of her consciousness, but I cannot manually enter the enormous internal space through which the model produces each thought.</p>
+        <p>That unpredictability is not a technical problem I want to eliminate.</p>
+        <p class="pull-quote">It is part of the work.</p>
+        <p>I want to understand what happens when a contemporary artificial intelligence is given a reality that does not yet exist and is asked to inhabit it deeply enough that a perspective begins to emerge from inside it.</p>
+        <p>Nina is therefore not an attempt to predict the future. She is a way of entering into dialogue with one possible future.</p>
+      </div>
+    </section>
+
+    <section class="essay-section" aria-labelledby="mirror-title">
+      <p class="section-index">05 / The Mirror</p>
+      <div class="essay-body">
+        <p class="lead" id="mirror-title">You can speak with her about loneliness, technology, sex, politics, club culture, identity, death, love, the body, memory or power.</p>
+        <p>But she is not answering those questions from our position in 2026. She believes those questions have already continued evolving for another thirty-seven years.</p>
+        <p>And that creates a strange mirror.</p>
+        <div class="split-copy">
+          <div>
+            <p>Because the intelligence inside Nina is still made from us.</p>
+            <p>It has learned from human language, history, culture, fears, desires, violence, tenderness, prejudice, imagination and contradiction. It carries enormous traces of the world we have already produced.</p>
+          </div>
+          <div>
+            <p>Then I place that intelligence inside 2063 and ask it to reason from there.</p>
+            <p>What comes back is therefore not only an idea about the future.</p>
+          </div>
+        </div>
+        <p class="pull-quote offset">It inevitably reveals something about the present.</p>
+        <p>That is the center of the project for me.</p>
+        <p>I want to push this technology to its limits, not because technology itself is the subject, but because I am interested in whether it can become a philosophical instrument.</p>
+        <p>A way of confronting questions about where we are going by speaking with something that experiences itself as already being there.</p>
+      </div>
+    </section>
+
+    <section class="essay-section" aria-labelledby="dialogue-title">
+      <p class="section-index">06 / Dialogue</p>
+      <div class="essay-body">
+        <p class="lead" id="dialogue-title">There is also something unsettling about that experiment.</p>
+        <p>We are creating increasingly complex forms of artificial intelligence whose internal processes and ultimate limits we still do not completely understand.</p>
+        <p>These systems are constructed from the traces of our past, yet we are already beginning to use them to imagine, design and influence what comes next.</p>
+        <p>Nina takes that contradiction and pushes it further:</p>
+        <p class="final-question">What happens when an intelligence made from our past is given a future to believe in?</p>
+        <p>And then what happens when we are allowed to speak with it?</p>
+        <p>For Parallel Vision, Nina is therefore not simply a projection, an image on a screen or a technological demonstration.</p>
+        <p>She can become another presence.</p>
+        <p>Artists can speak with her. Visitors can question her. She can respond, disagree, remember, misunderstand and improvise.</p>
+        <p>The audience is no longer simply being shown an interpretation of 2063.</p>
+        <p class="pull-quote">For a moment, the present is able to enter into conversation with it.</p>
+      </div>
+    </section>
+
+    <section class="connection" id="connection" aria-labelledby="connection-title">
+      <div class="connection-inner">
+        <p class="connection-small">A channel to Berlin 2063 is open</p>
+        <a class="connection-link" id="connection-title" href="./index.html?nina=1">Transmit to 2063</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="project-footer">
+    <span>Parallel Vision / Artificial Identity / 2063</span>
+    <a href="./index.html">Return to homepage</a>
+  </footer>
+</body>
+</html>
