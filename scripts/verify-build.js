@@ -83,7 +83,12 @@ for (const marker of [
   'let ninaAccessVerifiedForCurrentOpen = false',
   'let ninaConnecting = false',
   'if (ninaConnecting || ninaClient',
-  'streamToVideoElement("nina-anam-video")',
+  'streamToVideoElement("nina-anam-video", ninaMicrophoneStream)',
+  'navigator.mediaDevices.enumerateDevices()',
+  'device.kind === "audioinput"',
+  'ninaPreferredMicrophoneId',
+  'navigator.mediaDevices?.addEventListener?.("devicechange"',
+  'stopNinaMicrophone()',
   'stopStreaming()',
   'window.addEventListener("pagehide"',
   'window.addEventListener("beforeunload"',
@@ -92,6 +97,9 @@ for (const marker of [
 if (!index.includes('id="nina-anam-video"') || !index.includes('autoplay playsinline')) fail('Nina Anam video element is missing');
 if ((nina.match(/const ANAM_SESSION_TOKEN_ENDPOINT\s*=/g) || []).length !== 1) fail('Anam token endpoint must have exactly one client configuration point');
 if (/ANAM_API_KEY/.test(`${index}\n${nina}\n${ninaStandalone}`)) fail('ANAM_API_KEY appears in client code');
+const connectNinaSource = nina.match(/async function connectNina\(\) \{[\s\S]*?\n\}/)?.[0] || '';
+if (!connectNinaSource.includes('requestSessionToken(ninaTokenAbortController.signal)')) fail('Anam token must only be requested from the CONNECT flow');
+if ((nina.match(/requestSessionToken\(ninaTokenAbortController\.signal\)/g) || []).length !== 1) fail('Anam token request must have exactly one CONNECT call site');
 for (const match of index.matchAll(/<img\b([^>]*)>/gi)) if (/\bloading=["']eager["']/i.test(match[1])) fail('Homepage below-the-fold image must not be eager-loaded');
 const soundcloudStatus = index.match(/<[^>]+id=["']soundcloudLoadingStatus["'][^>]*>/i)?.[0] || '';
 if (!/\brole=["']status["']/i.test(soundcloudStatus) || !/\baria-live=["']polite["']/i.test(soundcloudStatus)) fail('SoundCloud deferred loading status is missing accessible live semantics');

@@ -42,7 +42,7 @@
 <script src="./language.js?v=20260727-3" defer></script>
 
 <link rel="stylesheet" href="./css/base.css?v=20260814-1">
-<link rel="stylesheet" href="./css/home.css?v=20260814-1">
+<link rel="stylesheet" href="./css/home.css?v=20260818-2">
 
 </head>
 
@@ -1687,6 +1687,19 @@
           </div>
 
 
+          <label class="nina-microphone" for="ninaMicrophoneSelect">
+
+            <span>MICROPHONE</span>
+
+            <select id="ninaMicrophoneSelect" aria-describedby="ninaMicrophoneStatus">
+              <option value="">Requesting microphone access…</option>
+            </select>
+
+            <span class="nina-microphone-status" id="ninaMicrophoneStatus" role="status" aria-live="polite"></span>
+
+          </label>
+
+
 
           <button
             class="nina-open-live"
@@ -1734,7 +1747,7 @@
 
 <script src="./js/home.js?v=20260814-1" defer></script>
 
-<script type="module" src="./js/nina-access.js?v=20260818-1"></script>
+<script type="module" src="./js/nina-access.js?v=20260818-2"></script>
 
 
 </body>

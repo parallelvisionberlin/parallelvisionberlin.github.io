@@ -2293,8 +2293,64 @@ body.nina-call-visible
   text-transform: uppercase;
 }
 
+.nina-microphone {
+  position: relative;
+  display: block;
+  width: min(360px, 100%);
+  margin: 28px auto 0;
+  color: rgba(255, 255, 255, .48);
+  font-family: 'Courier New', monospace;
+  font-size: 9px;
+  letter-spacing: .22em;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.nina-microphone::after {
+  content: "⌄";
+  position: absolute;
+  top: 28px;
+  right: 14px;
+  color: rgba(255, 255, 255, .62);
+  font-size: 16px;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.nina-microphone select {
+  width: 100%;
+  margin-top: 9px;
+  padding: 12px 38px 12px 13px;
+  border: 1px solid rgba(255, 255, 255, .22);
+  border-radius: 0;
+  background: rgba(0, 0, 0, .42);
+  color: rgba(255, 255, 255, .86);
+  font: 12px/1.2 'Courier New', monospace;
+  letter-spacing: .04em;
+  appearance: none;
+  cursor: pointer;
+}
+
+.nina-microphone select:focus-visible {
+  outline: 1px solid rgba(255, 255, 255, .8);
+  outline-offset: 3px;
+}
+
+.nina-microphone select:disabled {
+  opacity: .45;
+  cursor: wait;
+}
+
+.nina-microphone-status {
+  display: block;
+  min-height: 1.3em;
+  margin-top: 8px;
+  color: rgba(255, 255, 255, .58);
+  letter-spacing: .12em;
+}
+
 .nina-open-live {
-  margin-top: 38px;
+  margin-top: 22px;
 
   padding:
     15px
