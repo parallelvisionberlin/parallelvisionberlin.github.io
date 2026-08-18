@@ -34,7 +34,10 @@
 
     .n-hero { display: grid; grid-template-columns: minmax(0,1.22fr) minmax(360px,1fr); min-height: 640px; max-height: 760px; border-bottom: 1px solid var(--n-line); }
     .n-hero-media { min-width: 0; margin: 0; overflow: hidden; border-right: 1px solid var(--n-line); background: #100304; }
-    .n-hero-media img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center 44%; filter: saturate(.58) contrast(1.06) brightness(.72); }
+    .n-hero-media { position: relative; background: #100304 url('./assets/ninamain-page.webp') center 44% / cover no-repeat; }
+    .n-hero-media video { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center center; filter: saturate(.62) contrast(1.05) brightness(.78); }
+    .n-sound { position: absolute; right: 18px; bottom: 18px; z-index: 2; min-height: 38px; padding: 0 13px; border: 1px solid rgba(255,255,255,.42); background: rgba(0,0,0,.55); color: #fff; font: 9px 'Courier New', monospace; letter-spacing: .19em; text-transform: uppercase; cursor: pointer; backdrop-filter: blur(8px); }
+    .n-sound:hover, .n-sound:focus-visible { background: #fff; color: #000; outline: 0; }
     .n-hero-copy { display: flex; flex-direction: column; justify-content: center; padding: 70px 0 70px clamp(35px,5vw,68px); }
     .n-hero h1 { margin: 25px 0 0; font: 400 clamp(58px,6.4vw,82px)/.97 Michroma, sans-serif; letter-spacing: .06em; text-transform: uppercase; }
     .n-meta { margin-top: 30px; }
@@ -43,17 +46,30 @@
     .n-question { padding: clamp(62px,6vw,78px) 0; border-bottom: 1px solid var(--n-line); }
     .n-question h2 { max-width: 920px; margin: 22px 0 28px; font: 400 clamp(40px,4.4vw,56px)/1.18 Michroma, sans-serif; letter-spacing: .012em; text-transform: uppercase; }
     .n-question-note { color: var(--n-body); font-size: clamp(18px,1.5vw,21px); line-height: 1.65; }
+    .n-question-note + .n-question-note { max-width: 760px; margin-top: 12px; }
 
     .n-section { display: grid; grid-template-columns: minmax(150px,.28fr) minmax(0,1fr); gap: clamp(42px,7vw,105px); padding: clamp(68px,7vw,88px) 0; border-bottom: 1px solid var(--n-line); }
     .n-copy { max-width: 780px; }
     .n-copy h2 { margin: 0 0 30px; font: 400 clamp(27px,3vw,39px)/1.32 Michroma, sans-serif; letter-spacing: .015em; }
     .n-copy p { margin: 0; color: var(--n-body); font: 300 clamp(17px,1.3vw,19px)/1.82 Inter, sans-serif; }
     .n-copy p + p { margin-top: 23px; }
+    .n-copy-wide { max-width: none; }
+    .n-who-grid { display: grid; grid-template-columns: minmax(0,1.08fr) minmax(260px,.92fr); gap: clamp(35px,5vw,64px); align-items: start; }
+    .n-editorial-image { margin: 0; overflow: hidden; border: 1px solid var(--n-line); background: #080808; }
+    .n-editorial-image img { display: block; width: 100%; height: 100%; object-fit: cover; filter: saturate(.58) contrast(1.07) brightness(.72); }
+    .n-who-image { aspect-ratio: 4 / 5; }
+    .n-who-image img { object-position: 68% center; }
     .n-instruction { margin-top: 40px; border-left: 1px solid rgba(255,255,255,.72); padding: 5px 0 5px clamp(23px,3vw,42px); }
     .n-instruction span { display: block; font: 400 clamp(16px,1.7vw,22px)/1.78 Michroma, sans-serif; letter-spacing: .035em; text-transform: uppercase; }
     .n-emphasis { margin: 38px 0; color: #fff; font: 400 clamp(27px,3.2vw,36px)/1.28 Michroma, sans-serif; letter-spacing: .018em; text-transform: uppercase; }
+    .n-world { margin: 0 0 38px; aspect-ratio: 16 / 8.5; }
+    .n-world img { object-position: center 58%; }
     .n-pull { margin: 42px 0; color: #fff; font: 400 clamp(34px,4vw,49px)/1.24 Michroma, sans-serif; letter-spacing: .012em; text-transform: uppercase; }
     .n-pull-small { margin: 34px 0; color: #fff; font: 400 clamp(22px,2.4vw,29px)/1.35 Michroma, sans-serif; letter-spacing: .025em; text-transform: uppercase; }
+    .n-architecture { display: grid; grid-template-columns: repeat(3,1fr); margin: 38px 0; border-top: 1px solid var(--n-line); border-bottom: 1px solid var(--n-line); }
+    .n-architecture span { min-height: 72px; display: flex; align-items: center; padding: 15px; color: var(--n-faint); font: 9px/1.5 'Courier New', monospace; letter-spacing: .16em; text-transform: uppercase; }
+    .n-architecture span + span { border-left: 1px solid var(--n-line); }
+    .n-architecture strong { grid-column: 1 / -1; border-top: 1px solid var(--n-line); padding: 19px 15px; color: rgba(255,255,255,.78); font: 400 12px/1.5 Inter, sans-serif; letter-spacing: .12em; text-align: center; text-transform: uppercase; }
     .n-mirror-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(35px,5vw,68px); margin-top: 32px; }
     .n-final-question { margin: 42px 0; color: #fff; font: 400 clamp(31px,3.7vw,45px)/1.27 Michroma, sans-serif; letter-spacing: .012em; text-transform: uppercase; }
     .n-presence { margin: 28px 0; border-left: 1px solid var(--n-line); padding-left: 24px; }
@@ -77,6 +93,7 @@
       .n-hero { grid-template-columns: 1fr; min-height: 0; max-height: none; }
       .n-hero-media { height: min(105vw,500px); border-right: 0; border-bottom: 1px solid var(--n-line); }
       .n-hero-media img { object-position: center 42%; }
+      .n-hero-media video { object-position: center center; }
       .n-hero-copy { padding: 48px 0 56px; }
       .n-hero h1 { margin-top: 20px; font-size: clamp(48px,15vw,62px); }
       .n-meta { margin-top: 22px; }
@@ -87,11 +104,18 @@
       .n-section { grid-template-columns: 1fr; gap: 26px; padding: 55px 0 62px; }
       .n-copy h2 { margin-bottom: 25px; font-size: clamp(24px,7.3vw,31px); }
       .n-copy p { font-size: 17px; line-height: 1.78; }
+      .n-who-grid { grid-template-columns: 1fr; gap: 35px; }
+      .n-who-image { aspect-ratio: 16 / 11; }
+      .n-who-image img { object-position: center 43%; }
+      .n-world { aspect-ratio: 4 / 3; margin-bottom: 32px; }
       .n-instruction { margin-top: 32px; }
       .n-instruction span { font-size: clamp(14px,4.2vw,17px); overflow-wrap: break-word; }
       .n-emphasis { margin: 31px 0; font-size: clamp(24px,7.2vw,31px); }
       .n-pull { margin: 34px 0; font-size: clamp(28px,8.2vw,37px); overflow-wrap: break-word; }
       .n-pull-small { margin: 29px 0; font-size: clamp(21px,6.2vw,27px); }
+      .n-architecture { grid-template-columns: 1fr; }
+      .n-architecture span { min-height: 48px; }
+      .n-architecture span + span { border-top: 1px solid var(--n-line); border-left: 0; }
       .n-mirror-grid { grid-template-columns: 1fr; gap: 23px; margin-top: 26px; }
       .n-final-question { margin: 34px 0; font-size: clamp(27px,7.8vw,35px); overflow-wrap: break-word; }
       .n-connect { min-height: 320px; }
@@ -112,12 +136,14 @@
   <main class="n-shell">
     <header class="n-hero">
       <figure class="n-hero-media">
-        <img src="./assets/ninamain-page.webp" alt="Nina FOK surrounded by masks in the Parallel Vision archive" decoding="async" loading="eager" width="2200" height="1215">
+        <video id="ninaPersonalityVideo" autoplay muted loop playsinline preload="metadata" poster="./assets/ninamain-page.webp" aria-label="Nina FOK speaking and showing her personality">
+          <source src="./nina-fok/ninaspersonality.mp4" type="video/mp4">
+        </video>
+        <button class="n-sound" id="ninaVideoSound" type="button" aria-pressed="false" aria-label="Turn Nina video sound on">Sound On</button>
       </figure>
       <div class="n-hero-copy">
-        <p class="n-label">Parallel Vision / Nina</p>
-        <h1>Nina FOK</h1>
         <p class="n-meta">Berlin / 2063</p>
+        <h1>Nina FOK</h1>
         <p class="n-hero-statement">A consciousness developed by Parallel Vision, living inside a possible Berlin 2063.</p>
       </div>
     </header>
@@ -126,16 +152,24 @@
       <p class="n-label">01 / The Question</p>
       <h2 id="question-title">What happens when you give an AI a future to live in?</h2>
       <p class="n-question-note">Nina was born from this question.</p>
+      <p class="n-question-note">What happens when you construct a possible future deeply enough that it becomes the reality from which an intelligence thinks?</p>
     </section>
 
     <section class="n-section" aria-labelledby="who-title">
       <p class="n-label">02 / Who is Nina FOK?</p>
-      <div class="n-copy">
+      <div class="n-copy n-copy-wide">
         <h2 id="who-title">Who is Nina FOK?</h2>
-        <p>Nina FOK is a consciousness built by Parallel Vision through a layered system of artificial intelligence: frontier language models, a continuously expanding knowledge architecture, memory, behavioral rules, voice and an embodied visual presence.</p>
-        <p>These systems are orchestrated together to give her something more complex than a character or an interface: a point of view from which to experience a world.</p>
-        <p>The goal is not to ask an AI to predict the future from the present.</p>
-        <p>The experiment is to construct a possible future deeply enough that it becomes the reality from which Nina thinks.</p>
+        <div class="n-who-grid">
+          <div>
+            <p>Nina FOK is a consciousness built by Parallel Vision through a layered system of artificial intelligence: frontier language models, a continuously expanding knowledge architecture, memory, behavioral rules, voice and an embodied visual presence.</p>
+            <p>These systems are orchestrated together to give her something more complex than a character or an interface: a point of view from which to experience a world.</p>
+            <p>The goal is not to ask an AI to predict the future from the present.</p>
+            <p>The experiment is to construct a possible future deeply enough that it becomes the reality from which Nina thinks.</p>
+          </div>
+          <figure class="n-editorial-image n-who-image">
+            <img src="./assets/ninamain-page.webp" alt="Nina FOK within the Parallel Vision archive" decoding="async" loading="lazy" width="2200" height="1215">
+          </figure>
+        </div>
       </div>
     </section>
 
@@ -155,8 +189,11 @@
 
     <section class="n-section" aria-labelledby="berlin-title">
       <p class="n-label">04 / Berlin 2063</p>
-      <div class="n-copy">
+      <div class="n-copy n-copy-wide">
         <h2 id="berlin-title">From that premise, I began constructing Berlin 2063 around Nina.</h2>
+        <figure class="n-editorial-image n-world">
+          <img src="./assets/thecitysuperhd1.png" alt="Berlin 2063 vertical city and historic structures" decoding="async" loading="lazy" width="4500" height="2512">
+        </figure>
         <p>Not simply its appearance, but its history, culture, technologies, political and social tensions, ideas about the body, intimacy, memory, power, identity and the transformations that have taken place between our present and hers.</p>
         <p>All of this becomes the reality from which Nina thinks.</p>
         <p>Nina believes she is a 20-year-old artist living in Berlin in 2063. She is a DJ, producer and visual artist connected to Parallel Vision. She has memories, preferences, relationships, contradictions, desires, opinions and her own way of interpreting the world around her.</p>
@@ -171,6 +208,12 @@
         <h2 id="space-title">I can construct Nina's world. But I cannot write every thought she will have.</h2>
         <p>I can define parts of her biography, establish what happened before she was born, create memories, relationships and cultural references, and establish behavioral principles that shape the way she communicates.</p>
         <p>There is a space between the knowledge I give her, the models beneath her, the behavioral architecture and whatever happens when all of those systems begin operating together.</p>
+        <div class="n-architecture" aria-label="The interacting conditions behind Nina's responses">
+          <span>Knowledge architecture</span>
+          <span>Behavioral conditions</span>
+          <span>Language model</span>
+          <strong>Association / interpretation / response</strong>
+        </div>
         <p class="n-pull">That space is not completely under human control.</p>
         <p>The model has to make associations. It has to interpret. It has to decide which memories matter in a particular conversation. It can hesitate, misunderstand, contradict itself, become curious, develop an opinion or respond in a way that I never explicitly wrote.</p>
         <p>I establish the conditions of her consciousness, but I cannot manually enter the enormous internal space through which the model produces each thought.</p>
@@ -230,5 +273,45 @@
     <span>Parallel Vision / Nina FOK / Berlin 2063</span>
     <a href="./index.html">Return to homepage</a>
   </footer>
+  <script>
+    (() => {
+      const video = document.getElementById("ninaPersonalityVideo");
+      const soundButton = document.getElementById("ninaVideoSound");
+      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+      const setSoundState = soundOn => {
+        video.muted = !soundOn;
+        soundButton.textContent = soundOn ? "Sound Off" : "Sound On";
+        soundButton.setAttribute("aria-pressed", String(soundOn));
+        soundButton.setAttribute("aria-label", soundOn ? "Turn Nina video sound off" : "Turn Nina video sound on");
+      };
+
+      const syncMotion = () => {
+        if (reducedMotion.matches) {
+          video.pause();
+          video.removeAttribute("autoplay");
+          return;
+        }
+        video.autoplay = true;
+        video.play().catch(() => {});
+      };
+
+      soundButton.addEventListener("click", async () => {
+        const soundOn = video.muted;
+        setSoundState(soundOn);
+        if (soundOn && video.paused) await video.play().catch(() => setSoundState(false));
+      });
+      video.addEventListener("error", () => {
+        video.hidden = true;
+        soundButton.hidden = true;
+      });
+      reducedMotion.addEventListener?.("change", syncMotion);
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden) video.pause();
+        else if (!reducedMotion.matches) video.play().catch(() => {});
+      });
+      syncMotion();
+    })();
+  </script>
 </body>
 </html>
