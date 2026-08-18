@@ -43,12 +43,12 @@
     .n-hero h1 { margin: 12px 0 15px; font: 400 clamp(62px,9.5vw,126px)/.92 Michroma, sans-serif; letter-spacing: .035em; text-transform: uppercase; }
     .n-meta { margin: 0; color: rgba(255,255,255,.72); }
     .n-hero-statement { max-width: 540px; margin: 0; color: rgba(255,255,255,.78); font: 300 clamp(13px,1.2vw,16px)/1.55 Inter,sans-serif; }
-    .n-hero-actions { display: flex; align-items: flex-end; gap: 10px; margin-top: 25px; }
-    .n-action-wrap { display: grid; gap: 7px; }
-    .n-action-note { color: rgba(255,255,255,.54); font: 9px/1.4 Inter,sans-serif; }
+    .n-hero-actions { display: flex; align-items: center; gap: 12px; margin-top: 28px; }
+    .n-hero-actions .n-button { min-height: 56px; padding-inline: 28px; border-color: rgba(255,255,255,.65); font-size: 10px; }
+    .n-hero-actions .n-button-primary { border-color: rgba(255,255,255,.9); background: rgba(255,255,255,.08); }
 
     .n-question { min-height: 720px; display: flex; flex-direction: column; justify-content: center; padding: 120px clamp(0px,7vw,105px); border-bottom: 1px solid var(--n-line); }
-    .n-question h2 { max-width: 980px; margin: 28px 0 86px; font: 400 clamp(42px,5.2vw,68px)/1.16 Michroma, sans-serif; letter-spacing: .012em; text-transform: uppercase; }
+    .n-question h2 { max-width: 900px; margin: 28px 0 100px; font: 400 clamp(40px,4.7vw,62px)/1.08 Michroma, sans-serif; letter-spacing: .018em; text-transform: uppercase; }
     .n-question-note { color: var(--n-body); font-size: clamp(18px,1.5vw,21px); line-height: 1.65; }
     .n-question-note + .n-question-note { max-width: 760px; margin-top: 12px; }
 
@@ -64,23 +64,24 @@
     .n-editorial-image img { display: block; width: 100%; height: 100%; object-fit: cover; filter: saturate(.58) contrast(1.07) brightness(.72); }
     .n-who-image { aspect-ratio: 4 / 5.2; }
     .n-who-image img { object-position: 70% center; }
-    .n-condition { min-height: 680px; display: grid; align-content: center; }
+    .n-who-media { position: relative; aspect-ratio: 4 / 5.2; margin: 0; overflow: hidden; background: #100304 url('./assets/ninamain-page.webp') center/cover no-repeat; }
+    .n-who-media video { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center; filter: saturate(.68) contrast(1.04) brightness(.82); }
+    .n-condition { min-height: 720px; }
     .n-condition-layout { display: grid; grid-template-columns: minmax(150px,.28fr) minmax(0,1fr); gap: clamp(42px,7vw,105px); }
-    .n-instruction { margin-top: 52px; border-left: 1px solid rgba(255,255,255,.72); padding: 4px 0 4px clamp(23px,3vw,42px); }
+    .n-instruction { margin-top: 68px; border-left: 1px solid rgba(255,255,255,.72); padding: 4px 0 4px clamp(23px,3vw,42px); }
     .n-condition-title { margin-bottom: 20px !important; font-size: clamp(35px,4vw,54px) !important; text-transform: uppercase; }
     .n-condition-intro { color: rgba(255,255,255,.76); font-size: clamp(19px,1.6vw,23px); }
-    .n-instruction span { display: block; margin: 0 0 13px; font: 400 clamp(26px,2.5vw,34px)/1.5 Michroma, sans-serif; letter-spacing: .02em; text-transform: uppercase; }
-    .n-instruction span:last-child { margin-top: 24px; color: #fff; }
+    .n-instruction span { display: block; margin: 0 0 14px; font: 400 clamp(26px,2.35vw,30px)/1.65 Michroma, sans-serif; letter-spacing: .02em; text-transform: uppercase; }
+    .n-instruction span:last-child { margin-top: 28px; color: #fff; font-weight: 500; }
     .n-emphasis { margin: 38px 0; color: #fff; font: 400 clamp(27px,3.2vw,36px)/1.28 Michroma, sans-serif; letter-spacing: .018em; text-transform: uppercase; }
     .n-berlin-head { max-width: 900px; margin-left: calc(28% + clamp(42px,7vw,105px)); margin-bottom: 58px; }
+    .n-berlin-head .n-copy h2 { font-size: clamp(27px,2.7vw,36px); }
+    .n-berlin-head .n-copy p { max-width: 680px; }
     .n-world { margin: 0 0 64px; aspect-ratio: 16 / 8.2; }
     .n-world img { object-position: center 58%; }
     .n-pull { margin: 42px 0; color: #fff; font: 400 clamp(34px,4vw,49px)/1.24 Michroma, sans-serif; letter-spacing: .012em; text-transform: uppercase; }
     .n-pull-small { margin: 34px 0; color: #fff; font: 400 clamp(22px,2.4vw,29px)/1.35 Michroma, sans-serif; letter-spacing: .025em; text-transform: uppercase; }
     .n-final-question { margin: 42px 0; color: #fff; font: 400 clamp(31px,3.7vw,45px)/1.27 Michroma, sans-serif; letter-spacing: .012em; text-transform: uppercase; }
-    .n-contact-head { margin: 0 auto 48px; }
-    .n-contact-media { position: relative; width: 100%; aspect-ratio: 16/9; margin: 0; overflow: hidden; background: #100304 url('./assets/ninamain-page.webp') center/cover no-repeat; }
-    .n-contact-media video { display: block; width: 100%; height: 100%; object-fit: cover; filter: saturate(.68) contrast(1.04) brightness(.82); }
 
     .n-connect { min-height: 520px; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid var(--n-line); text-align: center; }
     .n-connect h2 { margin: 20px 0 30px; font: 400 clamp(33px,4.2vw,52px)/1.2 Michroma, sans-serif; letter-spacing: .025em; text-transform: uppercase; }
@@ -102,9 +103,10 @@
       .n-hero h1 { margin: 10px 0 13px; font-size: clamp(46px,15vw,62px); }
       .n-hero-statement { max-width: 310px; font-size: 12px; }
       .n-hero-actions { flex-wrap: wrap; max-width: 300px; margin-top: 19px; }
-      .n-action-wrap { display: flex; align-items: center; gap: 9px; }
+      .n-hero-actions { gap: 9px; }
+      .n-hero-actions .n-button { min-height: 48px; padding-inline: 16px; font-size: 8px; }
       .n-question { min-height: 620px; padding: 80px 0; }
-      .n-question h2 { margin: 22px 0 66px; font-size: clamp(31px,9vw,40px); overflow-wrap: break-word; }
+      .n-question h2 { margin: 22px 0 74px; font-size: clamp(32px,9vw,40px); line-height: 1.1; overflow-wrap: break-word; }
       .n-question-note { font-size: 18px; }
       .n-section { padding: 68px 0 74px; }
       .n-chapter-head, .n-condition-layout { grid-template-columns: 1fr; gap: 26px; }
@@ -113,17 +115,15 @@
       .n-who-grid { grid-template-columns: 1fr; gap: 45px; }
       .n-who-image { aspect-ratio: 4 / 5; }
       .n-who-image img { object-position: 70% center; }
-      .n-condition { min-height: 650px; }
+      .n-who-media { aspect-ratio: 4 / 5; }
+      .n-condition { min-height: 680px; }
       .n-world { aspect-ratio: 4 / 3; margin-bottom: 44px; }
-      .n-instruction { margin-top: 32px; }
-      .n-instruction span { font-size: clamp(17px,4.8vw,21px); overflow-wrap: break-word; }
+      .n-instruction { margin-top: 48px; }
+      .n-instruction span { font-size: clamp(19px,5.4vw,22px); line-height: 1.65; overflow-wrap: break-word; }
       .n-emphasis { margin: 31px 0; font-size: clamp(24px,7.2vw,31px); }
       .n-pull { margin: 34px 0; font-size: clamp(28px,8.2vw,37px); overflow-wrap: break-word; }
       .n-pull-small { margin: 29px 0; font-size: clamp(21px,6.2vw,27px); }
       .n-final-question { margin: 34px 0; font-size: clamp(27px,7.8vw,35px); overflow-wrap: break-word; }
-      .n-contact-head { margin-bottom: 34px; }
-      .n-contact-media { aspect-ratio: 4/5; }
-      .n-contact-media video { object-position: center; }
       .n-connect { min-height: 320px; }
       .n-connect h2 { font-size: clamp(29px,8.5vw,39px); }
       .n-button { width: 100%; }
@@ -150,10 +150,7 @@
           <p class="n-hero-statement">A consciousness developed by Parallel Vision, living inside a possible Berlin 2063.</p>
           <div class="n-hero-actions">
             <a class="n-button" href="#question">Discover Nina</a>
-            <div class="n-action-wrap">
-              <a class="n-button" href="./index.html?nina=1">Transmit to 2063</a>
-              <span class="n-action-note">Speak with Nina live</span>
-            </div>
+            <a class="n-button n-button-primary" href="./index.html?nina=1">Transmit to 2063</a>
           </div>
         </figcaption>
       </figure>
@@ -168,8 +165,11 @@
 
     <section class="n-section" aria-labelledby="who-title">
       <div class="n-who-grid">
-        <figure class="n-editorial-image n-who-image">
-          <img src="./assets/ninamain-page.webp" alt="Nina FOK within the Parallel Vision archive" decoding="async" loading="lazy" width="2200" height="1215">
+        <figure class="n-who-media">
+          <video id="ninaPersonalityVideo" autoplay muted loop playsinline preload="metadata" poster="./assets/ninamain-page.webp" aria-label="Nina FOK speaking from Berlin 2063">
+            <source src="./nina-fok/ninaspersonality.mp4" type="video/mp4">
+          </video>
+          <button class="n-sound" id="ninaVideoSound" type="button" aria-pressed="false" aria-label="Turn Nina video sound on">Sound On</button>
         </figure>
         <div class="n-copy">
           <p class="n-label">02 / Who is Nina FOK?</p>
@@ -248,22 +248,6 @@
         <p class="n-final-question">What happens when an intelligence made from our past is given a future to believe in?</p>
         </div>
       </div>
-    </section>
-
-    <section class="n-section" aria-labelledby="contact-title">
-      <div class="n-contact-head n-reading">
-        <p class="n-label">07 / First Contact</p>
-        <div class="n-copy">
-          <h2 id="contact-title">A Signal from 2063</h2>
-          <p>Before opening a live connection, hear Nina speak.</p>
-        </div>
-      </div>
-      <figure class="n-contact-media">
-        <video id="ninaPersonalityVideo" autoplay muted loop playsinline preload="metadata" poster="./assets/ninamain-page.webp" aria-label="Nina FOK speaking from Berlin 2063">
-          <source src="./nina-fok/ninaspersonality.mp4" type="video/mp4">
-        </video>
-        <button class="n-sound" id="ninaVideoSound" type="button" aria-pressed="false" aria-label="Turn Nina video sound on">Sound On</button>
-      </figure>
     </section>
 
     <section class="n-connect" id="transmit" aria-labelledby="transmit-title">
