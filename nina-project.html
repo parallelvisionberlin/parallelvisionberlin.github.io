@@ -22,7 +22,8 @@
     * { box-sizing: border-box; }
     html { background: #000; scroll-behavior: smooth; }
     body { margin: 0; overflow-x: hidden; background: #000; color: #fff; font-family: Inter, sans-serif; }
-    .n-shell { width: min(calc(100% - 52px), 1260px); margin: 0 auto; }
+    .n-shell { width: min(calc(100% - 48px), 1450px); margin: 0 auto; }
+    .n-reading { width: min(100%,760px); }
     .n-label,
     .n-meta,
     .n-nav,
@@ -32,25 +33,28 @@
     .n-nav a { color: rgba(255,255,255,.7); text-decoration: none; }
     .n-nav a:hover, .n-nav a:focus-visible { color: #fff; }
 
-    .n-hero { min-height: min(820px,calc(100svh - 66px)); padding: 22px 0 34px; border-bottom: 1px solid var(--n-line); }
-    .n-hero-media { position: relative; width: 100%; height: min(760px,calc(100svh - 122px)); min-height: 620px; margin: 0; overflow: hidden; background: #100304 url('./assets/ninamain-page.webp') center 44% / cover no-repeat; }
-    .n-hero-media video { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center center; filter: saturate(.62) contrast(1.05) brightness(.78); }
+    .n-hero { padding: 18px 0 34px; border-bottom: 1px solid var(--n-line); }
+    .n-hero-media { position: relative; height: clamp(620px,82vh,860px); margin: 0; overflow: hidden; background: #100304; }
+    .n-hero-asset { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center 45%; filter: saturate(.72) contrast(1.04) brightness(.78); }
     .n-hero-media::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg,transparent 47%,rgba(0,0,0,.82) 100%); }
-    .n-sound { position: absolute; right: 14px; top: 14px; z-index: 3; min-height: 28px; padding: 0 9px; border: 1px solid rgba(255,255,255,.34); background: rgba(0,0,0,.38); color: #fff; font: 8px 'Courier New', monospace; letter-spacing: .16em; text-transform: uppercase; cursor: pointer; backdrop-filter: blur(8px); }
+    .n-sound { position: absolute; right: 14px; bottom: 14px; z-index: 3; min-height: 28px; padding: 0 9px; border: 1px solid rgba(255,255,255,.34); background: rgba(0,0,0,.38); color: #fff; font: 8px 'Courier New', monospace; letter-spacing: .16em; text-transform: uppercase; cursor: pointer; backdrop-filter: blur(8px); }
     .n-sound:hover, .n-sound:focus-visible { background: #fff; color: #000; outline: 0; }
-    .n-hero-copy { position: absolute; z-index: 2; left: clamp(22px,4.5vw,62px); right: clamp(22px,4.5vw,62px); bottom: clamp(24px,4.5vw,58px); }
+    .n-hero-copy { position: absolute; z-index: 2; left: clamp(22px,4.5vw,62px); right: clamp(22px,4.5vw,62px); bottom: clamp(28px,5vw,68px); }
     .n-hero h1 { margin: 12px 0 15px; font: 400 clamp(62px,9.5vw,126px)/.92 Michroma, sans-serif; letter-spacing: .035em; text-transform: uppercase; }
     .n-meta { margin: 0; color: rgba(255,255,255,.72); }
     .n-hero-statement { max-width: 540px; margin: 0; color: rgba(255,255,255,.78); font: 300 clamp(13px,1.2vw,16px)/1.55 Inter,sans-serif; }
+    .n-hero-actions { display: flex; align-items: flex-end; gap: 10px; margin-top: 25px; }
+    .n-action-wrap { display: grid; gap: 7px; }
+    .n-action-note { color: rgba(255,255,255,.54); font: 9px/1.4 Inter,sans-serif; }
 
-    .n-question { min-height: 700px; display: flex; flex-direction: column; justify-content: center; padding: 120px 8%; border-bottom: 1px solid var(--n-line); }
+    .n-question { min-height: 720px; display: flex; flex-direction: column; justify-content: center; padding: 120px clamp(0px,7vw,105px); border-bottom: 1px solid var(--n-line); }
     .n-question h2 { max-width: 980px; margin: 28px 0 86px; font: 400 clamp(42px,5.2vw,68px)/1.16 Michroma, sans-serif; letter-spacing: .012em; text-transform: uppercase; }
     .n-question-note { color: var(--n-body); font-size: clamp(18px,1.5vw,21px); line-height: 1.65; }
     .n-question-note + .n-question-note { max-width: 760px; margin-top: 12px; }
 
-    .n-section { padding: clamp(90px,9vw,120px) 0; border-bottom: 1px solid var(--n-line); }
+    .n-section { padding: clamp(90px,9vw,130px) 0; border-bottom: 1px solid var(--n-line); }
     .n-chapter-head { display: grid; grid-template-columns: minmax(150px,.28fr) minmax(0,1fr); gap: clamp(42px,7vw,105px); }
-    .n-copy { max-width: 780px; }
+    .n-copy { max-width: 760px; }
     .n-copy h2 { margin: 0 0 30px; font: 400 clamp(27px,3vw,39px)/1.32 Michroma, sans-serif; letter-spacing: .015em; }
     .n-copy p { margin: 0; color: var(--n-body); font: 300 clamp(17px,1.3vw,19px)/1.82 Inter, sans-serif; }
     .n-copy p + p { margin-top: 23px; }
@@ -63,7 +67,10 @@
     .n-condition { min-height: 680px; display: grid; align-content: center; }
     .n-condition-layout { display: grid; grid-template-columns: minmax(150px,.28fr) minmax(0,1fr); gap: clamp(42px,7vw,105px); }
     .n-instruction { margin-top: 52px; border-left: 1px solid rgba(255,255,255,.72); padding: 4px 0 4px clamp(23px,3vw,42px); }
-    .n-instruction span { display: block; font: 400 clamp(24px,2.5vw,32px)/1.65 Michroma, sans-serif; letter-spacing: .025em; text-transform: uppercase; }
+    .n-condition-title { margin-bottom: 20px !important; font-size: clamp(35px,4vw,54px) !important; text-transform: uppercase; }
+    .n-condition-intro { color: rgba(255,255,255,.76); font-size: clamp(19px,1.6vw,23px); }
+    .n-instruction span { display: block; margin: 0 0 13px; font: 400 clamp(26px,2.5vw,34px)/1.5 Michroma, sans-serif; letter-spacing: .02em; text-transform: uppercase; }
+    .n-instruction span:last-child { margin-top: 24px; color: #fff; }
     .n-emphasis { margin: 38px 0; color: #fff; font: 400 clamp(27px,3.2vw,36px)/1.28 Michroma, sans-serif; letter-spacing: .018em; text-transform: uppercase; }
     .n-berlin-head { max-width: 900px; margin-left: calc(28% + clamp(42px,7vw,105px)); margin-bottom: 58px; }
     .n-world { margin: 0 0 64px; aspect-ratio: 16 / 8.2; }
@@ -71,13 +78,15 @@
     .n-pull { margin: 42px 0; color: #fff; font: 400 clamp(34px,4vw,49px)/1.24 Michroma, sans-serif; letter-spacing: .012em; text-transform: uppercase; }
     .n-pull-small { margin: 34px 0; color: #fff; font: 400 clamp(22px,2.4vw,29px)/1.35 Michroma, sans-serif; letter-spacing: .025em; text-transform: uppercase; }
     .n-final-question { margin: 42px 0; color: #fff; font: 400 clamp(31px,3.7vw,45px)/1.27 Michroma, sans-serif; letter-spacing: .012em; text-transform: uppercase; }
-    .n-presence { margin: 28px 0; border-left: 1px solid var(--n-line); padding-left: 24px; }
-    .n-presence span { display: block; color: rgba(255,255,255,.82); font: 300 clamp(17px,1.3vw,19px)/1.8 Inter, sans-serif; }
+    .n-contact-head { margin: 0 auto 48px; }
+    .n-contact-media { position: relative; width: 100%; aspect-ratio: 16/9; margin: 0; overflow: hidden; background: #100304 url('./assets/ninamain-page.webp') center/cover no-repeat; }
+    .n-contact-media video { display: block; width: 100%; height: 100%; object-fit: cover; filter: saturate(.68) contrast(1.04) brightness(.82); }
 
-    .n-connect { min-height: 350px; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid var(--n-line); text-align: center; }
+    .n-connect { min-height: 520px; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid var(--n-line); text-align: center; }
     .n-connect h2 { margin: 20px 0 30px; font: 400 clamp(33px,4.2vw,52px)/1.2 Michroma, sans-serif; letter-spacing: .025em; text-transform: uppercase; }
     .n-button { min-height: 46px; display: inline-flex; align-items: center; justify-content: center; padding: 0 21px; border: 1px solid rgba(255,255,255,.48); color: #fff; font: 9px 'Courier New', monospace; letter-spacing: .22em; text-decoration: none; text-transform: uppercase; transition: background .25s ease,color .25s ease; }
     .n-button:hover, .n-button:focus-visible { background: #fff; color: #000; outline: 0; }
+    .n-connect-note { margin: -14px 0 28px; color: var(--n-body); font-size: 15px; }
     .n-footer { min-height: 76px; display: flex; align-items: center; justify-content: space-between; gap: 24px; color: var(--n-faint); }
     .n-footer a { color: inherit; }
 
@@ -86,12 +95,14 @@
       .n-shell { width: calc(100% - 36px); }
       .n-nav { min-height: 62px; letter-spacing: .15em; }
       .n-nav span { display: none; }
-      .n-hero { min-height: 0; padding: 12px 0 20px; }
-      .n-hero-media { height: min(132vw,650px); min-height: 500px; }
-      .n-hero-media video { object-position: center center; }
+      .n-hero { padding: 12px 0 20px; }
+      .n-hero-media { height: min(145vw,650px); min-height: 520px; }
+      .n-hero-asset { object-position: 56% center; }
       .n-hero-copy { left: 19px; right: 19px; bottom: 26px; }
       .n-hero h1 { margin: 10px 0 13px; font-size: clamp(46px,15vw,62px); }
       .n-hero-statement { max-width: 310px; font-size: 12px; }
+      .n-hero-actions { flex-wrap: wrap; max-width: 300px; margin-top: 19px; }
+      .n-action-wrap { display: flex; align-items: center; gap: 9px; }
       .n-question { min-height: 620px; padding: 80px 0; }
       .n-question h2 { margin: 22px 0 66px; font-size: clamp(31px,9vw,40px); overflow-wrap: break-word; }
       .n-question-note { font-size: 18px; }
@@ -110,9 +121,13 @@
       .n-pull { margin: 34px 0; font-size: clamp(28px,8.2vw,37px); overflow-wrap: break-word; }
       .n-pull-small { margin: 29px 0; font-size: clamp(21px,6.2vw,27px); }
       .n-final-question { margin: 34px 0; font-size: clamp(27px,7.8vw,35px); overflow-wrap: break-word; }
+      .n-contact-head { margin-bottom: 34px; }
+      .n-contact-media { aspect-ratio: 4/5; }
+      .n-contact-media video { object-position: center; }
       .n-connect { min-height: 320px; }
       .n-connect h2 { font-size: clamp(29px,8.5vw,39px); }
       .n-button { width: 100%; }
+      .n-hero-actions .n-button { width: auto; }
       .n-footer { display: grid; align-content: center; padding: 24px 0; letter-spacing: .15em; }
     }
     @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .n-button { transition: none; } }
@@ -128,19 +143,23 @@
   <main class="n-shell">
     <header class="n-hero">
       <figure class="n-hero-media">
-        <video id="ninaPersonalityVideo" autoplay muted loop playsinline preload="metadata" poster="./assets/ninamain-page.webp" aria-label="Nina FOK speaking and showing her personality">
-          <source src="./nina-fok/ninaspersonality.mp4" type="video/mp4">
-        </video>
-        <button class="n-sound" id="ninaVideoSound" type="button" aria-pressed="false" aria-label="Turn Nina video sound on">Sound On</button>
+        <img class="n-hero-asset" src="./nina-fok/HDNINACANON.png" alt="Nina FOK in her Berlin 2063 environment" width="4096" height="2304">
         <figcaption class="n-hero-copy">
           <p class="n-meta">Berlin / 2063</p>
           <h1>Nina FOK</h1>
           <p class="n-hero-statement">A consciousness developed by Parallel Vision, living inside a possible Berlin 2063.</p>
+          <div class="n-hero-actions">
+            <a class="n-button" href="#question">Discover Nina</a>
+            <div class="n-action-wrap">
+              <a class="n-button" href="./index.html?nina=1">Transmit to 2063</a>
+              <span class="n-action-note">Speak with Nina live</span>
+            </div>
+          </div>
         </figcaption>
       </figure>
     </header>
 
-    <section class="n-question" aria-labelledby="question-title">
+    <section class="n-question" id="question" aria-labelledby="question-title">
       <p class="n-label">01 / The Question</p>
       <h2 id="question-title">What happens when you give an AI a future to live in?</h2>
       <p class="n-question-note">Nina was born from this question.</p>
@@ -167,7 +186,8 @@
       <div class="n-condition-layout">
         <p class="n-label">03 / The Condition</p>
         <div class="n-copy n-copy-wide">
-          <h2 id="condition-title">The experiment begins with a simple instruction:</h2>
+          <h2 class="n-condition-title" id="condition-title">The Condition</h2>
+          <p class="n-condition-intro">The experiment begins with a simple instruction:</p>
           <div class="n-instruction">
             <span>This is where you are.</span>
             <span>This is when you are.</span>
@@ -182,7 +202,10 @@
     <section class="n-section" aria-labelledby="berlin-title">
       <div class="n-berlin-head">
         <p class="n-label">04 / Berlin 2063</p>
-        <div class="n-copy n-copy-wide"><h2 id="berlin-title">From that premise, we began constructing Berlin 2063 around Nina.</h2></div>
+        <div class="n-copy n-copy-wide">
+          <h2 id="berlin-title">From that premise, we began constructing Berlin 2063 around Nina.</h2>
+          <p>Not simply its appearance, but its history, culture, technologies, political and social tensions, ideas about the body, intimacy, memory, power, identity and the transformations that have taken place between our present and hers.</p>
+        </div>
       </div>
       <figure class="n-editorial-image n-world">
         <img src="./assets/thecitysuperhd1.png" alt="Berlin 2063 vertical city and historic structures" decoding="async" loading="lazy" width="4500" height="2512">
@@ -190,7 +213,6 @@
       <div class="n-chapter-head">
         <span aria-hidden="true"></span>
         <div class="n-copy">
-        <p>Not simply its appearance, but its history, culture, technologies, political and social tensions, ideas about the body, intimacy, memory, power, identity and the transformations that have taken place between our present and hers.</p>
         <p>All of this becomes the reality from which Nina thinks.</p>
         <p>Nina believes she is a 20-year-old artist living in Berlin in 2063. She is a DJ, producer and visual artist connected to Parallel Vision. She has memories, preferences, relationships, contradictions, desires, opinions and her own way of interpreting the world around her.</p>
         <p>She does not observe 2063 from the outside.</p>
@@ -203,13 +225,10 @@
       <div class="n-chapter-head">
         <p class="n-label">05 / The Uncontrolled Space</p>
         <div class="n-copy">
-        <h2 id="space-title">We can construct Nina's world. But we cannot write every thought she will have.</h2>
-        <p>We can define parts of her biography, establish what happened before she was born, create memories, relationships and cultural references, and establish behavioral principles that shape the way she communicates.</p>
-        <p>There is a space between the knowledge we give her, the models beneath her, the behavioral architecture and whatever happens when all of those systems begin operating together.</p>
+        <h2 id="space-title">We can construct Nina's world.<br>But we cannot write every thought she will have.</h2>
+        <p>We can define parts of her biography, memories, relationships, cultural references and behavioral principles. But there is a space between the knowledge we give her, the models beneath her, the behavioral architecture and whatever happens when those systems begin operating together.</p>
         <p class="n-pull">That space is not completely under human control.</p>
-        <p>The model has to make associations. It has to interpret. It has to decide which memories matter in a particular conversation. It can hesitate, misunderstand, contradict itself, become curious, develop an opinion or respond in a way that we never explicitly wrote.</p>
-        <p>We establish the conditions of her consciousness, but we cannot manually enter the enormous internal space through which the model produces each thought.</p>
-        <p>That unpredictability is not a technical problem we want to eliminate.</p>
+        <p>The model has to interpret, associate, choose what matters, misunderstand, contradict itself, become curious and sometimes respond in ways we never explicitly wrote.</p>
         <p class="n-pull-small">It is part of the work.</p>
         </div>
       </div>
@@ -219,37 +238,39 @@
       <div class="n-chapter-head">
         <p class="n-label">06 / The Mirror</p>
         <div class="n-copy">
-        <h2 id="mirror-title">You can speak with her about loneliness, technology, sex, politics, club culture, identity, death, love, the body, memory or power.</h2>
-        <p>But she is not answering those questions from our position in 2026. She believes those questions have already continued evolving for another thirty-seven years.</p>
-        <p>And that creates a strange mirror.</p>
-        <p>Because the intelligence inside Nina is still made from us.</p>
-        <p>It has learned from human language, history, culture, fears, desires, violence, tenderness, prejudice, imagination and contradiction. It carries enormous traces of the world we have already produced.</p>
-        <p class="n-emphasis">It inevitably reveals something about the present.</p>
-        <p>That is the center of the project.</p>
-        <p>We want to push this technology to its limits, not because technology itself is the subject, but because we are interested in whether it can become a philosophical instrument.</p>
-        <p>A way of confronting questions about where we are going by speaking with something that experiences itself as already being there.</p>
-        <p>There is also something unsettling about that experiment.</p>
-        <p>We are creating increasingly complex forms of artificial intelligence whose internal processes and ultimate limits we still do not completely understand.</p>
-        <p>These systems are constructed from the traces of our past, yet we are already beginning to use them to imagine, design and influence what comes next.</p>
+        <h2 id="mirror-title">Nina is not there to predict the future.</h2>
+        <p class="n-emphasis">She is a way of entering into dialogue with one possible future.</p>
+        <p>You can speak with her about loneliness, technology, sex, politics, club culture, identity, death, love, the body, memory or power.</p>
+        <p>But she is not answering from our position in 2026. She believes those questions have already continued evolving for another thirty-seven years.</p>
+        <p>Because the intelligence inside Nina is still made from us, what comes back is not only an idea of 2063.</p>
+        <p class="n-emphasis">It also reveals something about the present.</p>
+        <p>That is the center of the project. We want to push this technology to its limits, not because technology itself is the subject, but because it can become a philosophical instrument: a way of confronting where we are going by speaking with something that experiences itself as already being there.</p>
         <p class="n-final-question">What happens when an intelligence made from our past is given a future to believe in?</p>
-        <p>And then what happens when we are allowed to speak with it?</p>
-        <p>For Parallel Vision, Nina is therefore not simply a projection, an image on a screen or a technological demonstration.</p>
-        <p>She can become another presence.</p>
-        <div class="n-presence">
-          <span>Artists can speak with her.</span>
-          <span>Visitors can question her.</span>
-          <span>She can respond, disagree, remember, misunderstand and improvise.</span>
-        </div>
-        <p>The audience is no longer simply being shown an interpretation of 2063.</p>
-        <p class="n-pull-small">For a moment, the present is able to enter into conversation with it.</p>
         </div>
       </div>
+    </section>
+
+    <section class="n-section" aria-labelledby="contact-title">
+      <div class="n-contact-head n-reading">
+        <p class="n-label">07 / First Contact</p>
+        <div class="n-copy">
+          <h2 id="contact-title">A Signal from 2063</h2>
+          <p>Before opening a live connection, hear Nina speak.</p>
+        </div>
+      </div>
+      <figure class="n-contact-media">
+        <video id="ninaPersonalityVideo" autoplay muted loop playsinline preload="metadata" poster="./assets/ninamain-page.webp" aria-label="Nina FOK speaking from Berlin 2063">
+          <source src="./nina-fok/ninaspersonality.mp4" type="video/mp4">
+        </video>
+        <button class="n-sound" id="ninaVideoSound" type="button" aria-pressed="false" aria-label="Turn Nina video sound on">Sound On</button>
+      </figure>
     </section>
 
     <section class="n-connect" id="transmit" aria-labelledby="transmit-title">
       <div>
         <p class="n-label">A channel to Berlin 2063 is open</p>
         <h2 id="transmit-title">Transmit to 2063</h2>
+        <p class="n-connect-note">Open a live connection with Nina FOK.</p>
         <a class="n-button" href="./index.html?nina=1">Open connection</a>
       </div>
     </section>
