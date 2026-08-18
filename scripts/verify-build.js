@@ -101,6 +101,9 @@ const ninaProject = fs.readFileSync(path.join(root, 'nina-project.html'), 'utf8'
 if (!index.includes('href="./nina-project.html"') || !index.includes('id="openNinaArtist"')) fail('Homepage Nina actions are not wired correctly');
 if (!ninaProject.includes('href="./index.html?nina=1"')) fail('Nina project transmission does not use the existing access flow');
 if (/anam-ai|session-token|nina-access\.js/i.test(ninaProject)) fail('Nina project page must not initialize the Anam runtime');
+const ninaProjectOrder = ['class="n-hero"','id="question-title"','id="who-title"','id="condition-title"','id="berlin-title"','id="space-title"','id="mirror-title"','id="transmit"'];
+if (!ninaProjectOrder.every((marker, index) => index === 0 || ninaProject.indexOf(marker) > ninaProject.indexOf(ninaProjectOrder[index - 1]))) fail('Nina project section order changed');
+if (!/<img[^>]+ninamain-page\.webp[^>]+loading="eager"/i.test(ninaProject)) fail('Nina project hero image is not immediately loaded');
 const connectNinaSource = nina.match(/async function connectNina\(\) \{[\s\S]*?\n\}/)?.[0] || '';
 if (!connectNinaSource.includes('requestSessionToken(ninaTokenAbortController.signal)')) fail('Anam token must only be requested from the CONNECT flow');
 if ((nina.match(/requestSessionToken\(ninaTokenAbortController\.signal\)/g) || []).length !== 1) fail('Anam token request must have exactly one CONNECT call site');
