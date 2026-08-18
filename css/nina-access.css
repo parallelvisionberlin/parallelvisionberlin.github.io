@@ -1,0 +1,1059 @@
+/* =========================================================
+   NINA ACCESS GATE
+========================================================= */
+
+.nina-access {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483647;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, .92);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity .3s ease, visibility .3s ease;
+}
+
+.nina-access.is-open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.nina-access-panel {
+  width: min(440px, 100%);
+  padding: 34px;
+  border: 1px solid rgba(255, 255, 255, .2);
+  background: #020203;
+  box-shadow: 0 35px 120px rgba(0, 0, 0, .85);
+}
+
+.nina-access-title {
+  margin: 0 0 14px;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 400;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+}
+
+.nina-access-description,
+.nina-access-error {
+  color: rgba(255, 255, 255, .52);
+  font-family: 'Courier New', monospace;
+  font-size: 10px;
+  line-height: 1.7;
+  letter-spacing: .1em;
+}
+
+.nina-access-form {
+  margin-top: 26px;
+}
+
+.nina-access-input {
+  width: 100%;
+  padding: 14px 15px;
+  border: 1px solid rgba(255, 255, 255, .2);
+  border-radius: 0;
+  outline: none;
+  background: #000;
+  color: #fff;
+  font-family: 'Courier New', monospace;
+  letter-spacing: .14em;
+}
+
+.nina-access-input:focus {
+  border-color: rgba(255, 255, 255, .7);
+}
+
+.nina-access-error {
+  min-height: 17px;
+  margin: 10px 0 0;
+  color: rgba(255, 255, 255, .72);
+}
+
+.nina-access-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.nina-access-submit,
+.nina-access-cancel {
+  border-radius: 0;
+  font-family: 'Courier New', monospace;
+  font-size: 9px;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.nina-access-submit {
+  padding: 13px 16px;
+  border: 1px solid #fff;
+  background: #fff;
+  color: #000;
+}
+
+.nina-access-submit:hover:not(:disabled),
+.nina-access-cancel:hover:not(:disabled) {
+  background: #fff;
+  color: #000;
+}
+
+.nina-access-submit:active:not(:disabled),
+.nina-access-cancel:active,
+.nina-close:active,
+.nina-open-live:active:not(:disabled) {
+  transform: scale(.96);
+}
+
+.nina-access-submit:disabled {
+  opacity: .48;
+  cursor: wait;
+}
+
+.nina-access-cancel:disabled {
+  opacity: .35;
+  cursor: wait;
+}
+
+.nina-access-cancel {
+  padding: 12px 14px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: rgba(255, 255, 255, .52);
+}
+
+.nina-signal:focus-visible,
+.nina-access-input:focus-visible,
+.nina-access-submit:focus-visible,
+.nina-access-cancel:focus-visible,
+.nina-close:focus-visible,
+.nina-open-live:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 4px;
+}
+/* =========================================================
+   NINA LIVE WINDOW
+========================================================= */
+
+.nina-overlay {
+  position: fixed;
+
+  inset: 0;
+
+  z-index: 10000;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  padding: 24px;
+
+  background:
+    rgba(
+      0,
+      0,
+      0,
+      .96
+    );
+
+  opacity: 0;
+
+  visibility: hidden;
+
+  pointer-events: none;
+
+  transition:
+    opacity
+    .55s
+    ease,
+
+    visibility
+    .55s
+    ease;
+}
+
+.nina-overlay.is-open {
+  opacity: 1;
+
+  visibility: visible;
+
+  pointer-events: auto;
+}
+
+.nina-window {
+  position: relative;
+
+  width:
+    min(
+      1500px,
+      100%
+    );
+
+  height:
+    min(
+      880px,
+      calc(
+        100vh
+        -
+        48px
+      )
+    );
+
+  overflow: hidden;
+
+  border:
+    1px solid
+    rgba(
+      255,
+      255,
+      255,
+      .18
+    );
+
+  background: #020203;
+
+  box-shadow:
+    0
+    40px
+    150px
+    rgba(
+      0,
+      0,
+      0,
+      .94
+    );
+}
+
+
+/* WINDOW BAR */
+
+.nina-window-bar {
+  position: absolute;
+
+  top: 0;
+  left: 0;
+  right: 0;
+
+  height: 54px;
+
+  z-index: 120;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  padding:
+    0
+    17px;
+
+  background:
+    rgba(
+      1,
+      1,
+      2,
+      .98
+    );
+
+  border-bottom:
+    1px solid
+    rgba(
+      255,
+      255,
+      255,
+      .09
+    );
+}
+
+.nina-window-id {
+  font-family:
+    'Courier New',
+    monospace;
+
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      .72
+    );
+
+  font-size: 9px;
+
+  letter-spacing: .18em;
+
+  text-transform: uppercase;
+}
+
+.nina-window-controls {
+  display: flex;
+
+  align-items: center;
+
+  gap: 18px;
+}
+
+.nina-window-status {
+  display: flex;
+
+  align-items: center;
+
+  gap: 9px;
+
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      .44
+    );
+
+  font-family:
+    'Courier New',
+    monospace;
+
+  font-size: 9px;
+
+  letter-spacing: .17em;
+
+  text-transform: uppercase;
+}
+
+.nina-window-status-dot {
+  width: 5px;
+  height: 5px;
+
+  border-radius: 50%;
+
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      .85
+    );
+
+  box-shadow:
+    0
+    0
+    9px
+    rgba(
+      255,
+      255,
+      255,
+      .55
+    );
+}
+
+.nina-close {
+  width: 34px;
+  height: 34px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border:
+    1px solid
+    rgba(
+      255,
+      255,
+      255,
+      .18
+    );
+
+  background: transparent;
+
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      .72
+    );
+
+  cursor: pointer;
+
+  font-size: 18px;
+
+  line-height: 1;
+
+  transition:
+    background
+    .25s
+    ease,
+
+    color
+    .25s
+    ease;
+}
+
+.nina-close:hover {
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      .92
+    );
+
+  color: #000;
+}
+
+.nina-close:active {
+  background: rgba(255, 255, 255, .72);
+}
+
+
+/* LIVE STAGE */
+
+.nina-stage {
+  position: absolute;
+
+  top: 55px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  overflow: hidden;
+
+  background: #000;
+}
+
+#nina-anam-video {
+  position: absolute;
+
+  inset: 0;
+
+  display: block;
+
+  width: 100%;
+  height: 100%;
+
+  opacity: 0;
+
+  pointer-events: none;
+
+  background: #000;
+
+  object-fit: cover;
+
+  transition:
+    opacity
+    1s
+    ease;
+}
+
+body.nina-call-visible
+#nina-anam-video {
+  opacity: 1;
+
+  pointer-events: auto !important;
+}
+
+.nina-call-scrim {
+  position: absolute;
+
+  inset: 0;
+
+  z-index: 70;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  background: #020203;
+
+  opacity: 0;
+
+  pointer-events: none !important;
+
+  transition:
+    opacity
+    .35s
+    ease;
+}
+
+body.nina-scrim-visible
+.nina-call-scrim {
+  opacity: 1;
+
+  pointer-events: none !important;
+}
+
+.nina-call-scrim,
+.nina-call-scrim * {
+  pointer-events: none !important;
+}
+
+body.nina-scrim-action
+.nina-stage {
+  cursor: pointer;
+}
+
+.nina-call-scrim-content {
+  width:
+    min(
+      620px,
+      calc(
+        100%
+        -
+        48px
+      )
+    );
+
+  text-align: center;
+}
+
+.nina-call-scrim-title {
+  margin: 0;
+
+  font-family:
+    'Michroma',
+    sans-serif;
+
+  font-size:
+    clamp(
+      30px,
+      5vw,
+      64px
+    );
+
+  font-weight: 400;
+
+  letter-spacing: .14em;
+
+  line-height: 1.05;
+
+  text-transform: uppercase;
+}
+
+.nina-call-scrim-subtitle {
+  margin-top: 22px;
+
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      .52
+    );
+
+  font-family:
+    'Courier New',
+    monospace;
+
+  font-size: 10px;
+
+  letter-spacing: .32em;
+
+  text-transform: uppercase;
+}
+
+.nina-call-scrim-message {
+  margin:
+    24px
+    auto
+    0;
+
+  max-width: 560px;
+
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      .68
+    );
+
+  font-size: 15px;
+
+  line-height: 1.6;
+
+  word-break: break-word;
+}
+
+.nina-scrim-button {
+  display: none;
+}
+
+body.nina-scrim-action
+.nina-scrim-button {
+  display: inline-flex;
+
+  pointer-events: auto !important;
+}
+
+
+/* =========================================================
+   CINEMATIC INTRO
+========================================================= */
+
+.nina-intro {
+  position: absolute;
+
+  inset: 0;
+
+  z-index: 80;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  overflow: hidden;
+
+  background: #020203;
+
+  opacity: 1;
+
+  transition:
+    opacity
+    1.1s
+    ease;
+}
+
+.nina-intro::before {
+  content: "";
+
+  position: absolute;
+
+  inset: -40px;
+
+  background:
+    linear-gradient(
+      rgba(
+        0,
+        0,
+        0,
+        .70
+      ),
+      rgba(
+        0,
+        0,
+        0,
+        .92
+      )
+    ),
+
+    url(
+      "./assets/ebers2063.png"
+    )
+    center
+    center
+    /
+    cover
+    no-repeat;
+
+  filter:
+    grayscale(.2)
+    contrast(1.1)
+    brightness(.25);
+
+  opacity: .42;
+
+  transform:
+    scale(1.05);
+}
+
+.nina-intro::after {
+  content: "";
+
+  position: absolute;
+
+  inset: 0;
+
+  background:
+    radial-gradient(
+      circle at center,
+      transparent 0%,
+      rgba(
+        0,
+        0,
+        0,
+        .36
+      )
+      50%,
+      rgba(
+        0,
+        0,
+        0,
+        .90
+      )
+      100%
+    );
+}
+
+body.nina-call-visible
+.nina-intro {
+  opacity: 0;
+
+  pointer-events: none;
+}
+
+.nina-intro-content {
+  position: relative;
+
+  z-index: 5;
+
+  width:
+    min(
+      760px,
+      calc(
+        100%
+        -
+        48px
+      )
+    );
+
+  text-align: center;
+}
+
+.nina-intro-code {
+  margin-bottom: 25px;
+
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      .46
+    );
+
+  font-family:
+    'Courier New',
+    monospace;
+
+  font-size: 9px;
+
+  letter-spacing: .32em;
+
+  text-transform: uppercase;
+}
+
+.nina-intro h3 {
+  margin: 0;
+
+  font-family:
+    'Michroma',
+    sans-serif;
+
+  font-size:
+    clamp(
+      44px,
+      7vw,
+      92px
+    );
+
+  font-weight: 400;
+
+  letter-spacing: .10em;
+
+  line-height: 1;
+
+  text-transform: uppercase;
+}
+
+.nina-intro-subtitle {
+  margin:
+    27px
+    auto
+    0;
+
+  max-width: 570px;
+
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      .72
+    );
+
+  font-size: 17px;
+
+  line-height: 1.7;
+}
+
+.nina-intro-small {
+  margin-top: 15px;
+
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      .38
+    );
+
+  font-family:
+    'Courier New',
+    monospace;
+
+  font-size: 9px;
+
+  letter-spacing: .18em;
+
+  text-transform: uppercase;
+}
+
+.nina-microphone {
+  position: relative;
+  display: block;
+  width: min(360px, 100%);
+  margin: 28px auto 0;
+  color: rgba(255, 255, 255, .48);
+  font-family: 'Courier New', monospace;
+  font-size: 9px;
+  letter-spacing: .22em;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.nina-microphone::after {
+  content: "⌄";
+  position: absolute;
+  top: 28px;
+  right: 14px;
+  color: rgba(255, 255, 255, .62);
+  font-size: 16px;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.nina-microphone select {
+  width: 100%;
+  margin-top: 9px;
+  padding: 12px 38px 12px 13px;
+  border: 1px solid rgba(255, 255, 255, .22);
+  border-radius: 0;
+  background: rgba(0, 0, 0, .42);
+  color: rgba(255, 255, 255, .86);
+  font: 12px/1.2 'Courier New', monospace;
+  letter-spacing: .04em;
+  appearance: none;
+  cursor: pointer;
+}
+
+.nina-microphone select:focus-visible {
+  outline: 1px solid rgba(255, 255, 255, .8);
+  outline-offset: 3px;
+}
+
+.nina-microphone select:disabled {
+  opacity: .45;
+  cursor: wait;
+}
+
+.nina-microphone-status {
+  display: block;
+  min-height: 1.3em;
+  margin-top: 8px;
+  color: rgba(255, 255, 255, .58);
+  letter-spacing: .12em;
+}
+
+.nina-open-live {
+  margin-top: 22px;
+
+  padding:
+    15px
+    24px;
+
+  border:
+    1px solid
+    rgba(
+      255,
+      255,
+      255,
+      .32
+    );
+
+  background:
+    rgba(
+      0,
+      0,
+      0,
+      .26
+    );
+
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      .90
+    );
+
+  font-family:
+    'Michroma',
+    sans-serif;
+
+  font-size: 9px;
+
+  letter-spacing: .20em;
+
+  text-transform: uppercase;
+
+  cursor: pointer;
+
+  backdrop-filter:
+    blur(12px);
+
+  transition:
+    background
+    .25s
+    ease,
+
+    color
+    .25s
+    ease,
+
+    border-color
+    .25s
+    ease;
+}
+
+.nina-open-live:hover {
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      .94
+    );
+
+  color: #000;
+
+  border-color:
+    rgba(
+      255,
+      255,
+      255,
+      .94
+    );
+}
+
+.nina-open-live:disabled {
+  opacity: .35;
+
+  cursor: wait;
+}
+
+
+/* =========================================================
+   CONNECTING STATE
+========================================================= */
+
+.nina-connecting {
+  display: none;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  margin-top: 40px;
+}
+
+body.nina-connecting-mode
+.nina-open-live {
+  display: none;
+}
+
+body.nina-connecting-mode
+.nina-connecting {
+  display: flex;
+}
+
+.nina-connection-line {
+  width: 1px;
+  height: 100px;
+
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      .38
+    );
+
+  box-shadow:
+    0
+    0
+    20px
+    rgba(
+      170,
+      195,
+      255,
+      .15
+    );
+
+  animation:
+    ninaConnectionLine
+    1.8s
+    ease-in-out
+    infinite;
+}
+
+@keyframes ninaConnectionLine {
+
+  0%,
+  100% {
+    height: 60px;
+
+    opacity: .35;
+  }
+
+  50% {
+    height: 125px;
+
+    opacity: 1;
+  }
+
+}
+
+.nina-connecting-label {
+  margin-top: 27px;
+
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      .48
+    );
+
+  font-family:
+    'Courier New',
+    monospace;
+
+  font-size: 9px;
+
+  letter-spacing: .26em;
+
+  text-transform: uppercase;
+}
+
+@media (max-width: 560px) {
+  .nina-overlay { padding: 5px; }
+  .nina-window { height: calc(100vh - 10px); }
+  .nina-window-status {
+    max-width: min(46vw, 220px);
+    line-height: 1.4;
+    word-break: break-word;
+  }
+  .nina-intro h3 { font-size: clamp(35px, 11vw, 58px); }
+  .nina-intro-subtitle { font-size: 15px; }
+}
+

@@ -99,8 +99,9 @@ if ((nina.match(/const ANAM_SESSION_TOKEN_ENDPOINT\s*=/g) || []).length !== 1) f
 if (/ANAM_API_KEY/.test(`${index}\n${nina}\n${ninaStandalone}`)) fail('ANAM_API_KEY appears in client code');
 const ninaProject = fs.readFileSync(path.join(root, 'nina-project.html'), 'utf8');
 if (!index.includes('href="./nina-project.html"') || !index.includes('id="openNinaArtist"')) fail('Homepage Nina actions are not wired correctly');
-if (!ninaProject.includes('href="./index.html?nina=1"')) fail('Nina project transmission does not use the existing access flow');
-if (/anam-ai|session-token|nina-access\.js/i.test(ninaProject)) fail('Nina project page must not initialize the Anam runtime');
+if (!ninaProject.includes('data-nina-open') || ninaProject.includes('href="./index.html?nina=1"')) fail('Nina project transmission must open the local shared access flow');
+if (!ninaProject.includes('./js/nina-access.js') || !ninaProject.includes('id="ninaAccess"') || !ninaProject.includes('id="ninaOverlay"')) fail('Nina project page must host the shared Nina access component');
+if (!index.includes('./css/nina-access.css') || !ninaProject.includes('./css/nina-access.css')) fail('Nina access styles must be shared by the homepage and project page');
 const ninaProjectOrder = ['class="n-hero"','id="question-title"','id="who-title"','id="condition-title"','id="berlin-title"','id="space-title"','id="mirror-title"','id="transmit"'];
 if (!ninaProjectOrder.every((marker, index) => index === 0 || ninaProject.indexOf(marker) > ninaProject.indexOf(ninaProjectOrder[index - 1]))) fail('Nina project section order changed');
 if (!/<video[^>]+autoplay[^>]+muted[^>]+loop[^>]+playsinline[^>]+poster="\.\/assets\/ninamain-page\.webp"/i.test(ninaProject)) fail('Nina project hero video behavior is incomplete');

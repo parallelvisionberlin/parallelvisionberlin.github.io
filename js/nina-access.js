@@ -10,6 +10,7 @@ const byId = id => document.getElementById(id);
 const ninaOverlay = byId("ninaOverlay");
 const openNina = byId("openNina");
 const openNinaArtist = byId("openNinaArtist");
+const ninaOpenTriggers = Array.from(document.querySelectorAll("[data-nina-open]"));
 const ninaAccess = byId("ninaAccess");
 const ninaAccessForm = byId("ninaAccessForm");
 const ninaAccessCode = byId("ninaAccessCode");
@@ -36,6 +37,8 @@ let ninaAttempt = 0;
 let ninaTokenAbortController = null;
 let ninaMicrophoneStream = null;
 let ninaMicrophoneSetupPromise = null;
+let lastNinaTrigger = null;
+let ninaScrollPosition = 0;
 const delay = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
 const logDevelopmentError = (message, error) => { if (DEVELOPMENT) console.error(message, error); };
 const readPreferredMicrophone = () => {
@@ -287,6 +290,7 @@ async function connectNina() {
 }
 
 function openNinaAccess() {
+  ninaScrollPosition = window.scrollY;
   ninaAccessVerifiedForCurrentOpen = false;
   ninaOverlay.classList.remove("is-open");
   ninaOverlay.setAttribute("aria-hidden", "true");
@@ -305,7 +309,8 @@ function closeNinaAccess(keepVerification = false) {
   ninaAccessError.textContent = "";
   ninaAccessCode.value = "";
   document.body.style.overflow = "";
-  openNina?.focus();
+  window.scrollTo(0, ninaScrollPosition);
+  (lastNinaTrigger || openNina)?.focus({ preventScroll: true });
 }
 
 async function verifyNinaAccess(event) {
@@ -348,13 +353,19 @@ async function closeNinaWindow() {
   ninaOverlay.classList.remove("is-open");
   ninaOverlay.setAttribute("aria-hidden", "true");
   document.body.style.overflow = "";
+  window.scrollTo(0, ninaScrollPosition);
   ninaAccessVerifiedForCurrentOpen = false;
   await stopNinaSession();
   document.body.classList.remove("nina-connecting-mode", "nina-call-visible", "nina-conversation-live", "nina-scrim-visible", "nina-scrim-action");
+  (lastNinaTrigger || openNina)?.focus({ preventScroll: true });
 }
 
-openNina?.addEventListener("click", openNinaAccess);
-openNinaArtist?.addEventListener("click", openNinaAccess);
+new Set([openNina, openNinaArtist, ...ninaOpenTriggers].filter(Boolean)).forEach(trigger => {
+  trigger.addEventListener("click", event => {
+    lastNinaTrigger = event.currentTarget;
+    openNinaAccess();
+  });
+});
 ninaAccessForm.addEventListener("submit", verifyNinaAccess);
 ninaAccess.addEventListener("click", event => event.stopPropagation());
 ninaAccess.addEventListener("pointerdown", event => event.stopPropagation());
