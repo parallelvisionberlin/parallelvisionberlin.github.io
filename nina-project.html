@@ -34,7 +34,7 @@
     .n-nav a:hover, .n-nav a:focus-visible { color: #fff; }
 
     .n-hero { padding: 18px 0 34px; border-bottom: 1px solid var(--n-line); }
-    .n-hero-media { position: relative; height: clamp(620px,82vh,860px); margin: 0; overflow: hidden; background: #100304; }
+    .n-hero-media { position: relative; height: clamp(620px,82vh,860px); margin: 0; overflow: hidden; background: #100304 url('./nina-fok/HDNINACANON.png') center 45% / cover no-repeat; }
     .n-hero-asset { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center 45%; filter: saturate(.72) contrast(1.04) brightness(.78); }
     .n-hero-media::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg,transparent 47%,rgba(0,0,0,.82) 100%); }
     .n-sound { position: absolute; right: 14px; bottom: 14px; z-index: 3; min-height: 28px; padding: 0 9px; border: 1px solid rgba(255,255,255,.34); background: rgba(0,0,0,.38); color: #fff; font: 8px 'Courier New', monospace; letter-spacing: .16em; text-transform: uppercase; cursor: pointer; backdrop-filter: blur(8px); }
@@ -137,7 +137,7 @@
       .n-hero-actions .n-button { width: auto; }
       .n-footer { display: grid; align-content: center; padding: 24px 0; letter-spacing: .15em; }
     }
-    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .n-button { transition: none; } }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .n-button { transition: none; } .n-hero-asset { display: none; } }
   </style>
 </head>
 <body>
@@ -150,7 +150,7 @@
   <main class="n-shell">
     <header class="n-hero">
       <figure class="n-hero-media">
-        <img class="n-hero-asset" src="./nina-fok/HDNINACANON.png" alt="Nina FOK in her Berlin 2063 environment" width="4096" height="2304">
+        <video class="n-hero-asset" id="ninaHeroVideo" src="./nina-fok/ninaloophero.mp4" poster="./nina-fok/HDNINACANON.png" autoplay muted loop playsinline preload="auto" aria-label="Nina FOK in her Berlin 2063 environment"></video>
         <figcaption class="n-hero-copy">
           <p class="n-meta">Berlin / 2063</p>
           <h1>Nina FOK</h1>
@@ -286,6 +286,7 @@
   <script>
     (() => {
       const video = document.getElementById("ninaPersonalityVideo");
+      const heroVideo = document.getElementById("ninaHeroVideo");
       const soundButton = document.getElementById("ninaVideoSound");
       const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
@@ -298,10 +299,14 @@
 
       const syncMotion = () => {
         if (reducedMotion.matches) {
+          heroVideo.pause();
+          heroVideo.removeAttribute("autoplay");
           video.pause();
           video.removeAttribute("autoplay");
           return;
         }
+        heroVideo.autoplay = true;
+        heroVideo.play().catch(() => {});
         video.autoplay = true;
         video.play().catch(() => {});
       };
