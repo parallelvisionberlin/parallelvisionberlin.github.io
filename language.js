@@ -24,7 +24,7 @@
     ["#artists .artists-roster-meta span:first-child", "CURRENT ROSTER / 08 ARTISTS", "CURRENT ROSTER / 08 ARTISTS"],
     ["#artists .artists-roster-meta span:last-child", "BERLIN — NEW YORK — MEXICO CITY — BUCHAREST — ARGENTINA", "BERLIN — NEW YORK — MEXICO CITY — BUCHAREST — ARGENTINA"],
     ["#artists .nina-identity-label", "Artificial Identity / Berlin 2063", "Künstliche Identität / Berlin 2063"],
-    ["#artists .nina-identity-description", "Eine autonome Intelligenz, die in Berlin 2063 lebt.", "Eine autonome Intelligenz, die in Berlin 2063 lebt."],
+    ["#artists .nina-identity-description", "A consciousness developed by Parallel Vision, living inside a possible Berlin 2063.", "Eine autonome Intelligenz, die in Berlin 2063 lebt."],
     ["#artists .nina-identity-cta-secondary", "DISCOVER NINA", "DISCOVER NINA"],
     ["#artists .nina-identity-cta-primary", "TRANSMIT TO 2063", "TRANSMIT TO 2063"],
     ["#releases h2", "Releases", "Veröffentlichungen"],

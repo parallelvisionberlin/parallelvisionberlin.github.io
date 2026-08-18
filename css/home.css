@@ -3413,30 +3413,31 @@ body.nina-connecting-mode
 }
 
 .nina-identity-actions {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  width: min(100%, 500px);
+  display: flex;
+  flex-wrap: wrap;
+  width: fit-content;
+  max-width: 100%;
   gap: 12px;
   margin-top: 42px;
 }
 
 .nina-identity-actions .nina-identity-cta {
-  width: 100%;
+  width: auto;
   margin-top: 0;
-  min-height: 56px;
-  padding: 0 26px;
+  min-height: 48px;
+  padding: 0 22px;
   justify-content: center;
   text-decoration: none;
 }
 
 .nina-identity-cta-secondary {
-  border-color: rgba(255,255,255,.52);
-  color: #fff;
+  border-color: rgba(255,255,255,.42);
+  color: rgba(255,255,255,.88);
 }
 
 .nina-identity-cta-primary {
-  border-color: rgba(255,255,255,.82);
-  background: rgba(255,255,255,.06);
+  border-color: rgba(255,255,255,.58);
+  background: transparent;
 }
 
 .nina-identity-cta:hover,
@@ -3491,7 +3492,7 @@ body.nina-connecting-mode
   .nina-identity { grid-template-columns: 1fr; }
   .nina-identity-copy { padding: 52px 0; }
   .nina-identity h3 { font-size: clamp(38px, 13vw, 56px); }
-  .nina-identity-actions { display: grid; }
+  .nina-identity-actions { display: flex; }
   .nina-identity-cta { width: 100%; }
   .nina-identity-media { min-height: 0; aspect-ratio: 4 / 5; }
 }
