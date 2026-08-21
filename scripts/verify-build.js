@@ -2,7 +2,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 const root = path.resolve(__dirname, '..');
-const pages = ['index.html','alejandro-molinari.html','blex.html','berlin-2063.html','future-fashion.html','chromia.html','flesh-zero.html','lotus-2063.html','magnetic-tape.html','dna-mutation.html','cabizbajo-fashion-after-fabric.html','nina-fok.html','nina-project.html','nina.html','nina-fok/index.html'];
+const pages = ['index.html','alejandro-molinari.html','badwolf.html','blex.html','berlin-2063.html','future-fashion.html','chromia.html','flesh-zero.html','lotus-2063.html','magnetic-tape.html','dna-mutation.html','cabizbajo-fashion-after-fabric.html','nina-fok.html','nina-project.html','nina.html','nina-fok/index.html'];
 const redirectPages = new Set(['nina-fok/index.html']);
 const errors = [];
 const fail = message => errors.push(message);
