@@ -38,9 +38,15 @@
     .eyebrow { margin:0 0 clamp(18px,3vw,36px); }
     .hero-title { margin:0; font-size:clamp(74px,16vw,230px); font-weight:700; letter-spacing:-.075em; line-height:.72; text-transform:uppercase; }
     .hero-meta { margin-top:clamp(40px,5vw,70px); display:flex; justify-content:space-between; gap:24px; color:rgba(255,255,255,.72); font-size:10px; letter-spacing:.16em; text-transform:uppercase; }
-    .statement,.closing { padding:clamp(90px,13vw,190px) var(--pad); display:grid; grid-template-columns:minmax(150px,.55fr) minmax(0,1.45fr); gap:clamp(32px,7vw,120px); border-bottom:1px solid var(--line); }
-    .statement-label { margin:4px 0 0; color:var(--muted); font-size:10px; letter-spacing:.16em; text-transform:uppercase; }
-    .statement-copy,.closing-copy { margin:0; max-width:1020px; font-size:clamp(30px,4.4vw,70px); font-weight:400; letter-spacing:-.045em; line-height:1.06; }
+    .bio { padding:clamp(84px,10vw,150px) var(--pad); display:grid; grid-template-columns:minmax(280px,.82fr) minmax(320px,1.18fr); align-items:center; gap:clamp(48px,8vw,140px); border-bottom:1px solid var(--line); }
+    .bio-media { position:relative; aspect-ratio:3/4; min-width:0; margin:0; overflow:hidden; background:#0d0d0d; }
+    .bio-media img { height:100%; object-fit:cover; object-position:63% center; filter:saturate(.72) contrast(1.08); }
+    .bio-media::after { position:absolute; inset:0; content:""; background:linear-gradient(180deg,transparent 64%,rgba(0,0,0,.34)); pointer-events:none; }
+    .bio-copy { width:100%; max-width:760px; }
+    .bio-kicker { margin:0 0 clamp(28px,4vw,52px); color:var(--muted); font-size:10px; font-weight:600; letter-spacing:.18em; text-transform:uppercase; }
+    .bio-copy p { margin:0; max-width:700px; color:rgba(255,255,255,.76); font-size:clamp(17px,1.55vw,23px); letter-spacing:-.018em; line-height:1.5; }
+    .bio-copy .bio-lead { color:#fff; font-size:clamp(25px,2.6vw,42px); letter-spacing:-.04em; line-height:1.16; }
+    .bio-copy p + p { margin-top:clamp(26px,3vw,42px); }
     .section-shell { padding:clamp(80px,10vw,150px) var(--pad); border-bottom:1px solid var(--line); }
     .section-head { padding-bottom:24px; display:flex; justify-content:space-between; align-items:end; gap:24px; border-bottom:1px solid var(--line); }
     .section-title { margin:0; font-size:clamp(28px,4vw,58px); font-weight:500; letter-spacing:-.04em; }
@@ -55,10 +61,6 @@
     .archive-info { padding-top:18px; display:flex; justify-content:space-between; gap:18px; }
     .archive-name { font-size:clamp(17px,1.6vw,24px); }
     .archive-index { flex:none; color:var(--muted); }
-    .visual { position:relative; min-height:min(86vw,920px); margin:0; overflow:hidden; background:#090909; }
-    .visual img { position:absolute; inset:0; height:100%; object-fit:cover; filter:saturate(.72) contrast(1.08); }
-    .visual::after { position:absolute; inset:0; content:""; background:linear-gradient(180deg,transparent 48%,rgba(0,0,0,.72)); }
-    .visual-caption { position:absolute; z-index:1; right:var(--pad); bottom:30px; left:var(--pad); display:flex; justify-content:space-between; gap:20px; font-size:10px; letter-spacing:.16em; text-transform:uppercase; }
     .contact-list { border-top:1px solid var(--line); }
     .contact-row { padding:24px 0; display:flex; justify-content:space-between; gap:24px; border-bottom:1px solid var(--line); transition:color 180ms,padding 180ms; }
     .contact-row:hover { padding-right:10px; color:var(--red); }
@@ -75,11 +77,12 @@
       .hero-title { font-size:clamp(72px,26vw,128px); }
       .hero-meta { align-items:end; }
       .hero-meta span:last-child { max-width:130px; text-align:right; }
-      .statement,.closing { grid-template-columns:1fr; }
+      .bio { grid-template-columns:1fr; gap:44px; }
+      .bio-media { width:100%; max-height:78svh; }
+      .bio-copy { max-width:620px; }
       .archive-grid { grid-template-columns:1fr; }
       .archive-card,.archive-card + .archive-card { padding:28px 0; border-right:0; border-bottom:1px solid var(--line); }
       .archive-card:last-child { border-bottom:0; }
-      .visual { min-height:82svh; }
       .section-head { align-items:start; flex-direction:column; }
       footer { flex-wrap:wrap; }
       footer span:nth-child(2) { order:3; width:100%; }
@@ -97,29 +100,24 @@
       <img class="hero-image" src="./assets/fashion-after-fabric/artists/blex/blexherohd.png" alt="Blex Dark Rock visual against a rain-lit nocturnal city" width="4096" height="2304">
       <div class="hero-copy"><p class="eyebrow">Parallel Vision Artist</p><h1 class="hero-title" id="blex-title">Blex</h1><div class="hero-meta"><span>Argentine Producer</span><span>Nocturnal Signal</span></div></div>
     </section>
-    <section class="statement" aria-label="Blex biography">
-      <p class="statement-label reveal">Profile / Nocturnal Signal</p>
-      <p class="statement-copy reveal">Blex moves through the Parallel Vision archive as a nocturnal signal. His music carries the raw pressure and emotional weight of international rock, reassembled through contemporary electronic structures, club movement and shadowed melodic tension.</p>
+    <section class="bio" aria-labelledby="bio-title">
+      <figure class="bio-media reveal">
+        <img src="./assets/fashion-after-fabric/artists/blex/blexhero.png" alt="Blex seated beside a metallic case in a futuristic interior" loading="lazy" decoding="async" width="4096" height="2304">
+      </figure>
+      <div class="bio-copy reveal">
+        <p class="bio-kicker" id="bio-title">Profile / Nocturnal Signal</p>
+        <p class="bio-lead">Blex moves through the Parallel Vision archive as a nocturnal signal. His music carries the raw pressure and emotional weight of international rock, reassembled through contemporary electronic structures, club movement and shadowed melodic tension.</p>
+        <p>Born from the friction between song memory and club architecture, his sound does not behave like nostalgia. Guitars, voices and dramatic traces are pulled apart, rebuilt as hypnotic grooves, synthetic pulse and cinematic pressure.</p>
+        <p>In Berlin 2063, Blex opens the harder edge of Parallel Vision: heavy silhouettes, distorted signals and tracks that feel both physical and haunted.</p>
+      </div>
     </section>
     <section class="section-shell" id="archive" aria-labelledby="archive-title">
       <header class="section-head reveal"><h2 class="section-title" id="archive-title">Release Archive</h2><p class="section-kicker">Selected transmissions / 01–03</p></header>
       <div class="archive-grid">
-        <a class="archive-card reveal" href="https://soundcloud.com/parallelvisionlabel/blex-ar-carmesi-cotton-bud-master-2?in=parallelvisionlabel/sets/ravesia" target="_blank" rel="noopener noreferrer"><div class="archive-art"><img src="./assets/Ravesiaremixesart.png" alt="Ravesia remixes release artwork" loading="lazy" decoding="async" width="3000" height="3000"></div><div class="archive-info"><span class="archive-name">Carmesi</span><span class="archive-index">PV007 ↗</span></div></a>
+        <a class="archive-card reveal" href="https://soundcloud.com/parallelvisionlabel/sets/ravesia" target="_blank" rel="noopener noreferrer"><div class="archive-art"><img src="./assets/artworks/ravesiaep.jpg" alt="Blex Ravesia release artwork" loading="lazy" decoding="async" width="2100" height="2100"></div><div class="archive-info"><span class="archive-name">Ravesia</span><span class="archive-index">Archive ↗</span></div></a>
         <a class="archive-card reveal" href="https://soundcloud.com/alejandromolinari/blex-ar-dark-rock-alejandro-molinari-remix?in=parallelvisionlabel/sets/dark-rock-ep" target="_blank" rel="noopener noreferrer"><div class="archive-art"><img src="./assets/Artdarkrock.png" alt="Blex Dark Rock release artwork" loading="lazy" decoding="async" width="1500" height="1500"></div><div class="archive-info"><span class="archive-name">Dark Rock</span><span class="archive-index">PV001 ↗</span></div></a>
-        <a class="archive-card reveal" href="https://api.soundcloud.com/tracks/2247094541" target="_blank" rel="noopener noreferrer"><div class="archive-art"><img src="./assets/RedArtwork.png.png" alt="Red abstract Parallel Vision release artwork" loading="lazy" decoding="async" width="1456" height="1456"></div><div class="archive-info"><span class="archive-name">Tuya Es La Tierra</span><span class="archive-index">Archive ↗</span></div></a>
+        <a class="archive-card reveal" href="https://soundcloud.com/parallelvisionlabel/sets/ravesia-remixes" target="_blank" rel="noopener noreferrer"><div class="archive-art"><img src="./assets/Ravesiaremixesart.png" alt="Ravesia Remixes release artwork" loading="lazy" decoding="async" width="4096" height="4096"></div><div class="archive-info"><span class="archive-name">Ravesia Remixes</span><span class="archive-index">PV006 ↗</span></div></a>
       </div>
-    </section>
-    <figure class="visual">
-      <img src="./assets/Ravesiamolinariremix.png" alt="Ravesia remix archive visual in red and black" loading="lazy" decoding="async" width="792" height="790">
-      <figcaption class="visual-caption"><span>Parallel Vision / Nocturnal archive</span><span>Berlin 2063</span></figcaption>
-    </figure>
-    <section class="statement" aria-label="Blex sound">
-      <p class="statement-label reveal">Sound / Cinematic Charge</p>
-      <p class="statement-copy reveal">There is a cinematic charge in his sound, but it does not behave like nostalgia. Guitars, voices and dramatic memories are translated into hypnotic grooves, synthetic pulse and nocturnal architecture. The result feels physical, melodic and built for rooms where light arrives late.</p>
-    </section>
-    <section class="closing" aria-label="Blex artistic direction">
-      <p class="statement-label reveal">Signal / Nocturnal Edge</p>
-      <p class="closing-copy reveal">In Berlin 2063, Blex opens the harder edge of Parallel Vision: heavy silhouettes, distorted signals and songs that feel both human and haunted.</p>
     </section>
     <section class="section-shell" id="links" aria-labelledby="links-title">
       <header class="section-head reveal"><h2 class="section-title" id="links-title">Links</h2><p class="section-kicker">External channels</p></header>
