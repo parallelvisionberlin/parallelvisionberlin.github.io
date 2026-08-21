@@ -51,15 +51,16 @@
     .section-head { padding-bottom:24px; display:flex; justify-content:space-between; align-items:end; gap:24px; border-bottom:1px solid var(--line); }
     .section-title { margin:0; font-size:clamp(28px,4vw,58px); font-weight:500; letter-spacing:-.04em; }
     .section-kicker { margin:0; color:var(--muted); }
-    .archive-grid { display:grid; grid-template-columns:minmax(0,1fr) minmax(220px,.5fr); }
-    .archive-card { min-width:0; padding:clamp(24px,3vw,44px) clamp(20px,3vw,48px) 0 0; border-right:1px solid var(--line); }
+    .archive-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); }
+    .archive-card { min-width:0; padding:clamp(24px,3vw,44px) clamp(14px,2vw,28px) 0 0; border-right:1px solid var(--line); }
+    .archive-card + .archive-card { padding-left:clamp(14px,2vw,28px); }
+    .archive-card:last-child { border-right:0; }
     .archive-art { aspect-ratio:1; overflow:hidden; background:#111; }
     .archive-art img { height:100%; object-fit:cover; transition:transform 500ms,filter 500ms; }
     .archive-card:hover .archive-art img { transform:scale(1.025); filter:contrast(1.08); }
     .archive-info { padding-top:18px; display:flex; justify-content:space-between; gap:18px; }
     .archive-name { font-size:clamp(17px,1.6vw,24px); }
     .archive-index { flex:none; color:var(--muted); }
-    .archive-note { margin:clamp(24px,3vw,44px) 0 0; padding-left:clamp(20px,3vw,48px); color:var(--muted); font-size:10px; letter-spacing:.16em; line-height:1.6; text-transform:uppercase; }
     .contact-list { border-top:1px solid var(--line); }
     .contact-row { padding:24px 0; display:flex; justify-content:space-between; gap:24px; border-bottom:1px solid var(--line); transition:color 180ms,padding 180ms; }
     .contact-row:hover { padding-right:10px; color:var(--red); }
@@ -80,8 +81,8 @@
       .bio-media { width:100%; max-height:78svh; }
       .bio-copy { max-width:620px; }
       .archive-grid { grid-template-columns:1fr; }
-      .archive-card { padding:28px 0; border-right:0; }
-      .archive-note { margin-top:0; padding:28px 0 0; border-top:1px solid var(--line); }
+      .archive-card,.archive-card + .archive-card { padding:28px 0; border-right:0; border-bottom:1px solid var(--line); }
+      .archive-card:last-child { border-bottom:0; }
       .section-head { align-items:start; flex-direction:column; }
       footer { flex-wrap:wrap; }
       footer span:nth-child(2) { order:3; width:100%; }
@@ -114,7 +115,7 @@
       <header class="section-head reveal"><h2 class="section-title" id="archive-title">Release Archive</h2><p class="section-kicker">Parallel Vision transmission</p></header>
       <div class="archive-grid">
         <a class="archive-card reveal" href="https://soundcloud.com/parallelvisionlabel/sets/alejandro-molinari-badwolf" target="_blank" rel="noopener noreferrer"><div class="archive-art"><img src="./assets/artfunkybeats.png" alt="Funky Beat release artwork" loading="lazy" decoding="async" width="2000" height="2000"></div><div class="archive-info"><span class="archive-name">Funky Beat</span><span class="archive-index">PV002 ↗</span></div></a>
-        <p class="archive-note reveal">Alejandro Molinari / Badwolf<br>Parallel Vision archive</p>
+        <article class="archive-card reveal"><div class="archive-art"><img src="./assets/artworks/cultoalavida.jpg" alt="Alejandro Molinari Culto a la Vida artwork" loading="lazy" decoding="async" width="3000" height="3000"></div><div class="archive-info"><span class="archive-name">Culto a la Vida — BadWolf Remix</span><span class="archive-index">Archive</span></div></article>
       </div>
     </section>
     <section class="section-shell" id="links" aria-labelledby="links-title">
