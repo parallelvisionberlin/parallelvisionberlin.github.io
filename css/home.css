@@ -120,6 +120,18 @@ body::before {
     brightness(.72);
 }
 
+@media (max-width: 980px) {
+  .hero-video {
+    object-position: 58% center;
+  }
+}
+
+@media (max-width: 760px) {
+  .hero-video {
+    object-position: 65% center;
+  }
+}
+
 .hero::after {
   content: "";
 

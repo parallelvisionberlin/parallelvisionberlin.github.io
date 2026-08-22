@@ -1,5 +1,5 @@
 (function keepHomepageHeroPlaying() {
-  const heroVideo = document.querySelector(".hero-video");
+  const heroVideo = document.querySelector("video.hero-video");
   if (!heroVideo) return;
 
   const isAtEnd = () => Number.isFinite(heroVideo.duration)

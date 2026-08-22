@@ -261,6 +261,42 @@
       outline-offset: 4px;
     }
 
+    .berlin-nightlife-sequence {
+      margin-top: clamp(28px,3vw,42px);
+    }
+
+    .berlin-nightlife-plate {
+      margin-right: 0;
+      margin-bottom: 0;
+    }
+
+    .berlin-nightlife-plate:nth-child(1) { width: 88%; }
+    .berlin-nightlife-plate:nth-child(2) { width: 82%; margin-top: clamp(88px,9vw,132px); margin-left: auto; }
+    .berlin-nightlife-plate:nth-child(3) { width: 56%; margin-top: clamp(110px,11vw,158px); margin-left: 12%; }
+    .berlin-nightlife-plate:nth-child(4) { width: 96%; margin-top: clamp(120px,12vw,174px); }
+    .berlin-nightlife-plate:nth-child(5) { width: 70%; margin-top: clamp(170px,16vw,230px); margin-left: 18%; }
+    .berlin-nightlife-plate:nth-child(6) { width: 90%; margin-top: clamp(180px,17vw,246px); }
+
+    .berlin-nightlife-plate img {
+      display: block;
+      width: 100%;
+      height: auto;
+      aspect-ratio: 16 / 9;
+      object-fit: cover;
+      filter: saturate(.82) brightness(.84) contrast(1.04);
+    }
+
+    .berlin-nightlife-meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      padding-top: 14px;
+      color: rgba(255,255,255,.52);
+      font: 11px/1.5 'Courier New', monospace;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+    }
+
     .berlin-archive-closing {
       max-width: 860px;
       margin: clamp(64px,7vw,96px) auto 0;
@@ -424,6 +460,24 @@
         min-width: 96px;
         min-height: 48px;
       }
+      .berlin-nightlife-sequence {
+        margin-top: 28px;
+      }
+      .berlin-nightlife-plate:nth-child(n) {
+        width: 100%;
+        margin-left: 0;
+      }
+      .berlin-nightlife-plate:nth-child(2) { margin-top: 72px; }
+      .berlin-nightlife-plate:nth-child(3) { width: 88%; margin-top: 80px; margin-left: 8%; }
+      .berlin-nightlife-plate:nth-child(4) { margin-top: 88px; }
+      .berlin-nightlife-plate:nth-child(5) { width: 92%; margin-top: 108px; margin-left: 4%; }
+      .berlin-nightlife-plate:nth-child(6) { margin-top: 112px; }
+      .berlin-nightlife-meta {
+        gap: 14px;
+        padding-top: 12px;
+        font-size: 10px;
+        letter-spacing: .12em;
+      }
       .berlin-archive-closing {
         margin-top: 64px;
         font-size: 16px;
@@ -529,10 +583,17 @@
       nightlife: {
         title: "Nightlife",
         titleDe: "Nachtleben",
-        description: "Crowds, performers and projected environments turn the city after dark into a shared physical language.",
-        descriptionDe: "Menschenmengen, Performende und projizierte Umgebungen verwandeln die nächtliche Stadt in eine gemeinsame physische Sprache.",
-        // TEMP PLACEHOLDER — replace when archive assets arrive
-        images: Array.from({ length: 5 }, () => ({ src: "./assets/tanzenfinal.jpeg", width: 1600, height: 1600, alt: "A nightlife environment in Berlin 2063", caption: "Night study / Berlin 2063" }))
+        description: "Clubs, gatherings and temporary spaces where music, bodies and technology continue to reshape the social life of the city.",
+        descriptionDe: "Clubs, Zusammenkünfte und temporäre Räume, in denen Musik, Körper und Technologie das soziale Leben der Stadt weiterhin neu gestalten.",
+        layout: "plates",
+        images: [
+          { src: "./assets/2063/NIGHTLIFE I.png", width: 2048, height: 1152 },
+          { src: "./assets/2063/NIGHTLIFE III.png", width: 2048, height: 1152 },
+          { src: "./assets/2063/NIGHTLIFE IRED.png", width: 2048, height: 1152 },
+          { src: "./assets/2063/NIGHTLIFE VIII.png", width: 2048, height: 1152 },
+          { src: "./assets/2063/NIGHTLIFE I DUSK.png", width: 2048, height: 1152 },
+          { src: "./assets/2063/NIGHTLIFE IUNDERWATER.png", width: 2048, height: 1152 }
+        ]
       },
       transmissions: {
         title: "Transmissions",
@@ -551,6 +612,43 @@
       const archiveNumber = String(chapterIndex + 1).padStart(2, "0");
       const article = document.createElement("article");
       article.className = "berlin-archive-chapter";
+
+      if (chapter.layout === "plates") {
+        article.classList.add("berlin-nightlife-chapter");
+        article.innerHTML = `
+          <header class="berlin-chapter-heading">
+            <p class="berlin-transmission-index">${archiveNumber} / Visual Archive</p>
+            <h3>${chapter.title}</h3>
+            <p class="berlin-chapter-description">${chapter.description}</p>
+          </header>
+          <div class="berlin-nightlife-sequence" aria-label="${chapter.title} visual archive">
+            ${chapter.images.map((item, imageIndex) => `
+              <figure class="berlin-nightlife-plate">
+                <img src="${item.src}" alt="Nightlife archival document ${imageIndex + 1} from Berlin 2063" width="${item.width}" height="${item.height}" decoding="async" ${imageIndex === 0 ? '' : 'loading="lazy"'}>
+                <figcaption class="berlin-nightlife-meta">
+                  <span>${archiveNumber} / ${String(imageIndex + 1).padStart(2, "0")}</span>
+                  <span>Nightlife / Berlin 2063</span>
+                </figcaption>
+              </figure>`).join("")}
+          </div>`;
+        archiveRoot.appendChild(article);
+
+        const label = article.querySelector(".berlin-transmission-index");
+        const title = article.querySelector("h3");
+        const description = article.querySelector(".berlin-chapter-description");
+        const sequence = article.querySelector(".berlin-nightlife-sequence");
+        function applyNightlifeLanguage(language) {
+          const german = language === "de";
+          label.textContent = `${archiveNumber} / ${german ? "Visuelles Archiv" : "Visual Archive"}`;
+          title.textContent = german ? chapter.titleDe : chapter.title;
+          description.textContent = german ? chapter.descriptionDe : chapter.description;
+          sequence.setAttribute("aria-label", `${german ? chapter.titleDe : chapter.title} ${german ? "visuelles Archiv" : "visual archive"}`);
+        }
+        applyNightlifeLanguage(document.documentElement.lang);
+        window.addEventListener("pv-language-change", (event) => applyNightlifeLanguage(event.detail.language));
+        return;
+      }
+
       article.innerHTML = `
         <header class="berlin-chapter-heading">
           <p class="berlin-transmission-index">${archiveNumber} / ${chapter.title}</p>
