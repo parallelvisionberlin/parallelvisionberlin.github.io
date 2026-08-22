@@ -71,7 +71,9 @@
 
     .berlin-hero-label,
     .berlin-archive-label,
-    .berlin-transmission-index {
+    .berlin-intro-label,
+    .berlin-transmission-index,
+    .berlin-archive-counter {
       color: rgba(255,255,255,.46);
       font: clamp(.68rem,.72vw,.78rem) 'Courier New', monospace;
       letter-spacing: .28em;
@@ -98,7 +100,7 @@
     }
 
     .berlin-archive-section {
-      padding: clamp(100px,11vw,170px) 26px clamp(110px,13vw,190px);
+      padding: clamp(82px,8vw,118px) 26px clamp(110px,13vw,190px);
     }
 
     .berlin-archive {
@@ -110,99 +112,153 @@
     }
 
     .berlin-archive-intro {
-      max-width: 900px;
-      margin-bottom: clamp(88px,12vw,160px);
+      max-width: none;
+      margin-bottom: clamp(48px,5vw,64px);
     }
 
-    .berlin-archive-intro h2 {
-      margin-top: 22px;
+    .berlin-intro-copy {
+      display: grid;
+      grid-template-columns: minmax(0,640px) minmax(0,520px);
+      column-gap: clamp(48px,7vw,120px);
+      align-items: start;
+      margin-top: clamp(30px,3vw,42px);
+    }
+
+    .berlin-intro-copy p {
+      color: var(--archive-muted);
+      font-size: clamp(16px,1.18vw,18px);
+      line-height: 1.84;
+    }
+
+    .berlin-intro-copy p:first-child {
+      grid-row: 1 / span 3;
+      max-width: 600px;
+      color: rgba(255,255,255,.86);
+      font-size: clamp(24px,2vw,29px);
+      line-height: 1.62;
+    }
+
+    .berlin-intro-copy p:not(:first-child) {
+      grid-column: 2;
+      max-width: 500px;
+    }
+
+    .berlin-intro-copy p + p {
+      margin-top: 16px;
+    }
+
+    .berlin-archives {
+      border-top: 0;
+    }
+
+    .berlin-archive-chapter {
+      padding: clamp(80px,8vw,116px) 0;
+      border-bottom: 0;
+    }
+
+    .berlin-archive-chapter:first-child {
+      padding-top: 0;
+    }
+
+    .berlin-chapter-heading {
+      max-width: 760px;
+    }
+
+    .berlin-chapter-heading h3 {
+      margin-top: 10px;
       font-family: Michroma, sans-serif;
-      font-size: clamp(44px,8vw,104px);
+      font-size: clamp(28px,2.6vw,36px);
       font-weight: 400;
-      letter-spacing: .08em;
-      line-height: .95;
+      letter-spacing: .045em;
+      line-height: 1.15;
       text-transform: uppercase;
     }
 
-    .berlin-archive-definition {
-      max-width: 680px;
-      margin: clamp(42px,6vw,72px) 0 0 auto;
-      border-top: 1px solid var(--archive-line);
-      padding-top: 30px;
-    }
-
-    .berlin-archive-definition p,
-    .berlin-transmission-caption {
+    .berlin-chapter-description {
+      max-width: 590px;
+      margin-top: 10px;
       color: var(--archive-muted);
-      font-size: var(--archive-body);
-      line-height: 1.8;
+      font-size: clamp(13px,.95vw,15px);
+      line-height: 1.7;
     }
 
-    .berlin-archive-definition p + p {
-      margin-top: 18px;
+    .berlin-gallery {
+      width: 95%;
+      margin-top: 8px;
+      outline: none;
     }
 
-    .berlin-transmissions {
-      border-top: 1px solid var(--archive-line);
+    .berlin-archive-counter {
+      font-size: clamp(.76rem,.8vw,.86rem);
+      letter-spacing: .2em;
     }
 
-    .berlin-transmission {
-      display: grid;
-      grid-template-columns: minmax(0,58fr) minmax(300px,42fr);
-      gap: clamp(32px,4vw,64px);
-      align-items: center;
-      padding: clamp(52px,5.5vw,82px) 0;
-      border-bottom: 1px solid var(--archive-line);
+    .berlin-gallery:focus-visible .berlin-gallery-frame {
+      outline: 1px solid rgba(255,255,255,.68);
+      outline-offset: 6px;
     }
 
-    .berlin-transmission:nth-child(even) {
-      grid-template-columns: minmax(300px,42fr) minmax(0,58fr);
-    }
-
-    .berlin-transmission:nth-child(even) .berlin-transmission-media {
-      order: 2;
-    }
-
-    .berlin-transmission-media {
-      min-width: 0;
-      aspect-ratio: 16 / 10;
+    .berlin-gallery-frame {
+      position: relative;
+      aspect-ratio: 16 / 9.5;
       overflow: hidden;
       background: #030303;
     }
 
-    .berlin-transmission-media img {
+    .berlin-gallery-frame img {
       display: block;
       width: 100%;
       height: 100%;
       object-fit: cover;
       filter: saturate(.72) brightness(.76) contrast(1.08);
-      transition: transform .8s cubic-bezier(.2,.7,.2,1), filter .8s ease;
+      opacity: 1;
+      transition: opacity .4s ease;
     }
 
-    .berlin-transmission:hover .berlin-transmission-media img {
-      transform: scale(1.018);
-      filter: saturate(.82) brightness(.82) contrast(1.05);
+    .berlin-gallery.is-changing .berlin-gallery-frame img {
+      opacity: 0;
     }
 
-    .berlin-transmission-copy {
-      min-width: 0;
+    .berlin-gallery-meta {
+      display: grid;
+      grid-template-columns: minmax(0,1fr) auto;
+      gap: 28px;
+      align-items: start;
+      padding-top: 20px;
     }
 
-    .berlin-transmission-copy h3 {
-      max-width: 100%;
-      margin-top: 18px;
-      color: #fff;
-      font-family: Michroma, sans-serif;
-      font-size: var(--archive-section-title);
-      font-weight: 400;
-      letter-spacing: .035em;
-      line-height: 1.35;
+    .berlin-gallery-caption {
+      max-width: 680px;
+      margin-top: 12px;
+      color: rgba(255,255,255,.52);
+      font-size: clamp(.86rem,1vw,1rem);
+      line-height: 1.65;
+    }
+
+    .berlin-gallery-navigation {
+      display: flex;
+      gap: clamp(28px,4vw,60px);
+    }
+
+    .berlin-gallery-button {
+      min-width: 76px;
+      min-height: 44px;
+      border: 0;
+      padding: 0;
+      background: transparent;
+      color: rgba(255,255,255,.7);
+      cursor: pointer;
+      font: 11px 'Courier New', monospace;
+      letter-spacing: .16em;
       text-transform: uppercase;
+      transition: color .2s ease;
     }
 
-    .berlin-transmission-caption {
-      max-width: 430px;
-      margin-top: 32px;
+    .berlin-gallery-button:hover,
+    .berlin-gallery-button:focus-visible {
+      color: #fff;
+      outline: 1px solid rgba(255,255,255,.5);
+      outline-offset: 4px;
     }
 
     .berlin-archive-closing {
@@ -217,8 +273,9 @@
       text-transform: uppercase;
     }
 
-    .berlin-archive-closing span {
+    .berlin-archive-closing > * {
       display: block;
+      font-weight: inherit;
     }
 
     .berlin-nina-invitation {
@@ -305,21 +362,6 @@
       50% { opacity: .35; box-shadow: 0 0 4px currentColor; }
     }
 
-    @media (max-width: 900px) {
-      .berlin-transmission,
-      .berlin-transmission:nth-child(even) {
-        grid-template-columns: 1fr;
-        gap: 30px;
-        padding: 58px 0;
-      }
-      .berlin-transmission:nth-child(even) .berlin-transmission-media {
-        order: 0;
-      }
-      .berlin-transmission-copy {
-        order: 1;
-      }
-    }
-
     @media (max-width: 760px) {
       .archive-nav {
         padding: 22px 18px;
@@ -341,16 +383,46 @@
         padding: 90px 18px 110px;
       }
       .berlin-archive-intro {
-        margin-bottom: 80px;
+        margin-bottom: 48px;
       }
-      .berlin-archive-definition {
-        margin-left: 0;
+      .berlin-intro-copy {
+        display: block;
       }
-      .berlin-transmission {
-        padding: 56px 0;
+      .berlin-intro-copy p {
+        font-size: 17px;
+        line-height: 1.75;
       }
-      .berlin-transmission-caption {
-        margin-top: 22px;
+      .berlin-intro-copy p:first-child {
+        font-size: clamp(23px,6.5vw,25px);
+        line-height: 1.62;
+      }
+      .berlin-intro-copy p + p {
+        margin-top: 18px;
+      }
+      .berlin-archive-chapter {
+        padding: 68px 0;
+      }
+      .berlin-archive-chapter:first-child {
+        padding-top: 0;
+      }
+      .berlin-gallery {
+        width: 100%;
+        margin-top: 8px;
+      }
+      .berlin-gallery-frame {
+        aspect-ratio: 16 / 10;
+      }
+      .berlin-gallery-meta {
+        grid-template-columns: 1fr;
+        gap: 18px;
+      }
+      .berlin-gallery-navigation {
+        width: 100%;
+        justify-content: space-between;
+      }
+      .berlin-gallery-button {
+        min-width: 96px;
+        min-height: 48px;
       }
       .berlin-archive-closing {
         margin-top: 64px;
@@ -365,7 +437,7 @@
     @media (prefers-reduced-motion: reduce) {
       html { scroll-behavior: auto; }
       .berlin-hero-media img,
-      .berlin-transmission-media img,
+      .berlin-gallery-frame img,
       .nina-signal-dot {
         animation: none;
         transition: none;
@@ -396,52 +468,18 @@
   <main id="archive" class="berlin-archive-section">
     <div class="berlin-archive">
       <header class="berlin-archive-intro">
-        <p class="berlin-archive-label">Parallel Vision / Living Archive</p>
-        <h2>Berlin 2063</h2>
-        <div class="berlin-archive-definition">
-          <p>Berlin 2063 is an evolving audiovisual archive built from imagined documents, environments, characters and memories of a possible future.</p>
-          <p>The project uses fiction to examine the systems already shaping the present—from technology and architecture to nightlife, identity and collective memory.</p>
+        <p class="berlin-intro-label">Visual Archive / Berlin 2063</p>
+        <div class="berlin-intro-copy">
+          <p>Berlin 2063 is an evolving audiovisual archive exploring how a city and the people within it might change across the coming decades.</p>
+          <p>Through architecture, infrastructure, technology, nightlife, fashion and everyday life, the archive examines how systems already present today could reshape the way we move, gather, work, dress and relate to one another.</p>
         </div>
       </header>
 
-      <div class="berlin-transmissions">
-        <article class="berlin-transmission">
-          <figure class="berlin-transmission-media">
-            <img src="./assets/ebers2063.png" alt="Berlin 2063 U-Bahn infrastructure" decoding="async" loading="lazy" width="5504" height="3072">
-          </figure>
-          <div class="berlin-transmission-copy">
-            <p class="berlin-transmission-index">Transmission 01</p>
-            <h3>Infrastructure</h3>
-            <p class="berlin-transmission-caption">The city continues to function long after its original systems have begun to fail. Transport, surveillance and public space remain active, carrying fragments of the society that built them.</p>
-          </div>
-        </article>
-
-        <article class="berlin-transmission">
-          <figure class="berlin-transmission-media">
-            <img src="./assets/thecitysuperhd1.png" alt="Berlin 2063 vertical city and historic structures" decoding="async" loading="lazy" width="4500" height="2512">
-          </figure>
-          <div class="berlin-transmission-copy">
-            <p class="berlin-transmission-index">Transmission 02</p>
-            <h3>The City</h3>
-            <p class="berlin-transmission-caption">Berlin has expanded vertically, but its historical structures remain embedded within it. Old monuments, transport lines and social rituals survive inside new technological systems.</p>
-          </div>
-        </article>
-
-        <article class="berlin-transmission">
-          <figure class="berlin-transmission-media">
-            <img src="./assets/cabizwalkone.png" alt="An inhabitant walking through Berlin 2063" decoding="async" loading="lazy" width="3344" height="1882">
-          </figure>
-          <div class="berlin-transmission-copy">
-            <p class="berlin-transmission-index">Transmission 03</p>
-            <h3><span>The</span> <span>Inhabitants</span></h3>
-            <p class="berlin-transmission-caption">The archive follows individuals moving through this future—not as anonymous models, but as witnesses shaped by its architecture, materials and social conditions.</p>
-          </div>
-        </article>
-      </div>
+      <div class="berlin-archives" id="berlinArchives" aria-label="Berlin 2063 visual archive"></div>
 
       <p class="berlin-archive-closing">
-        <span>Berlin 2063 is not presented as a finished world.</span>
-        <span>It is an archive that continues to remember itself.</span>
+        <strong data-closing-line="one">The archive does not end on screen.</strong>
+        <strong data-closing-line="two">Its images, characters and environments can be translated into projection, performance and physical space.</strong>
       </p>
 
       <div class="berlin-nina-invitation">
@@ -463,6 +501,164 @@
   </footer>
 
   <script>
+    const berlinArchive = {
+      infrastructure: {
+        title: "Infrastructure",
+        titleDe: "Infrastruktur",
+        description: "Transport, transit systems, terminals and the architecture that keeps Berlin moving through a transformed century.",
+        descriptionDe: "Verkehr, Transitsysteme, Terminals und die Architektur, die Berlin durch ein verändertes Jahrhundert in Bewegung hält.",
+        // TEMP PLACEHOLDER — replace when archive assets arrive
+        images: Array.from({ length: 5 }, () => ({ src: "./assets/ebers2063.png", width: 5504, height: 3072, alt: "Berlin 2063 transport infrastructure", caption: "Transit study / Berlin 2063" }))
+      },
+      city: {
+        title: "The City",
+        titleDe: "Die Stadt",
+        description: "Recognizable Berlin persists inside new scales: monuments, streets and civic structures altered by time.",
+        descriptionDe: "Das wiedererkennbare Berlin besteht in neuen Maßstäben fort: Monumente, Straßen und öffentliche Strukturen, verändert durch die Zeit.",
+        // TEMP PLACEHOLDER — replace when archive assets arrive
+        images: Array.from({ length: 5 }, () => ({ src: "./assets/thecitysuperhd1.png", width: 4500, height: 2512, alt: "Berlin 2063 city architecture", caption: "Urban study / Berlin 2063" }))
+      },
+      inhabitants: {
+        title: "The Inhabitants",
+        titleDe: "Die Bewohner:innen",
+        description: "Individuals move naturally through this future as witnesses shaped by its architecture, materials and social conditions.",
+        descriptionDe: "Menschen bewegen sich selbstverständlich durch diese Zukunft, als Zeug:innen, geprägt von ihrer Architektur, ihren Materialien und sozialen Bedingungen.",
+        // TEMP PLACEHOLDER — replace when archive assets arrive
+        images: Array.from({ length: 5 }, () => ({ src: "./assets/cabizwalkone.png", width: 3344, height: 1882, alt: "An inhabitant walking through Berlin 2063", caption: "Inhabitant study / Berlin 2063" }))
+      },
+      nightlife: {
+        title: "Nightlife",
+        titleDe: "Nachtleben",
+        description: "Crowds, performers and projected environments turn the city after dark into a shared physical language.",
+        descriptionDe: "Menschenmengen, Performende und projizierte Umgebungen verwandeln die nächtliche Stadt in eine gemeinsame physische Sprache.",
+        // TEMP PLACEHOLDER — replace when archive assets arrive
+        images: Array.from({ length: 5 }, () => ({ src: "./assets/tanzenfinal.jpeg", width: 1600, height: 1600, alt: "A nightlife environment in Berlin 2063", caption: "Night study / Berlin 2063" }))
+      },
+      transmissions: {
+        title: "Transmissions",
+        titleDe: "Übertragungen",
+        description: "Characters, screens and moving-image fragments cross from the archive into projection and architectural space.",
+        descriptionDe: "Figuren, Bildschirme und Bewegtbildfragmente treten aus dem Archiv in Projektion und architektonischen Raum über.",
+        // TEMP PLACEHOLDER — replace when archive assets arrive
+        images: Array.from({ length: 5 }, () => ({ src: "./assets/ninamain.png", width: 5504, height: 3040, alt: "Nina FOK transmission from Berlin 2063", caption: "Signal study / Berlin 2063" }))
+      }
+    };
+
+    const archiveRoot = document.getElementById("berlinArchives");
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    Object.values(berlinArchive).forEach((chapter, chapterIndex) => {
+      const archiveNumber = String(chapterIndex + 1).padStart(2, "0");
+      const article = document.createElement("article");
+      article.className = "berlin-archive-chapter";
+      article.innerHTML = `
+        <header class="berlin-chapter-heading">
+          <p class="berlin-transmission-index">${archiveNumber} / ${chapter.title}</p>
+          <p class="berlin-chapter-description">${chapter.description}</p>
+        </header>
+        <div class="berlin-gallery" tabindex="0" role="group" aria-label="${chapter.title} image archive">
+          <figure class="berlin-gallery-frame">
+            <img decoding="async" ${chapterIndex === 0 ? 'loading="eager"' : 'loading="lazy"'}>
+          </figure>
+          <div class="berlin-gallery-meta">
+            <div>
+              <p class="berlin-archive-counter" aria-live="polite"></p>
+              <p class="berlin-gallery-caption"></p>
+            </div>
+            <div class="berlin-gallery-navigation">
+              <button class="berlin-gallery-button berlin-gallery-previous" type="button" aria-label="Previous ${chapter.title} image">← Previous</button>
+              <button class="berlin-gallery-button berlin-gallery-next" type="button" aria-label="Next ${chapter.title} image">Next →</button>
+            </div>
+          </div>
+        </div>`;
+      archiveRoot.appendChild(article);
+
+      const gallery = article.querySelector(".berlin-gallery");
+      const chapterLabel = article.querySelector(".berlin-transmission-index");
+      const chapterDescription = article.querySelector(".berlin-chapter-description");
+      const image = gallery.querySelector("img");
+      const counter = gallery.querySelector(".berlin-archive-counter");
+      const caption = gallery.querySelector(".berlin-gallery-caption");
+      const previousButton = gallery.querySelector(".berlin-gallery-previous");
+      const nextButton = gallery.querySelector(".berlin-gallery-next");
+      let currentIndex = 0;
+      let touchStartX = 0;
+
+      function applyChapterLanguage(language) {
+        const german = language === "de";
+        const visibleTitle = german ? chapter.titleDe : chapter.title;
+        chapterLabel.textContent = `${archiveNumber} / ${visibleTitle}`;
+        chapterDescription.textContent = german ? chapter.descriptionDe : chapter.description;
+        gallery.setAttribute("aria-label", `${visibleTitle} ${german ? "Bildarchiv" : "image archive"}`);
+        previousButton.textContent = german ? "← Zurück" : "← Previous";
+        nextButton.textContent = german ? "Weiter →" : "Next →";
+        previousButton.setAttribute("aria-label", `${german ? "Vorheriges Bild aus" : "Previous image from"} ${visibleTitle}`);
+        nextButton.setAttribute("aria-label", `${german ? "Nächstes Bild aus" : "Next image from"} ${visibleTitle}`);
+      }
+
+      function renderImage(nextIndex, animate = true) {
+        currentIndex = (nextIndex + chapter.images.length) % chapter.images.length;
+        const item = chapter.images[currentIndex];
+        const update = () => {
+          image.src = item.src;
+          image.alt = item.alt;
+          if (item.width && item.height) {
+            image.width = item.width;
+            image.height = item.height;
+          }
+          counter.textContent = `${String(currentIndex + 1).padStart(2, "0")} / ${String(chapter.images.length).padStart(2, "0")}`;
+          caption.textContent = item.caption || "";
+          gallery.classList.remove("is-changing");
+        };
+        if (animate && !prefersReducedMotion) {
+          gallery.classList.add("is-changing");
+          window.setTimeout(update, 200);
+        } else {
+          update();
+        }
+      }
+
+      previousButton.addEventListener("click", () => renderImage(currentIndex - 1));
+      nextButton.addEventListener("click", () => renderImage(currentIndex + 1));
+      gallery.addEventListener("keydown", (event) => {
+        if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+          event.preventDefault();
+          renderImage(currentIndex + (event.key === "ArrowRight" ? 1 : -1));
+        }
+      });
+      gallery.addEventListener("touchstart", (event) => { touchStartX = event.changedTouches[0].clientX; }, { passive: true });
+      gallery.addEventListener("touchend", (event) => {
+        const distance = event.changedTouches[0].clientX - touchStartX;
+        if (Math.abs(distance) > 45) renderImage(currentIndex + (distance < 0 ? 1 : -1));
+      }, { passive: true });
+      renderImage(0, false);
+      applyChapterLanguage(document.documentElement.lang);
+      window.addEventListener("pv-language-change", (event) => applyChapterLanguage(event.detail.language));
+    });
+
+    function applyArchiveClosingLanguage(language) {
+      const german = language === "de";
+      document.querySelector('[data-closing-line="one"]').textContent = german ? "Das Archiv endet nicht auf dem Bildschirm." : "The archive does not end on screen.";
+      document.querySelector('[data-closing-line="two"]').textContent = german ? "Seine Bilder, Figuren und Umgebungen können in Projektion, Performance und physischen Raum übersetzt werden." : "Its images, characters and environments can be translated into projection, performance and physical space.";
+    }
+    applyArchiveClosingLanguage(document.documentElement.lang);
+    window.addEventListener("pv-language-change", (event) => applyArchiveClosingLanguage(event.detail.language));
+
+    function applyArchiveIntroLanguage(language) {
+      const german = language === "de";
+      const introCopy = german ? [
+        "Berlin 2063 ist ein wachsendes audiovisuelles Archiv, das untersucht, wie sich eine Stadt und die Menschen in ihr über die kommenden Jahrzehnte verändern könnten.",
+        "Durch Architektur, Infrastruktur, Technologie, Nachtleben, Mode und Alltag untersucht das Archiv, wie bereits heute vorhandene Systeme unsere Art, uns zu bewegen, zu versammeln, zu arbeiten, zu kleiden und miteinander in Beziehung zu treten, neu gestalten könnten."
+      ] : [
+        "Berlin 2063 is an evolving audiovisual archive exploring how a city and the people within it might change across the coming decades.",
+        "Through architecture, infrastructure, technology, nightlife, fashion and everyday life, the archive examines how systems already present today could reshape the way we move, gather, work, dress and relate to one another."
+      ];
+      document.querySelector(".berlin-intro-label").textContent = german ? "Visuelles Archiv / Berlin 2063" : "Visual Archive / Berlin 2063";
+      document.querySelectorAll(".berlin-intro-copy p").forEach((paragraph, index) => { paragraph.textContent = introCopy[index]; });
+    }
+    applyArchiveIntroLanguage(document.documentElement.lang);
+    window.addEventListener("pv-language-change", (event) => applyArchiveIntroLanguage(event.detail.language));
+
     document.getElementById("openNina").addEventListener("click", function () {
       window.location.href = "./index.html?nina=1";
     });
