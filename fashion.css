@@ -409,6 +409,15 @@ html[lang="de"] .fashion-collaboration-intro h2 {
   background: #000;
 }
 .cabizbajo-hero-video { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: contain; }
+.elorian-study-page .cabizbajo-hero-video { filter: brightness(.86) contrast(1.06) saturate(.96); }
+.elorian-study-page .cabizbajo-hero::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  background: rgba(0,0,0,.07);
+  pointer-events: none;
+}
 .cabizbajo-hero-copy { position: absolute; z-index: 2; left: max(34px, calc((100vw - 1368px) / 2)); top: 56%; bottom: auto; max-width: 660px; text-shadow: 0 1px 18px #000; }
 .cabizbajo-kicker,
 .cabizbajo-meta,
