@@ -467,6 +467,13 @@ html[lang="de"] .fashion-collaboration-intro h2 {
   padding: 0 0 clamp(115px, 13vw, 180px);
 }
 .cabizbajo-look img { display: block; width: 100%; height: auto; }
+.elorian-study-page .cabizbajo-look img {
+  justify-self: end;
+  width: auto;
+  max-width: 100%;
+  max-height: min(76svh, 760px);
+  object-fit: contain;
+}
 .cabizbajo-look-copy { max-width: 510px; }
 .cabizbajo-look-copy > p:not(.cabizbajo-look-meta) { margin-top: 34px; color: rgba(255,255,255,.78); font-size: clamp(1.18rem, 1.55vw, 1.45rem); line-height: 1.62; }
 .cabizbajo-look-meta { margin-top: 48px; }
@@ -775,6 +782,7 @@ html[lang="de"] .fashion-collaboration-intro h2 {
   .cabizbajo-concept { padding: 78px 0 95px; }
   .cabizbajo-concept-copy { margin-top: 34px; font-size: 1.05rem; }
   .cabizbajo-look { grid-template-columns: 1fr; gap: 46px; width: 100%; margin-left: 0; padding: 0 0 105px; }
+  .elorian-study-page .cabizbajo-look img { justify-self: center; max-height: 70svh; }
   .cabizbajo-look-copy > p:not(.cabizbajo-look-meta) { margin-top: 30px; font-size: 1.1rem; }
   .cabizbajo-look-meta { margin-top: 42px; }
   .cabizbajo-material { grid-template-columns: 1fr; gap: 48px; padding-bottom: 130px; }
