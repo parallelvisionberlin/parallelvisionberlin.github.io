@@ -17,6 +17,8 @@ const ninaAccessCode = byId("ninaAccessCode");
 const ninaAccessError = byId("ninaAccessError");
 const ninaAccessSubmit = byId("ninaAccessSubmit");
 const ninaAccessCancel = byId("ninaAccessCancel");
+const ninaWindow = document.querySelector(".nina-window");
+const ninaFullscreen = byId("ninaFullscreen");
 const closeNina = byId("closeNina");
 const startNina = byId("startNina");
 const ninaVideo = byId("nina-anam-video");
@@ -41,6 +43,50 @@ let lastNinaTrigger = null;
 let ninaScrollPosition = 0;
 const delay = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
 const logDevelopmentError = (message, error) => { if (DEVELOPMENT) console.error(message, error); };
+const nativeFullscreenElement = () => document.fullscreenElement || document.webkitFullscreenElement || null;
+const ninaIsFullscreen = () => nativeFullscreenElement() === ninaWindow || ninaWindow.classList.contains("is-fallback-fullscreen");
+
+function syncNinaFullscreen() {
+  const isFullscreen = ninaIsFullscreen();
+  ninaFullscreen.classList.toggle("is-exit", isFullscreen);
+  ninaFullscreen.setAttribute("aria-label", isFullscreen ? "Exit fullscreen" : "Enter fullscreen");
+  ninaFullscreen.setAttribute("aria-pressed", String(isFullscreen));
+  document.body.classList.toggle("nina-fullscreen-active", ninaWindow.classList.contains("is-fallback-fullscreen"));
+}
+
+async function exitNinaFullscreen() {
+  ninaWindow.classList.remove("is-fallback-fullscreen");
+  try {
+    if (nativeFullscreenElement()) {
+      const exit = document.exitFullscreen || document.webkitExitFullscreen;
+      if (exit) await Promise.resolve(exit.call(document));
+    }
+  } catch (error) {
+    logDevelopmentError("Unable to exit Nina fullscreen cleanly.", error);
+  }
+  syncNinaFullscreen();
+}
+
+async function toggleNinaFullscreen() {
+  if (ninaIsFullscreen()) {
+    await exitNinaFullscreen();
+    return;
+  }
+  const request = ninaWindow.requestFullscreen || ninaWindow.webkitRequestFullscreen;
+  if (request) {
+    try {
+      await Promise.resolve(request.call(ninaWindow));
+      if (nativeFullscreenElement() === ninaWindow) {
+        syncNinaFullscreen();
+        return;
+      }
+    } catch (error) {
+      logDevelopmentError("Native Nina fullscreen unavailable; using viewport fallback.", error);
+    }
+  }
+  ninaWindow.classList.add("is-fallback-fullscreen");
+  syncNinaFullscreen();
+}
 const readPreferredMicrophone = () => {
   try { return localStorage.getItem(NINA_PREFERRED_MICROPHONE_KEY) || ""; }
   catch { return ""; }
@@ -350,6 +396,7 @@ async function verifyNinaAccess(event) {
 }
 
 async function closeNinaWindow() {
+  await exitNinaFullscreen();
   ninaOverlay.classList.remove("is-open");
   ninaOverlay.setAttribute("aria-hidden", "true");
   document.body.style.overflow = "";
@@ -371,6 +418,9 @@ ninaAccess.addEventListener("click", event => event.stopPropagation());
 ninaAccess.addEventListener("pointerdown", event => event.stopPropagation());
 ninaAccessCancel.addEventListener("click", () => closeNinaAccess());
 closeNina.addEventListener("click", closeNinaWindow);
+ninaFullscreen.addEventListener("click", toggleNinaFullscreen);
+document.addEventListener("fullscreenchange", syncNinaFullscreen);
+document.addEventListener("webkitfullscreenchange", syncNinaFullscreen);
 startNina.addEventListener("click", connectNina);
 ninaScrimButton.addEventListener("click", connectNina);
 ninaMicrophoneSelect.addEventListener("change", async () => {
@@ -392,6 +442,11 @@ ninaMicrophoneSelect.addEventListener("change", async () => {
 navigator.mediaDevices?.addEventListener?.("devicechange", refreshNinaMicrophones);
 document.addEventListener("keydown", event => {
   if (event.key !== "Escape" || ninaAccessSubmitting) return;
+  if (ninaIsFullscreen()) {
+    event.preventDefault();
+    exitNinaFullscreen();
+    return;
+  }
   if (ninaAccess.classList.contains("is-open")) closeNinaAccess();
   else if (ninaOverlay.classList.contains("is-open")) closeNinaWindow();
 });

@@ -107,6 +107,7 @@
 
 .nina-access-submit:active:not(:disabled),
 .nina-access-cancel:active,
+.nina-fullscreen:active,
 .nina-close:active,
 .nina-open-live:active:not(:disabled) {
   transform: scale(.96);
@@ -133,6 +134,7 @@
 .nina-access-input:focus-visible,
 .nina-access-submit:focus-visible,
 .nina-access-cancel:focus-visible,
+.nina-fullscreen:focus-visible,
 .nina-close:focus-visible,
 .nina-open-live:focus-visible {
   outline: 2px solid #fff;
@@ -188,6 +190,10 @@
   pointer-events: auto;
 }
 
+body.nina-fullscreen-active {
+  overflow: hidden !important;
+}
+
 .nina-window {
   position: relative;
 
@@ -230,6 +236,23 @@
       0,
       .94
     );
+}
+
+.nina-window:fullscreen,
+.nina-window:-webkit-full-screen,
+.nina-window.is-fallback-fullscreen {
+  width: 100vw;
+  height: 100dvh;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  border-radius: 0;
+}
+
+.nina-window.is-fallback-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483647;
 }
 
 
@@ -354,6 +377,7 @@
     );
 }
 
+.nina-fullscreen,
 .nina-close {
   width: 34px;
   height: 34px;
@@ -398,6 +422,29 @@
     ease;
 }
 
+.nina-fullscreen svg {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.25;
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+}
+
+.nina-fullscreen-exit {
+  display: none;
+}
+
+.nina-fullscreen.is-exit .nina-fullscreen-enter {
+  display: none;
+}
+
+.nina-fullscreen.is-exit .nina-fullscreen-exit {
+  display: block;
+}
+
+.nina-fullscreen:hover,
 .nina-close:hover {
   background:
     rgba(
@@ -1053,7 +1100,9 @@ body.nina-connecting-mode
     line-height: 1.4;
     word-break: break-word;
   }
+  .nina-window-controls { gap: 8px; }
+  .nina-fullscreen,
+  .nina-close { width: 32px; height: 32px; flex: 0 0 32px; }
   .nina-intro h3 { font-size: clamp(35px, 11vw, 58px); }
   .nina-intro-subtitle { font-size: 15px; }
 }
-
