@@ -49,6 +49,14 @@
     .amatista-archive-meta { border-top:1px solid var(--line); }
     .amatista-archive-meta p { display:flex; justify-content:space-between; gap:18px; padding:18px 0; border-bottom:1px solid var(--line); color:var(--muted); font:9px/1.6 "Courier New",monospace; letter-spacing:.17em; text-transform:uppercase; }
     .amatista-archive-meta span:first-child { color:#fff; }
+    .amatista-links { padding:clamp(92px,10vw,150px) var(--pad); border-bottom:1px solid var(--line); }
+    .amatista-links-head { display:flex; align-items:flex-end; justify-content:space-between; gap:32px; padding-bottom:28px; border-bottom:1px solid var(--line); }
+    .amatista-links h2 { margin-top:22px; font:400 clamp(2rem,4vw,4rem)/1 Michroma,sans-serif; letter-spacing:.04em; text-transform:uppercase; }
+    .amatista-link-row { display:flex; align-items:center; justify-content:space-between; gap:28px; padding:25px 0; border-bottom:1px solid var(--line); transition:color .2s ease,padding .2s ease; }
+    .amatista-link-name { font:400 clamp(1.25rem,2.4vw,2.5rem)/1.1 Michroma,sans-serif; letter-spacing:.03em; text-transform:uppercase; }
+    .amatista-link-action { color:var(--muted); font:9px/1.6 "Courier New",monospace; letter-spacing:.18em; text-transform:uppercase; transition:color .2s ease,transform .2s ease; }
+    .amatista-link-row:hover { padding-left:8px; color:#fff; }
+    .amatista-link-row:hover .amatista-link-action { color:#fff; transform:translateX(4px); }
     .amatista-return { padding:34px var(--pad); display:flex; justify-content:space-between; gap:24px; color:var(--muted); font:9px/1.6 "Courier New",monospace; letter-spacing:.2em; text-transform:uppercase; }
     .amatista-return a { transition:color .2s ease; }
     .amatista-return a:hover { color:#fff; }
@@ -67,6 +75,11 @@
       .amatista-transmission { padding:88px 18px 100px; }
       .amatista-transmission-grid { grid-template-columns:1fr; gap:54px; }
       .amatista-transmission h2 { font-size:clamp(1.65rem,7vw,2rem); }
+      .amatista-links { padding:82px 18px 96px; }
+      .amatista-links-head { align-items:flex-start; flex-direction:column; padding-bottom:24px; }
+      .amatista-links h2 { font-size:clamp(1.7rem,7.5vw,2.7rem); }
+      .amatista-link-row { padding:22px 0; }
+      .amatista-link-name { font-size:clamp(1.1rem,5.5vw,1.65rem); }
       .amatista-return { align-items:flex-start; flex-direction:column; padding:30px 18px; }
     }
   </style>
@@ -74,7 +87,7 @@
 <body>
   <nav class="artist-nav" aria-label="Primary navigation">
     <a href="./index.html">Parallel Vision</a>
-    <div class="artist-nav-links"><a href="#identity">Identity</a><a href="./index.html#artists">All Artists</a></div>
+    <div class="artist-nav-links"><a href="#identity">Identity</a><a href="#links">Links</a><a href="./index.html#artists">All Artists</a></div>
   </nav>
   <main>
     <header class="amatista-hero" aria-labelledby="amatista-title">
@@ -97,6 +110,13 @@
       <div class="amatista-transmission-grid">
         <div><p class="amatista-section-label">Archive Entry / 01</p><h2 id="amatista-transmission-title">Portrait Becomes Transmission.</h2></div>
         <div class="amatista-archive-meta" aria-label="Archive metadata"><p><span>Identity</span><span>Amatista</span></p><p><span>System</span><span>Parallel Vision</span></p><p><span>State</span><span>Transmission</span></p></div>
+      </div>
+    </section>
+    <section class="amatista-links" id="links" aria-labelledby="amatista-links-title">
+      <div class="amatista-links-head"><div><p class="amatista-section-label">Artist Channels / External</p><h2 id="amatista-links-title">Links</h2></div></div>
+      <div class="amatista-link-list">
+        <a class="amatista-link-row" href="https://soundcloud.com/amatista444" target="_blank" rel="noopener noreferrer"><span class="amatista-link-name">SoundCloud</span><span class="amatista-link-action">Listen ↗</span></a>
+        <a class="amatista-link-row" href="https://www.instagram.com/amatista.444/" target="_blank" rel="noopener noreferrer"><span class="amatista-link-name">Instagram</span><span class="amatista-link-action">Follow ↗</span></a>
       </div>
     </section>
   </main>
