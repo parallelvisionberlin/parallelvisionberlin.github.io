@@ -261,6 +261,34 @@
       outline-offset: 4px;
     }
 
+    .berlin-material-culture-bridge {
+      width: 95%;
+      margin-top: clamp(28px,3vw,42px);
+      padding: clamp(28px,4vw,52px) 0;
+      border-top: 1px solid rgba(255,255,255,.16);
+      border-bottom: 1px solid rgba(255,255,255,.16);
+    }
+
+    .berlin-material-culture-link {
+      display: inline-flex;
+      min-height: 44px;
+      align-items: center;
+      color: rgba(255,255,255,.78);
+      font: 11px 'Courier New', monospace;
+      letter-spacing: .16em;
+      text-decoration: none;
+      text-transform: uppercase;
+      transition: color .2s ease, transform .2s ease;
+    }
+
+    .berlin-material-culture-link:hover,
+    .berlin-material-culture-link:focus-visible {
+      color: #fff;
+      transform: translateX(8px);
+      outline: 1px solid rgba(255,255,255,.5);
+      outline-offset: 4px;
+    }
+
     .berlin-nightlife-sequence {
       display: flex;
       gap: clamp(16px,2vw,28px);
@@ -580,35 +608,35 @@
 
   <script>
     const berlinArchive = {
-      infrastructure: {
-        title: "Infrastructure",
-        titleDe: "Infrastruktur",
-        description: "Transport, transit systems, terminals and the architecture that keeps Berlin moving through a transformed century.",
-        descriptionDe: "Verkehr, Transitsysteme, Terminals und die Architektur, die Berlin durch ein verändertes Jahrhundert in Bewegung hält.",
-        // TEMP PLACEHOLDER — replace when archive assets arrive
-        images: Array.from({ length: 5 }, () => ({ src: "./assets/ebers2063.png", width: 5504, height: 3072, alt: "Berlin 2063 transport infrastructure", caption: "Transit study / Berlin 2063" }))
-      },
-      city: {
-        title: "The City",
-        titleDe: "Die Stadt",
-        description: "Recognizable Berlin persists inside new scales: monuments, streets and civic structures altered by time.",
-        descriptionDe: "Das wiedererkennbare Berlin besteht in neuen Maßstäben fort: Monumente, Straßen und öffentliche Strukturen, verändert durch die Zeit.",
+      urbanForm: {
+        title: "Urban Form",
+        titleDe: "Urbane Form",
+        description: "The physical shape of Berlin 2063: skyline, streets, monuments, civic scale, architecture and public space.",
+        descriptionDe: "Die physische Form von Berlin 2063: Skyline, Straßen, Monumente, städtischer Maßstab, Architektur und öffentlicher Raum.",
         // TEMP PLACEHOLDER — replace when archive assets arrive
         images: Array.from({ length: 5 }, () => ({ src: "./assets/thecitysuperhd1.png", width: 4500, height: 2512, alt: "Berlin 2063 city architecture", caption: "Urban study / Berlin 2063" }))
       },
+      urbanSystems: {
+        title: "Urban Systems",
+        titleDe: "Urbane Systeme",
+        description: "Transit, metro, terminals, corridors, water, circulation and the infrastructure that keeps the future city moving.",
+        descriptionDe: "Transit, Metro, Terminals, Korridore, Wasser, Zirkulation und die Infrastruktur, die die zukünftige Stadt in Bewegung hält.",
+        // TEMP PLACEHOLDER — replace when archive assets arrive
+        images: Array.from({ length: 5 }, () => ({ src: "./assets/ebers2063.png", width: 5504, height: 3072, alt: "Berlin 2063 transport infrastructure", caption: "Transit study / Berlin 2063" }))
+      },
       inhabitants: {
-        title: "The Inhabitants",
-        titleDe: "Die Bewohner:innen",
-        description: "Individuals move naturally through this future as witnesses shaped by its architecture, materials and social conditions.",
-        descriptionDe: "Menschen bewegen sich selbstverständlich durch diese Zukunft, als Zeug:innen, geprägt von ihrer Architektur, ihren Materialien und sozialen Bedingungen.",
+        title: "Inhabitants",
+        titleDe: "Bewohner:innen",
+        description: "Bodies, identities and figures moving through Berlin 2063 as part of its architecture, materials and social conditions.",
+        descriptionDe: "Körper, Identitäten und Figuren, die sich durch Berlin 2063 bewegen, geprägt von Architektur, Materialien und sozialen Bedingungen.",
         // TEMP PLACEHOLDER — replace when archive assets arrive
         images: Array.from({ length: 5 }, () => ({ src: "./assets/cabizwalkone.png", width: 3344, height: 1882, alt: "An inhabitant walking through Berlin 2063", caption: "Inhabitant study / Berlin 2063" }))
       },
       nightlife: {
         title: "Nightlife",
         titleDe: "Nachtleben",
-        description: "Clubs, gatherings and temporary spaces where music, bodies and technology continue to reshape the social life of the city.",
-        descriptionDe: "Clubs, Zusammenkünfte und temporäre Räume, in denen Musik, Körper und Technologie das soziale Leben der Stadt weiterhin neu gestalten.",
+        description: "The social engine of Berlin 2063: clubs, rooms, rituals, performance, rave structures and after-hours spaces.",
+        descriptionDe: "Der soziale Motor von Berlin 2063: Clubs, Räume, Rituale, Performance, Rave-Strukturen und After-Hours-Orte.",
         layout: "plates",
         images: [
           { src: "./assets/2063/NIGHTLIFE I.png", width: 2048, height: 1152 },
@@ -622,10 +650,17 @@
       transmissions: {
         title: "Transmissions",
         titleDe: "Übertragungen",
-        description: "Characters, screens and moving-image fragments cross from the archive into projection and architectural space.",
-        descriptionDe: "Figuren, Bildschirme und Bewegtbildfragmente treten aus dem Archiv in Projektion und architektonischen Raum über.",
+        description: "Screens, signals, projections, Nina FOK and the communication systems through which the archive speaks.",
+        descriptionDe: "Screens, Signale, Projektionen, Nina FOK und die Kommunikationssysteme, durch die das Archiv spricht.",
         // TEMP PLACEHOLDER — replace when archive assets arrive
         images: Array.from({ length: 5 }, () => ({ src: "./assets/ninamain.png", width: 5504, height: 3040, alt: "Nina FOK transmission from Berlin 2063", caption: "Signal study / Berlin 2063" }))
+      },
+      materialCulture: {
+        title: "Material Culture",
+        titleDe: "Materielle Kultur",
+        description: "Garments, material systems, body technologies and Fashion After Fabric as the clothing language of Berlin 2063.",
+        descriptionDe: "Kleidung, Materialsysteme, Körpertechnologien und Fashion After Fabric als vestimentäre Sprache von Berlin 2063.",
+        layout: "bridge"
       }
     };
 
@@ -636,6 +671,36 @@
       const archiveNumber = String(chapterIndex + 1).padStart(2, "0");
       const article = document.createElement("article");
       article.className = "berlin-archive-chapter";
+
+      if (chapter.layout === "bridge") {
+        article.classList.add("berlin-material-culture-chapter");
+        article.innerHTML = `
+          <header class="berlin-chapter-heading">
+            <p class="berlin-transmission-index">${archiveNumber} / ${chapter.title}</p>
+            <p class="berlin-chapter-description">${chapter.description}</p>
+          </header>
+          <div class="berlin-material-culture-bridge">
+            <a class="berlin-material-culture-link" href="./future-fashion.html">Enter Fashion After Fabric ↗</a>
+          </div>`;
+        archiveRoot.appendChild(article);
+
+        const chapterLabel = article.querySelector(".berlin-transmission-index");
+        const chapterDescription = article.querySelector(".berlin-chapter-description");
+        const bridgeLink = article.querySelector(".berlin-material-culture-link");
+
+        function applyBridgeLanguage(language) {
+          const german = language === "de";
+          const visibleTitle = german ? chapter.titleDe : chapter.title;
+          chapterLabel.textContent = `${archiveNumber} / ${visibleTitle}`;
+          chapterDescription.textContent = german ? chapter.descriptionDe : chapter.description;
+          bridgeLink.textContent = german ? "Fashion After Fabric öffnen ↗" : "Enter Fashion After Fabric ↗";
+          bridgeLink.setAttribute("aria-label", german ? "Fashion After Fabric öffnen" : "Enter Fashion After Fabric");
+        }
+
+        applyBridgeLanguage(document.documentElement.lang);
+        window.addEventListener("pv-language-change", (event) => applyBridgeLanguage(event.detail.language));
+        return;
+      }
 
       if (chapter.layout === "plates") {
         article.classList.add("berlin-nightlife-chapter");
