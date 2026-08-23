@@ -300,22 +300,52 @@ html[lang="de"] .fashion-material-archive #fashion-archive-title {
   border-top: 1px solid var(--line);
 }
 .fashion-material-index li {
-  display: grid;
-  grid-template-columns: minmax(180px, .8fr) minmax(0, 1.2fr);
-  gap: 28px;
-  padding: 26px 0;
   border-bottom: 1px solid var(--line);
+}
+.fashion-material-index a {
+  display: grid;
+  grid-template-columns: minmax(180px, .8fr) minmax(0, 1.2fr) auto;
+  gap: 28px;
+  align-items: center;
+  padding: 26px 0;
+  transition: padding-left .22s ease, padding-right .22s ease, background-color .22s ease;
 }
 .fashion-material-index span {
   font: 10px/1.6 'Courier New', monospace;
   letter-spacing: .2em;
   text-transform: uppercase;
+  transition: color .22s ease;
 }
 .fashion-material-index p {
   color: var(--muted);
   font-size: 14px;
   line-height: 1.65;
+  transition: color .22s ease;
 }
+.fashion-material-index i {
+  color: rgba(255,255,255,.65);
+  font: normal 13px/1 'Courier New', monospace;
+  opacity: 0;
+  transform: translateX(-7px);
+  transition: opacity .2s ease, transform .22s ease;
+}
+@media (hover: hover) {
+  .fashion-material-index a:hover {
+    padding-right: 8px;
+    padding-left: 8px;
+    background: rgba(255,255,255,.018);
+  }
+  .fashion-material-index a:hover span { color: #fff; }
+  .fashion-material-index a:hover p { color: rgba(255,255,255,.76); }
+  .fashion-material-index a:hover i { opacity: 1; transform: none; }
+}
+.fashion-material-index a:focus-visible {
+  outline: 1px solid rgba(255,255,255,.72);
+  outline-offset: 4px;
+}
+.fashion-material-index a:focus-visible i { opacity: 1; transform: none; }
+.fashion-material-index a:focus-visible span { color: #fff; }
+.fashion-material-index a:focus-visible p { color: rgba(255,255,255,.76); }
 .fashion-editorial .preview-grid {
   padding: clamp(80px, 9vw, 130px) 0;
   border-bottom: 1px solid var(--line);
@@ -712,11 +742,13 @@ html[lang="de"] .fashion-collaboration-intro h2 {
   }
   .fashion-material-test-copy h2 { font-size: clamp(1.55rem, 7vw, 2.15rem); }
   .fashion-material-test-copy p { font-size: 1rem; }
-  .fashion-material-index li {
-    grid-template-columns: 1fr;
-    gap: 7px;
+  .fashion-material-index a {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 7px 18px;
     padding: 22px 0;
   }
+  .fashion-material-index a p { grid-column: 1; }
+  .fashion-material-index a i { grid-column: 2; grid-row: 1 / span 2; align-self: center; opacity: .62; transform: none; }
   .fashion-editorial .preview-grid { padding: 76px 0; }
   .fashion-closing {
     min-height: 52svh;
