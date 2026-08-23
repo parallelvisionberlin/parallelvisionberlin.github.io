@@ -465,10 +465,10 @@ html[lang="de"] .fashion-collaboration-intro h2 {
   pointer-events: none;
 }
 .amatista-fashion-study-page .cabizbajo-hero-video {
-  height: calc(100svh - 73px);
+  height: 88svh;
   aspect-ratio: auto;
   object-fit: cover;
-  object-position: center;
+  object-position: center 42%;
   filter: brightness(.66) contrast(1.12) saturate(.9);
 }
 .amatista-fashion-study-page .cabizbajo-hero::after {
@@ -481,6 +481,16 @@ html[lang="de"] .fashion-collaboration-intro h2 {
     radial-gradient(ellipse at center, transparent 36%, rgba(0,0,0,.5) 100%),
     linear-gradient(90deg, rgba(0,0,0,.28), transparent 30%, transparent 72%, rgba(0,0,0,.22));
   pointer-events: none;
+}
+.amatista-fashion-study-page .cabizbajo-hero-copy {
+  top: auto;
+  bottom: clamp(42px, 6vw, 84px);
+}
+.amatista-fashion-study-page .cabizbajo-hero h1 {
+  font-size: clamp(4.5rem, 12vw, 11.5rem);
+  line-height: .88;
+  letter-spacing: .055em;
+  white-space: nowrap;
 }
 .cabizbajo-hero-copy { position: absolute; z-index: 2; left: max(34px, calc((100vw - 1368px) / 2)); top: 56%; bottom: auto; max-width: 660px; text-shadow: 0 1px 18px #000; }
 .cabizbajo-kicker,
@@ -935,7 +945,9 @@ html[lang="de"] .fashion-collaboration-intro h2 {
   .amatista-fashion-film-head { padding-bottom: 22px; }
   .amatista-fashion-film-head h2 { font-size: clamp(1.45rem, 6.8vw, 2.25rem); }
   .amatista-fashion-film video { max-height: 70svh; margin-top: 20px; }
-  .amatista-fashion-study-page .cabizbajo-hero-video { height: calc(100svh - 63px); }
+  .amatista-fashion-study-page .cabizbajo-hero-video { height: 82svh; object-position: center 38%; }
+  .amatista-fashion-study-page .cabizbajo-hero-copy { top: auto; bottom: 30px; }
+  .amatista-fashion-study-page .cabizbajo-hero h1 { font-size: clamp(2.5rem, 14vw, 5rem); line-height: .9; letter-spacing: .02em; }
   .amatista-fashion-gallery { padding: 76px 0 108px; }
   .amatista-fashion-gallery-head { grid-template-columns: 1fr; gap: 22px; margin-bottom: 36px; padding: 0 18px; }
   .amatista-fashion-gallery h2 { font-size: clamp(1.65rem, 8vw, 2.6rem); }
