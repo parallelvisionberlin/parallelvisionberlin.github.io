@@ -178,6 +178,20 @@ nav a:hover {
   opacity: .55;
 }
 
+.nina-nav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nina-nav-signal {
+  width: 5px;
+  height: 5px;
+  flex: 0 0 5px;
+  border-radius: 50%;
+  background: #a9c4b7;
+}
+
 .pv-language-switch {
   border: 0;
   background: none;
@@ -2290,11 +2304,20 @@ footer {
   padding: clamp(48px, 7vw, 92px) clamp(28px, 6vw, 78px) clamp(48px, 7vw, 92px) 0;
 }
 
+#nina-fok {
+  scroll-margin-top: 32px;
+}
+
+.nina-feature-section .nina-identity {
+  margin-top: 0;
+}
+
 .nina-identity-label {
   font-size: 10px;
   letter-spacing: .3em;
 }
 
+.nina-identity h2,
 .nina-identity h3 {
   margin-top: 29px;
   font-family: 'Michroma', sans-serif;
@@ -2413,6 +2436,7 @@ footer {
   .nina-identity { grid-template-columns: 1fr; }
   .nina-identity-copy { padding: 52px 0; }
   .nina-identity-label { font-size: 9.5px; }
+  .nina-identity h2,
   .nina-identity h3 { font-size: clamp(42px, 13.5vw, 60px); }
   .nina-identity-description { font-size: 17.5px; }
   .nina-identity-actions { display: flex; }

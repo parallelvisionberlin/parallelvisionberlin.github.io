@@ -9,6 +9,7 @@
     [".hero nav a[href='#releases']", "Releases", "Veröffentlichungen"],
     [".hero nav a[href='./future-fashion.html']", "Fashion After Fabric", "Mode nach dem Stoff"],
     [".hero nav a[href='./berlin-2063.html']", "Berlin 2063", "Berlin 2063"],
+    [".hero nav .nina-nav-label", "Nina FOK", "Nina FOK"],
     [".hero nav a[href='#contact']", "Contact", "Kontakt"],
     [".hero-status span:first-child", "PV_ARCHIVE / BERLIN NODE", "PV_ARCHIV / BERLIN KNOTEN"],
     [".hero-status span:last-child", "SIGNAL STABILITY 87%", "SIGNALSTABILITÄT 87 %"],
@@ -23,10 +24,10 @@
     ["#artists #artists-title", "Artists", "Artists"],
     ["#artists .artists-roster-meta span:first-child", "CURRENT ROSTER / 08 ARTISTS", "CURRENT ROSTER / 08 ARTISTS"],
     ["#artists .artists-roster-meta span:last-child", "BERLIN — NEW YORK — MEXICO CITY — BUCHAREST — ARGENTINA", "BERLIN — NEW YORK — MEXICO CITY — BUCHAREST — ARGENTINA"],
-    ["#artists .nina-identity-label", "Artificial Identity / Berlin 2063", "Künstliche Identität / Berlin 2063"],
-    ["#artists .nina-identity-description", "A consciousness developed by Parallel Vision, living inside a possible Berlin 2063.", "Eine autonome Intelligenz, die in Berlin 2063 lebt."],
-    ["#artists .nina-identity-cta-secondary", "DISCOVER NINA", "DISCOVER NINA"],
-    ["#artists .nina-identity-cta-primary", "TRANSMIT TO 2063", "TRANSMIT TO 2063"],
+    ["#nina-fok .nina-identity-label", "Artificial Identity / Berlin 2063", "Künstliche Identität / Berlin 2063"],
+    ["#nina-fok .nina-identity-description", "A consciousness developed by Parallel Vision, living inside a possible Berlin 2063.", "Eine autonome Intelligenz, die in Berlin 2063 lebt."],
+    ["#nina-fok .nina-identity-cta-secondary", "DISCOVER NINA", "NINA ENTDECKEN"],
+    ["#nina-fok .nina-identity-cta-primary", "OPEN LIVE SIGNAL", "LIVE-SIGNAL ÖFFNEN"],
     ["#releases h2", "Releases", "Veröffentlichungen"],
     ["#releases .section-head .small", "Sound objects from the Parallel Vision archive. Each release is treated as a fragment of the same world.", "Klangobjekte aus dem Parallel-Vision-Archiv. Jede Veröffentlichung wird als Fragment derselben Welt behandelt."],
     ["#releases .listening-featured .player-title", "Listen · Tanzen Im Kreis EP", "Hören · Tanzen Im Kreis EP"],
@@ -224,6 +225,8 @@
     });
     const switcher = document.querySelector(".pv-language-switch");
     if (switcher) switcher.setAttribute("aria-label", language === "de" ? "Sprache: Deutsch. Zu Englisch wechseln" : "Language: English. Switch to German");
+    const ninaSignal = document.querySelector(".nina-nav-signal");
+    if (ninaSignal) ninaSignal.setAttribute("aria-label", language === "de" ? "Nina-FOK-Signal verfügbar" : "Nina FOK signal available");
     try { localStorage.setItem(key, language); } catch (_) {}
     window.dispatchEvent(new CustomEvent("pv-language-change", { detail: { language: language } }));
   }
