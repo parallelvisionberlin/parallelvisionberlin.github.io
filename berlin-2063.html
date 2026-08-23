@@ -262,20 +262,34 @@
     }
 
     .berlin-nightlife-sequence {
+      display: flex;
+      gap: clamp(16px,2vw,28px);
       margin-top: clamp(28px,3vw,42px);
+      padding: 0 10% 6px 0;
+      overflow-x: auto;
+      overflow-y: hidden;
+      overscroll-behavior-x: contain;
+      scroll-behavior: smooth;
+      scroll-snap-type: x mandatory;
+      scrollbar-width: none;
+      touch-action: pan-x pan-y;
+      outline: none;
+    }
+
+    .berlin-nightlife-sequence::-webkit-scrollbar { display: none; }
+
+    .berlin-nightlife-sequence:focus-visible {
+      outline: 1px solid rgba(255,255,255,.5);
+      outline-offset: 7px;
     }
 
     .berlin-nightlife-plate {
-      margin-right: 0;
-      margin-bottom: 0;
+      flex: 0 0 86%;
+      min-width: 0;
+      margin: 0;
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
     }
-
-    .berlin-nightlife-plate:nth-child(1) { width: 88%; }
-    .berlin-nightlife-plate:nth-child(2) { width: 82%; margin-top: clamp(88px,9vw,132px); margin-left: auto; }
-    .berlin-nightlife-plate:nth-child(3) { width: 56%; margin-top: clamp(110px,11vw,158px); margin-left: 12%; }
-    .berlin-nightlife-plate:nth-child(4) { width: 96%; margin-top: clamp(120px,12vw,174px); }
-    .berlin-nightlife-plate:nth-child(5) { width: 70%; margin-top: clamp(170px,16vw,230px); margin-left: 18%; }
-    .berlin-nightlife-plate:nth-child(6) { width: 90%; margin-top: clamp(180px,17vw,246px); }
 
     .berlin-nightlife-plate img {
       display: block;
@@ -295,6 +309,18 @@
       font: 11px/1.5 'Courier New', monospace;
       letter-spacing: .16em;
       text-transform: uppercase;
+    }
+
+    .berlin-nightlife-navigation {
+      display: flex;
+      justify-content: flex-end;
+      gap: clamp(20px,3vw,42px);
+      margin-top: 18px;
+    }
+
+    .berlin-nightlife-navigation .berlin-gallery-button:disabled {
+      cursor: default;
+      opacity: .28;
     }
 
     .berlin-archive-closing {
@@ -461,17 +487,15 @@
         min-height: 48px;
       }
       .berlin-nightlife-sequence {
+        gap: 14px;
         margin-top: 28px;
+        padding-right: 8%;
       }
       .berlin-nightlife-plate:nth-child(n) {
-        width: 100%;
-        margin-left: 0;
+        flex-basis: 92%;
+        width: auto;
+        margin: 0;
       }
-      .berlin-nightlife-plate:nth-child(2) { margin-top: 72px; }
-      .berlin-nightlife-plate:nth-child(3) { width: 88%; margin-top: 80px; margin-left: 8%; }
-      .berlin-nightlife-plate:nth-child(4) { margin-top: 88px; }
-      .berlin-nightlife-plate:nth-child(5) { width: 92%; margin-top: 108px; margin-left: 4%; }
-      .berlin-nightlife-plate:nth-child(6) { margin-top: 112px; }
       .berlin-nightlife-meta {
         gap: 14px;
         padding-top: 12px;
@@ -621,7 +645,7 @@
             <h3>${chapter.title}</h3>
             <p class="berlin-chapter-description">${chapter.description}</p>
           </header>
-          <div class="berlin-nightlife-sequence" aria-label="${chapter.title} visual archive">
+          <div class="berlin-nightlife-sequence" tabindex="0" role="region" aria-label="${chapter.title} visual archive">
             ${chapter.images.map((item, imageIndex) => `
               <figure class="berlin-nightlife-plate">
                 <img src="${item.src}" alt="Nightlife archival document ${imageIndex + 1} from Berlin 2063" width="${item.width}" height="${item.height}" decoding="async" ${imageIndex === 0 ? '' : 'loading="lazy"'}>
@@ -630,6 +654,10 @@
                   <span>Nightlife / Berlin 2063</span>
                 </figcaption>
               </figure>`).join("")}
+          </div>
+          <div class="berlin-nightlife-navigation" aria-label="${chapter.title} gallery navigation">
+            <button class="berlin-gallery-button berlin-nightlife-previous" type="button" aria-label="Previous nightlife image">← Previous</button>
+            <button class="berlin-gallery-button berlin-nightlife-next" type="button" aria-label="Next nightlife image">Next →</button>
           </div>`;
         archiveRoot.appendChild(article);
 
@@ -637,12 +665,42 @@
         const title = article.querySelector("h3");
         const description = article.querySelector(".berlin-chapter-description");
         const sequence = article.querySelector(".berlin-nightlife-sequence");
+        const previousButton = article.querySelector(".berlin-nightlife-previous");
+        const nextButton = article.querySelector(".berlin-nightlife-next");
+        const plates = Array.from(sequence.querySelectorAll(".berlin-nightlife-plate"));
+
+        const updateNightlifeNavigation = () => {
+          const tolerance = 4;
+          previousButton.disabled = sequence.scrollLeft <= tolerance;
+          nextButton.disabled = sequence.scrollLeft >= sequence.scrollWidth - sequence.clientWidth - tolerance;
+        };
+
+        const scrollNightlife = (direction) => {
+          const firstPlate = plates[0];
+          if (!firstPlate) return;
+          const gap = parseFloat(getComputedStyle(sequence).columnGap) || 0;
+          sequence.scrollBy({
+            left: direction * (firstPlate.getBoundingClientRect().width + gap),
+            behavior: prefersReducedMotion ? "auto" : "smooth"
+          });
+        };
+
+        previousButton.addEventListener("click", () => scrollNightlife(-1));
+        nextButton.addEventListener("click", () => scrollNightlife(1));
+        sequence.addEventListener("scroll", updateNightlifeNavigation, { passive: true });
+        window.addEventListener("resize", updateNightlifeNavigation, { passive: true });
+        updateNightlifeNavigation();
+
         function applyNightlifeLanguage(language) {
           const german = language === "de";
           label.textContent = `${archiveNumber} / ${german ? "Visuelles Archiv" : "Visual Archive"}`;
           title.textContent = german ? chapter.titleDe : chapter.title;
           description.textContent = german ? chapter.descriptionDe : chapter.description;
           sequence.setAttribute("aria-label", `${german ? chapter.titleDe : chapter.title} ${german ? "visuelles Archiv" : "visual archive"}`);
+          previousButton.textContent = german ? "← Zurück" : "← Previous";
+          nextButton.textContent = german ? "Weiter →" : "Next →";
+          previousButton.setAttribute("aria-label", german ? "Vorheriges Nachtleben-Bild" : "Previous nightlife image");
+          nextButton.setAttribute("aria-label", german ? "Nächstes Nachtleben-Bild" : "Next nightlife image");
         }
         applyNightlifeLanguage(document.documentElement.lang);
         window.addEventListener("pv-language-change", (event) => applyNightlifeLanguage(event.detail.language));
