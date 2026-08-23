@@ -525,6 +525,35 @@ html[lang="de"] .fashion-collaboration-intro h2 {
 .cabizbajo-return { display: flex; justify-content: space-between; gap: 24px; padding: 40px 0; border-top: 1px solid var(--line); font: 9px/1.6 'Courier New', monospace; letter-spacing: .22em; text-transform: uppercase; }
 .cabizbajo-return a { opacity: .65; }
 .cabizbajo-return a:hover, .cabizbajo-return a:focus-visible { opacity: 1; }
+
+/* Amatista / Artist Study 04 */
+.amatista-fashion-film {
+  width: min(100%, 1180px);
+  padding: 0 0 clamp(120px, 14vw, 190px);
+}
+.amatista-fashion-film-head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 36px;
+  padding: 0 0 28px;
+  border-bottom: 1px solid var(--line);
+}
+.amatista-fashion-film-head h2 {
+  max-width: 800px;
+  font: 400 clamp(1.8rem, 3.2vw, 3.4rem)/1.08 Michroma, sans-serif;
+  letter-spacing: .045em;
+  text-transform: uppercase;
+}
+.amatista-fashion-film video {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 78svh;
+  margin-top: 28px;
+  object-fit: contain;
+  background: #000;
+}
 .fashion-development .fashion-definition-layout { align-items: start; }
 .fashion-closing {
   min-height: 62svh;
@@ -821,6 +850,10 @@ html[lang="de"] .fashion-collaboration-intro h2 {
   .cabizbajo-material { width: 100%; margin-left: 0; }
   .cabizbajo-material img { grid-column: 1; grid-row: 1; width: min(92%, 560px); }
   .cabizbajo-material-copy { grid-column: 1; grid-row: 2; padding-bottom: 0; }
+  .amatista-fashion-film { padding-bottom: 120px; }
+  .amatista-fashion-film-head { align-items: flex-start; flex-direction: column; gap: 16px; padding-bottom: 22px; }
+  .amatista-fashion-film-head h2 { font-size: clamp(1.45rem, 6.8vw, 2.25rem); }
+  .amatista-fashion-film video { max-height: 70svh; margin-top: 20px; }
 }
 
 @media (max-width: 420px) {
