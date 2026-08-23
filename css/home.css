@@ -2034,8 +2034,10 @@ footer {
   text-transform: uppercase;
 }
 
-.artists-roster-meta span {
+.artists-roster-meta span,
+.artists-roster-meta b {
   display: block;
+  font-weight: inherit;
   white-space: nowrap;
 }
 
@@ -2244,6 +2246,28 @@ footer {
   transition: opacity .2s ease, transform .25s ease;
 }
 
+.artist-index-preview {
+  position: absolute;
+  z-index: 1;
+  top: 50%;
+  right: clamp(112px, 13vw, 180px);
+  width: clamp(48px, 4.7vw, 68px);
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  opacity: .68;
+  transform: translateY(-50%);
+  pointer-events: none;
+  transition: opacity .25s ease, transform .3s ease;
+}
+
+.artist-index-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 22%;
+  filter: saturate(.78) brightness(.86);
+}
+
 .artist-index-row:focus-visible {
   outline: 1px solid #fff;
   outline-offset: 4px;
@@ -2260,6 +2284,12 @@ footer {
     opacity: 1;
     transform: translate(0, -50%);
   }
+
+  .artist-index-row:hover .artist-index-preview,
+  .artist-index-row:focus-visible .artist-index-preview {
+    opacity: 1;
+    transform: translateY(-50%) scale(1.025);
+  }
 }
 
 @media (max-width: 680px) {
@@ -2272,6 +2302,10 @@ footer {
     gap: 10px;
     padding: 22px 36px 22px 0;
   }
+
+  .artist-index-row-with-preview { padding-right: 104px; }
+
+  .artist-index-preview { right: 38px; width: 56px; opacity: .76; }
 
   .artist-index-name {
     font-size: clamp(18px, 6vw, 24px);
