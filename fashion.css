@@ -491,9 +491,9 @@ html[lang="de"] .fashion-collaboration-intro h2 {
 .amatista-fashion-study-page .cabizbajo-hero h1 {
   display: flex;
   align-items: baseline;
-  gap: clamp(.55rem, 1.2vw, 1.35rem);
+  gap: clamp(.5rem, 1vw, 1rem);
   max-width: calc(100vw - 52px);
-  font-size: clamp(4rem, 10vw, 10rem);
+  font-size: clamp(3.5rem, 6.7vw, 7.25rem);
   line-height: .88;
   letter-spacing: .055em;
   white-space: nowrap;
