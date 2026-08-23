@@ -17,7 +17,7 @@
   <meta name="twitter:image" content="https://parallelvisionlabel.com/assets/ninamain-page.webp">
   <link rel="icon" type="image/png" href="./favicon.png">
   <link rel="stylesheet" href="./fashion.css?v=20260817-archive-size">
-  <link rel="stylesheet" href="./css/nina-access.css?v=20260818-shared">
+  <link rel="stylesheet" href="./css/nina-access.css?v=20260823-memory">
   <style>
     :root { --n-line: rgba(255,255,255,.15); --n-body: rgba(255,255,255,.7); --n-faint: rgba(255,255,255,.44); }
     * { box-sizing: border-box; }
@@ -400,6 +400,16 @@
     </header>
 
 
+    <div class="nina-memory-controls" aria-label="Conversation memory controls">
+      <span class="nina-memory-indicator" id="ninaMemoryIndicator" role="status" aria-live="polite">
+        MEMORY / STANDBY
+      </span>
+      <button class="nina-forget-memory" id="ninaForgetMemory" type="button">
+        FORGET MEMORY
+      </button>
+    </div>
+
+
 
     <div class="nina-stage">
 
@@ -602,6 +612,6 @@
       syncMotion();
     })();
   </script>
-  <script type="module" src="./js/nina-access.js?v=20260818-shared-scroll"></script>
+  <script type="module" src="./js/nina-access.js?v=20260823-memory"></script>
 </body>
 </html>

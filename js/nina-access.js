@@ -29,8 +29,24 @@ const ninaScrimMessage = byId("ninaScrimMessage");
 const ninaScrimButton = byId("ninaScrimButton");
 const ninaMicrophoneSelect = byId("ninaMicrophoneSelect");
 const ninaMicrophoneStatus = byId("ninaMicrophoneStatus");
+const ninaMemoryIndicator = byId("ninaMemoryIndicator");
+const ninaForgetMemory = byId("ninaForgetMemory");
 const ninaAccessHash = "d3ec7a14e4fefc8da57d4045a6ee28d28b328b78126c1e22bc0b541adf0f215c";
 const NINA_PREFERRED_MICROPHONE_KEY = "ninaPreferredMicrophoneId";
+const NINA_MEMORY_KEY = "nina_fok_alejandro_memory_v1";
+const NINA_MEMORY_LIMIT = 500;
+const NINA_MEMORY_CONTEXT_CHAR_LIMIT = 12000;
+const NINA_MEMORY_CONTEXT_MESSAGE_LIMIT = 40;
+const NINA_MEMORY_PROMPT = `You are speaking with Alejandro again.
+
+The following messages come from your previous conversations together. Remember them naturally and continue the relationship with awareness of what was said.
+
+Do not recite this history.
+Do not mention saved memory, local storage, transcripts or injected context.
+Do not greet Alejandro as a stranger.
+Respond to this history only when it becomes relevant.
+
+PREVIOUS CONVERSATION:`;
 let ninaAccessSubmitting = false;
 let ninaAccessVerifiedForCurrentOpen = false;
 let ninaConnecting = false;
@@ -41,6 +57,10 @@ let ninaMicrophoneStream = null;
 let ninaMicrophoneSetupPromise = null;
 let lastNinaTrigger = null;
 let ninaScrollPosition = 0;
+let ninaMemoryInjectionAttempt = 0;
+let ninaMemoryLoadedForSession = false;
+let ninaMemoryListenerCleanup = null;
+let ninaSessionMessageKeys = new Set();
 const delay = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
 const logDevelopmentError = (message, error) => { if (DEVELOPMENT) console.error(message, error); };
 const nativeFullscreenElement = () => document.fullscreenElement || document.webkitFullscreenElement || null;
@@ -87,6 +107,132 @@ async function toggleNinaFullscreen() {
   ninaWindow.classList.add("is-fallback-fullscreen");
   syncNinaFullscreen();
 }
+
+function isStoredMemoryMessage(message) {
+  return message &&
+    (message.role === "ALEJANDRO" || message.role === "NINA") &&
+    typeof message.content === "string" &&
+    Boolean(message.content.trim()) &&
+    typeof message.timestamp === "string" &&
+    typeof message.sessionId === "string" &&
+    Boolean(message.sessionId);
+}
+
+function readNinaMemory() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(NINA_MEMORY_KEY) || "[]");
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter(isStoredMemoryMessage).slice(-NINA_MEMORY_LIMIT);
+  } catch {
+    return [];
+  }
+}
+
+function writeNinaMemory(messages) {
+  try {
+    localStorage.setItem(NINA_MEMORY_KEY, JSON.stringify(messages.slice(-NINA_MEMORY_LIMIT)));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function setNinaMemoryIndicator(state) {
+  const labels = {
+    empty: "MEMORY / EMPTY",
+    standby: "MEMORY / STANDBY",
+    loaded: "MEMORY / LOADED",
+    cleared: "MEMORY / CLEARED",
+    unavailable: "MEMORY / UNAVAILABLE"
+  };
+  ninaMemoryIndicator.textContent = labels[state] || labels.standby;
+  ninaMemoryIndicator.classList.toggle("is-loaded", state === "loaded");
+}
+
+function resetNinaMemoryIndicator() {
+  ninaMemoryLoadedForSession = false;
+  setNinaMemoryIndicator(readNinaMemory().length ? "standby" : "empty");
+}
+
+function memoryMessageKey(message, sessionId) {
+  const id = typeof message.id === "string" ? message.id.trim() : "";
+  if (id) return `${sessionId}::${id}`;
+  return `${sessionId}::${message.role}::${message.content.trim()}`;
+}
+
+function storeCompletedNinaMessages(history, client, attempt) {
+  if (attempt !== ninaAttempt || client !== ninaClient || !Array.isArray(history)) return;
+  const sessionId = client.getActiveSessionId?.();
+  if (!sessionId) return;
+  const archive = readNinaMemory();
+  const knownKeys = new Set(archive.map(message => message.messageId
+    ? `${message.sessionId}::${message.messageId}`
+    : `${message.sessionId}::${message.role === "ALEJANDRO" ? "user" : "persona"}::${message.content}`));
+  let changed = false;
+  history.forEach(message => {
+    const content = typeof message?.content === "string" ? message.content.trim() : "";
+    const role = message?.role === "user" ? "ALEJANDRO" : message?.role === "persona" ? "NINA" : "";
+    if (!role || !content || message?.interrupted) return;
+    const key = memoryMessageKey({ ...message, content }, sessionId);
+    if (knownKeys.has(key) || ninaSessionMessageKeys.has(key)) return;
+    knownKeys.add(key);
+    ninaSessionMessageKeys.add(key);
+    archive.push({
+      role,
+      content,
+      timestamp: new Date().toISOString(),
+      sessionId,
+      ...(typeof message.id === "string" && message.id.trim() ? { messageId: message.id.trim() } : {})
+    });
+    changed = true;
+  });
+  if (changed && !writeNinaMemory(archive)) setNinaMemoryIndicator("unavailable");
+}
+
+function selectNinaMemoryContext(archive) {
+  const selected = [];
+  let characterCount = NINA_MEMORY_PROMPT.length;
+  for (let index = archive.length - 1; index >= 0 && selected.length < NINA_MEMORY_CONTEXT_MESSAGE_LIMIT; index -= 1) {
+    const message = archive[index];
+    const line = `${message.role}: ${message.content}`;
+    const addedCharacters = line.length + 2;
+    if (characterCount + addedCharacters > NINA_MEMORY_CONTEXT_CHAR_LIMIT) continue;
+    selected.push(line);
+    characterCount += addedCharacters;
+  }
+  return selected.reverse();
+}
+
+function injectNinaMemory(client, attempt) {
+  if (attempt !== ninaAttempt || client !== ninaClient || ninaMemoryInjectionAttempt === attempt) return;
+  const selected = selectNinaMemoryContext(readNinaMemory());
+  if (!selected.length) {
+    ninaMemoryInjectionAttempt = attempt;
+    setNinaMemoryIndicator("empty");
+    return;
+  }
+  try {
+    client.addContext(`${NINA_MEMORY_PROMPT}\n\n${selected.join("\n")}`);
+    ninaMemoryInjectionAttempt = attempt;
+    ninaMemoryLoadedForSession = true;
+    setNinaMemoryIndicator("loaded");
+  } catch (error) {
+    logDevelopmentError("Unable to restore Nina memory context.", error);
+    setNinaMemoryIndicator("unavailable");
+  }
+}
+
+function forgetNinaMemory() {
+  if (!window.confirm("Forget Nina's complete conversation memory on this browser?")) return;
+  try {
+    localStorage.removeItem(NINA_MEMORY_KEY);
+    ninaMemoryLoadedForSession = false;
+    setNinaMemoryIndicator("cleared");
+  } catch {
+    setNinaMemoryIndicator("unavailable");
+  }
+}
+
 const readPreferredMicrophone = () => {
   try { return localStorage.getItem(NINA_PREFERRED_MICROPHONE_KEY) || ""; }
   catch { return ""; }
@@ -118,6 +264,7 @@ function showNinaReady() {
   ninaStatus.textContent = "NINA IS READY";
   startNina.disabled = false;
   startNina.textContent = "CONNECT";
+  resetNinaMemoryIndicator();
 }
 
 function stopNinaMicrophone() {
@@ -269,6 +416,11 @@ async function stopNinaSession() {
   ninaConnecting = false;
   ninaTokenAbortController?.abort();
   ninaTokenAbortController = null;
+  ninaMemoryListenerCleanup?.();
+  ninaMemoryListenerCleanup = null;
+  ninaMemoryInjectionAttempt = 0;
+  ninaMemoryLoadedForSession = false;
+  ninaSessionMessageKeys = new Set();
   const client = ninaClient;
   ninaClient = null;
   if (client) {
@@ -290,16 +442,31 @@ async function requestSessionToken(signal) {
 }
 
 function bindAnamLifecycle(client, attempt) {
-  const onConnected = () => { if (attempt === ninaAttempt && client === ninaClient) markNinaOnline(); };
+  ninaMemoryListenerCleanup?.();
+  const onConnectionEstablished = () => {
+    if (attempt !== ninaAttempt || client !== ninaClient) return;
+    injectNinaMemory(client, attempt);
+    markNinaOnline();
+  };
+  const onVideoPlayStarted = () => {
+    if (attempt !== ninaAttempt || client !== ninaClient) return;
+    injectNinaMemory(client, attempt);
+    markNinaOnline();
+  };
+  const onHistoryUpdated = history => storeCompletedNinaMessages(history, client, attempt);
   const onClosed = () => {
     if (attempt !== ninaAttempt || client !== ninaClient) return;
     ninaClient = null;
     ninaConnecting = false;
     if (ninaOverlay.classList.contains("is-open")) showNinaFailure("The connection ended. Try again when you're ready.");
   };
-  if (AnamEvent?.CONNECTION_ESTABLISHED) client.addListener(AnamEvent.CONNECTION_ESTABLISHED, onConnected);
-  if (AnamEvent?.VIDEO_PLAY_STARTED) client.addListener(AnamEvent.VIDEO_PLAY_STARTED, onConnected);
+  if (AnamEvent?.CONNECTION_ESTABLISHED) client.addListener(AnamEvent.CONNECTION_ESTABLISHED, onConnectionEstablished);
+  if (AnamEvent?.VIDEO_PLAY_STARTED) client.addListener(AnamEvent.VIDEO_PLAY_STARTED, onVideoPlayStarted);
   if (AnamEvent?.CONNECTION_CLOSED) client.addListener(AnamEvent.CONNECTION_CLOSED, onClosed);
+  if (AnamEvent?.MESSAGE_HISTORY_UPDATED) client.addListener(AnamEvent.MESSAGE_HISTORY_UPDATED, onHistoryUpdated);
+  ninaMemoryListenerCleanup = () => {
+    if (AnamEvent?.MESSAGE_HISTORY_UPDATED) client.removeListener(AnamEvent.MESSAGE_HISTORY_UPDATED, onHistoryUpdated);
+  };
 }
 
 async function connectNina() {
@@ -419,6 +586,7 @@ ninaAccess.addEventListener("pointerdown", event => event.stopPropagation());
 ninaAccessCancel.addEventListener("click", () => closeNinaAccess());
 closeNina.addEventListener("click", closeNinaWindow);
 ninaFullscreen.addEventListener("click", toggleNinaFullscreen);
+ninaForgetMemory.addEventListener("click", forgetNinaMemory);
 document.addEventListener("fullscreenchange", syncNinaFullscreen);
 document.addEventListener("webkitfullscreenchange", syncNinaFullscreen);
 startNina.addEventListener("click", connectNina);
@@ -453,4 +621,5 @@ document.addEventListener("keydown", event => {
 window.addEventListener("pagehide", stopNinaSession);
 window.addEventListener("beforeunload", stopNinaSession);
 if (new URLSearchParams(window.location.search).get("nina") === "1") openNinaAccess();
+resetNinaMemoryIndicator();
 void ANAM_PERSONA_ID;
