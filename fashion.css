@@ -301,32 +301,31 @@ html[lang="de"] .fashion-material-archive #fashion-archive-title {
   padding: clamp(80px, 9vw, 130px) 0;
   border-bottom: 1px solid var(--line);
 }
-.fashion-collaboration { display: block; }
+.fashion-collaboration { display: block; padding: clamp(82px, 8vw, 116px) 0; }
 .fashion-collaboration-intro {
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(300px, .85fr);
-  gap: clamp(56px, 8vw, 120px);
+  grid-template-columns: minmax(0, .9fr) minmax(300px, 1.1fr);
+  gap: clamp(48px, 7vw, 104px);
   align-items: start;
-  margin-bottom: clamp(72px, 9vw, 128px);
+  margin-bottom: clamp(48px, 6vw, 78px);
 }
-.artist-study-card {
-  display: grid;
-  grid-template-columns: minmax(0, 1.18fr) minmax(280px, .82fr);
-  gap: clamp(32px, 5vw, 72px);
-  align-items: end;
-  padding-top: 24px;
-  border-top: 1px solid var(--line);
-}
-.artist-study-image { aspect-ratio: 4 / 5; overflow: hidden; background: #080808; }
-.artist-study-image img { display: block; width: 100%; height: 100%; object-fit: cover; filter: saturate(.78) brightness(.88); transition: transform .55s ease, filter .55s ease; }
-.artist-study-card:hover .artist-study-image img { transform: scale(1.012); filter: saturate(.92) brightness(.98); }
-.artist-study-meta { padding-bottom: 6px; }
-.artist-study-meta h3 { font: 400 clamp(2rem, 4.3vw, 4.6rem)/1.08 Michroma, sans-serif; letter-spacing: .05em; text-transform: uppercase; }
-.artist-study-meta h3 span { font-size: .42em; line-height: 1.45; }
-.artist-study-foot { display: flex; justify-content: space-between; gap: 24px; margin-top: clamp(44px, 8vw, 110px); padding-top: 18px; border-top: 1px solid var(--line); color: var(--muted); font: 9px/1.6 'Courier New', monospace; letter-spacing: .2em; text-transform: uppercase; }
-.artist-study-card:focus-visible { outline: 1px solid #777; outline-offset: 8px; }
-.artist-study-card + .artist-study-card { margin-top: clamp(86px, 11vw, 160px); }
-.artist-study-image-alejandro img { object-position: 58% center; }
+.fashion-collaboration-intro h2 { font-size: clamp(2.25rem, 4.7vw, 4.9rem); line-height: .96; }
+.fashion-collaboration-intro .fashion-chapter-copy { padding-top: 30px; font-size: clamp(.96rem, 1.25vw, 1.12rem); }
+.inhabitant-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(48px, 5vw, 76px) clamp(18px, 2.4vw, 34px); }
+.inhabitant-card { min-width: 0; border-top: 1px solid var(--line); transition: border-color .28s ease, opacity .28s ease; }
+.inhabitant-image { aspect-ratio: 3 / 4; overflow: hidden; background: #080808; }
+.inhabitant-image img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center top; filter: saturate(.76) brightness(.86); transition: transform .5s cubic-bezier(.2,.7,.2,1), filter .35s ease; }
+.inhabitant-image-alejandro img { object-position: 50% center; }
+.inhabitant-image-elorian img { object-position: 50% 18%; }
+.inhabitant-meta { padding: 17px 0 0; }
+.inhabitant-index { color: var(--muted); font: 9px/1.6 'Courier New', monospace; letter-spacing: .2em; text-transform: uppercase; }
+.inhabitant-meta h3 { min-height: 2.5em; margin-top: 12px; font: 400 clamp(1rem, 1.55vw, 1.35rem)/1.25 Michroma, sans-serif; letter-spacing: .055em; text-transform: uppercase; }
+.inhabitant-foot { display: flex; justify-content: space-between; gap: 16px; margin-top: 17px; padding-top: 13px; border-top: 1px solid var(--line); color: var(--muted); font: 8px/1.55 'Courier New', monospace; letter-spacing: .16em; text-transform: uppercase; }
+.inhabitant-foot span:last-child { text-align: right; transition: color .28s ease, opacity .28s ease; }
+.inhabitant-card:hover { border-color: rgba(255,255,255,.36); }
+.inhabitant-card:hover .inhabitant-image img { transform: scale(1.022); filter: saturate(.9) brightness(.96); }
+.inhabitant-card:hover .inhabitant-foot span:last-child { color: rgba(255,255,255,.9); }
+.inhabitant-card:focus-visible { outline: 1px solid #777; outline-offset: 7px; }
 
 /* Alejandro Molinari / Artist Study 02 */
 .alejandro-study-page { background: #000; }
@@ -576,6 +575,7 @@ html[lang="de"] .fashion-material-archive #fashion-archive-title {
 
 @media (max-width: 980px) {
   .fashion-statement-inner { width: min(100%, 680px); }
+  .inhabitant-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .cabizbajo-material {
     grid-template-columns: minmax(260px, .9fr) minmax(0, 1.1fr);
     width: calc(100% - 60px);
@@ -667,10 +667,14 @@ html[lang="de"] .fashion-material-archive #fashion-archive-title {
   .flesh-zero-page .archive-main { padding-top: 82px; }
   .flesh-zero-page .collection-intro { gap: 30px; padding-bottom: 72px; }
   .flesh-zero-page .collection-intro p { font-size: 10px; line-height: 2.05; }
-  .artist-study-card { grid-template-columns: 1fr; gap: 32px; }
-  .artist-study-meta h3 { font-size: clamp(2rem, 10vw, 3.1rem); }
-  .artist-study-foot { margin-top: 38px; }
-  .artist-study-card + .artist-study-card { margin-top: 92px; }
+  .fashion-collaboration { padding: 70px 0 82px; }
+  .fashion-collaboration-intro { gap: 30px; margin-bottom: 44px; }
+  .fashion-collaboration-intro .fashion-chapter-copy { padding-top: 0; }
+  .inhabitant-grid { gap: 48px 14px; }
+  .inhabitant-meta { padding-top: 14px; }
+  .inhabitant-meta h3 { min-height: 2.7em; margin-top: 9px; font-size: clamp(.85rem, 3.7vw, 1.1rem); }
+  .inhabitant-foot { display: grid; gap: 5px; margin-top: 12px; padding-top: 10px; }
+  .inhabitant-foot span:last-child { text-align: left; }
   .alejandro-study { padding: 0 18px; }
   .alejandro-hero { min-height: 70svh; }
   .alejandro-hero > img { min-height: 70svh; object-position: 57% center; }
@@ -710,4 +714,9 @@ html[lang="de"] .fashion-material-archive #fashion-archive-title {
   .cabizbajo-material { width: 100%; margin-left: 0; }
   .cabizbajo-material img { grid-column: 1; grid-row: 1; width: min(92%, 560px); }
   .cabizbajo-material-copy { grid-column: 1; grid-row: 2; padding-bottom: 0; }
+}
+
+@media (max-width: 420px) {
+  .inhabitant-grid { grid-template-columns: 1fr; gap: 52px; }
+  .inhabitant-meta h3 { min-height: 0; font-size: 1.05rem; }
 }
