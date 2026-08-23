@@ -13,7 +13,7 @@
     [".hero nav a[href='#contact']", "Contact", "Kontakt"],
     [".hero-status span:first-child", "PV_ARCHIVE / BERLIN NODE", "PV_ARCHIV / BERLIN KNOTEN"],
     [".hero-status span:last-child", "SIGNAL STABILITY 87%", "SIGNALSTABILITÄT 87 %"],
-    [".hero-text", "A record label transmitting music, bodies and imagined futures from Berlin in 2063.", "Ein Plattenlabel, das Musik, Körper und imaginierte Zukünfte aus dem Berlin des Jahres 2063 überträgt."],
+    [".hero-text", "A record label transmitting sound, bodies and visual archives.", "Ein Plattenlabel, das Klang, Körper und visuelle Archive überträgt."],
     ["#berlin .berlin-entry-label", "Parallel Vision / Living Archive", "Parallel Vision / Lebendiges Archiv"],
     ["#berlin h2", "Berlin 2063", "Berlin 2063"],
     ["#berlin .berlin-entry-line:nth-child(1)", "Berlin 2063 is an evolving audiovisual archive built from imagined environments, inhabitants and memories of a possible future.", "Berlin 2063 ist ein wachsendes audiovisuelles Archiv aus imaginären Umgebungen, Bewohner:innen und Erinnerungen an eine mögliche Zukunft."],
