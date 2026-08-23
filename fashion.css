@@ -210,6 +210,12 @@ html[lang="en"] .fashion-project-definition #fashion-research-title {
   overflow-wrap: normal;
   word-break: keep-all;
 }
+@media (min-width: 761px) {
+  html[lang="en"] .fashion-project-definition #fashion-research-title {
+    font-size: clamp(64px, 6vw, 96px);
+    line-height: .95;
+  }
+}
 html[lang="de"] .fashion-project-definition .fashion-definition-layout {
   grid-template-columns: 1fr;
   gap: clamp(30px, 3.5vw, 48px);
