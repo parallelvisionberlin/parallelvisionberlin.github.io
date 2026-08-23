@@ -546,15 +546,12 @@ html[lang="de"] .fashion-collaboration-intro h2 {
   padding: 0 0 clamp(120px, 14vw, 190px);
 }
 .amatista-fashion-film-head {
-  display: flex;
-  align-items: end;
-  justify-content: space-between;
-  gap: 36px;
   padding: 0 0 28px;
   border-bottom: 1px solid var(--line);
 }
 .amatista-fashion-film-head h2 {
   max-width: 800px;
+  margin-top: 18px;
   font: 400 clamp(1.8rem, 3.2vw, 3.4rem)/1.08 Michroma, sans-serif;
   letter-spacing: .045em;
   text-transform: uppercase;
@@ -865,7 +862,7 @@ html[lang="de"] .fashion-collaboration-intro h2 {
   .cabizbajo-material img { grid-column: 1; grid-row: 1; width: min(92%, 560px); }
   .cabizbajo-material-copy { grid-column: 1; grid-row: 2; padding-bottom: 0; }
   .amatista-fashion-film { padding-bottom: 120px; }
-  .amatista-fashion-film-head { align-items: flex-start; flex-direction: column; gap: 16px; padding-bottom: 22px; }
+  .amatista-fashion-film-head { padding-bottom: 22px; }
   .amatista-fashion-film-head h2 { font-size: clamp(1.45rem, 6.8vw, 2.25rem); }
   .amatista-fashion-film video { max-height: 70svh; margin-top: 20px; }
 }
