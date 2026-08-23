@@ -465,6 +465,10 @@ html[lang="de"] .fashion-collaboration-intro h2 {
   pointer-events: none;
 }
 .amatista-fashion-study-page .cabizbajo-hero-video {
+  height: calc(100svh - 73px);
+  aspect-ratio: auto;
+  object-fit: cover;
+  object-position: center;
   filter: brightness(.66) contrast(1.12) saturate(.9);
 }
 .amatista-fashion-study-page .cabizbajo-hero::after {
@@ -865,6 +869,7 @@ html[lang="de"] .fashion-collaboration-intro h2 {
   .amatista-fashion-film-head { padding-bottom: 22px; }
   .amatista-fashion-film-head h2 { font-size: clamp(1.45rem, 6.8vw, 2.25rem); }
   .amatista-fashion-film video { max-height: 70svh; margin-top: 20px; }
+  .amatista-fashion-study-page .cabizbajo-hero-video { height: calc(100svh - 63px); }
 }
 
 @media (max-width: 420px) {
