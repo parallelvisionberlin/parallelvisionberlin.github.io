@@ -607,24 +607,20 @@ html[lang="de"] .fashion-collaboration-intro h2 {
   font-size: clamp(1rem, 1.2vw, 1.15rem);
   line-height: 1.7;
 }
-.amatista-fashion-gallery-track {
-  display: flex;
-  gap: clamp(16px, 2vw, 30px);
-  padding: 0 max(26px, calc((100vw - 1368px) / 2)) 20px;
-  overflow-x: auto;
-  overscroll-behavior-inline: contain;
-  scroll-snap-type: x mandatory;
-  scrollbar-width: none;
-  -webkit-overflow-scrolling: touch;
+.amatista-fashion-gallery-viewer {
+  width: min(calc(100% - 52px), 1080px, calc(70svh * 1.7778));
+  margin: 0 auto;
 }
-.amatista-fashion-gallery-track::-webkit-scrollbar { display: none; }
-.amatista-fashion-frame {
-  flex: 0 0 min(74vw, 1120px);
-  scroll-snap-align: start;
-}
-.amatista-fashion-frame:first-child { flex-basis: min(82vw, 1260px); }
-.amatista-fashion-frame-image {
+.amatista-fashion-gallery-viewport {
   aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: #080808;
+}
+.amatista-fashion-frame { position: relative; height: 100%; margin: 0; }
+.amatista-fashion-frame[hidden] { display: none; }
+.amatista-fashion-frame-image {
+  height: 100%;
   overflow: hidden;
   background: #080808;
 }
@@ -636,13 +632,46 @@ html[lang="de"] .fashion-collaboration-intro h2 {
   object-position: center;
 }
 .amatista-fashion-frame figcaption {
+  position: absolute;
+  right: 18px;
+  bottom: 16px;
+  left: 18px;
+  z-index: 1;
   display: flex;
   justify-content: space-between;
   gap: 20px;
-  padding-top: 13px;
-  color: var(--muted);
+  color: rgba(255,255,255,.72);
   font: 9px/1.6 'Courier New', monospace;
   letter-spacing: .18em;
+  text-shadow: 0 1px 8px #000;
+  text-transform: uppercase;
+}
+.amatista-fashion-gallery-controls {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-top: 0;
+}
+.amatista-fashion-gallery-button {
+  min-height: 48px;
+  padding: 14px 18px;
+  border: 0;
+  background: transparent;
+  color: rgba(255,255,255,.72);
+  font: 9px/1.5 'Courier New', monospace;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color .2s ease, background .2s ease;
+}
+.amatista-fashion-gallery-button:first-child { justify-self: start; }
+.amatista-fashion-gallery-button:last-child { justify-self: end; }
+.amatista-fashion-gallery-button:hover,.amatista-fashion-gallery-button:focus-visible { color: #fff; background: rgba(255,255,255,.045); }
+.amatista-fashion-gallery-counter {
+  color: var(--muted);
+  font: 9px/1.5 'Courier New', monospace;
+  letter-spacing: .2em;
   text-transform: uppercase;
 }
 .fashion-development .fashion-definition-layout { align-items: start; }
@@ -952,9 +981,9 @@ html[lang="de"] .fashion-collaboration-intro h2 {
   .amatista-fashion-gallery-head { grid-template-columns: 1fr; gap: 22px; margin-bottom: 36px; padding: 0 18px; }
   .amatista-fashion-gallery h2 { font-size: clamp(1.65rem, 8vw, 2.6rem); }
   .amatista-fashion-gallery-copy p { margin-top: 20px; font-size: 1rem; }
-  .amatista-fashion-gallery-track { gap: 14px; padding-left: 18px; padding-right: 18px; }
-  .amatista-fashion-frame,.amatista-fashion-frame:first-child { flex-basis: 90vw; }
-  .amatista-fashion-frame:first-child { flex-basis: 92vw; }
+  .amatista-fashion-gallery-viewer { width: calc(100% - 36px); }
+  .amatista-fashion-frame figcaption { right: 12px; bottom: 10px; left: 12px; font-size: 8px; }
+  .amatista-fashion-gallery-button { min-height: 52px; padding: 15px 14px; }
 }
 
 @media (max-width: 420px) {
