@@ -35,6 +35,9 @@
     .amatista-label,.amatista-section-label { color:rgba(255,255,255,.72); font:500 9px/1.6 "Courier New",monospace; letter-spacing:.24em; text-transform:uppercase; }
     .amatista-title { margin-top:clamp(18px,2.5vw,32px); font:400 clamp(3.4rem,10vw,10.5rem)/.86 Michroma,sans-serif; letter-spacing:.025em; text-transform:uppercase; }
     .amatista-subtitle { margin-top:clamp(26px,3vw,42px); color:rgba(255,255,255,.72); font:9px/1.7 "Courier New",monospace; letter-spacing:.2em; text-transform:uppercase; }
+    .fashion-after-fabric-link { display:inline-block; padding:10px 0 7px; border-bottom:1px solid rgba(255,255,255,.5); color:#fff; font:500 9px/1.5 "Courier New",monospace; letter-spacing:.2em; text-transform:uppercase; transition:border-color .2s ease,opacity .2s ease,transform .2s ease; }
+    .fashion-after-fabric-link:hover,.fashion-after-fabric-link:focus-visible { border-color:#fff; transform:translateX(4px); }
+    .amatista-hero-copy > .fashion-after-fabric-link { position:absolute; right:0; bottom:0; }
     .amatista-identity { display:grid; grid-template-columns:minmax(280px,.78fr) minmax(340px,1.22fr); gap:clamp(48px,9vw,150px); align-items:center; padding:clamp(90px,11vw,165px) var(--pad); border-bottom:1px solid var(--line); }
     .amatista-identity > *,.amatista-transmission-grid > * { min-width:0; }
     .amatista-portrait { justify-self:center; width:min(100%,520px); max-height:82svh; overflow:hidden; background:#071018; }
@@ -43,6 +46,13 @@
     .amatista-copy h2 { margin-top:22px; font:400 clamp(1.8rem,2.75vw,2.9rem)/1 Michroma,sans-serif; letter-spacing:.045em; text-transform:uppercase; }
     .amatista-copy-body { margin-top:clamp(28px,3.5vw,44px); max-width:620px; color:rgba(255,255,255,.76); font-size:clamp(.96rem,1.1vw,1.08rem); line-height:1.7; }
     .amatista-copy-body p + p { margin-top:20px; }
+    .artist-crosslink { padding:clamp(64px,7vw,100px) var(--pad); border-bottom:1px solid var(--line); }
+    .artist-crosslink__inner { width:100%; max-width:1180px; margin:0 auto; display:grid; grid-template-columns:minmax(180px,.36fr) minmax(0,1fr); gap:clamp(38px,7vw,110px); align-items:start; }
+    .artist-crosslink__content { max-width:760px; }
+    .artist-crosslink h2 { font:400 clamp(1.75rem,3.2vw,3.3rem)/1.08 Michroma,sans-serif; letter-spacing:.04em; text-transform:uppercase; }
+    .artist-crosslink__text { max-width:680px; margin-top:24px; color:rgba(255,255,255,.7); font-size:clamp(.95rem,1.15vw,1.08rem); line-height:1.7; }
+    .artist-crosslink__button { display:inline-block; margin-top:30px; padding:13px 16px 11px; border:1px solid rgba(255,255,255,.35); color:#fff; font:500 9px/1.5 "Courier New",monospace; letter-spacing:.18em; text-transform:uppercase; transition:border-color .2s ease,background .2s ease,transform .2s ease; }
+    .artist-crosslink__button:hover,.artist-crosslink__button:focus-visible { border-color:rgba(255,255,255,.8); background:rgba(255,255,255,.045); transform:translateX(4px); }
     .amatista-featured-set { padding:clamp(72px,8vw,112px) var(--pad); border-bottom:1px solid var(--line); }
     .amatista-featured-set-grid { max-width:1100px; }
     .amatista-featured-set h2 { margin-top:12px; font:400 clamp(2.625rem,4.5vw,4.25rem)/.95 Michroma,sans-serif; letter-spacing:.04em; text-transform:uppercase; }
@@ -88,11 +98,17 @@
       .amatista-hero-image { object-position:57% center; }
       .amatista-title { font-size:clamp(2.4rem,10.5vw,4.25rem); line-height:.92; }
       .amatista-subtitle { max-width:260px; }
+      .amatista-hero-copy > .fashion-after-fabric-link { position:static; margin-top:16px; }
       .amatista-identity { grid-template-columns:1fr; gap:52px; padding:82px 18px 100px; }
       .amatista-portrait { width:min(100%,460px); max-height:none; }
       .amatista-portrait img { max-height:none; }
       .amatista-copy h2 { font-size:clamp(1.7rem,7.5vw,2.7rem); }
       .amatista-copy-body { font-size:1rem; }
+      .artist-crosslink { padding:68px 18px 76px; }
+      .artist-crosslink__inner { grid-template-columns:1fr; gap:24px; }
+      .artist-crosslink h2 { font-size:clamp(1.45rem,6.5vw,2.1rem); }
+      .artist-crosslink__text { margin-top:20px; font-size:.96rem; }
+      .artist-crosslink__button { margin-top:26px; }
       .amatista-featured-set { padding:78px 18px 88px; }
       .amatista-featured-set h2 { font-size:clamp(1.55rem,7vw,2.2rem); }
       .amatista-featured-set-player { margin-top:22px; }
@@ -120,7 +136,7 @@
   <main>
     <header class="amatista-hero" aria-labelledby="amatista-title">
       <img class="amatista-hero-image" src="./assets/fashion-after-fabric/artists/amatista/hero-amastista-hd.png" alt="Amatista inside a cold architectural interior" width="3072" height="1728">
-      <div class="amatista-hero-copy"><p class="amatista-label">Parallel Vision Artist</p><h1 class="amatista-title" id="amatista-title">Amatista</h1><p class="amatista-subtitle">Artist / Transmission from the Archive</p></div>
+      <div class="amatista-hero-copy"><p class="amatista-label">Parallel Vision Artist</p><h1 class="amatista-title" id="amatista-title">Amatista</h1><p class="amatista-subtitle">Artist / Transmission from the Archive</p><a class="fashion-after-fabric-link" href="./amatista-fashion-after-fabric.html">Fashion After Fabric ↗</a></div>
     </header>
     <section class="amatista-identity" id="identity" aria-labelledby="amatista-identity-title">
       <figure class="amatista-portrait"><img src="./assets/fashion-after-fabric/artists/amatista/amatistacard.png" alt="Portrait of Amatista in the Parallel Vision archive" loading="lazy" decoding="async" width="848" height="1131"></figure>
@@ -133,6 +149,16 @@
           <p>A defining part of her studio process is her work with quartz and crystals. She uses frequencies associated with different minerals as part of the production process, integrating them into the tonal and rhythmic construction of her tracks.</p>
           <p>She began producing in 2022 and has since performed across Mexico, including Japan CDMX, Casa Cobra and Vagalume in Tulum, developing a sound and visual identity that connects club music with her long-standing interest in minerals, frequency and ritual.</p>
           <p>For Parallel Vision, AMATISTA(444) brings a distinctly Mexican perspective to the label's darker, more hypnotic side: melodic, physical and built around a strong personal world rather than a fixed genre formula.</p>
+        </div>
+      </div>
+    </section>
+    <section class="artist-crosslink" aria-labelledby="amatista-fashion-crosslink-title">
+      <div class="artist-crosslink__inner reveal">
+        <p class="amatista-section-label">Parallel Vision Body Archive</p>
+        <div class="artist-crosslink__content">
+          <h2 id="amatista-fashion-crosslink-title">Amatista / Fashion After Fabric</h2>
+          <p class="artist-crosslink__text">A parallel body study from the Fashion After Fabric archive, where portrait, garment and atmosphere merge into one transmission.</p>
+          <a class="artist-crosslink__button" href="./amatista-fashion-after-fabric.html">Enter Fashion After Fabric</a>
         </div>
       </div>
     </section>
