@@ -212,8 +212,8 @@ html[lang="en"] .fashion-project-definition #fashion-research-title {
 }
 @media (min-width: 761px) {
   html[lang="en"] .fashion-project-definition #fashion-research-title {
-    font-size: clamp(64px, 6vw, 96px);
-    line-height: .95;
+    font-size: clamp(58px, 5vw, 84px);
+    line-height: .94;
   }
 }
 html[lang="de"] .fashion-project-definition .fashion-definition-layout {
