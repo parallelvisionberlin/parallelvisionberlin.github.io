@@ -590,7 +590,7 @@ html[lang="de"] .fashion-collaboration-intro h2 {
 }
 .amatista-fashion-gallery-inner {
   width: min(calc(100% - 52px), 1080px, calc(70svh * 1.7778));
-  margin: 0 auto;
+  margin: 0 0 0 max(26px, calc((100vw - 1388px) / 2));
 }
 .amatista-fashion-gallery-head {
   width: 100%;
@@ -981,7 +981,7 @@ html[lang="de"] .fashion-collaboration-intro h2 {
   .amatista-fashion-study-page .cabizbajo-hero-copy { top: auto; bottom: 30px; }
   .amatista-fashion-study-page .cabizbajo-hero h1 { font-size: clamp(2.5rem, 14vw, 5rem); line-height: .9; letter-spacing: .02em; }
   .amatista-fashion-gallery { padding: 76px 0 108px; }
-  .amatista-fashion-gallery-inner { width: calc(100% - 36px); }
+  .amatista-fashion-gallery-inner { width: calc(100% - 36px); margin: 0 18px; }
   .amatista-fashion-gallery-head { margin-bottom: 34px; }
   .amatista-fashion-gallery-copy { margin-top: 14px; }
   .amatista-fashion-gallery h2 { font-size: clamp(1.65rem, 8vw, 2.6rem); }
