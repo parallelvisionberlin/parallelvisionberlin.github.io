@@ -43,6 +43,14 @@
     .amatista-copy h2 { margin-top:24px; font:400 clamp(2rem,4.6vw,4.8rem)/1 Michroma,sans-serif; letter-spacing:.045em; text-transform:uppercase; }
     .amatista-copy-body { margin-top:clamp(38px,5vw,66px); max-width:700px; color:rgba(255,255,255,.76); font-size:clamp(1.04rem,1.38vw,1.3rem); line-height:1.72; }
     .amatista-copy-body p + p { margin-top:24px; }
+    .amatista-featured-set { padding:clamp(82px,9vw,130px) var(--pad); border-bottom:1px solid var(--line); }
+    .amatista-featured-set-grid { display:grid; grid-template-columns:minmax(240px,.58fr) minmax(0,1.42fr); gap:clamp(48px,8vw,130px); align-items:end; }
+    .amatista-featured-set h2 { margin-top:22px; font:400 clamp(2rem,4vw,4rem)/1 Michroma,sans-serif; letter-spacing:.04em; text-transform:uppercase; }
+    .amatista-set-label { margin-top:24px; color:var(--muted); font:9px/1.7 "Courier New",monospace; letter-spacing:.18em; text-transform:uppercase; }
+    .amatista-player-frame { overflow:hidden; border:1px solid var(--line); background:#0a0a0a; }
+    .amatista-player-frame iframe { display:block; width:100%; height:166px; border:0; }
+    .amatista-soundcloud-link { display:inline-block; margin-top:18px; color:var(--muted); font:9px/1.6 "Courier New",monospace; letter-spacing:.18em; text-transform:uppercase; transition:color .2s ease,transform .2s ease; }
+    .amatista-soundcloud-link:hover { color:#fff; transform:translateX(4px); }
     .amatista-transmission { padding:clamp(92px,11vw,165px) var(--pad); border-bottom:1px solid var(--line); }
     .amatista-transmission-grid { display:grid; grid-template-columns:minmax(0,1fr) minmax(280px,.58fr); gap:clamp(48px,9vw,150px); align-items:end; }
     .amatista-transmission h2 { margin-top:24px; max-width:900px; font:400 clamp(2rem,5vw,5.2rem)/1.08 Michroma,sans-serif; letter-spacing:.04em; text-transform:uppercase; }
@@ -72,6 +80,10 @@
       .amatista-portrait img { max-height:none; }
       .amatista-copy h2 { font-size:clamp(1.7rem,7.5vw,2.7rem); }
       .amatista-copy-body { font-size:1rem; }
+      .amatista-featured-set { padding:78px 18px 88px; }
+      .amatista-featured-set-grid { grid-template-columns:1fr; gap:42px; }
+      .amatista-featured-set h2 { font-size:clamp(1.7rem,7.5vw,2.7rem); }
+      .amatista-player-frame iframe { height:166px; }
       .amatista-transmission { padding:88px 18px 100px; }
       .amatista-transmission-grid { grid-template-columns:1fr; gap:54px; }
       .amatista-transmission h2 { font-size:clamp(1.65rem,7vw,2rem); }
@@ -105,6 +117,21 @@
           <p>At the center of her production practice is an interest in vibration as material. In the studio, she works with frequencies derived from quartz and crystals, translating them into musical structures and using them as another layer of rhythm, tone and atmosphere.</p>
           <p>Since beginning her production career in 2022, AMATISTA(444) has performed across Mexico, from Japan CDMX and Casa Cobra to key spaces in Tulum including Vagalume.</p>
           <p>Inside Parallel Vision, her work occupies a more ritual and tactile zone: sound as frequency, repetition as physical sensation, and the club as a space where electronic music can move between body, material and perception.</p>
+        </div>
+      </div>
+    </section>
+    <section class="amatista-featured-set" aria-labelledby="amatista-featured-set-title">
+      <div class="amatista-featured-set-grid">
+        <div>
+          <p class="amatista-section-label">Audio Archive / Selected Transmission</p>
+          <h2 id="amatista-featured-set-title">Featured Set</h2>
+          <p class="amatista-set-label">AMATISTA(444) / Femme La Nuit Radio</p>
+        </div>
+        <div>
+          <div class="amatista-player-frame">
+            <iframe title="AMATISTA(444) / Femme La Nuit Radio on SoundCloud" loading="lazy" allow="autoplay" src="https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/amatista444/femmelanuit-radio-amatista-444&amp;color=%23ffffff&amp;auto_play=false&amp;hide_related=true&amp;show_comments=false&amp;show_user=true&amp;show_reposts=false&amp;show_teaser=false&amp;visual=false"></iframe>
+          </div>
+          <a class="amatista-soundcloud-link" href="https://soundcloud.com/amatista444/femmelanuit-radio-amatista-444" target="_blank" rel="noopener noreferrer">Listen on SoundCloud ↗</a>
         </div>
       </div>
     </section>
