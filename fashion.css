@@ -563,6 +563,43 @@ html[lang="de"] .fashion-collaboration-intro h2 {
 .cabizbajo-return a:hover, .cabizbajo-return a:focus-visible { opacity: 1; }
 
 /* Amatista / Artist Study 04 */
+.amatista-material-study {
+  display: grid;
+  grid-template-columns: minmax(280px, 430px) minmax(300px, 520px);
+  gap: clamp(44px, 6vw, 86px);
+  align-items: center;
+  width: min(100%, 1040px);
+  padding: 0 0 clamp(120px, 14vw, 190px);
+}
+.amatista-material-study-plate {
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  margin: 0;
+  border: 1px solid rgba(255,255,255,.12);
+  background: #050708;
+}
+.amatista-material-study-plate img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 48%;
+  filter: brightness(.78) contrast(1.08) saturate(.82);
+}
+.amatista-material-study-copy h2 {
+  max-width: 560px;
+  margin-top: 18px;
+  font: 400 clamp(1.65rem, 2.8vw, 3rem)/1.1 Michroma, sans-serif;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.amatista-material-study-copy > p:not(.cabizbajo-section-label) {
+  max-width: 470px;
+  margin-top: 30px;
+  color: rgba(255,255,255,.72);
+  font-size: clamp(1rem, 1.2vw, 1.15rem);
+  line-height: 1.72;
+}
 .amatista-fashion-film {
   width: min(100%, 1180px);
   padding: 0 0 clamp(120px, 14vw, 190px);
@@ -980,6 +1017,10 @@ html[lang="de"] .fashion-collaboration-intro h2 {
   .cabizbajo-material img { grid-column: 1; grid-row: 1; width: min(92%, 560px); }
   .cabizbajo-material-copy { grid-column: 1; grid-row: 2; padding-bottom: 0; }
   .amatista-fashion-film { padding-bottom: 120px; }
+  .amatista-material-study { grid-template-columns: 1fr; gap: 34px; width: 100%; padding-bottom: 110px; }
+  .amatista-material-study-plate { width: min(100%, 430px); }
+  .amatista-material-study-copy h2 { font-size: clamp(1.55rem, 7vw, 2.3rem); }
+  .amatista-material-study-copy > p:not(.cabizbajo-section-label) { margin-top: 24px; font-size: 1rem; }
   .amatista-fashion-film-head { padding-bottom: 22px; }
   .amatista-fashion-film-head h2 { font-size: clamp(1.45rem, 6.8vw, 2.25rem); }
   .amatista-fashion-film video { max-height: 70svh; margin-top: 20px; }
