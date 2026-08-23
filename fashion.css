@@ -204,6 +204,12 @@ h1 { font: 400 clamp(48px, 8vw, 120px)/.96 Michroma, sans-serif; letter-spacing:
   grid-template-columns: 1fr;
   gap: clamp(30px, 3.5vw, 48px);
 }
+html[lang="en"] .fashion-project-definition #fashion-research-title {
+  max-width: none;
+  white-space: pre-line;
+  overflow-wrap: normal;
+  word-break: keep-all;
+}
 html[lang="de"] .fashion-project-definition .fashion-definition-layout {
   grid-template-columns: 1fr;
   gap: clamp(30px, 3.5vw, 48px);
@@ -332,12 +338,13 @@ html[lang="de"] .fashion-collaboration-intro h2 {
   line-height: .94;
 }
 .inhabitant-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(48px, 5vw, 76px) clamp(18px, 2.4vw, 34px); }
-.inhabitant-card { min-width: 0; border-top: 1px solid var(--line); transition: border-color .28s ease, opacity .28s ease; }
+.inhabitant-card { display: grid; grid-template-rows: auto 1fr; min-width: 0; border-top: 1px solid var(--line); transition: border-color .28s ease, opacity .28s ease; }
+.inhabitant-card:nth-child(n + 7) { display: none; }
 .inhabitant-image { aspect-ratio: 3 / 4; overflow: hidden; background: #080808; }
 .inhabitant-image img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center top; filter: saturate(.76) brightness(.86); transition: transform .5s cubic-bezier(.2,.7,.2,1), filter .35s ease; }
 .inhabitant-image-alejandro img { object-position: 50% center; }
 .inhabitant-image-elorian img { object-position: 50% 18%; }
-.inhabitant-meta { padding: 17px 0 0; }
+.inhabitant-meta { display: grid; grid-template-rows: auto minmax(2.5em, auto) auto; align-content: start; padding: 17px 0 0; }
 .inhabitant-index { color: var(--muted); font: 9px/1.6 'Courier New', monospace; letter-spacing: .2em; text-transform: uppercase; }
 .inhabitant-meta h3 { min-height: 2.5em; margin-top: 12px; font: 400 clamp(1rem, 1.55vw, 1.35rem)/1.25 Michroma, sans-serif; letter-spacing: .055em; text-transform: uppercase; }
 .inhabitant-foot { display: flex; justify-content: space-between; gap: 16px; margin-top: 17px; padding-top: 13px; border-top: 1px solid var(--line); color: var(--muted); font: 8px/1.55 'Courier New', monospace; letter-spacing: .16em; text-transform: uppercase; }
@@ -346,6 +353,9 @@ html[lang="de"] .fashion-collaboration-intro h2 {
 .inhabitant-card:hover .inhabitant-image img { transform: scale(1.022); filter: saturate(.9) brightness(.96); }
 .inhabitant-card:hover .inhabitant-foot span:last-child { color: rgba(255,255,255,.9); }
 .inhabitant-card:focus-visible { outline: 1px solid #777; outline-offset: 7px; }
+.inhabitant-archive-link { display: block; width: fit-content; margin: clamp(44px, 5vw, 68px) 0 0 auto; color: var(--muted); font: 9px/1.6 'Courier New', monospace; letter-spacing: .18em; text-transform: uppercase; transition: color .28s ease; }
+.inhabitant-archive-link:hover { color: #fff; }
+.inhabitant-archive-link:focus-visible { outline: 1px solid #777; outline-offset: 7px; }
 
 /* Alejandro Molinari / Artist Study 02 */
 .alejandro-study-page { background: #000; }
@@ -469,7 +479,7 @@ html[lang="de"] .fashion-collaboration-intro h2 {
 .cabizbajo-material-copy > p:not(.cabizbajo-section-label) { max-width: 440px; margin-top: 30px; color: rgba(255,255,255,.72); font-size: clamp(1.05rem, 1.25vw, 1.18rem); line-height: 1.72; }
 .cabizbajo-transitions { margin-top: 42px; }
 .cabizbajo-transitions p { padding: 7px 0; font: 10px/1.6 'Courier New', monospace; letter-spacing: .16em; text-transform: uppercase; }
-.cabizbajo-return { padding: 40px 0; border-top: 1px solid var(--line); font: 9px/1.6 'Courier New', monospace; letter-spacing: .22em; text-transform: uppercase; }
+.cabizbajo-return { display: flex; justify-content: space-between; gap: 24px; padding: 40px 0; border-top: 1px solid var(--line); font: 9px/1.6 'Courier New', monospace; letter-spacing: .22em; text-transform: uppercase; }
 .cabizbajo-return a { opacity: .65; }
 .cabizbajo-return a:hover, .cabizbajo-return a:focus-visible { opacity: 1; }
 .fashion-development .fashion-definition-layout { align-items: start; }
@@ -770,4 +780,5 @@ html[lang="de"] .fashion-collaboration-intro h2 {
 @media (max-width: 420px) {
   .inhabitant-grid { grid-template-columns: 1fr; gap: 52px; }
   .inhabitant-meta h3 { min-height: 0; font-size: 1.05rem; }
+  .cabizbajo-return { align-items: flex-start; flex-direction: column; }
 }
