@@ -202,8 +202,8 @@ h1 { font: 400 clamp(48px, 8vw, 120px)/.96 Michroma, sans-serif; letter-spacing:
 }
 .fashion-project-definition .fashion-definition-layout { grid-template-columns: minmax(0, 1fr) minmax(280px, .8fr); }
 html[lang="de"] .fashion-project-definition .fashion-definition-layout {
-  grid-template-columns: minmax(0, 1.22fr) minmax(300px, .78fr);
-  gap: clamp(48px, 6vw, 92px);
+  grid-template-columns: 1fr;
+  gap: clamp(30px, 3.5vw, 48px);
 }
 html[lang="de"] .fashion-project-definition #fashion-research-title {
   max-width: none;
@@ -265,8 +265,8 @@ html[lang="de"] .fashion-project-definition #fashion-research-title {
   align-items: start;
 }
 html[lang="de"] .fashion-material-archive {
-  grid-template-columns: minmax(0, 1fr) minmax(420px, 1.08fr);
-  column-gap: clamp(3.5rem, 7vw, 7.5rem);
+  grid-template-columns: 1fr;
+  row-gap: clamp(38px, 5vw, 66px);
 }
 html[lang="de"] .fashion-material-archive #fashion-archive-title {
   max-width: none;
@@ -316,8 +316,8 @@ html[lang="de"] .fashion-material-archive #fashion-archive-title {
 .fashion-collaboration-intro h2 { font-size: clamp(2.25rem, 4.7vw, 4.9rem); line-height: .96; }
 .fashion-collaboration-intro .fashion-chapter-copy { padding-top: 30px; font-size: clamp(.96rem, 1.25vw, 1.12rem); }
 html[lang="de"] .fashion-collaboration-intro {
-  grid-template-columns: minmax(0, 1.18fr) minmax(300px, .82fr);
-  gap: clamp(48px, 6vw, 88px);
+  grid-template-columns: 1fr;
+  gap: clamp(28px, 3.5vw, 44px);
 }
 html[lang="de"] .fashion-collaboration-intro h2 {
   max-width: none;
@@ -604,16 +604,16 @@ html[lang="de"] .fashion-collaboration-intro h2 {
 @media (min-width: 761px) and (max-width: 1100px) {
   html[lang="de"] .fashion-project-definition .fashion-definition-layout,
   html[lang="de"] .fashion-collaboration-intro {
-    grid-template-columns: minmax(0, 1.25fr) minmax(270px, .75fr);
-    gap: clamp(34px, 4vw, 52px);
+    grid-template-columns: 1fr;
+    gap: clamp(28px, 3.5vw, 42px);
   }
   html[lang="de"] .fashion-project-definition #fashion-research-title,
   html[lang="de"] .fashion-collaboration-intro h2 {
     font-size: clamp(2rem, 3.6vw, 2.55rem);
   }
   html[lang="de"] .fashion-material-archive {
-    grid-template-columns: minmax(0, 1.05fr) minmax(390px, .95fr);
-    column-gap: clamp(34px, 4.5vw, 58px);
+    grid-template-columns: 1fr;
+    row-gap: clamp(36px, 4.5vw, 54px);
   }
   html[lang="de"] .fashion-material-archive #fashion-archive-title {
     font-size: clamp(2.2rem, 4vw, 2.8rem);
