@@ -174,6 +174,14 @@
       text-transform: uppercase;
     }
 
+    .berlin-chapter-taxonomy {
+      margin-top: 10px;
+      color: rgba(255,255,255,.62);
+      font: 10px/1.5 'Courier New', monospace;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+    }
+
     .berlin-chapter-description {
       max-width: 590px;
       margin-top: 10px;
@@ -287,68 +295,6 @@
       transform: translateX(8px);
       outline: 1px solid rgba(255,255,255,.5);
       outline-offset: 4px;
-    }
-
-    .berlin-nightlife-sequence {
-      display: flex;
-      gap: clamp(16px,2vw,28px);
-      margin-top: clamp(28px,3vw,42px);
-      padding: 0 10% 6px 0;
-      overflow-x: auto;
-      overflow-y: hidden;
-      overscroll-behavior-x: contain;
-      scroll-behavior: smooth;
-      scroll-snap-type: x mandatory;
-      scrollbar-width: none;
-      touch-action: pan-x pan-y;
-      outline: none;
-    }
-
-    .berlin-nightlife-sequence::-webkit-scrollbar { display: none; }
-
-    .berlin-nightlife-sequence:focus-visible {
-      outline: 1px solid rgba(255,255,255,.5);
-      outline-offset: 7px;
-    }
-
-    .berlin-nightlife-plate {
-      flex: 0 0 86%;
-      min-width: 0;
-      margin: 0;
-      scroll-snap-align: start;
-      scroll-snap-stop: always;
-    }
-
-    .berlin-nightlife-plate img {
-      display: block;
-      width: 100%;
-      height: auto;
-      aspect-ratio: 16 / 9;
-      object-fit: cover;
-      filter: saturate(.82) brightness(.84) contrast(1.04);
-    }
-
-    .berlin-nightlife-meta {
-      display: flex;
-      justify-content: space-between;
-      gap: 24px;
-      padding-top: 14px;
-      color: rgba(255,255,255,.52);
-      font: 11px/1.5 'Courier New', monospace;
-      letter-spacing: .16em;
-      text-transform: uppercase;
-    }
-
-    .berlin-nightlife-navigation {
-      display: flex;
-      justify-content: flex-end;
-      gap: clamp(20px,3vw,42px);
-      margin-top: 18px;
-    }
-
-    .berlin-nightlife-navigation .berlin-gallery-button:disabled {
-      cursor: default;
-      opacity: .28;
     }
 
     .berlin-archive-closing {
@@ -514,22 +460,6 @@
         min-width: 96px;
         min-height: 48px;
       }
-      .berlin-nightlife-sequence {
-        gap: 14px;
-        margin-top: 28px;
-        padding-right: 8%;
-      }
-      .berlin-nightlife-plate:nth-child(n) {
-        flex-basis: 92%;
-        width: auto;
-        margin: 0;
-      }
-      .berlin-nightlife-meta {
-        gap: 14px;
-        padding-top: 12px;
-        font-size: 10px;
-        letter-spacing: .12em;
-      }
       .berlin-archive-closing {
         margin-top: 64px;
         font-size: 16px;
@@ -611,6 +541,7 @@
       urbanForm: {
         title: "Urban Form",
         titleDe: "Urbane Form",
+        taxonomy: "The body of the city.",
         description: "The physical shape of Berlin 2063: skyline, streets, monuments, civic scale, architecture and public space.",
         descriptionDe: "Die physische Form von Berlin 2063: Skyline, Straßen, Monumente, städtischer Maßstab, Architektur und öffentlicher Raum.",
         images: [
@@ -625,6 +556,7 @@
       urbanSystems: {
         title: "Urban Systems",
         titleDe: "Urbane Systeme",
+        taxonomy: "How the city moves.",
         description: "Transit, metro, terminals, corridors, water, circulation and the infrastructure that keeps the future city moving.",
         descriptionDe: "Transit, Metro, Terminals, Korridore, Wasser, Zirkulation und die Infrastruktur, die die zukünftige Stadt in Bewegung hält.",
         images: [
@@ -638,6 +570,7 @@
       inhabitants: {
         title: "Inhabitants",
         titleDe: "Bewohner:innen",
+        taxonomy: "Who lives inside it.",
         description: "Bodies, identities and figures moving through Berlin 2063 as part of its architecture, materials and social conditions.",
         descriptionDe: "Körper, Identitäten und Figuren, die sich durch Berlin 2063 bewegen, geprägt von Architektur, Materialien und sozialen Bedingungen.",
         images: [
@@ -654,9 +587,9 @@
       nightlife: {
         title: "Nightlife",
         titleDe: "Nachtleben",
+        taxonomy: "Where bodies gather.",
         description: "The social engine of Berlin 2063: clubs, rooms, rituals, performance, rave structures and after-hours spaces.",
         descriptionDe: "Der soziale Motor von Berlin 2063: Clubs, Räume, Rituale, Performance, Rave-Strukturen und After-Hours-Orte.",
-        layout: "plates",
         images: [
           { src: "./assets/2063/NIGHTLIFE I.png", width: 2048, height: 1152 },
           { src: "./assets/2063/NIGHTLIFE III.png", width: 2048, height: 1152 },
@@ -669,6 +602,7 @@
       transmissions: {
         title: "Transmissions",
         titleDe: "Übertragungen",
+        taxonomy: "How the city speaks.",
         description: "Screens, signals, projections, Nina FOK and the communication systems through which the archive speaks.",
         descriptionDe: "Screens, Signale, Projektionen, Nina FOK und die Kommunikationssysteme, durch die das Archiv spricht.",
         // TEMP PLACEHOLDER — replace when archive assets arrive
@@ -677,6 +611,7 @@
       materialCulture: {
         title: "Material Culture",
         titleDe: "Materielle Kultur",
+        taxonomy: "What bodies wear / become.",
         description: "Garments, material systems, body technologies and Fashion After Fabric as the clothing language of Berlin 2063.",
         descriptionDe: "Kleidung, Materialsysteme, Körpertechnologien und Fashion After Fabric als vestimentäre Sprache von Berlin 2063.",
         layout: "bridge"
@@ -696,6 +631,7 @@
         article.innerHTML = `
           <header class="berlin-chapter-heading">
             <p class="berlin-transmission-index">${archiveNumber} / ${chapter.title}</p>
+            <p class="berlin-chapter-taxonomy">${chapter.taxonomy}</p>
             <p class="berlin-chapter-description">${chapter.description}</p>
           </header>
           <div class="berlin-material-culture-bridge">
@@ -721,79 +657,12 @@
         return;
       }
 
-      if (chapter.layout === "plates") {
-        article.classList.add("berlin-nightlife-chapter");
-        article.innerHTML = `
-          <header class="berlin-chapter-heading">
-            <p class="berlin-transmission-index">${archiveNumber} / Visual Archive</p>
-            <h3>${chapter.title}</h3>
-            <p class="berlin-chapter-description">${chapter.description}</p>
-          </header>
-          <div class="berlin-nightlife-sequence" tabindex="0" role="region" aria-label="${chapter.title} visual archive">
-            ${chapter.images.map((item, imageIndex) => `
-              <figure class="berlin-nightlife-plate">
-                <img src="${item.src}" alt="Nightlife archival document ${imageIndex + 1} from Berlin 2063" width="${item.width}" height="${item.height}" decoding="async" ${imageIndex === 0 ? '' : 'loading="lazy"'}>
-                <figcaption class="berlin-nightlife-meta">
-                  <span>${archiveNumber} / ${String(imageIndex + 1).padStart(2, "0")}</span>
-                  <span>Nightlife / Berlin 2063</span>
-                </figcaption>
-              </figure>`).join("")}
-          </div>
-          <div class="berlin-nightlife-navigation" aria-label="${chapter.title} gallery navigation">
-            <button class="berlin-gallery-button berlin-nightlife-previous" type="button" aria-label="Previous nightlife image">← Previous</button>
-            <button class="berlin-gallery-button berlin-nightlife-next" type="button" aria-label="Next nightlife image">Next →</button>
-          </div>`;
-        archiveRoot.appendChild(article);
-
-        const label = article.querySelector(".berlin-transmission-index");
-        const title = article.querySelector("h3");
-        const description = article.querySelector(".berlin-chapter-description");
-        const sequence = article.querySelector(".berlin-nightlife-sequence");
-        const previousButton = article.querySelector(".berlin-nightlife-previous");
-        const nextButton = article.querySelector(".berlin-nightlife-next");
-        const plates = Array.from(sequence.querySelectorAll(".berlin-nightlife-plate"));
-
-        const updateNightlifeNavigation = () => {
-          const tolerance = 4;
-          previousButton.disabled = sequence.scrollLeft <= tolerance;
-          nextButton.disabled = sequence.scrollLeft >= sequence.scrollWidth - sequence.clientWidth - tolerance;
-        };
-
-        const scrollNightlife = (direction) => {
-          const firstPlate = plates[0];
-          if (!firstPlate) return;
-          const gap = parseFloat(getComputedStyle(sequence).columnGap) || 0;
-          sequence.scrollBy({
-            left: direction * (firstPlate.getBoundingClientRect().width + gap),
-            behavior: prefersReducedMotion ? "auto" : "smooth"
-          });
-        };
-
-        previousButton.addEventListener("click", () => scrollNightlife(-1));
-        nextButton.addEventListener("click", () => scrollNightlife(1));
-        sequence.addEventListener("scroll", updateNightlifeNavigation, { passive: true });
-        window.addEventListener("resize", updateNightlifeNavigation, { passive: true });
-        updateNightlifeNavigation();
-
-        function applyNightlifeLanguage(language) {
-          const german = language === "de";
-          label.textContent = `${archiveNumber} / ${german ? "Visuelles Archiv" : "Visual Archive"}`;
-          title.textContent = german ? chapter.titleDe : chapter.title;
-          description.textContent = german ? chapter.descriptionDe : chapter.description;
-          sequence.setAttribute("aria-label", `${german ? chapter.titleDe : chapter.title} ${german ? "visuelles Archiv" : "visual archive"}`);
-          previousButton.textContent = german ? "← Zurück" : "← Previous";
-          nextButton.textContent = german ? "Weiter →" : "Next →";
-          previousButton.setAttribute("aria-label", german ? "Vorheriges Nachtleben-Bild" : "Previous nightlife image");
-          nextButton.setAttribute("aria-label", german ? "Nächstes Nachtleben-Bild" : "Next nightlife image");
-        }
-        applyNightlifeLanguage(document.documentElement.lang);
-        window.addEventListener("pv-language-change", (event) => applyNightlifeLanguage(event.detail.language));
-        return;
-      }
-
+      const isNightlife = chapter === berlinArchive.nightlife;
       article.innerHTML = `
         <header class="berlin-chapter-heading">
-          <p class="berlin-transmission-index">${archiveNumber} / ${chapter.title}</p>
+          <p class="berlin-transmission-index">${archiveNumber} / ${isNightlife ? "Visual Archive" : chapter.title}</p>
+          ${isNightlife ? `<h3>${chapter.title}</h3>` : ""}
+          <p class="berlin-chapter-taxonomy">${chapter.taxonomy}</p>
           <p class="berlin-chapter-description">${chapter.description}</p>
         </header>
         <div class="berlin-gallery" tabindex="0" role="group" aria-label="${chapter.title} image archive">
@@ -815,6 +684,7 @@
 
       const gallery = article.querySelector(".berlin-gallery");
       const chapterLabel = article.querySelector(".berlin-transmission-index");
+      const chapterTitle = article.querySelector("h3");
       const chapterDescription = article.querySelector(".berlin-chapter-description");
       const image = gallery.querySelector("img");
       const counter = gallery.querySelector(".berlin-archive-counter");
@@ -827,7 +697,10 @@
       function applyChapterLanguage(language) {
         const german = language === "de";
         const visibleTitle = german ? chapter.titleDe : chapter.title;
-        chapterLabel.textContent = `${archiveNumber} / ${visibleTitle}`;
+        chapterLabel.textContent = isNightlife
+          ? `${archiveNumber} / ${german ? "Visuelles Archiv" : "Visual Archive"}`
+          : `${archiveNumber} / ${visibleTitle}`;
+        if (chapterTitle) chapterTitle.textContent = visibleTitle;
         chapterDescription.textContent = german ? chapter.descriptionDe : chapter.description;
         gallery.setAttribute("aria-label", `${visibleTitle} ${german ? "Bildarchiv" : "image archive"}`);
         previousButton.textContent = german ? "← Zurück" : "← Previous";
@@ -841,13 +714,13 @@
         const item = chapter.images[currentIndex];
         const update = () => {
           image.src = item.src;
-          image.alt = item.alt;
+          image.alt = item.alt || `Nightlife archival document ${currentIndex + 1} from Berlin 2063`;
           if (item.width && item.height) {
             image.width = item.width;
             image.height = item.height;
           }
           counter.textContent = `${String(currentIndex + 1).padStart(2, "0")} / ${String(chapter.images.length).padStart(2, "0")}`;
-          caption.textContent = item.caption || "";
+          caption.textContent = item.caption || (isNightlife ? "Nightlife / Berlin 2063" : "");
           gallery.classList.remove("is-changing");
         };
         if (animate && !prefersReducedMotion) {
