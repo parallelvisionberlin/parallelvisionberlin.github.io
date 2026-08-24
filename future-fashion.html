@@ -301,7 +301,7 @@
   <section class="fashion-chapter fashion-film-chapter" aria-label="Fashion After Fabric film">
     <p class="fashion-film-label">Fashion After Fabric / Film 001</p>
     <div class="fashion-film-frame">
-      <video autoplay muted loop playsinline preload="auto" poster="./assets/fashion-hero.png" aria-label="Fashion After Fabric material systems in motion">
+      <video autoplay muted loop playsinline preload="auto" poster="./assets/fashion-hero.png" aria-label="Fashion After Fabric material systems in motion" data-smooth-loop-video>
         <source src="./assets/herovideo.mp4" type="video/mp4">
       </video>
     </div>
@@ -423,6 +423,32 @@
   <a href="./index.html">Return to main archive</a>
 </footer>
 <script>
+  (() => {
+    const smoothLoopVideo = document.querySelector('[data-smooth-loop-video]');
+    if (!smoothLoopVideo) return;
+
+    const loopStart = 0.04;
+    const loopEndOffset = 0.16;
+    let duration = 0;
+
+    const updateDuration = () => {
+      duration = Number.isFinite(smoothLoopVideo.duration) ? smoothLoopVideo.duration : 0;
+    };
+
+    const restartLoop = () => {
+      smoothLoopVideo.currentTime = loopStart;
+      smoothLoopVideo.play().catch(() => {});
+    };
+
+    smoothLoopVideo.addEventListener('loadedmetadata', updateDuration);
+    smoothLoopVideo.addEventListener('durationchange', updateDuration);
+    smoothLoopVideo.addEventListener('timeupdate', () => {
+      if (!duration || smoothLoopVideo.paused) return;
+      if (smoothLoopVideo.currentTime >= duration - loopEndOffset) restartLoop();
+    });
+    smoothLoopVideo.addEventListener('ended', restartLoop);
+  })();
+
   (() => {
     const copy = {
       en: [
