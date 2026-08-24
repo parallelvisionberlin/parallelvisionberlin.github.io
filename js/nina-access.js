@@ -34,6 +34,7 @@ const ninaForgetMemory = byId("ninaForgetMemory");
 const ninaAccessHash = "d3ec7a14e4fefc8da57d4045a6ee28d28b328b78126c1e22bc0b541adf0f215c";
 const NINA_PREFERRED_MICROPHONE_KEY = "ninaPreferredMicrophoneId";
 const NINA_VISITOR_ID_KEY = "nina_fok_visitor_id_v1";
+const NINA_USER_PROFILE_KEY = "nina_fok_user_profile_v1";
 const NINA_MEMORY_KEY_PREFIX = "nina_fok_memory_v2:";
 const NINA_LEGACY_MEMORY_KEY = "nina_fok_alejandro_memory_v1";
 const NINA_MEMORY_LIMIT = 20;
@@ -117,6 +118,32 @@ function getNinaVisitorId() {
 
 const ninaVisitorId = getNinaVisitorId();
 const ninaMemoryKey = `${NINA_MEMORY_KEY_PREFIX}${ninaVisitorId}`;
+
+function validateNinaUserProfile(profile) {
+  if (!profile || typeof profile !== "object") return null;
+  const displayName = typeof profile.displayName === "string" ? profile.displayName.trim() : "";
+  const profileType = profile.profileType === "owner" || profile.profileType === "visitor" ? profile.profileType : "";
+  if (!displayName || displayName.length > 50 || !profileType) return null;
+  return { displayName, profileType };
+}
+
+function readNinaUserProfile() {
+  try {
+    return validateNinaUserProfile(JSON.parse(localStorage.getItem(NINA_USER_PROFILE_KEY) || "null"));
+  } catch {
+    return null;
+  }
+}
+
+window.enrollNinaAlejandro = () => {
+  const profile = { displayName: "Alejandro", profileType: "owner" };
+  localStorage.setItem(NINA_USER_PROFILE_KEY, JSON.stringify(profile));
+  return profile;
+};
+
+window.clearNinaUserProfile = () => {
+  localStorage.removeItem(NINA_USER_PROFILE_KEY);
+};
 
 function isStoredMemoryMessage(message) {
   return message &&
@@ -426,7 +453,11 @@ async function requestSessionToken(signal, history) {
   const response = await fetch(ANAM_SESSION_TOKEN_ENDPOINT, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ visitorId: ninaVisitorId, history }),
+    body: JSON.stringify({
+      visitorId: ninaVisitorId,
+      recentMessages: history,
+      profile: readNinaUserProfile()
+    }),
     signal
   });
   if (!response.ok) throw new Error(`Token endpoint returned ${response.status}.`);
