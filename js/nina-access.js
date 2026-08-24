@@ -449,7 +449,6 @@ async function stopNinaSession() {
 
 async function requestSessionToken(signal, history) {
   if (ANAM_SESSION_TOKEN_ENDPOINT.includes("REPLACE-WITH-WORKER")) throw new Error("Anam token endpoint is not configured.");
-  console.info("Nina memory restore", { visitorId: ninaVisitorId, restoredMessages: history.length });
   const response = await fetch(ANAM_SESSION_TOKEN_ENDPOINT, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -462,6 +461,7 @@ async function requestSessionToken(signal, history) {
   });
   if (!response.ok) throw new Error(`Token endpoint returned ${response.status}.`);
   const data = await response.json();
+  if (data.diagnostics) console.info("Nina profile diagnostics", data.diagnostics);
   if (typeof data.sessionToken !== "string" || !data.sessionToken) throw new Error("Token endpoint did not return a session token.");
   return data.sessionToken;
 }

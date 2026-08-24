@@ -83,13 +83,35 @@ function formatPrivateMemory(history) {
   return `${PRIVATE_MEMORY_INSTRUCTIONS}\n\n${transcript}`;
 }
 
-async function getCurrentPersonaPrompt(apiKey) {
+async function getCurrentPersonaConfig(apiKey) {
   const response = await fetch(`https://api.anam.ai/v1/personas/${PERSONA_ID}`, {
     headers: { "Authorization": `Bearer ${apiKey}` }
   });
   if (!response.ok) throw new Error("Unable to read persona configuration");
   const persona = await response.json();
-  return typeof persona?.brain?.systemPrompt === "string" ? persona.brain.systemPrompt.trim() : "";
+  const avatarId = typeof persona?.avatar?.id === "string" ? persona.avatar.id : "";
+  const voiceId = typeof persona?.voice?.id === "string" ? persona.voice.id : "";
+  const llmId = typeof persona?.llmId === "string" ? persona.llmId : "";
+  if (!avatarId || !voiceId || !llmId) throw new Error("Incomplete persona configuration");
+  const config = {
+    name: typeof persona?.name === "string" && persona.name.trim() ? persona.name.trim() : "Nina FOK",
+    avatarId,
+    voiceId,
+    llmId,
+    systemPrompt: typeof persona?.brain?.systemPrompt === "string" ? persona.brain.systemPrompt.trim() : ""
+  };
+  if (typeof persona?.avatarModel === "string" && persona.avatarModel) config.avatarModel = persona.avatarModel;
+  if (persona?.voiceDetectionOptions && typeof persona.voiceDetectionOptions === "object") {
+    config.voiceDetectionOptions = persona.voiceDetectionOptions;
+  }
+  if (persona?.voiceGenerationOptions && typeof persona.voiceGenerationOptions === "object") {
+    config.voiceGenerationOptions = persona.voiceGenerationOptions;
+  }
+  const toolIds = Array.isArray(persona?.tools)
+    ? persona.tools.map(tool => tool?.id).filter(id => typeof id === "string" && id)
+    : [];
+  if (toolIds.length) config.toolIds = toolIds;
+  return config;
 }
 
 export default {
@@ -111,16 +133,17 @@ export default {
       const history = validateHistory(requestBody.recentMessages);
       const profile = validateProfile(requestBody.profile);
       const recognizesAlejandro = isAlejandroOwner(profile);
+      const diagnostics = {
+        profileReceived: Boolean(requestBody.profile),
+        ownerProfileMatched: recognizesAlejandro,
+        ownerGreetingSelected: recognizesAlejandro
+      };
       const privateMemory = formatPrivateMemory(history);
       const privateContext = [recognizesAlejandro ? ALEJANDRO_CONTEXT : "", privateMemory].filter(Boolean).join("\n\n");
-      const personaConfig = {
-        personaId: PERSONA_ID,
-        initialMessage: recognizesAlejandro ? ALEJANDRO_GREETING : DEFAULT_GREETING
-      };
-      if (privateContext) {
-        const currentSystemPrompt = await getCurrentPersonaPrompt(env.ANAM_API_KEY);
-        personaConfig.systemPrompt = [currentSystemPrompt, privateContext].filter(Boolean).join("\n\n");
-      }
+      const personaConfig = await getCurrentPersonaConfig(env.ANAM_API_KEY);
+      personaConfig.initialMessage = recognizesAlejandro ? ALEJANDRO_GREETING : DEFAULT_GREETING;
+      personaConfig.skipGreeting = false;
+      personaConfig.systemPrompt = [personaConfig.systemPrompt, privateContext].filter(Boolean).join("\n\n");
       const anamResponse = await fetch("https://api.anam.ai/v1/auth/session-token", {
         method: "POST",
         headers: {
@@ -134,7 +157,7 @@ export default {
       if (typeof data.sessionToken !== "string" || !data.sessionToken) {
         return jsonResponse({ error: "Invalid session response" }, 502, origin);
       }
-      return jsonResponse({ sessionToken: data.sessionToken }, 200, origin);
+      return jsonResponse({ sessionToken: data.sessionToken, diagnostics }, 200, origin);
     } catch {
       return jsonResponse({ error: "Unable to start session" }, 502, origin);
     }
