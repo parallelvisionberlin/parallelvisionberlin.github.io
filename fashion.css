@@ -783,14 +783,16 @@ html[lang="de"] .fashion-collaboration-intro h2 {
 .lotus-artist-heading h2 { max-width: 900px; font: 400 clamp(2.65rem, 5vw, 5.75rem)/1.1 Michroma, sans-serif; letter-spacing: .052em; text-transform: uppercase; }
 .lotus-artist-heading p { max-width: 620px; padding-bottom: 8px; color: rgba(255,255,255,.68); font-size: clamp(1.1rem, 1.4vw, 1.35rem); line-height: 1.82; }
 .lotus-artist-gallery { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(18px, 2.1vw, 34px); align-items: start; }
-.lotus-artist-gallery figure { overflow: hidden; border: 1px solid rgba(255,255,255,.12); background: #050505; transition: border-color .45s ease, background-color .45s ease; }
+.lotus-artist-card { display: block; min-width: 0; }
+.lotus-artist-gallery figure { margin: 0; overflow: hidden; border: 1px solid rgba(255,255,255,.12); background: #050505; transition: border-color .4s ease, background-color .4s ease, transform .4s ease, box-shadow .4s ease; }
 .lotus-artist-image { aspect-ratio: 3 / 4; overflow: hidden; background: #080808; }
 .lotus-artist-image img { display: block; width: 100%; height: 100%; object-fit: cover; filter: saturate(.78) brightness(.88); transition: transform .65s cubic-bezier(.2,.7,.2,1), filter .55s ease, opacity .55s ease; }
-.lotus-artist-gallery figure:nth-child(1) img { object-position: 57% center; }
-.lotus-artist-gallery figure:nth-child(2) img { object-position: 52% center; }
-.lotus-artist-gallery figure:nth-child(3) img { object-position: 50% 38%; }
-.lotus-artist-gallery figure:hover { border-color: rgba(255,255,255,.24); background: #090909; }
-.lotus-artist-gallery figure:hover img { transform: scale(1.025); filter: saturate(.66) brightness(.68); opacity: .92; }
+.lotus-artist-card:nth-child(1) img { object-position: 57% center; }
+.lotus-artist-card:nth-child(2) img { object-position: 52% center; }
+.lotus-artist-card:nth-child(3) img { object-position: 50% 38%; }
+.lotus-artist-card:hover figure, .lotus-artist-card:focus-visible figure { border-color: rgba(255,255,255,.24); background: #090909; transform: translateY(-4px); box-shadow: 0 18px 48px rgba(0,0,0,.34); }
+.lotus-artist-card:hover img, .lotus-artist-card:focus-visible img { transform: scale(1.025); filter: saturate(.66) brightness(.68); opacity: .92; }
+.lotus-artist-card:focus-visible { outline: 1px solid rgba(255,255,255,.48); outline-offset: 7px; }
 .lotus-artist-gallery figcaption { display: grid; gap: 10px; min-height: 98px; padding: 22px 20px 20px; border-top: 1px solid rgba(255,255,255,.1); color: rgba(255,255,255,.92); font: 10px/1.5 'Courier New', monospace; letter-spacing: .18em; text-transform: uppercase; }
 .lotus-artist-gallery figcaption span { font-size: 11px; }
 .lotus-artist-gallery figcaption small { color: var(--muted); font: 9px/1.6 'Courier New', monospace; letter-spacing: .16em; }
