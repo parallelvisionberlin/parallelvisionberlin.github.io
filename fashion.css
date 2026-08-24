@@ -425,7 +425,7 @@ html[lang="de"] .fashion-collaboration-intro h2 {
 .alejandro-look { display: grid; grid-template-columns: minmax(260px, .7fr) minmax(420px, 1.3fr); gap: clamp(50px, 9vw, 140px); align-items: center; padding: clamp(110px, 13vw, 190px) clamp(0px, 5vw, 70px); }
 .alejandro-look-copy { max-width: 380px; }
 .alejandro-look-copy > p:last-child { margin-top: 28px; color: rgba(255,255,255,.74); font-size: clamp(1.15rem, 1.6vw, 1.5rem); line-height: 1.65; }
-.alejandro-look figure { justify-self: end; width: min(100%, 650px); }
+.alejandro-look figure { justify-self: end; width: min(100%, 650px, calc(78vh * .5625)); }
 .alejandro-look img { display: block; width: 100%; height: auto; background: #080808; }
 .alejandro-look figcaption { margin-top: 15px; text-align: right; }
 .alejandro-image-moment { padding-bottom: clamp(110px, 13vw, 185px); }
@@ -988,7 +988,7 @@ html[lang="de"] .fashion-collaboration-intro h2 {
   .alejandro-intro div > p { margin-top: 28px; font-size: 1.05rem; }
   .alejandro-look { grid-template-columns: 1fr; gap: 44px; padding: 92px 0 105px; }
   .alejandro-look-copy { order: 2; }
-  .alejandro-look figure { order: 1; justify-self: center; width: min(100%, 560px); }
+  .alejandro-look figure { order: 1; justify-self: center; width: min(100%, 560px, calc(78svh * .5625)); }
   .alejandro-look figcaption { text-align: left; }
   .alejandro-crop-wide { aspect-ratio: 4 / 5; background-size: auto 100%; background-position: 59% center; }
   .alejandro-image-note { display: grid; gap: 5px; }
