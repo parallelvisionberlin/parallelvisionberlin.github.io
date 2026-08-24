@@ -220,11 +220,15 @@
       object-fit: cover;
       filter: saturate(.72) brightness(.76) contrast(1.08);
       opacity: 1;
-      transition: opacity .4s ease;
     }
 
     .berlin-gallery.is-changing .berlin-gallery-frame img {
-      opacity: 0;
+      animation: berlin-gallery-fade-in 180ms ease-out;
+    }
+
+    @keyframes berlin-gallery-fade-in {
+      from { opacity: .82; }
+      to { opacity: 1; }
     }
 
     .berlin-gallery-meta {
@@ -267,6 +271,11 @@
       color: #fff;
       outline: 1px solid rgba(255,255,255,.5);
       outline-offset: 4px;
+    }
+
+    .berlin-gallery-button:disabled {
+      cursor: default;
+      opacity: .4;
     }
 
     .berlin-material-culture-bridge {
@@ -701,6 +710,8 @@
       const nextButton = gallery.querySelector(".berlin-gallery-next");
       let currentIndex = 0;
       let touchStartX = 0;
+      let isLoading = false;
+      let fadeTimer;
 
       function applyChapterLanguage(language) {
         const german = language === "de";
@@ -718,9 +729,12 @@
       }
 
       function renderImage(nextIndex, animate = true) {
-        currentIndex = (nextIndex + chapter.images.length) % chapter.images.length;
-        const item = chapter.images[currentIndex];
+        if (isLoading) return;
+        const targetIndex = (nextIndex + chapter.images.length) % chapter.images.length;
+        const item = chapter.images[targetIndex];
+
         const update = () => {
+          currentIndex = targetIndex;
           image.src = item.src;
           image.alt = item.alt || `Nightlife archival document ${currentIndex + 1} from Berlin 2063`;
           if (item.width && item.height) {
@@ -730,13 +744,38 @@
           counter.textContent = `${String(currentIndex + 1).padStart(2, "0")} / ${String(chapter.images.length).padStart(2, "0")}`;
           caption.textContent = item.caption || (isNightlife ? "Nightlife / Berlin 2063" : "");
           gallery.classList.remove("is-changing");
+          window.clearTimeout(fadeTimer);
+          if (animate && !prefersReducedMotion) {
+            void image.offsetWidth;
+            gallery.classList.add("is-changing");
+            fadeTimer = window.setTimeout(() => gallery.classList.remove("is-changing"), 180);
+          }
         };
-        if (animate && !prefersReducedMotion) {
-          gallery.classList.add("is-changing");
-          window.setTimeout(update, 200);
-        } else {
+
+        if (!animate) {
           update();
+          return;
         }
+
+        isLoading = true;
+        previousButton.disabled = true;
+        nextButton.disabled = true;
+
+        const preloadImage = new Image();
+        let settled = false;
+        const finishLoading = (loaded) => {
+          if (settled) return;
+          settled = true;
+          if (loaded) update();
+          isLoading = false;
+          previousButton.disabled = false;
+          nextButton.disabled = false;
+        };
+
+        preloadImage.onload = () => finishLoading(true);
+        preloadImage.onerror = () => finishLoading(false);
+        preloadImage.src = item.src;
+        if (preloadImage.complete && preloadImage.naturalWidth > 0) finishLoading(true);
       }
 
       previousButton.addEventListener("click", () => renderImage(currentIndex - 1));
