@@ -16,11 +16,11 @@
 <meta name="twitter:description" content="Fashion After Fabric explores speculative garments and future material cultures.">
 <meta name="twitter:image" content="https://parallelvisionlabel.com/assets/fashion-hero.png">
   <link rel="stylesheet" href="./fashion.css?v=20260826-amatista-card-1">
-  <script src="./language.js?v=20260826-overview-hierarchy-1" defer></script>
+  <script src="./language.js?v=20260826-research-statement-2" defer></script>
   <style>
     .fashion-project-definition {
-      padding-top: clamp(58px, 6vw, 88px);
-      padding-bottom: clamp(12px, 1.3vw, 18px);
+      padding-top: clamp(72px, 7vw, 96px);
+      padding-bottom: clamp(48px, 5vw, 72px);
       text-align: center;
     }
 
@@ -35,28 +35,30 @@
     }
 
     .fashion-project-definition h2 {
-      max-width: 760px;
+      max-width: 980px;
       margin: 0 auto;
       text-align: center;
     }
 
-    html[lang="en"] .fashion-project-definition #fashion-research-title {
-      max-width: 760px;
+    html[lang="en"] .fashion-project-definition #fashion-research-title,
+    html[lang="de"] .fashion-project-definition #fashion-research-title {
+      max-width: 980px;
       font-size: clamp(2.35rem, 3.25vw, 3.8rem);
-      line-height: .98;
+      line-height: 1.08;
+      letter-spacing: .06em;
     }
 
     .fashion-research-copy {
-      max-width: 720px;
-      margin: clamp(24px, 3vw, 36px) auto 0;
-      color: rgba(255,255,255,.76);
-      font-size: clamp(1rem, 1.12vw, 1.16rem);
-      line-height: 1.62;
+      max-width: 820px;
+      margin: clamp(34px, 4vw, 54px) auto 0;
+      color: rgba(255,255,255,.78);
+      font-size: clamp(1.18rem, 1.55vw, 1.55rem);
+      line-height: 1.58;
       text-align: center;
     }
 
     .fashion-research-copy p + p {
-      margin-top: 18px;
+      margin-top: 0;
     }
 
     .fashion-evidence-chapter {
@@ -83,7 +85,7 @@
     }
 
     .fashion-film-chapter {
-      padding-top: clamp(6px, .75vw, 10px);
+      padding-top: clamp(24px, 2.5vw, 36px);
       padding-bottom: clamp(58px, 6vw, 82px);
     }
 
@@ -157,7 +159,7 @@
 
     @media (max-width: 980px) {
       .fashion-film-chapter {
-        padding-top: 8px;
+        padding-top: 24px;
       }
 
       .fashion-evidence-chapter {
@@ -167,18 +169,21 @@
 
     @media (max-width: 760px) {
       .fashion-project-definition {
-        padding-top: 58px;
-        padding-bottom: 14px;
+        padding-top: 64px;
+        padding-bottom: 48px;
       }
 
       .fashion-research-copy {
-        font-size: .98rem;
-        line-height: 1.58;
+        max-width: 92%;
+        font-size: 1.05rem;
+        line-height: 1.55;
       }
 
-      html[lang="en"] .fashion-project-definition #fashion-research-title {
-        font-size: clamp(1.8rem, 7.5vw, 2.4rem);
-        line-height: .98;
+      html[lang="en"] .fashion-project-definition #fashion-research-title,
+      html[lang="de"] .fashion-project-definition #fashion-research-title {
+        font-size: clamp(1.3rem, 5.6vw, 2rem);
+        line-height: 1.08;
+        letter-spacing: .045em;
       }
 
       .fashion-evidence-chapter {
@@ -191,7 +196,7 @@
       }
 
       .fashion-film-chapter {
-        padding-top: 6px;
+        padding-top: 22px;
         padding-bottom: 58px;
       }
 
@@ -339,10 +344,9 @@
   <section class="fashion-chapter fashion-project-definition" aria-labelledby="fashion-research-title">
     <p class="fashion-chapter-label">Parallel Vision / Material Research</p>
     <div class="fashion-definition-layout">
-      <h2 id="fashion-research-title">Material<br>Research<br>For Bodies<br>In Transition</h2>
+      <h2 id="fashion-research-title">Material Research<br>For Bodies In Transition</h2>
       <div class="fashion-research-copy">
-        <p>Fashion After Fabric is Parallel Vision’s material research archive: a study of garments beyond conventional fabric, where responsive matter, synthetic surfaces and body systems begin to replace textiles.</p>
-        <p>Across images, moving works, artist collaborations and physical experiments, clothing becomes something closer to an environment around the body.</p>
+        <p>Fashion After Fabric studies garments after fabric: responsive matter, synthetic surfaces and body systems becoming environments around the body.</p>
       </div>
     </div>
   </section>
@@ -501,12 +505,10 @@
   (() => {
     const copy = {
       en: [
-        "Fashion After Fabric is Parallel Vision’s material research archive: a study of garments beyond conventional fabric, where responsive matter, synthetic surfaces and body systems begin to replace textiles.",
-        "Across images, moving works, artist collaborations and physical experiments, clothing becomes something closer to an environment around the body."
+        "Fashion After Fabric studies garments after fabric: responsive matter, synthetic surfaces and body systems becoming environments around the body."
       ],
       de: [
-        "Fashion After Fabric ist das Materialforschungsarchiv von Parallel Vision: eine Untersuchung von Kleidung jenseits konventioneller Stoffe, in der reaktive Materie, synthetische Oberflächen und Körpersysteme beginnen, Textilien zu ersetzen.",
-        "Über Bilder, Bewegtbildarbeiten, künstlerische Kollaborationen und physische Experimente hinweg wird Kleidung zu etwas, das eher einer Umgebung um den Körper gleicht."
+        "Fashion After Fabric untersucht Kleidung nach dem Stoff: reaktive Materie, synthetische Oberflächen und Körpersysteme, die zu Umgebungen um den Körper werden."
       ]
     };
 
