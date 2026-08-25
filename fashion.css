@@ -395,6 +395,42 @@ html[lang="de"] .fashion-collaboration-intro h2 {
 .inhabitant-archive-link:hover { color: #fff; }
 .inhabitant-archive-link:focus-visible { outline: 1px solid #777; outline-offset: 7px; }
 
+/* Fashion After Fabric / Shared opening statement */
+.faf-opening-statement {
+  display: grid;
+  place-items: center;
+  min-height: 56svh;
+  padding: clamp(115px, 13vw, 200px) 0;
+  border-bottom: 1px solid var(--line);
+  background: #000;
+}
+.faf-opening-statement-inner {
+  width: min(100%, 920px);
+  margin: auto;
+  text-align: center;
+}
+.faf-opening-statement h2 {
+  margin-top: 20px;
+  font: 400 clamp(2.7rem, 6vw, 6.7rem)/.96 Michroma, sans-serif;
+  letter-spacing: .045em;
+  text-transform: uppercase;
+}
+.faf-opening-statement-copy {
+  max-width: 690px;
+  margin: clamp(30px, 3.5vw, 50px) auto 0;
+  color: rgba(255,255,255,.76);
+  font-size: clamp(1.05rem, 1.32vw, 1.3rem);
+  line-height: 1.72;
+}
+.faf-opening-statement-copy p + p { margin-top: 22px; }
+.faf-opening-statement-copy .faf-opening-tagline {
+  margin-top: clamp(34px, 4vw, 54px);
+  color: rgba(255,255,255,.92);
+  font: 700 10px/1.9 'Courier New', monospace;
+  letter-spacing: .28em;
+  text-transform: uppercase;
+}
+
 /* Alejandro Molinari / Artist Study 02 */
 .alejandro-study-page { background: #000; }
 .alejandro-study-page .archive-nav { position: relative; border-bottom-color: rgba(255,255,255,.18); background: #000; }
@@ -578,6 +614,7 @@ html[lang="de"] .fashion-collaboration-intro h2 {
   background: #000;
   text-align: center;
 }
+.elorian-opening-statement + .cabizbajo-look { padding-top: clamp(105px, 12vw, 170px); }
 .amatista-opening-statement-inner { width: min(100%, 920px); margin: auto; text-align: center; }
 .amatista-opening-statement h2 {
   margin-top: 20px;
@@ -1019,6 +1056,10 @@ html[lang="de"] .fashion-collaboration-intro h2 {
   .inhabitant-foot { display: grid; gap: 5px; margin-top: 12px; padding-top: 10px; }
   .inhabitant-foot span:last-child { text-align: left; }
   .alejandro-study { padding: 0 18px; }
+  .faf-opening-statement { min-height: 48svh; padding: clamp(85px, 26vw, 120px) 0; }
+  .faf-opening-statement h2 { font-size: clamp(2.2rem, 12vw, 4rem); }
+  .faf-opening-statement-copy { margin-top: 32px; font-size: 1.03rem; line-height: 1.7; }
+  .faf-opening-statement-copy .faf-opening-tagline { margin-top: 38px; font-size: 9px; }
   .alejandro-hero { min-height: 70svh; }
   .alejandro-hero > img { min-height: 70svh; object-position: 57% center; }
   .alejandro-hero::after { background: linear-gradient(90deg, rgba(0,0,0,.64), transparent 88%), linear-gradient(0deg, rgba(0,0,0,.5), transparent 52%); }
@@ -1053,6 +1094,7 @@ html[lang="de"] .fashion-collaboration-intro h2 {
   .cabizbajo-concept { padding: 78px 0 95px; }
   .cabizbajo-concept-copy { margin-top: 34px; font-size: 1.05rem; }
   .cabizbajo-look { grid-template-columns: 1fr; gap: 46px; width: 100%; margin-left: 0; padding: 0 0 105px; }
+  .elorian-opening-statement + .cabizbajo-look { padding-top: 95px; }
   .elorian-study-page .cabizbajo-look img { justify-self: center; max-height: 70svh; }
   .cabizbajo-look-copy > p:not(.cabizbajo-look-meta) { margin-top: 30px; font-size: 1.1rem; }
   .cabizbajo-look-meta { margin-top: 42px; }
