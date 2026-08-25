@@ -607,9 +607,9 @@ html[lang="de"] .fashion-collaboration-intro h2 {
   display: grid;
   place-items: center;
   width: min(100%, 1040px);
-  min-height: 58svh;
+  min-height: 50svh;
   margin: auto;
-  padding: clamp(120px, 14vw, 210px) 0;
+  padding: clamp(95px, 10vw, 150px) 0 clamp(80px, 8vw, 120px);
   border-bottom: 1px solid var(--line);
   background: #000;
   text-align: center;
@@ -624,14 +624,14 @@ html[lang="de"] .fashion-collaboration-intro h2 {
 }
 .amatista-opening-statement-copy {
   width: min(100%, 720px);
-  margin: clamp(30px, 3.8vw, 52px) auto 0;
+  margin: clamp(26px, 2.8vw, 40px) auto 0;
   color: rgba(255,255,255,.76);
   font-size: clamp(1.05rem, 1.35vw, 1.32rem);
   line-height: 1.72;
 }
-.amatista-opening-statement-copy p + p { margin-top: 22px; }
+.amatista-opening-statement-copy p + p { margin-top: 15px; }
 .amatista-opening-statement-copy .amatista-opening-tagline {
-  margin-top: clamp(38px, 4vw, 56px);
+  margin-top: clamp(28px, 3vw, 40px);
   color: rgba(255,255,255,.92);
   font-family: Michroma, sans-serif;
   font-size: clamp(.78rem, .95vw, .94rem);
@@ -642,11 +642,11 @@ html[lang="de"] .fashion-collaboration-intro h2 {
 .amatista-material-study {
   display: grid;
   grid-template-columns: minmax(320px, 520px) minmax(320px, 560px);
-  gap: clamp(56px, 8vw, 120px);
+  gap: clamp(42px, 6vw, 88px);
   align-items: center;
   width: min(100%, 1180px);
   margin: auto;
-  padding: clamp(105px, 12vw, 170px) 0 clamp(125px, 14vw, 190px);
+  padding: clamp(78px, 8vw, 118px) 0 clamp(88px, 9vw, 130px);
 }
 .amatista-material-study-plate {
   aspect-ratio: 4 / 5;
@@ -672,14 +672,14 @@ html[lang="de"] .fashion-collaboration-intro h2 {
 }
 .amatista-material-study-copy > p:not(.cabizbajo-section-label) {
   max-width: 520px;
-  margin-top: 30px;
+  margin-top: 22px;
   color: rgba(255,255,255,.72);
   font-size: clamp(1.05rem, 1.25vw, 1.22rem);
   line-height: 1.75;
 }
 .amatista-fashion-film {
   width: min(100%, 1180px);
-  padding: clamp(35px, 5vw, 75px) 0 clamp(120px, 14vw, 190px);
+  padding: clamp(24px, 3vw, 44px) 0 clamp(80px, 8vw, 118px);
 }
 .amatista-fashion-film-head {
   padding: 0 0 28px;
@@ -704,7 +704,7 @@ html[lang="de"] .fashion-collaboration-intro h2 {
 .amatista-fashion-gallery {
   width: 100vw;
   margin-left: calc(50% - 50vw);
-  padding: clamp(88px, 10vw, 148px) 0 clamp(110px, 12vw, 176px);
+  padding: clamp(64px, 7vw, 100px) 0 clamp(90px, 10vw, 142px);
   border-top: 1px solid var(--line);
   overflow: hidden;
 }
@@ -1102,15 +1102,16 @@ html[lang="de"] .fashion-collaboration-intro h2 {
   .cabizbajo-material { width: 100%; margin-left: 0; }
   .cabizbajo-material img { grid-column: 1; grid-row: 1; width: min(92%, 560px); }
   .cabizbajo-material-copy { grid-column: 1; grid-row: 2; padding-bottom: 0; }
-  .amatista-fashion-film { padding-bottom: 120px; }
-  .amatista-opening-statement { min-height: 0; padding: clamp(100px, 28vw, 130px) 0; }
+  .amatista-fashion-film { padding: 26px 0 82px; }
+  .amatista-opening-statement { min-height: 0; padding: clamp(72px, 21vw, 92px) 0 clamp(62px, 18vw, 78px); }
   .amatista-opening-statement h2 { font-size: clamp(2.2rem, 12vw, 4rem); }
-  .amatista-opening-statement-copy { margin-top: 34px; font-size: 1.03rem; line-height: 1.7; }
-  .amatista-opening-statement-copy .amatista-opening-tagline { margin-top: 40px; font-size: .78rem; }
-  .amatista-material-study { grid-template-columns: 1fr; gap: 34px; width: 100%; padding: 95px 0 110px; }
+  .amatista-opening-statement-copy { margin-top: 24px; font-size: 1.03rem; line-height: 1.7; }
+  .amatista-opening-statement-copy p + p { margin-top: 12px; }
+  .amatista-opening-statement-copy .amatista-opening-tagline { margin-top: 28px; font-size: .78rem; }
+  .amatista-material-study { grid-template-columns: 1fr; gap: 24px; width: 100%; padding: 68px 0 82px; }
   .amatista-material-study-plate { width: min(100%, 430px); }
   .amatista-material-study-copy h2 { font-size: clamp(2rem, 10vw, 3rem); }
-  .amatista-material-study-copy > p:not(.cabizbajo-section-label) { margin-top: 24px; font-size: 1.03rem; }
+  .amatista-material-study-copy > p:not(.cabizbajo-section-label) { margin-top: 18px; font-size: 1.03rem; }
   .amatista-fashion-film-head { padding-bottom: 22px; }
   .amatista-fashion-film-head h2 { font-size: clamp(1.45rem, 6.8vw, 2.25rem); }
   .amatista-fashion-film video { max-height: 70svh; margin-top: 20px; }
@@ -1118,9 +1119,9 @@ html[lang="de"] .fashion-collaboration-intro h2 {
   .amatista-fashion-study-page .cabizbajo-hero-copy { top: auto; bottom: 30px; }
   .amatista-fashion-study-page .cabizbajo-hero h1 { gap: .45rem; max-width: calc(100vw - 36px); font-size: clamp(2.5rem, 12.5vw, 5rem); line-height: .9; letter-spacing: .02em; }
   .amatista-fashion-study-page .artist-title-suffix { font-size: .3em; letter-spacing: .09em; }
-  .amatista-fashion-gallery { padding: 76px 0 108px; }
+  .amatista-fashion-gallery { padding: 58px 0 86px; }
   .amatista-fashion-gallery-inner { width: calc(100% - 36px); margin: 0 18px; }
-  .amatista-fashion-gallery-head { margin-bottom: 34px; }
+  .amatista-fashion-gallery-head { margin-bottom: 28px; }
   .amatista-fashion-gallery-copy { margin-top: 14px; }
   .amatista-fashion-gallery h2 { font-size: clamp(1.65rem, 8vw, 2.6rem); }
   .amatista-fashion-gallery-copy p { margin-top: 20px; font-size: 1rem; }
