@@ -20,7 +20,7 @@
   <style>
     .fashion-project-definition {
       padding-top: clamp(80px, 8.2vw, 123px);
-      padding-bottom: clamp(34px, 3.5vw, 50px);
+      padding-bottom: clamp(26px, 2.8vw, 38px);
       text-align: center;
     }
 
@@ -77,8 +77,8 @@
     }
 
     .fashion-film-chapter {
-      padding-top: clamp(18px, 2vw, 30px);
-      padding-bottom: clamp(46px, 5vw, 66px);
+      padding-top: clamp(10px, 1.2vw, 18px);
+      padding-bottom: clamp(58px, 6vw, 82px);
     }
 
     .fashion-collaboration {
@@ -99,14 +99,18 @@
     }
 
     .fashion-film-label {
-      margin-bottom: 18px;
+      width: min(100%, 1080px);
+      margin: 0 auto 18px;
     }
 
     .fashion-film-frame {
-      width: 100%;
+      width: min(100%, 1080px);
+      margin: 0 auto;
       aspect-ratio: 16 / 9;
       overflow: hidden;
       background: #000;
+      border: 1px solid var(--line);
+      box-sizing: border-box;
     }
 
     .fashion-film-frame video {
@@ -119,7 +123,8 @@
     }
 
     .fashion-film-caption {
-      margin-top: 16px;
+      width: min(100%, 1080px);
+      margin: 16px auto 0;
     }
 
     .fashion-material-test {
@@ -133,7 +138,7 @@
 
     @media (max-width: 980px) {
       .fashion-film-chapter {
-        padding-top: 24px;
+        padding-top: 14px;
       }
 
       .fashion-evidence-chapter {
@@ -144,7 +149,7 @@
     @media (max-width: 760px) {
       .fashion-project-definition {
         padding-top: 68px;
-        padding-bottom: 35px;
+        padding-bottom: 28px;
       }
 
       .fashion-research-copy {
@@ -161,8 +166,8 @@
       }
 
       .fashion-film-chapter {
-        padding-top: 18px;
-        padding-bottom: 50px;
+        padding-top: 12px;
+        padding-bottom: 58px;
       }
 
       .fashion-collaboration {
@@ -172,10 +177,6 @@
 
       .fashion-material-archive {
         padding-top: 64px;
-      }
-
-      .fashion-film-frame {
-        aspect-ratio: 16 / 10;
       }
 
       .fashion-material-test {
@@ -318,13 +319,13 @@
   </section>
 
   <section class="fashion-chapter fashion-film-chapter" aria-label="Fashion After Fabric film">
-    <p class="fashion-film-label">Fashion After Fabric / Film 001</p>
+    <p class="fashion-film-label">Material Film / 001</p>
     <div class="fashion-film-frame">
       <video autoplay muted loop playsinline preload="auto" poster="./assets/fashion-hero.png" aria-label="Fashion After Fabric material systems in motion" data-smooth-loop-video>
         <source src="./assets/herovideo.mp4" type="video/mp4">
       </video>
     </div>
-    <p class="fashion-film-caption">Material systems observed in motion.</p>
+    <p class="fashion-film-caption">A moving study of surface, body and material transition.</p>
   </section>
 
   <section class="fashion-chapter fashion-collaboration" id="worn-by-the-inhabitants" aria-labelledby="fashion-collaboration-title">
