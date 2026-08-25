@@ -167,7 +167,7 @@
       [".preview-card[href='./dna-mutation.html'] p", "Living surfaces, altered membranes and speculative bio-material.", "Lebende Oberflächen, veränderte Membranen und spekulatives Biomaterial."],
       [".preview-arrow", "Open archive →", "Archiv öffnen →"],
       [".fashion-collaboration .fashion-chapter-label", "Artist Collaboration / Moving Image", "Künstlerische Zusammenarbeit / Bewegtbild"],
-      ["#fashion-collaboration-title", "Worn by the Inhabitants", "Getragen\u00a0von\u00a0den\nBewohner:innen"],
+      ["#fashion-collaboration-title", "Worn by The\nInhabitants", "Getragen\u00a0von\u00a0den\nBewohner:innen"],
       [".fashion-collaboration .fashion-chapter-copy p:nth-child(1)", "Fashion After Fabric expands through collaborations with musicians, performers and visual artists.", "Fashion After Fabric erweitert sich durch Kollaborationen mit Musiker:innen, Performer:innen und visuellen Künstler:innen."],
       [".fashion-collaboration .fashion-chapter-copy p:nth-child(2)", "Artists are reimagined as inhabitants of Berlin 2063, wearing evolving material systems inside films, projected runways and live audiovisual environments.", "Künstler:innen werden als Bewohner:innen von Berlin 2063 neu gedacht und tragen sich entwickelnde Materialsysteme in Filmen, projizierten Laufstegen und audiovisuellen Live-Umgebungen."],
       [".fashion-collaboration .fashion-chapter-copy p:nth-child(3)", "The same garment may transform between bodies, performances and realities.", "Dasselbe Kleidungsstück kann sich zwischen Körpern, Performances und Realitäten verwandeln."],

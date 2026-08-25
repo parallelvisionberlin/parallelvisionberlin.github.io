@@ -16,17 +16,17 @@
 <meta name="twitter:description" content="Fashion After Fabric explores speculative garments and future material cultures.">
 <meta name="twitter:image" content="https://parallelvisionlabel.com/assets/fashion-hero.png">
   <link rel="stylesheet" href="./fashion.css?v=20260826-amatista-card-1">
-  <script src="./language.js?v=20260826-research-statement-1" defer></script>
+  <script src="./language.js?v=20260826-overview-hierarchy-1" defer></script>
   <style>
     .fashion-project-definition {
-      padding-top: clamp(80px, 8.2vw, 123px);
-      padding-bottom: clamp(26px, 2.8vw, 38px);
+      padding-top: clamp(88px, 9vw, 135px);
+      padding-bottom: clamp(22px, 2.3vw, 32px);
       text-align: center;
     }
 
     .fashion-project-definition .fashion-definition-layout {
       display: block;
-      width: min(100%, 920px);
+      width: min(100%, 980px);
       margin: 0 auto;
     }
 
@@ -35,17 +35,22 @@
     }
 
     .fashion-project-definition h2 {
-      max-width: 900px;
+      max-width: 960px;
       margin: 0 auto;
       text-align: center;
     }
 
+    html[lang="en"] .fashion-project-definition #fashion-research-title {
+      font-size: clamp(54px, 4.8vw, 78px);
+      line-height: .96;
+    }
+
     .fashion-research-copy {
-      max-width: 720px;
-      margin: clamp(28px, 3.5vw, 48px) auto 0;
+      max-width: 800px;
+      margin: clamp(26px, 3vw, 42px) auto 0;
       color: rgba(255,255,255,.68);
-      font-size: var(--type-body);
-      line-height: 1.8;
+      font-size: clamp(1.03rem, 1.3vw, 1.16rem);
+      line-height: 1.75;
       text-align: center;
     }
 
@@ -99,12 +104,12 @@
     }
 
     .fashion-film-label {
-      width: min(100%, 1080px);
+      width: min(100%, 1180px);
       margin: 0 auto 18px;
     }
 
     .fashion-film-frame {
-      width: min(100%, 1080px);
+      width: min(100%, 1180px);
       margin: 0 auto;
       aspect-ratio: 16 / 9;
       overflow: hidden;
@@ -123,8 +128,21 @@
     }
 
     .fashion-film-caption {
-      width: min(100%, 1080px);
+      width: min(100%, 1180px);
       margin: 16px auto 0;
+    }
+
+    .fashion-collaboration-intro #fashion-collaboration-title {
+      max-width: none;
+      font-size: clamp(2.65rem, 5.35vw, 5.25rem);
+      line-height: .98;
+      white-space: pre-line;
+      overflow-wrap: normal;
+      word-break: keep-all;
+    }
+
+    .fashion-collaboration-intro #fashion-collaboration-title span {
+      display: block;
     }
 
     .fashion-material-test {
@@ -148,12 +166,16 @@
 
     @media (max-width: 760px) {
       .fashion-project-definition {
-        padding-top: 68px;
-        padding-bottom: 28px;
+        padding-top: 72px;
+        padding-bottom: 24px;
       }
 
       .fashion-research-copy {
         font-size: 1rem;
+      }
+
+      html[lang="en"] .fashion-project-definition #fashion-research-title {
+        font-size: clamp(2rem, 10vw, 3.35rem);
       }
 
       .fashion-evidence-chapter {
@@ -171,8 +193,12 @@
       }
 
       .fashion-collaboration {
-        padding-top: 36px;
+        padding-top: 32px;
         padding-bottom: 65px;
+      }
+
+      .fashion-collaboration-intro #fashion-collaboration-title {
+        font-size: clamp(1.65rem, 7vw, 2.4rem);
       }
 
       .fashion-material-archive {
@@ -332,7 +358,7 @@
     <div class="fashion-collaboration-intro">
       <div>
         <p class="fashion-chapter-label">Casting Archive / 04 Inhabitants</p>
-        <h2 id="fashion-collaboration-title">Worn by<br>The<br>Inhabitants</h2>
+        <h2 id="fashion-collaboration-title"><span>Worn by The</span><span>Inhabitants</span></h2>
       </div>
       <div class="fashion-chapter-copy">
         <p>Fashion After Fabric expands through collaborations with musicians, performers and artists.</p>
