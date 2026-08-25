@@ -399,8 +399,8 @@ html[lang="de"] .fashion-collaboration-intro h2 {
 .faf-opening-statement {
   display: grid;
   place-items: center;
-  min-height: 56svh;
-  padding: clamp(115px, 13vw, 200px) 0;
+  min-height: 52svh;
+  padding: clamp(95px, 11vw, 165px) 0;
   border-bottom: 1px solid var(--line);
   background: #000;
 }
@@ -417,14 +417,14 @@ html[lang="de"] .fashion-collaboration-intro h2 {
 }
 .faf-opening-statement-copy {
   max-width: 690px;
-  margin: clamp(30px, 3.5vw, 50px) auto 0;
+  margin: clamp(26px, 3vw, 40px) auto 0;
   color: rgba(255,255,255,.76);
   font-size: clamp(1.05rem, 1.32vw, 1.3rem);
   line-height: 1.72;
 }
 .faf-opening-statement-copy p + p { margin-top: 22px; }
 .faf-opening-statement-copy .faf-opening-tagline {
-  margin-top: clamp(34px, 4vw, 54px);
+  margin-top: clamp(28px, 3.2vw, 42px);
   color: rgba(255,255,255,.92);
   font: 700 10px/1.9 'Courier New', monospace;
   letter-spacing: .28em;
@@ -607,9 +607,9 @@ html[lang="de"] .fashion-collaboration-intro h2 {
   display: grid;
   place-items: center;
   width: min(100%, 1040px);
-  min-height: 50svh;
+  min-height: 48svh;
   margin: auto;
-  padding: clamp(95px, 10vw, 150px) 0 clamp(80px, 8vw, 120px);
+  padding: clamp(82px, 8.5vw, 128px) 0 clamp(70px, 7vw, 102px);
   border-bottom: 1px solid var(--line);
   background: #000;
   text-align: center;
@@ -624,14 +624,14 @@ html[lang="de"] .fashion-collaboration-intro h2 {
 }
 .amatista-opening-statement-copy {
   width: min(100%, 720px);
-  margin: clamp(26px, 2.8vw, 40px) auto 0;
+  margin: clamp(22px, 2.4vw, 34px) auto 0;
   color: rgba(255,255,255,.76);
   font-size: clamp(1.05rem, 1.35vw, 1.32rem);
   line-height: 1.72;
 }
 .amatista-opening-statement-copy p + p { margin-top: 15px; }
 .amatista-opening-statement-copy .amatista-opening-tagline {
-  margin-top: clamp(28px, 3vw, 40px);
+  margin-top: clamp(24px, 2.5vw, 34px);
   color: rgba(255,255,255,.92);
   font-family: Michroma, sans-serif;
   font-size: clamp(.78rem, .95vw, .94rem);
@@ -1056,10 +1056,10 @@ html[lang="de"] .fashion-collaboration-intro h2 {
   .inhabitant-foot { display: grid; gap: 5px; margin-top: 12px; padding-top: 10px; }
   .inhabitant-foot span:last-child { text-align: left; }
   .alejandro-study { padding: 0 18px; }
-  .faf-opening-statement { min-height: 48svh; padding: clamp(85px, 26vw, 120px) 0; }
+  .faf-opening-statement { min-height: 46svh; padding: clamp(72px, 22vw, 100px) 0; }
   .faf-opening-statement h2 { font-size: clamp(2.2rem, 12vw, 4rem); }
-  .faf-opening-statement-copy { margin-top: 32px; font-size: 1.03rem; line-height: 1.7; }
-  .faf-opening-statement-copy .faf-opening-tagline { margin-top: 38px; font-size: 9px; }
+  .faf-opening-statement-copy { margin-top: 26px; font-size: 1.03rem; line-height: 1.7; }
+  .faf-opening-statement-copy .faf-opening-tagline { margin-top: 30px; font-size: 9px; }
   .alejandro-hero { min-height: 70svh; }
   .alejandro-hero > img { min-height: 70svh; object-position: 57% center; }
   .alejandro-hero::after { background: linear-gradient(90deg, rgba(0,0,0,.64), transparent 88%), linear-gradient(0deg, rgba(0,0,0,.5), transparent 52%); }
@@ -1103,11 +1103,11 @@ html[lang="de"] .fashion-collaboration-intro h2 {
   .cabizbajo-material img { grid-column: 1; grid-row: 1; width: min(92%, 560px); }
   .cabizbajo-material-copy { grid-column: 1; grid-row: 2; padding-bottom: 0; }
   .amatista-fashion-film { padding: 26px 0 82px; }
-  .amatista-opening-statement { min-height: 0; padding: clamp(72px, 21vw, 92px) 0 clamp(62px, 18vw, 78px); }
+  .amatista-opening-statement { min-height: 0; padding: clamp(62px, 18vw, 78px) 0 clamp(54px, 15vw, 66px); }
   .amatista-opening-statement h2 { font-size: clamp(2.2rem, 12vw, 4rem); }
-  .amatista-opening-statement-copy { margin-top: 24px; font-size: 1.03rem; line-height: 1.7; }
+  .amatista-opening-statement-copy { margin-top: 21px; font-size: 1.03rem; line-height: 1.7; }
   .amatista-opening-statement-copy p + p { margin-top: 12px; }
-  .amatista-opening-statement-copy .amatista-opening-tagline { margin-top: 28px; font-size: .78rem; }
+  .amatista-opening-statement-copy .amatista-opening-tagline { margin-top: 24px; font-size: .78rem; }
   .amatista-material-study { grid-template-columns: 1fr; gap: 24px; width: 100%; padding: 68px 0 82px; }
   .amatista-material-study-plate { width: min(100%, 430px); }
   .amatista-material-study-copy h2 { font-size: clamp(2rem, 10vw, 3rem); }
