@@ -160,7 +160,7 @@
   <main class="n-shell">
     <header class="n-hero">
       <figure class="n-hero-media">
-        <video class="n-hero-asset" id="ninaHeroVideo" src="./nina-fok/ninaloophero.mp4" poster="./nina-fok/HDNINACANON.png" autoplay muted loop playsinline preload="auto" aria-label="Nina FOK in her Berlin 2063 environment"></video>
+        <video class="n-hero-asset" id="ninaHeroVideo" data-src="./nina-fok/ninaloophero.mp4" poster="./assets/optimized/nina-fok/HDNINACANON.webp" autoplay muted loop playsinline preload="none" aria-label="Nina FOK in her Berlin 2063 environment"></video>
         <figcaption class="n-hero-copy">
           <p class="n-meta">Berlin / 2063</p>
           <h1>Nina FOK</h1>
@@ -183,8 +183,8 @@
     <section class="n-section" aria-labelledby="who-title">
       <div class="n-who-grid">
         <figure class="n-who-media">
-          <video id="ninaPersonalityVideo" autoplay muted loop playsinline preload="metadata" poster="./assets/ninamain-page.webp" aria-label="Nina FOK speaking from Berlin 2063">
-            <source src="./nina-fok/ninaspersonality.mp4" type="video/mp4">
+          <video id="ninaPersonalityVideo" autoplay muted loop playsinline preload="none" poster="./assets/optimized/ninamain-page.webp" aria-label="Nina FOK speaking from Berlin 2063">
+            <source data-src="./nina-fok/ninaspersonality.mp4" type="video/mp4">
           </video>
           <button class="n-sound" id="ninaVideoSound" type="button" aria-pressed="false" aria-label="Turn Nina video sound on">Sound On</button>
         </figure>
@@ -229,7 +229,7 @@
         </div>
       </div>
       <figure class="n-editorial-image n-world">
-        <img src="./assets/thecitysuperhd1.png" alt="Berlin 2063 vertical city and historic structures" decoding="async" loading="lazy" width="4500" height="2512">
+        <img src="./assets/optimized/thecitysuperhd1.webp" alt="Berlin 2063 vertical city and historic structures" decoding="async" loading="lazy" fetchpriority="low" width="4500" height="2512">
       </figure>
       <div class="n-world-note" aria-label="Berlin 2063 canonical annotation">
         <div class="n-archive-id">
@@ -573,6 +573,23 @@
       const heroVideo = document.getElementById("ninaHeroVideo");
       const soundButton = document.getElementById("ninaVideoSound");
       const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+      const saveData = Boolean(navigator.connection?.saveData);
+
+      const loadVideo = target => {
+        if (!target || target.dataset.loaded === "true" || reducedMotion.matches || saveData) return;
+        if (target.dataset.src) target.src = target.dataset.src;
+        const source = target.querySelector("source[data-src]");
+        if (source?.dataset.src) source.src = source.dataset.src;
+        target.dataset.loaded = "true";
+        target.load();
+        target.play().catch(() => {});
+      };
+
+      const scheduleHeroVideo = () => {
+        if (window.innerWidth <= 760) return;
+        if ("requestIdleCallback" in window) window.requestIdleCallback(() => loadVideo(heroVideo), { timeout: 1800 });
+        else window.setTimeout(() => loadVideo(heroVideo), 350);
+      };
 
       const setSoundState = soundOn => {
         video.muted = !soundOn;
@@ -590,12 +607,13 @@
           return;
         }
         heroVideo.autoplay = true;
-        heroVideo.play().catch(() => {});
+        if (heroVideo.dataset.loaded === "true") heroVideo.play().catch(() => {});
         video.autoplay = true;
-        video.play().catch(() => {});
+        if (video.dataset.loaded === "true") video.play().catch(() => {});
       };
 
       soundButton.addEventListener("click", async () => {
+        loadVideo(video);
         const soundOn = video.muted;
         setSoundState(soundOn);
         if (soundOn && video.paused) await video.play().catch(() => setSoundState(false));
@@ -607,8 +625,19 @@
       reducedMotion.addEventListener?.("change", syncMotion);
       document.addEventListener("visibilitychange", () => {
         if (document.hidden) video.pause();
-        else if (!reducedMotion.matches) video.play().catch(() => {});
+        else if (!reducedMotion.matches && video.dataset.loaded === "true") video.play().catch(() => {});
       });
+      if (window.innerWidth <= 760 && !reducedMotion.matches && !saveData) {
+        document.addEventListener("pointerdown", () => loadVideo(heroVideo), { once: true, passive: true });
+        document.addEventListener("keydown", () => loadVideo(heroVideo), { once: true });
+      } else scheduleHeroVideo();
+      if ("IntersectionObserver" in window && !reducedMotion.matches && !saveData) {
+        const observer = new IntersectionObserver(entries => entries.forEach(entry => {
+          if (entry.isIntersecting) loadVideo(video);
+          else if (video.dataset.loaded === "true") video.pause();
+        }), { rootMargin: "300px 0px", threshold: .01 });
+        observer.observe(video);
+      }
       syncMotion();
     })();
   </script>

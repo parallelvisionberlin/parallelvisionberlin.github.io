@@ -10,11 +10,13 @@
 <meta property="og:description" content="Fashion After Fabric explores speculative garments and future material cultures.">
 <meta property="og:url" content="https://parallelvisionlabel.com/future-fashion.html">
 <meta property="og:type" content="website">
-<meta property="og:image" content="https://parallelvisionlabel.com/assets/fashion-hero.png">
+<meta property="og:image" content="https://parallelvisionlabel.com/assets/optimized/fashion-hero.webp">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Fashion After Fabric / Parallel Vision">
 <meta name="twitter:description" content="Fashion After Fabric explores speculative garments and future material cultures.">
-<meta name="twitter:image" content="https://parallelvisionlabel.com/assets/fashion-hero.png">
+<meta name="twitter:image" content="https://parallelvisionlabel.com/assets/optimized/fashion-hero.webp">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="./fashion.css?v=20260826-amatista-card-1">
   <script src="./language.js?v=20260826-research-statement-2" defer></script>
   <style>
@@ -234,9 +236,9 @@
     </div>
   </nav>
   <div class="fashion-hero-media">
-    <img class="fashion-hero-poster" src="./assets/fashion-hero.png" alt="Fashion After Fabric editorial campaign" decoding="async" loading="eager" width="1672" height="941">
-    <video class="fashion-hero-video" autoplay muted loop playsinline preload="metadata" poster="./assets/fashion-hero.png" aria-hidden="true">
-      <source src="heroafterfabricvideo.mp4" type="video/mp4">
+    <img class="fashion-hero-poster" src="./assets/optimized/fashion-hero.webp" alt="Fashion After Fabric editorial campaign" decoding="async" loading="eager" width="1672" height="941">
+    <video class="fashion-hero-video" autoplay muted loop playsinline preload="none" poster="./assets/optimized/fashion-hero.webp" aria-hidden="true">
+      <source data-src="heroafterfabricvideo.mp4" type="video/mp4">
     </video>
   </div>
   <audio id="fashionSoundtrack" loop preload="metadata">
@@ -257,7 +259,24 @@
       const soundtrack = document.getElementById('fashionSoundtrack');
       const soundToggle = document.getElementById('fashionSoundToggle');
       const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+      const heroSource = video.querySelector('source[data-src]');
+      const saveData = Boolean(navigator.connection?.saveData);
+      let videoLoaded = false;
       let wasPlayingBeforeHidden = false;
+
+      const loadHeroVideo = () => {
+        if (videoLoaded || reducedMotion.matches || saveData || !heroSource?.dataset.src) return;
+        heroSource.src = heroSource.dataset.src;
+        videoLoaded = true;
+        video.load();
+        video.play().catch(() => {});
+      };
+
+      const scheduleHeroVideo = () => {
+        if (window.innerWidth <= 760) return;
+        if ('requestIdleCallback' in window) window.requestIdleCallback(loadHeroVideo, { timeout: 1800 });
+        else window.setTimeout(loadHeroVideo, 350);
+      };
 
       const setSoundState = (playing) => {
         soundToggle.textContent = playing ? 'Sound On' : 'Sound Off';
@@ -286,7 +305,7 @@
           return;
         }
         video.autoplay = true;
-        video.play().catch(() => {});
+        if (videoLoaded) video.play().catch(() => {});
       };
       video.addEventListener('error', () => { video.hidden = true; });
       reducedMotion.addEventListener?.('change', syncMotionPreference);
@@ -323,6 +342,12 @@
         wasPlayingBeforeHidden = false;
         setSoundState(false);
       });
+      if (window.innerWidth <= 760 && !reducedMotion.matches && !saveData) {
+        document.addEventListener('pointerdown', loadHeroVideo, { once: true, passive: true });
+        document.addEventListener('keydown', loadHeroVideo, { once: true });
+      } else {
+        scheduleHeroVideo();
+      }
       setSoundState(false);
       syncMotionPreference();
     })();
@@ -354,8 +379,8 @@
   <section class="fashion-chapter fashion-film-chapter" aria-label="Fashion After Fabric film">
     <p class="fashion-film-label">Material Film / 001</p>
     <div class="fashion-film-frame">
-      <video autoplay muted loop playsinline preload="auto" poster="./assets/fashion-hero.png" aria-label="Fashion After Fabric material systems in motion" data-smooth-loop-video>
-        <source src="./assets/herovideo.mp4" type="video/mp4">
+      <video autoplay muted loop playsinline preload="none" poster="./assets/optimized/fashion-hero.webp" aria-label="Fashion After Fabric material systems in motion" data-smooth-loop-video data-lazy-video>
+        <source data-src="./assets/herovideo.mp4" type="video/mp4">
       </video>
     </div>
     <p class="fashion-film-caption">A moving study of surface, body and material transition.</p>
@@ -376,7 +401,7 @@
     <div class="inhabitant-grid" role="list">
       <a class="inhabitant-card" href="./alejandro-molinari-fashion-after-fabric.html" aria-label="View Alejandro Molinari Fashion After Fabric study" role="listitem">
         <div class="inhabitant-image inhabitant-image-alejandro">
-          <img src="./assets/fashion-after-fabric/artists/alejandro/lotus02heroale.png" alt="Alejandro Molinari wearing the Lotus 2063 material system" decoding="async" loading="lazy" width="2048" height="1152">
+          <img src="./assets/optimized/fashion-after-fabric/artists/alejandro/lotus02heroale.webp" alt="Alejandro Molinari wearing the Lotus 2063 material system" decoding="async" loading="lazy" width="2048" height="1152">
         </div>
         <div class="inhabitant-meta">
           <p class="inhabitant-index">01 / Inhabitant</p>
@@ -387,7 +412,7 @@
 
       <a class="inhabitant-card" href="./amatista-fashion-after-fabric.html" aria-label="View Amatista(444) Fashion After Fabric study" role="listitem">
         <div class="inhabitant-image inhabitant-image-amatista">
-          <img src="./assets/fashion-after-fabric/artists/amatista/gallery1.png" alt="Amatista(444) inside the FLESH ZERO material system for Fashion After Fabric" decoding="async" loading="lazy" width="1672" height="941">
+          <img src="./assets/optimized/fashion-after-fabric/artists/amatista/gallery1.webp" alt="Amatista(444) inside the FLESH ZERO material system for Fashion After Fabric" decoding="async" loading="lazy" width="1672" height="941">
         </div>
         <div class="inhabitant-meta">
           <p class="inhabitant-index">02 / Inhabitant</p>
@@ -398,7 +423,7 @@
 
       <a class="inhabitant-card" href="./cabizbajo-fashion-after-fabric.html" aria-label="View Cabizbajo Fashion After Fabric study" role="listitem">
         <div class="inhabitant-image">
-          <img src="./assets/fashion-after-fabric/artists/cabizbajo/4.5archivecard.png" alt="Cabizbajo wearing the Lotus 2063 material system" decoding="async" loading="lazy" width="830" height="1038">
+          <img src="./assets/optimized/fashion-after-fabric/artists/cabizbajo/4.5archivecard.webp" alt="Cabizbajo wearing the Lotus 2063 material system" decoding="async" loading="lazy" width="830" height="1038">
         </div>
         <div class="inhabitant-meta">
           <p class="inhabitant-index">03 / Inhabitant</p>
@@ -409,7 +434,7 @@
 
       <a class="inhabitant-card" href="./elorian-fashion-after-fabric.html" aria-label="View Ëlorian Fashion After Fabric study" role="listitem">
         <div class="inhabitant-image inhabitant-image-elorian">
-          <img src="./assets/fashion-after-fabric/artists/elorian/eloriancardvertical.png" alt="Ëlorian wearing the Lotus 2063 material system" decoding="async" loading="lazy" width="758" height="1137">
+          <img src="./assets/optimized/fashion-after-fabric/artists/elorian/eloriancardvertical.webp" alt="Ëlorian wearing the Lotus 2063 material system" decoding="async" loading="lazy" width="758" height="1137">
         </div>
         <div class="inhabitant-meta">
           <p class="inhabitant-index">04 / Inhabitant</p>
@@ -437,8 +462,8 @@
   <section class="fashion-chapter fashion-material-test" aria-labelledby="fashion-material-test-title">
     <p class="fashion-chapter-label">Material Test 01</p>
     <div class="fashion-material-test-media">
-      <video autoplay muted loop playsinline preload="metadata" aria-label="Material Test 01: reactive matter study">
-        <source src="./assets/ninaorganism.mp4" type="video/mp4">
+      <video autoplay muted loop playsinline preload="none" poster="./assets/optimized/liquid-metal-hero.webp" aria-label="Material Test 01: reactive matter study" data-lazy-video>
+        <source data-src="./assets/ninaorganism.mp4" type="video/mp4">
       </video>
     </div>
     <div class="fashion-material-test-copy">
@@ -448,11 +473,11 @@
   </section>
 
   <section class="preview-grid" aria-label="Fashion After Fabric collections">
-    <a class="preview-card" href="./chromia.html"><div class="preview-image"><img src="./assets/liquid-metal-hero.png" alt="Chromia preview" decoding="async" loading="lazy" width="1672" height="941"></div><div class="preview-meta"><div><h2>Chromia</h2><p>Reactive alloy skins and liquid-metal body interfaces.</p></div><span class="preview-arrow">Open archive →</span></div></a>
-    <a class="preview-card" href="./flesh-zero.html"><div class="preview-image"><img src="./assets/LOOK03.png" alt="Flesh Zero preview" decoding="async" loading="lazy" width="4000" height="2233"></div><div class="preview-meta"><div><h2>Flesh Zero</h2><p>Chrome, gas, foam and synthetic tissue collapsing into one living surface.</p></div><span class="preview-arrow">Open archive →</span></div></a>
-    <a class="preview-card" href="./lotus-2063.html"><div class="preview-image"><img src="./assets/lotus-hero.png" alt="Lotus 2063 preview" decoding="async" loading="lazy" width="4096" height="2304"></div><div class="preview-meta"><div><h2>Lotus 2063</h2><p>Oversized black ritual silhouettes for future nightlife.</p></div><span class="preview-arrow">Open archive →</span></div></a>
-    <a class="preview-card" href="./magnetic-tape.html"><div class="preview-image"><img src="./assets/magnetic-tape-look-01.png" alt="Magnetic Tape preview" decoding="async" loading="lazy" width="1536" height="2048"></div><div class="preview-meta"><div><h2>Magnetic Tape</h2><p>Analog memory translated into ribboned body architecture.</p></div><span class="preview-arrow">Open archive →</span></div></a>
-    <a class="preview-card" href="./dna-mutation.html"><div class="preview-image"><img src="./assets/dna-mutation-soon.png" alt="DNA Mutation preview" decoding="async" loading="lazy" width="1672" height="941"></div><div class="preview-meta"><div><h2>DNA Mutation</h2><p>Living surfaces, altered membranes and speculative bio-material.</p></div><span class="preview-arrow">Open archive →</span></div></a>
+    <a class="preview-card" href="./chromia.html"><div class="preview-image"><img src="./assets/optimized/liquid-metal-hero.webp" alt="Chromia preview" decoding="async" loading="lazy" width="1672" height="941"></div><div class="preview-meta"><div><h2>Chromia</h2><p>Reactive alloy skins and liquid-metal body interfaces.</p></div><span class="preview-arrow">Open archive →</span></div></a>
+    <a class="preview-card" href="./flesh-zero.html"><div class="preview-image"><img src="./assets/optimized/LOOK03.webp" alt="Flesh Zero preview" decoding="async" loading="lazy" width="4000" height="2233"></div><div class="preview-meta"><div><h2>Flesh Zero</h2><p>Chrome, gas, foam and synthetic tissue collapsing into one living surface.</p></div><span class="preview-arrow">Open archive →</span></div></a>
+    <a class="preview-card" href="./lotus-2063.html"><div class="preview-image"><img src="./assets/optimized/lotus-hero.webp" alt="Lotus 2063 preview" decoding="async" loading="lazy" width="4096" height="2304"></div><div class="preview-meta"><div><h2>Lotus 2063</h2><p>Oversized black ritual silhouettes for future nightlife.</p></div><span class="preview-arrow">Open archive →</span></div></a>
+    <a class="preview-card" href="./magnetic-tape.html"><div class="preview-image"><img src="./assets/optimized/magnetic-tape-look-01.webp" alt="Magnetic Tape preview" decoding="async" loading="lazy" width="1536" height="2048"></div><div class="preview-meta"><div><h2>Magnetic Tape</h2><p>Analog memory translated into ribboned body architecture.</p></div><span class="preview-arrow">Open archive →</span></div></a>
+    <a class="preview-card" href="./dna-mutation.html"><div class="preview-image"><img src="./assets/optimized/dna-mutation-soon.webp" alt="DNA Mutation preview" decoding="async" loading="lazy" width="1672" height="941"></div><div class="preview-meta"><div><h2>DNA Mutation</h2><p>Living surfaces, altered membranes and speculative bio-material.</p></div><span class="preview-arrow">Open archive →</span></div></a>
   </section>
 
   <section class="fashion-chapter fashion-development" aria-labelledby="fashion-development-title">
@@ -476,6 +501,36 @@
   <a href="./index.html">Return to main archive</a>
 </footer>
 <script>
+  (() => {
+    const videos = [...document.querySelectorAll('video[data-lazy-video]')];
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const saveData = Boolean(navigator.connection?.saveData);
+    if (!videos.length || reducedMotion || saveData) return;
+
+    const loadVideo = (video) => {
+      if (video.dataset.loaded === 'true') return;
+      const source = video.querySelector('source[data-src]');
+      if (!source?.dataset.src) return;
+      source.src = source.dataset.src;
+      video.dataset.loaded = 'true';
+      video.load();
+      video.play().catch(() => {});
+    };
+
+    if (!('IntersectionObserver' in window)) {
+      videos.forEach(loadVideo);
+      return;
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) loadVideo(entry.target);
+        else if (entry.target.dataset.loaded === 'true') entry.target.pause();
+      });
+    }, { rootMargin: '300px 0px', threshold: 0.01 });
+    videos.forEach(video => observer.observe(video));
+  })();
+
   (() => {
     const smoothLoopVideo = document.querySelector('[data-smooth-loop-video]');
     if (!smoothLoopVideo) return;

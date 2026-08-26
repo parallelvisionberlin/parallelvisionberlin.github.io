@@ -16,12 +16,39 @@
     if (isAtEnd()) restart();
   });
 
+  const source = heroVideo.querySelector("source[data-src]");
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const saveData = Boolean(navigator.connection?.saveData);
+  let sourceLoaded = false;
+
+  const loadHeroVideo = () => {
+    if (sourceLoaded || !source?.dataset.src || reducedMotion || saveData) return;
+    source.src = source.dataset.src;
+    sourceLoaded = true;
+    heroVideo.load();
+    heroVideo.play().catch(() => {});
+  };
+
+  const scheduleDesktopLoad = () => {
+    if (window.innerWidth <= 760) return;
+    if ("requestIdleCallback" in window) window.requestIdleCallback(loadHeroVideo, { timeout: 1800 });
+    else window.setTimeout(loadHeroVideo, 350);
+  };
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", scheduleDesktopLoad, { once: true });
+  else scheduleDesktopLoad();
+
+  if (window.innerWidth <= 760 && !reducedMotion && !saveData) {
+    document.addEventListener("pointerdown", loadHeroVideo, { once: true, passive: true });
+    document.addEventListener("keydown", loadHeroVideo, { once: true });
+  }
+
   document.addEventListener("visibilitychange", () => {
     if (document.hidden) {
       heroVideo.pause();
       return;
     }
-    if (!heroVideo.autoplay) return;
+    if (!heroVideo.autoplay || !sourceLoaded) return;
     if (isAtEnd()) heroVideo.currentTime = 0;
     heroVideo.play().catch(() => {});
   });

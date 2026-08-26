@@ -59,6 +59,12 @@ body::before {
   mix-blend-mode: screen;
 }
 
+@media (max-width: 760px), (prefers-reduced-motion: reduce) {
+  body::before {
+    display: none;
+  }
+}
+
 
 /* =========================================================
    HERO

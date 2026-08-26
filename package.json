@@ -2,6 +2,10 @@
   "name": "parallel-vision-berlin",
   "private": true,
   "scripts": {
-    "build": "node scripts/verify-build.js"
+    "build": "node scripts/verify-build.js",
+    "optimize:images": "node scripts/optimize-images.mjs"
+  },
+  "devDependencies": {
+    "sharp": "^0.35.4"
   }
 }
