@@ -156,7 +156,7 @@ test("owner token comparison rejects missing and altered values", () => {
   assert.equal(constantTimeEqual("", token), false);
 });
 
-test("one-time enrollment binds the visitor and future access requires a signed credential plus D1 owner row", async () => {
+test("enrollment binds the owner and can reissue a missing signed credential only to the same bound visitor", async () => {
   let owner = null;
   const db = {
     prepare(sql) {
@@ -181,7 +181,10 @@ test("one-time enrollment binds the visitor and future access requires a signed 
   const enrollment = await enrollOwner(env, visitorId, `Bearer ${env.NINA_OWNER_ENROLLMENT_TOKEN}`);
   assert.equal(enrollment.owner.visitor_id, visitorId);
   assert.notEqual(enrollment.credential, env.NINA_OWNER_ENROLLMENT_TOKEN);
-  assert.equal(await enrollOwner(env, visitorId, `Bearer ${env.NINA_OWNER_ENROLLMENT_TOKEN}`), null);
+  const recoveredEnrollment = await enrollOwner(env, visitorId, `Bearer ${env.NINA_OWNER_ENROLLMENT_TOKEN}`);
+  assert.equal(recoveredEnrollment.owner.visitor_id, visitorId);
+  assert.equal(recoveredEnrollment.credential, enrollment.credential);
+  assert.equal(await enrollOwner(env, "visitor-someone-else", `Bearer ${env.NINA_OWNER_ENROLLMENT_TOKEN}`), null);
   assert.equal((await authorizeOwner(env, visitorId, `Bearer ${enrollment.credential}`)).visitor_id, visitorId);
   assert.equal(await authorizeOwner(env, "visitor-someone-else", `Bearer ${enrollment.credential}`), null);
   assert.equal(await authorizeOwner(env, visitorId, `Bearer ${env.NINA_OWNER_ENROLLMENT_TOKEN}`), null);

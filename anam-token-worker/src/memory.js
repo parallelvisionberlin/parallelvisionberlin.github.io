@@ -94,7 +94,10 @@ export async function enrollOwner(env, visitorId, authorization) {
   const existing = await env.NINA_MEMORY_DB.prepare(
     "SELECT visitor_id, display_name, profile_type FROM visitors WHERE profile_type = 'owner' LIMIT 1"
   ).first();
-  if (existing) return null;
+  if (existing) {
+    if (!constantTimeEqual(existing.visitor_id, visitorId)) return null;
+    return { owner: existing, credential: await issueOwnerCredential(env, visitorId) };
+  }
   const now = new Date().toISOString();
   await env.NINA_MEMORY_DB.prepare(
     "INSERT INTO visitors (visitor_id, display_name, profile_type, created_at, updated_at) VALUES (?, 'Alejandro', 'owner', ?, ?)"
