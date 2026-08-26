@@ -149,6 +149,23 @@
       margin-top: 16px;
     }
 
+    .berlin-moving-card {
+      margin: 0 0 clamp(54px,6vw,84px);
+      padding: clamp(22px,3vw,36px);
+      display: grid;
+      grid-template-columns: minmax(0,.34fr) minmax(0,.66fr) auto;
+      align-items: center;
+      gap: clamp(24px,4vw,60px);
+      border: 1px solid var(--archive-line);
+      transition: border-color .2s ease, background .2s ease;
+    }
+
+    .berlin-moving-card:hover,
+    .berlin-moving-card:focus-visible { border-color: rgba(255,255,255,.45); background: rgba(255,255,255,.025); }
+    .berlin-moving-card h2 { margin: 0; font-size: clamp(22px,2.5vw,36px); font-weight: 350; letter-spacing: -.035em; line-height: 1; text-transform: uppercase; }
+    .berlin-moving-card p { margin: 0; color: var(--archive-muted); font-size: clamp(14px,1.05vw,17px); line-height: 1.55; }
+    .berlin-moving-card span { color: rgba(255,255,255,.72); font-size: 9px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; white-space: nowrap; }
+
     .berlin-archives {
       border-top: 0;
     }
@@ -446,6 +463,8 @@
       .berlin-intro-copy p + p {
         margin-top: 18px;
       }
+      .berlin-moving-card { grid-template-columns: 1fr; gap: 16px; }
+      .berlin-moving-card span { white-space: normal; }
       .berlin-archive-chapter {
         padding: 68px 0;
       }
@@ -521,6 +540,12 @@
           <p>Through architecture, infrastructure, technology, nightlife, fashion and everyday life, the archive examines how systems already present today could reshape the way we move, gather, work, dress and relate to one another.</p>
         </div>
       </header>
+
+      <a class="berlin-moving-card" href="./moving-transmissions.html" aria-label="Enter Moving Transmissions">
+        <h2>Moving Transmissions</h2>
+        <p>The motion layer of Berlin 2063: screen loops, projection fragments and atmosphere systems.</p>
+        <span>Enter Moving Transmissions →</span>
+      </a>
 
       <div class="berlin-archives" id="berlinArchives" aria-label="Berlin 2063 visual archive"></div>
 
