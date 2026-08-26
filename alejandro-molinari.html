@@ -10,11 +10,11 @@
 <meta property="og:description" content="Alejandro Molinari — artist, producer and founder of Parallel Vision.">
 <meta property="og:url" content="https://parallelvisionlabel.com/alejandro-molinari.html">
 <meta property="og:type" content="website">
-<meta property="og:image" content="https://parallelvisionlabel.com/assets/Alejandro1.jpg">
+<meta property="og:image" content="https://parallelvisionlabel.com/assets/fashion-after-fabric/artists/alejandro/Squared..png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Alejandro Molinari — Parallel Vision">
 <meta name="twitter:description" content="Alejandro Molinari — artist, producer and founder of Parallel Vision.">
-<meta name="twitter:image" content="https://parallelvisionlabel.com/assets/Alejandro1.jpg">
+<meta name="twitter:image" content="https://parallelvisionlabel.com/assets/fashion-after-fabric/artists/alejandro/Squared..png">
   <style>
     :root {
       --black: #050505;
@@ -140,8 +140,8 @@
     .hero-image {
       height: 100%;
       object-fit: cover;
-      object-position: center 42%;
-      filter: saturate(0.72) contrast(1.08);
+      object-position: center 38%;
+      filter: saturate(0.82) contrast(1.04);
     }
 
     .hero::after {
@@ -162,10 +162,10 @@
     .hero-title {
       max-width: 1200px;
       margin: 0;
-      font-size: clamp(64px, 12vw, 176px);
-      font-weight: 700;
-      letter-spacing: -0.07em;
-      line-height: 0.75;
+      font-size: clamp(64px, 10.8vw, 158px);
+      font-weight: 300;
+      letter-spacing: 0.015em;
+      line-height: 0.82;
       text-transform: uppercase;
     }
 
@@ -250,6 +250,22 @@
       color: rgba(255, 255, 255, 0.74);
       font-size: clamp(20px, 2.4vw, 36px);
       line-height: 1.26;
+    }
+
+    .founder-portrait {
+      position: relative;
+      width: min(72%, 720px);
+      margin: clamp(64px, 8vw, 120px) 0;
+      overflow: hidden;
+      aspect-ratio: 3 / 4;
+      background: #111;
+    }
+
+    .founder-portrait img {
+      height: 100%;
+      object-fit: cover;
+      object-position: center 28%;
+      filter: saturate(0.78) contrast(1.04);
     }
 
     .section-shell {
@@ -542,33 +558,19 @@
       color: var(--muted-dark);
     }
 
-    .editorial-grid {
-      display: grid;
-      grid-template-columns: 1.35fr 0.65fr;
-      gap: 1px;
-      background: var(--line-dark);
-    }
-
     .editorial-block {
       position: relative;
-      min-height: 74vh;
-      background:
-        linear-gradient(135deg, rgba(255, 255, 255, 0.026), transparent 42%),
-        #090909;
-    }
-
-    .editorial-block:nth-child(2) {
-      background:
-        linear-gradient(225deg, rgba(255, 255, 255, 0.022), transparent 46%),
-        #070707;
-    }
-
-    .editorial-block:nth-child(3) {
-      grid-column: 1 / -1;
       min-height: 82vh;
-      background:
-        linear-gradient(155deg, rgba(255, 255, 255, 0.024), transparent 55%),
-        #080808;
+      overflow: hidden;
+      background: #070707;
+    }
+
+    .editorial-block img {
+      height: 100%;
+      min-height: 82vh;
+      object-fit: cover;
+      object-position: center 24%;
+      filter: brightness(0.66) saturate(0.62) contrast(1.14);
     }
 
     .editorial-label {
@@ -741,7 +743,7 @@
       }
 
       .hero-image {
-        object-position: 58% center;
+        object-position: 52% center;
       }
 
       .hero-meta {
@@ -793,13 +795,13 @@
         grid-template-columns: 1fr;
       }
 
-      .editorial-block:nth-child(3) {
-        grid-column: auto;
+      .editorial-block,
+      .editorial-block img {
+        min-height: 62vh;
       }
 
-      .editorial-block,
-      .editorial-block:nth-child(3) {
-        min-height: 62vh;
+      .founder-portrait {
+        width: min(88%, 560px);
       }
 
       .history-row {
@@ -820,8 +822,13 @@
       }
 
       .hero-title {
-        font-size: clamp(47px, 17.6vw, 72px);
-        letter-spacing: -0.065em;
+        font-size: clamp(43px, 13.5vw, 62px);
+        letter-spacing: 0.01em;
+        line-height: 0.86;
+      }
+
+      .founder-portrait {
+        width: 100%;
       }
 
       .section-title,
@@ -886,7 +893,7 @@
 
   <main>
     <section class="hero" aria-labelledby="alejandro-page-title">
-      <img class="hero-image" src="./assets/Alejandro1.jpg" alt="Alejandro Molinari wearing a mirrored architectural headpiece" decoding="async" loading="eager" width="1500" height="1200">
+      <img class="hero-image" src="./assets/fashion-after-fabric/artists/alejandro/Squared..png" alt="Portrait of Alejandro Molinari in a black leather jacket and silver sunglasses" decoding="async" loading="eager" width="1536" height="1536">
       <div class="hero-copy">
         <h1 class="hero-title" id="alejandro-page-title">
           <span>Alejandro</span>
@@ -904,6 +911,9 @@
       <p class="statement-label reveal">Founding Artist / Berlin</p>
       <div class="statement-copy">
         <p class="reveal">Alejandro Molinari is a Berlin-based artist, producer and creative director working across sound, moving image and speculative culture.</p>
+        <figure class="founder-portrait reveal">
+          <img src="./assets/fashion-after-fabric/artists/alejandro/fashionsummer1.png" alt="Alejandro Molinari, artist and founder of Parallel Vision" loading="lazy" decoding="async" width="1536" height="2048">
+        </figure>
         <p class="reveal">He is the founder of Parallel Vision, an independent platform connecting electronic music, visual world-building and material research. His practice moves between the dancefloor and the imagined city: from hypnotic club records and live performance to Berlin 2063, a cinematic universe examining identity, technology and life after the present.</p>
         <p class="reveal">For Molinari, music is not an isolated product. It is the structural core of a larger system—one in which records, bodies, garments, architecture and fictional realities can occupy the same world.</p>
       </div>
@@ -1052,17 +1062,12 @@
     <section class="editorial section-shell" id="editorial" aria-labelledby="editorial-title">
       <header class="section-head reveal">
         <h2 class="section-title" id="editorial-title">Editorial Archive</h2>
-        <p class="section-kicker">Image Sequence / 03 Studies</p>
+        <p class="section-kicker">Artist / Founder / Night Archive</p>
       </header>
-      <div class="editorial-grid" aria-label="Editorial image placeholders">
+      <div class="editorial-grid" aria-label="Alejandro Molinari night archive portrait">
         <div class="editorial-block reveal">
-          <p class="editorial-label">01 — Portrait</p>
-        </div>
-        <div class="editorial-block reveal">
-          <p class="editorial-label">02 — Performance</p>
-        </div>
-        <div class="editorial-block reveal">
-          <p class="editorial-label">03 — Berlin 2063 / Creative Direction</p>
+          <img src="./assets/fashion-after-fabric/artists/alejandro/cassiusfrontale.png" alt="Dark editorial portrait of Alejandro Molinari" loading="lazy" decoding="async" width="1536" height="2048">
+          <p class="editorial-label">01 — Artist / Founder / Night Archive</p>
         </div>
       </div>
     </section>
