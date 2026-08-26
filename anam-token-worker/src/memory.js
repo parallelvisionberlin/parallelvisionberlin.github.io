@@ -52,23 +52,70 @@ export async function normalizeMessageIds(messages, visitorId, conversationId, n
   })));
 }
 
-export async function resolveOwner(env, visitorId, profile, authorization, { create = false } = {}) {
-  if (!env.NINA_MEMORY_DB || !env.NINA_OWNER_TOKEN) return null;
-  const suppliedToken = typeof authorization === "string" && authorization.startsWith("Bearer ")
+function bearerToken(authorization) {
+  return typeof authorization === "string" && authorization.startsWith("Bearer ")
     ? authorization.slice(7).trim()
     : "";
-  if (!constantTimeEqual(suppliedToken, env.NINA_OWNER_TOKEN)) return null;
-  if (profile?.displayName !== "Alejandro" || profile?.profileType !== "owner") return null;
+}
+
+function base64UrlEncode(value) {
+  const bytes = typeof value === "string" ? new TextEncoder().encode(value) : value;
+  let binary = "";
+  bytes.forEach(byte => { binary += String.fromCharCode(byte); });
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+}
+
+function base64UrlDecode(value) {
+  const padded = value.replace(/-/g, "+").replace(/_/g, "/").padEnd(Math.ceil(value.length / 4) * 4, "=");
+  const binary = atob(padded);
+  return Uint8Array.from(binary, character => character.charCodeAt(0));
+}
+
+async function signingKey(secret) {
+  return crypto.subtle.importKey("raw", new TextEncoder().encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign", "verify"]);
+}
+
+export async function issueOwnerCredential(env, visitorId) {
+  if (!env.NINA_OWNER_SIGNING_SECRET || env.NINA_OWNER_SIGNING_SECRET.length < 32) return "";
+  const payload = base64UrlEncode(visitorId);
+  const signature = await crypto.subtle.sign("HMAC", await signingKey(env.NINA_OWNER_SIGNING_SECRET), new TextEncoder().encode(`v1.${payload}`));
+  return `v1.${payload}.${base64UrlEncode(new Uint8Array(signature))}`;
+}
+
+export async function enrollOwner(env, visitorId, authorization) {
+  if (!env.NINA_MEMORY_DB || !env.NINA_OWNER_ENROLLMENT_TOKEN || !env.NINA_OWNER_SIGNING_SECRET) return null;
+  if (!constantTimeEqual(bearerToken(authorization), env.NINA_OWNER_ENROLLMENT_TOKEN)) return null;
   const existing = await env.NINA_MEMORY_DB.prepare(
     "SELECT visitor_id, display_name, profile_type FROM visitors WHERE profile_type = 'owner' LIMIT 1"
   ).first();
-  if (existing) return existing.visitor_id === visitorId ? existing : null;
-  if (!create) return null;
+  if (existing) return null;
   const now = new Date().toISOString();
   await env.NINA_MEMORY_DB.prepare(
-    "INSERT INTO visitors (visitor_id, display_name, profile_type, created_at, updated_at) VALUES (?, ?, 'owner', ?, ?)"
-  ).bind(visitorId, "Alejandro", now, now).run();
-  return { visitor_id: visitorId, display_name: "Alejandro", profile_type: "owner" };
+    "INSERT INTO visitors (visitor_id, display_name, profile_type, created_at, updated_at) VALUES (?, 'Alejandro', 'owner', ?, ?)"
+  ).bind(visitorId, now, now).run();
+  const owner = { visitor_id: visitorId, display_name: "Alejandro", profile_type: "owner" };
+  return { owner, credential: await issueOwnerCredential(env, visitorId) };
+}
+
+export async function authorizeOwner(env, visitorId, authorization) {
+  if (!env.NINA_MEMORY_DB || !env.NINA_OWNER_SIGNING_SECRET) return null;
+  const suppliedToken = typeof authorization === "string" && authorization.startsWith("Bearer ")
+    ? authorization.slice(7).trim()
+    : "";
+  const parts = suppliedToken.split(".");
+  if (parts.length !== 3 || parts[0] !== "v1") return null;
+  let boundVisitorId = "";
+  try { boundVisitorId = new TextDecoder().decode(base64UrlDecode(parts[1])); } catch { return null; }
+  if (!constantTimeEqual(boundVisitorId, visitorId)) return null;
+  let signature;
+  try { signature = base64UrlDecode(parts[2]); } catch { return null; }
+  const validSignature = await crypto.subtle.verify(
+    "HMAC", await signingKey(env.NINA_OWNER_SIGNING_SECRET), signature, new TextEncoder().encode(`v1.${parts[1]}`)
+  );
+  if (!validSignature) return null;
+  return env.NINA_MEMORY_DB.prepare(
+    "SELECT visitor_id, display_name, profile_type FROM visitors WHERE visitor_id = ? AND profile_type = 'owner' LIMIT 1"
+  ).bind(visitorId).first();
 }
 
 export function constantTimeEqual(left, right) {

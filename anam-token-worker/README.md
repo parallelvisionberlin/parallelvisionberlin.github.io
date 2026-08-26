@@ -10,7 +10,8 @@ Run these commands from `anam-token-worker`:
 npm install --global wrangler
 wrangler login
 wrangler secret put ANAM_API_KEY
-wrangler secret put NINA_OWNER_TOKEN
+wrangler secret put NINA_OWNER_ENROLLMENT_TOKEN
+wrangler secret put NINA_OWNER_SIGNING_SECRET
 wrangler d1 migrations apply nina-fok-memory --remote
 wrangler deploy
 ```
@@ -28,17 +29,17 @@ The Worker accepts production browser requests only from `https://parallelvision
 
 ## Owner activation
 
-The owner token must never be committed or printed in browser logs. On Alejandro's browser, enroll it once from the site console:
+The enrollment token is verified only by `POST /owner/enroll` and must never be committed, persisted by the frontend, returned by the Worker, or printed in logs. After successful enrollment, the Worker permanently binds the current `visitorId` to Alejandro in D1 and returns a separate HMAC-signed owner credential. On Alejandro's browser, enroll once from the site console:
 
 ```js
-enrollNinaAlejandro("PASTE_OWNER_TOKEN_HERE")
+await enrollNinaAlejandro("PASTE_ONE_TIME_ENROLLMENT_TOKEN_HERE")
 ```
 
 The existing browser-only 20-message archive remains available if the server binding, owner credential, or network is unavailable.
 
 ## Owner memory endpoints
 
-All endpoints require `Authorization: Bearer <NINA_OWNER_TOKEN>`, Alejandro's permanent `visitorId`, and the production Origin header.
+All memory endpoints require the HMAC-signed owner credential, a matching permanent D1 owner binding, and the production Origin header. Local profile fields never authorize memory access.
 
 - `GET /memory/metadata?visitorId=...` returns counts and summary presence only.
 - `GET /memory/export?visitorId=...` downloads the complete transcript as JSON.

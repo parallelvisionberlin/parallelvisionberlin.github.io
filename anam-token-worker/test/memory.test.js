@@ -3,8 +3,10 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 import {
   MEMORY_CONTEXT_CHARACTER_LIMIT,
+  authorizeOwner,
   buildOwnerMemoryContext,
   constantTimeEqual,
+  enrollOwner,
   filterConsolidationExtraction,
   validateCompletedMessages
 } from "../src/memory.js";
@@ -98,6 +100,39 @@ test("owner token comparison rejects missing and altered values", () => {
   assert.equal(constantTimeEqual("", token), false);
 });
 
+test("one-time enrollment binds the visitor and future access requires a signed credential plus D1 owner row", async () => {
+  let owner = null;
+  const db = {
+    prepare(sql) {
+      return {
+        bind(...values) {
+          if (sql.includes("INSERT INTO visitors")) return { run: async () => { owner = { visitor_id: values[0], display_name: "Alejandro", profile_type: "owner" }; } };
+          if (sql.includes("WHERE visitor_id = ?")) return { first: async () => owner?.visitor_id === values[0] ? owner : null };
+          throw new Error(`Unexpected bound SQL: ${sql}`);
+        },
+        first: async () => owner
+      };
+    }
+  };
+  const env = {
+    NINA_MEMORY_DB: db,
+    NINA_OWNER_ENROLLMENT_TOKEN: "enroll-" + "e".repeat(48),
+    NINA_OWNER_SIGNING_SECRET: "sign-" + "s".repeat(48)
+  };
+  const visitorId = "visitor-cryptographic-owner";
+  assert.equal(await enrollOwner(env, visitorId, "Bearer wrong-token"), null);
+  assert.equal(owner, null);
+  const enrollment = await enrollOwner(env, visitorId, `Bearer ${env.NINA_OWNER_ENROLLMENT_TOKEN}`);
+  assert.equal(enrollment.owner.visitor_id, visitorId);
+  assert.notEqual(enrollment.credential, env.NINA_OWNER_ENROLLMENT_TOKEN);
+  assert.equal(await enrollOwner(env, visitorId, `Bearer ${env.NINA_OWNER_ENROLLMENT_TOKEN}`), null);
+  assert.equal((await authorizeOwner(env, visitorId, `Bearer ${enrollment.credential}`)).visitor_id, visitorId);
+  assert.equal(await authorizeOwner(env, "visitor-someone-else", `Bearer ${enrollment.credential}`), null);
+  assert.equal(await authorizeOwner(env, visitorId, `Bearer ${env.NINA_OWNER_ENROLLMENT_TOKEN}`), null);
+  owner = null;
+  assert.equal(await authorizeOwner(env, visitorId, `Bearer ${enrollment.credential}`), null);
+});
+
 test("migration defines cascading owner deletion for the complete memory graph", async () => {
   const migration = await readFile(new URL("../migrations/0001_nina_memory.sql", import.meta.url), "utf8");
   for (const table of ["visitors", "conversations", "messages", "memory_summaries", "pinned_memories", "open_threads"]) {
@@ -108,7 +143,9 @@ test("migration defines cascading owner deletion for the complete memory graph",
 
 test("public frontend remains browser-only without the owner credential", async () => {
   const frontend = await readFile(new URL("../../js/nina-access.js", import.meta.url), "utf8");
-  assert.match(frontend, /return profile\?\.displayName === "Alejandro".*Boolean\(readNinaOwnerToken\(\)\)/s);
+  assert.match(frontend, /return Boolean\(readNinaOwnerCredential\(\)\)/);
   assert.match(frontend, /if \(!canUseServerMemory\(\)\) return Promise\.resolve\(null\)/);
+  assert.doesNotMatch(frontend, /localStorage\.setItem\(NINA_LEGACY_OWNER_TOKEN_KEY/);
+  assert.doesNotMatch(frontend, /profile: readNinaUserProfile\(\)/);
   assert.match(frontend, /const NINA_MEMORY_LIMIT = 20/);
 });

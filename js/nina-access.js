@@ -35,7 +35,8 @@ const ninaAccessHash = "d3ec7a14e4fefc8da57d4045a6ee28d28b328b78126c1e22bc0b541a
 const NINA_PREFERRED_MICROPHONE_KEY = "ninaPreferredMicrophoneId";
 const NINA_VISITOR_ID_KEY = "nina_fok_visitor_id_v1";
 const NINA_USER_PROFILE_KEY = "nina_fok_user_profile_v1";
-const NINA_OWNER_TOKEN_KEY = "nina_fok_owner_token_v1";
+const NINA_OWNER_CREDENTIAL_KEY = "nina_fok_owner_credential_v2";
+const NINA_LEGACY_OWNER_TOKEN_KEY = "nina_fok_owner_token_v1";
 const NINA_MEMORY_KEY_PREFIX = "nina_fok_memory_v2:";
 const NINA_LEGACY_MEMORY_KEY = "nina_fok_alejandro_memory_v1";
 const NINA_MEMORY_LIMIT = 20;
@@ -138,35 +139,51 @@ function readNinaUserProfile() {
   }
 }
 
-window.enrollNinaAlejandro = ownerToken => {
+window.enrollNinaAlejandro = async enrollmentToken => {
+  if (typeof enrollmentToken !== "string" || enrollmentToken.trim().length < 32 || enrollmentToken.trim().length > 256) {
+    throw new Error("A valid one-time owner enrollment token is required.");
+  }
+  const response = await fetch(`${ANAM_SESSION_TOKEN_ENDPOINT.replace(/\/session-token$/, "")}/owner/enroll`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${enrollmentToken.trim()}` },
+    body: JSON.stringify({ visitorId: ninaVisitorId })
+  });
+  if (!response.ok) throw new Error("Owner enrollment was denied.");
+  const data = await response.json();
+  if (typeof data.ownerCredential !== "string" || data.ownerCredential.length < 32) {
+    throw new Error("Owner enrollment returned an invalid credential.");
+  }
   const profile = { displayName: "Alejandro", profileType: "owner" };
   localStorage.setItem(NINA_USER_PROFILE_KEY, JSON.stringify(profile));
-  if (typeof ownerToken === "string" && ownerToken.trim().length >= 32 && ownerToken.trim().length <= 256) {
-    localStorage.setItem(NINA_OWNER_TOKEN_KEY, ownerToken.trim());
-  }
+  localStorage.setItem(NINA_OWNER_CREDENTIAL_KEY, data.ownerCredential);
+  localStorage.removeItem(NINA_LEGACY_OWNER_TOKEN_KEY);
   return profile;
 };
 
 window.clearNinaUserProfile = () => {
   localStorage.removeItem(NINA_USER_PROFILE_KEY);
-  localStorage.removeItem(NINA_OWNER_TOKEN_KEY);
+  localStorage.removeItem(NINA_OWNER_CREDENTIAL_KEY);
+  localStorage.removeItem(NINA_LEGACY_OWNER_TOKEN_KEY);
 };
 
-function readNinaOwnerToken() {
+function readNinaOwnerCredential() {
   try {
-    const token = localStorage.getItem(NINA_OWNER_TOKEN_KEY) || "";
-    return token.length >= 32 && token.length <= 256 ? token : "";
+    const credential = localStorage.getItem(NINA_OWNER_CREDENTIAL_KEY) || "";
+    return credential.length >= 32 && credential.length <= 512 ? credential : "";
   } catch { return ""; }
 }
 
+function removeLegacyNinaOwnerToken() {
+  try { localStorage.removeItem(NINA_LEGACY_OWNER_TOKEN_KEY); } catch { /* Legacy credential is never read. */ }
+}
+
 function ownerMemoryHeaders() {
-  const token = readNinaOwnerToken();
-  return token ? { "Content-Type": "application/json", "Authorization": `Bearer ${token}` } : { "Content-Type": "application/json" };
+  const credential = readNinaOwnerCredential();
+  return credential ? { "Content-Type": "application/json", "Authorization": `Bearer ${credential}` } : { "Content-Type": "application/json" };
 }
 
 function canUseServerMemory() {
-  const profile = readNinaUserProfile();
-  return profile?.displayName === "Alejandro" && profile.profileType === "owner" && Boolean(readNinaOwnerToken());
+  return Boolean(readNinaOwnerCredential());
 }
 
 function queueOwnerMemoryRequest(path, body, method = "POST") {
@@ -175,7 +192,7 @@ function queueOwnerMemoryRequest(path, body, method = "POST") {
     const response = await fetch(`${ANAM_SESSION_TOKEN_ENDPOINT.replace(/\/session-token$/, "")}${path}`, {
       method,
       headers: ownerMemoryHeaders(),
-      body: JSON.stringify({ visitorId: ninaVisitorId, profile: readNinaUserProfile(), ...body }),
+      body: JSON.stringify({ visitorId: ninaVisitorId, ...body }),
       keepalive: true
     });
     if (!response.ok) throw new Error("Owner memory request failed");
@@ -508,8 +525,7 @@ async function requestSessionToken(signal, history) {
     headers: ownerMemoryHeaders(),
     body: JSON.stringify({
       visitorId: ninaVisitorId,
-      recentMessages: history,
-      profile: readNinaUserProfile()
+      recentMessages: history
     }),
     signal
   });
@@ -702,5 +718,6 @@ window.addEventListener("pagehide", stopNinaSession);
 window.addEventListener("beforeunload", stopNinaSession);
 if (new URLSearchParams(window.location.search).get("nina") === "1") openNinaAccess();
 migrateLegacyNinaMemory();
+removeLegacyNinaOwnerToken();
 resetNinaMemoryIndicator();
 void ANAM_PERSONA_ID;

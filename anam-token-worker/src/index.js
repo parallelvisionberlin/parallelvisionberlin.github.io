@@ -1,7 +1,7 @@
 import {
   HISTORY_LIMIT, buildOwnerMemoryContext, closeConversation, consolidateMemory,
   createConversation, deleteOwnerMemory, exportTranscript, memoryMetadata,
-  resolveOwner, storeMessages, validateCompletedMessages, validId
+  authorizeOwner, enrollOwner, storeMessages, validateCompletedMessages, validId
 } from "./memory.js";
 
 const PERSONA_ID = "a5663da5-5f5c-4600-b545-cbb58bd4e155";
@@ -47,13 +47,6 @@ function validateVisitorId(value) {
   return visitorId && visitorId.length <= 128 && VISITOR_ID_PATTERN.test(visitorId) ? visitorId : "";
 }
 
-function validateProfile(profile) {
-  if (!profile || typeof profile !== "object") return null;
-  const displayName = typeof profile.displayName === "string" ? profile.displayName.trim() : "";
-  const profileType = profile.profileType === "owner" || profile.profileType === "visitor" ? profile.profileType : "";
-  return displayName && displayName.length <= 50 && profileType ? { displayName, profileType } : null;
-}
-
 function formatBrowserMemory(history) {
   if (!history.length) return "";
   return `Private previous-conversation context follows.
@@ -86,11 +79,19 @@ async function getCurrentPersonaConfig(apiKey) {
   return config;
 }
 
-async function authenticateOwnerRequest(request, env, body, options) {
+async function authenticateOwnerRequest(request, env, body) {
   const visitorId = validateVisitorId(body?.visitorId);
-  const profile = validateProfile(body?.profile);
-  if (!visitorId || !profile) return null;
-  return resolveOwner(env, visitorId, profile, request.headers.get("Authorization") || "", options);
+  if (!visitorId) return null;
+  return authorizeOwner(env, visitorId, request.headers.get("Authorization") || "");
+}
+
+async function handleOwnerEnrollment(request, env, origin) {
+  const body = await request.json().catch(() => ({}));
+  const visitorId = validateVisitorId(body?.visitorId);
+  if (!visitorId) return jsonResponse({ error: "Invalid visitor" }, 400, origin);
+  const enrollment = await enrollOwner(env, visitorId, request.headers.get("Authorization") || "");
+  if (!enrollment?.credential) return jsonResponse({ error: "Owner enrollment denied" }, 403, origin);
+  return jsonResponse({ ownerCredential: enrollment.credential }, 200, origin);
 }
 
 async function handleSessionToken(request, env, origin) {
@@ -99,7 +100,7 @@ async function handleSessionToken(request, env, origin) {
   const visitorId = validateVisitorId(body?.visitorId);
   if (!visitorId) return jsonResponse({ error: "Invalid visitor" }, 400, origin);
   const browserHistory = validateCompletedMessages(body.recentMessages, HISTORY_LIMIT).slice(-HISTORY_LIMIT);
-  const owner = await authenticateOwnerRequest(request, env, body, { create: true });
+  const owner = await authenticateOwnerRequest(request, env, body);
   let conversationId = "";
   let privateMemory = formatBrowserMemory(browserHistory);
   let diagnostics = { storedMessages: 0, restoredRecentMessages: browserHistory.length, pinnedMemoryCount: 0, openThreadCount: 0, summaryLoaded: false };
@@ -127,7 +128,7 @@ async function handleSessionToken(request, env, origin) {
 }
 
 async function requireOwner(request, env, body, origin) {
-  const owner = await authenticateOwnerRequest(request, env, body, { create: false });
+  const owner = await authenticateOwnerRequest(request, env, body);
   return owner || jsonResponse({ error: "Owner authorization required" }, 401, origin);
 }
 
@@ -156,7 +157,7 @@ async function handleCloseConversation(request, env, origin, ctx) {
 
 function ownerIdentityFromQuery(request) {
   const url = new URL(request.url);
-  return { visitorId: url.searchParams.get("visitorId") || "", profile: { displayName: "Alejandro", profileType: "owner" } };
+  return { visitorId: url.searchParams.get("visitorId") || "" };
 }
 
 async function handleMetadata(request, env, origin) {
@@ -185,6 +186,7 @@ export default {
     if (!isAllowedOrigin(origin)) return jsonResponse({ error: "Origin not allowed" }, 403);
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders(origin) });
     try {
+      if (url.pathname === "/owner/enroll" && request.method === "POST") return handleOwnerEnrollment(request, env, origin);
       if (url.pathname === "/session-token" && request.method === "POST") return handleSessionToken(request, env, origin);
       if (url.pathname === "/memory/messages" && request.method === "POST") return handleStoreMessages(request, env, origin, ctx);
       if (url.pathname === "/memory/conversations/end" && request.method === "POST") return handleCloseConversation(request, env, origin, ctx);
