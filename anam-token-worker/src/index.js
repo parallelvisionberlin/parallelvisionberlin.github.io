@@ -17,6 +17,13 @@ const ALEJANDRO_GREETING = "Alejandro... hi. I'm really glad it's you.";
 const DEFAULT_GREETING = "Hi. I'm Nina.";
 const PRODUCTION_ORIGINS = new Set(["https://parallelvisionlabel.com", "https://www.parallelvisionlabel.com"]);
 
+export function applyStartupGreeting(personaConfig, owner) {
+  personaConfig.initialMessage = owner ? ALEJANDRO_GREETING : DEFAULT_GREETING;
+  personaConfig.skipGreeting = false;
+  personaConfig.uninterruptibleGreeting = Boolean(owner);
+  return personaConfig;
+}
+
 function isAllowedOrigin(origin) {
   if (PRODUCTION_ORIGINS.has(origin)) return true;
   try {
@@ -113,8 +120,7 @@ async function handleSessionToken(request, env, origin) {
     diagnostics = { ...diagnostics, ...memory.diagnostics };
   }
   const personaConfig = await getCurrentPersonaConfig(env.ANAM_API_KEY);
-  personaConfig.initialMessage = owner ? ALEJANDRO_GREETING : DEFAULT_GREETING;
-  personaConfig.skipGreeting = false;
+  applyStartupGreeting(personaConfig, owner);
   personaConfig.systemPrompt = [personaConfig.systemPrompt, owner ? ALEJANDRO_CONTEXT : "", privateMemory].filter(Boolean).join("\n\n");
   const anamResponse = await fetch("https://api.anam.ai/v1/auth/session-token", {
     method: "POST",
