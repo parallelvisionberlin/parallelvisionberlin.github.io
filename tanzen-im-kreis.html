@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tanzen Im Kreis - Alejandro Molinari | Parallel Vision</title>
+  <meta name="description" content="Tanzen Im Kreis by Alejandro Molinari, the opening chapter of Berlin 2063 on Parallel Vision.">
+  <link rel="canonical" href="https://parallelvisionlabel.com/tanzen-im-kreis.html">
+  <meta property="og:title" content="Tanzen Im Kreis - Alejandro Molinari | Parallel Vision">
+  <meta property="og:description" content="Tanzen Im Kreis by Alejandro Molinari, the opening chapter of Berlin 2063 on Parallel Vision.">
+  <meta property="og:type" content="music.album">
+  <meta property="og:url" content="https://parallelvisionlabel.com/tanzen-im-kreis.html">
+  <meta property="og:image" content="https://parallelvisionlabel.com/assets/tanzenfinal.jpeg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Tanzen Im Kreis - Alejandro Molinari | Parallel Vision">
+  <meta name="twitter:description" content="Tanzen Im Kreis by Alejandro Molinari, the opening chapter of Berlin 2063 on Parallel Vision.">
+  <meta name="twitter:image" content="https://parallelvisionlabel.com/assets/tanzenfinal.jpeg">
+  <style>
+    :root { --black:#050505; --paper:#efeee9; --ink:#0a0a0a; --muted:rgba(255,255,255,.58); --line:rgba(255,255,255,.18); --pad:clamp(20px,4vw,64px); }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; background:var(--black); }
+    body { margin:0; overflow-x:hidden; background:var(--black); color:#fff; font-family:"Helvetica Neue",Helvetica,Arial,sans-serif; -webkit-font-smoothing:antialiased; }
+    a { color:inherit; text-decoration:none; }
+    img, video { display:block; width:100%; }
+    button { font:inherit; }
+    :focus-visible { outline:2px solid currentColor; outline-offset:5px; }
+    .site-header { position:fixed; z-index:30; top:0; right:0; left:0; min-height:70px; padding:0 var(--pad); display:flex; align-items:center; justify-content:space-between; gap:24px; border-bottom:1px solid transparent; transition:background .2s,border-color .2s; }
+    .site-header.is-scrolled { background:rgba(5,5,5,.9); border-color:var(--line); backdrop-filter:blur(12px); }
+    .brand, .nav { font-size:10px; font-weight:600; letter-spacing:.18em; text-transform:uppercase; }
+    .nav { display:flex; gap:clamp(14px,2.4vw,34px); }
+    .nav a { opacity:.68; }
+    .nav a:hover { opacity:1; }
+    .hero { min-height:100svh; padding:clamp(110px,12vw,170px) var(--pad) clamp(40px,6vw,84px); display:grid; grid-template-columns:minmax(0,1fr) minmax(320px,.78fr); align-items:end; gap:clamp(44px,8vw,140px); background:#070707; }
+    .hero-copy { min-width:0; }
+    .eyebrow, .section-label, .meta-label { margin:0; color:var(--muted); font-size:9px; font-weight:600; letter-spacing:.2em; line-height:1.5; text-transform:uppercase; }
+    .hero h1 { margin:clamp(34px,5vw,72px) 0 0; font-size:clamp(58px,9vw,140px); font-weight:300; letter-spacing:-.035em; line-height:.82; text-transform:uppercase; }
+    .hero h1 span { display:block; }
+    .hero-subtitle { max-width:560px; margin:clamp(42px,5vw,76px) 0 0; font-size:clamp(20px,2.2vw,32px); font-weight:400; letter-spacing:-.02em; line-height:1.2; }
+    .hero-meta { margin-top:clamp(44px,6vw,84px); padding-top:20px; display:grid; grid-template-columns:repeat(3,1fr); gap:18px; border-top:1px solid var(--line); font-size:10px; font-weight:600; letter-spacing:.16em; text-transform:uppercase; }
+    .hero-actions { margin-top:34px; display:flex; flex-wrap:wrap; gap:14px 28px; }
+    .text-link { padding-bottom:7px; border-bottom:1px solid rgba(255,255,255,.55); font-size:9px; font-weight:600; letter-spacing:.18em; text-transform:uppercase; transition:transform .18s,border-color .18s; }
+    .text-link:hover { border-color:#fff; transform:translateX(4px); }
+    .hero-art { width:100%; height:auto; aspect-ratio:1; object-fit:cover; align-self:center; box-shadow:0 0 0 1px var(--line); }
+    .section { padding:clamp(100px,14vw,200px) var(--pad); }
+    .section-head { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:end; gap:28px; margin-bottom:clamp(52px,8vw,110px); padding-bottom:22px; border-bottom:1px solid currentColor; }
+    .section-title { margin:0; max-width:1120px; font-size:clamp(48px,8vw,120px); font-weight:350; letter-spacing:-.045em; line-height:.86; text-transform:uppercase; }
+    .listen { background:var(--paper); color:var(--ink); }
+    .listen .section-label { color:rgba(0,0,0,.55); }
+    .listen .section-head { border-color:rgba(0,0,0,.25); }
+    .listen-grid { display:grid; grid-template-columns:minmax(0,.8fr) minmax(300px,.62fr); gap:clamp(50px,9vw,150px); align-items:start; }
+    .soundcloud-frame { width:100%; height:450px; border:0; background:#ddd; }
+    .listen-out { display:inline-block; margin-top:22px; padding-bottom:7px; border-bottom:1px solid rgba(0,0,0,.5); font-size:9px; font-weight:700; letter-spacing:.18em; text-transform:uppercase; }
+    .tracklist { margin:0; border-top:1px solid rgba(0,0,0,.28); }
+    .track { padding:19px 0; display:grid; grid-template-columns:36px 1fr; gap:14px; border-bottom:1px solid rgba(0,0,0,.28); }
+    .track dt, .track dd { margin:0; }
+    .track dt { font-size:9px; font-weight:700; letter-spacing:.16em; }
+    .track dd { font-size:clamp(16px,1.45vw,21px); line-height:1.25; }
+    .statement { display:grid; grid-template-columns:minmax(150px,.3fr) minmax(0,1fr); gap:clamp(40px,9vw,170px); background:var(--black); }
+    .statement-copy h2 { max-width:1050px; margin:0; font-size:clamp(46px,7.6vw,116px); font-weight:300; letter-spacing:-.045em; line-height:.88; text-transform:uppercase; }
+    .statement-copy p { max-width:850px; margin:clamp(46px,6vw,84px) 0 0; color:rgba(255,255,255,.76); font-size:clamp(20px,2.4vw,36px); letter-spacing:-.025em; line-height:1.25; }
+    .statement-copy p + p { margin-top:1.2em; }
+    .film { background:#090909; }
+    .film-frame { position:relative; overflow:hidden; min-height:72vh; background:#000; }
+    .film-frame video { height:72vh; object-fit:cover; }
+    .film-copy { max-width:850px; margin:clamp(36px,5vw,68px) 0 0 auto; color:rgba(255,255,255,.72); font-size:clamp(19px,2vw,30px); line-height:1.35; }
+    .gallery { background:var(--black); }
+    .gallery-stage { position:relative; background:#0a0a0a; }
+    .gallery-image { height:min(78vh,900px); object-fit:contain; }
+    .gallery-bar { padding:18px 0; display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:22px; border-top:1px solid var(--line); border-bottom:1px solid var(--line); }
+    .gallery-controls { display:flex; gap:8px; }
+    .gallery-button { width:42px; height:42px; border:1px solid var(--line); background:transparent; color:#fff; cursor:pointer; }
+    .gallery-button:hover { background:#fff; color:#000; }
+    .gallery-caption { margin:0; color:var(--muted); font-size:10px; letter-spacing:.14em; text-transform:uppercase; }
+    .gallery-count { font-size:10px; font-weight:600; letter-spacing:.16em; }
+    .materials { background:var(--paper); color:var(--ink); }
+    .materials .section-label { color:rgba(0,0,0,.55); }
+    .materials .section-head { border-color:rgba(0,0,0,.25); }
+    .material-primary { display:grid; grid-template-columns:minmax(0,1.2fr) minmax(280px,.6fr); gap:clamp(40px,7vw,110px); align-items:end; }
+    .material-copy { padding-bottom:12px; }
+    .material-copy p { margin:0; font-size:clamp(18px,2vw,30px); line-height:1.4; }
+    .material-notes { margin-top:42px; border-top:1px solid rgba(0,0,0,.28); }
+    .material-note { padding:15px 0; display:flex; justify-content:space-between; gap:20px; border-bottom:1px solid rgba(0,0,0,.28); font-size:9px; font-weight:700; letter-spacing:.16em; text-transform:uppercase; }
+    .material-secondary { width:min(48%,620px); margin:clamp(70px,9vw,130px) 0 0 auto; }
+    .material-secondary figcaption { margin-top:12px; font-size:9px; font-weight:700; letter-spacing:.16em; text-transform:uppercase; }
+    .press { background:#080808; }
+    .proof-grid { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:clamp(12px,1.6vw,24px); }
+    .proof-card { margin:0; }
+    .proof-image { overflow:hidden; aspect-ratio:4/5; background:#111; }
+    .proof-image img { height:100%; object-fit:cover; object-position:top; filter:saturate(.72); }
+    .proof-card figcaption { padding:14px 0; border-bottom:1px solid var(--line); color:var(--muted); font-size:9px; font-weight:600; letter-spacing:.14em; line-height:1.45; text-transform:uppercase; }
+    .bottom-links { border-top:1px solid var(--line); }
+    .bottom-link { min-height:112px; padding:24px 0; display:grid; grid-template-columns:1fr auto; align-items:center; gap:20px; border-bottom:1px solid var(--line); }
+    .bottom-link span:first-child { font-size:clamp(28px,4.8vw,68px); font-weight:350; letter-spacing:-.035em; text-transform:uppercase; }
+    .bottom-link span:last-child { color:var(--muted); font-size:10px; letter-spacing:.16em; text-transform:uppercase; }
+    footer { padding:36px var(--pad); display:flex; justify-content:space-between; gap:24px; color:var(--muted); font-size:9px; font-weight:600; letter-spacing:.16em; text-transform:uppercase; }
+    .reveal { opacity:0; transform:translateY(24px); transition:opacity .7s,transform .7s cubic-bezier(.22,1,.36,1); }
+    .reveal.is-visible { opacity:1; transform:none; }
+    @media (max-width:980px) { .hero { grid-template-columns:1fr 38%; gap:44px; } .proof-grid { grid-template-columns:repeat(3,1fr); } }
+    @media (max-width:760px) {
+      .site-header { min-height:64px; }
+      .nav a:nth-child(2), .nav a:nth-child(3) { display:none; }
+      .hero { min-height:auto; grid-template-columns:1fr; padding-top:104px; }
+      .hero-art { grid-row:1; width:100%; }
+      .hero h1 { font-size:clamp(48px,15vw,78px); overflow-wrap:anywhere; }
+      .hero-meta { grid-template-columns:1fr; }
+      .section-head { grid-template-columns:1fr; align-items:start; }
+      .section-head .section-label { grid-row:1; }
+      .listen-grid, .statement, .material-primary { grid-template-columns:1fr; }
+      .film-frame, .film-frame video { min-height:58vh; height:58vh; }
+      .gallery-image { height:62vh; }
+      .gallery-bar { grid-template-columns:auto 1fr; }
+      .gallery-caption { grid-column:1/-1; grid-row:2; }
+      .gallery-count { justify-self:end; }
+      .material-secondary { width:78%; }
+      .proof-grid { grid-template-columns:repeat(2,1fr); }
+    }
+    @media (max-width:460px) {
+      .brand { max-width:150px; line-height:1.3; }
+      .nav a { display:none; }
+      .section-title, .statement-copy h2 { overflow-wrap:anywhere; }
+      .soundcloud-frame { height:380px; }
+      .gallery-image { height:52vh; }
+      .proof-grid { grid-template-columns:1fr 1fr; }
+      .bottom-link { grid-template-columns:1fr; }
+      footer { flex-direction:column; }
+    }
+    @media (prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } .reveal { opacity:1; transform:none; transition:none; } }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="./index.html">Parallel Vision</a>
+    <nav class="nav" aria-label="Release archive">
+      <a href="#listen">Listen</a>
+      <a href="#film">Film</a>
+      <a href="#archive">Archive</a>
+      <a href="#links">Index</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero" aria-labelledby="page-title">
+      <div class="hero-copy">
+        <p class="eyebrow">Release Archive / Berlin 2063 / 001</p>
+        <h1 id="page-title"><span>Alejandro Molinari</span><span>Tanzen Im Kreis</span></h1>
+        <p class="hero-subtitle">The opening chapter of Berlin 2063.</p>
+        <div class="hero-meta" aria-label="Release metadata"><span>Parallel Vision</span><span>PV009</span><span>2026</span></div>
+        <div class="hero-actions"><a class="text-link" href="#listen">Listen ↓</a><a class="text-link" href="#archive">Enter the archive ↓</a></div>
+      </div>
+      <img class="hero-art" src="./assets/tanzenfinal.jpeg" alt="Tanzen Im Kreis cover artwork" decoding="async" loading="eager" width="1600" height="1600">
+    </section>
+
+    <section class="listen section" id="listen" aria-labelledby="listen-title">
+      <header class="section-head reveal"><h2 class="section-title" id="listen-title">Tanzen Im Kreis</h2><p class="section-label">Listen / EP</p></header>
+      <div class="listen-grid">
+        <div class="reveal">
+          <iframe class="soundcloud-frame" title="Tanzen Im Kreis EP on SoundCloud" loading="lazy" allow="autoplay; encrypted-media" src="https://w.soundcloud.com/player/?visual=true&amp;url=https%3A%2F%2Fapi.soundcloud.com%2Fplaylists%2F2272835627&amp;show_artwork=true&amp;auto_play=false"></iframe>
+          <a class="listen-out" href="https://soundcloud.com/parallelvisionlabel/sets/alejandro-molinari-tanzen-im" target="_blank" rel="noopener noreferrer">Listen on SoundCloud ↗</a>
+        </div>
+        <dl class="tracklist reveal">
+          <div class="track"><dt>01</dt><dd>Tanzen Im Kreis (Original Mix)</dd></div>
+          <div class="track"><dt>02</dt><dd>Tanzen Im Kreis (Molinari U-Bahn Mix)</dd></div>
+          <div class="track"><dt>03</dt><dd>Tanzen Im Kreis (Cabizbajo Remix)</dd></div>
+          <div class="track"><dt>04</dt><dd>Tanzen Im Kreis (Ëlorian Remix)</dd></div>
+          <div class="track"><dt>05</dt><dd>Tanzen Im Kreis (Octave Remix)</dd></div>
+        </dl>
+      </div>
+    </section>
+
+    <section class="statement section" aria-labelledby="statement-title">
+      <p class="section-label reveal">Press Release / Berlin 2063</p>
+      <div class="statement-copy"><h2 class="reveal" id="statement-title">Berlin has always been obsessed with the future.</h2><p class="reveal">For more than a century, the city has attracted people carrying their own visions of tomorrow. Tanzen Im Kreis was written from inside that contradiction: a place where abandoned futures continue to shape everyday life, and where every new beginning carries the remains of another.</p><p class="reveal">The release opens Parallel Vision, an original fictional world set in Berlin 2063.</p></div>
+    </section>
+
+    <section class="film section" id="film" aria-labelledby="film-title">
+      <header class="section-head reveal"><h2 class="section-title" id="film-title">Inside the World</h2><p class="section-label">Film Chapter / Berlin 2063</p></header>
+      <div class="film-frame reveal"><video autoplay muted loop playsinline preload="metadata" aria-label="Tanzen Im Kreis film chapter"><source src="./assets/releases/tanzenimkreis/robotloop.mp4" type="video/mp4"></video></div>
+      <p class="film-copy reveal">The film expands Tanzen Im Kreis into the first moving chapter of Berlin 2063: artists, architecture, clothing and performance moving inside the same fictional archive.</p>
+    </section>
+
+    <section class="gallery section" id="archive" aria-labelledby="archive-title">
+      <header class="section-head reveal"><h2 class="section-title" id="archive-title">Scenes from the Transmission</h2><p class="section-label">Visual Archive / Transmission Frames</p></header>
+      <div class="gallery-stage reveal">
+        <img class="gallery-image" src="./assets/releases/tanzenimkreis/Cabiz Walk One.png" alt="Cabizbajo walk study in Berlin 2063" width="1920" height="1080">
+        <div class="gallery-bar"><div class="gallery-controls"><button class="gallery-button gallery-prev" type="button" aria-label="Previous image">←</button><button class="gallery-button gallery-next" type="button" aria-label="Next image">→</button></div><p class="gallery-caption" aria-live="polite">Cabizbajo walk study / Berlin 2063</p><span class="gallery-count" aria-live="polite">01 / 07</span></div>
+      </div>
+    </section>
+
+    <section class="materials section" aria-labelledby="materials-title">
+      <header class="section-head reveal"><h2 class="section-title" id="materials-title">Ether Shroud</h2><p class="section-label">Fashion After Fabric / Ether Shroud</p></header>
+      <div class="material-primary"><img class="reveal" src="./assets/releases/tanzenimkreis/1 ETHER SHROUD SHEET.png" alt="Ether Shroud material study sheet" loading="lazy"><div class="material-copy reveal"><p>Cabizbajo appears inside the Tanzen Im Kreis film wearing Ether Shroud, a translucent material system from Fashion After Fabric. The garment connects the release to Parallel Vision’s larger study of bodies, surfaces and future performance.</p><div class="material-notes"><div class="material-note"><span>System</span><span>Ether Shroud</span></div><div class="material-note"><span>Context</span><span>Berlin 2063</span></div><div class="material-note"><span>Function</span><span>Translucent performance layer</span></div></div></div></div>
+      <figure class="material-secondary reveal"><img src="./assets/releases/tanzenimkreis/1Lower Chromia Sheet.png" alt="Lower Chromia secondary material reference" loading="lazy"><figcaption>Secondary material reference / Lower Chromia</figcaption></figure>
+    </section>
+
+    <section class="press section" aria-labelledby="press-title">
+      <header class="section-head reveal"><h2 class="section-title" id="press-title">Archive Signals</h2><p class="section-label">Press / Reception</p></header>
+      <div class="proof-grid">
+        <figure class="proof-card reveal"><div class="proof-image"><img src="./assets/releases/tanzenimkreis/EG Premiere Ëlorian.png" alt="Electronic Groove premiere proof" loading="lazy"></div><figcaption>Electronic Groove Premiere</figcaption></figure>
+        <figure class="proof-card reveal"><div class="proof-image"><img src="./assets/releases/tanzenimkreis/x3 Beatport Charts Original.png" alt="Beatport charts proof" loading="lazy"></div><figcaption>Beatport Charts</figcaption></figure>
+        <figure class="proof-card reveal"><div class="proof-image"><img src="./assets/releases/tanzenimkreis/Minimal Deep Tech Chart.png" alt="Minimal Deep Tech chart proof" loading="lazy"></div><figcaption>Minimal / Deep Tech Chart</figcaption></figure>
+        <figure class="proof-card reveal"><div class="proof-image"><img src="./assets/releases/tanzenimkreis/Playlist Chart Main Page.png" alt="Playlist chart proof" loading="lazy"></div><figcaption>Playlist Chart</figcaption></figure>
+        <figure class="proof-card reveal"><div class="proof-image"><img src="./assets/releases/tanzenimkreis/Tanzen Minimal Hype Picks.png" alt="Hype Picks proof" loading="lazy"></div><figcaption>Hype Picks</figcaption></figure>
+      </div>
+    </section>
+
+    <section class="section" id="links" aria-label="Release archive links">
+      <nav class="bottom-links">
+        <a class="bottom-link reveal" href="./index.html#releases"><span>Back to Releases</span><span>Index ↗</span></a>
+        <a class="bottom-link reveal" href="./alejandro-molinari.html"><span>Alejandro Molinari</span><span>Artist ↗</span></a>
+        <a class="bottom-link reveal" href="./berlin-2063.html"><span>Berlin 2063</span><span>World ↗</span></a>
+        <a class="bottom-link reveal" href="./future-fashion.html"><span>Fashion After Fabric</span><span>Material Archive ↗</span></a>
+      </nav>
+    </section>
+  </main>
+
+  <footer><span>Parallel Vision / PV009</span><span>Alejandro Molinari / Tanzen Im Kreis</span><span>© 2026</span></footer>
+  <script>
+    const header = document.querySelector(".site-header");
+    const reveals = document.querySelectorAll(".reveal");
+    const frames = [
+      ["./assets/releases/tanzenimkreis/Cabiz Walk One.png", "Cabizbajo walk study / Berlin 2063", "Cabizbajo walk study in Berlin 2063"],
+      ["./assets/releases/tanzenimkreis/Metrosolo.png", "Metro solo study / Berlin 2063", "Metro solo study in Berlin 2063"],
+      ["./assets/releases/tanzenimkreis/Cam Meets Cabizbajo.png", "Cam meets Cabizbajo / Berlin 2063", "Cam meeting Cabizbajo in Berlin 2063"],
+      ["./assets/releases/tanzenimkreis/CDJS QUANTUM.png", "Quantum booth study / Berlin 2063", "Quantum booth study in Berlin 2063"],
+      ["./assets/releases/tanzenimkreis/dystoravepeople.png", "Rave crowd transmission / Berlin 2063", "Rave crowd transmission in Berlin 2063"],
+      ["./assets/releases/tanzenimkreis/Storyboardex.png", "Storyboard transmission / Berlin 2063", "Storyboard transmission for Berlin 2063"],
+      ["./assets/releases/tanzenimkreis/camwalk.png", "Walking study / Berlin 2063", "Walking study in Berlin 2063"]
+    ];
+    const galleryImage = document.querySelector(".gallery-image");
+    const galleryCaption = document.querySelector(".gallery-caption");
+    const galleryCount = document.querySelector(".gallery-count");
+    let frameIndex = 0;
+    const showFrame = (index) => { frameIndex = (index + frames.length) % frames.length; const frame = frames[frameIndex]; galleryImage.src = frame[0]; galleryImage.alt = frame[2]; galleryCaption.textContent = frame[1]; galleryCount.textContent = `${String(frameIndex + 1).padStart(2,"0")} / ${String(frames.length).padStart(2,"0")}`; };
+    document.querySelector(".gallery-prev").addEventListener("click", () => showFrame(frameIndex - 1));
+    document.querySelector(".gallery-next").addEventListener("click", () => showFrame(frameIndex + 1));
+    const updateHeader = () => header.classList.toggle("is-scrolled", window.scrollY > 24);
+    updateHeader();
+    window.addEventListener("scroll", updateHeader, { passive:true });
+    if ("IntersectionObserver" in window && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      const observer = new IntersectionObserver((entries) => entries.forEach((entry) => { if (entry.isIntersecting) { entry.target.classList.add("is-visible"); observer.unobserve(entry.target); } }), { threshold:.08 });
+      reveals.forEach((item) => observer.observe(item));
+    } else { reveals.forEach((item) => item.classList.add("is-visible")); }
+  </script>
+</body>
+</html>
