@@ -90,7 +90,7 @@ export async function issueOwnerCredential(env, visitorId) {
 
 export async function enrollOwner(env, visitorId, authorization) {
   if (!env.NINA_MEMORY_DB || !env.NINA_OWNER_ENROLLMENT_TOKEN || !env.NINA_OWNER_SIGNING_SECRET) return null;
-  if (!constantTimeEqual(bearerToken(authorization), env.NINA_OWNER_ENROLLMENT_TOKEN)) return null;
+  if (!constantTimeEqual(bearerToken(authorization), env.NINA_OWNER_ENROLLMENT_TOKEN.trim())) return null;
   const existing = await env.NINA_MEMORY_DB.prepare(
     "SELECT visitor_id, display_name, profile_type FROM visitors WHERE profile_type = 'owner' LIMIT 1"
   ).first();

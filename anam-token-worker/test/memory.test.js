@@ -192,6 +192,30 @@ test("enrollment binds the owner and can reissue a missing signed credential onl
   assert.equal(await authorizeOwner(env, visitorId, `Bearer ${enrollment.credential}`), null);
 });
 
+test("enrollment accepts the exact rotated secret when interactive input stored surrounding whitespace", async () => {
+  let owner = null;
+  const db = {
+    prepare(sql) {
+      return {
+        bind(...values) {
+          if (sql.includes("INSERT INTO visitors")) return { run: async () => { owner = { visitor_id: values[0], display_name: "Alejandro", profile_type: "owner" }; } };
+          throw new Error(`Unexpected bound SQL: ${sql}`);
+        },
+        first: async () => owner
+      };
+    }
+  };
+  const token = "rotate-" + "r".repeat(48);
+  const result = await enrollOwner({
+    NINA_MEMORY_DB: db,
+    NINA_OWNER_ENROLLMENT_TOKEN: `${token}\r\n`,
+    NINA_OWNER_SIGNING_SECRET: "sign-" + "s".repeat(48)
+  }, "visitor-owner-whitespace", `Bearer ${token}`);
+
+  assert.equal(result.owner.visitor_id, "visitor-owner-whitespace");
+  assert.ok(result.credential.startsWith("v1."));
+});
+
 test("migration defines cascading owner deletion for the complete memory graph", async () => {
   const migration = await readFile(new URL("../migrations/0001_nina_memory.sql", import.meta.url), "utf8");
   for (const table of ["visitors", "conversations", "messages", "memory_summaries", "pinned_memories", "open_threads"]) {
