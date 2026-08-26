@@ -48,6 +48,7 @@
     .listen .section-label { color:rgba(0,0,0,.55); }
     .listen .section-head { border-color:rgba(0,0,0,.25); }
     .listen-grid { display:grid; grid-template-columns:minmax(0,.8fr) minmax(300px,.62fr); gap:clamp(50px,9vw,150px); align-items:start; }
+    .ep-cover { width:100%; height:auto; aspect-ratio:1; object-fit:cover; margin-bottom:clamp(30px,4vw,54px); }
     .soundcloud-frame { width:100%; height:450px; border:0; background:#ddd; }
     .listen-out { display:inline-block; margin-top:22px; padding-bottom:7px; border-bottom:1px solid rgba(0,0,0,.5); font-size:9px; font-weight:700; letter-spacing:.18em; text-transform:uppercase; }
     .tracklist { margin:0; border-top:1px solid rgba(0,0,0,.28); }
@@ -85,8 +86,8 @@
     .press { background:#080808; }
     .proof-grid { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:clamp(12px,1.6vw,24px); }
     .proof-card { margin:0; }
-    .proof-image { overflow:hidden; aspect-ratio:4/5; background:#111; }
-    .proof-image img { height:100%; object-fit:cover; object-position:top; filter:saturate(.72); }
+    .proof-image { overflow:hidden; aspect-ratio:4/5; padding:clamp(6px,1vw,14px); background:#050505; }
+    .proof-image img { height:100%; object-fit:contain; object-position:center; filter:saturate(.72); }
     .proof-card figcaption { padding:14px 0; border-bottom:1px solid var(--line); color:var(--muted); font-size:9px; font-weight:600; letter-spacing:.14em; line-height:1.45; text-transform:uppercase; }
     .bottom-links { border-top:1px solid var(--line); }
     .bottom-link { min-height:112px; padding:24px 0; display:grid; grid-template-columns:1fr auto; align-items:center; gap:20px; border-bottom:1px solid var(--line); }
@@ -154,6 +155,7 @@
       <header class="section-head reveal"><h2 class="section-title" id="listen-title">Tanzen Im Kreis</h2><p class="section-label">Listen / EP</p></header>
       <div class="listen-grid">
         <div class="reveal">
+          <img class="ep-cover" src="./assets/tanzenfinal.jpeg" alt="Tanzen Im Kreis cover artwork" loading="lazy" decoding="async" width="1600" height="1600">
           <iframe class="soundcloud-frame" title="Tanzen Im Kreis EP on SoundCloud" loading="lazy" allow="autoplay; encrypted-media" src="https://w.soundcloud.com/player/?visual=true&amp;url=https%3A%2F%2Fapi.soundcloud.com%2Fplaylists%2F2272835627&amp;show_artwork=true&amp;auto_play=false"></iframe>
           <a class="listen-out" href="https://soundcloud.com/parallelvisionlabel/sets/alejandro-molinari-tanzen-im" target="_blank" rel="noopener noreferrer">Listen on SoundCloud ↗</a>
         </div>
