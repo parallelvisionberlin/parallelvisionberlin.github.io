@@ -107,6 +107,7 @@ async function handleSessionToken(request, env, origin) {
   const visitorId = validateVisitorId(body?.visitorId);
   if (!visitorId) return jsonResponse({ error: "Invalid visitor" }, 400, origin);
   const browserHistory = validateCompletedMessages(body.recentMessages, HISTORY_LIMIT).slice(-HISTORY_LIMIT);
+  const ownerCredentialPresented = Boolean((request.headers.get("Authorization") || "").startsWith("Bearer "));
   const owner = await authenticateOwnerRequest(request, env, body);
   let conversationId = "";
   let privateMemory = formatBrowserMemory(browserHistory);
@@ -122,6 +123,14 @@ async function handleSessionToken(request, env, origin) {
   const personaConfig = await getCurrentPersonaConfig(env.ANAM_API_KEY);
   applyStartupGreeting(personaConfig, owner);
   personaConfig.systemPrompt = [personaConfig.systemPrompt, owner ? ALEJANDRO_CONTEXT : "", privateMemory].filter(Boolean).join("\n\n");
+  const startupDiagnostics = {
+    ownerCredentialPresented,
+    ownerAuthenticated: Boolean(owner),
+    ownerGreetingSelected: Boolean(owner),
+    greetingType: owner ? "owner" : "public",
+    uninterruptibleGreeting: personaConfig.uninterruptibleGreeting
+  };
+  console.log("nina_session_startup", JSON.stringify(startupDiagnostics));
   const anamResponse = await fetch("https://api.anam.ai/v1/auth/session-token", {
     method: "POST",
     headers: { "Authorization": `Bearer ${env.ANAM_API_KEY}`, "Content-Type": "application/json" },
@@ -130,7 +139,7 @@ async function handleSessionToken(request, env, origin) {
   if (!anamResponse.ok) return jsonResponse({ error: "Unable to start session" }, 502, origin);
   const data = await anamResponse.json();
   if (typeof data.sessionToken !== "string" || !data.sessionToken) return jsonResponse({ error: "Invalid session response" }, 502, origin);
-  return jsonResponse({ sessionToken: data.sessionToken, ...(conversationId ? { conversationId } : {}), diagnostics }, 200, origin);
+  return jsonResponse({ sessionToken: data.sessionToken, ...(conversationId ? { conversationId } : {}), diagnostics: { ...diagnostics, ...startupDiagnostics } }, 200, origin);
 }
 
 async function requireOwner(request, env, body, origin) {
