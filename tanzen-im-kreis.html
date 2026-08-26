@@ -63,14 +63,18 @@
     .release-headline { max-width:760px; margin:0 0 clamp(24px,3vw,36px); font-size:clamp(34px,4.4vw,68px); font-weight:350; letter-spacing:-.055em; line-height:.93; }
     .release-copy .body { max-width:760px; margin:0; color:rgba(0,0,0,.7); font-size:clamp(16px,1.25vw,20px); line-height:1.48; }
     .release-copy .body + .body { margin-top:18px; }
-    .module-title { margin:0 0 12px; font-size:9px; font-weight:700; letter-spacing:.16em; text-transform:uppercase; }
-    .release-soundcloud { margin-top:clamp(28px,3.6vw,48px); padding:clamp(16px,2vw,22px); border:1px solid rgba(0,0,0,.22); background:rgba(255,255,255,.18); }
-    .soundcloud-frame { width:100%; height:166px; border:0; background:#ddd; }
-    .soundcloud-link { display:inline-block; margin-top:16px; padding-bottom:6px; border-bottom:1px solid rgba(0,0,0,.45); font-size:9px; font-weight:700; letter-spacing:.16em; text-transform:uppercase; }
-    .track-index { margin:clamp(24px,3vw,38px) 0 0; border-top:1px solid rgba(0,0,0,.2); }
+    .release-identity { margin:clamp(22px,2.8vw,32px) 0 0; padding-top:12px; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px 24px; border-top:1px solid rgba(0,0,0,.2); }
+    .release-identity div { display:grid; grid-template-columns:52px 1fr; gap:10px; font-size:9px; letter-spacing:.12em; line-height:1.4; text-transform:uppercase; }
+    .release-identity dt, .release-identity dd { margin:0; }
+    .release-identity dt { color:rgba(0,0,0,.48); }
+    .release-soundcloud { margin-top:clamp(22px,2.8vw,34px); padding:14px; border:1px solid rgba(0,0,0,.2); background:rgba(255,255,255,.18); }
+    .release-soundcloud-title { margin:0 0 10px; font-size:10px; font-weight:700; letter-spacing:.22em; text-transform:uppercase; }
+    .soundcloud-frame { display:block; width:100%; height:132px; border:0; background:#ddd; }
+    .soundcloud-link { display:inline-block; margin-top:12px; padding-bottom:5px; border-bottom:1px solid currentColor; font-size:10px; font-weight:700; letter-spacing:.22em; text-transform:uppercase; }
+    .track-index { margin:clamp(28px,3.5vw,46px) 0 0; border-top:1px solid rgba(0,0,0,.2); }
     .track-index-title { margin:0; padding:14px 0 10px; font-size:10px; font-weight:700; letter-spacing:.22em; text-transform:uppercase; }
     .track-index-list { margin:0; }
-    .track-index-row { padding:10px 0; display:grid; grid-template-columns:34px 1fr; gap:18px; border-top:1px solid rgba(0,0,0,.14); font-size:clamp(13px,1vw,16px); line-height:1.35; }
+    .track-index-row { padding:9px 0; display:grid; grid-template-columns:34px 1fr; gap:18px; border-top:1px solid rgba(0,0,0,.14); font-size:clamp(13px,.95vw,15px); line-height:1.35; }
     .track-index-row dt, .track-index-row dd { margin:0; }
     .track-index-row dt { color:rgba(0,0,0,.48); font-size:9px; font-weight:700; letter-spacing:.14em; }
     #release-object, #official-video, #archive, #signals { scroll-margin-top:84px; }
@@ -123,6 +127,7 @@
       .section-head .section-label { grid-row:1; }
       .release-grid { grid-template-columns:1fr; }
       .release-object-cover { width:min(100%,420px); }
+      .release-identity { grid-template-columns:1fr; }
       .video-context { grid-template-columns:1fr; }
       .archive-film-row { grid-template-columns:1fr; }
       .archive-process-row { grid-template-columns:repeat(2,minmax(0,1fr)); }
@@ -185,7 +190,10 @@
           <h2 class="release-headline" id="release-title">Some cities move forward.<br>Berlin moves in circles.</h2>
           <p class="body">Berlin has always been obsessed with the future. For more than a century, the city has attracted people carrying their own visions of tomorrow, while abandoned futures continue to shape everyday life.</p>
           <p class="body">Tanzen Im Kreis was written from inside that contradiction: a record about repetition as survival, where bodies return to the same rhythm, the same streets and the same unfinished future. Inside Berlin 2063, the circle is not nostalgia. It is a system.</p>
-          <div id="soundcloud-player" class="release-soundcloud"><h3 class="module-title">Listen / SoundCloud</h3><iframe class="soundcloud-frame" title="Tanzen Im Kreis EP on SoundCloud" loading="lazy" allow="autoplay; encrypted-media" src="about:blank" data-soundcloud-src="https://w.soundcloud.com/player/?url=https%3A%2F%2Fapi.soundcloud.com%2Fplaylists%2F2272835627&amp;color=%23000000&amp;auto_play=false&amp;hide_related=true&amp;show_comments=false&amp;show_user=true&amp;show_reposts=false&amp;show_teaser=false"></iframe><a class="soundcloud-link" href="https://soundcloud.com/parallelvisionlabel/sets/alejandro-molinari-tanzen-im" target="_blank" rel="noopener noreferrer">Open on SoundCloud ↗</a></div>
+          <dl class="release-identity" aria-label="Release identity">
+            <div><dt>Artist</dt><dd>Alejandro Molinari</dd></div>
+            <div><dt>Title</dt><dd>Tanzen Im Kreis</dd></div>
+          </dl>
           <div class="track-index"><h3 class="track-index-title">Track Index</h3><dl class="track-index-list">
             <div class="track-index-row"><dt>01</dt><dd>Tanzen Im Kreis (Original Mix)</dd></div>
             <div class="track-index-row"><dt>02</dt><dd>Tanzen Im Kreis (Molinari U-Bahn Mix)</dd></div>
@@ -193,6 +201,7 @@
             <div class="track-index-row"><dt>04</dt><dd>Tanzen Im Kreis (Ëlorian Remix)</dd></div>
             <div class="track-index-row"><dt>05</dt><dd>Tanzen Im Kreis (Octave Remix)</dd></div>
           </dl></div>
+          <div id="soundcloud-player" class="release-soundcloud"><h3 class="release-soundcloud-title">Listen / SoundCloud</h3><iframe class="soundcloud-frame" title="Tanzen Im Kreis EP on SoundCloud" loading="lazy" allow="autoplay; encrypted-media" src="about:blank" data-soundcloud-src="https://w.soundcloud.com/player/?url=https%3A%2F%2Fapi.soundcloud.com%2Fplaylists%2F2272835627&amp;color=%23000000&amp;auto_play=false&amp;hide_related=true&amp;show_comments=false&amp;show_user=true&amp;show_reposts=false&amp;show_teaser=false"></iframe><a class="soundcloud-link" href="https://soundcloud.com/parallelvisionlabel/sets/alejandro-molinari-tanzen-im" target="_blank" rel="noopener noreferrer">Open on SoundCloud ↗</a></div>
         </div>
       </div>
     </section>
