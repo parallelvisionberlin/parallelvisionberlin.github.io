@@ -62,9 +62,12 @@ for (const file of pages) {
   }
 }
 
-for (const file of ['language.js','js/home.js','js/nina-access.js','anam-token-worker/src/index.js']) {
+for (const file of ['language.js','js/home.js','js/nina-access.js','anam-token-worker/src/index.js','anam-token-worker/src/memory.js']) {
   try {
-    const source = fs.readFileSync(path.join(root, file), 'utf8').replace(/^import .*;$/m, '').replace(/^export default /m, 'const __defaultExport = ');
+    const source = fs.readFileSync(path.join(root, file), 'utf8')
+      .replace(/^import[\s\S]*?from\s+["'][^"']+["'];$/m, '')
+      .replace(/^export\s+(?=(?:const|function|async\s+function))/gm, '')
+      .replace(/^export default /m, 'const __defaultExport = ');
     new vm.Script(source, { filename: file });
   }
   catch (error) { fail(`${file}: parse error: ${error.message}`); }
@@ -109,8 +112,8 @@ if (!ninaProject.includes('<source src="./nina-fok/ninaspersonality.mp4" type="v
 if (/\scontrols(?:\s|=|>)/i.test(ninaProject)) fail('Nina project must not expose native video controls');
 for (const marker of ['id="ninaVideoSound"','Sound On','prefers-reduced-motion: reduce','video.pause()','./assets/thecitysuperhd1.png']) if (!ninaProject.includes(marker)) fail(`Nina project visual marker missing: ${marker}`);
 const connectNinaSource = nina.match(/async function connectNina\(\) \{[\s\S]*?\n\}/)?.[0] || '';
-if (!connectNinaSource.includes('requestSessionToken(ninaTokenAbortController.signal)')) fail('Anam token must only be requested from the CONNECT flow');
-if ((nina.match(/requestSessionToken\(ninaTokenAbortController\.signal\)/g) || []).length !== 1) fail('Anam token request must have exactly one CONNECT call site');
+if (!connectNinaSource.includes('requestSessionToken(ninaTokenAbortController.signal, restoredHistory)')) fail('Anam token must only be requested from the CONNECT flow');
+if ((nina.match(/requestSessionToken\(ninaTokenAbortController\.signal, restoredHistory\)/g) || []).length !== 1) fail('Anam token request must have exactly one CONNECT call site');
 for (const match of index.matchAll(/<img\b([^>]*)>/gi)) if (/\bloading=["']eager["']/i.test(match[1])) fail('Homepage below-the-fold image must not be eager-loaded');
 const soundcloudStatus = index.match(/<[^>]+id=["']soundcloudLoadingStatus["'][^>]*>/i)?.[0] || '';
 if (!/\brole=["']status["']/i.test(soundcloudStatus) || !/\baria-live=["']polite["']/i.test(soundcloudStatus)) fail('SoundCloud deferred loading status is missing accessible live semantics');

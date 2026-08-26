@@ -35,6 +35,7 @@ const ninaAccessHash = "d3ec7a14e4fefc8da57d4045a6ee28d28b328b78126c1e22bc0b541a
 const NINA_PREFERRED_MICROPHONE_KEY = "ninaPreferredMicrophoneId";
 const NINA_VISITOR_ID_KEY = "nina_fok_visitor_id_v1";
 const NINA_USER_PROFILE_KEY = "nina_fok_user_profile_v1";
+const NINA_OWNER_TOKEN_KEY = "nina_fok_owner_token_v1";
 const NINA_MEMORY_KEY_PREFIX = "nina_fok_memory_v2:";
 const NINA_LEGACY_MEMORY_KEY = "nina_fok_alejandro_memory_v1";
 const NINA_MEMORY_LIMIT = 20;
@@ -52,6 +53,8 @@ let ninaScrollPosition = 0;
 let ninaMemoryLoadedForSession = false;
 let ninaMemoryListenerCleanup = null;
 let ninaSessionMessageKeys = new Set();
+let ninaServerConversationId = "";
+let ninaMemorySyncPromise = Promise.resolve();
 const delay = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
 const logDevelopmentError = (message, error) => { if (DEVELOPMENT) console.error(message, error); };
 const nativeFullscreenElement = () => document.fullscreenElement || document.webkitFullscreenElement || null;
@@ -135,15 +138,51 @@ function readNinaUserProfile() {
   }
 }
 
-window.enrollNinaAlejandro = () => {
+window.enrollNinaAlejandro = ownerToken => {
   const profile = { displayName: "Alejandro", profileType: "owner" };
   localStorage.setItem(NINA_USER_PROFILE_KEY, JSON.stringify(profile));
+  if (typeof ownerToken === "string" && ownerToken.trim().length >= 32 && ownerToken.trim().length <= 256) {
+    localStorage.setItem(NINA_OWNER_TOKEN_KEY, ownerToken.trim());
+  }
   return profile;
 };
 
 window.clearNinaUserProfile = () => {
   localStorage.removeItem(NINA_USER_PROFILE_KEY);
+  localStorage.removeItem(NINA_OWNER_TOKEN_KEY);
 };
+
+function readNinaOwnerToken() {
+  try {
+    const token = localStorage.getItem(NINA_OWNER_TOKEN_KEY) || "";
+    return token.length >= 32 && token.length <= 256 ? token : "";
+  } catch { return ""; }
+}
+
+function ownerMemoryHeaders() {
+  const token = readNinaOwnerToken();
+  return token ? { "Content-Type": "application/json", "Authorization": `Bearer ${token}` } : { "Content-Type": "application/json" };
+}
+
+function canUseServerMemory() {
+  const profile = readNinaUserProfile();
+  return profile?.displayName === "Alejandro" && profile.profileType === "owner" && Boolean(readNinaOwnerToken());
+}
+
+function queueOwnerMemoryRequest(path, body, method = "POST") {
+  if (!canUseServerMemory()) return Promise.resolve(null);
+  ninaMemorySyncPromise = ninaMemorySyncPromise.catch(() => null).then(async () => {
+    const response = await fetch(`${ANAM_SESSION_TOKEN_ENDPOINT.replace(/\/session-token$/, "")}${path}`, {
+      method,
+      headers: ownerMemoryHeaders(),
+      body: JSON.stringify({ visitorId: ninaVisitorId, profile: readNinaUserProfile(), ...body }),
+      keepalive: true
+    });
+    if (!response.ok) throw new Error("Owner memory request failed");
+    return response.json();
+  });
+  return ninaMemorySyncPromise;
+}
 
 function isStoredMemoryMessage(message) {
   return message &&
@@ -218,6 +257,7 @@ function storeCompletedNinaMessages(history, client, attempt) {
     ? `${message.sessionId}::${message.messageId}`
     : `${message.sessionId}::${message.role}::${message.content}`));
   let changed = false;
+  const completedMessages = [];
   history.forEach(message => {
     const content = typeof message?.content === "string" ? message.content.trim() : "";
     const role = message?.role === "user" || message?.role === "persona" ? message.role : "";
@@ -226,21 +266,30 @@ function storeCompletedNinaMessages(history, client, attempt) {
     if (knownKeys.has(key) || ninaSessionMessageKeys.has(key)) return;
     knownKeys.add(key);
     ninaSessionMessageKeys.add(key);
-    archive.push({
+    const completedMessage = {
       role,
       content,
       timestamp: new Date().toISOString(),
       sessionId,
       ...(typeof message.id === "string" && message.id.trim() ? { messageId: message.id.trim() } : {})
-    });
+    };
+    archive.push(completedMessage);
+    completedMessages.push(completedMessage);
     changed = true;
   });
   if (changed && !writeNinaMemory(archive)) setNinaMemoryIndicator("unavailable");
+  if (completedMessages.length && ninaServerConversationId) {
+    void queueOwnerMemoryRequest("/memory/messages", {
+      conversationId: ninaServerConversationId,
+      messages: completedMessages
+    }).catch(() => setNinaMemoryIndicator("unavailable"));
+  }
 }
 
-function forgetNinaMemory() {
-  if (!window.confirm("Forget Nina's complete conversation memory on this browser?")) return;
+async function forgetNinaMemory() {
+  if (!window.confirm("Forget Nina's complete conversation memory on this browser and, for the owner profile, on the server?")) return;
   try {
+    if (canUseServerMemory()) await queueOwnerMemoryRequest("/memory", {}, "DELETE");
     localStorage.removeItem(ninaMemoryKey);
     ninaMemoryLoadedForSession = false;
     setNinaMemoryIndicator("cleared");
@@ -436,6 +485,11 @@ async function stopNinaSession() {
   ninaMemoryListenerCleanup = null;
   ninaMemoryLoadedForSession = false;
   ninaSessionMessageKeys = new Set();
+  const serverConversationId = ninaServerConversationId;
+  ninaServerConversationId = "";
+  if (serverConversationId) {
+    void queueOwnerMemoryRequest("/memory/conversations/end", { conversationId: serverConversationId }).catch(() => {});
+  }
   const client = ninaClient;
   ninaClient = null;
   if (client) {
@@ -451,7 +505,7 @@ async function requestSessionToken(signal, history) {
   if (ANAM_SESSION_TOKEN_ENDPOINT.includes("REPLACE-WITH-WORKER")) throw new Error("Anam token endpoint is not configured.");
   const response = await fetch(ANAM_SESSION_TOKEN_ENDPOINT, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: ownerMemoryHeaders(),
     body: JSON.stringify({
       visitorId: ninaVisitorId,
       recentMessages: history,
@@ -461,9 +515,8 @@ async function requestSessionToken(signal, history) {
   });
   if (!response.ok) throw new Error(`Token endpoint returned ${response.status}.`);
   const data = await response.json();
-  if (data.diagnostics) console.info("Nina profile diagnostics", data.diagnostics);
   if (typeof data.sessionToken !== "string" || !data.sessionToken) throw new Error("Token endpoint did not return a session token.");
-  return data.sessionToken;
+  return { sessionToken: data.sessionToken, conversationId: typeof data.conversationId === "string" ? data.conversationId : "" };
 }
 
 function bindAnamLifecycle(client, attempt) {
@@ -506,10 +559,11 @@ async function connectNina() {
     ninaMemoryLoadedForSession = restoredHistory.length > 0;
     setNinaMemoryIndicator(ninaMemoryLoadedForSession ? "loaded" : "empty");
     ninaTokenAbortController = new AbortController();
-    const sessionToken = await requestSessionToken(ninaTokenAbortController.signal, restoredHistory);
+    const session = await requestSessionToken(ninaTokenAbortController.signal, restoredHistory);
     ninaTokenAbortController = null;
     if (attempt !== ninaAttempt || !ninaOverlay.classList.contains("is-open")) return;
-    const client = createClient(sessionToken);
+    ninaServerConversationId = session.conversationId;
+    const client = createClient(session.sessionToken);
     ninaClient = client;
     bindAnamLifecycle(client, attempt);
     await client.streamToVideoElement("nina-anam-video", ninaMicrophoneStream);

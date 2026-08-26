@@ -2,3 +2,12 @@ name = "parallel-vision-anam-token"
 main = "src/index.js"
 compatibility_date = "2026-08-18"
 workers_dev = true
+
+[[d1_databases]]
+binding = "NINA_MEMORY_DB"
+database_name = "nina-fok-memory"
+database_id = "9f31c8a3-8101-408d-a002-22188c67b3b0"
+migrations_dir = "migrations"
+
+[ai]
+binding = "AI"
