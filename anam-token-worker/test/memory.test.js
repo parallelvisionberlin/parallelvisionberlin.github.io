@@ -65,7 +65,7 @@ test("later call restores only the latest 20 while retaining summary and open th
   assert.ok(result.context.indexOf("ACTIVE OPEN THREADS") < result.context.indexOf("LATEST COMPLETED MESSAGES"));
 });
 
-test("persona inventions and fantasy cannot become factual memory", () => {
+test("summary and thread extraction remain conservative and user-grounded", () => {
   const messages = [
     { message_id: "user-1", role: "user", content: "I prefer concise answers." },
     { message_id: "user-fantasy", role: "user", content: "Imagine a sexual fantasy where we lived together on Mars." },
@@ -91,6 +91,62 @@ test("persona inventions and fantasy cannot become factual memory", () => {
   assert.deepEqual(filtered.pinned.map(item => item.content), ["Concise answers"]);
   assert.equal(filtered.threads.length, 1);
   assert.deepEqual(filtered.resolvedIds, ["thread-valid"]);
+});
+
+test("persona evidence can establish Nina autobiography, including sexual events", () => {
+  const messages = [{ message_id: "nina-1", role: "persona", content: "I slept with someone after a set last Saturday." }];
+  const filtered = filterConsolidationExtraction({
+    pinned_memories: [{
+      category: "nina_autobiography",
+      content: "Nina slept with someone after a set last Saturday.",
+      evidence_message_ids: ["nina-1"]
+    }]
+  }, messages);
+  assert.equal(filtered.pinned.length, 1);
+  assert.equal(filtered.pinned[0].category, "nina_autobiography");
+});
+
+test("sexual language alone does not invalidate factual evidence", () => {
+  const messages = [{ message_id: "user-1", role: "user", content: "Sexual openness is important to me." }];
+  const filtered = filterConsolidationExtraction({
+    pinned_memories: [{ category: "user_fact", content: "Alejandro values sexual openness.", evidence_message_ids: ["user-1"] }]
+  }, messages);
+  assert.equal(filtered.pinned.length, 1);
+});
+
+test("imagined persona content is fantasy, not Nina autobiography", () => {
+  const messages = [{ message_id: "nina-1", role: "persona", content: "Imagine I slept with someone backstage." }];
+  const filtered = filterConsolidationExtraction({
+    pinned_memories: [
+      { category: "nina_autobiography", content: "Nina slept with someone backstage.", evidence_message_ids: ["nina-1"] },
+      { category: "fantasy_roleplay", content: "Sleeping with someone backstage is an imagined theme.", evidence_message_ids: ["nina-1"] }
+    ]
+  }, messages);
+  assert.deepEqual(filtered.pinned.map(item => item.category), ["fantasy_roleplay"]);
+});
+
+test("jokes can be retained as inside jokes without becoming facts", () => {
+  const messages = [{ message_id: "nina-1", role: "persona", content: "I'm kidding, chrome goblin strikes again." }];
+  const filtered = filterConsolidationExtraction({
+    pinned_memories: [{ category: "inside_joke", content: "The recurring chrome goblin joke.", evidence_message_ids: ["nina-1"] }]
+  }, messages);
+  assert.deepEqual(filtered.pinned.map(item => item.category), ["inside_joke"]);
+});
+
+test("shared memory requires literal user-grounded evidence", () => {
+  const messages = [
+    { message_id: "nina-claim", role: "persona", content: "Alejandro promised me we were non-exclusive." },
+    { message_id: "user-confirmation", role: "user", content: "I told you last year that our relationship was non-exclusive." }
+  ];
+  const filtered = filterConsolidationExtraction({
+    pinned_memories: [
+      { category: "shared_memory", content: "Alejandro promised Nina they were non-exclusive.", evidence_message_ids: ["nina-claim"] },
+      { category: "shared_memory", content: "Alejandro established that the relationship was non-exclusive last year.", evidence_message_ids: ["user-confirmation"] }
+    ]
+  }, messages);
+  assert.deepEqual(filtered.pinned.map(item => item.content), [
+    "Alejandro established that the relationship was non-exclusive last year."
+  ]);
 });
 
 test("owner token comparison rejects missing and altered values", () => {
