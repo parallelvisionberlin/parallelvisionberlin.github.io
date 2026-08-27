@@ -120,11 +120,15 @@ test("Signal Credit purchase UI submits only canonical pack IDs with Clerk authe
   const frontend = await readFile(new URL("../../js/nina-access.js", import.meta.url), "utf8");
   assert.match(frontend, /new Set\(\["signal_100", "signal_300", "signal_750"\]\)/);
   assert.match(frontend, /\/api\/nina\/credits\/checkout/);
+  assert.match(frontend, /https:\/\/parallel-vision-anam-token\.parallelvision\.workers\.dev\/session-token/);
   assert.match(frontend, /"Authorization": `Bearer \$\{token\}`/);
   assert.match(frontend, /body: JSON\.stringify\(\{ packId \}\)/);
   assert.match(frontend, /ninaCreditsPurchasePending/);
   assert.match(frontend, /Preparing checkout\.\.\./);
-  assert.match(frontend, /Checkout unavailable\. Try again\./);
+  assert.match(frontend, /Checkout unavailable\. Please try again\./);
+  assert.match(frontend, /status: response\.status/);
+  assert.match(frontend, /endpointOrigin: endpointUrl\.origin/);
+  assert.match(frontend, /endpointPath: endpointUrl\.pathname/);
   assert.match(frontend, /ninaCredits.*success|returnState === "success"/s);
   assert.match(frontend, /history\.replaceState/);
   assert.doesNotMatch(frontend, /STRIPE_(?:SECRET|WEBHOOK|PRICE)|sk_(?:live|test)_|whsec_|price_\w+/);

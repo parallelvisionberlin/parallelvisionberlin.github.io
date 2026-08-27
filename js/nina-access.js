@@ -420,24 +420,63 @@ async function startSignalCreditCheckout(packId) {
   if (ninaCreditsPurchasePending || !SIGNAL_CREDIT_PACK_IDS.has(packId)) return;
   setCheckoutPending(true);
   ninaCreditsPurchaseStatus.textContent = "Preparing checkout...";
+  const checkoutEndpoint = `${ANAM_SESSION_TOKEN_ENDPOINT.replace(/\/session-token$/, "")}/api/nina/credits/checkout`;
+  const endpointUrl = new URL(checkoutEndpoint);
   try {
     const clerk = await initializeNinaAuth();
     const token = await clerk?.session?.getToken?.();
-    if (!clerk?.isSignedIn || !token) throw new Error("Account authentication unavailable");
-    const response = await fetch(`${ANAM_SESSION_TOKEN_ENDPOINT.replace(/\/session-token$/, "")}/api/nina/credits/checkout`, {
+    if (!clerk?.isSignedIn || !token) {
+      console.warn("Signal Credit checkout has no authenticated session.", {
+        status: 0,
+        code: "auth_unavailable",
+        message: "Clerk session token unavailable",
+        endpointOrigin: endpointUrl.origin,
+        endpointPath: endpointUrl.pathname
+      });
+      throw new Error("Account authentication unavailable");
+    }
+    const response = await fetch(checkoutEndpoint, {
       method: "POST",
       headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json", "Accept": "application/json" },
       body: JSON.stringify({ packId })
     });
-    if (!response.ok) throw new Error("Checkout unavailable");
-    const data = await response.json();
-    const checkoutUrl = new URL(data?.url || "");
-    if (checkoutUrl.protocol !== "https:" || checkoutUrl.hostname !== "checkout.stripe.com") throw new Error("Invalid checkout URL");
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      const safeCode = typeof data?.code === "string" ? data.code.slice(0, 80) : "request_failed";
+      const safeMessage = typeof data?.error === "string" ? data.error.slice(0, 160) : "Checkout request failed";
+      console.warn("Signal Credit checkout rejected.", {
+        status: response.status,
+        code: safeCode,
+        message: safeMessage,
+        endpointOrigin: endpointUrl.origin,
+        endpointPath: endpointUrl.pathname
+      });
+      throw new Error("Checkout request rejected");
+    }
+    let checkoutUrl = null;
+    try { checkoutUrl = new URL(data?.url || ""); } catch { /* Invalid responses are handled below. */ }
+    if (!checkoutUrl || checkoutUrl.protocol !== "https:" || checkoutUrl.hostname !== "checkout.stripe.com") {
+      console.warn("Signal Credit checkout returned an invalid destination.", {
+        status: response.status,
+        code: "invalid_checkout_response",
+        message: "Checkout URL missing or invalid",
+        endpointOrigin: endpointUrl.origin,
+        endpointPath: endpointUrl.pathname
+      });
+      throw new Error("Invalid checkout URL");
+    }
     rememberSignalCreditCheckout();
     window.location.assign(checkoutUrl.href);
   } catch (error) {
+    if (error instanceof TypeError) console.warn("Signal Credit checkout could not reach the endpoint.", {
+      status: 0,
+      code: "network_error",
+      message: "Checkout endpoint unavailable",
+      endpointOrigin: endpointUrl.origin,
+      endpointPath: endpointUrl.pathname
+    });
     logDevelopmentError("Signal Credit checkout unavailable.", error);
-    ninaCreditsPurchaseStatus.textContent = "Checkout unavailable. Try again.";
+    ninaCreditsPurchaseStatus.textContent = "Checkout unavailable. Please try again.";
     setCheckoutPending(false);
   }
 }

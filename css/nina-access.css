@@ -753,7 +753,7 @@ body.nina-credits-purchase-active {
 
 .nina-credits-purchase-panel {
   position: relative;
-  width: min(480px, 100%);
+  width: min(520px, 100%);
   padding: clamp(28px, 5vw, 48px);
   border: 1px solid rgba(255, 255, 255, .22);
   background: #030304;
@@ -791,8 +791,8 @@ body.nina-credits-purchase-active {
 .nina-credits-purchase-code {
   margin: 0 42px 0 0;
   color: rgba(255, 255, 255, .42);
-  font: 9px/1.5 'Courier New', monospace;
-  letter-spacing: .2em;
+  font: 11px/1.5 'Courier New', monospace;
+  letter-spacing: .16em;
   text-transform: uppercase;
 }
 
@@ -806,7 +806,7 @@ body.nina-credits-purchase-active {
 .nina-credits-purchase-lead {
   margin: 20px 0 0;
   color: rgba(255, 255, 255, .66);
-  font: 14px/1.6 Inter, sans-serif;
+  font: 16px/1.6 Inter, sans-serif;
 }
 
 .nina-credits-pack-list {
@@ -820,15 +820,15 @@ body.nina-credits-purchase-active {
   grid-template-columns: 1fr auto;
   align-items: center;
   gap: 20px;
-  min-height: 64px;
+  min-height: 72px;
   padding: 0 2px;
   border: 0;
   border-bottom: 1px solid rgba(255, 255, 255, .16);
   border-radius: 0;
   background: transparent;
   color: rgba(255, 255, 255, .86);
-  font: 10px/1.4 'Courier New', monospace;
-  letter-spacing: .16em;
+  font: 14px/1.4 'Courier New', monospace;
+  letter-spacing: .1em;
   text-align: left;
   text-transform: uppercase;
   cursor: pointer;
@@ -836,7 +836,7 @@ body.nina-credits-purchase-active {
 }
 
 .nina-credits-pack strong {
-  font: 400 14px/1 'Courier New', monospace;
+  font: 400 16px/1 'Courier New', monospace;
   letter-spacing: .08em;
 }
 
@@ -856,8 +856,8 @@ body.nina-credits-purchase-active {
   min-height: 1.5em;
   margin: 20px 0 0;
   color: rgba(255, 255, 255, .58);
-  font: 9px/1.5 'Courier New', monospace;
-  letter-spacing: .13em;
+  font: 12px/1.55 'Courier New', monospace;
+  letter-spacing: .08em;
   text-transform: uppercase;
 }
 
@@ -866,7 +866,11 @@ body.nina-credits-purchase-active {
   .nina-credits-purchase { align-items: end; padding: 12px; }
   .nina-credits-purchase-panel { width: 100%; max-height: calc(100svh - 24px); padding: 28px 22px 24px; overflow-y: auto; }
   .nina-credits-purchase-title { padding-right: 24px; font-size: clamp(22px, 8vw, 30px); }
-  .nina-credits-pack { min-height: 58px; }
+  .nina-credits-purchase-code { font-size: 10px; }
+  .nina-credits-purchase-lead { font-size: 15px; }
+  .nina-credits-pack { min-height: 64px; font-size: 13px; }
+  .nina-credits-pack strong { font-size: 15px; }
+  .nina-credits-purchase-status { font-size: 12px; }
 }
 
 
