@@ -42,8 +42,11 @@ const ninaMicrophoneStatus = byId("ninaMicrophoneStatus");
 const ninaMemoryIndicator = byId("ninaMemoryIndicator");
 const ninaForgetMemory = byId("ninaForgetMemory");
 const ninaSignIn = byId("ninaSignIn");
-const ninaSignOut = byId("ninaSignOut");
-const ninaAccountStatus = byId("ninaAccountStatus");
+const ninaAccountShell = byId("ninaAccountShell");
+const ninaAccountToggle = byId("ninaAccountToggle");
+const ninaAccountPanel = byId("ninaAccountPanel");
+const ninaAccountName = byId("ninaAccountName");
+const ninaAccountSignOut = byId("ninaAccountSignOut");
 const ninaAccessHash = "d3ec7a14e4fefc8da57d4045a6ee28d28b328b78126c1e22bc0b541adf0f215c";
 const NINA_PREFERRED_MICROPHONE_KEY = "ninaPreferredMicrophoneId";
 const NINA_VISITOR_ID_KEY = "nina_fok_visitor_id_v1";
@@ -201,10 +204,11 @@ function legacyOwnerMemoryHeaders() {
 function updateNinaAccountControls(clerk = ninaClerk) {
   const signedIn = Boolean(clerk?.isSignedIn && clerk?.session);
   if (ninaSignIn) ninaSignIn.hidden = signedIn;
-  if (ninaSignOut) ninaSignOut.hidden = !signedIn;
   if (ninaSignIn) ninaSignIn.disabled = false;
-  const userLabel = clerk?.user?.firstName || clerk?.user?.primaryEmailAddress?.emailAddress || "CONNECTED";
-  if (ninaAccountStatus) ninaAccountStatus.textContent = signedIn ? `ACCOUNT / ${userLabel}` : "ACCOUNT / GUEST";
+  if (ninaAccountShell) ninaAccountShell.hidden = !signedIn;
+  const userLabel = clerk?.user?.fullName || clerk?.user?.firstName || clerk?.user?.primaryEmailAddress?.emailAddress || "Connected account";
+  if (ninaAccountName) ninaAccountName.textContent = userLabel;
+  if (!signedIn) closeNinaAccountPanel();
 }
 
 function loadNinaClerkUI() {
@@ -229,7 +233,6 @@ function loadNinaClerkUI() {
 async function initializeNinaAuth() {
   if (!ninaAuthInitialization) ninaAuthInitialization = (async () => {
     if (ninaSignIn) ninaSignIn.disabled = true;
-    if (ninaAccountStatus) ninaAccountStatus.textContent = "ACCOUNT / LOADING";
     const ClerkUI = await loadNinaClerkUI();
     const clerk = ninaClerk || new Clerk(CLERK_CONFIGURATION.publishableKey);
     await clerk.load({ ui: { ClerkUI } });
@@ -244,8 +247,7 @@ async function initializeNinaAuth() {
       ninaSignIn.hidden = false;
       ninaSignIn.disabled = false;
     }
-    if (ninaSignOut) ninaSignOut.hidden = true;
-    if (ninaAccountStatus) ninaAccountStatus.textContent = "ACCOUNT / SIGN IN AVAILABLE";
+    if (ninaAccountShell) ninaAccountShell.hidden = true;
     return null;
   });
   return ninaAuthInitialization;
@@ -682,16 +684,55 @@ async function connectNina() {
   }
 }
 
+function closeNinaAccountPanel(returnFocus = false) {
+  if (!ninaAccountPanel || !ninaAccountToggle) return;
+  ninaAccountPanel.hidden = true;
+  ninaAccountToggle.setAttribute("aria-expanded", "false");
+  if (returnFocus) ninaAccountToggle.focus({ preventScroll: true });
+}
+
+function toggleNinaAccountPanel() {
+  if (!ninaAccountPanel || !ninaAccountToggle) return;
+  const willOpen = ninaAccountPanel.hidden;
+  ninaAccountPanel.hidden = !willOpen;
+  ninaAccountToggle.setAttribute("aria-expanded", String(willOpen));
+  if (willOpen) ninaAccountSignOut?.focus({ preventScroll: true });
+}
+
+function lockNinaAccessScroll() {
+  ninaScrollPosition = window.scrollY;
+  document.body.style.top = `-${ninaScrollPosition}px`;
+  document.body.classList.add("nina-access-active");
+}
+
+function unlockNinaAccessScroll() {
+  document.body.classList.remove("nina-access-active");
+  document.body.style.top = "";
+  window.scrollTo(0, ninaScrollPosition);
+}
+
+function openNinaExperience() {
+  if (!ninaAccessVerifiedForCurrentOpen) ninaScrollPosition = window.scrollY;
+  ninaAccessVerifiedForCurrentOpen = true;
+  if (ninaAccess.classList.contains("is-open")) closeNinaAccess(true);
+  ninaOverlay.classList.add("is-open");
+  ninaOverlay.setAttribute("aria-hidden", "false");
+  document.body.style.overflow = "hidden";
+  showNinaReady();
+  setupNinaMicrophones();
+}
+
 function openNinaAccess() {
   ninaScrollPosition = window.scrollY;
   ninaAccessVerifiedForCurrentOpen = false;
+  closeNinaAccountPanel();
   ninaOverlay.classList.remove("is-open");
   ninaOverlay.setAttribute("aria-hidden", "true");
   ninaAccess.classList.add("is-open");
   ninaAccess.setAttribute("aria-hidden", "false");
   ninaAccessError.textContent = "";
   ninaAccessCode.value = "";
-  document.body.style.overflow = "hidden";
+  lockNinaAccessScroll();
   setTimeout(() => ninaAccessCode.focus({ preventScroll: true }), 50);
 }
 
@@ -701,8 +742,7 @@ function closeNinaAccess(keepVerification = false) {
   ninaAccess.setAttribute("aria-hidden", "true");
   ninaAccessError.textContent = "";
   ninaAccessCode.value = "";
-  document.body.style.overflow = "";
-  window.scrollTo(0, ninaScrollPosition);
+  unlockNinaAccessScroll();
   (lastNinaTrigger || openNina)?.focus({ preventScroll: true });
 }
 
@@ -725,12 +765,7 @@ async function verifyNinaAccess(event) {
     await delay(500);
     ninaAccessError.textContent = "OPENING CHANNEL...";
     await delay(650);
-    closeNinaAccess(true);
-    ninaOverlay.classList.add("is-open");
-    ninaOverlay.setAttribute("aria-hidden", "false");
-    document.body.style.overflow = "hidden";
-    showNinaReady();
-    setupNinaMicrophones();
+    openNinaExperience();
   } catch (error) {
     logDevelopmentError("Nina access verification unavailable.", error);
     ninaAccessError.textContent = "RESONANCE MISMATCH / ACCESS DENIED";
@@ -738,7 +773,7 @@ async function verifyNinaAccess(event) {
     ninaAccessSubmitting = false;
     ninaAccessSubmit.disabled = false;
     ninaAccessCancel.disabled = false;
-    ninaAccessSubmit.textContent = "OPEN THE SIGNAL";
+    ninaAccessSubmit.textContent = "OPEN SIGNAL";
   }
 }
 
@@ -754,11 +789,15 @@ async function closeNinaWindow() {
   (lastNinaTrigger || openNina)?.focus({ preventScroll: true });
 }
 
+async function routeNinaTrigger(trigger) {
+  lastNinaTrigger = trigger || openNina;
+  const clerk = await initializeNinaAuth();
+  if (clerk?.isSignedIn && clerk?.session) openNinaExperience();
+  else openNinaAccess();
+}
+
 new Set([openNina, openNinaArtist, ...ninaOpenTriggers].filter(Boolean)).forEach(trigger => {
-  trigger.addEventListener("click", event => {
-    lastNinaTrigger = event.currentTarget;
-    openNinaAccess();
-  });
+  trigger.addEventListener("click", event => void routeNinaTrigger(event.currentTarget));
 });
 ninaAccessForm.addEventListener("submit", verifyNinaAccess);
 ninaAccess.addEventListener("click", event => event.stopPropagation());
@@ -771,12 +810,25 @@ ninaSignIn?.addEventListener("click", async () => {
   const clerk = await initializeNinaAuth();
   if (!clerk) return;
   await clerk.openSignIn();
+  updateNinaAccountControls(clerk);
+  if (clerk.isSignedIn && clerk.session && ninaAccess.classList.contains("is-open")) openNinaExperience();
 });
-ninaSignOut?.addEventListener("click", async () => {
-  const clerk = await initializeNinaAuth();
-  await clerk?.signOut();
-  updateNinaAccountControls();
+ninaAccountToggle?.addEventListener("click", event => {
+  event.stopPropagation();
+  toggleNinaAccountPanel();
 });
+ninaAccountPanel?.addEventListener("click", event => event.stopPropagation());
+ninaAccountSignOut?.addEventListener("click", async () => {
+  ninaAccountSignOut.disabled = true;
+  try {
+    const clerk = await initializeNinaAuth();
+    await clerk?.signOut();
+    updateNinaAccountControls();
+  } finally {
+    ninaAccountSignOut.disabled = false;
+  }
+});
+document.addEventListener("click", () => closeNinaAccountPanel());
 document.addEventListener("fullscreenchange", syncNinaFullscreen);
 document.addEventListener("webkitfullscreenchange", syncNinaFullscreen);
 startNina.addEventListener("click", connectNina);
@@ -800,6 +852,10 @@ ninaMicrophoneSelect.addEventListener("change", async () => {
 navigator.mediaDevices?.addEventListener?.("devicechange", refreshNinaMicrophones);
 document.addEventListener("keydown", event => {
   if (event.key !== "Escape" || ninaAccessSubmitting) return;
+  if (ninaAccountPanel && !ninaAccountPanel.hidden) {
+    closeNinaAccountPanel(true);
+    return;
+  }
   if (ninaIsFullscreen()) {
     event.preventDefault();
     exitNinaFullscreen();
@@ -810,7 +866,7 @@ document.addEventListener("keydown", event => {
 });
 window.addEventListener("pagehide", stopNinaSession);
 window.addEventListener("beforeunload", stopNinaSession);
-if (new URLSearchParams(window.location.search).get("nina") === "1") openNinaAccess();
+if (new URLSearchParams(window.location.search).get("nina") === "1") void routeNinaTrigger(openNina);
 migrateLegacyNinaMemory();
 removeLegacyNinaOwnerToken();
 resetNinaMemoryIndicator();

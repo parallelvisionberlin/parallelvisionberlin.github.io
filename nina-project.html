@@ -17,7 +17,7 @@
   <meta name="twitter:image" content="https://parallelvisionlabel.com/assets/ninamain-page.webp">
   <link rel="icon" type="image/png" href="./favicon.png">
   <link rel="stylesheet" href="./fashion.css?v=20260817-archive-size">
-  <link rel="stylesheet" href="./css/nina-access.css?v=20260823-memory">
+  <link rel="stylesheet" href="./css/nina-access.css?v=20260827-account-ui">
   <style>
     :root { --n-line: rgba(255,255,255,.15); --n-body: rgba(255,255,255,.7); --n-faint: rgba(255,255,255,.44); }
     * { box-sizing: border-box; }
@@ -31,8 +31,9 @@
     .n-footer { font: 9px/1.55 'Courier New', monospace; letter-spacing: .24em; text-transform: uppercase; }
     .n-label, .n-meta { color: var(--n-faint); }
     .n-nav { min-height: 66px; display: flex; align-items: center; justify-content: space-between; gap: 28px; border-bottom: 1px solid var(--n-line); }
-    .n-nav a { color: rgba(255,255,255,.7); text-decoration: none; }
-    .n-nav a:hover, .n-nav a:focus-visible { color: #fff; }
+    .n-nav a,.n-nav-transmit { color: rgba(255,255,255,.7); text-decoration: none; }
+    .n-nav a:hover,.n-nav a:focus-visible,.n-nav-transmit:hover,.n-nav-transmit:focus-visible { color: #fff; }
+    .n-nav-transmit { padding:0; border:0; background:none; font:inherit; letter-spacing:inherit; text-transform:inherit; cursor:pointer; }
 
     .n-hero { padding: 18px 0 34px; border-bottom: 1px solid var(--n-line); }
     .n-hero-media { position: relative; height: clamp(620px,82vh,860px); margin: 0; overflow: hidden; background: #100304 url('./nina-fok/HDNINACANON.png') center 45% / cover no-repeat; }
@@ -154,7 +155,17 @@
   <nav class="n-nav n-shell" aria-label="Nina project navigation">
     <a href="./index.html">Parallel Vision</a>
     <span>Nina FOK / Berlin 2063</span>
-    <a href="#transmit">Transmit</a>
+    <button class="n-nav-transmit" type="button" data-nina-open>Transmit</button>
+    <div class="nina-account-shell" id="ninaAccountShell" hidden>
+      <button class="nina-account-toggle" id="ninaAccountToggle" type="button" aria-label="Open account menu" aria-expanded="false" aria-controls="ninaAccountPanel">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.25"></circle><path d="M5.75 19c.55-3.25 2.64-5.25 6.25-5.25s5.7 2 6.25 5.25"></path></svg>
+      </button>
+      <div class="nina-account-panel" id="ninaAccountPanel" hidden>
+        <p class="nina-account-eyebrow">Parallel Vision Account</p>
+        <p class="nina-account-name" id="ninaAccountName">Connected</p>
+        <button class="nina-account-signout" id="ninaAccountSignOut" type="button">Sign out</button>
+      </div>
+    </div>
   </nav>
 
   <main class="n-shell">
@@ -304,13 +315,11 @@
 >
   <section class="nina-access-panel">
     <h2 class="nina-access-title" id="ninaAccessTitle">PRIVATE SIGNAL</h2>
-    <p class="nina-access-description">Enter your access code to open the transmission.</p>
-    <div class="nina-account-controls" aria-label="Nina account controls">
-      <span class="nina-account-status" id="ninaAccountStatus">ACCOUNT / LOADING</span>
-      <button class="nina-account-action" id="ninaSignIn" type="button" disabled>SIGN IN</button>
-      <button class="nina-account-action" id="ninaSignOut" type="button" hidden>SIGN OUT</button>
-    </div>
+    <p class="nina-access-lead">Enter the transmission.</p>
+    <p class="nina-access-description">Use your private access code, or continue with your Parallel Vision account.</p>
+    <button class="nina-access-account" id="ninaSignIn" type="button" disabled>Sign in with account</button>
     <form class="nina-access-form" id="ninaAccessForm">
+      <label class="nina-access-label" for="ninaAccessCode">Access code</label>
       <input
         class="nina-access-input"
         id="ninaAccessCode"
@@ -322,7 +331,7 @@
       >
       <p class="nina-access-error" id="ninaAccessError" role="status" aria-live="polite"></p>
       <div class="nina-access-actions">
-        <button class="nina-access-submit" id="ninaAccessSubmit" type="submit">OPEN THE SIGNAL</button>
+        <button class="nina-access-submit" id="ninaAccessSubmit" type="submit">OPEN SIGNAL</button>
         <button class="nina-access-cancel" id="ninaAccessCancel" type="button">CANCEL</button>
       </div>
     </form>
@@ -646,6 +655,6 @@
       syncMotion();
     })();
   </script>
-<script type="module" src="./js/nina-access.js?v=20260827-clerk-ui-v2"></script>
+<script type="module" src="./js/nina-access.js?v=20260827-account-ui"></script>
 </body>
 </html>
