@@ -99,7 +99,7 @@ async function authenticateNinaRequest(request, env, body) {
   const token = authorization.startsWith("Bearer ") ? authorization.slice(7).trim() : "";
   if (token && !token.startsWith("v1.")) {
     const claims = await verifyClerkSessionToken(env, token, request.headers.get("Origin") || "");
-    if (claims) return asMemoryIdentity(await resolveAuthenticatedUser(env, claims));
+    if (claims) return asMemoryIdentity(await resolveAuthenticatedUser(env, claims, body?.accountDisplayName));
   }
   const owner = await authenticateOwnerRequest(request, env, body);
   return owner ? { ...owner, role: "owner", account_authenticated: false } : null;

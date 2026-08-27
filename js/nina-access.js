@@ -258,6 +258,11 @@ async function authenticationHeaders() {
   return clerk ? { "Content-Type": "application/json" } : legacyOwnerMemoryHeaders();
 }
 
+function clerkAccountDisplayName() {
+  const name = ninaClerk?.user?.fullName || ninaClerk?.user?.firstName || "";
+  return typeof name === "string" ? name.trim().slice(0, 80) : "";
+}
+
 async function canUseServerMemory() {
   const headers = await authenticationHeaders();
   return Boolean(headers.Authorization);
@@ -603,6 +608,7 @@ async function requestSessionToken(signal, history) {
     headers: await authenticationHeaders(),
     body: JSON.stringify({
       visitorId: ninaVisitorId,
+      accountDisplayName: clerkAccountDisplayName(),
       recentMessages: history
     }),
     signal

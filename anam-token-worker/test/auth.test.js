@@ -24,7 +24,9 @@ test("Worker verifies a Clerk session and rejects a changed signature", async ()
   try {
     const claims = await verifyClerkSessionToken({ CLERK_ISSUER: "https://climbing-wombat-2717.clerk.accounts.dev" }, token, origin);
     assert.equal(claims.sub, "user_alejandro");
-    assert.equal(await verifyClerkSessionToken({ CLERK_ISSUER: claims.iss }, `${token.slice(0, -1)}x`, origin), null);
+    const parts = token.split(".");
+    parts[2] = `${parts[2][0] === "A" ? "B" : "A"}${parts[2].slice(1)}`;
+    assert.equal(await verifyClerkSessionToken({ CLERK_ISSUER: claims.iss }, parts.join("."), origin), null);
   } finally { globalThis.fetch = originalFetch; }
 });
 
@@ -50,4 +52,31 @@ test("the same Clerk subject resolves to one permanent internal user and D1 cont
   assert.equal(first.id, second.id);
   assert.equal(asMemoryIdentity(second).role, "owner");
   assert.equal(asMemoryIdentity(second).visitor_id, first.id);
+});
+
+test("a verified account name updates normal users but never overwrites the owner", async () => {
+  const updates = [];
+  let user = { id: "internal-user", auth_subject: "user_normal", display_name: "Parallel Vision User", role: "user", memory_visitor_id: "memory-user" };
+  const db = {
+    prepare(sql) {
+      return {
+        bind(...values) {
+          if (sql.includes("SELECT id, display_name")) return { first: async () => user };
+          if (sql.startsWith("UPDATE users SET display_name")) return { run: async () => { updates.push(["users", ...values]); user = { ...user, display_name: values[0] }; } };
+          if (sql.startsWith("UPDATE visitors SET display_name")) return { run: async () => { updates.push(["visitors", ...values]); } };
+          throw new Error(`Unexpected SQL: ${sql}`);
+        }
+      };
+    },
+    async batch(statements) { await Promise.all(statements.map(statement => statement.run())); }
+  };
+  const normal = await resolveAuthenticatedUser({ NINA_MEMORY_DB: db }, { sub: "user_normal" }, "  Zoë <Admin>  ");
+  assert.equal(normal.display_name, "Zoë Admin");
+  assert.equal(updates.length, 2);
+
+  user = { ...user, display_name: "Alejandro", role: "owner" };
+  updates.length = 0;
+  const owner = await resolveAuthenticatedUser({ NINA_MEMORY_DB: db }, { sub: "user_normal" }, "Someone Else");
+  assert.equal(owner.display_name, "Alejandro");
+  assert.equal(updates.length, 0);
 });

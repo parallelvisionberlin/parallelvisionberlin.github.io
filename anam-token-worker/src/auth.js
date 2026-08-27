@@ -72,14 +72,33 @@ export async function verifyClerkSessionToken(env, token, requestOrigin = "") {
   } catch { return null; }
 }
 
-export async function resolveAuthenticatedUser(env, claims) {
+function validatedDisplayName(value) {
+  if (typeof value !== "string") return "";
+  const normalized = value.normalize("NFKC").replace(/[^\p{L}\p{M} .'-]/gu, " ").replace(/\s+/g, " ").trim();
+  return normalized.length >= 1 && normalized.length <= 50 ? normalized : "";
+}
+
+export async function resolveAuthenticatedUser(env, claims, accountDisplayName = "") {
+  const verifiedDisplayName = validatedDisplayName(accountDisplayName);
   const existing = await env.NINA_MEMORY_DB.prepare(
     "SELECT id, display_name, role, memory_visitor_id FROM users WHERE auth_provider = 'clerk' AND auth_subject = ? LIMIT 1"
   ).bind(claims.sub).first();
-  if (existing) return existing;
+  if (existing) {
+    if (existing.role === "user" && verifiedDisplayName && verifiedDisplayName !== existing.display_name) {
+      const now = new Date().toISOString();
+      await env.NINA_MEMORY_DB.batch([
+        env.NINA_MEMORY_DB.prepare("UPDATE users SET display_name = ?, updated_at = ? WHERE id = ? AND role = 'user'")
+          .bind(verifiedDisplayName, now, existing.id),
+        env.NINA_MEMORY_DB.prepare("UPDATE visitors SET display_name = ?, updated_at = ? WHERE visitor_id = ?")
+          .bind(verifiedDisplayName, now, existing.memory_visitor_id)
+      ]);
+      return { ...existing, display_name: verifiedDisplayName };
+    }
+    return existing;
+  }
   const id = crypto.randomUUID();
   const now = new Date().toISOString();
-  const displayName = "Parallel Vision User";
+  const displayName = verifiedDisplayName || "Parallel Vision User";
   try {
     await env.NINA_MEMORY_DB.batch([
       env.NINA_MEMORY_DB.prepare(
