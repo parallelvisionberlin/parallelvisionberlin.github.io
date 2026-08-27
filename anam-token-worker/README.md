@@ -1,6 +1,6 @@
-# Nina Anam token and memory Worker
+# Nina Anam token, memory and Signal Credits Worker
 
-This Worker keeps the Anam API key server-side, returns a fresh short-lived session token for Nina's published persona, and stores authenticated owner memory in Cloudflare D1. Public visitors remain on browser-only recent memory.
+This Worker keeps the Anam API key server-side, returns a fresh short-lived session token for Nina's published persona, stores authenticated memory, and maintains the Signal Credits ledger in the existing Cloudflare D1 database. Public visitors remain on browser-only recent memory.
 
 ## Deploy
 
@@ -46,3 +46,33 @@ All memory endpoints require the HMAC-signed owner credential, a matching perman
 - `DELETE /memory` deletes the complete owner memory graph.
 - `POST /memory/messages` accepts validated completed user/persona messages.
 - `POST /memory/conversations/end` closes a conversation and schedules consolidation.
+
+## Signal Credits foundation
+
+Migration `0003_signal_credits.sql` adds `signal_credit_accounts` (cached balance and lifetime totals) and the append-only `signal_credit_transactions` ledger. Both use the existing internal `users.id`, which is resolved only from a verified Clerk session. The browser never supplies or chooses a ledger user ID.
+
+- `GET /api/nina/credits` returns the authenticated account's real balance and lifetime totals. The account is created once with a zero balance when first requested.
+- `GET /api/nina/credits/history?limit=20&offset=0` returns recent signed transactions, with `nextOffset` when another page exists.
+
+`creditSignalCredits`, `debitSignalCredits`, and `getSignalCreditBalance` are server-only functions in `src/credits.js`. Every mutation requires a positive integer amount, a controlled source, and a stable reference ID. The database's unique `(user_id, reference_id)` index makes retries idempotent. SQLite triggers apply the ledger entry and cached totals together and abort a debit that would make the balance negative.
+
+There is deliberately no public credit mutation endpoint. For owner testing, first find the internal user ID using the verified Clerk subject, then insert a test ledger entry directly through D1. Use a unique reference each time; retrying the same reference will not credit twice:
+
+```sql
+SELECT id, display_name, role FROM users WHERE auth_subject = 'CLERK_USER_SUBJECT';
+
+INSERT OR IGNORE INTO signal_credit_accounts
+  (user_id, balance, lifetime_credited, lifetime_debited, created_at, updated_at)
+VALUES
+  ('INTERNAL_USER_ID', 0, 0, 0, datetime('now'), datetime('now'));
+
+INSERT INTO signal_credit_transactions
+  (id, user_id, amount, type, source, reference_id, description, created_at)
+VALUES
+  ('manual-' || lower(hex(randomblob(16))), 'INTERNAL_USER_ID', 25, 'credit',
+   'manual_test', 'owner-test-2026-08-27-01', 'Owner test allocation', datetime('now'));
+```
+
+Run SQL through `wrangler d1 execute nina-fok-memory --remote --command "..."` from this directory, or use the D1 console. Never edit `balance` directly; ledger inserts are the source of truth.
+
+Stripe purchase/checkout/webhook handling is not implemented yet. Nina/Anam sessions do not deduct credits yet. Those integrations should call the existing server-only mutation functions with provider event IDs or session IDs as idempotency references.

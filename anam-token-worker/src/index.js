@@ -4,6 +4,7 @@ import {
   authorizeOwner, enrollOwner, storeMessages, validateCompletedMessages, validId
 } from "./memory.js";
 import { asMemoryIdentity, resolveAuthenticatedUser, verifyClerkSessionToken } from "./auth.js";
+import { getSignalCreditBalance, getSignalCreditHistory } from "./credits.js";
 
 const PERSONA_ID = "a5663da5-5f5c-4600-b545-cbb58bd4e155";
 const VISITOR_ID_PATTERN = /^(?:[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|visitor-[a-z0-9-]+)$/i;
@@ -103,6 +104,14 @@ async function authenticateNinaRequest(request, env, body) {
   }
   const owner = await authenticateOwnerRequest(request, env, body);
   return owner ? { ...owner, role: "owner", account_authenticated: false } : null;
+}
+
+async function authenticateAccountRequest(request, env) {
+  const authorization = request.headers.get("Authorization") || "";
+  const token = authorization.startsWith("Bearer ") ? authorization.slice(7).trim() : "";
+  if (!token || token.startsWith("v1.")) return null;
+  const claims = await verifyClerkSessionToken(env, token, request.headers.get("Origin") || "");
+  return claims ? resolveAuthenticatedUser(env, claims) : null;
 }
 
 async function handleOwnerEnrollment(request, env, origin) {
@@ -213,6 +222,21 @@ async function handleDelete(request, env, origin) {
   return jsonResponse({ deleted }, 200, origin);
 }
 
+async function handleSignalCredits(request, env, origin) {
+  const user = await authenticateAccountRequest(request, env);
+  if (!user) return jsonResponse({ error: "Account authentication required" }, 401, origin);
+  return jsonResponse(await getSignalCreditBalance(env, user.id), 200, origin);
+}
+
+async function handleSignalCreditHistory(request, env, origin) {
+  const user = await authenticateAccountRequest(request, env);
+  if (!user) return jsonResponse({ error: "Account authentication required" }, 401, origin);
+  const url = new URL(request.url);
+  return jsonResponse(await getSignalCreditHistory(env, user.id, {
+    limit: url.searchParams.get("limit"), offset: url.searchParams.get("offset")
+  }), 200, origin);
+}
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -227,6 +251,8 @@ export default {
       if (url.pathname === "/memory/metadata" && request.method === "GET") return handleMetadata(request, env, origin);
       if (url.pathname === "/memory/export" && request.method === "GET") return handleExport(request, env, origin);
       if (url.pathname === "/memory" && request.method === "DELETE") return handleDelete(request, env, origin);
+      if (url.pathname === "/api/nina/credits" && request.method === "GET") return handleSignalCredits(request, env, origin);
+      if (url.pathname === "/api/nina/credits/history" && request.method === "GET") return handleSignalCreditHistory(request, env, origin);
       return jsonResponse({ error: "Not found" }, 404, origin);
     } catch { return jsonResponse({ error: "Request failed" }, 502, origin); }
   }

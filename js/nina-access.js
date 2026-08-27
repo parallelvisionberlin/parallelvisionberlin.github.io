@@ -46,6 +46,7 @@ const ninaAccountShell = byId("ninaAccountShell");
 const ninaAccountToggle = byId("ninaAccountToggle");
 const ninaAccountPanel = byId("ninaAccountPanel");
 const ninaAccountName = byId("ninaAccountName");
+const ninaSignalCredits = byId("ninaSignalCredits");
 const ninaAccountSignOut = byId("ninaAccountSignOut");
 const ninaAccessHash = "d3ec7a14e4fefc8da57d4045a6ee28d28b328b78126c1e22bc0b541adf0f215c";
 const NINA_PREFERRED_MICROPHONE_KEY = "ninaPreferredMicrophoneId";
@@ -75,6 +76,8 @@ let ninaMemorySyncPromise = Promise.resolve();
 let ninaAuthInitialization = null;
 let ninaClerk = null;
 let ninaClerkUILoading = null;
+let ninaCreditsUserId = "";
+let ninaCreditsRequest = 0;
 const delay = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
 const logDevelopmentError = (message, error) => { if (DEVELOPMENT) console.error(message, error); };
 const nativeFullscreenElement = () => document.fullscreenElement || document.webkitFullscreenElement || null;
@@ -208,7 +211,44 @@ function updateNinaAccountControls(clerk = ninaClerk) {
   if (ninaAccountShell) ninaAccountShell.hidden = !signedIn;
   const userLabel = clerk?.user?.fullName || clerk?.user?.firstName || clerk?.user?.primaryEmailAddress?.emailAddress || "Connected account";
   if (ninaAccountName) ninaAccountName.textContent = userLabel;
-  if (!signedIn) closeNinaAccountPanel();
+  if (signedIn) void loadSignalCreditBalance(clerk);
+  else {
+    ninaCreditsUserId = "";
+    ninaCreditsRequest += 1;
+    if (ninaSignalCredits) {
+      ninaSignalCredits.textContent = "Loading…";
+      ninaSignalCredits.removeAttribute("data-state");
+    }
+    closeNinaAccountPanel();
+  }
+}
+
+async function loadSignalCreditBalance(clerk = ninaClerk, force = false) {
+  if (!ninaSignalCredits || !clerk?.isSignedIn || !clerk?.session) return;
+  const userId = clerk.user?.id || clerk.session.user?.id || "signed-in";
+  if (!force && ninaCreditsUserId === userId) return;
+  ninaCreditsUserId = userId;
+  const requestId = ++ninaCreditsRequest;
+  ninaSignalCredits.textContent = "Loading…";
+  ninaSignalCredits.removeAttribute("data-state");
+  try {
+    const token = await clerk.session.getToken();
+    if (!token) throw new Error("Account token unavailable");
+    const response = await fetch(`${ANAM_SESSION_TOKEN_ENDPOINT.replace(/\/session-token$/, "")}/api/nina/credits`, {
+      headers: { "Authorization": `Bearer ${token}`, "Accept": "application/json" },
+      cache: "no-store"
+    });
+    if (!response.ok) throw new Error("Signal Credit balance unavailable");
+    const data = await response.json();
+    if (!Number.isSafeInteger(data?.balance) || data.balance < 0) throw new Error("Invalid Signal Credit balance");
+    if (requestId !== ninaCreditsRequest) return;
+    ninaSignalCredits.textContent = `${data.balance.toLocaleString()} credits`;
+  } catch (error) {
+    if (requestId !== ninaCreditsRequest) return;
+    ninaSignalCredits.textContent = "Unavailable";
+    ninaSignalCredits.dataset.state = "unavailable";
+    logDevelopmentError("Signal Credit balance unavailable.", error);
+  }
 }
 
 function loadNinaClerkUI() {
@@ -696,7 +736,10 @@ function toggleNinaAccountPanel() {
   const willOpen = ninaAccountPanel.hidden;
   ninaAccountPanel.hidden = !willOpen;
   ninaAccountToggle.setAttribute("aria-expanded", String(willOpen));
-  if (willOpen) ninaAccountSignOut?.focus({ preventScroll: true });
+  if (willOpen) {
+    void loadSignalCreditBalance(ninaClerk, true);
+    ninaAccountSignOut?.focus({ preventScroll: true });
+  }
 }
 
 function lockNinaAccessScroll() {

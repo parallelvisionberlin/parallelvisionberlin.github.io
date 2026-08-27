@@ -664,12 +664,39 @@ body.nina-fullscreen-active {
 }
 
 .nina-account-name {
-  margin: 9px 0 20px;
+  margin: 9px 0 18px;
   overflow-wrap: anywhere;
   color: rgba(255, 255, 255, .92);
   font: 15px/1.45 Inter, sans-serif;
   letter-spacing: 0;
   text-transform: none;
+}
+
+.nina-account-credits {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: baseline;
+  gap: 14px;
+  margin: 0 0 20px;
+  padding: 14px 0;
+  border-top: 1px solid rgba(255, 255, 255, .12);
+  border-bottom: 1px solid rgba(255, 255, 255, .12);
+  color: rgba(255, 255, 255, .5);
+  font: 9px/1.4 'Courier New', monospace;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+}
+
+.nina-account-credits strong {
+  color: rgba(255, 255, 255, .9);
+  font: 11px/1.4 'Courier New', monospace;
+  font-weight: 400;
+  letter-spacing: .08em;
+  text-align: right;
+}
+
+.nina-account-credits strong[data-state="unavailable"] {
+  color: rgba(255, 255, 255, .46);
 }
 
 .nina-account-signout {
