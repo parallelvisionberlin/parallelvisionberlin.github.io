@@ -48,7 +48,7 @@ const ninaAccountPanel = byId("ninaAccountPanel");
 const ninaAccountName = byId("ninaAccountName");
 const ninaSignalCredits = byId("ninaSignalCredits");
 const ninaAccountSignOut = byId("ninaAccountSignOut");
-const SIGNAL_CREDIT_PACK_IDS = new Set(["signal_100", "signal_300", "signal_750"]);
+const SIGNAL_CREDIT_PACK_IDS = new Set(["signal_30", "signal_100", "signal_300", "signal_750"]);
 const NINA_CREDIT_CHECKOUT_STATE_KEY = "nina_signal_credit_checkout_v1";
 const ninaAccessHash = "d3ec7a14e4fefc8da57d4045a6ee28d28b328b78126c1e22bc0b541adf0f215c";
 const NINA_PREFERRED_MICROPHONE_KEY = "ninaPreferredMicrophoneId";
@@ -336,6 +336,7 @@ function initializeSignalCreditPurchaseUI() {
       <h2 class="nina-credits-purchase-title" id="ninaCreditsPurchaseTitle">Signal Credits</h2>
       <p class="nina-credits-purchase-lead" id="ninaCreditsPurchaseLead">Access Nina's live transmissions.</p>
       <div class="nina-credits-pack-list">
+        <button class="nina-credits-pack" type="button" data-pack-id="signal_30"><span>30 Credits</span><strong>€3</strong></button>
         <button class="nina-credits-pack" type="button" data-pack-id="signal_100"><span>100 Credits</span><strong>€9</strong></button>
         <button class="nina-credits-pack" type="button" data-pack-id="signal_300"><span>300 Credits</span><strong>€25</strong></button>
         <button class="nina-credits-pack" type="button" data-pack-id="signal_750"><span>750 Credits</span><strong>€55</strong></button>

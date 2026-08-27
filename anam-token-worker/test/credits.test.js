@@ -118,7 +118,8 @@ test("account panels request the server balance without wiring credit consumptio
 
 test("Signal Credit purchase UI submits only canonical pack IDs with Clerk authentication", async () => {
   const frontend = await readFile(new URL("../../js/nina-access.js", import.meta.url), "utf8");
-  assert.match(frontend, /new Set\(\["signal_100", "signal_300", "signal_750"\]\)/);
+  assert.match(frontend, /new Set\(\["signal_30", "signal_100", "signal_300", "signal_750"\]\)/);
+  assert.match(frontend, /data-pack-id="signal_30"><span>30 Credits<\/span><strong>€3<\/strong>/);
   assert.match(frontend, /\/api\/nina\/credits\/checkout/);
   assert.match(frontend, /https:\/\/parallel-vision-anam-token\.parallelvision\.workers\.dev\/session-token/);
   assert.match(frontend, /"Authorization": `Bearer \$\{token\}`/);

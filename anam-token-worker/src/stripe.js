@@ -2,6 +2,7 @@ import Stripe from "stripe";
 import { creditSignalCredits } from "./credits.js";
 
 const PACK_DEFINITIONS = Object.freeze({
+  signal_30: Object.freeze({ packId: "signal_30", credits: 30, amountEurCents: 300, priceBinding: "STRIPE_PRICE_SIGNAL_30", enabled: true }),
   signal_100: Object.freeze({ packId: "signal_100", credits: 100, amountEurCents: 900, priceBinding: "STRIPE_PRICE_SIGNAL_100", enabled: true }),
   signal_300: Object.freeze({ packId: "signal_300", credits: 300, amountEurCents: 2500, priceBinding: "STRIPE_PRICE_SIGNAL_300", enabled: true }),
   signal_750: Object.freeze({ packId: "signal_750", credits: 750, amountEurCents: 5500, priceBinding: "STRIPE_PRICE_SIGNAL_750", enabled: true })

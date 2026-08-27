@@ -11,6 +11,7 @@ const configuredEnv = db => ({
   NINA_MEMORY_DB: db,
   STRIPE_SECRET_KEY: "sk_test_mock",
   STRIPE_WEBHOOK_SECRET: "whsec_mock",
+  STRIPE_PRICE_SIGNAL_30: "price_signal_30",
   STRIPE_PRICE_SIGNAL_100: "price_signal_100",
   STRIPE_PRICE_SIGNAL_300: "price_signal_300",
   STRIPE_PRICE_SIGNAL_750: "price_signal_750"
@@ -153,6 +154,22 @@ test("checkout uses only canonical pack values and assigns the authenticated use
   assert.equal(purchase.user_id, "correct-user");
   assert.equal(purchase.credits, 300);
   assert.equal(purchase.amount_total, 2500);
+});
+
+test("30-credit starter pack creates a validated €3 Checkout purchase", async () => {
+  const db = paymentDb();
+  const env = configuredEnv(db);
+  const stripe = mockStripe();
+  const { purchase, session } = await openPurchase(env, stripe, "signal_30", "starter-user");
+  const request = stripe.calls[0].params;
+  assert.deepEqual(request.line_items, [{ price: "price_signal_30", quantity: 1 }]);
+  assert.equal(request.metadata.credits, "30");
+  assert.equal(purchase.pack_id, "signal_30");
+  assert.equal(purchase.credits, 30);
+  assert.equal(purchase.amount_total, 300);
+  await processStripeEvent(env, event("checkout.session.completed", session), stripe);
+  assert.equal(db.accounts.get("starter-user").balance, 30);
+  assert.equal(purchase.status, "paid");
 });
 
 test("localhost checkout returns local success and cancel URLs", async () => {
