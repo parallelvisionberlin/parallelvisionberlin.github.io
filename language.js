@@ -206,7 +206,7 @@
     button.type = "button";
     button.className = "pv-language-switch";
     button.innerHTML = '<span data-language="de">DE</span><i>/</i><span data-language="en">EN</span>';
-    const target = document.querySelector(".archive-nav-links") || document.querySelector(".hero nav");
+    const target = document.querySelector(".home-utility-controls") || document.querySelector(".archive-nav-links") || document.querySelector(".hero nav");
     if (target) target.appendChild(button);
     return button;
   }

@@ -214,6 +214,8 @@ nav a:hover {
 .pv-language-switch span.is-active { opacity: 1; color: #fff; }
 .pv-language-switch:focus-visible { outline: 1px solid #777; outline-offset: 5px; }
 
+.home-utility-controls { display: contents; }
+
 .hero-content {
   position: relative;
 
@@ -1575,6 +1577,13 @@ footer {
     font-size: 9px;
 
     letter-spacing: .12em;
+  }
+
+  .home-utility-controls {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    flex: 0 0 auto;
   }
 
   .release-grid {
