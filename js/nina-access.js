@@ -1,11 +1,21 @@
 /* The access gate is theatrical client-side UI; its public hash is not authorization. */
 import { createClient, AnamEvent } from "https://esm.sh/@anam-ai/js-sdk@4.23.1?bundle";
+import { Clerk } from "https://esm.sh/@clerk/clerk-js@6?bundle";
 
-// Paste the deployed Cloudflare Worker endpoint here (the only configuration point).
-const ANAM_SESSION_TOKEN_ENDPOINT =
-  "https://parallel-vision-anam-token.parallelvision.workers.dev/session-token";
+const DEVELOPMENT = window.location.protocol === "http:";
+const ANAM_SESSION_TOKEN_ENDPOINT = DEVELOPMENT
+  ? `http://${window.location.hostname}:8787/session-token`
+  : "https://parallel-vision-anam-token.parallelvision.workers.dev/session-token";
 const ANAM_PERSONA_ID = "a5663da5-5f5c-4600-b545-cbb58bd4e155";
-const DEVELOPMENT = ["localhost", "127.0.0.1"].includes(window.location.hostname);
+const CLERK_CONFIGURATION = DEVELOPMENT
+  ? {
+      publishableKey: "pk_test_Y2xpbWJpbmctd29tYmF0LTI3MTcuY2xlcmsuYWNjb3VudHMuZGV2JA",
+      frontendDomain: "climbing-wombat-2717.clerk.accounts.dev"
+    }
+  : {
+      publishableKey: "pk_live_Y2xlcmsucGFyYWxsZWx2aXNpb25sYWJlbC5jb20k",
+      frontendDomain: "clerk.parallelvisionlabel.com"
+    };
 const byId = id => document.getElementById(id);
 const ninaOverlay = byId("ninaOverlay");
 const openNina = byId("openNina");
@@ -31,6 +41,9 @@ const ninaMicrophoneSelect = byId("ninaMicrophoneSelect");
 const ninaMicrophoneStatus = byId("ninaMicrophoneStatus");
 const ninaMemoryIndicator = byId("ninaMemoryIndicator");
 const ninaForgetMemory = byId("ninaForgetMemory");
+const ninaSignIn = byId("ninaSignIn");
+const ninaSignOut = byId("ninaSignOut");
+const ninaAccountStatus = byId("ninaAccountStatus");
 const ninaAccessHash = "d3ec7a14e4fefc8da57d4045a6ee28d28b328b78126c1e22bc0b541adf0f215c";
 const NINA_PREFERRED_MICROPHONE_KEY = "ninaPreferredMicrophoneId";
 const NINA_VISITOR_ID_KEY = "nina_fok_visitor_id_v1";
@@ -56,6 +69,9 @@ let ninaMemoryListenerCleanup = null;
 let ninaSessionMessageKeys = new Set();
 let ninaServerConversationId = "";
 let ninaMemorySyncPromise = Promise.resolve();
+let ninaAuthInitialization = null;
+let ninaClerk = null;
+let ninaClerkUILoading = null;
 const delay = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
 const logDevelopmentError = (message, error) => { if (DEVELOPMENT) console.error(message, error); };
 const nativeFullscreenElement = () => document.fullscreenElement || document.webkitFullscreenElement || null;
@@ -177,21 +193,83 @@ function removeLegacyNinaOwnerToken() {
   try { localStorage.removeItem(NINA_LEGACY_OWNER_TOKEN_KEY); } catch { /* Legacy credential is never read. */ }
 }
 
-function ownerMemoryHeaders() {
+function legacyOwnerMemoryHeaders() {
   const credential = readNinaOwnerCredential();
   return credential ? { "Content-Type": "application/json", "Authorization": `Bearer ${credential}` } : { "Content-Type": "application/json" };
 }
 
-function canUseServerMemory() {
-  return Boolean(readNinaOwnerCredential());
+function updateNinaAccountControls(clerk = ninaClerk) {
+  const signedIn = Boolean(clerk?.isSignedIn && clerk?.session);
+  if (ninaSignIn) ninaSignIn.hidden = signedIn;
+  if (ninaSignOut) ninaSignOut.hidden = !signedIn;
+  if (ninaSignIn) ninaSignIn.disabled = false;
+  const userLabel = clerk?.user?.firstName || clerk?.user?.primaryEmailAddress?.emailAddress || "CONNECTED";
+  if (ninaAccountStatus) ninaAccountStatus.textContent = signedIn ? `ACCOUNT / ${userLabel}` : "ACCOUNT / GUEST";
+}
+
+function loadNinaClerkUI() {
+  if (window.__internal_ClerkUICtor) return Promise.resolve(window.__internal_ClerkUICtor);
+  if (!ninaClerkUILoading) ninaClerkUILoading = new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = `https://${CLERK_CONFIGURATION.frontendDomain}/npm/@clerk/ui@1/dist/ui.browser.js`;
+    script.async = true;
+    script.crossOrigin = "anonymous";
+    script.addEventListener("load", () => window.__internal_ClerkUICtor
+      ? resolve(window.__internal_ClerkUICtor)
+      : reject(new Error("Clerk UI did not initialize")), { once: true });
+    script.addEventListener("error", () => reject(new Error("Unable to load Clerk UI")), { once: true });
+    document.head.appendChild(script);
+  }).catch(error => {
+    ninaClerkUILoading = null;
+    throw error;
+  });
+  return ninaClerkUILoading;
+}
+
+async function initializeNinaAuth() {
+  if (!ninaAuthInitialization) ninaAuthInitialization = (async () => {
+    if (ninaSignIn) ninaSignIn.disabled = true;
+    if (ninaAccountStatus) ninaAccountStatus.textContent = "ACCOUNT / LOADING";
+    const ClerkUI = await loadNinaClerkUI();
+    const clerk = ninaClerk || new Clerk(CLERK_CONFIGURATION.publishableKey);
+    await clerk.load({ ui: { ClerkUI } });
+    ninaClerk = clerk;
+    clerk.addListener?.(() => updateNinaAccountControls(clerk));
+    updateNinaAccountControls(clerk);
+    return clerk;
+  })().catch(error => {
+    logDevelopmentError("Clerk authentication unavailable.", error);
+    ninaAuthInitialization = null;
+    if (ninaSignIn) {
+      ninaSignIn.hidden = false;
+      ninaSignIn.disabled = false;
+    }
+    if (ninaSignOut) ninaSignOut.hidden = true;
+    if (ninaAccountStatus) ninaAccountStatus.textContent = "ACCOUNT / SIGN IN AVAILABLE";
+    return null;
+  });
+  return ninaAuthInitialization;
+}
+
+async function authenticationHeaders() {
+  const clerk = await initializeNinaAuth();
+  const token = await clerk?.session?.getToken?.();
+  if (token) return { "Content-Type": "application/json", "Authorization": `Bearer ${token}` };
+  return clerk ? { "Content-Type": "application/json" } : legacyOwnerMemoryHeaders();
+}
+
+async function canUseServerMemory() {
+  const headers = await authenticationHeaders();
+  return Boolean(headers.Authorization);
 }
 
 function queueOwnerMemoryRequest(path, body, method = "POST") {
-  if (!canUseServerMemory()) return Promise.resolve(null);
   ninaMemorySyncPromise = ninaMemorySyncPromise.catch(() => null).then(async () => {
+    const headers = await authenticationHeaders();
+    if (!headers.Authorization) return null;
     const response = await fetch(`${ANAM_SESSION_TOKEN_ENDPOINT.replace(/\/session-token$/, "")}${path}`, {
       method,
-      headers: ownerMemoryHeaders(),
+      headers,
       body: JSON.stringify({ visitorId: ninaVisitorId, ...body }),
       keepalive: true
     });
@@ -306,7 +384,7 @@ function storeCompletedNinaMessages(history, client, attempt) {
 async function forgetNinaMemory() {
   if (!window.confirm("Forget Nina's complete conversation memory on this browser and, for the owner profile, on the server?")) return;
   try {
-    if (canUseServerMemory()) await queueOwnerMemoryRequest("/memory", {}, "DELETE");
+    if (await canUseServerMemory()) await queueOwnerMemoryRequest("/memory", {}, "DELETE");
     localStorage.removeItem(ninaMemoryKey);
     ninaMemoryLoadedForSession = false;
     setNinaMemoryIndicator("cleared");
@@ -522,7 +600,7 @@ async function requestSessionToken(signal, history) {
   if (ANAM_SESSION_TOKEN_ENDPOINT.includes("REPLACE-WITH-WORKER")) throw new Error("Anam token endpoint is not configured.");
   const response = await fetch(ANAM_SESSION_TOKEN_ENDPOINT, {
     method: "POST",
-    headers: ownerMemoryHeaders(),
+    headers: await authenticationHeaders(),
     body: JSON.stringify({
       visitorId: ninaVisitorId,
       recentMessages: history
@@ -683,6 +761,16 @@ ninaAccessCancel.addEventListener("click", () => closeNinaAccess());
 closeNina.addEventListener("click", closeNinaWindow);
 ninaFullscreen.addEventListener("click", toggleNinaFullscreen);
 ninaForgetMemory.addEventListener("click", forgetNinaMemory);
+ninaSignIn?.addEventListener("click", async () => {
+  const clerk = await initializeNinaAuth();
+  if (!clerk) return;
+  await clerk.openSignIn();
+});
+ninaSignOut?.addEventListener("click", async () => {
+  const clerk = await initializeNinaAuth();
+  await clerk?.signOut();
+  updateNinaAccountControls();
+});
 document.addEventListener("fullscreenchange", syncNinaFullscreen);
 document.addEventListener("webkitfullscreenchange", syncNinaFullscreen);
 startNina.addEventListener("click", connectNina);
@@ -720,4 +808,5 @@ if (new URLSearchParams(window.location.search).get("nina") === "1") openNinaAcc
 migrateLegacyNinaMemory();
 removeLegacyNinaOwnerToken();
 resetNinaMemoryIndicator();
+void initializeNinaAuth();
 void ANAM_PERSONA_ID;

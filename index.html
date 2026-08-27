@@ -1594,6 +1594,11 @@
   <section class="nina-access-panel">
     <h2 class="nina-access-title" id="ninaAccessTitle">PRIVATE SIGNAL</h2>
     <p class="nina-access-description">Enter your access code to open the transmission.</p>
+    <div class="nina-account-controls" aria-label="Nina account controls">
+      <span class="nina-account-status" id="ninaAccountStatus">ACCOUNT / LOADING</span>
+      <button class="nina-account-action" id="ninaSignIn" type="button" disabled>SIGN IN</button>
+      <button class="nina-account-action" id="ninaSignOut" type="button" hidden>SIGN OUT</button>
+    </div>
     <form class="nina-access-form" id="ninaAccessForm">
       <input
         class="nina-access-input"
@@ -1857,7 +1862,7 @@
 
 <script src="./js/home.js?v=20260818-hero-loop" defer></script>
 
-<script type="module" src="./js/nina-access.js?v=20260826-owner-enrollment-v3"></script>
+<script type="module" src="./js/nina-access.js?v=20260827-clerk-ui-v2"></script>
 
 
 </body>

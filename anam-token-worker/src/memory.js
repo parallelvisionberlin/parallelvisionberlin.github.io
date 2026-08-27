@@ -424,3 +424,14 @@ export async function deleteOwnerMemory(env, visitorId) {
   ).bind(visitorId).run();
   return Number(result?.meta?.changes || 0) > 0;
 }
+
+export async function clearUserMemory(env, visitorId) {
+  const db = env.NINA_MEMORY_DB;
+  await db.batch([
+    db.prepare("DELETE FROM conversations WHERE visitor_id = ?").bind(visitorId),
+    db.prepare("DELETE FROM memory_summaries WHERE visitor_id = ?").bind(visitorId),
+    db.prepare("DELETE FROM pinned_memories WHERE visitor_id = ?").bind(visitorId),
+    db.prepare("DELETE FROM open_threads WHERE visitor_id = ?").bind(visitorId)
+  ]);
+  return true;
+}

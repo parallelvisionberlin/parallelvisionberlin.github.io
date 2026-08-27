@@ -1,6 +1,7 @@
 .codex-refrakt-work/
 .publish-homepage/
 anam-token-worker/.wrangler/
+anam-token-worker/.dev.vars
 anam-token-worker/node_modules/
 node_modules/
 .pnpm-store/

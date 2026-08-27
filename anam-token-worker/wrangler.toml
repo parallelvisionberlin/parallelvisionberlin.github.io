@@ -3,6 +3,9 @@ main = "src/index.js"
 compatibility_date = "2026-08-18"
 workers_dev = true
 
+[vars]
+CLERK_ISSUER = "https://clerk.parallelvisionlabel.com"
+
 [[d1_databases]]
 binding = "NINA_MEMORY_DB"
 database_name = "nina-fok-memory"

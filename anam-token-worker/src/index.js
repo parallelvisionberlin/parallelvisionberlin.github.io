@@ -1,8 +1,9 @@
 import {
   HISTORY_LIMIT, buildOwnerMemoryContext, closeConversation, consolidateMemory,
-  createConversation, deleteOwnerMemory, exportTranscript, memoryMetadata,
+  clearUserMemory, createConversation, deleteOwnerMemory, exportTranscript, memoryMetadata,
   authorizeOwner, enrollOwner, storeMessages, validateCompletedMessages, validId
 } from "./memory.js";
+import { asMemoryIdentity, resolveAuthenticatedUser, verifyClerkSessionToken } from "./auth.js";
 
 const PERSONA_ID = "a5663da5-5f5c-4600-b545-cbb58bd4e155";
 const VISITOR_ID_PATTERN = /^(?:[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|visitor-[a-z0-9-]+)$/i;
@@ -24,8 +25,9 @@ export function applyStartupGreeting(personaConfig, owner) {
   return personaConfig;
 }
 
-function isAllowedOrigin(origin) {
+function isAllowedOrigin(origin, env) {
   if (PRODUCTION_ORIGINS.has(origin)) return true;
+  if (String(env?.CLERK_AUTHORIZED_PARTIES || "").split(",").map(value => value.trim()).includes(origin)) return true;
   try {
     const url = new URL(origin);
     return url.protocol === "http:" && ["localhost", "127.0.0.1"].includes(url.hostname);
@@ -92,6 +94,17 @@ async function authenticateOwnerRequest(request, env, body) {
   return authorizeOwner(env, visitorId, request.headers.get("Authorization") || "");
 }
 
+async function authenticateNinaRequest(request, env, body) {
+  const authorization = request.headers.get("Authorization") || "";
+  const token = authorization.startsWith("Bearer ") ? authorization.slice(7).trim() : "";
+  if (token && !token.startsWith("v1.")) {
+    const claims = await verifyClerkSessionToken(env, token, request.headers.get("Origin") || "");
+    if (claims) return asMemoryIdentity(await resolveAuthenticatedUser(env, claims));
+  }
+  const owner = await authenticateOwnerRequest(request, env, body);
+  return owner ? { ...owner, role: "owner", account_authenticated: false } : null;
+}
+
 async function handleOwnerEnrollment(request, env, origin) {
   const body = await request.json().catch(() => ({}));
   const visitorId = validateVisitorId(body?.visitorId);
@@ -107,16 +120,17 @@ async function handleSessionToken(request, env, origin) {
   const visitorId = validateVisitorId(body?.visitorId);
   if (!visitorId) return jsonResponse({ error: "Invalid visitor" }, 400, origin);
   const browserHistory = validateCompletedMessages(body.recentMessages, HISTORY_LIMIT).slice(-HISTORY_LIMIT);
-  const ownerCredentialPresented = Boolean((request.headers.get("Authorization") || "").startsWith("Bearer "));
-  const owner = await authenticateOwnerRequest(request, env, body);
+  const authenticationPresented = Boolean((request.headers.get("Authorization") || "").startsWith("Bearer "));
+  const identity = await authenticateNinaRequest(request, env, body);
+  const owner = identity?.role === "owner" ? identity : null;
   let conversationId = "";
   let privateMemory = formatBrowserMemory(browserHistory);
   let diagnostics = { storedMessages: 0, restoredRecentMessages: browserHistory.length, pinnedMemoryCount: 0, openThreadCount: 0, summaryLoaded: false };
-  if (owner) {
-    const conversation = await createConversation(env, owner.visitor_id);
+  if (identity) {
+    const conversation = await createConversation(env, identity.visitor_id);
     conversationId = conversation.conversationId;
-    if (browserHistory.length) diagnostics.storedMessages = (await storeMessages(env, owner.visitor_id, conversationId, body.recentMessages, conversation.now)).storedMessages;
-    const memory = await buildOwnerMemoryContext(env, owner);
+    if (browserHistory.length) diagnostics.storedMessages = (await storeMessages(env, identity.visitor_id, conversationId, body.recentMessages, conversation.now)).storedMessages;
+    const memory = await buildOwnerMemoryContext(env, identity);
     privateMemory = memory.context;
     diagnostics = { ...diagnostics, ...memory.diagnostics };
   }
@@ -124,7 +138,8 @@ async function handleSessionToken(request, env, origin) {
   applyStartupGreeting(personaConfig, owner);
   personaConfig.systemPrompt = [personaConfig.systemPrompt, owner ? ALEJANDRO_CONTEXT : "", privateMemory].filter(Boolean).join("\n\n");
   const startupDiagnostics = {
-    ownerCredentialPresented,
+    authenticationPresented,
+    accountAuthenticated: Boolean(identity?.account_authenticated),
     ownerAuthenticated: Boolean(owner),
     ownerGreetingSelected: Boolean(owner),
     greetingType: owner ? "owner" : "public",
@@ -142,31 +157,31 @@ async function handleSessionToken(request, env, origin) {
   return jsonResponse({ sessionToken: data.sessionToken, ...(conversationId ? { conversationId } : {}), diagnostics: { ...diagnostics, ...startupDiagnostics } }, 200, origin);
 }
 
-async function requireOwner(request, env, body, origin) {
-  const owner = await authenticateOwnerRequest(request, env, body);
-  return owner || jsonResponse({ error: "Owner authorization required" }, 401, origin);
+async function requireAuthenticatedMemory(request, env, body, origin) {
+  const identity = await authenticateNinaRequest(request, env, body);
+  return identity || jsonResponse({ error: "Authenticated memory required" }, 401, origin);
 }
 
 async function handleStoreMessages(request, env, origin, ctx) {
   const body = await request.json().catch(() => ({}));
-  const owner = await requireOwner(request, env, body, origin);
-  if (owner instanceof Response) return owner;
+  const identity = await requireAuthenticatedMemory(request, env, body, origin);
+  if (identity instanceof Response) return identity;
   if (!validId(body?.conversationId)) return jsonResponse({ error: "Invalid conversation" }, 400, origin);
   const conversation = await env.NINA_MEMORY_DB.prepare("SELECT conversation_id FROM conversations WHERE conversation_id = ? AND visitor_id = ?")
-    .bind(body.conversationId, owner.visitor_id).first();
+    .bind(body.conversationId, identity.visitor_id).first();
   if (!conversation) return jsonResponse({ error: "Conversation not found" }, 404, origin);
-  const result = await storeMessages(env, owner.visitor_id, body.conversationId, body.messages);
-  if (result.storedMessages > 0) ctx.waitUntil(consolidateMemory(env, owner.visitor_id).catch(() => {}));
+  const result = await storeMessages(env, identity.visitor_id, body.conversationId, body.messages);
+  if (result.storedMessages > 0) ctx.waitUntil(consolidateMemory(env, identity.visitor_id).catch(() => {}));
   return jsonResponse({ storedMessages: result.storedMessages }, 200, origin);
 }
 
 async function handleCloseConversation(request, env, origin, ctx) {
   const body = await request.json().catch(() => ({}));
-  const owner = await requireOwner(request, env, body, origin);
-  if (owner instanceof Response) return owner;
+  const identity = await requireAuthenticatedMemory(request, env, body, origin);
+  if (identity instanceof Response) return identity;
   if (!validId(body?.conversationId)) return jsonResponse({ error: "Invalid conversation" }, 400, origin);
-  const closed = await closeConversation(env, owner.visitor_id, body.conversationId);
-  ctx.waitUntil(consolidateMemory(env, owner.visitor_id).catch(() => {}));
+  const closed = await closeConversation(env, identity.visitor_id, body.conversationId);
+  ctx.waitUntil(consolidateMemory(env, identity.visitor_id).catch(() => {}));
   return jsonResponse({ closed }, 200, origin);
 }
 
@@ -176,29 +191,33 @@ function ownerIdentityFromQuery(request) {
 }
 
 async function handleMetadata(request, env, origin) {
-  const owner = await requireOwner(request, env, ownerIdentityFromQuery(request), origin);
-  return owner instanceof Response ? owner : jsonResponse(await memoryMetadata(env, owner.visitor_id), 200, origin);
+  const identity = await requireAuthenticatedMemory(request, env, ownerIdentityFromQuery(request), origin);
+  return identity instanceof Response ? identity : jsonResponse(await memoryMetadata(env, identity.visitor_id), 200, origin);
 }
 
 async function handleExport(request, env, origin) {
-  const owner = await requireOwner(request, env, ownerIdentityFromQuery(request), origin);
-  if (owner instanceof Response) return owner;
-  return jsonResponse(await exportTranscript(env, owner.visitor_id), 200, origin, {
+  const identity = await requireAuthenticatedMemory(request, env, ownerIdentityFromQuery(request), origin);
+  if (identity instanceof Response) return identity;
+  return jsonResponse(await exportTranscript(env, identity.visitor_id), 200, origin, {
     "Content-Disposition": `attachment; filename="nina-fok-memory-${new Date().toISOString().slice(0, 10)}.json"`
   });
 }
 
 async function handleDelete(request, env, origin) {
   const body = await request.json().catch(() => ({}));
-  const owner = await requireOwner(request, env, body, origin);
-  return owner instanceof Response ? owner : jsonResponse({ deleted: await deleteOwnerMemory(env, owner.visitor_id) }, 200, origin);
+  const identity = await requireAuthenticatedMemory(request, env, body, origin);
+  if (identity instanceof Response) return identity;
+  const deleted = identity.account_authenticated
+    ? await clearUserMemory(env, identity.visitor_id)
+    : await deleteOwnerMemory(env, identity.visitor_id);
+  return jsonResponse({ deleted }, 200, origin);
 }
 
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     const origin = request.headers.get("Origin") || "";
-    if (!isAllowedOrigin(origin)) return jsonResponse({ error: "Origin not allowed" }, 403);
+    if (!isAllowedOrigin(origin, env)) return jsonResponse({ error: "Origin not allowed" }, 403);
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders(origin) });
     try {
       if (url.pathname === "/owner/enroll" && request.method === "POST") return handleOwnerEnrollment(request, env, origin);

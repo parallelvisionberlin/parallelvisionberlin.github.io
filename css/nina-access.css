@@ -5,7 +5,7 @@
 .nina-access {
   position: fixed;
   inset: 0;
-  z-index: 2147483647;
+  z-index: 9999;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -472,7 +472,7 @@ body.nina-fullscreen-active {
   align-items: center;
   gap: 12px;
   font-family: 'Courier New', monospace;
-  font-size: 8px;
+  font-size: 9px;
   letter-spacing: .16em;
   text-transform: uppercase;
 }
@@ -496,8 +496,25 @@ body.nina-fullscreen-active {
   color: rgba(255, 255, 255, .82);
 }
 
+.nina-account-status {
+  color: rgba(255, 255, 255, .52);
+}
+
+.nina-account-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 18px 0 22px;
+  font: 9px 'Courier New', monospace;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+
+.nina-account-action,
 .nina-forget-memory {
-  padding: 5px 7px;
+  min-height: 32px;
+  padding: 8px 12px;
   border: 1px solid rgba(255, 255, 255, .14);
   border-radius: 0;
   background: rgba(0, 0, 0, .42);
@@ -509,6 +526,12 @@ body.nina-fullscreen-active {
   transition: border-color .2s ease, color .2s ease, background .2s ease;
 }
 
+.nina-account-action:disabled {
+  cursor: wait;
+  opacity: .55;
+}
+
+.nina-account-action:hover,
 .nina-forget-memory:hover {
   border-color: rgba(255, 255, 255, .4);
   background: rgba(0, 0, 0, .72);
@@ -1157,7 +1180,7 @@ body.nina-connecting-mode
   .nina-window-controls { gap: 8px; }
   .nina-fullscreen,
   .nina-close { width: 32px; height: 32px; flex: 0 0 32px; }
-  .nina-memory-controls { top: 66px; left: 10px; gap: 8px; font-size: 7px; }
+  .nina-memory-controls { top: 66px; left: 10px; right: 10px; gap: 8px; flex-wrap: wrap; font-size: 8px; }
   .nina-intro h3 { font-size: clamp(35px, 11vw, 58px); }
   .nina-intro-subtitle { font-size: 15px; }
 }

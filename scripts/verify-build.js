@@ -62,10 +62,10 @@ for (const file of pages) {
   }
 }
 
-for (const file of ['language.js','js/home.js','js/nina-access.js','anam-token-worker/src/index.js','anam-token-worker/src/memory.js']) {
+for (const file of ['language.js','js/home.js','js/nina-access.js','anam-token-worker/src/auth.js','anam-token-worker/src/index.js','anam-token-worker/src/memory.js']) {
   try {
     const source = fs.readFileSync(path.join(root, file), 'utf8')
-      .replace(/^import[\s\S]*?from\s+["'][^"']+["'];$/m, '')
+      .replace(/^import[\s\S]*?from\s+["'][^"']+["'];$/gm, '')
       .replace(/^export\s+(?=(?:const|function|async\s+function))/gm, '')
       .replace(/^export default /m, 'const __defaultExport = ');
     new vm.Script(source, { filename: file });

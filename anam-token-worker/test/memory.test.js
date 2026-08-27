@@ -224,10 +224,21 @@ test("migration defines cascading owner deletion for the complete memory graph",
   assert.equal((migration.match(/REFERENCES visitors\(visitor_id\) ON DELETE CASCADE/g) || []).length, 5);
 });
 
-test("public frontend remains browser-only without the owner credential", async () => {
+test("account migration adds permanent user IDs without altering existing memory tables", async () => {
+  const migration = await readFile(new URL("../migrations/0002_authenticated_users.sql", import.meta.url), "utf8");
+  assert.match(migration, /CREATE TABLE users/);
+  assert.match(migration, /auth_subject TEXT NOT NULL UNIQUE/);
+  assert.match(migration, /memory_visitor_id TEXT NOT NULL UNIQUE REFERENCES visitors\(visitor_id\) ON DELETE RESTRICT/);
+  assert.match(migration, /role TEXT NOT NULL CHECK\(role IN \('owner', 'user'\)\)/);
+  assert.doesNotMatch(migration, /DROP\s+TABLE|DELETE\s+FROM|ALTER\s+TABLE/i);
+});
+
+test("public frontend keeps browser memory and sends server memory only with Clerk or legacy authentication", async () => {
   const frontend = await readFile(new URL("../../js/nina-access.js", import.meta.url), "utf8");
-  assert.match(frontend, /return Boolean\(readNinaOwnerCredential\(\)\)/);
-  assert.match(frontend, /if \(!canUseServerMemory\(\)\) return Promise\.resolve\(null\)/);
+  assert.match(frontend, /clerk\?\.session\?\.getToken/);
+  assert.match(frontend, /if \(!headers\.Authorization\) return null/);
+  assert.match(frontend, /return clerk \? \{ "Content-Type": "application\/json" \} : legacyOwnerMemoryHeaders\(\)/);
+  assert.match(frontend, /await clerk\?\.signOut\(\)/);
   assert.doesNotMatch(frontend, /localStorage\.setItem\(NINA_LEGACY_OWNER_TOKEN_KEY/);
   assert.doesNotMatch(frontend, /profile: readNinaUserProfile\(\)/);
   assert.match(frontend, /const NINA_MEMORY_LIMIT = 20/);
