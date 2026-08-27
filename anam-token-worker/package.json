@@ -3,11 +3,14 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "check": "node --check src/auth.js && node --check src/credits.js && node --check src/index.js && node --check src/memory.js",
+    "check": "node --check src/auth.js && node --check src/credits.js && node --check src/index.js && node --check src/memory.js && node --check src/stripe.js",
     "test": "node --test test/*.test.js",
     "deploy": "wrangler deploy"
   },
   "devDependencies": {
     "wrangler": "^4.33.1"
+  },
+  "dependencies": {
+    "stripe": "^22.5.0"
   }
 }

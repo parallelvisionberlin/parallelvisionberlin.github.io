@@ -5,6 +5,9 @@ import {
 } from "./memory.js";
 import { asMemoryIdentity, resolveAuthenticatedUser, verifyClerkSessionToken } from "./auth.js";
 import { getSignalCreditBalance, getSignalCreditHistory } from "./credits.js";
+import {
+  StripePurchaseError, createSignalCreditCheckout, verifyAndProcessStripeWebhook
+} from "./stripe.js";
 
 const PERSONA_ID = "a5663da5-5f5c-4600-b545-cbb58bd4e155";
 const VISITOR_ID_PATTERN = /^(?:[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|visitor-[a-z0-9-]+)$/i;
@@ -112,6 +115,15 @@ async function authenticateAccountRequest(request, env) {
   if (!token || token.startsWith("v1.")) return null;
   const claims = await verifyClerkSessionToken(env, token, request.headers.get("Origin") || "");
   return claims ? resolveAuthenticatedUser(env, claims) : null;
+}
+
+async function authenticateAccountIdentity(request, env) {
+  const authorization = request.headers.get("Authorization") || "";
+  const token = authorization.startsWith("Bearer ") ? authorization.slice(7).trim() : "";
+  if (!token || token.startsWith("v1.")) return null;
+  const claims = await verifyClerkSessionToken(env, token, request.headers.get("Origin") || "");
+  if (!claims) return null;
+  return { user: await resolveAuthenticatedUser(env, claims), clerkUserId: claims.sub };
 }
 
 async function handleOwnerEnrollment(request, env, origin) {
@@ -237,10 +249,39 @@ async function handleSignalCreditHistory(request, env, origin) {
   }), 200, origin);
 }
 
+async function handleSignalCreditCheckout(request, env, origin) {
+  const identity = await authenticateAccountIdentity(request, env);
+  if (!identity) return jsonResponse({ error: "Account authentication required" }, 401, origin);
+  const body = await request.json().catch(() => ({}));
+  const packId = typeof body?.packId === "string" ? body.packId.trim() : "";
+  try {
+    return jsonResponse(await createSignalCreditCheckout(env, identity, packId, origin), 200, origin);
+  } catch (error) {
+    if (error instanceof StripePurchaseError) return jsonResponse({ error: error.message, code: error.code }, error.status, origin);
+    throw error;
+  }
+}
+
+async function handleStripeWebhook(request, env) {
+  const signature = request.headers.get("Stripe-Signature") || "";
+  const rawBody = await request.text();
+  try {
+    const result = await verifyAndProcessStripeWebhook(env, rawBody, signature);
+    return jsonResponse({ received: true, ...result }, 200);
+  } catch (error) {
+    if (error instanceof StripePurchaseError) return jsonResponse({ error: error.message, code: error.code }, error.status);
+    throw error;
+  }
+}
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     const origin = request.headers.get("Origin") || "";
+    if (url.pathname === "/api/stripe/webhook" && request.method === "POST") {
+      try { return await handleStripeWebhook(request, env); }
+      catch { return jsonResponse({ error: "Webhook processing failed" }, 502); }
+    }
     if (!isAllowedOrigin(origin, env)) return jsonResponse({ error: "Origin not allowed" }, 403);
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders(origin) });
     try {
@@ -253,6 +294,7 @@ export default {
       if (url.pathname === "/memory" && request.method === "DELETE") return handleDelete(request, env, origin);
       if (url.pathname === "/api/nina/credits" && request.method === "GET") return handleSignalCredits(request, env, origin);
       if (url.pathname === "/api/nina/credits/history" && request.method === "GET") return handleSignalCreditHistory(request, env, origin);
+      if (url.pathname === "/api/nina/credits/checkout" && request.method === "POST") return handleSignalCreditCheckout(request, env, origin);
       return jsonResponse({ error: "Not found" }, 404, origin);
     } catch { return jsonResponse({ error: "Request failed" }, 502, origin); }
   }
