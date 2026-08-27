@@ -116,6 +116,20 @@ test("account panels request the server balance without wiring credit consumptio
   assert.match(project, /id="ninaSignalCredits"/);
 });
 
+test("Signal Credit purchase UI submits only canonical pack IDs with Clerk authentication", async () => {
+  const frontend = await readFile(new URL("../../js/nina-access.js", import.meta.url), "utf8");
+  assert.match(frontend, /new Set\(\["signal_100", "signal_300", "signal_750"\]\)/);
+  assert.match(frontend, /\/api\/nina\/credits\/checkout/);
+  assert.match(frontend, /"Authorization": `Bearer \$\{token\}`/);
+  assert.match(frontend, /body: JSON\.stringify\(\{ packId \}\)/);
+  assert.match(frontend, /ninaCreditsPurchasePending/);
+  assert.match(frontend, /Preparing checkout\.\.\./);
+  assert.match(frontend, /Checkout unavailable\. Try again\./);
+  assert.match(frontend, /ninaCredits.*success|returnState === "success"/s);
+  assert.match(frontend, /history\.replaceState/);
+  assert.doesNotMatch(frontend, /STRIPE_(?:SECRET|WEBHOOK|PRICE)|sk_(?:live|test)_|whsec_|price_\w+/);
+});
+
 test("migration enforces non-negative balances, signed types and idempotent references", async () => {
   const migration = await readFile(new URL("../migrations/0003_signal_credits.sql", import.meta.url), "utf8");
   assert.match(migration, /balance INTEGER NOT NULL DEFAULT 0 CHECK\(balance >= 0\)/);

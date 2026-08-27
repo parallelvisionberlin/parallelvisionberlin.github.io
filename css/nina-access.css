@@ -596,7 +596,7 @@ body.nina-fullscreen-active {
   color: rgba(255, 255, 255, .82);
 }
 
-/* Global account state. Kept intentionally small; paid Nina features belong inside Nina. */
+/* Global account state. */
 .hero > nav {
   align-items: flex-start;
 }
@@ -609,7 +609,9 @@ body.nina-fullscreen-active {
 }
 
 .nina-account-shell[hidden],
-.nina-account-panel[hidden] {
+.nina-account-panel[hidden],
+.nina-credits-purchase[hidden],
+.nina-credits-pack-list[hidden] {
   display: none !important;
 }
 
@@ -703,6 +705,7 @@ body.nina-fullscreen-active {
   color: rgba(255, 255, 255, .46);
 }
 
+.nina-account-get-credits,
 .nina-account-signout {
   width: 100%;
   min-height: 42px;
@@ -718,14 +721,152 @@ body.nina-fullscreen-active {
   cursor: pointer;
 }
 
+.nina-account-get-credits {
+  margin-bottom: 9px;
+  border-color: rgba(255, 255, 255, .4);
+  color: rgba(255, 255, 255, .92);
+}
+
+.nina-account-get-credits:hover,
+.nina-account-get-credits:focus-visible,
 .nina-account-signout:hover,
 .nina-account-signout:focus-visible {
   border-color: rgba(255, 255, 255, .65);
   color: #fff;
 }
 
+body.nina-credits-purchase-active {
+  overflow: hidden;
+}
+
+.nina-credits-purchase {
+  position: fixed;
+  z-index: 20040;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  overflow-y: auto;
+  background: rgba(0, 0, 0, .8);
+  backdrop-filter: blur(10px);
+}
+
+.nina-credits-purchase-panel {
+  position: relative;
+  width: min(480px, 100%);
+  padding: clamp(28px, 5vw, 48px);
+  border: 1px solid rgba(255, 255, 255, .22);
+  background: #030304;
+  box-shadow: 0 32px 100px rgba(0, 0, 0, .78);
+  color: #fff;
+  text-align: left;
+}
+
+.nina-credits-purchase-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, .18);
+  border-radius: 0;
+  background: transparent;
+  color: rgba(255, 255, 255, .7);
+  font: 20px/1 Inter, sans-serif;
+  cursor: pointer;
+}
+
+.nina-credits-purchase-close:hover,
+.nina-credits-purchase-close:focus-visible {
+  border-color: rgba(255, 255, 255, .65);
+  color: #fff;
+}
+
+.nina-credits-purchase-close:disabled {
+  opacity: .35;
+  cursor: wait;
+}
+
+.nina-credits-purchase-code {
+  margin: 0 42px 0 0;
+  color: rgba(255, 255, 255, .42);
+  font: 9px/1.5 'Courier New', monospace;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+}
+
+.nina-credits-purchase-title {
+  margin: 20px 0 0;
+  font: 400 clamp(24px, 5vw, 38px)/1.08 'Michroma', sans-serif;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.nina-credits-purchase-lead {
+  margin: 20px 0 0;
+  color: rgba(255, 255, 255, .66);
+  font: 14px/1.6 Inter, sans-serif;
+}
+
+.nina-credits-pack-list {
+  display: grid;
+  margin-top: 30px;
+  border-top: 1px solid rgba(255, 255, 255, .16);
+}
+
+.nina-credits-pack {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 20px;
+  min-height: 64px;
+  padding: 0 2px;
+  border: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, .16);
+  border-radius: 0;
+  background: transparent;
+  color: rgba(255, 255, 255, .86);
+  font: 10px/1.4 'Courier New', monospace;
+  letter-spacing: .16em;
+  text-align: left;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: padding .2s ease, color .2s ease, border-color .2s ease;
+}
+
+.nina-credits-pack strong {
+  font: 400 14px/1 'Courier New', monospace;
+  letter-spacing: .08em;
+}
+
+.nina-credits-pack:hover,
+.nina-credits-pack:focus-visible {
+  padding-left: 8px;
+  border-color: rgba(255, 255, 255, .5);
+  color: #fff;
+}
+
+.nina-credits-pack:disabled {
+  opacity: .38;
+  cursor: wait;
+}
+
+.nina-credits-purchase-status {
+  min-height: 1.5em;
+  margin: 20px 0 0;
+  color: rgba(255, 255, 255, .58);
+  font: 9px/1.5 'Courier New', monospace;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+}
+
 @media (max-width: 560px) {
   .nina-account-panel { position: fixed; top: 64px; right: 12px; width: min(300px, calc(100vw - 24px)); }
+  .nina-credits-purchase { align-items: end; padding: 12px; }
+  .nina-credits-purchase-panel { width: 100%; max-height: calc(100svh - 24px); padding: 28px 22px 24px; overflow-y: auto; }
+  .nina-credits-purchase-title { padding-right: 24px; font-size: clamp(22px, 8vw, 30px); }
+  .nina-credits-pack { min-height: 58px; }
 }
 
 

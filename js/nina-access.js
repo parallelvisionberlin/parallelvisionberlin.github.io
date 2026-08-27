@@ -48,6 +48,8 @@ const ninaAccountPanel = byId("ninaAccountPanel");
 const ninaAccountName = byId("ninaAccountName");
 const ninaSignalCredits = byId("ninaSignalCredits");
 const ninaAccountSignOut = byId("ninaAccountSignOut");
+const SIGNAL_CREDIT_PACK_IDS = new Set(["signal_100", "signal_300", "signal_750"]);
+const NINA_CREDIT_CHECKOUT_STATE_KEY = "nina_signal_credit_checkout_v1";
 const ninaAccessHash = "d3ec7a14e4fefc8da57d4045a6ee28d28b328b78126c1e22bc0b541adf0f215c";
 const NINA_PREFERRED_MICROPHONE_KEY = "ninaPreferredMicrophoneId";
 const NINA_VISITOR_ID_KEY = "nina_fok_visitor_id_v1";
@@ -78,6 +80,16 @@ let ninaClerk = null;
 let ninaClerkUILoading = null;
 let ninaCreditsUserId = "";
 let ninaCreditsRequest = 0;
+let ninaCreditsBalance = null;
+let ninaCreditsPurchasePending = false;
+let ninaCreditsPurchaseTrigger = null;
+let ninaCreditsPurchaseModal = null;
+let ninaCreditsPurchaseTitle = null;
+let ninaCreditsPurchaseLead = null;
+let ninaCreditsPurchaseStatus = null;
+let ninaCreditsPackList = null;
+let ninaCreditsPackButtons = [];
+let ninaCreditsPurchaseClose = null;
 const delay = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
 const logDevelopmentError = (message, error) => { if (DEVELOPMENT) console.error(message, error); };
 const nativeFullscreenElement = () => document.fullscreenElement || document.webkitFullscreenElement || null;
@@ -215,6 +227,7 @@ function updateNinaAccountControls(clerk = ninaClerk) {
   else {
     ninaCreditsUserId = "";
     ninaCreditsRequest += 1;
+    ninaCreditsBalance = null;
     if (ninaSignalCredits) {
       ninaSignalCredits.textContent = "Loading…";
       ninaSignalCredits.removeAttribute("data-state");
@@ -224,9 +237,9 @@ function updateNinaAccountControls(clerk = ninaClerk) {
 }
 
 async function loadSignalCreditBalance(clerk = ninaClerk, force = false) {
-  if (!ninaSignalCredits || !clerk?.isSignedIn || !clerk?.session) return;
+  if (!ninaSignalCredits || !clerk?.isSignedIn || !clerk?.session) return null;
   const userId = clerk.user?.id || clerk.session.user?.id || "signed-in";
-  if (!force && ninaCreditsUserId === userId) return;
+  if (!force && ninaCreditsUserId === userId) return ninaCreditsBalance;
   ninaCreditsUserId = userId;
   const requestId = ++ninaCreditsRequest;
   ninaSignalCredits.textContent = "Loading…";
@@ -241,13 +254,17 @@ async function loadSignalCreditBalance(clerk = ninaClerk, force = false) {
     if (!response.ok) throw new Error("Signal Credit balance unavailable");
     const data = await response.json();
     if (!Number.isSafeInteger(data?.balance) || data.balance < 0) throw new Error("Invalid Signal Credit balance");
-    if (requestId !== ninaCreditsRequest) return;
+    if (requestId !== ninaCreditsRequest) return null;
+    ninaCreditsBalance = data.balance;
     ninaSignalCredits.textContent = `${data.balance.toLocaleString()} credits`;
+    return data.balance;
   } catch (error) {
-    if (requestId !== ninaCreditsRequest) return;
+    if (requestId !== ninaCreditsRequest) return null;
+    ninaCreditsBalance = null;
     ninaSignalCredits.textContent = "Unavailable";
     ninaSignalCredits.dataset.state = "unavailable";
     logDevelopmentError("Signal Credit balance unavailable.", error);
+    return null;
   }
 }
 
@@ -298,6 +315,205 @@ async function authenticationHeaders() {
   const token = await clerk?.session?.getToken?.();
   if (token) return { "Content-Type": "application/json", "Authorization": `Bearer ${token}` };
   return clerk ? { "Content-Type": "application/json" } : legacyOwnerMemoryHeaders();
+}
+
+function initializeSignalCreditPurchaseUI() {
+  if (!ninaAccountPanel || !ninaAccountSignOut || ninaCreditsPurchaseModal) return;
+  ninaCreditsPurchaseTrigger = document.createElement("button");
+  ninaCreditsPurchaseTrigger.className = "nina-account-get-credits";
+  ninaCreditsPurchaseTrigger.type = "button";
+  ninaCreditsPurchaseTrigger.textContent = "Get Signal Credits";
+  ninaAccountSignOut.before(ninaCreditsPurchaseTrigger);
+
+  const modal = document.createElement("div");
+  modal.className = "nina-credits-purchase";
+  modal.hidden = true;
+  modal.setAttribute("aria-hidden", "true");
+  modal.innerHTML = `
+    <section class="nina-credits-purchase-panel" role="dialog" aria-modal="true" aria-labelledby="ninaCreditsPurchaseTitle" aria-describedby="ninaCreditsPurchaseLead">
+      <button class="nina-credits-purchase-close" type="button" aria-label="Close Signal Credits panel">×</button>
+      <p class="nina-credits-purchase-code">Parallel Vision / Account Signal</p>
+      <h2 class="nina-credits-purchase-title" id="ninaCreditsPurchaseTitle">Signal Credits</h2>
+      <p class="nina-credits-purchase-lead" id="ninaCreditsPurchaseLead">Access Nina's live transmissions.</p>
+      <div class="nina-credits-pack-list">
+        <button class="nina-credits-pack" type="button" data-pack-id="signal_100"><span>100 Credits</span><strong>€9</strong></button>
+        <button class="nina-credits-pack" type="button" data-pack-id="signal_300"><span>300 Credits</span><strong>€25</strong></button>
+        <button class="nina-credits-pack" type="button" data-pack-id="signal_750"><span>750 Credits</span><strong>€55</strong></button>
+      </div>
+      <p class="nina-credits-purchase-status" role="status" aria-live="polite"></p>
+    </section>`;
+  document.body.appendChild(modal);
+  ninaCreditsPurchaseModal = modal;
+  ninaCreditsPurchaseTitle = modal.querySelector(".nina-credits-purchase-title");
+  ninaCreditsPurchaseLead = modal.querySelector(".nina-credits-purchase-lead");
+  ninaCreditsPurchaseStatus = modal.querySelector(".nina-credits-purchase-status");
+  ninaCreditsPackList = modal.querySelector(".nina-credits-pack-list");
+  ninaCreditsPackButtons = Array.from(modal.querySelectorAll(".nina-credits-pack"));
+  ninaCreditsPurchaseClose = modal.querySelector(".nina-credits-purchase-close");
+
+  ninaCreditsPurchaseTrigger.addEventListener("click", openSignalCreditPurchase);
+  ninaCreditsPurchaseClose.addEventListener("click", () => closeSignalCreditPurchase(true));
+  modal.addEventListener("click", event => {
+    if (event.target === modal) closeSignalCreditPurchase(true);
+  });
+  ninaCreditsPackButtons.forEach(button => button.addEventListener("click", () => startSignalCreditCheckout(button.dataset.packId)));
+}
+
+function setSignalCreditPurchaseView({ title, lead, status = "", packsVisible = true }) {
+  if (!ninaCreditsPurchaseModal) return;
+  ninaCreditsPurchaseTitle.textContent = title;
+  ninaCreditsPurchaseLead.textContent = lead;
+  ninaCreditsPurchaseStatus.textContent = status;
+  ninaCreditsPackList.hidden = !packsVisible;
+}
+
+function openSignalCreditPurchase(view = null) {
+  if (!ninaCreditsPurchaseModal) return;
+  closeNinaAccountPanel();
+  setSignalCreditPurchaseView(view || {
+    title: "Signal Credits",
+    lead: "Access Nina's live transmissions.",
+    status: "",
+    packsVisible: true
+  });
+  ninaCreditsPurchaseModal.hidden = false;
+  ninaCreditsPurchaseModal.setAttribute("aria-hidden", "false");
+  document.body.classList.add("nina-credits-purchase-active");
+  setTimeout(() => (view?.packsVisible === false ? ninaCreditsPurchaseClose : ninaCreditsPackButtons[0])?.focus({ preventScroll: true }), 0);
+}
+
+function closeSignalCreditPurchase(returnFocus = false) {
+  if (!ninaCreditsPurchaseModal || ninaCreditsPurchasePending) return;
+  ninaCreditsPurchaseModal.hidden = true;
+  ninaCreditsPurchaseModal.setAttribute("aria-hidden", "true");
+  document.body.classList.remove("nina-credits-purchase-active");
+  if (returnFocus && ninaAccountShell && !ninaAccountShell.hidden) ninaAccountToggle?.focus({ preventScroll: true });
+}
+
+function setCheckoutPending(pending) {
+  ninaCreditsPurchasePending = pending;
+  ninaCreditsPackButtons.forEach(button => { button.disabled = pending; });
+  if (ninaCreditsPurchaseClose) ninaCreditsPurchaseClose.disabled = pending;
+}
+
+function rememberSignalCreditCheckout() {
+  try {
+    sessionStorage.setItem(NINA_CREDIT_CHECKOUT_STATE_KEY, JSON.stringify({
+      balance: Number.isSafeInteger(ninaCreditsBalance) ? ninaCreditsBalance : null,
+      startedAt: new Date().toISOString()
+    }));
+  } catch { /* Return polling still works without a stored baseline. */ }
+}
+
+function readSignalCreditCheckoutState() {
+  try {
+    const state = JSON.parse(sessionStorage.getItem(NINA_CREDIT_CHECKOUT_STATE_KEY) || "null");
+    return state && typeof state === "object" ? state : {};
+  } catch { return {}; }
+}
+
+function clearSignalCreditCheckoutState() {
+  try { sessionStorage.removeItem(NINA_CREDIT_CHECKOUT_STATE_KEY); } catch { /* No persistent state to clear. */ }
+}
+
+async function startSignalCreditCheckout(packId) {
+  if (ninaCreditsPurchasePending || !SIGNAL_CREDIT_PACK_IDS.has(packId)) return;
+  setCheckoutPending(true);
+  ninaCreditsPurchaseStatus.textContent = "Preparing checkout...";
+  try {
+    const clerk = await initializeNinaAuth();
+    const token = await clerk?.session?.getToken?.();
+    if (!clerk?.isSignedIn || !token) throw new Error("Account authentication unavailable");
+    const response = await fetch(`${ANAM_SESSION_TOKEN_ENDPOINT.replace(/\/session-token$/, "")}/api/nina/credits/checkout`, {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json", "Accept": "application/json" },
+      body: JSON.stringify({ packId })
+    });
+    if (!response.ok) throw new Error("Checkout unavailable");
+    const data = await response.json();
+    const checkoutUrl = new URL(data?.url || "");
+    if (checkoutUrl.protocol !== "https:" || checkoutUrl.hostname !== "checkout.stripe.com") throw new Error("Invalid checkout URL");
+    rememberSignalCreditCheckout();
+    window.location.assign(checkoutUrl.href);
+  } catch (error) {
+    logDevelopmentError("Signal Credit checkout unavailable.", error);
+    ninaCreditsPurchaseStatus.textContent = "Checkout unavailable. Try again.";
+    setCheckoutPending(false);
+  }
+}
+
+async function recentStripeCredit(token, startedAt) {
+  if (!token || !Number.isFinite(startedAt)) return false;
+  try {
+    const response = await fetch(`${ANAM_SESSION_TOKEN_ENDPOINT.replace(/\/session-token$/, "")}/api/nina/credits/history?limit=10`, {
+      headers: { "Authorization": `Bearer ${token}`, "Accept": "application/json" },
+      cache: "no-store"
+    });
+    if (!response.ok) return false;
+    const data = await response.json();
+    return Array.isArray(data?.transactions) && data.transactions.some(transaction =>
+      transaction?.type === "credit" && transaction?.source === "stripe_checkout" &&
+      Date.parse(transaction.createdAt) >= startedAt - 120000
+    );
+  } catch { return false; }
+}
+
+function cleanSignalCreditReturnUrl() {
+  const url = new URL(window.location.href);
+  url.searchParams.delete("ninaCredits");
+  history.replaceState(history.state, "", `${url.pathname}${url.search}${url.hash}`);
+}
+
+async function handleSignalCreditReturn() {
+  const returnState = new URLSearchParams(window.location.search).get("ninaCredits");
+  if (returnState !== "success" && returnState !== "cancel") return;
+  cleanSignalCreditReturnUrl();
+  initializeSignalCreditPurchaseUI();
+  if (returnState === "cancel") {
+    clearSignalCreditCheckoutState();
+    openSignalCreditPurchase({
+      title: "Transmission Cancelled",
+      lead: "No changes were made to your Signal Credits.",
+      status: "",
+      packsVisible: false
+    });
+    return;
+  }
+
+  openSignalCreditPurchase({
+    title: "Payment Received",
+    lead: "Synchronizing signal credits...",
+    status: "",
+    packsVisible: false
+  });
+  const checkoutState = readSignalCreditCheckoutState();
+  const baseline = Number.isSafeInteger(checkoutState.balance) ? checkoutState.balance : null;
+  const startedAt = Date.parse(checkoutState.startedAt || "");
+  const clerk = await initializeNinaAuth();
+  const token = await clerk?.session?.getToken?.();
+  let confirmed = false;
+  for (const wait of [0, 1000, 1800, 2800]) {
+    if (wait) await delay(wait);
+    const balance = await loadSignalCreditBalance(clerk, true);
+    confirmed = (baseline !== null && Number.isSafeInteger(balance) && balance > baseline) || await recentStripeCredit(token, startedAt);
+    if (confirmed) break;
+  }
+  clearSignalCreditCheckoutState();
+  if (confirmed) {
+    setSignalCreditPurchaseView({
+      title: "Signal Credits Added",
+      lead: Number.isSafeInteger(ninaCreditsBalance) ? `${ninaCreditsBalance.toLocaleString()} credits available.` : "Your balance has been updated.",
+      status: "",
+      packsVisible: false
+    });
+  } else {
+    setSignalCreditPurchaseView({
+      title: "Payment Received",
+      lead: "Payment received. Credits are still synchronizing.",
+      status: "",
+      packsVisible: false
+    });
+  }
 }
 
 function clerkAccountDisplayName() {
@@ -738,7 +954,7 @@ function toggleNinaAccountPanel() {
   ninaAccountToggle.setAttribute("aria-expanded", String(willOpen));
   if (willOpen) {
     void loadSignalCreditBalance(ninaClerk, true);
-    ninaAccountSignOut?.focus({ preventScroll: true });
+    (ninaCreditsPurchaseTrigger || ninaAccountSignOut)?.focus({ preventScroll: true });
   }
 }
 
@@ -894,7 +1110,12 @@ ninaMicrophoneSelect.addEventListener("change", async () => {
 });
 navigator.mediaDevices?.addEventListener?.("devicechange", refreshNinaMicrophones);
 document.addEventListener("keydown", event => {
-  if (event.key !== "Escape" || ninaAccessSubmitting) return;
+  if (event.key !== "Escape") return;
+  if (ninaCreditsPurchaseModal && !ninaCreditsPurchaseModal.hidden) {
+    closeSignalCreditPurchase(true);
+    return;
+  }
+  if (ninaAccessSubmitting) return;
   if (ninaAccountPanel && !ninaAccountPanel.hidden) {
     closeNinaAccountPanel(true);
     return;
@@ -913,5 +1134,7 @@ if (new URLSearchParams(window.location.search).get("nina") === "1") void routeN
 migrateLegacyNinaMemory();
 removeLegacyNinaOwnerToken();
 resetNinaMemoryIndicator();
+initializeSignalCreditPurchaseUI();
+void handleSignalCreditReturn();
 void initializeNinaAuth();
 void ANAM_PERSONA_ID;
