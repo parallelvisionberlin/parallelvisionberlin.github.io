@@ -10,12 +10,12 @@
   <meta property="og:description" content="Awake Dreaming is a Parallel Vision artist project moving between club performance, dream-state imagery and visual transmission.">
   <meta property="og:url" content="https://parallelvisionlabel.com/awake-dreaming.html">
   <meta property="og:type" content="profile">
-  <meta property="og:image" content="https://parallelvisionlabel.com/assets/fashion-after-fabric/artists/awake-dreaming/CLUB%2069.jpg">
+  <meta property="og:image" content="https://parallelvisionlabel.com/assets/fashion-after-fabric/artists/awake-dreaming/IMG_3517.jpg">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Awake Dreaming | Parallel Vision">
   <meta name="twitter:description" content="Awake Dreaming is a Parallel Vision artist project moving between club performance, dream-state imagery and visual transmission.">
-  <meta name="twitter:image" content="https://parallelvisionlabel.com/assets/fashion-after-fabric/artists/awake-dreaming/CLUB%2069.jpg">
-  <link rel="preload" as="image" href="./assets/fashion-after-fabric/artists/awake-dreaming/CLUB%2069.jpg" fetchpriority="high">
+  <meta name="twitter:image" content="https://parallelvisionlabel.com/assets/fashion-after-fabric/artists/awake-dreaming/IMG_3517.jpg">
+  <link rel="preload" as="image" href="./assets/fashion-after-fabric/artists/awake-dreaming/IMG_3517.jpg" fetchpriority="high">
   <link rel="icon" type="image/png" href="./favicon.png">
   <link href="https://fonts.googleapis.com/css2?family=Michroma&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
@@ -52,7 +52,7 @@
     .video-frame { position:relative; margin-top:clamp(28px,4vw,48px); aspect-ratio:16/9; overflow:hidden; border:1px solid var(--line); background:#0a0a0a; }
     .video-frame iframe { position:absolute; inset:0; width:100%; height:100%; border:0; }
     .video-fallback { display:flex; justify-content:space-between; gap:20px; padding:17px 0 10px; color:var(--muted); font:9px/1.6 "Courier New",monospace; letter-spacing:.18em; text-transform:uppercase; }
-    .archive-grid { margin-top:clamp(28px,4vw,48px); display:grid; grid-template-columns:minmax(0,1fr); max-width:720px; }
+    .archive-grid { margin-top:clamp(28px,4vw,48px); display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:clamp(14px,2vw,28px); }
     .archive-card { border:1px solid var(--line); background:#080a0b; }
     .archive-image { aspect-ratio:4/3; overflow:hidden; }
     .archive-image img { height:100%; object-fit:cover; object-position:center center; filter:saturate(.78) contrast(1.04); }
@@ -76,6 +76,7 @@
       .portrait { width:min(100%,460px); }
       .identity h2,.section-heading { font-size:clamp(1.65rem,7vw,2.5rem); }
       .video-section,.archive,.links { padding:72px 18px 82px; }
+      .archive-grid { grid-template-columns:1fr; }
       .archive-caption { flex-direction:column; gap:5px; }
       .archive-caption span:last-child { text-align:left; }
       .return { flex-direction:column; padding:28px 18px; }
@@ -90,8 +91,7 @@
   </nav>
   <main>
     <header class="hero" aria-labelledby="awake-title">
-      <!-- TODO: Replace temporary hero with IMG_3517.jpg once uploaded. -->
-      <img src="./assets/fashion-after-fabric/artists/awake-dreaming/CLUB%2069.jpg" alt="Awake Dreaming performing together in the club archive" width="3000" height="2000" fetchpriority="high">
+      <img src="./assets/fashion-after-fabric/artists/awake-dreaming/IMG_3517.jpg" alt="Awake Dreaming floating together in a suspended water scene" width="2048" height="1365" fetchpriority="high">
       <div class="hero-copy">
         <p class="archive-label">Parallel Vision Artist</p>
         <h1 id="awake-title">Awake Dreaming</h1>
@@ -122,12 +122,20 @@
     </section>
 
     <section class="archive" aria-labelledby="archive-title">
-      <p class="archive-label">Image Record / Available Frame</p>
+      <p class="archive-label">Image Record / 03 Frames</p>
       <h2 class="section-heading" id="archive-title">Visual Archive</h2>
       <div class="archive-grid">
         <figure class="archive-card reveal">
+          <div class="archive-image"><img src="./assets/fashion-after-fabric/artists/awake-dreaming/IMG_3555.jpg" alt="Awake Dreaming suspended in a dream-state water scene" loading="lazy" decoding="async" width="2048" height="1365"></div>
+          <figcaption class="archive-caption"><span>01 / Dream State</span><span>Water / suspended body</span></figcaption>
+        </figure>
+        <figure class="archive-card reveal">
           <div class="archive-image"><img src="./assets/fashion-after-fabric/artists/awake-dreaming/CUALKIERA%202025.JPEG" alt="Awake Dreaming sharing a live booth signal" loading="lazy" decoding="async" width="1361" height="1021"></div>
           <figcaption class="archive-caption"><span>02 / Live Archive</span><span>Booth / shared signal</span></figcaption>
+        </figure>
+        <figure class="archive-card reveal">
+          <div class="archive-image"><img src="./assets/fashion-after-fabric/artists/awake-dreaming/IMG_3374.jpg" alt="Awake Dreaming editorial body study" loading="lazy" decoding="async" width="2048" height="1365"></div>
+          <figcaption class="archive-caption"><span>03 / Body Study</span><span>Editorial archive</span></figcaption>
         </figure>
       </div>
     </section>
