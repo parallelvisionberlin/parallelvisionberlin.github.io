@@ -250,15 +250,22 @@ async function handleSignalCreditHistory(request, env, origin) {
 }
 
 async function handleSignalCreditCheckout(request, env, origin) {
-  const identity = await authenticateAccountIdentity(request, env);
-  if (!identity) return jsonResponse({ error: "Account authentication required" }, 401, origin);
-  const body = await request.json().catch(() => ({}));
-  const packId = typeof body?.packId === "string" ? body.packId.trim() : "";
   try {
+    const identity = await authenticateAccountIdentity(request, env);
+    if (!identity) return jsonResponse({ error: "Account authentication required" }, 401, origin);
+    const body = await request.json().catch(() => ({}));
+    const packId = typeof body?.packId === "string" ? body.packId.trim() : "";
     return jsonResponse(await createSignalCreditCheckout(env, identity, packId, origin), 200, origin);
   } catch (error) {
     if (error instanceof StripePurchaseError) return jsonResponse({ error: error.message, code: error.code }, error.status, origin);
-    throw error;
+    console.error("signal_credit_checkout_failed", JSON.stringify({
+      name: typeof error?.name === "string" ? error.name.slice(0, 80) : "Error",
+      type: typeof error?.type === "string" ? error.type.slice(0, 80) : "",
+      code: typeof error?.code === "string" ? error.code.slice(0, 80) : "",
+      param: typeof error?.param === "string" ? error.param.slice(0, 120) : "",
+      statusCode: Number.isInteger(error?.statusCode) ? error.statusCode : null
+    }));
+    return jsonResponse({ error: "Checkout provider unavailable", code: "checkout_provider_error" }, 502, origin);
   }
 }
 
@@ -294,7 +301,7 @@ export default {
       if (url.pathname === "/memory" && request.method === "DELETE") return handleDelete(request, env, origin);
       if (url.pathname === "/api/nina/credits" && request.method === "GET") return handleSignalCredits(request, env, origin);
       if (url.pathname === "/api/nina/credits/history" && request.method === "GET") return handleSignalCreditHistory(request, env, origin);
-      if (url.pathname === "/api/nina/credits/checkout" && request.method === "POST") return handleSignalCreditCheckout(request, env, origin);
+      if (url.pathname === "/api/nina/credits/checkout" && request.method === "POST") return await handleSignalCreditCheckout(request, env, origin);
       return jsonResponse({ error: "Not found" }, 404, origin);
     } catch { return jsonResponse({ error: "Request failed" }, 502, origin); }
   }

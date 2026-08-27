@@ -220,3 +220,11 @@ test("the purchase migration provides reconciliation fields and a unique Checkou
   assert.match(migration, /user_id TEXT NOT NULL REFERENCES users\(id\)/);
   assert.match(migration, /status TEXT NOT NULL CHECK/);
 });
+
+test("checkout routing awaits failures and returns a safe provider error with CORS", async () => {
+  const source = await readFile(new URL("../src/index.js", import.meta.url), "utf8");
+  assert.match(source, /return await handleSignalCreditCheckout\(request, env, origin\)/);
+  assert.match(source, /code: "checkout_provider_error"/);
+  assert.match(source, /return jsonResponse\(\{ error: "Checkout provider unavailable"[\s\S]*502, origin\)/);
+  assert.doesNotMatch(source, /error\?\.message/);
+});
