@@ -45,7 +45,7 @@
 <script src="./language.js?v=20260827-mobile-account" defer></script>
 
 <link rel="stylesheet" href="./css/base.css?v=20260814-1">
-  <link rel="stylesheet" href="./css/home.css?v=20260828-desktop-utilities">
+  <link rel="stylesheet" href="./css/home.css?v=20260828-mobile-home-header">
   <link rel="stylesheet" href="./css/nina-access.css?v=20260828-mobile-fullscreen">
 
 </head>
@@ -80,9 +80,11 @@
   </video>
 
 
-  <nav aria-label="Primary navigation">
+  <nav id="homeNavigation" aria-label="Primary navigation">
 
-    <div class="home-primary-links">
+    <a class="home-mobile-brand" href="#top" aria-label="Parallel Vision home">Parallel Vision</a>
+
+    <div class="home-primary-links" id="homePrimaryLinks">
 
     <a href="#artists">
       Artists
@@ -109,9 +111,12 @@
       Contact
     </a>
 
+    <div class="home-mobile-language-slot" id="homeMobileLanguageSlot"></div>
+
     </div>
 
     <div class="home-utility-controls">
+      <button class="home-mobile-menu-toggle" id="homeMobileMenuToggle" type="button" aria-expanded="false" aria-controls="homePrimaryLinks">Menu</button>
       <div class="nina-account-shell" id="ninaAccountShell">
         <button class="nina-account-toggle" id="ninaAccountToggle" type="button" aria-label="Open account menu" aria-expanded="false" aria-controls="ninaAccountPanel">
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.25"></circle><path d="M5.75 19c.55-3.25 2.64-5.25 6.25-5.25s5.7 2 6.25 5.25"></path></svg>
@@ -1908,7 +1913,7 @@
 
 
 
-<script src="./js/home.js?v=20260818-hero-loop" defer></script>
+<script src="./js/home.js?v=20260828-mobile-home-header" defer></script>
 
 <script type="module" src="./js/nina-access.js?v=20260828-buy-credits"></script>
 

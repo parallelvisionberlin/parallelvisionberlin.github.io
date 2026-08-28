@@ -54,6 +54,58 @@
   });
 }());
 
+(function setupMobileHomepageNavigation() {
+  const navigation = document.getElementById("homeNavigation");
+  const toggle = document.getElementById("homeMobileMenuToggle");
+  const links = navigation?.querySelector(".home-primary-links");
+  const utilityControls = navigation?.querySelector(".home-utility-controls");
+  const languageSlot = document.getElementById("homeMobileLanguageSlot");
+  const mobileQuery = window.matchMedia("(max-width: 620px)");
+  if (!navigation || !toggle || !links || !utilityControls || !languageSlot) return;
+
+  const closeMenu = () => {
+    navigation.classList.remove("is-mobile-menu-open");
+    toggle.setAttribute("aria-expanded", "false");
+    if (mobileQuery.matches) links.hidden = true;
+  };
+
+  const syncLanguageControl = () => {
+    const languageSwitch = navigation.querySelector(".pv-language-switch");
+    if (!languageSwitch) return;
+    if (mobileQuery.matches) {
+      languageSlot.appendChild(languageSwitch);
+      closeMenu();
+    }
+    else {
+      utilityControls.appendChild(languageSwitch);
+      links.hidden = false;
+      closeMenu();
+    }
+  };
+
+  toggle.addEventListener("click", () => {
+    const open = !navigation.classList.contains("is-mobile-menu-open");
+    navigation.classList.toggle("is-mobile-menu-open", open);
+    toggle.setAttribute("aria-expanded", String(open));
+    links.hidden = !open;
+  });
+
+  links.addEventListener("click", event => {
+    if (event.target.closest("a")) closeMenu();
+  });
+
+  document.addEventListener("click", event => {
+    if (mobileQuery.matches && !navigation.contains(event.target)) closeMenu();
+  });
+
+  document.addEventListener("keydown", event => {
+    if (event.key === "Escape") closeMenu();
+  });
+
+  mobileQuery.addEventListener("change", syncLanguageControl);
+  syncLanguageControl();
+}());
+
 (function () {
   const toggle = document.getElementById("audioToggle");
   if (!toggle) return;
