@@ -204,7 +204,8 @@ nav a:hover {
 
 .home-mobile-brand,
 .home-mobile-menu-toggle,
-.home-mobile-language-slot {
+.home-mobile-language-slot,
+.home-mobile-continuation {
   display: none;
 }
 
@@ -3373,20 +3374,40 @@ footer {
 
   .home-primary-links {
     position: fixed;
-    inset: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: auto;
     z-index: 100;
+    width: min(82vw, 360px);
+    box-sizing: border-box;
     display: none;
     grid-template-columns: 1fr;
     align-content: start;
     gap: 0;
     padding: calc(76px + env(safe-area-inset-top)) 24px calc(24px + env(safe-area-inset-bottom));
-    background: rgba(0,0,0,.985);
+    border-left: 1px solid rgba(255,255,255,.16);
+    background: rgba(3,3,4,.985);
+    box-shadow: -22px 0 60px rgba(0,0,0,.58);
     overflow-y: auto;
     overscroll-behavior: contain;
   }
 
   .hero nav.is-mobile-menu-open .home-primary-links {
     display: grid;
+  }
+
+  .hero nav::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 99;
+    display: none;
+    background: rgba(0,0,0,.58);
+  }
+
+  .hero nav.is-mobile-menu-open::before {
+    display: block;
   }
 
   .home-primary-links > a {
@@ -3512,6 +3533,24 @@ footer {
 
   .hero .hero-wordmark {
     font-size: clamp(32px, 8.8vw, 51px);
+  }
+
+  .home-mobile-continuation {
+    position: absolute;
+    right: 18px;
+    bottom: calc(22px + env(safe-area-inset-bottom));
+    z-index: 6;
+    display: inline-flex;
+    color: rgba(255,255,255,.72);
+    font: 9px/1.4 'Courier New', monospace;
+    letter-spacing: .2em;
+    text-decoration: none;
+    text-transform: uppercase;
+  }
+
+  .home-mobile-continuation:focus-visible {
+    outline: 1px solid rgba(255,255,255,.7);
+    outline-offset: 6px;
   }
 
   .berlin-entry {
