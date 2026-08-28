@@ -65,6 +65,8 @@ const NINA_OWNER_CREDENTIAL_KEY = "nina_fok_owner_credential_v2";
 const NINA_LEGACY_OWNER_TOKEN_KEY = "nina_fok_owner_token_v1";
 const NINA_MEMORY_KEY_PREFIX = "nina_fok_memory_v2:";
 const NINA_LEGACY_MEMORY_KEY = "nina_fok_alejandro_memory_v1";
+const NINA_REFERRAL_CODE_KEY = "pv_nina_referral_code_v1";
+const NINA_REFERRAL_CODE_PATTERN = /^[A-HJ-NP-Z2-9]{8}$/;
 const NINA_MEMORY_LIMIT = 20;
 const NINA_VISITOR_ID_PATTERN = /^(?:[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|visitor-[a-z0-9-]+)$/i;
 let ninaAccessSubmitting = false;
@@ -106,6 +108,7 @@ let ninaUsageSettlementSeconds = null;
 let ninaScrimAction = "connect";
 let ninaUsageActivationPromise = null;
 let ninaUsageSettlementFailures = 0;
+let ninaReferralAttributionPromise = null;
 const delay = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
 const logDevelopmentError = (message, error) => { if (DEVELOPMENT) console.error(message, error); };
 const nativeFullscreenElement = () => document.fullscreenElement || document.webkitFullscreenElement || null;
@@ -116,6 +119,41 @@ const formatLiveTime = seconds => {
   const remainder = safe % 60;
   return remainder ? `${minutes} min ${remainder} sec` : `${minutes} min`;
 };
+
+function normalizedReferralCode(value) {
+  const code = typeof value === "string" ? value.trim().toUpperCase() : "";
+  return NINA_REFERRAL_CODE_PATTERN.test(code) ? code : "";
+}
+
+function captureReferralCode() {
+  try {
+    if (normalizedReferralCode(localStorage.getItem(NINA_REFERRAL_CODE_KEY))) return;
+    const code = normalizedReferralCode(new URLSearchParams(location.search).get("ref"));
+    if (code) localStorage.setItem(NINA_REFERRAL_CODE_KEY, code);
+  } catch { /* Referral capture is optional when browser storage is unavailable. */ }
+}
+
+async function submitCapturedReferral(clerk, account, token) {
+  if (ninaReferralAttributionPromise || !clerk?.isSignedIn || !token) return ninaReferralAttributionPromise;
+  let code = "";
+  try { code = normalizedReferralCode(localStorage.getItem(NINA_REFERRAL_CODE_KEY)); } catch { return null; }
+  if (!code) return null;
+  if (code === normalizedReferralCode(account?.referral_code)) {
+    localStorage.removeItem(NINA_REFERRAL_CODE_KEY);
+    return null;
+  }
+  ninaReferralAttributionPromise = (async () => {
+    const response = await fetch(`${ANAM_SESSION_TOKEN_ENDPOINT.replace(/\/session-token$/, "")}/api/account/referral`, {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json", "Accept": "application/json" },
+      body: JSON.stringify({ referralCode: code })
+    });
+    if (response.ok || [400, 404, 409].includes(response.status)) localStorage.removeItem(NINA_REFERRAL_CODE_KEY);
+  })().catch(error => logDevelopmentError("Referral attribution unavailable.", error)).finally(() => { ninaReferralAttributionPromise = null; });
+  return ninaReferralAttributionPromise;
+}
+
+captureReferralCode();
 
 function syncAccountLanguage(language = document.documentElement.lang) {
   const german = language === "de";
@@ -292,7 +330,10 @@ async function loadAccountDisplayName(clerk = ninaClerk, fallback = "Connected a
       headers: { "Authorization": `Bearer ${token}`, "Accept": "application/json" }
     });
     const data = await response.json().catch(() => ({}));
-    if (response.ok && typeof data.displayName === "string" && data.displayName.trim()) ninaAccountName.textContent = data.displayName.trim();
+    if (response.ok) {
+      if (typeof data.displayName === "string" && data.displayName.trim()) ninaAccountName.textContent = data.displayName.trim();
+      await submitCapturedReferral(clerk, data, token);
+    }
   } catch {
     ninaAccountName.textContent = fallback;
   }

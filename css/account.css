@@ -27,6 +27,10 @@ body { min-width: 0; }
 .account-form { display: grid; gap: 10px; max-width: 600px; }
 .account-form label { margin-top: 4px; color: #b8b8b5; font-size: 13px; line-height: 1.4; }
 .account-form input, .account-form select { width: 100%; height: 50px; padding: 0 14px; border: 1px solid #444; border-radius: 0; background: #090909; color: #fff; font: 15px Inter, sans-serif; }
+.account-referral { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; max-width: 680px; }
+.account-referral input { min-width: 0; height: 48px; padding: 0 14px; border: 1px solid #3b3b3b; border-radius: 0; background: #080808; color: #d8d8d5; font: 12px/1.4 'Courier New', monospace; }
+.account-referral .account-button { min-height: 48px; margin-top: 0; }
+.account-referral .account-status { grid-column: 1 / -1; }
 .account-form select { appearance: none; background-image: linear-gradient(45deg, transparent 50%, #aaa 50%), linear-gradient(135deg, #aaa 50%, transparent 50%); background-position: calc(100% - 18px) 21px, calc(100% - 13px) 21px; background-size: 5px 5px; background-repeat: no-repeat; }
 .account-button { display: inline-flex; align-items: center; justify-content: center; width: max-content; min-height: 46px; margin-top: 6px; padding: 0 18px; border: 1px solid #555; border-radius: 0; background: transparent; color: #eee; font: 12px/1 'Courier New', monospace; letter-spacing: .11em; text-decoration: none; text-transform: uppercase; cursor: pointer; }
 .account-button:hover, .account-button:focus-visible { border-color: #fff; color: #fff; }
@@ -78,6 +82,8 @@ body.account-modal-open { overflow: hidden; }
   .account-billing-row span:nth-of-type(2) { text-align: right; }
   .account-billing-row span:last-child { grid-column: 1 / -1; text-align: left; }
   .account-button { max-width: 100%; min-height: 48px; white-space: normal; text-align: center; }
+  .account-referral { grid-template-columns: 1fr; }
+  .account-referral .account-button { width: 100%; }
   .account-confirm-actions { display: grid; }
   .account-confirm-actions .account-button { width: 100%; }
 }

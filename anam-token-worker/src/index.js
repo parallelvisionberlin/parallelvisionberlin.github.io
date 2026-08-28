@@ -6,6 +6,7 @@ import {
 import { asMemoryIdentity, resolveAuthenticatedUser, verifyClerkSessionToken } from "./auth.js";
 import { getAccountPreferences, getBillingHistory, updateAccountProfile, updateNewsletterPreferences } from "./account.js";
 import { SignalCreditError, getSignalCreditBalance, getSignalCreditHistory } from "./credits.js";
+import { ReferralError, attributeReferral, getOrCreateReferral } from "./referrals.js";
 import {
   activateLiveNinaSession, createLiveNinaSession, creditsToSeconds, failLiveNinaSession, settleLiveNinaSession
 } from "./live-usage.js";
@@ -329,8 +330,23 @@ async function handleSignalCreditCheckout(request, env, origin) {
 async function handleAccount(request, env, origin) {
   const user = await authenticateAccountRequest(request, env);
   if (!user) return jsonResponse({ error: "Account authentication required" }, 401, origin);
-  const preferences = await getAccountPreferences(env, user.id);
-  return jsonResponse({ displayName: preferences.preferredName || user.display_name, role: user.role, preferences }, 200, origin);
+  const [preferences, referral] = await Promise.all([
+    getAccountPreferences(env, user.id),
+    getOrCreateReferral(env, user.id)
+  ]);
+  return jsonResponse({ displayName: preferences.preferredName || user.display_name, role: user.role, preferences, ...referral }, 200, origin);
+}
+
+async function handleAccountReferral(request, env, origin) {
+  const user = await authenticateAccountRequest(request, env);
+  if (!user) return jsonResponse({ error: "Account authentication required" }, 401, origin);
+  const body = await request.json().catch(() => ({}));
+  try {
+    return jsonResponse(await attributeReferral(env, user.id, body?.referralCode), 200, origin);
+  } catch (error) {
+    if (error instanceof ReferralError) return jsonResponse({ error: error.message, code: error.code }, error.status, origin);
+    throw error;
+  }
 }
 
 async function handleAccountProfile(request, env, origin) {
@@ -390,6 +406,7 @@ export default {
       if (url.pathname === "/api/nina/live/settle" && request.method === "POST") return handleLiveNinaUsage(request, env, origin, "settle");
       if (url.pathname === "/api/nina/live/end" && request.method === "POST") return handleLiveNinaUsage(request, env, origin, "end");
       if (url.pathname === "/api/account" && request.method === "GET") return handleAccount(request, env, origin);
+      if (url.pathname === "/api/account/referral" && request.method === "POST") return handleAccountReferral(request, env, origin);
       if (url.pathname === "/api/account/profile" && request.method === "PUT") return handleAccountProfile(request, env, origin);
       if (url.pathname === "/api/account/preferences" && request.method === "PUT") return handleAccountPreferences(request, env, origin);
       if (url.pathname === "/api/account/billing" && request.method === "GET") return handleAccountBilling(request, env, origin);

@@ -58,8 +58,8 @@ test("authenticated memory deletion cannot delete credits, purchases or profile 
 });
 
 test("account APIs reject requests without a verified Clerk session", async () => {
-  for(const [path,method] of [["/api/account","GET"],["/api/account/profile","PUT"],["/api/account/preferences","PUT"],["/api/account/billing","GET"]]){
-    const response=await worker.fetch(new Request(`https://worker.example${path}`,{method,headers:{Origin:"https://parallelvisionlabel.com","Content-Type":"application/json"},...(method==="PUT"?{body:"{}"}:{})}),{}, {waitUntil(){}});
+  for(const [path,method] of [["/api/account","GET"],["/api/account/referral","POST"],["/api/account/profile","PUT"],["/api/account/preferences","PUT"],["/api/account/billing","GET"]]){
+    const response=await worker.fetch(new Request(`https://worker.example${path}`,{method,headers:{Origin:"https://parallelvisionlabel.com","Content-Type":"application/json"},...(["POST","PUT"].includes(method)?{body:"{}"}:{})}),{}, {waitUntil(){}});
     assert.equal(response.status,401);
   }
 });
