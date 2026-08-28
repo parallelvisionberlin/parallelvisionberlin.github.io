@@ -1720,16 +1720,41 @@ body.nina-connecting-mode
 }
 
 @media (max-width: 560px) {
-  .nina-overlay { padding: 5px; }
-  .nina-window { height: calc(100vh - 10px); }
+  .nina-overlay {
+    padding:
+      max(5px, env(safe-area-inset-top))
+      max(5px, env(safe-area-inset-right))
+      max(5px, env(safe-area-inset-bottom))
+      max(5px, env(safe-area-inset-left));
+  }
+  .nina-window { width: 100%; height: 100%; max-height: none; }
+  .nina-window-id { max-width: 28vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .nina-window-status {
-    max-width: min(46vw, 220px);
+    max-width: min(30vw, 150px);
     line-height: 1.4;
     word-break: break-word;
   }
-  .nina-window-controls { gap: 8px; }
+  .nina-window-controls { gap: 6px; }
   .nina-fullscreen,
-  .nina-close { width: 32px; height: 32px; flex: 0 0 32px; }
+  .nina-close { width: 46px; height: 46px; flex: 0 0 46px; }
+  .nina-window:fullscreen .nina-window-bar,
+  .nina-window:-webkit-full-screen .nina-window-bar,
+  .nina-window.is-fallback-fullscreen .nina-window-bar {
+    height: calc(54px + env(safe-area-inset-top));
+    padding-top: env(safe-area-inset-top);
+    padding-right: max(12px, env(safe-area-inset-right));
+    padding-left: max(12px, env(safe-area-inset-left));
+  }
+  .nina-window:fullscreen .nina-stage,
+  .nina-window:-webkit-full-screen .nina-stage,
+  .nina-window.is-fallback-fullscreen .nina-stage {
+    top: calc(54px + env(safe-area-inset-top));
+  }
+  .nina-window:fullscreen .nina-memory-controls,
+  .nina-window:-webkit-full-screen .nina-memory-controls,
+  .nina-window.is-fallback-fullscreen .nina-memory-controls {
+    top: calc(66px + env(safe-area-inset-top));
+  }
   .nina-memory-controls { top: 66px; left: 10px; right: 10px; gap: 8px; flex-wrap: wrap; font-size: 8px; }
   .nina-intro h3 { font-size: clamp(35px, 11vw, 58px); }
   .nina-intro-subtitle { font-size: 15px; }
