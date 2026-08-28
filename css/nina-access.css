@@ -866,6 +866,10 @@ body.nina-fullscreen-active {
   color: rgba(255, 255, 255, .7);
 }
 
+@media (min-width: 561px) {
+  .nina-account-menu .nina-account-get-credits { padding-inline: 0; }
+}
+
 .nina-account-signout {
   min-height: 46px;
   margin-top: 22px;
