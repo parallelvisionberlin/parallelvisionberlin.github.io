@@ -45,9 +45,9 @@
     .n-hero h1 { margin: 12px 0 15px; font: 400 clamp(62px,9.5vw,126px)/.92 Michroma, sans-serif; letter-spacing: .035em; text-transform: uppercase; }
     .n-meta { margin: 0; color: rgba(255,255,255,.72); }
     .n-hero-statement { max-width: 540px; margin: 0; color: rgba(255,255,255,.78); font: 300 clamp(13px,1.2vw,16px)/1.55 Inter,sans-serif; }
-    .n-hero-actions { display: flex; align-items: center; gap: 12px; margin-top: 28px; }
-    .n-hero-actions .n-button { min-height: 56px; padding-inline: 28px; border-color: rgba(255,255,255,.65); font-size: 10px; }
-    .n-hero-actions .n-button-primary { border-color: rgba(255,255,255,.9); background: rgba(255,255,255,.08); }
+    .n-hero-actions { display: flex; align-items: center; gap: 15px; margin-top: 30px; }
+    .n-hero-actions .n-button { min-height: 52px; padding-inline: 27px; border-color: rgba(255,255,255,.42); color: rgba(255,255,255,.78); font-size: 10px; }
+    .n-hero-actions .n-button-primary { min-height: 58px; padding-inline: 36px; border-color: rgba(255,255,255,.88); background: rgba(255,255,255,.09); color: #fff; font-size: 11px; }
 
     .n-question { min-height: 720px; display: flex; flex-direction: column; justify-content: center; padding: 120px clamp(0px,7vw,105px); border-bottom: 1px solid var(--n-line); }
     .n-question h2 { max-width: 900px; margin: 28px 0 100px; font: 400 clamp(40px,4.7vw,62px)/1.08 Michroma, sans-serif; letter-spacing: .018em; text-transform: uppercase; }
@@ -115,9 +115,9 @@
       .n-hero-copy { left: 19px; right: 19px; bottom: 26px; }
       .n-hero h1 { margin: 10px 0 13px; font-size: clamp(46px,15vw,62px); }
       .n-hero-statement { max-width: 310px; font-size: 12px; }
-      .n-hero-actions { flex-wrap: wrap; max-width: 300px; margin-top: 19px; }
-      .n-hero-actions { gap: 9px; }
-      .n-hero-actions .n-button { min-height: 48px; padding-inline: 16px; font-size: 8px; }
+      .n-hero-actions { flex-direction: column; align-items: stretch; gap: 10px; width: min(100%,320px); margin-top: 22px; }
+      .n-hero-actions .n-button { width: 100%; min-height: 50px; padding-inline: 20px; font-size: 9px; }
+      .n-hero-actions .n-button-primary { min-height: 56px; font-size: 10px; }
       .n-question { min-height: 620px; padding: 80px 0; }
       .n-question h2 { margin: 22px 0 74px; font-size: clamp(32px,9vw,40px); line-height: 1.1; overflow-wrap: break-word; }
       .n-question-note { font-size: 18px; }
@@ -145,7 +145,6 @@
       .n-connect { min-height: 320px; }
       .n-connect h2 { font-size: clamp(29px,8.5vw,39px); }
       .n-button { width: 100%; }
-      .n-hero-actions .n-button { width: auto; }
       .n-footer { display: grid; align-content: center; padding: 24px 0; letter-spacing: .15em; }
     }
     @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .n-button { transition: none; } .n-hero-asset { display: none; } }
@@ -198,8 +197,8 @@
           <h1>Nina FOK</h1>
           <p class="n-hero-statement">A consciousness developed by Parallel Vision, living inside a possible Berlin 2063.</p>
           <div class="n-hero-actions">
-            <a class="n-button" href="#question">Discover Nina</a>
             <button class="n-button n-button-primary" type="button" data-nina-open>Transmit to 2063</button>
+            <a class="n-button" href="#question">Discover Nina</a>
           </div>
         </figcaption>
       </figure>
