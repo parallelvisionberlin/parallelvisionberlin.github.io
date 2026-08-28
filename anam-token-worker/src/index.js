@@ -4,6 +4,7 @@ import {
   authorizeOwner, enrollOwner, storeMessages, validateCompletedMessages, validId
 } from "./memory.js";
 import { asMemoryIdentity, resolveAuthenticatedUser, verifyClerkSessionToken } from "./auth.js";
+import { buildRelationshipContext, deleteRelationshipState, evaluateCompletedRelationship } from "./relationship.js";
 import { getAccountPreferences, getBillingHistory, updateAccountProfile, updateNewsletterPreferences } from "./account.js";
 import { SignalCreditError, getSignalCreditBalance, getSignalCreditHistory } from "./credits.js";
 import { ReferralError, attributeReferral, getOrCreateReferral } from "./referrals.js";
@@ -161,8 +162,12 @@ async function handleSessionToken(request, env, origin) {
     const conversation = await createConversation(env, identity.visitor_id);
     conversationId = conversation.conversationId;
     if (browserHistory.length) diagnostics.storedMessages = (await storeMessages(env, identity.visitor_id, conversationId, body.recentMessages, conversation.now)).storedMessages;
-    const memory = await buildOwnerMemoryContext(env, identity);
+    const [memory, relationshipContext] = await Promise.all([
+      buildOwnerMemoryContext(env, identity),
+      identity.account_authenticated ? buildRelationshipContext(env, identity.user_id) : Promise.resolve("")
+    ]);
     privateMemory = memory.context;
+    if (relationshipContext) privateMemory = `${privateMemory}\n\n${relationshipContext}`;
     diagnostics = { ...diagnostics, ...memory.diagnostics };
   }
   const personaConfig = await getCurrentPersonaConfig(env.ANAM_API_KEY);
@@ -260,6 +265,9 @@ async function handleCloseConversation(request, env, origin, ctx) {
   if (!validId(body?.conversationId)) return jsonResponse({ error: "Invalid conversation" }, 400, origin);
   const closed = await closeConversation(env, identity.visitor_id, body.conversationId);
   ctx.waitUntil(consolidateMemory(env, identity.visitor_id).catch(() => {}));
+  if (closed && identity.account_authenticated) {
+    ctx.waitUntil(evaluateCompletedRelationship(env, identity.user_id, identity.visitor_id, body.conversationId).catch(() => {}));
+  }
   return jsonResponse({ closed }, 200, origin);
 }
 
@@ -286,7 +294,10 @@ async function handleDelete(request, env, origin) {
   const identity = await requireAuthenticatedMemory(request, env, body, origin);
   if (identity instanceof Response) return identity;
   const deleted = identity.account_authenticated
-    ? await clearUserMemory(env, identity.visitor_id)
+    ? await Promise.all([
+      clearUserMemory(env, identity.visitor_id),
+      deleteRelationshipState(env, identity.user_id)
+    ]).then(() => true)
     : await deleteOwnerMemory(env, identity.visitor_id);
   return jsonResponse({ deleted }, 200, origin);
 }
