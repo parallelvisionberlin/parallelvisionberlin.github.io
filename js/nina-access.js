@@ -1585,14 +1585,20 @@ ninaEmailForgotPassword?.addEventListener("click", async () => {
   const clerk = await initializeNinaAuth();
   if (clerk) await clerk.openSignIn({ initialValues: { emailAddress: ninaEmailAddress.value.trim() } });
 });
-ninaAccountSignIn?.addEventListener("click", async () => {
+async function openNinaAccountAuth(mode) {
   const clerk = await initializeNinaAuth();
-  if (clerk) await clerk.openSignIn();
-});
-ninaAccountSignUp?.addEventListener("click", async () => {
-  const clerk = await initializeNinaAuth();
-  if (clerk) await clerk.openSignUp();
-});
+  if (!clerk) return;
+  if (mode === "signup") {
+    clerk.closeSignIn?.();
+    await clerk.openSignUp();
+    return;
+  }
+  clerk.closeSignUp?.();
+  await clerk.openSignIn();
+}
+
+ninaAccountSignIn?.addEventListener("click", () => void openNinaAccountAuth("signin"));
+ninaAccountSignUp?.addEventListener("click", () => void openNinaAccountAuth("signup"));
 ninaAccountToggle?.addEventListener("click", event => {
   event.stopPropagation();
   toggleNinaAccountPanel();
