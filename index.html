@@ -135,6 +135,7 @@
               <strong id="ninaSignalCredits" role="status" aria-live="polite">Loading…</strong>
               <span>Live Nina Time</span>
               <strong id="ninaLiveTime">—</strong>
+              <p style="grid-column:1/-1;margin:2px 0 0;color:rgba(255,255,255,.48);font:9px/1.45 'Courier New',monospace;letter-spacing:.055em;">Signal Credits power live transmissions to 2063.<br>10 credits = 1 minute</p>
             </div>
             <button class="nina-account-buy-credits" id="ninaAccountBuyCredits" type="button">Buy Signal Credits</button>
             <div class="nina-account-menu" aria-label="Account sections">
@@ -1649,10 +1650,10 @@
   aria-hidden="true"
 >
   <section class="nina-access-panel">
-    <h2 class="nina-access-title" id="ninaAccessTitle">PRIVATE SIGNAL</h2>
-    <p class="nina-access-lead">Enter the transmission.</p>
-    <p class="nina-access-description">Use your private access code, or continue with your Parallel Vision account.</p>
-    <button class="nina-access-account" id="ninaSignIn" type="button" disabled>Sign in with account</button>
+    <h2 class="nina-access-title" id="ninaAccessTitle">SIGN IN TO OPEN THE SIGNAL</h2>
+    <p class="nina-access-lead">Memory and Signal Credits are connected to your account.</p>
+    <p class="nina-access-description">Or continue with an existing private access code.</p>
+    <button class="nina-access-account" id="ninaSignIn" type="button" disabled>SIGN IN</button>
     <form class="nina-access-form" id="ninaAccessForm">
       <label class="nina-access-label" for="ninaAccessCode">Access code</label>
       <input
@@ -1871,6 +1872,8 @@
 
 
 
+          <p id="ninaEligibilityStatus" role="status" aria-live="polite" style="margin:0 0 12px;color:rgba(255,255,255,.58);font:10px/1.45 'Courier New',monospace;letter-spacing:.1em;text-transform:uppercase;">Checking Signal Credits</p>
+
           <button
             class="nina-open-live"
             id="startNina"
@@ -1917,7 +1920,7 @@
 
 <script src="./js/home.js?v=20260828-mobile-hero-autoplay" defer></script>
 
-<script type="module" src="./js/nina-access.js?v=20260828-mobile-account-dismiss"></script>
+<script type="module" src="./js/nina-access.js?v=20260828-credit-eligibility"></script>
 
 
 </body>

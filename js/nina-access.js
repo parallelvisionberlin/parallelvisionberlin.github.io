@@ -39,6 +39,7 @@ const ninaScrimMessage = byId("ninaScrimMessage");
 const ninaScrimButton = byId("ninaScrimButton");
 const ninaMicrophoneSelect = byId("ninaMicrophoneSelect");
 const ninaMicrophoneStatus = byId("ninaMicrophoneStatus");
+const ninaEligibilityStatus = byId("ninaEligibilityStatus");
 const ninaMemoryIndicator = byId("ninaMemoryIndicator");
 const ninaForgetMemory = byId("ninaForgetMemory");
 const ninaSignIn = byId("ninaSignIn");
@@ -442,16 +443,16 @@ function initializeSignalCreditPurchaseUI() {
       <button class="nina-credits-purchase-close" type="button" aria-label="Close Signal Credits panel">×</button>
       <p class="nina-credits-purchase-code">Parallel Vision / Account Signal</p>
       <h2 class="nina-credits-purchase-title" id="ninaCreditsPurchaseTitle">Signal Credits</h2>
-      <p class="nina-credits-purchase-lead" id="ninaCreditsPurchaseLead">Access Nina's live transmissions.</p>
+      <p class="nina-credits-purchase-lead" id="ninaCreditsPurchaseLead" style="font-size:1.06em">Access Nina's live transmissions.</p>
       <div class="nina-credits-pack-list">
-        <button class="nina-credits-pack" type="button" data-pack-id="signal_30"><span class="nina-credits-pack-copy"><span class="nina-credits-pack-title">30 Signal Credits</span><span class="nina-credits-pack-time">3 Min Live Nina</span><span class="nina-credits-pack-category">Quick Transmission</span><span class="nina-credits-pack-description">A short live signal with Nina.</span></span><strong>€3</strong></button>
-        <button class="nina-credits-pack" type="button" data-pack-id="signal_100"><span class="nina-credits-pack-copy"><span class="nina-credits-pack-title">100 Signal Credits</span><span class="nina-credits-pack-time">10 Min Live Nina</span><span class="nina-credits-pack-category">Private Signal</span><span class="nina-credits-pack-description">A focused one-to-one transmission.</span></span><strong>€9</strong></button>
-        <button class="nina-credits-pack" type="button" data-pack-id="signal_300"><span class="nina-credits-pack-copy"><span class="nina-credits-pack-title">300 Signal Credits</span><span class="nina-credits-pack-time">30 Min Live Nina</span><span class="nina-credits-pack-category">Deep Transmission</span><span class="nina-credits-pack-description">More time inside Nina’s live system.</span></span><strong>€25</strong></button>
-        <button class="nina-credits-pack" type="button" data-pack-id="signal_750"><span class="nina-credits-pack-copy"><span class="nina-credits-pack-title">750 Signal Credits</span><span class="nina-credits-pack-time">75 Min Live Nina</span><span class="nina-credits-pack-category">Extended Access</span><span class="nina-credits-pack-description">For longer returns and recurring contact.</span></span><strong>€55</strong></button>
+        <button class="nina-credits-pack" type="button" data-pack-id="signal_30"><span class="nina-credits-pack-copy"><span class="nina-credits-pack-title">30 Signal Credits</span><span class="nina-credits-pack-time">3 Min Live Nina</span><span class="nina-credits-pack-category">Quick Transmission</span><span class="nina-credits-pack-description" style="font-size:1.06em">A short live signal with Nina.</span></span><strong>€3</strong></button>
+        <button class="nina-credits-pack" type="button" data-pack-id="signal_100"><span class="nina-credits-pack-copy"><span class="nina-credits-pack-title">100 Signal Credits</span><span class="nina-credits-pack-time">10 Min Live Nina</span><span class="nina-credits-pack-category">Private Signal</span><span class="nina-credits-pack-description" style="font-size:1.06em">A focused one-to-one transmission.</span></span><strong>€9</strong></button>
+        <button class="nina-credits-pack" type="button" data-pack-id="signal_300"><span class="nina-credits-pack-copy"><span class="nina-credits-pack-title">300 Signal Credits</span><span class="nina-credits-pack-time">30 Min Live Nina</span><span class="nina-credits-pack-category">Deep Transmission</span><span class="nina-credits-pack-description" style="font-size:1.06em">More time inside Nina’s live system.</span></span><strong>€25</strong></button>
+        <button class="nina-credits-pack" type="button" data-pack-id="signal_750"><span class="nina-credits-pack-copy"><span class="nina-credits-pack-title">750 Signal Credits</span><span class="nina-credits-pack-time">75 Min Live Nina</span><span class="nina-credits-pack-category">Extended Access</span><span class="nina-credits-pack-description" style="font-size:1.06em">For longer returns and recurring contact.</span></span><strong>€55</strong></button>
       </div>
       <details class="nina-credits-about">
         <summary><span class="nina-credits-about-closed">About Signal Credits +</span><span class="nina-credits-about-open">About Signal Credits −</span></summary>
-        <div class="nina-credits-about-copy">
+        <div class="nina-credits-about-copy" style="font-size:1.06em">
           <p>Signal Credits are used for Live Nina transmissions.</p>
           <p>10 credits = 1 minute. 1 credit = 6 seconds.</p>
           <p>Text conversations do not use Live Nina credits.</p>
@@ -848,14 +849,49 @@ function setNinaScrim(title, subtitle = "", message = "", buttonText = "") {
   document.body.classList.toggle("nina-scrim-action", Boolean(buttonText));
 }
 
-function showNinaReady() {
+function showNinaReady(balance = ninaCreditsBalance) {
   document.body.classList.remove("nina-connecting-mode", "nina-call-visible", "nina-conversation-live", "nina-scrim-visible", "nina-scrim-action");
-  setNinaScrim("NINA IS READY", "", "Enter when you're ready.", "CONNECT");
+  const creditStatus = Number.isSafeInteger(balance)
+    ? `${balance.toLocaleString()} SIGNAL CREDITS / ${formatLiveTime(balance * 6).toUpperCase()}`
+    : "SIGNAL CREDIT BALANCE UNAVAILABLE";
+  if (ninaEligibilityStatus) ninaEligibilityStatus.textContent = creditStatus;
+  setNinaScrim("NINA IS READY", creditStatus, "Enter when you're ready.", "CONNECT");
   ninaStatus.textContent = "NINA IS READY";
   startNina.disabled = false;
   startNina.textContent = "CONNECT";
   ninaScrimAction = "connect";
   resetNinaMemoryIndicator();
+}
+
+function showNinaEligibilityLoading() {
+  document.body.classList.remove("nina-connecting-mode", "nina-call-visible", "nina-conversation-live");
+  document.body.classList.add("nina-scrim-visible");
+  setNinaScrim("NINA IS READY", "CHECKING SIGNAL CREDITS", "", "");
+  if (ninaEligibilityStatus) ninaEligibilityStatus.textContent = "CHECKING SIGNAL CREDITS";
+  ninaStatus.textContent = "CHECKING SIGNAL CREDITS";
+  startNina.disabled = true;
+}
+
+function showNinaSignInRequired() {
+  document.body.classList.remove("nina-connecting-mode", "nina-conversation-live");
+  document.body.classList.add("nina-scrim-visible", "nina-scrim-action");
+  setNinaScrim("SIGN IN TO OPEN THE SIGNAL", "", "Memory and Signal Credits are connected to your account.", "SIGN IN");
+  if (ninaEligibilityStatus) ninaEligibilityStatus.textContent = "SIGN IN TO OPEN THE SIGNAL";
+  ninaStatus.textContent = "SIGN IN REQUIRED";
+  ninaScrimAction = "signin";
+}
+
+async function refreshNinaEligibility() {
+  const clerk = await initializeNinaAuth();
+  if (!clerk?.isSignedIn || !clerk?.session) {
+    showNinaSignInRequired();
+    return null;
+  }
+  const balance = await loadSignalCreditBalance(clerk, true);
+  if (balance === 0) showNoSignalCredits();
+  else if (Number.isSafeInteger(balance) && balance > 0) showNinaReady(balance);
+  else showNinaFailure("Unable to confirm your Signal Credit balance. Try again.");
+  return balance;
 }
 
 function stopNinaMicrophone() {
@@ -998,8 +1034,9 @@ function showNinaFailure(message = "Please check microphone access and try again
 function showNoSignalCredits() {
   document.body.classList.remove("nina-connecting-mode", "nina-conversation-live");
   document.body.classList.add("nina-scrim-visible", "nina-scrim-action");
-  setNinaScrim("NO SIGNAL CREDITS", "10 CREDITS = 1 MIN LIVE NINA", "Get Signal Credits to open the live channel.", "GET SIGNAL CREDITS");
-  ninaStatus.textContent = "NO SIGNAL CREDITS";
+  setNinaScrim("LIVE SIGNAL REQUIRES SIGNAL CREDITS", "YOUR BALANCE: 0", "Signal Credits power live transmissions to 2063. 10 credits = 1 minute.", "GET SIGNAL CREDITS");
+  if (ninaEligibilityStatus) ninaEligibilityStatus.textContent = "YOUR BALANCE: 0";
+  ninaStatus.textContent = "SIGNAL CREDITS REQUIRED";
   ninaScrimAction = "credits";
 }
 
@@ -1212,7 +1249,24 @@ function bindAnamLifecycle(client, attempt) {
 
 async function connectNina() {
   if (ninaConnecting || ninaClient || !ninaOverlay.classList.contains("is-open")) return;
-  ninaConnecting = true; // Guards rapid duplicate CONNECT clicks.
+  ninaConnecting = true; // Guards duplicate eligibility and connection requests.
+  const clerk = await initializeNinaAuth();
+  if (!clerk?.isSignedIn || !clerk?.session) {
+    ninaConnecting = false;
+    showNinaSignInRequired();
+    return;
+  }
+  const balance = await loadSignalCreditBalance(clerk, true);
+  if (balance === 0) {
+    ninaConnecting = false;
+    showNoSignalCredits();
+    return;
+  }
+  if (!Number.isSafeInteger(balance) || balance < 0) {
+    ninaConnecting = false;
+    showNinaFailure("Unable to confirm your Signal Credit balance. Try again.");
+    return;
+  }
   const attempt = ++ninaAttempt;
   showNinaConnecting();
   try {
@@ -1292,8 +1346,9 @@ function openNinaExperience() {
   ninaOverlay.classList.add("is-open");
   ninaOverlay.setAttribute("aria-hidden", "false");
   document.body.style.overflow = "hidden";
-  showNinaReady();
+  showNinaEligibilityLoading();
   setupNinaMicrophones();
+  void refreshNinaEligibility();
 }
 
 function openNinaAccess() {
@@ -1373,6 +1428,17 @@ async function routeNinaTrigger(trigger) {
 new Set([openNina, openNinaArtist, ...ninaOpenTriggers].filter(Boolean)).forEach(trigger => {
   trigger.addEventListener("click", event => void routeNinaTrigger(event.currentTarget));
 });
+
+async function openNinaAccountSignIn() {
+  const clerk = await initializeNinaAuth();
+  if (!clerk) return;
+  await clerk.openSignIn();
+  updateNinaAccountControls(clerk);
+  if (!clerk.isSignedIn || !clerk.session) return;
+  if (ninaAccess.classList.contains("is-open")) openNinaExperience();
+  else if (ninaOverlay.classList.contains("is-open")) void refreshNinaEligibility();
+}
+
 ninaAccessForm.addEventListener("submit", verifyNinaAccess);
 ninaAccess.addEventListener("click", event => event.stopPropagation());
 ninaAccess.addEventListener("pointerdown", event => event.stopPropagation());
@@ -1380,13 +1446,7 @@ ninaAccessCancel.addEventListener("click", () => closeNinaAccess());
 closeNina.addEventListener("click", closeNinaWindow);
 ninaFullscreen.addEventListener("click", toggleNinaFullscreen);
 ninaForgetMemory.addEventListener("click", forgetNinaMemory);
-ninaSignIn?.addEventListener("click", async () => {
-  const clerk = await initializeNinaAuth();
-  if (!clerk) return;
-  await clerk.openSignIn();
-  updateNinaAccountControls(clerk);
-  if (clerk.isSignedIn && clerk.session && ninaAccess.classList.contains("is-open")) openNinaExperience();
-});
+ninaSignIn?.addEventListener("click", openNinaAccountSignIn);
 ninaAccountSignIn?.addEventListener("click", async () => {
   const clerk = await initializeNinaAuth();
   if (clerk) await clerk.openSignIn();
@@ -1420,6 +1480,7 @@ document.addEventListener("webkitfullscreenchange", syncNinaFullscreen);
 startNina.addEventListener("click", connectNina);
 ninaScrimButton.addEventListener("click", () => {
   if (ninaScrimAction === "credits") openSignalCreditPurchase();
+  else if (ninaScrimAction === "signin") void openNinaAccountSignIn();
   else connectNina();
 });
 ninaMicrophoneSelect.addEventListener("change", async () => {
