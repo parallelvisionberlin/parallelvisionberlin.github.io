@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Account | Parallel Vision</title>
+  <meta name="description" content="Parallel Vision account preferences, Signal Credits, billing and Nina memory controls.">
+  <link rel="icon" href="./favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Michroma&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./css/base.css?v=20260814-1">
+  <link rel="stylesheet" href="./css/account.css?v=20260828-1">
+</head>
+<body>
+  <header class="account-header">
+    <a href="./index.html">Parallel Vision</a>
+    <span data-copy="accountTitle">Account</span>
+    <button class="account-language" id="accountLanguage" type="button" aria-label="Switch language"><span data-language="de">DE</span> / <span data-language="en">EN</span></button>
+  </header>
+
+  <main class="account-main">
+    <div class="account-intro">
+      <p>PV / PRIVATE ACCOUNT</p>
+      <h1 data-copy="accountTitle">Account</h1>
+      <p id="accountIdentity" class="account-identity" aria-live="polite">Connecting…</p>
+      <button class="account-button" id="accountSignIn" type="button" hidden data-copy="signIn">Sign in</button>
+    </div>
+
+    <div id="accountContent" hidden>
+      <section class="account-section" id="profile">
+        <p class="account-index">01</p><h2 data-copy="profile">Profile</h2>
+        <p class="account-copy" data-copy="profileCopy">Explicit profile data is separate from Nina’s conversational memory.</p>
+        <form id="profileForm" class="account-form">
+          <label for="preferredName" data-copy="preferredName">Preferred name</label>
+          <input id="preferredName" name="preferredName" maxlength="50" autocomplete="name" required>
+          <button class="account-button" type="submit" data-copy="saveProfile">Save profile</button>
+          <p class="account-status" id="profileStatus" role="status"></p>
+        </form>
+      </section>
+
+      <section class="account-section" id="credits">
+        <p class="account-index">02</p><h2 data-copy="credits">Signal Credits</h2>
+        <div class="account-balance"><span data-copy="balance">Current balance</span><strong id="accountBalance">—</strong></div>
+        <a class="account-button" href="./index.html?credits=1" data-copy="getCredits">Get Signal Credits</a>
+        <div class="account-list" id="creditHistory" aria-live="polite"></div>
+      </section>
+
+      <section class="account-section" id="billing">
+        <p class="account-index">03</p><h2 data-copy="billing">Billing</h2>
+        <p class="account-copy" data-copy="billingCopy">Signal Credit purchase records associated with this account.</p>
+        <div class="account-list" id="billingHistory" aria-live="polite"></div>
+      </section>
+
+      <section class="account-section" id="memory">
+        <p class="account-index">04</p><h2 data-copy="memory">Memory</h2>
+        <p class="account-copy" data-copy="memoryCopy">Nina remembers relevant parts of your conversations to create continuity over time.</p>
+        <button class="account-button account-button-danger" id="forgetMemory" type="button" data-copy="forgetMemory">Forget Nina’s memory</button>
+        <p class="account-status" id="memoryStatus" role="status"></p>
+      </section>
+
+      <section class="account-section" id="newsletter">
+        <p class="account-index">05</p><h2 data-copy="newsletter">Newsletter</h2>
+        <p class="account-copy" data-copy="newsletterCopy">Preferences are stored now. Email delivery infrastructure is not connected yet.</p>
+        <form id="newsletterForm" class="account-preferences">
+          <label><span data-copy="pvUpdates">Parallel Vision updates</span><input id="newsletterUpdates" type="checkbox"></label>
+          <label><span data-copy="ninaUpdates">Nina transmissions</span><input id="ninaTransmissions" type="checkbox"></label>
+          <button class="account-button" type="submit" data-copy="savePreferences">Save preferences</button>
+          <p class="account-status" id="newsletterStatus" role="status"></p>
+        </form>
+      </section>
+
+      <section class="account-section account-section-final">
+        <p class="account-index">06</p><h2 data-copy="accountTitle">Account</h2>
+        <button class="account-button" id="accountSignOut" type="button" data-copy="signOut">Sign out</button>
+      </section>
+    </div>
+  </main>
+
+  <div class="account-confirm" id="memoryConfirm" hidden aria-hidden="true">
+    <section role="dialog" aria-modal="true" aria-labelledby="memoryConfirmTitle">
+      <p class="account-index">DESTRUCTIVE ACTION</p>
+      <h2 id="memoryConfirmTitle" data-copy="confirmTitle">Forget Nina’s memory?</h2>
+      <p data-copy="confirmCopy">This permanently deletes Nina’s stored conversational and relationship memory for this account. Your profile, Signal Credits, purchases and Clerk account remain.</p>
+      <div class="account-confirm-actions">
+        <button class="account-button" id="memoryCancel" type="button" data-copy="cancel">Cancel</button>
+        <button class="account-button account-button-danger" id="memoryDelete" type="button" data-copy="confirmDelete">Delete Nina’s memory</button>
+      </div>
+    </section>
+  </div>
+  <script type="module" src="./js/account.js?v=20260828-1"></script>
+</body>
+</html>

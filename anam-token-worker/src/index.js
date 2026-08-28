@@ -4,6 +4,7 @@ import {
   authorizeOwner, enrollOwner, storeMessages, validateCompletedMessages, validId
 } from "./memory.js";
 import { asMemoryIdentity, resolveAuthenticatedUser, verifyClerkSessionToken } from "./auth.js";
+import { getAccountPreferences, getBillingHistory, updateAccountProfile, updateNewsletterPreferences } from "./account.js";
 import { getSignalCreditBalance, getSignalCreditHistory } from "./credits.js";
 import {
   StripePurchaseError, createSignalCreditCheckout, verifyAndProcessStripeWebhook
@@ -41,7 +42,7 @@ function isAllowedOrigin(origin, env) {
 function corsHeaders(origin) {
   return {
     "Access-Control-Allow-Origin": origin,
-    "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
+    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
     "Access-Control-Allow-Headers": "Authorization, Content-Type",
     "Access-Control-Max-Age": "86400",
     "Vary": "Origin"
@@ -103,7 +104,11 @@ async function authenticateNinaRequest(request, env, body) {
   const token = authorization.startsWith("Bearer ") ? authorization.slice(7).trim() : "";
   if (token && !token.startsWith("v1.")) {
     const claims = await verifyClerkSessionToken(env, token, request.headers.get("Origin") || "");
-    if (claims) return asMemoryIdentity(await resolveAuthenticatedUser(env, claims, body?.accountDisplayName));
+    if (claims) {
+      const user = await resolveAuthenticatedUser(env, claims, body?.accountDisplayName);
+      const preferences = await getAccountPreferences(env, user.id);
+      return asMemoryIdentity({ ...user, display_name: preferences.preferredName || user.display_name });
+    }
   }
   const owner = await authenticateOwnerRequest(request, env, body);
   return owner ? { ...owner, role: "owner", account_authenticated: false } : null;
@@ -269,6 +274,33 @@ async function handleSignalCreditCheckout(request, env, origin) {
   }
 }
 
+async function handleAccount(request, env, origin) {
+  const user = await authenticateAccountRequest(request, env);
+  if (!user) return jsonResponse({ error: "Account authentication required" }, 401, origin);
+  const preferences = await getAccountPreferences(env, user.id);
+  return jsonResponse({ displayName: preferences.preferredName || user.display_name, role: user.role, preferences }, 200, origin);
+}
+
+async function handleAccountProfile(request, env, origin) {
+  const user = await authenticateAccountRequest(request, env);
+  if (!user) return jsonResponse({ error: "Account authentication required" }, 401, origin);
+  try { return jsonResponse(await updateAccountProfile(env, user, await request.json().catch(() => ({}))), 200, origin); }
+  catch { return jsonResponse({ error: "Invalid profile data" }, 400, origin); }
+}
+
+async function handleAccountPreferences(request, env, origin) {
+  const user = await authenticateAccountRequest(request, env);
+  if (!user) return jsonResponse({ error: "Account authentication required" }, 401, origin);
+  try { return jsonResponse(await updateNewsletterPreferences(env, user.id, await request.json().catch(() => ({}))), 200, origin); }
+  catch { return jsonResponse({ error: "Invalid preference data" }, 400, origin); }
+}
+
+async function handleAccountBilling(request, env, origin) {
+  const user = await authenticateAccountRequest(request, env);
+  if (!user) return jsonResponse({ error: "Account authentication required" }, 401, origin);
+  return jsonResponse({ purchases: await getBillingHistory(env, user.id, new URL(request.url).searchParams.get("limit")) }, 200, origin);
+}
+
 async function handleStripeWebhook(request, env) {
   const signature = request.headers.get("Stripe-Signature") || "";
   const rawBody = await request.text();
@@ -302,6 +334,10 @@ export default {
       if (url.pathname === "/api/nina/credits" && request.method === "GET") return handleSignalCredits(request, env, origin);
       if (url.pathname === "/api/nina/credits/history" && request.method === "GET") return handleSignalCreditHistory(request, env, origin);
       if (url.pathname === "/api/nina/credits/checkout" && request.method === "POST") return await handleSignalCreditCheckout(request, env, origin);
+      if (url.pathname === "/api/account" && request.method === "GET") return handleAccount(request, env, origin);
+      if (url.pathname === "/api/account/profile" && request.method === "PUT") return handleAccountProfile(request, env, origin);
+      if (url.pathname === "/api/account/preferences" && request.method === "PUT") return handleAccountPreferences(request, env, origin);
+      if (url.pathname === "/api/account/billing" && request.method === "GET") return handleAccountBilling(request, env, origin);
       return jsonResponse({ error: "Not found" }, 404, origin);
     } catch { return jsonResponse({ error: "Request failed" }, 502, origin); }
   }

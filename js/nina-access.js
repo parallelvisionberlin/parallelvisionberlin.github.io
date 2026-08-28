@@ -45,6 +45,11 @@ const ninaSignIn = byId("ninaSignIn");
 const ninaAccountShell = byId("ninaAccountShell");
 const ninaAccountToggle = byId("ninaAccountToggle");
 const ninaAccountPanel = byId("ninaAccountPanel");
+const ninaAccountLoggedOut = byId("ninaAccountLoggedOut");
+const ninaAccountLoggedIn = byId("ninaAccountLoggedIn");
+const ninaAccountSignIn = byId("ninaAccountSignIn");
+const ninaAccountSignUp = byId("ninaAccountSignUp");
+const ninaAccountCreditAction = byId("ninaAccountCreditAction");
 const ninaAccountName = byId("ninaAccountName");
 const ninaSignalCredits = byId("ninaSignalCredits");
 const ninaAccountSignOut = byId("ninaAccountSignOut");
@@ -94,6 +99,18 @@ const delay = milliseconds => new Promise(resolve => setTimeout(resolve, millise
 const logDevelopmentError = (message, error) => { if (DEVELOPMENT) console.error(message, error); };
 const nativeFullscreenElement = () => document.fullscreenElement || document.webkitFullscreenElement || null;
 const ninaIsFullscreen = () => nativeFullscreenElement() === ninaWindow || ninaWindow.classList.contains("is-fallback-fullscreen");
+
+function syncAccountLanguage(language = document.documentElement.lang) {
+  const german = language === "de";
+  const explanation = ninaAccountLoggedOut?.querySelector(".nina-account-explanation");
+  if (explanation) explanation.textContent = german ? "Speichere Erinnerung, Signal Credits und Kontoeinstellungen." : "Save memory, Signal Credits and account preferences.";
+  if (ninaAccountSignIn) ninaAccountSignIn.textContent = german ? "Anmelden" : "Sign in";
+  if (ninaAccountSignUp) ninaAccountSignUp.textContent = german ? "Konto erstellen" : "Create account";
+  const labels = german ? ["Profil", "Signal Credits", "Zahlungen", "Erinnerung", "Newsletter"] : ["Profile", "Signal Credits", "Billing", "Memory", "Newsletter"];
+  ninaAccountPanel?.querySelectorAll(".nina-account-menu a").forEach((link, index) => { link.textContent = labels[index > 0 ? index + 1 : 0] || link.textContent; });
+  if (ninaCreditsPurchaseTrigger) ninaCreditsPurchaseTrigger.textContent = labels[1];
+  if (ninaAccountSignOut) ninaAccountSignOut.textContent = german ? "Abmelden" : "Sign out";
+}
 
 function syncNinaFullscreen() {
   const isFullscreen = ninaIsFullscreen();
@@ -220,10 +237,15 @@ function updateNinaAccountControls(clerk = ninaClerk) {
   const signedIn = Boolean(clerk?.isSignedIn && clerk?.session);
   if (ninaSignIn) ninaSignIn.hidden = signedIn;
   if (ninaSignIn) ninaSignIn.disabled = false;
-  if (ninaAccountShell) ninaAccountShell.hidden = !signedIn;
+  if (ninaAccountShell) ninaAccountShell.hidden = false;
+  if (ninaAccountLoggedOut) ninaAccountLoggedOut.hidden = signedIn;
+  if (ninaAccountLoggedIn) ninaAccountLoggedIn.hidden = !signedIn;
   const userLabel = clerk?.user?.fullName || clerk?.user?.firstName || clerk?.user?.primaryEmailAddress?.emailAddress || "Connected account";
   if (ninaAccountName) ninaAccountName.textContent = userLabel;
-  if (signedIn) void loadSignalCreditBalance(clerk);
+  if (signedIn) {
+    void loadAccountDisplayName(clerk, userLabel);
+    void loadSignalCreditBalance(clerk);
+  }
   else {
     ninaCreditsUserId = "";
     ninaCreditsRequest += 1;
@@ -232,7 +254,22 @@ function updateNinaAccountControls(clerk = ninaClerk) {
       ninaSignalCredits.textContent = "Loading…";
       ninaSignalCredits.removeAttribute("data-state");
     }
-    closeNinaAccountPanel();
+    if (ninaAccountPanel && !ninaAccountPanel.hidden) ninaAccountSignIn?.focus({ preventScroll: true });
+  }
+}
+
+async function loadAccountDisplayName(clerk = ninaClerk, fallback = "Connected account") {
+  if (!ninaAccountName || !clerk?.isSignedIn || !clerk?.session) return;
+  try {
+    const token = await clerk.session.getToken();
+    const response = await fetch(`${ANAM_SESSION_TOKEN_ENDPOINT.replace(/\/session-token$/, "")}/api/account`, {
+      cache: "no-store",
+      headers: { "Authorization": `Bearer ${token}`, "Accept": "application/json" }
+    });
+    const data = await response.json().catch(() => ({}));
+    if (response.ok && typeof data.displayName === "string" && data.displayName.trim()) ninaAccountName.textContent = data.displayName.trim();
+  } catch {
+    ninaAccountName.textContent = fallback;
   }
 }
 
@@ -304,7 +341,9 @@ async function initializeNinaAuth() {
       ninaSignIn.hidden = false;
       ninaSignIn.disabled = false;
     }
-    if (ninaAccountShell) ninaAccountShell.hidden = true;
+    if (ninaAccountShell) ninaAccountShell.hidden = false;
+    if (ninaAccountLoggedOut) ninaAccountLoggedOut.hidden = false;
+    if (ninaAccountLoggedIn) ninaAccountLoggedIn.hidden = true;
     return null;
   });
   return ninaAuthInitialization;
@@ -322,8 +361,8 @@ function initializeSignalCreditPurchaseUI() {
   ninaCreditsPurchaseTrigger = document.createElement("button");
   ninaCreditsPurchaseTrigger.className = "nina-account-get-credits";
   ninaCreditsPurchaseTrigger.type = "button";
-  ninaCreditsPurchaseTrigger.textContent = "Get Signal Credits";
-  ninaAccountSignOut.before(ninaCreditsPurchaseTrigger);
+  ninaCreditsPurchaseTrigger.textContent = "Signal Credits";
+  (ninaAccountCreditAction || ninaAccountSignOut.parentElement).appendChild(ninaCreditsPurchaseTrigger);
 
   const modal = document.createElement("div");
   modal.className = "nina-credits-purchase";
@@ -364,6 +403,7 @@ function initializeSignalCreditPurchaseUI() {
   ninaCreditsPurchaseClose = modal.querySelector(".nina-credits-purchase-close");
 
   ninaCreditsPurchaseTrigger.addEventListener("click", openSignalCreditPurchase);
+  syncAccountLanguage();
   ninaCreditsPurchaseClose.addEventListener("click", () => closeSignalCreditPurchase(true));
   modal.addEventListener("click", event => {
     if (event.target === modal) closeSignalCreditPurchase(true);
@@ -1004,8 +1044,8 @@ function toggleNinaAccountPanel() {
   ninaAccountPanel.hidden = !willOpen;
   ninaAccountToggle.setAttribute("aria-expanded", String(willOpen));
   if (willOpen) {
-    void loadSignalCreditBalance(ninaClerk, true);
-    (ninaCreditsPurchaseTrigger || ninaAccountSignOut)?.focus({ preventScroll: true });
+    if (ninaClerk?.isSignedIn) void loadSignalCreditBalance(ninaClerk, true);
+    (ninaClerk?.isSignedIn ? ninaAccountPanel.querySelector(".nina-account-menu a") : ninaAccountSignIn)?.focus?.({ preventScroll: true });
   }
 }
 
@@ -1123,6 +1163,14 @@ ninaSignIn?.addEventListener("click", async () => {
   updateNinaAccountControls(clerk);
   if (clerk.isSignedIn && clerk.session && ninaAccess.classList.contains("is-open")) openNinaExperience();
 });
+ninaAccountSignIn?.addEventListener("click", async () => {
+  const clerk = await initializeNinaAuth();
+  if (clerk) await clerk.openSignIn();
+});
+ninaAccountSignUp?.addEventListener("click", async () => {
+  const clerk = await initializeNinaAuth();
+  if (clerk) await clerk.openSignUp();
+});
 ninaAccountToggle?.addEventListener("click", event => {
   event.stopPropagation();
   toggleNinaAccountPanel();
@@ -1139,6 +1187,7 @@ ninaAccountSignOut?.addEventListener("click", async () => {
   }
 });
 document.addEventListener("click", () => closeNinaAccountPanel());
+window.addEventListener("pv-language-change", event => syncAccountLanguage(event.detail?.language));
 document.addEventListener("fullscreenchange", syncNinaFullscreen);
 document.addEventListener("webkitfullscreenchange", syncNinaFullscreen);
 startNina.addEventListener("click", connectNina);
@@ -1186,6 +1235,9 @@ migrateLegacyNinaMemory();
 removeLegacyNinaOwnerToken();
 resetNinaMemoryIndicator();
 initializeSignalCreditPurchaseUI();
+syncAccountLanguage();
 void handleSignalCreditReturn();
-void initializeNinaAuth();
+void initializeNinaAuth().then(clerk => {
+  if (clerk?.isSignedIn && new URLSearchParams(window.location.search).get("credits") === "1") openSignalCreditPurchase();
+});
 void ANAM_PERSONA_ID;

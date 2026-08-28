@@ -17,7 +17,7 @@
   <meta name="twitter:image" content="https://parallelvisionlabel.com/assets/ninamain-page.webp">
   <link rel="icon" type="image/png" href="./favicon.png">
   <link rel="stylesheet" href="./fashion.css?v=20260817-archive-size">
-  <link rel="stylesheet" href="./css/nina-access.css?v=20260828-credits-editorial">
+  <link rel="stylesheet" href="./css/nina-access.css?v=20260828-account-v1">
   <style>
     :root { --n-line: rgba(255,255,255,.15); --n-body: rgba(255,255,255,.7); --n-faint: rgba(255,255,255,.44); }
     * { box-sizing: border-box; }
@@ -156,18 +156,32 @@
     <a href="./index.html">Parallel Vision</a>
     <span>Nina FOK / Berlin 2063</span>
     <button class="n-nav-transmit" type="button" data-nina-open>Transmit</button>
-    <div class="nina-account-shell" id="ninaAccountShell" hidden>
+    <div class="nina-account-shell" id="ninaAccountShell">
       <button class="nina-account-toggle" id="ninaAccountToggle" type="button" aria-label="Open account menu" aria-expanded="false" aria-controls="ninaAccountPanel">
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.25"></circle><path d="M5.75 19c.55-3.25 2.64-5.25 6.25-5.25s5.7 2 6.25 5.25"></path></svg>
       </button>
       <div class="nina-account-panel" id="ninaAccountPanel" hidden>
         <p class="nina-account-eyebrow">Parallel Vision Account</p>
-        <p class="nina-account-name" id="ninaAccountName">Connected</p>
-        <div class="nina-account-credits">
-          <span>Signal Credits</span>
-          <strong id="ninaSignalCredits" role="status" aria-live="polite">Loading…</strong>
+        <div class="nina-account-logged-out" id="ninaAccountLoggedOut">
+          <p class="nina-account-explanation">Save memory, Signal Credits and account preferences.</p>
+          <button class="nina-account-action" id="ninaAccountSignIn" type="button">Sign in</button>
+          <button class="nina-account-action" id="ninaAccountSignUp" type="button">Create account</button>
         </div>
-        <button class="nina-account-signout" id="ninaAccountSignOut" type="button">Sign out</button>
+        <div class="nina-account-logged-in" id="ninaAccountLoggedIn" hidden>
+          <p class="nina-account-name" id="ninaAccountName">Connected</p>
+          <div class="nina-account-credits">
+            <span>Signal Credits</span>
+            <strong id="ninaSignalCredits" role="status" aria-live="polite">Loading…</strong>
+          </div>
+          <div class="nina-account-menu" aria-label="Account sections">
+            <a href="./account.html#profile">Profile</a>
+            <span id="ninaAccountCreditAction"></span>
+            <a href="./account.html#billing">Billing</a>
+            <a href="./account.html#memory">Memory</a>
+            <a href="./account.html#newsletter">Newsletter</a>
+          </div>
+          <button class="nina-account-signout" id="ninaAccountSignOut" type="button">Sign out</button>
+        </div>
       </div>
     </div>
   </nav>
@@ -659,6 +673,6 @@
       syncMotion();
     })();
   </script>
-<script type="module" src="./js/nina-access.js?v=20260828-credits-editorial"></script>
+<script type="module" src="./js/nina-access.js?v=20260828-account-v1"></script>
 </body>
 </html>

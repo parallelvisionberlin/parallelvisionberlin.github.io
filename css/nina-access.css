@@ -609,6 +609,8 @@ body.nina-fullscreen-active {
 }
 
 .nina-account-shell[hidden],
+.nina-account-logged-out[hidden],
+.nina-account-logged-in[hidden],
 .nina-account-panel[hidden],
 .nina-credits-purchase[hidden],
 .nina-credits-pack-list[hidden] {
@@ -678,6 +680,52 @@ body.nina-fullscreen-active {
   text-transform: none;
 }
 
+.nina-account-explanation {
+  margin: 12px 0 18px;
+  color: rgba(255, 255, 255, .58);
+  font: 12px/1.55 Inter, sans-serif;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.nina-account-menu {
+  position: static;
+  width: 100%;
+  transform: none;
+  display: grid;
+  gap: 0;
+  opacity: 1;
+  font: 11px/1 'Courier New', monospace;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  white-space: normal;
+}
+
+.nina-account-menu a,
+.nina-account-menu > span,
+.nina-account-action {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, .12);
+  background: transparent;
+  color: rgba(255, 255, 255, .7);
+  font: inherit;
+  letter-spacing: inherit;
+  text-align: left;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.nina-account-action:first-of-type { border-top: 1px solid rgba(255, 255, 255, .12); }
+.nina-account-menu a:hover,
+.nina-account-menu a:focus-visible,
+.nina-account-action:hover,
+.nina-account-action:focus-visible { color: #fff; }
+
 .nina-account-credits {
   display: grid;
   grid-template-columns: 1fr auto;
@@ -720,6 +768,16 @@ body.nina-fullscreen-active {
   text-transform: uppercase;
   cursor: pointer;
 }
+
+.nina-account-menu .nina-account-get-credits {
+  min-height: 40px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  color: rgba(255, 255, 255, .7);
+}
+
+.nina-account-signout { margin-top: 12px; }
 
 .nina-account-get-credits {
   margin-bottom: 9px;
