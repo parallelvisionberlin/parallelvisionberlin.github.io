@@ -112,6 +112,8 @@
   margin-top: 27px;
 }
 
+.nina-access-auth-actions[hidden] { display: none !important; }
+
 .nina-access-account-secondary {
   border-color: rgba(255, 255, 255, .18);
   color: rgba(255, 255, 255, .72);
@@ -142,18 +144,50 @@
 }
 
 .nina-access-email-form {
-  margin-top: 18px;
-  padding-top: 20px;
-  border-top: 1px solid rgba(255, 255, 255, .12);
+  margin-top: 24px;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.nina-access-email-back {
+  margin: 0 0 20px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: rgba(255, 255, 255, .62);
+  font: 11px/1.4 'Courier New', monospace;
+  letter-spacing: .1em;
+  cursor: pointer;
+}
+
+.nina-access-email-back:hover,
+.nina-access-email-back:focus-visible { color: #fff; }
+
+.nina-access-email-form .nina-access-label {
+  margin-bottom: 8px;
+  color: rgba(255, 255, 255, .78);
+}
+
+.nina-access-email-form .nina-access-input {
+  min-height: 50px;
+  padding: 12px 15px;
+}
+
+.nina-access-email-form .nina-access-error {
+  min-height: 18px;
+  margin: 9px 0 0;
+  font-size: 12px;
+  line-height: 1.45;
 }
 
 .nina-access-email-form[hidden] { display: none !important; }
 
-.nina-access-email-password-label { margin-top: 16px; }
+.nina-access-email-password-label { margin-top: 13px; }
 
 .nina-access-email-submit {
   width: 100%;
-  margin-top: 4px;
+  min-height: 46px;
+  margin-top: 5px;
 }
 
 .nina-access-email-utilities {
@@ -167,8 +201,8 @@
   padding: 0;
   border: 0;
   background: transparent;
-  color: rgba(255, 255, 255, .48);
-  font: 10px/1.5 'Courier New', monospace;
+  color: rgba(255, 255, 255, .66);
+  font: 12px/1.5 'Courier New', monospace;
   letter-spacing: .05em;
   cursor: pointer;
 }
@@ -303,6 +337,7 @@ body.nina-access-active {
   .nina-access-description { font-size: 15px; }
   .nina-access-account { width: 100%; min-height: 50px; }
   .nina-access-private-toggle { font-size: 14px; }
+  .nina-access-email-utilities button { font-size: 13px; }
   .nina-access-form { margin-top: 18px; padding-top: 20px; }
   .nina-access-actions { align-items: stretch; flex-direction: column; gap: 8px; }
   .nina-access-submit,.nina-access-cancel { width: 100%; }

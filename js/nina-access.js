@@ -46,7 +46,9 @@ const ninaMemoryIndicator = byId("ninaMemoryIndicator");
 const ninaForgetMemory = byId("ninaForgetMemory");
 const ninaSignIn = byId("ninaSignIn");
 const ninaSignInEmail = byId("ninaSignInEmail");
+const ninaAccessAuthActions = ninaAccess?.querySelector(".nina-access-auth-actions");
 const ninaEmailSignInForm = byId("ninaEmailSignInForm");
+const ninaEmailSignInBack = byId("ninaEmailSignInBack");
 const ninaEmailAddress = byId("ninaEmailAddress");
 const ninaEmailPassword = byId("ninaEmailPassword");
 const ninaEmailSignInError = byId("ninaEmailSignInError");
@@ -1483,6 +1485,7 @@ function resetInlineEmailSignIn() {
   if (!ninaEmailSignInForm) return;
   ninaEmailSignInForm.hidden = true;
   ninaEmailSignInForm.setAttribute("aria-hidden", "true");
+  if (ninaAccessAuthActions) ninaAccessAuthActions.hidden = false;
   ninaSignInEmail?.setAttribute("aria-expanded", "false");
   ninaEmailSignInError.textContent = "";
   ninaEmailPassword.value = "";
@@ -1515,15 +1518,18 @@ async function startNinaGoogleSignIn() {
 function showInlineEmailSignIn(event) {
   event?.preventDefault();
   if (!ninaEmailSignInForm) return;
-  const willOpen = ninaSignInEmail?.getAttribute("aria-expanded") !== "true";
-  ninaSignInEmail?.setAttribute("aria-expanded", String(willOpen));
-  if (willOpen) ninaEmailSignInForm.removeAttribute("hidden");
-  else ninaEmailSignInForm.setAttribute("hidden", "");
-  ninaEmailSignInForm.setAttribute("aria-hidden", String(!willOpen));
+  ninaSignInEmail?.setAttribute("aria-expanded", "true");
+  if (ninaAccessAuthActions) ninaAccessAuthActions.hidden = true;
+  ninaEmailSignInForm.removeAttribute("hidden");
+  ninaEmailSignInForm.setAttribute("aria-hidden", "false");
   requestAnimationFrame(() => {
-    if (willOpen) ninaEmailAddress?.focus({ preventScroll: true });
-    else ninaSignInEmail?.focus({ preventScroll: true });
+    ninaEmailAddress?.focus({ preventScroll: true });
   });
+}
+
+function leaveInlineEmailSignIn() {
+  resetInlineEmailSignIn();
+  requestAnimationFrame(() => ninaSignInEmail?.focus({ preventScroll: true }));
 }
 
 async function submitInlineEmailSignIn(event) {
@@ -1569,6 +1575,7 @@ ninaFullscreen.addEventListener("click", toggleNinaFullscreen);
 ninaForgetMemory.addEventListener("click", forgetNinaMemory);
 ninaSignIn?.addEventListener("click", () => void startNinaGoogleSignIn());
 ninaSignInEmail?.addEventListener("click", showInlineEmailSignIn);
+ninaEmailSignInBack?.addEventListener("click", leaveInlineEmailSignIn);
 ninaEmailSignInForm?.addEventListener("submit", submitInlineEmailSignIn);
 ninaEmailCreateAccount?.addEventListener("click", async () => {
   const clerk = await initializeNinaAuth();
