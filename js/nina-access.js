@@ -515,6 +515,15 @@ function setCheckoutPending(pending) {
   if (ninaCreditsPurchaseClose) ninaCreditsPurchaseClose.disabled = pending;
 }
 
+function resetCheckoutAfterHistoryRestore(event) {
+  const navigation = performance.getEntriesByType?.("navigation")?.[0];
+  if (!event.persisted && navigation?.type !== "back_forward") return;
+  setCheckoutPending(false);
+  if (ninaCreditsPurchaseStatus?.textContent === "Preparing checkout...") {
+    ninaCreditsPurchaseStatus.textContent = "";
+  }
+}
+
 function rememberSignalCreditCheckout() {
   try {
     sessionStorage.setItem(NINA_CREDIT_CHECKOUT_STATE_KEY, JSON.stringify({
@@ -1451,6 +1460,7 @@ document.addEventListener("keydown", event => {
 });
 window.addEventListener("pagehide", stopNinaSession);
 window.addEventListener("beforeunload", stopNinaSession);
+window.addEventListener("pageshow", resetCheckoutAfterHistoryRestore);
 if (new URLSearchParams(window.location.search).get("nina") === "1") void routeNinaTrigger(openNina);
 migrateLegacyNinaMemory();
 removeLegacyNinaOwnerToken();
