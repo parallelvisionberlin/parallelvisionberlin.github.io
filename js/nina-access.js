@@ -50,6 +50,7 @@ const ninaAccountLoggedIn = byId("ninaAccountLoggedIn");
 const ninaAccountSignIn = byId("ninaAccountSignIn");
 const ninaAccountSignUp = byId("ninaAccountSignUp");
 const ninaAccountCreditAction = byId("ninaAccountCreditAction");
+const ninaAccountBuyCredits = byId("ninaAccountBuyCredits");
 const ninaAccountName = byId("ninaAccountName");
 const ninaSignalCredits = byId("ninaSignalCredits");
 const ninaLiveTime = byId("ninaLiveTime");
@@ -125,6 +126,7 @@ function syncAccountLanguage(language = document.documentElement.lang) {
   const labels = german ? ["Profil", "Signal Credits", "Zahlungen", "Erinnerung", "Newsletter"] : ["Profile", "Signal Credits", "Billing", "Memory", "Newsletter"];
   ninaAccountPanel?.querySelectorAll(".nina-account-menu a").forEach((link, index) => { link.textContent = labels[index > 0 ? index + 1 : 0] || link.textContent; });
   if (ninaCreditsPurchaseTrigger) ninaCreditsPurchaseTrigger.textContent = labels[1];
+  if (ninaAccountBuyCredits) ninaAccountBuyCredits.textContent = german ? "Signal Credits kaufen" : "Buy Signal Credits";
   if (ninaAccountSignOut) ninaAccountSignOut.textContent = german ? "Abmelden" : "Sign out";
   const creditLabels = ninaAccountPanel?.querySelectorAll(".nina-account-credits span");
   if (creditLabels?.[1]) creditLabels[1].textContent = german ? "Live Nina Zeit" : "Live Nina Time";
@@ -426,6 +428,7 @@ function initializeSignalCreditPurchaseUI() {
   ninaCreditsPurchaseClose = modal.querySelector(".nina-credits-purchase-close");
 
   ninaCreditsPurchaseTrigger.addEventListener("click", openSignalCreditPurchase);
+  ninaAccountBuyCredits?.addEventListener("click", openSignalCreditPurchase);
   syncAccountLanguage();
   ninaCreditsPurchaseClose.addEventListener("click", () => closeSignalCreditPurchase(true));
   modal.addEventListener("click", event => {

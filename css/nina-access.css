@@ -808,6 +808,36 @@ body.nina-fullscreen-active {
   color: rgba(255, 255, 255, .46);
 }
 
+.nina-account-buy-credits {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 46px;
+  margin: 0 0 18px;
+  padding: 0 14px;
+  border: 1px solid rgba(255, 255, 255, .48);
+  border-radius: 0;
+  background: transparent;
+  color: rgba(255, 255, 255, .94);
+  font-family: Inter, sans-serif;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: .15em;
+  text-align: center;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.nina-account-buy-credits:hover,
+.nina-account-buy-credits:focus-visible {
+  border-color: rgba(255, 255, 255, .78);
+  background: rgba(255, 255, 255, .07);
+  color: #fff;
+}
+
 .nina-account-get-credits,
 .nina-account-signout {
   width: 100%;
