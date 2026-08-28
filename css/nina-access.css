@@ -654,29 +654,45 @@ body.nina-fullscreen-active {
   z-index: 10020;
   top: calc(100% + 14px);
   right: 0;
-  width: min(330px, calc(100vw - 28px));
-  padding: 25px;
+  width: min(336px, calc(100vw - 28px));
+  padding: 28px;
   border: 1px solid rgba(255, 255, 255, .2);
   background: rgba(3, 3, 4, .98);
   box-shadow: 0 24px 70px rgba(0, 0, 0, .72);
+  color: #fff;
+  font-family: Inter, sans-serif;
+  font-style: normal;
+  font-weight: 400;
+  letter-spacing: 0;
   text-align: left;
+  text-transform: none;
   white-space: normal;
+}
+
+.nina-account-panel :where(p, div, a, button, span, strong) {
+  font-family: Inter, sans-serif;
+  font-style: normal;
 }
 
 .nina-account-eyebrow {
   margin: 0;
   color: rgba(255, 255, 255, .48);
-  font: 11px/1.5 'Courier New', monospace;
-  letter-spacing: .14em;
+  font-family: 'Courier New', monospace;
+  font-size: 10px;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: .17em;
   text-transform: uppercase;
 }
 
 .nina-account-name {
-  margin: 10px 0 20px;
+  margin: 11px 0 24px;
   overflow-wrap: anywhere;
-  color: rgba(255, 255, 255, .92);
-  font: 18px/1.4 Inter, sans-serif;
+  color: rgba(255, 255, 255, .96);
+  font-family: Inter, sans-serif;
+  font-size: 19px;
   font-weight: 400;
+  line-height: 1.35;
   letter-spacing: 0;
   text-transform: none;
 }
@@ -684,7 +700,10 @@ body.nina-fullscreen-active {
 .nina-account-explanation {
   margin: 12px 0 18px;
   color: rgba(255, 255, 255, .58);
-  font: 13px/1.55 Inter, sans-serif;
+  font-family: Inter, sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.55;
   letter-spacing: 0;
   text-transform: none;
 }
@@ -694,10 +713,16 @@ body.nina-fullscreen-active {
   width: 100%;
   transform: none;
   display: grid;
-  gap: 0;
+  gap: 2px;
+  padding: 7px 0;
+  border-top: 1px solid rgba(255, 255, 255, .15);
+  border-bottom: 1px solid rgba(255, 255, 255, .15);
   opacity: 1;
-  font: 12px/1 'Courier New', monospace;
-  letter-spacing: .11em;
+  font-family: Inter, sans-serif;
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: .15em;
   text-transform: uppercase;
   white-space: normal;
 }
@@ -709,45 +734,74 @@ body.nina-fullscreen-active {
   align-items: center;
   width: 100%;
   min-height: 46px;
-  padding: 0 10px;
+  padding: 0 8px;
   border: 0;
-  border-bottom: 1px solid rgba(255, 255, 255, .12);
   background: transparent;
-  color: rgba(255, 255, 255, .7);
-  font: inherit;
+  color: rgba(255, 255, 255, .72);
+  font-family: Inter, sans-serif;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1;
   letter-spacing: inherit;
   text-align: left;
   text-transform: uppercase;
   cursor: pointer;
 }
 
-.nina-account-action:first-of-type { border-top: 1px solid rgba(255, 255, 255, .12); }
+.n-nav .nina-account-menu > span { display: flex; }
+
+.nina-account-action:first-of-type { border-top: 1px solid rgba(255, 255, 255, .15); }
+.nina-account-action:last-of-type { border-bottom: 1px solid rgba(255, 255, 255, .15); }
 .nina-account-menu a:hover,
 .nina-account-menu a:focus-visible,
 .nina-account-action:hover,
-.nina-account-action:focus-visible { color: #fff; }
+.nina-account-action:focus-visible {
+  background: rgba(255, 255, 255, .055);
+  color: #fff;
+}
 
 .nina-account-credits {
   display: grid;
   grid-template-columns: 1fr auto;
   align-items: baseline;
-  gap: 14px;
-  margin: 0 0 12px;
-  padding: 15px 0;
-  border-top: 1px solid rgba(255, 255, 255, .12);
-  border-bottom: 1px solid rgba(255, 255, 255, .12);
+  gap: 8px 18px;
+  margin: 0 0 16px;
+  padding: 17px 0 18px;
+  border-top: 1px solid rgba(255, 255, 255, .15);
+  border-bottom: 1px solid rgba(255, 255, 255, .15);
   color: rgba(255, 255, 255, .5);
-  font: 11px/1.4 'Courier New', monospace;
-  letter-spacing: .11em;
+  font-family: 'Courier New', monospace;
+  font-size: 10px;
+  font-weight: 400;
+  line-height: 1.45;
+  letter-spacing: .15em;
   text-transform: uppercase;
 }
 
+.nina-account-credits span {
+  display: block;
+  font-family: 'Courier New', monospace;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1.45;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+}
+
+.n-nav .nina-account-credits span { display: block; }
+
 .nina-account-credits strong {
   color: rgba(255, 255, 255, .9);
-  font: 14px/1.4 Inter, sans-serif;
+  font-family: Inter, sans-serif;
+  font-size: 14px;
+  font-style: normal;
   font-weight: 400;
-  letter-spacing: .08em;
+  line-height: 1.4;
+  letter-spacing: .06em;
   text-align: right;
+  text-transform: uppercase;
 }
 
 .nina-account-credits strong[data-state="unavailable"] {
@@ -763,8 +817,12 @@ body.nina-fullscreen-active {
   border-radius: 0;
   background: transparent;
   color: rgba(255, 255, 255, .68);
-  font: 11px/1 'Courier New', monospace;
-  letter-spacing: .13em;
+  font-family: Inter, sans-serif;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: .15em;
   text-align: left;
   text-transform: uppercase;
   cursor: pointer;
@@ -773,16 +831,19 @@ body.nina-fullscreen-active {
 .nina-account-menu .nina-account-get-credits {
   min-height: 46px;
   margin: 0;
-  padding: 0;
+  padding: 0 8px;
   border: 0;
   color: rgba(255, 255, 255, .7);
 }
 
 .nina-account-signout {
   min-height: 46px;
-  margin-top: 18px;
-  border-color: rgba(255, 255, 255, .28);
-  font-size: 12px;
+  margin-top: 22px;
+  padding: 0 8px;
+  border-width: 1px 0 0;
+  border-color: rgba(255, 255, 255, .18);
+  font-family: Inter, sans-serif;
+  font-size: 11px;
 }
 
 .nina-account-get-credits {
@@ -796,6 +857,7 @@ body.nina-fullscreen-active {
 .nina-account-signout:hover,
 .nina-account-signout:focus-visible {
   border-color: rgba(255, 255, 255, .65);
+  background: rgba(255, 255, 255, .055);
   color: #fff;
 }
 
