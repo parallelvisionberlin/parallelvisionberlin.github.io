@@ -350,7 +350,7 @@
     <p class="nina-access-description">Your account keeps your Signal Credits and your history with Nina connected.</p>
     <div class="nina-access-auth-actions">
       <button class="nina-access-account" id="ninaSignIn" type="button" disabled>CONTINUE WITH GOOGLE</button>
-      <button class="nina-access-account nina-access-account-secondary" id="ninaSignInEmail" type="button" disabled>CONTINUE WITH EMAIL</button>
+      <button class="nina-access-account nina-access-account-secondary" id="ninaSignInEmail" type="button" aria-expanded="false" aria-controls="ninaEmailSignInForm" disabled>CONTINUE WITH EMAIL</button>
     </div>
     <form class="nina-access-email-form" id="ninaEmailSignInForm" hidden aria-hidden="true">
       <label class="nina-access-label" for="ninaEmailAddress">Email</label>
@@ -364,7 +364,7 @@
         <button type="button" id="ninaEmailForgotPassword">Forgot password</button>
       </div>
     </form>
-    <button class="nina-access-private-toggle" id="ninaPrivateAccessToggle" type="button" aria-expanded="false" aria-controls="ninaAccessForm">Have a private access code?</button>
+    <button class="nina-access-private-toggle" id="ninaPrivateAccessToggle" type="button" aria-expanded="false" aria-controls="ninaAccessForm">Use a private access code</button>
     <form class="nina-access-form" id="ninaAccessForm" hidden aria-hidden="true">
       <label class="nina-access-label" for="ninaAccessCode">Access code</label>
       <input

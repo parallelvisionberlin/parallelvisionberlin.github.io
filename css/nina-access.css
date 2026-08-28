@@ -118,12 +118,12 @@
 }
 
 .nina-access-private-toggle {
-  margin: 22px 0 0;
+  margin: 26px 0 0;
   padding: 0;
   border: 0;
   background: transparent;
-  color: rgba(255, 255, 255, .43);
-  font: 10px/1.5 'Courier New', monospace;
+  color: rgba(255, 255, 255, .68);
+  font: 13px/1.5 'Courier New', monospace;
   letter-spacing: .08em;
   cursor: pointer;
 }
@@ -302,6 +302,7 @@ body.nina-access-active {
   .nina-access-lead { margin-top: 18px; font-size: 18px; }
   .nina-access-description { font-size: 15px; }
   .nina-access-account { width: 100%; min-height: 50px; }
+  .nina-access-private-toggle { font-size: 14px; }
   .nina-access-form { margin-top: 18px; padding-top: 20px; }
   .nina-access-actions { align-items: stretch; flex-direction: column; gap: 8px; }
   .nina-access-submit,.nina-access-cancel { width: 100%; }

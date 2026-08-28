@@ -1483,6 +1483,7 @@ function resetInlineEmailSignIn() {
   if (!ninaEmailSignInForm) return;
   ninaEmailSignInForm.hidden = true;
   ninaEmailSignInForm.setAttribute("aria-hidden", "true");
+  ninaSignInEmail?.setAttribute("aria-expanded", "false");
   ninaEmailSignInError.textContent = "";
   ninaEmailPassword.value = "";
   ninaEmailSignInSubmit.disabled = false;
@@ -1511,12 +1512,18 @@ async function startNinaGoogleSignIn() {
   });
 }
 
-function showInlineEmailSignIn() {
-  const willOpen = ninaEmailSignInForm.hidden;
-  ninaEmailSignInForm.hidden = !willOpen;
+function showInlineEmailSignIn(event) {
+  event?.preventDefault();
+  if (!ninaEmailSignInForm) return;
+  const willOpen = ninaSignInEmail?.getAttribute("aria-expanded") !== "true";
+  ninaSignInEmail?.setAttribute("aria-expanded", String(willOpen));
+  if (willOpen) ninaEmailSignInForm.removeAttribute("hidden");
+  else ninaEmailSignInForm.setAttribute("hidden", "");
   ninaEmailSignInForm.setAttribute("aria-hidden", String(!willOpen));
-  if (willOpen) ninaEmailAddress.focus({ preventScroll: true });
-  else ninaSignInEmail.focus({ preventScroll: true });
+  requestAnimationFrame(() => {
+    if (willOpen) ninaEmailAddress?.focus({ preventScroll: true });
+    else ninaSignInEmail?.focus({ preventScroll: true });
+  });
 }
 
 async function submitInlineEmailSignIn(event) {
