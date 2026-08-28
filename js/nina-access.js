@@ -336,11 +336,22 @@ function initializeSignalCreditPurchaseUI() {
       <h2 class="nina-credits-purchase-title" id="ninaCreditsPurchaseTitle">Signal Credits</h2>
       <p class="nina-credits-purchase-lead" id="ninaCreditsPurchaseLead">Access Nina's live transmissions.</p>
       <div class="nina-credits-pack-list">
-        <button class="nina-credits-pack" type="button" data-pack-id="signal_30"><span>30 Credits</span><strong>€3</strong></button>
-        <button class="nina-credits-pack" type="button" data-pack-id="signal_100"><span>100 Credits</span><strong>€9</strong></button>
-        <button class="nina-credits-pack" type="button" data-pack-id="signal_300"><span>300 Credits</span><strong>€25</strong></button>
-        <button class="nina-credits-pack" type="button" data-pack-id="signal_750"><span>750 Credits</span><strong>€55</strong></button>
+        <button class="nina-credits-pack" type="button" data-pack-id="signal_30"><span class="nina-credits-pack-copy"><span class="nina-credits-pack-title">30 Credits</span><span class="nina-credits-pack-category">Quick Transmission</span><span class="nina-credits-pack-description">A short live signal with Nina.</span></span><strong>€3</strong></button>
+        <button class="nina-credits-pack" type="button" data-pack-id="signal_100"><span class="nina-credits-pack-copy"><span class="nina-credits-pack-title">100 Credits</span><span class="nina-credits-pack-category">Private Signal</span><span class="nina-credits-pack-description">A focused one-to-one transmission.</span></span><strong>€9</strong></button>
+        <button class="nina-credits-pack" type="button" data-pack-id="signal_300"><span class="nina-credits-pack-copy"><span class="nina-credits-pack-title">300 Credits</span><span class="nina-credits-pack-category">Deep Transmission</span><span class="nina-credits-pack-description">More time inside Nina’s live system.</span></span><strong>€25</strong></button>
+        <button class="nina-credits-pack" type="button" data-pack-id="signal_750"><span class="nina-credits-pack-copy"><span class="nina-credits-pack-title">750 Credits</span><span class="nina-credits-pack-category">Extended Access</span><span class="nina-credits-pack-description">For longer returns and recurring contact.</span></span><strong>€55</strong></button>
       </div>
+      <details class="nina-credits-about">
+        <summary><span class="nina-credits-about-closed">About Signal Credits +</span><span class="nina-credits-about-open">About Signal Credits −</span></summary>
+        <div class="nina-credits-about-copy">
+          <p>Signal Credits open access to Nina’s live transmission system.</p>
+          <p>The public archive shows fragments of Nina’s world. Credits open the live channel.</p>
+          <p>Nina FOK is an experimental synthetic presence by Parallel Vision: part voice, part memory, part emotional interface, part future archive.</p>
+          <p>She can respond in real time, follow your mood and turn a conversation into something personal. Some signals are quick. Some go deeper.</p>
+          <p>Credits help cover the computing cost of running live AI, voice and audiovisual infrastructure.</p>
+          <p>Nina is not therapy or a medical product. She is an experimental digital experience.</p>
+        </div>
+      </details>
       <p class="nina-credits-purchase-status" role="status" aria-live="polite"></p>
     </section>`;
   document.body.appendChild(modal);
