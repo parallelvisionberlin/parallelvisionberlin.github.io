@@ -184,6 +184,24 @@ nav a:hover {
   opacity: .55;
 }
 
+.hero > nav {
+  right: 28px;
+  left: 28px;
+  width: auto;
+  transform: none;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 0;
+}
+
+.home-primary-links {
+  grid-column: 2;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 46px;
+}
+
 .nina-nav-link {
   display: inline-flex;
   align-items: center;
@@ -214,7 +232,18 @@ nav a:hover {
 .pv-language-switch span.is-active { opacity: 1; color: #fff; }
 .pv-language-switch:focus-visible { outline: 1px solid #777; outline-offset: 5px; }
 
-.home-utility-controls { display: contents; }
+.home-utility-controls {
+  grid-column: 3;
+  justify-self: end;
+  display: grid;
+  grid-template-columns: 32px max-content;
+  align-items: start;
+  column-gap: 18px;
+  min-height: 32px;
+}
+
+.home-utility-controls .nina-account-shell { grid-column: 1; }
+.home-utility-controls .pv-language-switch { grid-column: 2; }
 
 .hero-content {
   position: relative;
@@ -1559,6 +1588,8 @@ footer {
 
     font-size: 10px;
   }
+
+  .home-primary-links { gap: 22px; }
 
   .logo {
     letter-spacing: .18em;
@@ -3331,6 +3362,19 @@ footer {
     letter-spacing: .11em;
     line-height: 1.35;
     white-space: normal;
+  }
+
+  .home-primary-links {
+    display: contents;
+  }
+
+  .home-utility-controls {
+    display: inline-flex;
+    grid-column: auto;
+    justify-self: auto;
+    align-items: center;
+    gap: 10px;
+    min-height: 0;
   }
 
   .hero-content {
