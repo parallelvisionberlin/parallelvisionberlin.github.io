@@ -3379,14 +3379,14 @@ footer {
     bottom: auto;
     left: auto;
     z-index: 100;
-    width: min(82vw, 360px);
+    width: min(84vw, 370px);
     box-sizing: border-box;
     display: none;
     grid-template-columns: 1fr;
     align-content: start;
     gap: 0;
     max-height: calc(100dvh - 76px - env(safe-area-inset-top));
-    padding: 10px 20px 12px;
+    padding: 8px 14px 11px;
     border-left: 1px solid rgba(255,255,255,.16);
     background: rgba(3,3,4,.985);
     box-shadow: -18px 18px 52px rgba(0,0,0,.56);
@@ -3412,10 +3412,36 @@ footer {
   }
 
   .home-primary-links > a {
-    min-height: 43px;
-    display: flex;
+    min-height: 46px;
+    display: grid;
+    grid-template-columns: 25px minmax(0, 1fr);
     align-items: center;
-    border-bottom: 1px solid rgba(255,255,255,.1);
+    padding: 0 2px;
+    border-bottom: 1px solid rgba(255,255,255,.07);
+    font-size: 10.5px;
+    letter-spacing: .11em;
+  }
+
+  .home-primary-links > a::before {
+    color: rgba(255,255,255,.34);
+    font: 8px/1 'Courier New', monospace;
+    letter-spacing: .08em;
+  }
+
+  .home-primary-links > a:nth-of-type(1)::before { content: "01"; }
+  .home-primary-links > a:nth-of-type(2)::before { content: "02"; }
+  .home-primary-links > a:nth-of-type(3)::before { content: "03"; }
+  .home-primary-links > a:nth-of-type(4)::before { content: "04"; }
+  .home-primary-links > a:nth-of-type(5)::before { content: "05"; }
+  .home-primary-links > a:nth-of-type(6)::before { content: "06"; }
+
+  .home-primary-links > a:last-of-type {
+    border-bottom: 0;
+  }
+
+  .home-primary-links > .nina-nav-link {
+    grid-template-columns: 25px 5px minmax(0, 1fr);
+    gap: 8px;
   }
 
   .home-mobile-brand {
@@ -3452,15 +3478,20 @@ footer {
   }
 
   .home-mobile-language-slot {
-    min-height: 43px;
+    min-height: 45px;
     display: flex;
     align-items: center;
+    margin-top: 7px;
+    padding: 7px 2px 0 27px;
+    border-top: 1px solid rgba(255,255,255,.11);
   }
 
   .home-mobile-language-slot .pv-language-switch {
-    min-height: 43px;
+    min-height: 38px;
     padding: 0;
-    opacity: .82;
+    font-size: 9px;
+    letter-spacing: .12em;
+    opacity: .64;
   }
 
   .home-utility-controls {
