@@ -3345,7 +3345,7 @@ footer {
   }
 
   .hero {
-    min-height: auto;
+    min-height: 100svh;
     display: block;
     padding: 0;
   }
@@ -3356,7 +3356,7 @@ footer {
   }
 
   .hero nav {
-    top: 20px;
+    top: calc(14px + env(safe-area-inset-top));
     left: 18px;
     width: calc(100% - 36px);
     transform: none;
@@ -3372,17 +3372,17 @@ footer {
   }
 
   .home-primary-links {
-    position: absolute;
-    top: 48px;
-    right: 0;
-    left: 0;
+    position: fixed;
+    inset: 0;
+    z-index: 100;
     display: none;
     grid-template-columns: 1fr;
+    align-content: start;
     gap: 0;
-    padding: 10px 18px 12px;
-    border: 1px solid rgba(255,255,255,.18);
-    background: rgba(0,0,0,.96);
-    box-shadow: 0 18px 38px rgba(0,0,0,.42);
+    padding: calc(76px + env(safe-area-inset-top)) 24px calc(24px + env(safe-area-inset-bottom));
+    background: rgba(0,0,0,.985);
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
 
   .hero nav.is-mobile-menu-open .home-primary-links {
@@ -3403,7 +3403,9 @@ footer {
     justify-self: start;
     align-items: center;
     font-family: 'Michroma', sans-serif;
-    letter-spacing: .17em;
+    font-size: 8px;
+    letter-spacing: .13em;
+    opacity: .62;
   }
 
   .home-mobile-menu-toggle {
@@ -3448,11 +3450,22 @@ footer {
     min-height: 32px;
   }
 
+  .home-mobile-brand,
+  .home-utility-controls {
+    position: relative;
+    z-index: 101;
+  }
+
+  body.mobile-navigation-open {
+    overflow: hidden;
+  }
+
   .hero-content {
     width: 100%;
-    min-height: 0;
-    display: block;
-    padding: 104px 18px 44px;
+    min-height: 100svh;
+    display: flex;
+    align-items: center;
+    padding: 92px 18px 58px;
   }
 
   .hero-copy {
@@ -3506,7 +3519,7 @@ footer {
   }
 
   .berlin-entry-content {
-    gap: 32px;
+    gap: 28px;
   }
 
   .berlin-entry h2 {
@@ -3519,6 +3532,52 @@ footer {
 
   .berlin-entry-cta {
     margin-top: 24px;
+  }
+
+  .berlin-entry-line + .berlin-entry-line {
+    margin-top: 14px;
+  }
+
+  .nina-feature-section {
+    padding: 64px 18px 32px;
+  }
+
+  .nina-feature-section .nina-identity {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .nina-feature-section .nina-identity-copy {
+    display: contents;
+  }
+
+  .nina-feature-section .nina-identity-label {
+    order: 1;
+    padding-top: 46px;
+  }
+
+  .nina-feature-section .nina-identity h2 {
+    order: 2;
+  }
+
+  .nina-feature-section .nina-identity-description {
+    order: 3;
+  }
+
+  .nina-feature-section .nina-identity-media {
+    order: 4;
+    width: 100%;
+    margin-top: 32px;
+  }
+
+  .nina-feature-section .nina-identity-actions {
+    order: 5;
+    width: 100%;
+    margin: 30px 0 46px;
+  }
+
+  .artists-section {
+    padding-top: 48px;
   }
 
   .nina-signal {

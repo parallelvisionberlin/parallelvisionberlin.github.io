@@ -66,6 +66,7 @@
   const closeMenu = () => {
     navigation.classList.remove("is-mobile-menu-open");
     toggle.setAttribute("aria-expanded", "false");
+    document.body.classList.remove("mobile-navigation-open");
     if (mobileQuery.matches) links.hidden = true;
   };
 
@@ -87,12 +88,15 @@
     const open = !navigation.classList.contains("is-mobile-menu-open");
     navigation.classList.toggle("is-mobile-menu-open", open);
     toggle.setAttribute("aria-expanded", String(open));
+    document.body.classList.toggle("mobile-navigation-open", open);
     links.hidden = !open;
   });
 
   links.addEventListener("click", event => {
     if (event.target.closest("a")) closeMenu();
   });
+
+  navigation.querySelector(".nina-account-toggle")?.addEventListener("click", closeMenu);
 
   document.addEventListener("click", event => {
     if (mobileQuery.matches && !navigation.contains(event.target)) closeMenu();
