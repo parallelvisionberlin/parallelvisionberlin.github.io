@@ -1,7 +1,11 @@
+import { creditSignalCredits } from "./credits.js";
+
 const REFERRAL_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const REFERRAL_CODE_LENGTH = 8;
 const REFERRAL_CODE_PATTERN = /^[A-HJ-NP-Z2-9]{8}$/;
 const REFERRAL_LINK_ORIGIN = "https://parallelvisionlabel.com";
+const REFERRAL_REWARD_CREDITS = 100;
+const REFERRAL_REWARD_THRESHOLD = 100;
 
 export class ReferralError extends Error {
   constructor(code, message, status = 400) {
@@ -87,4 +91,26 @@ export async function attributeReferral(env, userId, suppliedCode) {
   return Number(result?.meta?.changes || 0) > 0
     ? { attributed: true, status: "attributed" }
     : { attributed: false, status: "already_attributed" };
+}
+
+export async function rewardQualifyingReferral(env, referredUserId, purchasedCredits) {
+  if (!Number.isSafeInteger(purchasedCredits) || purchasedCredits < REFERRAL_REWARD_THRESHOLD) {
+    return { rewarded: false, status: "not_qualified" };
+  }
+  const referral = await env.NINA_MEMORY_DB.prepare(`
+    SELECT referred_by_user_id FROM users WHERE id = ? LIMIT 1
+  `).bind(referredUserId).first();
+  const referrerUserId = referral?.referred_by_user_id;
+  if (typeof referrerUserId !== "string" || !referrerUserId || referrerUserId === referredUserId) {
+    return { rewarded: false, status: "not_referred" };
+  }
+  const result = await creditSignalCredits(env, referrerUserId, REFERRAL_REWARD_CREDITS, {
+    source: "referral_reward",
+    referenceId: `referral-reward:${referredUserId}`,
+    description: "Qualified referral reward"
+  });
+  return {
+    rewarded: !result.idempotent,
+    status: result.idempotent ? "already_rewarded" : "rewarded"
+  };
 }

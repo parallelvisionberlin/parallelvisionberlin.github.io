@@ -21,8 +21,9 @@ function paymentDb() {
   const purchases = new Map();
   const accounts = new Map();
   const transactions = [];
+  const users = new Map();
   return {
-    purchases, accounts, transactions,
+    purchases, accounts, transactions, users,
     prepare(sql) {
       const normalized = sql.replace(/\s+/g, " ").trim();
       let values = [];
@@ -77,6 +78,7 @@ function paymentDb() {
           throw new Error(`Unexpected run: ${normalized}`);
         },
         async first() {
+          if (normalized.startsWith("SELECT referred_by_user_id FROM users")) return users.get(values[0]) || null;
           if (normalized.includes("FROM signal_credit_purchases")) return purchases.get(values[0]) || null;
           if (normalized.includes("FROM signal_credit_accounts")) return accounts.get(values[0]) || null;
           if (normalized.includes("FROM signal_credit_transactions")) {
@@ -206,6 +208,30 @@ test("a paid session grants the canonical credits exactly once on replay", async
   assert.equal(db.transactions.length, 1);
   assert.equal(purchase.status, "paid");
   assert.equal(purchase.stripe_payment_intent_id, "pi_test");
+});
+
+test("a referrer receives 100 credits once when the referred user first completes a qualifying paid purchase", async () => {
+  const db = paymentDb();
+  db.users.set("referred-user", { referred_by_user_id: "referrer-user" });
+  const env = configuredEnv(db);
+  const stripe = mockStripe();
+
+  const starter = await openPurchase(env, stripe, "signal_30", "referred-user");
+  assert.equal((await processStripeEvent(env, event("checkout.session.completed", starter.session), stripe)).referralReward.status, "not_qualified");
+  assert.equal(db.accounts.has("referrer-user"), false);
+
+  const qualifying = await openPurchase(env, stripe, "signal_100", "referred-user");
+  const first = await processStripeEvent(env, event("checkout.session.completed", qualifying.session), stripe);
+  assert.deepEqual(first.referralReward, { rewarded: true, status: "rewarded" });
+  assert.equal(db.accounts.get("referrer-user").balance, 100);
+
+  const replay = await processStripeEvent(env, event("checkout.session.completed", qualifying.session), stripe);
+  assert.deepEqual(replay.referralReward, { rewarded: false, status: "already_rewarded" });
+
+  const later = await openPurchase(env, stripe, "signal_300", "referred-user");
+  assert.deepEqual((await processStripeEvent(env, event("checkout.session.completed", later.session), stripe)).referralReward, { rewarded: false, status: "already_rewarded" });
+  assert.equal(db.accounts.get("referrer-user").balance, 100);
+  assert.equal(db.transactions.filter(row => row.source === "referral_reward").length, 1);
 });
 
 test("tampered pack metadata is rejected without granting credits", async () => {

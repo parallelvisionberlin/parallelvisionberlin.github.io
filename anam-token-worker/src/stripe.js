@@ -1,5 +1,6 @@
 import Stripe from "stripe";
 import { creditSignalCredits } from "./credits.js";
+import { rewardQualifyingReferral } from "./referrals.js";
 
 const PACK_DEFINITIONS = Object.freeze({
   signal_30: Object.freeze({ packId: "signal_30", credits: 30, amountEurCents: 300, priceBinding: "STRIPE_PRICE_SIGNAL_30", enabled: true }),
@@ -163,7 +164,8 @@ async function fulfillPaidSession(env, stripe, eventSession) {
     SET stripe_checkout_session_id = ?, stripe_payment_intent_id = ?, status = 'paid', updated_at = ?, paid_at = COALESCE(paid_at, ?)
     WHERE id = ? AND status != 'paid'
   `).bind(session.id, paymentIntentId(session), now, now, purchase.id).run();
-  return { fulfilled: true, idempotent: result.idempotent };
+  const referralReward = await rewardQualifyingReferral(env, purchase.user_id, pack.credits);
+  return { fulfilled: true, idempotent: result.idempotent, referralReward };
 }
 
 async function markSessionStatus(env, eventSession, status) {
