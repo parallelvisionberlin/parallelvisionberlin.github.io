@@ -103,7 +103,7 @@ test("credit APIs reject requests without a Clerk session", async () => {
   }
 });
 
-test("account panels request the server balance without wiring credit consumption", async () => {
+test("account panels request the server balance while usage debits remain server-authoritative", async () => {
   const [frontend, home, project] = await Promise.all([
     readFile(new URL("../../js/nina-access.js", import.meta.url), "utf8"),
     readFile(new URL("../../index.html", import.meta.url), "utf8"),
@@ -112,6 +112,7 @@ test("account panels request the server balance without wiring credit consumptio
   assert.match(frontend, /\/api\/nina\/credits/);
   assert.match(frontend, /textContent = "Unavailable"/);
   assert.doesNotMatch(frontend, /debitSignalCredits|\/api\/nina\/credits\/debit/);
+  assert.match(frontend, /\/api\/nina\/live\/\$\{action\}/);
   assert.match(home, /id="ninaSignalCredits"/);
   assert.match(project, /id="ninaSignalCredits"/);
 });
@@ -119,10 +120,10 @@ test("account panels request the server balance without wiring credit consumptio
 test("Signal Credit purchase UI submits only canonical pack IDs with Clerk authentication", async () => {
   const frontend = await readFile(new URL("../../js/nina-access.js", import.meta.url), "utf8");
   assert.match(frontend, /new Set\(\["signal_30", "signal_100", "signal_300", "signal_750"\]\)/);
-  assert.match(frontend, /data-pack-id="signal_30"[\s\S]*?30 Credits[\s\S]*?Quick Transmission[\s\S]*?€3/);
-  assert.match(frontend, /data-pack-id="signal_100"[\s\S]*?Private Signal[\s\S]*?€9/);
-  assert.match(frontend, /data-pack-id="signal_300"[\s\S]*?Deep Transmission[\s\S]*?€25/);
-  assert.match(frontend, /data-pack-id="signal_750"[\s\S]*?Extended Access[\s\S]*?€55/);
+  assert.match(frontend, /data-pack-id="signal_30"[\s\S]*?30 Signal Credits[\s\S]*?3 Min Live Nina[\s\S]*?Quick Transmission[\s\S]*?€3/);
+  assert.match(frontend, /data-pack-id="signal_100"[\s\S]*?100 Signal Credits[\s\S]*?10 Min Live Nina[\s\S]*?Private Signal[\s\S]*?€9/);
+  assert.match(frontend, /data-pack-id="signal_300"[\s\S]*?300 Signal Credits[\s\S]*?30 Min Live Nina[\s\S]*?Deep Transmission[\s\S]*?€25/);
+  assert.match(frontend, /data-pack-id="signal_750"[\s\S]*?750 Signal Credits[\s\S]*?75 Min Live Nina[\s\S]*?Extended Access[\s\S]*?€55/);
   assert.match(frontend, /About Signal Credits \+[\s\S]*?About Signal Credits −/);
   assert.match(frontend, /\/api\/nina\/credits\/checkout/);
   assert.match(frontend, /https:\/\/parallel-vision-anam-token\.parallelvision\.workers\.dev\/session-token/);

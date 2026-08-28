@@ -907,6 +907,13 @@ body.nina-credits-purchase-active {
   letter-spacing: .02em;
 }
 
+.nina-credits-pack-time {
+  color: rgba(255, 255, 255, .88);
+  font: 11px/1.4 'Courier New', monospace;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
 .nina-credits-pack-category {
   color: rgba(255, 255, 255, .62);
   font: 10px/1.4 'Courier New', monospace;

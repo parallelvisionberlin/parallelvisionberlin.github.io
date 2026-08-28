@@ -30,8 +30,9 @@ body { min-width: 0; }
 .account-button { display: inline-flex; align-items: center; justify-content: center; width: max-content; min-height: 46px; margin-top: 6px; padding: 0 18px; border: 1px solid #555; border-radius: 0; background: transparent; color: #eee; font: 12px/1 'Courier New', monospace; letter-spacing: .11em; text-decoration: none; text-transform: uppercase; cursor: pointer; }
 .account-button:hover, .account-button:focus-visible { border-color: #fff; color: #fff; }
 .account-button-danger { border-color: #704646; color: #d9aaa5; }
-.account-balance { display: flex; justify-content: space-between; align-items: end; max-width: 600px; margin: 0 0 14px; padding: 16px 0; border-top: 1px solid #333; border-bottom: 1px solid #333; color: #999; font: 11px 'Courier New', monospace; letter-spacing: .11em; text-transform: uppercase; }
+.account-balance { display: grid; grid-template-columns: 1fr auto; align-items: baseline; gap: 10px 24px; max-width: 600px; margin: 0 0 14px; padding: 16px 0; border-top: 1px solid #333; border-bottom: 1px solid #333; color: #999; font: 11px 'Courier New', monospace; letter-spacing: .11em; text-transform: uppercase; }
 .account-balance strong { color: #fff; font: 400 clamp(30px, 4vw, 48px)/1 Michroma, sans-serif; }
+.account-balance em { color: #d0d0cd; font: 400 15px/1.4 Inter, sans-serif; letter-spacing: 0; text-transform: none; }
 .account-list { display: grid; max-width: 760px; margin-top: 20px; }
 .account-list-row { display: grid; grid-template-columns: 1fr auto; gap: 8px 20px; align-items: center; min-height: 48px; padding: 10px 0; border-top: 1px solid #252525; }
 .account-list-row strong { font-size: 14px; font-weight: 400; }

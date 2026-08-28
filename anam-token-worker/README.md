@@ -82,18 +82,20 @@ Run SQL through `wrangler d1 execute nina-fok-memory --remote --command "..."` f
 
 ## Stripe Checkout for Signal Credits (Phase 2A)
 
-Phase 2A adds backend-only, one-time Stripe Checkout purchases. It does not add a purchase interface to the website and does not make Nina or Anam consume credits.
+Phase 2A introduced one-time Stripe Checkout purchases. The website now exposes those existing packs through the authenticated Signal Credits interface.
 
-The server-side catalog contains three enabled packs. The browser will eventually submit only the stable pack ID; credit quantities, prices, currency, Stripe Price IDs and user IDs are never accepted from it.
+The server-side catalog contains four enabled packs. The browser submits only the stable pack ID; credit quantities, prices, currency, Stripe Price IDs and user IDs are never accepted from it.
 
 | Pack ID | Signal Credits | Price |
 | --- | ---: | ---: |
+| `signal_30` | 30 | €3 |
 | `signal_100` | 100 | €9 |
 | `signal_300` | 300 | €25 |
 | `signal_750` | 750 | €55 |
 
-Create one Stripe product with three one-time EUR prices, then configure their test-mode or live-mode Price IDs in the matching Worker environment bindings:
+Create one Stripe product with four one-time EUR prices, then configure their test-mode or live-mode Price IDs in the matching Worker environment bindings:
 
+- `STRIPE_PRICE_SIGNAL_30`
 - `STRIPE_PRICE_SIGNAL_100`
 - `STRIPE_PRICE_SIGNAL_300`
 - `STRIPE_PRICE_SIGNAL_750`
@@ -131,7 +133,24 @@ The webhook intentionally accepts requests without a browser `Origin`. It reads 
 
 Stripe may deliver the same event more than once. The ledger uses the Checkout Session ID as `reference_id` with source `stripe_checkout`; the existing unique `(user_id, reference_id)` index makes replayed fulfillment idempotent. The purchase row is also updated idempotently. The ledger remains authoritative for balances, while `signal_credit_purchases` supports reconciliation and future refund handling.
 
-Refunds, reversals, subscriptions, frontend purchase controls and credit consumption are outside Phase 2A. Nina/Anam sessions still do not deduct Signal Credits.
+Refunds, reversals and subscriptions remain outside this integration.
+
+## Live Nina usage (Phase 3)
+
+The canonical conversion is defined in `src/live-usage.js`:
+
+- 10 Signal Credits = 1 minute of Live Nina
+- 1 Signal Credit = 6 seconds of Live Nina
+
+Only an authenticated, successfully connected Live Nina/Anam transmission consumes credits. Page visits, account access, checkout, failed Anam startup and text-only conversation do not consume Signal Credits.
+
+For normal users, `/session-token` requires a verified Clerk session and at least one real ledger credit before requesting an Anam session token. The Worker creates a pending `live_nina_sessions` record, and billing begins only when the authenticated browser reports that the Anam connection is established. The browser never supplies elapsed time, a debit amount, a balance or a user ID: the Worker derives the user from Clerk and computes completed six-second intervals from server timestamps.
+
+The browser requests settlement approximately every 30 seconds and on session end. Each settlement aggregates newly completed six-second units into one `anam_session` ledger debit and uses a stable session/interval reference for retry idempotency. A final interval shorter than six seconds is not charged. Duplicate activation, settlement and end requests do not double debit.
+
+The session's maximum billable duration is capped by its opening balance. If the real balance reaches zero, the Worker returns `exhausted`; the browser stops Anam, preserves completed memory work and offers the existing Get Signal Credits flow. The ledger trigger continues to prohibit negative balances.
+
+Failed token creation leaves the usage session marked `failed` with no debit. Pending sessions ended before connection also debit nothing. The existing server-side `owner` role bypasses Live Nina consumption for development and testing; no owner email is hardcoded in the browser. Logged-out guests are asked to sign in and are never assigned anonymous financial balances.
 
 ### Test mode and deployment
 

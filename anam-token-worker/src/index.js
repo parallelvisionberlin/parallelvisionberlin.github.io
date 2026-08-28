@@ -5,7 +5,10 @@ import {
 } from "./memory.js";
 import { asMemoryIdentity, resolveAuthenticatedUser, verifyClerkSessionToken } from "./auth.js";
 import { getAccountPreferences, getBillingHistory, updateAccountProfile, updateNewsletterPreferences } from "./account.js";
-import { getSignalCreditBalance, getSignalCreditHistory } from "./credits.js";
+import { SignalCreditError, getSignalCreditBalance, getSignalCreditHistory } from "./credits.js";
+import {
+  activateLiveNinaSession, createLiveNinaSession, creditsToSeconds, failLiveNinaSession, settleLiveNinaSession
+} from "./live-usage.js";
 import {
   StripePurchaseError, createSignalCreditCheckout, verifyAndProcessStripeWebhook
 } from "./stripe.js";
@@ -148,6 +151,7 @@ async function handleSessionToken(request, env, origin) {
   const browserHistory = validateCompletedMessages(body.recentMessages, HISTORY_LIMIT).slice(-HISTORY_LIMIT);
   const authenticationPresented = Boolean((request.headers.get("Authorization") || "").startsWith("Bearer "));
   const identity = await authenticateNinaRequest(request, env, body);
+  if (!identity) return jsonResponse({ error: "Sign in required", code: "sign_in_required" }, 401, origin);
   const owner = identity?.role === "owner" ? identity : null;
   let conversationId = "";
   let privateMemory = formatBrowserMemory(browserHistory);
@@ -172,15 +176,62 @@ async function handleSessionToken(request, env, origin) {
     uninterruptibleGreeting: personaConfig.uninterruptibleGreeting
   };
   console.log("nina_session_startup", JSON.stringify(startupDiagnostics));
-  const anamResponse = await fetch("https://api.anam.ai/v1/auth/session-token", {
-    method: "POST",
-    headers: { "Authorization": `Bearer ${env.ANAM_API_KEY}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ personaConfig })
-  });
-  if (!anamResponse.ok) return jsonResponse({ error: "Unable to start session" }, 502, origin);
+  let usage;
+  try { usage = await createLiveNinaSession(env, identity); }
+  catch (error) {
+    if (error instanceof SignalCreditError && error.code === "insufficient_credits") {
+      return jsonResponse({ error: "No Signal Credits", code: "insufficient_credits", balance: 0, remainingSeconds: 0 }, 402, origin);
+    }
+    throw error;
+  }
+  let anamResponse;
+  try {
+    anamResponse = await fetch("https://api.anam.ai/v1/auth/session-token", {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${env.ANAM_API_KEY}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ personaConfig })
+    });
+  } catch (error) {
+    if (usage.sessionId) await failLiveNinaSession(env, identity.user_id, usage.sessionId);
+    throw error;
+  }
+  if (!anamResponse.ok) {
+    if (usage.sessionId) await failLiveNinaSession(env, identity.user_id, usage.sessionId);
+    return jsonResponse({ error: "Unable to start session" }, 502, origin);
+  }
   const data = await anamResponse.json();
-  if (typeof data.sessionToken !== "string" || !data.sessionToken) return jsonResponse({ error: "Invalid session response" }, 502, origin);
-  return jsonResponse({ sessionToken: data.sessionToken, ...(conversationId ? { conversationId } : {}), diagnostics: { ...diagnostics, ...startupDiagnostics } }, 200, origin);
+  if (typeof data.sessionToken !== "string" || !data.sessionToken) {
+    if (usage.sessionId) await failLiveNinaSession(env, identity.user_id, usage.sessionId);
+    return jsonResponse({ error: "Invalid session response" }, 502, origin);
+  }
+  return jsonResponse({
+    sessionToken: data.sessionToken,
+    ...(conversationId ? { conversationId } : {}),
+    usageSessionId: usage.sessionId,
+    creditBypass: usage.bypass,
+    balance: usage.balance,
+    remainingSeconds: usage.remainingSeconds,
+    settlementSeconds: usage.settlementSeconds,
+    diagnostics: { ...diagnostics, ...startupDiagnostics }
+  }, 200, origin);
+}
+
+async function handleLiveNinaUsage(request, env, origin, action) {
+  const user = await authenticateAccountRequest(request, env);
+  if (!user) return jsonResponse({ error: "Account authentication required", code: "sign_in_required" }, 401, origin);
+  const body = await request.json().catch(() => ({}));
+  try {
+    const result = action === "activate"
+      ? await activateLiveNinaSession(env, user, body.sessionId)
+      : await settleLiveNinaSession(env, user, body.sessionId, { end: action === "end" });
+    return jsonResponse(result, 200, origin);
+  } catch (error) {
+    if (error instanceof SignalCreditError) {
+      const status = error.code === "insufficient_credits" ? 402 : 409;
+      return jsonResponse({ error: error.message, code: error.code }, status, origin);
+    }
+    throw error;
+  }
 }
 
 async function requireAuthenticatedMemory(request, env, body, origin) {
@@ -242,7 +293,8 @@ async function handleDelete(request, env, origin) {
 async function handleSignalCredits(request, env, origin) {
   const user = await authenticateAccountRequest(request, env);
   if (!user) return jsonResponse({ error: "Account authentication required" }, 401, origin);
-  return jsonResponse(await getSignalCreditBalance(env, user.id), 200, origin);
+  const account = await getSignalCreditBalance(env, user.id);
+  return jsonResponse({ ...account, remainingSeconds: creditsToSeconds(account.balance) }, 200, origin);
 }
 
 async function handleSignalCreditHistory(request, env, origin) {
@@ -334,6 +386,9 @@ export default {
       if (url.pathname === "/api/nina/credits" && request.method === "GET") return handleSignalCredits(request, env, origin);
       if (url.pathname === "/api/nina/credits/history" && request.method === "GET") return handleSignalCreditHistory(request, env, origin);
       if (url.pathname === "/api/nina/credits/checkout" && request.method === "POST") return await handleSignalCreditCheckout(request, env, origin);
+      if (url.pathname === "/api/nina/live/activate" && request.method === "POST") return handleLiveNinaUsage(request, env, origin, "activate");
+      if (url.pathname === "/api/nina/live/settle" && request.method === "POST") return handleLiveNinaUsage(request, env, origin, "settle");
+      if (url.pathname === "/api/nina/live/end" && request.method === "POST") return handleLiveNinaUsage(request, env, origin, "end");
       if (url.pathname === "/api/account" && request.method === "GET") return handleAccount(request, env, origin);
       if (url.pathname === "/api/account/profile" && request.method === "PUT") return handleAccountProfile(request, env, origin);
       if (url.pathname === "/api/account/preferences" && request.method === "PUT") return handleAccountPreferences(request, env, origin);

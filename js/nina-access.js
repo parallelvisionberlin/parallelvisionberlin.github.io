@@ -52,6 +52,7 @@ const ninaAccountSignUp = byId("ninaAccountSignUp");
 const ninaAccountCreditAction = byId("ninaAccountCreditAction");
 const ninaAccountName = byId("ninaAccountName");
 const ninaSignalCredits = byId("ninaSignalCredits");
+const ninaLiveTime = byId("ninaLiveTime");
 const ninaAccountSignOut = byId("ninaAccountSignOut");
 const SIGNAL_CREDIT_PACK_IDS = new Set(["signal_30", "signal_100", "signal_300", "signal_750"]);
 const NINA_CREDIT_CHECKOUT_STATE_KEY = "nina_signal_credit_checkout_v1";
@@ -95,10 +96,25 @@ let ninaCreditsPurchaseStatus = null;
 let ninaCreditsPackList = null;
 let ninaCreditsPackButtons = [];
 let ninaCreditsPurchaseClose = null;
+let ninaUsageSessionId = "";
+let ninaUsageActive = false;
+let ninaUsageEnding = false;
+let ninaUsageTimer = null;
+let ninaUsageRemainingSeconds = null;
+let ninaUsageSettlementSeconds = null;
+let ninaScrimAction = "connect";
+let ninaUsageActivationPromise = null;
+let ninaUsageSettlementFailures = 0;
 const delay = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
 const logDevelopmentError = (message, error) => { if (DEVELOPMENT) console.error(message, error); };
 const nativeFullscreenElement = () => document.fullscreenElement || document.webkitFullscreenElement || null;
 const ninaIsFullscreen = () => nativeFullscreenElement() === ninaWindow || ninaWindow.classList.contains("is-fallback-fullscreen");
+const formatLiveTime = seconds => {
+  const safe = Math.max(0, Number.isSafeInteger(seconds) ? seconds : 0);
+  const minutes = Math.floor(safe / 60);
+  const remainder = safe % 60;
+  return remainder ? `${minutes} min ${remainder} sec` : `${minutes} min`;
+};
 
 function syncAccountLanguage(language = document.documentElement.lang) {
   const german = language === "de";
@@ -110,6 +126,12 @@ function syncAccountLanguage(language = document.documentElement.lang) {
   ninaAccountPanel?.querySelectorAll(".nina-account-menu a").forEach((link, index) => { link.textContent = labels[index > 0 ? index + 1 : 0] || link.textContent; });
   if (ninaCreditsPurchaseTrigger) ninaCreditsPurchaseTrigger.textContent = labels[1];
   if (ninaAccountSignOut) ninaAccountSignOut.textContent = german ? "Abmelden" : "Sign out";
+  const creditLabels = ninaAccountPanel?.querySelectorAll(".nina-account-credits span");
+  if (creditLabels?.[1]) creditLabels[1].textContent = german ? "Live Nina Zeit" : "Live Nina Time";
+  const about = ninaCreditsPurchaseModal?.querySelector(".nina-credits-about-copy");
+  if (about) about.innerHTML = german
+    ? "<p>Signal Credits werden für Live-Nina-Übertragungen verwendet.</p><p>10 Credits = 1 Minute. 1 Credit = 6 Sekunden.</p><p>Textgespräche verwenden keine Live-Nina-Credits.</p>"
+    : "<p>Signal Credits are used for Live Nina transmissions.</p><p>10 credits = 1 minute. 1 credit = 6 seconds.</p><p>Text conversations do not use Live Nina credits.</p>";
 }
 
 function syncNinaFullscreen() {
@@ -254,6 +276,7 @@ function updateNinaAccountControls(clerk = ninaClerk) {
       ninaSignalCredits.textContent = "Loading…";
       ninaSignalCredits.removeAttribute("data-state");
     }
+    if (ninaLiveTime) ninaLiveTime.textContent = "—";
     if (ninaAccountPanel && !ninaAccountPanel.hidden) ninaAccountSignIn?.focus({ preventScroll: true });
   }
 }
@@ -280,6 +303,7 @@ async function loadSignalCreditBalance(clerk = ninaClerk, force = false) {
   ninaCreditsUserId = userId;
   const requestId = ++ninaCreditsRequest;
   ninaSignalCredits.textContent = "Loading…";
+  if (ninaLiveTime) ninaLiveTime.textContent = "Loading…";
   ninaSignalCredits.removeAttribute("data-state");
   try {
     const token = await clerk.session.getToken();
@@ -294,11 +318,13 @@ async function loadSignalCreditBalance(clerk = ninaClerk, force = false) {
     if (requestId !== ninaCreditsRequest) return null;
     ninaCreditsBalance = data.balance;
     ninaSignalCredits.textContent = `${data.balance.toLocaleString()} credits`;
+    if (ninaLiveTime) ninaLiveTime.textContent = formatLiveTime(data.remainingSeconds);
     return data.balance;
   } catch (error) {
     if (requestId !== ninaCreditsRequest) return null;
     ninaCreditsBalance = null;
     ninaSignalCredits.textContent = "Unavailable";
+    if (ninaLiveTime) ninaLiveTime.textContent = "Unavailable";
     ninaSignalCredits.dataset.state = "unavailable";
     logDevelopmentError("Signal Credit balance unavailable.", error);
     return null;
@@ -375,20 +401,17 @@ function initializeSignalCreditPurchaseUI() {
       <h2 class="nina-credits-purchase-title" id="ninaCreditsPurchaseTitle">Signal Credits</h2>
       <p class="nina-credits-purchase-lead" id="ninaCreditsPurchaseLead">Access Nina's live transmissions.</p>
       <div class="nina-credits-pack-list">
-        <button class="nina-credits-pack" type="button" data-pack-id="signal_30"><span class="nina-credits-pack-copy"><span class="nina-credits-pack-title">30 Credits</span><span class="nina-credits-pack-category">Quick Transmission</span><span class="nina-credits-pack-description">A short live signal with Nina.</span></span><strong>€3</strong></button>
-        <button class="nina-credits-pack" type="button" data-pack-id="signal_100"><span class="nina-credits-pack-copy"><span class="nina-credits-pack-title">100 Credits</span><span class="nina-credits-pack-category">Private Signal</span><span class="nina-credits-pack-description">A focused one-to-one transmission.</span></span><strong>€9</strong></button>
-        <button class="nina-credits-pack" type="button" data-pack-id="signal_300"><span class="nina-credits-pack-copy"><span class="nina-credits-pack-title">300 Credits</span><span class="nina-credits-pack-category">Deep Transmission</span><span class="nina-credits-pack-description">More time inside Nina’s live system.</span></span><strong>€25</strong></button>
-        <button class="nina-credits-pack" type="button" data-pack-id="signal_750"><span class="nina-credits-pack-copy"><span class="nina-credits-pack-title">750 Credits</span><span class="nina-credits-pack-category">Extended Access</span><span class="nina-credits-pack-description">For longer returns and recurring contact.</span></span><strong>€55</strong></button>
+        <button class="nina-credits-pack" type="button" data-pack-id="signal_30"><span class="nina-credits-pack-copy"><span class="nina-credits-pack-title">30 Signal Credits</span><span class="nina-credits-pack-time">3 Min Live Nina</span><span class="nina-credits-pack-category">Quick Transmission</span><span class="nina-credits-pack-description">A short live signal with Nina.</span></span><strong>€3</strong></button>
+        <button class="nina-credits-pack" type="button" data-pack-id="signal_100"><span class="nina-credits-pack-copy"><span class="nina-credits-pack-title">100 Signal Credits</span><span class="nina-credits-pack-time">10 Min Live Nina</span><span class="nina-credits-pack-category">Private Signal</span><span class="nina-credits-pack-description">A focused one-to-one transmission.</span></span><strong>€9</strong></button>
+        <button class="nina-credits-pack" type="button" data-pack-id="signal_300"><span class="nina-credits-pack-copy"><span class="nina-credits-pack-title">300 Signal Credits</span><span class="nina-credits-pack-time">30 Min Live Nina</span><span class="nina-credits-pack-category">Deep Transmission</span><span class="nina-credits-pack-description">More time inside Nina’s live system.</span></span><strong>€25</strong></button>
+        <button class="nina-credits-pack" type="button" data-pack-id="signal_750"><span class="nina-credits-pack-copy"><span class="nina-credits-pack-title">750 Signal Credits</span><span class="nina-credits-pack-time">75 Min Live Nina</span><span class="nina-credits-pack-category">Extended Access</span><span class="nina-credits-pack-description">For longer returns and recurring contact.</span></span><strong>€55</strong></button>
       </div>
       <details class="nina-credits-about">
         <summary><span class="nina-credits-about-closed">About Signal Credits +</span><span class="nina-credits-about-open">About Signal Credits −</span></summary>
         <div class="nina-credits-about-copy">
-          <p>Signal Credits open access to Nina’s live transmission system.</p>
-          <p>The public archive shows fragments of Nina’s world. Credits open the live channel.</p>
-          <p>Nina FOK is an experimental synthetic presence by Parallel Vision: part voice, part memory, part emotional interface, part future archive.</p>
-          <p>She can respond in real time, follow your mood and turn a conversation into something personal. Some signals are quick. Some go deeper.</p>
-          <p>Credits help cover the computing cost of running live AI, voice and audiovisual infrastructure.</p>
-          <p>Nina is not therapy or a medical product. She is an experimental digital experience.</p>
+          <p>Signal Credits are used for Live Nina transmissions.</p>
+          <p>10 credits = 1 minute. 1 credit = 6 seconds.</p>
+          <p>Text conversations do not use Live Nina credits.</p>
         </div>
       </details>
       <p class="nina-credits-purchase-status" role="status" aria-live="polite"></p>
@@ -778,6 +801,7 @@ function showNinaReady() {
   ninaStatus.textContent = "NINA IS READY";
   startNina.disabled = false;
   startNina.textContent = "CONNECT";
+  ninaScrimAction = "connect";
   resetNinaMemoryIndicator();
 }
 
@@ -915,6 +939,23 @@ function showNinaFailure(message = "Please check microphone access and try again
   ninaStatus.textContent = "CONNECTION FAILED";
   startNina.disabled = false;
   startNina.textContent = "TRY AGAIN";
+  ninaScrimAction = "connect";
+}
+
+function showNoSignalCredits() {
+  document.body.classList.remove("nina-connecting-mode", "nina-conversation-live");
+  document.body.classList.add("nina-scrim-visible", "nina-scrim-action");
+  setNinaScrim("NO SIGNAL CREDITS", "10 CREDITS = 1 MIN LIVE NINA", "Get Signal Credits to open the live channel.", "GET SIGNAL CREDITS");
+  ninaStatus.textContent = "NO SIGNAL CREDITS";
+  ninaScrimAction = "credits";
+}
+
+function showSignalEnded() {
+  document.body.classList.remove("nina-connecting-mode", "nina-conversation-live", "nina-call-visible");
+  document.body.classList.add("nina-scrim-visible", "nina-scrim-action");
+  setNinaScrim("SIGNAL ENDED", "", "You’ve used your available Live Nina time.", "GET SIGNAL CREDITS");
+  ninaStatus.textContent = "SIGNAL ENDED";
+  ninaScrimAction = "credits";
 }
 
 function markNinaOnline() {
@@ -923,6 +964,100 @@ function markNinaOnline() {
   ninaStatus.textContent = "NINA ONLINE";
   document.body.classList.add("nina-call-visible", "nina-conversation-live");
   document.body.classList.remove("nina-connecting-mode", "nina-scrim-visible", "nina-scrim-action");
+}
+
+function clearNinaUsageTimer() {
+  if (ninaUsageTimer) clearTimeout(ninaUsageTimer);
+  ninaUsageTimer = null;
+}
+
+async function requestNinaUsage(action, keepalive = false) {
+  if (!ninaUsageSessionId) return { bypass: true, status: action === "end" ? "ended" : "active" };
+  const response = await fetch(`${ANAM_SESSION_TOKEN_ENDPOINT.replace(/\/session-token$/, "")}/api/nina/live/${action}`, {
+    method: "POST",
+    headers: await authenticationHeaders(),
+    body: JSON.stringify({ sessionId: ninaUsageSessionId }),
+    keepalive
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const error = new Error(typeof data.error === "string" ? data.error : "Live Nina time unavailable");
+    error.code = typeof data.code === "string" ? data.code : "usage_unavailable";
+    throw error;
+  }
+  return data;
+}
+
+function scheduleNinaUsageSettlement() {
+  clearNinaUsageTimer();
+  if (!ninaUsageActive || !ninaUsageSessionId) return;
+  if (!Number.isSafeInteger(ninaUsageSettlementSeconds) || ninaUsageSettlementSeconds < 1) return;
+  const delaySeconds = Math.max(1, Math.min(ninaUsageSettlementSeconds, Number.isSafeInteger(ninaUsageRemainingSeconds) ? ninaUsageRemainingSeconds : ninaUsageSettlementSeconds));
+  ninaUsageTimer = setTimeout(() => void settleNinaUsage(false), delaySeconds * 1000);
+}
+
+async function activateNinaUsage(attempt, client) {
+  if (attempt !== ninaAttempt || client !== ninaClient) return false;
+  if (!ninaUsageSessionId) {
+    markNinaOnline();
+    return true;
+  }
+  if (ninaUsageActive) return true;
+  if (!ninaUsageActivationPromise) {
+    ninaUsageActivationPromise = requestNinaUsage("activate").then(result => {
+      if (attempt !== ninaAttempt || client !== ninaClient) return false;
+      ninaUsageActive = true;
+      ninaUsageSettlementFailures = 0;
+      ninaUsageRemainingSeconds = Number.isSafeInteger(result.remainingSeconds) ? result.remainingSeconds : null;
+      ninaUsageSettlementSeconds = Number.isSafeInteger(result.settlementSeconds) ? result.settlementSeconds : ninaUsageSettlementSeconds;
+      markNinaOnline();
+      scheduleNinaUsageSettlement();
+      return true;
+    }).finally(() => { ninaUsageActivationPromise = null; });
+  }
+  return ninaUsageActivationPromise;
+}
+
+async function settleNinaUsage(end = false, keepalive = false) {
+  if (!ninaUsageSessionId || ninaUsageEnding) return null;
+  if (end) ninaUsageEnding = true;
+  clearNinaUsageTimer();
+  try {
+    const result = await requestNinaUsage(end ? "end" : "settle", keepalive);
+    ninaUsageSettlementFailures = 0;
+    if (Number.isSafeInteger(result.balance)) {
+      ninaCreditsBalance = result.balance;
+      if (ninaSignalCredits) ninaSignalCredits.textContent = `${result.balance.toLocaleString()} credits`;
+    }
+    if (Number.isSafeInteger(result.remainingSeconds)) {
+      ninaUsageRemainingSeconds = result.remainingSeconds;
+      if (ninaLiveTime) ninaLiveTime.textContent = formatLiveTime(result.remainingSeconds);
+    }
+    if (Number.isSafeInteger(result.settlementSeconds)) ninaUsageSettlementSeconds = result.settlementSeconds;
+    if (result.status === "exhausted") {
+      ninaUsageActive = false;
+      ninaUsageSessionId = "";
+      await stopNinaSession();
+      showSignalEnded();
+    } else if (!end) scheduleNinaUsageSettlement();
+    return result;
+  } catch (error) {
+    logDevelopmentError("Live Nina settlement unavailable.", error);
+    if (!end) {
+      ninaUsageSettlementFailures += 1;
+      if (ninaUsageSettlementFailures === 1) {
+        ninaUsageTimer = setTimeout(() => void settleNinaUsage(false), 3000);
+      } else {
+        ninaUsageSessionId = "";
+        ninaUsageActive = false;
+        await stopNinaSession();
+        if (ninaOverlay.classList.contains("is-open")) showNinaFailure("Live time verification ended. Reconnect when your account is available.");
+      }
+    }
+    return null;
+  } finally {
+    if (end) ninaUsageEnding = false;
+  }
 }
 
 async function stopNinaSession() {
@@ -934,6 +1069,14 @@ async function stopNinaSession() {
   ninaMemoryListenerCleanup = null;
   ninaMemoryLoadedForSession = false;
   ninaSessionMessageKeys = new Set();
+  clearNinaUsageTimer();
+  if (ninaUsageSessionId) await settleNinaUsage(true, true);
+  ninaUsageSessionId = "";
+  ninaUsageActive = false;
+  ninaUsageRemainingSeconds = null;
+  ninaUsageSettlementSeconds = null;
+  ninaUsageActivationPromise = null;
+  ninaUsageSettlementFailures = 0;
   const serverConversationId = ninaServerConversationId;
   ninaServerConversationId = "";
   if (serverConversationId) {
@@ -962,25 +1105,45 @@ async function requestSessionToken(signal, history) {
     }),
     signal
   });
-  if (!response.ok) throw new Error(`Token endpoint returned ${response.status}.`);
-  const data = await response.json();
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const error = new Error(typeof data.error === "string" ? data.error : `Token endpoint returned ${response.status}.`);
+    error.code = typeof data.code === "string" ? data.code : "session_unavailable";
+    throw error;
+  }
   if (typeof data.sessionToken !== "string" || !data.sessionToken) throw new Error("Token endpoint did not return a session token.");
-  return { sessionToken: data.sessionToken, conversationId: typeof data.conversationId === "string" ? data.conversationId : "" };
+  return {
+    sessionToken: data.sessionToken,
+    conversationId: typeof data.conversationId === "string" ? data.conversationId : "",
+    usageSessionId: typeof data.usageSessionId === "string" ? data.usageSessionId : "",
+    creditBypass: data.creditBypass === true,
+    balance: Number.isSafeInteger(data.balance) ? data.balance : null,
+    remainingSeconds: Number.isSafeInteger(data.remainingSeconds) ? data.remainingSeconds : null,
+    settlementSeconds: Number.isSafeInteger(data.settlementSeconds) ? data.settlementSeconds : null
+  };
 }
 
 function bindAnamLifecycle(client, attempt) {
   ninaMemoryListenerCleanup?.();
   const onConnectionEstablished = () => {
     if (attempt !== ninaAttempt || client !== ninaClient) return;
-    markNinaOnline();
+    void activateNinaUsage(attempt, client).catch(async error => {
+      logDevelopmentError("Unable to activate Live Nina time.", error);
+      await stopNinaSession();
+      if (ninaOverlay.classList.contains("is-open")) {
+        if (error?.code === "insufficient_credits") showNoSignalCredits();
+        else showNinaFailure("Live time verification is unavailable. Please try again.");
+      }
+    });
   };
   const onVideoPlayStarted = () => {
     if (attempt !== ninaAttempt || client !== ninaClient) return;
-    markNinaOnline();
+    void activateNinaUsage(attempt, client).catch(() => {});
   };
   const onHistoryUpdated = history => storeCompletedNinaMessages(history, client, attempt);
   const onClosed = () => {
     if (attempt !== ninaAttempt || client !== ninaClient) return;
+    void settleNinaUsage(true, true);
     ninaClient = null;
     ninaConnecting = false;
     if (ninaOverlay.classList.contains("is-open")) showNinaFailure("The connection ended. Try again when you're ready.");
@@ -1012,6 +1175,9 @@ async function connectNina() {
     ninaTokenAbortController = null;
     if (attempt !== ninaAttempt || !ninaOverlay.classList.contains("is-open")) return;
     ninaServerConversationId = session.conversationId;
+    ninaUsageSessionId = session.usageSessionId;
+    ninaUsageRemainingSeconds = session.remainingSeconds;
+    ninaUsageSettlementSeconds = session.settlementSeconds;
     const client = createClient(session.sessionToken);
     ninaClient = client;
     bindAnamLifecycle(client, attempt);
@@ -1020,12 +1186,17 @@ async function connectNina() {
       await client.stopStreaming();
       return;
     }
-    markNinaOnline();
+    await activateNinaUsage(attempt, client);
   } catch (error) {
     if (attempt !== ninaAttempt || error?.name === "AbortError") return;
     logDevelopmentError("Nina connection failed.", error);
     await stopNinaSession();
-    if (ninaOverlay.classList.contains("is-open")) showNinaFailure();
+    if (ninaOverlay.classList.contains("is-open")) {
+      if (error?.code === "insufficient_credits") showNoSignalCredits();
+      else if (error?.code === "sign_in_required") {
+        showNinaFailure("Sign in to open a paid Live Nina transmission.");
+      } else showNinaFailure();
+    }
   } finally {
     if (attempt === ninaAttempt) ninaConnecting = false;
   }
@@ -1191,7 +1362,10 @@ window.addEventListener("pv-language-change", event => syncAccountLanguage(event
 document.addEventListener("fullscreenchange", syncNinaFullscreen);
 document.addEventListener("webkitfullscreenchange", syncNinaFullscreen);
 startNina.addEventListener("click", connectNina);
-ninaScrimButton.addEventListener("click", connectNina);
+ninaScrimButton.addEventListener("click", () => {
+  if (ninaScrimAction === "credits") openSignalCreditPurchase();
+  else connectNina();
+});
 ninaMicrophoneSelect.addEventListener("change", async () => {
   const selectedId = ninaMicrophoneSelect.value;
   savePreferredMicrophone(selectedId);
