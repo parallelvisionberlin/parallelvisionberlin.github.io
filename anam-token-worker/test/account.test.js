@@ -36,13 +36,17 @@ test("billing history cannot read another user's purchases", async () => {
 });
 
 test("account migration and frontend preserve profile-memory separation", async () => {
-  const [migration,page,frontend,index,project]=await Promise.all([
-    readFile(new URL("../migrations/0005_account_preferences.sql",import.meta.url),"utf8"),readFile(new URL("../../account.html",import.meta.url),"utf8"),readFile(new URL("../../js/account.js",import.meta.url),"utf8"),readFile(new URL("../../index.html",import.meta.url),"utf8"),readFile(new URL("../../nina-project.html",import.meta.url),"utf8")
+  const [migration,page,frontend,accountCss,index,project]=await Promise.all([
+    readFile(new URL("../migrations/0005_account_preferences.sql",import.meta.url),"utf8"),readFile(new URL("../../account.html",import.meta.url),"utf8"),readFile(new URL("../../js/account.js",import.meta.url),"utf8"),readFile(new URL("../../css/account.css",import.meta.url),"utf8"),readFile(new URL("../../index.html",import.meta.url),"utf8"),readFile(new URL("../../nina-project.html",import.meta.url),"utf8")
   ]);
   assert.match(migration,/CREATE TABLE account_preferences/);assert.match(migration,/user_id TEXT PRIMARY KEY REFERENCES users\(id\)/);
   assert.match(page,/id="memoryConfirm" hidden/);assert.match(frontend,/method:"DELETE",body:"\{\}"/);assert.match(frontend,/\/api\/account\/billing/);
   assert.match(index,/id="ninaAccountShell">/);assert.match(project,/id="ninaAccountShell">/);assert.match(index,/id="ninaAccountLoggedOut"/);
   assert.match(frontend,/clearLocalNinaMemory/);assert.match(frontend,/openConfirm/);assert.match(frontend,/clerk\?\.openSignIn/);
+  assert.match(accountCss,/\[hidden\]\s*\{\s*display:\s*none\s*!important/);
+  assert.match(frontend,/paid:"COMPLETED",open:"NOT COMPLETED",failed:"FAILED",expired:"EXPIRED"/);
+  assert.match(frontend,/paid:"ABGESCHLOSSEN",open:"NICHT ABGESCHLOSSEN",failed:"FEHLGESCHLAGEN",expired:"ABGELAUFEN"/);
+  assert.doesNotMatch(frontend,/\$\{row\.status\}/);
   assert.match(index,/Profile<\/a>/);assert.match(index,/Billing<\/a>/);assert.match(index,/Memory<\/a>/);assert.match(index,/Newsletter<\/a>/);
   assert.doesNotMatch(page,/DELETE ACCOUNT/i);
 });
