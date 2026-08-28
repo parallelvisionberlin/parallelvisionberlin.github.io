@@ -1078,12 +1078,26 @@ body.nina-credits-purchase-active {
     position: absolute;
     top: calc(100% + 12px);
     right: 0;
-    width: min(88vw, 320px);
+    width: min(78vw, 280px);
     max-height: calc(100dvh - 92px - env(safe-area-inset-top));
-    padding: 22px 20px;
+    padding: 17px 16px;
     overflow-y: auto;
     overscroll-behavior: contain;
   }
+  .nina-account-eyebrow { font-size: 9px; }
+  .nina-account-name { margin: 8px 0 14px; font-size: 17px; }
+  .nina-account-credits {
+    gap: 6px 12px;
+    margin-bottom: 10px;
+    padding: 10px 0 11px;
+  }
+  .nina-account-buy-credits { min-height: 42px; margin-bottom: 10px; padding-inline: 10px; font-size: 10px; }
+  .nina-account-menu { gap: 0; padding: 3px 0; }
+  .nina-account-menu a,
+  .nina-account-menu > span,
+  .nina-account-action,
+  .nina-account-menu .nina-account-get-credits { min-height: 38px; font-size: 10px; }
+  .nina-account-signout { min-height: 38px; margin-top: 12px; font-size: 10px; }
   .nina-account-menu a[href="./account.html#newsletter"] { display: none; }
   .nina-credits-purchase { align-items: end; padding: 12px; }
   .nina-credits-purchase-panel { width: 100%; max-height: calc(100svh - 24px); padding: 28px 22px 24px; overflow-y: auto; }

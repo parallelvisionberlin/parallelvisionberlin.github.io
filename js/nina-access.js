@@ -1361,6 +1361,9 @@ ninaAccountSignOut?.addEventListener("click", async () => {
   }
 });
 document.addEventListener("click", () => closeNinaAccountPanel());
+window.addEventListener("scroll", () => {
+  if (window.innerWidth <= 560 && ninaAccountPanel && !ninaAccountPanel.hidden) closeNinaAccountPanel();
+}, { passive: true });
 window.addEventListener("pv-language-change", event => syncAccountLanguage(event.detail?.language));
 document.addEventListener("fullscreenchange", syncNinaFullscreen);
 document.addEventListener("webkitfullscreenchange", syncNinaFullscreen);

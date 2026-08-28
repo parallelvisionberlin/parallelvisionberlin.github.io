@@ -21,27 +21,35 @@
   const saveData = Boolean(navigator.connection?.saveData);
   let sourceLoaded = false;
 
+  heroVideo.defaultMuted = true;
+  heroVideo.muted = true;
+  heroVideo.playsInline = true;
+
+  const attemptPlayback = () => {
+    if (!heroVideo.autoplay || reducedMotion || saveData) return;
+    heroVideo.play().catch(() => {});
+  };
+
   const loadHeroVideo = () => {
     if (sourceLoaded || !source?.dataset.src || reducedMotion || saveData) return;
     source.src = source.dataset.src;
     sourceLoaded = true;
+    heroVideo.addEventListener("canplay", attemptPlayback, { once: true });
     heroVideo.load();
-    heroVideo.play().catch(() => {});
+    attemptPlayback();
   };
 
-  const scheduleDesktopLoad = () => {
-    if (window.innerWidth <= 760) return;
+  const scheduleHeroLoad = () => {
+    if (window.innerWidth <= 760) {
+      loadHeroVideo();
+      return;
+    }
     if ("requestIdleCallback" in window) window.requestIdleCallback(loadHeroVideo, { timeout: 1800 });
     else window.setTimeout(loadHeroVideo, 350);
   };
 
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", scheduleDesktopLoad, { once: true });
-  else scheduleDesktopLoad();
-
-  if (window.innerWidth <= 760 && !reducedMotion && !saveData) {
-    document.addEventListener("pointerdown", loadHeroVideo, { once: true, passive: true });
-    document.addEventListener("keydown", loadHeroVideo, { once: true });
-  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", scheduleHeroLoad, { once: true });
+  else scheduleHeroLoad();
 
   document.addEventListener("visibilitychange", () => {
     if (document.hidden) {
