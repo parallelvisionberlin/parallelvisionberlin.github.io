@@ -141,6 +141,41 @@
   cursor: wait;
 }
 
+.nina-access-email-form {
+  margin-top: 18px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, .12);
+}
+
+.nina-access-email-form[hidden] { display: none !important; }
+
+.nina-access-email-password-label { margin-top: 16px; }
+
+.nina-access-email-submit {
+  width: 100%;
+  margin-top: 4px;
+}
+
+.nina-access-email-utilities {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  margin-top: 14px;
+}
+
+.nina-access-email-utilities button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: rgba(255, 255, 255, .48);
+  font: 10px/1.5 'Courier New', monospace;
+  letter-spacing: .05em;
+  cursor: pointer;
+}
+
+.nina-access-email-utilities button:hover,
+.nina-access-email-utilities button:focus-visible { color: rgba(255, 255, 255, .82); }
+
 .nina-access-form {
   margin-top: 20px;
   padding-top: 22px;

@@ -46,6 +46,13 @@ const ninaMemoryIndicator = byId("ninaMemoryIndicator");
 const ninaForgetMemory = byId("ninaForgetMemory");
 const ninaSignIn = byId("ninaSignIn");
 const ninaSignInEmail = byId("ninaSignInEmail");
+const ninaEmailSignInForm = byId("ninaEmailSignInForm");
+const ninaEmailAddress = byId("ninaEmailAddress");
+const ninaEmailPassword = byId("ninaEmailPassword");
+const ninaEmailSignInError = byId("ninaEmailSignInError");
+const ninaEmailSignInSubmit = byId("ninaEmailSignInSubmit");
+const ninaEmailCreateAccount = byId("ninaEmailCreateAccount");
+const ninaEmailForgotPassword = byId("ninaEmailForgotPassword");
 const ninaAccountShell = byId("ninaAccountShell");
 const ninaAccountToggle = byId("ninaAccountToggle");
 const ninaAccountPanel = byId("ninaAccountPanel");
@@ -70,6 +77,7 @@ const NINA_LEGACY_OWNER_TOKEN_KEY = "nina_fok_owner_token_v1";
 const NINA_MEMORY_KEY_PREFIX = "nina_fok_memory_v2:";
 const NINA_LEGACY_MEMORY_KEY = "nina_fok_alejandro_memory_v1";
 const NINA_REFERRAL_CODE_KEY = "pv_nina_referral_code_v1";
+const NINA_AUTH_RETURN_KEY = "nina_auth_return_v1";
 const NINA_REFERRAL_CODE_PATTERN = /^[A-HJ-NP-Z2-9]{8}$/;
 const NINA_MEMORY_LIMIT = 20;
 const NINA_VISITOR_ID_PATTERN = /^(?:[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|visitor-[a-z0-9-]+)$/i;
@@ -410,6 +418,16 @@ async function initializeNinaAuth() {
     ninaClerk = clerk;
     clerk.addListener?.(() => updateNinaAccountControls(clerk));
     updateNinaAccountControls(clerk);
+    const callbackUrl = new URL(window.location.href);
+    if (callbackUrl.searchParams.get("nina_clerk_callback") === "1") {
+      callbackUrl.searchParams.delete("nina_clerk_callback");
+      await clerk.handleRedirectCallback({
+        redirectUrl: callbackUrl.href,
+        afterSignInUrl: callbackUrl.href,
+        afterSignUpUrl: callbackUrl.href
+      });
+      return clerk;
+    }
     return clerk;
   })().catch(error => {
     logDevelopmentError("Clerk authentication unavailable.", error);
@@ -1383,6 +1401,7 @@ function openNinaAccess() {
   ninaAccessForm.hidden = true;
   ninaAccessForm.setAttribute("aria-hidden", "true");
   ninaPrivateAccessToggle.setAttribute("aria-expanded", "false");
+  resetInlineEmailSignIn();
   lockNinaAccessScroll();
   setTimeout(() => ninaSignIn?.focus({ preventScroll: true }), 50);
 }
@@ -1399,6 +1418,7 @@ function closeNinaAccess(keepVerification = false) {
   ninaAccessForm.hidden = true;
   ninaAccessForm.setAttribute("aria-hidden", "true");
   ninaPrivateAccessToggle.setAttribute("aria-expanded", "false");
+  resetInlineEmailSignIn();
   unlockNinaAccessScroll();
   (lastNinaTrigger || openNina)?.focus({ preventScroll: true });
 }
@@ -1459,14 +1479,67 @@ new Set([openNina, openNinaArtist, ...ninaOpenTriggers].filter(Boolean)).forEach
   trigger.addEventListener("click", event => void routeNinaTrigger(event.currentTarget));
 });
 
-async function openNinaAccountSignIn(method = "google") {
-  const clerk = await initializeNinaAuth();
-  if (!clerk) return;
-  await clerk.openSignIn(method === "email" ? { initialValues: { emailAddress: "" } } : undefined);
+function resetInlineEmailSignIn() {
+  if (!ninaEmailSignInForm) return;
+  ninaEmailSignInForm.hidden = true;
+  ninaEmailSignInForm.setAttribute("aria-hidden", "true");
+  ninaEmailSignInError.textContent = "";
+  ninaEmailPassword.value = "";
+  ninaEmailSignInSubmit.disabled = false;
+  ninaEmailSignInSubmit.textContent = "SIGN IN";
+}
+
+async function completeNinaClerkSignIn(clerk, attempt) {
+  if (attempt?.status !== "complete" || !attempt.createdSessionId) return false;
+  await clerk.setActive({ session: attempt.createdSessionId });
   updateNinaAccountControls(clerk);
-  if (!clerk.isSignedIn || !clerk.session) return;
   if (ninaAccess.classList.contains("is-open")) openNinaExperience();
   else if (ninaOverlay.classList.contains("is-open")) void refreshNinaEligibility();
+  return true;
+}
+
+async function startNinaGoogleSignIn() {
+  const clerk = await initializeNinaAuth();
+  if (!clerk) return;
+  const callbackUrl = new URL(window.location.href);
+  callbackUrl.searchParams.set("nina_clerk_callback", "1");
+  sessionStorage.setItem(NINA_AUTH_RETURN_KEY, "signal");
+  await clerk.client.signIn.authenticateWithRedirect({
+    strategy: "oauth_google",
+    redirectUrl: callbackUrl.href,
+    redirectUrlComplete: callbackUrl.href
+  });
+}
+
+function showInlineEmailSignIn() {
+  const willOpen = ninaEmailSignInForm.hidden;
+  ninaEmailSignInForm.hidden = !willOpen;
+  ninaEmailSignInForm.setAttribute("aria-hidden", String(!willOpen));
+  if (willOpen) ninaEmailAddress.focus({ preventScroll: true });
+  else ninaSignInEmail.focus({ preventScroll: true });
+}
+
+async function submitInlineEmailSignIn(event) {
+  event.preventDefault();
+  const clerk = await initializeNinaAuth();
+  if (!clerk) return;
+  ninaEmailSignInSubmit.disabled = true;
+  ninaEmailSignInSubmit.textContent = "SIGNING IN...";
+  ninaEmailSignInError.textContent = "";
+  try {
+    const attempt = await clerk.client.signIn.create({
+      identifier: ninaEmailAddress.value.trim(),
+      password: ninaEmailPassword.value
+    });
+    if (await completeNinaClerkSignIn(clerk, attempt)) return;
+    ninaEmailSignInError.textContent = "ADDITIONAL VERIFICATION IS REQUIRED.";
+  } catch (error) {
+    logDevelopmentError("Clerk email sign-in failed.", error);
+    ninaEmailSignInError.textContent = "SIGN-IN DETAILS COULD NOT BE VERIFIED.";
+  } finally {
+    ninaEmailSignInSubmit.disabled = false;
+    ninaEmailSignInSubmit.textContent = "SIGN IN";
+  }
 }
 
 function togglePrivateNinaAccess() {
@@ -1487,8 +1560,17 @@ ninaPrivateAccessToggle.addEventListener("click", togglePrivateNinaAccess);
 closeNina.addEventListener("click", closeNinaWindow);
 ninaFullscreen.addEventListener("click", toggleNinaFullscreen);
 ninaForgetMemory.addEventListener("click", forgetNinaMemory);
-ninaSignIn?.addEventListener("click", () => void openNinaAccountSignIn("google"));
-ninaSignInEmail?.addEventListener("click", () => void openNinaAccountSignIn("email"));
+ninaSignIn?.addEventListener("click", () => void startNinaGoogleSignIn());
+ninaSignInEmail?.addEventListener("click", showInlineEmailSignIn);
+ninaEmailSignInForm?.addEventListener("submit", submitInlineEmailSignIn);
+ninaEmailCreateAccount?.addEventListener("click", async () => {
+  const clerk = await initializeNinaAuth();
+  if (clerk) await clerk.openSignUp({ initialValues: { emailAddress: ninaEmailAddress.value.trim() } });
+});
+ninaEmailForgotPassword?.addEventListener("click", async () => {
+  const clerk = await initializeNinaAuth();
+  if (clerk) await clerk.openSignIn({ initialValues: { emailAddress: ninaEmailAddress.value.trim() } });
+});
 ninaAccountSignIn?.addEventListener("click", async () => {
   const clerk = await initializeNinaAuth();
   if (clerk) await clerk.openSignIn();
@@ -1572,6 +1654,11 @@ initializeSignalCreditPurchaseUI();
 syncAccountLanguage();
 void handleSignalCreditReturn();
 void initializeNinaAuth().then(clerk => {
+  if (clerk?.isSignedIn && sessionStorage.getItem(NINA_AUTH_RETURN_KEY) === "signal") {
+    sessionStorage.removeItem(NINA_AUTH_RETURN_KEY);
+    openNinaExperience();
+    return;
+  }
   if (clerk?.isSignedIn && new URLSearchParams(window.location.search).get("credits") === "1") openSignalCreditPurchase();
 });
 void ANAM_PERSONA_ID;
