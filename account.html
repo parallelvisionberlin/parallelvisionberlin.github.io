@@ -8,7 +8,7 @@
   <link rel="icon" href="./favicon.png">
   <link href="https://fonts.googleapis.com/css2?family=Michroma&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./css/base.css?v=20260814-1">
-  <link rel="stylesheet" href="./css/account.css?v=20260828-1">
+  <link rel="stylesheet" href="./css/account.css?v=20260828-2">
 </head>
 <body>
   <header class="account-header">
@@ -21,17 +21,31 @@
     <div class="account-intro">
       <p>PV / PRIVATE ACCOUNT</p>
       <h1 data-copy="accountTitle">Account</h1>
+      <p class="account-intro-copy" data-copy="accountIntro">Account settings, Signal Credits and Nina continuity.</p>
       <p id="accountIdentity" class="account-identity" aria-live="polite">Connecting…</p>
       <button class="account-button" id="accountSignIn" type="button" hidden data-copy="signIn">Sign in</button>
     </div>
 
-    <div id="accountContent" hidden>
+    <div class="account-layout" id="accountContent" hidden>
+      <nav class="account-index-nav" aria-label="Account sections">
+        <a href="#profile" data-copy="profile">Profile</a>
+        <a href="#credits" data-copy="credits">Signal Credits</a>
+        <a href="#billing" data-copy="billing">Billing</a>
+        <a href="#memory" data-copy="memory">Memory</a>
+        <a href="#newsletter" data-copy="newsletter">Newsletter</a>
+      </nav>
+      <div class="account-sections">
       <section class="account-section" id="profile">
         <p class="account-index">01</p><h2 data-copy="profile">Profile</h2>
         <p class="account-copy" data-copy="profileCopy">Explicit profile data is separate from Nina’s conversational memory.</p>
         <form id="profileForm" class="account-form">
           <label for="preferredName" data-copy="preferredName">Preferred name</label>
           <input id="preferredName" name="preferredName" maxlength="50" autocomplete="name" required>
+          <label for="profileLanguage" data-copy="language">Language</label>
+          <select id="profileLanguage" name="language">
+            <option value="en">English</option>
+            <option value="de">Deutsch</option>
+          </select>
           <button class="account-button" type="submit" data-copy="saveProfile">Save profile</button>
           <p class="account-status" id="profileStatus" role="status"></p>
         </form>
@@ -47,6 +61,7 @@
       <section class="account-section" id="billing">
         <p class="account-index">03</p><h2 data-copy="billing">Billing</h2>
         <p class="account-copy" data-copy="billingCopy">Signal Credit purchase records associated with this account.</p>
+        <div class="account-billing-head" aria-hidden="true"><span data-copy="pack">Pack</span><span data-copy="amount">Amount</span><span data-copy="status">Status</span><span data-copy="date">Date</span></div>
         <div class="account-list" id="billingHistory" aria-live="polite"></div>
       </section>
 
@@ -72,6 +87,7 @@
         <p class="account-index">06</p><h2 data-copy="accountTitle">Account</h2>
         <button class="account-button" id="accountSignOut" type="button" data-copy="signOut">Sign out</button>
       </section>
+      </div>
     </div>
   </main>
 
@@ -86,6 +102,6 @@
       </div>
     </section>
   </div>
-  <script type="module" src="./js/account.js?v=20260828-1"></script>
+  <script type="module" src="./js/account.js?v=20260828-2"></script>
 </body>
 </html>
