@@ -22,11 +22,13 @@ const openNina = byId("openNina");
 const openNinaArtist = byId("openNinaArtist");
 const ninaOpenTriggers = Array.from(document.querySelectorAll("[data-nina-open]"));
 const ninaAccess = byId("ninaAccess");
+const ninaAccessPanel = ninaAccess?.querySelector(".nina-access-panel");
 const ninaAccessForm = byId("ninaAccessForm");
 const ninaAccessCode = byId("ninaAccessCode");
 const ninaAccessError = byId("ninaAccessError");
 const ninaAccessSubmit = byId("ninaAccessSubmit");
 const ninaAccessCancel = byId("ninaAccessCancel");
+const ninaPrivateAccessToggle = byId("ninaPrivateAccessToggle");
 const ninaWindow = document.querySelector(".nina-window");
 const ninaFullscreen = byId("ninaFullscreen");
 const closeNina = byId("closeNina");
@@ -43,6 +45,7 @@ const ninaEligibilityStatus = byId("ninaEligibilityStatus");
 const ninaMemoryIndicator = byId("ninaMemoryIndicator");
 const ninaForgetMemory = byId("ninaForgetMemory");
 const ninaSignIn = byId("ninaSignIn");
+const ninaSignInEmail = byId("ninaSignInEmail");
 const ninaAccountShell = byId("ninaAccountShell");
 const ninaAccountToggle = byId("ninaAccountToggle");
 const ninaAccountPanel = byId("ninaAccountPanel");
@@ -72,6 +75,7 @@ const NINA_MEMORY_LIMIT = 20;
 const NINA_VISITOR_ID_PATTERN = /^(?:[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|visitor-[a-z0-9-]+)$/i;
 let ninaAccessSubmitting = false;
 let ninaAccessVerifiedForCurrentOpen = false;
+let ninaPrivateAccessVerified = false;
 let ninaConnecting = false;
 let ninaClient = null;
 let ninaAttempt = 0;
@@ -300,6 +304,8 @@ function updateNinaAccountControls(clerk = ninaClerk) {
   const signedIn = Boolean(clerk?.isSignedIn && clerk?.session);
   if (ninaSignIn) ninaSignIn.hidden = signedIn;
   if (ninaSignIn) ninaSignIn.disabled = false;
+  if (ninaSignInEmail) ninaSignInEmail.hidden = signedIn;
+  if (ninaSignInEmail) ninaSignInEmail.disabled = false;
   if (ninaAccountShell) ninaAccountShell.hidden = false;
   if (ninaAccountLoggedOut) ninaAccountLoggedOut.hidden = signedIn;
   if (ninaAccountLoggedIn) ninaAccountLoggedIn.hidden = !signedIn;
@@ -397,6 +403,7 @@ function loadNinaClerkUI() {
 async function initializeNinaAuth() {
   if (!ninaAuthInitialization) ninaAuthInitialization = (async () => {
     if (ninaSignIn) ninaSignIn.disabled = true;
+    if (ninaSignInEmail) ninaSignInEmail.disabled = true;
     const ClerkUI = await loadNinaClerkUI();
     const clerk = ninaClerk || new Clerk(CLERK_CONFIGURATION.publishableKey);
     await clerk.load({ ui: { ClerkUI } });
@@ -410,6 +417,10 @@ async function initializeNinaAuth() {
     if (ninaSignIn) {
       ninaSignIn.hidden = false;
       ninaSignIn.disabled = false;
+    }
+    if (ninaSignInEmail) {
+      ninaSignInEmail.hidden = false;
+      ninaSignInEmail.disabled = false;
     }
     if (ninaAccountShell) ninaAccountShell.hidden = false;
     if (ninaAccountLoggedOut) ninaAccountLoggedOut.hidden = false;
@@ -849,11 +860,11 @@ function setNinaScrim(title, subtitle = "", message = "", buttonText = "") {
   document.body.classList.toggle("nina-scrim-action", Boolean(buttonText));
 }
 
-function showNinaReady(balance = ninaCreditsBalance) {
+function showNinaReady(balance = ninaCreditsBalance, statusOverride = "") {
   document.body.classList.remove("nina-connecting-mode", "nina-call-visible", "nina-conversation-live", "nina-scrim-visible", "nina-scrim-action");
-  const creditStatus = Number.isSafeInteger(balance)
+  const creditStatus = statusOverride || (Number.isSafeInteger(balance)
     ? `${balance.toLocaleString()} SIGNAL CREDITS / ${formatLiveTime(balance * 6).toUpperCase()}`
-    : "SIGNAL CREDIT BALANCE UNAVAILABLE";
+    : "SIGNAL CREDIT BALANCE UNAVAILABLE");
   if (ninaEligibilityStatus) ninaEligibilityStatus.textContent = creditStatus;
   setNinaScrim("NINA IS READY", creditStatus, "Enter when you're ready.", "CONNECT");
   ninaStatus.textContent = "NINA IS READY";
@@ -884,6 +895,10 @@ function showNinaSignInRequired() {
 async function refreshNinaEligibility() {
   const clerk = await initializeNinaAuth();
   if (!clerk?.isSignedIn || !clerk?.session) {
+    if (ninaPrivateAccessVerified) {
+      showNinaReady(null, "PRIVATE ACCESS VERIFIED");
+      return null;
+    }
     showNinaSignInRequired();
     return null;
   }
@@ -1251,21 +1266,24 @@ async function connectNina() {
   if (ninaConnecting || ninaClient || !ninaOverlay.classList.contains("is-open")) return;
   ninaConnecting = true; // Guards duplicate eligibility and connection requests.
   const clerk = await initializeNinaAuth();
-  if (!clerk?.isSignedIn || !clerk?.session) {
+  const signedIn = Boolean(clerk?.isSignedIn && clerk?.session);
+  if (!signedIn && !ninaPrivateAccessVerified) {
     ninaConnecting = false;
     showNinaSignInRequired();
     return;
   }
-  const balance = await loadSignalCreditBalance(clerk, true);
-  if (balance === 0) {
-    ninaConnecting = false;
-    showNoSignalCredits();
-    return;
-  }
-  if (!Number.isSafeInteger(balance) || balance < 0) {
-    ninaConnecting = false;
-    showNinaFailure("Unable to confirm your Signal Credit balance. Try again.");
-    return;
+  if (signedIn) {
+    const balance = await loadSignalCreditBalance(clerk, true);
+    if (balance === 0) {
+      ninaConnecting = false;
+      showNoSignalCredits();
+      return;
+    }
+    if (!Number.isSafeInteger(balance) || balance < 0) {
+      ninaConnecting = false;
+      showNinaFailure("Unable to confirm your Signal Credit balance. Try again.");
+      return;
+    }
   }
   const attempt = ++ninaAttempt;
   showNinaConnecting();
@@ -1354,6 +1372,7 @@ function openNinaExperience() {
 function openNinaAccess() {
   ninaScrollPosition = window.scrollY;
   ninaAccessVerifiedForCurrentOpen = false;
+  ninaPrivateAccessVerified = false;
   closeNinaAccountPanel();
   ninaOverlay.classList.remove("is-open");
   ninaOverlay.setAttribute("aria-hidden", "true");
@@ -1361,16 +1380,25 @@ function openNinaAccess() {
   ninaAccess.setAttribute("aria-hidden", "false");
   ninaAccessError.textContent = "";
   ninaAccessCode.value = "";
+  ninaAccessForm.hidden = true;
+  ninaAccessForm.setAttribute("aria-hidden", "true");
+  ninaPrivateAccessToggle.setAttribute("aria-expanded", "false");
   lockNinaAccessScroll();
-  setTimeout(() => ninaAccessCode.focus({ preventScroll: true }), 50);
+  setTimeout(() => ninaSignIn?.focus({ preventScroll: true }), 50);
 }
 
 function closeNinaAccess(keepVerification = false) {
-  if (!keepVerification) ninaAccessVerifiedForCurrentOpen = false;
+  if (!keepVerification) {
+    ninaAccessVerifiedForCurrentOpen = false;
+    ninaPrivateAccessVerified = false;
+  }
   ninaAccess.classList.remove("is-open");
   ninaAccess.setAttribute("aria-hidden", "true");
   ninaAccessError.textContent = "";
   ninaAccessCode.value = "";
+  ninaAccessForm.hidden = true;
+  ninaAccessForm.setAttribute("aria-hidden", "true");
+  ninaPrivateAccessToggle.setAttribute("aria-expanded", "false");
   unlockNinaAccessScroll();
   (lastNinaTrigger || openNina)?.focus({ preventScroll: true });
 }
@@ -1390,6 +1418,7 @@ async function verifyNinaAccess(event) {
       return;
     }
     ninaAccessVerifiedForCurrentOpen = true;
+    ninaPrivateAccessVerified = true;
     ninaAccessError.textContent = "IDENTITY VERIFIED";
     await delay(500);
     ninaAccessError.textContent = "OPENING CHANNEL...";
@@ -1402,7 +1431,7 @@ async function verifyNinaAccess(event) {
     ninaAccessSubmitting = false;
     ninaAccessSubmit.disabled = false;
     ninaAccessCancel.disabled = false;
-    ninaAccessSubmit.textContent = "OPEN SIGNAL";
+    ninaAccessSubmit.textContent = "USE ACCESS CODE";
   }
 }
 
@@ -1413,6 +1442,7 @@ async function closeNinaWindow() {
   document.body.style.overflow = "";
   window.scrollTo(0, ninaScrollPosition);
   ninaAccessVerifiedForCurrentOpen = false;
+  ninaPrivateAccessVerified = false;
   await stopNinaSession();
   document.body.classList.remove("nina-connecting-mode", "nina-call-visible", "nina-conversation-live", "nina-scrim-visible", "nina-scrim-action");
   (lastNinaTrigger || openNina)?.focus({ preventScroll: true });
@@ -1429,24 +1459,36 @@ new Set([openNina, openNinaArtist, ...ninaOpenTriggers].filter(Boolean)).forEach
   trigger.addEventListener("click", event => void routeNinaTrigger(event.currentTarget));
 });
 
-async function openNinaAccountSignIn() {
+async function openNinaAccountSignIn(method = "google") {
   const clerk = await initializeNinaAuth();
   if (!clerk) return;
-  await clerk.openSignIn();
+  await clerk.openSignIn(method === "email" ? { initialValues: { emailAddress: "" } } : undefined);
   updateNinaAccountControls(clerk);
   if (!clerk.isSignedIn || !clerk.session) return;
   if (ninaAccess.classList.contains("is-open")) openNinaExperience();
   else if (ninaOverlay.classList.contains("is-open")) void refreshNinaEligibility();
 }
 
+function togglePrivateNinaAccess() {
+  const willOpen = ninaAccessForm.hidden;
+  ninaAccessForm.hidden = !willOpen;
+  ninaAccessForm.setAttribute("aria-hidden", String(!willOpen));
+  ninaPrivateAccessToggle.setAttribute("aria-expanded", String(willOpen));
+  if (willOpen) ninaAccessCode.focus({ preventScroll: true });
+  else ninaPrivateAccessToggle.focus({ preventScroll: true });
+}
+
 ninaAccessForm.addEventListener("submit", verifyNinaAccess);
-ninaAccess.addEventListener("click", event => event.stopPropagation());
-ninaAccess.addEventListener("pointerdown", event => event.stopPropagation());
+ninaAccess.addEventListener("click", event => { if (event.target === ninaAccess) closeNinaAccess(); });
+ninaAccessPanel?.addEventListener("click", event => event.stopPropagation());
+ninaAccessPanel?.addEventListener("pointerdown", event => event.stopPropagation());
 ninaAccessCancel.addEventListener("click", () => closeNinaAccess());
+ninaPrivateAccessToggle.addEventListener("click", togglePrivateNinaAccess);
 closeNina.addEventListener("click", closeNinaWindow);
 ninaFullscreen.addEventListener("click", toggleNinaFullscreen);
 ninaForgetMemory.addEventListener("click", forgetNinaMemory);
-ninaSignIn?.addEventListener("click", openNinaAccountSignIn);
+ninaSignIn?.addEventListener("click", () => void openNinaAccountSignIn("google"));
+ninaSignInEmail?.addEventListener("click", () => void openNinaAccountSignIn("email"));
 ninaAccountSignIn?.addEventListener("click", async () => {
   const clerk = await initializeNinaAuth();
   if (clerk) await clerk.openSignIn();

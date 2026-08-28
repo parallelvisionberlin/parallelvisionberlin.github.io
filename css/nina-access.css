@@ -27,7 +27,8 @@
 }
 
 .nina-access-panel {
-  width: min(590px, 100%);
+  position: relative;
+  width: min(540px, 100%);
   max-height: calc(100dvh - 32px);
   overflow-y: auto;
   padding: clamp(34px, 5vw, 58px);
@@ -36,7 +37,25 @@
   box-shadow: 0 35px 120px rgba(0, 0, 0, .85);
 }
 
+.nina-access-close {
+  position: absolute;
+  top: 16px;
+  right: 18px;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: rgba(255, 255, 255, .64);
+  font: 300 26px/1 Inter, sans-serif;
+  cursor: pointer;
+}
+
+.nina-access-close:hover,
+.nina-access-close:focus-visible { color: #fff; }
+
 .nina-access-title {
+  max-width: calc(100% - 42px);
   margin: 0;
   color: #fff;
   font-family: 'Michroma', sans-serif;
@@ -72,8 +91,9 @@
 }
 
 .nina-access-account {
+  width: 100%;
   min-height: 48px;
-  margin-top: 26px;
+  margin: 0;
   padding: 0 18px;
   border: 1px solid rgba(255, 255, 255, .3);
   border-radius: 0;
@@ -86,6 +106,31 @@
   transition: border-color .2s ease, background .2s ease, color .2s ease;
 }
 
+.nina-access-auth-actions {
+  display: grid;
+  gap: 10px;
+  margin-top: 27px;
+}
+
+.nina-access-account-secondary {
+  border-color: rgba(255, 255, 255, .18);
+  color: rgba(255, 255, 255, .72);
+}
+
+.nina-access-private-toggle {
+  margin: 22px 0 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: rgba(255, 255, 255, .43);
+  font: 10px/1.5 'Courier New', monospace;
+  letter-spacing: .08em;
+  cursor: pointer;
+}
+
+.nina-access-private-toggle:hover,
+.nina-access-private-toggle:focus-visible { color: rgba(255, 255, 255, .8); }
+
 .nina-access-account:hover:not(:disabled) {
   border-color: #fff;
   background: rgba(255, 255, 255, .06);
@@ -97,10 +142,12 @@
 }
 
 .nina-access-form {
-  margin-top: 34px;
-  padding-top: 30px;
+  margin-top: 20px;
+  padding-top: 22px;
   border-top: 1px solid rgba(255, 255, 255, .12);
 }
+
+.nina-access-form[hidden] { display: none !important; }
 
 .nina-access-label {
   display: block;
@@ -195,6 +242,8 @@
 .nina-signal:focus-visible,
 .nina-access-input:focus-visible,
 .nina-access-account:focus-visible,
+.nina-access-close:focus-visible,
+.nina-access-private-toggle:focus-visible,
 .nina-access-submit:focus-visible,
 .nina-access-cancel:focus-visible,
 .nina-fullscreen:focus-visible,
@@ -217,8 +266,8 @@ body.nina-access-active {
   .nina-access-title { font-size: clamp(24px, 8vw, 31px); }
   .nina-access-lead { margin-top: 18px; font-size: 18px; }
   .nina-access-description { font-size: 15px; }
-  .nina-access-account { width: 100%; }
-  .nina-access-form { margin-top: 26px; padding-top: 24px; }
+  .nina-access-account { width: 100%; min-height: 50px; }
+  .nina-access-form { margin-top: 18px; padding-top: 20px; }
   .nina-access-actions { align-items: stretch; flex-direction: column; gap: 8px; }
   .nina-access-submit,.nina-access-cancel { width: 100%; }
 }

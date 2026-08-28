@@ -17,7 +17,7 @@
   <meta name="twitter:image" content="https://parallelvisionlabel.com/assets/ninamain-page.webp">
   <link rel="icon" type="image/png" href="./favicon.png">
   <link rel="stylesheet" href="./fashion.css?v=20260817-archive-size">
-  <link rel="stylesheet" href="./css/nina-access.css?v=20260828-mobile-fullscreen">
+  <link rel="stylesheet" href="./css/nina-access.css?v=20260829-sign-in-gate">
   <style>
     :root { --n-line: rgba(255,255,255,.15); --n-body: rgba(255,255,255,.7); --n-faint: rgba(255,255,255,.44); }
     * { box-sizing: border-box; }
@@ -344,11 +344,16 @@
   aria-hidden="true"
 >
   <section class="nina-access-panel">
-    <h2 class="nina-access-title" id="ninaAccessTitle">SIGN IN TO OPEN THE SIGNAL</h2>
-    <p class="nina-access-lead">Memory and Signal Credits are connected to your account.</p>
-    <p class="nina-access-description">Or continue with an existing private access code.</p>
-    <button class="nina-access-account" id="ninaSignIn" type="button" disabled>SIGN IN</button>
-    <form class="nina-access-form" id="ninaAccessForm">
+    <button class="nina-access-close" id="ninaAccessCancel" type="button" aria-label="Close sign-in panel">×</button>
+    <h2 class="nina-access-title" id="ninaAccessTitle">OPEN THE SIGNAL</h2>
+    <p class="nina-access-lead">Sign in to continue your transmission with Nina.</p>
+    <p class="nina-access-description">Your account keeps your Signal Credits and your history with Nina connected.</p>
+    <div class="nina-access-auth-actions">
+      <button class="nina-access-account" id="ninaSignIn" type="button" disabled>CONTINUE WITH GOOGLE</button>
+      <button class="nina-access-account nina-access-account-secondary" id="ninaSignInEmail" type="button" disabled>CONTINUE WITH EMAIL</button>
+    </div>
+    <button class="nina-access-private-toggle" id="ninaPrivateAccessToggle" type="button" aria-expanded="false" aria-controls="ninaAccessForm">Have a private access code?</button>
+    <form class="nina-access-form" id="ninaAccessForm" hidden aria-hidden="true">
       <label class="nina-access-label" for="ninaAccessCode">Access code</label>
       <input
         class="nina-access-input"
@@ -361,8 +366,7 @@
       >
       <p class="nina-access-error" id="ninaAccessError" role="status" aria-live="polite"></p>
       <div class="nina-access-actions">
-        <button class="nina-access-submit" id="ninaAccessSubmit" type="submit">OPEN SIGNAL</button>
-        <button class="nina-access-cancel" id="ninaAccessCancel" type="button">CANCEL</button>
+        <button class="nina-access-submit" id="ninaAccessSubmit" type="submit">USE ACCESS CODE</button>
       </div>
     </form>
   </section>
@@ -687,6 +691,6 @@
       syncMotion();
     })();
   </script>
-<script type="module" src="./js/nina-access.js?v=20260828-credit-eligibility"></script>
+<script type="module" src="./js/nina-access.js?v=20260829-sign-in-gate"></script>
 </body>
 </html>
