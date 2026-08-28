@@ -3346,7 +3346,7 @@ footer {
   }
 
   .hero {
-    min-height: 100svh;
+    min-height: 90svh;
     display: block;
     padding: 0;
   }
@@ -3374,9 +3374,9 @@ footer {
 
   .home-primary-links {
     position: fixed;
-    top: 0;
+    top: calc(58px + env(safe-area-inset-top));
     right: 0;
-    bottom: 0;
+    bottom: auto;
     left: auto;
     z-index: 100;
     width: min(82vw, 360px);
@@ -3385,10 +3385,11 @@ footer {
     grid-template-columns: 1fr;
     align-content: start;
     gap: 0;
-    padding: calc(76px + env(safe-area-inset-top)) 24px calc(24px + env(safe-area-inset-bottom));
+    max-height: calc(100dvh - 76px - env(safe-area-inset-top));
+    padding: 10px 20px 12px;
     border-left: 1px solid rgba(255,255,255,.16);
     background: rgba(3,3,4,.985);
-    box-shadow: -22px 0 60px rgba(0,0,0,.58);
+    box-shadow: -18px 18px 52px rgba(0,0,0,.56);
     overflow-y: auto;
     overscroll-behavior: contain;
   }
@@ -3403,7 +3404,7 @@ footer {
     inset: 0;
     z-index: 99;
     display: none;
-    background: rgba(0,0,0,.58);
+    background: rgba(0,0,0,.34);
   }
 
   .hero nav.is-mobile-menu-open::before {
@@ -3477,13 +3478,9 @@ footer {
     z-index: 101;
   }
 
-  body.mobile-navigation-open {
-    overflow: hidden;
-  }
-
   .hero-content {
     width: 100%;
-    min-height: 100svh;
+    min-height: 90svh;
     display: flex;
     align-items: center;
     padding: 92px 18px 58px;
@@ -3554,7 +3551,7 @@ footer {
   }
 
   .berlin-entry {
-    padding: 56px 0;
+    padding: 36px 0 56px;
   }
 
   .berlin-entry-content {

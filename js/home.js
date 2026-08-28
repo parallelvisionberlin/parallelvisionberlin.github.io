@@ -67,7 +67,6 @@
     navigation.classList.remove("is-mobile-menu-open");
     toggle.setAttribute("aria-expanded", "false");
     toggle.textContent = "Menu";
-    document.body.classList.remove("mobile-navigation-open");
     if (mobileQuery.matches) links.hidden = true;
   };
 
@@ -90,7 +89,6 @@
     navigation.classList.toggle("is-mobile-menu-open", open);
     toggle.setAttribute("aria-expanded", String(open));
     toggle.textContent = open ? "Close" : "Menu";
-    document.body.classList.toggle("mobile-navigation-open", open);
     links.hidden = !open;
   });
 
