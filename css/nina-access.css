@@ -1810,9 +1810,12 @@ body.nina-call-visible
 }
 
 .nina-open-live {
-  min-width: min(330px, 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: min(330px, 100%);
   min-height: 58px;
-  margin-top: 16px;
+  margin: 16px auto 0;
 
   padding:
     14px
@@ -1873,7 +1876,8 @@ body.nina-call-visible
 }
 
 .nina-referral-entry {
-  margin: 17px 0 0;
+  display: block;
+  margin: 17px auto 0;
   padding: 0;
   border: 0;
   background: transparent;
