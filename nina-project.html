@@ -40,7 +40,7 @@
     .n-nav a:hover,.n-nav a:focus-visible,.n-nav-transmit:hover,.n-nav-transmit:focus-visible { color: #fff; }
     .n-nav-transmit { padding:0; border:0; background:none; font:inherit; letter-spacing:inherit; text-transform:inherit; cursor:pointer; }
 
-    .n-hero { width: min(calc(100% + 56px),calc(100vw - 28px)); margin-left: 50%; padding: 18px 0 34px; border-bottom: 1px solid var(--n-line); transform: translateX(-50%); }
+    .n-hero { padding: 18px 0 34px; border-bottom: 1px solid var(--n-line); }
     .n-hero-media { position: relative; height: clamp(620px,82vh,860px); margin: 0; overflow: hidden; background: #100304 url('./nina-fok/HDNINACANON.png') center 45% / cover no-repeat; }
     .n-hero-asset { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center 45%; filter: saturate(.72) contrast(1.04) brightness(.78); }
     .n-hero-media::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(90deg,rgba(0,0,0,.22) 0%,rgba(0,0,0,.06) 34%,transparent 58%),linear-gradient(180deg,transparent 46%,rgba(0,0,0,.82) 100%); }
@@ -52,7 +52,7 @@
     .n-hero-statement { max-width: 470px; margin: 0; color: rgba(255,255,255,.92); font: 300 clamp(13px,1.2vw,16px)/1.65 Inter,sans-serif; }
     .n-hero-actions { display: flex; align-items: center; margin-top: 32px; }
     .n-hero-actions .n-button-primary { min-height: 60px; padding-inline: 40px; border-color: rgba(255,255,255,.88); background: rgba(255,255,255,.08); color: rgba(255,255,255,.98); font-family: Inter,sans-serif; font-size: 14px; font-weight: 500; line-height: 1; letter-spacing: .09em; }
-    .n-hero-discover { position: absolute; z-index: 3; top: clamp(26px,4vw,52px); right: clamp(24px,3.2vw,44px); min-height: 34px; display: inline-flex; align-items: center; color: rgba(255,255,255,.78); font: 10.5px/1 'Courier New',monospace; letter-spacing: .14em; text-decoration: none; text-transform: uppercase; transition: color .25s ease; }
+    .n-hero-discover { position: absolute; z-index: 3; top: 40%; right: clamp(54px,7vw,96px); min-height: 34px; display: inline-flex; align-items: center; color: rgba(255,255,255,.78); font: 10.5px/1 'Courier New',monospace; letter-spacing: .14em; text-decoration: none; text-transform: uppercase; transform: translateY(-50%); transition: color .25s ease; }
     .n-hero-discover:hover, .n-hero-discover:focus-visible { color: #fff; }
 
     .n-question { min-height: 720px; display: flex; flex-direction: column; justify-content: center; padding: 120px clamp(0px,7vw,105px); border-bottom: 1px solid var(--n-line); }
@@ -116,7 +116,7 @@
       .n-nav.n-shell { width: calc(100% - 28px); }
       .n-nav { min-height: 62px; letter-spacing: .15em; }
       .n-nav span { display: none; }
-      .n-hero { width: calc(100% + 8px); padding: 12px 0 20px; }
+      .n-hero { padding: 12px 0 20px; }
       .n-hero-media { height: min(145vw,650px); min-height: 520px; }
       .n-hero-asset { object-position: 56% center; }
       .n-hero-copy { left: 19px; right: 19px; bottom: 76px; }
@@ -124,7 +124,7 @@
       .n-hero-statement { max-width: 290px; font-size: 12px; }
       .n-hero-actions { width: min(100%,330px); margin-top: 26px; }
       .n-hero-actions .n-button-primary { width: 100%; min-height: 58px; padding-inline: 22px; font-size: 14px; }
-      .n-hero-discover { top: auto; right: auto; left: 19px; bottom: 26px; min-height: 32px; font-size: 10.5px; }
+      .n-hero-discover { top: auto; right: auto; left: 19px; bottom: 26px; min-height: 32px; font-size: 10.5px; transform: none; }
       .n-question { min-height: 620px; padding: 80px 0; }
       .n-question h2 { margin: 22px 0 74px; font-size: clamp(32px,9vw,40px); line-height: 1.1; overflow-wrap: break-word; }
       .n-question-note { font-size: 18px; }
