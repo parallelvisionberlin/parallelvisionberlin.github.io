@@ -39,6 +39,10 @@ const ninaScrimTitle = byId("ninaScrimTitle");
 const ninaScrimSubtitle = byId("ninaScrimSubtitle");
 const ninaScrimMessage = byId("ninaScrimMessage");
 const ninaScrimButton = byId("ninaScrimButton");
+const ninaMicrophone = byId("ninaMicrophone");
+const ninaMicrophoneToggle = byId("ninaMicrophoneToggle");
+const ninaMicrophonePicker = byId("ninaMicrophonePicker");
+const ninaMicrophoneName = byId("ninaMicrophoneName");
 const ninaMicrophoneSelect = byId("ninaMicrophoneSelect");
 const ninaMicrophoneStatus = byId("ninaMicrophoneStatus");
 const ninaEligibilityStatus = byId("ninaEligibilityStatus");
@@ -906,6 +910,8 @@ function showNinaReady(balance = ninaCreditsBalance, statusOverride = "") {
   startNina.textContent = "OPEN SIGNAL";
   ninaPrimaryAction = "connect";
   if (ninaReferralEntry) ninaReferralEntry.hidden = !ninaClerk?.isSignedIn;
+  if (ninaMicrophone) ninaMicrophone.hidden = false;
+  void setupNinaMicrophones();
   ninaScrimAction = "connect";
   resetNinaMemoryIndicator();
 }
@@ -919,6 +925,8 @@ function showNinaEligibilityLoading() {
   startNina.disabled = true;
   ninaPrimaryAction = "connect";
   if (ninaReferralEntry) ninaReferralEntry.hidden = true;
+  if (ninaMicrophone) ninaMicrophone.hidden = true;
+  collapseNinaMicrophonePicker();
 }
 
 function showNinaSignInRequired() {
@@ -978,7 +986,19 @@ function renderMicrophones(microphones, preferredId = "") {
     savePreferredMicrophone("");
     ninaMicrophoneSelect.selectedIndex = 0;
   }
+  updateNinaMicrophoneName();
   return savedExists ? preferredId : (ninaMicrophoneSelect.value || "");
+}
+
+function updateNinaMicrophoneName() {
+  if (!ninaMicrophoneName) return;
+  ninaMicrophoneName.textContent = ninaMicrophoneSelect.selectedOptions[0]?.textContent?.trim() || "SYSTEM DEFAULT";
+}
+
+function collapseNinaMicrophonePicker() {
+  if (!ninaMicrophonePicker || !ninaMicrophoneToggle) return;
+  ninaMicrophonePicker.hidden = true;
+  ninaMicrophoneToggle.setAttribute("aria-expanded", "false");
 }
 
 async function acquireNinaMicrophone(deviceId = "") {
@@ -997,6 +1017,7 @@ async function setupNinaMicrophones() {
     try {
       if (!navigator.mediaDevices?.getUserMedia || !navigator.mediaDevices?.enumerateDevices) {
         ninaMicrophoneSelect.replaceChildren(new Option("System default microphone", ""));
+        updateNinaMicrophoneName();
         ninaMicrophoneStatus.textContent = "DEFAULT MICROPHONE";
         startNina.disabled = false;
         return;
@@ -1014,6 +1035,7 @@ async function setupNinaMicrophones() {
       if (!microphones.length) {
         stopNinaMicrophone();
         ninaMicrophoneSelect.replaceChildren(new Option("No microphone detected", ""));
+        updateNinaMicrophoneName();
         ninaMicrophoneStatus.textContent = "NO MICROPHONE DETECTED";
         startNina.disabled = true;
         return;
@@ -1024,6 +1046,7 @@ async function setupNinaMicrophones() {
       stopNinaMicrophone();
       logDevelopmentError("Microphone setup failed.", error);
       ninaMicrophoneSelect.replaceChildren(new Option("Microphone access required", ""));
+      updateNinaMicrophoneName();
       ninaMicrophoneStatus.textContent = error?.name === "NotFoundError"
         ? "NO MICROPHONE DETECTED"
         : "MICROPHONE ACCESS REQUIRED";
@@ -1044,6 +1067,7 @@ async function refreshNinaMicrophones() {
     if (!microphones.length) {
       stopNinaMicrophone();
       ninaMicrophoneSelect.replaceChildren(new Option("No microphone detected", ""));
+      updateNinaMicrophoneName();
       ninaMicrophoneStatus.textContent = "NO MICROPHONE DETECTED";
       startNina.disabled = true;
       return;
@@ -1095,6 +1119,8 @@ function showNoSignalCredits() {
   startNina.textContent = "GET SIGNAL CREDITS";
   ninaPrimaryAction = "credits";
   if (ninaReferralEntry) ninaReferralEntry.hidden = !ninaClerk?.isSignedIn;
+  if (ninaMicrophone) ninaMicrophone.hidden = true;
+  collapseNinaMicrophonePicker();
   ninaScrimAction = "credits";
 }
 
@@ -1447,7 +1473,6 @@ function openNinaExperience() {
   ninaOverlay.setAttribute("aria-hidden", "false");
   document.body.style.overflow = "hidden";
   showNinaEligibilityLoading();
-  setupNinaMicrophones();
   void refreshNinaEligibility();
 }
 
@@ -1695,6 +1720,12 @@ startNina.addEventListener("click", () => {
 ninaReferralEntry?.addEventListener("click", () => void openNinaReferralPanel());
 ninaReferralClose?.addEventListener("click", () => closeNinaReferralPanel(true));
 ninaReferralCopy?.addEventListener("click", () => void copyNinaReferralLink());
+ninaMicrophoneToggle?.addEventListener("click", () => {
+  const willOpen = ninaMicrophonePicker.hidden;
+  ninaMicrophonePicker.hidden = !willOpen;
+  ninaMicrophoneToggle.setAttribute("aria-expanded", String(willOpen));
+  if (willOpen) ninaMicrophoneSelect.focus({ preventScroll: true });
+});
 ninaReferralPanel?.addEventListener("click", event => {
   if (event.target === ninaReferralPanel) closeNinaReferralPanel(true);
 });
@@ -1717,6 +1748,8 @@ ninaMicrophoneSelect.addEventListener("change", async () => {
     await refreshNinaMicrophones();
   } finally {
     ninaMicrophoneSelect.disabled = false;
+    updateNinaMicrophoneName();
+    collapseNinaMicrophonePicker();
   }
 });
 navigator.mediaDevices?.addEventListener?.("devicechange", refreshNinaMicrophones);

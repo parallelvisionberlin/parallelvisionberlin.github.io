@@ -1761,20 +1761,70 @@ body.nina-call-visible
 .nina-microphone {
   position: relative;
   display: block;
-  width: min(360px, 100%);
-  margin: 30px auto 0;
+  width: min(300px, 100%);
+  margin: 18px auto 0;
   color: rgba(255, 255, 255, .48);
   font-family: 'Courier New', monospace;
-  font-size: 9px;
-  letter-spacing: .22em;
-  text-align: left;
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-align: center;
   text-transform: uppercase;
 }
 
-.nina-microphone::after {
+.nina-microphone[hidden],
+.nina-microphone-picker[hidden] {
+  display: none !important;
+}
+
+.nina-microphone-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
+  padding: 7px 10px;
+  border: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, .16);
+  background: transparent;
+  color: rgba(255, 255, 255, .48);
+  font: 10px/1.35 'Courier New', monospace;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.nina-microphone-toggle::after {
+  content: "+";
+  margin-left: 8px;
+}
+
+.nina-microphone-toggle[aria-expanded="true"]::after {
+  content: "−";
+}
+
+.nina-microphone-toggle span {
+  display: inline-block;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nina-microphone-toggle:hover,
+.nina-microphone-toggle:focus-visible {
+  color: rgba(255, 255, 255, .78);
+  border-color: rgba(255, 255, 255, .42);
+}
+
+.nina-microphone-picker {
+  position: relative;
+  margin-top: 12px;
+  text-align: left;
+}
+
+.nina-microphone-picker::after {
   content: "⌄";
   position: absolute;
-  top: 28px;
+  top: 29px;
   right: 14px;
   color: rgba(255, 255, 255, .62);
   font-size: 16px;

@@ -572,17 +572,23 @@
 
           <button class="nina-referral-entry" id="ninaReferralEntry" type="button" hidden>Want free Signal Credits?</button>
 
-          <label class="nina-microphone" for="ninaMicrophoneSelect">
+          <div class="nina-microphone" id="ninaMicrophone" hidden>
 
-            <span>MICROPHONE</span>
+            <button class="nina-microphone-toggle" id="ninaMicrophoneToggle" type="button" aria-expanded="false" aria-controls="ninaMicrophonePicker">
+              MIC · <span id="ninaMicrophoneName">SYSTEM DEFAULT</span>
+            </button>
 
-            <select id="ninaMicrophoneSelect" aria-describedby="ninaMicrophoneStatus">
-              <option value="">Requesting microphone access…</option>
-            </select>
+            <div class="nina-microphone-picker" id="ninaMicrophonePicker" hidden>
+              <label for="ninaMicrophoneSelect">MICROPHONE</label>
 
-            <span class="nina-microphone-status" id="ninaMicrophoneStatus" role="status" aria-live="polite"></span>
+              <select id="ninaMicrophoneSelect" aria-describedby="ninaMicrophoneStatus">
+                <option value="">Requesting microphone access…</option>
+              </select>
 
-          </label>
+              <span class="nina-microphone-status" id="ninaMicrophoneStatus" role="status" aria-live="polite"></span>
+            </div>
+
+          </div>
 
 
           <div class="nina-connecting">
