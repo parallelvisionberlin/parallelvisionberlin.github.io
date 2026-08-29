@@ -306,7 +306,7 @@ async function handleSignalCredits(request, env, origin) {
   const user = await authenticateAccountRequest(request, env);
   if (!user) return jsonResponse({ error: "Account authentication required" }, 401, origin);
   const account = await getSignalCreditBalance(env, user.id);
-  return jsonResponse({ ...account, remainingSeconds: creditsToSeconds(account.balance) }, 200, origin);
+  return jsonResponse({ ...account, remainingSeconds: creditsToSeconds(account.balance), ownerBypass: user.role === "owner" }, 200, origin);
 }
 
 async function handleSignalCreditHistory(request, env, origin) {

@@ -68,10 +68,15 @@ test("canonical Live Nina conversion stays integer and exact",()=>{
   assert.equal(formatLiveTime(23),"2:18");
 });
 
-test("zero-credit users cannot open paid Live Nina and owners bypass billing",async()=>{
-  const env={NINA_MEMORY_DB:liveDb()};
+test("zero-credit users cannot open paid Live Nina and owners bypass the full billing lifecycle",async()=>{
+  const db=liveDb(),env={NINA_MEMORY_DB:db};
   await assert.rejects(()=>createLiveNinaSession(env,{id:"u",role:"user"}),error=>error.code==="insufficient_credits");
-  assert.equal((await createLiveNinaSession(env,{id:"owner",role:"owner"})).bypass,true);
+  const owner={id:"owner",role:"owner"};
+  assert.equal((await createLiveNinaSession(env,owner)).bypass,true);
+  assert.equal((await activateLiveNinaSession(env,owner,null)).bypass,true);
+  const settled=await settleLiveNinaSession(env,owner,null,{end:true});
+  assert.equal(settled.bypass,true);assert.equal(settled.debited,0);
+  assert.equal(db.transactions.length,0);
 });
 
 test("failed startup and sub-six-second sessions debit nothing",async()=>{
@@ -102,9 +107,12 @@ test("session end settles completed units once and exhaustion cannot go negative
 });
 
 test("migration and frontend wire only authenticated Live Nina lifecycle billing",async()=>{
-  const [migration,frontend]=await Promise.all([readFile(new URL("../migrations/0006_live_nina_sessions.sql",import.meta.url),"utf8"),readFile(new URL("../../js/nina-access.js",import.meta.url),"utf8")]);
+  const [migration,frontend,worker]=await Promise.all([readFile(new URL("../migrations/0006_live_nina_sessions.sql",import.meta.url),"utf8"),readFile(new URL("../../js/nina-access.js",import.meta.url),"utf8"),readFile(new URL("../src/index.js",import.meta.url),"utf8")]);
   assert.match(migration,/CREATE TABLE live_nina_sessions/);assert.match(migration,/credits_debited INTEGER/);
   assert.match(frontend,/\/api\/nina\/live\/\$\{action\}/);assert.match(frontend,/requestNinaUsage\("activate"\)/);assert.match(frontend,/requestNinaUsage\(end \? "end" : "settle"/);
-  assert.match(frontend,/Text conversations do not use Live Nina credits/);
+  assert.match(frontend,/Text conversations do not use Signal Credits/);
+  assert.match(frontend,/if \(ninaOwnerBypass\) showNinaReady\(null, "OWNER SIGNAL · UNMETERED"\)/);
+  assert.match(worker,/ownerBypass: user\.role === "owner"/);
+  assert.match(worker,/identity\.account_authenticated \? buildRelationshipContext\(env, identity\.user_id\)/);
   assert.doesNotMatch(frontend,/debitSignalCredits/);
 });

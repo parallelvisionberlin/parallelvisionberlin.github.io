@@ -118,6 +118,7 @@ let ninaClerkUILoading = null;
 let ninaCreditsUserId = "";
 let ninaCreditsRequest = 0;
 let ninaCreditsBalance = null;
+let ninaOwnerBypass = false;
 let ninaCreditsPurchasePending = false;
 let ninaCreditsPurchaseTrigger = null;
 let ninaCreditsPurchaseModal = null;
@@ -345,6 +346,7 @@ function updateNinaAccountControls(clerk = ninaClerk) {
     ninaCreditsUserId = "";
     ninaCreditsRequest += 1;
     ninaCreditsBalance = null;
+    ninaOwnerBypass = false;
     if (ninaSignalCredits) {
       ninaSignalCredits.textContent = "Loading…";
       ninaSignalCredits.removeAttribute("data-state");
@@ -395,12 +397,14 @@ async function loadSignalCreditBalance(clerk = ninaClerk, force = false) {
     if (!Number.isSafeInteger(data?.balance) || data.balance < 0) throw new Error("Invalid Signal Credit balance");
     if (requestId !== ninaCreditsRequest) return null;
     ninaCreditsBalance = data.balance;
+    ninaOwnerBypass = data.ownerBypass === true;
     ninaSignalCredits.textContent = `${data.balance.toLocaleString()} credits`;
     if (ninaLiveTime) ninaLiveTime.textContent = formatLiveTime(data.remainingSeconds);
     return data.balance;
   } catch (error) {
     if (requestId !== ninaCreditsRequest) return null;
     ninaCreditsBalance = null;
+    ninaOwnerBypass = false;
     ninaSignalCredits.textContent = "Unavailable";
     if (ninaLiveTime) ninaLiveTime.textContent = "Unavailable";
     ninaSignalCredits.dataset.state = "unavailable";
@@ -952,7 +956,8 @@ async function refreshNinaEligibility() {
     return null;
   }
   const balance = await loadSignalCreditBalance(clerk, true);
-  if (balance === 0) showNoSignalCredits();
+  if (ninaOwnerBypass) showNinaReady(null, "OWNER SIGNAL · UNMETERED");
+  else if (balance === 0) showNoSignalCredits();
   else if (Number.isSafeInteger(balance) && balance > 0) showNinaReady(balance);
   else showNinaFailure("Unable to confirm your Signal Credit balance. Try again.");
   return balance;
@@ -1376,12 +1381,12 @@ async function connectNina() {
   }
   if (signedIn) {
     const balance = await loadSignalCreditBalance(clerk, true);
-    if (balance === 0) {
+    if (!ninaOwnerBypass && balance === 0) {
       ninaConnecting = false;
       showNoSignalCredits();
       return;
     }
-    if (!Number.isSafeInteger(balance) || balance < 0) {
+    if (!ninaOwnerBypass && (!Number.isSafeInteger(balance) || balance < 0)) {
       ninaConnecting = false;
       showNinaFailure("Unable to confirm your Signal Credit balance. Try again.");
       return;
