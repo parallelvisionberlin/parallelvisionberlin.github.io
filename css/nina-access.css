@@ -1951,7 +1951,7 @@ body.nina-call-visible
 .nina-referral-panel {
   position: absolute;
   inset: 0;
-  z-index: 12;
+  z-index: 110;
   display: grid;
   place-items: center;
   padding: 20px;
