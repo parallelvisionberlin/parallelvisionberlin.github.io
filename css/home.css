@@ -244,30 +244,40 @@ nav a:hover {
   grid-column: 3;
   justify-self: end;
   display: grid;
-  grid-template-columns: max-content 32px max-content;
-  align-items: start;
+  grid-template-columns: max-content 36px max-content;
+  align-items: center;
   column-gap: 16px;
-  min-height: 32px;
+  min-height: 36px;
 }
 
 .home-desktop-signal-entry {
-  min-height: 32px;
-  padding: 0;
-  border: 0;
-  background: none;
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid rgba(255,255,255,.46);
+  border-radius: 0;
+  background: rgba(0,0,0,.22);
   color: rgba(255,255,255,.94);
   font: inherit;
-  letter-spacing: .2em;
+  font-weight: 500;
+  letter-spacing: .17em;
   text-transform: uppercase;
   cursor: pointer;
-  transition: opacity .2s ease;
+  transition: border-color .2s ease, background .2s ease, color .2s ease;
 }
 
-.home-desktop-signal-entry:hover { opacity: .62; }
+.home-desktop-signal-entry:hover { border-color: rgba(255,255,255,.72); background: rgba(255,255,255,.07); color: #fff; }
 .home-desktop-signal-entry:focus-visible { outline: 1px solid rgba(255,255,255,.7); outline-offset: 4px; }
 .home-utility-controls .home-desktop-signal-entry { grid-column: 1; }
 .home-utility-controls .nina-account-shell { grid-column: 2; }
 .home-utility-controls .pv-language-switch { grid-column: 3; }
+
+@media (min-width: 621px) {
+  .hero > nav { min-height: 36px; align-items: center; }
+  .home-primary-links { min-height: 36px; align-items: center; }
+  .hero .home-utility-controls .nina-account-shell { align-self: center; }
+  .hero .home-utility-controls .nina-account-toggle { width: 36px; height: 36px; }
+  .hero .home-utility-controls .nina-account-toggle svg { width: 18px; height: 18px; }
+}
 
 .hero-content {
   position: relative;
