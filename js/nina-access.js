@@ -1125,13 +1125,17 @@ function showNoSignalCredits() {
 }
 
 async function openNinaReferralPanel() {
-  if (!ninaReferralPanel || !ninaClerk?.isSignedIn) return;
-  if (!ninaReferralCodeValue || !ninaReferralLink) await loadAccountDisplayName(ninaClerk);
-  ninaReferralCode.textContent = ninaReferralCodeValue || "Unavailable";
-  ninaReferralCopy.disabled = !ninaReferralLink;
+  if (!ninaReferralPanel) return;
+  const clerk = ninaClerk || await initializeNinaAuth();
+  if (!clerk?.isSignedIn) return;
+  ninaReferralCode.textContent = "Loading…";
+  ninaReferralCopy.disabled = true;
   ninaReferralStatus.textContent = "";
   ninaReferralPanel.hidden = false;
   ninaReferralClose.focus({ preventScroll: true });
+  if (!ninaReferralCodeValue || !ninaReferralLink) await loadAccountDisplayName(clerk);
+  ninaReferralCode.textContent = ninaReferralCodeValue || "Unavailable";
+  ninaReferralCopy.disabled = !ninaReferralLink;
 }
 
 function closeNinaReferralPanel(returnFocus = false) {
