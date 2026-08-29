@@ -1207,10 +1207,10 @@ body.nina-credits-purchase-active {
 .nina-credits-pack {
   display: grid;
   grid-template-columns: 1fr auto;
-  align-items: center;
+  align-items: start;
   gap: 20px;
-  min-height: 108px;
-  padding: 18px 2px;
+  min-height: 96px;
+  padding: 17px 2px;
   border: 0;
   border-bottom: 1px solid rgba(255, 255, 255, .16);
   border-radius: 0;
@@ -1223,39 +1223,34 @@ body.nina-credits-purchase-active {
 
 .nina-credits-pack-copy {
   display: grid;
-  gap: 5px;
+  gap: 4px;
   min-width: 0;
 }
 
 .nina-credits-pack-title {
-  color: rgba(255, 255, 255, .72);
-  font: 400 13px/1.35 Inter, sans-serif;
-  letter-spacing: .02em;
-}
-
-.nina-credits-pack-time {
-  color: rgba(255, 255, 255, .88);
-  font: 11px/1.4 'Courier New', monospace;
-  letter-spacing: .1em;
+  color: rgba(255, 255, 255, .52);
+  font: 10px/1.4 'Courier New', monospace;
+  letter-spacing: .09em;
   text-transform: uppercase;
 }
 
-.nina-credits-pack-category {
-  color: rgba(255, 255, 255, .62);
-  font: 10px/1.4 'Courier New', monospace;
-  letter-spacing: .15em;
+.nina-credits-pack-time {
+  color: rgba(255, 255, 255, .94);
+  font: 15px/1.25 'Courier New', monospace;
+  letter-spacing: .08em;
   text-transform: uppercase;
 }
 
 .nina-credits-pack-description {
+  margin-top: 3px;
   color: rgba(255, 255, 255, .54);
-  font: 13px/1.45 Inter, sans-serif;
+  font: 12px/1.45 Inter, sans-serif;
   letter-spacing: 0;
 }
 
 .nina-credits-pack strong {
   color: rgba(255, 255, 255, .98);
-  font: 500 22px/1 'Courier New', monospace;
+  font: 500 20px/1.1 'Courier New', monospace;
   letter-spacing: .045em;
 }
 
@@ -1343,10 +1338,11 @@ body.nina-credits-purchase-active {
   .nina-credits-purchase-title { padding-right: 24px; font-size: clamp(22px, 8vw, 30px); }
   .nina-credits-purchase-code { font-size: 10px; }
   .nina-credits-purchase-lead { font-size: 15px; }
-  .nina-credits-pack { min-height: 104px; gap: 14px; padding: 16px 0; }
-  .nina-credits-pack-title { font-size: 13px; }
+  .nina-credits-pack { min-height: 94px; gap: 14px; padding: 15px 0; }
+  .nina-credits-pack-title { font-size: 10px; }
+  .nina-credits-pack-time { font-size: 14px; }
   .nina-credits-pack-description { font-size: 12px; }
-  .nina-credits-pack strong { font-size: 20px; }
+  .nina-credits-pack strong { font-size: 19px; }
   .nina-credits-about-copy { font-size: 12px; line-height: 1.6; }
   .nina-credits-purchase-status { font-size: 12px; }
 }
@@ -1730,8 +1726,8 @@ body.nina-call-visible
 
 .nina-eligibility-status {
   margin: 24px 0 0;
-  color: rgba(255, 255, 255, .68);
-  font: 12px/1.45 'Courier New', monospace;
+  color: rgba(255, 255, 255, .5);
+  font: 10.5px/1.45 'Courier New', monospace;
   letter-spacing: .12em;
   text-transform: uppercase;
 }
