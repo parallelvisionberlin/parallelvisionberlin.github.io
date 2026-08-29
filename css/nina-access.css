@@ -1332,12 +1332,12 @@ body.nina-credits-purchase-active {
 .nina-credits-about[open] .nina-credits-about-open { display: inline; }
 
 .nina-credits-about-copy {
-  padding: 0 2px 24px;
+  padding: 0 2px 18px;
   color: rgba(255, 255, 255, .62);
-  font: 13px/1.65 Inter, sans-serif;
+  font: 14px/1.5 Inter, sans-serif;
 }
 
-.nina-credits-about-copy p { margin: 0 0 12px; }
+.nina-credits-about-copy p { margin: 0 0 8px; }
 .nina-credits-about-copy p:last-child { margin-bottom: 0; }
 
 .nina-credits-purchase-status {
