@@ -205,6 +205,7 @@ nav a:hover {
 .home-mobile-brand,
 .home-mobile-menu-toggle,
 .home-mobile-language-slot,
+.home-mobile-signal-entry,
 .home-mobile-continuation {
   display: none;
 }
@@ -3579,6 +3580,22 @@ footer {
     text-transform: uppercase;
   }
 
+  .home-mobile-signal-entry {
+    position: absolute;
+    right: 18px;
+    bottom: calc(66px + env(safe-area-inset-bottom));
+    z-index: 6;
+    display: inline-flex;
+    padding-bottom: 3px;
+    border-bottom: 1px solid rgba(255,255,255,.48);
+    color: rgba(255,255,255,.96);
+    font: 11px/1.4 'Courier New', monospace;
+    letter-spacing: .16em;
+    text-decoration: none;
+    text-transform: uppercase;
+  }
+
+  .home-mobile-signal-entry:focus-visible,
   .home-mobile-continuation:focus-visible {
     outline: 1px solid rgba(255,255,255,.7);
     outline-offset: 6px;
