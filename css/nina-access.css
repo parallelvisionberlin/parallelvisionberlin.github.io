@@ -124,8 +124,8 @@
   padding: 0;
   border: 0;
   background: transparent;
-  color: rgba(255, 255, 255, .68);
-  font: 13px/1.5 'Courier New', monospace;
+  color: rgba(255, 255, 255, .58);
+  font: 12px/1.5 'Courier New', monospace;
   letter-spacing: .08em;
   cursor: pointer;
 }
@@ -192,6 +192,7 @@
 
 .nina-access-email-utilities {
   display: flex;
+  align-items: baseline;
   justify-content: space-between;
   gap: 18px;
   margin-top: 14px;
@@ -202,7 +203,7 @@
   border: 0;
   background: transparent;
   color: rgba(255, 255, 255, .66);
-  font: 12px/1.5 'Courier New', monospace;
+  font: 13px/1.5 'Courier New', monospace;
   letter-spacing: .05em;
   cursor: pointer;
 }
@@ -336,7 +337,7 @@ body.nina-access-active {
   .nina-access-lead { margin-top: 18px; font-size: 18px; }
   .nina-access-description { font-size: 15px; }
   .nina-access-account { width: 100%; min-height: 50px; }
-  .nina-access-private-toggle { font-size: 14px; }
+  .nina-access-private-toggle { font-size: 12px; }
   .nina-access-email-utilities button { font-size: 13px; }
   .nina-access-form { margin-top: 18px; padding-top: 20px; }
   .nina-access-actions { align-items: stretch; flex-direction: column; gap: 8px; }
