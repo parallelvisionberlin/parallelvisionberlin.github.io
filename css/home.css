@@ -244,14 +244,30 @@ nav a:hover {
   grid-column: 3;
   justify-self: end;
   display: grid;
-  grid-template-columns: 32px max-content;
+  grid-template-columns: max-content 32px max-content;
   align-items: start;
-  column-gap: 18px;
+  column-gap: 16px;
   min-height: 32px;
 }
 
-.home-utility-controls .nina-account-shell { grid-column: 1; }
-.home-utility-controls .pv-language-switch { grid-column: 2; }
+.home-desktop-signal-entry {
+  min-height: 32px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: rgba(255,255,255,.94);
+  font: inherit;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: opacity .2s ease;
+}
+
+.home-desktop-signal-entry:hover { opacity: .62; }
+.home-desktop-signal-entry:focus-visible { outline: 1px solid rgba(255,255,255,.7); outline-offset: 4px; }
+.home-utility-controls .home-desktop-signal-entry { grid-column: 1; }
+.home-utility-controls .nina-account-shell { grid-column: 2; }
+.home-utility-controls .pv-language-switch { grid-column: 3; }
 
 .hero-content {
   position: relative;
@@ -1597,7 +1613,10 @@ footer {
     font-size: 10px;
   }
 
-  .home-primary-links { gap: 22px; }
+  .home-primary-links { gap: 14px; font-size: 9px; letter-spacing: .2em; }
+
+  .home-utility-controls { column-gap: 10px; }
+  .home-desktop-signal-entry { font-size: 9px; letter-spacing: .12em; }
 
   .logo {
     letter-spacing: .18em;
@@ -3502,6 +3521,10 @@ footer {
     align-items: center;
     gap: 8px;
     min-height: 32px;
+  }
+
+  .home-desktop-signal-entry {
+    display: none;
   }
 
   .home-mobile-brand,
