@@ -7,7 +7,7 @@ import {
   getSignalCreditBalance, getSignalCreditHistory
 } from "../src/credits.js";
 
-function creditDb() {
+function creditDb(users = []) {
   const accounts = new Map();
   const transactions = [];
   return {
@@ -37,6 +37,12 @@ function creditDb() {
           throw new Error(`Unexpected run: ${normalized}`);
         },
         async first() {
+          if (normalized.includes("FROM users WHERE auth_provider = 'clerk' AND auth_subject = ?")) {
+            return users.find(user => user.auth_subject === values[0]) || null;
+          }
+          if (normalized.includes("FROM users WHERE email = ? COLLATE NOCASE")) {
+            return users.find(user => String(user.email || "").toLowerCase() === String(values[0]).toLowerCase()) || null;
+          }
           if (normalized.includes("FROM signal_credit_accounts")) return accounts.get(values[0]) || null;
           if (normalized.includes("FROM signal_credit_transactions")) {
             return transactions.find(row => row.user_id === values[0] && row.reference_id === values[1]) || null;
@@ -54,6 +60,45 @@ function creditDb() {
       };
     }
   };
+}
+
+const encode = value => Buffer.from(typeof value === "string" ? value : JSON.stringify(value)).toString("base64url");
+
+async function clerkAuthFixture(origin) {
+  const keys = await crypto.subtle.generateKey({ name: "RSASSA-PKCS1-v1_5", modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]), hash: "SHA-256" }, true, ["sign", "verify"]);
+  const jwk = await crypto.subtle.exportKey("jwk", keys.publicKey);
+  jwk.kid = "credit-grant-key";
+  const issuer = "https://credit-grants.clerk.accounts.dev";
+  return {
+    issuer, jwk,
+    async token(subject) {
+      const header = encode({ alg: "RS256", typ: "JWT", kid: jwk.kid });
+      const now = Math.floor(Date.now() / 1000);
+      const payload = encode({ iss: issuer, sub: subject, azp: origin, iat: now, nbf: now, exp: now + 300 });
+      const input = `${header}.${payload}`;
+      const signature = await crypto.subtle.sign("RSASSA-PKCS1-v1_5", keys.privateKey, new TextEncoder().encode(input));
+      return `${input}.${Buffer.from(signature).toString("base64url")}`;
+    }
+  };
+}
+
+function grantUsers() {
+  return [
+    { id: "owner-1", auth_subject: "user_owner1", email: "owner@example.com", display_name: "Alejandro", role: "owner", memory_visitor_id: "owner-memory" },
+    { id: "member-1", auth_subject: "user_member1", email: "santomolinari@gmail.com", display_name: "Santo", role: "user", memory_visitor_id: "member-memory" }
+  ];
+}
+
+async function grantRequest(env, token, body) {
+  return worker.fetch(new Request("https://worker.example/api/signal-credits/grant", {
+    method: "POST",
+    headers: {
+      Origin: "http://127.0.0.1:4173",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(body)
+  }), env, { waitUntil() {} });
 }
 
 test("an authenticated user starts with exactly one zero-balance account", async () => {
@@ -100,6 +145,72 @@ test("credit APIs reject requests without a Clerk session", async () => {
     }), {}, { waitUntil() {} });
     assert.equal(response.status, 401);
     assert.deepEqual(await response.json(), { error: "Account authentication required" });
+  }
+});
+
+test("owner Signal Credit grants are protected, validated and idempotent", async t => {
+  const origin = "http://127.0.0.1:4173";
+  const auth = await clerkAuthFixture(origin);
+  const ownerToken = await auth.token("user_owner1");
+  const memberToken = await auth.token("user_member1");
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => new Response(JSON.stringify({ keys: [auth.jwk] }), { status: 200 });
+  const envFor = db => ({ NINA_MEMORY_DB: db, CLERK_ISSUER: auth.issuer });
+  try {
+    await t.test("owner can grant 100 credits to an existing user with an auditable ledger entry", async () => {
+      const db = creditDb(grantUsers());
+      const response = await grantRequest(envFor(db), ownerToken, {
+        email: "  SantoMolinari@GMAIL.COM ", amount: 100, description: "Gift from Parallel Vision", referenceId: "owner-gift-test-100"
+      });
+      assert.equal(response.status, 200);
+      const result = await response.json();
+      assert.equal(result.ok, true);
+      assert.equal(result.email, "santomolinari@gmail.com");
+      assert.equal(result.amount, 100);
+      assert.equal(result.balance, 100);
+      assert.equal(result.transaction.source, "owner_gift");
+      assert.equal(db.accounts.get("member-1").lifetime_credited, 100);
+      assert.equal(db.transactions.length, 1);
+    });
+
+    await t.test("non-owner receives 403", async () => {
+      const response = await grantRequest(envFor(creditDb(grantUsers())), memberToken, { email: "santomolinari@gmail.com", amount: 100 });
+      assert.equal(response.status, 403);
+      assert.equal((await response.json()).code, "owner_required");
+    });
+
+    await t.test("unauthenticated request receives an auth failure", async () => {
+      const response = await grantRequest(envFor(creditDb(grantUsers())), "", { email: "santomolinari@gmail.com", amount: 100 });
+      assert.equal(response.status, 401);
+      assert.equal((await response.json()).code, "sign_in_required");
+    });
+
+    await t.test("unknown email returns 404", async () => {
+      const response = await grantRequest(envFor(creditDb(grantUsers())), ownerToken, { email: "unknown@example.com", amount: 100 });
+      assert.equal(response.status, 404);
+      assert.equal((await response.json()).code, "user_not_found");
+    });
+
+    await t.test("invalid amount is rejected", async () => {
+      const response = await grantRequest(envFor(creditDb(grantUsers())), ownerToken, { email: "santomolinari@gmail.com", amount: 0 });
+      assert.equal(response.status, 400);
+      assert.equal((await response.json()).code, "invalid_amount");
+    });
+
+    await t.test("the same referenceId does not double-credit", async () => {
+      const db = creditDb(grantUsers());
+      const env = envFor(db);
+      const body = { email: "santomolinari@gmail.com", amount: 100, referenceId: "stable-owner-gift" };
+      const first = await grantRequest(env, ownerToken, body);
+      const second = await grantRequest(env, ownerToken, body);
+      assert.equal(first.status, 200);
+      assert.equal(second.status, 200);
+      assert.equal((await second.json()).balance, 100);
+      assert.equal(db.accounts.get("member-1").balance, 100);
+      assert.equal(db.transactions.length, 1);
+    });
+  } finally {
+    globalThis.fetch = originalFetch;
   }
 });
 

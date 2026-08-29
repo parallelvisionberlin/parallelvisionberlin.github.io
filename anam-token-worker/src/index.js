@@ -6,7 +6,7 @@ import {
 import { asMemoryIdentity, resolveAuthenticatedUser, verifyClerkSessionToken } from "./auth.js";
 import { buildRelationshipContext, deleteRelationshipState, evaluateCompletedRelationship } from "./relationship.js";
 import { getAccountPreferences, getBillingHistory, updateAccountProfile, updateNewsletterPreferences } from "./account.js";
-import { SignalCreditError, getSignalCreditBalance, getSignalCreditHistory } from "./credits.js";
+import { SignalCreditError, creditSignalCredits, getSignalCreditBalance, getSignalCreditHistory } from "./credits.js";
 import { ReferralError, attributeReferral, getOrCreateReferral } from "./referrals.js";
 import {
   activateLiveNinaSession, createLiveNinaSession, creditsToSeconds, failLiveNinaSession, settleLiveNinaSession
@@ -348,6 +348,53 @@ async function handleSignalCreditHistory(request, env, origin) {
   }), 200, origin);
 }
 
+function normalizeGrantEmail(value) {
+  const email = typeof value === "string" ? value.normalize("NFKC").trim().toLowerCase() : "";
+  return email.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? email : "";
+}
+
+async function handleSignalCreditGrant(request, env, origin) {
+  const caller = await authenticateAccountRequest(request, env);
+  if (!caller) return jsonResponse({ error: "Account authentication required", code: "sign_in_required" }, 401, origin);
+  if (caller.role !== "owner") return jsonResponse({ error: "Owner access required", code: "owner_required" }, 403, origin);
+  const body = await request.json().catch(() => ({}));
+  const email = normalizeGrantEmail(body?.email);
+  if (!email) return jsonResponse({ error: "Invalid email", code: "invalid_email" }, 400, origin);
+  const recipient = await env.NINA_MEMORY_DB.prepare(
+    "SELECT id, email FROM users WHERE email = ? COLLATE NOCASE LIMIT 1"
+  ).bind(email).first();
+  if (!recipient) return jsonResponse({ error: "User not found", code: "user_not_found" }, 404, origin);
+  const description = typeof body?.description === "string" && body.description.trim()
+    ? body.description.trim()
+    : "Gift from Parallel Vision";
+  const suppliedReference = typeof body?.referenceId === "string" ? body.referenceId.trim() : "";
+  const referenceId = suppliedReference || `owner-gift:${recipient.id}:${crypto.randomUUID()}`;
+  try {
+    const result = await creditSignalCredits(env, recipient.id, body?.amount, {
+      source: "owner_gift", referenceId, description
+    });
+    const transaction = result.transaction;
+    return jsonResponse({
+      ok: true,
+      email: String(recipient.email || email).toLowerCase(),
+      amount: Number(transaction.amount),
+      balance: result.account.balance,
+      transaction: {
+        id: transaction.id,
+        amount: Number(transaction.amount),
+        type: transaction.type,
+        source: transaction.source,
+        referenceId: transaction.referenceId || transaction.reference_id,
+        description: transaction.description,
+        createdAt: transaction.createdAt || transaction.created_at
+      }
+    }, 200, origin);
+  } catch (error) {
+    if (error instanceof SignalCreditError) return jsonResponse({ error: error.message, code: error.code }, 400, origin);
+    throw error;
+  }
+}
+
 async function handleSignalCreditCheckout(request, env, origin) {
   try {
     const identity = await authenticateAccountIdentity(request, env);
@@ -442,6 +489,7 @@ export default {
       if (url.pathname === "/memory" && request.method === "DELETE") return handleDelete(request, env, origin);
       if (url.pathname === "/api/nina/credits" && request.method === "GET") return handleSignalCredits(request, env, origin);
       if (url.pathname === "/api/nina/credits/history" && request.method === "GET") return handleSignalCreditHistory(request, env, origin);
+      if (url.pathname === "/api/signal-credits/grant" && request.method === "POST") return handleSignalCreditGrant(request, env, origin);
       if (url.pathname === "/api/nina/credits/checkout" && request.method === "POST") return await handleSignalCreditCheckout(request, env, origin);
       if (url.pathname === "/api/nina/live/activate" && request.method === "POST") return handleLiveNinaUsage(request, env, origin, "activate");
       if (url.pathname === "/api/nina/live/settle" && request.method === "POST") return handleLiveNinaUsage(request, env, origin, "settle");
