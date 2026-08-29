@@ -254,8 +254,8 @@ nav a:hover {
 }
 
 .home-desktop-signal-entry {
-  width: 196px;
-  min-height: 54px;
+  width: 180px;
+  min-height: 50px;
   padding: 0 18px;
   border: 1px solid rgba(255,255,255,.46);
   border-radius: 0;
@@ -278,19 +278,11 @@ nav a:hover {
   .hero .home-utility-controls .nina-account-toggle svg { width: 19px; height: 19px; }
   .home-desktop-signal-portal {
     position: absolute;
-    right: clamp(48px,6vw,96px);
-    bottom: clamp(80px,12vh,132px);
+    top: 63%;
+    right: 10vw;
     z-index: 6;
-    display: grid;
-    justify-items: stretch;
-    gap: 12px;
-    width: 196px;
-  }
-  .home-desktop-signal-portal > span {
-    color: rgba(255,255,255,.58);
-    font: 9px/1.45 'Courier New', monospace;
-    letter-spacing: .13em;
-    text-transform: uppercase;
+    display: block;
+    width: 180px;
   }
 }
 
