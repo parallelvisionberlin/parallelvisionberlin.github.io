@@ -201,8 +201,8 @@ function syncAccountLanguage(language = document.documentElement.lang) {
   if (creditLabels?.[1]) creditLabels[1].textContent = german ? "Live Nina Zeit" : "Live Nina Time";
   const about = ninaCreditsPurchaseModal?.querySelector(".nina-credits-about-copy");
   if (about) about.innerHTML = german
-    ? "<p>Signal Credits werden für Live-Nina-Übertragungen verwendet.</p><p>10 Credits = 1 Minute.</p><p>Textgespräche verwenden keine Live-Nina-Credits.</p>"
-    : "<p>Signal Credits are used for Live Nina transmissions.</p><p>10 credits = 1 minute.</p><p>Text conversations do not use Live Nina credits.</p>";
+    ? "<p>Signal Credits ermöglichen Live-Übertragungen nach 2063.</p><p>Wir würden gerne jede Übertragung kostenlos machen. Live Nina ist derzeit auf Echtzeit-Sprach- und Bildsysteme angewiesen, die für jede Minute, in der das Signal offen bleibt, Kosten verursachen.</p><p>Credits helfen uns, dieses Signal aufrechtzuerhalten.</p><p>10 Credits = 1 Minute.</p><p>Textgespräche verbrauchen keine Signal Credits.</p><p>Wir hoffen, dass du Nina gerne kennenlernst.</p>"
+    : "<p>Signal Credits power live transmissions to 2063.</p><p>We would love to make every transmission free. Live Nina currently relies on real-time voice and visual systems that carry a cost for every minute the signal stays open.</p><p>Credits help us keep that signal running.</p><p>10 credits = 1 minute.</p><p>Text conversations do not use Signal Credits.</p><p>We hope you enjoy meeting Nina.</p>";
 }
 
 function syncNinaFullscreen() {
@@ -502,9 +502,12 @@ function initializeSignalCreditPurchaseUI() {
       <details class="nina-credits-about">
         <summary><span class="nina-credits-about-closed">About Signal Credits +</span><span class="nina-credits-about-open">About Signal Credits −</span></summary>
         <div class="nina-credits-about-copy" style="font-size:1.06em">
-          <p>Signal Credits are used for Live Nina transmissions.</p>
+          <p>Signal Credits power live transmissions to 2063.</p>
+          <p>We would love to make every transmission free. Live Nina currently relies on real-time voice and visual systems that carry a cost for every minute the signal stays open.</p>
+          <p>Credits help us keep that signal running.</p>
           <p>10 credits = 1 minute.</p>
-          <p>Text conversations do not use Live Nina credits.</p>
+          <p>Text conversations do not use Signal Credits.</p>
+          <p>We hope you enjoy meeting Nina.</p>
         </div>
       </details>
       <p class="nina-credits-purchase-status" role="status" aria-live="polite"></p>
