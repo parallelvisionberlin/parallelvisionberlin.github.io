@@ -819,14 +819,23 @@ body.nina-fullscreen-active {
 }
 
 .nina-account-explanation {
-  margin: 12px 0 18px;
-  color: rgba(255, 255, 255, .58);
+  margin: 14px 0 20px;
+  color: rgba(255, 255, 255, .7);
   font-family: Inter, sans-serif;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 400;
   line-height: 1.55;
   letter-spacing: 0;
   text-transform: none;
+}
+
+.nina-account-logged-out .nina-account-action {
+  min-height: 48px;
+  padding-inline: 10px;
+}
+
+.nina-account-logged-out .nina-account-action + .nina-account-action {
+  border-top: 1px solid rgba(255, 255, 255, .12);
 }
 
 .nina-account-menu {
@@ -928,6 +937,77 @@ body.nina-fullscreen-active {
 .nina-account-credits strong[data-state="unavailable"] {
   color: rgba(255, 255, 255, .46);
 }
+
+.nina-account-credits-info-trigger {
+  margin: -2px 0 15px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: rgba(255, 255, 255, .58);
+  font: 12px/1.5 'Courier New', monospace;
+  letter-spacing: .08em;
+  text-align: left;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.nina-account-credits-info-trigger:hover,
+.nina-account-credits-info-trigger:focus-visible { color: rgba(255, 255, 255, .9); }
+
+.nina-account-credits-info {
+  position: fixed;
+  inset: 0;
+  z-index: 10060;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, .72);
+}
+
+.nina-account-credits-info[hidden] { display: none !important; }
+
+.nina-account-credits-info-panel {
+  position: relative;
+  width: min(460px, 100%);
+  padding: 34px 32px 30px;
+  border: 1px solid rgba(255, 255, 255, .22);
+  background: rgba(3, 3, 4, .99);
+  box-shadow: 0 28px 90px rgba(0, 0, 0, .76);
+  color: #fff;
+}
+
+.nina-account-credits-info-panel h2 {
+  margin: 0 44px 22px 0;
+  color: rgba(255, 255, 255, .94);
+  font: 13px/1.4 'Courier New', monospace;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+}
+
+.nina-account-credits-info-panel p {
+  margin: 0 0 14px;
+  color: rgba(255, 255, 255, .7);
+  font: 14px/1.6 Inter, sans-serif;
+}
+
+.nina-account-credits-info-panel p:last-child { margin-bottom: 0; }
+
+.nina-account-credits-info-close {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: rgba(255, 255, 255, .62);
+  font: 300 25px/1 Inter, sans-serif;
+  cursor: pointer;
+}
+
+.nina-account-credits-info-close:hover,
+.nina-account-credits-info-close:focus-visible { color: #fff; }
 
 .nina-account-buy-credits {
   display: flex;
@@ -1218,6 +1298,8 @@ body.nina-credits-purchase-active {
     margin-bottom: 10px;
     padding: 9px 0 12px;
   }
+  .nina-account-credits-info-trigger { margin-bottom: 12px; font-size: 13px; }
+  .nina-account-credits-info-panel { padding: 30px 22px 26px; }
   .nina-account-buy-credits { min-height: 44px; margin-bottom: 11px; padding-inline: 10px; font-size: 10px; }
   .nina-account-menu { gap: 0; padding: 3px 0; }
   .nina-account-menu a,

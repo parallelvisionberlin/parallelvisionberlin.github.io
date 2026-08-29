@@ -64,6 +64,9 @@ const ninaAccountSignIn = byId("ninaAccountSignIn");
 const ninaAccountSignUp = byId("ninaAccountSignUp");
 const ninaAccountCreditAction = byId("ninaAccountCreditAction");
 const ninaAccountBuyCredits = byId("ninaAccountBuyCredits");
+const ninaAccountCreditsInfoTrigger = byId("ninaAccountCreditsInfoTrigger");
+const ninaAccountCreditsInfo = byId("ninaAccountCreditsInfo");
+const ninaAccountCreditsInfoClose = byId("ninaAccountCreditsInfoClose");
 const ninaAccountName = byId("ninaAccountName");
 const ninaSignalCredits = byId("ninaSignalCredits");
 const ninaLiveTime = byId("ninaLiveTime");
@@ -173,7 +176,7 @@ captureReferralCode();
 function syncAccountLanguage(language = document.documentElement.lang) {
   const german = language === "de";
   const explanation = ninaAccountLoggedOut?.querySelector(".nina-account-explanation");
-  if (explanation) explanation.textContent = german ? "Speichere Erinnerung, Signal Credits und Kontoeinstellungen." : "Save memory, Signal Credits and account preferences.";
+  if (explanation) explanation.textContent = german ? "Melde dich an, um Erinnerungen zu speichern, Signal Credits zu verwalten und deine Geschichte mit Nina fortzusetzen." : "Sign in to save memory, manage Signal Credits and continue your history with Nina.";
   if (ninaAccountSignIn) ninaAccountSignIn.textContent = german ? "Anmelden" : "Sign in";
   if (ninaAccountSignUp) ninaAccountSignUp.textContent = german ? "Konto erstellen" : "Create account";
   const labels = german ? ["Profil", "Signal Credits", "Zahlungen", "Erinnerung", "Newsletter"] : ["Profile", "Signal Credits", "Billing", "Memory", "Newsletter"];
@@ -1354,6 +1357,19 @@ function closeNinaAccountPanel(returnFocus = false) {
   if (returnFocus) ninaAccountToggle.focus({ preventScroll: true });
 }
 
+function openNinaCreditsInfo() {
+  if (!ninaAccountCreditsInfo) return;
+  closeNinaAccountPanel();
+  ninaAccountCreditsInfo.hidden = false;
+  ninaAccountCreditsInfoClose?.focus({ preventScroll: true });
+}
+
+function closeNinaCreditsInfo(returnFocus = false) {
+  if (!ninaAccountCreditsInfo || ninaAccountCreditsInfo.hidden) return;
+  ninaAccountCreditsInfo.hidden = true;
+  if (returnFocus) ninaAccountToggle?.focus({ preventScroll: true });
+}
+
 function toggleNinaAccountPanel() {
   if (!ninaAccountPanel || !ninaAccountToggle) return;
   const willOpen = ninaAccountPanel.hidden;
@@ -1599,6 +1615,11 @@ async function openNinaAccountAuth(mode) {
 
 ninaAccountSignIn?.addEventListener("click", () => void openNinaAccountAuth("signin"));
 ninaAccountSignUp?.addEventListener("click", () => void openNinaAccountAuth("signup"));
+ninaAccountCreditsInfoTrigger?.addEventListener("click", openNinaCreditsInfo);
+ninaAccountCreditsInfoClose?.addEventListener("click", () => closeNinaCreditsInfo(true));
+ninaAccountCreditsInfo?.addEventListener("click", event => {
+  if (event.target === ninaAccountCreditsInfo) closeNinaCreditsInfo(true);
+});
 ninaAccountToggle?.addEventListener("click", event => {
   event.stopPropagation();
   toggleNinaAccountPanel();
@@ -1646,6 +1667,10 @@ ninaMicrophoneSelect.addEventListener("change", async () => {
 navigator.mediaDevices?.addEventListener?.("devicechange", refreshNinaMicrophones);
 document.addEventListener("keydown", event => {
   if (event.key !== "Escape") return;
+  if (ninaAccountCreditsInfo && !ninaAccountCreditsInfo.hidden) {
+    closeNinaCreditsInfo(true);
+    return;
+  }
   if (ninaCreditsPurchaseModal && !ninaCreditsPurchaseModal.hidden) {
     closeSignalCreditPurchase(true);
     return;
