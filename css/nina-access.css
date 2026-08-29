@@ -1247,8 +1247,8 @@ body.nina-credits-purchase-active {
   grid-template-columns: 1fr auto;
   align-items: start;
   gap: 20px;
-  min-height: 96px;
-  padding: 17px 2px;
+  min-height: 108px;
+  padding: 20px 10px 20px 4px;
   border: 0;
   border-bottom: 1px solid rgba(255, 255, 255, .16);
   border-radius: 0;
@@ -1256,7 +1256,7 @@ body.nina-credits-purchase-active {
   color: rgba(255, 255, 255, .86);
   text-align: left;
   cursor: pointer;
-  transition: padding .2s ease, color .2s ease, border-color .2s ease;
+  transition: transform .18s ease, background-color .18s ease, color .18s ease, border-color .18s ease;
 }
 
 .nina-credits-pack-copy {
@@ -1274,29 +1274,37 @@ body.nina-credits-purchase-active {
 
 .nina-credits-pack-time {
   color: rgba(255, 255, 255, .94);
-  font: 15px/1.25 'Courier New', monospace;
+  font: 17px/1.25 'Courier New', monospace;
   letter-spacing: .08em;
   text-transform: uppercase;
 }
 
 .nina-credits-pack-description {
   margin-top: 3px;
-  color: rgba(255, 255, 255, .54);
-  font: 12px/1.45 Inter, sans-serif;
+  color: rgba(255, 255, 255, .6);
+  font: 12px/1.55 Inter, sans-serif;
   letter-spacing: 0;
 }
 
 .nina-credits-pack strong {
   color: rgba(255, 255, 255, .98);
-  font: 500 20px/1.1 'Courier New', monospace;
+  font: 500 21px/1.1 'Courier New', monospace;
   letter-spacing: .045em;
 }
 
 .nina-credits-pack:hover,
 .nina-credits-pack:focus-visible {
-  padding-left: 8px;
-  border-color: rgba(255, 255, 255, .5);
+  transform: translateX(2px);
+  border-color: rgba(255, 255, 255, .38);
+  background-color: rgba(255, 255, 255, .025);
   color: #fff;
+}
+
+.nina-credits-pack:hover .nina-credits-pack-title,
+.nina-credits-pack:focus-visible .nina-credits-pack-title,
+.nina-credits-pack:hover .nina-credits-pack-description,
+.nina-credits-pack:focus-visible .nina-credits-pack-description {
+  color: rgba(255, 255, 255, .72);
 }
 
 .nina-credits-pack:disabled {
@@ -1311,7 +1319,7 @@ body.nina-credits-purchase-active {
 .nina-credits-about summary {
   padding: 18px 2px;
   color: rgba(255, 255, 255, .68);
-  font: 11px/1.4 'Courier New', monospace;
+  font: 12.5px/1.4 'Courier New', monospace;
   letter-spacing: .12em;
   text-transform: uppercase;
   cursor: pointer;
@@ -1324,7 +1332,7 @@ body.nina-credits-purchase-active {
 .nina-credits-about[open] .nina-credits-about-open { display: inline; }
 
 .nina-credits-about-copy {
-  padding: 0 2px 20px;
+  padding: 0 2px 24px;
   color: rgba(255, 255, 255, .62);
   font: 13px/1.65 Inter, sans-serif;
 }
@@ -1376,11 +1384,12 @@ body.nina-credits-purchase-active {
   .nina-credits-purchase-title { padding-right: 24px; font-size: clamp(22px, 8vw, 30px); }
   .nina-credits-purchase-code { font-size: 10px; }
   .nina-credits-purchase-lead { font-size: 15px; }
-  .nina-credits-pack { min-height: 94px; gap: 14px; padding: 15px 0; }
+  .nina-credits-pack { min-height: 105px; gap: 14px; padding: 18px 8px 18px 0; }
   .nina-credits-pack-title { font-size: 10px; }
-  .nina-credits-pack-time { font-size: 14px; }
+  .nina-credits-pack-time { font-size: 16px; }
   .nina-credits-pack-description { font-size: 12px; }
   .nina-credits-pack strong { font-size: 19px; }
+  .nina-credits-about summary { font-size: 13px; }
   .nina-credits-about-copy { font-size: 12px; line-height: 1.6; }
   .nina-credits-purchase-status { font-size: 12px; }
 }

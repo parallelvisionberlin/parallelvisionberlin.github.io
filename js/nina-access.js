@@ -201,8 +201,8 @@ function syncAccountLanguage(language = document.documentElement.lang) {
   if (creditLabels?.[1]) creditLabels[1].textContent = german ? "Live Nina Zeit" : "Live Nina Time";
   const about = ninaCreditsPurchaseModal?.querySelector(".nina-credits-about-copy");
   if (about) about.innerHTML = german
-    ? "<p>Signal Credits werden für Live-Nina-Übertragungen verwendet.</p><p>10 Credits = 1 Minute. 1 Credit = 6 Sekunden.</p><p>Textgespräche verwenden keine Live-Nina-Credits.</p>"
-    : "<p>Signal Credits are used for Live Nina transmissions.</p><p>10 credits = 1 minute. 1 credit = 6 seconds.</p><p>Text conversations do not use Live Nina credits.</p>";
+    ? "<p>Signal Credits werden für Live-Nina-Übertragungen verwendet.</p><p>10 Credits = 1 Minute.</p><p>Textgespräche verwenden keine Live-Nina-Credits.</p>"
+    : "<p>Signal Credits are used for Live Nina transmissions.</p><p>10 credits = 1 minute.</p><p>Text conversations do not use Live Nina credits.</p>";
 }
 
 function syncNinaFullscreen() {
@@ -503,7 +503,7 @@ function initializeSignalCreditPurchaseUI() {
         <summary><span class="nina-credits-about-closed">About Signal Credits +</span><span class="nina-credits-about-open">About Signal Credits −</span></summary>
         <div class="nina-credits-about-copy" style="font-size:1.06em">
           <p>Signal Credits are used for Live Nina transmissions.</p>
-          <p>10 credits = 1 minute. 1 credit = 6 seconds.</p>
+          <p>10 credits = 1 minute.</p>
           <p>Text conversations do not use Live Nina credits.</p>
         </div>
       </details>
