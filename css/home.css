@@ -243,23 +243,26 @@ nav a:hover {
 .home-utility-controls {
   grid-column: 3;
   justify-self: end;
-  display: grid;
-  grid-template-columns: max-content 36px max-content;
+  display: flex;
   align-items: center;
-  column-gap: 16px;
-  min-height: 36px;
+  gap: 18px;
+  min-height: 40px;
+}
+
+.home-desktop-signal-portal {
+  display: none;
 }
 
 .home-desktop-signal-entry {
-  min-height: 36px;
-  padding: 0 14px;
+  width: 196px;
+  min-height: 54px;
+  padding: 0 18px;
   border: 1px solid rgba(255,255,255,.46);
   border-radius: 0;
-  background: rgba(0,0,0,.22);
+  background: rgba(0,0,0,.16);
   color: rgba(255,255,255,.94);
-  font: inherit;
-  font-weight: 500;
-  letter-spacing: .17em;
+  font: 500 10px/1 'Courier New', monospace;
+  letter-spacing: .19em;
   text-transform: uppercase;
   cursor: pointer;
   transition: border-color .2s ease, background .2s ease, color .2s ease;
@@ -267,16 +270,28 @@ nav a:hover {
 
 .home-desktop-signal-entry:hover { border-color: rgba(255,255,255,.72); background: rgba(255,255,255,.07); color: #fff; }
 .home-desktop-signal-entry:focus-visible { outline: 1px solid rgba(255,255,255,.7); outline-offset: 4px; }
-.home-utility-controls .home-desktop-signal-entry { grid-column: 1; }
-.home-utility-controls .nina-account-shell { grid-column: 2; }
-.home-utility-controls .pv-language-switch { grid-column: 3; }
-
 @media (min-width: 621px) {
-  .hero > nav { min-height: 36px; align-items: center; }
-  .home-primary-links { min-height: 36px; align-items: center; }
-  .hero .home-utility-controls .nina-account-shell { align-self: center; }
-  .hero .home-utility-controls .nina-account-toggle { width: 36px; height: 36px; }
-  .hero .home-utility-controls .nina-account-toggle svg { width: 18px; height: 18px; }
+  .hero > nav { min-height: 40px; align-items: center; }
+  .home-primary-links { min-height: 40px; align-items: center; }
+  .hero .home-utility-controls .nina-account-shell { display: inline-flex; align-items: center; }
+  .hero .home-utility-controls .nina-account-toggle { width: 40px; height: 40px; }
+  .hero .home-utility-controls .nina-account-toggle svg { width: 19px; height: 19px; }
+  .home-desktop-signal-portal {
+    position: absolute;
+    right: clamp(48px,6vw,96px);
+    bottom: clamp(80px,12vh,132px);
+    z-index: 6;
+    display: grid;
+    justify-items: stretch;
+    gap: 12px;
+    width: 196px;
+  }
+  .home-desktop-signal-portal > span {
+    color: rgba(255,255,255,.58);
+    font: 9px/1.45 'Courier New', monospace;
+    letter-spacing: .13em;
+    text-transform: uppercase;
+  }
 }
 
 .hero-content {
@@ -1625,7 +1640,7 @@ footer {
 
   .home-primary-links { gap: 14px; font-size: 9px; letter-spacing: .2em; }
 
-  .home-utility-controls { column-gap: 10px; }
+  .home-utility-controls { gap: 12px; }
   .home-desktop-signal-entry { font-size: 9px; letter-spacing: .12em; }
 
   .logo {
