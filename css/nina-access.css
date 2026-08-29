@@ -819,23 +819,51 @@ body.nina-fullscreen-active {
 }
 
 .nina-account-explanation {
-  margin: 14px 0 20px;
-  color: rgba(255, 255, 255, .7);
+  max-width: 258px;
+  margin: 12px 0 18px;
+  color: rgba(255, 255, 255, .66);
   font-family: Inter, sans-serif;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 400;
-  line-height: 1.55;
+  line-height: 1.5;
   letter-spacing: 0;
   text-transform: none;
 }
 
-.nina-account-logged-out .nina-account-action {
-  min-height: 48px;
-  padding-inline: 10px;
+.nina-account-logged-out #ninaAccountSignIn {
+  justify-content: center;
+  min-height: 46px;
+  padding: 0 14px;
+  border: 1px solid rgba(255, 255, 255, .44);
+  color: rgba(255, 255, 255, .92);
+  letter-spacing: .14em;
+  text-align: center;
 }
 
-.nina-account-logged-out .nina-account-action + .nina-account-action {
-  border-top: 1px solid rgba(255, 255, 255, .12);
+.nina-account-logged-out #ninaAccountSignIn:hover,
+.nina-account-logged-out #ninaAccountSignIn:focus-visible {
+  border-color: rgba(255, 255, 255, .8);
+  background: rgba(255, 255, 255, .07);
+}
+
+.nina-account-logged-out #ninaAccountSignUp {
+  min-height: 38px;
+  margin-top: 7px;
+  padding: 0 2px;
+  border: 0;
+  color: rgba(255, 255, 255, .58);
+  letter-spacing: .12em;
+}
+
+.nina-account-logged-out #ninaAccountSignUp::after {
+  content: "→";
+  margin-left: 8px;
+}
+
+.nina-account-logged-out #ninaAccountSignUp:hover,
+.nina-account-logged-out #ninaAccountSignUp:focus-visible {
+  background: transparent;
+  color: rgba(255, 255, 255, .9);
 }
 
 .nina-account-menu {
