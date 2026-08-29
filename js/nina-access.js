@@ -42,6 +42,12 @@ const ninaScrimButton = byId("ninaScrimButton");
 const ninaMicrophoneSelect = byId("ninaMicrophoneSelect");
 const ninaMicrophoneStatus = byId("ninaMicrophoneStatus");
 const ninaEligibilityStatus = byId("ninaEligibilityStatus");
+const ninaReferralEntry = byId("ninaReferralEntry");
+const ninaReferralPanel = byId("ninaReferralPanel");
+const ninaReferralClose = byId("ninaReferralClose");
+const ninaReferralCode = byId("ninaReferralCode");
+const ninaReferralCopy = byId("ninaReferralCopy");
+const ninaReferralStatus = byId("ninaReferralStatus");
 const ninaMemoryIndicator = byId("ninaMemoryIndicator");
 const ninaForgetMemory = byId("ninaForgetMemory");
 const ninaSignIn = byId("ninaSignIn");
@@ -127,6 +133,9 @@ let ninaScrimAction = "connect";
 let ninaUsageActivationPromise = null;
 let ninaUsageSettlementFailures = 0;
 let ninaReferralAttributionPromise = null;
+let ninaReferralLink = "";
+let ninaReferralCodeValue = "";
+let ninaPrimaryAction = "connect";
 const delay = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
 const logDevelopmentError = (message, error) => { if (DEVELOPMENT) console.error(message, error); };
 const nativeFullscreenElement = () => document.fullscreenElement || document.webkitFullscreenElement || null;
@@ -352,6 +361,8 @@ async function loadAccountDisplayName(clerk = ninaClerk, fallback = "Connected a
     const data = await response.json().catch(() => ({}));
     if (response.ok) {
       if (typeof data.displayName === "string" && data.displayName.trim()) ninaAccountName.textContent = data.displayName.trim();
+      ninaReferralCodeValue = normalizedReferralCode(data.referral_code);
+      ninaReferralLink = typeof data.referral_link === "string" ? data.referral_link : "";
       await submitCapturedReferral(clerk, data, token);
     }
   } catch {
@@ -886,13 +897,15 @@ function setNinaScrim(title, subtitle = "", message = "", buttonText = "") {
 function showNinaReady(balance = ninaCreditsBalance, statusOverride = "") {
   document.body.classList.remove("nina-connecting-mode", "nina-call-visible", "nina-conversation-live", "nina-scrim-visible", "nina-scrim-action");
   const creditStatus = statusOverride || (Number.isSafeInteger(balance)
-    ? `${balance.toLocaleString()} SIGNAL CREDITS / ${formatLiveTime(balance * 6).toUpperCase()}`
+    ? `${balance.toLocaleString()} CREDITS · ${formatLiveTime(balance * 6).toUpperCase()}`
     : "SIGNAL CREDIT BALANCE UNAVAILABLE");
   if (ninaEligibilityStatus) ninaEligibilityStatus.textContent = creditStatus;
-  setNinaScrim("NINA IS READY", creditStatus, "Enter when you're ready.", "CONNECT");
+  setNinaScrim("NINA IS READY", creditStatus, "Enter when you're ready.", "OPEN SIGNAL");
   ninaStatus.textContent = "NINA IS READY";
   startNina.disabled = false;
-  startNina.textContent = "CONNECT";
+  startNina.textContent = "OPEN SIGNAL";
+  ninaPrimaryAction = "connect";
+  if (ninaReferralEntry) ninaReferralEntry.hidden = !ninaClerk?.isSignedIn;
   ninaScrimAction = "connect";
   resetNinaMemoryIndicator();
 }
@@ -904,6 +917,8 @@ function showNinaEligibilityLoading() {
   if (ninaEligibilityStatus) ninaEligibilityStatus.textContent = "CHECKING SIGNAL CREDITS";
   ninaStatus.textContent = "CHECKING SIGNAL CREDITS";
   startNina.disabled = true;
+  ninaPrimaryAction = "connect";
+  if (ninaReferralEntry) ninaReferralEntry.hidden = true;
 }
 
 function showNinaSignInRequired() {
@@ -1057,6 +1072,7 @@ function showNinaConnecting() {
   ninaStatus.textContent = "CONNECTING TO NINA";
   startNina.disabled = true;
   startNina.textContent = "CONNECTING TO NINA";
+  ninaPrimaryAction = "connect";
 }
 
 function showNinaFailure(message = "Please check microphone access and try again.") {
@@ -1066,16 +1082,46 @@ function showNinaFailure(message = "Please check microphone access and try again
   ninaStatus.textContent = "CONNECTION FAILED";
   startNina.disabled = false;
   startNina.textContent = "TRY AGAIN";
+  ninaPrimaryAction = "connect";
   ninaScrimAction = "connect";
 }
 
 function showNoSignalCredits() {
   document.body.classList.remove("nina-connecting-mode", "nina-conversation-live");
-  document.body.classList.add("nina-scrim-visible", "nina-scrim-action");
-  setNinaScrim("LIVE SIGNAL REQUIRES SIGNAL CREDITS", "YOUR BALANCE: 0", "Signal Credits power live transmissions to 2063. 10 credits = 1 minute.", "GET SIGNAL CREDITS");
-  if (ninaEligibilityStatus) ninaEligibilityStatus.textContent = "YOUR BALANCE: 0";
-  ninaStatus.textContent = "SIGNAL CREDITS REQUIRED";
+  document.body.classList.remove("nina-scrim-visible", "nina-scrim-action");
+  if (ninaEligibilityStatus) ninaEligibilityStatus.textContent = "0 CREDITS · 0 MIN";
+  ninaStatus.textContent = "SIGNAL STANDBY";
+  startNina.disabled = false;
+  startNina.textContent = "GET SIGNAL CREDITS";
+  ninaPrimaryAction = "credits";
+  if (ninaReferralEntry) ninaReferralEntry.hidden = !ninaClerk?.isSignedIn;
   ninaScrimAction = "credits";
+}
+
+async function openNinaReferralPanel() {
+  if (!ninaReferralPanel || !ninaClerk?.isSignedIn) return;
+  if (!ninaReferralCodeValue || !ninaReferralLink) await loadAccountDisplayName(ninaClerk);
+  ninaReferralCode.textContent = ninaReferralCodeValue || "Unavailable";
+  ninaReferralCopy.disabled = !ninaReferralLink;
+  ninaReferralStatus.textContent = "";
+  ninaReferralPanel.hidden = false;
+  ninaReferralClose.focus({ preventScroll: true });
+}
+
+function closeNinaReferralPanel(returnFocus = false) {
+  if (!ninaReferralPanel || ninaReferralPanel.hidden) return;
+  ninaReferralPanel.hidden = true;
+  if (returnFocus) ninaReferralEntry?.focus({ preventScroll: true });
+}
+
+async function copyNinaReferralLink() {
+  if (!ninaReferralLink) return;
+  try {
+    await navigator.clipboard.writeText(ninaReferralLink);
+    ninaReferralStatus.textContent = "INVITE LINK COPIED";
+  } catch {
+    ninaReferralStatus.textContent = "COPY UNAVAILABLE";
+  }
 }
 
 function showSignalEnded() {
@@ -1642,7 +1688,16 @@ window.addEventListener("scroll", () => {
 window.addEventListener("pv-language-change", event => syncAccountLanguage(event.detail?.language));
 document.addEventListener("fullscreenchange", syncNinaFullscreen);
 document.addEventListener("webkitfullscreenchange", syncNinaFullscreen);
-startNina.addEventListener("click", connectNina);
+startNina.addEventListener("click", () => {
+  if (ninaPrimaryAction === "credits") openSignalCreditPurchase();
+  else connectNina();
+});
+ninaReferralEntry?.addEventListener("click", () => void openNinaReferralPanel());
+ninaReferralClose?.addEventListener("click", () => closeNinaReferralPanel(true));
+ninaReferralCopy?.addEventListener("click", () => void copyNinaReferralLink());
+ninaReferralPanel?.addEventListener("click", event => {
+  if (event.target === ninaReferralPanel) closeNinaReferralPanel(true);
+});
 ninaScrimButton.addEventListener("click", () => {
   if (ninaScrimAction === "credits") openSignalCreditPurchase();
   else if (ninaScrimAction === "signin") void openNinaAccountSignIn();
@@ -1667,6 +1722,10 @@ ninaMicrophoneSelect.addEventListener("change", async () => {
 navigator.mediaDevices?.addEventListener?.("devicechange", refreshNinaMicrophones);
 document.addEventListener("keydown", event => {
   if (event.key !== "Escape") return;
+  if (ninaReferralPanel && !ninaReferralPanel.hidden) {
+    closeNinaReferralPanel(true);
+    return;
+  }
   if (ninaAccountCreditsInfo && !ninaAccountCreditsInfo.hidden) {
     closeNinaCreditsInfo(true);
     return;

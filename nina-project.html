@@ -554,20 +554,23 @@
 
           <p class="nina-intro-subtitle">
 
-            A live transmission from somewhere
-            ahead of us.
-
-            She can hear you.
+            You are opening a direct channel to Berlin in 2063.
 
           </p>
 
+          <p class="nina-eligibility-status" id="ninaEligibilityStatus" role="status" aria-live="polite">Checking Signal Credits</p>
 
-          <div class="nina-intro-small">
+          <button
+            class="nina-open-live"
+            id="startNina"
+            type="button"
+          >
 
-            Say something unexpected.
+            OPEN SIGNAL
 
-          </div>
+          </button>
 
+          <button class="nina-referral-entry" id="ninaReferralEntry" type="button" hidden>Want free Signal Credits?</button>
 
           <label class="nina-microphone" for="ninaMicrophoneSelect">
 
@@ -580,21 +583,6 @@
             <span class="nina-microphone-status" id="ninaMicrophoneStatus" role="status" aria-live="polite"></span>
 
           </label>
-
-
-
-          <p id="ninaEligibilityStatus" role="status" aria-live="polite" style="margin:0 0 12px;color:rgba(255,255,255,.58);font:10px/1.45 'Courier New',monospace;letter-spacing:.1em;text-transform:uppercase;">Checking Signal Credits</p>
-
-          <button
-            class="nina-open-live"
-            id="startNina"
-            type="button"
-          >
-
-            CONNECT
-
-          </button>
-
 
 
           <div class="nina-connecting">
@@ -617,6 +605,22 @@
 
 
       </section>
+
+      <div class="nina-referral-panel" id="ninaReferralPanel" role="dialog" aria-modal="true" aria-labelledby="ninaReferralTitle" hidden>
+        <section class="nina-referral-panel-content">
+          <button class="nina-referral-close" id="ninaReferralClose" type="button" aria-label="Close referral panel">×</button>
+          <h3 id="ninaReferralTitle">Invite Someone</h3>
+          <p>Share your invite link and earn Signal Credits when a qualifying referral completes the existing reward condition.</p>
+          <span class="nina-referral-label">Your Invite Code</span>
+          <strong class="nina-referral-code" id="ninaReferralCode">Loading…</strong>
+          <button class="nina-referral-copy" id="ninaReferralCopy" type="button">Copy Invite Link</button>
+          <details class="nina-referral-how">
+            <summary>How it works</summary>
+            <p>When someone joins through your invite link and completes a paid purchase of 100 Signal Credits or more, you receive 100 bonus Signal Credits. Smaller purchases do not trigger the reward, and the reward is issued once per referred user.</p>
+          </details>
+          <p class="nina-referral-status" id="ninaReferralStatus" role="status" aria-live="polite"></p>
+        </section>
+      </div>
 
 
     </div>

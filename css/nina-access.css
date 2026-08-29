@@ -1695,6 +1695,14 @@ body.nina-call-visible
   line-height: 1.7;
 }
 
+.nina-eligibility-status {
+  margin: 24px 0 0;
+  color: rgba(255, 255, 255, .68);
+  font: 12px/1.45 'Courier New', monospace;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
 .nina-intro-small {
   margin-top: 15px;
 
@@ -1721,7 +1729,7 @@ body.nina-call-visible
   position: relative;
   display: block;
   width: min(360px, 100%);
-  margin: 28px auto 0;
+  margin: 30px auto 0;
   color: rgba(255, 255, 255, .48);
   font-family: 'Courier New', monospace;
   font-size: 9px;
@@ -1774,10 +1782,12 @@ body.nina-call-visible
 }
 
 .nina-open-live {
-  margin-top: 22px;
+  min-width: min(330px, 100%);
+  min-height: 58px;
+  margin-top: 16px;
 
   padding:
-    15px
+    14px
     24px;
 
   border:
@@ -1809,7 +1819,7 @@ body.nina-call-visible
     'Michroma',
     sans-serif;
 
-  font-size: 9px;
+  font-size: 11px;
 
   letter-spacing: .20em;
 
@@ -1832,6 +1842,103 @@ body.nina-call-visible
     border-color
     .25s
     ease;
+}
+
+.nina-referral-entry {
+  margin: 17px 0 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: rgba(255, 255, 255, .54);
+  font: 12px/1.5 'Courier New', monospace;
+  letter-spacing: .06em;
+  cursor: pointer;
+}
+
+.nina-referral-entry[hidden],
+.nina-referral-panel[hidden] { display: none !important; }
+
+.nina-referral-entry:hover,
+.nina-referral-entry:focus-visible { color: rgba(255, 255, 255, .88); }
+
+.nina-referral-panel {
+  position: absolute;
+  inset: 0;
+  z-index: 12;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, .72);
+}
+
+.nina-referral-panel-content {
+  position: relative;
+  width: min(470px, 100%);
+  padding: 34px 32px 30px;
+  border: 1px solid rgba(255, 255, 255, .22);
+  background: rgba(3, 3, 4, .98);
+  color: #fff;
+  text-align: left;
+}
+
+.nina-referral-panel-content h3 {
+  margin: 0 44px 18px 0;
+  font: 13px/1.4 'Courier New', monospace;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+}
+
+.nina-referral-panel-content > p {
+  margin: 0 0 20px;
+  color: rgba(255, 255, 255, .68);
+  font: 14px/1.6 Inter, sans-serif;
+}
+
+.nina-referral-label {
+  display: block;
+  color: rgba(255, 255, 255, .5);
+  font: 10px/1.4 'Courier New', monospace;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+}
+
+.nina-referral-code {
+  display: block;
+  margin-top: 8px;
+  font: 18px/1.3 'Courier New', monospace;
+  letter-spacing: .16em;
+}
+
+.nina-referral-copy {
+  width: 100%;
+  min-height: 48px;
+  margin-top: 20px;
+  border: 1px solid rgba(255, 255, 255, .42);
+  border-radius: 0;
+  background: transparent;
+  color: rgba(255, 255, 255, .9);
+  font: 11px/1 'Courier New', monospace;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.nina-referral-how { margin-top: 20px; border-top: 1px solid rgba(255, 255, 255, .14); }
+.nina-referral-how summary { padding-top: 16px; color: rgba(255, 255, 255, .65); font: 11px/1.4 'Courier New', monospace; letter-spacing: .1em; cursor: pointer; text-transform: uppercase; }
+.nina-referral-how p { margin: 13px 0 0; color: rgba(255, 255, 255, .6); font: 13px/1.55 Inter, sans-serif; }
+.nina-referral-status { min-height: 1.4em; margin: 14px 0 0 !important; font: 10px/1.4 'Courier New', monospace !important; letter-spacing: .1em; text-transform: uppercase; }
+
+.nina-referral-close {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  background: transparent;
+  color: rgba(255, 255, 255, .62);
+  font: 300 25px/1 Inter, sans-serif;
+  cursor: pointer;
 }
 
 .nina-open-live:hover {
