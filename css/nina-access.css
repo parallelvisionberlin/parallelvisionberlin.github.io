@@ -212,12 +212,47 @@
 .nina-access-email-utilities button:focus-visible { color: rgba(255, 255, 255, .82); }
 
 .nina-access-form {
-  margin-top: 20px;
-  padding-top: 22px;
-  border-top: 1px solid rgba(255, 255, 255, .12);
+  margin-top: 14px;
 }
 
 .nina-access-form[hidden] { display: none !important; }
+
+.nina-access-code-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.nina-access-form .nina-access-label {
+  margin-bottom: 7px;
+  color: rgba(255, 255, 255, .58);
+  font-size: 10px;
+}
+
+.nina-access-form .nina-access-input {
+  min-height: 42px;
+  padding: 9px 12px;
+  font-size: 13px;
+}
+
+.nina-access-form .nina-access-submit {
+  min-height: 42px;
+  padding: 0 14px;
+  border-color: rgba(255, 255, 255, .42);
+  background: transparent;
+  color: rgba(255, 255, 255, .82);
+  font-size: 10px;
+  letter-spacing: .1em;
+}
+
+.nina-access-form .nina-access-error {
+  min-height: 0;
+  margin-top: 8px;
+  font: 10px/1.45 'Courier New', monospace;
+  letter-spacing: .06em;
+}
+
+.nina-access-form .nina-access-error:empty { display: none; }
 
 .nina-access-label {
   display: block;
@@ -339,7 +374,10 @@ body.nina-access-active {
   .nina-access-account { width: 100%; min-height: 50px; }
   .nina-access-private-toggle { font-size: 12px; }
   .nina-access-email-utilities button { font-size: 13px; }
-  .nina-access-form { margin-top: 18px; padding-top: 20px; }
+  .nina-access-form { margin-top: 14px; }
+  .nina-access-code-row { grid-template-columns: 1fr; }
+  .nina-access-form .nina-access-input,
+  .nina-access-form .nina-access-submit { min-height: 42px; }
   .nina-access-actions { align-items: stretch; flex-direction: column; gap: 8px; }
   .nina-access-submit,.nina-access-cancel { width: 100%; }
 }

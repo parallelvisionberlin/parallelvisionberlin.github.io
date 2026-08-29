@@ -368,19 +368,19 @@
     <button class="nina-access-private-toggle" id="ninaPrivateAccessToggle" type="button" aria-expanded="false" aria-controls="ninaAccessForm">Have an access code?</button>
     <form class="nina-access-form" id="ninaAccessForm" hidden aria-hidden="true">
       <label class="nina-access-label" for="ninaAccessCode">Access code</label>
-      <input
-        class="nina-access-input"
-        id="ninaAccessCode"
-        name="code"
-        type="password"
-        autocomplete="current-password"
-        aria-label="Access code"
-        required
-      >
-      <p class="nina-access-error" id="ninaAccessError" role="status" aria-live="polite"></p>
-      <div class="nina-access-actions">
+      <div class="nina-access-code-row">
+        <input
+          class="nina-access-input"
+          id="ninaAccessCode"
+          name="code"
+          type="password"
+          autocomplete="current-password"
+          aria-label="Access code"
+          required
+        >
         <button class="nina-access-submit" id="ninaAccessSubmit" type="submit">USE ACCESS CODE</button>
       </div>
+      <p class="nina-access-error" id="ninaAccessError" role="status" aria-live="polite"></p>
     </form>
   </section>
 </div>
