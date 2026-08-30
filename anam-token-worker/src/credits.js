@@ -112,9 +112,10 @@ export async function ensureVerifiedSignupTrial(env, user, clerkUserId) {
   if (user?.role !== "user") return { eligible: false, verificationRequired: false, granted: false };
   const verification = await getClerkEmailVerification(env, clerkUserId);
   if (!verification.verified) return { eligible: false, verificationRequired: true, granted: false };
-  const result = await creditSignalCredits(env, user.id, 30, {
+  const userId = validUserId(user.id || user.user_id);
+  const result = await creditSignalCredits(env, userId, 30, {
     source: "signup_trial",
-    referenceId: `signup-trial:${user.id}`,
+    referenceId: `signup-trial:${userId}`,
     description: "Verified account Live Nina trial"
   });
   return {

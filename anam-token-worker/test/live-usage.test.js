@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { creditSignalCredits, getSignalCreditBalance } from "../src/credits.js";
+import { creditSignalCredits, ensureVerifiedSignupTrial, getSignalCreditBalance } from "../src/credits.js";
 import {
   CREDITS_PER_MINUTE, SECONDS_PER_CREDIT, activateLiveNinaSession, createLiveNinaSession,
   creditsToSeconds, failLiveNinaSession, formatLiveTime, settleLiveNinaSession
@@ -77,6 +77,27 @@ test("zero-credit users cannot open paid Live Nina and owners bypass the full bi
   const settled=await settleLiveNinaSession(env,owner,null,{end:true});
   assert.equal(settled.bypass,true);assert.equal(settled.debited,0);
   assert.equal(db.transactions.length,0);
+});
+
+test("verified memory-shaped user identity receives one trial and can create a Live Nina session",async()=>{
+  const originalFetch=globalThis.fetch;
+  globalThis.fetch=async()=>new Response(JSON.stringify({
+    primary_email_address_id:"idn_primary",
+    email_addresses:[{id:"idn_primary",verification:{status:"verified"}}]
+  }),{status:200});
+  try {
+    const db=liveDb(),env={NINA_MEMORY_DB:db,CLERK_SECRET_KEY:"clerk-secret"};
+    const identity={user_id:"user-memory-shape",visitor_id:"memory-visitor",role:"user",account_authenticated:true};
+    const first=await ensureVerifiedSignupTrial(env,identity,"user_clerk");
+    const repeated=await ensureVerifiedSignupTrial(env,identity,"user_clerk");
+    const opened=await createLiveNinaSession(env,identity);
+    assert.equal(first.granted,true);
+    assert.equal(repeated.granted,false);
+    assert.equal(opened.balance,30);
+    assert.equal(opened.remainingSeconds,180);
+    assert.equal(db.transactions.filter(row=>row.source==="signup_trial").length,1);
+    assert.equal(db.sessions.get(opened.sessionId).user_id,identity.user_id);
+  } finally { globalThis.fetch=originalFetch; }
 });
 
 test("failed startup and sub-six-second sessions debit nothing",async()=>{
