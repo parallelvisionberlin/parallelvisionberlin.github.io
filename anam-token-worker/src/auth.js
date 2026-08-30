@@ -72,6 +72,41 @@ export async function verifyClerkSessionToken(env, token, requestOrigin = "") {
   } catch { return null; }
 }
 
+export class ClerkVerificationError extends Error {
+  constructor(code, message) {
+    super(message);
+    this.name = "ClerkVerificationError";
+    this.code = code;
+  }
+}
+
+export async function getClerkEmailVerification(env, clerkUserId) {
+  if (!CLERK_SUBJECT_PATTERN.test(clerkUserId || "")) {
+    throw new ClerkVerificationError("invalid_clerk_user", "Invalid Clerk user");
+  }
+  if (typeof env.CLERK_SECRET_KEY !== "string" || !env.CLERK_SECRET_KEY.trim()) {
+    throw new ClerkVerificationError("clerk_verification_unavailable", "Clerk email verification is unavailable");
+  }
+  let response;
+  try {
+    response = await fetch(`https://api.clerk.com/v1/users/${encodeURIComponent(clerkUserId)}`, {
+      headers: { "Authorization": `Bearer ${env.CLERK_SECRET_KEY}`, "Accept": "application/json" }
+    });
+  } catch {
+    throw new ClerkVerificationError("clerk_verification_unavailable", "Clerk email verification is unavailable");
+  }
+  if (!response.ok) {
+    throw new ClerkVerificationError("clerk_verification_unavailable", "Clerk email verification is unavailable");
+  }
+  const clerkUser = await response.json().catch(() => null);
+  const addresses = Array.isArray(clerkUser?.email_addresses) ? clerkUser.email_addresses : [];
+  const primary = addresses.find(address => address?.id === clerkUser?.primary_email_address_id);
+  return {
+    verified: primary?.verification?.status === "verified",
+    email: typeof primary?.email_address === "string" ? primary.email_address : ""
+  };
+}
+
 function validatedDisplayName(value) {
   if (typeof value !== "string") return "";
   const normalized = value.normalize("NFKC").replace(/[^\p{L}\p{M} .'-]/gu, " ").replace(/\s+/g, " ").trim();

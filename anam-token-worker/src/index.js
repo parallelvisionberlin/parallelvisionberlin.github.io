@@ -3,10 +3,10 @@ import {
   clearUserMemory, createConversation, deleteOwnerMemory, exportTranscript, memoryDiagnostic, memoryMetadata, resetDerivedMemory,
   authorizeOwner, enrollOwner, storeMessages, validateCompletedMessages, validId
 } from "./memory.js";
-import { asMemoryIdentity, resolveAuthenticatedUser, resolveOwnerMemoryVisitorId, verifyClerkSessionToken } from "./auth.js";
+import { asMemoryIdentity, ClerkVerificationError, resolveAuthenticatedUser, resolveOwnerMemoryVisitorId, verifyClerkSessionToken } from "./auth.js";
 import { buildRelationshipContext, deleteRelationshipState, evaluateCompletedRelationship, relationshipEvaluationDiagnostic } from "./relationship.js";
 import { cleanPreferredName, getAccountPreferences, getBillingHistory, learnPreferredNameFromConversation, updateAccountProfile, updateNewsletterPreferences } from "./account.js";
-import { SignalCreditError, creditSignalCredits, getSignalCreditBalance, getSignalCreditHistory } from "./credits.js";
+import { SignalCreditError, creditSignalCredits, ensureVerifiedSignupTrial, getSignalCreditBalance, getSignalCreditHistory } from "./credits.js";
 import { ReferralError, attributeReferral, getOrCreateReferral } from "./referrals.js";
 import {
   activateLiveNinaSession, createLiveNinaSession, creditsToSeconds, failLiveNinaSession, settleLiveNinaSession
@@ -249,7 +249,7 @@ async function authenticateNinaRequest(request, env, body) {
         ...user,
         display_name: authenticatedMemoryDisplayName(user, preferences.preferredName)
       });
-      return { ...memoryIdentity, preferred_name: preferences.preferredName };
+      return { ...memoryIdentity, preferred_name: preferences.preferredName, clerk_user_id: claims.sub };
     }
   }
   const owner = await authenticateOwnerRequest(request, env, body);
@@ -325,6 +325,17 @@ async function handleSessionToken(request, env, origin) {
   const authenticationPresented = Boolean((request.headers.get("Authorization") || "").startsWith("Bearer "));
   const identity = await authenticateNinaRequest(request, env, body);
   if (!identity) return jsonResponse({ error: "Sign in required", code: "sign_in_required" }, 401, origin);
+  try {
+    const trial = await ensureVerifiedSignupTrial(env, identity, identity.clerk_user_id);
+    if (trial.verificationRequired) {
+      return jsonResponse({ error: "Confirm your email to open the signal.", code: "email_verification_required" }, 403, origin);
+    }
+  } catch (error) {
+    if (error instanceof ClerkVerificationError) {
+      return jsonResponse({ error: "Unable to confirm email verification.", code: error.code }, 503, origin);
+    }
+    throw error;
+  }
   const owner = identity?.role === "owner" ? identity : null;
   let conversationId = "";
   let privateMemory = formatBrowserMemory(browserHistory);
@@ -492,10 +503,21 @@ async function handleDelete(request, env, origin) {
 }
 
 async function handleSignalCredits(request, env, origin) {
-  const user = await authenticateAccountRequest(request, env);
-  if (!user) return jsonResponse({ error: "Account authentication required" }, 401, origin);
-  const account = await getSignalCreditBalance(env, user.id);
-  return jsonResponse({ ...account, remainingSeconds: creditsToSeconds(account.balance), ownerBypass: user.role === "owner" }, 200, origin);
+  const identity = await authenticateAccountIdentity(request, env);
+  if (!identity) return jsonResponse({ error: "Account authentication required" }, 401, origin);
+  try {
+    const trial = await ensureVerifiedSignupTrial(env, identity.user, identity.clerkUserId);
+    if (trial.verificationRequired) {
+      return jsonResponse({ error: "Confirm your email to open the signal.", code: "email_verification_required", balance: 0, remainingSeconds: 0 }, 403, origin);
+    }
+    const account = trial.account || await getSignalCreditBalance(env, identity.user.id);
+    return jsonResponse({ ...account, remainingSeconds: creditsToSeconds(account.balance), ownerBypass: identity.user.role === "owner" }, 200, origin);
+  } catch (error) {
+    if (error instanceof ClerkVerificationError) {
+      return jsonResponse({ error: "Unable to confirm email verification.", code: error.code }, 503, origin);
+    }
+    throw error;
+  }
 }
 
 async function handleSignalCreditHistory(request, env, origin) {

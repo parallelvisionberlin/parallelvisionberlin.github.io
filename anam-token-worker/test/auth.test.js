@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { asMemoryIdentity, resolveAuthenticatedUser, verifyClerkSessionToken } from "../src/auth.js";
+import { asMemoryIdentity, getClerkEmailVerification, resolveAuthenticatedUser, verifyClerkSessionToken } from "../src/auth.js";
 
 const encode = value => Buffer.from(typeof value === "string" ? value : JSON.stringify(value)).toString("base64url");
 
@@ -79,4 +79,25 @@ test("a verified account name updates normal users but never overwrites the owne
   const owner = await resolveAuthenticatedUser({ NINA_MEMORY_DB: db }, { sub: "user_normal" }, "Someone Else");
   assert.equal(owner.display_name, "Alejandro");
   assert.equal(updates.length, 0);
+});
+
+test("email verification is read from Clerk's primary backend email object, not JWT claims", async () => {
+  const originalFetch = globalThis.fetch;
+  const requests = [];
+  globalThis.fetch = async (url, options) => {
+    requests.push({ url, options });
+    return new Response(JSON.stringify({
+      primary_email_address_id: "idn_primary",
+      email_addresses: [
+        { id: "idn_other", email_address: "other@example.com", verification: { status: "verified" } },
+        { id: "idn_primary", email_address: "member@example.com", verification: { status: "unverified" } }
+      ]
+    }), { status: 200 });
+  };
+  try {
+    const result = await getClerkEmailVerification({ CLERK_SECRET_KEY: "clerk-secret" }, "user_member1");
+    assert.deepEqual(result, { verified: false, email: "member@example.com" });
+    assert.equal(requests[0].url, "https://api.clerk.com/v1/users/user_member1");
+    assert.equal(requests[0].options.headers.Authorization, "Bearer clerk-secret");
+  } finally { globalThis.fetch = originalFetch; }
 });

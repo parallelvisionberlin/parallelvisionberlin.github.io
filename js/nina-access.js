@@ -392,8 +392,12 @@ async function loadSignalCreditBalance(clerk = ninaClerk, force = false) {
       headers: { "Authorization": `Bearer ${token}`, "Accept": "application/json" },
       cache: "no-store"
     });
-    if (!response.ok) throw new Error("Signal Credit balance unavailable");
     const data = await response.json();
+    if (!response.ok) {
+      const error = new Error(typeof data?.error === "string" ? data.error : "Signal Credit balance unavailable");
+      error.code = data?.code;
+      throw error;
+    }
     if (!Number.isSafeInteger(data?.balance) || data.balance < 0) throw new Error("Invalid Signal Credit balance");
     if (requestId !== ninaCreditsRequest) return null;
     ninaCreditsBalance = data.balance;
@@ -405,9 +409,15 @@ async function loadSignalCreditBalance(clerk = ninaClerk, force = false) {
     if (requestId !== ninaCreditsRequest) return null;
     ninaCreditsBalance = null;
     ninaOwnerBypass = false;
-    ninaSignalCredits.textContent = "Unavailable";
-    if (ninaLiveTime) ninaLiveTime.textContent = "Unavailable";
-    ninaSignalCredits.dataset.state = "unavailable";
+    const verificationRequired = error?.code === "email_verification_required";
+    if (verificationRequired) {
+      ninaSignalCredits.textContent = "Confirm email";
+      if (ninaLiveTime) ninaLiveTime.textContent = "Verification required";
+    } else {
+      ninaSignalCredits.textContent = "Unavailable";
+      if (ninaLiveTime) ninaLiveTime.textContent = "Unavailable";
+    }
+    ninaSignalCredits.dataset.state = verificationRequired ? "verification-required" : "unavailable";
     logDevelopmentError("Signal Credit balance unavailable.", error);
     return null;
   }
@@ -1381,6 +1391,11 @@ async function connectNina() {
   }
   if (signedIn) {
     const balance = await loadSignalCreditBalance(clerk, true);
+    if (ninaSignalCredits?.dataset.state === "verification-required") {
+      ninaConnecting = false;
+      showNinaFailure("Confirm your email to open the signal.");
+      return;
+    }
     if (!ninaOwnerBypass && balance === 0) {
       ninaConnecting = false;
       showNoSignalCredits();
@@ -1425,6 +1440,7 @@ async function connectNina() {
     await stopNinaSession();
     if (ninaOverlay.classList.contains("is-open")) {
       if (error?.code === "insufficient_credits") showNoSignalCredits();
+      else if (error?.code === "email_verification_required") showNinaFailure("Confirm your email to open the signal.");
       else if (error?.code === "sign_in_required") {
         showNinaFailure("Sign in to open a paid Live Nina transmission.");
       } else showNinaFailure();

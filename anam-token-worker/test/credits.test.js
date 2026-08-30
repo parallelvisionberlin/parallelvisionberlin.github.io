@@ -4,7 +4,7 @@ import test from "node:test";
 import worker from "../src/index.js";
 import {
   SignalCreditError, creditSignalCredits, debitSignalCredits,
-  getSignalCreditBalance, getSignalCreditHistory
+  ensureVerifiedSignupTrial, getSignalCreditBalance, getSignalCreditHistory
 } from "../src/credits.js";
 
 function creditDb(users = []) {
@@ -136,6 +136,69 @@ test("debits cannot create a negative balance", async () => {
     error => error instanceof SignalCreditError && error.code === "insufficient_credits"
   );
   assert.equal((await getSignalCreditBalance(env, "user-1")).balance, 0);
+});
+
+test("verified signup trial uses the permanent credit ledger exactly once", async t => {
+  const originalFetch = globalThis.fetch;
+  let verified = true;
+  globalThis.fetch = async url => {
+    if (!String(url).startsWith("https://api.clerk.com/v1/users/")) throw new Error(`Unexpected URL: ${url}`);
+    return new Response(JSON.stringify({
+      primary_email_address_id: "idn_primary",
+      email_addresses: [{ id: "idn_primary", email_address: "member@example.com", verification: { status: verified ? "verified" : "unverified" } }]
+    }), { status: 200 });
+  };
+  const envFor = db => ({ NINA_MEMORY_DB: db, CLERK_SECRET_KEY: "clerk-secret" });
+  const user = { id: "member-trial", role: "user" };
+  try {
+    await t.test("verified user gets 30 once, even across concurrent retries", async () => {
+      const db = creditDb();
+      const env = envFor(db);
+      const [first, second] = await Promise.all([
+        ensureVerifiedSignupTrial(env, user, "user_member1"),
+        ensureVerifiedSignupTrial(env, user, "user_member1")
+      ]);
+      assert.equal(first.granted || second.granted, true);
+      assert.equal(db.accounts.get(user.id).balance, 30);
+      assert.equal(db.transactions.length, 1);
+      assert.deepEqual(db.transactions[0], {
+        id: db.transactions[0].id, user_id: user.id, amount: 30, type: "credit", source: "signup_trial",
+        reference_id: `signup-trial:${user.id}`, description: "Verified account Live Nina trial", created_at: db.transactions[0].created_at
+      });
+    });
+
+    await t.test("spending the trial does not make it renewable", async () => {
+      const db = creditDb();
+      const env = envFor(db);
+      await ensureVerifiedSignupTrial(env, user, "user_member1");
+      await debitSignalCredits(env, user.id, 30, { source: "live_nina", referenceId: "spent-trial" });
+      const repeated = await ensureVerifiedSignupTrial(env, user, "user_member1");
+      assert.equal(repeated.granted, false);
+      assert.equal(repeated.account.balance, 0);
+      assert.equal(db.transactions.filter(row => row.source === "signup_trial").length, 1);
+    });
+
+    await t.test("purchased credits are preserved alongside the trial", async () => {
+      const db = creditDb();
+      const env = envFor(db);
+      await creditSignalCredits(env, user.id, 100, { source: "stripe_purchase", referenceId: "purchase-1" });
+      await ensureVerifiedSignupTrial(env, user, "user_member1");
+      assert.equal(db.accounts.get(user.id).balance, 130);
+    });
+
+    await t.test("unverified users and owners receive no trial", async () => {
+      verified = false;
+      const unverifiedDb = creditDb();
+      const result = await ensureVerifiedSignupTrial(envFor(unverifiedDb), user, "user_member1");
+      assert.equal(result.verificationRequired, true);
+      assert.equal(unverifiedDb.transactions.length, 0);
+      verified = true;
+      const ownerDb = creditDb();
+      const owner = await ensureVerifiedSignupTrial(envFor(ownerDb), { id: "owner", role: "owner" }, "user_owner1");
+      assert.equal(owner.eligible, false);
+      assert.equal(ownerDb.transactions.length, 0);
+    });
+  } finally { globalThis.fetch = originalFetch; }
 });
 
 test("credit APIs reject requests without a Clerk session", async () => {

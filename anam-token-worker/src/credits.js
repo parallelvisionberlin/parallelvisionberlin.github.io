@@ -1,3 +1,5 @@
+import { getClerkEmailVerification } from "./auth.js";
+
 const MAX_CREDIT_AMOUNT = 1000000000;
 const DEFAULT_HISTORY_LIMIT = 20;
 const MAX_HISTORY_LIMIT = 50;
@@ -104,6 +106,24 @@ async function mutateSignalCredits(env, userId, signedAmount, type, options) {
 
 export function creditSignalCredits(env, userId, amount, options) {
   return mutateSignalCredits(env, validUserId(userId), validAmount(amount), "credit", options);
+}
+
+export async function ensureVerifiedSignupTrial(env, user, clerkUserId) {
+  if (user?.role !== "user") return { eligible: false, verificationRequired: false, granted: false };
+  const verification = await getClerkEmailVerification(env, clerkUserId);
+  if (!verification.verified) return { eligible: false, verificationRequired: true, granted: false };
+  const result = await creditSignalCredits(env, user.id, 30, {
+    source: "signup_trial",
+    referenceId: `signup-trial:${user.id}`,
+    description: "Verified account Live Nina trial"
+  });
+  return {
+    eligible: true,
+    verificationRequired: false,
+    granted: !result.idempotent,
+    account: result.account,
+    transaction: result.transaction
+  };
 }
 
 export function debitSignalCredits(env, userId, amount, options) {
