@@ -1105,6 +1105,22 @@ body.nina-fullscreen-active {
   color: #fff;
 }
 
+.nina-account-add-credits {
+  display: block;
+  margin: -7px auto 15px;
+  padding: 5px 0;
+  border: 0;
+  background: transparent;
+  color: rgba(255, 255, 255, .58);
+  font: 400 9px/1 Inter, sans-serif;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.nina-account-add-credits:hover,
+.nina-account-add-credits:focus-visible { color: #fff; }
+
 .nina-account-get-credits,
 .nina-account-signout {
   width: 100%;
