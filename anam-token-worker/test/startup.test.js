@@ -1,7 +1,11 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import worker, { NINA_INTIMACY_CONTINUITY, OWNER_GREETINGS, applyStartupGreeting, assembleSystemPrompt, buildLivePersonaConfig, buildPersonaDiagnostic } from "../src/index.js";
+import worker, {
+  KNOWN_PUBLIC_GREETINGS, NINA_INTIMACY_CONTINUITY, OWNER_GREETINGS, UNKNOWN_NAME_INSTRUCTION, UNKNOWN_PUBLIC_GREETINGS,
+  applyStartupGreeting, assembleSystemPrompt, authenticatedMemoryDisplayName, buildLivePersonaConfig, buildPersonaDiagnostic,
+  schedulePreferredNameLearning, unknownNameInstruction
+} from "../src/index.js";
 
 const encode = value => Buffer.from(typeof value === "string" ? value : JSON.stringify(value)).toString("base64url");
 
@@ -36,13 +40,49 @@ test("authenticated Alejandro sessions use only approved uninterruptible owner g
   }
 });
 
-test("public sessions keep Nina's normal generic and interruptible greeting", () => {
-  const personaConfig = applyStartupGreeting({ systemPrompt: "Published Nina prompt." }, null);
+test("unknown public users receive only approved simple interruptible greetings", () => {
+  for (let index = 0; index < UNKNOWN_PUBLIC_GREETINGS.length; index += 1) {
+    const personaConfig = applyStartupGreeting({ systemPrompt: "Published Nina prompt." }, null, "", () => index / UNKNOWN_PUBLIC_GREETINGS.length);
+    assert.equal(UNKNOWN_PUBLIC_GREETINGS.includes(personaConfig.initialMessage), true);
+    assert.equal(personaConfig.skipGreeting, false);
+    assert.equal(personaConfig.uninterruptibleGreeting, false);
+    assert.equal(personaConfig.systemPrompt, "Published Nina prompt.");
+  }
+});
 
-  assert.equal(personaConfig.initialMessage, "Hi. I'm Nina.");
-  assert.equal(personaConfig.skipGreeting, false);
-  assert.equal(personaConfig.uninterruptibleGreeting, false);
-  assert.equal(personaConfig.systemPrompt, "Published Nina prompt.");
+test("known public users receive approved interruptible greetings with sanitized optional name interpolation", () => {
+  for (let index = 0; index < KNOWN_PUBLIC_GREETINGS.length; index += 1) {
+    const personaConfig = applyStartupGreeting({ systemPrompt: "Published Nina prompt." }, null, "  Vlád<script>  ", () => index / KNOWN_PUBLIC_GREETINGS.length);
+    const expected = KNOWN_PUBLIC_GREETINGS[index].replace("{name}", "Vlád script");
+    assert.equal(personaConfig.initialMessage, expected);
+    assert.equal(personaConfig.uninterruptibleGreeting, false);
+  }
+});
+
+test("unknown-name instruction exists only for authenticated non-owner users without a learned name", () => {
+  assert.equal(unknownNameInstruction({ account_authenticated: true, role: "user", preferred_name: "" }), UNKNOWN_NAME_INSTRUCTION);
+  assert.equal(unknownNameInstruction({ account_authenticated: true, role: "user", preferred_name: "Vlad" }), "");
+  assert.equal(unknownNameInstruction({ account_authenticated: true, role: "owner", preferred_name: "" }), "");
+  assert.equal(unknownNameInstruction({ account_authenticated: false, role: "user", preferred_name: "" }), "");
+});
+
+test("account display name alone never becomes Nina's conversational preferred name", () => {
+  assert.equal(authenticatedMemoryDisplayName({ role: "user", display_name: "ClerkUsername" }, ""), "Visitor");
+  assert.equal(authenticatedMemoryDisplayName({ role: "user", display_name: "ClerkUsername" }, "Vlad"), "Vlad");
+  assert.equal(authenticatedMemoryDisplayName({ role: "owner", display_name: "Alejandro" }, ""), "Alejandro");
+});
+
+test("completed authenticated public conversations schedule preferred-name learning only once", async () => {
+  const scheduled = [], calls = [];
+  const ctx = { waitUntil(promise) { scheduled.push(promise); } };
+  const identity = { account_authenticated: true, role: "user", user_id: "user-1", visitor_id: "visitor-1" };
+  const learner = async (...args) => { calls.push(args); return { updated: true, preferredName: "Vlad" }; };
+  assert.equal(schedulePreferredNameLearning(ctx, { marker: "env" }, identity, "conversation-1", true, learner), true);
+  assert.equal(schedulePreferredNameLearning(ctx, {}, identity, "conversation-1", false, learner), false);
+  assert.equal(schedulePreferredNameLearning(ctx, {}, { ...identity, role: "owner" }, "conversation-1", true, learner), false);
+  await Promise.all(scheduled);
+  assert.deepEqual(calls[0].slice(1), ["user-1", "visitor-1", "conversation-1"]);
+  assert.equal(calls.length, 1);
 });
 
 test("system prompt assembly adds intimacy continuity exactly once before owner and private context", () => {

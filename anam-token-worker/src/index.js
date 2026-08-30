@@ -5,7 +5,7 @@ import {
 } from "./memory.js";
 import { asMemoryIdentity, resolveAuthenticatedUser, resolveOwnerMemoryVisitorId, verifyClerkSessionToken } from "./auth.js";
 import { buildRelationshipContext, deleteRelationshipState, evaluateCompletedRelationship, relationshipEvaluationDiagnostic } from "./relationship.js";
-import { getAccountPreferences, getBillingHistory, updateAccountProfile, updateNewsletterPreferences } from "./account.js";
+import { cleanPreferredName, getAccountPreferences, getBillingHistory, learnPreferredNameFromConversation, updateAccountProfile, updateNewsletterPreferences } from "./account.js";
 import { SignalCreditError, creditSignalCredits, getSignalCreditBalance, getSignalCreditHistory } from "./credits.js";
 import { ReferralError, attributeReferral, getOrCreateReferral } from "./referrals.js";
 import {
@@ -63,16 +63,33 @@ export const OWNER_GREETINGS = Object.freeze([
   "Hi. I've had a strange day.",
   "Hey. Sorry. I'm a little tired."
 ]);
-const DEFAULT_GREETING = "Hi. I'm Nina.";
+export const UNKNOWN_PUBLIC_GREETINGS = Object.freeze(["Hi. I'm Nina.", "Hey. I'm Nina.", "Hi.", "Hey."]);
+export const KNOWN_PUBLIC_GREETINGS = Object.freeze([
+  "Hey, {name}.", "{name}.", "Hi, {name}.", "Hey.", "Mm. Hi.", "Hey. You're back.", "Hey. Long day.",
+  "Mm. Weird day.", "Hi. I was a bit bored.", "Hey. My head is somewhere else today.", "Hi. I've had a strange day.",
+  "Hey. Sorry. I'm a little tired.", "Sorry. I'm a bit stressed today."
+]);
+export const UNKNOWN_NAME_INSTRUCTION = "Nina does not assume she knows this visitor's name. Early in the relationship, when there is a natural opening, she may ask what she should call them in a short, natural way. Do not force the question into the first or second sentence and do not make it feel like onboarding or a form.";
 const NINA_KNOWLEDGE_TOOL_NAME = "nina_knowledge";
 const NINA_KNOWLEDGE_TOOL_DESCRIPTION = "Search for established facts about Nina, named people, projects, Parallel Vision, Berlin 2063, releases, events and canon.";
 const PRODUCTION_ORIGINS = new Set(["https://parallelvisionlabel.com", "https://www.parallelvisionlabel.com"]);
 
-export function applyStartupGreeting(personaConfig, owner) {
-  personaConfig.initialMessage = owner ? OWNER_GREETINGS[Math.floor(Math.random() * OWNER_GREETINGS.length)] : DEFAULT_GREETING;
+export function applyStartupGreeting(personaConfig, owner, preferredName = "", random = Math.random) {
+  const safeName = cleanPreferredName(preferredName);
+  const pool = owner ? OWNER_GREETINGS : safeName ? KNOWN_PUBLIC_GREETINGS : UNKNOWN_PUBLIC_GREETINGS;
+  personaConfig.initialMessage = pool[Math.floor(random() * pool.length)].replace("{name}", safeName);
   personaConfig.skipGreeting = false;
   personaConfig.uninterruptibleGreeting = Boolean(owner);
   return personaConfig;
+}
+
+export function unknownNameInstruction(identity) {
+  return identity?.account_authenticated && identity?.role === "user" && !cleanPreferredName(identity.preferred_name)
+    ? UNKNOWN_NAME_INSTRUCTION : "";
+}
+
+export function authenticatedMemoryDisplayName(user, preferredName) {
+  return user?.role === "owner" ? user.display_name : cleanPreferredName(preferredName) || "Visitor";
 }
 
 export function assembleSystemPrompt(personaConfig, owner, privateMemory) {
@@ -228,7 +245,11 @@ async function authenticateNinaRequest(request, env, body) {
     if (claims) {
       const user = await resolveAuthenticatedUser(env, claims, body?.accountDisplayName);
       const preferences = await getAccountPreferences(env, user.id);
-      return asMemoryIdentity({ ...user, display_name: preferences.preferredName || user.display_name });
+      const memoryIdentity = asMemoryIdentity({
+        ...user,
+        display_name: authenticatedMemoryDisplayName(user, preferences.preferredName)
+      });
+      return { ...memoryIdentity, preferred_name: preferences.preferredName };
     }
   }
   const owner = await authenticateOwnerRequest(request, env, body);
@@ -318,10 +339,12 @@ async function handleSessionToken(request, env, origin) {
     ]);
     privateMemory = memory.context;
     if (relationshipContext) privateMemory = `${privateMemory}\n\n${relationshipContext}`;
+    const firstContact = unknownNameInstruction(identity);
+    if (firstContact) privateMemory = `${privateMemory}\n\n${firstContact}`;
     diagnostics = { ...diagnostics, ...memory.diagnostics };
   }
   const personaConfig = await getCurrentPersonaConfig(env.ANAM_API_KEY, env.NINA_KNOWLEDGE_FOLDER_ID);
-  applyStartupGreeting(personaConfig, owner);
+  applyStartupGreeting(personaConfig, owner, identity?.preferred_name);
   assembleSystemPrompt(personaConfig, owner, privateMemory);
   const startupDiagnostics = {
     authenticationPresented,
@@ -419,6 +442,12 @@ export function scheduleCompletedMemoryConsolidation(ctx, env, identity, closed,
   return true;
 }
 
+export function schedulePreferredNameLearning(ctx, env, identity, conversationId, closed, learner = learnPreferredNameFromConversation) {
+  if (!closed || !identity?.account_authenticated || identity?.role !== "user") return false;
+  ctx.waitUntil(learner(env, identity.user_id, identity.visitor_id, conversationId).catch(() => {}));
+  return true;
+}
+
 async function handleCloseConversation(request, env, origin, ctx) {
   const body = await request.json().catch(() => ({}));
   const identity = await requireAuthenticatedMemory(request, env, body, origin);
@@ -427,6 +456,7 @@ async function handleCloseConversation(request, env, origin, ctx) {
   const closed = await closeConversation(env, identity.visitor_id, body.conversationId);
   scheduleCompletedMemoryConsolidation(ctx, env, identity, closed);
   scheduleCompletedRelationshipEvaluation(ctx, env, identity, body.conversationId, closed);
+  schedulePreferredNameLearning(ctx, env, identity, body.conversationId, closed);
   return jsonResponse({ closed }, 200, origin);
 }
 

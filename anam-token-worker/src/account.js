@@ -1,8 +1,23 @@
 const NAME_LIMIT = 50;
 
-function cleanPreferredName(value) {
+export function cleanPreferredName(value) {
   if (typeof value !== "string") return "";
   return value.normalize("NFKC").replace(/[^\p{L}\p{M} .'-]/gu, " ").replace(/\s+/g, " ").trim().slice(0, NAME_LIMIT);
+}
+
+export function extractConversationalPreferredName(content) {
+  const text = typeof content === "string" ? content.normalize("NFKC").trim() : "";
+  const patterns = [
+    /^don't call me .{1,50}?,\s*call me\s+(.+?)(?:\s+from now on)?[.!?]*$/i,
+    /^(?:actually\s+)?(?:(?:you can|just)\s+)?call me\s+(.+?)(?:\s+from now on)?[.!?]*$/i,
+    /^my name is\s+(.+?)[.!?]*$/i,
+    /^i go by\s+(.+?)[.!?]*$/i,
+    /^[Ii](?:'m| am)\s+(\p{Lu}[\p{L}\p{M}'’-]*)[.!?]*$/u
+  ];
+  const raw = patterns.map(pattern => text.match(pattern)?.[1]).find(Boolean);
+  if (!raw) return "";
+  const preferredName = cleanPreferredName(raw.replace(/^["'“”]+|["'“”]+$/g, ""));
+  return preferredName && preferredName.split(/\s+/).length <= 3 ? preferredName : "";
 }
 
 function preferenceRow(row) {
@@ -31,6 +46,21 @@ export async function getAccountPreferences(env, userId) {
     FROM account_preferences WHERE user_id = ? LIMIT 1
   `).bind(userId).first();
   return preferenceRow(row);
+}
+
+export async function learnPreferredNameFromConversation(env, userId, visitorId, conversationId) {
+  const result = await env.NINA_MEMORY_DB.prepare(`
+    SELECT content FROM messages
+    WHERE visitor_id = ? AND conversation_id = ? AND role = 'user'
+    ORDER BY created_at ASC, rowid ASC
+  `).bind(visitorId, conversationId).all();
+  const preferredName = (result.results || []).map(message => extractConversationalPreferredName(message.content)).filter(Boolean).at(-1) || "";
+  if (!preferredName) return { updated: false, preferredName: "" };
+  await ensurePreferences(env, userId);
+  const now = new Date().toISOString();
+  await env.NINA_MEMORY_DB.prepare("UPDATE account_preferences SET preferred_name = ?, updated_at = ? WHERE user_id = ?")
+    .bind(preferredName, now, userId).run();
+  return { updated: true, preferredName };
 }
 
 export async function updateAccountProfile(env, user, input) {
