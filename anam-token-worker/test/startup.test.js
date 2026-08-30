@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import worker, { NINA_INTIMACY_CONTINUITY, applyStartupGreeting, assembleSystemPrompt } from "../src/index.js";
+import worker, { NINA_INTIMACY_CONTINUITY, applyStartupGreeting, assembleSystemPrompt, buildPersonaDiagnostic } from "../src/index.js";
 
 const encode = value => Buffer.from(typeof value === "string" ? value : JSON.stringify(value)).toString("base64url");
 
@@ -83,7 +83,10 @@ test("persona diagnostic is owner-only, sanitized and never creates a Live Nina 
       id: "persona-nina",
       name: "Nina FOK", llmId: "current-llm", brain: { systemPrompt: "Current published prompt." },
       updatedAt: "2026-08-30T12:00:00.000Z", avatar: { id: "private-avatar" }, internal: "not returned",
-      tools: [{ id: "tool-knowledge", name: "Nina Knowledge Base", type: "knowledge", subtype: "document_search", secret: "not returned" }]
+      tools: [],
+      knowledge: [{ id: "knowledge-1", name: "Nina PDFs", secret: "not returned", documents: [
+        { id: "document-1", fileName: "nina-canon.pdf", content: "not returned" }
+      ] }]
     }));
     throw new Error(`Unexpected fetch: ${url}`);
   };
@@ -100,8 +103,16 @@ test("persona diagnostic is owner-only, sanitized and never creates a Live Nina 
     assert.deepEqual(await ownerResponse.json(), {
       personaId: "persona-nina",
       name: "Nina FOK", llmId: "current-llm", brain: { systemPrompt: "Current published prompt." },
-      tools: [{ id: "tool-knowledge", name: "Nina Knowledge Base", type: "knowledge", subtype: "document_search" }],
+      topLevelFieldNames: ["avatar", "brain", "id", "internal", "knowledge", "llmId", "name", "tools", "updatedAt"],
+      brainKnowledgeFieldNames: [],
+      tools: [],
+      knowledge: [{
+        fieldNames: ["documents", "id", "name", "secret"], id: "knowledge-1", name: "Nina PDFs", type: "", documentCount: 1,
+        documents: [{ id: "document-1", name: "nina-canon.pdf" }]
+      }],
       hasKnowledgeTool: true,
+      hasKnowledge: true,
+      knowledgeAttachmentSource: "persona.knowledge",
       updatedAt: "2026-08-30T12:00:00.000Z"
     });
     const source = await readFile(new URL("../src/index.js", import.meta.url), "utf8");
@@ -110,4 +121,12 @@ test("persona diagnostic is owner-only, sanitized and never creates a Live Nina 
   } finally {
     globalThis.fetch = originalFetch;
   }
+});
+
+test("persona diagnostic safely reports when knowledge metadata is absent", () => {
+  const diagnostic = buildPersonaDiagnostic({ id: "persona-1", brain: { systemPrompt: "Prompt." }, tools: [] });
+  assert.equal(diagnostic.hasKnowledgeTool, false);
+  assert.equal(diagnostic.hasKnowledge, false);
+  assert.equal(diagnostic.knowledgeAttachmentSource, "not_exposed_in_persona_api");
+  assert.deepEqual(diagnostic.knowledge, []);
 });

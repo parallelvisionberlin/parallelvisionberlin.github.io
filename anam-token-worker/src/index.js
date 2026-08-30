@@ -132,6 +132,53 @@ async function getCurrentPersonaConfig(apiKey) {
   return config;
 }
 
+function safeKnowledgeAttachment(item) {
+  const documents = Array.isArray(item?.documents) ? item.documents.map(document => ({
+    id: typeof document?.id === "string" ? document.id : "",
+    name: [document?.name, document?.displayName, document?.fileName, document?.filename].find(value => typeof value === "string") || ""
+  })).filter(document => document.id || document.name) : [];
+  const attachment = {
+    fieldNames: item && typeof item === "object" ? Object.keys(item).sort() : [],
+    id: [item?.id, item?.knowledgeGroupId, item?.groupId, item?.folderId].find(value => typeof value === "string") || "",
+    name: [item?.name, item?.displayName].find(value => typeof value === "string") || "",
+    type: typeof item?.type === "string" ? item.type : "",
+    documentCount: Number.isFinite(item?.documentCount) ? item.documentCount : documents.length
+  };
+  if (documents.length) attachment.documents = documents;
+  return attachment;
+}
+
+export function buildPersonaDiagnostic(persona) {
+  const tools = Array.isArray(persona?.tools) ? persona.tools.map(tool => ({
+    id: typeof tool?.id === "string" ? tool.id : "",
+    name: typeof tool?.name === "string" ? tool.name : "",
+    type: typeof tool?.type === "string" ? tool.type : "",
+    subtype: typeof tool?.subtype === "string" ? tool.subtype : ""
+  })).filter(tool => tool.id) : [];
+  const knowledge = Array.isArray(persona?.knowledge) ? persona.knowledge.map(safeKnowledgeAttachment) : [];
+  const toolKnowledge = tools.some(tool => /knowledge/i.test(`${tool.name} ${tool.type} ${tool.subtype}`));
+  const hasKnowledge = knowledge.length > 0 || toolKnowledge;
+  const diagnostic = {
+    personaId: typeof persona?.id === "string" ? persona.id : PERSONA_ID,
+    name: typeof persona?.name === "string" ? persona.name : "",
+    llmId: typeof persona?.llmId === "string" ? persona.llmId : "",
+    brain: { systemPrompt: typeof persona?.brain?.systemPrompt === "string" ? persona.brain.systemPrompt : "" },
+    topLevelFieldNames: persona && typeof persona === "object" ? Object.keys(persona).sort() : [],
+    brainKnowledgeFieldNames: persona?.brain && typeof persona.brain === "object"
+      ? Object.keys(persona.brain).filter(field => /knowledge|tool|document|folder/i.test(field)).sort() : [],
+    tools,
+    knowledge,
+    hasKnowledgeTool: hasKnowledge,
+    hasKnowledge,
+    knowledgeAttachmentSource: knowledge.length ? "persona.knowledge" : toolKnowledge ? "persona.tools" : "not_exposed_in_persona_api"
+  };
+  if (typeof persona?.revision === "string" || Number.isFinite(persona?.revision)) diagnostic.revision = persona.revision;
+  const updatedAt = [persona?.updatedAt, persona?.updated_at, persona?.modifiedAt, persona?.modified_at]
+    .find(value => typeof value === "string" && value);
+  if (updatedAt) diagnostic.updatedAt = updatedAt;
+  return diagnostic;
+}
+
 async function authenticateOwnerRequest(request, env, body) {
   const visitorId = validateVisitorId(body?.visitorId);
   if (!visitorId) return null;
@@ -185,25 +232,7 @@ async function handlePersonaDiagnostic(request, env, origin) {
   if (!owner) return jsonResponse({ error: "Account authentication required", code: "sign_in_required" }, 401, origin);
   if (owner.role !== "owner") return jsonResponse({ error: "Owner access required", code: "owner_required" }, 403, origin);
   const persona = await getCurrentPersona(env.ANAM_API_KEY);
-  const tools = Array.isArray(persona?.tools) ? persona.tools.map(tool => ({
-    id: typeof tool?.id === "string" ? tool.id : "",
-    name: typeof tool?.name === "string" ? tool.name : "",
-    type: typeof tool?.type === "string" ? tool.type : "",
-    subtype: typeof tool?.subtype === "string" ? tool.subtype : ""
-  })).filter(tool => tool.id) : [];
-  const diagnostic = {
-    personaId: typeof persona?.id === "string" ? persona.id : PERSONA_ID,
-    name: typeof persona?.name === "string" ? persona.name : "",
-    llmId: typeof persona?.llmId === "string" ? persona.llmId : "",
-    brain: { systemPrompt: typeof persona?.brain?.systemPrompt === "string" ? persona.brain.systemPrompt : "" },
-    tools,
-    hasKnowledgeTool: tools.some(tool => /knowledge/i.test(`${tool.name} ${tool.type} ${tool.subtype}`))
-  };
-  if (typeof persona?.revision === "string" || Number.isFinite(persona?.revision)) diagnostic.revision = persona.revision;
-  const updatedAt = [persona?.updatedAt, persona?.updated_at, persona?.modifiedAt, persona?.modified_at]
-    .find(value => typeof value === "string" && value);
-  if (updatedAt) diagnostic.updatedAt = updatedAt;
-  return jsonResponse(diagnostic, 200, origin);
+  return jsonResponse(buildPersonaDiagnostic(persona), 200, origin);
 }
 
 async function handleMemoryDiagnostic(request, env, origin) {
