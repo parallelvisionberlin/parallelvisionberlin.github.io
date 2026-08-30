@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
 import worker, { NINA_INTIMACY_CONTINUITY, applyStartupGreeting, assembleSystemPrompt } from "../src/index.js";
 
@@ -79,8 +80,10 @@ test("persona diagnostic is owner-only, sanitized and never creates a Live Nina 
     requests.push(String(url));
     if (String(url).includes("/.well-known/jwks.json")) return new Response(JSON.stringify({ keys: [auth.jwk] }));
     if (String(url).includes("/v1/personas/")) return new Response(JSON.stringify({
+      id: "persona-nina",
       name: "Nina FOK", llmId: "current-llm", brain: { systemPrompt: "Current published prompt." },
-      updatedAt: "2026-08-30T12:00:00.000Z", avatar: { id: "private-avatar" }, internal: "not returned"
+      updatedAt: "2026-08-30T12:00:00.000Z", avatar: { id: "private-avatar" }, internal: "not returned",
+      tools: [{ id: "tool-knowledge", name: "Nina Knowledge Base", type: "knowledge", subtype: "document_search", secret: "not returned" }]
     }));
     throw new Error(`Unexpected fetch: ${url}`);
   };
@@ -95,9 +98,14 @@ test("persona diagnostic is owner-only, sanitized and never creates a Live Nina 
     const ownerResponse = await request(await auth.token("user_owner"));
     assert.equal(ownerResponse.status, 200);
     assert.deepEqual(await ownerResponse.json(), {
+      personaId: "persona-nina",
       name: "Nina FOK", llmId: "current-llm", brain: { systemPrompt: "Current published prompt." },
+      tools: [{ id: "tool-knowledge", name: "Nina Knowledge Base", type: "knowledge", subtype: "document_search" }],
+      hasKnowledgeTool: true,
       updatedAt: "2026-08-30T12:00:00.000Z"
     });
+    const source = await readFile(new URL("../src/index.js", import.meta.url), "utf8");
+    assert.match(source, /if \(toolIds\.length\) config\.toolIds = toolIds/);
     assert.equal(requests.some(url => url.includes("/v1/auth/session-token")), false);
   } finally {
     globalThis.fetch = originalFetch;

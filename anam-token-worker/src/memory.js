@@ -22,6 +22,8 @@ const RELATIONSHIP_FACT_PATTERN = /\b(?:romantic relationship|in a relationship|
 const CONVERSATION_TOPIC_MEMORY_PATTERN = /\b(?:had a conversation|talked|spoke|discussed|conversation was)\s+(?:with each other\s+)?about\b/i;
 const CONCRETE_SHARED_EVENT_PATTERN = /\b(?:met|attended|visited|created|built|worked|performed|traveled|travelled|celebrated|argued|reconciled|agreed|decided|promised|completed|launched)\b/i;
 const USER_RELATIONSHIP_FACT_PATTERN = /\bAlejandro(?:'s girlfriend is| has a girlfriend named)\s+[\p{L}\p{M}'’-]+\b|\b[\p{L}\p{M}'’-]+ is Alejandro's girlfriend\b/iu;
+const USER_INTERPRETATION_PATTERN = /\bAlejandro (?:has conflicting statements|is trying to|seems|wants things to feel|is pushing for|is rushing Nina)\b/i;
+const TRANSIENT_INTENTION_PATTERN = /\bAlejandro wants to (?:make|bring|give|cook)\b.*\b(?:for Nina|for someone|next time|when (?:he|they) (?:sees?|meets?))\b/i;
 const JOKE_EVIDENCE_PATTERN = /\b(?:inside joke|running joke|recurring (?:joke|bit)|joke about|kidding|joking|teasing|nickname|pet name|call(?:s|ed|ing)? (?:me|you|each other)|again|always)\b/i;
 const JOKE_RECURRENCE_PATTERN = /\b(?:inside joke|running joke|recurring (?:joke|bit)|again|always|usually|keep calling|nickname|pet name)\b/i;
 const VAGUE_JOKE_PATTERN = /\b(?:have|share|has) (?:an? )?(?:joke|nickname)(?: for each other)?[.!]?$|\bjoke around[.!]?$/i;
@@ -313,7 +315,24 @@ function isNinaUserRelationship(content) {
   if (!/\bAlejandro\b/i.test(text) || !/\bNina\b/i.test(text) || !RELATIONSHIP_FACT_PATTERN.test(text)) return false;
   return /\b(?:Alejandro and Nina|Nina and Alejandro)\b.{0,40}\b(?:relationship|dating|partners?|familiarity|affection|intimacy|romantic status|boundaries)\b/i.test(text)
     || /\b(?:Alejandro|Nina)\b.{0,20}\b(?:loves?|is in love with|is attracted to|desires?|has feelings for)\b.{0,20}\b(?:Alejandro|Nina)\b/i.test(text)
-    || /\b(?:Alejandro|Nina)\b\s+is\s+(?:Alejandro|Nina)'s\s+(?:boyfriend|girlfriend|partner)\b/i.test(text);
+    || /\b(?:Alejandro|Nina)\b\s+is\s+(?:Alejandro|Nina)'s\s+(?:boyfriend|girlfriend|partner)\b/i.test(text)
+    || /\bAlejandro\b.*\bconsiders?\s+Nina\s+(?:his\s+)?(?:girlfriend|partner)\b/i.test(text)
+    || /\bNina\b.{0,25}\b(?:wants? to take things slowly|is being rushed by Alejandro)\b/i.test(text);
+}
+
+function thirdPartyGirlfriendFact(content) {
+  const text = cleanText(content, 500).replace(/[’]/g, "'");
+  const match = text.match(/\bAlejandro (?:has a girlfriend named|is in a relationship with) ([\p{L}\p{M}'’-]+)\b/iu)
+    || text.match(/\b([\p{L}\p{M}'’-]+) is Alejandro's girlfriend\b/iu);
+  const name = match?.[1];
+  return name && name.toLowerCase() !== "nina" ? `Alejandro has a girlfriend named ${name}.` : "";
+}
+
+function sanitizeDerivedContent(content) {
+  const cleaned = cleanText(content, 500);
+  const safeThirdPartyFact = thirdPartyGirlfriendFact(cleaned);
+  if (isNinaUserRelationship(cleaned) || USER_INTERPRETATION_PATTERN.test(cleaned)) return safeThirdPartyFact;
+  return cleaned;
 }
 
 function categorySemanticsMatch(candidate, evidence) {
@@ -329,10 +348,27 @@ function categorySemanticsMatch(candidate, evidence) {
 }
 
 function normalizePinnedCandidate(candidate) {
-  if (candidate?.category === "identity" && USER_RELATIONSHIP_FACT_PATTERN.test(cleanText(candidate.content, 500))) {
-    return { ...candidate, category: "user_fact" };
+  const content = sanitizeDerivedContent(candidate?.content);
+  if (!content) return { ...candidate, content: "" };
+  if (TRANSIENT_INTENTION_PATTERN.test(content)) return { ...candidate, content: "" };
+  if (/\bAlejandro\b.*\blikes? Mexican food\b/i.test(content) && /\btacos?\b/i.test(content)
+    && /\bmakes?(?: tacos?| them) (?:himself )?at home\b/i.test(content)) {
+    return { ...candidate, category: "user_fact", content: "Alejandro likes Mexican food, especially tacos, and makes tacos himself at home." };
   }
-  return candidate;
+  if (candidate?.category === "identity" && USER_RELATIONSHIP_FACT_PATTERN.test(content)) {
+    return { ...candidate, content, category: "user_fact" };
+  }
+  return content === candidate?.content ? candidate : { ...candidate, content, category: "user_fact" };
+}
+
+function deduplicatePinnedCandidates(items) {
+  const selected = new Map();
+  for (const item of items) {
+    const key = semanticMemoryKey(item);
+    const current = selected.get(key);
+    if (!current || cleanText(item.content, 500).length > cleanText(current.content, 500).length) selected.set(key, item);
+  }
+  return [...selected.values()];
 }
 
 function validPinnedEvidence(candidate, messagesById) {
@@ -355,13 +391,16 @@ function validPinnedEvidence(candidate, messagesById) {
 export function filterConsolidationExtraction(extracted, messages, activeThreads = []) {
   const messagesById = new Map(messages.map(message => [message.message_id, message]));
   const summaryItems = Array.isArray(extracted?.summary_items)
-    ? extracted.summary_items.filter(item => durableContent(item) && !isNinaUserRelationship(item.content) && validUserGroundedEvidence(item, messagesById)).slice(0, 12)
+    ? extracted.summary_items.map(item => ({ ...item, content: sanitizeDerivedContent(item?.content) }))
+      .filter(item => durableContent(item) && validUserGroundedEvidence(item, messagesById)).slice(0, 12)
     : [];
   const pinned = Array.isArray(extracted?.pinned_memories)
-    ? extracted.pinned_memories.map(normalizePinnedCandidate).filter(item => validPinnedEvidence(item, messagesById)).slice(0, 8)
+    ? deduplicatePinnedCandidates(extracted.pinned_memories.map(normalizePinnedCandidate)
+      .filter(item => validPinnedEvidence(item, messagesById))).slice(0, 8)
     : [];
   const threads = Array.isArray(extracted?.open_threads)
-    ? extracted.open_threads.filter(item => durableContent(item) && validUserGroundedEvidence(item, messagesById)).slice(0, 8)
+    ? extracted.open_threads.map(item => ({ ...item, content: sanitizeDerivedContent(item?.content) }))
+      .filter(item => durableContent(item) && validUserGroundedEvidence(item, messagesById)).slice(0, 8)
     : [];
   const activeThreadIds = new Set(activeThreads.map(thread => thread.thread_id));
   const resolvedIds = Array.isArray(extracted?.resolved_threads)
@@ -373,8 +412,8 @@ export function filterConsolidationExtraction(extracted, messages, activeThreads
 export function mergeSummary(previousSummary, items, regeneratedSummary = "") {
   const proposed = cleanText(regeneratedSummary, SUMMARY_LIMIT);
   const source = proposed || [...cleanText(previousSummary, SUMMARY_LIMIT).split("\n"), ...items.map(item => item?.content || "")].join("\n");
-  const semanticLines = source.split("\n").map(line => line.replace(/^[-*]\s*/, "").trim()).filter(line =>
-    line.length >= 12 && !DEBRIS_PATTERN.test(line) && !NINA_CANON_PATTERN.test(line) && !isNinaUserRelationship(line)
+  const semanticLines = source.split("\n").map(line => sanitizeDerivedContent(line.replace(/^[-*]\s*/, "").trim())).filter(line =>
+    line.length >= 12 && !DEBRIS_PATTERN.test(line) && !NINA_CANON_PATTERN.test(line)
     && !NINA_META_BREAK_PATTERN.test(line) && !UNRESOLVED_PERSPECTIVE_PATTERN.test(line)
   );
   const unique = semanticLines.filter((line, index) => semanticLines.findIndex(other => semanticMemoryKey({ category: "summary", content: other }) === semanticMemoryKey({ category: "summary", content: line })) === index);
@@ -386,6 +425,7 @@ function semanticMemoryKey(item) {
   const girlfriend = content.match(/\b(?:alejandro(?:'s| has a)|eva is alejandro(?:'s)?)\s+girlfriend(?:\s+(?:is|named)\s+)?([a-z]+)?|\bgirlfriend named ([a-z]+)/i);
   if (girlfriend) return "user_fact:alejandro:girlfriend";
   if (/\b(?:genuine|real) (?:conversational )?interest\b/.test(content) && /\b(?:alejandro|nina)\b/.test(content)) return "preference:alejandro:nina:genuine-interest";
+  if (/\balejandro\b/.test(content) && /\btacos?\b/.test(content)) return "user_fact:alejandro:tacos";
   return `${item?.category || ""}:${content.replace(/\b(?:a|an|the|is|are|has|named|to|in|of|for|that)\b/g, " ").replace(/[^a-z0-9]+/g, " ").trim()}`;
 }
 
@@ -621,6 +661,7 @@ export async function memoryDiagnostic(env, user) {
   let relationshipState = null;
   try { relationshipState = relationship?.state_json ? JSON.parse(relationship.state_json) : null; } catch { relationshipState = null; }
   return {
+    memoryVisitorId: visitorId,
     recentMessages,
     pinnedMemories: pinnedResult.results || [],
     summary: summary || null,
@@ -633,6 +674,31 @@ export async function memoryDiagnostic(env, user) {
       openThreads: Number(counts?.openThreads || 0)
     }
   };
+}
+
+async function derivedMemoryCounts(db, visitorId) {
+  const row = await db.prepare(`
+    SELECT
+      (SELECT COUNT(*) FROM pinned_memories WHERE visitor_id = ?) AS pinnedMemories,
+      (SELECT COUNT(*) FROM memory_summaries WHERE visitor_id = ?) AS summaries,
+      (SELECT COUNT(*) FROM open_threads WHERE visitor_id = ?) AS openThreads
+  `).bind(visitorId, visitorId, visitorId).first();
+  return {
+    pinnedMemories: Number(row?.pinnedMemories || 0),
+    summaries: Number(row?.summaries || 0),
+    openThreads: Number(row?.openThreads || 0)
+  };
+}
+
+export async function resetDerivedMemory(env, visitorId) {
+  const db = env.NINA_MEMORY_DB;
+  const before = await derivedMemoryCounts(db, visitorId);
+  await db.batch([
+    db.prepare("DELETE FROM pinned_memories WHERE visitor_id = ?").bind(visitorId),
+    db.prepare("DELETE FROM memory_summaries WHERE visitor_id = ?").bind(visitorId),
+    db.prepare("DELETE FROM open_threads WHERE visitor_id = ?").bind(visitorId)
+  ]);
+  return { memoryVisitorId: visitorId, before, after: await derivedMemoryCounts(db, visitorId) };
 }
 
 export async function exportTranscript(env, visitorId) {

@@ -5,7 +5,7 @@ import {
   DEFAULT_RELATIONSHIP_STATE, RELATIONSHIP_LEVELS, buildRelationshipContext, deleteRelationshipState,
   evaluateCompletedRelationship, getOrCreateRelationshipState, normalizeRelationshipUpdate, relationshipEvidenceQualifies
 } from "../src/relationship.js";
-import { scheduleCompletedRelationshipEvaluation } from "../src/index.js";
+import { scheduleCompletedMemoryConsolidation, scheduleCompletedRelationshipEvaluation } from "../src/index.js";
 
 function relationshipDb(messages = []) {
   const rows = new Map();
@@ -158,6 +158,22 @@ test("legacy owner identity does not schedule account relationship evaluation", 
   const ctx = { waitUntil() { throw new Error("must not schedule"); } };
   const legacyOwner = { visitor_id: "owner-memory-id", role: "owner", account_authenticated: false };
   assert.equal(scheduleCompletedRelationshipEvaluation(ctx, {}, legacyOwner, "conversation-1", true), false);
+});
+
+test("message storage does not consolidate and a successful close schedules exactly one consolidation", async () => {
+  const source = await readFile(new URL("../src/index.js", import.meta.url), "utf8");
+  const storeHandler = source.slice(source.indexOf("async function handleStoreMessages"), source.indexOf("export function scheduleCompletedRelationshipEvaluation"));
+  assert.doesNotMatch(storeHandler, /consolidateMemory|scheduleCompletedMemoryConsolidation/);
+  const scheduled = [];
+  const calls = [];
+  const ctx = { waitUntil(promise) { scheduled.push(promise); } };
+  const identity = { visitor_id: "owner-memory-id" };
+  const consolidator = async (...args) => { calls.push(args); return { consolidated: true }; };
+  assert.equal(scheduleCompletedMemoryConsolidation(ctx, { marker: "env" }, identity, true, consolidator), true);
+  assert.equal(scheduleCompletedMemoryConsolidation(ctx, {}, identity, false, consolidator), false);
+  await Promise.all(scheduled);
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0][1], "owner-memory-id");
 });
 
 test("personal-data deletion removes only the authenticated user's relationship row", async () => {

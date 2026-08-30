@@ -70,6 +70,7 @@ test("memory diagnostic is authenticated-owner-only and marks only Nina meta bre
     const owner = await request(await auth.token("user_owner"));
     assert.equal(owner.status, 200);
     const diagnostic = await owner.json();
+    assert.equal(diagnostic.memoryVisitorId, "owner-memory-id");
     assert.deepEqual(diagnostic.recentMessages.map(message => [message.message_id, message.metaBreakFiltered]), [
       ["message-ai", false],
       ["message-meta", true]

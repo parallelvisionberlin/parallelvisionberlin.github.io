@@ -128,3 +128,9 @@ export function asMemoryIdentity(user) {
     account_authenticated: true
   };
 }
+
+export function resolveOwnerMemoryVisitorId(user) {
+  return user?.role === "owner" && typeof user.memory_visitor_id === "string" && user.memory_visitor_id
+    ? user.memory_visitor_id
+    : "";
+}

@@ -1,9 +1,9 @@
 import {
   HISTORY_LIMIT, benchmarkMemoryArchivists, buildOwnerMemoryContext, closeConversation, consolidateMemory,
-  clearUserMemory, createConversation, deleteOwnerMemory, exportTranscript, memoryDiagnostic, memoryMetadata,
+  clearUserMemory, createConversation, deleteOwnerMemory, exportTranscript, memoryDiagnostic, memoryMetadata, resetDerivedMemory,
   authorizeOwner, enrollOwner, storeMessages, validateCompletedMessages, validId
 } from "./memory.js";
-import { asMemoryIdentity, resolveAuthenticatedUser, verifyClerkSessionToken } from "./auth.js";
+import { asMemoryIdentity, resolveAuthenticatedUser, resolveOwnerMemoryVisitorId, verifyClerkSessionToken } from "./auth.js";
 import { buildRelationshipContext, deleteRelationshipState, evaluateCompletedRelationship } from "./relationship.js";
 import { getAccountPreferences, getBillingHistory, updateAccountProfile, updateNewsletterPreferences } from "./account.js";
 import { SignalCreditError, creditSignalCredits, getSignalCreditBalance, getSignalCreditHistory } from "./credits.js";
@@ -185,10 +185,19 @@ async function handlePersonaDiagnostic(request, env, origin) {
   if (!owner) return jsonResponse({ error: "Account authentication required", code: "sign_in_required" }, 401, origin);
   if (owner.role !== "owner") return jsonResponse({ error: "Owner access required", code: "owner_required" }, 403, origin);
   const persona = await getCurrentPersona(env.ANAM_API_KEY);
+  const tools = Array.isArray(persona?.tools) ? persona.tools.map(tool => ({
+    id: typeof tool?.id === "string" ? tool.id : "",
+    name: typeof tool?.name === "string" ? tool.name : "",
+    type: typeof tool?.type === "string" ? tool.type : "",
+    subtype: typeof tool?.subtype === "string" ? tool.subtype : ""
+  })).filter(tool => tool.id) : [];
   const diagnostic = {
+    personaId: typeof persona?.id === "string" ? persona.id : PERSONA_ID,
     name: typeof persona?.name === "string" ? persona.name : "",
     llmId: typeof persona?.llmId === "string" ? persona.llmId : "",
-    brain: { systemPrompt: typeof persona?.brain?.systemPrompt === "string" ? persona.brain.systemPrompt : "" }
+    brain: { systemPrompt: typeof persona?.brain?.systemPrompt === "string" ? persona.brain.systemPrompt : "" },
+    tools,
+    hasKnowledgeTool: tools.some(tool => /knowledge/i.test(`${tool.name} ${tool.type} ${tool.subtype}`))
   };
   if (typeof persona?.revision === "string" || Number.isFinite(persona?.revision)) diagnostic.revision = persona.revision;
   const updatedAt = [persona?.updatedAt, persona?.updated_at, persona?.modifiedAt, persona?.modified_at]
@@ -202,6 +211,14 @@ async function handleMemoryDiagnostic(request, env, origin) {
   if (!owner) return jsonResponse({ error: "Account authentication required", code: "sign_in_required" }, 401, origin);
   if (owner.role !== "owner") return jsonResponse({ error: "Owner access required", code: "owner_required" }, 403, origin);
   return jsonResponse(await memoryDiagnostic(env, owner), 200, origin);
+}
+
+async function handleResetDerivedMemory(request, env, origin) {
+  const owner = await authenticateAccountRequest(request, env);
+  if (!owner) return jsonResponse({ error: "Account authentication required", code: "sign_in_required" }, 401, origin);
+  const visitorId = resolveOwnerMemoryVisitorId(owner);
+  if (!visitorId) return jsonResponse({ error: "Owner access required", code: "owner_required" }, 403, origin);
+  return jsonResponse(await resetDerivedMemory(env, visitorId), 200, origin);
 }
 
 async function handleMemoryArchivistBenchmark(request, env, origin) {
@@ -320,7 +337,6 @@ async function handleStoreMessages(request, env, origin, ctx) {
     .bind(body.conversationId, identity.visitor_id).first();
   if (!conversation) return jsonResponse({ error: "Conversation not found" }, 404, origin);
   const result = await storeMessages(env, identity.visitor_id, body.conversationId, body.messages);
-  if (result.storedMessages > 0) ctx.waitUntil(consolidateMemory(env, identity.visitor_id).catch(() => {}));
   return jsonResponse({ storedMessages: result.storedMessages }, 200, origin);
 }
 
@@ -330,13 +346,19 @@ export function scheduleCompletedRelationshipEvaluation(ctx, env, identity, conv
   return true;
 }
 
+export function scheduleCompletedMemoryConsolidation(ctx, env, identity, closed, consolidator = consolidateMemory) {
+  if (!closed) return false;
+  ctx.waitUntil(consolidator(env, identity.visitor_id).catch(() => {}));
+  return true;
+}
+
 async function handleCloseConversation(request, env, origin, ctx) {
   const body = await request.json().catch(() => ({}));
   const identity = await requireAuthenticatedMemory(request, env, body, origin);
   if (identity instanceof Response) return identity;
   if (!validId(body?.conversationId)) return jsonResponse({ error: "Invalid conversation" }, 400, origin);
   const closed = await closeConversation(env, identity.visitor_id, body.conversationId);
-  ctx.waitUntil(consolidateMemory(env, identity.visitor_id).catch(() => {}));
+  scheduleCompletedMemoryConsolidation(ctx, env, identity, closed);
   scheduleCompletedRelationshipEvaluation(ctx, env, identity, body.conversationId, closed);
   return jsonResponse({ closed }, 200, origin);
 }
@@ -524,6 +546,7 @@ export default {
       if (url.pathname === "/api/nina/persona-diagnostic" && request.method === "GET") return handlePersonaDiagnostic(request, env, origin);
       if (url.pathname === "/api/nina/memory-diagnostic" && request.method === "GET") return handleMemoryDiagnostic(request, env, origin);
       if (url.pathname === "/api/nina/memory-archivist-benchmark" && request.method === "GET") return handleMemoryArchivistBenchmark(request, env, origin);
+      if (url.pathname === "/api/nina/reset-derived-memory" && request.method === "POST") return handleResetDerivedMemory(request, env, origin);
       if (url.pathname === "/session-token" && request.method === "POST") return handleSessionToken(request, env, origin);
       if (url.pathname === "/memory/messages" && request.method === "POST") return handleStoreMessages(request, env, origin, ctx);
       if (url.pathname === "/memory/conversations/end" && request.method === "POST") return handleCloseConversation(request, env, origin, ctx);

@@ -253,6 +253,41 @@ test("stable user relationship facts mislabeled as identity normalize to user fa
   }]);
 });
 
+test("mixed Nina relationship content retains only the independently evidenced Eva fact", () => {
+  const messages = [{ message_id: "mixed", role: "user", content: "I am in a relationship with Eva and I also consider you my girlfriend." }];
+  const filtered = filterConsolidationExtraction({ pinned_memories: [{
+    category: "user_fact",
+    content: "Alejandro is in a relationship with Eva and also considers Nina his girlfriend.",
+    evidence_message_ids: ["mixed"]
+  }] }, messages);
+  assert.deepEqual(filtered.pinned.map(item => item.content), ["Alejandro has a girlfriend named Eva."]);
+});
+
+test("archivist interpretations of user behavior are rejected", () => {
+  const messages = [{ message_id: "meta", role: "user", content: "I mentioned two relationships." }];
+  const filtered = filterConsolidationExtraction({ pinned_memories: [
+    { category: "user_fact", content: "Alejandro has conflicting statements about his relationships.", evidence_message_ids: ["meta"] },
+    { category: "user_fact", content: "Alejandro seems uncertain about what he wants.", evidence_message_ids: ["meta"] }
+  ] }, messages);
+  assert.deepEqual(filtered.pinned, []);
+});
+
+test("taco variants collapse to one complete stable fact and transient intentions are rejected", () => {
+  const messages = [
+    { message_id: "food", role: "user", content: "I like Mexican food, especially tacos, and make them myself at home." },
+    { message_id: "intent", role: "user", content: "I want to make you tacos next time I see you." }
+  ];
+  const filtered = filterConsolidationExtraction({ pinned_memories: [
+    { category: "user_fact", content: "Alejandro makes tacos himself at home.", evidence_message_ids: ["food"] },
+    { category: "user_fact", content: "Alejandro likes Mexican food, specifically tacos, and makes them himself at home.", evidence_message_ids: ["food"] },
+    { category: "user_fact", content: "Alejandro wants to make tacos for Nina next time he sees her.", evidence_message_ids: ["intent"] },
+    { category: "user_fact", content: "Alejandro wants to make tacos for someone he loves.", evidence_message_ids: ["intent"] }
+  ] }, messages);
+  assert.deepEqual(filtered.pinned.map(item => item.content), [
+    "Alejandro likes Mexican food, especially tacos, and makes tacos himself at home."
+  ]);
+});
+
 test("canon repetition, debris and unresolved perspective are rejected", () => {
   const messages = [
     { message_id: "canon-1", role: "persona", content: "Nina is human." },
