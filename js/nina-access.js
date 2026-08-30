@@ -358,9 +358,12 @@ function updateNinaAccountControls(clerk = ninaClerk) {
 function syncNinaAccountCreditActions(balance, language = document.documentElement.lang) {
   const canTransmit = Number.isSafeInteger(balance) && balance > 0;
   const german = language === "de";
-  if (ninaAccountBuyCredits) ninaAccountBuyCredits.textContent = canTransmit
-    ? (german ? "Nach 2063 übertragen" : "Transmit to 2063")
-    : (german ? "Signal Credits kaufen" : "Buy Signal Credits");
+  if (ninaAccountBuyCredits) {
+    ninaAccountBuyCredits.textContent = canTransmit
+      ? (german ? "Nach 2063 übertragen" : "Transmit to 2063")
+      : (german ? "Signal Credits kaufen" : "Buy Signal Credits");
+    ninaAccountBuyCredits.dataset.action = canTransmit ? "transmit" : "credits";
+  }
   if (ninaCreditsPurchaseTrigger) {
     ninaCreditsPurchaseTrigger.textContent = german ? "Signal Credits hinzufügen" : "Add Signal Credits";
     ninaCreditsPurchaseTrigger.hidden = !canTransmit;

@@ -1105,6 +1105,16 @@ body.nina-fullscreen-active {
   color: #fff;
 }
 
+.nina-account-buy-credits[data-action="transmit"] {
+  color: rgba(255, 255, 255, .98);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+body:has(.nina-account-panel:not([hidden])) #openNina {
+  display: none;
+}
+
 .nina-account-add-credits {
   display: block;
   margin: -7px auto 15px;
