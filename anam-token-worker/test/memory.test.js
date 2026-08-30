@@ -5,6 +5,7 @@ import {
   MEMORY_CONTEXT_CHARACTER_LIMIT,
   authorizeOwner,
   buildOwnerMemoryContext,
+  consolidateMemory,
   constantTimeEqual,
   enrollOwner,
   filterConsolidationExtraction,
@@ -305,6 +306,41 @@ test("explicit user statements fill missed project and preference pins without f
     ["preference", "Alejandro prefers Nina not to overuse the word 'performative'."]
   ]);
   assert.equal(filtered.pinned.some(item => /Eva|Evan|girlfriend|relationship/i.test(item.content)), false);
+});
+
+test("project fallback stops at a trailing speech clause for generic named projects", () => {
+  const messages = [
+    { message_id: "fashion", role: "user", content: "I'm still working on fashion after fabric, and I want to develop it further this month." },
+    { message_id: "transit", role: "user", content: "I'm still working on midnight transit archive, but it needs more research." }
+  ];
+  assert.deepEqual(filterConsolidationExtraction({}, messages).pinned.map(item => item.content), [
+    "Alejandro is working on a project called Fashion After Fabric.",
+    "Alejandro is working on a project called Midnight Transit Archive."
+  ]);
+});
+
+test("invalid archivist JSON still stores deterministic explicit user memories", async () => {
+  const stored = [];
+  const messages = [
+    { message_id: "project", role: "user", content: "I'm still working on fashion after fabric, and I want to develop it further this month.", created_at: "2026-08-30T12:00:00.000Z" },
+    { message_id: "food", role: "user", content: "I really enjoy cooking Mexican food at home, especially tacos", created_at: "2026-08-30T12:01:00.000Z" }
+  ];
+  const db = {
+    prepare(sql) { return { bind(...values) {
+      if (sql.includes("SELECT summary, messages_summarized_through")) return { first: async () => null };
+      if (sql.includes("SELECT message_id, role, content, created_at FROM messages")) return { all: async () => ({ results: messages }) };
+      if (sql.includes("FROM open_threads") || sql.includes("FROM pinned_memories")) return { all: async () => ({ results: [] }) };
+      return { sql, values };
+    } }; },
+    async batch(statements) { stored.push(...statements); return []; }
+  };
+  const result = await consolidateMemory({ NINA_MEMORY_DB: db, AI: { run: async () => ({ response: "not json" }) } }, "owner-memory-id");
+  assert.equal(result.consolidated, true);
+  assert.deepEqual(stored.filter(statement => statement.sql.includes("INSERT INTO pinned_memories"))
+    .map(statement => [statement.values[2], statement.values[3]]), [
+      ["project", "Alejandro is working on a project called Fashion After Fabric."],
+      ["preference", "Alejandro likes Mexican food, especially tacos, and enjoys cooking it at home."]
+    ]);
 });
 
 test("deterministic fallback still passes nonliteral and relationship firewalls", () => {

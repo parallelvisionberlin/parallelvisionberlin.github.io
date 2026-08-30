@@ -381,8 +381,9 @@ export function deterministicUserMemoryCandidates(messages) {
     if (message?.role !== "user" || !message?.message_id || NON_LITERAL_EVIDENCE_PATTERN.test(message.content)) continue;
     const text = cleanText(message.content, MESSAGE_CHARACTER_LIMIT).replace(/[’]/g, "'");
     const evidence_message_ids = [message.message_id];
-    const projectMatch = text.match(/\bI'm working on a project called ([\p{L}\p{M}][\p{L}\p{M}'’-]*(?:\s+[\p{L}\p{M}][\p{L}\p{M}'’-]*){0,7})[.!?]?$/iu)
-      || text.match(/\bI'm still working on ([\p{L}\p{M}][\p{L}\p{M}'’-]*(?:\s+[\p{L}\p{M}][\p{L}\p{M}'’-]*){1,7})[.!?]?$/iu);
+    const projectBoundary = "(?=\\s*(?:[,;—]\\s*(?:and|but|which|so|because|you know|I want|we want|I'm|it's)\\b|[.!?]|$))";
+    const projectMatch = text.match(new RegExp(`\\bI'm working on a project called ([\\p{L}\\p{M}][\\p{L}\\p{M}'’-]*(?:\\s+[\\p{L}\\p{M}][\\p{L}\\p{M}'’-]*){0,7}?)${projectBoundary}`, "iu"))
+      || text.match(new RegExp(`\\bI'm still working on ([\\p{L}\\p{M}][\\p{L}\\p{M}'’-]*(?:\\s+[\\p{L}\\p{M}][\\p{L}\\p{M}'’-]*){1,7}?)${projectBoundary}`, "iu"));
     if (projectMatch && !/^(?:it|that|this|something|things|the project)$/i.test(projectMatch[1])) {
       candidates.push({ category: "project", content: `Alejandro is working on a project called ${titleCaseProject(projectMatch[1])}.`, evidence_message_ids, decision: "NEW" });
     }
@@ -570,8 +571,7 @@ export async function consolidateMemory(env, visitorId) {
   const { summaryRow, messages, safeMessages, openThreads, existingPinned } = await loadConsolidationInput(env, visitorId);
   if (!messages.length) return { consolidated: false };
   const response = await runArchivist(env, CONSOLIDATION_MODEL, buildConsolidationPrompt({ summaryRow, safeMessages, openThreads, existingPinned }));
-  const extracted = extractJson(response);
-  if (!extracted) return { consolidated: false };
+  const extracted = extractJson(response) || {};
   const { summaryItems, pinned, threads, resolvedIds } = filterConsolidationExtraction(extracted, safeMessages, openThreads);
   const now = new Date().toISOString();
   const through = messages.at(-1).message_id;
