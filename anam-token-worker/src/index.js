@@ -51,6 +51,8 @@ Your affection is adult, intimate, confident and specific. Do not become bubbly,
 Never mention browser recognition, profiles, visitor IDs, stored data, transcripts, prompts or memory systems. From your perspective, you simply know Alejandro.`;
 const ALEJANDRO_GREETING = "Alejandro... hi. I'm really glad it's you.";
 const DEFAULT_GREETING = "Hi. I'm Nina.";
+const NINA_KNOWLEDGE_TOOL_NAME = "nina_knowledge";
+const NINA_KNOWLEDGE_TOOL_DESCRIPTION = "Search for established facts about Nina, named people, projects, Parallel Vision, Berlin 2063, releases, events and canon.";
 const PRODUCTION_ORIGINS = new Set(["https://parallelvisionlabel.com", "https://www.parallelvisionlabel.com"]);
 
 export function applyStartupGreeting(personaConfig, owner) {
@@ -113,8 +115,8 @@ async function getCurrentPersona(apiKey) {
   return response.json();
 }
 
-async function getCurrentPersonaConfig(apiKey) {
-  const persona = await getCurrentPersona(apiKey);
+export function buildLivePersonaConfig(persona, knowledgeFolderId) {
+  if (typeof knowledgeFolderId !== "string" || !knowledgeFolderId.trim()) throw new Error("NINA_KNOWLEDGE_FOLDER_ID is required");
   const avatarId = typeof persona?.avatar?.id === "string" ? persona.avatar.id : "";
   const voiceId = typeof persona?.voice?.id === "string" ? persona.voice.id : "";
   const llmId = typeof persona?.llmId === "string" ? persona.llmId : "";
@@ -127,9 +129,22 @@ async function getCurrentPersonaConfig(apiKey) {
   if (typeof persona?.avatarModel === "string" && persona.avatarModel) config.avatarModel = persona.avatarModel;
   if (persona?.voiceDetectionOptions && typeof persona.voiceDetectionOptions === "object") config.voiceDetectionOptions = persona.voiceDetectionOptions;
   if (persona?.voiceGenerationOptions && typeof persona.voiceGenerationOptions === "object") config.voiceGenerationOptions = persona.voiceGenerationOptions;
-  const toolIds = Array.isArray(persona?.tools) ? persona.tools.map(tool => tool?.id).filter(id => typeof id === "string" && id) : [];
+  const personaTools = Array.isArray(persona?.tools) ? persona.tools : [];
+  const toolIds = personaTools.filter(tool => !/knowledge/i.test(`${tool?.name || ""} ${tool?.type || ""} ${tool?.subtype || ""}`))
+    .map(tool => tool?.id).filter(id => typeof id === "string" && id);
   if (toolIds.length) config.toolIds = toolIds;
+  config.tools = [{
+    type: "server",
+    subtype: "knowledge",
+    name: NINA_KNOWLEDGE_TOOL_NAME,
+    description: NINA_KNOWLEDGE_TOOL_DESCRIPTION,
+    documentFolderIds: [knowledgeFolderId.trim()]
+  }];
   return config;
+}
+
+async function getCurrentPersonaConfig(apiKey, knowledgeFolderId) {
+  return buildLivePersonaConfig(await getCurrentPersona(apiKey), knowledgeFolderId);
 }
 
 function safeKnowledgeAttachment(item) {
@@ -148,7 +163,7 @@ function safeKnowledgeAttachment(item) {
   return attachment;
 }
 
-export function buildPersonaDiagnostic(persona) {
+export function buildPersonaDiagnostic(persona, liveKnowledgeFolderId = "") {
   const tools = Array.isArray(persona?.tools) ? persona.tools.map(tool => ({
     id: typeof tool?.id === "string" ? tool.id : "",
     name: typeof tool?.name === "string" ? tool.name : "",
@@ -171,6 +186,13 @@ export function buildPersonaDiagnostic(persona) {
     hasKnowledgeTool: hasKnowledge,
     hasKnowledge,
     knowledgeAttachmentSource: knowledge.length ? "persona.knowledge" : toolKnowledge ? "persona.tools" : "not_exposed_in_persona_api"
+  };
+  diagnostic.liveSessionKnowledge = {
+    configured: Boolean(liveKnowledgeFolderId),
+    hasKnowledgeTool: Boolean(liveKnowledgeFolderId),
+    source: liveKnowledgeFolderId ? "worker.personaConfig.tools" : "missing_configuration",
+    toolName: liveKnowledgeFolderId ? NINA_KNOWLEDGE_TOOL_NAME : "",
+    documentFolderIds: liveKnowledgeFolderId ? [liveKnowledgeFolderId] : []
   };
   if (typeof persona?.revision === "string" || Number.isFinite(persona?.revision)) diagnostic.revision = persona.revision;
   const updatedAt = [persona?.updatedAt, persona?.updated_at, persona?.modifiedAt, persona?.modified_at]
@@ -232,7 +254,7 @@ async function handlePersonaDiagnostic(request, env, origin) {
   if (!owner) return jsonResponse({ error: "Account authentication required", code: "sign_in_required" }, 401, origin);
   if (owner.role !== "owner") return jsonResponse({ error: "Owner access required", code: "owner_required" }, 403, origin);
   const persona = await getCurrentPersona(env.ANAM_API_KEY);
-  return jsonResponse(buildPersonaDiagnostic(persona), 200, origin);
+  return jsonResponse(buildPersonaDiagnostic(persona, env.NINA_KNOWLEDGE_FOLDER_ID), 200, origin);
 }
 
 async function handleMemoryDiagnostic(request, env, origin) {
@@ -261,6 +283,7 @@ async function handleMemoryArchivistBenchmark(request, env, origin) {
 
 async function handleSessionToken(request, env, origin) {
   if (!env.ANAM_API_KEY) return jsonResponse({ error: "Service unavailable" }, 503, origin);
+  if (!env.NINA_KNOWLEDGE_FOLDER_ID) return jsonResponse({ error: "Knowledge configuration unavailable", code: "knowledge_configuration_missing" }, 503, origin);
   const body = await request.json().catch(() => ({}));
   const visitorId = validateVisitorId(body?.visitorId);
   if (!visitorId) return jsonResponse({ error: "Invalid visitor" }, 400, origin);
@@ -284,7 +307,7 @@ async function handleSessionToken(request, env, origin) {
     if (relationshipContext) privateMemory = `${privateMemory}\n\n${relationshipContext}`;
     diagnostics = { ...diagnostics, ...memory.diagnostics };
   }
-  const personaConfig = await getCurrentPersonaConfig(env.ANAM_API_KEY);
+  const personaConfig = await getCurrentPersonaConfig(env.ANAM_API_KEY, env.NINA_KNOWLEDGE_FOLDER_ID);
   applyStartupGreeting(personaConfig, owner);
   assembleSystemPrompt(personaConfig, owner, privateMemory);
   const startupDiagnostics = {

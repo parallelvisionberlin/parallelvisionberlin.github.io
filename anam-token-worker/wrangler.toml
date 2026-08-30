@@ -5,6 +5,7 @@ workers_dev = true
 
 [vars]
 CLERK_ISSUER = "https://clerk.parallelvisionlabel.com"
+NINA_KNOWLEDGE_FOLDER_ID = "afee1711-cba4-47ac-a4ed-7125bccf3947"
 
 [[d1_databases]]
 binding = "NINA_MEMORY_DB"

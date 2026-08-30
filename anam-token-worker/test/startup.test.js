@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import worker, { NINA_INTIMACY_CONTINUITY, applyStartupGreeting, assembleSystemPrompt, buildPersonaDiagnostic } from "../src/index.js";
+import worker, { NINA_INTIMACY_CONTINUITY, applyStartupGreeting, assembleSystemPrompt, buildLivePersonaConfig, buildPersonaDiagnostic } from "../src/index.js";
 
 const encode = value => Buffer.from(typeof value === "string" ? value : JSON.stringify(value)).toString("base64url");
 
@@ -71,6 +71,7 @@ test("persona diagnostic is owner-only, sanitized and never creates a Live Nina 
   };
   const env = {
     ANAM_API_KEY: "anam-secret",
+    NINA_KNOWLEDGE_FOLDER_ID: "knowledge-folder-1",
     CLERK_ISSUER: auth.issuer,
     NINA_MEMORY_DB: { prepare() { return { bind(subject) { return { first: async () => users[subject] || null }; } }; } }
   };
@@ -113,6 +114,10 @@ test("persona diagnostic is owner-only, sanitized and never creates a Live Nina 
       hasKnowledgeTool: true,
       hasKnowledge: true,
       knowledgeAttachmentSource: "persona.knowledge",
+      liveSessionKnowledge: {
+        configured: true, hasKnowledgeTool: true, source: "worker.personaConfig.tools",
+        toolName: "nina_knowledge", documentFolderIds: ["knowledge-folder-1"]
+      },
       updatedAt: "2026-08-30T12:00:00.000Z"
     });
     const source = await readFile(new URL("../src/index.js", import.meta.url), "utf8");
@@ -129,4 +134,47 @@ test("persona diagnostic safely reports when knowledge metadata is absent", () =
   assert.equal(diagnostic.hasKnowledge, false);
   assert.equal(diagnostic.knowledgeAttachmentSource, "not_exposed_in_persona_api");
   assert.deepEqual(diagnostic.knowledge, []);
+  assert.deepEqual(diagnostic.liveSessionKnowledge, {
+    configured: false, hasKnowledgeTool: false, source: "missing_configuration", toolName: "", documentFolderIds: []
+  });
+});
+
+test("live persona config injects exactly one configured knowledge tool and preserves non-knowledge tools", () => {
+  const config = buildLivePersonaConfig({
+    avatar: { id: "avatar-1" }, voice: { id: "voice-1" }, llmId: "gpt-5-chat", brain: { systemPrompt: "Published prompt." },
+    tools: [
+      { id: "tool-weather", name: "Weather", type: "client", subtype: "weather" },
+      { id: "old-knowledge", name: "Old Knowledge", type: "server", subtype: "knowledge" }
+    ]
+  }, "existing-folder-id");
+  assert.equal(config.avatarId, "avatar-1");
+  assert.equal(config.voiceId, "voice-1");
+  assert.equal(config.llmId, "gpt-5-chat");
+  assert.equal(config.systemPrompt, "Published prompt.");
+  assert.deepEqual(config.toolIds, ["tool-weather"]);
+  assert.deepEqual(config.tools, [{
+    type: "server", subtype: "knowledge", name: "nina_knowledge",
+    description: "Search for established facts about Nina, named people, projects, Parallel Vision, Berlin 2063, releases, events and canon.",
+    documentFolderIds: ["existing-folder-id"]
+  }]);
+});
+
+test("live persona config fails safely when the knowledge folder is missing", () => {
+  assert.throws(() => buildLivePersonaConfig({ avatar: { id: "avatar-1" }, voice: { id: "voice-1" }, llmId: "llm-1" }, ""),
+    /NINA_KNOWLEDGE_FOLDER_ID is required/);
+});
+
+test("session endpoint does not create an Anam session when knowledge configuration is missing", async () => {
+  const originalFetch = globalThis.fetch;
+  const requests = [];
+  globalThis.fetch = async (...args) => { requests.push(args); throw new Error("must not fetch"); };
+  try {
+    const response = await worker.fetch(new Request("https://worker.example/session-token", {
+      method: "POST", headers: { Origin: "http://127.0.0.1:4173", "Content-Type": "application/json" },
+      body: JSON.stringify({ visitorId: "visitor-test" })
+    }), { ANAM_API_KEY: "anam-secret" }, { waitUntil() {} });
+    assert.equal(response.status, 503);
+    assert.equal((await response.json()).code, "knowledge_configuration_missing");
+    assert.equal(requests.length, 0);
+  } finally { globalThis.fetch = originalFetch; }
 });
