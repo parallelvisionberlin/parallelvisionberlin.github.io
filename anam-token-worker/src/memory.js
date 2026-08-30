@@ -7,7 +7,8 @@ const OPEN_THREAD_LIMIT = 12;
 const CONSOLIDATION_MESSAGE_LIMIT = 80;
 const ID_PATTERN = /^[a-zA-Z0-9][a-zA-Z0-9._:-]{0,127}$/;
 const CATEGORY_PATTERN = /^[a-z][a-z0-9_-]{0,39}$/;
-const CONSOLIDATION_MODEL = "@cf/meta/llama-3.1-8b-instruct-fp8-fast";
+const CONSOLIDATION_MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
+const ARCHIVIST_BENCHMARK_CURRENT_MODEL = "@cf/meta/llama-3.1-8b-instruct-fp8-fast";
 const ARCHIVIST_BENCHMARK_MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
 const PINNED_MEMORY_CATEGORIES = new Set([
   "user_fact", "nina_autobiography", "shared_memory", "preference",
@@ -550,7 +551,7 @@ export async function benchmarkMemoryArchivists(env, visitorId) {
   if (!messages.length) return { batch, current8B: null, candidate70B: null };
   const prompt = buildConsolidationPrompt(input);
   const [currentResponse, candidateResponse] = await Promise.all([
-    runArchivist(env, CONSOLIDATION_MODEL, prompt),
+    runArchivist(env, ARCHIVIST_BENCHMARK_CURRENT_MODEL, prompt),
     runArchivist(env, ARCHIVIST_BENCHMARK_MODEL, prompt)
   ]);
   const formatResult = response => {
