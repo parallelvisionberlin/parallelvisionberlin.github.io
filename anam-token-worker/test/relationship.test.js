@@ -3,19 +3,25 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 import {
   DEFAULT_RELATIONSHIP_STATE, RELATIONSHIP_LEVELS, buildRelationshipContext, deleteRelationshipState,
-  getOrCreateRelationshipState, normalizeRelationshipUpdate, relationshipEvidenceQualifies
+  evaluateCompletedRelationship, getOrCreateRelationshipState, normalizeRelationshipUpdate, relationshipEvidenceQualifies
 } from "../src/relationship.js";
+import { scheduleCompletedRelationshipEvaluation } from "../src/index.js";
 
-function relationshipDb() {
+function relationshipDb(messages = []) {
   const rows = new Map();
   return {
     rows,
     prepare(sql) {
       return { bind(...values) {
+        if (sql.includes("SELECT role, content FROM messages")) return { all: async () => ({ results: messages }) };
         if (sql.includes("INSERT OR IGNORE")) return { run: async () => {
           if (!rows.has(values[0])) rows.set(values[0], { state_json: values[1], relationship_summary: values[2], created_at: values[3], updated_at: values[4], last_evaluated_at: null });
         } };
         if (sql.includes("SELECT state_json")) return { first: async () => rows.get(values[0]) || null };
+        if (sql.includes("SET last_evaluated_at")) return { run: async () => {
+          const row = rows.get(values[1]);
+          if (row) row.last_evaluated_at = values[0];
+        } };
         if (sql.includes("DELETE FROM")) return { run: async () => { rows.delete(values[0]); } };
         throw new Error(`Unexpected SQL: ${sql}`);
       } };
@@ -122,6 +128,36 @@ test("time and message frequency alone do not qualify relationship evaluation", 
     role: index % 2 ? "persona" : "user", content: index % 2 ? "Hello again." : "Another daily check-in."
   }));
   assert.equal(relationshipEvidenceQualifies(messages), false);
+});
+
+test("insufficient completed evidence records evaluation without changing relationship state", async () => {
+  const messages = [{ role: "user", content: "Hello again." }, { role: "persona", content: "Hello." }];
+  const db = relationshipDb(messages);
+  const before = await getOrCreateRelationshipState({ NINA_MEMORY_DB: db }, "owner-user-id");
+  const initialState = before.state_json;
+  const initialSummary = before.relationship_summary;
+  const result = await evaluateCompletedRelationship({ NINA_MEMORY_DB: db, AI: {} }, "owner-user-id", "owner-memory-id", "conversation-1");
+  assert.deepEqual(result, { evaluated: true, changed: false, reason: "insufficient_evidence" });
+  assert.match(db.rows.get("owner-user-id").last_evaluated_at, /^\d{4}-\d{2}-\d{2}T/);
+  assert.equal(db.rows.get("owner-user-id").state_json, initialState);
+  assert.equal(db.rows.get("owner-user-id").relationship_summary, initialSummary);
+});
+
+test("closed authenticated owner conversation schedules relationship evaluation", async () => {
+  const scheduled = [];
+  const calls = [];
+  const ctx = { waitUntil(promise) { scheduled.push(promise); } };
+  const identity = { user_id: "owner-user-id", visitor_id: "owner-memory-id", role: "owner", account_authenticated: true };
+  const evaluator = async (...args) => { calls.push(args); return { evaluated: true }; };
+  assert.equal(scheduleCompletedRelationshipEvaluation(ctx, { marker: "env" }, identity, "conversation-1", true, evaluator), true);
+  await Promise.all(scheduled);
+  assert.deepEqual(calls[0].slice(1), ["owner-user-id", "owner-memory-id", "conversation-1"]);
+});
+
+test("legacy owner identity does not schedule account relationship evaluation", () => {
+  const ctx = { waitUntil() { throw new Error("must not schedule"); } };
+  const legacyOwner = { visitor_id: "owner-memory-id", role: "owner", account_authenticated: false };
+  assert.equal(scheduleCompletedRelationshipEvaluation(ctx, {}, legacyOwner, "conversation-1", true), false);
 });
 
 test("personal-data deletion removes only the authenticated user's relationship row", async () => {

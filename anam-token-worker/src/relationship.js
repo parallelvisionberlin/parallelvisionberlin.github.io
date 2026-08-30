@@ -78,8 +78,13 @@ export async function evaluateCompletedRelationship(env, userId, visitorId, conv
     ORDER BY created_at ASC, rowid ASC
   `).bind(visitorId, conversationId).all();
   const messages = result.results || [];
-  if (!relationshipEvidenceQualifies(messages)) return { evaluated: false, reason: "insufficient_evidence" };
   const row = await getOrCreateRelationshipState(env, userId);
+  if (!relationshipEvidenceQualifies(messages)) {
+    const now = new Date().toISOString();
+    await env.NINA_MEMORY_DB.prepare("UPDATE nina_relationship_states SET last_evaluated_at = ? WHERE user_id = ?")
+      .bind(now, userId).run();
+    return { evaluated: true, changed: false, reason: "insufficient_evidence" };
+  }
   let currentState;
   try { currentState = { ...DEFAULT_RELATIONSHIP_STATE, ...JSON.parse(row.state_json) }; }
   catch { currentState = { ...DEFAULT_RELATIONSHIP_STATE }; }

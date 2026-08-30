@@ -317,6 +317,12 @@ async function handleStoreMessages(request, env, origin, ctx) {
   return jsonResponse({ storedMessages: result.storedMessages }, 200, origin);
 }
 
+export function scheduleCompletedRelationshipEvaluation(ctx, env, identity, conversationId, closed, evaluator = evaluateCompletedRelationship) {
+  if (!closed || !identity?.account_authenticated) return false;
+  ctx.waitUntil(evaluator(env, identity.user_id, identity.visitor_id, conversationId).catch(() => {}));
+  return true;
+}
+
 async function handleCloseConversation(request, env, origin, ctx) {
   const body = await request.json().catch(() => ({}));
   const identity = await requireAuthenticatedMemory(request, env, body, origin);
@@ -324,9 +330,7 @@ async function handleCloseConversation(request, env, origin, ctx) {
   if (!validId(body?.conversationId)) return jsonResponse({ error: "Invalid conversation" }, 400, origin);
   const closed = await closeConversation(env, identity.visitor_id, body.conversationId);
   ctx.waitUntil(consolidateMemory(env, identity.visitor_id).catch(() => {}));
-  if (closed && identity.account_authenticated) {
-    ctx.waitUntil(evaluateCompletedRelationship(env, identity.user_id, identity.visitor_id, body.conversationId).catch(() => {}));
-  }
+  scheduleCompletedRelationshipEvaluation(ctx, env, identity, body.conversationId, closed);
   return jsonResponse({ closed }, 200, origin);
 }
 
