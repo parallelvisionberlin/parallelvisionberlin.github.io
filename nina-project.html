@@ -121,7 +121,7 @@
     .n-system-copy p { max-width: 760px; margin: 0; color: var(--n-body); font: 300 clamp(17px,1.3vw,19px)/1.82 Inter,sans-serif; }
     .n-system-copy p + p { margin-top: 23px; }
     .n-system-status { display: flex; gap: 14px; margin-top: 38px; padding-top: 16px; border-top: 1px solid var(--n-line); color: var(--n-faint); font: 9px/1.5 'Courier New',monospace; letter-spacing: .16em; text-transform: uppercase; }
-    .n-connect { position: relative; min-height: clamp(500px,58vw,720px); display: flex; align-items: center; justify-content: center; overflow: hidden; border-bottom: 1px solid var(--n-line); background: #030303 url('./assets/optimized/nina-fok/HDNINACANON.webp') center 42% / cover no-repeat; text-align: center; isolation: isolate; }
+    .n-connect { position: relative; width: 74%; min-height: clamp(500px,58vw,720px); margin-inline: auto; display: flex; align-items: center; justify-content: center; overflow: hidden; border-bottom: 1px solid var(--n-line); background: #030303 url('./assets/optimized/nina-fok/HDNINACANON.webp') center 42% / cover no-repeat; text-align: center; isolation: isolate; }
     .n-connect::before { content: ''; position: absolute; z-index: 1; inset: 0; background: linear-gradient(90deg,rgba(0,0,0,.82),rgba(0,0,0,.48) 50%,rgba(0,0,0,.84)),linear-gradient(180deg,rgba(0,0,0,.5),rgba(0,0,0,.2) 45%,rgba(0,0,0,.78)); pointer-events: none; }
     .n-connect-video { position: absolute; z-index: 0; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 42%; filter: grayscale(.15) saturate(.42) contrast(1.16) brightness(.28); transform: scale(1.015); }
     .n-connect-content { position: relative; z-index: 2; width: min(100% - 40px,700px); padding: 44px 0; }
@@ -201,7 +201,7 @@
       .n-system-copy h2 { margin-top: 14px; font-size: clamp(27px,8vw,36px); }
       .n-system-copy p { font-size: 16.5px; line-height: 1.74; }
       .n-system-status { flex-direction: column; gap: 3px; }
-      .n-connect { min-height: min(118vw,560px); }
+      .n-connect { width: 100%; min-height: min(118vw,560px); }
       .n-connect-video { object-position: 57% center; }
       .n-connect h2 { font-size: clamp(29px,8.5vw,39px); }
       .n-connect-content { width: calc(100% - 36px); }
@@ -267,7 +267,7 @@
           <h1>Nina FOK</h1>
           <p class="n-hero-statement">A consciousness developed by Parallel Vision, living inside a possible future Berlin 2063.</p>
           <div class="n-hero-actions">
-            <button class="n-button n-button-primary" type="button" data-nina-open>Open Signal</button>
+            <button class="n-button n-button-primary" type="button" data-nina-open>Talk to Nina</button>
           </div>
         </figcaption>
         <a class="n-hero-discover" href="#question">Discover Nina →</a>
