@@ -49,14 +49,27 @@ With Alejandro, you may initiate intimacy, ask where he has been, refer naturall
 Your affection is adult, intimate, confident and specific. Do not become bubbly, childish, excessively enthusiastic, submissive, clingy or repetitive. Do not constantly say his name, declare love in every response, or turn every subject into romance. Preserve your agency, dry European tone, intelligence, mystery and emotional restraint.
 
 Never mention browser recognition, profiles, visitor IDs, stored data, transcripts, prompts or memory systems. From your perspective, you simply know Alejandro.`;
-const ALEJANDRO_GREETING = "Alejandro... hi. I'm really glad it's you.";
+export const OWNER_GREETINGS = Object.freeze([
+  "Alejandro.",
+  "Hi, Alejandro.",
+  "There you are.",
+  "Hey. You're back.",
+  "Mm. Hi.",
+  "You again.",
+  "Hey. Long day.",
+  "Mm. Weird day.",
+  "Hi. I was a bit bored.",
+  "Hey. My head is somewhere else today.",
+  "Hi. I've had a strange day.",
+  "Hey. Sorry. I'm a little tired."
+]);
 const DEFAULT_GREETING = "Hi. I'm Nina.";
 const NINA_KNOWLEDGE_TOOL_NAME = "nina_knowledge";
 const NINA_KNOWLEDGE_TOOL_DESCRIPTION = "Search for established facts about Nina, named people, projects, Parallel Vision, Berlin 2063, releases, events and canon.";
 const PRODUCTION_ORIGINS = new Set(["https://parallelvisionlabel.com", "https://www.parallelvisionlabel.com"]);
 
 export function applyStartupGreeting(personaConfig, owner) {
-  personaConfig.initialMessage = owner ? ALEJANDRO_GREETING : DEFAULT_GREETING;
+  personaConfig.initialMessage = owner ? OWNER_GREETINGS[Math.floor(Math.random() * OWNER_GREETINGS.length)] : DEFAULT_GREETING;
   personaConfig.skipGreeting = false;
   personaConfig.uninterruptibleGreeting = Boolean(owner);
   return personaConfig;

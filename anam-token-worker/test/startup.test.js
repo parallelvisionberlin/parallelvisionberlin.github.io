@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import worker, { NINA_INTIMACY_CONTINUITY, applyStartupGreeting, assembleSystemPrompt, buildLivePersonaConfig, buildPersonaDiagnostic } from "../src/index.js";
+import worker, { NINA_INTIMACY_CONTINUITY, OWNER_GREETINGS, applyStartupGreeting, assembleSystemPrompt, buildLivePersonaConfig, buildPersonaDiagnostic } from "../src/index.js";
 
 const encode = value => Buffer.from(typeof value === "string" ? value : JSON.stringify(value)).toString("base64url");
 
@@ -23,17 +23,17 @@ async function diagnosticAuthFixture(origin) {
   };
 }
 
-test("authenticated Alejandro sessions speak the owner greeting before microphone input can interrupt it", () => {
-  const personaConfig = applyStartupGreeting({ systemPrompt: "Published Nina prompt." }, {
-    visitor_id: "visitor-owner",
-    display_name: "Alejandro",
-    profile_type: "owner"
-  });
-
-  assert.equal(personaConfig.initialMessage, "Alejandro... hi. I'm really glad it's you.");
-  assert.equal(personaConfig.skipGreeting, false);
-  assert.equal(personaConfig.uninterruptibleGreeting, true);
-  assert.equal(personaConfig.systemPrompt, "Published Nina prompt.");
+test("authenticated Alejandro sessions use only approved uninterruptible owner greetings", () => {
+  assert.equal(OWNER_GREETINGS.length, 12);
+  for (let index = 0; index < 100; index += 1) {
+    const personaConfig = applyStartupGreeting({ systemPrompt: "Published Nina prompt." }, {
+      visitor_id: "visitor-owner", display_name: "Alejandro", profile_type: "owner"
+    });
+    assert.equal(OWNER_GREETINGS.includes(personaConfig.initialMessage), true);
+    assert.equal(personaConfig.skipGreeting, false);
+    assert.equal(personaConfig.uninterruptibleGreeting, true);
+    assert.equal(personaConfig.systemPrompt, "Published Nina prompt.");
+  }
 });
 
 test("public sessions keep Nina's normal generic and interruptible greeting", () => {
