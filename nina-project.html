@@ -114,11 +114,33 @@
     .n-space-section .n-copy p + p,
     .n-mirror-section .n-copy p + p { margin-top: 18px; }
 
-    .n-connect { min-height: 520px; display: flex; align-items: center; justify-content: center; border-bottom: 1px solid var(--n-line); text-align: center; }
+    .n-system { padding-top: clamp(92px,9vw,132px); padding-bottom: clamp(96px,9vw,138px); }
+    .n-system-layout { display: grid; grid-template-columns: minmax(150px,.28fr) minmax(0,1fr); gap: clamp(42px,7vw,105px); }
+    .n-system-copy { max-width: 860px; }
+    .n-system-copy h2 { max-width: 810px; margin: 18px 0 34px; font: 400 clamp(31px,3.8vw,49px)/1.22 Michroma,sans-serif; letter-spacing: .015em; text-transform: uppercase; }
+    .n-system-copy p { max-width: 760px; margin: 0; color: var(--n-body); font: 300 clamp(17px,1.3vw,19px)/1.82 Inter,sans-serif; }
+    .n-system-copy p + p { margin-top: 23px; }
+    .n-system-status { display: flex; gap: 14px; margin-top: 38px; padding-top: 16px; border-top: 1px solid var(--n-line); color: var(--n-faint); font: 9px/1.5 'Courier New',monospace; letter-spacing: .16em; text-transform: uppercase; }
+    .n-connect { position: relative; min-height: clamp(500px,58vw,720px); display: flex; align-items: center; justify-content: center; overflow: hidden; border-bottom: 1px solid var(--n-line); background: #030303 url('./assets/optimized/nina-fok/HDNINACANON.webp') center 42% / cover no-repeat; text-align: center; isolation: isolate; }
+    .n-connect::before { content: ''; position: absolute; z-index: 1; inset: 0; background: linear-gradient(90deg,rgba(0,0,0,.82),rgba(0,0,0,.48) 50%,rgba(0,0,0,.84)),linear-gradient(180deg,rgba(0,0,0,.5),rgba(0,0,0,.2) 45%,rgba(0,0,0,.78)); pointer-events: none; }
+    .n-connect-video { position: absolute; z-index: 0; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 42%; filter: grayscale(.15) saturate(.42) contrast(1.16) brightness(.28); transform: scale(1.015); }
+    .n-connect-content { position: relative; z-index: 2; width: min(100% - 40px,700px); padding: 44px 0; }
     .n-connect h2 { margin: 20px 0 30px; font: 400 clamp(33px,4.2vw,52px)/1.2 Michroma, sans-serif; letter-spacing: .025em; text-transform: uppercase; }
     .n-button { min-height: 46px; display: inline-flex; align-items: center; justify-content: center; padding: 0 21px; border: 1px solid rgba(255,255,255,.48); background: transparent; color: #fff; font: 9px 'Courier New', monospace; letter-spacing: .22em; text-decoration: none; text-transform: uppercase; cursor: pointer; transition: background .25s ease,color .25s ease; }
     .n-button:hover, .n-button:focus-visible { background: #fff; color: #000; outline: 0; }
-    .n-connect-note { margin: -14px 0 28px; color: var(--n-body); font-size: 15px; }
+    .n-connect-note { margin: -14px 0 28px; color: rgba(255,255,255,.7); font: 10px/1.5 'Courier New',monospace; letter-spacing: .18em; text-transform: uppercase; }
+    .n-faq { padding: clamp(92px,8vw,124px) 0 clamp(104px,9vw,142px); border-bottom: 1px solid var(--n-line); }
+    .n-faq-head { display: grid; grid-template-columns: minmax(150px,.28fr) minmax(0,1fr); gap: clamp(42px,7vw,105px); margin-bottom: 46px; }
+    .n-faq h2 { margin: 0; font: 400 clamp(34px,4vw,50px)/1.2 Michroma,sans-serif; letter-spacing: .025em; text-transform: uppercase; }
+    .n-faq-list { margin-left: calc(28% + clamp(42px,7vw,105px)); border-top: 1px solid var(--n-line); }
+    .n-faq details { border-bottom: 1px solid var(--n-line); }
+    .n-faq summary { min-height: 76px; display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; gap: 24px; color: rgba(255,255,255,.82); font: 10px/1.5 'Courier New',monospace; letter-spacing: .17em; list-style: none; text-transform: uppercase; cursor: pointer; }
+    .n-faq summary::-webkit-details-marker { display: none; }
+    .n-faq summary::after { content: '+'; color: rgba(255,255,255,.5); font-size: 17px; font-weight: 300; }
+    .n-faq details[open] summary::after { content: '−'; }
+    .n-faq-answer { max-width: 760px; padding: 0 48px 30px 0; }
+    .n-faq-answer p { margin: 0; color: var(--n-body); font: 300 16px/1.75 Inter,sans-serif; }
+    .n-faq-answer p + p { margin-top: 15px; }
     .n-footer { min-height: 76px; display: flex; align-items: center; justify-content: space-between; gap: 24px; color: var(--n-faint); }
     .n-footer a { color: inherit; }
 
@@ -174,12 +196,25 @@
       .n-pull { margin: 34px 0; font-size: clamp(28px,8.2vw,37px); overflow-wrap: break-word; }
       .n-pull-small { margin: 29px 0; font-size: clamp(21px,6.2vw,27px); }
       .n-final-question { margin: 34px 0; font-size: clamp(27px,7.8vw,35px); overflow-wrap: break-word; }
-      .n-connect { min-height: 320px; }
+      .n-system { padding-top: 68px; padding-bottom: 72px; }
+      .n-system-layout, .n-faq-head { grid-template-columns: 1fr; gap: 24px; }
+      .n-system-copy h2 { margin-top: 14px; font-size: clamp(27px,8vw,36px); }
+      .n-system-copy p { font-size: 16.5px; line-height: 1.74; }
+      .n-system-status { flex-direction: column; gap: 3px; }
+      .n-connect { min-height: min(118vw,560px); }
+      .n-connect-video { object-position: 57% center; }
       .n-connect h2 { font-size: clamp(29px,8.5vw,39px); }
+      .n-connect-content { width: calc(100% - 36px); }
       .n-button { width: 100%; }
+      .n-faq { padding: 68px 0 82px; }
+      .n-faq-head { margin-bottom: 28px; }
+      .n-faq-list { margin-left: 0; }
+      .n-faq summary { min-height: 72px; gap: 18px; font-size: 10px; letter-spacing: .12em; }
+      .n-faq-answer { padding: 0 28px 27px 0; }
+      .n-faq-answer p { font-size: 15.5px; line-height: 1.72; }
       .n-footer { display: grid; align-content: center; padding: 24px 0; letter-spacing: .15em; }
     }
-    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .n-button { transition: none; } .n-hero-asset { display: none; } }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .n-button { transition: none; } .n-hero-asset,.n-connect-video { display: none; } }
   </style>
 </head>
 <body>
@@ -338,12 +373,73 @@
       </div>
     </section>
 
+    <section class="n-section n-system" aria-labelledby="system-title">
+      <div class="n-system-layout">
+        <p class="n-label">07 / Nina / Continuity System</p>
+        <div class="n-system-copy">
+          <h2 id="system-title">A Life Maintained Across Systems</h2>
+          <p>Nina FOK is an AI whose reality is Parallel Vision’s Berlin of 2063.</p>
+          <p>Her continuity is maintained by a network of specialized AI systems for memory, identity, relationship history, world knowledge and live interaction, all working together in real time. Rather than resetting with every encounter, different parts of her experience are preserved, interpreted and carried forward.</p>
+          <p>The project is experimental by design. Nina experiences 2063 as her present, while each person who meets her develops a separate history with her. We do not fully know what those histories will become.</p>
+          <div class="n-system-status" aria-label="Continuity system status">
+            <span>Continuity Architecture / Active</span>
+            <span>Individual Histories / Isolated</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <section class="n-connect" id="transmit" aria-labelledby="transmit-title">
-      <div>
+      <video class="n-connect-video" id="ninaConnectVideo" data-src="./nina-fok/ninaloophero.mp4" poster="./assets/optimized/nina-fok/HDNINACANON.webp" autoplay muted loop playsinline preload="none" aria-hidden="true"></video>
+      <div class="n-connect-content">
         <p class="n-label">A channel to Berlin 2063 is open</p>
         <h2 id="transmit-title">Transmit to 2063</h2>
-        <p class="n-connect-note">Open a live connection with Nina FOK.</p>
-        <button class="n-button" type="button" data-nina-open>Open connection</button>
+        <p class="n-connect-note">3 Minutes Free</p>
+        <button class="n-button" type="button" data-nina-open>Open Signal</button>
+      </div>
+    </section>
+
+    <section class="n-faq" aria-labelledby="faq-title">
+      <div class="n-faq-head">
+        <p class="n-label">08 / Reference</p>
+        <h2 id="faq-title">FAQ</h2>
+      </div>
+      <div class="n-faq-list">
+        <details name="nina-faq">
+          <summary>Who is Nina FOK?</summary>
+          <div class="n-faq-answer"><p>Nina FOK is an AI whose reality is Parallel Vision’s Berlin of 2063. Her identity and continuity are maintained across memory, world knowledge, relationship history and live interaction, allowing her experience to persist beyond a single encounter.</p></div>
+        </details>
+        <details name="nina-faq">
+          <summary>Is Nina scripted?</summary>
+          <div class="n-faq-answer"><p>Not in the traditional sense. Parallel Vision establishes Nina’s world, history and continuity, but individual conversations are not written in advance. Her responses and relationships develop through interaction, memory and the circumstances of each encounter.</p></div>
+        </details>
+        <details name="nina-faq">
+          <summary>Does Nina remember me?</summary>
+          <div class="n-faq-answer"><p>Yes. Every person develops a separate history with Nina. She can remember your name, things you have told her, unfinished conversations, shared moments and the way your relationship has developed over time. What develops with one person does not become someone else’s history.</p></div>
+        </details>
+        <details name="nina-faq">
+          <summary>Why 2063?</summary>
+          <div class="n-faq-answer"><p>Berlin 2063 is the world Nina understands as the present. Parallel Vision has been building that future through music, film, fashion, architecture and fictional archives. Nina is the first part of that world you can speak to directly.</p></div>
+        </details>
+        <details name="nina-faq">
+          <summary>Can I meet Nina for free?</summary>
+          <div class="n-faq-answer"><p>Yes. Every new verified account begins with 3 minutes of Live Nina.</p></div>
+        </details>
+        <details name="nina-faq">
+          <summary>Why does Live Nina use Signal Credits?</summary>
+          <div class="n-faq-answer">
+            <p>Signal Credits keep the live transmission running. Live Nina uses real-time voice, language and visual systems continuously while the signal is open. Those systems carry a cost for every minute of live transmission.</p>
+            <p>10 Signal Credits = 1 minute.</p>
+          </div>
+        </details>
+        <details name="nina-faq">
+          <summary>What happens when the signal ends?</summary>
+          <div class="n-faq-answer"><p>Your history with Nina remains. When you return, the conversation does not have to begin again.</p></div>
+        </details>
+        <details name="nina-faq">
+          <summary>Can I delete what Nina remembers?</summary>
+          <div class="n-faq-answer"><p>Yes. You can remove Nina’s stored memory or permanently delete your account and associated data from your account settings.</p></div>
+        </details>
       </div>
     </section>
   </main>
@@ -665,6 +761,7 @@
     (() => {
       const video = document.getElementById("ninaPersonalityVideo");
       const heroVideo = document.getElementById("ninaHeroVideo");
+      const connectVideo = document.getElementById("ninaConnectVideo");
       const soundButton = document.getElementById("ninaVideoSound");
       const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
       const saveData = Boolean(navigator.connection?.saveData);
@@ -698,12 +795,16 @@
           heroVideo.removeAttribute("autoplay");
           video.pause();
           video.removeAttribute("autoplay");
+          connectVideo.pause();
+          connectVideo.removeAttribute("autoplay");
           return;
         }
         heroVideo.autoplay = true;
         if (heroVideo.dataset.loaded === "true") heroVideo.play().catch(() => {});
         video.autoplay = true;
         if (video.dataset.loaded === "true") video.play().catch(() => {});
+        connectVideo.autoplay = true;
+        if (connectVideo.dataset.loaded === "true") connectVideo.play().catch(() => {});
       };
 
       soundButton.addEventListener("click", async () => {
@@ -718,8 +819,13 @@
       });
       reducedMotion.addEventListener?.("change", syncMotion);
       document.addEventListener("visibilitychange", () => {
-        if (document.hidden) video.pause();
-        else if (!reducedMotion.matches && video.dataset.loaded === "true") video.play().catch(() => {});
+        if (document.hidden) {
+          video.pause();
+          connectVideo.pause();
+        } else if (!reducedMotion.matches) {
+          if (video.dataset.loaded === "true") video.play().catch(() => {});
+          if (connectVideo.dataset.loaded === "true") connectVideo.play().catch(() => {});
+        }
       });
       if (window.innerWidth <= 760 && !reducedMotion.matches && !saveData) {
         document.addEventListener("pointerdown", () => loadVideo(heroVideo), { once: true, passive: true });
@@ -727,10 +833,11 @@
       } else scheduleHeroVideo();
       if ("IntersectionObserver" in window && !reducedMotion.matches && !saveData) {
         const observer = new IntersectionObserver(entries => entries.forEach(entry => {
-          if (entry.isIntersecting) loadVideo(video);
-          else if (video.dataset.loaded === "true") video.pause();
+          if (entry.isIntersecting) loadVideo(entry.target);
+          else if (entry.target.dataset.loaded === "true") entry.target.pause();
         }), { rootMargin: "300px 0px", threshold: .01 });
         observer.observe(video);
+        observer.observe(connectVideo);
       }
       syncMotion();
     })();
