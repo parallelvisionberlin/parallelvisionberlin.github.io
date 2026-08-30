@@ -8,6 +8,7 @@ const CONSOLIDATION_MESSAGE_LIMIT = 80;
 const ID_PATTERN = /^[a-zA-Z0-9][a-zA-Z0-9._:-]{0,127}$/;
 const CATEGORY_PATTERN = /^[a-z][a-z0-9_-]{0,39}$/;
 const CONSOLIDATION_MODEL = "@cf/meta/llama-3.1-8b-instruct-fp8-fast";
+const ARCHIVIST_BENCHMARK_MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
 const PINNED_MEMORY_CATEGORIES = new Set([
   "user_fact", "nina_autobiography", "shared_memory", "preference",
   "inside_joke", "fantasy_roleplay", "project", "identity"
@@ -392,8 +393,7 @@ export function resolvePinnedDecision(candidate, existingPinned = []) {
   return { decision: semanticMemoryValue(existing) === semanticMemoryValue(candidate) ? "DUPLICATE" : "UPDATE_EXISTING", existing };
 }
 
-export async function consolidateMemory(env, visitorId) {
-  if (!env.AI || !env.NINA_MEMORY_DB) return { consolidated: false };
+export async function loadConsolidationInput(env, visitorId) {
   const db = env.NINA_MEMORY_DB;
   const summaryRow = await db.prepare(
     "SELECT summary, messages_summarized_through FROM memory_summaries WHERE visitor_id = ?"
@@ -404,16 +404,26 @@ export async function consolidateMemory(env, visitorId) {
     ORDER BY rowid ASC LIMIT ?
   `).bind(visitorId, summaryRow?.messages_summarized_through || "", CONSOLIDATION_MESSAGE_LIMIT).all();
   const messages = messagesResult.results || [];
-  if (!messages.length) return { consolidated: false };
-  const openResult = await db.prepare(
-    "SELECT thread_id, content FROM open_threads WHERE visitor_id = ? AND status = 'active' ORDER BY updated_at DESC LIMIT ?"
-  ).bind(visitorId, OPEN_THREAD_LIMIT).all();
-  const existingPinnedResult = await db.prepare(
-    "SELECT memory_id, category, content FROM pinned_memories WHERE visitor_id = ? ORDER BY updated_at DESC LIMIT ?"
-  ).bind(visitorId, PINNED_LIMIT).all();
-  const existingPinned = existingPinnedResult.results || [];
-  const safeMessages = messages.filter(message => !isNinaMetaBreakMessage(message));
-  const prompt = `You maintain conservative long-term memory for a conversational persona.
+  if (!messages.length) return { summaryRow, messages, safeMessages: [], openThreads: [], existingPinned: [] };
+  const [openResult, existingPinnedResult] = await Promise.all([
+    db.prepare(
+      "SELECT thread_id, content FROM open_threads WHERE visitor_id = ? AND status = 'active' ORDER BY updated_at DESC LIMIT ?"
+    ).bind(visitorId, OPEN_THREAD_LIMIT).all(),
+    db.prepare(
+      "SELECT memory_id, category, content FROM pinned_memories WHERE visitor_id = ? ORDER BY updated_at DESC LIMIT ?"
+    ).bind(visitorId, PINNED_LIMIT).all()
+  ]);
+  return {
+    summaryRow,
+    messages,
+    safeMessages: messages.filter(message => !isNinaMetaBreakMessage(message)),
+    openThreads: openResult.results || [],
+    existingPinned: existingPinnedResult.results || []
+  };
+}
+
+export function buildConsolidationPrompt({ summaryRow, safeMessages, openThreads, existingPinned }) {
+  return `You maintain conservative long-term memory for a conversational persona.
 Return JSON only with keys summary, summary_items, pinned_memories, open_threads, resolved_threads.
 Each new item must include content and evidence_message_ids. Pinned items also need category.
 Each pinned item must include decision (NEW, UPDATE_EXISTING, DUPLICATE, or REJECT). UPDATE_EXISTING must include existing_memory_id.
@@ -441,14 +451,17 @@ EXISTING SUMMARY:
 ${cleanText(summaryRow?.summary, SUMMARY_LIMIT) || "(none)"}
 
 ACTIVE THREADS:
-${JSON.stringify(openResult.results || [])}
+${JSON.stringify(openThreads)}
 
 EXISTING PINNED MEMORIES:
 ${JSON.stringify(existingPinned)}
 
 NEW COMPLETED MESSAGES:
 ${JSON.stringify(safeMessages)}`;
-  const response = await env.AI.run(CONSOLIDATION_MODEL, {
+}
+
+async function runArchivist(env, model, prompt) {
+  return env.AI.run(model, {
     messages: [
       { role: "system", content: "Extract conservative memory as strict JSON. Do not invent." },
       { role: "user", content: prompt }
@@ -456,9 +469,17 @@ ${JSON.stringify(safeMessages)}`;
     max_tokens: 900,
     temperature: 0
   });
+}
+
+export async function consolidateMemory(env, visitorId) {
+  if (!env.AI || !env.NINA_MEMORY_DB) return { consolidated: false };
+  const db = env.NINA_MEMORY_DB;
+  const { summaryRow, messages, safeMessages, openThreads, existingPinned } = await loadConsolidationInput(env, visitorId);
+  if (!messages.length) return { consolidated: false };
+  const response = await runArchivist(env, CONSOLIDATION_MODEL, buildConsolidationPrompt({ summaryRow, safeMessages, openThreads, existingPinned }));
   const extracted = extractJson(response);
   if (!extracted) return { consolidated: false };
-  const { summaryItems, pinned, threads, resolvedIds } = filterConsolidationExtraction(extracted, safeMessages, openResult.results || []);
+  const { summaryItems, pinned, threads, resolvedIds } = filterConsolidationExtraction(extracted, safeMessages, openThreads);
   const now = new Date().toISOString();
   const through = messages.at(-1).message_id;
   const mergedSummary = mergeSummary(summaryRow?.summary, summaryItems, extracted.summary);
@@ -501,6 +522,32 @@ ${JSON.stringify(safeMessages)}`;
   }
   await db.batch(statements);
   return { consolidated: true, summarizedThrough: through };
+}
+
+export async function benchmarkMemoryArchivists(env, visitorId) {
+  const input = await loadConsolidationInput(env, visitorId);
+  const { messages, safeMessages, openThreads } = input;
+  const batch = {
+    messageCount: messages.length,
+    firstMessageId: messages[0]?.message_id || null,
+    lastMessageId: messages.at(-1)?.message_id || null
+  };
+  if (!messages.length) return { batch, current8B: null, candidate70B: null };
+  const prompt = buildConsolidationPrompt(input);
+  const [currentResponse, candidateResponse] = await Promise.all([
+    runArchivist(env, CONSOLIDATION_MODEL, prompt),
+    runArchivist(env, ARCHIVIST_BENCHMARK_MODEL, prompt)
+  ]);
+  const formatResult = response => {
+    const rawExtraction = extractJson(response);
+    return {
+      rawExtraction,
+      filteredExtraction: rawExtraction
+        ? filterConsolidationExtraction(rawExtraction, safeMessages, openThreads)
+        : { summaryItems: [], pinned: [], threads: [], resolvedIds: [] }
+    };
+  };
+  return { batch, current8B: formatResult(currentResponse), candidate70B: formatResult(candidateResponse) };
 }
 
 export async function memoryMetadata(env, visitorId) {

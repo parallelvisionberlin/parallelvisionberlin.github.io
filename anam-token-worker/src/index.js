@@ -1,5 +1,5 @@
 import {
-  HISTORY_LIMIT, buildOwnerMemoryContext, closeConversation, consolidateMemory,
+  HISTORY_LIMIT, benchmarkMemoryArchivists, buildOwnerMemoryContext, closeConversation, consolidateMemory,
   clearUserMemory, createConversation, deleteOwnerMemory, exportTranscript, memoryDiagnostic, memoryMetadata,
   authorizeOwner, enrollOwner, storeMessages, validateCompletedMessages, validId
 } from "./memory.js";
@@ -202,6 +202,13 @@ async function handleMemoryDiagnostic(request, env, origin) {
   if (!owner) return jsonResponse({ error: "Account authentication required", code: "sign_in_required" }, 401, origin);
   if (owner.role !== "owner") return jsonResponse({ error: "Owner access required", code: "owner_required" }, 403, origin);
   return jsonResponse(await memoryDiagnostic(env, owner), 200, origin);
+}
+
+async function handleMemoryArchivistBenchmark(request, env, origin) {
+  const owner = await authenticateAccountRequest(request, env);
+  if (!owner) return jsonResponse({ error: "Account authentication required", code: "sign_in_required" }, 401, origin);
+  if (owner.role !== "owner") return jsonResponse({ error: "Owner access required", code: "owner_required" }, 403, origin);
+  return jsonResponse(await benchmarkMemoryArchivists(env, owner.memory_visitor_id), 200, origin);
 }
 
 async function handleSessionToken(request, env, origin) {
@@ -516,6 +523,7 @@ export default {
       if (url.pathname === "/owner/enroll" && request.method === "POST") return handleOwnerEnrollment(request, env, origin);
       if (url.pathname === "/api/nina/persona-diagnostic" && request.method === "GET") return handlePersonaDiagnostic(request, env, origin);
       if (url.pathname === "/api/nina/memory-diagnostic" && request.method === "GET") return handleMemoryDiagnostic(request, env, origin);
+      if (url.pathname === "/api/nina/memory-archivist-benchmark" && request.method === "GET") return handleMemoryArchivistBenchmark(request, env, origin);
       if (url.pathname === "/session-token" && request.method === "POST") return handleSessionToken(request, env, origin);
       if (url.pathname === "/memory/messages" && request.method === "POST") return handleStoreMessages(request, env, origin, ctx);
       if (url.pathname === "/memory/conversations/end" && request.method === "POST") return handleCloseConversation(request, env, origin, ctx);
