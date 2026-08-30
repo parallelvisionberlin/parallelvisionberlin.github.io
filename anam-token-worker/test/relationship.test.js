@@ -3,7 +3,8 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 import {
   DEFAULT_RELATIONSHIP_STATE, RELATIONSHIP_LEVELS, buildRelationshipContext, deleteRelationshipState,
-  evaluateCompletedRelationship, getOrCreateRelationshipState, normalizeRelationshipUpdate, relationshipEvidenceQualifies
+  evaluateCompletedRelationship, getOrCreateRelationshipState, normalizeRelationshipUpdate, relationshipEvidenceQualifies,
+  relationshipEvaluationDiagnostic
 } from "../src/relationship.js";
 import { scheduleCompletedMemoryConsolidation, scheduleCompletedRelationshipEvaluation } from "../src/index.js";
 
@@ -197,6 +198,31 @@ test("relationship evidence cursor follows the last accepted state change, not a
   row.last_evaluated_at = "2026-08-30T10:00:00.000Z";
   await evaluateCompletedRelationship({ NINA_MEMORY_DB: db, AI: {} }, "owner-user-id", "owner-memory-id", "conversation-2");
   assert.deepEqual(db.messageQueries[0].slice(2), [row.updated_at, row.updated_at]);
+});
+
+test("latest completed relationship attempt exposes insufficient evidence or a safe error", async () => {
+  const diagnosticDb = (messages, lastEvaluatedAt = null) => ({
+    prepare(sql) { return { bind() {
+      if (sql.includes("FROM nina_relationship_states")) return { first: async () => ({ last_evaluated_at: lastEvaluatedAt }) };
+      if (sql.includes("FROM conversations")) return { first: async () => ({ conversation_id: "conversation-2", ended_at: "2026-08-30T12:00:00.000Z" }) };
+      if (sql.includes("FROM messages")) return { all: async () => ({ results: messages }) };
+      throw new Error(`Unexpected SQL: ${sql}`);
+    } }; }
+  });
+  const insufficient = await relationshipEvaluationDiagnostic({ NINA_MEMORY_DB: diagnosticDb([
+    { role: "user", content: "I really enjoy cooking Mexican food." }, { role: "persona", content: "That sounds good." }
+  ]) }, "owner-user-id", "owner-memory-id");
+  assert.deepEqual(insufficient, {
+    last_attempted_conversation_id: "conversation-2", attempted_at: "2026-08-30T12:00:00.000Z", status: "insufficient_evidence"
+  });
+  const failed = await relationshipEvaluationDiagnostic({ NINA_MEMORY_DB: diagnosticDb([
+    { role: "user", content: "I feel comfortable being honest with you." }, { role: "persona", content: "I'm listening." },
+    { role: "user", content: "I appreciate how you listen to me across our conversations." }
+  ]) }, "owner-user-id", "owner-memory-id");
+  assert.deepEqual(failed, {
+    last_attempted_conversation_id: "conversation-2", attempted_at: "2026-08-30T12:00:00.000Z", status: "error",
+    error: { code: "evaluation_not_recorded", message: "No completed relationship evaluation was recorded." }
+  });
 });
 
 test("closed authenticated owner conversation schedules relationship evaluation", async () => {

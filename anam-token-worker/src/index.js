@@ -4,7 +4,7 @@ import {
   authorizeOwner, enrollOwner, storeMessages, validateCompletedMessages, validId
 } from "./memory.js";
 import { asMemoryIdentity, resolveAuthenticatedUser, resolveOwnerMemoryVisitorId, verifyClerkSessionToken } from "./auth.js";
-import { buildRelationshipContext, deleteRelationshipState, evaluateCompletedRelationship } from "./relationship.js";
+import { buildRelationshipContext, deleteRelationshipState, evaluateCompletedRelationship, relationshipEvaluationDiagnostic } from "./relationship.js";
 import { getAccountPreferences, getBillingHistory, updateAccountProfile, updateNewsletterPreferences } from "./account.js";
 import { SignalCreditError, creditSignalCredits, getSignalCreditBalance, getSignalCreditHistory } from "./credits.js";
 import { ReferralError, attributeReferral, getOrCreateReferral } from "./referrals.js";
@@ -210,7 +210,9 @@ async function handleMemoryDiagnostic(request, env, origin) {
   const owner = await authenticateAccountRequest(request, env);
   if (!owner) return jsonResponse({ error: "Account authentication required", code: "sign_in_required" }, 401, origin);
   if (owner.role !== "owner") return jsonResponse({ error: "Owner access required", code: "owner_required" }, 403, origin);
-  return jsonResponse(await memoryDiagnostic(env, owner), 200, origin);
+  const diagnostic = await memoryDiagnostic(env, owner);
+  diagnostic.relationshipEvaluation = await relationshipEvaluationDiagnostic(env, owner.id, owner.memory_visitor_id);
+  return jsonResponse(diagnostic, 200, origin);
 }
 
 async function handleResetDerivedMemory(request, env, origin) {

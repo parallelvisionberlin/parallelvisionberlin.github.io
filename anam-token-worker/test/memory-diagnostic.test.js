@@ -31,6 +31,7 @@ function diagnosticDb(users) {
     prepare(sql) {
       return { bind(...values) {
         if (sql.includes("FROM users WHERE auth_provider")) return { first: async () => users[values[0]] || null };
+        if (sql.includes("FROM conversations") && sql.includes("ended_at IS NOT NULL")) return { first: async () => ({ conversation_id: "conversation-1", ended_at: "2026-08-30T11:02:00.000Z" }) };
         if (sql.includes("SELECT COUNT(*) FROM messages")) return { first: async () => ({ messages: 2, conversations: 1, pinnedMemories: 1, openThreads: 1 }) };
         if (sql.includes("FROM messages")) return { all: async () => ({ results: recent }) };
         if (sql.includes("FROM pinned_memories")) return { all: async () => ({ results: [{ memory_id: "pin-1", category: "project", content: "Alejandro is building Parallel Vision.", created_at: "2026-08-30T10:00:00.000Z", updated_at: "2026-08-30T11:00:00.000Z" }] }) };
@@ -79,6 +80,9 @@ test("memory diagnostic is authenticated-owner-only and marks only Nina meta bre
     assert.equal(diagnostic.summary.messages_summarized_through, "message-meta");
     assert.equal(diagnostic.openThreads[0].thread_id, "thread-1");
     assert.deepEqual(diagnostic.relationship.state_json, { trust: "moderate" });
+    assert.deepEqual(diagnostic.relationshipEvaluation, {
+      last_attempted_conversation_id: "conversation-1", attempted_at: "2026-08-30T11:02:00.000Z", status: "insufficient_evidence"
+    });
     assert.deepEqual(diagnostic.counts, { messages: 2, conversations: 1, pinnedMemories: 1, openThreads: 1 });
   } finally {
     globalThis.fetch = originalFetch;

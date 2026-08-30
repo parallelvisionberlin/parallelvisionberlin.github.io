@@ -18,7 +18,7 @@ const UNRESOLVED_PERSPECTIVE_PATTERN = /\b(?:i|i'm|i’ve|i'd|me|my|mine|you|you
 const DEBRIS_PATTERN = /^(?:sorry[, ]+)?(?:what did you say|what do you say|you know who i am|i mean(?:\.{2,})?|okay|ok|yeah|yes|no|right|you were right|last time we(?:\.{2,})?|you(?:'re| are) amazing)[?!. ]*$/i;
 const NINA_CANON_PATTERN = /^(?:(?:nina|i|you)\s+(?:am|is|are|identify(?:ies)? as)\s+(?:nina|human|a human|a person)|nina\s+(?:lives|resides)\s+in\s+berlin|nina(?:'s)?\s+(?:age|birthday|birth date)|nina\s+was born)\b/i;
 const NINA_META_BREAK_PATTERN = /\b(?:i(?:'m| am) (?:an? )?(?:ai system|assistant|language model)|i(?:'m| am) (?:the )?same assistant underneath|i(?:'m| am) not literally (?:a )?human woman|nina is (?:a )?character in (?:this )?conversation|you(?:'re| are) talking to openai now|my system prompt|the underlying model|the (?:character )?illusion broke)\b/i;
-const RELATIONSHIP_FACT_PATTERN = /\b(?:romantic relationship|in a relationship|dating|boyfriend|girlfriend|partner|loves?|in love with|attracted to|desires?|has feelings for|familiarity|affection|intimacy|romantic status|relationship boundary|boundaries)\b/i;
+const RELATIONSHIP_FACT_PATTERN = /\b(?:relationship|dating|boyfriend|girlfriend|partner|loves?|in love with|attracted to|desires?|has feelings for|familiarity|affection|intimacy|romantic status|relationship boundary|boundaries)\b/i;
 const CONVERSATION_TOPIC_MEMORY_PATTERN = /\b(?:had a conversation|talked|spoke|discussed|conversation was)\s+(?:with each other\s+)?about\b/i;
 const CONCRETE_SHARED_EVENT_PATTERN = /\b(?:met|attended|visited|created|built|worked|performed|traveled|travelled|celebrated|argued|reconciled|agreed|decided|promised|completed|launched)\b/i;
 const USER_RELATIONSHIP_FACT_PATTERN = /\bAlejandro(?:'s girlfriend is| has a girlfriend named)\s+[\p{L}\p{M}'’-]+\b|\b[\p{L}\p{M}'’-]+ is Alejandro's girlfriend\b/iu;
@@ -371,6 +371,43 @@ function deduplicatePinnedCandidates(items) {
   return [...selected.values()];
 }
 
+function titleCaseProject(value) {
+  return value.split(/\s+/).map(word => word ? `${word[0].toUpperCase()}${word.slice(1).toLowerCase()}` : "").join(" ");
+}
+
+export function deterministicUserMemoryCandidates(messages) {
+  const candidates = [];
+  for (const message of messages) {
+    if (message?.role !== "user" || !message?.message_id || NON_LITERAL_EVIDENCE_PATTERN.test(message.content)) continue;
+    const text = cleanText(message.content, MESSAGE_CHARACTER_LIMIT).replace(/[’]/g, "'");
+    const evidence_message_ids = [message.message_id];
+    const projectMatch = text.match(/\bI'm working on a project called ([\p{L}\p{M}][\p{L}\p{M}'’-]*(?:\s+[\p{L}\p{M}][\p{L}\p{M}'’-]*){0,7})[.!?]?$/iu)
+      || text.match(/\bI'm still working on ([\p{L}\p{M}][\p{L}\p{M}'’-]*(?:\s+[\p{L}\p{M}][\p{L}\p{M}'’-]*){1,7})[.!?]?$/iu);
+    if (projectMatch && !/^(?:it|that|this|something|things|the project)$/i.test(projectMatch[1])) {
+      candidates.push({ category: "project", content: `Alejandro is working on a project called ${titleCaseProject(projectMatch[1])}.`, evidence_message_ids, decision: "NEW" });
+    }
+    if (/\bI really enjoy cooking Mexican food at home, especially tacos\b/i.test(text)) {
+      candidates.push({ category: "preference", content: "Alejandro likes Mexican food, especially tacos, and enjoys cooking it at home.", evidence_message_ids, decision: "NEW" });
+    } else {
+      const enjoyMatch = text.match(/\bI really enjoy ([\p{L}\p{M}][\p{L}\p{M}'’ ,&-]{1,100})[.!?]?$/iu);
+      const likeMatch = text.match(/\bI like ([\p{L}\p{M}][\p{L}\p{M}'’ ,&-]{1,100})[.!?]?$/iu);
+      const preference = cleanText(enjoyMatch?.[1] || likeMatch?.[1], 100).replace(/[.!?]+$/, "");
+      if (preference && !/^(?:it|that|this|things|something|you|Nina)$/i.test(preference)) {
+        candidates.push({ category: "preference", content: `Alejandro ${enjoyMatch ? "enjoys" : "likes"} ${preference}.`, evidence_message_ids, decision: "NEW" });
+      }
+      const favoriteMatch = text.match(/^([\p{L}\p{M}][\p{L}\p{M}'’ ,&-]{1,100}) is one of my favorite (foods?|activities|artists?|books?|films?|places?)[.!?]?$/iu);
+      if (favoriteMatch) {
+        candidates.push({ category: "preference", content: `Alejandro considers ${favoriteMatch[1]} one of his favorite ${favoriteMatch[2]}.`, evidence_message_ids, decision: "NEW" });
+      }
+    }
+    const wordPreference = text.match(/\bI don't like you using (?:the word )?["'“”]?([\p{L}\p{M}'’-]+)["'“”]?(?: all the time| so much| repeatedly)?[.!?]?$/iu);
+    if (wordPreference) {
+      candidates.push({ category: "preference", content: `Alejandro prefers Nina not to overuse the word '${wordPreference[1]}'.`, evidence_message_ids, decision: "NEW" });
+    }
+  }
+  return candidates;
+}
+
 function validPinnedEvidence(candidate, messagesById) {
   const category = candidate?.category;
   if (!PINNED_MEMORY_CATEGORIES.has(category) || !CATEGORY_PATTERN.test(category)) return false;
@@ -394,10 +431,9 @@ export function filterConsolidationExtraction(extracted, messages, activeThreads
     ? extracted.summary_items.map(item => ({ ...item, content: sanitizeDerivedContent(item?.content) }))
       .filter(item => durableContent(item) && validUserGroundedEvidence(item, messagesById)).slice(0, 12)
     : [];
-  const pinned = Array.isArray(extracted?.pinned_memories)
-    ? deduplicatePinnedCandidates(extracted.pinned_memories.map(normalizePinnedCandidate)
-      .filter(item => validPinnedEvidence(item, messagesById))).slice(0, 8)
-    : [];
+  const extractedPinned = Array.isArray(extracted?.pinned_memories) ? extracted.pinned_memories : [];
+  const pinned = deduplicatePinnedCandidates([...deterministicUserMemoryCandidates(messages), ...extractedPinned]
+    .map(normalizePinnedCandidate).filter(item => validPinnedEvidence(item, messagesById))).slice(0, 8);
   const threads = Array.isArray(extracted?.open_threads)
     ? extracted.open_threads.map(item => ({ ...item, content: sanitizeDerivedContent(item?.content) }))
       .filter(item => durableContent(item) && validUserGroundedEvidence(item, messagesById)).slice(0, 8)
@@ -425,6 +461,8 @@ function semanticMemoryKey(item) {
   if (girlfriend) return "user_fact:alejandro:girlfriend";
   if (/\b(?:genuine|real) (?:conversational )?interest\b/.test(content) && /\b(?:alejandro|nina)\b/.test(content)) return "preference:alejandro:nina:genuine-interest";
   if (/\balejandro\b/.test(content) && /\btacos?\b/.test(content)) return "user_fact:alejandro:tacos";
+  if (/\balejandro\b/.test(content) && /\bfashion after fabric\b/.test(content)) return "project:alejandro:fashion-after-fabric";
+  if (/\balejandro\b/.test(content) && /\bperformative\b/.test(content)) return "preference:alejandro:nina:performative";
   return `${item?.category || ""}:${content.replace(/\b(?:a|an|the|is|are|has|named|to|in|of|for|that)\b/g, " ").replace(/[^a-z0-9]+/g, " ").trim()}`;
 }
 

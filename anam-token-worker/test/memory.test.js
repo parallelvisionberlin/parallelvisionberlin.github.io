@@ -288,6 +288,33 @@ test("taco variants collapse to one complete stable fact and transient intention
   ]);
 });
 
+test("explicit user statements fill missed project and preference pins without fuzzy name inference", () => {
+  const messages = [
+    { message_id: "project", role: "user", content: "I'm still working on fashion after fabric" },
+    { message_id: "food", role: "user", content: "I really enjoy cooking Mexican food at home, especially tacos" },
+    { message_id: "word", role: "user", content: "I don't like you using performative all the time" },
+    { message_id: "evan", role: "user", content: "Evan and I are doing well" }
+  ];
+  const filtered = filterConsolidationExtraction({ pinned_memories: [{
+    category: "preference", content: "Alejandro prefers Nina not to overuse the word 'performative'.",
+    evidence_message_ids: ["word"], decision: "NEW"
+  }] }, messages);
+  assert.deepEqual(filtered.pinned.map(item => [item.category, item.content]), [
+    ["project", "Alejandro is working on a project called Fashion After Fabric."],
+    ["preference", "Alejandro likes Mexican food, especially tacos, and enjoys cooking it at home."],
+    ["preference", "Alejandro prefers Nina not to overuse the word 'performative'."]
+  ]);
+  assert.equal(filtered.pinned.some(item => /Eva|Evan|girlfriend|relationship/i.test(item.content)), false);
+});
+
+test("deterministic fallback still passes nonliteral and relationship firewalls", () => {
+  const messages = [
+    { message_id: "fantasy", role: "user", content: "Pretend I'm still working on fashion after fabric" },
+    { message_id: "relationship", role: "user", content: "I'm still working on Nina and Alejandro relationship" }
+  ];
+  assert.deepEqual(filterConsolidationExtraction({}, messages).pinned, []);
+});
+
 test("canon repetition, debris and unresolved perspective are rejected", () => {
   const messages = [
     { message_id: "canon-1", role: "persona", content: "Nina is human." },

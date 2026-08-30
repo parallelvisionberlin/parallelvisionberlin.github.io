@@ -117,6 +117,26 @@ export async function evaluateCompletedRelationship(env, userId, visitorId, conv
   return { evaluated: true, changed: true };
 }
 
+export async function relationshipEvaluationDiagnostic(env, userId, visitorId) {
+  if (!env?.NINA_MEMORY_DB || !userId || !visitorId) return null;
+  const [row, conversation] = await Promise.all([
+    env.NINA_MEMORY_DB.prepare("SELECT last_evaluated_at FROM nina_relationship_states WHERE user_id = ?").bind(userId).first(),
+    env.NINA_MEMORY_DB.prepare(`
+      SELECT conversation_id, ended_at FROM conversations
+      WHERE visitor_id = ? AND ended_at IS NOT NULL ORDER BY ended_at DESC LIMIT 1
+    `).bind(visitorId).first()
+  ]);
+  if (!conversation) return null;
+  const messages = (await env.NINA_MEMORY_DB.prepare(`
+    SELECT role, content FROM messages WHERE visitor_id = ? AND conversation_id = ?
+    ORDER BY created_at ASC, rowid ASC
+  `).bind(visitorId, conversation.conversation_id).all()).results || [];
+  const base = { last_attempted_conversation_id: conversation.conversation_id, attempted_at: conversation.ended_at };
+  if (row?.last_evaluated_at && row.last_evaluated_at >= conversation.ended_at) return { ...base, status: "success" };
+  if (!relationshipEvidenceQualifies(messages)) return { ...base, status: "insufficient_evidence" };
+  return { ...base, status: "error", error: { code: "evaluation_not_recorded", message: "No completed relationship evaluation was recorded." } };
+}
+
 export async function deleteRelationshipState(env, userId) {
   if (!env?.NINA_MEMORY_DB || !userId) return false;
   await env.NINA_MEMORY_DB.prepare("DELETE FROM nina_relationship_states WHERE user_id = ?").bind(userId).run();
