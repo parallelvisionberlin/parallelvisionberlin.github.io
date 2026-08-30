@@ -127,6 +127,25 @@ export async function deleteClerkUser(env, clerkUserId) {
   return true;
 }
 
+export async function verifyClerkUserAvailable(env, clerkUserId) {
+  if (!CLERK_SUBJECT_PATTERN.test(clerkUserId || "")) throw new ClerkVerificationError("invalid_clerk_user", "Invalid Clerk user");
+  if (typeof env.CLERK_SECRET_KEY !== "string" || !env.CLERK_SECRET_KEY.trim()) {
+    throw new ClerkVerificationError("clerk_deletion_unavailable", "Clerk account deletion is unavailable");
+  }
+  let response;
+  try {
+    response = await fetch(`https://api.clerk.com/v1/users/${encodeURIComponent(clerkUserId)}`, {
+      headers: { "Authorization": `Bearer ${env.CLERK_SECRET_KEY}`, "Accept": "application/json" }
+    });
+  } catch {
+    throw new ClerkVerificationError("clerk_deletion_unavailable", "Clerk account deletion is unavailable");
+  }
+  if (!response.ok) throw new ClerkVerificationError("clerk_deletion_unavailable", "Clerk account deletion is unavailable");
+  const clerkUser = await response.json().catch(() => null);
+  if (clerkUser?.id !== clerkUserId) throw new ClerkVerificationError("clerk_identity_mismatch", "Clerk account identity mismatch");
+  return true;
+}
+
 function validatedDisplayName(value) {
   if (typeof value !== "string") return "";
   const normalized = value.normalize("NFKC").replace(/[^\p{L}\p{M} .'-]/gu, " ").replace(/\s+/g, " ").trim();

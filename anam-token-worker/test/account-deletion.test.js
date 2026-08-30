@@ -103,11 +103,17 @@ test("local account deletion removes only the user's application data and anonym
 });
 
 test("account deletion endpoint authenticates, protects owner, and deletes the authenticated Clerk subject", async () => {
-  const origin = "http://127.0.0.1:4173", auth = await authFixture(origin), db = deletionDb(), deletedClerkIds = [];
+  const origin = "http://127.0.0.1:4173", auth = await authFixture(origin), db = deletionDb(), clerkRequests = [];
+  let deleteFails = true;
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async (url, options = {}) => {
     if (String(url).endsWith("/.well-known/jwks.json")) return new Response(JSON.stringify({ keys: [auth.jwk] }));
-    if (String(url).startsWith("https://api.clerk.com/v1/users/")) { deletedClerkIds.push({ url: String(url), method: options.method, authorization: options.headers.Authorization }); return new Response(JSON.stringify({ deleted: true })); }
+    if (String(url).startsWith("https://api.clerk.com/v1/users/")) {
+      const method = options.method || "GET";
+      clerkRequests.push({ url: String(url), method, authorization: options.headers.Authorization });
+      if (method === "DELETE" && deleteFails) return new Response(JSON.stringify({ error: "temporary" }), { status: 503 });
+      return new Response(JSON.stringify(method === "GET" ? { id: "user_delete1" } : { deleted: true }));
+    }
     throw new Error(`Unexpected URL: ${url}`);
   };
   const env = { NINA_MEMORY_DB: db, CLERK_ISSUER: auth.issuer, CLERK_SECRET_KEY: "clerk-secret" };
@@ -116,9 +122,16 @@ test("account deletion endpoint authenticates, protects owner, and deletes the a
     assert.equal((await request("")).status, 401);
     assert.equal((await request(await auth.token("user_owner1"))).status, 403);
     assert.equal((await request(await auth.token("user_delete1"), "delete")).status, 400);
+    const failed = await request(await auth.token("user_delete1"));
+    assert.equal(failed.status, 502);
+    assert.equal(db.state.users.some(row => row.id === "user-a"), true);
+    assert.equal(db.state.messages.some(row => row.visitor_id === "visitor-a"), true);
+    deleteFails = false;
     const response = await request(await auth.token("user_delete1"));
     assert.equal(response.status, 200); assert.deepEqual(await response.json(), { deleted: true });
-    assert.deepEqual(deletedClerkIds, [{ url: "https://api.clerk.com/v1/users/user_delete1", method: "DELETE", authorization: "Bearer clerk-secret" }]);
+    assert.deepEqual(clerkRequests.map(request => request.method), ["GET", "DELETE", "GET", "DELETE"]);
+    assert.equal(clerkRequests.every(request => request.url === "https://api.clerk.com/v1/users/user_delete1" && request.authorization === "Bearer clerk-secret"), true);
+    assert.equal(db.state.users.some(row => row.id === "user-a"), false);
     assert.equal(db.state.users.some(row => row.id === "owner"), true);
   } finally { globalThis.fetch = originalFetch; }
 });

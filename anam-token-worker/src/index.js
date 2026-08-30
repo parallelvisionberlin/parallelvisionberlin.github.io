@@ -3,7 +3,7 @@ import {
   clearUserMemory, createConversation, deleteOwnerMemory, exportTranscript, memoryDiagnostic, memoryMetadata, resetDerivedMemory,
   authorizeOwner, enrollOwner, storeMessages, validateCompletedMessages, validId
 } from "./memory.js";
-import { asMemoryIdentity, ClerkVerificationError, deleteClerkUser, resolveAuthenticatedUser, resolveOwnerMemoryVisitorId, verifyClerkSessionToken } from "./auth.js";
+import { asMemoryIdentity, ClerkVerificationError, deleteClerkUser, resolveAuthenticatedUser, resolveOwnerMemoryVisitorId, verifyClerkSessionToken, verifyClerkUserAvailable } from "./auth.js";
 import { buildRelationshipContext, deleteRelationshipState, evaluateCompletedRelationship, relationshipEvaluationDiagnostic } from "./relationship.js";
 import { cleanPreferredName, deleteUserAccountData, getAccountPreferences, getBillingHistory, learnPreferredNameFromConversation, updateAccountProfile, updateNewsletterPreferences } from "./account.js";
 import { SignalCreditError, creditSignalCredits, ensureVerifiedSignupTrial, getSignalCreditBalance, getSignalCreditHistory } from "./credits.js";
@@ -647,13 +647,14 @@ async function handleAccountDeletion(request, env, origin) {
   if (typeof env.CLERK_SECRET_KEY !== "string" || !env.CLERK_SECRET_KEY.trim()) {
     return jsonResponse({ error: "Account deletion unavailable", code: "clerk_deletion_unavailable" }, 503, origin);
   }
-  await deleteUserAccountData(env, identity.user);
   try {
+    await verifyClerkUserAvailable(env, identity.clerkUserId);
     await deleteClerkUser(env, identity.clerkUserId);
   } catch (error) {
     if (error instanceof ClerkVerificationError) return jsonResponse({ error: "Account identity deletion failed", code: error.code }, 502, origin);
     throw error;
   }
+  await deleteUserAccountData(env, identity.user);
   return jsonResponse({ deleted: true }, 200, origin);
 }
 
