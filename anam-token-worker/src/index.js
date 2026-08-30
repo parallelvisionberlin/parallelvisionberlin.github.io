@@ -3,9 +3,9 @@ import {
   clearUserMemory, createConversation, deleteOwnerMemory, exportTranscript, memoryDiagnostic, memoryMetadata, resetDerivedMemory,
   authorizeOwner, enrollOwner, storeMessages, validateCompletedMessages, validId
 } from "./memory.js";
-import { asMemoryIdentity, ClerkVerificationError, resolveAuthenticatedUser, resolveOwnerMemoryVisitorId, verifyClerkSessionToken } from "./auth.js";
+import { asMemoryIdentity, ClerkVerificationError, deleteClerkUser, resolveAuthenticatedUser, resolveOwnerMemoryVisitorId, verifyClerkSessionToken } from "./auth.js";
 import { buildRelationshipContext, deleteRelationshipState, evaluateCompletedRelationship, relationshipEvaluationDiagnostic } from "./relationship.js";
-import { cleanPreferredName, getAccountPreferences, getBillingHistory, learnPreferredNameFromConversation, updateAccountProfile, updateNewsletterPreferences } from "./account.js";
+import { cleanPreferredName, deleteUserAccountData, getAccountPreferences, getBillingHistory, learnPreferredNameFromConversation, updateAccountProfile, updateNewsletterPreferences } from "./account.js";
 import { SignalCreditError, creditSignalCredits, ensureVerifiedSignupTrial, getSignalCreditBalance, getSignalCreditHistory } from "./credits.js";
 import { ReferralError, attributeReferral, getOrCreateReferral } from "./referrals.js";
 import {
@@ -270,7 +270,7 @@ async function authenticateAccountIdentity(request, env) {
   if (!token || token.startsWith("v1.")) return null;
   const claims = await verifyClerkSessionToken(env, token, request.headers.get("Origin") || "");
   if (!claims) return null;
-  return { user: await resolveAuthenticatedUser(env, claims), clerkUserId: claims.sub };
+  return { user: { ...await resolveAuthenticatedUser(env, claims), auth_subject: claims.sub }, clerkUserId: claims.sub };
 }
 
 async function handleOwnerEnrollment(request, env, origin) {
@@ -638,6 +638,25 @@ async function handleAccountBilling(request, env, origin) {
   return jsonResponse({ purchases: await getBillingHistory(env, user.id, new URL(request.url).searchParams.get("limit")) }, 200, origin);
 }
 
+async function handleAccountDeletion(request, env, origin) {
+  const identity = await authenticateAccountIdentity(request, env);
+  if (!identity) return jsonResponse({ error: "Account authentication required", code: "sign_in_required" }, 401, origin);
+  if (identity.user.role !== "user") return jsonResponse({ error: "Owner account cannot be deleted", code: "owner_protected" }, 403, origin);
+  const body = await request.json().catch(() => ({}));
+  if (body?.confirmation !== "DELETE") return jsonResponse({ error: "Deletion confirmation required", code: "confirmation_required" }, 400, origin);
+  if (typeof env.CLERK_SECRET_KEY !== "string" || !env.CLERK_SECRET_KEY.trim()) {
+    return jsonResponse({ error: "Account deletion unavailable", code: "clerk_deletion_unavailable" }, 503, origin);
+  }
+  await deleteUserAccountData(env, identity.user);
+  try {
+    await deleteClerkUser(env, identity.clerkUserId);
+  } catch (error) {
+    if (error instanceof ClerkVerificationError) return jsonResponse({ error: "Account identity deletion failed", code: error.code }, 502, origin);
+    throw error;
+  }
+  return jsonResponse({ deleted: true }, 200, origin);
+}
+
 async function handleStripeWebhook(request, env) {
   const signature = request.headers.get("Stripe-Signature") || "";
   const rawBody = await request.text();
@@ -684,6 +703,7 @@ export default {
       if (url.pathname === "/api/account/profile" && request.method === "PUT") return handleAccountProfile(request, env, origin);
       if (url.pathname === "/api/account/preferences" && request.method === "PUT") return handleAccountPreferences(request, env, origin);
       if (url.pathname === "/api/account/billing" && request.method === "GET") return handleAccountBilling(request, env, origin);
+      if (url.pathname === "/api/account" && request.method === "DELETE") return handleAccountDeletion(request, env, origin);
       return jsonResponse({ error: "Not found" }, 404, origin);
     } catch { return jsonResponse({ error: "Request failed" }, 502, origin); }
   }

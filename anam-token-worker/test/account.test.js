@@ -72,7 +72,7 @@ test("account migration and frontend preserve profile-memory separation", async 
   assert.match(frontend,/paid:"ABGESCHLOSSEN",open:"NICHT ABGESCHLOSSEN",failed:"FEHLGESCHLAGEN",expired:"ABGELAUFEN"/);
   assert.doesNotMatch(frontend,/\$\{row\.status\}/);
   assert.match(index,/Profile<\/a>/);assert.match(index,/Billing<\/a>/);assert.match(index,/Memory<\/a>/);assert.match(index,/Newsletter<\/a>/);
-  assert.doesNotMatch(page,/DELETE ACCOUNT/i);
+  assert.match(page,/id="deleteAccountSection" hidden/);
 });
 
 test("authenticated memory deletion cannot delete credits, purchases or profile preferences", () => {

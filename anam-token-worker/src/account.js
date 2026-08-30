@@ -113,3 +113,41 @@ export async function getBillingHistory(env, userId, limit = 20) {
     paidAt: row.paid_at || null
   }));
 }
+
+export async function deleteUserAccountData(env, user) {
+  if (!user?.id || !user?.memory_visitor_id || user.role !== "user") throw new Error("account_deletion_forbidden");
+  const userId = user.id;
+  const visitorId = user.memory_visitor_id;
+  const matched = await env.NINA_MEMORY_DB.prepare(`
+    SELECT id FROM users
+    WHERE id = ? AND auth_provider = 'clerk' AND auth_subject = ? AND memory_visitor_id = ? AND role = 'user'
+    LIMIT 1
+  `).bind(userId, user.auth_subject, visitorId).first();
+  if (!matched) throw new Error("account_identity_mismatch");
+  await env.NINA_MEMORY_DB.batch([
+    env.NINA_MEMORY_DB.prepare(`
+      INSERT OR IGNORE INTO retained_signal_credit_purchases
+        (purchase_id, pack_id, credits, stripe_price_id, stripe_checkout_session_id,
+         stripe_payment_intent_id, currency, amount_total, status, created_at, updated_at, paid_at)
+      SELECT id, pack_id, credits, stripe_price_id, stripe_checkout_session_id,
+             stripe_payment_intent_id, currency, amount_total, status, created_at, updated_at, paid_at
+      FROM signal_credit_purchases WHERE user_id = ? AND status = 'paid'
+    `).bind(userId),
+    env.NINA_MEMORY_DB.prepare("UPDATE users SET referred_by_user_id = NULL WHERE referred_by_user_id = ?").bind(userId),
+    env.NINA_MEMORY_DB.prepare("DELETE FROM signal_credit_purchases WHERE user_id = ?").bind(userId),
+    env.NINA_MEMORY_DB.prepare("DELETE FROM live_nina_sessions WHERE user_id = ?").bind(userId),
+    env.NINA_MEMORY_DB.prepare("DELETE FROM nina_relationship_states WHERE user_id = ?").bind(userId),
+    env.NINA_MEMORY_DB.prepare("DELETE FROM account_preferences WHERE user_id = ?").bind(userId),
+    env.NINA_MEMORY_DB.prepare("DELETE FROM signal_credit_transactions WHERE user_id = ?").bind(userId),
+    env.NINA_MEMORY_DB.prepare("DELETE FROM signal_credit_accounts WHERE user_id = ?").bind(userId),
+    env.NINA_MEMORY_DB.prepare("DELETE FROM messages WHERE visitor_id = ?").bind(visitorId),
+    env.NINA_MEMORY_DB.prepare("DELETE FROM conversations WHERE visitor_id = ?").bind(visitorId),
+    env.NINA_MEMORY_DB.prepare("DELETE FROM memory_summaries WHERE visitor_id = ?").bind(visitorId),
+    env.NINA_MEMORY_DB.prepare("DELETE FROM pinned_memories WHERE visitor_id = ?").bind(visitorId),
+    env.NINA_MEMORY_DB.prepare("DELETE FROM open_threads WHERE visitor_id = ?").bind(visitorId),
+    env.NINA_MEMORY_DB.prepare("DELETE FROM users WHERE id = ? AND auth_provider = 'clerk' AND auth_subject = ? AND role = 'user'")
+      .bind(userId, user.auth_subject),
+    env.NINA_MEMORY_DB.prepare("DELETE FROM visitors WHERE visitor_id = ? AND profile_type = 'visitor'").bind(visitorId)
+  ]);
+  return true;
+}

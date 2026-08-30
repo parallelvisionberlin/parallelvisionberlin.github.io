@@ -34,6 +34,7 @@
         <a href="#billing" data-copy="billing">Billing</a>
         <a href="#memory" data-copy="memory">Memory</a>
         <a href="#newsletter" data-copy="newsletter">Newsletter</a>
+        <a href="#deleteAccountSection" id="deleteAccountNav" hidden data-copy="deleteAccount">Delete account</a>
       </nav>
       <div class="account-sections">
       <section class="account-section" id="profile">
@@ -94,9 +95,15 @@
         </form>
       </section>
 
-      <section class="account-section account-section-final">
+      <section class="account-section">
         <p class="account-index">07</p><h2 data-copy="accountTitle">Account</h2>
         <button class="account-button" id="accountSignOut" type="button" data-copy="signOut">Sign out</button>
+      </section>
+
+      <section class="account-section account-section-final" id="deleteAccountSection" hidden>
+        <p class="account-index">08</p><h2 data-copy="deleteAccount">Delete account</h2>
+        <p class="account-copy" data-copy="deleteAccountCopy">Permanently delete your Parallel Vision account, Nina memory and associated data.</p>
+        <button class="account-button account-button-danger" id="deleteAccount" type="button" data-copy="deleteAccount">Delete account</button>
       </section>
       </div>
     </div>
@@ -113,6 +120,20 @@
       </div>
     </section>
   </div>
-  <script type="module" src="./js/account.js?v=20260828-referrals"></script>
+  <div class="account-confirm" id="accountDeleteConfirm" hidden aria-hidden="true">
+    <section role="dialog" aria-modal="true" aria-labelledby="accountDeleteConfirmTitle">
+      <p class="account-index">DESTRUCTIVE ACTION</p>
+      <h2 id="accountDeleteConfirmTitle" data-copy="accountDeleteConfirmTitle">Delete your account permanently?</h2>
+      <p data-copy="accountDeleteConfirmCopy">This will remove your account, Nina memory, relationship history, preferences and associated account data. This action cannot be undone.</p>
+      <label class="account-confirm-label" for="accountDeleteConfirmation" data-copy="typeDelete">Type DELETE to confirm</label>
+      <input id="accountDeleteConfirmation" type="text" autocomplete="off" spellcheck="false">
+      <p class="account-status" id="accountDeleteStatus" role="status"></p>
+      <div class="account-confirm-actions">
+        <button class="account-button" id="accountDeleteCancel" type="button" data-copy="cancel">Cancel</button>
+        <button class="account-button account-button-danger" id="accountDeleteFinal" type="button" disabled data-copy="deleteAccount">Delete account</button>
+      </div>
+    </section>
+  </div>
+  <script type="module" src="./js/account.js?v=20260831-account-deletion"></script>
 </body>
 </html>
