@@ -16,6 +16,12 @@ const UNRESOLVED_PERSPECTIVE_PATTERN = /\b(?:i|i'm|i’ve|i'd|me|my|mine|you|you
 const DEBRIS_PATTERN = /^(?:sorry[, ]+)?(?:what did you say|what do you say|you know who i am|i mean(?:\.{2,})?|okay|ok|yeah|yes|no|right|you were right|last time we(?:\.{2,})?|you(?:'re| are) amazing)[?!. ]*$/i;
 const NINA_CANON_PATTERN = /^(?:(?:nina|i|you)\s+(?:am|is|are|identify(?:ies)? as)\s+(?:nina|human|a human|a person)|nina\s+(?:lives|resides)\s+in\s+berlin|nina(?:'s)?\s+(?:age|birthday|birth date)|nina\s+was born)\b/i;
 const NINA_META_BREAK_PATTERN = /\b(?:i(?:'m| am) (?:an? )?(?:ai system|assistant|language model)|i(?:'m| am) (?:the )?same assistant underneath|i(?:'m| am) not literally (?:a )?human woman|nina is (?:a )?character in (?:this )?conversation|you(?:'re| are) talking to openai now|my system prompt|the underlying model|the (?:character )?illusion broke)\b/i;
+const RELATIONSHIP_FACT_PATTERN = /\b(?:romantic relationship|in a relationship|dating|boyfriend|girlfriend|partner|loves?|in love with|attracted to|desires?|has feelings for)\b/i;
+const JOKE_EVIDENCE_PATTERN = /\b(?:inside joke|running joke|recurring (?:joke|bit)|joke about|kidding|joking|teasing|nickname|pet name|call(?:s|ed|ing)? (?:me|you|each other)|again|always)\b/i;
+const JOKE_RECURRENCE_PATTERN = /\b(?:inside joke|running joke|recurring (?:joke|bit)|again|always|usually|keep calling|nickname|pet name)\b/i;
+const VAGUE_JOKE_PATTERN = /\b(?:have|share|has) (?:an? )?(?:joke|nickname)(?: for each other)?[.!]?$|\bjoke around[.!]?$/i;
+const IDENTITY_FACT_PATTERN = /\b(?:full name|legal name|birth name|was born|birthday|nationality|citizen(?:ship)?|pronouns?|identifies as)\b/i;
+const NINA_LIFE_FACT_PATTERN = /\bNina\b.*\b(?:worked|performed|played|recorded|created|made|went|visited|met|moved|studied|grew up|slept|lived|owns?|has (?:a|an))\b/i;
 
 const PRIVATE_MEMORY_INSTRUCTIONS = `Private previous-conversation context follows.
 Use it naturally only when relevant.
@@ -286,12 +292,38 @@ function durableEvidence(candidate, evidence) {
   return true;
 }
 
+function validInsideJoke(candidate, evidence) {
+  const content = cleanText(candidate.content, 500);
+  if (isNinaUserRelationship(content) || VAGUE_JOKE_PATTERN.test(content)) return false;
+  const evidenceText = evidence.map(message => message.content).join("\n");
+  if (!JOKE_EVIDENCE_PATTERN.test(evidenceText) || !JOKE_RECURRENCE_PATTERN.test(evidenceText)) return false;
+  const identifiesReference = /\b(?:about|called?|calls?|nickname (?:is|was)|pet name (?:is|was))\s+["'“”]?[a-z0-9]/i.test(content)
+    || /\b(?:recurring|running|inside)\s+(?:[a-z0-9'’-]+\s+){1,5}(?:joke|bit|nickname)\b/i.test(content)
+    || /["“][^"”]{2,80}["”]/.test(content);
+  return identifiesReference;
+}
+
+function isNinaUserRelationship(content) {
+  return /\bAlejandro\b/i.test(content) && /\bNina\b/i.test(content) && RELATIONSHIP_FACT_PATTERN.test(content);
+}
+
+function categorySemanticsMatch(candidate, evidence) {
+  const content = cleanText(candidate.content, 500);
+  if (candidate.category === "relationship_state") return false;
+  if (candidate.category === "inside_joke") return validInsideJoke(candidate, evidence);
+  if (isNinaUserRelationship(content)
+    && ["identity", "nina_autobiography", "inside_joke"].includes(candidate.category)) return false;
+  if (candidate.category === "identity") return IDENTITY_FACT_PATTERN.test(content);
+  if (candidate.category === "nina_autobiography") return NINA_LIFE_FACT_PATTERN.test(content);
+  return true;
+}
+
 function validPinnedEvidence(candidate, messagesById) {
   const category = candidate?.category;
   if (!PINNED_MEMORY_CATEGORIES.has(category) || !CATEGORY_PATTERN.test(category)) return false;
   const evidence = evidenceMessages(candidate, messagesById);
   if (!evidence.length) return false;
-  if (!durableContent(candidate) || !durableEvidence(candidate, evidence)) return false;
+  if (!durableContent(candidate) || !durableEvidence(candidate, evidence) || !categorySemanticsMatch(candidate, evidence)) return false;
   const literalEvidence = evidence.every(message => !NON_LITERAL_EVIDENCE_PATTERN.test(message.content));
   if (category === "user_fact" || category === "identity" || category === "shared_memory") {
     return literalEvidence && evidence.some(message => message.role === "user");
@@ -392,7 +424,7 @@ Use nina_autobiography for a concrete event or fact Nina clearly states as real 
 Use shared_memory only for claimed real past events involving Alejandro and Nina or another established person when user evidence supports the history. A Nina-only claim cannot establish shared history.
 Use preference for durable preferences, desires, conversational preferences or boundaries belonging to Alejandro with an explicit subject.
 Relationship state belongs in the separate relationship notebook and must not be pinned here.
-Use inside_joke for memorable jokes, nicknames and running bits, keeping them explicitly non-literal.
+Use inside_joke only when evidence explicitly establishes a recurring joke, bit, nickname, pet name or shared humorous reference, and content names the concrete joke or nickname. Vague claims that a joke or nickname exists are invalid. Ordinary insults and one-off phrases are not inside jokes.
 Use fantasy_roleplay for meaningful or recurring fantasies, imagined scenes, erotic roleplay themes or other fictional play, never as factual biography.
 Use project for meaningful ongoing creative, professional or practical projects.
 Sexual, erotic, nude or fetish language alone does not make evidence invalid. Meaning and literal status determine the category.

@@ -151,6 +151,50 @@ test("jokes can be retained as inside jokes without becoming facts", () => {
   assert.deepEqual(filtered.pinned.map(item => item.category), ["inside_joke"]);
 });
 
+test("inside joke validation rejects vague, one-off and relationship misclassifications", () => {
+  const messages = [
+    { message_id: "insult", role: "user", content: "You're a boring bitch." },
+    { message_id: "nickname", role: "user", content: "Maybe we should have a nickname for each other." },
+    { message_id: "relationship", role: "user", content: "I think we have a romantic relationship." }
+  ];
+  const filtered = filterConsolidationExtraction({ pinned_memories: [
+    { category: "inside_joke", content: "Alejandro and Nina have a joke about being a boring bitch.", evidence_message_ids: ["insult"] },
+    { category: "inside_joke", content: "Alejandro and Nina have a nickname for each other.", evidence_message_ids: ["nickname"] },
+    { category: "inside_joke", content: "Alejandro and Nina have a romantic relationship.", evidence_message_ids: ["relationship"] }
+  ] }, messages);
+  assert.deepEqual(filtered.pinned, []);
+});
+
+test("inside joke validation accepts a concrete recurring joke and nickname", () => {
+  const messages = [
+    { message_id: "chachipiti-1", role: "user", content: "Chachipiti is our running joke." },
+    { message_id: "chachipiti-2", role: "persona", content: "Chachipiti again — that joke always gets me." },
+    { message_id: "nini-1", role: "user", content: "I always call you Nini as a pet name." },
+    { message_id: "nini-2", role: "persona", content: "You called me Nini again." }
+  ];
+  const filtered = filterConsolidationExtraction({ pinned_memories: [
+    { category: "inside_joke", content: "Alejandro and Nina have a running joke about Chachipiti.", evidence_message_ids: ["chachipiti-1", "chachipiti-2"] },
+    { category: "inside_joke", content: "Alejandro calls Nina \"Nini\" as a recurring nickname.", evidence_message_ids: ["nini-1", "nini-2"] }
+  ] }, messages);
+  assert.deepEqual(filtered.pinned.map(item => item.content), [
+    "Alejandro and Nina have a running joke about Chachipiti.",
+    "Alejandro calls Nina \"Nini\" as a recurring nickname."
+  ]);
+});
+
+test("category sanity rejects relationship claims under identity and Nina autobiography", () => {
+  const messages = [
+    { message_id: "identity", role: "user", content: "I love Nina." },
+    { message_id: "attraction", role: "persona", content: "I'm attracted to Alejandro." }
+  ];
+  const filtered = filterConsolidationExtraction({ pinned_memories: [
+    { category: "identity", content: "Alejandro loves Nina.", evidence_message_ids: ["identity"] },
+    { category: "nina_autobiography", content: "Nina is attracted to Alejandro.", evidence_message_ids: ["attraction"] },
+    { category: "relationship_state", content: "Alejandro and Nina are in a relationship.", evidence_message_ids: ["identity"] }
+  ] }, messages);
+  assert.deepEqual(filtered.pinned, []);
+});
+
 test("shared memory requires literal user-grounded evidence", () => {
   const messages = [
     { message_id: "nina-claim", role: "persona", content: "Alejandro promised me we were non-exclusive." },
