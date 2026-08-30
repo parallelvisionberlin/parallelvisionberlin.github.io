@@ -520,6 +520,58 @@ export async function memoryMetadata(env, visitorId) {
   };
 }
 
+export async function memoryDiagnostic(env, user) {
+  const db = env.NINA_MEMORY_DB;
+  const visitorId = user.memory_visitor_id;
+  const [recentResult, pinnedResult, summary, threadsResult, relationship, counts] = await Promise.all([
+    db.prepare(`
+      SELECT conversation_id, message_id, role, content, created_at FROM messages
+      WHERE visitor_id = ? ORDER BY created_at DESC, rowid DESC LIMIT 60
+    `).bind(visitorId).all(),
+    db.prepare(`
+      SELECT memory_id, category, content, created_at, updated_at FROM pinned_memories
+      WHERE visitor_id = ? ORDER BY updated_at DESC
+    `).bind(visitorId).all(),
+    db.prepare(`
+      SELECT summary, updated_at, messages_summarized_through FROM memory_summaries WHERE visitor_id = ?
+    `).bind(visitorId).first(),
+    db.prepare(`
+      SELECT thread_id, content, status, created_at, updated_at FROM open_threads
+      WHERE visitor_id = ? ORDER BY updated_at DESC
+    `).bind(visitorId).all(),
+    db.prepare(`
+      SELECT state_json, relationship_summary, created_at, updated_at, last_evaluated_at
+      FROM nina_relationship_states WHERE user_id = ?
+    `).bind(user.id).first(),
+    db.prepare(`
+      SELECT
+        (SELECT COUNT(*) FROM messages WHERE visitor_id = ?) AS messages,
+        (SELECT COUNT(*) FROM conversations WHERE visitor_id = ?) AS conversations,
+        (SELECT COUNT(*) FROM pinned_memories WHERE visitor_id = ?) AS pinnedMemories,
+        (SELECT COUNT(*) FROM open_threads WHERE visitor_id = ?) AS openThreads
+    `).bind(visitorId, visitorId, visitorId, visitorId).first()
+  ]);
+  const recentMessages = (recentResult.results || []).reverse().map(message => ({
+    ...message,
+    metaBreakFiltered: isNinaMetaBreakMessage(message)
+  }));
+  let relationshipState = null;
+  try { relationshipState = relationship?.state_json ? JSON.parse(relationship.state_json) : null; } catch { relationshipState = null; }
+  return {
+    recentMessages,
+    pinnedMemories: pinnedResult.results || [],
+    summary: summary || null,
+    openThreads: threadsResult.results || [],
+    relationship: relationship ? { ...relationship, state_json: relationshipState } : null,
+    counts: {
+      messages: Number(counts?.messages || 0),
+      conversations: Number(counts?.conversations || 0),
+      pinnedMemories: Number(counts?.pinnedMemories || 0),
+      openThreads: Number(counts?.openThreads || 0)
+    }
+  };
+}
+
 export async function exportTranscript(env, visitorId) {
   const [visitor, conversations, messages] = await Promise.all([
     env.NINA_MEMORY_DB.prepare("SELECT visitor_id, display_name, profile_type, created_at, updated_at FROM visitors WHERE visitor_id = ?").bind(visitorId).first(),

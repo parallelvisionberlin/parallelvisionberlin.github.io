@@ -1,6 +1,6 @@
 import {
   HISTORY_LIMIT, buildOwnerMemoryContext, closeConversation, consolidateMemory,
-  clearUserMemory, createConversation, deleteOwnerMemory, exportTranscript, memoryMetadata,
+  clearUserMemory, createConversation, deleteOwnerMemory, exportTranscript, memoryDiagnostic, memoryMetadata,
   authorizeOwner, enrollOwner, storeMessages, validateCompletedMessages, validId
 } from "./memory.js";
 import { asMemoryIdentity, resolveAuthenticatedUser, verifyClerkSessionToken } from "./auth.js";
@@ -195,6 +195,13 @@ async function handlePersonaDiagnostic(request, env, origin) {
     .find(value => typeof value === "string" && value);
   if (updatedAt) diagnostic.updatedAt = updatedAt;
   return jsonResponse(diagnostic, 200, origin);
+}
+
+async function handleMemoryDiagnostic(request, env, origin) {
+  const owner = await authenticateAccountRequest(request, env);
+  if (!owner) return jsonResponse({ error: "Account authentication required", code: "sign_in_required" }, 401, origin);
+  if (owner.role !== "owner") return jsonResponse({ error: "Owner access required", code: "owner_required" }, 403, origin);
+  return jsonResponse(await memoryDiagnostic(env, owner), 200, origin);
 }
 
 async function handleSessionToken(request, env, origin) {
@@ -504,6 +511,7 @@ export default {
     try {
       if (url.pathname === "/owner/enroll" && request.method === "POST") return handleOwnerEnrollment(request, env, origin);
       if (url.pathname === "/api/nina/persona-diagnostic" && request.method === "GET") return handlePersonaDiagnostic(request, env, origin);
+      if (url.pathname === "/api/nina/memory-diagnostic" && request.method === "GET") return handleMemoryDiagnostic(request, env, origin);
       if (url.pathname === "/session-token" && request.method === "POST") return handleSessionToken(request, env, origin);
       if (url.pathname === "/memory/messages" && request.method === "POST") return handleStoreMessages(request, env, origin, ctx);
       if (url.pathname === "/memory/conversations/end" && request.method === "POST") return handleCloseConversation(request, env, origin, ctx);
