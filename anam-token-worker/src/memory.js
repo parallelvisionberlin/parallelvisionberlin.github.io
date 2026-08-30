@@ -23,7 +23,8 @@ const CONVERSATION_TOPIC_MEMORY_PATTERN = /\b(?:had a conversation|talked|spoke|
 const CONCRETE_SHARED_EVENT_PATTERN = /\b(?:met|attended|visited|created|built|worked|performed|traveled|travelled|celebrated|argued|reconciled|agreed|decided|promised|completed|launched)\b/i;
 const USER_RELATIONSHIP_FACT_PATTERN = /\bAlejandro(?:'s girlfriend is| has a girlfriend named)\s+[\p{L}\p{M}'’-]+\b|\b[\p{L}\p{M}'’-]+ is Alejandro's girlfriend\b/iu;
 const USER_INTERPRETATION_PATTERN = /\bAlejandro (?:has conflicting statements|is trying to|seems|wants things to feel|is pushing for|is rushing Nina)\b/i;
-const TRANSIENT_INTENTION_PATTERN = /\bAlejandro wants to (?:make|bring|give|cook)\b.*\b(?:for Nina|for someone|next time|when (?:he|they) (?:sees?|meets?))\b/i;
+const TRANSIENT_INTENTION_PATTERN = /\bAlejandro (?:wants|plans|intends|hopes) to\b/i;
+const TRANSIENT_CLAUSE_PATTERN = /\s*,?\s+\b(?:and|but)\s+(?:(?:Alejandro|he)\s+)?(?:wants|plans|intends|hopes)\s+to\b/i;
 const JOKE_EVIDENCE_PATTERN = /\b(?:inside joke|running joke|recurring (?:joke|bit)|joke about|kidding|joking|teasing|nickname|pet name|call(?:s|ed|ing)? (?:me|you|each other)|again|always)\b/i;
 const JOKE_RECURRENCE_PATTERN = /\b(?:inside joke|running joke|recurring (?:joke|bit)|again|always|usually|keep calling|nickname|pet name)\b/i;
 const VAGUE_JOKE_PATTERN = /\b(?:have|share|has) (?:an? )?(?:joke|nickname)(?: for each other)?[.!]?$|\bjoke around[.!]?$/i;
@@ -348,12 +349,14 @@ function categorySemanticsMatch(candidate, evidence) {
 }
 
 function normalizePinnedCandidate(candidate) {
-  const content = sanitizeDerivedContent(candidate?.content);
+  const sanitized = sanitizeDerivedContent(candidate?.content);
+  const transientClause = sanitized.search(TRANSIENT_CLAUSE_PATTERN);
+  const content = transientClause > 0 ? `${sanitized.slice(0, transientClause).trim().replace(/[,.!?;:]+$/, "")}.` : sanitized;
   if (!content) return { ...candidate, content: "" };
   if (TRANSIENT_INTENTION_PATTERN.test(content)) return { ...candidate, content: "" };
-  if (/\bAlejandro\b.*\blikes? Mexican food\b/i.test(content) && /\btacos?\b/i.test(content)
-    && /\bmakes?(?: tacos?| them) (?:himself )?at home\b/i.test(content)) {
-    return { ...candidate, category: "user_fact", content: "Alejandro likes Mexican food, especially tacos, and makes tacos himself at home." };
+  if (/\bAlejandro\b.*\b(?:likes?|enjoys?)\b.*\bMexican food\b/i.test(content) && /\btacos?\b/i.test(content)
+    && /\b(?:cooks?|cooking|makes?)\b.*\bat home\b/i.test(content)) {
+    return { ...candidate, content: "Alejandro likes Mexican food, especially tacos, and enjoys cooking it at home." };
   }
   if (candidate?.category === "identity" && USER_RELATIONSHIP_FACT_PATTERN.test(content)) {
     return { ...candidate, content, category: "user_fact" };

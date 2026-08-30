@@ -285,8 +285,27 @@ test("taco variants collapse to one complete stable fact and transient intention
     { category: "user_fact", content: "Alejandro wants to make tacos for someone he loves.", evidence_message_ids: ["intent"] }
   ] }, messages);
   assert.deepEqual(filtered.pinned.map(item => item.content), [
-    "Alejandro likes Mexican food, especially tacos, and makes tacos himself at home."
+    "Alejandro likes Mexican food, especially tacos, and enjoys cooking it at home."
   ]);
+});
+
+test("mixed durable preferences retain the fact and strip transient future clauses", () => {
+  const messages = [
+    { message_id: "food", role: "user", content: "I enjoy cooking Mexican food at home, especially tacos, and plan to make tostadas and chilaquiles." },
+    { message_id: "photo", role: "user", content: "I love photography and plan to buy a camera tomorrow." },
+    { message_id: "cooking", role: "user", content: "I enjoy cooking and want to make pasta for you next time." }
+  ];
+  const filtered = filterConsolidationExtraction({ pinned_memories: [
+    { category: "preference", content: "Alejandro enjoys cooking Mexican food at home, especially tacos, and plans to make tostadas and chilaquiles", evidence_message_ids: ["food"] },
+    { category: "preference", content: "Alejandro loves photography and plans to buy a camera tomorrow.", evidence_message_ids: ["photo"] },
+    { category: "preference", content: "Alejandro enjoys cooking and wants to make pasta for Nina next time.", evidence_message_ids: ["cooking"] }
+  ] }, messages);
+  assert.deepEqual(filtered.pinned.map(item => item.content), [
+    "Alejandro likes Mexican food, especially tacos, and enjoys cooking it at home.",
+    "Alejandro loves photography.",
+    "Alejandro enjoys cooking."
+  ]);
+  assert.equal(filtered.pinned.some(item => /\b(?:plans|wants) to\b|\bnext time\b|\btomorrow\b|\bfor Nina\b/i.test(item.content)), false);
 });
 
 test("explicit user statements fill missed project and preference pins without fuzzy name inference", () => {
