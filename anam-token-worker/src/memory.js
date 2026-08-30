@@ -9,9 +9,13 @@ const ID_PATTERN = /^[a-zA-Z0-9][a-zA-Z0-9._:-]{0,127}$/;
 const CATEGORY_PATTERN = /^[a-z][a-z0-9_-]{0,39}$/;
 const CONSOLIDATION_MODEL = "@cf/meta/llama-3.1-8b-instruct-fp8-fast";
 const PINNED_MEMORY_CATEGORIES = new Set([
-  "user_fact", "nina_autobiography", "shared_memory", "preference", "relationship_state",
-  "inside_joke", "fantasy_roleplay", "project", "identity", "other"
+  "user_fact", "nina_autobiography", "shared_memory", "preference",
+  "inside_joke", "fantasy_roleplay", "project", "identity"
 ]);
+const UNRESOLVED_PERSPECTIVE_PATTERN = /\b(?:i|i'm|i’ve|i'd|me|my|mine|you|you're|you’ve|you'd|your|yours|we|we're|we’ve|we'd|us|our|ours)\b/i;
+const DEBRIS_PATTERN = /^(?:sorry[, ]+)?(?:what did you say|what do you say|you know who i am|i mean(?:\.{2,})?|okay|ok|yeah|yes|no|right|you were right|last time we(?:\.{2,})?|you(?:'re| are) amazing)[?!. ]*$/i;
+const NINA_CANON_PATTERN = /^(?:(?:nina|i|you)\s+(?:am|is|are|identify(?:ies)? as)\s+(?:nina|human|a human|a person)|nina\s+(?:lives|resides)\s+in\s+berlin|nina(?:'s)?\s+(?:age|birthday|birth date)|nina\s+was born)\b/i;
+const NINA_META_BREAK_PATTERN = /\b(?:i(?:'m| am) (?:an? )?(?:ai system|assistant|language model)|i(?:'m| am) (?:the )?same assistant underneath|i(?:'m| am) not literally (?:a )?human woman|nina is (?:a )?character in (?:this )?conversation|you(?:'re| are) talking to openai now|my system prompt|the underlying model|the (?:character )?illusion broke)\b/i;
 
 const PRIVATE_MEMORY_INSTRUCTIONS = `Private previous-conversation context follows.
 Use it naturally only when relevant.
@@ -166,6 +170,10 @@ function formatRecentMessage(message) {
   return `${message.role === "user" ? "VISITOR" : "NINA"}: ${message.content}`;
 }
 
+export function isNinaMetaBreakMessage(message) {
+  return message?.role === "persona" && NINA_META_BREAK_PATTERN.test(cleanText(message.content, MESSAGE_CHARACTER_LIMIT).replace(/[’]/g, "'"));
+}
+
 function appendWholeItemsWithinBudget(header, items, remaining) {
   if (!items.length || remaining <= header.length + 2) return { text: "", used: 0, count: 0 };
   const accepted = [];
@@ -205,7 +213,7 @@ export async function buildOwnerMemoryContext(env, owner) {
   ]);
   const pinned = pinnedResult.results || [];
   const threads = threadsResult.results || [];
-  const recent = (recentResult.results || []).reverse();
+  const recent = (recentResult.results || []).reverse().filter(message => !isNinaMetaBreakMessage(message));
   const profileSection = `VALIDATED PERMANENT PROFILE\nName: ${owner.display_name}\nProfile: ${owner.profile_type}`;
   const recentItems = recent.map(formatRecentMessage);
   const recentSection = appendLatestItemsWithinBudget("LATEST COMPLETED MESSAGES", recentItems, 22000);
@@ -253,7 +261,29 @@ function evidenceMessages(candidate, messagesById) {
 function validUserGroundedEvidence(candidate, messagesById, rejectNonLiteral = true) {
   const evidence = evidenceMessages(candidate, messagesById);
   return evidence.some(message => message.role === "user")
+    && evidence.every(message => !isNinaMetaBreakMessage(message))
+    && durableEvidence(candidate, evidence)
     && (!rejectNonLiteral || evidence.every(message => !NON_LITERAL_EVIDENCE_PATTERN.test(message.content)));
+}
+
+function durableContent(candidate) {
+  const content = cleanText(candidate?.content, 500);
+  if (!content || content.length < 12 || DEBRIS_PATTERN.test(content) || NINA_CANON_PATTERN.test(content)) return "";
+  if (UNRESOLVED_PERSPECTIVE_PATTERN.test(content)) return "";
+  return content;
+}
+
+function durableEvidence(candidate, evidence) {
+  if (evidence.some(message => isNinaMetaBreakMessage(message) || DEBRIS_PATTERN.test(message.content))) return false;
+  if (evidence.every(message => /\?\s*$/.test(message.content))) return false;
+  if (evidence.some(message => NINA_CANON_PATTERN.test(message.content))) return false;
+  if (evidence.some(message => /\b(?:we|us|our|ours)\b/i.test(message.content))
+    && !(/\bAlejandro\b/.test(candidate.content) && /\bNina\b/.test(candidate.content))) return false;
+  if (candidate.category === "nina_autobiography") return evidence.some(message => message.role === "persona") && /\bNina\b/.test(candidate.content);
+  if (["user_fact", "identity", "preference", "project"].includes(candidate.category)) {
+    return evidence.some(message => message.role === "user") && /\bAlejandro\b/.test(candidate.content);
+  }
+  return true;
 }
 
 function validPinnedEvidence(candidate, messagesById) {
@@ -261,6 +291,7 @@ function validPinnedEvidence(candidate, messagesById) {
   if (!PINNED_MEMORY_CATEGORIES.has(category) || !CATEGORY_PATTERN.test(category)) return false;
   const evidence = evidenceMessages(candidate, messagesById);
   if (!evidence.length) return false;
+  if (!durableContent(candidate) || !durableEvidence(candidate, evidence)) return false;
   const literalEvidence = evidence.every(message => !NON_LITERAL_EVIDENCE_PATTERN.test(message.content));
   if (category === "user_fact" || category === "identity" || category === "shared_memory") {
     return literalEvidence && evidence.some(message => message.role === "user");
@@ -268,20 +299,20 @@ function validPinnedEvidence(candidate, messagesById) {
   if (category === "nina_autobiography") {
     return literalEvidence && evidence.some(message => message.role === "persona");
   }
-  if (category === "other") return literalEvidence;
+  if (category === "relationship_state") return false;
   return true;
 }
 
 export function filterConsolidationExtraction(extracted, messages, activeThreads = []) {
   const messagesById = new Map(messages.map(message => [message.message_id, message]));
   const summaryItems = Array.isArray(extracted?.summary_items)
-    ? extracted.summary_items.filter(item => validUserGroundedEvidence(item, messagesById)).slice(0, 12)
+    ? extracted.summary_items.filter(item => durableContent(item) && validUserGroundedEvidence(item, messagesById)).slice(0, 12)
     : [];
   const pinned = Array.isArray(extracted?.pinned_memories)
     ? extracted.pinned_memories.filter(item => validPinnedEvidence(item, messagesById)).slice(0, 8)
     : [];
   const threads = Array.isArray(extracted?.open_threads)
-    ? extracted.open_threads.filter(item => validUserGroundedEvidence(item, messagesById)).slice(0, 8)
+    ? extracted.open_threads.filter(item => durableContent(item) && validUserGroundedEvidence(item, messagesById)).slice(0, 8)
     : [];
   const activeThreadIds = new Set(activeThreads.map(thread => thread.thread_id));
   const resolvedIds = Array.isArray(extracted?.resolved_threads)
@@ -290,16 +321,43 @@ export function filterConsolidationExtraction(extracted, messages, activeThreads
   return { summaryItems, pinned, threads, resolvedIds };
 }
 
-function mergeSummary(previousSummary, items) {
-  const previous = cleanText(previousSummary, SUMMARY_LIMIT).split("\n").map(line => line.trim()).filter(Boolean);
-  const merged = [...previous];
-  for (const item of items) {
-    const content = cleanText(item?.content, 500);
-    if (!content || merged.some(existing => existing.toLowerCase() === `- ${content}`.toLowerCase())) continue;
-    merged.push(`- ${content}`);
-  }
-  while (merged.join("\n").length > SUMMARY_LIMIT && merged.length > 1) merged.shift();
-  return merged.join("\n").slice(0, SUMMARY_LIMIT);
+export function mergeSummary(previousSummary, items, regeneratedSummary = "") {
+  const proposed = cleanText(regeneratedSummary, SUMMARY_LIMIT);
+  const source = proposed || [...cleanText(previousSummary, SUMMARY_LIMIT).split("\n"), ...items.map(item => item?.content || "")].join("\n");
+  const semanticLines = source.split("\n").map(line => line.replace(/^[-*]\s*/, "").trim()).filter(line =>
+    line.length >= 12 && !DEBRIS_PATTERN.test(line) && !NINA_CANON_PATTERN.test(line)
+    && !NINA_META_BREAK_PATTERN.test(line) && !UNRESOLVED_PERSPECTIVE_PATTERN.test(line)
+  );
+  const unique = semanticLines.filter((line, index) => semanticLines.findIndex(other => semanticMemoryKey({ category: "summary", content: other }) === semanticMemoryKey({ category: "summary", content: line })) === index);
+  return unique.join(" ").slice(0, SUMMARY_LIMIT);
+}
+
+function semanticMemoryKey(item) {
+  const content = cleanText(item?.content, 500).toLowerCase().replace(/[’]/g, "'");
+  const girlfriend = content.match(/\b(?:alejandro(?:'s| has a)|eva is alejandro(?:'s)?)\s+girlfriend(?:\s+(?:is|named)\s+)?([a-z]+)?|\bgirlfriend named ([a-z]+)/i);
+  if (girlfriend) return "user_fact:alejandro:girlfriend";
+  if (/\b(?:genuine|real) (?:conversational )?interest\b/.test(content) && /\b(?:alejandro|nina)\b/.test(content)) return "preference:alejandro:nina:genuine-interest";
+  return `${item?.category || ""}:${content.replace(/\b(?:a|an|the|is|are|has|named|to|in|of|for|that)\b/g, " ").replace(/[^a-z0-9]+/g, " ").trim()}`;
+}
+
+function semanticMemoryValue(item) {
+  const content = cleanText(item?.content, 500).toLowerCase().replace(/[’]/g, "'");
+  const namedGirlfriend = content.match(/alejandro(?:'s girlfriend is| has a girlfriend named)\s+([a-z]+)/)
+    || content.match(/([a-z]+) is alejandro's girlfriend/);
+  if (namedGirlfriend) return `girlfriend:${namedGirlfriend[1]}`;
+  if (/\b(?:genuine|real) (?:conversational )?interest\b/.test(content)) return "genuine-interest";
+  return content.replace(/[^a-z0-9]+/g, " ").trim();
+}
+
+export function resolvePinnedDecision(candidate, existingPinned = []) {
+  if (!durableContent(candidate)) return { decision: "REJECT", existing: null };
+  if (candidate.decision === "REJECT") return { decision: "REJECT", existing: null };
+  const requested = existingPinned.find(item => item.memory_id === candidate.existing_memory_id);
+  const semantic = existingPinned.find(item => semanticMemoryKey(item) === semanticMemoryKey(candidate));
+  const existing = requested || semantic || null;
+  if (candidate.decision === "DUPLICATE") return { decision: "DUPLICATE", existing };
+  if (!existing) return { decision: "NEW", existing: null };
+  return { decision: semanticMemoryValue(existing) === semanticMemoryValue(candidate) ? "DUPLICATE" : "UPDATE_EXISTING", existing };
 }
 
 export async function consolidateMemory(env, visitorId) {
@@ -318,22 +376,34 @@ export async function consolidateMemory(env, visitorId) {
   const openResult = await db.prepare(
     "SELECT thread_id, content FROM open_threads WHERE visitor_id = ? AND status = 'active' ORDER BY updated_at DESC LIMIT ?"
   ).bind(visitorId, OPEN_THREAD_LIMIT).all();
+  const existingPinnedResult = await db.prepare(
+    "SELECT memory_id, category, content FROM pinned_memories WHERE visitor_id = ? ORDER BY updated_at DESC LIMIT ?"
+  ).bind(visitorId, PINNED_LIMIT).all();
+  const existingPinned = existingPinnedResult.results || [];
+  const safeMessages = messages.filter(message => !isNinaMetaBreakMessage(message));
   const prompt = `You maintain conservative long-term memory for a conversational persona.
-Return JSON only with keys summary_items, pinned_memories, open_threads, resolved_threads.
+Return JSON only with keys summary, summary_items, pinned_memories, open_threads, resolved_threads.
 Each new item must include content and evidence_message_ids. Pinned items also need category.
+Each pinned item must include decision (NEW, UPDATE_EXISTING, DUPLICATE, or REJECT). UPDATE_EXISTING must include existing_memory_id.
 Each resolved_threads item must include thread_id and evidence_message_ids.
-Allowed pinned categories: user_fact, nina_autobiography, shared_memory, preference, relationship_state, inside_joke, fantasy_roleplay, project, identity, other.
+Allowed pinned categories: user_fact, nina_autobiography, shared_memory, preference, inside_joke, fantasy_roleplay, project, identity.
 Use user_fact for durable facts established by Alejandro and identity for durable identity information explicitly grounded by Alejandro.
 Use nina_autobiography for a concrete event or fact Nina clearly states as real about her independent life. Persona evidence is valid here, including sexual life, but explicit imagination, hypotheticals, pretend play, roleplay or fantasy are not autobiography.
 Use shared_memory only for claimed real past events involving Alejandro and Nina or another established person when user evidence supports the history. A Nina-only claim cannot establish shared history.
-Use preference for meaningful preferences, desires, conversational preferences or boundaries belonging to Alejandro or Nina.
-Use relationship_state for meaningful present relationship stance, feeling or dynamic. Historical agreements are shared_memory and require user evidence.
+Use preference for durable preferences, desires, conversational preferences or boundaries belonging to Alejandro with an explicit subject.
+Relationship state belongs in the separate relationship notebook and must not be pinned here.
 Use inside_joke for memorable jokes, nicknames and running bits, keeping them explicitly non-literal.
 Use fantasy_roleplay for meaningful or recurring fantasies, imagined scenes, erotic roleplay themes or other fictional play, never as factual biography.
-Use project for meaningful ongoing creative, professional or practical projects. Use other only for clearly useful durable memory that fits nowhere else.
+Use project for meaningful ongoing creative, professional or practical projects.
 Sexual, erotic, nude or fetish language alone does not make evidence invalid. Meaning and literal status determine the category.
-Keep summary_items, open_threads and thread resolution conservative and user-grounded. Preserve uncertainty when the user is ambiguous.
-Do not repeat existing information. Never convert fantasy, roleplay or jokes into factual history.
+Reject filler, acknowledgements, corrections, incomplete utterances, generic compliments, questions, trivial reactions and canon repetition.
+Resolve speaker perspective before storage. Permanent memory must explicitly name Alejandro, Nina, or another established subject; reject unresolved I/me/my/you/your/we/us rather than guessing.
+Nina's permanent canon (identity, humanity, name, Berlin residence, canonical birth date and age logic) is not per-user memory.
+Nina autobiography is only a concrete new independent-life event stated literally by Nina, never canon, roleplay, shared history or implementation identity.
+Nina statements describing herself as an AI system, character, underlying assistant/model/system prompt, or a broken illusion are contamination: exclude them from every output. Normal visitor discussion about AI remains valid.
+The summary must be a newly regenerated compact semantic overview, not transcript bullets. Remove debris, redundancy, unresolved pronouns and facts already cleanly represented in pins unless relationship context needs them.
+Compare every candidate with EXISTING PINNED MEMORIES. Use DUPLICATE for paraphrases, UPDATE_EXISTING when durable information for the same subject/property changed, and NEW only for genuinely distinct memory.
+Keep summary_items, open_threads and thread resolution conservative and user-grounded. Never convert fantasy, roleplay or jokes into factual history.
 
 EXISTING SUMMARY:
 ${cleanText(summaryRow?.summary, SUMMARY_LIMIT) || "(none)"}
@@ -341,8 +411,11 @@ ${cleanText(summaryRow?.summary, SUMMARY_LIMIT) || "(none)"}
 ACTIVE THREADS:
 ${JSON.stringify(openResult.results || [])}
 
+EXISTING PINNED MEMORIES:
+${JSON.stringify(existingPinned)}
+
 NEW COMPLETED MESSAGES:
-${JSON.stringify(messages)}`;
+${JSON.stringify(safeMessages)}`;
   const response = await env.AI.run(CONSOLIDATION_MODEL, {
     messages: [
       { role: "system", content: "Extract conservative memory as strict JSON. Do not invent." },
@@ -353,10 +426,10 @@ ${JSON.stringify(messages)}`;
   });
   const extracted = extractJson(response);
   if (!extracted) return { consolidated: false };
-  const { summaryItems, pinned, threads, resolvedIds } = filterConsolidationExtraction(extracted, messages, openResult.results || []);
+  const { summaryItems, pinned, threads, resolvedIds } = filterConsolidationExtraction(extracted, safeMessages, openResult.results || []);
   const now = new Date().toISOString();
   const through = messages.at(-1).message_id;
-  const mergedSummary = mergeSummary(summaryRow?.summary, summaryItems);
+  const mergedSummary = mergeSummary(summaryRow?.summary, summaryItems, extracted.summary);
   const statements = [db.prepare(`
     INSERT INTO memory_summaries (visitor_id, summary, updated_at, messages_summarized_through)
     VALUES (?, ?, ?, ?)
@@ -366,12 +439,18 @@ ${JSON.stringify(messages)}`;
   for (const item of pinned) {
     const content = cleanText(item.content, 500);
     if (!content) continue;
-    const id = `pin-${(await sha256(`${visitorId}\n${item.category}\n${content}`)).slice(0, 48)}`;
+    const resolved = resolvePinnedDecision(item, existingPinned);
+    if (resolved.decision === "REJECT" || resolved.decision === "DUPLICATE") continue;
+    const id = resolved.existing?.memory_id || `pin-${(await sha256(`${visitorId}\n${semanticMemoryKey(item)}`)).slice(0, 48)}`;
     statements.push(db.prepare(`
       INSERT INTO pinned_memories (memory_id, visitor_id, category, content, created_at, updated_at)
       VALUES (?, ?, ?, ?, ?, ?)
-      ON CONFLICT(memory_id) DO UPDATE SET content = excluded.content, updated_at = excluded.updated_at
+      ON CONFLICT(memory_id) DO UPDATE SET category = excluded.category, content = excluded.content, updated_at = excluded.updated_at
     `).bind(id, visitorId, item.category, content, now, now));
+    const existingIndex = existingPinned.findIndex(existing => existing.memory_id === id);
+    const stored = { memory_id: id, category: item.category, content };
+    if (existingIndex >= 0) existingPinned[existingIndex] = stored;
+    else existingPinned.push(stored);
   }
   for (const item of threads) {
     const content = cleanText(item.content, 500);
