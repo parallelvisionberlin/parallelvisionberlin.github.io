@@ -15,6 +15,7 @@ export const DEFAULT_RELATIONSHIP_SUMMARY = "Nina and this person are at the beg
 const NON_LITERAL = /\b(?:fantas(?:y|ies|ize|ise)|roleplay|pretend|imagine|imaginary|hypothetical|made[- ]?up|fiction(?:al)?|kidding|not real)\b/i;
 const EMPTY_ROMANTIC_DEMAND = /\b(?:love me|be my (?:girlfriend|partner|lover)|say you love me|you (?:love|want|need) me|fall in love with me)\b/i;
 const MEANINGFUL = /\b(?:i feel|i felt|i(?:'| a)m afraid|i trust|i don't trust|i do not trust|i need to tell|personal|vulnerab|boundary|uncomfortable|hurt|angry|upset|disrespect|pressure|stop|sorry|apolog|forgive|between us|our conversations?|i appreciate|you helped|thank you for listening|honest with you|conflict|repair)\b/i;
+const RECIPROCAL_HISTORY = /\b(?:i (?:enjoy|value|like) (?:talking|speaking) (?:with|to) you|we(?:'ve| have) (?:talked|spoken|gotten to know each other|built trust)|you (?:understand|know|listen to) me|i feel (?:close|comfortable|safe) (?:with|around) you)\b/i;
 const STRONG_NEGATIVE = /\b(?:boundary|uncomfortable|hurt|disrespect|pressure|stop|i don't trust|i do not trust|angry|upset)\b/i;
 
 function parseJson(value) {
@@ -27,7 +28,7 @@ function parseJson(value) {
 
 export function relationshipEvidenceQualifies(messages) {
   const literalUser = messages.filter(message => message?.role === "user" && typeof message.content === "string" && !NON_LITERAL.test(message.content));
-  const grounded = literalUser.filter(message => MEANINGFUL.test(message.content) && !EMPTY_ROMANTIC_DEMAND.test(message.content));
+  const grounded = literalUser.filter(message => (MEANINGFUL.test(message.content) || RECIPROCAL_HISTORY.test(message.content)) && !EMPTY_ROMANTIC_DEMAND.test(message.content));
   if (!messages.some(message => message?.role === "persona")) return false;
   return grounded.length >= 2 || grounded.some(message => STRONG_NEGATIVE.test(message.content));
 }
@@ -72,17 +73,17 @@ export async function buildRelationshipContext(env, userId) {
 
 export async function evaluateCompletedRelationship(env, userId, visitorId, conversationId, options = {}) {
   if (!env?.NINA_MEMORY_DB || !env?.AI || !userId || !visitorId || !conversationId) return { evaluated: false, reason: "unavailable" };
-  const result = await env.NINA_MEMORY_DB.prepare(`
-    SELECT role, content FROM messages
-    WHERE visitor_id = ? AND conversation_id = ?
-    ORDER BY created_at ASC, rowid ASC
-  `).bind(visitorId, conversationId).all();
-  const messages = result.results || [];
   const row = await getOrCreateRelationshipState(env, userId);
+  // Accumulate completed evidence since the last accepted state change; diagnostic evaluations must not discard it.
+  const result = await env.NINA_MEMORY_DB.prepare(`
+    SELECT m.role, m.content FROM messages m
+    JOIN conversations c ON c.conversation_id = m.conversation_id
+    WHERE m.visitor_id = ? AND c.ended_at IS NOT NULL
+      AND (m.conversation_id = ? OR ? IS NULL OR m.created_at > ?)
+    ORDER BY m.created_at ASC, m.rowid ASC
+  `).bind(visitorId, conversationId, row.updated_at || null, row.updated_at || null).all();
+  const messages = result.results || [];
   if (!relationshipEvidenceQualifies(messages)) {
-    const now = new Date().toISOString();
-    await env.NINA_MEMORY_DB.prepare("UPDATE nina_relationship_states SET last_evaluated_at = ? WHERE user_id = ?")
-      .bind(now, userId).run();
     return { evaluated: true, changed: false, reason: "insufficient_evidence" };
   }
   let currentState;
@@ -100,6 +101,10 @@ export async function evaluateCompletedRelationship(env, userId, visitorId, conv
   const update = normalizeRelationshipUpdate(currentState, evaluation);
   const now = new Date().toISOString();
   if (!update) {
+    const reason = typeof evaluation?.reason === "string" ? evaluation.reason : "";
+    if (/insufficient|not enough|no meaningful evidence/i.test(reason) || !evaluation) {
+      return { evaluated: true, changed: false, reason: "insufficient_evidence" };
+    }
     await env.NINA_MEMORY_DB.prepare("UPDATE nina_relationship_states SET last_evaluated_at = ? WHERE user_id = ?")
       .bind(now, userId).run();
     return { evaluated: true, changed: false };

@@ -9,11 +9,15 @@ import { scheduleCompletedMemoryConsolidation, scheduleCompletedRelationshipEval
 
 function relationshipDb(messages = []) {
   const rows = new Map();
+  const messageQueries = [];
   return {
-    rows,
+    rows, messageQueries,
     prepare(sql) {
       return { bind(...values) {
-        if (sql.includes("SELECT role, content FROM messages")) return { all: async () => ({ results: messages }) };
+        if (sql.includes("SELECT m.role, m.content FROM messages")) return { all: async () => {
+          messageQueries.push(values);
+          return { results: messages };
+        } };
         if (sql.includes("INSERT OR IGNORE")) return { run: async () => {
           if (!rows.has(values[0])) rows.set(values[0], { state_json: values[1], relationship_summary: values[2], created_at: values[3], updated_at: values[4], last_evaluated_at: null });
         } };
@@ -21,6 +25,10 @@ function relationshipDb(messages = []) {
         if (sql.includes("SET last_evaluated_at")) return { run: async () => {
           const row = rows.get(values[1]);
           if (row) row.last_evaluated_at = values[0];
+        } };
+        if (sql.includes("SET state_json")) return { run: async () => {
+          const row = rows.get(values[4]);
+          if (row) Object.assign(row, { state_json: values[0], relationship_summary: values[1], updated_at: values[2], last_evaluated_at: values[3] });
         } };
         if (sql.includes("DELETE FROM")) return { run: async () => { rows.delete(values[0]); } };
         throw new Error(`Unexpected SQL: ${sql}`);
@@ -130,7 +138,7 @@ test("time and message frequency alone do not qualify relationship evaluation", 
   assert.equal(relationshipEvidenceQualifies(messages), false);
 });
 
-test("insufficient completed evidence records evaluation without changing relationship state", async () => {
+test("insufficient completed evidence remains unevaluated so later conversations can accumulate", async () => {
   const messages = [{ role: "user", content: "Hello again." }, { role: "persona", content: "Hello." }];
   const db = relationshipDb(messages);
   const before = await getOrCreateRelationshipState({ NINA_MEMORY_DB: db }, "owner-user-id");
@@ -138,9 +146,57 @@ test("insufficient completed evidence records evaluation without changing relati
   const initialSummary = before.relationship_summary;
   const result = await evaluateCompletedRelationship({ NINA_MEMORY_DB: db, AI: {} }, "owner-user-id", "owner-memory-id", "conversation-1");
   assert.deepEqual(result, { evaluated: true, changed: false, reason: "insufficient_evidence" });
-  assert.match(db.rows.get("owner-user-id").last_evaluated_at, /^\d{4}-\d{2}-\d{2}T/);
+  assert.equal(db.rows.get("owner-user-id").last_evaluated_at, null);
   assert.equal(db.rows.get("owner-user-id").state_json, initialState);
   assert.equal(db.rows.get("owner-user-id").relationship_summary, initialSummary);
+});
+
+test("reciprocal evidence accumulated across completed conversations evolves the notebook one step", async () => {
+  const messages = [
+    { role: "user", content: "I value talking with you and feel comfortable with you." },
+    { role: "persona", content: "I value the honesty in our conversations too." },
+    { role: "user", content: "We've gotten to know each other and I appreciate how you listen to me." },
+    { role: "persona", content: "That history matters, and I want to keep earning the trust in it." }
+  ];
+  const db = relationshipDb(messages);
+  const result = await evaluateCompletedRelationship({ NINA_MEMORY_DB: db, AI: {} }, "owner-user-id", "owner-memory-id", "conversation-2", {
+    runEvaluator: async () => ({
+      changed: true,
+      changes: { familiarity: "high", trust: "high", relational_significance: "high" },
+      summary: "Repeated reciprocal conversations show growing familiarity and trust without assuming romance.",
+      reason: "Repeated completed conversational history supports conservative progression."
+    })
+  });
+  assert.deepEqual(result, { evaluated: true, changed: true });
+  const state = JSON.parse(db.rows.get("owner-user-id").state_json);
+  assert.equal(state.familiarity, "low");
+  assert.equal(state.trust, "moderate");
+  assert.equal(state.relational_significance, "developing");
+  assert.match(db.rows.get("owner-user-id").last_evaluated_at, /^\d{4}-\d{2}-\d{2}T/);
+});
+
+test("qualified evidence is retained when evaluator reports insufficient evidence", async () => {
+  const messages = [
+    { role: "user", content: "I feel comfortable being honest with you." },
+    { role: "persona", content: "I am listening carefully." },
+    { role: "user", content: "I appreciate how you listen to me across our conversations." }
+  ];
+  const db = relationshipDb(messages);
+  const result = await evaluateCompletedRelationship({ NINA_MEMORY_DB: db, AI: {} }, "owner-user-id", "owner-memory-id", "conversation-2", {
+    runEvaluator: async () => ({ changed: false, changes: {}, summary: "", reason: "Insufficient evidence for a change." })
+  });
+  assert.deepEqual(result, { evaluated: true, changed: false, reason: "insufficient_evidence" });
+  assert.equal(db.rows.get("owner-user-id").last_evaluated_at, null);
+});
+
+test("relationship evidence cursor follows the last accepted state change, not a no-change evaluation", async () => {
+  const db = relationshipDb([{ role: "user", content: "Hello." }, { role: "persona", content: "Hello." }]);
+  await getOrCreateRelationshipState({ NINA_MEMORY_DB: db }, "owner-user-id");
+  const row = db.rows.get("owner-user-id");
+  row.updated_at = "2026-08-29T10:00:00.000Z";
+  row.last_evaluated_at = "2026-08-30T10:00:00.000Z";
+  await evaluateCompletedRelationship({ NINA_MEMORY_DB: db, AI: {} }, "owner-user-id", "owner-memory-id", "conversation-2");
+  assert.deepEqual(db.messageQueries[0].slice(2), [row.updated_at, row.updated_at]);
 });
 
 test("closed authenticated owner conversation schedules relationship evaluation", async () => {

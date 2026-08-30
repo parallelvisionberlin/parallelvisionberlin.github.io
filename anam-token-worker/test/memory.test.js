@@ -352,19 +352,29 @@ test("meta-break persona messages are excluded from recent context while visitor
   assert.match(result.context, /VISITOR: You're an AI running on a website/);
 });
 
-test("summary regeneration keeps semantic memory and removes transcript debris and perspective fragments", () => {
-  const summary = mergeSummary("- Sorry, what did you say?\n- We had a fight.", [],
-    "Alejandro is building the Parallel Vision archive.\nYou're amazing.\nI mean...");
+test("summary items keep semantic memory and remove transcript debris and perspective fragments", () => {
+  const summary = mergeSummary("- Sorry, what did you say?\n- We had a fight.\nYou're amazing.\nI mean...", [
+    { content: "Alejandro is building the Parallel Vision archive." }
+  ]);
   assert.equal(summary, "Alejandro is building the Parallel Vision archive.");
 });
 
 test("summary excludes Nina-user relationship state while retaining durable general memory", () => {
-  const summary = mergeSummary("", [], [
-    "Alejandro and Nina are in a romantic relationship.",
-    "Nina loves Alejandro.",
-    "Alejandro is building the Parallel Vision archive."
-  ].join("\n"));
+  const summary = mergeSummary("", [
+    { content: "Alejandro and Nina are in a romantic relationship." },
+    { content: "Nina loves Alejandro." },
+    { content: "Alejandro is building the Parallel Vision archive." }
+  ]);
   assert.equal(summary, "Alejandro is building the Parallel Vision archive.");
+});
+
+test("regenerated summary prose cannot introduce unsupported facts", () => {
+  const messages = [{ message_id: "eva", role: "user", content: "My girlfriend is Eva." }];
+  const filtered = filterConsolidationExtraction({
+    summary: "Alejandro recently had a fight with his girlfriend Eva.",
+    summary_items: [{ content: "Alejandro has a girlfriend named Eva.", evidence_message_ids: ["eva"] }]
+  }, messages);
+  assert.equal(mergeSummary("", filtered.summaryItems, "Alejandro recently had a fight with his girlfriend Eva."), "Alejandro has a girlfriend named Eva.");
 });
 
 test("owner token comparison rejects missing and altered values", () => {

@@ -409,9 +409,8 @@ export function filterConsolidationExtraction(extracted, messages, activeThreads
   return { summaryItems, pinned, threads, resolvedIds };
 }
 
-export function mergeSummary(previousSummary, items, regeneratedSummary = "") {
-  const proposed = cleanText(regeneratedSummary, SUMMARY_LIMIT);
-  const source = proposed || [...cleanText(previousSummary, SUMMARY_LIMIT).split("\n"), ...items.map(item => item?.content || "")].join("\n");
+export function mergeSummary(previousSummary, items) {
+  const source = [...cleanText(previousSummary, SUMMARY_LIMIT).split("\n"), ...items.map(item => item?.content || "")].join("\n");
   const semanticLines = source.split("\n").map(line => sanitizeDerivedContent(line.replace(/^[-*]\s*/, "").trim())).filter(line =>
     line.length >= 12 && !DEBRIS_PATTERN.test(line) && !NINA_CANON_PATTERN.test(line)
     && !NINA_META_BREAK_PATTERN.test(line) && !UNRESOLVED_PERSPECTIVE_PATTERN.test(line)
@@ -538,7 +537,7 @@ export async function consolidateMemory(env, visitorId) {
   const { summaryItems, pinned, threads, resolvedIds } = filterConsolidationExtraction(extracted, safeMessages, openThreads);
   const now = new Date().toISOString();
   const through = messages.at(-1).message_id;
-  const mergedSummary = mergeSummary(summaryRow?.summary, summaryItems, extracted.summary);
+  const mergedSummary = mergeSummary(summaryRow?.summary, summaryItems);
   const statements = [db.prepare(`
     INSERT INTO memory_summaries (visitor_id, summary, updated_at, messages_summarized_through)
     VALUES (?, ?, ?, ?)
@@ -693,10 +692,15 @@ async function derivedMemoryCounts(db, visitorId) {
 export async function resetDerivedMemory(env, visitorId) {
   const db = env.NINA_MEMORY_DB;
   const before = await derivedMemoryCounts(db, visitorId);
+  const now = new Date().toISOString();
   await db.batch([
     db.prepare("DELETE FROM pinned_memories WHERE visitor_id = ?").bind(visitorId),
     db.prepare("DELETE FROM memory_summaries WHERE visitor_id = ?").bind(visitorId),
-    db.prepare("DELETE FROM open_threads WHERE visitor_id = ?").bind(visitorId)
+    db.prepare("DELETE FROM open_threads WHERE visitor_id = ?").bind(visitorId),
+    db.prepare(`
+      INSERT INTO memory_summaries (visitor_id, summary, updated_at, messages_summarized_through)
+      SELECT ?, '', ?, message_id FROM messages WHERE visitor_id = ? ORDER BY rowid DESC LIMIT 1
+    `).bind(visitorId, now, visitorId)
   ]);
   return { memoryVisitorId: visitorId, before, after: await derivedMemoryCounts(db, visitorId) };
 }
