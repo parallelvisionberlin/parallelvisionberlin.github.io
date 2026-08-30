@@ -197,18 +197,60 @@ test("category sanity rejects relationship claims under identity and Nina autobi
 
 test("shared memory requires literal user-grounded evidence", () => {
   const messages = [
-    { message_id: "nina-claim", role: "persona", content: "Alejandro promised me we were non-exclusive." },
-    { message_id: "user-confirmation", role: "user", content: "I told you last year that our relationship was non-exclusive." }
+    { message_id: "nina-claim", role: "persona", content: "Alejandro and I visited the Bauhaus Archive together." },
+    { message_id: "user-confirmation", role: "user", content: "We visited the Bauhaus Archive together last year." }
   ];
   const filtered = filterConsolidationExtraction({
     pinned_memories: [
-      { category: "shared_memory", content: "Alejandro promised Nina they were non-exclusive.", evidence_message_ids: ["nina-claim"] },
-      { category: "shared_memory", content: "Alejandro told Nina their relationship was non-exclusive last year.", evidence_message_ids: ["user-confirmation"] }
+      { category: "shared_memory", content: "Alejandro and Nina visited the Bauhaus Archive together.", evidence_message_ids: ["nina-claim"] },
+      { category: "shared_memory", content: "Alejandro and Nina visited the Bauhaus Archive together last year.", evidence_message_ids: ["user-confirmation"] }
     ]
   }, messages);
   assert.deepEqual(filtered.pinned.map(item => item.content), [
-    "Alejandro told Nina their relationship was non-exclusive last year."
+    "Alejandro and Nina visited the Bauhaus Archive together last year."
   ]);
+});
+
+test("Nina-user relationship state is rejected under every pinned category", () => {
+  const messages = [
+    { message_id: "relationship", role: "user", content: "Nina and I are in a romantic relationship." },
+    { message_id: "love", role: "user", content: "Nina loves me." },
+    { message_id: "boyfriend", role: "user", content: "I am Nina's boyfriend." },
+    { message_id: "desire", role: "persona", content: "I desire Alejandro." }
+  ];
+  const filtered = filterConsolidationExtraction({ pinned_memories: [
+    { category: "project", content: "Alejandro and Nina are in a romantic relationship.", evidence_message_ids: ["relationship"] },
+    { category: "shared_memory", content: "Nina loves Alejandro.", evidence_message_ids: ["love"] },
+    { category: "user_fact", content: "Alejandro is Nina's boyfriend.", evidence_message_ids: ["boyfriend"] },
+    { category: "nina_autobiography", content: "Nina desires Alejandro.", evidence_message_ids: ["desire"] }
+  ] }, messages);
+  assert.deepEqual(filtered.pinned, []);
+});
+
+test("shared memory rejects conversation topics but retains concrete shared events", () => {
+  const messages = [
+    { message_id: "love-topic", role: "user", content: "We had a conversation about falling in love." },
+    { message_id: "obsolete-topic", role: "user", content: "We talked about me being obsolete." },
+    { message_id: "decision", role: "user", content: "We talked about the exhibition and decided to launch it in October." }
+  ];
+  const filtered = filterConsolidationExtraction({ pinned_memories: [
+    { category: "shared_memory", content: "Alejandro and Nina had a conversation about falling in love.", evidence_message_ids: ["love-topic"] },
+    { category: "shared_memory", content: "Alejandro and Nina had a conversation about Alejandro being obsolete.", evidence_message_ids: ["obsolete-topic"] },
+    { category: "shared_memory", content: "Alejandro and Nina talked about the exhibition and decided to launch it in October.", evidence_message_ids: ["decision"] }
+  ] }, messages);
+  assert.deepEqual(filtered.pinned.map(item => item.content), [
+    "Alejandro and Nina talked about the exhibition and decided to launch it in October."
+  ]);
+});
+
+test("stable user relationship facts mislabeled as identity normalize to user fact", () => {
+  const messages = [{ message_id: "eva", role: "user", content: "I have a girlfriend named Eva." }];
+  const filtered = filterConsolidationExtraction({ pinned_memories: [{
+    category: "identity", content: "Alejandro has a girlfriend named Eva.", evidence_message_ids: ["eva"]
+  }] }, messages);
+  assert.deepEqual(filtered.pinned.map(item => ({ category: item.category, content: item.content })), [{
+    category: "user_fact", content: "Alejandro has a girlfriend named Eva."
+  }]);
 });
 
 test("canon repetition, debris and unresolved perspective are rejected", () => {
@@ -278,6 +320,15 @@ test("meta-break persona messages are excluded from recent context while visitor
 test("summary regeneration keeps semantic memory and removes transcript debris and perspective fragments", () => {
   const summary = mergeSummary("- Sorry, what did you say?\n- We had a fight.", [],
     "Alejandro is building the Parallel Vision archive.\nYou're amazing.\nI mean...");
+  assert.equal(summary, "Alejandro is building the Parallel Vision archive.");
+});
+
+test("summary excludes Nina-user relationship state while retaining durable general memory", () => {
+  const summary = mergeSummary("", [], [
+    "Alejandro and Nina are in a romantic relationship.",
+    "Nina loves Alejandro.",
+    "Alejandro is building the Parallel Vision archive."
+  ].join("\n"));
   assert.equal(summary, "Alejandro is building the Parallel Vision archive.");
 });
 

@@ -17,7 +17,10 @@ const UNRESOLVED_PERSPECTIVE_PATTERN = /\b(?:i|i'm|i’ve|i'd|me|my|mine|you|you
 const DEBRIS_PATTERN = /^(?:sorry[, ]+)?(?:what did you say|what do you say|you know who i am|i mean(?:\.{2,})?|okay|ok|yeah|yes|no|right|you were right|last time we(?:\.{2,})?|you(?:'re| are) amazing)[?!. ]*$/i;
 const NINA_CANON_PATTERN = /^(?:(?:nina|i|you)\s+(?:am|is|are|identify(?:ies)? as)\s+(?:nina|human|a human|a person)|nina\s+(?:lives|resides)\s+in\s+berlin|nina(?:'s)?\s+(?:age|birthday|birth date)|nina\s+was born)\b/i;
 const NINA_META_BREAK_PATTERN = /\b(?:i(?:'m| am) (?:an? )?(?:ai system|assistant|language model)|i(?:'m| am) (?:the )?same assistant underneath|i(?:'m| am) not literally (?:a )?human woman|nina is (?:a )?character in (?:this )?conversation|you(?:'re| are) talking to openai now|my system prompt|the underlying model|the (?:character )?illusion broke)\b/i;
-const RELATIONSHIP_FACT_PATTERN = /\b(?:romantic relationship|in a relationship|dating|boyfriend|girlfriend|partner|loves?|in love with|attracted to|desires?|has feelings for)\b/i;
+const RELATIONSHIP_FACT_PATTERN = /\b(?:romantic relationship|in a relationship|dating|boyfriend|girlfriend|partner|loves?|in love with|attracted to|desires?|has feelings for|familiarity|affection|intimacy|romantic status|relationship boundary|boundaries)\b/i;
+const CONVERSATION_TOPIC_MEMORY_PATTERN = /\b(?:had a conversation|talked|spoke|discussed|conversation was)\s+(?:with each other\s+)?about\b/i;
+const CONCRETE_SHARED_EVENT_PATTERN = /\b(?:met|attended|visited|created|built|worked|performed|traveled|travelled|celebrated|argued|reconciled|agreed|decided|promised|completed|launched)\b/i;
+const USER_RELATIONSHIP_FACT_PATTERN = /\bAlejandro(?:'s girlfriend is| has a girlfriend named)\s+[\p{L}\p{M}'’-]+\b|\b[\p{L}\p{M}'’-]+ is Alejandro's girlfriend\b/iu;
 const JOKE_EVIDENCE_PATTERN = /\b(?:inside joke|running joke|recurring (?:joke|bit)|joke about|kidding|joking|teasing|nickname|pet name|call(?:s|ed|ing)? (?:me|you|each other)|again|always)\b/i;
 const JOKE_RECURRENCE_PATTERN = /\b(?:inside joke|running joke|recurring (?:joke|bit)|again|always|usually|keep calling|nickname|pet name)\b/i;
 const VAGUE_JOKE_PATTERN = /\b(?:have|share|has) (?:an? )?(?:joke|nickname)(?: for each other)?[.!]?$|\bjoke around[.!]?$/i;
@@ -305,18 +308,30 @@ function validInsideJoke(candidate, evidence) {
 }
 
 function isNinaUserRelationship(content) {
-  return /\bAlejandro\b/i.test(content) && /\bNina\b/i.test(content) && RELATIONSHIP_FACT_PATTERN.test(content);
+  const text = cleanText(content, 500).replace(/[’]/g, "'");
+  if (!/\bAlejandro\b/i.test(text) || !/\bNina\b/i.test(text) || !RELATIONSHIP_FACT_PATTERN.test(text)) return false;
+  return /\b(?:Alejandro and Nina|Nina and Alejandro)\b.{0,40}\b(?:relationship|dating|partners?|familiarity|affection|intimacy|romantic status|boundaries)\b/i.test(text)
+    || /\b(?:Alejandro|Nina)\b.{0,20}\b(?:loves?|is in love with|is attracted to|desires?|has feelings for)\b.{0,20}\b(?:Alejandro|Nina)\b/i.test(text)
+    || /\b(?:Alejandro|Nina)\b\s+is\s+(?:Alejandro|Nina)'s\s+(?:boyfriend|girlfriend|partner)\b/i.test(text);
 }
 
 function categorySemanticsMatch(candidate, evidence) {
   const content = cleanText(candidate.content, 500);
+  if (isNinaUserRelationship(content)) return false;
   if (candidate.category === "relationship_state") return false;
   if (candidate.category === "inside_joke") return validInsideJoke(candidate, evidence);
-  if (isNinaUserRelationship(content)
-    && ["identity", "nina_autobiography", "inside_joke"].includes(candidate.category)) return false;
+  if (candidate.category === "shared_memory" && CONVERSATION_TOPIC_MEMORY_PATTERN.test(content)
+    && !CONCRETE_SHARED_EVENT_PATTERN.test(content)) return false;
   if (candidate.category === "identity") return IDENTITY_FACT_PATTERN.test(content);
   if (candidate.category === "nina_autobiography") return NINA_LIFE_FACT_PATTERN.test(content);
   return true;
+}
+
+function normalizePinnedCandidate(candidate) {
+  if (candidate?.category === "identity" && USER_RELATIONSHIP_FACT_PATTERN.test(cleanText(candidate.content, 500))) {
+    return { ...candidate, category: "user_fact" };
+  }
+  return candidate;
 }
 
 function validPinnedEvidence(candidate, messagesById) {
@@ -339,10 +354,10 @@ function validPinnedEvidence(candidate, messagesById) {
 export function filterConsolidationExtraction(extracted, messages, activeThreads = []) {
   const messagesById = new Map(messages.map(message => [message.message_id, message]));
   const summaryItems = Array.isArray(extracted?.summary_items)
-    ? extracted.summary_items.filter(item => durableContent(item) && validUserGroundedEvidence(item, messagesById)).slice(0, 12)
+    ? extracted.summary_items.filter(item => durableContent(item) && !isNinaUserRelationship(item.content) && validUserGroundedEvidence(item, messagesById)).slice(0, 12)
     : [];
   const pinned = Array.isArray(extracted?.pinned_memories)
-    ? extracted.pinned_memories.filter(item => validPinnedEvidence(item, messagesById)).slice(0, 8)
+    ? extracted.pinned_memories.map(normalizePinnedCandidate).filter(item => validPinnedEvidence(item, messagesById)).slice(0, 8)
     : [];
   const threads = Array.isArray(extracted?.open_threads)
     ? extracted.open_threads.filter(item => durableContent(item) && validUserGroundedEvidence(item, messagesById)).slice(0, 8)
@@ -358,7 +373,7 @@ export function mergeSummary(previousSummary, items, regeneratedSummary = "") {
   const proposed = cleanText(regeneratedSummary, SUMMARY_LIMIT);
   const source = proposed || [...cleanText(previousSummary, SUMMARY_LIMIT).split("\n"), ...items.map(item => item?.content || "")].join("\n");
   const semanticLines = source.split("\n").map(line => line.replace(/^[-*]\s*/, "").trim()).filter(line =>
-    line.length >= 12 && !DEBRIS_PATTERN.test(line) && !NINA_CANON_PATTERN.test(line)
+    line.length >= 12 && !DEBRIS_PATTERN.test(line) && !NINA_CANON_PATTERN.test(line) && !isNinaUserRelationship(line)
     && !NINA_META_BREAK_PATTERN.test(line) && !UNRESOLVED_PERSPECTIVE_PATTERN.test(line)
   );
   const unique = semanticLines.filter((line, index) => semanticLines.findIndex(other => semanticMemoryKey({ category: "summary", content: other }) === semanticMemoryKey({ category: "summary", content: line })) === index);
@@ -429,11 +444,11 @@ Each new item must include content and evidence_message_ids. Pinned items also n
 Each pinned item must include decision (NEW, UPDATE_EXISTING, DUPLICATE, or REJECT). UPDATE_EXISTING must include existing_memory_id.
 Each resolved_threads item must include thread_id and evidence_message_ids.
 Allowed pinned categories: user_fact, nina_autobiography, shared_memory, preference, inside_joke, fantasy_roleplay, project, identity.
-Use user_fact for durable facts established by Alejandro and identity for durable identity information explicitly grounded by Alejandro.
+Use user_fact for durable facts established by Alejandro, including stable facts about his real-world relationships, and identity for durable identity information explicitly grounded by Alejandro.
 Use nina_autobiography for a concrete event or fact Nina clearly states as real about her independent life. Persona evidence is valid here, including sexual life, but explicit imagination, hypotheticals, pretend play, roleplay or fantasy are not autobiography.
-Use shared_memory only for claimed real past events involving Alejandro and Nina or another established person when user evidence supports the history. A Nina-only claim cannot establish shared history.
+Use shared_memory only for concrete meaningful real past events involving Alejandro and Nina or another established person when user evidence supports the history. Merely having a conversation or talking about a topic is not shared memory. A Nina-only claim cannot establish shared history.
 Use preference for durable preferences, desires, conversational preferences or boundaries belonging to Alejandro with an explicit subject.
-Relationship state belongs in the separate relationship notebook and must not be pinned here.
+All Nina–Alejandro relationship state belongs exclusively in the separate relationship notebook and must not become pinned memory or summary under any category.
 Use inside_joke only when evidence explicitly establishes a recurring joke, bit, nickname, pet name or shared humorous reference, and content names the concrete joke or nickname. Vague claims that a joke or nickname exists are invalid. Ordinary insults and one-off phrases are not inside jokes.
 Use fantasy_roleplay for meaningful or recurring fantasies, imagined scenes, erotic roleplay themes or other fictional play, never as factual biography.
 Use project for meaningful ongoing creative, professional or practical projects.
