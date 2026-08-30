@@ -946,6 +946,7 @@ body.nina-fullscreen-active {
 }
 
 .n-nav .nina-account-menu > span { display: flex; }
+#ninaAccountCreditAction:empty { display: none; }
 
 .nina-account-action:first-of-type { border-top: 1px solid rgba(255, 255, 255, .15); }
 .nina-account-action:last-of-type { border-bottom: 1px solid rgba(255, 255, 255, .15); }
@@ -1106,12 +1107,12 @@ body.nina-fullscreen-active {
 }
 
 .nina-account-buy-credits[data-action="transmit"] {
-  border-color: rgba(255, 255, 255, .7);
+  border-color: rgba(255, 255, 255, .48);
   color: #fff;
-  font-family: Inter, sans-serif;
-  font-size: 14px;
-  font-weight: 500;
-  letter-spacing: .1em;
+  font-family: 'Courier New', monospace;
+  font-size: 9px;
+  font-weight: 400;
+  letter-spacing: .22em;
 }
 
 .nina-account-buy-credits[data-action="transmit"]:hover,
