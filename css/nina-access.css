@@ -1280,8 +1280,8 @@ body.nina-credits-purchase-active {
 
 .nina-credits-pack {
   display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: start;
+  grid-template-columns: minmax(0, 1fr) 76px;
+  align-items: center;
   gap: 20px;
   min-height: 108px;
   padding: 20px 10px 20px 4px;
@@ -1326,6 +1326,7 @@ body.nina-credits-purchase-active {
   color: rgba(255, 255, 255, .98);
   font: 500 21px/1.1 'Courier New', monospace;
   letter-spacing: .045em;
+  text-align: right;
 }
 
 .nina-credits-pack:hover,
