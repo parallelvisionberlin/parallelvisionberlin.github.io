@@ -1313,7 +1313,7 @@ h2 {
 }
 
 .contact h2 {
-  margin: 0 0 clamp(44px, 4vw, 52px);
+  margin: 0 0 clamp(36px, 3.3vw, 43px);
   font-family: 'Michroma', sans-serif;
   font-size: clamp(25px, 2.4vw, 34px);
   font-weight: 400;
@@ -1395,7 +1395,7 @@ h2 {
   }
 
   .contact h2 {
-    margin-bottom: 52px;
+    margin-bottom: 43px;
     font-size: 25px;
   }
 
