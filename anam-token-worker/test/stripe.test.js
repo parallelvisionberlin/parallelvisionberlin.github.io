@@ -152,10 +152,10 @@ test("active catalog exposes only the final four server-authoritative packs", ()
   assert.deepEqual(Object.fromEntries(Object.entries(catalog).map(([id, pack]) => [id, {
     credits: pack.credits, amountEurCents: pack.amountEurCents, priceBinding: pack.priceBinding, stripePriceId: pack.stripePriceId
   }])), {
-    signal_60: { credits: 60, amountEurCents: 400, priceBinding: "STRIPE_PRICE_SIGNAL_60", stripePriceId: "price_signal_60" },
-    signal_150: { credits: 150, amountEurCents: 1000, priceBinding: "STRIPE_PRICE_SIGNAL_150", stripePriceId: "price_signal_150" },
-    signal_300: { credits: 300, amountEurCents: 2000, priceBinding: "STRIPE_PRICE_SIGNAL_300", stripePriceId: "price_signal_300" },
-    signal_600: { credits: 600, amountEurCents: 3500, priceBinding: "STRIPE_PRICE_SIGNAL_600", stripePriceId: "price_signal_600" }
+    signal_60: { credits: 60, amountEurCents: 350, priceBinding: "STRIPE_PRICE_SIGNAL_60", stripePriceId: "price_signal_60" },
+    signal_150: { credits: 150, amountEurCents: 900, priceBinding: "STRIPE_PRICE_SIGNAL_150", stripePriceId: "price_signal_150" },
+    signal_300: { credits: 300, amountEurCents: 1700, priceBinding: "STRIPE_PRICE_SIGNAL_300", stripePriceId: "price_signal_300" },
+    signal_600: { credits: 600, amountEurCents: 3000, priceBinding: "STRIPE_PRICE_SIGNAL_600", stripePriceId: "price_signal_600" }
   });
 });
 
@@ -170,10 +170,10 @@ test("checkout uses only canonical pack values and assigns the authenticated use
   assert.equal(request.metadata.user_id, "correct-user");
   assert.equal(purchase.user_id, "correct-user");
   assert.equal(purchase.credits, 300);
-  assert.equal(purchase.amount_total, 2000);
+  assert.equal(purchase.amount_total, 1700);
 });
 
-test("60-credit starter pack creates a validated €4 Checkout purchase", async () => {
+test("60-credit starter pack creates a validated €3.50 Checkout purchase", async () => {
   const db = paymentDb();
   const env = configuredEnv(db);
   const stripe = mockStripe();
@@ -183,7 +183,7 @@ test("60-credit starter pack creates a validated €4 Checkout purchase", async 
   assert.equal(request.metadata.credits, "60");
   assert.equal(purchase.pack_id, "signal_60");
   assert.equal(purchase.credits, 60);
-  assert.equal(purchase.amount_total, 400);
+  assert.equal(purchase.amount_total, 350);
   await processStripeEvent(env, event("checkout.session.completed", session), stripe);
   assert.equal(db.accounts.get("starter-user").balance, 60);
   assert.equal(purchase.status, "paid");

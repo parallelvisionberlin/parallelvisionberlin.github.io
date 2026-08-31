@@ -89,10 +89,10 @@ The server-side catalog contains four enabled packs. The browser submits only th
 
 | Pack ID | Signal Credits | Live Nina time | Price |
 | --- | ---: | ---: | ---: |
-| `signal_60` | 60 | 6 min | €4 |
-| `signal_150` | 150 | 15 min | €10 |
-| `signal_300` | 300 | 30 min | €20 |
-| `signal_600` | 600 | 60 min | €35 |
+| `signal_60` | 60 | 6 min | €3.50 |
+| `signal_150` | 150 | 15 min | €9 |
+| `signal_300` | 300 | 30 min | €17 |
+| `signal_600` | 600 | 60 min | €30 |
 
 Create one Stripe product with four one-time EUR prices, then configure their test-mode or live-mode Price IDs in the matching Worker environment bindings:
 
