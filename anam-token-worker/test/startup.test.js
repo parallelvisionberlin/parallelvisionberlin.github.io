@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import worker, {
-  KNOWN_PUBLIC_GREETINGS, NINA_INTIMACY_CONTINUITY, OWNER_GREETINGS, UNKNOWN_NAME_INSTRUCTION, UNKNOWN_PUBLIC_GREETINGS,
+  KNOWN_PUBLIC_GREETINGS, NINA_CONVERSATIONAL_RHYTHM, NINA_INTIMACY_CONTINUITY, OWNER_GREETINGS, UNKNOWN_NAME_INSTRUCTION, UNKNOWN_PUBLIC_GREETINGS,
   applyStartupGreeting, assembleSystemPrompt, authenticatedMemoryDisplayName, buildLivePersonaConfig, buildPersonaDiagnostic,
   schedulePreferredNameLearning, unknownNameInstruction
 } from "../src/index.js";
@@ -85,7 +85,7 @@ test("completed authenticated public conversations schedule preferred-name learn
   assert.equal(calls.length, 1);
 });
 
-test("system prompt assembly adds intimacy continuity exactly once before owner and private context", () => {
+test("system prompt assembly adds intimacy and conversational rhythm exactly once before owner and private context", () => {
   const basePrompt = "Published Nina prompt.";
   const privateMemory = "Private memory and relationship context.";
   const publicConfig = assembleSystemPrompt({ systemPrompt: basePrompt }, null, privateMemory);
@@ -93,12 +93,17 @@ test("system prompt assembly adds intimacy continuity exactly once before owner 
 
   for (const systemPrompt of [publicConfig.systemPrompt, ownerConfig.systemPrompt]) {
     assert.equal(systemPrompt.split(NINA_INTIMACY_CONTINUITY).length - 1, 1);
+    assert.equal(systemPrompt.split(NINA_CONVERSATIONAL_RHYTHM).length - 1, 1);
     assert.ok(systemPrompt.startsWith(`${basePrompt}\n\n${NINA_INTIMACY_CONTINUITY}`));
+    assert.ok(systemPrompt.indexOf(NINA_INTIMACY_CONTINUITY) < systemPrompt.indexOf(NINA_CONVERSATIONAL_RHYTHM));
+    assert.match(systemPrompt, /default to one or two short sentences/);
+    assert.match(systemPrompt, /not a hard sentence or word limit/);
+    assert.match(systemPrompt, /leave room for interruption/);
     assert.ok(systemPrompt.endsWith(privateMemory));
   }
 
-  assert.equal(publicConfig.systemPrompt, [basePrompt, NINA_INTIMACY_CONTINUITY, privateMemory].join("\n\n"));
-  assert.ok(ownerConfig.systemPrompt.indexOf(NINA_INTIMACY_CONTINUITY) < ownerConfig.systemPrompt.indexOf("The current visitor is Alejandro"));
+  assert.equal(publicConfig.systemPrompt, [basePrompt, NINA_INTIMACY_CONTINUITY, NINA_CONVERSATIONAL_RHYTHM, privateMemory].join("\n\n"));
+  assert.ok(ownerConfig.systemPrompt.indexOf(NINA_CONVERSATIONAL_RHYTHM) < ownerConfig.systemPrompt.indexOf("The current visitor is Alejandro"));
   assert.ok(ownerConfig.systemPrompt.indexOf("The current visitor is Alejandro") < ownerConfig.systemPrompt.indexOf(privateMemory));
 });
 
