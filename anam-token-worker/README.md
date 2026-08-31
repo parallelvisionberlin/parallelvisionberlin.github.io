@@ -14,9 +14,10 @@ wrangler secret put NINA_OWNER_ENROLLMENT_TOKEN
 wrangler secret put NINA_OWNER_SIGNING_SECRET
 wrangler secret put STRIPE_SECRET_KEY
 wrangler secret put STRIPE_WEBHOOK_SECRET
-wrangler secret put STRIPE_PRICE_SIGNAL_100
+wrangler secret put STRIPE_PRICE_SIGNAL_60
+wrangler secret put STRIPE_PRICE_SIGNAL_150
 wrangler secret put STRIPE_PRICE_SIGNAL_300
-wrangler secret put STRIPE_PRICE_SIGNAL_750
+wrangler secret put STRIPE_PRICE_SIGNAL_600
 wrangler d1 migrations apply nina-fok-memory --remote
 wrangler deploy
 ```
@@ -86,19 +87,19 @@ Phase 2A introduced one-time Stripe Checkout purchases. The website now exposes 
 
 The server-side catalog contains four enabled packs. The browser submits only the stable pack ID; credit quantities, prices, currency, Stripe Price IDs and user IDs are never accepted from it.
 
-| Pack ID | Signal Credits | Price |
-| --- | ---: | ---: |
-| `signal_30` | 30 | €3 |
-| `signal_100` | 100 | €9 |
-| `signal_300` | 300 | €25 |
-| `signal_750` | 750 | €55 |
+| Pack ID | Signal Credits | Live Nina time | Price |
+| --- | ---: | ---: | ---: |
+| `signal_60` | 60 | 6 min | €4 |
+| `signal_150` | 150 | 15 min | €10 |
+| `signal_300` | 300 | 30 min | €20 |
+| `signal_600` | 600 | 60 min | €35 |
 
 Create one Stripe product with four one-time EUR prices, then configure their test-mode or live-mode Price IDs in the matching Worker environment bindings:
 
-- `STRIPE_PRICE_SIGNAL_30`
-- `STRIPE_PRICE_SIGNAL_100`
+- `STRIPE_PRICE_SIGNAL_60`
+- `STRIPE_PRICE_SIGNAL_150`
 - `STRIPE_PRICE_SIGNAL_300`
-- `STRIPE_PRICE_SIGNAL_750`
+- `STRIPE_PRICE_SIGNAL_600`
 
 This project stores the Price IDs with `wrangler secret put` so production configuration stays out of the repository, although Stripe Price IDs are not credentials. Configure `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` as Worker secrets as well. Never put `sk_...` or `whsec_...` values in source control.
 

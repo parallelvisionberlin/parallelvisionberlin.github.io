@@ -293,11 +293,12 @@ test("account panels request the server balance while usage debits remain server
 
 test("Signal Credit purchase UI submits only canonical pack IDs with Clerk authentication", async () => {
   const frontend = await readFile(new URL("../../js/nina-access.js", import.meta.url), "utf8");
-  assert.match(frontend, /new Set\(\["signal_30", "signal_100", "signal_300", "signal_750"\]\)/);
-  assert.match(frontend, /data-pack-id="signal_30"[\s\S]*?30 Signal Credits[\s\S]*?3 Min Live Nina[\s\S]*?Quick Transmission[\s\S]*?€3/);
-  assert.match(frontend, /data-pack-id="signal_100"[\s\S]*?100 Signal Credits[\s\S]*?10 Min Live Nina[\s\S]*?Private Signal[\s\S]*?€9/);
-  assert.match(frontend, /data-pack-id="signal_300"[\s\S]*?300 Signal Credits[\s\S]*?30 Min Live Nina[\s\S]*?Deep Transmission[\s\S]*?€25/);
-  assert.match(frontend, /data-pack-id="signal_750"[\s\S]*?750 Signal Credits[\s\S]*?75 Min Live Nina[\s\S]*?Extended Access[\s\S]*?€55/);
+  assert.match(frontend, /new Set\(\["signal_60", "signal_150", "signal_300", "signal_600"\]\)/);
+  assert.match(frontend, /data-pack-id="signal_60"[\s\S]*?6 Minutes[\s\S]*?60 Signal Credits[\s\S]*?€4/);
+  assert.match(frontend, /data-pack-id="signal_150"[\s\S]*?15 Minutes[\s\S]*?150 Signal Credits[\s\S]*?€10/);
+  assert.match(frontend, /data-pack-id="signal_300"[\s\S]*?30 Minutes[\s\S]*?300 Signal Credits[\s\S]*?€20/);
+  assert.match(frontend, /data-pack-id="signal_600"[\s\S]*?60 Minutes[\s\S]*?600 Signal Credits[\s\S]*?€35/);
+  assert.doesNotMatch(frontend, /data-pack-id="signal_(?:30|100|750)"/);
   assert.match(frontend, /About Signal Credits \+[\s\S]*?About Signal Credits −/);
   assert.match(frontend, /\/api\/nina\/credits\/checkout/);
   assert.match(frontend, /https:\/\/parallel-vision-anam-token\.parallelvision\.workers\.dev\/session-token/);

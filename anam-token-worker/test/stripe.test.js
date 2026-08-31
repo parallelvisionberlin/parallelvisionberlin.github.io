@@ -11,10 +11,10 @@ const configuredEnv = db => ({
   NINA_MEMORY_DB: db,
   STRIPE_SECRET_KEY: "sk_test_mock",
   STRIPE_WEBHOOK_SECRET: "whsec_mock",
-  STRIPE_PRICE_SIGNAL_30: "price_signal_30",
-  STRIPE_PRICE_SIGNAL_100: "price_signal_100",
+  STRIPE_PRICE_SIGNAL_60: "price_signal_60",
+  STRIPE_PRICE_SIGNAL_150: "price_signal_150",
   STRIPE_PRICE_SIGNAL_300: "price_signal_300",
-  STRIPE_PRICE_SIGNAL_750: "price_signal_750"
+  STRIPE_PRICE_SIGNAL_600: "price_signal_600"
 });
 
 function paymentDb() {
@@ -130,18 +130,33 @@ const event = (type, session) => ({ type, data: { object: session } });
 test("checkout endpoint rejects an unauthenticated browser", async () => {
   const response = await worker.fetch(new Request("https://worker.example/api/nina/credits/checkout", {
     method: "POST", headers: { Origin: "https://parallelvisionlabel.com", "Content-Type": "application/json" },
-    body: JSON.stringify({ packId: "signal_100" })
+    body: JSON.stringify({ packId: "signal_150" })
   }), {}, { waitUntil() {} });
   assert.equal(response.status, 401);
 });
 
 test("unknown packs are rejected before a Stripe request", async () => {
   const stripe = mockStripe();
-  await assert.rejects(
-    () => createSignalCreditCheckout(configuredEnv(paymentDb()), { user: { id: "u1" }, clerkUserId: "user_1" }, "signal_999", "https://parallelvisionlabel.com", stripe),
-    error => error instanceof StripePurchaseError && error.code === "invalid_pack"
-  );
+  for (const packId of ["signal_30", "signal_100", "signal_750", "signal_999"]) {
+    await assert.rejects(
+      () => createSignalCreditCheckout(configuredEnv(paymentDb()), { user: { id: "u1" }, clerkUserId: "user_1" }, packId, "https://parallelvisionlabel.com", stripe),
+      error => error instanceof StripePurchaseError && error.code === "invalid_pack"
+    );
+  }
   assert.equal(stripe.calls.length, 0);
+});
+
+test("active catalog exposes only the final four server-authoritative packs", () => {
+  const catalog = signalCreditCatalog(configuredEnv(paymentDb()));
+  assert.deepEqual(Object.keys(catalog), ["signal_60", "signal_150", "signal_300", "signal_600"]);
+  assert.deepEqual(Object.fromEntries(Object.entries(catalog).map(([id, pack]) => [id, {
+    credits: pack.credits, amountEurCents: pack.amountEurCents, priceBinding: pack.priceBinding, stripePriceId: pack.stripePriceId
+  }])), {
+    signal_60: { credits: 60, amountEurCents: 400, priceBinding: "STRIPE_PRICE_SIGNAL_60", stripePriceId: "price_signal_60" },
+    signal_150: { credits: 150, amountEurCents: 1000, priceBinding: "STRIPE_PRICE_SIGNAL_150", stripePriceId: "price_signal_150" },
+    signal_300: { credits: 300, amountEurCents: 2000, priceBinding: "STRIPE_PRICE_SIGNAL_300", stripePriceId: "price_signal_300" },
+    signal_600: { credits: 600, amountEurCents: 3500, priceBinding: "STRIPE_PRICE_SIGNAL_600", stripePriceId: "price_signal_600" }
+  });
 });
 
 test("checkout uses only canonical pack values and assigns the authenticated user", async () => {
@@ -155,28 +170,28 @@ test("checkout uses only canonical pack values and assigns the authenticated use
   assert.equal(request.metadata.user_id, "correct-user");
   assert.equal(purchase.user_id, "correct-user");
   assert.equal(purchase.credits, 300);
-  assert.equal(purchase.amount_total, 2500);
+  assert.equal(purchase.amount_total, 2000);
 });
 
-test("30-credit starter pack creates a validated €3 Checkout purchase", async () => {
+test("60-credit starter pack creates a validated €4 Checkout purchase", async () => {
   const db = paymentDb();
   const env = configuredEnv(db);
   const stripe = mockStripe();
-  const { purchase, session } = await openPurchase(env, stripe, "signal_30", "starter-user");
+  const { purchase, session } = await openPurchase(env, stripe, "signal_60", "starter-user");
   const request = stripe.calls[0].params;
-  assert.deepEqual(request.line_items, [{ price: "price_signal_30", quantity: 1 }]);
-  assert.equal(request.metadata.credits, "30");
-  assert.equal(purchase.pack_id, "signal_30");
-  assert.equal(purchase.credits, 30);
-  assert.equal(purchase.amount_total, 300);
+  assert.deepEqual(request.line_items, [{ price: "price_signal_60", quantity: 1 }]);
+  assert.equal(request.metadata.credits, "60");
+  assert.equal(purchase.pack_id, "signal_60");
+  assert.equal(purchase.credits, 60);
+  assert.equal(purchase.amount_total, 400);
   await processStripeEvent(env, event("checkout.session.completed", session), stripe);
-  assert.equal(db.accounts.get("starter-user").balance, 30);
+  assert.equal(db.accounts.get("starter-user").balance, 60);
   assert.equal(purchase.status, "paid");
 });
 
 test("localhost checkout returns local success and cancel URLs", async () => {
   const stripe = mockStripe();
-  await createSignalCreditCheckout(configuredEnv(paymentDb()), { user: { id: "u1" }, clerkUserId: "user_1" }, "signal_100", "http://127.0.0.1:4173", stripe);
+  await createSignalCreditCheckout(configuredEnv(paymentDb()), { user: { id: "u1" }, clerkUserId: "user_1" }, "signal_150", "http://127.0.0.1:4173", stripe);
   assert.equal(stripe.calls[0].params.success_url, "http://127.0.0.1:4173/?ninaCredits=success");
   assert.equal(stripe.calls[0].params.cancel_url, "http://127.0.0.1:4173/?ninaCredits=cancel");
 });
@@ -201,10 +216,10 @@ test("a paid session grants the canonical credits exactly once on replay", async
   const db = paymentDb();
   const env = configuredEnv(db);
   const stripe = mockStripe();
-  const { purchase, session } = await openPurchase(env, stripe, "signal_750");
+  const { purchase, session } = await openPurchase(env, stripe, "signal_600");
   assert.equal((await processStripeEvent(env, event("checkout.session.completed", session), stripe)).idempotent, false);
   assert.equal((await processStripeEvent(env, event("checkout.session.completed", session), stripe)).idempotent, true);
-  assert.equal(db.accounts.get("internal-user").balance, 750);
+  assert.equal(db.accounts.get("internal-user").balance, 600);
   assert.equal(db.transactions.length, 1);
   assert.equal(purchase.status, "paid");
   assert.equal(purchase.stripe_payment_intent_id, "pi_test");
@@ -216,11 +231,11 @@ test("a referrer receives 100 credits once when the referred user first complete
   const env = configuredEnv(db);
   const stripe = mockStripe();
 
-  const starter = await openPurchase(env, stripe, "signal_30", "referred-user");
+  const starter = await openPurchase(env, stripe, "signal_60", "referred-user");
   assert.equal((await processStripeEvent(env, event("checkout.session.completed", starter.session), stripe)).referralReward.status, "not_qualified");
   assert.equal(db.accounts.has("referrer-user"), false);
 
-  const qualifying = await openPurchase(env, stripe, "signal_100", "referred-user");
+  const qualifying = await openPurchase(env, stripe, "signal_150", "referred-user");
   const first = await processStripeEvent(env, event("checkout.session.completed", qualifying.session), stripe);
   assert.deepEqual(first.referralReward, { rewarded: true, status: "rewarded" });
   assert.equal(db.accounts.get("referrer-user").balance, 100);
@@ -238,8 +253,8 @@ test("tampered pack metadata is rejected without granting credits", async () => 
   const db = paymentDb();
   const env = configuredEnv(db);
   const stripe = mockStripe();
-  const { session } = await openPurchase(env, stripe, "signal_100");
-  stripe.sessions.get(session.id).metadata.pack_id = "signal_750";
+  const { session } = await openPurchase(env, stripe, "signal_150");
+  stripe.sessions.get(session.id).metadata.pack_id = "signal_600";
   await assert.rejects(() => processStripeEvent(env, event("checkout.session.completed", session), stripe), /validation failed/);
   assert.equal(db.transactions.length, 0);
 });
@@ -249,7 +264,7 @@ test("expired and asynchronous failed sessions never grant credits", async () =>
     const db = paymentDb();
     const env = configuredEnv(db);
     const stripe = mockStripe();
-    const { purchase, session } = await openPurchase(env, stripe, "signal_100");
+    const { purchase, session } = await openPurchase(env, stripe, "signal_150");
     await processStripeEvent(env, event(type, session), stripe);
     assert.equal(purchase.status, expected);
     assert.equal(db.transactions.length, 0);

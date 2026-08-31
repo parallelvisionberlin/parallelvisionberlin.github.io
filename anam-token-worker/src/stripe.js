@@ -3,10 +3,10 @@ import { creditSignalCredits } from "./credits.js";
 import { rewardQualifyingReferral } from "./referrals.js";
 
 const PACK_DEFINITIONS = Object.freeze({
-  signal_30: Object.freeze({ packId: "signal_30", credits: 30, amountEurCents: 300, priceBinding: "STRIPE_PRICE_SIGNAL_30", enabled: true }),
-  signal_100: Object.freeze({ packId: "signal_100", credits: 100, amountEurCents: 900, priceBinding: "STRIPE_PRICE_SIGNAL_100", enabled: true }),
-  signal_300: Object.freeze({ packId: "signal_300", credits: 300, amountEurCents: 2500, priceBinding: "STRIPE_PRICE_SIGNAL_300", enabled: true }),
-  signal_750: Object.freeze({ packId: "signal_750", credits: 750, amountEurCents: 5500, priceBinding: "STRIPE_PRICE_SIGNAL_750", enabled: true })
+  signal_60: Object.freeze({ packId: "signal_60", credits: 60, amountEurCents: 400, priceBinding: "STRIPE_PRICE_SIGNAL_60", enabled: true }),
+  signal_150: Object.freeze({ packId: "signal_150", credits: 150, amountEurCents: 1000, priceBinding: "STRIPE_PRICE_SIGNAL_150", enabled: true }),
+  signal_300: Object.freeze({ packId: "signal_300", credits: 300, amountEurCents: 2000, priceBinding: "STRIPE_PRICE_SIGNAL_300", enabled: true }),
+  signal_600: Object.freeze({ packId: "signal_600", credits: 600, amountEurCents: 3500, priceBinding: "STRIPE_PRICE_SIGNAL_600", enabled: true })
 });
 
 export class StripePurchaseError extends Error {

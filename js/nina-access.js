@@ -80,7 +80,7 @@ const ninaAccountName = byId("ninaAccountName");
 const ninaSignalCredits = byId("ninaSignalCredits");
 const ninaLiveTime = byId("ninaLiveTime");
 const ninaAccountSignOut = byId("ninaAccountSignOut");
-const SIGNAL_CREDIT_PACK_IDS = new Set(["signal_30", "signal_100", "signal_300", "signal_750"]);
+const SIGNAL_CREDIT_PACK_IDS = new Set(["signal_60", "signal_150", "signal_300", "signal_600"]);
 const NINA_CREDIT_CHECKOUT_STATE_KEY = "nina_signal_credit_checkout_v1";
 const ninaAccessHash = "d3ec7a14e4fefc8da57d4045a6ee28d28b328b78126c1e22bc0b541adf0f215c";
 const NINA_PREFERRED_MICROPHONE_KEY = "ninaPreferredMicrophoneId";
@@ -525,10 +525,10 @@ function initializeSignalCreditPurchaseUI() {
       <h2 class="nina-credits-purchase-title" id="ninaCreditsPurchaseTitle">Signal Credits</h2>
       <p class="nina-credits-purchase-lead" id="ninaCreditsPurchaseLead" style="font-size:1.06em">Access Nina's live transmissions.</p>
       <div class="nina-credits-pack-list">
-        <button class="nina-credits-pack" type="button" data-pack-id="signal_30"><span class="nina-credits-pack-copy"><span class="nina-credits-pack-time">3 Minutes</span><span class="nina-credits-pack-title">30 Signal Credits</span><span class="nina-credits-pack-description">A short live signal with Nina.</span></span><strong>€3</strong></button>
-        <button class="nina-credits-pack" type="button" data-pack-id="signal_100"><span class="nina-credits-pack-copy"><span class="nina-credits-pack-time">10 Minutes</span><span class="nina-credits-pack-title">100 Signal Credits</span><span class="nina-credits-pack-description">More time to stay in the conversation.</span></span><strong>€9</strong></button>
-        <button class="nina-credits-pack" type="button" data-pack-id="signal_300"><span class="nina-credits-pack-copy"><span class="nina-credits-pack-time">30 Minutes</span><span class="nina-credits-pack-title">300 Signal Credits</span><span class="nina-credits-pack-description">For a longer uninterrupted signal.</span></span><strong>€25</strong></button>
-        <button class="nina-credits-pack" type="button" data-pack-id="signal_750"><span class="nina-credits-pack-copy"><span class="nina-credits-pack-time">75 Minutes</span><span class="nina-credits-pack-title">750 Signal Credits</span><span class="nina-credits-pack-description">For returning conversations.</span></span><strong>€55</strong></button>
+        <button class="nina-credits-pack" type="button" data-pack-id="signal_60"><span class="nina-credits-pack-copy"><span class="nina-credits-pack-time">6 Minutes</span><span class="nina-credits-pack-title">60 Signal Credits</span><span class="nina-credits-pack-description">A short live signal with Nina.</span></span><strong>€4</strong></button>
+        <button class="nina-credits-pack" type="button" data-pack-id="signal_150"><span class="nina-credits-pack-copy"><span class="nina-credits-pack-time">15 Minutes</span><span class="nina-credits-pack-title">150 Signal Credits</span><span class="nina-credits-pack-description">More time to stay in the conversation.</span></span><strong>€10</strong></button>
+        <button class="nina-credits-pack" type="button" data-pack-id="signal_300"><span class="nina-credits-pack-copy"><span class="nina-credits-pack-time">30 Minutes</span><span class="nina-credits-pack-title">300 Signal Credits</span><span class="nina-credits-pack-description">For a longer uninterrupted signal.</span></span><strong>€20</strong></button>
+        <button class="nina-credits-pack" type="button" data-pack-id="signal_600"><span class="nina-credits-pack-copy"><span class="nina-credits-pack-time">60 Minutes</span><span class="nina-credits-pack-title">600 Signal Credits</span><span class="nina-credits-pack-description">For returning conversations.</span></span><strong>€35</strong></button>
       </div>
       <details class="nina-credits-about">
         <summary><span class="nina-credits-about-closed">About Signal Credits +</span><span class="nina-credits-about-open">About Signal Credits −</span></summary>
