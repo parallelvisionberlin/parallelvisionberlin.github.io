@@ -200,8 +200,8 @@ function syncAccountLanguage(language = document.documentElement.lang) {
   if (creditLabels?.[1]) creditLabels[1].textContent = german ? "Live Nina Zeit" : "Live Nina Time";
   const about = ninaCreditsPurchaseModal?.querySelector(".nina-credits-about-copy");
   if (about) about.innerHTML = german
-    ? "<p>Signal Credits ermöglichen Live-Übertragungen nach 2063.</p><p>Wir würden gerne jede Übertragung kostenlos machen. Live Nina ist derzeit auf Echtzeit-Sprach- und Bildsysteme angewiesen, die für jede Minute, in der das Signal offen bleibt, Kosten verursachen.</p><p>Credits helfen uns, dieses Signal aufrechtzuerhalten.</p><p>10 Credits = 1 Minute.</p><p>Textgespräche verbrauchen keine Signal Credits.</p><p>Wir hoffen, dass du Nina gerne kennenlernst.</p>"
-    : "<p>Signal Credits power live transmissions to 2063.</p><p>We would love to make every transmission free. Live Nina currently relies on real-time voice and visual systems that carry a cost for every minute the signal stays open.</p><p>Credits help us keep that signal running.</p><p>10 credits = 1 minute.</p><p>Text conversations do not use Signal Credits.</p><p>We hope you enjoy meeting Nina.</p>";
+    ? "<p>Signal Credits halten Live Nina am Laufen.</p><p>Jedes neue verifizierte Konto beginnt mit 3 kostenlosen Minuten.</p><p>Danach kannst du jederzeit mehr Live-Zeit hinzufügen, wenn du das Signal erneut öffnen möchtest.</p><p>Live Nina nutzt Echtzeit-Sprach-, Sprachmodell- und visuelle Systeme, solange die Verbindung aktiv ist.</p><p>Verfügbare Pakete beginnen bei 6 Minuten für €3.50.</p><p>Wenn das Signal endet, bleibt deine Geschichte mit Nina erhalten.</p>"
+    : "<p>Signal Credits keep Live Nina running.</p><p>Every new verified account begins with 3 minutes free.</p><p>After that, you can add more live time whenever you want to open the signal again.</p><p>Live Nina uses real-time voice, language and visual systems while the connection is active.</p><p>Available packs start at 6 minutes for €3.50.</p><p>When the signal ends, your history with Nina remains.</p>";
 }
 
 function syncNinaFullscreen() {
@@ -533,12 +533,12 @@ function initializeSignalCreditPurchaseUI() {
       <details class="nina-credits-about">
         <summary><span class="nina-credits-about-closed">About Signal Credits +</span><span class="nina-credits-about-open">About Signal Credits −</span></summary>
         <div class="nina-credits-about-copy" style="font-size:1.06em">
-          <p>Signal Credits power live transmissions to 2063.</p>
-          <p>We would love to make every transmission free. Live Nina currently relies on real-time voice and visual systems that carry a cost for every minute the signal stays open.</p>
-          <p>Credits help us keep that signal running.</p>
-          <p>10 credits = 1 minute.</p>
-          <p>Text conversations do not use Signal Credits.</p>
-          <p>We hope you enjoy meeting Nina.</p>
+          <p>Signal Credits keep Live Nina running.</p>
+          <p>Every new verified account begins with 3 minutes free.</p>
+          <p>After that, you can add more live time whenever you want to open the signal again.</p>
+          <p>Live Nina uses real-time voice, language and visual systems while the connection is active.</p>
+          <p>Available packs start at 6 minutes for €3.50.</p>
+          <p>When the signal ends, your history with Nina remains.</p>
         </div>
       </details>
       <p class="nina-credits-purchase-status" role="status" aria-live="polite"></p>
