@@ -1106,6 +1106,21 @@ body.nina-fullscreen-active {
   color: #fff;
 }
 
+.nina-account-buy-credits[data-action="transmit"] {
+  color: #fff;
+  font-family: Inter, sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: .11em;
+}
+
+.nina-account-buy-credits[data-action="transmit"]:hover,
+.nina-account-buy-credits[data-action="transmit"]:focus-visible {
+  border-color: #fff;
+  background: #fff;
+  color: #000;
+}
+
 body:has(.nina-account-panel:not([hidden])) .home-desktop-signal-tab {
   display: none;
 }
