@@ -1300,32 +1300,123 @@ h2 {
 ========================================================= */
 
 .contact {
-  padding:
-    100px
-    20px
-    70px;
-
+  min-height: clamp(380px, 34vw, 450px);
+  padding: clamp(80px, 6vw, 88px) 0 clamp(64px, 5vw, 72px);
   background: #000;
-
   text-align: center;
+  scroll-margin-top: 24px;
+}
+
+.contact-inner {
+  width: min(1180px, calc(100% - 52px));
+  margin: 0 auto;
 }
 
 .contact h2 {
-  margin-bottom: 30px;
+  margin: 0 0 clamp(44px, 4vw, 52px);
+  font-family: 'Michroma', sans-serif;
+  font-size: clamp(25px, 2.4vw, 34px);
+  font-weight: 400;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.contact-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(36px, 5vw, 72px);
+  text-align: left;
+}
+
+.contact-block {
+  min-width: 0;
+}
+
+.contact-block h3 {
+  margin: 0 0 17px;
+  color: rgba(255, 255, 255, .5);
+  font: 10px/1.3 'Courier New', monospace;
+  letter-spacing: .28em;
+  text-transform: uppercase;
+}
+
+.contact-email {
+  display: inline-block;
+  max-width: 100%;
+  color: rgba(255, 255, 255, .94);
+  font-size: clamp(14px, 1.3vw, 17px);
+  letter-spacing: .02em;
+  overflow-wrap: anywhere;
+}
+
+.contact-block p {
+  max-width: 320px;
+  margin: 15px 0 0;
+  color: rgba(255, 255, 255, .52);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.contact-socials {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 18px clamp(28px, 4vw, 52px);
+  margin-top: clamp(48px, 4vw, 56px);
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, .14);
+}
+
+.contact-socials a {
+  color: #d7d7d7;
+  font: 10px/1.4 'Courier New', monospace;
+  letter-spacing: .22em;
+  text-transform: uppercase;
 }
 
 .contact a {
-  display: inline-block;
+  transition: color .2s ease;
+}
 
-  margin:
-    10px
-    20px;
+.contact a:hover,
+.contact a:focus-visible {
+  color: #fff;
+}
 
-  color: #d7d7d7;
+@media (max-width: 680px) {
+  .contact {
+    min-height: 0;
+    padding: 88px 0 82px;
+    scroll-margin-top: 12px;
+  }
 
-  font-size: 14px;
+  .contact-inner {
+    width: calc(100% - 40px);
+  }
 
-  letter-spacing: .08em;
+  .contact h2 {
+    margin-bottom: 52px;
+    font-size: 25px;
+  }
+
+  .contact-grid {
+    grid-template-columns: 1fr;
+    gap: 44px;
+  }
+
+  .contact-email {
+    font-size: 16px;
+  }
+
+  .contact-block p {
+    max-width: 100%;
+    font-size: 13px;
+  }
+
+  .contact-socials {
+    justify-content: flex-start;
+    margin-top: 64px;
+  }
 }
 
 footer {
