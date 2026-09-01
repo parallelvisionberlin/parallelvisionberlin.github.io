@@ -86,6 +86,8 @@ const ninaLiveTime = byId("ninaLiveTime");
 const ninaAccountSignOut = byId("ninaAccountSignOut");
 const SIGNAL_CREDIT_PACK_IDS = new Set(["signal_60", "signal_150", "signal_300", "signal_600"]);
 const NINA_CREDIT_CHECKOUT_STATE_KEY = "nina_signal_credit_checkout_v1";
+const NINA_CREDIT_SNAPSHOT_KEY = "nina_signal_credit_snapshot_v1";
+const NINA_CREDIT_SNAPSHOT_TTL_MS = 10 * 60 * 1000;
 const ninaAccessHash = "d3ec7a14e4fefc8da57d4045a6ee28d28b328b78126c1e22bc0b541adf0f215c";
 const NINA_PREFERRED_MICROPHONE_KEY = "ninaPreferredMicrophoneId";
 const NINA_VISITOR_ID_KEY = "nina_fok_visitor_id_v1";
@@ -122,6 +124,8 @@ let ninaClerkUILoading = null;
 let ninaCreditsUserId = "";
 let ninaCreditsRequest = 0;
 let ninaCreditsBalance = null;
+let ninaCreditsLoadPromise = null;
+let ninaCreditsLoadUserId = "";
 let ninaOwnerBypass = false;
 let ninaCreditsPurchasePending = false;
 let ninaCreditsPurchaseTrigger = null;
@@ -178,6 +182,40 @@ const formatLiveTime = seconds => {
   const remainder = safe % 60;
   return remainder ? `${minutes} min ${remainder} sec` : `${minutes} min`;
 };
+
+function clearSignalCreditSnapshot() {
+  try { localStorage.removeItem(NINA_CREDIT_SNAPSHOT_KEY); } catch { /* Display cache is optional. */ }
+}
+
+function readSignalCreditSnapshot(userId) {
+  try {
+    const snapshot = JSON.parse(localStorage.getItem(NINA_CREDIT_SNAPSHOT_KEY) || "null");
+    const valid = snapshot?.userId === userId &&
+      Number.isSafeInteger(snapshot.balance) && snapshot.balance >= 0 &&
+      Number.isSafeInteger(snapshot.remainingSeconds) && snapshot.remainingSeconds >= 0 &&
+      Number.isSafeInteger(snapshot.timestamp) &&
+      Date.now() >= snapshot.timestamp && Date.now() - snapshot.timestamp <= NINA_CREDIT_SNAPSHOT_TTL_MS;
+    if (valid) return snapshot;
+    if (snapshot) clearSignalCreditSnapshot();
+  } catch { clearSignalCreditSnapshot(); }
+  return null;
+}
+
+function writeSignalCreditSnapshot(userId, balance, remainingSeconds) {
+  if (!userId || !Number.isSafeInteger(balance) || balance < 0 ||
+      !Number.isSafeInteger(remainingSeconds) || remainingSeconds < 0) return;
+  try {
+    localStorage.setItem(NINA_CREDIT_SNAPSHOT_KEY, JSON.stringify({ userId, balance, remainingSeconds, timestamp: Date.now() }));
+  } catch { /* Display cache is optional. */ }
+}
+
+function renderSignalCreditDisplay(balance, remainingSeconds) {
+  if (ninaSignalCredits) {
+    ninaSignalCredits.textContent = `${balance.toLocaleString()} credits`;
+    ninaSignalCredits.removeAttribute("data-state");
+  }
+  if (ninaLiveTime) ninaLiveTime.textContent = formatLiveTime(remainingSeconds);
+}
 
 function normalizedReferralCode(value) {
   const code = typeof value === "string" ? value.trim().toUpperCase() : "";
@@ -372,7 +410,10 @@ function updateNinaAccountControls(clerk = ninaClerk) {
     ninaCreditsUserId = "";
     ninaCreditsRequest += 1;
     ninaCreditsBalance = null;
+    ninaCreditsLoadPromise = null;
+    ninaCreditsLoadUserId = "";
     ninaOwnerBypass = false;
+    clearSignalCreditSnapshot();
     syncNinaAccountCreditActions(null);
     if (ninaSignalCredits) {
       ninaSignalCredits.textContent = "Loading…";
@@ -418,53 +459,74 @@ async function loadAccountDisplayName(clerk = ninaClerk, fallback = "Connected a
   }
 }
 
-async function loadSignalCreditBalance(clerk = ninaClerk, force = false) {
-  if (!ninaSignalCredits || !clerk?.isSignedIn || !clerk?.session) return null;
+function loadSignalCreditBalance(clerk = ninaClerk, force = false) {
+  if (!ninaSignalCredits || !clerk?.isSignedIn || !clerk?.session) return Promise.resolve(null);
   const userId = clerk.user?.id || clerk.session.user?.id || "signed-in";
-  if (!force && ninaCreditsUserId === userId) return ninaCreditsBalance;
-  ninaCreditsUserId = userId;
-  const requestId = ++ninaCreditsRequest;
-  ninaSignalCredits.textContent = "Loading…";
-  if (ninaLiveTime) ninaLiveTime.textContent = "Loading…";
-  ninaSignalCredits.removeAttribute("data-state");
-  try {
-    const token = await clerk.session.getToken();
-    if (!token) throw new Error("Account token unavailable");
-    const response = await fetch(`${ANAM_SESSION_TOKEN_ENDPOINT.replace(/\/session-token$/, "")}/api/nina/credits`, {
-      headers: { "Authorization": `Bearer ${token}`, "Accept": "application/json" },
-      cache: "no-store"
-    });
-    const data = await response.json();
-    if (!response.ok) {
-      const error = new Error(typeof data?.error === "string" ? data.error : "Signal Credit balance unavailable");
-      error.code = data?.code;
-      throw error;
-    }
-    if (!Number.isSafeInteger(data?.balance) || data.balance < 0) throw new Error("Invalid Signal Credit balance");
-    if (requestId !== ninaCreditsRequest) return null;
-    ninaCreditsBalance = data.balance;
-    ninaOwnerBypass = data.ownerBypass === true;
-    syncNinaAccountCreditActions(data.balance);
-    ninaSignalCredits.textContent = `${data.balance.toLocaleString()} credits`;
-    if (ninaLiveTime) ninaLiveTime.textContent = formatLiveTime(data.remainingSeconds);
-    return data.balance;
-  } catch (error) {
-    if (requestId !== ninaCreditsRequest) return null;
+  if (ninaCreditsLoadPromise && ninaCreditsLoadUserId === userId) return ninaCreditsLoadPromise;
+  if (!force && ninaCreditsUserId === userId && Number.isSafeInteger(ninaCreditsBalance)) return Promise.resolve(ninaCreditsBalance);
+  const userChanged = Boolean(ninaCreditsUserId && ninaCreditsUserId !== userId);
+  if (userChanged) {
     ninaCreditsBalance = null;
     ninaOwnerBypass = false;
     syncNinaAccountCreditActions(null);
-    const verificationRequired = error?.code === "email_verification_required";
-    if (verificationRequired) {
-      ninaSignalCredits.textContent = "Confirm email";
-      if (ninaLiveTime) ninaLiveTime.textContent = "Verification required";
-    } else {
-      ninaSignalCredits.textContent = "Unavailable";
-      if (ninaLiveTime) ninaLiveTime.textContent = "Unavailable";
-    }
-    ninaSignalCredits.dataset.state = verificationRequired ? "verification-required" : "unavailable";
-    logDevelopmentError("Signal Credit balance unavailable.", error);
-    return null;
+    clearSignalCreditSnapshot();
   }
+  ninaCreditsUserId = userId;
+  const requestId = ++ninaCreditsRequest;
+  const snapshot = readSignalCreditSnapshot(userId);
+  if (snapshot) renderSignalCreditDisplay(snapshot.balance, snapshot.remainingSeconds);
+  else {
+    ninaSignalCredits.textContent = "Loading…";
+    if (ninaLiveTime) ninaLiveTime.textContent = "Loading…";
+    ninaSignalCredits.removeAttribute("data-state");
+  }
+  ninaCreditsLoadUserId = userId;
+  ninaCreditsLoadPromise = (async () => {
+    try {
+      const token = await clerk.session.getToken();
+      if (!token) throw new Error("Account token unavailable");
+      const response = await fetch(`${ANAM_SESSION_TOKEN_ENDPOINT.replace(/\/session-token$/, "")}/api/nina/credits`, {
+        headers: { "Authorization": `Bearer ${token}`, "Accept": "application/json" },
+        cache: "no-store"
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        const error = new Error(typeof data?.error === "string" ? data.error : "Signal Credit balance unavailable");
+        error.code = data?.code;
+        throw error;
+      }
+      if (!Number.isSafeInteger(data?.balance) || data.balance < 0) throw new Error("Invalid Signal Credit balance");
+      if (requestId !== ninaCreditsRequest) return null;
+      ninaCreditsBalance = data.balance;
+      ninaOwnerBypass = data.ownerBypass === true;
+      syncNinaAccountCreditActions(data.balance);
+      renderSignalCreditDisplay(data.balance, data.remainingSeconds);
+      writeSignalCreditSnapshot(userId, data.balance, data.remainingSeconds);
+      return data.balance;
+    } catch (error) {
+      if (requestId !== ninaCreditsRequest) return null;
+      ninaCreditsBalance = null;
+      ninaOwnerBypass = false;
+      syncNinaAccountCreditActions(null);
+      const verificationRequired = error?.code === "email_verification_required";
+      if (verificationRequired) {
+        ninaSignalCredits.textContent = "Confirm email";
+        if (ninaLiveTime) ninaLiveTime.textContent = "Verification required";
+      } else {
+        ninaSignalCredits.textContent = "Unavailable";
+        if (ninaLiveTime) ninaLiveTime.textContent = "Unavailable";
+      }
+      ninaSignalCredits.dataset.state = verificationRequired ? "verification-required" : "unavailable";
+      logDevelopmentError("Signal Credit balance unavailable.", error);
+      return null;
+    }
+  })().finally(() => {
+    if (ninaCreditsLoadUserId === userId) {
+      ninaCreditsLoadPromise = null;
+      ninaCreditsLoadUserId = "";
+    }
+  });
+  return ninaCreditsLoadPromise;
 }
 
 function loadNinaClerkUI() {
@@ -1394,6 +1456,7 @@ async function settleNinaUsage(end = false, keepalive = false) {
       ninaUsageRemainingSeconds = result.remainingSeconds;
       if (ninaLiveTime) ninaLiveTime.textContent = formatLiveTime(result.remainingSeconds);
     }
+    writeSignalCreditSnapshot(ninaCreditsUserId, ninaCreditsBalance, ninaUsageRemainingSeconds);
     if (Number.isSafeInteger(result.settlementSeconds)) ninaUsageSettlementSeconds = result.settlementSeconds;
     if (result.status === "exhausted") {
       ninaUsageActive = false;
