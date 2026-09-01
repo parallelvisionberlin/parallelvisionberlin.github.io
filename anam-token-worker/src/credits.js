@@ -1,4 +1,4 @@
-import { getClerkEmailVerification } from "./auth.js";
+import { getClerkEmailVerification, synchronizeAuthenticatedUserEmail } from "./auth.js";
 
 const MAX_CREDIT_AMOUNT = 1000000000;
 const DEFAULT_HISTORY_LIMIT = 20;
@@ -110,7 +110,8 @@ export function creditSignalCredits(env, userId, amount, options) {
 
 export async function ensureVerifiedSignupTrial(env, user, clerkUserId) {
   if (user?.role !== "user") return { eligible: false, verificationRequired: false, granted: false };
-  const verification = await getClerkEmailVerification(env, clerkUserId);
+  const verification = user.clerk_email_verification || await getClerkEmailVerification(env, clerkUserId);
+  await synchronizeAuthenticatedUserEmail(env, { ...user, auth_subject: clerkUserId }, verification.email);
   if (!verification.verified) return { eligible: false, verificationRequired: true, granted: false };
   const userId = validUserId(user.id || user.user_id);
   const result = await creditSignalCredits(env, userId, 30, {

@@ -18,6 +18,11 @@ function creditDb(users = []) {
       return {
         bind(...bound) { values = bound; return this; },
         async run() {
+          if (normalized.startsWith("UPDATE users SET email")) {
+            const user = users.find(candidate => candidate.id === values[2] && candidate.auth_subject === values[3]);
+            if (user) user.email = values[0];
+            return { meta: { changes: user ? 1 : 0 } };
+          }
           if (normalized.startsWith("INSERT OR IGNORE INTO signal_credit_accounts")) {
             if (!accounts.has(values[0])) accounts.set(values[0], { balance: 0, lifetime_credited: 0, lifetime_debited: 0, updated_at: values[2] });
             return { meta: { changes: 1 } };
@@ -184,6 +189,13 @@ test("verified signup trial uses the permanent credit ledger exactly once", asyn
       await creditSignalCredits(env, user.id, 100, { source: "stripe_purchase", referenceId: "purchase-1" });
       await ensureVerifiedSignupTrial(env, user, "user_member1");
       assert.equal(db.accounts.get(user.id).balance, 130);
+    });
+
+    await t.test("the verified-email lookup synchronizes a changed primary email", async () => {
+      const storedUser = { id: user.id, auth_subject: "user_member1", email: "old@example.com", role: "user" };
+      const db = creditDb([storedUser]);
+      await ensureVerifiedSignupTrial(envFor(db), { ...user, auth_subject: storedUser.auth_subject, email: storedUser.email }, storedUser.auth_subject);
+      assert.equal(storedUser.email, "member@example.com");
     });
 
     await t.test("unverified users and owners receive no trial", async () => {

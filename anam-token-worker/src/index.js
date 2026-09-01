@@ -258,7 +258,7 @@ async function authenticateNinaRequest(request, env, body) {
         ...user,
         display_name: authenticatedMemoryDisplayName(user, preferences.preferredName)
       });
-      return { ...memoryIdentity, preferred_name: preferences.preferredName, clerk_user_id: claims.sub };
+      return { ...memoryIdentity, preferred_name: preferences.preferredName, clerk_user_id: claims.sub, clerk_email_verification: user.clerk_email_verification };
     }
   }
   const owner = await authenticateOwnerRequest(request, env, body);

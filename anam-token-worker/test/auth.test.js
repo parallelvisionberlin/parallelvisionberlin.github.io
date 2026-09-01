@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { asMemoryIdentity, getClerkEmailVerification, resolveAuthenticatedUser, verifyClerkSessionToken } from "../src/auth.js";
+import { asMemoryIdentity, getClerkEmailVerification, resolveAuthenticatedUser, synchronizeAuthenticatedUserEmail, verifyClerkSessionToken } from "../src/auth.js";
 
 const encode = value => Buffer.from(typeof value === "string" ? value : JSON.stringify(value)).toString("base64url");
 
@@ -36,7 +36,7 @@ test("the same Clerk subject resolves to one permanent internal user and D1 cont
     prepare(sql) {
       return {
         bind(...values) {
-          if (sql.includes("SELECT id, display_name")) return { first: async () => user?.auth_subject === values[0] ? user : null };
+          if (sql.includes("FROM users WHERE auth_provider = 'clerk'")) return { first: async () => user?.auth_subject === values[0] ? user : null };
           if (sql.includes("INSERT INTO visitors")) return { run: async () => ({}) };
           if (sql.includes("INSERT INTO users")) return { run: async () => ({}) };
           throw new Error(`Unexpected SQL: ${sql}`);
@@ -61,7 +61,7 @@ test("a verified account name updates normal users but never overwrites the owne
     prepare(sql) {
       return {
         bind(...values) {
-          if (sql.includes("SELECT id, display_name")) return { first: async () => user };
+          if (sql.includes("FROM users WHERE auth_provider = 'clerk'")) return { first: async () => user };
           if (sql.startsWith("UPDATE users SET display_name")) return { run: async () => { updates.push(["users", ...values]); user = { ...user, display_name: values[0] }; } };
           if (sql.startsWith("UPDATE visitors SET display_name")) return { run: async () => { updates.push(["visitors", ...values]); } };
           throw new Error(`Unexpected SQL: ${sql}`);
@@ -99,5 +99,85 @@ test("email verification is read from Clerk's primary backend email object, not 
     assert.deepEqual(result, { verified: false, email: "member@example.com" });
     assert.equal(requests[0].url, "https://api.clerk.com/v1/users/user_member1");
     assert.equal(requests[0].options.headers.Authorization, "Bearer clerk-secret");
+  } finally { globalThis.fetch = originalFetch; }
+});
+
+function emailSyncDb(initialUser = null) {
+  let user = initialUser ? { ...initialUser } : null;
+  const updates = [];
+  return {
+    get user() { return user; },
+    updates,
+    prepare(sql) {
+      let values = [];
+      return {
+        bind(...bound) { values = bound; return this; },
+        async first() {
+          if (sql.includes("FROM users WHERE auth_provider = 'clerk'")) return user?.auth_subject === values[0] ? { ...user } : null;
+          throw new Error(`Unexpected first: ${sql}`);
+        },
+        async run() {
+          if (sql.includes("INSERT INTO visitors")) return {};
+          if (sql.includes("INSERT INTO users")) {
+            user = { id: values[0], auth_subject: values[1], email: values[2], display_name: values[3], role: "user", memory_visitor_id: values[4] };
+            return {};
+          }
+          if (sql.startsWith("UPDATE users SET email")) {
+            updates.push(values[0]);
+            if (user?.id === values[2] && user.auth_subject === values[3]) user = { ...user, email: values[0] };
+            return {};
+          }
+          throw new Error(`Unexpected run: ${sql}`);
+        }
+      };
+    },
+    async batch(statements) { await Promise.all(statements.map(statement => statement.run())); }
+  };
+}
+
+const clerkUserResponse = email => new Response(JSON.stringify({
+  primary_email_address_id: "idn_primary",
+  email_addresses: [{ id: "idn_primary", email_address: email, verification: { status: "verified" } }]
+}), { status: 200 });
+
+test("authenticated Clerk email synchronization persists, backfills and safely updates primary email", async t => {
+  const originalFetch = globalThis.fetch;
+  try {
+    await t.test("new users persist Clerk's primary email", async () => {
+      const db = emailSyncDb();
+      globalThis.fetch = async () => clerkUserResponse("New.Member@Example.com");
+      const user = await resolveAuthenticatedUser({ NINA_MEMORY_DB: db, CLERK_SECRET_KEY: "clerk-secret" }, { sub: "user_newmember" });
+      assert.equal(user.email, "new.member@example.com");
+      assert.equal(db.user.email, "new.member@example.com");
+    });
+
+    await t.test("existing NULL emails backfill without creating a duplicate user", async () => {
+      const existing = { id: "existing-1", auth_subject: "user_existing", email: null, display_name: "Existing", role: "user", memory_visitor_id: "memory-1" };
+      const db = emailSyncDb(existing);
+      globalThis.fetch = async () => clerkUserResponse("existing@example.com");
+      const user = await resolveAuthenticatedUser({ NINA_MEMORY_DB: db, CLERK_SECRET_KEY: "clerk-secret" }, { sub: "user_existing" });
+      assert.equal(user.id, existing.id);
+      assert.equal(user.email, "existing@example.com");
+      assert.deepEqual(db.updates, ["existing@example.com"]);
+    });
+
+    await t.test("a later Clerk primary-email change updates the same D1 user", async () => {
+      const existing = { id: "existing-2", auth_subject: "user_changed", email: "old@example.com", display_name: "Existing", role: "user", memory_visitor_id: "memory-2" };
+      const db = emailSyncDb(existing);
+      const user = await synchronizeAuthenticatedUserEmail({ NINA_MEMORY_DB: db }, existing, "New@Example.com");
+      assert.equal(user.id, existing.id);
+      assert.equal(user.email, "new@example.com");
+      assert.equal(db.user.email, "new@example.com");
+    });
+
+    await t.test("Clerk lookup failure leaves an existing user unchanged", async () => {
+      const existing = { id: "existing-3", auth_subject: "user_unavailable", email: null, display_name: "Existing", role: "user", memory_visitor_id: "memory-3" };
+      const db = emailSyncDb(existing);
+      globalThis.fetch = async () => { throw new Error("Clerk unavailable"); };
+      const user = await resolveAuthenticatedUser({ NINA_MEMORY_DB: db, CLERK_SECRET_KEY: "clerk-secret" }, { sub: "user_unavailable" });
+      assert.equal(user.id, existing.id);
+      assert.equal(user.email, null);
+      assert.equal(db.updates.length, 0);
+    });
   } finally { globalThis.fetch = originalFetch; }
 });
