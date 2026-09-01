@@ -17,7 +17,7 @@ body { min-width: 0; }
 .account-intro > .account-button { grid-column: 2; justify-self: end; }
 .account-layout { display: grid; grid-template-columns: 190px minmax(0, 1fr); gap: clamp(40px, 7vw, 100px); }
 .account-index-nav { position: sticky; top: 96px; align-self: start; display: grid; gap: 4px; padding-top: 34px; }
-.account-index-nav a { padding: 8px 0; color: #777; font: 11px/1.35 'Courier New', monospace; letter-spacing: .12em; text-decoration: none; text-transform: uppercase; }
+.account-index-nav a { padding: 8px 0; color: #858585; font: 13px/1.35 'Courier New', monospace; letter-spacing: .128em; text-decoration: none; text-transform: uppercase; }
 .account-index-nav a:hover, .account-index-nav a:focus-visible { color: #fff; }
 .account-sections { min-width: 0; }
 .account-section { display: grid; grid-template-columns: 42px minmax(0, 1fr); gap: 0 20px; padding: 40px 0 44px; border-bottom: 1px solid #292929; scroll-margin-top: 78px; }
