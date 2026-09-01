@@ -1128,7 +1128,7 @@ body.nina-fullscreen-active {
   gap: 12px;
   width: 100%;
   min-height: 80px;
-  margin: 0 0 18px;
+  margin: 0 0 12px;
   padding: 12px 13px;
   border: 1px solid rgba(183, 128, 65, .42);
   border-radius: 0;
@@ -1486,7 +1486,7 @@ body.nina-credits-purchase-active {
   .nina-account-credits-info-trigger { margin-bottom: 12px; font-size: 12.7px; }
   .nina-account-credits-info-panel { padding: 30px 22px 26px; }
   .nina-account-buy-credits { min-height: 44px; margin-bottom: 11px; padding-inline: 10px; font-size: 10px; }
-  .nina-account-referral-card { min-height: 74px; margin-bottom: 12px; padding: 10px 11px; }
+  .nina-account-referral-card { min-height: 74px; margin-bottom: 8px; padding: 10px 11px; }
   .nina-account-menu { gap: 0; padding: 3px 0; }
   .nina-account-menu a,
   .nina-account-menu > span,
