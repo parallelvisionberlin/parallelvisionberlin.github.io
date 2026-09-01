@@ -845,7 +845,7 @@ body.nina-fullscreen-active {
 }
 
 .nina-account-name {
-  margin: 11px 0 22px;
+  margin: 11px 0 5px;
   overflow-wrap: anywhere;
   color: rgba(255, 255, 255, .96);
   font-family: Inter, sans-serif;
@@ -854,6 +854,16 @@ body.nina-fullscreen-active {
   line-height: 1.35;
   letter-spacing: 0;
   text-transform: none;
+}
+
+.nina-account-channel {
+  margin: 0 0 24px;
+  color: rgba(255, 255, 255, .34);
+  font-family: 'Courier New', monospace;
+  font-size: 8.5px;
+  line-height: 1.4;
+  letter-spacing: .15em;
+  text-transform: uppercase;
 }
 
 .nina-account-explanation {
@@ -912,7 +922,7 @@ body.nina-fullscreen-active {
   gap: 2.2px;
   padding: 7px 0;
   border-top: 1px solid rgba(255, 255, 255, .15);
-  border-bottom: 1px solid rgba(255, 255, 255, .15);
+  border-bottom: 0;
   opacity: 1;
   font-family: Inter, sans-serif;
   font-size: 10.35px;
@@ -954,7 +964,7 @@ body.nina-fullscreen-active {
 .nina-account-menu a:focus-visible,
 .nina-account-action:hover,
 .nina-account-action:focus-visible {
-  background: rgba(255, 255, 255, .055);
+  background: transparent;
   color: #fff;
 }
 
@@ -964,7 +974,7 @@ body.nina-fullscreen-active {
   align-items: baseline;
   gap: 8px 18px;
   margin: 0 0 16px;
-  padding: 17px 0 18px;
+  padding: 19px 0 20px;
   border-top: 1px solid rgba(255, 255, 255, .15);
   border-bottom: 1px solid rgba(255, 255, 255, .15);
   color: rgba(255, 255, 255, .5);
@@ -1119,79 +1129,6 @@ body.nina-fullscreen-active {
   border-color: #fff;
   background: #fff;
   color: #000;
-}
-
-.nina-account-referral-card {
-  display: grid;
-  grid-template-columns: 34px minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  min-height: 80px;
-  margin: 0 0 12px;
-  padding: 12px 13px;
-  border: 1px solid rgba(183, 128, 65, .42);
-  border-radius: 0;
-  background: rgba(31, 21, 13, .38);
-  box-shadow: 0 0 20px rgba(172, 105, 42, .055), inset 0 0 18px rgba(172, 105, 42, .025);
-  color: rgba(255, 255, 255, .9);
-  text-decoration: none;
-  transition: border-color .2s ease, background .2s ease, box-shadow .2s ease;
-}
-
-.nina-account-referral-card:hover,
-.nina-account-referral-card:focus-visible {
-  border-color: rgba(209, 151, 83, .64);
-  background: rgba(40, 27, 16, .48);
-  box-shadow: 0 0 24px rgba(172, 105, 42, .08), inset 0 0 18px rgba(172, 105, 42, .035);
-}
-
-.nina-account-referral-icon {
-  width: 32px;
-  height: 32px;
-  fill: none;
-  stroke: rgba(213, 165, 108, .72);
-  stroke-width: 1.25;
-}
-
-.nina-account-referral-copy {
-  display: grid;
-  gap: 3px;
-  min-width: 0;
-}
-
-.nina-account-referral-copy small,
-.nina-account-referral-copy strong,
-.nina-account-referral-copy em {
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.nina-account-referral-copy small {
-  color: rgba(220, 174, 119, .72);
-  font: 400 8px/1.2 'Courier New', monospace;
-  letter-spacing: .14em;
-  text-transform: uppercase;
-}
-
-.nina-account-referral-copy strong {
-  color: rgba(255, 255, 255, .92);
-  font: 400 11.5px/1.25 Inter, sans-serif;
-  letter-spacing: .01em;
-}
-
-.nina-account-referral-copy em {
-  color: rgba(255, 255, 255, .52);
-  font: 400 9.5px/1.25 Inter, sans-serif;
-  font-style: normal;
-  letter-spacing: .01em;
-}
-
-.nina-account-referral-arrow {
-  color: rgba(213, 165, 108, .7);
-  font: 300 16px/1 Inter, sans-serif;
 }
 
 body:has(.nina-account-panel:not([hidden])) .home-desktop-signal-tab {
@@ -1477,7 +1414,8 @@ body.nina-credits-purchase-active {
     overscroll-behavior: contain;
   }
   .nina-account-eyebrow { font-size: 9px; }
-  .nina-account-name { margin: 8px 0 7.3px; font-size: 15.9px; }
+  .nina-account-name { margin: 8px 0 4px; font-size: 15.9px; }
+  .nina-account-channel { margin-bottom: 10px; font-size: 7.5px; }
   .nina-account-credits {
     gap: 6px 12px;
     margin-bottom: 10px;
@@ -1486,7 +1424,6 @@ body.nina-credits-purchase-active {
   .nina-account-credits-info-trigger { margin-bottom: 12px; font-size: 12.7px; }
   .nina-account-credits-info-panel { padding: 30px 22px 26px; }
   .nina-account-buy-credits { min-height: 44px; margin-bottom: 11px; padding-inline: 10px; font-size: 10px; }
-  .nina-account-referral-card { min-height: 74px; margin-bottom: 8px; padding: 10px 11px; }
   .nina-account-menu { gap: 0; padding: 3px 0; }
   .nina-account-menu a,
   .nina-account-menu > span,

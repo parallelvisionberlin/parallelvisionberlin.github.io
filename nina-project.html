@@ -17,7 +17,7 @@
   <meta name="twitter:image" content="https://parallelvisionlabel.com/assets/ninamain-page.webp">
   <link rel="icon" type="image/png" href="./favicon.png">
   <link rel="stylesheet" href="./fashion.css?v=20260817-archive-size">
-  <link rel="stylesheet" href="./css/nina-access.css?v=20260901-referral-card">
+  <link rel="stylesheet" href="./css/nina-access.css?v=20260901-pv-terminal">
   <style>
     :root { --n-line: rgba(255,255,255,.15); --n-body: rgba(255,255,255,.7); --n-faint: rgba(255,255,255,.44); }
     * { box-sizing: border-box; }
@@ -236,6 +236,7 @@
         </div>
         <div class="nina-account-logged-in" id="ninaAccountLoggedIn" hidden>
           <p class="nina-account-name" id="ninaAccountName">Connected</p>
+          <p class="nina-account-channel">Private Channel / Berlin 2063</p>
           <div class="nina-account-credits">
             <span>Signal Credits</span>
             <strong id="ninaSignalCredits" role="status" aria-live="polite">Loading…</strong>
@@ -244,13 +245,9 @@
           </div>
           <button class="nina-account-credits-info-trigger" id="ninaAccountCreditsInfoTrigger" type="button">What are Signal Credits?</button>
           <button class="nina-account-buy-credits" id="ninaAccountBuyCredits" type="button">Buy Signal Credits</button>
-          <a class="nina-account-referral-card" href="./account.html#referral" aria-label="Refer a friend — earn 100 Signal Credits">
-            <svg class="nina-account-referral-icon" viewBox="0 0 32 32" aria-hidden="true"><circle cx="11" cy="10" r="3.5"></circle><circle cx="22" cy="11" r="3"></circle><path d="M4.5 25c.6-5.1 2.8-8 6.5-8s5.9 2.9 6.5 8M17.5 18.2c1.1-1.1 2.5-1.7 4.3-1.7 3.3 0 5.2 2.5 5.7 6.8"></path></svg>
-            <span class="nina-account-referral-copy"><small>Refer a Friend</small><strong>Earn 100 Signal Credits</strong><em>10 minutes of Live Nina</em></span>
-            <span class="nina-account-referral-arrow" aria-hidden="true">→</span>
-          </a>
           <div class="nina-account-menu" aria-label="Account sections">
             <a href="./account.html#profile">Profile</a>
+            <a href="./account.html#referral">Refer a Friend</a>
             <span id="ninaAccountCreditAction"></span>
             <a href="./account.html#billing">Billing</a>
             <a href="./account.html#memory">Memory</a>
@@ -871,6 +868,6 @@
       syncMotion();
     })();
   </script>
-<script type="module" src="./js/nina-access.js?v=20260901-referral-card"></script>
+<script type="module" src="./js/nina-access.js?v=20260901-pv-terminal"></script>
 </body>
 </html>
