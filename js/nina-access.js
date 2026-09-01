@@ -35,10 +35,14 @@ const closeNina = byId("closeNina");
 const startNina = byId("startNina");
 const ninaVideo = byId("nina-anam-video");
 const ninaStatus = byId("ninaStatus");
+const ninaScrim = document.querySelector(".nina-call-scrim");
 const ninaScrimTitle = byId("ninaScrimTitle");
 const ninaScrimSubtitle = byId("ninaScrimSubtitle");
 const ninaScrimMessage = byId("ninaScrimMessage");
 const ninaScrimButton = byId("ninaScrimButton");
+const ninaTimeWarning = byId("ninaTimeWarning");
+const ninaPostSignalActions = byId("ninaPostSignalActions");
+const ninaPostSignalReturn = byId("ninaPostSignalReturn");
 const ninaMicrophone = byId("ninaMicrophone");
 const ninaMicrophoneToggle = byId("ninaMicrophoneToggle");
 const ninaMicrophonePicker = byId("ninaMicrophonePicker");
@@ -131,6 +135,8 @@ let ninaUsageSessionId = "";
 let ninaUsageActive = false;
 let ninaUsageEnding = false;
 let ninaUsageTimer = null;
+let ninaUsageWarningTimer = null;
+let ninaUsageWarningShown = false;
 let ninaUsageRemainingSeconds = null;
 let ninaUsageSettlementSeconds = null;
 let ninaScrimAction = "connect";
@@ -934,6 +940,10 @@ function setNinaScrim(title, subtitle = "", message = "", buttonText = "") {
   ninaScrimSubtitle.textContent = subtitle;
   ninaScrimMessage.textContent = message;
   ninaScrimButton.textContent = buttonText;
+  ninaScrimButton.tabIndex = buttonText ? 0 : -1;
+  if (ninaPostSignalActions) ninaPostSignalActions.hidden = true;
+  if (ninaPostSignalReturn) ninaPostSignalReturn.tabIndex = -1;
+  document.body.classList.remove("nina-post-signal-visible");
   document.body.classList.toggle("nina-scrim-action", Boolean(buttonText));
 }
 
@@ -1197,9 +1207,14 @@ async function copyNinaReferralLink() {
 function showSignalEnded() {
   document.body.classList.remove("nina-connecting-mode", "nina-conversation-live", "nina-call-visible");
   document.body.classList.add("nina-scrim-visible", "nina-scrim-action");
-  setNinaScrim("SIGNAL ENDED", "", "You’ve used your available Live Nina time.", "GET SIGNAL CREDITS");
+  setNinaScrim("THE SIGNAL ENDED", "", "Your history with Nina remains.", "CONTINUE THE SIGNAL");
+  if (ninaPostSignalActions) ninaPostSignalActions.hidden = false;
+  if (ninaPostSignalReturn) ninaPostSignalReturn.tabIndex = 0;
+  document.body.classList.add("nina-post-signal-visible");
+  ninaScrim?.setAttribute("aria-hidden", "false");
   ninaStatus.textContent = "SIGNAL ENDED";
   ninaScrimAction = "credits";
+  requestAnimationFrame(() => ninaScrimButton.focus({ preventScroll: true }));
 }
 
 function markNinaOnline() {
@@ -1208,11 +1223,36 @@ function markNinaOnline() {
   ninaStatus.textContent = "NINA ONLINE";
   document.body.classList.add("nina-call-visible", "nina-conversation-live");
   document.body.classList.remove("nina-connecting-mode", "nina-scrim-visible", "nina-scrim-action");
+  ninaScrim?.setAttribute("aria-hidden", "true");
 }
 
 function clearNinaUsageTimer() {
   if (ninaUsageTimer) clearTimeout(ninaUsageTimer);
   ninaUsageTimer = null;
+}
+
+function clearNinaUsageWarning() {
+  if (ninaUsageWarningTimer) clearTimeout(ninaUsageWarningTimer);
+  ninaUsageWarningTimer = null;
+  document.body.classList.remove("nina-time-warning-visible");
+  ninaTimeWarning?.setAttribute("aria-hidden", "true");
+}
+
+function showNinaUsageWarning() {
+  if (ninaUsageWarningShown || !ninaUsageActive || !ninaUsageSessionId || !ninaOverlay.classList.contains("is-open")) return;
+  ninaUsageWarningShown = true;
+  document.body.classList.add("nina-time-warning-visible");
+  ninaTimeWarning?.setAttribute("aria-hidden", "false");
+}
+
+function scheduleNinaUsageWarning() {
+  clearNinaUsageWarning();
+  if (ninaUsageWarningShown || !ninaUsageActive || !ninaUsageSessionId || !Number.isSafeInteger(ninaUsageRemainingSeconds)) return;
+  if (ninaUsageRemainingSeconds <= 30) {
+    if (ninaUsageRemainingSeconds > 0) showNinaUsageWarning();
+    return;
+  }
+  ninaUsageWarningTimer = setTimeout(showNinaUsageWarning, (ninaUsageRemainingSeconds - 30) * 1000);
 }
 
 async function requestNinaUsage(action, keepalive = false) {
@@ -1236,6 +1276,7 @@ function scheduleNinaUsageSettlement() {
   clearNinaUsageTimer();
   if (!ninaUsageActive || !ninaUsageSessionId) return;
   if (!Number.isSafeInteger(ninaUsageSettlementSeconds) || ninaUsageSettlementSeconds < 1) return;
+  scheduleNinaUsageWarning();
   const delaySeconds = Math.max(1, Math.min(ninaUsageSettlementSeconds, Number.isSafeInteger(ninaUsageRemainingSeconds) ? ninaUsageRemainingSeconds : ninaUsageSettlementSeconds));
   ninaUsageTimer = setTimeout(() => void settleNinaUsage(false), delaySeconds * 1000);
 }
@@ -1314,6 +1355,7 @@ async function stopNinaSession() {
   ninaMemoryLoadedForSession = false;
   ninaSessionMessageKeys = new Set();
   clearNinaUsageTimer();
+  clearNinaUsageWarning();
   if (ninaUsageSessionId) await settleNinaUsage(true, true);
   ninaUsageSessionId = "";
   ninaUsageActive = false;
@@ -1445,6 +1487,7 @@ async function connectNina() {
     if (attempt !== ninaAttempt || !ninaOverlay.classList.contains("is-open")) return;
     ninaServerConversationId = session.conversationId;
     ninaUsageSessionId = session.usageSessionId;
+    ninaUsageWarningShown = false;
     ninaUsageRemainingSeconds = session.remainingSeconds;
     ninaUsageSettlementSeconds = session.settlementSeconds;
     const client = createClient(session.sessionToken);
@@ -1603,7 +1646,8 @@ async function closeNinaWindow() {
   ninaAccessVerifiedForCurrentOpen = false;
   ninaPrivateAccessVerified = false;
   await stopNinaSession();
-  document.body.classList.remove("nina-connecting-mode", "nina-call-visible", "nina-conversation-live", "nina-scrim-visible", "nina-scrim-action");
+  document.body.classList.remove("nina-connecting-mode", "nina-call-visible", "nina-conversation-live", "nina-scrim-visible", "nina-scrim-action", "nina-post-signal-visible", "nina-time-warning-visible");
+  ninaScrim?.setAttribute("aria-hidden", "true");
   (lastNinaTrigger || openNina)?.focus({ preventScroll: true });
 }
 
@@ -1784,6 +1828,7 @@ ninaScrimButton.addEventListener("click", () => {
   else if (ninaScrimAction === "signin") void openNinaAccountSignIn();
   else connectNina();
 });
+ninaPostSignalReturn?.addEventListener("click", () => void closeNinaWindow());
 ninaMicrophoneSelect.addEventListener("change", async () => {
   const selectedId = ninaMicrophoneSelect.value;
   savePreferredMicrophone(selectedId);
