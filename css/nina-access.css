@@ -1151,6 +1151,8 @@ body:has(.nina-account-panel:not([hidden])) .home-desktop-signal-tab {
 .nina-account-add-credits:hover,
 .nina-account-add-credits:focus-visible { color: #fff; }
 
+.nina-account-add-credits[hidden] { display: none !important; }
+
 .nina-account-get-credits,
 .nina-account-signout {
   width: 100%;
@@ -1403,11 +1405,13 @@ body.nina-credits-purchase-active {
 @media (max-width: 560px) {
   .nina-account-panel {
     --mobile-account-width: min(70vw, 252px);
-    position: absolute;
-    top: calc(100% + 12px);
-    right: calc((100vw - var(--mobile-account-width) - 36px) / 2);
+    position: fixed;
+    top: calc(58px + env(safe-area-inset-top));
+    right: 16px;
+    left: auto;
     width: var(--mobile-account-width);
-    max-height: calc(90svh - 124px - env(safe-area-inset-top));
+    max-width: calc(100vw - 32px);
+    max-height: calc(100svh - 74px - env(safe-area-inset-top));
     padding: 19px 16px;
     border-color: rgba(255,255,255,.28) rgba(255,255,255,.1) rgba(255,255,255,.14);
     overflow-y: auto;
@@ -1430,7 +1434,6 @@ body.nina-credits-purchase-active {
   .nina-account-action,
   .nina-account-menu .nina-account-get-credits { min-height: 40px; font-size: 9.4px; }
   .nina-account-signout { min-height: 40px; margin-top: 15.3px; font-size: 9.4px; }
-  .nina-account-menu a[href="./account.html#newsletter"] { display: none; }
   .nina-credits-purchase { align-items: end; padding: 12px; }
   .nina-credits-purchase-panel { width: 100%; max-height: calc(100svh - 24px); padding: 28px 22px 24px; overflow-y: auto; }
   .nina-credits-purchase-title { padding-right: 24px; font-size: clamp(22px, 8vw, 30px); }
