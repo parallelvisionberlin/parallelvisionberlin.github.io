@@ -202,8 +202,15 @@ function syncAccountLanguage(language = document.documentElement.lang) {
   if (explanation) explanation.textContent = german ? "Melde dich an, um Erinnerungen zu speichern, Signal Credits zu verwalten und deine Geschichte mit Nina fortzusetzen." : "Sign in to save memory, manage Signal Credits and continue your history with Nina.";
   if (ninaAccountSignIn) ninaAccountSignIn.textContent = german ? "Anmelden" : "Sign in";
   if (ninaAccountSignUp) ninaAccountSignUp.textContent = german ? "Konto erstellen" : "Create account";
-  const labels = german ? ["Profil", "Signal Credits", "Zahlungen", "Erinnerung", "Newsletter"] : ["Profile", "Signal Credits", "Billing", "Memory", "Newsletter"];
-  ninaAccountPanel?.querySelectorAll(".nina-account-menu a").forEach((link, index) => { link.textContent = labels[index > 0 ? index + 1 : 0] || link.textContent; });
+  const labels = german ? ["Profil", "Freund einladen", "Zahlungen", "Erinnerung", "Newsletter"] : ["Profile", "Refer a Friend", "Billing", "Memory", "Newsletter"];
+  ninaAccountPanel?.querySelectorAll(".nina-account-menu a").forEach((link, index) => { link.textContent = labels[index] || link.textContent; });
+  const referralCard = ninaAccountPanel?.querySelector(".nina-account-referral-card");
+  if (referralCard) {
+    referralCard.setAttribute("aria-label", german ? "Freund einladen — 100 Signal Credits erhalten" : "Refer a friend — earn 100 Signal Credits");
+    referralCard.querySelector("small").textContent = german ? "Freund einladen" : "Refer a Friend";
+    referralCard.querySelector("strong").textContent = german ? "100 Signal Credits erhalten" : "Earn 100 Signal Credits";
+    referralCard.querySelector("em").textContent = german ? "10 Minuten Live Nina" : "10 minutes of Live Nina";
+  }
   syncNinaAccountCreditActions(ninaCreditsBalance, language);
   if (ninaAccountSignOut) ninaAccountSignOut.textContent = german ? "Abmelden" : "Sign out";
   const creditLabels = ninaAccountPanel?.querySelectorAll(".nina-account-credits span");

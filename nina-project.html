@@ -17,7 +17,7 @@
   <meta name="twitter:image" content="https://parallelvisionlabel.com/assets/ninamain-page.webp">
   <link rel="icon" type="image/png" href="./favicon.png">
   <link rel="stylesheet" href="./fashion.css?v=20260817-archive-size">
-  <link rel="stylesheet" href="./css/nina-access.css?v=20260829-sign-in-gate">
+  <link rel="stylesheet" href="./css/nina-access.css?v=20260901-referral-card">
   <style>
     :root { --n-line: rgba(255,255,255,.15); --n-body: rgba(255,255,255,.7); --n-faint: rgba(255,255,255,.44); }
     * { box-sizing: border-box; }
@@ -244,8 +244,14 @@
           </div>
           <button class="nina-account-credits-info-trigger" id="ninaAccountCreditsInfoTrigger" type="button">What are Signal Credits?</button>
           <button class="nina-account-buy-credits" id="ninaAccountBuyCredits" type="button">Buy Signal Credits</button>
+          <a class="nina-account-referral-card" href="./account.html#referral" aria-label="Refer a friend — earn 100 Signal Credits">
+            <svg class="nina-account-referral-icon" viewBox="0 0 32 32" aria-hidden="true"><circle cx="11" cy="10" r="3.5"></circle><circle cx="22" cy="11" r="3"></circle><path d="M4.5 25c.6-5.1 2.8-8 6.5-8s5.9 2.9 6.5 8M17.5 18.2c1.1-1.1 2.5-1.7 4.3-1.7 3.3 0 5.2 2.5 5.7 6.8"></path></svg>
+            <span class="nina-account-referral-copy"><small>Refer a Friend</small><strong>Earn 100 Signal Credits</strong><em>10 minutes of Live Nina</em></span>
+            <span class="nina-account-referral-arrow" aria-hidden="true">→</span>
+          </a>
           <div class="nina-account-menu" aria-label="Account sections">
             <a href="./account.html#profile">Profile</a>
+            <a href="./account.html#referral">Refer a Friend</a>
             <span id="ninaAccountCreditAction"></span>
             <a href="./account.html#billing">Billing</a>
             <a href="./account.html#memory">Memory</a>
@@ -757,7 +763,7 @@
         <section class="nina-referral-panel-content">
           <button class="nina-referral-close" id="ninaReferralClose" type="button" aria-label="Close referral panel">×</button>
           <h3 id="ninaReferralTitle">Invite Someone</h3>
-          <p>Share your invite link and earn Signal Credits when a qualifying referral completes the existing reward condition.</p>
+          <p>Share your invite link. When a referred friend purchases 100 or more Signal Credits, you receive 100 Signal Credits.</p>
           <span class="nina-referral-label">Your Invite Code</span>
           <strong class="nina-referral-code" id="ninaReferralCode">Loading…</strong>
           <button class="nina-referral-copy" id="ninaReferralCopy" type="button">Copy Invite Link</button>
@@ -866,6 +872,6 @@
       syncMotion();
     })();
   </script>
-<script type="module" src="./js/nina-access.js?v=20260829-sign-in-gate"></script>
+<script type="module" src="./js/nina-access.js?v=20260901-referral-card"></script>
 </body>
 </html>
