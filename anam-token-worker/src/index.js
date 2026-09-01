@@ -9,7 +9,7 @@ import { cleanPreferredName, deleteUserAccountData, getAccountPreferences, getBi
 import { SignalCreditError, creditSignalCredits, ensureVerifiedSignupTrial, getSignalCreditBalance, getSignalCreditHistory } from "./credits.js";
 import { ReferralError, attributeReferral, getOrCreateReferral } from "./referrals.js";
 import {
-  activateLiveNinaSession, createLiveNinaSession, creditsToSeconds, failLiveNinaSession, settleLiveNinaSession
+  activateLiveNinaSession, beginLiveNinaTrialGrace, createLiveNinaSession, creditsToSeconds, failLiveNinaSession, settleLiveNinaSession
 } from "./live-usage.js";
 import {
   StripePurchaseError, createSignalCreditCheckout, verifyAndProcessStripeWebhook
@@ -411,6 +411,7 @@ async function handleSessionToken(request, env, origin) {
     balance: usage.balance,
     remainingSeconds: usage.remainingSeconds,
     settlementSeconds: usage.settlementSeconds,
+    trialActivationPending: usage.trialActivationPending === true,
     diagnostics: { ...diagnostics, ...startupDiagnostics }
   }, 200, origin);
 }
@@ -422,7 +423,9 @@ async function handleLiveNinaUsage(request, env, origin, action) {
   try {
     const result = action === "activate"
       ? await activateLiveNinaSession(env, user, body.sessionId)
-      : await settleLiveNinaSession(env, user, body.sessionId, { end: action === "end" });
+      : action === "ready"
+        ? await beginLiveNinaTrialGrace(env, user, body.sessionId)
+        : await settleLiveNinaSession(env, user, body.sessionId, { end: action === "end" });
     return jsonResponse(result, 200, origin);
   } catch (error) {
     if (error instanceof SignalCreditError) {
@@ -706,6 +709,7 @@ export default {
       if (url.pathname === "/api/signal-credits/grant" && request.method === "POST") return handleSignalCreditGrant(request, env, origin);
       if (url.pathname === "/api/nina/credits/checkout" && request.method === "POST") return await handleSignalCreditCheckout(request, env, origin);
       if (url.pathname === "/api/nina/live/activate" && request.method === "POST") return handleLiveNinaUsage(request, env, origin, "activate");
+      if (url.pathname === "/api/nina/live/ready" && request.method === "POST") return handleLiveNinaUsage(request, env, origin, "ready");
       if (url.pathname === "/api/nina/live/settle" && request.method === "POST") return handleLiveNinaUsage(request, env, origin, "settle");
       if (url.pathname === "/api/nina/live/end" && request.method === "POST") return handleLiveNinaUsage(request, env, origin, "end");
       if (url.pathname === "/api/account" && request.method === "GET") return handleAccount(request, env, origin);

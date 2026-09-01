@@ -98,6 +98,7 @@ const NINA_REFERRAL_CODE_KEY = "pv_nina_referral_code_v1";
 const NINA_AUTH_RETURN_KEY = "nina_auth_return_v1";
 const NINA_REFERRAL_CODE_PATTERN = /^[A-HJ-NP-Z2-9]{8}$/;
 const NINA_MEMORY_LIMIT = 20;
+const NINA_SIGNUP_TRIAL_GRACE_MS = 60000;
 const NINA_VISITOR_ID_PATTERN = /^(?:[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|visitor-[a-z0-9-]+)$/i;
 let ninaAccessSubmitting = false;
 let ninaAccessVerifiedForCurrentOpen = false;
@@ -135,6 +136,9 @@ let ninaUsageSessionId = "";
 let ninaUsageActive = false;
 let ninaUsageEnding = false;
 let ninaUsageTimer = null;
+let ninaTrialGraceTimer = null;
+let ninaTrialGraceReadyPromise = null;
+let ninaTrialActivationPending = false;
 let ninaUsageWarningTimer = null;
 let ninaUsageWarningShown = false;
 let ninaUsageRemainingSeconds = null;
@@ -869,9 +873,9 @@ function memoryMessageKey(message, sessionId) {
 }
 
 function storeCompletedNinaMessages(history, client, attempt) {
-  if (attempt !== ninaAttempt || client !== ninaClient || !Array.isArray(history)) return;
+  if (attempt !== ninaAttempt || client !== ninaClient || !Array.isArray(history)) return [];
   const sessionId = client.getActiveSessionId?.();
-  if (!sessionId) return;
+  if (!sessionId) return [];
   const archive = readNinaMemory();
   const knownKeys = new Set(archive.map(message => message.messageId
     ? `${message.sessionId}::${message.messageId}`
@@ -904,6 +908,7 @@ function storeCompletedNinaMessages(history, client, attempt) {
       messages: completedMessages
     }).catch(() => setNinaMemoryIndicator("unavailable"));
   }
+  return completedMessages;
 }
 
 async function forgetNinaMemory() {
@@ -1160,6 +1165,17 @@ function showNinaFailure(message = "Please check microphone access and try again
   ninaScrimAction = "connect";
 }
 
+function showNinaCannotHear() {
+  document.body.classList.remove("nina-connecting-mode", "nina-conversation-live", "nina-call-visible");
+  document.body.classList.add("nina-scrim-visible", "nina-scrim-action");
+  setNinaScrim("WE CAN'T HEAR YOU", "", "Check your microphone and try again.", "TRY AGAIN");
+  ninaStatus.textContent = "MICROPHONE CHECK";
+  startNina.disabled = false;
+  startNina.textContent = "TRY AGAIN";
+  ninaPrimaryAction = "connect";
+  ninaScrimAction = "connect";
+}
+
 function showNoSignalCredits() {
   document.body.classList.remove("nina-connecting-mode", "nina-conversation-live");
   document.body.classList.remove("nina-scrim-visible", "nina-scrim-action");
@@ -1231,6 +1247,35 @@ function clearNinaUsageTimer() {
   ninaUsageTimer = null;
 }
 
+function clearNinaTrialGraceTimer() {
+  if (ninaTrialGraceTimer) clearTimeout(ninaTrialGraceTimer);
+  ninaTrialGraceTimer = null;
+}
+
+function beginNinaTrialGrace(attempt, client) {
+  if (attempt !== ninaAttempt || client !== ninaClient || !ninaTrialActivationPending) return Promise.resolve(false);
+  markNinaOnline();
+  if (!ninaTrialGraceTimer) {
+    ninaTrialGraceTimer = setTimeout(async () => {
+      if (attempt !== ninaAttempt || client !== ninaClient || !ninaTrialActivationPending || ninaUsageActive) return;
+      ninaTrialActivationPending = false;
+      await stopNinaSession();
+      if (ninaOverlay.classList.contains("is-open")) showNinaCannotHear();
+    }, NINA_SIGNUP_TRIAL_GRACE_MS);
+  }
+  if (!ninaTrialGraceReadyPromise) {
+    ninaTrialGraceReadyPromise = requestNinaUsage("ready").then(result => result.trialActivationPending === true).catch(async error => {
+      logDevelopmentError("Unable to start signup-trial grace period.", error);
+      if (attempt !== ninaAttempt || client !== ninaClient) return false;
+      ninaTrialActivationPending = false;
+      await stopNinaSession();
+      if (ninaOverlay.classList.contains("is-open")) showNinaFailure("Live time verification is unavailable. Please try again.");
+      return false;
+    });
+  }
+  return ninaTrialGraceReadyPromise;
+}
+
 function clearNinaUsageWarning() {
   if (ninaUsageWarningTimer) clearTimeout(ninaUsageWarningTimer);
   ninaUsageWarningTimer = null;
@@ -1283,6 +1328,11 @@ function scheduleNinaUsageSettlement() {
 
 async function activateNinaUsage(attempt, client) {
   if (attempt !== ninaAttempt || client !== ninaClient) return false;
+  if (ninaTrialActivationPending) {
+    const gracePending = await beginNinaTrialGrace(attempt, client);
+    if (attempt !== ninaAttempt || client !== ninaClient) return false;
+    if (!gracePending) ninaTrialActivationPending = false;
+  }
   if (!ninaUsageSessionId) {
     markNinaOnline();
     return true;
@@ -1292,6 +1342,8 @@ async function activateNinaUsage(attempt, client) {
     ninaUsageActivationPromise = requestNinaUsage("activate").then(result => {
       if (attempt !== ninaAttempt || client !== ninaClient) return false;
       ninaUsageActive = true;
+      ninaTrialActivationPending = false;
+      clearNinaTrialGraceTimer();
       ninaUsageSettlementFailures = 0;
       ninaUsageRemainingSeconds = Number.isSafeInteger(result.remainingSeconds) ? result.remainingSeconds : null;
       ninaUsageSettlementSeconds = Number.isSafeInteger(result.settlementSeconds) ? result.settlementSeconds : ninaUsageSettlementSeconds;
@@ -1307,6 +1359,7 @@ async function settleNinaUsage(end = false, keepalive = false) {
   if (!ninaUsageSessionId || ninaUsageEnding) return null;
   if (end) ninaUsageEnding = true;
   clearNinaUsageTimer();
+  clearNinaTrialGraceTimer();
   try {
     const result = await requestNinaUsage(end ? "end" : "settle", keepalive);
     ninaUsageSettlementFailures = 0;
@@ -1356,9 +1409,12 @@ async function stopNinaSession() {
   ninaSessionMessageKeys = new Set();
   clearNinaUsageTimer();
   clearNinaUsageWarning();
+  clearNinaTrialGraceTimer();
   if (ninaUsageSessionId) await settleNinaUsage(true, true);
   ninaUsageSessionId = "";
   ninaUsageActive = false;
+  ninaTrialActivationPending = false;
+  ninaTrialGraceReadyPromise = null;
   ninaUsageRemainingSeconds = null;
   ninaUsageSettlementSeconds = null;
   ninaUsageActivationPromise = null;
@@ -1405,7 +1461,8 @@ async function requestSessionToken(signal, history) {
     creditBypass: data.creditBypass === true,
     balance: Number.isSafeInteger(data.balance) ? data.balance : null,
     remainingSeconds: Number.isSafeInteger(data.remainingSeconds) ? data.remainingSeconds : null,
-    settlementSeconds: Number.isSafeInteger(data.settlementSeconds) ? data.settlementSeconds : null
+    settlementSeconds: Number.isSafeInteger(data.settlementSeconds) ? data.settlementSeconds : null,
+    trialActivationPending: data.trialActivationPending === true
   };
 }
 
@@ -1413,6 +1470,10 @@ function bindAnamLifecycle(client, attempt) {
   ninaMemoryListenerCleanup?.();
   const onConnectionEstablished = () => {
     if (attempt !== ninaAttempt || client !== ninaClient) return;
+    if (ninaTrialActivationPending) {
+      beginNinaTrialGrace(attempt, client);
+      return;
+    }
     void activateNinaUsage(attempt, client).catch(async error => {
       logDevelopmentError("Unable to activate Live Nina time.", error);
       await stopNinaSession();
@@ -1424,9 +1485,24 @@ function bindAnamLifecycle(client, attempt) {
   };
   const onVideoPlayStarted = () => {
     if (attempt !== ninaAttempt || client !== ninaClient) return;
+    if (ninaTrialActivationPending) {
+      beginNinaTrialGrace(attempt, client);
+      return;
+    }
     void activateNinaUsage(attempt, client).catch(() => {});
   };
-  const onHistoryUpdated = history => storeCompletedNinaMessages(history, client, attempt);
+  const onHistoryUpdated = history => {
+    const completedMessages = storeCompletedNinaMessages(history, client, attempt);
+    if (!ninaTrialActivationPending || !completedMessages.some(message => message.role === "user")) return;
+    void activateNinaUsage(attempt, client).catch(async error => {
+      logDevelopmentError("Unable to activate Live Nina time after user speech.", error);
+      await stopNinaSession();
+      if (ninaOverlay.classList.contains("is-open")) {
+        if (error?.code === "trial_grace_expired") showNinaCannotHear();
+        else showNinaFailure("Live time verification is unavailable. Please try again.");
+      }
+    });
+  };
   const onClosed = () => {
     if (attempt !== ninaAttempt || client !== ninaClient) return;
     void settleNinaUsage(true, true);
@@ -1487,6 +1563,7 @@ async function connectNina() {
     if (attempt !== ninaAttempt || !ninaOverlay.classList.contains("is-open")) return;
     ninaServerConversationId = session.conversationId;
     ninaUsageSessionId = session.usageSessionId;
+    ninaTrialActivationPending = session.trialActivationPending;
     ninaUsageWarningShown = false;
     ninaUsageRemainingSeconds = session.remainingSeconds;
     ninaUsageSettlementSeconds = session.settlementSeconds;
@@ -1498,7 +1575,8 @@ async function connectNina() {
       await client.stopStreaming();
       return;
     }
-    await activateNinaUsage(attempt, client);
+    if (ninaTrialActivationPending) beginNinaTrialGrace(attempt, client);
+    else await activateNinaUsage(attempt, client);
   } catch (error) {
     if (attempt !== ninaAttempt || error?.name === "AbortError") return;
     logDevelopmentError("Nina connection failed.", error);

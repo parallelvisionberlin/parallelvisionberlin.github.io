@@ -3,10 +3,21 @@ import { SignalCreditError, debitSignalCredits, getSignalCreditBalance } from ".
 export const CREDITS_PER_MINUTE = 10;
 export const SECONDS_PER_CREDIT = 6;
 export const LIVE_NINA_SETTLEMENT_SECONDS = 30;
+export const SIGNUP_TRIAL_GRACE_SECONDS = 60;
 
 const validSessionId = value => typeof value === "string" && /^[0-9a-f-]{36}$/i.test(value) ? value : "";
 const iso = value => new Date(value).toISOString();
 const identityUserId = user => user.id || user.user_id;
+
+async function signupTrialCreditsRemaining(env, userId, account) {
+  const trial = await env.NINA_MEMORY_DB.prepare(`
+    SELECT COALESCE(SUM(amount), 0) AS credited
+    FROM signal_credit_transactions
+    WHERE user_id = ? AND type = 'credit' AND source = 'signup_trial'
+  `).bind(userId).first();
+  const credited = Math.max(0, Number(trial?.credited) || 0);
+  return Math.max(0, credited - Math.max(0, Number(account?.lifetimeDebited) || 0));
+}
 
 export function creditsToSeconds(credits) {
   return Math.max(0, Number.isSafeInteger(credits) ? credits : 0) * SECONDS_PER_CREDIT;
@@ -33,6 +44,7 @@ export async function createLiveNinaSession(env, user, now = Date.now()) {
   const userId = identityUserId(user);
   const account = await getSignalCreditBalance(env, userId);
   if (account.balance < 1) throw new SignalCreditError("insufficient_credits", "No Signal Credits");
+  const trialActivationPending = await signupTrialCreditsRemaining(env, userId, account) > 0;
   const sessionId = crypto.randomUUID();
   const createdAt = iso(now);
   await env.NINA_MEMORY_DB.prepare(`
@@ -41,7 +53,7 @@ export async function createLiveNinaSession(env, user, now = Date.now()) {
        credits_available_on_start, credits_debited, created_at, updated_at)
     VALUES (?, ?, 'pending', NULL, NULL, NULL, NULL, ?, 0, ?, ?)
   `).bind(sessionId, userId, account.balance, createdAt, createdAt).run();
-  return { bypass: false, sessionId, balance: account.balance, remainingSeconds: creditsToSeconds(account.balance), settlementSeconds: LIVE_NINA_SETTLEMENT_SECONDS };
+  return { bypass: false, sessionId, balance: account.balance, remainingSeconds: creditsToSeconds(account.balance), settlementSeconds: LIVE_NINA_SETTLEMENT_SECONDS, trialActivationPending };
 }
 
 export async function failLiveNinaSession(env, userId, sessionId, now = Date.now()) {
@@ -51,6 +63,22 @@ export async function failLiveNinaSession(env, userId, sessionId, now = Date.now
     WHERE id = ? AND user_id = ? AND status = 'pending'
   `).bind(iso(now), iso(now), sessionId, userId).run();
   return Number(changed?.meta?.changes || 0) > 0;
+}
+
+export async function beginLiveNinaTrialGrace(env, user, sessionId, now = Date.now()) {
+  if (user.role === "owner") return { bypass: true, status: "ready", trialActivationPending: false };
+  const session = await sessionForUser(env, user.id, sessionId);
+  if (!session) throw new SignalCreditError("invalid_session", "Live Nina session unavailable");
+  if (session.status !== "pending") return { status: session.status, trialActivationPending: false };
+  const account = await getSignalCreditBalance(env, user.id);
+  const trialActivationPending = await signupTrialCreditsRemaining(env, user.id, account) > 0;
+  if (!trialActivationPending) return { status: "pending", trialActivationPending: false };
+  const readyAt = iso(now);
+  await env.NINA_MEMORY_DB.prepare(`
+    UPDATE live_nina_sessions SET last_billed_at = COALESCE(last_billed_at, ?), updated_at = ?
+    WHERE id = ? AND user_id = ? AND status = 'pending'
+  `).bind(readyAt, readyAt, sessionId, user.id).run();
+  return { status: "ready", trialActivationPending: true, graceSeconds: SIGNUP_TRIAL_GRACE_SECONDS };
 }
 
 export async function activateLiveNinaSession(env, user, sessionId, now = Date.now()) {
@@ -64,6 +92,12 @@ export async function activateLiveNinaSession(env, user, sessionId, now = Date.n
   if (session.status !== "pending") throw new SignalCreditError("session_closed", "Live Nina session is closed");
   const account = await getSignalCreditBalance(env, user.id);
   if (account.balance < 1) throw new SignalCreditError("insufficient_credits", "No Signal Credits");
+  const trialActivationPending = await signupTrialCreditsRemaining(env, user.id, account) > 0;
+  const graceStartedAt = Date.parse(session.last_billed_at || session.created_at);
+  if (trialActivationPending && now - graceStartedAt >= SIGNUP_TRIAL_GRACE_SECONDS * 1000) {
+    await failLiveNinaSession(env, user.id, sessionId, now);
+    throw new SignalCreditError("trial_grace_expired", "Signup trial grace period ended");
+  }
   const startedAt = iso(now);
   const billableUntil = iso(now + creditsToSeconds(account.balance) * 1000);
   await env.NINA_MEMORY_DB.prepare(`

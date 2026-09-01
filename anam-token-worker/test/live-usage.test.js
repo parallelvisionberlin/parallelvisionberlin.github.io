@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { creditSignalCredits, ensureVerifiedSignupTrial, getSignalCreditBalance } from "../src/credits.js";
 import {
-  CREDITS_PER_MINUTE, SECONDS_PER_CREDIT, activateLiveNinaSession, createLiveNinaSession,
+  CREDITS_PER_MINUTE, SECONDS_PER_CREDIT, SIGNUP_TRIAL_GRACE_SECONDS, activateLiveNinaSession, beginLiveNinaTrialGrace, createLiveNinaSession,
   creditsToSeconds, failLiveNinaSession, formatLiveTime, settleLiveNinaSession
 } from "../src/live-usage.js";
 
@@ -37,6 +37,10 @@ function liveDb() {
         const [endedAt,updatedAt,id,userId]=values,row=sessions.get(id);if(!row||row.user_id!==userId||row.status!=="pending")return{meta:{changes:0}};
         Object.assign(row,{status:"failed",ended_at:endedAt,updated_at:updatedAt});return{meta:{changes:1}};
       }
+      if (query.startsWith("UPDATE live_nina_sessions SET last_billed_at")) {
+        const [readyAt,updatedAt,id,userId]=values,row=sessions.get(id);if(!row||row.user_id!==userId||row.status!=="pending")return{meta:{changes:0}};
+        row.last_billed_at=row.last_billed_at||readyAt;row.updated_at=updatedAt;return{meta:{changes:1}};
+      }
       if (query.includes("SET status = 'active', started_at")) {
         const [startedAt,lastBilledAt,billableUntil,balance,updatedAt,id,userId]=values,row=sessions.get(id);if(!row||row.user_id!==userId||row.status!=="pending")return{meta:{changes:0}};
         Object.assign(row,{status:"active",started_at:startedAt,last_billed_at:lastBilledAt,billable_until:billableUntil,credits_available_on_start:balance,updated_at:updatedAt});return{meta:{changes:1}};
@@ -48,6 +52,7 @@ function liveDb() {
       throw new Error(`Unexpected run: ${query}`);
     }, async first() {
       if(query.includes("FROM signal_credit_accounts"))return accounts.get(values[0])||null;
+      if(query.includes("COALESCE(SUM(amount), 0)"))return{credited:transactions.filter(row=>row.user_id===values[0]&&row.type==="credit"&&row.source==="signup_trial").reduce((sum,row)=>sum+row.amount,0)};
       if(query.includes("FROM signal_credit_transactions"))return transactions.find(row=>row.user_id===values[0]&&row.reference_id===values[1])||null;
       if(query.includes("FROM live_nina_sessions")){const row=sessions.get(values[0]);return row?.user_id===values[1]?{...row}:null;}
       throw new Error(`Unexpected first: ${query}`);
@@ -95,9 +100,62 @@ test("verified memory-shaped user identity receives one trial and can create a L
     assert.equal(repeated.granted,false);
     assert.equal(opened.balance,30);
     assert.equal(opened.remainingSeconds,180);
+    assert.equal(opened.trialActivationPending,true);
     assert.equal(db.transactions.filter(row=>row.source==="signup_trial").length,1);
     assert.equal(db.sessions.get(opened.sessionId).user_id,identity.user_id);
   } finally { globalThis.fetch=originalFetch; }
+});
+
+test("signup-trial grace is server-derived, expires pending sessions without debit, and preserves normal billing after activation",async()=>{
+  const start=Date.parse("2026-09-01T12:00:00Z");
+  const db=liveDb(),env={NINA_MEMORY_DB:db},user={id:"trial-user",role:"user"};
+  await creditSignalCredits(env,user.id,30,{source:"signup_trial",referenceId:"signup-trial:trial-user"});
+  const expired=await createLiveNinaSession(env,user,start);
+  assert.equal(expired.trialActivationPending,true);
+  const readyAt=start+10000;
+  const ready=await beginLiveNinaTrialGrace(env,user,expired.sessionId,readyAt);
+  assert.equal(ready.trialActivationPending,true);
+  await assert.rejects(
+    ()=>activateLiveNinaSession(env,user,expired.sessionId,readyAt+SIGNUP_TRIAL_GRACE_SECONDS*1000),
+    error=>error.code==="trial_grace_expired"
+  );
+  assert.equal(db.sessions.get(expired.sessionId).status,"failed");
+  assert.equal((await getSignalCreditBalance(env,user.id)).balance,30);
+  assert.equal(db.transactions.filter(row=>row.type==="debit").length,0);
+
+  const timedOut=await createLiveNinaSession(env,user,start+61000);
+  await beginLiveNinaTrialGrace(env,user,timedOut.sessionId,start+62000);
+  const ended=await settleLiveNinaSession(env,user,timedOut.sessionId,{end:true,now:start+122000});
+  assert.equal(ended.status,"failed");
+  assert.equal(ended.debited,0);
+  assert.equal((await getSignalCreditBalance(env,user.id)).balance,30);
+
+  const active=await createLiveNinaSession(env,user,start+123000);
+  await beginLiveNinaTrialGrace(env,user,active.sessionId,start+124000);
+  await activateLiveNinaSession(env,user,active.sessionId,start+129000);
+  const settled=await settleLiveNinaSession(env,user,active.sessionId,{now:start+135000});
+  assert.equal(settled.debited,1);
+  assert.equal(settled.balance,29);
+
+  const purchasedDb=liveDb(),purchasedEnv={NINA_MEMORY_DB:purchasedDb},purchasedUser={id:"paid-user",role:"user"};
+  await creditSignalCredits(purchasedEnv,purchasedUser.id,60,{source:"stripe_checkout",referenceId:"purchase-1"});
+  const purchased=await createLiveNinaSession(purchasedEnv,purchasedUser,start);
+  assert.equal(purchased.trialActivationPending,false);
+});
+
+test("frontend delays only trial activation until a new completed user message and has a dedicated grace-timeout state",async()=>{
+  const frontend=await readFile(new URL("../../js/nina-access.js",import.meta.url),"utf8");
+  assert.match(frontend,/NINA_SIGNUP_TRIAL_GRACE_MS = 60000/);
+  assert.match(frontend,/if \(ninaTrialActivationPending\) \{\s*beginNinaTrialGrace\(attempt, client\);\s*return;/);
+  assert.ok((frontend.match(/if \(ninaTrialActivationPending\) \{/g)||[]).length>=3);
+  assert.match(frontend,/completedMessages\.some\(message => message\.role === "user"\)/);
+  assert.match(frontend,/knownKeys\.has\(key\) \|\| ninaSessionMessageKeys\.has\(key\)/);
+  assert.match(frontend,/!role \|\| !content \|\| message\?\.interrupted/);
+  assert.match(frontend,/setNinaScrim\("WE CAN'T HEAR YOU", "", "Check your microphone and try again\.", "TRY AGAIN"\)/);
+  assert.match(frontend,/ninaUsageActivationPromise = requestNinaUsage\("activate"\)/);
+  assert.match(frontend,/if \(ninaTrialActivationPending\) beginNinaTrialGrace\(attempt, client\);\s*else await activateNinaUsage/);
+  const cannotHear=frontend.match(/function showNinaCannotHear\(\) \{[\s\S]*?\n\}/)?.[0]||"";
+  assert.doesNotMatch(cannotHear,/CONNECTION FAILED/);
 });
 
 test("failed startup and sub-six-second sessions debit nothing",async()=>{
