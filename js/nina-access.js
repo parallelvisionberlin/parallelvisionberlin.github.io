@@ -81,6 +81,7 @@ const ninaAccountCreditsInfoTrigger = byId("ninaAccountCreditsInfoTrigger");
 const ninaAccountCreditsInfo = byId("ninaAccountCreditsInfo");
 const ninaAccountCreditsInfoClose = byId("ninaAccountCreditsInfoClose");
 const ninaAccountName = byId("ninaAccountName");
+const ninaAccountAnalytics = byId("ninaAccountAnalytics");
 const ninaSignalCredits = byId("ninaSignalCredits");
 const ninaLiveTime = byId("ninaLiveTime");
 const ninaAccountSignOut = byId("ninaAccountSignOut");
@@ -406,6 +407,7 @@ function updateNinaAccountControls(clerk = ninaClerk) {
   if (ninaAccountShell) ninaAccountShell.hidden = false;
   if (ninaAccountLoggedOut) ninaAccountLoggedOut.hidden = signedIn;
   if (ninaAccountLoggedIn) ninaAccountLoggedIn.hidden = !signedIn;
+  if (ninaAccountAnalytics) ninaAccountAnalytics.hidden = true;
   const userLabel = clerk?.user?.fullName || clerk?.user?.firstName || clerk?.user?.primaryEmailAddress?.emailAddress || "Connected account";
   if (ninaAccountName) ninaAccountName.textContent = userLabel;
   if (signedIn) {
@@ -456,6 +458,7 @@ async function loadAccountDisplayName(clerk = ninaClerk, fallback = "Connected a
     const data = await response.json().catch(() => ({}));
     if (response.ok) {
       if (typeof data.displayName === "string" && data.displayName.trim()) ninaAccountName.textContent = data.displayName.trim();
+      if (ninaAccountAnalytics) ninaAccountAnalytics.hidden = data.role !== "owner";
       ninaReferralCodeValue = normalizedReferralCode(data.referral_code);
       ninaReferralLink = typeof data.referral_link === "string" ? data.referral_link : "";
       await submitCapturedReferral(clerk, data, token);

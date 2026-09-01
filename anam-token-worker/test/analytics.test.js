@@ -138,3 +138,16 @@ test("frontend starts analytics only from markNinaOnline and keeps content out o
   assert.doesNotMatch(migration, /message|transcript|content/i);
   assert.match(migration, /client_entry_id TEXT NOT NULL UNIQUE/);
 });
+
+test("profile menu exposes Nina Analytics only from the authenticated server role", async () => {
+  const [frontend, home, project] = await Promise.all([
+    readFile(new URL("../../js/nina-access.js", import.meta.url), "utf8"),
+    readFile(new URL("../../index.html", import.meta.url), "utf8"),
+    readFile(new URL("../../nina-project.html", import.meta.url), "utf8")
+  ]);
+  for (const page of [home, project]) {
+    assert.match(page, /id="ninaAccountAnalytics" href="\.\/nina-admin\/" hidden>Nina Analytics<\/a>/);
+  }
+  assert.match(frontend, /ninaAccountAnalytics\.hidden = true/);
+  assert.match(frontend, /ninaAccountAnalytics\.hidden = data\.role !== "owner"/);
+});
