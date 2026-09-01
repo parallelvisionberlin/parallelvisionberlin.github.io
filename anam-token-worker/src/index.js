@@ -14,6 +14,9 @@ import {
 import {
   StripePurchaseError, createSignalCreditCheckout, verifyAndProcessStripeWebhook
 } from "./stripe.js";
+import {
+  endNinaAnalyticsSession, getNinaAnalyticsDashboard, startNinaAnalyticsSession, touchNinaAnalyticsSession
+} from "./analytics.js";
 
 const PERSONA_ID = "a5663da5-5f5c-4600-b545-cbb58bd4e155";
 const VISITOR_ID_PATTERN = /^(?:[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|visitor-[a-z0-9-]+)$/i;
@@ -282,6 +285,17 @@ async function authenticateAccountIdentity(request, env) {
   return { user: { ...await resolveAuthenticatedUser(env, claims), auth_subject: claims.sub }, clerkUserId: claims.sub };
 }
 
+async function authenticateAnalyticsCaller(request, env, body, origin) {
+  const visitorId = validateVisitorId(body?.visitorId);
+  if (!visitorId) return jsonResponse({ error: "Invalid visitor", code: "invalid_visitor" }, 400, origin);
+  const authorization = request.headers.get("Authorization") || "";
+  if (!authorization) return { visitorId, user: null };
+  const user = await authenticateAccountRequest(request, env);
+  return user
+    ? { visitorId, user }
+    : jsonResponse({ error: "Account authentication required", code: "sign_in_required" }, 401, origin);
+}
+
 async function handleOwnerEnrollment(request, env, origin) {
   const body = await request.json().catch(() => ({}));
   const visitorId = validateVisitorId(body?.visitorId);
@@ -298,6 +312,43 @@ async function handlePersonaDiagnostic(request, env, origin) {
   if (owner.role !== "owner") return jsonResponse({ error: "Owner access required", code: "owner_required" }, 403, origin);
   const persona = await getCurrentPersona(env.ANAM_API_KEY);
   return jsonResponse(buildPersonaDiagnostic(persona, env.NINA_KNOWLEDGE_FOLDER_ID), 200, origin);
+}
+
+async function handleNinaAnalyticsStart(request, env, origin) {
+  const body = await request.json().catch(() => ({}));
+  const caller = await authenticateAnalyticsCaller(request, env, body, origin);
+  if (caller instanceof Response) return caller;
+  try {
+    return jsonResponse(await startNinaAnalyticsSession(env, { ...caller, clientEntryId: body.clientEntryId }), 200, origin);
+  } catch (error) {
+    const invalid = error?.message === "invalid_analytics_entry";
+    return jsonResponse({ error: invalid ? "Invalid analytics entry" : "Analytics session unavailable" }, invalid ? 400 : 503, origin);
+  }
+}
+
+async function handleNinaAnalyticsHeartbeat(request, env, origin) {
+  const body = await request.json().catch(() => ({}));
+  const caller = await authenticateAnalyticsCaller(request, env, body, origin);
+  if (caller instanceof Response) return caller;
+  return jsonResponse(await touchNinaAnalyticsSession(env, {
+    ...caller, sessionId: body.sessionId, clientEntryId: body.clientEntryId
+  }), 200, origin);
+}
+
+async function handleNinaAnalyticsEnd(request, env, origin) {
+  const body = await request.json().catch(() => ({}));
+  const caller = await authenticateAnalyticsCaller(request, env, body, origin);
+  if (caller instanceof Response) return caller;
+  return jsonResponse(await endNinaAnalyticsSession(env, {
+    ...caller, sessionId: body.sessionId, clientEntryId: body.clientEntryId, reason: body.reason
+  }), 200, origin);
+}
+
+async function handleNinaAnalyticsDashboard(request, env, origin) {
+  const owner = await authenticateAccountRequest(request, env);
+  if (!owner) return jsonResponse({ error: "Account authentication required", code: "sign_in_required" }, 401, origin);
+  if (owner.role !== "owner") return jsonResponse({ error: "Owner access required", code: "owner_required" }, 403, origin);
+  return jsonResponse(await getNinaAnalyticsDashboard(env), 200, origin);
 }
 
 async function handleMemoryDiagnostic(request, env, origin) {
@@ -697,6 +748,10 @@ export default {
       if (url.pathname === "/api/nina/persona-diagnostic" && request.method === "GET") return handlePersonaDiagnostic(request, env, origin);
       if (url.pathname === "/api/nina/memory-diagnostic" && request.method === "GET") return handleMemoryDiagnostic(request, env, origin);
       if (url.pathname === "/api/nina/memory-archivist-benchmark" && request.method === "GET") return handleMemoryArchivistBenchmark(request, env, origin);
+      if (url.pathname === "/api/nina/analytics/dashboard" && request.method === "GET") return handleNinaAnalyticsDashboard(request, env, origin);
+      if (url.pathname === "/api/nina/analytics/start" && request.method === "POST") return handleNinaAnalyticsStart(request, env, origin);
+      if (url.pathname === "/api/nina/analytics/heartbeat" && request.method === "POST") return handleNinaAnalyticsHeartbeat(request, env, origin);
+      if (url.pathname === "/api/nina/analytics/end" && request.method === "POST") return handleNinaAnalyticsEnd(request, env, origin);
       if (url.pathname === "/api/nina/reset-derived-memory" && request.method === "POST") return handleResetDerivedMemory(request, env, origin);
       if (url.pathname === "/session-token" && request.method === "POST") return handleSessionToken(request, env, origin);
       if (url.pathname === "/memory/messages" && request.method === "POST") return handleStoreMessages(request, env, origin, ctx);

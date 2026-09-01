@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Nina Analytics | Parallel Vision</title>
+  <link rel="icon" href="../favicon.png">
+  <link href="https://fonts.googleapis.com/css2?family=Michroma&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/nina-admin.css?v=20260902-1">
+</head>
+<body>
+  <header class="admin-header">
+    <a href="../index.html">Parallel Vision</a>
+    <span>Nina / Internal Analytics</span>
+    <button id="adminSignOut" type="button" hidden>Sign out</button>
+  </header>
+  <main class="admin-main">
+    <section class="admin-intro">
+      <p>PV / OWNER CHANNEL</p>
+      <h1>Nina Analytics</h1>
+      <p id="adminStatus" class="admin-status" role="status">Verifying owner access…</p>
+      <button id="adminSignIn" class="admin-button" type="button" hidden>Sign in</button>
+    </section>
+
+    <div id="adminDashboard" hidden>
+      <section class="admin-window" aria-labelledby="todayTitle">
+        <div class="admin-section-heading"><p>01</p><h2 id="todayTitle">Today</h2></div>
+        <div class="admin-metrics" id="todayMetrics"></div>
+      </section>
+      <section class="admin-window" aria-labelledby="weekTitle">
+        <div class="admin-section-heading"><p>02</p><h2 id="weekTitle">Last 7 days</h2></div>
+        <div class="admin-metrics" id="weekMetrics"></div>
+      </section>
+      <section class="admin-window" aria-labelledby="monthTitle">
+        <div class="admin-section-heading"><p>03</p><h2 id="monthTitle">Last 30 days</h2></div>
+        <div class="admin-metrics" id="monthMetrics"></div>
+      </section>
+      <section class="admin-window" aria-labelledby="funnelTitle">
+        <div class="admin-section-heading"><p>04</p><h2 id="funnelTitle">Funnel / Last 30 days</h2></div>
+        <div class="admin-funnel" id="adminFunnel"></div>
+        <p class="admin-note">PageViews are not stored server-side. Meta Pixel reporting remains external and is not represented here.</p>
+      </section>
+      <section class="admin-window" aria-labelledby="costTitle">
+        <div class="admin-section-heading"><p>05</p><h2 id="costTitle">Estimated Anam cost</h2></div>
+        <div class="admin-cost" id="adminCost"></div>
+        <p class="admin-note">Estimate only. Provider billing may calculate usage differently.</p>
+      </section>
+      <section class="admin-window" aria-labelledby="sessionsTitle">
+        <div class="admin-section-heading"><p>06</p><h2 id="sessionsTitle">Recent sessions</h2></div>
+        <div class="admin-table-wrap">
+          <table>
+            <thead><tr><th>User</th><th>Visit</th><th>Identity</th><th>Started</th><th>Duration</th><th>Status</th></tr></thead>
+            <tbody id="adminSessions"></tbody>
+          </table>
+        </div>
+      </section>
+      <p class="admin-generated" id="adminGenerated"></p>
+    </div>
+  </main>
+  <script type="module" src="../js/nina-admin.js?v=20260902-1"></script>
+</body>
+</html>

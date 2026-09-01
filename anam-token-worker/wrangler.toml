@@ -6,6 +6,8 @@ workers_dev = true
 [vars]
 CLERK_ISSUER = "https://clerk.parallelvisionlabel.com"
 NINA_KNOWLEDGE_FOLDER_ID = "afee1711-cba4-47ac-a4ed-7125bccf3947"
+# Set this to the effective Anam rate for the account; 0 keeps cost reporting explicitly unconfigured.
+ANAM_ESTIMATED_PRICE_PER_MINUTE_EUR = "0"
 
 [[d1_databases]]
 binding = "NINA_MEMORY_DB"

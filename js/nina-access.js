@@ -88,6 +88,7 @@ const SIGNAL_CREDIT_PACK_IDS = new Set(["signal_60", "signal_150", "signal_300",
 const NINA_CREDIT_CHECKOUT_STATE_KEY = "nina_signal_credit_checkout_v1";
 const NINA_CREDIT_SNAPSHOT_KEY = "nina_signal_credit_snapshot_v1";
 const NINA_CREDIT_SNAPSHOT_TTL_MS = 10 * 60 * 1000;
+const NINA_ANALYTICS_HEARTBEAT_MS = 30000;
 const ninaAccessHash = "d3ec7a14e4fefc8da57d4045a6ee28d28b328b78126c1e22bc0b541adf0f215c";
 const NINA_PREFERRED_MICROPHONE_KEY = "ninaPreferredMicrophoneId";
 const NINA_VISITOR_ID_KEY = "nina_fok_visitor_id_v1";
@@ -155,6 +156,11 @@ let ninaReferralLink = "";
 let ninaReferralCodeValue = "";
 let ninaPrimaryAction = "connect";
 let ninaTalkToNinaTracked = false;
+let ninaAnalyticsEntryId = "";
+let ninaAnalyticsSessionId = "";
+let ninaAnalyticsStartPromise = null;
+let ninaAnalyticsHeartbeatTimer = null;
+let ninaAnalyticsHeaders = null;
 
 function storeNinaAuthReturn(action = "") {
   const url = new URL(window.location.href);
@@ -1325,6 +1331,60 @@ function markNinaOnline() {
     window.fbq("trackCustom", "TalkToNina");
     if (DEVELOPMENT) console.info("[Meta Pixel] TalkToNina fired");
   }
+  void startNinaAnalyticsSession();
+}
+
+function clearNinaAnalyticsHeartbeat() {
+  if (ninaAnalyticsHeartbeatTimer) clearInterval(ninaAnalyticsHeartbeatTimer);
+  ninaAnalyticsHeartbeatTimer = null;
+}
+
+function ninaAnalyticsRequest(path, body, keepalive = false) {
+  return fetch(`${ANAM_SESSION_TOKEN_ENDPOINT.replace(/\/session-token$/, "")}${path}`, {
+    method: "POST",
+    headers: ninaAnalyticsHeaders || { "Content-Type": "application/json" },
+    body: JSON.stringify({ visitorId: ninaVisitorId, ...body }),
+    keepalive
+  });
+}
+
+async function startNinaAnalyticsSession() {
+  if (!ninaAnalyticsEntryId || ninaAnalyticsSessionId) return ninaAnalyticsSessionId;
+  if (ninaAnalyticsStartPromise) return ninaAnalyticsStartPromise;
+  const entryId = ninaAnalyticsEntryId;
+  ninaAnalyticsStartPromise = (async () => {
+    try {
+      ninaAnalyticsHeaders = await authenticationHeaders();
+      const response = await ninaAnalyticsRequest("/api/nina/analytics/start", { clientEntryId: entryId });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || entryId !== ninaAnalyticsEntryId || typeof data.sessionId !== "string") return "";
+      ninaAnalyticsSessionId = data.sessionId;
+      clearNinaAnalyticsHeartbeat();
+      ninaAnalyticsHeartbeatTimer = setInterval(() => {
+        if (!ninaAnalyticsSessionId || entryId !== ninaAnalyticsEntryId) return;
+        void ninaAnalyticsRequest("/api/nina/analytics/heartbeat", {
+          sessionId: ninaAnalyticsSessionId, clientEntryId: entryId
+        }).catch(error => logDevelopmentError("Nina analytics heartbeat unavailable.", error));
+      }, NINA_ANALYTICS_HEARTBEAT_MS);
+      return ninaAnalyticsSessionId;
+    } catch (error) {
+      logDevelopmentError("Nina analytics session unavailable.", error);
+      return "";
+    }
+  })().finally(() => { if (entryId === ninaAnalyticsEntryId) ninaAnalyticsStartPromise = null; });
+  return ninaAnalyticsStartPromise;
+}
+
+function endNinaAnalyticsSession(reason = "ended") {
+  clearNinaAnalyticsHeartbeat();
+  const sessionId = ninaAnalyticsSessionId;
+  const clientEntryId = ninaAnalyticsEntryId;
+  ninaAnalyticsSessionId = "";
+  ninaAnalyticsEntryId = "";
+  ninaAnalyticsStartPromise = null;
+  if (!sessionId || !clientEntryId) return Promise.resolve(null);
+  return ninaAnalyticsRequest("/api/nina/analytics/end", { sessionId, clientEntryId, reason }, true)
+    .catch(error => logDevelopmentError("Nina analytics end unavailable.", error));
 }
 
 function clearNinaUsageTimer() {
@@ -1485,6 +1545,7 @@ async function settleNinaUsage(end = false, keepalive = false) {
 }
 
 async function stopNinaSession() {
+  void endNinaAnalyticsSession("ended");
   ninaAttempt += 1;
   ninaConnecting = false;
   ninaTokenAbortController?.abort();
@@ -1591,6 +1652,7 @@ function bindAnamLifecycle(client, attempt) {
   };
   const onClosed = () => {
     if (attempt !== ninaAttempt || client !== ninaClient) return;
+    void endNinaAnalyticsSession("disconnected");
     void settleNinaUsage(true, true);
     ninaClient = null;
     ninaConnecting = false;
@@ -1635,6 +1697,9 @@ async function connectNina() {
   }
   const attempt = ++ninaAttempt;
   ninaTalkToNinaTracked = false;
+  ninaAnalyticsEntryId = crypto.randomUUID();
+  ninaAnalyticsSessionId = "";
+  ninaAnalyticsHeaders = null;
   showNinaConnecting();
   try {
     if (!ninaMicrophoneStream?.getAudioTracks().some(track => track.readyState === "live")) {
