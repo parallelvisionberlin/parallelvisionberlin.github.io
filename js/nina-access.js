@@ -150,6 +150,7 @@ let ninaReferralAttributionPromise = null;
 let ninaReferralLink = "";
 let ninaReferralCodeValue = "";
 let ninaPrimaryAction = "connect";
+let ninaTalkToNinaTracked = false;
 
 function storeNinaAuthReturn(action = "") {
   const url = new URL(window.location.href);
@@ -1257,6 +1258,11 @@ function markNinaOnline() {
   document.body.classList.add("nina-call-visible", "nina-conversation-live");
   document.body.classList.remove("nina-connecting-mode", "nina-scrim-visible", "nina-scrim-action");
   ninaScrim?.setAttribute("aria-hidden", "true");
+  if (!ninaTalkToNinaTracked && typeof window.fbq === "function") {
+    ninaTalkToNinaTracked = true;
+    window.fbq("trackCustom", "TalkToNina");
+    if (DEVELOPMENT) console.info("[Meta Pixel] TalkToNina fired");
+  }
 }
 
 function clearNinaUsageTimer() {
@@ -1565,6 +1571,7 @@ async function connectNina() {
     }
   }
   const attempt = ++ninaAttempt;
+  ninaTalkToNinaTracked = false;
   showNinaConnecting();
   try {
     if (!ninaMicrophoneStream?.getAudioTracks().some(track => track.readyState === "live")) {
