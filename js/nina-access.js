@@ -150,6 +150,23 @@ let ninaReferralAttributionPromise = null;
 let ninaReferralLink = "";
 let ninaReferralCodeValue = "";
 let ninaPrimaryAction = "connect";
+
+function storeNinaAuthReturn(action = "") {
+  const url = new URL(window.location.href);
+  sessionStorage.setItem(NINA_AUTH_RETURN_KEY, JSON.stringify({ path: `${url.pathname}${url.search}${url.hash}`, action }));
+}
+
+function readNinaAuthReturn() {
+  const stored = sessionStorage.getItem(NINA_AUTH_RETURN_KEY);
+  if (stored === "signal") return { path: "", action: "signal" };
+  try {
+    const value = JSON.parse(stored || "null");
+    const url = new URL(value?.path || "", window.location.origin);
+    if (url.origin !== window.location.origin || !value?.path?.startsWith("/")) return null;
+    return { path: `${url.pathname}${url.search}${url.hash}`, action: value.action === "signal" ? "signal" : "" };
+  } catch { return null; }
+}
+
 const delay = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
 const logDevelopmentError = (message, error) => { if (DEVELOPMENT) console.error(message, error); };
 const nativeFullscreenElement = () => document.fullscreenElement || document.webkitFullscreenElement || null;
@@ -1766,7 +1783,7 @@ async function startNinaGoogleSignIn() {
   if (!clerk) return;
   const callbackUrl = new URL(window.location.href);
   callbackUrl.searchParams.set("nina_clerk_callback", "1");
-  sessionStorage.setItem(NINA_AUTH_RETURN_KEY, "signal");
+  storeNinaAuthReturn("signal");
   await clerk.client.signIn.authenticateWithRedirect({
     strategy: "oauth_google",
     redirectUrl: callbackUrl.href,
@@ -1838,15 +1855,22 @@ ninaEmailSignInBack?.addEventListener("click", leaveInlineEmailSignIn);
 ninaEmailSignInForm?.addEventListener("submit", submitInlineEmailSignIn);
 ninaEmailCreateAccount?.addEventListener("click", async () => {
   const clerk = await initializeNinaAuth();
-  if (clerk) await clerk.openSignUp({ initialValues: { emailAddress: ninaEmailAddress.value.trim() } });
+  if (clerk) {
+    storeNinaAuthReturn();
+    await clerk.openSignUp({ initialValues: { emailAddress: ninaEmailAddress.value.trim() } });
+  }
 });
 ninaEmailForgotPassword?.addEventListener("click", async () => {
   const clerk = await initializeNinaAuth();
-  if (clerk) await clerk.openSignIn({ initialValues: { emailAddress: ninaEmailAddress.value.trim() } });
+  if (clerk) {
+    storeNinaAuthReturn();
+    await clerk.openSignIn({ initialValues: { emailAddress: ninaEmailAddress.value.trim() } });
+  }
 });
 async function openNinaAccountAuth(mode) {
   const clerk = await initializeNinaAuth();
   if (!clerk) return;
+  storeNinaAuthReturn();
   if (mode === "signup") {
     clerk.closeSignIn?.();
     await clerk.openSignUp();
@@ -1964,10 +1988,20 @@ initializeSignalCreditPurchaseUI();
 syncAccountLanguage();
 void handleSignalCreditReturn();
 void initializeNinaAuth().then(clerk => {
-  if (clerk?.isSignedIn && sessionStorage.getItem(NINA_AUTH_RETURN_KEY) === "signal") {
+  const authReturn = clerk?.isSignedIn ? readNinaAuthReturn() : null;
+  if (authReturn?.path) {
+    const currentPath = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+    if (currentPath !== authReturn.path) {
+      window.location.replace(authReturn.path);
+      return;
+    }
+  }
+  if (authReturn) {
     sessionStorage.removeItem(NINA_AUTH_RETURN_KEY);
-    openNinaExperience();
-    return;
+    if (authReturn.action === "signal") {
+      openNinaExperience();
+      return;
+    }
   }
   if (clerk?.isSignedIn && new URLSearchParams(window.location.search).get("credits") === "1") openSignalCreditPurchase();
 });
