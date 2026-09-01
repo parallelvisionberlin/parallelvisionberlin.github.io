@@ -169,7 +169,7 @@
 }
 
 .nina-access-email-form .nina-access-input {
-  min-height: 50px;
+  min-height: 46px;
   padding: 12px 15px;
 }
 
@@ -845,11 +845,11 @@ body.nina-fullscreen-active {
 }
 
 .nina-account-name {
-  margin: 11px 0 24px;
+  margin: 11px 0 22px;
   overflow-wrap: anywhere;
   color: rgba(255, 255, 255, .96);
   font-family: Inter, sans-serif;
-  font-size: 19px;
+  font-size: 17.75px;
   font-weight: 400;
   line-height: 1.35;
   letter-spacing: 0;
@@ -909,13 +909,13 @@ body.nina-fullscreen-active {
   width: 100%;
   transform: none;
   display: grid;
-  gap: 2px;
+  gap: 2.2px;
   padding: 7px 0;
   border-top: 1px solid rgba(255, 255, 255, .15);
   border-bottom: 1px solid rgba(255, 255, 255, .15);
   opacity: 1;
   font-family: Inter, sans-serif;
-  font-size: 11px;
+  font-size: 10.35px;
   font-weight: 400;
   line-height: 1;
   letter-spacing: .15em;
@@ -929,13 +929,13 @@ body.nina-fullscreen-active {
   display: flex;
   align-items: center;
   width: 100%;
-  min-height: 46px;
+  min-height: 50px;
   padding: 0 8px;
   border: 0;
   background: transparent;
   color: rgba(255, 255, 255, .72);
   font-family: Inter, sans-serif;
-  font-size: 11px;
+  font-size: 10.35px;
   font-style: normal;
   font-weight: 400;
   line-height: 1;
@@ -969,21 +969,21 @@ body.nina-fullscreen-active {
   border-bottom: 1px solid rgba(255, 255, 255, .15);
   color: rgba(255, 255, 255, .5);
   font-family: 'Courier New', monospace;
-  font-size: 10px;
+  font-size: 10.5px;
   font-weight: 400;
   line-height: 1.45;
-  letter-spacing: .15em;
+  letter-spacing: .164em;
   text-transform: uppercase;
 }
 
 .nina-account-credits span {
   display: block;
   font-family: 'Courier New', monospace;
-  font-size: 10px;
+  font-size: 10.5px;
   font-style: normal;
   font-weight: 400;
   line-height: 1.45;
-  letter-spacing: .15em;
+  letter-spacing: .164em;
   text-transform: uppercase;
 }
 
@@ -1010,7 +1010,7 @@ body.nina-fullscreen-active {
   padding: 0;
   border: 0;
   background: transparent;
-  color: rgba(255, 255, 255, .58);
+  color: rgba(255, 255, 255, .64);
   font: 12px/1.5 'Courier New', monospace;
   letter-spacing: .08em;
   text-align: left;
@@ -1175,12 +1175,12 @@ body:has(.nina-account-panel:not([hidden])) .home-desktop-signal-tab {
 
 .nina-account-signout {
   min-height: 46px;
-  margin-top: 22px;
+  margin-top: 24px;
   padding: 0 8px;
   border-width: 1px 0 0;
   border-color: rgba(255, 255, 255, .18);
   font-family: Inter, sans-serif;
-  font-size: 11px;
+  font-size: 10.35px;
 }
 
 .nina-account-get-credits {
@@ -1404,21 +1404,21 @@ body.nina-credits-purchase-active {
     overscroll-behavior: contain;
   }
   .nina-account-eyebrow { font-size: 9px; }
-  .nina-account-name { margin: 8px 0 8px; font-size: 17px; }
+  .nina-account-name { margin: 8px 0 7.3px; font-size: 15.9px; }
   .nina-account-credits {
     gap: 6px 12px;
     margin-bottom: 10px;
     padding: 9px 0 12px;
   }
-  .nina-account-credits-info-trigger { margin-bottom: 12px; font-size: 13px; }
+  .nina-account-credits-info-trigger { margin-bottom: 12px; font-size: 12.7px; }
   .nina-account-credits-info-panel { padding: 30px 22px 26px; }
   .nina-account-buy-credits { min-height: 44px; margin-bottom: 11px; padding-inline: 10px; font-size: 10px; }
   .nina-account-menu { gap: 0; padding: 3px 0; }
   .nina-account-menu a,
   .nina-account-menu > span,
   .nina-account-action,
-  .nina-account-menu .nina-account-get-credits { min-height: 40px; font-size: 10px; }
-  .nina-account-signout { min-height: 40px; margin-top: 14px; font-size: 10px; }
+  .nina-account-menu .nina-account-get-credits { min-height: 40px; font-size: 9.4px; }
+  .nina-account-signout { min-height: 40px; margin-top: 15.3px; font-size: 9.4px; }
   .nina-account-menu a[href="./account.html#newsletter"] { display: none; }
   .nina-credits-purchase { align-items: end; padding: 12px; }
   .nina-credits-purchase-panel { width: 100%; max-height: calc(100svh - 24px); padding: 28px 22px 24px; overflow-y: auto; }
