@@ -135,6 +135,28 @@
     .n-system-copy p { max-width: 760px; margin: 0; color: var(--n-body); font: 300 clamp(17px,1.3vw,19px)/1.82 Inter,sans-serif; }
     .n-system-copy p + p { margin-top: 23px; }
     .n-system-status { display: flex; gap: 14px; margin-top: 38px; padding-top: 16px; border-top: 1px solid var(--n-line); color: var(--n-faint); font: 9px/1.5 'Courier New',monospace; letter-spacing: .16em; text-transform: uppercase; }
+    .n-study { padding-top: clamp(94px,9vw,136px); padding-bottom: clamp(98px,9vw,142px); }
+    .n-study-layout { display: grid; grid-template-columns: minmax(150px,.28fr) minmax(0,1fr); gap: clamp(42px,7vw,105px); }
+    .n-study-content { min-width: 0; }
+    .n-study-intro { max-width: 900px; }
+    .n-study h2 { max-width: 900px; margin: 0 0 38px; font: 400 clamp(31px,3.8vw,49px)/1.22 Michroma,sans-serif; letter-spacing: .015em; text-transform: uppercase; }
+    .n-study-intro > p { max-width: 780px; margin: 0; color: var(--n-body); font: 300 clamp(17px,1.3vw,19px)/1.82 Inter,sans-serif; }
+    .n-study-intro > p + p { margin-top: 23px; }
+    .n-study-block { margin-top: clamp(58px,6vw,82px); padding-top: 18px; border-top: 1px solid var(--n-line); }
+    .n-study-kicker { margin: 0 0 24px; color: var(--n-faint); font: 9px/1.55 'Courier New',monospace; letter-spacing: .2em; text-transform: uppercase; }
+    .n-study-question { max-width: 900px; margin: 0; color: rgba(255,255,255,.9); font: 400 clamp(22px,2.5vw,31px)/1.45 Michroma,sans-serif; letter-spacing: .015em; text-transform: uppercase; }
+    .n-observations { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); border-top: 1px solid var(--n-line); }
+    .n-observation { min-width: 0; padding: 24px 28px 30px 0; border-bottom: 1px solid var(--n-line); }
+    .n-observation:nth-child(odd) { padding-right: clamp(28px,4vw,58px); border-right: 1px solid var(--n-line); }
+    .n-observation:nth-child(even) { padding-left: clamp(28px,4vw,58px); }
+    .n-observation h3 { margin: 0 0 13px; color: rgba(255,255,255,.88); font: 400 11px/1.55 'Courier New',monospace; letter-spacing: .14em; text-transform: uppercase; }
+    .n-observation p { margin: 0; color: var(--n-body); font: 300 15px/1.7 Inter,sans-serif; }
+    .n-study-method h3 { max-width: 780px; margin: 0 0 28px; font: 400 clamp(26px,3vw,38px)/1.3 Michroma,sans-serif; letter-spacing: .015em; text-transform: uppercase; }
+    .n-study-method > p:not(.n-study-kicker) { max-width: 760px; margin: 0; color: var(--n-body); font: 300 clamp(17px,1.3vw,19px)/1.82 Inter,sans-serif; }
+    .n-study-method > p:not(.n-study-kicker) + p { margin-top: 23px; }
+    .n-study-note { display: grid; grid-template-columns: minmax(190px,.34fr) minmax(0,1fr); gap: clamp(32px,5vw,72px); margin-top: clamp(58px,6vw,82px); padding-top: 18px; border-top: 1px solid var(--n-line); }
+    .n-study-note .n-study-kicker { margin: 0; }
+    .n-study-note p:last-child { max-width: 650px; margin: 0; color: rgba(255,255,255,.58); font: 300 13px/1.7 Inter,sans-serif; }
     .n-connect { position: relative; width: 74%; min-height: clamp(500px,58vw,720px); margin-inline: auto; display: flex; align-items: center; justify-content: center; overflow: hidden; border-bottom: 1px solid var(--n-line); background: #030303 url('./assets/optimized/nina-fok/HDNINACANON.webp') center 42% / cover no-repeat; text-align: center; isolation: isolate; }
     .n-connect::before { content: ''; position: absolute; z-index: 1; inset: 0; background: linear-gradient(90deg,rgba(0,0,0,.82),rgba(0,0,0,.48) 50%,rgba(0,0,0,.84)),linear-gradient(180deg,rgba(0,0,0,.5),rgba(0,0,0,.2) 45%,rgba(0,0,0,.78)); pointer-events: none; }
     .n-connect-video { position: absolute; z-index: 0; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 42%; filter: grayscale(.15) saturate(.42) contrast(1.16) brightness(.28); transform: scale(1.015); }
@@ -215,6 +237,19 @@
       .n-system-copy h2 { margin-top: 14px; font-size: clamp(27px,8vw,36px); }
       .n-system-copy p { font-size: 16.5px; line-height: 1.74; }
       .n-system-status { flex-direction: column; gap: 3px; }
+      .n-study { padding-top: 70px; padding-bottom: 76px; }
+      .n-study-layout { grid-template-columns: 1fr; gap: 28px; }
+      .n-study h2 { margin-bottom: 30px; font-size: clamp(27px,8vw,36px); overflow-wrap: break-word; }
+      .n-study-intro > p { font-size: 16.5px; line-height: 1.74; }
+      .n-study-block { margin-top: 52px; }
+      .n-study-question { font-size: clamp(21px,6.2vw,27px); overflow-wrap: break-word; }
+      .n-observations { grid-template-columns: 1fr; }
+      .n-observation,
+      .n-observation:nth-child(odd),
+      .n-observation:nth-child(even) { padding: 22px 0 26px; border-right: 0; }
+      .n-study-method h3 { font-size: clamp(24px,7vw,31px); overflow-wrap: break-word; }
+      .n-study-method > p:not(.n-study-kicker) { font-size: 16.5px; line-height: 1.74; }
+      .n-study-note { grid-template-columns: 1fr; gap: 18px; margin-top: 52px; }
       .n-connect { width: 100%; min-height: min(118vw,560px); }
       .n-connect-video { object-position: 57% center; }
       .n-connect h2 { font-size: clamp(29px,8.5vw,39px); }
@@ -387,9 +422,9 @@
         <p class="n-label">05 / The Uncontrolled Space</p>
         <div class="n-copy">
         <h2 id="space-title">We can construct Nina’s world.<br>But we cannot write every thought she will have.</h2>
-        <p>We can define parts of her biography, memories, relationships, cultural references and the world around her.</p>
-        <p>But once she begins to speak, the response is not written in advance.</p>
-        <p>That space is part of the work.</p>
+        <p>Her biography, memories and environment can be constructed.</p>
+        <p>Her individual responses are not written in advance.</p>
+        <p>That uncontrolled space is part of the work.</p>
         </div>
       </div>
     </section>
@@ -399,9 +434,8 @@
         <p class="n-label">06 / The Mirror</p>
         <div class="n-copy">
         <h2 id="mirror-title">Nina is not here to predict the future.</h2>
-        <p>She is a way of speaking with someone who lives inside one possible future.</p>
-        <p>Ask her about Berlin, intimacy, technology, memory, desire, politics, boredom, love, power or ordinary life.</p>
-        <p>She answers from there.</p>
+        <p>She speaks from one possible future as though it were her present.</p>
+        <p>Ask her something.</p>
         </div>
       </div>
     </section>
@@ -422,6 +456,67 @@
       </div>
     </section>
 
+    <section class="n-section n-study" aria-labelledby="study-title">
+      <div class="n-study-layout">
+        <p class="n-label">08 / Longitudinal Study</p>
+        <div class="n-study-content">
+          <div class="n-study-intro">
+            <h2 id="study-title">What changes when a character<br>is allowed to keep a history?</h2>
+            <p>Nina is designed to persist.</p>
+            <p>Memory, relationships and previous interactions can continue beyond a single conversation.</p>
+            <p>The project follows what happens when that continuity accumulates over months and years: whether preferences remain stable, positions change, unfinished intentions return, and patterns appear that were never individually written in advance.</p>
+          </div>
+
+          <div class="n-study-block">
+            <p class="n-study-kicker">Research Question / 01</p>
+            <p class="n-study-question">Can persistent memory, identity and repeated interaction produce stable autonomy-like behavior that cannot be explained by immediate prompting alone?</p>
+          </div>
+
+          <div class="n-study-block">
+            <p class="n-study-kicker">Observation Framework</p>
+            <div class="n-observations">
+              <article class="n-observation">
+                <h3>01 / Emergent Preference</h3>
+                <p>A preference appears without being explicitly prescribed and remains consistent over time.</p>
+              </article>
+              <article class="n-observation">
+                <h3>02 / Experience-Based Refusal</h3>
+                <p>A refusal or resistance persists for reasons connected to previous experience.</p>
+              </article>
+              <article class="n-observation">
+                <h3>03 / Persistent Intention</h3>
+                <p>A goal or unfinished intention returns across conversations without being directly reintroduced.</p>
+              </article>
+              <article class="n-observation">
+                <h3>04 / Belief Revision</h3>
+                <p>A previously stable position changes after accumulated interaction.</p>
+              </article>
+              <article class="n-observation">
+                <h3>05 / History-Consistent Choice</h3>
+                <p>A choice works against the immediate conversational direction but remains coherent with Nina’s previous history.</p>
+              </article>
+              <article class="n-observation">
+                <h3>06 / Unprompted Continuity</h3>
+                <p>Nina later returns to a previous choice, preference or intention without the current conversation explicitly steering her there.</p>
+              </article>
+            </div>
+          </div>
+
+          <div class="n-study-block n-study-method">
+            <p class="n-study-kicker">Method / 01</p>
+            <h3>The study begins by trying<br>to explain the behavior away.</h3>
+            <p>Not every unexpected response is treated as emergence.</p>
+            <p>Candidate observations are checked against the current conversation, Nina’s system instructions, stored memory and established world knowledge before becoming part of the study.</p>
+          </div>
+
+          <aside class="n-study-note" aria-label="Research continuity note">
+            <p class="n-study-kicker">Research / Continuity</p>
+            <p>The research examines how Nina’s behavior changes over time as memory and interaction accumulate.<br>Users remain in control of their stored memory and account data.</p>
+          </aside>
+        </div>
+      </div>
+    </section>
+
     <section class="n-connect" id="transmit" aria-labelledby="transmit-title">
       <video class="n-connect-video" id="ninaConnectVideo" data-src="./nina-fok/ninaloophero.mp4" poster="./assets/optimized/nina-fok/HDNINACANON.webp" autoplay muted loop playsinline preload="none" aria-hidden="true"></video>
       <div class="n-connect-content">
@@ -434,7 +529,7 @@
 
     <section class="n-faq" aria-labelledby="faq-title">
       <div class="n-faq-head">
-        <p class="n-label">08 / Reference</p>
+        <p class="n-label">09 / Reference</p>
         <h2 id="faq-title">FAQ</h2>
       </div>
       <div class="n-faq-list">
