@@ -33,6 +33,20 @@ th { color: #777; font: 12px/1.4 'Courier New',monospace; letter-spacing: .11em;
 td { color: #c6c6c2; font-size: 12px; }
 td:first-child,td:last-child { font-family: 'Courier New',monospace; text-transform: uppercase; }
 .admin-generated { margin: 24px 0 0; }
+.admin-form { display: grid; gap: 9px; max-width: 680px; }
+.admin-form label,.admin-user-result span { color: #858585; font: 12px/1.5 'Courier New',monospace; letter-spacing: .1em; text-transform: uppercase; }
+.admin-form input { width: 100%; height: 48px; padding: 0 14px; border: 1px solid #444; border-radius: 0; background: #080809; color: #f2f2ef; font: 14px Inter,sans-serif; }
+.admin-inline { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 10px; }
+.admin-inline .admin-button,.admin-form .admin-button { margin-top: 0; }
+.admin-user-result { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 1px; max-width: 680px; margin-top: 22px; border: 1px solid #292929; background: #292929; }
+.admin-user-result > p { margin: 0; padding: 18px; background: #070708; }
+.admin-user-result strong { display: block; margin-top: 10px; overflow-wrap: anywhere; font-size: 16px; font-weight: 400; }
+.admin-user-result .admin-form { grid-column: 1 / -1; padding: 20px; background: #070708; }
+.admin-form-status { min-height: 1.5em; margin: 16px 0 0; color: #aaa; font: 12px/1.5 'Courier New',monospace; letter-spacing: .08em; text-transform: uppercase; }
+.admin-form-grid { grid-template-columns: 180px minmax(0,1fr); align-items: center; }
+.admin-checkbox { display: contents; }
+.admin-checkbox input { width: 20px; height: 20px; padding: 0; accent-color: #ddd; }
+.admin-form-grid .admin-button { grid-column: 2; }
 @media (max-width: 760px) {
   .admin-header { grid-template-columns: 1fr auto; min-height: 62px; }
   .admin-header span { display: none; }
@@ -40,4 +54,7 @@ td:first-child,td:last-child { font-family: 'Courier New',monospace; text-transf
   .admin-metrics { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .admin-funnel { grid-template-columns: 1fr 1fr; }
   .admin-cost { grid-template-columns: 1fr; }
+  .admin-inline,.admin-form-grid { grid-template-columns: 1fr; }
+  .admin-form-grid .admin-button { grid-column: 1; }
+  .admin-user-result { grid-template-columns: 1fr; }
 }

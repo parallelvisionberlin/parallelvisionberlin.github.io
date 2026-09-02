@@ -9,10 +9,15 @@ const $ = id => document.getElementById(id);
 const elements = {
   status: $("adminStatus"), signIn: $("adminSignIn"), signOut: $("adminSignOut"), dashboard: $("adminDashboard"),
   today: $("todayMetrics"), week: $("weekMetrics"), month: $("monthMetrics"), funnel: $("adminFunnel"),
-  cost: $("adminCost"), sessions: $("adminSessions"), generated: $("adminGenerated")
+  cost: $("adminCost"), sessions: $("adminSessions"), generated: $("adminGenerated"),
+  giftSearchForm: $("giftSearchForm"), giftUser: $("giftUser"), giftUserResult: $("giftUserResult"), giftUserIdentity: $("giftUserIdentity"), giftUserBalance: $("giftUserBalance"),
+  giftGrantForm: $("giftGrantForm"), giftAmount: $("giftAmount"), giftNote: $("giftNote"), giftStatus: $("giftStatus"), voucherForm: $("voucherForm"), voucherCode: $("voucherCode"),
+  voucherCredits: $("voucherCredits"), voucherLimit: $("voucherLimit"), voucherExpiration: $("voucherExpiration"), voucherActive: $("voucherActive"), voucherStatus: $("voucherStatus"),
+  grants: $("adminGrants"), vouchers: $("adminVouchers")
 };
 let clerk;
 let refreshTimer;
+let selectedGiftUser = null;
 
 async function loadClerkUI() {
   if (window.__internal_ClerkUICtor) return window.__internal_ClerkUICtor;
@@ -119,6 +124,41 @@ async function fetchDashboard() {
   return data;
 }
 
+async function creditApi(path = "", options = {}) {
+  const token = await clerk?.session?.getToken?.();
+  if (!token) throw Object.assign(new Error("Sign in required"), { status: 401 });
+  const response = await fetch(`${API_ORIGIN}${path}`, { cache: "no-store", ...options, headers: { "Authorization": `Bearer ${token}`, "Accept": "application/json", "Content-Type": "application/json", ...(options.headers || {}) } });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw Object.assign(new Error(data.error || "Request failed"), { status: response.status, code: data.code });
+  return data;
+}
+
+function tableMessage(container, columns, message) {
+  const row = document.createElement("tr"), cell = document.createElement("td");
+  cell.colSpan = columns; cell.textContent = message; row.append(cell); container.append(row);
+}
+
+function renderCreditAdmin(data) {
+  elements.grants.replaceChildren();
+  for (const grant of data.grants || []) {
+    const row = document.createElement("tr");
+    for (const value of [grant.userEmail || grant.userId, `+${number(grant.amount)}`, `${number(grant.previousBalance)} → ${number(grant.resultingBalance)}`, grant.grantedByUserId, grant.note || "—", dateTime(grant.grantedAt)]) { const cell = document.createElement("td"); cell.textContent = value; row.append(cell); }
+    elements.grants.append(row);
+  }
+  if (!elements.grants.children.length) tableMessage(elements.grants, 6, "No manual grants yet.");
+  elements.vouchers.replaceChildren();
+  for (const voucher of data.vouchers || []) {
+    const expired = voucher.expiresAt && Date.parse(voucher.expiresAt) <= Date.now();
+    const status = !voucher.active ? "INACTIVE" : expired ? "EXPIRED" : voucher.redemptionCount >= voucher.maximumRedemptions ? "LIMIT REACHED" : "ACTIVE";
+    const row = document.createElement("tr");
+    for (const value of [voucher.code, number(voucher.creditAmount), `${number(voucher.redemptionCount)} / ${number(voucher.maximumRedemptions)}`, dateTime(voucher.expiresAt), status]) { const cell = document.createElement("td"); cell.textContent = value; row.append(cell); }
+    elements.vouchers.append(row);
+  }
+  if (!elements.vouchers.children.length) tableMessage(elements.vouchers, 5, "No vouchers yet.");
+}
+
+async function loadCreditAdmin() { renderCreditAdmin(await creditApi("/api/signal-credits/admin")); }
+
 async function loadDashboard() {
   try {
     const data = await fetchDashboard();
@@ -131,6 +171,7 @@ async function loadDashboard() {
     renderFunnel(data.funnel);
     renderCost(data.cost);
     renderSessions(data.sessions || []);
+    await loadCreditAdmin();
     elements.generated.textContent = `Generated ${dateTime(data.generatedAt)} / Active window ${data.activeWindowSeconds} seconds`;
   } catch (error) {
     elements.dashboard.hidden = true;
@@ -149,6 +190,21 @@ async function syncAuth() {
 
 elements.signIn.addEventListener("click", () => clerk?.openSignIn());
 elements.signOut.addEventListener("click", async () => { await clerk?.signOut(); await syncAuth(); });
+elements.giftSearchForm.addEventListener("submit", async event => {
+  event.preventDefault(); elements.giftStatus.textContent = "Searching…"; elements.giftUserResult.hidden = true; selectedGiftUser = null;
+  try { const data = await creditApi(`/api/signal-credits/admin?user=${encodeURIComponent(elements.giftUser.value)}`); selectedGiftUser = data.user; elements.giftUserIdentity.textContent = data.user.email || data.user.id; elements.giftUserBalance.textContent = `${number(data.user.balance)} credits`; elements.giftUserResult.hidden = false; elements.giftStatus.textContent = "User found."; }
+  catch (error) { elements.giftStatus.textContent = error.message; }
+});
+elements.giftGrantForm.addEventListener("submit", async event => {
+  event.preventDefault(); if (!selectedGiftUser) return; elements.giftStatus.textContent = "Granting credits…";
+  try { const data = await creditApi("/api/signal-credits/grant", { method: "POST", body: JSON.stringify({ userId: selectedGiftUser.id, amount: Number(elements.giftAmount.value), note: elements.giftNote.value }) }); selectedGiftUser.balance = data.balance; elements.giftUserBalance.textContent = `${number(data.balance)} credits`; elements.giftAmount.value = ""; elements.giftNote.value = ""; elements.giftStatus.textContent = `Granted ${number(data.grant.amount)} credits.`; await loadCreditAdmin(); }
+  catch (error) { elements.giftStatus.textContent = error.message; }
+});
+elements.voucherForm.addEventListener("submit", async event => {
+  event.preventDefault(); elements.voucherStatus.textContent = "Creating voucher…";
+  try { await creditApi("/api/signal-credits/admin", { method: "POST", body: JSON.stringify({ code: elements.voucherCode.value, creditAmount: Number(elements.voucherCredits.value), maximumRedemptions: Number(elements.voucherLimit.value), expiresAt: elements.voucherExpiration.value ? new Date(elements.voucherExpiration.value).toISOString() : null, active: elements.voucherActive.checked }) }); elements.voucherStatus.textContent = "Voucher created."; elements.voucherForm.reset(); elements.voucherLimit.value = "1"; elements.voucherActive.checked = true; await loadCreditAdmin(); }
+  catch (error) { elements.voucherStatus.textContent = error.message; }
+});
 
 try {
   const ClerkUI = await loadClerkUI();

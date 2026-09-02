@@ -10,8 +10,9 @@ import {
 function creditDb(users = []) {
   const accounts = new Map();
   const transactions = [];
+  const grants = [];
   return {
-    accounts, transactions,
+    accounts, transactions, grants,
     prepare(sql) {
       const normalized = sql.replace(/\s+/g, " ").trim();
       let values = [];
@@ -39,9 +40,23 @@ function creditDb(users = []) {
             account.updated_at = createdAt;
             return { meta: { changes: 1 } };
           }
+          if (normalized.startsWith("INSERT INTO credit_grants")) {
+            const [id, userId, amount, amountAgain, grantedAt, ownerId, note] = values;
+            const account = accounts.get(userId);
+            if (!account) return { meta: { changes: 0 } };
+            const row = { id, user_id: userId, amount, previous_balance: account.balance, resulting_balance: account.balance + amountAgain, granted_at: grantedAt, granted_by_user_id: ownerId, note };
+            grants.push(row);
+            transactions.push({ id, user_id: userId, amount, type: "credit", source: "owner_gift", reference_id: `credit-grant:${id}`, description: note, created_at: grantedAt });
+            account.balance += amount; account.lifetime_credited += amount; account.updated_at = grantedAt;
+            return { meta: { changes: 1 } };
+          }
           throw new Error(`Unexpected run: ${normalized}`);
         },
         async first() {
+          if (normalized.includes("FROM users u LEFT JOIN signal_credit_accounts")) {
+            const user = users.find(candidate => candidate.id === values[0] || String(candidate.email || "").toLowerCase() === String(values[1]).toLowerCase());
+            return user ? { id: user.id, email: user.email, balance: accounts.get(user.id)?.balance ?? null } : null;
+          }
           if (normalized.includes("FROM users WHERE auth_provider = 'clerk' AND auth_subject = ?")) {
             return users.find(user => user.auth_subject === values[0]) || null;
           }
@@ -52,6 +67,7 @@ function creditDb(users = []) {
           if (normalized.includes("FROM signal_credit_transactions")) {
             return transactions.find(row => row.user_id === values[0] && row.reference_id === values[1]) || null;
           }
+          if (normalized.includes("FROM credit_grants WHERE id = ?")) return grants.find(row => row.id === values[0]) || null;
           throw new Error(`Unexpected first: ${normalized}`);
         },
         async all() {
@@ -240,10 +256,11 @@ test("owner Signal Credit grants are protected, validated and idempotent", async
       assert.equal(response.status, 200);
       const result = await response.json();
       assert.equal(result.ok, true);
-      assert.equal(result.email, "santomolinari@gmail.com");
-      assert.equal(result.amount, 100);
+      assert.equal(result.user.email, "santomolinari@gmail.com");
+      assert.equal(result.grant.amount, 100);
       assert.equal(result.balance, 100);
-      assert.equal(result.transaction.source, "owner_gift");
+      assert.equal(result.grant.previousBalance, 0);
+      assert.equal(result.grant.resultingBalance, 100);
       assert.equal(db.accounts.get("member-1").lifetime_credited, 100);
       assert.equal(db.transactions.length, 1);
     });
@@ -272,17 +289,13 @@ test("owner Signal Credit grants are protected, validated and idempotent", async
       assert.equal((await response.json()).code, "invalid_amount");
     });
 
-    await t.test("the same referenceId does not double-credit", async () => {
+    await t.test("internal user ID lookup grants into the same ledger", async () => {
       const db = creditDb(grantUsers());
-      const env = envFor(db);
-      const body = { email: "santomolinari@gmail.com", amount: 100, referenceId: "stable-owner-gift" };
-      const first = await grantRequest(env, ownerToken, body);
-      const second = await grantRequest(env, ownerToken, body);
-      assert.equal(first.status, 200);
-      assert.equal(second.status, 200);
-      assert.equal((await second.json()).balance, 100);
-      assert.equal(db.accounts.get("member-1").balance, 100);
-      assert.equal(db.transactions.length, 1);
+      const response = await grantRequest(envFor(db), ownerToken, { userId: "member-1", amount: 7, note: "tester" });
+      assert.equal(response.status, 200);
+      assert.equal((await response.json()).grant.note, "tester");
+      assert.equal(db.accounts.get("member-1").balance, 7);
+      assert.equal(db.transactions[0].source, "owner_gift");
     });
   } finally {
     globalThis.fetch = originalFetch;

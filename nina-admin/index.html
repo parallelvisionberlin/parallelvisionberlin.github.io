@@ -7,7 +7,7 @@
   <title>Nina Analytics | Parallel Vision</title>
   <link rel="icon" href="../favicon.png">
   <link href="https://fonts.googleapis.com/css2?family=Michroma&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../css/nina-admin.css?v=20260902-2">
+  <link rel="stylesheet" href="../css/nina-admin.css?v=20260902-credits">
 </head>
 <body>
   <header class="admin-header">
@@ -55,9 +55,45 @@
           </table>
         </div>
       </section>
+      <section class="admin-window" aria-labelledby="giftTitle">
+        <div class="admin-section-heading"><p>07</p><h2 id="giftTitle">Gift Credits</h2></div>
+        <form class="admin-form" id="giftSearchForm">
+          <label for="giftUser">User email or internal ID</label>
+          <div class="admin-inline"><input id="giftUser" maxlength="254" autocomplete="off" required><button class="admin-button" type="submit">Find user</button></div>
+        </form>
+        <div class="admin-user-result" id="giftUserResult" hidden>
+          <p><span>User</span><strong id="giftUserIdentity"></strong></p><p><span>Current balance</span><strong id="giftUserBalance"></strong></p>
+          <form class="admin-form" id="giftGrantForm">
+            <label for="giftAmount">Credits to grant</label><input id="giftAmount" type="number" min="1" max="1000000000" step="1" required>
+            <label for="giftNote">Internal note (optional)</label><input id="giftNote" maxlength="120" placeholder="tester / friend / promo / complimentary">
+            <button class="admin-button" type="submit">Confirm grant</button>
+          </form>
+        </div>
+        <p class="admin-form-status" id="giftStatus" role="status"></p>
+      </section>
+      <section class="admin-window" aria-labelledby="voucherCreateTitle">
+        <div class="admin-section-heading"><p>08</p><h2 id="voucherCreateTitle">Create Voucher</h2></div>
+        <form class="admin-form admin-form-grid" id="voucherForm">
+          <label for="voucherCode">Code</label><input id="voucherCode" maxlength="32" placeholder="BERLIN2063" required>
+          <label for="voucherCredits">Signal Credits</label><input id="voucherCredits" type="number" min="1" max="1000000000" step="1" required>
+          <label for="voucherLimit">Maximum redemptions</label><input id="voucherLimit" type="number" min="1" max="1000000" step="1" value="1" required>
+          <label for="voucherExpiration">Expiration (optional)</label><input id="voucherExpiration" type="datetime-local">
+          <label class="admin-checkbox"><span>Active</span><input id="voucherActive" type="checkbox" checked></label>
+          <button class="admin-button" type="submit">Create voucher</button>
+        </form>
+        <p class="admin-form-status" id="voucherStatus" role="status"></p>
+      </section>
+      <section class="admin-window" aria-labelledby="grantsTitle">
+        <div class="admin-section-heading"><p>09</p><h2 id="grantsTitle">Recent Grants</h2></div>
+        <div class="admin-table-wrap"><table><thead><tr><th>User</th><th>Credits</th><th>Balance</th><th>Owner</th><th>Note</th><th>Date</th></tr></thead><tbody id="adminGrants"></tbody></table></div>
+      </section>
+      <section class="admin-window" aria-labelledby="vouchersTitle">
+        <div class="admin-section-heading"><p>10</p><h2 id="vouchersTitle">Vouchers</h2></div>
+        <div class="admin-table-wrap"><table><thead><tr><th>Code</th><th>Credits</th><th>Redemptions</th><th>Expiration</th><th>Status</th></tr></thead><tbody id="adminVouchers"></tbody></table></div>
+      </section>
       <p class="admin-generated" id="adminGenerated"></p>
     </div>
   </main>
-  <script type="module" src="../js/nina-admin.js?v=20260902-1"></script>
+  <script type="module" src="../js/nina-admin.js?v=20260902-credits"></script>
 </body>
 </html>
