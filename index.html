@@ -60,7 +60,7 @@
 
 <link rel="stylesheet" href="./css/base.css?v=20260814-1">
   <link rel="stylesheet" href="./css/home.css?v=20260829-material-signal-tab">
-  <link rel="stylesheet" href="./css/nina-access.css?v=20260901-mobile-account">
+  <link rel="stylesheet" href="./css/nina-access.css?v=20260902-auth-layer">
 
 </head>
 
@@ -1673,14 +1673,27 @@
 >
   <section class="nina-access-panel">
     <button class="nina-access-close" id="ninaAccessCancel" type="button" aria-label="Close sign-in panel">×</button>
-    <h2 class="nina-access-title" id="ninaAccessTitle">OPEN THE SIGNAL</h2>
-    <p class="nina-access-lead">Sign in to continue your transmission with Nina.</p>
-    <p class="nina-access-description">Your account keeps your Signal Credits and your history with Nina connected.</p>
+    <h2 class="nina-access-title" id="ninaAccessTitle">TALK TO NINA</h2>
+    <p class="nina-access-lead">Create an account or sign in to talk to Nina.</p>
+    <p class="nina-access-description">Your account keeps your conversations and Signal Credits connected.</p>
     <div class="nina-access-auth-actions">
       <button class="nina-access-account" id="ninaSignIn" type="button" disabled>CONTINUE WITH GOOGLE</button>
-      <button class="nina-access-account nina-access-account-secondary" id="ninaSignInEmail" type="button" disabled>CONTINUE WITH EMAIL</button>
+      <button class="nina-access-account nina-access-account-secondary" id="ninaSignInEmail" type="button" aria-expanded="false" aria-controls="ninaEmailSignInForm" disabled>CONTINUE WITH EMAIL</button>
     </div>
-    <button class="nina-access-private-toggle" id="ninaPrivateAccessToggle" type="button" aria-expanded="false" aria-controls="ninaAccessForm">Have a private access code?</button>
+    <form class="nina-access-email-form" id="ninaEmailSignInForm" hidden aria-hidden="true">
+      <button class="nina-access-email-back" id="ninaEmailSignInBack" type="button">← BACK</button>
+      <label class="nina-access-label" for="ninaEmailAddress">Email</label>
+      <input class="nina-access-input" id="ninaEmailAddress" name="email" type="email" autocomplete="email" required>
+      <label class="nina-access-label nina-access-email-password-label" for="ninaEmailPassword">Password</label>
+      <input class="nina-access-input" id="ninaEmailPassword" name="password" type="password" autocomplete="current-password" required>
+      <p class="nina-access-error" id="ninaEmailSignInError" role="status" aria-live="polite"></p>
+      <button class="nina-access-submit nina-access-email-submit" id="ninaEmailSignInSubmit" type="submit">SIGN IN</button>
+      <div class="nina-access-email-utilities">
+        <button type="button" id="ninaEmailCreateAccount">Create account</button>
+        <button type="button" id="ninaEmailForgotPassword">Forgot password</button>
+      </div>
+    </form>
+    <button class="nina-access-private-toggle" id="ninaPrivateAccessToggle" type="button" aria-expanded="false" aria-controls="ninaAccessForm">Have an access code?</button>
     <form class="nina-access-form" id="ninaAccessForm" hidden aria-hidden="true">
       <label class="nina-access-label" for="ninaAccessCode">Access code</label>
       <input
@@ -1958,7 +1971,7 @@
 
 <script src="./js/home.js?v=20260828-mobile-hero-autoplay" defer></script>
 
-<script type="module" src="./js/nina-access.js?v=20260902-owner-analytics-menu"></script>
+<script type="module" src="./js/nina-access.js?v=20260902-auth-funnel"></script>
 
 
 </body>

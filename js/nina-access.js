@@ -100,6 +100,7 @@ const NINA_MEMORY_KEY_PREFIX = "nina_fok_memory_v2:";
 const NINA_LEGACY_MEMORY_KEY = "nina_fok_alejandro_memory_v1";
 const NINA_REFERRAL_CODE_KEY = "pv_nina_referral_code_v1";
 const NINA_AUTH_RETURN_KEY = "nina_auth_return_v1";
+const NINA_AUTH_FUNNEL_KEY = "nina_auth_funnel_v1";
 const NINA_REFERRAL_CODE_PATTERN = /^[A-HJ-NP-Z2-9]{8}$/;
 const NINA_MEMORY_LIMIT = 20;
 const NINA_SIGNUP_TRIAL_GRACE_MS = 60000;
@@ -162,6 +163,38 @@ let ninaAnalyticsSessionId = "";
 let ninaAnalyticsStartPromise = null;
 let ninaAnalyticsHeartbeatTimer = null;
 let ninaAnalyticsHeaders = null;
+const ninaFunnelEvents = new Set();
+
+function trackNinaFunnelEvent(name, parameters) {
+  const key = parameters?.method ? `${name}:${parameters.method}` : name;
+  if (ninaFunnelEvents.has(key) || typeof window.fbq !== "function") return false;
+  try {
+    if (parameters) window.fbq("trackCustom", name, parameters);
+    else window.fbq("trackCustom", name);
+    ninaFunnelEvents.add(key);
+    if (DEVELOPMENT) console.info(`[Meta Pixel] ${name} fired`, parameters || "");
+    return true;
+  } catch (error) {
+    logDevelopmentError(`Meta Pixel ${name} unavailable.`, error);
+    return false;
+  }
+}
+
+function markNinaAuthStarted(method) {
+  try { sessionStorage.setItem(NINA_AUTH_FUNNEL_KEY, method); } catch { /* Funnel persistence is optional. */ }
+  trackNinaFunnelEvent("NinaSignupStarted", { method });
+}
+
+function trackNinaAuthCompleted() {
+  let started = false;
+  try {
+    started = Boolean(sessionStorage.getItem(NINA_AUTH_FUNNEL_KEY));
+    sessionStorage.removeItem(NINA_AUTH_FUNNEL_KEY);
+  } catch { /* Completion still depends on this page's tracked flow. */ }
+  if (started || ninaFunnelEvents.has("NinaSignupStarted:google") || ninaFunnelEvents.has("NinaSignupStarted:email")) {
+    trackNinaFunnelEvent("NinaAuthCompleted");
+  }
+}
 
 function storeNinaAuthReturn(action = "") {
   const url = new URL(window.location.href);
@@ -575,6 +608,7 @@ async function initializeNinaAuth() {
         afterSignInUrl: callbackUrl.href,
         afterSignUpUrl: callbackUrl.href
       });
+      if (clerk.isSignedIn && clerk.session) trackNinaAuthCompleted();
       return clerk;
     }
     return clerk;
@@ -1811,6 +1845,7 @@ function openNinaAccess() {
   ninaOverlay.setAttribute("aria-hidden", "true");
   ninaAccess.classList.add("is-open");
   ninaAccess.setAttribute("aria-hidden", "false");
+  trackNinaFunnelEvent("NinaAuthModalOpened");
   ninaAccessError.textContent = "";
   ninaAccessCode.value = "";
   ninaAccessForm.hidden = true;
@@ -1892,7 +1927,10 @@ async function routeNinaTrigger(trigger) {
 }
 
 new Set([openNina, openNinaArtist, ...ninaOpenTriggers].filter(Boolean)).forEach(trigger => {
-  trigger.addEventListener("click", event => void routeNinaTrigger(event.currentTarget));
+  trigger.addEventListener("click", event => {
+    trackNinaFunnelEvent("TalkToNinaClicked");
+    void routeNinaTrigger(event.currentTarget);
+  });
 });
 
 function resetInlineEmailSignIn() {
@@ -1910,6 +1948,7 @@ function resetInlineEmailSignIn() {
 async function completeNinaClerkSignIn(clerk, attempt) {
   if (attempt?.status !== "complete" || !attempt.createdSessionId) return false;
   await clerk.setActive({ session: attempt.createdSessionId });
+  trackNinaAuthCompleted();
   updateNinaAccountControls(clerk);
   if (ninaAccess.classList.contains("is-open")) openNinaExperience();
   else if (ninaOverlay.classList.contains("is-open")) void refreshNinaEligibility();
@@ -1922,6 +1961,7 @@ async function startNinaGoogleSignIn() {
   const callbackUrl = new URL(window.location.href);
   callbackUrl.searchParams.set("nina_clerk_callback", "1");
   storeNinaAuthReturn("signal");
+  markNinaAuthStarted("google");
   await clerk.client.signIn.authenticateWithRedirect({
     strategy: "oauth_google",
     redirectUrl: callbackUrl.href,
@@ -1936,6 +1976,7 @@ function showInlineEmailSignIn(event) {
   if (ninaAccessAuthActions) ninaAccessAuthActions.hidden = true;
   ninaEmailSignInForm.removeAttribute("hidden");
   ninaEmailSignInForm.setAttribute("aria-hidden", "false");
+  markNinaAuthStarted("email");
   requestAnimationFrame(() => {
     ninaEmailAddress?.focus({ preventScroll: true });
   });
