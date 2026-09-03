@@ -183,7 +183,7 @@ async function sendNinaMetaServerEvent(eventName, eventId) {
         eventName,
         eventId,
         eventSourceUrl: window.location.href,
-        fbp: readNinaMetaCookie("_fbp"),
+        fbp: readNinaMetaCookie("_fbp") || readNinaMetaCookie("fbp"),
         fbc: readNinaMetaCookie("_fbc")
       }),
       keepalive: true
