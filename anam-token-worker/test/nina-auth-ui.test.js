@@ -32,6 +32,10 @@ test("Meta funnel events are interaction-bound, privacy-safe and duplicate-prote
   assert.match(frontend, /typeof window\.fbq !== "function"/);
   assert.match(frontend, /const ninaFunnelEvents = new Set\(\)/);
   assert.match(frontend, /ninaFunnelEvents\.has\(key\)/);
+  assert.match(frontend, /const eventId = crypto\.randomUUID\(\)/);
+  assert.match(frontend, /window\.fbq\("trackCustom", name, parameters \|\| \{\}, \{ eventID: eventId \}\)/);
+  assert.match(frontend, /JSON\.stringify\(\{ eventName, eventId, eventSourceUrl: window\.location\.href \}\)/);
+  assert.match(frontend, /void sendNinaMetaServerEvent\(name, eventId\)/);
   assert.match(frontend, /trigger\.addEventListener\("click", event => \{\s*trackNinaFunnelEvent\("TalkToNinaClicked"\)/);
   const openAccess = frontend.slice(frontend.indexOf("function openNinaAccess()"), frontend.indexOf("function closeNinaAccess"));
   assert.match(openAccess, /classList\.add\("is-open"\)[\s\S]*?trackNinaFunnelEvent\("NinaAuthModalOpened"\)/);
@@ -47,9 +51,9 @@ test("Meta funnel events are interaction-bound, privacy-safe and duplicate-prote
 test("TalkToNina remains online-only and auth completion uses exact Clerk success states", async () => {
   const [, , , frontend] = await files();
   const online = frontend.slice(frontend.indexOf("function markNinaOnline()"), frontend.indexOf("function clearNinaUsageTimer()"));
-  assert.match(online, /window\.fbq\("trackCustom", "TalkToNina"\)/);
+  assert.match(online, /trackNinaFunnelEvent\("TalkToNina"\)/);
   const beforeOnline = frontend.slice(0, frontend.indexOf("function markNinaOnline()"));
-  assert.doesNotMatch(beforeOnline, /window\.fbq\("trackCustom", "TalkToNina"\)/);
+  assert.doesNotMatch(beforeOnline, /trackNinaFunnelEvent\("TalkToNina"\)/);
   assert.match(frontend, /attempt\?\.status !== "complete" \|\| !attempt\.createdSessionId/);
   assert.match(frontend, /await clerk\.setActive\([\s\S]*?trackNinaAuthCompleted\(\)/);
   assert.match(frontend, /handleRedirectCallback\([\s\S]*?clerk\.isSignedIn && clerk\.session\) trackNinaAuthCompleted\(\)/);

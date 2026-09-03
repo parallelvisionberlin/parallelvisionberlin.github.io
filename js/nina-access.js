@@ -165,13 +165,28 @@ let ninaAnalyticsHeartbeatTimer = null;
 let ninaAnalyticsHeaders = null;
 const ninaFunnelEvents = new Set();
 
+async function sendNinaMetaServerEvent(eventName, eventId) {
+  try {
+    const headers = { "Content-Type": "application/json" };
+    const token = await ninaClerk?.session?.getToken?.();
+    if (token) headers.Authorization = `Bearer ${token}`;
+    await fetch(`${ANAM_SESSION_TOKEN_ENDPOINT.replace(/\/session-token$/, "")}/api/nina/meta-event`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ eventName, eventId, eventSourceUrl: window.location.href }),
+      keepalive: true
+    });
+  } catch (error) { logDevelopmentError(`Meta CAPI ${eventName} unavailable.`, error); }
+}
+
 function trackNinaFunnelEvent(name, parameters) {
   const key = parameters?.method ? `${name}:${parameters.method}` : name;
   if (ninaFunnelEvents.has(key) || typeof window.fbq !== "function") return false;
   try {
-    if (parameters) window.fbq("trackCustom", name, parameters);
-    else window.fbq("trackCustom", name);
+    const eventId = crypto.randomUUID();
+    window.fbq("trackCustom", name, parameters || {}, { eventID: eventId });
     ninaFunnelEvents.add(key);
+    void sendNinaMetaServerEvent(name, eventId);
     if (DEVELOPMENT) console.info(`[Meta Pixel] ${name} fired`, parameters || "");
     return true;
   } catch (error) {
@@ -1365,8 +1380,7 @@ function markNinaOnline() {
   ninaScrim?.setAttribute("aria-hidden", "true");
   if (!ninaTalkToNinaTracked && typeof window.fbq === "function") {
     ninaTalkToNinaTracked = true;
-    window.fbq("trackCustom", "TalkToNina");
-    if (DEVELOPMENT) console.info("[Meta Pixel] TalkToNina fired");
+    trackNinaFunnelEvent("TalkToNina");
   }
   void startNinaAnalyticsSession();
 }

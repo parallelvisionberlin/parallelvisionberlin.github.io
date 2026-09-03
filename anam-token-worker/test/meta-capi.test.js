@@ -3,6 +3,8 @@ import test from "node:test";
 import worker from "../src/index.js";
 import { MetaCapiError, NINA_META_EVENT_NAMES, sendNinaMetaEvent } from "../src/meta-capi.js";
 
+const EVENT_ID = "d750d2d8-84c6-4fb7-ada7-7ae58ef65251";
+
 test("Meta CAPI allowlist contains only the five Nina funnel events", () => {
   assert.deepEqual([...NINA_META_EVENT_NAMES], [
     "TalkToNinaClicked", "NinaAuthModalOpened", "NinaSignupStarted", "NinaAuthCompleted", "TalkToNina"
@@ -13,6 +15,7 @@ test("Meta CAPI sends the approved Nina event shape without raw email", async ()
   let outgoing;
   const result = await sendNinaMetaEvent({ META_CAPI_ACCESS_TOKEN: "secret-token" }, {
     eventName: "TalkToNina",
+    eventId: EVENT_ID,
     eventSourceUrl: "https://parallelvisionlabel.com/nina-project.html",
     clientUserAgent: "Test browser",
     clientIpAddress: "203.0.113.10",
@@ -33,6 +36,7 @@ test("Meta CAPI sends the approved Nina event shape without raw email", async ()
   assert.deepEqual({ ...payload.data[0], event_time: 0 }, {
     event_name: "TalkToNina",
     event_time: 0,
+    event_id: EVENT_ID,
     action_source: "website",
     event_source_url: "https://parallelvisionlabel.com/nina-project.html",
     user_data: {
@@ -52,8 +56,11 @@ test("Meta CAPI rejects non-allowlisted events and requires its Worker secret", 
     eventName: "Purchase", eventSourceUrl: "https://parallelvisionlabel.com/"
   }), error => error instanceof MetaCapiError && error.code === "invalid_event_name");
   await assert.rejects(() => sendNinaMetaEvent({}, {
-    eventName: "TalkToNinaClicked", eventSourceUrl: "https://parallelvisionlabel.com/"
+    eventName: "TalkToNinaClicked", eventId: EVENT_ID, eventSourceUrl: "https://parallelvisionlabel.com/"
   }), error => error instanceof MetaCapiError && error.code === "meta_capi_unavailable");
+  await assert.rejects(() => sendNinaMetaEvent({ META_CAPI_ACCESS_TOKEN: "secret" }, {
+    eventName: "TalkToNinaClicked", eventSourceUrl: "https://parallelvisionlabel.com/"
+  }), error => error instanceof MetaCapiError && error.code === "invalid_event_id");
 });
 
 test("Meta endpoint reuses origin protection and forwards guest request metadata", async () => {
@@ -74,6 +81,7 @@ test("Meta endpoint reuses origin protection and forwards guest request metadata
       },
       body: JSON.stringify({
         eventName: "NinaAuthModalOpened",
+        eventId: EVENT_ID,
         eventSourceUrl: "https://parallelvisionlabel.com/nina-project.html",
         testEventCode: "TEST14543"
       })
@@ -81,12 +89,13 @@ test("Meta endpoint reuses origin protection and forwards guest request metadata
     assert.equal(response.status, 202);
     const payload = JSON.parse(outgoing.options.body);
     assert.equal(payload.data[0].event_name, "NinaAuthModalOpened");
+    assert.equal(payload.data[0].event_id, EVENT_ID);
     assert.equal(payload.test_event_code, "TEST14543");
 
     const rejected = await worker.fetch(new Request("https://worker.example/api/nina/meta-event", {
       method: "POST",
       headers: { Origin: "https://evil.example", "Content-Type": "application/json" },
-      body: JSON.stringify({ eventName: "TalkToNinaClicked", eventSourceUrl: "https://evil.example/" })
+      body: JSON.stringify({ eventName: "TalkToNinaClicked", eventId: EVENT_ID, eventSourceUrl: "https://evil.example/" })
     }), { META_CAPI_ACCESS_TOKEN: "secret-token" }, { waitUntil() {} });
     assert.equal(rejected.status, 403);
   } finally { globalThis.fetch = originalFetch; }

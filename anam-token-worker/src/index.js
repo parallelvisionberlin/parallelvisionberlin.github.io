@@ -758,6 +758,7 @@ async function handleNinaMetaEvent(request, env, origin) {
   try {
     const result = await sendNinaMetaEvent(env, {
       eventName: body?.eventName,
+      eventId: body?.eventId,
       eventSourceUrl: sourceUrl.href,
       clientUserAgent: request.headers.get("User-Agent") || "",
       clientIpAddress: request.headers.get("CF-Connecting-IP") || "",
