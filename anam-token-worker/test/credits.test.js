@@ -297,6 +297,28 @@ test("owner Signal Credit grants are protected, validated and idempotent", async
       assert.equal(db.accounts.get("member-1").balance, 7);
       assert.equal(db.transactions[0].source, "owner_gift");
     });
+
+    await t.test("owner can record a negative correction without allowing an overdraft", async () => {
+      const db = creditDb(grantUsers());
+      db.accounts.set("member-1", { balance: 170, lifetime_credited: 170, lifetime_debited: 0, updated_at: new Date().toISOString() });
+      const response = await grantRequest(envFor(db), ownerToken, {
+        email: "santomolinari@gmail.com", amount: -70, note: "Correct accidental duplicate grant"
+      });
+      assert.equal(response.status, 200);
+      const result = await response.json();
+      assert.equal(result.balance, 100);
+      assert.equal(result.adjustment.amount, -70);
+      assert.equal(result.adjustment.type, "debit");
+      assert.equal(result.adjustment.source, "owner_adjustment");
+      assert.equal(result.adjustment.description, "Correct accidental duplicate grant");
+
+      const overdraft = await grantRequest(envFor(db), ownerToken, {
+        email: "santomolinari@gmail.com", amount: -101, note: "Invalid correction"
+      });
+      assert.equal(overdraft.status, 400);
+      assert.equal((await overdraft.json()).code, "insufficient_credits");
+      assert.equal(db.accounts.get("member-1").balance, 100);
+    });
   } finally {
     globalThis.fetch = originalFetch;
   }

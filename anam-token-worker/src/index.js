@@ -6,7 +6,7 @@ import {
 import { asMemoryIdentity, ClerkVerificationError, deleteClerkUser, resolveAuthenticatedUser, resolveOwnerMemoryVisitorId, verifyClerkSessionToken, verifyClerkUserAvailable } from "./auth.js";
 import { buildRelationshipContext, deleteRelationshipState, evaluateCompletedRelationship, relationshipEvaluationDiagnostic } from "./relationship.js";
 import { cleanPreferredName, deleteUserAccountData, getAccountPreferences, getBillingHistory, learnPreferredNameFromConversation, updateAccountProfile, updateNewsletterPreferences } from "./account.js";
-import { SignalCreditError, ensureVerifiedSignupTrial, getSignalCreditBalance, getSignalCreditHistory } from "./credits.js";
+import { SignalCreditError, debitSignalCredits, ensureVerifiedSignupTrial, getSignalCreditBalance, getSignalCreditHistory } from "./credits.js";
 import { ReferralError, attributeReferral, getOrCreateReferral } from "./referrals.js";
 import {
   activateLiveNinaSession, beginLiveNinaTrialGrace, createLiveNinaSession, creditsToSeconds, failLiveNinaSession, settleLiveNinaSession
@@ -600,6 +600,16 @@ async function handleSignalCreditGrant(request, env, origin) {
   const body = await request.json().catch(() => ({}));
   try {
     const recipient = await findCreditUser(env, body?.user || body?.email || body?.userId);
+    if (Number.isSafeInteger(body?.amount) && body.amount < 0) {
+      const note = typeof (body?.note ?? body?.description) === "string" ? (body.note ?? body.description).normalize("NFKC").trim() : "";
+      if (note.length > 120) return jsonResponse({ error: "Note is too long", code: "invalid_note" }, 400, origin);
+      const mutation = await debitSignalCredits(env, recipient.id, -body.amount, {
+        source: "owner_adjustment",
+        referenceId: `owner-adjustment:${crypto.randomUUID()}`,
+        description: note
+      });
+      return jsonResponse({ ok: true, user: recipient, adjustment: mutation.transaction, balance: mutation.account.balance }, 200, origin);
+    }
     const grant = await grantGiftCredits(env, caller.id, recipient.id, body?.amount, body?.note ?? body?.description);
     return jsonResponse({ ok: true, user: recipient, grant, balance: grant.resultingBalance }, 200, origin);
   } catch (error) {
