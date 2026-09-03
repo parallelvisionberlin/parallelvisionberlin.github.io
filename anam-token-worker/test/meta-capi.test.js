@@ -18,6 +18,7 @@ test("Meta CAPI sends the approved Nina event shape without raw email", async ()
     clientIpAddress: "203.0.113.10",
     fbp: "fb.1.123.456",
     fbc: "fb.1.123.click",
+    testEventCode: "TEST14543",
     email: " Nina@Example.com "
   }, async (url, options) => {
     outgoing = { url, options };
@@ -28,6 +29,7 @@ test("Meta CAPI sends the approved Nina event shape without raw email", async ()
   assert.equal(outgoing.options.headers.Authorization, "Bearer secret-token");
   const payload = JSON.parse(outgoing.options.body);
   assert.equal(payload.data.length, 1);
+  assert.equal(payload.test_event_code, "TEST14543");
   assert.deepEqual({ ...payload.data[0], event_time: 0 }, {
     event_name: "TalkToNina",
     event_time: 0,
@@ -70,10 +72,16 @@ test("Meta endpoint reuses origin protection and forwards guest request metadata
         "User-Agent": "Test browser",
         "CF-Connecting-IP": "203.0.113.10"
       },
-      body: JSON.stringify({ eventName: "NinaAuthModalOpened", eventSourceUrl: "https://parallelvisionlabel.com/nina-project.html" })
+      body: JSON.stringify({
+        eventName: "NinaAuthModalOpened",
+        eventSourceUrl: "https://parallelvisionlabel.com/nina-project.html",
+        testEventCode: "TEST14543"
+      })
     }), { META_CAPI_ACCESS_TOKEN: "secret-token" }, { waitUntil() {} });
     assert.equal(response.status, 202);
-    assert.equal(JSON.parse(outgoing.options.body).data[0].event_name, "NinaAuthModalOpened");
+    const payload = JSON.parse(outgoing.options.body);
+    assert.equal(payload.data[0].event_name, "NinaAuthModalOpened");
+    assert.equal(payload.test_event_code, "TEST14543");
 
     const rejected = await worker.fetch(new Request("https://worker.example/api/nina/meta-event", {
       method: "POST",

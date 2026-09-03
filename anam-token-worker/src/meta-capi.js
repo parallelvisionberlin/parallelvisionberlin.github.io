@@ -59,6 +59,8 @@ export async function sendNinaMetaEvent(env, input, fetcher = fetch) {
       user_data: userData
     }]
   };
+  const testEventCode = optionalClientValue(input.testEventCode, "test_event_code");
+  if (testEventCode) body.test_event_code = testEventCode;
   const response = await fetcher(
     `https://graph.facebook.com/${META_GRAPH_VERSION}/${META_PIXEL_ID}/events`,
     {

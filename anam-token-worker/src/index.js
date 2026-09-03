@@ -763,6 +763,7 @@ async function handleNinaMetaEvent(request, env, origin) {
       clientIpAddress: request.headers.get("CF-Connecting-IP") || "",
       fbp: body?.fbp,
       fbc: body?.fbc,
+      testEventCode: body?.testEventCode,
       email: user?.email || ""
     });
     return jsonResponse(result, 202, origin);
