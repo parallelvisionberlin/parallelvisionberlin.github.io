@@ -83,6 +83,8 @@ test("Meta endpoint reuses origin protection and forwards guest request metadata
         eventName: "NinaAuthModalOpened",
         eventId: EVENT_ID,
         eventSourceUrl: "https://parallelvisionlabel.com/nina-project.html",
+        fbp: "fb.1.123.456",
+        fbc: "fb.1.123.click",
         testEventCode: "TEST14543"
       })
     }), { META_CAPI_ACCESS_TOKEN: "secret-token" }, { waitUntil() {} });
@@ -90,6 +92,8 @@ test("Meta endpoint reuses origin protection and forwards guest request metadata
     const payload = JSON.parse(outgoing.options.body);
     assert.equal(payload.data[0].event_name, "NinaAuthModalOpened");
     assert.equal(payload.data[0].event_id, EVENT_ID);
+    assert.equal(payload.data[0].user_data.fbp, "fb.1.123.456");
+    assert.equal(payload.data[0].user_data.fbc, "fb.1.123.click");
     assert.equal(payload.test_event_code, "TEST14543");
 
     const rejected = await worker.fetch(new Request("https://worker.example/api/nina/meta-event", {

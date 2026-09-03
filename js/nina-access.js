@@ -165,6 +165,12 @@ let ninaAnalyticsHeartbeatTimer = null;
 let ninaAnalyticsHeaders = null;
 const ninaFunnelEvents = new Set();
 
+function readNinaMetaCookie(name) {
+  const prefix = `${name}=`;
+  const cookie = document.cookie.split(";").map(value => value.trimStart()).find(value => value.startsWith(prefix));
+  return cookie ? cookie.slice(prefix.length) : "";
+}
+
 async function sendNinaMetaServerEvent(eventName, eventId) {
   try {
     const headers = { "Content-Type": "application/json" };
@@ -173,7 +179,13 @@ async function sendNinaMetaServerEvent(eventName, eventId) {
     await fetch(`${ANAM_SESSION_TOKEN_ENDPOINT.replace(/\/session-token$/, "")}/api/nina/meta-event`, {
       method: "POST",
       headers,
-      body: JSON.stringify({ eventName, eventId, eventSourceUrl: window.location.href }),
+      body: JSON.stringify({
+        eventName,
+        eventId,
+        eventSourceUrl: window.location.href,
+        fbp: readNinaMetaCookie("_fbp"),
+        fbc: readNinaMetaCookie("_fbc")
+      }),
       keepalive: true
     });
   } catch (error) { logDevelopmentError(`Meta CAPI ${eventName} unavailable.`, error); }
