@@ -37,6 +37,9 @@ test("Meta funnel events are interaction-bound, privacy-safe and duplicate-prote
   assert.match(frontend, /document\.cookie\.split\(";"\)/);
   assert.match(frontend, /fbp: readNinaMetaCookie\("_fbp"\) \|\| readNinaMetaCookie\("fbp"\)/);
   assert.match(frontend, /fbc: readNinaMetaCookie\("_fbc"\)/);
+  assert.match(frontend, /new URLSearchParams\(window\.location\.search\)\.get\("meta_test"\) === "TEST14543"\) payload\.testEventCode = "TEST14543"/);
+  assert.equal(frontend.match(/testEventCode/g)?.length, 1);
+  assert.match(frontend, /body: JSON\.stringify\(payload\)/);
   assert.match(frontend, /void sendNinaMetaServerEvent\(name, eventId\)/);
   assert.match(frontend, /trigger\.addEventListener\("click", event => \{\s*trackNinaFunnelEvent\("TalkToNinaClicked"\)/);
   const openAccess = frontend.slice(frontend.indexOf("function openNinaAccess()"), frontend.indexOf("function closeNinaAccess"));

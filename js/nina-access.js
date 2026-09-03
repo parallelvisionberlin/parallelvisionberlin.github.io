@@ -176,16 +176,18 @@ async function sendNinaMetaServerEvent(eventName, eventId) {
     const headers = { "Content-Type": "application/json" };
     const token = await ninaClerk?.session?.getToken?.();
     if (token) headers.Authorization = `Bearer ${token}`;
+    const payload = {
+      eventName,
+      eventId,
+      eventSourceUrl: window.location.href,
+      fbp: readNinaMetaCookie("_fbp") || readNinaMetaCookie("fbp"),
+      fbc: readNinaMetaCookie("_fbc")
+    };
+    if (new URLSearchParams(window.location.search).get("meta_test") === "TEST14543") payload.testEventCode = "TEST14543";
     await fetch(`${ANAM_SESSION_TOKEN_ENDPOINT.replace(/\/session-token$/, "")}/api/nina/meta-event`, {
       method: "POST",
       headers,
-      body: JSON.stringify({
-        eventName,
-        eventId,
-        eventSourceUrl: window.location.href,
-        fbp: readNinaMetaCookie("_fbp") || readNinaMetaCookie("fbp"),
-        fbc: readNinaMetaCookie("_fbc")
-      }),
+      body: JSON.stringify(payload),
       keepalive: true
     });
   } catch (error) { logDevelopmentError(`Meta CAPI ${eventName} unavailable.`, error); }
