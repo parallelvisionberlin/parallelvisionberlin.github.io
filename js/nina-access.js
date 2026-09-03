@@ -101,6 +101,7 @@ const NINA_LEGACY_MEMORY_KEY = "nina_fok_alejandro_memory_v1";
 const NINA_REFERRAL_CODE_KEY = "pv_nina_referral_code_v1";
 const NINA_AUTH_RETURN_KEY = "nina_auth_return_v1";
 const NINA_AUTH_FUNNEL_KEY = "nina_auth_funnel_v1";
+const NINA_META_TEST_KEY = "nina_meta_test_v1";
 const NINA_REFERRAL_CODE_PATTERN = /^[A-HJ-NP-Z2-9]{8}$/;
 const NINA_MEMORY_LIMIT = 20;
 const NINA_SIGNUP_TRIAL_GRACE_MS = 60000;
@@ -164,6 +165,14 @@ let ninaAnalyticsStartPromise = null;
 let ninaAnalyticsHeartbeatTimer = null;
 let ninaAnalyticsHeaders = null;
 const ninaFunnelEvents = new Set();
+const ninaMetaTestFromUrl = new URLSearchParams(window.location.search).get("meta_test") === "TEST14543";
+try { if (ninaMetaTestFromUrl) sessionStorage.setItem(NINA_META_TEST_KEY, "TEST14543"); } catch { /* Test mode persistence is optional. */ }
+
+function ninaMetaTestEnabled() {
+  if (ninaMetaTestFromUrl) return true;
+  try { return sessionStorage.getItem(NINA_META_TEST_KEY) === "TEST14543"; }
+  catch { return false; }
+}
 
 function readNinaMetaCookie(name) {
   const prefix = `${name}=`;
@@ -183,7 +192,7 @@ async function sendNinaMetaServerEvent(eventName, eventId) {
       fbp: readNinaMetaCookie("_fbp") || readNinaMetaCookie("fbp"),
       fbc: readNinaMetaCookie("_fbc")
     };
-    if (new URLSearchParams(window.location.search).get("meta_test") === "TEST14543") payload.testEventCode = "TEST14543";
+    if (ninaMetaTestEnabled()) payload.testEventCode = "TEST14543";
     await fetch(`${ANAM_SESSION_TOKEN_ENDPOINT.replace(/\/session-token$/, "")}/api/nina/meta-event`, {
       method: "POST",
       headers,
