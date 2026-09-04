@@ -126,9 +126,12 @@ export async function getNinaAnalyticsDashboard(env, now = Date.now()) {
     rangeMetrics(env, starts.today), rangeMetrics(env, starts.days7), rangeMetrics(env, starts.days30),
     env.NINA_MEMORY_DB.prepare("SELECT COUNT(*) AS count FROM nina_analytics_sessions WHERE status = 'active' AND last_seen_at >= ?").bind(activeCutoff).first(),
     env.NINA_MEMORY_DB.prepare(`
-      SELECT id, user_key, is_authenticated, actor_type, is_returning, status,
-             started_at, last_seen_at, ended_at, connected_seconds
-      FROM nina_analytics_sessions ORDER BY started_at DESC LIMIT 100
+      SELECT s.id, s.user_key, s.is_authenticated, s.actor_type, s.is_returning, s.status,
+             s.started_at, s.last_seen_at, s.ended_at, s.connected_seconds,
+             u.display_name AS user_display_name, u.email AS user_email
+      FROM nina_analytics_sessions s
+      LEFT JOIN users u ON u.id = s.user_id
+      ORDER BY s.started_at DESC LIMIT 100
     `).all(),
     env.NINA_MEMORY_DB.prepare("SELECT COUNT(*) AS count FROM users WHERE created_at >= ?").bind(starts.days30).first(),
     env.NINA_MEMORY_DB.prepare("SELECT COUNT(*) AS count FROM signal_credit_purchases WHERE created_at >= ?").bind(starts.days30).first(),
@@ -158,6 +161,8 @@ export async function getNinaAnalyticsDashboard(env, now = Date.now()) {
     sessions: (recent?.results || []).map(row => ({
       id: row.id, userIdentifier: String(row.user_key || "").replace(/^user:/, "U-").replace(/^visitor:/, "V-").slice(0, 14),
       authenticated: Number(row.is_authenticated) === 1, actorType: row.actor_type,
+      displayName: Number(row.is_authenticated) === 1 ? row.user_display_name || "" : "",
+      email: Number(row.is_authenticated) === 1 ? row.user_email || "" : "",
       returning: Number(row.is_returning) === 1, status: row.status,
       startedAt: row.started_at, lastSeenAt: row.last_seen_at, endedAt: row.ended_at,
       connectedSeconds: Math.max(0, Number(row.connected_seconds) || 0)

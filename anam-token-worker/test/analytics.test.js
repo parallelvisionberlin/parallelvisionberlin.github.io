@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import worker from "../src/index.js";
-import { endNinaAnalyticsSession, startNinaAnalyticsSession, touchNinaAnalyticsSession } from "../src/analytics.js";
+import { endNinaAnalyticsSession, getNinaAnalyticsDashboard, startNinaAnalyticsSession, touchNinaAnalyticsSession } from "../src/analytics.js";
 
 function lifecycleDb() {
   const rows = [];
@@ -88,11 +88,14 @@ async function authFixture(origin) {
   } };
 }
 
-function dashboardDb(users) {
+function dashboardDb(users, recentSessions = []) {
   return { prepare(sql) {
     const query = sql.replace(/\s+/g, " ").trim();
     let values = [];
-    return { bind(...bound) { values = bound; return this; }, async run() { return { meta: { changes: 0 } }; }, async all() { return { results: [] }; }, async first() {
+    return { bind(...bound) { values = bound; return this; }, async run() { return { meta: { changes: 0 } }; }, async all() {
+      if (query.includes("LEFT JOIN users u ON u.id = s.user_id")) return { results: recentSessions };
+      return { results: [] };
+    }, async first() {
       if (query.includes("FROM users WHERE auth_provider = 'clerk'")) return users[values[0]] || null;
       if (query.includes("COUNT(DISTINCT user_key)")) return { unique_users: 0, sessions: 0, total_seconds: 0, average_seconds: 0, longest_seconds: 0, new_users: 0, returning_users: 0 };
       if (query.includes("COUNT(*) AS count")) return { count: 0 };
@@ -123,6 +126,27 @@ test("analytics dashboard API is server-authorized for the Clerk owner only", as
     assert.equal(owner.status, 200);
     assert.equal((await owner.json()).cost.label, "Estimated Anam cost");
   } finally { globalThis.fetch = originalFetch; }
+});
+
+test("owner dashboard identifies authenticated sessions from stored users and keeps visitors anonymous", async () => {
+  const common = { actor_type: "public", is_returning: 0, status: "ended", started_at: "2026-09-04T10:00:00.000Z", last_seen_at: "2026-09-04T10:01:00.000Z", ended_at: "2026-09-04T10:01:00.000Z", connected_seconds: 60 };
+  const recent = [
+    { ...common, id: "session-member", user_key: "user:member-123456789", is_authenticated: 1, user_display_name: "Nina Listener", user_email: "listener@example.com" },
+    { ...common, id: "session-visitor", user_key: "visitor:visitor-987654321", is_authenticated: 0, user_display_name: null, user_email: null }
+  ];
+  const data = await getNinaAnalyticsDashboard({ NINA_MEMORY_DB: dashboardDb({}, recent) }, Date.parse("2026-09-04T12:00:00.000Z"));
+  assert.deepEqual(data.sessions.map(({ displayName, email, userIdentifier }) => ({ displayName, email, userIdentifier })), [
+    { displayName: "Nina Listener", email: "listener@example.com", userIdentifier: "U-member-12345" },
+    { displayName: "", email: "", userIdentifier: "V-visitor-9876" }
+  ]);
+});
+
+test("Nina Admin renders stored identity details without a browser Clerk profile lookup", async () => {
+  const frontend = await readFile(new URL("../../js/nina-admin.js", import.meta.url), "utf8");
+  assert.match(frontend, /session\.displayName/);
+  assert.match(frontend, /session\.email/);
+  assert.match(frontend, /Anonymous visitor/);
+  assert.doesNotMatch(frontend, /clerk\.user/);
 });
 
 test("frontend starts analytics only from markNinaOnline and keeps content out of analytics", async () => {

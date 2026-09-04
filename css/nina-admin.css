@@ -32,6 +32,10 @@ th,td { padding: 14px 12px; border-bottom: 1px solid #262626; text-align: left; 
 th { color: #777; font: 12px/1.4 'Courier New',monospace; letter-spacing: .11em; text-transform: uppercase; }
 td { color: #c6c6c2; font-size: 12px; }
 td:first-child,td:last-child { font-family: 'Courier New',monospace; text-transform: uppercase; }
+.admin-session-user { min-width: 190px; text-transform: none; }
+.admin-session-user strong,.admin-session-user span { display: block; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.admin-session-user strong { color: #eee; font: 500 12px/1.4 Inter,sans-serif; }
+.admin-session-user span { margin-top: 3px; color: #8d8d89; font: 11px/1.35 'Courier New',monospace; }
 .admin-generated { margin: 24px 0 0; }
 .admin-form { display: grid; gap: 9px; max-width: 680px; }
 .admin-form label,.admin-user-result span { color: #858585; font: 12px/1.5 'Courier New',monospace; letter-spacing: .1em; text-transform: uppercase; }

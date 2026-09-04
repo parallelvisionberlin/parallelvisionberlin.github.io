@@ -103,7 +103,18 @@ function renderSessions(sessions) {
   elements.sessions.replaceChildren();
   for (const session of sessions) {
     const row = document.createElement("tr");
-    const values = [session.userIdentifier, session.returning ? "Returning" : "New", session.authenticated ? session.actorType : "Guest", dateTime(session.startedAt), duration(session.connectedSeconds), session.status];
+    const identity = document.createElement("td");
+    identity.className = "admin-session-user";
+    const details = session.authenticated
+      ? [session.displayName, session.email].filter(Boolean)
+      : ["Anonymous visitor"];
+    for (const [index, value] of [...details, session.userIdentifier].entries()) {
+      const line = document.createElement(index === 0 ? "strong" : "span");
+      line.textContent = value;
+      identity.append(line);
+    }
+    row.append(identity);
+    const values = [session.returning ? "Returning" : "New", session.authenticated ? session.actorType : "Guest", dateTime(session.startedAt), duration(session.connectedSeconds), session.status];
     for (const value of values) {
       const cell = document.createElement("td");
       cell.textContent = value;
