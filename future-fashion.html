@@ -17,7 +17,7 @@
 <meta name="twitter:image" content="https://parallelvisionlabel.com/assets/optimized/fashion-hero.webp">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="./fashion.css?v=20260826-amatista-card-1">
+  <link rel="stylesheet" href="./fashion.css?v=20260904-media-1">
   <script src="./language.js?v=20260826-research-statement-2" defer></script>
   <style>
     .fashion-project-definition {
@@ -226,7 +226,8 @@
     }
   </style>
   <link rel="stylesheet" href="./css/base.css?v=20260814-1">
-  <link rel="stylesheet" href="./css/revamp.css?v=20260904-2">
+  <link rel="stylesheet" href="./css/revamp.css?v=20260904-3">
+  <link rel="preload" as="image" href="./assets/optimized/fashion-hero.webp" fetchpriority="high">
 </head>
 <body class="fashion-overview-page pv-fashion">
 <a class="skip-link" href="#main-content">Skip to main content</a>
@@ -241,9 +242,9 @@
     </div>
   </nav>
   <div class="fashion-hero-media">
-    <img class="fashion-hero-poster" src="./assets/optimized/fashion-hero.webp" alt="Fashion After Fabric editorial campaign" decoding="async" loading="eager" width="1672" height="941">
+    <img class="fashion-hero-poster" src="./assets/optimized/fashion-hero.webp" alt="Fashion After Fabric editorial campaign" decoding="async" loading="eager" width="1672" height="941" fetchpriority="high">
     <video class="fashion-hero-video" autoplay muted loop playsinline preload="none" poster="./assets/optimized/fashion-hero.webp" aria-hidden="true">
-      <source data-src="heroafterfabricvideo.mp4" type="video/mp4">
+      <source data-src="heroafterfabricvideo.mp4" type="video/mp4" data-optimized-src="./assets/optimized/video/heroafterfabricvideo-desktop.mp4" data-mobile-src="./assets/optimized/video/heroafterfabricvideo-mobile.mp4">
     </video>
   </div>
   <audio id="fashionSoundtrack" loop preload="metadata">
@@ -270,15 +271,15 @@
       let wasPlayingBeforeHidden = false;
 
       const loadHeroVideo = () => {
-        if (videoLoaded || reducedMotion.matches || saveData || !heroSource?.dataset.src) return;
-        heroSource.src = heroSource.dataset.src;
+        if (reducedMotion.matches || saveData || !heroSource?.dataset.src) return;
+        if (videoLoaded) { video.play().catch(() => {}); return; }
+        heroSource.src = (window.matchMedia("(max-width: 760px)").matches ? heroSource.dataset.mobileSrc : heroSource.dataset.optimizedSrc) || heroSource.dataset.src;
         videoLoaded = true;
         video.load();
         video.play().catch(() => {});
       };
 
       const scheduleHeroVideo = () => {
-        if (window.innerWidth <= 760) return;
         if ('requestIdleCallback' in window) window.requestIdleCallback(loadHeroVideo, { timeout: 1800 });
         else window.setTimeout(loadHeroVideo, 350);
       };
@@ -350,9 +351,8 @@
       if (window.innerWidth <= 760 && !reducedMotion.matches && !saveData) {
         document.addEventListener('pointerdown', loadHeroVideo, { once: true, passive: true });
         document.addEventListener('keydown', loadHeroVideo, { once: true });
-      } else {
-        scheduleHeroVideo();
       }
+      scheduleHeroVideo();
       setSoundState(false);
       syncMotionPreference();
     })();
@@ -385,7 +385,7 @@
     <p class="fashion-film-label">Material Film / 001</p>
     <div class="fashion-film-frame">
       <video autoplay muted loop playsinline preload="none" poster="./assets/optimized/fashion-hero.webp" aria-label="Fashion After Fabric material systems in motion" data-smooth-loop-video data-lazy-video>
-        <source data-src="./assets/herovideo.mp4" type="video/mp4">
+        <source data-src="./assets/herovideo.mp4" type="video/mp4" data-optimized-src="./assets/optimized/video/herovideo-desktop.mp4" data-mobile-src="./assets/optimized/video/herovideo-mobile.mp4">
       </video>
     </div>
     <p class="fashion-film-caption">A moving study of surface, body and material transition.</p>
@@ -479,7 +479,7 @@
     <p class="fashion-chapter-label">Material Test 01</p>
     <div class="fashion-material-test-media">
       <video autoplay muted loop playsinline preload="none" poster="./assets/optimized/liquid-metal-hero.webp" aria-label="Material Test 01: reactive matter study" data-lazy-video>
-        <source data-src="./assets/ninaorganism.mp4" type="video/mp4">
+        <source data-src="./assets/ninaorganism.mp4" type="video/mp4" data-optimized-src="./assets/optimized/video/ninaorganism-desktop.mp4" data-mobile-src="./assets/optimized/video/ninaorganism-mobile.mp4">
       </video>
     </div>
     <div class="fashion-material-test-copy">
@@ -524,10 +524,10 @@
     if (!videos.length || reducedMotion || saveData) return;
 
     const loadVideo = (video) => {
-      if (video.dataset.loaded === 'true') return;
+      if (video.dataset.loaded === 'true') { video.play().catch(() => {}); return; }
       const source = video.querySelector('source[data-src]');
       if (!source?.dataset.src) return;
-      source.src = source.dataset.src;
+      source.src = (window.matchMedia("(max-width: 760px)").matches ? source.dataset.mobileSrc : source.dataset.optimizedSrc) || source.dataset.src;
       video.dataset.loaded = 'true';
       video.load();
       video.play().catch(() => {});

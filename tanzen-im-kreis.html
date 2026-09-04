@@ -141,6 +141,7 @@
     }
     @media (prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } .reveal { opacity:1; transform:none; transition:none; } }
   </style>
+  <link rel="preload" as="image" href="./assets/optimized/tanzenfinal.webp" fetchpriority="high">
 </head>
 <body>
   <header class="site-header">
@@ -155,7 +156,7 @@
 
   <main>
     <section class="hero" aria-labelledby="page-title">
-      <video class="hero-video" autoplay muted loop playsinline preload="none" poster="./assets/optimized/tanzenfinal.webp" aria-label="Moving transmission from Berlin 2063"><source data-src="./assets/releases/tanzenimkreis/robotloop.mp4" type="video/mp4"></video>
+      <video class="hero-video" autoplay muted loop playsinline preload="none" poster="./assets/optimized/tanzenfinal.webp" aria-label="Moving transmission from Berlin 2063"><source data-src="./assets/releases/tanzenimkreis/robotloop.mp4" type="video/mp4" data-optimized-src="./assets/optimized/video/releases/tanzenimkreis/robotloop-desktop.mp4" data-mobile-src="./assets/optimized/video/releases/tanzenimkreis/robotloop-mobile.mp4"></video>
       <div class="hero-overlay"></div>
       <div class="hero-content">
         <p class="eyebrow">Release Archive / Berlin 2063</p>
@@ -254,20 +255,21 @@
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const saveData = Boolean(navigator.connection?.saveData);
     const loadHeroVideo = () => {
-      if (!heroSource?.dataset.src || heroSource.src || reducedMotion || saveData) return;
-      heroSource.src = heroSource.dataset.src;
+      if (!heroSource?.dataset.src || reducedMotion || saveData) return;
+      if (heroSource.src) { heroVideo.play().catch(() => {}); return; }
+      heroSource.src = (window.matchMedia("(max-width: 760px)").matches ? heroSource.dataset.mobileSrc : heroSource.dataset.optimizedSrc) || heroSource.dataset.src;
       heroVideo.load();
       heroVideo.play().catch(() => {});
     };
     const scheduleHeroVideo = () => {
-      if (window.innerWidth <= 760) return;
       if ("requestIdleCallback" in window) window.requestIdleCallback(loadHeroVideo, { timeout:1800 });
       else window.setTimeout(loadHeroVideo, 350);
     };
     if (window.innerWidth <= 760 && !reducedMotion && !saveData) {
       document.addEventListener("pointerdown", loadHeroVideo, { once:true, passive:true });
       document.addEventListener("keydown", loadHeroVideo, { once:true });
-    } else scheduleHeroVideo();
+    }
+      scheduleHeroVideo();
     const soundcloudFrame = document.querySelector("iframe[data-soundcloud-src]");
     const loadSoundCloud = () => {
       if (!soundcloudFrame?.dataset.soundcloudSrc || soundcloudFrame.src !== "about:blank") return;

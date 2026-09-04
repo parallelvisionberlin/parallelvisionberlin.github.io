@@ -32,7 +32,7 @@
 
   const loadHeroVideo = () => {
     if (sourceLoaded || !source?.dataset.src || reducedMotion || saveData) return;
-    source.src = source.dataset.src;
+    source.src = (window.matchMedia("(max-width: 760px)").matches ? source.dataset.mobileSrc : source.dataset.optimizedSrc) || source.dataset.src;
     sourceLoaded = true;
     heroVideo.addEventListener("canplay", attemptPlayback, { once: true });
     heroVideo.load();

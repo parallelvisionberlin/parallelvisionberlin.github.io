@@ -131,6 +131,7 @@
     }
     @media (prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } .reveal { opacity:1; transform:none; transition:none; } }
   </style>
+  <link rel="preload" as="image" href="./assets/optimized/fashion-after-fabric/artists/amatista/amaherofinal1-poster.webp" fetchpriority="high">
 </head>
 <body>
   <nav class="artist-nav" aria-label="Primary navigation">
@@ -139,13 +140,13 @@
   </nav>
   <main>
     <header class="amatista-hero" aria-labelledby="amatista-title">
-      <video class="amatista-hero-image" autoplay muted loop playsinline preload="metadata" poster="./assets/fashion-after-fabric/artists/amatista/amaherofinal1-poster.jpg" aria-label="Amatista(444) living portrait transmission inside a cold architectural interior">
-        <source src="./assets/fashion-after-fabric/artists/amatista/amaherofinal1.mp4" type="video/mp4">
+      <video class="amatista-hero-image" autoplay muted loop playsinline preload="none" poster="./assets/optimized/fashion-after-fabric/artists/amatista/amaherofinal1-poster.webp" aria-label="Amatista(444) living portrait transmission inside a cold architectural interior" data-perf-video>
+        <source data-src="./assets/fashion-after-fabric/artists/amatista/amaherofinal1.mp4" type="video/mp4" data-optimized-src="./assets/optimized/video/fashion-after-fabric/artists/amatista/amaherofinal1-desktop.mp4" data-mobile-src="./assets/optimized/video/fashion-after-fabric/artists/amatista/amaherofinal1-mobile.mp4">
       </video>
       <div class="amatista-hero-copy"><p class="amatista-label">Parallel Vision Artist</p><h1 class="amatista-title" id="amatista-title"><span class="amatista-title-main">Amatista</span><span class="amatista-title-suffix">(444)</span></h1><p class="amatista-subtitle">Artist / Transmission from the Archive</p><a class="fashion-after-fabric-link" href="./amatista-fashion-after-fabric.html">Fashion After Fabric ↗</a></div>
     </header>
     <section class="amatista-identity" id="identity" aria-labelledby="amatista-identity-title">
-      <figure class="amatista-portrait"><img src="./assets/fashion-after-fabric/artists/amatista/amafashion2-headroom.png" alt="AMATISTA(444) artist portrait for Parallel Vision" loading="lazy" decoding="async" width="1672" height="941"></figure>
+      <figure class="amatista-portrait"><img src="./assets/optimized/fashion-after-fabric/artists/amatista/amafashion2-headroom.webp" alt="AMATISTA(444) artist portrait for Parallel Vision" loading="lazy" decoding="async" width="1672" height="941"></figure>
       <div class="amatista-copy">
         <p class="amatista-section-label">Profile / Vibrational Material</p>
         <h2 id="amatista-identity-title">Opal<br>Evolution</h2>
@@ -219,5 +220,6 @@
       revealItems.forEach((item) => observer.observe(item));
     } else { revealItems.forEach((item) => item.classList.add("is-visible")); }
   </script>
+<script src="./js/media-loading.js?v=20260904-1" defer></script>
 </body>
 </html>

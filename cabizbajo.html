@@ -84,6 +84,7 @@
     }
     @media (prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } .reveal { opacity:1; transform:none; transition:none; } }
   </style>
+  <link rel="preload" as="image" href="./assets/optimized/fashion-after-fabric/artists/cabizbajo/cabizlotus16.9.webp" fetchpriority="high">
 </head>
 <body>
   <nav class="artist-nav" aria-label="Primary navigation">
@@ -92,8 +93,8 @@
   </nav>
   <main>
     <header class="hero" aria-labelledby="cabizbajo-title">
-      <video autoplay muted loop playsinline preload="metadata" poster="./assets/fashion-after-fabric/artists/cabizbajo/cabizlotus16.9.png" aria-label="Cabizbajo animated Lotus 2063 transmission">
-        <source src="./assets/fashion-after-fabric/artists/cabizbajo/herocabizlotus63.mp4" type="video/mp4">
+      <video autoplay muted loop playsinline preload="none" poster="./assets/optimized/fashion-after-fabric/artists/cabizbajo/cabizlotus16.9.webp" aria-label="Cabizbajo animated Lotus 2063 transmission" data-perf-video>
+        <source data-src="./assets/fashion-after-fabric/artists/cabizbajo/herocabizlotus63.mp4" type="video/mp4" data-optimized-src="./assets/optimized/video/fashion-after-fabric/artists/cabizbajo/herocabizlotus63-desktop.mp4" data-mobile-src="./assets/optimized/video/fashion-after-fabric/artists/cabizbajo/herocabizlotus63-mobile.mp4">
       </video>
       <div class="hero-copy">
         <p class="archive-label">Parallel Vision Artist</p>
@@ -104,7 +105,7 @@
     </header>
 
     <section class="identity" id="identity" aria-labelledby="identity-title">
-      <figure class="portrait"><img src="./assets/fashion-after-fabric/artists/cabizbajo/4.5archivecard.png" alt="Cabizbajo archive card portrait" loading="lazy" decoding="async" width="830" height="1038"></figure>
+      <figure class="portrait"><img src="./assets/optimized/fashion-after-fabric/artists/cabizbajo/4.5archivecard.webp" alt="Cabizbajo archive card portrait" loading="lazy" decoding="async" width="830" height="1038"></figure>
       <div class="identity-copy reveal">
         <p class="archive-label">Profile / Dancefloor Pressure</p>
         <h2 id="identity-title">Cabizbajo</h2>
@@ -130,11 +131,11 @@
       <h2 class="section-heading" id="archive-title">Visual Archive</h2>
       <div class="archive-grid">
         <figure class="archive-card reveal">
-          <div class="archive-image"><img src="./assets/fashion-after-fabric/artists/cabizbajo/4.5material.png" alt="Cabizbajo material archive study" loading="lazy" decoding="async" width="675" height="844"></div>
+          <div class="archive-image"><img src="./assets/optimized/fashion-after-fabric/artists/cabizbajo/4.5material.webp" alt="Cabizbajo material archive study" loading="lazy" decoding="async" width="675" height="844"></div>
           <figcaption class="archive-caption"><span>01 / Archive Frame</span><span>Berlin 2063 / body in transit</span></figcaption>
         </figure>
         <figure class="archive-card reveal">
-          <div class="archive-image"><img src="./assets/fashion-after-fabric/artists/cabizbajo/3.4fullbody.png" alt="Cabizbajo full-body archive study" loading="lazy" decoding="async" width="1412" height="1882"></div>
+          <div class="archive-image"><img src="./assets/optimized/fashion-after-fabric/artists/cabizbajo/3.4fullbody.webp" alt="Cabizbajo full-body archive study" loading="lazy" decoding="async" width="1412" height="1882"></div>
           <figcaption class="archive-caption"><span>02 / Walk Study</span><span>Movement / urban signal</span></figcaption>
         </figure>
       </div>
@@ -156,5 +157,6 @@
       revealItems.forEach((item) => observer.observe(item));
     } else { revealItems.forEach((item) => item.classList.add("is-visible")); }
   </script>
+<script src="./js/media-loading.js?v=20260904-1" defer></script>
 </body>
 </html>

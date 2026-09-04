@@ -100,6 +100,17 @@
       footer span:nth-child(2) { order:3; width:100%; }
     }
     @media (prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } .reveal { opacity:1; transform:none; transition:none; } .archive-art img { transition:none; } }
+
+    /* Keep the release catalog compact on wide displays and phones. */
+    #archive { width:min(1120px,calc(100% - 2 * var(--pad))); margin-inline:auto; padding:clamp(64px,7vw,100px) 0; }
+    #archive .section-title { font-size:clamp(28px,3vw,42px); }
+    #archive .archive-name { font-size:clamp(17px,1.4vw,21px); }
+    @media (max-width:720px) {
+      #archive .archive-grid { grid-template-columns:1fr; }
+      #archive .archive-card { display:grid; grid-template-columns:100px minmax(0,1fr); align-items:center; gap:20px; padding:22px 0; }
+      #archive .archive-info { padding-top:0; flex-direction:column; gap:12px; }
+      #archive .archive-art { width:100%; }
+    }
   </style>
 </head>
 <body>
@@ -109,12 +120,12 @@
   </header>
   <main>
     <section class="hero" aria-labelledby="blex-title">
-      <img class="hero-image" src="./assets/fashion-after-fabric/artists/blex/blexherohd.png" alt="Blex Dark Rock visual against a rain-lit nocturnal city" width="4096" height="2304">
+      <img class="hero-image" src="./assets/optimized/fashion-after-fabric/artists/blex/blexherohd.webp" alt="Blex Dark Rock visual against a rain-lit nocturnal city" width="4096" height="2304" fetchpriority="high" decoding="async">
       <div class="hero-copy"><p class="eyebrow">Parallel Vision Artist</p><h1 class="hero-title" id="blex-title">Blex</h1><div class="hero-meta"><span>Argentine Producer</span><span>Nocturnal Signal</span></div></div>
     </section>
     <section class="bio" aria-labelledby="bio-title">
       <figure class="bio-media reveal">
-        <img src="./assets/fashion-after-fabric/artists/blex/blexhero.png" alt="Blex seated beside a metallic case in a futuristic interior" loading="lazy" decoding="async" width="4096" height="2304">
+        <img src="./assets/optimized/fashion-after-fabric/artists/blex/blexhero.webp" alt="Blex seated beside a metallic case in a futuristic interior" loading="lazy" decoding="async" width="4096" height="2304">
       </figure>
       <div class="bio-copy reveal">
         <p class="bio-kicker" id="bio-title">Profile / Nocturnal Signal</p>
@@ -138,9 +149,9 @@
     <section class="section-shell" id="archive" aria-labelledby="archive-title">
       <header class="section-head reveal"><h2 class="section-title" id="archive-title">Release Archive</h2><p class="section-kicker">Selected transmissions / 01–03</p></header>
       <div class="archive-grid">
-        <a class="archive-card reveal" href="https://soundcloud.com/parallelvisionlabel/sets/ravesia-remixes" target="_blank" rel="noopener noreferrer"><div class="archive-art"><img src="./assets/Ravesiaremixesart.png" alt="Ravesia Remixes release artwork" loading="lazy" decoding="async" width="4096" height="4096"></div><div class="archive-info"><span class="archive-name">Ravesia Remixes</span><span class="archive-index">PV006 ↗</span></div></a>
-        <a class="archive-card reveal" href="https://soundcloud.com/parallelvisionlabel/sets/ravesia" target="_blank" rel="noopener noreferrer"><div class="archive-art"><img src="./assets/artworks/ravesiaep.jpg" alt="Blex Ravesia release artwork" loading="lazy" decoding="async" width="2100" height="2100"></div><div class="archive-info"><span class="archive-name">Ravesia</span><span class="archive-index">Archive ↗</span></div></a>
-        <a class="archive-card reveal" href="https://soundcloud.com/alejandromolinari/blex-ar-dark-rock-alejandro-molinari-remix?in=parallelvisionlabel/sets/dark-rock-ep" target="_blank" rel="noopener noreferrer"><div class="archive-art"><img src="./assets/Artdarkrock.png" alt="Blex Dark Rock release artwork" loading="lazy" decoding="async" width="1500" height="1500"></div><div class="archive-info"><span class="archive-name">Dark Rock</span><span class="archive-index">PV001 ↗</span></div></a>
+        <a class="archive-card reveal" href="https://soundcloud.com/parallelvisionlabel/sets/ravesia-remixes" target="_blank" rel="noopener noreferrer"><div class="archive-art"><img src="./assets/optimized/Ravesiaremixesart.webp" alt="Ravesia Remixes release artwork" loading="lazy" decoding="async" width="4096" height="4096"></div><div class="archive-info"><span class="archive-name">Ravesia Remixes</span><span class="archive-index">PV006 ↗</span></div></a>
+        <a class="archive-card reveal" href="https://soundcloud.com/parallelvisionlabel/sets/ravesia" target="_blank" rel="noopener noreferrer"><div class="archive-art"><img src="./assets/optimized/artworks/ravesiaep.webp" alt="Blex Ravesia release artwork" loading="lazy" decoding="async" width="2100" height="2100"></div><div class="archive-info"><span class="archive-name">Ravesia</span><span class="archive-index">Archive ↗</span></div></a>
+        <a class="archive-card reveal" href="https://soundcloud.com/alejandromolinari/blex-ar-dark-rock-alejandro-molinari-remix?in=parallelvisionlabel/sets/dark-rock-ep" target="_blank" rel="noopener noreferrer"><div class="archive-art"><img src="./assets/optimized/Artdarkrock.webp" alt="Blex Dark Rock release artwork" loading="lazy" decoding="async" width="1500" height="1500"></div><div class="archive-info"><span class="archive-name">Dark Rock</span><span class="archive-index">PV001 ↗</span></div></a>
       </div>
     </section>
     <section class="section-shell" id="links" aria-labelledby="links-title">

@@ -15,8 +15,9 @@
   <meta name="twitter:title" content="Ëlorian × Fashion After Fabric / Parallel Vision">
   <meta name="twitter:description" content="Ëlorian wears Lotus 2063 for the Fashion After Fabric artist study.">
   <meta name="twitter:image" content="https://parallelvisionlabel.com/assets/fashion-after-fabric/artists/elorian/elorianmultistillhd.png">
-  <link rel="stylesheet" href="./fashion.css?v=20260904-elorian-layout-1">
+  <link rel="stylesheet" href="./fashion.css?v=20260904-media-1">
   <script src="./language.js?v=20260728-1" defer></script>
+  <link rel="preload" as="image" href="./assets/optimized/fashion-after-fabric/artists/elorian/elorianmultistillhd.webp" fetchpriority="high">
 </head>
 <body class="cabizbajo-study-page elorian-study-page">
 <nav aria-label="Primary navigation" class="archive-nav">
@@ -35,14 +36,14 @@
       muted
       loop
       playsinline
-      preload="metadata"
-      poster="./assets/fashion-after-fabric/artists/elorian/elorianmultistillhd.png"
+      preload="none"
+      poster="./assets/optimized/fashion-after-fabric/artists/elorian/elorianmultistillhd.webp"
       aria-label="Repeated figures wearing Lotus 2063 in a Berlin architectural interior"
-    >
+     data-perf-video>
       <source
-        src="./assets/fashion-after-fabric/artists/elorian/multionetwo.mp4"
+        data-src="./assets/fashion-after-fabric/artists/elorian/multionetwo.mp4"
         type="video/mp4"
-      >
+       data-optimized-src="./assets/optimized/video/fashion-after-fabric/artists/elorian/multionetwo-desktop.mp4" data-mobile-src="./assets/optimized/video/fashion-after-fabric/artists/elorian/multionetwo-mobile.mp4">
     </video>
     <div class="cabizbajo-hero-copy">
       <p class="cabizbajo-kicker">Fashion After Fabric / Parallel Vision</p>
@@ -63,7 +64,7 @@
   </section>
 
   <section class="cabizbajo-look" aria-labelledby="elorian-look-title">
-    <img src="./assets/fashion-after-fabric/artists/elorian/eloriancardvertical.png" alt="Ëlorian wearing the Lotus 2063 black leather uniform" decoding="async" loading="eager" width="758" height="1137">
+    <img src="./assets/optimized/fashion-after-fabric/artists/elorian/eloriancardvertical.webp" alt="Ëlorian wearing the Lotus 2063 black leather uniform" decoding="async" loading="eager" width="758" height="1137" fetchpriority="high">
     <div class="cabizbajo-look-copy">
       <h2 id="elorian-look-title">The Uniform</h2>
       <p>A long leather silhouette held in strict proportion. Identity becomes an archival constant.</p>
@@ -72,7 +73,7 @@
   </section>
 
   <section class="cabizbajo-material" aria-labelledby="elorian-material-title">
-    <img src="./assets/fashion-after-fabric/artists/elorian/elorianmultistillhd.png" alt="Ëlorian repeated across the architectural record of Lotus 2063" decoding="async" loading="lazy" width="4096" height="2304">
+    <img src="./assets/optimized/fashion-after-fabric/artists/elorian/elorianmultistillhd.webp" alt="Ëlorian repeated across the architectural record of Lotus 2063" decoding="async" loading="lazy" width="4096" height="2304">
     <div class="cabizbajo-material-copy">
       <p class="cabizbajo-section-label">Archive / Lotus 2063</p>
       <h2 id="elorian-material-title">A Uniform for Repetition.</h2>
@@ -91,5 +92,6 @@
   </nav>
 </main>
 
+<script src="./js/media-loading.js?v=20260904-1" defer></script>
 </body>
 </html>

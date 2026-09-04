@@ -18,6 +18,9 @@ const elements = {
 let clerk;
 let refreshTimer;
 let selectedGiftUser = null;
+const SESSION_PAGE_SIZE = 30;
+let recentSessions = [];
+let sessionPage = 0;
 
 async function loadClerkUI() {
   if (window.__internal_ClerkUICtor) return window.__internal_ClerkUICtor;
@@ -100,8 +103,17 @@ function renderCost(cost) {
 }
 
 function renderSessions(sessions) {
+  recentSessions = sessions;
+  renderSessionPage();
+}
+
+function renderSessionPage() {
+  const pages = Math.max(1, Math.ceil(recentSessions.length / SESSION_PAGE_SIZE));
+  sessionPage = Math.min(sessionPage, pages - 1);
+  const start = sessionPage * SESSION_PAGE_SIZE;
+  const visible = recentSessions.slice(start, start + SESSION_PAGE_SIZE);
   elements.sessions.replaceChildren();
-  for (const session of sessions) {
+  for (const session of visible) {
     const row = document.createElement("tr");
     const identity = document.createElement("td");
     identity.className = "admin-session-user";
@@ -122,7 +134,22 @@ function renderSessions(sessions) {
     }
     elements.sessions.append(row);
   }
+  if (!visible.length) tableMessage(elements.sessions, 6, "No sessions yet.");
+  const range = recentSessions.length ? `${start + 1}–${start + visible.length}` : "0";
+  const total = recentSessions.length === 100 ? "100 most recent sessions" : `${recentSessions.length} recent sessions`;
+  document.querySelectorAll('[data-session-page-status]').forEach(label => {
+    label.textContent = `Page ${sessionPage + 1} of ${pages} · ${range} / ${total}`;
+  });
+  document.querySelectorAll('[data-session-page="previous"]').forEach(button => { button.disabled = sessionPage === 0; });
+  document.querySelectorAll('[data-session-page="next"]').forEach(button => { button.disabled = sessionPage >= pages - 1; });
 }
+
+document.querySelectorAll('[data-session-page]').forEach(button => button.addEventListener('click', () => {
+  sessionPage += button.dataset.sessionPage === 'next' ? 1 : -1;
+  sessionPage = Math.max(0, sessionPage);
+  renderSessionPage();
+  document.getElementById('sessionsTitle').closest('section').scrollIntoView({ block: 'start' });
+}));
 
 async function fetchDashboard() {
   const token = await clerk?.session?.getToken?.();

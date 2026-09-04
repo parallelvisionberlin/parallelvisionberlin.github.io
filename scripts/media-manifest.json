@@ -1,0 +1,414 @@
+{
+  "images": {
+    "assets/fashion-after-fabric/artists/alejandro/lotus02heroale.png": {
+      "output": "assets/optimized/fashion-after-fabric/artists/alejandro/lotus02heroale.webp",
+      "before": 3053310,
+      "after": 55706
+    },
+    "assets/fashion-after-fabric/artists/alejandro/alelook02.9.16.png": {
+      "output": "assets/optimized/fashion-after-fabric/artists/alejandro/alelook02.9.16.webp",
+      "before": 1076460,
+      "after": 68640
+    },
+    "assets/fashion-after-fabric/artists/alejandro/fashionsummer1.png": {
+      "output": "assets/optimized/fashion-after-fabric/artists/alejandro/fashionsummer1.webp",
+      "before": 3718114,
+      "after": 165496
+    },
+    "assets/artworks/acid-chacha-final-bigger-original-name.png": {
+      "output": "assets/optimized/artworks/acid-chacha-final-bigger-original-name.webp",
+      "before": 5767190,
+      "after": 113436
+    },
+    "assets/tanzenfinal.jpeg": {
+      "output": "assets/optimized/tanzenfinal.webp",
+      "before": 870299,
+      "after": 121174
+    },
+    "assets/Ravesiamolinariremix.png": {
+      "output": "assets/optimized/Ravesiamolinariremix.webp",
+      "before": 569236,
+      "after": 32986
+    },
+    "assets/artfunkybeats.png": {
+      "output": "assets/optimized/artfunkybeats.webp",
+      "before": 4029445,
+      "after": 42462
+    },
+    "assets/Artdarkrock.png": {
+      "output": "assets/optimized/Artdarkrock.webp",
+      "before": 3114987,
+      "after": 83282
+    },
+    "assets/vision-neo.jpg": {
+      "output": "assets/optimized/vision-neo.webp",
+      "before": 1490355,
+      "after": 81344
+    },
+    "assets/fashion-after-fabric/artists/alejandro/cassiusfrontale.png": {
+      "output": "assets/optimized/fashion-after-fabric/artists/alejandro/cassiusfrontale.webp",
+      "before": 3158342,
+      "after": 77190
+    },
+    "assets/fashion-after-fabric/artists/amatista/cardamatistafashion.png": {
+      "output": "assets/optimized/fashion-after-fabric/artists/amatista/cardamatistafashion.webp",
+      "before": 2399120,
+      "after": 179076
+    },
+    "assets/fashion-after-fabric/artists/amatista/gallery1.png": {
+      "output": "assets/optimized/fashion-after-fabric/artists/amatista/gallery1.webp",
+      "before": 2308225,
+      "after": 103894
+    },
+    "assets/fashion-after-fabric/artists/amatista/gallery2.png": {
+      "output": "assets/optimized/fashion-after-fabric/artists/amatista/gallery2.webp",
+      "before": 2393953,
+      "after": 183682
+    },
+    "assets/fashion-after-fabric/artists/amatista/gallery3.png": {
+      "output": "assets/optimized/fashion-after-fabric/artists/amatista/gallery3.webp",
+      "before": 2964216,
+      "after": 134238
+    },
+    "assets/fashion-after-fabric/artists/amatista/gallery4.png": {
+      "output": "assets/optimized/fashion-after-fabric/artists/amatista/gallery4.webp",
+      "before": 3275602,
+      "after": 208966
+    },
+    "assets/fashion-after-fabric/artists/amatista/gallery5.png": {
+      "output": "assets/optimized/fashion-after-fabric/artists/amatista/gallery5.webp",
+      "before": 3278539,
+      "after": 185706
+    },
+    "assets/fashion-after-fabric/artists/amatista/galerymain.png": {
+      "output": "assets/optimized/fashion-after-fabric/artists/amatista/galerymain.webp",
+      "before": 8805270,
+      "after": 161374
+    },
+    "assets/fashion-after-fabric/artists/amatista/amaherofinal1-poster.jpg": {
+      "output": "assets/optimized/fashion-after-fabric/artists/amatista/amaherofinal1-poster.webp",
+      "before": 822169,
+      "after": 165900
+    },
+    "assets/fashion-after-fabric/artists/amatista/amafashion2-headroom.png": {
+      "output": "assets/optimized/fashion-after-fabric/artists/amatista/amafashion2-headroom.webp",
+      "before": 1467608,
+      "after": 37068
+    },
+    "assets/fashion-after-fabric/artists/awake-dreaming/IMG_3517.jpg": {
+      "output": "assets/optimized/fashion-after-fabric/artists/awake-dreaming/IMG_3517.webp",
+      "before": 2053286,
+      "after": 82006
+    },
+    "assets/fashion-after-fabric/artists/awake-dreaming/CLUB 69.jpg": {
+      "output": "assets/optimized/fashion-after-fabric/artists/awake-dreaming/CLUB 69.webp",
+      "before": 4086887,
+      "after": 149778
+    },
+    "assets/fashion-after-fabric/artists/awake-dreaming/IMG_3555.jpg": {
+      "output": "assets/optimized/fashion-after-fabric/artists/awake-dreaming/IMG_3555.webp",
+      "before": 2655454,
+      "after": 126156
+    },
+    "assets/fashion-after-fabric/artists/awake-dreaming/CUALKIERA 2025.JPEG": {
+      "output": "assets/optimized/fashion-after-fabric/artists/awake-dreaming/CUALKIERA 2025.webp",
+      "before": 1205165,
+      "after": 425360
+    },
+    "assets/fashion-after-fabric/artists/awake-dreaming/IMG_3374.jpg": {
+      "output": "assets/optimized/fashion-after-fabric/artists/awake-dreaming/IMG_3374.webp",
+      "before": 2993041,
+      "after": 282170
+    },
+    "assets/fashion-after-fabric/artists/badwolf/herobadwolf1.png": {
+      "output": "assets/optimized/fashion-after-fabric/artists/badwolf/herobadwolf1.webp",
+      "before": 2133865,
+      "after": 22612
+    },
+    "assets/fashion-after-fabric/artists/badwolf/badwolfvertical.png": {
+      "output": "assets/optimized/fashion-after-fabric/artists/badwolf/badwolfvertical.webp",
+      "before": 3356413,
+      "after": 139558
+    },
+    "assets/artworks/cultoalavida.jpg": {
+      "output": "assets/optimized/artworks/cultoalavida.webp",
+      "before": 4029843,
+      "after": 73600
+    },
+    "assets/fashion-after-fabric/artists/blex/blexherohd.png": {
+      "output": "assets/optimized/fashion-after-fabric/artists/blex/blexherohd.webp",
+      "before": 14797877,
+      "after": 120750
+    },
+    "assets/fashion-after-fabric/artists/blex/blexhero.png": {
+      "output": "assets/optimized/fashion-after-fabric/artists/blex/blexhero.webp",
+      "before": 13038630,
+      "after": 61946
+    },
+    "assets/Ravesiaremixesart.png": {
+      "output": "assets/optimized/Ravesiaremixesart.webp",
+      "before": 22337120,
+      "after": 55180
+    },
+    "assets/artworks/ravesiaep.jpg": {
+      "output": "assets/optimized/artworks/ravesiaep.webp",
+      "before": 571401,
+      "after": 190432
+    },
+    "assets/fashion-after-fabric/artists/cabizbajo/3.4fullbody.png": {
+      "output": "assets/optimized/fashion-after-fabric/artists/cabizbajo/3.4fullbody.webp",
+      "before": 3582566,
+      "after": 147716
+    },
+    "assets/fashion-after-fabric/artists/cabizbajo/4.5material.png": {
+      "output": "assets/optimized/fashion-after-fabric/artists/cabizbajo/4.5material.webp",
+      "before": 903951,
+      "after": 55164
+    },
+    "assets/fashion-after-fabric/artists/cabizbajo/cabizlotus16.9.png": {
+      "output": "assets/optimized/fashion-after-fabric/artists/cabizbajo/cabizlotus16.9.webp",
+      "before": 8708633,
+      "after": 156096
+    },
+    "assets/fashion-after-fabric/artists/cabizbajo/4.5archivecard.png": {
+      "output": "assets/optimized/fashion-after-fabric/artists/cabizbajo/4.5archivecard.webp",
+      "before": 1238068,
+      "after": 47308
+    },
+    "assets/liquid-metal-hero.png": {
+      "output": "assets/optimized/liquid-metal-hero.webp",
+      "before": 1847772,
+      "after": 52324
+    },
+    "assets/fashion-hero.png": {
+      "output": "assets/optimized/fashion-hero.webp",
+      "before": 1964354,
+      "after": 90610
+    },
+    "assets/liquid-chroma-veil.png": {
+      "output": "assets/optimized/liquid-chroma-veil.webp",
+      "before": 6388424,
+      "after": 72078
+    },
+    "assets/chromia-vessel-sheet.png": {
+      "output": "assets/optimized/chromia-vessel-sheet.webp",
+      "before": 8255765,
+      "after": 113306
+    },
+    "assets/chromia-dermis-sheet.png": {
+      "output": "assets/optimized/chromia-dermis-sheet.webp",
+      "before": 1793291,
+      "after": 59710
+    },
+    "assets/chromia-phase-aureole-sheet.png": {
+      "output": "assets/optimized/chromia-phase-aureole-sheet.webp",
+      "before": 23796379,
+      "after": 69332
+    },
+    "assets/ether-shorud-sheet.png": {
+      "output": "assets/optimized/ether-shorud-sheet.webp",
+      "before": 8649543,
+      "after": 74554
+    },
+    "assets/dna-mutation-soon.png": {
+      "output": "assets/optimized/dna-mutation-soon.webp",
+      "before": 1923029,
+      "after": 64996
+    },
+    "assets/fashion-after-fabric/artists/elorian/elorianmultistillhd.png": {
+      "output": "assets/optimized/fashion-after-fabric/artists/elorian/elorianmultistillhd.webp",
+      "before": 15234170,
+      "after": 205520
+    },
+    "assets/fashion-after-fabric/artists/elorian/eloriancardvertical.png": {
+      "output": "assets/optimized/fashion-after-fabric/artists/elorian/eloriancardvertical.webp",
+      "before": 1304892,
+      "after": 70554
+    },
+    "assets/fashion-after-fabric/artists/elorian/elorianfronthero.png": {
+      "output": "assets/optimized/fashion-after-fabric/artists/elorian/elorianfronthero.webp",
+      "before": 12437276,
+      "after": 119820
+    },
+    "assets/LOOK03.png": {
+      "output": "assets/optimized/LOOK03.webp",
+      "before": 13229392,
+      "after": 144436
+    },
+    "assets/LOOK04.png": {
+      "output": "assets/optimized/LOOK04.webp",
+      "before": 22467720,
+      "after": 132122
+    },
+    "assets/LOOK05.png": {
+      "output": "assets/optimized/LOOK05.webp",
+      "before": 12363040,
+      "after": 124534
+    },
+    "assets/01RADIUM-FRONT.png": {
+      "output": "assets/optimized/01RADIUM-FRONT.webp",
+      "before": 25646477,
+      "after": 93510
+    },
+    "assets/02REPTARE.png": {
+      "output": "assets/optimized/02REPTARE.webp",
+      "before": 17697565,
+      "after": 103332
+    },
+    "assets/lotus-hero.png": {
+      "output": "assets/optimized/lotus-hero.webp",
+      "before": 12542033,
+      "after": 35328
+    },
+    "assets/fashion-after-fabric/artists/alejandro/alerectangulus.png": {
+      "output": "assets/optimized/fashion-after-fabric/artists/alejandro/alerectangulus.webp",
+      "before": 3317390,
+      "after": 148348
+    },
+    "assets/fashion-after-fabric/artists/alejandro/elorianlotusdime.png": {
+      "output": "assets/optimized/fashion-after-fabric/artists/alejandro/elorianlotusdime.webp",
+      "before": 2739587,
+      "after": 101534
+    },
+    "assets/magnetic-tape-look-01.png": {
+      "output": "assets/optimized/magnetic-tape-look-01.webp",
+      "before": 4537616,
+      "after": 221322
+    },
+    "assets/magnetic-tape-look-02.png": {
+      "output": "assets/optimized/magnetic-tape-look-02.webp",
+      "before": 4209051,
+      "after": 217840
+    },
+    "assets/magnetic-tape-look-03.png": {
+      "output": "assets/optimized/magnetic-tape-look-03.webp",
+      "before": 4557989,
+      "after": 222354
+    },
+    "assets/magnetic-tape-look-04.png": {
+      "output": "assets/optimized/magnetic-tape-look-04.webp",
+      "before": 4500421,
+      "after": 184858
+    },
+    "nina-fok/Canon.png": {
+      "output": "assets/optimized/nina-fok/Canon.webp",
+      "before": 5081647,
+      "after": 25090
+    },
+    "nina-fok/HDNINACANON.png": {
+      "output": "assets/optimized/nina-fok/HDNINACANON.webp",
+      "before": 12503202,
+      "after": 66530
+    }
+  },
+  "videos": {
+    "assets/fashion-after-fabric/artists/amatista/heroamatistafashion.mp4": {
+      "before": 24837947,
+      "duration": 24.149002,
+      "desktop": "assets/optimized/video/fashion-after-fabric/artists/amatista/heroamatistafashion-desktop.mp4",
+      "desktopBytes": 10002151,
+      "mobile": "assets/optimized/video/fashion-after-fabric/artists/amatista/heroamatistafashion-mobile.mp4",
+      "mobileBytes": 4398127,
+      "poster": "assets/optimized/video/fashion-after-fabric/artists/amatista/heroamatistafashion-poster.webp"
+    },
+    "assets/fashion-after-fabric/artists/amatista/amarantaherofashion.mp4": {
+      "before": 24459356,
+      "duration": 24.149002,
+      "desktop": "assets/optimized/video/fashion-after-fabric/artists/amatista/amarantaherofashion-desktop.mp4",
+      "desktopBytes": 9946805,
+      "mobile": "assets/optimized/video/fashion-after-fabric/artists/amatista/amarantaherofashion-mobile.mp4",
+      "mobileBytes": 4371431,
+      "poster": "assets/optimized/video/fashion-after-fabric/artists/amatista/amarantaherofashion-poster.webp"
+    },
+    "assets/fashion-after-fabric/artists/amatista/amaherofinal1.mp4": {
+      "before": 20871587,
+      "duration": 20.155011,
+      "desktop": "assets/optimized/video/fashion-after-fabric/artists/amatista/amaherofinal1-desktop.mp4",
+      "desktopBytes": 5632873,
+      "mobile": "assets/optimized/video/fashion-after-fabric/artists/amatista/amaherofinal1-mobile.mp4",
+      "mobileBytes": 1827050,
+      "poster": "assets/optimized/video/fashion-after-fabric/artists/amatista/amaherofinal1-poster.webp"
+    },
+    "assets/fashion-after-fabric/artists/cabizbajo/herocabizlotus63.mp4": {
+      "before": 13842009,
+      "duration": 8.041667,
+      "desktop": "assets/optimized/video/fashion-after-fabric/artists/cabizbajo/herocabizlotus63-desktop.mp4",
+      "desktopBytes": 2332539,
+      "mobile": "assets/optimized/video/fashion-after-fabric/artists/cabizbajo/herocabizlotus63-mobile.mp4",
+      "mobileBytes": 796426,
+      "poster": "assets/optimized/video/fashion-after-fabric/artists/cabizbajo/herocabizlotus63-poster.webp"
+    },
+    "assets/fashion-after-fabric/artists/elorian/multionetwo.mp4": {
+      "before": 11458371,
+      "duration": 10.041667,
+      "desktop": "assets/optimized/video/fashion-after-fabric/artists/elorian/multionetwo-desktop.mp4",
+      "desktopBytes": 2412680,
+      "mobile": "assets/optimized/video/fashion-after-fabric/artists/elorian/multionetwo-mobile.mp4",
+      "mobileBytes": 980991,
+      "poster": "assets/optimized/video/fashion-after-fabric/artists/elorian/multionetwo-poster.webp"
+    },
+    "heroafterfabricvideo.mp4": {
+      "before": 10425270,
+      "duration": 6.570998,
+      "desktop": "assets/optimized/video/heroafterfabricvideo-desktop.mp4",
+      "desktopBytes": 2984737,
+      "mobile": "assets/optimized/video/heroafterfabricvideo-mobile.mp4",
+      "mobileBytes": 1293137,
+      "poster": "assets/optimized/video/heroafterfabricvideo-poster.webp"
+    },
+    "assets/herovideo.mp4": {
+      "before": 5802528,
+      "duration": 21.733322,
+      "desktop": "assets/optimized/video/herovideo-desktop.mp4",
+      "desktopBytes": 5802721,
+      "mobile": "assets/optimized/video/herovideo-mobile.mp4",
+      "mobileBytes": 3887603,
+      "poster": "assets/optimized/video/herovideo-poster.webp"
+    },
+    "assets/ninaorganism.mp4": {
+      "before": 9586252,
+      "duration": 11.041667,
+      "desktop": "assets/optimized/video/ninaorganism-desktop.mp4",
+      "desktopBytes": 2313253,
+      "mobile": "assets/optimized/video/ninaorganism-mobile.mp4",
+      "mobileBytes": 1021085,
+      "poster": "assets/optimized/video/ninaorganism-poster.webp"
+    },
+    "assets/2063/darkharmonyhero.mp4": {
+      "before": 14833634,
+      "duration": 10.041667,
+      "desktop": "assets/optimized/video/2063/darkharmonyhero-desktop.mp4",
+      "desktopBytes": 2392857,
+      "mobile": "assets/optimized/video/2063/darkharmonyhero-mobile.mp4",
+      "mobileBytes": 1004473,
+      "poster": "assets/optimized/video/2063/darkharmonyhero-poster.webp"
+    },
+    "assets/releases/tanzenimkreis/robotloop.mp4": {
+      "before": 12337172,
+      "duration": 5.041667,
+      "desktop": "assets/optimized/video/releases/tanzenimkreis/robotloop-desktop.mp4",
+      "desktopBytes": 2321965,
+      "mobile": "assets/optimized/video/releases/tanzenimkreis/robotloop-mobile.mp4",
+      "mobileBytes": 1010595,
+      "poster": "assets/optimized/video/releases/tanzenimkreis/robotloop-poster.webp"
+    },
+    "nina-fok/ninaloophero.mp4": {
+      "before": 18962735,
+      "duration": 25.147007,
+      "desktop": "assets/optimized/video/nina-fok/ninaloophero-desktop.mp4",
+      "desktopBytes": 5836822,
+      "mobile": "assets/optimized/video/nina-fok/ninaloophero-mobile.mp4",
+      "mobileBytes": 2104061,
+      "poster": "assets/optimized/video/nina-fok/ninaloophero-poster.webp"
+    },
+    "nina-fok/ninaspersonality.mp4": {
+      "before": 7213377,
+      "duration": 15.041995,
+      "desktop": "assets/optimized/video/nina-fok/ninaspersonality-desktop.mp4",
+      "desktopBytes": 1785992,
+      "mobile": "assets/optimized/video/nina-fok/ninaspersonality-mobile.mp4",
+      "mobileBytes": 1271865,
+      "poster": "assets/optimized/video/nina-fok/ninaspersonality-poster.webp"
+    }
+  }
+}

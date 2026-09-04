@@ -93,19 +93,15 @@ body {
 }
 
 .current-release {
-  width: min(1180px, calc(100% - 64px));
-  margin: 0 auto;
+  width: min(1100px, calc(100% - 64px));
+  margin: 56px auto 48px;
   display: grid;
-  grid-template-columns: minmax(360px, 1fr) minmax(0, 1fr);
-  border-right: 1px solid var(--pv-rule);
-  border-bottom: 1px solid var(--pv-rule);
-  border-left: 1px solid var(--pv-rule);
+  grid-template-columns: minmax(320px, .9fr) minmax(0, 1.1fr);
 }
 
 .current-release-media {
   min-width: 0;
   overflow: hidden;
-  border-right: 1px solid var(--pv-rule);
   background: #070707;
 }
 
@@ -113,7 +109,8 @@ body {
   display: block;
   width: 100%;
   height: 100%;
-  min-height: 540px;
+  min-height: 0;
+  aspect-ratio: 1;
   object-fit: cover;
   filter: saturate(.78) contrast(1.04) brightness(.88);
   transition: transform .7s cubic-bezier(.2, .7, .2, 1), filter .4s ease;
@@ -129,7 +126,7 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: clamp(46px, 5vw, 76px);
+  padding: clamp(36px, 4.4vw, 64px);
 }
 
 .current-release-label,
@@ -147,15 +144,15 @@ body {
 
 .current-release h2 {
   margin: 28px 0 18px;
-  font: 400 clamp(46px, 5vw, 72px)/1.04 var(--pv-display);
-  letter-spacing: .035em;
+  font: 400 clamp(38px, 4vw, 56px)/1.12 var(--pv-display);
+  letter-spacing: .02em;
   text-transform: uppercase;
 }
 
 .current-release-artist {
   margin: 0;
   color: rgba(255, 255, 255, .9);
-  font-size: clamp(18px, 1.8vw, 25px);
+  font-size: clamp(18px, 1.5vw, 21px);
   line-height: 1.45;
 }
 
@@ -224,9 +221,52 @@ body {
 .pv-home .berlin-entry-cta {
   min-height: 64px;
   margin-top: 38px;
-  padding: 0 32px;
-  border-color: rgba(255, 255, 255, .68);
-  font-size: 11px;
+  min-width: 280px;
+  justify-content: space-between;
+  gap: 32px;
+  padding: 0 26px;
+  border-color: #e2e0d9;
+  background: #e2e0d9;
+  color: #080808;
+  font: 500 15px/1.3 var(--pv-body);
+  letter-spacing: .1em;
+}
+
+.pv-home .berlin-entry-cta::after {
+  content: "\2197";
+  font-size: 24px;
+  letter-spacing: 0;
+}
+
+.pv-home .berlin-entry-cta:hover,
+.pv-home .berlin-entry-cta:focus-visible {
+  background: #fff;
+  border-color: #fff;
+}
+
+.pv-home .berlin-entry-copy {
+  max-width: 54ch;
+  align-self: center;
+}
+
+.pv-home .berlin-entry-line {
+  font-family: var(--pv-body);
+  font-size: clamp(17px, 1.2vw, 19px);
+  font-weight: 400;
+  line-height: 1.65;
+  letter-spacing: -.012em;
+  color: rgba(255, 255, 255, .68);
+  text-wrap: pretty;
+}
+
+.pv-home .berlin-entry-line:first-child {
+  font-size: clamp(19px, 1.4vw, 22px);
+  line-height: 1.5;
+  color: rgba(255, 255, 255, .92);
+}
+
+.pv-home .berlin-entry-line + .berlin-entry-line {
+  margin-top: 24px;
 }
 
 .pv-home .nina-feature-section {
@@ -314,20 +354,22 @@ body {
 
 .pv-home .release-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1px;
-  background: var(--pv-rule-soft);
+  gap: 48px 28px;
+  align-items: start;
+  background: transparent;
 }
 
 .pv-home .release-card {
   position: relative;
-  padding: 0 0 28px;
-  background: #000;
+  padding: 0;
+  border: 0;
+  background: transparent;
 }
 
 .pv-home .release-card img {
   width: 100%;
   aspect-ratio: 1;
-  object-fit: cover;
+  object-fit: contain;
 }
 
 .pv-home .release-card .release-title,
@@ -335,26 +377,37 @@ body {
 .pv-home .release-card .release-status,
 .pv-home .release-card .release-listen-link {
   display: block;
-  margin-right: 20px;
-  margin-left: 20px;
+  margin-right: 0;
+  margin-left: 0;
 }
 
 .pv-home .release-card .release-title {
-  margin-top: 24px;
+  margin-top: 18px;
+  font-size: 17px;
+  line-height: 1.4;
+  letter-spacing: .07em;
+}
+
+.pv-home .release-card .release-meta {
+  font-size: 12px;
+  line-height: 1.6;
+  letter-spacing: .06em;
+  color: rgba(255, 255, 255, .65);
 }
 
 .pv-home .release-card .release-status {
-  margin-top: 19px;
-  color: rgba(255, 255, 255, .46);
+  margin-top: 12px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, .62);
 }
 
 .pv-home .release-card .release-listen-link {
   width: fit-content;
-  margin-top: 22px;
+  margin-top: 14px;
   padding-bottom: 5px;
   border-bottom: 1px solid rgba(255, 255, 255, .38);
   color: rgba(255, 255, 255, .76);
-  font: 10px/1 var(--pv-mono);
+  font: 12px/1.4 var(--pv-mono);
   letter-spacing: .14em;
   text-transform: uppercase;
 }
@@ -549,12 +602,14 @@ body {
 .pv-nina-artist .release-grid {
   display: block;
   border: 0;
+  max-width: 1040px;
+  margin-inline: auto;
 }
 
 .pv-nina-artist .release-feature {
   min-height: 0;
   display: grid;
-  grid-template-columns: minmax(320px, .88fr) minmax(0, 1.12fr);
+  grid-template-columns: minmax(240px, .72fr) minmax(0, 1.28fr);
   padding: 0;
   border: 1px solid rgba(0, 0, 0, .34);
 }
@@ -565,20 +620,21 @@ body {
 }
 
 .artist-release-artwork img {
-  height: 100%;
-  object-fit: cover;
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: contain;
 }
 
 .artist-release-copy {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: clamp(38px, 6vw, 86px);
+  padding: clamp(28px, 4vw, 54px);
 }
 
 .artist-release-copy h3 {
   margin: 26px 0 20px;
-  font: 400 clamp(46px, 6vw, 86px)/1.05 var(--pv-display);
+  font: 400 clamp(32px, 4vw, 54px)/1.1 var(--pv-display);
   letter-spacing: .02em;
   text-transform: uppercase;
 }
@@ -944,7 +1000,7 @@ body {
   }
 
   .current-release-media img {
-    min-height: 480px;
+    min-height: 0;
   }
 
   .pv-home .berlin-entry-content,
@@ -1026,7 +1082,8 @@ body {
   }
 
   .current-release {
-    width: 100%;
+    width: calc(100% - 36px);
+    margin: 32px auto 24px;
     grid-template-columns: 1fr;
     border-right: 0;
     border-left: 0;
@@ -1043,11 +1100,11 @@ body {
   }
 
   .current-release-copy {
-    padding: 52px 18px 62px;
+    padding: 36px 0 32px;
   }
 
   .current-release h2 {
-    font-size: clamp(40px, 12vw, 54px);
+    font-size: clamp(34px, 10vw, 46px);
   }
 
   .current-release-note {
@@ -1110,7 +1167,17 @@ body {
   }
 
   .pv-home .release-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 32px 16px;
+  }
+
+  .pv-home .release-card .release-title {
+    font-size: 14px;
+    letter-spacing: .035em;
+  }
+
+  .pv-home .release-card .release-meta {
+    font-size: 11px;
   }
 
   .contact-heading {
@@ -1244,7 +1311,7 @@ body {
   }
 
   .pv-nina-artist .release-feature {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(110px, .7fr) minmax(0, 1.3fr);
   }
 
   .artist-release-artwork {
@@ -1253,11 +1320,17 @@ body {
   }
 
   .artist-release-copy {
-    padding: 40px 24px 48px;
+    padding: 24px 16px;
   }
 
   .artist-release-copy h3 {
-    font-size: clamp(38px, 11vw, 54px);
+    font-size: clamp(22px, 6vw, 32px);
+    margin: 18px 0 14px;
+  }
+
+  .artist-release-copy p:not(.artist-release-status),
+  .artist-release-copy a {
+    font-size: 14px;
   }
 
   .pv-nina-artist .campaign-block {

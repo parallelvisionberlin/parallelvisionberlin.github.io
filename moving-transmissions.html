@@ -73,6 +73,7 @@
     @media (max-width:460px) { footer { flex-direction:column; } }
     @media (prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } }
   </style>
+  <link rel="preload" as="image" href="./assets/optimized/video/releases/tanzenimkreis/robotloop-poster.webp" fetchpriority="high">
 </head>
 <body>
   <header class="transmission-hero">
@@ -80,7 +81,7 @@
       <a href="./berlin-2063.html">Berlin 2063</a>
       <div class="archive-nav-links"><a href="#transmissions">Transmissions</a><a href="#room-systems">Room Systems</a></div>
     </nav>
-    <video autoplay muted loop playsinline preload="metadata" aria-label="Robot loop transmission from Berlin 2063"><source src="./assets/releases/tanzenimkreis/robotloop.mp4" type="video/mp4"></video>
+    <video autoplay muted loop playsinline preload="none" aria-label="Robot loop transmission from Berlin 2063" poster="./assets/optimized/video/releases/tanzenimkreis/robotloop-poster.webp" data-perf-video><source data-src="./assets/releases/tanzenimkreis/robotloop.mp4" type="video/mp4" data-optimized-src="./assets/optimized/video/releases/tanzenimkreis/robotloop-desktop.mp4" data-mobile-src="./assets/optimized/video/releases/tanzenimkreis/robotloop-mobile.mp4"></video>
     <div class="hero-overlay"></div>
     <div class="hero-content">
       <p class="eyebrow">Berlin 2063 / Moving Image Archive</p>
@@ -103,7 +104,7 @@
     <section class="archive-section" id="transmissions" aria-labelledby="transmission-index-title">
       <header class="section-head"><h2 id="transmission-index-title">Transmission Index</h2><p class="section-label">Berlin 2063 / 01 Active</p></header>
       <div class="active-transmission">
-        <div class="transmission-frame"><video muted loop playsinline preload="none" data-lazy-transmission aria-label="Robo Loop transmission"><source data-src="./assets/releases/tanzenimkreis/robotloop.mp4" type="video/mp4"></video></div>
+        <div class="transmission-frame"><video muted loop playsinline preload="none" data-lazy-transmission aria-label="Robo Loop transmission" poster="./assets/optimized/video/releases/tanzenimkreis/robotloop-poster.webp" data-perf-video><source data-src="./assets/releases/tanzenimkreis/robotloop.mp4" type="video/mp4" data-optimized-src="./assets/optimized/video/releases/tanzenimkreis/robotloop-desktop.mp4" data-mobile-src="./assets/optimized/video/releases/tanzenimkreis/robotloop-mobile.mp4"></video></div>
         <div class="transmission-copy"><p class="card-status">Transmission / machine body</p><h3>01 / Robo Loop</h3><p>A first motion fragment from Berlin 2063: a loop built for atmosphere, projection and transition space.</p></div>
       </div>
       <div class="pending-grid" aria-label="Pending transmissions">
@@ -125,21 +126,7 @@
   </main>
 
   <footer><span>Parallel Vision / Berlin 2063</span><span>Moving Transmissions / 2026</span></footer>
-  <script>
-    const transmission = document.querySelector("video[data-lazy-transmission]");
-    const loadTransmission = () => {
-      const source = transmission?.querySelector("source[data-src]");
-      if (!source?.dataset.src || source.src) return;
-      source.src = source.dataset.src;
-      transmission.load();
-      transmission.play().catch(() => {});
-    };
-    if (transmission && "IntersectionObserver" in window) {
-      const observer = new IntersectionObserver(entries => entries.forEach(entry => {
-        if (entry.isIntersecting) { loadTransmission(); observer.disconnect(); }
-      }), { rootMargin:"300px 0px" });
-      observer.observe(transmission);
-    } else loadTransmission();
-  </script>
+
+<script src="./js/media-loading.js?v=20260904-1" defer></script>
 </body>
 </html>

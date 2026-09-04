@@ -7,7 +7,7 @@
   <title>Nina Analytics | Parallel Vision</title>
   <link rel="icon" href="../favicon.png">
   <link href="https://fonts.googleapis.com/css2?family=Michroma&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../css/nina-admin.css?v=20260904-session-identity">
+  <link rel="stylesheet" href="../css/nina-admin.css?v=20260904-readable-2">
 </head>
 <body>
   <header class="admin-header">
@@ -48,12 +48,20 @@
       </section>
       <section class="admin-window" aria-labelledby="sessionsTitle">
         <div class="admin-section-heading"><p>06</p><h2 id="sessionsTitle">Recent sessions</h2></div>
+        <nav class="admin-pagination" aria-label="Session pages">
+          <p data-session-page-status role="status"></p>
+          <div><button type="button" class="admin-button" data-session-page="previous">Previous</button><button type="button" class="admin-button" data-session-page="next">Next</button></div>
+        </nav>
         <div class="admin-table-wrap">
           <table>
             <thead><tr><th>User</th><th>Visit</th><th>Identity</th><th>Started</th><th>Duration</th><th>Status</th></tr></thead>
             <tbody id="adminSessions"></tbody>
           </table>
         </div>
+        <nav class="admin-pagination" aria-label="Session pages below table">
+          <p data-session-page-status></p>
+          <div><button type="button" class="admin-button" data-session-page="previous">Previous</button><button type="button" class="admin-button" data-session-page="next">Next</button></div>
+        </nav>
       </section>
       <section class="admin-window" aria-labelledby="giftTitle">
         <div class="admin-section-heading"><p>07</p><h2 id="giftTitle">Gift Credits</h2></div>
@@ -94,6 +102,6 @@
       <p class="admin-generated" id="adminGenerated"></p>
     </div>
   </main>
-  <script type="module" src="../js/nina-admin.js?v=20260904-session-identity"></script>
+  <script type="module" src="../js/nina-admin.js?v=20260904-session-pages"></script>
 </body>
 </html>

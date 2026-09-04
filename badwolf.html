@@ -88,6 +88,17 @@
       footer span:nth-child(2) { order:3; width:100%; }
     }
     @media (prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } .reveal { opacity:1; transform:none; transition:none; } .archive-art img { transition:none; } }
+
+    /* Keep the release catalog compact on wide displays and phones. */
+    #archive { width:min(1120px,calc(100% - 2 * var(--pad))); margin-inline:auto; padding:clamp(64px,7vw,100px) 0; }
+    #archive .section-title { font-size:clamp(28px,3vw,42px); }
+    #archive .archive-name { font-size:clamp(17px,1.4vw,21px); }
+    @media (max-width:720px) {
+      #archive .archive-grid { grid-template-columns:1fr; }
+      #archive .archive-card { display:grid; grid-template-columns:100px minmax(0,1fr); align-items:center; gap:20px; padding:22px 0; }
+      #archive .archive-info { padding-top:0; flex-direction:column; gap:12px; }
+      #archive .archive-art { width:100%; }
+    }
   </style>
 </head>
 <body>
@@ -97,12 +108,12 @@
   </header>
   <main>
     <section class="hero" aria-labelledby="badwolf-title">
-      <img class="hero-image" src="./assets/fashion-after-fabric/artists/badwolf/herobadwolf1.png?v=2" alt="Badwolf portrait emerging through blue smoke" width="2048" height="1152">
+      <img class="hero-image" src="./assets/optimized/fashion-after-fabric/artists/badwolf/herobadwolf1.webp" alt="Badwolf portrait emerging through blue smoke" width="2048" height="1152" fetchpriority="high" decoding="async">
       <div class="hero-copy"><p class="eyebrow">Parallel Vision Artist</p><h1 class="hero-title" id="badwolf-title">Badwolf</h1><div class="hero-meta"><span>Mexican Producer</span><span>Club System Disruptor</span></div></div>
     </section>
     <section class="bio" aria-labelledby="bio-title">
       <figure class="bio-media reveal">
-        <img src="./assets/fashion-after-fabric/artists/badwolf/badwolfvertical.png" alt="Badwolf portrait under red light" loading="lazy" decoding="async" width="1152" height="2048">
+        <img src="./assets/optimized/fashion-after-fabric/artists/badwolf/badwolfvertical.webp" alt="Badwolf portrait under red light" loading="lazy" decoding="async" width="1152" height="2048">
       </figure>
       <div class="bio-copy reveal">
         <p class="bio-kicker" id="bio-title">Profile / Club System Disruptor</p>
@@ -114,8 +125,8 @@
     <section class="section-shell" id="archive" aria-labelledby="archive-title">
       <header class="section-head reveal"><h2 class="section-title" id="archive-title">Release Archive</h2><p class="section-kicker">Parallel Vision transmission</p></header>
       <div class="archive-grid">
-        <a class="archive-card reveal" href="https://soundcloud.com/parallelvisionlabel/sets/alejandro-molinari-badwolf" target="_blank" rel="noopener noreferrer"><div class="archive-art"><img src="./assets/artfunkybeats.png" alt="Funky Beat release artwork" loading="lazy" decoding="async" width="2000" height="2000"></div><div class="archive-info"><span class="archive-name">Funky Beat</span><span class="archive-index">PV002 ↗</span></div></a>
-        <article class="archive-card reveal"><div class="archive-art"><img src="./assets/artworks/cultoalavida.jpg" alt="Alejandro Molinari Culto a la Vida artwork" loading="lazy" decoding="async" width="3000" height="3000"></div><div class="archive-info"><span class="archive-name">Culto a la Vida — BadWolf Remix</span><span class="archive-index">Archive</span></div></article>
+        <a class="archive-card reveal" href="https://soundcloud.com/parallelvisionlabel/sets/alejandro-molinari-badwolf" target="_blank" rel="noopener noreferrer"><div class="archive-art"><img src="./assets/optimized/artfunkybeats.webp" alt="Funky Beat release artwork" loading="lazy" decoding="async" width="2000" height="2000"></div><div class="archive-info"><span class="archive-name">Funky Beat</span><span class="archive-index">PV002 ↗</span></div></a>
+        <article class="archive-card reveal"><div class="archive-art"><img src="./assets/optimized/artworks/cultoalavida.webp" alt="Alejandro Molinari Culto a la Vida artwork" loading="lazy" decoding="async" width="3000" height="3000"></div><div class="archive-info"><span class="archive-name">Culto a la Vida — BadWolf Remix</span><span class="archive-index">Archive</span></div></article>
       </div>
     </section>
     <section class="section-shell" id="links" aria-labelledby="links-title">

@@ -61,8 +61,9 @@
 <link rel="stylesheet" href="./css/base.css?v=20260814-1">
   <link rel="stylesheet" href="./css/home.css?v=20260829-material-signal-tab">
   <link rel="stylesheet" href="./css/nina-access.css?v=20260902-auth-layer">
-  <link rel="stylesheet" href="./css/revamp.css?v=20260904-2">
+  <link rel="stylesheet" href="./css/revamp.css?v=20260904-3">
 
+  <link rel="preload" as="image" href="./assets/optimized/2063/POV DARK HARMONY.webp" fetchpriority="high">
 </head>
 
 
@@ -89,13 +90,13 @@
     muted
     loop
     playsinline
-    preload="metadata"
+    preload="none"
     poster="./assets/optimized/2063/POV DARK HARMONY.webp"
     width="2752"
     height="1536"
     aria-hidden="true"
   >
-    <source data-src="./assets/2063/darkharmonyhero.mp4" type="video/mp4">
+    <source data-src="./assets/2063/darkharmonyhero.mp4" type="video/mp4" data-optimized-src="./assets/optimized/video/2063/darkharmonyhero-desktop.mp4" data-mobile-src="./assets/optimized/video/2063/darkharmonyhero-mobile.mp4">
   </video>
 
 
@@ -435,10 +436,10 @@
           src="./assets/optimized/artworks/staylowart.webp"
           alt="Stay Low by Alejandro Molinari featuring Nina FOK"
           decoding="async" loading="lazy" width="900" height="900">
-        <span class="release-status">Current release</span>
         <span class="release-title">Stay Low</span>
         <span class="release-meta">Alejandro Molinari feat. Nina FOK</span>
         <span class="release-meta">PV013 / 2026</span>
+        <span class="release-status">Current release</span>
         <a class="release-listen-link" href="https://www.beatport.com/artist/alejandro-molinari/497084" target="_blank" rel="noopener noreferrer">Listen ↗</a>
       </article>
 
@@ -2006,9 +2007,9 @@
 
 
 
-<script src="./js/home.js?v=20260828-mobile-hero-autoplay" defer></script>
+<script src="./js/home.js?v=20260904-media-1" defer></script>
 
-<script type="module" src="./js/nina-access.js?v=20260903-meta-fulltest"></script>
+<script type="module" src="./js/nina-access.js?v=20260904-analytics-renewal"></script>
 
 
 </body>

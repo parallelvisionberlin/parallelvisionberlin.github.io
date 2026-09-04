@@ -962,6 +962,15 @@
         transform: none;
       }
     }
+
+    .releases.section-shell { width:min(1120px,calc(100% - 48px)); margin-inline:auto; padding:clamp(64px,7vw,100px) 0; }
+    .releases .section-title { font-size:clamp(28px,3vw,42px); }
+    .releases .release-title { font-size:clamp(18px,1.6vw,23px); }
+    @media (max-width:720px) {
+      .releases .release-grid { grid-template-columns:1fr; gap:24px; }
+      .releases .release-card { display:grid; grid-template-columns:100px minmax(0,1fr); align-items:start; gap:20px; }
+      .releases .release-info { min-height:0; padding:0 0 20px; gap:10px; }
+    }
   </style>
 </head>
 <body>
@@ -996,7 +1005,7 @@
       <div class="statement-copy">
         <p class="reveal">Alejandro Molinari is a Berlin-based artist, producer and creative director working across sound, moving image and speculative culture.</p>
         <figure class="founder-portrait reveal">
-          <img src="./assets/fashion-after-fabric/artists/alejandro/fashionsummer1.png" alt="Alejandro Molinari, artist and founder of Parallel Vision" loading="lazy" decoding="async" width="1536" height="2048">
+          <img src="./assets/optimized/fashion-after-fabric/artists/alejandro/fashionsummer1.webp" alt="Alejandro Molinari, artist and founder of Parallel Vision" loading="lazy" decoding="async" width="1536" height="2048">
         </figure>
         <p class="reveal">He is the founder of Parallel Vision, an independent platform connecting electronic music, visual world-building and material research. His practice moves between the dancefloor and the imagined city: from hypnotic club records and live performance to Berlin 2063, a cinematic universe examining identity, technology and life after the present.</p>
         <p class="reveal">For Molinari, music is not an isolated product. It is the structural core of a larger system—one in which records, bodies, garments, architecture and fictional realities can occupy the same world.</p>
@@ -1044,7 +1053,7 @@
       <div class="release-grid">
         <article class="release-card reveal">
           <div class="release-art">
-            <img src="./assets/artworks/acid-chacha-final-bigger-original-name.png" alt="Acid Chacha artwork" loading="lazy" decoding="async" width="2048" height="2048">
+            <img src="./assets/optimized/artworks/acid-chacha-final-bigger-original-name.webp" alt="Acid Chacha artwork" loading="lazy" decoding="async" width="2048" height="2048">
           </div>
           <div class="release-info">
             <div>
@@ -1059,7 +1068,7 @@
 
         <a class="release-card reveal" href="https://soundcloud.com/parallelvisionlabel/sets/alejandro-molinari-tanzen-im" target="_blank" rel="noopener noreferrer">
           <div class="release-art">
-            <img src="./assets/tanzenfinal.jpeg" alt="Tanzen Im Kreis artwork" loading="lazy" decoding="async" width="1600" height="1600">
+            <img src="./assets/optimized/tanzenfinal.webp" alt="Tanzen Im Kreis artwork" loading="lazy" decoding="async" width="1600" height="1600">
           </div>
           <div class="release-info">
             <span class="release-title">Tanzen Im Kreis</span>
@@ -1069,7 +1078,7 @@
 
         <a class="release-card reveal" href="https://soundcloud.com/alejandromolinari/ravesia-alejandro-molinari-1" target="_blank" rel="noopener noreferrer">
           <div class="release-art">
-            <img src="./assets/Ravesiamolinariremix.png" alt="Ravesia Alejandro Molinari Remix artwork" loading="lazy" decoding="async" width="792" height="790">
+            <img src="./assets/optimized/Ravesiamolinariremix.webp" alt="Ravesia Alejandro Molinari Remix artwork" loading="lazy" decoding="async" width="792" height="790">
           </div>
           <div class="release-info">
             <span class="release-title">Ravesia — Alejandro Molinari Remix</span>
@@ -1079,7 +1088,7 @@
 
         <a class="release-card reveal" href="https://soundcloud.com/parallelvisionlabel/sets/alejandro-molinari-badwolf" target="_blank" rel="noopener noreferrer">
           <div class="release-art">
-            <img src="./assets/artfunkybeats.png" alt="Funky Beat artwork" loading="lazy" decoding="async" width="2000" height="2000">
+            <img src="./assets/optimized/artfunkybeats.webp" alt="Funky Beat artwork" loading="lazy" decoding="async" width="2000" height="2000">
           </div>
           <div class="release-info">
             <span class="release-title">Funky Beat</span>
@@ -1089,7 +1098,7 @@
 
         <a class="release-card reveal" href="https://soundcloud.com/alejandromolinari/blex-ar-dark-rock-alejandro-molinari-remix?in=parallelvisionlabel/sets/dark-rock-ep" target="_blank" rel="noopener noreferrer">
           <div class="release-art">
-            <img src="./assets/Artdarkrock.png" alt="Dark Rock artwork" loading="lazy" decoding="async" width="1500" height="1500">
+            <img src="./assets/optimized/Artdarkrock.webp" alt="Dark Rock artwork" loading="lazy" decoding="async" width="1500" height="1500">
           </div>
           <div class="release-info">
             <span class="release-title">Dark Rock — Alejandro Molinari Remix</span>
@@ -1099,7 +1108,7 @@
 
         <a class="release-card reveal" href="https://soundcloud.com/parallelvisionlabel/sets/alejandro-molinari-vision-1" target="_blank" rel="noopener noreferrer">
           <div class="release-art">
-            <img src="./assets/vision-neo.jpg" alt="Vision EP artwork" loading="lazy" decoding="async" width="1024" height="1024">
+            <img src="./assets/optimized/vision-neo.webp" alt="Vision EP artwork" loading="lazy" decoding="async" width="1024" height="1024">
           </div>
           <div class="release-info">
             <span class="release-title">Vision EP</span>
@@ -1110,7 +1119,7 @@
 
       <article class="featured-ep reveal" aria-labelledby="featured-ep-title">
         <div class="featured-ep-art">
-          <img src="./assets/tanzenfinal.jpeg" alt="Tanzen Im Kreis EP artwork" loading="lazy" decoding="async" width="1600" height="1600">
+          <img src="./assets/optimized/tanzenfinal.webp" alt="Tanzen Im Kreis EP artwork" loading="lazy" decoding="async" width="1600" height="1600">
         </div>
         <div class="featured-ep-content">
           <p class="featured-ep-kicker">Featured EP</p>
@@ -1162,7 +1171,7 @@
       </header>
       <div class="editorial-grid" aria-label="Alejandro Molinari night archive portrait">
         <div class="editorial-block reveal">
-          <img src="./assets/fashion-after-fabric/artists/alejandro/cassiusfrontale.png" alt="Dark editorial portrait of Alejandro Molinari" loading="lazy" decoding="async" width="1536" height="2048">
+          <img src="./assets/optimized/fashion-after-fabric/artists/alejandro/cassiusfrontale.webp" alt="Dark editorial portrait of Alejandro Molinari" loading="lazy" decoding="async" width="1536" height="2048">
           <p class="editorial-label">01 — Artist / Founder / Night Archive</p>
         </div>
       </div>

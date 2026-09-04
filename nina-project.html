@@ -30,7 +30,7 @@
   </script>
   <!-- End Meta Pixel Code -->
   <link rel="icon" type="image/png" href="./favicon.png">
-  <link rel="stylesheet" href="./fashion.css?v=20260817-archive-size">
+  <link rel="stylesheet" href="./fashion.css?v=20260904-media-1">
   <link rel="stylesheet" href="./css/nina-access.css?v=20260902-auth-layer">
   <style>
     :root { --n-line: rgba(255,255,255,.15); --n-body: rgba(255,255,255,.7); --n-faint: rgba(255,255,255,.44); }
@@ -55,7 +55,7 @@
     .n-nav-transmit { padding:0; border:0; background:none; font:inherit; letter-spacing:inherit; text-transform:inherit; cursor:pointer; }
 
     .n-hero { padding: 18px 0 34px; border-bottom: 1px solid var(--n-line); }
-    .n-hero-media { position: relative; height: clamp(620px,82vh,860px); margin: 0; overflow: hidden; background: #100304 url('./nina-fok/HDNINACANON.png') center 45% / cover no-repeat; }
+    .n-hero-media { position: relative; height: clamp(620px,82vh,860px); margin: 0; overflow: hidden; background: #100304 url('./assets/optimized/nina-fok/HDNINACANON.webp') center 45% / cover no-repeat; }
     .n-hero-asset { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center 45%; filter: saturate(.72) contrast(1.04) brightness(.78); }
     .n-hero-media::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(90deg,rgba(0,0,0,.22) 0%,rgba(0,0,0,.06) 34%,transparent 58%),linear-gradient(180deg,transparent 46%,rgba(0,0,0,.82) 100%); }
     .n-sound { position: absolute; right: 14px; bottom: 14px; z-index: 3; min-height: 28px; padding: 0 9px; border: 1px solid rgba(255,255,255,.34); background: rgba(0,0,0,.38); color: #fff; font: 8px 'Courier New', monospace; letter-spacing: .16em; text-transform: uppercase; cursor: pointer; backdrop-filter: blur(8px); }
@@ -266,7 +266,8 @@
     @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .n-button { transition: none; } .n-hero-asset,.n-connect-video { display: none; } }
   </style>
   <link rel="stylesheet" href="./css/base.css?v=20260814-1">
-  <link rel="stylesheet" href="./css/revamp.css?v=20260904-2">
+  <link rel="stylesheet" href="./css/revamp.css?v=20260904-3">
+  <link rel="preload" as="image" href="./assets/optimized/nina-fok/HDNINACANON.webp" fetchpriority="high">
 </head>
 <body class="pv-nina-project">
   <a class="skip-link" href="#main-content">Skip to main content</a>
@@ -332,7 +333,7 @@
   <main class="n-shell" id="main-content">
     <header class="n-hero" id="nina">
       <figure class="n-hero-media">
-        <video class="n-hero-asset" id="ninaHeroVideo" data-src="./nina-fok/ninaloophero.mp4" poster="./assets/optimized/nina-fok/HDNINACANON.webp" autoplay muted loop playsinline preload="none" aria-label="Nina FOK in her Berlin 2063 environment"></video>
+        <video class="n-hero-asset" id="ninaHeroVideo" data-src="./nina-fok/ninaloophero.mp4" poster="./assets/optimized/nina-fok/HDNINACANON.webp" autoplay muted loop playsinline preload="none" aria-label="Nina FOK in her Berlin 2063 environment" data-optimized-src="./assets/optimized/video/nina-fok/ninaloophero-desktop.mp4" data-mobile-src="./assets/optimized/video/nina-fok/ninaloophero-mobile.mp4"></video>
         <figcaption class="n-hero-copy">
           <p class="n-meta">Berlin / 2063</p>
           <h1>Nina FOK</h1>
@@ -355,7 +356,7 @@
       <div class="n-who-grid">
         <figure class="n-who-media">
           <video id="ninaPersonalityVideo" autoplay muted loop playsinline preload="none" poster="./assets/optimized/ninamain-page.webp" aria-label="Nina FOK speaking from Berlin 2063">
-            <source data-src="./nina-fok/ninaspersonality.mp4" type="video/mp4">
+            <source data-src="./nina-fok/ninaspersonality.mp4" type="video/mp4" data-optimized-src="./assets/optimized/video/nina-fok/ninaspersonality-desktop.mp4" data-mobile-src="./assets/optimized/video/nina-fok/ninaspersonality-mobile.mp4">
           </video>
           <button class="n-sound" id="ninaVideoSound" type="button" aria-pressed="false" aria-label="Turn Nina video sound on">Sound On</button>
         </figure>
@@ -452,7 +453,7 @@
     </section>
 
     <section class="n-connect" id="transmit" aria-labelledby="transmit-title">
-      <video class="n-connect-video" id="ninaConnectVideo" data-src="./nina-fok/ninaloophero.mp4" poster="./assets/optimized/nina-fok/HDNINACANON.webp" autoplay muted loop playsinline preload="none" aria-hidden="true"></video>
+      <video class="n-connect-video" id="ninaConnectVideo" data-src="./nina-fok/ninaloophero.mp4" poster="./assets/optimized/nina-fok/HDNINACANON.webp" autoplay muted loop playsinline preload="none" aria-hidden="true" data-optimized-src="./assets/optimized/video/nina-fok/ninaloophero-desktop.mp4" data-mobile-src="./assets/optimized/video/nina-fok/ninaloophero-mobile.mp4"></video>
       <div class="n-connect-content">
         <p class="n-label">A channel to Berlin 2063 is open</p>
         <h2 id="transmit-title">Talk to Nina</h2>
@@ -841,17 +842,17 @@
       const saveData = Boolean(navigator.connection?.saveData);
 
       const loadVideo = target => {
-        if (!target || target.dataset.loaded === "true" || reducedMotion.matches || saveData) return;
-        if (target.dataset.src) target.src = target.dataset.src;
+        if (!target || reducedMotion.matches || saveData) return;
+        if (target.dataset.loaded === "true") { target.play().catch(() => {}); return; }
+        if (target.dataset.src) target.src = (window.matchMedia("(max-width: 760px)").matches ? target.dataset.mobileSrc : target.dataset.optimizedSrc) || target.dataset.src;
         const source = target.querySelector("source[data-src]");
-        if (source?.dataset.src) source.src = source.dataset.src;
+        if (source?.dataset.src) source.src = (window.matchMedia("(max-width: 760px)").matches ? source.dataset.mobileSrc : source.dataset.optimizedSrc) || source.dataset.src;
         target.dataset.loaded = "true";
         target.load();
         target.play().catch(() => {});
       };
 
       const scheduleHeroVideo = () => {
-        if (window.innerWidth <= 760) return;
         if ("requestIdleCallback" in window) window.requestIdleCallback(() => loadVideo(heroVideo), { timeout: 1800 });
         else window.setTimeout(() => loadVideo(heroVideo), 350);
       };
@@ -904,7 +905,8 @@
       if (window.innerWidth <= 760 && !reducedMotion.matches && !saveData) {
         document.addEventListener("pointerdown", () => loadVideo(heroVideo), { once: true, passive: true });
         document.addEventListener("keydown", () => loadVideo(heroVideo), { once: true });
-      } else scheduleHeroVideo();
+      }
+      scheduleHeroVideo();
       if ("IntersectionObserver" in window && !reducedMotion.matches && !saveData) {
         const observer = new IntersectionObserver(entries => entries.forEach(entry => {
           if (entry.isIntersecting) loadVideo(entry.target);
@@ -916,6 +918,6 @@
       syncMotion();
     })();
   </script>
-<script type="module" src="./js/nina-access.js?v=20260903-meta-fulltest"></script>
+<script type="module" src="./js/nina-access.js?v=20260904-analytics-renewal"></script>
 </body>
 </html>

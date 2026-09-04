@@ -15,7 +15,7 @@
   <meta name="twitter:title" content="Nina FOK Fashion After Fabric — Parallel Vision">
   <meta name="twitter:description" content="Nina FOK inhabits FLESH ZERO, a material study from the Fashion After Fabric archive.">
   <meta name="twitter:image" content="https://parallelvisionlabel.com/nina-fok/Canon.png">
-  <link rel="stylesheet" href="./fashion.css?v=20260825-faf-copy-1">
+  <link rel="stylesheet" href="./fashion.css?v=20260904-media-1">
   <script src="./language.js?v=20260728-1" defer></script>
 </head>
 <body class="cabizbajo-study-page amatista-fashion-study-page">
@@ -29,7 +29,7 @@
 
 <main class="cabizbajo-study">
   <header class="cabizbajo-hero" aria-labelledby="nina-fashion-title">
-    <img class="cabizbajo-hero-video" src="./nina-fok/Canon.png" alt="Nina FOK wearing a black synthetic surface inside the Fashion After Fabric archive" decoding="async" loading="eager" width="2752" height="1536">
+    <img class="cabizbajo-hero-video" src="./assets/optimized/nina-fok/Canon.webp" alt="Nina FOK wearing a black synthetic surface inside the Fashion After Fabric archive" decoding="async" loading="eager" width="2752" height="1536" fetchpriority="high">
     <div class="cabizbajo-hero-copy">
       <p class="cabizbajo-kicker">Fashion After Fabric / Parallel Vision</p>
       <h1 id="nina-fashion-title"><span class="artist-title-main">Nina FOK</span></h1>
@@ -64,8 +64,8 @@
       <p class="cabizbajo-section-label">Fashion After Fabric Film</p>
       <h2 id="nina-film-title">Nina FOK / Body Transmission</h2>
     </div>
-    <video autoplay muted loop playsinline preload="metadata" aria-label="Nina FOK body transmission film">
-      <source src="./assets/ninaorganism.mp4" type="video/mp4">
+    <video autoplay muted loop playsinline preload="none" aria-label="Nina FOK body transmission film" poster="./assets/optimized/video/ninaorganism-poster.webp" data-perf-video>
+      <source data-src="./assets/ninaorganism.mp4" type="video/mp4" data-optimized-src="./assets/optimized/video/ninaorganism-desktop.mp4" data-mobile-src="./assets/optimized/video/ninaorganism-mobile.mp4">
     </video>
   </section>
 
@@ -81,7 +81,7 @@
       <div class="amatista-fashion-gallery-viewer" data-amatista-gallery tabindex="0" role="group" aria-roledescription="carousel" aria-label="Nina FOK material studies">
         <div class="amatista-fashion-gallery-viewport" id="nina-gallery-viewer">
           <figure class="amatista-fashion-frame" data-gallery-slide>
-            <div class="amatista-fashion-frame-image"><img src="./nina-fok/Canon.png" alt="Nina FOK in a structured black synthetic surface for Fashion After Fabric." loading="lazy" decoding="async" width="2752" height="1536"></div>
+            <div class="amatista-fashion-frame-image"><img src="./assets/optimized/nina-fok/Canon.webp" alt="Nina FOK in a structured black synthetic surface for Fashion After Fabric." loading="lazy" decoding="async" width="2752" height="1536"></div>
             <figcaption><span>01 / Archive Frame</span><span>Synthetic Surface</span></figcaption>
           </figure>
           <figure class="amatista-fashion-frame" data-gallery-slide hidden>
@@ -136,5 +136,6 @@
     showSlide(0);
   })();
 </script>
+<script src="./js/media-loading.js?v=20260904-1" defer></script>
 </body>
 </html>

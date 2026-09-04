@@ -1436,9 +1436,18 @@ async function startNinaAnalyticsSession() {
       clearNinaAnalyticsHeartbeat();
       ninaAnalyticsHeartbeatTimer = setInterval(() => {
         if (!ninaAnalyticsSessionId || entryId !== ninaAnalyticsEntryId) return;
-        void ninaAnalyticsRequest("/api/nina/analytics/heartbeat", {
-          sessionId: ninaAnalyticsSessionId, clientEntryId: entryId
-        }).catch(error => logDevelopmentError("Nina analytics heartbeat unavailable.", error));
+        const sessionId = ninaAnalyticsSessionId;
+        void (async () => {
+          // Clerk credentials can expire during a call. Keep the cached copy
+          // fresh for the final keepalive request as well as each heartbeat.
+          const headers = await authenticationHeaders();
+          if (entryId !== ninaAnalyticsEntryId || sessionId !== ninaAnalyticsSessionId) return;
+          ninaAnalyticsHeaders = headers;
+          const response = await ninaAnalyticsRequest("/api/nina/analytics/heartbeat", {
+            sessionId, clientEntryId: entryId
+          });
+          if (!response.ok) throw new Error(`Analytics heartbeat returned ${response.status}.`);
+        })().catch(error => logDevelopmentError("Nina analytics heartbeat unavailable.", error));
       }, NINA_ANALYTICS_HEARTBEAT_MS);
       return ninaAnalyticsSessionId;
     } catch (error) {
