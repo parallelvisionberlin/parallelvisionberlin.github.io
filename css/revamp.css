@@ -97,9 +97,22 @@ body {
   letter-spacing: .065em;
   text-align: left;
   text-shadow: 0 2px 12px rgba(0, 0, 0, .85);
+  isolation: isolate;
   transform: none;
   transition: border-color .2s ease, color .2s ease;
   cursor: pointer;
+}
+
+.pv-home .home-desktop-signal-tab::before {
+  content: "";
+  position: absolute;
+  inset: -8px -16px;
+  z-index: -1;
+  background: #050505;
+}
+
+.pv-home .home-desktop-signal-tab.is-on-hero::before {
+  display: none;
 }
 
 .pv-home .home-desktop-signal-tab::after,

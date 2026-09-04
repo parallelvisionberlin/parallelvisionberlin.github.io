@@ -62,6 +62,24 @@
   });
 }());
 
+(function keepNinaInvitationLegible() {
+  const hero = document.querySelector('.hero');
+  const invitation = document.querySelector('.home-desktop-signal-tab');
+  if (!hero || !invitation || !('IntersectionObserver' in window)) return;
+  // A dark backing protects the persistent action over page copy. Only remove
+  // it while the hero still fills the viewport behind the action.
+  let observer;
+  const observeHero = () => {
+    observer?.disconnect();
+    observer = new IntersectionObserver(([entry]) => {
+      invitation.classList.toggle('is-on-hero', entry.isIntersecting);
+    }, { rootMargin: `-${Math.max(0, window.innerHeight - 140)}px 0px 0px 0px`, threshold: 0 });
+    observer.observe(hero);
+  };
+  observeHero();
+  window.addEventListener('resize', observeHero, { passive: true });
+}());
+
 (function setupMobileHomepageNavigation() {
   const navigation = document.getElementById("homeNavigation");
   const toggle = document.getElementById("homeMobileMenuToggle");
