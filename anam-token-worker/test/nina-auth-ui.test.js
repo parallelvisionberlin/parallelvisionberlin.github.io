@@ -13,8 +13,8 @@ test("shared Nina auth modal uses the compact conversation-focused copy and cont
   const [home, project, css] = await files();
   for (const page of [home, project]) {
     assert.match(page, /id="ninaAccessTitle">TALK TO NINA</);
-    assert.match(page, /Create an account or sign in to talk to Nina\./);
-    assert.match(page, /Your account keeps your conversations and Signal Credits connected\./);
+    assert.match(page, /She lives in Berlin, 2063\.<br>You can speak with her now\./);
+    assert.match(page, /<strong>3 minutes free\.<\/strong> Sign in to begin and to continue your history when you return\./);
     assert.match(page, /CONTINUE WITH GOOGLE/);
     assert.match(page, /CONTINUE WITH EMAIL/);
     assert.match(page, /id="ninaPrivateAccessToggle"/);

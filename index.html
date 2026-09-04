@@ -11,16 +11,16 @@
 >
 
 <title>Parallel Vision | Berlin 2063</title>
-<meta name="description" content="Parallel Vision is a Berlin-based music and audiovisual archive.">
+<meta name="description" content="Parallel Vision is an independent Berlin label and cultural platform connecting music, moving image, material research and Berlin 2063.">
 <link rel="canonical" href="https://parallelvisionlabel.com/">
 <meta property="og:title" content="Parallel Vision | Berlin 2063">
-<meta property="og:description" content="Parallel Vision is a Berlin-based music and audiovisual archive.">
+<meta property="og:description" content="An independent Berlin label and cultural platform connecting music, moving image, material research and Berlin 2063.">
 <meta property="og:url" content="https://parallelvisionlabel.com/">
 <meta property="og:type" content="website">
 <meta property="og:image" content="https://parallelvisionlabel.com/assets/optimized/thecitysuperhd1.webp">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Parallel Vision | Berlin 2063">
-<meta name="twitter:description" content="Parallel Vision is a Berlin-based music and audiovisual archive.">
+<meta name="twitter:description" content="An independent Berlin label and cultural platform connecting music, moving image, material research and Berlin 2063.">
 <meta name="twitter:image" content="https://parallelvisionlabel.com/assets/optimized/thecitysuperhd1.webp">
 <!-- Meta Pixel Code -->
 <script>
@@ -61,11 +61,12 @@
 <link rel="stylesheet" href="./css/base.css?v=20260814-1">
   <link rel="stylesheet" href="./css/home.css?v=20260829-material-signal-tab">
   <link rel="stylesheet" href="./css/nina-access.css?v=20260902-auth-layer">
+  <link rel="stylesheet" href="./css/revamp.css?v=20260904-1">
 
 </head>
 
 
-<body>
+<body class="pv-home" id="top">
 <noscript><img height="1" width="1" style="display:none"
   src="https://www.facebook.com/tr?id=1746851780072706&amp;ev=PageView&amp;noscript=1"
   alt=""
@@ -202,7 +203,7 @@
       </div>
 
       <p class="hero-text">
-        A record label transmitting sound, bodies and visual archives from Berlin.
+        Independent label and cultural platform. Music, moving image and possible futures from Berlin.
       </p>
 
     </div>
@@ -227,12 +228,31 @@
 
   </div>
 
-  <a class="home-mobile-signal-entry" href="./nina-project.html#nina">Open signal →</a>
+  <button class="home-mobile-signal-entry" type="button" data-nina-open>
+    <span>Talk to Nina</span>
+    <small>3 minutes free</small>
+  </button>
   <a class="home-mobile-continuation" href="#berlin">Enter the world ↓</a>
 
 </section>
 
-<a class="home-desktop-signal-tab" href="./nina-project.html#nina">Open signal</a>
+<button class="home-desktop-signal-tab" type="button" data-nina-open>
+  <span>Talk to Nina</span>
+  <small>3 minutes free</small>
+</button>
+
+<section class="current-release" aria-labelledby="current-release-title">
+  <a class="current-release-media" href="https://www.beatport.com/artist/alejandro-molinari/497084" target="_blank" rel="noopener noreferrer" aria-label="Listen to Stay Low on Beatport">
+    <img src="./assets/optimized/artworks/staylowart.webp" alt="Stay Low by Alejandro Molinari featuring Nina FOK" decoding="async" loading="lazy" width="900" height="900">
+  </a>
+  <div class="current-release-copy">
+    <p class="current-release-label">Current release / Parallel Vision</p>
+    <h2 id="current-release-title">Stay Low</h2>
+    <p class="current-release-artist">Alejandro Molinari feat. Nina FOK</p>
+    <p class="current-release-note">Nina's first appearance as a recording artist inside the Parallel Vision catalog.</p>
+    <a class="pv-text-link" href="https://www.beatport.com/artist/alejandro-molinari/497084" target="_blank" rel="noopener noreferrer">Listen now <span aria-hidden="true">↗</span></a>
+  </div>
+</section>
 
 
 
@@ -264,12 +284,12 @@
   <div class="wrapper">
     <div class="nina-identity">
       <div class="nina-identity-copy">
-        <p class="nina-identity-label">Artificial Identity / Berlin 2063</p>
+        <p class="nina-identity-label">Consciousness / Berlin 2063</p>
         <h2 id="nina-identity-title">Nina FOK</h2>
         <p class="nina-identity-description">A consciousness developed by Parallel Vision, living inside a possible Berlin 2063.</p>
         <div class="nina-identity-actions">
-          <a class="nina-identity-cta nina-identity-cta-secondary" href="./nina-project.html">DISCOVER NINA</a>
-          <button id="openNinaArtist" class="nina-identity-cta nina-identity-cta-primary" type="button">OPEN LIVE SIGNAL</button>
+          <a class="nina-identity-cta nina-identity-cta-secondary" href="./nina-project.html">ENTER THE PROJECT</a>
+          <button id="openNinaArtist" class="nina-identity-cta nina-identity-cta-primary" type="button"><span>TALK TO NINA</span><small>3 MINUTES FREE</small></button>
         </div>
       </div>
       <div class="nina-identity-media">
@@ -348,10 +368,11 @@
         <span class="artist-index-arrow" aria-hidden="true">↗</span>
       </a>
 
-      <article class="artist-index-row" role="listitem">
+      <a class="artist-index-row" href="https://www.instagram.com/octaveian/" target="_blank" rel="noopener noreferrer" aria-label="Open OCTAVE artist profile" role="listitem">
         <span class="artist-index-name">OCTAVE</span>
         <span class="artist-index-city">ROMANIA</span>
-      </article>
+        <span class="artist-index-arrow" aria-hidden="true">↗</span>
+      </a>
 
       <a class="artist-index-row" href="https://parallelvisionlabel.com/refrakt/" aria-label="View REFRAKT artist page" role="listitem">
         <span class="artist-index-name">REFRAKT</span>
@@ -408,6 +429,18 @@
 
 
     <div class="release-grid">
+
+      <article class="release-card release-card-current">
+        <img
+          src="./assets/optimized/artworks/staylowart.webp"
+          alt="Stay Low by Alejandro Molinari featuring Nina FOK"
+          decoding="async" loading="lazy" width="900" height="900">
+        <span class="release-status">Current release</span>
+        <span class="release-title">Stay Low</span>
+        <span class="release-meta">Alejandro Molinari feat. Nina FOK</span>
+        <span class="release-meta">PV013 / 2026</span>
+        <a class="release-listen-link" href="https://www.beatport.com/artist/alejandro-molinari/497084" target="_blank" rel="noopener noreferrer">Listen ↗</a>
+      </article>
 
 
       <article class="release-card">
@@ -657,7 +690,7 @@
 
         <span class="release-meta">
 
-          CAT1392334
+          PV000
 
         </span>
 
@@ -1616,7 +1649,11 @@
 >
 
   <div class="contact-inner">
-    <h2 id="contact-title">Contact</h2>
+    <div class="contact-heading">
+      <p>Parallel Vision / Berlin / Founded 2025</p>
+      <h2 id="contact-title">Contact</h2>
+      <p class="contact-intro">Independent label and cultural platform working across music, moving image, material research and interactive consciousness.</p>
+    </div>
 
     <div class="contact-grid">
       <div class="contact-block">
@@ -1674,8 +1711,8 @@
   <section class="nina-access-panel">
     <button class="nina-access-close" id="ninaAccessCancel" type="button" aria-label="Close sign-in panel">×</button>
     <h2 class="nina-access-title" id="ninaAccessTitle">TALK TO NINA</h2>
-    <p class="nina-access-lead">Create an account or sign in to talk to Nina.</p>
-    <p class="nina-access-description">Your account keeps your conversations and Signal Credits connected.</p>
+    <p class="nina-access-lead">She lives in Berlin, 2063.<br>You can speak with her now.</p>
+    <p class="nina-access-description"><strong>3 minutes free.</strong> Sign in to begin and to continue your history when you return.</p>
     <div class="nina-access-auth-actions">
       <button class="nina-access-account" id="ninaSignIn" type="button" disabled>CONTINUE WITH GOOGLE</button>
       <button class="nina-access-account nina-access-account-secondary" id="ninaSignInEmail" type="button" aria-expanded="false" aria-controls="ninaEmailSignInForm" disabled>CONTINUE WITH EMAIL</button>

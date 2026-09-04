@@ -1,0 +1,946 @@
+:root {
+  --pv-page: min(1280px, calc(100% - 64px));
+  --pv-page-mobile: calc(100% - 36px);
+  --pv-rule: rgba(255, 255, 255, .16);
+  --pv-rule-soft: rgba(255, 255, 255, .09);
+  --pv-text: rgba(255, 255, 255, .78);
+  --pv-muted: rgba(255, 255, 255, .5);
+  --pv-display: 'Michroma', sans-serif;
+  --pv-body: 'Inter', sans-serif;
+  --pv-mono: 'Courier New', monospace;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.pv-home .hero > nav,
+.pv-nina-artist .site-header,
+.pv-nina-project .n-nav,
+.pv-berlin .archive-nav,
+.pv-fashion .archive-nav {
+  font-size: 12px;
+  letter-spacing: .18em;
+}
+
+.pv-home .home-primary-links {
+  gap: clamp(22px, 2.6vw, 42px);
+}
+
+.pv-home .hero-content {
+  width: var(--pv-page);
+  grid-template-columns: minmax(0, 1.48fr) minmax(320px, .52fr);
+}
+
+.pv-home .hero-copy {
+  max-width: 960px;
+}
+
+.pv-home .hero .hero-wordmark {
+  font-size: clamp(52px, 7vw, 108px);
+  letter-spacing: .19em;
+  line-height: 1.04;
+}
+
+.pv-home .hero-text {
+  max-width: 690px;
+  font-size: clamp(16px, 1.25vw, 19px);
+  line-height: 1.65;
+}
+
+.pv-home .hero-visual-reserve {
+  min-height: 500px;
+}
+
+.pv-home .home-desktop-signal-tab {
+  width: 210px;
+  min-height: 88px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 20px 24px;
+  border-color: rgba(255, 255, 255, .54);
+  background: rgba(2, 3, 4, .84);
+  color: #fff;
+  font-family: var(--pv-body);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: .12em;
+  backdrop-filter: blur(12px);
+  cursor: pointer;
+}
+
+.pv-home .home-desktop-signal-tab small {
+  color: rgba(255, 255, 255, .58);
+  font: 10px/1 var(--pv-mono);
+  letter-spacing: .16em;
+}
+
+.pv-home .home-desktop-signal-tab:hover,
+.pv-home .home-desktop-signal-tab:focus-visible {
+  width: 224px;
+  border-color: #fff;
+  background: #f0f0ed;
+  color: #070707;
+}
+
+.pv-home .home-desktop-signal-tab:hover small,
+.pv-home .home-desktop-signal-tab:focus-visible small {
+  color: rgba(0, 0, 0, .6);
+}
+
+.current-release {
+  width: var(--pv-page);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(360px, .92fr) minmax(0, 1.08fr);
+  border-right: 1px solid var(--pv-rule);
+  border-bottom: 1px solid var(--pv-rule);
+  border-left: 1px solid var(--pv-rule);
+}
+
+.current-release-media {
+  min-width: 0;
+  overflow: hidden;
+  border-right: 1px solid var(--pv-rule);
+  background: #070707;
+}
+
+.current-release-media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 620px;
+  object-fit: cover;
+  filter: saturate(.78) contrast(1.04) brightness(.88);
+  transition: transform .7s cubic-bezier(.2, .7, .2, 1), filter .4s ease;
+}
+
+.current-release-media:hover img,
+.current-release-media:focus-visible img {
+  transform: scale(1.018);
+  filter: saturate(.9) contrast(1.02) brightness(.96);
+}
+
+.current-release-copy {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(50px, 7vw, 104px);
+}
+
+.current-release-label,
+.release-status,
+.contact-heading > p:first-child,
+.hero-release-line,
+.artist-release-status,
+.nina-project-bridge-label {
+  margin: 0;
+  color: var(--pv-muted);
+  font: 10px/1.6 var(--pv-mono);
+  letter-spacing: .22em;
+  text-transform: uppercase;
+}
+
+.current-release h2 {
+  margin: 28px 0 18px;
+  font: 400 clamp(48px, 6vw, 86px)/1.04 var(--pv-display);
+  letter-spacing: .035em;
+  text-transform: uppercase;
+}
+
+.current-release-artist {
+  margin: 0;
+  color: rgba(255, 255, 255, .9);
+  font-size: clamp(18px, 1.8vw, 25px);
+  line-height: 1.45;
+}
+
+.current-release-note {
+  max-width: 520px;
+  margin: 34px 0 0;
+  color: var(--pv-text);
+  font-size: 17px;
+  line-height: 1.7;
+}
+
+.pv-text-link {
+  width: fit-content;
+  min-height: 52px;
+  margin-top: 40px;
+  display: inline-flex;
+  align-items: center;
+  gap: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, .5);
+  font: 11px/1 var(--pv-mono);
+  letter-spacing: .18em;
+  text-transform: uppercase;
+}
+
+.pv-home .berlin-entry-content,
+.pv-home .wrapper,
+.pv-home .fashion-portal-inner,
+.pv-home .contact-inner {
+  width: var(--pv-page);
+}
+
+.pv-home .berlin-entry {
+  padding: clamp(110px, 10vw, 154px) 0;
+}
+
+.pv-home .berlin-entry h2,
+.pv-home .section-head h2,
+.pv-home .contact h2 {
+  font-family: var(--pv-display);
+  font-weight: 400;
+}
+
+.pv-home .berlin-entry-line,
+.pv-home .fashion-portal-description p,
+.pv-home .contact-intro {
+  font-size: 17px;
+  line-height: 1.75;
+}
+
+.pv-home .nina-identity-actions .nina-identity-cta-primary {
+  min-width: 210px;
+  min-height: 66px;
+  display: inline-flex;
+  flex-direction: column;
+  gap: 7px;
+  border-color: rgba(255, 255, 255, .76);
+  background: rgba(255, 255, 255, .05);
+  font-family: var(--pv-body);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: .13em;
+}
+
+.pv-home .nina-identity-cta-primary small {
+  color: rgba(255, 255, 255, .52);
+  font: 9px/1 var(--pv-mono);
+  letter-spacing: .14em;
+}
+
+.pv-home .nina-identity-cta-primary:hover small,
+.pv-home .nina-identity-cta-primary:focus-visible small {
+  color: rgba(0, 0, 0, .58);
+}
+
+.pv-home .artist-index-row {
+  min-height: 84px;
+}
+
+.pv-home .artist-index-name {
+  font-size: clamp(17px, 1.55vw, 23px);
+}
+
+.pv-home .artist-index-city {
+  font-size: 10px;
+}
+
+.pv-home .release-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--pv-rule-soft);
+}
+
+.pv-home .release-card {
+  position: relative;
+  padding: 0 0 28px;
+  background: #000;
+}
+
+.pv-home .release-card img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+}
+
+.pv-home .release-card .release-title,
+.pv-home .release-card .release-meta,
+.pv-home .release-card .release-status,
+.pv-home .release-card .release-listen-link {
+  display: block;
+  margin-right: 20px;
+  margin-left: 20px;
+}
+
+.pv-home .release-card .release-title {
+  margin-top: 24px;
+}
+
+.pv-home .release-card .release-status {
+  margin-top: 19px;
+  color: rgba(255, 255, 255, .46);
+}
+
+.pv-home .release-card .release-listen-link {
+  width: fit-content;
+  margin-top: 22px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid rgba(255, 255, 255, .38);
+  color: rgba(255, 255, 255, .76);
+  font: 10px/1 var(--pv-mono);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+.pv-home .release-card-current {
+  grid-column: span 2;
+}
+
+.pv-home .release-card-current img {
+  aspect-ratio: 2 / 1;
+  object-position: center;
+}
+
+.contact-heading {
+  display: grid;
+  grid-template-columns: minmax(180px, .34fr) minmax(0, 1fr);
+  gap: 18px clamp(36px, 7vw, 100px);
+  margin-bottom: clamp(64px, 8vw, 112px);
+}
+
+.contact-heading > p:first-child {
+  grid-row: 1 / span 2;
+  padding-top: 10px;
+}
+
+.contact-heading h2 {
+  margin: 0;
+}
+
+.contact-intro {
+  max-width: 760px;
+  margin: 0;
+  color: var(--pv-text);
+}
+
+.nina-access-panel {
+  width: min(580px, 100%);
+  padding: clamp(34px, 5vw, 62px);
+  border-color: rgba(255, 255, 255, .38);
+  background: rgba(2, 2, 3, .94);
+  backdrop-filter: blur(18px);
+}
+
+.nina-access-lead {
+  margin-top: 30px;
+  font-size: clamp(20px, 2.2vw, 27px);
+  line-height: 1.5;
+}
+
+.nina-access-description strong {
+  color: #fff;
+  font-weight: 500;
+}
+
+/* Nina artist */
+.pv-nina-artist {
+  font-family: var(--pv-body);
+}
+
+.pv-nina-artist .site-header {
+  height: 76px;
+  padding: 0 clamp(20px, 3vw, 48px);
+  border-color: rgba(255, 255, 255, .12);
+  background: rgba(4, 4, 4, .45);
+  backdrop-filter: blur(10px);
+}
+
+.pv-nina-artist .brand {
+  font-family: var(--pv-display);
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: .18em;
+}
+
+.pv-nina-artist .nav {
+  font-family: var(--pv-mono);
+  font-weight: 400;
+}
+
+.pv-nina-artist .hero {
+  min-height: 100svh;
+  background: #090405;
+}
+
+.pv-nina-artist .hero-image {
+  object-position: center 44%;
+  filter: saturate(.66) contrast(1.06) brightness(.72);
+}
+
+.pv-nina-artist .hero::after {
+  background: linear-gradient(180deg, rgba(0, 0, 0, .2) 0%, rgba(0, 0, 0, .05) 36%, rgba(0, 0, 0, .86) 100%), linear-gradient(90deg, rgba(0, 0, 0, .34), transparent 60%);
+}
+
+.pv-nina-artist .hero-title,
+.pv-nina-artist .intro-body h2,
+.pv-nina-artist .section-head h2,
+.pv-nina-artist .nina-project-bridge h2 {
+  font-family: var(--pv-display);
+  font-weight: 400;
+}
+
+.pv-nina-artist .hero-title {
+  font-size: clamp(60px, 10.7vw, 156px);
+  letter-spacing: .005em;
+  line-height: .9;
+}
+
+.pv-nina-artist .hero-release-line {
+  margin-top: 28px;
+  color: rgba(255, 255, 255, .78);
+}
+
+.pv-nina-artist .intro {
+  grid-template-columns: minmax(180px, .28fr) minmax(0, 1fr);
+  padding-top: clamp(100px, 11vw, 160px);
+  padding-bottom: clamp(100px, 11vw, 160px);
+}
+
+.pv-nina-artist .intro-body h2 {
+  margin-bottom: 54px;
+  font-size: clamp(48px, 7vw, 102px);
+  letter-spacing: .02em;
+}
+
+.pv-nina-artist .intro-body p {
+  max-width: 760px;
+  color: var(--pv-text);
+  font-size: clamp(19px, 1.65vw, 24px);
+  font-weight: 300;
+  letter-spacing: 0;
+  line-height: 1.6;
+}
+
+.pv-nina-artist .release-grid {
+  display: block;
+  border: 0;
+}
+
+.pv-nina-artist .release-feature {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(320px, .88fr) minmax(0, 1.12fr);
+  padding: 0;
+  border: 1px solid rgba(0, 0, 0, .34);
+}
+
+.artist-release-artwork {
+  margin: 0;
+  border-right: 1px solid rgba(0, 0, 0, .34);
+}
+
+.artist-release-artwork img {
+  height: 100%;
+  object-fit: cover;
+}
+
+.artist-release-copy {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(38px, 6vw, 86px);
+}
+
+.artist-release-copy h3 {
+  margin: 26px 0 20px;
+  font: 400 clamp(46px, 6vw, 86px)/1.05 var(--pv-display);
+  letter-spacing: .02em;
+  text-transform: uppercase;
+}
+
+.artist-release-copy > p:not(.artist-release-status) {
+  margin: 0;
+  font-size: clamp(18px, 1.8vw, 24px);
+  line-height: 1.5;
+}
+
+.artist-release-copy a {
+  width: fit-content;
+  min-height: 48px;
+  margin-top: 48px;
+  display: inline-flex;
+  align-items: center;
+  border-bottom: 1px solid rgba(0, 0, 0, .6);
+  font: 11px/1 var(--pv-mono);
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+
+.pv-nina-artist .campaign-block {
+  min-height: 72vh;
+}
+
+.pv-nina-artist .campaign-block img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(.62) contrast(1.06) brightness(.78);
+}
+
+.pv-nina-artist .campaign-side img {
+  object-position: center;
+}
+
+.nina-project-bridge {
+  display: grid;
+  grid-template-columns: minmax(180px, .32fr) minmax(0, 1fr);
+  gap: clamp(40px, 8vw, 140px);
+  padding: clamp(100px, 12vw, 180px) clamp(20px, 4vw, 64px);
+  border-bottom: 1px solid var(--pv-rule);
+  background: #050505;
+}
+
+.nina-project-bridge-copy {
+  max-width: 870px;
+}
+
+.nina-project-bridge h2 {
+  margin: 0 0 40px;
+  font-size: clamp(42px, 6vw, 88px);
+  letter-spacing: .02em;
+  line-height: 1.05;
+  text-transform: uppercase;
+}
+
+.nina-project-bridge-copy p {
+  max-width: 760px;
+  margin: 0;
+  color: var(--pv-text);
+  font-size: clamp(18px, 1.65vw, 23px);
+  line-height: 1.7;
+}
+
+.nina-project-bridge-copy a {
+  min-height: 54px;
+  margin-top: 42px;
+  display: inline-flex;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, .52);
+  font: 11px/1 var(--pv-mono);
+  letter-spacing: .18em;
+  text-transform: uppercase;
+}
+
+/* Nina project */
+.pv-nina-project .n-nav {
+  min-height: 72px;
+}
+
+.pv-nina-project .n-nav-transmit {
+  min-height: 42px;
+  padding: 0 14px;
+  border: 1px solid rgba(255, 255, 255, .34);
+}
+
+.pv-nina-project .n-hero {
+  padding-top: 24px;
+}
+
+.pv-nina-project .n-hero h1 {
+  font-size: clamp(64px, 9.8vw, 136px);
+}
+
+.pv-nina-project .n-hero-statement {
+  max-width: 530px;
+  font-size: clamp(15px, 1.3vw, 18px);
+}
+
+.pv-nina-project .n-hero-actions .n-button-primary {
+  min-width: 230px;
+  min-height: 72px;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pv-nina-project .n-hero-actions .n-button-primary small {
+  color: rgba(255, 255, 255, .58);
+  font: 9px/1 var(--pv-mono);
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+
+.pv-nina-project .n-question-note,
+.pv-nina-project .n-copy p,
+.pv-nina-project .n-study-intro > p {
+  max-width: 760px;
+}
+
+.pv-nina-project .n-study {
+  padding-top: clamp(88px, 8vw, 120px);
+  padding-bottom: clamp(92px, 8vw, 128px);
+}
+
+.pv-nina-project .n-study h2 {
+  max-width: 930px;
+}
+
+.pv-nina-project .n-connect {
+  width: min(100%, 1080px);
+}
+
+.pv-nina-project .n-connect .n-button {
+  min-width: 230px;
+  min-height: 58px;
+  font-family: var(--pv-body);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Berlin 2063 */
+.pv-berlin .archive-nav,
+.pv-fashion .archive-nav {
+  min-height: 72px;
+}
+
+.pv-berlin .berlin-hero-media img {
+  filter: saturate(.64) brightness(.72) contrast(1.08);
+}
+
+.pv-berlin .berlin-hero-content {
+  width: var(--pv-page);
+}
+
+.berlin-hero-portals {
+  position: static;
+  width: min(100%, 850px);
+  margin-top: clamp(44px, 5vw, 70px);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-top: 1px solid rgba(255, 255, 255, .34);
+  border-bottom: 1px solid rgba(255, 255, 255, .34);
+}
+
+.berlin-hero-portals a {
+  min-height: 68px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 0 20px;
+  border-right: 1px solid rgba(255, 255, 255, .24);
+  color: rgba(255, 255, 255, .9);
+  font: 11px/1.4 var(--pv-mono);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  transition: background .2s ease, color .2s ease;
+}
+
+.berlin-hero-portals a:last-child {
+  border-right: 0;
+}
+
+.berlin-hero-portals a span {
+  color: rgba(255, 255, 255, .4);
+  font-size: 9px;
+}
+
+.berlin-hero-portals a b {
+  font: inherit;
+}
+
+.berlin-hero-portals a:hover,
+.berlin-hero-portals a:focus-visible {
+  background: #fff;
+  color: #000;
+}
+
+.berlin-hero-portals a:hover span,
+.berlin-hero-portals a:focus-visible span {
+  color: rgba(0, 0, 0, .5);
+}
+
+.pv-berlin .nina-signal {
+  min-width: 300px;
+  min-height: 74px;
+  padding: 16px 20px;
+}
+
+.pv-berlin .nina-signal-main {
+  font-size: 11px;
+}
+
+.pv-berlin .nina-signal-sub {
+  font-size: 9px;
+}
+
+/* Fashion */
+.pv-fashion .fashion-page-hero-content h1 {
+  letter-spacing: .04em;
+}
+
+.pv-fashion .fashion-project-definition {
+  padding-top: clamp(72px, 8vw, 110px);
+  padding-bottom: clamp(76px, 8vw, 116px);
+}
+
+.pv-fashion .fashion-statement-copy,
+.pv-fashion .fashion-research-copy,
+.pv-fashion .fashion-chapter-copy p {
+  text-wrap: pretty;
+}
+
+.pv-fashion .inhabitant-card,
+.pv-fashion .preview-card,
+.pv-fashion .archive-nav a,
+.pv-berlin .archive-nav a {
+  min-height: 44px;
+}
+
+@media (max-width: 980px) {
+  .pv-home .release-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .current-release {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .current-release-media img {
+    min-height: 520px;
+  }
+
+  .pv-nina-artist .nav a:nth-child(2) {
+    display: inline-flex;
+  }
+}
+
+@media (max-width: 700px) {
+  :root {
+    --pv-page: var(--pv-page-mobile);
+  }
+
+  .pv-home .hero-content {
+    width: 100%;
+  }
+
+  .pv-home .hero .hero-wordmark {
+    font-size: clamp(34px, 9vw, 51px);
+    letter-spacing: .025em;
+  }
+
+  .pv-home .hero-text {
+    max-width: 92%;
+    font-size: 15.5px;
+  }
+
+  .pv-home .home-mobile-signal-entry {
+    right: 18px;
+    bottom: calc(76px + env(safe-area-inset-bottom));
+    min-width: 190px;
+    min-height: 62px;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 7px;
+    padding: 10px 15px;
+    border: 1px solid rgba(255, 255, 255, .6);
+    background: rgba(0, 0, 0, .44);
+    font-family: var(--pv-body);
+    font-size: 12px;
+    font-weight: 500;
+    color: #fff;
+    cursor: pointer;
+  }
+
+  .pv-home .home-mobile-signal-entry small {
+    color: rgba(255, 255, 255, .6);
+    font: 9px/1 var(--pv-mono);
+    letter-spacing: .12em;
+  }
+
+  .pv-home .home-mobile-continuation {
+    bottom: calc(26px + env(safe-area-inset-bottom));
+  }
+
+  .current-release {
+    width: 100%;
+    grid-template-columns: 1fr;
+    border-right: 0;
+    border-left: 0;
+  }
+
+  .current-release-media {
+    border-right: 0;
+    border-bottom: 1px solid var(--pv-rule);
+  }
+
+  .current-release-media img {
+    min-height: 0;
+    aspect-ratio: 1;
+  }
+
+  .current-release-copy {
+    padding: 52px 18px 62px;
+  }
+
+  .current-release h2 {
+    font-size: clamp(40px, 12vw, 54px);
+  }
+
+  .current-release-note {
+    font-size: 16px;
+  }
+
+  .pv-home .berlin-entry-content,
+  .pv-home .wrapper,
+  .pv-home .fashion-portal-inner,
+  .pv-home .contact-inner {
+    width: var(--pv-page-mobile);
+  }
+
+  .pv-home .nina-identity-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .pv-home .nina-identity-actions .nina-identity-cta {
+    width: 100%;
+    min-height: 58px;
+  }
+
+  .pv-home .nina-identity-actions .nina-identity-cta-primary {
+    min-height: 68px;
+  }
+
+  .pv-home .release-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pv-home .release-card-current {
+    grid-column: auto;
+  }
+
+  .pv-home .release-card-current img {
+    aspect-ratio: 1;
+  }
+
+  .contact-heading {
+    grid-template-columns: 1fr;
+    gap: 22px;
+    margin-bottom: 60px;
+  }
+
+  .contact-heading > p:first-child {
+    grid-row: auto;
+  }
+
+  .pv-nina-artist .site-header {
+    min-height: 64px;
+  }
+
+  .pv-nina-artist .nav {
+    gap: 13px;
+    font-size: 9px;
+  }
+
+  .pv-nina-artist .nav a:nth-child(2),
+  .pv-nina-artist .nav a:nth-child(4) {
+    display: none;
+  }
+
+  .pv-nina-artist .hero {
+    min-height: 84svh;
+  }
+
+  .pv-nina-artist .hero-image {
+    object-position: 56% center;
+  }
+
+  .pv-nina-artist .hero-title {
+    font-size: clamp(48px, 15vw, 70px);
+  }
+
+  .pv-nina-artist .intro,
+  .nina-project-bridge {
+    grid-template-columns: 1fr;
+    gap: 30px;
+    padding: 76px 18px 86px;
+  }
+
+  .pv-nina-artist .intro-body h2 {
+    margin-bottom: 38px;
+    font-size: clamp(38px, 11vw, 52px);
+  }
+
+  .pv-nina-artist .intro-body p,
+  .nina-project-bridge-copy p {
+    font-size: 17px;
+  }
+
+  .pv-nina-artist .releases,
+  .pv-nina-artist .socials {
+    padding-right: 18px;
+    padding-left: 18px;
+  }
+
+  .pv-nina-artist .release-feature {
+    grid-template-columns: 1fr;
+  }
+
+  .artist-release-artwork {
+    border-right: 0;
+    border-bottom: 1px solid rgba(0, 0, 0, .34);
+  }
+
+  .artist-release-copy {
+    padding: 40px 24px 48px;
+  }
+
+  .artist-release-copy h3 {
+    font-size: clamp(38px, 11vw, 54px);
+  }
+
+  .pv-nina-artist .campaign-block {
+    min-height: 56vh;
+  }
+
+  .nina-project-bridge h2 {
+    font-size: clamp(36px, 10vw, 48px);
+  }
+
+  .pv-nina-project .n-nav {
+    font-size: 10px;
+  }
+
+  .pv-nina-project .n-nav-transmit {
+    min-height: 40px;
+    padding: 0 10px;
+    font-size: 9px;
+  }
+
+  .pv-nina-project .n-hero-actions .n-button-primary {
+    width: 100%;
+    min-height: 68px;
+  }
+
+  .berlin-hero-portals {
+    grid-template-columns: 1fr;
+    margin-top: 38px;
+  }
+
+  .berlin-hero-portals a {
+    min-height: 54px;
+    border-right: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, .2);
+  }
+
+  .berlin-hero-portals a:last-child {
+    border-bottom: 0;
+  }
+
+  .pv-berlin .archive-nav-links a:nth-child(3),
+  .pv-fashion .archive-nav-links a:nth-child(1),
+  .pv-fashion .archive-nav-links a:nth-child(4) {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .current-release-media img {
+    transition: none;
+  }
+}

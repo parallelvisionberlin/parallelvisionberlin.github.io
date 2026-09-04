@@ -4,7 +4,7 @@ import sharp from "sharp";
 
 const ROOT = process.cwd();
 const SOURCE_PAGES = ["index.html", "tanzen-im-kreis.html", "berlin-2063.html", "future-fashion.html"];
-const EXTRA_ASSETS = ["nina-fok/HDNINACANON.png"];
+const EXTRA_ASSETS = ["nina-fok/HDNINACANON.png", "nina-fok/Canon.png"];
 const FORCE = process.argv.includes("--force");
 const IMAGE_REFERENCE = /["']((?:https:\/\/parallelvisionlabel\.com\/)?(?:\.\/)?assets\/[^"']+?\.(?:png|jpe?g|webp))["']/gi;
 
@@ -17,6 +17,7 @@ const HERO_POSTERS = new Set([
 
 const SQUARE_ARTWORKS = new Set([
   "assets/artworks/acid-chacha-final-bigger-original-name.png",
+  "assets/artworks/staylowart.png",
   "assets/artworks/cultoalavida.jpg",
   "assets/tanzenfinal.jpeg",
   "assets/Ravesiamolinariremix.png",

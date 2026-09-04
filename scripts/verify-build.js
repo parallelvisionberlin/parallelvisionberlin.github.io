@@ -66,7 +66,7 @@ for (const file of ['language.js','js/home.js','js/nina-access.js','anam-token-w
   try {
     const source = fs.readFileSync(path.join(root, file), 'utf8')
       .replace(/^import[\s\S]*?from\s+["'][^"']+["'];$/gm, '')
-      .replace(/^export\s+(?=(?:const|function|async\s+function))/gm, '')
+      .replace(/^export\s+(?=(?:class|const|function|async\s+function))/gm, '')
       .replace(/^export default /m, 'const __defaultExport = ');
     new vm.Script(source, { filename: file });
   }
