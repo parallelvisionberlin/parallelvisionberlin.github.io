@@ -101,7 +101,10 @@ if (!index.includes('id="nina-anam-video"') || !index.includes('autoplay playsin
 if ((nina.match(/const ANAM_SESSION_TOKEN_ENDPOINT\s*=/g) || []).length !== 1) fail('Anam token endpoint must have exactly one client configuration point');
 if (/ANAM_API_KEY/.test(`${index}\n${nina}\n${ninaStandalone}`)) fail('ANAM_API_KEY appears in client code');
 const ninaProject = fs.readFileSync(path.join(root, 'nina-project.html'), 'utf8');
-if (!index.includes('href="./nina-project.html"') || !index.includes('id="openNinaArtist"')) fail('Homepage Nina actions are not wired correctly');
+if (!/<a[^>]+class="[^"]*nina-identity-discover[^>]+href="\.\/nina-project.html"/.test(index) || !index.includes('class="home-desktop-signal-tab" type="button" data-nina-open')) fail('Homepage Nina project link and live access are not wired correctly');
+if (index.includes('id="openNinaArtist"')) fail('Homepage Nina feature duplicates the floating live action');
+if ((index.match(/class="listening-track"/g) || []).length !== 5) fail('Listening selection must preserve all five music entries');
+if (/class="release-card"[\s\S]{0,400}vision-neo\.webp/.test(index)) fail('Vision artwork must not appear in the homepage catalog');
 if (!ninaProject.includes('data-nina-open') || ninaProject.includes('href="./index.html?nina=1"')) fail('Nina project transmission must open the local shared access flow');
 if (!ninaProject.includes('./js/nina-access.js') || !ninaProject.includes('id="ninaAccess"') || !ninaProject.includes('id="ninaOverlay"')) fail('Nina project page must host the shared Nina access component');
 if (!index.includes('./css/nina-access.css') || !ninaProject.includes('./css/nina-access.css')) fail('Nina access styles must be shared by the homepage and project page');

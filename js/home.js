@@ -165,6 +165,12 @@
   });
 
   window.addEventListener("pv-language-change", render);
+  document.addEventListener("pv-listening-open", () => {
+    soundtrack.pause();
+    active = false;
+    localStorage.setItem(storageKey, "off");
+    render();
+  });
   soundtrack.addEventListener("error", function () {
     active = false;
     localStorage.setItem(storageKey, "off");
@@ -179,22 +185,28 @@
   render();
 }());
 
-(function deferSoundCloud() {
-  const frames = [...document.querySelectorAll('iframe[data-soundcloud-src]')];
+(function setupListeningSelection() {
+  const entries = [...document.querySelectorAll('.listening-track')];
   const status = document.getElementById('soundcloudLoadingStatus');
-  let loadAnnounced = false;
-  const load = frame => {
-    if (!frame.src || frame.src === 'about:blank') {
-      frame.src = frame.dataset.soundcloudSrc;
-      if (status && !loadAnnounced) {
-        status.textContent = 'SoundCloud player loading. Audio will not start automatically.';
-        loadAnnounced = true;
-      }
-    }
+  const close = entry => {
+    entry.open = false;
+    const frame = entry.querySelector('iframe');
+    if (frame && frame.src !== 'about:blank') frame.src = 'about:blank';
   };
-  if (!('IntersectionObserver' in window)) { frames.forEach(load); return; }
-  const observer = new IntersectionObserver(entries => entries.forEach(entry => {
-    if (entry.isIntersecting) { load(entry.target); observer.unobserve(entry.target); }
-  }), { rootMargin: '300px 0px' });
-  frames.forEach(frame => observer.observe(frame));
+  entries.forEach(entry => {
+    const frame = entry.querySelector('iframe[data-soundcloud-src]');
+    if (!frame) return;
+    entry.querySelector('summary').addEventListener('click', () => {
+      if (!entry.open) entries.filter(other => other !== entry).forEach(close);
+    });
+    entry.addEventListener('toggle', () => {
+      if (!entry.open) { close(entry); return; }
+      if (frame.src === 'about:blank') frame.src = frame.dataset.soundcloudSrc;
+      document.dispatchEvent(new Event('pv-listening-open'));
+      if (status) status.textContent = document.documentElement.lang === 'de'
+        ? 'SoundCloud-Player geöffnet. Starte die Musik im Player oder öffne SoundCloud.'
+        : 'SoundCloud player opened. Press play in the player, or open SoundCloud.';
+    });
+  });
+  window.addEventListener('pagehide', () => entries.forEach(close));
 }());
