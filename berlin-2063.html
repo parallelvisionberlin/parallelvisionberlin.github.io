@@ -511,7 +511,7 @@
     }
   </style>
   <link rel="stylesheet" href="./css/base.css?v=20260814-1">
-  <link rel="stylesheet" href="./css/revamp.css?v=20260904-1">
+  <link rel="stylesheet" href="./css/revamp.css?v=20260904-2">
 </head>
 <body class="berlin-page pv-berlin">
   <a class="skip-link" href="#archive">Skip to main content</a>
@@ -675,6 +675,10 @@
       const archiveNumber = String(chapterIndex + 1).padStart(2, "0");
       const article = document.createElement("article");
       article.className = "berlin-archive-chapter";
+      if (chapter.title === "Inhabitants") {
+        document.getElementById("inhabitants-entry")?.remove();
+        article.id = "inhabitants-entry";
+      }
 
       if (chapter.layout === "bridge") {
         article.classList.add("berlin-material-culture-chapter");

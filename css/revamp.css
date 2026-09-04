@@ -30,56 +30,58 @@ body {
 
 .pv-home .hero-content {
   width: var(--pv-page);
-  grid-template-columns: minmax(0, 1.48fr) minmax(320px, .52fr);
+  grid-template-columns: minmax(0, 1.58fr) minmax(260px, .42fr);
 }
 
 .pv-home .hero-copy {
-  max-width: 960px;
+  max-width: 900px;
 }
 
 .pv-home .hero .hero-wordmark {
-  font-size: clamp(52px, 7vw, 108px);
-  letter-spacing: .19em;
-  line-height: 1.04;
+  font-size: clamp(54px, 6.55vw, 101px);
+  letter-spacing: .145em;
+  line-height: .98;
 }
 
 .pv-home .hero-text {
-  max-width: 690px;
-  font-size: clamp(16px, 1.25vw, 19px);
-  line-height: 1.65;
+  max-width: 640px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(255, 255, 255, .2);
+  font-size: clamp(17px, 1.3vw, 20px);
+  line-height: 1.6;
 }
 
 .pv-home .hero-visual-reserve {
-  min-height: 500px;
+  min-height: 470px;
 }
 
 .pv-home .home-desktop-signal-tab {
-  width: 210px;
-  min-height: 88px;
+  width: 230px;
+  min-height: 98px;
   flex-direction: column;
   align-items: flex-start;
-  gap: 10px;
-  padding: 20px 24px;
+  gap: 11px;
+  padding: 22px 26px;
   border-color: rgba(255, 255, 255, .54);
   background: rgba(2, 3, 4, .84);
   color: #fff;
   font-family: var(--pv-body);
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 15px;
+  font-weight: 600;
   letter-spacing: .12em;
   backdrop-filter: blur(12px);
   cursor: pointer;
 }
 
 .pv-home .home-desktop-signal-tab small {
-  color: rgba(255, 255, 255, .58);
-  font: 10px/1 var(--pv-mono);
+  color: rgba(255, 255, 255, .72);
+  font: 11px/1 var(--pv-mono);
   letter-spacing: .16em;
 }
 
 .pv-home .home-desktop-signal-tab:hover,
 .pv-home .home-desktop-signal-tab:focus-visible {
-  width: 224px;
+  width: 242px;
   border-color: #fff;
   background: #f0f0ed;
   color: #070707;
@@ -91,10 +93,10 @@ body {
 }
 
 .current-release {
-  width: var(--pv-page);
+  width: min(1180px, calc(100% - 64px));
   margin: 0 auto;
   display: grid;
-  grid-template-columns: minmax(360px, .92fr) minmax(0, 1.08fr);
+  grid-template-columns: minmax(360px, 1fr) minmax(0, 1fr);
   border-right: 1px solid var(--pv-rule);
   border-bottom: 1px solid var(--pv-rule);
   border-left: 1px solid var(--pv-rule);
@@ -111,7 +113,7 @@ body {
   display: block;
   width: 100%;
   height: 100%;
-  min-height: 620px;
+  min-height: 540px;
   object-fit: cover;
   filter: saturate(.78) contrast(1.04) brightness(.88);
   transition: transform .7s cubic-bezier(.2, .7, .2, 1), filter .4s ease;
@@ -127,7 +129,7 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: clamp(50px, 7vw, 104px);
+  padding: clamp(46px, 5vw, 76px);
 }
 
 .current-release-label,
@@ -145,7 +147,7 @@ body {
 
 .current-release h2 {
   margin: 28px 0 18px;
-  font: 400 clamp(48px, 6vw, 86px)/1.04 var(--pv-display);
+  font: 400 clamp(46px, 5vw, 72px)/1.04 var(--pv-display);
   letter-spacing: .035em;
   text-transform: uppercase;
 }
@@ -186,7 +188,23 @@ body {
 }
 
 .pv-home .berlin-entry {
-  padding: clamp(110px, 10vw, 154px) 0;
+  padding: clamp(86px, 7vw, 112px) 0;
+}
+
+.pv-home .berlin-entry-content {
+  grid-template-columns: minmax(410px, .92fr) minmax(0, 1.08fr);
+  gap: clamp(54px, 7vw, 100px);
+  align-items: center;
+}
+
+.pv-home .berlin-entry h2 {
+  font-size: clamp(64px, 7.1vw, 102px);
+  line-height: .92;
+}
+
+.pv-home .berlin-entry-copy {
+  max-width: 680px;
+  padding-top: 0;
 }
 
 .pv-home .berlin-entry h2,
@@ -199,13 +217,55 @@ body {
 .pv-home .berlin-entry-line,
 .pv-home .fashion-portal-description p,
 .pv-home .contact-intro {
-  font-size: 17px;
-  line-height: 1.75;
+  font-size: clamp(18px, 1.35vw, 20px);
+  line-height: 1.65;
+}
+
+.pv-home .berlin-entry-cta {
+  min-height: 64px;
+  margin-top: 38px;
+  padding: 0 32px;
+  border-color: rgba(255, 255, 255, .68);
+  font-size: 11px;
+}
+
+.pv-home .nina-feature-section {
+  padding-top: clamp(80px, 7vw, 108px);
+  padding-bottom: clamp(80px, 7vw, 108px);
+}
+
+.pv-home .nina-identity {
+  grid-template-columns: minmax(430px, .88fr) minmax(0, 1.12fr);
+}
+
+.pv-home .nina-identity-copy {
+  padding-top: clamp(54px, 5vw, 76px);
+  padding-right: clamp(44px, 5vw, 72px);
+  padding-bottom: clamp(54px, 5vw, 76px);
+}
+
+.pv-home .nina-identity h2 {
+  font-size: clamp(48px, 4.5vw, 68px);
+  letter-spacing: .055em;
+  white-space: nowrap;
+}
+
+.pv-home .nina-identity-description {
+  max-width: 520px;
+  font-size: clamp(18px, 1.45vw, 21px);
+  line-height: 1.6;
+  text-wrap: balance;
+}
+
+.pv-home .nina-identity-actions .nina-identity-cta {
+  min-height: 64px;
+  padding-inline: 26px;
+  font-size: 10px;
 }
 
 .pv-home .nina-identity-actions .nina-identity-cta-primary {
-  min-width: 210px;
-  min-height: 66px;
+  min-width: 220px;
+  min-height: 72px;
   display: inline-flex;
   flex-direction: column;
   gap: 7px;
@@ -218,8 +278,8 @@ body {
 }
 
 .pv-home .nina-identity-cta-primary small {
-  color: rgba(255, 255, 255, .52);
-  font: 9px/1 var(--pv-mono);
+  color: rgba(255, 255, 255, .7);
+  font: 10px/1 var(--pv-mono);
   letter-spacing: .14em;
 }
 
@@ -229,15 +289,27 @@ body {
 }
 
 .pv-home .artist-index-row {
-  min-height: 84px;
+  min-height: clamp(104px, 7.4vw, 122px);
+  padding-left: 22px;
+  border-right: 1px solid transparent;
+  border-left: 1px solid transparent;
+  transition: background .25s ease, border-color .25s ease;
 }
 
 .pv-home .artist-index-name {
-  font-size: clamp(17px, 1.55vw, 23px);
+  font-size: clamp(23px, 2.55vw, 36px);
 }
 
 .pv-home .artist-index-city {
-  font-size: 10px;
+  font-size: 9px;
+}
+
+@media (hover: hover) {
+  .pv-home .artist-index-row:hover,
+  .pv-home .artist-index-row:focus-visible {
+    border-color: rgba(255, 255, 255, .2);
+    background: rgba(255, 255, 255, .035);
+  }
 }
 
 .pv-home .release-grid {
@@ -287,20 +359,11 @@ body {
   text-transform: uppercase;
 }
 
-.pv-home .release-card-current {
-  grid-column: span 2;
-}
-
-.pv-home .release-card-current img {
-  aspect-ratio: 2 / 1;
-  object-position: center;
-}
-
 .contact-heading {
   display: grid;
   grid-template-columns: minmax(180px, .34fr) minmax(0, 1fr);
   gap: 18px clamp(36px, 7vw, 100px);
-  margin-bottom: clamp(64px, 8vw, 112px);
+  margin-bottom: clamp(52px, 6vw, 82px);
 }
 
 .contact-heading > p:first-child {
@@ -310,12 +373,79 @@ body {
 
 .contact-heading h2 {
   margin: 0;
+  font-size: clamp(48px, 5.4vw, 76px);
+  letter-spacing: .07em;
 }
 
 .contact-intro {
-  max-width: 760px;
+  max-width: 680px;
   margin: 0;
   color: var(--pv-text);
+}
+
+.pv-home .contact {
+  min-height: 0;
+  padding: clamp(88px, 8vw, 116px) 0 clamp(72px, 7vw, 96px);
+  text-align: left;
+}
+
+.pv-home .contact-grid {
+  gap: 0;
+  border-top: 1px solid var(--pv-rule);
+  border-bottom: 1px solid var(--pv-rule);
+}
+
+.pv-home .contact-block {
+  min-height: 184px;
+  padding: 30px clamp(24px, 3vw, 38px);
+  border-right: 1px solid var(--pv-rule);
+}
+
+.pv-home .contact-block:first-child {
+  padding-left: 0;
+}
+
+.pv-home .contact-block:last-child {
+  border-right: 0;
+}
+
+.pv-home .contact-email {
+  font-size: clamp(15px, 1.35vw, 18px);
+}
+
+.pv-home .contact-socials {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  justify-content: stretch;
+  margin-top: 34px;
+  padding-top: 0;
+  border-top: 1px solid var(--pv-rule);
+  border-bottom: 1px solid var(--pv-rule);
+}
+
+.pv-home .contact-socials a {
+  min-height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 clamp(18px, 2.4vw, 30px);
+  border-right: 1px solid var(--pv-rule);
+  font-size: 11px;
+}
+
+.pv-home .contact-socials a::after {
+  content: "\2197";
+  color: rgba(255, 255, 255, .48);
+  font-size: 13px;
+}
+
+.pv-home .contact-socials a:first-child {
+  padding-left: 0;
+}
+
+.pv-home .contact-socials a:last-child {
+  border-right: 0;
 }
 
 .nina-access-panel {
@@ -605,9 +735,66 @@ body {
   width: var(--pv-page);
 }
 
+.pv-berlin .berlin-archive-intro {
+  max-width: 980px;
+  margin-bottom: clamp(54px, 6vw, 76px);
+}
+
+.pv-berlin .berlin-intro-copy {
+  display: block;
+  margin-top: clamp(28px, 3vw, 38px);
+}
+
+.pv-berlin .berlin-intro-copy p,
+.pv-berlin .berlin-intro-copy p:first-child,
+.pv-berlin .berlin-intro-copy p:not(:first-child) {
+  max-width: 900px;
+  color: rgba(255, 255, 255, .78);
+  font-size: clamp(20px, 1.65vw, 25px);
+  line-height: 1.62;
+}
+
+.pv-berlin .berlin-intro-copy p + p {
+  margin-top: 18px;
+}
+
+.pv-berlin .berlin-moving-card {
+  min-height: 180px;
+  grid-template-columns: minmax(280px, .7fr) minmax(0, 1.3fr);
+  grid-template-rows: auto auto;
+  gap: 16px clamp(42px, 6vw, 88px);
+  padding: clamp(32px, 4vw, 52px);
+}
+
+.pv-berlin .berlin-moving-card h2 {
+  grid-row: 1 / span 2;
+  font-family: var(--pv-display);
+  font-size: clamp(30px, 3.2vw, 46px);
+  font-weight: 400;
+  letter-spacing: .025em;
+  line-height: 1.02;
+}
+
+.pv-berlin .berlin-moving-card p {
+  align-self: end;
+  max-width: 620px;
+  font-size: clamp(16px, 1.2vw, 18px);
+  line-height: 1.65;
+}
+
+.pv-berlin .berlin-moving-card span {
+  width: fit-content;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  align-self: start;
+  border-bottom: 1px solid rgba(255, 255, 255, .45);
+  font-size: 10px;
+}
+
 .berlin-hero-portals {
   position: static;
-  width: min(100%, 850px);
+  width: min(100%, 920px);
   margin-top: clamp(44px, 5vw, 70px);
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -616,14 +803,14 @@ body {
 }
 
 .berlin-hero-portals a {
-  min-height: 68px;
+  min-height: 84px;
   display: flex;
   align-items: center;
-  gap: 20px;
-  padding: 0 20px;
+  gap: 24px;
+  padding: 0 26px;
   border-right: 1px solid rgba(255, 255, 255, .24);
   color: rgba(255, 255, 255, .9);
-  font: 11px/1.4 var(--pv-mono);
+  font: 12px/1.4 var(--pv-mono);
   letter-spacing: .12em;
   text-transform: uppercase;
   transition: background .2s ease, color .2s ease;
@@ -635,7 +822,7 @@ body {
 
 .berlin-hero-portals a span {
   color: rgba(255, 255, 255, .4);
-  font-size: 9px;
+  font-size: 10px;
 }
 
 .berlin-hero-portals a b {
@@ -672,6 +859,63 @@ body {
   letter-spacing: .04em;
 }
 
+.pv-fashion .fashion-collaboration {
+  padding-top: clamp(76px, 7vw, 104px);
+}
+
+.pv-fashion .fashion-collaboration-intro {
+  grid-template-columns: minmax(0, 1.15fr) minmax(340px, .85fr);
+  gap: clamp(48px, 7vw, 96px);
+  align-items: end;
+  margin-bottom: clamp(58px, 7vw, 88px);
+  padding-bottom: clamp(38px, 4vw, 54px);
+  border-bottom: 1px solid var(--pv-rule);
+}
+
+.pv-fashion .fashion-collaboration-intro #fashion-collaboration-title {
+  max-width: 800px;
+  font-size: clamp(42px, 4.45vw, 70px);
+  line-height: .98;
+}
+
+.pv-fashion .fashion-collaboration-intro .fashion-chapter-copy {
+  padding-top: 0;
+  font-size: clamp(16px, 1.2vw, 18px);
+}
+
+.pv-fashion .inhabitant-grid {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: clamp(56px, 6vw, 84px) clamp(18px, 2.2vw, 30px);
+}
+
+.pv-fashion .inhabitant-card {
+  grid-column: span 2;
+}
+
+.pv-fashion .inhabitant-card:nth-child(4),
+.pv-fashion .inhabitant-card:nth-child(5) {
+  grid-column: span 3;
+}
+
+.pv-fashion .inhabitant-card:nth-child(4) .inhabitant-image,
+.pv-fashion .inhabitant-card:nth-child(5) .inhabitant-image {
+  aspect-ratio: 4 / 3;
+}
+
+.pv-fashion .inhabitant-meta {
+  padding-top: 20px;
+}
+
+.pv-fashion .inhabitant-meta h3 {
+  font-size: clamp(17px, 1.65vw, 24px);
+}
+
+.pv-fashion .inhabitant-foot {
+  min-height: 50px;
+  align-items: center;
+  margin-top: 20px;
+}
+
 .pv-fashion .fashion-project-definition {
   padding-top: clamp(72px, 8vw, 110px);
   padding-bottom: clamp(76px, 8vw, 116px);
@@ -700,7 +944,31 @@ body {
   }
 
   .current-release-media img {
-    min-height: 520px;
+    min-height: 480px;
+  }
+
+  .pv-home .berlin-entry-content,
+  .pv-home .nina-identity {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .pv-home .nina-identity h2 {
+    white-space: normal;
+  }
+
+  .pv-fashion .inhabitant-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .pv-fashion .inhabitant-card,
+  .pv-fashion .inhabitant-card:nth-child(4),
+  .pv-fashion .inhabitant-card:nth-child(5) {
+    grid-column: auto;
+  }
+
+  .pv-fashion .inhabitant-card:last-child {
+    grid-column: 1 / -1;
+    width: calc(50% - 15px);
   }
 
   .pv-nina-artist .nav a:nth-child(2) {
@@ -724,14 +992,15 @@ body {
 
   .pv-home .hero-text {
     max-width: 92%;
+    padding-top: 20px;
     font-size: 15.5px;
   }
 
   .pv-home .home-mobile-signal-entry {
     right: 18px;
     bottom: calc(76px + env(safe-area-inset-bottom));
-    min-width: 190px;
-    min-height: 62px;
+    min-width: 206px;
+    min-height: 70px;
     flex-direction: column;
     align-items: flex-start;
     justify-content: center;
@@ -740,15 +1009,15 @@ body {
     border: 1px solid rgba(255, 255, 255, .6);
     background: rgba(0, 0, 0, .44);
     font-family: var(--pv-body);
-    font-size: 12px;
-    font-weight: 500;
+    font-size: 13px;
+    font-weight: 600;
     color: #fff;
     cursor: pointer;
   }
 
   .pv-home .home-mobile-signal-entry small {
-    color: rgba(255, 255, 255, .6);
-    font: 9px/1 var(--pv-mono);
+    color: rgba(255, 255, 255, .74);
+    font: 10px/1 var(--pv-mono);
     letter-spacing: .12em;
   }
 
@@ -792,6 +1061,40 @@ body {
     width: var(--pv-page-mobile);
   }
 
+  .pv-home .berlin-entry {
+    padding: 74px 0;
+  }
+
+  .pv-home .berlin-entry-content {
+    grid-template-columns: 1fr;
+    gap: 44px;
+  }
+
+  .pv-home .berlin-entry h2 {
+    font-size: clamp(54px, 18vw, 78px);
+  }
+
+  .pv-home .berlin-entry-line {
+    font-size: 17px;
+  }
+
+  .pv-home .nina-feature-section {
+    padding-top: 72px;
+    padding-bottom: 72px;
+  }
+
+  .pv-home .nina-identity {
+    grid-template-columns: 1fr;
+  }
+
+  .pv-home .nina-identity-copy {
+    padding: 48px 0 54px;
+  }
+
+  .pv-home .nina-identity h2 {
+    white-space: normal;
+  }
+
   .pv-home .nina-identity-actions {
     display: grid;
     grid-template-columns: 1fr;
@@ -810,14 +1113,6 @@ body {
     grid-template-columns: 1fr;
   }
 
-  .pv-home .release-card-current {
-    grid-column: auto;
-  }
-
-  .pv-home .release-card-current img {
-    aspect-ratio: 1;
-  }
-
   .contact-heading {
     grid-template-columns: 1fr;
     gap: 22px;
@@ -826,6 +1121,77 @@ body {
 
   .contact-heading > p:first-child {
     grid-row: auto;
+  }
+
+  .pv-home .contact-heading h2 {
+    font-size: clamp(42px, 14vw, 58px);
+  }
+
+  .pv-home .contact-grid,
+  .pv-home .contact-socials {
+    grid-template-columns: 1fr;
+  }
+
+  .pv-home .contact-block,
+  .pv-home .contact-block:first-child {
+    min-height: 0;
+    padding: 28px 0;
+    border-right: 0;
+    border-bottom: 1px solid var(--pv-rule-soft);
+  }
+
+  .pv-home .contact-block:last-child {
+    border-bottom: 0;
+  }
+
+  .pv-home .contact-socials a,
+  .pv-home .contact-socials a:first-child {
+    padding: 0;
+    border-right: 0;
+    border-bottom: 1px solid var(--pv-rule-soft);
+  }
+
+  .pv-home .contact-socials a:last-child {
+    border-bottom: 0;
+  }
+
+  .pv-fashion .fashion-collaboration-intro {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+
+  .pv-fashion .inhabitant-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pv-fashion .inhabitant-card,
+  .pv-fashion .inhabitant-card:last-child {
+    grid-column: auto;
+    width: 100%;
+  }
+
+  .pv-fashion .inhabitant-card:nth-child(4) .inhabitant-image,
+  .pv-fashion .inhabitant-card:nth-child(5) .inhabitant-image {
+    aspect-ratio: 3 / 4;
+  }
+
+  .pv-berlin .berlin-intro-copy p,
+  .pv-berlin .berlin-intro-copy p:first-child,
+  .pv-berlin .berlin-intro-copy p:not(:first-child) {
+    font-size: 18px;
+  }
+
+  .pv-berlin .berlin-moving-card {
+    min-height: 0;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+    gap: 22px;
+    padding: 28px 22px;
+  }
+
+  .pv-berlin .berlin-moving-card h2 {
+    grid-row: auto;
+    font-size: clamp(28px, 9vw, 38px);
   }
 
   .pv-nina-artist .site-header {

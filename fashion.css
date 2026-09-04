@@ -598,6 +598,35 @@ html[lang="de"] .fashion-collaboration-intro h2 {
 .cabizbajo-material-copy > p:not(.cabizbajo-section-label) { max-width: 440px; margin-top: 30px; color: rgba(255,255,255,.72); font-size: clamp(1.05rem, 1.25vw, 1.18rem); line-height: 1.72; }
 .cabizbajo-transitions { margin-top: 42px; }
 .cabizbajo-transitions p { padding: 7px 0; font: 10px/1.6 'Courier New', monospace; letter-spacing: .16em; text-transform: uppercase; }
+.elorian-study-page .cabizbajo-material {
+  grid-template-columns: minmax(0, 1.15fr) minmax(380px, .85fr);
+  gap: clamp(52px, 7vw, 104px);
+  align-items: center;
+  width: 100%;
+  margin-left: 0;
+  padding: clamp(96px, 10vw, 142px) 0 clamp(120px, 13vw, 180px);
+  border-top: 1px solid var(--line);
+}
+.elorian-study-page .cabizbajo-material img {
+  grid-column: 1;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+}
+.elorian-study-page .cabizbajo-material-copy {
+  grid-column: 2;
+  max-width: 520px;
+  padding-bottom: 0;
+}
+.elorian-study-page .cabizbajo-material-copy h2 {
+  max-width: 520px;
+  font-size: clamp(2.45rem, 4vw, 4.25rem);
+  line-height: 1.04;
+}
+.elorian-study-page .cabizbajo-material-copy > p:not(.cabizbajo-section-label) {
+  max-width: 500px;
+  font-size: clamp(1.08rem, 1.35vw, 1.28rem);
+}
 .cabizbajo-return { display: flex; justify-content: space-between; gap: 24px; padding: 40px 0; border-top: 1px solid var(--line); font: 9px/1.6 'Courier New', monospace; letter-spacing: .22em; text-transform: uppercase; }
 .cabizbajo-return a { opacity: .65; }
 .cabizbajo-return a:hover, .cabizbajo-return a:focus-visible { opacity: 1; }
@@ -1102,6 +1131,10 @@ html[lang="de"] .fashion-collaboration-intro h2 {
   .cabizbajo-material { width: 100%; margin-left: 0; }
   .cabizbajo-material img { grid-column: 1; grid-row: 1; width: min(92%, 560px); }
   .cabizbajo-material-copy { grid-column: 1; grid-row: 2; padding-bottom: 0; }
+  .elorian-study-page .cabizbajo-material { grid-template-columns: 1fr; gap: 42px; padding: 78px 0 120px; }
+  .elorian-study-page .cabizbajo-material img { grid-column: 1; grid-row: 1; width: 100%; aspect-ratio: 4 / 3; }
+  .elorian-study-page .cabizbajo-material-copy { grid-column: 1; grid-row: 2; }
+  .elorian-study-page .cabizbajo-material-copy h2 { font-size: clamp(2.25rem, 11vw, 3.5rem); }
   .amatista-fashion-film { padding: 26px 0 82px; }
   .amatista-opening-statement { min-height: 0; padding: clamp(62px, 18vw, 78px) 0 clamp(54px, 15vw, 66px); }
   .amatista-opening-statement h2 { font-size: clamp(2.2rem, 12vw, 4rem); }
