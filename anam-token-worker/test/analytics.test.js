@@ -159,8 +159,20 @@ test("frontend starts analytics only from markNinaOnline and keeps content out o
   assert.match(ready, /startNinaAnalyticsSession\(\)/);
   assert.doesNotMatch(beforeReady, /startNinaAnalyticsSession\(\)/);
   assert.match(frontend, /ninaAnalyticsLoad|ninaAnalyticsStartPromise/);
+  assert.match(frontend, /const NINA_ANALYTICS_HEARTBEAT_MS = 10000;/);
   assert.doesNotMatch(migration, /message|transcript|content/i);
   assert.match(migration, /client_entry_id TEXT NOT NULL UNIQUE/);
+});
+
+test("Nina Admin formats connected totals as minutes and seconds", async () => {
+  const frontend = await readFile(new URL("../../js/nina-admin.js", import.meta.url), "utf8");
+  assert.match(frontend, /metric\(container, "Total connected time", duration\(data\.total_seconds\)\)/);
+  assert.match(frontend, /\["Connected time", duration\(\(Number\(cost\.totalMinutes\) \|\| 0\) \* 60\)\]/);
+  const duration = seconds => {
+    const safe = Math.max(0, Math.round(Number(seconds) || 0));
+    return `${Math.floor(safe / 60)}:${String(safe % 60).padStart(2, "0")}`;
+  };
+  assert.deepEqual([90, 328, 180].map(duration), ["1:30", "5:28", "3:00"]);
 });
 
 test("profile menu exposes Nina Analytics only from the authenticated server role", async () => {

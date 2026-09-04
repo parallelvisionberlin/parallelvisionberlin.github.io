@@ -56,7 +56,7 @@ function renderRange(container, data, includeActive = false) {
   metric(container, "Unique Nina users", number(data.unique_users));
   metric(container, "Sessions", number(data.sessions));
   if (includeActive) metric(container, "Currently active", number(data.currently_active));
-  metric(container, "Total connected minutes", number((Number(data.total_seconds) || 0) / 60));
+  metric(container, "Total connected time", duration(data.total_seconds));
   metric(container, "Average duration", duration(data.average_seconds));
   metric(container, "Longest session", duration(data.longest_seconds));
   if (!includeActive) {
@@ -84,7 +84,7 @@ function renderFunnel(funnel) {
 function renderCost(cost) {
   elements.cost.replaceChildren();
   const values = [
-    ["Connected minutes", number(cost.totalMinutes)],
+    ["Connected time", duration((Number(cost.totalMinutes) || 0) * 60)],
     ["Configured price / minute", cost.pricePerMinute === null ? "Not configured" : `€${Number(cost.pricePerMinute).toFixed(4)}`],
     ["Estimated Anam cost", cost.estimatedAnamCost === null ? "Not configured" : `€${Number(cost.estimatedAnamCost).toFixed(2)}`]
   ];
