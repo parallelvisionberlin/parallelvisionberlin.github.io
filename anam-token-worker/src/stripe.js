@@ -1,6 +1,7 @@
 import Stripe from "stripe";
 import { creditSignalCredits } from "./credits.js";
 import { rewardQualifyingReferral } from "./referrals.js";
+import { hashNinaMetaEmail, sendNinaMetaEvent } from "./meta-capi.js";
 
 const PACK_DEFINITIONS = Object.freeze({
   signal_60: Object.freeze({ packId: "signal_60", credits: 60, amountEurCents: 350, priceBinding: "STRIPE_PRICE_SIGNAL_60", enabled: true }),
@@ -40,14 +41,54 @@ function stripeClient(env) {
   });
 }
 
-function checkoutUrls(origin) {
-  const base = /^http:\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?$/.test(origin)
+function checkoutBase(origin) {
+  return /^http:\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?$/.test(origin)
     ? origin
     : "https://parallelvisionlabel.com";
+}
+
+function checkoutUrls(origin) {
+  const base = checkoutBase(origin);
   return {
     successUrl: `${base}/?ninaCredits=success`,
     cancelUrl: `${base}/?ninaCredits=cancel`
   };
+}
+
+function metaCommerceData(pack, purchaseId = "") {
+  const customData = {
+    currency: "EUR",
+    value: pack.amountEurCents / 100,
+    contentIds: [pack.packId],
+    contentType: "product",
+    numItems: 1
+  };
+  if (purchaseId) customData.orderId = purchaseId;
+  return customData;
+}
+
+async function sendMetaCommerceEvent(env, {
+  eventName, eventId, eventSourceUrl, email = "", emailHash = "", pack, purchaseId = ""
+}) {
+  if (typeof env?.META_CAPI_ACCESS_TOKEN !== "string" || !env.META_CAPI_ACCESS_TOKEN) return false;
+  try {
+    await sendNinaMetaEvent(env, {
+      eventName,
+      eventId,
+      eventSourceUrl,
+      email,
+      emailHash,
+      customData: metaCommerceData(pack, purchaseId)
+    });
+    return true;
+  } catch (error) {
+    console.error("nina_meta_commerce_event_failed", JSON.stringify({
+      eventName,
+      code: typeof error?.code === "string" ? error.code.slice(0, 80) : "",
+      name: typeof error?.name === "string" ? error.name.slice(0, 80) : "Error"
+    }));
+    return false;
+  }
 }
 
 async function markCreationFailed(env, purchaseId) {
@@ -62,6 +103,7 @@ export async function createSignalCreditCheckout(env, identity, packId, origin, 
   const pack = configuredPack(env, packId);
   const stripe = client || stripeClient(env);
   const purchaseId = crypto.randomUUID();
+  const metaEmailHash = await hashNinaMetaEmail(identity?.user?.email || "");
   const now = new Date().toISOString();
   await env.NINA_MEMORY_DB.prepare(`
     INSERT INTO signal_credit_purchases
@@ -71,6 +113,15 @@ export async function createSignalCreditCheckout(env, identity, packId, origin, 
   `).bind(purchaseId, identity.user.id, pack.packId, pack.credits, pack.stripePriceId, pack.amountEurCents, now, now).run();
 
   const urls = checkoutUrls(origin);
+  const metadata = {
+    purchase_id: purchaseId,
+    user_id: identity.user.id,
+    clerk_user_id: identity.clerkUserId,
+    pack_id: pack.packId,
+    credits: String(pack.credits)
+  };
+  if (metaEmailHash) metadata.meta_em = metaEmailHash;
+
   let session;
   try {
     session = await stripe.checkout.sessions.create({
@@ -79,13 +130,7 @@ export async function createSignalCreditCheckout(env, identity, packId, origin, 
       success_url: urls.successUrl,
       cancel_url: urls.cancelUrl,
       client_reference_id: purchaseId,
-      metadata: {
-        purchase_id: purchaseId,
-        user_id: identity.user.id,
-        clerk_user_id: identity.clerkUserId,
-        pack_id: pack.packId,
-        credits: String(pack.credits)
-      }
+      metadata
     }, { idempotencyKey: `signal-credit-purchase-${purchaseId}` });
   } catch (error) {
     await markCreationFailed(env, purchaseId);
@@ -100,6 +145,16 @@ export async function createSignalCreditCheckout(env, identity, packId, origin, 
     SET stripe_checkout_session_id = ?, status = 'open', updated_at = ?
     WHERE id = ? AND status = 'creating'
   `).bind(session.id, new Date().toISOString(), purchaseId).run();
+
+  await sendMetaCommerceEvent(env, {
+    eventName: "InitiateCheckout",
+    eventId: purchaseId,
+    eventSourceUrl: `${checkoutBase(origin)}/`,
+    email: identity?.user?.email || "",
+    emailHash: metaEmailHash,
+    pack
+  });
+
   return { sessionId: session.id, url: session.url };
 }
 
@@ -165,6 +220,18 @@ async function fulfillPaidSession(env, stripe, eventSession) {
     WHERE id = ? AND status != 'paid'
   `).bind(session.id, paymentIntentId(session), now, now, purchase.id).run();
   const referralReward = await rewardQualifyingReferral(env, purchase.user_id, pack.credits);
+
+  await sendMetaCommerceEvent(env, {
+    eventName: "Purchase",
+    eventId: purchase.id,
+    eventSourceUrl: typeof session.success_url === "string" && session.success_url
+      ? session.success_url
+      : "https://parallelvisionlabel.com/",
+    emailHash: typeof session?.metadata?.meta_em === "string" ? session.metadata.meta_em : "",
+    pack,
+    purchaseId: purchase.id
+  });
+
   return { fulfilled: true, idempotent: result.idempotent, referralReward };
 }
 
