@@ -1123,10 +1123,10 @@ function showNinaReady(balance = ninaCreditsBalance, statusOverride = "") {
     ? `${balance.toLocaleString()} CREDITS · ${formatLiveTime(balance * 6).toUpperCase()}`
     : "SIGNAL CREDIT BALANCE UNAVAILABLE");
   if (ninaEligibilityStatus) ninaEligibilityStatus.textContent = creditStatus;
-  setNinaScrim("NINA IS READY", creditStatus, "Enter when you're ready.", "OPEN SIGNAL");
+  setNinaScrim("NINA IS READY", creditStatus, "Enter when you're ready.", "TALK TO NINA");
   ninaStatus.textContent = "NINA IS READY";
   startNina.disabled = false;
-  startNina.textContent = "OPEN SIGNAL";
+  startNina.textContent = "TALK TO NINA";
   ninaPrimaryAction = "connect";
   if (ninaReferralEntry) ninaReferralEntry.hidden = !ninaClerk?.isSignedIn;
   if (ninaMicrophone) ninaMicrophone.hidden = false;
