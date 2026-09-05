@@ -110,7 +110,7 @@ if (!ninaProject.includes('./js/nina-access.js') || !ninaProject.includes('id="n
 if (!index.includes('./css/nina-access.css') || !ninaProject.includes('./css/nina-access.css')) fail('Nina access styles must be shared by the homepage and project page');
 const ninaProjectOrder = ['class="n-hero"','id="question-title"','id="study-title"','id="berlin-title"','id="condition-title"','id="transmit"'];
 if (!ninaProjectOrder.every((marker, index) => ninaProject.includes(marker) && (index === 0 || ninaProject.indexOf(marker) > ninaProject.indexOf(ninaProjectOrder[index - 1])))) fail('Nina project section order changed');
-if (!/<source\b[^>]*data-src="\.\/nina-fok\/ninaspersonality\.mp4"[^>]*type="video\/mp4"/.test(ninaProject)) fail('Nina personality video is not wired to the hero');
+if (!/<source\b[^>]*data-src="\.\/nina-fok\/NINATALKNEW\.mp4"[^>]*type="video\/mp4"/.test(ninaProject)) fail('Nina personality video is not wired to the hero');
 if (/<video\b[^>]*\scontrols(?:\s|=|>)/i.test(ninaProject)) fail('Nina project must not expose native video controls');
 for (const marker of ['id="ninaVideoSound"','Sound On','prefers-reduced-motion: reduce','video.pause()','./assets/optimized/thecitysuperhd1.webp']) if (!ninaProject.includes(marker)) fail(`Nina project visual marker missing: ${marker}`);
 const connectNinaSource = nina.match(/async function connectNina\(\) \{[\s\S]*?\n\}/)?.[0] || '';
