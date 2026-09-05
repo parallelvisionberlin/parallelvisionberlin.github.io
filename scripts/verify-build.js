@@ -112,7 +112,7 @@ const ninaProjectOrder = ['class="n-hero"','id="question-title"','id="condition-
 if (!ninaProjectOrder.every((marker, index) => ninaProject.includes(marker) && (index === 0 || ninaProject.indexOf(marker) > ninaProject.indexOf(ninaProjectOrder[index - 1])))) fail('Nina project section order changed');
 if (!/<video[^>]+id="ninaHeroVideo"[^>]+data-src="\.\/nina-fok\/ninaloophero\.mp4"[^>]+poster="\.\/assets\/optimized\/nina-fok\/HDNINACANON\.webp"[^>]+autoplay[^>]+muted[^>]+loop[^>]+playsinline[^>]+preload="none"/i.test(ninaProject)) fail('Nina project hero video behavior is incomplete');
 if (!/<source\b[^>]*data-src="\.\/nina-fok\/ninaspersonality\.mp4"[^>]*type="video\/mp4"/.test(ninaProject)) fail('Nina personality video is not wired to the hero');
-if (/\scontrols(?:\s|=|>)/i.test(ninaProject)) fail('Nina project must not expose native video controls');
+if (/<video\b[^>]*\scontrols(?:\s|=|>)/i.test(ninaProject)) fail('Nina project must not expose native video controls');
 for (const marker of ['id="ninaVideoSound"','Sound On','prefers-reduced-motion: reduce','video.pause()','./assets/optimized/thecitysuperhd1.webp']) if (!ninaProject.includes(marker)) fail(`Nina project visual marker missing: ${marker}`);
 const connectNinaSource = nina.match(/async function connectNina\(\) \{[\s\S]*?\n\}/)?.[0] || '';
 if (!connectNinaSource.includes('requestSessionToken(ninaTokenAbortController.signal, restoredHistory)')) fail('Anam token must only be requested from the CONNECT flow');
