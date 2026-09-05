@@ -640,8 +640,15 @@ body.pv-berlin .berlin-hero-portals a:focus-visible { outline: 1px solid white; 
         <span>Enter Moving Transmissions →</span>
       </a>
 
-      <span class="visually-hidden" id="inhabitants-entry">Inhabitants archive</span>
-      <div class="berlin-archives" id="berlinArchives" aria-label="Berlin 2063 visual archive"></div>
+
+      <div class="berlin-archives" id="berlinArchives" aria-label="Berlin 2063 visual archive">
+        <div id="world-urbanForm" style="scroll-margin-top:36px"></div>
+        <div id="world-urbanSystems" style="scroll-margin-top:36px"></div>
+        <div id="inhabitants-entry" style="scroll-margin-top:36px"></div>
+        <div id="world-nightlife" style="scroll-margin-top:36px"></div>
+        <div id="world-transmissions" style="scroll-margin-top:36px"></div>
+        <div id="world-materialCulture" style="scroll-margin-top:36px"></div>
+      </div>
 
       <p class="berlin-archive-closing">
         <strong data-closing-line="one">The archive does not end on screen.</strong>
@@ -757,11 +764,8 @@ body.pv-berlin .berlin-hero-portals a:focus-visible { outline: 1px solid white; 
       const archiveNumber = String(chapterIndex + 1).padStart(2, "0");
       const article = document.createElement("article");
       article.className = "berlin-archive-chapter";
-      article.id = "world-" + chapterKey;
-      if (chapter.title === "Inhabitants") {
-        document.getElementById("inhabitants-entry")?.remove();
-        article.id = "inhabitants-entry";
-      }
+      const chapterTarget = document.getElementById(chapterKey === "inhabitants" ? "inhabitants-entry" : "world-" + chapterKey);
+
 
       if (chapter.layout === "bridge") {
         article.classList.add("berlin-material-culture-chapter");
@@ -774,7 +778,7 @@ body.pv-berlin .berlin-hero-portals a:focus-visible { outline: 1px solid white; 
           <div class="berlin-material-culture-bridge">
             <a class="berlin-material-culture-link" href="./future-fashion.html">Enter Fashion After Fabric ↗</a>
           </div>`;
-        archiveRoot.appendChild(article);
+        (chapterTarget || archiveRoot).appendChild(article);
 
         const chapterLabel = article.querySelector(".berlin-transmission-index");
         const chapterDescription = article.querySelector(".berlin-chapter-description");
@@ -817,7 +821,7 @@ body.pv-berlin .berlin-hero-portals a:focus-visible { outline: 1px solid white; 
             </div>
           </div>
         </div>`;
-      archiveRoot.appendChild(article);
+      (chapterTarget || archiveRoot).appendChild(article);
 
       const gallery = article.querySelector(".berlin-gallery");
       const chapterLabel = article.querySelector(".berlin-transmission-index");
