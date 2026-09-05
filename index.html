@@ -91,6 +91,46 @@
 }
 @media(prefers-reduced-motion:reduce) { .nina-intro::before { animation: none; } }
 </style>
+<style>
+body .nina-account-panel { width: min(370px,calc(100vw - 32px)); padding: 28px; background: #111211; border: 1px solid #363835; box-shadow: 0 24px 70px #0009; max-height: calc(100dvh - 96px); overflow-y: auto; }
+body .nina-account-panel .nina-account-eyebrow { font: 500 10px/1.5 Inter,Arial,sans-serif; letter-spacing: .16em; color: #999d96; }
+body .nina-account-panel .nina-account-name { font: 400 23px/1.3 Inter,Arial,sans-serif; letter-spacing: -.025em; margin: 12px 0 6px; }
+body .nina-account-panel .nina-account-channel { font: 400 12px/1.5 Inter,Arial,sans-serif; letter-spacing: .01em; text-transform: none; color: #9a9e97; }
+body .nina-account-panel .nina-account-credits { padding: 20px 0; margin: 22px 0 12px; gap: 12px; border-color: #383a36; }
+body .nina-account-panel .nina-account-credits span { font: 400 13px/1.5 Inter,Arial,sans-serif; letter-spacing: 0; text-transform: none; color: #b9bcb6; }
+body .nina-account-panel .nina-account-credits strong { font: 500 18px/1.4 Inter,Arial,sans-serif; letter-spacing: -.02em; color: #f1f2ed; }
+body .nina-account-panel .nina-account-buy-credits { min-height: 48px; margin-top: 16px; background: #e5e7de; color: #161815; border: 1px solid #e5e7de; font: 500 14px/1.4 Inter,Arial,sans-serif; letter-spacing: .02em; }
+body .nina-account-panel .nina-account-credits-info-trigger { font: 400 12px/1.5 Inter,Arial,sans-serif; letter-spacing: 0; text-transform: none; color: #c0c3bb; }
+body .nina-account-panel .nina-account-menu { display: grid; grid-template-columns: 1fr 1fr; gap: 0 20px; padding: 14px 0; margin: 18px 0 0; border-top: 1px solid #383a36; }
+body .nina-account-panel .nina-account-menu a { display: flex; align-items: center; min-height: 46px; padding: 8px 0; font: 400 14px/1.5 Inter,Arial,sans-serif; letter-spacing: 0; text-transform: none; color: #e2e4dd; border-bottom: 1px solid #292c27; }
+body .nina-account-panel .nina-account-menu a[hidden] { display: none; }
+body .nina-account-panel .nina-account-menu > span:empty { display: none; }
+body .nina-account-panel .nina-account-menu a[href$="#redeemForm"] { color: #fff; font-weight: 500; }
+body .nina-account-panel .nina-account-signout { margin-top: 8px; padding: 14px 0 0; min-height: 40px; font: 400 12px/1.5 Inter,Arial,sans-serif; letter-spacing: .03em; color: #a2a69c; }
+body .nina-account-panel a:hover { color: #fff; }
+@media(max-width:400px) { body .nina-account-panel { padding: 22px; } }
+</style><style>
+body.pv-home #contact { padding: clamp(64px,9vw,130px) 24px 70px; }
+body.pv-home #contact .contact-inner { max-width: 1280px; margin: auto; }
+body.pv-home #contact .contact-heading { display: grid; grid-template-columns: 1fr 1fr; gap: 24px 60px; align-items: end; margin-bottom: 64px; }
+body.pv-home #contact .contact-heading > p:first-child { grid-column: 1/-1; font: 400 11px/1.5 Inter,Arial,sans-serif; letter-spacing: .12em; }
+body.pv-home #contact #contact-title { grid-column: 1; margin: 0; font: 400 clamp(42px,6vw,82px)/1.1 Michroma,Arial,sans-serif; letter-spacing: -.045em; }
+body.pv-home #contact .contact-intro { grid-column: 2; margin: 0; max-width: 410px; font: 400 17px/1.65 Inter,Arial,sans-serif; color: #b9bbb4; }
+body.pv-home #contact .contact-grid { display: block; border-top: 1px solid #55574e; }
+body.pv-home #contact .contact-block { display: grid; grid-template-columns: 180px minmax(0,1fr); gap: 10px 32px; padding: 30px 0; border: 0; border-bottom: 1px solid #35372f; }
+body.pv-home #contact .contact-block h3 { grid-column: 1; grid-row: 1/3; margin: 8px 0 0; font: 400 16px/1.5 Inter,Arial,sans-serif; letter-spacing: 0; text-transform: none; color: #a6aaa0; }
+body.pv-home #contact .contact-email { grid-column: 2; font: 400 clamp(18px,2.1vw,29px)/1.4 Inter,Arial,sans-serif; letter-spacing: -.02em; overflow-wrap: anywhere; color: #f0f1eb; }
+body.pv-home #contact .contact-block p { grid-column: 2; margin: 0; font: 400 14px/1.6 Inter,Arial,sans-serif; color: #969b8e; }
+body.pv-home #contact .contact-socials { display: flex; flex-wrap: wrap; gap: 20px 40px; margin-top: 30px; border: 0; }
+body.pv-home #contact .contact-socials a { min-height: 44px; padding: 10px 0; border: 0; font: 400 14px/1.5 Inter,Arial,sans-serif; letter-spacing: 0; text-transform: none; }
+body.pv-home #contact .contact-socials a::after { margin-left: 16px; }
+@media(max-width:700px) {
+ body.pv-home #contact .contact-heading { grid-template-columns: 1fr; gap: 20px; margin-bottom: 36px; }
+ body.pv-home #contact .contact-intro { grid-column: 1; }
+ body.pv-home #contact .contact-block { grid-template-columns: 1fr; gap: 10px; padding: 24px 0; }
+ body.pv-home #contact .contact-block h3, body.pv-home #contact .contact-email, body.pv-home #contact .contact-block p { grid-column: 1; grid-row: auto; }
+}
+</style>
 </head>
 
 
@@ -1580,7 +1620,7 @@
     <div class="contact-heading">
       <p>Parallel Vision / Berlin / Founded 2025</p>
       <h2 id="contact-title">Contact</h2>
-      <p class="contact-intro">Independent label and cultural platform working across music, moving image, material research and interactive consciousness.</p>
+      <p class="contact-intro">For releases, collaborations and enquiries about the worlds we’re building.</p>
     </div>
 
     <div class="contact-grid">
@@ -1922,7 +1962,7 @@
 
   <script src="./js/home.js?v=20260905-hero-final" defer></script>
 
-<script type="module" src="./js/nina-access.js?v=20260905-presence"></script>
+<script type="module" src="./js/nina-access.js?v=20260905-profile-labels"></script>
 
 
 </body>
