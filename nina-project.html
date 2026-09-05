@@ -439,6 +439,49 @@ body .nina-account-panel .nina-account-signout { border-top-color: #242422; }
   .n-architecture-details summary:focus-visible { outline: 1px solid white; outline-offset: 4px; }
   @media(max-width:700px) { .pv-nina-project .n-encounter-invitation a { display: flex; margin-left: 0; } }
 </style>
+
+<style id="nina-editorial-story">
+.n-hero { padding: 0; border: 0; }
+.n-black-hero { padding: clamp(64px,9vw,138px) 0 clamp(56px,7vw,108px); max-width: 1080px; margin: auto; background: #000; }
+.n-black-hero h1 { margin: 28px 0 30px; font-size: clamp(48px,8.5vw,118px); line-height: 1.1; letter-spacing: .015em; }
+.n-black-hero .n-hero-statement { max-width: 850px; font: 400 clamp(26px,3.4vw,46px)/1.25 Inter,Arial,sans-serif; color: #f2f2ee; text-wrap: balance; }
+.n-hero-context { max-width: 660px; margin: 28px 0 0; font: 400 clamp(17px,1.3vw,19px)/1.75 Inter,Arial,sans-serif; color: #c6c6c6; }
+.n-black-hero .n-hero-actions { gap: 24px; flex-wrap: wrap; width: auto; }
+.n-black-hero .n-hero-discover { position: static; transform: none; font: 400 15px/1.5 Inter,Arial,sans-serif; letter-spacing: 0; text-transform: none; }
+.n-project-entrance { padding-top: 28px; }
+.n-project-entrance h2 { font-size: clamp(30px,3.5vw,48px); }
+.n-label { font-size: 11px; letter-spacing: .14em; color: #999; }
+.n-world-note { margin-bottom: 32px; }
+.n-world-link { display: inline-flex; margin-top: 24px; padding: 12px 0; color: #eee; font-size: 16px; text-decoration: none; border-bottom: 1px solid #777; }
+.n-memory-story { display: grid; grid-template-columns: minmax(0,.85fr) minmax(0,1fr); gap: clamp(32px,6vw,88px); align-items: center; }
+.n-memory-photo { margin: 0; }
+.n-memory-photo img { display: block; width: 100%; height: auto; max-height: 820px; object-fit: cover; }
+.n-memory-story h2,.n-how-section h2 { font: 400 clamp(28px,3.2vw,44px)/1.2 Inter,Arial,sans-serif; letter-spacing: -.02em; margin: 18px 0 26px; text-wrap: balance; }
+.n-memory-layer { margin-top: 24px; padding-top: 20px; border-top: 1px solid #303030; }
+.n-memory-layer h3 { margin: 0 0 10px; font: 500 20px/1.4 Inter,Arial,sans-serif; }
+.n-memory-story .n-memory-note { margin-top: 24px; font-size: 14px; color: #aaa; }
+.n-memory-story .n-memory-question { margin-top: 24px; color: #eee; }
+.n-how-section .n-copy { max-width: 800px; margin: auto; }
+.n-connect { width: 100%; min-height: 420px; margin-top: 48px; }
+.n-connect .n-button { font: 500 16px/1.4 Inter,Arial,sans-serif; letter-spacing: .03em; min-height: 58px; }
+.n-faq-list { margin-left: 0; max-width: 940px; margin-inline: auto; }
+.n-faq-head { display: block; max-width: 940px; margin-inline: auto; }
+.n-faq-head .n-label { margin-bottom: 20px; }
+@media(max-width:700px) {
+ .n-black-hero { padding: 54px 0 48px; }
+ .n-black-hero h1 { font-size: clamp(36px,10.8vw,66px); }
+ .n-black-hero .n-hero-statement { font-size: clamp(25px,6.5vw,36px); }
+ .n-black-hero .n-hero-actions { gap: 16px; }
+ .n-black-hero .n-button-primary { width: auto; min-width: 190px; }
+ .n-project-entrance .n-copy { grid-row: auto; }
+ .n-project-entrance .n-who-media { aspect-ratio: 4/4.5; }
+ .n-memory-story { grid-template-columns: minmax(0,1fr); gap: 32px; }
+ .n-memory-photo img { max-height: 520px; object-position: center 35%; }
+ .n-memory-layer h3 { font-size: 19px; }
+ .n-connect { min-height: 360px; margin-top: 28px; }
+ .n-faq-head,.n-faq-list { width: 100%; }
+}
+</style>
 </head>
 <body class="pv-nina-project">
   <a class="skip-link" href="#main-content">Skip to main content</a>
@@ -504,18 +547,16 @@ body .nina-account-panel .nina-account-signout { border-top-color: #242422; }
 
   <main class="n-shell" id="main-content">
     <header class="n-hero" id="nina">
-      <figure class="n-hero-media">
-        <video class="n-hero-asset" id="ninaHeroVideo" data-src="./nina-fok/ninaloophero.mp4" poster="./assets/optimized/nina-fok/HDNINACANON.webp" autoplay muted loop playsinline preload="none" aria-label="Nina FOK in her Berlin 2063 environment" data-optimized-src="./assets/optimized/video/nina-fok/ninaloophero-desktop.mp4" data-mobile-src="./assets/optimized/video/nina-fok/ninaloophero-mobile.mp4"></video>
-        <figcaption class="n-hero-copy">
-          <p class="n-meta">Berlin / 2063</p>
-          <h1>Nina FOK</h1>
-          <p class="n-hero-statement">She lives in Berlin, 2063. You can speak with her now.</p>
-          <div class="n-hero-actions">
-            <button class="n-button n-button-primary" type="button" data-nina-open><span>Talk to Nina</span><small data-nina-trial-offer hidden>3 minutes free</small></button>
-            <a class="n-hero-discover" href="#question">Discover the project →</a>
-          </div>
-        </figcaption>
-      </figure>
+      <div class="n-black-hero">
+        <p class="n-meta">Parallel Vision / An ongoing art project</p>
+        <h1>Nina FOK</h1>
+        <p class="n-hero-statement">Speak with an artist living in Berlin 2063.</p>
+        <p class="n-hero-context">Nina FOK is an ongoing art project by Parallel Vision exploring identity, memory and human connection. At its centre is an artist who inhabits Berlin 2063 as her present. You can see her, speak with her live and develop a shared history across encounters.</p>
+        <div class="n-hero-actions">
+          <button class="n-button n-button-primary" type="button" data-nina-open><span>Talk to Nina</span><small data-nina-trial-offer hidden>3 minutes free</small></button>
+          <a class="n-hero-discover" href="#question">Discover the project →</a>
+        </div>
+      </div>
     </header>
 
     <section class="n-section n-who-section n-project-entrance" id="question" aria-labelledby="question-title">
@@ -527,37 +568,12 @@ body .nina-account-panel .nina-account-signout { border-top-color: #242422; }
           <button class="n-sound" id="ninaVideoSound" type="button" aria-pressed="false" aria-label="Turn Nina video sound on">Sound On</button>
         </figure>
         <div class="n-copy">
-          <h2 id="question-title">What happens when an imagined life meets yours?</h2>
-          <p>Nina FOK is an ongoing art project by Parallel Vision exploring identity, memory and human connection. At its centre is an artist who inhabits Berlin 2063 as her present. You can see her, speak with her live and develop a shared history across encounters.</p>
+          <h2 id="question-title">Meet Nina FOK</h2>
+          <p>A DJ, producer and visual artist within Berlin 2063. Her biography, music and knowledge of the city give her a point of view to speak from. The video introduces her presence; in a live conversation, she responds to what you say.</p>
           <div class="n-encounter-invitation">
             <p>Ask about her music, her city, or something from your own life. Her responses unfold in real time.</p>
             <button class="n-button n-encounter-button" type="button" data-nina-open>Talk to Nina</button>
-            <a href="#condition-title">How the project works</a>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="n-section n-condition" aria-labelledby="condition-title">
-      <div class="n-condition-layout">
-        <p class="n-label">03 / The Premise</p>
-        <div class="n-copy n-copy-wide">
-          <h2 class="n-condition-title" id="condition-title">A world to speak from</h2>
-          <p class="n-condition-intro">Parallel Vision gives Nina a biography, a place in time and a shared history. These form the starting point for each conversation:</p>
-          <details class="n-architecture-details">
-            <summary>How Nina’s presence and memory work</summary>
-            <div>
-              <p>Her presence brings together generative models, voice, moving image, world knowledge and a custom memory architecture. These systems carry selected experiences from one conversation into the next, allowing earlier encounters to shape what follows.</p>
-              <p>Anam provides the live avatar connection. Nina’s system prompt and knowledge of Berlin 2063 establish the identity and world she speaks from. The language model generates her responses as the conversation unfolds.</p>
-              <p>Parallel Vision’s memory system brings selected memories, conversation summaries and unfinished threads into later sessions. With an account, each visitor can develop a separate history with Nina and manage what is stored.</p>
-            </div>
-          </details>
-          <div class="n-instruction">
-            <span>This is where you are.</span>
-            <span>This is when you are.</span>
-            <span>This is what has happened.</span>
-            <span>This is what you remember.</span>
-            <span>Now speak from there.</span>
+            <a href="#study-title">Explore her memory</a>
           </div>
         </div>
       </div>
@@ -566,7 +582,7 @@ body .nina-account-panel .nina-account-signout { border-top-color: #242422; }
     <section class="n-section" aria-labelledby="berlin-title">
       <div class="n-berlin-head">
         <div class="n-archive-id" aria-label="Berlin 2063 archive status">
-          <strong>04 / Berlin 2063</strong>
+          <strong>Berlin 2063 / Her world</strong>
           <span>Parallel Vision World Archive</span>
           <span>Active Canon</span>
         </div>
@@ -588,43 +604,44 @@ body .nina-account-panel .nina-account-signout { border-top-color: #242422; }
       </div>
       <div class="n-copy n-berlin-body">
         <p>Nina is a DJ, producer and visual artist living in Parallel Vision’s imagined Berlin 2063. Her music, relationships and everyday life give her a perspective on the city you can discover through conversation.</p>
-        <p class="n-emphasis">2063 is her present.</p>
+        <a class="n-world-link" href="./berlin-2063.html">Explore Berlin 2063 →</a>
       </div>
     </section>
 
-    <section class="n-section n-space-section" aria-labelledby="space-title">
-      <div class="n-chapter-head">
-        <p class="n-label">05 / The Uncontrolled Space</p>
-        <div class="n-copy">
-        <h2 id="space-title">We can construct Nina’s world.<br>But we cannot write every thought she will have.</h2>
-        <p>Her biography, memories and environment can be constructed.</p>
-        <p>Her individual responses are not written in advance.</p>
-        <p>That uncontrolled space is part of the work.</p>
+    <section class="n-section n-memory-story" aria-labelledby="study-title">
+      <figure class="n-memory-photo">
+        <img src="./assets/optimized/nina-fok/HDNINACANON.webp" alt="Nina FOK in the red room with masks" width="1600" height="900" loading="lazy" decoding="async">
+      </figure>
+      <div class="n-copy">
+        <p class="n-label">Memory / Continuity</p>
+        <h2 id="study-title">Two layers of memory.<br>A conversation that can continue.</h2>
+        <p>What you tell Nina can become part of a longer history. Parallel Vision has built two complementary memory layers for signed-in conversations.</p>
+        <div class="n-memory-layer">
+          <h3>What she remembers</h3>
+          <p>Selected details, shared moments and unfinished conversations are kept alongside compact summaries. They give later encounters something specific to return to.</p>
         </div>
-      </div>
-    </section>
-
-    <section class="n-section n-mirror-section" aria-labelledby="mirror-title">
-      <div class="n-chapter-head">
-        <p class="n-label">06 / The Mirror</p>
-        <div class="n-copy">
-        <h2 id="mirror-title">Nina is not here to predict the future.</h2>
-        <p>She speaks from one possible future as though it were her present.</p>
-        <p>Ask her something.</p>
+        <div class="n-memory-layer">
+          <h3>How familiarity develops</h3>
+          <p>A separate layer tracks changes in familiarity, trust and comfort, using evidence from completed conversations. It gives Nina context for how to approach the next encounter.</p>
         </div>
+        <p class="n-memory-note">Each account has its own history. You can manage stored memories or delete them from your account.</p>
+        <p class="n-memory-question">The artistic question runs through both layers: how does an identity change through repeated encounters?</p>
       </div>
     </section>
 
-    <section class="n-section n-study" aria-labelledby="study-title">
-      <div class="n-study-layout">
-        <p class="n-label">07 / Ongoing Research</p>
-        <div class="n-study-content">
-          <div class="n-study-intro">
-            <h2 id="study-title">How does memory shape a conversation?</h2>
-            <p>Nina can carry selected memories beyond a single encounter. The work follows what happens as that continuity accumulates over time.</p>
-            <p>The research observes whether preferences remain stable, positions change and unfinished thoughts return. Users remain in control of their stored memory and account data.</p>
+    <section class="n-section n-how-section" aria-labelledby="condition-title">
+      <div class="n-copy">
+        <p class="n-label">Inside the project</p>
+        <h2 id="condition-title">How Nina works</h2>
+        <p>Parallel Vision brings together language models, live voice and visual presence, a written biography, knowledge of Berlin 2063 and its own memory architecture. These systems connect the world of the artwork to an unscripted conversation.</p>
+        <details class="n-architecture-details">
+          <summary>Explore the systems behind Nina</summary>
+          <div>
+            <p>Anam provides the live avatar connection. A language model generates responses within Nina’s system prompt and world knowledge. Her individual replies are not written in advance.</p>
+            <p>The first memory layer retrieves selected details, summaries and unfinished threads. The second maintains a separate account of how familiarity, trust and comfort develop. Both inform later conversations for signed-in visitors.</p>
+            <p>The project explores what this continuity makes possible: recurring ideas, changing perspectives and a character whose encounters contribute to her ongoing history.</p>
           </div>
-        </div>
+        </details>
       </div>
     </section>
 
@@ -640,13 +657,13 @@ body .nina-account-panel .nina-account-signout { border-top-color: #242422; }
 
     <section class="n-faq" aria-labelledby="faq-title">
       <div class="n-faq-head">
-        <p class="n-label">08 / Reference</p>
+        <p class="n-label">Practical questions</p>
         <h2 id="faq-title">FAQ</h2>
       </div>
       <div class="n-faq-list">
         <details name="nina-faq">
           <summary>Who is Nina FOK?</summary>
-          <div class="n-faq-answer"><p>Nina FOK is an AI character created by Parallel Vision. Her fictional life is set in Berlin 2063, and you can speak with her through a live voice and visual connection.</p></div>
+          <div class="n-faq-answer"><p>Nina FOK is a synthetic character and artist within Parallel Vision’s Berlin 2063. The project uses generative models, live voice and visual systems, and a custom memory architecture to make conversation with her possible.</p></div>
         </details>
         <details name="nina-faq">
           <summary>Is Nina scripted?</summary>
@@ -1004,7 +1021,6 @@ body .nina-account-panel .nina-account-signout { border-top-color: #242422; }
   <script>
     (() => {
       const video = document.getElementById("ninaPersonalityVideo");
-      const heroVideo = document.getElementById("ninaHeroVideo");
       const connectVideo = document.getElementById("ninaConnectVideo");
       const soundButton = document.getElementById("ninaVideoSound");
       const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -1021,11 +1037,6 @@ body .nina-account-panel .nina-account-signout { border-top-color: #242422; }
         target.play().catch(() => {});
       };
 
-      const scheduleHeroVideo = () => {
-        if ("requestIdleCallback" in window) window.requestIdleCallback(() => loadVideo(heroVideo), { timeout: 1800 });
-        else window.setTimeout(() => loadVideo(heroVideo), 350);
-      };
-
       const setSoundState = soundOn => {
         video.muted = !soundOn;
         soundButton.textContent = soundOn ? "Sound Off" : "Sound On";
@@ -1035,16 +1046,12 @@ body .nina-account-panel .nina-account-signout { border-top-color: #242422; }
 
       const syncMotion = () => {
         if (reducedMotion.matches) {
-          heroVideo.pause();
-          heroVideo.removeAttribute("autoplay");
           video.pause();
           video.removeAttribute("autoplay");
           connectVideo.pause();
           connectVideo.removeAttribute("autoplay");
           return;
         }
-        heroVideo.autoplay = true;
-        if (heroVideo.dataset.loaded === "true") heroVideo.play().catch(() => {});
         video.autoplay = true;
         if (video.dataset.loaded === "true") video.play().catch(() => {});
         connectVideo.autoplay = true;
@@ -1071,11 +1078,6 @@ body .nina-account-panel .nina-account-signout { border-top-color: #242422; }
           if (connectVideo.dataset.loaded === "true") connectVideo.play().catch(() => {});
         }
       });
-      if (window.innerWidth <= 760 && !reducedMotion.matches && !saveData) {
-        document.addEventListener("pointerdown", () => loadVideo(heroVideo), { once: true, passive: true });
-        document.addEventListener("keydown", () => loadVideo(heroVideo), { once: true });
-      }
-      scheduleHeroVideo();
       if ("IntersectionObserver" in window && !reducedMotion.matches && !saveData) {
         const observer = new IntersectionObserver(entries => entries.forEach(entry => {
           if (entry.isIntersecting) loadVideo(entry.target);
@@ -1090,4 +1092,5 @@ body .nina-account-panel .nina-account-signout { border-top-color: #242422; }
 <script type="module" src="./js/nina-access.js?v=20260905-editorial-menu"></script>
 </body>
 </html>
+
 
