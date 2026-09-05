@@ -575,6 +575,16 @@
       .pv-berlin .berlin-hero-content { padding-top: 210px; }
     }
   </style>
+<style>
+body.pv-berlin .berlin-hero-portals { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); width: min(920px,100%); border: 0; gap: 0 28px; }
+body.pv-berlin .berlin-hero-portals a { display: flex; align-items: center; gap: 14px; padding: 18px 0; min-height: 58px; border: 0; border-top: 1px solid #ffffff40; background: none; color: #e5e5df; }
+body.pv-berlin .berlin-hero-portals b { font: 400 16px/1.4 Inter,Arial,sans-serif; text-transform: none; letter-spacing: .01em; }
+body.pv-berlin .berlin-hero-portals span { font-size: 11px; color: #a4a49a; }
+body.pv-berlin .berlin-hero-portals a:hover { border-top-color: #fff; color: #fff; }
+body.pv-berlin .berlin-hero-portals a:focus-visible { outline: 1px solid white; outline-offset: 4px; }
+.berlin-archive-chapter { scroll-margin-top: 36px; }
+@media(max-width:600px) { body.pv-berlin .berlin-hero-portals { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 0 20px; } body.pv-berlin .berlin-hero-portals b { font-size: 14px; } }
+</style>
 </head>
 <body class="berlin-page pv-berlin">
   <a class="skip-link" href="#archive">Skip to main content</a>
@@ -583,7 +593,7 @@
       <a href="./index.html">Parallel Vision</a>
       <div class="archive-nav-links">
         <a href="#archive">Archive</a>
-        <a href="./index.html#releases">Releases</a>
+        <a href="#world-nightlife">Nightlife</a>
         <a href="./future-fashion.html">Fashion After Fabric</a>
         <a href="./nina-project.html">Nina FOK</a>
         <details class="berlin-account-menu">
@@ -603,10 +613,13 @@
       <p class="berlin-hero-label">Parallel Vision / Living Archive</p>
       <h1>Berlin 2063</h1>
       <p class="berlin-hero-line">An evolving audiovisual archive of a possible future.</p>
-      <nav class="berlin-hero-portals" aria-label="Enter Berlin 2063 through">
-        <a href="./index.html#releases"><span>01</span><b>Sound</b></a>
-        <a href="#inhabitants-entry"><span>02</span><b>Inhabitants</b></a>
-        <a href="./future-fashion.html"><span>03</span><b>Material systems</b></a>
+      <nav class="berlin-hero-portals" aria-label="Explore the Berlin 2063 archive">
+        <a href="#world-urbanForm"><span>01</span><b>Urban Form</b></a>
+        <a href="#world-urbanSystems"><span>02</span><b>Urban Systems</b></a>
+        <a href="#inhabitants-entry"><span>03</span><b>Inhabitants</b></a>
+        <a href="#world-nightlife"><span>04</span><b>Nightlife</b></a>
+        <a href="#world-transmissions"><span>05</span><b>Transmissions</b></a>
+        <a href="#world-materialCulture"><span>06</span><b>Material Culture</b></a>
       </nav>
     </div>
   </header>
@@ -695,11 +708,9 @@
         images: [
           { src: "./assets/optimized/2063/inhabitants/U-bahnstudy.webp", width: 2048, height: 1152, alt: "Three Berlin 2063 inhabitants seated inside a transit carriage, mixing human and synthetic bodies with glowing eye interfaces.", caption: "U-Bahn inhabitant study / Berlin 2063" },
           { src: "./assets/optimized/2063/inhabitants/IRENA BLEX ALE.webp", width: 2048, height: 1152, alt: "Parallel Vision artists seated inside a Berlin 2063 U-Bahn carriage, wearing black and chrome future clothing in a cinematic transit archive frame.", caption: "Artist inhabitant study / Berlin 2063" },
-          { src: "./assets/optimized/2063/inhabitants/ALECAMS EPIC HD.webp", width: 3000, height: 1674, alt: "Two Berlin 2063 inhabitants seated across from each other inside a U-Bahn carriage, dressed in black and chrome future fashion.", caption: "Transit encounter study / Berlin 2063" },
           { src: "./assets/optimized/2063/inhabitants/Hero Epic Cam.webp", width: 1207, height: 690, alt: "A seated Berlin 2063 inhabitant inside a transit environment with city lights outside.", caption: "Transit portrait study / Berlin 2063" },
           { src: "./assets/optimized/2063/inhabitants/CANON DUST 1.webp", width: 2048, height: 1152, alt: "Two chrome-bodied Berlin 2063 inhabitants in an atmospheric industrial interior with wet floor and low light.", caption: "Machine-body study / Berlin 2063" },
           { src: "./assets/optimized/2063/inhabitants/CABIZBAJAS.webp", width: 2048, height: 1152, alt: "Two Berlin 2063 inhabitants in black and chrome clothing against a concrete wall.", caption: "Archive portrait study / Berlin 2063" },
-          { src: "./assets/optimized/2063/inhabitants/vladsss.webp", width: 2048, height: 1152, alt: "Two Berlin 2063 inhabitants standing on a rooftop and looking across the transformed city under a cold blue sky.", caption: "Rooftop witness study / Berlin 2063" }
         ]
       },
       nightlife: {
@@ -742,10 +753,11 @@
     const archiveRoot = document.getElementById("berlinArchives");
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    Object.values(berlinArchive).forEach((chapter, chapterIndex) => {
+    Object.entries(berlinArchive).forEach(([chapterKey, chapter], chapterIndex) => {
       const archiveNumber = String(chapterIndex + 1).padStart(2, "0");
       const article = document.createElement("article");
       article.className = "berlin-archive-chapter";
+      article.id = "world-" + chapterKey;
       if (chapter.title === "Inhabitants") {
         document.getElementById("inhabitants-entry")?.remove();
         article.id = "inhabitants-entry";
@@ -928,7 +940,7 @@
     window.addEventListener("pv-language-change", (event) => applyArchiveIntroLanguage(event.detail.language));
 
     document.getElementById("openNina").addEventListener("click", function () {
-      window.location.href = "./index.html?nina=1";
+      window.location.href = "./nina-project.html";
     });
   </script>
 </body>
