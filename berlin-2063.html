@@ -540,6 +540,41 @@
       .pv-berlin .berlin-moving-card > span { grid-column: 1; grid-row: 3; }
     }
   </style>
+<style>
+    /* Editorial navigation and discoverable account access. */
+    .pv-berlin .archive-nav {
+      box-sizing: border-box; padding: 24px max(24px, calc((100vw - 1320px) / 2));
+      min-height: 88px; gap: 24px; font-family: Inter, Arial, sans-serif;
+      font-size: 12px; font-weight: 500; letter-spacing: .12em;
+      background: linear-gradient(180deg, rgba(0,0,0,.65), rgba(0,0,0,.12));
+    }
+    .pv-berlin .archive-nav > a { flex-shrink: 0; color: #f0f0eb; opacity: 1; letter-spacing: .2em; }
+    .pv-berlin .archive-nav-links { align-items: center; gap: clamp(18px,2vw,32px); }
+    .pv-berlin .archive-nav-links > a { display: inline-flex; align-items: center; min-height: 44px; opacity: .85; }
+    .berlin-account-menu { position: relative; }
+    .berlin-account-menu summary { cursor: pointer; list-style: none; min-height: 44px; display: flex; align-items: center; gap: 10px; }
+    .berlin-account-menu summary::-webkit-details-marker { display: none; }
+    .berlin-account-menu summary::after { content: "+"; font-size: 18px; font-weight: 300; }
+    .berlin-account-menu[open] summary::after { content: "−"; }
+    .berlin-account-menu summary:focus-visible { outline: 1px solid #aaa; outline-offset: 4px; }
+    .berlin-account-panel { position: absolute; top: calc(100% + 12px); right: 0; width: 230px; padding: 12px 20px; border: 1px solid #383838; background: #111; box-shadow: 0 14px 40px #0008; }
+    .pv-berlin .berlin-account-panel a { display: flex; justify-content: space-between; align-items: center; min-height: 48px; font-size: 13px; letter-spacing: .02em; text-transform: none; opacity: .9; }
+    .berlin-account-panel a + a { border-top: 1px solid #292929; }
+    .berlin-account-panel span { color: #888; }
+    @media (max-width: 1000px) {
+      .pv-berlin .archive-nav { flex-wrap: wrap; gap: 4px 18px; padding: 18px 24px; }
+      .pv-berlin .archive-nav-links { order: 3; width: 100%; flex-wrap: wrap; gap: 0 20px; }
+      .pv-berlin .archive-nav > .pv-language-switch { margin-left: auto; }
+      .pv-berlin .berlin-hero-content { padding-top: 180px; }
+    }
+    @media (max-width: 600px) {
+      .pv-berlin .archive-nav { padding: 16px 18px; font-size: 11px; letter-spacing: .06em; }
+      .pv-berlin .archive-nav-links { gap: 0 16px; }
+      .pv-berlin .archive-nav-links a:nth-child(3) { display: inline-flex; }
+      .berlin-account-panel { right: auto; left: 0; width: 210px; max-width: calc(100vw - 76px); }
+      .pv-berlin .berlin-hero-content { padding-top: 210px; }
+    }
+  </style>
 </head>
 <body class="berlin-page pv-berlin">
   <a class="skip-link" href="#archive">Skip to main content</a>
@@ -551,6 +586,14 @@
         <a href="./index.html#releases">Releases</a>
         <a href="./future-fashion.html">Fashion After Fabric</a>
         <a href="./nina-project.html">Nina FOK</a>
+        <details class="berlin-account-menu">
+          <summary>Account</summary>
+          <div class="berlin-account-panel">
+            <a href="./account.html">Your account <span aria-hidden="true">↗</span></a>
+            <a href="./account.html#credits">Signal Credits <span aria-hidden="true">↗</span></a>
+            <a href="./account.html#redeemForm">Redeem code <span aria-hidden="true">↗</span></a>
+          </div>
+        </details>
       </div>
     </nav>
     <figure class="berlin-hero-media" aria-hidden="true">
