@@ -5,6 +5,33 @@
 
 <meta charset="UTF-8">
 
+<script id="home-mobile-entry-position">
+(() => {
+  const navigation = performance.getEntriesByType("navigation")[0];
+  if (!matchMedia("(max-width: 620px)").matches || location.hash ||
+      navigation?.type !== "navigate" || !("scrollRestoration" in history)) return;
+
+  // Fresh mobile arrivals start at the hero. History traversal retains its position.
+  const previousRestoration = history.scrollRestoration;
+  history.scrollRestoration = "manual";
+  let untouched = true;
+  const release = () => {
+    untouched = false;
+    history.scrollRestoration = previousRestoration;
+    ["touchstart", "pointerdown", "wheel", "keydown"].forEach(type =>
+      window.removeEventListener(type, release, true));
+  };
+  ["touchstart", "pointerdown", "wheel", "keydown"].forEach(type =>
+    window.addEventListener(type, release, { capture: true, passive: true }));
+  window.addEventListener("pageshow", event => {
+    if (event.persisted || !untouched || location.hash) return;
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  }, { once: true });
+  window.addEventListener("pagehide", release, { once: true });
+})();
+</script>
+
+
 <meta
   name="viewport"
   content="width=device-width, initial-scale=1.0"
