@@ -7,7 +7,7 @@
   <meta name="description" content="Nina FOK is a consciousness developed by Parallel Vision, living inside a possible Berlin 2063. Speak with her live.">
   <link rel="canonical" href="https://parallelvisionlabel.com/nina-project.html">
   <meta property="og:title" content="Nina FOK | Parallel Vision">
-  <meta property="og:description" content="An AI character by Parallel Vision. An artist living in an imagined Berlin, 2063. Speak with her live.">
+  <meta property="og:description" content="Meet Nina FOK, an artist from Parallel Vision’s imagined Berlin 2063. Speak with her live.">
   <meta property="og:url" content="https://parallelvisionlabel.com/nina-project.html">
   <meta property="og:type" content="website">
   <meta property="og:image" content="https://parallelvisionlabel.com/assets/ninamain-page.webp">
@@ -269,6 +269,32 @@
   <link rel="stylesheet" href="./css/revamp.css?v=20260904-3">
   <link rel="preload" as="image" href="./assets/optimized/nina-fok/HDNINACANON.webp" fetchpriority="high">
 <style>[data-nina-trial-offer][hidden]{display:none!important}</style>
+<style>
+/* Nina's presence leads the pre-call experience. */
+.nina-intro { align-items: flex-end; overflow-y: auto; }
+.nina-intro::before { inset: 0; background: url("./assets/optimized/nina-fok/Canon.webp") center 30% / cover no-repeat; opacity: 1; filter: none; transform: none; animation: ninaPortraitBreath 10s ease-in-out infinite; animation-play-state: paused; }
+ #ninaOverlay.is-open .nina-intro::before { animation-play-state: running; }
+.nina-intro::after { background: linear-gradient(0deg,#000 0%,rgba(0,0,0,.88) 20%,rgba(0,0,0,.12) 65%,transparent); pointer-events: none; }
+.nina-intro-content { width: min(680px,calc(100% - 40px)); padding: 28px 0; }
+.nina-intro h3 { font-size: clamp(24px,3vw,40px); margin: 8px 0 12px; }
+.nina-intro-code { display: none; }
+.nina-intro-subtitle { font: 400 clamp(17px,2vw,22px)/1.5 Inter,Arial,sans-serif; margin: 0 0 18px; }
+.nina-intro .nina-open-live { min-height: 52px; font-size: 15px; }
+.nina-entry-discover { display: block; width: fit-content; margin: 14px auto 0; color: #deded9; font: 400 14px/1.5 Inter,Arial,sans-serif; text-underline-offset: 5px; }
+.nina-entry-discover:focus-visible { outline: 1px solid white; outline-offset: 5px; }
+.nina-intro .nina-microphone { margin: 10px auto; }
+.nina-intro .nina-microphone > span:first-child { display: none; }
+.nina-intro #ninaEligibilityStatus { font-size: 12px !important; }
+.nina-memory-controls { display: none; }
+@keyframes ninaPortraitBreath { 0%,100% { transform: scale(1); } 50% { transform: scale(1.035); } }
+@media(max-width:600px) {
+ .nina-intro::before { background-position: center 18%; }
+ .nina-intro-content { padding: 18px 0; }
+ .nina-intro h3 { font-size: 25px; }
+ .nina-intro-subtitle { font-size: 17px; }
+}
+@media(prefers-reduced-motion:reduce) { .nina-intro::before { animation: none; } }
+</style>
 </head>
 <body class="pv-nina-project">
   <a class="skip-link" href="#main-content">Skip to main content</a>
@@ -344,15 +370,15 @@
             <button class="n-button n-button-primary" type="button" data-nina-open><span>Talk to Nina</span><small data-nina-trial-offer hidden>3 minutes free</small></button>
           </div>
         </figcaption>
-        <a class="n-hero-discover" href="#question">Discover Nina →</a>
+        <a class="n-hero-discover" href="#question">Discover the project →</a>
       </figure>
     </header>
 
     <section class="n-question" id="question" aria-labelledby="question-title">
-      <p class="n-label">01 / Meet Nina</p>
-      <h2 id="question-title">A voice from Berlin 2063.</h2>
-      <p class="n-question-note">Nina FOK is an AI character created by Parallel Vision: an artist living in an imagined Berlin in 2063. You can speak with her in real time about music, the city, everyday life or whatever brings you here.</p>
-      <p class="n-question-note">Her biography and world give the conversation a point of view. Each exchange unfolds live, with responses generated as you speak.</p>
+      <p class="n-label">01 / The Question</p>
+      <h2 id="question-title">What happens when you give an AI a future to live in?</h2>
+      <p class="n-question-note">Nina FOK is an artist living within Parallel Vision’s imagined Berlin 2063. Her biography, memories and the world around her give her a place to speak from. You can meet her through a live conversation.</p>
+      <p class="n-question-note">The project explores how an AI responds when it is given a history, a perspective and a future it understands as the present. Each conversation unfolds in real time.</p>
     </section>
 
     <section class="n-section n-who-section" aria-labelledby="who-title">
@@ -747,11 +773,7 @@
           </h3>
 
 
-          <p class="nina-intro-subtitle">
-
-            You are opening a direct channel to Berlin in 2063.
-
-          </p>
+          <p class="nina-intro-subtitle">She’s in Berlin, 2063. You’re here.</p>
 
           <p class="nina-eligibility-status" id="ninaEligibilityStatus" role="status" aria-live="polite">Checking Signal Credits</p>
 
@@ -759,11 +781,8 @@
             class="nina-open-live"
             id="startNina"
             type="button"
-          >
-
-            OPEN SIGNAL
-
-          </button>
+          >Talk to Nina</button>
+          <a class="nina-entry-discover" href="./nina-project.html#question">Discover her world</a>
 
           <button class="nina-referral-entry" id="ninaReferralEntry" type="button" hidden>Want free Signal Credits?</button>
 
@@ -921,7 +940,7 @@
       syncMotion();
     })();
   </script>
-<script type="module" src="./js/nina-access.js?v=20260905-account-trial"></script>
+<script type="module" src="./js/nina-access.js?v=20260905-presence"></script>
 </body>
 </html>
 
