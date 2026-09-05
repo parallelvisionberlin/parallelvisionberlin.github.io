@@ -1,34 +1,9 @@
+
 export function giftEmail(amount) {
  if (!Number.isSafeInteger(amount) || amount <= 0) throw new Error("Invalid amount");
  const n = amount.toLocaleString("en-US");
- return {
- subject: "A gift for you from Parallel Vision",
- content: `<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head>
-<body style="margin:0;padding:0;background:#0c0c0c;color:#eeeae3;font-family:Arial,Helvetica,sans-serif">
-<div style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all">${n} Signal Credits have been added to your account. Your next conversation with Nina awaits.</div>
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#0c0c0c"><tr><td align="center" style="padding:36px 20px">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:520px">
-<tr><td style="padding:0 0 26px;border-bottom:1px solid #343434;font-size:13px;line-height:20px;letter-spacing:3px;color:#eeeae3">PARALLEL VISION</td></tr>
-<tr><td style="padding:32px 0 12px;font-size:11px;line-height:18px;letter-spacing:2px;color:#aaa69f">NINA FOK &nbsp;/&nbsp; BERLIN 2063</td></tr>
-<tr><td><h1 style="margin:0;font-family:Georgia,'Times New Roman',serif;font-size:36px;line-height:1.18;font-weight:400;color:#eeeae3">A little more time<br>with Nina.</h1></td></tr>
-<tr><td style="padding:28px 0 22px">
-<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td style="border-left:1px solid #8b8377;padding:0 0 0 18px">
-<p style="margin:0;font-size:30px;line-height:38px;font-weight:400;color:#eeeae3">${n}</p>
-<p style="margin:3px 0 0;font-size:11px;line-height:18px;letter-spacing:2px;color:#bbb5ac">SIGNAL CREDITS</p>
-</td></tr></table>
-</td></tr>
-<tr><td style="font-size:16px;line-height:26px;color:#c6c1b9">
-<p style="margin:0 0 12px">A gift from us, ready in your account.</p>
-<p style="margin:0">Sign in with this email address whenever you&rsquo;re ready to talk.</p>
-</td></tr>
-<tr><td style="padding:28px 0 34px">
-<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td bgcolor="#eeeae3" style="border:1px solid #eeeae3;text-align:center"><a href="https://parallelvisionlabel.com/nina-project.html" style="display:inline-block;padding:16px 28px;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:20px;letter-spacing:1px;font-weight:bold;color:#111111;text-decoration:none">TALK TO NINA</a></td></tr></table>
-</td></tr>
-<tr><td style="padding:20px 0 0;border-top:1px solid #343434;font-size:12px;line-height:20px;color:#aaa69f">A credit gift confirmation from Parallel Vision.<br><a href="https://parallelvisionlabel.com" style="color:#aaa69f;text-decoration:none">parallelvisionlabel.com</a></td></tr>
-</table></td></tr></table>
-</body></html>`
- };
+ return {subject:n+" Signal Credits, courtesy of Parallel Vision",
+ content:`<html><body style="margin:0;background:#080808;color:#eee;font-family:Arial,sans-serif"><table role="presentation" width="100%" bgcolor="#080808" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:40px 22px"><table role="presentation" width="100%" style="max-width:520px;color:#eee"><tr><td style="font-size:16px;letter-spacing:4px;padding-bottom:30px;border-bottom:1px solid #444">PARALLEL VISION</td></tr><tr><td style="padding-top:28px"><h1 style="font-size:28px;font-weight:400">A gift from Parallel Vision</h1><p style="font-size:18px;line-height:1.6">You’ve received <strong>${n} Signal Credits</strong>, courtesy of Parallel Vision.</p><p style="font-size:16px;line-height:1.6;color:#ccc">Your credits are already in your account. Sign in with this email address to use them.</p><p style="padding:20px 0"><a href="https://parallelvisionlabel.com/nina-project.html" style="display:inline-block;background:#eee;color:#080808;padding:18px 26px;text-decoration:none;font-size:16px;font-weight:bold">TALK TO NINA</a></p><p style="font-size:12px;color:#aaa">Nina FOK / Berlin 2063<br>This email confirms a gift to your Parallel Vision account.</p></td></tr></table></td></tr></table></body></html>`};
 }
 let token, expires=0, key="";
 async function getToken(env){
@@ -52,7 +27,7 @@ export async function sendGiftEmail(env, recipient, grant){
  }
  submitted=true;
  const message=giftEmail(grant.amount);
- const r=await fetch("https://mail.zoho.eu/api/accounts/"+encodeURIComponent(env.ZOHO_ACCOUNT_ID)+"/messages",{method:"POST",signal:AbortSignal.timeout(8000),headers:{"Authorization":"Zoho-oauthtoken "+access,"Content-Type":"application/json"},body:JSON.stringify({fromAddress:env.ZOHO_FROM_ADDRESS,toAddress:recipient.email,...message,mailFormat:"html"})});
+ const r=await fetch("https://mail.zoho.eu/api/accounts/"+encodeURIComponent(env.ZOHO_ACCOUNT_ID)+"/messages",{method:"POST",signal:AbortSignal.timeout(8000),headers:{"Authorization":"Zoho-oauthtoken "+access,"Content-Type":"application/json"},body:JSON.stringify({fromAddress:"Parallel Vision <"+env.ZOHO_FROM_ADDRESS.trim()+">",toAddress:recipient.email,...message,mailFormat:"html"})});
  const result=await r.json();
  const status=r.ok && Number(result.status?.code)===200 ? "sent":"failed";
  await env.NINA_MEMORY_DB.prepare("UPDATE credit_gift_emails SET status = ?, updated_at = ? WHERE grant_id = ?").bind(status,new Date().toISOString(),grant.id).run();
