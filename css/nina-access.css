@@ -2389,16 +2389,16 @@ body #ninaOverlay .nina-intro-content {
 body #ninaOverlay .nina-intro-content > h3,
 body #ninaOverlay .nina-entry-discover { display:none; }
 body #ninaOverlay .nina-intro-subtitle {
- position:absolute; left:20px; right:20px; bottom:128px;
+ position:absolute; left:20px; right:20px; bottom:168px;
  width:auto; max-width:none; margin:0; text-align:center;
  font:400 17px/1.5 Inter,Arial,sans-serif; color:rgba(255,255,255,.85);
  text-wrap:balance;
 }
 body #ninaOverlay .nina-intro .nina-open-live {
- position:absolute; left:50%; bottom:52px; transform:translateX(-50%);
+ position:absolute; left:50%; bottom:92px; transform:translateX(-50%);
  width:min(380px,calc(100% - 40px)); min-height:64px; margin:0;
  padding:16px 24px; border:1px solid rgba(238,234,227,.7);
- background:rgba(15,15,15,.65); color:#f4f2ed;
+ background:rgba(48,46,43,.85); color:#f4f2ed;
  font:400 16px/1.4 Michroma,Arial,sans-serif; letter-spacing:.1em;
  box-shadow:none;
 }
@@ -2435,8 +2435,8 @@ body #ninaOverlay .nina-connection-line { display:none; }
 body #ninaOverlay .nina-connecting-label { margin:0; }
 @media(max-width:700px) {
  body #ninaOverlay .nina-window-id {font-size:10px;}
- body #ninaOverlay .nina-intro-subtitle {bottom:182px;font-size:15px;}
- body #ninaOverlay .nina-intro .nina-open-live {bottom:100px;}
+ body #ninaOverlay .nina-intro-subtitle {bottom:222px;font-size:15px;}
+ body #ninaOverlay .nina-intro .nina-open-live {bottom:140px;}
  body #ninaOverlay .nina-microphone {left:auto;right:16px;bottom:max(8px,env(safe-area-inset-bottom));width:calc(100% - 32px);}
  body #ninaOverlay .nina-eligibility-status {right:16px;bottom:58px;width:calc(100% - 32px);}
  body #ninaOverlay .nina-connecting {bottom:100px;}
@@ -2445,7 +2445,7 @@ body #ninaOverlay .nina-connecting-label { margin:0; }
 /* Phone typography and compact device control. */
 @media(max-width:700px) {
  body #ninaOverlay .nina-intro-content > h3 {
-  display:block; position:absolute; left:16px; right:16px; bottom:234px;
+  display:block; position:absolute; left:16px; right:16px; bottom:302px;
   margin:0; text-align:center; font-size:clamp(25.2px,7.35vw,33.6px);
   line-height:1.2;
  }
@@ -2461,3 +2461,14 @@ body #ninaOverlay .nina-connecting-label { margin:0; }
 }
 
 body #ninaOverlay #ninaMicrophoneName[hidden] { display:none; }
+
+/* Transmission cue above the raised invitation. */
+body #ninaOverlay .nina-intro-code {
+ display:block; position:absolute; left:20px; right:20px; bottom:208px;
+ margin:0; text-align:center; color:rgba(255,255,255,.62);
+ font:400 10px/1.4 'Courier New',monospace; letter-spacing:.16em;
+}
+body.nina-connecting-mode #ninaOverlay .nina-intro-code { visibility:hidden; }
+@media(max-width:700px) {
+ body #ninaOverlay .nina-intro-code {bottom:274px;font-size:9px;}
+}
