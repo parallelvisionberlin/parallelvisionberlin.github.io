@@ -2465,6 +2465,15 @@ body #ninaOverlay .nina-intro-code {
  font:400 10px/1.4 'Courier New',monospace; letter-spacing:.16em;
 }
 body.nina-connecting-mode #ninaOverlay .nina-intro-code { visibility:hidden; }
+@media(min-width:701px) {
+ body #ninaOverlay .nina-intro-code { bottom:248px; }
+ body #ninaOverlay .nina-intro-subtitle { bottom:208px; }
+ body #ninaOverlay .nina-intro .nina-open-live {
+  bottom:132px;
+  background:rgba(58,56,52,.9);
+  border-color:rgba(244,241,234,.78);
+ }
+}
 @media(max-width:700px) {
  body #ninaOverlay .nina-intro-code {bottom:216px;font-size:9px;letter-spacing:.12em;}
  body #ninaOverlay .nina-intro-code::before {
