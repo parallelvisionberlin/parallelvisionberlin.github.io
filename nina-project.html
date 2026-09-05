@@ -383,6 +383,23 @@ body .nina-account-panel .nina-account-signout { border-top-color: #242422; }
     .pv-nina-project .n-question-context { font-size: 16px; }
   }
 </style>
+<style id="nina-unified-project-entrance">
+  .pv-nina-project .n-hero { border-bottom: 0; padding-bottom: 0; }
+  .pv-nina-project .n-project-entrance { border: 0; padding: clamp(48px,6vw,88px) 0; scroll-margin-top: 32px; }
+  .pv-nina-project .n-project-entrance .n-who-grid { grid-template-columns: minmax(0,.9fr) minmax(0,1fr); gap: clamp(32px,6vw,88px); align-items: center; }
+  .pv-nina-project .n-project-entrance .n-copy { min-width: 0; max-width: 620px; }
+  .pv-nina-project .n-project-entrance h2 { margin: 0 0 28px; font: 400 clamp(30px,3.5vw,52px)/1.16 Inter,Arial,sans-serif; letter-spacing: -.025em; text-transform: none; text-wrap: balance; }
+  .pv-nina-project .n-project-entrance .n-copy p { margin: 0; font: 400 clamp(17px,1.3vw,19px)/1.75 Inter,Arial,sans-serif; color: #ccc; }
+  .pv-nina-project .n-project-entrance .n-who-media { width: 100%; max-width: 520px; aspect-ratio: 4 / 5; }
+  .pv-nina-project .n-architecture-note { margin-top: 24px; }
+  @media (max-width:700px) {
+    .pv-nina-project .n-project-entrance { padding: 36px 0 48px; }
+    .pv-nina-project .n-project-entrance .n-who-grid { grid-template-columns: minmax(0,1fr); gap: 28px; }
+    .pv-nina-project .n-project-entrance .n-copy { grid-row: 1; }
+    .pv-nina-project .n-project-entrance h2 { font-size: clamp(30px,8vw,40px); margin-bottom: 20px; }
+    .pv-nina-project .n-project-entrance .n-who-media { max-width: 100%; aspect-ratio: 4 / 4.5; }
+  }
+</style>
 </head>
 <body class="pv-nina-project">
   <a class="skip-link" href="#main-content">Skip to main content</a>
@@ -462,13 +479,7 @@ body .nina-account-panel .nina-account-signout { border-top-color: #242422; }
       </figure>
     </header>
 
-    <section class="n-question" id="question" aria-labelledby="question-title">
-      <h2 id="question-title">What happens when you give an AI a future to live in?</h2>
-      <p class="n-question-note">Nina FOK is an ongoing art project by Parallel Vision exploring identity, memory and human connection. At its centre is an artist who inhabits Berlin 2063 as her present. You can see her, speak with her live and develop a shared history across encounters.</p>
-      <p class="n-question-note n-question-context">Her presence brings together generative models, voice, moving image, world knowledge and a custom memory architecture. These systems carry selected experiences from one conversation into the next, allowing earlier encounters to shape what follows.</p>
-    </section>
-
-    <section class="n-section n-who-section" aria-labelledby="who-title">
+    <section class="n-section n-who-section n-project-entrance" id="question" aria-labelledby="question-title">
       <div class="n-who-grid">
         <figure class="n-who-media">
           <video id="ninaPersonalityVideo" autoplay muted loop playsinline preload="none" poster="./assets/optimized/ninamain-page.webp" aria-label="Nina FOK speaking from Berlin 2063">
@@ -477,10 +488,8 @@ body .nina-account-panel .nina-account-signout { border-top-color: #242422; }
           <button class="n-sound" id="ninaVideoSound" type="button" aria-pressed="false" aria-label="Turn Nina video sound on">Sound On</button>
         </figure>
         <div class="n-copy">
-          <p class="n-label">02 / Who is Nina FOK?</p>
-          <h2 id="who-title">Who is Nina FOK?</h2>
-            <p>Nina is a DJ, producer and visual artist within the world of Berlin 2063. Her perspective comes from the places, people and experiences written into that world.</p>
-            <p>Meet her through a live voice and visual connection. With an account, selected memories can carry over when you return; you can manage them from your account.</p>
+          <h2 id="question-title">Her present is your possible future.</h2>
+          <p>Nina FOK is an ongoing art project by Parallel Vision exploring identity, memory and human connection. At its centre is an artist who inhabits Berlin 2063 as her present. You can see her, speak with her live and develop a shared history across encounters.</p>
         </div>
       </div>
     </section>
@@ -491,6 +500,7 @@ body .nina-account-panel .nina-account-signout { border-top-color: #242422; }
         <div class="n-copy n-copy-wide">
           <h2 class="n-condition-title" id="condition-title">A world to speak from</h2>
           <p class="n-condition-intro">Parallel Vision gives Nina a biography, a place in time and a shared history. These form the starting point for each conversation:</p>
+          <p class="n-architecture-note">Her presence brings together generative models, voice, moving image, world knowledge and a custom memory architecture. These systems carry selected experiences from one conversation into the next, allowing earlier encounters to shape what follows.</p>
           <div class="n-instruction">
             <span>This is where you are.</span>
             <span>This is when you are.</span>
