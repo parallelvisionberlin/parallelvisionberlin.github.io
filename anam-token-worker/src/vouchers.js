@@ -56,13 +56,12 @@ export async function grantGiftCredits(env, ownerId, userId, amount, note = "") 
   await getSignalCreditBalance(env, userId);
   const grant = { id: crypto.randomUUID(), at: new Date().toISOString() };
   try {
-    const result = await env.NINA_MEMORY_DB.prepare(`
+    await env.NINA_MEMORY_DB.prepare(`
       INSERT INTO credit_grants
         (id, user_id, amount, previous_balance, resulting_balance, granted_at, granted_by_user_id, note)
       SELECT ?, ?, ?, balance, balance + ?, ?, ?, ?
       FROM signal_credit_accounts WHERE user_id = ?
     `).bind(grant.id, userId, credits, credits, grant.at, ownerId, cleanNote, userId).run();
-    if (changes(result) !== 1) throw new VoucherError("user_not_found", "User not found", 404);
   } catch (error) {
     if (error instanceof VoucherError) throw error;
     if (error instanceof SignalCreditError) throw error;
@@ -72,6 +71,7 @@ export async function grantGiftCredits(env, ownerId, userId, amount, note = "") 
     SELECT id, user_id, amount, previous_balance, resulting_balance, granted_at, granted_by_user_id, note
     FROM credit_grants WHERE id = ?
   `).bind(grant.id).first();
+  if (!row) throw new VoucherError("grant_failed", "Unable to confirm credit gift; check grant history before retrying", 409);
   return normalizeGrant(row);
 }
 
