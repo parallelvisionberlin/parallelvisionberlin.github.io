@@ -7,27 +7,28 @@
 
 <script id="home-mobile-entry-position">
 (() => {
-  const navigation = performance.getEntriesByType("navigation")[0];
-  if (!matchMedia("(max-width: 620px)").matches || location.hash ||
-      navigation?.type !== "navigate" || !("scrollRestoration" in history)) return;
-
-  // Fresh mobile arrivals start at the hero. History traversal retains its position.
-  const previousRestoration = history.scrollRestoration;
-  history.scrollRestoration = "manual";
-  let untouched = true;
-  const release = () => {
-    untouched = false;
-    history.scrollRestoration = previousRestoration;
-    ["touchstart", "pointerdown", "wheel", "keydown"].forEach(type =>
-      window.removeEventListener(type, release, true));
-  };
-  ["touchstart", "pointerdown", "wheel", "keydown"].forEach(type =>
-    window.addEventListener(type, release, { capture: true, passive: true }));
-  window.addEventListener("pageshow", event => {
-    if (event.persisted || !untouched || location.hash) return;
+  if (!matchMedia("(max-width: 700px)").matches || location.hash) return;
+  if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+  let active = true;
+  let deadline = Date.now() + 6000;
+  const top = () => {
+    if (!active || location.hash || Date.now() > deadline) return;
     window.scrollTo({ top: 0, left: 0, behavior: "instant" });
-  }, { once: true });
-  window.addEventListener("pagehide", release, { once: true });
+  };
+  const stop = () => { active = false; };
+  ["touchstart", "pointerdown", "wheel", "keydown"].forEach(type =>
+    window.addEventListener(type, stop, { capture: true, passive: true }));
+  window.addEventListener("hashchange", stop);
+  window.addEventListener("scroll", top, { passive: true });
+  window.addEventListener("pageshow", () => {
+    active = !location.hash;
+    deadline = Date.now() + 6000;
+    top();
+    requestAnimationFrame(top);
+  });
+  document.addEventListener("DOMContentLoaded", top, { once: true });
+  window.addEventListener("load", top, { once: true });
+  document.fonts?.ready.then(top);
 })();
 </script>
 
@@ -294,6 +295,16 @@ body.pv-home #contact .contact-socials a::after { content: none; display: none; 
     #ninaOverlay .nina-intro-subtitle { margin-bottom: 8px; font-size: 16px; }
     #ninaOverlay .nina-open-live { min-height: 48px; margin-top: 10px; }
   }
+</style>
+<style id="mobile-release-compact">
+@media(max-width:700px){
+body.pv-home .current-release-copy{padding:22px 0 20px}
+body.pv-home .current-release h2{margin:14px 0 10px;font-size:clamp(32px,9vw,42px)}
+body.pv-home .current-release-artist{font-size:17px;line-height:1.45}
+body.pv-home .current-release-note{margin-top:18px;font-size:16px;line-height:1.55}
+body.pv-home .current-release .pv-text-link{margin-top:18px;min-height:44px}
+body.pv-home .current-release{margin-bottom:12px}
+}
 </style>
 </head>
 
