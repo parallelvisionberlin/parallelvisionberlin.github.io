@@ -97,3 +97,11 @@ body.account-modal-open { overflow: hidden; }
   .account-confirm-actions { display: grid; }
   .account-confirm-actions .account-button { width: 100%; }
 }
+
+/* Keep voucher redemption readable and easy to reach. */
+.account-redeem { scroll-margin-top: 40px; gap: 14px; margin-top: 36px; padding-top: 24px; border-top: 1px solid #333; }
+.account-redeem label { color: #f2f2ee; font: 500 18px/1.5 Inter, Arial, sans-serif; letter-spacing: .01em; text-transform: none; }
+.account-redeem input { height: 54px; font-size: 18px; }
+.account-redeem .account-button { min-height: 54px; padding: 12px 24px; font: 500 15px/1.4 Inter, Arial, sans-serif; letter-spacing: .03em; }
+.account-redeem .account-status { font-size: 15px; line-height: 1.6; }
+.account-redeem:target { border-top-color: #aaa; }
