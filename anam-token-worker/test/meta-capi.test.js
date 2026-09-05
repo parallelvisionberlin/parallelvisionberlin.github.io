@@ -5,9 +5,10 @@ import { MetaCapiError, NINA_META_EVENT_NAMES, sendNinaMetaEvent } from "../src/
 
 const EVENT_ID = "d750d2d8-84c6-4fb7-ada7-7ae58ef65251";
 
-test("Meta CAPI allowlist contains only the five Nina funnel events", () => {
+test("Meta CAPI allowlist contains the Nina funnel and commerce events", () => {
   assert.deepEqual([...NINA_META_EVENT_NAMES], [
-    "TalkToNinaClicked", "NinaAuthModalOpened", "NinaSignupStarted", "NinaAuthCompleted", "TalkToNina"
+    "TalkToNinaClicked", "NinaAuthModalOpened", "NinaSignupStarted", "NinaAuthCompleted", "TalkToNina",
+    "InitiateCheckout", "Purchase"
   ]);
 });
 
@@ -51,9 +52,42 @@ test("Meta CAPI sends the approved Nina event shape without raw email", async ()
   assert.doesNotMatch(outgoing.url + outgoing.options.body, /secret-token/);
 });
 
+test("Meta CAPI sends validated commerce value and currency for Purchase", async () => {
+  let outgoing;
+  await sendNinaMetaEvent({ META_CAPI_ACCESS_TOKEN: "secret-token" }, {
+    eventName: "Purchase",
+    eventId: EVENT_ID,
+    eventSourceUrl: "https://parallelvisionlabel.com/?ninaCredits=success",
+    emailHash: "cec43edb6a1681336ab87fa21ea576e83450826e3cc05f2ca73128e7fd69745f",
+    customData: {
+      currency: "eur",
+      value: 17,
+      contentIds: ["signal_300"],
+      contentType: "product",
+      numItems: 1,
+      orderId: "purchase-123"
+    }
+  }, async (url, options) => {
+    outgoing = { url, options };
+    return new Response("{}", { status: 200 });
+  });
+  const payload = JSON.parse(outgoing.options.body);
+  assert.deepEqual(payload.data[0].custom_data, {
+    currency: "EUR",
+    value: 17,
+    content_ids: ["signal_300"],
+    content_type: "product",
+    num_items: 1,
+    order_id: "purchase-123"
+  });
+  assert.deepEqual(payload.data[0].user_data.em, [
+    "cec43edb6a1681336ab87fa21ea576e83450826e3cc05f2ca73128e7fd69745f"
+  ]);
+});
+
 test("Meta CAPI rejects non-allowlisted events and requires its Worker secret", async () => {
   await assert.rejects(() => sendNinaMetaEvent({ META_CAPI_ACCESS_TOKEN: "secret" }, {
-    eventName: "Purchase", eventSourceUrl: "https://parallelvisionlabel.com/"
+    eventName: "Lead", eventSourceUrl: "https://parallelvisionlabel.com/"
   }), error => error instanceof MetaCapiError && error.code === "invalid_event_name");
   await assert.rejects(() => sendNinaMetaEvent({}, {
     eventName: "TalkToNinaClicked", eventId: EVENT_ID, eventSourceUrl: "https://parallelvisionlabel.com/"
