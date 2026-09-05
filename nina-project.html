@@ -170,12 +170,14 @@
     .n-faq h2 { margin: 0; font: 400 clamp(34px,4vw,50px)/1.2 Michroma,sans-serif; letter-spacing: .025em; text-transform: uppercase; }
     .n-faq-list { margin-left: calc(28% + clamp(42px,7vw,105px)); border-top: 1px solid var(--n-line); }
     .n-faq details { border-bottom: 1px solid var(--n-line); }
-    .n-faq summary { min-height: 76px; display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; gap: 24px; color: rgba(255,255,255,.82); font: 10px/1.5 'Courier New',monospace; letter-spacing: .17em; list-style: none; text-transform: uppercase; cursor: pointer; }
+    .n-faq summary { min-height: 76px; display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; gap: 24px; color: #eee; font: 400 19px/1.5 Inter,Arial,sans-serif; letter-spacing: 0; list-style: none; text-transform: none; cursor: pointer; }
+    .n-faq summary:focus-visible { outline: 1px solid #eee; outline-offset: 5px; }
+    .n-faq summary:hover { color: #fff; }
     .n-faq summary::-webkit-details-marker { display: none; }
     .n-faq summary::after { content: '+'; color: rgba(255,255,255,.5); font-size: 17px; font-weight: 300; }
     .n-faq details[open] summary::after { content: '−'; }
     .n-faq-answer { max-width: 760px; padding: 0 48px 30px 0; }
-    .n-faq-answer p { margin: 0; color: var(--n-body); font: 300 16px/1.75 Inter,sans-serif; }
+    .n-faq-answer p { margin: 0; color: #c6c6c6; font: 400 17px/1.7 Inter,Arial,sans-serif; }
     .n-faq-answer p + p { margin-top: 15px; }
     .n-footer { min-height: 76px; display: flex; align-items: center; justify-content: space-between; gap: 24px; color: var(--n-faint); }
     .n-footer a { color: inherit; }
@@ -258,9 +260,9 @@
       .n-faq { padding: 68px 0 82px; }
       .n-faq-head { margin-bottom: 28px; }
       .n-faq-list { margin-left: 0; }
-      .n-faq summary { min-height: 72px; gap: 18px; font-size: 10px; letter-spacing: .12em; }
+      .n-faq summary { min-height: 72px; gap: 18px; padding: 16px 0; font-size: 17px; letter-spacing: 0; }
       .n-faq-answer { padding: 0 28px 27px 0; }
-      .n-faq-answer p { font-size: 15.5px; line-height: 1.72; }
+      .n-faq-answer p { font-size: 16px; line-height: 1.7; }
       .n-footer { display: grid; align-content: center; padding: 24px 0; letter-spacing: .15em; }
     }
     @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .n-button { transition: none; } .n-hero-asset,.n-connect-video { display: none; } }
@@ -498,8 +500,7 @@ body .nina-account-panel .nina-account-signout { border-top-color: #242422; }
         <p>The city is not a backdrop. It is where Nina's point of view begins.</p>
       </div>
       <div class="n-copy n-berlin-body">
-        <p>Nina is a 26-year-old artist living in Berlin in 2063. She is a DJ, producer and visual artist connected to Parallel Vision. She has memories, preferences, relationships, contradictions, desires, opinions and her own way of interpreting the world around her.</p>
-        <p>Her age is not fixed. Nina ages with time, just as a person does.</p>
+        <p>Nina is a DJ, producer and visual artist living in Parallel Vision’s imagined Berlin 2063. Her music, relationships and everyday life give her a perspective on the city you can discover through conversation.</p>
         <p class="n-emphasis">2063 is her present.</p>
       </div>
     </section>
