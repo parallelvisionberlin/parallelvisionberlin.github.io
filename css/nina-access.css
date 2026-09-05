@@ -2386,7 +2386,7 @@ body #ninaOverlay .nina-intro-content {
   text-align: center;
 }
 body #ninaOverlay .nina-intro-content > h3 { order: 1; margin: 0 0 12px; }
-body #ninaOverlay .nina-intro-subtitle { order: 2; margin: 0; font-size: 17px; line-height: 1.55; }
+body #ninaOverlay .nina-intro-subtitle { order: 2; width: 100%; margin: 0 auto; text-align: center; text-wrap: balance; font-size: 18px; line-height: 1.55; color: rgba(255,255,255,.88); }
 body #ninaOverlay .nina-open-live {
   order: 3; margin: 24px 0 0; width: min(340px, 100%);
   min-height: 60px; font-size: 17px; letter-spacing: .065em;
@@ -2409,22 +2409,22 @@ body #ninaOverlay .nina-microphone-toggle {
 }
 body #ninaOverlay .nina-microphone-picker { margin-bottom: 8px; }
 body #ninaOverlay .nina-connecting { order: 7; }
-@media (min-width: 900px) and (min-height: 620px) {
-  body #ninaOverlay .nina-intro { justify-content: flex-start; }
-  body #ninaOverlay .nina-intro-content {
-    width: 40%; max-width: 500px; margin: auto 0;
-    padding: 32px clamp(24px,3vw,48px); align-items: flex-start; text-align: left;
-  }
-  body #ninaOverlay .nina-intro h3 { font-size: clamp(28px,3vw,40px); letter-spacing: .055em; }
-  body #ninaOverlay .nina-intro::after {
-    background: linear-gradient(90deg,rgba(0,0,0,.94) 0%,rgba(0,0,0,.78) 28%,rgba(0,0,0,.14) 60%,rgba(0,0,0,.08) 100%),linear-gradient(0deg,rgba(0,0,0,.7),transparent 45%);
-  }
-  body #ninaOverlay .nina-microphone { text-align: left; }
-  body #ninaOverlay .nina-microphone-toggle { padding-left: 0; }
-}
 @media (max-height: 619px) {
   body #ninaOverlay .nina-intro-content { padding-block: 12px; }
   body #ninaOverlay .nina-open-live { margin-top: 14px; min-height: 52px; }
   body #ninaOverlay .nina-entry-discover { margin-top: 4px; }
   body #ninaOverlay .nina-microphone { margin-top: 4px; padding-top: 4px; }
+}
+
+/* Keep the invitation on a single centered axis at every viewport size. */
+body #ninaOverlay .nina-intro { justify-content: center; }
+body #ninaOverlay .nina-intro-content { margin-inline: auto; }
+body #ninaOverlay .nina-intro .nina-open-live {
+  width: min(360px,100%); border-color: #d6d2cc;
+  background: rgba(24,23,22,.9); color: #fff; font-weight: 600; font-size: 18px;
+  box-shadow: 0 4px 24px rgba(0,0,0,.18);
+}
+body #ninaOverlay .nina-intro .nina-open-live:hover:not(:disabled),
+body #ninaOverlay .nina-intro .nina-open-live:focus-visible {
+  background: #eeeae3; color: #111; border-color: #eeeae3;
 }
