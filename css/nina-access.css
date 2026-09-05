@@ -2375,3 +2375,56 @@ body.nina-connecting-mode
   .nina-intro h3 { font-size: clamp(35px, 11vw, 58px); }
   .nina-intro-subtitle { font-size: 15px; }
 }
+
+/* Pre-call composition: invitation first, account and device details below. */
+body #ninaOverlay .nina-intro-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: min(480px, calc(100% - 40px));
+  padding: 28px 8px;
+  text-align: center;
+}
+body #ninaOverlay .nina-intro-content > h3 { order: 1; margin: 0 0 12px; }
+body #ninaOverlay .nina-intro-subtitle { order: 2; margin: 0; font-size: 17px; line-height: 1.55; }
+body #ninaOverlay .nina-open-live {
+  order: 3; margin: 24px 0 0; width: min(340px, 100%);
+  min-height: 60px; font-size: 17px; letter-spacing: .065em;
+}
+body #ninaOverlay .nina-eligibility-status {
+  order: 4; margin: 12px 0 0; font-family: Inter, Arial, sans-serif;
+  line-height: 1.5; letter-spacing: .035em; color: rgba(255,255,255,.65);
+}
+body #ninaOverlay .nina-entry-discover {
+  order: 5; display: inline-flex; align-items: center; min-height: 44px;
+  margin: 12px 0 0; color: rgba(255,255,255,.8);
+  font: 400 14px/1.5 Inter,Arial,sans-serif; text-decoration: none;
+}
+body #ninaOverlay .nina-microphone {
+  order: 6; width: min(340px,100%); margin: 16px 0 0;
+  padding-top: 12px; border-top: 1px solid rgba(255,255,255,.16);
+}
+body #ninaOverlay .nina-microphone-toggle {
+  min-height: 40px; border-bottom: 0; color: rgba(255,255,255,.7);
+}
+body #ninaOverlay .nina-microphone-picker { margin-bottom: 8px; }
+body #ninaOverlay .nina-connecting { order: 7; }
+@media (min-width: 900px) and (min-height: 620px) {
+  body #ninaOverlay .nina-intro { justify-content: flex-start; }
+  body #ninaOverlay .nina-intro-content {
+    width: 40%; max-width: 500px; margin: auto 0;
+    padding: 32px clamp(24px,3vw,48px); align-items: flex-start; text-align: left;
+  }
+  body #ninaOverlay .nina-intro h3 { font-size: clamp(28px,3vw,40px); letter-spacing: .055em; }
+  body #ninaOverlay .nina-intro::after {
+    background: linear-gradient(90deg,rgba(0,0,0,.94) 0%,rgba(0,0,0,.78) 28%,rgba(0,0,0,.14) 60%,rgba(0,0,0,.08) 100%),linear-gradient(0deg,rgba(0,0,0,.7),transparent 45%);
+  }
+  body #ninaOverlay .nina-microphone { text-align: left; }
+  body #ninaOverlay .nina-microphone-toggle { padding-left: 0; }
+}
+@media (max-height: 619px) {
+  body #ninaOverlay .nina-intro-content { padding-block: 12px; }
+  body #ninaOverlay .nina-open-live { margin-top: 14px; min-height: 52px; }
+  body #ninaOverlay .nina-entry-discover { margin-top: 4px; }
+  body #ninaOverlay .nina-microphone { margin-top: 4px; padding-top: 4px; }
+}
