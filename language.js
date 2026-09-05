@@ -50,7 +50,7 @@
     ["#contact h2", "Contact", "Kontakt"],
     ["#contact .contact-intro", "Independent label and cultural platform working across music, moving image, material research and interactive consciousness.", "Unabhängiges Label und Kulturplattform für Musik, Bewegtbild, Materialforschung und interaktives Bewusstsein."],
     [".scroll", "Scroll", "Weiter"],
-    [".nina-intro-subtitle", "A live transmission from somewhere ahead of us. She can hear you.", "Eine Live-Übertragung von irgendwo vor unserer Zeit. Sie kann dich hören."],
+    [".nina-intro-subtitle", "She’s in Berlin, 2063. Start a conversation.", "Sie ist in Berlin, 2063. Beginne ein Gespräch."],
     [".nina-intro-small", "Say something unexpected.", "Sag etwas Unerwartetes."]
   ];
 
