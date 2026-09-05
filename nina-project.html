@@ -357,6 +357,29 @@ body .nina-account-panel { background: #020202; border-color: #202020; }
 body .nina-account-panel .nina-account-buy-credits { border-bottom-color: #363632; }
 body .nina-account-panel .nina-account-signout { border-top-color: #242422; }
 </style>
+<style id="nina-editorial-entrance">
+  .pv-nina-project .n-hero-actions { display: flex; flex-wrap: wrap; gap: 20px 28px; align-items: center; }
+  .pv-nina-project .n-hero-actions .n-button-primary { font: 500 16px/1.3 Inter,Arial,sans-serif; letter-spacing: .045em; min-height: 64px; min-width: 220px; background: rgba(0,0,0,.16); }
+  .pv-nina-project .n-hero-actions .n-button-primary:hover { background: rgba(255,255,255,.1); color: #fff; }
+  .pv-nina-project .n-hero-discover { position: static; transform: none; font: 400 14px/1.5 Inter,Arial,sans-serif; letter-spacing: 0; text-transform: none; min-height: 44px; color: #d3d3d3; }
+  .pv-nina-project .n-hero-statement { max-width: 540px; font: 400 18px/1.6 Inter,Arial,sans-serif; text-wrap: balance; }
+  .pv-nina-project .n-nav-transmit { font-size: 13px; letter-spacing: .08em; }
+  .pv-nina-project .n-question { align-items: center; text-align: center; padding: 72px 24px 80px; }
+  .pv-nina-project .n-question h2 { max-width: 900px; margin: 0 0 28px; font: 400 clamp(30px,3.4vw,48px)/1.2 Inter,Arial,sans-serif; letter-spacing: -.035em; text-wrap: balance; }
+  .pv-nina-project .n-question-note { max-width: 680px; font-size: 19px; line-height: 1.65; color: #e0e0e0; text-wrap: pretty; }
+  .pv-nina-project .n-question-context { margin-top: 20px; font-size: 17px; color: #b8b8b8; }
+  @media(max-width:700px) {
+    .pv-nina-project .n-hero-statement { font-size: 16px; max-width: 310px; }
+    .pv-nina-project .n-hero-actions { gap: 12px; margin-top: 24px; }
+    .pv-nina-project .n-hero-actions .n-button-primary { min-height: 58px; min-width: 0; font-size: 16px; }
+    .pv-nina-project .n-hero-copy { bottom: 28px; }
+    .pv-nina-project .n-hero-discover { width: 100%; justify-content: center; }
+    .pv-nina-project .n-question { padding: 48px 0 52px; }
+    .pv-nina-project .n-question h2 { font-size: clamp(28px,7.5vw,36px); }
+    .pv-nina-project .n-question-note { max-width: 100%; font-size: 17px; }
+    .pv-nina-project .n-question-context { font-size: 16px; }
+  }
+</style>
 </head>
 <body class="pv-nina-project">
   <a class="skip-link" href="#main-content">Skip to main content</a>
@@ -427,19 +450,19 @@ body .nina-account-panel .nina-account-signout { border-top-color: #242422; }
         <figcaption class="n-hero-copy">
           <p class="n-meta">Berlin / 2063</p>
           <h1>Nina FOK</h1>
-          <p class="n-hero-statement">A consciousness developed by Parallel Vision, living inside a possible Berlin 2063.</p>
+          <p class="n-hero-statement">She lives in Berlin, 2063. You can speak with her now.</p>
           <div class="n-hero-actions">
             <button class="n-button n-button-primary" type="button" data-nina-open><span>Talk to Nina</span><small data-nina-trial-offer hidden>3 minutes free</small></button>
+            <a class="n-hero-discover" href="#question">Discover the project →</a>
           </div>
         </figcaption>
-        <a class="n-hero-discover" href="#question">Discover the project →</a>
       </figure>
     </header>
 
     <section class="n-question" id="question" aria-labelledby="question-title">
-      <p class="n-label">01 / The Question</p>
-      <h2 id="question-title">What happens when you give an AI a future to live in?</h2>
-      <p class="n-question-note">Parallel Vision gives Nina a biography, memories and a world she understands as the present. The project explores how that world shapes her responses, and how conversations become part of her history.</p>
+      <h2 id="question-title">What if an AI lived in 2063?</h2>
+      <p class="n-question-note">Nina FOK is an artist and artificial intelligence whose reality is Parallel Vision’s Berlin 2063. You can see her, speak with her live and build a shared history through conversations she can remember.</p>
+      <p class="n-question-note n-question-context">The project brings together language, voice, visual presence and a custom memory system to explore how an identity develops through encounters with real people.</p>
     </section>
 
     <section class="n-section n-who-section" aria-labelledby="who-title">
