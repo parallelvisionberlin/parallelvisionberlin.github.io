@@ -1559,3 +1559,18 @@ body {
     transition: none;
   }
 }
+
+/* Nina project: readable concept and clear separation before encounter actions. */
+body .n-project-entrance .n-encounter-invitation{display:flex;flex-wrap:wrap;align-items:center;column-gap:26px;row-gap:16px}
+body .n-project-entrance .n-encounter-invitation>p{flex-basis:100%;margin:0 0 16px}
+body .n-project-entrance .n-encounter-invitation>.n-button{margin:0}
+body .n-project-entrance .n-encounter-invitation>a{margin:0;padding-block:16px}
+body .n-concept-entry .n-copy{max-width:820px}
+body .n-concept-entry #question-title{font-size:clamp(28px,2.7vw,40px);line-height:1.22;max-width:780px;margin:0 auto 28px;text-wrap:balance}
+body .n-concept-entry .n-copy>p{font-size:20px;line-height:1.75;max-width:740px;margin:0 auto;color:#deded8}
+@media(max-width:760px){
+body .n-concept-entry #question-title{font-size:28px;line-height:1.25;margin-bottom:22px}
+body .n-concept-entry .n-copy>p{font-size:18px;line-height:1.65}
+body .n-project-entrance .n-encounter-invitation{column-gap:20px}
+body .n-project-entrance .n-encounter-invitation>p{margin-bottom:12px}
+}
