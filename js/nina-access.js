@@ -511,7 +511,7 @@ function syncNinaAccountCreditActions(balance, language = document.documentEleme
   const german = language === "de";
   if (ninaAccountBuyCredits) {
     ninaAccountBuyCredits.textContent = canTransmit
-      ? (german ? "Mit 2063 verbinden" : "Connect to 2063")
+      ? (german ? "Mit Nina sprechen" : "Talk to Nina")
       : (german ? "Signal Credits kaufen" : "Buy Signal Credits");
     ninaAccountBuyCredits.dataset.action = canTransmit ? "transmit" : "credits";
   }
