@@ -512,6 +512,34 @@
   </style>
   <link rel="stylesheet" href="./css/base.css?v=20260814-1">
   <link rel="stylesheet" href="./css/revamp.css?v=20260904-3">
+
+  <style>
+    /* Give the long display title a full row instead of a narrow side column. */
+    .pv-berlin .berlin-moving-card {
+      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-rows: auto auto;
+      gap: 24px 36px;
+    }
+    .pv-berlin .berlin-moving-card > * { min-width: 0; }
+    .pv-berlin .berlin-moving-card h2 {
+      grid-column: 1 / -1;
+      grid-row: 1;
+      font-size: clamp(24px, 3vw, 42px);
+      line-height: 1.2;
+      letter-spacing: -.02em;
+      overflow-wrap: anywhere;
+    }
+    .pv-berlin .berlin-moving-card p { grid-column: 1; grid-row: 2; align-self: center; }
+    .pv-berlin .berlin-moving-card > span {
+      grid-column: 2; grid-row: 2; align-self: center;
+      white-space: normal; font-size: 12px; letter-spacing: .08em;
+    }
+    @media (max-width: 900px) {
+      .pv-berlin .berlin-moving-card { grid-template-columns: minmax(0, 1fr); gap: 18px; }
+      .pv-berlin .berlin-moving-card h2 { font-size: clamp(20px, 4.2vw, 34px); }
+      .pv-berlin .berlin-moving-card > span { grid-column: 1; grid-row: 3; }
+    }
+  </style>
 </head>
 <body class="berlin-page pv-berlin">
   <a class="skip-link" href="#archive">Skip to main content</a>
