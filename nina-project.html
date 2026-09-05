@@ -428,6 +428,17 @@ body .nina-account-panel .nina-account-signout { border-top-color: #242422; }
     #ninaOverlay .nina-open-live { min-height: 48px; margin-top: 10px; }
   }
 </style>
+<style id="nina-exploration-invitation">
+  .pv-nina-project .n-encounter-invitation { margin-top: 28px; }
+  .pv-nina-project .n-encounter-invitation p { font-size: 16px; color: #bcbcbc; margin-bottom: 20px; }
+  .pv-nina-project .n-encounter-button { min-height: 54px; width: auto; padding: 14px 28px; font: 500 16px/1.4 Inter,Arial,sans-serif; letter-spacing: .035em; }
+  .pv-nina-project .n-encounter-invitation a { display: inline-flex; align-items: center; min-height: 44px; margin: 8px 0 0 20px; color: #ccc; font: 400 14px/1.5 Inter,Arial,sans-serif; text-underline-offset: 5px; }
+  .n-architecture-details { margin-top: 28px; max-width: 780px; }
+  .n-architecture-details summary { cursor: pointer; padding: 16px 0; font: 400 18px/1.5 Inter,Arial,sans-serif; color: #eee; }
+  .n-architecture-details p { font-size: 17px; line-height: 1.7; }
+  .n-architecture-details summary:focus-visible { outline: 1px solid white; outline-offset: 4px; }
+  @media(max-width:700px) { .pv-nina-project .n-encounter-invitation a { display: flex; margin-left: 0; } }
+</style>
 </head>
 <body class="pv-nina-project">
   <a class="skip-link" href="#main-content">Skip to main content</a>
@@ -518,6 +529,11 @@ body .nina-account-panel .nina-account-signout { border-top-color: #242422; }
         <div class="n-copy">
           <h2 id="question-title">Her present is your possible future.</h2>
           <p>Nina FOK is an ongoing art project by Parallel Vision exploring identity, memory and human connection. At its centre is an artist who inhabits Berlin 2063 as her present. You can see her, speak with her live and develop a shared history across encounters.</p>
+          <div class="n-encounter-invitation">
+            <p>Ask about her music, her city, or something from your own life. Her responses unfold in real time.</p>
+            <button class="n-button n-encounter-button" type="button" data-nina-open>Talk to Nina</button>
+            <a href="#condition-title">How the project works</a>
+          </div>
         </div>
       </div>
     </section>
@@ -528,7 +544,14 @@ body .nina-account-panel .nina-account-signout { border-top-color: #242422; }
         <div class="n-copy n-copy-wide">
           <h2 class="n-condition-title" id="condition-title">A world to speak from</h2>
           <p class="n-condition-intro">Parallel Vision gives Nina a biography, a place in time and a shared history. These form the starting point for each conversation:</p>
-          <p class="n-architecture-note">Her presence brings together generative models, voice, moving image, world knowledge and a custom memory architecture. These systems carry selected experiences from one conversation into the next, allowing earlier encounters to shape what follows.</p>
+          <details class="n-architecture-details">
+            <summary>How Nina’s presence and memory work</summary>
+            <div>
+              <p>Her presence brings together generative models, voice, moving image, world knowledge and a custom memory architecture. These systems carry selected experiences from one conversation into the next, allowing earlier encounters to shape what follows.</p>
+              <p>Anam provides the live avatar connection. Nina’s system prompt and knowledge of Berlin 2063 establish the identity and world she speaks from. The language model generates her responses as the conversation unfolds.</p>
+              <p>Parallel Vision’s memory system brings selected memories, conversation summaries and unfinished threads into later sessions. With an account, each visitor can develop a separate history with Nina and manage what is stored.</p>
+            </div>
+          </details>
           <div class="n-instruction">
             <span>This is where you are.</span>
             <span>This is when you are.</span>
