@@ -30,6 +30,35 @@
   white-space: nowrap !important;
   border: 0 !important;
 }
+
+/* Nina project mobile: keep the hero visually stable while Safari swaps
+   poster/video layers, and let the portrait break up the opening text flow. */
+@media (max-width: 700px) {
+  body.pv-nina-project .n-hero-media {
+    height: min(145vw, 650px) !important;
+    min-height: 520px !important;
+    max-height: 650px !important;
+    background-position: 56% center !important;
+    contain: layout paint;
+  }
+
+  body.pv-nina-project .n-hero-asset {
+    object-position: 56% center !important;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+
+  body.pv-nina-project .n-project-entrance .n-who-media {
+    grid-row: 1 !important;
+  }
+
+  body.pv-nina-project .n-project-entrance .n-copy {
+    grid-row: 2 !important;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html:focus-within { scroll-behavior: auto; }
   *, *::before, *::after {
