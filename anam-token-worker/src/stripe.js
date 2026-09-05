@@ -67,6 +67,11 @@ function metaCommerceData(pack, purchaseId = "") {
   return customData;
 }
 
+function configuredMetaTestEventCode(env) {
+  const code = typeof env?.META_TEST_EVENT_CODE === "string" ? env.META_TEST_EVENT_CODE.trim() : "";
+  return /^TEST\d+$/.test(code) ? code : "";
+}
+
 async function sendMetaCommerceEvent(env, {
   eventName, eventId, eventSourceUrl, email = "", emailHash = "", pack, purchaseId = ""
 }) {
@@ -78,7 +83,8 @@ async function sendMetaCommerceEvent(env, {
       eventSourceUrl,
       email,
       emailHash,
-      customData: metaCommerceData(pack, purchaseId)
+      customData: metaCommerceData(pack, purchaseId),
+      testEventCode: configuredMetaTestEventCode(env)
     });
     return true;
   } catch (error) {
