@@ -1,3 +1,4 @@
+import { createNinaTrialPromotion } from "./nina-trial-promotion.js?v=20260905";
 /* The access gate is theatrical client-side UI; its public hash is not authorization. */
 import { createClient, AnamEvent } from "https://esm.sh/@anam-ai/js-sdk@4.23.1?bundle";
 import { Clerk } from "https://esm.sh/@clerk/clerk-js@6?bundle";
@@ -17,6 +18,7 @@ const CLERK_CONFIGURATION = DEVELOPMENT
       frontendDomain: "clerk.parallelvisionlabel.com"
     };
 const byId = id => document.getElementById(id);
+const ninaTrialPromotion = createNinaTrialPromotion();
 const ninaOverlay = byId("ninaOverlay");
 const openNina = byId("openNina");
 const openNinaArtist = byId("openNinaArtist");
@@ -344,8 +346,8 @@ function syncAccountLanguage(language = document.documentElement.lang) {
   if (creditLabels?.[1]) creditLabels[1].textContent = german ? "Live Nina Zeit" : "Live Nina Time";
   const about = ninaCreditsPurchaseModal?.querySelector(".nina-credits-about-copy");
   if (about) about.innerHTML = german
-    ? "<p>Signal Credits halten Live Nina am Laufen.</p><p>Jedes neue verifizierte Konto beginnt mit 3 kostenlosen Minuten.</p><p>Danach kannst du jederzeit mehr Live-Zeit hinzufügen, wenn du das Signal erneut öffnen möchtest.</p><p>Textgespräche verwenden keine Signal Credits.</p><p>Live Nina nutzt Echtzeit-Sprach-, Sprachmodell- und visuelle Systeme, solange die Verbindung aktiv ist.</p><p>Verfügbare Pakete beginnen bei 6 Minuten für €3.50.</p><p>Wenn das Signal endet, bleibt deine Geschichte mit Nina erhalten.</p>"
-    : "<p>Signal Credits keep Live Nina running.</p><p>Every new verified account begins with 3 minutes free.</p><p>After that, you can add more live time whenever you want to open the signal again.</p><p>Text conversations do not use Signal Credits.</p><p>Live Nina uses real-time voice, language and visual systems while the connection is active.</p><p>Available packs start at 6 minutes for €3.50.</p><p>When the signal ends, your history with Nina remains.</p>";
+    ? "<p>Signal Credits halten Live Nina am Laufen.</p><p data-nina-trial-offer hidden>Jedes neue verifizierte Konto beginnt mit 3 kostenlosen Minuten.</p><p>Danach kannst du jederzeit mehr Live-Zeit hinzufügen, wenn du das Signal erneut öffnen möchtest.</p><p>Textgespräche verwenden keine Signal Credits.</p><p>Live Nina nutzt Echtzeit-Sprach-, Sprachmodell- und visuelle Systeme, solange die Verbindung aktiv ist.</p><p>Verfügbare Pakete beginnen bei 6 Minuten für €3.50.</p><p>Wenn das Signal endet, bleibt deine Geschichte mit Nina erhalten.</p>"
+    : "<p>Signal Credits keep Live Nina running.</p><p data-nina-trial-offer hidden>Every new verified account begins with 3 minutes free.</p><p>After that, you can add more live time whenever you want to open the signal again.</p><p>Text conversations do not use Signal Credits.</p><p>Live Nina uses real-time voice, language and visual systems while the connection is active.</p><p>Available packs start at 6 minutes for €3.50.</p><p>When the signal ends, your history with Nina remains.</p>";
 }
 
 function syncNinaFullscreen() {
@@ -470,6 +472,7 @@ function legacyOwnerMemoryHeaders() {
 }
 
 function updateNinaAccountControls(clerk = ninaClerk) {
+  ninaTrialPromotion.setUser(clerk?.isSignedIn ? clerk.user : null);
   const signedIn = Boolean(clerk?.isSignedIn && clerk?.session);
   if (ninaSignIn) ninaSignIn.hidden = signedIn;
   if (ninaSignIn) ninaSignIn.disabled = false;
@@ -577,6 +580,7 @@ function loadSignalCreditBalance(clerk = ninaClerk, force = false) {
       }
       if (!Number.isSafeInteger(data?.balance) || data.balance < 0) throw new Error("Invalid Signal Credit balance");
       if (requestId !== ninaCreditsRequest) return null;
+      ninaTrialPromotion.observeUsage(clerk.user, data);
       ninaCreditsBalance = data.balance;
       ninaOwnerBypass = data.ownerBypass === true;
       syncNinaAccountCreditActions(data.balance);
@@ -705,7 +709,7 @@ function initializeSignalCreditPurchaseUI() {
         <summary><span class="nina-credits-about-closed">About Signal Credits +</span><span class="nina-credits-about-open">About Signal Credits −</span></summary>
         <div class="nina-credits-about-copy" style="font-size:1.06em">
           <p>Signal Credits keep Live Nina running.</p>
-          <p>Every new verified account begins with 3 minutes free.</p>
+          <p data-nina-trial-offer hidden>Every new verified account begins with 3 minutes free.</p>
           <p>After that, you can add more live time whenever you want to open the signal again.</p>
           <p>Live Nina uses real-time voice, language and visual systems while the connection is active.</p>
           <p>Available packs start at 6 minutes for €3.50.</p>
@@ -1395,6 +1399,7 @@ function showSignalEnded() {
 }
 
 function markNinaOnline() {
+  ninaTrialPromotion.connected(ninaClerk?.isSignedIn ? ninaClerk.user : null);
   if (!ninaOverlay.classList.contains("is-open")) return;
   ninaConnecting = false;
   ninaStatus.textContent = "NINA ONLINE";
@@ -2131,7 +2136,8 @@ document.addEventListener("click", () => closeNinaAccountPanel());
 window.addEventListener("scroll", () => {
   if (window.innerWidth <= 560 && ninaAccountPanel && !ninaAccountPanel.hidden) closeNinaAccountPanel();
 }, { passive: true });
-window.addEventListener("pv-language-change", event => syncAccountLanguage(event.detail?.language));
+window.addEventListener("pv-language-change", event => { syncAccountLanguage(event.detail?.language); ninaTrialPromotion.render(); });
+window.addEventListener("focus", () => { if (ninaClerk?.isSignedIn) void ninaClerk.user.reload().then(user => ninaTrialPromotion.setUser(user)).catch(() => {}); });
 document.addEventListener("fullscreenchange", syncNinaFullscreen);
 document.addEventListener("webkitfullscreenchange", syncNinaFullscreen);
 startNina.addEventListener("click", () => {
@@ -2231,3 +2237,4 @@ void initializeNinaAuth().then(clerk => {
   if (clerk?.isSignedIn && new URLSearchParams(window.location.search).get("credits") === "1") openSignalCreditPurchase();
 });
 void ANAM_PERSONA_ID;
+

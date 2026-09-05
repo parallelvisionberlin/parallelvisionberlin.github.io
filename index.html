@@ -64,6 +64,7 @@
   <link rel="stylesheet" href="./css/revamp.css?v=20260905-hero-final">
 
   <link rel="preload" as="image" href="./assets/optimized/2063/POV DARK HARMONY.webp" fetchpriority="high">
+<style>[data-nina-trial-offer][hidden]{display:none!important}</style>
 </head>
 
 
@@ -230,7 +231,7 @@
 
   <button class="home-mobile-signal-entry" type="button" data-nina-open>
     <span>Talk to Nina</span>
-    <small>3 minutes free</small>
+    <small data-nina-trial-offer hidden>3 minutes free</small>
   </button>
   <a class="home-mobile-continuation" href="#berlin">Enter the world ↓</a>
 
@@ -238,7 +239,7 @@
 
 <button class="home-desktop-signal-tab" type="button" data-nina-open>
   <span>Talk to Nina</span>
-  <small>3 minutes free</small>
+  <small data-nina-trial-offer hidden>3 minutes free</small>
 </button>
 
 <section class="current-release" aria-labelledby="current-release-title">
@@ -1612,7 +1613,7 @@
     <button class="nina-access-close" id="ninaAccessCancel" type="button" aria-label="Close sign-in panel">×</button>
     <h2 class="nina-access-title" id="ninaAccessTitle">TALK TO NINA</h2>
     <p class="nina-access-lead">She lives in Berlin, 2063.<br>You can speak with her now.</p>
-    <p class="nina-access-description"><strong>3 minutes free.</strong> Sign in to begin and to continue your history when you return.</p>
+    <p class="nina-access-description"><strong data-nina-trial-offer hidden>3 minutes free.</strong> Sign in to begin and to continue your history when you return.</p>
     <div class="nina-access-auth-actions">
       <button class="nina-access-account" id="ninaSignIn" type="button" disabled>CONTINUE WITH GOOGLE</button>
       <button class="nina-access-account nina-access-account-secondary" id="ninaSignInEmail" type="button" aria-expanded="false" aria-controls="ninaEmailSignInForm" disabled>CONTINUE WITH EMAIL</button>
@@ -1908,9 +1909,10 @@
 
   <script src="./js/home.js?v=20260905-hero-final" defer></script>
 
-<script type="module" src="./js/nina-access.js?v=20260904-analytics-renewal"></script>
+<script type="module" src="./js/nina-access.js?v=20260905-account-trial"></script>
 
 
 </body>
 
 </html>
+
