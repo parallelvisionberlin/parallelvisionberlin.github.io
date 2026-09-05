@@ -2238,3 +2238,14 @@ void initializeNinaAuth().then(clerk => {
 });
 void ANAM_PERSONA_ID;
 
+
+document.querySelectorAll(".nina-entry-discover").forEach(link => {
+  link.addEventListener("click", async event => {
+    const destination = new URL(link.href, window.location.href);
+    if (destination.pathname !== window.location.pathname) return;
+    event.preventDefault();
+    await closeNinaWindow();
+    window.location.hash = destination.hash;
+    document.getElementById("question")?.scrollIntoView({ block: "start" });
+  });
+});
