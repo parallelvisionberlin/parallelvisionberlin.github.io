@@ -84,11 +84,11 @@
   rel="stylesheet"
 >
 
-<script src="./language.js?v=20260905-home-refinement" defer></script>
+<script src="./language.js?v=20260905-call-invitation" defer></script>
 
 <link rel="stylesheet" href="./css/base.css?v=20260814-1">
   <link rel="stylesheet" href="./css/home.css?v=20260829-material-signal-tab">
-  <link rel="stylesheet" href="./css/nina-access.css?v=20260905-phone-type">
+  <link rel="stylesheet" href="./css/nina-access.css?v=20260905-call-invitation">
   <link rel="stylesheet" href="./css/revamp.css?v=20260905-hero-final">
 
   <link rel="preload" as="image" href="./assets/optimized/2063/POV DARK HARMONY.webp" fetchpriority="high">
@@ -2074,27 +2074,33 @@ body.pv-home .current-release{margin-bottom:12px}
           </h3>
 
 
-          <p class="nina-intro-subtitle">She’s in Berlin, 2063. You’re here.</p>
+          <p class="nina-intro-subtitle">She’s in Berlin, 2063. Start a conversation.</p>
 
 
 
 
 
-          <label class="nina-microphone" for="ninaMicrophoneSelect">
+          <div class="nina-microphone" id="ninaMicrophone" hidden>
 
-            <span>MICROPHONE</span>
+            <button class="nina-microphone-toggle" id="ninaMicrophoneToggle" type="button" aria-expanded="false" aria-controls="ninaMicrophonePicker">
+              Microphone<span id="ninaMicrophoneName" hidden>SYSTEM DEFAULT</span>
+            </button>
 
-            <select id="ninaMicrophoneSelect" aria-describedby="ninaMicrophoneStatus">
-              <option value="">Requesting microphone access…</option>
-            </select>
+            <div class="nina-microphone-picker" id="ninaMicrophonePicker" hidden>
+              <label for="ninaMicrophoneSelect">MICROPHONE</label>
 
-            <span class="nina-microphone-status" id="ninaMicrophoneStatus" role="status" aria-live="polite"></span>
+              <select id="ninaMicrophoneSelect" aria-describedby="ninaMicrophoneStatus">
+                <option value="">Requesting microphone access…</option>
+              </select>
 
-          </label>
+              <span class="nina-microphone-status" id="ninaMicrophoneStatus" role="status" aria-live="polite"></span>
+            </div>
+
+          </div>
 
 
 
-          <p id="ninaEligibilityStatus" role="status" aria-live="polite" style="margin:0 0 12px;color:rgba(255,255,255,.58);font:10px/1.45 'Courier New',monospace;letter-spacing:.1em;text-transform:uppercase;">Checking Signal Credits</p>
+          <p class="nina-eligibility-status" id="ninaEligibilityStatus" role="status" aria-live="polite">Checking Signal Credits</p>
 
           <button
             class="nina-open-live"
