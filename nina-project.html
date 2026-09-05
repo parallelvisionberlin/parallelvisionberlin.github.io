@@ -274,15 +274,18 @@
 <style>
 /* Nina's presence leads the pre-call experience. */
 .nina-intro { align-items: flex-end; overflow-y: auto; }
-.nina-intro::before { inset: 0; background: url("./assets/optimized/nina-fok/Canon.webp") center 30% / cover no-repeat; opacity: 1; filter: none; transform: none; animation: ninaPortraitBreath 10s ease-in-out infinite; animation-play-state: paused; }
+.nina-intro::before { inset: 0; background: url("./assets/optimized/nina-fok/Canon.webp") center 30% / cover no-repeat; opacity: 1; filter: brightness(.58) saturate(.72); transform: none; animation: ninaPortraitBreath 10s ease-in-out infinite; animation-play-state: paused; }
  #ninaOverlay.is-open .nina-intro::before { animation-play-state: running; }
-.nina-intro::after { background: linear-gradient(0deg,#000 0%,rgba(0,0,0,.88) 20%,rgba(0,0,0,.12) 65%,transparent); pointer-events: none; }
-.nina-intro-content { width: min(680px,calc(100% - 40px)); padding: 28px 0; }
-.nina-intro h3 { font-size: clamp(24px,3vw,40px); margin: 8px 0 12px; }
+.nina-intro::after { background: linear-gradient(0deg,#000 0%,rgba(0,0,0,.9) 22%,rgba(0,0,0,.35) 56%,rgba(0,0,0,.12) 100%); pointer-events: none; }
+.nina-intro-content { width: min(680px,calc(100% - 40px)); padding: 24px 0 32px; margin-block: auto 0; flex-shrink: 0; }
+.nina-intro h3 { font-size: clamp(28px,3.2vw,44px); line-height: 1.2; margin: 8px 0 14px; }
 .nina-intro-code { display: none; }
 .nina-intro-subtitle { font: 400 clamp(17px,2vw,22px)/1.5 Inter,Arial,sans-serif; margin: 0 0 18px; }
-.nina-intro .nina-open-live { min-height: 52px; font-size: 15px; }
-.nina-entry-discover { display: block; width: fit-content; margin: 14px auto 0; color: #deded9; font: 400 14px/1.5 Inter,Arial,sans-serif; text-underline-offset: 5px; }
+.nina-intro .nina-open-live { width: min(360px,100%); min-height: 64px; margin-top: 20px; font: 500 18px/1.3 Inter,Arial,sans-serif; letter-spacing: .09em; color: #fff; border-color: #aaa69f; background: rgba(12,12,12,.72); }
+.nina-intro .nina-open-live:hover:not(:disabled) { color: #fff; background: #242321; border-color: #fff; }
+.nina-intro .nina-referral-entry { display: none; }
+.nina-intro .nina-microphone-toggle { font: 400 12px/1.5 Inter,Arial,sans-serif; letter-spacing: 0; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nina-entry-discover { display: block; width: fit-content; min-height: 44px; padding: 12px 0; box-sizing: border-box; margin: 8px auto 0; color: #deded9; font: 400 14px/1.5 Inter,Arial,sans-serif; text-underline-offset: 5px; }
 .nina-entry-discover:focus-visible { outline: 1px solid white; outline-offset: 5px; }
 .nina-intro .nina-microphone { margin: 10px auto; }
 .nina-intro .nina-microphone > span:first-child { display: none; }
