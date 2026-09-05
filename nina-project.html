@@ -498,7 +498,38 @@ body .nina-account-panel .nina-account-signout { border-top-color: #242422; }
 .n-nav #ninaAccountToggle{width:44px;height:44px;min-width:44px;padding:10px}
 .n-nav #ninaAccountToggle svg{width:22px;height:22px}
 }
-</style></head>
+</style>
+<style>
+/* Connect memory, construction and world through a shared editorial width. */
+.pv-nina-project .n-how-section { padding-block: clamp(44px,6vw,80px); }
+.pv-nina-project .n-how-section > .n-copy {
+  max-width: none; width: 100%; margin: 0;
+  display: grid; grid-template-columns: minmax(0,.85fr) minmax(0,1fr);
+  column-gap: clamp(32px,6vw,88px); row-gap: 24px;
+}
+.pv-nina-project .n-how-section .n-label { grid-column: 1 / -1; margin: 0; }
+.pv-nina-project .n-how-section h2 { grid-column: 1; margin: 0; max-width: 430px; }
+.pv-nina-project .n-how-section .n-label + h2 + p {
+  grid-column: 2; margin: 0; font-size: clamp(17px,1.3vw,19px); line-height: 1.7;
+}
+.pv-nina-project .n-how-section .n-system-block {
+  margin: 12px 0 0; padding-top: 24px; border-top: 1px solid rgba(255,255,255,.18);
+}
+.pv-nina-project .n-how-section .n-system-block p { font-size: 17px; line-height: 1.7; }
+.pv-nina-project .n-how-section .n-system-closing {
+  grid-column: 1 / -1; max-width: 850px; margin: 12px 0 0 !important;
+  font-size: clamp(19px,1.65vw,23px); line-height: 1.6; color: rgba(255,255,255,.88);
+}
+.pv-nina-project .n-memory-story { align-items: start; }
+.pv-nina-project .n-memory-story .n-memory-question { font-size: 18px; line-height: 1.65; }
+@media(max-width:760px) {
+  .pv-nina-project .n-how-section > .n-copy { grid-template-columns: minmax(0,1fr); row-gap: 20px; }
+  .pv-nina-project .n-how-section h2,
+  .pv-nina-project .n-how-section .n-label + h2 + p { grid-column: 1; }
+  .pv-nina-project .n-how-section .n-system-block { margin-top: 4px; padding-top: 20px; }
+}
+</style>
+</head>
 <body class="pv-nina-project">
   <a class="skip-link" href="#main-content">Skip to main content</a>
   <noscript><img height="1" width="1" style="display:none"
@@ -632,7 +663,7 @@ body .nina-account-panel .nina-account-signout { border-top-color: #242422; }
 <p>Multiple models, a written biography, live voice and visual presence, and a two-layer memory architecture come together in Nina. Parallel Vision develops the conditions through which she speaks from Berlin 2063 and carries a history from one encounter to the next.</p>
 <div class="n-system-block"><h3>A world to speak from</h3><p>Her biography, relationships and the history of Berlin 2063 give each conversation a specific context. They shape the perspective from which she responds.</p></div>
 <div class="n-system-block"><h3>A presence that responds</h3><p>Language, voice and visual systems work together in real time. Her replies unfold during the encounter. The dialogue is not written in advance.</p></div>
-<div class="n-system-block"><h3>Two layers of memory</h3><p>One preserves selected details, shared moments and unfinished conversations. The other tracks how familiarity, trust and comfort develop over time. Together, they give future encounters a history to return to.</p></div>
+
 <p class="n-system-closing">The systems establish the conditions. They do not prescribe every response. That space between construction and unpredictability is part of the artwork.</p>
 </div></section>
 
