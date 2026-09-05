@@ -335,6 +335,20 @@ body .nina-account-panel .nina-account-signout { margin-top: 12px; border-top: 1
 body .nina-account-panel :is(a,button):focus-visible { outline: 1px solid #e4e2d4; outline-offset: 3px; }
 @media(max-height:760px) { body .nina-account-panel { padding-top: 20px; } body .nina-account-panel .nina-account-menu a { min-height: 36px; padding: 6px 0; } }
 </style>
+<style>
+/* Refined single-column profile, with a secondary balance line. */
+body .nina-account-panel { background: #080808; backdrop-filter: none; -webkit-backdrop-filter: none; width: min(340px,calc(100vw - 32px)); }
+body .nina-account-panel .nina-account-name { font: 400 25px/1.3 Inter,Arial,sans-serif; letter-spacing: -.035em; }
+body .nina-account-panel .nina-account-credits { display: flex; align-items: center; justify-content: flex-start; flex-wrap: wrap; gap: 8px; padding: 12px 0 0; margin: 16px 0 4px; border: 0; }
+body .nina-account-panel .nina-account-credits > span { display: none; }
+body .nina-account-panel .nina-account-credits strong { font: 400 12px/1.5 Inter,Arial,sans-serif; letter-spacing: .02em; color: #aaa9a2; }
+body .nina-account-panel #ninaLiveTime::before { content: "·"; margin-right: 8px; color: #777; }
+body .nina-account-panel .nina-account-buy-credits { font: 400 18px/1.4 Inter,Arial,sans-serif; letter-spacing: -.015em; border-top: 0; border-bottom: 1px solid #56564f; background: transparent; color: #f2f1e9; min-height: 56px; }
+body .nina-account-panel .nina-account-buy-credits:hover { background: transparent; border-bottom-color: #eeede5; }
+body .nina-account-panel .nina-account-menu { display: flex; flex-direction: column; gap: 0; }
+body .nina-account-panel .nina-account-menu a { border: 0; min-height: 42px; font-size: 14px; }
+body .nina-account-panel .nina-account-menu a[href$="#redeemForm"] { font-weight: 400; color: #eeede5; }
+</style>
 </head>
 <body class="pv-nina-project">
   <a class="skip-link" href="#main-content">Skip to main content</a>
