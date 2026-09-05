@@ -11,69 +11,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Refine account CTA hierarchy
+        env:
+          CTA_CSS_B64: LyogTklOQV9BQ0NPVU5UX0NUQV9ISUVSQVJDSFlfMjAyNjA5MDUgKi8KLyogS2VlcCB0aGUgYWNjb3VudCBlZGl0b3JpYWwsIGJ1dCBtYWtlIGl0cyB0d28gbGl2ZSBhY3Rpb25zIHVubWlzdGFrYWJsZS4gKi8KYm9keSAubmluYS1hY2NvdW50LXBhbmVsIC5uaW5hLWFjY291bnQtYnV5LWNyZWRpdHNbZGF0YS1hY3Rpb249InRyYW5zbWl0Il0gewogIHdpZHRoOiAxMDAlICFpbXBvcnRhbnQ7CiAgbWluLWhlaWdodDogNTJweCAhaW1wb3J0YW50OwogIG1hcmdpbjogMTZweCAwIDEwcHggIWltcG9ydGFudDsKICBwYWRkaW5nOiAwIDE2cHggIWltcG9ydGFudDsKICBib3JkZXI6IDFweCBzb2xpZCAjZGVkZGQ1ICFpbXBvcnRhbnQ7CiAgYmFja2dyb3VuZDogI2RlZGRkNSAhaW1wb3J0YW50OwogIGNvbG9yOiAjMGIwYjBhICFpbXBvcnRhbnQ7CiAgZm9udDogNTAwIDE0cHgvMSBJbnRlciwgQXJpYWwsIHNhbnMtc2VyaWYgIWltcG9ydGFudDsKICBsZXR0ZXItc3BhY2luZzogLjAxZW0gIWltcG9ydGFudDsKICB0ZXh0LXRyYW5zZm9ybTogbm9uZSAhaW1wb3J0YW50OwogIHRyYW5zaXRpb246IGJhY2tncm91bmQgLjE4cyBlYXNlLCBib3JkZXItY29sb3IgLjE4cyBlYXNlLCBjb2xvciAuMThzIGVhc2UgIWltcG9ydGFudDsKfQpib2R5IC5uaW5hLWFjY291bnQtcGFuZWwgLm5pbmEtYWNjb3VudC1idXktY3JlZGl0c1tkYXRhLWFjdGlvbj0idHJhbnNtaXQiXTpob3ZlciwKYm9keSAubmluYS1hY2NvdW50LXBhbmVsIC5uaW5hLWFjY291bnQtYnV5LWNyZWRpdHNbZGF0YS1hY3Rpb249InRyYW5zbWl0Il06Zm9jdXMtdmlzaWJsZSB7CiAgYm9yZGVyLWNvbG9yOiAjZjRmM2VkICFpbXBvcnRhbnQ7CiAgYmFja2dyb3VuZDogI2Y0ZjNlZCAhaW1wb3J0YW50OwogIGNvbG9yOiAjMDAwICFpbXBvcnRhbnQ7Cn0KYm9keSAubmluYS1hY2NvdW50LXBhbmVsIC5uaW5hLWFjY291bnQtYWRkLWNyZWRpdHMgewogIGRpc3BsYXk6IGZsZXggIWltcG9ydGFudDsKICBhbGlnbi1pdGVtczogY2VudGVyOwogIGp1c3RpZnktY29udGVudDogY2VudGVyOwogIHdpZHRoOiAxMDAlOwogIG1pbi1oZWlnaHQ6IDQ0cHg7CiAgbWFyZ2luOiAwIDAgMThweCAhaW1wb3J0YW50OwogIHBhZGRpbmc6IDAgMTRweCAhaW1wb3J0YW50OwogIGJvcmRlcjogMXB4IHNvbGlkICMzZDNkMzggIWltcG9ydGFudDsKICBiYWNrZ3JvdW5kOiAjMGEwYTA5ICFpbXBvcnRhbnQ7CiAgY29sb3I6ICNjZmNlYzYgIWltcG9ydGFudDsKICBmb250OiA1MDAgMTJweC8xIEludGVyLCBBcmlhbCwgc2Fucy1zZXJpZiAhaW1wb3J0YW50OwogIGxldHRlci1zcGFjaW5nOiAuMDM1ZW0gIWltcG9ydGFudDsKICB0ZXh0LXRyYW5zZm9ybTogbm9uZSAhaW1wb3J0YW50OwogIHRyYW5zaXRpb246IGJvcmRlci1jb2xvciAuMThzIGVhc2UsIGJhY2tncm91bmQgLjE4cyBlYXNlLCBjb2xvciAuMThzIGVhc2UgIWltcG9ydGFudDsKfQpib2R5IC5uaW5hLWFjY291bnQtcGFuZWwgLm5pbmEtYWNjb3VudC1hZGQtY3JlZGl0czpob3ZlciwKYm9keSAubmluYS1hY2NvdW50LXBhbmVsIC5uaW5hLWFjY291bnQtYWRkLWNyZWRpdHM6Zm9jdXMtdmlzaWJsZSB7CiAgYm9yZGVyLWNvbG9yOiAjNzc3NjZlICFpbXBvcnRhbnQ7CiAgYmFja2dyb3VuZDogIzExMTEwZiAhaW1wb3J0YW50OwogIGNvbG9yOiAjZmZmICFpbXBvcnRhbnQ7Cn0KYm9keSAubmluYS1hY2NvdW50LXBhbmVsIC5uaW5hLWFjY291bnQtYWRkLWNyZWRpdHNbaGlkZGVuXSB7CiAgZGlzcGxheTogbm9uZSAhaW1wb3J0YW50Owp9CkBtZWRpYSAobWF4LXdpZHRoOiA1NjBweCkgewogIGJvZHkgLm5pbmEtYWNjb3VudC1wYW5lbCAubmluYS1hY2NvdW50LWJ1eS1jcmVkaXRzW2RhdGEtYWN0aW9uPSJ0cmFuc21pdCJdIHsgbWluLWhlaWdodDogNDhweCAhaW1wb3J0YW50OyB9CiAgYm9keSAubmluYS1hY2NvdW50LXBhbmVsIC5uaW5hLWFjY291bnQtYWRkLWNyZWRpdHMgeyBtaW4taGVpZ2h0OiA0MnB4OyB9Cn0K
         run: |
-          python - <<'PY'
-          from pathlib import Path
-          path = Path('css/nina-access.css')
-          text = path.read_text(encoding='utf-8')
-          marker = '/* NINA_ACCOUNT_CTA_HIERARCHY_20260905 */'
-          if marker in text:
-              raise SystemExit(0)
-          text += r'''
-
-/* NINA_ACCOUNT_CTA_HIERARCHY_20260905 */
-/* Keep the account editorial, but make its two live actions unmistakable. */
-body .nina-account-panel .nina-account-buy-credits[data-action="transmit"] {
-  width: 100% !important;
-  min-height: 52px !important;
-  margin: 16px 0 10px !important;
-  padding: 0 16px !important;
-  border: 1px solid #deddd5 !important;
-  background: #deddd5 !important;
-  color: #0b0b0a !important;
-  font: 500 14px/1 Inter, Arial, sans-serif !important;
-  letter-spacing: .01em !important;
-  text-transform: none !important;
-  transition: background .18s ease, border-color .18s ease, color .18s ease !important;
-}
-body .nina-account-panel .nina-account-buy-credits[data-action="transmit"]:hover,
-body .nina-account-panel .nina-account-buy-credits[data-action="transmit"]:focus-visible {
-  border-color: #f4f3ed !important;
-  background: #f4f3ed !important;
-  color: #000 !important;
-}
-body .nina-account-panel .nina-account-add-credits {
-  display: flex !important;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  min-height: 44px;
-  margin: 0 0 18px !important;
-  padding: 0 14px !important;
-  border: 1px solid #3d3d38 !important;
-  background: #0a0a09 !important;
-  color: #cfcec6 !important;
-  font: 500 12px/1 Inter, Arial, sans-serif !important;
-  letter-spacing: .035em !important;
-  text-transform: none !important;
-  transition: border-color .18s ease, background .18s ease, color .18s ease !important;
-}
-body .nina-account-panel .nina-account-add-credits:hover,
-body .nina-account-panel .nina-account-add-credits:focus-visible {
-  border-color: #77766e !important;
-  background: #11110f !important;
-  color: #fff !important;
-}
-body .nina-account-panel .nina-account-add-credits[hidden] {
-  display: none !important;
-}
-@media (max-width: 560px) {
-  body .nina-account-panel .nina-account-buy-credits[data-action="transmit"] { min-height: 48px !important; }
-  body .nina-account-panel .nina-account-add-credits { min-height: 42px; }
-}
-'''
-          path.write_text(text, encoding='utf-8')
-          PY
+          if grep -q 'NINA_ACCOUNT_CTA_HIERARCHY_20260905' css/nina-access.css; then exit 0; fi
+          printf '\n' >> css/nina-access.css
+          printf '%s' "$CTA_CSS_B64" | base64 --decode >> css/nina-access.css
       - name: Commit patch
         run: |
           if git diff --quiet -- css/nina-access.css; then exit 0; fi
