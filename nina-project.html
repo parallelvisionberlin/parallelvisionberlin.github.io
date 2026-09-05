@@ -482,7 +482,17 @@ body .nina-account-panel .nina-account-signout { border-top-color: #242422; }
  .n-faq-head,.n-faq-list { width: 100%; }
 }
 </style>
-</head>
+<style id="nina-concept-editorial">
+.n-concept-entry{padding-block:clamp(40px,5vw,72px)}
+.n-concept-entry .n-copy{max-width:800px;margin-inline:auto;text-align:center}
+.n-concept-entry h2{font-size:clamp(28px,3.5vw,48px);line-height:1.16;text-wrap:balance;margin:0 0 24px}
+.n-concept-entry p{font-size:clamp(17px,1.4vw,19px);line-height:1.7}
+.n-system-block{margin-top:28px}
+.n-system-block h3{font-size:20px;line-height:1.3;margin:0 0 10px;font-weight:500}
+.n-system-block p{margin:0}
+.n-system-closing{margin-top:32px!important}
+@media(max-width:760px){.n-concept-entry{padding-block:36px}.n-system-block{margin-top:22px}}
+</style></head>
 <body class="pv-nina-project">
   <a class="skip-link" href="#main-content">Skip to main content</a>
   <noscript><img height="1" width="1" style="display:none"
@@ -561,7 +571,13 @@ body .nina-account-panel .nina-account-signout { border-top-color: #242422; }
       </figure>
     </header>
 
-    <section class="n-section n-who-section n-project-entrance" id="question" aria-labelledby="question-title">
+    <section class="n-section n-concept-entry" id="question" aria-labelledby="question-title">
+<div class="n-copy">
+<h2 id="question-title">What happens when you give an intelligence a future to live in?</h2>
+<p>Nina FOK is an ongoing artwork by Parallel Vision exploring how identity takes shape through a biography, a world and encounters with others. Berlin 2063 gives her a history. Two layers of memory allow new encounters to inform what follows.</p>
+</div>
+</section>
+<section class="n-section n-who-section n-project-entrance" aria-labelledby="meet-nina-title">
       <div class="n-who-grid">
         <figure class="n-who-media">
           <video id="ninaPersonalityVideo" autoplay muted loop playsinline preload="none" poster="./assets/optimized/ninamain-page.webp" aria-label="Nina FOK speaking from Berlin 2063">
@@ -571,8 +587,8 @@ body .nina-account-panel .nina-account-signout { border-top-color: #242422; }
         </figure>
         <div class="n-copy">
           <p class="n-label">Parallel Vision / An ongoing art project</p>
-          <h2 id="question-title">Speak with an artist living in Berlin 2063.</h2>
-          <p>Nina FOK is an ongoing art project by Parallel Vision exploring identity, memory and human connection. At its centre is an artist who inhabits Berlin 2063 as her present. You can see her, speak with her live and develop a shared history across encounters.</p>
+          <h2 id="meet-nina-title">Meet Nina FOK</h2>
+          <p>Nina is a DJ, producer and visual artist living in Berlin 2063. Her music, relationships and the life of her city give you a way into her world. You can speak with her live and return to continue the conversation.</p>
           <div class="n-encounter-invitation">
             <p>Ask about her music, her city, or something from your own life. Her responses unfold in real time.</p>
             <button class="n-button n-encounter-button" type="button" data-nina-open>Talk to Nina</button>
@@ -633,20 +649,15 @@ body .nina-account-panel .nina-account-signout { border-top-color: #242422; }
     </section>
 
     <section class="n-section n-how-section" aria-labelledby="condition-title">
-      <div class="n-copy">
-        <p class="n-label">Inside the project</p>
-        <h2 id="condition-title">How Nina works</h2>
-        <p>Parallel Vision brings together language models, live voice and visual presence, a written biography, knowledge of Berlin 2063 and its own memory architecture. These systems connect the world of the artwork to an unscripted conversation.</p>
-        <details class="n-architecture-details">
-          <summary>Explore the systems behind Nina</summary>
-          <div>
-            <p>Anam provides the live avatar connection. A language model generates responses within Nina’s system prompt and world knowledge. Her individual replies are not written in advance.</p>
-            <p>The first memory layer retrieves selected details, summaries and unfinished threads. The second maintains a separate account of how familiarity, trust and comfort develop. Both inform later conversations for signed-in visitors.</p>
-            <p>The project explores what this continuity makes possible: recurring ideas, changing perspectives and a character whose encounters contribute to her ongoing history.</p>
-          </div>
-        </details>
-      </div>
-    </section>
+<div class="n-copy">
+<p class="n-label">Inside the project</p>
+<h2 id="condition-title">How Nina takes shape</h2>
+<p>Multiple models, a written biography, live voice and visual presence, and a two-layer memory architecture come together in Nina. Parallel Vision develops the conditions through which she speaks from Berlin 2063 and carries a history from one encounter to the next.</p>
+<div class="n-system-block"><h3>A world to speak from</h3><p>Her biography, relationships and the history of Berlin 2063 give each conversation a specific context. They shape the perspective from which she responds.</p></div>
+<div class="n-system-block"><h3>A presence that responds</h3><p>Language, voice and visual systems work together in real time. Her replies unfold during the encounter. The dialogue is not written in advance.</p></div>
+<div class="n-system-block"><h3>Two layers of memory</h3><p>One preserves selected details, shared moments and unfinished conversations. The other tracks how familiarity, trust and comfort develop over time. Together, they give future encounters a history to return to.</p></div>
+<p class="n-system-closing">The systems establish the conditions. They do not prescribe every response. That space between construction and unpredictability is part of the artwork.</p>
+</div></section>
 
     <section class="n-connect" id="transmit" aria-labelledby="transmit-title">
       <video class="n-connect-video" id="ninaConnectVideo" data-src="./nina-fok/ninaloophero.mp4" poster="./assets/optimized/nina-fok/HDNINACANON.webp" autoplay muted loop playsinline preload="none" aria-hidden="true" data-optimized-src="./assets/optimized/video/nina-fok/ninaloophero-desktop.mp4" data-mobile-src="./assets/optimized/video/nina-fok/ninaloophero-mobile.mp4"></video>
