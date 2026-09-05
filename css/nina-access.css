@@ -2435,8 +2435,8 @@ body #ninaOverlay .nina-connection-line { display:none; }
 body #ninaOverlay .nina-connecting-label { margin:0; }
 @media(max-width:700px) {
  body #ninaOverlay .nina-window-id {font-size:10px;}
- body #ninaOverlay .nina-intro-subtitle {bottom:222px;font-size:15px;}
- body #ninaOverlay .nina-intro .nina-open-live {bottom:140px;}
+ body #ninaOverlay .nina-intro-subtitle {bottom:164px;font-size:15px;}
+ body #ninaOverlay .nina-intro .nina-open-live {bottom:84px;min-height:60px;}
  body #ninaOverlay .nina-microphone {left:auto;right:16px;bottom:max(8px,env(safe-area-inset-bottom));width:calc(100% - 32px);}
  body #ninaOverlay .nina-eligibility-status {right:16px;bottom:58px;width:calc(100% - 32px);}
  body #ninaOverlay .nina-connecting {bottom:100px;}
@@ -2444,11 +2444,7 @@ body #ninaOverlay .nina-connecting-label { margin:0; }
 
 /* Phone typography and compact device control. */
 @media(max-width:700px) {
- body #ninaOverlay .nina-intro-content > h3 {
-  display:block; position:absolute; left:16px; right:16px; bottom:302px;
-  margin:0; text-align:center; font-size:clamp(25.2px,7.35vw,33.6px);
-  line-height:1.2;
- }
+ body #ninaOverlay .nina-intro-content > h3 { display:none; }
  body #ninaOverlay .nina-intro-subtitle {
   font-size:14px; line-height:1.45; margin:0;
  }
@@ -2470,5 +2466,12 @@ body #ninaOverlay .nina-intro-code {
 }
 body.nina-connecting-mode #ninaOverlay .nina-intro-code { visibility:hidden; }
 @media(max-width:700px) {
- body #ninaOverlay .nina-intro-code {bottom:274px;font-size:9px;}
+ body #ninaOverlay .nina-intro-code {bottom:216px;font-size:9px;letter-spacing:.12em;}
+ body #ninaOverlay .nina-intro-code::before {
+  content:"";display:inline-block;width:5px;height:5px;margin-right:9px;
+  border-radius:50%;background:#dedcd6;vertical-align:middle;
+ }
+ body #ninaOverlay .nina-intro #ninaEligibilityStatus {font-size:10px!important;bottom:54px;}
+ body #ninaOverlay .nina-microphone-toggle {font-size:10px;}
+
 }
