@@ -1,0 +1,84 @@
+name: One-time Nina account CTA patch
+on:
+  push:
+    paths:
+      - '.github/workflows/one-time-nina-account-cta.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Refine account CTA hierarchy
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('css/nina-access.css')
+          text = path.read_text(encoding='utf-8')
+          marker = '/* NINA_ACCOUNT_CTA_HIERARCHY_20260905 */'
+          if marker in text:
+              raise SystemExit(0)
+          text += r'''
+
+/* NINA_ACCOUNT_CTA_HIERARCHY_20260905 */
+/* Keep the account editorial, but make its two live actions unmistakable. */
+body .nina-account-panel .nina-account-buy-credits[data-action="transmit"] {
+  width: 100% !important;
+  min-height: 52px !important;
+  margin: 16px 0 10px !important;
+  padding: 0 16px !important;
+  border: 1px solid #deddd5 !important;
+  background: #deddd5 !important;
+  color: #0b0b0a !important;
+  font: 500 14px/1 Inter, Arial, sans-serif !important;
+  letter-spacing: .01em !important;
+  text-transform: none !important;
+  transition: background .18s ease, border-color .18s ease, color .18s ease !important;
+}
+body .nina-account-panel .nina-account-buy-credits[data-action="transmit"]:hover,
+body .nina-account-panel .nina-account-buy-credits[data-action="transmit"]:focus-visible {
+  border-color: #f4f3ed !important;
+  background: #f4f3ed !important;
+  color: #000 !important;
+}
+body .nina-account-panel .nina-account-add-credits {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 44px;
+  margin: 0 0 18px !important;
+  padding: 0 14px !important;
+  border: 1px solid #3d3d38 !important;
+  background: #0a0a09 !important;
+  color: #cfcec6 !important;
+  font: 500 12px/1 Inter, Arial, sans-serif !important;
+  letter-spacing: .035em !important;
+  text-transform: none !important;
+  transition: border-color .18s ease, background .18s ease, color .18s ease !important;
+}
+body .nina-account-panel .nina-account-add-credits:hover,
+body .nina-account-panel .nina-account-add-credits:focus-visible {
+  border-color: #77766e !important;
+  background: #11110f !important;
+  color: #fff !important;
+}
+body .nina-account-panel .nina-account-add-credits[hidden] {
+  display: none !important;
+}
+@media (max-width: 560px) {
+  body .nina-account-panel .nina-account-buy-credits[data-action="transmit"] { min-height: 48px !important; }
+  body .nina-account-panel .nina-account-add-credits { min-height: 42px; }
+}
+'''
+          path.write_text(text, encoding='utf-8')
+          PY
+      - name: Commit patch
+        run: |
+          if git diff --quiet -- css/nina-access.css; then exit 0; fi
+          git config user.name "parallelvisionberlin"
+          git config user.email "parallelvision.label@gmail.com"
+          git add css/nina-access.css
+          git commit -m "Refine Nina account CTA hierarchy"
+          git push
