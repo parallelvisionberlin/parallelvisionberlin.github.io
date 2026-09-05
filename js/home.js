@@ -1,3 +1,40 @@
+(function lockFreshMobileEntryToHeroUntilUserActs() {
+  const mobile = window.matchMedia("(max-width: 700px)");
+  if (!mobile.matches || location.hash) return;
+
+  let userHasInteracted = false;
+  let correcting = false;
+
+  const release = () => {
+    userHasInteracted = true;
+    if ("scrollRestoration" in history) history.scrollRestoration = "auto";
+    ["touchstart", "pointerdown", "wheel", "keydown"].forEach(type =>
+      window.removeEventListener(type, release, true));
+  };
+
+  const keepAtHero = () => {
+    if (userHasInteracted || location.hash || window.scrollY === 0 || correcting) return;
+    correcting = true;
+    window.scrollTo(0, 0);
+    requestAnimationFrame(() => { correcting = false; });
+  };
+
+  if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+
+  ["touchstart", "pointerdown", "wheel", "keydown"].forEach(type =>
+    window.addEventListener(type, release, { capture: true, passive: true }));
+
+  window.addEventListener("scroll", keepAtHero, { passive: true });
+  window.addEventListener("resize", keepAtHero, { passive: true });
+  window.visualViewport?.addEventListener("resize", keepAtHero, { passive: true });
+  window.addEventListener("hashchange", release, { once: true });
+
+  keepAtHero();
+  requestAnimationFrame(keepAtHero);
+  setTimeout(keepAtHero, 250);
+  setTimeout(keepAtHero, 1000);
+}());
+
 (function keepHomepageHeroPlaying() {
   const heroVideo = document.querySelector("video.hero-video");
   if (!heroVideo) return;
@@ -66,8 +103,6 @@
   const hero = document.querySelector('.hero');
   const invitation = document.querySelector('.home-desktop-signal-tab');
   if (!hero || !invitation || !('IntersectionObserver' in window)) return;
-  // A dark backing protects the persistent action over page copy. Only remove
-  // it while the hero still fills the viewport behind the action.
   let observer;
   const observeHero = () => {
     observer?.disconnect();
