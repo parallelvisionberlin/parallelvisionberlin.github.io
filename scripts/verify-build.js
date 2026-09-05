@@ -108,8 +108,8 @@ if (/class="release-card"[\s\S]{0,400}vision-neo\.webp/.test(index)) fail('Visio
 if (!ninaProject.includes('data-nina-open') || ninaProject.includes('href="./index.html?nina=1"')) fail('Nina project transmission must open the local shared access flow');
 if (!ninaProject.includes('./js/nina-access.js') || !ninaProject.includes('id="ninaAccess"') || !ninaProject.includes('id="ninaOverlay"')) fail('Nina project page must host the shared Nina access component');
 if (!index.includes('./css/nina-access.css') || !ninaProject.includes('./css/nina-access.css')) fail('Nina access styles must be shared by the homepage and project page');
-const ninaProjectOrder = ['class="n-hero"','id="question-title"','id="who-title"','id="condition-title"','id="berlin-title"','id="space-title"','id="mirror-title"','id="transmit"'];
-if (!ninaProjectOrder.every((marker, index) => index === 0 || ninaProject.indexOf(marker) > ninaProject.indexOf(ninaProjectOrder[index - 1]))) fail('Nina project section order changed');
+const ninaProjectOrder = ['class="n-hero"','id="question-title"','id="condition-title"','id="berlin-title"','id="space-title"','id="mirror-title"','id="transmit"'];
+if (!ninaProjectOrder.every((marker, index) => ninaProject.includes(marker) && (index === 0 || ninaProject.indexOf(marker) > ninaProject.indexOf(ninaProjectOrder[index - 1])))) fail('Nina project section order changed');
 if (!/<video[^>]+id="ninaHeroVideo"[^>]+data-src="\.\/nina-fok\/ninaloophero\.mp4"[^>]+poster="\.\/assets\/optimized\/nina-fok\/HDNINACANON\.webp"[^>]+autoplay[^>]+muted[^>]+loop[^>]+playsinline[^>]+preload="none"/i.test(ninaProject)) fail('Nina project hero video behavior is incomplete');
 if (!/<source\b[^>]*data-src="\.\/nina-fok\/ninaspersonality\.mp4"[^>]*type="video\/mp4"/.test(ninaProject)) fail('Nina personality video is not wired to the hero');
 if (/\scontrols(?:\s|=|>)/i.test(ninaProject)) fail('Nina project must not expose native video controls');
