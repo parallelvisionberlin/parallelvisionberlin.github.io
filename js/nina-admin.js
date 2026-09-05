@@ -190,6 +190,7 @@ function renderCreditAdmin(data) {
     const status = !voucher.active ? "INACTIVE" : expired ? "EXPIRED" : voucher.redemptionCount >= voucher.maximumRedemptions ? "LIMIT REACHED" : "ACTIVE";
     const row = document.createElement("tr");
     for (const value of [voucher.code, number(voucher.creditAmount), `${number(voucher.redemptionCount)} / ${number(voucher.maximumRedemptions)}`, dateTime(voucher.expiresAt), status]) { const cell = document.createElement("td"); cell.textContent = value; row.append(cell); }
+    row.firstElementChild.append(document.createElement("br"), voucherCopyButton("Copy code", voucher.code));
     elements.vouchers.append(row);
   }
   if (!elements.vouchers.children.length) tableMessage(elements.vouchers, 5, "No vouchers yet.");
@@ -238,10 +239,34 @@ elements.giftGrantForm.addEventListener("submit", async event => {
   try { const data = await creditApi("/api/signal-credits/grant", { method: "POST", body: JSON.stringify({ userId: selectedGiftUser.id, amount: Number(elements.giftAmount.value), note: elements.giftNote.value }) }); selectedGiftUser.balance = data.balance; elements.giftUserBalance.textContent = `${number(data.balance)} credits`; elements.giftAmount.value = ""; elements.giftNote.value = ""; elements.giftStatus.textContent = `Granted ${number(data.grant.amount)} credits.`; await loadCreditAdmin(); }
   catch (error) { elements.giftStatus.textContent = error.message; }
 });
+function voucherCopyButton(label, value) {
+  const button = document.createElement("button");
+  button.type = "button"; button.className = "admin-button"; button.textContent = label;
+  button.addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText(value); button.textContent = "Copied"; }
+    catch { button.textContent = "Select and copy the code below"; const field = document.createElement("textarea"); field.value = value; field.readOnly = true; button.after(field); field.focus(); field.select(); }
+  });
+  return button;
+}
 elements.voucherForm.addEventListener("submit", async event => {
-  event.preventDefault(); elements.voucherStatus.textContent = "Creating voucher…";
-  try { await creditApi("/api/signal-credits/admin", { method: "POST", body: JSON.stringify({ code: elements.voucherCode.value, creditAmount: Number(elements.voucherCredits.value), maximumRedemptions: Number(elements.voucherLimit.value), expiresAt: elements.voucherExpiration.value ? new Date(elements.voucherExpiration.value).toISOString() : null, active: elements.voucherActive.checked }) }); elements.voucherStatus.textContent = "Voucher created."; elements.voucherForm.reset(); elements.voucherLimit.value = "1"; elements.voucherActive.checked = true; await loadCreditAdmin(); }
-  catch (error) { elements.voucherStatus.textContent = error.message; }
+  event.preventDefault();
+  const submit = elements.voucherForm.querySelector('[type="submit"]');
+  submit.disabled = true;
+  elements.voucherStatus.textContent = "Creating voucher…";
+  try {
+    const result = await creditApi("/api/signal-credits/admin", { method: "POST", body: JSON.stringify({ code: elements.voucherCode.value, creditAmount: Number(elements.voucherCredits.value), maximumRedemptions: Number(elements.voucherLimit.value), expiresAt: elements.voucherExpiration.value ? new Date(elements.voucherExpiration.value).toISOString() : null, active: elements.voucherActive.checked }) });
+    const voucher = result.voucher;
+    elements.voucherStatus.textContent = "Voucher created.";
+    const panel = document.getElementById("voucherCreatedResult") || document.createElement("div");
+    panel.id = "voucherCreatedResult"; panel.replaceChildren();
+    const code = document.createElement("p"); code.textContent = voucher.code; code.style.cssText = "font-size:24px;letter-spacing:.08em;user-select:all";
+    const info = document.createElement("p"); info.textContent = voucher.credits + " Signal Credits · " + (voucher.credits / 10) + " min · " + voucher.limit + " redemptions";
+    panel.append(code, info, voucherCopyButton("Copy code", voucher.code), voucherCopyButton("Copy message", "A little time in Berlin 2063, for you.\n\n" + voucher.credits + " Signal Credits for a conversation with Nina.\nYour code: " + voucher.code + "\n\nSign in and redeem it here:\nhttps://parallelvisionlabel.com/account.html#redeemForm"));
+    elements.voucherStatus.after(panel);
+    elements.voucherForm.reset(); elements.voucherLimit.value = "1"; elements.voucherActive.checked = true;
+    try { await loadCreditAdmin(); } catch { elements.voucherStatus.textContent = "Voucher created. The list could not refresh; your code is shown below."; }
+  } catch (error) { elements.voucherStatus.textContent = error.message; }
+  finally { submit.disabled = false; }
 });
 
 try {
