@@ -52,30 +52,34 @@
         </form>
         <p class="admin-form-status" id="voucherStatus" role="status"></p>
       </section>
+      <section class="admin-window" aria-labelledby="vouchersTitle">
+        <div class="admin-section-heading"><p>03</p><h2 id="vouchersTitle">Vouchers</h2></div>
+        <div class="admin-table-wrap"><table><thead><tr><th>Code</th><th>Credits</th><th>Redemptions</th><th>Expiration</th><th>Status</th></tr></thead><tbody id="adminVouchers"></tbody></table></div>
+      </section>
       <section class="admin-window" aria-labelledby="todayTitle">
-        <div class="admin-section-heading"><p>03</p><h2 id="todayTitle">Today</h2></div>
+        <div class="admin-section-heading"><p>04</p><h2 id="todayTitle">Today</h2></div>
         <div class="admin-metrics" id="todayMetrics"></div>
       </section>
       <section class="admin-window" aria-labelledby="weekTitle">
-        <div class="admin-section-heading"><p>04</p><h2 id="weekTitle">Last 7 days</h2></div>
+        <div class="admin-section-heading"><p>05</p><h2 id="weekTitle">Last 7 days</h2></div>
         <div class="admin-metrics" id="weekMetrics"></div>
       </section>
       <section class="admin-window" aria-labelledby="monthTitle">
-        <div class="admin-section-heading"><p>05</p><h2 id="monthTitle">Last 30 days</h2></div>
+        <div class="admin-section-heading"><p>06</p><h2 id="monthTitle">Last 30 days</h2></div>
         <div class="admin-metrics" id="monthMetrics"></div>
       </section>
       <section class="admin-window" aria-labelledby="funnelTitle">
-        <div class="admin-section-heading"><p>06</p><h2 id="funnelTitle">Funnel / Last 30 days</h2></div>
+        <div class="admin-section-heading"><p>07</p><h2 id="funnelTitle">Funnel / Last 30 days</h2></div>
         <div class="admin-funnel" id="adminFunnel"></div>
         <p class="admin-note">PageViews are not stored server-side. Meta Pixel reporting remains external and is not represented here.</p>
       </section>
       <section class="admin-window" aria-labelledby="costTitle">
-        <div class="admin-section-heading"><p>07</p><h2 id="costTitle">Estimated Anam cost</h2></div>
+        <div class="admin-section-heading"><p>08</p><h2 id="costTitle">Estimated Anam cost</h2></div>
         <div class="admin-cost" id="adminCost"></div>
         <p class="admin-note">Estimate only. Provider billing may calculate usage differently.</p>
       </section>
       <section class="admin-window" aria-labelledby="sessionsTitle">
-        <div class="admin-section-heading"><p>08</p><h2 id="sessionsTitle">Recent sessions</h2></div>
+        <div class="admin-section-heading"><p>09</p><h2 id="sessionsTitle">Recent sessions</h2></div>
         <nav class="admin-pagination" aria-label="Session pages">
           <p data-session-page-status role="status"></p>
           <div><button type="button" class="admin-button" data-session-page="previous">Previous</button><button type="button" class="admin-button" data-session-page="next">Next</button></div>
@@ -94,16 +98,13 @@
 
 
       <section class="admin-window" aria-labelledby="grantsTitle">
-        <div class="admin-section-heading"><p>09</p><h2 id="grantsTitle">Recent Grants</h2></div>
+        <div class="admin-section-heading"><p>10</p><h2 id="grantsTitle">Recent Grants</h2></div>
         <div class="admin-table-wrap"><table><thead><tr><th>User</th><th>Credits</th><th>Balance</th><th>Owner</th><th>Note</th><th>Date</th></tr></thead><tbody id="adminGrants"></tbody></table></div>
       </section>
-      <section class="admin-window" aria-labelledby="vouchersTitle">
-        <div class="admin-section-heading"><p>10</p><h2 id="vouchersTitle">Vouchers</h2></div>
-        <div class="admin-table-wrap"><table><thead><tr><th>Code</th><th>Credits</th><th>Redemptions</th><th>Expiration</th><th>Status</th></tr></thead><tbody id="adminVouchers"></tbody></table></div>
-      </section>
+
       <p class="admin-generated" id="adminGenerated"></p>
     </div>
   </main>
-  <script type="module" src="../js/nina-admin.js?v=20260904-session-pages"></script>
+  <script type="module" src="../js/nina-admin.js?v=20260905-voucher-copy"></script>
 </body>
 </html>
