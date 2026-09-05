@@ -1,0 +1,1 @@
+CREATE TABLE IF NOT EXISTS credit_gift_emails (grant_id TEXT PRIMARY KEY REFERENCES credit_grants(id), status TEXT NOT NULL CHECK(status IN ('sending','sent','failed','unknown')), updated_at TEXT NOT NULL);

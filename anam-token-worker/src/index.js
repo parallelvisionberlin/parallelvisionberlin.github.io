@@ -1,3 +1,4 @@
+import { sendGiftEmail } from "./gift-email.js";
 import {
   HISTORY_LIMIT, benchmarkMemoryArchivists, buildOwnerMemoryContext, closeConversation, consolidateMemory,
   clearUserMemory, createConversation, deleteOwnerMemory, exportTranscript, memoryDiagnostic, memoryMetadata, resetDerivedMemory,
@@ -612,7 +613,8 @@ async function handleSignalCreditGrant(request, env, origin) {
       return jsonResponse({ ok: true, user: recipient, adjustment: mutation.transaction, balance: mutation.account.balance }, 200, origin);
     }
     const grant = await grantGiftCredits(env, caller.id, recipient.id, body?.amount, body?.note ?? body?.description);
-    return jsonResponse({ ok: true, user: recipient, grant, balance: grant.resultingBalance }, 200, origin);
+    const email = await sendGiftEmail(env, recipient, grant);
+    return jsonResponse({ ok: true, user: recipient, grant, email, balance: grant.resultingBalance }, 200, origin);
   } catch (error) {
     if (error instanceof VoucherError) return jsonResponse({ error: error.message, code: error.code }, error.status, origin);
     if (error instanceof SignalCreditError) return jsonResponse({ error: error.message, code: error.code }, 400, origin);

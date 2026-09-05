@@ -235,9 +235,13 @@ elements.giftSearchForm.addEventListener("submit", async event => {
   catch (error) { elements.giftStatus.textContent = error.message; }
 });
 elements.giftGrantForm.addEventListener("submit", async event => {
-  event.preventDefault(); if (!selectedGiftUser) return; elements.giftStatus.textContent = "Granting credits…";
-  try { const data = await creditApi("/api/signal-credits/grant", { method: "POST", body: JSON.stringify({ userId: selectedGiftUser.id, amount: Number(elements.giftAmount.value), note: elements.giftNote.value }) }); selectedGiftUser.balance = data.balance; elements.giftUserBalance.textContent = `${number(data.balance)} credits`; elements.giftAmount.value = ""; elements.giftNote.value = ""; elements.giftStatus.textContent = `Granted ${number(data.grant.amount)} credits.`; await loadCreditAdmin(); }
+  event.preventDefault(); if (!selectedGiftUser || elements.giftGrantForm.dataset.pending) return;
+  elements.giftGrantForm.dataset.pending = "true";
+  const submit = elements.giftGrantForm.querySelector('[type="submit"]'); if (submit) submit.disabled = true;
+  elements.giftStatus.textContent = "Granting credits…";
+  try { const data = await creditApi("/api/signal-credits/grant", { method: "POST", body: JSON.stringify({ userId: selectedGiftUser.id, amount: Number(elements.giftAmount.value), note: elements.giftNote.value }) }); selectedGiftUser.balance = data.balance; elements.giftUserBalance.textContent = `${number(data.balance)} credits`; elements.giftAmount.value = ""; elements.giftNote.value = ""; const statuses = {sent:"Email sent.",not_configured:"Email not sent: connect Zoho first.",failed:"Email failed. Credits were added; do not grant again.",unknown:"Email delivery unconfirmed. Credits were added; do not grant again.",missing_email:"Recipient has no valid email.",sending:"Email processing."}; elements.giftStatus.textContent = `Granted ${number(data.grant.amount)} credits. ${statuses[data.email?.status] || "Email status unavailable."}`; try { await loadCreditAdmin(); } catch {} }
   catch (error) { elements.giftStatus.textContent = error.message; }
+  finally { delete elements.giftGrantForm.dataset.pending; if (submit) submit.disabled = false; }
 });
 function voucherCopyButton(label, value) {
   const button = document.createElement("button");
