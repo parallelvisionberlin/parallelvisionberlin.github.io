@@ -2441,3 +2441,21 @@ body #ninaOverlay .nina-connecting-label { margin:0; }
  body #ninaOverlay .nina-eligibility-status {right:16px;bottom:max(22px,env(safe-area-inset-bottom));width:43%;}
  body #ninaOverlay .nina-connecting {bottom:100px;}
 }
+
+/* Phone typography and compact device control. */
+@media(max-width:700px) {
+ body #ninaOverlay .nina-intro-content > h3 {
+  display:block; position:absolute; left:16px; right:16px; bottom:210px;
+  margin:0; text-align:center; font-size:clamp(25.2px,7.35vw,33.6px);
+  line-height:1.2;
+ }
+ body #ninaOverlay .nina-intro-subtitle {
+  font-size:14px; line-height:1.45; margin:0;
+ }
+ body #ninaOverlay .nina-microphone-toggle {
+  justify-content:center; font-size:11px; text-align:center; padding:6px 4px;
+ }
+ body #ninaOverlay .nina-microphone select {
+  font-size:11px; padding:10px 28px 10px 10px; text-align:center;
+ }
+}
