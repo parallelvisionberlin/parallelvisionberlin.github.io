@@ -24,47 +24,8 @@
     </section>
 
     <div id="adminDashboard" hidden>
-      <section class="admin-window" aria-labelledby="todayTitle">
-        <div class="admin-section-heading"><p>01</p><h2 id="todayTitle">Today</h2></div>
-        <div class="admin-metrics" id="todayMetrics"></div>
-      </section>
-      <section class="admin-window" aria-labelledby="weekTitle">
-        <div class="admin-section-heading"><p>02</p><h2 id="weekTitle">Last 7 days</h2></div>
-        <div class="admin-metrics" id="weekMetrics"></div>
-      </section>
-      <section class="admin-window" aria-labelledby="monthTitle">
-        <div class="admin-section-heading"><p>03</p><h2 id="monthTitle">Last 30 days</h2></div>
-        <div class="admin-metrics" id="monthMetrics"></div>
-      </section>
-      <section class="admin-window" aria-labelledby="funnelTitle">
-        <div class="admin-section-heading"><p>04</p><h2 id="funnelTitle">Funnel / Last 30 days</h2></div>
-        <div class="admin-funnel" id="adminFunnel"></div>
-        <p class="admin-note">PageViews are not stored server-side. Meta Pixel reporting remains external and is not represented here.</p>
-      </section>
-      <section class="admin-window" aria-labelledby="costTitle">
-        <div class="admin-section-heading"><p>05</p><h2 id="costTitle">Estimated Anam cost</h2></div>
-        <div class="admin-cost" id="adminCost"></div>
-        <p class="admin-note">Estimate only. Provider billing may calculate usage differently.</p>
-      </section>
-      <section class="admin-window" aria-labelledby="sessionsTitle">
-        <div class="admin-section-heading"><p>06</p><h2 id="sessionsTitle">Recent sessions</h2></div>
-        <nav class="admin-pagination" aria-label="Session pages">
-          <p data-session-page-status role="status"></p>
-          <div><button type="button" class="admin-button" data-session-page="previous">Previous</button><button type="button" class="admin-button" data-session-page="next">Next</button></div>
-        </nav>
-        <div class="admin-table-wrap">
-          <table>
-            <thead><tr><th>User</th><th>Visit</th><th>Identity</th><th>Started</th><th>Duration</th><th>Status</th></tr></thead>
-            <tbody id="adminSessions"></tbody>
-          </table>
-        </div>
-        <nav class="admin-pagination" aria-label="Session pages below table">
-          <p data-session-page-status></p>
-          <div><button type="button" class="admin-button" data-session-page="previous">Previous</button><button type="button" class="admin-button" data-session-page="next">Next</button></div>
-        </nav>
-      </section>
       <section class="admin-window" aria-labelledby="giftTitle">
-        <div class="admin-section-heading"><p>07</p><h2 id="giftTitle">Gift Credits</h2></div>
+        <div class="admin-section-heading"><p>01</p><h2 id="giftTitle">Gift Credits</h2></div>
         <form class="admin-form" id="giftSearchForm">
           <label for="giftUser">User email or internal ID</label>
           <div class="admin-inline"><input id="giftUser" maxlength="254" autocomplete="off" required><button class="admin-button" type="submit">Find user</button></div>
@@ -80,7 +41,7 @@
         <p class="admin-form-status" id="giftStatus" role="status"></p>
       </section>
       <section class="admin-window" aria-labelledby="voucherCreateTitle">
-        <div class="admin-section-heading"><p>08</p><h2 id="voucherCreateTitle">Create Voucher</h2></div>
+        <div class="admin-section-heading"><p>02</p><h2 id="voucherCreateTitle">Create Voucher</h2></div>
         <form class="admin-form admin-form-grid" id="voucherForm">
           <label for="voucherCode">Code</label><input id="voucherCode" maxlength="32" placeholder="BERLIN2063" required>
           <label for="voucherCredits">Signal Credits</label><input id="voucherCredits" type="number" min="1" max="1000000000" step="1" required>
@@ -91,6 +52,47 @@
         </form>
         <p class="admin-form-status" id="voucherStatus" role="status"></p>
       </section>
+      <section class="admin-window" aria-labelledby="todayTitle">
+        <div class="admin-section-heading"><p>03</p><h2 id="todayTitle">Today</h2></div>
+        <div class="admin-metrics" id="todayMetrics"></div>
+      </section>
+      <section class="admin-window" aria-labelledby="weekTitle">
+        <div class="admin-section-heading"><p>04</p><h2 id="weekTitle">Last 7 days</h2></div>
+        <div class="admin-metrics" id="weekMetrics"></div>
+      </section>
+      <section class="admin-window" aria-labelledby="monthTitle">
+        <div class="admin-section-heading"><p>05</p><h2 id="monthTitle">Last 30 days</h2></div>
+        <div class="admin-metrics" id="monthMetrics"></div>
+      </section>
+      <section class="admin-window" aria-labelledby="funnelTitle">
+        <div class="admin-section-heading"><p>06</p><h2 id="funnelTitle">Funnel / Last 30 days</h2></div>
+        <div class="admin-funnel" id="adminFunnel"></div>
+        <p class="admin-note">PageViews are not stored server-side. Meta Pixel reporting remains external and is not represented here.</p>
+      </section>
+      <section class="admin-window" aria-labelledby="costTitle">
+        <div class="admin-section-heading"><p>07</p><h2 id="costTitle">Estimated Anam cost</h2></div>
+        <div class="admin-cost" id="adminCost"></div>
+        <p class="admin-note">Estimate only. Provider billing may calculate usage differently.</p>
+      </section>
+      <section class="admin-window" aria-labelledby="sessionsTitle">
+        <div class="admin-section-heading"><p>08</p><h2 id="sessionsTitle">Recent sessions</h2></div>
+        <nav class="admin-pagination" aria-label="Session pages">
+          <p data-session-page-status role="status"></p>
+          <div><button type="button" class="admin-button" data-session-page="previous">Previous</button><button type="button" class="admin-button" data-session-page="next">Next</button></div>
+        </nav>
+        <div class="admin-table-wrap">
+          <table>
+            <thead><tr><th>User</th><th>Visit</th><th>Identity</th><th>Started</th><th>Duration</th><th>Status</th></tr></thead>
+            <tbody id="adminSessions"></tbody>
+          </table>
+        </div>
+        <nav class="admin-pagination" aria-label="Session pages below table">
+          <p data-session-page-status></p>
+          <div><button type="button" class="admin-button" data-session-page="previous">Previous</button><button type="button" class="admin-button" data-session-page="next">Next</button></div>
+        </nav>
+      </section>
+
+
       <section class="admin-window" aria-labelledby="grantsTitle">
         <div class="admin-section-heading"><p>09</p><h2 id="grantsTitle">Recent Grants</h2></div>
         <div class="admin-table-wrap"><table><thead><tr><th>User</th><th>Credits</th><th>Balance</th><th>Owner</th><th>Note</th><th>Date</th></tr></thead><tbody id="adminGrants"></tbody></table></div>
