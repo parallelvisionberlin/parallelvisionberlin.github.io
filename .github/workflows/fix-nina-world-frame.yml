@@ -25,37 +25,8 @@ jobs:
 
           path = Path('nina-project.html')
           text = path.read_text(encoding='utf-8')
-
-          pattern = re.compile(r'''\n\s*/\* NINA_WORLD_DESKTOP_COMPACT_20260906.*?@media \(min-width: 901px\) \{.*?\n\s*\}\n\s*''', re.S)
-          replacement = '''
-
-    /* NINA_WORLD_DESKTOP_BALANCED_20260906
-       Preserve the complete Berlin 2063 frame. Keep it visually dominant,
-       but make it slightly smaller by scaling the whole image rather than cropping it. */
-    @media (min-width: 901px) {
-      .n-world {
-        width: 94%;
-        max-width: 1390px;
-        height: auto;
-        aspect-ratio: auto;
-        margin: 0 auto;
-        overflow: visible;
-      }
-      .n-world img {
-        display: block;
-        width: 100%;
-        height: auto;
-        object-fit: contain;
-        object-position: center;
-      }
-      .n-world-note {
-        width: 94%;
-        max-width: 1390px;
-        margin: 14px auto 56px;
-        padding-top: 14px;
-      }
-    }
-'''
+          pattern = re.compile(r"\n\s*/\* NINA_WORLD_DESKTOP_COMPACT_20260906.*?@media \(min-width: 901px\) \{.*?\n\s*\}\n\s*", re.S)
+          replacement = "\n\n    /* NINA_WORLD_DESKTOP_BALANCED_20260906 */\n    @media (min-width: 901px) {\n      .n-world {\n        width: 94%;\n        max-width: 1390px;\n        height: auto;\n        aspect-ratio: auto;\n        margin: 0 auto;\n        overflow: visible;\n      }\n      .n-world img {\n        display: block;\n        width: 100%;\n        height: auto;\n        object-fit: contain;\n        object-position: center;\n      }\n      .n-world-note {\n        width: 94%;\n        max-width: 1390px;\n        margin: 14px auto 56px;\n        padding-top: 14px;\n      }\n    }\n"
           new_text, count = pattern.subn(replacement, text, count=1)
           if count != 1:
               raise SystemExit(f'Expected to replace one old Nina world block, replaced {count}')
