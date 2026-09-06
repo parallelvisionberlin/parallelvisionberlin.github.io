@@ -266,16 +266,32 @@
       .n-footer { display: grid; align-content: center; padding: 24px 0; letter-spacing: .15em; }
     }
     @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .n-button { transition: none; } .n-hero-asset,.n-connect-video { display: none; } }
-  
-    /* NINA_WORLD_DESKTOP_COMPACT_20260906
-       Keep the Berlin 2063 image colossal in width, but reveal its archive note
-       and the beginning of the supporting copy sooner on desktop. */
+
+    /* NINA_WORLD_DESKTOP_BALANCED_20260906 */
     @media (min-width: 901px) {
       .n-world {
+        width: 94%;
+        max-width: 1390px;
+        height: auto;
         aspect-ratio: auto;
-        height: clamp(520px, 60vh, 620px);
+        margin: 0 auto;
+        overflow: visible;
+      }
+      .n-world img {
+        display: block;
+        width: 100%;
+        height: auto;
+        object-fit: contain;
+        object-position: center;
       }
       .n-world-note {
+        width: 94%;
+        max-width: 1390px;
+        margin: 14px auto 56px;
+        padding-top: 14px;
+      }
+    }
+.n-world-note {
         margin: 14px 0 52px;
         padding-top: 14px;
       }
