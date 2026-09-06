@@ -1,0 +1,73 @@
+name: Fix Nina world frame
+
+on:
+  push:
+    paths:
+      - '.github/workflows/fix-nina-world-frame.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Restore full world image framing
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          path = Path('nina-project.html')
+          text = path.read_text(encoding='utf-8')
+
+          pattern = re.compile(r'''\n\s*/\* NINA_WORLD_DESKTOP_COMPACT_20260906.*?@media \(min-width: 901px\) \{.*?\n\s*\}\n\s*''', re.S)
+          replacement = '''
+
+    /* NINA_WORLD_DESKTOP_BALANCED_20260906
+       Preserve the complete Berlin 2063 frame. Keep it visually dominant,
+       but make it slightly smaller by scaling the whole image rather than cropping it. */
+    @media (min-width: 901px) {
+      .n-world {
+        width: 94%;
+        max-width: 1390px;
+        height: auto;
+        aspect-ratio: auto;
+        margin: 0 auto;
+        overflow: visible;
+      }
+      .n-world img {
+        display: block;
+        width: 100%;
+        height: auto;
+        object-fit: contain;
+        object-position: center;
+      }
+      .n-world-note {
+        width: 94%;
+        max-width: 1390px;
+        margin: 14px auto 56px;
+        padding-top: 14px;
+      }
+    }
+'''
+          new_text, count = pattern.subn(replacement, text, count=1)
+          if count != 1:
+              raise SystemExit(f'Expected to replace one old Nina world block, replaced {count}')
+          path.write_text(new_text, encoding='utf-8')
+          PY
+
+      - name: Commit change and remove one-time workflow
+        shell: bash
+        run: |
+          rm .github/workflows/fix-nina-world-frame.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add nina-project.html .github/workflows/fix-nina-world-frame.yml
+          git commit -m "Restore Nina world image framing"
+          git push
