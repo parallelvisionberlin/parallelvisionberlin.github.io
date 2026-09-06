@@ -28,20 +28,20 @@ jobs:
 
           if marker not in text:
               override = '''
-    /* NINA_WORLD_DESKTOP_COMPACT_20260906
-       Keep the Berlin 2063 image colossal in width, but reveal its archive note
-       and the beginning of the supporting copy sooner on desktop. */
-    @media (min-width: 901px) {
-      .n-world {
-        aspect-ratio: auto;
-        height: clamp(520px, 60vh, 620px);
-      }
-      .n-world-note {
-        margin: 14px 0 52px;
-        padding-top: 14px;
-      }
-    }
-'''
+              /* NINA_WORLD_DESKTOP_COMPACT_20260906
+                 Keep the Berlin 2063 image colossal in width, but reveal its archive note
+                 and the beginning of the supporting copy sooner on desktop. */
+              @media (min-width: 901px) {
+                .n-world {
+                  aspect-ratio: auto;
+                  height: clamp(520px, 60vh, 620px);
+                }
+                .n-world-note {
+                  margin: 14px 0 52px;
+                  padding-top: 14px;
+                }
+              }
+              '''
               if '</style>' not in text:
                   raise SystemExit('Could not find closing style tag in nina-project.html')
               text = text.replace('</style>', override + '\n  </style>', 1)
