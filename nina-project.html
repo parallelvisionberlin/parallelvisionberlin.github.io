@@ -266,6 +266,21 @@
       .n-footer { display: grid; align-content: center; padding: 24px 0; letter-spacing: .15em; }
     }
     @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .n-button { transition: none; } .n-hero-asset,.n-connect-video { display: none; } }
+  
+    /* NINA_WORLD_DESKTOP_COMPACT_20260906
+       Keep the Berlin 2063 image colossal in width, but reveal its archive note
+       and the beginning of the supporting copy sooner on desktop. */
+    @media (min-width: 901px) {
+      .n-world {
+        aspect-ratio: auto;
+        height: clamp(520px, 60vh, 620px);
+      }
+      .n-world-note {
+        margin: 14px 0 52px;
+        padding-top: 14px;
+      }
+    }
+    
   </style>
   <link rel="stylesheet" href="./css/base.css?v=20260814-1">
   <link rel="stylesheet" href="./css/revamp.css?v=20260904-3">
