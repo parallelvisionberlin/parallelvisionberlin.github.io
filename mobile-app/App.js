@@ -1,0 +1,281 @@
+import React, { useMemo, useState } from 'react';
+import {
+  Linking,
+  Pressable,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import { theme } from './src/theme';
+import { config } from './src/config';
+
+const tabs = ['HOME', 'NINA', '2063', 'MUSIC', 'PROFILE'];
+
+function Hairline() {
+  return <View style={styles.hairline} />;
+}
+
+function Kicker({ children }) {
+  return <Text style={styles.kicker}>{children}</Text>;
+}
+
+function ArrowButton({ label, onPress, strong = false }) {
+  return (
+    <Pressable onPress={onPress} style={({ pressed }) => [styles.button, strong && styles.buttonStrong, pressed && styles.pressed]}>
+      <Text style={[styles.buttonText, strong && styles.buttonTextStrong]}>{label}</Text>
+      <Text style={[styles.buttonArrow, strong && styles.buttonTextStrong]}>↗</Text>
+    </Pressable>
+  );
+}
+
+function SignalPanel() {
+  return (
+    <View style={styles.signalPanel}>
+      <View style={styles.signalTopline}>
+        <Kicker>LIVE SIGNAL</Kicker>
+        <View style={styles.signalStatusWrap}>
+          <View style={styles.signalDot} />
+          <Text style={styles.signalStatus}>ACTIVE</Text>
+        </View>
+      </View>
+      <View style={styles.figure}>
+        <View style={styles.figureGlow} />
+        <Text style={styles.figureMark}>N</Text>
+      </View>
+      <Text style={styles.signalName}>NINA FOK</Text>
+      <Text style={styles.signalMeta}>BERLIN / 2063</Text>
+      <ArrowButton label="TALK TO NINA" strong onPress={() => Linking.openURL(config.ninaLiveUrl)} />
+    </View>
+  );
+}
+
+function HomeScreen({ setTab }) {
+  return (
+    <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+      <View style={styles.hero}>
+        <Kicker>PARALLEL VISION / BERLIN</Kicker>
+        <Text style={styles.heroTitle}>BERLIN{`\n`}2063</Text>
+        <Text style={styles.heroCopy}>Music, moving image and transmissions from an imagined future.</Text>
+      </View>
+
+      <SignalPanel />
+
+      <View style={styles.section}>
+        <Kicker>NOW TRANSMITTING</Kicker>
+        <Hairline />
+        <Text style={styles.releaseTitle}>STAY LOW</Text>
+        <Text style={styles.releaseMeta}>MOLINARI × NINA FOK</Text>
+        <Text style={styles.releaseCopy}>A current signal from Parallel Vision.</Text>
+        <ArrowButton label="ENTER MUSIC" onPress={() => setTab('MUSIC')} />
+      </View>
+
+      <View style={styles.section}>
+        <Kicker>THE WORLD</Kicker>
+        <Hairline />
+        <Text style={styles.editorialTitle}>A possible Berlin. Thirty-seven years from now.</Text>
+        <Text style={styles.body}>Fragments, films, people and objects from the Parallel Vision world.</Text>
+        <ArrowButton label="DISCOVER 2063" onPress={() => setTab('2063')} />
+      </View>
+    </ScrollView>
+  );
+}
+
+function NinaScreen() {
+  return (
+    <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+      <Kicker>NINA FOK / LIVE SIGNAL</Kicker>
+      <Text style={styles.pageTitle}>SHE’S IN{`\n`}BERLIN, 2063.</Text>
+      <Text style={styles.pageIntro}>A consciousness inside the Parallel Vision world. Speak with her live.</Text>
+      <SignalPanel />
+      <View style={styles.section}>
+        <Kicker>CONTINUITY</Kicker>
+        <Hairline />
+        <Text style={styles.editorialTitle}>The conversation does not have to begin from zero.</Text>
+        <Text style={styles.body}>The mobile app is being prepared to use the same account, memory and signal-credit system as the existing Nina experience.</Text>
+      </View>
+    </ScrollView>
+  );
+}
+
+function WorldScreen() {
+  const entries = [
+    ['01', 'THE CITY', 'Berlin as remembered, rebuilt and imagined.'],
+    ['02', 'FASHION AFTER FABRIC', 'Bodies, material and identity beyond conventional clothing.'],
+    ['03', 'TRANSMISSIONS', 'Short films, voices and fragments from the world.'],
+    ['04', 'PEOPLE', 'Artists and figures moving through Parallel Vision.'],
+  ];
+
+  return (
+    <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+      <Kicker>PARALLEL VISION / WORLD INDEX</Kicker>
+      <Text style={styles.pageTitle}>BERLIN{`\n`}2063</Text>
+      <Text style={styles.pageIntro}>Not a timeline. An archive of signals from a possible future.</Text>
+      <View style={styles.worldGrid}>
+        {entries.map(([number, title, copy]) => (
+          <View key={number} style={styles.worldCard}>
+            <Text style={styles.worldNumber}>{number}</Text>
+            <Text style={styles.worldTitle}>{title}</Text>
+            <Text style={styles.worldCopy}>{copy}</Text>
+          </View>
+        ))}
+      </View>
+      <ArrowButton label="OPEN CURRENT WEB ARCHIVE" onPress={() => Linking.openURL(config.siteUrl)} />
+    </ScrollView>
+  );
+}
+
+function MusicScreen() {
+  const releases = [
+    ['STAY LOW', 'Molinari × Nina FOK', '2026'],
+    ['TANZEN IM KREIS', 'Alejandro Molinari', '2026'],
+    ['DARK ROCK EP', 'Blex', '2026'],
+    ['BUILT TO LAST EP', 'REFRAKT', '2026'],
+  ];
+
+  return (
+    <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+      <Kicker>PARALLEL VISION / MUSIC</Kicker>
+      <Text style={styles.pageTitle}>CURRENT{`\n`}SIGNALS</Text>
+      <View style={styles.releaseList}>
+        {releases.map(([title, artist, year], index) => (
+          <View key={title} style={styles.releaseRow}>
+            <Text style={styles.releaseIndex}>{String(index + 1).padStart(2, '0')}</Text>
+            <View style={styles.releaseRowCopy}>
+              <Text style={styles.rowTitle}>{title}</Text>
+              <Text style={styles.rowMeta}>{artist.toUpperCase()} / {year}</Text>
+            </View>
+            <Text style={styles.rowArrow}>↗</Text>
+          </View>
+        ))}
+      </View>
+      <ArrowButton label="OPEN LABEL CATALOGUE" onPress={() => Linking.openURL(config.siteUrl)} />
+    </ScrollView>
+  );
+}
+
+function ProfileScreen() {
+  return (
+    <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+      <Kicker>ACCOUNT / SIGNAL IDENTITY</Kicker>
+      <Text style={styles.pageTitle}>YOUR{`\n`}PROFILE</Text>
+      <View style={styles.profilePanel}>
+        <View>
+          <Text style={styles.profileLabel}>STATUS</Text>
+          <Text style={styles.profileValue}>LOCAL PREVIEW</Text>
+        </View>
+        <Hairline />
+        <View>
+          <Text style={styles.profileLabel}>SIGNAL CREDITS</Text>
+          <Text style={styles.profileValue}>CONNECT ACCOUNT</Text>
+        </View>
+        <Hairline />
+        <View>
+          <Text style={styles.profileLabel}>NINA MEMORY</Text>
+          <Text style={styles.profileValue}>CONNECT ACCOUNT</Text>
+        </View>
+      </View>
+      <Text style={styles.body}>Clerk authentication and existing account data are the next backend connection. This screen is intentionally not faking a logged-in state.</Text>
+      <ArrowButton label="OPEN CURRENT ACCOUNT" onPress={() => Linking.openURL(`${config.siteUrl}/account.html`)} />
+    </ScrollView>
+  );
+}
+
+export default function App() {
+  const [tab, setTab] = useState('HOME');
+
+  const screen = useMemo(() => {
+    if (tab === 'NINA') return <NinaScreen />;
+    if (tab === '2063') return <WorldScreen />;
+    if (tab === 'MUSIC') return <MusicScreen />;
+    if (tab === 'PROFILE') return <ProfileScreen />;
+    return <HomeScreen setTab={setTab} />;
+  }, [tab]);
+
+  return (
+    <SafeAreaView style={styles.safe}>
+      <StatusBar barStyle="light-content" backgroundColor={theme.colors.bg} />
+      <View style={styles.topbar}>
+        <Text style={styles.wordmark}>PARALLEL VISION</Text>
+        <Text style={styles.topbarMeta}>PV / 2063</Text>
+      </View>
+      <View style={styles.content}>{screen}</View>
+      <View style={styles.nav}>
+        {tabs.map((item) => (
+          <Pressable key={item} onPress={() => setTab(item)} style={styles.navItem}>
+            <Text style={[styles.navText, item === tab && styles.navTextActive]}>{item}</Text>
+            {item === tab ? <View style={styles.navActive} /> : null}
+          </Pressable>
+        ))}
+      </View>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  safe: { flex: 1, backgroundColor: theme.colors.bg },
+  content: { flex: 1 },
+  topbar: {
+    height: 54,
+    paddingHorizontal: 18,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: theme.colors.line,
+  },
+  wordmark: { color: theme.colors.text, fontSize: 12, letterSpacing: 2.6, fontWeight: '600' },
+  topbarMeta: { color: theme.colors.muted, fontSize: 9, letterSpacing: 1.8 },
+  scroll: { paddingHorizontal: 18, paddingTop: 26, paddingBottom: 64 },
+  hero: { paddingTop: 18, paddingBottom: 34 },
+  kicker: { color: theme.colors.muted, fontSize: 9, letterSpacing: 2.1, fontWeight: '600' },
+  heroTitle: { color: theme.colors.text, fontSize: 62, lineHeight: 58, letterSpacing: -2.4, fontWeight: '300', marginTop: 18 },
+  heroCopy: { color: theme.colors.signal, fontSize: 17, lineHeight: 25, maxWidth: 300, marginTop: 22 },
+  pageTitle: { color: theme.colors.text, fontSize: 48, lineHeight: 47, letterSpacing: -1.8, fontWeight: '300', marginTop: 18 },
+  pageIntro: { color: theme.colors.signal, fontSize: 16, lineHeight: 24, maxWidth: 330, marginTop: 18, marginBottom: 30 },
+  signalPanel: { backgroundColor: theme.colors.panel, borderRadius: theme.radius.lg, padding: 18, borderWidth: StyleSheet.hairlineWidth, borderColor: theme.colors.line },
+  signalTopline: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  signalStatusWrap: { flexDirection: 'row', alignItems: 'center', gap: 7 },
+  signalDot: { width: 5, height: 5, borderRadius: 3, backgroundColor: theme.colors.text },
+  signalStatus: { color: theme.colors.muted, fontSize: 8, letterSpacing: 1.6 },
+  figure: { height: 250, marginTop: 18, marginBottom: 18, borderRadius: 20, backgroundColor: '#090909', justifyContent: 'center', alignItems: 'center', overflow: 'hidden' },
+  figureGlow: { position: 'absolute', width: 180, height: 180, borderRadius: 90, borderWidth: 1, borderColor: '#272727' },
+  figureMark: { color: '#1C1C1C', fontSize: 164, fontWeight: '200', lineHeight: 190 },
+  signalName: { color: theme.colors.text, fontSize: 28, letterSpacing: -0.8, fontWeight: '300' },
+  signalMeta: { color: theme.colors.muted, fontSize: 9, letterSpacing: 1.8, marginTop: 6, marginBottom: 18 },
+  section: { marginTop: 42 },
+  hairline: { height: StyleSheet.hairlineWidth, backgroundColor: theme.colors.line, marginVertical: 16 },
+  releaseTitle: { color: theme.colors.text, fontSize: 36, letterSpacing: -1.2, fontWeight: '300' },
+  releaseMeta: { color: theme.colors.muted, fontSize: 10, letterSpacing: 1.5, marginTop: 7 },
+  releaseCopy: { color: theme.colors.signal, fontSize: 15, lineHeight: 22, marginTop: 18 },
+  editorialTitle: { color: theme.colors.text, fontSize: 28, lineHeight: 33, letterSpacing: -0.8, fontWeight: '300' },
+  body: { color: theme.colors.muted, fontSize: 14, lineHeight: 22, marginTop: 14 },
+  button: { minHeight: 52, marginTop: 20, paddingHorizontal: 16, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, borderColor: '#343434', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  buttonStrong: { backgroundColor: theme.colors.text, borderColor: theme.colors.text },
+  buttonText: { color: theme.colors.text, fontSize: 10, letterSpacing: 1.8, fontWeight: '600' },
+  buttonTextStrong: { color: '#090909' },
+  buttonArrow: { color: theme.colors.text, fontSize: 17 },
+  pressed: { opacity: 0.66 },
+  worldGrid: { marginTop: 28, gap: 12 },
+  worldCard: { minHeight: 170, padding: 18, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, borderColor: theme.colors.line, backgroundColor: theme.colors.panel },
+  worldNumber: { color: theme.colors.muted, fontSize: 9, letterSpacing: 1.5 },
+  worldTitle: { color: theme.colors.text, fontSize: 22, fontWeight: '300', marginTop: 36 },
+  worldCopy: { color: theme.colors.muted, fontSize: 13, lineHeight: 19, marginTop: 9, maxWidth: 280 },
+  releaseList: { marginTop: 28 },
+  releaseRow: { minHeight: 92, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.colors.line, flexDirection: 'row', alignItems: 'center' },
+  releaseIndex: { width: 34, color: theme.colors.muted, fontSize: 9 },
+  releaseRowCopy: { flex: 1 },
+  rowTitle: { color: theme.colors.text, fontSize: 18, fontWeight: '300' },
+  rowMeta: { color: theme.colors.muted, fontSize: 8, letterSpacing: 1.1, marginTop: 5 },
+  rowArrow: { color: theme.colors.muted, fontSize: 16 },
+  profilePanel: { marginTop: 28, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, borderColor: theme.colors.line, padding: 18, backgroundColor: theme.colors.panel },
+  profileLabel: { color: theme.colors.muted, fontSize: 8, letterSpacing: 1.6 },
+  profileValue: { color: theme.colors.text, fontSize: 17, marginTop: 7, fontWeight: '300' },
+  nav: { height: 62, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.colors.line, flexDirection: 'row', backgroundColor: '#080808', paddingHorizontal: 5 },
+  navItem: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  navText: { color: '#55534F', fontSize: 8, letterSpacing: 0.7, fontWeight: '600' },
+  navTextActive: { color: theme.colors.text },
+  navActive: { width: 18, height: 1, backgroundColor: theme.colors.text, marginTop: 7 },
+});
