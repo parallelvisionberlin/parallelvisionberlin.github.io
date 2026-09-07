@@ -1,0 +1,20 @@
+{
+  "expo": {
+    "name": "Parallel Vision",
+    "slug": "parallel-vision",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "scheme": "parallelvision",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.parallelvision.app"
+    },
+    "android": {
+      "package": "com.parallelvision.app"
+    },
+    "web": {
+      "bundler": "metro"
+    }
+  }
+}
