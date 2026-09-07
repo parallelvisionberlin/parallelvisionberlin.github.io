@@ -2,10 +2,11 @@
   "expo": {
     "name": "Parallel Vision",
     "slug": "parallel-vision",
-    "version": "0.2.0",
+    "version": "0.3.0",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
     "scheme": "parallelvision",
+    "plugins": ["expo-secure-store", "@clerk/expo"],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.parallelvision.app",
