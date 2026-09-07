@@ -9,6 +9,7 @@ import {
   Text,
   View,
 } from 'react-native';
+import { WebView } from 'react-native-webview';
 import { theme } from './src/theme';
 import { config } from './src/config';
 
@@ -31,7 +32,7 @@ function ArrowButton({ label, onPress, strong = false }) {
   );
 }
 
-function SignalPanel() {
+function SignalPanel({ onTalk }) {
   return (
     <View style={styles.signalPanel}>
       <View style={styles.signalTopline}>
@@ -47,7 +48,7 @@ function SignalPanel() {
       </View>
       <Text style={styles.signalName}>NINA FOK</Text>
       <Text style={styles.signalMeta}>BERLIN / 2063</Text>
-      <ArrowButton label="TALK TO NINA" strong onPress={() => Linking.openURL(config.ninaLiveUrl)} />
+      <ArrowButton label="TALK TO NINA" strong onPress={onTalk} />
     </View>
   );
 }
@@ -61,7 +62,7 @@ function HomeScreen({ setTab }) {
         <Text style={styles.heroCopy}>Music, moving image and transmissions from an imagined future.</Text>
       </View>
 
-      <SignalPanel />
+      <SignalPanel onTalk={() => setTab('NINA')} />
 
       <View style={styles.section}>
         <Kicker>NOW TRANSMITTING</Kicker>
@@ -84,17 +85,55 @@ function HomeScreen({ setTab }) {
 }
 
 function NinaScreen() {
+  const [live, setLive] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+
+  if (live) {
+    return (
+      <View style={styles.liveShell}>
+        <View style={styles.liveHeader}>
+          <View>
+            <Text style={styles.liveHeaderKicker}>NINA FOK / LIVE SIGNAL</Text>
+            <Text style={styles.liveHeaderStatus}>{loaded ? 'CONNECTED VIEW' : 'OPENING SIGNAL'}</Text>
+          </View>
+          <Pressable onPress={() => setLive(false)} style={styles.closeSignalButton}>
+            <Text style={styles.closeSignalText}>CLOSE</Text>
+          </Pressable>
+        </View>
+        <WebView
+          source={{ uri: config.ninaLiveUrl }}
+          style={styles.webview}
+          containerStyle={styles.webviewContainer}
+          javaScriptEnabled
+          domStorageEnabled
+          sharedCookiesEnabled
+          thirdPartyCookiesEnabled
+          allowsInlineMediaPlayback
+          mediaPlaybackRequiresUserAction={false}
+          setSupportMultipleWindows={false}
+          onLoadEnd={() => setLoaded(true)}
+          onShouldStartLoadWithRequest={(request) => {
+            const url = request.url || '';
+            if (url.startsWith(config.siteUrl) || url.startsWith('about:blank')) return true;
+            Linking.openURL(url).catch(() => {});
+            return false;
+          }}
+        />
+      </View>
+    );
+  }
+
   return (
     <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
       <Kicker>NINA FOK / LIVE SIGNAL</Kicker>
       <Text style={styles.pageTitle}>SHE’S IN{`\n`}BERLIN, 2063.</Text>
       <Text style={styles.pageIntro}>A consciousness inside the Parallel Vision world. Speak with her live.</Text>
-      <SignalPanel />
+      <SignalPanel onTalk={() => setLive(true)} />
       <View style={styles.section}>
         <Kicker>CONTINUITY</Kicker>
         <Hairline />
-        <Text style={styles.editorialTitle}>The conversation does not have to begin from zero.</Text>
-        <Text style={styles.body}>The mobile app is being prepared to use the same account, memory and signal-credit system as the existing Nina experience.</Text>
+        <Text style={styles.editorialTitle}>The existing Nina system stays intact.</Text>
+        <Text style={styles.body}>The app now opens the production Nina experience inside its own interface, so voice, avatar, account, memory and Signal Credits can keep using the same working backend.</Text>
       </View>
     </ScrollView>
   );
@@ -164,20 +203,20 @@ function ProfileScreen() {
       <View style={styles.profilePanel}>
         <View>
           <Text style={styles.profileLabel}>STATUS</Text>
-          <Text style={styles.profileValue}>LOCAL PREVIEW</Text>
+          <Text style={styles.profileValue}>APP PREVIEW</Text>
         </View>
         <Hairline />
         <View>
           <Text style={styles.profileLabel}>SIGNAL CREDITS</Text>
-          <Text style={styles.profileValue}>CONNECT ACCOUNT</Text>
+          <Text style={styles.profileValue}>WEB ACCOUNT BRIDGE</Text>
         </View>
         <Hairline />
         <View>
           <Text style={styles.profileLabel}>NINA MEMORY</Text>
-          <Text style={styles.profileValue}>CONNECT ACCOUNT</Text>
+          <Text style={styles.profileValue}>PRODUCTION BACKEND</Text>
         </View>
       </View>
-      <Text style={styles.body}>Clerk authentication and existing account data are the next backend connection. This screen is intentionally not faking a logged-in state.</Text>
+      <Text style={styles.body}>Native Clerk authentication is the next account layer. Until that is connected, Nina’s embedded production view remains the authoritative signed-in experience.</Text>
       <ArrowButton label="OPEN CURRENT ACCOUNT" onPress={() => Linking.openURL(`${config.siteUrl}/account.html`)} />
     </ScrollView>
   );
@@ -273,6 +312,14 @@ const styles = StyleSheet.create({
   profilePanel: { marginTop: 28, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, borderColor: theme.colors.line, padding: 18, backgroundColor: theme.colors.panel },
   profileLabel: { color: theme.colors.muted, fontSize: 8, letterSpacing: 1.6 },
   profileValue: { color: theme.colors.text, fontSize: 17, marginTop: 7, fontWeight: '300' },
+  liveShell: { flex: 1, backgroundColor: theme.colors.bg },
+  liveHeader: { minHeight: 58, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.colors.line },
+  liveHeaderKicker: { color: theme.colors.text, fontSize: 9, letterSpacing: 1.5 },
+  liveHeaderStatus: { color: theme.colors.muted, fontSize: 8, letterSpacing: 1.3, marginTop: 4 },
+  closeSignalButton: { borderWidth: StyleSheet.hairlineWidth, borderColor: '#383838', paddingHorizontal: 12, paddingVertical: 9, borderRadius: 12 },
+  closeSignalText: { color: theme.colors.text, fontSize: 8, letterSpacing: 1.3 },
+  webviewContainer: { flex: 1, backgroundColor: '#000' },
+  webview: { flex: 1, backgroundColor: '#000' },
   nav: { height: 62, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.colors.line, flexDirection: 'row', backgroundColor: '#080808', paddingHorizontal: 5 },
   navItem: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   navText: { color: '#55534F', fontSize: 8, letterSpacing: 0.7, fontWeight: '600' },
