@@ -2,16 +2,20 @@
   "expo": {
     "name": "Parallel Vision",
     "slug": "parallel-vision",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
     "scheme": "parallelvision",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.parallelvision.app"
+      "bundleIdentifier": "com.parallelvision.app",
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "Parallel Vision uses the microphone when you choose to speak with Nina FOK live."
+      }
     },
     "android": {
-      "package": "com.parallelvision.app"
+      "package": "com.parallelvision.app",
+      "permissions": ["RECORD_AUDIO"]
     },
     "web": {
       "bundler": "metro"
