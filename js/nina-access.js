@@ -142,6 +142,12 @@ let ninaCreditsPurchaseStatus = null;
 let ninaCreditsPackList = null;
 let ninaCreditsPackButtons = [];
 let ninaCreditsPurchaseClose = null;
+let ninaCreditsReturnFocus = null;
+let ninaLiveTimeControls = null;
+let ninaLiveCountdown = null;
+let ninaGetMoreTime = null;
+let ninaLiveCountdownTimer = null;
+let ninaLiveCountdownDeadline = 0;
 let ninaUsageSessionId = "";
 let ninaUsageActive = false;
 let ninaUsageEnding = false;
@@ -700,10 +706,10 @@ function initializeSignalCreditPurchaseUI() {
       <h2 class="nina-credits-purchase-title" id="ninaCreditsPurchaseTitle">Signal Credits</h2>
       <p class="nina-credits-purchase-lead" id="ninaCreditsPurchaseLead" style="font-size:1.06em">Access Nina's live transmissions.</p>
       <div class="nina-credits-pack-list">
+        <button class="nina-credits-pack nina-credits-pack-featured" type="button" data-pack-id="signal_300"><span class="nina-credits-pack-copy"><span class="nina-credits-pack-label">Time to settle in</span><span class="nina-credits-pack-time">30 MIN</span><span class="nina-credits-pack-title">300 Signal Credits</span><span class="nina-credits-pack-description">Stay a little longer. Explore her world.</span></span><strong>€15.99</strong></button>
         <button class="nina-credits-pack" type="button" data-pack-id="signal_60"><span class="nina-credits-pack-copy"><span class="nina-credits-pack-time">6 MIN</span><span class="nina-credits-pack-title">60 Signal Credits</span><span class="nina-credits-pack-description">A short live signal with Nina.</span></span><strong>€3.50</strong></button>
-        <button class="nina-credits-pack" type="button" data-pack-id="signal_150"><span class="nina-credits-pack-copy"><span class="nina-credits-pack-time">15 MIN</span><span class="nina-credits-pack-title">150 Signal Credits</span><span class="nina-credits-pack-description">More time to stay in the conversation.</span></span><strong>€9</strong></button>
-        <button class="nina-credits-pack" type="button" data-pack-id="signal_300"><span class="nina-credits-pack-copy"><span class="nina-credits-pack-time">30 MIN</span><span class="nina-credits-pack-title">300 Signal Credits</span><span class="nina-credits-pack-description">For a longer uninterrupted signal.</span></span><strong>€17</strong></button>
-        <button class="nina-credits-pack" type="button" data-pack-id="signal_600"><span class="nina-credits-pack-copy"><span class="nina-credits-pack-time">60 MIN</span><span class="nina-credits-pack-title">600 Signal Credits</span><span class="nina-credits-pack-description">For returning conversations.</span></span><strong>€30</strong></button>
+        <button class="nina-credits-pack" type="button" data-pack-id="signal_150"><span class="nina-credits-pack-copy"><span class="nina-credits-pack-time">15 MIN</span><span class="nina-credits-pack-title">150 Signal Credits</span><span class="nina-credits-pack-description">More time to stay in the conversation.</span></span><strong>€8.99</strong></button>
+        <button class="nina-credits-pack" type="button" data-pack-id="signal_600"><span class="nina-credits-pack-copy"><span class="nina-credits-pack-time">60 MIN</span><span class="nina-credits-pack-title">600 Signal Credits</span><span class="nina-credits-pack-description">For returning conversations.</span></span><strong>€27.99</strong></button>
       </div>
       <details class="nina-credits-about">
         <summary><span class="nina-credits-about-closed">About Signal Credits +</span><span class="nina-credits-about-open">About Signal Credits −</span></summary>
@@ -727,7 +733,8 @@ function initializeSignalCreditPurchaseUI() {
   ninaCreditsPackButtons = Array.from(modal.querySelectorAll(".nina-credits-pack"));
   ninaCreditsPurchaseClose = modal.querySelector(".nina-credits-purchase-close");
 
-  ninaCreditsPurchaseTrigger.addEventListener("click", openSignalCreditPurchase);
+  initializeNinaLiveTimeControls();
+  ninaCreditsPurchaseTrigger.addEventListener("click", () => openSignalCreditPurchase());
   ninaAccountBuyCredits.addEventListener("click", event => {
     if (Number.isSafeInteger(ninaCreditsBalance) && ninaCreditsBalance > 0) {
       closeNinaAccountPanel();
@@ -738,6 +745,21 @@ function initializeSignalCreditPurchaseUI() {
   ninaCreditsPurchaseClose.addEventListener("click", () => closeSignalCreditPurchase(true));
   modal.addEventListener("click", event => {
     if (event.target === modal) closeSignalCreditPurchase(true);
+  });
+  modal.addEventListener("keydown", event => {
+    if (event.key !== "Tab") return;
+    const controls = Array.from(modal.querySelectorAll("button:not(:disabled), summary"))
+      .filter(control => control.getClientRects().length);
+    const first = controls[0];
+    const last = controls[controls.length - 1];
+    if (!first) { event.preventDefault(); return; }
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
   });
   ninaCreditsPackButtons.forEach(button => button.addEventListener("click", () => startSignalCreditCheckout(button.dataset.packId)));
 }
@@ -752,11 +774,16 @@ function setSignalCreditPurchaseView({ title, lead, status = "", packsVisible = 
 
 function openSignalCreditPurchase(view = null) {
   if (!ninaCreditsPurchaseModal) return;
+  ninaCreditsReturnFocus = document.activeElement;
+  const inCall = ninaOverlay.classList.contains("is-open");
+  // Keep the dialog inside native/fallback fullscreen without touching the stream.
+  (inCall ? ninaWindow : document.body).appendChild(ninaCreditsPurchaseModal);
+  ninaCreditsPurchaseModal.classList.toggle("is-in-call", inCall);
   closeNinaAccountPanel();
   setSignalCreditPurchaseView(view || {
     title: "Signal Credits",
     lead: "Access Nina's live transmissions.",
-    status: "",
+    status: ninaUsageActive ? "Your live time continues while you browse. Choosing a pack opens secure checkout and leaves this call." : "",
     packsVisible: true
   });
   ninaCreditsPurchaseModal.hidden = false;
@@ -770,7 +797,44 @@ function closeSignalCreditPurchase(returnFocus = false) {
   ninaCreditsPurchaseModal.hidden = true;
   ninaCreditsPurchaseModal.setAttribute("aria-hidden", "true");
   document.body.classList.remove("nina-credits-purchase-active");
-  if (returnFocus && ninaAccountShell && !ninaAccountShell.hidden) ninaAccountToggle?.focus({ preventScroll: true });
+  if (returnFocus) {
+    const target = ninaCreditsReturnFocus?.isConnected && ninaCreditsReturnFocus.getClientRects().length
+      ? ninaCreditsReturnFocus : ninaAccountToggle;
+    target?.focus({ preventScroll: true });
+  }
+}
+
+function initializeNinaLiveTimeControls() {
+  const stage = ninaWindow?.querySelector(".nina-stage");
+  if (!stage || ninaLiveTimeControls) return;
+  ninaLiveTimeControls = document.createElement("div");
+  ninaLiveTimeControls.className = "nina-live-time-controls";
+  ninaLiveTimeControls.hidden = true;
+  ninaLiveTimeControls.innerHTML = '<span class="nina-live-countdown" role="timer" aria-label="Live time remaining"></span><button type="button" class="nina-get-more-time" aria-haspopup="dialog">Get more time</button>';
+  stage.appendChild(ninaLiveTimeControls);
+  ninaLiveCountdown = ninaLiveTimeControls.querySelector(".nina-live-countdown");
+  ninaGetMoreTime = ninaLiveTimeControls.querySelector("button");
+  ninaGetMoreTime.addEventListener("click", () => openSignalCreditPurchase());
+}
+
+function clearNinaLiveCountdown() {
+  clearInterval(ninaLiveCountdownTimer);
+  ninaLiveCountdownTimer = null;
+  if (ninaLiveTimeControls) ninaLiveTimeControls.hidden = true;
+}
+
+function syncNinaLiveCountdown() {
+  clearNinaLiveCountdown();
+  if (!ninaLiveTimeControls || !ninaUsageActive || !Number.isSafeInteger(ninaUsageRemainingSeconds)) return;
+  // Display only: the server remains authoritative for balance and session expiry.
+  ninaLiveCountdownDeadline = Date.now() + ninaUsageRemainingSeconds * 1000;
+  const render = () => {
+    const seconds = Math.max(0, Math.ceil((ninaLiveCountdownDeadline - Date.now()) / 1000));
+    ninaLiveCountdown.textContent = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")} remaining`;
+  };
+  render();
+  ninaLiveTimeControls.hidden = false;
+  ninaLiveCountdownTimer = setInterval(render, 1000);
 }
 
 function setCheckoutPending(pending) {
@@ -1552,6 +1616,7 @@ async function requestNinaUsage(action, keepalive = false) {
 
 function scheduleNinaUsageSettlement() {
   clearNinaUsageTimer();
+  syncNinaLiveCountdown();
   if (!ninaUsageActive || !ninaUsageSessionId) return;
   if (!Number.isSafeInteger(ninaUsageSettlementSeconds) || ninaUsageSettlementSeconds < 1) return;
   scheduleNinaUsageWarning();
@@ -1633,6 +1698,7 @@ async function settleNinaUsage(end = false, keepalive = false) {
 }
 
 async function stopNinaSession() {
+  clearNinaLiveCountdown();
   void endNinaAnalyticsSession("ended");
   ninaAttempt += 1;
   ninaConnecting = false;
@@ -2192,6 +2258,7 @@ document.addEventListener("keydown", event => {
     return;
   }
   if (ninaCreditsPurchaseModal && !ninaCreditsPurchaseModal.hidden) {
+    event.preventDefault();
     closeSignalCreditPurchase(true);
     return;
   }

@@ -1330,6 +1330,62 @@ body.nina-credits-purchase-active {
   min-width: 0;
 }
 
+.nina-credits-pack.nina-credits-pack-featured {
+  padding-left: 16px;
+  padding-right: 16px;
+  border: 1px solid rgba(255, 255, 255, .45);
+  background: rgba(255, 255, 255, .06);
+}
+
+.nina-credits-pack-label {
+  margin-bottom: 6px;
+  color: rgba(255, 255, 255, .75);
+  font: 12px/1.4 'Courier New', monospace;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.nina-credits-purchase.is-in-call {
+  position: absolute;
+  align-items: start;
+  background: rgba(0, 0, 0, .45);
+  backdrop-filter: none;
+}
+
+.nina-live-time-controls {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 76;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px 12px;
+  max-width: calc(100% - 32px);
+  padding: 4px 10px;
+  border: 1px solid rgba(255, 255, 255, .2);
+  background: rgba(2, 2, 3, .75);
+  color: rgba(255, 255, 255, .8);
+  font: 14px/1.5 Inter, sans-serif;
+}
+
+.nina-live-time-controls[hidden] { display: none; }
+.nina-live-countdown { font-variant-numeric: tabular-nums; }
+.nina-get-more-time {
+  min-height: 44px;
+  padding: 0 4px;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  cursor: pointer;
+}
+.nina-get-more-time:focus-visible { outline: 1px solid #fff; outline-offset: 2px; }
+body.nina-call-visible .nina-time-warning { top: 88px; }
+
 .nina-credits-pack-title {
   color: rgba(255, 255, 255, .62);
   font: 11.5px/1.4 'Courier New', monospace;
