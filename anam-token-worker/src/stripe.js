@@ -4,10 +4,11 @@ import { rewardQualifyingReferral } from "./referrals.js";
 import { hashNinaMetaEmail, sendNinaMetaEvent } from "./meta-capi.js";
 
 const PACK_DEFINITIONS = Object.freeze({
-  signal_60: Object.freeze({ packId: "signal_60", credits: 60, amountEurCents: 350, priceBinding: "STRIPE_PRICE_SIGNAL_60", enabled: true }),
-  signal_150: Object.freeze({ packId: "signal_150", credits: 150, amountEurCents: 900, priceBinding: "STRIPE_PRICE_SIGNAL_150", enabled: true }),
-  signal_300: Object.freeze({ packId: "signal_300", credits: 300, amountEurCents: 1700, priceBinding: "STRIPE_PRICE_SIGNAL_300", enabled: true }),
-  signal_600: Object.freeze({ packId: "signal_600", credits: 600, amountEurCents: 3000, priceBinding: "STRIPE_PRICE_SIGNAL_600", enabled: true })
+  signal_60: Object.freeze({ packId: "signal_60", credits: 60, amountEurCents: 350, stripePriceId: "price_1UAJ2o5JckUXomBnKOtBxCAV", enabled: true }),
+  signal_150: Object.freeze({ packId: "signal_150", credits: 150, amountEurCents: 899, stripePriceId: "price_1UD2BH5JckUXomBnDg3gEbJS", enabled: true }),
+  signal_300: Object.freeze({ packId: "signal_300", credits: 300, amountEurCents: 1599, stripePriceId: "price_1UD2BP5JckUXomBnRm5cSScY", enabled: true }),
+  signal_600: Object.freeze({ packId: "signal_600", credits: 600, amountEurCents: 2799, stripePriceId: "price_1UD2BW5JckUXomBnZUbqS4kE", enabled: true }),
+  signal_1200: Object.freeze({ packId: "signal_1200", credits: 1200, amountEurCents: 5499, stripePriceId: "price_1UD2Bd5JckUXomBnXUEMBTXm", enabled: true })
 });
 
 export class StripePurchaseError extends Error {
@@ -19,11 +20,8 @@ export class StripePurchaseError extends Error {
   }
 }
 
-export function signalCreditCatalog(env) {
-  return Object.fromEntries(Object.values(PACK_DEFINITIONS).map(definition => [definition.packId, {
-    ...definition,
-    stripePriceId: typeof env?.[definition.priceBinding] === "string" ? env[definition.priceBinding].trim() : ""
-  }]));
+export function signalCreditCatalog() {
+  return Object.fromEntries(Object.values(PACK_DEFINITIONS).map(definition => [definition.packId, { ...definition }]));
 }
 
 function configuredPack(env, packId) {
