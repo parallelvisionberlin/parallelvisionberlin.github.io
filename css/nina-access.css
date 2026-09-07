@@ -1290,7 +1290,7 @@ body.nina-credits-purchase-active {
 
 .nina-credits-purchase-title {
   margin: 20px 0 0;
-  font: 400 clamp(24px, 5vw, 38px)/1.08 'Michroma', sans-serif;
+  font: 400 clamp(24px, 4vw, 32px)/1.12 'Michroma', sans-serif;
   letter-spacing: .05em;
   text-transform: uppercase;
 }
@@ -1309,7 +1309,7 @@ body.nina-credits-purchase-active {
 
 .nina-credits-pack {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 76px;
+  grid-template-columns: minmax(0, 1fr) max-content;
   align-items: center;
   gap: 20px;
   min-height: 108px;
@@ -1388,22 +1388,22 @@ body.nina-call-visible .nina-time-warning { top: 88px; }
 
 .nina-credits-pack-title {
   color: rgba(255, 255, 255, .62);
-  font: 11.5px/1.4 'Courier New', monospace;
+  font: 13px/1.4 'Courier New', monospace;
   letter-spacing: .07em;
   text-transform: uppercase;
 }
 
 .nina-credits-pack-time {
   color: rgba(255, 255, 255, .94);
-  font: 17px/1.25 'Courier New', monospace;
+  font: 20px/1.25 'Courier New', monospace;
   letter-spacing: .08em;
   text-transform: uppercase;
 }
 
 .nina-credits-pack-description {
   margin-top: 3px;
-  color: rgba(255, 255, 255, .6);
-  font: 12px/1.55 Inter, sans-serif;
+  color: rgba(255, 255, 255, .76);
+  font: 14px/1.5 Inter, sans-serif;
   letter-spacing: 0;
 }
 
@@ -1509,13 +1509,13 @@ body.nina-call-visible .nina-time-warning { top: 88px; }
   .nina-account-signout { min-height: 40px; margin-top: 15.3px; font-size: 9.4px; }
   .nina-credits-purchase { align-items: end; padding: 12px; }
   .nina-credits-purchase-panel { width: 100%; max-height: calc(100svh - 24px); padding: 28px 22px 24px; overflow-y: auto; }
-  .nina-credits-purchase-title { padding-right: 24px; font-size: clamp(22px, 8vw, 30px); }
+  .nina-credits-purchase-title { padding-right: 24px; font-size: clamp(22px, 7vw, 27px); }
   .nina-credits-purchase-code { font-size: 10px; }
   .nina-credits-purchase-lead { font-size: 15px; }
   .nina-credits-pack { min-height: 105px; gap: 14px; padding: 18px 8px 18px 0; }
-  .nina-credits-pack-title { font-size: 12px; }
-  .nina-credits-pack-time { font-size: 16px; }
-  .nina-credits-pack-description { font-size: 12px; }
+  .nina-credits-pack-title { font-size: 13px; }
+  .nina-credits-pack-time { font-size: 19px; }
+  .nina-credits-pack-description { font-size: 14px; }
   .nina-credits-pack strong { font-size: 19px; }
   .nina-credits-about summary { font-size: 13px; }
   .nina-credits-about-copy { font-size: 12px; line-height: 1.6; }
