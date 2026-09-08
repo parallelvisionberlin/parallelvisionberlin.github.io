@@ -35,7 +35,7 @@ async def case(browser, name, account_status=200, account_error=False, balance=3
                 if account_error: await r.abort();return
                 await r.fulfill(status=account_status,headers={'Access-Control-Allow-Origin':SITE},json={'displayName':'Test Account','role':'owner' if owner else 'user','preferences':{},'referral_code':''});return
             if u.endswith('/api/nina/credits'):
-                await r.fulfill(headers={'Access-Control-Allow-Origin':SITE},json={'balance':balance,'remainingSeconds':balance*6,'ownerBypass':owner,'lifetimeDebited':0});return
+                await r.fulfill(headers={'Access-Control-Allow-Origin':SITE},json={'balance':0 if mic_mode=='lost_credit' and await page.evaluate('micRequests') else balance,'remainingSeconds':balance*6,'ownerBypass':owner,'lifetimeDebited':0});return
             if u.endswith('/session-token'):
                 await r.fulfill(headers={'Access-Control-Allow-Origin':SITE},json={'sessionToken':'MOCK_ANAM_TOKEN','conversationId':'test_conversation','usageSessionId':'test_usage','remainingSeconds':180,'settlementSeconds':30});return
             if '/api/nina/live/' in u:
@@ -71,12 +71,12 @@ async def case(browser, name, account_status=200, account_error=False, balance=3
             if balance==0 and not owner:assert await page.locator('#startNina').inner_text()=='GET SIGNAL CREDITS'
             if mic_mode:
                 assert not await page.locator('#ninaReferralEntry').is_visible()
-                assert 'nina-window.webp' in await page.locator('.nina-intro').evaluate('(e)=>getComputedStyle(e).backgroundImage')
+                assert 'Canon.webp' in await page.locator('.nina-intro').evaluate('(e)=>getComputedStyle(e).backgroundImage')
                 assert await page.locator('.nina-intro').evaluate('(e)=>getComputedStyle(e,"::before").display')=='none'
-                assert await page.evaluate("new Promise(resolve=>{const i=new Image();i.onload=()=>resolve(i.naturalWidth>100);i.onerror=()=>resolve(false);i.src='/assets/optimized/nina-fok/nina-window.webp';})"), 'Portrait did not load'
+                assert await page.evaluate("new Promise(resolve=>{const i=new Image();i.onload=()=>resolve(i.naturalWidth>100);i.onerror=()=>resolve(false);i.src='/assets/optimized/nina-fok/Canon.webp';})"), 'Portrait did not load'
                 assert box['y']+box['height']<=height, box
                 await page.screenshot(path=str(ROOT/f'precall-{os.environ.get("BROWSER","chromium")}-{height}.png'))
-            if mic_mode in ('reuse','timer'):
+            if mic_mode in ('reuse','timer','lost_credit'):
                 await page.locator('#ninaMicrophoneToggle').click()
                 await page.locator('#ninaMicCheck').click()
                 await page.wait_for_function("document.getElementById('ninaMicReading').textContent.includes('dBFS')")
@@ -88,6 +88,11 @@ async def case(browser, name, account_status=200, account_error=False, balance=3
                     assert await page.evaluate('micStops')==1
                 else:
                     await page.locator('#ninaMicrophoneToggle').click()
+            if mic_mode=='lost_credit':
+                await page.locator('#startNina').click()
+                await page.wait_for_function("document.getElementById('startNina').textContent==='GET SIGNAL CREDITS'")
+                assert await page.evaluate('micStops')==1, 'Test microphone retained after eligibility declined'
+                assert not any(u.endswith('/session-token') for u,m,a in requests), 'Ineligible call created'
             if call:
                 await page.locator('#startNina').click()
                 await page.wait_for_function("document.getElementById('ninaStatus').textContent==='NINA ONLINE'")
@@ -130,5 +135,6 @@ async def main():
         await case(b,'mic test is local and reuses one stream for the call',mic_mode='reuse',call=True)
         await case(b,'eight-second microphone test releases capture',mic_mode='timer')
         await case(b,'ended input stops capture and exposes retry without signing out',mic_mode='disconnect',call=True)
+        await case(b,'eligibility loss releases a tested microphone without starting a call',mic_mode='lost_credit')
         await b.close()
 asyncio.run(main())

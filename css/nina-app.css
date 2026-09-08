@@ -10,7 +10,7 @@ body {font-family:Inter,Arial,sans-serif;}
 #ninaOverlay .nina-window-bar,.nina-memory-controls,#ninaFullscreen,#closeNina,.nina-entry-discover {display:none!important;}
 #ninaOverlay .nina-stage {inset:0!important;background:#050505!important;}
 /* The same portrait asset as the browser, without its old blurred background layer. */
-body #ninaOverlay .nina-intro {min-height:0;background:#050505 url('../assets/optimized/nina-fok/nina-window.webp') center 32%/cover no-repeat!important;}
+body #ninaOverlay .nina-intro {min-height:0;background:#050505 url('../assets/optimized/nina-fok/Canon.webp') center 32%/cover no-repeat!important;}
 body #ninaOverlay .nina-intro::before {display:none!important;}
 body #ninaOverlay .nina-intro::after {background:linear-gradient(180deg,transparent 25%,rgba(0,0,0,.08) 46%,rgba(0,0,0,.85) 78%,#000 100%)!important;}
 body #ninaOverlay .nina-intro-content {position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;gap:12px;width:100%;height:100%;box-sizing:border-box;padding:24px 20px max(18px,env(safe-area-inset-bottom));text-align:center;}

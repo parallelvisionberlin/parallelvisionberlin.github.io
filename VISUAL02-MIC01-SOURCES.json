@@ -1,12 +1,12 @@
 {
   "web": {
     "js/nina-microphone.js": "cd1d21d24041db6a2ca09f015f92efc86fd5c201",
-    "js/nina-access.js": "784410cfda749165b4de0b70b3849179efb83ef4",
+    "js/nina-access.js": "839d17caffa7ea5e24472ebb9764fd0bc6d45c84",
     "js/nina-app-bootstrap.js": "1050a701b712e7f504e7bf6c44528394d07e0e33",
-    "css/nina-app.css": "41bdc8925b91b23fc0ed4520b022c80fb69f1f18",
+    "css/nina-app.css": "e6e96018d3808f72a315d383b6352f1596aee9f4",
     "nina-app.html": "4b0155639f945d5247989334ebfa645143045f0e",
     "scripts/test-nina-microphone.mjs": "8e7a832e2d56044485706e5aa2ebb7d34d4c5283",
-    "scripts/test-nina-visual-audio.py": "7d02cebcb7d0ae6fca27d1e0e1cd9e4ea8720791"
+    "scripts/test-nina-visual-audio.py": "f544f946ff16cd1f782a95312395e7e03205716f"
   },
   "native": {
     "mobile-app/App.js": "2e68809dccc448e4f4ba0b73f4ff75bf4354c761",

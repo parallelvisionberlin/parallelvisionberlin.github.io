@@ -1224,6 +1224,7 @@ function showNinaEligibilityLoading() {
 }
 
 function showNinaSignInRequired() {
+  if (appMicrophone) stopNinaMicrophone(); // No capture retained behind an error or payment screen.
   document.body.classList.remove("nina-connecting-mode", "nina-conversation-live");
   document.body.classList.add("nina-scrim-visible", "nina-scrim-action");
   setNinaScrim("SIGN IN TO OPEN THE SIGNAL", "", "Memory and Signal Credits are connected to your account.", "SIGN IN");
@@ -1304,7 +1305,8 @@ async function renderAppMicrophones() {
   // System default is an actual selectable route, not the first enumerated device.
   ninaMicrophoneSelect.replaceChildren(new Option("System default", ""));
   devices.forEach((device, index) => ninaMicrophoneSelect.appendChild(new Option(device.label || `Microphone ${index + 1}`, device.deviceId)));
-  ninaMicrophoneSelect.value = devices.some(device => device.deviceId === report.selected) ? report.selected : "";
+  const selection = appMicrophone.getStream() ? report.selected : readPreferredMicrophone();
+  ninaMicrophoneSelect.value = devices.some(device => device.deviceId === selection) ? selection : "";
   savePreferredMicrophone(ninaMicrophoneSelect.value);
   updateNinaMicrophoneName();
   const route = byId("ninaMicRoute");
@@ -1507,6 +1509,7 @@ function showNinaConnecting() {
 }
 
 function showNinaFailure(message = "Please check microphone access and try again.") {
+  if (appMicrophone) stopNinaMicrophone(); // No capture retained behind an error or payment screen.
   if (appMicrophone) ninaMicrophoneSelect.disabled = false;
   document.body.classList.remove("nina-connecting-mode", "nina-conversation-live");
   document.body.classList.add("nina-scrim-visible", "nina-scrim-action");
@@ -1530,6 +1533,7 @@ function showNinaCannotHear() {
 }
 
 function showNoSignalCredits() {
+  if (appMicrophone) stopNinaMicrophone(); // No capture retained behind an error or payment screen.
   document.body.classList.remove("nina-connecting-mode", "nina-conversation-live");
   document.body.classList.remove("nina-scrim-visible", "nina-scrim-action");
   if (ninaEligibilityStatus) ninaEligibilityStatus.textContent = "0 CREDITS · 0 MIN";
