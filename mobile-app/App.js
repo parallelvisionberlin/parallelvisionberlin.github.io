@@ -114,7 +114,53 @@ function NinaScreen() {
 
           <WebView
             source={{ uri: config.ninaLiveUrl }}
-            injectedJavaScriptBeforeContentLoaded={nativeToken ? `
+            injectedJavaScriptBeforeContentLoaded={`
+            (function () {
+              const cleanAppView = () => {
+                const overlay = document.getElementById("ninaOverlay");
+                if (!overlay) return;
+
+                Array.from(document.body.children).forEach(function (el) {
+                  if (el !== overlay && !el.contains(overlay)) {
+                    el.style.setProperty("display", "none", "important");
+                  }
+                });
+
+                overlay.style.setProperty("position", "fixed", "important");
+                overlay.style.setProperty("inset", "0", "important");
+                overlay.style.setProperty("width", "100vw", "important");
+                overlay.style.setProperty("height", "100vh", "important");
+                overlay.style.setProperty("z-index", "999999", "important");
+
+                const win = overlay.querySelector(".nina-window");
+                if (win) {
+                  win.style.setProperty("position", "fixed", "important");
+                  win.style.setProperty("inset", "0", "important");
+                  win.style.setProperty("width", "100vw", "important");
+                  win.style.setProperty("height", "100vh", "important");
+                  win.style.setProperty("max-width", "none", "important");
+                  win.style.setProperty("max-height", "none", "important");
+                  win.style.setProperty("border-radius", "0", "important");
+                }
+
+                const fs = document.getElementById("ninaFullscreen");
+                if (fs) fs.style.display = "none";
+
+                const close = document.getElementById("closeNina");
+                if (close) close.style.display = "none";
+              };
+
+              document.addEventListener("DOMContentLoaded", cleanAppView);
+              setTimeout(cleanAppView, 250);
+              setTimeout(cleanAppView, 1000);
+            })();
+
+            ${nativeToken ? `document.cookie = "__session=${nativeToken}; Path=/; Domain=.parallelvisionlabel.com; Secure; SameSite=Lax";` : ""}
+            window.__PV_NATIVE_APP__ = true;
+            true;
+          `}
+          style={styles.webview}
+
               document.cookie = "__session=${nativeToken}; Path=/; Domain=.parallelvisionlabel.com; Secure; SameSite=Lax";
               window.__PV_NATIVE_APP__ = true;
               true;
@@ -327,6 +373,7 @@ const styles = StyleSheet.create({
   webview: { flex: 1, backgroundColor: '#000' },
   webviewContainer: { flex: 1, backgroundColor: '#000' },
 });
+
 
 
 
