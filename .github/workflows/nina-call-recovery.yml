@@ -1,0 +1,45 @@
+name: Nina call recovery checks
+on:
+  push:
+    branches: [nina-call-recovery-sep09]
+    paths: ['scripts/recover-app-connection.py', 'scripts/test-nina-recovery.py', '.github/workflows/nina-call-recovery.yml']
+permissions:
+  contents: write
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Apply narrow recovery changes
+        run: python scripts/recover-app-connection.py
+      - name: Validate public site and unchanged authentication protocol
+        run: |
+          npm run build
+          node --test scripts/test-native-identity.mjs
+      - name: Install browser test engines
+        run: |
+          pip install playwright
+          python -m playwright install --with-deps chromium webkit
+      - name: Check existing authenticated lifecycle in both engines
+        run: |
+          BROWSER=chromium python scripts/test-nina-bridge.py
+          BROWSER=webkit python scripts/test-nina-bridge.py
+      - name: Test recovery, failure visibility and unmodified capture
+        run: |
+          BROWSER=chromium python scripts/test-nina-recovery.py
+          BROWSER=webkit python scripts/test-nina-recovery.py
+      - name: Save tested files on isolated branch only
+        run: |
+          git config user.name 'Parallel Vision recovery checks'
+          git config user.email 'parallelvision.label@gmail.com'
+          git add js/nina-access.js js/nina-app-bootstrap.js css/nina-app.css nina-app.html
+          git commit -m 'RECOVERY 01: remove remaining microphone override and expose connection failure stage'
+          git push origin HEAD:nina-call-recovery-sep09
+          git rev-parse HEAD
