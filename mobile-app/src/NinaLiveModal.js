@@ -89,7 +89,8 @@ export function NinaLiveModal({ getToken, onClose, onSignIn }) {
       const detail = String(data.detail || '').slice(0, 80);
       setStatus(detail || 'OPENING SIGNAL');
       const online = /(^|\s)NINA ONLINE($|\s)/i.test(detail) || /^ONLINE$/i.test(detail);
-      setImmersive(online);
+      if (online) setImmersive(true);
+      else if (/^(VERIFYING APP SESSION|SIGNAL READY|NINA IS READY|CONNECTING TO NINA)$/i.test(detail)) setImmersive(false);
       if (detail !== 'VERIFYING APP SESSION') { ready.current = true; setLoading(false); setError(''); }
     } else if (data.type === 'PV_NINA_ERROR') fail(String(data.detail || 'Nina could not open.').slice(0, 280));
     else if (data.type === 'PV_NINA_SHOW_PROFILE') stop('profile');
