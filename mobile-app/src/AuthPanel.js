@@ -8,6 +8,17 @@ function fieldError(errors, key) {
   return value?.message || '';
 }
 
+function friendlyAuthError(error, fallback) {
+  const message = String(error?.message || error || '');
+  if (/verification strategy is not valid/i.test(message) || /strategy.*not valid/i.test(message)) {
+    return 'THIS ACCOUNT USES GOOGLE. CONTINUE WITH GOOGLE ABOVE.';
+  }
+  if (/password.*not.*found|password.*not.*set|no password/i.test(message)) {
+    return 'THIS ACCOUNT DOES NOT USE A PASSWORD. CONTINUE WITH GOOGLE ABOVE.';
+  }
+  return message || fallback;
+}
+
 function InlineError({ children }) {
   if (!children) return null;
   return <Text style={styles.error}>{children}</Text>;
@@ -60,10 +71,10 @@ function GoogleAction({ disabled = false }) {
       if (createdSessionId && setActive) {
         await setActive({ session: createdSessionId });
       } else {
-        setMessage('Google sign-in needs one more verification step.');
+        setMessage('GOOGLE SIGN-IN NEEDS ONE MORE VERIFICATION STEP.');
       }
     } catch (error) {
-      setMessage(error?.message || 'Google sign-in is unavailable right now.');
+      setMessage(friendlyAuthError(error, 'GOOGLE SIGN-IN IS UNAVAILABLE RIGHT NOW.'));
     } finally {
       setBusy(false);
     }
@@ -120,7 +131,7 @@ function SignInPanel({ onSwitch }) {
     setMessage('');
     const { error } = await signIn.password({ emailAddress: emailAddress.trim(), password });
     if (error) {
-      setMessage(error?.message || 'Unable to sign in.');
+      setMessage(friendlyAuthError(error, 'UNABLE TO SIGN IN.'));
       return;
     }
     if (signIn.status === 'complete') {
@@ -133,7 +144,7 @@ function SignInPanel({ onSwitch }) {
       return;
     }
     if (signIn.status === 'needs_second_factor') {
-      setMessage('This account requires an additional verification method not yet enabled in the app.');
+      setMessage('THIS ACCOUNT REQUIRES AN ADDITIONAL VERIFICATION METHOD.');
     }
   };
 
@@ -190,7 +201,7 @@ function SignUpPanel({ onSwitch }) {
     setMessage('');
     const { error } = await signUp.password({ emailAddress: emailAddress.trim(), password });
     if (error) {
-      setMessage(error?.message || 'Unable to create account.');
+      setMessage(friendlyAuthError(error, 'UNABLE TO CREATE ACCOUNT.'));
       return;
     }
     await signUp.verifications.sendEmailCode();
@@ -284,6 +295,6 @@ const styles = StyleSheet.create({
   createLinkText: { color: theme.colors.muted, fontSize: 8, letterSpacing: 1.5, fontWeight: '600' },
   disabled: { opacity: 0.38 },
   pressed: { opacity: 0.7 },
-  error: { color: '#D4A49D', fontSize: 10, lineHeight: 14, marginTop: 5 },
+  error: { color: '#D4A49D', fontSize: 9.5, lineHeight: 14, letterSpacing: 0.25, marginTop: 5 },
   rule: { height: StyleSheet.hairlineWidth, backgroundColor: theme.colors.line, marginVertical: 14 },
 });
