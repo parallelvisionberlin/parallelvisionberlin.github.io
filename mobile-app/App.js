@@ -98,52 +98,9 @@ function NinaScreen() {
     setLive(true);
   };
 
-  const appModeScript = `
-    (function () {
-      window.__PV_NATIVE_APP__ = true;
-      ${nativeToken ? `document.cookie = "__session=${nativeToken}; Path=/; Domain=.parallelvisionlabel.com; Secure; SameSite=Lax";` : ''}
-
-      function installNativeStyle() {
-        var id = 'pv-native-nina-style';
-        var style = document.getElementById(id);
-        if (!style) {
-          style = document.createElement('style');
-          style.id = id;
-          document.head.appendChild(style);
-        }
-        style.textContent = [
-          'html,body{margin:0!important;padding:0!important;width:100%!important;height:100%!important;background:#000!important;overflow:hidden!important}',
-          'body>*:not(#ninaOverlay):not(script):not(style){display:none!important}',
-          '#ninaOverlay{display:block!important;position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;margin:0!important;z-index:2147483647!important;background:#000!important}',
-          '.nina-window{position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;max-width:none!important;max-height:none!important;margin:0!important;border:0!important;border-radius:0!important;box-shadow:none!important}',
-          '#ninaFullscreen,#closeNina,.nina-fullscreen,.nina-close{display:none!important}'
-        ].join('');
-      }
-
-      function openNinaOnly() {
-        installNativeStyle();
-        var overlay = document.getElementById('ninaOverlay');
-        if (!overlay) return false;
-        var open = overlay.classList.contains('is-open') || overlay.getAttribute('aria-hidden') === 'false';
-        if (!open) {
-          var trigger = document.getElementById('openNina') || document.querySelector('[data-nina-open]');
-          if (trigger) trigger.click();
-        }
-        return true;
-      }
-
-      installNativeStyle();
-      var observer = new MutationObserver(function () {
-        installNativeStyle();
-        openNinaOnly();
-      });
-      observer.observe(document.documentElement, { childList: true, subtree: true });
-      document.addEventListener('DOMContentLoaded', openNinaOnly);
-      setTimeout(openNinaOnly, 100);
-      setTimeout(openNinaOnly, 350);
-      setTimeout(openNinaOnly, 900);
-      setTimeout(openNinaOnly, 1800);
-    })();
+  const nativeSessionScript = `
+    window.__PV_NATIVE_APP__ = true;
+    ${nativeToken ? `document.cookie = "__session=${nativeToken}; Path=/; Domain=.parallelvisionlabel.com; Secure; SameSite=Lax";` : ''}
     true;
   `;
 
@@ -176,9 +133,8 @@ function NinaScreen() {
           </View>
           <View style={styles.liveWebviewFrame}>
             <WebView
-              source={{ uri: `${config.siteUrl}/index.html?nina=1&pv_app=1` }}
-              injectedJavaScriptBeforeContentLoaded={appModeScript}
-              injectedJavaScript={appModeScript}
+              source={{ uri: `${config.siteUrl}/nina-app.html?pv_app=1` }}
+              injectedJavaScriptBeforeContentLoaded={nativeSessionScript}
               style={styles.webview}
               containerStyle={styles.webviewContainer}
               javaScriptEnabled
