@@ -8,16 +8,31 @@ body { font-family:Inter,Arial,sans-serif; }
 #ninaOverlay { padding:0 !important; background:#000 !important; transition:none !important; }
 #ninaOverlay .nina-window { width:100% !important; height:100% !important; max-width:none !important; max-height:none !important; border:0 !important; border-radius:0 !important; box-shadow:none !important; }
 #ninaOverlay .nina-window-bar, .nina-memory-controls, #ninaFullscreen, #closeNina, .nina-entry-discover { display:none !important; }
-#ninaOverlay .nina-stage { inset:0 !important; }
-#ninaOverlay .nina-intro { min-height:0; }
-#ninaOverlay .nina-intro-content { width:100%; box-sizing:border-box; padding:22px 20px 26px; }
+#ninaOverlay .nina-stage { inset:0 !important; background:#050505 !important; }
+
+/* App pre-call: use Nina's actual browser portrait instead of an empty black stage. */
+#ninaOverlay .nina-intro {
+  min-height:0;
+  background:
+    linear-gradient(180deg,rgba(0,0,0,.08) 0%,rgba(0,0,0,.12) 43%,rgba(0,0,0,.78) 82%,rgba(0,0,0,.94) 100%),
+    url('../assets/optimized/nina-fok/nina-window.webp') center 34% / cover no-repeat !important;
+}
+#ninaOverlay .nina-intro-content { width:100%; box-sizing:border-box; padding:22px 20px max(28px,env(safe-area-inset-bottom)); }
 #ninaOverlay .nina-intro h3 { display:none; }
-#ninaOverlay .nina-intro-subtitle { font-size:16px; line-height:1.5; }
-#ninaOverlay #startNina { min-height:52px; font-size:17px; }
-#ninaOverlay .nina-referral-entry { font-size:12px; }
+#ninaOverlay .nina-intro-subtitle { font-size:16px; line-height:1.5; color:rgba(242,239,233,.93); }
+#ninaOverlay #startNina { min-height:52px; font-size:17px; background:rgba(8,8,8,.72); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); }
 #ninaOverlay .nina-intro-code { font-size:10px; letter-spacing:.13em; }
+
+/* Referral belongs in Profile, not in the live doorway. */
+#ninaOverlay .nina-referral-entry, #ninaReferralPanel { display:none !important; }
+
+/* Keep microphone routing visible but quiet. */
+#ninaOverlay .nina-microphone { z-index:5; }
+#ninaOverlay .nina-microphone-status { max-width:78vw; }
+#ninaOverlay #nina-anam-video { width:100% !important; height:100% !important; object-fit:cover !important; }
+
 @media(max-height:600px) {
-  #ninaOverlay .nina-intro-content { padding:16px; }
+  #ninaOverlay .nina-intro-content { padding:16px 16px max(18px,env(safe-area-inset-bottom)); }
   #ninaOverlay .nina-intro-code { display:none; }
   #ninaOverlay .nina-intro-subtitle { margin:0 0 10px; }
 }
