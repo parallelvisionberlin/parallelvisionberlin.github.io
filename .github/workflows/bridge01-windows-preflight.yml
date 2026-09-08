@@ -1,0 +1,47 @@
+name: BRIDGE 01 Windows preflight
+on:
+  push:
+    branches: [nina-build-preflight-sep08]
+permissions:
+  contents: read
+jobs:
+  windows-preflight:
+    runs-on: windows-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 3
+          sparse-checkout: mobile-app
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Parse installer with Windows PowerShell 5.1
+        shell: powershell
+        run: |
+          $tokens = $null
+          $errors = $null
+          [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path 'mobile-app/finish-bridge01.ps1'), [ref]$tokens, [ref]$errors) | Out-Null
+          if ($errors.Count) { $errors | Format-List; throw 'PowerShell parser rejected installer' }
+          Write-Host 'PASS: Windows PowerShell syntax'
+      - name: Exercise clean snapshot, dependency check, export and archive guards
+        shell: powershell
+        run: |
+          $mock = Join-Path $env:RUNNER_TEMP 'mock-eas'
+          New-Item -ItemType Directory -Path $mock -Force | Out-Null
+          $node = @'
+          const fs=require('fs'),path=require('path'),cp=require('child_process');
+          const args=process.argv.slice(2);
+          if(args[0]!=='build:inspect'||args[args.indexOf('--stage')+1]!=='archive')throw new Error('Cloud builds are forbidden in this test');
+          const out=args[args.indexOf('--output')+1];fs.mkdirSync(out,{recursive:true});
+          const tracked=cp.execFileSync('git.exe',['ls-files','-z'],{encoding:'utf8'}).split('\0').filter(Boolean);
+          for(const file of tracked){const dest=path.join(out,file);fs.mkdirSync(path.dirname(dest),{recursive:true});fs.copyFileSync(file,dest);}
+          console.log('TEST DOUBLE: EAS archive copied from clean tracked app files. No Expo login or cloud build.');
+          '@
+          $nodePath=Join-Path $mock 'eas-test.cjs'
+          [IO.File]::WriteAllText($nodePath,$node)
+          [IO.File]::WriteAllText((Join-Path $mock 'eas.cmd'),("@echo off`r`nnode.exe `"{0}`" %*`r`n" -f $nodePath))
+          $env:PATH="$mock;$env:PATH"
+          & powershell.exe -NoProfile -ExecutionPolicy Bypass -File '.\mobile-app\finish-bridge01.ps1' -CheckOnly
+          if ($LASTEXITCODE -ne 0) { throw 'Windows installer preflight failed' }
+          Write-Host 'PASS: Windows installer, dependency lock, iOS export, archive guards and live-page revision. EAS itself was mocked.'
