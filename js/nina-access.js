@@ -3,6 +3,8 @@ import { createNinaTrialPromotion } from "./nina-trial-promotion.js?v=20260905";
 import { createClient, AnamEvent } from "https://esm.sh/@anam-ai/js-sdk@4.23.1?bundle";
 
 
+import { createAppMicrophone } from "./nina-microphone.js?v=mic01";
+
 const DEVELOPMENT = window.location.protocol === "http:";
 const ANAM_SESSION_TOKEN_ENDPOINT = DEVELOPMENT
   ? `http://${window.location.hostname}:8787/session-token`
@@ -1190,6 +1192,7 @@ function setNinaScrim(title, subtitle = "", message = "", buttonText = "") {
 }
 
 function showNinaReady(balance = ninaCreditsBalance, statusOverride = "") {
+  if (appMicrophone) ninaMicrophoneSelect.disabled = false;
   document.body.classList.remove("nina-connecting-mode", "nina-call-visible", "nina-conversation-live", "nina-scrim-visible", "nina-scrim-action");
   const creditStatus = statusOverride || (Number.isSafeInteger(balance)
     ? `${balance.toLocaleString()} CREDITS · ${formatLiveTime(balance * 6).toUpperCase()}`
@@ -1221,6 +1224,7 @@ function showNinaEligibilityLoading() {
 }
 
 function showNinaSignInRequired() {
+  if (appMicrophone) stopNinaMicrophone(); // No capture retained behind an error or payment screen.
   document.body.classList.remove("nina-connecting-mode", "nina-conversation-live");
   document.body.classList.add("nina-scrim-visible", "nina-scrim-action");
   setNinaScrim("SIGN IN TO OPEN THE SIGNAL", "", "Memory and Signal Credits are connected to your account.", "SIGN IN");
@@ -1247,10 +1251,103 @@ async function refreshNinaEligibility() {
   return balance;
 }
 
-function stopNinaMicrophone() {
-  ninaMicrophoneStream?.getTracks().forEach(track => track.stop());
-  ninaMicrophoneStream = null;
+// The app owns one capture stream. The public website keeps its existing capture path.
+let ninaMicCheckTimer = null;
+let ninaMicCheckEpoch = 0;
+let ninaMicCheckRunning = false;
+const appMicrophone = location.pathname === "/nina-app.html" ? createAppMicrophone({
+  mediaDevices: navigator.mediaDevices,
+  AudioContextClass: window.AudioContext || window.webkitAudioContext,
+  onReading: level => {
+    const meter = byId("ninaMicLevel");
+    if (meter) meter.value = Math.max(0, Math.min(100, (level.db + 60) / 60 * 100));
+    const reading = byId("ninaMicReading");
+    if (reading) reading.textContent = level.db <= -89 ? "NO INPUT DETECTED" : `${Math.round(level.db)} dBFS INPUT`;
+  },
+  onState: state => {
+    if (state === "interrupted") setNinaMicCheckMessage("Microphone interrupted by the device. Waiting for it to resume.");
+  },
+  onInterrupted: () => {
+    if (ninaClient || ninaConnecting) {
+      void stopNinaSession().catch(() => {});
+      showNinaFailure("The microphone disconnected or was interrupted. Reconnect it and try again.");
+    } else {
+      stopNinaMicrophone();
+      setNinaMicCheckMessage("Microphone disconnected. Choose an input and test again.");
+    }
+  }
+}) : null;
+function setNinaMicCheckMessage(text) {
+  const label = byId("ninaMicCheckResult");
+  if (label) label.textContent = text;
 }
+function endNinaMicCheck(release = true) {
+  clearTimeout(ninaMicCheckTimer); ninaMicCheckTimer = null;
+  ninaMicCheckEpoch += 1; ninaMicCheckRunning = false;
+  appMicrophone?.stopMeter();
+  const button = byId("ninaMicCheck");
+  if (button) { button.disabled = false; button.textContent = "TEST MICROPHONE"; }
+  if (release && !ninaClient && !ninaConnecting) stopNinaMicrophone();
+}
+function stopNinaMicrophone() {
+  clearTimeout(ninaMicCheckTimer); ninaMicCheckTimer = null;
+  ninaMicCheckEpoch += 1; ninaMicCheckRunning = false;
+  if (appMicrophone) appMicrophone.stop();
+  else ninaMicrophoneStream?.getTracks().forEach(track => track.stop());
+  ninaMicrophoneStream = null;
+  const button = byId("ninaMicCheck");
+  if (button) { button.disabled = false; button.textContent = "TEST MICROPHONE"; }
+}
+async function renderAppMicrophones() {
+  if (!appMicrophone) return;
+  const report = appMicrophone.report();
+  const devices = await listMicrophones().catch(() => []);
+  // System default is an actual selectable route, not the first enumerated device.
+  ninaMicrophoneSelect.replaceChildren(new Option("System default", ""));
+  devices.forEach((device, index) => ninaMicrophoneSelect.appendChild(new Option(device.label || `Microphone ${index + 1}`, device.deviceId)));
+  const selection = appMicrophone.getStream() ? report.selected : readPreferredMicrophone();
+  ninaMicrophoneSelect.value = devices.some(device => device.deviceId === selection) ? selection : "";
+  savePreferredMicrophone(ninaMicrophoneSelect.value);
+  updateNinaMicrophoneName();
+  const route = byId("ninaMicRoute");
+  if (route) route.textContent = report.label;
+  const settings = byId("ninaMicSettings");
+  if (settings) settings.textContent = [["echoCancellation", "Echo reduction"], ["noiseSuppression", "Noise reduction"], ["autoGainControl", "Auto level"]].map(([key,label]) => `${label}: ${report.settings[key] === null ? "not reported" : report.settings[key] ? "on" : "off"}`).join(" · ");
+}
+async function checkNinaMicrophone() {
+  if (!appMicrophone || ninaClient || ninaConnecting) return;
+  if (ninaMicCheckRunning) { endNinaMicCheck(); setNinaMicCheckMessage("Test stopped. Microphone released."); return; }
+  ninaMicCheckRunning = true;
+  const epoch = ++ninaMicCheckEpoch;
+  appMicrophone.prepareMeter(); // Prepare from the explicit tap, before waiting for permission.
+  byId("ninaMicCheck").textContent = "STOP TEST";
+  ninaMicrophoneSelect.disabled = true;
+  setNinaMicCheckMessage("Allow the microphone, then speak at your normal distance for eight seconds.");
+  try {
+    await acquireNinaMicrophone(ninaMicrophoneSelect.value || readPreferredMicrophone());
+    if (epoch !== ninaMicCheckEpoch || !ninaOverlay.classList.contains("is-open")) return;
+    await renderAppMicrophones();
+    if (epoch !== ninaMicCheckEpoch) return;
+    if (!appMicrophone.startMeter()) {
+      endNinaMicCheck();
+      setNinaMicCheckMessage("Microphone opened, but input-level measurement is unavailable on this device. You can still try a conversation.");
+      return;
+    }
+    setNinaMicCheckMessage("Speak normally. This measures input level only; it does not record or start a call.");
+    ninaMicCheckTimer = setTimeout(() => {
+      const report = appMicrophone.report();
+      const result = !report.frames ? "Input level could not be measured. Try again." : report.highestPeak >= 0.98 ? "Input peaked near clipping. Move slightly farther away and test again." : report.bestDb < -42 ? "Low input during the test. Speak normally, check the selected microphone or move closer, then test again." : "Input detected. This checks level, not speech recognition or connection quality.";
+      endNinaMicCheck(); setNinaMicCheckMessage(result + " Microphone released.");
+    }, 8000);
+  } catch (error) {
+    if (epoch !== ninaMicCheckEpoch || error?.name === "AbortError") return;
+    endNinaMicCheck();
+    setNinaMicCheckMessage(error?.name === "NotAllowedError" ? "Microphone permission was denied. Allow it in iPhone Settings and try again." : "The microphone could not open. Check the input and try again.");
+  } finally {
+    if (!ninaConnecting && !ninaClient) ninaMicrophoneSelect.disabled = false;
+  }
+}
+byId("ninaMicCheck")?.addEventListener("click", () => void checkNinaMicrophone());
 
 function microphoneConstraints(deviceId = "") {
   return {
@@ -1294,6 +1391,10 @@ function collapseNinaMicrophonePicker() {
 }
 
 async function acquireNinaMicrophone(deviceId = "") {
+  if (appMicrophone) {
+    ninaMicrophoneStream = await appMicrophone.acquire(deviceId);
+    return ninaMicrophoneStream;
+  }
   const stream = await navigator.mediaDevices.getUserMedia(microphoneConstraints(deviceId));
   stopNinaMicrophone();
   ninaMicrophoneStream = stream;
@@ -1353,6 +1454,21 @@ async function setupNinaMicrophones() {
 
 async function refreshNinaMicrophones() {
   if (!ninaOverlay.classList.contains("is-open") || !navigator.mediaDevices?.enumerateDevices) return;
+  if (appMicrophone) {
+    // Device enumeration is permission-free. Never reopen a microphone from devicechange.
+    const report = appMicrophone.report();
+    const devices = await listMicrophones().catch(() => null);
+    if (!devices) return;
+    const gone = report.deviceId && !devices.some(device => device.deviceId === report.deviceId);
+    if (appMicrophone.getStream() && (report.state === "ended" || gone)) {
+      if (ninaClient || ninaConnecting) {
+        void stopNinaSession().catch(() => {});
+        showNinaFailure("The microphone disconnected. Reconnect it and try again.");
+      } else { stopNinaMicrophone(); setNinaMicCheckMessage("Microphone changed. Test the selected input again."); }
+    }
+    if (!ninaClient && !ninaConnecting) await renderAppMicrophones();
+    return;
+  }
   try {
     const selectedId = ninaMicrophoneSelect.value || readPreferredMicrophone();
     const microphones = await listMicrophones();
@@ -1383,6 +1499,7 @@ async function refreshNinaMicrophones() {
 }
 
 function showNinaConnecting() {
+  if (appMicrophone) collapseNinaMicrophonePicker();
   document.body.classList.add("nina-connecting-mode");
   document.body.classList.remove("nina-call-visible", "nina-scrim-visible", "nina-scrim-action");
   ninaStatus.textContent = "CONNECTING TO NINA";
@@ -1392,6 +1509,8 @@ function showNinaConnecting() {
 }
 
 function showNinaFailure(message = "Please check microphone access and try again.") {
+  if (appMicrophone) stopNinaMicrophone(); // No capture retained behind an error or payment screen.
+  if (appMicrophone) ninaMicrophoneSelect.disabled = false;
   document.body.classList.remove("nina-connecting-mode", "nina-conversation-live");
   document.body.classList.add("nina-scrim-visible", "nina-scrim-action");
   setNinaScrim("CONNECTION FAILED", "", message, "TRY AGAIN");
@@ -1414,6 +1533,7 @@ function showNinaCannotHear() {
 }
 
 function showNoSignalCredits() {
+  if (appMicrophone) stopNinaMicrophone(); // No capture retained behind an error or payment screen.
   document.body.classList.remove("nina-connecting-mode", "nina-conversation-live");
   document.body.classList.remove("nina-scrim-visible", "nina-scrim-action");
   if (ninaEligibilityStatus) ninaEligibilityStatus.textContent = "0 CREDITS · 0 MIN";
@@ -1706,6 +1826,7 @@ async function settleNinaUsage(end = false, keepalive = false) {
 }
 
 async function stopNinaSession() {
+  if (appMicrophone) stopNinaMicrophone(); // Release capture before waiting for network settlement.
   clearNinaLiveCountdown();
   void endNinaAnalyticsSession("ended");
   ninaAttempt += 1;
@@ -1814,6 +1935,11 @@ function bindAnamLifecycle(client, attempt) {
   };
   const onClosed = () => {
     if (attempt !== ninaAttempt || client !== ninaClient) return;
+    if (appMicrophone) {
+      void stopNinaSession().catch(() => {});
+      if (ninaOverlay.classList.contains("is-open")) showNinaFailure("The connection ended. Try again when you are ready.");
+      return;
+    }
     void endNinaAnalyticsSession("disconnected");
     void settleNinaUsage(true, true);
     ninaClient = null;
@@ -1832,6 +1958,10 @@ function bindAnamLifecycle(client, attempt) {
 async function connectNina() {
   if (ninaConnecting || ninaClient || !ninaOverlay.classList.contains("is-open")) return;
   ninaConnecting = true; // Guards duplicate eligibility and connection requests.
+  if (appMicrophone) {
+    endNinaMicCheck(false); // Reuse a tested stream; never create a second capture for the call.
+    ninaMicrophoneSelect.disabled = true;
+  }
   const clerk = await initializeNinaAuth();
   const signedIn = Boolean(clerk?.isSignedIn && clerk?.session);
   if (!signedIn && !ninaPrivateAccessVerified) {
@@ -1865,9 +1995,10 @@ async function connectNina() {
   showNinaConnecting();
   try {
     if (!ninaMicrophoneStream?.getAudioTracks().some(track => track.readyState === "live")) {
-      await acquireNinaMicrophone(ninaMicrophoneSelect.value);
+      await acquireNinaMicrophone(ninaMicrophoneSelect.value || (appMicrophone ? readPreferredMicrophone() : ""));
     }
     if (attempt !== ninaAttempt || !ninaOverlay.classList.contains("is-open")) return;
+    if (appMicrophone) void renderAppMicrophones();
     const restoredHistory = readNinaMemory();
     ninaMemoryLoadedForSession = restoredHistory.length > 0;
     setNinaMemoryIndicator(ninaMemoryLoadedForSession ? "loaded" : "empty");
@@ -2225,7 +2356,7 @@ ninaMicrophoneToggle?.addEventListener("click", () => {
   const willOpen = ninaMicrophonePicker.hidden;
   ninaMicrophonePicker.hidden = !willOpen;
   ninaMicrophoneToggle.setAttribute("aria-expanded", String(willOpen));
-  if (willOpen) ninaMicrophoneSelect.focus({ preventScroll: true });
+  if (willOpen) (appMicrophone ? byId("ninaMicCheck") : ninaMicrophoneSelect)?.focus({ preventScroll: true });
 });
 ninaReferralPanel?.addEventListener("click", event => {
   if (event.target === ninaReferralPanel) closeNinaReferralPanel(true);
@@ -2237,6 +2368,13 @@ ninaScrimButton.addEventListener("click", () => {
 });
 ninaPostSignalReturn?.addEventListener("click", () => void closeNinaWindow());
 ninaMicrophoneSelect.addEventListener("change", async () => {
+  if (appMicrophone) {
+    if (ninaConnecting || ninaClient) return; // No detached replacement stream during a live call.
+    const selected = ninaMicrophoneSelect.value;
+    endNinaMicCheck(); savePreferredMicrophone(selected); updateNinaMicrophoneName();
+    setNinaMicCheckMessage("Input selected. Tap TEST MICROPHONE to check it.");
+    return;
+  }
   const selectedId = ninaMicrophoneSelect.value;
   savePreferredMicrophone(selectedId);
   ninaMicrophoneSelect.disabled = true;
