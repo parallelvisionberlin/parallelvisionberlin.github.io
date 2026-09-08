@@ -3,11 +3,13 @@ on:
   push:
     branches: [nina-repair-sep08]
 permissions:
-  contents: read
+  contents: write
 jobs:
-  snapshot:
+  repair:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 18
+    env:
+      CI: '1'
     steps:
       - uses: actions/checkout@v4
         with:
@@ -15,22 +17,70 @@ jobs:
             js
             css
             scripts
+            .repair
             anam-token-worker/src
-            anam-token-worker/test
-      - name: Collect source files for isolated testing
-        shell: bash
-        run: |
-          mkdir -p /tmp/nina-source/web /tmp/nina-source/mobile
-          cp nina-app.html nina-project.html fashion.css package.json /tmp/nina-source/web/
-          cp -r js css scripts /tmp/nina-source/web/
-          mkdir -p /tmp/nina-source/web/anam-token-worker
-          cp -r anam-token-worker/src /tmp/nina-source/web/anam-token-worker/
-          git fetch --depth=1 origin mobile-app-v1
-          git archive FETCH_HEAD mobile-app .easignore .gitignore | tar -x -C /tmp/nina-source/mobile
-          git rev-parse HEAD > /tmp/nina-source/web-ref.txt
-          git rev-parse FETCH_HEAD > /tmp/nina-source/mobile-ref.txt
-      - uses: actions/upload-artifact@v4
+      - uses: actions/setup-node@v4
         with:
-          name: nina-repair-source
-          path: /tmp/nina-source
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Prepare isolated source migration
+        run: |
+          git fetch --depth=1 origin 3395a6b0afeb7e5b3483da0327c68fb3ff3951ac
+          git archive FETCH_HEAD mobile-app | tar -x
+          python -m pip install beautifulsoup4==4.13.4 playwright==1.55.0
+          python .repair/apply.py
+      - name: Protocol and identity regression tests
+        run: node --test mobile-app/tests/ninaBridge.test.mjs scripts/test-native-identity.mjs
+      - name: Install test browsers
+        run: python -m playwright install --with-deps chromium webkit
+      - name: Test live interface in Chromium
+        run: python scripts/test-nina-bridge.py
+      - name: Test live interface in WebKit
+        run: BROWSER=webkit python scripts/test-nina-bridge.py
+      - name: Resolve compatible native dependencies and validate lockfile
+        working-directory: mobile-app
+        run: |
+          npm install --include=dev --ignore-scripts
+          npx expo install expo-auth-session expo-web-browser expo-crypto
+          npm ci --include=dev --ignore-scripts
+          npm test
+      - name: Export iOS JavaScript bundle
+        working-directory: mobile-app
+        run: npx expo export --platform ios --output-dir /tmp/pv-ios-export
+      - name: Validate iOS prebuild and app icon
+        working-directory: mobile-app
+        run: |
+          npx expo prebuild --platform ios --no-install
+          test -f ios/ParallelVision/Images.xcassets/AppIcon.appiconset/Contents.json
+          rm -rf ios
+      - name: Commit tested sources on the isolated repair branch
+        run: |
+          git config user.name 'Parallel Vision repair'
+          git config user.email 'parallelvision.label@gmail.com'
+          git add --sparse js/nina-native-bridge.js js/nina-app-bootstrap.js js/nina-access.js css/nina-app.css nina-app.html scripts/test-native-identity.mjs scripts/test-nina-bridge.py .easignore
+          git add --sparse mobile-app/App.js mobile-app/src/AuthPanel.js mobile-app/src/NinaLiveModal.js mobile-app/src/ninaBridge.js mobile-app/tests mobile-app/app.json mobile-app/eas.json mobile-app/package.json mobile-app/package-lock.json mobile-app/.easignore
+          git commit -m 'Tested BRIDGE 01: native identity, lifecycle, preview dependency lock and minimal archive'
+          git push origin HEAD:nina-repair-sep08
+          git rev-parse HEAD > /tmp/tested-commit.txt
+      - name: Collect verification artifact
+        if: always()
+        run: |
+          mkdir -p /tmp/nina-tested/web/js /tmp/nina-tested/web/css /tmp/nina-tested/mobile-app/src /tmp/nina-tested/mobile-app/tests
+          cp js/nina-native-bridge.js js/nina-app-bootstrap.js js/nina-access.js /tmp/nina-tested/web/js/
+          cp css/nina-app.css /tmp/nina-tested/web/css/
+          cp nina-app.html /tmp/nina-tested/web/
+          cp mobile-app/App.js mobile-app/package.json mobile-app/package-lock.json mobile-app/app.json mobile-app/eas.json mobile-app/.easignore /tmp/nina-tested/mobile-app/
+          cp mobile-app/src/*.js /tmp/nina-tested/mobile-app/src/
+          cp mobile-app/tests/*.mjs /tmp/nina-tested/mobile-app/tests/
+          cp .easignore /tmp/nina-tested/root.easignore
+          cp /tmp/tested-commit.txt /tmp/nina-tested/ 2>/dev/null || true
+          cp /tmp/nina-browser-failure.png /tmp/nina-tested/ 2>/dev/null || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: nina-tested-repair
+          path: /tmp/nina-tested
+          include-hidden-files: true
           retention-days: 3
