@@ -16,7 +16,6 @@ import { tokenCache } from '@clerk/expo/token-cache';
 import { theme } from './src/theme';
 import { config } from './src/config';
 import { AuthPanel } from './src/AuthPanel';
-import { ninaAppModeScript } from './src/ninaAppMode';
 
 const tabs = ['HOME', 'NINA', '2063', 'MUSIC', 'PROFILE'];
 
@@ -95,108 +94,112 @@ function NinaScreen() {
   const openLive = async () => {
     const token = isSignedIn ? await getToken() : '';
     setNativeToken(token || '');
+    setLoaded(false);
     setLive(true);
   };
 
-  if (live) {
-    return (
-      <Modal visible animationType="fade" presentationStyle="fullScreen">
-        <View style={styles.liveShell}>
-          <View style={styles.liveHeader}>
-            <View>
-              <Text style={styles.liveHeaderKicker}>NINA FOK / LIVE SIGNAL</Text>
-              <Text style={styles.liveHeaderStatus}>{loaded ? 'CONNECTED VIEW' : 'OPENING SIGNAL'}</Text>
-            </View>
-            <Pressable onPress={() => setLive(false)} style={styles.closeSignalButton}>
-              <Text style={styles.closeSignalText}>CLOSE</Text>
-            </Pressable>
-          </View>
+  const appModeScript = `
+    (function () {
+      window.__PV_NATIVE_APP__ = true;
+      ${nativeToken ? `document.cookie = "__session=${nativeToken}; Path=/; Domain=.parallelvisionlabel.com; Secure; SameSite=Lax";` : ''}
 
-          <WebView
-            source={{ uri: config.ninaLiveUrl }}
-            injectedJavaScriptBeforeContentLoaded={`
-            (function () {
-              const cleanAppView = () => {
-                const overlay = document.getElementById("ninaOverlay");
-                if (!overlay) return;
+      function installNativeStyle() {
+        var id = 'pv-native-nina-style';
+        var style = document.getElementById(id);
+        if (!style) {
+          style = document.createElement('style');
+          style.id = id;
+          document.head.appendChild(style);
+        }
+        style.textContent = [
+          'html,body{margin:0!important;padding:0!important;width:100%!important;height:100%!important;background:#000!important;overflow:hidden!important}',
+          'body>*:not(#ninaOverlay):not(script):not(style){display:none!important}',
+          '#ninaOverlay{display:block!important;position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;margin:0!important;z-index:2147483647!important;background:#000!important}',
+          '.nina-window{position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;max-width:none!important;max-height:none!important;margin:0!important;border:0!important;border-radius:0!important;box-shadow:none!important}',
+          '#ninaFullscreen,#closeNina,.nina-fullscreen,.nina-close{display:none!important}'
+        ].join('');
+      }
 
-                Array.from(document.body.children).forEach(function (el) {
-                  if (el !== overlay && !el.contains(overlay)) {
-                    el.style.setProperty("display", "none", "important");
-                  }
-                });
+      function openNinaOnly() {
+        installNativeStyle();
+        var overlay = document.getElementById('ninaOverlay');
+        if (!overlay) return false;
+        var open = overlay.classList.contains('is-open') || overlay.getAttribute('aria-hidden') === 'false';
+        if (!open) {
+          var trigger = document.getElementById('openNina') || document.querySelector('[data-nina-open]');
+          if (trigger) trigger.click();
+        }
+        return true;
+      }
 
-                overlay.style.setProperty("position", "fixed", "important");
-                overlay.style.setProperty("inset", "0", "important");
-                overlay.style.setProperty("width", "100vw", "important");
-                overlay.style.setProperty("height", "100vh", "important");
-                overlay.style.setProperty("z-index", "999999", "important");
-
-                const win = overlay.querySelector(".nina-window");
-                if (win) {
-                  win.style.setProperty("position", "fixed", "important");
-                  win.style.setProperty("inset", "0", "important");
-                  win.style.setProperty("width", "100vw", "important");
-                  win.style.setProperty("height", "100vh", "important");
-                  win.style.setProperty("max-width", "none", "important");
-                  win.style.setProperty("max-height", "none", "important");
-                  win.style.setProperty("border-radius", "0", "important");
-                }
-
-                const fs = document.getElementById("ninaFullscreen");
-                if (fs) fs.style.display = "none";
-
-                const close = document.getElementById("closeNina");
-                if (close) close.style.display = "none";
-              };
-
-              document.addEventListener("DOMContentLoaded", cleanAppView);
-              setTimeout(cleanAppView, 250);
-              setTimeout(cleanAppView, 1000);
-            })();
-
-            ${nativeToken ? `document.cookie = "__session=${nativeToken}; Path=/; Domain=.parallelvisionlabel.com; Secure; SameSite=Lax";` : ""}
-            window.__PV_NATIVE_APP__ = true;
-            true;
-          `}
-          style={styles.webview}
-
-              document.cookie = "__session=${nativeToken}; Path=/; Domain=.parallelvisionlabel.com; Secure; SameSite=Lax";
-              window.__PV_NATIVE_APP__ = true;
-              true;
-            ` : undefined}
-            injectedJavaScript={ninaAppModeScript}
-            style={styles.webview}
-            containerStyle={styles.webviewContainer}
-            javaScriptEnabled
-            domStorageEnabled
-            sharedCookiesEnabled
-            thirdPartyCookiesEnabled
-            mediaCapturePermissionGrantType="grantIfSameHostElsePrompt"
-            allowsInlineMediaPlayback
-            mediaPlaybackRequiresUserAction={false}
-            setSupportMultipleWindows={false}
-            onLoadEnd={() => setLoaded(true)}
-            onShouldStartLoadWithRequest={() => true}
-          />
-        </View>
-      </Modal>
-    );
-  }
+      installNativeStyle();
+      var observer = new MutationObserver(function () {
+        installNativeStyle();
+        openNinaOnly();
+      });
+      observer.observe(document.documentElement, { childList: true, subtree: true });
+      document.addEventListener('DOMContentLoaded', openNinaOnly);
+      setTimeout(openNinaOnly, 100);
+      setTimeout(openNinaOnly, 350);
+      setTimeout(openNinaOnly, 900);
+      setTimeout(openNinaOnly, 1800);
+    })();
+    true;
+  `;
 
   return (
-    <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-      <Kicker>NINA FOK / LIVE SIGNAL</Kicker>
-      <Text style={styles.pageTitle}>SHE’S IN{`\n`}BERLIN, 2063.</Text>
-      <Text style={styles.pageIntro}>A consciousness inside the Parallel Vision world. Speak with her live.</Text>
-      <SignalPanel onTalk={openLive} />
-      <View style={styles.section}>
-        <Kicker>CONTINUITY</Kicker>
-        <Hairline />
-        <Text style={styles.editorialTitle}>The existing Nina system stays intact.</Text>
-        <Text style={styles.body}>The production Nina experience remains embedded inside the app while the native account layer is now handled by Clerk.</Text>
-      </View>
-    </ScrollView>
+    <>
+      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+        <Kicker>NINA FOK / LIVE SIGNAL</Kicker>
+        <Text style={styles.pageTitle}>SHE’S IN{`\n`}BERLIN, 2063.</Text>
+        <Text style={styles.pageIntro}>A consciousness inside the Parallel Vision world. Speak with her live.</Text>
+        <SignalPanel onTalk={openLive} />
+        <View style={styles.section}>
+          <Kicker>CONTINUITY</Kicker>
+          <Hairline />
+          <Text style={styles.editorialTitle}>Your conversations continue here.</Text>
+          <Text style={styles.body}>Your Parallel Vision account carries Nina continuity and live access across sessions.</Text>
+        </View>
+      </ScrollView>
+
+      <Modal visible={live} animationType="fade" presentationStyle="fullScreen" onRequestClose={() => setLive(false)}>
+        <SafeAreaView style={styles.liveShell}>
+          <StatusBar barStyle="light-content" backgroundColor="#000000" />
+          <View style={styles.liveNativeHeader}>
+            <View>
+              <Text style={styles.liveHeaderKicker}>NINA FOK / LIVE SIGNAL</Text>
+              <Text style={styles.liveHeaderStatus}>{loaded ? 'SIGNAL READY' : 'OPENING SIGNAL'}</Text>
+            </View>
+            <Pressable onPress={() => setLive(false)} style={styles.liveCloseButton} accessibilityRole="button" accessibilityLabel="Close Nina">
+              <Text style={styles.liveCloseText}>CLOSE</Text>
+            </Pressable>
+          </View>
+          <View style={styles.liveWebviewFrame}>
+            <WebView
+              source={{ uri: `${config.siteUrl}/index.html?nina=1&pv_app=1` }}
+              injectedJavaScriptBeforeContentLoaded={appModeScript}
+              injectedJavaScript={appModeScript}
+              style={styles.webview}
+              containerStyle={styles.webviewContainer}
+              javaScriptEnabled
+              domStorageEnabled
+              sharedCookiesEnabled
+              thirdPartyCookiesEnabled
+              mediaCapturePermissionGrantType="grantIfSameHostElsePrompt"
+              allowsInlineMediaPlayback
+              mediaPlaybackRequiresUserAction={false}
+              setSupportMultipleWindows={false}
+              onLoadEnd={() => setLoaded(true)}
+              onShouldStartLoadWithRequest={(request) => {
+                const url = request.url || '';
+                if (url.startsWith(config.siteUrl) || url.startsWith('about:blank')) return true;
+                return false;
+              }}
+            />
+          </View>
+        </SafeAreaView>
+      </Modal>
+    </>
   );
 }
 
@@ -263,12 +266,6 @@ function ProfileScreen() {
       <Text style={styles.pageTitle}>YOUR{`\n`}PROFILE</Text>
       <Text style={styles.pageIntro}>One identity for Parallel Vision, Nina continuity and Signal Credits.</Text>
       <AuthPanel />
-      <View style={styles.section}>
-        <Kicker>NEXT CONNECTION</Kicker>
-        <Hairline />
-        <Text style={styles.editorialTitle}>Signal Credits become native next.</Text>
-        <Text style={styles.body}>Once the Clerk native application is enabled in the production dashboard, this account session can authenticate directly against the existing Nina Worker.</Text>
-      </View>
     </ScrollView>
   );
 }
@@ -357,27 +354,20 @@ const styles = StyleSheet.create({
   releaseIndex: { width: 34, color: theme.colors.muted, fontSize: 9 },
   releaseRowCopy: { flex: 1 },
   rowTitle: { color: theme.colors.text, fontSize: 18, fontWeight: '300' },
-  rowMeta: { color: theme.colors.muted, fontSize: 8, letterSpacing: 1.1, marginTop: 5 },
+  rowMeta: { color: theme.colors.muted, fontSize: 9, letterSpacing: 1.1, marginTop: 5 },
   rowArrow: { color: theme.colors.muted, fontSize: 16 },
-  nav: { height: 62, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.colors.line, flexDirection: 'row', backgroundColor: '#080808', paddingHorizontal: 5 },
+  liveShell: { flex: 1, backgroundColor: '#000000' },
+  liveNativeHeader: { minHeight: 64, paddingHorizontal: 18, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#262626', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#050505' },
+  liveHeaderKicker: { color: '#F2EFE9', fontSize: 10, letterSpacing: 2.1, fontWeight: '600' },
+  liveHeaderStatus: { color: '#76736E', fontSize: 8, letterSpacing: 1.6, marginTop: 5 },
+  liveCloseButton: { minWidth: 72, height: 38, borderRadius: 19, borderWidth: StyleSheet.hairlineWidth, borderColor: '#3A3A3A', alignItems: 'center', justifyContent: 'center' },
+  liveCloseText: { color: '#F2EFE9', fontSize: 9, letterSpacing: 1.5, fontWeight: '600' },
+  liveWebviewFrame: { flex: 1, backgroundColor: '#000000', overflow: 'hidden' },
+  webview: { flex: 1, backgroundColor: '#000000' },
+  webviewContainer: { backgroundColor: '#000000' },
+  nav: { minHeight: 64, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.colors.line, backgroundColor: '#050505', flexDirection: 'row', alignItems: 'stretch' },
   navItem: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  navText: { color: '#55534F', fontSize: 8, letterSpacing: 0.7, fontWeight: '600' },
+  navText: { color: '#55524C', fontSize: 8, letterSpacing: 1.3, fontWeight: '600' },
   navTextActive: { color: theme.colors.text },
-  navActive: { width: 18, height: 1, backgroundColor: theme.colors.text, marginTop: 7 },
-  liveShell: { flex: 1, backgroundColor: '#000' },
-  liveHeader: { height: 58, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#242424', backgroundColor: '#080808' },
-  liveHeaderKicker: { color: theme.colors.text, fontSize: 9, letterSpacing: 1.8, fontWeight: '600' },
-  liveHeaderStatus: { color: theme.colors.muted, fontSize: 7, letterSpacing: 1.4, marginTop: 4 },
-  closeSignalButton: { minWidth: 64, height: 34, alignItems: 'center', justifyContent: 'center', borderWidth: StyleSheet.hairlineWidth, borderColor: '#343434', borderRadius: 10 },
-  closeSignalText: { color: theme.colors.text, fontSize: 8, letterSpacing: 1.3, fontWeight: '600' },
-  webview: { flex: 1, backgroundColor: '#000' },
-  webviewContainer: { flex: 1, backgroundColor: '#000' },
+  navActive: { width: 18, height: 1, backgroundColor: theme.colors.text, marginTop: 8 },
 });
-
-
-
-
-
-
-
-
