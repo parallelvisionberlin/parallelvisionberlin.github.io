@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  ActivityIndicator, Alert, KeyboardAvoidingView, Linking, Platform,
+  ActivityIndicator, Alert, Image, KeyboardAvoidingView, Linking, Platform,
   Pressable, SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, View,
 } from 'react-native';
 import { WebView } from 'react-native-webview';
@@ -15,7 +15,7 @@ import { withTimeout } from './src/ninaBridge';
 const tabs = ['HOME', 'NINA', '2063', 'MUSIC', 'PROFILE'];
 const ninaHeroVideo = `${config.siteUrl}/assets/optimized/video/nina-fok/ninaloophero-mobile.mp4`;
 const ninaHeroPoster = `${config.siteUrl}/assets/optimized/nina-fok/HDNINACANON.webp`;
-
+const ninaPortalImage = `${config.siteUrl}/assets/optimized/nina-fok/nina-window.webp`;
 
 function Hairline() { return <View style={styles.hairline} />; }
 function Kicker({ children }) { return <Text style={styles.kicker}>{children}</Text>; }
@@ -71,14 +71,31 @@ function HomeScreen({ setTab, onTalk, busy, paused }) {
   </ScrollView>;
 }
 
-function NinaScreen({ onTalk, busy, paused }) {
-  return <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-    <Kicker>NINA FOK / LIVE SIGNAL</Kicker>
-    <Text style={styles.ninaIntro}>She's in Berlin, 2063. Speak with her live.</Text>
-    <NinaMotionHero onTalk={onTalk} busy={busy} paused={paused} compact />
-    <View style={styles.section}><Kicker>CONTINUITY</Kicker><Hairline />
-      <Text style={styles.editorialTitle}>Your conversations continue here.</Text>
-      <Text style={styles.body}>Your Parallel Vision account carries Nina continuity and live access across sessions.</Text>
+function NinaScreen({ onTalk, busy }) {
+  return <ScrollView contentContainerStyle={styles.ninaScroll} showsVerticalScrollIndicator={false}>
+    <View style={styles.ninaSignalRow}>
+      <Kicker>NINA FOK / PRIVATE CHANNEL</Kicker>
+      <View style={styles.signalBadge}><View style={styles.signalDot} /><Text style={styles.signalText}>SIGNAL AVAILABLE</Text></View>
+    </View>
+    <Text style={styles.ninaPageName}>NINA</Text>
+    <Text style={styles.ninaPageLead}>A live presence from Parallel Vision's imagined Berlin, 2063.</Text>
+
+    <View style={styles.ninaPortal}>
+      <Image source={{ uri: ninaPortalImage }} resizeMode="cover" style={StyleSheet.absoluteFillObject} />
+      <View pointerEvents="none" style={styles.ninaPortalShade} />
+      <View pointerEvents="none" style={styles.ninaPortalTop}><Text style={styles.portalCode}>LIVE / 2063</Text></View>
+      <View style={styles.ninaPortalBottom}>
+        <Text style={styles.portalStatement}>She can hear you when you connect.</Text>
+        <Pressable accessibilityRole="button" accessibilityLabel="Talk to Nina" disabled={busy} onPress={onTalk}
+          style={({ pressed }) => [styles.ninaPrimary, pressed && styles.pressed, busy && styles.disabled]}>
+          {busy ? <ActivityIndicator color="#080808" /> : <><Text style={styles.ninaPrimaryText}>TALK TO NINA</Text><Text style={styles.ninaPrimaryArrow}>↗</Text></>}
+        </Pressable>
+      </View>
+    </View>
+
+    <View style={styles.ninaContinuity}>
+      <View><Kicker>CONTINUITY / MEMORY</Kicker><Text style={styles.ninaContinuityTitle}>The channel remembers.</Text></View>
+      <Text style={styles.ninaContinuityCopy}>Your Parallel Vision identity carries the conversation forward each time you return.</Text>
     </View>
   </ScrollView>;
 }
@@ -93,7 +110,7 @@ function WorldScreen() {
   </ScrollView>;
 }
 function MusicScreen() {
-  const releases=[['STAY LOW','Molinari × Nina FOK'],['TANZEN IM KREIS','Alejandro Molinari'],['DARK ROCK EP','Blex'],['BUILT TO LAST EP','REFRAKT']];
+  const releases=[['STAY LOW','MolinARI × NINA FOK'],['TANZEN IM KREIS','Alejandro Molinari'],['DARK ROCK EP','Blex'],['BUILT TO LAST EP','REFRAKT']];
   return <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
     <Kicker>PARALLEL VISION / MUSIC</Kicker><Text style={styles.pageTitle}>CURRENT{'\n'}SIGNALS</Text>
     {releases.map(([title,artist],index)=><View key={title} style={styles.releaseRow}><Kicker>{String(index+1).padStart(2,'0')}</Kicker><View style={styles.releaseCopy}><Text style={styles.rowTitle}>{title}</Text><Text style={styles.body}>{artist} / 2026</Text></View></View>)}
@@ -116,7 +133,6 @@ function ParallelVisionApp() {
   const [live,setLive]=useState(false);
   const [pending,setPending]=useState(false);
   const [opening,setOpening]=useState(false);
-
   const openingRef=useRef(false);
   const openSequence=useRef(0);
   const signedInRef=useRef(isSignedIn); signedInRef.current=isSignedIn;
@@ -141,7 +157,7 @@ function ParallelVisionApp() {
   const showProfile=useCallback(()=>{setLive(false);setTab('PROFILE');},[]);
   const changeTab=next=>{openSequence.current++;openingRef.current=false;setOpening(false);setPending(false);setTab(next);};
   let screen;
-  if(tab==='NINA')screen=<NinaScreen onTalk={openLive} busy={opening} paused={live} />;
+  if(tab==='NINA')screen=<NinaScreen onTalk={openLive} busy={opening} />;
   else if(tab==='2063')screen=<WorldScreen />;
   else if(tab==='MUSIC')screen=<MusicScreen />;
   else if(tab==='PROFILE')screen=<ProfileScreen opening={opening} pending={pending} onCancel={()=>changeTab('NINA')} onContinue={openLive} />;
@@ -170,7 +186,13 @@ const styles=StyleSheet.create({
   heroName:{color:'#F2EFE9',fontSize:32,letterSpacing:-0.9,fontWeight:'300'},heroMeta:{color:'#D4D0C8',fontSize:13,marginTop:7},
   heroButton:{minHeight:54,marginTop:18,paddingHorizontal:16,borderRadius:3,borderWidth:1,borderColor:'#F2EFE9',backgroundColor:'rgba(0,0,0,0.72)',flexDirection:'row',alignItems:'center',justifyContent:'space-between'},
   heroButtonText:{color:'#F2EFE9',fontSize:12,letterSpacing:1.5,fontWeight:'500'},
-  ninaIntro:{color:theme.colors.text,fontSize:26,lineHeight:33,fontWeight:'300',marginTop:14,marginBottom:24},
+
+  ninaScroll:{paddingHorizontal:18,paddingTop:22,paddingBottom:34},ninaSignalRow:{flexDirection:'row',alignItems:'center',justifyContent:'space-between'},signalBadge:{flexDirection:'row',alignItems:'center'},signalDot:{width:6,height:6,borderRadius:3,backgroundColor:'#F2EFE9',marginRight:7},signalText:{color:'#A29D94',fontSize:8,letterSpacing:1.3},
+  ninaPageName:{color:'#F2EFE9',fontSize:58,lineHeight:62,letterSpacing:-2.2,fontWeight:'200',marginTop:20},ninaPageLead:{maxWidth:330,color:'#C8C3BA',fontSize:17,lineHeight:25,fontWeight:'300',marginTop:8,marginBottom:24},
+  ninaPortal:{height:455,borderRadius:3,overflow:'hidden',backgroundColor:'#090909'},ninaPortalShade:{...StyleSheet.absoluteFillObject,backgroundColor:'rgba(0,0,0,.18)'},ninaPortalTop:{position:'absolute',top:16,left:16},portalCode:{color:'rgba(242,239,233,.68)',fontSize:9,letterSpacing:1.8},ninaPortalBottom:{position:'absolute',left:16,right:16,bottom:16},portalStatement:{maxWidth:260,color:'#F2EFE9',fontSize:18,lineHeight:24,fontWeight:'300'},
+  ninaPrimary:{minHeight:58,marginTop:16,paddingHorizontal:18,borderRadius:3,backgroundColor:'#F2EFE9',flexDirection:'row',alignItems:'center',justifyContent:'space-between'},ninaPrimaryText:{color:'#080808',fontSize:12,letterSpacing:1.7,fontWeight:'600'},ninaPrimaryArrow:{color:'#080808',fontSize:21},
+  ninaContinuity:{marginTop:30,paddingTop:22,borderTopWidth:StyleSheet.hairlineWidth,borderTopColor:theme.colors.line},ninaContinuityTitle:{color:'#F2EFE9',fontSize:24,lineHeight:30,fontWeight:'300',marginTop:12},ninaContinuityCopy:{color:'#99948B',fontSize:13,lineHeight:21,marginTop:12,maxWidth:330},
+
   pageTitle:{color:theme.colors.text,fontSize:44,lineHeight:47,fontWeight:'300',marginTop:18,marginBottom:18},
   section:{marginTop:36},hairline:{height:StyleSheet.hairlineWidth,backgroundColor:theme.colors.line,marginVertical:16},
   editorialTitle:{color:theme.colors.text,fontSize:27,lineHeight:33,fontWeight:'300'},body:{color:theme.colors.muted,fontSize:14,lineHeight:22,marginTop:10},
@@ -178,9 +200,7 @@ const styles=StyleSheet.create({
   buttonText:{color:theme.colors.text,fontSize:10,letterSpacing:1.4,fontWeight:'600'},arrow:{color:theme.colors.text,fontSize:20},pressed:{opacity:0.7},disabled:{opacity:0.5},
   worldCard:{minHeight:160,marginTop:18,padding:18,borderRadius:12,borderWidth:StyleSheet.hairlineWidth,borderColor:theme.colors.line,backgroundColor:theme.colors.panel},worldTitle:{color:theme.colors.text,fontSize:22,fontWeight:'300',marginTop:28},
   releaseRow:{minHeight:94,marginTop:8,borderTopWidth:StyleSheet.hairlineWidth,borderTopColor:theme.colors.line,flexDirection:'row',alignItems:'center'},releaseCopy:{flex:1,marginLeft:20},rowTitle:{color:theme.colors.text,fontSize:18,fontWeight:'300'},
-  liveShell:{flex:1,backgroundColor:'#000'},liveHeader:{minHeight:64,paddingHorizontal:18,flexDirection:'row',alignItems:'center',justifyContent:'space-between',borderBottomWidth:StyleSheet.hairlineWidth,borderBottomColor:'#262626'},liveHeading:{flex:1,marginRight:12},liveStatus:{color:'#99948B',fontSize:9,letterSpacing:1.3,marginTop:6},
-  closeButton:{minWidth:74,minHeight:44,borderRadius:3,borderWidth:StyleSheet.hairlineWidth,borderColor:'#555',alignItems:'center',justifyContent:'center'},closeText:{color:'#F2EFE9',fontSize:10,letterSpacing:1.5},liveFrame:{flex:1,backgroundColor:'#000'},webview:{flex:1,backgroundColor:'#050505'},
-  failure:{...StyleSheet.absoluteFillObject,padding:28,backgroundColor:'#080808',justifyContent:'center'},failureTitle:{color:theme.colors.text,fontSize:25,lineHeight:32,fontWeight:'300'},
+  webview:{flex:1,backgroundColor:'#050505'},
   signInNotice:{flexDirection:'row',justifyContent:'space-between',alignItems:'center',marginBottom:12},notice:{flex:1,color:theme.colors.signal,fontSize:13},cancel:{minHeight:44,paddingLeft:12,justifyContent:'center'},cancelText:{color:theme.colors.muted,fontSize:10,letterSpacing:1.2},
   nav:{minHeight:62,borderTopWidth:StyleSheet.hairlineWidth,borderTopColor:theme.colors.line,backgroundColor:'#050505',flexDirection:'row'},navItem:{flex:1,alignItems:'center',justifyContent:'center'},navText:{color:'#868179',fontSize:9,letterSpacing:1.2,fontWeight:'500'},navTextActive:{color:theme.colors.text},navActive:{width:18,height:1,backgroundColor:theme.colors.text,marginTop:8},
 });
