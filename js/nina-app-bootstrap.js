@@ -2,55 +2,11 @@ import { installNativeIdentity, BRIDGE_REVISION } from './nina-native-bridge.js?
 const boot = document.getElementById('pv-app-boot');
 const message = document.getElementById('pv-app-message');
 const retry = document.getElementById('pv-app-retry');
+// MIC 01 is paused during recovery. Keep the original input selector.
+document.querySelectorAll('.nina-mic-check').forEach(panel => { panel.hidden = true; });
 let bridge, engine, closing;
 let isClosing = false;
 let watchdog;
-
-function updateMicStatus(text) {
-  const status = document.getElementById('ninaMicrophoneStatus');
-  if (status) status.textContent = text;
-}
-
-/* App-only voice capture profile. The shared website keeps its current behavior. */
-function installVoiceCaptureProfile() {
-  const media = navigator.mediaDevices;
-  if (!media?.getUserMedia || media.__pvVoiceCaptureInstalled) return;
-  const original = media.getUserMedia.bind(media);
-  const supported = media.getSupportedConstraints?.() || {};
-  try { media.__pvVoiceCaptureInstalled = true; } catch { return; }
-  try {
-    media.getUserMedia = async constraints => {
-      if (!constraints?.audio) return original(constraints);
-      const audio = constraints.audio === true ? {} : { ...constraints.audio };
-      const ideals = {
-        echoCancellation: true,
-        noiseSuppression: true,
-        autoGainControl: true,
-        voiceIsolation: true,
-        channelCount: 1,
-        sampleRate: 48000,
-        sampleSize: 16,
-        latency: 0.02
-      };
-      for (const [key, value] of Object.entries(ideals)) {
-        if (supported[key] && audio[key] == null) audio[key] = { ideal: value };
-      }
-      const stream = await original({ ...constraints, audio });
-      const track = stream.getAudioTracks()[0];
-      if (track) {
-        const settings = track.getSettings?.() || {};
-        const detail = [settings.sampleRate ? `${settings.sampleRate / 1000} KHZ` : '', settings.channelCount === 1 ? 'MONO' : ''].filter(Boolean).join(' · ');
-        updateMicStatus(`VOICE OPTIMIZED${detail ? ` · ${detail}` : ''}`);
-        track.addEventListener('mute', () => updateMicStatus('MICROPHONE PAUSED BY IOS'));
-        track.addEventListener('unmute', () => updateMicStatus(`VOICE OPTIMIZED${detail ? ` · ${detail}` : ''}`));
-        track.addEventListener('ended', () => updateMicStatus('MICROPHONE DISCONNECTED'));
-      }
-      return stream;
-    };
-  } catch {
-    /* Some WebKit builds do not allow replacing getUserMedia. The shared engine still works normally. */
-  }
-}
 
 function failure(text) {
   if (isClosing) return;
@@ -83,8 +39,7 @@ try {
   const identity = await bridge.initialize();
   if (isClosing) throw new Error('Signal closed.');
   window.__PV_NINA_AUTH_PROVIDER__ = async () => identity;
-  installVoiceCaptureProfile();
-  engine = await import('./nina-access.js?v=bridge01');
+  engine = await import('./nina-access.js?v=connection-restore01');
   if (isClosing) { await engine.closeNativeNina(); throw new Error('Signal closed.'); }
   const status = document.getElementById('ninaStatus');
   let previous = '';
