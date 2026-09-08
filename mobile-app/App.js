@@ -16,6 +16,7 @@ import { tokenCache } from '@clerk/expo/token-cache';
 import { theme } from './src/theme';
 import { config } from './src/config';
 import { AuthPanel } from './src/AuthPanel';
+import { ninaAppModeScript } from './src/ninaAppMode';
 
 const tabs = ['HOME', 'NINA', '2063', 'MUSIC', 'PROFILE'];
 
@@ -118,29 +119,7 @@ function NinaScreen() {
               window.__PV_NATIVE_APP__ = true;
               true;
             ` : undefined}
-            injectedJavaScript={`
-              (function () {
-                var bind = function () {
-                  var button = document.getElementById('ninaFullscreen');
-                  if (!button || button.dataset.pvNativeFullscreen) return;
-                  button.dataset.pvNativeFullscreen = '1';
-                  button.addEventListener('click', function (event) {
-                    event.preventDefault();
-                    event.stopImmediatePropagation();
-                    window.ReactNativeWebView.postMessage('PV_FULLSCREEN');
-                  }, true);
-                };
-                bind();
-                setTimeout(bind, 500);
-                setTimeout(bind, 1500);
-              })();
-              true;
-            `}
-            onMessage={(event) => {
-              if (event.nativeEvent.data === 'PV_FULLSCREEN') {
-                setLoaded((value) => value);
-              }
-            }}
+            injectedJavaScript={ninaAppModeScript}
             style={styles.webview}
             containerStyle={styles.webviewContainer}
             javaScriptEnabled
@@ -348,6 +327,8 @@ const styles = StyleSheet.create({
   webview: { flex: 1, backgroundColor: '#000' },
   webviewContainer: { flex: 1, backgroundColor: '#000' },
 });
+
+
 
 
 
