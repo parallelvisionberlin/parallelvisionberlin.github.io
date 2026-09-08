@@ -1,7 +1,7 @@
 import { createNinaTrialPromotion } from "./nina-trial-promotion.js?v=20260905";
 /* The access gate is theatrical client-side UI; its public hash is not authorization. */
 import { createClient, AnamEvent } from "https://esm.sh/@anam-ai/js-sdk@4.23.1?bundle";
-import { Clerk } from "https://esm.sh/@clerk/clerk-js@6?bundle";
+
 
 const DEVELOPMENT = window.location.protocol === "http:";
 const ANAM_SESSION_TOKEN_ENDPOINT = DEVELOPMENT
@@ -639,9 +639,17 @@ function loadNinaClerkUI() {
 }
 
 async function initializeNinaAuth() {
+  // The app uses its native session, not a second Clerk browser client.
+  if (location.pathname === "/nina-app.html" && window.__PV_NINA_AUTH_PROVIDER__) {
+    if (!ninaAuthInitialization) ninaAuthInitialization = window.__PV_NINA_AUTH_PROVIDER__()
+      .then(clerk => { ninaClerk = clerk; updateNinaAccountControls(clerk); return clerk; })
+      .catch(error => { ninaAuthInitialization = null; throw error; });
+    return ninaAuthInitialization;
+  }
   if (!ninaAuthInitialization) ninaAuthInitialization = (async () => {
     if (ninaSignIn) ninaSignIn.disabled = true;
     if (ninaSignInEmail) ninaSignInEmail.disabled = true;
+    const { Clerk } = await import("https://esm.sh/@clerk/clerk-js@6?bundle");
     const ClerkUI = await loadNinaClerkUI();
     const clerk = ninaClerk || new Clerk(CLERK_CONFIGURATION.publishableKey);
     await clerk.load({ ui: { ClerkUI } });
@@ -1194,7 +1202,7 @@ function showNinaReady(balance = ninaCreditsBalance, statusOverride = "") {
   ninaPrimaryAction = "connect";
   if (ninaReferralEntry) ninaReferralEntry.hidden = !ninaClerk?.isSignedIn;
   if (ninaMicrophone) ninaMicrophone.hidden = false;
-  void setupNinaMicrophones();
+  if (location.pathname !== "/nina-app.html") void setupNinaMicrophones();
   ninaScrimAction = "connect";
   resetNinaMemoryIndicator();
 }
@@ -2316,3 +2324,15 @@ document.querySelectorAll(".nina-entry-discover").forEach(link => {
     document.getElementById("question")?.scrollIntoView({ block: "start" });
   });
 });
+
+// Explicit app integration points. No DOM click polling or duplicate sign-in UI.
+export async function closeNativeNina() {
+  const client = ninaClient;
+  ninaClient = null;
+  stopNinaMicrophone();
+  ninaVideo.pause();
+  ninaVideo.srcObject = null;
+  await Promise.allSettled([client?.stopStreaming(), closeNinaWindow()]);
+  await ninaMemorySyncPromise.catch(() => null);
+}
+export { routeNinaTrigger, stopNinaSession, showNinaFailure, refreshNinaEligibility };
