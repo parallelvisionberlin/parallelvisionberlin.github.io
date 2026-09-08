@@ -3,21 +3,24 @@ const boot = document.getElementById('pv-app-boot');
 const message = document.getElementById('pv-app-message');
 const retry = document.getElementById('pv-app-retry');
 let bridge, engine, closing;
+let isClosing = false;
 let watchdog;
 function failure(text) {
+  if (isClosing) return;
   clearTimeout(watchdog);
   boot.hidden = false;
   message.textContent = text;
   retry.hidden = false;
   bridge?.send('PV_NINA_ERROR', { detail: text, revision: BRIDGE_REVISION });
 }
-retry.addEventListener('click', () => location.reload());
+retry.addEventListener('click', () => { if (bridge) bridge.send('PV_NINA_RETRY'); else location.reload(); });
 window.addEventListener('unhandledrejection', event => {
   event.preventDefault();
   failure('The signal could not complete its request. Close Nina and try again.');
 });
 async function close() {
   if (closing) return closing;
+  isClosing = true;
   clearTimeout(watchdog);
   closing = (async () => {
     try { await engine?.closeNativeNina(); }
@@ -31,9 +34,11 @@ try {
   bridge = installNativeIdentity();
   bridge.send('PV_NINA_STATE', { detail: 'VERIFYING APP SESSION', revision: BRIDGE_REVISION });
   const identity = await bridge.initialize();
+  if (isClosing) throw new Error('Signal closed.');
   // Install before importing the shared engine. It never creates a web Clerk client.
   window.__PV_NINA_AUTH_PROVIDER__ = async () => identity;
   engine = await import('./nina-access.js?v=bridge01');
+  if (isClosing) { await engine.closeNativeNina(); throw new Error('Signal closed.'); }
   const status = document.getElementById('ninaStatus');
   let previous = '';
   function observe() {

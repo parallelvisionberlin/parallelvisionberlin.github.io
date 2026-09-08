@@ -1,58 +1,209 @@
 <!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="color-scheme" content="dark">
-  <title>Nina FOK / App Signal</title>
-  <link rel="stylesheet" href="./fashion.css?v=20260904-media-1">
-  <link rel="stylesheet" href="./css/nina-access.css?v=20260907-credit-type">
-  <style>
-    html,body{margin:0;width:100%;height:100%;background:#000;color:#fff;overflow:hidden}
-    body{font-family:Inter,Arial,sans-serif}
-    #pv-app-boot{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#000;color:rgba(255,255,255,.55);font:10px/1.5 'Courier New',monospace;letter-spacing:.18em;text-transform:uppercase;z-index:99999}
-    body > *:not(#pv-app-boot):not(#ninaAccess):not(#ninaOverlay):not(#openNina){display:none!important}
-    #openNina{position:fixed;width:1px;height:1px;opacity:0;pointer-events:none}
-    #ninaOverlay{padding:0!important;background:#000!important}
-    #ninaOverlay .nina-window{width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;border:0!important;border-radius:0!important;box-shadow:none!important}
-    #ninaOverlay .nina-window-bar{display:none!important}
-    #ninaOverlay .nina-stage{top:0!important;inset:0!important}
-    #ninaFullscreen,#closeNina,.nina-fullscreen,.nina-close{display:none!important}
-    body.nina-fullscreen-active{overflow:hidden!important}
-  </style>
-</head>
-<body>
-  <div id="pv-app-boot">Opening Nina signal</div>
-  <button id="openNina" type="button" data-nina-open aria-hidden="true" tabindex="-1"></button>
-  <script type="module">
-    const boot = document.getElementById('pv-app-boot');
-    try {
-      const response = await fetch('./nina-project.html', { cache: 'no-store' });
-      if (!response.ok) throw new Error(`Nina source returned ${response.status}`);
-      const source = await response.text();
-      const parsed = new DOMParser().parseFromString(source, 'text/html');
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta name="color-scheme" content="dark"><meta name="robots" content="noindex">
+<title>Nina FOK / App Signal</title>
+<link rel="stylesheet" href="./fashion.css?v=20260904-media-1">
+<link rel="stylesheet" href="./css/nina-access.css?v=20260907-credit-type">
+<link rel="stylesheet" href="./css/nina-app.css?v=bridge01">
+</head><body data-pv-app-revision="bridge01">
+<div id="pv-app-boot" role="status"><p id="pv-app-message">Connecting your Parallel Vision account…</p><button id="pv-app-retry" hidden>TRY AGAIN</button></div>
+<button id="openNina" data-nina-open type="button" hidden></button>
+<div data-native-support hidden>
+<div class="nina-account-shell" id="ninaAccountShell">
+<button aria-controls="ninaAccountPanel" aria-expanded="false" aria-label="Open account menu" class="nina-account-toggle" id="ninaAccountToggle" type="button">
+<svg aria-hidden="true" viewbox="0 0 24 24"><circle cx="12" cy="8" r="3.25"></circle><path d="M5.75 19c.55-3.25 2.64-5.25 6.25-5.25s5.7 2 6.25 5.25"></path></svg>
+</button>
+<div class="nina-account-panel" hidden="" id="ninaAccountPanel">
+<p class="nina-account-eyebrow">Parallel Vision Account</p>
+<div class="nina-account-logged-out" id="ninaAccountLoggedOut">
+<p class="nina-account-explanation">Sign in to save memory, manage Signal Credits and continue your history with Nina.</p>
+<button class="nina-account-action" id="ninaAccountSignIn" type="button">Sign in</button>
+<button class="nina-account-action" id="ninaAccountSignUp" type="button">Create account</button>
+</div>
+<div class="nina-account-logged-in" hidden="" id="ninaAccountLoggedIn">
+<p class="nina-account-name" id="ninaAccountName">Connected</p>
+<p class="nina-account-channel">Private Channel / Berlin 2063</p>
+<div class="nina-account-credits">
+<span>Signal Credits</span>
+<strong aria-live="polite" id="ninaSignalCredits" role="status">Loading…</strong>
+<span>Live Nina Time</span>
+<strong id="ninaLiveTime">—</strong>
+</div>
+<button class="nina-account-credits-info-trigger" id="ninaAccountCreditsInfoTrigger" type="button">What are Signal Credits?</button>
+<button class="nina-account-buy-credits" id="ninaAccountBuyCredits" type="button">Buy Signal Credits</button>
+<div aria-label="Account sections" class="nina-account-menu">
+<a href="./account.html#profile">Profile</a>
+<a href="./account.html#referral">Refer a Friend</a>
+<span id="ninaAccountCreditAction"></span>
+<a href="./account.html#redeemForm">Redeem code</a>
+<a href="./account.html#billing">Billing</a>
+<a href="./account.html#memory">Memory</a>
+<a href="./account.html#newsletter">Newsletter</a>
+<a hidden="" href="./nina-admin/" id="ninaAccountAnalytics">Nina Analytics</a>
+</div>
+<button class="nina-account-signout" id="ninaAccountSignOut" type="button">Sign out</button>
+</div>
+</div>
+</div><div aria-hidden="true" aria-labelledby="ninaAccessTitle" aria-modal="true" class="nina-access" id="ninaAccess" role="dialog">
+<section class="nina-access-panel">
+<button aria-label="Close sign-in panel" class="nina-access-close" id="ninaAccessCancel" type="button">×</button>
+<h2 class="nina-access-title" id="ninaAccessTitle">TALK TO NINA</h2>
+<p class="nina-access-lead">She lives in Berlin, 2063.<br/>You can speak with her now.</p>
+<p class="nina-access-description"><strong data-nina-trial-offer="" hidden="">3 minutes free.</strong> Sign in to begin and to continue your history when you return.</p>
+<div class="nina-access-auth-actions">
+<button class="nina-access-account" disabled="" id="ninaSignIn" type="button">CONTINUE WITH GOOGLE</button>
+<button aria-controls="ninaEmailSignInForm" aria-expanded="false" class="nina-access-account nina-access-account-secondary" disabled="" id="ninaSignInEmail" type="button">CONTINUE WITH EMAIL</button>
+</div>
+<form aria-hidden="true" class="nina-access-email-form" hidden="" id="ninaEmailSignInForm">
+<button class="nina-access-email-back" id="ninaEmailSignInBack" type="button">← BACK</button>
+<label class="nina-access-label" for="ninaEmailAddress">Email</label>
+<input autocomplete="email" class="nina-access-input" id="ninaEmailAddress" name="email" required="" type="email"/>
+<label class="nina-access-label nina-access-email-password-label" for="ninaEmailPassword">Password</label>
+<input autocomplete="current-password" class="nina-access-input" id="ninaEmailPassword" name="password" required="" type="password"/>
+<p aria-live="polite" class="nina-access-error" id="ninaEmailSignInError" role="status"></p>
+<button class="nina-access-submit nina-access-email-submit" id="ninaEmailSignInSubmit" type="submit">SIGN IN</button>
+<div class="nina-access-email-utilities">
+<button id="ninaEmailCreateAccount" type="button">Create account</button>
+<button id="ninaEmailForgotPassword" type="button">Forgot password</button>
+</div>
+</form>
+<button aria-controls="ninaAccessForm" aria-expanded="false" class="nina-access-private-toggle" id="ninaPrivateAccessToggle" type="button">Have an access code?</button>
+<form aria-hidden="true" class="nina-access-form" hidden="" id="ninaAccessForm">
+<label class="nina-access-label" for="ninaAccessCode">Access code</label>
+<div class="nina-access-code-row">
+<input aria-label="Access code" autocomplete="current-password" class="nina-access-input" id="ninaAccessCode" name="code" required="" type="password"/>
+<button class="nina-access-submit" id="ninaAccessSubmit" type="submit">USE ACCESS CODE</button>
+</div>
+<p aria-live="polite" class="nina-access-error" id="ninaAccessError" role="status"></p>
+</form>
+</section>
+</div>
+</div>
+<div aria-hidden="true" class="nina-overlay" id="ninaOverlay">
+<section class="nina-window">
+<header class="nina-window-bar">
+<div class="nina-window-id">
 
-      for (const child of Array.from(parsed.body.children)) {
-        if (child.tagName === 'SCRIPT' || child.id === 'openNina') continue;
-        document.body.appendChild(document.importNode(child, true));
-      }
+        NINA FOK
 
-      const access = document.getElementById('ninaAccess');
-      const overlay = document.getElementById('ninaOverlay');
-      const trigger = document.getElementById('openNina');
-      if (!access || !overlay || !trigger) throw new Error('Nina live UI missing');
+      </div>
+<div class="nina-window-controls">
+<div class="nina-window-status">
+<span class="nina-window-status-dot"></span>
+<span id="ninaStatus">
 
-      await import('./js/nina-access.js?v=20260908-native-app-auth-flow');
+            SIGNAL READY
 
-      try { trigger.click(); } catch (error) { console.error(error); }
+          </span>
+</div>
+<button aria-label="Enter fullscreen" aria-pressed="false" class="nina-fullscreen" id="ninaFullscreen" type="button">
+<svg aria-hidden="true" class="nina-fullscreen-enter" viewbox="0 0 20 20">
+<path d="M7 3H3v4M13 3h4v4M17 13v4h-4M7 17H3v-4"></path>
+</svg>
+<svg aria-hidden="true" class="nina-fullscreen-exit" viewbox="0 0 20 20">
+<path d="M3 7h4V3M17 7h-4V3M13 17v-4h4M7 17v-4H3"></path>
+</svg>
+</button>
+<button aria-label="Close Nina" class="nina-close" id="closeNina" type="button">
 
-      // The first valid route can be the sign-in/access panel OR the live overlay.
-      // Never keep the boot layer on top while Clerk/access routing finishes.
-      requestAnimationFrame(() => boot.remove());
-    } catch (error) {
-      console.error(error);
-      boot.textContent = 'Nina signal unavailable';
-    }
-  </script>
-</body>
-</html>
+          ×
+
+        </button>
+</div>
+</header>
+<div aria-label="Conversation memory controls" class="nina-memory-controls">
+<span aria-live="polite" class="nina-memory-indicator" id="ninaMemoryIndicator" role="status">
+        MEMORY / STANDBY
+      </span>
+<button class="nina-forget-memory" id="ninaForgetMemory" type="button">
+        FORGET MEMORY
+      </button>
+</div>
+<div class="nina-stage">
+<video autoplay="" id="nina-anam-video" playsinline=""></video>
+<div aria-hidden="true" aria-live="polite" class="nina-time-warning" id="ninaTimeWarning" role="status">
+        30 SEC REMAINING
+      </div>
+<section aria-hidden="true" class="nina-call-scrim">
+<div class="nina-call-scrim-content">
+<h3 class="nina-call-scrim-title" id="ninaScrimTitle">
+
+            NINA IS READY
+
+          </h3>
+<div class="nina-call-scrim-subtitle" id="ninaScrimSubtitle">
+
+            BERLIN 2063
+
+          </div>
+<div class="nina-call-scrim-message" id="ninaScrimMessage"></div>
+<button class="nina-open-live nina-scrim-button" id="ninaScrimButton" tabindex="-1" type="button">
+
+            CONNECT
+
+          </button>
+<div class="nina-post-signal-actions" hidden="" id="ninaPostSignalActions">
+<p class="nina-post-signal-pack">6 min · €3.50</p>
+<button class="nina-post-signal-return" id="ninaPostSignalReturn" tabindex="-1" type="button">
+              RETURN LATER
+            </button>
+<p class="nina-post-signal-memory">Nina will remember this conversation.</p>
+</div>
+</div>
+</section>
+<section class="nina-intro">
+<div class="nina-intro-content">
+<div class="nina-intro-code">BERLIN 2063 · SIGNAL READY</div>
+<h3>
+
+            Nina FOK
+
+          </h3>
+<p class="nina-intro-subtitle">She’s in Berlin, 2063. Start a conversation.</p>
+<p aria-live="polite" class="nina-eligibility-status" id="ninaEligibilityStatus" role="status">Checking Signal Credits</p>
+<button class="nina-open-live" id="startNina" type="button">Talk to Nina</button>
+<button class="nina-referral-entry" hidden="" id="ninaReferralEntry" type="button">Want free Signal Credits?</button>
+<div class="nina-microphone" hidden="" id="ninaMicrophone">
+<button aria-controls="ninaMicrophonePicker" aria-expanded="false" class="nina-microphone-toggle" id="ninaMicrophoneToggle" type="button">
+              Microphone<span hidden="" id="ninaMicrophoneName">SYSTEM DEFAULT</span>
+</button>
+<div class="nina-microphone-picker" hidden="" id="ninaMicrophonePicker">
+<label for="ninaMicrophoneSelect">MICROPHONE</label>
+<select aria-describedby="ninaMicrophoneStatus" id="ninaMicrophoneSelect">
+<option value="">Requesting microphone access…</option>
+</select>
+<span aria-live="polite" class="nina-microphone-status" id="ninaMicrophoneStatus" role="status"></span>
+</div>
+</div>
+<div class="nina-connecting">
+<div class="nina-connection-line"></div>
+<div class="nina-connecting-label">
+
+              CONNECTING TO NINA
+
+            </div>
+</div>
+</div>
+</section>
+<div aria-labelledby="ninaReferralTitle" aria-modal="true" class="nina-referral-panel" hidden="" id="ninaReferralPanel" role="dialog">
+<section class="nina-referral-panel-content">
+<button aria-label="Close referral panel" class="nina-referral-close" id="ninaReferralClose" type="button">×</button>
+<h3 id="ninaReferralTitle">Invite Someone</h3>
+<p>Share your invite link. When a referred friend purchases 100 or more Signal Credits, you receive 100 Signal Credits.</p>
+<span class="nina-referral-label">Your Invite Code</span>
+<strong class="nina-referral-code" id="ninaReferralCode">Loading…</strong>
+<button class="nina-referral-copy" id="ninaReferralCopy" type="button">Copy Invite Link</button>
+<details class="nina-referral-how">
+<summary>How it works</summary>
+<p>When someone joins through your invite link and completes a paid purchase of 100 Signal Credits or more, you receive 100 bonus Signal Credits. Smaller purchases do not trigger the reward, and the reward is issued once per referred user.</p>
+</details>
+<p aria-live="polite" class="nina-referral-status" id="ninaReferralStatus" role="status"></p>
+</section>
+</div>
+</div>
+</section>
+</div>
+<script type="module" src="./js/nina-app-bootstrap.js?v=bridge01"></script>
+</body></html>
