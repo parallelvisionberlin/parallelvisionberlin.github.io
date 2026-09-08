@@ -1,12 +1,30 @@
-# EAS builds run from mobile-app/, but this repository also contains the full
-# Parallel Vision website and large media assets. Upload only the mobile app.
-*
-!mobile-app/
-!mobile-app/**
+# Keep the monorepo structure so EAS can build from /mobile-app,
+# but exclude generated dependencies, caches, and large website media.
 
-# Never upload generated/local dependencies or caches.
+# Repository-level generated/cache directories
+node_modules/
+.pnpm-store/
+.publish-homepage/
+.codex-refrakt-work/
+.expo/
+.eas-build/
+
+# The website media library is not needed by the native app.
+assets/
+
+# Large root website media files are not needed by the native app.
+/*.mp4
+/*.png
+
+# Worker and website dependencies/caches are not needed by the app build.
+anam-token-worker/node_modules/
+anam-token-worker/.wrangler/
+
+# Mobile dependencies are installed fresh by EAS.
 mobile-app/node_modules/
 mobile-app/.expo/
 mobile-app/.eas-build/
-mobile-app/npm-debug.log*
-mobile-app/*.log
+
+# Local logs
+npm-debug.log*
+*.log
