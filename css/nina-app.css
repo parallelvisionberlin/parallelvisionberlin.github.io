@@ -42,3 +42,12 @@ body #ninaOverlay #nina-anam-video {width:100%!important;height:100%!important;o
  body #ninaOverlay .nina-intro #startNina {min-height:48px;font-size:15px;}
 }
 @media(prefers-reduced-motion:reduce) {body #ninaOverlay .nina-intro {transition:none;}}
+
+/* RECOVERY 01: an error must not be covered by the pre-call portrait. */
+body.nina-scrim-visible #ninaOverlay .nina-intro {visibility:hidden!important;pointer-events:none!important;}
+body.nina-scrim-visible #ninaOverlay .nina-call-scrim {z-index:90!important;opacity:1!important;background:#080808!important;}
+body #ninaOverlay .nina-scrim-button {min-height:52px;border:1px solid #bbb;background:#171717;color:#f2efe9!important;}
+body #ninaOverlay .nina-intro #startNina {color:#f2efe9!important;}
+body #ninaOverlay .nina-intro #startNina:disabled {opacity:.65;}
+body #ninaOverlay .nina-mic-check {display:none!important;}
+#pv-call-revision {order:5;color:#aaa;font:9px/1.4 Arial,sans-serif;letter-spacing:.14em;}

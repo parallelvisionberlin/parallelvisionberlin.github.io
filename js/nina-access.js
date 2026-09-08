@@ -1617,6 +1617,7 @@ async function requestNinaUsage(action, keepalive = false) {
   if (!response.ok) {
     const error = new Error(typeof data.error === "string" ? data.error : "Live Nina time unavailable");
     error.code = typeof data.code === "string" ? data.code : "usage_unavailable";
+    error.status = response.status;
     throw error;
   }
   return data;
@@ -1760,6 +1761,7 @@ async function requestSessionToken(signal, history) {
   if (!response.ok) {
     const error = new Error(typeof data.error === "string" ? data.error : `Token endpoint returned ${response.status}.`);
     error.code = typeof data.code === "string" ? data.code : "session_unavailable";
+    error.status = response.status;
     throw error;
   }
   if (typeof data.sessionToken !== "string" || !data.sessionToken) throw new Error("Token endpoint did not return a session token.");
@@ -1785,6 +1787,7 @@ function bindAnamLifecycle(client, attempt) {
     }
     void activateNinaUsage(attempt, client).catch(async error => {
       logDevelopmentError("Unable to activate Live Nina time.", error);
+      reportAppConnectionError("activation", error);
       await stopNinaSession();
       if (ninaOverlay.classList.contains("is-open")) {
         if (error?.code === "insufficient_credits") showNoSignalCredits();
@@ -1805,6 +1808,7 @@ function bindAnamLifecycle(client, attempt) {
     if (!ninaTrialActivationPending || !completedMessages.some(message => message.role === "user")) return;
     void activateNinaUsage(attempt, client).catch(async error => {
       logDevelopmentError("Unable to activate Live Nina time after user speech.", error);
+      reportAppConnectionError("activation", error);
       await stopNinaSession();
       if (ninaOverlay.classList.contains("is-open")) {
         if (error?.code === "trial_grace_expired") showNinaCannotHear();
@@ -1827,6 +1831,12 @@ function bindAnamLifecycle(client, attempt) {
   ninaMemoryListenerCleanup = () => {
     if (AnamEvent?.MESSAGE_HISTORY_UPDATED) client.removeListener(AnamEvent.MESSAGE_HISTORY_UPDATED, onHistoryUpdated);
   };
+}
+
+function reportAppConnectionError(phase, error) {
+  if (window.location.pathname !== "/nina-app.html") return;
+  try { window.__PV_NINA_REPORT_CONNECTION_ERROR__?.(phase, error); }
+  catch { /* Diagnostics cannot alter cleanup or authorization. */ }
 }
 
 async function connectNina() {
@@ -1863,15 +1873,18 @@ async function connectNina() {
   ninaAnalyticsSessionId = "";
   ninaAnalyticsHeaders = null;
   showNinaConnecting();
+  let connectionPhase = "microphone";
   try {
     if (!ninaMicrophoneStream?.getAudioTracks().some(track => track.readyState === "live")) {
       await acquireNinaMicrophone(ninaMicrophoneSelect.value);
     }
     if (attempt !== ninaAttempt || !ninaOverlay.classList.contains("is-open")) return;
+    connectionPhase = "memory";
     const restoredHistory = readNinaMemory();
     ninaMemoryLoadedForSession = restoredHistory.length > 0;
     setNinaMemoryIndicator(ninaMemoryLoadedForSession ? "loaded" : "empty");
     ninaTokenAbortController = new AbortController();
+    connectionPhase = "session";
     const session = await requestSessionToken(ninaTokenAbortController.signal, restoredHistory);
     ninaTokenAbortController = null;
     if (attempt !== ninaAttempt || !ninaOverlay.classList.contains("is-open")) return;
@@ -1881,6 +1894,7 @@ async function connectNina() {
     ninaUsageWarningShown = false;
     ninaUsageRemainingSeconds = session.remainingSeconds;
     ninaUsageSettlementSeconds = session.settlementSeconds;
+    connectionPhase = "avatar";
     const client = createClient(session.sessionToken);
     ninaClient = client;
     bindAnamLifecycle(client, attempt);
@@ -1890,10 +1904,11 @@ async function connectNina() {
       return;
     }
     if (ninaTrialActivationPending) beginNinaTrialGrace(attempt, client);
-    else await activateNinaUsage(attempt, client);
+    else { connectionPhase = "activation"; await activateNinaUsage(attempt, client); }
   } catch (error) {
     if (attempt !== ninaAttempt || error?.name === "AbortError") return;
     logDevelopmentError("Nina connection failed.", error);
+    reportAppConnectionError(connectionPhase, error);
     await stopNinaSession();
     if (ninaOverlay.classList.contains("is-open")) {
       if (error?.code === "insufficient_credits") showNoSignalCredits();
