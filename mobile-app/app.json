@@ -6,20 +6,31 @@
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
     "scheme": "parallelvision",
-    "plugins": ["expo-secure-store", "@clerk/expo"],
+    "plugins": [
+      "expo-secure-store",
+      "@clerk/expo"
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.parallelvision.app",
       "infoPlist": {
-        "NSMicrophoneUsageDescription": "Parallel Vision uses the microphone when you choose to speak with Nina FOK live."
+        "NSMicrophoneUsageDescription": "Parallel Vision uses the microphone when you choose to speak with Nina FOK live.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
       "package": "com.parallelvision.app",
-      "permissions": ["RECORD_AUDIO"]
+      "permissions": [
+        "RECORD_AUDIO"
+      ]
     },
     "web": {
       "bundler": "metro"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "e37457fc-64ac-4be7-b1ff-8681aa45fbc3"
+      }
     }
   }
 }
