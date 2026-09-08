@@ -16,18 +16,26 @@ jobs:
             js
             css
             anam-token-worker
+            nina-admin
             scripts
             .github
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Apply reviewed website-only changes when present
+      - name: Apply reviewed website patch when present
         run: |
-          if [ -f scripts/nina-apply-web-conversion.mjs ]; then
-            node scripts/nina-apply-web-conversion.mjs
+          if [ -f scripts/nina-web-conversion.patch ]; then
+            if git apply --reverse --check scripts/nina-web-conversion.patch 2>/dev/null; then
+              echo 'Changes already applied'
+            else
+              git apply --check scripts/nina-web-conversion.patch
+              git apply scripts/nina-web-conversion.patch
+            fi
           fi
-      - name: Install Worker dependencies
-        run: npm ci --prefix anam-token-worker
+      - name: Install Worker dependencies using the existing lock
+        run: |
+          npm install -g pnpm@10.15.1
+          pnpm --dir anam-token-worker install --frozen-lockfile
       - name: Check Worker syntax and tests
         run: |
           npm run check --prefix anam-token-worker
@@ -37,7 +45,7 @@ jobs:
         if: always()
         run: |
           mkdir -p /tmp/nina-review
-          tar --exclude=node_modules --exclude=.git --exclude=.wrangler -czf /tmp/nina-review/website-source.tar.gz js css anam-token-worker scripts .github *.html package*.json
+          tar --exclude=node_modules --exclude=.git --exclude=.wrangler -czf /tmp/nina-review/website-source.tar.gz js css anam-token-worker nina-admin scripts .github *.html package*.json
           cp /tmp/nina-worker-tests.log /tmp/nina-review/worker-tests.log 2>/dev/null || true
           git diff --stat > /tmp/nina-review/diff-stat.txt
           git diff > /tmp/nina-review/website.patch
@@ -50,8 +58,8 @@ jobs:
       - name: Commit only reviewed website paths to this isolated branch
         if: success()
         run: |
-          if [ -f scripts/nina-apply-web-conversion.mjs ]; then
-            git add js css anam-token-worker scripts index.html nina-project.html account.html
+          if [ -f scripts/nina-web-conversion.patch ]; then
+            git add js/nina-access.js js/nina-web-flow.js js/nina-admin.js css/nina-access.css anam-token-worker/src/index.js anam-token-worker/src/meta-capi.js anam-token-worker/src/web-conversation.js anam-token-worker/migrations/20260909_nina_web_conversations.sql anam-token-worker/test anam-token-worker/WEBSITE_CONVERSION_CHECKLIST.md index.html nina-project.html nina-admin/index.html
             if ! git diff --cached --quiet; then
               git config user.name 'Nina website checks'
               git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
