@@ -1,6 +1,6 @@
 {
   "name": "parallel-vision-mobile",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "private": true,
   "main": "node_modules/expo/AppEntry.js",
   "scripts": {
@@ -12,6 +12,7 @@
   "dependencies": {
     "@clerk/expo": "^4.6.5",
     "expo": "~57.0.0",
+    "expo-dev-client": "~57.0.18",
     "expo-secure-store": "57.0.3",
     "react": "19.2.3",
     "react-dom": "19.2.3",
