@@ -9,8 +9,9 @@ node_modules/
 .expo/
 .eas-build/
 
-# The website media library is not needed by the native app.
-assets/
+# The ROOT website media library is not needed by the native app.
+# Leading slash is intentional so mobile-app/assets remains included.
+/assets/
 
 # Large root website media files are not needed by the native app.
 /*.mp4
