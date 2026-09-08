@@ -1,0 +1,21 @@
+{
+  "web": {
+    "js/nina-microphone.js": "cd1d21d24041db6a2ca09f015f92efc86fd5c201",
+    "js/nina-access.js": "784410cfda749165b4de0b70b3849179efb83ef4",
+    "js/nina-app-bootstrap.js": "1050a701b712e7f504e7bf6c44528394d07e0e33",
+    "css/nina-app.css": "41bdc8925b91b23fc0ed4520b022c80fb69f1f18",
+    "nina-app.html": "4b0155639f945d5247989334ebfa645143045f0e",
+    "scripts/test-nina-microphone.mjs": "8e7a832e2d56044485706e5aa2ebb7d34d4c5283",
+    "scripts/test-nina-visual-audio.py": "7d02cebcb7d0ae6fca27d1e0e1cd9e4ea8720791"
+  },
+  "native": {
+    "mobile-app/App.js": "2e68809dccc448e4f4ba0b73f4ff75bf4354c761",
+    "mobile-app/src/NinaLiveModal.js": "52c7f5ce8d96eeeca36b1378ef9c4436ac2740ec",
+    "mobile-app/src/ninaBridge.js": "e4e55f17111f1196f5b350bb70f7b582eb69dc53",
+    "mobile-app/src/AuthPanel.js": "ba8e44bf093958254f45a7a98044c2a28816393b",
+    "mobile-app/tests/immersive.test.mjs": "10c989877257e4c3f2e214f290c58a7c9a1fca15",
+    "mobile-app/app.json": "36d87a4a0a3b80448f49b3c3dd47953c26bf9a46",
+    "mobile-app/package.json": "867b46b2e3940f3e18f2cbfbb3d07764bc42ceae",
+    "mobile-app/package-lock.json": "088ba9836502ebd7de9971e152d4d5240f339b23"
+  }
+}
