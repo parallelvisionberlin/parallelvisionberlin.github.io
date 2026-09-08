@@ -10,7 +10,8 @@
   <style>
     html,body{margin:0;width:100%;height:100%;background:#000;color:#fff;overflow:hidden}
     body{font-family:Inter,Arial,sans-serif}
-    #pv-app-boot{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#000;color:rgba(255,255,255,.55);font:10px/1.5 'Courier New',monospace;letter-spacing:.18em;text-transform:uppercase;z-index:2}
+    #pv-app-boot{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#000;color:rgba(255,255,255,.55);font:10px/1.5 'Courier New',monospace;letter-spacing:.18em;text-transform:uppercase;z-index:99999}
+    body > *:not(#pv-app-boot):not(#ninaAccess):not(#ninaOverlay):not(#openNina){display:none!important}
     #openNina{position:fixed;width:1px;height:1px;opacity:0;pointer-events:none}
     #ninaOverlay{padding:0!important;background:#000!important}
     #ninaOverlay .nina-window{width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;border:0!important;border-radius:0!important;box-shadow:none!important}
@@ -22,7 +23,6 @@
 </head>
 <body>
   <div id="pv-app-boot">Opening Nina signal</div>
-  <button id="openNina" type="button" data-nina-open aria-hidden="true" tabindex="-1"></button>
   <script type="module">
     const boot = document.getElementById('pv-app-boot');
     try {
@@ -31,27 +31,28 @@
       const source = await response.text();
       const parsed = new DOMParser().parseFromString(source, 'text/html');
 
-      const access = parsed.getElementById('ninaAccess');
-      const overlay = parsed.getElementById('ninaOverlay');
-      if (!access || !overlay) throw new Error('Nina live UI missing');
+      for (const child of Array.from(parsed.body.children)) {
+        if (child.tagName === 'SCRIPT') continue;
+        document.body.appendChild(document.importNode(child, true));
+      }
 
-      document.body.appendChild(document.importNode(access, true));
-      document.body.appendChild(document.importNode(overlay, true));
+      const access = document.getElementById('ninaAccess');
+      const overlay = document.getElementById('ninaOverlay');
+      const trigger = document.getElementById('openNina') || document.querySelector('[data-nina-open]');
+      if (!access || !overlay || !trigger) throw new Error('Nina live UI missing');
 
-      await import('./js/nina-access.js?v=20260908-native-app-fix');
+      await import('./js/nina-access.js?v=20260908-native-app-complete');
 
-      const trigger = document.getElementById('openNina');
       const openSignal = () => {
-        try { trigger?.click(); } catch (error) { console.error(error); }
+        try { trigger.click(); } catch (error) { console.error(error); }
       };
 
       openSignal();
       setTimeout(openSignal, 350);
       setTimeout(() => {
-        const current = document.getElementById('ninaOverlay');
-        if (current?.classList.contains('is-open')) boot.remove();
+        if (overlay.classList.contains('is-open')) boot.remove();
         else boot.textContent = 'Nina signal unavailable';
-      }, 1200);
+      }, 1400);
     } catch (error) {
       console.error(error);
       boot.textContent = 'Nina signal unavailable';
