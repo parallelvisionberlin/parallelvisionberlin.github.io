@@ -8,7 +8,8 @@ Mobile V1 for Parallel Vision.
 - Nina live signal embedded inside the app
 - Berlin 2063 world index
 - Music catalogue preview
-- Profile / account bridge
+- Native Clerk profile, sign-in and sign-up
+- Secure persisted Clerk sessions
 - Shared dark editorial design system
 - Existing Parallel Vision and Nina URLs centralized in `src/config.js`
 
@@ -20,12 +21,12 @@ The current live website is untouched. This app lives entirely under `mobile-app
 - React Native 0.86
 - React 19.2.3
 - react-native-webview 13.16.1
+- @clerk/expo 4.x
+- expo-secure-store
 
-## Why Nina uses an embedded web surface in V1
+## Nina in V1
 
-Anam's official JavaScript SDK is designed around browser WebRTC and a video element. Anam currently lists community mobile SDKs for Kotlin Multiplatform and Flutter rather than an official React Native SDK.
-
-For V1 the production `nina.html` experience therefore runs inside an app-owned WebView instead of opening Safari/Chrome. This preserves the production Anam session flow, Nina memory, Clerk web authentication, Signal Credits and existing analytics while giving the user an in-app experience.
+The production `nina.html` experience runs inside an app-owned WebView instead of opening Safari/Chrome. This preserves the production Anam session flow, Nina memory, Clerk web authentication, Signal Credits and existing analytics while giving the user an in-app experience.
 
 External domains are opened outside the embedded Nina surface. Parallel Vision URLs remain in the WebView.
 
@@ -35,6 +36,37 @@ The app requests microphone access only for Live Nina:
 
 - iOS: `NSMicrophoneUsageDescription`
 - Android: `RECORD_AUDIO`
+
+## Native Clerk account layer
+
+The app now wraps the native shell in `ClerkProvider` using the same production Clerk instance as parallelvisionlabel.com. `@clerk/expo/token-cache` persists the active session through `expo-secure-store`.
+
+The Profile screen includes a Parallel Vision-native custom flow for:
+
+- sign in with email + password
+- device-trust email verification when requested by Clerk
+- sign up with email + password
+- sign-up email verification code
+- secure persisted signed-in state
+- sign out
+
+The Clerk publishable key is public client configuration and matches the existing production web configuration. No Clerk secret key is stored in the mobile app.
+
+### Required Clerk dashboard activation
+
+Before native authentication can succeed against the production Clerk instance:
+
+1. Open Clerk Dashboard → Native applications.
+2. Enable Native API.
+3. Add Android app:
+   - Namespace: `com.parallelvision.app`
+   - Package name: `com.parallelvision.app`
+4. Add iOS app using:
+   - Bundle ID: `com.parallelvision.app`
+   - Apple Team ID / App ID Prefix from the Apple Developer account.
+5. For mobile SSO later, allowlist the appropriate callback. Clerk's default callback is based on the bundle/package identifier.
+
+The Apple Team ID is intentionally not guessed or committed because it has not been found in the repository.
 
 ## Run locally
 
@@ -46,17 +78,21 @@ npm install
 npx expo start
 ```
 
-Then open the project in Expo Go or an Expo development build. The Nina WebView dependency is included in Expo Go for SDK 57.
+For dependency alignment after pulling these changes, Expo's recommended install command is:
 
-## Next account layer
+```bash
+npx expo install @clerk/expo expo-secure-store react-native-webview
+```
 
-The repository already exposes a production Clerk application and the Nina Worker verifies Clerk bearer tokens before returning account/credit data. The next mobile step is native Clerk authentication with `@clerk/expo`, secure token storage, and direct authenticated calls to:
+## Next backend layer
+
+After Native API is enabled and the app is registered in Clerk, the next connection is the existing Nina Worker. The app will use the native Clerk session token to read:
 
 - `GET /api/nina/credits`
-- the account/profile endpoints
-- Nina session usage endpoints
+- account/profile data
+- Nina session usage data
 
-Before a production native Clerk flow is built, `com.parallelvision.app` must be registered in Clerk's Native applications configuration so its callback is accepted. Until then the embedded Nina surface remains the authoritative signed-in experience.
+The Worker currently validates production browser origins. Mobile API requests need an explicit authenticated mobile request policy before direct native credit calls are enabled. The embedded production Nina surface remains authoritative until that server-side rule is added and tested.
 
 ## Product rule
 
