@@ -6,7 +6,7 @@ import * as WebBrowser from 'expo-web-browser';
 import { theme } from './theme';
 
 WebBrowser.maybeCompleteAuthSession();
-export const AUTH_REVISION = 'LOGIN 02';
+export const AUTH_REVISION = 'LOGIN 03 / BRIDGE 01';
 export const SSO_REDIRECT_URL = AuthSession.makeRedirectUri({ scheme: 'parallelvision', path: 'sso-callback' });
 
 export function authError(error, fallback = 'Unable to sign in. Please try again.') {
@@ -19,7 +19,7 @@ export function authError(error, fallback = 'Unable to sign in. Please try again
   if (/password.*not.*found|password.*not.*set|no password/i.test(message)) {
     return 'Password sign-in is not available for this account. Try Google or an email code.';
   }
-  if (/redirect.*(allow|valid)|allow.*redirect/i.test(message)) {
+  if (/redirect.*(allow|valid|authoriz|match)|allow.*redirect|authorized.*redirect/i.test(message)) {
     return 'Google cannot return to this app yet. The mobile callback must be enabled in Clerk.';
   }
   return message || fallback;
@@ -55,7 +55,7 @@ function Field({ label, value, onChangeText, password = false, code = false, onS
   );
 }
 
-export function AuthPanel({ onContinue }) {
+export function AuthPanel({ onContinue, opening = false }) {
   const { isLoaded, isSignedIn } = useAuth();
   const { user } = useUser();
   const { signOut } = useClerk();
@@ -188,7 +188,7 @@ export function AuthPanel({ onContinue }) {
       <Text style={styles.title}>{user?.firstName || 'Your account'}</Text>
       <Text style={styles.copy}>{user?.primaryEmailAddress?.emailAddress || 'Signed in'}</Text>
       {!!message && <Text accessibilityRole="alert" style={styles.error}>{message}</Text>}
-      {onContinue && <Action onPress={onContinue}>TALK TO NINA</Action>}
+      {onContinue && <Action onPress={onContinue} busy={opening}>TALK TO NINA</Action>}
       <Action secondary busy={busy === 'signout'} onPress={() => run('signout', () => signOut())}>SIGN OUT</Action>
       <Text style={styles.revision}>{AUTH_REVISION}</Text>
     </View>

@@ -1,31 +1,19 @@
-# Keep the monorepo structure so EAS can build from /mobile-app,
-# but exclude generated dependencies, caches, and large website media.
-
-# Repository-level generated/cache directories
-node_modules/
-.pnpm-store/
-.publish-homepage/
-.codex-refrakt-work/
-.expo/
-.eas-build/
-
-# The ROOT website media library is not needed by the native app.
-# Leading slash is intentional so mobile-app/assets remains included.
-/assets/
-
-# Large root website media files are not needed by the native app.
-/*.mp4
-/*.png
-
-# Worker and website dependencies/caches are not needed by the app build.
-anam-token-worker/node_modules/
-anam-token-worker/.wrangler/
-
-# Mobile dependencies are installed fresh by EAS.
-mobile-app/node_modules/
-mobile-app/.expo/
-mobile-app/.eas-build/
-
-# Local logs
-npm-debug.log*
-*.log
+# Only the independent native app belongs in the build archive.
+/*
+!/mobile-app/
+/mobile-app/node_modules/
+/mobile-app/.expo/
+/mobile-app/dist/
+/mobile-app/build/
+/mobile-app/ios/
+/mobile-app/android/
+/mobile-app/.eas-build/
+/mobile-app/.env
+/mobile-app/.env.*
+/mobile-app/credentials.json
+/mobile-app/**/*.log
+/mobile-app/**/*.sql
+/mobile-app/**/*.p8
+/mobile-app/**/*.p12
+/mobile-app/**/*.before-*
+/mobile-app/**/*.backup*

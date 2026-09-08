@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  ActivityIndicator, Alert, KeyboardAvoidingView, Linking, Modal, Platform,
+  ActivityIndicator, Alert, KeyboardAvoidingView, Linking, Platform,
   Pressable, SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, View,
 } from 'react-native';
 import { WebView } from 'react-native-webview';
@@ -9,11 +9,13 @@ import { tokenCache } from '@clerk/expo/token-cache';
 import { theme } from './src/theme';
 import { config } from './src/config';
 import { AuthPanel } from './src/AuthPanel';
+import { NinaLiveModal } from './src/NinaLiveModal';
+import { withTimeout } from './src/ninaBridge';
 
 const tabs = ['HOME', 'NINA', '2063', 'MUSIC', 'PROFILE'];
 const ninaHeroVideo = `${config.siteUrl}/assets/optimized/video/nina-fok/ninaloophero-mobile.mp4`;
 const ninaHeroPoster = `${config.siteUrl}/assets/optimized/nina-fok/HDNINACANON.webp`;
-const liveURL = `${config.siteUrl}/nina-app.html?pv_app=1&v=20260908-login02`;
+
 
 function Hairline() { return <View style={styles.hairline} />; }
 function Kicker({ children }) { return <Text style={styles.kicker}>{children}</Text>; }
@@ -81,99 +83,6 @@ function NinaScreen({ onTalk, busy, paused }) {
   </ScrollView>;
 }
 
-function isLivePage(url) {
-  try {
-    const value = new URL(url);
-    return value.origin === new URL(config.siteUrl).origin && value.pathname === '/nina-app.html';
-  } catch { return false; }
-}
-
-function NinaLiveModal({ nativeToken, onClose, onSignIn }) {
-  const webRef = useRef(null);
-  const [state, setState] = useState('OPENING SIGNAL');
-  const [error, setError] = useState('');
-  const [attempt, setAttempt] = useState(0);
-  const loadedRef = useRef(false);
-  const closingRef = useRef(false);
-  const closeTimer = useRef(null);
-  const close = useCallback(() => {
-    if (closingRef.current) return;
-    closingRef.current = true;
-    setState('CLOSING SIGNAL');
-    // Let the existing live engine stop and settle its session before unmounting.
-    webRef.current?.injectJavaScript(`document.getElementById('closeNina')?.click();true;`);
-    closeTimer.current = setTimeout(onClose, 1200);
-  }, [onClose]);
-  useEffect(() => () => clearTimeout(closeTimer.current), []);
-  useEffect(() => {
-    loadedRef.current = false;
-    const timer = setTimeout(() => {
-      if (!loadedRef.current) { setState('SIGNAL UNAVAILABLE'); setError('Nina has not opened. Check your connection, then retry.'); }
-    }, 25000);
-    return () => clearTimeout(timer);
-  }, [attempt]);
-
-  const nativeSessionScript = `
-    if (location.origin === ${JSON.stringify(config.siteUrl)} && location.pathname === '/nina-app.html') {
-      window.__PV_NATIVE_APP__ = true;
-      ${nativeToken ? `document.cookie = ${JSON.stringify(`__session=${nativeToken}; Path=/; Domain=.parallelvisionlabel.com; Secure; SameSite=Lax`)};` : ''}
-      (function(){
-        if(window.__PV_NINA_OBSERVER__) return;
-        window.__PV_NINA_OBSERVER__=true;
-        var last='';
-        function notify(type, detail){window.ReactNativeWebView?.postMessage(JSON.stringify({type:type, detail:detail||''}));}
-        function inspect(){
-          var overlay=document.getElementById('ninaOverlay');
-          var access=document.getElementById('ninaAccess');
-          var status=document.getElementById('ninaStatus');
-          var boot=document.getElementById('pv-app-boot');
-          var next=overlay?.classList.contains('is-open') ? ('state:'+((status?.textContent||'').trim()||'NINA READY')) : access?.classList.contains('is-open') ? 'auth' : /unavailable/i.test(boot?.textContent||'') ? 'error' : 'loading';
-          if(next===last)return;last=next;
-          if(next==='auth')notify('PV_NINA_AUTH_REQUIRED');
-          else if(next==='error')notify('PV_NINA_ERROR','Nina could not load her live interface.');
-          else if(next.startsWith('state:'))notify('PV_NINA_STATE',next.slice(6));
-        }
-        function start(){new MutationObserver(inspect).observe(document.body,{subtree:true,attributes:true,childList:true,characterData:true});inspect();}
-        if(document.body)start();else document.addEventListener('DOMContentLoaded',start,{once:true});
-      })();
-    }
-    true;`;
-
-  return <Modal visible animationType="fade" presentationStyle="fullScreen" onRequestClose={close}>
-    <SafeAreaView style={styles.liveShell}>
-      <StatusBar barStyle="light-content" backgroundColor="#000000" />
-      <View style={styles.liveHeader}>
-        <View style={styles.liveHeading}><Kicker>NINA FOK / LIVE SIGNAL</Kicker><Text style={styles.liveStatus}>{state}</Text></View>
-        <Pressable accessibilityRole="button" onPress={close} style={styles.closeButton}><Text style={styles.closeText}>CLOSE</Text></Pressable>
-      </View>
-      <View style={styles.liveFrame}>
-        <WebView key={attempt} ref={webRef} source={{ uri: liveURL }}
-          injectedJavaScriptBeforeContentLoaded={nativeSessionScript}
-          injectedJavaScript={nativeSessionScript} style={styles.webview}
-          javaScriptEnabled domStorageEnabled sharedCookiesEnabled thirdPartyCookiesEnabled
-          mediaCapturePermissionGrantType="grantIfSameHostElsePrompt" allowsInlineMediaPlayback
-          mediaPlaybackRequiresUserAction={false} setSupportMultipleWindows={false} cacheEnabled={false}
-          onError={() => { setState('SIGNAL UNAVAILABLE'); setError('The live page could not load. Check your connection.'); }}
-          onHttpError={event => { if(isLivePage(event.nativeEvent.url)){setState('SIGNAL UNAVAILABLE');setError(`The live page returned HTTP ${event.nativeEvent.statusCode}.`);} }}
-          onContentProcessDidTerminate={() => { setState('SIGNAL INTERRUPTED'); setError('The live view stopped. Tap retry to reconnect.'); }}
-          onMessage={event => {
-            if (!isLivePage(event.nativeEvent.url) || closingRef.current) return;
-            let data; try { data=JSON.parse(event.nativeEvent.data); } catch { return; }
-            if(data.type==='PV_NINA_STATE'){ loadedRef.current=true;setState(String(data.detail).slice(0,80));setError(''); }
-            if(data.type==='PV_NINA_ERROR'){ loadedRef.current=true;setState('SIGNAL UNAVAILABLE');setError('Nina could not load her live interface.'); }
-            if(data.type==='PV_NINA_AUTH_REQUIRED'){loadedRef.current=true;setState('SIGN IN REQUIRED');setError('Your app account is signed in, but the live page has not accepted its session.');}
-          }}
-          onShouldStartLoadWithRequest={request => request.isTopFrame === false || request.url === 'about:blank' || isLivePage(request.url)} />
-        {!!error && <View style={styles.failure}>
-          <Text style={styles.failureTitle}>The signal is unavailable.</Text><Text style={styles.body}>{error}</Text>
-          <ArrowButton label="TRY AGAIN" onPress={() => {setError('');setState('OPENING SIGNAL');setAttempt(value=>value+1);}} />
-          {state==='SIGN IN REQUIRED' && <ArrowButton label="RETURN TO PROFILE" onPress={onSignIn} />}
-        </View>}
-      </View>
-    </SafeAreaView>
-  </Modal>;
-}
-
 function WorldScreen() {
   const entries=[['01','THE CITY','Berlin as remembered, rebuilt and imagined.'],['02','FASHION AFTER FABRIC','Bodies, material and identity beyond conventional clothing.'],['03','TRANSMISSIONS','Short films, voices and fragments from the world.'],['04','PEOPLE','Artists and figures moving through Parallel Vision.']];
   return <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
@@ -191,11 +100,11 @@ function MusicScreen() {
     <ArrowButton label="OPEN LABEL CATALOGUE" onPress={()=>Linking.openURL(config.siteUrl)} />
   </ScrollView>;
 }
-function ProfileScreen({ pending, onCancel, onContinue }) {
+function ProfileScreen({ pending, onCancel, onContinue, opening }) {
   return <KeyboardAvoidingView style={styles.content} behavior={Platform.OS==='ios'?'padding':'height'} keyboardVerticalOffset={54}>
     <ScrollView contentContainerStyle={styles.profileScroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
       {pending && <View style={styles.signInNotice}><Text style={styles.notice}>Sign in to continue to Nina.</Text><Pressable accessibilityRole="button" onPress={onCancel} style={styles.cancel}><Text style={styles.cancelText}>CANCEL</Text></Pressable></View>}
-      <AuthPanel onContinue={onContinue} />
+      <AuthPanel onContinue={onContinue} opening={opening} />
     </ScrollView>
   </KeyboardAvoidingView>;
 }
@@ -207,29 +116,35 @@ function ParallelVisionApp() {
   const [live,setLive]=useState(false);
   const [pending,setPending]=useState(false);
   const [opening,setOpening]=useState(false);
-  const [nativeToken,setNativeToken]=useState('');
+
   const openingRef=useRef(false);
+  const openSequence=useRef(0);
+  const signedInRef=useRef(isSignedIn); signedInRef.current=isSignedIn;
   const openLive=useCallback(async()=>{
     if(openingRef.current)return;
     if(!isLoaded){Alert.alert('Account loading','Please try again in a moment.');return;}
     if(!isSignedIn){setPending(true);setTab('PROFILE');return;}
     if(session?.currentTask){setTab('PROFILE');Alert.alert('Account verification','Complete the additional account verification before opening Nina.');return;}
     openingRef.current=true;setOpening(true);
+    const sequence=++openSequence.current;
     try {
-      const token=await getToken();
+      const token=await withTimeout(getToken());
+      if(sequence!==openSequence.current||!signedInRef.current)return;
       if(!token)throw new Error('Your session could not be confirmed. Sign in again.');
-      setNativeToken(token);setPending(false);setLive(true);
-    }catch(error){setPending(false);Alert.alert('Unable to open Nina',error?.message||'Please try again.');}
-    finally{openingRef.current=false;setOpening(false);}
+      setPending(false);setLive(true);
+    }catch(error){if(sequence===openSequence.current){setPending(false);Alert.alert('Unable to open Nina',error?.message||'Please try again.');}}
+    finally{if(sequence===openSequence.current){openingRef.current=false;setOpening(false);}}
   },[isLoaded,isSignedIn,getToken,session?.currentTask]);
   useEffect(()=>{if(pending&&isSignedIn&&!session?.currentTask)void openLive();},[pending,isSignedIn,session?.currentTask,openLive]);
-  const closeLive=useCallback(()=>{setLive(false);setNativeToken('');setTab('NINA');},[]);
-  const changeTab=next=>{setPending(false);setTab(next);};
+  useEffect(()=>{ if(isLoaded&&!isSignedIn) setLive(false); },[isLoaded,isSignedIn]);
+  const closeLive=useCallback(()=>{setLive(false);setTab('NINA');},[]);
+  const showProfile=useCallback(()=>{setLive(false);setTab('PROFILE');},[]);
+  const changeTab=next=>{openSequence.current++;openingRef.current=false;setOpening(false);setPending(false);setTab(next);};
   let screen;
   if(tab==='NINA')screen=<NinaScreen onTalk={openLive} busy={opening} paused={live} />;
   else if(tab==='2063')screen=<WorldScreen />;
   else if(tab==='MUSIC')screen=<MusicScreen />;
-  else if(tab==='PROFILE')screen=<ProfileScreen pending={pending} onCancel={()=>{setPending(false);setTab('NINA');}} onContinue={openLive} />;
+  else if(tab==='PROFILE')screen=<ProfileScreen opening={opening} pending={pending} onCancel={()=>changeTab('NINA')} onContinue={openLive} />;
   else screen=<HomeScreen setTab={changeTab} onTalk={openLive} busy={opening} paused={live} />;
   return <SafeAreaView style={styles.safe}>
     <StatusBar barStyle="light-content" backgroundColor={theme.colors.bg} />
@@ -238,7 +153,7 @@ function ParallelVisionApp() {
     <View style={styles.nav}>{tabs.map(item=><Pressable accessibilityRole="tab" accessibilityState={{selected:item===tab}} key={item} onPress={()=>changeTab(item)} style={styles.navItem}>
       <Text style={[styles.navText,item===tab&&styles.navTextActive]}>{item}</Text>{item===tab&&<View style={styles.navActive} />}
     </Pressable>)}</View>
-    {live && <NinaLiveModal nativeToken={nativeToken} onClose={closeLive} onSignIn={()=>{setLive(false);setNativeToken('');setTab('PROFILE');}} />}
+    {live && <NinaLiveModal getToken={getToken} onClose={closeLive} onSignIn={showProfile} />}
   </SafeAreaView>;
 }
 export default function App(){return <ClerkProvider publishableKey={config.clerkPublishableKey} tokenCache={tokenCache}><ParallelVisionApp /></ClerkProvider>;}
