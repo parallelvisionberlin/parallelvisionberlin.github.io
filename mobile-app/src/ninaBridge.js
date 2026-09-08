@@ -25,3 +25,7 @@ export function withTimeout(promise, ms = 10000) {
     timer = setTimeout(() => reject(new Error('Account request timed out. Please retry.')), ms);
   })]).finally(() => clearTimeout(timer));
 }
+
+export function isImmersiveNinaState(detail) {
+  return /^(NINA ONLINE|ONLINE)$/i.test(String(detail || "").trim());
+}

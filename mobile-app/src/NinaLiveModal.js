@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, AppState, Linking, Modal, Pressable, SafeAreaView, StatusBar, StyleSheet, Text, View } from 'react-native';
 import { WebView } from 'react-native-webview';
-import { isNinaURL, NINA_ORIGIN, NINA_URL, readBridgeMessage, tokenReplyScript, withTimeout } from './ninaBridge';
+import { isImmersiveNinaState, isNinaURL, NINA_ORIGIN, NINA_URL, readBridgeMessage, tokenReplyScript, withTimeout } from './ninaBridge';
 
 export function NinaLiveModal({ getToken, onClose, onSignIn }) {
   const web = useRef(null);
@@ -88,9 +88,7 @@ export function NinaLiveModal({ getToken, onClose, onSignIn }) {
     if (data.type === 'PV_NINA_STATE') {
       const detail = String(data.detail || '').slice(0, 80);
       setStatus(detail || 'OPENING SIGNAL');
-      const online = /(^|\s)NINA ONLINE($|\s)/i.test(detail) || /^ONLINE$/i.test(detail);
-      if (online) setImmersive(true);
-      else if (/^(VERIFYING APP SESSION|SIGNAL READY|NINA IS READY|CONNECTING TO NINA)$/i.test(detail)) setImmersive(false);
+      setImmersive(isImmersiveNinaState(detail));
       if (detail !== 'VERIFYING APP SESSION') { ready.current = true; setLoading(false); setError(''); }
     } else if (data.type === 'PV_NINA_ERROR') fail(String(data.detail || 'Nina could not open.').slice(0, 280));
     else if (data.type === 'PV_NINA_SHOW_PROFILE') stop('profile');
@@ -99,7 +97,7 @@ export function NinaLiveModal({ getToken, onClose, onSignIn }) {
 
   return <Modal visible animationType="fade" presentationStyle="fullScreen" onRequestClose={() => stop('close')}>
     <View style={styles.shell}>
-      <StatusBar hidden={immersive} barStyle="light-content" backgroundColor="#000" />
+      <StatusBar animated hidden={immersive} barStyle="light-content" backgroundColor="#000" />
       {!immersive && <SafeAreaView style={styles.safeHeader}>
         <View style={styles.header}>
           <View style={styles.heading}><Text style={styles.label}>NINA FOK / LIVE SIGNAL</Text><Text style={styles.status}>{status}</Text></View>
@@ -113,6 +111,7 @@ export function NinaLiveModal({ getToken, onClose, onSignIn }) {
           javaScriptEnabled domStorageEnabled allowsInlineMediaPlayback mediaPlaybackRequiresUserAction={false}
           mediaCapturePermissionGrantType="grantIfSameHostElsePrompt" setSupportMultipleWindows={false}
           cacheEnabled={false} bounces={false} scrollEnabled={false}
+          contentInsetAdjustmentBehavior="never" automaticallyAdjustContentInsets={false}
           onMessage={receive}
           onError={() => fail('The live page could not load. Check your connection.')}
           onHttpError={event => { if(isNinaURL(event.nativeEvent.url)) fail(`The live page returned HTTP ${event.nativeEvent.statusCode}.`); }}

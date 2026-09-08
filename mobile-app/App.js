@@ -74,8 +74,8 @@ function HomeScreen({ setTab, onTalk, busy, paused }) {
 function NinaScreen({ onTalk, busy }) {
   return <ScrollView contentContainerStyle={styles.ninaScroll} showsVerticalScrollIndicator={false}>
     <View style={styles.ninaSignalRow}>
-      <Kicker>NINA FOK / PRIVATE CHANNEL</Kicker>
-      <View style={styles.signalBadge}><View style={styles.signalDot} /><Text style={styles.signalText}>SIGNAL AVAILABLE</Text></View>
+      <Kicker>NINA FOK / LIVE SIGNAL</Kicker>
+      <View style={styles.signalBadge}><View style={styles.signalDot} /><Text style={styles.signalText}>BERLIN / 2063</Text></View>
     </View>
     <Text style={styles.ninaPageName}>NINA</Text>
     <Text style={styles.ninaPageLead}>A live presence from Parallel Vision's imagined Berlin, 2063.</Text>

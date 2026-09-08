@@ -6,7 +6,7 @@ import * as WebBrowser from 'expo-web-browser';
 import { theme } from './theme';
 
 WebBrowser.maybeCompleteAuthSession();
-export const AUTH_REVISION = 'LOGIN 03 / BRIDGE 01';
+export const AUTH_REVISION = 'LOGIN 03 / BRIDGE 01 · VISUAL 02 / MIC 01';
 export const SSO_REDIRECT_URL = AuthSession.makeRedirectUri({ scheme: 'parallelvision', path: 'sso-callback' });
 
 export function authError(error, fallback = 'Unable to sign in. Please try again.') {
