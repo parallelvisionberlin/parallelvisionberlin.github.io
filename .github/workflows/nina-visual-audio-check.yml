@@ -18,6 +18,7 @@ jobs:
             css
             scripts
             assets/optimized/nina-fok
+            mobile-app
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -26,9 +27,12 @@ jobs:
           python-version: '3.12'
       - name: Prepare exact native and web sources
         run: |
+          mkdir -p /tmp/native-patched
+          cp -r mobile-app/. /tmp/native-patched/
           git fetch --depth=1 origin b53ef7bfd75beb117f4a109e2b400dcea5dc66ae
           git archive FETCH_HEAD mobile-app | tar -x
-          python scripts/apply-visual-audio.py
+          cp -r /tmp/native-patched/. mobile-app/
+          python scripts/refine-visual-audio.py
           node --check js/nina-access.js
           node --check js/nina-app-bootstrap.js
           node --test scripts/test-native-identity.mjs scripts/test-nina-microphone.mjs mobile-app/tests/*.test.mjs
@@ -65,7 +69,7 @@ jobs:
           PY
           git config user.name 'Parallel Vision checks'
           git config user.email 'parallelvision.label@gmail.com'
-          git commit -m 'Tested VISUAL 02 / MIC 01: portrait, immersive view and single-stream audio diagnostics'
+          git commit -m 'Verify browser Canon portrait and microphone cleanup on eligibility changes'
           git push origin HEAD:nina-visual-audio-sep09
           git rev-parse HEAD > tested-visual-commit.txt
       - name: Collect sources and screenshots
