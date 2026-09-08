@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, AppState, Linking, Modal, Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, AppState, Linking, Modal, Pressable, SafeAreaView, StatusBar, StyleSheet, Text, View } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { isNinaURL, NINA_ORIGIN, NINA_URL, readBridgeMessage, tokenReplyScript, withTimeout } from './ninaBridge';
 
@@ -19,6 +19,7 @@ export function NinaLiveModal({ getToken, onClose, onSignIn }) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [stopping, setStopping] = useState(false);
+  const [immersive, setImmersive] = useState(false);
 
   const finish = useCallback(() => {
     const action = operation.current;
@@ -26,6 +27,7 @@ export function NinaLiveModal({ getToken, onClose, onSignIn }) {
     operation.current = '';
     clearTimeout(stopTimer.current);
     generation.current += 1;
+    setImmersive(false);
     if (action === 'retry') {
       page.current = ''; ready.current = false;
       setError(''); setStatus('OPENING SIGNAL'); setLoading(true); setStopping(false);
@@ -33,29 +35,33 @@ export function NinaLiveModal({ getToken, onClose, onSignIn }) {
     } else if (action === 'profile') onSignIn();
     else onClose();
   }, [onClose, onSignIn]);
+
   const stop = useCallback((action = 'close') => {
     if (operation.current) return;
     operation.current = action;
     setStopping(true); setStatus('CLOSING SIGNAL');
     web.current?.injectJavaScript(`if(location.origin===${JSON.stringify(NINA_ORIGIN)}&&location.pathname==='/nina-app.html'){window.__PV_NINA_CLOSE__?.();}true;`);
-    // Still allow token replies while the page settles usage and flushes memory.
     stopTimer.current = setTimeout(finish, 6000);
   }, [finish]);
+
   useEffect(() => {
     alive.current = true;
     const subscription = AppState.addEventListener('change', next => { if (next === 'background') stop('close'); });
     return () => { alive.current = false; generation.current += 1; clearTimeout(stopTimer.current); subscription.remove(); };
   }, [stop]);
+
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (!ready.current && alive.current) { setLoading(false); setStatus('SIGNAL UNAVAILABLE'); setError('Nina did not finish opening. Check the connection and try again.'); }
+      if (!ready.current && alive.current) { setLoading(false); setImmersive(false); setStatus('SIGNAL UNAVAILABLE'); setError('Nina did not finish opening. Check the connection and try again.'); }
     }, 30000);
     return () => clearTimeout(timer);
   }, [attempt]);
+
   const fail = text => {
     if (operation.current) return;
-    ready.current = true; setLoading(false); setStatus('SIGNAL UNAVAILABLE'); setError(text);
+    ready.current = true; setLoading(false); setImmersive(false); setStatus('SIGNAL UNAVAILABLE'); setError(text);
   };
+
   const receive = async event => {
     const data = readBridgeMessage(event.nativeEvent);
     if (!data || !alive.current) return;
@@ -82,19 +88,25 @@ export function NinaLiveModal({ getToken, onClose, onSignIn }) {
     if (data.type === 'PV_NINA_STATE') {
       const detail = String(data.detail || '').slice(0, 80);
       setStatus(detail || 'OPENING SIGNAL');
+      const online = /(^|\s)NINA ONLINE($|\s)/i.test(detail) || /^ONLINE$/i.test(detail);
+      setImmersive(online);
       if (detail !== 'VERIFYING APP SESSION') { ready.current = true; setLoading(false); setError(''); }
     } else if (data.type === 'PV_NINA_ERROR') fail(String(data.detail || 'Nina could not open.').slice(0, 280));
     else if (data.type === 'PV_NINA_SHOW_PROFILE') stop('profile');
     else if (data.type === 'PV_NINA_RETRY') stop('retry');
   };
+
   return <Modal visible animationType="fade" presentationStyle="fullScreen" onRequestClose={() => stop('close')}>
-    <SafeAreaView style={styles.shell}>
-      <View style={styles.header}>
-        <View style={styles.heading}><Text style={styles.label}>NINA FOK / LIVE SIGNAL</Text><Text style={styles.status}>{status}</Text></View>
-        <Pressable accessibilityRole="button" accessibilityLabel="Close Nina" disabled={stopping} onPress={() => stop('close')} style={styles.close}>
-          <Text style={styles.closeText}>{stopping ? 'CLOSING' : 'CLOSE'}</Text>
-        </Pressable>
-      </View>
+    <View style={styles.shell}>
+      <StatusBar hidden={immersive} barStyle="light-content" backgroundColor="#000" />
+      {!immersive && <SafeAreaView style={styles.safeHeader}>
+        <View style={styles.header}>
+          <View style={styles.heading}><Text style={styles.label}>NINA FOK / LIVE SIGNAL</Text><Text style={styles.status}>{status}</Text></View>
+          <Pressable accessibilityRole="button" accessibilityLabel="Close Nina" disabled={stopping} onPress={() => stop('close')} style={styles.close}>
+            <Text style={styles.closeText}>{stopping ? 'CLOSING' : 'CLOSE'}</Text>
+          </Pressable>
+        </View>
+      </SafeAreaView>}
       <View style={styles.stage}>
         <WebView key={attempt} ref={web} source={{ uri: NINA_URL }} style={styles.stage}
           javaScriptEnabled domStorageEnabled allowsInlineMediaPlayback mediaPlaybackRequiresUserAction={false}
@@ -108,7 +120,6 @@ export function NinaLiveModal({ getToken, onClose, onSignIn }) {
             if (isNinaURL(request.url) || request.url === 'about:blank') return true;
             try {
               const target = new URL(request.url);
-              // Checkout is an explicit user action; never navigate this WebView away.
               if (request.isTopFrame !== false && target.protocol === 'https:' && target.hostname === 'checkout.stripe.com') {
                 Linking.openURL(target.href).catch(() => fail('Checkout could not open.'));
               }
@@ -124,9 +135,21 @@ export function NinaLiveModal({ getToken, onClose, onSignIn }) {
           <Text style={styles.revision}>BRIDGE 01</Text>
         </View>}
       </View>
-    </SafeAreaView>
+      {immersive && <SafeAreaView pointerEvents="box-none" style={styles.immersiveControls}>
+        <View pointerEvents="box-none" style={styles.immersiveRow}>
+          <Pressable accessibilityRole="button" accessibilityLabel="Close Nina" disabled={stopping} onPress={() => stop('close')} style={({ pressed }) => [styles.floatingClose, pressed && styles.pressed]}>
+            <Text style={styles.floatingCloseText}>×</Text>
+          </Pressable>
+        </View>
+      </SafeAreaView>}
+    </View>
   </Modal>;
 }
+
 const styles = StyleSheet.create({
-  shell:{flex:1,backgroundColor:'#000'},stage:{flex:1,backgroundColor:'#000'},header:{minHeight:64,paddingHorizontal:18,flexDirection:'row',alignItems:'center',borderBottomWidth:StyleSheet.hairlineWidth,borderBottomColor:'#262626'},heading:{flex:1,marginRight:12},label:{color:'#F2EFE9',fontSize:10,letterSpacing:1.8},status:{color:'#99948B',fontSize:9,letterSpacing:1.1,marginTop:6},close:{minHeight:44,minWidth:76,paddingHorizontal:10,alignItems:'center',justifyContent:'center',borderWidth:StyleSheet.hairlineWidth,borderColor:'#555',borderRadius:3},closeText:{color:'#F2EFE9',fontSize:10,letterSpacing:1.3},overlay:{...StyleSheet.absoluteFillObject,padding:28,justifyContent:'center',backgroundColor:'#080808'},title:{color:'#F2EFE9',fontSize:25,lineHeight:32,fontWeight:'300'},copy:{color:'#C7C2B8',fontSize:14,lineHeight:22,marginTop:16},retry:{minHeight:48,marginTop:18,borderWidth:StyleSheet.hairlineWidth,borderColor:'#555',justifyContent:'center',alignItems:'center'},revision:{color:'#777',fontSize:9,letterSpacing:1.4,marginTop:22},
+  shell:{flex:1,backgroundColor:'#000'},stage:{flex:1,backgroundColor:'#000'},safeHeader:{backgroundColor:'#000'},
+  header:{minHeight:64,paddingHorizontal:18,flexDirection:'row',alignItems:'center',borderBottomWidth:StyleSheet.hairlineWidth,borderBottomColor:'#262626'},heading:{flex:1,marginRight:12},label:{color:'#F2EFE9',fontSize:10,letterSpacing:1.8},status:{color:'#99948B',fontSize:9,letterSpacing:1.1,marginTop:6},
+  close:{minHeight:44,minWidth:76,paddingHorizontal:10,alignItems:'center',justifyContent:'center',borderWidth:StyleSheet.hairlineWidth,borderColor:'#555',borderRadius:3},closeText:{color:'#F2EFE9',fontSize:10,letterSpacing:1.3},
+  immersiveControls:{...StyleSheet.absoluteFillObject,zIndex:30},immersiveRow:{flexDirection:'row',justifyContent:'flex-end',paddingHorizontal:14,paddingTop:8},floatingClose:{width:46,height:46,borderRadius:23,backgroundColor:'rgba(0,0,0,.48)',borderWidth:StyleSheet.hairlineWidth,borderColor:'rgba(255,255,255,.38)',alignItems:'center',justifyContent:'center'},floatingCloseText:{color:'#F2EFE9',fontSize:28,lineHeight:30,fontWeight:'200'},pressed:{opacity:.65},
+  overlay:{...StyleSheet.absoluteFillObject,padding:28,justifyContent:'center',backgroundColor:'#080808'},title:{color:'#F2EFE9',fontSize:25,lineHeight:32,fontWeight:'300'},copy:{color:'#C7C2B8',fontSize:14,lineHeight:22,marginTop:16},retry:{minHeight:48,marginTop:18,borderWidth:StyleSheet.hairlineWidth,borderColor:'#555',justifyContent:'center',alignItems:'center'},revision:{color:'#777',fontSize:9,letterSpacing:1.4,marginTop:22},
 });
