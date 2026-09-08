@@ -42,18 +42,13 @@
       const trigger = document.getElementById('openNina');
       if (!access || !overlay || !trigger) throw new Error('Nina live UI missing');
 
-      await import('./js/nina-access.js?v=20260908-native-app-trigger');
+      await import('./js/nina-access.js?v=20260908-native-app-auth-flow');
 
-      const openSignal = () => {
-        try { trigger.click(); } catch (error) { console.error(error); }
-      };
+      try { trigger.click(); } catch (error) { console.error(error); }
 
-      openSignal();
-      setTimeout(openSignal, 350);
-      setTimeout(() => {
-        if (overlay.classList.contains('is-open')) boot.remove();
-        else boot.textContent = 'Nina signal unavailable';
-      }, 1800);
+      // The first valid route can be the sign-in/access panel OR the live overlay.
+      // Never keep the boot layer on top while Clerk/access routing finishes.
+      requestAnimationFrame(() => boot.remove());
     } catch (error) {
       console.error(error);
       boot.textContent = 'Nina signal unavailable';
