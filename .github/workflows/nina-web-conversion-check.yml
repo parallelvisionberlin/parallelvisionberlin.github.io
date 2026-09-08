@@ -3,15 +3,15 @@ on:
   push:
     branches: [nina-web-conversion-20260909]
 permissions:
-  contents: write
+  contents: read
 jobs:
-  website:
+  baseline:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: nina-web-conversion-20260909
+          ref: bbe528ad35a9306e35844d3afe5f016228a5e0e5
           sparse-checkout: |
             js
             css
@@ -19,51 +19,31 @@ jobs:
             nina-admin
             scripts
             .github
+            docs
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Apply reviewed website patch when present
-        run: |
-          if [ -f scripts/nina-web-conversion.patch ]; then
-            if git apply --reverse --check scripts/nina-web-conversion.patch 2>/dev/null; then
-              echo 'Changes already applied'
-            else
-              git apply --check scripts/nina-web-conversion.patch
-              git apply scripts/nina-web-conversion.patch
-            fi
-          fi
-      - name: Install Worker dependencies using the existing lock
+      - name: Install locked dependencies
         run: |
           npm install -g pnpm@10.15.1
           pnpm --dir anam-token-worker install --frozen-lockfile
-      - name: Check Worker syntax and tests
+      - name: Record baseline tests without altering source
         run: |
-          npm run check --prefix anam-token-worker
-          npm test --prefix anam-token-worker > /tmp/nina-worker-tests.log 2>&1 || { cat /tmp/nina-worker-tests.log; exit 1; }
-          tail -15 /tmp/nina-worker-tests.log
-      - name: Export source and test results for review
+          npm run check --prefix anam-token-worker > /tmp/syntax.log 2>&1
+          npm test --prefix anam-token-worker > /tmp/tests.log 2>&1 || true
+      - name: Package public source and dependency for offline testing
         if: always()
         run: |
-          mkdir -p /tmp/nina-review
-          tar --exclude=node_modules --exclude=.git --exclude=.wrangler -czf /tmp/nina-review/website-source.tar.gz js css anam-token-worker nina-admin scripts .github *.html package*.json
-          cp /tmp/nina-worker-tests.log /tmp/nina-review/worker-tests.log 2>/dev/null || true
-          git diff --stat > /tmp/nina-review/diff-stat.txt
-          git diff > /tmp/nina-review/website.patch
+          mkdir -p /tmp/nina-review/dependency/node_modules
+          tar --exclude=node_modules --exclude=.git --exclude=.wrangler -czf /tmp/nina-review/website-source.tar.gz js css anam-token-worker nina-admin scripts .github docs *.html package*.json
+          cp -rL anam-token-worker/node_modules/stripe /tmp/nina-review/dependency/node_modules/stripe
+          tar -C /tmp/nina-review/dependency -czf /tmp/nina-review/stripe-dependency.tar.gz node_modules
+          rm -rf /tmp/nina-review/dependency
+          cp /tmp/tests.log /tmp/syntax.log /tmp/nina-review/ 2>/dev/null || true
+          git rev-parse HEAD > /tmp/nina-review/base-commit.txt
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: nina-website-review
+          name: nina-current-baseline
           path: /tmp/nina-review/
           retention-days: 2
-      - name: Commit only reviewed website paths to this isolated branch
-        if: success()
-        run: |
-          if [ -f scripts/nina-web-conversion.patch ]; then
-            git add js/nina-access.js js/nina-web-flow.js js/nina-admin.js css/nina-access.css anam-token-worker/src/index.js anam-token-worker/src/meta-capi.js anam-token-worker/src/web-conversation.js anam-token-worker/migrations/20260909_nina_web_conversations.sql anam-token-worker/test anam-token-worker/WEBSITE_CONVERSION_CHECKLIST.md index.html nina-project.html nina-admin/index.html
-            if ! git diff --cached --quiet; then
-              git config user.name 'Nina website checks'
-              git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-              git commit -m 'Implement tested Nina website conversation and continuation flow'
-              git push origin HEAD:nina-web-conversion-20260909
-            fi
-          fi
