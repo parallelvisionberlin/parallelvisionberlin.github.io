@@ -10,8 +10,11 @@ import {
   View,
 } from 'react-native';
 import { WebView } from 'react-native-webview';
+import { ClerkProvider } from '@clerk/expo';
+import { tokenCache } from '@clerk/expo/token-cache';
 import { theme } from './src/theme';
 import { config } from './src/config';
+import { AuthPanel } from './src/AuthPanel';
 
 const tabs = ['HOME', 'NINA', '2063', 'MUSIC', 'PROFILE'];
 
@@ -61,9 +64,7 @@ function HomeScreen({ setTab }) {
         <Text style={styles.heroTitle}>BERLIN{`\n`}2063</Text>
         <Text style={styles.heroCopy}>Music, moving image and transmissions from an imagined future.</Text>
       </View>
-
       <SignalPanel onTalk={() => setTab('NINA')} />
-
       <View style={styles.section}>
         <Kicker>NOW TRANSMITTING</Kicker>
         <Hairline />
@@ -72,7 +73,6 @@ function HomeScreen({ setTab }) {
         <Text style={styles.releaseCopy}>A current signal from Parallel Vision.</Text>
         <ArrowButton label="ENTER MUSIC" onPress={() => setTab('MUSIC')} />
       </View>
-
       <View style={styles.section}>
         <Kicker>THE WORLD</Kicker>
         <Hairline />
@@ -133,7 +133,7 @@ function NinaScreen() {
         <Kicker>CONTINUITY</Kicker>
         <Hairline />
         <Text style={styles.editorialTitle}>The existing Nina system stays intact.</Text>
-        <Text style={styles.body}>The app now opens the production Nina experience inside its own interface, so voice, avatar, account, memory and Signal Credits can keep using the same working backend.</Text>
+        <Text style={styles.body}>The production Nina experience remains embedded inside the app while the native account layer is now handled by Clerk.</Text>
       </View>
     </ScrollView>
   );
@@ -197,34 +197,23 @@ function MusicScreen() {
 
 function ProfileScreen() {
   return (
-    <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+    <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
       <Kicker>ACCOUNT / SIGNAL IDENTITY</Kicker>
       <Text style={styles.pageTitle}>YOUR{`\n`}PROFILE</Text>
-      <View style={styles.profilePanel}>
-        <View>
-          <Text style={styles.profileLabel}>STATUS</Text>
-          <Text style={styles.profileValue}>APP PREVIEW</Text>
-        </View>
+      <Text style={styles.pageIntro}>One identity for Parallel Vision, Nina continuity and Signal Credits.</Text>
+      <AuthPanel />
+      <View style={styles.section}>
+        <Kicker>NEXT CONNECTION</Kicker>
         <Hairline />
-        <View>
-          <Text style={styles.profileLabel}>SIGNAL CREDITS</Text>
-          <Text style={styles.profileValue}>WEB ACCOUNT BRIDGE</Text>
-        </View>
-        <Hairline />
-        <View>
-          <Text style={styles.profileLabel}>NINA MEMORY</Text>
-          <Text style={styles.profileValue}>PRODUCTION BACKEND</Text>
-        </View>
+        <Text style={styles.editorialTitle}>Signal Credits become native next.</Text>
+        <Text style={styles.body}>Once the Clerk native application is enabled in the production dashboard, this account session can authenticate directly against the existing Nina Worker.</Text>
       </View>
-      <Text style={styles.body}>Native Clerk authentication is the next account layer. Until that is connected, Nina’s embedded production view remains the authoritative signed-in experience.</Text>
-      <ArrowButton label="OPEN CURRENT ACCOUNT" onPress={() => Linking.openURL(`${config.siteUrl}/account.html`)} />
     </ScrollView>
   );
 }
 
-export default function App() {
+function ParallelVisionApp() {
   const [tab, setTab] = useState('HOME');
-
   const screen = useMemo(() => {
     if (tab === 'NINA') return <NinaScreen />;
     if (tab === '2063') return <WorldScreen />;
@@ -253,18 +242,18 @@ export default function App() {
   );
 }
 
+export default function App() {
+  return (
+    <ClerkProvider publishableKey={config.clerkPublishableKey} tokenCache={tokenCache}>
+      <ParallelVisionApp />
+    </ClerkProvider>
+  );
+}
+
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: theme.colors.bg },
   content: { flex: 1 },
-  topbar: {
-    height: 54,
-    paddingHorizontal: 18,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: theme.colors.line,
-  },
+  topbar: { height: 54, paddingHorizontal: 18, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.colors.line },
   wordmark: { color: theme.colors.text, fontSize: 12, letterSpacing: 2.6, fontWeight: '600' },
   topbarMeta: { color: theme.colors.muted, fontSize: 9, letterSpacing: 1.8 },
   scroll: { paddingHorizontal: 18, paddingTop: 26, paddingBottom: 64 },
@@ -309,20 +298,17 @@ const styles = StyleSheet.create({
   rowTitle: { color: theme.colors.text, fontSize: 18, fontWeight: '300' },
   rowMeta: { color: theme.colors.muted, fontSize: 8, letterSpacing: 1.1, marginTop: 5 },
   rowArrow: { color: theme.colors.muted, fontSize: 16 },
-  profilePanel: { marginTop: 28, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, borderColor: theme.colors.line, padding: 18, backgroundColor: theme.colors.panel },
-  profileLabel: { color: theme.colors.muted, fontSize: 8, letterSpacing: 1.6 },
-  profileValue: { color: theme.colors.text, fontSize: 17, marginTop: 7, fontWeight: '300' },
-  liveShell: { flex: 1, backgroundColor: theme.colors.bg },
-  liveHeader: { minHeight: 58, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.colors.line },
-  liveHeaderKicker: { color: theme.colors.text, fontSize: 9, letterSpacing: 1.5 },
-  liveHeaderStatus: { color: theme.colors.muted, fontSize: 8, letterSpacing: 1.3, marginTop: 4 },
-  closeSignalButton: { borderWidth: StyleSheet.hairlineWidth, borderColor: '#383838', paddingHorizontal: 12, paddingVertical: 9, borderRadius: 12 },
-  closeSignalText: { color: theme.colors.text, fontSize: 8, letterSpacing: 1.3 },
-  webviewContainer: { flex: 1, backgroundColor: '#000' },
-  webview: { flex: 1, backgroundColor: '#000' },
   nav: { height: 62, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.colors.line, flexDirection: 'row', backgroundColor: '#080808', paddingHorizontal: 5 },
   navItem: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   navText: { color: '#55534F', fontSize: 8, letterSpacing: 0.7, fontWeight: '600' },
   navTextActive: { color: theme.colors.text },
   navActive: { width: 18, height: 1, backgroundColor: theme.colors.text, marginTop: 7 },
+  liveShell: { flex: 1, backgroundColor: '#000' },
+  liveHeader: { height: 58, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#242424', backgroundColor: '#080808' },
+  liveHeaderKicker: { color: theme.colors.text, fontSize: 9, letterSpacing: 1.8, fontWeight: '600' },
+  liveHeaderStatus: { color: theme.colors.muted, fontSize: 7, letterSpacing: 1.4, marginTop: 4 },
+  closeSignalButton: { minWidth: 64, height: 34, alignItems: 'center', justifyContent: 'center', borderWidth: StyleSheet.hairlineWidth, borderColor: '#343434', borderRadius: 10 },
+  closeSignalText: { color: theme.colors.text, fontSize: 8, letterSpacing: 1.3, fontWeight: '600' },
+  webview: { flex: 1, backgroundColor: '#000' },
+  webviewContainer: { flex: 1, backgroundColor: '#000' },
 });
