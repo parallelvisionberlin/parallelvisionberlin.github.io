@@ -1,6 +1,6 @@
 param([switch]$CheckOnly)
 $ErrorActionPreference = 'Stop'
-$SourceCommit = 'efc7f31ae0b58d23139c604820100c7483826341'
+$SourceCommit = '02b8915e398e70471edca5c906affbf80eb25d75'
 $OriginalLocation = Get-Location
 $PreviousNoVcs = [Environment]::GetEnvironmentVariable('EAS_NO_VCS', 'Process')
 $PreviousProjectRoot = [Environment]::GetEnvironmentVariable('EAS_PROJECT_ROOT', 'Process')
@@ -35,7 +35,6 @@ try {
     Invoke-Checked 'git.exe' @('-C', $Repository, 'fetch', 'origin', 'mobile-app-v1')
     Invoke-Checked 'git.exe' @('-C', $Repository, 'cat-file', '-e', "${SourceCommit}^{commit}")
 
-    # Read only committed, tested app files. Do not overwrite local edits or copy the website.
     $Builds = Join-Path $env:LOCALAPPDATA 'ParallelVision\Builds'
     $Name = 'BRIDGE01_' + (Get-Date -Format 'yyyyMMdd_HHmmss') + '_' + ([guid]::NewGuid().ToString('N').Substring(0, 6))
     $Workspace = Join-Path $Builds $Name
@@ -57,7 +56,6 @@ try {
         if (!(Test-Path -LiteralPath $File -PathType Leaf)) { throw "Required snapshot file is missing: $Relative" }
         $Hashes[$Relative] = (Get-FileHash -LiteralPath $File -Algorithm SHA256).Hash
     }
-    # Keep a local provenance commit. EAS must copy files, not clone this repository.
     Invoke-Checked 'git.exe' @('init')
     Invoke-Checked 'git.exe' @('add', '.')
     Invoke-Checked 'git.exe' @('-c', 'user.name=Parallel Vision local build', '-c', 'user.email=pv-build@localhost', 'commit', '-m', "BRIDGE 01 from $SourceCommit")
@@ -72,10 +70,6 @@ try {
         }
     }
 
-    # ARCHIVE 02: GitClient shallow-clones .git into the EAS staging directory.
-    # Use EAS's NoVcs file-copy path for BOTH inspection and upload. That path
-    # excludes .git and node_modules by default, and still honors .easignore.
-    # Scope these variables to this script process and restore them in finally.
     $PackagingEnvironmentSet = $true
     $env:EAS_NO_VCS = '1'
     $env:EAS_PROJECT_ROOT = $App
