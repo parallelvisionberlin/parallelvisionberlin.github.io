@@ -1,0 +1,86 @@
+name: Nina visual and audio checks
+on:
+  push:
+    branches: [nina-visual-audio-sep09]
+permissions:
+  contents: write
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CI: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            js
+            css
+            scripts
+            assets/optimized/nina-fok
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Prepare exact native and web sources
+        run: |
+          git fetch --depth=1 origin b53ef7bfd75beb117f4a109e2b400dcea5dc66ae
+          git archive FETCH_HEAD mobile-app | tar -x
+          python scripts/apply-visual-audio.py
+          node --check js/nina-access.js
+          node --check js/nina-app-bootstrap.js
+          node --test scripts/test-native-identity.mjs scripts/test-nina-microphone.mjs mobile-app/tests/*.test.mjs
+      - name: Install test browsers
+        run: |
+          python -m pip install playwright==1.55.0
+          python -m playwright install --with-deps chromium webkit
+      - name: Original identity and call lifecycle regression tests
+        run: |
+          python scripts/test-nina-bridge.py
+          BROWSER=webkit python scripts/test-nina-bridge.py
+      - name: Portrait, layout, microphone test and interruption checks
+        run: |
+          python scripts/test-nina-visual-audio.py
+          BROWSER=webkit python scripts/test-nina-visual-audio.py
+      - name: Verify unchanged dependency lock and iOS export
+        working-directory: mobile-app
+        run: |
+          npm ci --include=dev --ignore-scripts
+          npm test
+          npx expo export --platform ios --output-dir /tmp/pv-visual-ios-export
+          npx expo prebuild --platform ios --no-install
+          test -f ios/ParallelVision/Images.xcassets/AppIcon.appiconset/Contents.json
+          rm -rf ios
+      - name: Record tested source hashes on isolated branch
+        run: |
+          python - <<'PY'
+          import json,pathlib,subprocess
+          web=['js/nina-microphone.js','js/nina-access.js','js/nina-app-bootstrap.js','css/nina-app.css','nina-app.html','scripts/test-nina-microphone.mjs','scripts/test-nina-visual-audio.py']
+          native=['mobile-app/App.js','mobile-app/src/NinaLiveModal.js','mobile-app/src/ninaBridge.js','mobile-app/src/AuthPanel.js','mobile-app/tests/immersive.test.mjs','mobile-app/app.json','mobile-app/package.json','mobile-app/package-lock.json']
+          manifest={group:{p:subprocess.check_output(['git','hash-object','-w',p],text=True).strip() for p in files} for group,files in [('web',web),('native',native)]}
+          pathlib.Path('VISUAL02-MIC01-SOURCES.json').write_text(json.dumps(manifest,indent=2)+'\n')
+          subprocess.run(['git','add','--sparse',*web,*native,'VISUAL02-MIC01-SOURCES.json'],check=True)
+          PY
+          git config user.name 'Parallel Vision checks'
+          git config user.email 'parallelvision.label@gmail.com'
+          git commit -m 'Tested VISUAL 02 / MIC 01: portrait, immersive view and single-stream audio diagnostics'
+          git push origin HEAD:nina-visual-audio-sep09
+          git rev-parse HEAD > tested-visual-commit.txt
+      - name: Collect sources and screenshots
+        if: always()
+        run: |
+          mkdir -p /tmp/visual-tested
+          cp -r js css scripts mobile-app nina-app.html /tmp/visual-tested/
+          rm -rf /tmp/visual-tested/mobile-app/node_modules /tmp/visual-tested/mobile-app/ios
+          cp precall-*.png /tmp/visual-tested/ 2>/dev/null || true
+          cp /tmp/nina-browser-failure.png /tmp/visual-tested/ 2>/dev/null || true
+          cp VISUAL02-MIC01-SOURCES.json tested-visual-commit.txt /tmp/visual-tested/ 2>/dev/null || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: nina-visual-audio-checked
+          path: /tmp/visual-tested
+          include-hidden-files: true
+          retention-days: 3
