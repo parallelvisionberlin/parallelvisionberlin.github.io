@@ -1,0 +1,34 @@
+name: Mobile Visual 02 check
+on:
+  push:
+    branches: [mobile-app-v1]
+permissions:
+  contents: write
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: mobile-app-v1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Normalize copy typo
+        run: sed -i 's/MolinARI/Molinari/g' mobile-app/App.js
+      - name: Validate native app
+        working-directory: mobile-app
+        run: |
+          npm ci --include=dev --ignore-scripts
+          npm test
+          npx expo export --platform ios --output-dir /tmp/pv-visual02-ios
+      - name: Commit copy normalization when needed
+        run: |
+          if ! git diff --quiet -- mobile-app/App.js; then
+            git config user.name 'Parallel Vision checks'
+            git config user.email 'parallelvision.label@gmail.com'
+            git add mobile-app/App.js
+            git commit -m 'Normalize Nina app music copy after visual update'
+            git push origin HEAD:mobile-app-v1
+          fi
