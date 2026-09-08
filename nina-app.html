@@ -10,7 +10,7 @@
   <style>
     html,body{margin:0;width:100%;height:100%;background:#000;color:#fff;overflow:hidden}
     body{font-family:Inter,Arial,sans-serif}
-    #pv-app-boot{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#000;color:rgba(255,255,255,.55);font:10px/1.5 'Courier New',monospace;letter-spacing:.18em;text-transform:uppercase}
+    #pv-app-boot{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#000;color:rgba(255,255,255,.55);font:10px/1.5 'Courier New',monospace;letter-spacing:.18em;text-transform:uppercase;z-index:2}
     #openNina{position:fixed;width:1px;height:1px;opacity:0;pointer-events:none}
     #ninaOverlay{padding:0!important;background:#000!important}
     #ninaOverlay .nina-window{width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;border:0!important;border-radius:0!important;box-shadow:none!important}
@@ -30,17 +30,28 @@
       if (!response.ok) throw new Error(`Nina source returned ${response.status}`);
       const source = await response.text();
       const parsed = new DOMParser().parseFromString(source, 'text/html');
+
+      const access = parsed.getElementById('ninaAccess');
       const overlay = parsed.getElementById('ninaOverlay');
-      if (!overlay) throw new Error('Nina overlay missing');
+      if (!access || !overlay) throw new Error('Nina live UI missing');
+
+      document.body.appendChild(document.importNode(access, true));
       document.body.appendChild(document.importNode(overlay, true));
-      boot.remove();
-      await import('./js/nina-access.js?v=20260907-more-time-app');
+
+      await import('./js/nina-access.js?v=20260908-native-app-fix');
+
       const trigger = document.getElementById('openNina');
-      setTimeout(() => trigger?.click(), 0);
+      const openSignal = () => {
+        try { trigger?.click(); } catch (error) { console.error(error); }
+      };
+
+      openSignal();
+      setTimeout(openSignal, 350);
       setTimeout(() => {
         const current = document.getElementById('ninaOverlay');
-        if (current && !current.classList.contains('is-open')) trigger?.click();
-      }, 500);
+        if (current?.classList.contains('is-open')) boot.remove();
+        else boot.textContent = 'Nina signal unavailable';
+      }, 1200);
     } catch (error) {
       console.error(error);
       boot.textContent = 'Nina signal unavailable';
