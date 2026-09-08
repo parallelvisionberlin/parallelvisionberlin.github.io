@@ -1,6 +1,6 @@
 param([switch]$CheckOnly)
 $ErrorActionPreference = 'Stop'
-$SourceCommit = '02b8915e398e70471edca5c906affbf80eb25d75'
+$SourceCommit = 'af30ee9103d76c0b2c1c8982440caa9007ebece0'
 $OriginalLocation = Get-Location
 $PreviousNoVcs = [Environment]::GetEnvironmentVariable('EAS_NO_VCS', 'Process')
 $PreviousProjectRoot = [Environment]::GetEnvironmentVariable('EAS_PROJECT_ROOT', 'Process')
@@ -36,7 +36,7 @@ try {
     Invoke-Checked 'git.exe' @('-C', $Repository, 'cat-file', '-e', "${SourceCommit}^{commit}")
 
     $Builds = Join-Path $env:LOCALAPPDATA 'ParallelVision\Builds'
-    $Name = 'BRIDGE01_' + (Get-Date -Format 'yyyyMMdd_HHmmss') + '_' + ([guid]::NewGuid().ToString('N').Substring(0, 6))
+    $Name = 'VISUAL02_MIC01_' + (Get-Date -Format 'yyyyMMdd_HHmmss') + '_' + ([guid]::NewGuid().ToString('N').Substring(0, 6))
     $Workspace = Join-Path $Builds $Name
     New-Item -ItemType Directory -Path $Workspace -Force | Out-Null
     $SourceArchive = Join-Path $Workspace 'source.tar'
@@ -46,9 +46,9 @@ try {
     Set-Location $App
     $Utf8 = New-Object System.Text.UTF8Encoding($false)
     [System.IO.File]::WriteAllText((Join-Path $App '.gitignore'), [System.IO.File]::ReadAllText((Join-Path $App '.easignore')), $Utf8)
-    [System.IO.File]::WriteAllText((Join-Path $App 'BUILD_SOURCE.txt'), "BRIDGE 01`nSource: $SourceCommit`n", $Utf8)
+    [System.IO.File]::WriteAllText((Join-Path $App 'BUILD_SOURCE.txt'), "BRIDGE 01 / VISUAL 02 / MIC 01`nSource: $SourceCommit`n", $Utf8)
     $Auth = [System.IO.File]::ReadAllText((Join-Path $App 'src\AuthPanel.js'))
-    if (!$Auth.Contains('LOGIN 03 / BRIDGE 01')) { throw 'The snapshot does not contain BRIDGE 01.' }
+    if (!$Auth.Contains('LOGIN 03 / BRIDGE 01') -or !$Auth.Contains('VISUAL 02 / MIC 01')) { throw 'The snapshot does not contain VISUAL 02 / MIC 01.' }
     $Required = @('App.js', 'src\AuthPanel.js', 'src\NinaLiveModal.js', 'src\ninaBridge.js', 'src\config.js', 'src\theme.js', 'app.json', 'eas.json', 'package.json', 'package-lock.json', 'assets\icon.png', '.easignore', '.npmrc', 'BUILD_SOURCE.txt')
     $Hashes = @{}
     foreach ($Relative in $Required) {
@@ -58,9 +58,9 @@ try {
     }
     Invoke-Checked 'git.exe' @('init')
     Invoke-Checked 'git.exe' @('add', '.')
-    Invoke-Checked 'git.exe' @('-c', 'user.name=Parallel Vision local build', '-c', 'user.email=pv-build@localhost', 'commit', '-m', "BRIDGE 01 from $SourceCommit")
+    Invoke-Checked 'git.exe' @('-c', 'user.name=Parallel Vision local build', '-c', 'user.email=pv-build@localhost', 'commit', '-m', "VISUAL 02 / MIC 01 from $SourceCommit")
 
-    Write-Host "`nBRIDGE 01: checking the pinned dependency lock and iOS code." -ForegroundColor Cyan
+    Write-Host "`nVISUAL 02 / MIC 01: checking the pinned dependency lock and iOS code." -ForegroundColor Cyan
     Invoke-Checked 'npx.cmd' @('--yes', 'npm@10.9.8', 'ci', '--include=dev', '--ignore-scripts')
     Invoke-Checked 'npm.cmd' @('test')
     Invoke-Checked 'npx.cmd' @('expo', 'export', '--platform', 'ios', '--output-dir', (Join-Path $Workspace 'ios-javascript-check'))
@@ -99,8 +99,8 @@ try {
 
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
     $Live = Invoke-WebRequest -UseBasicParsing -TimeoutSec 30 -Uri ('https://parallelvisionlabel.com/nina-app.html?bridge_check=' + [DateTimeOffset]::UtcNow.ToUnixTimeSeconds())
-    if (!$Live.Content.Contains('data-pv-app-revision="bridge01"')) { throw 'The matching live page is not deployed yet. No build was started.' }
-    Write-Host "`nOK: LOGIN 03 / BRIDGE 01. Code, icon and archive verified." -ForegroundColor Green
+    if (!$Live.Content.Contains('data-pv-app-revision="bridge01"') -or !$Live.Content.Contains('data-pv-visual-revision="visual02-mic01"')) { throw 'The matching live page is not deployed yet. No build was started.' }
+    Write-Host "`nOK: VISUAL 02 / MIC 01. Code, icon and archive verified." -ForegroundColor Green
     Write-Host ('Upload source: {0:N2} MB before compression.' -f ($Bytes / 1MB)) -ForegroundColor Green
     Write-Host "Source commit: $SourceCommit"
     Write-Host "Build folder: $App"
@@ -108,7 +108,7 @@ try {
     if (!$CheckOnly) {
         Write-Host 'Building the new iPhone preview. Apple login / reuse profile: Yes.' -ForegroundColor Cyan
         Invoke-Checked 'eas.cmd' @('build', '--platform', 'ios', '--profile', 'preview')
-        Write-Host 'Install only the link from this build. Profile must show LOGIN 03 / BRIDGE 01.' -ForegroundColor Green
+        Write-Host 'Install only the link from this build. Profile must show VISUAL 02 / MIC 01.' -ForegroundColor Green
     }
 } catch {
     Write-Host ("`nSTOP: " + $_.Exception.Message) -ForegroundColor Red
