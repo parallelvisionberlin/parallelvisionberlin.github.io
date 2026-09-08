@@ -18,15 +18,33 @@ function analyticsIdentity(visitorId, user) {
   };
 }
 
-function sessionStage(status, seconds) {
+function sessionStage(status, seconds, userMessages = 0, personaMessages = 0, messageTrackingAvailable = false) {
   const connected = Math.max(0, Number(seconds) || 0);
+  const userCount = Math.max(0, Number(userMessages) || 0);
+  const personaCount = Math.max(0, Number(personaMessages) || 0);
+
+  if (status === "failed") return { key: "failed", label: "FAILED DURING CONNECTION" };
+
+  if (messageTrackingAvailable) {
+    if (userCount === 0 && status !== "active") {
+      return { key: "connected_no_speech", label: `${String(status || "ended").toUpperCase()} · CONNECTED · NO USER SPEECH` };
+    }
+    if (userCount > 0 && personaCount === 0 && status !== "active") {
+      return { key: "spoke_no_reply", label: `${String(status || "ended").toUpperCase()} · USER SPOKE · NO NINA REPLY` };
+    }
+    if (userCount > 0 && personaCount > 0) {
+      if (connected >= 180) return { key: "conversation_3m", label: `${status === "active" ? "ACTIVE" : String(status || "ended").toUpperCase()} · CONVERSATION · 3M+` };
+      if (connected >= 60) return { key: "conversation_1m", label: `${status === "active" ? "ACTIVE" : String(status || "ended").toUpperCase()} · CONVERSATION · 1M+` };
+      return { key: "conversation", label: `${status === "active" ? "ACTIVE" : String(status || "ended").toUpperCase()} · CONVERSATION STARTED` };
+    }
+  }
+
   if (status === "active") {
     if (connected >= 180) return { key: "deep_3m", label: "ACTIVE · DEEP SESSION 3M+" };
     if (connected >= 60) return { key: "engaged_1m", label: "ACTIVE · ENGAGED 1M+" };
     if (connected >= 30) return { key: "reached_30s", label: "ACTIVE · REACHED 30S" };
     return { key: "connected", label: "ACTIVE · CONNECTED" };
   }
-  if (status === "failed") return { key: "failed", label: "FAILED DURING CONNECTION" };
   if (connected < 30) return { key: "drop_before_30s", label: `${String(status || "ended").toUpperCase()} · DROPPED <30S AFTER CONNECT` };
   if (connected < 60) return { key: "reached_30s", label: `${String(status || "ended").toUpperCase()} · REACHED 30S` };
   if (connected < 180) return { key: "engaged_1m", label: `${String(status || "ended").toUpperCase()} · ENGAGED 1M+` };
@@ -146,9 +164,19 @@ export async function getNinaAnalyticsDashboard(env, now = Date.now()) {
     rangeMetrics(env, starts.today), rangeMetrics(env, starts.days7), rangeMetrics(env, starts.days30),
     env.NINA_MEMORY_DB.prepare("SELECT COUNT(*) AS count FROM nina_analytics_sessions WHERE status = 'active' AND last_seen_at >= ?").bind(activeCutoff).first(),
     env.NINA_MEMORY_DB.prepare(`
-      SELECT s.id, s.user_key, s.is_authenticated, s.actor_type, s.is_returning, s.status,
+      SELECT s.id, s.visitor_id, s.user_key, s.is_authenticated, s.actor_type, s.is_returning, s.status,
              s.started_at, s.last_seen_at, s.ended_at, s.connected_seconds,
-             u.display_name AS user_display_name, u.email AS user_email
+             u.display_name AS user_display_name, u.email AS user_email,
+             (SELECT COUNT(*) FROM messages m
+                WHERE m.visitor_id = s.visitor_id
+                  AND m.role = 'user'
+                  AND m.created_at >= s.started_at
+                  AND m.created_at <= COALESCE(s.ended_at, s.last_seen_at)) AS user_messages,
+             (SELECT COUNT(*) FROM messages m
+                WHERE m.visitor_id = s.visitor_id
+                  AND m.role = 'persona'
+                  AND m.created_at >= s.started_at
+                  AND m.created_at <= COALESCE(s.ended_at, s.last_seen_at)) AS persona_messages
       FROM nina_analytics_sessions s
       LEFT JOIN users u ON u.id = s.user_id
       ORDER BY s.started_at DESC LIMIT 100
@@ -189,7 +217,10 @@ export async function getNinaAnalyticsDashboard(env, now = Date.now()) {
     },
     sessions: (recent?.results || []).map(row => {
       const connectedSeconds = Math.max(0, Number(row.connected_seconds) || 0);
-      const stage = sessionStage(row.status, connectedSeconds);
+      const userMessages = Math.max(0, Number(row.user_messages) || 0);
+      const personaMessages = Math.max(0, Number(row.persona_messages) || 0);
+      const messageTrackingAvailable = Number(row.is_authenticated) === 1 || row.actor_type === "owner";
+      const stage = sessionStage(row.status, connectedSeconds, userMessages, personaMessages, messageTrackingAvailable);
       return {
         id: row.id, userIdentifier: String(row.user_key || "").replace(/^user:/, "U-").replace(/^visitor:/, "V-").slice(0, 14),
         authenticated: Number(row.is_authenticated) === 1, actorType: row.actor_type,
@@ -199,6 +230,9 @@ export async function getNinaAnalyticsDashboard(env, now = Date.now()) {
         status: stage.label,
         rawStatus: row.status,
         stage: stage.key,
+        messageTrackingAvailable,
+        userMessages,
+        personaMessages,
         startedAt: row.started_at, lastSeenAt: row.last_seen_at, endedAt: row.ended_at,
         connectedSeconds
       };
