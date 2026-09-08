@@ -62,13 +62,13 @@ for (const file of pages) {
   }
 }
 
-for (const file of ['language.js','js/home.js','js/nina-access.js','anam-token-worker/src/auth.js','anam-token-worker/src/index.js','anam-token-worker/src/memory.js']) {
+for (const file of ['language.js','js/home.js','js/nina-access.js','js/nina-native-bridge.js','js/nina-app-bootstrap.js','anam-token-worker/src/auth.js','anam-token-worker/src/index.js','anam-token-worker/src/memory.js']) {
   try {
-    const source = fs.readFileSync(path.join(root, file), 'utf8')
-      .replace(/^import[\s\S]*?from\s+["'][^"']+["'];$/gm, '')
-      .replace(/^export\s+(?=(?:class|const|function|async\s+function))/gm, '')
-      .replace(/^export default /m, 'const __defaultExport = ');
-    new vm.Script(source, { filename: file });
+    // Parse ES modules as modules, without executing imports or removing source syntax.
+    const source = fs.readFileSync(path.join(root, file), 'utf8');
+    const result = require('node:child_process').spawnSync(process.execPath, ['--check', '--input-type=module'], { input: source, encoding: 'utf8' });
+    if (result.error) throw result.error;
+    if (result.status !== 0) throw new Error(result.stderr.trim() || 'Module syntax check failed');
   }
   catch (error) { fail(`${file}: parse error: ${error.message}`); }
 }
