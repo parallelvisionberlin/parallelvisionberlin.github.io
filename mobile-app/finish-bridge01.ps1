@@ -2,8 +2,11 @@ param([switch]$CheckOnly)
 $ErrorActionPreference = 'Stop'
 $SourceCommit = 'efc7f31ae0b58d23139c604820100c7483826341'
 $OriginalLocation = Get-Location
+$PreviousNoVcs = [Environment]::GetEnvironmentVariable('EAS_NO_VCS', 'Process')
+$PreviousProjectRoot = [Environment]::GetEnvironmentVariable('EAS_PROJECT_ROOT', 'Process')
 $Mutex = [System.Threading.Mutex]::new($false, 'ParallelVision_BRIDGE01_Build')
 $Held = $false
+$PackagingEnvironmentSet = $false
 
 function Invoke-Checked {
     param([string]$Program, [string[]]$ArgumentList)
@@ -47,14 +50,14 @@ try {
     [System.IO.File]::WriteAllText((Join-Path $App 'BUILD_SOURCE.txt'), "BRIDGE 01`nSource: $SourceCommit`n", $Utf8)
     $Auth = [System.IO.File]::ReadAllText((Join-Path $App 'src\AuthPanel.js'))
     if (!$Auth.Contains('LOGIN 03 / BRIDGE 01')) { throw 'The snapshot does not contain BRIDGE 01.' }
-    $Required = @('App.js', 'src\AuthPanel.js', 'src\NinaLiveModal.js', 'src\ninaBridge.js', 'src\config.js', 'src\theme.js', 'app.json', 'eas.json', 'package.json', 'package-lock.json', 'assets\icon.png')
+    $Required = @('App.js', 'src\AuthPanel.js', 'src\NinaLiveModal.js', 'src\ninaBridge.js', 'src\config.js', 'src\theme.js', 'app.json', 'eas.json', 'package.json', 'package-lock.json', 'assets\icon.png', '.easignore', '.npmrc', 'BUILD_SOURCE.txt')
     $Hashes = @{}
     foreach ($Relative in $Required) {
         $File = Join-Path $App $Relative
         if (!(Test-Path -LiteralPath $File -PathType Leaf)) { throw "Required snapshot file is missing: $Relative" }
         $Hashes[$Relative] = (Get-FileHash -LiteralPath $File -Algorithm SHA256).Hash
     }
-    # A tiny local repository avoids the 1.1 GB website archive and mixed local patches.
+    # Keep a local provenance commit. EAS must copy files, not clone this repository.
     Invoke-Checked 'git.exe' @('init')
     Invoke-Checked 'git.exe' @('add', '.')
     Invoke-Checked 'git.exe' @('-c', 'user.name=Parallel Vision local build', '-c', 'user.email=pv-build@localhost', 'commit', '-m', "BRIDGE 01 from $SourceCommit")
@@ -69,6 +72,15 @@ try {
         }
     }
 
+    # ARCHIVE 02: GitClient shallow-clones .git into the EAS staging directory.
+    # Use EAS's NoVcs file-copy path for BOTH inspection and upload. That path
+    # excludes .git and node_modules by default, and still honors .easignore.
+    # Scope these variables to this script process and restore them in finally.
+    $PackagingEnvironmentSet = $true
+    $env:EAS_NO_VCS = '1'
+    $env:EAS_PROJECT_ROOT = $App
+    Write-Host 'ARCHIVE 02: packaging only the verified app, without Git metadata.' -ForegroundColor Cyan
+
     $Inspection = Join-Path $Workspace 'archive-check'
     Invoke-Checked 'eas.cmd' @('build:inspect', '--platform', 'ios', '--profile', 'preview', '--stage', 'archive', '--output', $Inspection)
     $ArchiveRoot = $Inspection
@@ -81,10 +93,11 @@ try {
         if ((Get-FileHash -LiteralPath $File -Algorithm SHA256).Hash -ne $Hashes[$Relative]) { throw "EAS archive file mismatch: $Relative" }
     }
     $Files = @(Get-ChildItem -LiteralPath $Inspection -Recurse -File -Force)
+    $InspectionPrefix = [System.IO.Path]::GetFullPath($Inspection).TrimEnd([char[]]'\/') + [System.IO.Path]::DirectorySeparatorChar
     foreach ($File in $Files) {
-        $Normalized = $File.FullName.Replace('\', '/')
-        if ($Normalized -match '/(node_modules|\.git)/|/\.env(?:\.|$)|\.(sql|p8|p12)$|\.before-|\.backup') {
-            throw "Unnecessary or sensitive file in the upload archive: $($File.Name)"
+        $Normalized = $File.FullName.Substring($InspectionPrefix.Length).Replace('\', '/')
+        if ($Normalized -match '(^|/)(node_modules|\.git)(/|$)|(^|/)\.env(?:\.|$)|(^|/)credentials\.json$|\.(sql|p8|p12)$|\.before-|\.backup') {
+            throw "Unnecessary or sensitive file in the upload archive: $Normalized"
         }
     }
     $Bytes = ($Files | Measure-Object -Property Length -Sum).Sum
@@ -108,6 +121,10 @@ try {
     Write-Host 'Copy this error. Do not start another build separately.' -ForegroundColor Yellow
     exit 1
 } finally {
+    if ($PackagingEnvironmentSet) {
+        [Environment]::SetEnvironmentVariable('EAS_NO_VCS', $PreviousNoVcs, 'Process')
+        [Environment]::SetEnvironmentVariable('EAS_PROJECT_ROOT', $PreviousProjectRoot, 'Process')
+    }
     Set-Location $OriginalLocation
     if ($Held) { $Mutex.ReleaseMutex() }
     $Mutex.Dispose()
