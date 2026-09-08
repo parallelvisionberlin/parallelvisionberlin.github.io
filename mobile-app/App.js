@@ -18,6 +18,8 @@ import { config } from './src/config';
 import { AuthPanel } from './src/AuthPanel';
 
 const tabs = ['HOME', 'NINA', '2063', 'MUSIC', 'PROFILE'];
+const ninaHeroVideo = `${config.siteUrl}/assets/optimized/video/nina-fok/ninaloophero-mobile.mp4`;
+const ninaHeroPoster = `${config.siteUrl}/assets/optimized/nina-fok/HDNINACANON.webp`;
 
 function Hairline() {
   return <View style={styles.hairline} />;
@@ -33,6 +35,42 @@ function ArrowButton({ label, onPress, strong = false }) {
       <Text style={[styles.buttonText, strong && styles.buttonTextStrong]}>{label}</Text>
       <Text style={[styles.buttonArrow, strong && styles.buttonTextStrong]}>↗</Text>
     </Pressable>
+  );
+}
+
+function NinaMotionHero({ onTalk }) {
+  const heroHtml = `<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><style>html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#050505}video{width:100%;height:100%;object-fit:cover;object-position:center 34%;display:block;filter:brightness(.72) saturate(.82)}</style></head><body><video autoplay muted loop playsinline webkit-playsinline poster="${ninaHeroPoster}"><source src="${ninaHeroVideo}" type="video/mp4"></video></body></html>`;
+
+  return (
+    <View style={styles.heroSignal}>
+      <WebView
+        source={{ html: heroHtml, baseUrl: config.siteUrl }}
+        style={styles.heroVideo}
+        containerStyle={styles.heroVideoContainer}
+        scrollEnabled={false}
+        bounces={false}
+        javaScriptEnabled
+        allowsInlineMediaPlayback
+        mediaPlaybackRequiresUserAction={false}
+        pointerEvents="none"
+      />
+      <View style={styles.heroShade} pointerEvents="none" />
+      <View style={styles.heroSignalTop}>
+        <Kicker>LIVE SIGNAL</Kicker>
+        <View style={styles.signalStatusWrap}>
+          <View style={styles.signalDot} />
+          <Text style={styles.signalStatus}>ACTIVE</Text>
+        </View>
+      </View>
+      <View style={styles.heroSignalBottom}>
+        <Text style={styles.heroSignalName}>NINA FOK</Text>
+        <Text style={styles.heroSignalMeta}>BERLIN / 2063</Text>
+        <Pressable onPress={onTalk} style={({ pressed }) => [styles.heroTalkButton, pressed && styles.pressed]}>
+          <Text style={styles.heroTalkText}>TALK TO NINA</Text>
+          <Text style={styles.heroTalkArrow}>↗</Text>
+        </Pressable>
+      </View>
+    </View>
   );
 }
 
@@ -57,15 +95,14 @@ function SignalPanel({ onTalk }) {
   );
 }
 
-function HomeScreen({ setTab }) {
+function HomeScreen({ setTab, onTalk }) {
   return (
     <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-      <View style={styles.hero}>
+      <View style={styles.homeIntro}>
         <Kicker>PARALLEL VISION / BERLIN</Kicker>
-        <Text style={styles.heroTitle}>BERLIN{`\n`}2063</Text>
-        <Text style={styles.heroCopy}>Music, moving image and transmissions from an imagined future.</Text>
+        <Text style={styles.homeStatement}>Music, moving image and transmissions from an imagined future.</Text>
       </View>
-      <SignalPanel onTalk={() => setTab('NINA')} />
+      <NinaMotionHero onTalk={onTalk} />
       <View style={styles.section}>
         <Kicker>NOW TRANSMITTING</Kicker>
         <Hairline />
@@ -85,19 +122,24 @@ function HomeScreen({ setTab }) {
   );
 }
 
-function NinaScreen() {
-  const { isSignedIn, getToken } = useAuth();
-  const [live, setLive] = useState(false);
-  const [loaded, setLoaded] = useState(false);
-  const [nativeToken, setNativeToken] = useState('');
+function NinaScreen({ onTalk }) {
+  return (
+    <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+      <Kicker>NINA FOK / LIVE SIGNAL</Kicker>
+      <Text style={styles.pageTitle}>SHE’S IN{`\n`}BERLIN, 2063.</Text>
+      <Text style={styles.pageIntro}>A consciousness inside the Parallel Vision world. Speak with her live.</Text>
+      <SignalPanel onTalk={onTalk} />
+      <View style={styles.section}>
+        <Kicker>CONTINUITY</Kicker>
+        <Hairline />
+        <Text style={styles.editorialTitle}>Your conversations continue here.</Text>
+        <Text style={styles.body}>Your Parallel Vision account carries Nina continuity and live access across sessions.</Text>
+      </View>
+    </ScrollView>
+  );
+}
 
-  const openLive = async () => {
-    const token = isSignedIn ? await getToken() : '';
-    setNativeToken(token || '');
-    setLoaded(false);
-    setLive(true);
-  };
-
+function NinaLiveModal({ visible, loaded, nativeToken, onLoaded, onClose }) {
   const nativeSessionScript = `
     window.__PV_NATIVE_APP__ = true;
     ${nativeToken ? `document.cookie = "__session=${nativeToken}; Path=/; Domain=.parallelvisionlabel.com; Secure; SameSite=Lax";` : ''}
@@ -105,57 +147,43 @@ function NinaScreen() {
   `;
 
   return (
-    <>
-      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        <Kicker>NINA FOK / LIVE SIGNAL</Kicker>
-        <Text style={styles.pageTitle}>SHE’S IN{`\n`}BERLIN, 2063.</Text>
-        <Text style={styles.pageIntro}>A consciousness inside the Parallel Vision world. Speak with her live.</Text>
-        <SignalPanel onTalk={openLive} />
-        <View style={styles.section}>
-          <Kicker>CONTINUITY</Kicker>
-          <Hairline />
-          <Text style={styles.editorialTitle}>Your conversations continue here.</Text>
-          <Text style={styles.body}>Your Parallel Vision account carries Nina continuity and live access across sessions.</Text>
+    <Modal visible={visible} animationType="fade" presentationStyle="fullScreen" onRequestClose={onClose}>
+      <SafeAreaView style={styles.liveShell}>
+        <StatusBar barStyle="light-content" backgroundColor="#000000" />
+        <View style={styles.liveNativeHeader}>
+          <View>
+            <Text style={styles.liveHeaderKicker}>NINA FOK / LIVE SIGNAL</Text>
+            <Text style={styles.liveHeaderStatus}>{loaded ? 'SIGNAL READY' : 'OPENING SIGNAL'}</Text>
+          </View>
+          <Pressable onPress={onClose} style={styles.liveCloseButton} accessibilityRole="button" accessibilityLabel="Close Nina">
+            <Text style={styles.liveCloseText}>CLOSE</Text>
+          </Pressable>
         </View>
-      </ScrollView>
-
-      <Modal visible={live} animationType="fade" presentationStyle="fullScreen" onRequestClose={() => setLive(false)}>
-        <SafeAreaView style={styles.liveShell}>
-          <StatusBar barStyle="light-content" backgroundColor="#000000" />
-          <View style={styles.liveNativeHeader}>
-            <View>
-              <Text style={styles.liveHeaderKicker}>NINA FOK / LIVE SIGNAL</Text>
-              <Text style={styles.liveHeaderStatus}>{loaded ? 'SIGNAL READY' : 'OPENING SIGNAL'}</Text>
-            </View>
-            <Pressable onPress={() => setLive(false)} style={styles.liveCloseButton} accessibilityRole="button" accessibilityLabel="Close Nina">
-              <Text style={styles.liveCloseText}>CLOSE</Text>
-            </Pressable>
-          </View>
-          <View style={styles.liveWebviewFrame}>
-            <WebView
-              source={{ uri: `${config.siteUrl}/nina-app.html?pv_app=1` }}
-              injectedJavaScriptBeforeContentLoaded={nativeSessionScript}
-              style={styles.webview}
-              containerStyle={styles.webviewContainer}
-              javaScriptEnabled
-              domStorageEnabled
-              sharedCookiesEnabled
-              thirdPartyCookiesEnabled
-              mediaCapturePermissionGrantType="grantIfSameHostElsePrompt"
-              allowsInlineMediaPlayback
-              mediaPlaybackRequiresUserAction={false}
-              setSupportMultipleWindows={false}
-              onLoadEnd={() => setLoaded(true)}
-              onShouldStartLoadWithRequest={(request) => {
-                const url = request.url || '';
-                if (url.startsWith(config.siteUrl) || url.startsWith('about:blank')) return true;
-                return false;
-              }}
-            />
-          </View>
-        </SafeAreaView>
-      </Modal>
-    </>
+        <View style={styles.liveWebviewFrame}>
+          <WebView
+            source={{ uri: `${config.siteUrl}/nina-app.html?pv_app=1&v=20260908-2` }}
+            injectedJavaScriptBeforeContentLoaded={nativeSessionScript}
+            style={styles.webview}
+            containerStyle={styles.webviewContainer}
+            javaScriptEnabled
+            domStorageEnabled
+            sharedCookiesEnabled
+            thirdPartyCookiesEnabled
+            mediaCapturePermissionGrantType="grantIfSameHostElsePrompt"
+            allowsInlineMediaPlayback
+            mediaPlaybackRequiresUserAction={false}
+            setSupportMultipleWindows={false}
+            cacheEnabled={false}
+            onLoadEnd={onLoaded}
+            onShouldStartLoadWithRequest={(request) => {
+              const url = request.url || '';
+              if (url.startsWith(config.siteUrl) || url.startsWith('about:blank')) return true;
+              return false;
+            }}
+          />
+        </View>
+      </SafeAreaView>
+    </Modal>
   );
 }
 
@@ -227,14 +255,26 @@ function ProfileScreen() {
 }
 
 function ParallelVisionApp() {
+  const { isSignedIn, getToken } = useAuth();
   const [tab, setTab] = useState('HOME');
+  const [live, setLive] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+  const [nativeToken, setNativeToken] = useState('');
+
+  const openLive = async () => {
+    const token = isSignedIn ? await getToken() : '';
+    setNativeToken(token || '');
+    setLoaded(false);
+    setLive(true);
+  };
+
   const screen = useMemo(() => {
-    if (tab === 'NINA') return <NinaScreen />;
+    if (tab === 'NINA') return <NinaScreen onTalk={openLive} />;
     if (tab === '2063') return <WorldScreen />;
     if (tab === 'MUSIC') return <MusicScreen />;
     if (tab === 'PROFILE') return <ProfileScreen />;
-    return <HomeScreen setTab={setTab} />;
-  }, [tab]);
+    return <HomeScreen setTab={setTab} onTalk={openLive} />;
+  }, [tab, isSignedIn]);
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -252,6 +292,13 @@ function ParallelVisionApp() {
           </Pressable>
         ))}
       </View>
+      <NinaLiveModal
+        visible={live}
+        loaded={loaded}
+        nativeToken={nativeToken}
+        onLoaded={() => setLoaded(true)}
+        onClose={() => setLive(false)}
+      />
     </SafeAreaView>
   );
 }
@@ -271,10 +318,23 @@ const styles = StyleSheet.create({
   wordmark: { color: theme.colors.text, fontSize: 12, letterSpacing: 2.6, fontWeight: '600' },
   topbarMeta: { color: theme.colors.muted, fontSize: 9, letterSpacing: 1.8 },
   scroll: { paddingHorizontal: 18, paddingTop: 26, paddingBottom: 64 },
+  homeIntro: { paddingTop: 8, paddingBottom: 22 },
+  homeStatement: { color: theme.colors.text, fontSize: 25, lineHeight: 31, letterSpacing: -0.6, fontWeight: '300', maxWidth: 330, marginTop: 15 },
   hero: { paddingTop: 18, paddingBottom: 34 },
   kicker: { color: theme.colors.muted, fontSize: 9, letterSpacing: 2.1, fontWeight: '600' },
   heroTitle: { color: theme.colors.text, fontSize: 62, lineHeight: 58, letterSpacing: -2.4, fontWeight: '300', marginTop: 18 },
   heroCopy: { color: theme.colors.signal, fontSize: 17, lineHeight: 25, maxWidth: 300, marginTop: 22 },
+  heroSignal: { height: 470, borderRadius: 24, overflow: 'hidden', borderWidth: StyleSheet.hairlineWidth, borderColor: '#282828', backgroundColor: '#050505' },
+  heroVideo: { flex: 1, backgroundColor: '#050505' },
+  heroVideoContainer: { ...StyleSheet.absoluteFillObject, backgroundColor: '#050505' },
+  heroShade: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.18)' },
+  heroSignalTop: { position: 'absolute', top: 18, left: 18, right: 18, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  heroSignalBottom: { position: 'absolute', left: 18, right: 18, bottom: 18 },
+  heroSignalName: { color: '#F2EFE9', fontSize: 31, letterSpacing: -0.9, fontWeight: '300' },
+  heroSignalMeta: { color: '#B2ADA5', fontSize: 9, letterSpacing: 1.8, marginTop: 5 },
+  heroTalkButton: { minHeight: 54, marginTop: 16, paddingHorizontal: 17, borderRadius: 17, backgroundColor: '#F2EFE9', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  heroTalkText: { color: '#090909', fontSize: 10, letterSpacing: 1.9, fontWeight: '700' },
+  heroTalkArrow: { color: '#090909', fontSize: 18 },
   pageTitle: { color: theme.colors.text, fontSize: 48, lineHeight: 47, letterSpacing: -1.8, fontWeight: '300', marginTop: 18 },
   pageIntro: { color: theme.colors.signal, fontSize: 16, lineHeight: 24, maxWidth: 330, marginTop: 18, marginBottom: 30 },
   signalPanel: { backgroundColor: theme.colors.panel, borderRadius: theme.radius.lg, padding: 18, borderWidth: StyleSheet.hairlineWidth, borderColor: theme.colors.line },
