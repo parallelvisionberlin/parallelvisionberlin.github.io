@@ -1,0 +1,12 @@
+# EAS builds run from mobile-app/, but this repository also contains the full
+# Parallel Vision website and large media assets. Upload only the mobile app.
+*
+!mobile-app/
+!mobile-app/**
+
+# Never upload generated/local dependencies or caches.
+mobile-app/node_modules/
+mobile-app/.expo/
+mobile-app/.eas-build/
+mobile-app/npm-debug.log*
+mobile-app/*.log
