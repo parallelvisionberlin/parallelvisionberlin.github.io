@@ -18,6 +18,21 @@ function analyticsIdentity(visitorId, user) {
   };
 }
 
+function sessionStage(status, seconds) {
+  const connected = Math.max(0, Number(seconds) || 0);
+  if (status === "active") {
+    if (connected >= 180) return { key: "deep_3m", label: "ACTIVE · DEEP SESSION 3M+" };
+    if (connected >= 60) return { key: "engaged_1m", label: "ACTIVE · ENGAGED 1M+" };
+    if (connected >= 30) return { key: "reached_30s", label: "ACTIVE · REACHED 30S" };
+    return { key: "connected", label: "ACTIVE · CONNECTED" };
+  }
+  if (status === "failed") return { key: "failed", label: "FAILED DURING CONNECTION" };
+  if (connected < 30) return { key: "drop_before_30s", label: `${String(status || "ended").toUpperCase()} · DROPPED <30S AFTER CONNECT` };
+  if (connected < 60) return { key: "reached_30s", label: `${String(status || "ended").toUpperCase()} · REACHED 30S` };
+  if (connected < 180) return { key: "engaged_1m", label: `${String(status || "ended").toUpperCase()} · ENGAGED 1M+` };
+  return { key: "deep_3m", label: `${String(status || "ended").toUpperCase()} · DEEP SESSION 3M+` };
+}
+
 async function sessionByEntry(env, clientEntryId) {
   return env.NINA_MEMORY_DB.prepare(`
     SELECT id, client_entry_id, visitor_id, user_id, user_key, is_authenticated, actor_type,
@@ -107,7 +122,12 @@ async function rangeMetrics(env, start) {
            COALESCE(AVG(connected_seconds), 0) AS average_seconds,
            COALESCE(MAX(connected_seconds), 0) AS longest_seconds,
            COUNT(DISTINCT CASE WHEN is_returning = 0 THEN user_key END) AS new_users,
-           COUNT(DISTINCT CASE WHEN is_returning = 1 THEN user_key END) AS returning_users
+           COUNT(DISTINCT CASE WHEN is_returning = 1 THEN user_key END) AS returning_users,
+           SUM(CASE WHEN connected_seconds < 30 AND status != 'active' AND status != 'failed' THEN 1 ELSE 0 END) AS dropped_before_30s,
+           SUM(CASE WHEN connected_seconds >= 30 THEN 1 ELSE 0 END) AS reached_30s,
+           SUM(CASE WHEN connected_seconds >= 60 THEN 1 ELSE 0 END) AS engaged_1m,
+           SUM(CASE WHEN connected_seconds >= 180 THEN 1 ELSE 0 END) AS deep_3m,
+           SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) AS failed_sessions
     FROM nina_analytics_sessions WHERE started_at >= ?
   `).bind(start).first();
   return Object.fromEntries(Object.entries(row || {}).map(([key, value]) => [key, Math.max(0, Number(value) || 0)]));
@@ -145,6 +165,15 @@ export async function getNinaAnalyticsDashboard(env, now = Date.now()) {
     generatedAt: current,
     activeWindowSeconds: NINA_ANALYTICS_ACTIVE_SECONDS,
     ranges: { today, days7, days30 },
+    engagement: {
+      window: "Last 30 days",
+      connected: days30.sessions,
+      droppedBefore30s: days30.dropped_before_30s,
+      reached30s: days30.reached_30s,
+      engaged1m: days30.engaged_1m,
+      deep3m: days30.deep_3m,
+      failed: days30.failed_sessions
+    },
     funnel: {
       window: "Last 30 days",
       pageViews: { available: false, value: null },
@@ -158,14 +187,21 @@ export async function getNinaAnalyticsDashboard(env, now = Date.now()) {
       estimatedAnamCost: pricePerMinute === null ? null : totalMinutes * pricePerMinute,
       label: "Estimated Anam cost"
     },
-    sessions: (recent?.results || []).map(row => ({
-      id: row.id, userIdentifier: String(row.user_key || "").replace(/^user:/, "U-").replace(/^visitor:/, "V-").slice(0, 14),
-      authenticated: Number(row.is_authenticated) === 1, actorType: row.actor_type,
-      displayName: Number(row.is_authenticated) === 1 ? row.user_display_name || "" : "",
-      email: Number(row.is_authenticated) === 1 ? row.user_email || "" : "",
-      returning: Number(row.is_returning) === 1, status: row.status,
-      startedAt: row.started_at, lastSeenAt: row.last_seen_at, endedAt: row.ended_at,
-      connectedSeconds: Math.max(0, Number(row.connected_seconds) || 0)
-    }))
+    sessions: (recent?.results || []).map(row => {
+      const connectedSeconds = Math.max(0, Number(row.connected_seconds) || 0);
+      const stage = sessionStage(row.status, connectedSeconds);
+      return {
+        id: row.id, userIdentifier: String(row.user_key || "").replace(/^user:/, "U-").replace(/^visitor:/, "V-").slice(0, 14),
+        authenticated: Number(row.is_authenticated) === 1, actorType: row.actor_type,
+        displayName: Number(row.is_authenticated) === 1 ? row.user_display_name || "" : "",
+        email: Number(row.is_authenticated) === 1 ? row.user_email || "" : "",
+        returning: Number(row.is_returning) === 1,
+        status: stage.label,
+        rawStatus: row.status,
+        stage: stage.key,
+        startedAt: row.started_at, lastSeenAt: row.last_seen_at, endedAt: row.ended_at,
+        connectedSeconds
+      };
+    })
   };
 }
