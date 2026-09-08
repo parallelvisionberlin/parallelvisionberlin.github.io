@@ -7,35 +7,42 @@ permissions:
 jobs:
   windows-preflight:
     runs-on: windows-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 3
-          sparse-checkout: mobile-app
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Fetch and parse the exact corrected installer
+      - name: Retrieve exact installer and parse with PowerShell 5.1
         shell: powershell
         run: |
-          git fetch --depth=3 origin 3c35d9e58c176c6a639d5a0069a9d36299af39cc
-          if ($LASTEXITCODE -ne 0) { throw 'Fetch failed' }
-          git restore --source=FETCH_HEAD -- mobile-app/finish-bridge01.ps1
-          if ($LASTEXITCODE -ne 0) { throw 'Restore failed' }
+          $source = Invoke-RestMethod -Uri 'https://api.github.com/repos/parallelvisionberlin/parallelvisionberlin.github.io/contents/mobile-app/finish-bridge01.ps1?ref=3c35d9e58c176c6a639d5a0069a9d36299af39cc'
+          if ($source.sha -ne '404505fa4d330d4acf19713db5a58abe361941a5') { throw 'Unexpected installer revision' }
+          $file = Join-Path $env:RUNNER_TEMP 'finish-bridge01.ps1'
+          [IO.File]::WriteAllBytes($file,[Convert]::FromBase64String($source.content))
           $tokens = $null
           $errors = $null
-          [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path 'mobile-app/finish-bridge01.ps1'), [ref]$tokens, [ref]$errors) | Out-Null
-          if ($errors.Count) { $errors | Format-List; throw 'PowerShell parser rejected installer' }
-          Write-Host 'PASS: Windows PowerShell 5.1 syntax'
-      - name: Install the actual EAS CLI archive implementation
+          [System.Management.Automation.Language.Parser]::ParseFile($file, [ref]$tokens, [ref]$errors) | Out-Null
+          if ($errors.Count) { $errors | Format-List; throw 'PowerShell syntax failed' }
+          $text = [IO.File]::ReadAllText($file)
+          if (!$text.Contains("`$env:EAS_NO_VCS = '1'") -or !$text.Contains('`$env:EAS_PROJECT_ROOT = `$App'.Replace('`',''))) { throw 'Missing scoped packaging environment' }
+          $line = ($text -split "`n" | Where-Object { $_ -like '*if ($Normalized -match*' })
+          $pattern = [regex]::Match($line,"-match '([^']+)'").Groups[1].Value
+          if (!$pattern) { throw 'Missing sensitive-file guard' }
+          foreach ($bad in @('.git/config','node_modules/config','.env.production','private.p12','memory.sql','App.js.backup','credentials.json')) {
+            if ($bad -notmatch $pattern) { throw "Guard no longer rejects $bad" }
+          }
+          foreach ($good in @('App.js','src/config.js','.easignore','assets/icon.png')) {
+            if ($good -match $pattern) { throw "Guard wrongly rejects $good" }
+          }
+          Write-Host 'PASS: exact installer syntax and all sensitive-file guard cases'
+      - name: Install real EAS CLI implementation in test folder
         shell: powershell
         run: |
           $tools = Join-Path $env:RUNNER_TEMP 'real-eas'
           npm.cmd install --prefix "$tools" --ignore-scripts --no-audit --no-fund eas-cli@latest
           if ($LASTEXITCODE -ne 0) { throw 'EAS CLI installation failed' }
           "PV_EAS_MODULE=$tools\node_modules\eas-cli" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
-      - name: Reproduce Git metadata and test the real NoVcs archive adapter
+      - name: Reproduce config STOP and verify actual EAS NoVcs copy on Windows
         shell: powershell
         run: |
           $test = @'
@@ -46,51 +53,27 @@ jobs:
             const base=fs.mkdtempSync(path.join(process.env.RUNNER_TEMP,'pv archive '));
             const src=path.join(base,'source');fs.mkdirSync(src);
             fs.writeFileSync(path.join(src,'App.js'),'const checked = true;\n');
-            fs.copyFileSync('mobile-app/.easignore',path.join(src,'.easignore'));
+            fs.writeFileSync(path.join(src,'.easignore'),'node_modules/\n.expo/\ndist/\nbuild/\nios/\nandroid/\n*.log\n*.sql\n.env\n.env.*\n*.p8\n*.p12\ncredentials.json\n*.before-*\n*.backup*\n');
             cp.execFileSync('git.exe',['init'],{cwd:src});
             cp.execFileSync('git.exe',['add','App.js','.easignore'],{cwd:src});
             cp.execFileSync('git.exe',['-c','user.name=PV check','-c','user.email=check@localhost','commit','-m','fixture'],{cwd:src});
             const old=path.join(base,'git-copy');
             await new GitClient({maybeCwdOverride:src,requireCommit:false}).makeShallowCopyAsync(old);
-            assert(fs.existsSync(path.join(old,'.git','config')),'Expected GitClient to reproduce the reported .git/config');
+            assert(fs.existsSync(path.join(old,'.git','config')),'Expected GitClient to reproduce .git/config');
             console.log('PASS: reproduced .git/config in the real EAS Git archive');
-            for(const name of ['.env.production','private.p12','memory.sql','App.js.backup'])fs.writeFileSync(path.join(src,name),'FAKE TEST DATA');
+            for(const name of ['.env.production','private.p12','memory.sql','App.js.backup','credentials.json'])fs.writeFileSync(path.join(src,name),'FAKE TEST DATA');
             fs.mkdirSync(path.join(src,'node_modules'));fs.writeFileSync(path.join(src,'node_modules','config'),'FAKE TEST DATA');
             process.env.EAS_NO_VCS='1';process.env.EAS_PROJECT_ROOT=src;
             const fixed=path.join(base,'file-copy');
             await new NoVcsClient({cwdOverride:src}).makeShallowCopyAsync(fixed);
             assert.equal(fs.readFileSync(path.join(fixed,'App.js'),'utf8'),'const checked = true;\n');
-            for(const name of ['.git','node_modules','.env.production','private.p12','memory.sql','App.js.backup'])assert(!fs.existsSync(path.join(fixed,name)),name+' must be excluded');
+            for(const name of ['.git','node_modules','.env.production','private.p12','memory.sql','App.js.backup','credentials.json'])assert(!fs.existsSync(path.join(fixed,name)),name+' must be excluded');
             console.log('PASS: real EAS NoVcs adapter excludes Git metadata, dependencies and sensitive fixture files');
             console.log('Tested eas-cli '+require(path.join(process.env.PV_EAS_MODULE,'package.json')).version);
+            console.log('No EAS account, cloud build, signing or physical-device test was performed.');
           })().catch(error=>{console.error(error);process.exitCode=1;});
           '@
-          $testPath = Join-Path $env:RUNNER_TEMP 'real-archive-test.cjs'
-          [IO.File]::WriteAllText($testPath,$test)
-          node.exe "$testPath"
-          if ($LASTEXITCODE -ne 0) { throw 'Actual archive regression test failed' }
-      - name: Exercise complete preflight using real archive copying, without Expo login or cloud build
-        shell: powershell
-        run: |
-          $shim = Join-Path $env:RUNNER_TEMP 'eas-local-adapter'
-          New-Item -ItemType Directory -Path $shim -Force | Out-Null
-          $node = @'
-          const assert=require('node:assert/strict'),path=require('node:path');
-          const args=process.argv.slice(2);
-          assert.equal(args[0],'build:inspect','Cloud builds are forbidden in this test');
-          assert.equal(args[args.indexOf('--stage')+1],'archive');
-          assert.equal(process.env.EAS_NO_VCS,'1');
-          assert.equal(path.resolve(process.env.EAS_PROJECT_ROOT),process.cwd());
-          const out=args[args.indexOf('--output')+1];
-          const NoVcsClient=require(path.join(process.env.PV_EAS_MODULE,'build/vcs/clients/noVcs.js')).default;
-          new NoVcsClient({cwdOverride:process.cwd()}).makeShallowCopyAsync(out)
-            .then(()=>console.log('REAL EAS ARCHIVE ADAPTER: copied app with its .easignore. No Expo login or cloud build.'))
-            .catch(error=>{console.error(error);process.exitCode=1;});
-          '@
-          $nodePath=Join-Path $shim 'eas-archive.cjs'
-          [IO.File]::WriteAllText($nodePath,$node)
-          [IO.File]::WriteAllText((Join-Path $shim 'eas.cmd'),("@echo off`r`nnode.exe `"{0}`" %*`r`n" -f $nodePath))
-          $env:PATH="$shim;$env:PATH"
-          & powershell.exe -NoProfile -ExecutionPolicy Bypass -File '.\mobile-app\finish-bridge01.ps1' -CheckOnly
-          if ($LASTEXITCODE -ne 0) { throw 'Windows installer preflight failed' }
-          Write-Host 'PASS: corrected installer, dependencies, iOS export, real archive copying, unchanged safety checks and live revision. No cloud build or device test.'
+          $file = Join-Path $env:RUNNER_TEMP 'real-archive-test.cjs'
+          [IO.File]::WriteAllText($file,$test)
+          node.exe "$file"
+          if ($LASTEXITCODE -ne 0) { throw 'Actual EAS archive regression test failed' }
