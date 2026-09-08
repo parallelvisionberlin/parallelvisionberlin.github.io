@@ -1,0 +1,36 @@
+name: Nina repair checks
+on:
+  push:
+    branches: [nina-repair-sep08]
+permissions:
+  contents: read
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            js
+            css
+            scripts
+            anam-token-worker/src
+            anam-token-worker/test
+      - name: Collect source files for isolated testing
+        shell: bash
+        run: |
+          mkdir -p /tmp/nina-source/web /tmp/nina-source/mobile
+          cp nina-app.html nina-project.html fashion.css package.json /tmp/nina-source/web/
+          cp -r js css scripts /tmp/nina-source/web/
+          mkdir -p /tmp/nina-source/web/anam-token-worker
+          cp -r anam-token-worker/src /tmp/nina-source/web/anam-token-worker/
+          git fetch --depth=1 origin mobile-app-v1
+          git archive FETCH_HEAD mobile-app .easignore .gitignore | tar -x -C /tmp/nina-source/mobile
+          git rev-parse HEAD > /tmp/nina-source/web-ref.txt
+          git rev-parse FETCH_HEAD > /tmp/nina-source/mobile-ref.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nina-repair-source
+          path: /tmp/nina-source
+          retention-days: 3
