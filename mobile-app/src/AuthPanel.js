@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import { useAuth, useClerk, useSignIn, useSignUp, useUser } from '@clerk/expo';
+import { useAuth, useClerk, useSignIn, useSignUp, useSSO, useUser } from '@clerk/expo';
 import { theme } from './theme';
 
 function fieldError(errors, key) {
@@ -44,6 +44,51 @@ function Action({ label, onPress, disabled = false, quiet = false }) {
   );
 }
 
+function GoogleAction({ disabled = false }) {
+  const { startSSOFlow } = useSSO();
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState('');
+
+  const connectGoogle = async () => {
+    setMessage('');
+    setBusy(true);
+    try {
+      const { createdSessionId, setActive } = await startSSOFlow({
+        strategy: 'oauth_google',
+        redirectUrl: 'parallelvision://sso-callback',
+      });
+      if (createdSessionId && setActive) {
+        await setActive({ session: createdSessionId });
+      } else {
+        setMessage('Google sign-in needs one more verification step.');
+      }
+    } catch (error) {
+      setMessage(error?.message || 'Google sign-in is unavailable right now.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <>
+      <Pressable
+        onPress={connectGoogle}
+        disabled={disabled || busy}
+        style={({ pressed }) => [styles.googleAction, (disabled || busy) && styles.disabled, pressed && !disabled && !busy && styles.pressed]}
+      >
+        <Text style={styles.googleMark}>G</Text>
+        <Text style={styles.googleText}>{busy ? 'CONNECTING…' : 'CONTINUE WITH GOOGLE'}</Text>
+      </Pressable>
+      <InlineError>{message}</InlineError>
+      <View style={styles.dividerRow}>
+        <View style={styles.dividerLine} />
+        <Text style={styles.dividerText}>OR</Text>
+        <View style={styles.dividerLine} />
+      </View>
+    </>
+  );
+}
+
 function SignedInPanel() {
   const { user } = useUser();
   const { signOut } = useClerk();
@@ -56,7 +101,7 @@ function SignedInPanel() {
       <Text style={styles.name}>{String(name).toUpperCase()}</Text>
       {!!email && email !== name ? <Text style={styles.email}>{email}</Text> : null}
       <View style={styles.rule} />
-      <Text style={styles.copy}>This native session is stored securely on the device and is available to the Parallel Vision app after restart.</Text>
+      <Text style={styles.copy}>Your Parallel Vision identity is active on this device.</Text>
       <Action label="SIGN OUT" quiet onPress={() => signOut()} />
     </View>
   );
@@ -115,15 +160,18 @@ function SignInPanel({ onSwitch }) {
 
   return (
     <View style={styles.accountCard}>
-      <Text style={styles.eyebrow}>PARALLEL VISION ACCOUNT</Text>
+      <Text style={styles.eyebrow}>PARALLEL VISION ID</Text>
       <Text style={styles.title}>SIGN IN</Text>
-      <Text style={styles.copy}>Use the same account as parallelvisionlabel.com.</Text>
+      <Text style={styles.copy}>Enter the same identity you use on Parallel Vision.</Text>
+      <GoogleAction disabled={busy} />
       <Field label="EMAIL" value={emailAddress} onChangeText={setEmailAddress} keyboardType="email-address" autoComplete="email" />
       <InlineError>{fieldError(errors, 'identifier')}</InlineError>
       <Field label="PASSWORD" value={password} onChangeText={setPassword} secureTextEntry autoComplete="password" />
       <InlineError>{fieldError(errors, 'password') || message}</InlineError>
       <Action label={busy ? 'CONNECTING…' : 'SIGN IN'} disabled={busy || !emailAddress.trim() || !password} onPress={submit} />
-      <Action label="CREATE ACCOUNT" quiet onPress={onSwitch} />
+      <Pressable onPress={onSwitch} style={({ pressed }) => [styles.createLink, pressed && styles.pressed]}>
+        <Text style={styles.createLinkText}>NEW HERE? CREATE ACCOUNT</Text>
+      </Pressable>
     </View>
   );
 }
@@ -174,14 +222,17 @@ function SignUpPanel({ onSwitch }) {
     <View style={styles.accountCard}>
       <Text style={styles.eyebrow}>NEW SIGNAL IDENTITY</Text>
       <Text style={styles.title}>CREATE ACCOUNT</Text>
-      <Text style={styles.copy}>One account will carry Nina continuity, Signal Credits and future app access.</Text>
+      <Text style={styles.copy}>One identity for Nina continuity, Signal Credits and future access.</Text>
+      <GoogleAction disabled={busy} />
       <Field label="EMAIL" value={emailAddress} onChangeText={setEmailAddress} keyboardType="email-address" autoComplete="email" />
       <InlineError>{fieldError(errors, 'emailAddress')}</InlineError>
       <Field label="PASSWORD" value={password} onChangeText={setPassword} secureTextEntry autoComplete="new-password" />
       <InlineError>{fieldError(errors, 'password') || message}</InlineError>
       <View nativeID="clerk-captcha" />
       <Action label={busy ? 'CREATING…' : 'CREATE ACCOUNT'} disabled={busy || !emailAddress.trim() || !password} onPress={submit} />
-      <Action label="I ALREADY HAVE AN ACCOUNT" quiet onPress={onSwitch} />
+      <Pressable onPress={onSwitch} style={({ pressed }) => [styles.createLink, pressed && styles.pressed]}>
+        <Text style={styles.createLinkText}>I ALREADY HAVE AN ACCOUNT</Text>
+      </Pressable>
     </View>
   );
 }
@@ -210,21 +261,29 @@ export function AuthPanel() {
 }
 
 const styles = StyleSheet.create({
-  accountCard: { marginTop: 26, padding: 18, borderWidth: StyleSheet.hairlineWidth, borderColor: theme.colors.line, borderRadius: 20, backgroundColor: theme.colors.panel },
+  accountCard: { marginTop: 14, padding: 16, borderWidth: StyleSheet.hairlineWidth, borderColor: theme.colors.line, borderRadius: 18, backgroundColor: theme.colors.panel },
   eyebrow: { color: theme.colors.muted, fontSize: 8, letterSpacing: 1.8, fontWeight: '600' },
-  title: { color: theme.colors.text, fontSize: 28, letterSpacing: -0.8, fontWeight: '300', marginTop: 14 },
-  name: { color: theme.colors.text, fontSize: 24, letterSpacing: -0.5, fontWeight: '300', marginTop: 14 },
-  email: { color: theme.colors.muted, fontSize: 12, marginTop: 5 },
-  copy: { color: theme.colors.muted, fontSize: 13, lineHeight: 20, marginTop: 10 },
-  fieldWrap: { marginTop: 18 },
-  label: { color: theme.colors.muted, fontSize: 8, letterSpacing: 1.5, marginBottom: 8 },
-  input: { minHeight: 50, borderWidth: StyleSheet.hairlineWidth, borderColor: '#343434', borderRadius: 14, paddingHorizontal: 14, color: theme.colors.text, backgroundColor: '#0A0A0A', fontSize: 15 },
-  action: { minHeight: 50, borderRadius: 14, backgroundColor: theme.colors.text, alignItems: 'center', justifyContent: 'center', marginTop: 16, paddingHorizontal: 14 },
-  actionQuiet: { backgroundColor: 'transparent', borderWidth: StyleSheet.hairlineWidth, borderColor: '#343434', marginTop: 10 },
-  actionText: { color: '#090909', fontSize: 9, letterSpacing: 1.7, fontWeight: '700' },
+  title: { color: theme.colors.text, fontSize: 25, letterSpacing: -0.7, fontWeight: '300', marginTop: 9 },
+  name: { color: theme.colors.text, fontSize: 23, letterSpacing: -0.5, fontWeight: '300', marginTop: 11 },
+  email: { color: theme.colors.muted, fontSize: 11, marginTop: 4 },
+  copy: { color: theme.colors.muted, fontSize: 12, lineHeight: 18, marginTop: 7 },
+  fieldWrap: { marginTop: 11 },
+  label: { color: theme.colors.muted, fontSize: 7.5, letterSpacing: 1.5, marginBottom: 6 },
+  input: { minHeight: 44, borderWidth: StyleSheet.hairlineWidth, borderColor: '#343434', borderRadius: 13, paddingHorizontal: 13, color: theme.colors.text, backgroundColor: '#0A0A0A', fontSize: 14 },
+  action: { minHeight: 46, borderRadius: 13, backgroundColor: theme.colors.text, alignItems: 'center', justifyContent: 'center', marginTop: 12, paddingHorizontal: 14 },
+  actionQuiet: { backgroundColor: 'transparent', borderWidth: StyleSheet.hairlineWidth, borderColor: '#343434', marginTop: 8 },
+  actionText: { color: '#090909', fontSize: 8.5, letterSpacing: 1.7, fontWeight: '700' },
   actionQuietText: { color: theme.colors.text },
+  googleAction: { minHeight: 46, borderRadius: 13, backgroundColor: '#F2F0EA', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, marginTop: 14 },
+  googleMark: { color: '#111111', fontSize: 15, fontWeight: '700' },
+  googleText: { color: '#111111', fontSize: 8.5, letterSpacing: 1.6, fontWeight: '700' },
+  dividerRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 12 },
+  dividerLine: { flex: 1, height: StyleSheet.hairlineWidth, backgroundColor: theme.colors.line },
+  dividerText: { color: theme.colors.muted, fontSize: 7, letterSpacing: 1.4 },
+  createLink: { alignSelf: 'center', paddingVertical: 11, paddingHorizontal: 8 },
+  createLinkText: { color: theme.colors.muted, fontSize: 8, letterSpacing: 1.5, fontWeight: '600' },
   disabled: { opacity: 0.38 },
   pressed: { opacity: 0.7 },
-  error: { color: '#D4A49D', fontSize: 11, lineHeight: 16, marginTop: 7 },
-  rule: { height: StyleSheet.hairlineWidth, backgroundColor: theme.colors.line, marginVertical: 16 },
+  error: { color: '#D4A49D', fontSize: 10, lineHeight: 14, marginTop: 5 },
+  rule: { height: StyleSheet.hairlineWidth, backgroundColor: theme.colors.line, marginVertical: 14 },
 });
