@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import {
   Linking,
+  Modal,
   Pressable,
   SafeAreaView,
   ScrollView,
@@ -10,7 +11,7 @@ import {
   View,
 } from 'react-native';
 import { WebView } from 'react-native-webview';
-import { ClerkProvider } from '@clerk/expo';
+import { ClerkProvider, useAuth } from '@clerk/expo';
 import { tokenCache } from '@clerk/expo/token-cache';
 import { theme } from './src/theme';
 import { config } from './src/config';
@@ -85,41 +86,76 @@ function HomeScreen({ setTab }) {
 }
 
 function NinaScreen() {
+  const { isSignedIn, getToken } = useAuth();
   const [live, setLive] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [nativeToken, setNativeToken] = useState('');
+
+  const openLive = async () => {
+    const token = isSignedIn ? await getToken() : '';
+    setNativeToken(token || '');
+    setLive(true);
+  };
 
   if (live) {
     return (
-      <View style={styles.liveShell}>
-        <View style={styles.liveHeader}>
-          <View>
-            <Text style={styles.liveHeaderKicker}>NINA FOK / LIVE SIGNAL</Text>
-            <Text style={styles.liveHeaderStatus}>{loaded ? 'CONNECTED VIEW' : 'OPENING SIGNAL'}</Text>
+      <Modal visible animationType="fade" presentationStyle="fullScreen">
+        <View style={styles.liveShell}>
+          <View style={styles.liveHeader}>
+            <View>
+              <Text style={styles.liveHeaderKicker}>NINA FOK / LIVE SIGNAL</Text>
+              <Text style={styles.liveHeaderStatus}>{loaded ? 'CONNECTED VIEW' : 'OPENING SIGNAL'}</Text>
+            </View>
+            <Pressable onPress={() => setLive(false)} style={styles.closeSignalButton}>
+              <Text style={styles.closeSignalText}>CLOSE</Text>
+            </Pressable>
           </View>
-          <Pressable onPress={() => setLive(false)} style={styles.closeSignalButton}>
-            <Text style={styles.closeSignalText}>CLOSE</Text>
-          </Pressable>
+
+          <WebView
+            source={{ uri: config.ninaLiveUrl }}
+            injectedJavaScriptBeforeContentLoaded={nativeToken ? `
+              document.cookie = "__session=${nativeToken}; Path=/; Domain=.parallelvisionlabel.com; Secure; SameSite=Lax";
+              window.__PV_NATIVE_APP__ = true;
+              true;
+            ` : undefined}
+            injectedJavaScript={`
+              (function () {
+                var bind = function () {
+                  var button = document.getElementById('ninaFullscreen');
+                  if (!button || button.dataset.pvNativeFullscreen) return;
+                  button.dataset.pvNativeFullscreen = '1';
+                  button.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+                    window.ReactNativeWebView.postMessage('PV_FULLSCREEN');
+                  }, true);
+                };
+                bind();
+                setTimeout(bind, 500);
+                setTimeout(bind, 1500);
+              })();
+              true;
+            `}
+            onMessage={(event) => {
+              if (event.nativeEvent.data === 'PV_FULLSCREEN') {
+                setLoaded((value) => value);
+              }
+            }}
+            style={styles.webview}
+            containerStyle={styles.webviewContainer}
+            javaScriptEnabled
+            domStorageEnabled
+            sharedCookiesEnabled
+            thirdPartyCookiesEnabled
+            mediaCapturePermissionGrantType="grantIfSameHostElsePrompt"
+            allowsInlineMediaPlayback
+            mediaPlaybackRequiresUserAction={false}
+            setSupportMultipleWindows={false}
+            onLoadEnd={() => setLoaded(true)}
+            onShouldStartLoadWithRequest={() => true}
+          />
         </View>
-        <WebView
-          source={{ uri: config.ninaLiveUrl }}
-          style={styles.webview}
-          containerStyle={styles.webviewContainer}
-          javaScriptEnabled
-          domStorageEnabled
-          sharedCookiesEnabled
-          thirdPartyCookiesEnabled
-          allowsInlineMediaPlayback
-          mediaPlaybackRequiresUserAction={false}
-          setSupportMultipleWindows={false}
-          onLoadEnd={() => setLoaded(true)}
-          onShouldStartLoadWithRequest={(request) => {
-            const url = request.url || '';
-            if (url.startsWith(config.siteUrl) || url.startsWith('about:blank')) return true;
-            Linking.openURL(url).catch(() => {});
-            return false;
-          }}
-        />
-      </View>
+      </Modal>
     );
   }
 
@@ -128,7 +164,7 @@ function NinaScreen() {
       <Kicker>NINA FOK / LIVE SIGNAL</Kicker>
       <Text style={styles.pageTitle}>SHE’S IN{`\n`}BERLIN, 2063.</Text>
       <Text style={styles.pageIntro}>A consciousness inside the Parallel Vision world. Speak with her live.</Text>
-      <SignalPanel onTalk={() => setLive(true)} />
+      <SignalPanel onTalk={openLive} />
       <View style={styles.section}>
         <Kicker>CONTINUITY</Kicker>
         <Hairline />
@@ -312,3 +348,8 @@ const styles = StyleSheet.create({
   webview: { flex: 1, backgroundColor: '#000' },
   webviewContainer: { flex: 1, backgroundColor: '#000' },
 });
+
+
+
+
+
