@@ -110,7 +110,7 @@ function WorldScreen() {
   </ScrollView>;
 }
 function MusicScreen() {
-  const releases=[['STAY LOW','MolinARI × NINA FOK'],['TANZEN IM KREIS','Alejandro Molinari'],['DARK ROCK EP','Blex'],['BUILT TO LAST EP','REFRAKT']];
+  const releases=[['STAY LOW','Molinari × NINA FOK'],['TANZEN IM KREIS','Alejandro Molinari'],['DARK ROCK EP','Blex'],['BUILT TO LAST EP','REFRAKT']];
   return <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
     <Kicker>PARALLEL VISION / MUSIC</Kicker><Text style={styles.pageTitle}>CURRENT{'\n'}SIGNALS</Text>
     {releases.map(([title,artist],index)=><View key={title} style={styles.releaseRow}><Kicker>{String(index+1).padStart(2,'0')}</Kicker><View style={styles.releaseCopy}><Text style={styles.rowTitle}>{title}</Text><Text style={styles.body}>{artist} / 2026</Text></View></View>)}
