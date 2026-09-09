@@ -2,41 +2,50 @@ import React,{useEffect,useRef,useState} from 'react';
 import {AccessibilityInfo,AppState,Image,StyleSheet,View} from 'react-native';
 import {useVideoPlayer,VideoView} from 'expo-video';
 
-// Bundled website films with a persistent canonical poster underneath.
-// We only reveal video after playback time is actually advancing, avoiding a black hero after first-frame callbacks.
-export function SiteFilm({source,poster,paused=false,style,label='Parallel Vision film',contentFit='cover'}){
+// Bundled website films with their canonical poster always underneath.
+// Playback is considered visible only after native timeUpdate confirms the film is moving.
+export function SiteFilm({source,poster,paused=false,style,label='Parallel Vision film',contentFit='cover',videoStyle}){
   const [videoReady,setVideoReady]=useState(false);
   const [failed,setFailed]=useState(false);
   const [active,setActive]=useState(!AppState.currentState||AppState.currentState==='active');
   const [reduced,setReduced]=useState(false);
-  const lastTime=useRef(0),stalled=useRef(0);
-  const player=useVideoPlayer(source,p=>{p.muted=true;p.loop=true;p.audioMixingMode='mixWithOthers';});
+  const shouldPlay=useRef(true);
+  const player=useVideoPlayer(source,p=>{
+    p.muted=true;
+    p.loop=true;
+    p.audioMixingMode='mixWithOthers';
+    p.timeUpdateEventInterval=.2;
+  });
+
+  useEffect(()=>{
+    shouldPlay.current=!paused&&active&&!reduced&&!failed;
+    try{
+      if(shouldPlay.current){player.muted=true;player.play();}
+      else player.pause();
+    }catch{setFailed(true);setVideoReady(false);}
+  },[player,paused,active,reduced,failed]);
 
   useEffect(()=>{
     let mounted=true;
     AccessibilityInfo.isReduceMotionEnabled().then(v=>{if(mounted)setReduced(v);}).catch(()=>{});
-    const a=AppState.addEventListener('change',state=>setActive(state==='active'));
-    const r=AccessibilityInfo.addEventListener('reduceMotionChanged',setReduced);
-    const e=player.addListener('statusChange',event=>{if(event.status==='error'){setFailed(true);setVideoReady(false);}});
-    return()=>{mounted=false;a.remove();r.remove();e.remove();};
+    const app=AppState.addEventListener('change',state=>setActive(state==='active'));
+    const motion=AccessibilityInfo.addEventListener('reduceMotionChanged',setReduced);
+    const status=player.addListener('statusChange',event=>{
+      if(event.status==='error'){setFailed(true);setVideoReady(false);return;}
+      if(shouldPlay.current&&(event.status==='readyToPlay'||event.status==='ready')){
+        try{player.muted=true;player.play();}catch{}
+      }
+    });
+    const time=player.addListener('timeUpdate',event=>{
+      const current=Number(event.currentTime??player.currentTime)||0;
+      if(shouldPlay.current&&current>.04)setVideoReady(true);
+    });
+    return()=>{mounted=false;app.remove();motion.remove();status.remove();time.remove();};
   },[player]);
-
-  useEffect(()=>{
-    if(paused||!active||reduced||failed){try{player.pause();}catch{};setVideoReady(false);return;}
-    try{player.muted=true;player.play();}catch{setFailed(true);setVideoReady(false);return;}
-    lastTime.current=Number(player.currentTime)||0;stalled.current=0;
-    const timer=setInterval(()=>{
-      const now=Number(player.currentTime)||0;
-      if(now>lastTime.current+.03){stalled.current=0;setVideoReady(true);}
-      else if(++stalled.current>=3){setVideoReady(false);try{player.play();}catch{}}
-      lastTime.current=now;
-    },500);
-    return()=>clearInterval(timer);
-  },[player,paused,active,reduced,failed]);
 
   return <View style={[s.frame,style]} accessible accessibilityLabel={label}>
     <Image pointerEvents="none" source={poster} style={StyleSheet.absoluteFillObject} resizeMode={contentFit}/>
-    {!reduced&&!failed&&<VideoView player={player} style={[StyleSheet.absoluteFillObject,{opacity:videoReady?1:0}]} contentFit={contentFit} nativeControls={false} allowsPictureInPicture={false}/>} 
+    {!reduced&&!failed&&<VideoView player={player} style={[StyleSheet.absoluteFillObject,videoStyle,{opacity:videoReady?1:0}]} contentFit={contentFit} nativeControls={false} allowsPictureInPicture={false} onFirstFrameRender={()=>{try{if((Number(player.currentTime)||0)>.01)setVideoReady(true);}catch{}}}/>} 
   </View>;
 }
 const s=StyleSheet.create({frame:{overflow:'hidden',backgroundColor:'#090909'}});
