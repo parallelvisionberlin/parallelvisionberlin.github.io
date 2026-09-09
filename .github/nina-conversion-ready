@@ -1,2 +1,3 @@
 Ready for isolated regression tests. SHA256 of decoded patch: a92c8720f21c93211a1aff7f43288fa64da3f9cfbf7eb9ecb33b9f566133c9ef
 10 new Node/SQLite tests passed locally. 18 mock browser assertions passed at 390 and 1280 pixels. Physical-device audio still requires owner verification.
+Supplemental patch updates the existing exact CAPI allowlist expectation for NinaQualifiedConversation. Production app paths remain unchanged.
