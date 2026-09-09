@@ -215,6 +215,14 @@ export function presentAnalyticsCall(row) {
   };
 }
 
+// Return only a safe diagnostic category, never SQL, tokens or conversation text.
+function detailReadErrorCode(error) {
+  const text = [error?.message, error?.cause?.message].filter(Boolean).join(" ");
+  if (/no such (?:table|column)|D1_COLUMN_NOTFOUND/i.test(text)) return "schema_unavailable";
+  if (/busy|overload|timeout|timed out/i.test(text)) return "temporarily_unavailable";
+  return "read_failed";
+}
+
 export async function getNinaAnalyticsSessionDetail(env, sessionId, now = Date.now()) {
   if (!validEntryId(sessionId)) return null;
   const [session] = await readAnalyticsCalls(env, sessionId);
@@ -231,11 +239,28 @@ export async function getNinaAnalyticsSessionDetail(env, sessionId, now = Date.n
     ORDER BY created_at ASC, rowid ASC LIMIT 2001
   `).bind(conversationId, messageVisitorId).all() : { results: [] };
 
+  // The transcript is essential. Account metadata is independent: a failed ledger,
+  // checkout or qualification read must not turn a saved conversation into a fetch error.
+  const detailAvailability = { live: null, credits: null, creditEvents: null, purchases: null, history: null, qualification: null };
+  const warnings = [];
+  async function optionalRead(section, read, fallback) {
+    try {
+      const result = await read();
+      detailAvailability[section] = true;
+      return result;
+    } catch (error) {
+      const code = detailReadErrorCode(error);
+      detailAvailability[section] = false;
+      warnings.push({ section, code });
+      console.warn("nina_admin_detail_section_unavailable", section, code);
+      return fallback;
+    }
+  }
   let live = null, account = null, transactions = { results: [] }, purchases = { results: [] };
-  let qualified = null, qualificationAvailable = false, userHistory = { results: [] }, liveMatch = "unlinked";
+  let qualified = null, userHistory = { results: [] }, liveMatch = "unlinked";
   if (session.user_id) {
     const [liveCandidates, creditAccount, nearPurchases, history] = await Promise.all([
-      env.NINA_MEMORY_DB.prepare(`
+      optionalRead("live", () => env.NINA_MEMORY_DB.prepare(`
         SELECT l.id, l.status, l.started_at, l.ended_at, l.credits_available_on_start, l.credits_debited, l.created_at
         FROM live_nina_sessions l
         WHERE l.user_id = ? AND l.created_at >= ? AND l.created_at <= ?
@@ -244,50 +269,48 @@ export async function getNinaAnalyticsSessionDetail(env, sessionId, now = Date.n
               AND julianday(peer.started_at) BETWEEN julianday(l.created_at) AND julianday(?)
           )
         ORDER BY l.created_at ASC LIMIT 3
-      `).bind(session.user_id, lower, session.started_at, session.user_key, session.id, session.started_at).all(),
-      env.NINA_MEMORY_DB.prepare(`
+      `).bind(session.user_id, lower, session.started_at, session.user_key, session.id, session.started_at).all(), { results: [] }),
+      optionalRead("credits", () => env.NINA_MEMORY_DB.prepare(`
         SELECT balance, lifetime_credited, lifetime_debited, updated_at
         FROM signal_credit_accounts WHERE user_id = ? LIMIT 1
-      `).bind(session.user_id).first(),
+      `).bind(session.user_id).first(), null),
       // This is account activity near the call, NOT a proven call-to-purchase link.
-      env.NINA_MEMORY_DB.prepare(`
+      optionalRead("purchases", () => env.NINA_MEMORY_DB.prepare(`
         SELECT pack_id, credits, amount_total, currency, status, created_at, paid_at
         FROM signal_credit_purchases WHERE user_id = ? AND created_at >= ? AND created_at <= ?
         ORDER BY created_at ASC LIMIT 51
-      `).bind(session.user_id, session.started_at, purchaseUpper).all(),
-      env.NINA_MEMORY_DB.prepare(`
+      `).bind(session.user_id, session.started_at, purchaseUpper).all(), { results: [] }),
+      optionalRead("history", () => env.NINA_MEMORY_DB.prepare(`
         SELECT id, status, started_at, connected_seconds, is_returning
         FROM nina_analytics_sessions WHERE user_id = ? ORDER BY started_at DESC LIMIT 30
-      `).bind(session.user_id).all()
+      `).bind(session.user_id).all(), { results: [] })
     ]);
     account = creditAccount; purchases = nearPurchases; userHistory = history;
     const liveRows = liveCandidates.results || [];
     if (liveRows.length === 1) { live = liveRows[0]; liveMatch = "account_and_start_time"; }
     else if (liveRows.length > 1) liveMatch = "ambiguous";
+    else if (detailAvailability.live === false) liveMatch = "unavailable";
     if (live) {
-      transactions = await env.NINA_MEMORY_DB.prepare(`
+      transactions = await optionalRead("creditEvents", () => env.NINA_MEMORY_DB.prepare(`
         SELECT amount, type, source, description, created_at FROM signal_credit_transactions
         WHERE user_id = ? AND reference_id LIKE ? ORDER BY created_at ASC LIMIT 500
-      `).bind(session.user_id, `anam-session:${live.id}:through:%`).all();
+      `).bind(session.user_id, `anam-session:${live.id}:through:%`).all(), { results: [] });
     }
     if (conversationId) {
-      try {
-        qualified = await env.NINA_MEMORY_DB.prepare(`
-          SELECT qualified_at, meta_sent_at FROM nina_qualified_conversations
-          WHERE user_id = ? AND conversation_id = ? LIMIT 1
-        `).bind(session.user_id, conversationId).first();
-        qualificationAvailable = true;
-      } catch (error) {
-        // A deployment without the optional qualification table is not a NO.
-        if (!/no such table.*nina_qualified_conversations/i.test(String(error?.message))) throw error;
-      }
+      qualified = await optionalRead("qualification", () => env.NINA_MEMORY_DB.prepare(`
+        SELECT qualified_at, meta_sent_at FROM nina_qualified_conversations
+        WHERE user_id = ? AND conversation_id = ? LIMIT 1
+      `).bind(session.user_id, conversationId).first(), null);
     }
   }
+  const qualificationAvailable = detailAvailability.qualification === true;
   const transcript = (messages.results || []).slice(0, 2000).map(row => ({
     role: row.role === "user" ? "user" : "nina", content: row.content, createdAt: row.created_at
   }));
   return {
     timeZone: NINA_ANALYTICS_TIME_ZONE, generatedAt: iso(now),
+    revision: "admin-call-recovery-20260909", detailAvailability,
+    warnings: warnings.sort((a, b) => a.section.localeCompare(b.section)),
     session: presentAnalyticsCall(session),
     match: {
       conversation: presentAnalyticsCall(session).transcriptMatch, live: liveMatch,

@@ -11,6 +11,7 @@ const PUBLIC_CALL = '11111111-1111-4111-8111-111111111111';
 const OWNER_CALL = '22222222-2222-4222-8222-222222222222';
 const OTHER_CALL = '33333333-3333-4333-8333-333333333333';
 const at = offset => new Date(NOW + offset).toISOString();
+const subject = id => 'user_' + id.replace(/-/g, '');
 
 function fixture({ fail = null, drop = null } = {}) {
   const sqlite = new DatabaseSync(':memory:');
@@ -22,7 +23,7 @@ function fixture({ fail = null, drop = null } = {}) {
   for (const [id, role, callId] of [['public-a', 'user', PUBLIC_CALL], ['owner-a', 'owner', OWNER_CALL], ['public-b', 'user', OTHER_CALL]]) {
     const memory = 'memory-' + id;
     sqlite.prepare('INSERT INTO visitors VALUES (?, ?, ?, ?, ?)').run(memory, id, role === 'owner' ? 'owner' : 'visitor', created, created);
-    sqlite.prepare('INSERT INTO users VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)').run(id, 'clerk', id, id + '@example.invalid', id, role, memory, created, created);
+    sqlite.prepare('INSERT INTO users VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)').run(id, 'clerk', subject(id), id + '@example.invalid', id, role, memory, created, created);
     sqlite.prepare('INSERT INTO conversations VALUES (?, ?, ?, ?)').run('conversation-' + id, memory, created, end);
     sqlite.prepare('INSERT INTO nina_analytics_sessions VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').run(
       callId, callId, 'browser-' + id, id, 'user:' + id, 1, role === 'owner' ? 'owner' : 'public', 0, 'ended', start, end, end, 190, start.slice(0, 10));
@@ -169,7 +170,7 @@ async function authFixture(origin) {
   const issuer = 'https://admin-call-recovery.clerk.accounts.dev';
   return { issuer, jwk, async token(sub) {
     const now = Math.floor(Date.now() / 1000);
-    const input = `${encode({ alg: 'RS256', typ: 'JWT', kid: jwk.kid })}.${encode({ iss: issuer, sub, azp: origin, iat: now, nbf: now, exp: now + 300 })}`;
+    const input = `${encode({ alg: 'RS256', typ: 'JWT', kid: jwk.kid })}.${encode({ iss: issuer, sub: subject(sub), azp: origin, iat: now, nbf: now, exp: now + 300 })}`;
     const sig = await crypto.subtle.sign('RSASSA-PKCS1-v1_5', keys.privateKey, new TextEncoder().encode(input));
     return `${input}.${Buffer.from(sig).toString('base64url')}`;
   } };
