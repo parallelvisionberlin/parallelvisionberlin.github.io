@@ -1,0 +1,58 @@
+name: Complete Site 05 app checks
+on:
+  push:
+    branches: [site05-complete]
+permissions:
+  contents: write
+concurrency:
+  group: site05-complete
+  cancel-in-progress: false
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Bundle original website media and update obsolete artwork assertion
+        run: python3 mobile-app/scripts/prepare-site05.py
+      - name: Resolve only the SDK-compatible native video module and test tools
+        working-directory: mobile-app
+        run: |
+          npm ci --ignore-scripts
+          npm install --save-exact --ignore-scripts expo-video@57.0.2
+          npm install --save-dev --save-exact --ignore-scripts esbuild@0.25.9 react-test-renderer@19.2.3
+      - name: Existing bridge protections and account transport tests
+        working-directory: mobile-app
+        run: npm test
+      - name: Exercise native menu actions and media lifecycle with fixtures
+        working-directory: mobile-app
+        run: node scripts/site05-components.cjs
+      - name: iOS export
+        working-directory: mobile-app
+        run: npx expo export --platform ios --output-dir /tmp/pv-site05-ios
+      - name: iOS native prebuild
+        working-directory: mobile-app
+        run: npx expo prebuild --platform ios --no-install
+      - name: Confirm call engine, authentication and Worker are untouched
+        run: |
+          git diff --exit-code 026b0959ee6086f51d80eb7670315089b0bca6f2 -- mobile-app/src/NinaLiveModal.js mobile-app/src/ninaBridge.js mobile-app/src/ninaAppMode.js mobile-app/src/AuthPanel.js mobile-app/src/config.js anam-token-worker js css nina-app.html
+      - name: Commit checked assets and lock on isolated branch
+        run: |
+          git config user.name 'parallelvisionberlin'
+          git config user.email 'parallelvision.label@gmail.com'
+          git add mobile-app/assets/site05 mobile-app/src/site05Assets.js mobile-app/package.json mobile-app/package-lock.json mobile-app/tests/immersive.test.mjs
+          git diff --cached --quiet || git commit -m 'Verify Site05 original bundled media, native account actions and iOS export/prebuild [skip ci]'
+          git push origin HEAD:site05-complete
+          git rev-parse HEAD > /tmp/SITE05_CHECKED_SHA.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: site05-check-evidence
+          retention-days: 3
+          path: |
+            /tmp/SITE05_CHECKED_SHA.txt
+            /tmp/pv-site05-ios/metadata.json
+            mobile-app/assets/site05/*.jpg
+            mobile-app/assets/site05/provenance.json
