@@ -17,6 +17,7 @@ jobs:
         run: |
           git fetch --depth=1 origin 76d935dc60f16685a8121432d5e997f55926c0ce
           git restore --source=FETCH_HEAD -- anam-token-worker/src/index.js anam-token-worker/src/meta-capi.js anam-token-worker/src/web-conversation.js anam-token-worker/test/meta-capi.test.js anam-token-worker/test/web-conversion.test.js anam-token-worker/test/startup.test.js anam-token-worker/WEBSITE_CONVERSION_CHECKLIST.md anam-token-worker/migrations/20260909_nina_web_conversations.sql css/nina-access.css index.html js/nina-access.js js/nina-web-flow.js nina-project.html scripts/test-nina-web-browser.py
+          git add --intent-to-add anam-token-worker/src/web-conversation.js anam-token-worker/test/web-conversion.test.js anam-token-worker/WEBSITE_CONVERSION_CHECKLIST.md anam-token-worker/migrations/20260909_nina_web_conversations.sql js/nina-web-flow.js scripts/test-nina-web-browser.py
           python3 - <<'PY'
           from pathlib import Path
           p=Path('scripts/prepare-conversation02-worker.py')
