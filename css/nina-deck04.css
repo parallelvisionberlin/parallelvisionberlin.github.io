@@ -1,23 +1,18 @@
-/* Opt-in only. The regular website and previous installed app are untouched. */
+/* App-only Nina deck. The regular website remains untouched unless pv_deck=04 is active. */
 body[data-pv-deck="04"] #ninaOverlay .nina-stage{background:#020303!important;}
-body[data-pv-deck="04"] #ninaOverlay .nina-intro{background:#050606 url('../assets/optimized/nina-fok/Canon.webp') center 20%/auto 100% no-repeat!important;}
-body[data-pv-deck="04"] #ninaOverlay .nina-intro::after{background:linear-gradient(180deg,rgba(0,0,0,.08) 0%,transparent 36%,rgba(0,0,0,.5) 64%,#020303 100%)!important;}
+body[data-pv-deck="04"] #ninaOverlay .nina-intro{background:#050606 url('../assets/optimized/nina-fok/Canon.webp') center 22%/cover no-repeat!important;}
+body[data-pv-deck="04"] #ninaOverlay .nina-intro::after{background:linear-gradient(180deg,rgba(0,0,0,.10) 0%,transparent 42%,rgba(0,0,0,.34) 68%,#020303 100%)!important;}
 body[data-pv-deck="04"] #ninaOverlay .nina-intro-content{padding:18px 20px 12px!important;gap:12px!important;}
 body[data-pv-deck="04"] #ninaOverlay .nina-intro-subtitle{font-size:16px!important;line-height:1.5!important;}
 body[data-pv-deck="04"] #ninaOverlay .nina-intro-code{font-size:9px!important;letter-spacing:.19em!important;}
-body[data-pv-deck="04"] #ninaOverlay .nina-intro #startNina{min-height:54px!important;background:rgba(0,0,0,.64)!important;border-color:#b8beb7!important;}
+body[data-pv-deck="04"] #ninaOverlay .nina-intro #startNina{min-height:54px!important;background:rgba(0,0,0,.62)!important;border-color:#aaa69f!important;}
 body[data-pv-deck="04"] #pv-call-revision{display:none!important;}
-body[data-pv-deck="04"] #ninaOverlay #nina-anam-video{position:absolute!important;top:4%!important;left:0!important;width:100%!important;height:74%!important;object-fit:contain!important;object-position:center center!important;transform:none!important;filter:brightness(.92);}
-body[data-pv-deck="04"] .pv-deck-controls{position:absolute;z-index:12;left:12px;right:12px;bottom:12px;display:flex;align-items:center;flex-direction:column;gap:9px;padding-top:18px;background:linear-gradient(180deg,transparent,rgba(0,0,0,.9) 28%,#020303);color:#ebeee7;}
+body[data-pv-deck="04"] #ninaOverlay #nina-anam-video{position:absolute!important;top:0!important;left:0!important;width:100%!important;height:82%!important;object-fit:cover!important;object-position:center 28%!important;transform:none!important;filter:brightness(.90) contrast(1.01)!important;}
+body[data-pv-deck="04"] .pv-deck-controls{position:absolute;z-index:12;left:0;right:0;bottom:0;display:flex;align-items:center;flex-direction:column;gap:9px;padding:52px 18px 16px;background:linear-gradient(180deg,transparent,rgba(0,0,0,.72) 28%,#020303 72%);color:#ebeee7;}
 body[data-pv-deck="04"] .pv-deck-controls[hidden]{display:none!important;}
-.pv-deck-connected{font:300 15px/1.5 Inter,Arial,sans-serif;text-align:center;margin:0 0 8px;}
+.pv-deck-connected{font:300 15px/1.5 Inter,Arial,sans-serif;text-align:center;margin:0 0 7px;}
 .pv-deck-mic{display:grid;place-items:center;width:74px;height:74px;border-radius:50%;border:1px solid #c5cec4;background:radial-gradient(circle,rgba(225,242,223,.055),transparent 70%);color:#edf3e9;padding:0;touch-action:manipulation;}
-.pv-deck-mic:focus-visible{outline:2px solid white;outline-offset:5px;}
-.pv-deck-mic:active{background:rgba(255,255,255,.12);}
-.pv-deck-mic:disabled{opacity:.45;}
-.pv-deck-mic svg{width:28px;height:28px;stroke:currentColor;stroke-width:1.3;fill:none;stroke-linecap:round;stroke-linejoin:round;}
+.pv-deck-mic:focus-visible{outline:2px solid white;outline-offset:5px;}.pv-deck-mic:active{background:rgba(255,255,255,.12);}.pv-deck-mic:disabled{opacity:.45;}.pv-deck-mic svg{width:28px;height:28px;stroke:currentColor;stroke-width:1.3;fill:none;stroke-linecap:round;stroke-linejoin:round;}
 .pv-mic-slash{display:none;}.is-muted .pv-mic-slash{display:block;}.is-muted .pv-deck-mic{border-color:#788077;color:#a3ada1;}
-.pv-deck-mic-label{font:10px/1.4 Inter,Arial,sans-serif;letter-spacing:.22em;color:#b1bdb0;}
-.pv-deck-level{height:30px;display:flex;align-items:center;gap:5px;}
-.pv-deck-level i{display:block;width:1px;height:2px;background:#eaf0e5;}
-@media(max-height:580px){body[data-pv-deck="04"] #ninaOverlay #nina-anam-video{top:2%!important;height:69%!important;}.pv-deck-mic{width:58px;height:58px;}.pv-deck-connected{font-size:13px;margin-bottom:3px;}body[data-pv-deck="04"] .pv-deck-controls{gap:6px;bottom:8px;}body[data-pv-deck="04"] #ninaOverlay .nina-intro-content{gap:8px!important;}.pv-deck-level{height:23px;}}
+.pv-deck-mic-label{font:10px/1.4 Inter,Arial,sans-serif;letter-spacing:.22em;color:#b1bdb0;}.pv-deck-level{height:26px;display:flex;align-items:center;gap:5px;}.pv-deck-level i{display:block;width:1px;height:2px;background:#eaf0e5;}
+@media(max-height:650px){body[data-pv-deck="04"] #ninaOverlay #nina-anam-video{height:78%!important;object-position:center 24%!important}.pv-deck-mic{width:62px;height:62px}.pv-deck-connected{font-size:13px;margin-bottom:3px}body[data-pv-deck="04"] .pv-deck-controls{gap:6px;padding:36px 14px 10px}.pv-deck-level{height:20px}}
