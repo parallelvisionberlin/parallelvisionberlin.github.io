@@ -12,7 +12,7 @@ helper=(root/'js/nina-web-flow.js').read_text().replace('export function','funct
 source=(root/'js/nina-access.js').read_text()
 source=re.sub(r'^import .*?;\s*','',source,flags=re.M)
 source=source.replace('const { Clerk } = await import("https://esm.sh/@clerk/clerk-js@6?bundle");','const Clerk = class { constructor(){return window.testClerk} };')
-source=source.replace('export async function','async function');source=re.sub(r'^export \{.*?\};','',source,flags=re.M)
+source=source.replace('export async function','async function').replace('export function','function');source=re.sub(r'^export \{.*?\};','',source,flags=re.M)
 source=source.replace('window.location','testLocation');source=re.sub(r'(?<![\w.])location\.', 'testLocation.',source)
 trialmodule=(root/'js/nina-trial-promotion.js').read_text()
 
@@ -57,11 +57,17 @@ with sync_playwright() as p:
   page.evaluate('testConnect()');page.wait_for_selector('.nina-web-audio-check:not([hidden])')
   assert page.evaluate("requests.filter(x=>x.url.includes('/live/activate')).length")==0
   page.evaluate("testClient.emit('history',[{id:'greet',role:'persona',content:'Hi'},{id:'u1',role:'user',content:'Hello'}])")
-  page.wait_for_timeout(100);assert page.evaluate("requests.filter(x=>x.url.includes('/live/activate')).length")==0
-  page.wait_for_timeout(1200);page.screenshot(path=str(out/f'nina-sound-check-{width}.png'))
-  page.evaluate('window.failPlay=true');page.locator('[data-nina-heard]').click(force=True);page.wait_for_timeout(100)
-  assert page.evaluate("requests.filter(x=>x.url.includes('/live/activate')).length")==0
-  page.evaluate('window.failPlay=false');page.locator('[data-nina-heard]').click(force=True);page.wait_for_timeout(150)
+  page.wait_for_timeout(150)
+  assert page.evaluate("requests.filter(x=>x.url.includes('/live/activate')).length")==1
+  page.evaluate("testClient.emit('history',[{id:'greet',role:'persona',content:'Hi'},{id:'u1',role:'user',content:'Hello'},{id:'u2',role:'user',content:'Are you from Berlin?'}])")
+  page.wait_for_timeout(100)
+  assert page.evaluate("requests.filter(x=>x.url.includes('/live/activate')).length")==1
+  assert page.locator('[data-nina-heard]').count()==0
+  page.wait_for_timeout(1200);page.screenshot(path=str(out/f'nina-speech-first-{width}.png'))
+  # Playback assistance stays optional and cannot issue another activation.
+  page.evaluate('window.failPlay=true');page.locator('[data-nina-enable-sound]').click(force=True);page.wait_for_timeout(100)
+  assert page.evaluate("requests.filter(x=>x.url.includes('/live/activate')).length")==1
+  page.evaluate('window.failPlay=false');page.locator('[data-nina-enable-sound]').click(force=True);page.wait_for_timeout(150)
   assert page.evaluate("requests.filter(x=>x.url.includes('/live/activate')).length")==1
   page.locator('[data-nina-audio-help]').click(force=True);page.wait_for_selector('#ninaScrimButton:has-text("TRY AGAIN")')
   assert page.evaluate("requests.some(x=>x.url.includes('/live/end'))")
@@ -89,7 +95,7 @@ with sync_playwright() as p:
   assert page.locator('#ninaOverlay').evaluate("el=>el.classList.contains('is-open')")
   assert page.locator('.nina-credits-purchase').is_hidden()
   assert not errors,errors
-  results.append({'width':width,'checks':['no billing before output confirmation','rejected play does not bill','activation once after confirmation and speech','audio help stops and cleans up','continuation requests 6-minute checkout','provider failure shown in modal','same-page signup resumes Nina','unverified checkout never claims paid','verified added credits show Return to Nina'],'passed':True})
+  results.append({'width':width,'checks':['no billing before speech','first speech activates without any confirmation click','duplicate speech and audio help never double-activate','audio help stops and cleans up','continuation requests 6-minute checkout','provider failure shown in modal','same-page signup resumes Nina','unverified checkout never claims paid','verified added credits show Return to Nina'],'passed':True})
   page.close()
  browser.close()
 print(json.dumps(results,indent=2));(out/'results.json').write_text(json.dumps(results,indent=2))

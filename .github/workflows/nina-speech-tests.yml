@@ -1,0 +1,31 @@
+name: Nina speech-first regression
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'js/nina-access.js'
+      - 'js/nina-web-flow.js'
+      - 'anam-token-worker/src/live-usage.js'
+      - 'anam-token-worker/test/speech-activation.test.js'
+      - 'anam-token-worker/test/live-usage.test.js'
+      - '.github/workflows/nina-speech-tests.yml'
+  pull_request:
+    paths:
+      - 'js/nina-access.js'
+      - 'js/nina-web-flow.js'
+      - 'anam-token-worker/**'
+permissions:
+  contents: read
+jobs:
+  speech-first:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Speech activation and credit lifecycle checks without live accounts
+        run: node --test anam-token-worker/test/speech-activation.test.js anam-token-worker/test/live-usage.test.js anam-token-worker/test/web-conversion.test.js

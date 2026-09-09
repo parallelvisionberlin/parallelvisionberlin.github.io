@@ -1,5 +1,5 @@
 import { createNinaTrialPromotion } from "./nina-trial-promotion.js?v=20260905";
-import { isNinaWebsite, createConversationProgress, createAudioCheck } from "./nina-web-flow.js?v=20260909-conversion";
+import { isNinaWebsite, createConversationProgress, createAudioCheck } from "./nina-web-flow.js?v=20260910-speech-first";
 /* The access gate is theatrical client-side UI; its public hash is not authorization. */
 import { createClient, AnamEvent } from "https://esm.sh/@anam-ai/js-sdk@4.23.1?bundle";
 
@@ -1616,9 +1616,6 @@ function setupNinaWebSession(attempt, client) {
   const current = () => attempt === ninaAttempt && client === ninaClient && ninaOverlay.classList.contains("is-open");
   ninaWebAudio = createAudioCheck({
     stage: ninaWindow.querySelector(".nina-stage"), video: ninaVideo, isCurrent: current,
-    onConfirmed: async () => {
-      if (current() && ninaTrialActivationPending && ninaWebProgress?.hasSpeech()) await activateNinaUsage(attempt, client);
-    },
     onProblem: async () => {
       ninaWebProgress?.fail();
       await stopNinaSession();
@@ -1674,7 +1671,7 @@ function beginNinaTrialGrace(attempt, client) {
       ninaTrialActivationPending = false;
       await stopNinaSession();
       if (ninaOverlay.classList.contains("is-open")) {
-        if (NINA_WEB_FLOW) showNinaFailure("The sound check timed out before the trial began. Check your sound and microphone, then try again. No trial credits were used by this attempt.");
+        if (NINA_WEB_FLOW) showNinaFailure("Trial setup could not finish. Check your microphone and try again. No trial credits were used by this attempt.");
         else showNinaCannotHear();
       }
     }, NINA_SIGNUP_TRIAL_GRACE_MS);
@@ -1746,8 +1743,8 @@ function scheduleNinaUsageSettlement() {
 
 async function activateNinaUsage(attempt, client) {
   if (attempt !== ninaAttempt || client !== ninaClient) return false;
-  if (NINA_WEB_FLOW && ninaTrialActivationPending &&
-      (!ninaWebAudio?.confirmed() || !ninaWebProgress?.hasSpeech())) return false;
+  // Completed user speech starts the trial. Output-audio help is never an activation gate.
+  if (NINA_WEB_FLOW && ninaTrialActivationPending && !ninaWebProgress?.hasSpeech()) return false;
   if (ninaTrialActivationPending) {
     const gracePending = await beginNinaTrialGrace(attempt, client);
     if (attempt !== ninaAttempt || client !== ninaClient) return false;
