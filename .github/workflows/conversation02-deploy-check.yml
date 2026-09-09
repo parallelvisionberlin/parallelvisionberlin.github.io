@@ -1,0 +1,50 @@
+name: Conversation 02 Windows deploy checks
+on:
+  push:
+    branches: [nina-conversation02-deployer]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Parse exact deployment script with Windows PowerShell 5.1
+        shell: powershell
+        run: |
+          $source = Invoke-RestMethod -Uri 'https://api.github.com/repos/parallelvisionberlin/parallelvisionberlin.github.io/contents/anam-token-worker/deploy-conversation02.ps1?ref=6697fefebd620ea0b465f88c1e69034c6eeb8de1'
+          $file = Join-Path $env:RUNNER_TEMP 'deploy-conversation02.ps1'
+          [IO.File]::WriteAllBytes($file, [Convert]::FromBase64String($source.content))
+          $tokens = $null; $errors = $null
+          [System.Management.Automation.Language.Parser]::ParseFile($file, [ref]$tokens, [ref]$errors) | Out-Null
+          if ($errors.Count) { $errors | Format-List; throw 'PowerShell syntax rejected' }
+          $text = [IO.File]::ReadAllText($file)
+          foreach ($marker in @('c56d9c4c0dd540dc0bfb2f8f40c8d7a9c2f06f6c','--frozen-lockfile','--keep-vars','--dry-run','LIVE VERIFIED:','git.exe -C $Repository diff --quiet')) {
+            if (!$text.Contains($marker)) { throw "Missing deployment guard: $marker" }
+          }
+          if ($text -match 'eas\.cmd|secret (put|delete)|d1 migrations apply|reset --hard') { throw 'Unexpected destructive or mobile command' }
+          Write-Host 'PASS: Windows PowerShell syntax and exact pinned deployment guards.'
+      - uses: actions/download-artifact@v4
+        with:
+          name: nina-conversation02-worker-checked
+          run-id: 34296184024
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: checked
+      - name: Check the exact tested source with Windows Node and Wrangler
+        working-directory: checked
+        shell: powershell
+        run: |
+          npx.cmd --yes pnpm@10.15.1 install --frozen-lockfile --ignore-scripts
+          if ($LASTEXITCODE -ne 0) { throw 'Locked install failed' }
+          npm.cmd run check
+          if ($LASTEXITCODE -ne 0) { throw 'Worker syntax failed' }
+          node.exe --test test/conversation02.test.js test/startup.test.js
+          if ($LASTEXITCODE -ne 0) { throw 'Focused Worker tests failed' }
+          $output = Join-Path $env:RUNNER_TEMP 'worker-dry-run'
+          npx.cmd --yes pnpm@10.15.1 exec wrangler deploy --dry-run --outdir $output
+          if ($LASTEXITCODE -ne 0) { throw 'Worker dry run failed' }
+          Write-Host 'PASS: Windows dependencies, 24 focused tests and Wrangler dry-run. No live deployment, account or paid call used.'
