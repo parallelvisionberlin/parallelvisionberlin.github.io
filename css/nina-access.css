@@ -2591,3 +2591,25 @@ body .nina-account-panel .nina-account-add-credits[hidden] {
   body .nina-account-panel .nina-account-buy-credits[data-action="transmit"] { min-height: 48px !important; }
   body .nina-account-panel .nina-account-add-credits { min-height: 42px; }
 }
+
+/* Website sound verification. Native app never creates these controls. */
+.nina-web-audio-check { position: absolute; z-index: 77; left: 16px; right: 16px; bottom: 18px; max-width: 390px; margin: 0 auto; padding: 14px 16px; border: 1px solid rgba(255,255,255,.3); background: rgba(4,4,5,.94); color: #fff; font: 14px/1.5 Inter, sans-serif; }
+.nina-web-audio-check[hidden], .nina-web-audio-check [hidden], .nina-web-return[hidden] { display: none !important; }
+.nina-web-check-title { margin: 0 0 6px; font: 11px/1.4 'Courier New',monospace; letter-spacing: .16em; }
+.nina-web-check-message { margin: 0 0 10px; }
+.nina-web-check-actions { display: flex; flex-wrap: wrap; gap: 6px 16px; }
+.nina-web-check-actions button, .nina-web-return { min-height: 44px; border: 1px solid rgba(255,255,255,.5); padding: 8px 12px; color: #fff; background: transparent; font: inherit; cursor: pointer; }
+.nina-web-check-actions button:focus-visible, .nina-web-return:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+.nina-web-audio-check.is-live { left: 12px; right: auto; bottom: 10px; margin: 0; padding: 0; border: 0; background: rgba(4,4,5,.8); }
+.nina-web-audio-check.is-live button { border: 0; font-size: 12px; }
+.nina-web-return { width: 100%; margin-top: 16px; letter-spacing: .08em; }
+.nina-post-signal-actions [data-more-packs] { display: block; margin: 8px auto; min-height: 44px; }
+@media(max-width: 560px) { .nina-web-audio-check { left: 10px; right: 10px; bottom: 14px; max-width: none; } .nina-web-audio-check.is-live { left: 8px; right: auto; bottom: 6px; } }
+
+/* The end-of-trial action must sit above the idle intro, not underneath it. */
+body.nina-post-signal-visible #ninaOverlay.nina-web-flow .nina-intro { visibility: hidden; pointer-events: none; }
+body.nina-post-signal-visible #ninaOverlay.nina-web-flow .nina-call-scrim { z-index: 90; }
+body.nina-post-signal-visible #ninaOverlay.nina-web-flow .nina-call-scrim-content { color: #fff; }
+body.nina-post-signal-visible #ninaOverlay.nina-web-flow .nina-post-signal-actions button { pointer-events: auto !important; }
+body.nina-post-signal-visible #ninaOverlay.nina-web-flow .nina-scrim-button { font: 500 14px/1.4 Inter,Arial,sans-serif; letter-spacing: .04em; color: #fff; border-color: rgba(255,255,255,.7); }
+body.nina-call-visible #ninaOverlay.nina-web-flow .nina-intro { visibility: hidden; }

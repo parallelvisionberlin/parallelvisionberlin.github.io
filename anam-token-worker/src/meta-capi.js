@@ -9,6 +9,7 @@ export const NINA_META_EVENT_NAMES = new Set([
   "NinaSignupStarted",
   "NinaAuthCompleted",
   "TalkToNina",
+  "NinaQualifiedConversation",
   "InitiateCheckout",
   "Purchase"
 ]);

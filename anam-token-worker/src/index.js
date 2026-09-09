@@ -1,4 +1,5 @@
 import { RUNTIME_REVISION, CONVERSATION_RHYTHM, OWNER_ARRIVAL_CONTEXT, NEW_NAME_INSTRUCTION, CONTEXT_BOUNDARY, createStartupTimer, prepareSessionContext, promptFingerprint, summarizeSessionPerformance } from "./conversation-runtime.js";
+import { qualifyWebConversation, WEB_SIGNAL_GUIDANCE } from "./web-conversation.js";
 import { sendGiftEmail } from "./gift-email.js";
 import {
   HISTORY_LIMIT, benchmarkMemoryArchivists, buildOwnerMemoryContext, closeConversation, consolidateMemory,
@@ -445,6 +446,10 @@ async function handleSessionToken(request, env, origin) {
   const personaConfig = prepared.personaConfig;
   applyStartupGreeting(personaConfig, owner, identity?.preferred_name);
   assembleSystemPrompt(personaConfig, owner, privateMemory);
+  // Explicit opt-in from the website only. Existing app requests are unchanged.
+  if (body.webFlowVersion === 1 && !owner) {
+    personaConfig.systemPrompt += `\n\n${WEB_SIGNAL_GUIDANCE}`;
+  }
   const startupDiagnostics = {
     runtimeRevision: RUNTIME_REVISION,
     promptCharacters: personaConfig.systemPrompt.length,
@@ -777,10 +782,32 @@ async function handleStripeWebhook(request, env) {
   }
 }
 
+async function handleNinaQualifiedWebConversation(request, env, origin) {
+  const user = await authenticateAccountRequest(request, env);
+  if (!user) return jsonResponse({ error: "Sign in required" }, 401, origin);
+  if (Number(request.headers.get("Content-Length") || 0) > 4096) return jsonResponse({ error: "Request too large" }, 413, origin);
+  const body = await request.json().catch(() => ({}));
+  let source;
+  try { source = new URL(body.eventSourceUrl); }
+  catch { return jsonResponse({ error: "Invalid source" }, 400, origin); }
+  if (source.origin !== origin || source.pathname === "/nina-app.html") return jsonResponse({ error: "Invalid source" }, 400, origin);
+  try {
+    return jsonResponse(await qualifyWebConversation(env, user, body, {
+      eventSourceUrl: `${source.origin}${source.pathname}`,
+      clientUserAgent: request.headers.get("User-Agent") || "",
+      clientIpAddress: request.headers.get("CF-Connecting-IP") || ""
+    }), 200, origin);
+  } catch {
+    // Missing migration/telemetry failures must never break Live Nina or credits.
+    return jsonResponse({ error: "Qualified measurement unavailable" }, 503, origin);
+  }
+}
+
 async function handleNinaMetaEvent(request, env, origin) {
   const contentLength = Number(request.headers.get("Content-Length") || 0);
   if (contentLength > 4096) return jsonResponse({ error: "Request body too large", code: "request_too_large" }, 413, origin);
   const body = await request.json().catch(() => ({}));
+  if (body.eventName === "NinaQualifiedConversation") return jsonResponse({ error: "Use verified conversation endpoint" }, 400, origin);
   let sourceUrl;
   try { sourceUrl = new URL(body?.eventSourceUrl); }
   catch { return jsonResponse({ error: "Invalid event source URL", code: "invalid_event_source_url" }, 400, origin); }
@@ -830,6 +857,7 @@ export default {
       if (url.pathname === "/api/nina/analytics/start" && request.method === "POST") return handleNinaAnalyticsStart(request, env, origin);
       if (url.pathname === "/api/nina/analytics/heartbeat" && request.method === "POST") return handleNinaAnalyticsHeartbeat(request, env, origin);
       if (url.pathname === "/api/nina/analytics/end" && request.method === "POST") return handleNinaAnalyticsEnd(request, env, origin);
+      if (url.pathname === "/api/nina/web/qualified" && request.method === "POST") return handleNinaQualifiedWebConversation(request, env, origin);
       if (url.pathname === "/api/nina/meta-event" && request.method === "POST") return handleNinaMetaEvent(request, env, origin);
       if (url.pathname === "/api/nina/reset-derived-memory" && request.method === "POST") return handleResetDerivedMemory(request, env, origin);
       if (url.pathname === "/session-token" && request.method === "POST") return handleSessionToken(request, env, origin);
