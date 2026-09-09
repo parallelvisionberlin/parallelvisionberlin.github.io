@@ -153,7 +153,7 @@ test("frontend delays only trial activation until a new completed user message a
   assert.match(frontend,/!role \|\| !content \|\| message\?\.interrupted/);
   assert.match(frontend,/setNinaScrim\("WE CAN'T HEAR YOU", "", "Check your microphone and try again\.", "TRY AGAIN"\)/);
   assert.match(frontend,/ninaUsageActivationPromise = requestNinaUsage\("activate"\)/);
-  assert.match(frontend,/if \(ninaTrialActivationPending\) beginNinaTrialGrace\(attempt, client\);\s*else await activateNinaUsage/);
+  assert.match(frontend,/if \(ninaTrialActivationPending\) beginNinaTrialGrace\(attempt, client\);\s*else\s*\{\s*connectionPhase = "activation";\s*await activateNinaUsage/);
   const cannotHear=frontend.match(/function showNinaCannotHear\(\) \{[\s\S]*?\n\}/)?.[0]||"";
   assert.doesNotMatch(cannotHear,/CONNECTION FAILED/);
 });
@@ -191,7 +191,7 @@ test("migration and frontend wire only authenticated Live Nina lifecycle billing
   assert.match(frontend,/\/api\/nina\/live\/\$\{action\}/);assert.match(frontend,/requestNinaUsage\("activate"\)/);assert.match(frontend,/requestNinaUsage\(end \? "end" : "settle"/);
   assert.match(frontend,/Text conversations do not use Signal Credits/);
   assert.match(frontend,/if \(ninaOwnerBypass\) showNinaReady\(null, "OWNER SIGNAL · UNMETERED"\)/);
-  assert.match(worker,/ownerBypass: user\.role === "owner"/);
+  assert.match(worker,/ownerBypass: identity\.user\.role === "owner"/);
   assert.match(worker,/identity\.account_authenticated \? buildRelationshipContext\(env, identity\.user_id\)/);
   assert.doesNotMatch(frontend,/debitSignalCredits/);
 });
