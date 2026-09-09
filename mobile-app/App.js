@@ -10,6 +10,7 @@ import { theme } from './src/theme';
 import { config } from './src/config';
 import { AuthPanel } from './src/AuthPanel';
 import { NinaLiveModal } from './src/NinaLiveModal';
+import { DeckHome, DeckNina, DeckNav } from './src/DeckScreens';
 
 const tabs = ['HOME', 'NINA', '2063', 'MUSIC', 'PROFILE'];
 const ninaHeroVideo = `${config.siteUrl}/assets/optimized/video/nina-fok/ninaloophero-mobile.mp4`;
@@ -128,6 +129,7 @@ function ProfileScreen({ pending, onCancel, onContinue, opening }) {
       <View style={styles.profileHeading}><Kicker>PARALLEL VISION / IDENTITY</Kicker><Text style={styles.profileTitle}>PROFILE</Text></View>
       {pending && <View style={styles.signInNotice}><Text style={styles.notice}>Sign in to continue to Nina.</Text><Pressable accessibilityRole="button" onPress={onCancel} style={styles.cancel}><Text style={styles.cancelText}>CANCEL</Text></Pressable></View>}
       <AuthPanel onContinue={onContinue} opening={opening} />
+      <Text style={{color:"#899087",fontSize:10,letterSpacing:2,marginTop:24}}>DECK 04</Text>
     </ScrollView>
   </KeyboardAvoidingView>;
 }
@@ -157,18 +159,16 @@ function ParallelVisionApp() {
   const showProfile=useCallback(()=>{setLive(false);setTab('PROFILE');},[]);
   const changeTab=next=>{openSequence.current++;openingRef.current=false;setOpening(false);setPending(false);setTab(next);};
   let screen;
-  if(tab==='NINA')screen=<NinaScreen onTalk={openLive} busy={opening} />;
+  if(tab==='NINA')screen=<DeckNina onTalk={openLive} busy={opening} setTab={changeTab} />;
   else if(tab==='2063')screen=<WorldScreen />;
   else if(tab==='MUSIC')screen=<MusicScreen />;
   else if(tab==='PROFILE')screen=<ProfileScreen opening={opening} pending={pending} onCancel={()=>changeTab('NINA')} onContinue={openLive} />;
-  else screen=<HomeScreen setTab={changeTab} onTalk={openLive} busy={opening} paused={live} />;
+  else screen=<DeckHome setTab={changeTab} onTalk={openLive} busy={opening} paused={live} />;
   return <SafeAreaView style={styles.safe}>
     <StatusBar barStyle="light-content" backgroundColor={theme.colors.bg} />
-    <View style={styles.topbar}><Text style={styles.wordmark}>PARALLEL VISION</Text><Text style={styles.topbarCode}>{sectionCodes[tab]}</Text></View>
+    <View style={styles.topbar}><Text style={styles.wordmark}>PARALLEL VISION</Text><Text style={styles.topbarCode}>PV / 2063</Text></View>
     <View style={styles.content}>{screen}</View>
-    <View style={styles.nav}>{tabs.map((item,index)=><Pressable accessibilityRole="tab" accessibilityState={{selected:item===tab}} key={item} onPress={()=>changeTab(item)} style={styles.navItem}>
-      <Text style={styles.navIndex}>{String(index+1).padStart(2,'0')}</Text><Text style={[styles.navText,item===tab&&styles.navTextActive]}>{item}</Text>{item===tab&&<View style={styles.navActive} />}
-    </Pressable>)}</View>
+    <DeckNav tab={tab} onChange={changeTab} />
     {live && <NinaLiveModal getToken={getToken} onClose={closeLive} onSignIn={showProfile} />}
   </SafeAreaView>;
 }

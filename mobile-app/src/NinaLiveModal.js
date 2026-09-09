@@ -97,16 +97,16 @@ export function NinaLiveModal({ getToken, onClose, onSignIn }) {
 
   return <Modal visible animationType="fade" presentationStyle="fullScreen" onRequestClose={() => stop('close')}>
     <View style={styles.shell}>
-      <StatusBar animated hidden={immersive} barStyle="light-content" backgroundColor="#000" />
-      {!immersive && <SafeAreaView style={styles.safeHeader}>
+      <StatusBar animated hidden={false} barStyle="light-content" backgroundColor="#000" />
+      <SafeAreaView style={styles.safeHeader}>
         <View style={styles.header}>
           <View style={styles.heading}><Text style={styles.label}>NINA FOK / LIVE SIGNAL</Text><Text style={styles.status}>{status}</Text></View>
           <Pressable accessibilityRole="button" accessibilityLabel="Close Nina" disabled={stopping} onPress={() => stop('close')} style={styles.close}>
             <Text style={styles.closeText}>{stopping ? 'CLOSING' : 'CLOSE'}</Text>
           </Pressable>
         </View>
-      </SafeAreaView>}
-      <View style={styles.stage}>
+      </SafeAreaView>
+      <View style={styles.deck}>
         <WebView key={attempt} ref={web} source={{ uri: NINA_URL }} style={styles.stage}
           javaScriptEnabled domStorageEnabled allowsInlineMediaPlayback mediaPlaybackRequiresUserAction={false}
           mediaCapturePermissionGrantType="grantIfSameHostElsePrompt" setSupportMultipleWindows={false}
@@ -142,18 +142,12 @@ export function NinaLiveModal({ getToken, onClose, onSignIn }) {
           <Text style={styles.revision}>BRIDGE 01 / NATIVE SIGNAL</Text>
         </View>}
       </View>
-      {immersive && <SafeAreaView pointerEvents="box-none" style={styles.immersiveControls}>
-        <View pointerEvents="box-none" style={styles.immersiveRow}>
-          <Pressable accessibilityRole="button" accessibilityLabel="Close Nina" disabled={stopping} onPress={() => stop('close')} style={({ pressed }) => [styles.floatingClose, pressed && styles.pressed]}>
-            <Text style={styles.floatingCloseText}>×</Text>
-          </Pressable>
-        </View>
-      </SafeAreaView>}
     </View>
   </Modal>;
 }
 
 const styles = StyleSheet.create({
+  deck:{flex:1,marginHorizontal:9,marginBottom:24,marginTop:4,borderWidth:StyleSheet.hairlineWidth,borderColor:'#414940',borderRadius:5,overflow:'hidden',backgroundColor:'#020303'},
   shell:{flex:1,backgroundColor:'#000'},stage:{flex:1,backgroundColor:'#000'},safeHeader:{backgroundColor:'#000'},
   header:{minHeight:58,paddingHorizontal:18,flexDirection:'row',alignItems:'center',borderBottomWidth:StyleSheet.hairlineWidth,borderBottomColor:'#242424'},heading:{flex:1,marginRight:12},label:{color:'#F2EFE9',fontSize:9,letterSpacing:1.7},status:{color:'#817D76',fontSize:8,letterSpacing:1.2,marginTop:5},
   close:{minHeight:42,minWidth:70,paddingHorizontal:10,alignItems:'center',justifyContent:'center',borderWidth:StyleSheet.hairlineWidth,borderColor:'#494949'},closeText:{color:'#F2EFE9',fontSize:9,letterSpacing:1.35},

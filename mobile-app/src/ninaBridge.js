@@ -1,7 +1,7 @@
 // Small, testable protocol shared by the native modal and its regression tests.
 export const NINA_REVISION = 'BRIDGE 01';
 export const NINA_ORIGIN = 'https://parallelvisionlabel.com';
-export const NINA_URL = `${NINA_ORIGIN}/nina-app.html?pv_app=1&v=bridge01`;
+export const NINA_URL = `${NINA_ORIGIN}/nina-app.html?pv_app=1&v=deck04&pv_deck=04`;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export function isNinaURL(input) {
   try { const url = new URL(input); return url.origin === NINA_ORIGIN && url.pathname === '/nina-app.html'; }
