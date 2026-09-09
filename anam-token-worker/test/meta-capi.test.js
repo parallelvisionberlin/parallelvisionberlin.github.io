@@ -8,7 +8,7 @@ const EVENT_ID = "d750d2d8-84c6-4fb7-ada7-7ae58ef65251";
 test("Meta CAPI allowlist contains the Nina funnel and commerce events", () => {
   assert.deepEqual([...NINA_META_EVENT_NAMES], [
     "TalkToNinaClicked", "NinaAuthModalOpened", "NinaSignupStarted", "NinaAuthCompleted", "TalkToNina",
-    "InitiateCheckout", "Purchase"
+    "NinaQualifiedConversation", "InitiateCheckout", "Purchase"
   ]);
 });
 

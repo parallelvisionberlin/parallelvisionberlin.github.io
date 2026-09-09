@@ -1,7 +1,16 @@
 import { createNinaTrialPromotion } from "./nina-trial-promotion.js?v=20260905";
+import { isNinaWebsite, createConversationProgress, createAudioCheck } from "./nina-web-flow.js?v=20260909-conversion";
 /* The access gate is theatrical client-side UI; its public hash is not authorization. */
 import { createClient, AnamEvent } from "https://esm.sh/@anam-ai/js-sdk@4.23.1?bundle";
 
+
+const NINA_WEB_FLOW = isNinaWebsite(window.location.pathname);
+let ninaWebAudio = null;
+let ninaWebProgress = null;
+let ninaWebQualityTimer = null;
+let ninaWebQualityPending = false;
+let ninaWebQualityDone = false;
+let ninaWebAuthResuming = false;
 
 const DEVELOPMENT = window.location.protocol === "http:";
 const ANAM_SESSION_TOKEN_ENDPOINT = DEVELOPMENT
@@ -20,6 +29,7 @@ const CLERK_CONFIGURATION = DEVELOPMENT
 const byId = id => document.getElementById(id);
 const ninaTrialPromotion = createNinaTrialPromotion();
 const ninaOverlay = byId("ninaOverlay");
+if (NINA_WEB_FLOW) ninaOverlay?.classList.add("nina-web-flow");
 const openNina = byId("openNina");
 const openNinaArtist = byId("openNinaArtist");
 const ninaOpenTriggers = Array.from(document.querySelectorAll("[data-nina-open]"));
@@ -654,7 +664,10 @@ async function initializeNinaAuth() {
     const clerk = ninaClerk || new Clerk(CLERK_CONFIGURATION.publishableKey);
     await clerk.load({ ui: { ClerkUI } });
     ninaClerk = clerk;
-    clerk.addListener?.(() => updateNinaAccountControls(clerk));
+    clerk.addListener?.(() => {
+      updateNinaAccountControls(clerk);
+      if (NINA_WEB_FLOW) queueMicrotask(() => resumeNinaWebAuth(clerk));
+    });
     updateNinaAccountControls(clerk);
     const callbackUrl = new URL(window.location.href);
     if (callbackUrl.searchParams.get("nina_clerk_callback") === "1") {
@@ -772,12 +785,31 @@ function initializeSignalCreditPurchaseUI() {
   ninaCreditsPackButtons.forEach(button => button.addEventListener("click", () => startSignalCreditCheckout(button.dataset.packId)));
 }
 
+function addNinaPurchaseReturn(verified) {
+  if (!NINA_WEB_FLOW || !ninaCreditsPurchaseModal) return;
+  let button = ninaCreditsPurchaseModal.querySelector("[data-return-nina]");
+  if (!button) {
+    button = document.createElement("button");
+    button.type = "button";
+    button.className = "nina-web-return";
+    button.dataset.returnNina = "true";
+    button.textContent = "RETURN TO NINA";
+    button.addEventListener("click", () => {
+      closeSignalCreditPurchase(false);
+      openNinaExperience();
+    });
+    ninaCreditsPurchaseStatus.insertAdjacentElement("afterend", button);
+  }
+  button.hidden = !verified;
+}
+
 function setSignalCreditPurchaseView({ title, lead, status = "", packsVisible = true }) {
   if (!ninaCreditsPurchaseModal) return;
   ninaCreditsPurchaseTitle.textContent = title;
   ninaCreditsPurchaseLead.textContent = lead;
   ninaCreditsPurchaseStatus.textContent = status;
   ninaCreditsPackList.hidden = !packsVisible;
+  addNinaPurchaseReturn(false);
 }
 
 function openSignalCreditPurchase(view = null) {
@@ -984,7 +1016,7 @@ async function handleSignalCreditReturn() {
   }
 
   openSignalCreditPurchase({
-    title: "Payment Received",
+    title: NINA_WEB_FLOW ? "Checking Payment" : "Payment Received",
     lead: "Synchronizing signal credits...",
     status: "",
     packsVisible: false
@@ -1009,10 +1041,11 @@ async function handleSignalCreditReturn() {
       status: "",
       packsVisible: false
     });
+    addNinaPurchaseReturn(true);
   } else {
     setSignalCreditPurchaseView({
-      title: "Payment Received",
-      lead: "Payment received. Credits are still synchronizing.",
+      title: NINA_WEB_FLOW ? "Payment Not Yet Confirmed" : "Payment Received",
+      lead: NINA_WEB_FLOW ? "We could not confirm added time yet. Check your account before paying again." : "Payment received. Credits are still synchronizing.",
       status: "",
       packsVisible: false
     });
@@ -1195,10 +1228,10 @@ function showNinaReady(balance = ninaCreditsBalance, statusOverride = "") {
     ? `${balance.toLocaleString()} CREDITS · ${formatLiveTime(balance * 6).toUpperCase()}`
     : "SIGNAL CREDIT BALANCE UNAVAILABLE");
   if (ninaEligibilityStatus) ninaEligibilityStatus.textContent = creditStatus;
-  setNinaScrim("NINA IS READY", creditStatus, "Enter when you're ready.", "TALK TO NINA");
+  setNinaScrim(NINA_WEB_FLOW ? "YOUR SIGNAL IS READY" : "NINA IS READY", creditStatus, "Enter when you're ready.", NINA_WEB_FLOW ? "START CONVERSATION" : "TALK TO NINA");
   ninaStatus.textContent = "NINA IS READY";
   startNina.disabled = false;
-  startNina.textContent = "TALK TO NINA";
+  startNina.textContent = NINA_WEB_FLOW ? "START CONVERSATION" : "TALK TO NINA";
   ninaPrimaryAction = "connect";
   if (ninaReferralEntry) ninaReferralEntry.hidden = !ninaClerk?.isSignedIn;
   if (ninaMicrophone) ninaMicrophone.hidden = false;
@@ -1460,13 +1493,22 @@ async function copyNinaReferralLink() {
 function showSignalEnded() {
   document.body.classList.remove("nina-connecting-mode", "nina-conversation-live", "nina-call-visible");
   document.body.classList.add("nina-scrim-visible", "nina-scrim-action");
-  setNinaScrim("THE SIGNAL ENDED", "", "Your history with Nina remains.", "CONTINUE THE SIGNAL");
+  setNinaScrim("THE SIGNAL ENDED", "", "Your history with Nina remains.", NINA_WEB_FLOW ? "CONTINUE · 6 MIN · €3.50" : "CONTINUE THE SIGNAL");
   if (ninaPostSignalActions) ninaPostSignalActions.hidden = false;
   if (ninaPostSignalReturn) ninaPostSignalReturn.tabIndex = 0;
   document.body.classList.add("nina-post-signal-visible");
   ninaScrim?.setAttribute("aria-hidden", "false");
   ninaStatus.textContent = "SIGNAL ENDED";
-  ninaScrimAction = "credits";
+  ninaScrimAction = NINA_WEB_FLOW ? "continue_6" : "credits";
+  if (NINA_WEB_FLOW && ninaPostSignalActions && !ninaPostSignalActions.querySelector("[data-more-packs]")) {
+    const more = document.createElement("button");
+    more.type = "button";
+    more.className = "nina-post-signal-return";
+    more.dataset.morePacks = "true";
+    more.textContent = "MORE TIME OPTIONS";
+    more.addEventListener("click", () => openSignalCreditPurchase());
+    ninaPostSignalActions.prepend(more);
+  }
   requestAnimationFrame(() => ninaScrimButton.focus({ preventScroll: true }));
 }
 
@@ -1557,15 +1599,84 @@ function clearNinaTrialGraceTimer() {
   ninaTrialGraceTimer = null;
 }
 
+function clearNinaWebSession() {
+  clearInterval(ninaWebQualityTimer);
+  ninaWebQualityTimer = null;
+  ninaWebAudio?.dispose();
+  ninaWebAudio = null;
+  ninaWebProgress = null;
+  ninaWebQualityPending = false;
+  ninaWebQualityDone = false;
+}
+
+function setupNinaWebSession(attempt, client) {
+  if (!NINA_WEB_FLOW || ninaOwnerBypass) return;
+  clearNinaWebSession();
+  ninaWebProgress = createConversationProgress();
+  const current = () => attempt === ninaAttempt && client === ninaClient && ninaOverlay.classList.contains("is-open");
+  ninaWebAudio = createAudioCheck({
+    stage: ninaWindow.querySelector(".nina-stage"), video: ninaVideo, isCurrent: current,
+    onConfirmed: async () => {
+      if (current() && ninaTrialActivationPending && ninaWebProgress?.hasSpeech()) await activateNinaUsage(attempt, client);
+    },
+    onProblem: async () => {
+      ninaWebProgress?.fail();
+      await stopNinaSession();
+      if (ninaOverlay.classList.contains("is-open")) showNinaFailure("The call has stopped. Check media volume, Bluetooth output and microphone access. Then try again. Unused credits remain in your account.");
+    }
+  });
+  ninaWebQualityTimer = setInterval(() => void reportNinaQualifiedConversation(attempt, client), 10000);
+}
+
+async function reportNinaQualifiedConversation(attempt, client) {
+  if (!NINA_WEB_FLOW || ninaOwnerBypass || ninaWebQualityPending || ninaWebQualityDone ||
+      attempt !== ninaAttempt || client !== ninaClient || !ninaUsageActive || !ninaClerk?.isSignedIn) return;
+  const playing = !ninaVideo.paused && !ninaVideo.muted && ninaVideo.readyState >= 2 && ninaVideo.volume > 0;
+  if (!ninaWebProgress?.qualifies(ninaWebAudio?.confirmed(), document.visibilityState === "visible", playing)) return;
+  const conversationId = ninaServerConversationId;
+  const usageSessionId = ninaUsageSessionId;
+  ninaWebQualityPending = true;
+  try {
+    await ninaMemorySyncPromise.catch(() => null);
+    if (attempt !== ninaAttempt || client !== ninaClient) return;
+    const response = await fetch(`${ANAM_SESSION_TOKEN_ENDPOINT.replace(/\/session-token$/, "")}/api/nina/web/qualified`, {
+      method: "POST", headers: await authenticationHeaders(),
+      body: JSON.stringify({ conversationId, usageSessionId, audioConfirmed: true,
+        eventSourceUrl: `${location.origin}${location.pathname}`,
+        marketingAllowed: typeof window.fbq === "function" && !ninaMetaTestEnabled(),
+        fbp: readNinaMetaCookie("_fbp"), fbc: readNinaMetaCookie("_fbc") })
+    });
+    const data = await response.json().catch(() => ({}));
+    if (attempt !== ninaAttempt || client !== ninaClient || !response.ok) return;
+    if (data.qualified && data.eventId) {
+      const key = `nina_qualified_pixel_v1:${ninaClerk.user.id}`;
+      if (data.emitPixel && typeof window.fbq === "function" && !ninaMetaTestEnabled()) {
+        let sent = false;
+        try { sent = localStorage.getItem(key) === data.eventId; } catch { /* Optional dedup cache. */ }
+        if (!sent) {
+          window.fbq("trackCustom", "NinaQualifiedConversation", {}, { eventID: data.eventId });
+          try { localStorage.setItem(key, data.eventId); } catch { /* Server event ID remains stable. */ }
+        }
+      }
+      ninaWebQualityDone = data.metaSent || !data.marketingAllowed;
+    } else if (data.excluded) ninaWebQualityDone = true;
+  } catch (error) { logDevelopmentError("Qualified conversation measurement unavailable.", error); }
+  finally { if (attempt === ninaAttempt) ninaWebQualityPending = false; }
+}
+
 function beginNinaTrialGrace(attempt, client) {
   if (attempt !== ninaAttempt || client !== ninaClient || !ninaTrialActivationPending) return Promise.resolve(false);
   markNinaOnline();
+  if (NINA_WEB_FLOW) ninaWebAudio?.show(true);
   if (!ninaTrialGraceTimer) {
     ninaTrialGraceTimer = setTimeout(async () => {
       if (attempt !== ninaAttempt || client !== ninaClient || !ninaTrialActivationPending || ninaUsageActive) return;
       ninaTrialActivationPending = false;
       await stopNinaSession();
-      if (ninaOverlay.classList.contains("is-open")) showNinaCannotHear();
+      if (ninaOverlay.classList.contains("is-open")) {
+        if (NINA_WEB_FLOW) showNinaFailure("The sound check timed out before the trial began. Check your sound and microphone, then try again. No trial credits were used by this attempt.");
+        else showNinaCannotHear();
+      }
     }, NINA_SIGNUP_TRIAL_GRACE_MS);
   }
   if (!ninaTrialGraceReadyPromise) {
@@ -1635,6 +1746,8 @@ function scheduleNinaUsageSettlement() {
 
 async function activateNinaUsage(attempt, client) {
   if (attempt !== ninaAttempt || client !== ninaClient) return false;
+  if (NINA_WEB_FLOW && ninaTrialActivationPending &&
+      (!ninaWebAudio?.confirmed() || !ninaWebProgress?.hasSpeech())) return false;
   if (ninaTrialActivationPending) {
     const gracePending = await beginNinaTrialGrace(attempt, client);
     if (attempt !== ninaAttempt || client !== ninaClient) return false;
@@ -1655,6 +1768,7 @@ async function activateNinaUsage(attempt, client) {
       ninaUsageRemainingSeconds = Number.isSafeInteger(result.remainingSeconds) ? result.remainingSeconds : null;
       ninaUsageSettlementSeconds = Number.isSafeInteger(result.settlementSeconds) ? result.settlementSeconds : ninaUsageSettlementSeconds;
       markNinaOnline();
+      if (NINA_WEB_FLOW) ninaWebAudio?.active();
       scheduleNinaUsageSettlement();
       return true;
     }).finally(() => { ninaUsageActivationPromise = null; });
@@ -1707,6 +1821,7 @@ async function settleNinaUsage(end = false, keepalive = false) {
 }
 
 async function stopNinaSession() {
+  if (NINA_WEB_FLOW) clearNinaWebSession();
   clearNinaLiveCountdown();
   void endNinaAnalyticsSession("ended");
   ninaAttempt += 1;
@@ -1753,6 +1868,7 @@ async function requestSessionToken(signal, history) {
     body: JSON.stringify({
       visitorId: ninaVisitorId,
       accountDisplayName: clerkAccountDisplayName(),
+      ...(NINA_WEB_FLOW ? { webFlowVersion: 1 } : {}),
       recentMessages: history
     }),
     signal
@@ -1805,6 +1921,7 @@ function bindAnamLifecycle(client, attempt) {
   };
   const onHistoryUpdated = history => {
     const completedMessages = storeCompletedNinaMessages(history, client, attempt);
+    if (NINA_WEB_FLOW) ninaWebProgress?.observe(completedMessages);
     if (!ninaTrialActivationPending || !completedMessages.some(message => message.role === "user")) return;
     void activateNinaUsage(attempt, client).catch(async error => {
       logDevelopmentError("Unable to activate Live Nina time after user speech.", error);
@@ -1818,6 +1935,7 @@ function bindAnamLifecycle(client, attempt) {
   };
   const onClosed = () => {
     if (attempt !== ninaAttempt || client !== ninaClient) return;
+    if (NINA_WEB_FLOW) clearNinaWebSession();
     void endNinaAnalyticsSession("disconnected");
     void settleNinaUsage(true, true);
     ninaClient = null;
@@ -1897,6 +2015,7 @@ async function connectNina() {
     connectionPhase = "avatar";
     const client = createClient(session.sessionToken);
     ninaClient = client;
+    setupNinaWebSession(attempt, client);
     bindAnamLifecycle(client, attempt);
     await client.streamToVideoElement("nina-anam-video", ninaMicrophoneStream);
     if (attempt !== ninaAttempt || client !== ninaClient || !ninaOverlay.classList.contains("is-open")) {
@@ -1904,7 +2023,7 @@ async function connectNina() {
       return;
     }
     if (ninaTrialActivationPending) beginNinaTrialGrace(attempt, client);
-    else { connectionPhase = "activation"; await activateNinaUsage(attempt, client); }
+    else { connectionPhase = "activation"; await activateNinaUsage(attempt, client); if (NINA_WEB_FLOW) ninaWebAudio?.show(false); }
   } catch (error) {
     if (attempt !== ninaAttempt || error?.name === "AbortError") return;
     logDevelopmentError("Nina connection failed.", error);
@@ -2085,6 +2204,25 @@ function resetInlineEmailSignIn() {
   ninaEmailSignInSubmit.textContent = "SIGN IN";
 }
 
+function resumeNinaWebAuth(clerk) {
+  if (!NINA_WEB_FLOW || ninaWebAuthResuming || !clerk?.isSignedIn || !clerk?.session) return;
+  const intent = readNinaAuthReturn();
+  if (intent?.action !== "signal") return;
+  if (new URLSearchParams(window.location.search).has("ninaCredits")) return;
+  // OAuth callback must finish before changing its URL or opening the call UI.
+  if (new URLSearchParams(window.location.search).has("nina_clerk_callback")) return;
+  ninaWebAuthResuming = true;
+  try {
+    const current = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+    if (intent.path && intent.path !== current) { window.location.replace(intent.path); return; }
+    sessionStorage.removeItem(NINA_AUTH_RETURN_KEY);
+    trackNinaAuthCompleted();
+    clerk.closeSignUp?.();
+    clerk.closeSignIn?.();
+    if (!ninaClient && !ninaOverlay.classList.contains("is-open")) openNinaExperience();
+  } finally { ninaWebAuthResuming = false; }
+}
+
 async function completeNinaClerkSignIn(clerk, attempt) {
   if (attempt?.status !== "complete" || !attempt.createdSessionId) return false;
   await clerk.setActive({ session: attempt.createdSessionId });
@@ -2175,21 +2313,21 @@ ninaEmailSignInForm?.addEventListener("submit", submitInlineEmailSignIn);
 ninaEmailCreateAccount?.addEventListener("click", async () => {
   const clerk = await initializeNinaAuth();
   if (clerk) {
-    storeNinaAuthReturn();
+    storeNinaAuthReturn(NINA_WEB_FLOW ? "signal" : "");
     await clerk.openSignUp({ initialValues: { emailAddress: ninaEmailAddress.value.trim() } });
   }
 });
 ninaEmailForgotPassword?.addEventListener("click", async () => {
   const clerk = await initializeNinaAuth();
   if (clerk) {
-    storeNinaAuthReturn();
+    storeNinaAuthReturn(NINA_WEB_FLOW ? "signal" : "");
     await clerk.openSignIn({ initialValues: { emailAddress: ninaEmailAddress.value.trim() } });
   }
 });
 async function openNinaAccountAuth(mode) {
   const clerk = await initializeNinaAuth();
   if (!clerk) return;
-  storeNinaAuthReturn();
+  storeNinaAuthReturn(NINA_WEB_FLOW ? "signal" : "");
   if (mode === "signup") {
     clerk.closeSignIn?.();
     await clerk.openSignUp();
@@ -2246,8 +2384,12 @@ ninaReferralPanel?.addEventListener("click", event => {
   if (event.target === ninaReferralPanel) closeNinaReferralPanel(true);
 });
 ninaScrimButton.addEventListener("click", () => {
-  if (ninaScrimAction === "credits") openSignalCreditPurchase();
-  else if (ninaScrimAction === "signin") void openNinaAccountSignIn();
+  if (ninaScrimAction === "continue_6") {
+    openSignalCreditPurchase({ title: "Continue with Nina", lead: "6 minutes · €3.50. One-time purchase.", packsVisible: true });
+    void startSignalCreditCheckout("signal_60");
+  }
+  else if (ninaScrimAction === "credits") openSignalCreditPurchase();
+  else if (ninaScrimAction === "signin") void openNinaAccountAuth("signin");
   else connectNina();
 });
 ninaPostSignalReturn?.addEventListener("click", () => void closeNinaWindow());
