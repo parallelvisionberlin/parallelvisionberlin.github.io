@@ -1,0 +1,53 @@
+name: Nina admin call regression checks
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'anam-token-worker/src/analytics.js'
+      - 'anam-token-worker/src/index.js'
+      - 'anam-token-worker/test/admin-call-recovery.test.js'
+      - 'js/nina-admin.js'
+      - 'css/nina-admin.css'
+      - 'nina-admin/index.html'
+      - 'scripts/test-nina-admin-call-recovery.py'
+      - '.github/workflows/nina-admin-call-tests.yml'
+  pull_request:
+    paths:
+      - 'anam-token-worker/**'
+      - 'js/nina-admin.js'
+      - 'css/nina-admin.css'
+      - 'nina-admin/**'
+      - 'scripts/test-nina-admin-call-recovery.py'
+      - '.github/workflows/nina-admin-call-tests.yml'
+permissions:
+  contents: read
+jobs:
+  admin-calls:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            anam-token-worker
+            js
+            css
+            nina-admin
+            scripts
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install from the existing Worker lockfile
+        run: |
+          npm install -g pnpm@10.15.1
+          pnpm --dir anam-token-worker install --frozen-lockfile
+      - name: Check admin syntax and authenticated call reader
+        run: |
+          node --check js/nina-admin.js
+          npm run check --prefix anam-token-worker
+          node --test anam-token-worker/test/admin-call-recovery.test.js anam-token-worker/test/admin-analytics-fix.test.js anam-token-worker/test/analytics.test.js
+      - name: Check desktop and phone disclosures with synthetic data
+        run: |
+          python -m pip install playwright==1.56.0
+          python -m playwright install --with-deps chromium
+          python scripts/test-nina-admin-call-recovery.py

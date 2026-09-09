@@ -371,8 +371,15 @@ async function handleNinaAnalyticsDashboard(request, env, origin) {
   if (owner.role !== "owner") return jsonResponse({ error: "Owner access required", code: "owner_required" }, 403, origin);
   const sessionId = new URL(request.url).searchParams.get("session");
   if (sessionId) {
-    const detail = await getNinaAnalyticsSessionDetail(env, sessionId);
-    return detail ? jsonResponse(detail, 200, origin) : jsonResponse({ error: "Session not found", code: "session_not_found" }, 404, origin);
+    try {
+      const detail = await getNinaAnalyticsSessionDetail(env, sessionId);
+      return detail ? jsonResponse(detail, 200, origin) : jsonResponse({ error: "Session not found", code: "session_not_found" }, 404, origin);
+    } catch {
+      // Do not expose database errors, emails or transcripts. Keep CORS even on failure
+      // so the owner sees a retryable API error, not the browser's opaque fetch error.
+      console.warn("nina_admin_call_detail_unavailable");
+      return jsonResponse({ error: "Call details are temporarily unavailable. Please retry.", code: "call_detail_unavailable" }, 503, origin);
+    }
   }
   return jsonResponse(await getNinaAnalyticsDashboard(env), 200, origin);
 }
@@ -858,7 +865,7 @@ export default {
       if (url.pathname === "/api/nina/persona-diagnostic" && request.method === "GET") return handlePersonaDiagnostic(request, env, origin);
       if (url.pathname === "/api/nina/memory-diagnostic" && request.method === "GET") return handleMemoryDiagnostic(request, env, origin);
       if (url.pathname === "/api/nina/memory-archivist-benchmark" && request.method === "GET") return handleMemoryArchivistBenchmark(request, env, origin);
-      if (url.pathname === "/api/nina/analytics/dashboard" && request.method === "GET") return handleNinaAnalyticsDashboard(request, env, origin);
+      if (url.pathname === "/api/nina/analytics/dashboard" && request.method === "GET") return await handleNinaAnalyticsDashboard(request, env, origin);
       if (url.pathname === "/api/nina/analytics/start" && request.method === "POST") return handleNinaAnalyticsStart(request, env, origin);
       if (url.pathname === "/api/nina/analytics/heartbeat" && request.method === "POST") return handleNinaAnalyticsHeartbeat(request, env, origin);
       if (url.pathname === "/api/nina/analytics/end" && request.method === "POST") return handleNinaAnalyticsEnd(request, env, origin);
