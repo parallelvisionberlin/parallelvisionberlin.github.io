@@ -15,20 +15,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Repair temporary migration script quoting
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          p=Path('scripts/nina-admin-analytics-fix.mjs')
-          s=p.read_text()
-          s=s.replace("""detailStat("Conversation", detail.transcript.length ? `${'${detail.userMessages}'} / ${'${detail.ninaMessages}'} turns` : "No transcript"),""", """detailStat("Conversation", detail.transcript.length ? (detail.userMessages + " / " + detail.ninaMessages + " turns") : "No transcript"),""")
-          s=s.replace("""const turn=document.createElement("div"); turn.className=`admin-turn is-${'${message.role}'}`;""", """const turn=document.createElement("div"); turn.className="admin-turn is-" + message.role;""")
-          s=s.replace("""const item=document.createElement("div"); item.textContent=`${'${dateTime(visit.startedAt)}'} · ${'${duration(visit.connectedSeconds)}'} · ${'${String(visit.status).toUpperCase()}'}${'${visit.id === detail.session.id ? " · THIS CALL" : ""}'}`; history.append(item);""", """const item=document.createElement("div"); item.textContent=dateTime(visit.startedAt) + " · " + duration(visit.connectedSeconds) + " · " + String(visit.status).toUpperCase() + (visit.id === detail.session.id ? " · THIS CALL" : ""); history.append(item);""")
-          s=s.replace("""const detailRow = elements.sessions.querySelector(`[data-detail-for="${'${CSS.escape(session.id)}'}"]`);""", """const detailRow = elements.sessions.querySelector('[data-detail-for="' + CSS.escape(session.id) + '"]');""")
-          p.write_text(s)
-          PY
       - name: Apply admin analytics fixes
-        run: node scripts/nina-admin-analytics-fix.mjs
+        run: python scripts/nina-admin-analytics-fix.py
       - name: Install worker dependencies
         run: npm install --prefix anam-token-worker --no-audit --no-fund
       - name: Syntax check
@@ -48,6 +36,6 @@ jobs:
           fi
       - name: Remove temporary workflow tooling
         run: |
-          git rm -f scripts/nina-admin-analytics-fix.mjs .github/workflows/nina-admin-analytics-fix.yml
+          git rm -f scripts/nina-admin-analytics-fix.py .github/workflows/nina-admin-analytics-fix.yml
           git commit -m 'Remove temporary Nina analytics migration tooling'
           git push origin HEAD:nina-admin-analytics-fix-20260909
