@@ -16,7 +16,7 @@ jobs:
         run: |
           mkdir -p /tmp/nina-speech-review
           git rev-parse HEAD > /tmp/nina-speech-review/commit.txt
-          git archive --format=tar.gz HEAD anam-token-worker js css scripts .github package.json pnpm-lock.yaml nina-project.html nina-admin/index.html nina-app.html index.html > /tmp/nina-speech-review/source.tar.gz
+          git archive --format=tar.gz HEAD anam-token-worker js css scripts .github package.json nina-project.html nina-admin/index.html nina-app.html index.html > /tmp/nina-speech-review/source.tar.gz
       - uses: actions/upload-artifact@v4
         with:
           name: nina-speech-recovery-source
