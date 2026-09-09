@@ -42,37 +42,14 @@ function analyticsIdentity(visitorId, user) {
   };
 }
 
-function sessionStage(status, seconds, userMessages = 0, personaMessages = 0, messageTrackingAvailable = false) {
-  const connected = Math.max(0, Number(seconds) || 0);
-  const userCount = Math.max(0, Number(userMessages) || 0);
-  const personaCount = Math.max(0, Number(personaMessages) || 0);
-
-  if (status === "failed") return { key: "failed", label: "FAILED DURING CONNECTION" };
-
-  if (messageTrackingAvailable) {
-    if (userCount === 0 && status !== "active") {
-      return { key: "connected_no_speech", label: `${String(status || "ended").toUpperCase()} · CONNECTED · NO USER SPEECH` };
-    }
-    if (userCount > 0 && personaCount === 0 && status !== "active") {
-      return { key: "spoke_no_reply", label: `${String(status || "ended").toUpperCase()} · USER SPOKE · NO NINA REPLY` };
-    }
-    if (userCount > 0 && personaCount > 0) {
-      if (connected >= 180) return { key: "conversation_3m", label: `${status === "active" ? "ACTIVE" : String(status || "ended").toUpperCase()} · CONVERSATION · 3M+` };
-      if (connected >= 60) return { key: "conversation_1m", label: `${status === "active" ? "ACTIVE" : String(status || "ended").toUpperCase()} · CONVERSATION · 1M+` };
-      return { key: "conversation", label: `${status === "active" ? "ACTIVE" : String(status || "ended").toUpperCase()} · CONVERSATION STARTED` };
-    }
-  }
-
-  if (status === "active") {
-    if (connected >= 180) return { key: "deep_3m", label: "ACTIVE · DEEP SESSION 3M+" };
-    if (connected >= 60) return { key: "engaged_1m", label: "ACTIVE · ENGAGED 1M+" };
-    if (connected >= 30) return { key: "reached_30s", label: "ACTIVE · REACHED 30S" };
-    return { key: "connected", label: "ACTIVE · CONNECTED" };
-  }
-  if (connected < 30) return { key: "drop_before_30s", label: `${String(status || "ended").toUpperCase()} · DROPPED <30S AFTER CONNECT` };
-  if (connected < 60) return { key: "reached_30s", label: `${String(status || "ended").toUpperCase()} · REACHED 30S` };
-  if (connected < 180) return { key: "engaged_1m", label: `${String(status || "ended").toUpperCase()} · ENGAGED 1M+` };
-  return { key: "deep_3m", label: `${String(status || "ended").toUpperCase()} · DEEP SESSION 3M+` };
+export function sessionStage(status, seconds, userMessages = null, personaMessages = null, messageTrackingAvailable = false) {
+  // Stored text is evidence of a transcript, not proof that sound was heard.
+  const prefix = String(status || "ended").toUpperCase();
+  if (!messageTrackingAvailable) return { key: "unlinked", label: `${prefix} · TRANSCRIPT NOT LINKED` };
+  if (userMessages > 0 && personaMessages > 0) return { key: "conversation", label: `${prefix} · CONVERSATION RECORDED` };
+  if (userMessages > 0) return { key: "reply_not_recorded", label: `${prefix} · NO NINA REPLY RECORDED` };
+  if (personaMessages > 0) return { key: "user_not_recorded", label: `${prefix} · NO USER MESSAGES RECORDED` };
+  return { key: "empty_transcript", label: `${prefix} · NO MESSAGES RECORDED` };
 }
 
 async function sessionByEntry(env, clientEntryId) {
@@ -154,7 +131,7 @@ function rangeStart(now, days) {
   return iso(now - days * 86400000);
 }
 
-async function rangeMetrics(env, start) {
+async function rangeMetrics(env, start, end) {
   const row = await env.NINA_MEMORY_DB.prepare(`
     SELECT COUNT(DISTINCT user_key) AS unique_users, COUNT(*) AS sessions,
            COALESCE(SUM(connected_seconds), 0) AS total_seconds,
@@ -167,117 +144,176 @@ async function rangeMetrics(env, start) {
            SUM(CASE WHEN connected_seconds >= 60 THEN 1 ELSE 0 END) AS engaged_1m,
            SUM(CASE WHEN connected_seconds >= 180 THEN 1 ELSE 0 END) AS deep_3m,
            SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) AS failed_sessions
-    FROM nina_analytics_sessions WHERE started_at >= ?
-  `).bind(start).first();
+    FROM nina_analytics_sessions WHERE started_at >= ? AND started_at <= ?
+  `).bind(start, end).first();
   return Object.fromEntries(Object.entries(row || {}).map(([key, value]) => [key, Math.max(0, Number(value) || 0)]));
 }
 
+// Historical analytics rows contain a browser visitor ID, while authenticated
+// transcripts use users.memory_visitor_id. Do not equate those identifiers.
+// A call has no stored conversation foreign key. Match only a UNIQUE conversation
+// created before connection, within the startup window, and never assign the same
+// conversation to a later retry. Ambiguity remains visible instead of guessing.
+export async function readAnalyticsCalls(env, sessionId = null) {
+  const query = `
+    WITH selected AS (
+      SELECT s.*, u.display_name AS user_display_name, u.email AS user_email,
+             COALESCE(NULLIF(u.memory_visitor_id, ''), s.visitor_id) AS message_visitor_id
+      FROM nina_analytics_sessions s
+      LEFT JOIN users u ON u.id = s.user_id
+      ${sessionId ? "WHERE s.id = ?" : ""}
+      ORDER BY s.started_at DESC, s.id DESC LIMIT 100
+    ), candidates AS (
+      SELECT s.id AS session_id, c.conversation_id
+      FROM selected s JOIN conversations c ON c.visitor_id = s.message_visitor_id
+      WHERE julianday(c.started_at) BETWEEN julianday(s.started_at) - (120.0 / 86400) AND julianday(s.started_at)
+        AND NOT EXISTS (
+          SELECT 1 FROM nina_analytics_sessions peer
+          WHERE peer.user_key = s.user_key AND peer.id != s.id
+            AND julianday(peer.started_at) BETWEEN julianday(c.started_at) AND julianday(s.started_at)
+        )
+    ), links AS (
+      SELECT session_id, COUNT(*) AS candidate_count,
+             CASE WHEN COUNT(*) = 1 THEN MIN(conversation_id) ELSE NULL END AS conversation_id
+      FROM candidates GROUP BY session_id
+    )
+    SELECT s.*, COALESCE(l.candidate_count, 0) AS link_candidates,
+           c.conversation_id, c.started_at AS conversation_started_at, c.ended_at AS conversation_ended_at,
+           CASE WHEN c.conversation_id IS NOT NULL THEN (
+             SELECT COUNT(*) FROM messages m WHERE m.conversation_id = c.conversation_id
+               AND m.visitor_id = s.message_visitor_id AND m.role = 'user'
+           ) ELSE NULL END AS user_messages,
+           CASE WHEN c.conversation_id IS NOT NULL THEN (
+             SELECT COUNT(*) FROM messages m WHERE m.conversation_id = c.conversation_id
+               AND m.visitor_id = s.message_visitor_id AND m.role = 'persona'
+           ) ELSE NULL END AS persona_messages
+    FROM selected s LEFT JOIN links l ON l.session_id = s.id
+    LEFT JOIN conversations c ON c.conversation_id = l.conversation_id
+    ORDER BY s.started_at DESC, s.id DESC
+  `;
+  const statement = env.NINA_MEMORY_DB.prepare(query);
+  return ((await (sessionId ? statement.bind(sessionId) : statement).all()).results || []);
+}
 
-export async function getNinaAnalyticsSessionDetail(env, sessionId) {
+export function presentAnalyticsCall(row) {
+  const linked = Boolean(row.conversation_id);
+  const userMessages = linked ? Math.max(0, Number(row.user_messages) || 0) : null;
+  const personaMessages = linked ? Math.max(0, Number(row.persona_messages) || 0) : null;
+  const connectedSeconds = Math.max(0, Number(row.connected_seconds) || 0);
+  const stage = sessionStage(row.status, connectedSeconds, userMessages, personaMessages, linked);
+  return {
+    id: row.id, userId: row.user_id || null,
+    userIdentifier: String(row.user_key || "").replace(/^user:/, "U-").replace(/^visitor:/, "V-").slice(0, 14),
+    authenticated: Number(row.is_authenticated) === 1, actorType: row.actor_type,
+    displayName: Number(row.is_authenticated) === 1 ? row.user_display_name || "" : "",
+    email: Number(row.is_authenticated) === 1 ? row.user_email || "" : "",
+    returning: Number(row.is_returning) === 1,
+    status: stage.label, rawStatus: row.status, stage: stage.key,
+    transcriptMatch: linked ? "account_and_start_time" : Number(row.link_candidates) > 1 ? "ambiguous" : "unlinked",
+    messageTrackingAvailable: linked, userMessages, personaMessages,
+    startedAt: row.started_at, lastSeenAt: row.last_seen_at, endedAt: row.ended_at, connectedSeconds
+  };
+}
+
+export async function getNinaAnalyticsSessionDetail(env, sessionId, now = Date.now()) {
   if (!validEntryId(sessionId)) return null;
-  const session = await env.NINA_MEMORY_DB.prepare(`
-    SELECT s.*, u.display_name AS user_display_name, u.email AS user_email,
-           u.memory_visitor_id AS memory_visitor_id
-    FROM nina_analytics_sessions s
-    LEFT JOIN users u ON u.id = s.user_id
-    WHERE s.id = ? LIMIT 1
-  `).bind(sessionId).first();
+  const [session] = await readAnalyticsCalls(env, sessionId);
   if (!session) return null;
-
-  const messageVisitorId = session.memory_visitor_id || session.visitor_id;
+  const messageVisitorId = session.message_visitor_id;
   const startedMs = Date.parse(session.started_at);
   const endedMs = Date.parse(session.ended_at || session.last_seen_at || session.started_at);
   const lower = iso(startedMs - 120000);
-  const upper = iso(Math.max(startedMs, endedMs) + 120000);
-  const purchaseUpper = iso(Math.max(startedMs, endedMs) + 3600000);
+  const purchaseUpper = iso(Math.min(now, Math.max(startedMs, endedMs) + 3600000));
+  const conversationId = session.conversation_id;
+  const messages = conversationId ? await env.NINA_MEMORY_DB.prepare(`
+    SELECT role, content, created_at FROM messages
+    WHERE conversation_id = ? AND visitor_id = ? AND role IN ('user', 'persona')
+    ORDER BY created_at ASC, rowid ASC LIMIT 2001
+  `).bind(conversationId, messageVisitorId).all() : { results: [] };
 
-  const conversation = await env.NINA_MEMORY_DB.prepare(`
-    SELECT conversation_id, started_at, ended_at
-    FROM conversations
-    WHERE visitor_id = ? AND started_at >= ? AND started_at <= ?
-    ORDER BY ABS(strftime('%s', started_at) - strftime('%s', ?)) ASC
-    LIMIT 1
-  `).bind(messageVisitorId, lower, upper, session.started_at).first();
-
-  const messages = conversation ? await env.NINA_MEMORY_DB.prepare(`
-    SELECT role, content, created_at
-    FROM messages
-    WHERE conversation_id = ? AND visitor_id = ?
-    ORDER BY created_at ASC, rowid ASC
-  `).bind(conversation.conversation_id, messageVisitorId).all() : { results: [] };
-
-  let live = null, account = null, transactions = { results: [] }, purchases = { results: [] }, qualified = null, userHistory = { results: [] };
+  let live = null, account = null, transactions = { results: [] }, purchases = { results: [] };
+  let qualified = null, qualificationAvailable = false, userHistory = { results: [] }, liveMatch = "unlinked";
   if (session.user_id) {
-    [live, account, transactions, purchases, userHistory] = await Promise.all([
+    const [liveCandidates, creditAccount, nearPurchases, history] = await Promise.all([
       env.NINA_MEMORY_DB.prepare(`
-        SELECT id, status, started_at, ended_at, credits_available_on_start, credits_debited, created_at
-        FROM live_nina_sessions
-        WHERE user_id = ? AND created_at >= ? AND created_at <= ?
-        ORDER BY ABS(strftime('%s', created_at) - strftime('%s', ?)) ASC LIMIT 1
-      `).bind(session.user_id, lower, upper, session.started_at).first(),
+        SELECT l.id, l.status, l.started_at, l.ended_at, l.credits_available_on_start, l.credits_debited, l.created_at
+        FROM live_nina_sessions l
+        WHERE l.user_id = ? AND l.created_at >= ? AND l.created_at <= ?
+          AND NOT EXISTS (
+            SELECT 1 FROM nina_analytics_sessions peer WHERE peer.user_key = ? AND peer.id != ?
+              AND julianday(peer.started_at) BETWEEN julianday(l.created_at) AND julianday(?)
+          )
+        ORDER BY l.created_at ASC LIMIT 3
+      `).bind(session.user_id, lower, session.started_at, session.user_key, session.id, session.started_at).all(),
       env.NINA_MEMORY_DB.prepare(`
         SELECT balance, lifetime_credited, lifetime_debited, updated_at
         FROM signal_credit_accounts WHERE user_id = ? LIMIT 1
       `).bind(session.user_id).first(),
-      env.NINA_MEMORY_DB.prepare(`
-        SELECT amount, type, source, description, created_at
-        FROM signal_credit_transactions
-        WHERE user_id = ? AND created_at >= ? AND created_at <= ?
-        ORDER BY created_at ASC
-      `).bind(session.user_id, lower, purchaseUpper).all(),
+      // This is account activity near the call, NOT a proven call-to-purchase link.
       env.NINA_MEMORY_DB.prepare(`
         SELECT pack_id, credits, amount_total, currency, status, created_at, paid_at
-        FROM signal_credit_purchases
-        WHERE user_id = ? AND created_at >= ? AND created_at <= ?
-        ORDER BY created_at ASC
-      `).bind(session.user_id, lower, purchaseUpper).all(),
+        FROM signal_credit_purchases WHERE user_id = ? AND created_at >= ? AND created_at <= ?
+        ORDER BY created_at ASC LIMIT 51
+      `).bind(session.user_id, session.started_at, purchaseUpper).all(),
       env.NINA_MEMORY_DB.prepare(`
         SELECT id, status, started_at, connected_seconds, is_returning
-        FROM nina_analytics_sessions WHERE user_id = ?
-        ORDER BY started_at DESC LIMIT 12
+        FROM nina_analytics_sessions WHERE user_id = ? ORDER BY started_at DESC LIMIT 30
       `).bind(session.user_id).all()
     ]);
-    if (conversation) {
+    account = creditAccount; purchases = nearPurchases; userHistory = history;
+    const liveRows = liveCandidates.results || [];
+    if (liveRows.length === 1) { live = liveRows[0]; liveMatch = "account_and_start_time"; }
+    else if (liveRows.length > 1) liveMatch = "ambiguous";
+    if (live) {
+      transactions = await env.NINA_MEMORY_DB.prepare(`
+        SELECT amount, type, source, description, created_at FROM signal_credit_transactions
+        WHERE user_id = ? AND reference_id LIKE ? ORDER BY created_at ASC LIMIT 500
+      `).bind(session.user_id, `anam-session:${live.id}:through:%`).all();
+    }
+    if (conversationId) {
       try {
         qualified = await env.NINA_MEMORY_DB.prepare(`
           SELECT qualified_at, meta_sent_at FROM nina_qualified_conversations
           WHERE user_id = ? AND conversation_id = ? LIMIT 1
-        `).bind(session.user_id, conversation.conversation_id).first();
-      } catch { qualified = null; }
+        `).bind(session.user_id, conversationId).first();
+        qualificationAvailable = true;
+      } catch (error) {
+        // A deployment without the optional qualification table is not a NO.
+        if (!/no such table.*nina_qualified_conversations/i.test(String(error?.message))) throw error;
+      }
     }
   }
-
-  const transcript = (messages.results || []).map(row => ({
-    role: row.role === 'user' ? 'user' : 'nina', content: row.content, createdAt: row.created_at
+  const transcript = (messages.results || []).slice(0, 2000).map(row => ({
+    role: row.role === "user" ? "user" : "nina", content: row.content, createdAt: row.created_at
   }));
-  const userMessages = transcript.filter(message => message.role === 'user').length;
-  const ninaMessages = transcript.filter(message => message.role === 'nina').length;
   return {
-    timeZone: NINA_ANALYTICS_TIME_ZONE,
-    session: {
-      id: session.id, authenticated: Number(session.is_authenticated) === 1,
-      actorType: session.actor_type, returning: Number(session.is_returning) === 1,
-      displayName: session.user_display_name || '', email: session.user_email || '',
-      startedAt: session.started_at, endedAt: session.ended_at, lastSeenAt: session.last_seen_at,
-      connectedSeconds: Math.max(0, Number(session.connected_seconds) || 0), rawStatus: session.status
+    timeZone: NINA_ANALYTICS_TIME_ZONE, generatedAt: iso(now),
+    session: presentAnalyticsCall(session),
+    match: {
+      conversation: presentAnalyticsCall(session).transcriptMatch, live: liveMatch,
+      note: "Historical call links use account identity and start time, not a stored call-to-conversation ID. Ambiguous matches are left unlinked. Stored text does not prove the audio was heard."
     },
-    conversation: conversation ? { id: conversation.conversation_id, startedAt: conversation.started_at, endedAt: conversation.ended_at } : null,
-    transcript, userMessages, ninaMessages,
+    conversation: conversationId ? { id: conversationId, startedAt: session.conversation_started_at, endedAt: session.conversation_ended_at } : null,
+    transcript, transcriptTruncated: (messages.results || []).length > 2000,
+    userMessages: conversationId ? Number(session.user_messages) || 0 : null,
+    ninaMessages: conversationId ? Number(session.persona_messages) || 0 : null,
     live: live ? {
       id: live.id, status: live.status, startedAt: live.started_at, endedAt: live.ended_at,
-      creditsAtStart: Number(live.credits_available_on_start) || 0,
-      creditsDebited: Number(live.credits_debited) || 0
+      creditsAtStart: Number(live.credits_available_on_start) || 0, creditsDebited: Number(live.credits_debited) || 0
     } : null,
     creditAccount: account ? {
       balance: Number(account.balance) || 0, lifetimeCredited: Number(account.lifetime_credited) || 0,
       lifetimeDebited: Number(account.lifetime_debited) || 0, updatedAt: account.updated_at
     } : null,
     creditEvents: (transactions.results || []).map(row => ({ ...row, amount: Number(row.amount) || 0 })),
-    purchases: (purchases.results || []).map(row => ({
+    purchaseWindow: { start: session.started_at, end: purchaseUpper, attribution: "account_activity_only" },
+    purchasesTruncated: (purchases.results || []).length > 50,
+    purchases: (purchases.results || []).slice(0, 50).map(row => ({
       packId: row.pack_id, credits: Number(row.credits) || 0, amountTotal: Number(row.amount_total) || 0,
       currency: row.currency, status: row.status, createdAt: row.created_at, paidAt: row.paid_at
     })),
-    qualified: Boolean(qualified), qualifiedAt: qualified?.qualified_at || null, metaSentAt: qualified?.meta_sent_at || null,
+    qualificationAvailable, qualified: qualificationAvailable ? Boolean(qualified) : null,
+    qualifiedAt: qualified?.qualified_at || null, metaSentAt: qualified?.meta_sent_at || null,
     userHistory: (userHistory.results || []).map(row => ({
       id: row.id, status: row.status, startedAt: row.started_at,
       connectedSeconds: Math.max(0, Number(row.connected_seconds) || 0), returning: Number(row.is_returning) === 1
@@ -293,33 +329,17 @@ export async function getNinaAnalyticsDashboard(env, now = Date.now()) {
     SET status = 'abandoned', ended_at = last_seen_at
     WHERE status = 'active' AND last_seen_at < ?
   `).bind(activeCutoff).run();
-  const starts = { today: rangeStart(now, 1), days7: rangeStart(now, 7), days30: rangeStart(now, 30) };
-  const [today, days7, days30, active, recent, signups, checkouts, purchases] = await Promise.all([
-    rangeMetrics(env, starts.today), rangeMetrics(env, starts.days7), rangeMetrics(env, starts.days30),
+  const starts = { today: rangeStart(now, 1), last24: iso(now - 86400000), days7: rangeStart(now, 7), days30: rangeStart(now, 30) };
+  const [today, last24, days7, days30, active, recent, signups, checkouts, purchases] = await Promise.all([
+    rangeMetrics(env, starts.today, current), rangeMetrics(env, starts.last24, current), rangeMetrics(env, starts.days7, current), rangeMetrics(env, starts.days30, current),
     env.NINA_MEMORY_DB.prepare("SELECT COUNT(*) AS count FROM nina_analytics_sessions WHERE status = 'active' AND last_seen_at >= ?").bind(activeCutoff).first(),
-    env.NINA_MEMORY_DB.prepare(`
-      SELECT s.id, s.visitor_id, s.user_key, s.is_authenticated, s.actor_type, s.is_returning, s.status,
-             s.started_at, s.last_seen_at, s.ended_at, s.connected_seconds,
-             u.display_name AS user_display_name, u.email AS user_email,
-             (SELECT COUNT(*) FROM messages m
-                WHERE m.visitor_id = COALESCE(u.memory_visitor_id, s.visitor_id)
-                  AND m.role = 'user'
-                  AND m.created_at >= s.started_at
-                  AND m.created_at <= COALESCE(s.ended_at, s.last_seen_at)) AS user_messages,
-             (SELECT COUNT(*) FROM messages m
-                WHERE m.visitor_id = COALESCE(u.memory_visitor_id, s.visitor_id)
-                  AND m.role = 'persona'
-                  AND m.created_at >= s.started_at
-                  AND m.created_at <= COALESCE(s.ended_at, s.last_seen_at)) AS persona_messages
-      FROM nina_analytics_sessions s
-      LEFT JOIN users u ON u.id = s.user_id
-      ORDER BY s.started_at DESC LIMIT 100
-    `).all(),
+    readAnalyticsCalls(env),
     env.NINA_MEMORY_DB.prepare("SELECT COUNT(*) AS count FROM users WHERE created_at >= ?").bind(starts.days30).first(),
     env.NINA_MEMORY_DB.prepare("SELECT COUNT(*) AS count FROM signal_credit_purchases WHERE created_at >= ?").bind(starts.days30).first(),
     env.NINA_MEMORY_DB.prepare("SELECT COUNT(*) AS count FROM signal_credit_purchases WHERE status = 'paid' AND paid_at >= ?").bind(starts.days30).first()
   ]);
   today.currently_active = Math.max(0, Number(active?.count) || 0);
+  last24.currently_active = today.currently_active;
   const configuredPrice = Number(env.ANAM_ESTIMATED_PRICE_PER_MINUTE_EUR);
   const pricePerMinute = Number.isFinite(configuredPrice) && configuredPrice > 0 ? configuredPrice : null;
   const totalMinutes = days30.total_seconds / 60;
@@ -328,7 +348,9 @@ export async function getNinaAnalyticsDashboard(env, now = Date.now()) {
     timeZone: NINA_ANALYTICS_TIME_ZONE,
     todayStart: starts.today,
     activeWindowSeconds: NINA_ANALYTICS_ACTIVE_SECONDS,
-    ranges: { today, days7, days30 },
+    revision: "admin-calls-20260909",
+    rangeBoundaries: Object.fromEntries(Object.entries(starts).map(([key, start]) => [key, { start, end: current, kind: key === "today" ? "berlin_calendar_day" : "rolling" }])),
+    ranges: { today, last24, days7, days30 },
     engagement: {
       window: "Last 30 days",
       connected: days30.sessions,
@@ -351,27 +373,7 @@ export async function getNinaAnalyticsDashboard(env, now = Date.now()) {
       estimatedAnamCost: pricePerMinute === null ? null : totalMinutes * pricePerMinute,
       label: "Estimated Anam cost"
     },
-    sessions: (recent?.results || []).map(row => {
-      const connectedSeconds = Math.max(0, Number(row.connected_seconds) || 0);
-      const userMessages = Math.max(0, Number(row.user_messages) || 0);
-      const personaMessages = Math.max(0, Number(row.persona_messages) || 0);
-      const messageTrackingAvailable = Number(row.is_authenticated) === 1 || row.actor_type === "owner";
-      const stage = sessionStage(row.status, connectedSeconds, userMessages, personaMessages, messageTrackingAvailable);
-      return {
-        id: row.id, userIdentifier: String(row.user_key || "").replace(/^user:/, "U-").replace(/^visitor:/, "V-").slice(0, 14),
-        authenticated: Number(row.is_authenticated) === 1, actorType: row.actor_type,
-        displayName: Number(row.is_authenticated) === 1 ? row.user_display_name || "" : "",
-        email: Number(row.is_authenticated) === 1 ? row.user_email || "" : "",
-        returning: Number(row.is_returning) === 1,
-        status: stage.label,
-        rawStatus: row.status,
-        stage: stage.key,
-        messageTrackingAvailable,
-        userMessages,
-        personaMessages,
-        startedAt: row.started_at, lastSeenAt: row.last_seen_at, endedAt: row.ended_at,
-        connectedSeconds
-      };
-    })
+    // Dashboard has counts only. Message contents are fetched on explicit owner click.
+    sessions: recent.map(presentAnalyticsCall)
   };
 }
