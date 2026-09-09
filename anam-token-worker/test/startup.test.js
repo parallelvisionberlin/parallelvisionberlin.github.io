@@ -96,7 +96,8 @@ test("system prompt assembly adds intimacy and conversational rhythm exactly onc
     assert.equal(systemPrompt.split(NINA_CONVERSATIONAL_RHYTHM).length - 1, 1);
     assert.ok(systemPrompt.startsWith(`${basePrompt}\n\n${NINA_INTIMACY_CONTINUITY}`));
     assert.ok(systemPrompt.indexOf(NINA_INTIMACY_CONTINUITY) < systemPrompt.indexOf(NINA_CONVERSATIONAL_RHYTHM));
-    assert.match(systemPrompt, /default to one or two short sentences/);
+    assert.match(systemPrompt, /two to four short sentences are natural/);
+    assert.doesNotMatch(systemPrompt, /default to one or two short sentences|Let follow-up questions carry the conversation/);
     assert.match(systemPrompt, /not a hard sentence or word limit/);
     assert.match(systemPrompt, /leave room for interruption/);
     assert.ok(systemPrompt.endsWith(privateMemory));
