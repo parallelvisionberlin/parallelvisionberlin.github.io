@@ -15,8 +15,9 @@ const root=path.resolve(__dirname,'..'),out='/tmp/site05-preview',evidence='/tmp
  });
  await new Promise(resolve=>server.listen(8099,'127.0.0.1',resolve));
  try{
-  for(const [name,engine] of [['chromium',chromium],['webkit',webkit]]){
-   const browser=await engine.launch({headless:true});
+  for(const [name,engine] of [['chrome',chromium],['webkit',webkit]]){
+   // The unbranded Chromium test binary does not include the original MP4 codecs.
+   const browser=await engine.launch({headless:true,...(name==='chrome'?{channel:'chrome'}:{})});
    try{
     for(const [width,height] of [[390,740],[320,568]]){
      const page=await browser.newPage({viewport:{width,height}});const problems=[];page.on('pageerror',e=>problems.push(e.message));
@@ -37,6 +38,6 @@ const root=path.resolve(__dirname,'..'),out='/tmp/site05-preview',evidence='/tmp
     }
    }finally{await browser.close();}
   }
-  console.log('PASS: 20 rendered-screen checks; original local films play in Chromium and WebKit; no horizontal overflow at 320 and 390px; profile saving uses fixtures. Native iPhone rendering and live audio still require device verification.');
+  console.log('PASS: 20 rendered-screen checks; original local films play in Google Chrome and WebKit; no horizontal overflow at 320 and 390px; profile saving uses fixtures. Native iPhone rendering and live audio still require device verification.');
  }finally{server.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});
