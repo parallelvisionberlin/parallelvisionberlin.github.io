@@ -1,0 +1,44 @@
+name: Nina read-only analysis connection
+on:
+  push:
+    branches: [main, nina-readonly-access-20260909]
+    paths: ['anam-token-worker/src/analytics.js', 'anam-token-worker/src/auth.js', 'nina-audit-worker/**', 'js/nina-ai-access.js', 'nina-admin/ai-access.html', '.github/workflows/nina-readonly-audit-tests.yml']
+  pull_request:
+    paths: ['anam-token-worker/src/analytics.js', 'anam-token-worker/src/auth.js', 'nina-audit-worker/**', 'js/nina-ai-access.js', 'nina-admin/ai-access.html']
+permissions:
+  contents: read
+jobs:
+  readonly:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            nina-audit-worker
+            anam-token-worker
+            js
+            nina-admin
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install pinned audit dependencies
+        working-directory: nina-audit-worker
+        run: |
+          if [ -f package-lock.json ]; then npm ci; else npm install; fi
+      - name: Syntax and real SQL/OAuth authorization tests
+        run: |
+          node --check js/nina-ai-access.js
+          npm run check --prefix nina-audit-worker
+          npm test --prefix nina-audit-worker
+      - name: Compile separate Worker without connecting to production
+        working-directory: nina-audit-worker
+        run: |
+          node -e "const fs=require('fs');const c=JSON.parse(fs.readFileSync('wrangler.json'));c.kv_namespaces=[{binding:'OAUTH_KV',id:'00000000000000000000000000000001'}];fs.writeFileSync('wrangler.deploy.json',JSON.stringify(c))"
+          npx wrangler deploy --config wrangler.deploy.json --dry-run
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: nina-audit-lockfile
+          path: nina-audit-worker/package-lock.json
+          retention-days: 2

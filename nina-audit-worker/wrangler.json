@@ -1,0 +1,18 @@
+{
+  "name": "parallel-vision-nina-audit",
+  "main": "src/index.js",
+  "compatibility_date": "2026-08-18",
+  "workers_dev": true,
+  "observability": {"enabled": false},
+  "vars": {
+    "CLERK_ISSUER": "https://clerk.parallelvisionlabel.com",
+    "SITE_ORIGIN": "https://parallelvisionlabel.com",
+    "AUDIT_ORIGIN": "https://parallel-vision-nina-audit.parallelvision.workers.dev"
+  },
+  "d1_databases": [{
+    "binding": "NINA_MEMORY_DB",
+    "database_name": "nina-fok-memory",
+    "database_id": "9f31c8a3-8101-408d-a002-22188c67b3b0"
+  }],
+  "compatibility_flags": ["global_fetch_strictly_public"]
+}

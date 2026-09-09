@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><meta name="referrer" content="no-referrer">
+<title>Nina | Private analysis access</title>
+<link rel="icon" href="../favicon.png">
+<style>
+:root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#050505;color:#e6e6e0;font:16px/1.65 Arial,sans-serif}main{max-width:720px;margin:10vh auto;padding:32px}a{color:inherit}h1{font-size:clamp(28px,5vw,44px);font-weight:400;line-height:1.2;margin:16px 0 24px}h2{font-size:19px;font-weight:400}.eyebrow{font:11px/1.4 monospace;letter-spacing:.18em;text-transform:uppercase;color:#aaa}.rule{border-top:1px solid #343434;margin:28px 0;padding-top:22px}.muted{color:#a6a6a0}button{background:transparent;color:#eee;border:1px solid #696965;font:inherit;padding:13px 20px;cursor:pointer;min-height:48px}button:disabled{opacity:.4;cursor:default}.actions{display:flex;gap:16px;flex-wrap:wrap;margin:24px 0}button:focus-visible,a:focus-visible{outline:2px solid #eee;outline-offset:4px}label{display:flex;gap:12px;align-items:flex-start}input{margin-top:6px}#status{min-height:30px}#client{overflow-wrap:anywhere}#revoke{color:#aaa;border-color:#444}details{margin-top:40px}summary{cursor:pointer}small{font-size:13px}[hidden]{display:none!important}
+</style></head><body><main>
+<p class="eyebrow">Parallel Vision / owner authorization</p><h1>Private analysis access</h1>
+<p id="status" role="status">Verifying your owner account.</p>
+<button id="signIn" type="button" hidden>Sign in as owner</button>
+<section id="consent" class="rule" hidden>
+<p class="eyebrow">Read only / nina-fok-memory</p><h2 id="client">ChatGPT connection</h2>
+<p>Allow this connection to read Nina's stored conversations, user names and emails, call durations, credit usage and checkout records. This includes existing records and new records while access remains authorized.</p>
+<p class="muted">It cannot send messages, change Nina, add or remove credits, charge anyone, edit data or delete conversations. This is a separate analysis service, not the live calling app.</p>
+<label><input id="agree" type="checkbox"><span>I authorize this access for analysis and support. I understand that requested records will be shared with the connected ChatGPT service.</span></label>
+<div class="actions"><button id="approve" type="button" disabled>Allow read-only access</button><button id="deny" type="button">Cancel</button></div>
+</section>
+<section id="manage" class="rule" hidden>
+<p class="muted">Start the connection from ChatGPT's custom app settings, using OAuth and the server address below.</p>
+<p><code>https://parallel-vision-nina-audit.parallelvision.workers.dev/mcp</code></p>
+<details><summary>Revoke analysis access</summary><p class="muted">This disables all existing Nina analysis connections. It does not affect users' calls, credits or your normal dashboard login. Revocation can take a short time to propagate.</p><button id="revoke" type="button">Revoke all analysis connections</button></details>
+</section>
+<p class="rule"><a href="./">Return to Nina Analytics</a></p>
+<script type="module" src="../js/nina-ai-access.js?v=1"></script>
+</main></body></html>
