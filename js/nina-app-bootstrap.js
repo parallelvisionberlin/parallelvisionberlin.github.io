@@ -2,7 +2,7 @@ import { installNativeIdentity, BRIDGE_REVISION } from './nina-native-bridge.js?
 const boot = document.getElementById('pv-app-boot');
 const message = document.getElementById('pv-app-message');
 const retry = document.getElementById('pv-app-retry');
-let bridge, engine, closing;
+let bridge, engine, closing, deck;
 let isClosing = false;
 let watchdog;
 
@@ -50,6 +50,7 @@ window.addEventListener('unhandledrejection', event => {
 async function close() {
   if (closing) return closing;
   isClosing = true;
+  deck?.dispose();
   clearTimeout(watchdog);
   closing = (async () => {
     try { await engine?.closeNativeNina(); }
@@ -68,9 +69,15 @@ try {
   // safely even if its module finishes downloading first.
   const identityPromise = bridge.initialize();
   window.__PV_NINA_AUTH_PROVIDER__ = async () => identityPromise;
-  const enginePromise = import('./nina-access.js?v=recovery01');
+  const enginePromise = import('./nina-access.js?v=recovery01-deck04');
   const [identity, importedEngine] = await Promise.all([identityPromise, enginePromise]);
   engine = importedEngine;
+  if (new URLSearchParams(location.search).get("pv_deck") === "04") {
+    try {
+      const ui = await import("./nina-deck04.js?v=04");
+      if (!isClosing) deck = ui.installNinaDeck({ getStream: () => engine.getNinaDeckStream() });
+    } catch { /* Presentation must not block a working call. */ }
+  }
 
   if (isClosing) throw new Error('Signal closed.');
   if (!identity) throw new Error('App session unavailable.');

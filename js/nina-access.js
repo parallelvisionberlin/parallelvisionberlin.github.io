@@ -2493,3 +2493,8 @@ export async function closeNativeNina() {
   await ninaMemorySyncPromise.catch(() => null);
 }
 export { routeNinaTrigger, stopNinaSession, showNinaFailure, refreshNinaEligibility };
+
+// Read-only stream access for the opt-in native presentation. Capture ownership stays here.
+export function getNinaDeckStream() {
+  return window.location.pathname === "/nina-app.html" && new URLSearchParams(window.location.search).get("pv_deck") === "04" ? ninaMicrophoneStream : null;
+}
