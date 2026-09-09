@@ -17,6 +17,7 @@ jobs:
         run: |
           python -m pip install pillow playwright
           python scripts/deck04/apply.py
+          cp scripts/deck04/immersive.test.mjs mobile-app/tests/immersive.test.mjs
       - name: Confirm capture code and Worker were not changed
         run: |
           git diff --exit-code 05d2728d7e27a52bb54b430a920e6aca32935071 -- anam-token-worker
