@@ -1,5 +1,5 @@
 // Conversation-only alignment. No audio, SDK, billing or database settings here.
-export const RUNTIME_REVISION = 'conversation02-worker01';
+export const RUNTIME_REVISION = 'conversation02-worker02-recovery';
 export const CONVERSATION_RHYTHM = `CONVERSATIONAL RHYTHM
 
 Participate in the exchange rather than generating isolated answers. Answer the visitor's latest completed intention first, using facts and corrections already present in the conversation.
@@ -41,13 +41,12 @@ export function createStartupTimer(now = () => performance.now()) {
   };
 }
 
-// Both operations settle before returning, so a failed parallel read cannot leak
-// an unhandled rejection or leave background context work running after a failure.
+// Recovery path: use the same ordering as the iPhone-proven session flow.
+// The personality alignment remains; only the experimental concurrent startup is removed.
 export async function prepareSessionContext(loadContext, loadPersona) {
-  const results = await Promise.allSettled([Promise.resolve().then(loadContext), Promise.resolve().then(loadPersona)]);
-  const failure = results.find(result => result.status === 'rejected');
-  if (failure) throw failure.reason;
-  return { context: results[0].value, personaConfig: results[1].value };
+  const context = await Promise.resolve().then(loadContext);
+  const personaConfig = await Promise.resolve().then(loadPersona);
+  return { context, personaConfig };
 }
 
 export async function promptFingerprint(text) {
