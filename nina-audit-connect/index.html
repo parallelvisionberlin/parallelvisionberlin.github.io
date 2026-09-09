@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><meta name="referrer" content="no-referrer">
+<title>Nina Analytics | Private connection</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#080909;color:#e9e8e1;font:16px/1.65 Arial,sans-serif}main{max-width:700px;margin:10vh auto;padding:28px}.eyebrow{font:11px/1.5 monospace;letter-spacing:.18em;text-transform:uppercase;color:#a6a79e}h1{font-size:clamp(30px,6vw,48px);font-weight:400;line-height:1.15;margin:26px 0}h2{font-size:20px;font-weight:400}p{max-width:610px}.note{font-size:14px;color:#aaa}.permission{border-top:1px solid #333;border-bottom:1px solid #333;padding:18px 0;margin:30px 0}button,a{color:inherit}button{border:1px solid #888;padding:15px 22px;background:transparent;font:inherit;cursor:pointer;min-height:48px}button:hover{background:#191b19}button:focus-visible{outline:2px solid #ddd;outline-offset:5px}button:disabled{opacity:.4;cursor:default}[hidden]{display:none!important}.actions{display:flex;flex-wrap:wrap;gap:12px}.grant{display:flex;justify-content:space-between;gap:15px;align-items:center;border-top:1px solid #333;padding:16px 0}.grant span{overflow-wrap:anywhere;font-size:13px}#status{min-height:2em}a{text-underline-offset:5px}@media(max-width:480px){main{margin-top:4vh;padding:24px}.grant{align-items:flex-start;flex-direction:column}}
+</style></head><body><main>
+<p class="eyebrow">Parallel Vision / Owner access</p>
+<h1>Connect Nina Analytics.</h1>
+<p>Let ChatGPT read the private records you already inspect in Nina Analytics, without exporting or pasting them into a chat.</p>
+<div class="permission"><strong>Read-only access</strong><p class="note">Saved transcripts, account names and emails, call records, credit history and checkout states. This connection cannot change balances, issue refunds, change Nina, start calls or deploy the website.</p><p class="note">Private conversations will be sent to ChatGPT when its tools request them. Authorize only a ChatGPT connection you initiated. Access can be revoked below.</p></div>
+<p id="client" class="note"></p><p id="status" role="status" aria-live="polite">Checking your owner session…</p>
+<div class="actions"><button id="signIn" hidden>Sign in as owner</button><button id="approve" hidden disabled>Approve read-only access</button><a href="/nina-admin/">Return to Nina Analytics</a></div>
+<section id="connections" hidden><h2>Authorized connections</h2><div id="grants"></div></section>
+<script type="module" src="./connect.js?v=20260909-reader1"></script>
+</main></body></html>

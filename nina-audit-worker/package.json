@@ -1,0 +1,12 @@
+{
+  "name": "nina-audit-reader",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "node --check src/index.js && node --check src/access.js && node --check src/data.js && node --check src/protocol.js",
+    "test": "node --test test/*.test.js",
+    "build": "wrangler deploy --dry-run --config wrangler.template.json --outdir .wrangler/bundle"
+  },
+  "dependencies": { "@cloudflare/workers-oauth-provider": "0.10.3" },
+  "devDependencies": { "wrangler": "4.130.0" }
+}

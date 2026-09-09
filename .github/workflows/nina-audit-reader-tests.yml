@@ -1,0 +1,70 @@
+name: Nina read-only connector checks
+on:
+  push:
+    branches: [main, nina-audit-reader-20260909]
+    paths: ['nina-audit-worker/**', 'nina-audit-connect/**', 'anam-token-worker/src/auth.js', '.github/workflows/nina-audit-reader-tests.yml']
+  pull_request:
+    paths: ['nina-audit-worker/**', 'nina-audit-connect/**']
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            nina-audit-worker
+            nina-audit-connect
+            anam-token-worker
+            .github
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install pinned reader dependencies
+        working-directory: nina-audit-worker
+        run: |
+          if [ -f package-lock.json ]; then npm ci --ignore-scripts; else npm install --ignore-scripts; fi
+      - name: Read-only SQL, owner proof, consent and pagination tests
+        run: |
+          npm run check --prefix nina-audit-worker
+          node --check nina-audit-connect/connect.js
+          npm test --prefix nina-audit-worker
+      - name: Compile only the standalone reader, never deploy
+        run: npm run build --prefix nina-audit-worker
+      - name: Local OAuth discovery and unauthenticated-denial smoke test
+        run: |
+          cd nina-audit-worker
+          npx wrangler dev --local --port 8798 --config wrangler.template.json > /tmp/nina-reader-local.log 2>&1 &
+          server=$!
+          trap 'kill "$server" 2>/dev/null || true' EXIT
+          python - <<'PY'
+          import json,time,urllib.request,urllib.error,urllib.parse
+          base='http://127.0.0.1:8798'
+          for _ in range(45):
+              try:
+                  urllib.request.urlopen(base+'/health',timeout=2).read();break
+              except Exception:time.sleep(1)
+          else:raise RuntimeError('Local reader failed to start')
+          meta=json.load(urllib.request.urlopen(base+'/.well-known/oauth-authorization-server'))
+          assert 'S256' in meta['code_challenge_methods_supported']
+          req=urllib.request.Request(base+'/mcp',data=json.dumps({'jsonrpc':'2.0','id':1,'method':'initialize','params':{'protocolVersion':'2025-06-18','capabilities':{},'clientInfo':{'name':'test','version':'1'}}}).encode(),headers={'Content-Type':'application/json'})
+          try:urllib.request.urlopen(req);raise AssertionError('Unauthenticated access was allowed')
+          except urllib.error.HTTPError as e:
+              assert e.code==401,e.code
+              assert 'resource_metadata' in e.headers.get('WWW-Authenticate','')
+          print('OAuth discovery and unauthenticated transcript protection passed.')
+          PY
+      - name: Persist the tested dependency lock only on the preparation branch
+        if: github.ref == 'refs/heads/nina-audit-reader-20260909'
+        run: |
+          git add nina-audit-worker/package-lock.json
+          if ! git diff --cached --quiet; then
+            git config user.name 'Nina reader checks'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git commit -m 'Lock tested Nina read-only connector dependencies'
+            git push origin HEAD:nina-audit-reader-20260909
+          fi
