@@ -1,6 +1,6 @@
 param([switch]$CheckOnly)
 $ErrorActionPreference = 'Stop'
-$SourceCommit = '10eb168dbd9e4c7359f7b9dc454cb1c1841b9870'
+$SourceCommit = '58bf92dbc5ecd7d1d7cb1f13fc522141ee7fb220'
 $OriginalLocation = Get-Location
 $PriorNoVcs = [Environment]::GetEnvironmentVariable('EAS_NO_VCS', 'Process')
 $PriorRoot = [Environment]::GetEnvironmentVariable('EAS_PROJECT_ROOT', 'Process')
@@ -29,7 +29,7 @@ try {
     Invoke-Checked 'git.exe' @('-C', $Repository, 'cat-file', '-e', "${SourceCommit}^{commit}")
     & git.exe -C $Repository diff --quiet $SourceCommit FETCH_HEAD -- mobile-app/App.js mobile-app/src mobile-app/assets mobile-app/tests mobile-app/app.json mobile-app/eas.json mobile-app/package.json mobile-app/package-lock.json mobile-app/.easignore mobile-app/.npmrc
     if ($LASTEXITCODE -ne 0) { throw 'Newer app code exists. Stopped rather than building an old design.' }
-    $Name = 'DECK04_' + (Get-Date -Format 'yyyyMMdd_HHmmss') + '_' + ([guid]::NewGuid().ToString('N').Substring(0, 6))
+    $Name = 'SITECOHESION05_' + (Get-Date -Format 'yyyyMMdd_HHmmss') + '_' + ([guid]::NewGuid().ToString('N').Substring(0, 6))
     $Workspace = Join-Path (Join-Path $env:LOCALAPPDATA 'ParallelVision\Builds') $Name
     New-Item -ItemType Directory -Path $Workspace -Force | Out-Null
     $Archive = Join-Path $Workspace 'source.tar'
@@ -39,8 +39,8 @@ try {
     Set-Location $App
     $Utf8 = New-Object System.Text.UTF8Encoding($false)
     [IO.File]::WriteAllText((Join-Path $App '.gitignore'), [IO.File]::ReadAllText((Join-Path $App '.easignore')), $Utf8)
-    [IO.File]::WriteAllText((Join-Path $App 'BUILD_SOURCE.txt'), "DECK 04`nSource: $SourceCommit`n", $Utf8)
-    if (![IO.File]::ReadAllText((Join-Path $App 'App.js')).Contains('DECK 04')) { throw 'DECK 04 marker is missing.' }
+    [IO.File]::WriteAllText((Join-Path $App 'BUILD_SOURCE.txt'), "SITE COHESION 05`nSource: $SourceCommit`n", $Utf8)
+    if (![IO.File]::ReadAllText((Join-Path $App 'App.js')).Contains('SITE COHESION / 05')) { throw 'SITE COHESION 05 marker is missing.' }
     $Required = @('App.js', 'app.json', 'eas.json', 'package.json', 'package-lock.json', '.easignore', '.npmrc', 'BUILD_SOURCE.txt')
     foreach ($Folder in @('src', 'assets', 'tests')) {
         foreach ($File in @(Get-ChildItem -LiteralPath (Join-Path $App $Folder) -Recurse -File -Force)) {
@@ -49,7 +49,7 @@ try {
     }
     $Hashes = @{}
     foreach ($Relative in $Required) { $Hashes[$Relative] = (Get-FileHash -LiteralPath (Join-Path $App $Relative) -Algorithm SHA256).Hash }
-    Write-Host 'DECK 04: checking exact app source, bundled artwork and iOS export.' -ForegroundColor Cyan
+    Write-Host 'SITE COHESION 05: checking exact app source and iOS export.' -ForegroundColor Cyan
     Invoke-Checked 'npx.cmd' @('--yes', 'npm@10.9.8', 'ci', '--include=dev', '--ignore-scripts')
     Invoke-Checked 'npm.cmd' @('test')
     Invoke-Checked 'npx.cmd' @('expo', 'export', '--platform', 'ios', '--output-dir', (Join-Path $Workspace 'ios-check'))
@@ -76,17 +76,13 @@ try {
     }
     $Bytes = ($Files | Measure-Object -Property Length -Sum).Sum
     if ($Bytes -gt 50MB) { throw 'Upload archive is unexpectedly large. No build started.' }
-    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-    $Page = Invoke-WebRequest -UseBasicParsing -TimeoutSec 30 -Uri ('https://parallelvisionlabel.com/nina-app.html?deck_check=' + [guid]::NewGuid().ToString('N'))
-    if (!$Page.Content.Contains('data-pv-deck-release="04"')) { throw 'Matching live deck is not deployed yet. No build started.' }
-    Write-Host 'DECK 04: source, artwork and upload archive verified.' -ForegroundColor Green
+    Write-Host 'SITE COHESION 05: source and upload archive verified.' -ForegroundColor Green
     Write-Host ('Upload size before compression: {0:N2} MB' -f ($Bytes / 1MB))
     Write-Host "Source: $SourceCommit"
-    Write-Host 'Original local files, working login and Cloudflare Worker were not modified.'
     if (!$CheckOnly) {
         Write-Host 'Building one iPhone preview. Apple login / reuse profile: Yes.' -ForegroundColor Cyan
         Invoke-Checked 'eas.cmd' @('build', '--platform', 'ios', '--profile', 'preview')
-        Write-Host 'Install from THIS build link over the current app. PROFILE must show DECK 04.' -ForegroundColor Green
+        Write-Host 'Install from THIS build link over the current app. PROFILE must show SITE COHESION / 05.' -ForegroundColor Green
     }
 } catch {
     Write-Host ("STOP: " + $_.Exception.Message) -ForegroundColor Red
