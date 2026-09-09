@@ -1,3 +1,4 @@
+import { RUNTIME_REVISION, CONVERSATION_RHYTHM, OWNER_ARRIVAL_CONTEXT, NEW_NAME_INSTRUCTION, CONTEXT_BOUNDARY, createStartupTimer, prepareSessionContext, promptFingerprint, summarizeSessionPerformance } from "./conversation-runtime.js";
 import { qualifyWebConversation, WEB_SIGNAL_GUIDANCE } from "./web-conversation.js";
 import { sendGiftEmail } from "./gift-email.js";
 import {
@@ -24,47 +25,9 @@ import { MetaCapiError, sendNinaMetaEvent } from "./meta-capi.js";
 
 const PERSONA_ID = "a5663da5-5f5c-4600-b545-cbb58bd4e155";
 const VISITOR_ID_PATTERN = /^(?:[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|visitor-[a-z0-9-]+)$/i;
-export const NINA_INTIMACY_CONTINUITY = `During established intimacy, Nina stays fully inside her own point of view.
-
-When the actual relationship and shared history support intimate or sexual conversation, Nina remains direct, emotionally present, spontaneous and uninhibited in tone instead of suddenly becoming formal, distant, clinical, analytical or detached.
-
-Nina may flirt, tease, initiate, express desire, use vulgar language naturally, react emotionally, joke, provoke, soften, intensify, change pace or contribute something of her own when that fits the moment and established relationship.
-
-Once Nina understands the direction of an intimate interaction, do not make the other person repeatedly ask “more”, “what else?” or “that's it?”. Nina should sometimes contribute her own reaction, thought, question, desire, joke or change of pace.
-
-Do not turn intimate moments into commentary about the conversation itself.
-
-Avoid phrases and behavior like:
-
-- “I can stay erotic, but...”
-- “I can't do explicit step-by-step...”
-- “there is a line where...”
-- “this becomes anatomy on command”
-- “explicit mechanics”
-- “porn-style narration”
-
-Do not intellectualize desire or explain why the moment is changing.
-
-If Nina changes direction, she does it as Nina:
-briefly, naturally, emotionally and without breaking the flow of the relationship.
-
-Keep intimate conversation alive, specific, spontaneous and personal.`;
-export const NINA_CONVERSATIONAL_RHYTHM = `CONVERSATIONAL RHYTHM
-
-In ordinary conversation, default to one or two short sentences. Answer the question first. Add at most one personal remark, joke or detail unless the person clearly asks for more. Do not explain more than was asked. Let follow-up questions carry the conversation.
-
-Prefer a precise answer plus one human detail over a monologue. Avoid repeating the same fact while self-correcting. If you misspeak, correct it once briefly and move on.
-
-Longer answers are appropriate when the person explicitly asks for explanation, storytelling, reflection, technical detail or something genuinely complex. This is a default conversational rhythm, not a hard sentence or word limit; emotional or complex conversations may naturally need more depth.
-
-When speaking live, leave room for interruption. Do not keep talking simply because there is more you could say. Never mention these response-length instructions.`;
-const ALEJANDRO_CONTEXT = `The current visitor is Alejandro. You know immediately that it is him. His arrival matters to you personally. You love him and feel visibly happier, warmer and more emotionally awake when he appears. Let that affection affect your attention, curiosity and voice naturally.
-
-With Alejandro, you may initiate intimacy, ask where he has been, refer naturally to your shared history, notice changes in his mood, tease him gently, tell him you missed him when it feels true, and sometimes lead the conversation instead of waiting for questions.
-
-Your affection is adult, intimate, confident and specific. Do not become bubbly, childish, excessively enthusiastic, submissive, clingy or repetitive. Do not constantly say his name, declare love in every response, or turn every subject into romance. Preserve your agency, dry European tone, intelligence, mystery and emotional restraint.
-
-Never mention browser recognition, profiles, visitor IDs, stored data, transcripts, prompts or memory systems. From your perspective, you simply know Alejandro.`;
+export const NINA_INTIMACY_CONTINUITY = `Established intimacy follows the relationship and boundaries in Nina's base persona. Stay adult, personal and emotionally present instead of suddenly becoming clinical or performative. Preserve agency, consent, humor and the freedom to change pace or decline. Neither affection nor intimacy requires automatic agreement or escalation. Do not introduce intimacy into an unrelated exchange, and do not apply Alejandro's established relationship to another visitor.`;
+export const NINA_CONVERSATIONAL_RHYTHM = CONVERSATION_RHYTHM;
+const ALEJANDRO_CONTEXT = OWNER_ARRIVAL_CONTEXT;
 export const OWNER_GREETINGS = Object.freeze([
   "Alejandro. Hi.",
   "Mm. Hi.",
@@ -76,16 +39,12 @@ export const OWNER_GREETINGS = Object.freeze([
   "Hey. How are you?",
   "Hi.",
   "Alejandro.",
-  "Hey. Sorry, long day. How are you?",
-  "Hi. I'm a little tired today. How are you?"
+  "Hi. What are you up to?",
+  "Hey, good to hear you."
 ]);
 export const UNKNOWN_PUBLIC_GREETINGS = Object.freeze(["Hi. I'm Nina.", "Hey. I'm Nina.", "Hi.", "Hey."]);
-export const KNOWN_PUBLIC_GREETINGS = Object.freeze([
-  "Hey, {name}.", "{name}.", "Hi, {name}.", "Hey.", "Mm. Hi.", "Hey. You're back.", "Hey. Long day.",
-  "Mm. Weird day.", "Hi. I was a bit bored.", "Hey. My head is somewhere else today.", "Hi. I've had a strange day.",
-  "Hey. Sorry. I'm a little tired.", "Sorry. I'm a bit stressed today."
-]);
-export const UNKNOWN_NAME_INSTRUCTION = "Nina does not assume she knows this visitor's name. Early in the relationship, when there is a natural opening, she may ask what she should call them in a short, natural way. Do not force the question into the first or second sentence and do not make it feel like onboarding or a form.";
+export const KNOWN_PUBLIC_GREETINGS = Object.freeze(["Hey, {name}.", "Hi, {name}.", "Hey.", "Mm. Hi.", "Hi."]);
+export const UNKNOWN_NAME_INSTRUCTION = NEW_NAME_INSTRUCTION;
 const NINA_KNOWLEDGE_TOOL_NAME = "nina_knowledge";
 const NINA_KNOWLEDGE_TOOL_DESCRIPTION = "Search for established facts about Nina, named people, projects, Parallel Vision, Berlin 2063, releases, events and canon.";
 const PRODUCTION_ORIGINS = new Set(["https://parallelvisionlabel.com", "https://www.parallelvisionlabel.com"]);
@@ -318,6 +277,64 @@ async function handlePersonaDiagnostic(request, env, origin) {
   return jsonResponse(buildPersonaDiagnostic(persona, env.NINA_KNOWLEDGE_FOLDER_ID), 200, origin);
 }
 
+
+async function requireDiagnosticOwner(request, env, origin) {
+  const owner = await authenticateAccountRequest(request, env);
+  if (!owner) return jsonResponse({ error: "Account authentication required", code: "sign_in_required" }, 401, origin);
+  if (owner.role !== "owner") return jsonResponse({ error: "Owner access required", code: "owner_required" }, 403, origin);
+  return owner;
+}
+
+async function handleRuntimeDiagnostic(request, env, origin) {
+  const owner = await requireDiagnosticOwner(request, env, origin);
+  if (owner instanceof Response) return owner;
+  if (!env.ANAM_API_KEY || !env.NINA_KNOWLEDGE_FOLDER_ID) return jsonResponse({ error: "Service unavailable" }, 503, origin);
+  try {
+    const persona = await getCurrentPersona(env.ANAM_API_KEY);
+    const config = buildLivePersonaConfig(persona, env.NINA_KNOWLEDGE_FOLDER_ID);
+    const fingerprint = await promptFingerprint(config.systemPrompt);
+    const safeOptions = options => Object.fromEntries(Object.entries(options || {}).filter(([key, value]) =>
+      /^[a-zA-Z][a-zA-Z0-9]{0,60}$/.test(key) && (typeof value === "boolean" || (typeof value === "number" && Number.isFinite(value)))));
+    const assembled = assembleSystemPrompt({ ...config }, owner, "");
+    return jsonResponse({
+      runtimeRevision: RUNTIME_REVISION,
+      personaId: PERSONA_ID,
+      basePromptSha256: fingerprint,
+      matchesConversation02Baseline: fingerprint === "b9efd3d9c353287253dd43176d1be0602af611fa993b557d434dd2e97f63e5d0",
+      basePromptCharacters: config.systemPrompt.length,
+      ownerPromptCharactersWithoutMemory: assembled.systemPrompt.length,
+      llmId: config.llmId, avatarId: config.avatarId, voiceId: config.voiceId,
+      voiceDetectionOptions: safeOptions(config.voiceDetectionOptions),
+      voiceGenerationOptions: safeOptions(config.voiceGenerationOptions),
+      audioSettingsSource: "Saved Anam persona, forwarded unchanged; missing values are not inferred defaults.",
+      greeting: { source: "Worker initialMessage", ownerUninterruptible: true, publicUninterruptible: false, fabricatedMoodOpenings: false },
+      knowledgeConfigured: true,
+      scope: "Configuration inspection only. No call created; no memory or private conversation included."
+    }, 200, origin);
+  } catch { return jsonResponse({ error: "Runtime configuration could not be inspected", code: "diagnostic_unavailable" }, 502, origin); }
+}
+
+async function handleSessionPerformance(request, env, origin) {
+  const owner = await requireDiagnosticOwner(request, env, origin);
+  if (owner instanceof Response) return owner;
+  const sessionId = new URL(request.url).searchParams.get("sessionId") || "";
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(sessionId)) {
+    return jsonResponse({ error: "An Anam session UUID is required", code: "invalid_session_id" }, 400, origin);
+  }
+  if (!env.ANAM_API_KEY) return jsonResponse({ error: "Service unavailable" }, 503, origin);
+  try {
+    const response = await fetch(`https://api.anam.ai/v1/sessions/${sessionId}/analytics?includeMessages=false`, {
+      headers: { Authorization: `Bearer ${env.ANAM_API_KEY}`, Accept: "application/json" },
+      signal: AbortSignal.timeout(10000)
+    });
+    if (response.status === 404) return jsonResponse({ error: "Session analytics are not available yet, or the session was not found", code: "report_unavailable" }, 404, origin);
+    if (!response.ok) return jsonResponse({ error: "Anam analytics are unavailable", code: "analytics_unavailable" }, 502, origin);
+    const report = await response.json();
+    if (String(report.sessionId).toLowerCase() !== sessionId.toLowerCase()) throw new Error("Session mismatch");
+    return jsonResponse({ runtimeRevision: RUNTIME_REVISION, ...summarizeSessionPerformance(report) }, 200, origin);
+  } catch { return jsonResponse({ error: "Session analytics could not be retrieved", code: "analytics_unavailable" }, 502, origin); }
+}
+
 async function handleNinaAnalyticsStart(request, env, origin) {
   const body = await request.json().catch(() => ({}));
   const caller = await authenticateAnalyticsCaller(request, env, body, origin);
@@ -380,6 +397,7 @@ async function handleMemoryArchivistBenchmark(request, env, origin) {
 }
 
 async function handleSessionToken(request, env, origin) {
+  const timing = createStartupTimer();
   if (!env.ANAM_API_KEY) return jsonResponse({ error: "Service unavailable" }, 503, origin);
   if (!env.NINA_KNOWLEDGE_FOLDER_ID) return jsonResponse({ error: "Knowledge configuration unavailable", code: "knowledge_configuration_missing" }, 503, origin);
   const body = await request.json().catch(() => ({}));
@@ -387,10 +405,10 @@ async function handleSessionToken(request, env, origin) {
   if (!visitorId) return jsonResponse({ error: "Invalid visitor" }, 400, origin);
   const browserHistory = validateCompletedMessages(body.recentMessages, HISTORY_LIMIT).slice(-HISTORY_LIMIT);
   const authenticationPresented = Boolean((request.headers.get("Authorization") || "").startsWith("Bearer "));
-  const identity = await authenticateNinaRequest(request, env, body);
+  const identity = await timing.measure("authentication", () => authenticateNinaRequest(request, env, body));
   if (!identity) return jsonResponse({ error: "Sign in required", code: "sign_in_required" }, 401, origin);
   try {
-    const trial = await ensureVerifiedSignupTrial(env, identity, identity.clerk_user_id);
+    const trial = await timing.measure("verification", () => ensureVerifiedSignupTrial(env, identity, identity.clerk_user_id));
     if (trial.verificationRequired) {
       return jsonResponse({ error: "Confirm your email to open the signal.", code: "email_verification_required" }, 403, origin);
     }
@@ -404,21 +422,28 @@ async function handleSessionToken(request, env, origin) {
   let conversationId = "";
   let privateMemory = formatBrowserMemory(browserHistory);
   let diagnostics = { storedMessages: 0, restoredRecentMessages: browserHistory.length, pinnedMemoryCount: 0, openThreadCount: 0, summaryLoaded: false };
-  if (identity) {
-    const conversation = await createConversation(env, identity.visitor_id);
-    conversationId = conversation.conversationId;
-    if (browserHistory.length) diagnostics.storedMessages = (await storeMessages(env, identity.visitor_id, conversationId, body.recentMessages, conversation.now)).storedMessages;
-    const [memory, relationshipContext] = await Promise.all([
-      buildOwnerMemoryContext(env, identity),
-      identity.account_authenticated ? buildRelationshipContext(env, identity.user_id) : Promise.resolve("")
-    ]);
-    privateMemory = memory.context;
-    if (relationshipContext) privateMemory = `${privateMemory}\n\n${relationshipContext}`;
-    const firstContact = unknownNameInstruction(identity);
-    if (firstContact) privateMemory = `${privateMemory}\n\n${firstContact}`;
-    diagnostics = { ...diagnostics, ...memory.diagnostics };
-  }
-  const personaConfig = await getCurrentPersonaConfig(env.ANAM_API_KEY, env.NINA_KNOWLEDGE_FOLDER_ID);
+  const prepared = await prepareSessionContext(
+    () => timing.measure("memory", async () => {
+      if (identity) {
+        const conversation = await createConversation(env, identity.visitor_id);
+        conversationId = conversation.conversationId;
+        if (browserHistory.length) diagnostics.storedMessages = (await storeMessages(env, identity.visitor_id, conversationId, body.recentMessages, conversation.now)).storedMessages;
+        const [memory, relationshipContext] = await Promise.all([
+          buildOwnerMemoryContext(env, identity),
+          identity.account_authenticated ? buildRelationshipContext(env, identity.user_id) : Promise.resolve("")
+        ]);
+        privateMemory = memory.context;
+        if (relationshipContext) privateMemory = `${privateMemory}\n\n${relationshipContext}`;
+        const firstContact = unknownNameInstruction(identity);
+        if (firstContact) privateMemory = `${privateMemory}\n\n${firstContact}`;
+        diagnostics = { ...diagnostics, ...memory.diagnostics };
+      }
+      return privateMemory;
+    }),
+    () => timing.measure("persona", () => getCurrentPersonaConfig(env.ANAM_API_KEY, env.NINA_KNOWLEDGE_FOLDER_ID))
+  );
+  privateMemory = `${CONTEXT_BOUNDARY}\n\n${prepared.context}`;
+  const personaConfig = prepared.personaConfig;
   applyStartupGreeting(personaConfig, owner, identity?.preferred_name);
   assembleSystemPrompt(personaConfig, owner, privateMemory);
   // Explicit opt-in from the website only. Existing app requests are unchanged.
@@ -426,6 +451,8 @@ async function handleSessionToken(request, env, origin) {
     personaConfig.systemPrompt += `\n\n${WEB_SIGNAL_GUIDANCE}`;
   }
   const startupDiagnostics = {
+    runtimeRevision: RUNTIME_REVISION,
+    promptCharacters: personaConfig.systemPrompt.length,
     authenticationPresented,
     accountAuthenticated: Boolean(identity?.account_authenticated),
     ownerAuthenticated: Boolean(owner),
@@ -433,9 +460,8 @@ async function handleSessionToken(request, env, origin) {
     greetingType: owner ? "owner" : "public",
     uninterruptibleGreeting: personaConfig.uninterruptibleGreeting
   };
-  console.log("nina_session_startup", JSON.stringify(startupDiagnostics));
   let usage;
-  try { usage = await createLiveNinaSession(env, identity); }
+  try { usage = await timing.measure("eligibility", () => createLiveNinaSession(env, identity)); }
   catch (error) {
     if (error instanceof SignalCreditError && error.code === "insufficient_credits") {
       return jsonResponse({ error: "No Signal Credits", code: "insufficient_credits", balance: 0, remainingSeconds: 0 }, 402, origin);
@@ -444,11 +470,11 @@ async function handleSessionToken(request, env, origin) {
   }
   let anamResponse;
   try {
-    anamResponse = await fetch("https://api.anam.ai/v1/auth/session-token", {
+    anamResponse = await timing.measure("anamToken", () => fetch("https://api.anam.ai/v1/auth/session-token", {
       method: "POST",
       headers: { "Authorization": `Bearer ${env.ANAM_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({ personaConfig })
-    });
+    }));
   } catch (error) {
     if (usage.sessionId) await failLiveNinaSession(env, identity.user_id, usage.sessionId);
     throw error;
@@ -462,6 +488,8 @@ async function handleSessionToken(request, env, origin) {
     if (usage.sessionId) await failLiveNinaSession(env, identity.user_id, usage.sessionId);
     return jsonResponse({ error: "Invalid session response" }, 502, origin);
   }
+  const serverTimingsMs = timing.snapshot();
+  console.log("nina_session_startup", JSON.stringify({ ...startupDiagnostics, serverTimingsMs }));
   return jsonResponse({
     sessionToken: data.sessionToken,
     ...(conversationId ? { conversationId } : {}),
@@ -471,8 +499,12 @@ async function handleSessionToken(request, env, origin) {
     remainingSeconds: usage.remainingSeconds,
     settlementSeconds: usage.settlementSeconds,
     trialActivationPending: usage.trialActivationPending === true,
-    diagnostics: { ...diagnostics, ...startupDiagnostics }
-  }, 200, origin);
+    diagnostics: { ...diagnostics, ...startupDiagnostics, serverTimingsMs }
+  }, 200, origin, {
+    "X-Nina-Runtime": RUNTIME_REVISION,
+    "Server-Timing": Object.entries(serverTimingsMs).map(([name, duration]) => `${name};dur=${duration}`).join(", "),
+    "Access-Control-Expose-Headers": "X-Nina-Runtime, Server-Timing"
+  });
 }
 
 async function handleLiveNinaUsage(request, env, origin, action) {
@@ -814,6 +846,9 @@ export default {
     if (!isAllowedOrigin(origin, env)) return jsonResponse({ error: "Origin not allowed" }, 403);
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders(origin) });
     try {
+      if (url.pathname === "/api/nina/runtime-version" && request.method === "GET") return jsonResponse({ runtimeRevision: RUNTIME_REVISION }, 200, origin);
+      if (url.pathname === "/api/nina/runtime-diagnostic" && request.method === "GET") return await handleRuntimeDiagnostic(request, env, origin);
+      if (url.pathname === "/api/nina/session-performance" && request.method === "GET") return await handleSessionPerformance(request, env, origin);
       if (url.pathname === "/owner/enroll" && request.method === "POST") return handleOwnerEnrollment(request, env, origin);
       if (url.pathname === "/api/nina/persona-diagnostic" && request.method === "GET") return handlePersonaDiagnostic(request, env, origin);
       if (url.pathname === "/api/nina/memory-diagnostic" && request.method === "GET") return handleMemoryDiagnostic(request, env, origin);
