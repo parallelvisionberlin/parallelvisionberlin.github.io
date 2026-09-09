@@ -6,7 +6,7 @@ let bridge, engine, closing;
 let isClosing = false;
 let watchdog;
 
-const RECOVERY_REVISION = 'RECOVERY 01';
+const RECOVERY_REVISION = 'RECOVERY 02';
 let currentDiagnostic = '';
 const safeIdentifier = value => typeof value === 'string' && /^[a-zA-Z0-9_-]{1,48}$/.test(value) ? value : '';
 const phaseNames = {microphone:'MICROPHONE',memory:'SAVED CONVERSATION',session:'CONNECTION SERVICE',avatar:'AVATAR STREAM',activation:'LIVE SESSION'};
@@ -23,7 +23,6 @@ function connectionDiagnostic(phase, error) {
   else if (phase === 'microphone' && ['NotFoundError','OverconstrainedError'].includes(name)) instruction = 'The requested microphone or setting is unavailable.';
   else if (phase === 'session') instruction = 'The connection service could not open the call.';
   else if (phase === 'avatar') instruction = 'The avatar stream could not start.';
-  // Omit raw messages, request bodies, URLs, tokens and account data.
   return `${RECOVERY_REVISION} / ${where} / ${detail}. ${instruction}`;
 }
 window.__PV_NINA_REPORT_CONNECTION_ERROR__ = (phase, error) => {
@@ -63,10 +62,18 @@ window.addEventListener('pagehide', () => { void close(); });
 try {
   bridge = installNativeIdentity();
   bridge.send('PV_NINA_STATE', { detail: 'VERIFYING APP SESSION', revision: BRIDGE_REVISION });
-  const identity = await bridge.initialize();
+
+  // Start native identity and the Nina/Anam module download together. The auth
+  // provider resolves the same identity promise, so nina-access can initialize
+  // safely even if its module finishes downloading first.
+  const identityPromise = bridge.initialize();
+  window.__PV_NINA_AUTH_PROVIDER__ = async () => identityPromise;
+  const enginePromise = import('./nina-access.js?v=recovery01');
+  const [identity, importedEngine] = await Promise.all([identityPromise, enginePromise]);
+  engine = importedEngine;
+
   if (isClosing) throw new Error('Signal closed.');
-  window.__PV_NINA_AUTH_PROVIDER__ = async () => identity;
-  engine = await import('./nina-access.js?v=recovery01');
+  if (!identity) throw new Error('App session unavailable.');
   if (isClosing) { await engine.closeNativeNina(); throw new Error('Signal closed.'); }
   const status = document.getElementById('ninaStatus');
   let previous = '';
