@@ -1,12 +1,11 @@
 // Shared, testable data and transport. No Anam or microphone code belongs here.
 export const SITE_ORIGIN = 'https://parallelvisionlabel.com';
 export const ACCOUNT_ORIGIN = 'https://parallel-vision-anam-token.parallelvision.workers.dev';
-export const SITE_REVISION = 'SITE COHESION / 05.1';
+export const SITE_REVISION = 'SITE COHESION / 05.2';
 export const projects = [
   {id:'city', title:'THE CITY', copy:'Berlin as remembered, rebuilt and imagined.', path:'/berlin-2063.html', image:'city'},
   {id:'fashion', title:'FASHION AFTER FABRIC', copy:'Bodies, material and identity beyond conventional clothing.', path:'/future-fashion.html', image:'fashion'},
-  {id:'transmissions', title:'MOVING TRANSMISSIONS', copy:'Films and fragments from Berlin 2063.', path:'/moving-transmissions.html', image:'city'},
-  {id:'people', title:'ARTISTS', copy:'The people and sounds of Parallel Vision.', path:'/index.html#artists', image:'city'},
+  {id:'transmissions', title:'MOVING TRANSMISSIONS', copy:'Films and fragments from Berlin 2063.', path:'/moving-transmissions.html', image:null},
 ];
 export const releases = [
   {id:'stay-low',title:'STAY LOW',artist:'MOLINARI × NINA FOK',url:'https://soundcloud.com/parallelvisionlabel/stay-low',playlist:false},
