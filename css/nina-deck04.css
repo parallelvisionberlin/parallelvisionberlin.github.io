@@ -1,6 +1,6 @@
 /* Opt-in only. The regular website and previous installed app are untouched. */
 body[data-pv-deck="04"] #ninaOverlay .nina-stage{background:#020303!important;}
-body[data-pv-deck="04"] #ninaOverlay .nina-intro{background:#050606 url('../assets/app/deck04/nina-portrait.jpg') center 20%/auto 100% no-repeat!important;}
+body[data-pv-deck="04"] #ninaOverlay .nina-intro{background:#050606 url('../assets/optimized/nina-fok/Canon.webp') center 20%/auto 100% no-repeat!important;}
 body[data-pv-deck="04"] #ninaOverlay .nina-intro::after{background:linear-gradient(180deg,rgba(0,0,0,.08) 0%,transparent 36%,rgba(0,0,0,.5) 64%,#020303 100%)!important;}
 body[data-pv-deck="04"] #ninaOverlay .nina-intro-content{padding:18px 20px 12px!important;gap:12px!important;}
 body[data-pv-deck="04"] #ninaOverlay .nina-intro-subtitle{font-size:16px!important;line-height:1.5!important;}
