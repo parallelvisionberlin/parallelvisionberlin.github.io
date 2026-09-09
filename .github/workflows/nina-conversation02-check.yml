@@ -1,0 +1,56 @@
+name: Nina Conversation 02 Worker checks
+on:
+  push:
+    branches: [nina-conversation02-worker]
+permissions:
+  contents: write
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply narrow reviewed source patch
+        run: python3 scripts/prepare-conversation02-worker.py
+      - name: Install the existing pinned Worker dependencies
+        working-directory: anam-token-worker
+        run: npx --yes pnpm@10.15.1 install --frozen-lockfile --ignore-scripts
+      - name: Syntax and all Worker regression tests
+        working-directory: anam-token-worker
+        run: |
+          set -o pipefail
+          npm run check
+          node --check src/conversation-runtime.js
+          npm test | tee ../conversation02-tests.log
+      - name: Build Worker without deploying or using an Anam account
+        working-directory: anam-token-worker
+        run: npx --yes pnpm@10.15.1 exec wrangler deploy --dry-run --outdir /tmp/nina-worker-check
+      - name: Verify only reviewed files changed
+        run: |
+          git diff --exit-code -- anam-token-worker/pnpm-lock.yaml anam-token-worker/package.json anam-token-worker/wrangler.toml anam-token-worker/src/auth.js anam-token-worker/src/memory.js anam-token-worker/src/relationship.js anam-token-worker/src/credits.js anam-token-worker/src/live-usage.js anam-token-worker/src/stripe.js js mobile-app
+          git diff --check
+      - name: Record exact tested code on isolated branch
+        run: |
+          git config user.name 'Parallel Vision checks'
+          git config user.email 'parallelvision.label@gmail.com'
+          git add anam-token-worker/src/index.js anam-token-worker/test/startup.test.js
+          git commit -m 'Tested Conversation 02 Worker: alignment, greetings, isolated startup and timing diagnostics'
+          git push origin HEAD:nina-conversation02-worker
+          git rev-parse HEAD > CONVERSATION02_SOURCE.txt
+          git ls-tree -r HEAD anam-token-worker > CONVERSATION02_FILES.txt
+      - name: Collect source and test evidence
+        if: always()
+        run: |
+          mkdir -p /tmp/conversation02-artifact
+          cp -r anam-token-worker/src anam-token-worker/test /tmp/conversation02-artifact/
+          cp anam-token-worker/package.json anam-token-worker/pnpm-lock.yaml anam-token-worker/wrangler.toml /tmp/conversation02-artifact/
+          cp conversation02-tests.log CONVERSATION02_SOURCE.txt CONVERSATION02_FILES.txt /tmp/conversation02-artifact/ 2>/dev/null || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: nina-conversation02-worker-checked
+          path: /tmp/conversation02-artifact
+          retention-days: 3
