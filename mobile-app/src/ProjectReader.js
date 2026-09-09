@@ -20,7 +20,7 @@ export function ProjectReader({project,onClose}){
       onError={()=>{setLoading(false);setError('This project could not load. Check your connection.');}}
       onHttpError={e=>{if(e.nativeEvent.statusCode>=400&&e.nativeEvent.url===url){setLoading(false);setError('This project is temporarily unavailable.');}}}
       onShouldStartLoadWithRequest={r=>{if(r.url==='about:blank'||trustedProjectURL(r.url))return true;if(r.isTopFrame===false)return r.url.startsWith('https://');external(r.url);return false;}}
-      injectedJavaScript={`(function(){if(location.origin!==${JSON.stringify(SITE_ORIGIN)})return;var s=document.createElement('style');s.textContent='body>nav,.site-nav,.nav-main{display:none!important}';document.head.appendChild(s);})();true;`}/>} 
+      injectedJavaScript={`(function(){if(location.origin!==${JSON.stringify(SITE_ORIGIN)})return;var s=document.createElement('style');s.textContent='body>nav,.site-nav,.nav-main{display:none!important}';document.head.appendChild(s);})();true;`}/>}
       {loading&&<View pointerEvents="none" style={s.loading}><ActivityIndicator color="#ddd"/></View>}
       {!!error&&<View style={s.error}><Text style={s.copy}>{error}</Text><Pressable accessibilityRole="button" style={s.control} onPress={()=>{setError('');web.current?.reload();}}><Text style={s.text}>TRY AGAIN</Text></Pressable></View>}
     </View></SafeAreaView>

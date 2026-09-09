@@ -2,12 +2,12 @@ import React, {useEffect,useState} from 'react';
 import {AccessibilityInfo,AppState,Image,StyleSheet,View} from 'react-native';
 import {useVideoPlayer,VideoView} from 'expo-video';
 
-// The original website films and matching posters are bundled. No network gate,
-// HTML document, autoplay overlay or extra microphone stream is used here.
+// Original website films and posters, bundled. No HTML video or microphone access.
 export function SiteFilm({source,poster,paused=false,style,label='Parallel Vision film'}) {
   const [firstFrame,setFirstFrame]=useState(false);
   const [failed,setFailed]=useState(false);
-  const [active,setActive]=useState(AppState.currentState==='active');
+  // Native startup can briefly have an unknown state; only a known inactive state pauses.
+  const [active,setActive]=useState(!AppState.currentState||AppState.currentState==='active');
   const [reduced,setReduced]=useState(false);
   const player=useVideoPlayer(source,p=>{p.muted=true;p.loop=true;p.audioMixingMode='mixWithOthers';});
   useEffect(()=>{
