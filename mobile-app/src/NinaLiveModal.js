@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, AppState, Linking, Modal, Pressable, SafeAreaView, StatusBar, StyleSheet, Text, View } from 'react-native';
+import { AppState, Linking, Modal, Pressable, SafeAreaView, StatusBar, StyleSheet, Text, View } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { isImmersiveNinaState, isNinaURL, NINA_ORIGIN, NINA_URL, readBridgeMessage, tokenReplyScript, withTimeout } from './ninaBridge';
 
@@ -127,12 +127,19 @@ export function NinaLiveModal({ getToken, onClose, onSignIn }) {
             return false;
           }} />
         {(loading || !!error) && <View style={styles.overlay}>
-          {loading && !error ? <><ActivityIndicator color="#F2EFE9" /><Text style={styles.copy}>Connecting your account to Nina…</Text></> : <>
+          {loading && !error ? <>
+            <View style={styles.signalRow}><View style={styles.signalDot}/><Text style={styles.signalLabel}>PRIVATE CHANNEL / BERLIN 2063</Text></View>
+            <Text style={styles.loadingName}>NINA{`\n`}FOK</Text>
+            <View style={styles.loadingLine}/>
+            <Text style={styles.loadingStatus}>{status}</Text>
+            <Text style={styles.copy}>Preparing the live signal.</Text>
+          </> : <>
+            <Text style={styles.errorCode}>SIGNAL INTERRUPTED</Text>
             <Text style={styles.title}>The signal could not open.</Text><Text style={styles.copy}>{error}</Text>
             <Pressable disabled={stopping} accessibilityRole="button" onPress={() => stop('retry')} style={styles.retry}><Text style={styles.closeText}>TRY AGAIN</Text></Pressable>
-            <Pressable disabled={stopping} accessibilityRole="button" onPress={() => stop('profile')} style={styles.retry}><Text style={styles.closeText}>RETURN TO PROFILE</Text></Pressable>
+            <Pressable disabled={stopping} accessibilityRole="button" onPress={() => stop('profile')} style={styles.retrySecondary}><Text style={styles.secondaryText}>RETURN TO PROFILE</Text></Pressable>
           </>}
-          <Text style={styles.revision}>BRIDGE 01</Text>
+          <Text style={styles.revision}>BRIDGE 01 / NATIVE SIGNAL</Text>
         </View>}
       </View>
       {immersive && <SafeAreaView pointerEvents="box-none" style={styles.immersiveControls}>
@@ -148,8 +155,12 @@ export function NinaLiveModal({ getToken, onClose, onSignIn }) {
 
 const styles = StyleSheet.create({
   shell:{flex:1,backgroundColor:'#000'},stage:{flex:1,backgroundColor:'#000'},safeHeader:{backgroundColor:'#000'},
-  header:{minHeight:64,paddingHorizontal:18,flexDirection:'row',alignItems:'center',borderBottomWidth:StyleSheet.hairlineWidth,borderBottomColor:'#262626'},heading:{flex:1,marginRight:12},label:{color:'#F2EFE9',fontSize:10,letterSpacing:1.8},status:{color:'#99948B',fontSize:9,letterSpacing:1.1,marginTop:6},
-  close:{minHeight:44,minWidth:76,paddingHorizontal:10,alignItems:'center',justifyContent:'center',borderWidth:StyleSheet.hairlineWidth,borderColor:'#555',borderRadius:3},closeText:{color:'#F2EFE9',fontSize:10,letterSpacing:1.3},
-  immersiveControls:{...StyleSheet.absoluteFillObject,zIndex:30},immersiveRow:{flexDirection:'row',justifyContent:'flex-end',paddingHorizontal:14,paddingTop:8},floatingClose:{width:46,height:46,borderRadius:23,backgroundColor:'rgba(0,0,0,.48)',borderWidth:StyleSheet.hairlineWidth,borderColor:'rgba(255,255,255,.38)',alignItems:'center',justifyContent:'center'},floatingCloseText:{color:'#F2EFE9',fontSize:28,lineHeight:30,fontWeight:'200'},pressed:{opacity:.65},
-  overlay:{...StyleSheet.absoluteFillObject,padding:28,justifyContent:'center',backgroundColor:'#080808'},title:{color:'#F2EFE9',fontSize:25,lineHeight:32,fontWeight:'300'},copy:{color:'#C7C2B8',fontSize:14,lineHeight:22,marginTop:16},retry:{minHeight:48,marginTop:18,borderWidth:StyleSheet.hairlineWidth,borderColor:'#555',justifyContent:'center',alignItems:'center'},revision:{color:'#777',fontSize:9,letterSpacing:1.4,marginTop:22},
+  header:{minHeight:58,paddingHorizontal:18,flexDirection:'row',alignItems:'center',borderBottomWidth:StyleSheet.hairlineWidth,borderBottomColor:'#242424'},heading:{flex:1,marginRight:12},label:{color:'#F2EFE9',fontSize:9,letterSpacing:1.7},status:{color:'#817D76',fontSize:8,letterSpacing:1.2,marginTop:5},
+  close:{minHeight:42,minWidth:70,paddingHorizontal:10,alignItems:'center',justifyContent:'center',borderWidth:StyleSheet.hairlineWidth,borderColor:'#494949'},closeText:{color:'#F2EFE9',fontSize:9,letterSpacing:1.35},
+  immersiveControls:{...StyleSheet.absoluteFillObject,zIndex:30},immersiveRow:{flexDirection:'row',justifyContent:'flex-end',paddingHorizontal:14,paddingTop:8},floatingClose:{width:44,height:44,borderRadius:22,backgroundColor:'rgba(0,0,0,.42)',borderWidth:StyleSheet.hairlineWidth,borderColor:'rgba(255,255,255,.34)',alignItems:'center',justifyContent:'center'},floatingCloseText:{color:'#F2EFE9',fontSize:27,lineHeight:29,fontWeight:'200'},pressed:{opacity:.62},
+  overlay:{...StyleSheet.absoluteFillObject,paddingHorizontal:28,paddingTop:42,paddingBottom:30,justifyContent:'center',backgroundColor:'#070707'},
+  signalRow:{flexDirection:'row',alignItems:'center',marginBottom:24},signalDot:{width:5,height:5,borderRadius:3,backgroundColor:'#F2EFE9',marginRight:8},signalLabel:{color:'#8C877F',fontSize:8,letterSpacing:1.55},
+  loadingName:{color:'#F2EFE9',fontSize:58,lineHeight:53,letterSpacing:-2.6,fontWeight:'200'},loadingLine:{height:StyleSheet.hairlineWidth,backgroundColor:'#33312E',marginTop:28,marginBottom:15},loadingStatus:{color:'#C6C1B8',fontSize:10,letterSpacing:1.6},
+  errorCode:{color:'#8C877F',fontSize:8,letterSpacing:1.55,marginBottom:18},title:{color:'#F2EFE9',fontSize:29,lineHeight:34,fontWeight:'250',letterSpacing:-.6},copy:{color:'#9D9890',fontSize:13.5,lineHeight:21,marginTop:14,maxWidth:320},
+  retry:{minHeight:50,marginTop:22,borderWidth:StyleSheet.hairlineWidth,borderColor:'#5A5752',justifyContent:'center',alignItems:'center'},retrySecondary:{minHeight:46,marginTop:8,justifyContent:'center',alignItems:'center'},secondaryText:{color:'#817D76',fontSize:9,letterSpacing:1.25},revision:{color:'#55514C',fontSize:7.5,letterSpacing:1.35,marginTop:24},
 });
