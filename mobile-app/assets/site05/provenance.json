@@ -1,0 +1,55 @@
+{
+  "sourceCommit": "ee75bcd7e921df14187ed0de5743741bf97d1a9a",
+  "files": {
+    "city.mp4": {
+      "source": "assets/optimized/video/2063/darkharmonyhero-mobile.mp4",
+      "bytes": 1004473,
+      "sha256": "25805203c15f88fd6060f317dcfd0f74ccbac0626899b08ea423e4fcab6c26bf"
+    },
+    "nina-room.mp4": {
+      "source": "assets/optimized/video/nina-fok/ninaloophero-mobile.mp4",
+      "bytes": 2104061,
+      "sha256": "9f87ed9d8ace11f82df3c9154bbc5b64892a91af8eee760f4183bc13b22a2c15"
+    },
+    "city-source.webp": {
+      "source": "assets/optimized/thecitysuperhd1.webp",
+      "bytes": 148584,
+      "sha256": "dcbe9c4f42fa719810a5df373eb32438810312621ae21b541c92185cf71cd9b0"
+    },
+    "fashion-source.webp": {
+      "source": "assets/optimized/fashion-hero.webp",
+      "bytes": 90610,
+      "sha256": "9c8cdf3440ef34e25a40d6aa48bf608386956284677484c874f322410aade03c"
+    },
+    "stay-low-source.webp": {
+      "source": "assets/optimized/artworks/staylowart.webp",
+      "bytes": 114102,
+      "sha256": "79c20a87dde66c6a05e0ae81feaf1d72ade659bb51964fe1df561ced849a4d49"
+    },
+    "stay-low.jpg": {
+      "bytes": 174788,
+      "sha256": "c36b32e38f3979db3e49c644266495558e83c3af0791a43d6ad87a41ecc1de9c",
+      "derivedFrom": "Original website media; frame extraction or format conversion only"
+    },
+    "fashion.jpg": {
+      "bytes": 67137,
+      "sha256": "c51c1626ceda6b0239e584382ffb366e7187462b44784228dd2221b0925ff824",
+      "derivedFrom": "Original website media; frame extraction or format conversion only"
+    },
+    "city-poster.jpg": {
+      "bytes": 59464,
+      "sha256": "2f64d8caecd90f924142d3627dbbfae1eee77a5b809f156f6d529e93cbc8f38b",
+      "derivedFrom": "Original website media; frame extraction or format conversion only"
+    },
+    "nina-poster.jpg": {
+      "bytes": 38386,
+      "sha256": "992fb423f69f1285e62a0e0c1de528bf34ded867e2718b0b8aedf070617f0056",
+      "derivedFrom": "Original website media; frame extraction or format conversion only"
+    },
+    "city.jpg": {
+      "bytes": 120943,
+      "sha256": "422adb080e35f6b01818bbbf9eacf1210b82eba4aae829f47aa7fc4312436e32",
+      "derivedFrom": "Original website media; frame extraction or format conversion only"
+    }
+  }
+}

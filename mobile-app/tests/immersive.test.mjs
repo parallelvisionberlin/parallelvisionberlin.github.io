@@ -26,11 +26,15 @@ test('new deck is an explicit opt-in on the same trusted live document',()=>{
  assert.equal(url.pathname,'/nina-app.html');
  assert.equal(url.searchParams.get('pv_deck'),'04');
 });
-test('native artwork is bundled and Home uses the existing Berlin road film',()=>{
- const src=readFileSync(new URL('../src/DeckScreens.js',import.meta.url),'utf8');
- assert.match(src,/require\('\.\.\/assets\/deck04\/nina-portrait.jpg'\)/);
- assert.match(src,/darkharmonyhero-mobile.mp4/);
- assert.match(src,/muted autoplay loop playsinline/);
- for(const name of ['DeckHome','DeckNina','DeckNav'])assert.match(src,new RegExp('export function '+name));
- assert.doesNotMatch(src,/ninaloophero-mobile/);
+test('canonical website films and posters are bundled, with no generated portrait dependency',()=>{
+ const assets=readFileSync(new URL('../src/site05Assets.js',import.meta.url),'utf8');
+ const media=readFileSync(new URL('../src/SiteMedia.js',import.meta.url),'utf8');
+ const screens=readFileSync(new URL('../src/DeckScreens.js',import.meta.url),'utf8');
+ assert.match(assets,/city.mp4/); assert.match(assets,/nina-room.mp4/);
+ assert.match(assets,/city-poster.jpg/); assert.match(assets,/nina-poster.jpg/);
+ assert.doesNotMatch(screens,/deck04\/nina-portrait/);
+ assert.match(media,/nativeControls=\{false\}/);
+ assert.match(media,/onFirstFrameRender/);
+ assert.match(media,/mixWithOthers/);
+ for(const name of ['DeckHome','DeckNina','Deck2063','DeckMusic','DeckNav'])assert.match(screens,new RegExp('export function '+name));
 });
