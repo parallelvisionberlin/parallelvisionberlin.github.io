@@ -1,0 +1,79 @@
+name: Read-only iPhone build provenance audit
+on:
+  push:
+    branches: [audit-site05-build5]
+    paths: ['.github/workflows/audit-site05-build5.yml']
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Inspect the two existing IPA archives without executing them
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import hashlib, json, os, pathlib, plistlib, tempfile, urllib.request, zipfile
+          builds = [
+            ('1dd3b008-6861-4592-89e8-46d22833cb5f', 'https://expo.dev/artifacts/eas/UccYQN3nJWhZb6ZhWlkLLSZdATKglW3HU6n0I7ofcdU.ipa'),
+            ('43e153b1-9544-45ba-95f3-f1b7b28c6037', 'https://expo.dev/artifacts/eas/4UWDMk3ybcpE1a8KPM9KVY0mL3irLLkkvjKJzlqisKk.ipa'),
+          ]
+          markers = ['SITE COHESION / 05.1', 'SITE COHESION / 05', 'DECK 04', 'INTERFACE 03', 'native-account', 'account-redeem', 'REDEEM CODE', 'Berlin 2063 motorbike and city film']
+          media_hashes = {
+            'original_berlin_city_mp4': '171751015a40394583d899236b7bf732efe41ea0',
+            'original_nina_room_mp4': 'b1fd4a52f1a0c74d7a70baf4d6aa92819e3fb880',
+          }
+          results = []
+          for build_id, url in builds:
+            item = {'eas_build_id': build_id}
+            with tempfile.TemporaryDirectory() as directory:
+              archive = pathlib.Path(directory) / 'app.ipa'
+              request = urllib.request.Request(url, headers={'User-Agent':'ParallelVision-read-only-build-audit'})
+              try:
+                with urllib.request.urlopen(request, timeout=90) as response, archive.open('wb') as target:
+                  size = 0
+                  while True:
+                    block = response.read(1024*1024)
+                    if not block: break
+                    size += len(block)
+                    if size > 300*1024*1024: raise RuntimeError('Archive exceeded inspection limit')
+                    target.write(block)
+                with zipfile.ZipFile(archive) as z:
+                  main_plists = [n for n in z.namelist() if n.startswith('Payload/') and n.endswith('.app/Info.plist') and n.count('/') == 2]
+                  if len(main_plists) != 1: raise RuntimeError('Expected one app Info.plist')
+                  info = plistlib.loads(z.read(main_plists[0]))
+                  item.update(version=info.get('CFBundleShortVersionString'), build_number=info.get('CFBundleVersion'), identifier=info.get('CFBundleIdentifier'))
+                  js = [n for n in z.namelist() if n.endswith(('main.jsbundle','.hbc'))]
+                  item['javascript_bundles'] = []
+                  for n in js:
+                    b = z.read(n)
+                    item['javascript_bundles'].append({'path':n,'size':len(b),'sha256':hashlib.sha256(b).hexdigest(),'markers':{m:m.encode() in b for m in markers}})
+                  videos = [n for n in z.namelist() if n.lower().endswith('.mp4')]
+                  item['bundled_mp4_files'] = []
+                  for n in videos:
+                    if z.getinfo(n).file_size > 30*1024*1024: continue
+                    b=z.read(n)
+                    sha=hashlib.sha1(b'blob '+str(len(b)).encode()+b'\0'+b).hexdigest()
+                    item['bundled_mp4_files'].append({'path':n,'bytes':len(b),'git_blob_sha':sha})
+                  item['canonical_media_present']={name:any(v['git_blob_sha']==sha for v in item['bundled_mp4_files']) for name,sha in media_hashes.items()}
+                  item['checked']=True
+              except Exception as e:
+                item['checked']=False
+                item['error']=type(e).__name__
+            results.append(item)
+          report={'operation':'read-only archive inspection, no code executed and no EAS build started','builds':results}
+          text=json.dumps(report,indent=2)
+          print(text)
+          pathlib.Path('/tmp/pv-build-audit.json').write_text(text)
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as f:
+            f.write('## Existing iPhone build audit\n\n```json\n'+text+'\n```\n')
+          if not all(i['checked'] for i in results): raise SystemExit('An archive could not be inspected; do not infer its contents.')
+          PY
+      - name: Save sanitized audit report only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pv-build-audit
+          path: /tmp/pv-build-audit.json
+          retention-days: 3
