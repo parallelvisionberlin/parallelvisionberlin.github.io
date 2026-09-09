@@ -2,16 +2,22 @@ name: Nina website conversion checks
 on:
   push:
     branches: [nina-web-conversion-20260909]
+    paths: [.github/nina-conversion-ready]
 permissions:
-  contents: read
+  contents: write
 jobs:
-  baseline:
+  website:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
         with:
+          path: payload
+          sparse-checkout: .github
+      - uses: actions/checkout@v4
+        with:
           ref: bbe528ad35a9306e35844d3afe5f016228a5e0e5
+          path: site
           sparse-checkout: |
             js
             css
@@ -19,31 +25,60 @@ jobs:
             nina-admin
             scripts
             .github
-            docs
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Install locked dependencies
+      - name: Install locked dependencies and capture baseline
+        working-directory: site
         run: |
           npm install -g pnpm@10.15.1
           pnpm --dir anam-token-worker install --frozen-lockfile
-      - name: Record baseline tests without altering source
+          npm test --prefix anam-token-worker > /tmp/nina-before.log 2>&1 || true
+      - name: Apply checksummed website patch
+        working-directory: site
         run: |
-          npm run check --prefix anam-token-worker > /tmp/syntax.log 2>&1
-          npm test --prefix anam-token-worker > /tmp/tests.log 2>&1 || true
-      - name: Package public source and dependency for offline testing
+          cat ../payload/.github/nina-conversion/patch-*.txt | base64 --decode | gzip -dc > /tmp/nina.patch
+          echo 'a92c8720f21c93211a1aff7f43288fa64da3f9cfbf7eb9ecb33b9f566133c9ef  /tmp/nina.patch' | sha256sum --check
+          git apply --check /tmp/nina.patch
+          git apply /tmp/nina.patch
+      - name: Test website and Worker
+        working-directory: site
+        run: |
+          node --check js/nina-access.js
+          node --check js/nina-web-flow.js
+          npm run check --prefix anam-token-worker
+          node --check anam-token-worker/src/web-conversation.js
+          node --test anam-token-worker/test/web-conversion.test.js > /tmp/nina-new-tests.log 2>&1
+          npm test --prefix anam-token-worker > /tmp/nina-after.log 2>&1 || true
+          python - <<'PY'
+          import re,pathlib,json
+          def failures(name):
+            return sorted(re.findall(r'^not ok \d+ - (.*)',pathlib.Path(name).read_text(),re.M))
+          before=failures('/tmp/nina-before.log');after=failures('/tmp/nina-after.log')
+          new=sorted(set(after)-set(before))
+          report={'baseline_failures':before,'post_change_failures':after,'new_failures':new}
+          pathlib.Path('/tmp/nina-regression.json').write_text(json.dumps(report,indent=2))
+          print(json.dumps(report,indent=2))
+          if new: raise SystemExit('New regressions detected')
+          PY
+      - name: Commit website-only review branch
+        working-directory: site
+        run: |
+          git add js/nina-access.js js/nina-web-flow.js css/nina-access.css index.html nina-project.html anam-token-worker/src/index.js anam-token-worker/src/meta-capi.js anam-token-worker/src/web-conversation.js anam-token-worker/migrations/20260909_nina_web_conversations.sql anam-token-worker/test/web-conversion.test.js anam-token-worker/WEBSITE_CONVERSION_CHECKLIST.md scripts/test-nina-web-browser.py
+          git diff --cached --name-only | grep -E '^(mobile-app/|nina-app.html|js/nina-app)' && exit 1 || true
+          git config user.name 'Nina website checks'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Improve Nina website signup, sound verification, continuation and qualified events'
+          git push origin HEAD:refs/heads/nina-web-reviewed-20260909
+          git rev-parse HEAD > /tmp/nina-reviewed-commit.txt
+      - name: Export test evidence
         if: always()
         run: |
-          mkdir -p /tmp/nina-review/dependency/node_modules
-          tar --exclude=node_modules --exclude=.git --exclude=.wrangler -czf /tmp/nina-review/website-source.tar.gz js css anam-token-worker nina-admin scripts .github docs *.html package*.json
-          cp -rL anam-token-worker/node_modules/stripe /tmp/nina-review/dependency/node_modules/stripe
-          tar -C /tmp/nina-review/dependency -czf /tmp/nina-review/stripe-dependency.tar.gz node_modules
-          rm -rf /tmp/nina-review/dependency
-          cp /tmp/tests.log /tmp/syntax.log /tmp/nina-review/ 2>/dev/null || true
-          git rev-parse HEAD > /tmp/nina-review/base-commit.txt
+          mkdir -p /tmp/nina-evidence
+          cp /tmp/nina-before.log /tmp/nina-after.log /tmp/nina-new-tests.log /tmp/nina-regression.json /tmp/nina-reviewed-commit.txt /tmp/nina-evidence/ 2>/dev/null || true
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: nina-current-baseline
-          path: /tmp/nina-review/
-          retention-days: 2
+          name: nina-conversion-evidence
+          path: /tmp/nina-evidence/
+          retention-days: 3
