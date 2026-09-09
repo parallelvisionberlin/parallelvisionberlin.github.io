@@ -1,0 +1,40 @@
+name: Nina admin review
+on:
+  push:
+    branches: [nina-admin-analytics-fix-20260909]
+    paths: ['.github/workflows/nina-admin-review.yml', '.github/nina-admin-review/**']
+permissions:
+  contents: read
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            js
+            css
+            anam-token-worker
+            nina-admin
+            scripts
+            .github
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: |
+          npm install -g pnpm@10.15.1
+          pnpm --dir anam-token-worker install --frozen-lockfile
+      - name: Test and export sources
+        if: always()
+        run: |
+          mkdir -p /tmp/nina-admin-review
+          npm test --prefix anam-token-worker > /tmp/nina-admin-review/worker-tests.log 2>&1 || true
+          git rev-parse HEAD > /tmp/nina-admin-review/commit.txt
+          tar --exclude=node_modules --exclude=.wrangler -czf /tmp/nina-admin-review/source.tar.gz js css anam-token-worker nina-admin scripts .github *.html package*.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: nina-admin-review
+          path: /tmp/nina-admin-review
+          retention-days: 2
