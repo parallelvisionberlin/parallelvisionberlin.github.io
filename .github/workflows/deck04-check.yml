@@ -1,0 +1,65 @@
+name: Deck 04 implementation and checks
+on:
+  push:
+    branches: [nina-deck04-design]
+permissions:
+  contents: write
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Prepare approved artwork and narrow presentation patch
+        run: |
+          python -m pip install pillow playwright
+          python scripts/deck04/apply.py
+      - name: Confirm capture code and Worker were not changed
+        run: |
+          git diff --exit-code 05d2728d7e27a52bb54b430a920e6aca32935071 -- anam-token-worker
+          python - <<'PY'
+          import subprocess
+          from pathlib import Path
+          before=subprocess.check_output(['git','show','05d2728d7e27a52bb54b430a920e6aca32935071:js/nina-access.js']).decode()
+          after=Path('js/nina-access.js').read_text()
+          assert after.startswith(before), 'Existing call engine changed'
+          assert 'getUserMedia' not in Path('js/nina-deck04.js').read_text()
+          for path in ['src/AuthPanel.js','package.json','package-lock.json','app.json']:
+              before=subprocess.check_output(['git','show','aaa379524baf4f3dd28c69ea8cf56543a60d5386:mobile-app/'+path])
+              assert Path('mobile-app/'+path).read_bytes()==before, path+' unexpectedly changed'
+          PY
+      - name: Native protocol tests and iOS JavaScript export
+        working-directory: mobile-app
+        run: |
+          npm ci --ignore-scripts
+          npm test
+          npx expo export --platform ios --output-dir /tmp/deck04-ios
+      - name: Existing-stream microphone UI tests in Chromium and WebKit
+        run: |
+          python -m playwright install --with-deps chromium webkit
+          python scripts/deck04/test-browser.py
+      - name: Commit only verified source and assets on the isolated branch
+        run: |
+          git config user.name 'Parallel Vision interface checks'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add mobile-app js/nina-access.js js/nina-app-bootstrap.js js/nina-deck04.js css/nina-deck04.css nina-app.html assets/app/deck04 DECK04_BROWSER_RESULTS.json
+          git diff --cached --check
+          git commit -m 'Implement approved Deck 04 app screens and opt-in existing-stream mic controls [skip ci]'
+          git push origin HEAD:nina-deck04-design
+          git rev-parse HEAD > DECK04_SOURCE.txt
+          git ls-tree -r HEAD mobile-app js/nina-app-bootstrap.js js/nina-access.js js/nina-deck04.js css/nina-deck04.css nina-app.html assets/app/deck04 > DECK04_FILES.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: deck04-check-evidence
+          path: |
+            DECK04_SOURCE.txt
+            DECK04_FILES.txt
+            DECK04_BROWSER_RESULTS.json
+            mobile-app/App.js
+            mobile-app/src/DeckScreens.js
+            mobile-app/src/NinaLiveModal.js
+          retention-days: 3
