@@ -13,18 +13,52 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Apply narrow reviewed source patch
-        run: python3 scripts/prepare-conversation02-worker.py
       - name: Install the existing pinned Worker dependencies
         working-directory: anam-token-worker
         run: npx --yes pnpm@10.15.1 install --frozen-lockfile --ignore-scripts
-      - name: Syntax and all Worker regression tests
+      - name: Record complete baseline test results before changing Worker source
+        working-directory: anam-token-worker
+        run: |
+          mapfile -t files < <(find test -name '*.test.js' ! -name 'conversation02.test.js' | sort)
+          set +e
+          node --test --test-reporter=tap "${files[@]}" > ../conversation02-baseline.log 2>&1
+          result=$?
+          set -e
+          test "$result" -le 1
+          tail -10 ../conversation02-baseline.log
+      - name: Apply narrow reviewed source patch
+        run: python3 scripts/prepare-conversation02-worker.py
+      - name: Require all focused alignment, identity and startup tests to pass
         working-directory: anam-token-worker
         run: |
           set -o pipefail
           npm run check
           node --check src/conversation-runtime.js
-          npm test | tee ../conversation02-tests.log
+          node --test test/conversation02.test.js test/startup.test.js | tee ../conversation02-focused.log
+      - name: Run complete patched suite and reject new failures
+        working-directory: anam-token-worker
+        run: |
+          set +e
+          node --test --test-reporter=tap test/*.test.js > ../conversation02-tests.log 2>&1
+          result=$?
+          set -e
+          test "$result" -le 1
+          python3 - <<'PY'
+          import re, json, pathlib
+          def read(path):
+              text=pathlib.Path(path).read_text()
+              failures=re.findall(r'^\s*not ok \d+ - (.+)$',text,re.M)
+              counts=dict(re.findall(r'^# (tests|pass|fail|cancelled|skipped) (\d+)$',text,re.M))
+              assert counts and int(counts.get('cancelled','1'))==0, 'Incomplete test run'
+              return {'counts':counts,'failures':sorted(failures)}
+          baseline=read('../conversation02-baseline.log'); patched=read('../conversation02-tests.log')
+          new=sorted(set(patched['failures'])-set(baseline['failures']))
+          summary={'baseline':baseline,'patched':patched,'newFailures':new,'allTestsPass':not patched['failures']}
+          pathlib.Path('../CONVERSATION02_TEST_SUMMARY.json').write_text(json.dumps(summary,indent=2))
+          print(json.dumps(summary,indent=2))
+          assert not new, 'The Worker alignment introduced a new failing test'
+          assert int(patched['counts']['tests'])>int(baseline['counts']['tests']), 'New tests were not run'
+          PY
       - name: Build Worker without deploying or using an Anam account
         working-directory: anam-token-worker
         run: npx --yes pnpm@10.15.1 exec wrangler deploy --dry-run --outdir /tmp/nina-worker-check
@@ -47,7 +81,7 @@ jobs:
           mkdir -p /tmp/conversation02-artifact
           cp -r anam-token-worker/src anam-token-worker/test /tmp/conversation02-artifact/
           cp anam-token-worker/package.json anam-token-worker/pnpm-lock.yaml anam-token-worker/wrangler.toml /tmp/conversation02-artifact/
-          cp conversation02-tests.log CONVERSATION02_SOURCE.txt CONVERSATION02_FILES.txt /tmp/conversation02-artifact/ 2>/dev/null || true
+          cp conversation02-*.log CONVERSATION02_SOURCE.txt CONVERSATION02_FILES.txt CONVERSATION02_TEST_SUMMARY.json /tmp/conversation02-artifact/ 2>/dev/null || true
       - uses: actions/upload-artifact@v4
         if: always()
         with:
