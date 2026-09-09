@@ -21,6 +21,8 @@ let selectedGiftUser = null;
 const SESSION_PAGE_SIZE = 30;
 let recentSessions = [];
 let sessionPage = 0;
+const sessionDetailCache = new Map();
+let expandedSessionId = null;
 
 async function loadClerkUI() {
   if (window.__internal_ClerkUICtor) return window.__internal_ClerkUICtor;
@@ -41,7 +43,9 @@ const duration = seconds => {
   const remainder = safe % 60;
   return `${minutes}:${String(remainder).padStart(2, "0")}`;
 };
-const dateTime = value => value ? new Intl.DateTimeFormat("en", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value)) : "—";
+const ADMIN_TIME_ZONE = "Europe/Berlin";
+const dateTime = value => value ? new Intl.DateTimeFormat("en", { dateStyle: "medium", timeStyle: "short", timeZone: ADMIN_TIME_ZONE }).format(new Date(value)) : "—";
+const timeOnly = value => value ? new Intl.DateTimeFormat("en", { hour: "2-digit", minute: "2-digit", timeZone: ADMIN_TIME_ZONE }).format(new Date(value)) : "—";
 
 function metric(container, label, value) {
   const item = document.createElement("div");
@@ -102,6 +106,86 @@ function renderCost(cost) {
   }
 }
 
+
+async function fetchSessionDetail(sessionId) {
+  if (sessionDetailCache.has(sessionId)) return sessionDetailCache.get(sessionId);
+  const token = await clerk?.session?.getToken?.();
+  if (!token) throw new Error("Sign in required");
+  const response = await fetch(`${API_ORIGIN}/api/nina/analytics/dashboard?session=${encodeURIComponent(sessionId)}`, {
+    cache: "no-store", headers: { "Authorization": `Bearer ${token}`, "Accept": "application/json" }
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || "Call detail unavailable");
+  sessionDetailCache.set(sessionId, data);
+  return data;
+}
+
+function detailStat(label, value) {
+  const item = document.createElement("div");
+  const name = document.createElement("span"), amount = document.createElement("strong");
+  name.textContent = label; amount.textContent = value; item.append(name, amount); return item;
+}
+
+function renderSessionInspector(container, detail) {
+  container.replaceChildren();
+  const hero = document.createElement("div"); hero.className = "admin-call-hero";
+  const title = document.createElement("div");
+  const eyebrow = document.createElement("p"); eyebrow.textContent = "CALL DETAIL · BERLIN TIME";
+  const heading = document.createElement("h3"); heading.textContent = detail.session.displayName || detail.session.email || "Nina visitor";
+  const subtitle = document.createElement("p");
+  subtitle.textContent = `${dateTime(detail.session.startedAt)} · ${duration(detail.session.connectedSeconds)} · ${String(detail.session.rawStatus || "").toUpperCase()}`;
+  title.append(eyebrow, heading, subtitle);
+  const close = document.createElement("button"); close.type="button"; close.className="admin-call-close"; close.textContent="Close";
+  close.addEventListener("click", event => { event.stopPropagation(); expandedSessionId = null; renderSessionPage(); });
+  hero.append(title, close); container.append(hero);
+
+  const stats = document.createElement("div"); stats.className="admin-call-stats";
+  const purchase = detail.purchases?.find(item => item.status === "paid") || detail.purchases?.[0];
+  stats.append(
+    detailStat("Conversation", detail.transcript.length ? (detail.userMessages + " / " + detail.ninaMessages + " turns") : "No transcript"),
+    detailStat("Qualified", detail.qualified ? "YES" : "NO"),
+    detailStat("Credits used", detail.live ? String(detail.live.creditsDebited) : "—"),
+    detailStat("Balance now", detail.creditAccount ? String(detail.creditAccount.balance) : "—"),
+    detailStat("Checkout", purchase ? String(purchase.status).toUpperCase() : "NONE")
+  );
+  container.append(stats);
+
+  const transcriptTitle = document.createElement("p"); transcriptTitle.className="admin-call-label"; transcriptTitle.textContent="Conversation"; container.append(transcriptTitle);
+  const transcript = document.createElement("div"); transcript.className="admin-transcript";
+  if (!detail.transcript.length) {
+    const empty=document.createElement("p"); empty.className="admin-call-empty"; empty.textContent="No stored speech for this call."; transcript.append(empty);
+  } else for (const message of detail.transcript) {
+    const turn=document.createElement("div"); turn.className="admin-turn is-" + message.role;
+    const meta=document.createElement("div");
+    const who=document.createElement("strong"); who.textContent=message.role === "user" ? "USER" : "NINA";
+    const when=document.createElement("span"); when.textContent=timeOnly(message.createdAt);
+    meta.append(who,when);
+    const body=document.createElement("p"); body.textContent=message.content;
+    turn.append(meta,body); transcript.append(turn);
+  }
+  container.append(transcript);
+
+  if (detail.userHistory?.length > 1) {
+    const historyTitle=document.createElement("p"); historyTitle.className="admin-call-label"; historyTitle.textContent="Recent visits"; container.append(historyTitle);
+    const history=document.createElement("div"); history.className="admin-call-history";
+    for(const visit of detail.userHistory){
+      const item=document.createElement("div"); item.textContent=dateTime(visit.startedAt) + " · " + duration(visit.connectedSeconds) + " · " + String(visit.status).toUpperCase() + (visit.id === detail.session.id ? " · THIS CALL" : ""); history.append(item);
+    }
+    container.append(history);
+  }
+}
+
+async function toggleSessionDetail(session, row) {
+  if (expandedSessionId === session.id) { expandedSessionId = null; renderSessionPage(); return; }
+  expandedSessionId = session.id; renderSessionPage();
+  const detailRow = elements.sessions.querySelector('[data-detail-for="' + CSS.escape(session.id) + '"]');
+  const panel = detailRow?.querySelector(".admin-call-panel");
+  if (!panel) return;
+  panel.textContent = "Loading call…";
+  try { renderSessionInspector(panel, await fetchSessionDetail(session.id)); }
+  catch (error) { panel.textContent = error.message || "Call detail unavailable."; }
+}
+
 function renderSessions(sessions) {
   recentSessions = sessions;
   renderSessionPage();
@@ -115,6 +199,10 @@ function renderSessionPage() {
   elements.sessions.replaceChildren();
   for (const session of visible) {
     const row = document.createElement("tr");
+    row.className = "admin-session-row";
+    row.tabIndex = 0;
+    row.setAttribute("role", "button");
+    row.setAttribute("aria-expanded", expandedSessionId === session.id ? "true" : "false");
     const identity = document.createElement("td");
     identity.className = "admin-session-user";
     const details = session.authenticated
@@ -132,7 +220,20 @@ function renderSessionPage() {
       cell.textContent = value;
       row.append(cell);
     }
+    row.addEventListener("click", () => void toggleSessionDetail(session, row));
+    row.addEventListener("keydown", event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); void toggleSessionDetail(session, row); } });
     elements.sessions.append(row);
+    if (expandedSessionId === session.id) {
+      const detailRow = document.createElement("tr"); detailRow.className="admin-session-detail-row"; detailRow.dataset.detailFor=session.id;
+      const cell=document.createElement("td"); cell.colSpan=6;
+      const panel=document.createElement("div"); panel.className="admin-call-panel"; panel.textContent="Loading call…";
+      cell.append(panel); detailRow.append(cell); elements.sessions.append(detailRow);
+      queueMicrotask(async () => {
+        if (expandedSessionId !== session.id) return;
+        try { renderSessionInspector(panel, await fetchSessionDetail(session.id)); }
+        catch (error) { panel.textContent = error.message || "Call detail unavailable."; }
+      });
+    }
   }
   if (!visible.length) tableMessage(elements.sessions, 6, "No sessions yet.");
   const range = recentSessions.length ? `${start + 1}–${start + visible.length}` : "0";
@@ -211,7 +312,7 @@ async function loadDashboard() {
     renderCost(data.cost);
     renderSessions(data.sessions || []);
     await loadCreditAdmin();
-    elements.generated.textContent = `Generated ${dateTime(data.generatedAt)} / Active window ${data.activeWindowSeconds} seconds`;
+    elements.generated.textContent = `Generated ${dateTime(data.generatedAt)} · Today resets at 00:00 Europe/Berlin · Active window ${data.activeWindowSeconds} seconds`;
   } catch (error) {
     elements.dashboard.hidden = true;
     elements.signOut.hidden = !clerk?.isSignedIn;

@@ -3,6 +3,30 @@ const ENTRY_ID_PATTERN = /^[0-9a-f-]{36}$/i;
 const SESSION_END_REASONS = new Set(["ended", "disconnected", "failed"]);
 const iso = value => new Date(value).toISOString();
 const secondsBetween = (start, end) => Math.max(0, Math.floor((Date.parse(end) - Date.parse(start)) / 1000));
+export const NINA_ANALYTICS_TIME_ZONE = "Europe/Berlin";
+
+function zonedParts(value, timeZone = NINA_ANALYTICS_TIME_ZONE) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone, year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23"
+  }).formatToParts(new Date(value));
+  return Object.fromEntries(parts.filter(part => part.type !== "literal").map(part => [part.type, Number(part.value)]));
+}
+
+function zoneOffsetMs(value, timeZone = NINA_ANALYTICS_TIME_ZONE) {
+  const date = new Date(value);
+  const p = zonedParts(date, timeZone);
+  const reconstructed = Date.UTC(p.year, p.month - 1, p.day, p.hour, p.minute, p.second);
+  return reconstructed - Math.floor(date.getTime() / 1000) * 1000;
+}
+
+export function berlinTodayStart(now = Date.now()) {
+  const p = zonedParts(now);
+  const wallMidnight = Date.UTC(p.year, p.month - 1, p.day, 0, 0, 0);
+  let utc = wallMidnight - zoneOffsetMs(wallMidnight);
+  utc = wallMidnight - zoneOffsetMs(utc);
+  return new Date(utc).toISOString();
+}
 
 function validEntryId(value) {
   return typeof value === "string" && ENTRY_ID_PATTERN.test(value) ? value : "";
@@ -126,10 +150,7 @@ export async function endNinaAnalyticsSession(env, { visitorId, user = null, ses
 }
 
 function rangeStart(now, days) {
-  if (days === 1) {
-    const date = new Date(now);
-    return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())).toISOString();
-  }
+  if (days === 1) return berlinTodayStart(now);
   return iso(now - days * 86400000);
 }
 
@@ -151,6 +172,119 @@ async function rangeMetrics(env, start) {
   return Object.fromEntries(Object.entries(row || {}).map(([key, value]) => [key, Math.max(0, Number(value) || 0)]));
 }
 
+
+export async function getNinaAnalyticsSessionDetail(env, sessionId) {
+  if (!validEntryId(sessionId)) return null;
+  const session = await env.NINA_MEMORY_DB.prepare(`
+    SELECT s.*, u.display_name AS user_display_name, u.email AS user_email,
+           u.memory_visitor_id AS memory_visitor_id
+    FROM nina_analytics_sessions s
+    LEFT JOIN users u ON u.id = s.user_id
+    WHERE s.id = ? LIMIT 1
+  `).bind(sessionId).first();
+  if (!session) return null;
+
+  const messageVisitorId = session.memory_visitor_id || session.visitor_id;
+  const startedMs = Date.parse(session.started_at);
+  const endedMs = Date.parse(session.ended_at || session.last_seen_at || session.started_at);
+  const lower = iso(startedMs - 120000);
+  const upper = iso(Math.max(startedMs, endedMs) + 120000);
+  const purchaseUpper = iso(Math.max(startedMs, endedMs) + 3600000);
+
+  const conversation = await env.NINA_MEMORY_DB.prepare(`
+    SELECT conversation_id, started_at, ended_at
+    FROM conversations
+    WHERE visitor_id = ? AND started_at >= ? AND started_at <= ?
+    ORDER BY ABS(strftime('%s', started_at) - strftime('%s', ?)) ASC
+    LIMIT 1
+  `).bind(messageVisitorId, lower, upper, session.started_at).first();
+
+  const messages = conversation ? await env.NINA_MEMORY_DB.prepare(`
+    SELECT role, content, created_at
+    FROM messages
+    WHERE conversation_id = ? AND visitor_id = ?
+    ORDER BY created_at ASC, rowid ASC
+  `).bind(conversation.conversation_id, messageVisitorId).all() : { results: [] };
+
+  let live = null, account = null, transactions = { results: [] }, purchases = { results: [] }, qualified = null, userHistory = { results: [] };
+  if (session.user_id) {
+    [live, account, transactions, purchases, userHistory] = await Promise.all([
+      env.NINA_MEMORY_DB.prepare(`
+        SELECT id, status, started_at, ended_at, credits_available_on_start, credits_debited, created_at
+        FROM live_nina_sessions
+        WHERE user_id = ? AND created_at >= ? AND created_at <= ?
+        ORDER BY ABS(strftime('%s', created_at) - strftime('%s', ?)) ASC LIMIT 1
+      `).bind(session.user_id, lower, upper, session.started_at).first(),
+      env.NINA_MEMORY_DB.prepare(`
+        SELECT balance, lifetime_credited, lifetime_debited, updated_at
+        FROM signal_credit_accounts WHERE user_id = ? LIMIT 1
+      `).bind(session.user_id).first(),
+      env.NINA_MEMORY_DB.prepare(`
+        SELECT amount, type, source, description, created_at
+        FROM signal_credit_transactions
+        WHERE user_id = ? AND created_at >= ? AND created_at <= ?
+        ORDER BY created_at ASC
+      `).bind(session.user_id, lower, purchaseUpper).all(),
+      env.NINA_MEMORY_DB.prepare(`
+        SELECT pack_id, credits, amount_total, currency, status, created_at, paid_at
+        FROM signal_credit_purchases
+        WHERE user_id = ? AND created_at >= ? AND created_at <= ?
+        ORDER BY created_at ASC
+      `).bind(session.user_id, lower, purchaseUpper).all(),
+      env.NINA_MEMORY_DB.prepare(`
+        SELECT id, status, started_at, connected_seconds, is_returning
+        FROM nina_analytics_sessions WHERE user_id = ?
+        ORDER BY started_at DESC LIMIT 12
+      `).bind(session.user_id).all()
+    ]);
+    if (conversation) {
+      try {
+        qualified = await env.NINA_MEMORY_DB.prepare(`
+          SELECT qualified_at, meta_sent_at FROM nina_qualified_conversations
+          WHERE user_id = ? AND conversation_id = ? LIMIT 1
+        `).bind(session.user_id, conversation.conversation_id).first();
+      } catch { qualified = null; }
+    }
+  }
+
+  const transcript = (messages.results || []).map(row => ({
+    role: row.role === 'user' ? 'user' : 'nina', content: row.content, createdAt: row.created_at
+  }));
+  const userMessages = transcript.filter(message => message.role === 'user').length;
+  const ninaMessages = transcript.filter(message => message.role === 'nina').length;
+  return {
+    timeZone: NINA_ANALYTICS_TIME_ZONE,
+    session: {
+      id: session.id, authenticated: Number(session.is_authenticated) === 1,
+      actorType: session.actor_type, returning: Number(session.is_returning) === 1,
+      displayName: session.user_display_name || '', email: session.user_email || '',
+      startedAt: session.started_at, endedAt: session.ended_at, lastSeenAt: session.last_seen_at,
+      connectedSeconds: Math.max(0, Number(session.connected_seconds) || 0), rawStatus: session.status
+    },
+    conversation: conversation ? { id: conversation.conversation_id, startedAt: conversation.started_at, endedAt: conversation.ended_at } : null,
+    transcript, userMessages, ninaMessages,
+    live: live ? {
+      id: live.id, status: live.status, startedAt: live.started_at, endedAt: live.ended_at,
+      creditsAtStart: Number(live.credits_available_on_start) || 0,
+      creditsDebited: Number(live.credits_debited) || 0
+    } : null,
+    creditAccount: account ? {
+      balance: Number(account.balance) || 0, lifetimeCredited: Number(account.lifetime_credited) || 0,
+      lifetimeDebited: Number(account.lifetime_debited) || 0, updatedAt: account.updated_at
+    } : null,
+    creditEvents: (transactions.results || []).map(row => ({ ...row, amount: Number(row.amount) || 0 })),
+    purchases: (purchases.results || []).map(row => ({
+      packId: row.pack_id, credits: Number(row.credits) || 0, amountTotal: Number(row.amount_total) || 0,
+      currency: row.currency, status: row.status, createdAt: row.created_at, paidAt: row.paid_at
+    })),
+    qualified: Boolean(qualified), qualifiedAt: qualified?.qualified_at || null, metaSentAt: qualified?.meta_sent_at || null,
+    userHistory: (userHistory.results || []).map(row => ({
+      id: row.id, status: row.status, startedAt: row.started_at,
+      connectedSeconds: Math.max(0, Number(row.connected_seconds) || 0), returning: Number(row.is_returning) === 1
+    }))
+  };
+}
+
 export async function getNinaAnalyticsDashboard(env, now = Date.now()) {
   const current = iso(now);
   const activeCutoff = iso(now - NINA_ANALYTICS_ACTIVE_SECONDS * 1000);
@@ -168,12 +302,12 @@ export async function getNinaAnalyticsDashboard(env, now = Date.now()) {
              s.started_at, s.last_seen_at, s.ended_at, s.connected_seconds,
              u.display_name AS user_display_name, u.email AS user_email,
              (SELECT COUNT(*) FROM messages m
-                WHERE m.visitor_id = s.visitor_id
+                WHERE m.visitor_id = COALESCE(u.memory_visitor_id, s.visitor_id)
                   AND m.role = 'user'
                   AND m.created_at >= s.started_at
                   AND m.created_at <= COALESCE(s.ended_at, s.last_seen_at)) AS user_messages,
              (SELECT COUNT(*) FROM messages m
-                WHERE m.visitor_id = s.visitor_id
+                WHERE m.visitor_id = COALESCE(u.memory_visitor_id, s.visitor_id)
                   AND m.role = 'persona'
                   AND m.created_at >= s.started_at
                   AND m.created_at <= COALESCE(s.ended_at, s.last_seen_at)) AS persona_messages
@@ -191,6 +325,8 @@ export async function getNinaAnalyticsDashboard(env, now = Date.now()) {
   const totalMinutes = days30.total_seconds / 60;
   return {
     generatedAt: current,
+    timeZone: NINA_ANALYTICS_TIME_ZONE,
+    todayStart: starts.today,
     activeWindowSeconds: NINA_ANALYTICS_ACTIVE_SECONDS,
     ranges: { today, days7, days30 },
     engagement: {

@@ -18,7 +18,7 @@ import {
   StripePurchaseError, createSignalCreditCheckout, verifyAndProcessStripeWebhook
 } from "./stripe.js";
 import {
-  endNinaAnalyticsSession, getNinaAnalyticsDashboard, startNinaAnalyticsSession, touchNinaAnalyticsSession
+  endNinaAnalyticsSession, getNinaAnalyticsDashboard, getNinaAnalyticsSessionDetail, startNinaAnalyticsSession, touchNinaAnalyticsSession
 } from "./analytics.js";
 import { VoucherError, createVoucher, findCreditUser, getCreditAdminDashboard, grantGiftCredits, redeemVoucher } from "./vouchers.js";
 import { MetaCapiError, sendNinaMetaEvent } from "./meta-capi.js";
@@ -369,6 +369,11 @@ async function handleNinaAnalyticsDashboard(request, env, origin) {
   const owner = await authenticateAccountRequest(request, env);
   if (!owner) return jsonResponse({ error: "Account authentication required", code: "sign_in_required" }, 401, origin);
   if (owner.role !== "owner") return jsonResponse({ error: "Owner access required", code: "owner_required" }, 403, origin);
+  const sessionId = new URL(request.url).searchParams.get("session");
+  if (sessionId) {
+    const detail = await getNinaAnalyticsSessionDetail(env, sessionId);
+    return detail ? jsonResponse(detail, 200, origin) : jsonResponse({ error: "Session not found", code: "session_not_found" }, 404, origin);
+  }
   return jsonResponse(await getNinaAnalyticsDashboard(env), 200, origin);
 }
 
