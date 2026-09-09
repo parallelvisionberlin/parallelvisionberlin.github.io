@@ -28,6 +28,7 @@ jobs:
           python .github/admin-call-recovery/apply_frontend.py
           python - <<'PY'
           import subprocess
+          from pathlib import Path
           expected = {
             'anam-token-worker/src/analytics.js': '5bbe1fff17720d773685352bbbd55d4263acc72a',
             'anam-token-worker/src/index.js': 'afe0fe30091203187819c0fc34cc212d66749db3',
@@ -41,10 +42,24 @@ jobs:
           for path, sha in expected.items():
             actual = subprocess.check_output(['git', 'hash-object', path], text=True).strip()
             assert actual == sha, (path, actual, sha)
-          print('All eight file hashes match the locally reviewed patch.')
+          # Keep internal IDs distinct from real-shaped auth subjects. The production
+          # verifier correctly rejects subjects such as 'public-a': Clerk uses user_*.
+          path = Path('anam-token-worker/test/admin-call-recovery.test.js')
+          text = path.read_text()
+          old = "const at = offset => new Date(NOW + offset).toISOString();"
+          assert text.count(old) == 1
+          text = text.replace(old, old + "\nconst subject = id => 'user_' + id.replace(/-/g, '');")
+          old = ".run(id, 'clerk', id, id + '@example.invalid'"
+          assert text.count(old) == 1
+          text = text.replace(old, ".run(id, 'clerk', subject(id), id + '@example.invalid'")
+          old = 'iss: issuer, sub, azp: origin'
+          assert text.count(old) == 1
+          text = text.replace(old, 'iss: issuer, sub: subject(sub), azp: origin')
+          path.write_text(text)
+          print('Production patch hashes verified; synthetic auth subjects corrected without changing production authentication.')
           PY
           git diff --check
-          git diff --exit-code -- mobile-app js/nina-access.js js/nina-app-bootstrap.js anam-token-worker/src/live-usage.js anam-token-worker/src/stripe.js anam-token-worker/src/memory.js
+          git diff --exit-code -- mobile-app js/nina-access.js js/nina-app-bootstrap.js anam-token-worker/src/auth.js anam-token-worker/src/live-usage.js anam-token-worker/src/stripe.js anam-token-worker/src/memory.js
       - name: Install dependencies from the existing lockfile
         run: |
           npm install -g pnpm@10.15.1
@@ -53,18 +68,32 @@ jobs:
         run: |
           node --check js/nina-admin.js
           npm run check --prefix anam-token-worker
-          node --test anam-token-worker/test/admin-call-recovery.test.js anam-token-worker/test/admin-analytics-fix.test.js anam-token-worker/test/analytics.test.js
+          node --test anam-token-worker/test/admin-call-recovery.test.js anam-token-worker/test/admin-analytics-fix.test.js anam-token-worker/test/analytics.test.js | tee "$RUNNER_TEMP/nina-backend-tests.log"
       - name: Offline desktop and phone browser regressions
         run: |
           python -m pip install playwright==1.56.0
           python -m playwright install --with-deps chromium
-          python scripts/test-nina-admin-call-recovery.py
+          python scripts/test-nina-admin-call-recovery.py | tee "$RUNNER_TEMP/nina-browser-tests.log"
       - name: Compile Worker without deploying
         run: pnpm --dir anam-token-worker exec wrangler deploy --dry-run --outdir "$RUNNER_TEMP/nina-admin-bundle"
       - name: Commit tested production files to the isolated branch only
         run: |
-          git add anam-token-worker/src/analytics.js anam-token-worker/src/index.js css/nina-admin.css js/nina-admin.js nina-admin/index.html
+          git add anam-token-worker/src/analytics.js anam-token-worker/src/index.js css/nina-admin.css js/nina-admin.js nina-admin/index.html anam-token-worker/test/admin-call-recovery.test.js
           git config user.name 'Nina admin regression checks'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git commit -m 'Fix admin transcript recovery and call-name disclosure after passing regressions'
           git push origin HEAD:nina-admin-call-recovery-20260909
+      - name: Collect source and test evidence
+        if: always()
+        run: |
+          mkdir -p "$RUNNER_TEMP/nina-call-review"
+          tar --exclude=node_modules --exclude=.wrangler -czf "$RUNNER_TEMP/nina-call-review/source.tar.gz" anam-token-worker js css nina-admin scripts .github *.html package*.json
+          cp "$RUNNER_TEMP"/nina-*-tests.log "$RUNNER_TEMP/nina-call-review/" 2>/dev/null || true
+          git rev-parse HEAD > "$RUNNER_TEMP/nina-call-review/commit.txt"
+          git diff --stat > "$RUNNER_TEMP/nina-call-review/uncommitted-diff.txt"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: nina-call-release-evidence
+          path: ${{ runner.temp }}/nina-call-review/
+          retention-days: 2
