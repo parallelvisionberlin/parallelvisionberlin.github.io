@@ -1,0 +1,24 @@
+name: Nina speech recovery review
+on:
+  push:
+    branches: [nina-speech-trial-recovery-20260910]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Package current source for isolated review
+        run: |
+          mkdir -p /tmp/nina-speech-review
+          git rev-parse HEAD > /tmp/nina-speech-review/commit.txt
+          git archive --format=tar.gz HEAD anam-token-worker js css scripts .github package.json pnpm-lock.yaml nina-project.html nina-admin/index.html nina-app.html index.html > /tmp/nina-speech-review/source.tar.gz
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nina-speech-recovery-source
+          path: /tmp/nina-speech-review/
+          retention-days: 3
