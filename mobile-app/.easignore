@@ -1,0 +1,15 @@
+node_modules/
+.expo/
+dist/
+build/
+ios/
+android/
+*.log
+*.sql
+.env
+.env.*
+*.p8
+*.p12
+credentials.json
+*.before-*
+*.backup*

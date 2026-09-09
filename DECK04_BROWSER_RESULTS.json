@@ -1,0 +1,140 @@
+[
+  {
+    "engine": "chromium",
+    "viewport": [
+      390,
+      740
+    ],
+    "checks": [
+      "off-before-call",
+      "mute",
+      "unmute",
+      "accessible-state",
+      "real-level-input",
+      "silent-level-flat",
+      "fits-screen",
+      "no-capture",
+      "no-stop",
+      "meter-failure-safe",
+      "ended-input-disabled",
+      "error-ui-clear",
+      "cleanup",
+      "old-app-not-opted-in"
+    ]
+  },
+  {
+    "engine": "chromium",
+    "viewport": [
+      320,
+      520
+    ],
+    "checks": [
+      "off-before-call",
+      "mute",
+      "unmute",
+      "accessible-state",
+      "real-level-input",
+      "silent-level-flat",
+      "fits-screen",
+      "no-capture",
+      "no-stop",
+      "meter-failure-safe",
+      "ended-input-disabled",
+      "error-ui-clear",
+      "cleanup",
+      "old-app-not-opted-in"
+    ]
+  },
+  {
+    "engine": "chromium",
+    "viewport": [
+      430,
+      800
+    ],
+    "checks": [
+      "off-before-call",
+      "mute",
+      "unmute",
+      "accessible-state",
+      "real-level-input",
+      "silent-level-flat",
+      "fits-screen",
+      "no-capture",
+      "no-stop",
+      "meter-failure-safe",
+      "ended-input-disabled",
+      "error-ui-clear",
+      "cleanup",
+      "old-app-not-opted-in"
+    ]
+  },
+  {
+    "engine": "webkit",
+    "viewport": [
+      390,
+      740
+    ],
+    "checks": [
+      "off-before-call",
+      "mute",
+      "unmute",
+      "accessible-state",
+      "real-level-input",
+      "silent-level-flat",
+      "fits-screen",
+      "no-capture",
+      "no-stop",
+      "meter-failure-safe",
+      "ended-input-disabled",
+      "error-ui-clear",
+      "cleanup",
+      "old-app-not-opted-in"
+    ]
+  },
+  {
+    "engine": "webkit",
+    "viewport": [
+      320,
+      520
+    ],
+    "checks": [
+      "off-before-call",
+      "mute",
+      "unmute",
+      "accessible-state",
+      "real-level-input",
+      "silent-level-flat",
+      "fits-screen",
+      "no-capture",
+      "no-stop",
+      "meter-failure-safe",
+      "ended-input-disabled",
+      "error-ui-clear",
+      "cleanup",
+      "old-app-not-opted-in"
+    ]
+  },
+  {
+    "engine": "webkit",
+    "viewport": [
+      430,
+      800
+    ],
+    "checks": [
+      "off-before-call",
+      "mute",
+      "unmute",
+      "accessible-state",
+      "real-level-input",
+      "silent-level-flat",
+      "fits-screen",
+      "no-capture",
+      "no-stop",
+      "meter-failure-safe",
+      "ended-input-disabled",
+      "error-ui-clear",
+      "cleanup",
+      "old-app-not-opted-in"
+    ]
+  }
+]
