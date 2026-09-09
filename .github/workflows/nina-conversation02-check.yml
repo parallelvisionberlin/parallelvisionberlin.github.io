@@ -13,6 +13,17 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Preserve the newer website and Worker changes before applying alignment
+        run: |
+          git fetch --depth=1 origin 76d935dc60f16685a8121432d5e997f55926c0ce
+          git restore --source=FETCH_HEAD -- anam-token-worker/src/index.js anam-token-worker/src/meta-capi.js anam-token-worker/src/web-conversation.js anam-token-worker/test/meta-capi.test.js anam-token-worker/test/web-conversion.test.js anam-token-worker/test/startup.test.js anam-token-worker/WEBSITE_CONVERSION_CHECKLIST.md anam-token-worker/migrations/20260909_nina_web_conversations.sql css/nina-access.css index.html js/nina-access.js js/nina-web-flow.js nina-project.html scripts/test-nina-web-browser.py
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('scripts/prepare-conversation02-worker.py')
+          s=p.read_text()
+          assert s.count('baa6287f141f608fc34204ffe3662e80d9a168b2')==1
+          p.write_text(s.replace('baa6287f141f608fc34204ffe3662e80d9a168b2','a1281e0ff3ffbe5fe90dfcf745169091abf3e3d9'))
+          PY
       - name: Install the existing pinned Worker dependencies
         working-directory: anam-token-worker
         run: npx --yes pnpm@10.15.1 install --frozen-lockfile --ignore-scripts
@@ -34,7 +45,7 @@ jobs:
           set -o pipefail
           npm run check
           node --check src/conversation-runtime.js
-          node --test test/conversation02.test.js test/startup.test.js | tee ../conversation02-focused.log
+          node --test test/conversation02.test.js test/startup.test.js test/web-conversion.test.js | tee ../conversation02-focused.log
       - name: Run complete patched suite and reject new failures
         working-directory: anam-token-worker
         run: |
@@ -62,16 +73,16 @@ jobs:
       - name: Build Worker without deploying or using an Anam account
         working-directory: anam-token-worker
         run: npx --yes pnpm@10.15.1 exec wrangler deploy --dry-run --outdir /tmp/nina-worker-check
-      - name: Verify only reviewed files changed
+      - name: Verify unrelated files match the newer main commit
         run: |
-          git diff --exit-code -- anam-token-worker/pnpm-lock.yaml anam-token-worker/package.json anam-token-worker/wrangler.toml anam-token-worker/src/auth.js anam-token-worker/src/memory.js anam-token-worker/src/relationship.js anam-token-worker/src/credits.js anam-token-worker/src/live-usage.js anam-token-worker/src/stripe.js js mobile-app
+          git diff --exit-code 76d935dc60f16685a8121432d5e997f55926c0ce -- anam-token-worker/pnpm-lock.yaml anam-token-worker/package.json anam-token-worker/wrangler.toml anam-token-worker/src/auth.js anam-token-worker/src/memory.js anam-token-worker/src/relationship.js anam-token-worker/src/credits.js anam-token-worker/src/live-usage.js anam-token-worker/src/stripe.js anam-token-worker/src/meta-capi.js anam-token-worker/src/web-conversation.js js mobile-app css index.html nina-project.html
           git diff --check
       - name: Record exact tested code on isolated branch
         run: |
           git config user.name 'Parallel Vision checks'
           git config user.email 'parallelvision.label@gmail.com'
-          git add anam-token-worker/src/index.js anam-token-worker/test/startup.test.js
-          git commit -m 'Tested Conversation 02 Worker: alignment, greetings, isolated startup and timing diagnostics'
+          git add anam-token-worker css/nina-access.css index.html js/nina-access.js js/nina-web-flow.js nina-project.html scripts/test-nina-web-browser.py
+          git commit -m 'Tested Conversation 02 Worker integrated with the newer website conversion update'
           git push origin HEAD:nina-conversation02-worker
           git rev-parse HEAD > CONVERSATION02_SOURCE.txt
           git ls-tree -r HEAD anam-token-worker > CONVERSATION02_FILES.txt
