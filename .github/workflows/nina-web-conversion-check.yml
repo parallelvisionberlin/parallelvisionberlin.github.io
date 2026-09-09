@@ -41,6 +41,8 @@ jobs:
           echo 'a92c8720f21c93211a1aff7f43288fa64da3f9cfbf7eb9ecb33b9f566133c9ef  /tmp/nina.patch' | sha256sum --check
           git apply --check /tmp/nina.patch
           git apply /tmp/nina.patch
+          git apply --check ../payload/.github/nina-conversion/expectation.patch
+          git apply ../payload/.github/nina-conversion/expectation.patch
       - name: Test website and Worker
         working-directory: site
         run: |
@@ -64,7 +66,7 @@ jobs:
       - name: Commit website-only review branch
         working-directory: site
         run: |
-          git add js/nina-access.js js/nina-web-flow.js css/nina-access.css index.html nina-project.html anam-token-worker/src/index.js anam-token-worker/src/meta-capi.js anam-token-worker/src/web-conversation.js anam-token-worker/migrations/20260909_nina_web_conversations.sql anam-token-worker/test/web-conversion.test.js anam-token-worker/WEBSITE_CONVERSION_CHECKLIST.md scripts/test-nina-web-browser.py
+          git add js/nina-access.js js/nina-web-flow.js css/nina-access.css index.html nina-project.html anam-token-worker/src/index.js anam-token-worker/src/meta-capi.js anam-token-worker/src/web-conversation.js anam-token-worker/migrations/20260909_nina_web_conversations.sql anam-token-worker/test/web-conversion.test.js anam-token-worker/test/meta-capi.test.js anam-token-worker/WEBSITE_CONVERSION_CHECKLIST.md scripts/test-nina-web-browser.py
           git diff --cached --name-only | grep -E '^(mobile-app/|nina-app.html|js/nina-app)' && exit 1 || true
           git config user.name 'Nina website checks'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
