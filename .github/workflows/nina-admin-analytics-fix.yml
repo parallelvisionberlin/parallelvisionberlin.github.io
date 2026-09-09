@@ -30,7 +30,7 @@ jobs:
       - name: Apply admin analytics fixes
         run: node scripts/nina-admin-analytics-fix.mjs
       - name: Install worker dependencies
-        run: npm ci --prefix anam-token-worker
+        run: npm install --prefix anam-token-worker --no-audit --no-fund
       - name: Syntax check
         run: npm run check --prefix anam-token-worker
       - name: Focused analytics tests
