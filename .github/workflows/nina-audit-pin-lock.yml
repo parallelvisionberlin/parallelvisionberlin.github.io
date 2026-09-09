@@ -1,0 +1,39 @@
+name: Pin tested Nina audit dependency lock
+on:
+  push:
+    branches: [nina-readonly-access-20260909]
+    paths: ['.github/workflows/nina-audit-pin-lock.yml']
+permissions:
+  contents: write
+  actions: read
+jobs:
+  pin:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            nina-audit-worker
+            anam-token-worker
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/download-artifact@v4
+        with:
+          name: nina-audit-lockfile
+          run-id: 34353981118
+          github-token: ${{ github.token }}
+          path: nina-audit-worker
+      - name: Verify exact tested lock and replay authorization regressions
+        run: |
+          echo '55b18d4eccb95cdf62780ab6f4d224db3673c63ab0253ee0eb473b9d89da8d48  nina-audit-worker/package-lock.json' | sha256sum --check
+          npm ci --prefix nina-audit-worker
+          npm test --prefix nina-audit-worker
+      - name: Commit only the verified lockfile to the isolated branch
+        run: |
+          git add nina-audit-worker/package-lock.json
+          git config user.name 'Nina audit verification'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Pin exact dependency integrity for the separate Nina read-only service'
+          git push origin HEAD:nina-readonly-access-20260909
