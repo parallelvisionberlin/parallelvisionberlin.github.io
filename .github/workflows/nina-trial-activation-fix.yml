@@ -1,0 +1,41 @@
+name: Nina trial activation fix
+on:
+  push:
+    branches: [nina-trial-activation-fix-20260909]
+permissions:
+  contents: write
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: nina-trial-activation-fix-20260909
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply website-only repair
+        run: python scripts/apply-nina-trial-activation-fix.py
+      - name: Confirm app and billing backend remain unchanged
+        run: |
+          git diff --check
+          git diff --exit-code -- nina-app.html js/nina-app-bootstrap.js js/nina-deck04.js css/nina-deck04.css anam-token-worker/src/live-usage.js anam-token-worker/src/stripe.js
+      - name: Install existing Worker dependencies
+        run: |
+          npm install -g pnpm@10.15.1
+          pnpm --dir anam-token-worker install --frozen-lockfile
+      - name: Run web conversion and live-usage regressions
+        run: |
+          node --check js/nina-access.js
+          node --test anam-token-worker/test/web-conversion.test.js anam-token-worker/test/live-usage.test.js
+          npm run check --prefix anam-token-worker
+      - name: Commit tested production files to isolated branch
+        run: |
+          git add js/nina-access.js js/nina-web-flow.js anam-token-worker/test/web-conversion.test.js
+          git config user.name 'Nina trial checks'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          if ! git diff --cached --quiet; then
+            git commit -m 'Prevent conversations from running inside signup sound-check grace'
+            git push origin HEAD:nina-trial-activation-fix-20260909
+          fi
