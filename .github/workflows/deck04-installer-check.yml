@@ -1,0 +1,39 @@
+name: Deck 04 Windows installer check
+on:
+  push:
+    branches: [mobile-app-v1]
+    paths: ['mobile-app/finish-deck04.ps1', '.github/workflows/deck04-installer-check.yml']
+permissions:
+  contents: read
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: mobile-app
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Parse installer in Windows PowerShell 5.1 without running a cloud build
+        shell: powershell
+        run: |
+          $Errors = $null
+          $Tokens = $null
+          $File = Join-Path $env:GITHUB_WORKSPACE 'mobile-app\finish-deck04.ps1'
+          $null = [System.Management.Automation.Language.Parser]::ParseFile($File, [ref]$Tokens, [ref]$Errors)
+          if ($Errors.Count -gt 0) { throw ($Errors | Out-String) }
+          $Source = Get-Content -LiteralPath $File -Raw
+          if (!$Source.Contains('10eb168dbd9e4c7359f7b9dc454cb1c1841b9870')) { throw 'Source pin changed.' }
+          Write-Host 'PowerShell 5.1 syntax and source pin passed. No EAS build started.'
+      - name: Verify native source and bundled asset paths on Windows
+        shell: powershell
+        working-directory: mobile-app
+        run: |
+          npm.cmd ci --ignore-scripts
+          if ($LASTEXITCODE -ne 0) { throw 'Dependency install failed.' }
+          npm.cmd test
+          if ($LASTEXITCODE -ne 0) { throw 'Native tests failed.' }
+          npx.cmd expo export --platform ios --output-dir "$env:RUNNER_TEMP\deck04-ios"
+          if ($LASTEXITCODE -ne 0) { throw 'iOS JavaScript export failed.' }
