@@ -3,6 +3,7 @@ import hashlib, re, subprocess, urllib.request, shutil
 from PIL import Image, ImageDraw
 
 APP_BASE='aaa379524baf4f3dd28c69ea8cf56543a60d5386'
+subprocess.run(['git','fetch','--depth=1','origin','05d2728d7e27a52bb54b430a920e6aca32935071'],check=True)
 subprocess.run(['git','fetch','--depth=1','origin',APP_BASE],check=True)
 subprocess.run(['git','restore','--source='+APP_BASE,'--staged','--worktree','--','mobile-app'],check=True)
 app=Path('mobile-app'); assets=app/'assets/deck04'; assets.mkdir(parents=True,exist_ok=True)
@@ -47,13 +48,13 @@ p.write_text(s)
 p=app/'src/ninaBridge.js';s=p.read_text();s=replace(s,'/nina-app.html?pv_app=1&v=bridge01','/nina-app.html?pv_app=1&v=deck04&pv_deck=04');p.write_text(s)
 p=app/'src/NinaLiveModal.js';s=p.read_text();s=replace(s,'hidden={immersive}','hidden={false}')
 s=replace(s,'{!immersive && <SafeAreaView style={styles.safeHeader}>','<SafeAreaView style={styles.safeHeader}>')
-s=replace(s,'      </SafeAreaView>}','      </SafeAreaView>')
+assert s.count('      </SafeAreaView>}')==2
+s=s.replace('      </SafeAreaView>}','      </SafeAreaView>',1)
 s=replace(s,'      <View style={styles.stage}>','      <View style={styles.deck}>')
 start=s.index('      {immersive && <SafeAreaView');end=s.index('    </View>\n  </Modal>',start)
 s=s[:start]+s[end:]
 s=replace(s,'const styles = StyleSheet.create({',"const styles = StyleSheet.create({\n  deck:{flex:1,marginHorizontal:9,marginBottom:24,marginTop:4,borderWidth:StyleSheet.hairlineWidth,borderColor:'#414940',borderRadius:5,overflow:'hidden',backgroundColor:'#020303'},")
 p.write_text(s)
-# No existing capture, stream, authentication or Worker code is replaced.
 p=Path('js/nina-access.js');s=p.read_text();assert 'function getNinaDeckStream' not in s
 s+='\n// Read-only stream access for the opt-in native presentation. Capture ownership stays here.\nexport function getNinaDeckStream() {\n  return window.location.pathname === "/nina-app.html" && new URLSearchParams(window.location.search).get("pv_deck") === "04" ? ninaMicrophoneStream : null;\n}\n';p.write_text(s)
 p=Path('js/nina-app-bootstrap.js');s=p.read_text();s=replace(s,'let bridge, engine, closing;','let bridge, engine, closing, deck;')
@@ -63,5 +64,4 @@ s=replace(s,'  isClosing = true;','  isClosing = true;\n  deck?.dispose();')
 p.write_text(s)
 p=Path('nina-app.html');s=p.read_text();s,n=re.subn(r'(<script type="module" src="\./js/nina-app-bootstrap.js\?v=)[^"\s]+',r'\g<1>deck04',s);assert n==1
 s=replace(s,'<body ','<body data-pv-deck-release="04" ');p.write_text(s)
-# A visible design revision and immutable sources will be used by the build script.
 print('DECK 04 prepared: approved cropped portrait, Berlin film, native screens, opt-in live deck, existing-stream mic controls.')
