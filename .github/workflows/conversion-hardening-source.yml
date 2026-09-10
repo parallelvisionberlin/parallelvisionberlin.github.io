@@ -12,14 +12,21 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - name: Package source
+      - name: Package focused source
         run: |
-          tar --exclude=.git --exclude=node_modules -czf /tmp/nina-conversion-source.tgz .
+          mkdir -p /tmp/nina-conversion-src
+          cp -a anam-token-worker /tmp/nina-conversion-src/
+          mkdir -p /tmp/nina-conversion-src/js /tmp/nina-conversion-src/scripts /tmp/nina-conversion-src/css
+          cp js/nina-access.js js/nina-web-flow.js /tmp/nina-conversion-src/js/
+          cp scripts/test-nina-web-browser.py /tmp/nina-conversion-src/scripts/ || true
+          cp css/nina.css /tmp/nina-conversion-src/css/ 2>/dev/null || true
+          cp index.html nina-project.html package.json /tmp/nina-conversion-src/ 2>/dev/null || true
+          tar --exclude=node_modules -C /tmp/nina-conversion-src -czf /tmp/nina-conversion-source-small.tgz .
           git rev-parse HEAD > /tmp/commit.txt
       - uses: actions/upload-artifact@v4
         with:
-          name: nina-conversion-hardening-source
+          name: nina-conversion-hardening-source-small
           path: |
-            /tmp/nina-conversion-source.tgz
+            /tmp/nina-conversion-source-small.tgz
             /tmp/commit.txt
           retention-days: 2
