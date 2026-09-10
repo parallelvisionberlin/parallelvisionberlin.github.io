@@ -23,7 +23,6 @@ jobs:
           cat scripts/conversion-hardening/patch.part00 scripts/conversion-hardening/patch.part01 scripts/conversion-hardening/patch.part02 scripts/conversion-hardening/patch.part03 \
             | base64 -d | gzip -d > /tmp/nina-primary.patch
           echo "9037d2e7835fbcaa5ed4ff7b05dc3f054d80e1356d0bfab7d531c18f658c5d0d  /tmp/nina-primary.patch" | sha256sum -c -
-          echo "0b4e210f1064347a3a8c81dd0905624b3c4faf0add64fb2ec0486a1e664951bd  scripts/conversion-hardening/supplement.patch" | sha256sum -c -
           patch -p1 < /tmp/nina-primary.patch
           patch -p1 < scripts/conversion-hardening/supplement.patch
           git diff --check
@@ -111,7 +110,7 @@ jobs:
         run: |
           set -euo pipefail
           rm -rf scripts/conversion-hardening
-          rm -f .github/workflows/conversion-hardening-source.yml .github/workflows/nina-conversion-hardening-apply.yml
+          rm -f .github/workflows/conversion-hardening-source.yml .github/workflows/nina-conversion-hardening-apply.yml .github/workflows/nina-conversion-part-check.yml
           git add anam-token-worker/src/index.js anam-token-worker/src/live-usage.js anam-token-worker/src/stripe.js \
             anam-token-worker/test/live-usage.test.js anam-token-worker/test/stripe.test.js \
             js/nina-access.js index.html nina-project.html scripts/test-nina-web-browser.py \
