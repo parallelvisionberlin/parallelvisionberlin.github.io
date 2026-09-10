@@ -27,6 +27,53 @@ const SESSION_DETAIL_CACHE_MS = 30000;
 let detailAuthGeneration = 0;
 let detailAuthSession = null;
 let expandedSessionId = null;
+const transcriptDownloads = new Set();
+
+async function downloadTranscript(params, button, status) {
+  if (button.disabled) return;
+  const generation = detailAuthGeneration;
+  const controller = new AbortController();
+  transcriptDownloads.add(controller);
+  const timeout = setTimeout(() => controller.abort(), 45000);
+  button.disabled = true;
+  status.textContent = "Preparing download…";
+  try {
+    const token = await clerk?.session?.getToken?.();
+    if (!token) throw new Error("Sign in with the owner account.");
+    if (generation !== detailAuthGeneration) return;
+    const response = await fetch(`${API_ORIGIN}/api/nina/analytics/transcript.txt?${params}`, {
+      cache: "no-store", signal: controller.signal,
+      headers: { Authorization: `Bearer ${token}`, Accept: "text/plain" }
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.error || "Download unavailable. Please retry.");
+    }
+    if (!response.headers.get("Content-Type")?.startsWith("text/plain")) throw new Error("Transcript service needs an update.");
+    const blob = await response.blob();
+    if (generation !== detailAuthGeneration) return;
+    const filename = response.headers.get("Content-Disposition")?.match(/filename="([a-zA-Z0-9_.-]+)"/)?.[1] || "nina-transcript.txt";
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url; link.download = filename; document.body.append(link); link.click(); link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+    status.textContent = `Download ready: ${response.headers.get("X-Transcript-Conversations")} conversations, ${response.headers.get("X-Transcript-Messages")} messages.`;
+  } catch (error) {
+    if (generation === detailAuthGeneration) status.textContent = error.name === "AbortError" ? "Download timed out. Try a shorter date range." : error.message;
+  } finally { clearTimeout(timeout); transcriptDownloads.delete(controller); button.disabled = false; }
+}
+
+function berlinDate(value = Date.now()) {
+  const parts = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Berlin", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date(value));
+  const values = Object.fromEntries(parts.map(part => [part.type, part.value]));
+  return `${values.year}-${values.month}-${values.day}`;
+}
+
+function syncTranscriptDates() {
+  const custom = $("transcriptPeriod").value === "custom";
+  $("transcriptDates").hidden = !custom;
+  $("transcriptFrom").required = custom; $("transcriptTo").required = custom;
+}
 
 async function loadClerkUI() {
   if (window.__internal_ClerkUICtor) return window.__internal_ClerkUICtor;
@@ -113,6 +160,9 @@ function renderCost(cost) {
 
 function clearSessionDetails() {
   detailAuthGeneration += 1;
+  for (const controller of transcriptDownloads) controller.abort();
+  transcriptDownloads.clear();
+  $("transcriptExportStatus").textContent = "";
   for (const request of sessionDetailRequests.values()) request.controller.abort();
   sessionDetailRequests.clear();
   sessionDetailCache.clear();
@@ -255,6 +305,21 @@ function renderSessionInspector(container, detail) {
   }
 
   const transcriptTitle = document.createElement("p"); transcriptTitle.className="admin-call-label"; transcriptTitle.textContent="Conversation"; container.append(transcriptTitle);
+  const downloadStatus = document.createElement("p"); downloadStatus.className = "admin-export-status"; downloadStatus.setAttribute("role", "status");
+  if (detail.conversation?.id) {
+    const download = document.createElement("button"); download.type = "button"; download.className = "admin-button"; download.textContent = "Download TXT";
+    download.addEventListener("click", event => { event.stopPropagation(); void downloadTranscript(new URLSearchParams({ conversation: detail.conversation.id }), download, downloadStatus); });
+    container.append(download, downloadStatus);
+  } else if (detail.session.userId) {
+    const choose = document.createElement("button"); choose.type = "button"; choose.className = "admin-button"; choose.textContent = "Export this account by date";
+    choose.addEventListener("click", event => {
+      event.stopPropagation(); $("transcriptUser").value = detail.session.userId;
+      $("transcriptPeriod").value = "custom";
+      $("transcriptFrom").value = $("transcriptTo").value = berlinDate(detail.session.startedAt);
+      syncTranscriptDates(); $("transcriptExport").scrollIntoView({ block: "start" }); $("transcriptUser").focus({ preventScroll: true });
+    });
+    container.append(choose);
+  }
   const transcript = document.createElement("div"); transcript.className="admin-transcript";
   if (!detail.transcript.length) {
     const empty=document.createElement("p"); empty.className="admin-call-empty"; empty.textContent=hasTranscriptLink ? "No messages are stored in the linked conversation." : "A transcript could not be confidently linked to this call. This is not evidence that the person stayed silent."; transcript.append(empty);
@@ -444,6 +509,15 @@ async function syncAuth() {
 }
 
 elements.signIn.addEventListener("click", () => clerk?.openSignIn());
+$("transcriptFrom").value = $("transcriptTo").value = berlinDate();
+$("transcriptPeriod").addEventListener("change", syncTranscriptDates);
+$("transcriptExportForm").addEventListener("submit", event => {
+  event.preventDefault();
+  const params = new URLSearchParams({ period: $("transcriptPeriod").value });
+  if ($("transcriptUser").value.trim()) params.set("user", $("transcriptUser").value.trim());
+  if (params.get("period") === "custom") { params.set("from", $("transcriptFrom").value); params.set("to", $("transcriptTo").value); }
+  void downloadTranscript(params, event.currentTarget.querySelector('[type="submit"]'), $("transcriptExportStatus"));
+});
 elements.signOut.addEventListener("click", async () => { await clerk?.signOut(); await syncAuth(); });
 elements.giftSearchForm.addEventListener("submit", async event => {
   event.preventDefault(); elements.giftStatus.textContent = "Searching…"; elements.giftUserResult.hidden = true; selectedGiftUser = null;

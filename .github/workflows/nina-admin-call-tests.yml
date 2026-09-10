@@ -5,6 +5,8 @@ on:
     paths:
       - 'anam-token-worker/src/analytics.js'
       - 'anam-token-worker/src/index.js'
+      - 'anam-token-worker/src/transcript-export.js'
+      - 'anam-token-worker/test/transcript-export.test.js'
       - 'anam-token-worker/test/admin-call-recovery.test.js'
       - 'js/nina-admin.js'
       - 'css/nina-admin.css'
@@ -44,8 +46,10 @@ jobs:
       - name: Check admin syntax and authenticated call reader
         run: |
           node --check js/nina-admin.js
+          node --check anam-token-worker/src/transcript-export.js
           npm run check --prefix anam-token-worker
           node --test anam-token-worker/test/admin-call-recovery.test.js anam-token-worker/test/admin-analytics-fix.test.js anam-token-worker/test/analytics.test.js
+          node --test anam-token-worker/test/transcript-export.test.js
       - name: Check desktop and phone disclosures with synthetic data
         run: |
           python -m pip install playwright==1.56.0

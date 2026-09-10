@@ -7,7 +7,7 @@
   <title>Nina Analytics | Parallel Vision</title>
   <link rel="icon" href="../favicon.png">
   <link href="https://fonts.googleapis.com/css2?family=Michroma&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../css/nina-admin.css?v=20260909-call-recovery1">
+  <link rel="stylesheet" href="../css/nina-admin.css?v=20260910-transcript-export1">
   <style>
     .admin-more-analytics{margin:0 0 40px;border-top:1px solid rgba(255,255,255,.14);border-bottom:1px solid rgba(255,255,255,.14)}
     .admin-more-analytics>summary{list-style:none;cursor:pointer;padding:20px 0;display:flex;align-items:center;justify-content:space-between;gap:20px;font:500 12px/1.4 Inter,sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#d9d9d9}
@@ -33,6 +33,21 @@
     </section>
 
     <div id="adminDashboard" hidden>
+      <section class="admin-window" id="transcriptExport" aria-labelledby="transcriptExportTitle">
+        <div class="admin-section-heading"><p>TXT</p><div><h2 id="transcriptExportTitle">Download transcripts</h2><p class="admin-section-kicker">Saved wording, names and Berlin timestamps. No AI processing.</p></div></div>
+        <form id="transcriptExportForm" class="admin-form">
+          <label for="transcriptUser">Account email or ID (blank = my conversations)</label>
+          <input id="transcriptUser" maxlength="254" autocomplete="off" placeholder="My conversations">
+          <label for="transcriptPeriod">Period</label>
+          <select id="transcriptPeriod"><option value="today">Today in Berlin</option><option value="last3h">Last 3 hours</option><option value="custom">Choose dates</option></select>
+          <div id="transcriptDates" class="admin-export-dates" hidden>
+            <label>From<input id="transcriptFrom" type="date"></label>
+            <label>To (inclusive)<input id="transcriptTo" type="date"></label>
+          </div>
+          <button class="admin-button" type="submit">Download TXT</button>
+        </form>
+        <p class="admin-form-status" id="transcriptExportStatus" role="status"></p>
+      </section>
       <section class="admin-window" aria-labelledby="todayTitle">
         <div class="admin-section-heading"><p>01</p><h2 id="todayTitle">Today</h2></div>
         <div class="admin-metrics" id="todayMetrics"></div>
@@ -122,6 +137,6 @@
       <p class="admin-generated" id="adminGenerated"></p>
     </div>
   </main>
-  <script type="module" src="../js/nina-admin.js?v=20260909-call-recovery1"></script>
+  <script type="module" src="../js/nina-admin.js?v=20260910-transcript-export1"></script>
 </body>
 </html>

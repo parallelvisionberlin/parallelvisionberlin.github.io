@@ -22,6 +22,7 @@ import {
 } from "./analytics.js";
 import { VoucherError, createVoucher, findCreditUser, getCreditAdminDashboard, grantGiftCredits, redeemVoucher } from "./vouchers.js";
 import { MetaCapiError, sendNinaMetaEvent } from "./meta-capi.js";
+import { buildTranscriptExport, TranscriptExportError } from "./transcript-export.js";
 
 const PERSONA_ID = "a5663da5-5f5c-4600-b545-cbb58bd4e155";
 const VISITOR_ID_PATTERN = /^(?:[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|visitor-[a-z0-9-]+)$/i;
@@ -382,6 +383,24 @@ async function handleNinaAnalyticsDashboard(request, env, origin) {
     }
   }
   return jsonResponse(await getNinaAnalyticsDashboard(env), 200, origin);
+}
+
+async function handleTranscriptDownload(request, env, origin) {
+  const owner = await authenticateAccountRequest(request, env);
+  if (!owner) return jsonResponse({ error: "Sign in required." }, 401, origin);
+  if (owner.role !== "owner") return jsonResponse({ error: "Owner access required." }, 403, origin);
+  try {
+    const result = await buildTranscriptExport(env, owner, new URL(request.url).searchParams);
+    return new Response(result.text, { headers: {
+      ...corsHeaders(origin), "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "private, no-store",
+      "Content-Disposition": `attachment; filename="${result.filename}"`, "X-Content-Type-Options": "nosniff",
+      "X-Transcript-Messages": String(result.messages), "X-Transcript-Conversations": String(result.conversations),
+      "Access-Control-Expose-Headers": "Content-Disposition, X-Transcript-Messages, X-Transcript-Conversations"
+    } });
+  } catch (error) {
+    if (error instanceof TranscriptExportError) return jsonResponse({ error: error.message }, error.status, origin);
+    return jsonResponse({ error: "Transcript export temporarily unavailable. Please retry." }, 503, origin);
+  }
 }
 
 async function handleMemoryDiagnostic(request, env, origin) {
@@ -866,6 +885,7 @@ export default {
       if (url.pathname === "/api/nina/memory-diagnostic" && request.method === "GET") return handleMemoryDiagnostic(request, env, origin);
       if (url.pathname === "/api/nina/memory-archivist-benchmark" && request.method === "GET") return handleMemoryArchivistBenchmark(request, env, origin);
       if (url.pathname === "/api/nina/analytics/dashboard" && request.method === "GET") return await handleNinaAnalyticsDashboard(request, env, origin);
+      if (url.pathname === "/api/nina/analytics/transcript.txt" && request.method === "GET") return await handleTranscriptDownload(request, env, origin);
       if (url.pathname === "/api/nina/analytics/start" && request.method === "POST") return handleNinaAnalyticsStart(request, env, origin);
       if (url.pathname === "/api/nina/analytics/heartbeat" && request.method === "POST") return handleNinaAnalyticsHeartbeat(request, env, origin);
       if (url.pathname === "/api/nina/analytics/end" && request.method === "POST") return handleNinaAnalyticsEnd(request, env, origin);

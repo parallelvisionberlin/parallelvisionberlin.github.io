@@ -50,11 +50,17 @@ BOOT = r"""({mode, dashboard, details, callA}) => {
   window.testMode = mode;
   window.testRequests = [];
   window.testHeld = [];
+  window.testExports = [];
   window.releaseHeld = () => window.testHeld.shift()?.();
   window.fetch = async (url, options={}) => {
     const parsed = new URL(url);
     const response = (data, status=200) => new Response(JSON.stringify(data), {status, headers:{'Content-Type':'application/json'}});
     if(parsed.pathname === '/api/signal-credits/admin') return response({grants:[],vouchers:[]});
+    if(parsed.pathname === '/api/nina/analytics/transcript.txt') {
+      window.testExports.push({params:Object.fromEntries(parsed.searchParams), authorization:options.headers.Authorization, cache:options.cache});
+      if(window.testMode === 'export-error') return response({error:'No saved conversations found for this selection.'},404);
+      return new Response('NINA FOK\nSynthetic literal transcript\n', {headers:{'Content-Type':'text/plain; charset=utf-8','Content-Disposition':'attachment; filename="nina-test.txt"','X-Transcript-Messages':'228','X-Transcript-Conversations':'5'}});
+    }
     if(parsed.pathname !== '/api/nina/analytics/dashboard') throw Error('Unexpected network request');
     const id = parsed.searchParams.get('session');
     if(!id) return response(dashboard);
@@ -108,9 +114,39 @@ def run_checks(browser, width):
         return page.locator("#call-panel-" + id_)
 
     fresh()
+    expect(page.locator('#transcriptDates')).to_be_hidden()
+    with page.expect_download() as exported:
+        page.locator('#transcriptExportForm').get_by_role('button', name='Download TXT').click()
+    assert exported.value.suggested_filename == 'nina-test.txt'
+    assert Path(exported.value.path()).read_text() == 'NINA FOK\nSynthetic literal transcript\n'
+    expect(page.locator('#transcriptExportStatus')).to_contain_text('228 messages')
+    assert page.evaluate('window.testExports[0].params') == {'period':'today'}
+    assert page.evaluate('window.testExports[0].authorization') == 'Bearer fake-owner-token'
+    assert page.evaluate('window.testExports[0].cache') == 'no-store'
+    page.locator('#transcriptPeriod').select_option('last3h')
+    with page.expect_download():
+        page.locator('#transcriptExportForm').get_by_role('button', name='Download TXT').click()
+    assert page.evaluate('window.testExports.at(-1).params.period') == 'last3h'
+    page.locator('#transcriptPeriod').select_option('custom')
+    expect(page.locator('#transcriptDates')).to_be_visible()
+    page.locator('#transcriptFrom').fill('2026-09-10')
+    page.locator('#transcriptTo').fill('2026-09-10')
+    page.locator('#transcriptUser').fill('owner@example.invalid')
+    with page.expect_download():
+        page.locator('#transcriptExportForm').get_by_role('button', name='Download TXT').click()
+    assert page.evaluate('window.testExports.at(-1).params') == {'period':'custom','from':'2026-09-10','to':'2026-09-10','user':'owner@example.invalid'}
+    assert page.locator('#transcriptExport').evaluate('(e)=>e.scrollWidth <= e.clientWidth'), 'export controls do not overflow'
+    set_mode('export-error')
+    page.locator('#transcriptExportForm').get_by_role('button', name='Download TXT').click()
+    expect(page.locator('#transcriptExportStatus')).to_contain_text('No saved conversations')
+    expect(page.locator('#transcriptExportForm button')).to_be_enabled()
+    set_mode('normal')
     toggle(CALL_A).click()
     expect(panel(CALL_A)).to_contain_text("Hello from Example Visitor")
     assert count(CALL_A) == 1, "one detail request per open"
+    with page.expect_download():
+        panel(CALL_A).get_by_role('button', name='Download TXT').click()
+    assert page.evaluate('window.testExports.at(-1).params') == {'conversation':'conversation-'+CALL_A}
     assert panel(CALL_A).locator("img").count() == 0, "transcripts must be text, not HTML"
     expect(toggle(CALL_A)).to_have_attribute("aria-expanded", "true")
     toggle(CALL_A).click()
