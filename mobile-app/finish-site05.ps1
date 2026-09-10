@@ -1,6 +1,6 @@
 param([switch]$CheckOnly)
 $ErrorActionPreference = 'Stop'
-$SourceCommit = 'da56a85f852e674dea9424d194f5714c406710a6'
+$SourceCommit = 'fae3791b7b454bb7e0867f2cf6d4d809a1498586'
 $Revision = 'SITE COHESION / 05.3'
 $OriginalLocation = Get-Location
 $PriorNoVcs = [Environment]::GetEnvironmentVariable('EAS_NO_VCS', 'Process')
@@ -53,6 +53,7 @@ try {
     Write-Host "$Revision : checking native film playback, editorial account UI and iOS export." -ForegroundColor Cyan
     Invoke-Checked 'npx.cmd' @('--yes', 'npm@10.9.8', 'ci', '--include=dev', '--ignore-scripts')
     Invoke-Checked 'npm.cmd' @('test')
+    Invoke-Checked 'node.exe' @('scripts/site05-components.cjs')
     Invoke-Checked 'npx.cmd' @('expo', 'export', '--platform', 'ios', '--output-dir', (Join-Path $Workspace 'ios-check'))
     foreach ($Relative in $Required) {
         if ((Get-FileHash -LiteralPath (Join-Path $App $Relative) -Algorithm SHA256).Hash -ne $Hashes[$Relative]) { throw "Source changed during checks: $Relative" }
