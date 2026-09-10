@@ -1,7 +1,7 @@
 // Shared, testable data and transport. No Anam or microphone code belongs here.
 export const SITE_ORIGIN = 'https://parallelvisionlabel.com';
 export const ACCOUNT_ORIGIN = 'https://parallel-vision-anam-token.parallelvision.workers.dev';
-export const SITE_REVISION = 'SITE COHESION / 05.2';
+export const SITE_REVISION = 'SITE COHESION / 05.3';
 export const projects = [
   {id:'city', title:'THE CITY', copy:'Berlin as remembered, rebuilt and imagined.', path:'/berlin-2063.html', image:'city'},
   {id:'fashion', title:'FASHION AFTER FABRIC', copy:'Bodies, material and identity beyond conventional clothing.', path:'/future-fashion.html', image:'fashion'},
