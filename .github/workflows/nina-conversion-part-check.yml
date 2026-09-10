@@ -1,0 +1,19 @@
+name: Check conversion patch integrity
+on:
+  push:
+    branches: [nina-conversion-hardening-20260910]
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          wc -c scripts/conversion-hardening/patch.part*
+          sha256sum scripts/conversion-hardening/patch.part*
+          echo 'EXPECTED:'
+          echo 'ac68c7fa788e58ac9f94aef59ffdcdb20694e2b4bf91fbab4dd90265f5ef45e1 part00'
+          echo '4bd18fd5f14647ea7b11d526000eb47311b633bd359ff651b17a2df349bfc1e3 part01'
+          echo '985a57cd9c4168613bf1651d14ac689a96095d3a341f69f298bb4ef441788c11 part02'
+          echo 'eaa5de652960e7a8f70c79721b8cb5a0b07134f15a0e12faeeaa07eeee6a3f66 part03'
