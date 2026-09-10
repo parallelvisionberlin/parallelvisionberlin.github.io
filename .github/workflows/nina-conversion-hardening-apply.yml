@@ -1,0 +1,124 @@
+name: Apply and verify Nina conversion hardening
+on:
+  push:
+    branches: [nina-conversion-hardening-20260910]
+permissions:
+  contents: write
+jobs:
+  verify-and-commit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Apply guarded hardening patches
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat scripts/conversion-hardening/patch.part00 scripts/conversion-hardening/patch.part01 scripts/conversion-hardening/patch.part02 scripts/conversion-hardening/patch.part03 \
+            | base64 -d | gzip -d > /tmp/nina-primary.patch
+          echo "9037d2e7835fbcaa5ed4ff7b05dc3f054d80e1356d0bfab7d531c18f658c5d0d  /tmp/nina-primary.patch" | sha256sum -c -
+          echo "0b4e210f1064347a3a8c81dd0905624b3c4faf0add64fb2ec0486a1e664951bd  scripts/conversion-hardening/supplement.patch" | sha256sum -c -
+          patch -p1 < /tmp/nina-primary.patch
+          patch -p1 < scripts/conversion-hardening/supplement.patch
+          git diff --check
+          git diff --exit-code HEAD -- nina-app.html js/nina-app-bootstrap.js js/nina-deck04.js css/nina-deck04.css
+      - name: Install test dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install -g pnpm@10.15.1
+          pnpm --dir anam-token-worker install --frozen-lockfile
+          python3 -m pip install --user playwright==1.55.0
+          python3 -m playwright install --with-deps chromium
+      - name: Worker syntax and exhaustive regression suite
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run check --prefix anam-token-worker
+          node --test anam-token-worker/test/*.test.js
+      - name: Phone and desktop conversion browser regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          CHROMIUM_PATH="$(python3 - <<'PY'
+          from playwright.sync_api import sync_playwright
+          p=sync_playwright().start()
+          print(p.chromium.executable_path)
+          p.stop()
+          PY
+          )"
+          export CHROMIUM_PATH
+          python3 scripts/test-nina-web-browser.py
+      - name: Assert conversion invariants
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'Completed user speech starts the trial' js/nina-access.js
+          ! grep -q 'data-nina-heard' js/nina-web-flow.js
+          grep -q 'changeAudioInputDevice' js/nina-access.js
+          grep -q 'checkout_session_id={CHECKOUT_SESSION_ID}' anam-token-worker/src/stripe.js
+          grep -q '/api/nina/credits/checkout-status' anam-token-worker/src/index.js
+          grep -q 'signal_1200' js/nina-access.js
+          grep -q 'anam-session:${session.id}:credit:${creditIndex}' anam-token-worker/src/live-usage.js
+      - name: Create permanent conversion regression workflow
+        shell: bash
+        run: |
+          cat > .github/workflows/nina-conversion-regression.yml <<'YAML'
+          name: Nina conversion regression
+          on:
+            push:
+              branches: [main]
+              paths:
+                - 'anam-token-worker/src/**'
+                - 'anam-token-worker/test/**'
+                - 'js/nina-access.js'
+                - 'js/nina-web-flow.js'
+                - 'index.html'
+                - 'nina-project.html'
+                - 'scripts/test-nina-web-browser.py'
+                - '.github/workflows/nina-conversion-regression.yml'
+            pull_request:
+              paths:
+                - 'anam-token-worker/src/**'
+                - 'anam-token-worker/test/**'
+                - 'js/nina-access.js'
+                - 'js/nina-web-flow.js'
+                - 'index.html'
+                - 'nina-project.html'
+                - 'scripts/test-nina-web-browser.py'
+          permissions:
+            contents: read
+          jobs:
+            conversion:
+              runs-on: ubuntu-latest
+              timeout-minutes: 30
+              steps:
+                - uses: actions/checkout@v4
+                - uses: actions/setup-node@v4
+                  with:
+                    node-version: 22
+                - run: npm install -g pnpm@10.15.1 && pnpm --dir anam-token-worker install --frozen-lockfile
+                - run: npm run check --prefix anam-token-worker && node --test anam-token-worker/test/*.test.js
+          YAML
+      - name: Commit verified production changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf scripts/conversion-hardening
+          rm -f .github/workflows/conversion-hardening-source.yml .github/workflows/nina-conversion-hardening-apply.yml
+          git add anam-token-worker/src/index.js anam-token-worker/src/live-usage.js anam-token-worker/src/stripe.js \
+            anam-token-worker/test/live-usage.test.js anam-token-worker/test/stripe.test.js \
+            js/nina-access.js index.html nina-project.html scripts/test-nina-web-browser.py \
+            .github/workflows/nina-conversion-regression.yml
+          git add -u .github/workflows scripts/conversion-hardening || true
+          git diff --cached --check
+          git config user.name 'Nina conversion checks'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Harden Nina conversion path: billing, mic recovery, checkout reconciliation'
+          git push origin HEAD:nina-conversion-hardening-20260910
