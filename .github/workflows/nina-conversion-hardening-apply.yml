@@ -24,7 +24,7 @@ jobs:
             | base64 -d | gzip -d > /tmp/nina-primary.patch
           echo "9037d2e7835fbcaa5ed4ff7b05dc3f054d80e1356d0bfab7d531c18f658c5d0d  /tmp/nina-primary.patch" | sha256sum -c -
           patch -p1 < /tmp/nina-primary.patch
-          patch -p1 < scripts/conversion-hardening/supplement.patch
+          python3 scripts/conversion-hardening/apply-supplement.py
           git diff --check
           git diff --exit-code HEAD -- nina-app.html js/nina-app-bootstrap.js js/nina-deck04.js css/nina-deck04.css
       - name: Install test dependencies
