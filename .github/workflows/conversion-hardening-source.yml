@@ -1,0 +1,25 @@
+name: Nina conversion hardening source
+on:
+  push:
+    branches: [nina-conversion-hardening-20260910]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Package source
+        run: |
+          tar --exclude=.git --exclude=node_modules -czf /tmp/nina-conversion-source.tgz .
+          git rev-parse HEAD > /tmp/commit.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nina-conversion-hardening-source
+          path: |
+            /tmp/nina-conversion-source.tgz
+            /tmp/commit.txt
+          retention-days: 2
