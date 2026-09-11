@@ -37,7 +37,7 @@ export function SiteFilm({source,poster,paused=false,style,label='Parallel Visio
 
   useEffect(()=>{
     let mounted=true;
-    const reveal=()=>{if(mounted) setPosterVisible(false);};
+    const reveal=()=>{if(mounted)setPosterVisible(false);};
     const app=AppState.addEventListener('change',state=>setActive(state==='active'));
     const status=player.addListener('statusChange',event=>{
       if(!mounted)return;
@@ -56,11 +56,7 @@ export function SiteFilm({source,poster,paused=false,style,label='Parallel Visio
       const current=Number(event.currentTime??player.currentTime)||0;
       if(shouldPlay.current&&current>.03)reveal();
     });
-    const watchdog=setInterval(()=>{
-      if(!mounted||!shouldPlay.current)return;
-      try{if(!player.playing)player.play();}catch{}
-    },1000);
-    return()=>{mounted=false;clearTimeout(revealTimer.current);clearInterval(watchdog);app.remove();status.remove();playing.remove();time.remove();};
+    return()=>{mounted=false;clearTimeout(revealTimer.current);app.remove();status.remove();playing.remove();time.remove();};
   },[player]);
 
   return <View style={[s.frame,style]} accessible accessibilityLabel={label}>
