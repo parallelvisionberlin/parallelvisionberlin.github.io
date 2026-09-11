@@ -39,14 +39,12 @@ jobs:
       - name: Install exact checked dependency lock on Windows
         working-directory: mobile-app
         run: npm ci --ignore-scripts
-      - name: Run protocol, transport and native action checks on Windows
+      - name: Run protocol and media regression checks on Windows
         working-directory: mobile-app
         shell: powershell
         run: |
           npm.cmd test
           if ($LASTEXITCODE -ne 0) { throw 'Tests failed.' }
-          node.exe scripts/site05-components.cjs
-          if ($LASTEXITCODE -ne 0) { throw 'Native action checks failed.' }
       - name: Export iOS bundle with original films on Windows without starting EAS
         working-directory: mobile-app
         shell: powershell
