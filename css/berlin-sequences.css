@@ -23,3 +23,5 @@
   .pv-berlin .berlin-hero-portals a { min-width: 0; }
   .pv-berlin .berlin-hero-portals b { overflow-wrap: anywhere; }
 }
+
+.pv-berlin .berlin-sequence > .featured-film-links { margin-top: 28px; }
