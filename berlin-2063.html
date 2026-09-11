@@ -20,8 +20,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="./fashion.css">
-  <script src="./language.js?v=berlin-beyond-1" defer></script>
+  <script src="./language.js?v=curated-archive-2" defer></script>
   <link rel="stylesheet" href="./css/featured-film.css">
+  <link rel="stylesheet" href="./css/berlin-sequences.css">
   <script src="./js/featured-film.js" defer></script>
   <style>
     .berlin-page {
@@ -616,21 +617,14 @@ body.pv-berlin .berlin-hero-portals a:focus-visible { outline: 1px solid white; 
       <h1>Berlin 2063</h1>
       <p class="berlin-hero-line">A visual archive of Berlin, 2063 and beyond.</p>
       <a class="berlin-watch-film" href="#berlin-beyond" data-archive-en="Watch Berlin 2063 and Beyond ↓" data-archive-de="Berlin 2063 and Beyond ansehen ↓">Watch Berlin 2063 and Beyond ↓</a>
-      <nav class="berlin-hero-portals" aria-label="Explore the Berlin 2063 archive">
-        <a href="#world-urbanForm"><span>01</span><b>Urban Form</b></a>
-        <a href="#world-urbanSystems"><span>02</span><b>Urban Systems</b></a>
-        <a href="#inhabitants-entry"><span>03</span><b>Inhabitants</b></a>
-        <a href="#world-nightlife"><span>04</span><b>Nightlife</b></a>
-        <a href="#world-transmissions"><span>05</span><b>Transmissions</b></a>
-        <a href="#world-materialCulture"><span>06</span><b>Material Culture</b></a>
-      </nav>
+      <nav class="berlin-hero-portals" aria-label="Explore the Berlin 2063 archive"><a href="#world-urbanForm"><span>01</span><b data-archive-en="The City" data-archive-de="Die Stadt">The City</b></a><a href="#inhabitants-entry"><span>02</span><b data-archive-en="Its Inhabitants" data-archive-de="Die Bewohner:innen">Its Inhabitants</b></a><a href="#world-nightlife"><span>03</span><b data-archive-en="After Dark" data-archive-de="Nach Einbruch der Dunkelheit">After Dark</b></a><a href="#berlin-beyond"><span>04</span><b data-archive-en="Moving Transmissions" data-archive-de="Moving Transmissions">Moving Transmissions</b></a><a href="#world-materialCulture"><span>05</span><b data-archive-en="Fashion After Fabric" data-archive-de="Fashion After Fabric">Fashion After Fabric</b></a></nav>
     </div>
   </header>
 
   <main id="archive" class="berlin-archive-section">
     <div class="berlin-archive">
     <section class="featured-film" id="berlin-beyond" aria-labelledby="featured-film-title">
-      <figure class="featured-film-frame">
+      <span id="world-transmissions" class="archive-anchor" aria-hidden="true"></span><figure class="featured-film-frame">
         <video controls muted loop playsinline preload="none" width="3356" height="1440" poster="./assets/optimized/video/berlin-2063/hyper-future-berlin-poster.webp" data-featured-film aria-label="Berlin 2063 and Beyond, a film exploring Berlin’s hyperfuture">
           <source src="https://pub-21c1e54026ca4574b09d269b385e2fca.r2.dev/hyper-future-berlin-desktop.mp4" data-mobile-src="https://pub-21c1e54026ca4574b09d269b385e2fca.r2.dev/hyper-future-berlin-mobile.mp4" type="video/mp4">
           <a href="https://pub-21c1e54026ca4574b09d269b385e2fca.r2.dev/hyper-future-berlin-desktop.mp4">Watch Berlin 2063 and Beyond</a>
@@ -648,22 +642,12 @@ body.pv-berlin .berlin-hero-portals a:focus-visible { outline: 1px solid white; 
 
       <header class="berlin-archive-intro">
         <p class="berlin-intro-label">Visual Archive / Berlin 2063</p>
-        <div class="berlin-intro-copy">
-          <p>Berlin 2063 is the starting point of an evolving visual archive. The urban studies explore a possible city in 2063 through its architecture, transit, nightlife and inhabitants.</p>
-          <p>Moving Transmissions extends these studies into film and into more distant futures. Together, the still images and films trace Berlin from 2063 into the hyperfuture, with work that can move from the screen into projection, exhibitions and live performance.</p>
-        </div>
+        <div class="berlin-intro-copy"><p data-archive-en="Berlin 2063 begins with a familiar city. These selected images follow its spaces, its inhabitants and its life after dark." data-archive-de="Berlin 2063 beginnt mit einer vertrauten Stadt. Diese Bildauswahl folgt ihren Räumen, ihren Bewohner:innen und ihrem Leben nach Einbruch der Dunkelheit.">Berlin 2063 begins with a familiar city. These selected images follow its spaces, its inhabitants and its life after dark.</p><p data-archive-en="The films travel further into the hyperfuture. The still images return to the scale of a street, a carriage or an encounter. Together, they form an imagined Berlin across different possible futures." data-archive-de="Die Filme führen weiter in die Hyperzukunft. Die Bilder kehren zum Maßstab einer Straße, eines Waggons oder einer Begegnung zurück. Zusammen bilden sie ein erdachtes Berlin in verschiedenen möglichen Zukünften.">The films travel further into the hyperfuture. The still images return to the scale of a street, a carriage or an encounter. Together, they form an imagined Berlin across different possible futures.</p></div>
       </header>
 
 
 
-      <div class="berlin-archives" id="berlinArchives" aria-label="Berlin 2063 visual archive">
-        <div id="world-urbanForm" style="scroll-margin-top:36px"></div>
-        <div id="world-urbanSystems" style="scroll-margin-top:36px"></div>
-        <div id="inhabitants-entry" style="scroll-margin-top:36px"></div>
-        <div id="world-nightlife" style="scroll-margin-top:36px"></div>
-        <div id="world-transmissions" style="scroll-margin-top:36px"></div>
-        <div id="world-materialCulture" style="scroll-margin-top:36px"></div>
-      </div>
+      <div class="berlin-archives" id="berlinArchives" aria-label="Selected images from Berlin 2063"><section class="berlin-sequence" id="world-urbanForm" aria-labelledby="world-urbanForm-title"><header class="sequence-heading"><p class="sequence-number">01 / BERLIN 2063</p><h2 id="world-urbanForm-title" data-archive-en="The City" data-archive-de="Die Stadt">The City</h2><p class="sequence-description" data-archive-en="What remains of Berlin as the city grows beyond recognition?" data-archive-de="Was bleibt von Berlin, wenn die Stadt über das Vertraute hinauswächst?">What remains of Berlin as the city grows beyond recognition?</p></header><div class="sequence-images"><figure class="sequence-image"><a href="./assets/optimized/2063/urban-form/Berlin 2063 HD.webp" target="_blank" rel="noopener" aria-label="Open image: Old facades. New routes."><img src="./assets/optimized/2063/urban-form/Berlin 2063 HD.webp" width="3344" height="1882" loading="lazy" decoding="async" alt="Historic facades, bridges and a hovering vehicle overlooking an imagined Berlin."></a><figcaption data-archive-en="Old facades. New routes." data-archive-de="Alte Fassaden. Neue Wege.">Old facades. New routes.</figcaption></figure><figure class="sequence-image" id="world-urbanSystems"><a href="./assets/optimized/2063/urban-systems/URBAN SYSTEM2.webp" target="_blank" rel="noopener" aria-label="Open image: A passage below the skyline."><img src="./assets/optimized/2063/urban-systems/URBAN SYSTEM2.webp" width="2752" height="1536" loading="lazy" decoding="async" alt="Illuminated sunken passage between dark concrete structures with the television tower beyond."></a><figcaption data-archive-en="A passage below the skyline." data-archive-de="Ein Durchgang unter der Skyline.">A passage below the skyline.</figcaption></figure><figure class="sequence-image"><a href="./assets/optimized/2063/urban-form/Sky Deep HD NEW.webp" target="_blank" rel="noopener" aria-label="Open image: The tower remains a point of reference."><img src="./assets/optimized/2063/urban-form/Sky Deep HD NEW.webp" width="3344" height="1882" loading="lazy" decoding="async" alt="Berlin television tower between dense illuminated high-rises and public screens."></a><figcaption data-archive-en="The tower remains a point of reference." data-archive-de="Der Fernsehturm bleibt ein Orientierungspunkt.">The tower remains a point of reference.</figcaption></figure><figure class="sequence-image"><a href="./assets/optimized/2063/transmissions/transmission-symbiosis-core.webp" target="_blank" rel="noopener" aria-label="Open image: A face becomes part of the building."><img src="./assets/optimized/2063/transmissions/transmission-symbiosis-core.webp" width="2752" height="1536" loading="lazy" decoding="async" alt="A projected face across a monumental concrete building beneath a storm-dark sky."></a><figcaption data-archive-en="A face becomes part of the building." data-archive-de="Ein Gesicht wird Teil des Gebäudes.">A face becomes part of the building.</figcaption></figure></div></section><section class="berlin-sequence" id="inhabitants-entry" aria-labelledby="inhabitants-entry-title"><header class="sequence-heading"><p class="sequence-number">02 / BERLIN 2063</p><h2 id="inhabitants-entry-title" data-archive-en="Its Inhabitants" data-archive-de="Die Bewohner:innen">Its Inhabitants</h2><p class="sequence-description" data-archive-en="The future appears in what people wear, how they travel and how close they come to one another." data-archive-de="Die Zukunft zeigt sich darin, was Menschen tragen, wie sie unterwegs sind und wie nah sie einander kommen.">The future appears in what people wear, how they travel and how close they come to one another.</p></header><div class="sequence-images"><figure class="sequence-image sequence-image-wide"><a href="./assets/optimized/2063/inhabitants/IRENA BLEX ALE.webp" target="_blank" rel="noopener" aria-label="Open image: Together in a familiar carriage."><img src="./assets/optimized/2063/inhabitants/IRENA BLEX ALE.webp" width="2048" height="1152" loading="lazy" decoding="async" alt="Three figures in black and metallic clothing seated in a worn U-Bahn carriage."></a><figcaption data-archive-en="Together in a familiar carriage." data-archive-de="Zusammen in einem vertrauten Waggon.">Together in a familiar carriage.</figcaption></figure><figure class="sequence-image"><a href="./assets/optimized/2063/inhabitants/Hero Epic Cam.webp" target="_blank" rel="noopener" aria-label="Open image: A moment between stops."><img src="./assets/optimized/2063/inhabitants/Hero Epic Cam.webp" width="1207" height="690" loading="lazy" decoding="async" alt="A blonde figure in glossy black clothing looking out from a train seat."></a><figcaption data-archive-en="A moment between stops." data-archive-de="Ein Moment zwischen zwei Haltestellen.">A moment between stops.</figcaption></figure><figure class="sequence-image"><a href="./assets/optimized/2063/inhabitants/CANON DUST 1.webp" target="_blank" rel="noopener" aria-label="Open image: Closeness between synthetic bodies."><img src="./assets/optimized/2063/inhabitants/CANON DUST 1.webp" width="2048" height="1152" loading="lazy" decoding="async" alt="Two reflective synthetic figures standing close together in a dim industrial space."></a><figcaption data-archive-en="Closeness between synthetic bodies." data-archive-de="Nähe zwischen synthetischen Körpern.">Closeness between synthetic bodies.</figcaption></figure></div></section><section class="berlin-sequence" id="world-nightlife" aria-labelledby="world-nightlife-title"><header class="sequence-heading"><p class="sequence-number">03 / BERLIN 2063</p><h2 id="world-nightlife-title" data-archive-en="After Dark" data-archive-de="Nach Einbruch der Dunkelheit">After Dark</h2><p class="sequence-description" data-archive-en="A crowd, an encounter, a quieter room. Nightlife seen through the people who share it." data-archive-de="Eine Menge, eine Begegnung, ein ruhigerer Raum. Nachtleben aus der Nähe der Menschen, die es teilen.">A crowd, an encounter, a quieter room. Nightlife seen through the people who share it.</p></header><div class="sequence-images"><figure class="sequence-image"><a href="./assets/optimized/2063/NIGHTLIFE III.webp" target="_blank" rel="noopener" aria-label="Open image: Gathered around the music."><img src="./assets/optimized/2063/NIGHTLIFE III.webp" width="2048" height="1152" loading="lazy" decoding="async" alt="A closely gathered crowd of human and synthetic figures surrounding a DJ in low green and red light."></a><figcaption data-archive-en="Gathered around the music." data-archive-de="Versammelt um die Musik.">Gathered around the music.</figcaption></figure><figure class="sequence-image"><a href="./assets/optimized/2063/nightlife/ALE IRENA CANON.webp" target="_blank" rel="noopener" aria-label="Open image: An encounter inside the crowd."><img src="./assets/optimized/2063/nightlife/ALE IRENA CANON.webp" width="2752" height="1536" loading="lazy" decoding="async" alt="Two figures standing together among a club crowd beneath large red projections."></a><figcaption data-archive-en="An encounter inside the crowd." data-archive-de="Eine Begegnung inmitten der Menge.">An encounter inside the crowd.</figcaption></figure><figure class="sequence-image sequence-image-wide"><a href="./assets/optimized/2063/NIGHTLIFE I DUSK.webp" target="_blank" rel="noopener" aria-label="Open image: The room at a different intensity."><img src="./assets/optimized/2063/NIGHTLIFE I DUSK.webp" width="2048" height="1152" loading="lazy" decoding="async" alt="A small gathering in a pale hazy concrete room with a performer and sparse equipment."></a><figcaption data-archive-en="The room at a different intensity." data-archive-de="Der Raum in einer anderen Intensität.">The room at a different intensity.</figcaption></figure></div></section><section class="sequence-related" id="world-materialCulture"><p class="sequence-number" data-archive-en="Continue through the archive" data-archive-de="Weiter durch das Archiv">Continue through the archive</p><a href="./future-fashion.html">Fashion After Fabric ↗</a><a href="./moving-transmissions.html">Moving Transmissions ↗</a></section></div>
 
       <p class="berlin-archive-closing">
         <strong data-closing-line="one">The archive does not end on screen.</strong>
@@ -689,252 +673,6 @@ body.pv-berlin .berlin-hero-portals a:focus-visible { outline: 1px solid white; 
   </footer>
 
   <script>
-    const berlinArchive = {
-      urbanForm: {
-        title: "Urban Form",
-        titleDe: "Urbane Form",
-        taxonomy: "The body of the city.",
-        description: "The physical shape of Berlin 2063: skyline, streets, monuments, civic scale, architecture and public space.",
-        descriptionDe: "Die physische Form von Berlin 2063: Skyline, Straßen, Monumente, städtischer Maßstab, Architektur und öffentlicher Raum.",
-        images: [
-          { src: "./assets/optimized/2063/urban-form/urbangallery2.webp", width: 2752, height: 1536, alt: "Berlin 2063 skyline with dense towers, illuminated structures and future city atmosphere.", caption: "Skyline study / Berlin 2063" },
-          { src: "./assets/optimized/2063/urban-form/Berlin 2063 HD.webp", width: 3344, height: 1882, alt: "Berlin 2063 urban form study with historic facades, future density, elevated transit and the Fernsehturm in the distance.", caption: "Civic city study / Berlin 2063" },
-          { src: "./assets/optimized/2063/urban-form/Sky Deep HD NEW.webp", width: 3344, height: 1882, alt: "Berlin 2063 urban form study with dense vertical towers, system status signage, public screens, flying vehicles and the Fernsehturm in a dark rain-soaked skyline.", caption: "Skyline density study / Berlin 2063" },
-          { src: "./assets/optimized/2063/urban-form/The Big City.webp", width: 3344, height: 1882, alt: "Berlin 2063 street-level city study with pedestrians, vehicles, signage, towers and dense urban atmosphere.", caption: "Street density study / Berlin 2063" },
-          { src: "./assets/optimized/2063/urban-form/urbangallery3.webp", width: 2048, height: 1152, alt: "Wide Berlin 2063 city view with towers, glowing screens and dense urban layers.", caption: "Urban density study / Berlin 2063" },
-          { src: "./assets/optimized/2063/urban-form/DARK CITY.webp", width: 2048, height: 1152, alt: "Dark Berlin 2063 cityscape with wet streets, high-rise architecture and nocturnal light.", caption: "Night city study / Berlin 2063" },
-          { src: "./assets/optimized/2063/urban-form/berlindystopianii.webp", width: 2048, height: 1152, alt: "Berlin 2063 skyline with broadcast screens, towers and storm-dark urban atmosphere.", caption: "Signal city study / Berlin 2063" }
-        ]
-      },
-      urbanSystems: {
-        title: "Urban Systems",
-        titleDe: "Urbane Systeme",
-        taxonomy: "How the city moves.",
-        description: "Transit, metro, terminals, corridors, water, circulation and the infrastructure that keeps the future city moving.",
-        descriptionDe: "Transit, Metro, Terminals, Korridore, Wasser, Zirkulation und die Infrastruktur, die die zukünftige Stadt in Bewegung hält.",
-        images: [
-          { src: "./assets/optimized/2063/urban-systems/Berlin 2500 ii.webp", width: 1672, height: 941, alt: "Berlin 2063 urban systems study with elevated U-Bahn, traffic below, floating vehicle movement and layered city infrastructure.", caption: "Transit bridge study / Berlin 2063" },
-          { src: "./assets/optimized/2063/urban-systems/URBANSYSTEM.webp", width: 2752, height: 1536, alt: "Empty underground transit platform in Berlin 2063 with metallic columns, fluorescent light and reflective floor.", caption: "Underground transit study / Berlin 2063" },
-          { src: "./assets/optimized/2063/urban-systems/transmission-friedrichstrasse-systemstatus.webp", width: 2752, height: 1536, alt: "Berlin 2063 urban systems study at Bahnhof Friedrichstrasse with transit rails, system status signage, projected faces and public infrastructure.", caption: "Transit signal node / Berlin 2063" },
-          { src: "./assets/optimized/2063/urban-systems/Highway NeoCar.webp", width: 1672, height: 941, alt: "Berlin 2063 highway system with wet roads, future vehicle movement, overhead signage and urban infrastructure.", caption: "Highway circulation study / Berlin 2063" },
-          { src: "./assets/optimized/2063/urban-systems/URBAN SYSTEM2.webp", width: 2752, height: 1536, alt: "Berlin 2063 urban systems corridor with clean concrete architecture, dark columns and distant city atmosphere.", caption: "System corridor study / Berlin 2063" },
-          { src: "./assets/optimized/2063/urban-systems/URBANSYSTEMS4.webp", width: 2752, height: 1536, alt: "Futuristic Berlin 2063 terminal interior with glass, light, concrete and controlled transit atmosphere.", caption: "Terminal architecture study / Berlin 2063" }
-        ]
-      },
-      inhabitants: {
-        title: "Inhabitants",
-        titleDe: "Bewohner:innen",
-        taxonomy: "Who lives inside it.",
-        description: "Bodies, identities and figures moving through Berlin 2063 as part of its architecture, materials and social conditions.",
-        descriptionDe: "Körper, Identitäten und Figuren, die sich durch Berlin 2063 bewegen, geprägt von Architektur, Materialien und sozialen Bedingungen.",
-        images: [
-          { src: "./assets/optimized/2063/inhabitants/U-bahnstudy.webp", width: 2048, height: 1152, alt: "Three Berlin 2063 inhabitants seated inside a transit carriage, mixing human and synthetic bodies with glowing eye interfaces.", caption: "U-Bahn inhabitant study / Berlin 2063" },
-          { src: "./assets/optimized/2063/inhabitants/IRENA BLEX ALE.webp", width: 2048, height: 1152, alt: "Parallel Vision artists seated inside a Berlin 2063 U-Bahn carriage, wearing black and chrome future clothing in a cinematic transit archive frame.", caption: "Artist inhabitant study / Berlin 2063" },
-          { src: "./assets/optimized/2063/inhabitants/Hero Epic Cam.webp", width: 1207, height: 690, alt: "A seated Berlin 2063 inhabitant inside a transit environment with city lights outside.", caption: "Transit portrait study / Berlin 2063" },
-          { src: "./assets/optimized/2063/inhabitants/CANON DUST 1.webp", width: 2048, height: 1152, alt: "Two chrome-bodied Berlin 2063 inhabitants in an atmospheric industrial interior with wet floor and low light.", caption: "Machine-body study / Berlin 2063" },
-          { src: "./assets/optimized/2063/inhabitants/CABIZBAJAS.webp", width: 2048, height: 1152, alt: "Two Berlin 2063 inhabitants in black and chrome clothing against a concrete wall.", caption: "Archive portrait study / Berlin 2063" },
-        ]
-      },
-      nightlife: {
-        title: "Nightlife",
-        titleDe: "Nachtleben",
-        taxonomy: "Where bodies gather.",
-        description: "The social engine of Berlin 2063: clubs, rooms, rituals, performance, rave structures and after-hours spaces.",
-        descriptionDe: "Der soziale Motor von Berlin 2063: Clubs, Räume, Rituale, Performance, Rave-Strukturen und After-Hours-Orte.",
-        images: [
-          { src: "./assets/optimized/2063/NIGHTLIFE IRED.webp", width: 2048, height: 1152 },
-          { src: "./assets/optimized/2063/NIGHTLIFE III.webp", width: 2048, height: 1152 },
-          { src: "./assets/optimized/2063/nightlife/ALE IRENA CANON.webp", width: 2752, height: 1536, alt: "Parallel Vision artist and chrome body figure inside a Berlin 2063 nightlife environment with crowd, red projections and future fashion ritual atmosphere.", caption: "Artist nightlife study / Berlin 2063" },
-          { src: "./assets/optimized/2063/NIGHTLIFE I.webp", width: 2048, height: 1152 },
-          { src: "./assets/optimized/2063/NIGHTLIFE IUNDERWATER.webp", width: 2048, height: 1152 },
-          { src: "./assets/optimized/2063/NIGHTLIFE VIII.webp", width: 2048, height: 1152 },
-          { src: "./assets/optimized/2063/NIGHTLIFE I DUSK.webp", width: 2048, height: 1152 }
-        ]
-      },
-      transmissions: {
-        title: "Transmissions",
-        titleDe: "Übertragungen",
-        taxonomy: "How the city speaks.",
-        description: "Screens, signals, projections, Nina FOK and the communication systems through which the archive speaks.",
-        descriptionDe: "Screens, Signale, Projektionen, Nina FOK und die Kommunikationssysteme, durch die das Archiv spricht.",
-        images: [
-          { src: "./assets/optimized/2063/transmissions/transmission-symbiosis-core.webp", width: 2752, height: 1536, alt: "Berlin 2063 transmission study with a degraded projected face across monumental concrete architecture, drones, storm atmosphere and public signal infrastructure.", caption: "Symbiosis core signal / Berlin 2063" },
-          { src: "./assets/optimized/2063/transmissions/transmission-interface-study.webp", width: 2048, height: 1152, alt: "Chrome synthetic figure operating a wall of public signal monitors and communication interfaces in Berlin 2063.", caption: "Transmission interface study / Berlin 2063" }
-        ]
-      },
-      materialCulture: {
-        title: "Material Culture",
-        titleDe: "Materielle Kultur",
-        taxonomy: "What bodies wear / become.",
-        description: "Garments, material systems, body technologies and Fashion After Fabric as the clothing language of Berlin 2063.",
-        descriptionDe: "Kleidung, Materialsysteme, Körpertechnologien und Fashion After Fabric als vestimentäre Sprache von Berlin 2063.",
-        layout: "bridge"
-      }
-    };
-
-    const archiveRoot = document.getElementById("berlinArchives");
-    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-    Object.entries(berlinArchive).forEach(([chapterKey, chapter], chapterIndex) => {
-      const archiveNumber = String(chapterIndex + 1).padStart(2, "0");
-      const article = document.createElement("article");
-      article.className = "berlin-archive-chapter";
-      const chapterTarget = document.getElementById(chapterKey === "inhabitants" ? "inhabitants-entry" : "world-" + chapterKey);
-
-
-      if (chapter.layout === "bridge") {
-        article.classList.add("berlin-material-culture-chapter");
-        article.innerHTML = `
-          <header class="berlin-chapter-heading">
-            <p class="berlin-transmission-index">${archiveNumber} / ${chapter.title}</p>
-            <p class="berlin-chapter-taxonomy">${chapter.taxonomy}</p>
-            <p class="berlin-chapter-description">${chapter.description}</p>
-          </header>
-          <div class="berlin-material-culture-bridge">
-            <a class="berlin-material-culture-link" href="./future-fashion.html">Enter Fashion After Fabric ↗</a>
-          </div>`;
-        (chapterTarget || archiveRoot).appendChild(article);
-
-        const chapterLabel = article.querySelector(".berlin-transmission-index");
-        const chapterDescription = article.querySelector(".berlin-chapter-description");
-        const bridgeLink = article.querySelector(".berlin-material-culture-link");
-
-        function applyBridgeLanguage(language) {
-          const german = language === "de";
-          const visibleTitle = german ? chapter.titleDe : chapter.title;
-          chapterLabel.textContent = `${archiveNumber} / ${visibleTitle}`;
-          chapterDescription.textContent = german ? chapter.descriptionDe : chapter.description;
-          bridgeLink.textContent = german ? "Fashion After Fabric öffnen ↗" : "Enter Fashion After Fabric ↗";
-          bridgeLink.setAttribute("aria-label", german ? "Fashion After Fabric öffnen" : "Enter Fashion After Fabric");
-        }
-
-        applyBridgeLanguage(document.documentElement.lang);
-        window.addEventListener("pv-language-change", (event) => applyBridgeLanguage(event.detail.language));
-        return;
-      }
-
-      const isNightlife = chapter === berlinArchive.nightlife;
-      article.innerHTML = `
-        <header class="berlin-chapter-heading">
-          <p class="berlin-transmission-index">${archiveNumber} / ${isNightlife ? "Visual Archive" : chapter.title}</p>
-          ${isNightlife ? `<h3>${chapter.title}</h3>` : ""}
-          <p class="berlin-chapter-taxonomy">${chapter.taxonomy}</p>
-          <p class="berlin-chapter-description">${chapter.description}</p>
-        </header>
-        <div class="berlin-gallery" tabindex="0" role="group" aria-label="${chapter.title} image archive">
-          <figure class="berlin-gallery-frame">
-            <img alt="" decoding="async" loading="lazy" fetchpriority="low">
-          </figure>
-          <div class="berlin-gallery-meta">
-            <div>
-              <p class="berlin-archive-counter" aria-live="polite"></p>
-              <p class="berlin-gallery-caption"></p>
-            </div>
-            <div class="berlin-gallery-navigation">
-              <button class="berlin-gallery-button berlin-gallery-previous" type="button" aria-label="Previous ${chapter.title} image">← Previous</button>
-              <button class="berlin-gallery-button berlin-gallery-next" type="button" aria-label="Next ${chapter.title} image">Next →</button>
-            </div>
-          </div>
-        </div>`;
-      (chapterTarget || archiveRoot).appendChild(article);
-
-      const gallery = article.querySelector(".berlin-gallery");
-      const chapterLabel = article.querySelector(".berlin-transmission-index");
-      const chapterTitle = article.querySelector("h3");
-      const chapterDescription = article.querySelector(".berlin-chapter-description");
-      const image = gallery.querySelector("img");
-      const counter = gallery.querySelector(".berlin-archive-counter");
-      const caption = gallery.querySelector(".berlin-gallery-caption");
-      const previousButton = gallery.querySelector(".berlin-gallery-previous");
-      const nextButton = gallery.querySelector(".berlin-gallery-next");
-      let currentIndex = 0;
-      let touchStartX = 0;
-      let isLoading = false;
-      let fadeTimer;
-
-      function applyChapterLanguage(language) {
-        const german = language === "de";
-        const visibleTitle = german ? chapter.titleDe : chapter.title;
-        chapterLabel.textContent = isNightlife
-          ? `${archiveNumber} / ${german ? "Visuelles Archiv" : "Visual Archive"}`
-          : `${archiveNumber} / ${visibleTitle}`;
-        if (chapterTitle) chapterTitle.textContent = visibleTitle;
-        chapterDescription.textContent = german ? chapter.descriptionDe : chapter.description;
-        gallery.setAttribute("aria-label", `${visibleTitle} ${german ? "Bildarchiv" : "image archive"}`);
-        previousButton.textContent = german ? "← Zurück" : "← Previous";
-        nextButton.textContent = german ? "Weiter →" : "Next →";
-        previousButton.setAttribute("aria-label", `${german ? "Vorheriges Bild aus" : "Previous image from"} ${visibleTitle}`);
-        nextButton.setAttribute("aria-label", `${german ? "Nächstes Bild aus" : "Next image from"} ${visibleTitle}`);
-      }
-
-      function renderImage(nextIndex, animate = true) {
-        if (isLoading) return;
-        const targetIndex = (nextIndex + chapter.images.length) % chapter.images.length;
-        const item = chapter.images[targetIndex];
-
-        const update = () => {
-          currentIndex = targetIndex;
-          image.src = item.src;
-          image.alt = item.alt || `Nightlife archival document ${currentIndex + 1} from Berlin 2063`;
-          if (item.width && item.height) {
-            image.width = item.width;
-            image.height = item.height;
-          }
-          counter.textContent = `${String(currentIndex + 1).padStart(2, "0")} / ${String(chapter.images.length).padStart(2, "0")}`;
-          caption.textContent = item.caption || (isNightlife ? "Nightlife / Berlin 2063" : "");
-          gallery.classList.remove("is-changing");
-          window.clearTimeout(fadeTimer);
-          if (animate && !prefersReducedMotion) {
-            void image.offsetWidth;
-            gallery.classList.add("is-changing");
-            fadeTimer = window.setTimeout(() => gallery.classList.remove("is-changing"), 180);
-          }
-        };
-
-        if (!animate) {
-          update();
-          return;
-        }
-
-        isLoading = true;
-        previousButton.disabled = true;
-        nextButton.disabled = true;
-
-        const preloadImage = new Image();
-        let settled = false;
-        const finishLoading = (loaded) => {
-          if (settled) return;
-          settled = true;
-          if (loaded) update();
-          isLoading = false;
-          previousButton.disabled = false;
-          nextButton.disabled = false;
-        };
-
-        preloadImage.onload = () => finishLoading(true);
-        preloadImage.onerror = () => finishLoading(false);
-        preloadImage.src = item.src;
-        if (preloadImage.complete && preloadImage.naturalWidth > 0) finishLoading(true);
-      }
-
-      previousButton.addEventListener("click", () => renderImage(currentIndex - 1));
-      nextButton.addEventListener("click", () => renderImage(currentIndex + 1));
-      gallery.addEventListener("keydown", (event) => {
-        if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
-          event.preventDefault();
-          renderImage(currentIndex + (event.key === "ArrowRight" ? 1 : -1));
-        }
-      });
-      gallery.addEventListener("touchstart", (event) => { touchStartX = event.changedTouches[0].clientX; }, { passive: true });
-      gallery.addEventListener("touchend", (event) => {
-        const distance = event.changedTouches[0].clientX - touchStartX;
-        if (Math.abs(distance) > 45) renderImage(currentIndex + (distance < 0 ? 1 : -1));
-      }, { passive: true });
-      renderImage(0, false);
-      applyChapterLanguage(document.documentElement.lang);
-      window.addEventListener("pv-language-change", (event) => applyChapterLanguage(event.detail.language));
-    });
-
     function applyArchiveClosingLanguage(language) {
       const german = language === "de";
       document.querySelector('[data-closing-line="one"]').textContent = german ? "Das Archiv endet nicht auf dem Bildschirm." : "The archive does not end on screen.";
@@ -942,21 +680,6 @@ body.pv-berlin .berlin-hero-portals a:focus-visible { outline: 1px solid white; 
     }
     applyArchiveClosingLanguage(document.documentElement.lang);
     window.addEventListener("pv-language-change", (event) => applyArchiveClosingLanguage(event.detail.language));
-
-    function applyArchiveIntroLanguage(language) {
-      const german = language === "de";
-      const introCopy = german ? [
-        "Berlin 2063 ist der Ausgangspunkt eines wachsenden visuellen Archivs. Die urbanen Studien erkunden eine mögliche Stadt im Jahr 2063 durch ihre Architektur, ihren Verkehr, ihr Nachtleben und ihre Bewohner:innen.",
-        "Moving Transmissions erweitert diese Studien um Film und weiter entfernte Zukünfte. Gemeinsam folgen Bilder und Filme Berlin von 2063 bis in die Hyperzukunft, mit Arbeiten für Projektion, Ausstellungen und Live-Performances."
-      ] : [
-        "Berlin 2063 is the starting point of an evolving visual archive. The urban studies explore a possible city in 2063 through its architecture, transit, nightlife and inhabitants.",
-        "Moving Transmissions extends these studies into film and into more distant futures. Together, the still images and films trace Berlin from 2063 into the hyperfuture, with work that can move from the screen into projection, exhibitions and live performance."
-      ];
-      document.querySelector(".berlin-intro-label").textContent = german ? "Visuelles Archiv / Berlin 2063" : "Visual Archive / Berlin 2063";
-      document.querySelectorAll(".berlin-intro-copy p").forEach((paragraph, index) => { paragraph.textContent = introCopy[index]; });
-    }
-    applyArchiveIntroLanguage(document.documentElement.lang);
-    window.addEventListener("pv-language-change", (event) => applyArchiveIntroLanguage(event.detail.language));
 
     document.getElementById("openNina").addEventListener("click", function () {
       window.location.href = "./nina-project.html";
