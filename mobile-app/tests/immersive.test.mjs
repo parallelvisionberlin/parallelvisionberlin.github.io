@@ -37,8 +37,8 @@ test('website films stay visible, retry playback and enforce the source-centered
  assert.match(media,/allowsVideoFrameAnalysis=\{false\}/);
  assert.doesNotMatch(media,/opacity:videoReady/);
  assert.match(media,/setTimeout\(\(\)=>setPosterVisible\(false\),900\)/);
- assert.match(media,/setInterval\(\(\)=>/);
- assert.match(media,/if\(!player\.playing\)player\.play\(\)/);
+ assert.match(media,/playingChange/);
+ assert.match(media,/event\.status==='readyToPlay'/);
  assert.match(media,/contentPosition=\{\{dx:0,dy:0\}\}/);
  assert.match(media,/mixWithOthers/);
  for(const name of ['DeckHome','DeckNina','Deck2063','DeckMusic','DeckNav'])assert.match(screens,new RegExp('export function '+name));
