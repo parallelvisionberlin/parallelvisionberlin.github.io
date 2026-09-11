@@ -2,7 +2,7 @@
 # Requires Python playwright and Chromium; no real customer data or payments.
 import re,json
 from pathlib import Path
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import sync_playwright, expect
 root=Path(__file__).resolve().parents[1]
 out=Path(__import__('os').environ.get('NINA_TEST_ARTIFACTS','/tmp/nina-web-tests'));out.mkdir(parents=True,exist_ok=True)
 html=(root/'index.html').read_text();html=re.sub(r'<script\b[^>]*>[\s\S]*?</script>','',html,flags=re.I)
@@ -78,12 +78,14 @@ with sync_playwright() as p:
   assert page.evaluate("requests.filter(x=>x.url.includes('/live/activate')).length")==2
   page.evaluate('window.failPlay=false');page.locator('[data-nina-enable-sound]').click(force=True);page.wait_for_timeout(150)
   assert page.evaluate("requests.filter(x=>x.url.includes('/live/activate')).length")==2
-  page.locator('[data-nina-audio-help]').click(force=True);page.wait_for_selector('#ninaScrimButton:has-text("TRY AGAIN")')
+  page.locator('[data-nina-audio-help]').click(force=True)
+  expect(page.locator('#ninaScrimMessage')).to_contain_text('The call has stopped.')
+  expect(page.locator('#ninaScrimButton')).to_have_text('TRY AGAIN')
   assert page.evaluate("requests.some(x=>x.url.includes('/live/end'))")
   assert page.locator('.nina-web-audio-check').count()==0
   page.evaluate('testEnd()');page.wait_for_timeout(450)
   page.screenshot(path=str(out/f'nina-continuation-{width}.png'))
-  assert '6 MIN' in page.locator('#ninaScrimButton').inner_text()
+  expect(page.locator('#ninaScrimButton')).to_contain_text('6 MIN')
   page.locator('#ninaScrimButton').click();page.wait_for_timeout(200)
   checkout=page.evaluate("requests.filter(x=>x.url.includes('/credits/checkout')).at(-1)")
   assert checkout and json.loads(checkout['body'])['packId']=='signal_60'
