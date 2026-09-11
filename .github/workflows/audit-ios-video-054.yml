@@ -1,0 +1,79 @@
+name: Audit iOS video 05.4
+on:
+  push:
+    branches: [audit-ios-video-054]
+    paths:
+      - '.github/workflows/audit-ios-video-054.yml'
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Probe bundled source videos
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/pv-audit
+          {
+            echo 'SOURCE VIDEO AUDIT'
+            for f in mobile-app/assets/site05/city.mp4 mobile-app/assets/site05/nina-room.mp4; do
+              echo
+              echo "FILE: $f"
+              stat -c 'bytes=%s' "$f"
+              ffprobe -v error -select_streams v:0 -show_entries stream=codec_name,codec_long_name,profile,pix_fmt,width,height,r_frame_rate,avg_frame_rate,color_range,color_space,color_transfer,color_primaries -show_entries format=duration,format_name -of default=noprint_wrappers=1 "$f"
+              echo 'decode_test:'
+              ffmpeg -v error -i "$f" -f null - >/dev/null && echo OK
+            done
+          } | tee /tmp/pv-audit/source-videos.txt
+      - name: Inspect public Expo build package when exposed
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json, re, html, urllib.request, urllib.parse, pathlib, zipfile, plistlib, hashlib
+          build_id='772cc733-b5af-4869-9b83-8ffcd8c5f246'
+          page=f'https://expo.dev/accounts/parallel63/projects/parallel-vision/builds/{build_id}'
+          out={'build_id':build_id,'package_exposed':False}
+          try:
+            req=urllib.request.Request(page,headers={'User-Agent':'Mozilla/5.0'})
+            with urllib.request.urlopen(req,timeout=30) as r:
+              text=r.read(20_000_000).decode('utf-8','replace')
+            text=html.unescape(text).replace('\\/','/').replace('\\u0026','&')
+            candidates=sorted(set(re.findall(r'https://expo\.dev/artifacts/eas/[A-Za-z0-9_-]+\.ipa',text)))
+            out['candidate_count']=len(candidates)
+            if len(candidates)==1:
+              artifact=candidates[0]
+              out['package_exposed']=True
+              archive=pathlib.Path('/tmp/pv-audit/build11.ipa')
+              req=urllib.request.Request(artifact,headers={'User-Agent':'ParallelVision-read-only-audit'})
+              with urllib.request.urlopen(req,timeout=90) as r, archive.open('wb') as f:
+                while True:
+                  b=r.read(1024*1024)
+                  if not b: break
+                  f.write(b)
+              with zipfile.ZipFile(archive) as z:
+                names=z.namelist()
+                plists=[n for n in names if n.startswith('Payload/') and n.endswith('.app/Info.plist') and n.count('/')==2]
+                info=plistlib.loads(z.read(plists[0])) if len(plists)==1 else {}
+                out['version']=info.get('CFBundleShortVersionString')
+                out['build_number']=info.get('CFBundleVersion')
+                out['identifier']=info.get('CFBundleIdentifier')
+                markers=['SITE COHESION / 05.4','contentPosition','playingChange','NINA FOK / LIVE SIGNAL']
+                out['markers']={m:False for m in markers}
+                for n in names:
+                  if n.endswith(('main.jsbundle','.hbc')) and z.getinfo(n).file_size<20_000_000:
+                    b=z.read(n)
+                    for m in markers: out['markers'][m] |= m.encode() in b
+                out['mp4_files']=[{'path':n,'bytes':z.getinfo(n).file_size} for n in names if n.lower().endswith('.mp4')]
+          except Exception as e:
+            out['error']=f'{type(e).__name__}: {e}'[:500]
+          pathlib.Path('/tmp/pv-audit/build-package.json').write_text(json.dumps(out,indent=2))
+          print(json.dumps(out,indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pv-ios-video-054-audit
+          path: /tmp/pv-audit
+          retention-days: 3
