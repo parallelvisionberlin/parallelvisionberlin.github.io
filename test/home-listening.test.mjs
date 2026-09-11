@@ -65,7 +65,7 @@ test('homepage keeps project discovery distinct from Nina live access', () => {
   assert.match(feature, /nina-identity-discover.*href="\.\/nina-project.html"/);
   assert.doesNotMatch(feature, /TALK TO NINA|data-nina-open|openNinaArtist/i);
   assert.match(html, /class="home-desktop-signal-tab"[^>]+data-nina-open/);
-  assert.match(html, /class="home-mobile-signal-entry"[^>]+data-nina-open/);
+  assert.match(html, /class="mobile-nina-invitation"[^>]+data-nina-open/);
   assert.doesNotMatch(html, /vision-neo\.webp/);
   assert.equal((html.match(/class="listening-track"/g) || []).length, 5);
   assert.match(html, /class="hero-video"/);

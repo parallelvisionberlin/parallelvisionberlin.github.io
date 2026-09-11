@@ -928,8 +928,8 @@ async function startSignalCreditCheckout(packId) {
   const checkoutEndpoint = `${ANAM_SESSION_TOKEN_ENDPOINT.replace(/\/session-token$/, "")}/api/nina/credits/checkout`;
   const endpointUrl = new URL(checkoutEndpoint);
   try {
-    const clerk = await initializeNinaAuth();
-    const token = await clerk?.session?.getToken?.();
+    const clerk = await withNinaDeadline(initializeNinaAuth());
+    const token = await withNinaDeadline(clerk?.session?.getToken?.());
     if (!clerk?.isSignedIn || !token) {
       console.warn("Signal Credit checkout has no authenticated session.", {
         status: 0,
@@ -1054,8 +1054,8 @@ async function confirmSignalCreditReturn() {
     });
     return;
   }
-  const clerk = await initializeNinaAuth();
-  const token = await clerk?.session?.getToken?.();
+  const clerk = await withNinaDeadline(initializeNinaAuth());
+  const token = await withNinaDeadline(clerk?.session?.getToken?.());
   if (!clerk?.isSignedIn || !token) {
     setSignalCreditPurchaseView({
       title: "Sign In to Confirm Payment",
@@ -1831,12 +1831,21 @@ function scheduleNinaUsageWarning() {
   ninaUsageWarningTimer = setTimeout(showNinaUsageWarning, (ninaUsageRemainingSeconds - 30) * 1000);
 }
 
+async function withNinaDeadline(promise, milliseconds = 8000) {
+  let timer;
+  try {
+    return await Promise.race([promise, new Promise((_, reject) => {
+      timer = setTimeout(() => reject(new Error("Nina request timed out")), milliseconds);
+    })]);
+  } finally { clearTimeout(timer); }
+}
+
 async function requestNinaUsage(action, keepalive = false) {
   const sessionId = ninaUsageSessionId;
   if (!sessionId) return { bypass: true, status: action === "end" ? "ended" : "active" };
   const response = await fetch(`${ANAM_SESSION_TOKEN_ENDPOINT.replace(/\/session-token$/, "")}/api/nina/live/${action}`, {
     method: "POST",
-    headers: await authenticationHeaders(),
+    headers: await withNinaDeadline(authenticationHeaders()),
     body: JSON.stringify({ sessionId }),
     signal: AbortSignal.timeout(8000),
     keepalive
@@ -1944,43 +1953,43 @@ async function settleNinaUsage(end = false, keepalive = false) {
 async function stopNinaSession() {
   if (ninaStoppingPromise) return ninaStoppingPromise;
   ninaStoppingPromise = (async () => {
-  if (NINA_WEB_FLOW) clearNinaWebSession();
-  clearNinaLiveCountdown();
-  void endNinaAnalyticsSession("ended");
-  ninaAttempt += 1;
-  ninaConnecting = false;
-  ninaTokenAbortController?.abort();
-  ninaTokenAbortController = null;
-  ninaMemoryListenerCleanup?.();
-  ninaMemoryListenerCleanup = null;
-  ninaMemoryLoadedForSession = false;
-  ninaSessionMessageKeys = new Set();
-  clearNinaUsageTimer();
-  clearNinaUsageWarning();
-  clearNinaTrialGraceTimer();
-  const client = ninaClient;
-  ninaClient = null;
-  ninaVideo.pause();
-  ninaVideo.srcObject = null;
-  stopNinaMicrophone();
-  const mediaStopped = client
-    ? Promise.resolve().then(() => client.stopStreaming()).catch(error => logDevelopmentError("Unable to stop Nina cleanly.", error))
-    : Promise.resolve();
-  if (ninaUsageSessionId) await settleNinaUsage(true, true);
-  ninaUsageSessionId = "";
-  ninaUsageActive = false;
-  ninaTrialActivationPending = false;
-  ninaTrialGraceReadyPromise = null;
-  ninaUsageRemainingSeconds = null;
-  ninaUsageSettlementSeconds = null;
-  ninaUsageActivationPromise = null;
-  ninaUsageSettlementFailures = 0;
-  const serverConversationId = ninaServerConversationId;
-  ninaServerConversationId = "";
-  if (serverConversationId) {
-    void queueOwnerMemoryRequest("/memory/conversations/end", { conversationId: serverConversationId }).catch(() => {});
-  }
-  await mediaStopped;
+    if (NINA_WEB_FLOW) clearNinaWebSession();
+    clearNinaLiveCountdown();
+    void endNinaAnalyticsSession("ended");
+    ninaAttempt += 1;
+    ninaConnecting = false;
+    ninaTokenAbortController?.abort();
+    ninaTokenAbortController = null;
+    ninaMemoryListenerCleanup?.();
+    ninaMemoryListenerCleanup = null;
+    ninaMemoryLoadedForSession = false;
+    ninaSessionMessageKeys = new Set();
+    clearNinaUsageTimer();
+    clearNinaUsageWarning();
+    clearNinaTrialGraceTimer();
+    const client = ninaClient;
+    ninaClient = null;
+    ninaVideo.pause();
+    ninaVideo.srcObject = null;
+    stopNinaMicrophone();
+    const mediaStopped = client
+      ? withNinaDeadline(Promise.resolve().then(() => client.stopStreaming()), 3000).catch(error => logDevelopmentError("Unable to stop Nina cleanly.", error))
+      : Promise.resolve();
+    if (ninaUsageSessionId) await settleNinaUsage(true, true);
+    ninaUsageSessionId = "";
+    ninaUsageActive = false;
+    ninaTrialActivationPending = false;
+    ninaTrialGraceReadyPromise = null;
+    ninaUsageRemainingSeconds = null;
+    ninaUsageSettlementSeconds = null;
+    ninaUsageActivationPromise = null;
+    ninaUsageSettlementFailures = 0;
+    const serverConversationId = ninaServerConversationId;
+    ninaServerConversationId = "";
+    if (serverConversationId) {
+      void queueOwnerMemoryRequest("/memory/conversations/end", { conversationId: serverConversationId }).catch(() => {});
+    }
+    await mediaStopped;
   })();
   try { await ninaStoppingPromise; }
   finally { ninaStoppingPromise = null; }
