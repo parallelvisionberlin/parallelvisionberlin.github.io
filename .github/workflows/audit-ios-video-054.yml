@@ -9,9 +9,14 @@ permissions:
 jobs:
   audit:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
+      - name: Install ffmpeg tools
+        shell: bash
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y ffmpeg
       - name: Probe bundled source videos
         shell: bash
         run: |
@@ -29,10 +34,12 @@ jobs:
             done
           } | tee /tmp/pv-audit/source-videos.txt
       - name: Inspect public Expo build package when exposed
+        if: always()
         shell: bash
         run: |
+          mkdir -p /tmp/pv-audit
           python3 - <<'PY'
-          import json, re, html, urllib.request, urllib.parse, pathlib, zipfile, plistlib, hashlib
+          import json, re, html, urllib.request, pathlib, zipfile, plistlib
           build_id='772cc733-b5af-4869-9b83-8ffcd8c5f246'
           page=f'https://expo.dev/accounts/parallel63/projects/parallel-vision/builds/{build_id}'
           out={'build_id':build_id,'package_exposed':False}
@@ -73,6 +80,7 @@ jobs:
           print(json.dumps(out,indent=2))
           PY
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: pv-ios-video-054-audit
           path: /tmp/pv-audit
