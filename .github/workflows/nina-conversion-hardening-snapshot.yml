@@ -1,0 +1,24 @@
+name: Nina conversion hardening snapshot
+on:
+  push:
+    branches: [nina-conversion-hardening-20260911]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Package source
+        run: |
+          mkdir -p /tmp/nina-conversion
+          git rev-parse HEAD > /tmp/nina-conversion/commit.txt
+          git archive --format=tar.gz HEAD anam-token-worker js css scripts index.html nina-project.html nina-admin .github package.json > /tmp/nina-conversion/source.tar.gz
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nina-conversion-hardening-source
+          path: /tmp/nina-conversion/
+          retention-days: 2
