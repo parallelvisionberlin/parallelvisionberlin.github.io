@@ -23,7 +23,7 @@ jobs:
         shell: powershell
         run: |
           $ErrorActionPreference = 'Stop'
-          $pin = 'fae3791b7b454bb7e0867f2cf6d4d809a1498586'
+          $pin = 'b71bba896f44a85400f97c65685a070505b785b2'
           $path = 'mobile-app/finish-site05.ps1'
           $tokens = $null; $errors = $null
           $null = [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path $path).Path, [ref]$tokens, [ref]$errors)
@@ -31,7 +31,7 @@ jobs:
           $text = [IO.File]::ReadAllText((Resolve-Path $path))
           $needle = '$SourceCommit = ' + "'" + $pin + "'"
           if (!$text.Contains($needle)) { throw 'Installer source pin does not match verified source.' }
-          if (!$text.Contains('SITE COHESION / 05.3')) { throw 'Wrong release marker.' }
+          if (!$text.Contains('SITE COHESION / 05.4')) { throw 'Wrong release marker.' }
           git cat-file -e "${pin}^{commit}"
           if ($LASTEXITCODE -ne 0) { throw 'Pinned source is unavailable.' }
           git diff --exit-code $pin HEAD -- mobile-app/App.js mobile-app/src mobile-app/assets mobile-app/tests mobile-app/scripts mobile-app/app.json mobile-app/eas.json mobile-app/package.json mobile-app/package-lock.json mobile-app/.easignore mobile-app/.npmrc
