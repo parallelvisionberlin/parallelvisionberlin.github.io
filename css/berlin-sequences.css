@@ -25,3 +25,147 @@
 }
 
 .pv-berlin .berlin-sequence > .featured-film-links { margin-top: 28px; }
+
+/* Phone header: one quiet row. Parallel Vision returns home, language stays visible,
+   and the existing Account control becomes the compact navigation menu. */
+@media (max-width: 600px) {
+  body.pv-berlin .archive-nav {
+    position: absolute;
+    z-index: 50;
+    display: flex;
+    flex-wrap: nowrap !important;
+    align-items: center;
+    min-height: 64px;
+    gap: 10px !important;
+    padding: 10px 18px !important;
+    border-bottom-color: rgba(255,255,255,.10);
+    background: linear-gradient(180deg, rgba(0,0,0,.84), rgba(0,0,0,.34));
+    font-size: 10px !important;
+    letter-spacing: .08em !important;
+  }
+
+  body.pv-berlin .archive-nav > a {
+    order: 1;
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    margin-right: auto;
+    white-space: nowrap;
+    letter-spacing: .18em !important;
+  }
+
+  body.pv-berlin .archive-nav > .pv-language-switch {
+    order: 2;
+    min-height: 44px;
+    margin-left: 0 !important;
+    padding: 0 2px;
+    white-space: nowrap;
+    font-size: 10px;
+    letter-spacing: .08em;
+  }
+
+  body.pv-berlin .archive-nav-links {
+    order: 3 !important;
+    position: static !important;
+    display: block !important;
+    width: 44px !important;
+    flex: 0 0 44px;
+    margin: 0 !important;
+  }
+
+  body.pv-berlin .archive-nav-links > a {
+    display: none !important;
+  }
+
+  body.pv-berlin .berlin-account-menu {
+    position: static !important;
+  }
+
+  body.pv-berlin .berlin-account-menu summary {
+    width: 44px;
+    min-height: 44px;
+    justify-content: center;
+    gap: 0;
+    padding: 0;
+    overflow: hidden;
+    color: #f0f0eb;
+    font-size: 0;
+    line-height: 1;
+  }
+
+  body.pv-berlin .berlin-account-menu summary::after {
+    content: "•••" !important;
+    display: block;
+    transform: translateY(-1px);
+    font: 400 14px/1 Inter, Arial, sans-serif;
+    letter-spacing: .15em;
+    opacity: .9;
+  }
+
+  body.pv-berlin .berlin-account-menu[open] summary::after {
+    content: "×" !important;
+    transform: none;
+    font-size: 22px;
+    letter-spacing: 0;
+    font-weight: 300;
+  }
+
+  body.pv-berlin .archive-nav:has(.berlin-account-menu[open]) {
+    background: #050505;
+    border-bottom-color: #2b2b2b;
+  }
+
+  body.pv-berlin .archive-nav-links:has(.berlin-account-menu[open]) > a {
+    position: absolute;
+    left: 18px;
+    right: 18px;
+    z-index: 52;
+    display: flex !important;
+    align-items: center;
+    width: auto;
+    min-height: 48px;
+    padding: 0 18px;
+    border-right: 1px solid #2b2b2b;
+    border-left: 1px solid #2b2b2b;
+    background: #070707;
+    color: #f0f0eb;
+    font: 500 12px/1 Inter, Arial, sans-serif;
+    letter-spacing: .08em;
+    opacity: 1;
+  }
+
+  body.pv-berlin .archive-nav-links:has(.berlin-account-menu[open]) > a:nth-child(1) {
+    top: calc(100% + 8px);
+    border-top: 1px solid #2b2b2b;
+  }
+  body.pv-berlin .archive-nav-links:has(.berlin-account-menu[open]) > a:nth-child(2) { top: calc(100% + 56px); }
+  body.pv-berlin .archive-nav-links:has(.berlin-account-menu[open]) > a:nth-child(3) { top: calc(100% + 104px); }
+  body.pv-berlin .archive-nav-links:has(.berlin-account-menu[open]) > a:nth-child(4) {
+    top: calc(100% + 152px);
+    border-bottom: 1px solid #2b2b2b;
+  }
+
+  body.pv-berlin .berlin-account-panel {
+    position: absolute !important;
+    top: calc(100% + 200px) !important;
+    right: 18px !important;
+    left: 18px !important;
+    z-index: 52;
+    width: auto !important;
+    max-width: none !important;
+    padding: 0 18px !important;
+    border: 1px solid #2b2b2b !important;
+    border-top: 0 !important;
+    background: #070707 !important;
+    box-shadow: 0 18px 44px rgba(0,0,0,.72) !important;
+  }
+
+  body.pv-berlin .berlin-account-panel a {
+    min-height: 48px;
+    font-size: 12px;
+  }
+
+  body.pv-berlin .berlin-hero-content {
+    padding-top: 118px !important;
+  }
+}
