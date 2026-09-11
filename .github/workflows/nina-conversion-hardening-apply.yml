@@ -2,8 +2,6 @@ name: Apply and verify Nina conversion hardening
 on:
   push:
     branches: [nina-conversion-hardening-20260911]
-    paths:
-      - 'scripts/nina-conversion-hardening.patch.gz.b64'
   workflow_dispatch:
 permissions:
   contents: write
