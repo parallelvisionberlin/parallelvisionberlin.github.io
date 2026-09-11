@@ -4,16 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Berlin 2063 / Parallel Vision</title>
-<meta name="description" content="Berlin 2063 is an evolving audiovisual archive of a possible future.">
+<meta name="description" content="A visual archive of Berlin, 2063 and beyond, through urban studies, films, inhabitants and material culture.">
 <link rel="canonical" href="https://parallelvisionlabel.com/berlin-2063.html">
 <meta property="og:title" content="Berlin 2063 / Parallel Vision">
-<meta property="og:description" content="Berlin 2063 is an evolving audiovisual archive of a possible future.">
+<meta property="og:description" content="A visual archive of Berlin, 2063 and beyond, through urban studies, films, inhabitants and material culture.">
 <meta property="og:url" content="https://parallelvisionlabel.com/berlin-2063.html">
 <meta property="og:type" content="website">
 <meta property="og:image" content="https://parallelvisionlabel.com/assets/optimized/2063/urban-form/urbangalleryfirst.webp">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Berlin 2063 / Parallel Vision">
-<meta name="twitter:description" content="Berlin 2063 is an evolving audiovisual archive of a possible future.">
+<meta name="twitter:description" content="A visual archive of Berlin, 2063 and beyond, through urban studies, films, inhabitants and material culture.">
 <meta name="twitter:image" content="https://parallelvisionlabel.com/assets/optimized/2063/urban-form/urbangalleryfirst.webp">
   <link rel="icon" type="image/png" href="./favicon.png">
   <link rel="apple-touch-icon" href="./favicon.png">
@@ -21,6 +21,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="./fashion.css">
   <script src="./language.js" defer></script>
+  <link rel="stylesheet" href="./css/featured-film.css">
+  <script src="./js/featured-film.js" defer></script>
   <style>
     .berlin-page {
       --archive-line: rgba(255,255,255,.13);
@@ -612,7 +614,8 @@ body.pv-berlin .berlin-hero-portals a:focus-visible { outline: 1px solid white; 
     <div class="berlin-hero-content">
       <p class="berlin-hero-label">Parallel Vision / Living Archive</p>
       <h1>Berlin 2063</h1>
-      <p class="berlin-hero-line">An evolving audiovisual archive of a possible future.</p>
+      <p class="berlin-hero-line">A visual archive of Berlin, 2063 and beyond.</p>
+      <a class="berlin-watch-film" href="#berlin-beyond" data-archive-en="Watch Berlin 2063 and Beyond ↓" data-archive-de="Berlin 2063 and Beyond ansehen ↓">Watch Berlin 2063 and Beyond ↓</a>
       <nav class="berlin-hero-portals" aria-label="Explore the Berlin 2063 archive">
         <a href="#world-urbanForm"><span>01</span><b>Urban Form</b></a>
         <a href="#world-urbanSystems"><span>02</span><b>Urban Systems</b></a>
@@ -626,19 +629,31 @@ body.pv-berlin .berlin-hero-portals a:focus-visible { outline: 1px solid white; 
 
   <main id="archive" class="berlin-archive-section">
     <div class="berlin-archive">
+    <section class="featured-film" id="berlin-beyond" aria-labelledby="featured-film-title">
+      <figure class="featured-film-frame">
+        <video controls muted loop playsinline preload="none" width="3356" height="1440" poster="./assets/optimized/video/berlin-2063/hyper-future-berlin-poster.webp" data-featured-film aria-label="Berlin 2063 and Beyond, a film exploring Berlin’s hyperfuture">
+          <source src="https://pub-21c1e54026ca4574b09d269b385e2fca.r2.dev/hyper-future-berlin-desktop.mp4" data-mobile-src="https://pub-21c1e54026ca4574b09d269b385e2fca.r2.dev/hyper-future-berlin-mobile.mp4" type="video/mp4">
+          <a href="https://pub-21c1e54026ca4574b09d269b385e2fca.r2.dev/hyper-future-berlin-desktop.mp4">Watch Berlin 2063 and Beyond</a>
+        </video>
+      </figure>
+      <div class="featured-film-caption">
+        <div><p class="featured-film-label">Moving Transmissions / 01</p><h2 id="featured-film-title">Berlin 2063 and Beyond</h2></div>
+        <div>
+          <p class="featured-film-description" data-archive-en="A journey into Berlin’s hyperfuture. Monumental density, elevated roads and a city imagined far beyond 2063." data-archive-de="Eine Reise in Berlins Hyperzukunft. Monumentale Dichte, erhöhte Straßen und eine Stadt, die weit über 2063 hinausgedacht wird.">A journey into Berlin’s hyperfuture. Monumental density, elevated roads and a city imagined far beyond 2063.</p>
+          <p class="featured-film-details" data-archive-en="Film study / 44 seconds / 21:9" data-archive-de="Filmstudie / 44 Sekunden / 21:9">Film study / 44 seconds / 21:9</p>
+          <div class="featured-film-links"><a href="./moving-transmissions.html#transmissions" data-archive-en="Explore Moving Transmissions" data-archive-de="Moving Transmissions ansehen">Explore Moving Transmissions</a></div>
+        </div>
+      </div>
+    </section>
+
       <header class="berlin-archive-intro">
         <p class="berlin-intro-label">Visual Archive / Berlin 2063</p>
         <div class="berlin-intro-copy">
-          <p>Berlin 2063 is an evolving audiovisual archive exploring how a city and the people within it might change across the coming decades.</p>
-          <p>Through architecture, infrastructure, technology, nightlife, fashion and everyday life, the archive examines how systems already present today could reshape the way we move, gather, work, dress and relate to one another.</p>
+          <p>Berlin 2063 is the starting point of an evolving visual archive. The urban studies explore a possible city in 2063 through its architecture, transit, nightlife and inhabitants.</p>
+          <p>Moving Transmissions extends these studies into film and into more distant futures. Together, the still images and films trace Berlin from 2063 into the hyperfuture, with work that can move from the screen into projection, exhibitions and live performance.</p>
         </div>
       </header>
 
-      <a class="berlin-moving-card" href="./moving-transmissions.html" aria-label="Enter Moving Transmissions">
-        <h2>Moving Transmissions</h2>
-        <p>The motion layer of Berlin 2063: screen loops, projection fragments and atmosphere systems.</p>
-        <span>Enter Moving Transmissions →</span>
-      </a>
 
 
       <div class="berlin-archives" id="berlinArchives" aria-label="Berlin 2063 visual archive">
@@ -931,11 +946,11 @@ body.pv-berlin .berlin-hero-portals a:focus-visible { outline: 1px solid white; 
     function applyArchiveIntroLanguage(language) {
       const german = language === "de";
       const introCopy = german ? [
-        "Berlin 2063 ist ein wachsendes audiovisuelles Archiv, das untersucht, wie sich eine Stadt und die Menschen in ihr über die kommenden Jahrzehnte verändern könnten.",
-        "Durch Architektur, Infrastruktur, Technologie, Nachtleben, Mode und Alltag untersucht das Archiv, wie bereits heute vorhandene Systeme unsere Art, uns zu bewegen, zu versammeln, zu arbeiten, zu kleiden und miteinander in Beziehung zu treten, neu gestalten könnten."
+        "Berlin 2063 ist der Ausgangspunkt eines wachsenden visuellen Archivs. Die urbanen Studien erkunden eine mögliche Stadt im Jahr 2063 durch ihre Architektur, ihren Verkehr, ihr Nachtleben und ihre Bewohner:innen.",
+        "Moving Transmissions erweitert diese Studien um Film und weiter entfernte Zukünfte. Gemeinsam folgen Bilder und Filme Berlin von 2063 bis in die Hyperzukunft, mit Arbeiten für Projektion, Ausstellungen und Live-Performances."
       ] : [
-        "Berlin 2063 is an evolving audiovisual archive exploring how a city and the people within it might change across the coming decades.",
-        "Through architecture, infrastructure, technology, nightlife, fashion and everyday life, the archive examines how systems already present today could reshape the way we move, gather, work, dress and relate to one another."
+        "Berlin 2063 is the starting point of an evolving visual archive. The urban studies explore a possible city in 2063 through its architecture, transit, nightlife and inhabitants.",
+        "Moving Transmissions extends these studies into film and into more distant futures. Together, the still images and films trace Berlin from 2063 into the hyperfuture, with work that can move from the screen into projection, exhibitions and live performance."
       ];
       document.querySelector(".berlin-intro-label").textContent = german ? "Visuelles Archiv / Berlin 2063" : "Visual Archive / Berlin 2063";
       document.querySelectorAll(".berlin-intro-copy p").forEach((paragraph, index) => { paragraph.textContent = introCopy[index]; });
