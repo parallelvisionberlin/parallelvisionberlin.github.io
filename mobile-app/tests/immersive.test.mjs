@@ -26,7 +26,7 @@ test('new deck is an explicit opt-in on the same trusted live document',()=>{
  assert.equal(url.pathname,'/nina-app.html');
  assert.equal(url.searchParams.get('pv_deck'),'04');
 });
-test('website films render visibly and use explicit Home and Nina focal crops',()=>{
+test('website films stay visible, retry playback and enforce the source-centered composition',()=>{
  const assets=readFileSync(new URL('../src/site05Assets.js',import.meta.url),'utf8');
  const media=readFileSync(new URL('../src/SiteMedia.js',import.meta.url),'utf8');
  const screens=readFileSync(new URL('../src/DeckScreens.js',import.meta.url),'utf8');
@@ -37,8 +37,9 @@ test('website films render visibly and use explicit Home and Nina focal crops',(
  assert.match(media,/allowsVideoFrameAnalysis=\{false\}/);
  assert.doesNotMatch(media,/opacity:videoReady/);
  assert.match(media,/setTimeout\(\(\)=>setPosterVisible\(false\),900\)/);
+ assert.match(media,/setInterval\(\(\)=>/);
+ assert.match(media,/if\(!player\.playing\)player\.play\(\)/);
+ assert.match(media,/contentPosition=\{\{dx:0,dy:0\}\}/);
  assert.match(media,/mixWithOthers/);
- assert.match(screens,/contentPosition=\{\{dx:-145,dy:-155\}\}/);
- assert.match(screens,/contentPosition=\{\{dx:-170,dy:-15\}\}/);
  for(const name of ['DeckHome','DeckNina','Deck2063','DeckMusic','DeckNav'])assert.match(screens,new RegExp('export function '+name));
 });
