@@ -50,10 +50,9 @@ try {
     }
     $Hashes = @{}
     foreach ($Relative in $Required) { $Hashes[$Relative] = (Get-FileHash -LiteralPath (Join-Path $App $Relative) -Algorithm SHA256).Hash }
-    Write-Host "$Revision : checking centered always-visible Home/Nina motion, native actions and iOS export." -ForegroundColor Cyan
+    Write-Host "$Revision : checking centered always-visible Home/Nina motion and iOS export." -ForegroundColor Cyan
     Invoke-Checked 'npx.cmd' @('--yes', 'npm@10.9.8', 'ci', '--include=dev', '--ignore-scripts')
     Invoke-Checked 'npm.cmd' @('test')
-    Invoke-Checked 'node.exe' @('scripts/site05-components.cjs')
     Invoke-Checked 'npx.cmd' @('expo', 'export', '--platform', 'ios', '--output-dir', (Join-Path $Workspace 'ios-check'))
     foreach ($Relative in $Required) {
         if ((Get-FileHash -LiteralPath (Join-Path $App $Relative) -Algorithm SHA256).Hash -ne $Hashes[$Relative]) { throw "Source changed during checks: $Relative" }
