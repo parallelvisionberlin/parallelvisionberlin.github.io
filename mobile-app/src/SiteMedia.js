@@ -2,9 +2,9 @@ import React,{useEffect,useRef,useState} from 'react';
 import {AppState,Image,StyleSheet,View} from 'react-native';
 import {useVideoPlayer,VideoView} from 'expo-video';
 
-// Bundled website films. The VideoView is always rendered at full opacity.
-// The poster is only a short startup/error layer, so a playing film can never remain hidden behind a static image.
-export function SiteFilm({source,poster,paused=false,style,label='Parallel Vision film',contentFit='cover',contentPosition={dx:0,dy:0},posterStyle}){
+// The bundled website films are already composed around their subjects.
+// Keep the native video visible and centered; the poster is only a short startup/error layer.
+export function SiteFilm({source,poster,paused=false,style,label='Parallel Vision film',contentFit='cover',posterStyle}){
   const [posterVisible,setPosterVisible]=useState(true);
   const [failed,setFailed]=useState(false);
   const [active,setActive]=useState(!AppState.currentState||AppState.currentState==='active');
@@ -25,7 +25,7 @@ export function SiteFilm({source,poster,paused=false,style,label='Parallel Visio
       if(shouldPlay.current){
         player.muted=true;
         player.play();
-        // If iOS misses a render callback, do not leave a static poster covering a playing film.
+        // Do not let a missed iOS render callback leave the static poster over a playing film.
         revealTimer.current=setTimeout(()=>setPosterVisible(false),900);
       }else{
         player.pause();
@@ -42,25 +42,40 @@ export function SiteFilm({source,poster,paused=false,style,label='Parallel Visio
     const status=player.addListener('statusChange',event=>{
       if(!mounted)return;
       if(event.status==='error'){setFailed(true);setPosterVisible(true);return;}
-      if(shouldPlay.current&&event.status==='readyToPlay'){
+      if(shouldPlay.current&&(event.status==='readyToPlay'||event.status==='ready')){
         try{player.muted=true;player.play();}catch{}
       }
     });
     const playing=player.addListener('playingChange',event=>{
       if(!mounted)return;
-      if(shouldPlay.current&&event.isPlaying){clearTimeout(revealTimer.current);revealTimer.current=setTimeout(reveal,120);}
-      else if(shouldPlay.current&&!event.isPlaying){try{player.play();}catch{}}
+      if(shouldPlay.current&&event.isPlaying){
+        clearTimeout(revealTimer.current);
+        revealTimer.current=setTimeout(reveal,120);
+      }else if(shouldPlay.current&&!event.isPlaying){
+        try{player.play();}catch{}
+      }
     });
     const time=player.addListener('timeUpdate',event=>{
       if(!mounted)return;
       const current=Number(event.currentTime??player.currentTime)||0;
       if(shouldPlay.current&&current>.03)reveal();
     });
-    return()=>{mounted=false;clearTimeout(revealTimer.current);app.remove();status.remove();playing.remove();time.remove();};
+    // AVPlayer can occasionally report ready without advancing after an app/tab transition.
+    // Retry play while this screen is active instead of silently falling back to a poster.
+    const watchdog=setInterval(()=>{
+      if(!mounted||!shouldPlay.current)return;
+      try{if(!player.playing)player.play();}catch{}
+    },1200);
+    return()=>{
+      mounted=false;
+      clearTimeout(revealTimer.current);
+      clearInterval(watchdog);
+      app.remove();status.remove();playing.remove();time.remove();
+    };
   },[player]);
 
   return <View style={[s.frame,style]} accessible accessibilityLabel={label}>
-    {!failed&&<VideoView player={player} style={StyleSheet.absoluteFillObject} contentFit={contentFit} contentPosition={contentPosition} nativeControls={false} allowsPictureInPicture={false} allowsVideoFrameAnalysis={false} onFirstFrameRender={()=>{setPosterVisible(false);try{if(shouldPlay.current)player.play();}catch{}}}/>} 
+    {!failed&&<VideoView player={player} style={StyleSheet.absoluteFillObject} contentFit={contentFit} contentPosition={{dx:0,dy:0}} nativeControls={false} allowsPictureInPicture={false} allowsVideoFrameAnalysis={false} onFirstFrameRender={()=>{setPosterVisible(false);try{if(shouldPlay.current)player.play();}catch{}}}/>} 
     {(posterVisible||failed)&&<Image pointerEvents="none" source={poster} style={[StyleSheet.absoluteFillObject,posterStyle]} resizeMode={contentFit}/>} 
   </View>;
 }
