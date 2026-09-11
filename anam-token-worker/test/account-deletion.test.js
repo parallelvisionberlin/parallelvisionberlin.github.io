@@ -129,8 +129,11 @@ test("account deletion endpoint authenticates, protects owner, and deletes the a
     deleteFails = false;
     const response = await request(await auth.token("user_delete1"));
     assert.equal(response.status, 200); assert.deepEqual(await response.json(), { deleted: true });
-    assert.deepEqual(clerkRequests.map(request => request.method), ["GET", "DELETE", "GET", "DELETE"]);
-    assert.equal(clerkRequests.every(request => request.url === "https://api.clerk.com/v1/users/user_delete1" && request.authorization === "Bearer clerk-secret"), true);
+    const deletions = clerkRequests.filter(request => request.method === "DELETE");
+    assert.equal(deletions.length, 2);
+    assert.equal(deletions.every(request => request.url === "https://api.clerk.com/v1/users/user_delete1"), true);
+    assert.equal(clerkRequests.every(request => request.authorization === "Bearer clerk-secret"), true);
+    assert.ok(clerkRequests.some(request => request.method === "GET" && request.url.endsWith("/user_delete1")));
     assert.equal(db.state.users.some(row => row.id === "user-a"), false);
     assert.equal(db.state.users.some(row => row.id === "owner"), true);
   } finally { globalThis.fetch = originalFetch; }

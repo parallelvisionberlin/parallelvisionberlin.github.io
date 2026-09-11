@@ -127,7 +127,9 @@ function renderFunnel(funnel) {
   elements.funnel.replaceChildren();
   for (const [label, item] of [
     ["PageViews", funnel.pageViews], ["TalkToNina sessions", funnel.talkToNinaSessions],
-    ["Account signups", funnel.accountSignups], ["Checkout starts", funnel.checkoutStarts], ["Purchases", funnel.purchases]
+    ["Account signups", funnel.accountSignups], ["Billing started", funnel.billingStarts],
+    ["Failed before billing", funnel.preActivationFailures], ["Signal exhausted", funnel.exhaustedSignals],
+    ["Checkout opened", funnel.checkoutStarts], ["Checkout failed", funnel.checkoutFailures], ["Purchases", funnel.purchases]
   ]) {
     const cell = document.createElement("div");
     const name = document.createElement("span");

@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 import worker from "../src/index.js";
 import {
-  StripePurchaseError, createSignalCreditCheckout, processStripeEvent,
+  StripePurchaseError, createSignalCreditCheckout, processStripeEvent, reconcileSignalCreditCheckout,
   signalCreditCatalog, verifyAndProcessStripeWebhook
 } from "../src/stripe.js";
 
@@ -79,7 +79,12 @@ function paymentDb() {
         },
         async first() {
           if (normalized.startsWith("SELECT referred_by_user_id FROM users")) return users.get(values[0]) || null;
-          if (normalized.includes("FROM signal_credit_purchases")) return purchases.get(values[0]) || null;
+          if (normalized.includes("FROM signal_credit_purchases")) {
+            if (normalized.includes("stripe_checkout_session_id = ?") && normalized.includes("user_id = ?")) {
+              return [...purchases.values()].find(row => row.stripe_checkout_session_id === values[0] && row.user_id === values[1]) || null;
+            }
+            return purchases.get(values[0]) || null;
+          }
           if (normalized.includes("FROM signal_credit_accounts")) return accounts.get(values[0]) || null;
           if (normalized.includes("FROM signal_credit_transactions")) {
             return transactions.find(row => row.user_id === values[0] && row.reference_id === values[1]) || null;
@@ -146,16 +151,17 @@ test("unknown packs are rejected before a Stripe request", async () => {
   assert.equal(stripe.calls.length, 0);
 });
 
-test("active catalog exposes only the final four server-authoritative packs", () => {
+test("active catalog exposes the production server-authoritative packs", () => {
   const catalog = signalCreditCatalog(configuredEnv(paymentDb()));
-  assert.deepEqual(Object.keys(catalog), ["signal_60", "signal_150", "signal_300", "signal_600"]);
+  assert.deepEqual(Object.keys(catalog), ["signal_60", "signal_150", "signal_300", "signal_600", "signal_1200"]);
   assert.deepEqual(Object.fromEntries(Object.entries(catalog).map(([id, pack]) => [id, {
-    credits: pack.credits, amountEurCents: pack.amountEurCents, priceBinding: pack.priceBinding, stripePriceId: pack.stripePriceId
+    credits: pack.credits, amountEurCents: pack.amountEurCents, stripePriceId: pack.stripePriceId
   }])), {
-    signal_60: { credits: 60, amountEurCents: 350, priceBinding: "STRIPE_PRICE_SIGNAL_60", stripePriceId: "price_signal_60" },
-    signal_150: { credits: 150, amountEurCents: 900, priceBinding: "STRIPE_PRICE_SIGNAL_150", stripePriceId: "price_signal_150" },
-    signal_300: { credits: 300, amountEurCents: 1700, priceBinding: "STRIPE_PRICE_SIGNAL_300", stripePriceId: "price_signal_300" },
-    signal_600: { credits: 600, amountEurCents: 3000, priceBinding: "STRIPE_PRICE_SIGNAL_600", stripePriceId: "price_signal_600" }
+    signal_60: { credits: 60, amountEurCents: 350, stripePriceId: "price_1UAJ2o5JckUXomBnKOtBxCAV" },
+    signal_150: { credits: 150, amountEurCents: 899, stripePriceId: "price_1UD2BH5JckUXomBnDg3gEbJS" },
+    signal_300: { credits: 300, amountEurCents: 1599, stripePriceId: "price_1UD2BP5JckUXomBnRm5cSScY" },
+    signal_600: { credits: 600, amountEurCents: 2799, stripePriceId: "price_1UD2BW5JckUXomBnZUbqS4kE" },
+    signal_1200: { credits: 1200, amountEurCents: 5499, stripePriceId: "price_1UD2Bd5JckUXomBnXUEMBTXm" }
   });
 });
 
@@ -165,12 +171,12 @@ test("checkout uses only canonical pack values and assigns the authenticated use
   const stripe = mockStripe();
   const { purchase } = await openPurchase(env, stripe, "signal_300", "correct-user");
   const request = stripe.calls[0].params;
-  assert.deepEqual(request.line_items, [{ price: "price_signal_300", quantity: 1 }]);
+  assert.deepEqual(request.line_items, [{ price: "price_1UD2BP5JckUXomBnRm5cSScY", quantity: 1 }]);
   assert.equal(request.metadata.credits, "300");
   assert.equal(request.metadata.user_id, "correct-user");
   assert.equal(purchase.user_id, "correct-user");
   assert.equal(purchase.credits, 300);
-  assert.equal(purchase.amount_total, 1700);
+  assert.equal(purchase.amount_total, 1599);
 });
 
 test("60-credit starter pack creates a validated €3.50 Checkout purchase", async () => {
@@ -179,7 +185,7 @@ test("60-credit starter pack creates a validated €3.50 Checkout purchase", asy
   const stripe = mockStripe();
   const { purchase, session } = await openPurchase(env, stripe, "signal_60", "starter-user");
   const request = stripe.calls[0].params;
-  assert.deepEqual(request.line_items, [{ price: "price_signal_60", quantity: 1 }]);
+  assert.deepEqual(request.line_items, [{ price: "price_1UAJ2o5JckUXomBnKOtBxCAV", quantity: 1 }]);
   assert.equal(request.metadata.credits, "60");
   assert.equal(purchase.pack_id, "signal_60");
   assert.equal(purchase.credits, 60);
@@ -192,8 +198,39 @@ test("60-credit starter pack creates a validated €3.50 Checkout purchase", asy
 test("localhost checkout returns local success and cancel URLs", async () => {
   const stripe = mockStripe();
   await createSignalCreditCheckout(configuredEnv(paymentDb()), { user: { id: "u1" }, clerkUserId: "user_1" }, "signal_150", "http://127.0.0.1:4173", stripe);
-  assert.equal(stripe.calls[0].params.success_url, "http://127.0.0.1:4173/?ninaCredits=success");
+  assert.equal(stripe.calls[0].params.success_url, "http://127.0.0.1:4173/?ninaCredits=success&session_id={CHECKOUT_SESSION_ID}");
   assert.equal(stripe.calls[0].params.cancel_url, "http://127.0.0.1:4173/?ninaCredits=cancel");
+});
+
+test("authenticated return reconciliation verifies the exact Checkout Session and fulfills without waiting for a webhook", async () => {
+  const db = paymentDb();
+  const env = configuredEnv(db);
+  const stripe = mockStripe();
+  const { result, purchase, session } = await openPurchase(env, stripe, "signal_60", "return-user");
+  assert.equal(purchase.status, "open");
+  const reconciled = await reconcileSignalCreditCheckout(env, { user: { id: "return-user" } }, result.sessionId, stripe);
+  assert.equal(reconciled.status, "paid");
+  assert.equal(reconciled.balance, 60);
+  assert.equal(purchase.status, "paid");
+  assert.equal(db.transactions.filter(row => row.source === "stripe_checkout").length, 1);
+  const replay = await reconcileSignalCreditCheckout(env, { user: { id: "return-user" } }, result.sessionId, stripe);
+  assert.equal(replay.status, "paid");
+  assert.equal(db.transactions.filter(row => row.source === "stripe_checkout").length, 1);
+});
+
+test("checkout reconciliation cannot confirm another account's session or an unpaid session", async () => {
+  const db = paymentDb();
+  const env = configuredEnv(db);
+  const stripe = mockStripe();
+  const { result, session } = await openPurchase(env, stripe, "signal_150", "owner-user", { payment_status: "unpaid", status: "open" });
+  await assert.rejects(
+    () => reconcileSignalCreditCheckout(env, { user: { id: "other-user" } }, result.sessionId, stripe),
+    error => error instanceof StripePurchaseError && error.code === "checkout_not_found"
+  );
+  const open = await reconcileSignalCreditCheckout(env, { user: { id: "owner-user" } }, result.sessionId, stripe);
+  assert.equal(open.status, "open");
+  assert.equal(open.paymentStatus, "unpaid");
+  assert.equal(db.transactions.length, 0);
 });
 
 test("invalid webhook signatures are rejected", async () => {
@@ -284,5 +321,6 @@ test("checkout routing awaits failures and returns a safe provider error with CO
   assert.match(source, /return await handleSignalCreditCheckout\(request, env, origin\)/);
   assert.match(source, /code: "checkout_provider_error"/);
   assert.match(source, /return jsonResponse\(\{ error: "Checkout provider unavailable"[\s\S]*502, origin\)/);
-  assert.doesNotMatch(source, /error\?\.message/);
+  const checkoutHandler = source.slice(source.indexOf("async function handleSignalCreditCheckout("), source.indexOf("async function handleSignalCreditCheckoutStatus("));
+  assert.doesNotMatch(checkoutHandler, /error\?\.message/);
 });

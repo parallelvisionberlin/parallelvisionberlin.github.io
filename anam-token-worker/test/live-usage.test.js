@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { DatabaseSync } from "node:sqlite";
+import { readFileSync } from "node:fs";
 import { creditSignalCredits, ensureVerifiedSignupTrial, getSignalCreditBalance } from "../src/credits.js";
 import {
   CREDITS_PER_MINUTE, SECONDS_PER_CREDIT, SIGNUP_TRIAL_GRACE_SECONDS, activateLiveNinaSession, beginLiveNinaTrialGrace, createLiveNinaSession,
@@ -8,56 +10,26 @@ import {
 } from "../src/live-usage.js";
 
 function liveDb() {
-  const accounts = new Map();
-  const transactions = [];
-  const sessions = new Map();
-  return { accounts, transactions, sessions, prepare(sql) {
-    const query = sql.replace(/\s+/g, " ").trim();
-    let values = [];
-    return { bind(...bound) { values = bound; return this; }, async run() {
-      if (query.startsWith("INSERT OR IGNORE INTO signal_credit_accounts")) {
-        if (!accounts.has(values[0])) accounts.set(values[0], { balance:0, lifetime_credited:0, lifetime_debited:0, updated_at:values[2] });
-        return { meta:{changes:1} };
-      }
-      if (query.startsWith("INSERT INTO signal_credit_transactions")) {
-        const [id,userId,amount,type,source,referenceId,description,createdAt]=values;
-        const duplicate=transactions.find(row=>row.user_id===userId&&row.reference_id===referenceId);
-        if(duplicate)throw new Error("UNIQUE constraint failed");
-        const account=accounts.get(userId);if(account.balance+amount<0)throw new Error("insufficient_signal_credits");
-        transactions.push({id,user_id:userId,amount,type,source,reference_id:referenceId,description,created_at:createdAt});
-        account.balance+=amount;account.lifetime_credited+=amount>0?amount:0;account.lifetime_debited+=amount<0?-amount:0;account.updated_at=createdAt;
-        return {meta:{changes:1}};
-      }
-      if (query.startsWith("INSERT INTO live_nina_sessions")) {
-        const [id,userId,balance,createdAt,updatedAt]=values;
-        sessions.set(id,{id,user_id:userId,status:"pending",started_at:null,last_billed_at:null,billable_until:null,ended_at:null,credits_available_on_start:balance,credits_debited:0,created_at:createdAt,updated_at:updatedAt});
-        return {meta:{changes:1}};
-      }
-      if (query.startsWith("UPDATE live_nina_sessions SET status = 'failed'")) {
-        const [endedAt,updatedAt,id,userId]=values,row=sessions.get(id);if(!row||row.user_id!==userId||row.status!=="pending")return{meta:{changes:0}};
-        Object.assign(row,{status:"failed",ended_at:endedAt,updated_at:updatedAt});return{meta:{changes:1}};
-      }
-      if (query.startsWith("UPDATE live_nina_sessions SET last_billed_at")) {
-        const [readyAt,updatedAt,id,userId]=values,row=sessions.get(id);if(!row||row.user_id!==userId||row.status!=="pending")return{meta:{changes:0}};
-        row.last_billed_at=row.last_billed_at||readyAt;row.updated_at=updatedAt;return{meta:{changes:1}};
-      }
-      if (query.includes("SET status = 'active', started_at")) {
-        const [startedAt,lastBilledAt,billableUntil,balance,updatedAt,id,userId]=values,row=sessions.get(id);if(!row||row.user_id!==userId||row.status!=="pending")return{meta:{changes:0}};
-        Object.assign(row,{status:"active",started_at:startedAt,last_billed_at:lastBilledAt,billable_until:billableUntil,credits_available_on_start:balance,updated_at:updatedAt});return{meta:{changes:1}};
-      }
-      if (query.includes("SET credits_debited = MAX")) {
-        const [credits,lastBilledAt,status,,endedAt,updatedAt,id,userId]=values,row=sessions.get(id);if(!row||row.user_id!==userId||row.status!=="active")return{meta:{changes:0}};
-        row.credits_debited=Math.max(row.credits_debited,credits);row.last_billed_at=lastBilledAt;row.status=status;if(status!=="active")row.ended_at=row.ended_at||endedAt;row.updated_at=updatedAt;return{meta:{changes:1}};
-      }
-      throw new Error(`Unexpected run: ${query}`);
-    }, async first() {
-      if(query.includes("FROM signal_credit_accounts"))return accounts.get(values[0])||null;
-      if(query.includes("COALESCE(SUM(amount), 0)"))return{credited:transactions.filter(row=>row.user_id===values[0]&&row.type==="credit"&&row.source==="signup_trial").reduce((sum,row)=>sum+row.amount,0)};
-      if(query.includes("FROM signal_credit_transactions"))return transactions.find(row=>row.user_id===values[0]&&row.reference_id===values[1])||null;
-      if(query.includes("FROM live_nina_sessions")){const row=sessions.get(values[0]);return row?.user_id===values[1]?{...row}:null;}
-      throw new Error(`Unexpected first: ${query}`);
-    }, async all(){return{results:[]}} };
-  }};
+  const sqlite = new DatabaseSync(":memory:");
+  sqlite.exec("PRAGMA foreign_keys = OFF");
+  for (const file of ["0001_nina_memory.sql", "0002_authenticated_users.sql", "0003_signal_credits.sql", "0006_live_nina_sessions.sql"]) {
+    sqlite.exec(readFileSync(new URL(`../migrations/${file}`, import.meta.url), "utf8"));
+  }
+  sqlite.exec("PRAGMA foreign_keys = OFF");
+  return {
+    sqlite,
+    get transactions() { return sqlite.prepare("SELECT * FROM signal_credit_transactions ORDER BY rowid").all(); },
+    sessions: { get(id) { return sqlite.prepare("SELECT * FROM live_nina_sessions WHERE id = ?").get(id); } },
+    prepare(sql) {
+      let values = [];
+      return {
+        bind(...bound) { values = bound; return this; },
+        async run() { return { meta: { changes: Number(sqlite.prepare(sql).run(...values).changes) } }; },
+        async first() { return sqlite.prepare(sql).get(...values) || null; },
+        async all() { return { results: sqlite.prepare(sql).all(...values) }; }
+      };
+    }
+  };
 }
 
 async function fundedSession(credits, start = Date.parse("2026-08-28T12:00:00Z")) {
@@ -106,34 +78,28 @@ test("verified memory-shaped user identity receives one trial and can create a L
   } finally { globalThis.fetch=originalFetch; }
 });
 
-test("signup-trial grace is server-derived, expires pending sessions without debit, and preserves normal billing after activation",async()=>{
+test("signup-trial setup grace is cumulative across reconnects while first speech can always activate",async()=>{
   const start=Date.parse("2026-09-01T12:00:00Z");
   const db=liveDb(),env={NINA_MEMORY_DB:db},user={id:"trial-user",role:"user"};
   await creditSignalCredits(env,user.id,30,{source:"signup_trial",referenceId:"signup-trial:trial-user"});
-  const expired=await createLiveNinaSession(env,user,start);
-  assert.equal(expired.trialActivationPending,true);
-  const readyAt=start+10000;
-  const ready=await beginLiveNinaTrialGrace(env,user,expired.sessionId,readyAt);
-  assert.equal(ready.trialActivationPending,true);
-  await assert.rejects(
-    ()=>activateLiveNinaSession(env,user,expired.sessionId,readyAt+SIGNUP_TRIAL_GRACE_SECONDS*1000),
-    error=>error.code==="trial_grace_expired"
-  );
-  assert.equal(db.sessions.get(expired.sessionId).status,"failed");
-  assert.equal((await getSignalCreditBalance(env,user.id)).balance,30);
-  assert.equal(db.transactions.filter(row=>row.type==="debit").length,0);
 
-  const timedOut=await createLiveNinaSession(env,user,start+61000);
-  await beginLiveNinaTrialGrace(env,user,timedOut.sessionId,start+62000);
-  const ended=await settleLiveNinaSession(env,user,timedOut.sessionId,{end:true,now:start+122000});
-  assert.equal(ended.status,"failed");
-  assert.equal(ended.debited,0);
+  const first=await createLiveNinaSession(env,user,start);
+  const firstReady=await beginLiveNinaTrialGrace(env,user,first.sessionId,start+1000);
+  assert.equal(firstReady.graceSeconds,60);
+  await settleLiveNinaSession(env,user,first.sessionId,{end:true,now:start+31000});
   assert.equal((await getSignalCreditBalance(env,user.id)).balance,30);
 
-  const active=await createLiveNinaSession(env,user,start+123000);
-  await beginLiveNinaTrialGrace(env,user,active.sessionId,start+124000);
-  await activateLiveNinaSession(env,user,active.sessionId,start+129000);
-  const settled=await settleLiveNinaSession(env,user,active.sessionId,{now:start+135000});
+  const second=await createLiveNinaSession(env,user,start+32000);
+  const secondReady=await beginLiveNinaTrialGrace(env,user,second.sessionId,start+33000);
+  assert.equal(secondReady.graceSeconds,30);
+  await settleLiveNinaSession(env,user,second.sessionId,{end:true,now:start+63000});
+
+  const third=await createLiveNinaSession(env,user,start+64000);
+  const thirdReady=await beginLiveNinaTrialGrace(env,user,third.sessionId,start+65000);
+  assert.equal(thirdReady.graceSeconds,0);
+  // Spending the setup grace never blocks a real first utterance from starting the trial.
+  await activateLiveNinaSession(env,user,third.sessionId,start+70000);
+  const settled=await settleLiveNinaSession(env,user,third.sessionId,{now:start+76000});
   assert.equal(settled.debited,1);
   assert.equal(settled.balance,29);
 
@@ -171,6 +137,7 @@ test("completed six-second units debit exactly and periodic retries are idempote
   assert.equal((await settleLiveNinaSession(env,user,sessionId,{now:start+6000})).debited,1);
   assert.equal((await settleLiveNinaSession(env,user,sessionId,{now:start+6000})).debited,0);
   assert.equal((await settleLiveNinaSession(env,user,sessionId,{now:start+60000})).debited,9);
+  assert.deepEqual(db.transactions.filter(row=>row.source==="anam_session").map(row=>row.reference_id),[`anam-session:${sessionId}:through:1`, `anam-session:${sessionId}:through:10`]);
   assert.equal((await getSignalCreditBalance(env,user.id)).balance,10);
   assert.equal(db.transactions.filter(row=>row.source==="anam_session").reduce((sum,row)=>sum-row.amount,0),10);
 });
@@ -194,4 +161,43 @@ test("migration and frontend wire only authenticated Live Nina lifecycle billing
   assert.match(worker,/ownerBypass: identity\.user\.role === "owner"/);
   assert.match(worker,/identity\.account_authenticated \? buildRelationshipContext\(env, identity\.user_id\)/);
   assert.doesNotMatch(frontend,/debitSignalCredits/);
+});
+
+test("overlapping settlements use the real ledger atomically and survive a stale session row", async () => {
+  const { db, env, user, sessionId, start } = await fundedSession(30);
+  await Promise.all([6, 12, 18, 24, 30, 30, 36, 42, 42, 48].map(seconds =>
+    settleLiveNinaSession(env, user, sessionId, { now: start + seconds * 1000 })));
+  assert.equal((await getSignalCreditBalance(env, user.id)).balance, 22);
+  assert.equal(db.transactions.filter(t => t.source === "anam_session").reduce((sum, t) => sum - t.amount, 0), 8);
+  // A crash after the ledger insert but before the session summary update
+  // cannot make a retry charge already recorded time again.
+  db.sqlite.prepare("UPDATE live_nina_sessions SET credits_debited = 0 WHERE id = ?").run(sessionId);
+  assert.equal((await settleLiveNinaSession(env, user, sessionId, { now: start + 48000 })).debited, 0);
+  assert.equal((await getSignalCreditBalance(env, user.id)).balance, 22);
+  await Promise.all([48, 54, 60].map(seconds => settleLiveNinaSession(env, user, sessionId, { end: true, now: start + seconds * 1000 })));
+  const balance = (await getSignalCreditBalance(env, user.id)).balance;
+  await settleLiveNinaSession(env, user, sessionId, { now: start + 180000 });
+  assert.equal((await getSignalCreditBalance(env, user.id)).balance, balance);
+});
+
+test("grace does not restart on duplicate ready, abandoned setup, or a trial reconnection", async () => {
+  const db = liveDb(), env = { NINA_MEMORY_DB: db }, user = { id: "recover", role: "user" };
+  const start = Date.parse("2026-09-11T12:00:00Z");
+  await creditSignalCredits(env, user.id, 30, { source: "signup_trial", referenceId: "signup-trial:recover" });
+  const first = await createLiveNinaSession(env, user, start);
+  assert.equal((await beginLiveNinaTrialGrace(env, user, first.sessionId, start)).graceSeconds, 60);
+  assert.equal((await beginLiveNinaTrialGrace(env, user, first.sessionId, start + 20000)).graceSeconds, 40);
+  const retry = await createLiveNinaSession(env, user, start + 61000);
+  assert.equal(retry.trialSetupRecovery, true);
+  const ready = await beginLiveNinaTrialGrace(env, user, retry.sessionId, start + 62000);
+  assert.equal(ready.graceSeconds, 0);
+  assert.equal(ready.recoverySeconds, 10);
+  await activateLiveNinaSession(env, user, retry.sessionId, start + 65000);
+  await settleLiveNinaSession(env, user, retry.sessionId, { end: true, now: start + 77000 });
+  const next = await createLiveNinaSession(env, user, start + 80000);
+  assert.equal(next.trialActivationPending, false);
+  assert.equal(next.balance, 28);
+  await activateLiveNinaSession(env, user, next.sessionId, start + 81000);
+  const duplicate = await activateLiveNinaSession(env, user, next.sessionId, start + 87000);
+  assert.equal(duplicate.remainingSeconds, 162);
 });

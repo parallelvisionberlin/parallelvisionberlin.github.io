@@ -14,7 +14,7 @@ test("shared Nina auth modal uses the compact conversation-focused copy and cont
   for (const page of [home, project]) {
     assert.match(page, /id="ninaAccessTitle">TALK TO NINA</);
     assert.match(page, /She lives in Berlin, 2063\.<br>You can speak with her now\./);
-    assert.match(page, /<strong>3 minutes free\.<\/strong> Sign in to begin and to continue your history when you return\./);
+    assert.match(page, /<strong data-nina-trial-offer hidden>3 minutes free\.<\/strong> Sign in to begin and to continue your history when you return\./);
     assert.match(page, /CONTINUE WITH GOOGLE/);
     assert.match(page, /CONTINUE WITH EMAIL/);
     assert.match(page, /id="ninaPrivateAccessToggle"/);

@@ -1,5 +1,5 @@
 import Stripe from "stripe";
-import { creditSignalCredits } from "./credits.js";
+import { creditSignalCredits, getSignalCreditBalance } from "./credits.js";
 import { rewardQualifyingReferral } from "./referrals.js";
 import { hashNinaMetaEmail, sendNinaMetaEvent } from "./meta-capi.js";
 
@@ -10,6 +10,8 @@ const PACK_DEFINITIONS = Object.freeze({
   signal_600: Object.freeze({ packId: "signal_600", credits: 600, amountEurCents: 2799, stripePriceId: "price_1UD2BW5JckUXomBnZUbqS4kE", enabled: true }),
   signal_1200: Object.freeze({ packId: "signal_1200", credits: 1200, amountEurCents: 5499, stripePriceId: "price_1UD2Bd5JckUXomBnXUEMBTXm", enabled: true })
 });
+
+const CHECKOUT_SESSION_ID_PATTERN = /^cs_[A-Za-z0-9_]+$/;
 
 export class StripePurchaseError extends Error {
   constructor(code, message, status = 400) {
@@ -48,7 +50,7 @@ function checkoutBase(origin) {
 function checkoutUrls(origin) {
   const base = checkoutBase(origin);
   return {
-    successUrl: `${base}/?ninaCredits=success`,
+    successUrl: `${base}/?ninaCredits=success&session_id={CHECKOUT_SESSION_ID}`,
     cancelUrl: `${base}/?ninaCredits=cancel`
   };
 }
@@ -105,7 +107,7 @@ async function markCreationFailed(env, purchaseId) {
 
 export async function createSignalCreditCheckout(env, identity, packId, origin, client = null) {
   const pack = configuredPack(env, packId);
-  const stripe = client || stripeClient(env);
+  let stripe;
   const purchaseId = crypto.randomUUID();
   const metaEmailHash = await hashNinaMetaEmail(identity?.user?.email || "");
   const now = new Date().toISOString();
@@ -128,6 +130,7 @@ export async function createSignalCreditCheckout(env, identity, packId, origin, 
 
   let session;
   try {
+    stripe = client || stripeClient(env);
     session = await stripe.checkout.sessions.create({
       mode: "payment",
       line_items: [{ price: pack.stripePriceId, quantity: 1 }],
@@ -178,6 +181,20 @@ async function purchaseForSession(env, session) {
   return purchase;
 }
 
+async function purchaseForOwnedCheckoutSession(env, userId, sessionId) {
+  if (typeof sessionId !== "string" || (sessionId.length > 255 || !CHECKOUT_SESSION_ID_PATTERN.test(sessionId))) {
+    throw new StripePurchaseError("invalid_checkout_session", "Invalid Checkout Session");
+  }
+  const purchase = await env.NINA_MEMORY_DB.prepare(`
+    SELECT id, user_id, pack_id, credits, stripe_price_id, stripe_checkout_session_id,
+           stripe_payment_intent_id, currency, amount_total, status, created_at, updated_at, paid_at
+    FROM signal_credit_purchases
+    WHERE stripe_checkout_session_id = ? AND user_id = ? LIMIT 1
+  `).bind(sessionId, userId).first();
+  if (!purchase) throw new StripePurchaseError("checkout_not_found", "Checkout Session not found", 404);
+  return purchase;
+}
+
 function paymentIntentId(session) {
   if (typeof session.payment_intent === "string") return session.payment_intent;
   return typeof session.payment_intent?.id === "string" ? session.payment_intent.id : null;
@@ -191,6 +208,7 @@ async function validatePaidSession(env, stripe, eventSession, purchase) {
   const actualPriceId = typeof line?.price === "string" ? line.price : line?.price?.id;
   const metadata = session?.metadata || {};
   const matches = session.mode === "payment"
+    && session.id === eventSession.id
     && session.payment_status === "paid"
     && session.client_reference_id === purchase.id
     && metadata.purchase_id === purchase.id
@@ -228,9 +246,7 @@ async function fulfillPaidSession(env, stripe, eventSession) {
   await sendMetaCommerceEvent(env, {
     eventName: "Purchase",
     eventId: purchase.id,
-    eventSourceUrl: typeof session.success_url === "string" && session.success_url
-      ? session.success_url
-      : "https://parallelvisionlabel.com/",
+    eventSourceUrl: "https://parallelvisionlabel.com/",
     emailHash: typeof session?.metadata?.meta_em === "string" ? session.metadata.meta_em : "",
     pack,
     purchaseId: purchase.id
@@ -250,6 +266,34 @@ async function markSessionStatus(env, eventSession, status) {
     WHERE id = ? AND status != 'paid'
   `).bind(eventSession.id, paymentIntentId(eventSession), status, now, purchase.id).run();
   return { fulfilled: false, status };
+}
+
+export async function reconcileSignalCreditCheckout(env, identity, sessionId, client = null) {
+  const userId = identity?.user?.id || identity?.user?.user_id;
+  if (!userId) throw new StripePurchaseError("invalid_user", "Account authentication required", 401);
+  let purchase = await purchaseForOwnedCheckoutSession(env, userId, sessionId);
+  if (purchase.status === "paid") {
+    const account = await getSignalCreditBalance(env, userId);
+    return { status: "paid", paymentStatus: "paid", sessionId, balance: account.balance, fulfilled: false, idempotent: true };
+  }
+  const stripe = client || stripeClient(env);
+  const session = await stripe.checkout.sessions.retrieve(sessionId, { expand: ["line_items.data.price"] });
+  if (!session?.id || session.id !== sessionId) throw new StripePurchaseError("checkout_mismatch", "Checkout Session mismatch", 502);
+  if (session.payment_status === "paid") {
+    const fulfilled = await fulfillPaidSession(env, stripe, session);
+    const account = await getSignalCreditBalance(env, userId);
+    return { status: "paid", paymentStatus: "paid", sessionId, balance: account.balance, ...fulfilled };
+  }
+  if (session.status === "expired") {
+    await markSessionStatus(env, session, "expired");
+    purchase = await purchaseForOwnedCheckoutSession(env, userId, sessionId);
+  }
+  const account = await getSignalCreditBalance(env, userId);
+  return {
+    status: ["failed", "expired"].includes(purchase.status) ? purchase.status : "open",
+    paymentStatus: typeof session.payment_status === "string" ? session.payment_status : "unpaid",
+    sessionId, balance: account.balance, fulfilled: false
+  };
 }
 
 export async function processStripeEvent(env, event, client = null) {

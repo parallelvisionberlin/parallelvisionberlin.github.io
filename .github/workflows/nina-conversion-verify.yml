@@ -1,0 +1,53 @@
+name: Verify Nina conversion release
+on:
+  push:
+    branches: [nina-conversion-fix-20260911, main]
+    paths:
+      - 'anam-token-worker/**'
+      - 'js/nina-access.js'
+      - 'js/nina-admin.js'
+      - 'scripts/test-nina-web-browser.py'
+      - 'scripts/test-nina-admin-call-recovery.py'
+      - '.github/workflows/nina-conversion-verify.yml'
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install locked dependencies
+        run: |
+          npm install -g pnpm@10.15.1
+          pnpm --dir anam-token-worker install --frozen-lockfile
+      - name: Syntax, accounting, auth and payment regression tests
+        run: |
+          npm run check --prefix anam-token-worker
+          npm test --prefix anam-token-worker
+          node --test test/*.test.mjs
+          node scripts/test-nina-microphone.mjs
+          node scripts/verify-build.js
+          git diff --check
+      - name: Browser conversion and dashboard regressions
+        run: |
+          python -m pip install playwright==1.56.0
+          python -m playwright install --with-deps chromium
+          python scripts/test-nina-web-browser.py
+          python scripts/test-nina-admin-call-recovery.py
+      - name: Bundle the verified Worker without deploying
+        run: pnpm --dir anam-token-worker exec wrangler deploy --dry-run --outdir ../.nina-verified-build
+      - name: Export verified public bundle
+        if: github.ref_name == 'nina-conversion-fix-20260911'
+        run: |
+          python - <<'PY'
+          import base64, gzip, hashlib, pathlib
+          data = pathlib.Path('.nina-verified-build/index.js').read_bytes()
+          print('NINA_BUNDLE_SHA256=' + hashlib.sha256(data).hexdigest())
+          print('NINA_BUNDLE_GZIP_BASE64=' + base64.b64encode(gzip.compress(data, mtime=0)).decode())
+          PY

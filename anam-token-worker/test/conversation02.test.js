@@ -50,22 +50,22 @@ test('Saved voice, LLM, avatar and detection settings pass through unchanged', (
   assert.deepEqual(p, before); assert.equal(config.llmId, 'existing');
   assert.equal(config.tools.filter(t => t.subtype === 'knowledge').length, 1);
 });
-test('Independent persona read overlaps context preparation without mixing accounts', async () => {
-  const calls = []; let contextReady, personaReady;
+test('Recovery startup loads account context before persona and keeps each account isolated', async () => {
+  const calls = []; let contextReady;
   const result = prepareSessionContext(
-    () => { calls.push('context'); return new Promise(r => { contextReady = r; }); },
-    () => { calls.push('persona'); return new Promise(r => { personaReady = r; }); }
+    () => { calls.push('context'); return new Promise(resolve => { contextReady = resolve; }); },
+    () => { calls.push('persona'); return { systemPrompt: 'CANON' }; }
   );
-  await tick(); assert.deepEqual(calls, ['context', 'persona']);
-  personaReady({ systemPrompt: 'CANON' }); contextReady('ACCOUNT_A');
+  await tick(); assert.deepEqual(calls, ['context']);
+  contextReady('ACCOUNT_A');
   assert.deepEqual(await result, { context: 'ACCOUNT_A', personaConfig: { systemPrompt: 'CANON' } });
+  assert.deepEqual(calls, ['context', 'persona']);
   assert.deepEqual(await prepareSessionContext(() => 'ACCOUNT_B', () => ({ systemPrompt: 'NEW_PROMPT' })), { context: 'ACCOUNT_B', personaConfig: { systemPrompt: 'NEW_PROMPT' } });
 });
-test('Preparation captures sync/async errors and waits for both operations to settle', async () => {
-  let release; let finished = false;
-  const result = prepareSessionContext(() => { throw new Error('memory failed'); }, () => new Promise(r => { release = () => { finished = true; r({}); }; }));
-  const checked = assert.rejects(result, /memory failed/);
-  await tick(); assert.equal(finished, false); release(); await checked;
+test('Recovery startup stops on context failure and propagates persona failure', async () => {
+  let personaCalled = false;
+  await assert.rejects(prepareSessionContext(() => { throw new Error('memory failed'); }, () => { personaCalled = true; }), /memory failed/);
+  assert.equal(personaCalled, false);
   await assert.rejects(prepareSessionContext(() => Promise.resolve('ok'), () => Promise.reject(new Error('persona failed'))), /persona failed/);
 });
 test('Startup timer captures only per-request durations, including a failed stage', async () => {

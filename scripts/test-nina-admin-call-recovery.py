@@ -23,7 +23,7 @@ SESSIONS = [session(CALL_A, "Example Visitor"), session(CALL_B, "Example Owner",
 METRICS = dict(unique_users=2, sessions=2, currently_active=0, total_seconds=360, average_seconds=180,
                longest_seconds=180, new_users=2, returning_users=0)
 DASHBOARD = dict(generatedAt=END, activeWindowSeconds=90, ranges=dict(today=METRICS, days7=METRICS, days30=METRICS),
-                 funnel={key: dict(available=True, value=0) for key in ["pageViews", "talkToNinaSessions", "accountSignups", "checkoutStarts", "purchases"]},
+                 funnel={key: dict(available=True, value=0) for key in ["pageViews", "talkToNinaSessions", "accountSignups", "billingStarts", "preActivationFailures", "exhaustedSignals", "checkoutStarts", "checkoutFailures", "purchases"]},
                  cost=dict(totalMinutes=6, pricePerMinute=None, estimatedAnamCost=None), sessions=SESSIONS)
 
 

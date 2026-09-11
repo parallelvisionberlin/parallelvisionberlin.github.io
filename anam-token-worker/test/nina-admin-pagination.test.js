@@ -6,7 +6,7 @@ import vm from 'node:vm';
 const source = await readFile(new URL('../../js/nina-admin.js', import.meta.url), 'utf8');
 
 function dashboard() {
-  const node = () => ({ children: [], textContent: '', append(...items) { this.children.push(...items); }, replaceChildren() { this.children = []; } });
+  const node = () => ({ children: [], textContent: '', dataset: {}, setAttribute() {}, addEventListener() {}, classList: { add() {}, toggle() {} }, append(...items) { this.children.push(...items); }, replaceChildren() { this.children = []; } });
   const sessions = node();
   const labels = [node(), node()];
   const buttons = ['previous', 'next', 'previous', 'next'].map(direction => ({

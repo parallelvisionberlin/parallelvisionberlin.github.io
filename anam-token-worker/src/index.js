@@ -15,7 +15,7 @@ import {
   activateLiveNinaSession, beginLiveNinaTrialGrace, createLiveNinaSession, creditsToSeconds, failLiveNinaSession, settleLiveNinaSession
 } from "./live-usage.js";
 import {
-  StripePurchaseError, createSignalCreditCheckout, verifyAndProcessStripeWebhook
+  StripePurchaseError, createSignalCreditCheckout, reconcileSignalCreditCheckout, verifyAndProcessStripeWebhook
 } from "./stripe.js";
 import {
   endNinaAnalyticsSession, getNinaAnalyticsDashboard, getNinaAnalyticsSessionDetail, startNinaAnalyticsSession, touchNinaAnalyticsSession
@@ -499,6 +499,13 @@ async function handleSessionToken(request, env, origin) {
     }
     throw error;
   }
+  // Recovery after the cumulative greeting allowance is spent stays silent
+  // until the visitor speaks. It never gives another free greeting minute.
+  if (usage.trialSetupRecovery) {
+    personaConfig.skipGreeting = true;
+    personaConfig.uninterruptibleGreeting = false;
+    delete personaConfig.initialMessage;
+  }
   let anamResponse;
   try {
     anamResponse = await timing.measure("anamToken", () => fetch("https://api.anam.ai/v1/auth/session-token", {
@@ -739,6 +746,24 @@ async function handleSignalCreditCheckout(request, env, origin) {
   }
 }
 
+async function handleSignalCreditCheckoutStatus(request, env, origin) {
+  try {
+    const identity = await authenticateAccountIdentity(request, env);
+    if (!identity) return jsonResponse({ error: "Account authentication required" }, 401, origin);
+    const sessionId = new URL(request.url).searchParams.get("sessionId") || "";
+    return jsonResponse(await reconcileSignalCreditCheckout(env, identity, sessionId), 200, origin);
+  } catch (error) {
+    if (error instanceof StripePurchaseError) return jsonResponse({ error: error.message, code: error.code }, error.status, origin);
+    console.error("signal_credit_checkout_status_failed", JSON.stringify({
+      name: typeof error?.name === "string" ? error.name.slice(0, 80) : "Error",
+      type: typeof error?.type === "string" ? error.type.slice(0, 80) : "",
+      code: typeof error?.code === "string" ? error.code.slice(0, 80) : "",
+      statusCode: Number.isInteger(error?.statusCode) ? error.statusCode : null
+    }));
+    return jsonResponse({ error: "Checkout verification unavailable", code: "checkout_status_error" }, 502, origin);
+  }
+}
+
 async function handleAccount(request, env, origin) {
   const user = await authenticateAccountRequest(request, env);
   if (!user) return jsonResponse({ error: "Account authentication required" }, 401, origin);
@@ -904,6 +929,7 @@ export default {
       if (url.pathname === "/api/signal-credits/admin" && ["GET", "POST"].includes(request.method)) return handleCreditAdmin(request, env, origin);
       if (url.pathname === "/api/nina/credits/redeem" && request.method === "POST") return handleVoucherRedemption(request, env, origin);
       if (url.pathname === "/api/nina/credits/checkout" && request.method === "POST") return await handleSignalCreditCheckout(request, env, origin);
+      if (url.pathname === "/api/nina/credits/checkout/status" && request.method === "GET") return await handleSignalCreditCheckoutStatus(request, env, origin);
       if (url.pathname === "/api/nina/live/activate" && request.method === "POST") return handleLiveNinaUsage(request, env, origin, "activate");
       if (url.pathname === "/api/nina/live/ready" && request.method === "POST") return handleLiveNinaUsage(request, env, origin, "ready");
       if (url.pathname === "/api/nina/live/settle" && request.method === "POST") return handleLiveNinaUsage(request, env, origin, "settle");

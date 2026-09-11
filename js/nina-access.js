@@ -127,6 +127,9 @@ let ninaAttempt = 0;
 let ninaTokenAbortController = null;
 let ninaMicrophoneStream = null;
 let ninaMicrophoneSetupPromise = null;
+let ninaMicrophoneSequence = 0;
+let ninaMicrophoneCleanup = () => {};
+let ninaStoppingPromise = null;
 let lastNinaTrigger = null;
 let ninaScrollPosition = 0;
 let ninaMemoryLoadedForSession = false;
@@ -144,6 +147,7 @@ let ninaCreditsLoadPromise = null;
 let ninaCreditsLoadUserId = "";
 let ninaOwnerBypass = false;
 let ninaCreditsPurchasePending = false;
+let ninaCheckoutReturnPromise = null;
 let ninaCreditsPurchaseTrigger = null;
 let ninaCreditsPurchaseModal = null;
 let ninaCreditsPurchaseTitle = null;
@@ -667,6 +671,9 @@ async function initializeNinaAuth() {
     clerk.addListener?.(() => {
       updateNinaAccountControls(clerk);
       if (NINA_WEB_FLOW) queueMicrotask(() => resumeNinaWebAuth(clerk));
+      if (clerk.isSignedIn && new URLSearchParams(window.location.search).get("ninaCredits") === "success") {
+        queueMicrotask(() => void handleSignalCreditReturn());
+      }
     });
     updateNinaAccountControls(clerk);
     const callbackUrl = new URL(window.location.href);
@@ -810,6 +817,7 @@ function setSignalCreditPurchaseView({ title, lead, status = "", packsVisible = 
   ninaCreditsPurchaseStatus.textContent = status;
   ninaCreditsPackList.hidden = !packsVisible;
   addNinaPurchaseReturn(false);
+  ninaCreditsPurchaseModal.querySelector("[data-check-payment]")?.remove();
 }
 
 function openSignalCreditPurchase(view = null) {
@@ -892,13 +900,14 @@ function resetCheckoutAfterHistoryRestore(event) {
   }
 }
 
-function rememberSignalCreditCheckout() {
+function rememberSignalCreditCheckout(sessionId, packId) {
   try {
     sessionStorage.setItem(NINA_CREDIT_CHECKOUT_STATE_KEY, JSON.stringify({
-      balance: Number.isSafeInteger(ninaCreditsBalance) ? ninaCreditsBalance : null,
+      sessionId: typeof sessionId === "string" ? sessionId : "",
+      packId: typeof packId === "string" ? packId : "",
       startedAt: new Date().toISOString()
     }));
-  } catch { /* Return polling still works without a stored baseline. */ }
+  } catch { /* Exact return URL still identifies the Checkout Session. */ }
 }
 
 function readSignalCreditCheckoutState() {
@@ -933,6 +942,7 @@ async function startSignalCreditCheckout(packId) {
     }
     const response = await fetch(checkoutEndpoint, {
       method: "POST",
+      signal: AbortSignal.timeout(15000),
       headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json", "Accept": "application/json" },
       body: JSON.stringify({ packId })
     });
@@ -951,17 +961,19 @@ async function startSignalCreditCheckout(packId) {
     }
     let checkoutUrl = null;
     try { checkoutUrl = new URL(data?.url || ""); } catch { /* Invalid responses are handled below. */ }
-    if (!checkoutUrl || checkoutUrl.protocol !== "https:" || checkoutUrl.hostname !== "checkout.stripe.com") {
+    const checkoutSessionId = typeof data?.sessionId === "string" ? data.sessionId.trim() : "";
+    if (!checkoutUrl || checkoutUrl.protocol !== "https:" || checkoutUrl.hostname !== "checkout.stripe.com" || !checkoutSessionId.startsWith("cs_")) {
       console.warn("Signal Credit checkout returned an invalid destination.", {
         status: response.status,
         code: "invalid_checkout_response",
-        message: "Checkout URL missing or invalid",
+        message: "Checkout URL or session ID missing or invalid",
         endpointOrigin: endpointUrl.origin,
         endpointPath: endpointUrl.pathname
       });
-      throw new Error("Invalid checkout URL");
+      throw new Error("Invalid checkout response");
     }
-    rememberSignalCreditCheckout();
+    rememberSignalCreditCheckout(checkoutSessionId, packId);
+    if (ninaClient || ninaUsageSessionId) await stopNinaSession();
     window.location.assign(checkoutUrl.href);
   } catch (error) {
     if (error instanceof TypeError) console.warn("Signal Credit checkout could not reach the endpoint.", {
@@ -977,34 +989,45 @@ async function startSignalCreditCheckout(packId) {
   }
 }
 
-async function recentStripeCredit(token, startedAt) {
-  if (!token || !Number.isFinite(startedAt)) return false;
-  try {
-    const response = await fetch(`${ANAM_SESSION_TOKEN_ENDPOINT.replace(/\/session-token$/, "")}/api/nina/credits/history?limit=10`, {
-      headers: { "Authorization": `Bearer ${token}`, "Accept": "application/json" },
-      cache: "no-store"
-    });
-    if (!response.ok) return false;
-    const data = await response.json();
-    return Array.isArray(data?.transactions) && data.transactions.some(transaction =>
-      transaction?.type === "credit" && transaction?.source === "stripe_checkout" &&
-      Date.parse(transaction.createdAt) >= startedAt - 120000
-    );
-  } catch { return false; }
-}
-
 function cleanSignalCreditReturnUrl() {
   const url = new URL(window.location.href);
   url.searchParams.delete("ninaCredits");
+  url.searchParams.delete("session_id");
   history.replaceState(history.state, "", `${url.pathname}${url.search}${url.hash}`);
 }
 
+function addNinaPaymentCheck(signIn = false) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "nina-web-return";
+  button.dataset.checkPayment = "true";
+  button.textContent = signIn ? "SIGN IN" : "CHECK PAYMENT";
+  button.addEventListener("click", () => {
+    if (signIn) { closeSignalCreditPurchase(false); openNinaAccess(); }
+    else void handleSignalCreditReturn();
+  });
+  ninaCreditsPurchaseStatus.insertAdjacentElement("afterend", button);
+}
+
 async function handleSignalCreditReturn() {
-  const returnState = new URLSearchParams(window.location.search).get("ninaCredits");
+  if (ninaCheckoutReturnPromise) return ninaCheckoutReturnPromise;
+  ninaCheckoutReturnPromise = confirmSignalCreditReturn();
+  try { await ninaCheckoutReturnPromise; }
+  catch {
+    setSignalCreditPurchaseView({ title: "Payment Not Yet Confirmed",
+      lead: "Payment verification is temporarily unavailable. Check the same payment again before purchasing more time.", packsVisible: false });
+    addNinaPaymentCheck();
+  }
+  finally { ninaCheckoutReturnPromise = null; }
+}
+
+async function confirmSignalCreditReturn() {
+  const params = new URLSearchParams(window.location.search);
+  const returnState = params.get("ninaCredits");
   if (returnState !== "success" && returnState !== "cancel") return;
-  cleanSignalCreditReturnUrl();
   initializeSignalCreditPurchaseUI();
   if (returnState === "cancel") {
+    cleanSignalCreditReturnUrl();
     clearSignalCreditCheckoutState();
     openSignalCreditPurchase({
       title: "Transmission Cancelled",
@@ -1016,40 +1039,78 @@ async function handleSignalCreditReturn() {
   }
 
   openSignalCreditPurchase({
-    title: NINA_WEB_FLOW ? "Checking Payment" : "Payment Received",
-    lead: "Synchronizing signal credits...",
+    title: "Checking Payment",
+    lead: "Confirming your Signal Credits with Stripe...",
     status: "",
     packsVisible: false
   });
   const checkoutState = readSignalCreditCheckoutState();
-  const baseline = Number.isSafeInteger(checkoutState.balance) ? checkoutState.balance : null;
-  const startedAt = Date.parse(checkoutState.startedAt || "");
+  const sessionId = (params.get("session_id") || checkoutState.sessionId || "").trim();
+  if (!sessionId.startsWith("cs_")) {
+    setSignalCreditPurchaseView({
+      title: "Payment Not Yet Confirmed",
+      lead: "We could not identify this checkout. Check your account before paying again.",
+      status: "", packsVisible: false
+    });
+    return;
+  }
   const clerk = await initializeNinaAuth();
   const token = await clerk?.session?.getToken?.();
-  let confirmed = false;
-  for (const wait of [0, 1000, 1800, 2800]) {
-    if (wait) await delay(wait);
-    const balance = await loadSignalCreditBalance(clerk, true);
-    confirmed = (baseline !== null && Number.isSafeInteger(balance) && balance > baseline) || await recentStripeCredit(token, startedAt);
-    if (confirmed) break;
+  if (!clerk?.isSignedIn || !token) {
+    setSignalCreditPurchaseView({
+      title: "Sign In to Confirm Payment",
+      lead: "Use the same account that opened this checkout.",
+      status: "", packsVisible: false
+    });
+    addNinaPaymentCheck(true);
+    return;
   }
-  clearSignalCreditCheckoutState();
-  if (confirmed) {
+  const statusEndpoint = `${ANAM_SESSION_TOKEN_ENDPOINT.replace(/\/session-token$/, "")}/api/nina/credits/checkout/status?sessionId=${encodeURIComponent(sessionId)}`;
+  let result = null;
+  for (const wait of [0, 700, 1400, 2400]) {
+    if (wait) await delay(wait);
+    try {
+      const response = await fetch(statusEndpoint, { headers: { "Authorization": `Bearer ${token}`, "Accept": "application/json" }, cache: "no-store", signal: AbortSignal.timeout(8000) });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        if (response.status === 404) { result = { status: "not_found" }; break; }
+        continue;
+      }
+      result = data;
+      if (data?.sessionId !== sessionId) { result = null; continue; }
+      if (["paid", "failed", "expired"].includes(data?.status)) break;
+    } catch { /* Retry exact Checkout Session verification below. */ }
+  }
+  if (result?.status === "paid" && result.paymentStatus === "paid") {
+    await loadSignalCreditBalance(clerk, true);
+    cleanSignalCreditReturnUrl();
+    clearSignalCreditCheckoutState();
     setSignalCreditPurchaseView({
       title: "Signal Credits Added",
       lead: Number.isSafeInteger(ninaCreditsBalance) ? `${ninaCreditsBalance.toLocaleString()} credits available.` : "Your balance has been updated.",
-      status: "",
-      packsVisible: false
+      status: "", packsVisible: false
     });
     addNinaPurchaseReturn(true);
-  } else {
-    setSignalCreditPurchaseView({
-      title: NINA_WEB_FLOW ? "Payment Not Yet Confirmed" : "Payment Received",
-      lead: NINA_WEB_FLOW ? "We could not confirm added time yet. Check your account before paying again." : "Payment received. Credits are still synchronizing.",
-      status: "",
-      packsVisible: false
-    });
+    return;
   }
+  if (["failed", "expired"].includes(result?.status)) {
+    cleanSignalCreditReturnUrl();
+    clearSignalCreditCheckoutState();
+    setSignalCreditPurchaseView({
+      title: "Payment Not Completed",
+      lead: "No Signal Credits were added. You can choose a pack again whenever you're ready.",
+      status: "", packsVisible: true
+    });
+    return;
+  }
+  setSignalCreditPurchaseView({
+    title: "Payment Not Yet Confirmed",
+    lead: result?.status === "not_found"
+      ? "This checkout belongs to another account or could not be found. Sign in with the account that opened it before paying again."
+      : "Stripe has not confirmed this checkout yet. Check this payment again before making another purchase.",
+    status: "", packsVisible: false
+  });
+  addNinaPaymentCheck();
 }
 
 function clerkAccountDisplayName() {
@@ -1281,8 +1342,25 @@ async function refreshNinaEligibility() {
 }
 
 function stopNinaMicrophone() {
-  ninaMicrophoneStream?.getTracks().forEach(track => track.stop());
+  ninaMicrophoneSequence += 1;
+  ninaMicrophoneCleanup();
+  ninaMicrophoneCleanup = () => {};
+  const stream = ninaMicrophoneStream;
   ninaMicrophoneStream = null;
+  stream?.getTracks().forEach(track => track.stop());
+}
+
+async function handleNinaMicrophoneInterruption(stream) {
+  if (stream !== ninaMicrophoneStream) return;
+  if (ninaClient || ninaConnecting) {
+    await stopNinaSession();
+    if (ninaOverlay.classList.contains("is-open")) {
+      showNinaFailure("The microphone disconnected. Check its connection, then try again. Unused credits remain in your account.");
+    }
+  } else {
+    stopNinaMicrophone();
+    ninaMicrophoneStatus.textContent = "MICROPHONE DISCONNECTED";
+  }
 }
 
 function microphoneConstraints(deviceId = "") {
@@ -1327,9 +1405,37 @@ function collapseNinaMicrophonePicker() {
 }
 
 async function acquireNinaMicrophone(deviceId = "") {
+  const sequence = ++ninaMicrophoneSequence;
   const stream = await navigator.mediaDevices.getUserMedia(microphoneConstraints(deviceId));
-  stopNinaMicrophone();
+  if (sequence !== ninaMicrophoneSequence) {
+    stream.getTracks().forEach(track => track.stop());
+    throw Object.assign(new Error("Microphone request cancelled"), { name: "AbortError" });
+  }
+  const track = stream.getAudioTracks()[0];
+  if (!track || track.readyState !== "live" || track.enabled === false) {
+    stream.getTracks().forEach(item => item.stop());
+    throw new Error("No active microphone was returned");
+  }
+  ninaMicrophoneCleanup();
+  ninaMicrophoneStream?.getTracks().forEach(item => item.stop());
   ninaMicrophoneStream = stream;
+  let muteTimer = null;
+  const ended = () => void handleNinaMicrophoneInterruption(stream);
+  const muted = () => {
+    clearTimeout(muteTimer);
+    muteTimer = setTimeout(() => { if (track.muted) ended(); }, 5000);
+  };
+  const unmuted = () => { clearTimeout(muteTimer); muteTimer = null; };
+  track.addEventListener?.("ended", ended);
+  track.addEventListener?.("mute", muted);
+  track.addEventListener?.("unmute", unmuted);
+  ninaMicrophoneCleanup = () => {
+    clearTimeout(muteTimer);
+    track.removeEventListener?.("ended", ended);
+    track.removeEventListener?.("mute", muted);
+    track.removeEventListener?.("unmute", unmuted);
+  };
+  if (track.muted) muted();
   return stream;
 }
 
@@ -1351,7 +1457,7 @@ async function setupNinaMicrophones() {
       try {
         await acquireNinaMicrophone(savedId);
       } catch (error) {
-        if (!savedId) throw error;
+        if (!savedId || !["NotFoundError", "OverconstrainedError"].includes(error?.name)) throw error;
         savePreferredMicrophone("");
         await acquireNinaMicrophone();
         ninaMicrophoneStatus.textContent = "SELECTED MICROPHONE UNAVAILABLE";
@@ -1390,7 +1496,10 @@ async function refreshNinaMicrophones() {
     const selectedId = ninaMicrophoneSelect.value || readPreferredMicrophone();
     const microphones = await listMicrophones();
     if (!microphones.length) {
-      stopNinaMicrophone();
+      if (ninaClient || ninaConnecting) {
+        await stopNinaSession();
+        if (ninaOverlay.classList.contains("is-open")) showNinaFailure("No microphone is connected. Reconnect your microphone and try again.");
+      } else stopNinaMicrophone();
       ninaMicrophoneSelect.replaceChildren(new Option("No microphone detected", ""));
       updateNinaMicrophoneName();
       ninaMicrophoneStatus.textContent = "NO MICROPHONE DETECTED";
@@ -1665,19 +1774,28 @@ function beginNinaTrialGrace(attempt, client) {
   if (attempt !== ninaAttempt || client !== ninaClient || !ninaTrialActivationPending) return Promise.resolve(false);
   markNinaOnline();
   if (NINA_WEB_FLOW) ninaWebAudio?.show(true);
-  if (!ninaTrialGraceTimer) {
-    ninaTrialGraceTimer = setTimeout(async () => {
-      if (attempt !== ninaAttempt || client !== ninaClient || !ninaTrialActivationPending || ninaUsageActive) return;
-      ninaTrialActivationPending = false;
-      await stopNinaSession();
-      if (ninaOverlay.classList.contains("is-open")) {
-        if (NINA_WEB_FLOW) showNinaFailure("Trial setup could not finish. Check your microphone and try again. No trial credits were used by this attempt.");
-        else showNinaCannotHear();
-      }
-    }, NINA_SIGNUP_TRIAL_GRACE_MS);
-  }
   if (!ninaTrialGraceReadyPromise) {
-    ninaTrialGraceReadyPromise = requestNinaUsage("ready").then(result => result.trialActivationPending === true).catch(async error => {
+    ninaTrialGraceReadyPromise = requestNinaUsage("ready").then(result => {
+      const pending = result.trialActivationPending === true;
+      if (!pending || attempt !== ninaAttempt || client !== ninaClient) return pending;
+      const serverSeconds = Number.isSafeInteger(result.graceSeconds) ? Math.max(0, result.graceSeconds) : Math.floor(NINA_SIGNUP_TRIAL_GRACE_MS / 1000);
+      const recoverySeconds = Number.isSafeInteger(result.recoverySeconds) ? Math.max(0, result.recoverySeconds) : 0;
+      if (!ninaTrialGraceTimer) {
+        ninaTrialGraceTimer = setTimeout(async () => {
+          if (attempt !== ninaAttempt || client !== ninaClient || !ninaTrialActivationPending || ninaUsageActive) return;
+          // A captured utterance may be awaiting its server acknowledgment.
+          // The activation request has its own deadline and must finish first.
+          if (ninaUsageActivationPromise) return;
+          ninaTrialActivationPending = false;
+          await stopNinaSession();
+          if (ninaOverlay.classList.contains("is-open")) {
+            if (NINA_WEB_FLOW) showNinaFailure("Trial setup could not finish. Check your microphone and try again. No trial credits were used by this attempt.");
+            else showNinaCannotHear();
+          }
+        }, (serverSeconds || recoverySeconds) * 1000);
+      }
+      return pending;
+    }).catch(async error => {
       logDevelopmentError("Unable to start signup-trial grace period.", error);
       if (attempt !== ninaAttempt || client !== ninaClient) return false;
       ninaTrialActivationPending = false;
@@ -1714,11 +1832,13 @@ function scheduleNinaUsageWarning() {
 }
 
 async function requestNinaUsage(action, keepalive = false) {
-  if (!ninaUsageSessionId) return { bypass: true, status: action === "end" ? "ended" : "active" };
+  const sessionId = ninaUsageSessionId;
+  if (!sessionId) return { bypass: true, status: action === "end" ? "ended" : "active" };
   const response = await fetch(`${ANAM_SESSION_TOKEN_ENDPOINT.replace(/\/session-token$/, "")}/api/nina/live/${action}`, {
     method: "POST",
     headers: await authenticationHeaders(),
-    body: JSON.stringify({ sessionId: ninaUsageSessionId }),
+    body: JSON.stringify({ sessionId }),
+    signal: AbortSignal.timeout(8000),
     keepalive
   });
   const data = await response.json().catch(() => ({}));
@@ -1758,6 +1878,7 @@ async function activateNinaUsage(attempt, client) {
   if (!ninaUsageActivationPromise) {
     ninaUsageActivationPromise = requestNinaUsage("activate").then(result => {
       if (attempt !== ninaAttempt || client !== ninaClient) return false;
+      if (result.status !== "active") throw new Error("Live session did not activate");
       ninaUsageActive = true;
       ninaTrialActivationPending = false;
       clearNinaTrialGraceTimer();
@@ -1775,11 +1896,13 @@ async function activateNinaUsage(attempt, client) {
 
 async function settleNinaUsage(end = false, keepalive = false) {
   if (!ninaUsageSessionId || ninaUsageEnding) return null;
+  const sessionId = ninaUsageSessionId;
   if (end) ninaUsageEnding = true;
   clearNinaUsageTimer();
   clearNinaTrialGraceTimer();
   try {
     const result = await requestNinaUsage(end ? "end" : "settle", keepalive);
+    if (sessionId !== ninaUsageSessionId) return result;
     ninaUsageSettlementFailures = 0;
     if (Number.isSafeInteger(result.balance)) {
       ninaCreditsBalance = result.balance;
@@ -1791,7 +1914,7 @@ async function settleNinaUsage(end = false, keepalive = false) {
     }
     writeSignalCreditSnapshot(ninaCreditsUserId, ninaCreditsBalance, ninaUsageRemainingSeconds);
     if (Number.isSafeInteger(result.settlementSeconds)) ninaUsageSettlementSeconds = result.settlementSeconds;
-    if (result.status === "exhausted") {
+    if (result.status === "exhausted" && !end) {
       ninaUsageActive = false;
       ninaUsageSessionId = "";
       await stopNinaSession();
@@ -1800,6 +1923,7 @@ async function settleNinaUsage(end = false, keepalive = false) {
     return result;
   } catch (error) {
     logDevelopmentError("Live Nina settlement unavailable.", error);
+    if (sessionId !== ninaUsageSessionId) return null;
     if (!end) {
       ninaUsageSettlementFailures += 1;
       if (ninaUsageSettlementFailures === 1) {
@@ -1818,6 +1942,8 @@ async function settleNinaUsage(end = false, keepalive = false) {
 }
 
 async function stopNinaSession() {
+  if (ninaStoppingPromise) return ninaStoppingPromise;
+  ninaStoppingPromise = (async () => {
   if (NINA_WEB_FLOW) clearNinaWebSession();
   clearNinaLiveCountdown();
   void endNinaAnalyticsSession("ended");
@@ -1832,6 +1958,14 @@ async function stopNinaSession() {
   clearNinaUsageTimer();
   clearNinaUsageWarning();
   clearNinaTrialGraceTimer();
+  const client = ninaClient;
+  ninaClient = null;
+  ninaVideo.pause();
+  ninaVideo.srcObject = null;
+  stopNinaMicrophone();
+  const mediaStopped = client
+    ? Promise.resolve().then(() => client.stopStreaming()).catch(error => logDevelopmentError("Unable to stop Nina cleanly.", error))
+    : Promise.resolve();
   if (ninaUsageSessionId) await settleNinaUsage(true, true);
   ninaUsageSessionId = "";
   ninaUsageActive = false;
@@ -1846,15 +1980,10 @@ async function stopNinaSession() {
   if (serverConversationId) {
     void queueOwnerMemoryRequest("/memory/conversations/end", { conversationId: serverConversationId }).catch(() => {});
   }
-  const client = ninaClient;
-  ninaClient = null;
-  if (client) {
-    try { await client.stopStreaming(); }
-    catch (error) { logDevelopmentError("Unable to stop Nina cleanly.", error); }
-  }
-  ninaVideo.pause();
-  ninaVideo.srcObject = null;
-  stopNinaMicrophone();
+  await mediaStopped;
+  })();
+  try { await ninaStoppingPromise; }
+  finally { ninaStoppingPromise = null; }
 }
 
 async function requestSessionToken(signal, history) {
@@ -1932,18 +2061,19 @@ function bindAnamLifecycle(client, attempt) {
   };
   const onClosed = () => {
     if (attempt !== ninaAttempt || client !== ninaClient) return;
-    if (NINA_WEB_FLOW) clearNinaWebSession();
     void endNinaAnalyticsSession("disconnected");
-    void settleNinaUsage(true, true);
-    ninaClient = null;
-    ninaConnecting = false;
-    if (ninaOverlay.classList.contains("is-open")) showNinaFailure("The connection ended. Try again when you're ready.");
+    void stopNinaSession().then(() => {
+      if (ninaOverlay.classList.contains("is-open")) showNinaFailure("The connection ended. Try again when you're ready.");
+    });
   };
   if (AnamEvent?.CONNECTION_ESTABLISHED) client.addListener(AnamEvent.CONNECTION_ESTABLISHED, onConnectionEstablished);
   if (AnamEvent?.VIDEO_PLAY_STARTED) client.addListener(AnamEvent.VIDEO_PLAY_STARTED, onVideoPlayStarted);
   if (AnamEvent?.CONNECTION_CLOSED) client.addListener(AnamEvent.CONNECTION_CLOSED, onClosed);
   if (AnamEvent?.MESSAGE_HISTORY_UPDATED) client.addListener(AnamEvent.MESSAGE_HISTORY_UPDATED, onHistoryUpdated);
   ninaMemoryListenerCleanup = () => {
+    if (AnamEvent?.CONNECTION_ESTABLISHED) client.removeListener(AnamEvent.CONNECTION_ESTABLISHED, onConnectionEstablished);
+    if (AnamEvent?.VIDEO_PLAY_STARTED) client.removeListener(AnamEvent.VIDEO_PLAY_STARTED, onVideoPlayStarted);
+    if (AnamEvent?.CONNECTION_CLOSED) client.removeListener(AnamEvent.CONNECTION_CLOSED, onClosed);
     if (AnamEvent?.MESSAGE_HISTORY_UPDATED) client.removeListener(AnamEvent.MESSAGE_HISTORY_UPDATED, onHistoryUpdated);
   };
 }
@@ -1955,6 +2085,7 @@ function reportAppConnectionError(phase, error) {
 }
 
 async function connectNina() {
+  if (ninaStoppingPromise) await ninaStoppingPromise;
   if (ninaConnecting || ninaClient || !ninaOverlay.classList.contains("is-open")) return;
   ninaConnecting = true; // Guards duplicate eligibility and connection requests.
   const clerk = await initializeNinaAuth();
@@ -2395,8 +2526,17 @@ ninaMicrophoneSelect.addEventListener("change", async () => {
   savePreferredMicrophone(selectedId);
   ninaMicrophoneSelect.disabled = true;
   ninaMicrophoneStatus.textContent = "";
+  const hadLiveClient = Boolean(ninaClient);
   try {
-    await acquireNinaMicrophone(selectedId);
+    if (hadLiveClient) {
+      await stopNinaSession();
+      await acquireNinaMicrophone(selectedId);
+      if (ninaOverlay.classList.contains("is-open")) {
+        showNinaFailure("Microphone changed. Reconnect to continue with the selected microphone. Unused Signal Credits remain in your account.");
+      }
+    } else {
+      await acquireNinaMicrophone(selectedId);
+    }
   } catch (error) {
     logDevelopmentError("Selected microphone unavailable.", error);
     savePreferredMicrophone("");
@@ -2408,6 +2548,7 @@ ninaMicrophoneSelect.addEventListener("change", async () => {
     collapseNinaMicrophonePicker();
   }
 });
+
 navigator.mediaDevices?.addEventListener?.("devicechange", refreshNinaMicrophones);
 document.addEventListener("keydown", event => {
   if (event.key !== "Escape") return;

@@ -353,12 +353,16 @@ export async function getNinaAnalyticsDashboard(env, now = Date.now()) {
     WHERE status = 'active' AND last_seen_at < ?
   `).bind(activeCutoff).run();
   const starts = { today: rangeStart(now, 1), last24: iso(now - 86400000), days7: rangeStart(now, 7), days30: rangeStart(now, 30) };
-  const [today, last24, days7, days30, active, recent, signups, checkouts, purchases] = await Promise.all([
+  const [today, last24, days7, days30, active, recent, signups, billingStarts, preActivationFailures, exhaustedSignals, checkouts, checkoutFailures, purchases] = await Promise.all([
     rangeMetrics(env, starts.today, current), rangeMetrics(env, starts.last24, current), rangeMetrics(env, starts.days7, current), rangeMetrics(env, starts.days30, current),
     env.NINA_MEMORY_DB.prepare("SELECT COUNT(*) AS count FROM nina_analytics_sessions WHERE status = 'active' AND last_seen_at >= ?").bind(activeCutoff).first(),
     readAnalyticsCalls(env),
     env.NINA_MEMORY_DB.prepare("SELECT COUNT(*) AS count FROM users WHERE created_at >= ?").bind(starts.days30).first(),
-    env.NINA_MEMORY_DB.prepare("SELECT COUNT(*) AS count FROM signal_credit_purchases WHERE created_at >= ?").bind(starts.days30).first(),
+    env.NINA_MEMORY_DB.prepare("SELECT COUNT(*) AS count FROM live_nina_sessions WHERE started_at >= ?").bind(starts.days30).first(),
+    env.NINA_MEMORY_DB.prepare("SELECT COUNT(*) AS count FROM live_nina_sessions WHERE status = 'failed' AND started_at IS NULL AND created_at >= ?").bind(starts.days30).first(),
+    env.NINA_MEMORY_DB.prepare("SELECT COUNT(*) AS count FROM live_nina_sessions WHERE status = 'exhausted' AND ended_at >= ?").bind(starts.days30).first(),
+    env.NINA_MEMORY_DB.prepare("SELECT COUNT(*) AS count FROM signal_credit_purchases WHERE stripe_checkout_session_id IS NOT NULL AND created_at >= ?").bind(starts.days30).first(),
+    env.NINA_MEMORY_DB.prepare("SELECT COUNT(*) AS count FROM signal_credit_purchases WHERE status IN ('creation_failed','failed') AND created_at >= ?").bind(starts.days30).first(),
     env.NINA_MEMORY_DB.prepare("SELECT COUNT(*) AS count FROM signal_credit_purchases WHERE status = 'paid' AND paid_at >= ?").bind(starts.days30).first()
   ]);
   today.currently_active = Math.max(0, Number(active?.count) || 0);
@@ -371,7 +375,7 @@ export async function getNinaAnalyticsDashboard(env, now = Date.now()) {
     timeZone: NINA_ANALYTICS_TIME_ZONE,
     todayStart: starts.today,
     activeWindowSeconds: NINA_ANALYTICS_ACTIVE_SECONDS,
-    revision: "admin-calls-20260909",
+    revision: "conversion-hardening-20260911",
     rangeBoundaries: Object.fromEntries(Object.entries(starts).map(([key, start]) => [key, { start, end: current, kind: key === "today" ? "berlin_calendar_day" : "rolling" }])),
     ranges: { today, last24, days7, days30 },
     engagement: {
@@ -388,7 +392,11 @@ export async function getNinaAnalyticsDashboard(env, now = Date.now()) {
       pageViews: { available: false, value: null },
       talkToNinaSessions: { available: true, value: days30.sessions },
       accountSignups: { available: true, value: Math.max(0, Number(signups?.count) || 0) },
+      billingStarts: { available: true, value: Math.max(0, Number(billingStarts?.count) || 0) },
+      preActivationFailures: { available: true, value: Math.max(0, Number(preActivationFailures?.count) || 0) },
+      exhaustedSignals: { available: true, value: Math.max(0, Number(exhaustedSignals?.count) || 0) },
       checkoutStarts: { available: true, value: Math.max(0, Number(checkouts?.count) || 0) },
+      checkoutFailures: { available: true, value: Math.max(0, Number(checkoutFailures?.count) || 0) },
       purchases: { available: true, value: Math.max(0, Number(purchases?.count) || 0) }
     },
     cost: {

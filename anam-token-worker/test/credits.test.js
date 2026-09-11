@@ -342,9 +342,9 @@ test("Signal Credit purchase UI submits only canonical pack IDs with Clerk authe
   const frontend = await readFile(new URL("../../js/nina-access.js", import.meta.url), "utf8");
   assert.match(frontend, /new Set\(\["signal_60", "signal_150", "signal_300", "signal_600"\]\)/);
   assert.match(frontend, /data-pack-id="signal_60"[\s\S]*?6 MIN[\s\S]*?60 Signal Credits[\s\S]*?€3\.50/);
-  assert.match(frontend, /data-pack-id="signal_150"[\s\S]*?15 MIN[\s\S]*?150 Signal Credits[\s\S]*?€9/);
-  assert.match(frontend, /data-pack-id="signal_300"[\s\S]*?30 MIN[\s\S]*?300 Signal Credits[\s\S]*?€17/);
-  assert.match(frontend, /data-pack-id="signal_600"[\s\S]*?60 MIN[\s\S]*?600 Signal Credits[\s\S]*?€30/);
+  assert.match(frontend, /data-pack-id="signal_150"[\s\S]*?15 MIN[\s\S]*?150 Signal Credits[\s\S]*?€8\.99/);
+  assert.match(frontend, /data-pack-id="signal_300"[\s\S]*?30 MIN[\s\S]*?300 Signal Credits[\s\S]*?€15\.99/);
+  assert.match(frontend, /data-pack-id="signal_600"[\s\S]*?60 MIN[\s\S]*?600 Signal Credits[\s\S]*?€27\.99/);
   assert.doesNotMatch(frontend, /data-pack-id="signal_(?:30|100|750)"/);
   assert.match(frontend, /About Signal Credits \+[\s\S]*?About Signal Credits −/);
   assert.match(frontend, /\/api\/nina\/credits\/checkout/);
