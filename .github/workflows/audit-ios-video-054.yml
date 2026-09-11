@@ -17,11 +17,11 @@ jobs:
         run: |
           sudo apt-get update -y
           sudo apt-get install -y ffmpeg
-      - name: Probe bundled source videos
+      - name: Probe bundled source videos and export frames
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p /tmp/pv-audit
+          mkdir -p /tmp/pv-audit/frames
           {
             echo 'SOURCE VIDEO AUDIT'
             for f in mobile-app/assets/site05/city.mp4 mobile-app/assets/site05/nina-room.mp4; do
@@ -33,6 +33,10 @@ jobs:
               ffmpeg -v error -i "$f" -f null - >/dev/null && echo OK
             done
           } | tee /tmp/pv-audit/source-videos.txt
+          cp mobile-app/assets/site05/city.mp4 /tmp/pv-audit/city.mp4
+          cp mobile-app/assets/site05/nina-room.mp4 /tmp/pv-audit/nina-room.mp4
+          for t in 0.5 2.5 5 7.5; do ffmpeg -loglevel error -ss "$t" -i mobile-app/assets/site05/city.mp4 -frames:v 1 -q:v 2 "/tmp/pv-audit/frames/city-${t}.jpg"; done
+          for t in 0.5 5 10 15 20; do ffmpeg -loglevel error -ss "$t" -i mobile-app/assets/site05/nina-room.mp4 -frames:v 1 -q:v 2 "/tmp/pv-audit/frames/nina-${t}.jpg"; done
       - name: Inspect public Expo build package when exposed
         if: always()
         shell: bash
