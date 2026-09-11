@@ -60,16 +60,9 @@ export function SiteFilm({source,poster,paused=false,style,label='Parallel Visio
       const current=Number(event.currentTime??player.currentTime)||0;
       if(shouldPlay.current&&current>.03)reveal();
     });
-    // AVPlayer can occasionally report ready without advancing after an app/tab transition.
-    // Retry play while this screen is active instead of silently falling back to a poster.
-    const watchdog=setInterval(()=>{
-      if(!mounted||!shouldPlay.current)return;
-      try{if(!player.playing)player.play();}catch{}
-    },1200);
     return()=>{
       mounted=false;
       clearTimeout(revealTimer.current);
-      clearInterval(watchdog);
       app.remove();status.remove();playing.remove();time.remove();
     };
   },[player]);
