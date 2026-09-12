@@ -133,6 +133,8 @@ export function buildLivePersonaConfig(persona, knowledgeFolderId) {
     systemPrompt: typeof persona?.brain?.systemPrompt === "string" ? persona.brain.systemPrompt.trim() : ""
   };
   if (typeof persona?.avatarModel === "string" && persona.avatarModel) config.avatarModel = persona.avatarModel;
+  if (typeof persona?.languageCode === "string" && persona.languageCode) config.languageCode = persona.languageCode;
+  if (persona?.directorNotes && typeof persona.directorNotes === "object" && !Array.isArray(persona.directorNotes)) config.directorNotes = { ...persona.directorNotes };
   if (persona?.voiceDetectionOptions && typeof persona.voiceDetectionOptions === "object") config.voiceDetectionOptions = persona.voiceDetectionOptions;
   if (persona?.voiceGenerationOptions && typeof persona.voiceGenerationOptions === "object") config.voiceGenerationOptions = persona.voiceGenerationOptions;
   const personaTools = Array.isArray(persona?.tools) ? persona.tools : [];
@@ -461,7 +463,7 @@ async function handleSessionToken(request, env, origin) {
         if (browserHistory.length) diagnostics.storedMessages = (await storeMessages(env, identity.visitor_id, conversationId, body.recentMessages, conversation.now)).storedMessages;
         const [memory, relationshipContext] = await Promise.all([
           buildOwnerMemoryContext(env, identity),
-          identity.account_authenticated ? buildRelationshipContext(env, identity.user_id) : Promise.resolve("")
+          identity.account_authenticated ? buildRelationshipContext(env, identity.user_id, { establishedOwner: Boolean(owner) }) : Promise.resolve("")
         ]);
         privateMemory = memory.context;
         if (relationshipContext) privateMemory = `${privateMemory}\n\n${relationshipContext}`;
@@ -582,15 +584,27 @@ async function handleStoreMessages(request, env, origin, ctx) {
   return jsonResponse({ storedMessages: result.storedMessages }, 200, origin);
 }
 
+function observeBackgroundJob(job, work) {
+  return Promise.resolve().then(work).then(result => {
+    if (result?.reason === "invalid_extraction" || result?.reason === "unavailable") {
+      console.warn("nina_background_job", { job, code: result.reason, runtimeRevision: RUNTIME_REVISION });
+    }
+    return result;
+  }).catch(() => {
+    // Do not log model output, conversation text, credentials or raw errors.
+    console.warn("nina_background_job", { job, code: "execution_failed", runtimeRevision: RUNTIME_REVISION });
+  });
+}
+
 export function scheduleCompletedRelationshipEvaluation(ctx, env, identity, conversationId, closed, evaluator = evaluateCompletedRelationship) {
   if (!closed || !identity?.account_authenticated) return false;
-  ctx.waitUntil(evaluator(env, identity.user_id, identity.visitor_id, conversationId).catch(() => {}));
+  ctx.waitUntil(observeBackgroundJob("relationship", () => evaluator(env, identity.user_id, identity.visitor_id, conversationId)));
   return true;
 }
 
 export function scheduleCompletedMemoryConsolidation(ctx, env, identity, closed, consolidator = consolidateMemory) {
   if (!closed) return false;
-  ctx.waitUntil(consolidator(env, identity.visitor_id).catch(() => {}));
+  ctx.waitUntil(observeBackgroundJob("memory", () => consolidator(env, identity.visitor_id)));
   return true;
 }
 

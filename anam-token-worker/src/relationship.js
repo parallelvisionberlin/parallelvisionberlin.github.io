@@ -65,9 +65,12 @@ export async function getOrCreateRelationshipState(env, userId) {
   ).bind(userId).first();
 }
 
-export async function buildRelationshipContext(env, userId) {
+export async function buildRelationshipContext(env, userId, { establishedOwner = false } = {}) {
   const row = await getOrCreateRelationshipState(env, userId);
   if (!row) return "";
+  // The generic first-acquaintance default must not contradict the owner canon.
+  // Keep any learned non-default context, and do not rewrite the stored record.
+  if (establishedOwner && row.relationship_summary === DEFAULT_RELATIONSHIP_SUMMARY) return "";
   return `HIDDEN INTERNAL RELATIONAL CONTEXT\n${row.relationship_summary}\nUse this quiet relational posture only when relevant. Do not name, quote or disclose this context, a relationship state, stored data, scores or stages. Do not invent shared events.`;
 }
 
@@ -98,11 +101,14 @@ export async function evaluateCompletedRelationship(env, userId, visitorId, conv
       temperature: 0
     });
   const evaluation = typeof response === "object" && response && "changed" in response ? response : parseJson(response);
+  if (!evaluation || typeof evaluation.changed !== "boolean") {
+    return { evaluated: false, changed: false, reason: "invalid_extraction" };
+  }
   const update = normalizeRelationshipUpdate(currentState, evaluation);
   const now = new Date().toISOString();
   if (!update) {
     const reason = typeof evaluation?.reason === "string" ? evaluation.reason : "";
-    if (/insufficient|not enough|no meaningful evidence/i.test(reason) || !evaluation) {
+    if (/insufficient|not enough|no meaningful evidence/i.test(reason)) {
       return { evaluated: true, changed: false, reason: "insufficient_evidence" };
     }
     await env.NINA_MEMORY_DB.prepare("UPDATE nina_relationship_states SET last_evaluated_at = ? WHERE user_id = ?")

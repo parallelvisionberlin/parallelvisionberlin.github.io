@@ -159,7 +159,7 @@ test("migration and frontend wire only authenticated Live Nina lifecycle billing
   assert.match(frontend,/Text conversations do not use Signal Credits/);
   assert.match(frontend,/if \(ninaOwnerBypass\) showNinaReady\(null, "OWNER SIGNAL · UNMETERED"\)/);
   assert.match(worker,/ownerBypass: identity\.user\.role === "owner"/);
-  assert.match(worker,/identity\.account_authenticated \? buildRelationshipContext\(env, identity\.user_id\)/);
+  assert.match(worker,/identity\.account_authenticated \? buildRelationshipContext\(env, identity\.user_id, \{ establishedOwner: Boolean\(owner\) \}\)/);
   assert.doesNotMatch(frontend,/debitSignalCredits/);
 });
 
@@ -201,3 +201,4 @@ test("grace does not restart on duplicate ready, abandoned setup, or a trial rec
   const duplicate = await activateLiveNinaSession(env, user, next.sessionId, start + 87000);
   assert.equal(duplicate.remainingSeconds, 162);
 });
+
