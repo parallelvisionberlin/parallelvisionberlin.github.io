@@ -1,3 +1,4 @@
+import { memoryControls, controlledText } from './memory-controls.js';
 // The shared character and a person's private context have separate scopes.
 export function partitionPersonaPrompt(prompt = '') {
   const shared = [], privateOwner = [];
@@ -14,7 +15,8 @@ export function partitionPersonaPrompt(prompt = '') {
 export async function personalContext(env, userId) {
   if (!userId || !env?.NINA_MEMORY_DB) return '';
   const row = await env.NINA_MEMORY_DB.prepare('SELECT content FROM nina_private_context WHERE user_id=?').bind(userId).first();
-  return row?.content ? `PRIVATE CONTEXT FOR THIS AUTHENTICATED VISITOR ONLY\n${row.content}\nA relationship label is established by the separate evidenced agreement record, never assumed from affection or a requested style.` : '';
+  const content=controlledText(row?.content,await memoryControls(env,userId),"profile").content;
+  return content ? `PRIVATE CONTEXT FOR THIS AUTHENTICATED VISITOR ONLY\n${content}\nA relationship label is established by the separate evidenced agreement record, never assumed from affection or a requested style.` : '';
 }
 
 export function scopeKnowledge(config, identity, env) {

@@ -2,9 +2,9 @@ name: Nina conversation and memory regression
 on:
   push:
     branches: [main]
-    paths: ['anam-token-worker/**', 'js/nina-access.js', 'js/nina-app-bootstrap.js', '.github/workflows/nina-reliability-tests.yml']
+    paths: ['anam-token-worker/**', 'js/nina-access.js', 'js/nina-app-bootstrap.js', 'js/nina-diagnostics.js', 'js/nina-memory-workspace.js', 'js/account.js', 'account.html', 'css/account.css', '.github/workflows/nina-reliability-tests.yml']
   pull_request:
-    paths: ['anam-token-worker/**', 'js/nina-access.js', 'js/nina-app-bootstrap.js', '.github/workflows/nina-reliability-tests.yml']
+    paths: ['anam-token-worker/**', 'js/nina-access.js', 'js/nina-app-bootstrap.js', 'js/nina-diagnostics.js', 'js/nina-memory-workspace.js', 'js/account.js', 'account.html', 'css/account.css', '.github/workflows/nina-reliability-tests.yml']
 permissions:
   contents: read
 jobs:
@@ -32,6 +32,9 @@ jobs:
           npm run check --prefix anam-token-worker
           node --check js/nina-access.js
           node --check js/nina-app-bootstrap.js
+          node --check js/nina-diagnostics.js
+          node --check js/nina-memory-workspace.js
+          node --check js/account.js
           npm test --prefix anam-token-worker
       - name: Compile the Worker without deploying
         working-directory: anam-token-worker
