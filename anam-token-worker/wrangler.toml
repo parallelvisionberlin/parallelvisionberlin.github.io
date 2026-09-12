@@ -4,6 +4,8 @@ compatibility_date = "2026-08-18"
 workers_dev = true
 
 [vars]
+NINA_CONTINUITY_ENABLED = "true"
+# Set NINA_PUBLIC_KNOWLEDGE_FOLDER_ID only after that folder contains shared canon.
 CLERK_ISSUER = "https://clerk.parallelvisionlabel.com"
 NINA_KNOWLEDGE_FOLDER_ID = "afee1711-cba4-47ac-a4ed-7125bccf3947"
 # Set this to the effective Anam rate for the account; 0 keeps cost reporting explicitly unconfigured.

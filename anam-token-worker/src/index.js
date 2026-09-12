@@ -23,10 +23,13 @@ import {
 import { VoucherError, createVoucher, findCreditUser, getCreditAdminDashboard, grantGiftCredits, redeemVoucher } from "./vouchers.js";
 import { MetaCapiError, sendNinaMetaEvent } from "./meta-capi.js";
 import { buildTranscriptExport, TranscriptExportError } from "./transcript-export.js";
+import { agreementContext, captureAgreements, currentAgreements } from './agreements.js';
+import { attachSystemTools, partitionPersonaPrompt, personalContext, scopeKnowledge } from './persona-context.js';
+import { attachMemoryTool, recallPrivateMemory } from './memory-tools.js';
 
 const PERSONA_ID = "a5663da5-5f5c-4600-b545-cbb58bd4e155";
 const VISITOR_ID_PATTERN = /^(?:[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|visitor-[a-z0-9-]+)$/i;
-export const NINA_INTIMACY_CONTINUITY = `Established intimacy follows the relationship and boundaries in Nina's base persona. Stay adult, personal and emotionally present instead of suddenly becoming clinical or performative. Preserve agency, consent, humor and the freedom to change pace or decline. Neither affection nor intimacy requires automatic agreement or escalation. Do not introduce intimacy into an unrelated exchange, and do not apply Alejandro's established relationship to another visitor.`;
+export const NINA_INTIMACY_CONTINUITY = `Intimacy follows the current visitor's established relationship and boundaries. Stay adult, personal and emotionally present instead of suddenly becoming clinical or performative. Preserve agency, consent, humor and the freedom to change pace or decline. Neither affection nor intimacy requires automatic agreement or escalation. Do not introduce intimacy into an unrelated exchange or transfer one visitor's relationship to another.`;
 export const NINA_CONVERSATIONAL_RHYTHM = CONVERSATION_RHYTHM;
 const ALEJANDRO_CONTEXT = OWNER_ARRIVAL_CONTEXT;
 export const OWNER_GREETINGS = Object.freeze([
@@ -69,7 +72,9 @@ export function authenticatedMemoryDisplayName(user, preferredName) {
 }
 
 export function assembleSystemPrompt(personaConfig, owner, privateMemory) {
-  personaConfig.systemPrompt = [personaConfig.systemPrompt, NINA_INTIMACY_CONTINUITY, NINA_CONVERSATIONAL_RHYTHM, owner ? ALEJANDRO_CONTEXT : "", privateMemory].filter(Boolean).join("\n\n");
+  const scoped = partitionPersonaPrompt(personaConfig.systemPrompt);
+  personaConfig.systemPrompt = [scoped.shared, NINA_INTIMACY_CONTINUITY, NINA_CONVERSATIONAL_RHYTHM,
+    owner ? [ALEJANDRO_CONTEXT, scoped.privateOwner].filter(Boolean).join('\n\n') : '', privateMemory].filter(Boolean).join("\n\n");
   return personaConfig;
 }
 
@@ -138,7 +143,7 @@ export function buildLivePersonaConfig(persona, knowledgeFolderId) {
   if (persona?.voiceDetectionOptions && typeof persona.voiceDetectionOptions === "object") config.voiceDetectionOptions = persona.voiceDetectionOptions;
   if (persona?.voiceGenerationOptions && typeof persona.voiceGenerationOptions === "object") config.voiceGenerationOptions = persona.voiceGenerationOptions;
   const personaTools = Array.isArray(persona?.tools) ? persona.tools : [];
-  const toolIds = personaTools.filter(tool => !/knowledge/i.test(`${tool?.name || ""} ${tool?.type || ""} ${tool?.subtype || ""}`))
+  const toolIds = personaTools.filter(tool => !/knowledge|server_rag/i.test(`${tool?.name || ""} ${tool?.type || ""} ${tool?.subtype || ""}`))
     .map(tool => tool?.id).filter(id => typeof id === "string" && id);
   if (toolIds.length) config.toolIds = toolIds;
   config.tools = [{
@@ -295,6 +300,9 @@ async function handleRuntimeDiagnostic(request, env, origin) {
   try {
     const persona = await getCurrentPersona(env.ANAM_API_KEY);
     const config = buildLivePersonaConfig(persona, env.NINA_KNOWLEDGE_FOLDER_ID);
+    const continuity = env.NINA_CONTINUITY_ENABLED === 'true';
+    const systemTools = continuity ? await attachSystemTools(config, env.ANAM_API_KEY) : null;
+    const ownerKnowledge = continuity ? scopeKnowledge(config, owner, env) : { configured: true };
     const fingerprint = await promptFingerprint(config.systemPrompt);
     const safeOptions = options => Object.fromEntries(Object.entries(options || {}).filter(([key, value]) =>
       /^[a-zA-Z][a-zA-Z0-9]{0,60}$/.test(key) && (typeof value === "boolean" || (typeof value === "number" && Number.isFinite(value)))));
@@ -312,6 +320,9 @@ async function handleRuntimeDiagnostic(request, env, origin) {
       audioSettingsSource: "Saved Anam persona, forwarded unchanged; missing values are not inferred defaults.",
       greeting: { source: "Worker initialMessage", ownerUninterruptible: true, publicUninterruptible: false, fabricatedMoodOpenings: false },
       knowledgeConfigured: true,
+      systemTools,
+      continuityEnabled: continuity,
+      knowledgeScopes: { owner: ownerKnowledge.configured, shared: Boolean(env.NINA_PUBLIC_KNOWLEDGE_FOLDER_ID) },
       scope: "Configuration inspection only. No call created; no memory or private conversation included."
     }, 200, origin);
   } catch { return jsonResponse({ error: "Runtime configuration could not be inspected", code: "diagnostic_unavailable" }, 502, origin); }
@@ -410,6 +421,7 @@ async function handleMemoryDiagnostic(request, env, origin) {
   if (!owner) return jsonResponse({ error: "Account authentication required", code: "sign_in_required" }, 401, origin);
   if (owner.role !== "owner") return jsonResponse({ error: "Owner access required", code: "owner_required" }, 403, origin);
   const diagnostic = await memoryDiagnostic(env, owner);
+  if (env.NINA_CONTINUITY_ENABLED === 'true') diagnostic.agreements = await currentAgreements(env, owner.id);
   diagnostic.relationshipEvaluation = await relationshipEvaluationDiagnostic(env, owner.id, owner.memory_visitor_id);
   return jsonResponse(diagnostic, 200, origin);
 }
@@ -461,12 +473,16 @@ async function handleSessionToken(request, env, origin) {
         const conversation = await createConversation(env, identity.visitor_id);
         conversationId = conversation.conversationId;
         if (browserHistory.length) diagnostics.storedMessages = (await storeMessages(env, identity.visitor_id, conversationId, body.recentMessages, conversation.now)).storedMessages;
-        const [memory, relationshipContext] = await Promise.all([
+        const [memory, relationshipContext, agreements, personal] = await Promise.all([
           buildOwnerMemoryContext(env, identity),
-          identity.account_authenticated ? buildRelationshipContext(env, identity.user_id, { establishedOwner: Boolean(owner) }) : Promise.resolve("")
+          identity.account_authenticated ? buildRelationshipContext(env, identity.user_id, { establishedOwner: Boolean(owner) }) : Promise.resolve(""),
+          env.NINA_CONTINUITY_ENABLED === 'true' ? agreementContext(env, identity.user_id) : '',
+          env.NINA_CONTINUITY_ENABLED === 'true' ? personalContext(env, identity.user_id) : ''
         ]);
         privateMemory = memory.context;
         if (relationshipContext) privateMemory = `${privateMemory}\n\n${relationshipContext}`;
+        if (personal) privateMemory = `${privateMemory}\n\n${personal}`;
+        if (agreements) privateMemory = `${privateMemory}\n\n${agreements}`;
         const firstContact = unknownNameInstruction(identity);
         if (firstContact) privateMemory = `${privateMemory}\n\n${firstContact}`;
         diagnostics = { ...diagnostics, ...memory.diagnostics };
@@ -477,6 +493,12 @@ async function handleSessionToken(request, env, origin) {
   );
   privateMemory = `${CONTEXT_BOUNDARY}\n\n${prepared.context}`;
   const personaConfig = prepared.personaConfig;
+  if (env.NINA_CONTINUITY_ENABLED === 'true') {
+    diagnostics.knowledge = scopeKnowledge(personaConfig, identity, env);
+    try { diagnostics.systemTools = await attachSystemTools(personaConfig, env.ANAM_API_KEY); }
+    catch { diagnostics.systemTools = { attached: [], missing: ['skip_turn', 'pause_conversation'] }; }
+    diagnostics.privateRecallConfigured = await attachMemoryTool(personaConfig, env, identity, conversationId, new URL(request.url).origin);
+  }
   applyStartupGreeting(personaConfig, owner, identity?.preferred_name);
   assembleSystemPrompt(personaConfig, owner, privateMemory);
   // Explicit opt-in from the website only. Existing app requests are unchanged.
@@ -581,6 +603,9 @@ async function handleStoreMessages(request, env, origin, ctx) {
     .bind(body.conversationId, identity.visitor_id).first();
   if (!conversation) return jsonResponse({ error: "Conversation not found" }, 404, origin);
   const result = await storeMessages(env, identity.visitor_id, body.conversationId, body.messages);
+  if (env.NINA_CONTINUITY_ENABLED === 'true' && result.storedMessages && identity.account_authenticated) {
+    ctx.waitUntil(observeBackgroundJob('agreements', () => captureAgreements(env, identity, body.conversationId)));
+  }
   return jsonResponse({ storedMessages: result.storedMessages }, 200, origin);
 }
 
@@ -620,6 +645,9 @@ async function handleCloseConversation(request, env, origin, ctx) {
   if (identity instanceof Response) return identity;
   if (!validId(body?.conversationId)) return jsonResponse({ error: "Invalid conversation" }, 400, origin);
   const closed = await closeConversation(env, identity.visitor_id, body.conversationId);
+  if (env.NINA_CONTINUITY_ENABLED === 'true' && closed && identity.account_authenticated) {
+    ctx.waitUntil(observeBackgroundJob('agreements', () => captureAgreements(env, identity, body.conversationId, { useModel: true })));
+  }
   scheduleCompletedMemoryConsolidation(ctx, env, identity, closed);
   scheduleCompletedRelationshipEvaluation(ctx, env, identity, body.conversationId, closed);
   schedulePreferredNameLearning(ctx, env, identity, body.conversationId, closed);
@@ -651,7 +679,8 @@ async function handleDelete(request, env, origin) {
   const deleted = identity.account_authenticated
     ? await Promise.all([
       clearUserMemory(env, identity.visitor_id),
-      deleteRelationshipState(env, identity.user_id)
+      deleteRelationshipState(env, identity.user_id),
+      env.NINA_CONTINUITY_ENABLED === 'true' ? env.NINA_MEMORY_DB.prepare('DELETE FROM nina_private_context WHERE user_id=?').bind(identity.user_id).run() : Promise.resolve()
     ]).then(() => true)
     : await deleteOwnerMemory(env, identity.visitor_id);
   return jsonResponse({ deleted }, 200, origin);
@@ -909,6 +938,11 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     const origin = request.headers.get("Origin") || "";
+    if (url.pathname === '/tools/recall-private-memory' && request.method === 'POST') {
+      if (env.NINA_CONTINUITY_ENABLED !== 'true') return jsonResponse({ error: 'Not found' }, 404);
+      try { return await recallPrivateMemory(request, env); }
+      catch { return jsonResponse({ error: 'Memory lookup unavailable' }, 502); }
+    }
     if (url.pathname === "/api/stripe/webhook" && request.method === "POST") {
       try { return await handleStripeWebhook(request, env); }
       catch { return jsonResponse({ error: "Webhook processing failed" }, 502); }
