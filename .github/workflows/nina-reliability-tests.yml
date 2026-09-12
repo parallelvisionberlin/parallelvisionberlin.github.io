@@ -1,0 +1,38 @@
+name: Nina conversation and memory regression
+on:
+  push:
+    branches: [main]
+    paths: ['anam-token-worker/**', 'js/nina-access.js', 'js/nina-app-bootstrap.js', '.github/workflows/nina-reliability-tests.yml']
+  pull_request:
+    paths: ['anam-token-worker/**', 'js/nina-access.js', 'js/nina-app-bootstrap.js', '.github/workflows/nina-reliability-tests.yml']
+permissions:
+  contents: read
+jobs:
+  reliability:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            anam-token-worker
+            js
+            css
+            nina-admin
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install the pinned Worker dependencies
+        run: |
+          npm install -g pnpm@10.15.1
+          pnpm --dir anam-token-worker install --frozen-lockfile
+      - name: Run the complete Worker suite and frontend syntax checks
+        run: |
+          npm run check --prefix anam-token-worker
+          node --check js/nina-access.js
+          node --check js/nina-app-bootstrap.js
+          npm test --prefix anam-token-worker
+      - name: Compile the Worker without deploying
+        working-directory: anam-token-worker
+        run: pnpm exec wrangler deploy --dry-run --outdir /tmp/nina-worker-build

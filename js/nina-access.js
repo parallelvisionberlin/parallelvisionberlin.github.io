@@ -1,7 +1,7 @@
 import { createNinaTrialPromotion } from "./nina-trial-promotion.js?v=20260905";
 import { isNinaWebsite, createConversationProgress, createAudioCheck } from "./nina-web-flow.js?v=20260910-speech-first";
 /* The access gate is theatrical client-side UI; its public hash is not authorization. */
-import { createClient, AnamEvent } from "https://esm.sh/@anam-ai/js-sdk@4.23.1?bundle";
+import { createClient, AnamEvent } from "https://esm.sh/@anam-ai/js-sdk@4.27.0?bundle";
 
 
 const NINA_WEB_FLOW = isNinaWebsite(window.location.pathname);
@@ -1364,10 +1364,14 @@ async function handleNinaMicrophoneInterruption(stream) {
 }
 
 function microphoneConstraints(deviceId = "") {
-  return {
-    audio: deviceId ? { deviceId: { exact: deviceId } } : true,
-    video: false
-  };
+  const supported = navigator.mediaDevices.getSupportedConstraints?.() || {};
+  const audio = {};
+  if (deviceId) audio.deviceId = { exact: deviceId };
+  for (const key of ["echoCancellation", "noiseSuppression", "autoGainControl", "voiceIsolation"]) {
+    if (supported[key]) audio[key] = { ideal: true };
+  }
+  if (supported.channelCount) audio.channelCount = { ideal: 1 };
+  return { audio: Object.keys(audio).length ? audio : true, video: false };
 }
 
 async function listMicrophones() {
@@ -2645,3 +2649,4 @@ export { routeNinaTrigger, stopNinaSession, showNinaFailure, refreshNinaEligibil
 export function getNinaDeckStream() {
   return window.location.pathname === "/nina-app.html" && new URLSearchParams(window.location.search).get("pv_deck") === "04" ? ninaMicrophoneStream : null;
 }
+

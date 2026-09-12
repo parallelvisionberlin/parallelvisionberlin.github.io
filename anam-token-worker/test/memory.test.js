@@ -79,8 +79,8 @@ test("later call restores only the latest 20 while retaining summary and open th
   assert.match(result.context, /message-27/);
   assert.ok(result.context.length <= MEMORY_CONTEXT_CHARACTER_LIMIT);
   assert.ok(result.context.indexOf("VALIDATED PERMANENT PROFILE") < result.context.indexOf("PINNED MEMORIES"));
-  assert.ok(result.context.indexOf("PINNED MEMORIES") < result.context.indexOf("LONG-TERM RELATIONSHIP SUMMARY"));
-  assert.ok(result.context.indexOf("LONG-TERM RELATIONSHIP SUMMARY") < result.context.indexOf("ACTIVE OPEN THREADS"));
+  assert.ok(result.context.indexOf("PINNED MEMORIES") < result.context.indexOf("LONG-TERM CONVERSATION SUMMARY"));
+  assert.ok(result.context.indexOf("LONG-TERM CONVERSATION SUMMARY") < result.context.indexOf("ACTIVE OPEN THREADS"));
   assert.ok(result.context.indexOf("ACTIVE OPEN THREADS") < result.context.indexOf("LATEST COMPLETED MESSAGES"));
 });
 
@@ -338,7 +338,7 @@ test("project fallback stops at a trailing speech clause for generic named proje
   ]);
 });
 
-test("invalid archivist JSON still stores deterministic explicit user memories", async () => {
+test("invalid archivist JSON keeps deterministic explicit user memories without advancing the cursor", async () => {
   const stored = [];
   const messages = [
     { message_id: "project", role: "user", content: "I'm still working on fashion after fabric, and I want to develop it further this month.", created_at: "2026-08-30T12:00:00.000Z" },
@@ -354,7 +354,9 @@ test("invalid archivist JSON still stores deterministic explicit user memories",
     async batch(statements) { stored.push(...statements); return []; }
   };
   const result = await consolidateMemory({ NINA_MEMORY_DB: db, AI: { run: async () => ({ response: "not json" }) } }, "owner-memory-id");
-  assert.equal(result.consolidated, true);
+  assert.equal(result.consolidated, false);
+  assert.equal(result.reason, "invalid_extraction");
+  assert.equal(stored.some(statement => statement.sql.includes("INSERT INTO memory_summaries")), false);
   assert.deepEqual(stored.filter(statement => statement.sql.includes("INSERT INTO pinned_memories"))
     .map(statement => [statement.values[2], statement.values[3]]), [
       ["project", "Alejandro is working on a project called Fashion After Fabric."],
