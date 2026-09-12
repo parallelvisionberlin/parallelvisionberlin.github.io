@@ -1,3 +1,4 @@
+import { attachConversationDiagnostics } from "./nina-diagnostics.js?v=20260913";
 import { createNinaTrialPromotion } from "./nina-trial-promotion.js?v=20260905";
 import { isNinaWebsite, createConversationProgress, createAudioCheck } from "./nina-web-flow.js?v=20260910-speech-first";
 /* The access gate is theatrical client-side UI; its public hash is not authorization. */
@@ -136,6 +137,7 @@ let ninaMemoryLoadedForSession = false;
 let ninaMemoryListenerCleanup = null;
 let ninaSessionMessageKeys = new Set();
 let ninaServerConversationId = "";
+let ninaDiagnostics = null;
 let ninaMemorySyncPromise = Promise.resolve();
 let ninaAuthInitialization = null;
 let ninaClerk = null;
@@ -1964,6 +1966,8 @@ async function stopNinaSession() {
     ninaConnecting = false;
     ninaTokenAbortController?.abort();
     ninaTokenAbortController = null;
+    ninaDiagnostics?.stop();
+    ninaDiagnostics = null;
     ninaMemoryListenerCleanup?.();
     ninaMemoryListenerCleanup = null;
     ninaMemoryLoadedForSession = false;
@@ -2022,6 +2026,7 @@ async function requestSessionToken(signal, history) {
   if (typeof data.sessionToken !== "string" || !data.sessionToken) throw new Error("Token endpoint did not return a session token.");
   return {
     sessionToken: data.sessionToken,
+    conversationDiagnosticsEnabled: data.conversationDiagnosticsEnabled === true,
     conversationId: typeof data.conversationId === "string" ? data.conversationId : "",
     usageSessionId: typeof data.usageSessionId === "string" ? data.usageSessionId : "",
     creditBypass: data.creditBypass === true,
@@ -2158,6 +2163,11 @@ async function connectNina() {
     ninaClient = client;
     setupNinaWebSession(attempt, client);
     bindAnamLifecycle(client, attempt);
+    if(session.conversationDiagnosticsEnabled&&session.conversationId) {
+      try { ninaDiagnostics=attachConversationDiagnostics({client,events:AnamEvent,conversationId:session.conversationId,
+        stream:ninaMicrophoneStream,active:()=>attempt===ninaAttempt&&client===ninaClient,
+        send:body=>queueOwnerMemoryRequest('/api/nina/conversation-events',body)}); } catch { /* Optional diagnostics never block audio. */ }
+    }
     await client.streamToVideoElement("nina-anam-video", ninaMicrophoneStream);
     if (attempt !== ninaAttempt || client !== ninaClient || !ninaOverlay.classList.contains("is-open")) {
       await client.stopStreaming();

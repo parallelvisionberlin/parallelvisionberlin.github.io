@@ -1,3 +1,5 @@
+import { modelJson } from './model-json.js';
+import { memoryControls } from './memory-controls.js';
 // Agreements are sourced events. Tone summaries never write to this ledger.
 const MODEL = '@cf/meta/llama-3.1-8b-instruct-fp8-fast';
 const TOPIC = /girlfriend|boyfriend|partner|relationship|exclusive|exclusivity|dating|novia|novio|pareja|exclusiv|relaci[oó]n|freundin|beziehung|zusammen|break up/i;
@@ -74,17 +76,20 @@ export function validateAgreementCandidates(candidates, messages) {
   return result;
 }
 
-export async function currentAgreements(env, userId) {
+export async function currentAgreements(env, userId, {includeHidden=false}={}) {
   if (!userId || !env?.NINA_MEMORY_DB) return [];
   const result = await env.NINA_MEMORY_DB.prepare(`
-    SELECT e.agreement_key, e.value, e.status, e.occurred_at, e.conversation_id, e.evidence_json
+    SELECT e.event_id, e.agreement_key, e.value, e.status, e.occurred_at, e.conversation_id, e.evidence_json
     FROM nina_agreement_events e
     WHERE e.user_id = ? AND NOT EXISTS (
       SELECT 1 FROM nina_agreement_events later WHERE later.user_id=e.user_id
       AND later.agreement_key=e.agreement_key AND later.source_order>e.source_order
     ) ORDER BY e.agreement_key
   `).bind(userId).all();
-  return result.results || [];
+  const entries=result.results||[];
+  if(includeHidden)return entries;
+  const hidden=new Set((await memoryControls(env,userId)).filter(c=>c.kind==='agreement'&&c.operation==='hide').map(c=>c.target_id));
+  return entries.filter(e=>!hidden.has(e.event_id));
 }
 
 export async function agreementContext(env, userId) {
@@ -98,10 +103,8 @@ export async function agreementContext(env, userId) {
 
 function parseExtraction(response) {
   if (response && Array.isArray(response.agreements)) return response;
-  const text = typeof response === 'string' ? response : response?.response;
-  if (typeof text !== 'string') return null;
-  try { const value = JSON.parse(text.replace(/^```(?:json)?\s*|\s*```$/g, '').trim()); return Array.isArray(value.agreements) ? value : null; }
-  catch { return null; }
+  const value=modelJson(response);
+  return Array.isArray(value?.agreements)?value:null;
 }
 
 export async function captureAgreements(env, identity, conversationId, options = {}) {

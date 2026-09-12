@@ -1,3 +1,8 @@
+import { workspaceEnabled, memoryControls, correctionContext, saveMemoryControl, MemoryEditError } from './memory-controls.js';
+import { memoryWorkspace } from './memory-workspace.js';
+import { journalContext, saveJournal } from './nina-journal.js';
+import { lookupCatalog } from './catalog.js';
+import { recordSessionSetup, storeConversationEvents, conversationDiagnostics } from './conversation-diagnostics.js';
 import { RUNTIME_REVISION, CONVERSATION_RHYTHM, OWNER_ARRIVAL_CONTEXT, NEW_NAME_INSTRUCTION, CONTEXT_BOUNDARY, createStartupTimer, prepareSessionContext, promptFingerprint, summarizeSessionPerformance } from "./conversation-runtime.js";
 import { qualifyWebConversation, WEB_SIGNAL_GUIDANCE } from "./web-conversation.js";
 import { sendGiftEmail } from "./gift-email.js";
@@ -25,7 +30,7 @@ import { MetaCapiError, sendNinaMetaEvent } from "./meta-capi.js";
 import { buildTranscriptExport, TranscriptExportError } from "./transcript-export.js";
 import { agreementContext, captureAgreements, currentAgreements } from './agreements.js';
 import { attachSystemTools, partitionPersonaPrompt, personalContext, scopeKnowledge } from './persona-context.js';
-import { attachMemoryTool, recallPrivateMemory } from './memory-tools.js';
+import { attachMemoryTool, recallPrivateMemory, catalogWebhook } from './memory-tools.js';
 
 const PERSONA_ID = "a5663da5-5f5c-4600-b545-cbb58bd4e155";
 const VISITOR_ID_PATTERN = /^(?:[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|visitor-[a-z0-9-]+)$/i;
@@ -473,16 +478,20 @@ async function handleSessionToken(request, env, origin) {
         const conversation = await createConversation(env, identity.visitor_id);
         conversationId = conversation.conversationId;
         if (browserHistory.length) diagnostics.storedMessages = (await storeMessages(env, identity.visitor_id, conversationId, body.recentMessages, conversation.now)).storedMessages;
-        const [memory, relationshipContext, agreements, personal] = await Promise.all([
+        const [memory, relationshipContext, agreements, personal, journal, controls] = await Promise.all([
           buildOwnerMemoryContext(env, identity),
           identity.account_authenticated ? buildRelationshipContext(env, identity.user_id, { establishedOwner: Boolean(owner) }) : Promise.resolve(""),
           env.NINA_CONTINUITY_ENABLED === 'true' ? agreementContext(env, identity.user_id) : '',
-          env.NINA_CONTINUITY_ENABLED === 'true' ? personalContext(env, identity.user_id) : ''
+          env.NINA_CONTINUITY_ENABLED === 'true' ? personalContext(env, identity.user_id) : '',
+          journalContext(env,identity.user_id), memoryControls(env,identity.user_id,identity.visitor_id)
         ]);
         privateMemory = memory.context;
         if (relationshipContext) privateMemory = `${privateMemory}\n\n${relationshipContext}`;
         if (personal) privateMemory = `${privateMemory}\n\n${personal}`;
         if (agreements) privateMemory = `${privateMemory}\n\n${agreements}`;
+        if(journal) privateMemory += `\n\n${journal}`;
+        const corrections=correctionContext(controls);
+        if(corrections) privateMemory += `\n\n${corrections}`;
         const firstContact = unknownNameInstruction(identity);
         if (firstContact) privateMemory = `${privateMemory}\n\n${firstContact}`;
         diagnostics = { ...diagnostics, ...memory.diagnostics };
@@ -550,10 +559,15 @@ async function handleSessionToken(request, env, origin) {
     if (usage.sessionId) await failLiveNinaSession(env, identity.user_id, usage.sessionId);
     return jsonResponse({ error: "Invalid session response" }, 502, origin);
   }
+  try { await recordSessionSetup(env,identity.user_id,conversationId,{
+    runtimeRevision:RUNTIME_REVISION,systemTools:diagnostics.systemTools,privateRecallConfigured:diagnostics.privateRecallConfigured,
+    catalogConfigured:workspaceEnabled(env)&&diagnostics.privateRecallConfigured
+  }); } catch { console.warn('nina_diagnostics_setup_unavailable'); }
   const serverTimingsMs = timing.snapshot();
   console.log("nina_session_startup", JSON.stringify({ ...startupDiagnostics, serverTimingsMs }));
   return jsonResponse({
     sessionToken: data.sessionToken,
+    conversationDiagnosticsEnabled: workspaceEnabled(env),
     ...(conversationId ? { conversationId } : {}),
     usageSessionId: usage.sessionId,
     creditBypass: usage.bypass,
@@ -934,10 +948,35 @@ async function handleNinaMetaEvent(request, env, origin) {
   }
 }
 
+async function handleMemoryWorkspaceRequest(request,env,origin,url) {
+  if(!workspaceEnabled(env))return jsonResponse({error:'Memory workspace unavailable'},503,origin);
+  const user=await authenticateAccountRequest(request,env);
+  if(!user)return jsonResponse({error:'Sign in required'},401,origin);
+  try {
+    if(url.pathname==='/api/nina/memory-workspace'&&request.method==='GET')return jsonResponse(await memoryWorkspace(env,user),200,origin);
+    if(url.pathname==='/api/nina/catalog'&&request.method==='GET')return jsonResponse(await lookupCatalog(url.searchParams.get('query')||''),200,origin);
+    if(url.pathname==='/api/nina/conversation-diagnostics'&&request.method==='GET')return jsonResponse(await conversationDiagnostics(env,user,url.searchParams.get('conversationId')),200,origin);
+    const raw=await request.text();if(raw.length>60000)throw new MemoryEditError('Request too large.',413);
+    let body;try{body=JSON.parse(raw);}catch{throw new MemoryEditError('Invalid JSON.');}
+    if(url.pathname==='/api/nina/memory-workspace'&&request.method==='PUT')return jsonResponse(await saveMemoryControl(env,user,body),200,origin);
+    if(url.pathname==='/api/nina/journal'&&request.method==='PUT')return jsonResponse(await saveJournal(env,user,body),200,origin);
+    if(url.pathname==='/api/nina/conversation-events'&&request.method==='POST')return jsonResponse(await storeConversationEvents(env,user,body),200,origin);
+    if(url.pathname==='/api/nina/relationship-reassess'&&request.method==='POST') {
+      const result=await evaluateCompletedRelationship(env,user.id,user.memory_visitor_id,body.conversationId);
+      return jsonResponse(result,200,origin);
+    }
+    return jsonResponse({error:'Not found'},404,origin);
+  }catch(error){return jsonResponse({error:error instanceof MemoryEditError?error.message:'Memory workspace temporarily unavailable'},error instanceof MemoryEditError?error.status:502,origin);}
+}
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     const origin = request.headers.get("Origin") || "";
+    if(url.pathname==='/tools/lookup-music-catalog'&&request.method==='POST') {
+      if(!workspaceEnabled(env))return jsonResponse({error:'Not found'},404);
+      try{return await catalogWebhook(request,env);}catch{return jsonResponse({error:'Catalog unavailable'},502);}
+    }
     if (url.pathname === '/tools/recall-private-memory' && request.method === 'POST') {
       if (env.NINA_CONTINUITY_ENABLED !== 'true') return jsonResponse({ error: 'Not found' }, 404);
       try { return await recallPrivateMemory(request, env); }
@@ -950,6 +989,7 @@ export default {
     if (!isAllowedOrigin(origin, env)) return jsonResponse({ error: "Origin not allowed" }, 403);
     if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders(origin) });
     try {
+      if(['/api/nina/memory-workspace','/api/nina/journal','/api/nina/catalog','/api/nina/conversation-events','/api/nina/conversation-diagnostics','/api/nina/relationship-reassess'].includes(url.pathname))return await handleMemoryWorkspaceRequest(request,env,origin,url);
       if (url.pathname === "/api/nina/runtime-version" && request.method === "GET") return jsonResponse({ runtimeRevision: RUNTIME_REVISION }, 200, origin);
       if (url.pathname === "/api/nina/runtime-diagnostic" && request.method === "GET") return await handleRuntimeDiagnostic(request, env, origin);
       if (url.pathname === "/api/nina/session-performance" && request.method === "GET") return await handleSessionPerformance(request, env, origin);

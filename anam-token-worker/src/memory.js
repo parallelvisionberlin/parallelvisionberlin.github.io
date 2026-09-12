@@ -1,3 +1,6 @@
+import { modelJson } from './model-json.js';
+import { memoryControls, controlledRows, controlledText, workspaceEnabled } from './memory-controls.js';
+import { journalStatements } from './nina-journal.js';
 export const HISTORY_LIMIT = 20;
 export const MESSAGE_CHARACTER_LIMIT = 4000;
 export const MEMORY_CONTEXT_CHARACTER_LIMIT = 32000;
@@ -219,7 +222,7 @@ function appendLatestItemsWithinBudget(header, items, remaining) {
 export async function buildOwnerMemoryContext(env, owner) {
   const db = env.NINA_MEMORY_DB;
   const [pinnedResult, summary, threadsResult, recentResult] = await Promise.all([
-    db.prepare("SELECT category, content, updated_at FROM pinned_memories WHERE visitor_id = ? ORDER BY updated_at DESC LIMIT ?")
+    db.prepare("SELECT memory_id, category, content, updated_at FROM pinned_memories WHERE visitor_id = ? ORDER BY updated_at DESC LIMIT ?")
       .bind(owner.visitor_id, PINNED_LIMIT).all(),
     db.prepare("SELECT summary FROM memory_summaries WHERE visitor_id = ?").bind(owner.visitor_id).first(),
     db.prepare("SELECT thread_id, content FROM open_threads WHERE visitor_id = ? AND status = 'active' ORDER BY updated_at DESC LIMIT ?")
@@ -227,14 +230,15 @@ export async function buildOwnerMemoryContext(env, owner) {
     db.prepare("SELECT role, content FROM messages WHERE visitor_id = ? ORDER BY created_at DESC, rowid DESC LIMIT ?")
       .bind(owner.visitor_id, HISTORY_LIMIT).all()
   ]);
-  const pinned = pinnedResult.results || [];
-  const threads = threadsResult.results || [];
+  const controls = await memoryControls(env, owner.user_id, owner.visitor_id);
+  const pinned = controlledRows(pinnedResult.results || [], controls, "pin", "memory_id");
+  const threads = controlledRows(threadsResult.results || [], controls, "thread", "thread_id");
   const recent = (recentResult.results || []).reverse().filter(message => !isNinaMetaBreakMessage(message));
   const profileSection = `VALIDATED PERMANENT PROFILE\nName: ${owner.display_name}\nProfile: ${owner.profile_type}`;
   const recentItems = recent.map(formatRecentMessage);
   const recentSection = appendLatestItemsWithinBudget("LATEST COMPLETED MESSAGES", recentItems, 22000);
   const pinnedItems = pinned.map(item => `[${item.category}${item.updated_at ? `; recorded ${item.updated_at}` : ""}] ${item.content}`);
-  const summaryText = cleanText(summary?.summary, SUMMARY_LIMIT);
+  const summaryText = cleanText(controlledText(summary?.summary, controls, "summary").content, SUMMARY_LIMIT);
   const baseParts = [PRIVATE_MEMORY_INSTRUCTIONS, profileSection];
   let used = baseParts.join("\n\n").length + 2;
   const pinnedSection = appendWholeItemsWithinBudget("PINNED MEMORIES", pinnedItems, 5000);
@@ -258,13 +262,7 @@ export async function buildOwnerMemoryContext(env, owner) {
   };
 }
 
-function extractJson(value) {
-  const text = typeof value === "string" ? value : typeof value?.response === "string" ? value.response : "";
-  const start = text.indexOf("{");
-  const end = text.lastIndexOf("}");
-  if (start < 0 || end <= start) return null;
-  try { return JSON.parse(text.slice(start, end + 1)); } catch { return null; }
-}
+const extractJson=modelJson;
 
 const NON_LITERAL_EVIDENCE_PATTERN = /\b(?:fantas(?:y|ies|ize|ise)|roleplay|pretend|imagine|imaginary|hypothetical|made[- ]?up|fiction(?:al)?|kidding|not real)\b/i;
 
@@ -643,6 +641,7 @@ export async function consolidateMemory(env, visitorId) {
       "UPDATE open_threads SET status = 'resolved', updated_at = ? WHERE thread_id = ? AND visitor_id = ?"
     ).bind(now, threadId, visitorId));
   }
+  statements.push(...await journalStatements(env, visitorId, pinned, safeMessages, now));
   if (statements.length) await db.batch(statements);
   return extractionComplete
     ? { consolidated: true, summarizedThrough: through }
@@ -797,7 +796,11 @@ export async function clearUserMemory(env, visitorId) {
     db.prepare("DELETE FROM conversations WHERE visitor_id = ?").bind(visitorId),
     db.prepare("DELETE FROM memory_summaries WHERE visitor_id = ?").bind(visitorId),
     db.prepare("DELETE FROM pinned_memories WHERE visitor_id = ?").bind(visitorId),
-    db.prepare("DELETE FROM open_threads WHERE visitor_id = ?").bind(visitorId)
+    db.prepare("DELETE FROM open_threads WHERE visitor_id = ?").bind(visitorId),
+    ...(workspaceEnabled(env) ? [
+      db.prepare("DELETE FROM nina_memory_controls WHERE visitor_id=?").bind(visitorId),
+      db.prepare("DELETE FROM nina_journal_entries WHERE visitor_id=?").bind(visitorId)
+    ] : [])
   ]);
   return true;
 }

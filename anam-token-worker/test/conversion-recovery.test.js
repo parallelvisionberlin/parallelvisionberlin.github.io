@@ -97,6 +97,7 @@ test('closing releases the microphone and video before final accounting and seri
   const state = {
     ninaStoppingPromise: null, NINA_WEB_FLOW: true, ninaAttempt: 1,
     ninaConnecting: true, ninaTokenAbortController: { abort() { calls.push('aborted'); } },
+    ninaDiagnostics: {stop(){calls.push("diagnostics-stopped");}},
     ninaMemoryListenerCleanup() { calls.push('unbound'); },
     ninaMemoryLoadedForSession: true, ninaSessionMessageKeys: new Set(),
     ninaClient: { async stopStreaming() { calls.push('media-stopped'); } },

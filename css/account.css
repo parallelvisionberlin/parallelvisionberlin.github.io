@@ -105,3 +105,24 @@ body.account-modal-open { overflow: hidden; }
 .account-redeem .account-button { min-height: 54px; padding: 12px 24px; font: 500 15px/1.4 Inter, Arial, sans-serif; letter-spacing: .03em; }
 .account-redeem .account-status { font-size: 15px; line-height: 1.6; }
 .account-redeem:target { border-top-color: #aaa; }
+
+/* Private continuity workspace. */
+.memory-section { border-top: 1px solid #444; margin-top: 22px; padding: 18px 0; min-width: 0; }
+.memory-section > summary { cursor: pointer; font: 500 17px/1.5 Inter, Arial, sans-serif; color: #eee; }
+.memory-section > summary:focus-visible { outline: 2px solid #eee; outline-offset: 6px; }
+.memory-card { padding: 18px 0; border-top: 1px solid #292929; overflow-wrap: anywhere; }
+.memory-card:first-of-type { margin-top: 16px; }
+.memory-card p, .memory-card blockquote, .memory-section > p { line-height: 1.7; }
+.memory-card blockquote { margin: 12px 0; padding-left: 14px; border-left: 2px solid #666; }
+.memory-field { display: grid; gap: 8px; margin: 14px 0; font: 400 14px/1.5 Inter, Arial, sans-serif; color: #bbb; }
+.memory-field textarea, .memory-field input, .memory-field select, .memory-actions input { box-sizing: border-box; width: 100%; max-width: 100%; min-width: 0; background: #151515; color: #eee; border: 1px solid #555; padding: 12px; border-radius: 0; font: 400 16px/1.6 Inter, Arial, sans-serif; }
+.memory-field textarea { resize: vertical; min-height: 100px; }
+.memory-actions { display: flex; flex-wrap: wrap; gap: 12px; margin: 14px 0; }
+.memory-actions input { flex: 1 1 180px; }
+.memory-levels { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 20px; font: 400 14px/1.6 Inter, Arial, sans-serif; }
+.memory-levels dt, .memory-levels dd { padding: 8px 0; margin: 0; border-bottom: 1px solid #292929; overflow-wrap: anywhere; }
+.memory-levels dt { text-transform: capitalize; color: #aaa; }
+.memory-timeline { max-height: 360px; overflow: auto; padding-left: 25px; font: 400 13px/1.9 Inter, Arial, sans-serif; }
+#ninaMemoryWorkspace { margin-bottom: 32px; min-width: 0; }
+#ninaMemoryWorkspace small { display: block; color: #aaa; line-height: 1.6; }
+@media (max-width: 640px) { .memory-actions { display: grid; grid-template-columns: minmax(0,1fr); } .memory-actions .account-button { width: 100%; } }

@@ -1,0 +1,67 @@
+export function createMemoryWorkspace({root,api}) {
+  let generation=0,identity='',data=null;
+  if(!root)return {setIdentity(){},refresh(){}};
+  const el=(tag,text,className)=>{const node=document.createElement(tag);if(text!==undefined)node.textContent=text;if(className)node.className=className;return node;};
+  const button=(text,action)=>{const node=el('button',text,'account-button');node.type='button';node.addEventListener('click',action);return node;};
+  const readable=value=>String(value||'').replace(/_/g,' ');
+  const date=value=>value?new Date(value).toLocaleString(): 'Not recorded';
+  function section(title,description,open=false){const node=el('details',undefined,'memory-section');node.open=open;node.append(el('summary',title));if(description)node.append(el('p',description,'account-copy'));root.append(node);return node;}
+  function field(label,value,limit=500){const node=el('label',undefined,'memory-field');node.append(el('span',label));const input=el('textarea');input.value=value||'';input.maxLength=limit;input.rows=value?.length>600?8:3;node.append(input);return {node,input};}
+  function select(label,values,value){const node=el('label',undefined,'memory-field');node.append(el('span',label));const input=el('select');for(const [key,text]of values){const option=el('option',text);option.value=key;input.append(option);}input.value=value;node.append(input);return {node,input};}
+  function statusNode(parent){const status=el('p','','account-status');status.setAttribute('role','status');parent.append(status);return status;}
+  async function action(node,status,path,body,after=refresh){const g=generation;node.disabled=true;status.textContent='Saving…';try{const result=await api(path,{method:path.endsWith('reassess')?'POST':'PUT',body:JSON.stringify(body)});if(g!==generation)return;status.textContent='Saved.';await after(result);}catch(error){if(g===generation)status.textContent=error.message||'Unable to save.';}finally{node.disabled=false;}}
+  function memoryCard(parent,label,kind,id,content,revision=0,category='preference') {
+    const card=el('article',undefined,'memory-card'),text=field(label,content,kind==='profile'?12000:kind==='summary'?3000:500);
+    card.append(text.node);const controls=el('div',undefined,'memory-actions');const status=statusNode(card);
+    const save=button('Save correction',()=>action(save,status,'/api/nina/memory-workspace',{kind,id,operation:'save',content:text.input.value,category:kind==='pin'?category:undefined,revision}));controls.append(save);
+    if(!['profile','summary'].includes(kind)){const remove=button('Remove saved note',()=>action(remove,status,'/api/nina/memory-workspace',{kind,id,operation:'hide',revision}));controls.append(remove);}
+    card.append(controls);parent.append(card);
+  }
+  function journalCard(parent,entry={}) {
+    const editable=!entry.entry_id||entry.editable;
+    const card=el('article',undefined,'memory-card');
+    if(!editable){card.append(el('p',entry.content),el('small',`Shared world · ${entry.story_date||'No story date'}`));parent.append(card);return;}
+    const text=field(entry.entry_id?'Journal entry':'Add a journal entry',entry.content,800);
+    const kind=select('Type',[['independent','Nina’s imagined independent life'],['shared','Experience shared in conversation'],['fantasy','Imagined scene with this visitor']],entry.kind||'independent');
+    const scope=select('Visibility',[['private','Only in my conversations'],...(data.role==='owner'?[['shared','Publish as shared world context']]:[])],entry.scope||'private');
+    const dateLabel=el('label',undefined,'memory-field');dateLabel.append(el('span','Story date, if known'));const storyDate=el('input');storyDate.type='date';storyDate.value=entry.story_date||'';dateLabel.append(storyDate);
+    card.append(text.node,kind.node,scope.node,dateLabel);
+    if(entry.recorded_at)card.append(el('small',`${entry.status==='hidden'?'Removed · ':''}Recorded ${date(entry.recorded_at)} · ${readable(entry.origin)}`));
+    const status=statusNode(card),actions=el('div',undefined,'memory-actions');
+    const payload=state=>({id:entry.entry_id,kind:kind.input.value,scope:scope.input.value,content:text.input.value,storyDate:storyDate.value||null,status:state,revision:entry.revision||0});
+    const save=button('Save entry',()=>action(save,status,'/api/nina/journal',payload('active')));actions.append(save);
+    if(entry.entry_id&&entry.status!=='hidden'){const hide=button('Remove entry',()=>action(hide,status,'/api/nina/journal',payload('hidden')));actions.append(hide);}
+    if(data.role==='owner')card.append(el('p','Publishing makes this entry available in other visitors’ conversations. Review the text for private details before saving.','account-copy'));
+    card.append(actions);parent.append(card);
+  }
+  function render() {
+    root.replaceChildren();const top=el('div',undefined,'memory-actions');top.append(button('Reload memories',refresh));root.append(top);
+    root.append(el('p','Corrections take effect when you start a new call. Removing a saved note removes it from the saved context; the original transcript remains. “Forget Nina’s memory” below deletes the conversation record as well.','account-copy'));
+    const state=section('Relationship continuity','These categories describe a model’s conversational posture. They do not measure feelings.',true);
+    if(data.relationship){const table=el('dl',undefined,'memory-levels');for(const [key,value]of Object.entries(data.relationship.state)){table.append(el('dt',readable(key)),el('dd',readable(value)));}state.append(table,el('p',data.relationship.relationship_summary),el('small',`State last changed: ${date(data.relationship.updated_at)}`));}
+    const attempt=data.evaluation;state.append(el('p',attempt?`Latest evaluation: ${readable(attempt.status)} · ${date(attempt.attempted_at)}${attempt.message_count!==undefined?` · ${attempt.message_count} messages · ${attempt.input_characters} input characters`:''}`:'No relationship evaluation recorded.'));
+    const latest=data.conversations.find(c=>c.ended_at);
+    if(latest){const status=statusNode(state);const recheck=button('Reassess latest completed call',()=>action(recheck,status,'/api/nina/relationship-reassess',{conversationId:latest.conversation_id},async result=>{await refresh();const note=el('p',result.reason==='already_processed'?'This call already has an evaluation. Replaying it would not add new evidence.':`Evaluation: ${result.changed?'state updated':readable(result.reason||'no change')}`,'account-status');root.prepend(note);}));state.append(recheck);}
+    const agreements=section('Recorded agreements','These records require an explicit agreement in the conversation. Editing a note cannot manufacture Nina’s acceptance.',true);
+    if(!data.agreements.length)agreements.append(el('p','No explicit ongoing agreement recorded.'));
+    for(const agreement of data.agreements){const card=el('article',undefined,'memory-card');card.append(el('strong',`${readable(agreement.agreement_key)}: ${agreement.value}`),el('p',`${agreement.hidden?'Removed from context':agreement.status} · ${date(agreement.occurred_at)}`));
+      let evidence=[];try{evidence=JSON.parse(agreement.evidence_json);}catch{}for(const item of evidence)card.append(el('blockquote',`${item.role||item.speaker||'Speaker'}: ${item.content||item.text||''}`));
+      const status=statusNode(card);const toggle=button(agreement.hidden?'Restore agreement':'Remove from context',()=>action(toggle,status,'/api/nina/memory-workspace',{kind:'agreement',id:agreement.event_id,operation:agreement.hidden?'restore':'hide',revision:agreement.revision}));card.append(toggle);agreements.append(card);}
+    const profile=section('Private context','Your instructions and background, supplied only in your authenticated sessions.');memoryCard(profile,'Private context','profile','profile',data.profile.content,data.profile.revision);
+    const notes=section(`Saved memories (${data.pins.length})`,'Inspect existing notes or add a correction. A new note is private to this account.');
+    const fresh=field('New private note','');notes.append(fresh.node);const freshStatus=statusNode(notes);const add=button('Add note',()=>action(add,freshStatus,'/api/nina/memory-workspace',{kind:'pin',operation:'save',content:fresh.input.value,category:'preference',revision:0}));notes.append(add);
+    for(const pin of data.pins)memoryCard(notes,readable(pin.category),'pin',pin.memory_id,pin.content,pin.revision,pin.category);
+    const summary=section('Conversation summary','A compact overview. A saved correction here is protected from automatic rewrites until you change it.');memoryCard(summary,'Summary','summary','summary',data.summary.content,data.summary.revision);
+    const threads=section(`Unfinished topics (${data.threads.length})`);for(const thread of data.threads)memoryCard(threads,'Unfinished topic','thread',thread.thread_id,thread.content,thread.revision);
+    if(data.removed.length){const removed=section('Removed notes');for(const item of data.removed){const row=el('div',undefined,'memory-card');row.append(el('p',`Removed ${readable(item.kind)}`));const status=statusNode(row);const restore=button('Restore',()=>action(restore,status,'/api/nina/memory-workspace',{kind:item.kind,id:item.id,operation:'restore',revision:item.revision}));row.append(restore);removed.append(row);}}
+    const journal=section('Nina’s continuity journal','Independent life, shared conversations and imagined scenes have separate labels. New evidenced autobiographical notes are collected as conversations are processed.');journalCard(journal);for(const entry of data.journal)journalCard(journal,entry);
+    const catalog=section('Parallel Vision catalog','Search the releases published on Parallel Vision. This does not play audio or open a Nina call.');
+    const search=el('form',undefined,'memory-actions');const query=el('input');query.type='search';query.maxLength=160;query.placeholder='Title, artist or catalog number';query.setAttribute('aria-label','Search catalog');const searchButton=button('Search catalog',()=>search.requestSubmit());search.append(query,searchButton);const results=el('div');catalog.append(search,results);
+    search.addEventListener('submit',async event=>{event.preventDefault();const g=generation;results.textContent='Searching…';try{const response=await api(`/api/nina/catalog?query=${encodeURIComponent(query.value)}`);if(g!==generation)return;results.replaceChildren();for(const release of response.results){const card=el('p');if(release.url){const a=el('a',release.title);a.href=release.url;a.target='_blank';a.rel='noopener noreferrer';card.append(a);}else card.append(el('strong',release.title));card.append(el('span',` · ${release.artist} · ${release.details} ${release.status}`));results.append(card);}if(!response.results.length)results.append(el('p','No matching published releases.'));results.append(el('small',`${response.stale?'Cached catalog':'Catalog checked'} ${date(response.fetchedAt)}`));}catch(error){if(g===generation)results.textContent=error.message;}});
+    const diagnostics=section('Conversation diagnostics','Inspect input, spoken parts, tool calls and pauses. Old calls have no event trace. No audio or tool contents are recorded here.');
+    for(const conversation of data.conversations){const row=el('article',undefined,'memory-card');row.append(el('p',date(conversation.started_at)));const result=el('div');const inspect=button('Inspect events',async()=>{const g=generation;inspect.disabled=true;result.textContent='Loading…';try{const report=await api(`/api/nina/conversation-diagnostics?conversationId=${encodeURIComponent(conversation.conversation_id)}`);if(g!==generation)return;result.replaceChildren(el('p',report.note));if(report.setup)result.append(el('p',`Runtime: ${report.setup.runtimeRevision} · Private recall: ${report.setup.privateRecallConfigured?'attached':'unavailable'} · Catalog: ${report.setup.catalogConfigured?'attached':'unavailable'}`),el('p',`Pause / skip tools: ${(report.setup.systemTools?.attached||[]).join(', ')||'not confirmed'}`));for(const finding of report.findings)result.append(el('p',`${(finding.at/1000).toFixed(1)}s · ${finding.detail}`));if(report.events.length){const timeline=el('details');timeline.append(el('summary',`${report.events.length} recorded events`));const list=el('ol',undefined,'memory-timeline');for(const e of report.events){const extra=e.kind==='microphone'?` · Echo cancellation: ${e.data.echoCancellation??'unknown'} · Noise suppression: ${e.data.noiseSuppression??'unknown'}`:e.data.toolName?` · ${e.data.toolName}`:'';list.append(el('li',`${(e.elapsedMs/1000).toFixed(1)}s · ${readable(e.kind)}${extra}`));}timeline.append(list);result.append(timeline);}}catch(error){if(g===generation)result.textContent=error.message;}finally{inspect.disabled=false;}});row.append(inspect,result);diagnostics.append(row);}
+  }
+  async function refresh(){if(!identity)return;const g=generation;root.textContent='Loading Nina’s memory…';try{const result=await api('/api/nina/memory-workspace');if(g!==generation)return;data=result;render();}catch(error){if(g===generation){root.replaceChildren(el('p',error.message||'Memory temporarily unavailable.'));root.append(button('Try again',refresh));}}}
+  function setIdentity(id){if(identity===id)return;identity=id||'';generation++;data=null;root.replaceChildren();if(identity){root.append(button('Open Nina’s memory',refresh));}}
+  return {setIdentity,refresh};
+}

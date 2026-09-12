@@ -5,6 +5,7 @@ workers_dev = true
 
 [vars]
 NINA_CONTINUITY_ENABLED = "true"
+NINA_WORKSPACE_ENABLED = "true"
 # Set NINA_PUBLIC_KNOWLEDGE_FOLDER_ID only after that folder contains shared canon.
 CLERK_ISSUER = "https://clerk.parallelvisionlabel.com"
 NINA_KNOWLEDGE_FOLDER_ID = "afee1711-cba4-47ac-a4ed-7125bccf3947"
