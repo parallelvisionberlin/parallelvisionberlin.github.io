@@ -1,0 +1,63 @@
+name: Prepare EAS Update configuration
+on:
+  push:
+    branches: [eas-update-setup]
+    paths:
+      - '.github/workflows/prepare-eas-update.yml'
+permissions:
+  contents: read
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install locked dependencies
+        working-directory: mobile-app
+        run: npm ci --ignore-scripts
+      - name: Add SDK-compatible expo-updates
+        working-directory: mobile-app
+        run: npx expo install expo-updates
+      - name: Configure EAS Update URL runtime and channels
+        working-directory: mobile-app
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          project='e37457fc-64ac-4be7-b1ff-8681aa45fbc3'
+          app_path=Path('app.json')
+          app=json.loads(app_path.read_text())
+          expo=app['expo']
+          expo['runtimeVersion']={'policy':'appVersion'}
+          expo['updates']={'url':f'https://u.expo.dev/{project}'}
+          app_path.write_text(json.dumps(app,indent=2)+"\n")
+          eas_path=Path('eas.json')
+          eas=json.loads(eas_path.read_text())
+          eas['build']['preview']['channel']='preview'
+          eas['build']['production']['channel']='production'
+          eas_path.write_text(json.dumps(eas,indent=2)+"\n")
+          PY
+      - name: Verify package version and config
+        working-directory: mobile-app
+        run: |
+          node -e "const p=require('./package.json'); if(!p.dependencies['expo-updates']) throw new Error('expo-updates missing'); console.log('expo-updates',p.dependencies['expo-updates'])"
+          node -e "const a=require('./app.json').expo; if(a.updates.url!=='https://u.expo.dev/e37457fc-64ac-4be7-b1ff-8681aa45fbc3') throw new Error('bad update URL'); if(a.runtimeVersion.policy!=='appVersion') throw new Error('bad runtime policy')"
+          node -e "const e=require('./eas.json'); if(e.build.preview.channel!=='preview'||e.build.production.channel!=='production') throw new Error('bad channels')"
+      - name: Run existing tests and iOS export
+        working-directory: mobile-app
+        run: |
+          npm test
+          npx expo export --platform ios --output-dir /tmp/eas-update-ios
+      - uses: actions/upload-artifact@v4
+        with:
+          name: eas-update-config
+          path: |
+            mobile-app/package.json
+            mobile-app/package-lock.json
+            mobile-app/app.json
+            mobile-app/eas.json
+          retention-days: 2
