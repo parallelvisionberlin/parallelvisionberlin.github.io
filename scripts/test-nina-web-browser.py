@@ -9,6 +9,7 @@ html=(root/'index.html').read_text();html=re.sub(r'<script\b[^>]*>[\s\S]*?</scri
 html=re.sub(r'<(link|img|source|iframe)\b[^>]*>','',html,flags=re.I)
 html=html.replace('</head>','<style>'+(root/'css/nina-access.css').read_text()+'</style></head>')
 helper=(root/'js/nina-web-flow.js').read_text().replace('export function','function')
+audiohelper=(root/'js/nina-audio-input.js').read_text().replace('export function','function').replace('export const','const')
 source=(root/'js/nina-access.js').read_text()
 source=re.sub(r'^import .*?;\s*','',source,flags=re.M)
 source=source.replace('const { Clerk } = await import("https://esm.sh/@clerk/clerk-js@6?bundle");','const Clerk = class { constructor(){return window.testClerk} };')
@@ -27,7 +28,8 @@ const makeStorage=()=>{const data=new Map();return {getItem(k){return data.get(k
 Object.defineProperty(window,'localStorage',{value:makeStorage(),configurable:true});Object.defineProperty(window,'sessionStorage',{value:makeStorage(),configurable:true});
 window.history.replaceState=()=>{};window.__internal_ClerkUICtor=function(){};window.requests=[];window.events=[];window.fbq=(...args)=>events.push(args);
 window.mockMedia={getAudioTracks(){return [{readyState:'live',stop(){}}]},getTracks(){return this.getAudioTracks()}};
-Object.defineProperty(navigator,'mediaDevices',{value:{async getUserMedia(){return mockMedia},async enumerateDevices(){return [{kind:'audioinput',deviceId:'default',label:'Microphone'},{kind:'audioinput',deviceId:'usb',label:'USB Microphone'}]},addEventListener(){}}});
+window.captureRequests=[];
+Object.defineProperty(navigator,'mediaDevices',{value:{getSupportedConstraints(){return {echoCancellation:true,noiseSuppression:true,autoGainControl:true,voiceIsolation:true}},async getUserMedia(constraints){captureRequests.push(constraints);return mockMedia},async enumerateDevices(){return [{kind:'audioinput',deviceId:'default',label:'Microphone'},{kind:'audioinput',deviceId:'usb',label:'USB Microphone'}]},addEventListener(){}}});
 HTMLMediaElement.prototype.play=async function(){if(window.failPlay)throw new Error('blocked')}; HTMLMediaElement.prototype.pause=function(){};
 Object.defineProperty(HTMLMediaElement.prototype,'srcObject',{set(v){this._src=v},get(){return this._src}});
 window.testClerk={isSignedIn:true,user:{id:'normal-user',fullName:'Test',reload:async()=>testClerk.user},session:{getToken:async()=>'token'},async load(){},addListener(fn){this.listener=fn},closeSignIn(){},closeSignUp(){},client:{signIn:{authenticateWithRedirect:async()=>{},create:async()=>({})}},async openSignUp(){this.openedSignup=true},async openSignIn(){}};
@@ -52,9 +54,12 @@ with sync_playwright() as p:
  browser=p.chromium.launch(executable_path=__import__('os').environ.get('CHROMIUM_PATH'),headless=True,args=['--no-sandbox'])
  for width,height in [(390,844),(1280,900)]:
   page=browser.new_page(viewport={'width':width,'height':height});errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
-  page.set_content(html,wait_until='domcontentloaded');page.evaluate(setup+'\n'+trialmodule+'\n'+helper+'\n'+source+'\n'+end)
+  page.set_content(html,wait_until='domcontentloaded');page.evaluate(setup+'\n'+trialmodule+'\n'+helper+'\n'+audiohelper+'\n'+source+'\n'+end)
   page.evaluate('testOpen()');page.wait_for_timeout(200)
   page.evaluate('testConnect()');page.wait_for_selector('.nina-web-audio-check:not([hidden])')
+  capture=page.evaluate('captureRequests.at(-1).audio')
+  assert capture['echoCancellation']=={'ideal':True} and capture['noiseSuppression']=={'ideal':True}
+  assert capture['voiceIsolation']=={'ideal':True} and capture['autoGainControl']=={'ideal':False}
   assert page.evaluate("requests.filter(x=>x.url.includes('/live/activate')).length")==0
   page.evaluate("testClient.emit('history',[{id:'greet',role:'persona',content:'Hi'},{id:'u1',role:'user',content:'Hello'}])")
   page.wait_for_timeout(150)
