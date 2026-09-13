@@ -1,11 +1,13 @@
 import { modelJson } from './model-json.js';
 import { memoryControls, controlledRows, controlledText, workspaceEnabled } from './memory-controls.js';
+import { summaryRecords, validSummaryReferences, normalizedFact, singleValueProperty, newestEvidenceFirst, summaryReplacementContents } from './memory-reconciliation.js';
+import { selectPinnedMemories, selectPinnedMemoriesForExtraction } from './memory-selection.js';
+import { assessExtractionIntegrity, makeExtractionRepairInstructions } from './extraction-integrity.js';
 import { journalStatements } from './nina-journal.js';
 export const HISTORY_LIMIT = 20;
 export const MESSAGE_CHARACTER_LIMIT = 4000;
 export const MEMORY_CONTEXT_CHARACTER_LIMIT = 32000;
 const SUMMARY_LIMIT = 3000;
-const PINNED_LIMIT = 20;
 const OPEN_THREAD_LIMIT = 12;
 const CONSOLIDATION_MESSAGE_LIMIT = 80;
 const CONSOLIDATION_INPUT_CHARACTERS = 12000;
@@ -228,8 +230,8 @@ function appendLatestItemsWithinBudget(header, items, remaining) {
 export async function buildOwnerMemoryContext(env, owner) {
   const db = env.NINA_MEMORY_DB;
   const [pinnedResult, summary, threadsResult, recentResult] = await Promise.all([
-    db.prepare("SELECT memory_id, category, content, updated_at FROM pinned_memories WHERE visitor_id = ? ORDER BY updated_at DESC LIMIT ?")
-      .bind(owner.visitor_id, PINNED_LIMIT).all(),
+    db.prepare("SELECT memory_id, category, content, updated_at FROM pinned_memories WHERE visitor_id = ? ORDER BY updated_at DESC")
+      .bind(owner.visitor_id).all(),
     db.prepare("SELECT summary FROM memory_summaries WHERE visitor_id = ?").bind(owner.visitor_id).first(),
     db.prepare("SELECT thread_id, content FROM open_threads WHERE visitor_id = ? AND status = 'active' ORDER BY updated_at DESC LIMIT ?")
       .bind(owner.visitor_id, OPEN_THREAD_LIMIT).all(),
@@ -243,11 +245,10 @@ export async function buildOwnerMemoryContext(env, owner) {
   const profileSection = `VALIDATED PERMANENT PROFILE\nName: ${owner.display_name}\nProfile: ${owner.profile_type}`;
   const recentItems = recent.map(formatRecentMessage);
   const recentSection = appendLatestItemsWithinBudget("LATEST COMPLETED MESSAGES", recentItems, 22000);
-  const pinnedItems = pinned.map(item => `[${item.category}${item.updated_at ? `; recorded ${item.updated_at}` : ""}] ${item.content}`);
   const summaryText = cleanText(controlledText(summary?.summary, controls, "summary").content, SUMMARY_LIMIT);
   const baseParts = [PRIVATE_MEMORY_INSTRUCTIONS, profileSection];
   let used = baseParts.join("\n\n").length + 2;
-  const pinnedSection = appendWholeItemsWithinBudget("PINNED MEMORIES", pinnedItems, 5000);
+  const pinnedSection = selectPinnedMemories(pinned);
   if (pinnedSection.text) { baseParts.push(pinnedSection.text); used += pinnedSection.used + 2; }
   if (summaryText) { baseParts.push(`LONG-TERM CONVERSATION SUMMARY\n${summaryText}`); used += summaryText.length + 34; }
   const reservedRecent = Math.min(recentSection.used, MEMORY_CONTEXT_CHARACTER_LIMIT - used);
@@ -261,7 +262,9 @@ export async function buildOwnerMemoryContext(env, owner) {
     context: baseParts.join("\n\n").slice(0, MEMORY_CONTEXT_CHARACTER_LIMIT),
     diagnostics: {
       restoredRecentMessages: finalRecent.count,
-      pinnedMemoryCount: pinned.length,
+      pinnedMemoryCount: pinnedSection.count,
+      eligiblePinnedMemoryCount: pinnedSection.candidateCount,
+      omittedPinnedMemoryCount: pinnedSection.omittedCount,
       openThreadCount: threadSection.count,
       summaryLoaded: Boolean(summaryText)
     }
@@ -388,12 +391,15 @@ function normalizePinnedCandidate(candidate, subjectName = "Alejandro") {
   return content === candidate?.content ? candidate : { ...candidate, content };
 }
 
-function deduplicatePinnedCandidates(items) {
+function deduplicatePinnedCandidates(items, messages) {
   const selected = new Map();
+  const positions = new Map(messages.map((message, index) => [message.message_id, index]));
+  const latest = item => Math.max(-1, ...(item.evidence_message_ids || []).map(id => positions.get(id) ?? -1));
   for (const item of items) {
     const key = semanticMemoryKey(item);
     const current = selected.get(key);
-    if (!current || cleanText(item.content, 500).length > cleanText(current.content, 500).length) selected.set(key, item);
+    if (!current || latest(item) > latest(current)
+      || (latest(item) === latest(current) && item.content.length > current.content.length)) selected.set(key, item);
   }
   return [...selected.values()];
 }
@@ -457,28 +463,36 @@ export function filterConsolidationExtraction(extracted, messages, activeThreads
   const messagesById = new Map(messages.map(message => [message.message_id, message]));
   const summaryItems = Array.isArray(extracted?.summary_items)
     ? extracted.summary_items.map(item => ({ ...item, content: sanitizeDerivedContent(item?.content, 500, subjectName) }))
-      .filter(item => durableContent(item) && validUserGroundedEvidence(item, messagesById, true, subjectName)).slice(0, 12)
+      .filter(item => durableContent(item) && validUserGroundedEvidence(item, messagesById, true, subjectName))
     : [];
   const extractedPinned = Array.isArray(extracted?.pinned_memories) ? extracted.pinned_memories : [];
   const pinned = deduplicatePinnedCandidates([...deterministicUserMemoryCandidates(messages, subjectName), ...extractedPinned]
-    .map(item => normalizePinnedCandidate(item, subjectName)).filter(item => validPinnedEvidence(item, messagesById, subjectName))).slice(0, 8);
+    .map(item => normalizePinnedCandidate(item, subjectName)).filter(item => validPinnedEvidence(item, messagesById, subjectName)), messages);
   const threads = Array.isArray(extracted?.open_threads)
     ? extracted.open_threads.map(item => ({ ...item, content: sanitizeDerivedContent(item?.content, 500, subjectName) }))
-      .filter(item => durableContent(item) && validUserGroundedEvidence(item, messagesById, true, subjectName)).slice(0, 8)
+      .filter(item => durableContent(item) && validUserGroundedEvidence(item, messagesById, true, subjectName))
     : [];
   const activeThreadIds = new Set(activeThreads.map(thread => thread.thread_id));
   const resolvedIds = Array.isArray(extracted?.resolved_threads)
     ? extracted.resolved_threads.filter(item => activeThreadIds.has(item?.thread_id) && validUserGroundedEvidence(item, messagesById, true, subjectName)).map(item => item.thread_id)
     : [];
-  return { summaryItems, pinned, threads, resolvedIds };
+  return { summaryItems: newestEvidenceFirst(summaryItems, messages), pinned, threads, resolvedIds };
 }
 
 export function mergeSummary(previousSummary, items) {
   // Legacy summaries used spaces. Split complete sentences before packing so a
   // new fact does not evict an entire old paragraph or truncate it at 500 chars.
-  const previousItems = cleanText(previousSummary, SUMMARY_LIMIT)
-    .split(/\n|(?<=[.!?])\s+(?=[A-Z])/u);
-  const source = [...items.map(item => item?.content || ""), ...previousItems];
+  const claimed = new Set();
+  const fresh = items.filter(item => {
+    const targets = item.supersedes_summary_ids || [];
+    if (targets.some(id => claimed.has(id))) return false;
+    targets.forEach(id => claimed.add(id));
+    return true;
+  });
+  const replaced = new Set(summaryReplacementContents(previousSummary, fresh).map(normalizedFact));
+  const previousItems = summaryRecords(previousSummary).map(record => record.content)
+    .filter(content => !replaced.has(normalizedFact(content)));
+  const source = [...fresh.map(item => item?.content || ""), ...previousItems];
   const selected = [];
   const seen = new Set();
   let used = 0;
@@ -505,6 +519,8 @@ export function isCompleteMemoryExtraction(value) {
 }
 
 function semanticMemoryKey(item) {
+  const property = singleValueProperty(item?.content);
+  if (property) return `property:${property}`;
   const content = cleanText(item?.content, 500).toLowerCase().replace(/[’]/g, "'");
   const girlfriend = content.match(/\b(?:alejandro(?:'s| has a)|eva is alejandro(?:'s)?)\s+girlfriend(?:\s+(?:is|named)\s+)?([a-z]+)?|\bgirlfriend named ([a-z]+)/i);
   if (girlfriend) return "user_fact:alejandro:girlfriend";
@@ -527,10 +543,16 @@ function semanticMemoryValue(item) {
 export function resolvePinnedDecision(candidate, existingPinned = []) {
   if (!durableContent(candidate)) return { decision: "REJECT", existing: null };
   if (candidate.decision === "REJECT") return { decision: "REJECT", existing: null };
-  const requested = existingPinned.find(item => item.memory_id === candidate.existing_memory_id);
+  const requested = candidate.existing_memory_id && existingPinned.find(item => item.memory_id === candidate.existing_memory_id);
+  if (candidate.existing_memory_id && !requested) return { decision: 'REJECT', existing: null };
   const semantic = existingPinned.find(item => semanticMemoryKey(item) === semanticMemoryKey(candidate));
   const existing = requested || semantic || null;
-  if (candidate.decision === "DUPLICATE") return { decision: "DUPLICATE", existing };
+  if (candidate.decision === "DUPLICATE") {
+    if (!existing) return { decision: 'REJECT', existing: null };
+    if (singleValueProperty(candidate.content) && singleValueProperty(candidate.content) === singleValueProperty(existing.content)
+      && semanticMemoryValue(existing) !== semanticMemoryValue(candidate)) return { decision: 'UPDATE_EXISTING', existing };
+    return { decision: 'DUPLICATE', existing };
+  }
   if (!existing) return { decision: "NEW", existing: null };
   return { decision: semanticMemoryValue(existing) === semanticMemoryValue(candidate) ? "DUPLICATE" : "UPDATE_EXISTING", existing };
 }
@@ -562,8 +584,8 @@ export async function loadConsolidationInput(env, visitorId) {
       "SELECT thread_id, content FROM open_threads WHERE visitor_id = ? AND status = 'active' ORDER BY updated_at DESC LIMIT ?"
     ).bind(visitorId, OPEN_THREAD_LIMIT).all(),
     db.prepare(
-      "SELECT memory_id, category, content FROM pinned_memories WHERE visitor_id = ? ORDER BY updated_at DESC LIMIT ?"
-    ).bind(visitorId, PINNED_LIMIT).all(),
+      "SELECT memory_id, category, content, updated_at FROM pinned_memories WHERE visitor_id = ? ORDER BY updated_at DESC"
+    ).bind(visitorId).all(),
     db.prepare("SELECT role FROM users WHERE memory_visitor_id = ?").bind(visitorId).first()
   ]);
   return {
@@ -582,6 +604,8 @@ Return one complete JSON object with array keys summary_items, pinned_memories, 
 Use at most 6 summary items, 6 pinned items and 4 open threads per batch. Keep each content field below 200 characters. Use at most TWO evidence IDs per item, selecting the clearest and newest evidence. Finish the JSON object.
 Each new item must include content and evidence_message_ids. Pinned items also need category.
 Each pinned item must include decision (NEW, UPDATE_EXISTING, DUPLICATE, or REJECT). UPDATE_EXISTING must include existing_memory_id.
+For each summary item that corrects or replaces an EXISTING SUMMARY item, include supersedes_summary_ids with the exact IDs of those old items. Do not append a contradictory current value alongside its old value. Use these references for any property, including facts whose wording changes. Omit references for unrelated new facts or explicitly dated history that remains true.
+When the same correction affects a pinned memory, also return UPDATE_EXISTING with that pin's existing_memory_id. A changed value for one property does not erase unrelated preferences, separate projects or historical events. Never invent target IDs.
 Each resolved_threads item must include thread_id and evidence_message_ids.
 Allowed pinned categories: user_fact, nina_autobiography, shared_memory, preference, inside_joke, fantasy_roleplay, project, identity.
 Use user_fact for durable facts established by Alejandro, including stable facts about his real-world relationships, and identity for durable identity information explicitly grounded by Alejandro.
@@ -604,14 +628,14 @@ Keep summary_items, open_threads and thread resolution conservative and user-gro
 
 `;
   // Only substitute instruction text, never names in supplied evidence or memory.
-  return instructions.replaceAll("Alejandro", subjectName) + `EXISTING SUMMARY:
-${cleanText(summaryRow?.summary, SUMMARY_LIMIT) || "(none)"}
+  return instructions.replaceAll("Alejandro", subjectName) + `EXISTING SUMMARY (IDs belong only to this input snapshot):
+${JSON.stringify(summaryRecords(summaryRow?.summary))}
 
 ACTIVE THREADS:
 ${JSON.stringify(openThreads)}
 
 EXISTING PINNED MEMORIES:
-${JSON.stringify(existingPinned)}
+${selectPinnedMemoriesForExtraction(existingPinned, { messages: safeMessages }).text || '[]'}
 
 NEW COMPLETED MESSAGES:
 ${JSON.stringify(safeMessages)}`;
@@ -634,8 +658,15 @@ export async function consolidateMemory(env, visitorId, options = {}) {
   const input = await loadConsolidationInput(env, visitorId);
   const { messages } = input;
   if (!messages.length) return { consolidated: false, reason: "no_messages" };
-  const response = await runArchivist(env, CONSOLIDATION_MODEL, buildConsolidationPrompt(input));
-  return applyMemoryExtraction(env, visitorId, input, extractJson(response), options);
+  const prompt = buildConsolidationPrompt(input);
+  const response = await runArchivist(env, CONSOLIDATION_MODEL, prompt);
+  const result = await applyMemoryExtraction(env, visitorId, input, extractJson(response), options);
+  if (result.reason !== 'invalid_extraction' || !result.validation) return result;
+  // One bounded repair of a complete-but-rejected response. Validation details
+  // contain only fixed codes/counts. Failed repair remains queued for backoff.
+  const repaired = await runArchivist(env, CONSOLIDATION_MODEL,
+    `${prompt}\n\n${makeExtractionRepairInstructions(result.validation)}`);
+  return applyMemoryExtraction(env, visitorId, input, extractJson(repaired), options);
 }
 
 // The same evidence validator and transaction are used for extraction and a
@@ -645,12 +676,42 @@ export async function applyMemoryExtraction(env, visitorId, input, extracted, op
   const { summaryRow, messages, safeMessages, openThreads, existingPinned, subjectName = "Alejandro" } = input;
   if (!messages.length) return { consolidated: false };
   const extractionComplete = isCompleteMemoryExtraction(extracted);
+  if (extractionComplete) {
+    const evidence = new Map(safeMessages.map(message => [message.message_id, message]));
+    const records = summaryRecords(summaryRow?.summary);
+    const integrity = assessExtractionIntegrity(extracted, { inspectCandidate(collection, item) {
+      if (!evidenceMessages(item, evidence).length) return { accepted: false, reason: 'missing_evidence' };
+      if (collection === 'pinned_memories') {
+        if (!PINNED_MEMORY_CATEGORIES.has(item.category)) return { accepted: false };
+        if (item.decision === 'REJECT') return { accepted: true };
+        const normalized = normalizePinnedCandidate(item, subjectName);
+        const resolved = resolvePinnedDecision(normalized, existingPinned);
+        return { accepted: resolved.decision !== 'REJECT' && validPinnedEvidence(normalized, evidence, subjectName),
+          existingTargetVerified: Boolean(resolved.existing) };
+      }
+      if (collection === 'resolved_threads') return { accepted: openThreads.some(thread => thread.thread_id === item.thread_id)
+        && validUserGroundedEvidence(item, evidence, true, subjectName) };
+      if (collection === 'summary_items' && !validSummaryReferences(item, records)) return { accepted: false, reason: 'unknown_target' };
+      const normalized = { ...item, content: sanitizeDerivedContent(item.content, 500, subjectName) };
+      return { accepted: Boolean(durableContent(normalized)) && validUserGroundedEvidence(normalized, evidence, true, subjectName) };
+    } });
+    if (!integrity.valid) return { consolidated: false, reason: 'invalid_extraction', validation: integrity.diagnostics };
+  }
   // Keep deterministic, evidenced pins even if the model output is incomplete.
   // Ignore all partial model output and leave the cursor eligible for retry.
   const { summaryItems, pinned, threads, resolvedIds } = filterConsolidationExtraction(extractionComplete ? extracted : {}, safeMessages, openThreads, subjectName);
   const now = new Date().toISOString();
   const through = messages.at(-1).message_id;
-  const mergedSummary = mergeSummary(summaryRow?.summary, summaryItems);
+  // A summary correction also updates an exact/property-matched pinned copy.
+  // Arbitrary paraphrases are reconciled by the extractor's explicit target IDs.
+  const summaryPins = summaryItems.flatMap(item => {
+    const replaced = new Set(summaryReplacementContents(summaryRow?.summary, [item]).map(normalizedFact));
+    const property = singleValueProperty(item.content);
+    return existingPinned.filter(pin => replaced.has(normalizedFact(pin.content))
+      || (property && property === singleValueProperty(pin.content)))
+      .map(pin => ({ ...item, category: pin.category, decision: 'UPDATE_EXISTING', existing_memory_id: pin.memory_id }))
+      .filter(pin => validPinnedEvidence(pin, new Map(safeMessages.map(message => [message.message_id, message])), subjectName));
+  });
   const guard = {
     sql: `EXISTS (SELECT 1 FROM visitors WHERE visitor_id = ?)
       AND COALESCE((SELECT messages_summarized_through FROM memory_summaries WHERE visitor_id = ?), '') = ?
@@ -665,15 +726,39 @@ export async function applyMemoryExtraction(env, visitorId, input, extracted, op
   if (!current) return { consolidated: false, reason: "stale" };
   const statements = [];
   const acceptedPinned = [];
+  const summaryUpdates = [...summaryItems];
+  const claimedPins = new Set();
   let pinnedCount = 0;
-  for (const item of pinned) {
+  const orderedPins = extractionComplete ? newestEvidenceFirst([...pinned, ...summaryPins], safeMessages).flatMap(item => {
+    if (item.decision === 'REJECT') return [item];
+    const resolved = resolvePinnedDecision(item, existingPinned);
+    if (!resolved.existing || resolved.decision === 'REJECT') return [item];
+    const property = singleValueProperty(item.content);
+    const prior = normalizedFact(resolved.existing.content);
+    const copies = existingPinned.filter(pin => pin.memory_id !== resolved.existing.memory_id
+      && pin.category === resolved.existing.category
+      && ((property && property === singleValueProperty(pin.content)) || normalizedFact(pin.content) === prior));
+    return [item, ...copies.map(pin => ({ ...item, decision: 'UPDATE_EXISTING', existing_memory_id: pin.memory_id }))];
+  }) : pinned;
+  for (const item of orderedPins) {
     const content = cleanText(item.content, 500);
     if (!content) continue;
     const resolved = resolvePinnedDecision(item, existingPinned);
     if (resolved.decision === "REJECT") continue;
-    acceptedPinned.push(item);
-    if (resolved.decision === "DUPLICATE") continue;
     const id = resolved.existing?.memory_id || `pin-${(await sha256(`${visitorId}\n${semanticMemoryKey(item)}`)).slice(0, 48)}`;
+    if (claimedPins.has(id)) continue;
+    claimedPins.add(id);
+    acceptedPinned.push({ ...item, memory_id: id,
+      content: resolved.decision === 'DUPLICATE' ? resolved.existing.content : content,
+      category: resolved.decision === 'DUPLICATE' ? resolved.existing.category : item.category });
+    if (resolved.decision === "DUPLICATE") continue;
+    if (resolved.existing) {
+      const prior = normalizedFact(resolved.existing.content);
+      const property = singleValueProperty(resolved.existing.content);
+      const targets = summaryRecords(summaryRow?.summary).filter(record => normalizedFact(record.content) === prior
+        || (property && property === singleValueProperty(record.content))).map(record => record.id);
+      if (targets.length) summaryUpdates.push({ ...item, supersedes_summary_ids: targets });
+    }
     statements.push(db.prepare(`
       INSERT INTO pinned_memories (memory_id, visitor_id, category, content, created_at, updated_at)
       SELECT ?, ?, ?, ?, ?, ? WHERE ${guard.sql}
@@ -701,7 +786,9 @@ export async function applyMemoryExtraction(env, visitorId, input, extracted, op
     ).bind(now, threadId, visitorId, ...guard.params));
   }
   const journal = await journalStatements(env, visitorId, acceptedPinned, safeMessages, now, guard);
+  const journalStart = statements.length;
   statements.push(...journal);
+  const mergedSummary = mergeSummary(summaryRow?.summary, newestEvidenceFirst(summaryUpdates, safeMessages));
   // Cursor is last: every preceding write sees the same expected version.
   // D1 executes the entire batch as one transaction, including this CAS.
   if (extractionComplete) statements.push(db.prepare(`
@@ -716,7 +803,8 @@ export async function applyMemoryExtraction(env, visitorId, input, extracted, op
     WHERE visitor_id = ? AND rowid > (SELECT rowid FROM messages WHERE message_id = ?) LIMIT 1`).bind(visitorId, through).first() : null;
   return extractionComplete
     ? { consolidated: true, summarizedThrough: through, hasMore: !!remaining, messageCount: messages.length,
-      summaryItems: summaryItems.length, pinnedCount, journalCount: journal.length }
+      summaryItems: summaryItems.length, pinnedCount,
+      journalCount: results.slice(journalStart, journalStart + journal.length).reduce((total, result) => total + Number(result?.meta?.changes || 0), 0) }
     : { consolidated: false, reason: "invalid_extraction" };
 }
 

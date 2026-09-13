@@ -1,5 +1,5 @@
 // Conversation-only alignment. No audio, SDK, billing or database settings here.
-export const RUNTIME_REVISION = 'conversation06-memory-recovery';
+export const RUNTIME_REVISION = 'conversation07-memory-integrity';
 export const CONVERSATION_RHYTHM = `CONVERSATIONAL RHYTHM
 
 Participate in the exchange rather than generating isolated answers. Answer the visitor's latest completed intention first, using facts and corrections already present in the conversation.
