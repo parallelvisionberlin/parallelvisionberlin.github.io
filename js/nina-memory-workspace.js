@@ -37,6 +37,15 @@ export function createMemoryWorkspace({root,api}) {
   function render() {
     root.replaceChildren();const top=el('div',undefined,'memory-actions');top.append(button('Reload memories',refresh));root.append(top);
     root.append(el('p','Corrections take effect when you start a new call. Removing a saved note removes it from the saved context; the original transcript remains. “Forget Nina’s memory” below deletes the conversation record as well.','account-copy'));
+    const updates=section('Memory updates','Saved memories, the summary and the journal are updated after completed calls.',true),processing=data.processing;
+    if(processing){
+      const pending=Math.max(0,Math.trunc(Number(processing.pending_messages)||0));
+      updates.append(el('p',processing.last_success_at?`Last successful update: ${date(processing.last_success_at)}`:'No successful memory update recorded yet.'),el('p',`${pending} ${pending===1?'message':'messages'} from completed calls waiting to be processed.`));
+      let notice=processing.status==='running'?'Updating your memories.':processing.status==='queued'?'Your memory update is queued.':pending?'These messages have not been processed yet.':'All completed-call messages have been processed.';
+      if(['error','invalid_extraction'].includes(processing.status))notice=`The last update did not finish. ${processing.next_attempt_at?`An automatic retry is scheduled for ${date(processing.next_attempt_at)}.`:'Waiting for an automatic retry.'} Your saved memories remain available.`;
+      else if(processing.status==='not_scheduled'&&pending)notice='No memory update is scheduled for these messages.';
+      updates.append(el('p',notice,'account-status'));
+    }else updates.append(el('p','Memory update status is temporarily unavailable.','account-status'));
     const state=section('Relationship continuity','These categories describe a model’s conversational posture. They do not measure feelings.',true);
     if(data.relationship){const table=el('dl',undefined,'memory-levels');for(const [key,value]of Object.entries(data.relationship.state)){table.append(el('dt',readable(key)),el('dd',readable(value)));}state.append(table,el('p',data.relationship.relationship_summary),el('small',`State last changed: ${date(data.relationship.updated_at)}`));}
     const attempt=data.evaluation;state.append(el('p',attempt?`Latest evaluation: ${readable(attempt.status)} · ${date(attempt.attempted_at)}${attempt.message_count!==undefined?` · ${attempt.message_count} messages · ${attempt.input_characters} input characters`:''}`:'No relationship evaluation recorded.'));

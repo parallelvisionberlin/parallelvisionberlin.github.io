@@ -8,6 +8,7 @@ const SUMMARY_LIMIT = 3000;
 const PINNED_LIMIT = 20;
 const OPEN_THREAD_LIMIT = 12;
 const CONSOLIDATION_MESSAGE_LIMIT = 80;
+const CONSOLIDATION_INPUT_CHARACTERS = 12000;
 const ID_PATTERN = /^[a-zA-Z0-9][a-zA-Z0-9._:-]{0,127}$/;
 const CATEGORY_PATTERN = /^[a-z][a-z0-9_-]{0,39}$/;
 const CONSOLIDATION_MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
@@ -18,7 +19,7 @@ const PINNED_MEMORY_CATEGORIES = new Set([
   "inside_joke", "fantasy_roleplay", "project", "identity"
 ]);
 const UNRESOLVED_PERSPECTIVE_PATTERN = /\b(?:i|i'm|i’ve|i'd|me|my|mine|you|you're|you’ve|you'd|your|yours|we|we're|we’ve|we'd|us|our|ours)\b/i;
-const DEBRIS_PATTERN = /^(?:sorry[, ]+)?(?:what did you say|what do you say|you know who i am|i mean(?:\.{2,})?|okay|ok|yeah|yes|no|right|you were right|last time we(?:\.{2,})?|you(?:'re| are) amazing)[?!. ]*$/i;
+const DEBRIS_PATTERN = /^(?:sorry[, ]+)?(?:what did you say|what do you say|you know who i am|i mean(?:\.{2,})?|okay|ok|yeah|yes|no|right|you were right|last time we(?:\.{2,})?|you(?:'re| are) amazing|(?:Nina and (?:Alejandro|the visitor)|(?:Alejandro|the visitor) and Nina) (?:greeted each other|exchanged greetings|said hello))[?!. ]*$/i;
 const NINA_CANON_PATTERN = /^(?:(?:nina|i|you)\s+(?:am|is|are|identify(?:ies)? as)\s+(?:nina|human|a human|a person)|nina\s+(?:lives|resides)\s+in\s+berlin|nina(?:'s)?\s+(?:age|birthday|birth date)|nina\s+was born)\b/i;
 const NINA_META_BREAK_PATTERN = /\b(?:i(?:'m| am) (?:an? )?(?:ai system|assistant|language model)|i(?:'m| am) (?:the )?same assistant underneath|i(?:'m| am) not literally (?:a )?human woman|nina is (?:a )?character in (?:this )?conversation|you(?:'re| are) talking to openai now|my system prompt|the underlying model|the (?:character )?illusion broke)\b/i;
 const RELATIONSHIP_FACT_PATTERN = /\b(?:relationship|dating|boyfriend|girlfriend|partner|loves?|in love with|attracted to|desires?|has feelings for|familiarity|affection|intimacy|romantic status|relationship boundary|boundaries)\b/i;
@@ -32,7 +33,12 @@ const JOKE_EVIDENCE_PATTERN = /\b(?:inside joke|running joke|recurring (?:joke|b
 const JOKE_RECURRENCE_PATTERN = /\b(?:inside joke|running joke|recurring (?:joke|bit)|again|always|usually|keep calling|nickname|pet name)\b/i;
 const VAGUE_JOKE_PATTERN = /\b(?:have|share|has) (?:an? )?(?:joke|nickname)(?: for each other)?[.!]?$|\bjoke around[.!]?$/i;
 const IDENTITY_FACT_PATTERN = /\b(?:full name|legal name|birth name|was born|birthday|nationality|citizen(?:ship)?|pronouns?|identifies as)\b/i;
-const NINA_LIFE_FACT_PATTERN = /\bNina\b.*\b(?:worked|performed|played|recorded|created|made|went|visited|met|moved|studied|grew up|slept|lived|owns?|has (?:a|an))\b/i;
+const NINA_LIFE_FACT_PATTERN = /\bNina\b.*\b(?:worked|performed|played|recorded|created|made|went|visited|met|moved|studied|grew up|slept|lived|spent|fixed|repaired|configured|owns?|has|uses?|prefers?|likes?|dislikes?|avoids?|does not (?:own|have|want|keep|like|use))\b/i;
+
+function subjectPattern(pattern, subjectName) {
+  const escaped = subjectName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(pattern.source.replace(/Alejandro/gi, escaped), pattern.flags);
+}
 
 const PRIVATE_MEMORY_INSTRUCTIONS = `Private previous-conversation context follows.
 Use it naturally only when relevant.
@@ -264,7 +270,7 @@ export async function buildOwnerMemoryContext(env, owner) {
 
 const extractJson=modelJson;
 
-const NON_LITERAL_EVIDENCE_PATTERN = /\b(?:fantas(?:y|ies|ize|ise)|roleplay|pretend|imagine|imaginary|hypothetical|made[- ]?up|fiction(?:al)?|kidding|not real)\b/i;
+const NON_LITERAL_EVIDENCE_PATTERN = /\b(?:fantas(?:y|ies|ize|ise|izing|ising)|roleplay|pretend|imagin(?:e|ed|ing|ary)|hypothetical|made[- ]?up|fiction(?:al)?|kidding|not real)\b/i;
 
 function evidenceMessages(candidate, messagesById) {
   if (!Array.isArray(candidate?.evidence_message_ids) || !candidate.evidence_message_ids.length) return [];
@@ -272,11 +278,15 @@ function evidenceMessages(candidate, messagesById) {
   return evidence.every(Boolean) ? evidence : [];
 }
 
-function validUserGroundedEvidence(candidate, messagesById, rejectNonLiteral = true) {
+function validUserGroundedEvidence(candidate, messagesById, rejectNonLiteral = true, subjectName = "Alejandro") {
   const evidence = evidenceMessages(candidate, messagesById);
+  const attributed = !Object.hasOwn(candidate, "content")
+    || subjectPattern(/\bAlejandro\b/i, subjectName).test(candidate.content)
+    || /\bNina\b/i.test(candidate.content);
   return evidence.some(message => message.role === "user")
+    && attributed
     && evidence.every(message => !isNinaMetaBreakMessage(message))
-    && durableEvidence(candidate, evidence)
+    && durableEvidence(candidate, evidence, subjectName)
     && (!rejectNonLiteral || evidence.every(message => !NON_LITERAL_EVIDENCE_PATTERN.test(message.content)));
 }
 
@@ -287,22 +297,33 @@ function durableContent(candidate) {
   return content;
 }
 
-function durableEvidence(candidate, evidence) {
+function hasDeclarativeEvidence(content) {
+  // A useful statement often ends with a follow-up question. Examine clauses,
+  // so that question does not invalidate the preceding sourced fact.
+  return (content.match(/[^.!?]+[.!?]?/g) || []).some(part => {
+    const text = part.trim();
+    return Boolean(text) && !/\?$/.test(text) && !DEBRIS_PATTERN.test(text);
+  });
+}
+
+function durableEvidence(candidate, evidence, subjectName = "Alejandro") {
   if (evidence.some(message => isNinaMetaBreakMessage(message) || DEBRIS_PATTERN.test(message.content))) return false;
-  if (evidence.every(message => /\?\s*$/.test(message.content))) return false;
+  if (!evidence.some(message => hasDeclarativeEvidence(message.content))) return false;
   if (evidence.some(message => NINA_CANON_PATTERN.test(message.content))) return false;
-  if (evidence.some(message => /\b(?:we|us|our|ours)\b/i.test(message.content))
-    && !(/\bAlejandro\b/.test(candidate.content) && /\bNina\b/.test(candidate.content))) return false;
+  // First-person plural elsewhere in a source does not make an independently
+  // attributed fact ambiguous. Shared events still need explicit participants.
+  if (candidate.category === "shared_memory" && evidence.some(message => /\b(?:we|us|our|ours)\b/i.test(message.content))
+    && !(subjectPattern(/\bAlejandro\b/i, subjectName).test(candidate.content) && /\bNina\b/.test(candidate.content))) return false;
   if (candidate.category === "nina_autobiography") return evidence.some(message => message.role === "persona") && /\bNina\b/.test(candidate.content);
   if (["user_fact", "identity", "preference", "project"].includes(candidate.category)) {
-    return evidence.some(message => message.role === "user") && /\bAlejandro\b/.test(candidate.content);
+    return evidence.some(message => message.role === "user") && subjectPattern(/\bAlejandro\b/i, subjectName).test(candidate.content);
   }
   return true;
 }
 
-function validInsideJoke(candidate, evidence) {
+function validInsideJoke(candidate, evidence, subjectName = "Alejandro") {
   const content = cleanText(candidate.content, 500);
-  if (isNinaUserRelationship(content) || VAGUE_JOKE_PATTERN.test(content)) return false;
+  if (isNinaUserRelationship(content, subjectName) || VAGUE_JOKE_PATTERN.test(content)) return false;
   const evidenceText = evidence.map(message => message.content).join("\n");
   if (!JOKE_EVIDENCE_PATTERN.test(evidenceText) || !JOKE_RECURRENCE_PATTERN.test(evidenceText)) return false;
   const identifiesReference = /\b(?:about|called?|calls?|nickname (?:is|was)|pet name (?:is|was))\s+["'“”]?[a-z0-9]/i.test(content)
@@ -311,36 +332,38 @@ function validInsideJoke(candidate, evidence) {
   return identifiesReference;
 }
 
-function isNinaUserRelationship(content) {
+function isNinaUserRelationship(content, subjectName = "Alejandro") {
   const text = cleanText(content, 500).replace(/[’]/g, "'");
-  if (!/\bAlejandro\b/i.test(text) || !/\bNina\b/i.test(text) || !RELATIONSHIP_FACT_PATTERN.test(text)) return false;
-  return /\b(?:Alejandro and Nina|Nina and Alejandro)\b.{0,40}\b(?:relationship|dating|partners?|familiarity|affection|intimacy|romantic status|boundaries)\b/i.test(text)
-    || /\b(?:Alejandro|Nina)\b.{0,20}\b(?:loves?|is in love with|is attracted to|desires?|has feelings for)\b.{0,20}\b(?:Alejandro|Nina)\b/i.test(text)
-    || /\b(?:Alejandro|Nina)\b\s+is\s+(?:Alejandro|Nina)'s\s+(?:boyfriend|girlfriend|partner)\b/i.test(text)
-    || /\bAlejandro\b.*\bconsiders?\s+Nina\s+(?:his\s+)?(?:girlfriend|partner)\b/i.test(text)
-    || /\bNina\b.{0,25}\b(?:wants? to take things slowly|is being rushed by Alejandro)\b/i.test(text);
+  if (!subjectPattern(/\bAlejandro\b/i, subjectName).test(text) || !/\bNina\b/i.test(text) || !RELATIONSHIP_FACT_PATTERN.test(text)) return false;
+  return [
+    /\b(?:Alejandro and Nina|Nina and Alejandro)\b.{0,40}\b(?:relationship|dating|partners?|familiarity|affection|intimacy|romantic status|boundaries)\b/i,
+    /\b(?:Alejandro|Nina)\b.{0,20}\b(?:loves?|is in love with|is attracted to|desires?|has feelings for)\b.{0,20}\b(?:Alejandro|Nina)\b/i,
+    /\b(?:Alejandro|Nina)\b\s+is\s+(?:Alejandro|Nina)'s\s+(?:boyfriend|girlfriend|partner)\b/i,
+    /\bAlejandro\b.*\bconsiders?\s+Nina\s+(?:(?:his|her|their)\s+)?(?:girlfriend|partner)\b/i,
+    /\bNina\b.{0,25}\b(?:wants? to take things slowly|is being rushed by Alejandro)\b/i
+  ].some(pattern => subjectPattern(pattern, subjectName).test(text));
 }
 
-function thirdPartyGirlfriendFact(content) {
+function thirdPartyGirlfriendFact(content, subjectName = "Alejandro") {
   const text = cleanText(content, 500).replace(/[’]/g, "'");
-  const match = text.match(/\bAlejandro (?:has a girlfriend named|is in a relationship with) ([\p{L}\p{M}'’-]+)\b/iu)
-    || text.match(/\b([\p{L}\p{M}'’-]+) is Alejandro's girlfriend\b/iu);
+  const match = text.match(subjectPattern(/\bAlejandro (?:has a girlfriend named|is in a relationship with) ([\p{L}\p{M}'’-]+)\b/iu, subjectName))
+    || text.match(subjectPattern(/\b([\p{L}\p{M}'’-]+) is Alejandro's girlfriend\b/iu, subjectName));
   const name = match?.[1];
-  return name && name.toLowerCase() !== "nina" ? `Alejandro has a girlfriend named ${name}.` : "";
+  return name && name.toLowerCase() !== "nina" ? `${subjectName} has a girlfriend named ${name}.` : "";
 }
 
-function sanitizeDerivedContent(content, limit = 500) {
+function sanitizeDerivedContent(content, limit = 500, subjectName = "Alejandro") {
   const cleaned = cleanText(content, limit);
-  const safeThirdPartyFact = thirdPartyGirlfriendFact(cleaned);
-  if (isNinaUserRelationship(cleaned) || USER_INTERPRETATION_PATTERN.test(cleaned)) return safeThirdPartyFact;
+  const safeThirdPartyFact = thirdPartyGirlfriendFact(cleaned, subjectName);
+  if (isNinaUserRelationship(cleaned, subjectName) || subjectPattern(USER_INTERPRETATION_PATTERN, subjectName).test(cleaned)) return safeThirdPartyFact;
   return cleaned;
 }
 
-function categorySemanticsMatch(candidate, evidence) {
+function categorySemanticsMatch(candidate, evidence, subjectName = "Alejandro") {
   const content = cleanText(candidate.content, 500);
-  if (isNinaUserRelationship(content)) return false;
+  if (isNinaUserRelationship(content, subjectName)) return false;
   if (candidate.category === "relationship_state") return false;
-  if (candidate.category === "inside_joke") return validInsideJoke(candidate, evidence);
+  if (candidate.category === "inside_joke") return validInsideJoke(candidate, evidence, subjectName);
   if (candidate.category === "shared_memory" && CONVERSATION_TOPIC_MEMORY_PATTERN.test(content)
     && !CONCRETE_SHARED_EVENT_PATTERN.test(content)) return false;
   if (candidate.category === "identity") return IDENTITY_FACT_PATTERN.test(content);
@@ -348,20 +371,21 @@ function categorySemanticsMatch(candidate, evidence) {
   return true;
 }
 
-function normalizePinnedCandidate(candidate) {
-  const sanitized = sanitizeDerivedContent(candidate?.content);
-  const transientClause = sanitized.search(TRANSIENT_CLAUSE_PATTERN);
+function normalizePinnedCandidate(candidate, subjectName = "Alejandro") {
+  const sanitized = sanitizeDerivedContent(candidate?.content, 500, subjectName);
+  const transientClause = sanitized.search(subjectPattern(TRANSIENT_CLAUSE_PATTERN, subjectName));
   const content = transientClause > 0 ? `${sanitized.slice(0, transientClause).trim().replace(/[,.!?;:]+$/, "")}.` : sanitized;
   if (!content) return { ...candidate, content: "" };
-  if (TRANSIENT_INTENTION_PATTERN.test(content)) return { ...candidate, content: "" };
-  if (/\bAlejandro\b.*\b(?:likes?|enjoys?)\b.*\bMexican food\b/i.test(content) && /\btacos?\b/i.test(content)
+  if (subjectPattern(TRANSIENT_INTENTION_PATTERN, subjectName).test(content)) return { ...candidate, content: "" };
+  if (subjectPattern(/\bAlejandro\b.*\b(?:likes?|enjoys?)\b.*\bMexican food\b/i, subjectName).test(content) && /\btacos?\b/i.test(content)
     && /\b(?:cooks?|cooking|makes?)\b.*\bat home\b/i.test(content)) {
-    return { ...candidate, content: "Alejandro likes Mexican food, especially tacos, and enjoys cooking it at home." };
+    return { ...candidate, content: `${subjectName} likes Mexican food, especially tacos, and enjoys cooking it at home.` };
   }
-  if (candidate?.category === "identity" && USER_RELATIONSHIP_FACT_PATTERN.test(content)) {
+  if ((candidate?.category === "identity" && subjectPattern(USER_RELATIONSHIP_FACT_PATTERN, subjectName).test(content))
+    || (sanitized !== cleanText(candidate?.content, 500) && thirdPartyGirlfriendFact(sanitized, subjectName))) {
     return { ...candidate, content, category: "user_fact" };
   }
-  return content === candidate?.content ? candidate : { ...candidate, content, category: "user_fact" };
+  return content === candidate?.content ? candidate : { ...candidate, content };
 }
 
 function deduplicatePinnedCandidates(items) {
@@ -378,7 +402,7 @@ function titleCaseProject(value) {
   return value.split(/\s+/).map(word => word ? `${word[0].toUpperCase()}${word.slice(1).toLowerCase()}` : "").join(" ");
 }
 
-export function deterministicUserMemoryCandidates(messages) {
+export function deterministicUserMemoryCandidates(messages, subjectName = "Alejandro") {
   const candidates = [];
   for (const message of messages) {
     if (message?.role !== "user" || !message?.message_id || NON_LITERAL_EVIDENCE_PATTERN.test(message.content)) continue;
@@ -388,36 +412,36 @@ export function deterministicUserMemoryCandidates(messages) {
     const projectMatch = text.match(new RegExp(`\\bI'm working on a project called ([\\p{L}\\p{M}][\\p{L}\\p{M}'’-]*(?:\\s+[\\p{L}\\p{M}][\\p{L}\\p{M}'’-]*){0,7}?)${projectBoundary}`, "iu"))
       || text.match(new RegExp(`\\bI'm still working on ([\\p{L}\\p{M}][\\p{L}\\p{M}'’-]*(?:\\s+[\\p{L}\\p{M}][\\p{L}\\p{M}'’-]*){1,7}?)${projectBoundary}`, "iu"));
     if (projectMatch && !/^(?:it|that|this|something|things|the project)$/i.test(projectMatch[1])) {
-      candidates.push({ category: "project", content: `Alejandro is working on a project called ${titleCaseProject(projectMatch[1])}.`, evidence_message_ids, decision: "NEW" });
+      candidates.push({ category: "project", content: `${subjectName} is working on a project called ${titleCaseProject(projectMatch[1])}.`, evidence_message_ids, decision: "NEW" });
     }
     if (/\bI really enjoy cooking Mexican food at home, especially tacos\b/i.test(text)) {
-      candidates.push({ category: "preference", content: "Alejandro likes Mexican food, especially tacos, and enjoys cooking it at home.", evidence_message_ids, decision: "NEW" });
+      candidates.push({ category: "preference", content: `${subjectName} likes Mexican food, especially tacos, and enjoys cooking it at home.`, evidence_message_ids, decision: "NEW" });
     } else {
       const enjoyMatch = text.match(/\bI really enjoy ([\p{L}\p{M}][\p{L}\p{M}'’ ,&-]{1,100})[.!?]?$/iu);
       const likeMatch = text.match(/\bI like ([\p{L}\p{M}][\p{L}\p{M}'’ ,&-]{1,100})[.!?]?$/iu);
       const preference = cleanText(enjoyMatch?.[1] || likeMatch?.[1], 100).replace(/[.!?]+$/, "");
       if (preference && !/^(?:it|that|this|things|something|you|Nina)$/i.test(preference)) {
-        candidates.push({ category: "preference", content: `Alejandro ${enjoyMatch ? "enjoys" : "likes"} ${preference}.`, evidence_message_ids, decision: "NEW" });
+        candidates.push({ category: "preference", content: `${subjectName} ${enjoyMatch ? "enjoys" : "likes"} ${preference}.`, evidence_message_ids, decision: "NEW" });
       }
       const favoriteMatch = text.match(/^([\p{L}\p{M}][\p{L}\p{M}'’ ,&-]{1,100}) is one of my favorite (foods?|activities|artists?|books?|films?|places?)[.!?]?$/iu);
       if (favoriteMatch) {
-        candidates.push({ category: "preference", content: `Alejandro considers ${favoriteMatch[1]} one of his favorite ${favoriteMatch[2]}.`, evidence_message_ids, decision: "NEW" });
+        candidates.push({ category: "preference", content: `${subjectName} considers ${favoriteMatch[1]} one of their favorite ${favoriteMatch[2]}.`, evidence_message_ids, decision: "NEW" });
       }
     }
     const wordPreference = text.match(/\bI don't like you using (?:the word )?["'“”]?([\p{L}\p{M}'’-]+)["'“”]?(?: all the time| so much| repeatedly)?[.!?]?$/iu);
     if (wordPreference) {
-      candidates.push({ category: "preference", content: `Alejandro prefers Nina not to overuse the word '${wordPreference[1]}'.`, evidence_message_ids, decision: "NEW" });
+      candidates.push({ category: "preference", content: `${subjectName} prefers Nina not to overuse the word '${wordPreference[1]}'.`, evidence_message_ids, decision: "NEW" });
     }
   }
   return candidates;
 }
 
-function validPinnedEvidence(candidate, messagesById) {
+function validPinnedEvidence(candidate, messagesById, subjectName = "Alejandro") {
   const category = candidate?.category;
   if (!PINNED_MEMORY_CATEGORIES.has(category) || !CATEGORY_PATTERN.test(category)) return false;
   const evidence = evidenceMessages(candidate, messagesById);
   if (!evidence.length) return false;
-  if (!durableContent(candidate) || !durableEvidence(candidate, evidence) || !categorySemanticsMatch(candidate, evidence)) return false;
+  if (!durableContent(candidate) || !durableEvidence(candidate, evidence, subjectName) || !categorySemanticsMatch(candidate, evidence, subjectName)) return false;
   const literalEvidence = evidence.every(message => !NON_LITERAL_EVIDENCE_PATTERN.test(message.content));
   if (category === "user_fact" || category === "identity" || category === "shared_memory") {
     return literalEvidence && evidence.some(message => message.role === "user");
@@ -429,22 +453,22 @@ function validPinnedEvidence(candidate, messagesById) {
   return true;
 }
 
-export function filterConsolidationExtraction(extracted, messages, activeThreads = []) {
+export function filterConsolidationExtraction(extracted, messages, activeThreads = [], subjectName = "Alejandro") {
   const messagesById = new Map(messages.map(message => [message.message_id, message]));
   const summaryItems = Array.isArray(extracted?.summary_items)
-    ? extracted.summary_items.map(item => ({ ...item, content: sanitizeDerivedContent(item?.content) }))
-      .filter(item => durableContent(item) && validUserGroundedEvidence(item, messagesById)).slice(0, 12)
+    ? extracted.summary_items.map(item => ({ ...item, content: sanitizeDerivedContent(item?.content, 500, subjectName) }))
+      .filter(item => durableContent(item) && validUserGroundedEvidence(item, messagesById, true, subjectName)).slice(0, 12)
     : [];
   const extractedPinned = Array.isArray(extracted?.pinned_memories) ? extracted.pinned_memories : [];
-  const pinned = deduplicatePinnedCandidates([...deterministicUserMemoryCandidates(messages), ...extractedPinned]
-    .map(normalizePinnedCandidate).filter(item => validPinnedEvidence(item, messagesById))).slice(0, 8);
+  const pinned = deduplicatePinnedCandidates([...deterministicUserMemoryCandidates(messages, subjectName), ...extractedPinned]
+    .map(item => normalizePinnedCandidate(item, subjectName)).filter(item => validPinnedEvidence(item, messagesById, subjectName))).slice(0, 8);
   const threads = Array.isArray(extracted?.open_threads)
-    ? extracted.open_threads.map(item => ({ ...item, content: sanitizeDerivedContent(item?.content) }))
-      .filter(item => durableContent(item) && validUserGroundedEvidence(item, messagesById)).slice(0, 8)
+    ? extracted.open_threads.map(item => ({ ...item, content: sanitizeDerivedContent(item?.content, 500, subjectName) }))
+      .filter(item => durableContent(item) && validUserGroundedEvidence(item, messagesById, true, subjectName)).slice(0, 8)
     : [];
   const activeThreadIds = new Set(activeThreads.map(thread => thread.thread_id));
   const resolvedIds = Array.isArray(extracted?.resolved_threads)
-    ? extracted.resolved_threads.filter(item => activeThreadIds.has(item?.thread_id) && validUserGroundedEvidence(item, messagesById)).map(item => item.thread_id)
+    ? extracted.resolved_threads.filter(item => activeThreadIds.has(item?.thread_id) && validUserGroundedEvidence(item, messagesById, true, subjectName)).map(item => item.thread_id)
     : [];
   return { summaryItems, pinned, threads, resolvedIds };
 }
@@ -514,42 +538,54 @@ export function resolvePinnedDecision(candidate, existingPinned = []) {
 export async function loadConsolidationInput(env, visitorId) {
   const db = env.NINA_MEMORY_DB;
   const summaryRow = await db.prepare(
-    "SELECT summary, messages_summarized_through FROM memory_summaries WHERE visitor_id = ?"
+    "SELECT summary, messages_summarized_through, updated_at FROM memory_summaries WHERE visitor_id = ?"
   ).bind(visitorId).first();
   const messagesResult = await db.prepare(`
-    SELECT message_id, role, content, created_at FROM messages
-    WHERE visitor_id = ? AND rowid > COALESCE((SELECT rowid FROM messages WHERE message_id = ?), 0)
-    ORDER BY rowid ASC LIMIT ?
+    SELECT m.message_id, m.role, m.content, m.created_at, c.ended_at FROM messages m
+    JOIN conversations c ON c.conversation_id = m.conversation_id
+    WHERE m.visitor_id = ? AND m.rowid > COALESCE((SELECT rowid FROM messages WHERE message_id = ?), 0)
+    ORDER BY m.rowid ASC LIMIT ?
   `).bind(visitorId, summaryRow?.messages_summarized_through || "", CONSOLIDATION_MESSAGE_LIMIT).all();
-  const messages = messagesResult.results || [];
+  const messages = [];
+  let inputCharacters = 0;
+  for (const message of messagesResult.results || []) {
+    // Preserve cursor order: never skip a still-open call or cut a message.
+    if (message.ended_at === null) break;
+    const cost = JSON.stringify(message).length;
+    if (messages.length && inputCharacters + cost > CONSOLIDATION_INPUT_CHARACTERS) break;
+    messages.push(message);
+    inputCharacters += cost;
+  }
   if (!messages.length) return { summaryRow, messages, safeMessages: [], openThreads: [], existingPinned: [] };
-  const [openResult, existingPinnedResult] = await Promise.all([
+  const [openResult, existingPinnedResult, account] = await Promise.all([
     db.prepare(
       "SELECT thread_id, content FROM open_threads WHERE visitor_id = ? AND status = 'active' ORDER BY updated_at DESC LIMIT ?"
     ).bind(visitorId, OPEN_THREAD_LIMIT).all(),
     db.prepare(
       "SELECT memory_id, category, content FROM pinned_memories WHERE visitor_id = ? ORDER BY updated_at DESC LIMIT ?"
-    ).bind(visitorId, PINNED_LIMIT).all()
+    ).bind(visitorId, PINNED_LIMIT).all(),
+    db.prepare("SELECT role FROM users WHERE memory_visitor_id = ?").bind(visitorId).first()
   ]);
   return {
     summaryRow,
     messages,
     safeMessages: messages.filter(message => !isNinaMetaBreakMessage(message)),
     openThreads: openResult.results || [],
-    existingPinned: existingPinnedResult.results || []
+    existingPinned: existingPinnedResult.results || [],
+    subjectName: account?.role === "owner" ? "Alejandro" : "The visitor"
   };
 }
 
-export function buildConsolidationPrompt({ summaryRow, safeMessages, openThreads, existingPinned }) {
-  return `You maintain conservative long-term memory for a conversational persona.
+export function buildConsolidationPrompt({ summaryRow, safeMessages, openThreads, existingPinned, subjectName = "Alejandro" }) {
+  const instructions = `You maintain conservative long-term memory for a conversational persona.
 Return one complete JSON object with array keys summary_items, pinned_memories, open_threads, resolved_threads. Include every array, using [] when there is nothing to add.
-Use at most 6 summary items, 4 pinned items and 4 open threads per batch. Keep each content field concise and finish the JSON object.
+Use at most 6 summary items, 6 pinned items and 4 open threads per batch. Keep each content field below 200 characters. Use at most TWO evidence IDs per item, selecting the clearest and newest evidence. Finish the JSON object.
 Each new item must include content and evidence_message_ids. Pinned items also need category.
 Each pinned item must include decision (NEW, UPDATE_EXISTING, DUPLICATE, or REJECT). UPDATE_EXISTING must include existing_memory_id.
 Each resolved_threads item must include thread_id and evidence_message_ids.
 Allowed pinned categories: user_fact, nina_autobiography, shared_memory, preference, inside_joke, fantasy_roleplay, project, identity.
 Use user_fact for durable facts established by Alejandro, including stable facts about his real-world relationships, and identity for durable identity information explicitly grounded by Alejandro.
-Use nina_autobiography for a concrete event or fact Nina clearly states as real about her independent life. Persona evidence is valid here, including sexual life, but explicit imagination, hypotheticals, pretend play, roleplay or fantasy are not autobiography.
+Use nina_autobiography for a concrete event, equipment choice or lasting preference Nina clearly states about her independent life in her character world. Preserve a meaningful new independent-life detail when present alongside useful visitor memories. Persona evidence is valid here, but explicit imagination, hypotheticals, pretend play, roleplay or fantasy are not autobiography.
 Use shared_memory only for concrete meaningful real past events involving Alejandro and Nina or another established person when user evidence supports the history. Merely having a conversation or talking about a topic is not shared memory. A Nina-only claim cannot establish shared history.
 Use preference for durable preferences, desires, conversational preferences or boundaries belonging to Alejandro with an explicit subject.
 All Nina–Alejandro relationship state belongs exclusively in the separate relationship notebook and must not become pinned memory or summary under any category.
@@ -562,11 +598,13 @@ Resolve speaker perspective before storage. Permanent memory must explicitly nam
 Nina's permanent canon (identity, humanity, name, Berlin residence, canonical birth date and age logic) is not per-user memory.
 Nina autobiography is only a concrete new independent-life event stated literally by Nina, never canon, roleplay, shared history or implementation identity.
 Nina statements describing herself as an AI system, character, underlying assistant/model/system prompt, or a broken illusion are contamination: exclude them from every output. Normal visitor discussion about AI remains valid.
-Use summary_items for compact, durable facts that belong in the conversation overview. The backend merges supported items with the existing summary. Do not generate a separate prose summary. Remove debris, redundancy, unresolved pronouns and facts already cleanly represented in pins.
+Use summary_items for compact, durable facts that belong in the conversation overview, including the most useful pinned facts when needed for a meaningful overview. The backend merges supported items with the existing summary. Do not generate a separate prose summary. Remove greetings, debris, redundancy and unresolved pronouns. Never substitute a description of greetings for substantive memory.
 Compare every candidate with EXISTING PINNED MEMORIES. Use DUPLICATE for paraphrases, UPDATE_EXISTING when durable information for the same subject/property changed, and NEW only for genuinely distinct memory.
 Keep summary_items, open_threads and thread resolution conservative and user-grounded. Never convert fantasy, roleplay or jokes into factual history.
 
-EXISTING SUMMARY:
+`;
+  // Only substitute instruction text, never names in supplied evidence or memory.
+  return instructions.replaceAll("Alejandro", subjectName) + `EXISTING SUMMARY:
 ${cleanText(summaryRow?.summary, SUMMARY_LIMIT) || "(none)"}
 
 ACTIVE THREADS:
@@ -582,45 +620,66 @@ ${JSON.stringify(safeMessages)}`;
 async function runArchivist(env, model, prompt) {
   return env.AI.run(model, {
     messages: [
-      { role: "system", content: "Extract conservative memory as strict JSON. Do not invent." },
+      { role: "system", content: "Extract conservative memory as strict JSON. Do not invent. Every content field must be a complete third-person sentence naming its subject explicitly, using the visitor label specified in the instructions or Nina. Subjectless fragments are invalid. Prioritize explicit corrections, conversational preferences and concrete independent-life details over temporary states. Use no more than two evidence IDs per item." },
       { role: "user", content: prompt }
     ],
-    max_tokens: 900,
+    max_tokens: 2400,
+    response_format: { type: "json_object" },
     temperature: 0
   });
 }
 
-export async function consolidateMemory(env, visitorId) {
-  if (!env.AI || !env.NINA_MEMORY_DB) return { consolidated: false };
+export async function consolidateMemory(env, visitorId, options = {}) {
+  if (!env.AI || !env.NINA_MEMORY_DB) return { consolidated: false, reason: "unavailable" };
+  const input = await loadConsolidationInput(env, visitorId);
+  const { messages } = input;
+  if (!messages.length) return { consolidated: false, reason: "no_messages" };
+  const response = await runArchivist(env, CONSOLIDATION_MODEL, buildConsolidationPrompt(input));
+  return applyMemoryExtraction(env, visitorId, input, extractJson(response), options);
+}
+
+// The same evidence validator and transaction are used for extraction and a
+// reviewed recovery. Recovery does not require replaying transcripts to a model.
+export async function applyMemoryExtraction(env, visitorId, input, extracted, options = {}) {
   const db = env.NINA_MEMORY_DB;
-  const { summaryRow, messages, safeMessages, openThreads, existingPinned } = await loadConsolidationInput(env, visitorId);
+  const { summaryRow, messages, safeMessages, openThreads, existingPinned, subjectName = "Alejandro" } = input;
   if (!messages.length) return { consolidated: false };
-  const response = await runArchivist(env, CONSOLIDATION_MODEL, buildConsolidationPrompt({ summaryRow, safeMessages, openThreads, existingPinned }));
-  const extracted = extractJson(response);
   const extractionComplete = isCompleteMemoryExtraction(extracted);
   // Keep deterministic, evidenced pins even if the model output is incomplete.
   // Ignore all partial model output and leave the cursor eligible for retry.
-  const { summaryItems, pinned, threads, resolvedIds } = filterConsolidationExtraction(extractionComplete ? extracted : {}, safeMessages, openThreads);
+  const { summaryItems, pinned, threads, resolvedIds } = filterConsolidationExtraction(extractionComplete ? extracted : {}, safeMessages, openThreads, subjectName);
   const now = new Date().toISOString();
   const through = messages.at(-1).message_id;
   const mergedSummary = mergeSummary(summaryRow?.summary, summaryItems);
-  const statements = extractionComplete ? [db.prepare(`
-    INSERT INTO memory_summaries (visitor_id, summary, updated_at, messages_summarized_through)
-    VALUES (?, ?, ?, ?)
-    ON CONFLICT(visitor_id) DO UPDATE SET summary = excluded.summary, updated_at = excluded.updated_at,
-      messages_summarized_through = excluded.messages_summarized_through
-  `).bind(visitorId, mergedSummary, now, through)] : [];
+  const guard = {
+    sql: `EXISTS (SELECT 1 FROM visitors WHERE visitor_id = ?)
+      AND COALESCE((SELECT messages_summarized_through FROM memory_summaries WHERE visitor_id = ?), '') = ?
+      AND COALESCE((SELECT updated_at FROM memory_summaries WHERE visitor_id = ?), '') = ?`,
+    params: [visitorId, visitorId, summaryRow?.messages_summarized_through || "", visitorId, summaryRow?.updated_at || ""]
+  };
+  if (options.memoryJobLease) {
+    guard.sql += " AND EXISTS (SELECT 1 FROM nina_memory_jobs WHERE visitor_id = ? AND lease_token = ? AND lease_until > ?)";
+    guard.params.push(visitorId, options.memoryJobLease, now);
+  }
+  const current = await db.prepare(`SELECT 1 AS valid WHERE ${guard.sql}`).bind(...guard.params).first();
+  if (!current) return { consolidated: false, reason: "stale" };
+  const statements = [];
+  const acceptedPinned = [];
+  let pinnedCount = 0;
   for (const item of pinned) {
     const content = cleanText(item.content, 500);
     if (!content) continue;
     const resolved = resolvePinnedDecision(item, existingPinned);
-    if (resolved.decision === "REJECT" || resolved.decision === "DUPLICATE") continue;
+    if (resolved.decision === "REJECT") continue;
+    acceptedPinned.push(item);
+    if (resolved.decision === "DUPLICATE") continue;
     const id = resolved.existing?.memory_id || `pin-${(await sha256(`${visitorId}\n${semanticMemoryKey(item)}`)).slice(0, 48)}`;
     statements.push(db.prepare(`
       INSERT INTO pinned_memories (memory_id, visitor_id, category, content, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?)
+      SELECT ?, ?, ?, ?, ?, ? WHERE ${guard.sql}
       ON CONFLICT(memory_id) DO UPDATE SET category = excluded.category, content = excluded.content, updated_at = excluded.updated_at
-    `).bind(id, visitorId, item.category, content, now, now));
+    `).bind(id, visitorId, item.category, content, now, now, ...guard.params));
+    pinnedCount++;
     const existingIndex = existingPinned.findIndex(existing => existing.memory_id === id);
     const stored = { memory_id: id, category: item.category, content };
     if (existingIndex >= 0) existingPinned[existingIndex] = stored;
@@ -632,19 +691,32 @@ export async function consolidateMemory(env, visitorId) {
     const id = `thread-${(await sha256(`${visitorId}\n${content}`)).slice(0, 48)}`;
     statements.push(db.prepare(`
       INSERT INTO open_threads (thread_id, visitor_id, content, status, created_at, updated_at)
-      VALUES (?, ?, ?, 'active', ?, ?)
+      SELECT ?, ?, ?, 'active', ?, ? WHERE ${guard.sql}
       ON CONFLICT(thread_id) DO UPDATE SET content = excluded.content, status = 'active', updated_at = excluded.updated_at
-    `).bind(id, visitorId, content, now, now));
+    `).bind(id, visitorId, content, now, now, ...guard.params));
   }
   for (const threadId of resolvedIds) {
     statements.push(db.prepare(
-      "UPDATE open_threads SET status = 'resolved', updated_at = ? WHERE thread_id = ? AND visitor_id = ?"
-    ).bind(now, threadId, visitorId));
+      `UPDATE open_threads SET status = 'resolved', updated_at = ? WHERE thread_id = ? AND visitor_id = ? AND ${guard.sql}`
+    ).bind(now, threadId, visitorId, ...guard.params));
   }
-  statements.push(...await journalStatements(env, visitorId, pinned, safeMessages, now));
-  if (statements.length) await db.batch(statements);
+  const journal = await journalStatements(env, visitorId, acceptedPinned, safeMessages, now, guard);
+  statements.push(...journal);
+  // Cursor is last: every preceding write sees the same expected version.
+  // D1 executes the entire batch as one transaction, including this CAS.
+  if (extractionComplete) statements.push(db.prepare(`
+    INSERT INTO memory_summaries (visitor_id, summary, updated_at, messages_summarized_through)
+    SELECT ?, ?, ?, ? WHERE ${guard.sql}
+    ON CONFLICT(visitor_id) DO UPDATE SET summary = excluded.summary, updated_at = excluded.updated_at,
+      messages_summarized_through = excluded.messages_summarized_through
+  `).bind(visitorId, mergedSummary, now, through, ...guard.params));
+  const results = statements.length ? await db.batch(statements) : [];
+  if (extractionComplete && results.at(-1)?.meta?.changes === 0) return { consolidated: false, reason: "stale" };
+  const remaining = extractionComplete ? await db.prepare(`SELECT 1 AS pending FROM messages
+    WHERE visitor_id = ? AND rowid > (SELECT rowid FROM messages WHERE message_id = ?) LIMIT 1`).bind(visitorId, through).first() : null;
   return extractionComplete
-    ? { consolidated: true, summarizedThrough: through }
+    ? { consolidated: true, summarizedThrough: through, hasMore: !!remaining, messageCount: messages.length,
+      summaryItems: summaryItems.length, pinnedCount, journalCount: journal.length }
     : { consolidated: false, reason: "invalid_extraction" };
 }
 
@@ -667,7 +739,7 @@ export async function benchmarkMemoryArchivists(env, visitorId) {
     return {
       rawExtraction,
       filteredExtraction: rawExtraction
-        ? filterConsolidationExtraction(rawExtraction, safeMessages, openThreads)
+        ? filterConsolidationExtraction(rawExtraction, safeMessages, openThreads, input.subjectName)
         : { summaryItems: [], pinned: [], threads: [], resolvedIds: [] }
     };
   };

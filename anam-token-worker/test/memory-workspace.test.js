@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {readFileSync,readdirSync} from 'node:fs';
 import {DatabaseSync} from 'node:sqlite';
+import vm from 'node:vm';
 import {saveMemoryControl,memoryControls,controlledRows,correctionContext} from '../src/memory-controls.js';
 import {memoryWorkspace} from '../src/memory-workspace.js';
 import {personalContext} from '../src/persona-context.js';
@@ -73,6 +74,29 @@ test('manual notes cannot fabricate agreement evidence and corrections have a fi
  await assert.rejects(saveMemoryControl(env,user('a'),{kind:'agreement',id:'x',operation:'save',content:'girlfriend',revision:0}),/conversation evidence/);
  const notes=Array.from({length:450},(_,i)=>({kind:'pin',operation:'save',content:`${i} `+'x'.repeat(498)}));
  assert.ok(correctionContext(notes).length<7500);
+});
+test('memory workspace reports pending completed messages and the current account’s processing result',async()=>{
+ const {env,sqlite,add}=fixture();
+ add('a','user','An earlier message','a1');add('a','persona','A later response','a2');add('b','user','Private to B','b1');
+ sqlite.prepare("UPDATE conversations SET ended_at='2026-09-13' WHERE visitor_id IN ('a','b')").run();
+ sqlite.prepare("INSERT INTO memory_summaries VALUES ('a','Existing summary','2026-09-12','a1')").run();
+ sqlite.prepare("INSERT INTO nina_memory_jobs (visitor_id,user_id,conversation_id,status,last_success_at,next_attempt_at,created_at,updated_at) VALUES ('a','a','call-a','error','2026-09-12T20:00:00Z','2026-09-13T20:05:00Z','2026-09-13','2026-09-13')").run();
+ const a=await memoryWorkspace(env,user('a')),b=await memoryWorkspace(env,user('b'));
+ assert.equal(a.processing.status,'error');assert.equal(a.processing.pending_messages,1);assert.equal(a.processing.last_success_at,'2026-09-12T20:00:00Z');
+ assert.equal(b.processing.status,'not_scheduled');assert.equal(b.processing.pending_messages,1);assert.equal(b.processing.last_success_at,undefined);
+});
+test('private editor shows memory retry status without provider errors and clears it on sign-out',async()=>{
+ const node=()=>({children:[],textContent:'',append(...items){this.children.push(...items);},replaceChildren(...items){this.children=items;this.textContent='';},setAttribute(){},addEventListener(){}});
+ const root=node(),context=vm.createContext({document:{createElement:node}});
+ vm.runInContext(readFileSync(new URL('../../js/nina-memory-workspace.js',import.meta.url),'utf8').replace('export function createMemoryWorkspace','function createMemoryWorkspace'),context);
+ let processing={status:'invalid_extraction',pending_messages:4,last_success_at:'2026-09-12T20:00:00Z',next_attempt_at:'2026-09-13T20:05:00Z',last_error_code:'PRIVATE_PROVIDER_ERROR'};
+ const editor=context.createMemoryWorkspace({root,api:async()=>({role:'user',processing,conversations:[],agreements:[],pins:[],threads:[],removed:[],journal:[],profile:{},summary:{}})});
+ const copy=n=>[n.textContent,...n.children.map(copy)].join(' ');
+ editor.setIdentity('a');await editor.refresh();
+ assert.match(copy(root),/Last successful update:/);assert.match(copy(root),/4 messages from completed calls/);assert.match(copy(root),/automatic retry is scheduled/);assert.doesNotMatch(copy(root),/PRIVATE_PROVIDER_ERROR|invalid_extraction/);
+ processing={status:'complete',pending_messages:0,last_success_at:'2026-09-13T20:06:00Z'};await editor.refresh();
+ assert.match(copy(root),/All completed-call messages have been processed/);assert.doesNotMatch(copy(root),/automatic retry/);
+ editor.setIdentity('');assert.equal(copy(root),'');
 });
 test('journal preserves sourced fiction, private scope, revisions and explicit owner publication',async()=>{
  const {env,add}=fixture();add('a','persona','I painted a red door in my imagined studio.','studio');
