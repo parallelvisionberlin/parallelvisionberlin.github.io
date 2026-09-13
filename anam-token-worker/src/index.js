@@ -1,5 +1,6 @@
 import { workspaceEnabled, memoryControls, correctionContext, saveMemoryControl, MemoryEditError } from './memory-controls.js';
 import { memoryWorkspace } from './memory-workspace.js';
+import { enqueueMemoryJob, processMemoryJob, drainMemoryJobs } from './memory-jobs.js';
 import { journalContext, saveJournal } from './nina-journal.js';
 import { lookupCatalog } from './catalog.js';
 import { recordSessionSetup, storeConversationEvents, conversationDiagnostics } from './conversation-diagnostics.js';
@@ -643,7 +644,9 @@ export function scheduleCompletedRelationshipEvaluation(ctx, env, identity, conv
 
 export function scheduleCompletedMemoryConsolidation(ctx, env, identity, closed, consolidator = consolidateMemory) {
   if (!closed) return false;
-  ctx.waitUntil(observeBackgroundJob("memory", () => consolidator(env, identity.visitor_id)));
+  ctx.waitUntil(observeBackgroundJob("memory", () => identity?.account_authenticated
+    ? processMemoryJob(env, identity.visitor_id, { consolidator })
+    : consolidator(env, identity.visitor_id)));
   return true;
 }
 
@@ -659,6 +662,9 @@ async function handleCloseConversation(request, env, origin, ctx) {
   if (identity instanceof Response) return identity;
   if (!validId(body?.conversationId)) return jsonResponse({ error: "Invalid conversation" }, 400, origin);
   const closed = await closeConversation(env, identity.visitor_id, body.conversationId);
+  if (closed && identity.account_authenticated) {
+    await enqueueMemoryJob(env, identity, { conversationId: body.conversationId });
+  }
   if (env.NINA_CONTINUITY_ENABLED === 'true' && closed && identity.account_authenticated) {
     ctx.waitUntil(observeBackgroundJob('agreements', () => captureAgreements(env, identity, body.conversationId, { useModel: true })));
   }
@@ -970,6 +976,9 @@ async function handleMemoryWorkspaceRequest(request,env,origin,url) {
 }
 
 export default {
+  async scheduled(_event, env, ctx) {
+    ctx.waitUntil(observeBackgroundJob('memory_retry', () => drainMemoryJobs(env)));
+  },
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     const origin = request.headers.get("Origin") || "";

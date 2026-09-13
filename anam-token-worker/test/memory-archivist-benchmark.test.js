@@ -29,6 +29,7 @@ function benchmarkDb(users, observedSql) {
       if (/\b(?:INSERT|UPDATE|DELETE|REPLACE)\b/i.test(sql)) throw new Error(`Mutation attempted: ${sql}`);
       return { bind(...values) {
         if (sql.includes("FROM users WHERE auth_provider")) return { first: async () => users[values[0]] || null };
+        if (sql.includes("SELECT role FROM users")) return { first: async () => ({ role: "owner" }) };
         if (sql.includes("FROM memory_summaries")) return { first: async () => ({ summary: "", messages_summarized_through: "" }) };
         if (sql.includes("FROM messages")) return { all: async () => ({ results: [
           { message_id: "message-1", role: "user", content: "I am building the Parallel Vision archive.", created_at: "2026-08-30T12:00:00.000Z" },
@@ -93,3 +94,4 @@ test("owner-only archivist benchmark uses identical production input without D1 
     globalThis.fetch = originalFetch;
   }
 });
+

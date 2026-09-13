@@ -15,20 +15,23 @@ export async function journalContext(env,userId) {
   return `NINA CONTINUITY JOURNAL\n${JSON.stringify(selected.map(e=>({kind:e.kind,scope:e.scope,text:e.content,storyDate:e.story_date,recordedAt:e.recorded_at})))}\nIndependent entries describe Nina's imagined life within her character world. Shared entries record experiences in conversation with this visitor; fantasy entries remain imagined scenes. Never turn an independent or fantasy event into a physical experience with the visitor. Recorded dates are real conversation dates; a story date is separate. Preserve these details when relevant, without reciting a diary or pretending to have physically lived outside the character world when directly asked. Private entries belong only to this visitor. Later explicit corrections take precedence.`;
 }
 
-export async function journalStatements(env,visitorId,pinned,messages,now) {
+export async function journalStatements(env,visitorId,pinned,messages,now,guard={sql:'1',params:[]}) {
   if(!workspaceEnabled(env))return [];
   const user=await env.NINA_MEMORY_DB.prepare('SELECT id FROM users WHERE memory_visitor_id=?').bind(visitorId).first();
   if(!user)return [];
   const statements=[];
   for(const item of pinned) {
+    if(item.decision==='REJECT')continue;
     const kind={nina_autobiography:'independent',shared_memory:'shared',fantasy_roleplay:'fantasy'}[item.category];
     if(!kind)continue;
     const source=messages.find(m=>item.evidence_message_ids?.includes(m.message_id)&&(kind!=='independent'||m.role==='persona'));
     if(!source)continue;
-    const id=`journal:${kind}:${source.message_id}`;
+    const digest=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(item.content.trim().toLowerCase()));
+    const fingerprint=[...new Uint8Array(digest)].map(b=>b.toString(16).padStart(2,'0')).join('').slice(0,24);
+    const id=`journal:${kind}:${source.message_id}:${fingerprint}`;
     statements.push(env.NINA_MEMORY_DB.prepare(`INSERT OR IGNORE INTO nina_journal_entries
       (entry_id,user_id,visitor_id,source_message_id,kind,content,origin,recorded_at,updated_at)
-      VALUES (?,?,?,?,?,?,'conversation',?,?)`).bind(id,user.id,visitorId,source.message_id,kind,item.content.slice(0,800),source.created_at||now,now));
+      SELECT ?,?,?,?,?,?,'conversation',?,? WHERE ${guard.sql}`).bind(id,user.id,visitorId,source.message_id,kind,item.content.slice(0,800),source.created_at||now,now,...guard.params));
   }
   return statements;
 }

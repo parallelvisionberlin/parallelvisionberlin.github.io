@@ -86,7 +86,7 @@ test("later call restores only the latest 20 while retaining summary and open th
 
 test("summary and thread extraction remain conservative and user-grounded", () => {
   const messages = [
-    { message_id: "user-1", role: "user", content: "I prefer concise answers." },
+    { message_id: "user-1", role: "user", content: "I prefer concise answers. Can we discuss response length next time?" },
     { message_id: "user-fantasy", role: "user", content: "Imagine a sexual fantasy where we lived together on Mars." },
     { message_id: "persona-1", role: "persona", content: "We lived together on Mars." }
   ];
@@ -100,7 +100,7 @@ test("summary and thread extraction remain conservative and user-grounded", () =
       { category: "preference", content: "Alejandro prefers concise answers.", evidence_message_ids: ["user-1"] },
       { category: "history", content: "Shared life on Mars", evidence_message_ids: ["persona-1"] }
     ],
-    open_threads: [{ content: "Ask about concise output.", evidence_message_ids: ["user-1"] }],
+    open_threads: [{ content: "Alejandro wants to discuss response length next time.", evidence_message_ids: ["user-1"] }],
     resolved_threads: [
       { thread_id: "thread-valid", evidence_message_ids: ["user-1"] },
       { thread_id: "thread-invented", evidence_message_ids: ["persona-1"] }
@@ -346,8 +346,10 @@ test("invalid archivist JSON keeps deterministic explicit user memories without 
   ];
   const db = {
     prepare(sql) { return { bind(...values) {
+      if (sql.includes("SELECT 1 AS valid")) return { first: async () => ({ valid: 1 }) };
+      if (sql.includes("SELECT role FROM users")) return { first: async () => ({ role: "owner" }) };
       if (sql.includes("SELECT summary, messages_summarized_through")) return { first: async () => null };
-      if (sql.includes("SELECT message_id, role, content, created_at FROM messages")) return { all: async () => ({ results: messages }) };
+      if (sql.includes("FROM messages m")) return { all: async () => ({ results: messages }) };
       if (sql.includes("FROM open_threads") || sql.includes("FROM pinned_memories")) return { all: async () => ({ results: [] }) };
       return { sql, values };
     } }; },
@@ -422,6 +424,99 @@ test("Nina autobiography accepts independent life but rejects canon and meta bre
     { category: "nina_autobiography", content: "Nina is the same assistant underneath character framing.", evidence_message_ids: ["meta"] }
   ] }, messages);
   assert.deepEqual(filtered.pinned.map(item => item.content), ["Nina worked late at the studio last Thursday."]);
+});
+
+test("a trailing follow-up question does not erase an independently stated life event", () => {
+  const messages = [{ message_id: "cable", role: "persona", content: "I spent half the evening trying to fix a visual sync issue before a set and it turned out to be one stupid cable. How are you feeling tonight?" }];
+  const candidate = { category: "nina_autobiography", content: "Nina fixed a visual sync issue before a set by finding a faulty cable.", evidence_message_ids: ["cable"] };
+  assert.equal(filterConsolidationExtraction({ pinned_memories: [candidate] }, messages).pinned.length, 1);
+  for (const content of ["Did I fix a visual sync issue?", "Did I fix a visual sync issue? Was the cable faulty?", "Okay. Did I fix a visual sync issue?"]) {
+    assert.equal(filterConsolidationExtraction({ pinned_memories: [candidate] }, [{ ...messages[0], content }]).pinned.length, 0);
+  }
+  const shortFact = filterConsolidationExtraction({ pinned_memories: [
+    { category: "user_fact", content: "Alejandro is a DJ.", evidence_message_ids: ["dj"] }
+  ] }, [{ message_id: "dj", role: "user", content: "I DJ." }]);
+  assert.equal(shortFact.pinned.length, 1);
+});
+
+test("literal equipment facts and independent preferences survive autobiography validation", () => {
+  const content = "No. I'm resistant to having too many domestic systems around me. I've got some boring apartment automation because everyone does, but I don't want a machine gliding around trying to anticipate my needs.";
+  const candidates = [
+    "Nina has boring apartment automation.",
+    "Nina dislikes domestic robots anticipating her needs.",
+    "Nina prefers simple apartment automation.",
+    "Nina does not own a domestic robot."
+  ].map(content => ({ category: "nina_autobiography", content, evidence_message_ids: ["automation"] }));
+  assert.equal(filterConsolidationExtraction({ pinned_memories: candidates }, [{ message_id: "automation", role: "persona", content }]).pinned.length, candidates.length);
+});
+
+test("formatting normalization preserves sourced memory categories", () => {
+  const messages = [
+    { message_id: "studio", role: "persona", content: "I worked late in the studio." },
+    { message_id: "concise", role: "user", content: "Concise answers are my preference." }
+  ];
+  const pins = filterConsolidationExtraction({ pinned_memories: [
+    { category: "nina_autobiography", content: "  Nina worked late in the studio.  ", evidence_message_ids: ["studio"] },
+    { category: "preference", content: "Alejandro prefers concise answers.\n", evidence_message_ids: ["concise"] }
+  ] }, messages).pinned;
+  assert.deepEqual(pins.map(({ category, content }) => ({ category, content })), [
+    { category: "nina_autobiography", content: "Nina worked late in the studio." },
+    { category: "preference", content: "Alejandro prefers concise answers." }
+  ]);
+});
+
+test("generic plural remarks do not invalidate an independent fact or literalize fantasy", () => {
+  const candidate = { category: "nina_autobiography", content: "Nina worked late in the studio.", evidence_message_ids: ["studio"] };
+  const source = { message_id: "studio", role: "persona", content: "I worked late in the studio. We all have days like that." };
+  assert.equal(filterConsolidationExtraction({ pinned_memories: [candidate] }, [source]).pinned.length, 1);
+  for (const content of ["I imagined working late in the studio.", "I'm imagining working late in the studio.", "Imagine I worked late in the studio."]) {
+    assert.equal(filterConsolidationExtraction({ pinned_memories: [candidate] }, [{ ...source, content }]).pinned.length, 0);
+  }
+});
+
+test("ordinary visitors receive their own attribution without renaming other people", () => {
+  const messages = [
+    { message_id: "jazz", role: "user", content: "I like jazz." },
+    { message_id: "collaborator", role: "user", content: "My collaborator is Alejandro." }
+  ];
+  const filtered = filterConsolidationExtraction({ pinned_memories: [
+    { category: "preference", content: "The visitor likes jazz.", evidence_message_ids: ["jazz"] },
+    { category: "user_fact", content: "The visitor's collaborator is Alejandro.", evidence_message_ids: ["collaborator"] }
+  ] }, messages, [], "The visitor");
+  assert.deepEqual(filtered.pinned.map(item => item.content), ["The visitor likes jazz.", "The visitor's collaborator is Alejandro."]);
+  assert.equal(filtered.pinned.some(item => item.content === "Alejandro likes jazz."), false);
+});
+
+test("relationship and speculation filters apply to the current visitor subject", () => {
+  const messages = [{ message_id: "visitor", role: "user", content: "Nina is my girlfriend. We are in a relationship." }];
+  const contents = ["The visitor and Nina are in a relationship.", "Nina loves the visitor.", "The visitor is Nina's boyfriend.", "The visitor seems uncertain about the relationship."];
+  const filtered = filterConsolidationExtraction({
+    pinned_memories: contents.map(content => ({ category: "user_fact", content, evidence_message_ids: ["visitor"] })),
+    summary_items: contents.map(content => ({ content, evidence_message_ids: ["visitor"] }))
+  }, messages, [], "The visitor");
+  assert.equal(filtered.pinned.length, 0);
+  assert.equal(filtered.summaryItems.length, 0);
+});
+
+test("obsolete greeting-only summaries are removed during factual consolidation", () => {
+  assert.equal(mergeSummary("Nina and Alejandro greeted each other.", []), "");
+  assert.equal(mergeSummary("Nina and Alejandro greeted each other.", [{ content: "Alejandro prefers concise answers." }]), "Alejandro prefers concise answers.");
+});
+
+test("summaries and open threads reject missing subjects instead of storing unattributed preferences", () => {
+  const messages = [{ message_id: "violet", role: "user", content: "My favorite color is violet. Can we choose a violet background next time?" }];
+  const filtered = filterConsolidationExtraction({
+    summary_items: [
+      { content: "Favorite color is violet.", evidence_message_ids: ["violet"] },
+      { content: "The visitor's favorite color is violet.", evidence_message_ids: ["violet"] }
+    ],
+    open_threads: [
+      { content: "Choose a violet background next time.", evidence_message_ids: ["violet"] },
+      { content: "The visitor wants to choose a violet background next time.", evidence_message_ids: ["violet"] }
+    ]
+  }, messages, [], "The visitor");
+  assert.deepEqual(filtered.summaryItems.map(item => item.content), ["The visitor's favorite color is violet."]);
+  assert.deepEqual(filtered.threads.map(item => item.content), ["The visitor wants to choose a violet background next time."]);
 });
 
 test("meta-break persona messages are excluded from recent context while visitor AI discussion remains", async () => {

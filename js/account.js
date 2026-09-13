@@ -1,4 +1,4 @@
-import { createMemoryWorkspace } from "./nina-memory-workspace.js?v=20260913";
+import { createMemoryWorkspace } from "./nina-memory-workspace.js?v=20260914";
 import { Clerk } from "https://esm.sh/@clerk/clerk-js@6?bundle";
 
 const DEVELOPMENT = location.protocol === "http:";

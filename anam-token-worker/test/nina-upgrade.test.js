@@ -19,6 +19,8 @@ function memoryEnv(response, options = {}) {
         sql, values: [],
         bind(...values) { this.values = values; return this; },
         async first() {
+          if (sql.includes('SELECT 1 AS valid')) return {valid:1};
+          if (sql.includes('SELECT role FROM users')) return {role:'owner'};
           if (sql.includes('memory_summaries')) return options.summaryRow || null;
           return null;
         },
@@ -87,7 +89,7 @@ test('a complete empty extraction can legitimately mark an uninformative batch a
     messages: [{ message_id: 'test-user-1', role: 'user', content: 'Hello.' }],
   });
   assert.equal((await consolidateMemory(env, 'test-visitor')).consolidated, true);
-  assert.equal(writes[0].values.at(-1), 'test-user-1');
+  assert.equal(writes[0].values[3], 'test-user-1');
 });
 
 test('saved temporary facts include the actual recorded date in the live context', async () => {
@@ -167,7 +169,7 @@ test('background failures are observable without exposing the original error or 
   const scheduled = [];
   const ctx = { waitUntil(promise) { scheduled.push(promise); } };
   const identity = { visitor_id: 'test-visitor', user_id: 'test-user', account_authenticated: true };
-  scheduleCompletedMemoryConsolidation(ctx, {}, identity, true, async () => ({ consolidated: false, reason: 'invalid_extraction' }));
+  scheduleCompletedMemoryConsolidation(ctx, {}, { ...identity, account_authenticated: false }, true, async () => ({ consolidated: false, reason: 'invalid_extraction' }));
   scheduleCompletedRelationshipEvaluation(ctx, {}, identity, 'test-conversation', true, () => { throw new Error('private synthetic model output'); });
   await Promise.all(scheduled);
   assert.deepEqual(warnings.map(([, detail]) => [detail.job, detail.code]).sort(([a], [b]) => a.localeCompare(b)), [
