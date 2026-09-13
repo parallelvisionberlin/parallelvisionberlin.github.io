@@ -1,4 +1,5 @@
 import { sanitizeToolError } from './nina-tool-errors.js?v=20260913-recall';
+import { appliedSpeechSettings, NINA_AUDIO_INPUT_REVISION } from './nina-audio-input.js?v=20260913-noise';
 // Metadata only: no audio, transcripts, tool arguments or tool results leave this collector.
 export function attachConversationDiagnostics({client,events,conversationId,send,active=()=>true,stream,now=()=>performance.now()}) {
   const start=now(),salt=crypto.randomUUID(),seen=new Set(),chunks=new Map(),listeners=[],pending=new Set();
@@ -40,8 +41,7 @@ export function attachConversationDiagnostics({client,events,conversationId,send
     client.addListener(events[name],wrapped);listeners.push([events[name],wrapped]);
   }
   function microphone(value) {
-    const settings=value?.getAudioTracks?.()[0]?.getSettings?.()||{};
-    emit('microphone',Object.fromEntries(['echoCancellation','noiseSuppression','autoGainControl'].map(k=>[k,typeof settings[k]==='boolean'?settings[k]:null])));
+    emit('microphone',{...appliedSpeechSettings(value?.getAudioTracks?.()[0]),audioInputRevision:NINA_AUDIO_INPUT_REVISION});
   }
   on('SESSION_READY',id=>emit('session_ready',{anamSessionId:safe(id)}));
   on('USER_SPEECH_STARTED',id=>emit('speech_start',{correlationId:safe(id)}));

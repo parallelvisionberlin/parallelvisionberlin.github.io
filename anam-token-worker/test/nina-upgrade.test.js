@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import vm from 'node:vm';
+import { speechConstraints } from '../../js/nina-audio-input.js';
 import { buildLivePersonaConfig, scheduleCompletedMemoryConsolidation, scheduleCompletedRelationshipEvaluation } from '../src/index.js';
 import {
   mergeSummary, consolidateMemory, buildOwnerMemoryContext,
@@ -135,14 +136,14 @@ test('the existing microphone capture requests supported speech processing and k
   const source = await readFile(new URL('../../js/nina-access.js', import.meta.url), 'utf8');
   const start = source.indexOf('function microphoneConstraints(');
   const end = source.indexOf('\nasync function listMicrophones', start);
-  const box = vm.createContext({ navigator: { mediaDevices: { getSupportedConstraints: () => ({
+  const box = vm.createContext({ speechConstraints, navigator: { mediaDevices: { getSupportedConstraints: () => ({
     echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: true,
   }) } } });
   vm.runInContext(source.slice(start, end), box);
   const value = JSON.parse(JSON.stringify(vm.runInContext('microphoneConstraints("test-mic")', box)));
   assert.deepEqual(value, { audio: {
     deviceId: { exact: 'test-mic' }, echoCancellation: { ideal: true }, noiseSuppression: { ideal: true },
-    autoGainControl: { ideal: true }, channelCount: { ideal: 1 },
+    autoGainControl: { ideal: false }, channelCount: { ideal: 1 },
   }, video: false });
   box.navigator.mediaDevices = {};
   assert.deepEqual(JSON.parse(JSON.stringify(vm.runInContext('microphoneConstraints()', box))), { audio: true, video: false });

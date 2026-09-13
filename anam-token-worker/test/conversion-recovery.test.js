@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import { readFileSync } from 'node:fs';
+import { speechConstraints } from '../../js/nina-audio-input.js';
 
 const source = readFileSync(new URL('../../js/nina-access.js', import.meta.url), 'utf8');
 function functionSource(name) {
@@ -17,7 +18,7 @@ function microphoneFixture() {
   Object.assign(track, { readyState: 'live', enabled: true, muted: false, stop() { calls.push('track-stopped'); this.readyState = 'ended'; } });
   const stream = { getTracks: () => [track], getAudioTracks: () => [track] };
   const state = {
-    ninaMicrophoneSequence: 0, ninaMicrophoneStream: null, ninaMicrophoneCleanup() {},
+    speechConstraints, ninaMicrophoneSequence: 0, ninaMicrophoneStream: null, ninaMicrophoneCleanup() {},
     navigator: { mediaDevices: { getUserMedia: async () => stream } },
     ninaClient: {}, ninaConnecting: false, ninaOverlay: { classList: { contains: () => true } },
     ninaMicrophoneStatus: {}, setTimeout, clearTimeout, Error, Promise,

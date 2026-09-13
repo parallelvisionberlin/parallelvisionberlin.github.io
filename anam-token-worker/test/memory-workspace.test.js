@@ -119,11 +119,16 @@ test('catalog parses actual website cards and retains published metadata without
  assert.equal((await lookupCatalog('nonexistent-qzxy-release')).results.length,0);
 });
 test('diagnostic events are private and idempotent, reject raw text and explain uncertain continuations',async()=>{
- const {env}=fixture();await recordSessionSetup(env,'a','call-a',{runtimeRevision:'test',privateRecallConfigured:true});
+ const {env}=fixture();const audioInput={revision:'noise-control01',speechEnhancementLevel:1,silenceBeforeSkipTurnSeconds:0};
+ await recordSessionSetup(env,'a','call-a',{runtimeRevision:'test',privateRecallConfigured:true,audioInput});
  const event=(sequence,kind,data,elapsedMs=sequence*1000)=>({id:`e-${sequence}`,sequence,kind,data,elapsedMs});
  const events=[event(0,'user_message',{messageId:'u1',fingerprint:'a'.repeat(64)}),event(1,'persona_utterance',{messageId:'p1',utteranceId:'part1',fingerprint:'b'.repeat(64)}),event(2,'tool_completed',{toolName:'lookup_music_catalog'}),event(3,'persona_utterance',{messageId:'p1',utteranceId:'part2',fingerprint:'b'.repeat(64)})];
  await storeConversationEvents(env,user('a'),{conversationId:'call-a',events});await storeConversationEvents(env,user('a'),{conversationId:'call-a',events});
  const report=await conversationDiagnostics(env,user('a'),'call-a');assert.equal(report.events.length,4);assert.ok(report.findings.some(f=>f.kind==='possible_repeated_answer'));assert.ok(report.findings.some(f=>f.kind==='after_tool_result'));
+ assert.deepEqual(report.setup.audioInput,audioInput);
+ await storeConversationEvents(env,user('a'),{conversationId:'call-a',events:[event(4,'microphone',{voiceIsolation:null,autoGainControl:false,noiseSuppression:true,audioInputRevision:'noise-control01'})]});
+ const microphone=(await conversationDiagnostics(env,user('a'),'call-a')).events.find(e=>e.kind==='microphone');
+ assert.equal(microphone.data.voiceIsolation,null);assert.equal(microphone.data.autoGainControl,false);
  await assert.rejects(conversationDiagnostics(env,user('b'),'call-a'),e=>e.status===404);
  await assert.rejects(storeConversationEvents(env,user('a'),{conversationId:'call-a',events:[event(4,'tool_completed',{arguments:'secret'})]}),/Unsupported/);
 });

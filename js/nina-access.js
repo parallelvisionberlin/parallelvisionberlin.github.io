@@ -1,4 +1,5 @@
-import { attachConversationDiagnostics } from "./nina-diagnostics.js?v=20260913-recall";
+import { attachConversationDiagnostics } from "./nina-diagnostics.js?v=20260913-noise";
+import { speechConstraints } from "./nina-audio-input.js?v=20260913-noise";
 import { createNinaTrialPromotion } from "./nina-trial-promotion.js?v=20260905";
 import { isNinaWebsite, createConversationProgress, createAudioCheck } from "./nina-web-flow.js?v=20260910-speech-first";
 /* The access gate is theatrical client-side UI; its public hash is not authorization. */
@@ -1367,13 +1368,7 @@ async function handleNinaMicrophoneInterruption(stream) {
 
 function microphoneConstraints(deviceId = "") {
   const supported = navigator.mediaDevices.getSupportedConstraints?.() || {};
-  const audio = {};
-  if (deviceId) audio.deviceId = { exact: deviceId };
-  for (const key of ["echoCancellation", "noiseSuppression", "autoGainControl", "voiceIsolation"]) {
-    if (supported[key]) audio[key] = { ideal: true };
-  }
-  if (supported.channelCount) audio.channelCount = { ideal: 1 };
-  return { audio: Object.keys(audio).length ? audio : true, video: false };
+  return speechConstraints(deviceId, supported);
 }
 
 async function listMicrophones() {

@@ -239,6 +239,7 @@ test('authenticated session creation sends private agreements only to their acco
       const result=await response.json();
       assert.equal(response.status,200,JSON.stringify(result));
       assert.equal(result.sessionToken,'synthetic-session');
+      assert.deepEqual(result.diagnostics.audioInput,{revision:'noise-control01',speechEnhancementLevel:1,silenceBeforeSkipTurnSeconds:0});
     }
     assert.match(sent[0].systemPrompt,/CONFIRMED AGREEMENTS[\s\S]*girlfriend/);
     assert.match(sent[0].systemPrompt,/OWNER PRIVATE PREFERENCE/);
@@ -247,6 +248,7 @@ test('authenticated session creation sends private agreements only to their acco
     assert.equal(sent[0].tools.some(t=>t.subtype==='knowledge'),true);
     assert.equal(sent[1].tools.some(t=>t.subtype==='knowledge'),false);
     for (const config of sent) {
+      assert.deepEqual(config.voiceDetectionOptions,{speechEnhancementLevel:1,silenceBeforeSkipTurnSeconds:0});
       assert.deepEqual(config.toolIds,['skip','pause']);
       assert.equal(config.tools.some(t=>t.name==='recall_private_memory'),true);
     }

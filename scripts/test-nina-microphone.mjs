@@ -7,7 +7,7 @@ function fixture() {
   return {track, stream:{getTracks:()=>[track],getAudioTracks:()=>[track]}};
 }
 test('requests supported speech processing as ideal constraints, not forced gain or sample rate',()=>{
-  assert.deepEqual(speechConstraints('mic',{echoCancellation:true,autoGainControl:true}),{audio:{deviceId:{exact:'mic'},echoCancellation:{ideal:true},autoGainControl:{ideal:true}},video:false});
+  assert.deepEqual(speechConstraints('mic',{echoCancellation:true,autoGainControl:true}),{audio:{deviceId:{exact:'mic'},echoCancellation:{ideal:true},autoGainControl:{ideal:false}},video:false});
   assert.deepEqual(speechConstraints('',{}),{audio:true,video:false});
 });
 test('meter measures level and peaks without claiming intelligibility',()=>{

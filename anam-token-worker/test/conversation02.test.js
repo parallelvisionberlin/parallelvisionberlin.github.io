@@ -42,10 +42,10 @@ test('Unknown name is a starting condition and cannot override a live introducti
   assert.equal(unknownNameInstruction({ account_authenticated: true, role: 'user', preferred_name: 'Silent Mechanism' }), '');
   assert.equal(unknownNameInstruction({ account_authenticated: true, role: 'owner' }), '');
 });
-test('Saved voice, LLM, avatar and detection settings pass through unchanged', () => {
+test('Input noise policy preserves saved voice, LLM, avatar and other detection settings', () => {
   const p = { avatar: { id: 'a' }, voice: { id: 'v' }, llmId: 'existing', brain: { systemPrompt: 'BASE' }, voiceDetectionOptions: { endOfSpeechSensitivity: .37, silenceBeforeSkipTurnSeconds: 0 }, voiceGenerationOptions: { speed: .9 } };
   const before = structuredClone(p), config = buildLivePersonaConfig(p, 'same-folder');
-  assert.deepEqual(config.voiceDetectionOptions, before.voiceDetectionOptions);
+  assert.deepEqual(config.voiceDetectionOptions, { ...before.voiceDetectionOptions, speechEnhancementLevel: 1 });
   assert.deepEqual(config.voiceGenerationOptions, before.voiceGenerationOptions);
   assert.deepEqual(p, before); assert.equal(config.llmId, 'existing');
   assert.equal(config.tools.filter(t => t.subtype === 'knowledge').length, 1);
@@ -136,7 +136,8 @@ test('Runtime and performance diagnostics are owner-only, read-only and sanitize
     assert.equal(calls.filter(([url]) => url.includes('api.anam.ai')).length, 0);
     const config = await (await request('/api/nina/runtime-diagnostic', owner)).json();
     assert.equal(config.runtimeRevision, RUNTIME_REVISION); assert.equal(config.matchesConversation02Baseline, false);
-    assert.deepEqual(config.voiceDetectionOptions, { endOfSpeechSensitivity: .6 });
+    assert.deepEqual(config.voiceDetectionOptions, { endOfSpeechSensitivity: .6, speechEnhancementLevel: 1, silenceBeforeSkipTurnSeconds: 0 });
+    assert.deepEqual(config.audioInput, { revision: 'noise-control01', speechEnhancementLevel: 1, silenceBeforeSkipTurnSeconds: 0 });
     assert.doesNotMatch(JSON.stringify(config), /Current Anam prompt|ANAM_TEST_SECRET|NO_LEAK/);
     const timing = await request('/api/nina/session-performance?sessionId='+id+'&includeMessages=true', owner);
     assert.equal(timing.status, 200); assert.doesNotMatch(await timing.text(), /NO_LEAK|ANAM_TEST_SECRET/);
@@ -147,3 +148,4 @@ test('Runtime and performance diagnostics are owner-only, read-only and sanitize
     assert.ok(calls.every(([url]) => !url.includes('/auth/session-token')));
   } finally { globalThis.fetch = original; }
 });
+

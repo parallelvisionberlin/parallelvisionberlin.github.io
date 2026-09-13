@@ -4,6 +4,7 @@ import { enqueueMemoryJob, processMemoryJob, drainMemoryJobs } from './memory-jo
 import { journalContext, saveJournal } from './nina-journal.js';
 import { lookupCatalog } from './catalog.js';
 import { recordSessionSetup, storeConversationEvents, conversationDiagnostics } from './conversation-diagnostics.js';
+import { applyAudioInputPolicy, audioInputDiagnostics } from './audio-input.js';
 import { RUNTIME_REVISION, conversationModeGuidance, CONVERSATION_RHYTHM, OWNER_ARRIVAL_CONTEXT, NEW_NAME_INSTRUCTION, CONTEXT_BOUNDARY, createStartupTimer, prepareSessionContext, promptFingerprint, summarizeSessionPerformance } from "./conversation-runtime.js";
 import { qualifyWebConversation, WEB_SIGNAL_GUIDANCE } from "./web-conversation.js";
 import { sendGiftEmail } from "./gift-email.js";
@@ -159,7 +160,7 @@ export function buildLivePersonaConfig(persona, knowledgeFolderId) {
     description: NINA_KNOWLEDGE_TOOL_DESCRIPTION,
     documentFolderIds: [knowledgeFolderId.trim()]
   }];
-  return config;
+  return applyAudioInputPolicy(config);
 }
 
 async function getCurrentPersonaConfig(apiKey, knowledgeFolderId) {
@@ -323,7 +324,8 @@ async function handleRuntimeDiagnostic(request, env, origin) {
       llmId: config.llmId, avatarId: config.avatarId, voiceId: config.voiceId,
       voiceDetectionOptions: safeOptions(config.voiceDetectionOptions),
       voiceGenerationOptions: safeOptions(config.voiceGenerationOptions),
-      audioSettingsSource: "Saved Anam persona, forwarded unchanged; missing values are not inferred defaults.",
+      audioInput: audioInputDiagnostics(config),
+      audioSettingsSource: "Saved Anam persona with Worker input noise control: speechEnhancementLevel=1, silenceBeforeSkipTurnSeconds=0. Voice and other detection settings are preserved.",
       greeting: { source: "Worker initialMessage", ownerUninterruptible: true, publicUninterruptible: false, fabricatedMoodOpenings: false },
       knowledgeConfigured: true,
       systemTools,
@@ -523,7 +525,8 @@ async function handleSessionToken(request, env, origin) {
     ownerAuthenticated: Boolean(owner),
     ownerGreetingSelected: Boolean(owner),
     greetingType: owner ? "owner" : "public",
-    uninterruptibleGreeting: personaConfig.uninterruptibleGreeting
+    uninterruptibleGreeting: personaConfig.uninterruptibleGreeting,
+    audioInput: audioInputDiagnostics(personaConfig)
   };
   let usage;
   try { usage = await timing.measure("eligibility", () => createLiveNinaSession(env, identity)); }
@@ -562,7 +565,7 @@ async function handleSessionToken(request, env, origin) {
   }
   try { await recordSessionSetup(env,identity.user_id,conversationId,{
     runtimeRevision:RUNTIME_REVISION,systemTools:diagnostics.systemTools,privateRecallConfigured:diagnostics.privateRecallConfigured,
-    catalogConfigured:workspaceEnabled(env)&&diagnostics.privateRecallConfigured
+    catalogConfigured:workspaceEnabled(env)&&diagnostics.privateRecallConfigured,audioInput:audioInputDiagnostics(personaConfig)
   }); } catch { console.warn('nina_diagnostics_setup_unavailable'); }
   const serverTimingsMs = timing.snapshot();
   console.log("nina_session_startup", JSON.stringify({ ...startupDiagnostics, serverTimingsMs }));

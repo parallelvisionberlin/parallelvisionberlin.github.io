@@ -1,13 +1,6 @@
+import { speechConstraints, appliedSpeechSettings } from './nina-audio-input.js?v=20260913-noise';
+export { speechConstraints };
 // App-only microphone ownership and local input metering. No recording, gain boost or network calls.
-export function speechConstraints(deviceId = '', supported = {}) {
-  const audio = {};
-  if (deviceId) audio.deviceId = { exact: deviceId };
-  for (const key of ['echoCancellation', 'noiseSuppression', 'autoGainControl']) {
-    if (supported[key]) audio[key] = { ideal: true };
-  }
-  // Leave sample rate/channel layout to the selected route, including Bluetooth.
-  return { audio: Object.keys(audio).length ? audio : true, video: false };
-}
 
 export function inputLevel(samples) {
   let energy = 0, peak = 0;
@@ -131,9 +124,10 @@ export function createAppMicrophone({ mediaDevices, AudioContextClass, onReading
       label: track?.label || 'System default microphone',
       deviceId: settings.deviceId || '', selected,
       state: track?.readyState || 'ended', muted: track?.muted === true,
-      settings: Object.fromEntries(['echoCancellation', 'noiseSuppression', 'autoGainControl'].map(key => [key, typeof settings[key] === 'boolean' ? settings[key] : null])),
+      settings: appliedSpeechSettings(track),
       bestDb, highestPeak, frames
     };
   }
   return { acquire, stop, prepareMeter, startMeter, stopMeter, report, getStream: () => stream };
 }
+

@@ -2,11 +2,16 @@ import { sanitizeToolError } from '../../js/nina-tool-errors.js';
 import { MemoryEditError, workspaceEnabled } from './memory-controls.js';
 
 const KINDS=new Set(['session_ready','speech_start','speech_end','user_message','persona_message','persona_utterance','tool_started','tool_completed','tool_failed','interrupted','microphone','client_end']);
-const STRING_FIELDS=new Set(['messageId','utteranceId','correlationId','toolName','toolCallId','fingerprint','anamSessionId']);
-const BOOL_FIELDS=new Set(['echoCancellation','noiseSuppression','autoGainControl','interrupted']);
+const STRING_FIELDS=new Set(['messageId','utteranceId','correlationId','toolName','toolCallId','fingerprint','anamSessionId','audioInputRevision']);
+const BOOL_FIELDS=new Set(['echoCancellation','noiseSuppression','autoGainControl','voiceIsolation','interrupted']);
 export async function recordSessionSetup(env,userId,conversationId,setup) {
   if(!workspaceEnabled(env)||!conversationId||!userId)return;
   const safe={runtimeRevision:setup.runtimeRevision,systemTools:setup.systemTools,privateRecallConfigured:setup.privateRecallConfigured===true,catalogConfigured:setup.catalogConfigured===true};
+  if(setup.audioInput) safe.audioInput={
+    revision:typeof setup.audioInput.revision==='string'?setup.audioInput.revision.slice(0,80):'',
+    speechEnhancementLevel:Number.isFinite(setup.audioInput.speechEnhancementLevel)?setup.audioInput.speechEnhancementLevel:null,
+    silenceBeforeSkipTurnSeconds:Number.isFinite(setup.audioInput.silenceBeforeSkipTurnSeconds)?setup.audioInput.silenceBeforeSkipTurnSeconds:null
+  };
   const now=new Date().toISOString();
   await env.NINA_MEMORY_DB.prepare(`INSERT OR IGNORE INTO nina_session_diagnostics(conversation_id,user_id,setup_json,created_at,updated_at)
     VALUES (?,?,?,?,?)`).bind(conversationId,userId,JSON.stringify(safe),now,now).run();
