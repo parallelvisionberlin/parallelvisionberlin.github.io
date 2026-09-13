@@ -105,7 +105,7 @@ test('journal preserves sourced fiction, private scope, revisions and explicit o
  await env.NINA_MEMORY_DB.batch(await journalStatements(env,'a',pins,messages,'2026-09-12'));
  await env.NINA_MEMORY_DB.batch(await journalStatements(env,'a',pins,messages,'2026-09-12'));
  const [entry]=await listJournal(env,'a');assert.equal((await listJournal(env,'a')).length,1);assert.equal((await listJournal(env,'b')).length,0);
- assert.match(await journalContext(env,'a'),/imagined life/);
+ assert.match(await journalContext(env,'a'),/Nina's own life in Berlin 2063/);
  const body={id:entry.entry_id,kind:'independent',scope:'shared',content:'Nina’s studio door is red.',status:'active',revision:1};
  await assert.rejects(saveJournal(env,user('a'),body),e=>e.status===403);
  await saveJournal(env,{...user('a'),role:'owner'},body);

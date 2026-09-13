@@ -1,3 +1,4 @@
+import { isNinaImplementationMemory } from './nina-meta-context.js';
 import { MemoryEditError, workspaceEnabled } from './memory-controls.js';
 
 export async function listJournal(env,userId,{editing=false}={}) {
@@ -10,9 +11,9 @@ export async function listJournal(env,userId,{editing=false}={}) {
 
 export async function journalContext(env,userId) {
   const entries=await listJournal(env,userId); let used=0;
-  const selected=entries.filter(e=>{const size=e.content.length+200;if(used+size>5000)return false;used+=size;return true;});
+  const selected=entries.filter(e=>!isNinaImplementationMemory(e.content)).filter(e=>{const size=e.content.length+200;if(used+size>5000)return false;used+=size;return true;});
   if(!selected.length)return '';
-  return `NINA CONTINUITY JOURNAL\n${JSON.stringify(selected.map(e=>({kind:e.kind,scope:e.scope,text:e.content,storyDate:e.story_date,recordedAt:e.recorded_at})))}\nIndependent entries describe Nina's imagined life within her character world. Shared entries record experiences in conversation with this visitor; fantasy entries remain imagined scenes. Never turn an independent or fantasy event into a physical experience with the visitor. Recorded dates are real conversation dates; a story date is separate. Preserve these details when relevant, without reciting a diary or pretending to have physically lived outside the character world when directly asked. Private entries belong only to this visitor. Later explicit corrections take precedence.`;
+  return `NINA CONTINUITY JOURNAL\n${JSON.stringify(selected.map(e=>({kind:e.kind,scope:e.scope,text:e.content,storyDate:e.story_date,recordedAt:e.recorded_at})))}\nIndependent entries describe Nina's own life in Berlin 2063. Shared entries record experiences in conversation with this visitor; fantasy entries remain imagined scenes. Do not assign the visitor a part in an independent event; fantasies do not establish shared events. Recorded dates are real conversation dates; a story date is separate. Use relevant details naturally without reciting a diary or explaining these storage categories. Private entries belong only to this visitor. Later explicit corrections take precedence.`;
 }
 
 export async function journalStatements(env,visitorId,pinned,messages,now,guard={sql:'1',params:[]}) {

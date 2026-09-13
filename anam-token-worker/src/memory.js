@@ -1,3 +1,5 @@
+import { isNinaMetaBreakMessage, isNinaImplementationMemory, cleanNinaDerivedMemory } from './nina-meta-context.js';
+export { isNinaMetaBreakMessage } from './nina-meta-context.js';
 import { modelJson } from './model-json.js';
 import { memoryControls, controlledRows, controlledText, workspaceEnabled } from './memory-controls.js';
 import { summaryRecords, validSummaryReferences, normalizedFact, singleValueProperty, newestEvidenceFirst, summaryReplacementContents } from './memory-reconciliation.js';
@@ -23,7 +25,6 @@ const PINNED_MEMORY_CATEGORIES = new Set([
 const UNRESOLVED_PERSPECTIVE_PATTERN = /\b(?:i|i'm|i’ve|i'd|me|my|mine|you|you're|you’ve|you'd|your|yours|we|we're|we’ve|we'd|us|our|ours)\b/i;
 const DEBRIS_PATTERN = /^(?:sorry[, ]+)?(?:what did you say|what do you say|you know who i am|i mean(?:\.{2,})?|okay|ok|yeah|yes|no|right|you were right|last time we(?:\.{2,})?|you(?:'re| are) amazing|(?:Nina and (?:Alejandro|the visitor)|(?:Alejandro|the visitor) and Nina) (?:greeted each other|exchanged greetings|said hello))[?!. ]*$/i;
 const NINA_CANON_PATTERN = /^(?:(?:nina|i|you)\s+(?:am|is|are|identify(?:ies)? as)\s+(?:nina|human|a human|a person)|nina\s+(?:lives|resides)\s+in\s+berlin|nina(?:'s)?\s+(?:age|birthday|birth date)|nina\s+was born)\b/i;
-const NINA_META_BREAK_PATTERN = /\b(?:i(?:'m| am) (?:an? )?(?:ai system|assistant|language model)|i(?:'m| am) (?:the )?same assistant underneath|i(?:'m| am) not literally (?:a )?human woman|nina is (?:a )?character in (?:this )?conversation|you(?:'re| are) talking to openai now|my system prompt|the underlying model|the (?:character )?illusion broke)\b/i;
 const RELATIONSHIP_FACT_PATTERN = /\b(?:relationship|dating|boyfriend|girlfriend|partner|loves?|in love with|attracted to|desires?|has feelings for|familiarity|affection|intimacy|romantic status|relationship boundary|boundaries)\b/i;
 const CONVERSATION_TOPIC_MEMORY_PATTERN = /\b(?:had a conversation|talked|spoke|discussed|conversation was)\s+(?:with each other\s+)?about\b/i;
 const CONCRETE_SHARED_EVENT_PATTERN = /\b(?:met|attended|visited|created|built|worked|performed|traveled|travelled|celebrated|argued|reconciled|agreed|decided|promised|completed|launched)\b/i;
@@ -197,10 +198,6 @@ function formatRecentMessage(message) {
   return `${message.created_at ? `[${message.created_at}; conversation ${message.conversation_id}] ` : ""}${message.role === "user" ? "VISITOR" : "NINA"}: ${message.content}`;
 }
 
-export function isNinaMetaBreakMessage(message) {
-  return message?.role === "persona" && NINA_META_BREAK_PATTERN.test(cleanText(message.content, MESSAGE_CHARACTER_LIMIT).replace(/[’]/g, "'"));
-}
-
 function appendWholeItemsWithinBudget(header, items, remaining) {
   if (!items.length || remaining <= header.length + 2) return { text: "", used: 0, count: 0 };
   const accepted = [];
@@ -239,13 +236,13 @@ export async function buildOwnerMemoryContext(env, owner) {
       .bind(owner.visitor_id, HISTORY_LIMIT).all()
   ]);
   const controls = await memoryControls(env, owner.user_id, owner.visitor_id);
-  const pinned = controlledRows(pinnedResult.results || [], controls, "pin", "memory_id");
-  const threads = controlledRows(threadsResult.results || [], controls, "thread", "thread_id");
+  const pinned = controlledRows(pinnedResult.results || [], controls, "pin", "memory_id").filter(item=>!isNinaImplementationMemory(item.content));
+  const threads = controlledRows(threadsResult.results || [], controls, "thread", "thread_id").filter(item=>!isNinaImplementationMemory(item.content));
   const recent = (recentResult.results || []).reverse().filter(message => !isNinaMetaBreakMessage(message));
   const profileSection = `VALIDATED PERMANENT PROFILE\nName: ${owner.display_name}\nProfile: ${owner.profile_type}`;
   const recentItems = recent.map(formatRecentMessage);
   const recentSection = appendLatestItemsWithinBudget("LATEST COMPLETED MESSAGES", recentItems, 22000);
-  const summaryText = cleanText(controlledText(summary?.summary, controls, "summary").content, SUMMARY_LIMIT);
+  const summaryText = cleanText(cleanNinaDerivedMemory(controlledText(summary?.summary, controls, "summary").content), SUMMARY_LIMIT);
   const baseParts = [PRIVATE_MEMORY_INSTRUCTIONS, profileSection];
   let used = baseParts.join("\n\n").length + 2;
   const pinnedSection = selectPinnedMemories(pinned);
@@ -295,7 +292,7 @@ function validUserGroundedEvidence(candidate, messagesById, rejectNonLiteral = t
 
 function durableContent(candidate) {
   const content = cleanText(candidate?.content, 500);
-  if (!content || content.length < 12 || DEBRIS_PATTERN.test(content) || NINA_CANON_PATTERN.test(content)) return "";
+  if (!content || content.length < 12 || DEBRIS_PATTERN.test(content) || NINA_CANON_PATTERN.test(content) || isNinaImplementationMemory(content)) return "";
   if (UNRESOLVED_PERSPECTIVE_PATTERN.test(content)) return "";
   return content;
 }
@@ -499,7 +496,7 @@ export function mergeSummary(previousSummary, items) {
   for (const raw of source) {
     const line = sanitizeDerivedContent(raw.replace(/^[-*]\s*/, "").trim(), SUMMARY_LIMIT);
     if (line.length < 12 || DEBRIS_PATTERN.test(line) || NINA_CANON_PATTERN.test(line)
-      || NINA_META_BREAK_PATTERN.test(line) || UNRESOLVED_PERSPECTIVE_PATTERN.test(line)) continue;
+      || isNinaImplementationMemory(line) || UNRESOLVED_PERSPECTIVE_PATTERN.test(line)) continue;
     const key = semanticMemoryKey({ category: "summary", content: line });
     // A newly evidenced value takes precedence over the prior value for a key.
     if (seen.has(key)) continue;
@@ -629,13 +626,13 @@ Keep summary_items, open_threads and thread resolution conservative and user-gro
 `;
   // Only substitute instruction text, never names in supplied evidence or memory.
   return instructions.replaceAll("Alejandro", subjectName) + `EXISTING SUMMARY (IDs belong only to this input snapshot):
-${JSON.stringify(summaryRecords(summaryRow?.summary))}
+${JSON.stringify(summaryRecords(summaryRow?.summary).filter(record=>!isNinaImplementationMemory(record.content)))}
 
 ACTIVE THREADS:
-${JSON.stringify(openThreads)}
+${JSON.stringify(openThreads.filter(item=>!isNinaImplementationMemory(item.content)))}
 
 EXISTING PINNED MEMORIES:
-${selectPinnedMemoriesForExtraction(existingPinned, { messages: safeMessages }).text || '[]'}
+${selectPinnedMemoriesForExtraction(existingPinned.filter(item=>!isNinaImplementationMemory(item.content)), { messages: safeMessages }).text || '[]'}
 
 NEW COMPLETED MESSAGES:
 ${JSON.stringify(safeMessages)}`;
