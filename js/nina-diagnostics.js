@@ -1,3 +1,4 @@
+import { sanitizeToolError } from './nina-tool-errors.js?v=20260913-recall';
 // Metadata only: no audio, transcripts, tool arguments or tool results leave this collector.
 export function attachConversationDiagnostics({client,events,conversationId,send,active=()=>true,stream,now=()=>performance.now()}) {
   const start=now(),salt=crypto.randomUUID(),seen=new Set(),chunks=new Map(),listeners=[],pending=new Set();
@@ -48,7 +49,7 @@ export function attachConversationDiagnostics({client,events,conversationId,send
   on('TALK_STREAM_INTERRUPTED',id=>emit('interrupted',{correlationId:safe(id)}));
   on('INPUT_AUDIO_STREAM_STARTED',microphone);
   for(const [name,kind] of [['TOOL_CALL_STARTED','tool_started'],['TOOL_CALL_COMPLETED','tool_completed'],['TOOL_CALL_FAILED','tool_failed']])
-    on(name,e=>emit(kind,{toolName:safe(e.toolName),toolCallId:safe(e.toolCallId),correlationId:safe(e.userActionCorrelationId)}));
+    on(name,e=>emit(kind,{toolName:safe(e.toolName),toolCallId:safe(e.toolCallId),correlationId:safe(e.userActionCorrelationId),...(kind==='tool_failed'?{errorMessage:sanitizeToolError(e.errorMessage)}:{}),...(Number.isFinite(e.executionTime)&&e.executionTime>=0&&e.executionTime<=86400000?{executionTimeMs:Math.round(e.executionTime)}:{})}));
   on('MESSAGE_STREAM_EVENT_RECEIVED',e=>{
     if(e?.role!=='persona'||typeof e.id!=='string')return;
     const id=e.utteranceId||e.id,key=`${e.id}:${id}`;

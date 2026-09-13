@@ -194,7 +194,7 @@ export async function closeConversation(env, visitorId, conversationId) {
 }
 
 function formatRecentMessage(message) {
-  return `${message.role === "user" ? "VISITOR" : "NINA"}: ${message.content}`;
+  return `${message.created_at ? `[${message.created_at}; conversation ${message.conversation_id}] ` : ""}${message.role === "user" ? "VISITOR" : "NINA"}: ${message.content}`;
 }
 
 export function isNinaMetaBreakMessage(message) {
@@ -235,7 +235,7 @@ export async function buildOwnerMemoryContext(env, owner) {
     db.prepare("SELECT summary FROM memory_summaries WHERE visitor_id = ?").bind(owner.visitor_id).first(),
     db.prepare("SELECT thread_id, content FROM open_threads WHERE visitor_id = ? AND status = 'active' ORDER BY updated_at DESC LIMIT ?")
       .bind(owner.visitor_id, OPEN_THREAD_LIMIT).all(),
-    db.prepare("SELECT role, content FROM messages WHERE visitor_id = ? ORDER BY created_at DESC, rowid DESC LIMIT ?")
+    db.prepare("SELECT role, content, conversation_id, created_at FROM messages WHERE visitor_id = ? ORDER BY created_at DESC, rowid DESC LIMIT ?")
       .bind(owner.visitor_id, HISTORY_LIMIT).all()
   ]);
   const controls = await memoryControls(env, owner.user_id, owner.visitor_id);

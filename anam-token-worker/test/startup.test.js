@@ -1,3 +1,4 @@
+import { conversationModeGuidance } from '../src/conversation-runtime.js';
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
@@ -103,7 +104,7 @@ test("system prompt assembly adds intimacy and conversational rhythm exactly onc
     assert.ok(systemPrompt.endsWith(privateMemory));
   }
 
-  assert.equal(publicConfig.systemPrompt, [basePrompt, NINA_INTIMACY_CONTINUITY, NINA_CONVERSATIONAL_RHYTHM, privateMemory].join("\n\n"));
+  assert.equal(publicConfig.systemPrompt, [basePrompt, NINA_INTIMACY_CONTINUITY, NINA_CONVERSATIONAL_RHYTHM, conversationModeGuidance(false), privateMemory].join("\n\n"));
   assert.ok(ownerConfig.systemPrompt.indexOf(NINA_CONVERSATIONAL_RHYTHM) < ownerConfig.systemPrompt.indexOf("The current visitor is Alejandro"));
   assert.ok(ownerConfig.systemPrompt.indexOf("The current visitor is Alejandro") < ownerConfig.systemPrompt.indexOf(privateMemory));
 });
@@ -224,3 +225,4 @@ test("session endpoint does not create an Anam session when knowledge configurat
     assert.equal(requests.length, 0);
   } finally { globalThis.fetch = originalFetch; }
 });
+

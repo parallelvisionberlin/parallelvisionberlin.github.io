@@ -1,4 +1,4 @@
-import { attachConversationDiagnostics } from "./nina-diagnostics.js?v=20260913";
+import { attachConversationDiagnostics } from "./nina-diagnostics.js?v=20260913-recall";
 import { createNinaTrialPromotion } from "./nina-trial-promotion.js?v=20260905";
 import { isNinaWebsite, createConversationProgress, createAudioCheck } from "./nina-web-flow.js?v=20260910-speech-first";
 /* The access gate is theatrical client-side UI; its public hash is not authorization. */

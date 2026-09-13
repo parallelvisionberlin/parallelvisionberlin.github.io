@@ -15,3 +15,12 @@ test('collector ignores replayed history, captures new utterances and never send
  assert.doesNotMatch(JSON.stringify(sent),/private secret|A second part|Hello back|arguments/);
  assert.ok(sent.find(e=>e.kind==='persona_utterance').data.fingerprint.match(/^[a-f0-9]{64}$/));assert.equal(handlers.size,0);
 });
+
+test('tool failure keeps a useful redacted explanation and measured execution time',async()=>{
+ const handlers=new Map(),sent=[];
+ const tracker=attachConversationDiagnostics({client:{addListener:(n,f)=>handlers.set(n,f),removeListener:n=>handlers.delete(n)},events:{TOOL_CALL_FAILED:'failed'},conversationId:'c',send:async b=>{sent.push(...b.events);return true;}});
+ handlers.get('failed')({toolName:'recall_private_memory',errorMessage:`HTTP 401 at https://secret.example?token=hidden Bearer ${'a'.repeat(64)}`,executionTime:145});
+ await tracker.flush();tracker.stop();await tracker.flush();
+ const error=sent.find(e=>e.kind==='tool_failed').data;assert.match(error.errorMessage,/HTTP 401/);assert.equal(error.executionTimeMs,145);
+ assert.doesNotMatch(JSON.stringify(sent),/secret.example|hidden|aaaaaaaa/);
+});

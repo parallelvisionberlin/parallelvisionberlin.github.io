@@ -4,7 +4,7 @@ import { enqueueMemoryJob, processMemoryJob, drainMemoryJobs } from './memory-jo
 import { journalContext, saveJournal } from './nina-journal.js';
 import { lookupCatalog } from './catalog.js';
 import { recordSessionSetup, storeConversationEvents, conversationDiagnostics } from './conversation-diagnostics.js';
-import { RUNTIME_REVISION, CONVERSATION_RHYTHM, OWNER_ARRIVAL_CONTEXT, NEW_NAME_INSTRUCTION, CONTEXT_BOUNDARY, createStartupTimer, prepareSessionContext, promptFingerprint, summarizeSessionPerformance } from "./conversation-runtime.js";
+import { RUNTIME_REVISION, conversationModeGuidance, CONVERSATION_RHYTHM, OWNER_ARRIVAL_CONTEXT, NEW_NAME_INSTRUCTION, CONTEXT_BOUNDARY, createStartupTimer, prepareSessionContext, promptFingerprint, summarizeSessionPerformance } from "./conversation-runtime.js";
 import { qualifyWebConversation, WEB_SIGNAL_GUIDANCE } from "./web-conversation.js";
 import { sendGiftEmail } from "./gift-email.js";
 import {
@@ -80,7 +80,7 @@ export function authenticatedMemoryDisplayName(user, preferredName) {
 export function assembleSystemPrompt(personaConfig, owner, privateMemory) {
   const scoped = partitionPersonaPrompt(personaConfig.systemPrompt);
   personaConfig.systemPrompt = [scoped.shared, NINA_INTIMACY_CONTINUITY, NINA_CONVERSATIONAL_RHYTHM,
-    owner ? [ALEJANDRO_CONTEXT, scoped.privateOwner].filter(Boolean).join('\n\n') : '', privateMemory].filter(Boolean).join("\n\n");
+    owner ? [ALEJANDRO_CONTEXT, scoped.privateOwner].filter(Boolean).join('\n\n') : '', conversationModeGuidance(Boolean(owner)), privateMemory].filter(Boolean).join("\n\n");
   return personaConfig;
 }
 

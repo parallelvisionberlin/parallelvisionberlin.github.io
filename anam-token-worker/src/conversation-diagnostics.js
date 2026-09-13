@@ -1,3 +1,4 @@
+import { sanitizeToolError } from '../../js/nina-tool-errors.js';
 import { MemoryEditError, workspaceEnabled } from './memory-controls.js';
 
 const KINDS=new Set(['session_ready','speech_start','speech_end','user_message','persona_message','persona_utterance','tool_started','tool_completed','tool_failed','interrupted','microphone','client_end']);
@@ -28,7 +29,9 @@ export async function storeConversationEvents(env,user,body) {
       ||!Number.isSafeInteger(event.elapsedMs)||event.elapsedMs<0||event.elapsedMs>86400000)throw new MemoryEditError('Invalid diagnostic event.');
     const data={};
     for(const [key,value] of Object.entries(event.data||{})) {
-      if(STRING_FIELDS.has(key)&&typeof value==='string'&&value.length<=180)data[key]=value;
+      if(key==='errorMessage'&&typeof value==='string')data[key]=sanitizeToolError(value);
+      else if(key==='executionTimeMs'&&Number.isSafeInteger(value)&&value>=0&&value<=86400000)data[key]=value;
+      else if(STRING_FIELDS.has(key)&&typeof value==='string'&&value.length<=180)data[key]=value;
       else if(BOOL_FIELDS.has(key)&&(typeof value==='boolean'||value===null))data[key]=value;
       else if(key==='characters'&&Number.isSafeInteger(value)&&value>=0&&value<=100000)data[key]=value;
       else throw new MemoryEditError('Unsupported diagnostic field.');
@@ -72,11 +75,12 @@ export function analyzeConversationEvents(events) {
 }
 export async function conversationDiagnostics(env,user,id) {
   await ownConversation(env,user,id);
-  const [setup,records]=await Promise.all([
+  const [setup,records,toolRecords]=await Promise.all([
     env.NINA_MEMORY_DB.prepare('SELECT anam_session_id,setup_json FROM nina_session_diagnostics WHERE conversation_id=? AND user_id=?').bind(id,user.id).first(),
-    env.NINA_MEMORY_DB.prepare('SELECT sequence,kind,elapsed_ms,data_json FROM nina_conversation_events WHERE conversation_id=? ORDER BY sequence LIMIT 2000').bind(id).all()
+    env.NINA_MEMORY_DB.prepare('SELECT sequence,kind,elapsed_ms,data_json FROM nina_conversation_events WHERE conversation_id=? ORDER BY sequence LIMIT 2000').bind(id).all(),
+    env.NINA_MEMORY_DB.prepare('SELECT diagnostic_json,created_at FROM nina_tool_diagnostics WHERE conversation_id=? AND user_id=? ORDER BY created_at LIMIT 100').bind(id,user.id).all()
   ]);
   const events=(records.results||[]).map(e=>({sequence:e.sequence,kind:e.kind,elapsedMs:e.elapsed_ms,data:JSON.parse(e.data_json)}));
-  return {conversationId:id,anamSessionId:setup?.anam_session_id||null,setup:setup?JSON.parse(setup.setup_json):null,events,findings:analyzeConversationEvents(events),
+  return {conversationId:id,anamSessionId:setup?.anam_session_id||null,setup:setup?JSON.parse(setup.setup_json):null,events,toolRequests:(toolRecords.results||[]).map(r=>({...JSON.parse(r.diagnostic_json),createdAt:r.created_at})),findings:analyzeConversationEvents(events),
     note:events.length?'Events show timing and correlations; findings are candidates, not a confirmed cause.':'No event trace was captured for this conversation. New website calls will record diagnostics.'};
 }

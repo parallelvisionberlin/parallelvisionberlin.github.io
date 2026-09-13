@@ -253,3 +253,42 @@ test('authenticated session creation sends private agreements only to their acco
     assert.notEqual(sent[0].tools.at(-1).headers.Authorization,sent[1].tools.at(-1).headers.Authorization);
   } finally {globalThis.fetch=originalFetch;}
 });
+
+test('recent-call recall works without topic keywords, remains private, and records failures',async()=>{
+  const f=fixture(),config={};
+  for(const id of ['a','b']) {
+    f.sqlite.prepare('INSERT INTO conversations VALUES (?,?,?,?)').run(`previous-${id}`,id,'2026-09-12','2026-09-12');
+    f.add(id,'user',id==='a'?'We settled on the blue artwork.':'OTHER ACCOUNT SECRET',`previous-message-${id}`,`previous-${id}`);
+  }
+  await attachMemoryTool(config,f.env,f.identity('a'),'call-a','https://worker.example');
+  const tool=config.tools[0],req=body=>new Request(tool.url,{method:'POST',headers:tool.headers,body:JSON.stringify(body)});
+  for(const body of [{query:'last conversation'},{mode:'recent',query:'what did we discuss'}]) {
+    const res=await recallPrivateMemory(req(body),f.env);assert.equal(res.status,200);
+    const text=JSON.stringify(await res.json());assert.match(text,/blue artwork/);assert.doesNotMatch(text,/OTHER ACCOUNT SECRET/);
+  }
+  const bad=await recallPrivateMemory(req({query:'blue',user_id:'b'}),f.env);assert.equal(bad.status,400);
+  const record=f.sqlite.prepare('SELECT diagnostic_json FROM nina_tool_diagnostics WHERE request_id=?').get(bad.headers.get('X-Nina-Request-Id'));
+  assert.equal(JSON.parse(record.diagnostic_json).code,'invalid_arguments');
+  assert.doesNotMatch(record.diagnostic_json,/blue|Bearer|user_id/);
+  await attachMemoryTool(config,f.env,f.identity('a'),'call-a','https://worker.example');
+  assert.equal(config.tools.filter(t=>t.name==='recall_private_memory').length,1);
+});
+
+test('a database lookup exception yields a correlated failure, not a false empty recall',async()=>{
+  const f=fixture(),config={};await attachMemoryTool(config,f.env,f.identity('a'),'call-a','https://worker.example');
+  const tool=config.tools[0],original=f.env.NINA_MEMORY_DB.prepare;
+  f.env.NINA_MEMORY_DB.prepare=sql=>{if(sql.includes('SELECT m.message_id'))throw new Error('D1_ERROR: no such table: messages');return original(sql);};
+  const res=await recallPrivateMemory(new Request(tool.url,{method:'POST',headers:tool.headers,body:'{"query":"album"}'}),f.env);
+  assert.equal(res.status,502);const body=await res.json();assert.ok(body.requestId);assert.equal(body.passages,undefined);
+  const record=f.sqlite.prepare('SELECT diagnostic_json FROM nina_tool_diagnostics WHERE request_id=?').get(body.requestId);
+  assert.equal(JSON.parse(record.diagnostic_json).code,'database_schema_missing');
+});
+
+test('mode guidance preserves canon and requires explicit owner technical intent',()=>{
+  const canon='Nina is a human living in Berlin in 2063.';
+  const owner=assembleSystemPrompt({systemPrompt:canon},true,'Private context').systemPrompt;
+  const guest=assembleSystemPrompt({systemPrompt:canon},false,'').systemPrompt;
+  assert.ok(owner.startsWith(canon));assert.match(owner,/Only an explicit owner request/);
+  assert.match(owner,/Criticism, affection and questions about a failed recollection do not start this mode/);
+  assert.doesNotMatch(guest,/Only an explicit owner request/);assert.match(guest,/does not grant account permissions/);
+});
