@@ -13,7 +13,7 @@ function relationshipDb(messages = []) {
   const messageQueries = [];
   return {
     rows, messageQueries,
-    prepare(sql) {
+    prepare(sql) { sql=sql.replace(/nina_(?:personal|scoped)_messages/g,"messages");
       return { bind(...values) {
         if (sql.includes("SELECT m.role, m.content FROM messages")) return { all: async () => {
           messageQueries.push(values);
@@ -202,7 +202,7 @@ test("relationship evidence cursor follows the last accepted state change, not a
 
 test("latest completed relationship attempt exposes insufficient evidence or a safe error", async () => {
   const diagnosticDb = (messages, lastEvaluatedAt = null) => ({
-    prepare(sql) { return { bind() {
+    prepare(sql) { sql=sql.replace(/nina_(?:personal|scoped)_messages/g,"messages"); return { bind() {
       if (sql.includes("FROM nina_relationship_states")) return { first: async () => ({ last_evaluated_at: lastEvaluatedAt }) };
       if (sql.includes("FROM conversations")) return { first: async () => ({ conversation_id: "conversation-2", ended_at: "2026-08-30T12:00:00.000Z" }) };
       if (sql.includes("FROM messages")) return { all: async () => ({ results: messages }) };
@@ -281,3 +281,4 @@ test("migration creates one cascading relationship row per user", async () => {
   assert.match(migration, /state_json TEXT NOT NULL CHECK\(json_valid\(state_json\)\)/);
   assert.doesNotMatch(migration, /score|stage|flag/i);
 });
+

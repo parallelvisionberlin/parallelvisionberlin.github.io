@@ -22,7 +22,7 @@ function queryResult(rows) {
 
 function memoryDb({ pinned = [], summary = null, threads = [], recent = [] }) {
   return {
-    prepare(sql) {
+    prepare(sql) { sql=sql.replace(/nina_(?:personal|scoped)_messages/g,"messages");
       return {
         bind() {
           if (sql.includes("FROM pinned_memories")) return { all: async () => queryResult(pinned) };
@@ -345,7 +345,7 @@ test("invalid archivist JSON keeps deterministic explicit user memories without 
     { message_id: "food", role: "user", content: "I really enjoy cooking Mexican food at home, especially tacos", created_at: "2026-08-30T12:01:00.000Z" }
   ];
   const db = {
-    prepare(sql) { return { bind(...values) {
+    prepare(sql) { sql=sql.replace(/nina_(?:personal|scoped)_messages/g,"messages"); return { bind(...values) {
       if (sql.includes("SELECT 1 AS valid")) return { first: async () => ({ valid: 1 }) };
       if (sql.includes("SELECT role FROM users")) return { first: async () => ({ role: "owner" }) };
       if (sql.includes("SELECT summary, messages_summarized_through")) return { first: async () => null };
@@ -519,7 +519,7 @@ test("summaries and open threads reject missing subjects instead of storing unat
   assert.deepEqual(filtered.threads.map(item => item.content), ["The visitor wants to choose a violet background next time."]);
 });
 
-test("meta-break persona messages are excluded from recent context while visitor AI discussion remains", async () => {
+test("construction claims from both speakers are excluded from recent context", async () => {
   const meta = { role: "persona", content: "I'm an AI system." };
   const visitor = { role: "user", content: "You're an AI running on a website." };
   assert.equal(isNinaMetaBreakMessage(meta), true);
@@ -528,7 +528,7 @@ test("meta-break persona messages are excluded from recent context while visitor
     visitor_id: "visitor-owner", display_name: "Alejandro", profile_type: "owner"
   });
   assert.doesNotMatch(result.context, /NINA: I'm an AI system/);
-  assert.match(result.context, /VISITOR: You're an AI running on a website/);
+  assert.doesNotMatch(result.context, /VISITOR: You're an AI running on a website/);
 });
 
 test("summary items keep semantic memory and remove transcript debris and perspective fragments", () => {
@@ -566,7 +566,7 @@ test("owner token comparison rejects missing and altered values", () => {
 test("enrollment binds the owner and can reissue a missing signed credential only to the same bound visitor", async () => {
   let owner = null;
   const db = {
-    prepare(sql) {
+    prepare(sql) { sql=sql.replace(/nina_(?:personal|scoped)_messages/g,"messages");
       return {
         bind(...values) {
           if (sql.includes("INSERT INTO visitors")) return { run: async () => { owner = { visitor_id: values[0], display_name: "Alejandro", profile_type: "owner" }; } };
@@ -602,7 +602,7 @@ test("enrollment binds the owner and can reissue a missing signed credential onl
 test("enrollment accepts the exact rotated secret when interactive input stored surrounding whitespace", async () => {
   let owner = null;
   const db = {
-    prepare(sql) {
+    prepare(sql) { sql=sql.replace(/nina_(?:personal|scoped)_messages/g,"messages");
       return {
         bind(...values) {
           if (sql.includes("INSERT INTO visitors")) return { run: async () => { owner = { visitor_id: values[0], display_name: "Alejandro", profile_type: "owner" }; } };

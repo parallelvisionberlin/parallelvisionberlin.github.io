@@ -1,3 +1,4 @@
+import { personalContinuityMessages } from './nina-meta-context.js';
 import { isNinaMetaBreakMessage, cleanNinaDerivedMemory } from './nina-meta-context.js';
 import { currentAgreements } from './agreements.js';
 import { modelJson } from './model-json.js';
@@ -91,7 +92,7 @@ export async function buildRelationshipContext(env, userId, { establishedOwner =
 export const RELATIONSHIP_INPUT_BUDGET = 14000;
 export function boundedRelationshipMessages(messages) {
   const selected=[]; let used=2;
-  for(const message of [...messages].reverse()) {
+  for(const message of personalContinuityMessages(messages).reverse()) {
     if(!['user','persona'].includes(message.role)||typeof message.content!=='string'||isNinaMetaBreakMessage(message)) continue;
     const item={role:message.role,content:message.content};
     const size=JSON.stringify(item).length+1;
@@ -123,7 +124,7 @@ export async function evaluateCompletedRelationship(env, userId, visitorId, conv
   try {
     const row=await getOrCreateRelationshipState(env,userId);
     // Keep recent completed evidence since the last accepted change, with a fixed cap.
-    const result=await db.prepare(`SELECT m.role, m.content FROM messages m JOIN conversations c ON c.conversation_id=m.conversation_id
+    const result=await db.prepare(`SELECT m.role, m.content FROM nina_personal_messages m JOIN conversations c ON c.conversation_id=m.conversation_id
       WHERE m.visitor_id=? AND c.ended_at IS NOT NULL AND (m.conversation_id=? OR ? IS NULL OR m.created_at>?)
       ORDER BY m.created_at DESC,m.rowid DESC LIMIT 120`).bind(visitorId,conversationId,row.updated_at||null,row.updated_at||null).all();
     messages=boundedRelationshipMessages((result.results||[]).reverse());
@@ -181,7 +182,7 @@ export async function relationshipEvaluationDiagnostic(env, userId, visitorId) {
   ]);
   if (!conversation) return null;
   const messages = (await env.NINA_MEMORY_DB.prepare(`
-    SELECT role, content FROM messages WHERE visitor_id = ? AND conversation_id = ?
+    SELECT role, content FROM nina_personal_messages WHERE visitor_id = ? AND conversation_id = ?
     ORDER BY created_at ASC, rowid ASC
   `).bind(visitorId, conversation.conversation_id).all()).results || [];
   const base = { last_attempted_conversation_id: conversation.conversation_id, attempted_at: conversation.ended_at };

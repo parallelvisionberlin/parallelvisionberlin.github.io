@@ -1185,6 +1185,7 @@ function migrateLegacyNinaMemory() {
 
 function setNinaMemoryIndicator(state) {
   const labels = {
+    paused: "PERSONAL MEMORY / PAUSED",
     empty: "MEMORY / EMPTY",
     standby: "MEMORY / STANDBY",
     loaded: "MEMORY / LOADED",
@@ -1240,7 +1241,7 @@ function storeCompletedNinaMessages(history, client, attempt) {
     void queueOwnerMemoryRequest("/memory/messages", {
       conversationId: ninaServerConversationId,
       messages: completedMessages
-    }).catch(() => setNinaMemoryIndicator("unavailable"));
+    }).then(result => { if (attempt === ninaAttempt && client === ninaClient && result && typeof result.personalMemoryPaused === "boolean") setNinaMemoryIndicator(result.personalMemoryPaused ? "paused" : "loaded"); }).catch(() => setNinaMemoryIndicator("unavailable"));
   }
   return completedMessages;
 }

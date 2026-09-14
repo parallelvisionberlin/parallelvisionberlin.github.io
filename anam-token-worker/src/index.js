@@ -1,3 +1,4 @@
+import { optimizeKnowledgeInstructions } from './knowledge-policy.js';
 import { workspaceEnabled, memoryControls, correctionContext, saveMemoryControl, MemoryEditError } from './memory-controls.js';
 import { memoryWorkspace } from './memory-workspace.js';
 import { enqueueMemoryJob, processMemoryJob, drainMemoryJobs } from './memory-jobs.js';
@@ -79,7 +80,7 @@ export function authenticatedMemoryDisplayName(user, preferredName) {
 }
 
 export function assembleSystemPrompt(personaConfig, owner, privateMemory) {
-  const scoped = partitionPersonaPrompt(personaConfig.systemPrompt);
+  const scoped = partitionPersonaPrompt(optimizeKnowledgeInstructions(personaConfig.systemPrompt));
   personaConfig.systemPrompt = [scoped.shared, NINA_INTIMACY_CONTINUITY, NINA_CONVERSATIONAL_RHYTHM,
     owner ? [ALEJANDRO_CONTEXT, scoped.privateOwner].filter(Boolean).join('\n\n') : '', conversationModeGuidance(Boolean(owner)), privateMemory].filter(Boolean).join("\n\n");
   return personaConfig;
@@ -480,7 +481,8 @@ async function handleSessionToken(request, env, origin) {
       if (identity) {
         const conversation = await createConversation(env, identity.visitor_id);
         conversationId = conversation.conversationId;
-        if (browserHistory.length) diagnostics.storedMessages = (await storeMessages(env, identity.visitor_id, conversationId, body.recentMessages, conversation.now)).storedMessages;
+        // Authenticated continuity comes from the scoped server history. Reimporting a browser archive
+        // would move maintenance messages into a new call outside their original exclusion interval.
         const [memory, relationshipContext, agreements, personal, journal, controls] = await Promise.all([
           buildOwnerMemoryContext(env, identity),
           identity.account_authenticated ? buildRelationshipContext(env, identity.user_id, { establishedOwner: Boolean(owner) }) : Promise.resolve(""),
@@ -624,7 +626,13 @@ async function handleStoreMessages(request, env, origin, ctx) {
   if (env.NINA_CONTINUITY_ENABLED === 'true' && result.storedMessages && identity.account_authenticated) {
     ctx.waitUntil(observeBackgroundJob('agreements', () => captureAgreements(env, identity, body.conversationId)));
   }
-  return jsonResponse({ storedMessages: result.storedMessages }, 200, origin);
+  let personalMemoryPaused = false;
+  if(identity.account_authenticated && identity.role === 'owner') {
+    const last = await env.NINA_MEMORY_DB.prepare(`SELECT content, memory_scope FROM nina_scoped_messages
+      WHERE visitor_id=? AND conversation_id=? ORDER BY rowid DESC LIMIT 1`).bind(identity.visitor_id,body.conversationId).first();
+    personalMemoryPaused = last?.memory_scope === 'technical' && !/^vladimir\s*ninotchka\s*fin[.!?]*$/i.test((last.content||'').trim());
+  }
+  return jsonResponse({ storedMessages: result.storedMessages, personalMemoryPaused }, 200, origin);
 }
 
 function observeBackgroundJob(job, work) {

@@ -69,7 +69,7 @@ try {
   // safely even if its module finishes downloading first.
   const identityPromise = bridge.initialize();
   window.__PV_NINA_AUTH_PROVIDER__ = async () => identityPromise;
-  const enginePromise = import('./nina-access.js?v=20260913-noise');
+  const enginePromise = import('./nina-access.js?v=20260914-domains');
   const [identity, importedEngine] = await Promise.all([identityPromise, enginePromise]);
   engine = importedEngine;
   if (new URLSearchParams(location.search).get("pv_deck") === "04") {

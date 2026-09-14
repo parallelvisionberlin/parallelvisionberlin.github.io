@@ -32,7 +32,7 @@ function resetDb(users) {
     deletes: []
   };
   return { state,
-    prepare(sql) { return { bind(...values) {
+    prepare(sql) { sql=sql.replace(/nina_(?:personal|scoped)_messages/g,"messages"); return { bind(...values) {
       if (sql.includes("FROM users WHERE auth_provider")) return { first: async () => users[values[0]] || null };
       if (sql.includes("SELECT COUNT(*) FROM pinned_memories")) return { first: async () => ({ ...(state.derived[values[0]] || {}) }) };
       if (sql.includes("SELECT role FROM users")) return { first: async () => ({ role: "owner" }) };

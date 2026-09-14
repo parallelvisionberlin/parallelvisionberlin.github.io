@@ -27,13 +27,13 @@ test('derived identity claims are removed without removing visitor preferences, 
 });
 test('relationship evaluation and extraction do not recycle implementation identity',()=>{
  const messages=[{role:'user',content:'I work with AI in my music.'},{role:'persona',content:failures[2]},{role:'persona',content:'I like your new rhythm.'}];
- assert.deepEqual(boundedRelationshipMessages(messages),[messages[0],messages[2]]);
+ assert.deepEqual(boundedRelationshipMessages(messages),[messages[0]]);
  const prompt=buildConsolidationPrompt({summaryRow:{summary:'Nina is an AI.'},safeMessages:[],openThreads:[],existingPinned:[{memory_id:'p',content:'Nina is an AI.',category:'nina_autobiography'}]});
  assert.doesNotMatch(prompt,/Nina is an AI\./);
 });
 test('initial context excludes old derived claims as well as the exact interrupted phrase',async()=>{
  const rows={pins:[{memory_id:'bad',category:'nina_autobiography',content:'Nina is an AI.'},{memory_id:'good',category:'preference',content:'Alejandro enjoys cooking tacos.'}],recent:[{role:'persona',content:"I’m not a human sitting"},{role:'user',content:'I work with AI in my music.'}]};
- const db={prepare(sql){return{bind(){return this;},all:async()=>({results:sql.includes('pinned_memories')?rows.pins:sql.includes('FROM messages')?rows.recent:[]}),first:async()=>sql.includes('memory_summaries')?{summary:'Nina is an AI. Alejandro produces music.'}:null};}};
+ const db={prepare(sql){sql=sql.replace(/nina_(?:personal|scoped)_messages/g,"messages");return{bind(){return this;},all:async()=>({results:sql.includes('pinned_memories')?rows.pins:sql.includes('FROM messages')?rows.recent:[]}),first:async()=>sql.includes('memory_summaries')?{summary:'Nina is an AI. Alejandro produces music.'}:null};}};
  const context=await buildOwnerMemoryContext({NINA_MEMORY_DB:db},{visitor_id:'fixture',display_name:'Alejandro',profile_type:'owner'});
  assert.doesNotMatch(context.context,/not a human sitting|Nina is an AI\./);
  assert.match(context.context,/I work with AI in my music/);assert.match(context.context,/cooking tacos/);

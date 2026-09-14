@@ -28,7 +28,7 @@ function diagnosticDb(users) {
     { conversation_id: "conversation-1", message_id: "message-ai", role: "user", content: "You're an AI running on a website.", created_at: "2026-08-30T11:00:00.000Z" }
   ];
   return {
-    prepare(sql) {
+    prepare(sql) { sql=sql.replace(/nina_(?:personal|scoped)_messages/g,"messages");
       return { bind(...values) {
         if (sql.includes("FROM users WHERE auth_provider")) return { first: async () => users[values[0]] || null };
         if (sql.includes("FROM conversations") && sql.includes("ended_at IS NOT NULL")) return { first: async () => ({ conversation_id: "conversation-1", ended_at: "2026-08-30T11:02:00.000Z" }) };
@@ -88,3 +88,4 @@ test("memory diagnostic is authenticated-owner-only and marks only Nina meta bre
     globalThis.fetch = originalFetch;
   }
 });
+

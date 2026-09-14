@@ -286,11 +286,11 @@ test('a database lookup exception yields a correlated failure, not a false empty
   assert.equal(JSON.parse(record.diagnostic_json).code,'database_schema_missing');
 });
 
-test('mode guidance preserves canon and requires explicit owner technical intent',()=>{
+test('mode guidance preserves canon without granting spoken backend access',()=>{
   const canon='Nina is a human living in Berlin in 2063.';
   const owner=assembleSystemPrompt({systemPrompt:canon},true,'Private context').systemPrompt;
   const guest=assembleSystemPrompt({systemPrompt:canon},false,'').systemPrompt;
-  assert.ok(owner.startsWith(canon));assert.match(owner,/Only an explicit owner request/);
-  assert.match(owner,/Criticism, affection and questions about a failed recollection do not start this mode/);
+  assert.ok(owner.startsWith(canon));assert.match(owner,/Application maintenance is separate/);
+  assert.match(owner,/A spoken phrase does not give you access/);
   assert.doesNotMatch(guest,/Only an explicit owner request/);assert.match(guest,/does not grant account permissions/);
 });

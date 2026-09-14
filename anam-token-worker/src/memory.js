@@ -1,4 +1,4 @@
-import { isNinaMetaBreakMessage, isNinaImplementationMemory, cleanNinaDerivedMemory } from './nina-meta-context.js';
+import { personalContinuityMessages, isNinaMetaBreakMessage, isNinaImplementationMemory, cleanNinaDerivedMemory } from './nina-meta-context.js';
 export { isNinaMetaBreakMessage } from './nina-meta-context.js';
 import { modelJson } from './model-json.js';
 import { memoryControls, controlledRows, controlledText, workspaceEnabled } from './memory-controls.js';
@@ -232,13 +232,13 @@ export async function buildOwnerMemoryContext(env, owner) {
     db.prepare("SELECT summary FROM memory_summaries WHERE visitor_id = ?").bind(owner.visitor_id).first(),
     db.prepare("SELECT thread_id, content FROM open_threads WHERE visitor_id = ? AND status = 'active' ORDER BY updated_at DESC LIMIT ?")
       .bind(owner.visitor_id, OPEN_THREAD_LIMIT).all(),
-    db.prepare("SELECT role, content, conversation_id, created_at FROM messages WHERE visitor_id = ? ORDER BY created_at DESC, rowid DESC LIMIT ?")
+    db.prepare("SELECT role, content, conversation_id, created_at FROM nina_personal_messages WHERE visitor_id = ? ORDER BY created_at DESC, rowid DESC LIMIT ?")
       .bind(owner.visitor_id, HISTORY_LIMIT).all()
   ]);
   const controls = await memoryControls(env, owner.user_id, owner.visitor_id);
   const pinned = controlledRows(pinnedResult.results || [], controls, "pin", "memory_id").filter(item=>!isNinaImplementationMemory(item.content));
   const threads = controlledRows(threadsResult.results || [], controls, "thread", "thread_id").filter(item=>!isNinaImplementationMemory(item.content));
-  const recent = (recentResult.results || []).reverse().filter(message => !isNinaMetaBreakMessage(message));
+  const recent = personalContinuityMessages((recentResult.results || []).reverse());
   const profileSection = `VALIDATED PERMANENT PROFILE\nName: ${owner.display_name}\nProfile: ${owner.profile_type}`;
   const recentItems = recent.map(formatRecentMessage);
   const recentSection = appendLatestItemsWithinBudget("LATEST COMPLETED MESSAGES", recentItems, 22000);
@@ -560,7 +560,7 @@ export async function loadConsolidationInput(env, visitorId) {
     "SELECT summary, messages_summarized_through, updated_at FROM memory_summaries WHERE visitor_id = ?"
   ).bind(visitorId).first();
   const messagesResult = await db.prepare(`
-    SELECT m.message_id, m.role, m.content, m.created_at, c.ended_at FROM messages m
+    SELECT m.message_id, m.role, m.content, m.created_at, m.memory_scope, c.ended_at FROM nina_scoped_messages m
     JOIN conversations c ON c.conversation_id = m.conversation_id
     WHERE m.visitor_id = ? AND m.rowid > COALESCE((SELECT rowid FROM messages WHERE message_id = ?), 0)
     ORDER BY m.rowid ASC LIMIT ?
@@ -588,7 +588,7 @@ export async function loadConsolidationInput(env, visitorId) {
   return {
     summaryRow,
     messages,
-    safeMessages: messages.filter(message => !isNinaMetaBreakMessage(message)),
+    safeMessages: personalContinuityMessages(messages.filter(message => message.memory_scope !== "technical")),
     openThreads: openResult.results || [],
     existingPinned: existingPinnedResult.results || [],
     subjectName: account?.role === "owner" ? "Alejandro" : "The visitor"

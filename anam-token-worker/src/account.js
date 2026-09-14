@@ -50,7 +50,7 @@ export async function getAccountPreferences(env, userId) {
 
 export async function learnPreferredNameFromConversation(env, userId, visitorId, conversationId) {
   const result = await env.NINA_MEMORY_DB.prepare(`
-    SELECT content FROM messages
+    SELECT content FROM nina_personal_messages
     WHERE visitor_id = ? AND conversation_id = ? AND role = 'user'
     ORDER BY created_at ASC, rowid ASC
   `).bind(visitorId, conversationId).all();
@@ -151,3 +151,4 @@ export async function deleteUserAccountData(env, user) {
   ]);
   return true;
 }
+

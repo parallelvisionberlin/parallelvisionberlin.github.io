@@ -1,3 +1,4 @@
+import { personalContinuityMessages } from './nina-meta-context.js';
 import { workspaceEnabled } from './memory-controls.js';
 import { lookupCatalog } from './catalog.js';
 import { isNinaMetaBreakMessage } from './memory.js';
@@ -56,17 +57,17 @@ async function performRecall(request, env, trace) {
   const match = patterns.map(() => "lower(m.content) LIKE ? ESCAPE '!'").join(' OR ');
   const records = await env.NINA_MEMORY_DB.prepare(`SELECT m.message_id,m.conversation_id,m.created_at,m.rowid AS position,
     (${patterns.map(() => "CASE WHEN lower(m.content) LIKE ? ESCAPE '!' THEN 1 ELSE 0 END").join('+')}) AS relevance
-    FROM messages m JOIN conversations c ON c.conversation_id=m.conversation_id
+    FROM nina_personal_messages m JOIN conversations c ON c.conversation_id=m.conversation_id
     WHERE m.visitor_id=? AND c.ended_at IS NOT NULL AND (${match})
     ORDER BY relevance DESC,m.created_at DESC LIMIT 3`)
     .bind(...patterns, scope.visitor_id, ...patterns).all();
   const passages = [];
   const used = new Set();
   for (const record of records.results || []) {
-    const context = await env.NINA_MEMORY_DB.prepare(`SELECT message_id,role,content,created_at FROM messages
+    const context = await env.NINA_MEMORY_DB.prepare(`SELECT message_id,role,content,created_at FROM nina_personal_messages
       WHERE visitor_id=? AND conversation_id=? AND rowid BETWEEN ? AND ? ORDER BY rowid ASC LIMIT 5`)
       .bind(scope.visitor_id, record.conversation_id, record.position - 2, record.position + 2).all();
-    const messages = (context.results || []).filter(m => !used.has(m.message_id) && !isNinaMetaBreakMessage(m)).map(m => {
+    const messages = personalContinuityMessages(context.results || []).filter(m => !used.has(m.message_id)).map(m => {
       used.add(m.message_id);
       return { id:m.message_id,speaker:m.role,text:m.content.slice(0,1200),truncated:m.content.length>1200,recordedAt:m.created_at };
     });
@@ -102,12 +103,12 @@ const RECALL_INTERPRETATION = 'Private sourced records for this session only. At
 export async function recentConversationPassages(env, visitorId, currentConversationId) {
   const call = await env.NINA_MEMORY_DB.prepare(`SELECT c.conversation_id,c.ended_at FROM conversations c
     WHERE c.visitor_id=? AND c.conversation_id<>? AND c.ended_at IS NOT NULL
-    AND EXISTS (SELECT 1 FROM messages m WHERE m.conversation_id=c.conversation_id AND m.visitor_id=c.visitor_id)
+    AND EXISTS (SELECT 1 FROM nina_personal_messages m WHERE m.conversation_id=c.conversation_id AND m.visitor_id=c.visitor_id)
     ORDER BY c.ended_at DESC,c.conversation_id DESC LIMIT 1`).bind(visitorId,currentConversationId).first();
   if (!call) return [];
-  const records=await env.NINA_MEMORY_DB.prepare(`SELECT message_id,role,content,created_at FROM messages
+  const records=await env.NINA_MEMORY_DB.prepare(`SELECT message_id,role,content,created_at FROM nina_personal_messages
     WHERE visitor_id=? AND conversation_id=? ORDER BY created_at DESC,rowid DESC LIMIT 12`).bind(visitorId,call.conversation_id).all();
-  return [{conversationId:call.conversation_id,endedAt:call.ended_at,partial:true,messages:(records.results||[]).reverse().filter(m=>!isNinaMetaBreakMessage(m)).map(m=>({
+  return [{conversationId:call.conversation_id,endedAt:call.ended_at,partial:true,messages:personalContinuityMessages((records.results||[]).reverse()).map(m=>({
     id:m.message_id,speaker:m.role,text:m.content.slice(0,500),truncated:m.content.length>500,recordedAt:m.created_at
   }))}];
 }

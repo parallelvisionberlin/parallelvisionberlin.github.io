@@ -1,3 +1,4 @@
+import { personalContinuityMessages } from './nina-meta-context.js';
 import { modelJson } from './model-json.js';
 import { memoryControls } from './memory-controls.js';
 // Agreements are sourced events. Tone summaries never write to this ledger.
@@ -10,7 +11,7 @@ const END = /\b(?:i (?:want to|am going to|have decided to) (?:break up|end (?:o
 const LABELS = ['girlfriend', 'boyfriend', 'partner', 'dating', 'friends', 'lovers'];
 const normalize = text => String(text || '').normalize('NFKC').replace(/[’]/g, "'").replace(/\s+/g, ' ').trim();
 const labelOf = text => /novia|freundin/i.test(text) ? 'girlfriend' : /novio/i.test(text) ? 'boyfriend' : /pareja|beziehung/i.test(text) ? 'partner' : LABELS.find(label => new RegExp(`\\b${label}\\b`, 'i').test(text));
-const cleanPair = (a, b) => a && b && a.role !== b.role && [a, b].every(m => ['user', 'persona'].includes(m.role));
+const cleanPair = (a, b) => a && b && (a.memory_segment ?? 0) === (b.memory_segment ?? 0) && a.role !== b.role && [a, b].every(m => ['user', 'persona'].includes(m.role));
 const PROPOSAL = /(?:want to be|would you be|will you be|shall we be|can we be|let'?s be|quieres ser|seamos|m[oö]chtest du|willst du)/i;
 const explicitEnd = text => END.test(normalize(text)) && !TEMPORARY.test(text)
   && !/\b(?:if|maybe|perhaps|someday|you said|i said|you asked|i asked|quoted?|would|might)\b/i.test(text);
@@ -113,10 +114,10 @@ export async function captureAgreements(env, identity, conversationId, options =
   const conversation = await db.prepare('SELECT conversation_id FROM conversations WHERE conversation_id=? AND visitor_id=?')
     .bind(conversationId, identity.visitor_id).first();
   if (!conversation) return { captured: 0 };
-  const rows = await db.prepare(`SELECT message_id, role, content, created_at, rowid AS source_order FROM messages
+  const rows = await db.prepare(`SELECT message_id, role, content, created_at, memory_segment, rowid AS source_order FROM nina_personal_messages
     WHERE visitor_id=? AND conversation_id=? ORDER BY rowid DESC LIMIT 120`)
     .bind(identity.visitor_id, conversationId).all();
-  const messages = (rows.results || []).reverse();
+  const messages = personalContinuityMessages((rows.results || []).reverse());
   if (!messages.length) return { captured: 0 };
   const scan = await db.prepare('SELECT through_order FROM nina_agreement_scans WHERE conversation_id=? AND user_id=?')
     .bind(conversationId, identity.user_id).first();
