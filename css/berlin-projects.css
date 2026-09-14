@@ -17,6 +17,10 @@
 .pv-berlin .world-cover{margin:0 0 80px;border-top:1px solid var(--archive-line)}
 .pv-berlin .world-cover-image{display:block}
 .pv-berlin .world-cover-image img{display:block;width:100%;height:auto;aspect-ratio:1916/821;object-fit:cover;object-position:center}
+.pv-berlin .archive-fashion{margin-bottom:80px}
+.pv-berlin .archive-fashion-image{margin-top:0;background:#050505}
+.pv-berlin .archive-fashion-image img{width:100%;height:auto;aspect-ratio:1916/821;object-fit:contain}
+.pv-berlin .archive-fashion-caption{padding-top:16px}
 .pv-project .robots-jump{grid-column:1/-1;justify-self:start;min-height:44px}
 .pv-berlin .world-cover-links{display:flex;align-items:center;justify-content:space-between;gap:24px;margin-top:16px}
 .pv-berlin .world-cover-links>a{min-height:44px}
@@ -67,6 +71,12 @@
  .pv-berlin .archive-carousel-count{font-size:10px}
  .pv-berlin .project-enter{margin-top:4px;font-size:13px}
  .pv-berlin .world-cover,.pv-berlin .project-preview{margin-bottom:42px}
+ .pv-berlin .archive-fashion{margin-bottom:42px}
+ .pv-berlin .archive-fashion .archive-carousel-index{display:none}
+ .pv-berlin .archive-fashion .archive-carousel-heading{padding:20px 0 16px;gap:10px}
+ .pv-berlin .archive-fashion .archive-carousel-heading h2{font-size:30px;line-height:1.1}
+ .pv-berlin .archive-fashion .archive-carousel-description{font-size:14px;line-height:1.5}
+ .pv-berlin .archive-fashion-caption{padding-top:6px;gap:4px}
  .pv-berlin .world-cover-links{margin-top:6px}
  .pv-berlin .world-cover-links>a{font-size:13px}
  .pv-project .project-header{min-height:66px}
