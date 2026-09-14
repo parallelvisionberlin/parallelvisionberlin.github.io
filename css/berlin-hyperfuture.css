@@ -4,6 +4,7 @@
 .pv-berlin a{color:inherit}
 .pv-berlin :where(a,button,summary):focus-visible{outline:2px solid #e9e9df;outline-offset:5px}
 .pv-berlin button{font:inherit}
+.pv-berlin .archive-icon{display:block;width:22px;height:22px;flex-shrink:0;color:inherit}
 .pv-berlin .skip-link{position:fixed;z-index:100;top:12px;left:12px;padding:14px;background:#eee;color:#111;transform:translateY(-180%)}
 .pv-berlin .skip-link:focus{transform:none}
 .pv-berlin .archive-nav{min-height:84px;padding:16px max(32px,calc((100vw - var(--archive-width))/2));gap:32px;font:500 11px/1.4 Inter,Arial,sans-serif;letter-spacing:.12em;background:linear-gradient(#0009,#0000);border-bottom:1px solid #ffffff1c}
@@ -44,10 +45,8 @@
 .pv-berlin .featured-film-label{font:11px/1.6 'Courier New',monospace;color:var(--archive-muted);letter-spacing:.1em}
 .pv-berlin .featured-film-description{font-size:15px;line-height:1.65;margin-bottom:0}
 .pv-berlin .featured-film-links{margin-top:8px}
-.pv-berlin .archive-curatorial-note{display:grid;grid-template-columns:1fr 3fr;gap:40px;margin:26px 0 70px;padding:40px 0 0;border-top:1px solid var(--archive-line)}
-.pv-berlin .archive-curatorial-note>div{max-width:850px}
-.pv-berlin .archive-curatorial-note>div>p{font-size:clamp(20px,2.1vw,28px);line-height:1.55;letter-spacing:-.025em;margin:0}
-.pv-berlin .archive-curatorial-note>div>.archive-curatorial-small{color:var(--archive-muted);font-size:15px;margin-top:20px;letter-spacing:0}
+.pv-berlin .archive-curatorial-note{margin:0 0 40px;padding:22px 0 0;border-top:1px solid var(--archive-line)}
+.pv-berlin .archive-curatorial-note>p{max-width:760px;font-size:17px;line-height:1.6;color:var(--archive-muted);margin:0}
 .pv-berlin .archive-carousel,.pv-berlin .archive-fashion{--carousel-ratio:16/9;width:100%;min-width:0;margin:0 0 88px;border-top:1px solid var(--archive-line)}
 .pv-berlin .archive-carousel--wide{--carousel-ratio:1916/821}
 .pv-berlin .archive-carousel-heading{display:grid;grid-template-columns:1.08fr 1fr;gap:23px 64px;padding:30px 0 24px;align-items:start}
@@ -67,7 +66,7 @@
 .pv-berlin .archive-carousel-count{font:12px/1.5 'Courier New',monospace;white-space:nowrap;letter-spacing:.08em}
 .pv-berlin .archive-carousel-hint{color:#a6a6a0;font-size:12px;line-height:1.5}
 .pv-berlin .archive-carousel-arrows{display:flex;gap:10px;margin-left:auto}
-.pv-berlin .archive-carousel-arrows button{width:52px;height:48px;padding:0;border:1px solid #ffffff60;background:transparent;color:#eee;font:25px/1 Arial,sans-serif;cursor:pointer;transition:border-color .2s}
+.pv-berlin .archive-carousel-arrows button{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;width:52px;height:48px;padding:0;border:1px solid #ffffff60;background:transparent;color:#eee;cursor:pointer;transition:border-color .2s}
 .pv-berlin .archive-carousel-arrows button:hover{border-color:#fff}
 .pv-berlin .archive-carousel-arrows button:disabled{opacity:.25;cursor:default}
 .pv-berlin .archive-text-link{display:inline-flex;gap:24px;align-items:center;min-height:48px;padding:8px 0;border-bottom:1px solid #ffffff60;font-size:15px;line-height:1.5;text-decoration:none}
@@ -135,22 +134,25 @@
  .pv-berlin .berlin-hero-line{margin-top:23px;font-size:16px;max-width:340px}
  .pv-berlin .berlin-hero-media img{object-position:61% 40%}
  .pv-berlin .berlin-hero-portals{grid-template-columns:repeat(2,minmax(0,1fr));gap:0 24px;margin-top:36px}
- .pv-berlin .berlin-hero-portals a{min-height:96px;padding:14px 0;gap:10px}
- .pv-berlin .berlin-hero-portals a:last-child{grid-column:1/-1;min-height:78px}
+ .pv-berlin .berlin-hero-portals a{min-height:82px;padding:12px 0;gap:8px}
+ .pv-berlin .berlin-hero-portals a:last-child{grid-column:1/-1;min-height:68px}
  .pv-berlin .berlin-hero-portals b{font-size:19px}
- .pv-berlin .portal-arrow{font-size:19px}
+ .pv-berlin .portal-arrow{display:none}
  .pv-berlin .berlin-archive-section{padding:24px 20px 0}
- .pv-berlin .featured-film-caption{grid-template-columns:1fr;gap:18px;padding-top:20px}
- .pv-berlin .featured-film{padding-bottom:20px}
- .pv-berlin .featured-film-caption h2{font-size:25px}
- .pv-berlin .archive-curatorial-note{grid-template-columns:1fr;gap:22px;margin-bottom:52px;padding-top:28px}
- .pv-berlin .archive-curatorial-note>div>p{font-size:21px;line-height:1.55}
+ .pv-berlin .featured-film-caption{grid-template-columns:1fr;gap:4px;padding-top:14px}
+ .pv-berlin .featured-film{padding-bottom:22px}
+ .pv-berlin .featured-film-caption h2{font-size:22px;margin-top:8px}
+ .pv-berlin .featured-film-description{display:none}
+ .pv-berlin .featured-film-links{margin-top:0}
+ .pv-berlin .featured-film-links a{font-size:13px;min-height:44px}
+ .pv-berlin .archive-curatorial-note{margin-bottom:24px;padding-top:20px}
+ .pv-berlin .archive-curatorial-note>p{font-size:15px;line-height:1.6}
  .pv-berlin .archive-carousel,.pv-berlin .archive-fashion{margin-bottom:58px}
- .pv-berlin .archive-carousel-heading{grid-template-columns:minmax(0,1fr);gap:18px;padding:24px 0 16px}
+ .pv-berlin .archive-carousel-heading{grid-template-columns:minmax(0,1fr);gap:12px;padding:20px 0 12px}
  .pv-berlin .archive-carousel-heading h2{font-size:clamp(30px,8vw,43px);line-height:1.12}
  .pv-berlin .archive-carousel-description{font-size:15px;line-height:1.65}
- .pv-berlin .archive-carousel-controls{gap:12px;padding-bottom:12px}
- .pv-berlin .archive-carousel-hint{max-width:145px;font-size:10px}
+ .pv-berlin .archive-carousel-controls{gap:12px;min-height:52px;padding-bottom:8px}
+ .pv-berlin .archive-carousel-hint{display:none}
  .pv-berlin .archive-carousel-arrows{gap:8px}
  .pv-berlin .archive-carousel-arrows button{width:44px;height:44px}
  .pv-berlin .archive-slide figcaption{font-size:12px;margin-top:12px}
