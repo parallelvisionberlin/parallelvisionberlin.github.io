@@ -1,5 +1,5 @@
 import { attachConversationDiagnostics } from "./nina-diagnostics.js?v=20260913-noise";
-import { speechConstraints } from "./nina-audio-input.js?v=20260913-noise";
+import { speechConstraints, openSpeechMicrophone, microphoneFailure } from "./nina-audio-input.js?v=20260914-mic-recovery";
 import { createNinaTrialPromotion } from "./nina-trial-promotion.js?v=20260905";
 import { isNinaWebsite, createConversationProgress, createAudioCheck } from "./nina-web-flow.js?v=20260910-speech-first";
 /* The access gate is theatrical client-side UI; its public hash is not authorization. */
@@ -1288,6 +1288,8 @@ function setNinaScrim(title, subtitle = "", message = "", buttonText = "") {
 }
 
 function showNinaReady(balance = ninaCreditsBalance, statusOverride = "") {
+  const intro = ninaOverlay.querySelector(".nina-intro-subtitle");
+  if (intro) intro.textContent = "She’s in Berlin, 2063. Start a conversation.";
   document.body.classList.remove("nina-connecting-mode", "nina-call-visible", "nina-conversation-live", "nina-scrim-visible", "nina-scrim-action");
   const creditStatus = statusOverride || (Number.isSafeInteger(balance)
     ? `${balance.toLocaleString()} CREDITS · ${formatLiveTime(balance * 6).toUpperCase()}`
@@ -1408,7 +1410,7 @@ function collapseNinaMicrophonePicker() {
 
 async function acquireNinaMicrophone(deviceId = "") {
   const sequence = ++ninaMicrophoneSequence;
-  const stream = await navigator.mediaDevices.getUserMedia(microphoneConstraints(deviceId));
+  const stream = await openSpeechMicrophone(navigator.mediaDevices, deviceId, () => sequence === ninaMicrophoneSequence);
   if (sequence !== ninaMicrophoneSequence) {
     stream.getTracks().forEach(track => track.stop());
     throw Object.assign(new Error("Microphone request cancelled"), { name: "AbortError" });
@@ -1421,6 +1423,7 @@ async function acquireNinaMicrophone(deviceId = "") {
   ninaMicrophoneCleanup();
   ninaMicrophoneStream?.getTracks().forEach(item => item.stop());
   ninaMicrophoneStream = stream;
+  ninaMicrophoneStatus.textContent = "MICROPHONE READY";
   let muteTimer = null;
   const ended = () => void handleNinaMicrophoneInterruption(stream);
   const muted = () => {
@@ -1456,14 +1459,7 @@ async function setupNinaMicrophones() {
         return;
       }
       const savedId = readPreferredMicrophone();
-      try {
-        await acquireNinaMicrophone(savedId);
-      } catch (error) {
-        if (!savedId || !["NotFoundError", "OverconstrainedError"].includes(error?.name)) throw error;
-        savePreferredMicrophone("");
-        await acquireNinaMicrophone();
-        ninaMicrophoneStatus.textContent = "SELECTED MICROPHONE UNAVAILABLE";
-      }
+      await acquireNinaMicrophone(savedId);
       const microphones = await listMicrophones();
       if (!microphones.length) {
         stopNinaMicrophone();
@@ -1478,11 +1474,9 @@ async function setupNinaMicrophones() {
     } catch (error) {
       stopNinaMicrophone();
       logDevelopmentError("Microphone setup failed.", error);
-      ninaMicrophoneSelect.replaceChildren(new Option("Microphone access required", ""));
+      ninaMicrophoneSelect.replaceChildren(new Option(microphoneFailure(error), ""));
       updateNinaMicrophoneName();
-      ninaMicrophoneStatus.textContent = error?.name === "NotFoundError"
-        ? "NO MICROPHONE DETECTED"
-        : "MICROPHONE ACCESS REQUIRED";
+      ninaMicrophoneStatus.textContent = microphoneFailure(error);
       startNina.disabled = false;
     } finally {
       ninaMicrophoneSelect.disabled = false;
@@ -1539,6 +1533,8 @@ function showNinaFailure(message = "Please check microphone access and try again
   document.body.classList.remove("nina-connecting-mode", "nina-conversation-live");
   document.body.classList.add("nina-scrim-visible", "nina-scrim-action");
   setNinaScrim("CONNECTION FAILED", "", message, "TRY AGAIN");
+  const intro = ninaOverlay.querySelector(".nina-intro-subtitle");
+  if (intro) intro.textContent = message;
   ninaStatus.textContent = "CONNECTION FAILED";
   startNina.disabled = false;
   startNina.textContent = "TRY AGAIN";
@@ -2181,7 +2177,10 @@ async function connectNina() {
       else if (error?.code === "email_verification_required") showNinaFailure("Confirm your email to open the signal.");
       else if (error?.code === "sign_in_required") {
         showNinaFailure("Sign in to open a paid Live Nina transmission.");
-      } else showNinaFailure();
+      } else if (connectionPhase === "microphone") {
+        ninaMicrophoneStatus.textContent = microphoneFailure(error);
+        showNinaFailure(microphoneFailure(error));
+      } else showNinaFailure("Nina could not connect. Please try again.");
     }
   } finally {
     if (attempt === ninaAttempt) ninaConnecting = false;

@@ -22,3 +22,31 @@ export function appliedSpeechSettings(track) {
     return [key, typeof value === 'boolean' ? value : null];
   }));
 }
+
+// Retry stale device selections or unsupported processing once with system defaults.
+export async function openSpeechMicrophone(mediaDevices, deviceId = '', isCurrent = () => true) {
+  if (!mediaDevices?.getUserMedia) throw Object.assign(new Error('Microphone unavailable'), { name: 'NotSupportedError' });
+  try {
+    return await mediaDevices.getUserMedia(speechConstraints(deviceId, mediaDevices.getSupportedConstraints?.() || {}));
+  } catch (error) {
+    if (!isCurrent() || !['NotFoundError', 'OverconstrainedError'].includes(error?.name)) throw error;
+    return await mediaDevices.getUserMedia({ audio: true, video: false });
+  }
+}
+
+export function microphoneFailure(error) {
+  switch (error?.name) {
+    case 'NotAllowedError': case 'SecurityError':
+      return 'Microphone permission blocked. Allow microphone access for this site in your browser and system settings.';
+    case 'NotFoundError':
+      return 'No microphone detected. Connect a microphone, then try again.';
+    case 'NotReadableError': case 'TrackStartError':
+      return 'Cannot open the microphone. Close other apps using it or select another microphone, then try again.';
+    case 'OverconstrainedError':
+      return 'This microphone could not start. Select another microphone, then try again.';
+    case 'NotSupportedError':
+      return 'Microphone capture is unavailable in this browser. Open this page in Chrome or Safari.';
+    default:
+      return 'The microphone could not start. Check its connection or select another microphone, then try again.';
+  }
+}
