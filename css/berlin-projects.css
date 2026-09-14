@@ -1,37 +1,90 @@
-/* World previews and the deeper visual research pages share the archive controls. */
-.pv-berlin .berlin-hero-portals{grid-template-columns:repeat(3,minmax(0,1fr))}
-.pv-berlin .project-enter{margin-top:22px}
-.pv-berlin .project-legacy{display:flex;flex-wrap:wrap;gap:8px 28px;margin-top:20px}
-.pv-berlin .project-legacy a{font-size:13px;border:0;gap:12px}
-.pv-berlin .project-legacy .archive-icon{display:none}
+/* Image-led entrances and restrained controls. */
+.pv-berlin .berlin-hero{min-height:82svh}
+.pv-berlin .berlin-hero-content{padding-bottom:72px}
+.pv-berlin .berlin-watch-film{border:1px solid #ffffff70;padding:12px 22px;margin-top:28px;font-size:13px;min-height:48px}
+.pv-berlin .berlin-watch-film:hover{background:#ffffff12}
+.pv-berlin .berlin-explore{display:inline-flex;align-items:center;min-height:48px;margin-left:26px;font-size:13px;text-decoration:underline;text-underline-offset:7px;text-decoration-color:#ffffff50}
+.pv-berlin .archive-text-link{border:0;font-size:14px;text-decoration:underline;text-underline-offset:7px;text-decoration-color:#ffffff55;gap:0}
+.pv-berlin .archive-text-link:hover{text-decoration-color:#fff}
+.pv-berlin .archive-carousel-controls{padding:8px 0 0;min-height:52px;gap:18px}
+.pv-berlin .archive-carousel-arrows{gap:2px}
+.pv-berlin .archive-carousel-arrows button{border:0;width:44px;height:44px}
+.pv-berlin .archive-carousel-arrows button:hover{background:#ffffff0c}
+.pv-berlin .archive-carousel-arrows .archive-icon{width:17px;height:17px}
+.pv-berlin .project-enter{margin-top:14px}
+.pv-berlin .project-preview .archive-slide figcaption{display:none}
+.pv-berlin .project-preview .archive-carousel-description{max-width:390px}
+.pv-berlin .world-cover{margin:0 0 80px;border-top:1px solid var(--archive-line)}
+.pv-berlin .world-cover-image{display:block}
+.pv-berlin .world-cover-image img{display:block;width:100%;height:auto}
+.pv-berlin .world-cover-links{display:flex;align-items:center;justify-content:space-between;gap:24px;margin-top:16px}
+.pv-berlin .world-cover-links>a{min-height:44px}
 .pv-project .project-header{position:relative;min-height:84px}
 .pv-project .archive-nav{position:relative;inset:auto}
-.pv-project .project-intro{padding:24px 0 30px;max-width:1000px}
-.pv-project .project-intro>.project-enter{margin:0 0 36px;font-size:13px}
-.pv-project .project-intro h1{font:350 clamp(44px,7vw,92px)/1.05 Inter,Arial,sans-serif;letter-spacing:-.05em;margin:20px 0}
-.pv-project .project-lead{font-size:clamp(16px,1.8vw,21px);line-height:1.6;color:var(--archive-muted);margin:0}
-.pv-project .project-contents{display:flex;flex-wrap:wrap;gap:4px 30px;border-top:1px solid var(--archive-line);padding:10px 0;margin-bottom:36px}
+.pv-project .project-intro{padding:0 0 24px}
+.pv-project .project-back{display:inline-flex;align-items:center;min-height:44px;font-size:11px;color:var(--archive-muted);margin-bottom:12px}
+.pv-project .project-back:hover{text-decoration:underline;text-underline-offset:5px}
+.pv-project .project-intro h1{font:350 clamp(38px,5.8vw,76px)/1.06 Inter,Arial,sans-serif;letter-spacing:-.04em;text-transform:none;margin:8px 0 16px}
+.pv-project .project-lead{font-size:16px;line-height:1.6;color:var(--archive-muted);margin:0;max-width:700px}
+.pv-project .project-world-hero{margin:0 0 24px;overflow:hidden;background:#050505}
+.pv-project .project-world-hero img{display:block;width:100%;height:auto;max-height:76svh;object-fit:cover}
+.pv-project .project-chapter-menu{border-bottom:1px solid var(--archive-line);margin:0 0 44px;padding-bottom:4px}
+.pv-project .project-chapter-menu summary{display:flex;align-items:center;justify-content:space-between;list-style:none;min-height:48px;font-size:13px;cursor:pointer}
+.pv-project .project-chapter-menu summary::-webkit-details-marker{display:none}
+.pv-project .project-chapter-menu summary::after{content:'+';font-size:20px;font-weight:300}
+.pv-project .project-chapter-menu[open] summary::after{content:'−'}
+.pv-project .project-contents{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0 20px;padding:8px 0 16px}
 .pv-project .project-contents a{display:flex;align-items:center;min-height:44px;font-size:14px}
-.pv-project .archive-carousel-heading h2{font-size:clamp(30px,3.8vw,48px)}
-.pv-project .project-notes{border-top:1px solid var(--archive-line);padding:32px 0 46px;max-width:840px}
-.pv-project .project-notes h2{font-size:28px;font-weight:400;letter-spacing:-.03em;margin:0 0 22px}
-.pv-project .project-notes p{font-size:16px;line-height:1.8;color:var(--archive-muted);margin:0 0 18px}
-.pv-project .project-related,.pv-project .project-next{display:flex;flex-wrap:wrap;gap:12px 40px}
-.pv-project .project-next{border-top:1px solid var(--archive-line);padding:20px 0 60px}
+.pv-project .archive-carousel-heading{padding:24px 0 20px;gap:12px 40px}
+.pv-project .archive-carousel-heading h2{font-size:clamp(28px,3.6vw,46px)}
+.pv-project .archive-carousel-index{display:none}
+.pv-project .single-series .archive-carousel-heading{display:none}
+.pv-project .single-series{border:0;margin-top:32px}
+.pv-project .project-notes{border-top:1px solid var(--archive-line);padding:30px 0 40px;max-width:840px}
+.pv-project .project-notes h2{font-size:25px;font-weight:400;letter-spacing:-.03em;margin:0 0 18px}
+.pv-project .project-notes p{font-size:16px;line-height:1.8;color:var(--archive-muted);margin:0 0 16px}
+.pv-project .project-related,.pv-project .project-next{display:flex;flex-wrap:wrap;gap:8px 32px}
+.pv-project .project-next{border-top:1px solid var(--archive-line);padding:20px 0 48px}
 @media(max-width:760px){
- .pv-berlin .berlin-hero-portals{grid-template-columns:repeat(2,minmax(0,1fr))}
- .pv-berlin .project-preview .archive-carousel-heading{gap:10px}
- .pv-berlin .project-preview .archive-carousel-description{font-size:14px;line-height:1.5}
- .pv-berlin .project-enter{font-size:14px;margin-top:16px;gap:18px}
- .pv-berlin .project-legacy{gap:0 22px;margin-top:10px}
+ .pv-berlin .berlin-hero{min-height:78svh;align-items:center}
+ .pv-berlin .berlin-hero-content{padding:112px 0 44px}
+ .pv-berlin .berlin-hero-label{font-size:9px;letter-spacing:.11em}
+ .pv-berlin .berlin-hero h1{margin-top:26px;font-size:clamp(44px,11.8vw,76px)}
+ .pv-berlin .berlin-hero-line{font-size:15px;line-height:1.55;max-width:285px}
+ .pv-berlin .berlin-watch-film{font-size:12px;padding:10px 15px;margin-top:26px}
+ .pv-berlin .berlin-explore{font-size:12px;margin-left:16px}
+ .pv-berlin .featured-film-caption{padding-top:12px;gap:0}
+ .pv-berlin .featured-film-caption h2{font-size:19px;margin:6px 0 0}
+ .pv-berlin .featured-film-label{font-size:9px}
+ .pv-berlin .featured-film-links{display:none}
+ .pv-berlin .featured-film{padding-bottom:28px}
+ .pv-berlin .project-preview .archive-carousel-index,.pv-berlin .world-cover .archive-carousel-index{display:none}
+ .pv-berlin .project-preview .archive-carousel-heading,.pv-berlin .world-cover .archive-carousel-heading{padding:20px 0 16px;gap:10px}
+ .pv-berlin .project-preview .archive-carousel-heading h2,.pv-berlin .world-cover .archive-carousel-heading h2{font-size:30px;line-height:1.1}
+ .pv-berlin .project-preview .archive-carousel-description,.pv-berlin .world-cover .archive-carousel-description{font-size:14px;line-height:1.5}
+ .pv-berlin .archive-carousel-controls{min-height:48px;padding:4px 0 0}
+ .pv-berlin .archive-carousel-count{font-size:10px}
+ .pv-berlin .project-enter{margin-top:4px;font-size:13px}
+ .pv-berlin .world-cover,.pv-berlin .project-preview{margin-bottom:42px}
+ .pv-berlin .world-cover-links{margin-top:6px}
+ .pv-berlin .world-cover-links>a{font-size:13px}
  .pv-project .project-header{min-height:66px}
- .pv-project .project-intro{padding:0 0 24px}
- .pv-project .project-intro>.project-enter{margin:0 0 24px}
- .pv-project .project-intro h1{font-size:clamp(39px,11vw,62px);margin:14px 0}
- .pv-project .project-contents{gap:0 24px;margin-bottom:20px}
+ .pv-project .berlin-archive-section{padding-top:12px}
+ .pv-project .project-intro{padding-bottom:18px}
+ .pv-project .project-back{font-size:10px;margin-bottom:4px}
+ .pv-project .project-intro h1{font-size:clamp(32px,9vw,43px);margin:6px 0 10px}
+ .pv-project .project-lead{font-size:14px;line-height:1.5}
+ .pv-project .project-world-hero{margin:0 -20px 16px}
+ .pv-project .project-world-hero img{height:auto;aspect-ratio:16/9;object-fit:cover}
+ .pv-project .project-chapter-menu{margin-bottom:26px}
+ .pv-project .project-contents{grid-template-columns:repeat(2,minmax(0,1fr));gap:0 18px}
  .pv-project .project-contents a{font-size:13px}
- .pv-project .project-notes{padding:26px 0 30px}
- .pv-project .project-notes h2{font-size:24px}
- .pv-project .project-notes p{font-size:15px;line-height:1.7}
- .pv-project .project-next{display:grid;justify-items:start;padding-bottom:40px}
+ .pv-project .archive-carousel-heading{padding:18px 0 14px;gap:8px}
+ .pv-project .archive-carousel-heading h2{font-size:28px}
+ .pv-project .archive-carousel-description{font-size:14px;line-height:1.5}
+ .pv-project .single-series{margin-top:24px}
+ .pv-project .project-notes{padding:24px 0 28px}
+ .pv-project .project-notes h2{font-size:23px}
+ .pv-project .project-notes p{font-size:14px;line-height:1.7}
+ .pv-project .project-next{display:grid;justify-items:start;padding-bottom:32px}
 }
