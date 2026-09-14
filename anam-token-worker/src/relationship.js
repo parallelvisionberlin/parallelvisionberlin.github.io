@@ -124,10 +124,13 @@ export async function evaluateCompletedRelationship(env, userId, visitorId, conv
   try {
     const row=await getOrCreateRelationshipState(env,userId);
     // Keep recent completed evidence since the last accepted change, with a fixed cap.
-    const result=await db.prepare(`SELECT m.role, m.content, m.conversation_id, m.memory_segment FROM nina_personal_messages m JOIN conversations c ON c.conversation_id=m.conversation_id
+    const result=await db.prepare(`WITH latest AS (SELECT m.message_id,m.conversation_id FROM nina_personal_messages m JOIN conversations c ON c.conversation_id=m.conversation_id
       WHERE m.visitor_id=? AND c.ended_at IS NOT NULL AND (m.conversation_id=? OR ? IS NULL OR m.created_at>?)
-      ORDER BY m.created_at DESC,m.rowid DESC LIMIT 120`).bind(visitorId,conversationId,row.updated_at||null,row.updated_at||null).all();
-    messages=boundedRelationshipMessages((result.results||[]).reverse());
+      ORDER BY m.created_at DESC,m.rowid DESC LIMIT 120)
+      SELECT m.role,m.content,m.conversation_id,m.memory_segment FROM nina_personal_messages m
+      WHERE m.visitor_id=? AND m.conversation_id IN (SELECT conversation_id FROM latest)
+      ORDER BY m.created_at DESC,m.rowid DESC`).bind(visitorId,conversationId,row.updated_at||null,row.updated_at||null,visitorId).all();
+    messages=boundedRelationshipMessages(personalContinuityMessages((result.results||[]).reverse()).slice(-120));
     inputCharacters=JSON.stringify(messages).length;
     if(!relationshipEvidenceQualifies(messages)&&!(audited&&relationshipReviewWarranted(messages))) {
       if(audited) await db.prepare('UPDATE nina_relationship_states SET last_evaluated_at=? WHERE user_id=?').bind(now,userId).run();

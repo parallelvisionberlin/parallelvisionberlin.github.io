@@ -232,13 +232,21 @@ export async function buildOwnerMemoryContext(env, owner) {
     db.prepare("SELECT summary FROM memory_summaries WHERE visitor_id = ?").bind(owner.visitor_id).first(),
     db.prepare("SELECT thread_id, content FROM open_threads WHERE visitor_id = ? AND status = 'active' ORDER BY updated_at DESC LIMIT ?")
       .bind(owner.visitor_id, OPEN_THREAD_LIMIT).all(),
-    db.prepare("SELECT role, content, conversation_id, memory_segment, created_at FROM nina_personal_messages WHERE visitor_id = ? ORDER BY created_at DESC, rowid DESC LIMIT ?")
-      .bind(owner.visitor_id, HISTORY_LIMIT).all()
+    // Include the beginning of the relevant calls so a maintenance boundary is
+    // not lost merely because it precedes the displayed history window.
+    db.prepare(`WITH latest AS (
+      SELECT message_id,conversation_id FROM nina_personal_messages
+      WHERE visitor_id=? ORDER BY created_at DESC,rowid DESC LIMIT ?
+    ) SELECT role,content,conversation_id,memory_segment,created_at FROM nina_personal_messages
+      WHERE visitor_id=? AND (conversation_id IN (SELECT conversation_id FROM latest)
+        OR message_id IN (SELECT message_id FROM latest))
+      ORDER BY created_at DESC,rowid DESC`)
+      .bind(owner.visitor_id, HISTORY_LIMIT, owner.visitor_id).all()
   ]);
   const controls = await memoryControls(env, owner.user_id, owner.visitor_id);
   const pinned = controlledRows(pinnedResult.results || [], controls, "pin", "memory_id").filter(item=>!isNinaImplementationMemory(item.content));
   const threads = controlledRows(threadsResult.results || [], controls, "thread", "thread_id").filter(item=>!isNinaImplementationMemory(item.content));
-  const recent = personalContinuityMessages((recentResult.results || []).reverse());
+  const recent = personalContinuityMessages((recentResult.results || []).reverse()).slice(-HISTORY_LIMIT);
   const profileSection = `VALIDATED PERMANENT PROFILE\nName: ${owner.display_name}\nProfile: ${owner.profile_type}`;
   const recentItems = recent.map(formatRecentMessage);
   const recentSection = appendLatestItemsWithinBudget("LATEST COMPLETED MESSAGES", recentItems, 22000);
@@ -576,19 +584,26 @@ export async function loadConsolidationInput(env, visitorId) {
     inputCharacters += cost;
   }
   if (!messages.length) return { summaryRow, messages, safeMessages: [], openThreads: [], existingPinned: [] };
-  const [openResult, existingPinnedResult, account] = await Promise.all([
+  const [openResult, existingPinnedResult, account, continuityResult] = await Promise.all([
     db.prepare(
       "SELECT thread_id, content FROM open_threads WHERE visitor_id = ? AND status = 'active' ORDER BY updated_at DESC LIMIT ?"
     ).bind(visitorId, OPEN_THREAD_LIMIT).all(),
     db.prepare(
       "SELECT memory_id, category, content, updated_at FROM pinned_memories WHERE visitor_id = ? ORDER BY updated_at DESC"
     ).bind(visitorId).all(),
-    db.prepare("SELECT role FROM users WHERE memory_visitor_id = ?").bind(visitorId).first()
+    db.prepare("SELECT role FROM users WHERE memory_visitor_id = ?").bind(visitorId).first(),
+    // A prior extraction batch can end in the middle of maintenance. Recover
+    // the call prefix before filtering, then keep only this batch's evidence.
+    db.prepare(`SELECT message_id,role,content,created_at,conversation_id,memory_scope,memory_segment FROM nina_scoped_messages
+      WHERE visitor_id=? AND conversation_id IN (${[...new Set(messages.map(m=>m.conversation_id))].map(()=>'?').join(',')})
+      AND rowid<=(SELECT rowid FROM messages WHERE message_id=?) ORDER BY rowid ASC`)
+      .bind(visitorId,...new Set(messages.map(m=>m.conversation_id)),messages.at(-1).message_id).all()
   ]);
+  const batchIds = new Set(messages.map(message=>message.message_id));
   return {
     summaryRow,
     messages,
-    safeMessages: personalContinuityMessages(messages.filter(message => message.memory_scope !== "technical")),
+    safeMessages: personalContinuityMessages((continuityResult.results || []).filter(message => message.memory_scope !== "technical")).filter(message=>batchIds.has(message.message_id)),
     openThreads: openResult.results || [],
     existingPinned: existingPinnedResult.results || [],
     subjectName: account?.role === "owner" ? "Alejandro" : "The visitor"

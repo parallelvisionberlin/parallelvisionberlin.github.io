@@ -349,7 +349,7 @@ test("invalid archivist JSON keeps deterministic explicit user memories without 
       if (sql.includes("SELECT 1 AS valid")) return { first: async () => ({ valid: 1 }) };
       if (sql.includes("SELECT role FROM users")) return { first: async () => ({ role: "owner" }) };
       if (sql.includes("SELECT summary, messages_summarized_through")) return { first: async () => null };
-      if (sql.includes("FROM messages m")) return { all: async () => ({ results: messages }) };
+      if (sql.includes("FROM messages m") || sql.includes("SELECT message_id,role,content,created_at,conversation_id,memory_scope,memory_segment")) return { all: async () => ({ results: messages }) };
       if (sql.includes("FROM open_threads") || sql.includes("FROM pinned_memories")) return { all: async () => ({ results: [] }) };
       return { sql, values };
     } }; },
