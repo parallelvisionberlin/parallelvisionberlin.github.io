@@ -19,13 +19,27 @@ export async function personalContext(env, userId) {
   return content ? `PRIVATE CONTEXT FOR THIS AUTHENTICATED VISITOR ONLY\n${content}\nA relationship label is established by the separate evidenced agreement record, never assumed from affection or a requested style.` : '';
 }
 
+export function knowledgeFolderIds(identity, env = {}) {
+  const clean = value => typeof value === 'string' ? value.trim() : '';
+  const shared = clean(env.NINA_PUBLIC_KNOWLEDGE_FOLDER_ID);
+  const privateOwner = clean(env.NINA_PRIVATE_KNOWLEDGE_FOLDER_ID) || clean(env.NINA_KNOWLEDGE_FOLDER_ID);
+  return [...new Set([shared, identity?.role === 'owner' ? privateOwner : ''].filter(Boolean))];
+}
+
+export function isKnowledgeTool(tool) {
+  return [tool, tool?.config].some(value => value && typeof value === 'object' && (
+    /knowledge|server_rag/i.test(`${value.name || ''} ${value.type || ''} ${value.subtype || ''}`) ||
+    Array.isArray(value.documentFolderIds)
+  ));
+}
+
 export function scopeKnowledge(config, identity, env) {
-  const folder = identity?.role === 'owner' ? env.NINA_KNOWLEDGE_FOLDER_ID : env.NINA_PUBLIC_KNOWLEDGE_FOLDER_ID;
+  const folders = knowledgeFolderIds(identity, env);
   // An unclassified folder must not be made available to every visitor.
   const knowledge = (config.tools || []).filter(tool => tool.subtype === 'knowledge');
-  config.tools = (config.tools || []).filter(tool => tool.subtype !== 'knowledge');
-  if (folder && knowledge.length) config.tools.push({ ...knowledge[0], documentFolderIds: [folder] });
-  return { scope: identity?.role === 'owner' ? 'owner' : 'shared', configured: Boolean(folder) };
+  config.tools = (config.tools || []).filter(tool => !isKnowledgeTool(tool));
+  if (folders.length && knowledge.length) config.tools.push({ ...knowledge[0], documentFolderIds: folders });
+  return { scope: identity?.role === 'owner' ? 'owner' : 'shared', configured: Boolean(folders.length && knowledge.length), documentFolderIds: knowledge.length ? folders : [] };
 }
 
 const REQUIRED_TOOLS = ['skip_turn', 'pause_conversation'];

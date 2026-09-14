@@ -32,9 +32,14 @@ Legacy Alejandro paragraphs in the saved Anam prompt are removed from other
 accounts' session prompts. This compatibility filter is not a general-purpose
 privacy classifier: the saved shared persona should contain only shared canon.
 
-The existing `NINA_KNOWLEDGE_FOLDER_ID` is available to owner sessions. Other
-accounts use only `NINA_PUBLIC_KNOWLEDGE_FOLDER_ID`. Set the latter after auditing
-its documents for shared canon; an unset value means no shared Knowledge tool.
+Every session uses `NINA_PUBLIC_KNOWLEDGE_FOLDER_ID` for shared canon. Verified
+owner sessions additionally use `NINA_PRIVATE_KNOWLEDGE_FOLDER_ID`; the older
+`NINA_KNOWLEDGE_FOLDER_ID` is an owner-only fallback when that explicit private
+binding is absent. Duplicate and empty folder IDs are removed. Other accounts
+never receive a private folder, even when `NINA_CONTINUITY_ENABLED` is disabled.
+Set the shared binding only after auditing its documents; an unset value means
+other accounts have no Knowledge tool. Keep separate documents inside each
+folder so individual canon topics can be updated independently.
 This does not modify the Anam Lab persona or share links that bypass this Worker.
 
 ## Tools

@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import worker, {
-  KNOWN_PUBLIC_GREETINGS, NINA_CONVERSATIONAL_RHYTHM, NINA_INTIMACY_CONTINUITY, OWNER_GREETINGS, UNKNOWN_NAME_INSTRUCTION, UNKNOWN_PUBLIC_GREETINGS,
+  EXPECTED_CONTACT_INTRODUCTION, KNOWN_PUBLIC_GREETINGS, NINA_CONVERSATIONAL_RHYTHM, NINA_INTIMACY_CONTINUITY, OWNER_GREETINGS, UNKNOWN_NAME_INSTRUCTION, UNKNOWN_PUBLIC_GREETINGS,
   applyStartupGreeting, assembleSystemPrompt, authenticatedMemoryDisplayName, buildLivePersonaConfig, buildPersonaDiagnostic,
   schedulePreferredNameLearning, unknownNameInstruction
 } from "../src/index.js";
@@ -95,7 +95,7 @@ test("system prompt assembly adds intimacy and conversational rhythm exactly onc
   for (const systemPrompt of [publicConfig.systemPrompt, ownerConfig.systemPrompt]) {
     assert.equal(systemPrompt.split(NINA_INTIMACY_CONTINUITY).length - 1, 1);
     assert.equal(systemPrompt.split(NINA_CONVERSATIONAL_RHYTHM).length - 1, 1);
-    assert.ok(systemPrompt.startsWith(`${basePrompt}\n\n${NINA_INTIMACY_CONTINUITY}`));
+    assert.ok(systemPrompt.startsWith(`${basePrompt}\n\n${EXPECTED_CONTACT_INTRODUCTION}\n\n${NINA_INTIMACY_CONTINUITY}`));
     assert.ok(systemPrompt.indexOf(NINA_INTIMACY_CONTINUITY) < systemPrompt.indexOf(NINA_CONVERSATIONAL_RHYTHM));
     assert.match(systemPrompt, /two to four short sentences are natural/);
     assert.doesNotMatch(systemPrompt, /default to one or two short sentences|Let follow-up questions carry the conversation/);
@@ -104,7 +104,9 @@ test("system prompt assembly adds intimacy and conversational rhythm exactly onc
     assert.ok(systemPrompt.endsWith(privateMemory));
   }
 
-  assert.equal(publicConfig.systemPrompt, [basePrompt, NINA_INTIMACY_CONTINUITY, NINA_CONVERSATIONAL_RHYTHM, conversationModeGuidance(false), privateMemory].join("\n\n"));
+  assert.equal(publicConfig.systemPrompt, [basePrompt, EXPECTED_CONTACT_INTRODUCTION, NINA_INTIMACY_CONTINUITY, NINA_CONVERSATIONAL_RHYTHM, conversationModeGuidance(false), privateMemory].join("\n\n"));
+  assert.match(publicConfig.systemPrompt, /Julia Payne artist Greenpoint Hamburger Bahnhof/);
+  assert.doesNotMatch(publicConfig.systemPrompt, /The current visitor is Alejandro/);
   assert.ok(ownerConfig.systemPrompt.indexOf(NINA_CONVERSATIONAL_RHYTHM) < ownerConfig.systemPrompt.indexOf("The current visitor is Alejandro"));
   assert.ok(ownerConfig.systemPrompt.indexOf("The current visitor is Alejandro") < ownerConfig.systemPrompt.indexOf(privateMemory));
 });
@@ -118,7 +120,8 @@ test("persona diagnostic is owner-only, sanitized and never creates a Live Nina 
   };
   const env = {
     ANAM_API_KEY: "anam-secret",
-    NINA_KNOWLEDGE_FOLDER_ID: "knowledge-folder-1",
+    NINA_PUBLIC_KNOWLEDGE_FOLDER_ID: "shared-folder-1",
+    NINA_PRIVATE_KNOWLEDGE_FOLDER_ID: "private-folder-1",
     CLERK_ISSUER: auth.issuer,
     NINA_MEMORY_DB: { prepare() { return { bind(subject) { return { first: async () => users[subject] || null }; } }; } }
   };
@@ -163,7 +166,7 @@ test("persona diagnostic is owner-only, sanitized and never creates a Live Nina 
       knowledgeAttachmentSource: "persona.knowledge",
       liveSessionKnowledge: {
         configured: true, hasKnowledgeTool: true, source: "worker.personaConfig.tools",
-        toolName: "nina_knowledge", documentFolderIds: ["knowledge-folder-1"]
+        toolName: "nina_knowledge", documentFolderIds: ["shared-folder-1", "private-folder-1"]
       },
       updatedAt: "2026-08-30T12:00:00.000Z"
     });
@@ -189,9 +192,13 @@ test("persona diagnostic safely reports when knowledge metadata is absent", () =
 test("live persona config injects exactly one configured knowledge tool and preserves non-knowledge tools", () => {
   const config = buildLivePersonaConfig({
     avatar: { id: "avatar-1" }, voice: { id: "voice-1" }, llmId: "gpt-5-chat", brain: { systemPrompt: "Published prompt." },
+    knowledge: [{ id: 'unscoped-folder' }], toolIds: ['unscoped-tool'], documentFolderIds: ['unscoped-folder'],
     tools: [
       { id: "tool-weather", name: "Weather", type: "client", subtype: "weather" },
-      { id: "old-knowledge", name: "Old Knowledge", type: "server", subtype: "knowledge" }
+      { id: "old-knowledge", name: "Old Knowledge", type: "server", subtype: "knowledge" },
+      { id: 'old-rag', name: 'Old reader', type: 'server_rag' },
+      { id: 'private-nested', name: 'Olivia', config: { subtype: 'knowledge', documentFolderIds: ['private-old'] } },
+      { id: 'private-folder', name: 'A custom name', documentFolderIds: ['private-old'] }
     ]
   }, "existing-folder-id");
   assert.equal(config.avatarId, "avatar-1");
@@ -199,9 +206,11 @@ test("live persona config injects exactly one configured knowledge tool and pres
   assert.equal(config.llmId, "gpt-5-chat");
   assert.equal(config.systemPrompt, "Published prompt.");
   assert.deepEqual(config.toolIds, ["tool-weather"]);
+  assert.equal(config.knowledge, undefined);
+  assert.equal(config.documentFolderIds, undefined);
   assert.deepEqual(config.tools, [{
     type: "server", subtype: "knowledge", name: "nina_knowledge",
-    description: "Find a specific missing established fact about Nina, named people, Parallel Vision or Berlin 2063 canon. Use information already supplied in current conversation or continuity first. Reuse relevant results; a name alone is not a reason to search. Use private recall for a past conversation and catalog lookup for published releases when those tools are available.",
+    description: "Find a specific missing established fact about Nina, named people, Parallel Vision or Berlin 2063 canon. Use information already supplied in current conversation or continuity first. Reuse relevant results; a name alone is not a reason to search unless the active prompt specifies an expected introduction and a shared contact lookup. Use private recall for a past conversation and catalog lookup for published releases when those tools are available.",
     documentFolderIds: ["existing-folder-id"]
   }]);
 });
@@ -225,4 +234,3 @@ test("session endpoint does not create an Anam session when knowledge configurat
     assert.equal(requests.length, 0);
   } finally { globalThis.fetch = originalFetch; }
 });
-

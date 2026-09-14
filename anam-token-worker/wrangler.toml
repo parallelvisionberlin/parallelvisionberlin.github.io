@@ -9,9 +9,10 @@ crons = ["*/5 * * * *"]
 [vars]
 NINA_CONTINUITY_ENABLED = "true"
 NINA_WORKSPACE_ENABLED = "true"
-# Set NINA_PUBLIC_KNOWLEDGE_FOLDER_ID only after that folder contains shared canon.
 CLERK_ISSUER = "https://clerk.parallelvisionlabel.com"
-NINA_KNOWLEDGE_FOLDER_ID = "afee1711-cba4-47ac-a4ed-7125bccf3947"
+# Deploy after the separate Anam folders are populated and indexed.
+NINA_PUBLIC_KNOWLEDGE_FOLDER_ID = "a70c1f61-4245-4759-83ac-aa5cc4d35892"
+NINA_PRIVATE_KNOWLEDGE_FOLDER_ID = "f32f5de6-0669-4113-a45f-15d974fb7859"
 # Set this to the effective Anam rate for the account; 0 keeps cost reporting explicitly unconfigured.
 ANAM_ESTIMATED_PRICE_PER_MINUTE_EUR = "0"
 

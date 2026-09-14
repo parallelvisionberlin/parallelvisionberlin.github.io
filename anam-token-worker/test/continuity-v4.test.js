@@ -3,7 +3,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { DatabaseSync } from 'node:sqlite';
 import test from 'node:test';
 import { agreementContext, captureAgreements, currentAgreements, deterministicAgreements, validateAgreementCandidates } from '../src/agreements.js';
-import { attachSystemTools, partitionPersonaPrompt, scopeKnowledge, personalContext } from '../src/persona-context.js';
+import { attachSystemTools, knowledgeFolderIds, partitionPersonaPrompt, scopeKnowledge, personalContext } from '../src/persona-context.js';
 import { attachMemoryTool, recallPrivateMemory } from '../src/memory-tools.js';
 import worker, { assembleSystemPrompt } from '../src/index.js';
 
@@ -148,6 +148,29 @@ test('pause attachment uses actual organization IDs, preserves existing tools an
   assert.deepEqual(missing.missing,['skip_turn','pause_conversation']);
 });
 
+test('shared canon is available to everyone and the explicit private folder replaces the legacy owner folder', () => {
+  const env = { NINA_PUBLIC_KNOWLEDGE_FOLDER_ID: ' shared ', NINA_PRIVATE_KNOWLEDGE_FOLDER_ID: ' private ', NINA_KNOWLEDGE_FOLDER_ID: 'mixed-legacy' };
+  assert.deepEqual(knowledgeFolderIds({ role: 'owner' }, env), ['shared', 'private']);
+  for (const identity of [null, { role: 'user' }]) {
+    assert.deepEqual(knowledgeFolderIds(identity, env), ['shared']);
+  }
+  const unrelated = { name: 'another_tool', type: 'server' };
+  const config = { tools: [{ name: 'nina_knowledge', subtype: 'knowledge', documentFolderIds: ['mixed-legacy'] }, unrelated] };
+  const result = scopeKnowledge(config, { role: 'owner' }, env);
+  assert.deepEqual(config.tools, [unrelated, { name: 'nina_knowledge', subtype: 'knowledge', documentFolderIds: ['shared', 'private'] }]);
+  assert.deepEqual(result, { scope: 'owner', configured: true, documentFolderIds: ['shared', 'private'] });
+  assert.deepEqual(scopeKnowledge({}, { role: 'owner' }, env), { scope: 'owner', configured: false, documentFolderIds: [] });
+});
+
+test('knowledge routing ignores empty and invalid IDs, deduplicates folders, and keeps legacy private fallback owner-only', () => {
+  assert.deepEqual(knowledgeFolderIds({ role: 'owner' }, { NINA_PUBLIC_KNOWLEDGE_FOLDER_ID: ' same ', NINA_PRIVATE_KNOWLEDGE_FOLDER_ID: 'same' }), ['same']);
+  const legacy = { NINA_PUBLIC_KNOWLEDGE_FOLDER_ID: ' ', NINA_PRIVATE_KNOWLEDGE_FOLDER_ID: '', NINA_KNOWLEDGE_FOLDER_ID: ' legacy ' };
+  assert.deepEqual(knowledgeFolderIds({ role: 'owner' }, legacy), ['legacy']);
+  assert.deepEqual(knowledgeFolderIds({ role: 'user' }, legacy), []);
+  assert.deepEqual(knowledgeFolderIds({ role: 'owner' }, { NINA_PUBLIC_KNOWLEDGE_FOLDER_ID: {}, NINA_PRIVATE_KNOWLEDGE_FOLDER_ID: [] }), []);
+  assert.deepEqual(knowledgeFolderIds({ role: 'owner' }), []);
+});
+
 test('pause discovery follows Anam pagination', async () => {
   const urls=[],config={};
   const result=await attachSystemTools(config,'synthetic-paged-key',async url=>{
@@ -209,7 +232,7 @@ test('the webhook route requires its scoped token even without a browser Origin 
   assert.equal(response.status,401);
 });
 
-test('authenticated session creation sends private agreements only to their account and attaches usable tool configuration', async () => {
+for (const continuity of ['true', 'false']) test(`authenticated sessions keep shared and private knowledge separate with continuity ${continuity}`, async () => {
   const f=fixture(), origin='http://127.0.0.1:4173';
   f.sqlite.prepare("UPDATE users SET role='owner',display_name='Alejandro' WHERE id='a'").run();
   f.add('a','user','Do you want to be my girlfriend?','u1');f.add('a','persona','Yes. I want to be your girlfriend.','n1');
@@ -217,7 +240,7 @@ test('authenticated session creation sends private agreements only to their acco
   f.sqlite.prepare("INSERT INTO nina_private_context VALUES ('a','OWNER PRIVATE PREFERENCE','2026-09-12')").run();
   const keys=await crypto.subtle.generateKey({name:'RSASSA-PKCS1-v1_5',modulusLength:2048,publicExponent:new Uint8Array([1,0,1]),hash:'SHA-256'},true,['sign','verify']);
   const jwk=await crypto.subtle.exportKey('jwk',keys.publicKey);jwk.kid='continuity-key';
-  const issuer='https://continuity-tests.clerk.accounts.dev', encode=value=>Buffer.from(JSON.stringify(value)).toString('base64url');
+  const issuer=`https://continuity-${continuity}-tests.clerk.accounts.dev`, encode=value=>Buffer.from(JSON.stringify(value)).toString('base64url');
   const token=async id=>{
     const now=Math.floor(Date.now()/1000), input=`${encode({alg:'RS256',kid:jwk.kid})}.${encode({iss:issuer,sub:`user_${id}`,azp:origin,iat:now,nbf:now,exp:now+300})}`;
     const sig=await crypto.subtle.sign('RSASSA-PKCS1-v1_5',keys.privateKey,new TextEncoder().encode(input));
@@ -233,26 +256,28 @@ test('authenticated session creation sends private agreements only to their acco
     throw new Error(`Unexpected test request: ${url}`);
   };
   try {
-    const env={...f.env,CLERK_ISSUER:issuer,CLERK_SECRET_KEY:'synthetic-clerk',ANAM_API_KEY:'synthetic-session-key',NINA_KNOWLEDGE_FOLDER_ID:'mixed-owner'};
+    const env={...f.env,NINA_CONTINUITY_ENABLED:continuity,CLERK_ISSUER:issuer,CLERK_SECRET_KEY:'synthetic-clerk',ANAM_API_KEY:'synthetic-session-key',NINA_PUBLIC_KNOWLEDGE_FOLDER_ID:'shared-canon',NINA_PRIVATE_KNOWLEDGE_FOLDER_ID:'private-owner'};
     for (const id of ['a','b']) {
-      const response=await worker.fetch(new Request('https://worker.example/session-token',{method:'POST',headers:{Origin:origin,Authorization:`Bearer ${await token(id)}`},body:JSON.stringify({visitorId:'11111111-1111-4111-8111-111111111111'})}),env,{waitUntil(){}});
+      const response=await worker.fetch(new Request('https://worker.example/session-token',{method:'POST',headers:{Origin:origin,Authorization:`Bearer ${await token(id)}`},body:JSON.stringify({visitorId:'11111111-1111-4111-8111-111111111111',role:'owner',documentFolderIds:['private-owner']})}),env,{waitUntil(){}});
       const result=await response.json();
       assert.equal(response.status,200,JSON.stringify(result));
       assert.equal(result.sessionToken,'synthetic-session');
       assert.deepEqual(result.diagnostics.audioInput,{revision:'noise-control01',speechEnhancementLevel:1,silenceBeforeSkipTurnSeconds:0});
     }
-    assert.match(sent[0].systemPrompt,/CONFIRMED AGREEMENTS[\s\S]*girlfriend/);
-    assert.match(sent[0].systemPrompt,/OWNER PRIVATE PREFERENCE/);
+    if (continuity === 'true') {
+      assert.match(sent[0].systemPrompt,/CONFIRMED AGREEMENTS[\s\S]*girlfriend/);
+      assert.match(sent[0].systemPrompt,/OWNER PRIVATE PREFERENCE/);
+    }
     assert.match(sent[0].systemPrompt,/PRIVATE OWNER CANON/);
     assert.doesNotMatch(sent[1].systemPrompt,/girlfriend|OWNER PRIVATE|PRIVATE OWNER|Alejandro/);
-    assert.equal(sent[0].tools.some(t=>t.subtype==='knowledge'),true);
-    assert.equal(sent[1].tools.some(t=>t.subtype==='knowledge'),false);
+    assert.deepEqual(sent[0].tools.find(t=>t.subtype==='knowledge').documentFolderIds,['shared-canon','private-owner']);
+    assert.deepEqual(sent[1].tools.find(t=>t.subtype==='knowledge').documentFolderIds,['shared-canon']);
     for (const config of sent) {
       assert.deepEqual(config.voiceDetectionOptions,{speechEnhancementLevel:1,silenceBeforeSkipTurnSeconds:0});
-      assert.deepEqual(config.toolIds,['skip','pause']);
-      assert.equal(config.tools.some(t=>t.name==='recall_private_memory'),true);
+      assert.deepEqual(config.toolIds,continuity === 'true' ? ['skip','pause'] : undefined);
+      assert.equal(config.tools.some(t=>t.name==='recall_private_memory'),continuity === 'true');
     }
-    assert.notEqual(sent[0].tools.at(-1).headers.Authorization,sent[1].tools.at(-1).headers.Authorization);
+    if (continuity === 'true') assert.notEqual(sent[0].tools.at(-1).headers.Authorization,sent[1].tools.at(-1).headers.Authorization);
   } finally {globalThis.fetch=originalFetch;}
 });
 
