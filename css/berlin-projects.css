@@ -7,10 +7,16 @@
 .pv-berlin .archive-text-link{border:0;font-size:14px;text-decoration:underline;text-underline-offset:7px;text-decoration-color:#ffffff55;gap:0}
 .pv-berlin .archive-text-link:hover{text-decoration-color:#fff}
 .pv-berlin .archive-carousel-controls{padding:8px 0 0;min-height:52px;gap:18px}
-.pv-berlin .archive-carousel-arrows{gap:2px}
-.pv-berlin .archive-carousel-arrows button{border:0;width:44px;height:44px}
-.pv-berlin .archive-carousel-arrows button:hover{background:#ffffff0c}
-.pv-berlin .archive-carousel-arrows .archive-icon{width:17px;height:17px}
+.pv-berlin .archive-carousel-arrows{gap:10px}
+.pv-berlin .archive-carousel-arrows button{border:1px solid #ffffff80;border-radius:50%;background:#191919;color:#fff;width:44px;height:44px}
+.pv-berlin .archive-carousel-arrows button:hover{background:#303030;border-color:#fff}
+.pv-berlin .archive-carousel-arrows .archive-icon{width:22px;height:22px}
+.pv-berlin .project-enter,.pv-project .project-next>.archive-text-link{border:1px solid #ffffff80;border-radius:2px;background:#191919;color:#fff;min-height:48px;padding:10px 20px;text-decoration:none;font-size:14px}
+.pv-berlin .project-enter:hover,.pv-project .project-next>.archive-text-link:hover{background:#303030;border-color:#fff}
+.pv-berlin .world-gallery .archive-slide img{object-fit:cover}
+.pv-berlin .fashion-sheets .archive-slide>a{background:#efefed}
+.pv-berlin .fashion-sheets .archive-slide img{object-fit:contain}
+.pv-berlin .archive-carousel-count{color:#e8e8e3}
 .pv-berlin .project-enter{margin-top:14px}
 .pv-berlin .project-preview .archive-slide figcaption{display:none}
 .pv-berlin .project-preview .archive-carousel-description{max-width:390px}
