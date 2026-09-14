@@ -1356,13 +1356,49 @@ function stopNinaMicrophone() {
   stream?.getTracks().forEach(track => track.stop());
 }
 
+let ninaMicrophoneSwitch = null;
+async function switchLiveNinaMicrophone(deviceId = "") {
+  if (ninaMicrophoneSwitch) return ninaMicrophoneSwitch;
+  const client = ninaClient, attempt = ninaAttempt;
+  if (!client) return;
+  const current = () => client === ninaClient && attempt === ninaAttempt;
+  const task = (async () => {
+    ninaMicrophoneStatus.textContent = "SWITCHING MICROPHONE";
+    // Detach our old-track callbacks before the SDK intentionally stops that track.
+    ninaMicrophoneCleanup();
+    ninaMicrophoneCleanup = () => {};
+    try {
+      const microphones = await listMicrophones();
+      if (!current()) return;
+      const target = microphones.find(d => d.deviceId === deviceId)
+        || microphones.find(d => d.deviceId === "default") || microphones[0];
+      if (!target) throw new Error("No replacement microphone");
+      await withNinaDeadline(client.changeAudioInputDevice(target.deviceId), 8000);
+      if (!current()) return;
+      // The SDK now owns capture and stops its replacement stream when the call ends.
+      ninaMicrophoneStream?.getTracks().forEach(track => track.stop());
+      ninaMicrophoneStream = null;
+      savePreferredMicrophone(target.deviceId);
+      renderMicrophones(microphones, target.deviceId);
+      ninaMicrophoneStatus.textContent = "MICROPHONE READY";
+    } catch (error) {
+      if (!current()) return;
+      logDevelopmentError("Microphone switch failed.", error);
+      await stopNinaSession();
+      if (ninaOverlay.classList.contains("is-open")) showNinaFailure("Could not switch microphones. Connect a microphone, then try again.");
+    }
+  })();
+  ninaMicrophoneSwitch = task;
+  try { await task; } finally { if (ninaMicrophoneSwitch === task) ninaMicrophoneSwitch = null; }
+}
+
 async function handleNinaMicrophoneInterruption(stream) {
   if (stream !== ninaMicrophoneStream) return;
-  if (ninaClient || ninaConnecting) {
+  if (ninaClient && !ninaConnecting) {
+    await switchLiveNinaMicrophone();
+  } else if (ninaClient || ninaConnecting) {
     await stopNinaSession();
-    if (ninaOverlay.classList.contains("is-open")) {
-      showNinaFailure("The microphone disconnected. Check its connection, then try again. Unused credits remain in your account.");
-    }
+    if (ninaOverlay.classList.contains("is-open")) showNinaFailure("The microphone disconnected while connecting. Try again.");
   } else {
     stopNinaMicrophone();
     ninaMicrophoneStatus.textContent = "MICROPHONE DISCONNECTED";
@@ -1492,6 +1528,7 @@ async function refreshNinaMicrophones() {
     const selectedId = ninaMicrophoneSelect.value || readPreferredMicrophone();
     const microphones = await listMicrophones();
     if (!microphones.length) {
+      if (ninaMicrophoneSwitch) return;
       if (ninaClient || ninaConnecting) {
         await stopNinaSession();
         if (ninaOverlay.classList.contains("is-open")) showNinaFailure("No microphone is connected. Reconnect your microphone and try again.");
@@ -1504,12 +1541,11 @@ async function refreshNinaMicrophones() {
     }
     const selectedStillExists = !selectedId || microphones.some(device => device.deviceId === selectedId);
     renderMicrophones(microphones, selectedId);
-    if (!selectedStillExists) {
+    if (!selectedStillExists || (ninaClient && !ninaMicrophoneStream)) {
       savePreferredMicrophone("");
       ninaMicrophoneStatus.textContent = "SELECTED MICROPHONE UNAVAILABLE";
       if (ninaClient) {
-        await stopNinaSession();
-        showNinaFailure("The microphone disconnected. Try again to use the system default.");
+        await switchLiveNinaMicrophone();
         return;
       }
       await acquireNinaMicrophone();
@@ -1950,6 +1986,7 @@ async function settleNinaUsage(end = false, keepalive = false) {
 
 async function stopNinaSession() {
   if (ninaStoppingPromise) return ninaStoppingPromise;
+  ninaMicrophoneSwitch = null;
   ninaStoppingPromise = (async () => {
     if (NINA_WEB_FLOW) clearNinaWebSession();
     clearNinaLiveCountdown();
@@ -2547,11 +2584,7 @@ ninaMicrophoneSelect.addEventListener("change", async () => {
   const hadLiveClient = Boolean(ninaClient);
   try {
     if (hadLiveClient) {
-      await stopNinaSession();
-      await acquireNinaMicrophone(selectedId);
-      if (ninaOverlay.classList.contains("is-open")) {
-        showNinaFailure("Microphone changed. Reconnect to continue with the selected microphone. Unused Signal Credits remain in your account.");
-      }
+      await switchLiveNinaMicrophone(selectedId);
     } else {
       await acquireNinaMicrophone(selectedId);
     }
