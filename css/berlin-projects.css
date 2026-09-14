@@ -16,7 +16,8 @@
 .pv-berlin .project-preview .archive-carousel-description{max-width:390px}
 .pv-berlin .world-cover{margin:0 0 80px;border-top:1px solid var(--archive-line)}
 .pv-berlin .world-cover-image{display:block}
-.pv-berlin .world-cover-image img{display:block;width:100%;height:auto}
+.pv-berlin .world-cover-image img{display:block;width:100%;height:auto;aspect-ratio:1916/821;object-fit:cover;object-position:center}
+.pv-project .robots-jump{grid-column:1/-1;justify-self:start;min-height:44px}
 .pv-berlin .world-cover-links{display:flex;align-items:center;justify-content:space-between;gap:24px;margin-top:16px}
 .pv-berlin .world-cover-links>a{min-height:44px}
 .pv-project .project-header{position:relative;min-height:84px}
