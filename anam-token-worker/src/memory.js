@@ -232,7 +232,7 @@ export async function buildOwnerMemoryContext(env, owner) {
     db.prepare("SELECT summary FROM memory_summaries WHERE visitor_id = ?").bind(owner.visitor_id).first(),
     db.prepare("SELECT thread_id, content FROM open_threads WHERE visitor_id = ? AND status = 'active' ORDER BY updated_at DESC LIMIT ?")
       .bind(owner.visitor_id, OPEN_THREAD_LIMIT).all(),
-    db.prepare("SELECT role, content, conversation_id, created_at FROM nina_personal_messages WHERE visitor_id = ? ORDER BY created_at DESC, rowid DESC LIMIT ?")
+    db.prepare("SELECT role, content, conversation_id, memory_segment, created_at FROM nina_personal_messages WHERE visitor_id = ? ORDER BY created_at DESC, rowid DESC LIMIT ?")
       .bind(owner.visitor_id, HISTORY_LIMIT).all()
   ]);
   const controls = await memoryControls(env, owner.user_id, owner.visitor_id);
@@ -560,7 +560,7 @@ export async function loadConsolidationInput(env, visitorId) {
     "SELECT summary, messages_summarized_through, updated_at FROM memory_summaries WHERE visitor_id = ?"
   ).bind(visitorId).first();
   const messagesResult = await db.prepare(`
-    SELECT m.message_id, m.role, m.content, m.created_at, m.memory_scope, c.ended_at FROM nina_scoped_messages m
+    SELECT m.message_id, m.role, m.content, m.created_at, m.conversation_id, m.memory_scope, m.memory_segment, c.ended_at FROM nina_scoped_messages m
     JOIN conversations c ON c.conversation_id = m.conversation_id
     WHERE m.visitor_id = ? AND m.rowid > COALESCE((SELECT rowid FROM messages WHERE message_id = ?), 0)
     ORDER BY m.rowid ASC LIMIT ?
@@ -655,6 +655,11 @@ export async function consolidateMemory(env, visitorId, options = {}) {
   const input = await loadConsolidationInput(env, visitorId);
   const { messages } = input;
   if (!messages.length) return { consolidated: false, reason: "no_messages" };
+  // Fully excluded audit batches contain no personal evidence to extract.
+  // Complete only their cursor transaction; never ask a model to invent content.
+  if (!input.safeMessages.length) return applyMemoryExtraction(env, visitorId, input, {
+    summary_items: [], pinned_memories: [], open_threads: [], resolved_threads: []
+  }, options);
   const prompt = buildConsolidationPrompt(input);
   const response = await runArchivist(env, CONSOLIDATION_MODEL, prompt);
   const result = await applyMemoryExtraction(env, visitorId, input, extractJson(response), options);

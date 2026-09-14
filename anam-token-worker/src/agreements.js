@@ -11,7 +11,7 @@ const END = /\b(?:i (?:want to|am going to|have decided to) (?:break up|end (?:o
 const LABELS = ['girlfriend', 'boyfriend', 'partner', 'dating', 'friends', 'lovers'];
 const normalize = text => String(text || '').normalize('NFKC').replace(/[’]/g, "'").replace(/\s+/g, ' ').trim();
 const labelOf = text => /novia|freundin/i.test(text) ? 'girlfriend' : /novio/i.test(text) ? 'boyfriend' : /pareja|beziehung/i.test(text) ? 'partner' : LABELS.find(label => new RegExp(`\\b${label}\\b`, 'i').test(text));
-const cleanPair = (a, b) => a && b && (a.memory_segment ?? 0) === (b.memory_segment ?? 0) && a.role !== b.role && [a, b].every(m => ['user', 'persona'].includes(m.role));
+const cleanPair = (a, b) => a && b && (a.memory_segment ?? 0) === (b.memory_segment ?? 0) && (a.continuity_segment ?? 0) === (b.continuity_segment ?? 0) && (!a.conversation_id || !b.conversation_id || a.conversation_id === b.conversation_id) && a.role !== b.role && [a, b].every(m => ['user', 'persona'].includes(m.role));
 const PROPOSAL = /(?:want to be|would you be|will you be|shall we be|can we be|let'?s be|quieres ser|seamos|m[oö]chtest du|willst du)/i;
 const explicitEnd = text => END.test(normalize(text)) && !TEMPORARY.test(text)
   && !/\b(?:if|maybe|perhaps|someday|you said|i said|you asked|i asked|quoted?|would|might)\b/i.test(text);
@@ -114,10 +114,10 @@ export async function captureAgreements(env, identity, conversationId, options =
   const conversation = await db.prepare('SELECT conversation_id FROM conversations WHERE conversation_id=? AND visitor_id=?')
     .bind(conversationId, identity.visitor_id).first();
   if (!conversation) return { captured: 0 };
-  const rows = await db.prepare(`SELECT message_id, role, content, created_at, memory_segment, rowid AS source_order FROM nina_personal_messages
+  const rows = await db.prepare(`SELECT message_id, role, content, created_at, conversation_id, memory_segment, rowid AS source_order FROM nina_personal_messages
     WHERE visitor_id=? AND conversation_id=? ORDER BY rowid DESC LIMIT 120`)
     .bind(identity.visitor_id, conversationId).all();
-  const messages = personalContinuityMessages((rows.results || []).reverse());
+  const messages = personalContinuityMessages((rows.results || []).reverse(), { withSegments: true });
   if (!messages.length) return { captured: 0 };
   const scan = await db.prepare('SELECT through_order FROM nina_agreement_scans WHERE conversation_id=? AND user_id=?')
     .bind(conversationId, identity.user_id).first();
@@ -134,7 +134,13 @@ export async function captureAgreements(env, identity, conversationId, options =
         max_tokens: 650, temperature: 0
       });
       const parsed = parseExtraction(output);
-      if (parsed) candidates.push(...parsed.agreements); else complete = false;
+      if (parsed) {
+        candidates.push(...parsed.agreements);
+        // A valid JSON envelope is not successful extraction when its proposed
+        // evidence fails validation. Keep clear deterministic events, but retry
+        // the model pass instead of silently advancing over rejected candidates.
+        if (parsed.agreements.some(item => !validateAgreementCandidates([item], messages).length)) complete = false;
+      } else complete = false;
     } catch { complete = false; }
   }
   const verified = validateAgreementCandidates(candidates, messages).filter(item => item.source.source_order > (scan?.through_order || 0));

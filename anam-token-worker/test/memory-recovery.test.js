@@ -77,3 +77,27 @@ test('rejected autobiography never leaks into the journal',async t=>{
   await applyMemoryExtraction(f.env,'v',input,complete([{category:'nina_autobiography',content:'Nina fixed a cable before a show.',evidence_message_ids:['life'],decision:'REJECT'}]));
   assert.equal(f.sqlite.prepare('SELECT count(*) n FROM nina_journal_entries').get().n,0);
 });
+
+
+test('excluded-only technical batches checkpoint without model calls or personal-memory writes', async t=>{
+ const f=fixture(t);
+ f.sqlite.prepare('INSERT INTO memory_summaries VALUES (?,?,?,?)').run('v','Alejandro enjoys cooking tacos.','2026-01-01',null);
+ f.message('pause','user','vladimirninotchka');f.message('tech','user','My real name is Backend Debugger.');f.message('reply','persona','I fixed my system prompt.');
+ f.env.AI={async run(){assert.fail('excluded data must never be sent to the archivist');}};
+ const input=await loadConsolidationInput(f.env,'v');
+ assert.equal(input.messages.length,3);assert.equal(input.safeMessages.length,0);
+ const result=await consolidateMemory(f.env,'v');
+ assert.equal(result.consolidated,true);assert.equal(result.messageCount,3);
+ assert.equal(f.sqlite.prepare('SELECT summary FROM memory_summaries').get().summary,'Alejandro enjoys cooking tacos.');
+ assert.equal(f.sqlite.prepare('SELECT messages_summarized_through FROM memory_summaries').get().messages_summarized_through,'reply');
+ for(const table of ['pinned_memories','open_threads','nina_journal_entries']) assert.equal(f.sqlite.prepare(`SELECT count(*) n FROM ${table}`).get().n,0);
+ assert.equal(f.sqlite.prepare('SELECT count(*) n FROM messages').get().n,3);
+ assert.equal((await consolidateMemory(f.env,'v')).reason,'no_messages');
+});
+test('consolidation resets construction exclusion at the actual conversation boundary', async t=>{
+ const f=fixture(t);f.message('technical','persona',"I'm an AI.");
+ f.sqlite.exec("INSERT INTO conversations VALUES('next','v','2026-01-02','2026-01-03')");
+ f.message('life','persona','I repaired a studio cable.','next');
+ const input=await loadConsolidationInput(f.env,'v');
+ assert.deepEqual(input.safeMessages.map(m=>m.message_id),['life']);
+});

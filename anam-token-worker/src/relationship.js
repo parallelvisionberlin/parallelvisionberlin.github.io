@@ -124,7 +124,7 @@ export async function evaluateCompletedRelationship(env, userId, visitorId, conv
   try {
     const row=await getOrCreateRelationshipState(env,userId);
     // Keep recent completed evidence since the last accepted change, with a fixed cap.
-    const result=await db.prepare(`SELECT m.role, m.content FROM nina_personal_messages m JOIN conversations c ON c.conversation_id=m.conversation_id
+    const result=await db.prepare(`SELECT m.role, m.content, m.conversation_id, m.memory_segment FROM nina_personal_messages m JOIN conversations c ON c.conversation_id=m.conversation_id
       WHERE m.visitor_id=? AND c.ended_at IS NOT NULL AND (m.conversation_id=? OR ? IS NULL OR m.created_at>?)
       ORDER BY m.created_at DESC,m.rowid DESC LIMIT 120`).bind(visitorId,conversationId,row.updated_at||null,row.updated_at||null).all();
     messages=boundedRelationshipMessages((result.results||[]).reverse());
@@ -182,12 +182,12 @@ export async function relationshipEvaluationDiagnostic(env, userId, visitorId) {
   ]);
   if (!conversation) return null;
   const messages = (await env.NINA_MEMORY_DB.prepare(`
-    SELECT role, content FROM nina_personal_messages WHERE visitor_id = ? AND conversation_id = ?
+    SELECT role, content, conversation_id, memory_segment FROM nina_personal_messages WHERE visitor_id = ? AND conversation_id = ?
     ORDER BY created_at ASC, rowid ASC
   `).bind(visitorId, conversation.conversation_id).all()).results || [];
   const base = { last_attempted_conversation_id: conversation.conversation_id, attempted_at: conversation.ended_at };
   if (row?.last_evaluated_at && row.last_evaluated_at >= conversation.ended_at) return { ...base, status: "success" };
-  if (!relationshipEvidenceQualifies(messages)) return { ...base, status: "insufficient_evidence" };
+  if (!relationshipEvidenceQualifies(personalContinuityMessages(messages))) return { ...base, status: "insufficient_evidence" };
   return { ...base, status: "error", error: { code: "evaluation_not_recorded", message: "No completed relationship evaluation was recorded." } };
 }
 

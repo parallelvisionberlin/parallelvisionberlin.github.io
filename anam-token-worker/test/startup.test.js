@@ -201,7 +201,7 @@ test("live persona config injects exactly one configured knowledge tool and pres
   assert.deepEqual(config.toolIds, ["tool-weather"]);
   assert.deepEqual(config.tools, [{
     type: "server", subtype: "knowledge", name: "nina_knowledge",
-    description: "Search for established facts about Nina, named people, projects, Parallel Vision, Berlin 2063, releases, events and canon.",
+    description: "Find a specific missing established fact about Nina, named people, Parallel Vision or Berlin 2063 canon. Use information already supplied in current conversation or continuity first. Reuse relevant results; a name alone is not a reason to search. Use private recall for a past conversation and catalog lookup for published releases when those tools are available.",
     documentFolderIds: ["existing-folder-id"]
   }]);
 });

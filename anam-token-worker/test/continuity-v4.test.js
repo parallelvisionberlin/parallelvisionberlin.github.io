@@ -294,3 +294,34 @@ test('mode guidance preserves canon without granting spoken backend access',()=>
   assert.match(owner,/A spoken phrase does not give you access/);
   assert.doesNotMatch(guest,/Only an explicit owner request/);assert.match(guest,/does not grant account permissions/);
 });
+
+
+test('filtering a construction detour cannot turn a later yes into a relationship agreement', async () => {
+ const f=fixture();
+ f.add('a','persona','Would you be my partner?','proposal');
+ f.add('a','user','Are you human?','technical-user');
+ f.add('a','persona',"I'm an AI.",'technical-persona');
+ f.add('a','user','Yes, sounds good.','unrelated-yes');
+ const forged={key:'relationship_label',value:'partner',action:'agree',proposal_id:'proposal',acceptance_id:'unrelated-yes'};
+ const result=await captureAgreements(f.env,f.identity('a'),'call-a',{useModel:true,runExtractor:async()=>({agreements:[forged]})});
+ assert.equal(result.captured,0);
+ assert.equal(result.reason,'invalid_extraction');
+ assert.equal(f.sqlite.prepare('SELECT count(*) n FROM nina_agreement_events').get().n,0);
+ assert.equal(f.sqlite.prepare('SELECT count(*) n FROM nina_agreement_scans').get().n,0);
+ f.add('a','user','Do you want to be my girlfriend?','new-proposal');
+ f.add('a','persona','Yes, I want that.','new-acceptance');
+ await captureAgreements(f.env,f.identity('a'),'call-a');
+ assert.equal((await currentAgreements(f.env,'a'))[0].value,'girlfriend');
+});
+test('valid JSON with rejected agreement evidence preserves clear events and remains eligible for retry', async () => {
+ const f=fixture();
+ f.add('a','user','Do you want to be my girlfriend?','u1');f.add('a','persona','Yes.','n1');
+ const bad={key:'relationship_label',value:'girlfriend',action:'agree',proposal_id:'missing-id',acceptance_id:'n1'};
+ const result=await captureAgreements(f.env,f.identity('a'),'call-a',{useModel:true,runExtractor:async()=>({agreements:[bad]})});
+ assert.equal(result.reason,'invalid_extraction');
+ assert.equal((await currentAgreements(f.env,'a')).length,1);
+ assert.equal(f.sqlite.prepare('SELECT count(*) n FROM nina_agreement_scans').get().n,0);
+ const retry=await captureAgreements(f.env,f.identity('a'),'call-a',{useModel:true,runExtractor:async()=>({agreements:[]})});
+ assert.equal(retry.reason,undefined);
+ assert.equal(f.sqlite.prepare('SELECT count(*) n FROM nina_agreement_scans').get().n,1);
+});

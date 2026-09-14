@@ -1,7 +1,6 @@
 import { personalContinuityMessages } from './nina-meta-context.js';
 import { workspaceEnabled } from './memory-controls.js';
 import { lookupCatalog } from './catalog.js';
-import { isNinaMetaBreakMessage } from './memory.js';
 import { currentAgreements } from './agreements.js';
 
 async function digest(token) {
@@ -64,7 +63,7 @@ async function performRecall(request, env, trace) {
   const passages = [];
   const used = new Set();
   for (const record of records.results || []) {
-    const context = await env.NINA_MEMORY_DB.prepare(`SELECT message_id,role,content,created_at FROM nina_personal_messages
+    const context = await env.NINA_MEMORY_DB.prepare(`SELECT message_id,role,content,created_at,conversation_id,memory_segment FROM nina_personal_messages
       WHERE visitor_id=? AND conversation_id=? AND rowid BETWEEN ? AND ? ORDER BY rowid ASC LIMIT 5`)
       .bind(scope.visitor_id, record.conversation_id, record.position - 2, record.position + 2).all();
     const messages = personalContinuityMessages(context.results || []).filter(m => !used.has(m.message_id)).map(m => {
@@ -106,7 +105,7 @@ export async function recentConversationPassages(env, visitorId, currentConversa
     AND EXISTS (SELECT 1 FROM nina_personal_messages m WHERE m.conversation_id=c.conversation_id AND m.visitor_id=c.visitor_id)
     ORDER BY c.ended_at DESC,c.conversation_id DESC LIMIT 1`).bind(visitorId,currentConversationId).first();
   if (!call) return [];
-  const records=await env.NINA_MEMORY_DB.prepare(`SELECT message_id,role,content,created_at FROM nina_personal_messages
+  const records=await env.NINA_MEMORY_DB.prepare(`SELECT message_id,role,content,created_at,conversation_id,memory_segment FROM nina_personal_messages
     WHERE visitor_id=? AND conversation_id=? ORDER BY created_at DESC,rowid DESC LIMIT 12`).bind(visitorId,call.conversation_id).all();
   return [{conversationId:call.conversation_id,endedAt:call.ended_at,partial:true,messages:personalContinuityMessages((records.results||[]).reverse()).map(m=>({
     id:m.message_id,speaker:m.role,text:m.content.slice(0,500),truncated:m.content.length>500,recordedAt:m.created_at

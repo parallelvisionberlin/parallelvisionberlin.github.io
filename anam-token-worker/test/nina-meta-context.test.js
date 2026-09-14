@@ -1,7 +1,7 @@
 import { summaryRecords } from '../src/memory-reconciliation.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { isNinaMetaBreakMessage, isNinaImplementationMemory, cleanNinaDerivedMemory } from '../src/nina-meta-context.js';
+import { isNinaMetaBreakMessage, isNinaImplementationMemory, cleanNinaDerivedMemory, personalContinuityMessages } from '../src/nina-meta-context.js';
 import { boundedRelationshipMessages, relationshipSummary } from '../src/relationship.js';
 import { buildOwnerMemoryContext, mergeSummary, buildConsolidationPrompt } from '../src/memory.js';
 
@@ -45,4 +45,19 @@ test('filtering extraction context preserves summary IDs for later corrections',
  const prompt=buildConsolidationPrompt({summaryRow:{summary},safeMessages:[],openThreads:[],existingPinned:[]});
  assert.ok(prompt.includes(JSON.stringify(keep)));
  assert.doesNotMatch(prompt,/Nina is an AI\./);
+});
+
+
+test('ordinary AI professions and human rights discussion are not construction questions', () => {
+ const messages = ['You are a human rights lawyer in this scene.', 'Are you an AI researcher?', 'You are an artist.'].map(content => ({role:'user',content}));
+ assert.deepEqual(personalContinuityMessages(messages), messages);
+});
+test('Spanish construction exchange is excluded while a new personal subject remains available', () => {
+ const messages=[{role:'user',content:'¿Eres una IA?'},{role:'persona',content:'No soy una humana viviendo en Berlín.'},{role:'user',content:'¿Por qué?'},{role:'persona',content:'Eso viene de mi configuración.'},{role:'user',content:'Prefiero explicaciones breves.'}];
+ assert.deepEqual(personalContinuityMessages(messages),[messages[4]]);
+});
+test('a new call or resumed memory interval cannot inherit a prior technical window', () => {
+ const messages=[{conversation_id:'first',memory_segment:0,role:'persona',content:"I'm an AI."},{conversation_id:'second',memory_segment:0,role:'persona',content:'I repaired the studio cable.'},{conversation_id:'second',memory_segment:0,role:'persona',content:'My system prompt controls that.'},{conversation_id:'second',memory_segment:44,role:'persona',content:'The lower space is quiet tonight.'}];
+ assert.deepEqual(personalContinuityMessages(messages),[messages[1],messages[3]]);
+ assert.deepEqual(boundedRelationshipMessages(messages),[messages[1],messages[3]].map(({role,content})=>({role,content})));
 });

@@ -15,7 +15,7 @@ function relationshipDb(messages = []) {
     rows, messageQueries,
     prepare(sql) { sql=sql.replace(/nina_(?:personal|scoped)_messages/g,"messages");
       return { bind(...values) {
-        if (sql.includes("SELECT m.role, m.content FROM messages")) return { all: async () => {
+        if (sql.includes("FROM messages m JOIN conversations")) return { all: async () => {
           messageQueries.push(values);
           return { results: messages };
         } };
