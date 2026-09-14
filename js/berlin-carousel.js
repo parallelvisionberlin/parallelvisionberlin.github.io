@@ -1,5 +1,50 @@
 (() => {
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const viewer = document.querySelector('[data-image-viewer]');
+  let activeGallery = null;
+  let viewerIndex = 0;
+  let returnFocus = null;
+  const renderViewer = () => {
+    if (!viewer || !activeGallery) return;
+    const slide = activeGallery.slides[viewerIndex];
+    const source = slide.querySelector('img');
+    const image = viewer.querySelector('[data-viewer-image]');
+    image.src = source.currentSrc || source.src;
+    image.alt = source.alt;
+    viewer.querySelector('[data-viewer-title]').textContent = activeGallery.title.textContent;
+    viewer.querySelector('[data-viewer-caption]').textContent = slide.querySelector('figcaption').textContent;
+    viewer.querySelector('[data-viewer-count]').textContent = `${String(viewerIndex + 1).padStart(2, '0')} / ${String(activeGallery.slides.length).padStart(2, '0')}`;
+    viewer.querySelector('[data-viewer-prev]').disabled = viewerIndex === 0;
+    viewer.querySelector('[data-viewer-next]').disabled = viewerIndex === activeGallery.slides.length - 1;
+    const german = document.documentElement.lang === 'de';
+    viewer.setAttribute('aria-label', german ? 'Bildansicht' : 'Image viewer');
+    viewer.querySelector('[data-viewer-prev]').setAttribute('aria-label', german ? 'Vorheriges Bild' : 'Previous image');
+    viewer.querySelector('[data-viewer-next]').setAttribute('aria-label', german ? 'Nächstes Bild' : 'Next image');
+  };
+  const moveViewer = delta => {
+    if (!activeGallery) return;
+    viewerIndex = Math.max(0, Math.min(activeGallery.slides.length - 1, viewerIndex + delta));
+    activeGallery.go(viewerIndex, 'auto');
+    renderViewer();
+  };
+  if (viewer) {
+    viewer.querySelector('[data-viewer-close]').addEventListener('click', () => viewer.close());
+    viewer.querySelector('[data-viewer-prev]').addEventListener('click', () => moveViewer(-1));
+    viewer.querySelector('[data-viewer-next]').addEventListener('click', () => moveViewer(1));
+    viewer.addEventListener('keydown', event => {
+      if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+        event.preventDefault();
+        moveViewer(event.key === 'ArrowRight' ? 1 : -1);
+      }
+    });
+    viewer.addEventListener('close', () => {
+      document.documentElement.style.overflow = '';
+      const target = activeGallery?.slides[viewerIndex]?.querySelector('a') || returnFocus;
+      target?.focus({ preventScroll: true });
+      activeGallery = null;
+    });
+    window.addEventListener('pv-language-change', renderViewer);
+  }
   document.querySelectorAll('[data-carousel]').forEach(carousel => {
     const track = carousel.querySelector('[data-carousel-track]');
     const slides = Array.from(track.querySelectorAll('.archive-slide'));
@@ -25,6 +70,18 @@
       const target = Math.max(0, Math.min(slides.length - 1, position));
       track.scrollTo({ left: target * track.clientWidth, behavior });
     };
+    slides.forEach((slide, position) => {
+      slide.querySelector('a').addEventListener('click', event => {
+        if (suppressClick || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey || !viewer?.showModal) return;
+        event.preventDefault();
+        returnFocus = event.currentTarget;
+        activeGallery = { slides, go, title: document.getElementById(carousel.getAttribute('aria-labelledby')) };
+        viewerIndex = position;
+        renderViewer();
+        viewer.showModal();
+        document.documentElement.style.overflow = 'hidden';
+      });
+    });
     const language = () => {
       const german = document.documentElement.lang === 'de';
       const title = document.getElementById(carousel.getAttribute('aria-labelledby')).textContent;
@@ -104,5 +161,12 @@
     language();
     followHash();
     update();
+  });
+  const menu = document.querySelector('.berlin-account-menu');
+  document.querySelectorAll('.archive-nav-links > a').forEach(link => {
+    link.addEventListener('click', () => { if (menu) menu.open = false; });
+  });
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && menu) menu.open = false;
   });
 })();

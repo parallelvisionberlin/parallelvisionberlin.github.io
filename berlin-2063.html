@@ -1,807 +1,285 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Berlin 2063 / Parallel Vision</title>
-<meta name="description" content="A speculative visual archive of Berlin, 2063 and beyond, through urban chambers, human and synthetic encounters, machine intimacy and nightlife.">
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Berlin 2063 / Parallel Vision</title>
+<meta name="description" content="An audiovisual world by Parallel Vision. Explore Berlin’s possible futures through architecture, human and synthetic relationships, nightlife, sound and material culture.">
 <link rel="canonical" href="https://parallelvisionlabel.com/berlin-2063.html">
-<meta property="og:title" content="Berlin 2063 / Parallel Vision">
-<meta property="og:description" content="A speculative visual archive of Berlin, 2063 and beyond, through urban chambers, human and synthetic encounters, machine intimacy and nightlife.">
-<meta property="og:url" content="https://parallelvisionlabel.com/berlin-2063.html">
-<meta property="og:type" content="website">
-<meta property="og:image" content="https://parallelvisionlabel.com/assets/optimized/2063/hyperfuture/04-the-dense-city-below.webp">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Berlin 2063 / Parallel Vision">
-<meta name="twitter:description" content="A speculative visual archive of Berlin, 2063 and beyond, through urban chambers, human and synthetic encounters, machine intimacy and nightlife.">
-<meta name="twitter:image" content="https://parallelvisionlabel.com/assets/optimized/2063/hyperfuture/04-the-dense-city-below.webp">
-  <link rel="icon" type="image/png" href="./favicon.png">
-  <link rel="apple-touch-icon" href="./favicon.png">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="./fashion.css">
-  <script src="./language.js?v=curated-archive-2" defer></script>
-  <link rel="stylesheet" href="./css/featured-film.css">
-  <link rel="stylesheet" href="./css/berlin-sequences.css?v=20260911-nightlife">
-  <script src="./js/featured-film.js" defer></script>
-  <style>
-    .berlin-page {
-      --archive-line: rgba(255,255,255,.13);
-      --archive-muted: rgba(255,255,255,.62);
-      background: #000;
-    }
+<meta content="Berlin 2063 / Parallel Vision" property="og:title"/>
+<meta content="An audiovisual world by Parallel Vision. Explore Berlin’s possible futures through architecture, human and synthetic relationships, nightlife, sound and material culture." property="og:description"/>
+<meta content="https://parallelvisionlabel.com/berlin-2063.html" property="og:url"/>
+<meta content="website" property="og:type"/>
+<meta content="https://parallelvisionlabel.com/assets/optimized/2063/hyperfuture/04-the-dense-city-below.webp" property="og:image"/>
+<meta content="summary_large_image" name="twitter:card"/>
+<meta content="Berlin 2063 / Parallel Vision" name="twitter:title"/>
+<meta content="An audiovisual world by Parallel Vision. Explore Berlin’s possible futures through architecture, human and synthetic relationships, nightlife, sound and material culture." name="twitter:description"/>
+<meta content="https://parallelvisionlabel.com/assets/optimized/2063/hyperfuture/04-the-dense-city-below.webp" name="twitter:image"/>
+<link href="./favicon.png" rel="icon" type="image/png"/>
+<link href="./favicon.png" rel="apple-touch-icon"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="./fashion.css" rel="stylesheet"/>
+<script defer="" src="./language.js?v=curated-archive-2"></script>
+<link href="./css/featured-film.css" rel="stylesheet"/>
 
-    .berlin-hero {
-      position: relative;
-      min-height: 88svh;
-      display: grid;
-      align-items: end;
-      overflow: hidden;
-      isolation: isolate;
-      border-bottom: 1px solid var(--archive-line);
-    }
+<script defer="" src="./js/featured-film.js"></script>
 
-    .berlin-hero-media,
-    .berlin-hero-media::after {
-      position: absolute;
-      inset: 0;
-    }
-
-    .berlin-hero-media {
-      z-index: -2;
-      margin: 0;
-    }
-
-    .berlin-hero-media img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      object-position: center 58%;
-      filter: saturate(.7) brightness(.75) contrast(1.1);
-      animation: berlinHeroResolve 1.4s cubic-bezier(.2,.7,.2,1) both;
-    }
-
-    .berlin-hero-media::after {
-      content: "";
-      background:
-        linear-gradient(90deg, rgba(0,0,0,.82), rgba(0,0,0,.14) 68%, rgba(0,0,0,.64)),
-        linear-gradient(0deg, rgba(0,0,0,.92) 0%, rgba(0,0,0,.05) 58%, rgba(0,0,0,.56) 100%);
-    }
-
-    .berlin-hero-content {
-      width: min(100% - 52px, 1280px);
-      margin: 0 auto;
-      padding: 150px 0 clamp(74px, 9vw, 120px);
-    }
-
-    .berlin-hero-label,
-    .berlin-archive-label,
-    .berlin-intro-label,
-    .berlin-transmission-index,
-    .berlin-archive-counter {
-      color: rgba(255,255,255,.46);
-      font: clamp(.68rem,.72vw,.78rem) 'Courier New', monospace;
-      letter-spacing: .28em;
-      text-transform: uppercase;
-    }
-
-    .berlin-hero h1 {
-      max-width: 1050px;
-      margin-top: 24px;
-      font-family: Michroma, sans-serif;
-      font-size: clamp(54px, 10vw, 138px);
-      font-weight: 400;
-      letter-spacing: .075em;
-      line-height: .92;
-      text-transform: uppercase;
-    }
-
-    .berlin-hero-line {
-      max-width: 540px;
-      margin-top: 34px;
-      color: rgba(255,255,255,.7);
-      font-size: clamp(15px,1.2vw,18px);
-      line-height: 1.7;
-    }
-
-    .berlin-archive-section {
-      padding: clamp(82px,8vw,118px) 26px clamp(110px,13vw,190px);
-    }
-
-    .berlin-archive {
-      width: min(100%,1280px);
-      margin: 0 auto;
-      overflow: hidden;
-      --archive-section-title: clamp(1.1rem,1.55vw,1.55rem);
-      --archive-body: clamp(.95rem,1.05vw,1.1rem);
-    }
-
-    .berlin-archive-intro {
-      max-width: none;
-      margin-bottom: clamp(48px,5vw,64px);
-    }
-
-    .berlin-intro-copy {
-      display: grid;
-      grid-template-columns: minmax(0,640px) minmax(0,520px);
-      column-gap: clamp(48px,7vw,120px);
-      align-items: start;
-      margin-top: clamp(30px,3vw,42px);
-    }
-
-    .berlin-intro-copy p {
-      color: var(--archive-muted);
-      font-size: clamp(16px,1.18vw,18px);
-      line-height: 1.84;
-    }
-
-    .berlin-intro-copy p:first-child {
-      grid-row: 1 / span 3;
-      max-width: 600px;
-      color: rgba(255,255,255,.86);
-      font-size: clamp(24px,2vw,29px);
-      line-height: 1.62;
-    }
-
-    .berlin-intro-copy p:not(:first-child) {
-      grid-column: 2;
-      max-width: 500px;
-    }
-
-    .berlin-intro-copy p + p {
-      margin-top: 16px;
-    }
-
-    .berlin-moving-card {
-      margin: 0 0 clamp(54px,6vw,84px);
-      padding: clamp(22px,3vw,36px);
-      display: grid;
-      grid-template-columns: minmax(0,.34fr) minmax(0,.66fr) auto;
-      align-items: center;
-      gap: clamp(24px,4vw,60px);
-      border: 1px solid var(--archive-line);
-      transition: border-color .2s ease, background .2s ease;
-    }
-
-    .berlin-moving-card:hover,
-    .berlin-moving-card:focus-visible { border-color: rgba(255,255,255,.45); background: rgba(255,255,255,.025); }
-    .berlin-moving-card h2 { margin: 0; font-size: clamp(22px,2.5vw,36px); font-weight: 350; letter-spacing: -.035em; line-height: 1; text-transform: uppercase; }
-    .berlin-moving-card p { margin: 0; color: var(--archive-muted); font-size: clamp(14px,1.05vw,17px); line-height: 1.55; }
-    .berlin-moving-card span { color: rgba(255,255,255,.72); font-size: 9px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; white-space: nowrap; }
-
-    .berlin-archives {
-      border-top: 0;
-    }
-
-    .berlin-archive-chapter {
-      padding: clamp(80px,8vw,116px) 0;
-      border-bottom: 0;
-    }
-
-    .berlin-archive-chapter:first-child {
-      padding-top: 0;
-    }
-
-    .berlin-chapter-heading {
-      max-width: 760px;
-    }
-
-    .berlin-chapter-heading h3 {
-      margin-top: 10px;
-      font-family: Michroma, sans-serif;
-      font-size: clamp(28px,2.6vw,36px);
-      font-weight: 400;
-      letter-spacing: .045em;
-      line-height: 1.15;
-      text-transform: uppercase;
-    }
-
-    .berlin-chapter-taxonomy {
-      margin-top: 10px;
-      color: rgba(255,255,255,.62);
-      font: 10px/1.5 'Courier New', monospace;
-      letter-spacing: .16em;
-      text-transform: uppercase;
-    }
-
-    .berlin-chapter-description {
-      max-width: 590px;
-      margin-top: 10px;
-      color: var(--archive-muted);
-      font-size: clamp(13px,.95vw,15px);
-      line-height: 1.7;
-    }
-
-    .berlin-gallery {
-      width: 95%;
-      margin-top: 8px;
-      outline: none;
-    }
-
-    .berlin-archive-counter {
-      font-size: clamp(.76rem,.8vw,.86rem);
-      letter-spacing: .2em;
-    }
-
-    .berlin-gallery:focus-visible .berlin-gallery-frame {
-      outline: 1px solid rgba(255,255,255,.68);
-      outline-offset: 6px;
-    }
-
-    .berlin-gallery-frame {
-      position: relative;
-      aspect-ratio: 16 / 9.5;
-      overflow: hidden;
-      background: #030303;
-    }
-
-    .berlin-gallery-frame img {
-      display: block;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      filter: saturate(.72) brightness(.76) contrast(1.08);
-      opacity: 1;
-    }
-
-    .berlin-gallery.is-changing .berlin-gallery-frame img {
-      animation: berlin-gallery-fade-in 180ms ease-out;
-    }
-
-    @keyframes berlin-gallery-fade-in {
-      from { opacity: .82; }
-      to { opacity: 1; }
-    }
-
-    .berlin-gallery-meta {
-      display: grid;
-      grid-template-columns: minmax(0,1fr) auto;
-      gap: 28px;
-      align-items: start;
-      padding-top: 20px;
-    }
-
-    .berlin-gallery-caption {
-      max-width: 680px;
-      margin-top: 12px;
-      color: rgba(255,255,255,.52);
-      font-size: clamp(.86rem,1vw,1rem);
-      line-height: 1.65;
-    }
-
-    .berlin-gallery-navigation {
-      display: flex;
-      gap: clamp(28px,4vw,60px);
-    }
-
-    .berlin-gallery-button {
-      min-width: 76px;
-      min-height: 44px;
-      border: 0;
-      padding: 0;
-      background: transparent;
-      color: rgba(255,255,255,.7);
-      cursor: pointer;
-      font: 11px 'Courier New', monospace;
-      letter-spacing: .16em;
-      text-transform: uppercase;
-      transition: color .2s ease;
-    }
-
-    .berlin-gallery-button:hover,
-    .berlin-gallery-button:focus-visible {
-      color: #fff;
-      outline: 1px solid rgba(255,255,255,.5);
-      outline-offset: 4px;
-    }
-
-    .berlin-gallery-button:disabled {
-      cursor: default;
-      opacity: .4;
-    }
-
-    .berlin-material-culture-bridge {
-      width: 95%;
-      margin-top: clamp(28px,3vw,42px);
-      padding: clamp(28px,4vw,52px) 0;
-      border-top: 1px solid rgba(255,255,255,.16);
-      border-bottom: 1px solid rgba(255,255,255,.16);
-    }
-
-    .berlin-material-culture-link {
-      display: inline-flex;
-      min-height: 44px;
-      align-items: center;
-      color: rgba(255,255,255,.78);
-      font: 11px 'Courier New', monospace;
-      letter-spacing: .16em;
-      text-decoration: none;
-      text-transform: uppercase;
-      transition: color .2s ease, transform .2s ease;
-    }
-
-    .berlin-material-culture-link:hover,
-    .berlin-material-culture-link:focus-visible {
-      color: #fff;
-      transform: translateX(8px);
-      outline: 1px solid rgba(255,255,255,.5);
-      outline-offset: 4px;
-    }
-
-    .berlin-archive-closing {
-      max-width: 860px;
-      margin: clamp(64px,7vw,96px) auto 0;
-      color: #fff;
-      font-family: Michroma, sans-serif;
-      font-size: clamp(15px,1.35vw,21px);
-      letter-spacing: .025em;
-      line-height: 1.55;
-      text-align: center;
-      text-transform: uppercase;
-    }
-
-    .berlin-archive-closing > * {
-      display: block;
-      font-weight: inherit;
-    }
-
-    .berlin-nina-invitation {
-      width: min(100%,430px);
-      margin: clamp(42px,5vw,70px) auto 0;
-      display: grid;
-      justify-items: center;
-      gap: 18px;
-      text-align: center;
-    }
-
-    .nina-archive-note {
-      color: rgba(255,255,255,.48);
-      font: 10px/1.75 'Courier New', monospace;
-      letter-spacing: .08em;
-    }
-
-    .nina-signal {
-      width: min(100%,310px);
-      min-height: 60px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 13px;
-      border: 1px solid rgba(255,255,255,.48);
-      background: transparent;
-      color: #fff;
-      cursor: pointer;
-      text-transform: uppercase;
-      transition: transform .25s ease, background .25s ease, color .25s ease;
-    }
-
-    .nina-signal:hover,
-    .nina-signal:focus-visible {
-      background: #fff;
-      color: #000;
-      transform: translateY(-2px);
-    }
-
-    .nina-signal-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: currentColor;
-      box-shadow: 0 0 12px currentColor;
-      animation: ninaSignal 2.2s ease-in-out infinite;
-    }
-
-    .nina-signal-copy {
-      display: grid;
-      gap: 4px;
-      text-align: left;
-    }
-
-    .nina-signal-main {
-      font: 10px 'Courier New', monospace;
-      letter-spacing: .18em;
-    }
-
-    .nina-signal-sub {
-      opacity: .55;
-      font: 8px 'Courier New', monospace;
-      letter-spacing: .1em;
-    }
-
-    .berlin-footer {
-      display: flex;
-      justify-content: space-between;
-      gap: 24px;
-      border-top: 1px solid var(--archive-line);
-      padding: 28px 34px;
-      color: rgba(255,255,255,.5);
-      font: 9px 'Courier New', monospace;
-      letter-spacing: .2em;
-      text-transform: uppercase;
-    }
-
-    @keyframes berlinHeroResolve {
-      from { opacity: 0; transform: scale(1.035); }
-      to { opacity: 1; transform: scale(1); }
-    }
-
-    @keyframes ninaSignal {
-      50% { opacity: .35; box-shadow: 0 0 4px currentColor; }
-    }
-
-    @media (max-width: 760px) {
-      .archive-nav {
-        padding: 22px 18px;
-      }
-      .archive-nav-links {
-        gap: 14px;
-      }
-      .berlin-hero {
-        min-height: 78svh;
-      }
-      .berlin-hero-content {
-        width: calc(100% - 36px);
-        padding: 130px 0 68px;
-      }
-      .berlin-hero-media img {
-        object-position: 58% center;
-      }
-      .berlin-archive-section {
-        padding: 90px 18px 110px;
-      }
-      .berlin-archive-intro {
-        margin-bottom: 48px;
-      }
-      .berlin-intro-copy {
-        display: block;
-      }
-      .berlin-intro-copy p {
-        font-size: 17px;
-        line-height: 1.75;
-      }
-      .berlin-intro-copy p:first-child {
-        font-size: clamp(23px,6.5vw,25px);
-        line-height: 1.62;
-      }
-      .berlin-intro-copy p + p {
-        margin-top: 18px;
-      }
-      .berlin-moving-card { grid-template-columns: 1fr; gap: 16px; }
-      .berlin-moving-card span { white-space: normal; }
-      .berlin-archive-chapter {
-        padding: 68px 0;
-      }
-      .berlin-archive-chapter:first-child {
-        padding-top: 0;
-      }
-      .berlin-gallery {
-        width: 100%;
-        margin-top: 8px;
-      }
-      .berlin-gallery-frame {
-        aspect-ratio: 16 / 10;
-      }
-      .berlin-gallery-meta {
-        grid-template-columns: 1fr;
-        gap: 18px;
-      }
-      .berlin-gallery-navigation {
-        width: 100%;
-        justify-content: space-between;
-      }
-      .berlin-gallery-button {
-        min-width: 96px;
-        min-height: 48px;
-      }
-      .berlin-archive-closing {
-        margin-top: 64px;
-        font-size: 16px;
-      }
-      .berlin-footer {
-        display: grid;
-        padding: 26px 18px;
-      }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      html { scroll-behavior: auto; }
-      .berlin-hero-media img,
-      .berlin-gallery-frame img,
-      .nina-signal-dot {
-        animation: none;
-        transition: none;
-      }
-    }
-  </style>
-  <link rel="stylesheet" href="./css/base.css?v=20260814-1">
-  <link rel="stylesheet" href="./css/revamp.css?v=20260904-3">
-
-  <style>
-    /* Give the long display title a full row instead of a narrow side column. */
-    .pv-berlin .berlin-moving-card {
-      grid-template-columns: minmax(0, 1fr) auto;
-      grid-template-rows: auto auto;
-      gap: 24px 36px;
-    }
-    .pv-berlin .berlin-moving-card > * { min-width: 0; }
-    .pv-berlin .berlin-moving-card h2 {
-      grid-column: 1 / -1;
-      grid-row: 1;
-      font-size: clamp(24px, 3vw, 42px);
-      line-height: 1.2;
-      letter-spacing: -.02em;
-      overflow-wrap: anywhere;
-    }
-    .pv-berlin .berlin-moving-card p { grid-column: 1; grid-row: 2; align-self: center; }
-    .pv-berlin .berlin-moving-card > span {
-      grid-column: 2; grid-row: 2; align-self: center;
-      white-space: normal; font-size: 12px; letter-spacing: .08em;
-    }
-    @media (max-width: 900px) {
-      .pv-berlin .berlin-moving-card { grid-template-columns: minmax(0, 1fr); gap: 18px; }
-      .pv-berlin .berlin-moving-card h2 { font-size: clamp(20px, 4.2vw, 34px); }
-      .pv-berlin .berlin-moving-card > span { grid-column: 1; grid-row: 3; }
-    }
-  </style>
-<style>
-    /* Editorial navigation and discoverable account access. */
-    .pv-berlin .archive-nav {
-      box-sizing: border-box; padding: 24px max(24px, calc((100vw - 1320px) / 2));
-      min-height: 88px; gap: 24px; font-family: Inter, Arial, sans-serif;
-      font-size: 12px; font-weight: 500; letter-spacing: .12em;
-      background: linear-gradient(180deg, rgba(0,0,0,.65), rgba(0,0,0,.12));
-    }
-    .pv-berlin .archive-nav > a { flex-shrink: 0; color: #f0f0eb; opacity: 1; letter-spacing: .2em; }
-    .pv-berlin .archive-nav-links { align-items: center; gap: clamp(18px,2vw,32px); }
-    .pv-berlin .archive-nav-links > a { display: inline-flex; align-items: center; min-height: 44px; opacity: .85; }
-    .berlin-account-menu { position: relative; }
-    .berlin-account-menu summary { cursor: pointer; list-style: none; min-height: 44px; display: flex; align-items: center; gap: 10px; }
-    .berlin-account-menu summary::-webkit-details-marker { display: none; }
-    .berlin-account-menu summary::after { content: "+"; font-size: 18px; font-weight: 300; }
-    .berlin-account-menu[open] summary::after { content: "−"; }
-    .berlin-account-menu summary:focus-visible { outline: 1px solid #aaa; outline-offset: 4px; }
-    .berlin-account-panel { position: absolute; top: calc(100% + 12px); right: 0; width: 230px; padding: 12px 20px; border: 1px solid #383838; background: #111; box-shadow: 0 14px 40px #0008; }
-    .pv-berlin .berlin-account-panel a { display: flex; justify-content: space-between; align-items: center; min-height: 48px; font-size: 13px; letter-spacing: .02em; text-transform: none; opacity: .9; }
-    .berlin-account-panel a + a { border-top: 1px solid #292929; }
-    .berlin-account-panel span { color: #888; }
-    @media (max-width: 1000px) {
-      .pv-berlin .archive-nav { flex-wrap: wrap; gap: 4px 18px; padding: 18px 24px; }
-      .pv-berlin .archive-nav-links { order: 3; width: 100%; flex-wrap: wrap; gap: 0 20px; }
-      .pv-berlin .archive-nav > .pv-language-switch { margin-left: auto; }
-      .pv-berlin .berlin-hero-content { padding-top: 180px; }
-    }
-    @media (max-width: 600px) {
-      .pv-berlin .archive-nav { padding: 16px 18px; font-size: 11px; letter-spacing: .06em; }
-      .pv-berlin .archive-nav-links { gap: 0 16px; }
-      .pv-berlin .archive-nav-links a:nth-child(3) { display: inline-flex; }
-      .berlin-account-panel { right: auto; left: 0; width: 210px; max-width: calc(100vw - 76px); }
-      .pv-berlin .berlin-hero-content { padding-top: 210px; }
-    }
-  </style>
-<style>
-body.pv-berlin .berlin-hero-portals { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); width: min(920px,100%); border: 0; gap: 0 28px; }
-body.pv-berlin .berlin-hero-portals a { display: flex; align-items: center; gap: 14px; padding: 18px 0; min-height: 58px; border: 0; border-top: 1px solid #ffffff40; background: none; color: #e5e5df; }
-body.pv-berlin .berlin-hero-portals b { font: 400 16px/1.4 Inter,Arial,sans-serif; text-transform: none; letter-spacing: .01em; }
-body.pv-berlin .berlin-hero-portals span { font-size: 11px; color: #a4a49a; }
-body.pv-berlin .berlin-hero-portals a:hover { border-top-color: #fff; color: #fff; }
-body.pv-berlin .berlin-hero-portals a:focus-visible { outline: 1px solid white; outline-offset: 4px; }
-.berlin-archive-chapter { scroll-margin-top: 36px; }
-@media(max-width:600px) { body.pv-berlin .berlin-hero-portals { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 0 20px; } body.pv-berlin .berlin-hero-portals b { font-size: 14px; } }
-</style>
-  <link rel="stylesheet" href="./css/berlin-hyperfuture.css?v=20260914-carousel-1">
-  <script src="./js/berlin-carousel.js?v=20260914-carousel-1" defer></script>
+<link href="./css/berlin-hyperfuture.css?v=20260914-exhibition-1" rel="stylesheet"/>
+<script defer="" src="./js/berlin-carousel.js?v=20260914-exhibition-1"></script>
 </head>
 <body class="berlin-page pv-berlin">
   <a class="skip-link" href="#archive">Skip to main content</a>
-  <header class="berlin-hero">
+  <header class="berlin-hero" id="top">
     <nav class="archive-nav" aria-label="Berlin 2063 navigation">
       <a href="./index.html">Parallel Vision</a>
       <div class="archive-nav-links">
         <a href="#archive">Archive</a>
-        <a href="#world-nightlife" data-archive-en="Nightlife" data-archive-de="Nachtleben">Nightlife</a>
+        <a class="nav-sound" href="#archive-sound"><span data-archive-en="Sound" data-archive-de="Klang">Sound</span> <span aria-hidden="true">↗</span></a>
         <a href="./future-fashion.html">Fashion After Fabric</a>
         <a href="./nina-project.html">Nina FOK</a>
         <details class="berlin-account-menu">
-          <summary>Account</summary>
+          <summary aria-label="Navigation and account"><span data-archive-en="Account" data-archive-de="Konto">Account</span></summary>
           <div class="berlin-account-panel">
-            <a href="./account.html">Your account <span aria-hidden="true">↗</span></a>
-            <a href="./account.html#credits">Signal Credits <span aria-hidden="true">↗</span></a>
-            <a href="./account.html#redeemForm">Redeem code <span aria-hidden="true">↗</span></a>
+            <a class="archive-text-link" href="./account.html"><span data-archive-en="Your account" data-archive-de="Dein Konto">Your account</span> <span aria-hidden="true">↗</span></a>
+            <a class="archive-text-link" href="./account.html#credits"><span data-archive-en="Signal Credits" data-archive-de="Signal Credits">Signal Credits</span> <span aria-hidden="true">↗</span></a>
+            <a class="archive-text-link" href="./account.html#redeemForm"><span data-archive-en="Redeem code" data-archive-de="Code einlösen">Redeem code</span> <span aria-hidden="true">↗</span></a>
           </div>
         </details>
       </div>
     </nav>
     <figure class="berlin-hero-media" aria-hidden="true">
-      <img src="./assets/optimized/2063/urban-form/urbangalleryfirst.webp" alt="" decoding="async" loading="eager" fetchpriority="high" width="2048" height="1152">
+      <img src="./assets/optimized/2063/urban-form/urbangalleryfirst.webp" alt="" width="1800" height="1013" loading="eager" fetchpriority="high" decoding="async">
     </figure>
     <div class="berlin-hero-content">
       <p class="berlin-hero-label">Parallel Vision / Living Archive</p>
-      <h1>Berlin 2063</h1>
-      <p class="berlin-hero-line">A visual archive of Berlin, 2063 and beyond.</p>
-      <a class="berlin-watch-film" href="#berlin-beyond" data-archive-en="Watch Berlin 2063 and Beyond ↓" data-archive-de="Berlin 2063 and Beyond ansehen ↓">Watch Berlin 2063 and Beyond ↓</a>
-      <nav class="berlin-hero-portals" aria-label="Explore the Berlin 2063 archive">
-        <a href="#hyperfuture-berlin"><span>01</span><b>Hyperfuture Berlin</b></a>
-        <a href="#berlin-2063-studies"><span>02</span><b>Berlin 2063</b></a>
-      </nav>
+      <h1>Berlin<br>2063</h1>
+      <p class="berlin-hero-line" data-archive-en="An audiovisual world of possible futures." data-archive-de="Eine audiovisuelle Welt möglicher Zukünfte.">An audiovisual world of possible futures.</p>
+      <a class="berlin-watch-film" href="#berlin-beyond"><span data-archive-en="Watch the opening film" data-archive-de="Auftaktfilm ansehen">Watch the opening film</span> <span aria-hidden="true">↓</span></a>
+      <nav class="berlin-hero-portals" aria-label="Explore the Berlin 2063 archive"><a href="#hyperfuture-berlin"><span class="portal-number">01</span><b data-archive-en="Hyperfuture Berlin" data-archive-de="Hyperfuture Berlin">Hyperfuture Berlin</b><span class="portal-arrow" aria-hidden="true">↘</span></a><a href="#berlin-2063-studies"><span class="portal-number">02</span><b data-archive-en="Berlin 2063" data-archive-de="Berlin 2063">Berlin 2063</b><span class="portal-arrow" aria-hidden="true">↘</span></a><a href="#after-the-collapse"><span class="portal-number">03</span><b data-archive-en="After the Collapse" data-archive-de="Nach dem Kollaps">After the Collapse</b><span class="portal-arrow" aria-hidden="true">↘</span></a><a href="#world-nightlife"><span class="portal-number">04</span><b data-archive-en="Nightlife" data-archive-de="Nachtleben">Nightlife</b><span class="portal-arrow" aria-hidden="true">↘</span></a><a href="#world-materialCulture"><span class="portal-number">05</span><b data-archive-en="Fashion After Fabric" data-archive-de="Fashion After Fabric">Fashion After Fabric</b><span class="portal-arrow" aria-hidden="true">↘</span></a></nav>
     </div>
   </header>
-
   <main id="archive" class="berlin-archive-section">
     <div class="berlin-archive">
-    <section class="featured-film" id="berlin-beyond" aria-labelledby="featured-film-title">
-      <span id="world-transmissions" class="archive-anchor" aria-hidden="true"></span><figure class="featured-film-frame">
-        <video controls muted loop playsinline preload="none" width="3356" height="1440" poster="./assets/optimized/video/berlin-2063/hyper-future-berlin-poster.webp" data-featured-film aria-label="Berlin 2063 and Beyond, a film exploring Berlin’s hyperfuture">
-          <source src="https://pub-21c1e54026ca4574b09d269b385e2fca.r2.dev/hyper-future-berlin-desktop.mp4" data-mobile-src="https://pub-21c1e54026ca4574b09d269b385e2fca.r2.dev/hyper-future-berlin-mobile.mp4" type="video/mp4">
-          <a href="https://pub-21c1e54026ca4574b09d269b385e2fca.r2.dev/hyper-future-berlin-desktop.mp4">Watch Berlin 2063 and Beyond</a>
-        </video>
-      </figure>
-      <div class="featured-film-caption">
-        <div><p class="featured-film-label">Moving Transmissions / 01</p><h2 id="featured-film-title">Berlin 2063 and Beyond</h2></div>
-        <div>
-          <p class="featured-film-description" data-archive-en="A journey into Berlin’s hyperfuture. Monumental density, elevated roads and a city imagined far beyond 2063." data-archive-de="Eine Reise in Berlins Hyperzukunft. Monumentale Dichte, erhöhte Straßen und eine Stadt, die weit über 2063 hinausgedacht wird.">A journey into Berlin’s hyperfuture. Monumental density, elevated roads and a city imagined far beyond 2063.</p>
-          <p class="featured-film-details" data-archive-en="Film study / 44 seconds / 21:9" data-archive-de="Filmstudie / 44 Sekunden / 21:9">Film study / 44 seconds / 21:9</p>
-          <div class="featured-film-links"><a href="./moving-transmissions.html#transmissions" data-archive-en="Explore Moving Transmissions" data-archive-de="Moving Transmissions ansehen">Explore Moving Transmissions</a></div>
+      <section aria-labelledby="featured-film-title" class="featured-film" id="berlin-beyond">
+<span aria-hidden="true" class="archive-anchor" id="world-transmissions"></span><figure class="featured-film-frame">
+<video aria-label="Berlin 2063 and Beyond, a film exploring Berlin’s hyperfuture" controls="" data-featured-film="" height="1440" loop="" muted="" playsinline="" poster="./assets/optimized/video/berlin-2063/hyper-future-berlin-exhibition-poster.webp" preload="none" width="3356">
+<source data-mobile-src="https://pub-21c1e54026ca4574b09d269b385e2fca.r2.dev/hyper-future-berlin-mobile.mp4" src="https://pub-21c1e54026ca4574b09d269b385e2fca.r2.dev/hyper-future-berlin-desktop.mp4" type="video/mp4"/>
+<a href="https://pub-21c1e54026ca4574b09d269b385e2fca.r2.dev/hyper-future-berlin-desktop.mp4">Watch Berlin 2063 and Beyond</a>
+</video>
+</figure>
+<div class="featured-film-caption">
+<div><p class="featured-film-label" data-archive-de="Auftaktfilm / 44 Sekunden" data-archive-en="Opening film / 44 seconds">Opening film / 44 seconds</p><h2 class="film-title" id="featured-film-title">Berlin 2063 and Beyond</h2></div>
+<div>
+<p class="featured-film-description" data-archive-de="Eine Fahrt über die erhöhten Straßen eines imaginären Berlin." data-archive-en="A passage through the elevated roads of an imagined Berlin.">A passage through the elevated roads of an imagined Berlin.</p>
+
+<div class="featured-film-links"><a data-archive-de="Moving Transmissions ansehen" data-archive-en="Explore Moving Transmissions" href="./moving-transmissions.html#transmissions">Explore Moving Transmissions</a></div>
+</div>
+</div>
+</section>
+      <div class="archive-curatorial-note">
+        <p class="archive-eyebrow" data-archive-en="About the archive" data-archive-de="Über das Archiv">About the archive</p>
+        <div><p data-archive-en="Berlin 2063 is an evolving audiovisual world by Parallel Vision, connecting architecture, human and synthetic relationships, nightlife and material culture." data-archive-de="Berlin 2063 ist eine wachsende audiovisuelle Welt von Parallel Vision, die Architektur, menschliche und synthetische Beziehungen, Nachtleben und materielle Kultur verbindet.">Berlin 2063 is an evolving audiovisual world by Parallel Vision, connecting architecture, human and synthetic relationships, nightlife and material culture.</p>
+        <p class="archive-curatorial-small" data-archive-en="Each chapter follows a different possibility for the city." data-archive-de="Jedes Kapitel folgt einer anderen Möglichkeit für die Stadt.">Each chapter follows a different possibility for the city.</p></div>
+      </div>
+      <section class="archive-carousel archive-carousel--wide" id="hyperfuture-berlin" data-carousel aria-roledescription="carousel" aria-labelledby="hyperfuture-berlin-title">
+      <header class="archive-carousel-heading">
+        <p class="archive-carousel-index" data-archive-en="01 / Beyond 2063" data-archive-de="01 / Jenseits von 2063">01 / Beyond 2063</p>
+        <h2 id="hyperfuture-berlin-title" data-archive-en="Hyperfuture Berlin" data-archive-de="Hyperfuture Berlin">Hyperfuture Berlin</h2>
+        <p class="archive-carousel-description" data-archive-en="A distant branch of Berlin’s possible futures. Human and synthetic inhabitants share public space, private rituals and forms of attachment." data-archive-de="Ein ferner Zweig von Berlins möglichen Zukünften. Menschliche und synthetische Bewohner:innen teilen öffentliche Räume, private Rituale und Formen der Verbundenheit.">A distant branch of Berlin’s possible futures. Human and synthetic inhabitants share public space, private rituals and forms of attachment.</p>
+      </header>
+      <div class="archive-carousel-controls">
+        <span class="archive-carousel-count" data-carousel-count aria-live="polite" aria-atomic="true">01 / 10</span>
+        <span class="archive-carousel-hint" data-archive-en="Swipe to explore · Select an image to enlarge" data-archive-de="Wischen zum Entdecken · Bild zum Vergrößern auswählen">Swipe to explore · Select an image to enlarge</span>
+        <div class="archive-carousel-arrows">
+          <button type="button" data-carousel-prev aria-label="Previous image in Hyperfuture Berlin" disabled>←</button>
+          <button type="button" data-carousel-next aria-label="Next image in Hyperfuture Berlin">→</button>
         </div>
+      </div>
+      <div class="archive-carousel-track" data-carousel-track tabindex="0" aria-label="Hyperfuture Berlin. Swipe or use arrow keys.">
+        <figure class="archive-slide" role="group">
+      <a href="./assets/optimized/2063/hyperfuture/04-the-dense-city-below.webp" target="_blank" rel="noopener" draggable="false">
+        <img src="./assets/optimized/2063/hyperfuture/04-the-dense-city-below.webp" width="1916" height="821" alt="Human and synthetic inhabitants in a crowded passage beneath elevated walkways and large public projections." loading="lazy" decoding="async" draggable="false">
+      </a>
+      <figcaption  data-archive-en="The dense city below." data-archive-de="Die dichte Stadt darunter.">The dense city below.</figcaption>
+    </figure><figure class="archive-slide" role="group">
+      <span id="hyperfuture-posthuman" class="archive-anchor" aria-hidden="true"></span><span id="inhabitants-entry" class="archive-anchor" aria-hidden="true"></span><a href="./assets/optimized/2063/hyperfuture/13-human-and-machine-outside-the-archive.webp" target="_blank" rel="noopener" draggable="false">
+        <img src="./assets/optimized/2063/hyperfuture/13-human-and-machine-outside-the-archive.webp" width="1916" height="821" alt="A human and a pale synthetic companion stand together beside a layered city of elevated walkways." loading="lazy" decoding="async" draggable="false">
+      </a>
+      <figcaption  data-archive-en="Human and synthetic inhabitants outside the archive." data-archive-de="Menschliche und synthetische Bewohner:innen vor dem Archiv.">Human and synthetic inhabitants outside the archive.</figcaption>
+    </figure><figure class="archive-slide" role="group">
+      <span id="hyperfuture-urban-chambers" class="archive-anchor" aria-hidden="true"></span><a href="./assets/optimized/2063/hyperfuture/16-ninas-bath-grown-from-obsidian.webp" target="_blank" rel="noopener" draggable="false">
+        <img src="./assets/optimized/2063/hyperfuture/16-ninas-bath-grown-from-obsidian.webp" width="1916" height="821" alt="A dark stone bath in a private chamber overlooking elevated structures and a monumental projected face." loading="lazy" decoding="async" draggable="false">
+      </a>
+      <figcaption  data-archive-en="Private chamber overlooking the projection grid." data-archive-de="Privater Raum mit Blick auf das Projektionsnetz.">Private chamber overlooking the projection grid.</figcaption>
+    </figure><figure class="archive-slide" role="group">
+      <a href="./assets/optimized/2063/hyperfuture/15-the-controlled-garden.webp" target="_blank" rel="noopener" draggable="false">
+        <img src="./assets/optimized/2063/hyperfuture/15-the-controlled-garden.webp" width="1916" height="821" alt="A human and a synthetic companion examine plants in an enclosed garden overlooking the city." loading="lazy" decoding="async" draggable="false">
+      </a>
+      <figcaption  data-archive-en="The controlled garden." data-archive-de="Der kontrollierte Garten.">The controlled garden.</figcaption>
+    </figure><figure class="archive-slide" role="group">
+      <a href="./assets/optimized/2063/hyperfuture/08-chromia-an-object-in-the-void.webp" target="_blank" rel="noopener" draggable="false">
+        <img src="./assets/optimized/2063/hyperfuture/08-chromia-an-object-in-the-void.webp" width="1916" height="821" alt="A monumental reflective female form on a plinth in a dark civic hall, with figures standing at its base." loading="lazy" decoding="async" draggable="false">
+      </a>
+      <figcaption  data-archive-en="Chromia object installed in a civic interior." data-archive-de="Chromia-Objekt in einem öffentlichen Innenraum.">Chromia object installed in a civic interior.</figcaption>
+    </figure><figure class="archive-slide" role="group">
+      <span id="hyperfuture-machine-intimacy" class="archive-anchor" aria-hidden="true"></span><span id="world-robots" class="archive-anchor" aria-hidden="true"></span><a href="./assets/optimized/2063/hyperfuture/14-maintenance-as-a-ritual.webp" target="_blank" rel="noopener" draggable="false">
+        <img src="./assets/optimized/2063/hyperfuture/14-maintenance-as-a-ritual.webp" width="1916" height="821" alt="A reflective synthetic figure kneels beside a curved metal wall, touching its surface where a small light glows." loading="lazy" decoding="async" draggable="false">
+      </a>
+      <figcaption  data-archive-en="Maintenance as ritual." data-archive-de="Wartung als Ritual.">Maintenance as ritual.</figcaption>
+    </figure><figure class="archive-slide" role="group">
+      <a href="./assets/optimized/2063/hyperfuture/17-a-building-withdraws.webp" target="_blank" rel="noopener" draggable="false">
+        <img src="./assets/optimized/2063/hyperfuture/17-a-building-withdraws.webp" width="1916" height="821" alt="A curved building opens onto a crowded passage beside an older stone facade, with people visible on elevated levels." loading="lazy" decoding="async" draggable="false">
+      </a>
+      <figcaption  data-archive-en="A building withdraws from the street." data-archive-de="Ein Gebäude zieht sich von der Straße zurück.">A building withdraws from the street.</figcaption>
+    </figure><figure class="archive-slide" role="group">
+      <a href="./assets/optimized/2063/hyperfuture/19-the-night-passage-among-inhabitants.webp" target="_blank" rel="noopener" draggable="false">
+        <img src="./assets/optimized/2063/hyperfuture/19-the-night-passage-among-inhabitants.webp" width="1916" height="821" alt="Human and synthetic figures turn toward one another in a crowded passage beneath a large projected face." loading="lazy" decoding="async" draggable="false">
+      </a>
+      <figcaption  data-archive-en="Among the inhabitants of the Night Passage." data-archive-de="Unter den Bewohner:innen der Night Passage.">Among the inhabitants of the Night Passage.</figcaption>
+    </figure><figure class="archive-slide" role="group">
+      <a href="./assets/optimized/2063/hyperfuture/01-aegis-parked-at-the-night-passage.webp" target="_blank" rel="noopener" draggable="false">
+        <img src="./assets/optimized/2063/hyperfuture/01-aegis-parked-at-the-night-passage.webp" width="1916" height="821" alt="A low black vehicle parked beside human and synthetic figures beneath the arches of the Night Passage." loading="lazy" decoding="async" draggable="false">
+      </a>
+      <figcaption  data-archive-en="AEGIS at the Night Passage." data-archive-de="AEGIS an der Night Passage.">AEGIS at the Night Passage.</figcaption>
+    </figure><figure class="archive-slide" role="group">
+      <a href="./assets/optimized/2063/hyperfuture/06-robot-lovers-above-the-passage.webp" target="_blank" rel="noopener" draggable="false">
+        <img src="./assets/optimized/2063/hyperfuture/06-robot-lovers-above-the-passage.webp" width="1916" height="821" alt="Two synthetic figures sit close together, touching foreheads and holding hands above a busy multilevel passage." loading="lazy" decoding="async" draggable="false">
+      </a>
+      <figcaption  data-archive-en="Two synthetic bodies above the passage." data-archive-de="Zwei synthetische Körper über der Passage.">Two synthetic bodies above the passage.</figcaption>
+    </figure>
       </div>
     </section>
-
-      <section class="archive-carousel" id="hyperfuture-berlin" data-carousel aria-roledescription="carousel" aria-labelledby="hyperfuture-title">
-        <header class="archive-carousel-heading">
-          <p class="archive-carousel-index">01 / VISUAL ARCHIVE</p>
-          <h2 id="hyperfuture-title">Hyperfuture Berlin</h2>
-          <p data-archive-en="Hyperfuture Berlin is a speculative extension of the Berlin 2063 archive, looking further into the city’s possible futures. Here synthetic inhabitants, monumental civic interiors, new forms of mobility and altered social relations have become ordinary parts of urban life. The archive focuses on how that future is lived: how people gather, move, form attachments and share space with non-human beings." data-archive-de="Hyperfuture Berlin ist eine spekulative Erweiterung des Archivs Berlin 2063 und blickt weiter in die möglichen Zukünfte der Stadt. Synthetische Bewohner:innen, monumentale öffentliche Innenräume, neue Mobilitätsformen und veränderte soziale Beziehungen sind hier alltägliche Bestandteile des Stadtlebens. Das Archiv untersucht, wie diese Zukunft gelebt wird: wie Menschen zusammenkommen, sich bewegen, Bindungen eingehen und Räume mit nichtmenschlichen Wesen teilen.">Hyperfuture Berlin is a speculative extension of the Berlin 2063 archive, looking further into the city’s possible futures. Here synthetic inhabitants, monumental civic interiors, new forms of mobility and altered social relations have become ordinary parts of urban life. The archive focuses on how that future is lived: how people gather, move, form attachments and share space with non-human beings.</p>
-        </header>
-        <div class="archive-carousel-track" data-carousel-track tabindex="0" aria-label="Hyperfuture Berlin images. Swipe or use arrow keys.">
-          <figure class="archive-slide" role="group" aria-roledescription="slide" aria-label="Image 1 of 11">
-          <a href="./assets/optimized/2063/hyperfuture/04-the-dense-city-below.webp" target="_blank" rel="noopener" draggable="false">
-            <img src="./assets/optimized/2063/hyperfuture/04-the-dense-city-below.webp" width="1916" height="821" loading="lazy" decoding="async" alt="Human and synthetic inhabitants in a crowded passage beneath elevated walkways and large public projections." draggable="false">
-          </a>
-          <figcaption data-archive-en="The dense city below." data-archive-de="Die dichte Stadt darunter.">The dense city below.</figcaption>
-        </figure>
-<figure class="archive-slide" role="group" aria-roledescription="slide" aria-label="Image 2 of 11" id="hyperfuture-urban-chambers">
-          <a href="./assets/optimized/2063/hyperfuture/16-ninas-bath-grown-from-obsidian.webp" target="_blank" rel="noopener" draggable="false">
-            <img src="./assets/optimized/2063/hyperfuture/16-ninas-bath-grown-from-obsidian.webp" width="1916" height="821" loading="lazy" decoding="async" alt="A dark stone bath in a private chamber overlooking elevated structures and a monumental projected face." draggable="false">
-          </a>
-          <figcaption data-archive-en="Private chamber overlooking the projection grid." data-archive-de="Privater Raum mit Blick auf das Projektionsnetz.">Private chamber overlooking the projection grid.</figcaption>
-        </figure>
-<figure class="archive-slide" role="group" aria-roledescription="slide" aria-label="Image 3 of 11">
-          <a href="./assets/optimized/2063/hyperfuture/01-aegis-parked-at-the-night-passage.webp" target="_blank" rel="noopener" draggable="false">
-            <img src="./assets/optimized/2063/hyperfuture/01-aegis-parked-at-the-night-passage.webp" width="1916" height="821" loading="lazy" decoding="async" alt="A low black vehicle parked beside human and synthetic figures beneath the arches of the Night Passage." draggable="false">
-          </a>
-          <figcaption data-archive-en="AEGIS at the Night Passage." data-archive-de="AEGIS an der Night Passage.">AEGIS at the Night Passage.</figcaption>
-        </figure>
-<figure class="archive-slide" role="group" aria-roledescription="slide" aria-label="Image 4 of 11">
-          <a href="./assets/optimized/2063/hyperfuture/08-chromia-an-object-in-the-void.webp" target="_blank" rel="noopener" draggable="false">
-            <img src="./assets/optimized/2063/hyperfuture/08-chromia-an-object-in-the-void.webp" width="1916" height="821" loading="lazy" decoding="async" alt="A monumental reflective female form on a plinth in a dark civic hall, with figures standing at its base." draggable="false">
-          </a>
-          <figcaption data-archive-en="Chromia object installed in a civic interior." data-archive-de="Chromia-Objekt in einem öffentlichen Innenraum.">Chromia object installed in a civic interior.</figcaption>
-        </figure>
-<figure class="archive-slide" role="group" aria-roledescription="slide" aria-label="Image 5 of 11">
-          <a href="./assets/optimized/2063/hyperfuture/17-a-building-withdraws.webp" target="_blank" rel="noopener" draggable="false">
-            <img src="./assets/optimized/2063/hyperfuture/17-a-building-withdraws.webp" width="1916" height="821" loading="lazy" decoding="async" alt="A curved building opens onto a crowded passage beside an older stone facade, with people visible on elevated levels." draggable="false">
-          </a>
-          <figcaption data-archive-en="A building withdraws from the street." data-archive-de="Ein Gebäude zieht sich von der Straße zurück.">A building withdraws from the street.</figcaption>
-        </figure>
-<figure class="archive-slide" role="group" aria-roledescription="slide" aria-label="Image 6 of 11" id="hyperfuture-posthuman">
-          <span id="inhabitants-entry" class="archive-anchor" aria-hidden="true"></span><a href="./assets/optimized/2063/hyperfuture/13-human-and-machine-outside-the-archive.webp" target="_blank" rel="noopener" draggable="false">
-            <img src="./assets/optimized/2063/hyperfuture/13-human-and-machine-outside-the-archive.webp" width="1916" height="821" loading="lazy" decoding="async" alt="A human and a pale synthetic companion stand together beside a layered city of elevated walkways." draggable="false">
-          </a>
-          <figcaption data-archive-en="Human and synthetic inhabitants outside the archive." data-archive-de="Menschliche und synthetische Bewohner:innen vor dem Archiv.">Human and synthetic inhabitants outside the archive.</figcaption>
-        </figure>
-<figure class="archive-slide" role="group" aria-roledescription="slide" aria-label="Image 7 of 11">
-          <a href="./assets/optimized/2063/hyperfuture/19-the-night-passage-among-inhabitants.webp" target="_blank" rel="noopener" draggable="false">
-            <img src="./assets/optimized/2063/hyperfuture/19-the-night-passage-among-inhabitants.webp" width="1916" height="821" loading="lazy" decoding="async" alt="Human and synthetic figures turn toward one another in a crowded passage beneath a large projected face." draggable="false">
-          </a>
-          <figcaption data-archive-en="Among the inhabitants of the Night Passage." data-archive-de="Unter den Bewohner:innen der Night Passage.">Among the inhabitants of the Night Passage.</figcaption>
-        </figure>
-<figure class="archive-slide" role="group" aria-roledescription="slide" aria-label="Image 8 of 11">
-          <a href="./assets/optimized/2063/hyperfuture/15-the-controlled-garden.webp" target="_blank" rel="noopener" draggable="false">
-            <img src="./assets/optimized/2063/hyperfuture/15-the-controlled-garden.webp" width="1916" height="821" loading="lazy" decoding="async" alt="A human and a synthetic companion examine plants in an enclosed garden overlooking the city." draggable="false">
-          </a>
-          <figcaption data-archive-en="The controlled garden." data-archive-de="Der kontrollierte Garten.">The controlled garden.</figcaption>
-        </figure>
-<figure class="archive-slide" role="group" aria-roledescription="slide" aria-label="Image 9 of 11" id="hyperfuture-machine-intimacy">
-          <span id="world-robots" class="archive-anchor" aria-hidden="true"></span><a href="./assets/optimized/2063/hyperfuture/14-maintenance-as-a-ritual.webp" target="_blank" rel="noopener" draggable="false">
-            <img src="./assets/optimized/2063/hyperfuture/14-maintenance-as-a-ritual.webp" width="1916" height="821" loading="lazy" decoding="async" alt="A reflective synthetic figure kneels beside a curved metal wall, touching its surface where a small light glows." draggable="false">
-          </a>
-          <figcaption data-archive-en="Maintenance as ritual." data-archive-de="Wartung als Ritual.">Maintenance as ritual.</figcaption>
-        </figure>
-<figure class="archive-slide" role="group" aria-roledescription="slide" aria-label="Image 10 of 11">
-          <a href="./assets/optimized/2063/hyperfuture/06-robot-lovers-above-the-passage.webp" target="_blank" rel="noopener" draggable="false">
-            <img src="./assets/optimized/2063/hyperfuture/06-robot-lovers-above-the-passage.webp" width="1916" height="821" loading="lazy" decoding="async" alt="Two synthetic figures sit close together, touching foreheads and holding hands above a busy multilevel passage." draggable="false">
-          </a>
-          <figcaption data-archive-en="Two synthetic bodies above the passage." data-archive-de="Zwei synthetische Körper über der Passage.">Two synthetic bodies above the passage.</figcaption>
-        </figure>
-<figure class="archive-slide" role="group" aria-roledescription="slide" aria-label="Image 11 of 11" id="hyperfuture-night">
-          <a href="./assets/optimized/2063/hyperfuture/12-an-unrecorded-room.webp" target="_blank" rel="noopener" draggable="false">
-            <img src="./assets/optimized/2063/hyperfuture/12-an-unrecorded-room.webp" width="1916" height="821" loading="lazy" decoding="async" alt="Two people embrace among a dense nightclub crowd beneath a large red projection." draggable="false">
-          </a>
-          <figcaption data-archive-en="An unrecorded room." data-archive-de="Ein undokumentierter Raum.">An unrecorded room.</figcaption>
-        </figure>
+      <section class="archive-carousel " id="berlin-2063-studies" data-carousel aria-roledescription="carousel" aria-labelledby="berlin-2063-studies-title">
+      <header class="archive-carousel-heading">
+        <p class="archive-carousel-index" data-archive-en="02 / The city continues" data-archive-de="02 / Die Stadt lebt weiter">02 / The city continues</p>
+        <h2 id="berlin-2063-studies-title" data-archive-en="Berlin 2063" data-archive-de="Berlin 2063">Berlin 2063</h2>
+        <p class="archive-carousel-description" data-archive-en="Historic facades, transport lines and familiar routines remain inside a transformed city. These studies bring the future back to the scale of everyday life." data-archive-de="Historische Fassaden, Verkehrswege und vertraute Routinen bleiben in einer veränderten Stadt bestehen. Diese Studien betrachten die Zukunft aus der Perspektive des Alltags.">Historic facades, transport lines and familiar routines remain inside a transformed city. These studies bring the future back to the scale of everyday life.</p>
+      </header>
+      <div class="archive-carousel-controls">
+        <span class="archive-carousel-count" data-carousel-count aria-live="polite" aria-atomic="true">01 / 04</span>
+        <span class="archive-carousel-hint" data-archive-en="Swipe to explore · Select an image to enlarge" data-archive-de="Wischen zum Entdecken · Bild zum Vergrößern auswählen">Swipe to explore · Select an image to enlarge</span>
+        <div class="archive-carousel-arrows">
+          <button type="button" data-carousel-prev aria-label="Previous image in Berlin 2063" disabled>←</button>
+          <button type="button" data-carousel-next aria-label="Next image in Berlin 2063">→</button>
         </div>
-        <div class="archive-carousel-controls">
-          <span class="archive-carousel-count" data-carousel-count aria-live="polite" aria-atomic="true">01 / 11</span>
-          <span class="archive-carousel-hint" data-archive-en="Swipe or drag" data-archive-de="Wischen oder ziehen">Swipe or drag</span>
-          <div class="archive-carousel-arrows">
-            <button type="button" data-carousel-prev aria-label="Previous image in Hyperfuture Berlin" disabled>←</button>
-            <button type="button" data-carousel-next aria-label="Next image in Hyperfuture Berlin">→</button>
-          </div>
-        </div>
-      </section>
-
-      <section class="archive-carousel archive-carousel--berlin" id="berlin-2063-studies" data-carousel aria-roledescription="carousel" aria-labelledby="berlin-studies-title">
-        <header class="archive-carousel-heading">
-          <p class="archive-carousel-index">02 / VISUAL ARCHIVE</p>
-          <h2 id="berlin-studies-title">Berlin 2063</h2>
-          <p data-archive-en="Berlin 2063 follows several possible trajectories through streets, infrastructure and nightlife." data-archive-de="Berlin 2063 folgt mehreren möglichen Entwicklungen durch Straßen, Infrastruktur und Nachtleben.">Berlin 2063 follows several possible trajectories through streets, infrastructure and nightlife.</p>
-        </header>
-        <div class="archive-carousel-track" data-carousel-track tabindex="0" aria-label="Berlin 2063 images. Swipe or use arrow keys.">
-          <figure class="archive-slide" role="group" aria-roledescription="slide" aria-label="Image 1 of 6" id="world-urbanForm"><span id="berlinArchives" class="archive-anchor" aria-hidden="true"></span><span id="berlin-earlier-studies" class="archive-anchor" aria-hidden="true"></span><a href="./assets/optimized/2063/urban-form/Berlin 2063 HD.webp" target="_blank" rel="noopener" aria-label="Open image: Old facades. New routes." draggable="false"><img src="./assets/optimized/2063/urban-form/Berlin 2063 HD.webp" width="3344" height="1882" loading="lazy" decoding="async" alt="Historic facades, bridges and a hovering vehicle overlooking an imagined Berlin." draggable="false"></a><figcaption data-archive-en="Old facades. New routes." data-archive-de="Alte Fassaden. Neue Wege.">Old facades. New routes.</figcaption></figure>
-<figure class="archive-slide" id="world-urbanSystems" role="group" aria-roledescription="slide" aria-label="Image 2 of 6"><a href="./assets/optimized/2063/urban-systems/URBAN SYSTEM2.webp" target="_blank" rel="noopener" aria-label="Open image: A passage below the skyline." draggable="false"><img src="./assets/optimized/2063/urban-systems/URBAN SYSTEM2.webp" width="2752" height="1536" loading="lazy" decoding="async" alt="Illuminated sunken passage between dark concrete structures with the television tower beyond." draggable="false"></a><figcaption data-archive-en="A passage below the skyline." data-archive-de="Ein Durchgang unter der Skyline.">A passage below the skyline.</figcaption></figure>
-<figure class="archive-slide" role="group" aria-roledescription="slide" aria-label="Image 3 of 6" id="world-nightlife">
-            <a href="./assets/optimized/2063/NIGHTLIFE IUNDERWATER.webp" target="_blank" rel="noopener" aria-label="Open image: Submerged." draggable="false"><img src="./assets/optimized/2063/NIGHTLIFE IUNDERWATER.webp" width="1400" height="788" loading="lazy" decoding="async" alt="A submerged dancefloor with human and robotic figures around DJ equipment, bubbles rising through blue-green water." draggable="false"></a>
-            <figcaption data-archive-en="Submerged." data-archive-de="Unter Wasser.">Submerged.</figcaption>
-          </figure>
-<figure class="archive-slide" role="group" aria-roledescription="slide" aria-label="Image 4 of 6">
-            <a href="./assets/optimized/2063/NIGHTLIFE I.webp" target="_blank" rel="noopener" aria-label="Open image: Beneath the robotic rig." draggable="false"><img src="./assets/optimized/2063/NIGHTLIFE I.webp" width="1400" height="788" loading="lazy" decoding="async" alt="Two performers at DJ equipment beneath articulated robotic arms, with a crowd and a balcony behind them." draggable="false"></a>
-            <figcaption data-archive-en="Beneath the robotic rig." data-archive-de="Unter der Robotik-Konstruktion.">Beneath the robotic rig.</figcaption>
-          </figure>
-<figure class="archive-slide" role="group" aria-roledescription="slide" aria-label="Image 5 of 6">
-            <a href="./assets/optimized/2063/NIGHTLIFE IRED.webp" target="_blank" rel="noopener" aria-label="Open image: In red light." draggable="false"><img src="./assets/optimized/2063/NIGHTLIFE IRED.webp" width="1400" height="788" loading="lazy" decoding="async" alt="A DJ, a masked figure and reflective robots gathered in a room saturated with red light." draggable="false"></a>
-            <figcaption data-archive-en="In red light." data-archive-de="Im roten Licht.">In red light.</figcaption>
-          </figure>
-<figure class="archive-slide" role="group" aria-roledescription="slide" aria-label="Image 6 of 6">
-            <a href="./assets/optimized/2063/NIGHTLIFE III.webp" target="_blank" rel="noopener" aria-label="Open image: Human and synthetic bodies." draggable="false"><img src="./assets/optimized/2063/NIGHTLIFE III.webp" width="1400" height="788" loading="lazy" decoding="async" alt="Human and reflective robotic figures gathered around DJ equipment in low teal and red light." draggable="false"></a>
-            <figcaption data-archive-en="Human and synthetic bodies." data-archive-de="Menschliche und synthetische Körper.">Human and synthetic bodies.</figcaption>
-          </figure>
-        </div>
-        <div class="archive-carousel-controls">
-          <span class="archive-carousel-count" data-carousel-count aria-live="polite" aria-atomic="true">01 / 06</span>
-          <span class="archive-carousel-hint" data-archive-en="Swipe or drag" data-archive-de="Wischen oder ziehen">Swipe or drag</span>
-          <div class="archive-carousel-arrows">
-            <button type="button" data-carousel-prev aria-label="Previous image in Berlin 2063" disabled>←</button>
-            <button type="button" data-carousel-next aria-label="Next image in Berlin 2063">→</button>
-          </div>
-        </div>
-      </section>
-
-      <section class="sequence-related" id="world-materialCulture"><p class="sequence-number" data-archive-en="Continue through the archive" data-archive-de="Weiter durch das Archiv">Continue through the archive</p><a href="./future-fashion.html">Fashion After Fabric ↗</a><a href="./moving-transmissions.html">Moving Transmissions ↗</a></section>
-
-      <p class="berlin-archive-closing">
-        <strong data-closing-line="one">The archive does not end on screen.</strong>
-        <strong data-closing-line="two">Its images, characters and environments can be translated into projection, performance and physical space.</strong>
-      </p>
-
-      <div class="berlin-nina-invitation">
-        <p class="nina-archive-note">Nina is one of its inhabitants, and the only one visitors can speak to directly.</p>
-        <button class="nina-signal" id="openNina" type="button" aria-label="Talk to Nina FOK">
-          <span class="nina-signal-dot" aria-hidden="true"></span>
-          <span class="nina-signal-copy">
-            <span class="nina-signal-main">Talk to Nina FOK</span>
-            <span class="nina-signal-sub">3 minutes free</span>
-          </span>
-        </button>
       </div>
+      <div class="archive-carousel-track" data-carousel-track tabindex="0" aria-label="Berlin 2063. Swipe or use arrow keys.">
+        <figure class="archive-slide" role="group">
+      <span id="world-urbanForm" class="archive-anchor" aria-hidden="true"></span><span id="berlinArchives" class="archive-anchor" aria-hidden="true"></span><span id="berlin-earlier-studies" class="archive-anchor" aria-hidden="true"></span><a href="./assets/optimized/2063/urban-form/Berlin 2063 HD.webp" target="_blank" rel="noopener" draggable="false">
+        <img src="./assets/optimized/2063/urban-form/Berlin 2063 HD.webp" width="1400" height="788" alt="Historic facades, an elevated yellow train and a hovering vehicle in an imagined Berlin." loading="lazy" decoding="async" draggable="false">
+      </a>
+      <figcaption  data-archive-en="Old facades. New routes." data-archive-de="Alte Fassaden. Neue Wege.">Old facades. New routes.</figcaption>
+    </figure><figure class="archive-slide" role="group">
+      <a href="./assets/optimized/2063/selected/station-encounter.webp" target="_blank" rel="noopener" draggable="false">
+        <img src="./assets/optimized/2063/selected/station-encounter.webp" width="1672" height="941" alt="Two figures in metallic clothing in an underground station, seen from above beneath circular lights." loading="lazy" decoding="async" draggable="false">
+      </a>
+      <figcaption  data-archive-en="An encounter on the platform." data-archive-de="Eine Begegnung auf dem Bahnsteig.">An encounter on the platform.</figcaption>
+    </figure><figure class="archive-slide" role="group">
+      <span id="world-urbanSystems" class="archive-anchor" aria-hidden="true"></span><a href="./assets/optimized/2063/urban-systems/URBAN SYSTEM2.webp" target="_blank" rel="noopener" draggable="false">
+        <img src="./assets/optimized/2063/urban-systems/URBAN SYSTEM2.webp" width="1400" height="781" alt="Illuminated escalators between concrete structures, with Berlin’s television tower beyond." loading="lazy" decoding="async" draggable="false">
+      </a>
+      <figcaption  data-archive-en="A passage below the skyline." data-archive-de="Ein Durchgang unter der Skyline.">A passage below the skyline.</figcaption>
+    </figure><figure class="archive-slide" role="group">
+      <a href="./assets/optimized/2063/urban-systems/URBANSYSTEMS4.webp" target="_blank" rel="noopener" draggable="false">
+        <img src="./assets/optimized/2063/urban-systems/URBANSYSTEMS4.webp" width="1400" height="781" alt="A long empty station corridor with dark metal columns and continuous white lighting." loading="lazy" decoding="async" draggable="false">
+      </a>
+      <figcaption  data-archive-en="The station corridor." data-archive-de="Der Bahnhofskorridor.">The station corridor.</figcaption>
+    </figure>
+      </div>
+    </section>
+      <section class="archive-carousel " id="after-the-collapse" data-carousel aria-roledescription="carousel" aria-labelledby="after-the-collapse-title">
+      <header class="archive-carousel-heading">
+        <p class="archive-carousel-index" data-archive-en="03 / Alternative trajectory" data-archive-de="03 / Alternative Entwicklung">03 / Alternative trajectory</p>
+        <h2 id="after-the-collapse-title" data-archive-en="After the Collapse" data-archive-de="Nach dem Kollaps">After the Collapse</h2>
+        <p class="archive-carousel-description" data-archive-en="An alternative trajectory, explored through earlier dystopian city studies. What continues when the systems holding a city together begin to fail?" data-archive-de="Eine alternative Entwicklung, betrachtet anhand früherer dystopischer Stadtstudien. Was besteht weiter, wenn die Systeme, die eine Stadt zusammenhalten, zu versagen beginnen?">An alternative trajectory, explored through earlier dystopian city studies. What continues when the systems holding a city together begin to fail?</p>
+      </header>
+      <div class="archive-carousel-controls">
+        <span class="archive-carousel-count" data-carousel-count aria-live="polite" aria-atomic="true">01 / 02</span>
+        <span class="archive-carousel-hint" data-archive-en="Swipe to explore · Select an image to enlarge" data-archive-de="Wischen zum Entdecken · Bild zum Vergrößern auswählen">Swipe to explore · Select an image to enlarge</span>
+        <div class="archive-carousel-arrows">
+          <button type="button" data-carousel-prev aria-label="Previous image in After the Collapse" disabled>←</button>
+          <button type="button" data-carousel-next aria-label="Next image in After the Collapse">→</button>
+        </div>
+      </div>
+      <div class="archive-carousel-track" data-carousel-track tabindex="0" aria-label="After the Collapse. Swipe or use arrow keys.">
+        <figure class="archive-slide" role="group">
+      <a href="./assets/optimized/2063/urban-form/berlindystopianii.webp" target="_blank" rel="noopener" draggable="false">
+        <img src="./assets/optimized/2063/urban-form/berlindystopianii.webp" width="1400" height="788" alt="A dense city of weathered buildings, illuminated screens and television towers beneath heavy clouds." loading="lazy" decoding="async" draggable="false">
+      </a>
+      <figcaption  data-archive-en="Dystopian city study / Rooftops and signals." data-archive-de="Dystopische Stadtstudie / Dächer und Signale.">Dystopian city study / Rooftops and signals.</figcaption>
+    </figure><figure class="archive-slide" role="group">
+      <a href="./assets/optimized/2063/urban-systems/transmission-friedrichstrasse-systemstatus.webp" target="_blank" rel="noopener" draggable="false">
+        <img src="./assets/optimized/2063/urban-systems/transmission-friedrichstrasse-systemstatus.webp" width="1400" height="781" alt="An elevated rail line crosses a wet street beneath luminous projections and densely layered buildings." loading="lazy" decoding="async" draggable="false">
+      </a>
+      <figcaption  data-archive-en="Dystopian city study / Friedrichstrasse." data-archive-de="Dystopische Stadtstudie / Friedrichstraße.">Dystopian city study / Friedrichstrasse.</figcaption>
+    </figure>
+      </div>
+    </section>
+      <section class="archive-carousel " id="world-nightlife" data-carousel aria-roledescription="carousel" aria-labelledby="world-nightlife-title">
+      <header class="archive-carousel-heading">
+        <p class="archive-carousel-index" data-archive-en="04 / Collective life" data-archive-de="04 / Gemeinsames Leben">04 / Collective life</p>
+        <h2 id="world-nightlife-title" data-archive-en="Nightlife" data-archive-de="Nachtleben">Nightlife</h2>
+        <p class="archive-carousel-description" data-archive-en="Sound brings bodies into a shared space. Encounters, dancefloors and a submerged club study explore how collective life might change with the city." data-archive-de="Klang bringt Körper in einen gemeinsamen Raum. Begegnungen, Tanzflächen und die Studie eines Unterwasserclubs erkunden, wie sich das gemeinsame Leben mit der Stadt verändern könnte.">Sound brings bodies into a shared space. Encounters, dancefloors and a submerged club study explore how collective life might change with the city.</p>
+      </header>
+      <div class="archive-carousel-controls">
+        <span class="archive-carousel-count" data-carousel-count aria-live="polite" aria-atomic="true">01 / 03</span>
+        <span class="archive-carousel-hint" data-archive-en="Swipe to explore · Select an image to enlarge" data-archive-de="Wischen zum Entdecken · Bild zum Vergrößern auswählen">Swipe to explore · Select an image to enlarge</span>
+        <div class="archive-carousel-arrows">
+          <button type="button" data-carousel-prev aria-label="Previous image in Nightlife" disabled>←</button>
+          <button type="button" data-carousel-next aria-label="Next image in Nightlife">→</button>
+        </div>
+      </div>
+      <div class="archive-carousel-track" data-carousel-track tabindex="0" aria-label="Nightlife. Swipe or use arrow keys.">
+        <figure class="archive-slide" role="group">
+      <span id="hyperfuture-night-systems" class="archive-anchor" aria-hidden="true"></span><a href="./assets/optimized/2063/hyperfuture/12-an-unrecorded-room.webp" target="_blank" rel="noopener" draggable="false">
+        <img src="./assets/optimized/2063/hyperfuture/12-an-unrecorded-room.webp" width="1916" height="821" alt="Two people embrace among a dense nightclub crowd beneath a large red projection." loading="lazy" decoding="async" draggable="false">
+      </a>
+      <figcaption  data-archive-en="An unrecorded room." data-archive-de="Ein undokumentierter Raum.">An unrecorded room.</figcaption>
+    </figure><figure class="archive-slide" role="group">
+      <a href="./assets/optimized/2063/NIGHTLIFE IUNDERWATER.webp" target="_blank" rel="noopener" draggable="false">
+        <img src="./assets/optimized/2063/NIGHTLIFE IUNDERWATER.webp" width="1400" height="788" alt="Human and robotic figures gather around DJ equipment underwater, with bubbles rising through blue-green light." loading="lazy" decoding="async" draggable="false">
+      </a>
+      <figcaption  data-archive-en="Submerged / A dancefloor study." data-archive-de="Unter Wasser / Eine Tanzflächenstudie.">Submerged / A dancefloor study.</figcaption>
+    </figure><figure class="archive-slide" role="group">
+      <a href="./assets/optimized/2063/NIGHTLIFE III.webp" target="_blank" rel="noopener" draggable="false">
+        <img src="./assets/optimized/2063/NIGHTLIFE III.webp" width="1400" height="788" alt="Human and reflective robotic figures gathered around DJ equipment in low teal and red light." loading="lazy" decoding="async" draggable="false">
+      </a>
+      <figcaption  data-archive-en="Human and synthetic bodies, listening together." data-archive-de="Menschliche und synthetische Körper beim gemeinsamen Hören.">Human and synthetic bodies, listening together.</figcaption>
+    </figure>
+      </div><a class="archive-text-link archive-sound-jump" href="#archive-sound"><span data-archive-en="Listen to Parallel Vision" data-archive-de="Parallel Vision hören">Listen to Parallel Vision</span> <span aria-hidden="true">↗</span></a>
+    </section>
+      <section class="archive-fashion" id="world-materialCulture" aria-labelledby="fashion-title">
+        <header class="archive-carousel-heading">
+          <p class="archive-carousel-index" data-archive-en="05 / Material culture" data-archive-de="05 / Materielle Kultur">05 / Material culture</p>
+          <h2 id="fashion-title">Fashion After Fabric</h2>
+          <p class="archive-carousel-description" data-archive-en="Clothing becomes part of the body’s relationship with its environment. Explore the material studies and collections of Parallel Vision." data-archive-de="Kleidung wird Teil der Beziehung des Körpers zu seiner Umgebung. Entdecke die Materialstudien und Kollektionen von Parallel Vision.">Clothing becomes part of the body’s relationship with its environment. Explore the material studies and collections of Parallel Vision.</p>
+        </header>
+        <a class="archive-fashion-image" href="./future-fashion.html" aria-label="Explore Fashion After Fabric">
+          <img src="./assets/optimized/fashion-hero.webp" alt="Alejandro Molinari wearing sculptural reflective metal clothing in an industrial hall." width="1672" height="941" loading="lazy" decoding="async">
+        </a>
+        <div class="archive-fashion-caption"><p>Chromia / Lotus 2063 / Flesh Zero / Magnetic Tape / DNA Mutation</p><a class="archive-text-link" href="./future-fashion.html"><span data-archive-en="Explore the collections" data-archive-de="Kollektionen entdecken">Explore the collections</span> <span aria-hidden="true">↗</span></a></div>
+      </section>
+      <section class="archive-sound" id="archive-sound" aria-labelledby="sound-title">
+        <a href="https://soundcloud.com/parallelvisionlabel/stay-low" target="_blank" rel="noopener" aria-label="Listen to Stay Low on SoundCloud"><img src="./assets/optimized/artworks/staylowart.webp" alt="Stay Low cover artwork" width="900" height="900" loading="lazy" decoding="async"></a>
+        <div><p class="archive-eyebrow" data-archive-en="Sound / Parallel Vision" data-archive-de="Klang / Parallel Vision">Sound / Parallel Vision</p><h2 id="sound-title">Stay Low</h2><p>Alejandro Molinari feat. Nina FOK</p></div>
+        <div class="archive-sound-links"><a class="archive-text-link" href="https://soundcloud.com/parallelvisionlabel/stay-low"><span data-archive-en="Listen on SoundCloud" data-archive-de="Auf SoundCloud hören">Listen on SoundCloud</span> <span aria-hidden="true">↗</span></a><a class="archive-text-link" href="./index.html#releases"><span data-archive-en="Explore the releases" data-archive-de="Veröffentlichungen entdecken">Explore the releases</span> <span aria-hidden="true">↗</span></a></div>
+      </section>
+      <section class="archive-physical" aria-labelledby="physical-title">
+        <div><p class="archive-eyebrow" data-archive-en="Beyond the screen" data-archive-de="Über den Bildschirm hinaus">Beyond the screen</p><h2 id="physical-title" data-archive-en="From image to physical space." data-archive-de="Vom Bild in den physischen Raum.">From image to physical space.</h2></div>
+        <div><p data-archive-en="The archive extends into sound, performance and projected films responding to each performance. Its environments and material studies offer a starting point for presentations and collaborations." data-archive-de="Das Archiv erweitert sich um Klang, Performance und projizierte Filme, die auf jeden Auftritt reagieren. Seine Umgebungen und Materialstudien bilden einen Ausgangspunkt für Präsentationen und Kooperationen.">The archive extends into sound, performance and projected films responding to each performance. Its environments and material studies offer a starting point for presentations and collaborations.</p><a class="archive-text-link" href="./index.html#contact"><span data-archive-en="Discuss a presentation" data-archive-de="Über eine Präsentation sprechen">Discuss a presentation</span> <span aria-hidden="true">↗</span></a></div>
+      </section>
+      <aside class="archive-nina" aria-labelledby="nina-title">
+        <div><p class="archive-eyebrow" data-archive-en="An inhabitant of this world" data-archive-de="Eine Bewohnerin dieser Welt">An inhabitant of this world</p><h2 id="nina-title">Nina FOK</h2></div>
+        <div><p data-archive-en="Continue the encounter through a conversation with Nina." data-archive-de="Setze die Begegnung in einem Gespräch mit Nina fort.">Continue the encounter through a conversation with Nina.</p><a class="archive-text-link" id="openNina" href="./nina-project.html"><span data-archive-en="Talk to Nina FOK" data-archive-de="Mit Nina FOK sprechen">Talk to Nina FOK</span> <span aria-hidden="true">↗</span></a></div>
+      </aside>
     </div>
   </main>
-
-  <footer class="berlin-footer">
-    <span>© 2026 Parallel Vision / Berlin 2063</span>
-    <a href="./index.html">Return to homepage</a>
-  </footer>
-
-  <script>
-    function applyArchiveClosingLanguage(language) {
-      const german = language === "de";
-      document.querySelector('[data-closing-line="one"]').textContent = german ? "Das Archiv endet nicht auf dem Bildschirm." : "The archive does not end on screen.";
-      document.querySelector('[data-closing-line="two"]').textContent = german ? "Seine Bilder, Figuren und Umgebungen können in Projektion, Performance und physischen Raum übersetzt werden." : "Its images, characters and environments can be translated into projection, performance and physical space.";
-    }
-    applyArchiveClosingLanguage(document.documentElement.lang);
-    window.addEventListener("pv-language-change", (event) => applyArchiveClosingLanguage(event.detail.language));
-
-    document.getElementById("openNina").addEventListener("click", function () {
-      window.location.href = "./nina-project.html";
-    });
-  </script>
+  <footer class="berlin-footer"><span>© 2026 Parallel Vision / Berlin 2063</span><a href="./index.html">Return to homepage</a></footer>
+  <dialog class="archive-viewer" aria-label="Image viewer" data-image-viewer>
+    <div class="viewer-top"><span data-viewer-title></span><button type="button" data-viewer-close autofocus><span data-archive-en="Close" data-archive-de="Schließen">Close</span> <span aria-hidden="true">×</span></button></div>
+    <img data-viewer-image alt="">
+    <div class="viewer-bottom"><p data-viewer-caption></p><span data-viewer-count aria-live="polite"></span><div class="archive-carousel-arrows"><button type="button" data-viewer-prev aria-label="Previous image">←</button><button type="button" data-viewer-next aria-label="Next image">→</button></div></div>
+  </dialog>
 </body>
 </html>
