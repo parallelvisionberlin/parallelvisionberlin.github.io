@@ -588,7 +588,8 @@ body.pv-berlin .berlin-hero-portals a:focus-visible { outline: 1px solid white; 
 .berlin-archive-chapter { scroll-margin-top: 36px; }
 @media(max-width:600px) { body.pv-berlin .berlin-hero-portals { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 0 20px; } body.pv-berlin .berlin-hero-portals b { font-size: 14px; } }
 </style>
-  <link rel="stylesheet" href="./css/berlin-hyperfuture.css?v=20260914-1">
+  <link rel="stylesheet" href="./css/berlin-hyperfuture.css?v=20260914-carousel-1">
+  <script src="./js/berlin-carousel.js?v=20260914-carousel-1" defer></script>
 </head>
 <body class="berlin-page pv-berlin">
   <a class="skip-link" href="#archive">Skip to main content</a>
@@ -597,7 +598,7 @@ body.pv-berlin .berlin-hero-portals a:focus-visible { outline: 1px solid white; 
       <a href="./index.html">Parallel Vision</a>
       <div class="archive-nav-links">
         <a href="#archive">Archive</a>
-        <a href="#hyperfuture-night" data-archive-en="Nightlife" data-archive-de="Nachtleben">Nightlife</a>
+        <a href="#world-nightlife" data-archive-en="Nightlife" data-archive-de="Nachtleben">Nightlife</a>
         <a href="./future-fashion.html">Fashion After Fabric</a>
         <a href="./nina-project.html">Nina FOK</a>
         <details class="berlin-account-menu">
@@ -611,7 +612,7 @@ body.pv-berlin .berlin-hero-portals a:focus-visible { outline: 1px solid white; 
       </div>
     </nav>
     <figure class="berlin-hero-media" aria-hidden="true">
-      <img src="./assets/optimized/2063/hyperfuture/17-a-building-withdraws.webp" alt="" decoding="async" loading="eager" fetchpriority="high" width="1916" height="821">
+      <img src="./assets/optimized/2063/urban-form/urbangalleryfirst.webp" alt="" decoding="async" loading="eager" fetchpriority="high" width="2048" height="1152">
     </figure>
     <div class="berlin-hero-content">
       <p class="berlin-hero-label">Parallel Vision / Living Archive</p>
@@ -619,12 +620,8 @@ body.pv-berlin .berlin-hero-portals a:focus-visible { outline: 1px solid white; 
       <p class="berlin-hero-line">A visual archive of Berlin, 2063 and beyond.</p>
       <a class="berlin-watch-film" href="#berlin-beyond" data-archive-en="Watch Berlin 2063 and Beyond ↓" data-archive-de="Berlin 2063 and Beyond ansehen ↓">Watch Berlin 2063 and Beyond ↓</a>
       <nav class="berlin-hero-portals" aria-label="Explore the Berlin 2063 archive">
-        <a href="#hyperfuture-berlin"><span>01</span><b data-archive-en="Hyperfuture Berlin" data-archive-de="Hyperfuture Berlin">Hyperfuture Berlin</b></a>
-        <a href="#hyperfuture-urban-chambers"><span>02</span><b data-archive-en="Urban Chambers" data-archive-de="Urbane Räume">Urban Chambers</b></a>
-        <a href="#hyperfuture-posthuman"><span>03</span><b data-archive-en="Post-Human Encounters" data-archive-de="Posthumane Begegnungen">Post-Human Encounters</b></a>
-        <a href="#hyperfuture-machine-intimacy"><span>04</span><b data-archive-en="Machine Intimacy" data-archive-de="Maschinelle Intimität">Machine Intimacy</b></a>
-        <a href="#hyperfuture-night"><span>05</span><b data-archive-en="Night Systems" data-archive-de="Nächtliche Systeme">Night Systems</b></a>
-        <a href="#berlin-earlier-studies"><span>06</span><b data-archive-en="Earlier Berlin Studies" data-archive-de="Frühere Berlin-Studien">Earlier Berlin Studies</b></a>
+        <a href="#hyperfuture-berlin"><span>01</span><b>Hyperfuture Berlin</b></a>
+        <a href="#berlin-2063-studies"><span>02</span><b>Berlin 2063</b></a>
       </nav>
     </div>
   </header>
@@ -648,155 +645,127 @@ body.pv-berlin .berlin-hero-portals a:focus-visible { outline: 1px solid white; 
       </div>
     </section>
 
-      <section class="hyperfuture-archive" id="hyperfuture-berlin" aria-labelledby="hyperfuture-title">
-        <header class="hyperfuture-header">
-          <p class="hyperfuture-index">01 / HYPERFUTURE BERLIN</p>
+      <section class="archive-carousel" id="hyperfuture-berlin" data-carousel aria-roledescription="carousel" aria-labelledby="hyperfuture-title">
+        <header class="archive-carousel-heading">
+          <p class="archive-carousel-index">01 / VISUAL ARCHIVE</p>
           <h2 id="hyperfuture-title">Hyperfuture Berlin</h2>
-          <p class="hyperfuture-intro" data-archive-en="Hyperfuture Berlin is a speculative extension of the Berlin 2063 archive, looking further into the city’s possible futures. Here synthetic inhabitants, monumental civic interiors, new forms of mobility and altered social relations have become ordinary parts of urban life. The archive focuses on how that future is lived: how people gather, move, form attachments and share space with non-human beings." data-archive-de="Hyperfuture Berlin ist eine spekulative Erweiterung des Archivs Berlin 2063 und blickt weiter in die möglichen Zukünfte der Stadt. Synthetische Bewohner:innen, monumentale öffentliche Innenräume, neue Mobilitätsformen und veränderte soziale Beziehungen sind hier alltägliche Bestandteile des Stadtlebens. Das Archiv untersucht, wie diese Zukunft gelebt wird: wie Menschen zusammenkommen, sich bewegen, Bindungen eingehen und Räume mit nichtmenschlichen Wesen teilen.">Hyperfuture Berlin is a speculative extension of the Berlin 2063 archive, looking further into the city’s possible futures. Here synthetic inhabitants, monumental civic interiors, new forms of mobility and altered social relations have become ordinary parts of urban life. The archive focuses on how that future is lived: how people gather, move, form attachments and share space with non-human beings.</p>
+          <p data-archive-en="Hyperfuture Berlin is a speculative extension of the Berlin 2063 archive, looking further into the city’s possible futures. Here synthetic inhabitants, monumental civic interiors, new forms of mobility and altered social relations have become ordinary parts of urban life. The archive focuses on how that future is lived: how people gather, move, form attachments and share space with non-human beings." data-archive-de="Hyperfuture Berlin ist eine spekulative Erweiterung des Archivs Berlin 2063 und blickt weiter in die möglichen Zukünfte der Stadt. Synthetische Bewohner:innen, monumentale öffentliche Innenräume, neue Mobilitätsformen und veränderte soziale Beziehungen sind hier alltägliche Bestandteile des Stadtlebens. Das Archiv untersucht, wie diese Zukunft gelebt wird: wie Menschen zusammenkommen, sich bewegen, Bindungen eingehen und Räume mit nichtmenschlichen Wesen teilen.">Hyperfuture Berlin is a speculative extension of the Berlin 2063 archive, looking further into the city’s possible futures. Here synthetic inhabitants, monumental civic interiors, new forms of mobility and altered social relations have become ordinary parts of urban life. The archive focuses on how that future is lived: how people gather, move, form attachments and share space with non-human beings.</p>
         </header>
-        <figure class="hyperfuture-figure">
-          <a href="./assets/optimized/2063/hyperfuture/04-the-dense-city-below.webp" target="_blank" rel="noopener">
-            <img src="./assets/optimized/2063/hyperfuture/04-the-dense-city-below.webp" width="1916" height="821" loading="lazy" decoding="async" alt="Human and synthetic inhabitants in a crowded passage beneath elevated walkways and large public projections.">
+        <div class="archive-carousel-track" data-carousel-track tabindex="0" aria-label="Hyperfuture Berlin images. Swipe or use arrow keys.">
+          <figure class="archive-slide" role="group" aria-roledescription="slide" aria-label="Image 1 of 11">
+          <a href="./assets/optimized/2063/hyperfuture/04-the-dense-city-below.webp" target="_blank" rel="noopener" draggable="false">
+            <img src="./assets/optimized/2063/hyperfuture/04-the-dense-city-below.webp" width="1916" height="821" loading="lazy" decoding="async" alt="Human and synthetic inhabitants in a crowded passage beneath elevated walkways and large public projections." draggable="false">
           </a>
           <figcaption data-archive-en="The dense city below." data-archive-de="Die dichte Stadt darunter.">The dense city below.</figcaption>
         </figure>
-        <section class="hyperfuture-chapter" id="hyperfuture-urban-chambers" aria-labelledby="hyperfuture-urban-chambers-title">
-
-          <header class="hyperfuture-chapter-heading">
-            <p class="hyperfuture-index">02 / HYPERFUTURE BERLIN</p>
-            <h3 id="hyperfuture-urban-chambers-title" data-archive-en="Urban Chambers" data-archive-de="Urbane Räume">Urban Chambers</h3>
-            <p data-archive-en="Monumental interiors, elevated circulation and public rooms operate as social infrastructure. The architecture is not scenery. It organizes movement, visibility, hierarchy and collective behavior." data-archive-de="Monumentale Innenräume, erhöhte Verkehrswege und öffentliche Räume bilden eine soziale Infrastruktur. Die Architektur ist keine Kulisse. Sie organisiert Bewegung, Sichtbarkeit, Hierarchie und kollektives Verhalten.">Monumental interiors, elevated circulation and public rooms operate as social infrastructure. The architecture is not scenery. It organizes movement, visibility, hierarchy and collective behavior.</p>
-          </header>
-          <div class="hyperfuture-images">
-        <figure class="hyperfuture-figure">
-          <a href="./assets/optimized/2063/hyperfuture/16-ninas-bath-grown-from-obsidian.webp" target="_blank" rel="noopener">
-            <img src="./assets/optimized/2063/hyperfuture/16-ninas-bath-grown-from-obsidian.webp" width="1916" height="821" loading="lazy" decoding="async" alt="A dark stone bath in a private chamber overlooking elevated structures and a monumental projected face.">
+<figure class="archive-slide" role="group" aria-roledescription="slide" aria-label="Image 2 of 11" id="hyperfuture-urban-chambers">
+          <a href="./assets/optimized/2063/hyperfuture/16-ninas-bath-grown-from-obsidian.webp" target="_blank" rel="noopener" draggable="false">
+            <img src="./assets/optimized/2063/hyperfuture/16-ninas-bath-grown-from-obsidian.webp" width="1916" height="821" loading="lazy" decoding="async" alt="A dark stone bath in a private chamber overlooking elevated structures and a monumental projected face." draggable="false">
           </a>
           <figcaption data-archive-en="Private chamber overlooking the projection grid." data-archive-de="Privater Raum mit Blick auf das Projektionsnetz.">Private chamber overlooking the projection grid.</figcaption>
         </figure>
-        <figure class="hyperfuture-figure">
-          <a href="./assets/optimized/2063/hyperfuture/01-aegis-parked-at-the-night-passage.webp" target="_blank" rel="noopener">
-            <img src="./assets/optimized/2063/hyperfuture/01-aegis-parked-at-the-night-passage.webp" width="1916" height="821" loading="lazy" decoding="async" alt="A low black vehicle parked beside human and synthetic figures beneath the arches of the Night Passage.">
+<figure class="archive-slide" role="group" aria-roledescription="slide" aria-label="Image 3 of 11">
+          <a href="./assets/optimized/2063/hyperfuture/01-aegis-parked-at-the-night-passage.webp" target="_blank" rel="noopener" draggable="false">
+            <img src="./assets/optimized/2063/hyperfuture/01-aegis-parked-at-the-night-passage.webp" width="1916" height="821" loading="lazy" decoding="async" alt="A low black vehicle parked beside human and synthetic figures beneath the arches of the Night Passage." draggable="false">
           </a>
           <figcaption data-archive-en="AEGIS at the Night Passage." data-archive-de="AEGIS an der Night Passage.">AEGIS at the Night Passage.</figcaption>
         </figure>
-        <figure class="hyperfuture-figure">
-          <a href="./assets/optimized/2063/hyperfuture/08-chromia-an-object-in-the-void.webp" target="_blank" rel="noopener">
-            <img src="./assets/optimized/2063/hyperfuture/08-chromia-an-object-in-the-void.webp" width="1916" height="821" loading="lazy" decoding="async" alt="A monumental reflective female form on a plinth in a dark civic hall, with figures standing at its base.">
+<figure class="archive-slide" role="group" aria-roledescription="slide" aria-label="Image 4 of 11">
+          <a href="./assets/optimized/2063/hyperfuture/08-chromia-an-object-in-the-void.webp" target="_blank" rel="noopener" draggable="false">
+            <img src="./assets/optimized/2063/hyperfuture/08-chromia-an-object-in-the-void.webp" width="1916" height="821" loading="lazy" decoding="async" alt="A monumental reflective female form on a plinth in a dark civic hall, with figures standing at its base." draggable="false">
           </a>
           <figcaption data-archive-en="Chromia object installed in a civic interior." data-archive-de="Chromia-Objekt in einem öffentlichen Innenraum.">Chromia object installed in a civic interior.</figcaption>
         </figure>
-        <figure class="hyperfuture-figure">
-          <a href="./assets/optimized/2063/hyperfuture/17-a-building-withdraws.webp" target="_blank" rel="noopener">
-            <img src="./assets/optimized/2063/hyperfuture/17-a-building-withdraws.webp" width="1916" height="821" loading="lazy" decoding="async" alt="A curved building opens onto a crowded passage beside an older stone facade, with people visible on elevated levels.">
+<figure class="archive-slide" role="group" aria-roledescription="slide" aria-label="Image 5 of 11">
+          <a href="./assets/optimized/2063/hyperfuture/17-a-building-withdraws.webp" target="_blank" rel="noopener" draggable="false">
+            <img src="./assets/optimized/2063/hyperfuture/17-a-building-withdraws.webp" width="1916" height="821" loading="lazy" decoding="async" alt="A curved building opens onto a crowded passage beside an older stone facade, with people visible on elevated levels." draggable="false">
           </a>
           <figcaption data-archive-en="A building withdraws from the street." data-archive-de="Ein Gebäude zieht sich von der Straße zurück.">A building withdraws from the street.</figcaption>
         </figure>
-          </div>
-        </section>
-        <section class="hyperfuture-chapter" id="hyperfuture-posthuman" aria-labelledby="hyperfuture-posthuman-title">
-          <span id="inhabitants-entry" class="archive-anchor" aria-hidden="true"></span>
-          <header class="hyperfuture-chapter-heading">
-            <p class="hyperfuture-index">03 / HYPERFUTURE BERLIN</p>
-            <h3 id="hyperfuture-posthuman-title" data-archive-en="Post-Human Encounters" data-archive-de="Posthumane Begegnungen">Post-Human Encounters</h3>
-            <p data-archive-en="An archival thread observing how human and synthetic inhabitants meet in public life. The images trace recognition, proximity, companionship and shared movement across a city where coexistence has become normal, while the meaning of personhood remains unsettled." data-archive-de="Ein Archivstrang beobachtet, wie sich menschliche und synthetische Bewohner:innen im öffentlichen Leben begegnen. Die Bilder verfolgen Wiedererkennen, Nähe, Verbundenheit und gemeinsame Bewegung durch eine Stadt, in der Koexistenz alltäglich geworden ist, während offenbleibt, was es bedeutet, eine Person zu sein.">An archival thread observing how human and synthetic inhabitants meet in public life. The images trace recognition, proximity, companionship and shared movement across a city where coexistence has become normal, while the meaning of personhood remains unsettled.</p>
-          </header>
-          <div class="hyperfuture-images">
-        <figure class="hyperfuture-figure">
-          <a href="./assets/optimized/2063/hyperfuture/13-human-and-machine-outside-the-archive.webp" target="_blank" rel="noopener">
-            <img src="./assets/optimized/2063/hyperfuture/13-human-and-machine-outside-the-archive.webp" width="1916" height="821" loading="lazy" decoding="async" alt="A human and a pale synthetic companion stand together beside a layered city of elevated walkways.">
+<figure class="archive-slide" role="group" aria-roledescription="slide" aria-label="Image 6 of 11" id="hyperfuture-posthuman">
+          <span id="inhabitants-entry" class="archive-anchor" aria-hidden="true"></span><a href="./assets/optimized/2063/hyperfuture/13-human-and-machine-outside-the-archive.webp" target="_blank" rel="noopener" draggable="false">
+            <img src="./assets/optimized/2063/hyperfuture/13-human-and-machine-outside-the-archive.webp" width="1916" height="821" loading="lazy" decoding="async" alt="A human and a pale synthetic companion stand together beside a layered city of elevated walkways." draggable="false">
           </a>
           <figcaption data-archive-en="Human and synthetic inhabitants outside the archive." data-archive-de="Menschliche und synthetische Bewohner:innen vor dem Archiv.">Human and synthetic inhabitants outside the archive.</figcaption>
         </figure>
-        <figure class="hyperfuture-figure">
-          <a href="./assets/optimized/2063/hyperfuture/19-the-night-passage-among-inhabitants.webp" target="_blank" rel="noopener">
-            <img src="./assets/optimized/2063/hyperfuture/19-the-night-passage-among-inhabitants.webp" width="1916" height="821" loading="lazy" decoding="async" alt="Human and synthetic figures turn toward one another in a crowded passage beneath a large projected face.">
+<figure class="archive-slide" role="group" aria-roledescription="slide" aria-label="Image 7 of 11">
+          <a href="./assets/optimized/2063/hyperfuture/19-the-night-passage-among-inhabitants.webp" target="_blank" rel="noopener" draggable="false">
+            <img src="./assets/optimized/2063/hyperfuture/19-the-night-passage-among-inhabitants.webp" width="1916" height="821" loading="lazy" decoding="async" alt="Human and synthetic figures turn toward one another in a crowded passage beneath a large projected face." draggable="false">
           </a>
           <figcaption data-archive-en="Among the inhabitants of the Night Passage." data-archive-de="Unter den Bewohner:innen der Night Passage.">Among the inhabitants of the Night Passage.</figcaption>
         </figure>
-        <figure class="hyperfuture-figure">
-          <a href="./assets/optimized/2063/hyperfuture/15-the-controlled-garden.webp" target="_blank" rel="noopener">
-            <img src="./assets/optimized/2063/hyperfuture/15-the-controlled-garden.webp" width="1916" height="821" loading="lazy" decoding="async" alt="A human and a synthetic companion examine plants in an enclosed garden overlooking the city.">
+<figure class="archive-slide" role="group" aria-roledescription="slide" aria-label="Image 8 of 11">
+          <a href="./assets/optimized/2063/hyperfuture/15-the-controlled-garden.webp" target="_blank" rel="noopener" draggable="false">
+            <img src="./assets/optimized/2063/hyperfuture/15-the-controlled-garden.webp" width="1916" height="821" loading="lazy" decoding="async" alt="A human and a synthetic companion examine plants in an enclosed garden overlooking the city." draggable="false">
           </a>
           <figcaption data-archive-en="The controlled garden." data-archive-de="Der kontrollierte Garten.">The controlled garden.</figcaption>
         </figure>
-          </div>
-        </section>
-        <section class="hyperfuture-chapter" id="hyperfuture-machine-intimacy" aria-labelledby="hyperfuture-machine-intimacy-title">
-          <span id="world-robots" class="archive-anchor" aria-hidden="true"></span>
-          <header class="hyperfuture-chapter-heading">
-            <p class="hyperfuture-index">04 / HYPERFUTURE BERLIN</p>
-            <h3 id="hyperfuture-machine-intimacy-title" data-archive-en="Machine Intimacy" data-archive-de="Maschinelle Intimität">Machine Intimacy</h3>
-            <p data-archive-en="A research strand focused on attachment, consent, memory and affect between human and synthetic beings. In this imagined future, synthetic bodies participate in social life under their own rules and protections. Some display behavior that inhabitants interpret as care, desire, grief or attachment. Whether those states amount to subjective feeling remains unresolved inside the archive." data-archive-de="Ein Forschungsstrang zu Bindung, Einvernehmen, Erinnerung und Affekt zwischen menschlichen und synthetischen Wesen. In dieser imaginierten Zukunft nehmen synthetische Körper unter eigenen Regeln und Schutzbestimmungen am sozialen Leben teil. Manche zeigen Verhaltensweisen, die Bewohner:innen als Fürsorge, Begehren, Trauer oder Verbundenheit deuten. Ob diese Zustände einem subjektiven Empfinden entsprechen, bleibt im Archiv ungeklärt.">A research strand focused on attachment, consent, memory and affect between human and synthetic beings. In this imagined future, synthetic bodies participate in social life under their own rules and protections. Some display behavior that inhabitants interpret as care, desire, grief or attachment. Whether those states amount to subjective feeling remains unresolved inside the archive.</p>
-          </header>
-          <div class="hyperfuture-images">
-        <figure class="hyperfuture-figure">
-          <a href="./assets/optimized/2063/hyperfuture/14-maintenance-as-a-ritual.webp" target="_blank" rel="noopener">
-            <img src="./assets/optimized/2063/hyperfuture/14-maintenance-as-a-ritual.webp" width="1916" height="821" loading="lazy" decoding="async" alt="A reflective synthetic figure kneels beside a curved metal wall, touching its surface where a small light glows.">
+<figure class="archive-slide" role="group" aria-roledescription="slide" aria-label="Image 9 of 11" id="hyperfuture-machine-intimacy">
+          <span id="world-robots" class="archive-anchor" aria-hidden="true"></span><a href="./assets/optimized/2063/hyperfuture/14-maintenance-as-a-ritual.webp" target="_blank" rel="noopener" draggable="false">
+            <img src="./assets/optimized/2063/hyperfuture/14-maintenance-as-a-ritual.webp" width="1916" height="821" loading="lazy" decoding="async" alt="A reflective synthetic figure kneels beside a curved metal wall, touching its surface where a small light glows." draggable="false">
           </a>
           <figcaption data-archive-en="Maintenance as ritual." data-archive-de="Wartung als Ritual.">Maintenance as ritual.</figcaption>
         </figure>
-        <figure class="hyperfuture-figure">
-          <a href="./assets/optimized/2063/hyperfuture/06-robot-lovers-above-the-passage.webp" target="_blank" rel="noopener">
-            <img src="./assets/optimized/2063/hyperfuture/06-robot-lovers-above-the-passage.webp" width="1916" height="821" loading="lazy" decoding="async" alt="Two synthetic figures sit close together, touching foreheads and holding hands above a busy multilevel passage.">
+<figure class="archive-slide" role="group" aria-roledescription="slide" aria-label="Image 10 of 11">
+          <a href="./assets/optimized/2063/hyperfuture/06-robot-lovers-above-the-passage.webp" target="_blank" rel="noopener" draggable="false">
+            <img src="./assets/optimized/2063/hyperfuture/06-robot-lovers-above-the-passage.webp" width="1916" height="821" loading="lazy" decoding="async" alt="Two synthetic figures sit close together, touching foreheads and holding hands above a busy multilevel passage." draggable="false">
           </a>
           <figcaption data-archive-en="Two synthetic bodies above the passage." data-archive-de="Zwei synthetische Körper über der Passage.">Two synthetic bodies above the passage.</figcaption>
         </figure>
-          </div>
-        </section>
-        <section class="hyperfuture-chapter" id="hyperfuture-night" aria-labelledby="hyperfuture-night-title">
-
-          <header class="hyperfuture-chapter-heading">
-            <p class="hyperfuture-index">05 / HYPERFUTURE BERLIN</p>
-            <h3 id="hyperfuture-night-title" data-archive-en="Night Systems" data-archive-de="Nächtliche Systeme">Night Systems</h3>
-            <p data-archive-en="Nightlife remains one of the places where social change becomes visible first. Sound, projection, dress, desire and mixed human-synthetic presence converge in spaces where new forms of intimacy and collective behavior are tested in public." data-archive-de="Das Nachtleben bleibt einer der Orte, an denen gesellschaftlicher Wandel zuerst sichtbar wird. Klang, Projektion, Kleidung, Begehren und die gemeinsame Anwesenheit menschlicher und synthetischer Wesen treffen in Räumen aufeinander, in denen neue Formen von Intimität und kollektivem Verhalten öffentlich erprobt werden.">Nightlife remains one of the places where social change becomes visible first. Sound, projection, dress, desire and mixed human-synthetic presence converge in spaces where new forms of intimacy and collective behavior are tested in public.</p>
-          </header>
-          <div class="hyperfuture-images">
-        <figure class="hyperfuture-figure">
-          <a href="./assets/optimized/2063/hyperfuture/12-an-unrecorded-room.webp" target="_blank" rel="noopener">
-            <img src="./assets/optimized/2063/hyperfuture/12-an-unrecorded-room.webp" width="1916" height="821" loading="lazy" decoding="async" alt="Two people embrace among a dense nightclub crowd beneath a large red projection.">
+<figure class="archive-slide" role="group" aria-roledescription="slide" aria-label="Image 11 of 11" id="hyperfuture-night">
+          <a href="./assets/optimized/2063/hyperfuture/12-an-unrecorded-room.webp" target="_blank" rel="noopener" draggable="false">
+            <img src="./assets/optimized/2063/hyperfuture/12-an-unrecorded-room.webp" width="1916" height="821" loading="lazy" decoding="async" alt="Two people embrace among a dense nightclub crowd beneath a large red projection." draggable="false">
           </a>
           <figcaption data-archive-en="An unrecorded room." data-archive-de="Ein undokumentierter Raum.">An unrecorded room.</figcaption>
         </figure>
+        </div>
+        <div class="archive-carousel-controls">
+          <span class="archive-carousel-count" data-carousel-count aria-live="polite" aria-atomic="true">01 / 11</span>
+          <span class="archive-carousel-hint" data-archive-en="Swipe or drag" data-archive-de="Wischen oder ziehen">Swipe or drag</span>
+          <div class="archive-carousel-arrows">
+            <button type="button" data-carousel-prev aria-label="Previous image in Hyperfuture Berlin" disabled>←</button>
+            <button type="button" data-carousel-next aria-label="Next image in Hyperfuture Berlin">→</button>
           </div>
-        </section>
+        </div>
       </section>
 
-      <header class="berlin-archive-intro" id="berlin-earlier-studies">
-        <p class="berlin-intro-label" data-archive-en="06 / Earlier Berlin Studies" data-archive-de="06 / Frühere Berlin-Studien">06 / Earlier Berlin Studies</p>
-        <div class="berlin-intro-copy">
-          <p data-archive-en="Berlin 2063 follows several possible trajectories. These earlier studies return to the scale of streets, infrastructure and nightlife." data-archive-de="Berlin 2063 folgt mehreren möglichen Entwicklungen. Diese früheren Studien kehren zum Maßstab von Straßen, Infrastruktur und Nachtleben zurück.">Berlin 2063 follows several possible trajectories. These earlier studies return to the scale of streets, infrastructure and nightlife.</p>
-          <p data-archive-en="Hyperfuture Berlin extends the archive further into the city’s possible futures. The studies below remain part of its evolving record." data-archive-de="Hyperfuture Berlin führt das Archiv weiter in die möglichen Zukünfte der Stadt. Die folgenden Studien bleiben Teil seines wachsenden Bestands.">Hyperfuture Berlin extends the archive further into the city’s possible futures. The studies below remain part of its evolving record.</p>
-        </div>
-      </header>
-
-      <div class="berlin-archives" id="berlinArchives" aria-label="Selected images from Berlin 2063"><section class="berlin-sequence" id="world-urbanForm" aria-labelledby="world-urbanForm-title"><header class="sequence-heading"><p class="sequence-number">06.1 / BERLIN 2063</p><h2 id="world-urbanForm-title" data-archive-en="City Studies" data-archive-de="Stadtstudien">City Studies</h2><p class="sequence-description" data-archive-en="What remains of Berlin as the city grows beyond recognition?" data-archive-de="Was bleibt von Berlin, wenn die Stadt über das Vertraute hinauswächst?">What remains of Berlin as the city grows beyond recognition?</p></header><div class="sequence-images"><figure class="sequence-image"><a href="./assets/optimized/2063/urban-form/Berlin 2063 HD.webp" target="_blank" rel="noopener" aria-label="Open image: Old facades. New routes."><img src="./assets/optimized/2063/urban-form/Berlin 2063 HD.webp" width="3344" height="1882" loading="lazy" decoding="async" alt="Historic facades, bridges and a hovering vehicle overlooking an imagined Berlin."></a><figcaption data-archive-en="Old facades. New routes." data-archive-de="Alte Fassaden. Neue Wege.">Old facades. New routes.</figcaption></figure><figure class="sequence-image" id="world-urbanSystems"><a href="./assets/optimized/2063/urban-systems/URBAN SYSTEM2.webp" target="_blank" rel="noopener" aria-label="Open image: A passage below the skyline."><img src="./assets/optimized/2063/urban-systems/URBAN SYSTEM2.webp" width="2752" height="1536" loading="lazy" decoding="async" alt="Illuminated sunken passage between dark concrete structures with the television tower beyond."></a><figcaption data-archive-en="A passage below the skyline." data-archive-de="Ein Durchgang unter der Skyline.">A passage below the skyline.</figcaption></figure></div></section>
-      <section class="berlin-sequence" id="world-nightlife" aria-labelledby="world-nightlife-title">
-        <header class="sequence-heading">
-          <p class="sequence-number">06.2 / BERLIN 2063</p>
-          <h2 id="world-nightlife-title" data-archive-en="Nightlife Studies" data-archive-de="Nachtleben-Studien">Nightlife Studies</h2>
-          <p class="sequence-description" data-archive-en="Nightlife under altered conditions. Submerged dancefloors, robotic rigs and crowds of human and synthetic bodies." data-archive-de="Nachtleben unter veränderten Bedingungen. Tanzflächen unter Wasser, robotische Konstruktionen und Menschenmengen aus menschlichen und synthetischen Körpern.">Nightlife under altered conditions. Submerged dancefloors, robotic rigs and crowds of human and synthetic bodies.</p>
+      <section class="archive-carousel archive-carousel--berlin" id="berlin-2063-studies" data-carousel aria-roledescription="carousel" aria-labelledby="berlin-studies-title">
+        <header class="archive-carousel-heading">
+          <p class="archive-carousel-index">02 / VISUAL ARCHIVE</p>
+          <h2 id="berlin-studies-title">Berlin 2063</h2>
+          <p data-archive-en="Berlin 2063 follows several possible trajectories through streets, infrastructure and nightlife." data-archive-de="Berlin 2063 folgt mehreren möglichen Entwicklungen durch Straßen, Infrastruktur und Nachtleben.">Berlin 2063 follows several possible trajectories through streets, infrastructure and nightlife.</p>
         </header>
-        <div class="sequence-images">
-          <figure class="sequence-image sequence-image-wide">
-            <a href="./assets/optimized/2063/NIGHTLIFE IUNDERWATER.webp" target="_blank" rel="noopener" aria-label="Open image: Submerged."><img src="./assets/optimized/2063/NIGHTLIFE IUNDERWATER.webp" width="1400" height="788" loading="lazy" decoding="async" alt="A submerged dancefloor with human and robotic figures around DJ equipment, bubbles rising through blue-green water."></a>
+        <div class="archive-carousel-track" data-carousel-track tabindex="0" aria-label="Berlin 2063 images. Swipe or use arrow keys.">
+          <figure class="archive-slide" role="group" aria-roledescription="slide" aria-label="Image 1 of 6" id="world-urbanForm"><span id="berlinArchives" class="archive-anchor" aria-hidden="true"></span><span id="berlin-earlier-studies" class="archive-anchor" aria-hidden="true"></span><a href="./assets/optimized/2063/urban-form/Berlin%202063%20HD.webp" target="_blank" rel="noopener" aria-label="Open image: Old facades. New routes." draggable="false"><img src="./assets/optimized/2063/urban-form/Berlin%202063%20HD.webp" width="3344" height="1882" loading="lazy" decoding="async" alt="Historic facades, bridges and a hovering vehicle overlooking an imagined Berlin." draggable="false"></a><figcaption data-archive-en="Old facades. New routes." data-archive-de="Alte Fassaden. Neue Wege.">Old facades. New routes.</figcaption></figure>
+<figure class="archive-slide" id="world-urbanSystems" role="group" aria-roledescription="slide" aria-label="Image 2 of 6"><a href="./assets/optimized/2063/urban-systems/URBAN%20SYSTEM2.webp" target="_blank" rel="noopener" aria-label="Open image: A passage below the skyline." draggable="false"><img src="./assets/optimized/2063/urban-systems/URBAN%20SYSTEM2.webp" width="2752" height="1536" loading="lazy" decoding="async" alt="Illuminated sunken passage between dark concrete structures with the television tower beyond." draggable="false"></a><figcaption data-archive-en="A passage below the skyline." data-archive-de="Ein Durchgang unter der Skyline.">A passage below the skyline.</figcaption></figure>
+<figure class="archive-slide" role="group" aria-roledescription="slide" aria-label="Image 3 of 6" id="world-nightlife">
+            <a href="./assets/optimized/2063/NIGHTLIFE%20IUNDERWATER.webp" target="_blank" rel="noopener" aria-label="Open image: Submerged." draggable="false"><img src="./assets/optimized/2063/NIGHTLIFE%20IUNDERWATER.webp" width="1400" height="788" loading="lazy" decoding="async" alt="A submerged dancefloor with human and robotic figures around DJ equipment, bubbles rising through blue-green water." draggable="false"></a>
             <figcaption data-archive-en="Submerged." data-archive-de="Unter Wasser.">Submerged.</figcaption>
           </figure>
-          <figure class="sequence-image">
-            <a href="./assets/optimized/2063/NIGHTLIFE I.webp" target="_blank" rel="noopener" aria-label="Open image: Beneath the robotic rig."><img src="./assets/optimized/2063/NIGHTLIFE I.webp" width="1400" height="788" loading="lazy" decoding="async" alt="Two performers at DJ equipment beneath articulated robotic arms, with a crowd and a balcony behind them."></a>
+<figure class="archive-slide" role="group" aria-roledescription="slide" aria-label="Image 4 of 6">
+            <a href="./assets/optimized/2063/NIGHTLIFE%20I.webp" target="_blank" rel="noopener" aria-label="Open image: Beneath the robotic rig." draggable="false"><img src="./assets/optimized/2063/NIGHTLIFE%20I.webp" width="1400" height="788" loading="lazy" decoding="async" alt="Two performers at DJ equipment beneath articulated robotic arms, with a crowd and a balcony behind them." draggable="false"></a>
             <figcaption data-archive-en="Beneath the robotic rig." data-archive-de="Unter der Robotik-Konstruktion.">Beneath the robotic rig.</figcaption>
           </figure>
-          <figure class="sequence-image">
-            <a href="./assets/optimized/2063/NIGHTLIFE IRED.webp" target="_blank" rel="noopener" aria-label="Open image: In red light."><img src="./assets/optimized/2063/NIGHTLIFE IRED.webp" width="1400" height="788" loading="lazy" decoding="async" alt="A DJ, a masked figure and reflective robots gathered in a room saturated with red light."></a>
+<figure class="archive-slide" role="group" aria-roledescription="slide" aria-label="Image 5 of 6">
+            <a href="./assets/optimized/2063/NIGHTLIFE%20IRED.webp" target="_blank" rel="noopener" aria-label="Open image: In red light." draggable="false"><img src="./assets/optimized/2063/NIGHTLIFE%20IRED.webp" width="1400" height="788" loading="lazy" decoding="async" alt="A DJ, a masked figure and reflective robots gathered in a room saturated with red light." draggable="false"></a>
             <figcaption data-archive-en="In red light." data-archive-de="Im roten Licht.">In red light.</figcaption>
           </figure>
-          <figure class="sequence-image sequence-image-wide">
-            <a href="./assets/optimized/2063/NIGHTLIFE III.webp" target="_blank" rel="noopener" aria-label="Open image: Human and synthetic bodies."><img src="./assets/optimized/2063/NIGHTLIFE III.webp" width="1400" height="788" loading="lazy" decoding="async" alt="Human and reflective robotic figures gathered around DJ equipment in low teal and red light."></a>
+<figure class="archive-slide" role="group" aria-roledescription="slide" aria-label="Image 6 of 6">
+            <a href="./assets/optimized/2063/NIGHTLIFE%20III.webp" target="_blank" rel="noopener" aria-label="Open image: Human and synthetic bodies." draggable="false"><img src="./assets/optimized/2063/NIGHTLIFE%20III.webp" width="1400" height="788" loading="lazy" decoding="async" alt="Human and reflective robotic figures gathered around DJ equipment in low teal and red light." draggable="false"></a>
             <figcaption data-archive-en="Human and synthetic bodies." data-archive-de="Menschliche und synthetische Körper.">Human and synthetic bodies.</figcaption>
           </figure>
         </div>
+        <div class="archive-carousel-controls">
+          <span class="archive-carousel-count" data-carousel-count aria-live="polite" aria-atomic="true">01 / 06</span>
+          <span class="archive-carousel-hint" data-archive-en="Swipe or drag" data-archive-de="Wischen oder ziehen">Swipe or drag</span>
+          <div class="archive-carousel-arrows">
+            <button type="button" data-carousel-prev aria-label="Previous image in Berlin 2063" disabled>←</button>
+            <button type="button" data-carousel-next aria-label="Next image in Berlin 2063">→</button>
+          </div>
+        </div>
       </section>
-<section class="sequence-related" id="world-materialCulture"><p class="sequence-number" data-archive-en="Continue through the archive" data-archive-de="Weiter durch das Archiv">Continue through the archive</p><a href="./future-fashion.html">Fashion After Fabric ↗</a><a href="./moving-transmissions.html">Moving Transmissions ↗</a></section></div>
+
+      <section class="sequence-related" id="world-materialCulture"><p class="sequence-number" data-archive-en="Continue through the archive" data-archive-de="Weiter durch das Archiv">Continue through the archive</p><a href="./future-fashion.html">Fashion After Fabric ↗</a><a href="./moving-transmissions.html">Moving Transmissions ↗</a></section>
 
       <p class="berlin-archive-closing">
         <strong data-closing-line="one">The archive does not end on screen.</strong>
