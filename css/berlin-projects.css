@@ -1,0 +1,37 @@
+/* World previews and the deeper visual research pages share the archive controls. */
+.pv-berlin .berlin-hero-portals{grid-template-columns:repeat(3,minmax(0,1fr))}
+.pv-berlin .project-enter{margin-top:22px}
+.pv-berlin .project-legacy{display:flex;flex-wrap:wrap;gap:8px 28px;margin-top:20px}
+.pv-berlin .project-legacy a{font-size:13px;border:0;gap:12px}
+.pv-berlin .project-legacy .archive-icon{display:none}
+.pv-project .project-header{position:relative;min-height:84px}
+.pv-project .archive-nav{position:relative;inset:auto}
+.pv-project .project-intro{padding:24px 0 30px;max-width:1000px}
+.pv-project .project-intro>.project-enter{margin:0 0 36px;font-size:13px}
+.pv-project .project-intro h1{font:350 clamp(44px,7vw,92px)/1.05 Inter,Arial,sans-serif;letter-spacing:-.05em;margin:20px 0}
+.pv-project .project-lead{font-size:clamp(16px,1.8vw,21px);line-height:1.6;color:var(--archive-muted);margin:0}
+.pv-project .project-contents{display:flex;flex-wrap:wrap;gap:4px 30px;border-top:1px solid var(--archive-line);padding:10px 0;margin-bottom:36px}
+.pv-project .project-contents a{display:flex;align-items:center;min-height:44px;font-size:14px}
+.pv-project .archive-carousel-heading h2{font-size:clamp(30px,3.8vw,48px)}
+.pv-project .project-notes{border-top:1px solid var(--archive-line);padding:32px 0 46px;max-width:840px}
+.pv-project .project-notes h2{font-size:28px;font-weight:400;letter-spacing:-.03em;margin:0 0 22px}
+.pv-project .project-notes p{font-size:16px;line-height:1.8;color:var(--archive-muted);margin:0 0 18px}
+.pv-project .project-related,.pv-project .project-next{display:flex;flex-wrap:wrap;gap:12px 40px}
+.pv-project .project-next{border-top:1px solid var(--archive-line);padding:20px 0 60px}
+@media(max-width:760px){
+ .pv-berlin .berlin-hero-portals{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .pv-berlin .project-preview .archive-carousel-heading{gap:10px}
+ .pv-berlin .project-preview .archive-carousel-description{font-size:14px;line-height:1.5}
+ .pv-berlin .project-enter{font-size:14px;margin-top:16px;gap:18px}
+ .pv-berlin .project-legacy{gap:0 22px;margin-top:10px}
+ .pv-project .project-header{min-height:66px}
+ .pv-project .project-intro{padding:0 0 24px}
+ .pv-project .project-intro>.project-enter{margin:0 0 24px}
+ .pv-project .project-intro h1{font-size:clamp(39px,11vw,62px);margin:14px 0}
+ .pv-project .project-contents{gap:0 24px;margin-bottom:20px}
+ .pv-project .project-contents a{font-size:13px}
+ .pv-project .project-notes{padding:26px 0 30px}
+ .pv-project .project-notes h2{font-size:24px}
+ .pv-project .project-notes p{font-size:15px;line-height:1.7}
+ .pv-project .project-next{display:grid;justify-items:start;padding-bottom:40px}
+}
