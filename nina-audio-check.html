@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Nina microphone check</title>
+<style>body{margin:0;background:#111;color:#eee;font:16px/1.55 system-ui,sans-serif}main{max-width:680px;margin:40px auto;padding:24px}h1{font-size:26px}button{padding:14px 20px;background:#eee;color:#111;border:0;font:inherit;cursor:pointer;margin:8px 8px 8px 0}button:disabled{opacity:.5}pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px;border-top:1px solid #444;padding-top:20px}meter{width:100%;height:24px}small{color:#bbb}#status{min-height:3em}</style>
+<main>
+<h1>Nina microphone check</h1>
+<p>Check this phone's microphone without starting a Nina call or using Anam minutes. Use the same headphones and browser you use for Nina.</p>
+<p>After granting microphone access, stay quiet for five seconds. Then speak normally for five seconds when prompted. Keep the surrounding sound as it usually is during a call.</p>
+<button id="start">Check microphone</button><button id="stop" disabled>Stop</button><button id="download" disabled>Download report</button>
+<p id="status" role="status" aria-live="polite">Ready. No audio is recorded or uploaded.</p>
+<meter id="level" min="0" max="1" value="0" aria-label="Microphone level"></meter>
+<pre id="report"></pre>
+<small>This checks the capture settings and relative sound levels in this browser. It does not certify Anam transcription, false interruptions, or the microphone inside the native app. An unreported setting is unknown, not disabled.</small>
+</main>
+<script type="module" src="./js/nina-audio-check.js?v=20260914-check01"></script>
+</html>
