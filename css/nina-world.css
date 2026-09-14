@@ -1,4 +1,4 @@
-/* Keep the world study and its context together at browser scale. */
+/* Full-width world image with room for its heading and caption. */
 .n-world-section .n-world {
   width: 100%;
   max-width: none;
@@ -15,60 +15,31 @@
 .n-world-section .n-world-note {
   width: 100%;
   max-width: none;
-  margin: 16px 0 32px;
+  margin: 16px 0 40px;
 }
-@media (min-width: 1100px) {
-  .n-world-section {
-    display: grid;
-    grid-template-columns: minmax(280px, .8fr) minmax(0, 1.8fr);
-    grid-template-areas: "heading image" "body image" ". caption";
-    gap: 24px clamp(32px, 4vw, 64px);
-    align-items: start;
-    padding: clamp(32px, 5svh, 56px) 0;
+@media (min-width: 901px) {
+  .n-world-section { padding-block: 32px 56px; }
+  .n-world-section .n-berlin-head { margin-bottom: 24px; }
+  .n-world-section .n-berlin-head > .n-archive-id { margin-bottom: 16px; }
+  .n-world-section .n-berlin-head .n-copy h2 {
+    font-size: clamp(26px, 2.2vw, 32px);
+    line-height: 1.28;
   }
-  .n-world-section > * { min-width: 0; }
-  .n-world-section .n-berlin-head { grid-area: heading; margin: 0; }
-  .n-world-section .n-berlin-head > .n-archive-id { margin-bottom: 20px; }
-  .n-world-section .n-berlin-head .n-copy { display: block; }
-  .n-world-section .n-berlin-head h2 {
-    margin: 0 0 20px;
-    font-size: clamp(24px, 1.8vw, 30px);
-    line-height: 1.35;
-    letter-spacing: 0;
-    text-wrap: balance;
-  }
-  .n-world-section .n-berlin-head .n-copy p,
-  .n-world-section .n-berlin-body p {
-    margin: 0;
+  .n-world-section .n-berlin-head .n-copy p {
     font-size: 16px;
     line-height: 1.65;
   }
-  .n-world-section .n-berlin-body { grid-area: body; width: 100%; }
-  .n-world-section .n-world { grid-area: image; background: transparent; }
-  .n-world-section .n-world img { max-height: calc(100svh - 180px); }
+  .n-world-section .n-world {
+    height: min(58svh, calc(100svh - 300px));
+    overflow: hidden;
+  }
+  .n-world-section .n-world img {
+    height: 100%;
+    object-fit: cover;
+    object-position: center 58%;
+  }
   .n-world-section .n-world-note {
-    grid-area: caption;
-    grid-template-columns: minmax(130px, .65fr) minmax(0, 1.35fr);
-    gap: 24px;
-    margin: 0;
+    margin: 14px 0 40px;
     padding-top: 14px;
-  }
-  .n-world-section .n-world-note p { max-width: none; }
-}
-@media (min-width: 1100px) and (max-height: 760px) {
-  .n-world-section { padding-block: 24px; row-gap: 18px; }
-  .n-world-section .n-berlin-head h2 { font-size: 24px; margin-bottom: 14px; }
-  .n-world-section .n-berlin-head > .n-archive-id { margin-bottom: 14px; }
-  .n-world-section .n-berlin-head .n-copy p,
-  .n-world-section .n-berlin-body p { font-size: 15px; line-height: 1.6; }
-}
-@media (max-width: 1099px) {
-  .n-world-section .n-berlin-head .n-copy {
-    grid-template-columns: 1fr;
-    gap: 20px;
-  }
-  .n-world-section .n-world-note {
-    grid-template-columns: 1fr;
-    gap: 12px;
   }
 }
