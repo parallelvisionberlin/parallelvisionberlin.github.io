@@ -37,7 +37,7 @@ Object.defineProperty(HTMLMediaElement.prototype,'paused',{get(){return !this._t
 Object.defineProperty(HTMLMediaElement.prototype,'readyState',{get(){return this._testPlaying?4:0}});
 Object.defineProperty(HTMLMediaElement.prototype,'currentTime',{get(){return this._testPlaying?performance.now()/1000:0}});
 HTMLVideoElement.prototype.requestVideoFrameCallback=function(callback){return setTimeout(()=>callback(performance.now(),{}),30)};
-HTMLVideoElement.prototype.cancelVideoFrameCallback=clearTimeout;
+HTMLVideoElement.prototype.cancelVideoFrameCallback=function(handle){window.clearTimeout(handle)};
 window.testClerk={isSignedIn:true,user:{id:'normal-user',fullName:'Test',reload:async()=>testClerk.user},session:{getToken:async()=>'token'},async load(){},addListener(fn){this.listener=fn},closeSignIn(){},closeSignUp(){},client:{signIn:{authenticateWithRedirect:async()=>{},create:async()=>({})}},async openSignUp(){this.openedSignup=true},async openSignIn(){}};
 window.testHoldVideo=true;
 const AnamEvent={CONNECTION_ESTABLISHED:'connected',VIDEO_PLAY_STARTED:'playing',CONNECTION_CLOSED:'closed',MESSAGE_HISTORY_UPDATED:'history',MESSAGE_STREAM_EVENT_RECEIVED:'stream',INPUT_AUDIO_STREAM_STARTED:'input'};
@@ -94,9 +94,11 @@ with sync_playwright() as p:
   page.wait_for_timeout(150)
   assert page.evaluate("requests.filter(x=>x.url.includes('/live/activate')).length")==2
   # Playback assistance stays optional and cannot issue another activation.
-  page.evaluate('window.failPlay=true');page.locator('[data-nina-enable-sound]').click(force=True);page.wait_for_timeout(100)
+  page.evaluate("window.failPlay=true;const video=document.getElementById('nina-anam-video');video.muted=true;video.dispatchEvent(new Event('volumechange'))")
+  expect(page.locator('[data-nina-enable-sound]')).to_be_visible()
+  page.locator('[data-nina-enable-sound]').click();page.wait_for_timeout(100)
   assert page.evaluate("requests.filter(x=>x.url.includes('/live/activate')).length")==2
-  page.evaluate('window.failPlay=false');page.locator('[data-nina-enable-sound]').click(force=True);page.wait_for_timeout(150)
+  page.evaluate('window.failPlay=false');page.locator('[data-nina-enable-sound]').click();page.wait_for_timeout(150)
   assert page.evaluate("requests.filter(x=>x.url.includes('/live/activate')).length")==2
   page.locator('[data-nina-audio-help]').click(force=True)
   expect(page.locator('#ninaScrimMessage')).to_contain_text('The call has stopped.')

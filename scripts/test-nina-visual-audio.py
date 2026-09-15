@@ -15,7 +15,7 @@ Object.defineProperty(HTMLMediaElement.prototype,'currentTime',{get(){return thi
 HTMLMediaElement.prototype.play=async function(){this._testPlaying=true};
 HTMLMediaElement.prototype.pause=function(){this._testPlaying=false};
 HTMLVideoElement.prototype.requestVideoFrameCallback=function(callback){return setTimeout(()=>callback(performance.now(),{}),30)};
-HTMLVideoElement.prototype.cancelVideoFrameCallback=clearTimeout;
+HTMLVideoElement.prototype.cancelVideoFrameCallback=function(handle){window.clearTimeout(handle)};
 export function createClient(){const listeners={};let video;window.sdkCreates=(window.sdkCreates||0)+1;
 const emit=(event,...args)=>{for(const fn of [...(listeners[event]||[])])fn(...args)};
 return {addListener(k,fn){(listeners[k]??=new Set()).add(fn)},removeListener(k,fn){listeners[k]?.delete(fn)},
