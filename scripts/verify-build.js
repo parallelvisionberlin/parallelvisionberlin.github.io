@@ -86,7 +86,7 @@ for (const marker of [
   'let ninaAccessVerifiedForCurrentOpen = false',
   'let ninaConnecting = false',
   'if (ninaConnecting || ninaClient',
-  'streamToVideoElement("nina-anam-video", ninaMicrophoneStream)',
+  'streamNinaVideoForAttempt(client, "nina-anam-video", ninaMicrophoneStream,',
   'navigator.mediaDevices.enumerateDevices()',
   'device.kind === "audioinput"',
   'ninaPreferredMicrophoneId',
@@ -146,4 +146,3 @@ checkWhitespace(root);
 
 if (errors.length) { console.error(errors.map(error => `- ${error}`).join('\n')); process.exit(1); }
 console.log(`Static site validation passed (${pages.length} public HTML files).`);
-

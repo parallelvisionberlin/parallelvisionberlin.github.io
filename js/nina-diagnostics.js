@@ -68,5 +68,13 @@ export function attachConversationDiagnostics({client,events,conversationId,send
   });
   if(stream)microphone(stream);
   const timer=setInterval(()=>void flush(),5000);
-  return {flush,stop(){if(stopped)return;emit('client_end');stopped=true;clearInterval(timer);for(const [event,handler]of listeners)client.removeListener(event,handler);void flush();}};
+  return {flush,record(kind, data = {}) {
+    if (stopped || !active()) return;
+    if (!['connection_opened', 'video_started', 'connection_closed', 'media_failure'].includes(kind)) return;
+    const metadata = {};
+    if (typeof data.reason === 'string') metadata.reason = safe(data.reason);
+    if (typeof data.phase === 'string') metadata.phase = safe(data.phase);
+    if (typeof data.errorMessage === 'string') metadata.errorMessage = sanitizeToolError(data.errorMessage);
+    emit(kind, metadata);
+  },stop(){if(stopped)return;emit('client_end');stopped=true;clearInterval(timer);for(const [event,handler]of listeners)client.removeListener(event,handler);void flush();}};
 }

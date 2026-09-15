@@ -10,6 +10,16 @@ import worker, {
 
 const encode = value => Buffer.from(typeof value === "string" ? value : JSON.stringify(value)).toString("base64url");
 
+test("restored public conversations greet without introducing Nina again", () => {
+  for (const random of [() => 0, () => 0.99]) {
+    const config = applyStartupGreeting({}, null, "", random, true);
+    assert.ok(["Hi.", "Hey."].includes(config.initialMessage));
+    assert.equal(config.skipGreeting, false);
+  }
+  assert.equal(applyStartupGreeting({}, null, "Julia", () => 0, true).initialMessage, "Hey, Julia.");
+  assert.equal(applyStartupGreeting({}, {}, "", () => 0, true).initialMessage, OWNER_GREETINGS[0]);
+});
+
 async function diagnosticAuthFixture(origin) {
   const keys = await crypto.subtle.generateKey({ name: "RSASSA-PKCS1-v1_5", modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]), hash: "SHA-256" }, true, ["sign", "verify"]);
   const jwk = await crypto.subtle.exportKey("jwk", keys.publicKey);

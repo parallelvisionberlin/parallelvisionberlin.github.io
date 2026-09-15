@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import { readFileSync } from 'node:fs';
-import { speechConstraints } from '../../js/nina-audio-input.js';
+import { speechConstraints, openSpeechMicrophone } from '../../js/nina-audio-input.js';
 
 const source = readFileSync(new URL('../../js/nina-access.js', import.meta.url), 'utf8');
 function functionSource(name) {
@@ -13,33 +13,191 @@ function functionSource(name) {
 const tick = () => new Promise(setImmediate);
 
 function microphoneFixture() {
-  const calls = [];
-  const track = new EventTarget();
-  Object.assign(track, { readyState: 'live', enabled: true, muted: false, stop() { calls.push('track-stopped'); this.readyState = 'ended'; } });
-  const stream = { getTracks: () => [track], getAudioTracks: () => [track] };
+  const calls = [], replacements = [], inputListeners = new Set();
+  function makeStream() {
+    const track = new EventTarget();
+    Object.assign(track, { readyState: 'live', enabled: true, muted: false, stop() { calls.push('track-stopped'); this.readyState = 'ended'; } });
+    return { getTracks: () => [track], getAudioTracks: () => [track] };
+  }
+  const stream = makeStream(), track = stream.getAudioTracks()[0];
   const state = {
-    speechConstraints, ninaMicrophoneSequence: 0, ninaMicrophoneStream: null, ninaMicrophoneCleanup() {},
-    navigator: { mediaDevices: { getUserMedia: async () => stream } },
-    ninaClient: {}, ninaConnecting: false, ninaOverlay: { classList: { contains: () => true } },
+    speechConstraints, openSpeechMicrophone,
+    AnamEvent: { INPUT_AUDIO_STREAM_STARTED: 'input' },
+    ninaMicrophoneSequence: 0, ninaMicrophoneStream: null, ninaMicrophoneCleanup() {}, ninaMicrophoneSwitch: null,
+    navigator: { mediaDevices: {
+      getUserMedia: async () => stream,
+      enumerateDevices: async () => [{ kind: 'audioinput', deviceId: 'default', label: 'Computer microphone' }]
+    } },
+    ninaClient: {
+      addListener(event, listener) { assert.equal(event, 'input'); inputListeners.add(listener); },
+      removeListener(event, listener) { assert.equal(event, 'input'); inputListeners.delete(listener); },
+      async changeAudioInputDevice(id) {
+      calls.push(`switched:${id}`);
+      const replacement = makeStream();
+      replacements.push(replacement);
+      // The SDK emits INPUT_AUDIO_STREAM_STARTED before the switch resolves.
+      for (const listener of inputListeners) listener(replacement);
+    } },
+    ninaAttempt: 1, ninaConnecting: false, ninaOverlay: { classList: { contains: () => true } },
+    ninaMicrophoneSetupPromise: null, ninaMicrophoneSelect: { value: 'default', replaceChildren() {} },
+    startNina: {}, readPreferredMicrophone: () => 'default', updateNinaMicrophoneName() {},
+    microphoneFailure: error => error.message, Option: function () {},
     ninaMicrophoneStatus: {}, setTimeout, clearTimeout, Error, Promise,
-    async stopNinaSession() { calls.push('call-stopped'); state.ninaClient = null; state.stopNinaMicrophone(); },
-    showNinaFailure(message) { calls.push(message); }
+    async stopNinaSession() { calls.push('call-stopped'); state.ninaAttempt += 1; state.ninaClient = null; state.stopNinaMicrophone(); },
+    savePreferredMicrophone(id) { calls.push(`saved:${id}`); },
+    renderMicrophones(devices, id) { calls.push(`selected:${id}`); },
+    showNinaFailure(message) { calls.push(message); }, logDevelopmentError() {}
   };
   vm.createContext(state);
-  vm.runInContext(['microphoneConstraints', 'stopNinaMicrophone', 'handleNinaMicrophoneInterruption', 'acquireNinaMicrophone'].map(functionSource).join('\n'), state);
-  return { state, stream, track, calls };
+  vm.runInContext(['microphoneConstraints', 'listMicrophones', 'withNinaDeadline', 'stopNinaMicrophone',
+    'switchLiveNinaMicrophone', 'handleNinaMicrophoneInterruption', 'adoptNinaMicrophoneStream',
+    'acquireNinaMicrophone', 'setupNinaMicrophones', 'refreshNinaMicrophones'].map(functionSource).join('\n'), state);
+  return { state, stream, track, calls, replacements, makeStream, inputListeners };
 }
 
-test('an ended microphone stops media and billing and offers a recoverable state', async () => {
+test('an unplugged microphone switches to the system input without ending the live call', async () => {
   const f = microphoneFixture();
+  const client = f.state.ninaClient;
+  await f.state.acquireNinaMicrophone('usb');
+  f.track.readyState = 'ended';
+  f.track.dispatchEvent(new Event('ended'));
+  await tick();
+  assert.equal(f.state.ninaClient, client);
+  assert.equal(f.state.ninaMicrophoneStream, f.replacements[0]);
+  assert.equal(f.replacements[0].getAudioTracks()[0].readyState, 'live', 'The switch must not stop the SDK replacement');
+  assert.equal(f.state.ninaMicrophoneStatus.textContent, 'MICROPHONE READY');
+  assert.equal(f.state.ninaMicrophoneSwitch, null);
+  assert.deepEqual(f.calls.filter(c => c.startsWith('switched:')), ['switched:default']);
+  assert.ok(!f.calls.includes('call-stopped'));
+  assert.ok(f.calls.includes('track-stopped'));
+  f.track.dispatchEvent(new Event('ended'));
+  await tick();
+  assert.equal(f.calls.filter(c => c.startsWith('switched:')).length, 1, 'Old track events are detached');
+});
+
+test('an SDK replacement remains monitored and unrelated device changes do not recapture it', async () => {
+  const f = microphoneFixture();
+  await f.state.acquireNinaMicrophone('usb');
+  await f.state.switchLiveNinaMicrophone();
+  const replacement = f.replacements[0], replacementTrack = replacement.getAudioTracks()[0];
+  f.state.adoptNinaMicrophoneStream(replacement);
+  assert.equal(replacementTrack.readyState, 'live', 'Repeated SDK input events are idempotent');
+  await f.state.refreshNinaMicrophones();
+  assert.equal(f.calls.filter(c => c.startsWith('switched:')).length, 1, 'An unchanged microphone must not be reopened');
+  replacementTrack.readyState = 'ended';
+  replacementTrack.dispatchEvent(new Event('ended'));
+  await tick();
+  assert.equal(f.calls.filter(c => c.startsWith('switched:')).length, 2, 'A later interruption of the replacement is recovered');
+  assert.equal(f.state.ninaMicrophoneStream, f.replacements[1]);
+  assert.ok(!f.calls.includes('call-stopped'));
+});
+
+test('switching input while deliberately muted preserves both the call and mute state', async () => {
+  const f = microphoneFixture(), client = f.state.ninaClient;
+  await f.state.acquireNinaMicrophone('usb');
+  f.track.enabled = false;
+  const replacement = f.makeStream(), replacementTrack = replacement.getAudioTracks()[0];
+  replacementTrack.enabled = false;
+  let switches = 0;
+  client.changeAudioInputDevice = async () => {
+    switches += 1;
+    for (const listener of f.inputListeners) listener(replacement);
+  };
+  await f.state.switchLiveNinaMicrophone();
+  await f.state.refreshNinaMicrophones();
+  assert.equal(f.state.ninaClient, client);
+  assert.equal(f.state.ninaMicrophoneStream, replacement);
+  assert.equal(replacementTrack.readyState, 'live');
+  assert.equal(replacementTrack.enabled, false, 'Switching must not unmute the user');
+  assert.equal(switches, 1, 'Muted input must not trigger another device recovery');
+  assert.ok(!f.calls.includes('call-stopped'));
+});
+
+test('fresh permission capture still rejects a disabled input before starting a call', async () => {
+  const f = microphoneFixture();
+  f.track.enabled = false;
+  await assert.rejects(f.state.acquireNinaMicrophone(), /No active microphone/);
+  assert.equal(f.state.ninaMicrophoneStream, null);
+  assert.equal(f.track.readyState, 'ended');
+});
+
+test('SDK replacement reapplies optional speech settings without waiting to resume the call', async () => {
+  const f = microphoneFixture(); let applied;
+  f.state.navigator.mediaDevices.getSupportedConstraints = () => ({ autoGainControl: true, noiseSuppression: true });
+  const replacement = f.makeStream();
+  replacement.getAudioTracks()[0].applyConstraints = constraints => {
+    applied = constraints;
+    return new Promise(() => {});
+  };
+  f.state.ninaClient.changeAudioInputDevice = async () => {
+    for (const listener of f.inputListeners) listener(replacement);
+  };
+  await f.state.acquireNinaMicrophone('usb');
+  await f.state.switchLiveNinaMicrophone();
+  assert.equal(f.state.ninaMicrophoneStream, replacement);
+  assert.equal(f.state.ninaMicrophoneStatus.textContent, 'MICROPHONE READY');
+  assert.deepEqual(applied, { noiseSuppression: { ideal: true }, autoGainControl: { ideal: false } });
+});
+
+test('a microphone that cannot be replaced closes capture and the call once', async () => {
+  const f = microphoneFixture();
+  f.state.ninaClient.changeAudioInputDevice = async () => { throw new Error('Input unavailable'); };
   await f.state.acquireNinaMicrophone('usb');
   f.track.dispatchEvent(new Event('ended'));
   await tick();
   assert.equal(f.state.ninaClient, null);
   assert.equal(f.state.ninaMicrophoneStream, null);
-  assert.ok(f.calls.includes('call-stopped'));
+  assert.equal(f.calls.filter(c => c === 'call-stopped').length, 1);
   assert.ok(f.calls.includes('track-stopped'));
-  assert.ok(f.calls.some(c => c.includes('Unused credits remain')));
+  assert.ok(f.calls.some(c => c.startsWith('Could not switch microphones.')));
+});
+
+test('microphone switching is serialized and cannot update a closed or replacement call', async () => {
+  const f = microphoneFixture(); let finishSwitch;
+  f.state.ninaClient.changeAudioInputDevice = () => new Promise(resolve => { finishSwitch = resolve; });
+  await f.state.acquireNinaMicrophone('usb');
+  const first = f.state.switchLiveNinaMicrophone();
+  const second = f.state.switchLiveNinaMicrophone();
+  await tick();
+  await f.state.stopNinaSession();
+  const replacement = { getTracks: () => [{ stop() { assert.fail('An old switch must not stop new capture'); } }] };
+  f.state.ninaMicrophoneStream = replacement;
+  f.state.ninaClient = {};
+  f.state.ninaMicrophoneStatus.textContent = 'NEW CALL';
+  finishSwitch();
+  await Promise.all([first, second]);
+  assert.equal(f.state.ninaMicrophoneStream, replacement);
+  assert.equal(f.state.ninaMicrophoneStatus.textContent, 'NEW CALL');
+  assert.ok(!f.calls.some(c => c.startsWith('saved:')));
+  assert.equal(f.calls.filter(c => c === 'call-stopped').length, 1);
+});
+
+test('a replacement capture arriving after close is stopped even when normal session listeners are gone', async () => {
+  const f = microphoneFixture(); let finishSwitch;
+  f.state.ninaClient.changeAudioInputDevice = () => new Promise(resolve => { finishSwitch = resolve; });
+  await f.state.acquireNinaMicrophone('usb');
+  const change = f.state.switchLiveNinaMicrophone();
+  await tick();
+  await f.state.stopNinaSession();
+  assert.equal(f.inputListeners.size, 1, 'Pending SDK capture retains a scoped cleanup listener');
+  const lateStream = f.makeStream();
+  for (const listener of f.inputListeners) listener(lateStream);
+  finishSwitch();
+  await change;
+  assert.equal(lateStream.getAudioTracks()[0].readyState, 'ended');
+  assert.equal(f.state.ninaMicrophoneStream, null);
+  assert.equal(f.inputListeners.size, 0, 'The temporary listener is removed when SDK capture settles');
+});
+
+test('microphone loss during connection stops the incomplete call instead of switching an unready client', async () => {
+  const f = microphoneFixture();
+  f.state.ninaConnecting = true;
+  await f.state.acquireNinaMicrophone();
+  f.track.dispatchEvent(new Event('ended'));
+  await tick();
+  assert.equal(f.state.ninaClient, null);
+  assert.equal(f.calls.filter(c => c === 'call-stopped').length, 1);
+  assert.ok(!f.calls.some(c => c.startsWith('switched:')));
 });
 
 test('microphone permission resolving after closing cannot reopen capture', async () => {
@@ -51,6 +209,38 @@ test('microphone permission resolving after closing cannot reopen capture', asyn
   await assert.rejects(acquire, e => e.name === 'AbortError');
   assert.equal(f.state.ninaMicrophoneStream, null);
   assert.ok(f.calls.includes('track-stopped'));
+});
+
+test('a stale automatic permission result cannot stop microphone capture in a newer call', async t => {
+  for (const result of ['accepted', 'rejected']) await t.test(result, async () => {
+    const f = microphoneFixture(); let oldGrant, oldReject;
+    f.state.navigator.mediaDevices.getUserMedia = () => new Promise((resolve, reject) => { oldGrant = resolve; oldReject = reject; });
+    const oldSetup = f.state.setupNinaMicrophones();
+    f.state.stopNinaMicrophone();
+    const replacement = f.makeStream();
+    f.state.navigator.mediaDevices.getUserMedia = async () => replacement;
+    await f.state.acquireNinaMicrophone();
+    if (result === 'accepted') oldGrant(f.stream);
+    else oldReject(Object.assign(new Error('Old request denied'), { name: 'NotAllowedError' }));
+    await oldSetup;
+    assert.equal(f.state.ninaMicrophoneStream, replacement);
+    assert.equal(replacement.getAudioTracks()[0].readyState, 'live');
+    assert.equal(f.state.ninaMicrophoneStatus.textContent, 'MICROPHONE READY');
+  });
+});
+
+test('a device enumeration started before closing cannot stop a newer call', async () => {
+  const f = microphoneFixture(); let oldEnumeration;
+  f.state.navigator.mediaDevices.enumerateDevices = () => new Promise(resolve => { oldEnumeration = resolve; });
+  const refresh = f.state.refreshNinaMicrophones();
+  f.state.stopNinaMicrophone();
+  const replacement = f.makeStream();
+  f.state.adoptNinaMicrophoneStream(replacement);
+  oldEnumeration([]);
+  await refresh;
+  assert.equal(f.state.ninaMicrophoneStream, replacement);
+  assert.equal(replacement.getAudioTracks()[0].readyState, 'live');
+  assert.ok(!f.calls.includes('call-stopped'));
 });
 
 test('an accounting request keeps its original session while authentication is pending', async () => {
@@ -97,6 +287,7 @@ test('closing releases the microphone and video before final accounting and seri
   const calls = []; let finishAccounting;
   const state = {
     ninaStoppingPromise: null, NINA_WEB_FLOW: true, ninaAttempt: 1,
+    ninaVideoReady: true, ninaLiveMedia: { dispose() { calls.push('media-guard-disposed'); } },
     ninaConnecting: true, ninaTokenAbortController: { abort() { calls.push('aborted'); } },
     ninaDiagnostics: {stop(){calls.push("diagnostics-stopped");}},
     ninaMemoryListenerCleanup() { calls.push('unbound'); },
@@ -121,6 +312,8 @@ test('closing releases the microphone and video before final accounting and seri
   const first = state.stopNinaSession(), second = state.stopNinaSession();
   assert.equal(state.ninaClient, null);
   assert.equal(state.ninaVideo.srcObject, null);
+  assert.equal(state.ninaVideoReady, false);
+  assert.ok(calls.indexOf('media-guard-disposed') < calls.indexOf('video-paused'));
   assert.ok(calls.indexOf('microphone-stopped') < calls.indexOf('accounting'));
   assert.equal(calls.filter(c => c === 'accounting').length, 1);
   finishAccounting(); await Promise.all([first, second]);

@@ -20,7 +20,7 @@ import { cleanPreferredName, deleteUserAccountData, getAccountPreferences, getBi
 import { SignalCreditError, debitSignalCredits, ensureVerifiedSignupTrial, getSignalCreditBalance, getSignalCreditHistory } from "./credits.js";
 import { ReferralError, attributeReferral, getOrCreateReferral } from "./referrals.js";
 import {
-  activateLiveNinaSession, beginLiveNinaTrialGrace, createLiveNinaSession, creditsToSeconds, failLiveNinaSession, settleLiveNinaSession
+  activateLiveNinaSession, beginLiveNinaTrialGrace, createLiveNinaSession, creditsToSeconds, expireStaleLiveNinaSessions, failLiveNinaSession, settleLiveNinaSession
 } from "./live-usage.js";
 import {
   StripePurchaseError, createSignalCreditCheckout, reconcileSignalCreditCheckout, verifyAndProcessStripeWebhook
@@ -63,9 +63,9 @@ An introduction to Julia Payne is expected. When the current speaker introduces 
 const NINA_KNOWLEDGE_TOOL_DESCRIPTION = "Find a specific missing established fact about Nina, named people, Parallel Vision or Berlin 2063 canon. Use information already supplied in current conversation or continuity first. Reuse relevant results; a name alone is not a reason to search unless the active prompt specifies an expected introduction and a shared contact lookup. Use private recall for a past conversation and catalog lookup for published releases when those tools are available.";
 const PRODUCTION_ORIGINS = new Set(["https://parallelvisionlabel.com", "https://www.parallelvisionlabel.com"]);
 
-export function applyStartupGreeting(personaConfig, owner, preferredName = "", random = Math.random) {
+export function applyStartupGreeting(personaConfig, owner, preferredName = "", random = Math.random, returning = false) {
   const safeName = cleanPreferredName(preferredName);
-  const pool = owner ? OWNER_GREETINGS : safeName ? KNOWN_PUBLIC_GREETINGS : UNKNOWN_PUBLIC_GREETINGS;
+  const pool = owner ? OWNER_GREETINGS : safeName ? KNOWN_PUBLIC_GREETINGS : returning ? ["Hi.", "Hey."] : UNKNOWN_PUBLIC_GREETINGS;
   personaConfig.initialMessage = pool[Math.floor(random() * pool.length)].replace("{name}", safeName);
   personaConfig.skipGreeting = false;
   personaConfig.uninterruptibleGreeting = Boolean(owner);
@@ -529,7 +529,7 @@ async function handleSessionToken(request, env, origin) {
     catch { diagnostics.systemTools = { attached: [], missing: ['skip_turn', 'pause_conversation'] }; }
     diagnostics.privateRecallConfigured = await attachMemoryTool(personaConfig, env, identity, conversationId, new URL(request.url).origin);
   }
-  applyStartupGreeting(personaConfig, owner, identity?.preferred_name);
+  applyStartupGreeting(personaConfig, owner, identity?.preferred_name, Math.random, diagnostics.restoredRecentMessages > 0);
   assembleSystemPrompt(personaConfig, owner, privateMemory);
   // Explicit opt-in from the website only. Existing app requests are unchanged.
   if (body.webFlowVersion === 1 && !owner) {
@@ -1005,6 +1005,7 @@ async function handleMemoryWorkspaceRequest(request,env,origin,url) {
 export default {
   async scheduled(_event, env, ctx) {
     ctx.waitUntil(observeBackgroundJob('memory_retry', () => drainMemoryJobs(env)));
+    ctx.waitUntil(observeBackgroundJob('live_usage_cleanup', () => expireStaleLiveNinaSessions(env)));
   },
   async fetch(request, env, ctx) {
     const url = new URL(request.url);

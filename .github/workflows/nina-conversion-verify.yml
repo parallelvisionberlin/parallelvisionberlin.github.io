@@ -6,8 +6,51 @@ on:
       - 'anam-token-worker/**'
       - 'js/nina-access.js'
       - 'js/nina-admin.js'
+      - 'js/nina-app-bootstrap.js'
+      - 'js/nina-live-media.js'
+      - 'js/nina-audio-input.js'
+      - 'js/nina-microphone.js'
+      - 'js/nina-diagnostics.js'
+      - 'js/nina-tool-errors.js'
+      - 'js/nina-web-flow.js'
+      - 'js/nina-trial-promotion.js'
+      - 'js/vendor/anam-sdk-4.27.0-pv1.js'
+      - 'vendor/anam-sdk/**'
+      - 'index.html'
+      - 'nina-project.html'
+      - 'nina-app.html'
+      - 'css/nina-access.css'
       - 'scripts/test-nina-web-browser.py'
       - 'scripts/test-nina-admin-call-recovery.py'
+      - 'scripts/test-nina-microphone.mjs'
+      - 'scripts/test-nina-live-microphone.mjs'
+      - 'test/*.test.mjs'
+      - '.github/workflows/nina-conversion-verify.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'anam-token-worker/**'
+      - 'js/nina-access.js'
+      - 'js/nina-admin.js'
+      - 'js/nina-app-bootstrap.js'
+      - 'js/nina-live-media.js'
+      - 'js/nina-audio-input.js'
+      - 'js/nina-microphone.js'
+      - 'js/nina-diagnostics.js'
+      - 'js/nina-tool-errors.js'
+      - 'js/nina-web-flow.js'
+      - 'js/nina-trial-promotion.js'
+      - 'js/vendor/anam-sdk-4.27.0-pv1.js'
+      - 'vendor/anam-sdk/**'
+      - 'index.html'
+      - 'nina-project.html'
+      - 'nina-app.html'
+      - 'css/nina-access.css'
+      - 'scripts/test-nina-web-browser.py'
+      - 'scripts/test-nina-admin-call-recovery.py'
+      - 'scripts/test-nina-microphone.mjs'
+      - 'scripts/test-nina-live-microphone.mjs'
+      - 'test/*.test.mjs'
       - '.github/workflows/nina-conversion-verify.yml'
 permissions:
   contents: read
@@ -32,6 +75,7 @@ jobs:
           npm test --prefix anam-token-worker
           node --test test/*.test.mjs
           node scripts/test-nina-microphone.mjs
+          node scripts/test-nina-live-microphone.mjs
           node scripts/verify-build.js
           git diff --check
       - name: Browser conversion and dashboard regressions

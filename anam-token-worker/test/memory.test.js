@@ -643,7 +643,7 @@ test("account migration adds permanent user IDs without altering existing memory
 test("public frontend keeps browser memory and sends server memory only with Clerk or legacy authentication", async () => {
   const frontend = await readFile(new URL("../../js/nina-access.js", import.meta.url), "utf8");
   assert.match(frontend, /clerk\?\.session\?\.getToken/);
-  assert.match(frontend, /if \(!headers\.Authorization\) return null/);
+  assert.match(frontend, /if \(!headers\.Authorization \|\| request\.identity !== ninaMemoryIdentityKey\(\)\)/);
   assert.match(frontend, /return clerk \? \{ "Content-Type": "application\/json" \} : legacyOwnerMemoryHeaders\(\)/);
   assert.match(frontend, /await clerk\?\.signOut\(\)/);
   assert.doesNotMatch(frontend, /localStorage\.setItem\(NINA_LEGACY_OWNER_TOKEN_KEY/);

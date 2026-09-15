@@ -2,9 +2,9 @@ name: Nina conversation and memory regression
 on:
   push:
     branches: [main]
-    paths: ['anam-token-worker/**', 'js/nina-access.js', 'js/nina-app-bootstrap.js', 'js/nina-diagnostics.js', 'js/nina-memory-workspace.js', 'js/account.js', 'account.html', 'css/account.css', '.github/workflows/nina-reliability-tests.yml']
+    paths: ['anam-token-worker/**', 'js/nina-access.js', 'js/nina-app-bootstrap.js', 'js/nina-live-media.js', 'js/nina-audio-input.js', 'js/nina-web-flow.js', 'js/vendor/anam-sdk-4.27.0-pv1.js', 'vendor/anam-sdk/**', 'js/nina-diagnostics.js', 'js/nina-memory-workspace.js', 'js/account.js', 'account.html', 'css/account.css', '.github/workflows/nina-reliability-tests.yml']
   pull_request:
-    paths: ['anam-token-worker/**', 'js/nina-access.js', 'js/nina-app-bootstrap.js', 'js/nina-diagnostics.js', 'js/nina-memory-workspace.js', 'js/account.js', 'account.html', 'css/account.css', '.github/workflows/nina-reliability-tests.yml']
+    paths: ['anam-token-worker/**', 'js/nina-access.js', 'js/nina-app-bootstrap.js', 'js/nina-live-media.js', 'js/nina-audio-input.js', 'js/nina-web-flow.js', 'js/vendor/anam-sdk-4.27.0-pv1.js', 'vendor/anam-sdk/**', 'js/nina-diagnostics.js', 'js/nina-memory-workspace.js', 'js/account.js', 'account.html', 'css/account.css', '.github/workflows/nina-reliability-tests.yml']
 permissions:
   contents: read
 jobs:
@@ -20,6 +20,7 @@ jobs:
             js
             css
             nina-admin
+            vendor/anam-sdk
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -32,6 +33,7 @@ jobs:
           npm run check --prefix anam-token-worker
           node --check js/nina-access.js
           node --check js/nina-app-bootstrap.js
+          node --check js/nina-live-media.js
           node --check js/nina-diagnostics.js
           node --check js/nina-memory-workspace.js
           node --check js/account.js

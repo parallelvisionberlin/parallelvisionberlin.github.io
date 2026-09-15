@@ -1,6 +1,17 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {attachConversationDiagnostics} from '../../js/nina-diagnostics.js';
+
+test('connection diagnostics preserve reason while removing details that may contain secrets', async () => {
+ const sent=[];
+ const tracker=attachConversationDiagnostics({client:{addListener(){},removeListener(){}},events:{},conversationId:'c',send:async body=>{sent.push(...body.events);return true;}});
+ tracker.record('media_failure',{reason:'video_stalled',phase:'playback',errorMessage:'Failed https://private.example?token=secret',transcript:'must not be sent'});
+ await tracker.flush();tracker.stop();await tracker.flush();
+ const failure=sent.find(e=>e.kind==='media_failure');
+ assert.equal(failure.data.reason,'video_stalled');
+ assert.equal(failure.data.phase,'playback');
+ assert.doesNotMatch(JSON.stringify(sent),/private.example|token=secret|must not be sent/);
+});
 test('collector ignores replayed history, captures new utterances and never sends tool secrets',async()=>{
  const handlers=new Map(),sent=[];let clock=0;
  const names=['MESSAGE_HISTORY_UPDATED','MESSAGE_STREAM_EVENT_RECEIVED','TOOL_CALL_COMPLETED','USER_SPEECH_STARTED','USER_SPEECH_ENDED'];

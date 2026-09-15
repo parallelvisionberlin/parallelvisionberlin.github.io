@@ -1,8 +1,8 @@
 import { sanitizeToolError } from '../../js/nina-tool-errors.js';
 import { MemoryEditError, workspaceEnabled } from './memory-controls.js';
 
-const KINDS=new Set(['session_ready','speech_start','speech_end','user_message','persona_message','persona_utterance','tool_started','tool_completed','tool_failed','interrupted','microphone','client_end']);
-const STRING_FIELDS=new Set(['messageId','utteranceId','correlationId','toolName','toolCallId','fingerprint','anamSessionId','audioInputRevision']);
+const KINDS=new Set(['session_ready','speech_start','speech_end','user_message','persona_message','persona_utterance','tool_started','tool_completed','tool_failed','interrupted','microphone','client_end','connection_opened','video_started','connection_closed','media_failure']);
+const STRING_FIELDS=new Set(['messageId','utteranceId','correlationId','toolName','toolCallId','fingerprint','anamSessionId','audioInputRevision','phase','reason']);
 const BOOL_FIELDS=new Set(['echoCancellation','noiseSuppression','autoGainControl','voiceIsolation','interrupted']);
 export async function recordSessionSetup(env,userId,conversationId,setup) {
   if(!workspaceEnabled(env)||!conversationId||!userId)return;

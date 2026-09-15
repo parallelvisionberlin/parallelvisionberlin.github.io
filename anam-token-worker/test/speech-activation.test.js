@@ -6,11 +6,11 @@ import { readFileSync } from 'node:fs';
 const source = readFileSync(new URL('../../js/nina-access.js', import.meta.url), 'utf8');
 const fn = source.match(/async function activateNinaUsage\(attempt, client\) \{[\s\S]*?\n\}/)?.[0];
 assert.ok(fn, 'Test the actual production activation function');
-function fixture({ speech = true, web = true, trial = true, activate } = {}) {
+function fixture({ speech = true, web = true, trial = true, videoReady = true, activate } = {}) {
   const client = {};
   const calls = [];
   const state = {
-    ninaAttempt: 1, ninaClient: client, NINA_WEB_FLOW: web,
+    ninaAttempt: 1, ninaClient: client, ninaVideoReady: videoReady, NINA_WEB_FLOW: web,
     ninaTrialActivationPending: trial, ninaWebProgress: { hasSpeech: () => speech },
     ninaWebAudio: { confirmed: () => false, active() { calls.push('audio-ui-active'); } },
     ninaUsageSessionId: 'test-session', ninaUsageActive: false,
@@ -45,6 +45,16 @@ test('connection, greeting and microphone permission alone cannot start the tria
   assert.equal(await f.run(), false);
   assert.equal(f.state.ninaUsageActive, false);
   assert.equal(f.calls.length, 0);
+});
+test('completed speech waits for video before either trial or paid activation', async () => {
+  for (const trial of [true, false]) {
+    const f = fixture({ speech: true, trial, videoReady: false });
+    assert.equal(await f.run(), false);
+    assert.equal(f.calls.length, 0);
+    f.state.ninaVideoReady = true;
+    assert.equal(await f.run(), true);
+    assert.equal(f.calls.filter(v => v === 'activate').length, 1);
+  }
 });
 test('concurrent speech updates share one activation request', async () => {
   let finish;

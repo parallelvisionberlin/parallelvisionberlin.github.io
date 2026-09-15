@@ -1,0 +1,25 @@
+{
+  "upstream": "@anam-ai/js-sdk@4.27.0",
+  "patch": "pv1-capture-cancellation",
+  "source": "https://github.com/anam-org/javascript-sdk/tree/v4.27.0",
+  "npmIntegrity": "sha512-oU0izvlv1Q+25gL/EoW7QYUFxSNEY48/G/efmL1f24AYuI0WU16albNIpbNDEivqJAFFsdHa52mWQXciAi13Hg==",
+  "output": "js/vendor/anam-sdk-4.27.0-pv1.js",
+  "bytes": 229282,
+  "gzipBytes": 43733,
+  "sha256": "3a1b7a18ff74a54339004585de462b6973eadcf16266633c7100b5b916b24efd",
+  "exports": [
+    "AgentAudioInputStream",
+    "AnamEvent",
+    "AudioPermissionState",
+    "ClientError",
+    "ConnectionClosedCode",
+    "DIRECTOR_NOTE_CUE_TAGS",
+    "DataChannelMessage",
+    "ErrorCode",
+    "InternalEvent",
+    "MessageRole",
+    "SignalMessageAction",
+    "createClient",
+    "unsafe_createClientWithApiKey"
+  ]
+}

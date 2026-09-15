@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { buildLivePersonaConfig } from '../src/index.js';
-import { speechConstraints, appliedSpeechSettings } from '../../js/nina-audio-input.js';
+import { speechConstraints, appliedSpeechSettings, openSpeechMicrophone } from '../../js/nina-audio-input.js';
 import { attachConversationDiagnostics } from '../../js/nina-diagnostics.js';
 
 test('noise policy reaches live config without changing identity, voice, STT or response timing', () => {
@@ -33,6 +33,41 @@ test('capture supports isolation and mono without mandatory processing, gain boo
   assert.equal(speechConstraints('', supported).audio.autoGainControl.ideal, false);
   assert.deepEqual(speechConstraints('', {}), { audio: true, video: false });
   assert.deepEqual(speechConstraints('', { echoCancellation: true }), { audio: { echoCancellation: { ideal: true } }, video: false });
+});
+
+test('a disconnected saved microphone retries once with system defaults', async () => {
+  const requests = [], stream = {};
+  const mediaDevices = {
+    getSupportedConstraints: () => ({ echoCancellation: true }),
+    async getUserMedia(constraints) {
+      requests.push(constraints);
+      if (requests.length === 1) throw Object.assign(new Error('Saved input unplugged'), { name: 'NotFoundError' });
+      return stream;
+    }
+  };
+  assert.equal(await openSpeechMicrophone(mediaDevices, 'old-earbuds'), stream);
+  assert.equal(requests.length, 2);
+  assert.deepEqual(requests[0].audio.deviceId, { exact: 'old-earbuds' });
+  assert.deepEqual(requests[1], { audio: true, video: false });
+});
+
+test('microphone permission denial is surfaced without another capture request', async () => {
+  let attempts = 0;
+  const denied = Object.assign(new Error('Permission denied'), { name: 'NotAllowedError' });
+  await assert.rejects(openSpeechMicrophone({ getUserMedia: async () => { attempts += 1; throw denied; } }), denied);
+  assert.equal(attempts, 1);
+});
+
+test('a cancelled microphone attempt cannot open fallback capture', async () => {
+  let rejectCapture, attempts = 0, current = true;
+  const capture = openSpeechMicrophone({ getUserMedia: () => {
+    attempts += 1;
+    return new Promise((resolve, reject) => { rejectCapture = reject; });
+  } }, 'old-earbuds', () => current);
+  current = false;
+  rejectCapture(Object.assign(new Error('Old input missing'), { name: 'NotFoundError' }));
+  await assert.rejects(capture, error => error.name === 'NotFoundError');
+  assert.equal(attempts, 1);
 });
 
 test('actual settings distinguish disabled from unreported and exclude device identifiers', () => {

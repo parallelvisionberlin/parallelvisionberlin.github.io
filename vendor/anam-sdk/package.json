@@ -1,0 +1,12 @@
+{
+  "name": "parallel-vision-anam-sdk-build",
+  "private": true,
+  "version": "4.27.0-pv.1",
+  "type": "module",
+  "scripts": { "build": "node build.mjs" },
+  "devDependencies": {
+    "@anam-ai/js-sdk": "4.27.0",
+    "buffer": "6.0.3",
+    "esbuild": "0.28.1"
+  }
+}
