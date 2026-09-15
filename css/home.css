@@ -2239,6 +2239,18 @@ footer {
   white-space: nowrap;
 }
 
+.artists-roster-meta .artists-roster-statement {
+  max-width: 470px;
+  margin: 4px 0 8px;
+  color: rgba(255,255,255,.72);
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(11px, .9vw, 14px);
+  letter-spacing: .035em;
+  line-height: 1.55;
+  text-transform: none;
+  white-space: normal;
+}
+
 .artists-featured {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -2422,7 +2434,9 @@ footer {
   transition: transform .25s ease;
 }
 
-.artist-index-city {
+.artist-index-meta {
+  display: grid;
+  gap: 7px;
   color: rgba(255,255,255,.46);
   font: 9px 'Courier New', monospace;
   letter-spacing: .3em;
@@ -2430,6 +2444,15 @@ footer {
   text-align: right;
   text-transform: uppercase;
   white-space: nowrap;
+}
+
+.artist-index-meta b {
+  color: rgba(255,255,255,.72);
+  font: inherit;
+}
+
+.artist-index-meta span {
+  color: rgba(255,255,255,.38);
 }
 
 .artist-index-arrow {
@@ -2479,9 +2502,10 @@ footer {
     line-height: 1.25;
   }
 
-  .artist-index-city {
+  .artist-index-meta {
     font-size: 8px;
     text-align: left;
+    white-space: normal;
   }
 }
 
