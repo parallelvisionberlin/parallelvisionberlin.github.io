@@ -39,6 +39,23 @@
     .section { padding:clamp(80px,10vw,148px) var(--pad); border-bottom:1px solid var(--line); }
     .section-head { display:flex; align-items:end; justify-content:space-between; gap:28px; padding-bottom:28px; border-bottom:1px solid var(--line); }
     .section-title { margin-top:18px; }
+    .visual-work { display:grid; gap:clamp(76px,10vw,150px); padding-top:clamp(44px,6vw,82px); }
+    .work-header { display:grid; grid-template-columns:minmax(70px,.28fr) minmax(260px,1.72fr); gap:clamp(22px,5vw,72px); align-items:end; margin-bottom:24px; }
+    .work-index,.work-credit { color:var(--muted); font:9px/1.65 "Courier New",monospace; letter-spacing:.18em; text-transform:uppercase; }
+    .work-title { font:400 clamp(1.45rem,3.4vw,4rem)/1.03 Michroma,sans-serif; letter-spacing:.005em; text-transform:uppercase; }
+    .work-credit { display:flex; justify-content:space-between; gap:20px; margin-top:16px; padding-top:15px; border-top:1px solid var(--line); }
+    .film-frame { position:relative; width:100%; aspect-ratio:16/9; overflow:hidden; background:#111; }
+    .film-frame iframe { position:absolute; inset:0; width:100%; height:100%; border:0; }
+    .gallery-intro { max-width:720px; margin:0 0 clamp(28px,4vw,52px) auto; color:rgba(255,255,255,.68); font-size:14px; line-height:1.75; }
+    .jbalvin-gallery { display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); gap:clamp(8px,1.2vw,18px); align-items:start; }
+    .jbalvin-gallery figure { overflow:hidden; background:#111; }
+    .jbalvin-gallery figure:nth-child(1) { grid-column:span 5; }
+    .jbalvin-gallery figure:nth-child(2) { grid-column:span 3; margin-top:12vw; }
+    .jbalvin-gallery figure:nth-child(3) { grid-column:span 4; }
+    .jbalvin-gallery figure:nth-child(4) { grid-column:2/span 5; }
+    .jbalvin-gallery figure:nth-child(5) { grid-column:8/span 4; margin-top:7vw; }
+    .jbalvin-gallery img { display:block; width:100%; height:auto; filter:saturate(.9) contrast(1.03); transition:filter .3s ease,transform .5s ease; }
+    .jbalvin-gallery figure:hover img { filter:saturate(1) contrast(1.03); transform:scale(1.012); }
     .project-list,.link-list { border-bottom:1px solid var(--line); }
     .project { display:grid; grid-template-columns:80px minmax(230px,.8fr) minmax(300px,1.2fr); gap:clamp(24px,5vw,76px); padding:clamp(30px,4vw,54px) 0; border-bottom:1px solid var(--line); }
     .project:last-child { border-bottom:0; }
@@ -70,6 +87,13 @@
       .profile { grid-template-columns:1fr; gap:38px; padding:76px 18px 88px; }
       .section { padding:72px 18px 84px; }
       .section-head { align-items:flex-start; flex-direction:column; }
+      .visual-work { gap:82px; padding-top:42px; }
+      .work-header { grid-template-columns:1fr; gap:12px; }
+      .work-credit { align-items:flex-start; flex-direction:column; gap:3px; }
+      .gallery-intro { margin-left:0; }
+      .jbalvin-gallery { grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+      .jbalvin-gallery figure:nth-child(n) { grid-column:auto; margin-top:0; }
+      .jbalvin-gallery figure:nth-child(1),.jbalvin-gallery figure:nth-child(5) { grid-column:1/-1; }
       .project { grid-template-columns:1fr; gap:14px; }
       .link-row { grid-template-columns:1fr auto; gap:12px 22px; }
       .link-context { grid-column:1/-1; grid-row:2; }
@@ -83,7 +107,7 @@
 <body>
   <nav class="site-nav" aria-label="Primary navigation">
     <a href="./index.html">Parallel Vision</a>
-    <div class="nav-links"><a href="#projects">Projects</a><a href="#press">Press</a><a href="./index.html#artists">All Artists</a></div>
+    <div class="nav-links"><a href="#work">Work</a><a href="#press">Press</a><a href="./index.html#artists">All Artists</a></div>
   </nav>
   <main>
     <header class="hero" aria-labelledby="julia-title">
@@ -103,12 +127,41 @@
       </div>
     </section>
 
+    <section class="section" id="work" aria-labelledby="work-title">
+      <header class="section-head"><div><p class="label">Selected Visual Work / 02</p><h2 class="section-title" id="work-title">Film &amp;<br>Editorial</h2></div><p class="label">Set · Production · Spatial Design</p></header>
+      <div class="visual-work">
+        <article class="featured-work reveal">
+          <div class="work-header"><span class="work-index">01 / Balenciaga</span><h3 class="work-title">Spring 22<br>Campaign</h3></div>
+          <div class="film-frame"><iframe src="https://www.youtube-nocookie.com/embed/H5zSHFBjohE?rel=0" title="Balenciaga Spring 22 Campaign" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>
+          <div class="work-credit"><span>Balenciaga / Campaign Film</span><a href="https://youtu.be/H5zSHFBjohE" target="_blank" rel="noopener noreferrer">Watch on YouTube ↗</a></div>
+        </article>
+
+        <article class="featured-work reveal">
+          <div class="work-header"><span class="work-index">02 / Chanel</span><h3 class="work-title">A Very Chanel<br>Holiday</h3></div>
+          <div class="film-frame"><iframe src="https://www.youtube-nocookie.com/embed/vKAbp6hcNEI?rel=0" title="A Very Chanel Holiday, Chanel Watches and Fine Jewelry" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>
+          <div class="work-credit"><span>Chanel / Watches and Fine Jewelry</span><a href="https://youtu.be/vKAbp6hcNEI" target="_blank" rel="noopener noreferrer">Watch on YouTube ↗</a></div>
+        </article>
+
+        <article class="featured-work reveal">
+          <div class="work-header"><span class="work-index">03 / J Balvin</span><h3 class="work-title">New York Post<br>Editorial</h3></div>
+          <p class="gallery-intro">Set design for the New York Post and Alexa Magazine cover story with J Balvin, bringing painted surfaces, sculptural garments and constructed environments into one visual language.</p>
+          <div class="jbalvin-gallery" aria-label="J Balvin editorial image selection">
+            <figure><img src="./assets/julia-payne/j-balvin-orange.webp" alt="J Balvin against an orange set with a painted white outline" loading="lazy" width="750" height="1055"></figure>
+            <figure><img src="./assets/julia-payne/j-balvin-green.webp" alt="J Balvin standing in a pale green constructed set" loading="lazy" width="1120" height="1400"></figure>
+            <figure><img src="./assets/julia-payne/j-balvin-red.webp" alt="J Balvin in red tailoring and a white hat" loading="lazy" width="924" height="1154"></figure>
+            <figure><img src="./assets/julia-payne/j-balvin-blue.webp" alt="J Balvin behind a painted blue foreground" loading="lazy" width="1120" height="1400"></figure>
+            <figure><img src="./assets/julia-payne/j-balvin-colour.webp" alt="J Balvin in a layered multicolour set" loading="lazy" width="1120" height="1400"></figure>
+          </div>
+          <div class="work-credit"><span>New York / Set Design / 2023</span><a href="https://nypost.com/2023/12/06/lifestyle/j-balvin-on-repping-colombia-with-chart-topping-music-bold-style/" target="_blank" rel="noopener noreferrer">Read the feature ↗</a></div>
+        </article>
+      </div>
+    </section>
+
     <section class="section" id="projects" aria-labelledby="projects-title">
-      <header class="section-head"><div><p class="label">Selected Work / 03</p><h2 class="section-title" id="projects-title">Projects</h2></div><p class="label">Space · Material · Performance</p></header>
+      <header class="section-head"><div><p class="label">Selected Installations / 03</p><h2 class="section-title" id="projects-title">Projects</h2></div><p class="label">Space · Material · Performance</p></header>
       <div class="project-list">
         <article class="project reveal"><span class="project-index">01 / 2024</span><h3>Wehrmühle × ArtReview</h3><div class="project-copy"><p>Spatial and stage design for Wehrmühle’s Berlin Art Week closing party with Nina Kraviz. An industrial-steel stage, corrugated-metal canopy and suspended translucent fabric transformed an empty Friedrichstraße courtyard.</p><span class="project-meta">Berlin / Nina Kraviz</span></div></article>
         <article class="project reveal"><span class="project-index">02 / 2024</span><h3>Breakfast Club ADE</h3><div class="project-copy"><p>Installation for Trouble² at Rasa86 during Amsterdam Dance Event, presented within a twelve-hour programme connecting distinct regions of electronic sound.</p><span class="project-meta">Amsterdam / Installation</span></div></article>
-        <article class="project reveal"><span class="project-index">03 / 2023</span><h3>J Balvin</h3><div class="project-copy"><p>Set design for the New York Post’s editorial feature with J Balvin, extending Julia’s spatial practice into portraiture, fashion and editorial production.</p><span class="project-meta">New York / Set Design</span></div></article>
       </div>
     </section>
 
