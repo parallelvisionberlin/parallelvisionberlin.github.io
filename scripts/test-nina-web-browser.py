@@ -9,7 +9,8 @@ html=(root/'index.html').read_text();html=re.sub(r'<script\b[^>]*>[\s\S]*?</scri
 html=re.sub(r'<(link|img|source|iframe)\b[^>]*>','',html,flags=re.I)
 html=html.replace('</head>','<style>'+(root/'css/nina-access.css').read_text()+'</style></head>')
 helper=(root/'js/nina-web-flow.js').read_text().replace('export function','function')
-audiohelper=(root/'js/nina-audio-input.js').read_text().replace('export function','function').replace('export const','const')
+audiohelper=(root/'js/nina-audio-input.js').read_text().replace('export async function','async function').replace('export function','function').replace('export const','const')
+mediahelper=(root/'js/nina-live-media.js').read_text().replace('export function','function')
 source=(root/'js/nina-access.js').read_text()
 source=re.sub(r'^import .*?;\s*','',source,flags=re.M)
 source=source.replace('const { Clerk } = await import("https://esm.sh/@clerk/clerk-js@6?bundle");','const Clerk = class { constructor(){return window.testClerk} };')
@@ -27,14 +28,20 @@ testLocation.assign=url=>{window.assigned=url}; testLocation.replace=url=>{windo
 const makeStorage=()=>{const data=new Map();return {getItem(k){return data.get(k)??null},setItem(k,v){data.set(k,String(v))},removeItem(k){data.delete(k)}}};
 Object.defineProperty(window,'localStorage',{value:makeStorage(),configurable:true});Object.defineProperty(window,'sessionStorage',{value:makeStorage(),configurable:true});
 window.history.replaceState=()=>{};window.__internal_ClerkUICtor=function(){};window.requests=[];window.events=[];window.fbq=(...args)=>events.push(args);
-window.mockMedia={getAudioTracks(){return [{readyState:'live',stop(){}}]},getTracks(){return this.getAudioTracks()}};
+window.makeTestMedia=()=>{const track=new EventTarget();Object.assign(track,{readyState:'live',enabled:true,muted:false,stop(){this.readyState='ended'}});return {getAudioTracks(){return [track]},getTracks(){return [track]}}};
 window.captureRequests=[];
-Object.defineProperty(navigator,'mediaDevices',{value:{getSupportedConstraints(){return {echoCancellation:true,noiseSuppression:true,autoGainControl:true,voiceIsolation:true}},async getUserMedia(constraints){captureRequests.push(constraints);return mockMedia},async enumerateDevices(){return [{kind:'audioinput',deviceId:'default',label:'Microphone'},{kind:'audioinput',deviceId:'usb',label:'USB Microphone'}]},addEventListener(){}}});
-HTMLMediaElement.prototype.play=async function(){if(window.failPlay)throw new Error('blocked')}; HTMLMediaElement.prototype.pause=function(){};
+Object.defineProperty(navigator,'mediaDevices',{value:{getSupportedConstraints(){return {echoCancellation:true,noiseSuppression:true,autoGainControl:true,voiceIsolation:true}},async getUserMedia(constraints){captureRequests.push(constraints);return makeTestMedia()},async enumerateDevices(){return [{kind:'audioinput',deviceId:'default',label:'Microphone'},{kind:'audioinput',deviceId:'usb',label:'USB Microphone'}]},addEventListener(){}}});
+HTMLMediaElement.prototype.play=async function(){if(window.failPlay)throw new Error('blocked');this._testPlaying=true}; HTMLMediaElement.prototype.pause=function(){this._testPlaying=false};
 Object.defineProperty(HTMLMediaElement.prototype,'srcObject',{set(v){this._src=v},get(){return this._src}});
+Object.defineProperty(HTMLMediaElement.prototype,'paused',{get(){return !this._testPlaying}});
+Object.defineProperty(HTMLMediaElement.prototype,'readyState',{get(){return this._testPlaying?4:0}});
+Object.defineProperty(HTMLMediaElement.prototype,'currentTime',{get(){return this._testPlaying?performance.now()/1000:0}});
+HTMLVideoElement.prototype.requestVideoFrameCallback=function(callback){return setTimeout(()=>callback(performance.now(),{}),30)};
+HTMLVideoElement.prototype.cancelVideoFrameCallback=clearTimeout;
 window.testClerk={isSignedIn:true,user:{id:'normal-user',fullName:'Test',reload:async()=>testClerk.user},session:{getToken:async()=>'token'},async load(){},addListener(fn){this.listener=fn},closeSignIn(){},closeSignUp(){},client:{signIn:{authenticateWithRedirect:async()=>{},create:async()=>({})}},async openSignUp(){this.openedSignup=true},async openSignIn(){}};
-const AnamEvent={CONNECTION_ESTABLISHED:'connected',VIDEO_PLAY_STARTED:'playing',CONNECTION_CLOSED:'closed',MESSAGE_HISTORY_UPDATED:'history'};
-function createClient(){const c={handlers:{},addListener(k,f){(this.handlers[k]??=[]).push(f)},removeListener(k,f){this.handlers[k]=(this.handlers[k]||[]).filter(x=>x!==f)},getActiveSessionId(){return 'sdk1'},emit(k,arg){for(const f of this.handlers[k]||[])f(arg)},async streamToVideoElement(){this.emit('connected');this.emit('playing')},async stopStreaming(){}};window.testClient=c;return c}
+window.testHoldVideo=true;
+const AnamEvent={CONNECTION_ESTABLISHED:'connected',VIDEO_PLAY_STARTED:'playing',CONNECTION_CLOSED:'closed',MESSAGE_HISTORY_UPDATED:'history',MESSAGE_STREAM_EVENT_RECEIVED:'stream',INPUT_AUDIO_STREAM_STARTED:'input'};
+function createClient(){const c={handlers:{},switches:0,addListener(k,f){(this.handlers[k]??=[]).push(f)},removeListener(k,f){this.handlers[k]=(this.handlers[k]||[]).filter(x=>x!==f)},getActiveSessionId(){return 'sdk1'},emit(k,arg){for(const f of [...(this.handlers[k]||[])])f(arg)},startVideo(){window.testHoldVideo=false;this.video._testPlaying=true;this.emit('playing')},async streamToVideoElement(id,stream){this.video=document.getElementById(id);this.video.srcObject=stream;this.emit('input',stream);this.emit('connected');if(!window.testHoldVideo)this.startVideo()},async changeAudioInputDevice(id){this.switches++;this.emit('input',await navigator.mediaDevices.getUserMedia({audio:{deviceId:{exact:id}},video:false}))},async stopStreaming(){this.video?.pause()}};window.testClient=c;return c}
 window.fetch=async(url,options={})=>{requests.push({url:String(url),body:options.body});let data={};
  if(String(url).includes('/session-token'))data={sessionToken:'t',conversationId:'22222222-2222-4222-8222-222222222222',usageSessionId:'33333333-3333-4333-8333-333333333333',balance:30,remainingSeconds:180,settlementSeconds:30,trialActivationPending:true};
  else if(String(url).includes('/credits/checkout/status'))data={status:window.paymentVerified?'paid':'open',paymentStatus:window.paymentVerified?'paid':'unpaid',sessionId:'cs_test_return',balance:window.paymentVerified?90:30};
@@ -54,14 +61,17 @@ with sync_playwright() as p:
  browser=p.chromium.launch(executable_path=__import__('os').environ.get('CHROMIUM_PATH'),headless=True,args=['--no-sandbox'])
  for width,height in [(390,844),(1280,900)]:
   page=browser.new_page(viewport={'width':width,'height':height});errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
-  page.set_content(html,wait_until='domcontentloaded');page.evaluate(setup+'\n'+trialmodule+'\n'+helper+'\n'+audiohelper+'\n'+source+'\n'+end)
+  page.set_content(html,wait_until='domcontentloaded');page.evaluate(setup+'\n'+trialmodule+'\n'+helper+'\n'+audiohelper+'\n'+mediahelper+'\n'+source+'\n'+end)
   page.evaluate('testOpen()');page.wait_for_timeout(200)
-  page.evaluate('testConnect()');page.wait_for_selector('.nina-web-audio-check:not([hidden])')
+  page.evaluate('void testConnect()');page.wait_for_function('Boolean(window.testClient)')
+  assert page.evaluate("requests.filter(x=>x.url.includes('/live/activate')).length")==0
+  assert page.locator('#ninaStatus').text_content()!='NINA ONLINE', 'Signalling is not video playback'
+  page.evaluate('testClient.startVideo()');page.wait_for_selector('.nina-web-audio-check:not([hidden])')
   capture=page.evaluate('captureRequests.at(-1).audio')
   assert capture['echoCancellation']=={'ideal':True} and capture['noiseSuppression']=={'ideal':True}
   assert capture['voiceIsolation']=={'ideal':True} and capture['autoGainControl']=={'ideal':False}
   assert page.evaluate("requests.filter(x=>x.url.includes('/live/activate')).length")==0
-  page.evaluate("testClient.emit('history',[{id:'greet',role:'persona',content:'Hi'},{id:'u1',role:'user',content:'Hello'}])")
+  page.evaluate("testClient.emit('stream',{id:'greet',role:'persona',content:'Hi',endOfSpeech:true});testClient.emit('history',[{id:'greet',role:'persona',content:'Hi'},{id:'u1',role:'user',content:'Hello'}])")
   page.wait_for_timeout(150)
   assert page.evaluate("requests.filter(x=>x.url.includes('/live/activate')).length")==1
   page.evaluate("testClient.emit('history',[{id:'greet',role:'persona',content:'Hi'},{id:'u1',role:'user',content:'Hello'},{id:'u2',role:'user',content:'Are you from Berlin?'}])")
@@ -69,10 +79,15 @@ with sync_playwright() as p:
   assert page.evaluate("requests.filter(x=>x.url.includes('/live/activate')).length")==1
   assert page.locator('[data-nina-heard]').count()==0
   page.wait_for_timeout(1200);page.screenshot(path=str(out/f'nina-speech-first-{width}.png'))
-  # Changing the active microphone ends the old media/billing session instead of leaving a ghost call.
+  # Switching input preserves the live media/billing session. A later genuine
+  # connection close must still release the session and allow another call.
   page.evaluate("const s=document.getElementById('ninaMicrophoneSelect');s.value='usb';s.dispatchEvent(new Event('change',{bubbles:true}))")
+  page.wait_for_function("testClient.switches===1 && document.getElementById('ninaMicrophoneStatus').textContent==='MICROPHONE READY'")
+  assert page.evaluate("requests.filter(x=>x.url.includes('/live/end')).length")==0
+  assert page.evaluate("requests.filter(x=>x.url.includes('/live/activate')).length")==1
+  page.evaluate("testClient.emit('closed','CONNECTION_FAILURE')")
   page.wait_for_selector('#ninaScrimButton:has-text("TRY AGAIN")')
-  assert 'Microphone changed' in page.locator('#ninaScrimMessage').text_content()
+  assert 'video connection stopped' in page.locator('#ninaScrimMessage').text_content()
   assert page.evaluate("requests.filter(x=>x.url.includes('/live/end')).length")>=1
   page.locator('#ninaScrimButton').click();page.wait_for_selector('.nina-web-audio-check:not([hidden])')
   page.evaluate("testClient.emit('history',[{id:'greet2',role:'persona',content:'Hi again'},{id:'u3',role:'user',content:'Hello again'}])")
@@ -111,7 +126,7 @@ with sync_playwright() as p:
   assert page.locator('#ninaOverlay').evaluate("el=>el.classList.contains('is-open')")
   assert page.locator('.nina-credits-purchase').is_hidden()
   assert not errors,errors
-  results.append({'width':width,'checks':['no billing before speech','first speech activates without any confirmation click','duplicate speech never double-activates','active microphone change safely ends and reconnects the call','audio help stops and cleans up','continuation requests 6-minute checkout','provider failure shown in modal','same-page signup resumes Nina','unrelated credits cannot falsely confirm checkout','verified added credits show Return to Nina'],'passed':True})
+  results.append({'width':width,'checks':['no billing or online state before video playback','no billing before speech','first speech activates without any confirmation click','duplicate speech never double-activates','active microphone change preserves the call','connection closure cleans up and permits retry','audio help stops and cleans up','continuation requests 6-minute checkout','provider failure shown in modal','same-page signup resumes Nina','unrelated credits cannot falsely confirm checkout','verified added credits show Return to Nina'],'passed':True})
   page.close()
  browser.close()
 print(json.dumps(results,indent=2));(out/'results.json').write_text(json.dumps(results,indent=2))

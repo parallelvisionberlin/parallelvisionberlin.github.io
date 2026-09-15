@@ -5,9 +5,12 @@ import { DatabaseSync } from "node:sqlite";
 import { readFileSync } from "node:fs";
 import { creditSignalCredits, ensureVerifiedSignupTrial, getSignalCreditBalance } from "../src/credits.js";
 import {
-  CREDITS_PER_MINUTE, SECONDS_PER_CREDIT, SIGNUP_TRIAL_GRACE_SECONDS, activateLiveNinaSession, beginLiveNinaTrialGrace, createLiveNinaSession,
-  creditsToSeconds, failLiveNinaSession, formatLiveTime, settleLiveNinaSession
+  CREDITS_PER_MINUTE, SECONDS_PER_CREDIT, SIGNUP_TRIAL_GRACE_SECONDS, LIVE_NINA_STALE_SECONDS, LIVE_NINA_RECOVERY_ROLLOUT_AT,
+  activateLiveNinaSession, beginLiveNinaTrialGrace, createLiveNinaSession,
+  creditsToSeconds, expireStaleLiveNinaSessions, failLiveNinaSession, formatLiveTime, settleLiveNinaSession
 } from "../src/live-usage.js";
+
+const RECOVERY_TEST_START = Date.parse("2026-09-15T16:00:00.000Z");
 
 function liveDb() {
   const sqlite = new DatabaseSync(":memory:");
@@ -20,11 +23,23 @@ function liveDb() {
     sqlite,
     get transactions() { return sqlite.prepare("SELECT * FROM signal_credit_transactions ORDER BY rowid").all(); },
     sessions: { get(id) { return sqlite.prepare("SELECT * FROM live_nina_sessions WHERE id = ?").get(id); } },
+    async batch(statements) {
+      sqlite.exec("BEGIN TRANSACTION");
+      try {
+        const result = statements.map(statement => statement.execute());
+        sqlite.exec("COMMIT");
+        return result;
+      } catch (error) {
+        sqlite.exec("ROLLBACK");
+        throw error;
+      }
+    },
     prepare(sql) {
       let values = [];
       return {
         bind(...bound) { values = bound; return this; },
-        async run() { return { meta: { changes: Number(sqlite.prepare(sql).run(...values).changes) } }; },
+        execute() { return { meta: { changes: Number(sqlite.prepare(sql).run(...values).changes) } }; },
+        async run() { return this.execute(); },
         async first() { return sqlite.prepare(sql).get(...values) || null; },
         async all() { return { results: sqlite.prepare(sql).all(...values) }; }
       };
@@ -43,6 +58,122 @@ test("canonical Live Nina conversion stays integer and exact",()=>{
   assert.equal(CREDITS_PER_MINUTE,10);assert.equal(SECONDS_PER_CREDIT,6);
   for(const [credits,seconds] of [[10,60],[30,180],[100,600],[300,1800],[750,4500]])assert.equal(creditsToSeconds(credits),seconds);
   assert.equal(formatLiveTime(23),"2:18");
+});
+
+test("lost final request expires at the last confirmed settlement without charging unseen time", async () => {
+  const { db, env, user, sessionId, start } = await fundedSession(38, RECOVERY_TEST_START);
+  await settleLiveNinaSession(env, user, sessionId, { now: start + 60000 });
+  await creditSignalCredits(env, user.id, 200, { source: "owner_gift", referenceId: "mid-call-gift" });
+  const before = db.transactions;
+  const cleanupTime = start + 60000 + LIVE_NINA_STALE_SECONDS * 1000;
+  assert.equal((await expireStaleLiveNinaSessions(env, { now: cleanupTime - 1 })).expired, 0);
+  assert.equal((await expireStaleLiveNinaSessions(env, { now: cleanupTime })).expired, 1);
+  const closed = db.sessions.get(sessionId);
+  assert.equal(closed.status, "ended");
+  assert.equal(closed.ended_at, new Date(start + 60000).toISOString());
+  assert.equal(closed.credits_debited, 10);
+  assert.deepEqual(db.transactions, before);
+  assert.equal((await getSignalCreditBalance(env, user.id)).balance, 228);
+  assert.equal((await expireStaleLiveNinaSessions(env, { now: cleanupTime + 10000 })).expired, 0);
+  const late = await settleLiveNinaSession(env, user, sessionId, { end: true, now: cleanupTime + 60000 });
+  assert.equal(late.status, "ended");
+  assert.equal(late.debited, 0);
+  assert.equal(late.balance, 228);
+});
+
+test("a late settlement closes stale usage before touching newly purchased credits", async () => {
+  const { db, env, user, sessionId, start } = await fundedSession(10, RECOVERY_TEST_START);
+  await settleLiveNinaSession(env, user, sessionId, { now: start + 30000 });
+  await creditSignalCredits(env, user.id, 60, { source: "stripe_checkout", referenceId: "after-disconnect" });
+  const late = await settleLiveNinaSession(env, user, sessionId, { now: start + 180000 });
+  assert.equal(late.status, "ended");
+  assert.equal(late.debited, 0);
+  assert.equal(late.balance, 65);
+  assert.equal(db.sessions.get(sessionId).ended_at, new Date(start + 30000).toISOString());
+});
+
+test("a reconnect cleans only stale calls and leaves recent or other users' sessions alone", async () => {
+  const { db, env, user, sessionId, start } = await fundedSession(30, RECOVERY_TEST_START);
+  const otherUser = { id: "another-user", role: "user" };
+  await creditSignalCredits(env, otherUser.id, 30, { source: "test", referenceId: "other-funding" });
+  const other = await createLiveNinaSession(env, otherUser, start);
+  await activateLiveNinaSession(env, otherUser, other.sessionId, start);
+  const recent = await createLiveNinaSession(env, user, start + 90000);
+  await activateLiveNinaSession(env, user, recent.sessionId, start + 90000);
+  await createLiveNinaSession(env, user, start + 120000);
+  assert.equal(db.sessions.get(sessionId).status, "ended");
+  assert.equal(db.sessions.get(recent.sessionId).status, "active");
+  assert.equal(db.sessions.get(other.sessionId).status, "active");
+  assert.equal((await getSignalCreditBalance(env, user.id)).balance, 30);
+});
+
+test("automatic recovery preserves pre-rollout records while protecting legacy clients from late charges", async () => {
+  const rollout = Date.parse(LIVE_NINA_RECOVERY_ROLLOUT_AT);
+  const { db, env, user, sessionId, start } = await fundedSession(30, rollout - 60000);
+  await settleLiveNinaSession(env, user, sessionId, { now: start + 30000 });
+  const legacy = db.sessions.get(sessionId);
+  const ledger = db.transactions;
+  const account = await getSignalCreditBalance(env, user.id);
+  // The boundary is inclusive for new calls, and based on creation time, not
+  // the time a historical record was last updated.
+  const current = await createLiveNinaSession(env, user, rollout);
+  await activateLiveNinaSession(env, user, current.sessionId, rollout);
+  const cleanupTime = rollout + LIVE_NINA_STALE_SECONDS * 1000;
+  assert.equal((await expireStaleLiveNinaSessions(env, { now: cleanupTime })).expired, 1);
+  assert.equal(db.sessions.get(current.sessionId).status, "ended");
+  assert.deepEqual(db.sessions.get(sessionId), legacy);
+  for (const end of [false, true]) {
+    const late = await settleLiveNinaSession(env, user, sessionId, { end, now: cleanupTime });
+    assert.equal(late.status, "ended");
+    assert.equal(late.stale, true);
+    assert.equal(late.debited, 0);
+  }
+  assert.equal((await activateLiveNinaSession(env, user, sessionId, cleanupTime)).status, "ended");
+  await createLiveNinaSession(env, user, cleanupTime);
+  assert.deepEqual(db.sessions.get(sessionId), legacy);
+  assert.deepEqual(db.transactions, ledger);
+  assert.deepEqual(await getSignalCreditBalance(env, user.id), account);
+});
+
+test("a mid-call top-up extends the deadline and can be used beyond the original allowance", async () => {
+  const { db, env, user, sessionId, start } = await fundedSession(10);
+  await settleLiveNinaSession(env, user, sessionId, { now: start + 30000 });
+  await creditSignalCredits(env, user.id, 20, { source: "owner_gift", referenceId: "extend-active-call" });
+  const continued = await settleLiveNinaSession(env, user, sessionId, { now: start + 60000 });
+  assert.equal(continued.status, "active");
+  assert.equal(continued.balance, 20);
+  assert.equal(continued.remainingSeconds, 120);
+  assert.equal(db.sessions.get(sessionId).billable_until, new Date(start + 180000).toISOString());
+  for (const seconds of [90, 120, 150]) {
+    assert.equal((await settleLiveNinaSession(env, user, sessionId, { now: start + seconds * 1000 })).status, "active");
+  }
+  const exhausted = await settleLiveNinaSession(env, user, sessionId, { now: start + 180000 });
+  assert.equal(exhausted.status, "exhausted");
+  assert.equal(exhausted.balance, 0);
+  assert.equal(db.sessions.get(sessionId).credits_debited, 30);
+});
+
+test("out-of-order settlements cannot move the heartbeat backwards or reopen a closed session", async () => {
+  const { db, env, user, sessionId, start } = await fundedSession(30);
+  await settleLiveNinaSession(env, user, sessionId, { now: start + 60000 });
+  await settleLiveNinaSession(env, user, sessionId, { now: start + 30000 });
+  assert.equal(db.sessions.get(sessionId).last_billed_at, new Date(start + 60000).toISOString());
+  assert.equal(db.sessions.get(sessionId).updated_at, new Date(start + 60000).toISOString());
+  await settleLiveNinaSession(env, user, sessionId, { end: true, now: start + 45000 });
+  assert.equal(db.sessions.get(sessionId).ended_at, new Date(start + 60000).toISOString());
+  const late = await settleLiveNinaSession(env, user, sessionId, { now: start + 90000 });
+  assert.equal(late.status, "ended");
+  assert.equal(late.debited, 0);
+  assert.equal(late.balance, 20);
+});
+
+test("a session-update failure rolls its debit back in the same transaction", async () => {
+  const { db, env, user, sessionId, start } = await fundedSession(30);
+  db.sqlite.exec(`CREATE TRIGGER reject_session_update BEFORE UPDATE ON live_nina_sessions
+    BEGIN SELECT RAISE(ABORT, 'test_session_update_failure'); END;`);
+  await assert.rejects(() => settleLiveNinaSession(env, user, sessionId, { now: start + 30000 }), /test_session_update_failure/);
+  assert.equal((await getSignalCreditBalance(env, user.id)).balance, 30);
+  assert.equal(db.transactions.filter(row => row.type === "debit").length, 0);
 });
 
 test("zero-credit users cannot open paid Live Nina and owners bypass the full billing lifecycle",async()=>{
@@ -109,11 +240,11 @@ test("signup-trial setup grace is cumulative across reconnects while first speec
   assert.equal(purchased.trialActivationPending,false);
 });
 
-test("frontend delays only trial activation until a new completed user message and has a dedicated grace-timeout state",async()=>{
+test("frontend requires video readiness and trial speech with a dedicated grace-timeout state",async()=>{
   const frontend=await readFile(new URL("../../js/nina-access.js",import.meta.url),"utf8");
   assert.match(frontend,/NINA_SIGNUP_TRIAL_GRACE_MS = 60000/);
-  assert.match(frontend,/if \(ninaTrialActivationPending\) \{\s*beginNinaTrialGrace\(attempt, client\);\s*return;/);
-  assert.ok((frontend.match(/if \(ninaTrialActivationPending\) \{/g)||[]).length>=3);
+  assert.match(frontend,/if \(ninaTrialActivationPending\) \{\s*beginNinaTrialGrace\(attempt, client\);\s*if \(!NINA_WEB_FLOW \|\| !ninaWebProgress\?\.hasSpeech\(\)\) return;/);
+  assert.match(frontend,/if \(!ninaVideoReady\) return false/);
   assert.match(frontend,/completedMessages\.some\(message => message\.role === "user"\)/);
   assert.match(frontend,/knownKeys\.has\(key\) \|\| ninaSessionMessageKeys\.has\(key\)/);
   assert.match(frontend,/!role \|\| !content \|\| message\?\.interrupted/);
@@ -201,4 +332,3 @@ test("grace does not restart on duplicate ready, abandoned setup, or a trial rec
   const duplicate = await activateLiveNinaSession(env, user, next.sessionId, start + 87000);
   assert.equal(duplicate.remainingSeconds, 162);
 });
-

@@ -88,7 +88,7 @@ test("new milestone cascades on account deletion; additive migration is repeatab
 });
 test("website wiring keeps native microphone acquisition and app bridge unchanged", () => {
   const source=readFileSync(new URL('../../js/nina-access.js',import.meta.url),'utf8');
-  assert.match(source,/streamToVideoElement\("nina-anam-video", ninaMicrophoneStream\)/);
+  assert.match(source,/streamNinaVideoForAttempt\(client, "nina-anam-video", ninaMicrophoneStream,/);
   assert.match(source,/window\.__PV_NINA_AUTH_PROVIDER__/);
   assert.match(source,/if \(NINA_WEB_FLOW && ninaTrialActivationPending/);
   assert.match(source,/ninaWebAudio\?\.confirmed\(\)/);

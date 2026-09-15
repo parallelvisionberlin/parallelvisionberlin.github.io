@@ -7,9 +7,20 @@ WORKER = 'https://parallel-vision-anam-token.parallelvision.workers.dev'
 def token(sub='user_test_A', expiry=None):
     body=base64.urlsafe_b64encode(json.dumps({'sub':sub,'exp':expiry or int(time.time())+60}).encode()).decode().rstrip('=')
     return 'eyJhbGciOiJSUzI1NiJ9.'+body+'.TEST_SIGNATURE_NOT_VALID'
-SDK='''export const AnamEvent={CONNECTION_ESTABLISHED:'connected',VIDEO_PLAY_STARTED:'video',CONNECTION_CLOSED:'closed',MESSAGE_HISTORY_UPDATED:'history'};
-export function createClient(){const listeners={};window.sdkCreates=(window.sdkCreates||0)+1;
-return {addListener(k,fn){listeners[k]=fn;},removeListener(){},async streamToVideoElement(){window.sdkStarts=(window.sdkStarts||0)+1;listeners.connected?.();listeners.video?.();},async stopStreaming(){window.sdkStops=(window.sdkStops||0)+1;},getSessionId(){return 'test';}};}'''
+SDK='''export const AnamEvent={CONNECTION_ESTABLISHED:'connected',VIDEO_PLAY_STARTED:'video',CONNECTION_CLOSED:'closed',MESSAGE_HISTORY_UPDATED:'history',MESSAGE_STREAM_EVENT_RECEIVED:'stream',INPUT_AUDIO_STREAM_STARTED:'input'};
+// Synthetic progressing video. The real SDK is never loaded by this harness.
+Object.defineProperty(HTMLMediaElement.prototype,'paused',{get(){return !this._testPlaying}});
+Object.defineProperty(HTMLMediaElement.prototype,'readyState',{get(){return this._testPlaying?4:0}});
+Object.defineProperty(HTMLMediaElement.prototype,'currentTime',{get(){return this._testPlaying?performance.now()/1000:0}});
+HTMLMediaElement.prototype.play=async function(){this._testPlaying=true};
+HTMLMediaElement.prototype.pause=function(){this._testPlaying=false};
+HTMLVideoElement.prototype.requestVideoFrameCallback=function(callback){return setTimeout(()=>callback(performance.now(),{}),30)};
+HTMLVideoElement.prototype.cancelVideoFrameCallback=clearTimeout;
+export function createClient(){const listeners={};let video;window.sdkCreates=(window.sdkCreates||0)+1;
+const emit=(event,...args)=>{for(const fn of [...(listeners[event]||[])])fn(...args)};
+return {addListener(k,fn){(listeners[k]??=new Set()).add(fn)},removeListener(k,fn){listeners[k]?.delete(fn)},
+async streamToVideoElement(id,stream){window.sdkStarts=(window.sdkStarts||0)+1;video=document.getElementById(id);emit('input',stream);emit('connected');video._testPlaying=true;emit('video')},
+async stopStreaming(){video?.pause();window.sdkStops=(window.sdkStops||0)+1},getActiveSessionId(){return 'test'},getSessionId(){return 'test'}};}'''
 MEDIA='''window.micRequests=0;window.micStops=0;Object.defineProperty(navigator,'mediaDevices',{value:{async getUserMedia(){window.micRequests++;const track={kind:'audio',readyState:'live',enabled:true,stop(){this.readyState='ended';window.micStops++;}};return {getAudioTracks(){return [track];},getTracks(){return [track];}};},async enumerateDevices(){return [{kind:'audioinput',deviceId:'test-mic',label:'Test microphone'}];},addEventListener(){}}});'''
 async def case(browser, name, account_status=200, account_error=False, balance=30, owner=False, reply=True, sub='user_test_A', call=False):
     context=await browser.new_context(viewport={'width':390,'height':720})
@@ -39,7 +50,7 @@ async def case(browser, name, account_status=200, account_error=False, balance=3
                 await r.fulfill(headers={'Access-Control-Allow-Origin':SITE},json={'status':'ended' if u.endswith('/end') else 'active','balance':30,'remainingSeconds':180,'settlementSeconds':30});return
             if '/api/nina/analytics/start' in u:await r.fulfill(headers={'Access-Control-Allow-Origin':SITE},json={'sessionId':'test_analytics'});return
             await r.fulfill(headers={'Access-Control-Allow-Origin':SITE},json={'ok':True});return
-        if u.startswith('https://esm.sh/@anam-ai/'):
+        if u.startswith('https://esm.sh/@anam-ai/') or u.split('?',1)[0] == SITE+'/js/vendor/anam-sdk-4.27.0-pv1.js':
             await r.fulfill(body=SDK,content_type='application/javascript',headers={'Access-Control-Allow-Origin':'*'});return
         if 'clerk' in u.lower():
             errors.append('UNEXPECTED CLERK WEB REQUEST: '+u);await r.abort();return

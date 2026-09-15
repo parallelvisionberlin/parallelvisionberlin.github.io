@@ -3,6 +3,10 @@ import { SignalCreditError, getSignalCreditBalance } from "./credits.js";
 export const CREDITS_PER_MINUTE = 10;
 export const SECONDS_PER_CREDIT = 6;
 export const LIVE_NINA_SETTLEMENT_SECONDS = 30;
+export const LIVE_NINA_STALE_SECONDS = 120;
+// Automatic recovery applies prospectively. Historical billing records require
+// an explicitly scoped repair, rather than being rewritten on deployment.
+export const LIVE_NINA_RECOVERY_ROLLOUT_AT = "2026-09-15T15:45:00.000Z";
 export const SIGNUP_TRIAL_GRACE_SECONDS = 60;
 
 const validSessionId = value => typeof value === "string" && /^[0-9a-f-]{36}$/i.test(value) ? value : "";
@@ -66,9 +70,26 @@ async function sessionForUser(env, userId, sessionId) {
   `).bind(sessionId, userId).first();
 }
 
+export async function expireStaleLiveNinaSessions(env, { userId = "", now = Date.now() } = {}) {
+  // A lost unload/end request must not leave a session active indefinitely.
+  // Absence of billing heartbeats is not evidence of connected time: close at
+  // the last confirmed settlement and never insert a debit during cleanup.
+  // The predicate is checked by SQLite against the latest row, so a concurrent
+  // successful heartbeat prevents cleanup from closing a healthy session.
+  const changed = await env.NINA_MEMORY_DB.prepare(`
+    UPDATE live_nina_sessions
+    SET status = 'ended', ended_at = COALESCE(last_billed_at, started_at, created_at),
+        updated_at = ?
+    WHERE status = 'active' AND updated_at <= ? AND created_at >= ?
+      AND (? = '' OR user_id = ?)
+  `).bind(iso(now), iso(now - LIVE_NINA_STALE_SECONDS * 1000), LIVE_NINA_RECOVERY_ROLLOUT_AT, userId, userId).run();
+  return { expired: Number(changed?.meta?.changes || 0) };
+}
+
 export async function createLiveNinaSession(env, user, now = Date.now()) {
   if (user.role === "owner") return { bypass: true, sessionId: null, balance: null, remainingSeconds: null };
   const userId = identityUserId(user);
+  await expireStaleLiveNinaSessions(env, { userId, now });
   const account = await getSignalCreditBalance(env, userId);
   if (account.balance < 1) throw new SignalCreditError("insufficient_credits", "No Signal Credits");
   const trialActivationPending = await signupTrialCreditsRemaining(env, userId, account) > 0
@@ -123,9 +144,7 @@ export async function activateLiveNinaSession(env, user, sessionId, now = Date.n
   const session = await sessionForUser(env, user.id, sessionId);
   if (!session) throw new SignalCreditError("invalid_session", "Live Nina session unavailable");
   if (session.status === "active") {
-    const account = await getSignalCreditBalance(env, user.id);
-    const remainingSeconds = Math.min(creditsToSeconds(account.balance), Math.max(0, Math.floor((Date.parse(session.billable_until) - now) / 1000)));
-    return { status: "active", balance: account.balance, remainingSeconds, settlementSeconds: LIVE_NINA_SETTLEMENT_SECONDS };
+    return settleLiveNinaSession(env, user, sessionId, { now });
   }
   if (session.status !== "pending") throw new SignalCreditError("session_closed", "Live Nina session is closed");
   const account = await getSignalCreditBalance(env, user.id);
@@ -148,13 +167,13 @@ export async function activateLiveNinaSession(env, user, sessionId, now = Date.n
   return { status: "active", balance: account.balance, remainingSeconds: creditsToSeconds(account.balance), settlementSeconds: LIVE_NINA_SETTLEMENT_SECONDS };
 }
 
-async function debitCompletedCreditUnits(env, userId, sessionId, throughInclusive, now) {
-  // The SELECT, ledger insert and existing balance trigger form one SQLite
-  // transaction. Read the ledger, not a possibly stale session snapshot.
+async function debitCompletedCreditUnits(env, userId, sessionId, throughInclusive, end, now) {
+  // The ledger insert, existing balance trigger and session close/update run in
+  // one transaction. Read the ledger, not a possibly stale session snapshot.
   // The prefix also includes debits written by the previous Worker version.
   const id = crypto.randomUUID();
   const prefix = `anam-session:${sessionId}:`;
-  await env.NINA_MEMORY_DB.prepare(`
+  const debitStatement = env.NINA_MEMORY_DB.prepare(`
     INSERT INTO signal_credit_transactions
       (id, user_id, amount, type, source, reference_id, description, created_at)
     SELECT ?, s.user_id,
@@ -174,7 +193,29 @@ async function debitCompletedCreditUnits(env, userId, sessionId, throughInclusiv
           AND t.type = 'debit' AND t.reference_id GLOB ?
       ), 0)
   `).bind(id, throughInclusive, `${prefix}*`, `${prefix}through:${throughInclusive}`,
-    iso(now), sessionId, userId, throughInclusive, `${prefix}*`).run();
+    iso(now), sessionId, userId, throughInclusive, `${prefix}*`);
+  const settledAt = iso(now);
+  const coveredSql = `(SELECT COALESCE(-SUM(t.amount), 0)
+    FROM signal_credit_transactions t
+    WHERE t.user_id = live_nina_sessions.user_id AND t.source = 'anam_session'
+      AND t.type = 'debit' AND t.reference_id GLOB ?)`;
+  const balanceSql = `(SELECT balance FROM signal_credit_accounts
+    WHERE user_id = live_nina_sessions.user_id)`;
+  const updateStatement = env.NINA_MEMORY_DB.prepare(`
+    UPDATE live_nina_sessions
+    SET credits_debited = ${coveredSql},
+        last_billed_at = MAX(last_billed_at, ?),
+        billable_until = strftime('%Y-%m-%dT%H:%M:%fZ',
+          julianday(started_at) + (${coveredSql} + ${balanceSql}) * ? / 86400.0),
+        status = CASE WHEN ${balanceSql} = 0 THEN 'exhausted'
+                      WHEN ? THEN 'ended' ELSE 'active' END,
+        ended_at = CASE WHEN ? OR ${balanceSql} = 0
+          THEN COALESCE(ended_at, MAX(last_billed_at, ?)) ELSE ended_at END,
+        updated_at = MAX(updated_at, ?)
+    WHERE id = ? AND user_id = ? AND status = 'active'
+  `).bind(`${prefix}*`, settledAt, `${prefix}*`, SECONDS_PER_CREDIT,
+    end ? 1 : 0, end ? 1 : 0, settledAt, settledAt, sessionId, userId);
+  await env.NINA_MEMORY_DB.batch([debitStatement, updateStatement]);
   const result = await env.NINA_MEMORY_DB.prepare(`
     SELECT COALESCE(-SUM(amount), 0) AS covered,
            COALESCE(-SUM(CASE WHEN id = ? THEN amount ELSE 0 END), 0) AS newly_debited
@@ -187,8 +228,19 @@ async function debitCompletedCreditUnits(env, userId, sessionId, throughInclusiv
 
 export async function settleLiveNinaSession(env, user, sessionId, { end = false, now = Date.now() } = {}) {
   if (user.role === "owner") return { bypass: true, status: end ? "ended" : "active", debited: 0, balance: null, remainingSeconds: null };
-  const session = await sessionForUser(env, user.id, sessionId);
+  let session = await sessionForUser(env, user.id, sessionId);
   if (!session) throw new SignalCreditError("invalid_session", "Live Nina session unavailable");
+  if (session.status === "active" && now - Date.parse(session.updated_at) >= LIVE_NINA_STALE_SECONDS * 1000) {
+    if (Date.parse(session.created_at) < Date.parse(LIVE_NINA_RECOVERY_ROLLOUT_AT)) {
+      // Stop a stale legacy client without charging missing time or modifying
+      // historical session metadata outside the scope of this rollout.
+      const account = await getSignalCreditBalance(env, user.id);
+      return { status: "ended", stale: true, debited: 0, balance: account.balance,
+        remainingSeconds: creditsToSeconds(account.balance), idempotent: true };
+    }
+    await expireStaleLiveNinaSessions(env, { userId: user.id, now });
+    session = await sessionForUser(env, user.id, sessionId);
+  }
   if (session.status === "pending") {
     if (end) await failLiveNinaSession(env, user.id, sessionId, now);
     const account = await getSignalCreditBalance(env, user.id);
@@ -199,26 +251,16 @@ export async function settleLiveNinaSession(env, user, sessionId, { end = false,
     return { status: session.status, debited: 0, balance: account.balance, remainingSeconds: creditsToSeconds(account.balance), idempotent: true };
   }
   const started = Date.parse(session.started_at);
-  const cappedNow = Math.min(now, Date.parse(session.billable_until));
-  const completedCredits = Math.max(0, Math.floor((cappedNow - started) / (SECONDS_PER_CREDIT * 1000)));
-  const alreadyDebited = Math.max(0, Number(session.credits_debited) || 0);
-  const debit = completedCredits > alreadyDebited
-    ? await debitCompletedCreditUnits(env, user.id, session.id, completedCredits, now)
-    : { covered: alreadyDebited, newlyDebited: 0 };
+  // The balance, rather than a deadline fixed at call start, is authoritative.
+  // A top-up can extend an active call. The atomic debit still cannot overdraw.
+  const completedCredits = Math.max(0, Math.floor((now - started) / (SECONDS_PER_CREDIT * 1000)));
+  const debit = await debitCompletedCreditUnits(env, user.id, session.id, completedCredits, end, now);
+  const current = await sessionForUser(env, user.id, sessionId);
   const account = await getSignalCreditBalance(env, user.id);
-  const exhausted = account.balance === 0 || now >= Date.parse(session.billable_until);
-  const status = exhausted ? "exhausted" : end ? "ended" : "active";
-  const sessionSecondsRemaining = Math.max(0, Math.floor((Date.parse(session.billable_until) - now) / 1000));
+  const status = current.status;
+  const sessionSecondsRemaining = Math.max(0, Math.floor((Date.parse(current.billable_until) - now) / 1000));
   const remainingSeconds = status === "active"
     ? Math.min(creditsToSeconds(account.balance), sessionSecondsRemaining)
     : creditsToSeconds(account.balance);
-  const settledAt = iso(now);
-  await env.NINA_MEMORY_DB.prepare(`
-    UPDATE live_nina_sessions
-    SET credits_debited = MAX(credits_debited, ?), last_billed_at = ?,
-        status = ?, ended_at = CASE WHEN ? = 'active' THEN ended_at ELSE COALESCE(ended_at, ?) END,
-        updated_at = ?
-    WHERE id = ? AND user_id = ? AND status = 'active'
-  `).bind(debit.covered, settledAt, status, status, settledAt, settledAt, session.id, user.id).run();
   return { status, debited: debit.newlyDebited, balance: account.balance, remainingSeconds, settlementSeconds: LIVE_NINA_SETTLEMENT_SECONDS, idempotent: debit.newlyDebited === 0 };
 }

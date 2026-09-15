@@ -1,9 +1,10 @@
-import { attachConversationDiagnostics } from "./nina-diagnostics.js?v=20260913-noise";
+import { attachConversationDiagnostics } from "./nina-diagnostics.js?v=20260915-live-recovery";
+import { watchNinaLiveMedia, streamNinaVideoForAttempt } from "./nina-live-media.js?v=20260915-live-recovery";
 import { speechConstraints, openSpeechMicrophone, microphoneFailure } from "./nina-audio-input.js?v=20260914-mic-recovery";
 import { createNinaTrialPromotion } from "./nina-trial-promotion.js?v=20260905";
 import { isNinaWebsite, createConversationProgress, createAudioCheck } from "./nina-web-flow.js?v=20260910-speech-first";
 /* The access gate is theatrical client-side UI; its public hash is not authorization. */
-import { createClient, AnamEvent } from "https://esm.sh/@anam-ai/js-sdk@4.27.0?bundle";
+import { createClient, AnamEvent } from "./vendor/anam-sdk-4.27.0-pv1.js";
 
 
 const NINA_WEB_FLOW = isNinaWebsite(window.location.pathname);
@@ -125,6 +126,8 @@ let ninaAccessVerifiedForCurrentOpen = false;
 let ninaPrivateAccessVerified = false;
 let ninaConnecting = false;
 let ninaClient = null;
+let ninaLiveMedia = null;
+let ninaVideoReady = false;
 let ninaAttempt = 0;
 let ninaTokenAbortController = null;
 let ninaMicrophoneStream = null;
@@ -1126,20 +1129,106 @@ async function canUseServerMemory() {
   return Boolean(headers.Authorization);
 }
 
+let ninaDiagnosticsSyncPromise = Promise.resolve();
+const ninaPendingMemoryBatches = new Map();
+const ninaMessageCompletions = new WeakMap();
+
+function ninaMemoryIdentityKey() {
+  return ninaClerk?.session?.id || ninaClerk?.user?.id || ninaVisitorId;
+}
+
+async function sendNinaMemoryRequest(request) {
+  const retryable = request.method === "POST" && ["/memory/messages", "/memory/conversations/end", "/api/nina/conversation-events"].includes(request.path);
+  for (let retry = 0; ; retry++) {
+    let controller;
+    try {
+      const headers = await withNinaDeadline(authenticationHeaders(), 6000);
+      if (!headers.Authorization || request.identity !== ninaMemoryIdentityKey()) {
+        const error = new Error("Memory authentication changed or is unavailable");
+        error.retryable = false;
+        throw error;
+      }
+      controller = new AbortController();
+      return await withNinaDeadline((async () => {
+        const response = await fetch(`${ANAM_SESSION_TOKEN_ENDPOINT.replace(/\/session-token$/, "")}${request.path}`, {
+          method: request.method, headers, body: request.payload, signal: controller.signal, keepalive: true
+        });
+        if (!response.ok) {
+          const error = new Error("Memory request failed");
+          error.retryable = [408, 425, 429, 500, 502, 503, 504].includes(response.status);
+          throw error;
+        }
+        return response.json();
+      })(), 8000);
+    } catch (error) {
+      if (!retryable || retry >= 1 || error?.retryable === false) throw error;
+    } finally {
+      // A deadline also aborts a fetch that has not settled, including its body read.
+      controller?.abort();
+    }
+  }
+}
+
 function queueOwnerMemoryRequest(path, body, method = "POST") {
+  // Capture the payload and identity before joining the queue. A later call or sign-in
+  // must not change the owner, IDs or pause commands of a pending request.
+  const request = { path, method, identity: ninaMemoryIdentityKey(), payload: JSON.stringify({ visitorId: ninaVisitorId, ...body }) };
+  if (path === "/api/nina/conversation-events") {
+    // Diagnostic delivery must not hold up personal memory, or vice versa.
+    ninaDiagnosticsSyncPromise = ninaDiagnosticsSyncPromise.catch(() => null).then(() => sendNinaMemoryRequest(request));
+    return ninaDiagnosticsSyncPromise;
+  }
   ninaMemorySyncPromise = ninaMemorySyncPromise.catch(() => null).then(async () => {
-    const headers = await authenticationHeaders();
-    if (!headers.Authorization) return null;
-    const response = await fetch(`${ANAM_SESSION_TOKEN_ENDPOINT.replace(/\/session-token$/, "")}${path}`, {
-      method,
-      headers,
-      body: JSON.stringify({ visitorId: ninaVisitorId, ...body }),
-      keepalive: true
-    });
-    if (!response.ok) throw new Error("Owner memory request failed");
-    return response.json();
+    const key = `${request.identity}:${body?.conversationId || ""}`;
+    let pending = ninaPendingMemoryBatches.get(key);
+    if (path === "/memory/messages") {
+      if (!pending) { pending = []; ninaPendingMemoryBatches.set(key, pending); }
+      pending.push(request);
+    }
+    let result;
+    // Keep failed messages in order. Later messages and the close request cannot
+    // overtake a pause/resume marker whose acknowledgement was lost.
+    if (pending && ["/memory/messages", "/memory/conversations/end"].includes(path)) {
+      while (pending.length) {
+        result = await sendNinaMemoryRequest(pending[0]);
+        pending.shift();
+      }
+      ninaPendingMemoryBatches.delete(key);
+    }
+    if (path !== "/memory/messages") result = await sendNinaMemoryRequest(request);
+    if (path === "/memory" && method === "DELETE") ninaPendingMemoryBatches.clear();
+    return result;
   });
   return ninaMemorySyncPromise;
+}
+
+function trackNinaMessageCompletion(client, attempt) {
+  const messages = new Map();
+  ninaMessageCompletions.set(client, messages);
+  const eventName = AnamEvent?.MESSAGE_STREAM_EVENT_RECEIVED;
+  const onStream = event => {
+    if (attempt !== ninaAttempt || client !== ninaClient || event?.role !== "persona" || typeof event.id !== "string") return;
+    let message = messages.get(event.id);
+    if (!message) { message = { content: "", interrupted: false, completed: [], segment: 0 }; messages.set(event.id, message); }
+    // One endOfSpeech may cover several utterance IDs. Keep all its chunks together.
+    message.content += typeof event.content === "string" ? event.content : "";
+    message.interrupted ||= Boolean(event.interrupted);
+    if (event.endOfSpeech) {
+      const segmentId = Number.isSafeInteger(event.contentIndex) ? event.contentIndex : message.segment;
+      if (!message.interrupted && message.content.trim()) message.completed.push({
+        id: `${event.id}:speech:${segmentId}`,
+        role: "persona", content: message.content.trim()
+      });
+      message.segment++;
+      message.content = "";
+      message.interrupted = false;
+    }
+  };
+  if (eventName) client.addListener(eventName, onStream);
+  return () => {
+    if (eventName) client.removeListener(eventName, onStream);
+    if (ninaMessageCompletions.get(client) === messages) ninaMessageCompletions.delete(client);
+  };
 }
 
 function isStoredMemoryMessage(message) {
@@ -1217,10 +1306,14 @@ function storeCompletedNinaMessages(history, client, attempt) {
     : `${message.sessionId}::${message.role}::${message.content}`));
   let changed = false;
   const completedMessages = [];
-  history.forEach(message => {
+  // SDK 4.27.0 publishes the whole history on any endOfSpeech, including a user's.
+  // That history can still contain a persona chunk awaiting its own completion.
+  const completedHistory = history.flatMap(message => message?.role === "persona"
+    ? ninaMessageCompletions.get(client)?.get(message.id)?.completed || [] : [message]);
+  completedHistory.forEach(message => {
     const content = typeof message?.content === "string" ? message.content.trim() : "";
     const role = message?.role === "user" || message?.role === "persona" ? message.role : "";
-    if (!role || !content || message?.interrupted) return;
+    if (!role || !content || message?.interrupted || message?.streaming) return;
     const key = memoryMessageKey({ ...message, content }, sessionId);
     if (knownKeys.has(key) || ninaSessionMessageKeys.has(key)) return;
     knownKeys.add(key);
@@ -1238,10 +1331,13 @@ function storeCompletedNinaMessages(history, client, attempt) {
   });
   if (changed && !writeNinaMemory(archive)) setNinaMemoryIndicator("unavailable");
   if (completedMessages.length && ninaServerConversationId) {
+    const conversationId = ninaServerConversationId;
     void queueOwnerMemoryRequest("/memory/messages", {
-      conversationId: ninaServerConversationId,
+      conversationId,
       messages: completedMessages
-    }).then(result => { if (attempt === ninaAttempt && client === ninaClient && result && typeof result.personalMemoryPaused === "boolean") setNinaMemoryIndicator(result.personalMemoryPaused ? "paused" : "loaded"); }).catch(() => setNinaMemoryIndicator("unavailable"));
+    }).then(result => { if (attempt === ninaAttempt && client === ninaClient && conversationId === ninaServerConversationId && result && typeof result.personalMemoryPaused === "boolean") setNinaMemoryIndicator(result.personalMemoryPaused ? "paused" : "loaded"); }).catch(() => {
+      if (attempt === ninaAttempt && client === ninaClient && conversationId === ninaServerConversationId) setNinaMemoryIndicator("unavailable");
+    });
   }
   return completedMessages;
 }
@@ -1363,6 +1459,7 @@ async function switchLiveNinaMicrophone(deviceId = "") {
   if (!client) return;
   const current = () => client === ninaClient && attempt === ninaAttempt;
   const task = (async () => {
+    const previousStream = ninaMicrophoneStream;
     ninaMicrophoneStatus.textContent = "SWITCHING MICROPHONE";
     // Detach our old-track callbacks before the SDK intentionally stops that track.
     ninaMicrophoneCleanup();
@@ -1373,11 +1470,25 @@ async function switchLiveNinaMicrophone(deviceId = "") {
       const target = microphones.find(d => d.deviceId === deviceId)
         || microphones.find(d => d.deviceId === "default") || microphones[0];
       if (!target) throw new Error("No replacement microphone");
-      await withNinaDeadline(client.changeAudioInputDevice(target.deviceId), 8000);
+      // Keep this listener until the SDK's capture request settles, even if a
+      // timeout or closing removes the session's ordinary lifecycle listeners.
+      const inputEvent = AnamEvent?.INPUT_AUDIO_STREAM_STARTED;
+      const onInput = stream => {
+        if (!current()) { stream?.getTracks?.().forEach(track => track.stop()); return; }
+        adoptNinaMicrophoneStream(stream);
+      };
+      if (inputEvent) client.addListener(inputEvent, onInput);
+      const replacement = Promise.resolve().then(() => client.changeAudioInputDevice(target.deviceId)).finally(() => {
+        if (inputEvent) client.removeListener(inputEvent, onInput);
+      });
+      await withNinaDeadline(replacement, 8000);
       if (!current()) return;
-      // The SDK now owns capture and stops its replacement stream when the call ends.
-      ninaMicrophoneStream?.getTracks().forEach(track => track.stop());
-      ninaMicrophoneStream = null;
+      // INPUT_AUDIO_STREAM_STARTED adopts and watches the SDK's new capture.
+      // Never stop that replacement when this asynchronous switch completes.
+      if (ninaMicrophoneStream === previousStream) {
+        previousStream?.getTracks().forEach(track => track.stop());
+        ninaMicrophoneStream = null;
+      }
       savePreferredMicrophone(target.deviceId);
       renderMicrophones(microphones, target.deviceId);
       ninaMicrophoneStatus.textContent = "MICROPHONE READY";
@@ -1444,22 +1555,27 @@ function collapseNinaMicrophonePicker() {
   ninaMicrophoneToggle.setAttribute("aria-expanded", "false");
 }
 
-async function acquireNinaMicrophone(deviceId = "") {
-  const sequence = ++ninaMicrophoneSequence;
-  const stream = await openSpeechMicrophone(navigator.mediaDevices, deviceId, () => sequence === ninaMicrophoneSequence);
-  if (sequence !== ninaMicrophoneSequence) {
-    stream.getTracks().forEach(track => track.stop());
-    throw Object.assign(new Error("Microphone request cancelled"), { name: "AbortError" });
-  }
+function adoptNinaMicrophoneStream(stream) {
   const track = stream.getAudioTracks()[0];
-  if (!track || track.readyState !== "live" || track.enabled === false) {
+  // The SDK preserves the user's mute setting by disabling a live replacement
+  // track before announcing it. Disabled capture is not a disconnected device.
+  if (!track || track.readyState !== "live") {
     stream.getTracks().forEach(item => item.stop());
     throw new Error("No active microphone was returned");
   }
+  if (stream === ninaMicrophoneStream) return stream;
   ninaMicrophoneCleanup();
   ninaMicrophoneStream?.getTracks().forEach(item => item.stop());
   ninaMicrophoneStream = stream;
   ninaMicrophoneStatus.textContent = "MICROPHONE READY";
+  // SDK-created replacement capture uses its own defaults. Reapply the same
+  // optional processing preferences without reopening or delaying the stream.
+  const preferences = microphoneConstraints().audio;
+  if (track.applyConstraints && preferences && typeof preferences === "object") {
+    Promise.resolve().then(() => track.applyConstraints(preferences)).catch(error => {
+      logDevelopmentError("Microphone processing preferences unavailable.", error);
+    });
+  }
   let muteTimer = null;
   const ended = () => void handleNinaMicrophoneInterruption(stream);
   const muted = () => {
@@ -1480,9 +1596,33 @@ async function acquireNinaMicrophone(deviceId = "") {
   return stream;
 }
 
+async function acquireNinaMicrophone(deviceId = "") {
+  const sequence = ++ninaMicrophoneSequence;
+  let stream;
+  try {
+    stream = await openSpeechMicrophone(navigator.mediaDevices, deviceId, () => sequence === ninaMicrophoneSequence);
+  } catch (error) {
+    if (sequence !== ninaMicrophoneSequence) {
+      throw Object.assign(new Error("Microphone request cancelled"), { name: "AbortError" });
+    }
+    throw error;
+  }
+  if (sequence !== ninaMicrophoneSequence) {
+    stream.getTracks().forEach(track => track.stop());
+    throw Object.assign(new Error("Microphone request cancelled"), { name: "AbortError" });
+  }
+  if (stream.getAudioTracks()[0]?.enabled === false) {
+    stream.getTracks().forEach(track => track.stop());
+    throw new Error("No active microphone was returned");
+  }
+  return adoptNinaMicrophoneStream(stream);
+}
+
 async function setupNinaMicrophones() {
   if (ninaMicrophoneSetupPromise) return ninaMicrophoneSetupPromise;
   ninaMicrophoneSetupPromise = (async () => {
+    const attempt = ninaAttempt;
+    let sequence = ninaMicrophoneSequence;
     ninaMicrophoneSelect.disabled = true;
     ninaMicrophoneStatus.textContent = "";
     startNina.disabled = true;
@@ -1495,8 +1635,11 @@ async function setupNinaMicrophones() {
         return;
       }
       const savedId = readPreferredMicrophone();
-      await acquireNinaMicrophone(savedId);
+      const capture = acquireNinaMicrophone(savedId);
+      sequence = ninaMicrophoneSequence;
+      await capture;
       const microphones = await listMicrophones();
+      if (attempt !== ninaAttempt || sequence !== ninaMicrophoneSequence) return;
       if (!microphones.length) {
         stopNinaMicrophone();
         ninaMicrophoneSelect.replaceChildren(new Option("No microphone detected", ""));
@@ -1508,6 +1651,9 @@ async function setupNinaMicrophones() {
       renderMicrophones(microphones, savedId);
       startNina.disabled = false;
     } catch (error) {
+      // Closing or starting another capture invalidates this setup attempt.
+      // Its late permission result must not stop a newer call's microphone.
+      if (attempt !== ninaAttempt || sequence !== ninaMicrophoneSequence || error?.name === "AbortError") return;
       stopNinaMicrophone();
       logDevelopmentError("Microphone setup failed.", error);
       ninaMicrophoneSelect.replaceChildren(new Option(microphoneFailure(error), ""));
@@ -1524,9 +1670,11 @@ async function setupNinaMicrophones() {
 
 async function refreshNinaMicrophones() {
   if (!ninaOverlay.classList.contains("is-open") || !navigator.mediaDevices?.enumerateDevices) return;
+  const attempt = ninaAttempt, sequence = ninaMicrophoneSequence;
   try {
     const selectedId = ninaMicrophoneSelect.value || readPreferredMicrophone();
     const microphones = await listMicrophones();
+    if (attempt !== ninaAttempt || sequence !== ninaMicrophoneSequence || !ninaOverlay.classList.contains("is-open")) return;
     if (!microphones.length) {
       if (ninaMicrophoneSwitch) return;
       if (ninaClient || ninaConnecting) {
@@ -1541,7 +1689,8 @@ async function refreshNinaMicrophones() {
     }
     const selectedStillExists = !selectedId || microphones.some(device => device.deviceId === selectedId);
     renderMicrophones(microphones, selectedId);
-    if (!selectedStillExists || (ninaClient && !ninaMicrophoneStream)) {
+    const hasLiveInput = ninaMicrophoneStream?.getAudioTracks().some(track => track.readyState === "live");
+    if (!selectedStillExists || (ninaClient && !hasLiveInput)) {
       savePreferredMicrophone("");
       ninaMicrophoneStatus.textContent = "SELECTED MICROPHONE UNAVAILABLE";
       if (ninaClient) {
@@ -1906,6 +2055,7 @@ function scheduleNinaUsageSettlement() {
 
 async function activateNinaUsage(attempt, client) {
   if (attempt !== ninaAttempt || client !== ninaClient) return false;
+  if (!ninaVideoReady) return false;
   // Completed user speech starts the trial. Output-audio help is never an activation gate.
   if (NINA_WEB_FLOW && ninaTrialActivationPending && !ninaWebProgress?.hasSpeech()) return false;
   if (ninaTrialActivationPending) {
@@ -1962,6 +2112,10 @@ async function settleNinaUsage(end = false, keepalive = false) {
       ninaUsageSessionId = "";
       await stopNinaSession();
       showSignalEnded();
+    } else if (!end && ["ended", "failed"].includes(result.status)) {
+      ninaUsageActive = false;
+      await stopNinaSession();
+      if (ninaOverlay.classList.contains("is-open")) showNinaFailure("The connection expired. Try again to continue with your remaining credits.");
     } else if (!end) scheduleNinaUsageSettlement();
     return result;
   } catch (error) {
@@ -1972,7 +2126,6 @@ async function settleNinaUsage(end = false, keepalive = false) {
       if (ninaUsageSettlementFailures === 1) {
         ninaUsageTimer = setTimeout(() => void settleNinaUsage(false), 3000);
       } else {
-        ninaUsageSessionId = "";
         ninaUsageActive = false;
         await stopNinaSession();
         if (ninaOverlay.classList.contains("is-open")) showNinaFailure("Live time verification ended. Reconnect when your account is available.");
@@ -1995,6 +2148,9 @@ async function stopNinaSession() {
     ninaConnecting = false;
     ninaTokenAbortController?.abort();
     ninaTokenAbortController = null;
+    ninaLiveMedia?.dispose();
+    ninaLiveMedia = null;
+    ninaVideoReady = false;
     ninaDiagnostics?.stop();
     ninaDiagnostics = null;
     ninaMemoryListenerCleanup?.();
@@ -2068,14 +2224,21 @@ async function requestSessionToken(signal, history) {
 
 function bindAnamLifecycle(client, attempt) {
   ninaMemoryListenerCleanup?.();
+  const stopMessageTracking = trackNinaMessageCompletion(client, attempt);
   const onConnectionEstablished = () => {
     if (attempt !== ninaAttempt || client !== ninaClient) return;
+    ninaDiagnostics?.record('connection_opened');
+  };
+  const onVideoPlayStarted = () => {
+    if (attempt !== ninaAttempt || client !== ninaClient) return;
+    ninaVideoReady = true;
+    ninaDiagnostics?.record('video_started');
     if (ninaTrialActivationPending) {
       beginNinaTrialGrace(attempt, client);
-      return;
+      if (!NINA_WEB_FLOW || !ninaWebProgress?.hasSpeech()) return;
     }
     void activateNinaUsage(attempt, client).catch(async error => {
-      logDevelopmentError("Unable to activate Live Nina time.", error);
+      if (attempt !== ninaAttempt || client !== ninaClient) return;
       reportAppConnectionError("activation", error);
       await stopNinaSession();
       if (ninaOverlay.classList.contains("is-open")) {
@@ -2083,14 +2246,6 @@ function bindAnamLifecycle(client, attempt) {
         else showNinaFailure("Live time verification is unavailable. Please try again.");
       }
     });
-  };
-  const onVideoPlayStarted = () => {
-    if (attempt !== ninaAttempt || client !== ninaClient) return;
-    if (ninaTrialActivationPending) {
-      beginNinaTrialGrace(attempt, client);
-      return;
-    }
-    void activateNinaUsage(attempt, client).catch(() => {});
   };
   const onHistoryUpdated = history => {
     const completedMessages = storeCompletedNinaMessages(history, client, attempt);
@@ -2106,26 +2261,35 @@ function bindAnamLifecycle(client, attempt) {
       }
     });
   };
-  const onClosed = () => {
+  const onInput = stream => {
+    if (attempt !== ninaAttempt || client !== ninaClient) {
+      stream?.getTracks?.().forEach(track => track.stop());
+      return;
+    }
+    adoptNinaMicrophoneStream(stream);
+  };
+  const onClosed = (reason, details) => {
     if (attempt !== ninaAttempt || client !== ninaClient) return;
+    ninaDiagnostics?.record('connection_closed', { reason: String(reason || ''), errorMessage: typeof details === 'string' ? details : '' });
     void endNinaAnalyticsSession("disconnected");
-    void stopNinaSession().then(() => {
-      if (ninaOverlay.classList.contains("is-open")) showNinaFailure("The connection ended. Try again when you're ready.");
-    });
   };
   if (AnamEvent?.CONNECTION_ESTABLISHED) client.addListener(AnamEvent.CONNECTION_ESTABLISHED, onConnectionEstablished);
   if (AnamEvent?.VIDEO_PLAY_STARTED) client.addListener(AnamEvent.VIDEO_PLAY_STARTED, onVideoPlayStarted);
   if (AnamEvent?.CONNECTION_CLOSED) client.addListener(AnamEvent.CONNECTION_CLOSED, onClosed);
   if (AnamEvent?.MESSAGE_HISTORY_UPDATED) client.addListener(AnamEvent.MESSAGE_HISTORY_UPDATED, onHistoryUpdated);
+  if (AnamEvent?.INPUT_AUDIO_STREAM_STARTED) client.addListener(AnamEvent.INPUT_AUDIO_STREAM_STARTED, onInput);
   ninaMemoryListenerCleanup = () => {
+    stopMessageTracking();
     if (AnamEvent?.CONNECTION_ESTABLISHED) client.removeListener(AnamEvent.CONNECTION_ESTABLISHED, onConnectionEstablished);
     if (AnamEvent?.VIDEO_PLAY_STARTED) client.removeListener(AnamEvent.VIDEO_PLAY_STARTED, onVideoPlayStarted);
     if (AnamEvent?.CONNECTION_CLOSED) client.removeListener(AnamEvent.CONNECTION_CLOSED, onClosed);
     if (AnamEvent?.MESSAGE_HISTORY_UPDATED) client.removeListener(AnamEvent.MESSAGE_HISTORY_UPDATED, onHistoryUpdated);
+    if (AnamEvent?.INPUT_AUDIO_STREAM_STARTED) client.removeListener(AnamEvent.INPUT_AUDIO_STREAM_STARTED, onInput);
   };
 }
 
 function reportAppConnectionError(phase, error) {
+  ninaDiagnostics?.record('media_failure', { phase, reason: String(error?.code || error?.name || 'unknown'), errorMessage: String(error?.message || '') });
   if (window.location.pathname !== "/nina-app.html") return;
   try { window.__PV_NINA_REPORT_CONNECTION_ERROR__?.(phase, error); }
   catch { /* Diagnostics cannot alter cleanup or authorization. */ }
@@ -2190,6 +2354,7 @@ async function connectNina() {
     connectionPhase = "avatar";
     const client = createClient(session.sessionToken);
     ninaClient = client;
+    ninaVideoReady = false;
     setupNinaWebSession(attempt, client);
     bindAnamLifecycle(client, attempt);
     if(session.conversationDiagnosticsEnabled&&session.conversationId) {
@@ -2197,7 +2362,22 @@ async function connectNina() {
         stream:ninaMicrophoneStream,active:()=>attempt===ninaAttempt&&client===ninaClient,
         send:body=>queueOwnerMemoryRequest('/api/nina/conversation-events',body)}); } catch { /* Optional diagnostics never block audio. */ }
     }
-    await client.streamToVideoElement("nina-anam-video", ninaMicrophoneStream);
+    const current = () => attempt === ninaAttempt && client === ninaClient;
+    const media = watchNinaLiveMedia({ client, events: AnamEvent, video: ninaVideo, isCurrent: current,
+      record: (kind, data) => {
+        if (kind === 'media_failure') ninaDiagnostics?.record('media_failure', { phase: 'playback', reason: data.code });
+      },
+      onFailure: async error => {
+        if (!current()) return;
+        reportAppConnectionError('playback', error);
+        await stopNinaSession();
+        if (ninaOverlay.classList.contains("is-open")) showNinaFailure("The video connection stopped. Try again to continue with your remaining credits.");
+      }
+    });
+    ninaLiveMedia = media;
+    const startup = streamNinaVideoForAttempt(client, "nina-anam-video", ninaMicrophoneStream,
+      () => current() && ninaOverlay.classList.contains("is-open"));
+    await Promise.all([startup, media.ready]);
     if (attempt !== ninaAttempt || client !== ninaClient || !ninaOverlay.classList.contains("is-open")) {
       await client.stopStreaming();
       return;
@@ -2687,4 +2867,3 @@ export { routeNinaTrigger, stopNinaSession, showNinaFailure, refreshNinaEligibil
 export function getNinaDeckStream() {
   return window.location.pathname === "/nina-app.html" && new URLSearchParams(window.location.search).get("pv_deck") === "04" ? ninaMicrophoneStream : null;
 }
-
