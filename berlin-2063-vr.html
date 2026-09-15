@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Watch Berlin 2063 and Beyond on an immersive curved screen in Meta Quest.">
+  <title>Berlin 2063 / Immersive film / Parallel Vision</title>
+  <link rel="icon" href="./favicon.png">
+  <link rel="stylesheet" href="./css/berlin-vr.css">
+  <script defer src="./js/berlin-vr.js"></script>
+</head>
+<body>
+  <header><a href="./berlin-2063.html#berlin-beyond">Back to Berlin 2063</a><span>Parallel Vision</span></header>
+  <main>
+    <p class="eyebrow">Berlin 2063 / Immersive film</p>
+    <h1>Berlin 2063<br>and Beyond</h1>
+    <p class="intro">The opening film, on a curved screen around you.</p>
+    <video id="vr-film" controls playsinline loop preload="metadata" width="3356" height="1440" poster="./assets/optimized/video/berlin-2063/hyper-future-berlin-exhibition-poster.webp" aria-label="Berlin 2063 and Beyond, original HD film">
+      <source src="https://pub-21c1e54026ca4574b09d269b385e2fca.r2.dev/HYPER%20Future%20Berlin%20%202500%20Long%20Cinematic.mp4" type="video/mp4">
+    </video>
+    <div class="controls">
+      <button id="enter-vr" disabled>Checking VR availability…</button>
+      <label for="screen-width">Screen width <select id="screen-width"><option value="90">90° / cinema</option><option value="120" selected>120° / wide</option><option value="150">150° / panoramic</option></select></label>
+    </div>
+    <p id="vr-status" role="status" aria-live="polite">Open this page in the browser on your Meta Quest.</p>
+    <p class="details" id="film-details">Original HD film · 116 MB</p>
+    <section aria-labelledby="controls-title">
+      <h2 id="controls-title">Inside the headset</h2>
+      <p>Face forward when entering. Trigger or pinch: play / pause. Grip: recenter. Right thumbstick up / down: adjust screen width. Use the Quest menu to leave VR.</p>
+      <p>This is a curved-screen presentation of the original film. It does not add 360° surroundings or stereoscopic depth.</p>
+    </section>
+    <noscript><p>Enable JavaScript to enter VR. You can still watch the HD film using the video controls.</p></noscript>
+  </main>
+</body>
+</html>

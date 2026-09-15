@@ -1,0 +1,24 @@
+:root { color-scheme: dark; font-family: Arial, sans-serif; background: #080808; color: #f1f1ed; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+header { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 20px; padding: 24px clamp(20px, 5vw, 80px); border-bottom: 1px solid #303030; font-size: 13px; }
+a { color: inherit; text-underline-offset: 5px; }
+main { max-width: 1200px; margin: auto; padding: 48px clamp(20px, 5vw, 60px) 72px; }
+.eyebrow { text-transform: uppercase; letter-spacing: .14em; font-size: 11px; color: #aaa; }
+h1 { font-size: clamp(34px, 6vw, 64px); font-weight: 400; line-height: 1.06; letter-spacing: -.035em; margin: 24px 0; }
+.intro { color: #bbb; margin-bottom: 32px; }
+video { display: block; width: 100%; height: auto; aspect-ratio: 839 / 360; object-fit: contain; background: #000; }
+.controls { display: flex; align-items: center; flex-wrap: wrap; gap: 20px 32px; margin-top: 24px; }
+button, select { min-height: 48px; padding: 12px 18px; border: 1px solid #777; background: transparent; color: inherit; font: inherit; border-radius: 0; max-width: 100%; }
+button { cursor: pointer; }
+button:disabled { color: #999; cursor: default; border-color: #333; }
+button:hover:not(:disabled) { background: #222; }
+label { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; font-size: 13px; }
+option { background: #111; }
+:focus-visible { outline: 2px solid #eee; outline-offset: 4px; }
+#vr-status { line-height: 1.6; color: #ccc; }
+.details { font-size: 12px; color: #888; }
+section { max-width: 650px; margin-top: 40px; border-top: 1px solid #303030; padding-top: 20px; }
+h2 { font-size: 15px; font-weight: 400; }
+section p { font-size: 13px; color: #999; line-height: 1.7; }
+@media (max-width: 480px) { main { padding-top: 30px; } .controls { align-items: stretch; } .controls > button { width: 100%; } }
