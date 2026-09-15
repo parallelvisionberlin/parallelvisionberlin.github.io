@@ -197,7 +197,8 @@ test("relationship evidence cursor follows the last accepted state change, not a
   row.updated_at = "2026-08-29T10:00:00.000Z";
   row.last_evaluated_at = "2026-08-30T10:00:00.000Z";
   await evaluateCompletedRelationship({ NINA_MEMORY_DB: db, AI: {} }, "owner-user-id", "owner-memory-id", "conversation-2");
-  assert.deepEqual(db.messageQueries[0].slice(2), [row.updated_at, row.updated_at]);
+  assert.deepEqual(db.messageQueries[0].slice(2,4), [row.updated_at, row.updated_at]);
+  assert.equal(db.messageQueries[0][4], 'owner-memory-id');
 });
 
 test("latest completed relationship attempt exposes insufficient evidence or a safe error", async () => {
@@ -281,4 +282,3 @@ test("migration creates one cascading relationship row per user", async () => {
   assert.match(migration, /state_json TEXT NOT NULL CHECK\(json_valid\(state_json\)\)/);
   assert.doesNotMatch(migration, /score|stage|flag/i);
 });
-

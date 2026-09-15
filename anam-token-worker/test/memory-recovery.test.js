@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import { DatabaseSync } from 'node:sqlite';
 import { readFileSync, readdirSync } from 'node:fs';
 import { consolidateMemory, loadConsolidationInput, applyMemoryExtraction } from '../src/memory.js';
+import { captureAgreements } from '../src/agreements.js';
+import { evaluateCompletedRelationship } from '../src/relationship.js';
 
 function fixture(t) {
   const sqlite = new DatabaseSync(':memory:');
@@ -100,4 +102,29 @@ test('consolidation resets construction exclusion at the actual conversation bou
  f.message('life','persona','I repaired a studio cable.','next');
  const input=await loadConsolidationInput(f.env,'v');
  assert.deepEqual(input.safeMessages.map(m=>m.message_id),['life']);
+});
+
+test('a consolidation checkpoint inside maintenance does not turn later follow-ups into memories',async t=>{
+ const f=fixture(t);
+ f.message('begin','user',"Let's change your model.");
+ for(let i=0;i<85;i++)f.message(`technical${i}`,i%2?'user':'persona','That option could work.');
+ f.sqlite.prepare('INSERT INTO memory_summaries VALUES (?,?,?,?)').run('v','Alejandro enjoys music.','2026-01-01','technical79');
+ const input=await loadConsolidationInput(f.env,'v');
+ assert.equal(input.messages.length,5);
+ assert.equal(input.safeMessages.length,0);
+ f.message('return','user','Back to Nina.');
+ f.message('personal','user','I enjoyed your set.');
+ assert.deepEqual((await loadConsolidationInput(f.env,'v')).safeMessages.map(m=>m.message_id),['personal']);
+});
+
+test('maintenance beyond the 120-message window cannot create agreements or change relational tone',async t=>{
+ const f=fixture(t);
+ f.message('begin','user',"Let's edit your system prompt.");
+ for(let i=0;i<140;i++)f.message(`technical${i}`,i%2?'persona':'user',i%2?'Yes.':'Will you be my girlfriend?');
+ const captured=await captureAgreements(f.env,{account_authenticated:true,user_id:'u',visitor_id:'v'},'c');
+ assert.equal(captured.captured,0);
+ assert.equal(f.sqlite.prepare('SELECT count(*) n FROM nina_agreement_events').get().n,0);
+ const evaluated=await evaluateCompletedRelationship({...f.env,AI:{}},'u','v','c',{runEvaluator:async()=>assert.fail('maintenance must not reach the relationship evaluator')});
+ assert.equal(evaluated.changed,false);
+ assert.equal(evaluated.reason,'insufficient_evidence');
 });

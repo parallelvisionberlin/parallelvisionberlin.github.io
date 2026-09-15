@@ -115,9 +115,9 @@ export async function captureAgreements(env, identity, conversationId, options =
     .bind(conversationId, identity.visitor_id).first();
   if (!conversation) return { captured: 0 };
   const rows = await db.prepare(`SELECT message_id, role, content, created_at, conversation_id, memory_segment, rowid AS source_order FROM nina_personal_messages
-    WHERE visitor_id=? AND conversation_id=? ORDER BY rowid DESC LIMIT 120`)
+    WHERE visitor_id=? AND conversation_id=? ORDER BY rowid DESC`)
     .bind(identity.visitor_id, conversationId).all();
-  const messages = personalContinuityMessages((rows.results || []).reverse(), { withSegments: true });
+  const messages = personalContinuityMessages((rows.results || []).reverse(), { withSegments: true }).slice(-120);
   if (!messages.length) return { captured: 0 };
   const scan = await db.prepare('SELECT through_order FROM nina_agreement_scans WHERE conversation_id=? AND user_id=?')
     .bind(conversationId, identity.user_id).first();

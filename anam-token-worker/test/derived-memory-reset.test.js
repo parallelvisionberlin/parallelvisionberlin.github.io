@@ -37,6 +37,7 @@ function resetDb(users) {
       if (sql.includes("SELECT COUNT(*) FROM pinned_memories")) return { first: async () => ({ ...(state.derived[values[0]] || {}) }) };
       if (sql.includes("SELECT role FROM users")) return { first: async () => ({ role: "owner" }) };
       if (sql.includes("SELECT summary, messages_summarized_through, updated_at FROM memory_summaries")) return { first: async () => state.checkpoint ? ({ summary: "", messages_summarized_through: state.checkpoint }) : null };
+      if (sql.includes("SELECT message_id,role,content,created_at,conversation_id,memory_scope,memory_segment")) return { all: async () => ({results:state.messageRows}) };
       if (sql.includes("FROM messages m")) return { all: async () => {
         const checkpointIndex = state.messageRows.findIndex(message => message.message_id === values[1]);
         return { results: state.messageRows.slice(checkpointIndex + 1) };
@@ -106,4 +107,3 @@ test("owner derived-memory reset uses users.memory_visitor_id and preserves raw 
     assert.deepEqual(input.messages.map(message => message.message_id), ["new-1", "new-2"]);
   } finally { globalThis.fetch = originalFetch; }
 });
-
