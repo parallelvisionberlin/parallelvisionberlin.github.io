@@ -59,13 +59,17 @@
     .jbalvin-gallery figure { aspect-ratio:4/5; overflow:hidden; background:#111; }
     .jbalvin-gallery img { display:block; width:100%; height:100%; object-fit:cover; object-position:center top; filter:saturate(.9) contrast(1.03); transition:filter .3s ease,transform .5s ease; }
     .jbalvin-gallery figure:hover img { filter:saturate(1) contrast(1.03); transform:scale(1.012); }
-    .project-list,.link-list { border-bottom:1px solid var(--line); }
-    .project { display:grid; grid-template-columns:80px minmax(230px,.8fr) minmax(300px,1.2fr); gap:clamp(24px,5vw,76px); padding:clamp(30px,4vw,54px) 0; border-bottom:1px solid var(--line); }
-    .project:last-child { border-bottom:0; }
-    .project-index,.project-meta { color:var(--muted); font:9px/1.65 "Courier New",monospace; letter-spacing:.18em; text-transform:uppercase; }
-    .project h3 { font:400 clamp(1.3rem,2.5vw,2.8rem)/1.15 Michroma,sans-serif; letter-spacing:.015em; text-transform:uppercase; }
-    .project-copy p { color:rgba(255,255,255,.68); font-size:14px; line-height:1.75; }
-    .project-meta { display:block; margin-top:18px; }
+    .projects-section { padding-block:clamp(64px,7vw,96px); }
+    .projects-inner { max-width:1240px; margin-inline:auto; }
+    .projects-section .section-title { margin-top:12px; font-size:clamp(1.8rem,3vw,2.75rem); }
+    .projects-section .label { font-size:11px; letter-spacing:.14em; }
+    .project-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:clamp(28px,4vw,56px); }
+    .project { min-width:0; padding-top:32px; }
+    .project-index { color:var(--muted); font:12px/1.6 "Courier New",monospace; letter-spacing:.12em; text-transform:uppercase; }
+    .project h3 { margin-top:14px; font:400 clamp(1.1rem,1.7vw,1.65rem)/1.35 Michroma,sans-serif; letter-spacing:.01em; text-transform:uppercase; }
+    .project-copy { margin-top:16px; max-width:54ch; }
+    .project-copy p { color:rgba(255,255,255,.68); font-size:16px; line-height:1.75; }
+    .link-list { border-bottom:1px solid var(--line); }
     .link-row { display:grid; grid-template-columns:minmax(200px,.8fr) minmax(280px,1.2fr) auto; gap:28px; align-items:center; padding:28px 0; border-bottom:1px solid var(--line); transition:padding .2s ease,color .2s ease; }
     .link-row:hover { padding-left:10px; color:var(--red); }
     .link-title { font:400 clamp(1rem,1.65vw,1.75rem)/1.25 Michroma,sans-serif; letter-spacing:.02em; text-transform:uppercase; }
@@ -95,7 +99,8 @@
       .work-credit { align-items:flex-start; flex-direction:column; gap:3px; }
       .gallery-intro { margin-left:0; }
       .jbalvin-gallery { grid-template-columns:1fr; max-width:360px; gap:16px; }
-      .project { grid-template-columns:1fr; gap:14px; }
+      .project-list { grid-template-columns:1fr; gap:28px; }
+      .project + .project { border-top:1px solid var(--line); padding-top:28px; }
       .link-row { grid-template-columns:1fr auto; gap:12px 22px; }
       .link-context { grid-column:1/-1; grid-row:2; }
       .channels { grid-template-columns:1fr; }
@@ -157,11 +162,13 @@
       </div>
     </section>
 
-    <section class="section" id="projects" aria-labelledby="projects-title">
-      <header class="section-head"><div><p class="label">Selected Installations / 03</p><h2 class="section-title" id="projects-title">Projects</h2></div><p class="label">Space · Material · Performance</p></header>
-      <div class="project-list">
-        <article class="project reveal"><span class="project-index">01 / 2024</span><h3>Wehrmühle × ArtReview</h3><div class="project-copy"><p>Spatial and stage design for Wehrmühle’s Berlin Art Week closing party with Nina Kraviz. An industrial-steel stage, corrugated-metal canopy and suspended translucent fabric transformed an empty Friedrichstraße courtyard.</p><span class="project-meta">Berlin / Nina Kraviz</span></div></article>
-        <article class="project reveal"><span class="project-index">02 / 2024</span><h3>Breakfast Club ADE</h3><div class="project-copy"><p>Installation for Trouble² at Rasa86 during Amsterdam Dance Event, presented within a twelve-hour programme connecting distinct regions of electronic sound.</p><span class="project-meta">Amsterdam / Installation</span></div></article>
+    <section class="section projects-section" id="projects" aria-labelledby="projects-title">
+      <div class="projects-inner">
+        <header class="section-head"><div><p class="label">Selected Installations / 03</p><h2 class="section-title" id="projects-title">Projects</h2></div></header>
+        <div class="project-list">
+          <article class="project reveal"><span class="project-index">Berlin / 2024</span><h3>Wehrmühle × ArtReview</h3><div class="project-copy"><p>Spatial and stage design for Wehrmühle’s Berlin Art Week closing party with Nina Kraviz. An industrial-steel stage, corrugated-metal canopy and suspended translucent fabric transformed an empty Friedrichstraße courtyard.</p></div></article>
+          <article class="project reveal"><span class="project-index">Amsterdam / 2024</span><h3>Breakfast Club ADE</h3><div class="project-copy"><p>Installation for Trouble² at Rasa86 during Amsterdam Dance Event, presented within a twelve-hour programme connecting distinct regions of electronic sound.</p></div></article>
+        </div>
       </div>
     </section>
 
