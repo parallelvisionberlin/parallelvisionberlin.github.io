@@ -94,7 +94,7 @@ with sync_playwright() as p:
   page.wait_for_timeout(150)
   assert page.evaluate("requests.filter(x=>x.url.includes('/live/activate')).length")==2
   # Playback assistance stays optional and cannot issue another activation.
-  page.evaluate("window.failPlay=true;const video=document.getElementById('nina-anam-video');video.muted=true;video.dispatchEvent(new Event('volumechange'))")
+  page.evaluate("window.failPlay=true;const video=document.getElementById('nina-anam-video');video.pause();video.muted=true;video.dispatchEvent(new Event('pause'));video.dispatchEvent(new Event('volumechange'))")
   expect(page.locator('[data-nina-enable-sound]')).to_be_visible()
   page.locator('[data-nina-enable-sound]').click();page.wait_for_timeout(100)
   assert page.evaluate("requests.filter(x=>x.url.includes('/live/activate')).length")==2
