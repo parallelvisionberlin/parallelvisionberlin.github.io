@@ -117,9 +117,9 @@
 
 /* The opening film and caption form one screen, without enlarging the film. */
 .pv-berlin #berlin-beyond{
- --film-panel-width:min(100%,1120px,calc(max(260px,100svh - 240px) * 2.330556));
- position:relative;display:flex;flex-direction:column;justify-content:center;
- min-height:100svh;padding:40px 0;scroll-margin-top:0;
+ --film-panel-width:100%;
+ position:relative;display:flex;flex-direction:column;justify-content:flex-start;
+ min-height:100svh;padding:0 0 40px;scroll-margin-top:24px;
 }
 .pv-berlin #berlin-beyond>.archive-anchor{position:absolute;top:0}
 .pv-berlin #berlin-beyond .featured-film-frame,
@@ -129,7 +129,7 @@
 .pv-berlin #berlin-beyond .featured-film-caption{padding-top:22px;gap:20px 48px}
 .pv-berlin #berlin-beyond .featured-film-caption h2{font-size:clamp(22px,2vw,28px)}
 @media(max-width:760px){
- .pv-berlin #berlin-beyond{--film-panel-width:100%;padding:32px 0}
+ .pv-berlin #berlin-beyond{--film-panel-width:100%;padding:0 0 32px}
  .pv-berlin #berlin-beyond .featured-film-caption{gap:12px;padding-top:18px}
  .pv-berlin #berlin-beyond .featured-film-caption h2{font-size:22px}
  .pv-berlin #berlin-beyond .featured-film-description{display:block;font-size:14px}
