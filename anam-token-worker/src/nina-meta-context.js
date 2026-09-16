@@ -26,6 +26,27 @@ function isMaintenanceTalk(text) {
   return MODEL_CHANGE.test(text) || PROMPT_EDIT.test(text) || CHARACTER_MAINTENANCE.test(text);
 }
 
+// A transcript records what was said, including mistakes. Do not replay the
+// immediately preceding claim after the visitor explicitly calls it invented.
+// This is a narrow evidence filter, not a factual validator or a dislike filter.
+function rejectedPersonaClaims(messages) {
+  const rejected = new Set();
+  let candidate = -1, conversation, memorySegment;
+  for (let index = 0; index < messages.length; index++) {
+    const message = messages[index];
+    if ((message.conversation_id && message.conversation_id !== conversation)
+      || (message.memory_segment != null && message.memory_segment !== memorySegment)) candidate = -1;
+    conversation = message.conversation_id || conversation;
+    memorySegment = message.memory_segment ?? memorySegment;
+    if (message.role === 'persona') { candidate = index; continue; }
+    if (message.role !== 'user' || candidate < 0) continue;
+    const clauses = normalize(message.content).split(/(?<=[.!?])\s+/);
+    const explicitlyRejected = clauses.some(clause => /^(?:that(?: shit)?|this|that (?:link|recording|address|place)) (?:doesn't|does not) exist\b|^you (?:just )?(?:made (?:that|it) up|invented (?:that|it))\b|^(?:that|this)(?:'s| is) (?:made up|invented|fabricated)\b|^(?:eso|esa (?:dirección|grabación)) no existe\b|^(?:te )?(?:lo|eso) inventaste\b|^(?:te )?lo has inventado\b/i.test(clause));
+    if (explicitlyRejected) { rejected.add(messages[candidate]); candidate = -1; }
+  }
+  return rejected;
+}
+
 export function isNinaMetaBreakText(value) {
   const text=normalize(value);
   return ENGLISH_SELF.test(text)||SPANISH_SELF.test(text)||GERMAN_SELF.test(text)||IMPLEMENTATION_TALK.test(text)||SELF_CONSTRUCTION.test(text)||isMaintenanceTalk(text)||SELF_MODEL_CHANGE.test(text);
@@ -34,6 +55,7 @@ export function isNinaMetaBreakText(value) {
 // including their dependent short follow-ups, not just Nina's isolated declaration.
 export function personalContinuityMessages(messages, { withSegments = false } = {}) {
   const result=[];let technical=false,maintenance=false,conversation,memorySegment,segment=0;
+  const rejected = rejectedPersonaClaims(messages || []);
   for(const message of messages || []) {
     // Starting a call or resuming after an owner pause starts an independent window.
     if ((message.conversation_id && message.conversation_id !== conversation)
@@ -64,7 +86,7 @@ export function personalContinuityMessages(messages, { withSegments = false } = 
     }
     if(followup)continue;
     if(message.role==='user')technical=false;
-    if(!technical)result.push(withSegments ? {...message, continuity_segment:segment} : message);
+    if(!technical&&!rejected.has(message))result.push(withSegments ? {...message, continuity_segment:segment} : message);
   }
   return result;
 }
