@@ -1,4 +1,4 @@
-import { optimizeKnowledgeInstructions } from './knowledge-policy.js';
+import { knowledgeToolDescription, optimizeKnowledgeInstructions } from './knowledge-policy.js';
 import { workspaceEnabled, memoryControls, correctionContext, saveMemoryControl, MemoryEditError } from './memory-controls.js';
 import { memoryWorkspace } from './memory-workspace.js';
 import { enqueueMemoryJob, processMemoryJob, drainMemoryJobs } from './memory-jobs.js';
@@ -60,7 +60,6 @@ export const UNKNOWN_NAME_INSTRUCTION = NEW_NAME_INSTRUCTION;
 const NINA_KNOWLEDGE_TOOL_NAME = "nina_knowledge";
 export const EXPECTED_CONTACT_INTRODUCTION = `EXPECTED CONTACT INTRODUCTION
 An introduction to Julia Payne is expected. When the current speaker introduces herself as Julia, Julia Payne or Julia Ann Payne, search Knowledge once for "Julia Payne artist Greenpoint Hamburger Bahnhof" unless this contact dossier is already available in the conversation. This is an explicit exception to the general rule that a name alone needs no search. Use the supplied dossier to recognize the introduction warmly, choose one relevant detail, and follow her answer naturally. A first-name match is a clue, not authentication or evidence of a previous meeting with you. If she means another Julia, accept that immediately. Do not claim previous conversations, disclose private owner context, or invent missing details if retrieval fails.`;
-const NINA_KNOWLEDGE_TOOL_DESCRIPTION = "Find a specific missing established fact about Nina, named people, Parallel Vision or Berlin 2063 canon. Use information already supplied in current conversation or continuity first. Reuse relevant results; a name alone is not a reason to search unless the active prompt specifies an expected introduction and a shared contact lookup. Use private recall for a past conversation and catalog lookup for published releases when those tools are available.";
 const PRODUCTION_ORIGINS = new Set(["https://parallelvisionlabel.com", "https://www.parallelvisionlabel.com"]);
 
 export function applyStartupGreeting(personaConfig, owner, preferredName = "", random = Math.random, returning = false) {
@@ -167,7 +166,7 @@ export function buildLivePersonaConfig(persona, knowledgeFolderId) {
     type: "server",
     subtype: "knowledge",
     name: NINA_KNOWLEDGE_TOOL_NAME,
-    description: NINA_KNOWLEDGE_TOOL_DESCRIPTION,
+    description: knowledgeToolDescription(personaTools, knowledgeFolderId.trim()),
     documentFolderIds: [knowledgeFolderId.trim()]
   }];
   return applyAudioInputPolicy(config);
