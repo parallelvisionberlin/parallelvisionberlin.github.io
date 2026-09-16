@@ -152,6 +152,11 @@ test('bounded relationship input does not clip an individual message into a diff
 test('catalog and recall use the same scoped token that expires when the conversation closes',async()=>{
  const {env,identity,sqlite}=fixture();const config={};await attachMemoryTool(config,env,identity('a'),'call-a','https://worker.example');
  assert.deepEqual(config.tools.map(t=>t.name),['recall_private_memory','lookup_music_catalog']);
+ for(const tool of config.tools) {
+  assert.equal(tool.method,'POST');
+  assert.equal(tool.headers['User-Agent'],'ParallelVision-Nina/1.0');
+  assert.equal(tool.headers['Content-Type'],'application/json');
+ }
  const token=config.tools[0].headers.Authorization.slice(7);assert.equal(config.tools[1].headers.Authorization,config.tools[0].headers.Authorization);
  assert.equal((await authorizeToolSession(env,token)).user_id,'a');
  sqlite.prepare("UPDATE conversations SET ended_at='2026-09-12' WHERE conversation_id='call-a'").run();assert.equal(await authorizeToolSession(env,token),null);
