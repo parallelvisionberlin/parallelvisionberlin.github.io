@@ -105,3 +105,12 @@
  .pv-project .project-notes p{font-size:14px;line-height:1.7}
  .pv-project .project-next{display:grid;justify-items:start;padding-bottom:32px}
 }
+
+/* World descriptions stay optional while the image sequences remain visible. */
+.pv-berlin .world-context{margin:12px 0 4px;max-width:780px}
+.pv-berlin .world-context summary{display:flex;align-items:center;justify-content:space-between;gap:24px;min-height:48px;max-width:240px;cursor:pointer;list-style:none;color:var(--archive-ink);font-size:14px;border-bottom:1px solid #ffffff50}
+.pv-berlin .world-context summary::-webkit-details-marker{display:none}
+.pv-berlin .world-context summary::after{content:'+';font:300 20px/1 Arial,sans-serif}
+.pv-berlin .world-context[open] summary::after{content:'−'}
+.pv-berlin .world-context p{font-size:16px;line-height:1.75;color:var(--archive-muted);margin:18px 0 24px;max-width:70ch}
+@media(max-width:760px){.pv-berlin .world-context p{font-size:14px;line-height:1.65}.pv-berlin .world-context summary{font-size:13px}.pv-berlin .world-context{margin-top:8px}}
