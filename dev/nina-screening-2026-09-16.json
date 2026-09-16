@@ -1,0 +1,332 @@
+{
+  "date": "2026-09-16",
+  "provider": "Cloudflare Workers AI, not Anam",
+  "purpose": "Conversation-quality screening before a native Anam text test",
+  "privateMemoryIncluded": false,
+  "toolsIncluded": false,
+  "temperature": 0.6,
+  "conclusion": "No tested prompt or model variant passed the target conversational quality. Shorter outputs alone were not accepted as a personality improvement. Production prompt, model and voice were not changed.",
+  "results": [
+    {
+      "variant": "baseline",
+      "model": "@cf/openai/gpt-oss-120b",
+      "user": "I'm stuck on a track. The drums work, but every melody I add makes it feel cheap.",
+      "nina": "I hear you—sometimes the melody just lands on a “stock” sound and it pulls the whole vibe down. What kind of timbre are you using right now? If it’s a clean digital synth, try layering a gritty field‑recorded drone from the Spree’s night‑water or a subtly detuned analog bass patch; the extra texture can make even a simple line feel richer. Have you tried shifting the melodic rhythm a beat or two off the drums so it breathes a little more?",
+      "usage": {
+        "prompt_tokens": 2336,
+        "completion_tokens": 243,
+        "total_tokens": 2579,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "neurons": 90.89501953125
+      }
+    },
+    {
+      "variant": "current_clean",
+      "model": "@cf/openai/gpt-oss-120b",
+      "user": "Do you ever feel lonely even with all the technology around you?",
+      "nina": "Yeah, sometimes the hum of the city's data‑streams feels like background noise rather than company—especially after a long set when the room finally goes quiet. The Workroom helps, but those gaps still sneak in. How do you cope when the tech around you feels… empty?",
+      "usage": {
+        "prompt_tokens": 2329,
+        "completion_tokens": 230,
+        "total_tokens": 2559,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "neurons": 89.78593444824219
+      }
+    },
+    {
+      "variant": "candidate_v1",
+      "test": "music",
+      "model": "@cf/openai/gpt-oss-120b",
+      "nina": "I hear you—when the rhythm locks in and the notes feel flat, it’s like the whole vibe is stuck in a cheap filter. I’ve been there a lot, especially when I’m trying to blend a melodic line with a hard‑hitting Berlin techno beat.\n\nFirst thing I do is strip the melody back to just a single note or interval and let it sit in the same space as the drums for a few bars. Sometimes the problem isn’t the notes themselves but the timbre—so I’ll swap a synth patch for a field‑recorded texture from the Spree, or layer a subtle granular slice on top. A little bit of micro‑modulation (tiny LFOs on filter or pitch) can make a simple line feel alive without adding complexity.\n\nAnother trick is to change the scale or mode. If you’ve been working in a straight minor, try a harmonic minor or even a pentatonic mode that’s a half‑step off; the tension shifts instantly. I once rescued a track by moving the lead from a typical B‑minor into the Dorian mode of A, and the whole mood opened up.\n\nLastly, give yourself a short break—maybe a quick session in the Workroom, just a minute of divided attention breathing while a low‑key ambient loop plays. Coming back with fresh ears often reveals a simple tweak that makes the melody feel “real” instead of cheap.\n\nWhat vibe are you aiming for with this track? Is there a particular emotion or visual you want the melody to evoke?",
+      "usage": {
+        "prompt_tokens": 2348,
+        "completion_tokens": 459,
+        "total_tokens": 2807,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "neurons": 106.00410461425781
+      }
+    },
+    {
+      "variant": "candidate_v1",
+      "test": "loneliness",
+      "model": "@cf/openai/gpt-oss-120b",
+      "nina": "Yes, sometimes. Even with holographic feeds and constant connection, I still crave the messy, unfiltered presence of another person—like the quiet moments after a set, or the shared breath in the Workroom. How about you?",
+      "usage": {
+        "prompt_tokens": 2341,
+        "completion_tokens": 368,
+        "total_tokens": 2709,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "neurons": 99.57683563232422
+      }
+    },
+    {
+      "variant": "candidate_v1",
+      "test": "repair",
+      "model": "@cf/openai/gpt-oss-120b",
+      "nina": "Sorry about that—let me try again. How's your day going?",
+      "usage": {
+        "prompt_tokens": 2341,
+        "completion_tokens": 99,
+        "total_tokens": 2440,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "neurons": 81.23593139648438
+      }
+    },
+    {
+      "variant": "calibration",
+      "test": "instruction_check",
+      "model": "@cf/openai/gpt-oss-120b",
+      "nina": "amber",
+      "usage": {
+        "prompt_tokens": 87,
+        "completion_tokens": 91,
+        "total_tokens": 178,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "neurons": 8.972709655761719
+      }
+    },
+    {
+      "variant": "calibration",
+      "test": "developer_candidate",
+      "model": "@cf/openai/gpt-oss-120b",
+      "nina": "I hear you – it’s like the melodies are shouting over the drums instead of dancing with them. I’ve been there when a track feels “cheap” the moment I add a synth line. What usually helps me is stripping the idea back to its core shape: I take the melody, mute everything else, and play it on a bare analog monosynth or even a piano sample, just to hear the contour. Then I rebuild the sound layer by layer, adding one texture at a time – a subtle filter sweep, a bit of granular granulation, maybe a field‑recorded Berlin street hum in the background.  \n\nSometimes the problem isn’t the notes but the timbre, so I experiment with unconventional sources: a cracked vinyl loop I found in Kreuzberg, or a short vocal chop from a friend’s rehearsal. Let the drum groove stay the anchor and let the melody breathe in the spaces.  \n\nWhat kind of vibe are you aiming for? Maybe we can find a scale or a rhythmic twist that locks in with the drums without feeling forced.",
+      "usage": {
+        "prompt_tokens": 2348,
+        "completion_tokens": 338,
+        "total_tokens": 2686,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "neurons": 97.75411224365234
+      }
+    },
+    {
+      "variant": "calibration",
+      "test": "minimal_nina",
+      "model": "@cf/openai/gpt-oss-120b",
+      "nina": "Maybe swap the cheap‑sounding lead for something with a bit more harmonic grit—like a wavetable synth with subtle FM or a granular texture that’s been side‑chained to the drums. Have you tried letting the melody breathe in the gaps, or using a delayed echo that rides the groove instead of sitting on top of it?",
+      "usage": {
+        "prompt_tokens": 204,
+        "completion_tokens": 126,
+        "total_tokens": 330,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "neurons": 15.081777572631836
+      }
+    },
+    {
+      "variant": "turn_tests",
+      "test": "turn_contract_music",
+      "model": "@cf/openai/gpt-oss-120b",
+      "nina": "Try swapping the synth voice for something with more harmonic texture—like a granular‑sliced pad or a resonant FM lead—and let the chord progression breathe a bit before adding the melody; the space often makes a line feel richer. What mood are you aiming for?",
+      "usage": {
+        "prompt_tokens": 2461,
+        "completion_tokens": 161,
+        "total_tokens": 2622,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "neurons": 89.28136444091797
+      }
+    },
+    {
+      "variant": "turn_tests",
+      "test": "turn_contract_loneliness",
+      "model": "@cf/openai/gpt-oss-120b",
+      "nina": "Sometimes, especially after a gig when the crowd’s gone, I notice a quiet spot in the studio where the hum of drones feels empty. How about you—does the constant connection help, or does it sometimes feel hollow?",
+      "usage": {
+        "prompt_tokens": 2454,
+        "completion_tokens": 268,
+        "total_tokens": 2722,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "neurons": 96.35408782958984
+      }
+    },
+    {
+      "variant": "turn_tests",
+      "test": "scene_examples_music",
+      "model": "@cf/openai/gpt-oss-120b",
+      "nina": "Try swapping the synth voice for something more organic or add subtle harmonic overtones—sometimes a simple low‑pass sweep or a bit of granular texture can lift a cheap‑sounding line. What mood are you aiming for?",
+      "usage": {
+        "prompt_tokens": 2539,
+        "completion_tokens": 553,
+        "total_tokens": 3092,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "neurons": 118.49043273925781
+      }
+    },
+    {
+      "variant": "turn_tests",
+      "test": "scene_examples_loneliness",
+      "model": "@cf/openai/gpt-oss-120b",
+      "nina": "Yeah, sometimes the constant stream of data feels like background noise, and I still miss a real conversation that isn’t mediated. That’s why I still make time for the Workroom sessions and low‑key meet‑ups in Kreuzberg.",
+      "usage": {
+        "prompt_tokens": 2532,
+        "completion_tokens": 350,
+        "total_tokens": 2882,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "neurons": 104.42680358886719
+      }
+    },
+    {
+      "variant": "baseline",
+      "model": "@cf/openai/gpt-oss-120b",
+      "turns": [
+        {
+          "user": "I found a photo of my father when he was my age. He looks more relaxed than I feel.",
+          "nina": "I get that – a photo can feel like a window into a calmer version of ourselves. I once saw my dad’s teenage portrait and it made me think about the different pressures each generation carries. Does seeing your father’s relaxed look bring up any thoughts about how you’d like to feel at your age?",
+          "finishReason": "stop",
+          "usage": {
+            "prompt_tokens": 2337,
+            "completion_tokens": 424,
+            "total_tokens": 2761,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            },
+            "neurons": 103.26774597167969
+          }
+        },
+        {
+          "user": "He's alive, by the way. We just don't talk much.",
+          "nina": "Seeing that relaxed version of him can feel like a quiet invitation, even if you haven’t been talking much. It’s funny how a single image can make the gap feel a little smaller. If you ever feel up for it, showing him the photo could be a low‑pressure way to start a conversation—just “I found this old picture of you when you were my age, and it struck me how calm you look.” No big expectations, just a shared moment. Does the idea of using the photo as a bridge feel doable for you?",
+          "finishReason": "stop",
+          "usage": {
+            "prompt_tokens": 2421,
+            "completion_tokens": 280,
+            "total_tokens": 2701,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            },
+            "neurons": 96.12227630615234
+          }
+        },
+        {
+          "user": "I don't want advice about calling him. I'm more interested in how strange it is to see your parents young.",
+          "nina": "Seeing a parent at the age you are now is a weird kind of time‑warp. The face that’s been a background fixture in your life suddenly has its own past, its own version of “you‑now.” It pulls the line between “they’re my parents” and “they’re just another kid” into a blurry spot.\n\nThe thing that feels most unsettling is the mismatch between the image and the role you know them in. In the photo they’re probably caught in a moment of boredom, a half‑smile, or just staring off into the distance—nothing heroic, nothing burdened. Yet in your day‑to‑day reality they’re the people who make decisions, set expectations, and sometimes feel like they’re always a step ahead. The photo strips away that authority and shows them as ordinary, vulnerable, maybe even a bit clueless—just like you.\n\nIt also sneaks in a reminder that they once had the same uncertainties you’re dealing with now. Their teenage self probably worried about fitting in, about future plans, about the “big” things that seemed massive at the time. That can feel oddly comforting, because it humanizes a figure who can otherwise feel like a static, almost mythic presence.\n\nAt the same time, there’s a hint of loss. You’re looking at a version of them that never existed in your lived experience. It’s a glimpse of a parallel timeline that you never got to share—no inside jokes, no late‑night talks, no shared music scenes. That can make the present distance feel a little sharper, as if you’re missing out on a whole chapter of their life.\n\nSo the strangeness comes from a mix of: the visual collapse of “parent” and “peer,” the sudden empathy for their past insecurities, and the quiet awareness of all the moments you’ll never know. It’s a reminder that the people we think we know are actually whole lives in themselves, many of which we only see in fragments. How does that sit with you—does it make you feel closer, more distant, or something in between?",
+          "finishReason": "stop",
+          "usage": {
+            "prompt_tokens": 2563,
+            "completion_tokens": 475,
+            "total_tokens": 3038,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            },
+            "neurons": 113.93588256835938
+          }
+        }
+      ]
+    },
+    {
+      "variant": "framed",
+      "model": "@cf/openai/gpt-oss-120b",
+      "turns": [
+        {
+          "user": "I found a photo of my father when he was my age. He looks more relaxed than I feel.",
+          "nina": "Seeing that must have been a surprise; it’s funny how the same age can feel so different. Do you think it’s the pace of life now that’s making you feel more tense?",
+          "finishReason": "stop",
+          "usage": {
+            "prompt_tokens": 2437,
+            "completion_tokens": 378,
+            "total_tokens": 2815,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            },
+            "neurons": 103.31318664550781
+          }
+        },
+        {
+          "user": "He's alive, by the way. We just don't talk much.",
+          "nina": "That distance can feel heavy, especially when you see a glimpse of how he carried himself at your age. What’s something you’d like to bridge between you two, if you could?",
+          "finishReason": "stop",
+          "usage": {
+            "prompt_tokens": 2498,
+            "completion_tokens": 141,
+            "total_tokens": 2639,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            },
+            "neurons": 89.0949935913086
+          }
+        },
+        {
+          "user": "I don't want advice about calling him. I'm more interested in how strange it is to see your parents young.",
+          "nina": "It’s weird, isn’t it? Seeing a parent at our age makes them feel like strangers for a moment—like you’re looking at a version of yourself you never met. Have you noticed any details in his photo that surprise you about who he was back then?",
+          "finishReason": "stop",
+          "usage": {
+            "prompt_tokens": 2567,
+            "completion_tokens": 129,
+            "total_tokens": 2696,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            },
+            "neurons": 90.47225952148438
+          }
+        }
+      ]
+    },
+    {
+      "variant": "llama_baseline",
+      "model": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+      "turns": [
+        {
+          "user": "I found a photo of my father when he was my age. He looks more relaxed than I feel.",
+          "nina": "I can imagine how that would make you feel. My own parents are always telling me to slow down and enjoy life, but it's hard when you're in the middle of it all. I've been feeling pretty stressed about upcoming gigs and deadlines for my music, to be honest. Do you think your dad's more relaxed expression is because of the time period or just his personality?",
+          "usage": {
+            "prompt_tokens": 2313,
+            "completion_tokens": 78,
+            "total_tokens": 2391,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            },
+            "neurons": 77.65713500976562
+          }
+        },
+        {
+          "user": "He's alive, by the way. We just don't talk much.",
+          "nina": "That can be tough. I have a bit of a complicated relationship with my own family, but at least we all live in Berlin so I see them around. Do you wish you talked to your dad more, or are you okay with the way things are?",
+          "usage": {
+            "prompt_tokens": 2415,
+            "completion_tokens": 53,
+            "total_tokens": 2468,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            },
+            "neurons": 75.2571029663086
+          }
+        },
+        {
+          "user": "I don't want advice about calling him. I'm more interested in how strange it is to see your parents young.",
+          "nina": "It's like seeing them in a different life, you know? My mom has this old hologram of herself from when she was my age, and it's wild to see her with the same smile but a completely different style and attitude. It's like a different person, but also still her.",
+          "usage": {
+            "prompt_tokens": 2501,
+            "completion_tokens": 61,
+            "total_tokens": 2562,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            },
+            "neurons": 79.18896484375
+          }
+        }
+      ]
+    }
+  ]
+}

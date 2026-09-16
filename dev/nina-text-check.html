@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Nina conversation check</title>
+<style>
+:root{color-scheme:dark;font:16px system-ui;background:#111;color:#eee}body{max-width:960px;margin:40px auto;padding:0 20px}h1{font-size:24px;font-weight:500}label{display:block;margin:20px 0 8px}input,textarea,button{font:inherit;padding:12px;border:1px solid #666;background:#171717;color:inherit;box-sizing:border-box}input,textarea{width:100%}button{cursor:pointer;margin:12px 8px 0 0}button:disabled{opacity:.4;cursor:default}video{width:260px;max-width:100%;display:block;margin-top:20px}pre{white-space:pre-wrap;overflow-wrap:anywhere;border-top:1px solid #444;padding-top:18px}small{color:#aaa}#status{min-height:24px}
+</style>
+<h1>Nina conversation check</h1>
+<p>Text input with Anam's avatar, voice and model. No microphone. This page does not write to the website's conversation or memory database.</p>
+<p><small>A session uses Anam minutes and stops automatically after three minutes. Anam may retain its own session transcript. Use fictional test dialogue only.</small></p>
+<label for="token">Single-session token, never an API key</label>
+<input id="token" type="password" autocomplete="off" spellcheck="false">
+<button id="start">Start text test</button><button id="stop" disabled>Stop session</button>
+<p id="status" role="status">Not connected.</p>
+<video id="avatar" autoplay playsinline controls></video>
+<label for="message">Message to Nina</label><textarea id="message" rows="3" disabled></textarea>
+<button id="send" disabled>Send message</button><button id="export" disabled>Download transcript</button>
+<pre id="transcript" aria-live="polite"></pre>
+<script type="module" src="./nina-text-check.js"></script>
+</html>
