@@ -2,7 +2,12 @@ import { createClient, AnamEvent } from '../js/vendor/anam-sdk-4.27.0-pv1.js';
 
 const el = id => document.getElementById(id);
 let client = null, endTimer = null, connectTimer = null, started = false, stopped = true;
-const turns = [], seen = new Map();
+const turns = [], seen = new Map(), events = [];
+const relayOnly = new URLSearchParams(location.search).get('relay') === '1';
+function trace(name) {
+  events.push({ at: new Date().toISOString(), name });
+  el('events').textContent = events.map(e => `${e.at} ${e.name}`).join('\n');
+}
 
 function render() {
   el('transcript').textContent = turns.map(t => `${t.role === 'user' ? 'VISITOR' : 'NINA'}: ${t.content}`).join('\n\n');
@@ -30,13 +35,18 @@ async function stop(reason = 'Session stopped.') {
 el('start').addEventListener('click', async () => {
   const token = el('token').value.trim();
   if (!token || !stopped) return;
-  turns.length = 0; seen.clear(); render();
+  turns.length = 0; events.length = 0; seen.clear(); render();
   stopped = false; started = false;
   el('start').disabled = true; el('token').disabled = true; el('stop').disabled = false;
   el('status').textContent = 'Connecting without microphone...';
   try {
-    const active = createClient(token, { disableInputAudio: true });
+    const active = createClient(token, { disableInputAudio: true,
+      ...(relayOnly ? { rtcConfiguration: { iceTransportPolicy: 'relay' } } : {}) });
     client = active;
+    trace(relayOnly ? 'Connecting through TURN relay' : 'Connecting with automatic routing');
+    for (const name of ['CONNECTION_ESTABLISHED', 'DATA_CHANNEL_OPEN', 'VIDEO_STREAM_STARTED', 'SESSION_READY']) {
+      active.addListener(AnamEvent[name], () => { if (client === active) trace(name); });
+    }
     el('token').value = '';
     active.addListener(AnamEvent.MESSAGE_HISTORY_UPDATED, history => {
       if (client !== active || !Array.isArray(history)) return;
@@ -49,7 +59,8 @@ el('start').addEventListener('click', async () => {
       }
       render();
     });
-    active.addListener(AnamEvent.CONNECTION_CLOSED, () => {
+    active.addListener(AnamEvent.CONNECTION_CLOSED, reason => {
+      if (client === active) trace(`CONNECTION_CLOSED ${String(reason ?? '')}`);
       if (client === active) void stop('Connection closed.');
     });
     active.addListener(AnamEvent.SESSION_READY, () => {
@@ -64,6 +75,7 @@ el('start').addEventListener('click', async () => {
     }, 30000);
     await active.streamToVideoElement('avatar');
   } catch (error) {
+    trace(`Connection error: ${error?.message || 'unknown error'}`);
     await stop(`Could not connect: ${error?.message || 'unknown error'}`);
   }
 });
@@ -78,7 +90,7 @@ el('send').addEventListener('click', () => {
 el('stop').addEventListener('click', () => void stop());
 window.addEventListener('pagehide', () => { void stop(); });
 el('export').addEventListener('click', () => {
-  const url = URL.createObjectURL(new Blob([JSON.stringify({ source: 'Anam native text test', turns }, null, 2)], { type: 'application/json' }));
+  const url = URL.createObjectURL(new Blob([JSON.stringify({ source: 'Anam native text test', turns, events }, null, 2)], { type: 'application/json' }));
   const link = document.createElement('a'); link.href = url; link.download = 'nina-text-test.json'; link.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 });
