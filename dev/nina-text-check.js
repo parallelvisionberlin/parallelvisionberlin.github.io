@@ -4,6 +4,7 @@ const el = id => document.getElementById(id);
 let client = null, endTimer = null, connectTimer = null, started = false, stopped = true;
 const turns = [], seen = new Map(), events = [];
 const relayOnly = new URLSearchParams(location.search).get('relay') === '1';
+el('status').textContent = relayOnly ? 'Not connected. TURN relay mode.' : 'Not connected. Automatic routing.';
 function trace(name) {
   events.push({ at: new Date().toISOString(), name });
   el('events').textContent = events.map(e => `${e.at} ${e.name}`).join('\n');
