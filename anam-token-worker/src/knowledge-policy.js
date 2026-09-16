@@ -1,3 +1,21 @@
+// Anam exposes this description to the model before any document is retrieved.
+// Filenames/folder contents are not otherwise visible at tool-selection time.
+export const NINA_KNOWLEDGE_DESCRIPTION = "Search Nina's established reference documents: The Workroom (attention practice, meeting places, exercises and influences), Nina's biography, family, home and music, Berlin 2063, culture and materials, Fashion After Fabric, Resonance, conscious intimacy, Giannina/Gia, and Julia Payne's work. For factual questions about these subjects, retrieve the relevant passage before answering unless that fact is already supplied by canon or a previous search. Include the subject and specific question in the query. Earlier improvised replies are not source evidence; recheck disputed facts. Reuse relevant results for follow-ups. When Julia introduces herself, look up Julia Payne artist Greenpoint Hamburger Bahnhof once unless her profile is already supplied. Use private recall for this visitor's past conversations and catalog lookup for published releases and links; this tool does not replace either.";
+
+export function knowledgeToolDescription(tools, sharedFolderId) {
+  // Only inherit instructions from a tool explicitly scoped to the shared folder.
+  // Do not import a private/legacy tool's instructions or its folder selection.
+  const matches = (Array.isArray(tools) ? tools : []).filter(tool => {
+    const config = tool?.config || tool;
+    return Array.isArray(config?.documentFolderIds) && config.documentFolderIds.includes(sharedFolderId);
+  });
+  if (matches.length !== 1) return NINA_KNOWLEDGE_DESCRIPTION;
+  const tool = matches[0];
+  const description = tool.config?.description ?? tool.description;
+  return typeof description === 'string' && description.trim() && description.trim().length <= 1024
+    ? description.trim() : NINA_KNOWLEDGE_DESCRIPTION;
+}
+
 // Narrow edits to the legacy lookup rules. Canon and personality remain verbatim.
 export function optimizeKnowledgeInstructions(prompt) {
   return String(prompt || '')

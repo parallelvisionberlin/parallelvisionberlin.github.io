@@ -1,4 +1,5 @@
 import { conversationModeGuidance } from '../src/conversation-runtime.js';
+import { NINA_KNOWLEDGE_DESCRIPTION } from '../src/knowledge-policy.js';
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
@@ -220,9 +221,39 @@ test("live persona config injects exactly one configured knowledge tool and pres
   assert.equal(config.documentFolderIds, undefined);
   assert.deepEqual(config.tools, [{
     type: "server", subtype: "knowledge", name: "nina_knowledge",
-    description: "Find a specific missing established fact about Nina, named people, Parallel Vision or Berlin 2063 canon. Use information already supplied in current conversation or continuity first. Reuse relevant results; a name alone is not a reason to search unless the active prompt specifies an expected introduction and a shared contact lookup. Use private recall for a past conversation and catalog lookup for published releases when those tools are available.",
+    description: NINA_KNOWLEDGE_DESCRIPTION,
     documentFolderIds: ["existing-folder-id"]
   }]);
+});
+
+test("live sessions retain the shared tool's published instructions without inheriting its folders", () => {
+  const persona = {
+    avatar: { id: 'avatar' }, voice: { id: 'voice' }, llmId: 'current-model',
+    brain: { systemPrompt: 'Unchanged character.' }, tools: [
+      { id: 'private', subtype: 'knowledge', description: 'PRIVATE INSTRUCTIONS', documentFolderIds: ['private'] },
+      { id: 'shared', type: 'server', config: { subtype: 'knowledge', description: 'Search The Workroom and the shared biography.', documentFolderIds: ['shared', 'legacy'] } }
+    ]
+  };
+  const config = buildLivePersonaConfig(persona, 'shared');
+  assert.equal(config.tools[0].description, 'Search The Workroom and the shared biography.');
+  assert.deepEqual(config.tools[0].documentFolderIds, ['shared']);
+  assert.equal(config.systemPrompt, 'Unchanged character.');
+  assert.equal(config.llmId, 'current-model');
+  assert.equal(config.tools.length, 1);
+  assert.deepEqual(config.toolIds, undefined);
+});
+
+test("missing, ambiguous or invalid shared descriptions use a bounded subject-specific fallback", () => {
+  const base = { avatar: { id: 'a' }, voice: { id: 'v' }, llmId: 'm' };
+  const shared = description => ({ subtype: 'knowledge', description, documentFolderIds: ['shared'] });
+  for (const tools of [[], [shared('')], [shared('x'.repeat(1025))], [shared('one'), shared('two')],
+    [{ subtype: 'knowledge', description: 'PRIVATE', documentFolderIds: ['private'] }]]) {
+    const config = buildLivePersonaConfig({ ...base, tools }, 'shared');
+    assert.equal(config.tools[0].description, NINA_KNOWLEDGE_DESCRIPTION);
+    assert.doesNotMatch(config.tools[0].description, /PRIVATE/);
+  }
+  assert.ok(NINA_KNOWLEDGE_DESCRIPTION.length <= 1024);
+  assert.match(NINA_KNOWLEDGE_DESCRIPTION, /The Workroom/);
 });
 
 test("live persona config fails safely when the knowledge folder is missing", () => {
