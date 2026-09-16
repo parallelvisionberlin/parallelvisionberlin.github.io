@@ -31,7 +31,7 @@ const personaConfig = {
   name: 'Nina isolated conversation test',
   avatarId: persona.avatar.id, voiceId: persona.voice.id,
   llmId: values.model || persona.llmId, systemPrompt,
-  skipGreeting: true,
+  skipGreeting: true, maxSessionLengthSeconds: 180,
   tools: [{ type: 'server', subtype: 'knowledge', name: 'nina_knowledge',
     description: knowledge?.description || 'Search Nina\'s established shared canon before answering a missing factual question about her life and world.',
     documentFolderIds: [sharedId] }]
