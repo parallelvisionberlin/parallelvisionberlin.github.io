@@ -1394,7 +1394,7 @@ function showNinaReady(balance = ninaCreditsBalance, statusOverride = "") {
   setNinaScrim(NINA_WEB_FLOW ? "YOUR SIGNAL IS READY" : "NINA IS READY", creditStatus, "Enter when you're ready.", NINA_WEB_FLOW ? "START CONVERSATION" : "TALK TO NINA");
   ninaStatus.textContent = "NINA IS READY";
   startNina.disabled = false;
-  startNina.textContent = NINA_WEB_FLOW ? "START CONVERSATION" : "TALK TO NINA";
+  startNina.textContent = "Talk to Nina";
   ninaPrimaryAction = "connect";
   if (ninaReferralEntry) ninaReferralEntry.hidden = !ninaClerk?.isSignedIn;
   if (ninaMicrophone) ninaMicrophone.hidden = false;

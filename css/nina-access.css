@@ -2455,7 +2455,8 @@ body #ninaOverlay .nina-intro .nina-open-live {
  width:min(380px,calc(100% - 40px)); min-height:64px; margin:0;
  padding:16px 24px; border:1px solid rgba(238,234,227,.7);
  background:rgba(48,46,43,.85); color:#f4f2ed;
- font:400 16px/1.4 Michroma,Arial,sans-serif; letter-spacing:.1em;
+ font:500 18px/1.4 Inter,Arial,sans-serif; letter-spacing:0;
+ text-transform:none;
  box-shadow:none;
 }
 body #ninaOverlay .nina-open-live:hover:not(:disabled),
