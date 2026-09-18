@@ -276,6 +276,29 @@ test("prompt context contains summary only and never exposes raw categorical sta
   assert.doesNotMatch(context, /very_low|state_json|familiarity/);
 });
 
+test("owner trial omits inferred posture without changing stored state and can be reversed", async () => {
+  const db = relationshipDb();
+  const env = { NINA_MEMORY_DB: db };
+  await getOrCreateRelationshipState(env, "owner-user");
+  db.rows.get("owner-user").relationship_summary = "Nina feels more distant after the last conversation.";
+  const before = structuredClone(db.rows.get("owner-user"));
+  const baseline = await buildRelationshipContext(env, "owner-user", { establishedOwner: true });
+  assert.match(baseline, /more distant/);
+  env.NINA_OWNER_RELATIONSHIP_CONTEXT_ENABLED = "false";
+  assert.equal(await buildRelationshipContext(env, "owner-user", { establishedOwner: true }), "");
+  assert.deepEqual(db.rows.get("owner-user"), before);
+  env.NINA_OWNER_RELATIONSHIP_CONTEXT_ENABLED = "true";
+  assert.equal(await buildRelationshipContext(env, "owner-user", { establishedOwner: true }), baseline);
+});
+
+test("owner trial does not omit another authenticated visitor's relationship context", async () => {
+  const db = relationshipDb();
+  const env = { NINA_MEMORY_DB: db };
+  const baseline = await buildRelationshipContext(env, "visitor-user");
+  env.NINA_OWNER_RELATIONSHIP_CONTEXT_ENABLED = "false";
+  assert.equal(await buildRelationshipContext(env, "visitor-user"), baseline);
+});
+
 test("migration creates one cascading relationship row per user", async () => {
   const migration = await readFile(new URL("../migrations/0008_nina_relationship_notebook.sql", import.meta.url), "utf8");
   assert.match(migration, /user_id TEXT PRIMARY KEY REFERENCES users\(id\) ON DELETE CASCADE/);

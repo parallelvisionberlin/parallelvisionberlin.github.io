@@ -79,6 +79,8 @@ export async function getOrCreateRelationshipState(env, userId) {
 }
 
 export async function buildRelationshipContext(env, userId, { establishedOwner = false } = {}) {
+  // Reversible owner-only trial: omit the inferred posture, retaining its stored state.
+  if (establishedOwner && env?.NINA_OWNER_RELATIONSHIP_CONTEXT_ENABLED === "false") return "";
   const row = await getOrCreateRelationshipState(env, userId);
   if (!row) return "";
   // The generic first-acquaintance default must not contradict the owner canon.
