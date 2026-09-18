@@ -9,6 +9,8 @@ crons = ["*/5 * * * *"]
 [vars]
 NINA_CONTINUITY_ENABLED = "true"
 NINA_WORKSPACE_ENABLED = "true"
+# Owner trial: restore "true" to include the stored relationship summary again.
+NINA_OWNER_RELATIONSHIP_CONTEXT_ENABLED = "false"
 CLERK_ISSUER = "https://clerk.parallelvisionlabel.com"
 # Deploy after the separate Anam folders are populated and indexed.
 NINA_PUBLIC_KNOWLEDGE_FOLDER_ID = "a70c1f61-4245-4759-83ac-aa5cc4d35892"
