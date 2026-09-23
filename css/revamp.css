@@ -1070,9 +1070,9 @@ body {
   padding-top: clamp(76px, 7vw, 104px);
 }
 
-.pv-fashion .fashion-collaboration-intro {
-  grid-template-columns: minmax(0, 1.15fr) minmax(340px, .85fr);
-  gap: clamp(48px, 7vw, 96px);
+body.pv-fashion .fashion-collaboration-intro {
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr);
+  gap: clamp(56px, 6vw, 88px);
   align-items: end;
   margin-bottom: clamp(58px, 7vw, 88px);
   padding-bottom: clamp(38px, 4vw, 54px);
@@ -1080,9 +1080,16 @@ body {
 }
 
 .pv-fashion .fashion-collaboration-intro #fashion-collaboration-title {
-  max-width: 800px;
-  font-size: clamp(42px, 4.45vw, 70px);
-  line-height: .98;
+  max-width: 100%;
+  font-size: clamp(30px, 3.4vw, 52px);
+  line-height: 1.12;
+  letter-spacing: .02em;
+}
+
+.pv-fashion .fashion-collaboration-intro > * { min-width: 0; }
+
+html[lang="de"] .pv-fashion .fashion-collaboration-intro #fashion-collaboration-title {
+  font-size: clamp(26px, 2.65vw, 40px);
 }
 
 .pv-fashion .fashion-collaboration-intro .fashion-chapter-copy {
@@ -1091,22 +1098,16 @@ body {
 }
 
 .pv-fashion .inhabitant-grid {
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: clamp(56px, 6vw, 84px) clamp(18px, 2.2vw, 30px);
 }
 
 .pv-fashion .inhabitant-card {
-  grid-column: span 2;
+  grid-column: auto;
 }
 
-.pv-fashion .inhabitant-card:nth-child(4),
-.pv-fashion .inhabitant-card:nth-child(5) {
-  grid-column: span 3;
-}
-
-.pv-fashion .inhabitant-card:nth-child(4) .inhabitant-image,
-.pv-fashion .inhabitant-card:nth-child(5) .inhabitant-image {
-  aspect-ratio: 4 / 3;
+.pv-fashion .inhabitant-image {
+  aspect-ratio: 3 / 4;
 }
 
 .pv-fashion .inhabitant-meta {
@@ -1167,15 +1168,9 @@ body {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .pv-fashion .inhabitant-card,
-  .pv-fashion .inhabitant-card:nth-child(4),
-  .pv-fashion .inhabitant-card:nth-child(5) {
-    grid-column: auto;
-  }
-
-  .pv-fashion .inhabitant-card:last-child {
-    grid-column: 1 / -1;
-    width: calc(50% - 15px);
+  body.pv-fashion .fashion-collaboration-intro {
+    grid-template-columns: 1fr;
+    gap: 30px;
   }
 
   .pv-nina-artist .nav a:nth-child(2) {
@@ -1396,7 +1391,7 @@ body {
     border-bottom: 0;
   }
 
-  .pv-fashion .fashion-collaboration-intro {
+  body.pv-fashion .fashion-collaboration-intro {
     grid-template-columns: 1fr;
     gap: 30px;
   }
@@ -1405,14 +1400,12 @@ body {
     grid-template-columns: 1fr;
   }
 
-  .pv-fashion .inhabitant-card,
-  .pv-fashion .inhabitant-card:last-child {
+  .pv-fashion .inhabitant-card {
     grid-column: auto;
     width: 100%;
   }
 
-  .pv-fashion .inhabitant-card:nth-child(4) .inhabitant-image,
-  .pv-fashion .inhabitant-card:nth-child(5) .inhabitant-image {
+  .pv-fashion .inhabitant-image {
     aspect-ratio: 3 / 4;
   }
 

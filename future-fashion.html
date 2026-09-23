@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="./fashion.css?v=20260904-media-1">
-  <script src="./language.js?v=20260826-research-statement-2" defer></script>
+  <script src="./language.js?v=20260923-fashion-1" defer></script>
   <style>
     .fashion-project-definition {
       padding-top: clamp(28px, 3vw, 42px);
@@ -226,7 +226,7 @@
     }
   </style>
   <link rel="stylesheet" href="./css/base.css?v=20260814-1">
-  <link rel="stylesheet" href="./css/revamp.css?v=20260904-3">
+  <link rel="stylesheet" href="./css/revamp.css?v=20260923-fashion-1">
   <link rel="preload" as="image" href="./assets/optimized/fashion-hero.webp" fetchpriority="high">
 <style id="fashion-mobile-fit">
 @media (max-width: 760px) {
@@ -244,17 +244,19 @@
     max-width: 100%; white-space: normal; overflow-wrap: anywhere; word-break: normal;
     font-size: clamp(22px, 6.2vw, 34px); line-height: 1.2; letter-spacing: .015em;
   }
+  html[lang] .pv-fashion #fashion-collaboration-title { white-space: pre-line; }
+  html[lang="de"] .pv-fashion .fashion-collaboration-intro #fashion-collaboration-title { font-size: clamp(17px, 5.7vw, 28px); }
   html[lang] .pv-fashion #fashion-research-title {
     max-width: 100%;
     white-space: pre-line;
     overflow-wrap: normal;
     word-break: keep-all;
-    font-size: 18px;
+    font-size: clamp(13px, 4.2vw, 18px);
     line-height: 1.22;
     letter-spacing: .012em;
   }
   html[lang] .pv-fashion #fashion-research-title::first-line {
-    font-size: 22px;
+    font-size: clamp(15px, 4.8vw, 22px);
     line-height: 1.08;
     letter-spacing: .045em;
   }
@@ -264,7 +266,7 @@
   .pv-fashion .fashion-collaboration-intro { gap: 22px; margin-bottom: 32px; padding-bottom: 28px; }
   .pv-fashion .inhabitant-grid { grid-template-columns: minmax(0, 1fr); gap: 32px; }
   .pv-fashion .inhabitant-card:nth-child(n) { grid-column: auto; width: min(100%, 320px); justify-self: center; }
-  .pv-fashion .inhabitant-card:nth-child(n) .inhabitant-image { aspect-ratio: 1 / 1; }
+  .pv-fashion .inhabitant-card:nth-child(n) .inhabitant-image { aspect-ratio: 3 / 4; }
   .pv-fashion .inhabitant-card .inhabitant-image img { transform: none; }
   .pv-fashion .inhabitant-image-amatista picture { display: block; width: 100%; height: 100%; }
   .pv-fashion .inhabitant-image-amatista img { object-position: 61% center; }
@@ -421,7 +423,7 @@
     <div class="fashion-definition-layout">
       <h2 id="fashion-research-title">Material Research<br>For Bodies In Transition</h2>
       <div class="fashion-research-copy">
-        <p>Fashion After Fabric studies garments after fabric: responsive matter, synthetic surfaces and body systems becoming environments around the body.</p>
+        <p>Fashion After Fabric explores clothing as an environment for the body. In Parallel Vision’s Berlin 2063, the city transforms to protect its inhabitants. Here, that same idea takes shape in garments conceived to adapt to the body and the world around it.</p>
       </div>
     </div>
   </section>
@@ -439,12 +441,12 @@
   <section class="fashion-chapter fashion-collaboration" id="worn-by-the-inhabitants" aria-labelledby="fashion-collaboration-title">
     <div class="fashion-collaboration-intro">
       <div>
-        <p class="fashion-chapter-label">Casting Archive / 04 Inhabitants</p>
+        <p class="fashion-chapter-label">Artist Collaboration / Moving Image</p>
         <h2 id="fashion-collaboration-title"><span>Worn by The</span><span>Inhabitants</span></h2>
       </div>
       <div class="fashion-chapter-copy">
-        <p>Fashion After Fabric expands through collaborations with musicians, performers and artists.</p>
-        <p>Each study records an inhabitant inside one of the project’s material systems.</p>
+        <p>Fashion After Fabric expands through collaborations with musicians, performers and visual artists.</p>
+        <p>Artists inhabit Berlin 2063 through films and projected runways, each wearing a study in how clothing could behave, protect and transform.</p>
       </div>
     </div>
 
@@ -484,7 +486,7 @@
 
       <a class="inhabitant-card" href="./nina-fok-fashion-after-fabric.html" aria-label="View Nina FOK Fashion After Fabric study" role="listitem">
         <div class="inhabitant-image">
-          <img src="./assets/optimized/nina-fok/HDNINACANON.webp" alt="Nina FOK surrounded by repeated masks inside the FLESH ZERO study" decoding="async" loading="lazy" width="1800" height="1013">
+          <img src="./assets/optimized/fashion-after-fabric/artists/nina-fok/nina-flesh-card.webp" alt="Nina FOK wearing a reflective FLESH ZERO garment with spherical volumes" decoding="async" loading="lazy" width="1152" height="1536">
         </div>
         <div class="inhabitant-meta">
           <p class="inhabitant-index">04 / Inhabitant</p>
@@ -618,25 +620,6 @@
     smoothLoopVideo.addEventListener('ended', restartLoop);
   })();
 
-  (() => {
-    const copy = {
-      en: [
-        "Fashion After Fabric studies garments after fabric: responsive matter, synthetic surfaces and body systems becoming environments around the body."
-      ],
-      de: [
-        "Fashion After Fabric untersucht Kleidung nach dem Stoff: reaktive Materie, synthetische Oberflächen und Körpersysteme, die zu Umgebungen um den Körper werden."
-      ]
-    };
-
-    const applyResearchCopy = (language) => {
-      document.querySelectorAll('.fashion-research-copy p').forEach((paragraph, index) => {
-        paragraph.textContent = copy[language === 'de' ? 'de' : 'en'][index];
-      });
-    };
-
-    applyResearchCopy(document.documentElement.lang);
-    window.addEventListener('pv-language-change', (event) => applyResearchCopy(event.detail.language));
-  })();
 </script>
 </body>
 </html>

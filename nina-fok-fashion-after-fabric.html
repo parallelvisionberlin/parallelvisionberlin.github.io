@@ -18,24 +18,26 @@
   <link rel="stylesheet" href="./fashion.css?v=20260904-media-1">
   <script src="./language.js?v=20260728-1" defer></script>
 <style>
-/* A typographic opening, followed by the actual garment film. */
-body .cabizbajo-hero { display: flex; align-items: end; min-height: 0; height: auto; padding: clamp(150px,18vw,240px) max(24px,calc((100vw - 1280px)/2)) 64px; background: #090a09; border-bottom: 1px solid #343630; }
-body .cabizbajo-hero::before, body .cabizbajo-hero::after { display: none; }
-body .cabizbajo-hero-copy { position: relative; inset: auto; width: 100%; padding: 0; transform: none; }
-body .cabizbajo-hero h1 { margin: 28px 0; font-size: clamp(44px,7vw,100px); line-height: 1.12; letter-spacing: -.035em; }
-body .cabizbajo-hero .cabizbajo-kicker { font: 400 12px/1.6 Arial,sans-serif; letter-spacing: .1em; color: #a5a99e; }
-body .cabizbajo-hero .cabizbajo-meta { font: 400 15px/1.7 Arial,sans-serif; letter-spacing: .02em; color: #ced0c8; }
-body .amatista-opening-statement { padding-top: 64px; padding-bottom: 64px; }
-body .amatista-fashion-film { padding-top: 24px; }
-body .amatista-fashion-film video { width: 100%; height: auto; object-fit: contain; }
-@media(max-width:600px) {
- body .cabizbajo-hero { padding-top: 150px; padding-bottom: 40px; }
- body .cabizbajo-hero h1 { font-size: clamp(36px,10vw,60px); }
- body .amatista-opening-statement { padding-top: 40px; padding-bottom: 40px; }
+/* Open on the garment in motion, keeping the title clear of Nina. */
+.nina-fashion-study-page .cabizbajo-hero { min-height: 0; background: #090a09; }
+.nina-fashion-study-page .cabizbajo-hero-video { display: block; width: 100%; height: auto; aspect-ratio: 1920 / 1068; object-fit: contain; }
+.nina-fashion-study-page .cabizbajo-hero::before { display: none; }
+.nina-fashion-study-page .cabizbajo-hero::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(0deg, rgba(0,0,0,.75), transparent 55%); }
+.nina-fashion-study-page .cabizbajo-hero-copy { z-index: 1; top: auto; bottom: clamp(28px,4vw,64px); left: max(26px,calc((100vw - 1280px)/2)); width: calc(100% - 52px); max-width: 660px; padding: 0; transform: none; }
+.nina-fashion-study-page .cabizbajo-hero h1 { margin: 18px 0; font-size: clamp(40px,5.5vw,80px); line-height: 1.12; letter-spacing: -.035em; }
+.nina-fashion-study-page .cabizbajo-hero .cabizbajo-kicker { font: 400 12px/1.6 Arial,sans-serif; letter-spacing: .1em; color: #ddd; }
+.nina-fashion-study-page .cabizbajo-hero .cabizbajo-meta { font: 400 14px/1.7 Arial,sans-serif; letter-spacing: .02em; color: #eee; }
+.nina-fashion-study-page .amatista-opening-statement { padding-top: 64px; padding-bottom: 64px; }
+@media(max-width:760px) {
+ .nina-fashion-study-page .cabizbajo-hero-video { height: 78svh; min-height: 460px; max-height: 760px; aspect-ratio: auto; object-fit: cover; object-position: 54% center; }
+ .nina-fashion-study-page .cabizbajo-hero-copy { left: 22px; width: calc(100% - 44px); bottom: 26px; }
+ .nina-fashion-study-page .cabizbajo-hero h1 { font-size: clamp(36px,9vw,60px); }
+ .nina-fashion-study-page .amatista-opening-statement { padding-top: 40px; padding-bottom: 40px; }
+ .nina-fashion-study-page .amatista-opening-statement h2 { font-size: clamp(25px,8.2vw,36px); line-height: 1.15; }
 }
 </style>
 </head>
-<body class="cabizbajo-study-page amatista-fashion-study-page">
+<body class="cabizbajo-study-page nina-fashion-study-page">
 <nav aria-label="Primary navigation" class="archive-nav">
   <a href="./index.html">Parallel Vision</a>
   <div class="archive-nav-links">
@@ -46,6 +48,9 @@ body .amatista-fashion-film video { width: 100%; height: auto; object-fit: conta
 
 <main class="cabizbajo-study">
   <header class="cabizbajo-hero" aria-labelledby="nina-fashion-title">
+    <video class="cabizbajo-hero-video" autoplay muted loop playsinline preload="none" aria-label="Nina FOK wearing FLESH ZERO in motion" poster="./assets/optimized/video/ninaorganism-poster.webp" data-perf-video>
+      <source data-src="./assets/ninaorganism.mp4" type="video/mp4" data-optimized-src="./assets/optimized/video/ninaorganism-desktop.mp4" data-mobile-src="./assets/optimized/video/ninaorganism-mobile.mp4">
+    </video>
     <div class="cabizbajo-hero-copy">
       <p class="cabizbajo-kicker">Fashion After Fabric / Parallel Vision</p>
       <h1 id="nina-fashion-title"><span class="artist-title-main">Nina FOK</span></h1>
@@ -63,19 +68,6 @@ body .amatista-fashion-film video { width: 100%; height: auto; object-fit: conta
       </div>
     </div>
   </section>
-
-
-  <section class="amatista-fashion-film" aria-labelledby="nina-film-title">
-    <div class="amatista-fashion-film-head">
-      <p class="cabizbajo-section-label">01 / Fashion Film</p>
-      <h2 id="nina-film-title">Nina FOK / Body Transmission</h2>
-    </div>
-    <video autoplay muted loop playsinline preload="none" aria-label="Nina FOK body transmission film" poster="./assets/optimized/video/ninaorganism-poster.webp" data-perf-video>
-      <source data-src="./assets/ninaorganism.mp4" type="video/mp4" data-optimized-src="./assets/optimized/video/ninaorganism-desktop.mp4" data-mobile-src="./assets/optimized/video/ninaorganism-mobile.mp4">
-    </video>
-  </section>
-
-
   <nav class="cabizbajo-return" aria-label="Artist study navigation">
     <a href="./future-fashion.html#worn-by-the-inhabitants">← Worn by the Inhabitants</a>
     <a href="./nina-project.html">Nina FOK ↗</a>
