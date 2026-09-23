@@ -18,26 +18,19 @@
   <link rel="stylesheet" href="./fashion.css?v=20260904-media-1">
   <script src="./language.js?v=20260728-1" defer></script>
 <style>
-/* Open on the garment in motion, keeping the title clear of Nina. */
-.nina-fashion-study-page .cabizbajo-hero { min-height: 0; background: #090a09; }
-.nina-fashion-study-page .cabizbajo-hero-video { display: block; width: 100%; height: auto; aspect-ratio: 1920 / 1068; object-fit: contain; }
-.nina-fashion-study-page .cabizbajo-hero::before { display: none; }
-.nina-fashion-study-page .cabizbajo-hero::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(0deg, rgba(0,0,0,.75), transparent 55%); }
-.nina-fashion-study-page .cabizbajo-hero-copy { z-index: 1; top: auto; bottom: clamp(28px,4vw,64px); left: max(26px,calc((100vw - 1280px)/2)); width: calc(100% - 52px); max-width: 660px; padding: 0; transform: none; }
-.nina-fashion-study-page .cabizbajo-hero h1 { margin: 18px 0; font-size: clamp(40px,5.5vw,80px); line-height: 1.12; letter-spacing: -.035em; }
-.nina-fashion-study-page .cabizbajo-hero .cabizbajo-kicker { font: 400 12px/1.6 Arial,sans-serif; letter-spacing: .1em; color: #ddd; }
-.nina-fashion-study-page .cabizbajo-hero .cabizbajo-meta { font: 400 14px/1.7 Arial,sans-serif; letter-spacing: .02em; color: #eee; }
+/* Keep the shared inhabitant layout, with the full title inside the first view. */
+.nina-fashion-study-page .cabizbajo-hero-video { height: min(82svh, 960px); object-position: center 42%; filter: none; }
+.nina-fashion-study-page .cabizbajo-hero::after { background: linear-gradient(0deg, rgba(0,0,0,.75), transparent 65%); }
+.nina-fashion-study-page .cabizbajo-hero h1 { text-transform: uppercase; }
 .nina-fashion-study-page .amatista-opening-statement { padding-top: 64px; padding-bottom: 64px; }
 @media(max-width:760px) {
- .nina-fashion-study-page .cabizbajo-hero-video { height: 78svh; min-height: 460px; max-height: 760px; aspect-ratio: auto; object-fit: cover; object-position: 54% center; }
- .nina-fashion-study-page .cabizbajo-hero-copy { left: 22px; width: calc(100% - 44px); bottom: 26px; }
- .nina-fashion-study-page .cabizbajo-hero h1 { font-size: clamp(36px,9vw,60px); }
+ .nina-fashion-study-page .cabizbajo-hero-video { object-position: 54% center; }
  .nina-fashion-study-page .amatista-opening-statement { padding-top: 40px; padding-bottom: 40px; }
  .nina-fashion-study-page .amatista-opening-statement h2 { font-size: clamp(25px,8.2vw,36px); line-height: 1.15; }
 }
 </style>
 </head>
-<body class="cabizbajo-study-page nina-fashion-study-page">
+<body class="cabizbajo-study-page amatista-fashion-study-page nina-fashion-study-page">
 <nav aria-label="Primary navigation" class="archive-nav">
   <a href="./index.html">Parallel Vision</a>
   <div class="archive-nav-links">
