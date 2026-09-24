@@ -67,10 +67,10 @@
   function onFrame(time, frame) {
     if (frame.session !== session || !layer) return;
     session.requestAnimationFrame(onFrame);
-    // Submit a transparent eye buffer every frame, even for a media-only scene.
-    // The video layer is composited behind this buffer.
+    // Submit the black background first; the media layer is composited on top.
+    // This avoids depending on eye-buffer transparency to reveal the film.
     gl.bindFramebuffer(gl.FRAMEBUFFER, projection.framebuffer);
-    gl.clearColor(0, 0, 0, 0);
+    gl.clearColor(0, 0, 0, 1);
     gl.clear(gl.COLOR_BUFFER_BIT);
     gl.flush();
     const pose = frame.getViewerPose(space);
@@ -152,7 +152,7 @@
         space, layout: 'mono', radius: 3,
         centralAngle: angle, aspectRatio: video.videoWidth / video.videoHeight
       });
-      requested.updateRenderState({ layers: [layer, projection] });
+      requested.updateRenderState({ layers: [projection, layer] });
       recenter = true;
       video.controls = false;
       requested.addEventListener('select', togglePlayback);
@@ -177,7 +177,7 @@
       refresh();
       message(error.name === 'NotAllowedError'
         ? 'VR permission or playback was declined. Press play, then choose Enter VR to try again.'
-        : 'Could not start curved-screen VR. Use an up-to-date Meta Quest browser. Try the lighter playback option below the film, then enter VR again.');
+        : `Could not start curved-screen VR (${error.name || 'Error'}: ${error.message || 'Unknown error'}). Try the lighter playback option, then enter VR again.`);
     }
   });
 
