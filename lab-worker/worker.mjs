@@ -358,7 +358,7 @@ async function maintenance(env) {
   const unused=await rows(env,"SELECT * FROM assets WHERE kind='source' AND created_at<? ORDER BY created_at LIMIT 30",now()-86400000);
   for(const a of unused)await pruneSource(env,a.owner_id,a.id);
 }
-export default {export default {
+export default {
   async fetch(request,env,ctx) {
     let response;try{response=await route(request,env,ctx);}catch(e){response=json({error:e instanceof HttpError?e.message:'The Lab could not finish this request. Your stored work is unchanged.'},e instanceof HttpError?e.status:500);}
     return decorate(response,request.headers.get('origin')||'');
