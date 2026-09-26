@@ -1,111 +1,69 @@
-// Local preparation only. No API keys, provider calls or generated media.
-const $ = id => document.getElementById(id);
-const allowedTypes = new Set(['image/jpeg', 'image/png', 'image/webp']);
-let file = null, previewUrl = null, draftUrls = [], database = null, busy = false;
-let imageRevision = 0, archiveRevision = 0;
-function notify(text) { $('notice').textContent = text; }
-function controls() { $('save').disabled = !database || !file || busy; $('clear').disabled = !file; }
-function summary() { $('settings').textContent = `${$('duration').value} seconds / ${$('resolution').value}`; }
-function clearImage() {
-  imageRevision++;
-  if (previewUrl) URL.revokeObjectURL(previewUrl);
-  file = null; previewUrl = null;
-  $('image').value = ''; $('preview').removeAttribute('src'); $('preview').hidden = true;
-  $('empty').hidden = false; $('filemeta').textContent = 'Your source stays on this device in this preview.';
-  controls();
+// General-purpose private image-to-video workspace. Credentials never enter browser storage.
+const API='https://parallel-vision-lab.parallelvision.workers.dev';
+const $=id=>document.getElementById(id), activeStates=new Set(['submitting','queued','running','saving','uncertain']);
+let clerk, owner=false, userId='', epoch=0, syncing=false, config={}, file=null, sourceId=null, imageRevision=0, busy=false;
+let sourceUrl=null, resultUrl=null, resultId=null, currentQuote=null, next=null, activeJob=null, timer=null, historyRevision=0;
+const cardUrls=new Set(), requestControllers=new Set();
+const money=n=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:4}).format(n);
+const notify=(text,error=false)=>{$('notice').textContent=text;$('notice').classList.toggle('error',error);};
+function release(url){if(url)URL.revokeObjectURL(url);}
+function settings(){return {prompt:$('prompt').value.trim(),duration:Number($('duration').value),resolution:$('resolution').value,aspectRatio:$('ratio').value,seed:$('seed').value,audio:$('audio').checked};}
+function update(){const p=settings();$('settings-summary').textContent=`${p.duration} seconds / ${p.resolution}`;$('save').disabled=!owner||!file||busy;$('clear').disabled=!file||busy;$('generate').disabled=!owner||!file||!p.prompt||busy||!!activeJob;$('generate').textContent=config.enabled?'Review price & generate':'Connect generation provider';}
+async function api(path,options={}) {
+  const generation=epoch,token=await clerk?.session?.getToken();if(!owner&&path!=='/api/session')throw new Error('Sign in first.');if(!token)throw new Error('Your sign-in expired. Sign in again.');
+  const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),65000);requestControllers.add(controller);
+  try{const headers={Authorization:'Bearer '+token,...options.headers};let b=options.body;
+    if(b!==undefined&&!(b instanceof Blob)&&!(b instanceof ArrayBuffer)){headers['Content-Type']='application/json';b=JSON.stringify(b);}
+    const r=await fetch(API+path,{method:options.method||'GET',headers,body:b,cache:'no-store',credentials:'omit',signal:controller.signal});
+    if(generation!==epoch)throw new Error('Session changed.');
+    if(!r.ok){const d=await r.json().catch(()=>({}));throw new Error(d.error||`Request failed (${r.status}).`);}
+    const value=options.blob?await r.blob():await r.json();if(generation!==epoch)throw new Error('Session changed.');return value;
+  }finally{clearTimeout(timeout);requestControllers.delete(controller);}
 }
-async function setImage(candidate) {
-  if (!candidate || !allowedTypes.has(candidate.type)) throw new Error('Choose a JPG, PNG or WebP image.');
-  if (candidate.size === 0 || candidate.size > 15 * 1024 * 1024) throw new Error('Choose an image smaller than 15 MB.');
-  const revision = ++imageRevision, url = URL.createObjectURL(candidate);
-  const probe = new Image(); probe.src = url;
-  try { await probe.decode(); } catch { URL.revokeObjectURL(url); throw new Error('This image could not be opened. Try another file.'); }
-  if (revision !== imageRevision) { URL.revokeObjectURL(url); return false; }
-  if (previewUrl) URL.revokeObjectURL(previewUrl);
-  previewUrl = url; file = candidate;
-  $('preview').src = url; $('preview').hidden = false; $('empty').hidden = true;
-  $('filemeta').textContent = `${candidate.name || 'Source image'} / ${probe.naturalWidth} × ${probe.naturalHeight} / ${(candidate.size / 1048576).toFixed(1)} MB`;
-  controls(); return true;
+async function action(fn){if(busy)return;busy=true;update();try{await fn();}catch(e){notify(e.name==='AbortError'?'Request interrupted. Refresh history before trying another generation.':e.message,true);}finally{busy=false;update();}}
+function clearResult(){release(resultUrl);resultUrl=null;resultId=null;$('video').pause();$('video').removeAttribute('src');$('video').load();$('video').hidden=true;$('download').hidden=true;}
+function clearImage(){imageRevision++;release(sourceUrl);sourceUrl=null;file=null;sourceId=null;$('image').value='';$('preview').removeAttribute('src');$('preview').hidden=true;$('empty').hidden=false;$('filemeta').textContent='Images stay private in your Lab archive.';$('preview-label').textContent='Source / preview';clearResult();update();}
+async function setImage(candidate,id=null){if(!candidate||!['image/jpeg','image/png','image/webp'].includes(candidate.type)||!candidate.size||candidate.size>10*1024*1024)throw new Error('Choose a JPG, PNG or WebP image up to 10 MB.');
+  const revision=++imageRevision,url=URL.createObjectURL(candidate),probe=new Image();probe.src=url;
+  try{await probe.decode();if(Math.min(probe.naturalWidth,probe.naturalHeight)<240||Math.max(probe.naturalWidth,probe.naturalHeight)>8000||Math.max(probe.naturalWidth/probe.naturalHeight,probe.naturalHeight/probe.naturalWidth)>8)throw new Error('Use an image 240–8000 pixels per side, with an aspect ratio no wider than 8:1.');}
+  catch(e){release(url);throw new Error(e.message||'Image cannot be opened.');}
+  if(revision!==imageRevision||!owner){release(url);return false;}release(sourceUrl);clearResult();file=candidate;sourceId=id;sourceUrl=url;$('preview').src=url;$('preview').hidden=false;$('empty').hidden=true;$('preview-label').textContent='Source / preview';$('filemeta').textContent=`${candidate.name||'Source image'} / ${probe.naturalWidth} × ${probe.naturalHeight} / ${(candidate.size/1048576).toFixed(1)} MB`;update();return true;
 }
-function openDatabase() {
-  return new Promise((resolve, reject) => {
-    const req = indexedDB.open('parallel-vision-lab-local-v1', 1);
-    req.onupgradeneeded = () => req.result.createObjectStore('drafts', { keyPath: 'id' });
-    req.onerror = () => reject(req.error);
-    req.onblocked = () => notify('Close another Lab tab to finish opening local storage.');
-    req.onsuccess = () => resolve(req.result);
-  });
-}
-function store(method, value) {
-  return new Promise((resolve, reject) => {
-    const tx = database.transaction('drafts', method === 'getAll' ? 'readonly' : 'readwrite');
-    const objectStore = tx.objectStore('drafts');
-    const req = value === undefined ? objectStore[method]() : objectStore[method](value);
-    tx.oncomplete = () => resolve(req.result);
-    tx.onerror = () => reject(tx.error || req.error);
-    tx.onabort = () => reject(tx.error || new Error('Storage transaction aborted.'));
-  });
-}
-async function renderDrafts() {
-  const revision = ++archiveRevision;
-  const drafts = await store('getAll');
-  if (revision !== archiveRevision) return;
-  draftUrls.forEach(url => URL.revokeObjectURL(url)); draftUrls = [];
-  $('drafts').replaceChildren(); $('emptyarchive').hidden = drafts.length > 0;
-  drafts.sort((a, b) => b.createdAt - a.createdAt);
-  for (const draft of drafts) {
-    const card = document.createElement('article'); card.className = 'draft';
-    const thumb = document.createElement('img'); thumb.alt = 'Saved draft source'; thumb.loading = 'lazy';
-    const url = URL.createObjectURL(draft.image); draftUrls.push(url); thumb.src = url;
-    const body = document.createElement('div'); body.className = 'draftbody';
-    const meta = document.createElement('div'); meta.className = 'draftmeta';
-    meta.textContent = `${new Date(draft.createdAt).toLocaleString()} / ${draft.duration}s / ${draft.resolution}`;
-    const prompt = document.createElement('p'); prompt.textContent = draft.prompt || 'No prompt saved.';
-    const actions = document.createElement('div'); actions.className = 'draftactions';
-    const reuse = document.createElement('button'); reuse.type = 'button'; reuse.className = 'quiet'; reuse.textContent = 'Reuse image + settings';
-    reuse.addEventListener('click', async () => {
-      try {
-        const restored = await setImage(new File([draft.image], draft.filename, { type: draft.image.type }));
-        if (!restored) return;
-        $('prompt').value = draft.prompt; $('duration').value = draft.duration; $('resolution').value = draft.resolution;
-        $('image').value = ''; summary(); notify('Draft restored. Edit it without changing your saved original.');
-        $('prompt').focus();
-      } catch { notify('The saved image could not be restored. Your draft has not been deleted.'); }
-    });
-    const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'quiet'; remove.textContent = 'Delete';
-    remove.addEventListener('click', async () => {
-      if (!confirm('Delete this draft and its stored source image from this browser?')) return;
-      remove.disabled = true;
-      try { await store('delete', draft.id); await renderDrafts(); notify('Draft deleted from this browser.'); }
-      catch { remove.disabled = false; notify('Could not delete this draft. Try again.'); }
-    });
-    actions.append(reuse, remove); body.append(meta, prompt, actions); card.append(thumb, body); $('drafts').append(card);
-  }
-}
-$('image').addEventListener('change', async event => {
-  const candidate = event.target.files[0]; if (!candidate) return;
-  try { if (await setImage(candidate)) notify('Image ready. Add your motion direction.'); }
-  catch (error) { notify(error.message); }
-});
-for (const name of ['dragenter', 'dragover']) $('drop').addEventListener(name, event => { event.preventDefault(); $('drop').classList.add('drag'); });
-for (const name of ['dragleave', 'drop']) $('drop').addEventListener(name, event => { event.preventDefault(); $('drop').classList.remove('drag'); });
-$('drop').addEventListener('drop', async event => {
-  try { if (await setImage(event.dataTransfer.files[0])) { $('image').value = ''; notify('Image ready. Add your motion direction.'); } }
-  catch (error) { notify(error.message); }
-});
-$('clear').addEventListener('click', () => { clearImage(); notify('Source cleared. Saved drafts are unchanged.'); });
-$('duration').addEventListener('change', summary); $('resolution').addEventListener('change', summary);
-$('save').addEventListener('click', async () => {
-  if (!file || !database || busy) return;
-  busy = true; controls();
-  try {
-    await store('put', { id: crypto.randomUUID(), createdAt: Date.now(), image: file, filename: file.name || 'source.png', prompt: $('prompt').value.trim(), duration: $('duration').value, resolution: $('resolution').value });
-    await renderDrafts(); notify('Draft saved in this browser. No generation or charge.');
-  } catch { notify('Could not save locally. Browser storage may be full or unavailable. Keep your original image.'); }
-  finally { busy = false; controls(); }
-});
-try {
-  database = await openDatabase();
-  database.onversionchange = () => { database.close(); database = null; controls(); notify('Storage changed in another tab. Refresh to continue.'); };
-  controls(); await renderDrafts();
-} catch { notify('Local storage is unavailable. You can preview an image, but drafts cannot be saved in this browser.'); }
+async function ensureSource(){if(sourceId)return sourceId;const snapshot=file,rev=imageRevision;if(!snapshot)throw new Error('Choose an image first.');const data=await api('/api/uploads',{method:'POST',headers:{'Content-Type':snapshot.type,'X-Filename':encodeURIComponent(snapshot.name||'source.png')},body:snapshot});if(rev!==imageRevision)throw new Error('Image changed during upload. Please try again.');sourceId=data.id;return sourceId;}
+function applyConfig(c){config=c;$('connection-status').textContent=c.enabled?'Wan 3.0 / SpicyAPI connected · Live quotes before payment':'Generation not connected · Drafts and private history are ready';update();}
+function connection(){if(!owner)return;$('api-key').value='';$('daily-limit').value=config.dailyLimitUsd||10;$('terms').checked=false;$('disconnect').hidden=!config.configured;$('key-note').textContent=config.configured?'A key is stored encrypted. Leave blank to keep it, or paste a replacement.':'Stored encrypted on your private backend. Never committed to GitHub or saved in browser storage.';$('connect-notice').textContent='';$('connect-dialog').showModal();}
+$('connect-form').addEventListener('submit',async e=>{e.preventDefault();$('connect-save').disabled=true;try{const data=await api('/api/settings',{method:'POST',body:{apiKey:$('api-key').value,dailyLimitUsd:Number($('daily-limit').value),enabled:true,termsConfirmed:$('terms').checked}});$('api-key').value='';applyConfig(data.config);$('connect-dialog').close();notify('Provider key connected. Review a live quote before generating.');}catch(error){$('connect-notice').textContent=error.message;}finally{$('connect-save').disabled=false;}});
+$('disconnect').onclick=async()=>{if(!confirm('Remove the stored provider key? Your private history stays.'))return;try{applyConfig((await api('/api/settings',{method:'DELETE'})).config);$('api-key').value='';$('connect-dialog').close();notify('Generation disconnected.');}catch(e){$('connect-notice').textContent=e.message;}};
+for(const button of document.querySelectorAll('[data-close]'))button.onclick=()=>$(button.dataset.close).close();
+$('connect-dialog').addEventListener('close',()=>{$('api-key').value='';});
+$('quote-dialog').addEventListener('close',()=>{currentQuote=null;if(owner)$('generate').focus();});
+$('setup').onclick=connection;$('connection').onclick=connection;
+$('image').onchange=e=>action(async()=>{if(e.target.files[0])await setImage(e.target.files[0]);});
+for(const name of ['dragenter','dragover'])$('drop').addEventListener(name,e=>{e.preventDefault();$('drop').classList.add('drag');});
+for(const name of ['dragleave','drop'])$('drop').addEventListener(name,e=>{e.preventDefault();$('drop').classList.remove('drag');});
+$('drop').addEventListener('drop',e=>action(async()=>{await setImage(e.dataTransfer.files[0]);$('image').value='';}));
+$('clear').onclick=()=>{clearImage();notify('Editor cleared. Saved work is unchanged.');};
+for(const id of ['prompt','duration','resolution','ratio','seed','audio'])$(id).addEventListener('input',update);
+$('save').onclick=()=>action(async()=>{const id=await ensureSource();await api('/api/drafts',{method:'POST',body:{sourceId:id,settings:settings()}});await loadHistory();notify('Draft saved privately, including its original image and settings. No generation charge.');});
+$('generate').onclick=()=>action(async()=>{if(!config.enabled){connection();return;}const id=await ensureSource();notify('Requesting a live price. No generation submitted.');const q=await api('/api/quotes',{method:'POST',body:{sourceId:id,settings:settings()}});currentQuote=q;$('quote-settings').textContent=`Wan 3.0 / ${q.settings.duration}s / ${q.settings.resolution}`;$('quote-price').textContent=money(q.estimatedUsd);$('quote-limit').textContent=`Quoted maximum: ${money(q.maxUsd)} USD`;$('quote-expiry').textContent='Valid until '+new Date(q.expiresAt).toLocaleTimeString()+'. No automatic repricing.';$('quote-notice').textContent='';$('confirm-generation').disabled=false;$('quote-dialog').showModal();});
+$('confirm-generation').onclick=async()=>{const q=currentQuote;if(!q||busy)return;if(Date.now()>=q.expiresAt){$('quote-notice').textContent='Quote expired. Close and review a new price.';return;}$('confirm-generation').disabled=true;await action(async()=>{const data=await api('/api/jobs',{method:'POST',body:{quoteId:q.id,confirm:true}});$('quote-dialog').close();setActive(data.job);await loadHistory();notify('Generation request recorded. You can leave the page and return to history.');});};
+function setActive(job){activeJob=job&&activeStates.has(job.status)?job:null;$('active').hidden=!activeJob;clearTimeout(timer);timer=null;
+  if(activeJob){const labels={submitting:'Submitting to the provider…',queued:'Queued at the provider.',running:'Generating your video…',saving:'Saving the finished video to your private archive.',uncertain:'Submission interrupted. Check the provider console before another attempt.'};$('active-status').textContent=labels[job.status];$('active-detail').textContent=job.error||(job.providerTaskId?'Provider task: '+job.providerTaskId:'No duplicate generation will be submitted automatically.');$('resolve').hidden=job.status!=='uncertain';timer=setTimeout(poll,10000);}update();}
+async function poll(){if(!owner||!activeJob)return;try{const id=activeJob.id,data=await api('/api/jobs/'+id);setActive(data.job);if(!activeJob){await loadHistory();notify(data.job.status==='completed'?'Video saved. Open it from history.':data.job.error||'Generation finished.');}}catch(e){notify(e.message,true);timer=setTimeout(poll,15000);}}
+$('resolve').onclick=()=>action(async()=>{if(!activeJob||!confirm('First check the provider console and its charges. This clears the local lock without sending another generation. Continue only after checking.'))return;await api('/api/jobs/'+activeJob.id+'/resolve',{method:'POST',body:{confirm:true}});setActive(null);await loadHistory();});
+function button(text,fn){const b=document.createElement('button');b.className='quiet';b.textContent=text;b.onclick=()=>action(fn);return b;}
+async function restore(job){const blob=await api('/api/assets/'+job.sourceId,{blob:true});if(!await setImage(new File([blob],'source.'+(blob.type==='image/jpeg'?'jpg':blob.type.split('/')[1]),{type:blob.type}),job.sourceId))return;const p=job.settings;$('prompt').value=p.prompt;
+  if(![...$('duration').options].some(o=>Number(o.value)===p.duration))$('duration').add(new Option(p.duration+' seconds',String(p.duration)));
+  $('duration').value=p.duration;$('resolution').value=p.resolution;$('ratio').value=p.aspectRatio;$('seed').value=p.seed??'';$('audio').checked=p.audio;update();notify('Image and all settings restored. Your saved original is unchanged.');$('prompt').focus();window.scrollTo({top:0,behavior:'smooth'});}
+async function openVideo(job){const blob=await api('/api/assets/'+job.outputId,{blob:true});clearResult();resultUrl=URL.createObjectURL(blob);resultId=job.outputId;$('video').src=resultUrl;$('video').hidden=false;$('preview').hidden=true;$('empty').hidden=true;$('download').hidden=false;$('preview-label').textContent='Result / '+job.settings.duration+'s';$('video').scrollIntoView({behavior:'smooth',block:'center'});}
+$('download').onclick=()=>{if(!resultUrl)return;const a=document.createElement('a');a.href=resultUrl;a.download='parallel-vision-'+resultId+'.mp4';document.body.append(a);a.click();a.remove();};
+const observer=new IntersectionObserver(entries=>{for(const entry of entries){if(!entry.isIntersecting)continue;const img=entry.target;observer.unobserve(img);const rev=historyRevision;api('/api/assets/'+img.dataset.asset,{blob:true}).then(blob=>{if(!owner||rev!==historyRevision||!img.isConnected)return;const u=URL.createObjectURL(blob);cardUrls.add(u);img.src=u;}).catch(()=>{img.alt='Source preview unavailable. Use Reuse to retry.';});}},{rootMargin:'200px'});
+function renderCards(jobs){for(const j of jobs){const card=document.createElement('article');card.className='card';card.dataset.job=j.id;const img=document.createElement('img');img.alt='Saved source image';img.dataset.asset=j.sourceId;img.loading='lazy';const body=document.createElement('div');body.className='cardbody';const meta=document.createElement('div');meta.className='cardmeta';meta.textContent=`${j.status.toUpperCase()} / ${j.settings.duration}s / ${j.settings.resolution} / ${new Date(j.createdAt).toLocaleDateString()}`;const p=document.createElement('p');p.textContent=j.settings.prompt||'No motion direction saved.';const actions=document.createElement('div');actions.className='cardactions';actions.append(button('Reuse image + settings',()=>restore(j)));if(j.outputId)actions.append(button('View video',()=>openVideo(j)));
+  if(!activeStates.has(j.status))actions.append(button('Delete',async()=>{if(!confirm('Delete this saved record and its unshared files? This cannot be undone.'))return;await api('/api/jobs/'+j.id,{method:'DELETE'});await loadHistory();notify('Record deleted. Spending history is unchanged.');}));
+  const cost=document.createElement('div');cost.className='fine';cost.textContent=j.settledUsd!=null?'Provider settled: '+money(j.settledUsd):j.estimatedUsd!=null?'Budget reserved: '+money(j.estimatedUsd):'Draft / no generation charge';body.append(meta,p,actions,cost);if(j.error){const error=document.createElement('p');error.className='fine';error.textContent=j.error;body.append(error);}card.append(img,body);$('history').append(card);observer.observe(img);}}
+async function loadHistory(append=false){const rev=historyRevision,query=append&&next?'?before='+next.before+'&afterId='+encodeURIComponent(next.afterId):'',data=await api('/api/jobs'+query);if(!owner||rev!==historyRevision)return;if(!append){historyRevision++;observer.disconnect();cardUrls.forEach(release);cardUrls.clear();$('history').replaceChildren();}renderCards(data.jobs);next=data.next;$('more').hidden=!next;$('emptyarchive').hidden=$('history').children.length>0;setActive(data.active);}
+$('refresh').onclick=()=>action(()=>loadHistory());$('more').onclick=()=>action(()=>loadHistory(true));
+function lock(){epoch++;owner=false;userId='';historyRevision++;clearTimeout(timer);activeJob=null;requestControllers.forEach(c=>c.abort());requestControllers.clear();observer.disconnect();cardUrls.forEach(release);cardUrls.clear();clearImage();$('prompt').value='';$('history').replaceChildren();$('app').hidden=true;$('gate').hidden=false;$('connection').hidden=true;$('logout').hidden=true;$('api-key').value='';for(const d of document.querySelectorAll('dialog[open]'))d.close();currentQuote=null;config={};}
+async function sync(){if(syncing)return;syncing=true;try{if(!clerk.isSignedIn){lock();$('auth-status').textContent='Sign in with your Parallel Vision owner account.';$('signin').disabled=false;return;}if(owner&&userId===clerk.user.id)return;const data=await api('/api/session');owner=true;userId=clerk.user.id;applyConfig(data.config);$('identity').textContent='Owner workspace';$('gate').hidden=true;$('app').hidden=false;$('connection').hidden=false;$('logout').hidden=false;await loadHistory();}catch(e){lock();$('auth-status').textContent=e.message;$('signin').disabled=false;$('logout').hidden=!clerk?.isSignedIn;}finally{syncing=false;}}
+$('signin').onclick=()=>clerk?.openSignIn();$('logout').onclick=async()=>{lock();await clerk?.signOut();$('auth-status').textContent='Signed out. Your archive remains private.';};
+try{const {Clerk}=await import('https://esm.sh/@clerk/clerk-js@6?bundle');await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='https://clerk.parallelvisionlabel.com/npm/@clerk/ui@1/dist/ui.browser.js';s.onload=resolve;s.onerror=reject;document.head.append(s);});clerk=new Clerk('pk_live_Y2xlcmsucGFyYWxsZWx2aXNpb25sYWJlbC5jb20k');await clerk.load({ui:window.__internal_ClerkUICtor,signInFallbackRedirectUrl:location.href,signUpFallbackRedirectUrl:location.href});clerk.addListener(()=>void sync());await sync();}catch{$('auth-status').textContent='Sign-in could not load. Refresh this page or check your browser connection.';}
