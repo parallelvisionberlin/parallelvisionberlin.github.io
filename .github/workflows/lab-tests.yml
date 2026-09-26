@@ -4,15 +4,16 @@ on:
     paths:
       - 'lab/**'
       - 'lab-worker/**'
-      - 'tests/lab-worker.test.mjs'
+      - 'tests/lab*.mjs'
       - '.github/workflows/lab-tests.yml'
   push:
     branches: [main]
     paths:
       - 'lab/**'
       - 'lab-worker/**'
-      - 'tests/lab-worker.test.mjs'
+      - 'tests/lab*.mjs'
       - '.github/workflows/lab-tests.yml'
+  workflow_dispatch:
 permissions:
   contents: read
 jobs:
@@ -21,12 +22,34 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            lab
+            lab-worker
+            tests
+            js/pv-auth.js
       - uses: actions/setup-node@v4
         with:
           node-version: '22.16.0'
       - name: Check JavaScript syntax
         run: |
-          node --check lab/lab.js
-          node --check lab-worker/worker.mjs
+          find lab lab-worker -type f \( -name '*.js' -o -name '*.mjs' \) -exec node --check {} \;
       - name: Test owner access, quote confirmation and private archive
-        run: node --test tests/lab-worker.test.mjs
+        run: node --test tests/lab*.test.mjs
+      - name: Export source-only verification bundle
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lab-source-verification
+          retention-days: 1
+          path: |
+            lab/*.html
+            lab/*.css
+            lab/*.js
+            lab/README.md
+            lab-worker/*.mjs
+            lab-worker/*.sql
+            lab-worker/*.toml
+            lab-worker/migrations/*.sql
+            tests/lab*.mjs
+            js/pv-auth.js
