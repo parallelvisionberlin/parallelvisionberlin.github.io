@@ -14,8 +14,6 @@
   let starting = false;
   let session = null;
   let layer = null;
-  let gl = null;
-  let projection = null;
   let space = null;
   let recenter = true;
   let lastTime = 0;
@@ -45,9 +43,6 @@
     session = null;
     layer?.destroy();
     layer = null;
-    gl?.getExtension('WEBGL_lose_context')?.loseContext();
-    gl = null;
-    projection = null;
     space = null;
     starting = false;
     lastTime = 0;
@@ -67,12 +62,6 @@
   function onFrame(time, frame) {
     if (frame.session !== session || !layer) return;
     session.requestAnimationFrame(onFrame);
-    // Submit the black background first; the media layer is composited on top.
-    // This avoids depending on eye-buffer transparency to reveal the film.
-    gl.bindFramebuffer(gl.FRAMEBUFFER, projection.framebuffer);
-    gl.clearColor(0, 0, 0, 1);
-    gl.clear(gl.COLOR_BUFFER_BIT);
-    gl.flush();
     const pose = frame.getViewerPose(space);
     if (pose && recenter) {
       const { position, orientation: q } = pose.transform;
@@ -141,18 +130,15 @@
       if (playError) throw playError;
       if (video.readyState < 2) throw new Error('No decoded video frame is available.');
 
-      const canvas = document.createElement('canvas');
-      gl = canvas.getContext('webgl', { alpha: true, antialias: false, xrCompatible: true });
-      if (!gl) throw new Error('The VR graphics context is unavailable.');
-      await gl.makeXRCompatible();
-      if (session !== requested) return;
-      projection = new XRWebGLLayer(requested, gl, { alpha: true, depth: false, stencil: false });
+      // Use the native Quest media compositor directly.
+      // No WebGL projection layer is needed for a video-only XR experience.
+      // A full-eye projection layer can obscure the media layer with black.
       const binding = new XRMediaBinding(requested);
       layer = binding.createCylinderLayer(video, {
         space, layout: 'mono', radius: 3,
         centralAngle: angle, aspectRatio: video.videoWidth / video.videoHeight
       });
-      requested.updateRenderState({ layers: [projection, layer] });
+      requested.updateRenderState({ layers: [layer] });
       recenter = true;
       video.controls = false;
       requested.addEventListener('select', togglePlayback);
