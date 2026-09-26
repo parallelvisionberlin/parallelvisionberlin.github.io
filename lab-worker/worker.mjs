@@ -155,7 +155,7 @@ async function pruneSource(env,owner,id) {
   const a=await first(env,"SELECT * FROM assets WHERE id=? AND owner_id=? AND kind='source'",id,owner);if(!a)return;
   await env.LAB_MEDIA.delete(a.object_key);await run(env,'DELETE FROM assets WHERE id=? AND owner_id=?',id,owner);
 }
-async function signedInput(env,url,id) {async function signedInput(env,url,id) {
+async function signedInput(env,url,id) {
   const expires=Math.floor(now()/1000)+1800,key=await derived(env,'input-url',{name:'HMAC',hash:'SHA-256'},['sign']);
   const sig=base(await crypto.subtle.sign('HMAC',key,enc.encode(id+':'+expires)));
   return url.origin+'/input/'+id+'?expires='+expires+'&signature='+sig;
@@ -302,7 +302,7 @@ async function route(request,env,ctx) {
     await run(env,'INSERT INTO quotes(id,owner_id,source_id,params,estimate_microusd,expires_at,vendor_quote_id,expected_cost,payload) VALUES(?,?,?,?,?,?,?,?,?)',id,owner,primary.id,JSON.stringify(p),maximum,expires,q.quoteId,String(q.estimatedCost),JSON.stringify(payload));
     return json({id,estimatedUsd:estimate/1000000,maxUsd:maximum/1000000,expiresAt:expires,settings:p,provider:'SpicyAPI',notice:'This quote is bound to your exact input. Generation starts only when you confirm. Provider terms apply; a result you dislike is still a paid generation.'});
   }
-  if(path==='/api/jobs'&&method==='POST') {  if(path==='/api/jobs'&&method==='POST') {
+  if(path==='/api/jobs'&&method==='POST') {
     const data=await body(request);if(data.confirm!==true)fail(400,'Confirm the estimated charge.');
     const quoteId=uid(data.quoteId);
     let old=await first(env,'SELECT * FROM jobs WHERE quote_id=? AND owner_id=?',quoteId,owner);if(old)return json({job:jobView(old)});
