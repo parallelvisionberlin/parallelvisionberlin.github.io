@@ -4,7 +4,7 @@ Owner-only creative workbench at `/lab/`, served by the existing GitHub Pages si
 
 ## Tools
 
-Video: Wan 3.0 start-frame animation, optional last frame, or up to ten reference images. Duration, resolution, aspect ratio, audio and optional seed.
+Video: Wan 3.0 start-frame animation, optional last frame, or up to ten reference images. Wan 3.0 accepts source stills up to 20 MB each through the Lab's signed HTTPS input URLs. Duration, resolution, aspect ratio, audio and optional seed.
 
 Image: Seedream 5.0 Pro text-to-image without an input, or reference-based editing with up to ten source images. 1K/2K, supported aspect ratios, JPEG/PNG. Uses the existing encrypted SpicyAPI connection. Endpoints and input schemas checked against the provider public catalog on 2026-09-26; availability, permitted content and price remain controlled by the provider and account. No safety-checker bypass is implemented.
 

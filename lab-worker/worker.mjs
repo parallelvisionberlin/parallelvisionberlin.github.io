@@ -19,7 +19,7 @@ function micros(value) {
 }
 const UUID = /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i;
 const ACTIVE = new Set(['submitting','queued','running','saving','uncertain']);
-const MAX_IMAGE = 10 * 1024 * 1024, MAX_VIDEO = 150 * 1024 * 1024, MAX_STORAGE = 2 * 1024 * 1024 * 1024;
+const MAX_IMAGE = 20 * 1024 * 1024, MAX_VIDEO = 150 * 1024 * 1024, MAX_STORAGE = 2 * 1024 * 1024 * 1024;
 const enc = new TextEncoder(), dec = new TextDecoder();
 let jwksCache = { keys: [], at: 0 };
 class HttpError extends Error { constructor(status,message) { super(message); this.status=status; } }
