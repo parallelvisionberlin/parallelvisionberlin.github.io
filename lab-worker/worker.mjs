@@ -1,10 +1,11 @@
 /* Parallel Vision Lab. Private owner-only workspace, no public media bucket.
    The hosted provider is opt-in; no provider key or moderation bypass in source. */
-export const VERSION = 'pv-lab-2026-09-26.2';
+export const VERSION = 'pv-lab-2026-09-26.3';
 const ORIGINS = new Set(['https://parallelvisionlabel.com','https://www.parallelvisionlabel.com']);
 const ISSUER = 'https://clerk.parallelvisionlabel.com';
 const VENDOR = 'https://api.spicyapi.ai/api/v1';
-const MODEL = 'alibaba/wan-3.0/image-to-video';
+const MODEL_IMAGE = 'alibaba/wan-3.0/image-to-video';
+const MODEL_REFERENCE = 'alibaba/wan-3.0/reference-to-video';
 const DOC = 'https://spicyapi.ai/models/wan-3-0';
 const RESOLUTIONS = new Set(['480p','720p','1080p']);
 // No hard-coded provider price. A live, bound quote is required before each paid request.
@@ -122,22 +123,39 @@ function parameters(value) {
   const prompt=typeof value.prompt==='string'?value.prompt.trim():'';
   if(prompt.length>6000)fail(400,'Use no more than 6,000 prompt characters.');
   const duration=Number(value.duration),resolution=value.resolution;
-  if(!Number.isInteger(duration)||duration<2||duration>30||!RESOLUTIONS.has(resolution))fail(400,'Choose 2–30 seconds and 480p, 720p or 1080p.');
+  if(!Number.isInteger(duration)||duration<2||duration>30||!RESOLUTIONS.has(resolution))fail(400,'Choose 2 to 30 seconds and 480p, 720p or 1080p.');
   const ratio=value.aspectRatio||'auto';if(!['auto','16:9','9:16','1:1','4:3','3:4'].includes(ratio))fail(400,'Invalid aspect ratio.');
   const seed=value.seed==null||value.seed===''?null:Number(value.seed);
   if(seed!==null&&(!Number.isInteger(seed)||seed<0||seed>2147483647))fail(400,'Seed must be a whole number from 0 to 2147483647.');
-  return {model:MODEL,prompt,duration,resolution,aspectRatio:ratio,seed,audio:value.audio!==false};
+  const mode=value.mode==='reference'?'reference':'start';
+  return {model:mode==='reference'?MODEL_REFERENCE:MODEL_IMAGE,mode,prompt,duration,resolution,aspectRatio:ratio,seed,audio:value.audio!==false};
 }
 async function source(env,owner,id) {
   const a=await first(env,"SELECT * FROM assets WHERE id=? AND owner_id=? AND kind='source'",uid(id),owner);
   if(!a)fail(404,'Source image not found. Upload it again.');return a;
 }
-function sniff(bytes,mime) {
-  return mime==='image/jpeg'?bytes[0]===255&&bytes[1]===216&&bytes[2]===255:
-    mime==='image/png'?[137,80,78,71,13,10,26,10].every((n,i)=>bytes[i]===n):
-    mime==='image/webp'?dec.decode(bytes.slice(0,4))==='RIFF'&&dec.decode(bytes.slice(8,12))==='WEBP':false;
+async function sources(env,owner,ids) {
+  if(!Array.isArray(ids)||ids.length<1||ids.length>10)fail(400,'Reference mode needs 1 to 10 images.');
+  const out=[],seen=new Set();
+  for(const value of ids){const id=uid(value);if(seen.has(id))continue;seen.add(id);out.push(await source(env,owner,id));}
+  if(!out.length)fail(400,'Add at least one reference image.');return out;
 }
-async function signedInput(env,url,id) {
+function linkedSourceIds(row) {
+  const ids=new Set();if(row?.source_id&&UUID.test(row.source_id))ids.add(row.source_id);
+  try{const p=JSON.parse(row?.params||'{}');if(UUID.test(p.lastSourceId||''))ids.add(p.lastSourceId);if(Array.isArray(p.referenceSourceIds))for(const id of p.referenceSourceIds)if(UUID.test(id||''))ids.add(id);}catch{}
+  return [...ids];
+}
+async function sourceReferenced(env,owner,id) {
+  const jobs=await rows(env,'SELECT source_id,params FROM jobs WHERE owner_id=?',owner);for(const row of jobs)if(linkedSourceIds(row).includes(id))return true;
+  const quotes=await rows(env,'SELECT source_id,params FROM quotes WHERE owner_id=?',owner);for(const row of quotes)if(linkedSourceIds(row).includes(id))return true;
+  return false;
+}
+async function pruneSource(env,owner,id) {
+  if(await sourceReferenced(env,owner,id))return;
+  const a=await first(env,"SELECT * FROM assets WHERE id=? AND owner_id=? AND kind='source'",id,owner);if(!a)return;
+  await env.LAB_MEDIA.delete(a.object_key);await run(env,'DELETE FROM assets WHERE id=? AND owner_id=?',id,owner);
+}
+async function signedInput(env,url,id) {async function signedInput(env,url,id) {
   const expires=Math.floor(now()/1000)+1800,key=await derived(env,'input-url',{name:'HMAC',hash:'SHA-256'},['sign']);
   const sig=base(await crypto.subtle.sign('HMAC',key,enc.encode(id+':'+expires)));
   return url.origin+'/input/'+id+'?expires='+expires+'&signature='+sig;
@@ -256,24 +274,35 @@ async function route(request,env,ctx) {
     const a=await first(env,'SELECT * FROM assets WHERE id=? AND owner_id=?',uid(path.split('/')[3]),owner);if(!a)fail(404,'File not found.');return media(request,env,a);
   }
   if(path==='/api/drafts'&&method==='POST') {
-    const data=await body(request),p=parameters(data.settings),a=await source(env,owner,data.sourceId),id=crypto.randomUUID();
+    const data=await body(request),p=parameters(data.settings),id=crypto.randomUUID();let primary;
+    if(p.mode==='reference') {
+      const refs=await sources(env,owner,data.referenceSourceIds);primary=refs[0];p.referenceSourceIds=refs.map(a=>a.id);p.lastSourceId=null;
+    } else {
+      primary=await source(env,owner,data.sourceId);p.referenceSourceIds=[];p.lastSourceId=data.lastSourceId?(await source(env,owner,data.lastSourceId)).id:null;
+    }
     if((await first(env,'SELECT COUNT(*) AS n FROM jobs WHERE owner_id=?',owner)).n>=500)fail(409,'History limit reached. Delete old records first.');
-    await run(env,"INSERT INTO jobs(id,owner_id,source_id,params,state,created_at,updated_at) VALUES(?,?,?,?,'draft',?,?)",id,owner,a.id,JSON.stringify(p),now(),now());
+    await run(env,"INSERT INTO jobs(id,owner_id,source_id,params,state,created_at,updated_at) VALUES(?,?,?,?,'draft',?,?)",id,owner,primary.id,JSON.stringify(p),now(),now());
     return json({job:jobView(await first(env,'SELECT * FROM jobs WHERE id=?',id))},201);
   }
   if(path==='/api/quotes'&&method==='POST') {
-    const {key}=await requireConfigured(env,owner),data=await body(request),p=parameters(data.settings),a=await source(env,owner,data.sourceId);
-    if(!p.prompt)fail(400,'Add a motion prompt before generating.');
-    const input={image_url:await signedInput(env,url,a.id),prompt:p.prompt,resolution:p.resolution,duration_seconds:p.duration,generate_audio:p.audio,enable_prompt_expansion:false};
-    if(p.aspectRatio!=='auto')input.aspect_ratio=p.aspectRatio;if(p.seed!==null)input.seed=p.seed;
-    const payload={model:MODEL,input},q=await vendorRequest('/jobs/quote',key,payload);
+    const {key}=await requireConfigured(env,owner),data=await body(request),p=parameters(data.settings);let primary,input;
+    if(p.mode==='reference') {
+      const refs=await sources(env,owner,data.referenceSourceIds);primary=refs[0];p.referenceSourceIds=refs.map(a=>a.id);p.lastSourceId=null;
+      input={reference_image_urls:await Promise.all(refs.map(a=>signedInput(env,url,a.id))),resolution:p.resolution,duration_seconds:p.duration,generate_audio:p.audio,enable_prompt_expansion:false,aspect_ratio:p.aspectRatio==='auto'?'adaptive':p.aspectRatio};
+    } else {
+      primary=await source(env,owner,data.sourceId);const last=data.lastSourceId?await source(env,owner,data.lastSourceId):null;p.referenceSourceIds=[];p.lastSourceId=last?.id||null;
+      input={image_url:await signedInput(env,url,primary.id),resolution:p.resolution,duration_seconds:p.duration,generate_audio:p.audio,enable_prompt_expansion:false};
+      if(last)input.last_image_url=await signedInput(env,url,last.id);if(p.aspectRatio!=='auto')input.aspect_ratio=p.aspectRatio;
+    }
+    if(p.prompt)input.prompt=p.prompt;if(p.seed!==null)input.seed=p.seed;
+    const payload={model:p.model,input},q=await vendorRequest('/jobs/quote',key,payload);
     const estimate=micros(q.estimatedCost),maximum=micros(q.maxCharge),expiry=Date.parse(q.expiresAt);
     if(q.currency!=='USD'||typeof q.quoteId!=='string'||!q.quoteId||maximum<estimate||!Number.isFinite(expiry)||expiry<=now())fail(502,'Provider did not return a usable, bounded quote. Nothing submitted.');
     const id=crypto.randomUUID(),expires=Math.min(expiry,now()+290000);
-    await run(env,'INSERT INTO quotes(id,owner_id,source_id,params,estimate_microusd,expires_at,vendor_quote_id,expected_cost,payload) VALUES(?,?,?,?,?,?,?,?,?)',id,owner,a.id,JSON.stringify(p),maximum,expires,q.quoteId,String(q.estimatedCost),JSON.stringify(payload));
+    await run(env,'INSERT INTO quotes(id,owner_id,source_id,params,estimate_microusd,expires_at,vendor_quote_id,expected_cost,payload) VALUES(?,?,?,?,?,?,?,?,?)',id,owner,primary.id,JSON.stringify(p),maximum,expires,q.quoteId,String(q.estimatedCost),JSON.stringify(payload));
     return json({id,estimatedUsd:estimate/1000000,maxUsd:maximum/1000000,expiresAt:expires,settings:p,provider:'SpicyAPI',notice:'This quote is bound to your exact input. Generation starts only when you confirm. Provider terms apply; a result you dislike is still a paid generation.'});
   }
-  if(path==='/api/jobs'&&method==='POST') {
+  if(path==='/api/jobs'&&method==='POST') {  if(path==='/api/jobs'&&method==='POST') {
     const data=await body(request);if(data.confirm!==true)fail(400,'Confirm the estimated charge.');
     const quoteId=uid(data.quoteId);
     let old=await first(env,'SELECT * FROM jobs WHERE quote_id=? AND owner_id=?',quoteId,owner);if(old)return json({job:jobView(old)});
@@ -311,11 +340,11 @@ async function route(request,env,ctx) {
     if(method==='GET') {await refreshJob(env,j);return json({job:jobView(await first(env,'SELECT * FROM jobs WHERE id=?',id))});}
     if(method==='DELETE') {
       if(ACTIVE.has(j.state))fail(409,'Active or uncertain jobs cannot be deleted.');
+      const linked=linkedSourceIds(j);
       await run(env,'DELETE FROM jobs WHERE id=? AND owner_id=?',id,owner);
       if(j.quote_id)await run(env,'DELETE FROM quotes WHERE id=?',j.quote_id);
       if(j.output_id){const a=await first(env,'SELECT * FROM assets WHERE id=? AND owner_id=?',j.output_id,owner);if(a){await env.LAB_MEDIA.delete(a.object_key);await run(env,'DELETE FROM assets WHERE id=?',a.id);}}
-      const used=await first(env,'SELECT id FROM jobs WHERE source_id=? LIMIT 1',j.source_id),quoted=await first(env,'SELECT id FROM quotes WHERE source_id=? AND expires_at>? LIMIT 1',j.source_id,now());
-      if(!used&&!quoted){await run(env,'DELETE FROM quotes WHERE source_id=?',j.source_id);const a=await first(env,'SELECT * FROM assets WHERE id=?',j.source_id);if(a){await env.LAB_MEDIA.delete(a.object_key);await run(env,'DELETE FROM assets WHERE id=?',a.id);}}
+      for(const sourceId of linked)await pruneSource(env,owner,sourceId);
       return json({ok:true});
     }
   }
@@ -326,10 +355,10 @@ async function maintenance(env) {
   const pending=await rows(env,"SELECT * FROM jobs WHERE state IN ('queued','running','saving') ORDER BY last_poll LIMIT 3");
   for(const j of pending){const owner=await env.OWNER_DB.prepare("SELECT id FROM users WHERE id=? AND role='owner' AND auth_provider='clerk'").bind(j.owner_id).first();if(owner)await refreshJob(env,j);}
   await run(env,'DELETE FROM quotes WHERE expires_at<? AND NOT EXISTS(SELECT 1 FROM jobs WHERE jobs.quote_id=quotes.id)',now());
-  const unused=await rows(env,"SELECT * FROM assets WHERE kind='source' AND created_at<? AND NOT EXISTS(SELECT 1 FROM jobs WHERE jobs.source_id=assets.id) AND NOT EXISTS(SELECT 1 FROM quotes WHERE quotes.source_id=assets.id) LIMIT 20",now()-86400000);
-  for(const a of unused){await env.LAB_MEDIA.delete(a.object_key);await run(env,'DELETE FROM assets WHERE id=?',a.id);}
+  const unused=await rows(env,"SELECT * FROM assets WHERE kind='source' AND created_at<? ORDER BY created_at LIMIT 30",now()-86400000);
+  for(const a of unused)await pruneSource(env,a.owner_id,a.id);
 }
-export default {
+export default {export default {
   async fetch(request,env,ctx) {
     let response;try{response=await route(request,env,ctx);}catch(e){response=json({error:e instanceof HttpError?e.message:'The Lab could not finish this request. Your stored work is unchanged.'},e instanceof HttpError?e.status:500);}
     return decorate(response,request.headers.get('origin')||'');
