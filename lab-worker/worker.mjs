@@ -6,6 +6,7 @@ const ISSUER = 'https://clerk.parallelvisionlabel.com';
 const VENDOR = 'https://api.spicyapi.ai/api/v1';
 const MODEL_IMAGE = 'alibaba/wan-3.0/image-to-video';
 const MODEL_REFERENCE = 'alibaba/wan-3.0/reference-to-video';
+const MODEL = MODEL_IMAGE; // Stable encryption context for existing stored provider keys.
 const DOC = 'https://spicyapi.ai/models/wan-3-0';
 const RESOLUTIONS = new Set(['480p','720p','1080p']);
 // No hard-coded provider price. A live, bound quote is required before each paid request.
