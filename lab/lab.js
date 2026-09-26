@@ -10,7 +10,7 @@ const notify=(text,error=false)=>{$('notice').textContent=text;$('notice').class
 function release(url){if(url)URL.revokeObjectURL(url);}
 function settings(){return {mode,prompt:$('prompt').value.trim(),duration:Number($('duration').value),resolution:$('resolution').value,aspectRatio:$('ratio').value,seed:$('seed').value,audio:$('audio').checked};}
 function hasInput(){return mode==='start'?!!file:references.length>0;}
-function update(){const p=settings(),ratio=p.aspectRatio==='auto'?(mode==='reference'?'adaptive':'source ratio'):p.aspectRatio;$('settings-summary').textContent=`${p.duration}s / ${p.resolution} / ${ratio}`;$('save').disabled=!owner||!hasInput()||busy;$('clear').disabled=(!file&&!lastFile&&!references.length&&!resultUrl)||busy;$('generate').disabled=!owner||!hasInput()||busy||!!activeJob;$('generate').textContent=config.enabled?'Review price & generate':'Connect generation provider';}
+function update(){const p=settings(),ratio=p.aspectRatio==='auto'?(mode==='reference'?'adaptive':'source ratio'):p.aspectRatio;$('settings-summary').textContent=`${p.duration}s / ${p.resolution} / ${ratio}`;$('save').disabled=!owner||!hasInput()||busy;$('clear').disabled=(!file&&!lastFile&&!references.length&&!resultUrl)||busy;$('generate').disabled=!owner||!hasInput()||!p.prompt||busy||!!activeJob;$('generate').textContent=config.enabled?'Review price & generate':'Connect generation provider';}
 async function api(path,options={}) {
   const generation=epoch,token=await clerk?.session?.getToken();if(!owner&&path!=='/api/session')throw new Error('Sign in first.');if(!token)throw new Error('Your sign-in expired. Sign in again.');
   const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),65000);requestControllers.add(controller);
