@@ -15,8 +15,6 @@
   let session = null;
   let layer = null;
   let space = null;
-  let recenter = true;
-  let lastTime = 0;
   let angle = Number(width.value) * Math.PI / 180;
   let disposed = false;
 
@@ -45,7 +43,6 @@
     layer = null;
     space = null;
     starting = false;
-    lastTime = 0;
     video.pause();
     video.controls = true;
     refresh();
@@ -57,33 +54,6 @@
       session?.end().catch(() => {});
     });
     else video.pause();
-  }
-
-  function onFrame(time, frame) {
-    if (frame.session !== session || !layer) return;
-    session.requestAnimationFrame(onFrame);
-    const pose = frame.getViewerPose(space);
-    if (pose && recenter) {
-      const { position, orientation: q } = pose.transform;
-      // Keep the screen upright while matching the viewer's position and yaw.
-      const yaw = Math.atan2(2 * (q.w * q.y + q.x * q.z), 1 - 2 * (q.y * q.y + q.x * q.x));
-      layer.transform = new XRRigidTransform(
-        { x: position.x, y: position.y, z: position.z },
-        { x: 0, y: Math.sin(yaw / 2), z: 0, w: Math.cos(yaw / 2) }
-      );
-      recenter = false;
-    }
-    const dt = lastTime ? Math.min((time - lastTime) / 1000, .05) : 0;
-    lastTime = time;
-    for (const input of session.inputSources) {
-      if (input.handedness !== 'right' || !input.gamepad) continue;
-      const axes = input.gamepad.axes;
-      const vertical = axes.length >= 4 ? axes[3] : 0;
-      if (Math.abs(vertical) > .25) {
-        angle = Math.max(Math.PI / 2, Math.min(5 * Math.PI / 6, angle - vertical * dt * .5));
-        layer.centralAngle = angle;
-      }
-    }
   }
 
   quality.addEventListener('change', () => {
@@ -99,7 +69,6 @@
 
   width.addEventListener('change', () => {
     angle = Number(width.value) * Math.PI / 180;
-    if (layer) layer.centralAngle = angle;
   });
 
   button.addEventListener('click', async () => {
@@ -134,20 +103,23 @@
       // No WebGL projection layer is needed for a video-only XR experience.
       // A full-eye projection layer can obscure the media layer with black.
       const binding = new XRMediaBinding(requested);
-      layer = binding.createCylinderLayer(video, {
-        space, layout: 'mono', radius: 3,
-        centralAngle: angle, aspectRatio: video.videoWidth / video.videoHeight
+      const viewerSpace = await requested.requestReferenceSpace('viewer');
+      const aspect = video.videoWidth / video.videoHeight;
+      const widthMeters = angle >= 2.5 ? 4.8 : angle >= 2 ? 4.0 : 3.2;
+      layer = binding.createQuadLayer(video, {
+        space: viewerSpace,
+        layout: 'mono',
+        width: widthMeters,
+        height: widthMeters / aspect,
+        transform: new XRRigidTransform({ x: 0, y: 0, z: -3 })
       });
       requested.updateRenderState({ layers: [layer] });
-      recenter = true;
       video.controls = false;
       requested.addEventListener('select', togglePlayback);
-      requested.addEventListener('squeeze', () => { recenter = true; });
       requested.addEventListener('visibilitychange', () => {
         if (requested.visibilityState === 'hidden') video.pause();
       });
-      requested.requestAnimationFrame(onFrame);
-      message('VR active. Trigger or pinch: play / pause. Grip: recenter. Quest menu: exit.');
+      message('VR active. Trigger or pinch: play / pause. Quest menu: exit.');
       starting = false;
       refresh();
 
