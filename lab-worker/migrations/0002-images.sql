@@ -1,24 +1,5 @@
-PRAGMA foreign_keys = ON;
-CREATE TABLE IF NOT EXISTS settings (
-  owner_id TEXT PRIMARY KEY,
-  encrypted_key TEXT NOT NULL,
-  enabled INTEGER NOT NULL DEFAULT 0 CHECK (enabled IN (0,1)),
-  terms_confirmed INTEGER NOT NULL DEFAULT 0 CHECK (terms_confirmed IN (0,1)),
-  daily_limit_microusd INTEGER NOT NULL DEFAULT 10000000 CHECK (daily_limit_microusd BETWEEN 1000000 AND 100000000),
-  updated_at INTEGER NOT NULL
-);
-CREATE TABLE IF NOT EXISTS assets (
-  id TEXT PRIMARY KEY,
-  owner_id TEXT NOT NULL,
-  object_key TEXT NOT NULL UNIQUE,
-  kind TEXT NOT NULL CHECK (kind IN ('source','video')),
-  mime TEXT NOT NULL,
-  filename TEXT NOT NULL,
-  bytes INTEGER NOT NULL CHECK (bytes >= 0),
-  created_at INTEGER NOT NULL
-);
-CREATE INDEX IF NOT EXISTS assets_owner ON assets(owner_id,created_at);
-CREATE TABLE IF NOT EXISTS quotes (
+-- Atomic D1 migration: nullable sources enable text-to-image; all rows copied.
+CREATE TABLE quotes_v2 (
   id TEXT PRIMARY KEY,
   owner_id TEXT NOT NULL,
   source_id TEXT REFERENCES assets(id),
@@ -29,11 +10,11 @@ CREATE TABLE IF NOT EXISTS quotes (
   expected_cost TEXT NOT NULL,
   payload TEXT NOT NULL
 );
-CREATE TABLE IF NOT EXISTS jobs (
+CREATE TABLE jobs_v2 (
   id TEXT PRIMARY KEY,
   owner_id TEXT NOT NULL,
   source_id TEXT REFERENCES assets(id),
-  quote_id TEXT UNIQUE REFERENCES quotes(id),
+  quote_id TEXT UNIQUE REFERENCES quotes_v2(id),
   params TEXT NOT NULL,
   state TEXT NOT NULL CHECK (state IN ('draft','submitting','queued','running','saving','completed','failed','uncertain','resolved')),
   provider_id TEXT,
@@ -46,6 +27,13 @@ CREATE TABLE IF NOT EXISTS jobs (
   updated_at INTEGER NOT NULL,
   last_poll INTEGER NOT NULL DEFAULT 0
 );
+
+INSERT INTO quotes_v2 SELECT * FROM quotes;
+INSERT INTO jobs_v2 SELECT * FROM jobs;
+DROP TABLE jobs;
+DROP TABLE quotes;
+ALTER TABLE quotes_v2 RENAME TO quotes;
+ALTER TABLE jobs_v2 RENAME TO jobs;
 CREATE INDEX IF NOT EXISTS jobs_owner_history ON jobs(owner_id,created_at DESC,id DESC);
 CREATE UNIQUE INDEX IF NOT EXISTS one_active_job_per_owner ON jobs(owner_id)
  WHERE state IN ('submitting','queued','running','saving','uncertain');
@@ -68,3 +56,5 @@ CREATE TRIGGER IF NOT EXISTS reserve_estimated_spend AFTER INSERT ON jobs
 CREATE TABLE IF NOT EXISTS packs(id TEXT PRIMARY KEY,owner_id TEXT NOT NULL,name TEXT NOT NULL,refs TEXT NOT NULL,created_at INTEGER NOT NULL);
 CREATE INDEX IF NOT EXISTS packs_owner ON packs(owner_id,name);
 CREATE TABLE IF NOT EXISTS lab_migrations(id TEXT PRIMARY KEY,applied_at INTEGER NOT NULL);
+
+INSERT INTO lab_migrations(id,applied_at) VALUES('20260926-images',unixepoch()*1000);

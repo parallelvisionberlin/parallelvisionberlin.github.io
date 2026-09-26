@@ -1,73 +1,35 @@
 # Parallel Vision Lab
 
-Private image-to-video workspace at `/lab/`, using the existing GitHub Pages site and an isolated Cloudflare backend. No navigation or sitemap link is added. This version focuses on Wan 3.0 video. It supports Start Frame with an optional last frame, plus Reference Mode with up to ten visual reference images. Text-to-image is not included yet.
+Owner-only creative workbench at `/lab/`, served by the existing GitHub Pages site. No public navigation link or new hosting subscription. The static sign-in shell is public and noindexed; all generation, history, packs and media operations require a verified Clerk owner account.
 
-## Owner workflow
+## Tools
 
-1. Open `https://parallelvisionlabel.com/lab/` and sign in with the existing Parallel Vision owner account used for Nina.
-2. Choose **Start Frame** or **Reference Mode**. Start Frame can optionally include an exact last frame. Reference Mode accepts up to ten visual references. Enter the motion direction and choose duration, resolution, aspect ratio, audio and optional seed. **Save to private history** stores the media and settings without generating a video.
-3. For hosted generation, open **Connection**, paste your own SpicyAPI key there (never in chat or GitHub), check provider suitability and terms, and set a daily USD budget.
-4. Choose **Review price & generate**. The Lab requests a live quote for the exact input. Only **Confirm & generate** submits a paid request.
-5. History can reopen completed video, download MP4 and **Reuse**. Reuse restores the saved start and last frames or reference images, prompt, duration, resolution, aspect ratio, seed and audio setting without overwriting the saved record.
+Video: Wan 3.0 start-frame animation, optional last frame, or up to ten reference images. Duration, resolution, aspect ratio, audio and optional seed.
 
-## Activation status
+Image: Seedream 5.0 Pro text-to-image without an input, or reference-based editing with up to ten source images. 1K/2K, supported aspect ratios, JPEG/PNG. Uses the existing encrypted SpicyAPI connection. Endpoints and input schemas checked against the provider public catalog on 2026-09-26; availability, permitted content and price remain controlled by the provider and account. No safety-checker bypass is implemented.
 
-The provider adapter is implemented, but no real provider key has been connected and no paid generation has been requested. Account access, model availability, actual charged prices, content acceptance and a real output still require verification in the owner's account. Saving a key performs a read-only balance check; it is not an end-to-end generation test.
+Reference images have numbers, original filenames, a role and optional notes. Notes are included in the provider prompt while the original written prompt is retained. They are guidance, not a guarantee of character identity. Save named packs such as `Nina FOK / Editorial`; load them into either reference workflow. No source images or character packs are invented or prepopulated.
 
-The configured provider is SpicyAPI. Start Frame uses `alibaba/wan-3.0/image-to-video`; Reference Mode uses `alibaba/wan-3.0/reference-to-video`. The application does not bypass provider protections. A model name, an external marketing claim, or a user's suitability checkbox is not proof of unrestricted generation. The provider's actual terms and decisions apply. No fixed price or guaranteed content acceptance is claimed by this implementation.
+History stores drafts and completed results with prompt, exact settings, source IDs, roles and notes. Reuse restores these without generating. View and Download open the stored output. Use in Video loads a generated image as the start frame. Deleting an image generation preserves the image when another job or reference pack still needs it.
 
-Provider documentation used for the adapter:
-- `https://docs.spicyapi.ai/docs/api-reference`
-- `https://docs.spicyapi.ai/docs/quotes-and-compatibility`
-- `https://spicyapi.ai/models/wan-3-0`
+## Infrastructure and privacy
 
-## Architecture and privacy
+Existing GitHub Pages frontend, isolated `parallel-vision-lab` Cloudflare Worker, `parallel-vision-lab` D1 database and private `parallel-vision-lab-private` R2 bucket. Existing Nina database is read only for owner authorization, never migrated by the Lab. No Vercel, Supabase or Stripe required. Cloud usage is subject to the account quotas and billing; generation is charged by the provider.
 
-- Static HTML/CSS/JavaScript under `lab/`, using the existing GitHub Pages hosting. No Next.js, Vercel, Supabase or Stripe requirement.
-- Existing Clerk sign-in, with RS256 signature, issuer, authorized-party and expiry validation in the Worker.
-- Every upload, private media read, history operation, setting change and generation request requires an existing owner role checked server-side. The public page is only a sign-in shell. `noindex` and an unlisted path are not the access control.
-- Separate Cloudflare Worker `parallel-vision-lab`, D1 database `parallel-vision-lab`, and R2 bucket `parallel-vision-lab-private`.
-- The existing Nina database is only queried for owner authorization. No Lab migrations or other writes target Nina's tables or Worker.
-- Original inputs and completed outputs live in private R2. Public r2.dev access is disabled and no public bucket domain is attached.
-- The provider receives a narrowly scoped, short-lived signed URL for its source image. Other downloads require the owner's verified session.
-- Provider keys are AES-GCM encrypted in the Lab database. The encryption secret is stored as Cloudflare `LAB_SECRET`, not committed to the repository or returned to the browser. Preserve this secret across deployments.
-- Credentials, prompts and media are not stored in localStorage. Signing out clears the private UI and in-memory media URLs.
+API keys are encrypted with AES-GCM using the existing Cloudflare `LAB_SECRET`. Preserve that secret across all deployments. Never commit keys or put them in localStorage. Every API/media request checks Clerk JWT and database owner role; file URLs for provider inputs use short-lived signatures. Prompts and private media never enter GitHub.
 
-## Spending and reliability
+## Price and failure handling
 
-Prices come from the provider's live quote endpoint, not from promotional pages or a hard-coded tariff. The exact quoted payload, quote ID and expected cost are retained for submission. A changed or expired price requires another review and confirmation.
+Review price requests a free live quote for the exact input/settings. A separate confirmation starts the paid request. The Lab does not hardcode advertised prices or silently reprice. One active generation per owner and a shared daily estimated-spend cap cover both images and video. The cap counts failed/uncertain attempts conservatively and survives deletion from history. Also set provider-side spending limits.
 
-The default budget is $10 per UTC day. The owner can choose $1 to $100. This is a conservative local guard based on quoted maximums, including failed or uncertain attempts. Provider invoices remain authoritative; also configure limits on the provider API key.
+Timeout or network failure during paid submission is uncertain, not a safe retry. The Lab locks further submission until the owner checks the provider and explicitly resolves it. Scheduled maintenance only polls and archives existing jobs, never generates another request.
 
-The database reserves estimated spending atomically and permits only one active request per owner. Repeated submission of the same quote returns the existing job. Ambiguous submission failures are marked uncertain and block another generation until the owner checks the provider console. No automatic paid retries occur. Deleting history does not erase the spending ledger.
+## Deployment
 
-A five-minute Cloudflare schedule polls existing jobs, archives completed output and removes unused expired inputs. It never submits a new generation. Limits include 10 MB source uploads, 150 MB result files and 2 GB private archive usage. Delete old records when required.
+Existing installation: apply `lab-worker/migrations/0002-images.sql` once atomically to the Lab D1 database after checking the migration marker and preserving existing records. It makes source IDs nullable for text-only jobs and adds private reference packs. Fresh installs use `lab-worker/schema.sql`. Do not apply this schema to Nina.
 
-No additional subscription or provider credits were purchased. Existing Cloudflare account usage and billing still apply; storage and compute are not promised to remain free at every usage level.
+Deploy `lab-worker/worker.mjs` with the existing LAB_DB, LAB_MEDIA, OWNER_DB and LAB_SECRET bindings. Preserve the five-minute cron and disable Worker body logging. GitHub Pages serves `lab/index.html`, `lab/lab.css` and `lab/lab.js`.
 
-## Deployment and verification record
+## Verification
 
-On 26 September 2026, Cloudflare accepted the Worker deployment, its D1 schema and bindings, workers.dev enablement and the five-minute schedule. The private bucket's public access was checked and is disabled.
-
-Worker API: `https://parallel-vision-lab.parallelvision.workers.dev`
-
-Deployed Worker version: `pv-lab-2026-09-26.3`.
-
-Verified locally:
-- JavaScript syntax checks passed.
-- Five Node backend tests passed using synthetic signed JWTs, SQLite, simulated R2 and a mocked provider. They cover owner access, encrypted credentials, quote approval, duplicate prevention, spending caps, uncertain submissions and archive deletion.
-- Offline Chromium UI tests passed with mocked sign-in and backend: image preview, saving and reusing all settings, cancelled quotes, explicit submission and logout cleanup. Desktop at 1440 pixels and mobile at 390 pixels had no horizontal overflow.
-
-Not verified end-to-end: the production Clerk sign-in, public HTTP reachability of the deployed Worker and a real provider generation. The execution environment blocked live browser navigation and direct Worker HTTP checks. Cloudflare's deployment API acceptance is not equivalent to those end-to-end checks. There are no simulated results or test credentials in the production application.
-
-## Developer checks
-
-Use Node 22.16 or newer for the SQLite-backed tests:
-
-```sh
-node --check lab/lab.js
-node --check lab-worker/worker.mjs
-node --test tests/lab-worker.test.mjs
-```
-
-Deployment configuration is in `lab-worker/wrangler.toml`. Keep `LAB_SECRET` as a Cloudflare secret and retain it on every deployment. Do not expose the R2 bucket or add a paid provider key to configuration files.
+`node --test tests/lab-worker.test.mjs` covers owner authorization, encrypted keys, price confirmation, duplicate prevention, spending limits, interruption recovery, image generation, reference packs, media reuse and lossless migration with a mocked provider. Tests do not buy generations. Browser tests cover draft/reuse, reference roles, packs, price confirmation, image-to-video handoff, logout clearing and mobile overflow using synthetic media and mocked authentication/API. Live paid output quality is separate from these tests.
