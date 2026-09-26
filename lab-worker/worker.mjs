@@ -1,6 +1,6 @@
 /* Parallel Vision Lab. Private owner-only workspace, no public media bucket.
    The hosted provider is opt-in; no provider key or moderation bypass in source. */
-export const VERSION = 'pv-lab-2026-09-26.4';
+export const VERSION = 'pv-lab-2026-09-26.7';
 const ORIGINS = new Set(['https://parallelvisionlabel.com','https://www.parallelvisionlabel.com']);
 const ISSUER = 'https://clerk.parallelvisionlabel.com';
 const VENDOR = 'https://api.spicyapi.ai/api/v1';
@@ -93,10 +93,10 @@ async function decryptKey(env,value) {
 }
 async function config(env,owner) {return first(env,'SELECT * FROM settings WHERE owner_id=?',owner);}
 function publicConfig(c) {return {configured:!!c,enabled:!!(c?.enabled&&c?.terms_confirmed),dailyLimitUsd:(c?.daily_limit_microusd||10000000)/1000000,provider:'SpicyAPI',model:'Wan 3.0 / Seedream 5.0 Pro',documentation:DOC,pricingNote:'A live provider quote is required before every generation. No subscription is added by this Lab. Provider terms apply.'};}
-async function vendorRequest(path,key,data,idempotency) {
+async function vendorRequest(path,key,data,idempotency,method=data?'POST':'GET') {
   let r;
   try {
-    r=await fetch(VENDOR+path,{method:data?'POST':'GET',headers:{Authorization:'Bearer '+key,'Accept':'application/json',...(data?{'Content-Type':'application/json'}:{}),...(idempotency?{'Idempotency-Key':idempotency}:{})},body:data?JSON.stringify(data):undefined,signal:AbortSignal.timeout(20000),redirect:'follow'});
+    r=await fetch(VENDOR+path,{method,headers:{Authorization:'Bearer '+key,'Accept':'application/json',...(data?{'Content-Type':'application/json'}:{}),...(idempotency?{'Idempotency-Key':idempotency}:{})},body:data?JSON.stringify(data):undefined,signal:AbortSignal.timeout(20000),redirect:'follow'});
   } catch {
     const paid=path==='/jobs/createTask';
     const e=new HttpError(502,paid?'Submission could not be confirmed. Check history and the provider before retrying.':'The provider could not be reached. No generation was submitted by this request.');e.definite=!paid;throw e;
@@ -263,6 +263,86 @@ async function copyResult(env,j,url) {
     stmt(env,"UPDATE jobs SET state='completed',output_id=?,remote_url=NULL,error='',updated_at=? WHERE id=?",j.id,now(),j.id)
   ]);
 }
+// Stage original image bytes with the provider before quoting. No generation here.
+const MAX_PROVIDER_IMAGE = 10 * 1024 * 1024;
+const FILE_URI = /^spicy:\/\/f\/fil_[A-Za-z0-9_-]{8,128}$/;
+function validUploadUrl(value) {
+  let u;try{u=new URL(value);}catch{throw new Error('Invalid upload ticket URL.');}
+  const host=u.hostname.toLowerCase();
+  if(u.protocol!=='https:'||u.username||u.password||(u.port&&u.port!=='443')||
+    !(host.endsWith('.r2.cloudflarestorage.com')||host==='spicyapi.ai'||host.endsWith('.spicyapi.ai')))
+    throw new Error('Unexpected provider upload location.');
+  return u.href;
+}
+async function stageImageReferences(env,owner,ids,key) {
+  const assets=await sources(env,owner,ids);
+  // Validate the entire batch before any transfer. Keep the private originals unchanged.
+  for(const a of assets)if(!['image/jpeg','image/png','image/webp'].includes(a.mime)||a.bytes<=0||a.bytes>MAX_PROVIDER_IMAGE)
+    fail(400,'Seedream reference uploads must be JPG, PNG or WebP, at most 10 MiB each. Your original is unchanged. No generation was submitted.');
+  const result=new Array(assets.length);let cursor=0,stopped=false;
+  const work=async()=>{
+    while(!stopped){
+      const i=cursor++;if(i>=assets.length)return;
+      try{
+        const a=assets[i],object=await env.LAB_MEDIA.get(a.object_key);
+        if(!object)throw new Error('Stored reference image is unavailable.');
+        const bytes=await limitedBody(new Response(object.body),MAX_PROVIDER_IMAGE);
+        if(bytes.length!==a.bytes||!sniff(bytes,a.mime))throw new Error('Stored reference image failed verification.');
+        const ticket=await vendorRequest('/common/upload-url',key,{contentType:a.mime,bytes:bytes.length});
+        if(!ticket||!/^fil_[A-Za-z0-9_-]{8,128}$/.test(ticket.fileId||'')||ticket.method!=='PUT'||
+          !Number.isSafeInteger(ticket.maxBytes)||ticket.maxBytes<bytes.length||
+          !Number.isFinite(Date.parse(ticket.expiresAt))||Date.parse(ticket.expiresAt)<=now()+30000)
+          throw new Error('Provider did not return a usable upload ticket.');
+        const target=validUploadUrl(ticket.uploadUrl),headers=new Headers(ticket.headers);
+        if(headers.has('authorization')||headers.has('cookie')||headers.get('content-type')!==a.mime||
+          headers.get('content-length')!==String(bytes.length))throw new Error('Provider upload headers do not match the reference file.');
+        const put=await fetch(target,{method:'PUT',headers,body:bytes,redirect:'error',signal:AbortSignal.timeout(20000)});
+        if(!put.ok)throw new Error('Reference transfer was rejected (HTTP '+put.status+').');
+        await put.body?.cancel();
+        const committed=await vendorRequest('/files/'+encodeURIComponent(ticket.fileId)+'/commit',key,undefined,undefined,'POST');
+        if(!committed||committed.status!=='ready'||committed.fileId!==ticket.fileId||
+          committed.bytes!==bytes.length||committed.contentType!==a.mime||!FILE_URI.test(committed.uri||'')||
+          committed.uri!=='spicy://f/'+ticket.fileId||!Number.isFinite(Date.parse(committed.expiresAt))||
+          Date.parse(committed.expiresAt)<=now()+600000)throw new Error('Provider has not verified a usable reference upload.');
+        const digest=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),b=>b.toString(16).padStart(2,'0')).join('');
+        if(typeof committed.sha256!=='string'||committed.sha256.toLowerCase()!==digest)
+          throw new Error('Provider reference checksum does not match the original image.');
+        result[i]=committed.uri;
+      }catch(e){stopped=true;throw e;}
+    }
+  };
+  const attempts=await Promise.allSettled(Array.from({length:Math.min(2,assets.length)},()=>work()));
+  const failure=attempts.find(r=>r.status==='rejected');
+  if(failure)fail(502,'Reference preparation failed: '+cleanProviderDetail(failure.reason?.message||'Upload timed out.')+' No generation was submitted.');
+  return result;
+}
+function cleanProviderDetail(value) {
+  return (typeof value==='string'||typeof value==='number')?String(value)
+    .replace(/https?:\/\/[^\s"'<>]+/gi,'[redacted URL]')
+    .replace(/Bearer\s+\S+|sk-spicy-[A-Za-z0-9_-]+/gi,'[redacted credential]')
+    .replace(/[\u0000-\u001f\u007f]+/g,' ').trim().slice(0,600):'';
+}
+function providerFailure(result) {
+  const code=cleanProviderDetail(result?.errorCode??result?.error_code??result?.failCode??result?.error?.code);
+  const message=cleanProviderDetail(result?.errorMessage??result?.error_message??result?.failMsg??result?.error?.message??(typeof result?.error==='string'?result.error:''));
+  const requestId=cleanProviderDetail(result?.request_id??result?.requestId);
+  return 'SpicyAPI reported '+cleanProviderDetail(result?.state||'failed')+(code?' ['+code+']':'')+': '+
+    (message||'No specific failure reason was supplied by the provider.')+(requestId?' Request: '+requestId:'')+
+    ' | No new generation was submitted.';
+}
+async function backfillFailureDetails(env) {
+  const jobs=await rows(env,"SELECT * FROM jobs WHERE state='failed' AND provider_id IS NOT NULL AND error=? AND created_at>? ORDER BY created_at DESC LIMIT 3",'The provider ended this job without a downloadable result. Check its dashboard for billing details.',now()-86400000);
+  for(const job of jobs){
+    const owner=await env.OWNER_DB.prepare("SELECT id FROM users WHERE id=? AND role='owner' AND auth_provider='clerk'").bind(job.owner_id).first();
+    if(!owner)continue;
+    try{
+      const c=await config(env,job.owner_id);if(!c)continue;
+      const result=await vendorRequest('/jobs/recordInfo?taskId='+encodeURIComponent(job.provider_id),await decryptKey(env,c.encrypted_key));
+      if(['failed','cancelled','canceled','expired'].includes(result.state))await run(env,"UPDATE jobs SET error=? WHERE id=? AND state='failed'",providerFailure(result),job.id);
+    }catch{}
+  }
+}
+
 async function refreshJob(env,j) {
   if(!['queued','running','saving'].includes(j.state)||!j.provider_id)return;
   const lock=await run(env,'UPDATE jobs SET last_poll=? WHERE id=? AND last_poll<?',now(),j.id,now()-8000);
@@ -281,7 +361,7 @@ async function refreshJob(env,j) {
       await run(env,"UPDATE jobs SET state='saving',remote_url=?,updated_at=? WHERE id=?",safe,now(),j.id);
       await copyResult(env,j,safe);
     }else if(['failed','cancelled','canceled','expired'].includes(result.state)){
-      await run(env,"UPDATE jobs SET state='failed',error=?,updated_at=? WHERE id=?",'The provider ended this job without a downloadable result. Check its dashboard for billing details.',now(),j.id);
+      await run(env,"UPDATE jobs SET state='failed',error=?,updated_at=? WHERE id=?",providerFailure(result),now(),j.id);
     }else{
       await run(env,"UPDATE jobs SET state=?,updated_at=?,error='' WHERE id=?",result.state==='running'?'running':'queued',now(),j.id);
     }
@@ -366,6 +446,7 @@ async function route(request,env,ctx) {
     const {key}=await requireConfigured(env,owner),data=await body(request),p=parameters(data.settings);
     if(!p.prompt)fail(400,'Add a prompt before generating.');
     const {primary,input}=await prepareInput(env,owner,data,p,url);
+    if(p.type==='image'&&p.referenceSourceIds.length)input.image_urls=await stageImageReferences(env,owner,p.referenceSourceIds,key);
     const payload={model:p.model,input},q=await vendorRequest('/jobs/quote',key,payload);
     const estimate=micros(q.estimatedCost),maximum=micros(q.maxCharge),expiry=Date.parse(q.expiresAt);
     if(q.currency!=='USD'||typeof q.quoteId!=='string'||!q.quoteId||maximum<estimate||!Number.isFinite(expiry)||expiry<=now())fail(502,'Provider did not return a usable, bounded quote. Nothing submitted.');
@@ -379,6 +460,9 @@ async function route(request,env,ctx) {
     let old=await first(env,'SELECT * FROM jobs WHERE quote_id=? AND owner_id=?',quoteId,owner);if(old)return json({job:jobView(old)});
     const {c,key}=await requireConfigured(env,owner),q=await first(env,'SELECT * FROM quotes WHERE id=? AND owner_id=? AND expires_at>?',quoteId,owner,now());
     if(!q)fail(409,'Quote expired. Review the cost again.');
+    const savedPayload=JSON.parse(q.payload);
+    if(savedPayload.model===STILL_EDIT&&(!Array.isArray(savedPayload.input?.image_urls)||!savedPayload.input.image_urls.length||savedPayload.input.image_urls.some(uri=>!FILE_URI.test(uri))))
+      fail(409,'This image quote uses the old reference transfer. Review a fresh price to verify your images before generating. Nothing was submitted.');
     for(const assetId of linkedSourceIds(q))await source(env,owner,assetId);
     const id=crypto.randomUUID(),t=now(),day=Math.floor(t/86400000)*86400000;
     try {
@@ -422,6 +506,7 @@ async function route(request,env,ctx) {
   fail(404,'Not found.');
 }
 async function maintenance(env) {
+  await backfillFailureDetails(env);
   await run(env,"UPDATE jobs SET state='uncertain',error='Submission was interrupted. Check the provider dashboard before retrying.',updated_at=? WHERE state='submitting' AND updated_at<?",now(),now()-120000);
   const pending=await rows(env,"SELECT * FROM jobs WHERE state IN ('queued','running','saving') ORDER BY last_poll LIMIT 3");
   for(const j of pending){const owner=await env.OWNER_DB.prepare("SELECT id FROM users WHERE id=? AND role='owner' AND auth_provider='clerk'").bind(j.owner_id).first();if(owner)await refreshJob(env,j);}
