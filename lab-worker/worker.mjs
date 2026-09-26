@@ -103,7 +103,7 @@ async function vendorRequest(path,key,data,idempotency) {
     let message;
     if(code===40901)message='Provider quote expired or changed. Review a new price before generating.';
     else if([40201,40202].includes(code))message='Provider balance or API spending limit is insufficient. Check the provider console.';
-    else if(code===40301)message='This API key is not allowed to use Wan 3.0. Add alibaba/wan-3.0/image-to-video to the key allowlist.';
+    else if(code===40301)message='This API key is not allowed to use Wan 3.0. Allow the Wan 3.0 route used by this Lab on the API key.';
     else if(code===40302)message='SpicyAPI rejected this server address. Set the API key IP allowlist to Any address.';
     else if(code===40303)message='SpicyAPI is not available from this backend region.';
     else if(code===401||r.status===401)message='SpicyAPI rejected this API key. Use the key beginning sk-spicy- and make sure it has not expired or been revoked.';
@@ -286,6 +286,7 @@ async function route(request,env,ctx) {
   }
   if(path==='/api/quotes'&&method==='POST') {
     const {key}=await requireConfigured(env,owner),data=await body(request),p=parameters(data.settings);let primary,input;
+    if(!p.prompt)fail(400,'Add a motion prompt before generating.');
     if(p.mode==='reference') {
       const refs=await sources(env,owner,data.referenceSourceIds);primary=refs[0];p.referenceSourceIds=refs.map(a=>a.id);p.lastSourceId=null;
       input={reference_image_urls:await Promise.all(refs.map(a=>signedInput(env,url,a.id))),resolution:p.resolution,duration_seconds:p.duration,generate_audio:p.audio,enable_prompt_expansion:false,aspect_ratio:p.aspectRatio==='auto'?'adaptive':p.aspectRatio};
