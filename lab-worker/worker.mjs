@@ -186,17 +186,34 @@ function safeVideoUrl(value) {
 }
 async function copyResult(env,j,url) {
   let target=safeVideoUrl(url),r;
-  for(let i=0;i<4;i++) {r=await fetch(target,{redirect:'manual',signal:AbortSignal.timeout(20000)});if(r.status>=300&&r.status<400){const next=r.headers.get('location');if(!next)throw new Error('No output location.');target=safeVideoUrl(new URL(next,target).href);continue;}break;}
-  if(!r?.ok||!r.body)throw new Error('Output download unavailable.');
-  const declared=Number(r.headers.get('content-length'));
+  for(let i=0;i<4;i++) {
+    r=await fetch(target,{redirect:'manual',signal:AbortSignal.timeout(30000)});
+    if(r.status>=300&&r.status<400){
+      const next=r.headers.get('location');if(!next)throw new Error('No output location.');
+      target=safeVideoUrl(new URL(next,target).href);continue;
+    }
+    break;
+  }
+  if(!r?.ok)throw new Error('Output download returned HTTP '+(r?.status||'unknown')+'.');
+  const type=r.headers.get('content-type')||'';
+  if(!type.startsWith('video/')&&!type.startsWith('application/octet-stream'))throw new Error('Unexpected output format: '+(type||'unknown')+'.');
+  const declared=Number(r.headers.get('content-length')||0);
   if(declared>MAX_VIDEO)throw new Error('Output exceeds the archive limit.');
-  const type=r.headers.get('content-type')||'';if(!type.startsWith('video/')&&!type.startsWith('application/octet-stream'))throw new Error('Unexpected output format.');
   const stored=await first(env,'SELECT COALESCE(SUM(bytes),0) AS n FROM assets WHERE owner_id=?',j.owner_id);
-  if(stored.n+(declared||MAX_VIDEO)>MAX_STORAGE)throw new Error('Private archive storage limit reached.');
-  let bytes=0;
-  const stream=r.body.pipeThrough(new TransformStream({transform(chunk,controller){bytes+=chunk.byteLength;if(bytes>MAX_VIDEO)throw new Error('Output exceeds archive limit.');controller.enqueue(chunk);}}));
   const objectKey=`${j.owner_id}/results/${j.id}.mp4`;
-  await env.LAB_MEDIA.put(objectKey,stream,{httpMetadata:{contentType:'video/mp4'}});
+  let bytes=0;
+  if(declared>0&&declared<=64*1024*1024){
+    const buffer=new Uint8Array(await r.arrayBuffer());bytes=buffer.byteLength;
+    if(bytes>MAX_VIDEO)throw new Error('Output exceeds the archive limit.');
+    if(stored.n+bytes>MAX_STORAGE)throw new Error('Private archive storage limit reached.');
+    await env.LAB_MEDIA.put(objectKey,buffer,{httpMetadata:{contentType:'video/mp4'}});
+  }else{
+    if(stored.n+(declared||MAX_VIDEO)>MAX_STORAGE)throw new Error('Private archive storage limit reached.');
+    let count=0;
+    const stream=r.body.pipeThrough(new TransformStream({transform(chunk,controller){count+=chunk.byteLength;if(count>MAX_VIDEO)throw new Error('Output exceeds archive limit.');controller.enqueue(chunk);}}));
+    await env.LAB_MEDIA.put(objectKey,stream,{httpMetadata:{contentType:'video/mp4'}});
+    bytes=count;
+  }
   await env.LAB_DB.batch([
     stmt(env,"INSERT OR IGNORE INTO assets(id,owner_id,object_key,kind,mime,filename,bytes,created_at) VALUES(?,?,?,'video','video/mp4',?,?,?)",j.id,j.owner_id,objectKey,'parallel-vision-'+j.id+'.mp4',bytes,now()),
     stmt(env,"UPDATE jobs SET state='completed',output_id=?,remote_url=NULL,error='',updated_at=? WHERE id=?",j.id,now(),j.id)
@@ -222,8 +239,9 @@ async function refreshJob(env,j) {
     }else{
       await run(env,"UPDATE jobs SET state=?,updated_at=?,error='' WHERE id=?",result.state==='running'?'running':'queued',now(),j.id);
     }
-  }catch{
-    await run(env,'UPDATE jobs SET error=? WHERE id=?','Status or archive retrieval is temporarily unavailable. No new generation was submitted.',j.id);
+  }catch(e){
+    const detail=String(e?.message||'temporary provider/archive error').replace(/[\r\n]/g,' ').slice(0,220);
+    await run(env,'UPDATE jobs SET error=? WHERE id=?','Archive retry: '+detail+' No new generation was submitted.',j.id);
   }
 }
 async function route(request,env,ctx) {
