@@ -1,0 +1,32 @@
+name: Lab tests
+on:
+  pull_request:
+    paths:
+      - 'lab/**'
+      - 'lab-worker/**'
+      - 'tests/lab-worker.test.mjs'
+      - '.github/workflows/lab-tests.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'lab/**'
+      - 'lab-worker/**'
+      - 'tests/lab-worker.test.mjs'
+      - '.github/workflows/lab-tests.yml'
+permissions:
+  contents: read
+jobs:
+  private-lab:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Check JavaScript syntax
+        run: |
+          node --check lab/lab.js
+          node --check lab-worker/worker.mjs
+      - name: Test owner access, quote confirmation and private archive
+        run: node --test tests/lab-worker.test.mjs
