@@ -18,21 +18,29 @@
 <div class="workspace">
 <section class="controls" aria-label="Image to video settings">
 <div class="mode"><span>01 / Image to Video</span><span class="engine-pill">WAN 3.0</span></div>
-<div class="mode-switch" aria-label="Generation mode">
-<button class="mode-tab active" type="button">Start frame</button>
-<button class="mode-tab" type="button" disabled title="Reference mode will be enabled when the backend adapter is ready">Reference mode</button>
+<div class="mode-switch" role="tablist" aria-label="Generation mode">
+<button id="mode-start" class="mode-tab active" type="button" role="tab" aria-selected="true">Start frame</button>
+<button id="mode-reference" class="mode-tab" type="button" role="tab" aria-selected="false">Reference mode</button>
 </div>
+<div id="start-mode" class="mode-panel">
 <div class="frame-pair">
 <div class="upload-block">
 <div class="upload-heading"><span class="label">Start frame</span><span class="micro">Required</span></div>
 <label class="drop compact-drop" id="drop"><span>Drop or browse</span><small>JPG / PNG / WebP</small><input id="image" type="file" accept="image/jpeg,image/png,image/webp"></label>
 <p class="filemeta" id="filemeta">Choose the exact opening frame.</p>
 </div>
-<div class="upload-block future-control" aria-disabled="true">
-<div class="upload-heading"><span class="label">Last frame</span><span class="micro">Next</span></div>
-<div class="drop compact-drop disabled-drop"><span>Optional end frame</span><small>Adapter update pending</small></div>
-<p class="filemeta">Current generation uses the start frame only.</p>
+<div class="upload-block">
+<div class="upload-heading"><span class="label">Last frame</span><span class="micro">Optional</span></div>
+<label class="drop compact-drop" id="last-drop"><span>Drop or browse</span><small>Land on a chosen frame</small><input id="last-image" type="file" accept="image/jpeg,image/png,image/webp"></label>
+<p class="filemeta" id="last-filemeta">Leave empty for an open ending.</p>
 </div>
+</div>
+</div>
+<div id="reference-mode" class="mode-panel" hidden>
+<div class="upload-heading"><span class="label">Reference images</span><span class="micro" id="ref-count">0 / 10</span></div>
+<label class="drop reference-drop" id="reference-drop"><span>Add identity, wardrobe or set references</span><small>Up to 10 images</small><input id="reference-images" type="file" multiple accept="image/jpeg,image/png,image/webp"></label>
+<div id="reference-list" class="reference-list"></div>
+<p class="fine compact-fine">Name each reference in the prompt, for example: Reference 1 = character, Reference 2 = outfit.</p>
 </div>
 <label class="label prompt-label" for="prompt">Motion direction</label><textarea id="prompt" maxlength="6000" placeholder="One clear action, one camera move, light, atmosphere and sound."></textarea>
 <div class="parameter-grid">
@@ -59,7 +67,7 @@
 <noscript><p>Enable JavaScript to sign in and use the Lab.</p></noscript>
 </main>
 <footer><div class="wrap">Parallel Vision / Lab <span>Private archive · Hosted generation</span></div></footer>
-<dialog id="connect-dialog" aria-labelledby="connect-title"><form id="connect-form"><div class="dialoghead"><h2 id="connect-title">Generation connection</h2><button type="button" class="quiet" data-close="connect-dialog">Close</button></div><p>The Lab uses SpicyAPI's hosted Wan 3.0 endpoint. Your computer does not render the video.</p><p class="fine">Provider access, permitted content and model availability must be checked in your own account. A model name alone does not guarantee unrestricted use. No safety filters are bypassed by this Lab.</p><p><a href="https://spicyapi.ai" target="_blank" rel="noopener noreferrer">Open provider ↗</a> · <a href="https://docs.spicyapi.ai/docs/api-reference" target="_blank" rel="noopener noreferrer">API documentation ↗</a></p>
+<dialog id="connect-dialog" aria-labelledby="connect-title"><form id="connect-form"><div class="dialoghead"><h2 id="connect-title">Generation connection</h2><button type="button" class="quiet" data-close="connect-dialog">Close</button></div><p>The Lab uses hosted Wan 3.0 image-to-video and reference-to-video endpoints. Your computer does not render the video.</p><p class="fine">Provider access, permitted content and model availability must be checked in your own account. A model name alone does not guarantee unrestricted use. No safety filters are bypassed by this Lab.</p><p><a href="https://spicyapi.ai" target="_blank" rel="noopener noreferrer">Open provider ↗</a> · <a href="https://docs.spicyapi.ai/docs/api-reference" target="_blank" rel="noopener noreferrer">API documentation ↗</a></p>
 <label class="label" for="api-key">Your SpicyAPI key</label><input id="api-key" type="password" autocomplete="off" spellcheck="false" placeholder="Paste here, not in chat"><p class="fine" id="key-note">Stored encrypted on your private backend. Never committed to GitHub or saved in browser storage.</p>
 <label class="label" for="daily-limit">Daily generation budget (USD)</label><input id="daily-limit" type="number" min="1" max="100" step="0.01" value="10"><p class="fine">UTC day. This Lab conservatively counts quoted maximums, including failed or uncertain attempts. Also set limits on the provider API key. Provider invoices remain the billing authority.</p>
 <label class="check"><input id="terms" type="checkbox" required> I have checked that my provider account and its terms allow my intended content, and I have the necessary rights and consent for my inputs.</label>
