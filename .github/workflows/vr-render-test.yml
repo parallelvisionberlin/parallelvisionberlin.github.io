@@ -1,0 +1,25 @@
+name: Check curved VR rendering
+on:
+  push:
+    paths: ['js/berlin-vr.js', 'berlin-2063-vr.html', 'test/berlin-vr-render.cjs', '.github/workflows/vr-render-test.yml']
+permissions:
+  contents: read
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check real video texture with simulated eye poses
+        run: |
+          npm install --prefix /tmp/vr-test playwright
+          mkdir -p assets/optimized/video/berlin-2063
+          if [ ! -f assets/optimized/video/berlin-2063/film-vr-hd.mp4 ]; then
+            curl --fail --location --retry 3 -o assets/optimized/video/berlin-2063/film-vr-hd.mp4 'https://pub-21c1e54026ca4574b09d269b385e2fca.r2.dev/HYPER%20Future%20Berlin%20%202500%20Long%20Cinematic.mp4'
+            curl --fail --location --retry 3 -o assets/optimized/video/berlin-2063/film-vr-light.mp4 'https://pub-21c1e54026ca4574b09d269b385e2fca.r2.dev/hyper-future-berlin-desktop.mp4'
+          fi
+          python3 -m http.server 8765 > /tmp/vr-server.log 2>&1 &
+          NODE_PATH=/tmp/vr-test/node_modules VR_TEST_CHROME=/usr/bin/google-chrome node test/berlin-vr-render.cjs
