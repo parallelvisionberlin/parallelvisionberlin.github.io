@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive"><meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#111210"><title>Parallel Vision Lab</title>
+<link rel="icon" href="/favicon.png"><link rel="stylesheet" href="./lab.css">
+<script type="module" src="./lab.js"></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to workspace</a>
+<header><div class="wrap top"><a class="brand" href="/">PARALLEL VISION <span>LAB / 01</span></a><div class="actions"><span class="eyebrow" id="identity">Private workspace</span><button id="connection" class="quiet" hidden>Connection</button><button id="logout" class="quiet" hidden>Sign out</button></div></div></header>
+<main class="wrap" id="main">
+<section class="intro"><div><p class="eyebrow">Still image. Moving possibility.</p><h1>Parallel Vision Lab</h1></div><p class="intro-note">Your images, in motion.<br>A private working archive.</p></section>
+<section id="gate" class="gate"><p class="eyebrow">Owner access</p><h2>Your private motion studio.</h2><p id="auth-status" role="status">Loading your Parallel Vision sign-in…</p><button id="signin" class="primary" disabled>Sign in</button><p class="fine">Use the same owner account as Nina. No new subscription.</p></section>
+<div id="app" hidden>
+<div class="connection-strip"><span id="connection-status">Checking connection…</span><button class="text-button" id="setup">Manage connection</button></div>
+<div class="workspace">
+<section class="controls" aria-label="Image to video settings">
+<div class="mode"><span>01 / Image to Video</span><span class="muted">Wan 3.0</span></div>
+<label class="label" for="image">Source image</label>
+<label class="drop" id="drop"><span>Drop an image or browse</span><small>JPG, PNG or WebP · Up to 10 MB</small><input id="image" type="file" accept="image/jpeg,image/png,image/webp"></label>
+<p class="filemeta" id="filemeta">Images stay private in your Lab archive.</p>
+<label class="label" for="prompt">Motion direction</label><textarea id="prompt" maxlength="6000" placeholder="Describe the movement, camera and atmosphere."></textarea>
+<div class="fields"><label><span class="label">Duration</span><select id="duration"><option value="5">5 seconds</option><option value="10">10 seconds</option><option value="15" selected>15 seconds</option><option value="30">30 seconds</option></select></label><label><span class="label">Resolution</span><select id="resolution"><option value="480p">480p</option><option value="720p">720p</option><option value="1080p" selected>1080p</option></select></label></div>
+<details class="advanced"><summary>More settings</summary><div class="fields"><label><span class="label">Aspect ratio</span><select id="ratio"><option value="auto">Follow image</option><option>16:9</option><option>9:16</option><option>1:1</option><option>4:3</option><option>3:4</option></select></label><label><span class="label">Seed</span><input id="seed" type="number" min="0" max="2147483647" placeholder="Random"></label></div><label class="check"><input id="audio" type="checkbox" checked> Generate audio</label></details>
+<button id="save" class="secondary full" disabled>Save draft</button><button id="generate" class="primary full" disabled>Review price &amp; generate</button><p class="fine">You see the provider's live quote before confirming a paid generation. Saving a draft does not generate a video.</p>
+</section>
+<section class="stage" aria-label="Media preview"><div class="stagehead"><span class="eyebrow" id="preview-label">Source / preview</span><button class="quiet" id="clear" disabled>Clear</button></div><div class="canvas"><div id="empty" class="empty"><div class="frame" aria-hidden="true"></div><p>Start with your own frame.</p><small>Your source and result appear here.</small></div><img id="preview" alt="Selected source image" hidden><video id="video" controls playsinline preload="metadata" hidden></video></div><div class="stagefoot"><span id="settings-summary">15 seconds / 1080p</span><button id="download" class="quiet" hidden>Download MP4</button></div></section>
+</div>
+<p id="notice" role="status" aria-live="polite"></p>
+<section id="active" class="active" hidden aria-live="polite"><div><p class="eyebrow">Current generation</p><p id="active-status"></p><p class="fine" id="active-detail"></p></div><button id="resolve" class="quiet" hidden>Resolve interrupted request</button></section>
+<section class="archive"><div class="archivehead"><div><p class="eyebrow">Your working archive</p><h2>History</h2></div><div><p>Drafts and completed generations.<br>Reuse restores the image, prompt and every setting.</p><button id="refresh" class="text-button">Refresh history</button></div></div><p id="emptyarchive" class="emptyarchive">No saved work yet.</p><div id="history" class="grid"></div><button id="more" class="secondary" hidden>Load earlier work</button></section>
+</div>
+<noscript><p>Enable JavaScript to sign in and use the Lab.</p></noscript>
+</main>
+<footer><div class="wrap">Parallel Vision / Lab <span>Private archive · Hosted generation</span></div></footer>
+<dialog id="connect-dialog" aria-labelledby="connect-title"><form id="connect-form"><div class="dialoghead"><h2 id="connect-title">Generation connection</h2><button type="button" class="quiet" data-close="connect-dialog">Close</button></div><p>The Lab uses SpicyAPI's hosted Wan 3.0 endpoint. Your computer does not render the video.</p><p class="fine">Provider access, permitted content and model availability must be checked in your own account. A model name alone does not guarantee unrestricted use. No safety filters are bypassed by this Lab.</p><p><a href="https://spicyapi.ai" target="_blank" rel="noopener noreferrer">Open provider ↗</a> · <a href="https://docs.spicyapi.ai/docs/api-reference" target="_blank" rel="noopener noreferrer">API documentation ↗</a></p>
+<label class="label" for="api-key">Your SpicyAPI key</label><input id="api-key" type="password" autocomplete="off" spellcheck="false" placeholder="Paste here, not in chat"><p class="fine" id="key-note">Stored encrypted on your private backend. Never committed to GitHub or saved in browser storage.</p>
+<label class="label" for="daily-limit">Daily generation budget (USD)</label><input id="daily-limit" type="number" min="1" max="100" step="0.01" value="10"><p class="fine">UTC day. This Lab conservatively counts quoted maximums, including failed or uncertain attempts. Also set limits on the provider API key. Provider invoices remain the billing authority.</p>
+<label class="check"><input id="terms" type="checkbox" required> I have checked that my provider account and its terms allow my intended content, and I have the necessary rights and consent for my inputs.</label>
+<div class="dialogactions"><button id="disconnect" type="button" class="quiet" hidden>Disconnect key</button><button id="connect-save" class="primary" type="submit">Save &amp; enable</button></div><p id="connect-notice" class="fine" role="status"></p></form></dialog>
+<dialog id="quote-dialog" aria-labelledby="quote-title"><div class="dialoghead"><h2 id="quote-title">Review generation</h2><button class="quiet" data-close="quote-dialog">Cancel</button></div><p id="quote-settings"></p><div class="quote-price" id="quote-price"></div><p id="quote-limit"></p><p class="fine" id="quote-expiry"></p><p class="fine">This quote is tied to the exact image and settings shown here. Your source is shared with the provider to generate the video. A result you dislike can still be charged. The Lab never automatically submits a second generation.</p><button class="primary full" id="confirm-generation">Confirm &amp; generate</button><p id="quote-notice" role="status" class="fine"></p></dialog>
+</body></html>
