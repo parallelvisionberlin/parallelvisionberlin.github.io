@@ -1,20 +1,20 @@
 # Parallel Vision Lab
 
-Private image-to-video workspace at `/lab/`, using the existing GitHub Pages site and an isolated Cloudflare backend. No navigation or sitemap link is added. This first version is image-to-video only, not text-to-image.
+Private image-to-video workspace at `/lab/`, using the existing GitHub Pages site and an isolated Cloudflare backend. No navigation or sitemap link is added. This version focuses on Wan 3.0 video. It supports Start Frame with an optional last frame, plus Reference Mode with up to ten visual reference images. Text-to-image is not included yet.
 
 ## Owner workflow
 
 1. Open `https://parallelvisionlabel.com/lab/` and sign in with the existing Parallel Vision owner account used for Nina.
-2. Upload a source image, enter a prompt and choose settings. **Save draft** stores the original image and settings in the private cloud archive without generating a video.
+2. Choose **Start Frame** or **Reference Mode**. Start Frame can optionally include an exact last frame. Reference Mode accepts up to ten visual references. Enter the motion direction and choose duration, resolution, aspect ratio, audio and optional seed. **Save to private history** stores the media and settings without generating a video.
 3. For hosted generation, open **Connection**, paste your own SpicyAPI key there (never in chat or GitHub), check provider suitability and terms, and set a daily USD budget.
 4. Choose **Review price & generate**. The Lab requests a live quote for the exact input. Only **Confirm & generate** submits a paid request.
-5. History can reopen completed video, download MP4 and **Reuse image + settings**. Reuse restores the original image, prompt, duration, resolution, aspect ratio, seed and audio setting without overwriting the saved record.
+5. History can reopen completed video, download MP4 and **Reuse**. Reuse restores the saved start and last frames or reference images, prompt, duration, resolution, aspect ratio, seed and audio setting without overwriting the saved record.
 
 ## Activation status
 
 The provider adapter is implemented, but no real provider key has been connected and no paid generation has been requested. Account access, model availability, actual charged prices, content acceptance and a real output still require verification in the owner's account. Saving a key performs a read-only balance check; it is not an end-to-end generation test.
 
-The configured provider is SpicyAPI and the model route is `alibaba/wan-3.0/image-to-video`. The application does not bypass provider protections. A model name, an external marketing claim, or a user's suitability checkbox is not proof of unrestricted generation. The provider's actual terms and decisions apply. No fixed price or guaranteed content acceptance is claimed by this implementation.
+The configured provider is SpicyAPI. Start Frame uses `alibaba/wan-3.0/image-to-video`; Reference Mode uses `alibaba/wan-3.0/reference-to-video`. The application does not bypass provider protections. A model name, an external marketing claim, or a user's suitability checkbox is not proof of unrestricted generation. The provider's actual terms and decisions apply. No fixed price or guaranteed content acceptance is claimed by this implementation.
 
 Provider documentation used for the adapter:
 - `https://docs.spicyapi.ai/docs/api-reference`
@@ -51,7 +51,7 @@ On 26 September 2026, Cloudflare accepted the Worker deployment, its D1 schema a
 
 Worker API: `https://parallel-vision-lab.parallelvision.workers.dev`
 
-Deployed Worker source SHA-256: `7224edafd0bd3044c42a9e7b12cb7ac5319e34ef368d60f924b7f5f862ecc3d8`.
+Deployed Worker version: `pv-lab-2026-09-26.3`.
 
 Verified locally:
 - JavaScript syntax checks passed.
