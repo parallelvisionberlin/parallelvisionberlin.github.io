@@ -296,7 +296,7 @@ async function stageImageReferences(env,owner,ids,key) {
         const target=validUploadUrl(ticket.uploadUrl),headers=new Headers(ticket.headers);
         if(headers.has('authorization')||headers.has('cookie')||headers.get('content-type')!==a.mime||
           headers.get('content-length')!==String(bytes.length))throw new Error('Provider upload headers do not match the reference file.');
-        const put=await fetch(target,{method:'PUT',headers,body:bytes,redirect:'error',signal:AbortSignal.timeout(20000)});
+        const put=await fetch(target,{method:'PUT',headers,body:bytes,redirect:'manual',signal:AbortSignal.timeout(20000)});
         if(!put.ok)throw new Error('Reference transfer was rejected (HTTP '+put.status+').');
         await put.body?.cancel();
         const committed=await vendorRequest('/files/'+encodeURIComponent(ticket.fileId)+'/commit',key,undefined,undefined,'POST');
