@@ -5,7 +5,8 @@
 <meta name="robots" content="noindex,nofollow,noarchive"><meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#111210"><title>Parallel Vision Lab</title>
 <link rel="icon" href="/favicon.png"><link rel="stylesheet" href="./lab.css?v=20260926-4">
-<script type="module" src="./lab.js?v=20260926-4"></script>
+<link rel="stylesheet" href="./history.css?v=20260926-5">
+<script type="module" src="./lab.js?v=20260926-5"></script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to workspace</a>
@@ -61,11 +62,11 @@
 <p class="fine">A live quote appears before any paid generation. Saving history does not generate a video.</p>
 </div>
 </section>
-<section class="stage" aria-label="Media preview"><div class="stagehead"><span class="eyebrow" id="preview-label">Source / preview</span><button class="quiet" id="clear" disabled>Clear</button></div><div class="canvas"><div id="empty" class="empty"><div class="frame" aria-hidden="true"></div><p>Start with your own frame.</p><small>Your source and result appear here.</small></div><img id="preview" alt="Selected source image" hidden><video id="video" controls playsinline preload="metadata" hidden></video></div><div class="stagefoot"><span id="settings-summary">15 seconds / 1080p</span><button id="download" class="quiet" hidden>Download MP4</button></div></section>
+<section class="stage" aria-label="Media preview"><div class="stagehead"><span class="eyebrow" id="preview-label">Source / preview</span><button class="quiet" id="clear" disabled>Clear</button></div><div class="canvas"><div id="empty" class="empty"><div class="frame" aria-hidden="true"></div><p>Start with your own frame.</p><small>Your source and result appear here.</small></div><img id="preview" alt="Selected source image" hidden><video id="video" controls playsinline preload="metadata" hidden></video></div><div class="stagefoot"><span id="settings-summary">15 seconds / 1080p</span><button id="download" class="quiet" hidden>Download result</button></div></section>
 </div>
 <p id="notice" role="status" aria-live="polite"></p>
 <section id="active" class="active" hidden aria-live="polite"><div><p class="eyebrow">Current generation</p><p id="active-status"></p><p class="fine" id="active-detail"></p></div><button id="resolve" class="quiet" hidden>Resolve interrupted request</button></section>
-<section class="archive"><div class="archivehead"><div><p class="eyebrow">Your working archive</p><h2>History</h2></div><div><p>Drafts and completed generations.<br>Reuse restores the image, prompt and every setting.</p><button id="refresh" class="text-button">Refresh history</button></div></div><p id="emptyarchive" class="emptyarchive">No saved work yet.</p><div id="history" class="grid"></div><button id="more" class="secondary" hidden>Load earlier work</button></section>
+<section class="archive"><div class="archivehead"><div><p class="eyebrow">Your working archive</p><h2>History</h2></div><div><p>Generated results, drafts and job status.<br>Download saves the result. Reuse restores your original inputs.</p><button id="refresh" class="text-button">Refresh history</button></div></div><p id="emptyarchive" class="emptyarchive">No saved work yet.</p><div id="history" class="grid"></div><button id="more" class="secondary" hidden>Load earlier work</button></section>
 </div>
 <noscript><p>Enable JavaScript to sign in and use the Lab.</p></noscript>
 </main>
