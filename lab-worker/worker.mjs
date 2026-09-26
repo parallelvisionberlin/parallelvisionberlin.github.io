@@ -1,6 +1,6 @@
 /* Parallel Vision Lab. Private owner-only workspace, no public media bucket.
    The hosted provider is opt-in; no provider key or moderation bypass in source. */
-export const VERSION = 'pv-lab-2026-09-26.1';
+export const VERSION = 'pv-lab-2026-09-26.2';
 const ORIGINS = new Set(['https://parallelvisionlabel.com','https://www.parallelvisionlabel.com']);
 const ISSUER = 'https://clerk.parallelvisionlabel.com';
 const VENDOR = 'https://api.spicyapi.ai/api/v1';
@@ -89,11 +89,26 @@ async function decryptKey(env,value) {
 async function config(env,owner) {return first(env,'SELECT * FROM settings WHERE owner_id=?',owner);}
 function publicConfig(c) {return {configured:!!c,enabled:!!(c?.enabled&&c?.terms_confirmed),dailyLimitUsd:(c?.daily_limit_microusd||10000000)/1000000,provider:'SpicyAPI',model:'Wan 3.0',documentation:DOC,pricingNote:'A live provider quote is required before every generation. No subscription is added by this Lab. Provider terms apply.'};}
 async function vendorRequest(path,key,data,idempotency) {
-  const r=await fetch(VENDOR+path,{method:data?'POST':'GET',headers:{Authorization:'Bearer '+key,...(data?{'Content-Type':'application/json'}:{}),...(idempotency?{'Idempotency-Key':idempotency}:{})},body:data?JSON.stringify(data):undefined,signal:AbortSignal.timeout(20000),redirect:'error'});
-  const result=await r.json().catch(()=>null);
-  if(!r.ok || !result || result.code!==200){
-    const code=Number(result?.code), definite=(r.status>=400&&r.status<500&&r.status!==408)||[400,401,403,40201,40202,40901,422].includes(code);
-    const message=code===40901?'Provider quote expired or changed. Review a new price before generating.':[40201,40202].includes(code)?'Provider balance or API spending limit is insufficient. Check the provider console.':[401,403].includes(code)||[401,403].includes(r.status)?'Provider rejected the API key or model access.':'Provider rejected the request. Check its console for details.';
+  let r;
+  try {
+    r=await fetch(VENDOR+path,{method:data?'POST':'GET',headers:{Authorization:'Bearer '+key,'Accept':'application/json',...(data?{'Content-Type':'application/json'}:{}),...(idempotency?{'Idempotency-Key':idempotency}:{})},body:data?JSON.stringify(data):undefined,signal:AbortSignal.timeout(20000),redirect:'follow'});
+  } catch {
+    const e=new HttpError(502,'The Lab backend could not reach SpicyAPI. Your key was not stored and nothing was charged. Try again in a moment.');e.definite=true;throw e;
+  }
+  const raw=await r.text();let result=null;
+  try{result=raw?JSON.parse(raw):null;}catch{}
+  if(!r.ok || !result || Number(result.code)!==200){
+    const code=Number(result?.code), definite=(r.status>=400&&r.status<500&&r.status!==408)||[400,401,403,40201,40202,40301,40302,40303,40901,422].includes(code);
+    let message;
+    if(code===40901)message='Provider quote expired or changed. Review a new price before generating.';
+    else if([40201,40202].includes(code))message='Provider balance or API spending limit is insufficient. Check the provider console.';
+    else if(code===40301)message='This API key is not allowed to use Wan 3.0. Add alibaba/wan-3.0/image-to-video to the key allowlist.';
+    else if(code===40302)message='SpicyAPI rejected this server address. Set the API key IP allowlist to Any address.';
+    else if(code===40303)message='SpicyAPI is not available from this backend region.';
+    else if(code===401||r.status===401)message='SpicyAPI rejected this API key. Use the key beginning sk-spicy- and make sure it has not expired or been revoked.';
+    else if(code===403||r.status===403)message='SpicyAPI refused the API request. Check email verification, key restrictions and provider account status.';
+    else if(!result)message='SpicyAPI returned an unexpected response (HTTP '+r.status+'). Nothing was charged.';
+    else message=typeof result.msg==='string'&&result.msg?('SpicyAPI: '+result.msg):'Provider rejected the request. Check its console for details.';
     const e=new HttpError(definite?422:502,message);e.definite=definite;throw e;
   }
   return result.data;
