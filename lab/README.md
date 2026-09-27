@@ -72,3 +72,10 @@ New Image and Upscale forms default to PNG. JPEG remains available. Reuse restor
 ## Billing errors (2026-09-27)
 
 Provider errors 40201 (available provider balance) and 40202 (key, team or platform spending cap) now remain distinct in the Lab. The provider message is retained with signed URLs and credentials redacted. Neither message is confused with the Lab's separate daily budget. No retry, generation, recharge, limit change, key change, schema migration or history modification is added. Existing failed messages cannot retroactively recover a provider code that the previous implementation discarded.
+
+
+## One-click Image Upscale (2026-09-27)
+
+The Upscale button now authorizes one paid upscale without the price-review modal. The frontend still obtains a fresh, bound provider quote and submits its exact ID once through the existing session-safe helper. No batch, automatic repricing, paid retry, or backend change is introduced. Quote expiry, wrong-mode responses, account budgets, capacity and interrupted-request checks still stop submission. Compression permission and warnings about choosing a tier below the source resolution remain. The cost is shown after submission and in History. Video keeps its separate price confirmation; Image generation is unchanged. Reuse restores originals and settings without running a task.
+
+Changed files: lab/index.html, lab/lab.js, lab/README.md, tests/lab-image-oneclick-ui.mjs and tests/lab-upscale-ui.mjs. Tests use synthetic media and mocked API responses only.
