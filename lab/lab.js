@@ -33,7 +33,7 @@ function setTool(value){
   $('prompt').placeholder=image?'Describe the image. Add references for identity, wardrobe, a room or an object, or start with text only.':'One clear action, one camera move, light, atmosphere and sound.';
   options('resolution',upscale?['2k','4k','8k']:image?['1k','2k']:['480p','720p','1080p'],upscale?'4k':image?'2k':'1080p');
   options('output-format',upscale?['png','jpeg','webp']:['png','jpeg'],'png');
-  options('ratio',image?['auto','1:1','4:3','3:4','16:9','9:16','3:2','2:3','4:5','5:4','21:9','9:21','2:1','1:2','3:1','1:3']:['auto','16:9','9:16','1:1','4:3','3:4'],image?'1:1':'auto');
+  options('ratio',image?['auto','1:1','4:3','3:4','16:9','9:16','3:2','2:3','4:5','5:4','21:9','9:21','2:1','1:2','3:1','1:3']:['auto','16:9','9:16','1:1','4:3','3:4'],'auto');
   resetPreview();update();
 }
 $('tool-upscale').onclick=()=>{if(!busy)setTool('upscale');};
