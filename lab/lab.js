@@ -1,7 +1,7 @@
 import {VIDEO_MODELS,engineFor,videoLabel} from './video-models.js?v=20260927-standard1';
 import {createMediaReferences} from './media-references.js?v=20260927-standard1';
 import { createSessionRequest } from './session-request.js?v=20260927-auth1';
-import { PROVIDER_IMAGE_LIMIT, UPSCALE_PIXELS, imageDimensions, providerWorkingCopy, imagePreview, cancelImagePreparation } from './image-tools.js?v=20260927-preview1';
+import { PROVIDER_IMAGE_LIMIT, UPSCALE_PIXELS, imageDimensions, providerWorkingCopy, wanUltrawideWorkingCopy, imagePreview, cancelImagePreparation } from './image-tools.js?v=20260927-ultrawide1';
 // General-purpose private image-to-video workspace. Credentials never enter browser storage.
 const API='https://parallel-vision-lab.parallelvision.workers.dev';
 const $=id=>document.getElementById(id), activeStates=new Set(['submitting','queued','running','saving','uncertain']);
@@ -146,7 +146,8 @@ function configureVideoControls(){
   $('start-frame-maker').hidden=!isVideo||mode!=='reference'||sd;
   if(isVideo){
     const ratio=$('ratio').value,duration=Number($('duration').value)||15;
-    options('ratio',sd&&mode==='start'?['auto']:model.ratios,sd&&mode==='start'?'auto':model.ratios.includes(ratio)?ratio:'auto');
+    const ratios=sd&&mode==='start'?['auto']:(!sd&&mode==='start'?[...model.ratios,'21:9']:model.ratios);
+    options('ratio',ratios,sd&&mode==='start'?'auto':ratios.includes(ratio)?ratio:'auto');
     $('ratio').parentElement.hidden=sd&&mode==='start';
     $('duration').replaceChildren(...(sd?Array.from({length:27},(_,i)=>i+4):[5,10,15,30]).map(n=>new Option(n+' sec',String(n))));
     if(duration>=model.minSeconds&&duration<=30&&!([...$('duration').options].some(o=>Number(o.value)===duration)))$('duration').add(new Option(duration+' sec',String(duration)));
@@ -155,7 +156,7 @@ function configureVideoControls(){
     $('mode-heading').textContent='01 / '+(mode==='text'?'Text to Video':mode==='reference'?'Reference to Video':'Image to Video');
     $('prompt').maxLength=sd?5000:6000;
     $('prompt-label').textContent=mode==='text'?'Scene direction':'Motion direction';
-    $('video-model-note').textContent=sd?'Seedance 2.5 Standard / 4–30s / up to 1080p. Start frame follows your image ratio. Reference mode supports image, video and audio guidance. Provider policies and refusals remain in force.':'Wan 3.0 / Start frame or image references. Provider policies and model refusals apply.';
+    $('video-model-note').textContent=sd?'Seedance 2.5 Standard / 4–30s / up to 1080p. Start frame follows your image ratio. Reference mode supports image, video and audio guidance. Provider policies and refusals remain in force.':'Wan 3.0 / Start frame or image references. 21:9 start-frame mode makes a private local center crop, keeps your original, then uses Wan adaptive ratio because Wan rejects an explicit 21:9 parameter. Provider policies and model refusals apply.';
   }
   $('reference-drop').querySelector('small').textContent='Up to '+referenceLimit()+' images';
   $('ref-count').textContent=references.length+' / '+referenceLimit();
@@ -201,7 +202,7 @@ bindDrop('last-drop','last-image',async files=>{if(files[0])await setLastImage(f
 bindDrop('reference-drop','reference-images',async files=>{if(files.length)await addReferences(files);});
 $('clear').onclick=()=>{clearMedia();notify('Editor cleared. Saved work is unchanged.');};
 for(const id of ['prompt','duration','resolution','ratio','seed','audio','output-format','image-count'])$(id).addEventListener('input',()=>{autoPreview=null;update();});
-$('save').onclick=()=>action(async()=>{const inputs=await ensureInputs();await api('/api/drafts',{method:'POST',body:{...inputs,settings:settings()}});await loadHistory();notify('Saved privately with the original media and settings. No generation charge.');});
+$('save').onclick=()=>action(async()=>{const inputs=await ensureInputs();await api('/api/drafts',{method:'POST',body:{...inputs,settings:settings()}});await syncHistory();notify('Saved privately with the original media and settings. No generation charge.');});
 // Image Generate and Upscale authorize a paid request on click. Video keeps the quote dialog.
 async function submitQuotedGeneration(q, expectedEpoch=epoch) {
   if(!owner||epoch!==expectedEpoch)throw new Error('Session changed.');
@@ -210,7 +211,7 @@ async function submitQuotedGeneration(q, expectedEpoch=epoch) {
   const data=await api('/api/jobs',{method:'POST',body:{quoteId:q.id,confirm:true}});
   if($('quote-dialog').open)$('quote-dialog').close();
   resetPreview();autoPreview={id:data.job.id,revision:previewRevision};setActive(data.job);
-  await loadHistory();
+  await syncHistory();
   const failed=['failed','uncertain','resolved'].includes(data.job.status);
   notify(failed?(data.job.error||'The generation was not confirmed. Check History before another attempt.'):
     (['image','upscale'].includes(q.settings.mode)?(q.settings.mode==='upscale'?'Upscale requested.':'Image requested.')+' Quoted maximum: '+money(q.maxUsd)+' USD. Results appear in History.':'Generation request recorded. You can leave the page and return to History.'),failed);
@@ -251,7 +252,7 @@ $('generate').onclick=()=>action(async()=>{
     if(!submitted)throw new Error('No image generation was submitted.');
     resetPreview();
     if(lastJob)autoPreview={id:lastJob.id,revision:previewRevision};
-    await loadHistory();
+    await syncHistory();
     if(submitted===requested)notify(requested===1?'Image requested. Result appears in History.':requested+' images requested as one batch. Results appear independently in History.');
     return;
   }
@@ -311,7 +312,7 @@ async function poll(){
       const chosen=finished.find(j=>autoPreview?.id===j.id);
       const show=chosen&&autoPreview.revision===previewRevision&&!busy;
       if(chosen)autoPreview=null;
-      await loadHistory();
+      await syncHistory();
       if(!owner||startedEpoch!==epoch)return;
       if(show&&hasResult(chosen))await openVideo(chosen,{scroll:false});
       const ready=finished.filter(hasResult).length;
@@ -322,7 +323,7 @@ async function poll(){
   }catch(e){if(owner&&startedEpoch===epoch)notify(e.message,true);}
   finally{if(startedEpoch===epoch){polling=false;schedulePoll();}}
 }
-$('resolve').onclick=()=>action(async()=>{const interrupted=activeJobs.find(j=>j.status==='uncertain');if(!interrupted||!confirm('First check the provider console and its charges. This clears only the interrupted request without sending another generation. Continue only after checking.'))return;await api('/api/jobs/'+interrupted.id+'/resolve',{method:'POST',body:{confirm:true}});await loadHistory();});
+$('resolve').onclick=()=>action(async()=>{const interrupted=activeJobs.find(j=>j.status==='uncertain');if(!interrupted||!confirm('First check the provider console and its charges. This clears only the interrupted request without sending another generation. Continue only after checking.'))return;await api('/api/jobs/'+interrupted.id+'/resolve',{method:'POST',body:{confirm:true}});await syncHistory();});
 function button(text,fn){const b=document.createElement('button');b.className='quiet';b.textContent=text;b.onclick=()=>action(fn);return b;}
 async function assetFile(id,name='source'){const blob=await api('/api/assets/'+id,{blob:true}),ext=({'image/jpeg':'jpg','video/quicktime':'mov','audio/mpeg':'mp3','audio/x-wav':'wav'})[blob.type]||blob.type.split('/')[1];return new File([blob],name+'.'+ext,{type:blob.type});}
 async function restore(job){clearMedia();const p=job.settings||{};engine=engineFor(p);setTool(p.mode==='upscale'?'upscale':p.type||'video');setMode(p.mode||'start');if(tool==='image'){$('start-mode').hidden=true;$('reference-mode').hidden=false;}const refs=tool==='image'||p.mode==='reference';if(refs){const ids=p.referenceSourceIds||[];const files=await Promise.all(ids.map((id,i)=>assetFile(id,(p.referenceRoles?.[i]?.name||'reference-'+(i+1)).replace(/\.[^.]+$/,''))));await addReferences(files,ids,p.referenceRoles||[]);}else if(job.sourceId){await setImage(await assetFile(job.sourceId,'start-frame'),job.sourceId);if(p.lastSourceId)await setLastImage(await assetFile(p.lastSourceId,'last-frame'),p.lastSourceId);}$('prompt').value=p.prompt||'';
@@ -361,7 +362,24 @@ async function downloadJob(job){
 $('download').onclick=downloadResult;
 
 async function prepareQuoteInputs(inputs){
-  if(tool==='video')return inputs;
+  if(tool==='video'){
+    if(engine==='wan'&&mode==='start'&&$('ratio').value==='21:9'){
+      const sessionEpoch=epoch, originals=[{id:inputs.sourceId,file},...(inputs.lastSourceId&&lastFile?[{id:inputs.lastSourceId,file:lastFile}]:[])],transferSourceIds=[];
+      for(const item of originals){
+        const cacheKey='wan21x9:'+item.id;let copy=workingCopies.get(cacheKey);
+        if(!copy||Date.now()-copy.at>900000){
+          notify('Preparing a private 21:9 working crop of '+item.file.name+'…');
+          const prepared=await wanUltrawideWorkingCopy(item.file);
+          if(epoch!==sessionEpoch||!owner)throw new Error('Session changed.');
+          const id=await uploadAsset(prepared);copy={id,at:Date.now()};workingCopies.set(cacheKey,copy);
+        }
+        transferSourceIds.push(copy.id);
+      }
+      if(epoch!==sessionEpoch||!owner)throw new Error('Session changed.');
+      return {...inputs,transferSourceIds};
+    }
+    return inputs;
+  }
   const sessionEpoch=epoch;
   if(tool==='upscale'&&sourcePixels>UPSCALE_PIXELS[$('resolution').value]&&!confirm('This size tier is smaller than your source and would reduce its resolution. Continue with this tier?'))return null;
   const originals=tool==='upscale'?[{id:inputs.sourceId,file}]:references;
@@ -402,7 +420,7 @@ const observer=new IntersectionObserver(entries=>{
     api('/api/assets/'+img.dataset.asset,{blob:true}).then(blob=>{
       if(!owner||rev!==historyRevision||!img.isConnected)return;
       if(!blob.type.startsWith('image/')||!blob.size)throw new Error('Preview unavailable');
-      const u=URL.createObjectURL(blob);cardUrls.add(u);img.src=u;
+      const u=URL.createObjectURL(blob);cardUrls.add(u);img.dataset.objectUrl=u;img.src=u;
     }).catch(()=>{
       if(!owner||rev!==historyRevision||!img.isConnected)return;
       img.alt=img.dataset.result==='true'?'Generated preview unavailable. Use View image or Download image to retry.':'Uploaded reference preview unavailable.';
@@ -415,9 +433,14 @@ function historyImage(assetId,label,isResult=false){
   const img=document.createElement('img');img.alt=label;img.dataset.asset=assetId;img.dataset.result=String(isResult);img.loading='lazy';
   const caption=document.createElement('figcaption');caption.textContent=label;figure.append(img,caption);return {figure,img};
 }
-function renderCards(jobs){
-  for(const j of jobs){
-    const card=document.createElement('article');card.className='card';card.dataset.job=j.id;card.dataset.state=j.status;
+function historyFingerprint(j){return JSON.stringify([j.status,j.outputId||'',j.providerTaskId||'',j.error||'',j.estimatedUsd??null,j.settledUsd??null,j.updatedAt||'',j.settings]);}
+function cleanupHistoryCard(card){if(!card)return;for(const img of card.querySelectorAll('img')){observer.unobserve(img);const u=img.dataset.objectUrl;if(u){release(u);cardUrls.delete(u);}}}
+function renderCards(jobs,{upsert=false}={}){
+  const items=upsert?[...jobs].reverse():jobs;
+  for(const j of items){
+    const existing=upsert?[...$('history').children].find(el=>el.dataset.job===j.id):null,fingerprint=historyFingerprint(j);
+    if(existing?.dataset.fingerprint===fingerprint)continue;
+    const card=document.createElement('article');card.className='card';card.dataset.job=j.id;card.dataset.state=j.status;card.dataset.fingerprint=fingerprint;
     const image=j.settings.type==='image',ready=hasResult(j),previews=[];
     if(ready&&image){
       const {figure,img}=historyImage(j.outputId,'Generated image',true);previews.push(img);card.append(figure);
@@ -446,7 +469,7 @@ function renderCards(jobs){
     if(ready&&image){actions.append(button('Upscale',()=>upscaleImage(j)));actions.append(button('Use in Video',()=>animateImage(j)));}
     if(!activeStates.has(j.status))actions.append(button('Delete',async()=>{
       if(!confirm('Delete this saved record and its unshared files? This cannot be undone.'))return;
-      await api('/api/jobs/'+j.id,{method:'DELETE'});await loadHistory();notify('Record deleted. Spending history is unchanged.');
+      await api('/api/jobs/'+j.id,{method:'DELETE'});cleanupHistoryCard(card);card.remove();await syncHistory();notify('Record deleted. Spending history is unchanged.');
     }));
     const cost=document.createElement('div');cost.className='fine';cost.textContent=j.settledUsd!=null?'Provider settled: '+money(j.settledUsd):j.estimatedUsd!=null?'Budget reserved: '+money(j.estimatedUsd):'Draft / no generation charge';
     body.append(meta,p,actions,cost);if(j.settings.transferNotes?.length){const note=document.createElement('p');note.className='fine history-error';note.textContent=j.settings.transferNotes.join(' ');body.append(note);}
@@ -456,10 +479,13 @@ function renderCards(jobs){
       const {figure,img}=historyImage(j.sourceId,'Original uploaded reference');previews.push(img);refs.append(summary,figure);body.append(refs);
     }
     if(j.providerTaskId){const task=document.createElement('div');task.className='fine history-task';task.textContent='Provider task: '+j.providerTaskId;body.append(task);}
-    card.append(body);$('history').append(card);for(const img of previews)observer.observe(img);
+    card.append(body);
+    if(existing){cleanupHistoryCard(existing);existing.replaceWith(card);}else if(upsert)$('history').prepend(card);else $('history').append(card);
+    for(const img of previews)observer.observe(img);
   }
 }
-async function loadHistory(append=false){const rev=historyRevision,query=append&&next?'?before='+next.before+'&afterId='+encodeURIComponent(next.afterId):'',data=await api('/api/jobs'+query);if(!owner||rev!==historyRevision)return;if(!append){historyRevision++;observer.disconnect();cardUrls.forEach(release);cardUrls.clear();$('history').replaceChildren();}renderCards(data.jobs);next=data.next;$('more').hidden=!next;$('emptyarchive').hidden=$('history').children.length>0;if(data.concurrency)config.concurrency=data.concurrency;setActiveJobs(data.activeJobs||(data.active?[data.active]:[]));}
+async function loadHistory(append=false,incremental=false){const rev=historyRevision,query=append&&next?'?before='+next.before+'&afterId='+encodeURIComponent(next.afterId):'',data=await api('/api/jobs'+query);if(!owner||rev!==historyRevision)return;if(!append&&!incremental){historyRevision++;observer.disconnect();cardUrls.forEach(release);cardUrls.clear();$('history').replaceChildren();}renderCards(data.jobs,{upsert:incremental});next=data.next;$('more').hidden=!next;$('emptyarchive').hidden=$('history').children.length>0;if(data.concurrency)config.concurrency=data.concurrency;setActiveJobs(data.activeJobs||(data.active?[data.active]:[]));}
+async function syncHistory(){return loadHistory(false,true);}
 $('refresh').onclick=()=>action(()=>loadHistory());$('more').onclick=()=>action(()=>loadHistory(true));
 function lock(){epoch++;workingCopies.clear();autoPreview=null;downloadUrls.forEach(release);downloadUrls.clear();owner=false;userId='';historyRevision++;clearTimeout(timer);timer=null;activeJob=null;activeJobs=[];polling=false;requestControllers.forEach(c=>c.abort());requestControllers.clear();observer.disconnect();cardUrls.forEach(release);cardUrls.clear();clearMedia();$('prompt').value='';$('history').replaceChildren();$('app').hidden=true;$('gate').hidden=false;$('connection').hidden=true;$('logout').hidden=true;$('api-key').value='';for(const d of document.querySelectorAll('dialog[open]'))d.close();currentQuote=null;config={};packs=[];$('pack-select').replaceChildren(new Option('Choose a saved pack',''));}
 async function sync(){if(syncing)return;syncing=true;try{if(!clerk.isSignedIn){lock();$('auth-status').textContent='Sign in with your Parallel Vision owner account.';$('signin').disabled=false;return;}if(owner&&userId===clerk.user.id)return;const data=await api('/api/session');owner=true;userId=clerk.user.id;applyConfig(data.config);$('identity').textContent='Owner workspace';$('gate').hidden=true;$('app').hidden=false;$('connection').hidden=false;$('logout').hidden=false;await loadHistory();await loadPacks();}catch(e){lock();$('auth-status').textContent=e.message;$('signin').disabled=false;$('logout').hidden=!clerk?.isSignedIn;}finally{syncing=false;}}

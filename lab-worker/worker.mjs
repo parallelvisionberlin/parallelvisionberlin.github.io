@@ -156,10 +156,11 @@ function parameters(value) {
   if(prompt.length>6000)fail(400,'Use no more than 6,000 prompt characters.');
   const duration=Number(value.duration),resolution=value.resolution;
   if(!Number.isInteger(duration)||duration<2||duration>30||!RESOLUTIONS.has(resolution))fail(400,'Choose 2 to 30 seconds and 480p, 720p or 1080p.');
-  const ratio=value.aspectRatio||'auto';if(!['auto','16:9','9:16','1:1','4:3','3:4'].includes(ratio))fail(400,'Invalid video aspect ratio.');
+  const mode=value.mode==='reference'?'reference':'start',ratio=value.aspectRatio||'auto';
+  const videoRatios=mode==='start'?['auto','16:9','9:16','1:1','4:3','3:4','21:9']:['auto','16:9','9:16','1:1','4:3','3:4'];
+  if(!videoRatios.includes(ratio))fail(400,'Invalid video aspect ratio.');
   const seed=value.seed==null||value.seed===''?null:Number(value.seed);
   if(seed!==null&&(!Number.isInteger(seed)||seed<0||seed>2147483647))fail(400,'Seed must be a whole number from 0 to 2147483647.');
-  const mode=value.mode==='reference'?'reference':'start';
   return {type:'video',model:mode==='reference'?MODEL_REFERENCE:MODEL_IMAGE,mode,prompt,duration,resolution,aspectRatio:ratio,seed,audio:value.audio!==false,referenceRoles};
 }
 function assembledPrompt(p) {
@@ -192,8 +193,18 @@ async function prepareInput(env,owner,data,p,url) {
   }else{
     primary=await source(env,owner,data.sourceId);const last=data.lastSourceId?await source(env,owner,data.lastSourceId):null;p.referenceSourceIds=[];p.lastSourceId=last?.id||null;
     input={resolution:p.resolution,duration_seconds:p.duration,generate_audio:p.audio,enable_prompt_expansion:false};
-    if(url){input.image_url=await signedInput(env,url,primary.id);if(last)input.last_image_url=await signedInput(env,url,last.id);}
-    if(p.aspectRatio!=='auto')input.aspect_ratio=p.aspectRatio;
+    if(url&&p.aspectRatio==='21:9'){
+      const ids=data.transferSourceIds;
+      const expected=last?2:1;
+      if(!Array.isArray(ids)||ids.length!==expected||new Set(ids).size!==ids.length)fail(400,'Wan 21:9 needs the Lab-prepared 21:9 working frame'+(last?'s':'')+'. Review the price again.');
+      const transfers=await sources(env,owner,ids);p.transferSourceIds=transfers.map(a=>a.id);
+      p.transferNotes=['Wan 21:9 uses a private local center crop as the provider working frame; your original upload is retained unchanged.'];
+      input.image_url=await signedInput(env,url,transfers[0].id);if(last)input.last_image_url=await signedInput(env,url,transfers[1].id);
+      input.aspect_ratio='adaptive';
+    }else{
+      if(url){input.image_url=await signedInput(env,url,primary.id);if(last)input.last_image_url=await signedInput(env,url,last.id);}
+      if(p.aspectRatio!=='auto'&&p.aspectRatio!=='21:9')input.aspect_ratio=p.aspectRatio;
+    }
   }
   if(p.prompt)input.prompt=assembledPrompt(p);if(p.type!=='image'&&p.seed!==null)input.seed=p.seed;
   return {primary,input};

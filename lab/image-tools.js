@@ -18,7 +18,7 @@ export function cancelImagePreparation() {
 }
 function workerTask(operation, file) {
   if (!imageWorker) {
-    imageWorker = new Worker(new URL('./image-worker.js?v=20260927-preview1', import.meta.url), { type: 'module' });
+    imageWorker = new Worker(new URL('./image-worker.js?v=20260927-ultrawide1', import.meta.url), { type: 'module' });
     imageWorker.onmessage = ({ data }) => {
       const task = pending.get(data.id); if (!task) return;
       pending.delete(data.id); clearTimeout(task.timer);
@@ -67,6 +67,11 @@ export async function providerWorkingCopy(file) {
   const name = (file.name || 'reference').replace(/\.[^.]+$/, '') + '-working-copy.webp';
   return new File([blob], name, { type: 'image/webp' });
 }
+export async function wanUltrawideWorkingCopy(file) {
+  const { blob } = await processLocally('wan-ultrawide', file);
+  const name = (file.name || 'start-frame').replace(/\.[^.]+$/, '') + '-21x9.webp';
+  return new File([blob], name, { type: 'image/webp' });
+}
 
 // Shared implementation: normally called inside image-worker.js, with a browser fallback.
 export async function runImageTask(operation, file) {
@@ -80,14 +85,15 @@ export async function runImageTask(operation, file) {
     if (!width || !height || width * height > MAX_PIXELS) throw new Error('Use an image up to 72 megapixels.');
     const dimensions = { width, height, pixels: width * height };
     if (operation === 'dimensions') return dimensions;
-    function draw(w, h) {
+    function drawRegion(sx, sy, sw, sh, w, h) {
       if (canvas) { canvas.width = 0; canvas.height = 0; }
       canvas = typeof OffscreenCanvas !== 'undefined' ? new OffscreenCanvas(w, h) : document.createElement('canvas');
       canvas.width = w; canvas.height = h;
       const context = canvas.getContext('2d'); if (!context) throw new Error('Your browser could not prepare this image.');
       context.imageSmoothingEnabled = true; context.imageSmoothingQuality = 'high';
-      context.drawImage(image, 0, 0, w, h);
+      context.drawImage(image, sx, sy, sw, sh, 0, 0, w, h);
     }
+    function draw(w, h) { drawRegion(0, 0, width, height, w, h); }
     const encode = async quality => {
       const blob = canvas.convertToBlob ? await canvas.convertToBlob({ type: 'image/webp', quality }) :
         await new Promise(resolve => canvas.toBlob(resolve, 'image/webp', quality));
@@ -99,6 +105,19 @@ export async function runImageTask(operation, file) {
       fit(320); const thumbnail = await encode(0.84);
       fit(1280); const preview = await encode(0.90);
       return { ...dimensions, thumbnail, preview };
+    }
+    if (operation === 'wan-ultrawide') {
+      const unit = Math.floor(Math.min(width / 21, height / 9));
+      if (unit < 1) throw new Error('This image is too small to prepare a 21:9 frame.');
+      const cropWidth = unit * 21, cropHeight = unit * 9;
+      const sx = Math.floor((width - cropWidth) / 2), sy = Math.floor((height - cropHeight) / 2);
+      drawRegion(sx, sy, cropWidth, cropHeight, cropWidth, cropHeight);
+      for (const quality of [0.96, 0.92, 0.88, 0.84]) {
+        const blob = await encode(quality);
+        if (blob.type === 'image/webp' && blob.size <= PROVIDER_IMAGE_LIMIT) return { width: cropWidth, height: cropHeight, pixels: cropWidth * cropHeight, blob };
+        await yieldUI();
+      }
+      throw new Error('The 21:9 working crop is still above 10 MiB. Export a smaller source image and try again; the original was not changed.');
     }
     if (operation !== 'working-copy') throw new Error('Unknown image operation.');
     draw(width, height);
