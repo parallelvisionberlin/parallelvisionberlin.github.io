@@ -1,3 +1,4 @@
+import { createSessionRequest } from './session-request.js?v=20260927-auth1';
 import { PROVIDER_IMAGE_LIMIT, UPSCALE_PIXELS, imageDimensions, providerWorkingCopy } from './image-tools.js?v=20260927-2';
 // General-purpose private image-to-video workspace. Credentials never enter browser storage.
 const API='https://parallel-vision-lab.parallelvision.workers.dev';
@@ -37,15 +38,19 @@ function setTool(value){
 }
 $('tool-upscale').onclick=()=>{if(!busy)setTool('upscale');};
 $('tool-image').onclick=()=>{if(!busy)setTool('image');};$('tool-video').onclick=()=>{if(!busy)setTool('video');};
+const sessionRequest=createSessionRequest({baseUrl:API,getSession:()=>clerk?.session});
 async function api(path,options={}) {
-  const generation=epoch,token=await clerk?.session?.getToken();if(!owner&&path!=='/api/session')throw new Error('Sign in first.');if(!token)throw new Error('Your sign-in expired. Sign in again.');
+  const generation=epoch;
+  if(!owner&&path!=='/api/session')throw new Error('Sign in first.');
+  const assertCurrent=()=>{if(generation!==epoch)throw new Error('Session changed.');};
   const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),65000);requestControllers.add(controller);
-  try{const headers={Authorization:'Bearer '+token,...options.headers};let b=options.body;
+  try{
+    const headers={...options.headers};let b=options.body;
     if(b!==undefined&&!(b instanceof Blob)&&!(b instanceof ArrayBuffer)){headers['Content-Type']='application/json';b=JSON.stringify(b);}
-    const r=await fetch(API+path,{method:options.method||'GET',headers,body:b,cache:'no-store',credentials:'omit',signal:controller.signal});
-    if(generation!==epoch)throw new Error('Session changed.');
+    const r=await sessionRequest(path,{method:options.method||'GET',headers,body:b,cache:'no-store',credentials:'omit',signal:controller.signal},assertCurrent);
+    assertCurrent();
     if(!r.ok){const d=await r.json().catch(()=>({}));throw new Error(d.error||`Request failed (${r.status}).`);}
-    const value=options.blob?await r.blob():await r.json();if(generation!==epoch)throw new Error('Session changed.');return value;
+    const value=options.blob?await r.blob():await r.json();assertCurrent();return value;
   }finally{clearTimeout(timeout);requestControllers.delete(controller);}
 }
 async function action(fn){if(busy)return;busy=true;update();try{await fn();}catch(e){notify(e.name==='AbortError'?'Request interrupted. Refresh history before trying another generation.':e.message,true);}finally{busy=false;update();}}
