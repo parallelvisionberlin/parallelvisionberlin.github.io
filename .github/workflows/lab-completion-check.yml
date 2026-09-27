@@ -1,0 +1,35 @@
+name: Lab completion verification
+on:
+  push:
+    branches: ['work/pv-lab-completion-20260927']
+    paths: ['.github/workflows/lab-completion-check.yml', 'scripts/lab-completion/**']
+permissions:
+  contents: read
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            lab
+            lab-worker
+            tests
+            js
+            .github/workflows
+            scripts
+          fetch-depth: 1
+      - name: Package public source for local verification
+        run: |
+          mkdir -p /tmp/lab-work
+          cp -r lab lab-worker tests js /tmp/lab-work/
+          cp AGENTS.md /tmp/lab-work/
+          test ! -f package.json || cp package.json /tmp/lab-work/
+          test ! -f package-lock.json || cp package-lock.json /tmp/lab-work/
+          cp .github/workflows/lab-tests.yml /tmp/lab-work/lab-tests.yml
+      - uses: actions/upload-artifact@v4
+        with:
+          name: lab-source-snapshot
+          path: /tmp/lab-work/
+          retention-days: 1
