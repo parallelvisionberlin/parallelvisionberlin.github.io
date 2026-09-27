@@ -1,0 +1,96 @@
+name: Prepare Lab account menu patch
+on:
+  push:
+    branches: [fix/lab-account-menu-20260927]
+    paths: [.github/workflows/lab-menu-patch.yml]
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/lab-account-menu-20260927
+          fetch-depth: 1
+          sparse-checkout: |
+            index.html
+            nina-project.html
+            js/nina-access.js
+            css/nina-access.css
+          sparse-checkout-cone-mode: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Apply exact scoped changes
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          def once(text, old, new):
+              assert text.count(old) == 1, f'Expected one match: {old}'
+              return text.replace(old, new, 1)
+          for name in ['index.html','nina-project.html']:
+              path=Path(name)
+              text=path.read_text()
+              text=once(text, '<a href="./account.html#newsletter">Newsletter</a>', '<a id="ninaAccountLab" href="./lab/" hidden>Lab</a>')
+              text,count=re.subn(r'(src=[\"\'])(?:\./)?js/nina-access\.js(?:\?[^\"\']*)?([\"\'])', lambda m:m[1]+'./js/nina-access.js?v=20260927-lab-menu'+m[2], text)
+              assert count==1, f'Expected one Nina module in {name}, found {count}'
+              path.write_text(text)
+          path=Path('js/nina-access.js')
+          text=path.read_text()
+          text=once(text, 'const ninaAccountAnalytics = byId("ninaAccountAnalytics");', 'const ninaAccountAnalytics = byId("ninaAccountAnalytics");\nconst ninaAccountLab = byId("ninaAccountLab");')
+          text=once(text, '  if (ninaAccountAnalytics) ninaAccountAnalytics.hidden = true;', '  if (ninaAccountAnalytics) ninaAccountAnalytics.hidden = true;\n  if (ninaAccountLab) ninaAccountLab.hidden = true;')
+          text=once(text, '      if (ninaAccountAnalytics) ninaAccountAnalytics.hidden = data.role !== "owner";', '      if (ninaAccountAnalytics) ninaAccountAnalytics.hidden = data.role !== "owner";\n      if (ninaAccountLab) ninaAccountLab.hidden = data.role !== "owner";')
+          path.write_text(text)
+          PY
+      - name: Check markup, role gating and script syntax
+        shell: bash
+        run: |
+          node --check js/nina-access.js
+          python3 - <<'PY'
+          from pathlib import Path
+          from html.parser import HTMLParser
+          class Links(HTMLParser):
+              def __init__(self): super().__init__(); self.links=[]
+              def handle_starttag(self,tag,attrs):
+                  if tag=='a': self.links.append(dict(attrs))
+          for name in ['index.html','nina-project.html']:
+              text=Path(name).read_text(); p=Links(); p.feed(text)
+              lab=[a for a in p.links if a.get('id')=='ninaAccountLab']
+              assert len(lab)==1 and lab[0]['href']=='./lab/' and 'hidden' in lab[0]
+              assert not any(a.get('href')=='./account.html#newsletter' for a in p.links)
+              assert 'nina-access.js?v=20260927-lab-menu' in text
+              assert 'id="ninaAccountAnalytics" href="./nina-admin/" hidden' in text
+              print(name+': Lab hidden by default; destination /lab/; newsletter menu link removed; analytics unchanged.')
+          PY
+          node --input-type=module <<'JS'
+          import fs from 'node:fs';
+          import vm from 'node:vm';
+          import assert from 'node:assert/strict';
+          const source=fs.readFileSync('js/nina-access.js','utf8');
+          const reset=source.match(/if \(ninaAccountLab\) ninaAccountLab\.hidden = true;/)?.[0];
+          const role=source.match(/if \(ninaAccountLab\) ninaAccountLab\.hidden = data\.role !== "owner";/)?.[0];
+          assert.ok(reset&&role);
+          for(const value of ['owner','user','admin',undefined,null]){
+            const ctx={ninaAccountLab:{hidden:false},data:{role:value}};
+            vm.runInNewContext(reset,ctx);assert.equal(ctx.ninaAccountLab.hidden,true);
+            vm.runInNewContext(role,ctx);assert.equal(ctx.ninaAccountLab.hidden,value!=='owner');
+            vm.runInNewContext(reset,ctx);assert.equal(ctx.ninaAccountLab.hidden,true);
+          }
+          vm.runInNewContext(reset+'\n'+role,{ninaAccountLab:null,data:{role:'owner'}});
+          console.log('Role checks passed: owner only; reset hides link; absent menu handled.');
+          JS
+          git diff --check
+          git diff -- index.html nina-project.html js/nina-access.js
+      - name: Commit patch on isolated branch
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html nina-project.html js/nina-access.js
+          git commit -m 'Replace newsletter shortcut with owner-only Lab menu link'
+          git push origin HEAD:fix/lab-account-menu-20260927
+          git ls-tree HEAD index.html nina-project.html js/nina-access.js
