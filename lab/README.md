@@ -20,7 +20,7 @@ API keys are encrypted with AES-GCM using the existing Cloudflare `LAB_SECRET`. 
 
 ## Price and failure handling
 
-Review price requests a free live quote for the exact input/settings. A separate confirmation starts the paid request. The Lab does not hardcode advertised prices or silently reprice. Up to four active image generations and one active video generation per owner. Every generation still has its own price review and confirmation. A single guarded SQL INSERT reserves the per-type slot and shared daily estimated-spend cap atomically, including requests from multiple browser tabs. The cap counts failed/uncertain attempts conservatively and survives deletion from history. Also set provider-side spending limits.
+For Image (text-to-image and reference editing), clicking Generate requests a live quote and submits that exact quoted job directly, without a price-review popup. The button is the user's authorization for one paid image. Video and Upscale still require Review price followed by confirmation. The Lab does not hardcode advertised prices or silently reprice. Up to four active image generations and one active video generation per owner. Every generation still uses an exact bound quote, spending checks and idempotency; only Image skips the separate review step. A single guarded SQL INSERT reserves the per-type slot and shared daily estimated-spend cap atomically, including requests from multiple browser tabs. The cap counts failed/uncertain attempts conservatively and survives deletion from history. Also set provider-side spending limits.
 
 Timeout or network failure during paid submission is uncertain, not a safe retry. The Lab locks further submission until the owner checks the provider and explicitly resolves it. Scheduled maintenance only polls and archives existing jobs, never generates another request.
 
@@ -51,3 +51,8 @@ Primary schema references checked on 2026-09-27: https://spicyapi.ai/models/imag
 ## Sign-in renewal (2026-09-27)
 
 The browser renews Clerk tokens near expiry and retries a known Lab authentication 401 at most once with a fresh token. These 401 responses occur before the Worker handles a private route or submits a paid task. Request bodies and quote identifiers are retained unchanged. Network errors, timeouts, 403, provider errors and 5xx responses are never automatically resubmitted. Concurrent requests share token renewal; sign-out or a session change cancels old requests. No JWT lifetime, signature, origin or owner-role checks are weakened. This is a frontend-only change, without reloading or clearing the editor during token renewal.
+
+
+## One-click Image (2026-09-27)
+
+Image Generate starts one paid job per click; it does not start a batch. The editor is held busy through quote and submission, and the actual returned quote ID is reused unchanged. Quote failure or expiry creates no paid task. No automatic repricing, loop or additional generation is introduced. The existing session-renewal helper, four-image capacity, daily budget, reference working-copy permission, History, Reuse and downloads remain unchanged. Video and Upscale retain the price dialog. Backend, provider credentials and stored data are unchanged.
