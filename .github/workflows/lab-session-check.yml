@@ -1,0 +1,104 @@
+name: Verify Lab sign-in renewal
+on:
+  push:
+    branches: [fix/lab-session-refresh-20260927]
+    paths: ['.github/workflows/lab-session-check.yml']
+permissions:
+  contents: write
+jobs:
+  session-repair:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/lab-session-refresh-20260927
+          sparse-checkout: |
+            lab
+            lab-worker
+            tests
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Patch only the Lab request helper and cache version
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('lab/lab.js');s=p.read_text()
+          start=s.index('async function api(path,options={}) {')
+          end=s.index('async function action(fn)',start)
+          assert 'token=await clerk?.session?.getToken()' in s[start:end]
+          replacement='''const sessionRequest=createSessionRequest({baseUrl:API,getSession:()=>clerk?.session});
+          async function api(path,options={}) {
+            const generation=epoch;
+            if(!owner&&path!=='/api/session')throw new Error('Sign in first.');
+            const assertCurrent=()=>{if(generation!==epoch)throw new Error('Session changed.');};
+            const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),65000);requestControllers.add(controller);
+            try{
+              const headers={...options.headers};let b=options.body;
+              if(b!==undefined&&!(b instanceof Blob)&&!(b instanceof ArrayBuffer)){headers['Content-Type']='application/json';b=JSON.stringify(b);}
+              const r=await sessionRequest(path,{method:options.method||'GET',headers,body:b,cache:'no-store',credentials:'omit',signal:controller.signal},assertCurrent);
+              assertCurrent();
+              if(!r.ok){const d=await r.json().catch(()=>({}));throw new Error(d.error||`Request failed (${r.status}).`);}
+              const value=options.blob?await r.blob():await r.json();assertCurrent();return value;
+            }finally{clearTimeout(timeout);requestControllers.delete(controller);}
+          }
+          '''
+          s="import { createSessionRequest } from './session-request.js?v=20260927-auth1';\n"+s[:start]+replacement+s[end:]
+          p.write_text(s)
+          p=Path('lab/index.html');s=p.read_text();assert s.count('./lab.js?v=20260927-2')==1
+          p.write_text(s.replace('./lab.js?v=20260927-2','./lab.js?v=20260927-auth1'))
+          p=Path('lab/README.md');s=p.read_text();s+='''
+          
+          ## Sign-in renewal (2026-09-27)
+          
+          The browser renews Clerk tokens near expiry and retries a known Lab authentication 401 at most once with a fresh token. These 401 responses occur before the Worker handles a private route or submits a paid task. Request bodies and quote identifiers are retained unchanged. Network errors, timeouts, 403, provider errors and 5xx responses are never automatically resubmitted. Concurrent requests share token renewal; sign-out or a session change cancels old requests. No JWT lifetime, signature, origin or owner-role checks are weakened. This is a frontend-only change, without reloading or clearing the editor during token renewal.
+          ''';p.write_text(s)
+          PY
+      - name: Syntax and authentication regression tests
+        run: |
+          find lab lab-worker -type f \( -name '*.js' -o -name '*.mjs' \) -exec node --check {} \;
+          node --test tests/lab*.test.mjs
+          git diff --check
+      - name: Install isolated browser tester
+        run: |
+          npm install --prefix "$RUNNER_TEMP/lab-auth-browser" --no-audit --no-fund playwright@1.51.1
+          "$RUNNER_TEMP/lab-auth-browser/node_modules/.bin/playwright" install chromium --with-deps
+      - name: Verify existing image, video, upscale and download workflows
+        env:
+          PV_PLAYWRIGHT_MODULE: ${{ runner.temp }}/lab-auth-browser/node_modules/playwright/index.mjs
+        run: node tests/lab-upscale-ui.mjs
+      - name: Repeat browser flows with simulated expiring tokens
+        env:
+          PV_PLAYWRIGHT_MODULE: ${{ runner.temp }}/lab-auth-browser/node_modules/playwright/index.mjs
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          s=Path('tests/lab-upscale-ui.mjs').read_text()
+          old='const requests=[],uploads=[];let count=3;'
+          assert s.count(old)==1
+          s=s.replace(old,"const requests=[],uploads=[],authRejected=new Set();let count=3;")
+          old='requests.push({path,method,data});let body;'
+          assert s.count(old)==1
+          new='''if((path==='/api/quotes'||path==='/api/jobs'&&method==='POST')&&!authRejected.has(path)){
+            authRejected.add(path);
+            await route.fulfill({status:401,contentType:'application/json',body:JSON.stringify({error:'Sign-in expired or invalid. Please sign in again.'})});
+            return;
+          }
+          requests.push({path,method,data});let body;'''
+          s=s.replace(old,new)
+          old="assert.deepEqual(lq.referenceSourceIds,[x.uploads[0].id]);"
+          assert s.count(old)==1
+          s=s.replace(old,"assert.equal(lq.settings.prompt,'A ceramic sculpture in a daylight studio.');assert.equal(await x.page.locator('#prompt').inputValue(),lq.settings.prompt);"+old)
+          Path('tests/lab-auth-recovery-ui.mjs').write_text(s)
+          PY
+          node tests/lab-auth-recovery-ui.mjs
+          rm tests/lab-auth-recovery-ui.mjs
+      - name: Preserve verified files on the isolated branch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add lab/lab.js lab/index.html lab/README.md
+          git commit -m 'Renew rejected Lab session tokens without clearing drafts or duplicating paid work'
+          git push origin HEAD:fix/lab-session-refresh-20260927
+          git ls-tree HEAD lab/lab.js lab/index.html lab/README.md lab/session-request.js tests/lab-auth.test.mjs
