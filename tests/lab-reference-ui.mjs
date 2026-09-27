@@ -56,6 +56,12 @@ const references=(count=7)=>Array.from({length:count},(_,i)=>({name:'architectur
 const ready=page=>page.waitForFunction(()=>document.querySelectorAll('.reference-item').length===7&&!document.querySelector('#prompt').disabled);
 try{
   let x=await workspace();await x.page.click('#tool-image');
+  assert.equal(await x.page.locator('#output-format').inputValue(),'png');
+  await x.page.locator('#output-format').selectOption('jpeg');
+  assert.equal(await x.page.locator('#output-format').inputValue(),'jpeg');
+  await x.page.click('#tool-upscale');assert.equal(await x.page.locator('#output-format').inputValue(),'png');
+  await x.page.click('#tool-image');assert.equal(await x.page.locator('#output-format').inputValue(),'png');
+  pass('New Image and Upscale default to PNG while JPEG stays available');
   await x.page.evaluate(()=>{window.framesDuringPreparation=0;const tick=()=>{window.framesDuringPreparation++;window.tick=requestAnimationFrame(tick);};tick();});
   await x.page.locator('#reference-images').setInputFiles(references());await ready(x.page);
   assert.equal(await x.page.locator('#ref-count').innerText(),'7 / 10');assert.ok(x.workers.some(u=>u.includes('image-worker.js')));
@@ -65,7 +71,7 @@ try{
   const originals=await x.page.evaluate(()=>window.__labTest.refs());assert.equal(originals.length,7);
   assert.ok(originals.every(r=>r.size===1048576&&r.width===3072&&r.height===2048));pass('Sidebar decodes small thumbnails while original dimensions and file sizes remain intact');
   assert.equal(await x.page.locator('#preview').isVisible(),false);assert.equal(await x.page.locator('#download').isVisible(),false);
-  assert.match(await x.page.locator('#preview-label').innerText(),/Result/);assert.match(await x.page.locator('#empty').innerText(),/generated image/);pass('Image canvas does not misrepresent the first reference as a result');
+  assert.match(await x.page.locator('#preview-label').innerText(),/Result/i);assert.match(await x.page.locator('#empty').innerText(),/generated image/);pass('Image canvas does not misrepresent the first reference as a result');
   const layout=await x.page.evaluate(()=>({stage:document.querySelector('.stage').getBoundingClientRect().height,list:document.querySelector('#reference-list').clientHeight,scroll:document.querySelector('#reference-list').scrollHeight,canvas:document.querySelector('.canvas').getBoundingClientRect().height}));
   assert.ok(layout.stage<=741&&layout.canvas<650);assert.ok(layout.list<=351&&layout.scroll>layout.list);pass('Reference scrolling is bounded and cannot stretch the result canvas');
   await x.page.locator('.reference-item img').nth(6).click();await x.page.locator('#input-preview-dialog').waitFor({state:'visible'});
@@ -77,7 +83,7 @@ try{
   await x.page.locator('.reference-item input').first().fill('Use only the architecture.');
   await x.page.locator('#save').click();await x.page.waitForFunction(()=>document.querySelector('#notice').textContent.startsWith('Saved privately'));
   assert.equal(x.uploads.length,7);const expectedHash=createHash('sha256').update(input).digest('hex');assert.ok(x.uploads.every(u=>u.sha===expectedHash&&u.bytes===input.length));
-  const draft=x.requests.find(r=>r.path==='/api/drafts').data;assert.equal(draft.referenceSourceIds.length,7);assert.equal(draft.settings.referenceRoles[0].role,'room');assert.equal(draft.settings.referenceRoles[0].note,'Use only the architecture.');
+  const draft=x.requests.find(r=>r.path==='/api/drafts').data;assert.equal(draft.settings.outputFormat,'png');assert.equal(draft.referenceSourceIds.length,7);assert.equal(draft.settings.referenceRoles[0].role,'room');assert.equal(draft.settings.referenceRoles[0].note,'Use only the architecture.');
   assert.equal(x.requests.filter(r=>r.path==='/api/jobs'&&r.method==='POST').length,0);pass('Save sends original bytes, ordered reference IDs, roles and notes, never the thumbnails');
   await x.page.locator('.reference-item').nth(1).getByText('Up',{exact:true}).click();assert.equal((await x.page.evaluate(()=>window.__labTest.refs()))[0].name,'architecture-reference-2.png');
   await x.page.locator('.reference-item').first().getByText('Remove',{exact:true}).click();assert.equal(await x.page.locator('.reference-item').count(),6);pass('Reorder and remove still operate on the correct originals');
@@ -89,6 +95,13 @@ try{
   assert.equal(await x.page.locator('#preview').getAttribute('src'),resultUrl);assert.equal(await x.page.locator('#preview').getAttribute('alt'),'Generated image result');
   assert.equal(await x.page.locator('#download').isVisible(),true);pass('Adding references preserves an already displayed real result and its Download button');
   await x.page.evaluate(()=>window.__labTest.lock());assert.equal(await x.page.locator('#app').isVisible(),false);assert.equal(await x.page.locator('.reference-item').count(),0);assert.equal(await x.page.locator('#input-preview-image').getAttribute('src'),null);pass('Sign-out clears input previews, result previews and private reference state');await x.context.close();
+
+  const jpegJob={...job,settings:{...job.settings,outputFormat:'jpeg'}};
+  x=await workspace({jobs:[jpegJob]});await x.page.getByRole('button',{name:'Reuse',exact:true}).click();
+  await x.page.waitForFunction(()=>document.querySelector('#prompt').value==='A ceramic sculpture.'&&!document.querySelector('#prompt').disabled);
+  assert.equal(await x.page.locator('#output-format').inputValue(),'jpeg');
+  assert.equal(x.requests.filter(r=>r.path==='/api/jobs'&&r.method==='POST').length,0);
+  pass('Reuse preserves an older JPEG setting and never starts a generation');await x.context.close();
 
   x=await workspace({fallback:true});await x.page.click('#tool-image');await x.page.locator('#reference-images').setInputFiles([{name:'fallback.png',mimeType:'image/png',buffer:small}]);
   await x.page.waitForFunction(()=>document.querySelectorAll('.reference-item').length===1&&!document.querySelector('#prompt').disabled);assert.equal(x.workers.length,0);assert.deepEqual(x.errors,[]);pass('Browsers without workers retain an operational local fallback');await x.context.close();
