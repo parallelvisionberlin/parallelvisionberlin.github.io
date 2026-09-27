@@ -19,11 +19,14 @@ jobs:
             /lab-worker/
             /tests/
             /.lab-upscale-patch.py
+            /.lab-upscale-final.py
       - uses: actions/setup-node@v4
         with:
           node-version: '22.16.0'
       - name: Apply scoped patch
-        run: python3 .lab-upscale-patch.py
+        run: |
+          python3 .lab-upscale-patch.py
+          python3 .lab-upscale-final.py
       - name: Syntax and worker regression tests
         run: |
           find lab lab-worker -type f \( -name '*.js' -o -name '*.mjs' \) -exec node --check {} \;
@@ -41,7 +44,7 @@ jobs:
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add lab/lab.js lab/index.html lab/history.css lab/README.md lab-worker/worker.mjs tests/lab-worker.test.mjs
+          git add lab/lab.js lab/index.html lab/history.css lab/README.md lab-worker/worker.mjs tests/lab-worker.test.mjs tests/lab-upscale-ui.mjs
           git add --sparse .lab-worker-replacements.json
           git commit -m 'Add image upscaling and consent-based large-reference working copies'
           git push origin HEAD:feature/lab-upscale-20260927
@@ -53,6 +56,7 @@ jobs:
         with:
           name: lab-upscale-verification
           retention-days: 1
+          include-hidden-files: true
           path: |
             test-results/
             .lab-worker-replacements.json
