@@ -1,0 +1,57 @@
+name: Verify one-click Lab Image
+on:
+  push:
+    branches: [fix/lab-image-one-click-20260927]
+    paths: ['.github/workflows/lab-image-oneclick-check.yml']
+permissions:
+  contents: write
+jobs:
+  image-oneclick:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/lab-image-one-click-20260927
+          sparse-checkout: |
+            lab
+            lab-worker
+            tests
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Apply scoped Image-only UI patch
+        run: python3 .lab-image-oneclick-patch.py
+      - name: Syntax and existing backend/session checks
+        run: |
+          find lab lab-worker -type f \( -name '*.js' -o -name '*.mjs' \) -exec node --check {} \;
+          node --test tests/lab*.test.mjs
+          git diff --check
+          git diff --exit-code -- lab-worker lab/session-request.js
+      - name: Install isolated browser tester
+        run: |
+          npm install --prefix "$RUNNER_TEMP/lab-image-browser" --no-audit --no-fund playwright@1.51.1
+          "$RUNNER_TEMP/lab-image-browser/node_modules/.bin/playwright" install chromium --with-deps
+      - name: Existing image, video, upscale and archive browser checks
+        env:
+          PV_PLAYWRIGHT_MODULE: ${{ runner.temp }}/lab-image-browser/node_modules/playwright/index.mjs
+        run: node tests/lab-upscale-ui.mjs
+      - name: One-click Image and unchanged confirmation safeguards
+        env:
+          PV_PLAYWRIGHT_MODULE: ${{ runner.temp }}/lab-image-browser/node_modules/playwright/index.mjs
+        run: node tests/lab-image-oneclick-ui.mjs
+      - name: Preserve verified application files on isolated branch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add lab/lab.js lab/index.html lab/README.md tests/lab-upscale-ui.mjs
+          git commit -m 'Start one Image generation per click without a price-review modal'
+          git push origin HEAD:fix/lab-image-one-click-20260927
+          git ls-tree HEAD lab/lab.js lab/index.html lab/README.md tests/lab-upscale-ui.mjs tests/lab-image-oneclick-ui.mjs
+      - name: Save synthetic layout checks
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lab-image-oneclick-layout
+          retention-days: 1
+          path: test-results/
