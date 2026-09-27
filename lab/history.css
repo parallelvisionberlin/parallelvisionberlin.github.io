@@ -18,3 +18,7 @@
 #download:not([hidden]){background:var(--ink);color:var(--bg);border-color:var(--ink);min-height:40px;flex-shrink:0}
 .stagefoot{flex-wrap:wrap}
 @media(max-width:560px){.history-no-result{min-height:155px}.cardactions button.result-download{min-height:44px}.history-source summary{font-size:11px}}
+
+/* The added tab stays within the existing responsive workbench. */
+.tool-switch{flex-wrap:wrap}.tool-tab{min-width:0}.upscale-info{margin:0 0 20px;font-size:11px}.frame-pair:has(#last-upload[hidden]){grid-template-columns:1fr}
+@media(max-width:560px){.tool-tab{flex:1 1 30%;display:block;text-align:left;padding:12px 10px}.tool-tab small{display:block;margin-top:4px;font-size:8px}}

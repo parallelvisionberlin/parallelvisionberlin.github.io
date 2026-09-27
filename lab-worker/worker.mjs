@@ -1,6 +1,7 @@
 /* Parallel Vision Lab. Private owner-only workspace, no public media bucket.
    The hosted provider is opt-in; no provider key or moderation bypass in source. */
-export const VERSION = 'pv-lab-2026-09-27.1';
+export const VERSION = 'pv-lab-2026-09-27.2';
+const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:4,video:1});
 const ORIGINS = new Set(['https://parallelvisionlabel.com','https://www.parallelvisionlabel.com']);
 const ISSUER = 'https://clerk.parallelvisionlabel.com';
@@ -93,7 +94,7 @@ async function decryptKey(env,value) {
   return dec.decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:unbase(iv),additionalData:enc.encode(MODEL)},key,unbase(cipher)));
 }
 async function config(env,owner) {return first(env,'SELECT * FROM settings WHERE owner_id=?',owner);}
-function publicConfig(c) {return {concurrency:CONCURRENCY,configured:!!c,enabled:!!(c?.enabled&&c?.terms_confirmed),dailyLimitUsd:(c?.daily_limit_microusd||10000000)/1000000,provider:'SpicyAPI',model:'Wan 3.0 / Seedream 5.0 Pro',documentation:DOC,pricingNote:'A live provider quote is required before every generation. No subscription is added by this Lab. Provider terms apply.'};}
+function publicConfig(c) {return {concurrency:CONCURRENCY,configured:!!c,enabled:!!(c?.enabled&&c?.terms_confirmed),dailyLimitUsd:(c?.daily_limit_microusd||10000000)/1000000,provider:'SpicyAPI',model:'Wan 3.0 / Seedream 5.0 Pro / Image Upscaler',documentation:DOC,pricingNote:'A live provider quote is required before every generation. No subscription is added by this Lab. Provider terms apply.'};}
 async function vendorRequest(path,key,data,idempotency,method=data?'POST':'GET') {
   let r;
   try {
@@ -109,7 +110,7 @@ async function vendorRequest(path,key,data,idempotency,method=data?'POST':'GET')
     let message;
     if(code===40901)message='Provider quote expired or changed. Review a new price before generating.';
     else if([40201,40202].includes(code))message='Provider balance or API spending limit is insufficient. Check the provider console.';
-    else if(code===40301)message='This API key is not allowed to use Wan 3.0. Allow the Wan 3.0 route used by this Lab on the API key.';
+    else if(code===40301)message='This API key is not allowed to use the selected model. Enable that model route in your provider API-key settings.';
     else if(code===40302)message='SpicyAPI rejected this server address. Set the API key IP allowlist to Any address.';
     else if(code===40303)message='SpicyAPI is not available from this backend region.';
     else if(code===401||r.status===401)message='SpicyAPI rejected this API key. Use the key beginning sk-spicy- and make sure it has not expired or been revoked.';
@@ -139,6 +140,10 @@ function parameters(value) {
   if(!value||typeof value!=='object'||Array.isArray(value))fail(400,'Invalid settings.');
   const prompt=typeof value.prompt==='string'?value.prompt.trim():'';
   const referenceRoles=referenceLabels(value.referenceRoles);
+  if(value.type==='image'&&value.mode==='upscale'){
+    if(!['2k','4k','8k'].includes(value.resolution)||!['jpeg','png','webp'].includes(value.outputFormat||'jpeg'))fail(400,'Choose 2K, 4K or 8K and JPEG, PNG or WebP.');
+    return {type:'image',model:UPSCALER,mode:'upscale',prompt:'',resolution:value.resolution,aspectRatio:'auto',outputFormat:value.outputFormat||'jpeg',referenceRoles:[]};
+  }
   if(value.type==='image'){
     if(prompt.length>5000||!['1k','2k'].includes(value.resolution)||!RATIOS.includes(value.aspectRatio||'1:1'))fail(400,'Choose 1K or 2K and a supported image ratio. Maximum prompt length is 5,000.');
     if(!['png','jpeg'].includes(value.outputFormat||'jpeg'))fail(400,'Choose PNG or JPEG.');
@@ -161,7 +166,11 @@ function assembledPrompt(p) {
 }
 async function prepareInput(env,owner,data,p,url) {
   let primary=null,input;
-  if(p.type==='image'){
+  if(p.type==='image'&&p.mode==='upscale'){
+    primary=await source(env,owner,data.sourceId);p.referenceSourceIds=[];p.lastSourceId=null;
+    input={resolution:p.resolution,output_format:p.outputFormat};
+    if(url)input.image_url=await signedInput(env,url,primary.id);
+  }else if(p.type==='image'){
     const refs=data.referenceSourceIds?.length?await sources(env,owner,data.referenceSourceIds):[];
     primary=refs[0]||null;p.referenceSourceIds=refs.map(a=>a.id);p.lastSourceId=null;p.model=refs.length?STILL_EDIT:STILL_TEXT;
     input={resolution:p.resolution,aspect_ratio:p.aspectRatio==='auto'&&!refs.length?'1:1':p.aspectRatio,output_format:p.outputFormat};
@@ -191,7 +200,7 @@ async function sources(env,owner,ids) {
 }
 function linkedSourceIds(row) {
   const ids=new Set();if(row?.source_id&&UUID.test(row.source_id))ids.add(row.source_id);
-  try{const p=JSON.parse(row?.params||'{}');if(UUID.test(p.lastSourceId||''))ids.add(p.lastSourceId);if(Array.isArray(p.referenceSourceIds))for(const id of p.referenceSourceIds)if(UUID.test(id||''))ids.add(id);}catch{}
+  try{const p=JSON.parse(row?.params||'{}');if(UUID.test(p.lastSourceId||''))ids.add(p.lastSourceId);for(const key of ['referenceSourceIds','transferSourceIds'])if(Array.isArray(p[key]))for(const id of p[key])if(UUID.test(id||''))ids.add(id);}catch{}
   return [...ids];
 }
 async function sourceReferenced(env,owner,id) {
@@ -241,24 +250,38 @@ async function copyResult(env,j,url) {
     if(r.status>=300&&r.status<400){const next=r.headers.get('location');if(!next)throw new Error('No output location.');target=safeVideoUrl(new URL(next,target).href);continue;}break;
   }
   if(!r?.ok)throw new Error('Output download failed.');
-  const isImage=JSON.parse(j.params).type==='image';
+  const params=JSON.parse(j.params),isImage=params.type==='image';
   const mime=(r.headers.get('content-type')||'').split(';')[0];
   if(isImage?!['image/png','image/jpeg','image/webp'].includes(mime):!['video/mp4','application/octet-stream'].includes(mime))throw new Error('Unexpected output format.');
   const finalMime=isImage?mime:'video/mp4',ext=isImage?({'image/png':'png','image/jpeg':'jpg','image/webp':'webp'}[mime]):'mp4';
-  const limit=isImage?MAX_IMAGE:MAX_VIDEO,declared=Number(r.headers.get('content-length')||0);
-  if(declared>limit)throw new Error('Output exceeds the archive limit.');
+  const limit=params.mode==='upscale'?256*1024*1024:isImage?MAX_IMAGE:MAX_VIDEO;
+  const declared=Number(r.headers.get('content-length')||0);
+  if(!Number.isSafeInteger(declared)||declared<0||declared>limit)throw new Error('Output exceeds the archive limit.');
   const stored=await first(env,'SELECT COALESCE(SUM(bytes),0) AS n FROM assets WHERE owner_id=?',j.owner_id);
   if(stored.n+(declared||limit)>MAX_STORAGE)throw new Error('Private archive storage limit reached.');
   const objectKey=`${j.owner_id}/results/${j.id}.${ext}`;let bytes=0;
-  if(isImage||(declared>0&&declared<=16*1024*1024)){
-    const buffer=await limitedBody(r,isImage?MAX_IMAGE:16*1024*1024);bytes=buffer.length;
-    if(isImage&&!sniff(buffer,mime))throw new Error('Invalid image output.');
+  if(declared>0&&declared<=16*1024*1024||!env.LAB_MEDIA.createMultipartUpload){
+    const buffer=await limitedBody(r,Math.min(limit,16*1024*1024));bytes=buffer.length;
+    if(!bytes||isImage&&!sniff(buffer,mime))throw new Error('Invalid image output.');
+    if(declared&&bytes!==declared)throw new Error('Incomplete output download.');
     await env.LAB_MEDIA.put(objectKey,buffer,{httpMetadata:{contentType:finalMime}});
-  }else if(env.LAB_MEDIA.createMultipartUpload){
+  }else{
     const upload=await env.LAB_MEDIA.createMultipartUpload(objectKey,{httpMetadata:{contentType:finalMime}});
-    const reader=r.body.getReader(),parts=[];let buffer=new Uint8Array(8*1024*1024),used=0,part=1;
-    try{while(true){const value=await reader.read();if(value.done)break;let offset=0;bytes+=value.value.length;if(bytes>limit)throw new Error('Output exceeds archive limit.');while(offset<value.value.length){const n=Math.min(buffer.length-used,value.value.length-offset);buffer.set(value.value.subarray(offset,offset+n),used);used+=n;offset+=n;if(used===buffer.length){parts.push(await upload.uploadPart(part++,buffer));used=0;}}}if(used)parts.push(await upload.uploadPart(part,buffer.slice(0,used)));if(!parts.length)throw new Error('Empty output.');await upload.complete(parts);}catch(e){await reader.cancel().catch(()=>{});await upload.abort().catch(()=>{});throw e;}
-  }else{const buffer=await limitedBody(r,16*1024*1024);bytes=buffer.length;await env.LAB_MEDIA.put(objectKey,buffer,{httpMetadata:{contentType:finalMime}});}
+    const reader=r.body.getReader(),parts=[],prefix=new Uint8Array(12);let prefixUsed=0,verified=!isImage;
+    let buffer=new Uint8Array(8*1024*1024),used=0,part=1;
+    try{
+      while(true){
+        const item=await reader.read();if(item.done)break;
+        const chunk=item.value;bytes+=chunk.length;if(bytes>limit)throw new Error('Output exceeds archive limit.');
+        if(!verified){const n=Math.min(prefix.length-prefixUsed,chunk.length);prefix.set(chunk.subarray(0,n),prefixUsed);prefixUsed+=n;if(prefixUsed===12){if(!sniff(prefix,mime))throw new Error('Invalid image output.');verified=true;}}
+        let offset=0;while(offset<chunk.length){const n=Math.min(buffer.length-used,chunk.length-offset);buffer.set(chunk.subarray(offset,offset+n),used);used+=n;offset+=n;if(used===buffer.length){parts.push(await upload.uploadPart(part++,buffer));used=0;}}
+      }
+      if(!bytes||!verified&&!sniff(prefix.subarray(0,prefixUsed),mime))throw new Error('Invalid or empty output.');
+      if(declared&&bytes!==declared)throw new Error('Incomplete output download.');
+      if(used)parts.push(await upload.uploadPart(part,buffer.slice(0,used)));
+      await upload.complete(parts);
+    }catch(e){await reader.cancel().catch(()=>{});await upload.abort().catch(()=>{});throw e;}
+  }
   await env.LAB_DB.batch([
     stmt(env,'INSERT OR IGNORE INTO assets(id,owner_id,object_key,kind,mime,filename,bytes,created_at) VALUES(?,?,?,?,?,?,?,?)',j.id,j.owner_id,objectKey,isImage?'source':'video',finalMime,'parallel-vision-'+j.id+'.'+ext,bytes,now()),
     stmt(env,"UPDATE jobs SET state='completed',output_id=?,remote_url=NULL,error='',updated_at=? WHERE id=?",j.id,now(),j.id)
@@ -279,7 +302,7 @@ async function stageImageReferences(env,owner,ids,key) {
   const assets=await sources(env,owner,ids);
   // Validate the entire batch before any transfer. Keep the private originals unchanged.
   for(const a of assets)if(!['image/jpeg','image/png','image/webp'].includes(a.mime)||a.bytes<=0||a.bytes>MAX_PROVIDER_IMAGE)
-    fail(400,'Seedream reference uploads must be JPG, PNG or WebP, at most 10 MiB each. Your original is unchanged. No generation was submitted.');
+    fail(400,'SpicyAPI image uploads are limited to 10 MiB per file. Prepare a working copy in the Lab before requesting a price. Your original remains unchanged. No generation was submitted.');
   const result=new Array(assets.length);let cursor=0,stopped=false;
   const work=async()=>{
     while(!stopped){
@@ -445,9 +468,21 @@ async function route(request,env,ctx) {
   }
   if(path==='/api/quotes'&&method==='POST') {
     const {key}=await requireConfigured(env,owner),data=await body(request),p=parameters(data.settings);
-    if(!p.prompt)fail(400,'Add a prompt before generating.');
+    if(p.mode!=='upscale'&&!p.prompt)fail(400,'Add a prompt before generating.');
     const {primary,input}=await prepareInput(env,owner,data,p,url);
-    if(p.type==='image'&&p.referenceSourceIds.length)input.image_urls=await stageImageReferences(env,owner,p.referenceSourceIds,key);
+    if(p.type==='image'){
+      const originals=p.mode==='upscale'?[primary.id]:p.referenceSourceIds;
+      if(originals.length){
+        const ids=data.transferSourceIds??originals;
+        if(!Array.isArray(ids)||ids.length!==originals.length||new Set(ids).size!==ids.length)fail(400,'Working copies must match the original images in order.');
+        const transfers=await sources(env,owner,ids);
+        const originalsData=await sources(env,owner,originals);
+        p.transferSourceIds=transfers.map(a=>a.id);
+        p.transferNotes=transfers.map((a,i)=>a.id===originals[i]?'':originalsData[i].filename+': original '+(originalsData[i].bytes/1048576).toFixed(2)+' MiB; provider working copy '+(a.bytes/1048576).toFixed(2)+' MiB.').filter(Boolean);
+        const uris=await stageImageReferences(env,owner,p.transferSourceIds,key);
+        if(p.mode==='upscale')input.image_url=uris[0];else input.image_urls=uris;
+      }
+    }
     const payload={model:p.model,input},q=await vendorRequest('/jobs/quote',key,payload);
     const estimate=micros(q.estimatedCost),maximum=micros(q.maxCharge),expiry=Date.parse(q.expiresAt);
     if(q.currency!=='USD'||typeof q.quoteId!=='string'||!q.quoteId||maximum<estimate||!Number.isFinite(expiry)||expiry<=now())fail(502,'Provider did not return a usable, bounded quote. Nothing submitted.');
@@ -464,6 +499,7 @@ async function route(request,env,ctx) {
     const savedPayload=JSON.parse(q.payload);
     if(savedPayload.model===STILL_EDIT&&(!Array.isArray(savedPayload.input?.image_urls)||!savedPayload.input.image_urls.length||savedPayload.input.image_urls.some(uri=>!FILE_URI.test(uri))))
       fail(409,'This image quote uses the old reference transfer. Review a fresh price to verify your images before generating. Nothing was submitted.');
+    if(savedPayload.model===UPSCALER&&!FILE_URI.test(savedPayload.input?.image_url||''))fail(409,'Review a fresh upscale quote to verify the input file. Nothing was submitted.');
     for(const assetId of linkedSourceIds(q))await source(env,owner,assetId);
     const id=crypto.randomUUID(),t=now(),day=Math.floor(t/86400000)*86400000;
     try {

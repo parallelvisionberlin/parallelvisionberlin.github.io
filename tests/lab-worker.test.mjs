@@ -30,7 +30,7 @@ globalThis.fetch=async (url,options={})=>{const u=new URL(url);calls.push({url:S
  if(u.pathname.endsWith('/files/fil_synthetic_reference/commit')){assert.equal(options.method,'POST');return Response.json({code:200,data:{fileId:'fil_synthetic_reference',status:'ready',bytes:uploadedReference.length,contentType:'image/png',sha256:Buffer.from(await crypto.subtle.digest('SHA-256',uploadedReference)).toString('hex'),uri:'spicy://f/fil_synthetic_reference',expiresAt:new Date(Date.now()+86400000).toISOString()}});}
  if(u.pathname.endsWith('/jobs/quote')){quotedRequest=JSON.parse(options.body);return Response.json({code:200,data:{quoteId:'synthetic-quote',estimatedCost:maxPrice,maxCharge:maxPrice,currency:'USD',expiresAt:new Date(Date.now()+300000).toISOString()}});}
  if(u.pathname.endsWith('/jobs/createTask')){createCount++;const payload=JSON.parse(options.body);assert.deepEqual({model:payload.model,input:payload.input},quotedRequest);assert.equal(payload.quoteId,'synthetic-quote');assert.equal(payload.expectedCost,maxPrice);assert.match(options.headers['Idempotency-Key'],/^[a-f0-9-]{36}$/);if(createMode==='timeout')throw new Error('simulated interrupted network');if(createMode==='pricechange')return Response.json({code:40901,msg:'quote changed',data:null},{status:409});return Response.json({code:200,data:{taskId:'job_synthetic',state:'queued'}},{status:202});}
- if(u.pathname.endsWith('/jobs/recordInfo'))return Response.json({code:200,data:{taskId:'job_synthetic',state:providerState,settled:providerState==='succeeded',cost:'2.7',output:{assets:[quotedRequest?.model?.includes('seedream')?{mime:'image/png',url:'https://cdn.spicyapi.ai/test.png'}:{mime:'video/mp4',url:'https://cdn.spicyapi.ai/test.mp4'}]}}});
+ if(u.pathname.endsWith('/jobs/recordInfo'))return Response.json({code:200,data:{taskId:'job_synthetic',state:providerState,settled:providerState==='succeeded',cost:'2.7',output:{assets:[(quotedRequest?.model?.includes('seedream')||quotedRequest?.model?.includes('image-upscaler'))?{mime:'image/png',url:'https://cdn.spicyapi.ai/test.png'}:{mime:'video/mp4',url:'https://cdn.spicyapi.ai/test.mp4'}]}}});
  throw new Error('Unmocked network request: '+url);
 };
 const auth=await token(),guest=await token('user_Guest');
@@ -62,4 +62,46 @@ test('Atomic image migration preserves existing completed video, private media p
   const schema=readFileSync(new URL('../lab-worker/schema.sql',import.meta.url),'utf8').replaceAll('source_id TEXT REFERENCES assets(id)','source_id TEXT NOT NULL REFERENCES assets(id)');const db=new DatabaseSync(':memory:');db.exec(schema);
   db.exec("INSERT INTO settings VALUES('owner','encrypted-key',1,1,10000000,1);INSERT INTO assets VALUES('source','owner','owner/source','source','image/png','source.png',9,1),('output','owner','owner/result','video','video/mp4','result.mp4',12,1);INSERT INTO quotes VALUES('q','owner','source','{}',2700000,1,'provider-quote','2.7','{}');INSERT INTO jobs(id,owner_id,source_id,quote_id,params,state,output_id,created_at,updated_at,estimate_microusd) VALUES('job','owner','source','q','{}','completed','output',1,1,2700000);");
   const before=db.prepare('SELECT * FROM jobs').get();db.exec('BEGIN');db.exec(readFileSync(new URL('../lab-worker/migrations/0002-images.sql',import.meta.url),'utf8'));db.exec('COMMIT');assert.deepEqual(db.prepare('SELECT * FROM jobs').get(),before);assert.equal(db.prepare('SELECT encrypted_key FROM settings').get().encrypted_key,'encrypted-key');assert.equal(db.prepare('SELECT SUM(estimate_microusd) AS n FROM spend').get().n,2700000);assert.deepEqual(db.prepare('PRAGMA foreign_key_check').all(),[]);db.exec("INSERT INTO jobs(id,owner_id,source_id,params,state,created_at,updated_at) VALUES('image-job','owner',NULL,'{}','draft',2,2)");assert.equal(db.prepare('SELECT COUNT(*) AS n FROM jobs').get().n,2);
+});
+
+const upscaleSettings={type:'image',mode:'upscale',resolution:'4k',outputFormat:'png'};
+test('Upscale quotes require one source but no prompt; completed image retains original and safe reuse',async()=>{
+ createMode='ok';createCount=0;providerState='queued';const{env}=fixture(),id=await setup(env);
+ const missing=await req(env,'/api/quotes',{method:'POST',data:{settings:upscaleSettings}});assert.equal(missing.status,400);
+ const qres=await req(env,'/api/quotes',{method:'POST',data:{sourceId:id,settings:upscaleSettings}});assert.equal(qres.status,200);const q=await qres.json();
+ assert.equal(quotedRequest.model,'spicyapi/image-upscaler-v1/upscale');assert.equal(quotedRequest.input.image_url,'spicy://f/fil_synthetic_reference');assert.equal(quotedRequest.input.prompt,undefined);assert.equal(quotedRequest.input.aspect_ratio,undefined);assert.equal(createCount,0);
+ const job=(await(await req(env,'/api/jobs',{method:'POST',data:{quoteId:q.id,confirm:true}})).json()).job;
+ providerState='succeeded';const done=(await(await req(env,'/api/jobs/'+job.id)).json()).job;assert.equal(done.status,'completed');assert.equal(done.settings.mode,'upscale');assert.equal(done.sourceId,id);assert.notEqual(done.outputId,id);
+ assert.equal((await req(env,'/api/assets/'+done.outputId)).headers.get('content-type'),'image/png');
+ const reuse=await req(env,'/api/drafts',{method:'POST',data:{sourceId:done.sourceId,settings:done.settings}});assert.equal(reuse.status,201);assert.equal(createCount,1);
+ assert.equal((await req(env,'/api/quotes',{method:'POST',authToken:guest,data:{sourceId:id,settings:upscaleSettings}})).status,403);
+});
+test('Upscale rejects invented presets and unsupported formats without buying a task',async()=>{
+ const{env}=fixture(),id=await setup(env);createCount=0;
+ for(const bad of [{...upscaleSettings,resolution:'16k'},{...upscaleSettings,outputFormat:'exe'}])assert.equal((await req(env,'/api/quotes',{method:'POST',data:{sourceId:id,settings:bad}})).status,400);
+ assert.equal(createCount,0);
+});
+test('Oversized originals can use a separately-owned working copy while preserving original history pointers',async()=>{
+ const{env}=fixture(),copyId=await setup(env);createCount=0;createMode='ok';providerState='queued';
+ const bytes=new Uint8Array(11*1024*1024);bytes.set([137,80,78,71,13,10,26,10]);
+ const upload=await req(env,'/api/uploads',{method:'POST',raw:bytes,headers:{'Content-Type':'image/png','X-Filename':'large-source.png'}});assert.equal(upload.status,201);const id=(await upload.json()).id;
+ const blocked=await req(env,'/api/quotes',{method:'POST',data:{referenceSourceIds:[id],settings:imageSettings}});assert.equal(blocked.status,400);assert.equal(createCount,0);
+ const r=await req(env,'/api/quotes',{method:'POST',data:{referenceSourceIds:[id],transferSourceIds:[copyId],settings:imageSettings}});assert.equal(r.status,200);const q=await r.json();assert.deepEqual(q.settings.referenceSourceIds,[id]);assert.deepEqual(q.settings.transferSourceIds,[copyId]);assert.match(q.settings.transferNotes[0],/11.00 MiB/);
+ const j=(await(await req(env,'/api/jobs',{method:'POST',data:{quoteId:q.id,confirm:true}})).json()).job;assert.equal(j.sourceId,id);assert.equal(createCount,1);
+ assert.equal((await req(env,'/api/assets/'+id)).headers.get('content-length'),String(bytes.length));
+ const wrong=await req(env,'/api/quotes',{method:'POST',data:{referenceSourceIds:[id],transferSourceIds:[crypto.randomUUID()],settings:imageSettings}});assert.equal(wrong.status,404);
+ const mismatch=await req(env,'/api/quotes',{method:'POST',data:{referenceSourceIds:[id],transferSourceIds:[],settings:imageSettings}});assert.equal(mismatch.status,400);
+});
+
+test('Large upscale PNG output is streamed to private storage and not limited to the upload ceiling',async()=>{
+ const originalFetch=globalThis.fetch;createMode='ok';providerState='queued';const{env,objects}=fixture(),id=await setup(env);
+ const parts=[];let outputKey='';env.LAB_MEDIA.createMultipartUpload=async key=>{outputKey=key;return {uploadPart:async(number,bytes)=>{parts.push(new Uint8Array(bytes));return {partNumber:number,etag:'test'};},complete:async()=>{const all=new Uint8Array(parts.reduce((n,p)=>n+p.length,0));let offset=0;for(const part of parts){all.set(part,offset);offset+=part.length;}objects.set(outputKey,all);},abort:async()=>{throw new Error('Unexpected abort');}};};
+ const size=21*1024*1024+13,header=new Uint8Array([137,80,78,71,13,10,26,10]);
+ try{
+  const q=await(await req(env,'/api/quotes',{method:'POST',data:{sourceId:id,settings:upscaleSettings}})).json();
+  const j=(await(await req(env,'/api/jobs',{method:'POST',data:{quoteId:q.id,confirm:true}})).json()).job;
+  globalThis.fetch=async(url,options)=>{if(String(url)==='https://cdn.spicyapi.ai/test.png'){let sent=0;return new Response(new ReadableStream({pull(controller){if(sent===size){controller.close();return;}const n=Math.min(sent===0?4:1024*1024,size-sent),b=new Uint8Array(n);for(let i=0;i<n&&sent+i<header.length;i++)b[i]=header[sent+i];sent+=n;controller.enqueue(b);}}),{headers:{'content-type':'image/png','content-length':String(size)}});}return originalFetch(url,options);};
+  providerState='succeeded';const done=(await(await req(env,'/api/jobs/'+j.id)).json()).job;
+  assert.equal(done.status,'completed');assert.ok(parts.length>=3);assert.equal(objects.get(outputKey).length,size);assert.equal((await req(env,'/api/assets/'+done.outputId)).headers.get('content-type'),'image/png');
+ }finally{globalThis.fetch=originalFetch;}
 });
