@@ -18,7 +18,7 @@ function release(url){if(url)URL.revokeObjectURL(url);}
 function referenceRoles(){return references.map(r=>({name:r.file.name,role:r.role||'none',note:r.note||''}));}
 function settings(){if(tool==='upscale')return {type:'image',mode:'upscale',prompt:'',resolution:$('resolution').value,aspectRatio:'auto',outputFormat:$('output-format').value,referenceRoles:[]};if(tool==='image')return {type:'image',mode:'image',prompt:$('prompt').value.trim(),resolution:$('resolution').value,aspectRatio:$('ratio').value,outputFormat:$('output-format').value,referenceRoles:referenceRoles()};return {type:'video',mode,prompt:$('prompt').value.trim(),duration:Number($('duration').value),resolution:$('resolution').value,aspectRatio:$('ratio').value,seed:$('seed').value,audio:$('audio').checked,referenceRoles:referenceRoles()};}
 function hasInput(){if(tool==='upscale')return !!file;return tool==='image'?!!$('prompt').value.trim():mode==='start'?!!file:references.length>0;}
-function update(){const current=settings(),p=resultSettings||current,ratio=p.aspectRatio==='auto'?(p.mode==='reference'?'adaptive':'source ratio'):p.aspectRatio;$('settings-summary').textContent=p.type==='image'?`${p.mode==='upscale'?'Upscale':'Image'} / ${p.resolution.toUpperCase()} / ${ratio}`:`${p.duration}s / ${p.resolution} / ${ratio}`;$('save').disabled=!owner||!hasInput()||busy;$('clear').disabled=(!file&&!lastFile&&!references.length&&!resultUrl)||busy;$('generate').disabled=!owner||!hasInput()||(tool!=='upscale'&&!current.prompt)||busy||submissionBlocked();$('generate').textContent=config.enabled?(tool==='upscale'?'Review price & upscale':'Review price & generate'):'Connect generation provider';for(const el of document.querySelectorAll('.controls input,.controls select,.controls textarea,.mode-tab,.tool-tab'))el.disabled=busy;}
+function update(){const current=settings(),p=resultSettings||current,ratio=p.aspectRatio==='auto'?(p.mode==='reference'?'adaptive':'source ratio'):p.aspectRatio;$('settings-summary').textContent=p.type==='image'?`${p.mode==='upscale'?'Upscale':'Image'} / ${p.resolution.toUpperCase()} / ${ratio}`:`${p.duration}s / ${p.resolution} / ${ratio}`;$('save').disabled=!owner||!hasInput()||busy;$('clear').disabled=(!file&&!lastFile&&!references.length&&!resultUrl)||busy;$('generate').disabled=!owner||!hasInput()||(tool!=='upscale'&&!current.prompt)||busy||submissionBlocked();$('generate').textContent=config.enabled?(tool==='image'?'Generate':tool==='upscale'?'Review price & upscale':'Review price & generate'):'Connect generation provider';$('generation-help').textContent=(tool==='image'?'Generate starts one paid image at the live provider price, within your daily spending limit. No price-review popup.':'A live quote appears before any paid video or upscale.')+' Inputs over 10 MiB need a working copy; the Lab asks first and keeps the original. Saving history does not generate or charge.';for(const el of document.querySelectorAll('.controls input,.controls select,.controls textarea,.mode-tab,.tool-tab'))el.disabled=busy;}
 function options(id,values,value){$(id).replaceChildren(...values.map(v=>new Option(v==='auto'?'Follow reference':v.toUpperCase(),v)));$(id).value=value;}
 function setTool(value){
   tool=['image','upscale'].includes(value)?value:'video';const image=tool==='image',upscale=tool==='upscale',video=tool==='video';
@@ -68,7 +68,7 @@ async function ensureSource(){if(sourceId)return sourceId;const snapshot=file,re
 async function ensureLast(){if(!lastFile)return null;if(lastSourceId)return lastSourceId;lastSourceId=await uploadAsset(lastFile);return lastSourceId;}
 async function ensureReferences(){if(!references.length)throw new Error('Add at least one reference image.');for(const r of references)if(!r.id)r.id=await uploadAsset(r.file);return references.map(r=>r.id);}
 async function ensureInputs(){if(tool==='upscale')return {sourceId:await ensureSource(),lastSourceId:null,referenceSourceIds:[]};if(tool==='image'&&!references.length)return {sourceId:null,lastSourceId:null,referenceSourceIds:[]};if(tool==='image'||mode==='reference'){const ids=await ensureReferences();return {sourceId:ids[0],lastSourceId:null,referenceSourceIds:ids};}return {sourceId:await ensureSource(),lastSourceId:await ensureLast(),referenceSourceIds:[]};}
-function applyConfig(c){config=c;$('connection-status').textContent=c.enabled?'SpicyAPI connected / Video + Image + Upscale · Live quotes before payment':'Generation not connected · Drafts and private history are ready';update();}
+function applyConfig(c){config=c;$('connection-status').textContent=c.enabled?'SpicyAPI connected / Images: one-click · Video + Upscale: price review':'Generation not connected · Drafts and private history are ready';update();}
 function connection(){if(!owner)return;$('api-key').value='';$('daily-limit').value=config.dailyLimitUsd||10;$('terms').checked=false;$('disconnect').hidden=!config.configured;$('key-note').textContent=config.configured?'A key is stored encrypted. Leave blank to keep it, or paste a replacement.':'Stored encrypted on your private backend. Never committed to GitHub or saved in browser storage.';$('connect-notice').textContent='';$('connect-dialog').showModal();}
 $('connect-form').addEventListener('submit',async e=>{e.preventDefault();$('connect-save').disabled=true;try{const data=await api('/api/settings',{method:'POST',body:{apiKey:$('api-key').value,dailyLimitUsd:Number($('daily-limit').value),enabled:true,termsConfirmed:$('terms').checked}});$('api-key').value='';applyConfig(data.config);$('connect-dialog').close();notify('Provider key connected. Review a live quote before generating.');}catch(error){$('connect-notice').textContent=error.message;}finally{$('connect-save').disabled=false;}});
 $('disconnect').onclick=async()=>{if(!confirm('Remove the stored provider key? Your private history stays.'))return;try{applyConfig((await api('/api/settings',{method:'DELETE'})).config);$('api-key').value='';$('connect-dialog').close();notify('Generation disconnected.');}catch(e){$('connect-notice').textContent=e.message;}};
@@ -87,8 +87,43 @@ bindDrop('reference-drop','reference-images',async files=>{if(files.length)await
 $('clear').onclick=()=>{clearMedia();notify('Editor cleared. Saved work is unchanged.');};
 for(const id of ['prompt','duration','resolution','ratio','seed','audio','output-format'])$(id).addEventListener('input',()=>{autoPreview=null;update();});
 $('save').onclick=()=>action(async()=>{const inputs=await ensureInputs();await api('/api/drafts',{method:'POST',body:{...inputs,settings:settings()}});await loadHistory();notify('Saved privately with the original media and settings. No generation charge.');});
-$('generate').onclick=()=>action(async()=>{if(!config.enabled){connection();return;}const inputs=await prepareQuoteInputs(await ensureInputs());if(!inputs)return;notify('Requesting a live price. No generation submitted.');const q=await api('/api/quotes',{method:'POST',body:{...inputs,settings:settings()}});currentQuote=q;const isImage=q.settings.type==='image',modeName=q.settings.mode==='reference'?'Reference to Video':'Image to Video';$('quote-settings').textContent=q.settings.mode==='upscale'?`Image Upscaler / ${q.settings.resolution.toUpperCase()} / ${q.settings.outputFormat.toUpperCase()} / source ratio kept`:isImage?`Seedream 5.0 Pro / ${q.settings.referenceSourceIds.length?'Reference Edit':'Text to Image'} / ${q.settings.resolution.toUpperCase()} / ${q.settings.aspectRatio}`:`Wan 3.0 / ${modeName} / ${q.settings.duration}s / ${q.settings.resolution}`;$('quote-price').textContent=money(q.estimatedUsd);$('quote-limit').textContent=`Quoted maximum: ${money(q.maxUsd)} USD`;$('quote-expiry').textContent='Valid until '+new Date(q.expiresAt).toLocaleTimeString()+'. No automatic repricing. '+(q.settings.transferNotes||[]).join(' ');$('quote-notice').textContent='';$('confirm-generation').disabled=false;$('quote-dialog').showModal();});
-$('confirm-generation').onclick=async()=>{const q=currentQuote;if(!q||busy)return;if(Date.now()>=q.expiresAt){$('quote-notice').textContent='Quote expired. Close and review a new price.';return;}$('confirm-generation').disabled=true;await action(async()=>{const data=await api('/api/jobs',{method:'POST',body:{quoteId:q.id,confirm:true}});$('quote-dialog').close();resetPreview();autoPreview={id:data.job.id,revision:previewRevision};setActive(data.job);await loadHistory();notify('Generation request recorded. You can leave the page and return to history.');});};
+// Image generation is authorized by Generate itself. Other tools keep the quote dialog.
+async function submitQuotedGeneration(q, expectedEpoch=epoch) {
+  if(!owner||epoch!==expectedEpoch)throw new Error('Session changed.');
+  if(!q||!Number.isFinite(q.expiresAt)||Date.now()>=q.expiresAt)throw new Error('Quote expired. No generation submitted. Please try again.');
+  // Retain the same quote ID through the session-safe request helper. Never reprice/retry a paid task here.
+  const data=await api('/api/jobs',{method:'POST',body:{quoteId:q.id,confirm:true}});
+  if($('quote-dialog').open)$('quote-dialog').close();
+  resetPreview();autoPreview={id:data.job.id,revision:previewRevision};setActive(data.job);
+  await loadHistory();
+  const failed=['failed','uncertain','resolved'].includes(data.job.status);
+  notify(failed?(data.job.error||'The generation was not confirmed. Check History before another attempt.'):
+    (q.settings.mode==='image'?'Image requested. Quoted maximum: '+money(q.maxUsd)+' USD. Results appear in History.':'Generation request recorded. You can leave the page and return to History.'),failed);
+}
+$('generate').onclick=()=>action(async()=>{
+  if(!config.enabled){connection();return;}
+  if(submissionBlocked())throw new Error('An active-job limit or an interrupted request blocks another generation. Check History.');
+  const selectedTool=tool,sessionEpoch=epoch;
+  const inputs=await prepareQuoteInputs(await ensureInputs());if(!inputs)return;
+  notify(selectedTool==='image'?'Preparing image generation…':'Requesting a live price. No generation submitted.');
+  const q=await api('/api/quotes',{method:'POST',body:{...inputs,settings:settings()}});
+  if(!owner||epoch!==sessionEpoch||tool!==selectedTool)throw new Error('Session or tool changed. No generation submitted.');
+  if(selectedTool==='image'){
+    if(q.settings.type!=='image'||q.settings.mode!=='image')throw new Error('Unexpected image quote. No generation submitted.');
+    await submitQuotedGeneration(q,sessionEpoch);return;
+  }
+  currentQuote=q;const isImage=q.settings.type==='image',modeName=q.settings.mode==='reference'?'Reference to Video':'Image to Video';
+  $('quote-settings').textContent=q.settings.mode==='upscale'?`Image Upscaler / ${q.settings.resolution.toUpperCase()} / ${q.settings.outputFormat.toUpperCase()} / source ratio kept`:isImage?`Seedream 5.0 Pro / ${q.settings.referenceSourceIds.length?'Reference Edit':'Text to Image'} / ${q.settings.resolution.toUpperCase()} / ${q.settings.aspectRatio}`:`Wan 3.0 / ${modeName} / ${q.settings.duration}s / ${q.settings.resolution}`;
+  $('quote-price').textContent=money(q.estimatedUsd);$('quote-limit').textContent=`Quoted maximum: ${money(q.maxUsd)} USD`;
+  $('quote-expiry').textContent='Valid until '+new Date(q.expiresAt).toLocaleTimeString()+'. No automatic repricing. '+(q.settings.transferNotes||[]).join(' ');
+  $('quote-notice').textContent='';$('confirm-generation').disabled=false;$('quote-dialog').showModal();
+});
+$('confirm-generation').onclick=async()=>{
+  const q=currentQuote;if(!q||busy)return;
+  if(Date.now()>=q.expiresAt){$('quote-notice').textContent='Quote expired. Close and review a new price.';return;}
+  $('confirm-generation').disabled=true;
+  await action(()=>submitQuotedGeneration(q));
+};
 function limitFor(kind){const n=Number(config.concurrency?.[kind]);return Number.isInteger(n)&&n>0?n:1;}
 function submissionBlocked(){return activeJobs.some(j=>j.status==='uncertain')||activeJobs.filter(j=>(j.settings?.type==='image'?'image':'video')===(tool==='upscale'?'image':tool)).length>=limitFor(tool==='upscale'?'image':tool);}
 function schedulePoll(delay=10000){clearTimeout(timer);timer=null;if(owner&&activeJobs.some(j=>j.status!=='uncertain')&&!polling)timer=setTimeout(poll,delay);}
