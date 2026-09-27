@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#111210"><title>Parallel Vision Lab</title>
 <link rel="icon" href="/favicon.png"><link rel="stylesheet" href="./lab.css?v=20260927-preview1">
 <link rel="stylesheet" href="./history.css?v=20260927-2">
-<script type="module" src="./lab.js?v=20260927-batch1"></script>
+<script type="module" src="./lab.js?v=20260927-startframe1"></script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to workspace</a>
@@ -45,6 +45,10 @@
 <p id="reference-progress" class="fine" role="status" aria-live="polite"></p>
 <div id="reference-list" class="reference-list" role="region" aria-label="Input references" tabindex="0"></div>
 <p class="fine compact-fine" id="reference-help">Reference numbers, filenames, roles and notes are added to your generation prompt. They guide the model; they do not guarantee identity matching.</p>
+<div id="start-frame-maker" class="generate-zone">
+<button id="create-start-frame" class="secondary full" type="button">Create Start Frame</button>
+<p class="fine">Uses these references in Seedream to create an opening frame. It does not pretend Wan can combine an exact start frame with reference mode.</p>
+</div>
 <div class="pack-bar"><label><span class="label">Reference packs</span><select id="pack-select"><option value="">Choose a saved pack</option></select></label><button id="pack-load" class="quiet" type="button">Load</button><button id="pack-save" class="quiet" type="button">Save pack</button><button id="pack-delete" class="quiet" type="button">Delete pack</button></div>
 </div>
 <label class="label prompt-label" id="prompt-label" for="prompt">Motion direction</label><textarea id="prompt" maxlength="6000" placeholder="One clear action, one camera move, light, atmosphere and sound."></textarea>
