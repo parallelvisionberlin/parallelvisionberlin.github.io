@@ -5,6 +5,7 @@ let clerk, owner=false, userId='', epoch=0, syncing=false, config={}, file=null,
 let sourceUrl=null, lastFile=null, lastSourceId=null, lastUrl=null, references=[], mode='start';
 let tool='video', packs=[],resultKind='video',resultExt='mp4';
 let resultUrl=null, resultId=null, resultSettings=null, previewRevision=0, autoPreview=null, currentQuote=null, next=null, activeJob=null, timer=null, historyRevision=0;
+let activeJobs=[], polling=false;
 const downloadUrls=new Set();
 const cardUrls=new Set(), requestControllers=new Set();
 const money=n=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:4}).format(n);
@@ -13,7 +14,7 @@ function release(url){if(url)URL.revokeObjectURL(url);}
 function referenceRoles(){return references.map(r=>({name:r.file.name,role:r.role||'none',note:r.note||''}));}
 function settings(){if(tool==='image')return {type:'image',mode:'image',prompt:$('prompt').value.trim(),resolution:$('resolution').value,aspectRatio:$('ratio').value,outputFormat:$('output-format').value,referenceRoles:referenceRoles()};return {type:'video',mode,prompt:$('prompt').value.trim(),duration:Number($('duration').value),resolution:$('resolution').value,aspectRatio:$('ratio').value,seed:$('seed').value,audio:$('audio').checked,referenceRoles:referenceRoles()};}
 function hasInput(){return tool==='image'?!!$('prompt').value.trim():mode==='start'?!!file:references.length>0;}
-function update(){const current=settings(),p=resultSettings||current,ratio=p.aspectRatio==='auto'?(p.mode==='reference'?'adaptive':'source ratio'):p.aspectRatio;$('settings-summary').textContent=p.type==='image'?`Image / ${p.resolution.toUpperCase()} / ${ratio}`:`${p.duration}s / ${p.resolution} / ${ratio}`;$('save').disabled=!owner||!hasInput()||busy;$('clear').disabled=(!file&&!lastFile&&!references.length&&!resultUrl)||busy;$('generate').disabled=!owner||!hasInput()||!current.prompt||busy||!!activeJob;$('generate').textContent=config.enabled?'Review price & generate':'Connect generation provider';for(const el of document.querySelectorAll('.controls input,.controls select,.controls textarea,.mode-tab,.tool-tab'))el.disabled=busy;}
+function update(){const current=settings(),p=resultSettings||current,ratio=p.aspectRatio==='auto'?(p.mode==='reference'?'adaptive':'source ratio'):p.aspectRatio;$('settings-summary').textContent=p.type==='image'?`Image / ${p.resolution.toUpperCase()} / ${ratio}`:`${p.duration}s / ${p.resolution} / ${ratio}`;$('save').disabled=!owner||!hasInput()||busy;$('clear').disabled=(!file&&!lastFile&&!references.length&&!resultUrl)||busy;$('generate').disabled=!owner||!hasInput()||!current.prompt||busy||submissionBlocked();$('generate').textContent=config.enabled?'Review price & generate':'Connect generation provider';for(const el of document.querySelectorAll('.controls input,.controls select,.controls textarea,.mode-tab,.tool-tab'))el.disabled=busy;}
 function options(id,values,value){$(id).replaceChildren(...values.map(v=>new Option(v==='auto'?'Follow reference':v.toUpperCase(),v)));$(id).value=value;}
 function setTool(value){tool=value==='image'?'image':'video';const image=tool==='image';$('tool-image').classList.toggle('active',image);$('tool-video').classList.toggle('active',!image);$('tool-image').setAttribute('aria-pressed',String(image));$('tool-video').setAttribute('aria-pressed',String(!image));$('video-modes').hidden=image;$('duration-control').hidden=image;$('video-utilities').hidden=image;$('format-control').hidden=!image;$('start-mode').hidden=image||mode!=='start';$('reference-mode').hidden=!image&&mode!=='reference';$('mode-heading').textContent=image?'02 / Text to Image + Reference Edit':'01 / Image to Video';$('engine-name').textContent=image?'SEEDREAM 5.0 PRO':'WAN 3.0';$('prompt-label').textContent=image?'Image direction':'Motion direction';$('prompt').maxLength=image?5000:6000;$('prompt').placeholder=image?'Describe the image. Add references for identity, wardrobe, a room or an object, or start with text only.':'One clear action, one camera move, light, atmosphere and sound.';options('resolution',image?['1k','2k']:['480p','720p','1080p'],image?'2k':'1080p');options('ratio',image?['auto','1:1','4:3','3:4','16:9','9:16','3:2','2:3','4:5','5:4','21:9','9:21','2:1','1:2','3:1','1:3']:['auto','16:9','9:16','1:1','4:3','3:4'],image?'1:1':'auto');clearResult();resetPreview();update();}
 $('tool-image').onclick=()=>{if(!busy)setTool('image');};$('tool-video').onclick=()=>{if(!busy)setTool('video');};
@@ -64,23 +65,53 @@ for(const id of ['prompt','duration','resolution','ratio','seed','audio','output
 $('save').onclick=()=>action(async()=>{const inputs=await ensureInputs();await api('/api/drafts',{method:'POST',body:{...inputs,settings:settings()}});await loadHistory();notify('Saved privately with the original media and settings. No generation charge.');});
 $('generate').onclick=()=>action(async()=>{if(!config.enabled){connection();return;}const inputs=await ensureInputs();notify('Requesting a live price. No generation submitted.');const q=await api('/api/quotes',{method:'POST',body:{...inputs,settings:settings()}});currentQuote=q;const isImage=q.settings.type==='image',modeName=q.settings.mode==='reference'?'Reference to Video':'Image to Video';$('quote-settings').textContent=isImage?`Seedream 5.0 Pro / ${q.settings.referenceSourceIds.length?'Reference Edit':'Text to Image'} / ${q.settings.resolution.toUpperCase()} / ${q.settings.aspectRatio}`:`Wan 3.0 / ${modeName} / ${q.settings.duration}s / ${q.settings.resolution}`;$('quote-price').textContent=money(q.estimatedUsd);$('quote-limit').textContent=`Quoted maximum: ${money(q.maxUsd)} USD`;$('quote-expiry').textContent='Valid until '+new Date(q.expiresAt).toLocaleTimeString()+'. No automatic repricing.';$('quote-notice').textContent='';$('confirm-generation').disabled=false;$('quote-dialog').showModal();});
 $('confirm-generation').onclick=async()=>{const q=currentQuote;if(!q||busy)return;if(Date.now()>=q.expiresAt){$('quote-notice').textContent='Quote expired. Close and review a new price.';return;}$('confirm-generation').disabled=true;await action(async()=>{const data=await api('/api/jobs',{method:'POST',body:{quoteId:q.id,confirm:true}});$('quote-dialog').close();resetPreview();autoPreview={id:data.job.id,revision:previewRevision};setActive(data.job);await loadHistory();notify('Generation request recorded. You can leave the page and return to history.');});};
-function setActive(job){activeJob=job&&activeStates.has(job.status)?job:null;$('active').hidden=!activeJob;clearTimeout(timer);timer=null;
-  if(activeJob){const labels={submitting:'Submitting to the provider…',queued:'Queued at the provider.',running:'Generating your result…',saving:'Saving the finished result to your private archive.',uncertain:'Submission interrupted. Check the provider console before another attempt.'};$('active-status').textContent=labels[job.status];$('active-detail').textContent=job.error||(job.providerTaskId?'Provider task: '+job.providerTaskId:'No duplicate generation will be submitted automatically.');$('resolve').hidden=job.status!=='uncertain';timer=setTimeout(poll,10000);}update();}
-async function poll(){
-  if(!owner||!activeJob)return;
-  try{
-    const id=activeJob.id,data=await api('/api/jobs/'+id);setActive(data.job);
-    if(!activeJob){
-      const show=autoPreview?.id===id&&autoPreview.revision===previewRevision&&!busy;
-      autoPreview=null;await loadHistory();
-      if(hasResult(data.job)){
-        if(show)await openVideo(data.job,{scroll:false});
-        notify('Result saved. View or download the generated '+(data.job.settings.type==='image'?'image':'video')+' from History.');
-      }else notify(data.job.error||'No output file was returned. Nothing is available to download.',true);
-    }
-  }catch(e){notify(e.message,true);if(activeJob)timer=setTimeout(poll,15000);}
+function limitFor(kind){const n=Number(config.concurrency?.[kind]);return Number.isInteger(n)&&n>0?n:1;}
+function submissionBlocked(){return activeJobs.some(j=>j.status==='uncertain')||activeJobs.filter(j=>(j.settings?.type==='image'?'image':'video')===tool).length>=limitFor(tool);}
+function schedulePoll(delay=10000){clearTimeout(timer);timer=null;if(owner&&activeJobs.some(j=>j.status!=='uncertain')&&!polling)timer=setTimeout(poll,delay);}
+function setActiveJobs(list){
+  activeJobs=[...new Map((list||[]).filter(j=>j&&activeStates.has(j.status)).map(j=>[j.id,j])).values()];
+  activeJob=activeJobs.find(j=>j.status==='uncertain')||activeJobs[0]||null;
+  $('active').hidden=!activeJobs.length;
+  const images=activeJobs.filter(j=>j.settings?.type==='image').length,videos=activeJobs.length-images;
+  $('active-status').textContent=images+' / '+limitFor('image')+' images active · '+videos+' / '+limitFor('video')+' videos active';
+  const labels={submitting:'Submitting',queued:'Queued',running:'Generating',saving:'Saving',uncertain:'Interrupted: check provider before another attempt'};
+  $('active-detail').textContent=activeJobs.map((j,i)=>(i+1)+'. '+(j.settings?.type==='image'?'Image':'Video')+' · '+labels[j.status]+(j.error?' · '+j.error:'')+(j.providerTaskId?' · '+j.providerTaskId:'')).join('\n');
+  $('active-detail').style.whiteSpace='pre-line';
+  $('resolve').hidden=!activeJobs.some(j=>j.status==='uncertain');
+  schedulePoll();update();
 }
-$('resolve').onclick=()=>action(async()=>{if(!activeJob||!confirm('First check the provider console and its charges. This clears the local lock without sending another generation. Continue only after checking.'))return;await api('/api/jobs/'+activeJob.id+'/resolve',{method:'POST',body:{confirm:true}});setActive(null);await loadHistory();});
+function setActive(job){if(!job)return;setActiveJobs([...activeJobs.filter(j=>j.id!==job.id),job]);}
+async function poll(){
+  if(!owner||!activeJobs.length||polling)return;
+  const startedEpoch=epoch,snapshot=activeJobs.filter(j=>j.status!=='uncertain');
+  if(!snapshot.length)return;
+  clearTimeout(timer);timer=null;polling=true;
+  try{
+    const responses=await Promise.allSettled(snapshot.map(j=>api('/api/jobs/'+j.id)));
+    if(!owner||startedEpoch!==epoch)return;
+    const finished=[];let error=null;
+    responses.forEach((result,i)=>{
+      if(result.status==='fulfilled'){
+        const job=result.value.job;setActive(job);
+        if(!activeStates.has(job.status))finished.push(job);
+      }else error=result.reason;
+    });
+    if(finished.length){
+      const chosen=finished.find(j=>autoPreview?.id===j.id);
+      const show=chosen&&autoPreview.revision===previewRevision&&!busy;
+      if(chosen)autoPreview=null;
+      await loadHistory();
+      if(!owner||startedEpoch!==epoch)return;
+      if(show&&hasResult(chosen))await openVideo(chosen,{scroll:false});
+      const ready=finished.filter(hasResult).length;
+      if(ready)notify(ready===1?'Result saved. View or download it from History.':ready+' results saved. View or download them from History.');
+      else notify(finished[0].error||'No output file was returned. Nothing is available to download.',true);
+    }
+    if(error)notify(error.message,true);
+  }catch(e){if(owner&&startedEpoch===epoch)notify(e.message,true);}
+  finally{if(startedEpoch===epoch){polling=false;schedulePoll();}}
+}
+$('resolve').onclick=()=>action(async()=>{const interrupted=activeJobs.find(j=>j.status==='uncertain');if(!interrupted||!confirm('First check the provider console and its charges. This clears only the interrupted request without sending another generation. Continue only after checking.'))return;await api('/api/jobs/'+interrupted.id+'/resolve',{method:'POST',body:{confirm:true}});await loadHistory();});
 function button(text,fn){const b=document.createElement('button');b.className='quiet';b.textContent=text;b.onclick=()=>action(fn);return b;}
 async function assetFile(id,name='source'){const blob=await api('/api/assets/'+id,{blob:true}),ext=blob.type==='image/jpeg'?'jpg':blob.type.split('/')[1];return new File([blob],name+'.'+ext,{type:blob.type});}
 async function restore(job){clearMedia();const p=job.settings||{};setTool(p.type||'video');setMode(p.mode||'start');if(tool==='image'){$('start-mode').hidden=true;$('reference-mode').hidden=false;}const refs=tool==='image'||p.mode==='reference';if(refs){const ids=p.referenceSourceIds||[];const files=await Promise.all(ids.map((id,i)=>assetFile(id,(p.referenceRoles?.[i]?.name||'reference-'+(i+1)).replace(/\.[^.]+$/,''))));await addReferences(files,ids,p.referenceRoles||[]);}else if(job.sourceId){await setImage(await assetFile(job.sourceId,'start-frame'),job.sourceId);if(p.lastSourceId)await setLastImage(await assetFile(p.lastSourceId,'last-frame'),p.lastSourceId);}$('prompt').value=p.prompt||'';
@@ -186,9 +217,9 @@ function renderCards(jobs){
     card.append(body);$('history').append(card);for(const img of previews)observer.observe(img);
   }
 }
-async function loadHistory(append=false){const rev=historyRevision,query=append&&next?'?before='+next.before+'&afterId='+encodeURIComponent(next.afterId):'',data=await api('/api/jobs'+query);if(!owner||rev!==historyRevision)return;if(!append){historyRevision++;observer.disconnect();cardUrls.forEach(release);cardUrls.clear();$('history').replaceChildren();}renderCards(data.jobs);next=data.next;$('more').hidden=!next;$('emptyarchive').hidden=$('history').children.length>0;setActive(data.active);}
+async function loadHistory(append=false){const rev=historyRevision,query=append&&next?'?before='+next.before+'&afterId='+encodeURIComponent(next.afterId):'',data=await api('/api/jobs'+query);if(!owner||rev!==historyRevision)return;if(!append){historyRevision++;observer.disconnect();cardUrls.forEach(release);cardUrls.clear();$('history').replaceChildren();}renderCards(data.jobs);next=data.next;$('more').hidden=!next;$('emptyarchive').hidden=$('history').children.length>0;if(data.concurrency)config.concurrency=data.concurrency;setActiveJobs(data.activeJobs||(data.active?[data.active]:[]));}
 $('refresh').onclick=()=>action(()=>loadHistory());$('more').onclick=()=>action(()=>loadHistory(true));
-function lock(){epoch++;autoPreview=null;downloadUrls.forEach(release);downloadUrls.clear();owner=false;userId='';historyRevision++;clearTimeout(timer);activeJob=null;requestControllers.forEach(c=>c.abort());requestControllers.clear();observer.disconnect();cardUrls.forEach(release);cardUrls.clear();clearMedia();$('prompt').value='';$('history').replaceChildren();$('app').hidden=true;$('gate').hidden=false;$('connection').hidden=true;$('logout').hidden=true;$('api-key').value='';for(const d of document.querySelectorAll('dialog[open]'))d.close();currentQuote=null;config={};packs=[];$('pack-select').replaceChildren(new Option('Choose a saved pack',''));}
+function lock(){epoch++;autoPreview=null;downloadUrls.forEach(release);downloadUrls.clear();owner=false;userId='';historyRevision++;clearTimeout(timer);timer=null;activeJob=null;activeJobs=[];polling=false;requestControllers.forEach(c=>c.abort());requestControllers.clear();observer.disconnect();cardUrls.forEach(release);cardUrls.clear();clearMedia();$('prompt').value='';$('history').replaceChildren();$('app').hidden=true;$('gate').hidden=false;$('connection').hidden=true;$('logout').hidden=true;$('api-key').value='';for(const d of document.querySelectorAll('dialog[open]'))d.close();currentQuote=null;config={};packs=[];$('pack-select').replaceChildren(new Option('Choose a saved pack',''));}
 async function sync(){if(syncing)return;syncing=true;try{if(!clerk.isSignedIn){lock();$('auth-status').textContent='Sign in with your Parallel Vision owner account.';$('signin').disabled=false;return;}if(owner&&userId===clerk.user.id)return;const data=await api('/api/session');owner=true;userId=clerk.user.id;applyConfig(data.config);$('identity').textContent='Owner workspace';$('gate').hidden=true;$('app').hidden=false;$('connection').hidden=false;$('logout').hidden=false;await loadHistory();await loadPacks();}catch(e){lock();$('auth-status').textContent=e.message;$('signin').disabled=false;$('logout').hidden=!clerk?.isSignedIn;}finally{syncing=false;}}
 $('signin').onclick=()=>clerk?.openSignIn();$('logout').onclick=async()=>{lock();await clerk?.signOut();$('auth-status').textContent='Signed out. Your archive remains private.';};
 try{const {Clerk}=await import('https://esm.sh/@clerk/clerk-js@6?bundle');await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='https://clerk.parallelvisionlabel.com/npm/@clerk/ui@1/dist/ui.browser.js';s.onload=resolve;s.onerror=reject;document.head.append(s);});clerk=new Clerk('pk_live_Y2xlcmsucGFyYWxsZWx2aXNpb25sYWJlbC5jb20k');await clerk.load({ui:window.__internal_ClerkUICtor,signInFallbackRedirectUrl:location.href,signUpFallbackRedirectUrl:location.href});clerk.addListener(()=>void sync());await sync();}catch{$('auth-status').textContent='Sign-in could not load. Refresh this page or check your browser connection.';}

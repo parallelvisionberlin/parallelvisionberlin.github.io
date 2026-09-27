@@ -47,8 +47,8 @@ CREATE TABLE IF NOT EXISTS jobs (
   last_poll INTEGER NOT NULL DEFAULT 0
 );
 CREATE INDEX IF NOT EXISTS jobs_owner_history ON jobs(owner_id,created_at DESC,id DESC);
-CREATE UNIQUE INDEX IF NOT EXISTS one_active_job_per_owner ON jobs(owner_id)
- WHERE state IN ('submitting','queued','running','saving','uncertain');
+-- Capacity is reserved by the guarded INSERT in /api/jobs, in the same statement as spend.
+CREATE INDEX IF NOT EXISTS jobs_owner_active ON jobs(owner_id,state);
 CREATE TABLE IF NOT EXISTS spend (
   job_id TEXT PRIMARY KEY,
   owner_id TEXT NOT NULL,
