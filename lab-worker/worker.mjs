@@ -1,8 +1,8 @@
 /* Parallel Vision Lab. Private owner-only workspace, no public media bucket.
    The hosted provider is opt-in; no provider key or moderation bypass in source. */
-export const VERSION = 'pv-lab-2026-09-27.2';
+export const VERSION = 'pv-lab-2026-09-27.3';
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
-const CONCURRENCY = Object.freeze({image:4,video:1});
+const CONCURRENCY = Object.freeze({image:4,video:3});
 const ORIGINS = new Set(['https://parallelvisionlabel.com','https://www.parallelvisionlabel.com']);
 const ISSUER = 'https://clerk.parallelvisionlabel.com';
 const VENDOR = 'https://api.spicyapi.ai/api/v1';
