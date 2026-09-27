@@ -1,6 +1,7 @@
 /* Parallel Vision Lab. Private owner-only workspace, no public media bucket.
    The hosted provider is opt-in; no provider key or moderation bypass in source. */
-export const VERSION = 'pv-lab-2026-09-27.3-billing1';
+import {seedanceParameters, prepareSeedance, REFERENCE_MIME, sniffReference} from './seedance.mjs';
+export const VERSION = 'pv-lab-2026-09-27.4-seedance-standard';
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:4,video:3});
 const ORIGINS = new Set(['https://parallelvisionlabel.com','https://www.parallelvisionlabel.com']);
@@ -94,7 +95,7 @@ async function decryptKey(env,value) {
   return dec.decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:unbase(iv),additionalData:enc.encode(MODEL)},key,unbase(cipher)));
 }
 async function config(env,owner) {return first(env,'SELECT * FROM settings WHERE owner_id=?',owner);}
-function publicConfig(c) {return {concurrency:CONCURRENCY,configured:!!c,enabled:!!(c?.enabled&&c?.terms_confirmed),dailyLimitUsd:(c?.daily_limit_microusd||10000000)/1000000,provider:'SpicyAPI',model:'Wan 3.0 / Seedream 5.0 Pro / Image Upscaler',documentation:DOC,pricingNote:'A live provider quote is required before every generation. No subscription is added by this Lab. Provider terms apply.'};}
+function publicConfig(c) {return {concurrency:CONCURRENCY,configured:!!c,enabled:!!(c?.enabled&&c?.terms_confirmed),dailyLimitUsd:(c?.daily_limit_microusd||10000000)/1000000,provider:'SpicyAPI',videoEngines:['wan','seedance'],model:'Wan 3.0 / Seedance 2.5 / Seedream 5.0 Pro / Image Upscaler',documentation:DOC,pricingNote:'A live provider quote is required before every generation. No subscription is added by this Lab. Provider terms apply.'};}
 async function vendorRequest(path,key,data,idempotency,method=data?'POST':'GET') {
   let r;
   try {
@@ -131,14 +132,16 @@ function sniff(bytes,mime) {
   if(mime==='image/jpeg')return bytes.length>=3&&bytes[0]===255&&bytes[1]===216&&bytes[2]===255;
   return mime==='image/webp'&&bytes.length>=12&&dec.decode(bytes.slice(0,4))==='RIFF'&&dec.decode(bytes.slice(8,12))==='WEBP';
 }
-function referenceLabels(value) {
+function referenceLabels(value,max=10) {
   if(value==null)return [];
-  if(!Array.isArray(value)||value.length>10)fail(400,'Use up to ten reference labels.');
+  if(!Array.isArray(value)||value.length>max)fail(400,'Use up to '+max+' reference labels.');
   const allowed=['none','identity','outfit','room','pose','object','style','lighting','custom'];
   return value.map(x=>({name:String(x?.name||'').replace(/[\r\n]/g,' ').slice(0,180),role:allowed.includes(x?.role)?x.role:'none',note:String(x?.note||'').trim().slice(0,300)}));
 }
 function parameters(value) {
   if(!value||typeof value!=='object'||Array.isArray(value))fail(400,'Invalid settings.');
+  if(value.type!=='image'&&value.engine==='seedance')return seedanceParameters(value,{fail,referenceLabels});
+  if(value.engine&&value.engine!=='wan'&&value.type!=='image')fail(400,'Unknown video model.');
   const prompt=typeof value.prompt==='string'?value.prompt.trim():'';
   const referenceRoles=referenceLabels(value.referenceRoles);
   if(value.type==='image'&&value.mode==='upscale'){
@@ -161,11 +164,17 @@ function parameters(value) {
 }
 function assembledPrompt(p) {
   const labels=(p.referenceRoles||[]).slice(0,p.referenceSourceIds?.length||0).map((r,i)=>r.role!=='none'||r.note?'Reference '+(i+1)+(r.name?' ('+r.name+')':'')+': '+(r.role!=='none'?r.role+'. ':'')+r.note:'').filter(Boolean);
-  const prompt=[p.prompt,...labels].join('\n');
-  if(prompt.length>(p.type==='image'?5000:6000))fail(400,'Prompt plus reference notes is too long. Shorten the notes.');
+  if(p.engine==='seedance')for(let i=0;i<labels.length;i++)labels[i]=labels[i].replace(/^Reference (\d+)/,'@Image$1');
+  const mediaLabels=p.engine==='seedance'?['referenceVideos','referenceAudio'].flatMap((key,k)=>(p[key]||[]).slice(0,p[k===0?'referenceVideoIds':'referenceAudioIds']?.length||0).map((r,i)=>'@'+(k===0?'Video':'Audio')+(i+1)+(r.name?' ('+r.name+')':'')+(r.note?': '+r.note:''))):[];
+  const prompt=[p.prompt,...labels,...mediaLabels].join('\n');
+  if(prompt.length>(p.type==='image'||p.engine==='seedance'?5000:6000))fail(400,'Prompt plus reference notes is too long. Shorten the notes.');
   return prompt;
 }
 async function prepareInput(env,owner,data,p,url) {
+  if(p.engine==='seedance'){
+    const prepared=await prepareSeedance(env,owner,data,p,url,{fail,source,sources,signedInput});
+    if(p.prompt)prepared.input.prompt=assembledPrompt(p);return prepared;
+  }
   let primary=null,input;
   if(p.type==='image'&&p.mode==='upscale'){
     primary=await source(env,owner,data.sourceId);p.referenceSourceIds=[];p.lastSourceId=null;
@@ -193,15 +202,15 @@ async function source(env,owner,id) {
   const a=await first(env,"SELECT * FROM assets WHERE id=? AND owner_id=? AND kind='source'",uid(id),owner);
   if(!a)fail(404,'Source image not found. Upload it again.');return a;
 }
-async function sources(env,owner,ids) {
-  if(!Array.isArray(ids)||ids.length<1||ids.length>10)fail(400,'Reference mode needs 1 to 10 images.');
+async function sources(env,owner,ids,max=10) {
+  if(!Array.isArray(ids)||ids.length<1||ids.length>max)fail(400,'Reference mode needs 1 to '+max+' images.');
   const out=[],seen=new Set();
   for(const value of ids){const id=uid(value);if(seen.has(id))continue;seen.add(id);out.push(await source(env,owner,id));}
   if(!out.length)fail(400,'Add at least one reference image.');return out;
 }
 function linkedSourceIds(row) {
   const ids=new Set();if(row?.source_id&&UUID.test(row.source_id))ids.add(row.source_id);
-  try{const p=JSON.parse(row?.params||'{}');if(UUID.test(p.lastSourceId||''))ids.add(p.lastSourceId);for(const key of ['referenceSourceIds','transferSourceIds'])if(Array.isArray(p[key]))for(const id of p[key])if(UUID.test(id||''))ids.add(id);}catch{}
+  try{const p=JSON.parse(row?.params||'{}');if(UUID.test(p.lastSourceId||''))ids.add(p.lastSourceId);for(const key of ['referenceSourceIds','transferSourceIds','referenceVideoIds','referenceAudioIds'])if(Array.isArray(p[key]))for(const id of p[key])if(UUID.test(id||''))ids.add(id);}catch{}
   return [...ids];
 }
 async function sourceReferenced(env,owner,id) {
@@ -436,7 +445,8 @@ async function route(request,env,ctx) {
     const data=await body(request),name=String(data.name||'').trim().slice(0,100);
     if(!name)fail(400,'Give the pack a name.');
     if((await first(env,'SELECT COUNT(*) AS n FROM packs WHERE owner_id=?',owner)).n>=40)fail(409,'Keep up to 40 reference packs.');
-    const list=await sources(env,owner,data.referenceSourceIds),labels=referenceLabels(data.referenceRoles);
+    const max=data.engine==='seedance'?30:10;const list=await sources(env,owner,data.referenceSourceIds,max),labels=referenceLabels(data.referenceRoles,max);
+    if(list.some(a=>!a.mime.startsWith('image/')))fail(400,'Reference packs contain images only.');
     const refs=list.map((a,i)=>({id:a.id,name:a.filename,role:labels[i]?.role||'none',note:labels[i]?.note||''}));
     const id=crypto.randomUUID();await run(env,'INSERT INTO packs(id,owner_id,name,refs,created_at) VALUES(?,?,?,?,?)',id,owner,name,JSON.stringify(refs),now());
     return json({id,name,refs},201);
@@ -445,6 +455,19 @@ async function route(request,env,ctx) {
     const id=uid(path.split('/')[3]),pack=await first(env,'SELECT refs FROM packs WHERE id=? AND owner_id=?',id,owner);
     if(!pack)fail(404,'Pack not found.');await run(env,'DELETE FROM packs WHERE id=? AND owner_id=?',id,owner);
     for(const a of JSON.parse(pack.refs))await pruneSource(env,owner,a.id);return json({ok:true});
+  }
+  if(path==='/api/reference-uploads'&&method==='POST') {
+    const mime=request.headers.get('content-type')?.split(';')[0];
+    if(!REFERENCE_MIME.has(mime))fail(415,'Choose an MP4/MOV video or MP3/WAV audio reference.');
+    const bytes=await limitedBody(request,mime.startsWith('audio/')?15*1024*1024:MAX_IMAGE);
+    if(!bytes.length||!sniffReference(bytes,mime))fail(400,'Reference file contents do not match the selected media type.');
+    const usage=await first(env,'SELECT COALESCE(SUM(bytes),0) AS n,COUNT(*) AS count FROM assets WHERE owner_id=?',owner);
+    if(usage.n+bytes.length>MAX_STORAGE||usage.count>=1000)fail(413,'Private archive limit reached.');
+    const id=crypto.randomUUID(),objectKey=`${owner}/sources/${id}`;let filename='reference';
+    try{filename=decodeURIComponent(request.headers.get('x-filename')||filename).replace(/[\r\n\x00-\x1f]/g,'').slice(0,180);}catch{}
+    await env.LAB_MEDIA.put(objectKey,bytes,{httpMetadata:{contentType:mime}});
+    try{await run(env,"INSERT INTO assets(id,owner_id,object_key,kind,mime,filename,bytes,created_at) VALUES(?,?,?,'source',?,?,?,?)",id,owner,objectKey,mime,filename,bytes.length,now());}catch(e){await env.LAB_MEDIA.delete(objectKey);throw e;}
+    return json({id,filename,bytes:bytes.length},201);
   }
   if(path==='/api/uploads'&&method==='POST') {
     const mime=request.headers.get('content-type')?.split(';')[0];if(!['image/jpeg','image/png','image/webp'].includes(mime))fail(415,'Choose a JPG, PNG or WebP image.');
