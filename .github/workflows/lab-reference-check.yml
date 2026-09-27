@@ -1,0 +1,58 @@
+name: Verify Lab reference previews
+on:
+  push:
+    branches: [fix/lab-reference-preview-20260927]
+    paths: ['.github/workflows/lab-reference-check.yml']
+permissions:
+  contents: write
+jobs:
+  reference-preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/lab-reference-preview-20260927
+          sparse-checkout: |
+            lab
+            lab-worker
+            tests
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Apply scoped frontend patch
+        run: python3 .lab-reference-layout-patch.py
+      - name: Syntax and existing unit tests
+        run: |
+          find lab lab-worker -type f \( -name '*.js' -o -name '*.mjs' \) -exec node --check {} \;
+          node --test tests/lab*.test.mjs
+          git diff --check
+      - name: Install isolated browser tester
+        run: |
+          npm install --prefix "$RUNNER_TEMP/lab-reference-browser" --no-audit --no-fund playwright@1.51.1
+          "$RUNNER_TEMP/lab-reference-browser/node_modules/.bin/playwright" install chromium --with-deps
+      - name: Existing upscale and one-click Image workflows
+        env:
+          PV_PLAYWRIGHT_MODULE: ${{ runner.temp }}/lab-reference-browser/node_modules/playwright/index.mjs
+        run: |
+          node tests/lab-upscale-ui.mjs
+          node tests/lab-image-oneclick-ui.mjs
+      - name: Seven-reference layout and original-byte verification
+        env:
+          PV_PLAYWRIGHT_MODULE: ${{ runner.temp }}/lab-reference-browser/node_modules/playwright/index.mjs
+        run: node tests/lab-reference-ui.mjs
+      - name: Preserve verified frontend on isolated branch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add lab/lab.js lab/index.html lab/lab.css lab/README.md
+          git commit -m 'Keep references lightweight and separate from the bounded result panel'
+          git push origin HEAD:fix/lab-reference-preview-20260927
+          git ls-tree HEAD lab/lab.js lab/index.html lab/lab.css lab/README.md lab/image-tools.js lab/image-worker.js tests/lab-reference-ui.mjs
+      - name: Save synthetic layout checks
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lab-reference-verification
+          retention-days: 1
+          path: test-results/
