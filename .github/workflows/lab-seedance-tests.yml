@@ -1,0 +1,47 @@
+name: Lab video integration tests
+on:
+  pull_request:
+    paths: ['lab/**', 'lab-worker/**', 'tests/lab*.mjs', '.github/workflows/lab-seedance-tests.yml']
+  push:
+    branches: [main, 'feat/lab-seedance-25-20260927']
+    paths: ['lab/**', 'lab-worker/**', 'tests/lab*.mjs', '.github/workflows/lab-seedance-tests.yml']
+permissions:
+  contents: read
+jobs:
+  video:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            lab
+            lab-worker
+            tests
+            js
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Backend and syntax checks
+        run: |
+          find lab lab-worker -type f \( -name '*.js' -o -name '*.mjs' \) -exec node --check {} \;
+          node --test tests/lab*.test.mjs
+      - name: Browser dependencies
+        run: |
+          npm install --prefix /tmp/pv-standard-ui --no-save playwright@1.57.0
+          node /tmp/pv-standard-ui/node_modules/playwright/cli.js install --with-deps chromium
+          if ! command -v ffmpeg >/dev/null; then sudo apt-get update -qq && sudo apt-get install -y ffmpeg; fi
+      - name: Mock-only browser regression tests
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-standard-ui/node_modules/playwright/index.mjs
+        run: |
+          node tests/lab-image-oneclick-ui.mjs
+          node tests/lab-upscale-ui.mjs
+          node tests/lab-reference-ui.mjs
+          node tests/lab-seedance-ui.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lab-video-browser-checks
+          path: test-results/*.png
+          retention-days: 1
