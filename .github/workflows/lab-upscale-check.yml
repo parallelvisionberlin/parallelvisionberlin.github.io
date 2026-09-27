@@ -1,0 +1,58 @@
+name: Verify Lab upscale addition
+on:
+  push:
+    branches: [feature/lab-upscale-20260927]
+    paths: ['.github/workflows/lab-upscale-check.yml']
+permissions:
+  contents: write
+jobs:
+  lab-upscale:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/lab-upscale-20260927
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /lab/
+            /lab-worker/
+            /tests/
+            /.lab-upscale-patch.py
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Apply scoped patch
+        run: python3 .lab-upscale-patch.py
+      - name: Syntax and worker regression tests
+        run: |
+          find lab lab-worker -type f \( -name '*.js' -o -name '*.mjs' \) -exec node --check {} \;
+          node --test tests/lab*.test.mjs
+          git diff --check
+      - name: Install isolated browser tester
+        run: |
+          npm install --prefix "$RUNNER_TEMP/pv-lab-browser" --no-audit --no-fund playwright@1.51.1
+          "$RUNNER_TEMP/pv-lab-browser/node_modules/.bin/playwright" install chromium --with-deps
+      - name: Browser regression checks
+        env:
+          PV_PLAYWRIGHT_MODULE: ${{ runner.temp }}/pv-lab-browser/node_modules/playwright/index.mjs
+        run: node tests/lab-upscale-ui.mjs
+      - name: Preserve source-only patch on feature branch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add lab/lab.js lab/index.html lab/history.css lab/README.md lab-worker/worker.mjs tests/lab-worker.test.mjs
+          git add --sparse .lab-worker-replacements.json
+          git commit -m 'Add image upscaling and consent-based large-reference working copies'
+          git push origin HEAD:feature/lab-upscale-20260927
+          git ls-tree HEAD lab/lab.js lab/index.html lab/history.css lab/README.md lab/image-tools.js lab-worker/worker.mjs tests/lab-worker.test.mjs tests/lab-upscale-ui.mjs .lab-worker-replacements.json
+          sha256sum lab-worker/worker.mjs
+      - name: Save synthetic test screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lab-upscale-verification
+          retention-days: 1
+          path: |
+            test-results/
+            .lab-worker-replacements.json
