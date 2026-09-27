@@ -105,3 +105,19 @@ test('Large upscale PNG output is streamed to private storage and not limited to
   assert.equal(done.status,'completed');assert.ok(parts.length>=3);assert.equal(objects.get(outputKey).length,size);assert.equal((await req(env,'/api/assets/'+done.outputId)).headers.get('content-type'),'image/png');
  }finally{globalThis.fetch=originalFetch;}
 });
+
+test('Provider balance and spending-cap errors remain distinct and redact private details without paid requests',async()=>{
+  const originalFetch=globalThis.fetch;
+  for(const [code,detail,expected] of [[40201,'Available balance is insufficient','insufficient available provider balance'],[40202,'This key has reached its daily spend cap','provider spending limit']]){
+    const {env}=fixture();const id=await setup(env);createCount=0;
+    try{
+      globalThis.fetch=async(url,options={})=>new URL(url).pathname.endsWith('/jobs/quote')?Response.json({code,msg:detail+' sk-spicy-private-test-secret https://private.example/signed-token',data:null},{status:402}):originalFetch(url,options);
+      const response=await req(env,'/api/quotes',{method:'POST',data:{sourceId:id,settings:p}});
+      assert.equal(response.status,422);const text=JSON.stringify(await response.json());
+      assert.ok(text.includes('['+code+']'));assert.ok(text.includes(expected));assert.ok(text.includes(detail));
+      assert.ok(!text.includes('sk-spicy-private-test-secret'));assert.ok(!text.includes('private.example'));
+      assert.equal(createCount,0);assert.equal(env.LAB_DB.db.prepare('SELECT COUNT(*) AS n FROM jobs').get().n,0);
+      assert.equal(env.LAB_DB.db.prepare('SELECT daily_limit_microusd AS n FROM settings').get().n,10000000);
+    }finally{globalThis.fetch=originalFetch;}
+  }
+});

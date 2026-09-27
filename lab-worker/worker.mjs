@@ -1,6 +1,6 @@
 /* Parallel Vision Lab. Private owner-only workspace, no public media bucket.
    The hosted provider is opt-in; no provider key or moderation bypass in source. */
-export const VERSION = 'pv-lab-2026-09-27.3';
+export const VERSION = 'pv-lab-2026-09-27.3-billing1';
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:4,video:3});
 const ORIGINS = new Set(['https://parallelvisionlabel.com','https://www.parallelvisionlabel.com']);
@@ -109,7 +109,8 @@ async function vendorRequest(path,key,data,idempotency,method=data?'POST':'GET')
     const code=Number(result?.code), definite=(r.status>=400&&r.status<500&&r.status!==408)||[400,401,403,40201,40202,40301,40302,40303,40901,422].includes(code);
     let message;
     if(code===40901)message='Provider quote expired or changed. Review a new price before generating.';
-    else if([40201,40202].includes(code))message='Provider balance or API spending limit is insufficient. Check the provider console.';
+    else if(code===40201)message='SpicyAPI [40201]: insufficient available provider balance for this request. Check Billing, including funds held for pending jobs. '+cleanProviderDetail(result?.msg)+' This is separate from your Lab daily budget. No new generation was submitted.';
+    else if(code===40202)message='SpicyAPI [40202]: a provider spending limit was reached. '+cleanProviderDetail(result?.msg)+' Check the named limit in API Keys or Team; a platform limit can only reset. This is separate from your Lab daily budget. No new generation was submitted.';
     else if(code===40301)message='This API key is not allowed to use the selected model. Enable that model route in your provider API-key settings.';
     else if(code===40302)message='SpicyAPI rejected this server address. Set the API key IP allowlist to Any address.';
     else if(code===40303)message='SpicyAPI is not available from this backend region.';
