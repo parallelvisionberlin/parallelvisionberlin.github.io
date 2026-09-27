@@ -1,5 +1,5 @@
 import { createSessionRequest } from './session-request.js?v=20260927-auth1';
-import { PROVIDER_IMAGE_LIMIT, UPSCALE_PIXELS, imageDimensions, providerWorkingCopy } from './image-tools.js?v=20260927-2';
+import { PROVIDER_IMAGE_LIMIT, UPSCALE_PIXELS, imageDimensions, providerWorkingCopy, imagePreview, cancelImagePreparation } from './image-tools.js?v=20260927-preview1';
 // General-purpose private image-to-video workspace. Credentials never enter browser storage.
 const API='https://parallel-vision-lab.parallelvision.workers.dev';
 const $=id=>document.getElementById(id), activeStates=new Set(['submitting','queued','running','saving','uncertain']);
@@ -32,7 +32,7 @@ function setTool(value){
   $('prompt-label').textContent=image?'Image direction':'Motion direction';$('prompt').maxLength=image?5000:6000;
   $('prompt').placeholder=image?'Describe the image. Add references for identity, wardrobe, a room or an object, or start with text only.':'One clear action, one camera move, light, atmosphere and sound.';
   options('resolution',upscale?['2k','4k','8k']:image?['1k','2k']:['480p','720p','1080p'],upscale?'4k':image?'2k':'1080p');
-  options('output-format',upscale?['jpeg','png','webp']:['jpeg','png'],'jpeg');
+  options('output-format',upscale?['png','jpeg','webp']:['png','jpeg'],'png');
   options('ratio',image?['auto','1:1','4:3','3:4','16:9','9:16','3:2','2:3','4:5','5:4','21:9','9:21','2:1','1:2','3:1','1:3']:['auto','16:9','9:16','1:1','4:3','3:4'],image?'1:1':'auto');
   resetPreview();update();
 }
@@ -55,18 +55,91 @@ async function api(path,options={}) {
 }
 async function action(fn){if(busy)return;busy=true;update();try{await fn();}catch(e){notify(e.name==='AbortError'?'Request interrupted. Refresh history before trying another generation.':e.message,true);}finally{busy=false;update();}}
 function clearResult(){previewRevision++;if(resultUrl){$('preview').removeAttribute('src');$('preview').hidden=true;}release(resultUrl);resultUrl=null;resultId=null;resultSettings=null;$('video').pause();$('video').removeAttribute('src');$('video').load();$('video').hidden=true;$('download').hidden=true;}
-function resetPreview(){clearResult();$('preview').alt='Uploaded source image, not a generated result';const item=(tool==='upscale'||tool==='video'&&mode==='start')?(sourceUrl?{url:sourceUrl,label:'Start frame'}:null):(references[0]?{url:references[0].url,label:'Reference 1'}:null);if(item){$('preview').src=item.url;$('preview').hidden=false;$('empty').hidden=true;$('preview-label').textContent=item.label+' / preview';}else{$('preview').removeAttribute('src');$('preview').hidden=true;$('empty').hidden=false;$('preview-label').textContent='Source / preview';}}
-function clearMedia(){imageRevision++;sourcePixels=0;release(sourceUrl);release(lastUrl);sourceUrl=null;lastUrl=null;file=null;sourceId=null;lastFile=null;lastSourceId=null;$('image').value='';$('last-image').value='';for(const r of references)release(r.url);references=[];$('reference-images').value='';$('filemeta').textContent='Choose the exact opening frame.';$('last-filemeta').textContent='Leave empty for an open ending.';renderReferences();clearResult();resetPreview();update();}
-async function inspectImage(candidate){if(!candidate||!['image/jpeg','image/png','image/webp'].includes(candidate.type)||!candidate.size||candidate.size>20*1024*1024)throw new Error('Choose a JPG, PNG or WebP image up to 20 MB.');const url=URL.createObjectURL(candidate),probe=new Image();probe.src=url;try{await probe.decode();if(Math.min(probe.naturalWidth,probe.naturalHeight)<240||Math.max(probe.naturalWidth,probe.naturalHeight)>(tool==='upscale'?16000:8000)||probe.naturalWidth*probe.naturalHeight>72000000||Math.max(probe.naturalWidth/probe.naturalHeight,probe.naturalHeight/probe.naturalWidth)>8)throw new Error('Use an image at least 240 pixels per side, no wider than 8:1, up to '+(tool==='upscale'?'16,000 pixels per side and 72 megapixels.':'8,000 pixels per side.'));}catch(e){release(url);throw new Error(e.message||'Image cannot be opened.');}return {file:candidate,id:null,url,width:probe.naturalWidth,height:probe.naturalHeight};}
-async function setImage(candidate,id=null){const revision=++imageRevision,item=await inspectImage(candidate);if(revision!==imageRevision||!owner){release(item.url);return false;}release(sourceUrl);clearResult();file=item.file;sourceId=id;sourceUrl=item.url;sourcePixels=item.width*item.height;$('filemeta').textContent=`${candidate.name||'Start frame'} / ${item.width} × ${item.height} / ${(candidate.size/1048576).toFixed(1)} MB`;resetPreview();update();return true;}
-async function setLastImage(candidate,id=null){const e=epoch,item=await inspectImage(candidate);if(e!==epoch||!owner){release(item.url);return false;}release(lastUrl);lastFile=item.file;lastSourceId=id;lastUrl=item.url;$('last-filemeta').textContent=`${candidate.name||'Last frame'} / ${item.width} × ${item.height} / ${(candidate.size/1048576).toFixed(1)} MB`;update();return true;}
-function renderReferences(){const box=$('reference-list');box.replaceChildren();references.forEach((r,i)=>{const item=document.createElement('div');item.className='reference-item';const img=document.createElement('img');img.src=r.url;img.alt='Reference '+(i+1);const fields=document.createElement('div');fields.className='reference-fields';const title=document.createElement('strong');title.textContent='Reference '+(i+1)+' / '+r.file.name;const role=document.createElement('select');role.setAttribute('aria-label','Role for reference '+(i+1));for(const name of ['none','identity','outfit','room','pose','object','style','lighting','custom'])role.add(new Option(name==='none'?'No assigned role':name,name));role.value=r.role||'none';role.onchange=()=>{r.role=role.value;};const note=document.createElement('input');note.type='text';note.maxLength=300;note.placeholder='Use only the outfit, keep the room…';note.setAttribute('aria-label','Note for reference '+(i+1));note.value=r.note||'';note.oninput=()=>{r.note=note.value;};fields.append(title,role,note);const controls=document.createElement('div');controls.className='reference-actions';const remove=document.createElement('button');remove.type='button';remove.textContent='Remove';remove.onclick=()=>{if(busy)return;release(r.url);references.splice(i,1);renderReferences();resetPreview();update();};const up=document.createElement('button');up.type='button';up.textContent='Up';up.disabled=i===0;up.onclick=()=>{if(busy||i===0)return;[references[i-1],references[i]]=[references[i],references[i-1]];renderReferences();resetPreview();update();};controls.append(up,remove);item.append(img,fields,controls);box.append(item);});$('ref-count').textContent=`${references.length} / 10`;}
-async function addReferences(list,ids=[],labels=[]){const e=epoch,incoming=[...list];if(references.length+incoming.length>10)throw new Error('Reference mode supports up to 10 images.');for(let i=0;i<incoming.length;i++){const item=await inspectImage(incoming[i]);if(e!==epoch||!owner){release(item.url);return;}item.id=ids[i]||null;item.role=labels[i]?.role||'none';item.note=labels[i]?.note||'';references.push(item);}renderReferences();resetPreview();update();}
+function resetPreview(){
+  clearResult();
+  // Image generation has a result-only canvas. Inputs remain in the reference list.
+  const item=tool==='image'?null:(tool==='upscale'||mode==='start')?
+    (sourceUrl?{url:sourceUrl,label:tool==='upscale'?'Upscale input':'Start frame'}:null):
+    (references[0]?{url:references[0].url,label:'Reference 1 / input'}:null);
+  $('preview').alt='Uploaded source image, not a generated result';
+  if(item){$('preview').src=item.url;$('preview').hidden=false;$('empty').hidden=true;$('preview-label').textContent=item.label+' / not a result';}
+  else{
+    $('preview').removeAttribute('src');$('preview').hidden=true;$('empty').hidden=false;
+    $('preview-label').textContent=tool==='image'?'Result / Image':'Source / preview';
+    $('empty').querySelector('p').textContent=tool==='image'?'Your generated image will appear here.':'Start with your own frame.';
+    $('empty').querySelector('small').textContent=tool==='image'?'Input references stay on the left. Nothing generated yet.':'Your source and result appear here.';
+  }
+}
+function refreshInputPreview(){autoPreview=null;if(tool!=='image'||!resultUrl)resetPreview();}
+function releaseReference(item){release(item.url);release(item.thumbUrl);}
+function closeInputPreview(){const dialog=$('input-preview-dialog');if(dialog.open)dialog.close();$('input-preview-image').removeAttribute('src');}
+function viewReference(item,index){
+  if(!owner)return;
+  $('input-preview-title').textContent='Reference '+(index+1)+' / Input';
+  $('input-preview-description').textContent=item.file.name+' / '+item.width+' × '+item.height+' pixels in the original. Display preview only, not a generated result.';
+  $('input-preview-image').src=item.url;
+  $('input-preview-dialog').showModal();
+}
+$('input-preview-dialog').addEventListener('close',()=>{$('input-preview-image').removeAttribute('src');});
+
+function clearMedia(){cancelImagePreparation();closeInputPreview();$('reference-progress').textContent='';imageRevision++;sourcePixels=0;release(sourceUrl);release(lastUrl);sourceUrl=null;lastUrl=null;file=null;sourceId=null;lastFile=null;lastSourceId=null;$('image').value='';$('last-image').value='';for(const r of references)releaseReference(r);references=[];$('reference-images').value='';$('filemeta').textContent='Choose the exact opening frame.';$('last-filemeta').textContent='Leave empty for an open ending.';renderReferences();clearResult();resetPreview();update();}
+async function inspectImage(candidate){
+  if(!candidate||!['image/jpeg','image/png','image/webp'].includes(candidate.type)||!candidate.size||candidate.size>20*1024*1024)throw new Error('Choose a JPG, PNG or WebP image up to 20 MB.');
+  const maxSide=tool==='upscale'?16000:8000;
+  const prepared=await imagePreview(candidate),{width,height}=prepared;
+  if(Math.min(width,height)<240||Math.max(width,height)>maxSide||Math.max(width/height,height/width)>8)throw new Error('Use an image at least 240 pixels per side, no wider than 8:1, up to '+maxSide.toLocaleString()+' pixels per side.');
+  return {file:candidate,id:null,url:URL.createObjectURL(prepared.preview),thumbUrl:URL.createObjectURL(prepared.thumbnail),width,height};
+}
+
+async function setImage(candidate,id=null){const revision=++imageRevision,item=await inspectImage(candidate);release(item.thumbUrl);if(revision!==imageRevision||!owner){release(item.url);return false;}release(sourceUrl);clearResult();file=item.file;sourceId=id;sourceUrl=item.url;sourcePixels=item.width*item.height;$('filemeta').textContent=`${candidate.name||'Start frame'} / ${item.width} × ${item.height} / ${(candidate.size/1048576).toFixed(1)} MB`;resetPreview();update();return true;}
+async function setLastImage(candidate,id=null){const e=epoch,item=await inspectImage(candidate);release(item.thumbUrl);if(e!==epoch||!owner){release(item.url);return false;}release(lastUrl);lastFile=item.file;lastSourceId=id;lastUrl=item.url;$('last-filemeta').textContent=`${candidate.name||'Last frame'} / ${item.width} × ${item.height} / ${(candidate.size/1048576).toFixed(1)} MB`;update();return true;}
+function renderReferences(){
+  const box=$('reference-list'),scroll=box.scrollTop,fragment=document.createDocumentFragment();
+  references.forEach((r,i)=>{
+    const item=document.createElement('div');item.className='reference-item';
+    const img=document.createElement('img');img.src=r.thumbUrl;img.alt='Input reference '+(i+1);img.width=68;img.height=82;img.decoding='async';
+    img.tabIndex=0;img.setAttribute('role','button');img.setAttribute('aria-label','Preview input reference '+(i+1));
+    img.onclick=()=>{if(!busy)viewReference(r,i);};img.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();img.click();}};
+    const fields=document.createElement('div');fields.className='reference-fields';
+    const title=document.createElement('strong');title.textContent='Reference '+(i+1)+' / '+r.file.name;title.title=title.textContent;
+    const role=document.createElement('select');role.setAttribute('aria-label','Role for reference '+(i+1));
+    for(const name of ['none','identity','outfit','room','pose','object','style','lighting','custom'])role.add(new Option(name==='none'?'No assigned role':name,name));
+    role.value=r.role||'none';role.disabled=busy;role.onchange=()=>{r.role=role.value;autoPreview=null;};
+    const note=document.createElement('input');note.type='text';note.maxLength=300;note.placeholder='Use only the outfit, keep the room…';note.setAttribute('aria-label','Note for reference '+(i+1));note.value=r.note||'';note.disabled=busy;
+    note.oninput=()=>{r.note=note.value;autoPreview=null;};fields.append(title,role,note);
+    const controls=document.createElement('div');controls.className='reference-actions';
+    const remove=document.createElement('button');remove.type='button';remove.textContent='Remove';remove.onclick=()=>{if(busy)return;closeInputPreview();releaseReference(r);references.splice(i,1);renderReferences();refreshInputPreview();update();};
+    const up=document.createElement('button');up.type='button';up.textContent='Up';up.disabled=i===0;up.onclick=()=>{if(busy||i===0)return;closeInputPreview();[references[i-1],references[i]]=[references[i],references[i-1]];renderReferences();refreshInputPreview();update();};
+    controls.append(up,remove);item.append(img,fields,controls);fragment.append(item);
+  });
+  box.replaceChildren(fragment);box.scrollTop=scroll;$('ref-count').textContent=`${references.length} / 10`;
+}
+async function addReferences(list,ids=[],labels=[]){
+  const e=epoch,incoming=[...list];if(references.length+incoming.length>10)throw new Error('Reference mode supports up to 10 images.');
+  autoPreview=null;$('reference-list').setAttribute('aria-busy','true');let added=0;
+  try{
+    for(let i=0;i<incoming.length;i++){
+      $('reference-progress').textContent='Preparing reference '+(i+1)+' of '+incoming.length+'…';
+      const item=await inspectImage(incoming[i]);
+      if(e!==epoch||!owner){releaseReference(item);return;}
+      item.id=ids[i]||null;item.role=labels[i]?.role||'none';item.note=labels[i]?.note||'';references.push(item);added++;
+      renderReferences();refreshInputPreview();update();
+      await new Promise(resolve=>setTimeout(resolve,0));
+    }
+  }finally{
+    if(e===epoch){$('reference-list').setAttribute('aria-busy','false');$('reference-progress').textContent=added?added+' reference'+(added===1?'':'s')+' ready. Originals kept unchanged.':'';}
+  }
+}
+
 function setMode(nextMode){mode=nextMode==='reference'?'reference':'start';$('mode-start').classList.toggle('active',mode==='start');$('mode-reference').classList.toggle('active',mode==='reference');$('mode-start').setAttribute('aria-selected',String(mode==='start'));$('mode-reference').setAttribute('aria-selected',String(mode==='reference'));$('start-mode').hidden=tool==='image'||tool==='video'&&mode!=='start';$('reference-mode').hidden=tool==='upscale'||tool==='video'&&mode!=='reference';resetPreview();update();}
 async function uploadAsset(snapshot){const data=await api('/api/uploads',{method:'POST',headers:{'Content-Type':snapshot.type,'X-Filename':encodeURIComponent(snapshot.name||'source.png')},body:snapshot});return data.id;}
 async function ensureSource(){if(sourceId)return sourceId;const snapshot=file,rev=imageRevision;if(!snapshot)throw new Error('Choose a start frame first.');const id=await uploadAsset(snapshot);if(rev!==imageRevision)throw new Error('Image changed during upload. Please try again.');sourceId=id;return id;}
 async function ensureLast(){if(!lastFile)return null;if(lastSourceId)return lastSourceId;lastSourceId=await uploadAsset(lastFile);return lastSourceId;}
-async function ensureReferences(){if(!references.length)throw new Error('Add at least one reference image.');for(const r of references)if(!r.id)r.id=await uploadAsset(r.file);return references.map(r=>r.id);}
+async function ensureReferences(){
+  if(!references.length)throw new Error('Add at least one reference image.');
+  for(let i=0;i<references.length;i++){const r=references[i];if(!r.id){notify('Uploading original reference '+(i+1)+' of '+references.length+'…');r.id=await uploadAsset(r.file);}}
+  return references.map(r=>r.id);
+}
 async function ensureInputs(){if(tool==='upscale')return {sourceId:await ensureSource(),lastSourceId:null,referenceSourceIds:[]};if(tool==='image'&&!references.length)return {sourceId:null,lastSourceId:null,referenceSourceIds:[]};if(tool==='image'||mode==='reference'){const ids=await ensureReferences();return {sourceId:ids[0],lastSourceId:null,referenceSourceIds:ids};}return {sourceId:await ensureSource(),lastSourceId:await ensureLast(),referenceSourceIds:[]};}
 function applyConfig(c){config=c;$('connection-status').textContent=c.enabled?'SpicyAPI connected / Images: one-click · Video + Upscale: price review':'Generation not connected · Drafts and private history are ready';update();}
 function connection(){if(!owner)return;$('api-key').value='';$('daily-limit').value=config.dailyLimitUsd||10;$('terms').checked=false;$('disconnect').hidden=!config.configured;$('key-note').textContent=config.configured?'A key is stored encrypted. Leave blank to keep it, or paste a replacement.':'Stored encrypted on your private backend. Never committed to GitHub or saved in browser storage.';$('connect-notice').textContent='';$('connect-dialog').showModal();}
@@ -241,7 +314,7 @@ async function upscaleImage(job){
 async function animateImage(job){clearMedia();setTool('video');setMode('start');await setImage(await assetFile(job.outputId,'generated-image'),job.outputId);$('prompt').value='';update();notify('Generated image loaded as the video start frame. Add motion direction and review the price.');window.scrollTo({top:0,behavior:'smooth'});}
 async function loadPacks(){const data=await api('/api/packs');packs=data.packs;$('pack-select').replaceChildren(new Option('Choose a saved pack',''),...packs.map(p=>new Option(p.name,p.id)));}
 $('pack-save').onclick=()=>action(async()=>{if(!references.length)throw new Error('Add reference images first.');const name=window.prompt('Name this reference pack, for example Nina FOK / Editorial');if(!name?.trim())return;const ids=await ensureReferences();await api('/api/packs',{method:'POST',body:{name:name.trim(),referenceSourceIds:ids,referenceRoles:referenceRoles()}});await loadPacks();notify('Reference pack saved privately. No generation charge.');});
-$('pack-load').onclick=()=>action(async()=>{const pack=packs.find(p=>p.id===$('pack-select').value);if(!pack)throw new Error('Choose a saved pack.');if(references.length&&!confirm('Replace the current references with this pack?'))return;const files=await Promise.all(pack.refs.map(r=>assetFile(r.id,r.name.replace(/\.[^.]+$/,''))));references.forEach(r=>release(r.url));references=[];await addReferences(files,pack.refs.map(r=>r.id),pack.refs);notify('Pack loaded with reference order, roles and notes.');});
+$('pack-load').onclick=()=>action(async()=>{const pack=packs.find(p=>p.id===$('pack-select').value);if(!pack)throw new Error('Choose a saved pack.');if(references.length&&!confirm('Replace the current references with this pack?'))return;const files=await Promise.all(pack.refs.map(r=>assetFile(r.id,r.name.replace(/\.[^.]+$/,''))));references.forEach(releaseReference);references=[];await addReferences(files,pack.refs.map(r=>r.id),pack.refs);notify('Pack loaded with reference order, roles and notes.');});
 $('pack-delete').onclick=()=>action(async()=>{const id=$('pack-select').value;if(!id||!confirm('Delete this reference pack? Existing generation history remains.'))return;await api('/api/packs/'+id,{method:'DELETE'});await loadPacks();notify('Reference pack deleted.');});
 const observer=new IntersectionObserver(entries=>{
   for(const entry of entries){
