@@ -1,0 +1,107 @@
+name: Verify one-click image upscale
+on:
+  push:
+    branches: ['fix/lab-upscale-oneclick-20260927']
+    paths: ['.github/workflows/lab-upscale-oneclick-change.yml']
+permissions:
+  contents: write
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            lab
+            lab-worker
+            tests
+            .github/workflows
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Apply inspected frontend-only change
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib
+          def change(path, old, new):
+              p=Path(path);s=p.read_text()
+              assert s.count(old)==1, f'{path}: source changed; refusing blind patch'
+              p.write_text(s.replace(old,new))
+          expected={'lab/lab.js':'b6adf128d25eb2bb502de37926c32b273d2eb84f','lab/index.html':'e76ead8357047fad7a5dbfe21438c362f6be1c0f','tests/lab-image-oneclick-ui.mjs':'50c9c71d25dced17f16bc293d398b6314ca041dd','tests/lab-upscale-ui.mjs':'f2bf682e1c860159195e2bb337914ee99b8983c4'}
+          for name,sha in expected.items():
+              d=Path(name).read_bytes()
+              assert hashlib.sha1(b'blob '+str(len(d)).encode()+b'\0'+d).hexdigest()==sha, f'{name} changed since inspection'
+          change('lab/lab.js',"tool==='upscale'?'Review price & upscale'","tool==='upscale'?'Upscale'")
+          change('lab/lab.js',"No price-review popup.':'A live quote appears before any paid video or upscale.'","No price-review popup.':tool==='upscale'?'Upscale starts one paid upscaling job at the live provider price, within your daily spending limit. No price-review popup.':'A live quote appears before any paid video.'")
+          change('lab/lab.js','SpicyAPI connected / Images: one-click · Video + Upscale: price review','SpicyAPI connected / Images + Upscale: one-click · Video: price review')
+          change('lab/lab.js','Provider key connected. Review a live quote before generating.','Provider key connected. Images and Upscale start on click; Video keeps price review.')
+          change('lab/lab.js','// Image generation is authorized by Generate itself. Other tools keep the quote dialog.','// Image Generate and Upscale authorize a paid request on click. Video keeps the quote dialog.')
+          change('lab/lab.js',"(q.settings.mode==='image'?'Image requested. Quoted maximum: '+money(q.maxUsd)+' USD. Results appear in History.':'Generation request recorded. You can leave the page and return to History.')","(['image','upscale'].includes(q.settings.mode)?(q.settings.mode==='upscale'?'Upscale requested.':'Image requested.')+' Quoted maximum: '+money(q.maxUsd)+' USD. Results appear in History.':'Generation request recorded. You can leave the page and return to History.')")
+          change('lab/lab.js',"notify('Requesting a live price. No generation submitted.');","notify(selectedTool==='upscale'?'Preparing one paid upscale at the live provider price…':'Requesting a live price. No generation submitted.');")
+          change('lab/lab.js',"  currentQuote=q;const isImage=q.settings.type==='image'","  if(selectedTool==='upscale'){\n    if(q.settings.type!=='image'||q.settings.mode!=='upscale')throw new Error('Unexpected upscale quote. No generation submitted.');\n    await submitQuotedGeneration(q,sessionEpoch);\n    return;\n  }\n  currentQuote=q;const isImage=q.settings.type==='image'")
+          change('lab/lab.js','Image loaded for upscaling. Choose the size and review the price; nothing has been submitted.','Image loaded for upscaling. Choose the size, then click Upscale to start one paid job. Nothing has been submitted yet.')
+          change('lab/index.html','./lab.js?v=20260927-startframe1','./lab.js?v=20260927-upscale-oneclick1')
+          change('lab/index.html','A live price is shown before payment.','Click Upscale to start one paid job at the live provider price. The cost appears in History; no price-review popup.')
+          change('lab/index.html','A live quote appears before any paid video or upscale.','Images and Upscale start on click at the live provider price. Video keeps price review.')
+          change('lab/index.html','Image Generate starts one paid image at the live provider price. Video and upscaling keep price review before payment.','Image Generate starts your selected image count at the live provider price. Upscale starts one paid upscaling job per click without a price-review popup. Video keeps price review before payment.')
+          old=""" await x.page.click('#generate');await x.page.locator('#quote-dialog').waitFor({state:'visible'});const q=x.requests.find(r=>r.path==='/api/quotes');assert.equal(q.data.settings.mode,'upscale');assert.equal(q.data.settings.prompt,'');assert.equal(q.data.settings.type,'image');assert.equal(countPaid(x),0);assert.match(await x.page.locator('#quote-settings').innerText(),/Image Upscaler/);ok('Live quote without paid submission');
+           await x.page.click('#confirm-generation');await x.page.waitForTimeout(200);assert.equal(countPaid(x),1);ok('One confirmed click creates one task');"""
+          new=""" assert.equal(await x.page.locator('#generate').innerText(),'Upscale');await x.page.click('#generate');await x.page.waitForFunction(()=>!document.querySelector('#resolution').disabled);const q=x.requests.find(r=>r.path==='/api/quotes');assert.equal(q.data.settings.mode,'upscale');assert.equal(q.data.settings.prompt,'');assert.equal(q.data.settings.type,'image');assert.equal(x.requests.filter(r=>r.path==='/api/quotes').length,1);assert.equal(countPaid(x),1);assert.equal(await x.page.locator('#quote-dialog').isVisible(),false);ok('One click obtains a live quote and submits one upscale without review');
+           const paid=x.requests.find(r=>r.path==='/api/jobs'&&r.method==='POST');assert.equal(paid.data.quoteId,'10000000-0000-4000-8000-000000000088');assert.equal(paid.data.confirm,true);assert.match(await x.page.locator('#notice').innerText(),/Upscale requested/);ok('Upscale uses the original quote ID and displays its cost');"""
+          change('tests/lab-upscale-ui.mjs',old,new)
+          change('tests/lab-image-oneclick-ui.mjs',"mode:failure==='wrong-model'?'upscale':data.settings.mode","mode:failure==='wrong-model'?(data.settings.mode==='upscale'?'image':'upscale'):data.settings.mode")
+          change('tests/lab-image-oneclick-ui.mjs',"for(const tool of ['video','upscale'])","for(const tool of ['video'])")
+          new_tests="""
+           // Image upscaling is one paid job per click, independent of the Image batch selector.
+           const upscaleForm=async x=>{await x.page.click('#tool-upscale');await x.page.locator('#image').setInputFiles({name:'sculpture.png',mimeType:'image/png',buffer:png});await ready(x.page);};
+           x=await workspace();await imageForm(x);await x.page.selectOption('#image-count','4');await upscaleForm(x);
+           assert.equal(await x.page.locator('#generate').innerText(),'Upscale');assert.match(await x.page.locator('#generation-help').innerText(),/one paid upscaling job/);
+           await x.page.click('#generate');await ready(x.page);assert.equal(x.accepted(),1);assert.equal(count(x,'/api/quotes'),1);assert.equal(count(x,'/api/jobs'),1);assert.equal(await x.page.locator('#quote-dialog').isVisible(),false);assert.deepEqual(x.dialogs,[]);ok('Upscale ignores Image batch count and creates one job without review');await x.context.close();
+           x=await workspace({quoteDelay:300});await upscaleForm(x);await x.page.evaluate(()=>{document.querySelector('#generate').click();document.querySelector('#generate').click();});await ready(x.page);assert.equal(x.accepted(),1);assert.equal(count(x,'/api/quotes'),1);ok('Rapid repeated Upscale clicks cannot double-submit');await x.context.close();
+           for(const failure of ['quote','expired','wrong-model','budget','server','network']){
+            x=await workspace({failure});await upscaleForm(x);await x.page.click('#generate');await ready(x.page);await x.page.waitForTimeout(150);assert.equal(x.accepted(),0);assert.equal(count(x,'/api/quotes'),1);assert.equal(count(x,'/api/jobs'),['quote','expired','wrong-model'].includes(failure)?0:1);assert.equal(await x.page.locator('#quote-dialog').isVisible(),false);assert.ok((await x.page.locator('#notice').innerText()).length>0);ok('Upscale '+failure+': stops without automatic repricing or retry');await x.context.close();
+           }
+           x=await workspace({failure:'auth'});await upscaleForm(x);await x.page.click('#generate');await ready(x.page);const upscaleSubmissions=x.requests.filter(r=>r.path==='/api/jobs'&&r.method==='POST');assert.equal(upscaleSubmissions.length,2);assert.deepEqual(upscaleSubmissions[0].data,upscaleSubmissions[1].data);assert.equal(x.accepted(),1);ok('Upscale authentication-only renewal reuses the exact quote ID');await x.context.close();
+           for(const initial of [[active(1),active(2),active(3),active(4)],[{...active(5),status:'uncertain'}]]){
+            x=await workspace({initial});await upscaleForm(x);assert.equal(await x.page.locator('#generate').isDisabled(),true);assert.equal(count(x,'/api/jobs'),0);ok('Capacity and interrupted-request gates still block Upscale');await x.context.close();
+           }
+          """
+          change('tests/lab-image-oneclick-ui.mjs'," for(const width of [390,1728])",new_tests+" for(const width of [390,1728])")
+          p=Path('lab/README.md');p.write_text(p.read_text()+'''\n\n## One-click Image Upscale (2026-09-27)\n\nThe Upscale button now authorizes one paid upscale without the price-review modal. The frontend still obtains a fresh, bound provider quote and submits its exact ID once through the existing session-safe helper. No batch, automatic repricing, paid retry, or backend change is introduced. Quote expiry, wrong-mode responses, account budgets, capacity and interrupted-request checks still stop submission. Compression permission and warnings about choosing a tier below the source resolution remain. The cost is shown after submission and in History. Video keeps its separate price confirmation; Image generation is unchanged. Reuse restores originals and settings without running a task.\n\nChanged files: lab/index.html, lab/lab.js, lab/README.md, tests/lab-image-oneclick-ui.mjs and tests/lab-upscale-ui.mjs. Tests use synthetic media and mocked API responses only.\n''')
+          PY
+      - name: JavaScript and backend regression checks
+        run: |
+          find lab lab-worker tests -type f \( -name '*.js' -o -name '*.mjs' \) -exec node --check {} \;
+          node --test tests/lab*.test.mjs
+      - name: Set up isolated browser tests
+        run: |
+          npm install --prefix "$RUNNER_TEMP/pv-playwright" --no-audit --no-fund playwright@1.57.0
+          node "$RUNNER_TEMP/pv-playwright/node_modules/playwright/cli.js" install --with-deps chromium
+      - name: Browser tests with synthetic media and mocked provider only
+        run: |
+          export PV_PLAYWRIGHT_MODULE="$RUNNER_TEMP/pv-playwright/node_modules/playwright/index.mjs"
+          node tests/lab-image-oneclick-ui.mjs
+          node tests/lab-upscale-ui.mjs
+          node tests/lab-reference-ui.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: oneclick-upscale-verification
+          retention-days: 1
+          path: |
+            test-results/*.png
+            lab/index.html
+            lab/lab.js
+            tests/lab-image-oneclick-ui.mjs
+            tests/lab-upscale-ui.mjs
+      - name: Commit only tested changes and remove temporary workflow
+        run: |
+          git config user.name 'ParallelVision'
+          git config user.email 'parallelvision.label@gmail.com'
+          git rm .github/workflows/lab-upscale-oneclick-change.yml
+          git add lab/index.html lab/lab.js lab/README.md tests/lab-image-oneclick-ui.mjs tests/lab-upscale-ui.mjs
+          git diff --cached --stat
+          git commit -m 'Make image upscaling one click while preserving quotes and spending protections'
+          git push origin HEAD:fix/lab-upscale-oneclick-20260927
