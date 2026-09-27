@@ -23,7 +23,7 @@ function options(id,values,value){$(id).replaceChildren(...values.map(v=>new Opt
 function setTool(value){
   tool=['image','upscale'].includes(value)?value:'video';const image=tool==='image',upscale=tool==='upscale',video=tool==='video';
   for(const name of ['image','video','upscale']){$('tool-'+name).classList.toggle('active',tool===name);$('tool-'+name).setAttribute('aria-pressed',String(tool===name));}
-  $('video-modes').hidden=!video;$('duration-control').hidden=!video;$('video-utilities').hidden=!video;$('format-control').hidden=video;
+  $('video-modes').hidden=!video;$('duration-control').hidden=!video;$('image-count-control').hidden=!image;$('video-utilities').hidden=!video;$('format-control').hidden=video;
   $('start-mode').hidden=image||video&&mode!=='start';$('reference-mode').hidden=upscale||video&&mode!=='reference';
   $('last-upload').hidden=upscale;$('start-label').textContent=upscale?'Image to upscale':'Start frame';
   $('upscale-info').hidden=!upscale;$('prompt').hidden=upscale;$('prompt-label').hidden=upscale;$('ratio').parentElement.hidden=upscale;
@@ -158,7 +158,7 @@ bindDrop('drop','image',async files=>{if(files[0])await setImage(files[0]);});
 bindDrop('last-drop','last-image',async files=>{if(files[0])await setLastImage(files[0]);});
 bindDrop('reference-drop','reference-images',async files=>{if(files.length)await addReferences(files);});
 $('clear').onclick=()=>{clearMedia();notify('Editor cleared. Saved work is unchanged.');};
-for(const id of ['prompt','duration','resolution','ratio','seed','audio','output-format'])$(id).addEventListener('input',()=>{autoPreview=null;update();});
+for(const id of ['prompt','duration','resolution','ratio','seed','audio','output-format','image-count'])$(id).addEventListener('input',()=>{autoPreview=null;update();});
 $('save').onclick=()=>action(async()=>{const inputs=await ensureInputs();await api('/api/drafts',{method:'POST',body:{...inputs,settings:settings()}});await loadHistory();notify('Saved privately with the original media and settings. No generation charge.');});
 // Image generation is authorized by Generate itself. Other tools keep the quote dialog.
 async function submitQuotedGeneration(q, expectedEpoch=epoch) {
@@ -178,13 +178,43 @@ $('generate').onclick=()=>action(async()=>{
   if(submissionBlocked())throw new Error('An active-job limit or an interrupted request blocks another generation. Check History.');
   const selectedTool=tool,sessionEpoch=epoch;
   const inputs=await prepareQuoteInputs(await ensureInputs());if(!inputs)return;
-  notify(selectedTool==='image'?'Preparing image generation…':'Requesting a live price. No generation submitted.');
+  if(selectedTool==='image'){
+    const requested=Math.max(1,Math.min(4,Number($('image-count').value)||1));
+    const activeImages=activeJobs.filter(j=>j.settings?.type==='image').length;
+    const available=Math.max(0,limitFor('image')-activeImages);
+    if(requested>available)throw new Error('Only '+available+' image slot'+(available===1?' is':'s are')+' available right now. Wait for active images or choose a smaller batch.');
+    notify('Preparing '+requested+' image'+(requested===1?'':'s')+'…');
+    const imageSettings=settings(),quotes=[];
+    for(let i=0;i<requested;i++){
+      if(!owner||epoch!==sessionEpoch||tool!=='image')throw new Error('Session or tool changed. No further images submitted.');
+      const q=await api('/api/quotes',{method:'POST',body:{...inputs,settings:imageSettings}});
+      if(q.settings.type!=='image'||q.settings.mode!=='image')throw new Error('Unexpected image quote. No generation submitted.');
+      quotes.push(q);
+    }
+    let submitted=0,lastJob=null;
+    for(const q of quotes){
+      if(!owner||epoch!==sessionEpoch||tool!=='image')break;
+      if(!Number.isFinite(q.expiresAt)||Date.now()>=q.expiresAt)break;
+      try{
+        const data=await api('/api/jobs',{method:'POST',body:{quoteId:q.id,confirm:true}});
+        submitted++;lastJob=data.job;setActive(data.job);
+        if(['failed','uncertain','resolved'].includes(data.job.status))break;
+      }catch(e){
+        if(!submitted)throw e;
+        notify(submitted+' of '+requested+' images submitted. '+e.message,true);
+        break;
+      }
+    }
+    if(!submitted)throw new Error('No image generation was submitted.');
+    resetPreview();
+    if(lastJob)autoPreview={id:lastJob.id,revision:previewRevision};
+    await loadHistory();
+    if(submitted===requested)notify(requested===1?'Image requested. Result appears in History.':requested+' images requested as one batch. Results appear independently in History.');
+    return;
+  }
+  notify('Requesting a live price. No generation submitted.');
   const q=await api('/api/quotes',{method:'POST',body:{...inputs,settings:settings()}});
   if(!owner||epoch!==sessionEpoch||tool!==selectedTool)throw new Error('Session or tool changed. No generation submitted.');
-  if(selectedTool==='image'){
-    if(q.settings.type!=='image'||q.settings.mode!=='image')throw new Error('Unexpected image quote. No generation submitted.');
-    await submitQuotedGeneration(q,sessionEpoch);return;
-  }
   currentQuote=q;const isImage=q.settings.type==='image',modeName=q.settings.mode==='reference'?'Reference to Video':'Image to Video';
   $('quote-settings').textContent=q.settings.mode==='upscale'?`Image Upscaler / ${q.settings.resolution.toUpperCase()} / ${q.settings.outputFormat.toUpperCase()} / source ratio kept`:isImage?`Seedream 5.0 Pro / ${q.settings.referenceSourceIds.length?'Reference Edit':'Text to Image'} / ${q.settings.resolution.toUpperCase()} / ${q.settings.aspectRatio}`:`Wan 3.0 / ${modeName} / ${q.settings.duration}s / ${q.settings.resolution}`;
   $('quote-price').textContent=money(q.estimatedUsd);$('quote-limit').textContent=`Quoted maximum: ${money(q.maxUsd)} USD`;
