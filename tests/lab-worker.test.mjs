@@ -19,11 +19,29 @@ class DB {
  }
  async batch(statements){this.db.exec('BEGIN');try{const a=[];for(const s of statements)a.push(await s.run());this.db.exec('COMMIT');return a;}catch(e){this.db.exec('ROLLBACK');throw e;}}
 }
-function fixture(){const db=new DB(readFileSync(new URL('../lab-worker/schema.sql',import.meta.url),'utf8')),owner=new DB("CREATE TABLE users(id TEXT,auth_provider TEXT,auth_subject TEXT,role TEXT); INSERT INTO users VALUES('owner-internal','clerk','user_Owner','owner'),('guest','clerk','user_Guest','user');");const objects=new Map();const env={LAB_DB:db,OWNER_DB:owner,LAB_SECRET:'synthetic-test-secret-do-not-use-in-production-01234567890',LAB_MEDIA:{async put(k,value){objects.set(k,new Uint8Array(await new Response(value).arrayBuffer()));},async get(k){if(!objects.has(k))return null;const v=objects.get(k);return{body:new Response(v).body,size:v.length};},async delete(k){objects.delete(k);}}};return{env,objects};}
+function fixture(){const db=new DB(readFileSync(new URL('../lab-worker/schema.sql',import.meta.url),'utf8')),owner=new DB("CREATE TABLE users(id TEXT,auth_provider TEXT,auth_subject TEXT,role TEXT); INSERT INTO users VALUES('owner-internal','clerk','user_Owner','owner'),('guest','clerk','user_Guest','user');");const objects=new Map();const env={LAB_DB:db,OWNER_DB:owner,LAB_SECRET:'synthetic-test-secret-do-not-use-in-production-01234567890',GEMINI_API_KEY:'synthetic-google-key-do-not-use-01234567890',LAB_MEDIA:{async put(k,value){objects.set(k,new Uint8Array(await new Response(value).arrayBuffer()));},async get(k){if(!objects.has(k))return null;const v=objects.get(k);return{body:new Response(v).body,size:v.length};},async delete(k){objects.delete(k);}}};return{env,objects};}
 let calls=[],quotedRequest=null,createCount=0,providerState='queued',createMode='ok',maxPrice='2.700000';
-let uploadedReference=null;
+let uploadedReference=null,googleUploadMime='',googleBatchJsonl='';
 globalThis.fetch=async (url,options={})=>{const u=new URL(url);calls.push({url:String(url),options});if(u.pathname==='/.well-known/jwks.json')return Response.json({keys:[jwk]});if(u.hostname==='cdn.spicyapi.ai'){assert.ok(!options.headers?.Authorization);if(u.pathname.endsWith('.png'))return new Response(new Uint8Array([137,80,78,71,13,10,26,10,0]),{headers:{'content-type':'image/png'}});return new Response(new Uint8Array([0,0,0,24,102,116,121,112,109,112,52,50]),{headers:{'content-type':'video/mp4'}});}
  if(u.hostname==='test.r2.cloudflarestorage.com'){assert.equal(options.method,'PUT');assert.equal(new Headers(options.headers).get('authorization'),null);uploadedReference=new Uint8Array(options.body);return new Response(null,{status:200});}
+ if(u.hostname==='generativelanguage.googleapis.com'){
+   const headers=new Headers(options.headers);assert.ok(!String(url).includes('synthetic-google-key'));
+   const finalize=u.pathname==='/upload/v1beta/files'&&u.searchParams.get('upload_id')==='synthetic';
+   if(!finalize)assert.equal(headers.get('x-goog-api-key'),'synthetic-google-key-do-not-use-01234567890');
+   if(finalize){
+     const bytes=new Uint8Array(options.body);if(googleUploadMime==='application/jsonl')googleBatchJsonl=new TextDecoder().decode(bytes);
+     return Response.json({file:{name:googleUploadMime==='application/jsonl'?'files/batchInput':'files/referenceInput',uri:'https://generativelanguage.googleapis.com/v1beta/files/referenceInput',mimeType:googleUploadMime}});
+   }
+   if(u.pathname==='/upload/v1beta/files'){googleUploadMime=headers.get('X-Goog-Upload-Header-Content-Type')||'';return new Response(null,{status:200,headers:{'X-Goog-Upload-URL':'https://generativelanguage.googleapis.com/upload/v1beta/files?upload_id=synthetic'}});}
+   if(u.pathname.endsWith('/models/gemini-3-pro-image:generateContent'))return Response.json({candidates:[{content:{parts:[{inlineData:{mimeType:'image/png',data:Buffer.from([137,80,78,71,13,10,26,10,0]).toString('base64')}}]}}]});
+   if(u.pathname.endsWith('/models/gemini-3-pro-image:batchGenerateContent'))return Response.json({name:'batches/synthetic_batch'});
+   if(u.pathname==='/v1beta/batches/synthetic_batch')return Response.json({state:'JOB_STATE_SUCCEEDED',dest:{fileName:'files/batchOutput'}});
+   if(u.pathname==='/download/v1beta/files/batchOutput:download'){
+     const rows=googleBatchJsonl.trim().split('\n').filter(Boolean).map(line=>{const item=JSON.parse(line);return JSON.stringify({key:item.key,response:{candidates:[{content:{parts:[{inlineData:{mimeType:'image/png',data:Buffer.from([137,80,78,71,13,10,26,10,0]).toString('base64')}}]}}]}});}).join('\n')+'\n';
+     return new Response(rows,{headers:{'content-type':'application/jsonl'}});
+   }
+   throw new Error('Unmocked Google request: '+url);
+ }
  assert.equal(u.hostname,'api.spicyapi.ai');assert.equal(options.headers.Authorization,'Bearer '+KEY);
  if(u.pathname.endsWith('/chat/credit'))return Response.json({code:200,data:{available:'10',held:'0',total:'10'}});
  if(u.pathname.endsWith('/common/upload-url')){const input=JSON.parse(options.body);return Response.json({code:200,data:{fileId:'fil_synthetic_reference',uploadUrl:'https://test.r2.cloudflarestorage.com/reference',method:'PUT',headers:{'Content-Type':input.contentType,'Content-Length':String(input.bytes)},maxBytes:10485760,expiresAt:new Date(Date.now()+1200000).toISOString()}});}
@@ -71,6 +89,27 @@ test('Atomic image migration preserves existing completed video, private media p
   const before=db.prepare('SELECT * FROM jobs').get();db.exec('BEGIN');db.exec(readFileSync(new URL('../lab-worker/migrations/0002-images.sql',import.meta.url),'utf8'));db.exec('COMMIT');assert.deepEqual(db.prepare('SELECT * FROM jobs').get(),before);assert.equal(db.prepare('SELECT encrypted_key FROM settings').get().encrypted_key,'encrypted-key');assert.equal(db.prepare('SELECT SUM(estimate_microusd) AS n FROM spend').get().n,2700000);assert.deepEqual(db.prepare('PRAGMA foreign_key_check').all(),[]);db.exec("INSERT INTO jobs(id,owner_id,source_id,params,state,created_at,updated_at) VALUES('image-job','owner',NULL,'{}','draft',2,2)");assert.equal(db.prepare('SELECT COUNT(*) AS n FROM jobs').get().n,2);
 });
 
+const nanoSettings={type:'image',mode:'image',imageEngine:'nano-banana-pro',delivery:'normal',prompt:'A natural editorial portrait',resolution:'2k',aspectRatio:'4:5',outputFormat:'auto',referenceRoles:[]};
+test('Nano Banana Pro Normal uses the Worker-only Google key, stores output privately and bypasses Spicy quotes',async()=>{
+  calls=[];googleBatchJsonl='';const{env}=fixture();await setup(env);
+  const before=createCount,response=await req(env,'/api/gemini/images',{method:'POST',data:{settings:nanoSettings,referenceSourceIds:[],count:2}});
+  assert.equal(response.status,200);const data=await response.json();assert.equal(data.jobs.length,2);assert.ok(data.jobs.every(j=>j.status==='completed'&&j.outputId),JSON.stringify(data.jobs));
+  assert.equal(createCount,before);assert.equal(calls.filter(x=>x.url.includes('/jobs/quote')).length,0);
+  assert.equal(calls.filter(x=>x.url.includes(':generateContent')).length,2);
+  for(const job of data.jobs)assert.equal((await req(env,'/api/assets/'+job.outputId)).headers.get('content-type'),'image/png');
+  assert.ok(calls.filter(x=>x.url.includes('generativelanguage.googleapis.com')).every(x=>!x.url.includes(env.GEMINI_API_KEY)));
+});
+test('Nano Banana Pro Batch submits one JSONL batch, polls once and archives every requested image',async()=>{
+  calls=[];googleBatchJsonl='';const{env}=fixture();await setup(env);
+  const response=await req(env,'/api/gemini/images',{method:'POST',data:{settings:{...nanoSettings,delivery:'batch'},referenceSourceIds:[],count:4}});
+  assert.equal(response.status,202);let data=await response.json();assert.equal(data.jobs.length,4);assert.ok(data.jobs.every(j=>j.status==='queued'&&j.providerTaskId==='batches/synthetic_batch'));
+  assert.equal(calls.filter(x=>x.url.includes(':batchGenerateContent')).length,1);assert.equal(googleBatchJsonl.trim().split('\n').length,4);
+  const poll=await req(env,'/api/jobs/'+data.jobs[0].id);assert.equal(poll.status,200);
+  data=await(await req(env,'/api/jobs')).json();const group=data.jobs.filter(j=>j.settings.batchGroupId===data.jobs[0].settings.batchGroupId);
+  assert.equal(group.length,4);assert.ok(group.every(j=>j.status==='completed'&&j.outputId));
+  assert.equal(calls.filter(x=>x.url.includes('/v1beta/batches/synthetic_batch')).length,1);
+  assert.equal(calls.filter(x=>x.url.includes('/download/v1beta/files/batchOutput:download')).length,1);
+});
 const upscaleSettings={type:'image',mode:'upscale',resolution:'4k',outputFormat:'png'};
 test('Upscale quotes require one source but no prompt; completed image retains original and safe reuse',async()=>{
  createMode='ok';createCount=0;providerState='queued';const{env}=fixture(),id=await setup(env);
