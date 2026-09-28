@@ -448,15 +448,15 @@ async function route(request,env,ctx) {
   if(!url.pathname.startsWith('/api/'))fail(404,'Not found.');
   const owner=await authenticate(request,env),path=url.pathname,method=request.method;
   if(path==='/api/session'&&method==='GET'){
-    const c=await config(env,owner),spent=await first(env,'SELECT COALESCE(SUM(estimate_microusd),0) AS n FROM spend WHERE owner_id=? AND created_at>=?',owner,Math.floor(now()/86400000)*86400000);
-    return json({owner:true,ownerId:owner,version:VERSION,config:publicConfig(c),estimatedSpentToday:spent.n/1000000});
+    const c=await config(env,owner),fal=await providerKey(env,owner,'fal'),spent=await first(env,'SELECT COALESCE(SUM(estimate_microusd),0) AS n FROM spend WHERE owner_id=? AND created_at>=?',owner,Math.floor(now()/86400000)*86400000);
+    return json({owner:true,ownerId:owner,version:VERSION,config:publicConfig(c,!!fal),estimatedSpentToday:spent.n/1000000});
   }
   if(path==='/api/settings'&&method==='POST') {
     const data=await body(request),old=await config(env,owner);
     const limit=Number(data.dailyLimitUsd??10);if(!Number.isFinite(limit)||limit<1||limit>100)fail(400,'Daily estimate limit must be between $1 and $100.');
     if(data.enabled===true&&data.termsConfirmed!==true)fail(400,'Confirm provider suitability and terms before enabling paid generation.');
     const active=await first(env,"SELECT id FROM jobs WHERE owner_id=? AND state IN ('submitting','queued','running','saving','uncertain')",owner);
-    if(data.apiKey&&active)fail(409,'Wait for or resolve the active job before changing the API account.');
+    if((data.apiKey||data.falApiKey)&&active)fail(409,'Wait for or resolve the active job before changing the API account.');
     let encrypted=old?.encrypted_key;
     if(typeof data.apiKey==='string'&&data.apiKey.trim()) {
       const key=data.apiKey.trim();if(key.length<16||key.length>512||/\s/.test(key))fail(400,'Invalid API key format.');
@@ -464,13 +464,19 @@ async function route(request,env,ctx) {
       await vendorRequest('/chat/credit',key);
       encrypted=await encryptKey(env,key);
     }
-    if(!encrypted)fail(400,'Enter your provider API key.');
+    if(!encrypted)fail(400,'Enter your SpicyAPI key.');
     await run(env,'INSERT INTO settings(owner_id,encrypted_key,enabled,terms_confirmed,daily_limit_microusd,updated_at) VALUES(?,?,?,?,?,?) ON CONFLICT(owner_id) DO UPDATE SET encrypted_key=excluded.encrypted_key,enabled=excluded.enabled,terms_confirmed=excluded.terms_confirmed,daily_limit_microusd=excluded.daily_limit_microusd,updated_at=excluded.updated_at',owner,encrypted,data.enabled===true?1:0,data.termsConfirmed===true?1:0,Math.round(limit*1000000),now());
-    return json({config:publicConfig(await config(env,owner))});
+    if(typeof data.falApiKey==='string'&&data.falApiKey.trim()){
+      const falKey=data.falApiKey.trim();if(falKey.length<16||falKey.length>512||/\s/.test(falKey))fail(400,'Invalid fal.ai API key format.');
+      const encryptedFal=await encryptProviderKey(env,falKey,'fal');
+      await run(env,"INSERT INTO provider_keys(owner_id,provider,encrypted_key,updated_at) VALUES(?,'fal',?,?) ON CONFLICT(owner_id,provider) DO UPDATE SET encrypted_key=excluded.encrypted_key,updated_at=excluded.updated_at",owner,encryptedFal,now());
+    }
+    return json({config:publicConfig(await config(env,owner),!!(await providerKey(env,owner,'fal')))});
   }
   if(path==='/api/settings'&&method==='DELETE') {
     if(await first(env,"SELECT id FROM jobs WHERE owner_id=? AND state IN ('submitting','queued','running','saving','uncertain')",owner))fail(409,'Wait for or resolve the active job before removing its API key.');
-    await run(env,'DELETE FROM settings WHERE owner_id=?',owner);return json({config:publicConfig(null)});
+    await env.LAB_DB.batch([stmt(env,'DELETE FROM settings WHERE owner_id=?',owner),stmt(env,'DELETE FROM provider_keys WHERE owner_id=?',owner)]);
+    return json({config:publicConfig(null,false)});
   }
   if(path==='/api/packs'&&method==='GET'){
     const list=await rows(env,'SELECT id,name,refs,created_at FROM packs WHERE owner_id=? ORDER BY name',owner);
@@ -502,6 +508,19 @@ async function route(request,env,ctx) {
     try{filename=decodeURIComponent(request.headers.get('x-filename')||filename).replace(/[\r\n\x00-\x1f]/g,'').slice(0,180);}catch{}
     await env.LAB_MEDIA.put(objectKey,bytes,{httpMetadata:{contentType:mime}});
     try{await run(env,"INSERT INTO assets(id,owner_id,object_key,kind,mime,filename,bytes,created_at) VALUES(?,?,?,'source',?,?,?,?)",id,owner,objectKey,mime,filename,bytes.length,now());}catch(e){await env.LAB_MEDIA.delete(objectKey);throw e;}
+    return json({id,filename,bytes:bytes.length},201);
+  }
+  if(path==='/api/video-uploads'&&method==='POST') {
+    const mime=request.headers.get('content-type')?.split(';')[0];
+    if(!['video/mp4','video/quicktime'].includes(mime))fail(415,'Choose an MP4 or MOV video.');
+    const bytes=await limitedBody(request,MAX_VIDEO);
+    if(!bytes.length||!sniffReference(bytes,mime))fail(400,'Video contents do not match the selected file type.');
+    const usage=await first(env,'SELECT COALESCE(SUM(bytes),0) AS n,COUNT(*) AS count FROM assets WHERE owner_id=?',owner);
+    if(usage.n+bytes.length>MAX_STORAGE||usage.count>=1000)fail(413,'Private archive limit reached. Delete old records first.');
+    const id=crypto.randomUUID(),key=`${owner}/sources/${id}`;let filename='source-video.'+(mime==='video/quicktime'?'mov':'mp4');
+    try{filename=decodeURIComponent(request.headers.get('x-filename')||filename).replace(/[\r\n\x00-\x1f]/g,'').slice(0,180);}catch{}
+    await env.LAB_MEDIA.put(key,bytes,{httpMetadata:{contentType:mime}});
+    try{await run(env,"INSERT INTO assets(id,owner_id,object_key,kind,mime,filename,bytes,created_at) VALUES(?,?,?,'source',?,?,?,?)",id,owner,key,mime,filename,bytes.length,now());}catch(e){await env.LAB_MEDIA.delete(key);throw e;}
     return json({id,filename,bytes:bytes.length},201);
   }
   if(path==='/api/uploads'&&method==='POST') {
