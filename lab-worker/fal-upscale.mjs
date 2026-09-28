@@ -65,7 +65,7 @@ async function falJson(url,key,options={}){
   try{r=await fetch(url,{...options,headers:{Authorization:'Key '+key,Accept:'application/json',...(options.body?{'Content-Type':'application/json'}:{}),...(options.headers||{})},signal:AbortSignal.timeout(20000)});}
   catch{const e=new Error('fal.ai could not be reached. Check History before retrying a paid submission.');e.uncertain=options.method==='POST';throw e;}
   const raw=await r.text();let data=null;try{data=raw?JSON.parse(raw):null;}catch{}
-  if(!r.ok){const detail=String(data?.detail||data?.message||data?.error||raw||'Provider rejected the request.').replace(/[\r\n]+/g,' ').slice(0,240);const e=new Error('fal.ai: '+detail);e.status=r.status;throw e;}
+  if(!r.ok){const detail=String(data?.detail||data?.message||data?.error||raw||'Provider rejected the request.').replace(/[\r\n]+/g,' ').slice(0,240);const e=new Error('fal.ai: '+detail);e.status=r.status;e.definite=r.status>=400&&r.status<500&&r.status!==408;throw e;}
   return data||{};
 }
 export async function falSubmit(endpoint,key,input){
