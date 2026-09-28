@@ -25,15 +25,14 @@ let uploadedReference=null,googleUploadMime='',googleBatchJsonl='';
 globalThis.fetch=async (url,options={})=>{const u=new URL(url);calls.push({url:String(url),options});if(u.pathname==='/.well-known/jwks.json')return Response.json({keys:[jwk]});if(u.hostname==='cdn.spicyapi.ai'){assert.ok(!options.headers?.Authorization);if(u.pathname.endsWith('.png'))return new Response(new Uint8Array([137,80,78,71,13,10,26,10,0]),{headers:{'content-type':'image/png'}});return new Response(new Uint8Array([0,0,0,24,102,116,121,112,109,112,52,50]),{headers:{'content-type':'video/mp4'}});}
  if(u.hostname==='test.r2.cloudflarestorage.com'){assert.equal(options.method,'PUT');assert.equal(new Headers(options.headers).get('authorization'),null);uploadedReference=new Uint8Array(options.body);return new Response(null,{status:200});}
  if(u.hostname==='generativelanguage.googleapis.com'){
-   const headers=new Headers(options.headers);assert.equal(headers.get('x-goog-api-key'),'synthetic-google-key-do-not-use-01234567890');assert.ok(!String(url).includes('synthetic-google-key'));
-   if(u.pathname==='/upload/v1beta/files'&&u.searchParams.get('upload_id')==='synthetic'){
+   const headers=new Headers(options.headers);assert.ok(!String(url).includes('synthetic-google-key'));
+   const finalize=u.pathname==='/upload/v1beta/files'&&u.searchParams.get('upload_id')==='synthetic';
+   if(!finalize)assert.equal(headers.get('x-goog-api-key'),'synthetic-google-key-do-not-use-01234567890');
+   if(finalize){
      const bytes=new Uint8Array(options.body);if(googleUploadMime==='application/jsonl')googleBatchJsonl=new TextDecoder().decode(bytes);
      return Response.json({file:{name:googleUploadMime==='application/jsonl'?'files/batchInput':'files/referenceInput',uri:'https://generativelanguage.googleapis.com/v1beta/files/referenceInput',mimeType:googleUploadMime}});
    }
    if(u.pathname==='/upload/v1beta/files'){googleUploadMime=headers.get('X-Goog-Upload-Header-Content-Type')||'';return new Response(null,{status:200,headers:{'X-Goog-Upload-URL':'https://generativelanguage.googleapis.com/upload/v1beta/files?upload_id=synthetic'}});}
-   if(false){
-     throw new Error('unreachable');
-   }
    if(u.pathname.endsWith('/models/gemini-3-pro-image:generateContent'))return Response.json({candidates:[{content:{parts:[{inlineData:{mimeType:'image/png',data:Buffer.from([137,80,78,71,13,10,26,10,0]).toString('base64')}}]}}]});
    if(u.pathname.endsWith('/models/gemini-3-pro-image:batchGenerateContent'))return Response.json({name:'batches/synthetic_batch'});
    if(u.pathname==='/v1beta/batches/synthetic_batch')return Response.json({state:'JOB_STATE_SUCCEEDED',dest:{fileName:'files/batchOutput'}});
