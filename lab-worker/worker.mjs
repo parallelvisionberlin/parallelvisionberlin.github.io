@@ -405,6 +405,7 @@ async function backfillFailureDetails(env) {
     const owner=await env.OWNER_DB.prepare("SELECT id FROM users WHERE id=? AND role='owner' AND auth_provider='clerk'").bind(job.owner_id).first();
     if(!owner)continue;
     try{
+      if(JSON.parse(job.params||'{}').mode==='video-upscale')continue;
       const c=await config(env,job.owner_id);if(!c)continue;
       const result=await vendorRequest('/jobs/recordInfo?taskId='+encodeURIComponent(job.provider_id),await decryptKey(env,c.encrypted_key));
       if(['failed','cancelled','canceled','expired'].includes(result.state))await run(env,"UPDATE jobs SET error=? WHERE id=? AND state='failed'",providerFailure(result),job.id);
@@ -417,6 +418,25 @@ async function refreshJob(env,j) {
   const lock=await run(env,'UPDATE jobs SET last_poll=? WHERE id=? AND last_poll<?',now(),j.id,now()-8000);
   if(!lock.meta.changes)return;
   try {
+    const params=JSON.parse(j.params||'{}');
+    if(params.mode==='video-upscale'){
+      const row=await providerKey(env,j.owner_id,'fal');if(!row)return;
+      const key=await decryptProviderKey(env,row.encrypted_key,'fal'),status=await falStatus(params.model,key,j.provider_id);
+      const state=String(status.status||'').toUpperCase();
+      if(state==='COMPLETED'){
+        const result=await falResult(params.model,key,j.provider_id),output=result.video?.url||result.data?.video?.url;
+        if(typeof output!=='string'||!output)throw new Error('fal.ai completed without a downloadable video.');
+        const safe=safeVideoUrl(output);
+        await run(env,"UPDATE jobs SET state='saving',remote_url=?,updated_at=? WHERE id=?",safe,now(),j.id);
+        await copyResult(env,j,safe);
+      }else if(state==='FAILED'||state==='CANCELLED'){
+        const detail=String(status.error||status.message||status.logs?.at?.(-1)?.message||'fal.ai enhancement failed.').replace(/[\r\n]+/g,' ').slice(0,220);
+        await run(env,"UPDATE jobs SET state='failed',error=?,updated_at=? WHERE id=?",detail,now(),j.id);
+      }else{
+        await run(env,"UPDATE jobs SET state=?,updated_at=?,error='' WHERE id=?",state==='IN_PROGRESS'?'running':'queued',now(),j.id);
+      }
+      return;
+    }
     const c=await config(env,j.owner_id);if(!c)return;
     const key=await decryptKey(env,c.encrypted_key);
     const result=await vendorRequest('/jobs/recordInfo?taskId='+encodeURIComponent(j.provider_id),key);
