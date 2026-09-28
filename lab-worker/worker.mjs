@@ -505,6 +505,13 @@ async function route(request,env,ctx) {
     const {key}=await requireConfigured(env,owner),data=await body(request),p=parameters(data.settings);
     if(p.mode!=='upscale'&&!p.prompt)fail(400,'Add a prompt before generating.');
     const {primary,input}=await prepareInput(env,owner,data,p,url);
+    if(p.type==='video'&&Array.isArray(input.reference_image_urls)&&p.referenceSourceIds?.length){
+      const ids=data.transferSourceIds??p.referenceSourceIds;
+      if(!Array.isArray(ids)||ids.length!==p.referenceSourceIds.length||new Set(ids).size!==ids.length)fail(400,'Prepared video references must match the selected images in order.');
+      const transfers=await sources(env,owner,ids);
+      p.transferSourceIds=transfers.map(a=>a.id);
+      input.reference_image_urls=await stageImageReferences(env,owner,p.transferSourceIds,key);
+    }
     if(p.type==='image'){
       const originals=p.mode==='upscale'?[primary.id]:p.referenceSourceIds;
       if(originals.length){
