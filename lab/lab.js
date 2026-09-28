@@ -49,7 +49,7 @@ async function api(path,options={}) {
   const generation=epoch;
   if(!owner&&path!=='/api/session')throw new Error('Sign in first.');
   const assertCurrent=()=>{if(generation!==epoch)throw new Error('Session changed.');};
-  const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),65000);requestControllers.add(controller);
+  const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),path==='/api/gemini/jobs'?95000:65000);requestControllers.add(controller);
   try{
     const headers={...options.headers};let b=options.body;
     if(b!==undefined&&!(b instanceof Blob)&&!(b instanceof ArrayBuffer)){headers['Content-Type']='application/json';b=JSON.stringify(b);}
@@ -305,14 +305,16 @@ $('confirm-generation').onclick=async()=>{
   await action(()=>submitQuotedGeneration(q));
 };
 function limitFor(kind){const n=Number(config.concurrency?.[kind]);return Number.isInteger(n)&&n>0?n:1;}
-function submissionBlocked(){return activeJobs.some(j=>j.status==='uncertain')||activeJobs.filter(j=>(j.settings?.type==='image'?'image':'video')===(tool==='upscale'?'image':tool)).length>=limitFor(tool==='upscale'?'image':tool);}
+function submissionBlocked(){const kind=tool==='upscale'?'image':tool;return activeJobs.some(j=>j.status==='uncertain')||activeJobs.filter(j=>{const jobKind=j.settings?.type==='image'?'image':'video',backgroundBatch=j.settings?.provider==='gemini'&&j.settings?.processing==='batch';return jobKind===kind&&!backgroundBatch;}).length>=limitFor(kind);}
 function schedulePoll(delay=10000){clearTimeout(timer);timer=null;if(owner&&activeJobs.some(j=>j.status!=='uncertain')&&!polling)timer=setTimeout(poll,delay);}
 function setActiveJobs(list){
   activeJobs=[...new Map((list||[]).filter(j=>j&&activeStates.has(j.status)).map(j=>[j.id,j])).values()];
   activeJob=activeJobs.find(j=>j.status==='uncertain')||activeJobs[0]||null;
   $('active').hidden=!activeJobs.length;
-  const images=activeJobs.filter(j=>j.settings?.type==='image').length,videos=activeJobs.length-images;
-  $('active-status').textContent=images+' / '+limitFor('image')+' images active · '+videos+' / '+limitFor('video')+' videos active';
+  const batchImages=activeJobs.filter(j=>j.settings?.type==='image'&&j.settings?.provider==='gemini'&&j.settings?.processing==='batch').length;
+  const images=activeJobs.filter(j=>j.settings?.type==='image'&&!(j.settings?.provider==='gemini'&&j.settings?.processing==='batch')).length;
+  const videos=activeJobs.filter(j=>j.settings?.type!=='image').length;
+  $('active-status').textContent=images+' / '+limitFor('image')+' images active'+(batchImages?' · '+batchImages+' batch queued':'')+' · '+videos+' / '+limitFor('video')+' videos active';
   const labels={submitting:'Submitting',queued:'Queued',running:'Generating',saving:'Saving',uncertain:'Interrupted: check provider before another attempt'};
   $('active-detail').textContent=activeJobs.map((j,i)=>(i+1)+'. '+(j.settings?.type==='image'?'Image':'Video')+' · '+labels[j.status]+(j.error?' · '+j.error:'')+(j.providerTaskId?' · '+j.providerTaskId:'')).join('\n');
   $('active-detail').style.whiteSpace='pre-line';
