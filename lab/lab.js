@@ -8,6 +8,7 @@ const $=id=>document.getElementById(id), activeStates=new Set(['submitting','que
 let clerk, owner=false, userId='', epoch=0, syncing=false, config={}, file=null, sourceId=null, imageRevision=0, busy=false;
 let sourceUrl=null, lastFile=null, lastSourceId=null, lastUrl=null, references=[], mode='start';
 let engine='wan';
+let imageEngine='seedream',imageDelivery='normal';
 let tool='video', packs=[],resultKind='video',resultExt='mp4';
 let resultUrl=null, resultId=null, resultSettings=null, previewRevision=0, autoPreview=null, currentQuote=null, next=null, activeJob=null, timer=null, historyRevision=0;
 let activeJobs=[], polling=false;
@@ -19,14 +20,68 @@ const money=n=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',ma
 const notify=(text,error=false)=>{$('notice').textContent=text;$('notice').classList.toggle('error',error);};
 function release(url){if(url)URL.revokeObjectURL(url);}
 function referenceRoles(){return references.map(r=>({name:r.file.name,role:r.role||'none',note:r.note||''}));}
-function settings(){if(tool==='upscale')return {type:'image',mode:'upscale',prompt:'',resolution:$('resolution').value,aspectRatio:'auto',outputFormat:$('output-format').value,referenceRoles:[]};if(tool==='image')return {type:'image',mode:'image',prompt:$('prompt').value.trim(),resolution:$('resolution').value,aspectRatio:$('ratio').value,outputFormat:$('output-format').value,referenceRoles:referenceRoles()};return {type:'video',engine,mode,referenceVideos:mode==='reference'?mediaRefs.labels('video'):[],referenceAudio:mode==='reference'?mediaRefs.labels('audio'):[],prompt:$('prompt').value.trim(),duration:Number($('duration').value),resolution:$('resolution').value,aspectRatio:$('ratio').value,seed:$('seed').value,audio:$('audio').checked,referenceRoles:referenceRoles()};}
+function settings(){
+  if(tool==='upscale')return {type:'image',mode:'upscale',prompt:'',resolution:$('resolution').value,aspectRatio:'auto',outputFormat:$('output-format').value,referenceRoles:[]};
+  if(tool==='image'){
+    if(imageEngine==='nano-banana-pro')return {type:'image',mode:'image',imageEngine,delivery:imageDelivery,prompt:$('prompt').value.trim(),resolution:$('resolution').value,aspectRatio:$('ratio').value,outputFormat:'auto',referenceRoles:referenceRoles()};
+    return {type:'image',mode:'image',imageEngine:'seedream',delivery:'normal',prompt:$('prompt').value.trim(),resolution:$('resolution').value,aspectRatio:$('ratio').value,outputFormat:$('output-format').value,referenceRoles:referenceRoles()};
+  }
+  return {type:'video',engine,mode,referenceVideos:mode==='reference'?mediaRefs.labels('video'):[],referenceAudio:mode==='reference'?mediaRefs.labels('audio'):[],prompt:$('prompt').value.trim(),duration:Number($('duration').value),resolution:$('resolution').value,aspectRatio:$('ratio').value,seed:$('seed').value,audio:$('audio').checked,referenceRoles:referenceRoles()};
+}
 function hasInput(){if(tool==='upscale')return !!file;return tool==='image'||mode==='text'?!!$('prompt').value.trim():mode==='start'?!!file:references.length>0||(engine==='seedance'&&mediaRefs.count()>0);}
-function update(){const current=settings(),p=resultSettings||current,ratio=p.aspectRatio==='auto'?(p.mode==='reference'?'adaptive':'source ratio'):p.aspectRatio;$('settings-summary').textContent=p.type==='image'?`${p.mode==='upscale'?'Upscale':'Image'} / ${p.resolution.toUpperCase()} / ${ratio}`:`${p.duration}s / ${p.resolution} / ${ratio}`;$('save').disabled=!owner||!hasInput()||busy;$('clear').disabled=(!file&&!lastFile&&!references.length&&!mediaRefs.count()&&!resultUrl&&!$('prompt').value.trim())||busy;$('generate').disabled=!owner||!hasInput()||(tool!=='upscale'&&!current.prompt)||busy||submissionBlocked();$('generate').textContent=config.enabled?(tool==='image'?'Generate':tool==='upscale'?'Upscale':'Review price & generate'):'Connect generation provider';$('generation-help').textContent=(tool==='image'?'Generate starts one paid image at the live provider price, within your daily spending limit. No price-review popup.':tool==='upscale'?'Upscale starts one paid upscaling job at the live provider price, within your daily spending limit. No price-review popup.':'A live quote appears before any paid video.')+' Inputs over 10 MiB need a working copy; the Lab asks first and keeps the original. Saving history does not generate or charge.';for(const el of document.querySelectorAll('.controls input,.controls select,.controls textarea,.mode-tab,.tool-tab'))el.disabled=busy;}
+function generationReady(){return tool==='image'&&imageEngine==='nano-banana-pro'?!!config.geminiConfigured:!!config.enabled;}
+function kindForSettings(p){return p?.type==='image'&&p?.imageEngine==='nano-banana-pro'&&p?.delivery==='batch'?'batch':p?.type==='image'?'image':'video';}
+function selectedKind(){return tool==='upscale'?'image':tool==='image'&&imageEngine==='nano-banana-pro'&&imageDelivery==='batch'?'batch':tool;}
+function update(){
+  const current=settings(),p=resultSettings||current,ratio=p.aspectRatio==='auto'?(p.mode==='reference'?'adaptive':'source ratio'):p.aspectRatio;
+  const model=p.imageEngine==='nano-banana-pro'?'Nano Banana Pro':p.mode==='upscale'?'Upscale':'Image';
+  $('settings-summary').textContent=p.type==='image'?model+' / '+p.resolution.toUpperCase()+' / '+ratio:`${p.duration}s / ${p.resolution} / ${ratio}`;
+  $('save').disabled=!owner||!hasInput()||busy;
+  $('clear').disabled=(!file&&!lastFile&&!references.length&&!mediaRefs.count()&&!resultUrl&&!$('prompt').value.trim())||busy;
+  $('generate').disabled=!owner||!hasInput()||(tool!=='upscale'&&!current.prompt)||busy||submissionBlocked()||!generationReady();
+  if(!generationReady())$('generate').textContent=tool==='image'&&imageEngine==='nano-banana-pro'?'Nano Banana Pro key not configured':'Connect generation provider';
+  else if(tool==='image'&&imageEngine==='nano-banana-pro')$('generate').textContent=imageDelivery==='batch'?'🕒 Queue batch':'⚡ Generate now';
+  else $('generate').textContent=tool==='image'?'Generate':tool==='upscale'?'Upscale':'Review price & generate';
+  if(tool==='image'&&imageEngine==='nano-banana-pro'){
+    $('generation-help').textContent=imageDelivery==='batch'
+      ?'Batch uses Google’s asynchronous queue at about half the Standard image-output price. It can take minutes or hours; no completion time is guaranteed. Results save to History automatically. Thinking tokens can add variable cost.'
+      :'Normal uses Google’s interactive API. 1K/2K image output is about $0.134 each and 4K about $0.24, plus small input and variable thinking-token costs.';
+  }else{
+    $('generation-help').textContent=(tool==='image'?'Generate starts one paid image at the live provider price, within your daily spending limit. No price-review popup.':tool==='upscale'?'Upscale starts one paid upscaling job at the live provider price, within your daily spending limit. No price-review popup.':'A live quote appears before any paid video.')+' Inputs over 10 MiB need a working copy; the Lab asks first and keeps the original. Saving history does not generate or charge.';
+  }
+  for(const el of document.querySelectorAll('.controls input,.controls select,.controls textarea,.mode-tab,.tool-tab'))el.disabled=busy;
+}
 function options(id,values,value){$(id).replaceChildren(...values.map(v=>new Option(v==='auto'?'Follow reference':v.toUpperCase(),v)));$(id).value=value;}
+function imageCountOptions(values,value){
+  $('image-count').replaceChildren(...values.map(v=>new Option(v+' image'+(v===1?'':'s'),String(v))));
+  $('image-count').value=String(value);
+}
+function configureImageControls(){
+  const isImage=tool==='image',nano=isImage&&imageEngine==='nano-banana-pro';
+  $('image-model-control').hidden=!isImage;$('image-delivery-control').hidden=!nano;
+  if(!isImage)return;
+  $('image-engine').value=imageEngine;
+  $('image-normal').classList.toggle('active',imageDelivery==='normal');$('image-normal').setAttribute('aria-selected',String(imageDelivery==='normal'));
+  $('image-batch').classList.toggle('active',imageDelivery==='batch');$('image-batch').setAttribute('aria-selected',String(imageDelivery==='batch'));
+  $('engine-name').textContent=nano?'NANO BANANA PRO':'SEEDREAM 5.0 PRO';
+  $('image-model-note').textContent=nano
+    ?'Google Gemini API / gemini-3-pro-image. Reference images, 1K–4K. Google model policies and refusals apply.'
+    :'SpicyAPI / Seedream 5.0 Pro. Text-to-image and reference editing with up to 10 images.';
+  $('image-delivery-note').textContent=imageDelivery==='batch'
+    ?'Asynchronous Google Batch API. Approximately 50% lower API pricing than Normal; completion time is not guaranteed.'
+    :'Interactive Google API. Use this while actively iterating.';
+  const resolution=$('resolution').value,ratio=$('ratio').value,count=Number($('image-count').value)||1;
+  options('resolution',nano?['1k','2k','4k']:['1k','2k'],(nano?['1k','2k','4k']:['1k','2k']).includes(resolution)?resolution:'2k');
+  const ratios=nano?['auto','1:1','2:3','3:2','3:4','4:3','4:5','5:4','9:16','16:9','21:9']:['auto','1:1','4:3','3:4','16:9','9:16','3:2','2:3','4:5','5:4','21:9','9:21','2:1','1:2','3:1','1:3'];
+  options('ratio',ratios,ratios.includes(ratio)?ratio:'auto');
+  $('format-control').hidden=nano;
+  if(nano&&imageDelivery==='batch')imageCountOptions([2,4,10,20],[2,4,10,20].includes(count)?count:10);
+  else imageCountOptions([1,2,3,4],Math.min(4,Math.max(1,count)));
+}
 function setTool(value){
   tool=['image','upscale'].includes(value)?value:'video';const image=tool==='image',upscale=tool==='upscale',video=tool==='video';
   for(const name of ['image','video','upscale']){$('tool-'+name).classList.toggle('active',tool===name);$('tool-'+name).setAttribute('aria-pressed',String(tool===name));}
-  $('video-modes').hidden=!video;$('duration-control').hidden=!video;$('image-count-control').hidden=!image;$('video-utilities').hidden=!video;$('format-control').hidden=video;
+  $('video-modes').hidden=!video;$('duration-control').hidden=!video;$('image-count-control').hidden=!image;$('video-utilities').hidden=!video;
   $('start-mode').hidden=image||video&&mode!=='start';$('reference-mode').hidden=upscale||video&&mode!=='reference';
   $('last-upload').hidden=upscale;$('start-label').textContent=upscale?'Image to upscale':'Start frame';
   $('upscale-info').hidden=!upscale;$('prompt').hidden=upscale;$('prompt-label').hidden=upscale;$('ratio').parentElement.hidden=upscale;
@@ -34,10 +89,9 @@ function setTool(value){
   $('engine-name').textContent=upscale?'IMAGE UPSCALER':image?'SEEDREAM 5.0 PRO':'WAN 3.0';
   $('prompt-label').textContent=image?'Image direction':'Motion direction';$('prompt').maxLength=image?5000:6000;
   $('prompt').placeholder=image?'Describe the image. Add references for identity, wardrobe, a room or an object, or start with text only.':'One clear action, one camera move, light, atmosphere and sound.';
-  options('resolution',upscale?['2k','4k','8k']:image?['1k','2k']:['480p','720p','1080p'],upscale?'4k':image?'2k':'1080p');
-  options('output-format',upscale?['png','jpeg','webp']:['png','jpeg'],'png');
-  options('ratio',image?['auto','1:1','4:3','3:4','16:9','9:16','3:2','2:3','4:5','5:4','21:9','9:21','2:1','1:2','3:1','1:3']:['auto','16:9','9:16','1:1','4:3','3:4'],'auto');
-  configureVideoControls();resetPreview();update();
+  if(upscale){options('resolution',['2k','4k','8k'],'4k');options('output-format',['png','jpeg','webp'],'png');$('format-control').hidden=false;}
+  else if(video){options('resolution',['480p','720p','1080p'],'1080p');options('output-format',['png','jpeg'],'png');options('ratio',['auto','16:9','9:16','1:1','4:3','3:4'],'auto');$('format-control').hidden=true;}
+  configureImageControls();configureVideoControls();resetPreview();update();
 }
 $('tool-upscale').onclick=()=>{if(!busy)setTool('upscale');};
 $('tool-image').onclick=()=>{if(!busy)setTool('image');};$('tool-video').onclick=()=>{if(!busy)setTool('video');};
@@ -46,7 +100,7 @@ async function api(path,options={}) {
   const generation=epoch;
   if(!owner&&path!=='/api/session')throw new Error('Sign in first.');
   const assertCurrent=()=>{if(generation!==epoch)throw new Error('Session changed.');};
-  const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),65000);requestControllers.add(controller);
+  const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),Number(options.timeoutMs)||65000);requestControllers.add(controller);
   try{
     const headers={...options.headers};let b=options.body;
     if(b!==undefined&&!(b instanceof Blob)&&!(b instanceof ArrayBuffer)){headers['Content-Type']='application/json';b=JSON.stringify(b);}
@@ -184,7 +238,12 @@ async function ensureReferences(){
   return references.map(r=>r.id);
 }
 async function ensureInputs(){if(tool==='video'&&engine==='seedance'){if(mode==='text')return {sourceId:null,lastSourceId:null,referenceSourceIds:[],referenceVideoIds:[],referenceAudioIds:[]};if(mode==='reference'){const ids=references.length?await ensureReferences():[];return {sourceId:ids[0]||null,lastSourceId:null,referenceSourceIds:ids,...await mediaRefs.inputs()};}}if(tool==='upscale')return {sourceId:await ensureSource(),lastSourceId:null,referenceSourceIds:[]};if(tool==='image'&&!references.length)return {sourceId:null,lastSourceId:null,referenceSourceIds:[]};if(tool==='image'||mode==='reference'){const ids=await ensureReferences();return {sourceId:ids[0],lastSourceId:null,referenceSourceIds:ids};}return {sourceId:await ensureSource(),lastSourceId:await ensureLast(),referenceSourceIds:[]};}
-function applyConfig(c){config=c;$('video-engine').querySelector('[value=seedance]').disabled=!c.videoEngines?.includes('seedance');$('connection-status').textContent=c.enabled?'SpicyAPI connected / Images + Upscale: one-click · Video: price review':'Generation not connected · Drafts and private history are ready';update();}
+function applyConfig(c){
+  config=c;$('video-engine').querySelector('[value=seedance]').disabled=!c.videoEngines?.includes('seedance');
+  const spicy=c.enabled?'SpicyAPI ready':'SpicyAPI not connected',gemini=c.geminiConfigured?'Nano Banana Pro ready':'Nano Banana Pro key missing';
+  $('connection-status').textContent=spicy+' · '+gemini;
+  update();
+}
 function connection(){if(!owner)return;$('api-key').value='';$('daily-limit').value=config.dailyLimitUsd||10;$('terms').checked=false;$('disconnect').hidden=!config.configured;$('key-note').textContent=config.configured?'A key is stored encrypted. Leave blank to keep it, or paste a replacement.':'Stored encrypted on your private backend. Never committed to GitHub or saved in browser storage.';$('connect-notice').textContent='';$('connect-dialog').showModal();}
 $('connect-form').addEventListener('submit',async e=>{e.preventDefault();$('connect-save').disabled=true;try{const data=await api('/api/settings',{method:'POST',body:{apiKey:$('api-key').value,dailyLimitUsd:Number($('daily-limit').value),enabled:true,termsConfirmed:$('terms').checked}});$('api-key').value='';applyConfig(data.config);$('connect-dialog').close();notify('Provider key connected. Images and Upscale start on click; Video keeps price review.');}catch(error){$('connect-notice').textContent=error.message;}finally{$('connect-save').disabled=false;}});
 $('disconnect').onclick=async()=>{if(!confirm('Remove the stored provider key? Your private history stays.'))return;try{applyConfig((await api('/api/settings',{method:'DELETE'})).config);$('api-key').value='';$('connect-dialog').close();notify('Generation disconnected.');}catch(e){$('connect-notice').textContent=e.message;}};
@@ -193,6 +252,18 @@ $('connect-dialog').addEventListener('close',()=>{$('api-key').value='';});
 $('quote-dialog').addEventListener('close',()=>{currentQuote=null;if(owner)$('generate').focus();});
 $('setup').onclick=connection;$('connection').onclick=connection;
 $('mode-start').onclick=()=>setMode('start');$('mode-reference').onclick=()=>setMode('reference');
+$('image-engine').onchange=()=>{
+  if(busy)return;
+  const requested=$('image-engine').value;
+  if(!['seedream','nano-banana-pro'].includes(requested))return;
+  imageEngine=requested;imageDelivery='normal';currentQuote=null;configureImageControls();resetPreview();update();
+};
+function setImageDelivery(value){
+  if(busy||imageEngine!=='nano-banana-pro')return;
+  imageDelivery=value==='batch'?'batch':'normal';configureImageControls();update();
+}
+$('image-normal').onclick=()=>setImageDelivery('normal');
+$('image-batch').onclick=()=>setImageDelivery('batch');
 $('image').onchange=e=>action(async()=>{if(e.target.files[0])await setImage(e.target.files[0]);});
 $('last-image').onchange=e=>action(async()=>{if(e.target.files[0])await setLastImage(e.target.files[0]);});
 $('reference-images').onchange=e=>action(async()=>{if(e.target.files.length)await addReferences(e.target.files);e.target.value='';});
@@ -217,18 +288,38 @@ async function submitQuotedGeneration(q, expectedEpoch=epoch) {
     (['image','upscale'].includes(q.settings.mode)?(q.settings.mode==='upscale'?'Upscale requested.':'Image requested.')+' Quoted maximum: '+money(q.maxUsd)+' USD. Results appear in History.':'Generation request recorded. You can leave the page and return to History.'),failed);
 }
 $('generate').onclick=()=>action(async()=>{
-  if(!config.enabled){connection();return;}
+  if(!generationReady()){
+    if(tool==='image'&&imageEngine==='nano-banana-pro')throw new Error('Nano Banana Pro is not configured. Add GEMINI_API_KEY to the Cloudflare Worker Production secrets.');
+    connection();return;
+  }
   if(submissionBlocked())throw new Error('An active-job limit or an interrupted request blocks another generation. Check History.');
   const selectedTool=tool,sessionEpoch=epoch;
   if(tool==='video'&&engine==='seedance'&&!config.videoEngines?.includes('seedance'))throw new Error('Seedance is not enabled on this backend.');
   const inputs=await prepareQuoteInputs(await ensureInputs());if(!inputs)return;
   if(selectedTool==='image'){
-    const requested=Math.max(1,Math.min(4,Number($('image-count').value)||1));
-    const activeImages=activeJobs.filter(j=>j.settings?.type==='image').length;
+    const requested=Number($('image-count').value)||1,imageSettings=settings();
+    if(imageEngine==='nano-banana-pro'){
+      const kind=imageDelivery==='batch'?'batch':'image',active=activeJobs.filter(j=>kindForSettings(j.settings)===kind).length,available=Math.max(0,limitFor(kind)-active);
+      if(requested>available)throw new Error('Only '+available+' '+(kind==='batch'?'Batch':'image')+' slot'+(available===1?' is':'s are')+' available right now. Choose a smaller quantity or wait for active work.');
+      notify(imageDelivery==='batch'?'Uploading references and preparing the Google batch…':'Generating '+requested+' Nano Banana Pro image'+(requested===1?'':'s')+'…');
+      const data=await api('/api/gemini/images',{method:'POST',body:{...inputs,settings:imageSettings,count:requested},timeoutMs:imageDelivery==='normal'?180000:65000});
+      if(!owner||epoch!==sessionEpoch||tool!=='image')throw new Error('Session or tool changed.');
+      for(const job of data.jobs||[])if(activeStates.has(job.status))setActive(job);
+      resetPreview();
+      const complete=(data.jobs||[]).filter(hasResult),uncertain=(data.jobs||[]).filter(j=>j.status==='uncertain');
+      if(complete.length){autoPreview={id:complete[0].id,revision:previewRevision};}
+      await syncHistory();
+      if(complete.length&&autoPreview){const chosen=complete[0];autoPreview=null;if(hasResult(chosen))await openVideo(chosen,{scroll:false});}
+      if(uncertain.length)notify('Google submission status is uncertain. Check Google AI Studio billing/history before trying again.',true);
+      else if(imageDelivery==='batch')notify(requested+' images queued in Google Batch. You can leave the page; results will appear in History when ready.');
+      else notify(requested===1?'Nano Banana Pro image saved to History.':requested+' Nano Banana Pro images saved to History.');
+      return;
+    }
+    const activeImages=activeJobs.filter(j=>kindForSettings(j.settings)==='image').length;
     const available=Math.max(0,limitFor('image')-activeImages);
     if(requested>available)throw new Error('Only '+available+' image slot'+(available===1?' is':'s are')+' available right now. Wait for active images or choose a smaller batch.');
     notify('Preparing '+requested+' image'+(requested===1?'':'s')+'…');
-    const imageSettings=settings(),quotes=[];
+    const quotes=[];
     for(let i=0;i<requested;i++){
       if(!owner||epoch!==sessionEpoch||tool!=='image')throw new Error('Session or tool changed. No further images submitted.');
       const q=await api('/api/quotes',{method:'POST',body:{...inputs,settings:imageSettings}});
@@ -253,7 +344,7 @@ $('generate').onclick=()=>action(async()=>{
     resetPreview();
     if(lastJob)autoPreview={id:lastJob.id,revision:previewRevision};
     await syncHistory();
-    if(submitted===requested)notify(requested===1?'Image requested. Result appears in History.':requested+' images requested as one batch. Results appear independently in History.');
+    if(submitted===requested)notify(requested===1?'Image requested. Result appears in History.':requested+' Seedream images requested. Results appear independently in History.');
     return;
   }
   notify(selectedTool==='upscale'?'Preparing one paid upscale at the live provider price…':'Requesting a live price. No generation submitted.');
@@ -278,16 +369,16 @@ $('confirm-generation').onclick=async()=>{
   await action(()=>submitQuotedGeneration(q));
 };
 function limitFor(kind){const n=Number(config.concurrency?.[kind]);return Number.isInteger(n)&&n>0?n:1;}
-function submissionBlocked(){return activeJobs.some(j=>j.status==='uncertain')||activeJobs.filter(j=>(j.settings?.type==='image'?'image':'video')===(tool==='upscale'?'image':tool)).length>=limitFor(tool==='upscale'?'image':tool);}
+function submissionBlocked(){const kind=selectedKind();return activeJobs.some(j=>j.status==='uncertain')||activeJobs.filter(j=>kindForSettings(j.settings)===kind).length>=limitFor(kind);}
 function schedulePoll(delay=10000){clearTimeout(timer);timer=null;if(owner&&activeJobs.some(j=>j.status!=='uncertain')&&!polling)timer=setTimeout(poll,delay);}
 function setActiveJobs(list){
   activeJobs=[...new Map((list||[]).filter(j=>j&&activeStates.has(j.status)).map(j=>[j.id,j])).values()];
   activeJob=activeJobs.find(j=>j.status==='uncertain')||activeJobs[0]||null;
   $('active').hidden=!activeJobs.length;
-  const images=activeJobs.filter(j=>j.settings?.type==='image').length,videos=activeJobs.length-images;
-  $('active-status').textContent=images+' / '+limitFor('image')+' images active · '+videos+' / '+limitFor('video')+' videos active';
+  const images=activeJobs.filter(j=>kindForSettings(j.settings)==='image').length,batches=activeJobs.filter(j=>kindForSettings(j.settings)==='batch').length,videos=activeJobs.filter(j=>kindForSettings(j.settings)==='video').length;
+  $('active-status').textContent=images+' / '+limitFor('image')+' images · '+batches+' / '+limitFor('batch')+' Batch items · '+videos+' / '+limitFor('video')+' videos active';
   const labels={submitting:'Submitting',queued:'Queued',running:'Generating',saving:'Saving',uncertain:'Interrupted: check provider before another attempt'};
-  $('active-detail').textContent=activeJobs.map((j,i)=>(i+1)+'. '+(j.settings?.type==='image'?'Image':'Video')+' · '+labels[j.status]+(j.error?' · '+j.error:'')+(j.providerTaskId?' · '+j.providerTaskId:'')).join('\n');
+  $('active-detail').textContent=activeJobs.map((j,i)=>(i+1)+'. '+(kindForSettings(j.settings)==='batch'?'Nano Batch':j.settings?.type==='image'?'Image':'Video')+' · '+labels[j.status]+(j.error?' · '+j.error:'')+(j.providerTaskId?' · '+j.providerTaskId:'')).join('\n');
   $('active-detail').style.whiteSpace='pre-line';
   $('resolve').hidden=!activeJobs.some(j=>j.status==='uncertain');
   schedulePoll();update();
@@ -295,7 +386,11 @@ function setActiveJobs(list){
 function setActive(job){if(!job)return;setActiveJobs([...activeJobs.filter(j=>j.id!==job.id),job]);}
 async function poll(){
   if(!owner||!activeJobs.length||polling)return;
-  const startedEpoch=epoch,snapshot=activeJobs.filter(j=>j.status!=='uncertain');
+  const startedEpoch=epoch,seenBatch=new Set(),snapshot=activeJobs.filter(j=>{
+    if(j.status==='uncertain')return false;
+    if(kindForSettings(j.settings)!=='batch'||!j.providerTaskId)return true;
+    if(seenBatch.has(j.providerTaskId))return false;seenBatch.add(j.providerTaskId);return true;
+  }),hasBatch=snapshot.some(j=>kindForSettings(j.settings)==='batch');
   if(!snapshot.length)return;
   clearTimeout(timer);timer=null;polling=true;
   try{
@@ -308,7 +403,7 @@ async function poll(){
         if(!activeStates.has(job.status))finished.push(job);
       }else error=result.reason;
     });
-    if(finished.length){
+    if(finished.length||hasBatch){
       const chosen=finished.find(j=>autoPreview?.id===j.id);
       const show=chosen&&autoPreview.revision===previewRevision&&!busy;
       if(chosen)autoPreview=null;
@@ -317,18 +412,21 @@ async function poll(){
       if(show&&hasResult(chosen))await openVideo(chosen,{scroll:false});
       const ready=finished.filter(hasResult).length;
       if(ready)notify(ready===1?'Result saved. View or download it from History.':ready+' results saved. View or download them from History.');
-      else notify(finished[0].error||'No output file was returned. Nothing is available to download.',true);
+      else if(finished.length)notify(finished[0].error||'No output file was returned. Nothing is available to download.',true);
     }
     if(error)notify(error.message,true);
   }catch(e){if(owner&&startedEpoch===epoch)notify(e.message,true);}
   finally{if(startedEpoch===epoch){polling=false;schedulePoll();}}
 }
-$('resolve').onclick=()=>action(async()=>{const interrupted=activeJobs.find(j=>j.status==='uncertain');if(!interrupted||!confirm('First check the provider console and its charges. This clears only the interrupted request without sending another generation. Continue only after checking.'))return;await api('/api/jobs/'+interrupted.id+'/resolve',{method:'POST',body:{confirm:true}});await syncHistory();});
+$('resolve').onclick=()=>action(async()=>{const interrupted=activeJobs.find(j=>j.status==='uncertain');if(!interrupted||!confirm('First check the relevant provider billing/dashboard. This clears only the interrupted request or batch without sending another generation. Continue only after checking.'))return;await api('/api/jobs/'+interrupted.id+'/resolve',{method:'POST',body:{confirm:true}});await syncHistory();});
 function button(text,fn){const b=document.createElement('button');b.className='quiet';b.textContent=text;b.onclick=()=>action(fn);return b;}
 async function assetFile(id,name='source'){const blob=await api('/api/assets/'+id,{blob:true}),ext=({'image/jpeg':'jpg','video/quicktime':'mov','audio/mpeg':'mp3','audio/x-wav':'wav'})[blob.type]||blob.type.split('/')[1];return new File([blob],name+'.'+ext,{type:blob.type});}
-async function restore(job){clearMedia();const p=job.settings||{};engine=engineFor(p);setTool(p.mode==='upscale'?'upscale':p.type||'video');setMode(p.mode||'start');if(tool==='image'){$('start-mode').hidden=true;$('reference-mode').hidden=false;}const refs=tool==='image'||p.mode==='reference';if(refs){const ids=p.referenceSourceIds||[];const files=await Promise.all(ids.map((id,i)=>assetFile(id,(p.referenceRoles?.[i]?.name||'reference-'+(i+1)).replace(/\.[^.]+$/,''))));await addReferences(files,ids,p.referenceRoles||[]);}else if(job.sourceId){await setImage(await assetFile(job.sourceId,'start-frame'),job.sourceId);if(p.lastSourceId)await setLastImage(await assetFile(p.lastSourceId,'last-frame'),p.lastSourceId);}$('prompt').value=p.prompt||'';
+async function restore(job){clearMedia();const p=job.settings||{};engine=engineFor(p);if(p.type==='image'&&p.mode!=='upscale'){imageEngine=p.imageEngine==='nano-banana-pro'?'nano-banana-pro':'seedream';imageDelivery=p.delivery==='batch'?'batch':'normal';}setTool(p.mode==='upscale'?'upscale':p.type||'video');setMode(p.mode||'start');if(tool==='image'){$('start-mode').hidden=true;$('reference-mode').hidden=false;configureImageControls();}const refs=tool==='image'||p.mode==='reference';if(refs){const ids=p.referenceSourceIds||[];const files=await Promise.all(ids.map((id,i)=>assetFile(id,(p.referenceRoles?.[i]?.name||'reference-'+(i+1)).replace(/\.[^.]+$/,''))));await addReferences(files,ids,p.referenceRoles||[]);}else if(job.sourceId){await setImage(await assetFile(job.sourceId,'start-frame'),job.sourceId);if(p.lastSourceId)await setLastImage(await assetFile(p.lastSourceId,'last-frame'),p.lastSourceId);}$('prompt').value=p.prompt||'';
   if(p.duration&&!([...$('duration').options].some(o=>Number(o.value)===p.duration)))$('duration').add(new Option(p.duration+' sec',String(p.duration)));
-  $('duration').value=p.duration||15;$('resolution').value=p.resolution||(tool==='image'?'2k':'1080p');$('ratio').value=p.aspectRatio||'auto';$('seed').value=p.seed??'';$('audio').checked=p.audio!==false;$('output-format').value=p.outputFormat||'jpeg';if(p.engine==='seedance'||engineFor(p)==='seedance')await mediaRefs.restore(p);configureVideoControls();update();notify('Original media, reference roles, prompt and settings restored. Nothing generated or charged.');$('prompt').focus();window.scrollTo({top:0,behavior:'smooth'});}
+  $('duration').value=p.duration||15;$('resolution').value=p.resolution||(tool==='image'?'2k':'1080p');$('ratio').value=p.aspectRatio||'auto';$('seed').value=p.seed??'';$('audio').checked=p.audio!==false;
+  if([...$('output-format').options].some(o=>o.value===(p.outputFormat||'jpeg')))$('output-format').value=p.outputFormat||'jpeg';
+  if(tool==='image'&&p.batchSize&&[...$('image-count').options].some(o=>Number(o.value)===Number(p.batchSize)))$('image-count').value=String(p.batchSize);
+  if(p.engine==='seedance'||engineFor(p)==='seedance')await mediaRefs.restore(p);configureVideoControls();configureImageControls();update();notify('Original media, reference roles, prompt and settings restored. Nothing generated or charged.');$('prompt').focus();window.scrollTo({top:0,behavior:'smooth'});}
 // A reference is never a result. Downloads always address the stored output asset.
 function hasResult(job){return job.status==='completed'&&typeof job.outputId==='string'&&!!job.outputId;}
 function resultFormat(blob){
@@ -402,6 +500,7 @@ async function prepareQuoteInputs(inputs){
     return inputs;
   }
   const sessionEpoch=epoch;
+  if(tool==='image'&&imageEngine==='nano-banana-pro')return inputs;
   if(tool==='upscale'&&sourcePixels>UPSCALE_PIXELS[$('resolution').value]&&!confirm('This size tier is smaller than your source and would reduce its resolution. Continue with this tier?'))return null;
   const originals=tool==='upscale'?[{id:inputs.sourceId,file}]:references;
   const oversized=originals.filter(r=>r.file.size>PROVIDER_IMAGE_LIMIT);
@@ -477,7 +576,7 @@ function renderCards(jobs,{upsert=false}={}){
       empty.append(title,detail);card.append(empty);
     }
     const body=document.createElement('div');body.className='cardbody';
-    const meta=document.createElement('div');meta.className='cardmeta';meta.textContent=`${j.status.toUpperCase()} / ${image?(j.settings.mode==='upscale'?'UPSCALE':'IMAGE'):videoLabel(j.settings)+' / '+j.settings.duration+'s'} / ${j.settings.resolution} / ${new Date(j.createdAt).toLocaleDateString()}`;
+    const meta=document.createElement('div');meta.className='cardmeta';const imageLabel=j.settings.mode==='upscale'?'UPSCALE':j.settings.imageEngine==='nano-banana-pro'?('NANO PRO / '+(j.settings.delivery==='batch'?'BATCH':'NORMAL')):'IMAGE';meta.textContent=`${j.status.toUpperCase()} / ${image?imageLabel:videoLabel(j.settings)+' / '+j.settings.duration+'s'} / ${j.settings.resolution} / ${new Date(j.createdAt).toLocaleDateString()}`;
     const p=document.createElement('p');p.textContent=j.settings.prompt||(j.settings.mode==='upscale'?'Image upscale / '+j.settings.resolution.toUpperCase():'No direction saved.');
     const actions=document.createElement('div');actions.className='cardactions';
     if(ready){
@@ -492,7 +591,10 @@ function renderCards(jobs,{upsert=false}={}){
       if(!confirm('Delete this saved record and its unshared files? This cannot be undone.'))return;
       await api('/api/jobs/'+j.id,{method:'DELETE'});cleanupHistoryCard(card);card.remove();await syncHistory();notify('Record deleted. Spending history is unchanged.');
     }));
-    const cost=document.createElement('div');cost.className='fine';cost.textContent=j.settledUsd!=null?'Provider settled: '+money(j.settledUsd):j.estimatedUsd!=null?'Budget reserved: '+money(j.estimatedUsd):'Draft / no generation charge';
+    const cost=document.createElement('div');cost.className='fine';
+    cost.textContent=j.settings.imageEngine==='nano-banana-pro'&&j.estimatedUsd!=null
+      ?'Google estimate: '+money(j.estimatedUsd)+' + variable thinking'
+      :j.settledUsd!=null?'Provider settled: '+money(j.settledUsd):j.estimatedUsd!=null?'Budget reserved: '+money(j.estimatedUsd):'Draft / no generation charge';
     body.append(meta,p,actions,cost);if(j.settings.transferNotes?.length){const note=document.createElement('p');note.className='fine history-error';note.textContent=j.settings.transferNotes.join(' ');body.append(note);}
     if(j.error){const error=document.createElement('p');error.className='fine history-error';error.textContent=j.error;body.append(error);}
     if(!ready&&j.sourceId){
@@ -508,7 +610,7 @@ function renderCards(jobs,{upsert=false}={}){
 async function loadHistory(append=false,incremental=false){const rev=historyRevision,query=append&&next?'?before='+next.before+'&afterId='+encodeURIComponent(next.afterId):'',data=await api('/api/jobs'+query);if(!owner||rev!==historyRevision)return;if(!append&&!incremental){historyRevision++;observer.disconnect();cardUrls.forEach(release);cardUrls.clear();$('history').replaceChildren();}renderCards(data.jobs,{upsert:incremental});next=data.next;$('more').hidden=!next;$('emptyarchive').hidden=$('history').children.length>0;if(data.concurrency)config.concurrency=data.concurrency;setActiveJobs(data.activeJobs||(data.active?[data.active]:[]));}
 async function syncHistory(){return loadHistory(false,true);}
 $('refresh').onclick=()=>action(()=>loadHistory());$('more').onclick=()=>action(()=>loadHistory(true));
-function lock(){epoch++;workingCopies.clear();autoPreview=null;downloadUrls.forEach(release);downloadUrls.clear();owner=false;userId='';historyRevision++;clearTimeout(timer);timer=null;activeJob=null;activeJobs=[];polling=false;requestControllers.forEach(c=>c.abort());requestControllers.clear();observer.disconnect();cardUrls.forEach(release);cardUrls.clear();clearMedia();$('prompt').value='';$('history').replaceChildren();$('app').hidden=true;$('gate').hidden=false;$('connection').hidden=true;$('logout').hidden=true;$('api-key').value='';for(const d of document.querySelectorAll('dialog[open]'))d.close();currentQuote=null;config={};packs=[];$('pack-select').replaceChildren(new Option('Choose a saved pack',''));}
+function lock(){epoch++;workingCopies.clear();imageEngine='seedream';imageDelivery='normal';autoPreview=null;downloadUrls.forEach(release);downloadUrls.clear();owner=false;userId='';historyRevision++;clearTimeout(timer);timer=null;activeJob=null;activeJobs=[];polling=false;requestControllers.forEach(c=>c.abort());requestControllers.clear();observer.disconnect();cardUrls.forEach(release);cardUrls.clear();clearMedia();$('prompt').value='';$('history').replaceChildren();$('app').hidden=true;$('gate').hidden=false;$('connection').hidden=true;$('logout').hidden=true;$('api-key').value='';for(const d of document.querySelectorAll('dialog[open]'))d.close();currentQuote=null;config={};packs=[];$('pack-select').replaceChildren(new Option('Choose a saved pack',''));}
 async function sync(){if(syncing)return;syncing=true;try{if(!clerk.isSignedIn){lock();$('auth-status').textContent='Sign in with your Parallel Vision owner account.';$('signin').disabled=false;return;}if(owner&&userId===clerk.user.id)return;const data=await api('/api/session');owner=true;userId=clerk.user.id;applyConfig(data.config);$('identity').textContent='Owner workspace';$('gate').hidden=true;$('app').hidden=false;$('connection').hidden=false;$('logout').hidden=false;await loadHistory();await loadPacks();}catch(e){lock();$('auth-status').textContent=e.message;$('signin').disabled=false;$('logout').hidden=!clerk?.isSignedIn;}finally{syncing=false;}}
 $('signin').onclick=()=>clerk?.openSignIn();$('logout').onclick=async()=>{lock();await clerk?.signOut();$('auth-status').textContent='Signed out. Your archive remains private.';};
 try{const {Clerk}=await import('https://esm.sh/@clerk/clerk-js@6?bundle');await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='https://clerk.parallelvisionlabel.com/npm/@clerk/ui@1/dist/ui.browser.js';s.onload=resolve;s.onerror=reject;document.head.append(s);});clerk=new Clerk('pk_live_Y2xlcmsucGFyYWxsZWx2aXNpb25sYWJlbC5jb20k');await clerk.load({ui:window.__internal_ClerkUICtor,signInFallbackRedirectUrl:location.href,signUpFallbackRedirectUrl:location.href});clerk.addListener(()=>void sync());await sync();}catch{$('auth-status').textContent='Sign-in could not load. Refresh this page or check your browser connection.';}

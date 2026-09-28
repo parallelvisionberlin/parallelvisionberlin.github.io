@@ -6,7 +6,7 @@ Owner-only creative workbench at `/lab/`, served by the existing GitHub Pages si
 
 Video: Wan 3.0 start-frame animation, optional last frame, or up to ten reference images. Wan 3.0 accepts source stills up to 20 MB each through the Lab's signed HTTPS input URLs. Duration, resolution, aspect ratio, audio and optional seed.
 
-Image: Seedream 5.0 Pro text-to-image without an input, or reference-based editing with up to ten source images. 1K/2K, supported aspect ratios, JPEG/PNG. Uses the existing encrypted SpicyAPI connection. Endpoints and input schemas checked against the provider public catalog on 2026-09-26; availability, permitted content and price remain controlled by the provider and account. No safety-checker bypass is implemented.
+Image: Seedream 5.0 Pro remains the default text-to-image/reference-edit path through the existing encrypted SpicyAPI connection. Nano Banana Pro (`gemini-3-pro-image`) is available through the Google Gemini API with the same private image-reference workflow, 1K/2K/4K output and two delivery modes: Normal for interactive generation and Batch for Google's asynchronous discounted queue. The Google key is a Worker-only Cloudflare secret (`GEMINI_API_KEY`) and never enters the browser, D1 or GitHub. Provider/model policies still apply; no safety-checker bypass is implemented.
 
 Reference images have numbers, original filenames, a role and optional notes. Notes are included in the provider prompt while the original written prompt is retained. They are guidance, not a guarantee of character identity. Save named packs such as `Nina FOK / Editorial`; load them into either reference workflow. No source images or character packs are invented or prepopulated.
 
@@ -14,13 +14,13 @@ History stores drafts and completed results with prompt, exact settings, source 
 
 ## Infrastructure and privacy
 
-Existing GitHub Pages frontend, isolated `parallel-vision-lab` Cloudflare Worker, `parallel-vision-lab` D1 database and private `parallel-vision-lab-private` R2 bucket. Existing Nina database is read only for owner authorization, never migrated by the Lab. No Vercel, Supabase or Stripe required. Cloud usage is subject to the account quotas and billing; generation is charged by the provider.
+Existing GitHub Pages frontend, isolated `parallel-vision-lab` Cloudflare Worker, `parallel-vision-lab` D1 database and private `parallel-vision-lab-private` R2 bucket. Existing Nina database is read only for owner authorization, never migrated by the Lab. No Vercel, Supabase or Stripe required. Cloud usage is subject to the account quotas and billing; generation is charged by SpicyAPI or Google according to the selected model.
 
-API keys are encrypted with AES-GCM using the existing Cloudflare `LAB_SECRET`. Preserve that secret across all deployments. Never commit keys or put them in localStorage. Every API/media request checks Clerk JWT and database owner role; file URLs for provider inputs use short-lived signatures. Prompts and private media never enter GitHub.
+SpicyAPI credentials stored in D1 are encrypted with AES-GCM using the existing Cloudflare `LAB_SECRET`. Preserve that secret across all deployments. The Google credential is supplied separately as the Cloudflare Worker secret `GEMINI_API_KEY`; it is read only by the Worker and sent to Google in the API-key request header, never in client code or URLs. Never commit keys or put them in localStorage. Every API/media request checks Clerk JWT and database owner role. Prompts and private media never enter GitHub.
 
 ## Price and failure handling
 
-For Image (text-to-image and reference editing), clicking Generate requests a live quote and submits that exact quoted job directly, without a price-review popup. The button is the user's authorization for one paid image. Video and Upscale still require Review price followed by confirmation. The Lab does not hardcode advertised prices or silently reprice. Up to four active image generations and one active video generation per owner. Every generation still uses an exact bound quote, spending checks and idempotency; only Image skips the separate review step. A single guarded SQL INSERT reserves the per-type slot and shared daily estimated-spend cap atomically, including requests from multiple browser tabs. The cap counts failed/uncertain attempts conservatively and survives deletion from history. Also set provider-side spending limits.
+For Seedream Image, clicking Generate requests the live SpicyAPI quote and submits that exact quoted job directly, without a price-review popup. Nano Banana Pro Normal submits directly to Google and records a conservative local estimate based on the published fixed image-output price plus estimated text/reference input; Google thinking-token charges are variable and cannot be known exactly before generation. Nano Banana Pro Batch uploads JSONL, submits one asynchronous Google Batch job and stores each requested image as its own History item. Batch items use a separate capacity pool so queued background work does not consume Seedream/Normal image slots. Video keeps price review. Upscale remains one-click with its live SpicyAPI quote. All paths share the daily estimated-spend cap; failed or uncertain attempts are counted conservatively and the ledger survives History deletion. Also set provider-side spending limits.
 
 Timeout or network failure during paid submission is uncertain, not a safe retry. The Lab locks further submission until the owner checks the provider and explicitly resolves it. Scheduled maintenance only polls and archives existing jobs, never generates another request.
 
@@ -30,11 +30,11 @@ Existing installation: after the image migration, apply `lab-worker/migrations/0
 
 Image migration: apply `lab-worker/migrations/0002-images.sql` once atomically to the Lab D1 database after checking the migration marker and preserving existing records. It makes source IDs nullable for text-only jobs and adds private reference packs. Fresh installs use `lab-worker/schema.sql`. Do not apply this schema to Nina.
 
-Deploy `lab-worker/worker.mjs` with the existing LAB_DB, LAB_MEDIA, OWNER_DB and LAB_SECRET bindings. Preserve the five-minute cron and disable Worker body logging. GitHub Pages serves `lab/index.html`, `lab/lab.css` and `lab/lab.js`.
+Deploy `lab-worker/worker.mjs` and `lab-worker/gemini.mjs` with the existing LAB_DB, LAB_MEDIA, OWNER_DB and LAB_SECRET bindings plus the production `GEMINI_API_KEY` secret. Preserve both secrets, the five-minute cron and disabled Worker body logging. This Nano Banana addition needs no D1 schema migration. GitHub Pages serves `lab/index.html`, `lab/lab.css` and `lab/lab.js`.
 
 ## Verification
 
-`node --test tests/lab-worker.test.mjs` covers owner authorization, encrypted keys, price confirmation, duplicate prevention, spending limits, interruption recovery, image generation, reference packs, media reuse and lossless migration with a mocked provider. Tests do not buy generations. Browser tests cover draft/reuse, reference roles, packs, price confirmation, image-to-video handoff, logout clearing and mobile overflow using synthetic media and mocked authentication/API. Live paid output quality is separate from these tests.
+`node --test tests/lab*.test.mjs` covers owner authorization, encrypted keys, price confirmation, duplicate prevention, spending limits, interruption recovery, Seedream image generation, Nano Banana Pro request/batch serialization, Google File API handling, reference packs, media reuse and lossless migration with mocked providers. Tests do not buy generations. Browser tests cover draft/reuse, reference roles, packs, price confirmation, image-to-video handoff, logout clearing and mobile overflow using synthetic media and mocked authentication/API. Live paid output quality is separate from these tests.
 
 
 ## Image upscaler and working copies (2026-09-27)

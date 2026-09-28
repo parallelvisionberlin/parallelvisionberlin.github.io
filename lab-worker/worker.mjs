@@ -1,9 +1,12 @@
 /* Parallel Vision Lab. Private owner-only workspace, no public media bucket.
    The hosted provider is opt-in; no provider key or moderation bypass in source. */
 import {seedanceParameters, prepareSeedance, REFERENCE_MIME, sniffReference} from './seedance.mjs';
-export const VERSION = 'pv-lab-2026-09-28.1-seedance-working-copies';
+import {GEMINI_MODEL,GEMINI_NORMAL_MAX,GEMINI_BATCH_MAX,geminiParameters,geminiEstimatedMicros,buildGenerateRequest,buildBatchJsonl,extractInlineImage,geminiResponseFailure,batchState,batchOutputFile,validBatchName,googleJson,googleUpload,googleDownload} from './gemini.mjs';
+export const VERSION = 'pv-lab-2026-09-28.2-nano-banana-pro';
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
-const CONCURRENCY = Object.freeze({image:4,video:3});
+const CONCURRENCY = Object.freeze({image:4,video:3,batch:40});
+const KIND_SQL = "CASE WHEN json_extract(params,'$.type')='image' AND json_extract(params,'$.imageEngine')='nano-banana-pro' AND json_extract(params,'$.delivery')='batch' THEN 'batch' WHEN json_extract(params,'$.type')='image' THEN 'image' ELSE 'video' END";
+const MAX_GEMINI_OUTPUT = 64 * 1024 * 1024;
 const ORIGINS = new Set(['https://parallelvisionlabel.com','https://www.parallelvisionlabel.com']);
 const ISSUER = 'https://clerk.parallelvisionlabel.com';
 const VENDOR = 'https://api.spicyapi.ai/api/v1';
@@ -95,7 +98,7 @@ async function decryptKey(env,value) {
   return dec.decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:unbase(iv),additionalData:enc.encode(MODEL)},key,unbase(cipher)));
 }
 async function config(env,owner) {return first(env,'SELECT * FROM settings WHERE owner_id=?',owner);}
-function publicConfig(c) {return {concurrency:CONCURRENCY,configured:!!c,enabled:!!(c?.enabled&&c?.terms_confirmed),dailyLimitUsd:(c?.daily_limit_microusd||10000000)/1000000,provider:'SpicyAPI',videoEngines:['wan','seedance'],model:'Wan 3.0 / Seedance 2.5 / Seedream 5.0 Pro / Image Upscaler',documentation:DOC,pricingNote:'A live provider quote is required before every generation. No subscription is added by this Lab. Provider terms apply.'};}
+function publicConfig(c,env) {return {concurrency:CONCURRENCY,configured:!!c,enabled:!!(c?.enabled&&c?.terms_confirmed),geminiConfigured:typeof env?.GEMINI_API_KEY==='string'&&env.GEMINI_API_KEY.trim().length>=20,dailyLimitUsd:(c?.daily_limit_microusd||10000000)/1000000,provider:'SpicyAPI + Google Gemini API',videoEngines:['wan','seedance'],imageEngines:['seedream','nano-banana-pro'],model:'Wan 3.0 / Seedance 2.5 / Seedream 5.0 Pro / Nano Banana Pro / Image Upscaler',documentation:DOC,pricingNote:'SpicyAPI jobs use live provider quotes. Nano Banana Pro uses Google Gemini API Standard or Batch pricing. No subscription is added by this Lab; provider terms and model policies apply.'};}
 async function vendorRequest(path,key,data,idempotency,method=data?'POST':'GET') {
   let r;
   try {
@@ -148,6 +151,7 @@ function parameters(value) {
     if(!['2k','4k','8k'].includes(value.resolution)||!['jpeg','png','webp'].includes(value.outputFormat||'jpeg'))fail(400,'Choose 2K, 4K or 8K and JPEG, PNG or WebP.');
     return {type:'image',model:UPSCALER,mode:'upscale',prompt:'',resolution:value.resolution,aspectRatio:'auto',outputFormat:value.outputFormat||'jpeg',referenceRoles:[]};
   }
+  if(value.type==='image'&&value.imageEngine==='nano-banana-pro')return geminiParameters(value,{fail,referenceLabels});
   if(value.type==='image'){
     if(prompt.length>5000||!['1k','2k'].includes(value.resolution)||!RATIOS.includes(value.aspectRatio||'1:1'))fail(400,'Choose 1K or 2K and a supported image ratio. Maximum prompt length is 5,000.');
     if(!['png','jpeg'].includes(value.outputFormat||'jpeg'))fail(400,'Choose PNG or JPEG.');
@@ -181,6 +185,9 @@ async function prepareInput(env,owner,data,p,url) {
     primary=await source(env,owner,data.sourceId);p.referenceSourceIds=[];p.lastSourceId=null;
     input={resolution:p.resolution,output_format:p.outputFormat};
     if(url)input.image_url=await signedInput(env,url,primary.id);
+  }else if(p.type==='image'&&p.imageEngine==='nano-banana-pro'){
+    const refs=data.referenceSourceIds?.length?await sources(env,owner,data.referenceSourceIds):[];
+    primary=refs[0]||null;p.referenceSourceIds=refs.map(a=>a.id);p.lastSourceId=null;input={};
   }else if(p.type==='image'){
     const refs=data.referenceSourceIds?.length?await sources(env,owner,data.referenceSourceIds):[];
     primary=refs[0]||null;p.referenceSourceIds=refs.map(a=>a.id);p.lastSourceId=null;p.model=refs.length?STILL_EDIT:STILL_TEXT;
@@ -308,6 +315,155 @@ async function copyResult(env,j,url) {
     stmt(env,"UPDATE jobs SET state='completed',output_id=?,remote_url=NULL,error='',updated_at=? WHERE id=?",j.id,now(),j.id)
   ]);
 }
+function geminiKey(env){
+  const key=typeof env.GEMINI_API_KEY==='string'?env.GEMINI_API_KEY.trim():'';
+  if(key.length<20)fail(503,'Nano Banana Pro is not configured on this Worker. Add GEMINI_API_KEY as a Cloudflare secret.');
+  return key;
+}
+function kindForParams(p){return p?.type==='image'&&p?.imageEngine==='nano-banana-pro'&&p?.delivery==='batch'?'batch':p?.type==='image'?'image':'video';}
+function googleDetail(value){
+  return String(value||'').replace(/https?:\/\/[^\s"'<>]+/gi,'[redacted URL]').replace(/AIza[A-Za-z0-9_-]{20,}/g,'[redacted credential]').replace(/[\u0000-\u001f\u007f]+/g,' ').trim().slice(0,500);
+}
+async function geminiReferenceFiles(env,owner,assets,key){
+  if(!assets.length)return [];
+  const result=new Array(assets.length);let cursor=0,stopped=false;
+  const work=async()=>{
+    while(!stopped){
+      const i=cursor++;if(i>=assets.length)return;
+      try{
+        const a=assets[i],object=await env.LAB_MEDIA.get(a.object_key);
+        if(!object)throw new Error('Stored reference image is unavailable.');
+        const bytes=await limitedBody(new Response(object.body),MAX_IMAGE);
+        if(bytes.length!==a.bytes||!sniff(bytes,a.mime))throw new Error('Stored reference image failed verification.');
+        const file=await googleUpload(key,bytes,a.mime,'pv-reference-'+a.id);
+        if(!file?.uri)throw new Error('Google did not return a usable reference file URI.');
+        result[i]={name:file.name,uri:file.uri,mimeType:a.mime};
+      }catch(e){stopped=true;throw e;}
+    }
+  };
+  const attempts=await Promise.allSettled(Array.from({length:Math.min(2,assets.length)},()=>work()));
+  const failure=attempts.find(x=>x.status==='rejected');
+  if(failure)fail(failure.reason?.status||502,googleDetail(failure.reason?.message||'Google reference upload failed.')+' No generation was submitted.');
+  return result;
+}
+async function storeGeminiImage(env,j,response){
+  const part=extractInlineImage(response);if(!part)throw new Error(geminiResponseFailure(response));
+  const mime=String(part.mimeType||'').split(';')[0];
+  if(!['image/png','image/jpeg','image/webp'].includes(mime))throw new Error('Google returned an unsupported image format.');
+  let bytes;try{bytes=unbase(part.data);}catch{throw new Error('Google returned invalid image data.');}
+  if(!bytes.length||bytes.length>MAX_GEMINI_OUTPUT||!sniff(bytes,mime))throw new Error('Google returned an invalid or oversized image.');
+  const stored=await first(env,'SELECT COALESCE(SUM(bytes),0) AS n FROM assets WHERE owner_id=?',j.owner_id);
+  if(stored.n+bytes.length>MAX_STORAGE)throw new Error('Private archive storage limit reached.');
+  const ext=({'image/png':'png','image/jpeg':'jpg','image/webp':'webp'})[mime],objectKey=j.owner_id+'/results/'+j.id+'.'+ext;
+  await env.LAB_MEDIA.put(objectKey,bytes,{httpMetadata:{contentType:mime}});
+  try{
+    await env.LAB_DB.batch([
+      stmt(env,'INSERT OR IGNORE INTO assets(id,owner_id,object_key,kind,mime,filename,bytes,created_at) VALUES(?,?,?,?,?,?,?,?)',j.id,j.owner_id,objectKey,'source',mime,'parallel-vision-'+j.id+'.'+ext,bytes.length,now()),
+      stmt(env,"UPDATE jobs SET state='completed',output_id=?,remote_url=NULL,error='',updated_at=? WHERE id=?",j.id,now(),j.id)
+    ]);
+  }catch(e){await env.LAB_MEDIA.delete(objectKey).catch(()=>{});throw e;}
+}
+async function reserveGeminiJobs(env,owner,p,sourceId,count,estimate,jobIds){
+  const c=await config(env,owner),dailyLimit=c?.daily_limit_microusd||10000000,day=Math.floor(now()/86400000)*86400000;
+  const kind=kindForParams(p),groupId=p.delivery==='batch'?crypto.randomUUID():null,created=[],quotes=[];
+  try{
+    for(let i=0;i<count;i++){
+      const id=jobIds[i],quoteId=crypto.randomUUID(),t=now();
+      const params={...p,batchIndex:i,batchSize:count,...(groupId?{batchGroupId:groupId}:{})};
+      const serialized=JSON.stringify(params),expected=(estimate/1000000).toFixed(6);
+      await run(env,'INSERT INTO quotes(id,owner_id,source_id,params,estimate_microusd,expires_at,vendor_quote_id,expected_cost,payload) VALUES(?,?,?,?,?,?,?,?,?)',quoteId,owner,sourceId,serialized,estimate,t+300000,'google-local-'+id,expected,JSON.stringify({provider:'Google Gemini API',delivery:p.delivery}));
+      quotes.push(quoteId);
+      const inserted=await run(env,`INSERT INTO jobs(id,owner_id,source_id,quote_id,params,state,estimate_microusd,created_at,updated_at) SELECT ?,?,?,?,?,'submitting',?,?,? WHERE NOT EXISTS(SELECT 1 FROM jobs WHERE owner_id=? AND state='uncertain') AND (SELECT COUNT(*) FROM jobs WHERE owner_id=? AND state IN ('submitting','queued','running','saving','uncertain') AND ${KIND_SQL}=?)<? AND (SELECT COUNT(*) FROM jobs WHERE owner_id=?)<500 AND (SELECT COALESCE(SUM(estimate_microusd),0) FROM spend WHERE owner_id=? AND created_at>=?)+?<=?`,id,owner,sourceId,quoteId,serialized,estimate,t,t,owner,owner,kind,CONCURRENCY[kind],owner,owner,day,estimate,dailyLimit);
+      if(!inserted.meta.changes)fail(409,'No generation submitted: the '+kind+' limit ('+CONCURRENCY[kind]+' active), an uncertain request, the history limit, or your daily spending limit blocks this request.');
+      created.push(id);
+    }
+    const jobs=[];for(const id of created)jobs.push(await first(env,'SELECT * FROM jobs WHERE id=? AND owner_id=?',id,owner));return jobs;
+  }catch(e){
+    for(const id of created){await run(env,'DELETE FROM spend WHERE job_id=?',id);await run(env,'DELETE FROM jobs WHERE id=? AND owner_id=?',id,owner);}
+    for(const quoteId of quotes)await run(env,'DELETE FROM quotes WHERE id=? AND owner_id=?',quoteId,owner);
+    throw e;
+  }
+}
+async function runGeminiNormal(env,jobs,key,requestBody){
+  await Promise.all(jobs.map(async j=>{
+    await run(env,"UPDATE jobs SET state='running',updated_at=? WHERE id=?",now(),j.id);
+    try{
+      const response=await googleJson('/v1beta/models/'+GEMINI_MODEL+':generateContent',key,{method:'POST',body:requestBody,paid:true,timeout:150000});
+      await storeGeminiImage(env,j,response);
+    }catch(e){
+      const definite=e?.definite!==false,state=definite?'failed':'uncertain';
+      const message=definite?googleDetail(e?.message||'Google generation failed.'):'Google generation status is uncertain. Check Google AI Studio billing/history before retrying; the Lab will not resubmit automatically.';
+      await run(env,'UPDATE jobs SET state=?,error=?,updated_at=? WHERE id=?',state,message,now(),j.id);
+    }
+  }));
+}
+async function runGeminiBatch(env,jobs,key,inputFile){
+  try{
+    const created=await googleJson('/v1beta/models/'+GEMINI_MODEL+':batchGenerateContent',key,{method:'POST',body:{batch:{display_name:'pv-lab-'+jobs[0].id,input_config:{file_name:inputFile.name}}},paid:true,timeout:30000});
+    if(!validBatchName(created?.name))throw Object.assign(new Error('Google did not return a usable batch job name.'),{definite:false});
+    await run(env,"UPDATE jobs SET provider_id=?,state='queued',error='',updated_at=? WHERE id IN ("+jobs.map(()=>'?').join(',')+")",created.name,now(),...jobs.map(j=>j.id));
+  }catch(e){
+    const definite=e?.definite!==false,state=definite?'failed':'uncertain';
+    const message=definite?googleDetail(e?.message||'Google batch creation failed.'):'Google batch submission status is uncertain. Check Google AI Studio billing/history before retrying; the Lab will not submit this batch again.';
+    await run(env,"UPDATE jobs SET state=?,error=?,updated_at=? WHERE id IN ("+jobs.map(()=>'?').join(',')+")",state,message,now(),...jobs.map(j=>j.id));
+  }
+}
+async function processGeminiBatchOutput(env,jobs,response){
+  const byId=new Map(jobs.map(j=>[j.id,j])),ordered=[...jobs].sort((a,b)=>(JSON.parse(a.params).batchIndex??0)-(JSON.parse(b.params).batchIndex??0));
+  const seen=new Set();let fallback=0,buffer='',total=0;
+  const handle=async line=>{
+    if(!line.trim())return;
+    let parsed;try{parsed=JSON.parse(line);}catch{throw new Error('Google batch output contained invalid JSONL.');}
+    let id=parsed.key||parsed.metadata?.key;
+    if(!UUID.test(id||''))id=ordered[fallback++]?.id;
+    const job=byId.get(id);if(!job)return;seen.add(id);
+    if(parsed.response){
+      if(job.state==='completed')return;
+      try{await storeGeminiImage(env,job,parsed.response);}catch(e){await run(env,"UPDATE jobs SET state='failed',error=?,updated_at=? WHERE id=?",googleDetail(e.message||'Google image archive failed.'),now(),job.id);}
+    }else{
+      const detail=googleDetail(parsed.error?.message||parsed.error||'Google batch request returned no image.');
+      await run(env,"UPDATE jobs SET state='failed',error=?,updated_at=? WHERE id=?",'Google batch request failed: '+detail,now(),job.id);
+    }
+  };
+  const reader=response.body?.getReader();if(!reader)throw new Error('Google batch output had no body.');
+  const decoder=new TextDecoder();
+  try{
+    while(true){
+      const item=await reader.read();if(item.done)break;total+=item.value.byteLength;if(total>512*1024*1024)throw new Error('Google batch output exceeded the archive parser limit.');
+      buffer+=decoder.decode(item.value,{stream:true});if(buffer.length>80*1024*1024)throw new Error('Google batch output line was too large.');
+      let nl;while((nl=buffer.indexOf('\n'))>=0){const line=buffer.slice(0,nl);buffer=buffer.slice(nl+1);await handle(line);}
+    }
+    buffer+=decoder.decode();if(buffer.trim())await handle(buffer);
+  }finally{await reader.cancel().catch(()=>{});}
+  for(const job of jobs)if(ACTIVE.has(job.state)&&!seen.has(job.id))await run(env,"UPDATE jobs SET state='failed',error='Google batch completed without an output for this request.',updated_at=? WHERE id=?",now(),job.id);
+}
+async function refreshGeminiBatch(env,j){
+  if(!j.provider_id||!validBatchName(j.provider_id))return;
+  const leader=await first(env,"SELECT * FROM jobs WHERE owner_id=? AND provider_id=? ORDER BY CAST(COALESCE(json_extract(params,'$.batchIndex'),0) AS INTEGER),created_at,id LIMIT 1",j.owner_id,j.provider_id);
+  if(!leader)return;
+  const t=now(),lock=await run(env,'UPDATE jobs SET last_poll=? WHERE id=? AND last_poll<?',t,leader.id,t-8000);if(!lock.meta.changes)return;
+  await run(env,'UPDATE jobs SET last_poll=? WHERE owner_id=? AND provider_id=?',t,j.owner_id,j.provider_id);
+  const key=geminiKey(env);
+  try{
+    const status=await googleJson('/v1beta/'+j.provider_id,key,{timeout:20000}),state=batchState(status);
+    const group=await rows(env,"SELECT * FROM jobs WHERE owner_id=? AND provider_id=? ORDER BY CAST(COALESCE(json_extract(params,'$.batchIndex'),0) AS INTEGER),created_at,id",j.owner_id,j.provider_id);
+    if(state==='JOB_STATE_SUCCEEDED'||status?.done===true&&batchOutputFile(status)){
+      const fileName=batchOutputFile(status);if(!fileName)throw new Error('Google completed the batch without a result file.');
+      await run(env,"UPDATE jobs SET state='saving',error='',updated_at=? WHERE owner_id=? AND provider_id=? AND state IN ('queued','running','saving')",now(),j.owner_id,j.provider_id);
+      const output=await googleDownload(fileName,key);await processGeminiBatchOutput(env,group,output);return;
+    }
+    if(['JOB_STATE_FAILED','JOB_STATE_CANCELLED','JOB_STATE_EXPIRED'].includes(state)){
+      const detail=googleDetail(status?.error?.message||status?.error||state);
+      await run(env,"UPDATE jobs SET state='failed',error=?,updated_at=? WHERE owner_id=? AND provider_id=? AND state IN ('queued','running','saving')",'Google batch ended: '+detail,now(),j.owner_id,j.provider_id);return;
+    }
+    const nextState=state==='JOB_STATE_RUNNING'?'running':'queued';
+    await run(env,"UPDATE jobs SET state=?,error='',updated_at=? WHERE owner_id=? AND provider_id=? AND state IN ('queued','running','saving')",nextState,now(),j.owner_id,j.provider_id);
+  }catch(e){
+    const detail=googleDetail(e?.message||'temporary Google batch/archive error');
+    await run(env,"UPDATE jobs SET error=? WHERE owner_id=? AND provider_id=? AND state IN ('queued','running','saving')",'Batch status retry: '+detail+' No new generation was submitted.',j.owner_id,j.provider_id);
+  }
+}
+
 // Stage original image bytes with the provider before quoting. No generation here.
 const MAX_PROVIDER_IMAGE = 10 * 1024 * 1024;
 const FILE_URI = /^spicy:\/\/f\/fil_[A-Za-z0-9_-]{8,128}$/;
@@ -390,6 +546,7 @@ async function backfillFailureDetails(env) {
 
 async function refreshJob(env,j) {
   if(!['queued','running','saving'].includes(j.state)||!j.provider_id)return;
+  const params=JSON.parse(j.params||'{}');if(params.imageEngine==='nano-banana-pro'&&params.delivery==='batch')return refreshGeminiBatch(env,j);
   const lock=await run(env,'UPDATE jobs SET last_poll=? WHERE id=? AND last_poll<?',now(),j.id,now()-8000);
   if(!lock.meta.changes)return;
   try {
@@ -425,7 +582,7 @@ async function route(request,env,ctx) {
   const owner=await authenticate(request,env),path=url.pathname,method=request.method;
   if(path==='/api/session'&&method==='GET'){
     const c=await config(env,owner),spent=await first(env,'SELECT COALESCE(SUM(estimate_microusd),0) AS n FROM spend WHERE owner_id=? AND created_at>=?',owner,Math.floor(now()/86400000)*86400000);
-    return json({owner:true,ownerId:owner,version:VERSION,config:publicConfig(c),estimatedSpentToday:spent.n/1000000});
+    return json({owner:true,ownerId:owner,version:VERSION,config:publicConfig(c,env),estimatedSpentToday:spent.n/1000000});
   }
   if(path==='/api/settings'&&method==='POST') {
     const data=await body(request),old=await config(env,owner);
@@ -442,11 +599,11 @@ async function route(request,env,ctx) {
     }
     if(!encrypted)fail(400,'Enter your provider API key.');
     await run(env,'INSERT INTO settings(owner_id,encrypted_key,enabled,terms_confirmed,daily_limit_microusd,updated_at) VALUES(?,?,?,?,?,?) ON CONFLICT(owner_id) DO UPDATE SET encrypted_key=excluded.encrypted_key,enabled=excluded.enabled,terms_confirmed=excluded.terms_confirmed,daily_limit_microusd=excluded.daily_limit_microusd,updated_at=excluded.updated_at',owner,encrypted,data.enabled===true?1:0,data.termsConfirmed===true?1:0,Math.round(limit*1000000),now());
-    return json({config:publicConfig(await config(env,owner))});
+    return json({config:publicConfig(await config(env,owner),env)});
   }
   if(path==='/api/settings'&&method==='DELETE') {
     if(await first(env,"SELECT id FROM jobs WHERE owner_id=? AND state IN ('submitting','queued','running','saving','uncertain')",owner))fail(409,'Wait for or resolve the active job before removing its API key.');
-    await run(env,'DELETE FROM settings WHERE owner_id=?',owner);return json({config:publicConfig(null)});
+    await run(env,'DELETE FROM settings WHERE owner_id=?',owner);return json({config:publicConfig(null,env)});
   }
   if(path==='/api/packs'&&method==='GET'){
     const list=await rows(env,'SELECT id,name,refs,created_at FROM packs WHERE owner_id=? ORDER BY name',owner);
@@ -501,8 +658,30 @@ async function route(request,env,ctx) {
     await run(env,"INSERT INTO jobs(id,owner_id,source_id,params,state,created_at,updated_at) VALUES(?,?,?,?,'draft',?,?)",id,owner,primary?.id||null,JSON.stringify(p),now(),now());
     return json({job:jobView(await first(env,'SELECT * FROM jobs WHERE id=?',id))},201);
   }
+  if(path==='/api/gemini/images'&&method==='POST') {
+    const data=await body(request),p=parameters(data.settings);
+    if(p.imageEngine!=='nano-banana-pro'||p.mode!=='image'||!p.prompt)fail(400,'Choose Nano Banana Pro and add a prompt.');
+    const count=Number(data.count),maximum=p.delivery==='batch'?GEMINI_BATCH_MAX:GEMINI_NORMAL_MAX;
+    if(!Number.isInteger(count)||count<1||count>maximum)fail(400,'Choose 1 to '+maximum+' Nano Banana Pro images for this mode.');
+    const refs=data.referenceSourceIds?.length?await sources(env,owner,data.referenceSourceIds):[];
+    p.referenceSourceIds=refs.map(a=>a.id);p.lastSourceId=null;
+    const key=geminiKey(env),files=await geminiReferenceFiles(env,owner,refs,key),prompt=assembledPrompt(p),requestBody=buildGenerateRequest(p,files,prompt);
+    const estimate=geminiEstimatedMicros(p,refs.length),jobIds=Array.from({length:count},()=>crypto.randomUUID());
+    let inputFile=null;
+    if(p.delivery==='batch'){
+      const jsonl=enc.encode(buildBatchJsonl(jobIds.map(id=>({id})),requestBody));
+      try{inputFile=await googleUpload(key,jsonl,'application/jsonl','pv-lab-batch-'+jobIds[0]);}
+      catch(e){fail(e?.status||502,googleDetail(e?.message||'Google batch input upload failed.')+' No generation was submitted.');}
+    }
+    const jobs=await reserveGeminiJobs(env,owner,p,refs[0]?.id||null,count,estimate,jobIds);
+    if(p.delivery==='batch')await runGeminiBatch(env,jobs,key,inputFile);
+    else await runGeminiNormal(env,jobs,key,requestBody);
+    const out=[];for(const id of jobIds)out.push(jobView(await first(env,'SELECT * FROM jobs WHERE id=? AND owner_id=?',id,owner)));
+    return json({jobs:out,mode:p.delivery,baseEstimateUsd:estimate/1000000,pricingNote:'Estimate includes image output plus approximate text/reference input. Gemini thinking tokens can add variable cost.'},p.delivery==='batch'?202:200);
+  }
   if(path==='/api/quotes'&&method==='POST') {
-    const {key}=await requireConfigured(env,owner),data=await body(request),p=parameters(data.settings);
+    const data=await body(request),p=parameters(data.settings);if(p.imageEngine==='nano-banana-pro')fail(400,'Nano Banana Pro uses the Google Standard or Batch generation route, not SpicyAPI quotes.');
+    const {key}=await requireConfigured(env,owner);
     if(p.mode!=='upscale'&&!p.prompt)fail(400,'Add a prompt before generating.');
     const {primary,input}=await prepareInput(env,owner,data,p,url);
     if(p.type==='video'&&Array.isArray(input.reference_image_urls)&&p.referenceSourceIds?.length){
@@ -545,10 +724,10 @@ async function route(request,env,ctx) {
     for(const assetId of linkedSourceIds(q))await source(env,owner,assetId);
     const id=crypto.randomUUID(),t=now(),day=Math.floor(t/86400000)*86400000;
     try {
-      const kind=JSON.parse(q.params).type==='image'?'image':'video';
+      const kind=kindForParams(JSON.parse(q.params));
       // Reserve both a per-kind slot and spending atomically. Concurrent tabs cannot overbook.
       // An uncertain charge still stops ALL new submissions until explicitly resolved.
-      const inserted=await run(env,"INSERT INTO jobs(id,owner_id,source_id,quote_id,params,state,estimate_microusd,created_at,updated_at) SELECT ?,?,?,?,?,'submitting',?,?,? WHERE NOT EXISTS(SELECT 1 FROM jobs WHERE owner_id=? AND state='uncertain') AND (SELECT COUNT(*) FROM jobs WHERE owner_id=? AND state IN ('submitting','queued','running','saving','uncertain') AND CASE WHEN json_extract(params,'$.type')='image' THEN 'image' ELSE 'video' END=?)<? AND (SELECT COALESCE(SUM(estimate_microusd),0) FROM spend WHERE owner_id=? AND created_at>=?)+?<=?",id,owner,q.source_id,q.id,q.params,q.estimate_microusd,t,t,owner,owner,kind,CONCURRENCY[kind],owner,day,q.estimate_microusd,c.daily_limit_microusd);
+      const inserted=await run(env,`INSERT INTO jobs(id,owner_id,source_id,quote_id,params,state,estimate_microusd,created_at,updated_at) SELECT ?,?,?,?,?,'submitting',?,?,? WHERE NOT EXISTS(SELECT 1 FROM jobs WHERE owner_id=? AND state='uncertain') AND (SELECT COUNT(*) FROM jobs WHERE owner_id=? AND state IN ('submitting','queued','running','saving','uncertain') AND ${KIND_SQL}=?)<? AND (SELECT COALESCE(SUM(estimate_microusd),0) FROM spend WHERE owner_id=? AND created_at>=?)+?<=?`,id,owner,q.source_id,q.id,q.params,q.estimate_microusd,t,t,owner,owner,kind,CONCURRENCY[kind],owner,day,q.estimate_microusd,c.daily_limit_microusd);
       if(!inserted.meta.changes)fail(409,'No generation submitted: the '+kind+' limit ('+CONCURRENCY[kind]+' active), an uncertain request, or your daily spending limit blocks this request.');
     }catch(e){old=await first(env,'SELECT * FROM jobs WHERE quote_id=? AND owner_id=?',quoteId,owner);if(old)return json({job:jobView(old)});throw e;}
     // Reuse the exact input URL and settings covered by the quote, never silently reprice.
@@ -573,8 +752,10 @@ async function route(request,env,ctx) {
   if(path.startsWith('/api/jobs/')) {
     const id=uid(path.split('/')[3]);let j=await first(env,'SELECT * FROM jobs WHERE id=? AND owner_id=?',id,owner);if(!j)fail(404,'Job not found.');
     if(path.endsWith('/resolve')&&method==='POST') {
-      const data=await body(request);if(j.state!=='uncertain'||data.confirm!==true)fail(409,'Confirm you checked the provider dashboard first.');
-      await run(env,"UPDATE jobs SET state='resolved',updated_at=?,error=? WHERE id=?",now(),'Owner resolved the interrupted request. No generation was resubmitted.',id);return json({ok:true});
+      const data=await body(request);if(j.state!=='uncertain'||data.confirm!==true)fail(409,'Confirm you checked the provider billing/dashboard first.');
+      const p=JSON.parse(j.params||'{}');
+      if(p.batchGroupId)await run(env,"UPDATE jobs SET state='resolved',updated_at=?,error=? WHERE owner_id=? AND state='uncertain' AND json_extract(params,'$.batchGroupId')=?",now(),'Owner resolved the interrupted batch after checking provider billing. No generation was resubmitted.',owner,p.batchGroupId);
+      else await run(env,"UPDATE jobs SET state='resolved',updated_at=?,error=? WHERE id=?",now(),'Owner resolved the interrupted request. No generation was resubmitted.',id);return json({ok:true});
     }
     if(method==='GET') {await refreshJob(env,j);return json({job:jobView(await first(env,'SELECT * FROM jobs WHERE id=?',id))});}
     if(method==='DELETE') {
