@@ -446,9 +446,9 @@ async function geminiParts(env,owner,p,referenceSourceIds=[]){
   return {parts,refs,totalBytes:total};
 }
 function geminiGenerateRequest(p,parts){
-  const imageConfig={imageSize:p.resolution.toUpperCase()};
-  if(p.aspectRatio&&p.aspectRatio!=='auto')imageConfig.aspectRatio=p.aspectRatio;
-  return {contents:[{role:'user',parts}],generationConfig:{responseModalities:['IMAGE'],imageConfig}};
+  const image={imageSize:p.resolution.toUpperCase()};
+  if(p.aspectRatio&&p.aspectRatio!=='auto')image.aspectRatio=p.aspectRatio;
+  return {contents:[{role:'user',parts}],generationConfig:{responseModalities:['IMAGE'],responseFormat:{image}}};
 }
 async function saveGeminiImage(env,j,response){
   const part=geminiImagePart(response);if(!part)throw new Error('Gemini completed without an image output.');
