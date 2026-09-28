@@ -41,7 +41,14 @@ export async function prepareSeedance(env,owner,data,p,url,{fail,source,sources,
   if(p.mode==='start'){
     if(data.referenceSourceIds?.length||data.referenceVideoIds?.length||data.referenceAudioIds?.length)fail(400,'Start-frame mode cannot be combined with reference mode.');
     primary=await image(data.sourceId);const last=data.lastSourceId?await image(data.lastSourceId):null;p.lastSourceId=last?.id||null;
-    if(url){input.image_url=await signedInput(env,url,primary.id);if(last)input.last_image_url=await signedInput(env,url,last.id);}
+    const originalIds=[primary.id,...(last?[last.id]:[])],transferIds=data.transferSourceIds;
+    let providerImages=[primary,...(last?[last]:[])];
+    if(transferIds!==undefined){
+      if(!Array.isArray(transferIds)||transferIds.length!==originalIds.length||new Set(transferIds).size!==transferIds.length)fail(400,'Prepared Seedance working images do not match the selected start frames. Review the price again.');
+      providerImages=await sources(env,owner,transferIds,2);if(providerImages.some(a=>!IMAGE_MIME.has(a.mime)))fail(400,'Prepared Seedance inputs must be images.');
+      p.transferSourceIds=providerImages.map(a=>a.id);
+    }
+    if(url){input.image_url=await signedInput(env,url,providerImages[0].id);if(last)input.last_image_url=await signedInput(env,url,providerImages[1].id);}
   }else if(p.mode==='text'){
     if(data.sourceId||data.lastSourceId||data.referenceSourceIds?.length||data.referenceVideoIds?.length||data.referenceAudioIds?.length)fail(400,'Text-to-video does not accept source media.');
   }else{
@@ -51,6 +58,14 @@ export async function prepareSeedance(env,owner,data,p,url,{fail,source,sources,
     const images=ids.length?await sources(env,owner,ids,30):[];
     if(images.some(a=>!IMAGE_MIME.has(a.mime)))fail(400,'Image references must contain images.');
     primary=images[0]||null;p.referenceSourceIds=images.map(a=>a.id);
+    let providerImages=images;
+    if(data.transferSourceIds!==undefined){
+      const transferIds=data.transferSourceIds;
+      if(!Array.isArray(transferIds)||transferIds.length!==images.length||new Set(transferIds).size!==transferIds.length)fail(400,'Prepared Seedance working images do not match the selected references. Review the price again.');
+      providerImages=transferIds.length?await sources(env,owner,transferIds,30):[];
+      if(providerImages.some(a=>!IMAGE_MIME.has(a.mime)))fail(400,'Prepared Seedance references must contain images.');
+      p.transferSourceIds=providerImages.map(a=>a.id);
+    }
     for(const [idKey,labelsKey,apiKey,kind] of [['referenceVideoIds','referenceVideos','reference_video_urls','video/'],['referenceAudioIds','referenceAudio','reference_audio_urls','audio/']]){
       const mediaIds=data[idKey]||[],labels=p[labelsKey];
       if(!Array.isArray(mediaIds)||mediaIds.length>10||new Set(mediaIds).size!==mediaIds.length||labels.length!==mediaIds.length)fail(400,'Reference media and their duration metadata must match in order.');
@@ -60,7 +75,7 @@ export async function prepareSeedance(env,owner,data,p,url,{fail,source,sources,
       if(url&&assets.length)input[apiKey]=await Promise.all(assets.map(a=>signedInput(env,url,a.id)));
     }
     if(!images.length&&!p.referenceVideoIds.length&&!p.referenceAudioIds.length)fail(400,'Add at least one image, video or audio reference.');
-    if(url&&images.length)input.reference_image_urls=await Promise.all(images.map(a=>signedInput(env,url,a.id)));
+    if(url&&providerImages.length)input.reference_image_urls=await Promise.all(providerImages.map(a=>signedInput(env,url,a.id)));
   }
   if(p.mode!=='reference'){
     if(p.referenceVideos.length||p.referenceAudio.length)fail(400,'Video and audio references require reference mode.');

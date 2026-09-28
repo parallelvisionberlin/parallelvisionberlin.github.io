@@ -378,6 +378,27 @@ async function prepareQuoteInputs(inputs){
       if(epoch!==sessionEpoch||!owner)throw new Error('Session changed.');
       return {...inputs,transferSourceIds};
     }
+    if(engine==='seedance'&&mode!=='text'){
+      const sessionEpoch=epoch;
+      const originals=mode==='reference'?references:[{id:inputs.sourceId,file},...(inputs.lastSourceId&&lastFile?[{id:inputs.lastSourceId,file:lastFile}]:[])];
+      const oversized=originals.filter(r=>r.file.size>PROVIDER_IMAGE_LIMIT);
+      if(!oversized.length)return inputs;
+      if(!confirm('SpicyAPI limits image inputs to 10 MiB each. Prepare a private compressed WebP working copy for '+oversized.length+' oversized Seedance reference image(s)? Originals stay unchanged in History.')){notify('Preparation cancelled. No generation was submitted.');return null;}
+      const transferSourceIds=[];
+      for(const item of originals){
+        if(item.file.size<=PROVIDER_IMAGE_LIMIT){transferSourceIds.push(item.id);continue;}
+        const cacheKey='seedance:'+item.id;let copy=workingCopies.get(cacheKey);
+        if(!copy||Date.now()-copy.at>900000){
+          notify('Preparing a Seedance working copy of '+item.file.name+'…');
+          const prepared=await providerWorkingCopy(item.file);
+          if(epoch!==sessionEpoch||!owner)throw new Error('Session changed.');
+          const id=await uploadAsset(prepared);copy={id,at:Date.now()};workingCopies.set(cacheKey,copy);
+        }
+        transferSourceIds.push(copy.id);
+      }
+      if(epoch!==sessionEpoch||!owner)throw new Error('Session changed.');
+      return {...inputs,transferSourceIds};
+    }
     return inputs;
   }
   const sessionEpoch=epoch;
