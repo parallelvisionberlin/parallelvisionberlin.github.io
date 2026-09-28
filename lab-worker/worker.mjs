@@ -545,8 +545,17 @@ async function route(request,env,ctx) {
     return json({job:jobView(await first(env,'SELECT * FROM jobs WHERE id=?',id))},201);
   }
   if(path==='/api/quotes'&&method==='POST') {
-    const {key}=await requireConfigured(env,owner),data=await body(request),p=parameters(data.settings);
-    if(p.mode!=='upscale'&&!p.prompt)fail(400,'Add a prompt before generating.');
+    const data=await body(request),p=parameters(data.settings);
+    if(!['upscale','video-upscale'].includes(p.mode)&&!p.prompt)fail(400,'Add a prompt before generating.');
+    if(p.mode==='video-upscale'){
+      await requireFalConfigured(env,owner);
+      const {primary,input}=await prepareInput(env,owner,data,p,url),estimate=estimateFalQuote(p);
+      const maximum=micros(String(estimate.usd)),id=crypto.randomUUID(),expires=now()+290000;
+      const payload={provider:'fal',endpoint:p.model,input};
+      await run(env,'INSERT INTO quotes(id,owner_id,source_id,params,estimate_microusd,expires_at,vendor_quote_id,expected_cost,payload) VALUES(?,?,?,?,?,?,?,?,?)',id,owner,primary.id,JSON.stringify(p),maximum,expires,'fal-local',String(estimate.usd),JSON.stringify(payload));
+      return json({id,estimatedUsd:estimate.usd,maxUsd:estimate.usd,expiresAt:expires,settings:p,provider:'fal.ai',notice:'Estimated from the published fal.ai model rate before submission. '+estimate.basis+'. fal.ai bills the actual delivered output; provider terms apply.'});
+    }
+    const {key}=await requireConfigured(env,owner);
     const {primary,input}=await prepareInput(env,owner,data,p,url);
     if(p.type==='video'&&Array.isArray(input.reference_image_urls)&&p.referenceSourceIds?.length){
       const ids=data.transferSourceIds??p.referenceSourceIds;
@@ -579,8 +588,10 @@ async function route(request,env,ctx) {
     const data=await body(request);if(data.confirm!==true)fail(400,'Confirm the estimated charge.');
     const quoteId=uid(data.quoteId);
     let old=await first(env,'SELECT * FROM jobs WHERE quote_id=? AND owner_id=?',quoteId,owner);if(old)return json({job:jobView(old)});
-    const {c,key}=await requireConfigured(env,owner),q=await first(env,'SELECT * FROM quotes WHERE id=? AND owner_id=? AND expires_at>?',quoteId,owner,now());
+    const q=await first(env,'SELECT * FROM quotes WHERE id=? AND owner_id=? AND expires_at>?',quoteId,owner,now());
     if(!q)fail(409,'Quote expired. Review the cost again.');
+    const params=JSON.parse(q.params),falJob=params.mode==='video-upscale';
+    const configured=falJob?await requireFalConfigured(env,owner):await requireConfigured(env,owner),c=configured.c,key=configured.key;
     const savedPayload=JSON.parse(q.payload);
     if(savedPayload.model===STILL_EDIT&&(!Array.isArray(savedPayload.input?.image_urls)||!savedPayload.input.image_urls.length||savedPayload.input.image_urls.some(uri=>!FILE_URI.test(uri))))
       fail(409,'This image quote uses the old reference transfer. Review a fresh price to verify your images before generating. Nothing was submitted.');
@@ -595,11 +606,17 @@ async function route(request,env,ctx) {
       if(!inserted.meta.changes)fail(409,'No generation submitted: the '+kind+' limit ('+CONCURRENCY[kind]+' active), an uncertain request, or your daily spending limit blocks this request.');
     }catch(e){old=await first(env,'SELECT * FROM jobs WHERE quote_id=? AND owner_id=?',quoteId,owner);if(old)return json({job:jobView(old)});throw e;}
     // Reuse the exact input URL and settings covered by the quote, never silently reprice.
-    const payload={...JSON.parse(q.payload),quoteId:q.vendor_quote_id,expectedCost:q.expected_cost};
+    const payload=JSON.parse(q.payload);
     try {
-      const result=await vendorRequest('/jobs/createTask',key,payload,id);
-      if(typeof result.taskId!=='string'||!result.taskId||result.taskId.length>200)throw new Error('Missing provider task ID.');
-      await run(env,"UPDATE jobs SET provider_id=?,state='queued',updated_at=? WHERE id=?",result.taskId,now(),id);
+      let taskId;
+      if(falJob){
+        taskId=await falSubmit(payload.endpoint,key,payload.input);
+      }else{
+        const result=await vendorRequest('/jobs/createTask',key,{...payload,quoteId:q.vendor_quote_id,expectedCost:q.expected_cost},id);
+        taskId=result.taskId;
+      }
+      if(typeof taskId!=='string'||!taskId||taskId.length>240)throw new Error('Missing provider task ID.');
+      await run(env,"UPDATE jobs SET provider_id=?,state='queued',updated_at=? WHERE id=?",taskId,now(),id);
     }catch(e){await run(env,'UPDATE jobs SET state=?,error=?,updated_at=? WHERE id=?',e.definite?'failed':'uncertain',e.definite?e.message:'Submission status is uncertain. Do not resubmit: first check the provider console to avoid a duplicate charge.',now(),id);}
     return json({job:jobView(await first(env,'SELECT * FROM jobs WHERE id=?',id))},202);
   }
