@@ -7,7 +7,7 @@ import {pathToFileURL} from 'node:url';
 const {chromium}=await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE).href);
 const root=resolve('.'),source=readFileSync('lab/lab.js','utf8');
 const boot=source.indexOf("try{const {Clerk}=await import(");assert.ok(boot>0);
-const testSource=source.slice(0,boot)+`clerk={isSignedIn:true,user:{id:'test'},session:{id:'synthetic-session',getToken:async()=> 'synthetic-token'},signOut:async()=>{}};owner=true;userId='test';config={enabled:true,dailyLimitUsd:10,concurrency:{image:4,video:1}};$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();update();window.__labTest={lock};`;
+const testSource=source.slice(0,boot)+`clerk={isSignedIn:true,user:{id:'test'},session:{id:'synthetic-session',getToken:async()=> 'synthetic-token'},signOut:async()=>{}};owner=true;userId='test';config={enabled:true,geminiConfigured:true,dailyLimitUsd:10,concurrency:{image:4,video:1,batch:40}};$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();update();window.__labTest={lock};`;
 const server=http.createServer((req,res)=>{const pathname=new URL(req.url,'http://localhost').pathname;const path=resolve(root,'.'+pathname+(pathname.endsWith('/')?'index.html':''));if(!path.startsWith(root+'/')||!existsSync(path)){res.writeHead(404).end();return;}res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css'})[extname(path)]||'text/plain');res.end(pathname==='/lab/lab.js'?testSource:readFileSync(path));});
 await new Promise(r=>server.listen(4179,'127.0.0.1',r));
 const browser=await chromium.launch({headless:true});
@@ -24,11 +24,19 @@ async function workspace({failure='',width=1440,initial=[],quoteDelay=0}={}){
   const path=url.pathname,method=req.method(),data=req.headers()['content-type']?.startsWith('application/json')?req.postDataJSON():{};
   requests.push({path,method,data});
   const send=(body,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(body)});
-  if(path==='/api/jobs'&&method==='GET')return send({jobs,activeJobs:jobs.filter(j=>['queued','running','saving','uncertain','submitting'].includes(j.status)),concurrency:{image:4,video:1},next:null});
+  if(path==='/api/jobs'&&method==='GET')return send({jobs,activeJobs:jobs.filter(j=>['queued','running','saving','uncertain','submitting'].includes(j.status)),concurrency:{image:4,video:1,batch:40},next:null});
   if(path==='/api/packs')return send({packs:[]});
   if(path==='/api/uploads')return send({id:id(sequence++)},201);
   if(path.startsWith('/api/assets/'))return route.fulfill({status:200,contentType:'image/png',body:png});
   if(path==='/api/drafts'){const job={id:id(sequence++),sourceId:data.sourceId,settings:{...data.settings,referenceSourceIds:data.referenceSourceIds||[]},status:'draft',createdAt:Date.now()};jobs.unshift(job);return send({job},201);}
+  if(path==='/api/gemini/images'&&method==='POST'){
+   const requested=Number(data.count)||1,batch=data.settings?.delivery==='batch',created=[];
+   for(let i=0;i<requested;i++){
+    const jid=id(sequence++),job={id:jid,sourceId:data.referenceSourceIds?.[0]||null,settings:{...data.settings,referenceSourceIds:data.referenceSourceIds||[],batchSize:requested,batchIndex:i},status:batch?'queued':'completed',createdAt:Date.now(),estimatedUsd:batch?0.067:0.134,providerTaskId:batch?'batches/synthetic':null,outputId:batch?null:jid};
+    jobs.unshift(job);created.push(job);
+   }
+   accepted+=requested;return send({jobs:created,mode:batch?'batch':'normal',baseEstimateUsd:batch?0.067:0.134},batch?202:200);
+  }
   if(path==='/api/quotes'){
    if(quoteDelay)await new Promise(r=>setTimeout(r,quoteDelay));
    if(failure==='quote')return send({error:'Provider quote unavailable. No generation submitted.'},502);
@@ -60,6 +68,12 @@ try{
  const q=x.requests.find(r=>r.path==='/api/quotes').data;assert.equal(q.settings.prompt,settings.prompt);assert.equal(q.settings.resolution,'2k');assert.equal(q.settings.aspectRatio,'16:9');assert.equal(q.settings.outputFormat,'png');ok('Text-to-image: one click, one quote, one submission, no review modal');
  await x.page.click('#save');await ready(x.page);assert.equal(x.accepted(),1);const draft=x.page.locator('.card[data-state="draft"]');await draft.getByRole('button',{name:'Reuse',exact:true}).click();await ready(x.page);assert.equal(await x.page.locator('#prompt').inputValue(),settings.prompt);assert.equal(x.accepted(),1);ok('Saving and reusing a draft do not generate or charge');assert.deepEqual(x.errors,[]);await x.context.close();
  x=await workspace();await imageForm(x);await x.page.locator('#reference-images').setInputFiles({name:'sculpture.png',mimeType:'image/png',buffer:png});await ready(x.page);await x.page.click('#generate');await ready(x.page);const edit=x.requests.find(r=>r.path==='/api/quotes').data;assert.equal(edit.referenceSourceIds.length,1);assert.equal(edit.transferSourceIds.length,1);assert.equal(x.accepted(),1);assert.equal(await x.page.locator('#quote-dialog').isVisible(),false);ok('Reference edit submits once without review and preserves reference inputs');await x.context.close();
+ x=await workspace();await x.page.click('#tool-image');await x.page.selectOption('#image-engine','nano-banana-pro');await x.page.fill('#prompt','Natural editorial portrait in a dark concrete room.');await x.page.selectOption('#resolution','4k');await x.page.selectOption('#ratio','4:5');await x.page.selectOption('#image-count','2');
+ assert.equal(await x.page.locator('#generate').innerText(),'⚡ Generate now');assert.equal(await x.page.locator('#format-control').isVisible(),false);assert.equal(await x.page.locator('#image-delivery-control').isVisible(),true);
+ await x.page.click('#generate');await ready(x.page);const nano=x.requests.find(r=>r.path==='/api/gemini/images');assert.ok(nano);assert.equal(nano.data.count,2);assert.equal(nano.data.settings.imageEngine,'nano-banana-pro');assert.equal(nano.data.settings.delivery,'normal');assert.equal(nano.data.settings.resolution,'4k');assert.equal(count(x,'/api/quotes'),0);assert.equal(count(x,'/api/jobs'),0);assert.equal(x.accepted(),2);ok('Nano Banana Pro Normal uses the dedicated Google route with 4K and no Spicy quote');await x.context.close();
+ x=await workspace();await x.page.click('#tool-image');await x.page.selectOption('#image-engine','nano-banana-pro');await x.page.click('#image-batch');await x.page.fill('#prompt','Ten restrained analog fashion variations.');await x.page.selectOption('#image-count','10');
+ assert.equal(await x.page.locator('#generate').innerText(),'🕒 Queue batch');assert.match(await x.page.locator('#generation-help').innerText(),/asynchronous queue/i);
+ await x.page.click('#generate');await ready(x.page);const batch=x.requests.find(r=>r.path==='/api/gemini/images');assert.ok(batch);assert.equal(batch.data.count,10);assert.equal(batch.data.settings.delivery,'batch');assert.equal(count(x,'/api/quotes'),0);assert.equal(count(x,'/api/jobs'),0);assert.equal(x.accepted(),10);assert.equal(x.jobs.filter(j=>j.settings?.delivery==='batch').length,10);ok('Nano Banana Pro Batch queues 10 images in one API request and keeps them in History');await x.context.close();
  x=await workspace({quoteDelay:300});await imageForm(x);await x.page.evaluate(()=>{document.querySelector('#generate').click();document.querySelector('#generate').click();});await ready(x.page);assert.equal(x.accepted(),1);assert.equal(count(x,'/api/quotes'),1);ok('Rapid repeated clicks cannot double-submit');await x.context.close();
  for(const failure of ['quote','expired','wrong-model','budget','server','network']){
   x=await workspace({failure});await imageForm(x);await x.page.click('#generate');await ready(x.page);await x.page.waitForTimeout(150);assert.equal(x.accepted(),0);assert.equal(count(x,'/api/quotes'),1);assert.equal(count(x,'/api/jobs'),['quote','expired','wrong-model'].includes(failure)?0:1);assert.equal(await x.page.locator('#quote-dialog').isVisible(),false);assert.ok((await x.page.locator('#notice').innerText()).length>0);ok(failure+': stops without another paid attempt');await x.context.close();
