@@ -269,7 +269,8 @@ for (const continuity of ['true', 'false']) test(`authenticated sessions keep sh
       assert.match(sent[0].systemPrompt,/OWNER PRIVATE PREFERENCE/);
     }
     assert.match(sent[0].systemPrompt,/PRIVATE OWNER CANON/);
-    assert.doesNotMatch(sent[1].systemPrompt,/girlfriend|OWNER PRIVATE|PRIVATE OWNER|Alejandro/);
+    assert.doesNotMatch(sent[1].systemPrompt,/girlfriend|OWNER PRIVATE|PRIVATE OWNER/);
+    assert.match(sent[1].systemPrompt,/You know Alejandro Molinari through Parallel Vision/);
     assert.deepEqual(sent[0].tools.find(t=>t.subtype==='knowledge').documentFolderIds,['shared-canon','private-owner']);
     assert.deepEqual(sent[1].tools.find(t=>t.subtype==='knowledge').documentFolderIds,['shared-canon']);
     for (const config of sent) {
