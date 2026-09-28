@@ -1,7 +1,8 @@
 /* Parallel Vision Lab. Private owner-only workspace, no public media bucket.
    The hosted provider is opt-in; no provider key or moderation bypass in source. */
 import {seedanceParameters, prepareSeedance, REFERENCE_MIME, sniffReference} from './seedance.mjs';
-export const VERSION = 'pv-lab-2026-09-28.1-seedance-working-copies';
+import {videoUpscaleParameters, estimateFalQuote, buildFalInput, falSubmit, falStatus, falResult} from './fal-upscale.mjs';
+export const VERSION = 'pv-lab-2026-09-28.2-video-enhance';
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:4,video:3});
 const ORIGINS = new Set(['https://parallelvisionlabel.com','https://www.parallelvisionlabel.com']);
@@ -22,7 +23,7 @@ function micros(value) {
 }
 const UUID = /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i;
 const ACTIVE = new Set(['submitting','queued','running','saving','uncertain']);
-const MAX_IMAGE = 20 * 1024 * 1024, MAX_VIDEO = 150 * 1024 * 1024, MAX_STORAGE = 2 * 1024 * 1024 * 1024;
+const MAX_IMAGE = 20 * 1024 * 1024, MAX_VIDEO = 150 * 1024 * 1024, MAX_VIDEO_ENHANCE_OUTPUT = 512 * 1024 * 1024, MAX_STORAGE = 2 * 1024 * 1024 * 1024;
 const enc = new TextEncoder(), dec = new TextDecoder();
 let jwksCache = { keys: [], at: 0 };
 class HttpError extends Error { constructor(status,message) { super(message); this.status=status; } }
@@ -95,7 +96,17 @@ async function decryptKey(env,value) {
   return dec.decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:unbase(iv),additionalData:enc.encode(MODEL)},key,unbase(cipher)));
 }
 async function config(env,owner) {return first(env,'SELECT * FROM settings WHERE owner_id=?',owner);}
-function publicConfig(c) {return {concurrency:CONCURRENCY,configured:!!c,enabled:!!(c?.enabled&&c?.terms_confirmed),dailyLimitUsd:(c?.daily_limit_microusd||10000000)/1000000,provider:'SpicyAPI',videoEngines:['wan','seedance'],model:'Wan 3.0 / Seedance 2.5 / Seedream 5.0 Pro / Image Upscaler',documentation:DOC,pricingNote:'A live provider quote is required before every generation. No subscription is added by this Lab. Provider terms apply.'};}
+async function providerKey(env,owner,provider){return first(env,'SELECT encrypted_key FROM provider_keys WHERE owner_id=? AND provider=?',owner,provider);}
+async function encryptProviderKey(env,key,provider) {
+  const k=await derived(env,'credential','AES-GCM',['encrypt']),iv=crypto.getRandomValues(new Uint8Array(12)),aad=MODEL+':'+provider;
+  const cipher=await crypto.subtle.encrypt({name:'AES-GCM',iv,additionalData:enc.encode(aad)},k,enc.encode(key));
+  return base(iv)+'.'+base(cipher);
+}
+async function decryptProviderKey(env,value,provider) {
+  const [iv,cipher]=value.split('.'),k=await derived(env,'credential','AES-GCM',['decrypt']),aad=MODEL+':'+provider;
+  return dec.decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:unbase(iv),additionalData:enc.encode(aad)},k,unbase(cipher)));
+}
+function publicConfig(c,falConfigured=false) {return {concurrency:CONCURRENCY,configured:!!c,enabled:!!(c?.enabled&&c?.terms_confirmed),falConfigured,videoUpscale:falConfigured,dailyLimitUsd:(c?.daily_limit_microusd||10000000)/1000000,provider:falConfigured?'SpicyAPI + fal.ai':'SpicyAPI',videoEngines:['wan','seedance'],model:'Wan 3.0 / Seedance 2.5 / Seedream 5.0 Pro / Image Upscaler'+(falConfigured?' / ByteDance + Topaz Video Enhance':''),documentation:DOC,pricingNote:'SpicyAPI uses live bounded quotes. fal.ai Video Enhance uses a displayed provider-rate estimate before submission. No monthly subscription is added by this Lab.'};}
 async function vendorRequest(path,key,data,idempotency,method=data?'POST':'GET') {
   let r;
   try {
@@ -127,6 +138,11 @@ async function requireConfigured(env,owner) {
   const c=await config(env,owner);if(!c?.enabled||!c.terms_confirmed)fail(409,'Rendering is not enabled. A compatible provider and your API key are still required.');
   return {c,key:await decryptKey(env,c.encrypted_key)};
 }
+async function requireFalConfigured(env,owner) {
+  const c=await config(env,owner);if(!c?.enabled||!c.terms_confirmed)fail(409,'Rendering is not enabled.');
+  const row=await providerKey(env,owner,'fal');if(!row?.encrypted_key)fail(409,'Connect a fal.ai API key in Lab settings to use Video Enhance.');
+  return {c,key:await decryptProviderKey(env,row.encrypted_key,'fal')};
+}
 function sniff(bytes,mime) {
   if(mime==='image/png')return bytes.length>=8&&[137,80,78,71,13,10,26,10].every((v,i)=>bytes[i]===v);
   if(mime==='image/jpeg')return bytes.length>=3&&bytes[0]===255&&bytes[1]===216&&bytes[2]===255;
@@ -140,6 +156,7 @@ function referenceLabels(value,max=10) {
 }
 function parameters(value) {
   if(!value||typeof value!=='object'||Array.isArray(value))fail(400,'Invalid settings.');
+  if(value.type==='video'&&value.mode==='video-upscale')return videoUpscaleParameters(value,{fail});
   if(value.type!=='image'&&value.engine==='seedance')return seedanceParameters(value,{fail,referenceLabels});
   if(value.engine&&value.engine!=='wan'&&value.type!=='image')fail(400,'Unknown video model.');
   const prompt=typeof value.prompt==='string'?value.prompt.trim():'';
@@ -172,6 +189,13 @@ function assembledPrompt(p) {
   return prompt;
 }
 async function prepareInput(env,owner,data,p,url) {
+  if(p.mode==='video-upscale'){
+    const primary=await source(env,owner,data.sourceId);
+    if(!['video/mp4','video/quicktime'].includes(primary.mime))fail(400,'Video Enhance accepts MP4 or MOV input.');
+    p.referenceSourceIds=[];p.lastSourceId=null;
+    const videoUrl=url?await signedInput(env,url,primary.id):null;
+    return {primary,input:videoUrl?buildFalInput(p,videoUrl):{}};
+  }
   if(p.engine==='seedance'){
     const prepared=await prepareSeedance(env,owner,data,p,url,{fail,source,sources,signedInput});
     if(p.prompt)prepared.input.prompt=assembledPrompt(p);return prepared;
@@ -211,7 +235,7 @@ async function prepareInput(env,owner,data,p,url) {
 }
 async function source(env,owner,id) {
   const a=await first(env,"SELECT * FROM assets WHERE id=? AND owner_id=? AND kind='source'",uid(id),owner);
-  if(!a)fail(404,'Source image not found. Upload it again.');return a;
+  if(!a)fail(404,'Source file not found. Upload it again.');return a;
 }
 async function sources(env,owner,ids,max=10) {
   if(!Array.isArray(ids)||ids.length<1||ids.length>max)fail(400,'Reference mode needs 1 to '+max+' images.');
@@ -261,7 +285,7 @@ async function media(request,env,a) {
 function jobView(j) {return {id:j.id,sourceId:j.source_id,settings:JSON.parse(j.params),status:j.state,outputId:j.output_id,estimatedUsd:j.quote_id?j.estimate_microusd/1000000:null,settledUsd:j.settled_cost,providerTaskId:j.provider_id,error:j.error,createdAt:j.created_at,updatedAt:j.updated_at};}
 function safeVideoUrl(value) {
   const u=new URL(value);const host=u.hostname.toLowerCase();
-  if(u.protocol!=='https:'||u.username||u.password||(u.port&&u.port!=='443')||!(host==='spicyapi.ai'||host.endsWith('.spicyapi.ai')||host.endsWith('.r2.cloudflarestorage.com')||host.endsWith('.cloudfront.net')))throw new Error('Unexpected provider output location.');
+  if(u.protocol!=='https:'||u.username||u.password||(u.port&&u.port!=='443')||!(host==='spicyapi.ai'||host.endsWith('.spicyapi.ai')||host.endsWith('.r2.cloudflarestorage.com')||host.endsWith('.cloudfront.net')||host==='fal.media'||host.endsWith('.fal.media')))throw new Error('Unexpected provider output location.');
   return u.href;
 }
 async function copyResult(env,j,url) {
@@ -275,7 +299,7 @@ async function copyResult(env,j,url) {
   const mime=(r.headers.get('content-type')||'').split(';')[0];
   if(isImage?!['image/png','image/jpeg','image/webp'].includes(mime):!['video/mp4','application/octet-stream'].includes(mime))throw new Error('Unexpected output format.');
   const finalMime=isImage?mime:'video/mp4',ext=isImage?({'image/png':'png','image/jpeg':'jpg','image/webp':'webp'}[mime]):'mp4';
-  const limit=params.mode==='upscale'?256*1024*1024:isImage?MAX_IMAGE:MAX_VIDEO;
+  const limit=params.mode==='video-upscale'?MAX_VIDEO_ENHANCE_OUTPUT:params.mode==='upscale'?256*1024*1024:isImage?MAX_IMAGE:MAX_VIDEO;
   const declared=Number(r.headers.get('content-length')||0);
   if(!Number.isSafeInteger(declared)||declared<0||declared>limit)throw new Error('Output exceeds the archive limit.');
   const stored=await first(env,'SELECT COALESCE(SUM(bytes),0) AS n FROM assets WHERE owner_id=?',j.owner_id);
