@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import vm from "node:vm";
 import { extractConversationalPreferredName, getAccountPreferences, getBillingHistory, learnPreferredNameFromConversation, updateAccountProfile, updateNewsletterPreferences } from "../src/account.js";
 import { clearUserMemory } from "../src/memory.js";
 import worker from "../src/index.js";
@@ -60,8 +61,8 @@ test("billing history cannot read another user's purchases", async () => {
 });
 
 test("account migration and frontend preserve profile-memory separation", async () => {
-  const [migration,page,frontend,accountCss,index,project]=await Promise.all([
-    readFile(new URL("../migrations/0005_account_preferences.sql",import.meta.url),"utf8"),readFile(new URL("../../account.html",import.meta.url),"utf8"),readFile(new URL("../../js/account.js",import.meta.url),"utf8"),readFile(new URL("../../css/account.css",import.meta.url),"utf8"),readFile(new URL("../../index.html",import.meta.url),"utf8"),readFile(new URL("../../nina-project.html",import.meta.url),"utf8")
+  const [migration,page,frontend,accountCss,index,project,app]=await Promise.all([
+    readFile(new URL("../migrations/0005_account_preferences.sql",import.meta.url),"utf8"),readFile(new URL("../../account.html",import.meta.url),"utf8"),readFile(new URL("../../js/account.js",import.meta.url),"utf8"),readFile(new URL("../../css/account.css",import.meta.url),"utf8"),readFile(new URL("../../index.html",import.meta.url),"utf8"),readFile(new URL("../../nina-project.html",import.meta.url),"utf8"),readFile(new URL("../../nina-app.html",import.meta.url),"utf8")
   ]);
   assert.match(migration,/CREATE TABLE account_preferences/);assert.match(migration,/user_id TEXT PRIMARY KEY REFERENCES users\(id\)/);
   assert.match(page,/id="memoryConfirm" hidden/);assert.match(frontend,/method:"DELETE",body:"\{\}"/);assert.match(frontend,/\/api\/account\/billing/);
@@ -71,11 +72,61 @@ test("account migration and frontend preserve profile-memory separation", async 
   assert.match(frontend,/paid:"COMPLETED",open:"NOT COMPLETED",failed:"FAILED",expired:"EXPIRED"/);
   assert.match(frontend,/paid:"ABGESCHLOSSEN",open:"NICHT ABGESCHLOSSEN",failed:"FEHLGESCHLAGEN",expired:"ABGELAUFEN"/);
   assert.doesNotMatch(frontend,/\$\{row\.status\}/);
-  const accountMenu=index.match(/<div class="nina-account-menu"[^>]*>([\s\S]*?)<\/div>/)?.[1];
-  assert.ok(accountMenu,"Homepage account menu exists");
-  assert.match(accountMenu,/Profile<\/a>/);assert.match(accountMenu,/Billing<\/a>/);assert.match(accountMenu,/Memory<\/a>/);
-  assert.doesNotMatch(accountMenu,/#newsletter|Newsletter<\/a>/);
+  for(const [name,html] of [["Homepage",index],["Nina project",project],["Native app",app]]){
+    const accountMenu=html.match(/<div\b[^>]*class="nina-account-menu"[^>]*>([\s\S]*?)<\/div>/)?.[1];
+    assert.ok(accountMenu,`${name} account menu exists`);
+    assert.match(accountMenu,/Profile<\/a>/);assert.match(accountMenu,/Billing<\/a>/);assert.match(accountMenu,/Memory<\/a>/);
+    assert.match(accountMenu,/<a id="ninaAccountNewsletter" href="\.\/account\.html#newsletter" hidden>Newsletter<\/a>/);
+  }
+  assert.match(page,/id="newsletterForm"/);assert.match(frontend,/api\("\/api\/account\/preferences"/);
   assert.match(page,/id="deleteAccountSection" hidden/);
+});
+
+test("newsletter menu follows authenticated account role and resets on logout", async () => {
+  const source=await readFile(new URL("../../js/nina-access.js",import.meta.url),"utf8");
+  const extract=name=>{
+    const match=source.match(new RegExp(`(?:async )?function ${name}\\([^]*?\\n\\}`));
+    assert.ok(match,`Production function ${name} exists`);
+    return match[0];
+  };
+  let responseData={role:"user",displayName:"Visitor"}, responseOk=true, fetchCalls=0;
+  const clerk={isSignedIn:true,session:{getToken:async()=>"test-token"}};
+  const state={
+    ninaAccountNewsletter:{hidden:true},ninaAccountName:{textContent:""},
+    ninaAccountAnalytics:{hidden:true},ninaAccountLab:{hidden:true},
+    ninaReferralCodeValue:"",ninaReferralLink:"",ninaClerk:clerk,
+    ANAM_SESSION_TOKEN_ENDPOINT:"https://worker.example/session-token",
+    normalizedReferralCode:value=>value||"",submitCapturedReferral:async()=>{},
+    fetch:async(url,options)=>{fetchCalls++;assert.equal(url,"https://worker.example/api/account");assert.equal(options.headers.Authorization,"Bearer test-token");return{ok:responseOk,json:async()=>responseData};},
+    ninaTrialPromotion:{setUser(){}},ninaSignIn:null,ninaSignInEmail:null,
+    ninaAccountShell:null,ninaAccountLoggedOut:null,ninaAccountLoggedIn:null,
+    ninaCreditsUserId:"user-a",ninaCreditsRequest:0,ninaCreditsBalance:null,
+    ninaCreditsLoadPromise:null,ninaCreditsLoadUserId:"",ninaOwnerBypass:false,
+    clearSignalCreditSnapshot(){},syncNinaAccountCreditActions(){},
+    ninaSignalCredits:null,ninaLiveTime:null,ninaAccountPanel:null
+  };
+  vm.createContext(state);
+  vm.runInContext(extract("loadAccountDisplayName")+"\n"+extract("updateNinaAccountControls"),state);
+  for(const role of ["user","owner",undefined,"unexpected"]){
+    responseData={role};
+    await state.loadAccountDisplayName(clerk);
+    assert.equal(state.ninaAccountNewsletter.hidden,role!=="user",`Newsletter visibility for ${role}`);
+    assert.equal(state.ninaAccountAnalytics.hidden,role!=="owner");
+    assert.equal(state.ninaAccountLab.hidden,role!=="owner");
+  }
+  responseData={role:"user"};
+  await state.loadAccountDisplayName(clerk);
+  assert.equal(state.ninaAccountNewsletter.hidden,false);
+  responseOk=false;
+  await state.loadAccountDisplayName(clerk);
+  assert.equal(state.ninaAccountNewsletter.hidden,true,"Failed account lookup cannot show Newsletter");
+  responseOk=true;
+  await state.loadAccountDisplayName(clerk);
+  state.updateNinaAccountControls({isSignedIn:false,session:null});
+  assert.equal(state.ninaAccountNewsletter.hidden,true,"Signing out clears role-specific visibility");
+  const callsBeforeLogout=fetchCalls;
+  await state.loadAccountDisplayName({isSignedIn:false,session:null});
+  assert.equal(fetchCalls,callsBeforeLogout,"Signed-out account does not fetch role data");
 });
 
 test("authenticated memory deletion cannot delete credits, purchases or profile preferences", () => {
