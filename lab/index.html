@@ -7,7 +7,7 @@
 <link rel="icon" href="/favicon.png"><link rel="stylesheet" href="./lab.css?v=20260927-preview1">
 <link rel="stylesheet" href="./history.css?v=20260927-2">
 <link rel="stylesheet" href="./seedance.css?v=20260927-standard1">
-<script type="module" src="./lab.js?v=20260928-seedance-working-copy1"></script>
+<script type="module" src="./lab.js?v=20260928-video-enhance1"></script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to workspace</a>
@@ -17,11 +17,44 @@
 <section id="gate" class="gate"><p class="eyebrow">Owner access</p><h2>Your private image and motion studio.</h2><p id="auth-status" role="status">Loading your Parallel Vision sign-in…</p><button id="signin" class="primary" disabled>Sign in</button><p class="fine">Use the same owner account as Nina. No new subscription.</p></section>
 <div id="app" hidden>
 <div class="connection-strip"><span id="connection-status">Checking connection…</span><button class="text-button" id="setup">Manage connection</button></div>
-<nav class="tool-switch" aria-label="Creative tool"><button id="tool-video" class="tool-tab active" type="button" aria-pressed="true">Video <small>Wan / Seedance</small></button><button id="tool-image" class="tool-tab" type="button" aria-pressed="false">Image <small>Seedream 5.0 Pro</small></button><button id="tool-upscale" class="tool-tab" type="button" aria-pressed="false">Upscale <small>Image Upscaler</small></button></nav>
+<nav class="tool-switch" aria-label="Creative tool"><button id="tool-video" class="tool-tab active" type="button" aria-pressed="true">Video <small>Wan / Seedance</small></button><button id="tool-image" class="tool-tab" type="button" aria-pressed="false">Image <small>Seedream 5.0 Pro</small></button><button id="tool-upscale" class="tool-tab" type="button" aria-pressed="false">Upscale <small>Image Upscaler</small></button><button id="tool-video-upscale" class="tool-tab" type="button" aria-pressed="false">Enhance <small>ByteDance / Topaz</small></button></nav>
 <div class="workspace">
 <section class="controls" aria-label="Image to video settings">
 <div class="mode"><span id="mode-heading">01 / Image to Video</span><span class="engine-pill" id="engine-name">WAN 3.0</span></div>
 <div id="video-model-control"><label><span class="label">Video model</span><select id="video-engine"><option value="wan">Wan 3.0</option><option value="seedance" disabled>Seedance 2.5</option></select></label><p id="video-model-note" class="fine">Standard model access. Provider policies and model refusals apply. No automatic model switching.</p></div>
+<div id="video-upscale-panel" hidden>
+<div class="upload-heading"><span class="label">Source video</span><span class="micro">MP4 / MOV · max 60 sec</span></div>
+<label class="drop compact-drop" id="upscale-video-drop"><span>Drop or browse a finished clip</span><small>Original is kept in your private archive</small><input id="upscale-video" type="file" accept="video/mp4,video/quicktime"></label>
+<p class="filemeta" id="upscale-video-meta">Choose a clip to enhance.</p>
+<label><span class="label">Enhancement route</span><select id="video-upscale-engine"><option value="bytedance">ByteDance Standard / AIGC</option><option value="precision">Topaz Precision / faithful</option><option value="starlight">Topaz Starlight Precise 2.6 / realism</option></select></label>
+<div id="bytedance-upscale-settings" class="enhance-settings">
+<div class="parameter-grid enhance-grid">
+<label><span class="label">Target</span><select id="enhance-resolution"><option value="1080p" selected>1080p</option><option value="2k">2K</option><option value="4k">4K</option><option value="6k">6K</option><option value="8k">8K / VR</option></select></label>
+<label><span class="label">Tier</span><select id="enhance-tier"><option value="standard" selected>Standard</option><option value="pro">Pro · 10×</option></select></label>
+<label><span class="label">Fidelity</span><select id="enhance-fidelity"><option value="high" selected>High / source-faithful</option><option value="medium">Medium / stronger</option></select></label>
+</div>
+<div class="parameter-grid enhance-grid">
+<label><span class="label">FPS</span><select id="enhance-fps"><option value="source" selected>Keep source</option><option value="24">24</option><option value="25">25</option><option value="30">30</option><option value="50">50</option><option value="60">60</option></select></label>
+<label><span class="label">Bit depth</span><select id="enhance-bit-depth"><option value="8" selected>8-bit</option><option value="10">10-bit · Pro</option><option value="12">12-bit · Pro</option></select></label>
+</div>
+<p class="fine">Default: AIGC + Standard + high fidelity. Use Pro only for premium masters. 8K is intended for final large-format or VR delivery.</p>
+</div>
+<div id="precision-upscale-settings" class="enhance-settings" hidden>
+<div class="parameter-grid enhance-grid">
+<label><span class="label">Model</span><select id="precision-model"><option value="Proteus" selected>Proteus</option><option value="Proteus Natural">Proteus Natural</option><option value="Iris">Iris / faces</option></select></label>
+<label><span class="label">FPS</span><select id="precision-fps"><option value="source" selected>Keep source</option><option value="24">24</option><option value="25">25</option><option value="30">30</option><option value="50">50</option><option value="60">60</option></select></label>
+</div>
+<p class="fine">2× faithful enhancement. Best when the clip already looks real and you want cleaner detail without generative reinterpretation.</p>
+</div>
+<div id="starlight-upscale-settings" class="enhance-settings" hidden>
+<div class="parameter-grid enhance-grid">
+<label><span class="label">Softness</span><select id="starlight-softness"><option value="1">1 / sharp</option><option value="2">2</option><option value="3" selected>3 / balanced</option><option value="4">4</option><option value="5">5 / soft</option></select></label>
+<label><span class="label">FPS</span><select id="starlight-fps"><option value="source" selected>Keep source</option><option value="24">24</option><option value="25">25</option><option value="30">30</option><option value="50">50</option><option value="60">60</option></select></label>
+</div>
+<p class="fine">2× generative realism pass. Use this for plastic AI skin or synthetic-looking detail. It can reconstruct texture that is not present in the source.</p>
+</div>
+<p class="fine" id="enhance-provider-note">Requires one fal.ai API key. No monthly subscription is required; fal.ai bills usage.</p>
+</div>
 <div id="video-modes" class="mode-switch" role="tablist" aria-label="Generation mode">
 <button id="mode-text" class="mode-tab" type="button" role="tab" aria-selected="false" hidden>Text to Video</button>
 <button id="mode-start" class="mode-tab active" type="button" role="tab" aria-selected="true">Start frame</button>
@@ -64,7 +97,7 @@
 <div class="pack-bar"><label><span class="label">Reference packs</span><select id="pack-select"><option value="">Choose a saved pack</option></select></label><button id="pack-load" class="quiet" type="button">Load</button><button id="pack-save" class="quiet" type="button">Save pack</button><button id="pack-delete" class="quiet" type="button">Delete pack</button></div>
 </div>
 <label class="label prompt-label" id="prompt-label" for="prompt">Motion direction</label><textarea id="prompt" maxlength="6000" placeholder="One clear action, one camera move, light, atmosphere and sound."></textarea>
-<div class="parameter-grid">
+<div class="parameter-grid" id="parameter-grid">
 <label id="duration-control"><span class="label">Duration</span><select id="duration"><option value="5">5 sec</option><option value="10">10 sec</option><option value="15" selected>15 sec</option><option value="30">30 sec</option></select></label>
 <label id="image-count-control" hidden><span class="label">Number of images</span><select id="image-count"><option value="1" selected>1 image</option><option value="2">2 images</option><option value="3">3 images</option><option value="4">4 images</option></select></label>
 <label><span class="label">Resolution</span><select id="resolution"><option value="480p">480p</option><option value="720p">720p</option><option value="1080p" selected>1080p</option></select></label>
@@ -90,8 +123,9 @@
 <noscript><p>Enable JavaScript to sign in and use the Lab.</p></noscript>
 </main>
 <footer><div class="wrap">Parallel Vision / Lab <span>Private archive · Hosted generation</span></div></footer>
-<dialog id="connect-dialog" aria-labelledby="connect-title"><form id="connect-form"><div class="dialoghead"><h2 id="connect-title">Generation connection</h2><button type="button" class="quiet" data-close="connect-dialog">Close</button></div><p>Wan 3.0 and Seedance 2.5 handle video. Seedream 5.0 Pro handles images and reference-based edits. Image Upscaler enlarges a finished image. Your existing provider key is used for these tools. Image Generate starts your selected image count at the live provider price. Upscale starts one paid upscaling job per click without a price-review popup. Video keeps price review before payment. Your computer does not render the media.</p><p class="fine">Provider access, permitted content and model availability must be checked in your own account. A model name alone does not guarantee unrestricted use. No safety filters are bypassed by this Lab.</p><p><a href="https://spicyapi.ai" target="_blank" rel="noopener noreferrer">Open provider ↗</a> · <a href="https://docs.spicyapi.ai/docs/api-reference" target="_blank" rel="noopener noreferrer">API documentation ↗</a></p>
-<label class="label" for="api-key">Your SpicyAPI key</label><input id="api-key" type="password" autocomplete="off" spellcheck="false" placeholder="Paste here, not in chat"><p class="fine" id="key-note">Stored encrypted on your private backend. Never committed to GitHub or saved in browser storage.</p>
+<dialog id="connect-dialog" aria-labelledby="connect-title"><form id="connect-form"><div class="dialoghead"><h2 id="connect-title">Generation connection</h2><button type="button" class="quiet" data-close="connect-dialog">Close</button></div><p>SpicyAPI powers Wan, Seedance, Seedream and image upscale. fal.ai powers ByteDance and Topaz Video Enhance. Both keys stay encrypted on the private backend. Video generation and Video Enhance keep price review before payment.</p><p class="fine">Provider access, permitted content and model availability must be checked in your own account. A model name alone does not guarantee unrestricted use. No safety filters are bypassed by this Lab.</p><p><a href="https://spicyapi.ai" target="_blank" rel="noopener noreferrer">Open provider ↗</a> · <a href="https://docs.spicyapi.ai/docs/api-reference" target="_blank" rel="noopener noreferrer">API documentation ↗</a></p>
+<label class="label" for="api-key">Your SpicyAPI key</label><input id="api-key" type="password" autocomplete="off" spellcheck="false" placeholder="Leave blank to keep existing key"><p class="fine" id="key-note">Stored encrypted on your private backend. Never committed to GitHub or saved in browser storage.</p>
+<label class="label" for="fal-api-key">Your fal.ai API key</label><input id="fal-api-key" type="password" autocomplete="off" spellcheck="false" placeholder="Optional until you use Video Enhance"><p class="fine" id="fal-key-note">One fal.ai key covers ByteDance and Topaz. fal.ai is pay-as-you-go, with no monthly subscription required.</p>
 <label class="label" for="daily-limit">Daily generation budget (USD)</label><input id="daily-limit" type="number" min="1" max="100" step="0.01" value="10"><p class="fine">UTC day. This Lab conservatively counts quoted maximums, including failed or uncertain attempts. Also set limits on the provider API key. Provider invoices remain the billing authority.</p>
 <label class="check"><input id="terms" type="checkbox" required> I have checked that my provider account and its terms allow my intended content, and I have the necessary rights and consent for my inputs.</label>
 <div class="dialogactions"><button id="disconnect" type="button" class="quiet" hidden>Disconnect key</button><button id="connect-save" class="primary" type="submit">Save &amp; enable</button></div><p id="connect-notice" class="fine" role="status"></p></form></dialog>
