@@ -93,7 +93,7 @@ const nanoSettings={type:'image',mode:'image',imageEngine:'nano-banana-pro',deli
 test('Nano Banana Pro Normal uses the Worker-only Google key, stores output privately and bypasses Spicy quotes',async()=>{
   calls=[];googleBatchJsonl='';const{env}=fixture();await setup(env);
   const before=createCount,response=await req(env,'/api/gemini/images',{method:'POST',data:{settings:nanoSettings,referenceSourceIds:[],count:2}});
-  assert.equal(response.status,200);const data=await response.json();assert.equal(data.jobs.length,2);assert.ok(data.jobs.every(j=>j.status==='completed'&&j.outputId));
+  assert.equal(response.status,200);const data=await response.json();assert.equal(data.jobs.length,2);assert.ok(data.jobs.every(j=>j.status==='completed'&&j.outputId),JSON.stringify(data.jobs));
   assert.equal(createCount,before);assert.equal(calls.filter(x=>x.url.includes('/jobs/quote')).length,0);
   assert.equal(calls.filter(x=>x.url.includes(':generateContent')).length,2);
   for(const job of data.jobs)assert.equal((await req(env,'/api/assets/'+job.outputId)).headers.get('content-type'),'image/png');
