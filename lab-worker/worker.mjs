@@ -385,17 +385,22 @@ async function reserveGeminiJobs(env,owner,p,sourceId,count,estimate,jobIds){
   }
 }
 async function runGeminiNormal(env,jobs,key,requestBody){
-  await Promise.all(jobs.map(async j=>{
-    await run(env,"UPDATE jobs SET state='running',updated_at=? WHERE id=?",now(),j.id);
+  for(const j of jobs)await run(env,"UPDATE jobs SET state='running',updated_at=? WHERE id=?",now(),j.id);
+  const generated=await Promise.all(jobs.map(async j=>{
     try{
       const response=await googleJson('/v1beta/models/'+GEMINI_MODEL+':generateContent',key,{method:'POST',body:requestBody,paid:true,timeout:150000});
-      await storeGeminiImage(env,j,response);
+      return {j,response};
     }catch(e){
       const definite=e?.definite!==false,state=definite?'failed':'uncertain';
       const message=definite?googleDetail(e?.message||'Google generation failed.'):'Google generation status is uncertain. Check Google AI Studio billing/history before retrying; the Lab will not resubmit automatically.';
-      await run(env,'UPDATE jobs SET state=?,error=?,updated_at=? WHERE id=?',state,message,now(),j.id);
+      await run(env,'UPDATE jobs SET state=?,error=?,updated_at=? WHERE id=?',state,message,now(),j.id);return null;
     }
   }));
+  // Google generations can run in parallel, but archive writes are serialized so one request
+  // never opens overlapping D1 transactions when several images finish at the same instant.
+  for(const item of generated)if(item)try{await storeGeminiImage(env,item.j,item.response);}catch(e){
+    await run(env,"UPDATE jobs SET state='failed',error=?,updated_at=? WHERE id=?",googleDetail(e?.message||'Google image archive failed.'),now(),item.j.id);
+  }
 }
 async function runGeminiBatch(env,jobs,key,inputFile){
   try{
