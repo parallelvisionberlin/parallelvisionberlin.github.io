@@ -17,9 +17,11 @@ No model, voice, avatar, D1 records, visitor authentication, private recall acce
 
 44 focused tests pass, including authenticated visitor session construction, explicit public facts, nested and adjacent private sections, restored enclosing public scope, owner access, and rejection of a visitor's attempted owner/folder override.
 
-The complete suite before the final added scope test reported 477 passing, 1 failing and 2 skipped. The failure is the unchanged `account migration and frontend preserve profile-memory separation` test, which expects `Newsletter</a>` in the unchanged homepage. This patch does not change those files or suppress that test.
+The first complete run reported an outdated expectation for `Newsletter</a>` in the homepage. After the owner confirmed the menu removal was intentional, the test was updated to require Profile, Billing and Memory in the account menu and to reject the removed Newsletter entry. Newsletter preferences and their isolation tests remain intact. The complete suite now reports 479 passing, 0 failing and 2 skipped tests (481 total). Syntax checks pass.
 
 Worker compilation succeeds. An independent review found no blocking privacy issue.
+
+The public identity correction is deployed at 100% on the production Worker. Its runtime endpoint was checked again after the test correction and reports `conversation16-public-identity`. The test-only follow-up does not require a Worker deployment.
 
 ## Remaining live validation
 

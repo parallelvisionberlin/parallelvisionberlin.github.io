@@ -71,7 +71,10 @@ test("account migration and frontend preserve profile-memory separation", async 
   assert.match(frontend,/paid:"COMPLETED",open:"NOT COMPLETED",failed:"FAILED",expired:"EXPIRED"/);
   assert.match(frontend,/paid:"ABGESCHLOSSEN",open:"NICHT ABGESCHLOSSEN",failed:"FEHLGESCHLAGEN",expired:"ABGELAUFEN"/);
   assert.doesNotMatch(frontend,/\$\{row\.status\}/);
-  assert.match(index,/Profile<\/a>/);assert.match(index,/Billing<\/a>/);assert.match(index,/Memory<\/a>/);assert.match(index,/Newsletter<\/a>/);
+  const accountMenu=index.match(/<div class="nina-account-menu"[^>]*>([\s\S]*?)<\/div>/)?.[1];
+  assert.ok(accountMenu,"Homepage account menu exists");
+  assert.match(accountMenu,/Profile<\/a>/);assert.match(accountMenu,/Billing<\/a>/);assert.match(accountMenu,/Memory<\/a>/);
+  assert.doesNotMatch(accountMenu,/#newsletter|Newsletter<\/a>/);
   assert.match(page,/id="deleteAccountSection" hidden/);
 });
 
@@ -87,4 +90,3 @@ test("account APIs reject requests without a verified Clerk session", async () =
     assert.equal(response.status,401);
   }
 });
-
