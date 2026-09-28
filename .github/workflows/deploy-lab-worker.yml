@@ -1,0 +1,48 @@
+name: Deploy Parallel Vision Lab Worker
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "lab-worker/**"
+      - ".github/workflows/deploy-lab-worker.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: parallel-vision-lab-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy Cloudflare Worker
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy parallel-vision-lab
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: lab-worker
+          command: deploy
+
+      - name: Verify production health
+        shell: bash
+        run: |
+          set -euo pipefail
+          expected="$(grep -o "pv-lab-[^']*" lab-worker/worker.mjs | head -n1)"
+          for i in 1 2 3 4 5 6; do
+            body="$(curl -fsS https://parallel-vision-lab.parallelvision.workers.dev/health || true)"
+            echo "$body"
+            if echo "$body" | grep -Fq "$expected"; then
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "Production health check did not report $expected"
+          exit 1
