@@ -1,7 +1,7 @@
 /* Parallel Vision Lab. Private owner-only workspace, no public media bucket.
    The hosted provider is opt-in; no provider key or moderation bypass in source. */
 import {seedanceParameters, prepareSeedance, REFERENCE_MIME, sniffReference} from './seedance.mjs';
-export const VERSION = 'pv-lab-2026-09-28.2-gemini-normal-batch';
+export const VERSION = 'pv-lab-2026-09-29.1-provider-isolation';
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:4,video:3});
 const ORIGINS = new Set(['https://parallelvisionlabel.com','https://www.parallelvisionlabel.com']);
@@ -624,7 +624,7 @@ async function route(request,env,ctx) {
     if(p.processing==='normal'){
       const id=ids[0],j=await first(env,'SELECT * FROM jobs WHERE id=?',id);
       try{
-        const response=await geminiFetch(env,'/models/'+GEMINI_MODEL+':generateContent',{method:'POST',body:geminiGenerateRequest(p,prepared.parts),timeout:60000});
+        const response=await geminiFetch(env,'/models/'+GEMINI_MODEL+':generateContent',{method:'POST',body:geminiGenerateRequest(p,prepared.parts),timeout:180000});
         await run(env,"UPDATE jobs SET provider_id='gemini-standard',state='saving',updated_at=? WHERE id=?",now(),id);
         await saveGeminiImage(env,{...j,provider_id:'gemini-standard'},response);
       }catch(e){await run(env,'UPDATE jobs SET state=?,error=?,updated_at=? WHERE id=?',e.definite===false?'uncertain':'failed',String(e.message||'Gemini generation failed.').slice(0,500),now(),id);}
@@ -690,7 +690,7 @@ async function route(request,env,ctx) {
       const kind=JSON.parse(q.params).type==='image'?'image':'video';
       // Reserve both a per-kind slot and spending atomically. Concurrent tabs cannot overbook.
       // An uncertain charge still stops ALL new submissions until explicitly resolved.
-      const inserted=await run(env,"INSERT INTO jobs(id,owner_id,source_id,quote_id,params,state,estimate_microusd,created_at,updated_at) SELECT ?,?,?,?,?,'submitting',?,?,? WHERE NOT EXISTS(SELECT 1 FROM jobs WHERE owner_id=? AND state='uncertain') AND (SELECT COUNT(*) FROM jobs WHERE owner_id=? AND state IN ('submitting','queued','running','saving','uncertain') AND NOT (json_extract(params,'$.provider')='gemini' AND json_extract(params,'$.processing')='batch') AND CASE WHEN json_extract(params,'$.type')='image' THEN 'image' ELSE 'video' END=?)<? AND (SELECT COALESCE(SUM(estimate_microusd),0) FROM spend WHERE owner_id=? AND created_at>=?)+?<=?",id,owner,q.source_id,q.id,q.params,q.estimate_microusd,t,t,owner,owner,kind,CONCURRENCY[kind],owner,day,q.estimate_microusd,c.daily_limit_microusd);
+      const inserted=await run(env,"INSERT INTO jobs(id,owner_id,source_id,quote_id,params,state,estimate_microusd,created_at,updated_at) SELECT ?,?,?,?,?,'submitting',?,?,? WHERE NOT EXISTS(SELECT 1 FROM jobs WHERE owner_id=? AND state='uncertain') AND (SELECT COUNT(*) FROM jobs WHERE owner_id=? AND state IN ('submitting','queued','running','saving','uncertain') AND NOT (json_extract(params,'$.provider')='gemini') AND CASE WHEN json_extract(params,'$.type')='image' THEN 'image' ELSE 'video' END=?)<? AND (SELECT COALESCE(SUM(estimate_microusd),0) FROM spend WHERE owner_id=? AND created_at>=?)+?<=?",id,owner,q.source_id,q.id,q.params,q.estimate_microusd,t,t,owner,owner,kind,CONCURRENCY[kind],owner,day,q.estimate_microusd,c.daily_limit_microusd);
       if(!inserted.meta.changes)fail(409,'No generation submitted: the '+kind+' limit ('+CONCURRENCY[kind]+' active), an uncertain request, or your daily spending limit blocks this request.');
     }catch(e){old=await first(env,'SELECT * FROM jobs WHERE quote_id=? AND owner_id=?',quoteId,owner);if(old)return json({job:jobView(old)});throw e;}
     // Reuse the exact input URL and settings covered by the quote, never silently reprice.
