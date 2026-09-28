@@ -17,11 +17,11 @@ No model, voice, avatar, D1 records, visitor authentication, private recall acce
 
 44 focused tests pass, including authenticated visitor session construction, explicit public facts, nested and adjacent private sections, restored enclosing public scope, owner access, and rejection of a visitor's attempted owner/folder override.
 
-The first complete run reported an outdated expectation for `Newsletter</a>` in the homepage. After the owner confirmed the menu removal was intentional, the test was updated to require Profile, Billing and Memory in the account menu and to reject the removed Newsletter entry. Newsletter preferences and their isolation tests remain intact. The complete suite now reports 479 passing, 0 failing and 2 skipped tests (481 total). Syntax checks pass.
+The first complete run reported a missing `Newsletter</a>` in the homepage. The owner clarified that removal applies only to his owner menu, not normal users or Profile settings. The homepage, Nina project page and native entry now include a Newsletter link whose visibility follows the authenticated account role: shown for `user`, hidden for `owner` or an unknown role, and reset on logout or a failed account lookup. Profile settings and the preferences API remain intact. The regression exercises the actual frontend functions for these cases and preserves the profile/private-memory isolation checks. The complete suite reports 480 passing, 0 failing and 2 skipped tests (482 total). Syntax checks and static validation of 21 public HTML files pass.
 
 Worker compilation succeeds. An independent review found no blocking privacy issue.
 
-The public identity correction is deployed at 100% on the production Worker. Its runtime endpoint was checked again after the test correction and reports `conversation16-public-identity`. The test-only follow-up does not require a Worker deployment.
+The public identity correction is deployed at 100% on the production Worker. Its runtime endpoint reports `conversation16-public-identity`. The role-specific Newsletter correction only affects frontend files and tests; it does not require a Worker deployment or change Nina's model, voice, prompt or memory.
 
 ## Remaining live validation
 
