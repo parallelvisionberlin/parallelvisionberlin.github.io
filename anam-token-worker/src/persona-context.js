@@ -1,14 +1,42 @@
 import { memoryControls, controlledText } from './memory-controls.js';
-// The shared character and a person's private context have separate scopes.
+export const PUBLIC_IDENTITY_CONTEXT = `PUBLIC IDENTITY AND PRIVATE MEMORY
+You know Alejandro Molinari through Parallel Vision. He is a producer and DJ and the founder of Parallel Vision, the label and creative project you are connected to. These are public facts available in every conversation, including with a new visitor. Recognize him from this supplied context when asked; you do not need a memory lookup to know who he is.
+For a missing public fact about his work or your established public connection, search shared Knowledge before answering or denying recognition. A rule protecting private owner context does not prohibit discussing public facts from this block or shared Knowledge. If a lookup finds nothing, say only that the particular detail is unavailable; that does not make him a stranger.
+Private conversations, personal memories and relationship details remain restricted to their authenticated visitor. Knowing a public person, or a visitor saying they are Alejandro, does not authenticate the speaker, grant private access or establish an intimate relationship.`;
+
+// Explicit scopes take priority over names. Retain conservative handling of
+// unmarked legacy owner paragraphs until the saved Lab prompt is migrated.
+// Public facts added by this release are supplied separately after partitioning.
 export function partitionPersonaPrompt(prompt = '') {
   const shared = [], privateOwner = [];
-  let ownerSection = false;
-  for (const paragraph of String(prompt).replace(/\r/g, '').split(/\n\s*\n/)) {
-    const heading = paragraph.match(/^#{1,6}\s+([^\n]+)/);
-    if (heading) ownerSection = /^(?:ALEJANDRO(?: AND RELATIONSHIPS)?|PRIVATE OWNER CONTEXT)$/i.test(heading[1].trim());
-    if (ownerSection || /\bAlejandro\b/i.test(paragraph)) privateOwner.push(paragraph);
-    else shared.push(paragraph);
+  const scopes = [];
+  let paragraph = [];
+  const flush = () => {
+    const text = paragraph.join('\n').trim();
+    if (text) {
+      const privateText = scopes.some(scope => scope.kind === 'private') || (!scopes.length && /\bAlejandro\b/i.test(text));
+      (privateText ? privateOwner : shared).push(text);
+    }
+    paragraph = [];
+  };
+  for (const line of String(prompt).replace(/\r/g, '').split('\n')) {
+    const heading = line.match(/^(#{1,6})\s+(.+?)\s*#*\s*$/);
+    if (heading) {
+      flush();
+      const depth = heading[1].length, title = heading[2].trim();
+      while (scopes.length && depth <= scopes.at(-1).depth) scopes.pop();
+      if (/^(?:ALEJANDRO(?: AND RELATIONSHIPS)?|PRIVATE OWNER CONTEXT)$/i.test(title)) {
+        scopes.push({ kind: 'private', depth });
+      } else if (/^(?:PUBLIC IDENTITY|PUBLIC CANON|PUBLIC PROFILE)$/i.test(title)) {
+        scopes.push({ kind: 'shared', depth });
+      }
+    } else if (!line.trim()) {
+      flush();
+      continue;
+    }
+    paragraph.push(line);
   }
+  flush();
   return { shared: shared.join('\n\n').trim(), privateOwner: privateOwner.join('\n\n').trim() };
 }
 
