@@ -275,6 +275,7 @@ async function submitQuotedGeneration(q, expectedEpoch=epoch) {
 }
 $('generate').onclick=()=>action(async()=>{
   if(!config.enabled){connection();return;}
+  if(tool==='video-upscale'&&!config.falConfigured){connection();return;}
   if(submissionBlocked())throw new Error('An active-job limit or an interrupted request blocks another generation. Check History.');
   const selectedTool=tool,sessionEpoch=epoch;
   if(tool==='video'&&engine==='seedance'&&!config.videoEngines?.includes('seedance'))throw new Error('Seedance is not enabled on this backend.');
@@ -313,7 +314,7 @@ $('generate').onclick=()=>action(async()=>{
     if(submitted===requested)notify(requested===1?'Image requested. Result appears in History.':requested+' images requested as one batch. Results appear independently in History.');
     return;
   }
-  notify(selectedTool==='upscale'?'Preparing one paid upscale at the live provider price…':'Requesting a live price. No generation submitted.');
+  notify(selectedTool==='upscale'?'Preparing one paid upscale at the live provider price…':selectedTool==='video-upscale'?'Calculating Video Enhance price. Nothing submitted yet.':'Requesting a live price. No generation submitted.');
   const q=await api('/api/quotes',{method:'POST',body:{...inputs,settings:settings()}});
   if(!owner||epoch!==sessionEpoch||tool!==selectedTool)throw new Error('Session or tool changed. No generation submitted.');
   if(selectedTool==='upscale'){
@@ -322,8 +323,10 @@ $('generate').onclick=()=>action(async()=>{
     return;
   }
   if(selectedTool==='video'&&engine==='seedance'&&(q.settings.engine!=='seedance'||q.settings.mode!==mode||q.settings.model!==VIDEO_MODELS.seedance.endpoints[mode]))throw new Error('Provider quote does not match the selected Seedance mode. Nothing was submitted.');
+  if(selectedTool==='video-upscale'&&q.settings.mode!=='video-upscale')throw new Error('Unexpected Video Enhance quote. Nothing was submitted.');
   currentQuote=q;const isImage=q.settings.type==='image',modeName=q.settings.mode==='text'?'Text to Video':q.settings.mode==='reference'?'Reference to Video':'Image to Video';
-  $('quote-settings').textContent=q.settings.mode==='upscale'?`Image Upscaler / ${q.settings.resolution.toUpperCase()} / ${q.settings.outputFormat.toUpperCase()} / source ratio kept`:isImage?`Seedream 5.0 Pro / ${q.settings.referenceSourceIds.length?'Reference Edit':'Text to Image'} / ${q.settings.resolution.toUpperCase()} / ${q.settings.aspectRatio}`:`${videoLabel(q.settings)} / ${modeName} / ${q.settings.duration}s / ${q.settings.resolution}`;
+  const enhanceName=q.settings.upscaleEngine==='bytedance'?('ByteDance '+q.settings.enhancementTier+' / '+q.settings.targetResolution.toUpperCase()):q.settings.upscaleEngine==='precision'?('Topaz Precision / '+q.settings.precisionModel+' / 2×'):'Topaz Starlight Precise 2.6 / 2×';
+  $('quote-settings').textContent=q.settings.mode==='video-upscale'?enhanceName+' / '+q.settings.sourceDuration.toFixed(1)+'s':q.settings.mode==='upscale'?`Image Upscaler / ${q.settings.resolution.toUpperCase()} / ${q.settings.outputFormat.toUpperCase()} / source ratio kept`:isImage?`Seedream 5.0 Pro / ${q.settings.referenceSourceIds.length?'Reference Edit':'Text to Image'} / ${q.settings.resolution.toUpperCase()} / ${q.settings.aspectRatio}`:`${videoLabel(q.settings)} / ${modeName} / ${q.settings.duration}s / ${q.settings.resolution}`;
   $('quote-price').textContent=money(q.estimatedUsd);$('quote-limit').textContent=`Quoted maximum: ${money(q.maxUsd)} USD`;
   $('quote-expiry').textContent='Valid until '+new Date(q.expiresAt).toLocaleTimeString()+'. No automatic repricing. '+(q.settings.transferNotes||[]).join(' ');
   $('quote-notice').textContent='';$('confirm-generation').disabled=false;$('quote-dialog').showModal();
@@ -335,7 +338,7 @@ $('confirm-generation').onclick=async()=>{
   await action(()=>submitQuotedGeneration(q));
 };
 function limitFor(kind){const n=Number(config.concurrency?.[kind]);return Number.isInteger(n)&&n>0?n:1;}
-function submissionBlocked(){return activeJobs.some(j=>j.status==='uncertain')||activeJobs.filter(j=>(j.settings?.type==='image'?'image':'video')===(tool==='upscale'?'image':tool)).length>=limitFor(tool==='upscale'?'image':tool);}
+function submissionBlocked(){const kind=tool==='upscale'||tool==='image'?'image':'video';return activeJobs.some(j=>j.status==='uncertain')||activeJobs.filter(j=>(j.settings?.type==='image'?'image':'video')===kind).length>=limitFor(kind);}
 function schedulePoll(delay=10000){clearTimeout(timer);timer=null;if(owner&&activeJobs.some(j=>j.status!=='uncertain')&&!polling)timer=setTimeout(poll,delay);}
 function setActiveJobs(list){
   activeJobs=[...new Map((list||[]).filter(j=>j&&activeStates.has(j.status)).map(j=>[j.id,j])).values()];
@@ -344,7 +347,7 @@ function setActiveJobs(list){
   const images=activeJobs.filter(j=>j.settings?.type==='image').length,videos=activeJobs.length-images;
   $('active-status').textContent=images+' / '+limitFor('image')+' images active · '+videos+' / '+limitFor('video')+' videos active';
   const labels={submitting:'Submitting',queued:'Queued',running:'Generating',saving:'Saving',uncertain:'Interrupted: check provider before another attempt'};
-  $('active-detail').textContent=activeJobs.map((j,i)=>(i+1)+'. '+(j.settings?.type==='image'?'Image':'Video')+' · '+labels[j.status]+(j.error?' · '+j.error:'')+(j.providerTaskId?' · '+j.providerTaskId:'')).join('\n');
+  $('active-detail').textContent=activeJobs.map((j,i)=>(i+1)+'. '+(j.settings?.type==='image'?'Image':j.settings?.mode==='video-upscale'?'Video Enhance':'Video')+' · '+labels[j.status]+(j.error?' · '+j.error:'')+(j.providerTaskId?' · '+j.providerTaskId:'')).join('\n');
   $('active-detail').style.whiteSpace='pre-line';
   $('resolve').hidden=!activeJobs.some(j=>j.status==='uncertain');
   schedulePoll();update();
