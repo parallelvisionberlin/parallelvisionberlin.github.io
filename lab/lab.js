@@ -9,6 +9,7 @@ let clerk, owner=false, userId='', epoch=0, syncing=false, config={}, file=null,
 let sourceUrl=null, lastFile=null, lastSourceId=null, lastUrl=null, references=[], mode='start';
 let engine='wan';
 let tool='video', packs=[],resultKind='video',resultExt='mp4';
+let enhanceFile=null,enhanceSourceId=null,enhanceUrl=null,enhanceMeta=null;
 let resultUrl=null, resultId=null, resultSettings=null, previewRevision=0, autoPreview=null, currentQuote=null, next=null, activeJob=null, timer=null, historyRevision=0;
 let activeJobs=[], polling=false;
 const downloadUrls=new Set();
@@ -19,28 +20,60 @@ const money=n=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',ma
 const notify=(text,error=false)=>{$('notice').textContent=text;$('notice').classList.toggle('error',error);};
 function release(url){if(url)URL.revokeObjectURL(url);}
 function referenceRoles(){return references.map(r=>({name:r.file.name,role:r.role||'none',note:r.note||''}));}
-function settings(){if(tool==='upscale')return {type:'image',mode:'upscale',prompt:'',resolution:$('resolution').value,aspectRatio:'auto',outputFormat:$('output-format').value,referenceRoles:[]};if(tool==='image')return {type:'image',mode:'image',prompt:$('prompt').value.trim(),resolution:$('resolution').value,aspectRatio:$('ratio').value,outputFormat:$('output-format').value,referenceRoles:referenceRoles()};return {type:'video',engine,mode,referenceVideos:mode==='reference'?mediaRefs.labels('video'):[],referenceAudio:mode==='reference'?mediaRefs.labels('audio'):[],prompt:$('prompt').value.trim(),duration:Number($('duration').value),resolution:$('resolution').value,aspectRatio:$('ratio').value,seed:$('seed').value,audio:$('audio').checked,referenceRoles:referenceRoles()};}
-function hasInput(){if(tool==='upscale')return !!file;return tool==='image'||mode==='text'?!!$('prompt').value.trim():mode==='start'?!!file:references.length>0||(engine==='seedance'&&mediaRefs.count()>0);}
-function update(){const current=settings(),p=resultSettings||current,ratio=p.aspectRatio==='auto'?(p.mode==='reference'?'adaptive':'source ratio'):p.aspectRatio;$('settings-summary').textContent=p.type==='image'?`${p.mode==='upscale'?'Upscale':'Image'} / ${p.resolution.toUpperCase()} / ${ratio}`:`${p.duration}s / ${p.resolution} / ${ratio}`;$('save').disabled=!owner||!hasInput()||busy;$('clear').disabled=(!file&&!lastFile&&!references.length&&!mediaRefs.count()&&!resultUrl&&!$('prompt').value.trim())||busy;$('generate').disabled=!owner||!hasInput()||(tool!=='upscale'&&!current.prompt)||busy||submissionBlocked();$('generate').textContent=config.enabled?(tool==='image'?'Generate':tool==='upscale'?'Upscale':'Review price & generate'):'Connect generation provider';$('generation-help').textContent=(tool==='image'?'Generate starts one paid image at the live provider price, within your daily spending limit. No price-review popup.':tool==='upscale'?'Upscale starts one paid upscaling job at the live provider price, within your daily spending limit. No price-review popup.':'A live quote appears before any paid video.')+' Inputs over 10 MiB need a working copy; the Lab asks first and keeps the original. Saving history does not generate or charge.';for(const el of document.querySelectorAll('.controls input,.controls select,.controls textarea,.mode-tab,.tool-tab'))el.disabled=busy;}
+function settings(){
+  if(tool==='upscale')return {type:'image',mode:'upscale',prompt:'',resolution:$('resolution').value,aspectRatio:'auto',outputFormat:$('output-format').value,referenceRoles:[]};
+  if(tool==='video-upscale'){
+    const upscaleEngine=$('video-upscale-engine').value,meta=enhanceMeta||{};
+    const fpsId=upscaleEngine==='bytedance'?'enhance-fps':upscaleEngine==='precision'?'precision-fps':'starlight-fps';
+    const base={type:'video',mode:'video-upscale',provider:'fal',upscaleEngine,prompt:'',sourceDuration:meta.duration||0,sourceWidth:meta.width||0,sourceHeight:meta.height||0,targetFps:$(fpsId).value,referenceRoles:[]};
+    if(upscaleEngine==='bytedance')return {...base,targetResolution:$('enhance-resolution').value,enhancementTier:$('enhance-tier').value,fidelity:$('enhance-fidelity').value,bitDepth:Number($('enhance-bit-depth').value)};
+    if(upscaleEngine==='precision')return {...base,precisionModel:$('precision-model').value,upscaleFactor:2};
+    return {...base,starlightModel:'Starlight Precise 2.6',upscaleFactor:2,softness:Number($('starlight-softness').value)};
+  }
+  if(tool==='image')return {type:'image',mode:'image',prompt:$('prompt').value.trim(),resolution:$('resolution').value,aspectRatio:$('ratio').value,outputFormat:$('output-format').value,referenceRoles:referenceRoles()};
+  return {type:'video',engine,mode,referenceVideos:mode==='reference'?mediaRefs.labels('video'):[],referenceAudio:mode==='reference'?mediaRefs.labels('audio'):[],prompt:$('prompt').value.trim(),duration:Number($('duration').value),resolution:$('resolution').value,aspectRatio:$('ratio').value,seed:$('seed').value,audio:$('audio').checked,referenceRoles:referenceRoles()};
+}
+function hasInput(){if(tool==='video-upscale')return !!enhanceFile;if(tool==='upscale')return !!file;return tool==='image'||mode==='text'?!!$('prompt').value.trim():mode==='start'?!!file:references.length>0||(engine==='seedance'&&mediaRefs.count()>0);}
+function update(){
+  const current=settings(),p=resultSettings||current,ratio=p.aspectRatio==='auto'?(p.mode==='reference'?'adaptive':'source ratio'):p.aspectRatio;
+  $('settings-summary').textContent=p.mode==='video-upscale'?((p.upscaleEngine==='bytedance'?'ByteDance '+p.enhancementTier:'Topaz '+(p.upscaleEngine==='precision'?'Precision':'Starlight'))+' / '+(p.targetResolution?.toUpperCase()||'2×')+' / '+Number(p.sourceDuration||0).toFixed(1)+'s'):p.type==='image'?`${p.mode==='upscale'?'Upscale':'Image'} / ${p.resolution.toUpperCase()} / ${ratio}`:`${p.duration}s / ${p.resolution} / ${ratio}`;
+  $('save').disabled=!owner||!hasInput()||busy;
+  $('clear').disabled=(!file&&!enhanceFile&&!lastFile&&!references.length&&!mediaRefs.count()&&!resultUrl&&!$('prompt').value.trim())||busy;
+  const needsPrompt=!['upscale','video-upscale'].includes(tool);
+  $('generate').disabled=!owner||!hasInput()||(needsPrompt&&!current.prompt)||busy||submissionBlocked();
+  const connected=tool==='video-upscale'?config.enabled&&config.falConfigured:config.enabled;
+  $('generate').textContent=connected?(tool==='image'?'Generate':tool==='upscale'?'Upscale':'Review price & generate'):(tool==='video-upscale'?'Connect fal.ai':'Connect generation provider');
+  $('generation-help').textContent=tool==='video-upscale'?'Video Enhance always shows the estimated provider charge before submission. The original clip stays private in your Lab archive.':(tool==='image'?'Generate starts one paid image at the live provider price, within your daily spending limit. No price-review popup.':tool==='upscale'?'Upscale starts one paid upscaling job at the live provider price, within your daily spending limit. No price-review popup.':'A live quote appears before any paid video.')+' Inputs over 10 MiB need a working copy; the Lab asks first and keeps the original. Saving history does not generate or charge.';
+  for(const el of document.querySelectorAll('.controls input,.controls select,.controls textarea,.mode-tab,.tool-tab'))el.disabled=busy;
+}
 function options(id,values,value){$(id).replaceChildren(...values.map(v=>new Option(v==='auto'?'Follow reference':v.toUpperCase(),v)));$(id).value=value;}
+function configureEnhanceControls(){
+  const e=$('video-upscale-engine').value;
+  $('bytedance-upscale-settings').hidden=e!=='bytedance';$('precision-upscale-settings').hidden=e!=='precision';$('starlight-upscale-settings').hidden=e!=='starlight';
+  if(e==='bytedance'&&$('enhance-tier').value!=='pro'&&$('enhance-bit-depth').value!=='8')$('enhance-bit-depth').value='8';
+}
 function setTool(value){
-  tool=['image','upscale'].includes(value)?value:'video';const image=tool==='image',upscale=tool==='upscale',video=tool==='video';
-  for(const name of ['image','video','upscale']){$('tool-'+name).classList.toggle('active',tool===name);$('tool-'+name).setAttribute('aria-pressed',String(tool===name));}
-  $('video-modes').hidden=!video;$('duration-control').hidden=!video;$('image-count-control').hidden=!image;$('video-utilities').hidden=!video;$('format-control').hidden=video;
-  $('start-mode').hidden=image||video&&mode!=='start';$('reference-mode').hidden=upscale||video&&mode!=='reference';
-  $('last-upload').hidden=upscale;$('start-label').textContent=upscale?'Image to upscale':'Start frame';
-  $('upscale-info').hidden=!upscale;$('prompt').hidden=upscale;$('prompt-label').hidden=upscale;$('ratio').parentElement.hidden=upscale;
-  $('mode-heading').textContent=upscale?'03 / Image Upscale':image?'02 / Text to Image + Reference Edit':'01 / Image to Video';
-  $('engine-name').textContent=upscale?'IMAGE UPSCALER':image?'SEEDREAM 5.0 PRO':'WAN 3.0';
+  tool=['video','image','upscale','video-upscale'].includes(value)?value:'video';
+  const image=tool==='image',upscale=tool==='upscale',video=tool==='video',enhance=tool==='video-upscale';
+  for(const name of ['image','video','upscale','video-upscale']){$('tool-'+name).classList.toggle('active',tool===name);$('tool-'+name).setAttribute('aria-pressed',String(tool===name));}
+  $('video-upscale-panel').hidden=!enhance;$('video-model-control').hidden=!video;$('video-modes').hidden=!video;$('parameter-grid').hidden=enhance;
+  $('duration-control').hidden=!video;$('image-count-control').hidden=!image;$('video-utilities').hidden=!video;$('format-control').hidden=video||enhance;
+  $('start-mode').hidden=enhance||image||video&&mode!=='start';$('reference-mode').hidden=enhance||upscale||video&&mode!=='reference';
+  $('last-upload').hidden=upscale||enhance;$('start-label').textContent=upscale?'Image to upscale':'Start frame';
+  $('upscale-info').hidden=!upscale;$('prompt').hidden=upscale||enhance;$('prompt-label').hidden=upscale||enhance;$('ratio').parentElement.hidden=upscale||enhance;
+  $('mode-heading').textContent=enhance?'04 / Video Enhance':upscale?'03 / Image Upscale':image?'02 / Text to Image + Reference Edit':'01 / Image to Video';
+  $('engine-name').textContent=enhance?'VIDEO ENHANCE':upscale?'IMAGE UPSCALER':image?'SEEDREAM 5.0 PRO':(engine==='seedance'?'SEEDANCE 2.5':'WAN 3.0');
   $('prompt-label').textContent=image?'Image direction':'Motion direction';$('prompt').maxLength=image?5000:6000;
   $('prompt').placeholder=image?'Describe the image. Add references for identity, wardrobe, a room or an object, or start with text only.':'One clear action, one camera move, light, atmosphere and sound.';
-  options('resolution',upscale?['2k','4k','8k']:image?['1k','2k']:['480p','720p','1080p'],upscale?'4k':image?'2k':'1080p');
-  options('output-format',upscale?['png','jpeg','webp']:['png','jpeg'],'png');
-  options('ratio',image?['auto','1:1','4:3','3:4','16:9','9:16','3:2','2:3','4:5','5:4','21:9','9:21','2:1','1:2','3:1','1:3']:['auto','16:9','9:16','1:1','4:3','3:4'],'auto');
-  configureVideoControls();resetPreview();update();
+  if(!enhance){
+    options('resolution',upscale?['2k','4k','8k']:image?['1k','2k']:['480p','720p','1080p'],upscale?'4k':image?'2k':'1080p');
+    options('output-format',upscale?['png','jpeg','webp']:['png','jpeg'],'png');
+    options('ratio',image?['auto','1:1','4:3','3:4','16:9','9:16','3:2','2:3','4:5','5:4','21:9','9:21','2:1','1:2','3:1','1:3']:['auto','16:9','9:16','1:1','4:3','3:4'],'auto');
+  }
+  configureEnhanceControls();configureVideoControls();resetPreview();update();
 }
 $('tool-upscale').onclick=()=>{if(!busy)setTool('upscale');};
-$('tool-image').onclick=()=>{if(!busy)setTool('image');};$('tool-video').onclick=()=>{if(!busy)setTool('video');};
+$('tool-image').onclick=()=>{if(!busy)setTool('image');};$('tool-video').onclick=()=>{if(!busy)setTool('video');};$('tool-video-upscale').onclick=()=>{if(!busy)setTool('video-upscale');};
 const sessionRequest=createSessionRequest({baseUrl:API,getSession:()=>clerk?.session});
 async function api(path,options={}) {
   const generation=epoch;
