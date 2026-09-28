@@ -7,6 +7,13 @@ CREATE TABLE IF NOT EXISTS settings (
   daily_limit_microusd INTEGER NOT NULL DEFAULT 10000000 CHECK (daily_limit_microusd BETWEEN 1000000 AND 100000000),
   updated_at INTEGER NOT NULL
 );
+CREATE TABLE IF NOT EXISTS provider_keys (
+  owner_id TEXT NOT NULL,
+  provider TEXT NOT NULL CHECK (provider IN ('fal')),
+  encrypted_key TEXT NOT NULL,
+  updated_at INTEGER NOT NULL,
+  PRIMARY KEY (owner_id,provider)
+);
 CREATE TABLE IF NOT EXISTS assets (
   id TEXT PRIMARY KEY,
   owner_id TEXT NOT NULL,
