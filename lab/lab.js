@@ -93,6 +93,9 @@ async function action(fn){if(busy)return;busy=true;update();try{await fn();}catc
 function clearResult(){previewRevision++;if(resultUrl){$('preview').removeAttribute('src');$('preview').hidden=true;}release(resultUrl);resultUrl=null;resultId=null;resultSettings=null;$('video').pause();$('video').removeAttribute('src');$('video').load();$('video').hidden=true;$('download').hidden=true;}
 function resetPreview(){
   clearResult();
+  if(tool==='video-upscale'&&enhanceUrl){
+    $('video').src=enhanceUrl;$('video').hidden=false;$('preview').hidden=true;$('empty').hidden=true;$('preview-label').textContent='Enhance input / not a result';return;
+  }
   // Image generation has a result-only canvas. Inputs remain in the reference list.
   const item=tool==='image'||tool==='video'&&mode==='text'?null:(tool==='upscale'||mode==='start')?
     (sourceUrl?{url:sourceUrl,label:tool==='upscale'?'Upscale input':'Start frame'}:null):
@@ -101,9 +104,9 @@ function resetPreview(){
   if(item){$('preview').src=item.url;$('preview').hidden=false;$('empty').hidden=true;$('preview-label').textContent=item.label+' / not a result';}
   else{
     $('preview').removeAttribute('src');$('preview').hidden=true;$('empty').hidden=false;
-    $('preview-label').textContent=tool==='image'?'Result / Image':'Source / preview';
-    $('empty').querySelector('p').textContent=tool==='image'?'Your generated image will appear here.':tool==='video'&&mode==='text'?'Describe a scene to begin.':'Start with your own frame.';
-    $('empty').querySelector('small').textContent=tool==='image'?'Input references stay on the left. Nothing generated yet.':'Your source and result appear here.';
+    $('preview-label').textContent=tool==='image'?'Result / Image':tool==='video-upscale'?'Source video / preview':'Source / preview';
+    $('empty').querySelector('p').textContent=tool==='image'?'Your generated image will appear here.':tool==='video-upscale'?'Choose a video to enhance.':tool==='video'&&mode==='text'?'Describe a scene to begin.':'Start with your own frame.';
+    $('empty').querySelector('small').textContent=tool==='image'?'Input references stay on the left. Nothing generated yet.':tool==='video-upscale'?'The original clip and enhanced result appear here.':'Your source and result appear here.';
   }
 }
 function refreshInputPreview(){autoPreview=null;if(tool!=='image'||!resultUrl)resetPreview();}
@@ -118,7 +121,7 @@ function viewReference(item,index){
 }
 $('input-preview-dialog').addEventListener('close',()=>{$('input-preview-image').removeAttribute('src');});
 
-function clearMedia(){mediaRefs.clear();cancelImagePreparation();closeInputPreview();$('reference-progress').textContent='';imageRevision++;sourcePixels=0;release(sourceUrl);release(lastUrl);sourceUrl=null;lastUrl=null;file=null;sourceId=null;lastFile=null;lastSourceId=null;$('image').value='';$('last-image').value='';for(const r of references)releaseReference(r);references=[];$('reference-images').value='';$('filemeta').textContent='Choose the exact opening frame.';$('last-filemeta').textContent='Leave empty for an open ending.';renderReferences();clearResult();resetPreview();update();}
+function clearMedia(){mediaRefs.clear();cancelImagePreparation();closeInputPreview();$('reference-progress').textContent='';imageRevision++;sourcePixels=0;release(sourceUrl);release(lastUrl);release(enhanceUrl);sourceUrl=null;lastUrl=null;enhanceUrl=null;file=null;sourceId=null;lastFile=null;lastSourceId=null;enhanceFile=null;enhanceSourceId=null;enhanceMeta=null;$('image').value='';$('last-image').value='';$('upscale-video').value='';for(const r of references)releaseReference(r);references=[];$('reference-images').value='';$('filemeta').textContent='Choose the exact opening frame.';$('last-filemeta').textContent='Leave empty for an open ending.';$('upscale-video-meta').textContent='Choose a clip to enhance.';renderReferences();clearResult();resetPreview();update();}
 async function inspectImage(candidate){
   if(!candidate||!['image/jpeg','image/png','image/webp'].includes(candidate.type)||!candidate.size||candidate.size>20*1024*1024)throw new Error('Choose a JPG, PNG or WebP image up to 20 MB.');
   const seedanceInput=tool==='video'&&engine==='seedance',maxSide=tool==='upscale'?16000:seedanceInput?6000:8000;
@@ -129,6 +132,21 @@ async function inspectImage(candidate){
 
 async function setImage(candidate,id=null){const revision=++imageRevision,item=await inspectImage(candidate);release(item.thumbUrl);if(revision!==imageRevision||!owner){release(item.url);return false;}release(sourceUrl);clearResult();file=item.file;sourceId=id;sourceUrl=item.url;sourcePixels=item.width*item.height;$('filemeta').textContent=`${candidate.name||'Start frame'} / ${item.width} × ${item.height} / ${(candidate.size/1048576).toFixed(1)} MB`;resetPreview();update();return true;}
 async function setLastImage(candidate,id=null){const e=epoch,item=await inspectImage(candidate);release(item.thumbUrl);if(e!==epoch||!owner){release(item.url);return false;}release(lastUrl);lastFile=item.file;lastSourceId=id;lastUrl=item.url;$('last-filemeta').textContent=`${candidate.name||'Last frame'} / ${item.width} × ${item.height} / ${(candidate.size/1048576).toFixed(1)} MB`;update();return true;}
+function inspectVideo(candidate){
+  if(!candidate||!['video/mp4','video/quicktime'].includes(candidate.type)||!candidate.size||candidate.size>150*1024*1024)throw new Error('Choose an MP4 or MOV video up to 150 MB.');
+  return new Promise((resolve,reject)=>{
+    const url=URL.createObjectURL(candidate),video=document.createElement('video');video.preload='metadata';
+    const done=()=>{video.removeAttribute('src');video.load();};
+    video.onloadedmetadata=()=>{const meta={duration:video.duration,width:video.videoWidth,height:video.videoHeight};done();if(!Number.isFinite(meta.duration)||meta.duration<=0||meta.duration>60||!meta.width||!meta.height){release(url);reject(new Error('Video Enhance accepts readable clips up to 60 seconds.'));return;}resolve({url,meta});};
+    video.onerror=()=>{done();release(url);reject(new Error('Could not read this video. Use an MP4 or MOV clip.'));};video.src=url;
+  });
+}
+async function setEnhanceVideo(candidate,id=null){
+  const e=epoch,{url,meta}=await inspectVideo(candidate);if(e!==epoch||!owner){release(url);return false;}
+  release(enhanceUrl);clearResult();enhanceFile=candidate;enhanceSourceId=id;enhanceUrl=url;enhanceMeta=meta;
+  $('upscale-video-meta').textContent=`${candidate.name||'Video'} / ${meta.width} × ${meta.height} / ${meta.duration.toFixed(1)}s / ${(candidate.size/1048576).toFixed(1)} MB`;
+  resetPreview();update();return true;
+}
 function renderReferences(){
   const box=$('reference-list'),scroll=box.scrollTop,fragment=document.createDocumentFragment();
   references.forEach((r,i)=>{
@@ -174,7 +192,8 @@ function configureVideoControls(){
   if(!model.modes.includes(mode))mode='start';
   $('mode-text').hidden=!isVideo||!sd;
   for(const m of ['start','reference','text']){$('mode-'+m).classList.toggle('active',mode===m);$('mode-'+m).setAttribute('aria-selected',String(mode===m));}
-  $('start-mode').hidden=tool==='image'||isVideo&&mode!=='start';$('reference-mode').hidden=tool==='upscale'||isVideo&&mode!=='reference';
+  const enhance=tool==='video-upscale';
+  $('start-mode').hidden=enhance||tool==='image'||isVideo&&mode!=='start';$('reference-mode').hidden=enhance||tool==='upscale'||isVideo&&mode!=='reference';
   $('reference-media').hidden=!isVideo||!sd||mode!=='reference';
   $('start-frame-maker').hidden=!isVideo||mode!=='reference'||sd;
   if(isVideo){
