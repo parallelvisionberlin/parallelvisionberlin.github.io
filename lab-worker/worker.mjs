@@ -494,6 +494,7 @@ async function refreshJob(env,j) {
   if(!['queued','running','saving'].includes(j.state)||!j.provider_id)return;
   const params=JSON.parse(j.params||'{}');if(params.provider==='gemini')return refreshGeminiJob(env,j,params);
   if(j.state==='saving'&&j.remote_url){
+    const saveLock=await run(env,'UPDATE jobs SET last_poll=? WHERE id=? AND last_poll<?',now(),j.id,now()-8000);if(!saveLock.meta.changes)return;
     try{await copyResult(env,j,j.remote_url);}
     catch(e){const detail=String(e?.message||'temporary archive error').replace(/[\r\n]/g,' ').slice(0,220);await run(env,'UPDATE jobs SET error=?,updated_at=? WHERE id=?','Archive retry: '+detail+' The provider result is safe; generation slots are released while saving retries.',now(),j.id);}
     return;
@@ -663,7 +664,7 @@ async function route(request,env,ctx) {
     if(p.type==='video'&&Array.isArray(input.reference_image_urls)&&p.referenceSourceIds?.length){
       const ids=data.transferSourceIds??p.referenceSourceIds;
       if(!Array.isArray(ids)||ids.length!==p.referenceSourceIds.length||new Set(ids).size!==ids.length)fail(400,'Prepared video references must match the selected images in order.');
-      const transfers=await sources(env,owner,ids);
+      const transfers=await sources(env,owner,ids,p.engine==='seedance'?30:10);
       p.transferSourceIds=transfers.map(a=>a.id);
       input.reference_image_urls=await stageImageReferences(env,owner,p.transferSourceIds,key);
     }
