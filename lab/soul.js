@@ -1,4 +1,4 @@
-import { soulTrainingCopy } from './image-tools.js?v=20260930-soul-v01';
+import { soulTrainingCopy } from './image-tools.js?v=20260930-soul-v05';
 
 const ACTIVE = new Set(['submitting','queued','training','uncertain']);
 const terminal = state => !ACTIVE.has(state);
@@ -74,13 +74,22 @@ export function createSoulController({api,action,notify,changed,owner}){
         controls.append(use);
       }
       if(c.state==='uncertain'){
-        const resolve=document.createElement('button');resolve.type='button';resolve.className='quiet';resolve.textContent='Resolve';
-        resolve.onclick=()=>action(async()=>{
-          if(!confirm('Check the FAL dashboard first. Continue only if you verified whether this training was submitted. This will mark the uncertain attempt as failed and will not submit another training.'))return;
-          await api('/api/soul/characters/'+c.id+'/resolve',{method:'POST',body:{confirm:true}});await load();
-          notify('Uncertain PV Soul training resolved. No new training was submitted.');
+        const retry=document.createElement('button');retry.type='button';retry.className='primary';retry.textContent='Retry submit';
+        retry.onclick=()=>action(async()=>{
+          if(!confirm('Retry this same training dataset only if FAL shows no matching request. This submits one paid training job and does not re-upload your photos.'))return;
+          status('Resubmitting the existing private dataset to FAL…');
+          const data=await api('/api/soul/characters/'+c.id+'/retry',{method:'POST',body:{confirm:true}});
+          await load();
+          status(data.character?.state==='queued'?'Training queued successfully.':'Submission status: '+(data.character?.state||'unknown'));
+          notify(data.character?.state==='queued'?'PV Soul training queued in FAL.':'PV Soul retry returned '+(data.character?.state||'an unknown state')+'.');
         });
-        controls.append(resolve);
+        const resolve=document.createElement('button');resolve.type='button';resolve.className='quiet';resolve.textContent='Discard';
+        resolve.onclick=()=>action(async()=>{
+          if(!confirm('Discard this uncertain attempt and its uploaded training dataset?'))return;
+          await api('/api/soul/characters/'+c.id+'/resolve',{method:'POST',body:{confirm:true}});await load();
+          notify('Uncertain PV Soul attempt discarded.');
+        });
+        controls.append(retry,resolve);
       }
       if(terminal(c.state)){
         const del=document.createElement('button');del.type='button';del.className='quiet';del.textContent='Delete';
