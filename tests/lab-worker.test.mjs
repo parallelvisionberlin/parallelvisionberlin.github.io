@@ -51,6 +51,41 @@ test('Paid submission requires confirmation, does not duplicate, archives video 
 test('Budget cap, invalid settings and unexpected JSON fail closed without paid requests',async()=>{createCount=0;const{env}=fixture(),id=await setup(env);for(const bad of [{...p,resolution:'__proto__'},{...p,duration:-1},{...p,seed:-5}])assert.equal((await req(env,'/api/quotes',{method:'POST',data:{sourceId:id,settings:bad}})).status,400);assert.equal((await req(env,'/api/settings',{method:'POST',data:null})).status,400);await req(env,'/api/settings',{method:'POST',data:{enabled:true,termsConfirmed:true,dailyLimitUsd:1}});const q=await quote(env,id);assert.equal((await req(env,'/api/jobs',{method:'POST',data:{quoteId:q.id,confirm:true}})).status,409);assert.equal(createCount,0);});
 test('Ambiguous submission blocks further spending and automatic resubmission; price changes require new confirmation',async()=>{createCount=0;createMode='timeout';const{env}=fixture(),id=await setup(env),q=await quote(env,id);const r=await(await req(env,'/api/jobs',{method:'POST',data:{quoteId:q.id,confirm:true}})).json();assert.equal(r.job.status,'uncertain');await req(env,'/api/jobs/'+r.job.id);assert.equal(createCount,1);const another=await quote(env,id);assert.equal((await req(env,'/api/jobs',{method:'POST',data:{quoteId:another.id,confirm:true}})).status,409);await req(env,'/api/jobs/'+r.job.id+'/resolve',{method:'POST',data:{confirm:true}});createMode='pricechange';const last=await quote(env,id);const failed=await(await req(env,'/api/jobs',{method:'POST',data:{quoteId:last.id,confirm:true}})).json();assert.equal(failed.job.status,'failed');assert.equal(createCount,2);});
 
+test('Saving retries the stored provider output directly and never consumes a SpicyAPI generation slot',async()=>{
+  const oldPrice=maxPrice;maxPrice='0.093000';createMode='ok';createCount=0;providerState='queued';calls=[];
+  try{
+    const{env}=fixture(),sourceId=await setup(env);
+    await req(env,'/api/settings',{method:'POST',data:{enabled:true,termsConfirmed:true,dailyLimitUsd:100}});
+    const t=Date.now(),savingId=crypto.randomUUID();
+    env.LAB_DB.db.prepare("INSERT INTO jobs(id,owner_id,source_id,params,state,provider_id,remote_url,estimate_microusd,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?)")
+      .run(savingId,'owner-internal',sourceId,JSON.stringify({...imageSettings,model:'bytedance/seedream-5.0-pro/edit'}),'saving','job_already_succeeded','https://cdn.spicyapi.ai/test.png',93000,t,t);
+    const marker=calls.length,restored=(await(await req(env,'/api/jobs/'+savingId)).json()).job;
+    assert.equal(restored.status,'completed');assert.ok(restored.outputId);
+    assert.ok(calls.slice(marker).some(c=>c.url==='https://cdn.spicyapi.ai/test.png'));
+    assert.ok(!calls.slice(marker).some(c=>new URL(c.url).pathname.endsWith('/jobs/recordInfo')));
+
+    const savingIds=[];
+    for(let i=0;i<4;i++){
+      const jobId=crypto.randomUUID();savingIds.push(jobId);
+      env.LAB_DB.db.prepare("INSERT INTO jobs(id,owner_id,source_id,params,state,provider_id,remote_url,estimate_microusd,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?)")
+        .run(jobId,'owner-internal',sourceId,JSON.stringify({...imageSettings,model:'bytedance/seedream-5.0-pro/edit'}),'saving','job_saved_'+i,'https://cdn.spicyapi.ai/test.png',93000,t+i+1,t+i+1);
+    }
+    for(let i=0;i<4;i++){
+      const q=await(await req(env,'/api/quotes',{method:'POST',data:{settings:imageSettings,referenceSourceIds:[]}})).json();
+      const response=await req(env,'/api/jobs',{method:'POST',data:{quoteId:q.id,confirm:true}});
+      assert.equal(response.status,202);
+    }
+    assert.equal(createCount,4);
+    const fifth=await(await req(env,'/api/quotes',{method:'POST',data:{settings:imageSettings,referenceSourceIds:[]}})).json();
+    const blocked=await req(env,'/api/jobs',{method:'POST',data:{quoteId:fifth.id,confirm:true}});
+    assert.equal(blocked.status,409);
+    assert.match((await blocked.json()).error,/4 \/ 4 image slots/);
+    const history=await(await req(env,'/api/jobs')).json();
+    assert.equal(history.activeJobs.filter(j=>j.status==='saving').length,4);
+    assert.equal(history.activeJobs.filter(j=>j.status==='queued'&&j.settings.type==='image').length,4);
+  }finally{maxPrice=oldPrice;createMode='ok';providerState='queued';}
+});
+
 const imageSettings={type:'image',prompt:'An architectural model on a white plinth',resolution:'2k',aspectRatio:'4:5',outputFormat:'png'};
 test('Text-to-image quotes need no source; image outputs can be reused by video without losing the source',async()=>{
   createMode='ok';createCount=0;providerState='queued';const {env}=fixture();await setup(env);
