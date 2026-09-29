@@ -4,11 +4,11 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow,noarchive"><meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#111210"><title>Parallel Vision Lab</title>
-<link rel="icon" href="/favicon.png"><link rel="stylesheet" href="./lab.css?v=20260927-preview1">
+<link rel="icon" href="/favicon.png"><link rel="stylesheet" href="./lab.css?v=20260930-controlled-pose1">
 <link rel="stylesheet" href="./history.css?v=20260927-2">
 <link rel="stylesheet" href="./seedance.css?v=20260927-standard1">
 <link rel="stylesheet" href="./soul.css?v=20260930-soul-v02">
-<script type="module" src="./lab.js?v=20260930-soul-v02"></script>
+<script type="module" src="./lab.js?v=20260930-controlled-pose1"></script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to workspace</a>
@@ -18,7 +18,7 @@
 <section id="gate" class="gate"><p class="eyebrow">Owner access</p><h2>Your private image and motion studio.</h2><p id="auth-status" role="status">Loading your Parallel Vision sign-in…</p><button id="signin" class="primary" disabled>Sign in</button><p class="fine">Use the same owner account as Nina. No new subscription.</p></section>
 <div id="app" hidden>
 <div class="connection-strip"><span id="connection-status">Checking connection…</span><button class="text-button" id="setup">Manage connection</button></div>
-<nav class="tool-switch" aria-label="Creative tool"><button id="tool-video" class="tool-tab active" type="button" aria-pressed="true">Video <small>Wan / Seedance</small></button><button id="tool-image" class="tool-tab" type="button" aria-pressed="false">Image <small>Seedream / Nano / PV Soul</small></button><button id="tool-upscale" class="tool-tab" type="button" aria-pressed="false">Upscale <small>Image Upscaler</small></button></nav>
+<nav class="tool-switch" aria-label="Creative tool"><button id="tool-video" class="tool-tab active" type="button" aria-pressed="true">Video <small>Wan / Seedance</small></button><button id="tool-image" class="tool-tab" type="button" aria-pressed="false">Image <small>Seedream / Nano / Soul / Pose</small></button><button id="tool-upscale" class="tool-tab" type="button" aria-pressed="false">Upscale <small>Image Upscaler</small></button></nav>
 <div id="soul-launch" class="soul-launch" hidden>
 <div><span class="eyebrow">PV Soul</span><strong id="soul-launch-title">Train a reusable character</strong><small id="soul-launch-note">FAL training is ready. Train from 20–80 photos, then use the character in Image.</small></div>
 <div class="soul-launch-actions"><button id="soul-use" class="secondary" type="button">Use PV Soul</button><button id="soul-launch-manage" class="primary" type="button">Train / manage character</button></div>
@@ -74,10 +74,21 @@
 <p id="soul-empty" class="fine soul-note">Train a character first. Training uses FAL once; finished image generation uses your SpicyAPI connection.</p>
 <p class="fine soul-note">PV Soul v0.1 uses the trained Qwen Image 2512 LoRA with text prompts. Use Seedream or Nano Banana when you need reference editing.</p>
 </div>
+<div id="controlled-pose-settings" class="controlled-pose-settings" hidden>
+<div class="upload-heading"><span class="label">Controlled Pose</span><span class="micro">FAL FLUX</span></div>
+<p class="fine">Assign exactly one reference as <strong>Pose</strong> and 1–4 references as <strong>Identity</strong>. Pose drives body structure; Identity drives the person.</p>
+<div class="parameter-grid">
+<label><span class="label">Pose strength <output id="pose-strength-value">1.00</output></span><input id="pose-strength" type="range" min="0" max="2" step="0.05" value="1"></label>
+<label><span class="label">Identity strength <output id="identity-strength-value">0.70</output></span><input id="identity-strength" type="range" min="0" max="2" step="0.05" value="0.7"></label>
+</div>
+<label><span class="label">Seed <span class="micro">Optional</span></span><input id="controlled-pose-seed" type="number" min="0" max="2147483647" placeholder="Random"></label>
+<button id="preview-pose" type="button" class="secondary full">Preview detected pose</button>
+<p id="pose-preview-status" class="fine" role="status"></p>
+</div>
 <label class="label prompt-label" id="prompt-label" for="prompt">Motion direction</label><textarea id="prompt" maxlength="6000" placeholder="One clear action, one camera move, light, atmosphere and sound."></textarea>
 <div class="parameter-grid">
 <label id="duration-control"><span class="label">Duration</span><select id="duration"><option value="5">5 sec</option><option value="10">10 sec</option><option value="15" selected>15 sec</option><option value="30">30 sec</option></select></label>
-<label id="image-model-control" hidden><span class="label">Image model</span><select id="image-engine"><option value="seedream" selected>Seedream 5 Pro</option><option value="gemini">Nano Banana Pro</option><option value="soul">PV Soul</option></select></label>
+<label id="image-model-control" hidden><span class="label">Image model</span><select id="image-engine"><option value="seedream" selected>Seedream 5 Pro</option><option value="gemini">Nano Banana Pro</option><option value="soul">PV Soul</option><option value="fal">Controlled Pose · FAL FLUX</option></select></label>
 <label id="image-processing-control" hidden><span class="label">Processing</span><select id="image-processing"><option value="normal" selected>⚡ Normal</option><option value="batch">🕒 Batch · 50% cheaper</option></select></label>
 <label id="image-count-control" hidden><span class="label">Number of images</span><select id="image-count"><option value="1" selected>1 image</option><option value="2">2 images</option><option value="3">3 images</option><option value="4">4 images</option></select></label>
 <label id="resolution-control"><span class="label">Resolution</span><select id="resolution"><option value="480p">480p</option><option value="720p">720p</option><option value="1080p" selected>1080p</option></select></label>
@@ -124,6 +135,19 @@
 </div>
 <div class="archivehead" style="margin-top:24px"><div><p class="eyebrow">Characters</p><h2>Saved identities</h2></div></div>
 <div id="soul-character-list" class="soul-character-list"></div>
+</dialog>
+<dialog id="repair-dialog" aria-labelledby="repair-title">
+<div class="dialoghead"><h2 id="repair-title">Repair Region</h2><button id="repair-close" class="quiet" type="button">Close</button></div>
+<p class="fine">Paint the area to regenerate. Black stays unchanged; the painted white mask is repaired. This creates a new image and leaves the original untouched.</p>
+<div class="repair-canvas-wrap"><canvas id="repair-canvas"></canvas></div>
+<div class="repair-tools">
+<label><span class="label">Brush size</span><input id="repair-brush" type="range" min="8" max="160" step="4" value="56"></label>
+<button id="repair-clear" class="quiet" type="button">Clear mask</button>
+</div>
+<label><span class="label">Repair instruction</span><textarea id="repair-prompt" maxlength="5000" placeholder="Describe only what should change inside the painted region."></textarea></label>
+<label><span class="label">Repair strength <output id="repair-strength-value">0.75</output></span><input id="repair-strength" type="range" min="0.05" max="1" step="0.05" value="0.75"></label>
+<button id="repair-submit" class="primary full" type="button">Repair painted region</button>
+<p id="repair-status" class="fine" role="status"></p>
 </dialog>
 <dialog id="input-preview-dialog" aria-labelledby="input-preview-title"><div class="dialoghead"><h2 id="input-preview-title">Input reference</h2><button class="quiet" data-close="input-preview-dialog" type="button">Close</button></div><p id="input-preview-description" class="fine"></p><img id="input-preview-image" alt="Uploaded input reference, not a generated result"></dialog>
 </body></html>

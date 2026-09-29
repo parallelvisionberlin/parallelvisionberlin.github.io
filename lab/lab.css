@@ -33,3 +33,18 @@ footer{border-top:1px solid var(--line-soft);padding:18px 0;color:var(--muted);f
 #input-preview-description{overflow-wrap:anywhere}
 @media(max-width:820px){.stage{position:relative;top:auto;align-self:stretch;height:clamp(320px,65dvh,580px)}.reference-list{max-height:310px}}
 @media(max-width:560px){.canvas{min-height:0;padding:14px}.reference-list{max-height:290px}.stage{height:clamp(300px,60dvh,500px)}}
+
+
+/* Controlled Pose + masked repair */
+.controlled-pose-settings{border:1px solid var(--line,#34352f);padding:14px;margin:12px 0;background:rgba(255,255,255,.015)}
+.controlled-pose-settings .parameter-grid{margin-top:10px}
+.controlled-pose-settings input[type="range"],#repair-dialog input[type="range"]{width:100%;padding:0}
+.controlled-pose-settings output,#repair-dialog output{font-variant-numeric:tabular-nums;opacity:.72;margin-left:6px}
+#preview-pose{margin-top:10px}
+#pose-preview-status:empty,#repair-status:empty{display:none}
+#repair-dialog{width:min(980px,calc(100vw - 28px));max-width:980px}
+.repair-canvas-wrap{position:relative;width:100%;max-height:62dvh;overflow:auto;border:1px solid var(--line,#34352f);background:#080908;margin:14px 0}
+#repair-canvas{display:block;width:100%;height:auto;touch-action:none;cursor:crosshair}
+.repair-tools{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:end;margin:12px 0}
+#repair-prompt{min-height:96px}
+@media(max-width:560px){.repair-tools{grid-template-columns:1fr}.controlled-pose-settings{padding:11px}}
