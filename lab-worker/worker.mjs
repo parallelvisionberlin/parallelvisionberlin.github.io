@@ -353,6 +353,35 @@ async function copyResult(env,j,url) {
     stmt(env,"UPDATE jobs SET state='completed',output_id=?,remote_url=NULL,error='',updated_at=? WHERE id=?",j.id,now(),j.id)
   ]);
 }
+async function storeRemoteImage(env,owner,url,prefix='fal-image'){
+  let target=safeVideoUrl(url),response;
+  for(let i=0;i<4;i++){
+    response=await fetch(target,{redirect:'manual',signal:AbortSignal.timeout(30000)});
+    if(response.status>=300&&response.status<400){const next=response.headers.get('location');if(!next)throw new Error('No image output location.');target=safeVideoUrl(new URL(next,target).href);continue;}break;
+  }
+  if(!response?.ok)throw new Error('Image output download failed.');
+  const mime=(response.headers.get('content-type')||'').split(';')[0];
+  if(!['image/png','image/jpeg','image/webp'].includes(mime))throw new Error('Unexpected pose preview format.');
+  const bytes=await limitedBody(response,MAX_IMAGE);
+  if(!bytes.length||!sniff(bytes,mime))throw new Error('Invalid pose preview image.');
+  const stored=await first(env,'SELECT COALESCE(SUM(bytes),0) AS n FROM assets WHERE owner_id=?',owner);
+  if(stored.n+bytes.length>MAX_STORAGE)throw new Error('Private archive storage limit reached.');
+  const id=crypto.randomUUID(),ext=mime==='image/jpeg'?'jpg':mime.split('/')[1],objectKey=`${owner}/sources/${id}.${ext}`;
+  await env.LAB_MEDIA.put(objectKey,bytes,{httpMetadata:{contentType:mime}});
+  try{await run(env,"INSERT INTO assets(id,owner_id,object_key,kind,mime,filename,bytes,created_at) VALUES(?,?,?,'source',?,?,?,?)",id,owner,objectKey,mime,prefix+'-'+id+'.'+ext,bytes.length,now());}
+  catch(e){await env.LAB_MEDIA.delete(objectKey);throw e;}
+  return id;
+}
+async function createFalPoseMap(env,owner,url,poseAsset,existingId=null){
+  if(existingId){
+    const existing=await source(env,owner,existingId);if(!existing.mime.startsWith('image/'))fail(400,'Pose map must be an image.');return existing;
+  }
+  const poseUrl=await signedInput(env,url,poseAsset.id);
+  const completed=await falAwait(FAL_DWPOSE,env.FAL_KEY,{image_url:poseUrl,draw_mode:'full-pose'},{timeoutMs:45000,pollMs:750});
+  const output=completed.result?.image?.url;if(typeof output!=='string'||!output)throw new Error('fal.ai DWPose completed without a pose image.');
+  const id=await storeRemoteImage(env,owner,output,'dwpose');
+  return source(env,owner,id);
+}
 // Stage original image bytes with the provider before quoting. No generation here.
 const MAX_PROVIDER_IMAGE = 10 * 1024 * 1024;
 const FILE_URI = /^spicy:\/\/f\/fil_[A-Za-z0-9_-]{8,128}$/;
