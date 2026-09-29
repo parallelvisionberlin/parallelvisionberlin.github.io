@@ -64,6 +64,21 @@ export function controlledPoseRefs(referenceRoles,count,{fail=defaultFail,allowE
   return {pose:pose[0],identity};
 }
 
+export function controlledRepairRefs(referenceRoles,count,{fail=defaultFail}={}){
+  if(count===0)return {pose:null,identity:[]};
+  if(!Array.isArray(referenceRoles)||referenceRoles.length!==count)fail(400,'Repair reference roles must match the selected images.');
+  const pose=[],identity=[],unsupported=[];
+  referenceRoles.forEach((r,i)=>{
+    if(r?.role==='pose')pose.push(i);
+    else if(r?.role==='identity')identity.push(i);
+    else unsupported.push(i);
+  });
+  if(pose.length>1)fail(400,'Repair Region accepts at most one Pose reference.');
+  if(identity.length>4)fail(400,'Repair Region accepts up to four Identity references.');
+  if(unsupported.length)fail(400,'Repair Region reuses only Pose and Identity references.');
+  return {pose:pose.length?pose[0]:null,identity};
+}
+
 export function falImageSize(aspectRatio){return RATIOS[aspectRatio]||RATIOS['3:4'];}
 export function estimateImageMicros(width,height){
   const mp=Math.max(1,Math.ceil((Number(width)*Number(height))/1_000_000));
