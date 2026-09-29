@@ -126,9 +126,11 @@ test('PV Soul trains once through FAL, archives weights privately and builds Qwe
   response=await req(env,'/api/quotes',{method:'POST',data:{settings:soulSettings,referenceSourceIds:[]}});
   assert.equal(response.status,200,await response.clone().text());assert.equal(quotedRequest.model,'alibaba/qwen-image-2512-lora/text-to-image');assert.equal(quotedRequest.input.aspect_ratio,'3:4');assert.equal(quotedRequest.input.loras.length,1);assert.equal(quotedRequest.input.loras[0].scale,1);assert.match(quotedRequest.input.loras[0].path,/\/soul-weight\//);assert.match(quotedRequest.input.prompt,/trained adult character identity|trained adult character/i);
   const weightUrl=new URL(quotedRequest.input.loras[0].path);const weights=await req(env,weightUrl.pathname+weightUrl.search,{method:'GET',authToken:null,headers:{Origin:''}});assert.equal(weights.status,200);assert.equal((await weights.arrayBuffer()).byteLength,8);
-  const roles=[{name:'pose.png',role:'pose',note:'Keep the pose and framing.'}];const editSettings={...soulSettings,referenceRoles:roles};
+  const roles=[{name:'pose.png',role:'pose',note:'Keep the pose and framing.'}];
+  const editSettings={...soulSettings,referenceRoles:roles};
   response=await req(env,'/api/quotes',{method:'POST',data:{settings:editSettings,referenceSourceIds:[referenceId]}});
-  assert.equal(response.status,200,await response.clone().text());assert.equal(quotedRequest.model,'alibaba/qwen-image-2512-lora/edit');assert.equal(quotedRequest.input.image_urls.length,1);assert.equal(quotedRequest.input.image_urls[0],'spicy://f/fil_synthetic_reference');assert.equal(quotedRequest.input.loras.length,1);assert.match(quotedRequest.input.prompt,/Keep the pose and framing/);assert.match(quotedRequest.input.prompt,/Preserve that trained identity/);
+  assert.equal(response.status,400);
+  assert.match(await response.text(),/reference-conditioned identity generation is disabled|does not accept reference images/i);
   assert.equal(falSubmitCount,1);
 });
 
