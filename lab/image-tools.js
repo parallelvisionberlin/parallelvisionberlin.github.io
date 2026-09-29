@@ -18,7 +18,7 @@ export function cancelImagePreparation() {
 }
 function workerTask(operation, file) {
   if (!imageWorker) {
-    imageWorker = new Worker(new URL('./image-worker.js?v=20260927-ultrawide1', import.meta.url), { type: 'module' });
+    imageWorker = new Worker(new URL('./image-worker.js?v=20260929-soul1', import.meta.url), { type: 'module' });
     imageWorker.onmessage = ({ data }) => {
       const task = pending.get(data.id); if (!task) return;
       pending.delete(data.id); clearTimeout(task.timer);
@@ -72,6 +72,11 @@ export async function wanUltrawideWorkingCopy(file) {
   const name = (file.name || 'start-frame').replace(/\.[^.]+$/, '') + '-21x9.webp';
   return new File([blob], name, { type: 'image/webp' });
 }
+export async function soulTrainingCopy(file) {
+  const { blob } = await processLocally('soul-training', file);
+  const name = (file.name || 'training-photo').replace(/\.[^.]+$/, '') + '-training.webp';
+  return new File([blob], name, { type: 'image/webp' });
+}
 
 // Shared implementation: normally called inside image-worker.js, with a browser fallback.
 export async function runImageTask(operation, file) {
@@ -118,6 +123,19 @@ export async function runImageTask(operation, file) {
         await yieldUI();
       }
       throw new Error('The 21:9 working crop is still above 10 MiB. Export a smaller source image and try again; the original was not changed.');
+    }
+    if (operation === 'soul-training') {
+      const targetBytes = 700 * 1024;
+      for (const edge of [1600, 1440, 1280, 1120, 960]) {
+        const scale = Math.min(1, edge / Math.max(width, height));
+        draw(Math.max(1, Math.round(width * scale)), Math.max(1, Math.round(height * scale)));
+        for (const quality of [0.92, 0.86, 0.80, 0.74]) {
+          const blob = await encode(quality);
+          if (blob.type === 'image/webp' && blob.size <= targetBytes) return { ...dimensions, blob };
+          await yieldUI();
+        }
+      }
+      throw new Error('A training copy could not be reduced below 700 KiB. Export this source photo smaller and try again.');
     }
     if (operation !== 'working-copy') throw new Error('Unknown image operation.');
     draw(width, height);

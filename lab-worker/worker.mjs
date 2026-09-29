@@ -1,7 +1,8 @@
 /* Parallel Vision Lab. Private owner-only workspace, no public media bucket.
    The hosted provider is opt-in; no provider key or moderation bypass in source. */
 import {seedanceParameters, prepareSeedance, REFERENCE_MIME, sniffReference} from './seedance.mjs';
-export const VERSION = 'pv-lab-2026-09-29.3-archive-recovery';
+import {SOUL_TEXT_MODEL,SOUL_EDIT_MODEL,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
+export const VERSION = 'pv-lab-2026-09-29.4-pv-soul';
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:4,video:3});
 const ORIGINS = new Set(['https://parallelvisionlabel.com','https://www.parallelvisionlabel.com']);
@@ -37,6 +38,7 @@ const first = (env,sql,...p) => stmt(env,sql,...p).first();
 const run = (env,sql,...p) => stmt(env,sql,...p).run();
 const rows = async (env,sql,...p) => (await stmt(env,sql,...p).all()).results;
 const uid = value => UUID.test(value || '') ? value : fail(400,'Invalid record identifier.');
+const soulDeps = () => ({fail,now,body,limitedBody,first,run,rows,uid,derived,base,unbase});
 function unbase(s) { return Uint8Array.from(atob(s.replace(/-/g,'+').replace(/_/g,'/').padEnd(Math.ceil(s.length/4)*4,'=')),c=>c.charCodeAt(0)); }
 function base(b) { let s=''; for(const n of new Uint8Array(b))s+=String.fromCharCode(n); return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
 async function limitedBody(request,max) {
@@ -147,6 +149,16 @@ function parameters(value) {
   if(value.engine&&value.engine!=='wan'&&value.type!=='image')fail(400,'Unknown video model.');
   const prompt=typeof value.prompt==='string'?value.prompt.trim():'';
   const referenceRoles=referenceLabels(value.referenceRoles);
+  if(value.type==='image'&&value.engine==='soul'){
+    if(prompt.length<1||prompt.length>4700)fail(400,'PV Soul prompts must be 1 to 4,700 characters so the identity instruction and reference roles fit.');
+    if(referenceRoles.length>3)fail(400,'PV Soul supports up to three reference images.');
+    const strength=Number(value.identityStrength),ratio=value.aspectRatio||'1:1';
+    const soulRatios=['1:1','16:9','9:16','4:3','3:4','3:2','2:3','21:9','9:21'];
+    if(!UUID.test(value.characterId||''))fail(400,'Choose a trained PV Soul character.');
+    if(!Number.isFinite(strength)||strength<0.25||strength>1.75)fail(400,'Identity strength must be between 0.25 and 1.75.');
+    if(!soulRatios.includes(ratio)||!['png','jpeg'].includes(value.outputFormat||'jpeg'))fail(400,'Choose a supported PV Soul aspect ratio and PNG or JPEG.');
+    return {type:'image',provider:'spicy',engine:'soul',model:SOUL_TEXT_MODEL,mode:'image',prompt,characterId:value.characterId,identityStrength:strength,resolution:'native',aspectRatio:ratio,outputFormat:value.outputFormat||'jpeg',referenceRoles};
+  }
   if(value.type==='image'&&value.mode==='upscale'){
     if(!['2k','4k','8k'].includes(value.resolution)||!['jpeg','png','webp'].includes(value.outputFormat||'jpeg'))fail(400,'Choose 2K, 4K or 8K and JPEG, PNG or WebP.');
     return {type:'image',model:UPSCALER,mode:'upscale',prompt:'',resolution:value.resolution,aspectRatio:'auto',outputFormat:value.outputFormat||'jpeg',referenceRoles:[]};
@@ -189,6 +201,16 @@ async function prepareInput(env,owner,data,p,url) {
     primary=await source(env,owner,data.sourceId);p.referenceSourceIds=[];p.lastSourceId=null;
     input={resolution:p.resolution,output_format:p.outputFormat};
     if(url)input.image_url=await signedInput(env,url,primary.id);
+  }else if(p.type==='image'&&p.engine==='soul'){
+    const character=await readySoulCharacter(env,owner,p.characterId,soulDeps());
+    const refs=data.referenceSourceIds?.length?await sources(env,owner,data.referenceSourceIds,3):[];
+    primary=refs[0]||null;p.referenceSourceIds=refs.map(a=>a.id);p.lastSourceId=null;p.model=refs.length?SOUL_EDIT_MODEL:SOUL_TEXT_MODEL;p.triggerWord=character.trigger_word;
+    const direction=assembledPrompt(p);
+    const prefix=refs.length?'The trained adult character identity is '+character.trigger_word+'. Preserve that trained identity. Use the reference image'+(refs.length===1?'':'s')+' for composition, pose, wardrobe, environment or other roles described below; do not replace the trained identity unless the user explicitly asks.':'The subject is the trained adult character '+character.trigger_word+'. Preserve that trained identity.';
+    const finalPrompt=prefix+'\n'+direction;if(finalPrompt.length>5000)fail(400,'PV Soul prompt plus identity and reference notes is too long.');
+    input={prompt:finalPrompt,output_format:p.outputFormat};
+    if(url){const weights=await soulWeightUrl(env,url,character,soulDeps());input.loras=[{path:weights,scale:p.identityStrength}];}
+    if(refs.length&&url)input.image_urls=await Promise.all(refs.map(a=>signedInput(env,url,a.id)));else if(!refs.length)input.aspect_ratio=p.aspectRatio;
   }else if(p.type==='image'){
     const refs=data.referenceSourceIds?.length?await sources(env,owner,data.referenceSourceIds):[];
     primary=refs[0]||null;p.referenceSourceIds=refs.map(a=>a.id);p.lastSourceId=null;p.model=refs.length?STILL_EDIT:STILL_TEXT;
@@ -214,7 +236,7 @@ async function prepareInput(env,owner,data,p,url) {
       if(p.aspectRatio!=='auto'&&p.aspectRatio!=='21:9')input.aspect_ratio=p.aspectRatio;
     }
   }
-  if(p.prompt)input.prompt=assembledPrompt(p);if(p.type!=='image'&&p.seed!==null)input.seed=p.seed;
+  if(p.prompt&&p.engine!=='soul')input.prompt=assembledPrompt(p);if(p.type!=='image'&&p.seed!==null)input.seed=p.seed;
   return {primary,input};
 }
 async function source(env,owner,id) {
@@ -527,14 +549,24 @@ async function refreshJob(env,j) {
 async function route(request,env,ctx) {
   const url=new URL(request.url),origin=request.headers.get('origin')||'';
   if(origin&&!ORIGINS.has(origin))fail(403,'Origin not allowed.');
-  if(request.method==='OPTIONS')return new Response(null,{status:204,headers:{'Access-Control-Allow-Methods':'GET,POST,DELETE,OPTIONS','Access-Control-Allow-Headers':'Authorization,Content-Type,X-Filename,Range','Access-Control-Max-Age':'600'}});
+  if(request.method==='OPTIONS')return new Response(null,{status:204,headers:{'Access-Control-Allow-Methods':'GET,HEAD,POST,DELETE,OPTIONS','Access-Control-Allow-Headers':'Authorization,Content-Type,X-Filename,Range','Access-Control-Max-Age':'600'}});
   if(url.pathname==='/health'&&request.method==='GET')return json({ok:true,version:VERSION});
   if(url.pathname.startsWith('/input/')&&request.method==='GET')return publicInput(request,env,url);
+  if(url.pathname.startsWith('/soul-dataset/')&&request.method==='GET')return publicSoulDataset(request,env,url,soulDeps());
+  if(url.pathname.startsWith('/soul-weight/')&&(request.method==='GET'||request.method==='HEAD'))return publicSoulWeight(request,env,url,soulDeps());
   if(!url.pathname.startsWith('/api/'))fail(404,'Not found.');
   const owner=await authenticate(request,env),path=url.pathname,method=request.method;
   if(path==='/api/session'&&method==='GET'){
     const c=await config(env,owner),spent=await first(env,'SELECT COALESCE(SUM(estimate_microusd),0) AS n FROM spend WHERE owner_id=? AND created_at>=?',owner,Math.floor(now()/86400000)*86400000);
-    return json({owner:true,ownerId:owner,version:VERSION,config:{...publicConfig(c),geminiEnabled:!!env.GEMINI_API_KEY},estimatedSpentToday:spent.n/1000000});
+    return json({owner:true,ownerId:owner,version:VERSION,config:{...publicConfig(c),geminiEnabled:!!env.GEMINI_API_KEY,soulTrainingEnabled:!!env.FAL_KEY},estimatedSpentToday:spent.n/1000000});
+  }
+  if(path==='/api/soul/characters'&&method==='GET')return json({characters:await listSoulCharacters(env,owner,soulDeps())});
+  if(path==='/api/soul/datasets'&&method==='POST')return json(await createSoulDataset(request,env,owner,soulDeps()),201);
+  if(path==='/api/soul/characters'&&method==='POST')return json({character:await createSoulCharacter(request,env,owner,url,soulDeps())},202);
+  if(path.startsWith('/api/soul/characters/')){
+    const parts=path.split('/'),id=parts[4];
+    if(parts[5]==='resolve'&&method==='POST')return json(await resolveSoulCharacter(request,env,owner,id,soulDeps()));
+    if(method==='DELETE')return json(await deleteSoulCharacter(env,owner,id,soulDeps()));
   }
   if(path==='/api/settings'&&method==='POST') {
     const data=await body(request),old=await config(env,owner);
@@ -756,6 +788,7 @@ async function route(request,env,ctx) {
 }
 async function maintenance(env) {
   await backfillFailureDetails(env);
+  await soulMaintenance(env,soulDeps());
   await run(env,"UPDATE jobs SET state='uncertain',error='Submission was interrupted. Check the provider dashboard before retrying.',updated_at=? WHERE state='submitting' AND updated_at<?",now(),now()-120000);
   const pending=await rows(env,"SELECT * FROM jobs WHERE state IN ('queued','running','saving') ORDER BY last_poll LIMIT 5");
   for(const j of pending){const owner=await env.OWNER_DB.prepare("SELECT id FROM users WHERE id=? AND role='owner' AND auth_provider='clerk'").bind(j.owner_id).first();if(owner)await refreshJob(env,j);}

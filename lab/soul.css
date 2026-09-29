@@ -1,0 +1,21 @@
+.soul-controls{margin:12px 0 16px;padding:14px;border:1px solid var(--line);background:#0c0c0f}
+.soul-control-grid{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:end}
+.soul-strength{margin-top:12px}
+.soul-strength-head{display:flex;justify-content:space-between;gap:12px;align-items:center}
+.soul-strength input[type=range]{width:100%;accent-color:var(--accent)}
+.soul-note{margin-top:8px}
+#soul-dialog{max-width:720px}
+.soul-trainer{display:grid;gap:14px}
+.soul-trainer .drop{min-height:120px}
+.soul-consent{display:flex;gap:10px;align-items:flex-start;font-size:10px;color:var(--muted);line-height:1.5}
+.soul-consent input{margin-top:3px}
+.soul-character-list{display:grid;gap:8px;margin-top:12px;max-height:260px;overflow:auto}
+.soul-character-row{display:flex;justify-content:space-between;gap:14px;align-items:center;border:1px solid var(--line);padding:10px 11px;background:#0b0b0e}
+.soul-character-row>div:first-child{display:grid;gap:2px;min-width:0}
+.soul-character-row strong{font-size:11px;font-weight:400}
+.soul-character-row span,.soul-character-row small{font-size:8px;color:var(--muted);overflow-wrap:anywhere}
+.soul-character-row small{color:var(--danger)}
+.soul-character-row>div:last-child{display:flex;gap:6px;flex:0 0 auto}
+#soul-train-status{min-height:17px;white-space:pre-wrap}
+#soul-training-unavailable{color:var(--danger)}
+@media(max-width:560px){.soul-control-grid{grid-template-columns:1fr}.soul-character-row{align-items:flex-start;flex-direction:column}.soul-character-row>div:last-child{width:100%}.soul-character-row button{flex:1}}
