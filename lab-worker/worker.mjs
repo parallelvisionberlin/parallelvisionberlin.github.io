@@ -328,8 +328,8 @@ function validUploadUrl(value) {
     throw new Error('Unexpected provider upload location.');
   return u.href;
 }
-async function stageImageReferences(env,owner,ids,key) {
-  const assets=await sources(env,owner,ids);
+async function stageImageReferences(env,owner,ids,key,max=10) {
+  const assets=await sources(env,owner,ids,max);
   // Validate the entire batch before any transfer. Keep the private originals unchanged.
   for(const a of assets)if(!['image/jpeg','image/png','image/webp'].includes(a.mime)||a.bytes<=0||a.bytes>MAX_PROVIDER_IMAGE)
     fail(400,'SpicyAPI image uploads are limited to 10 MiB per file. Prepare a working copy in the Lab before requesting a price. Your original remains unchanged. No generation was submitted.');
@@ -666,7 +666,7 @@ async function route(request,env,ctx) {
       if(!Array.isArray(ids)||ids.length!==p.referenceSourceIds.length||new Set(ids).size!==ids.length)fail(400,'Prepared video references must match the selected images in order.');
       const transfers=await sources(env,owner,ids,p.engine==='seedance'?30:10);
       p.transferSourceIds=transfers.map(a=>a.id);
-      input.reference_image_urls=await stageImageReferences(env,owner,p.transferSourceIds,key);
+      input.reference_image_urls=await stageImageReferences(env,owner,p.transferSourceIds,key,p.engine==='seedance'?30:10);
     }
     if(p.type==='image'){
       const originals=p.mode==='upscale'?[primary.id]:p.referenceSourceIds;
