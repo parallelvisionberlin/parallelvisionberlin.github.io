@@ -18,7 +18,7 @@ export function cancelImagePreparation() {
 }
 function workerTask(operation, file) {
   if (!imageWorker) {
-    imageWorker = new Worker(new URL('./image-worker.js?v=20260929-soul1', import.meta.url), { type: 'module' });
+    imageWorker = new Worker(new URL('./image-worker.js?v=20260930-soul-v01', import.meta.url), { type: 'module' });
     imageWorker.onmessage = ({ data }) => {
       const task = pending.get(data.id); if (!task) return;
       pending.delete(data.id); clearTimeout(task.timer);
