@@ -7,7 +7,7 @@ import {pathToFileURL} from 'node:url';
 const {chromium}=await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE).href);
 const root=resolve('.'),source=readFileSync('lab/lab.js','utf8');
 const boot=source.indexOf("try{const {Clerk}=await import(");assert.ok(boot>0);
-const testSource=source.slice(0,boot)+`clerk={isSignedIn:true,user:{id:'test'},session:{id:'synthetic-session',getToken:async()=> 'synthetic-token'},signOut:async()=>{}};owner=true;userId='test';config={enabled:true,dailyLimitUsd:10,concurrency:{image:4,video:1}};$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();update();window.__labTest={lock};`;
+const testSource=source.slice(0,boot)+`clerk={isSignedIn:true,user:{id:'test'},session:{id:'synthetic-session',getToken:async()=> 'synthetic-token'},signOut:async()=>{}};owner=true;userId='test';config={enabled:true,geminiEnabled:true,falEnabled:true,dailyLimitUsd:10,concurrency:{image:4,video:1}};$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();update();window.__labTest={lock};`;
 const server=http.createServer((req,res)=>{const pathname=new URL(req.url,'http://localhost').pathname;const path=resolve(root,'.'+pathname+(pathname.endsWith('/')?'index.html':''));if(!path.startsWith(root+'/')||!existsSync(path)){res.writeHead(404).end();return;}res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css'})[extname(path)]||'text/plain');res.end(pathname==='/lab/lab.js'?testSource:readFileSync(path));});
 await new Promise(r=>server.listen(4179,'127.0.0.1',r));
 const browser=await chromium.launch({headless:true});
@@ -29,6 +29,15 @@ async function workspace({failure='',width=1440,initial=[],quoteDelay=0}={}){
   if(path==='/api/uploads')return send({id:id(sequence++)},201);
   if(path.startsWith('/api/assets/'))return route.fulfill({status:200,contentType:'image/png',body:png});
   if(path==='/api/drafts'){const job={id:id(sequence++),sourceId:data.sourceId,settings:{...data.settings,referenceSourceIds:data.referenceSourceIds||[]},status:'draft',createdAt:Date.now()};jobs.unshift(job);return send({job},201);}
+  if(path==='/api/fal/pose-preview'&&method==='POST')return send({assetId:id(sequence++),billingNote:'synthetic preview'},201);
+  if(path==='/api/fal/controlled-pose'&&method==='POST'){
+    const job={id:id(sequence++),sourceId:data.referenceSourceIds?.[0]||null,settings:{...data.settings,referenceSourceIds:data.referenceSourceIds||[],poseMapSourceId:data.poseMapSourceId||null},status:'queued',createdAt:Date.now(),estimatedUsd:0.075,providerTaskId:'fal-synthetic'};
+    accepted++;jobs.unshift(job);return send({job},202);
+  }
+  if(path==='/api/fal/repair'&&method==='POST'){
+    const job={id:id(sequence++),sourceId:data.sourceId,settings:{...data.settings,referenceSourceIds:data.referenceSourceIds||[]},status:'queued',createdAt:Date.now(),estimatedUsd:0.075,providerTaskId:'fal-repair-synthetic'};
+    accepted++;jobs.unshift(job);return send({job},202);
+  }
   if(path==='/api/quotes'){
    if(quoteDelay)await new Promise(r=>setTimeout(r,quoteDelay));
    if(failure==='quote')return send({error:'Provider quote unavailable. No generation submitted.'},502);
@@ -79,8 +88,19 @@ try{
  const geminiInterrupted={...active(20),status:'uncertain',settings:{...settings,provider:'gemini',engine:'gemini',model:'gemini-3-pro-image',processing:'normal'}};
  x=await workspace({initial:[geminiInterrupted]});await imageForm(x);
  assert.equal(await x.page.locator('#generate').isDisabled(),false);
- assert.match(await x.page.locator('#active-status').innerText(),/Nano 1 \/ 4/);
- ok('Interrupted Gemini request does not block Seedream generation');await x.context.close();
+ assert.match(await x.page.locator('#active-status').innerText(),/Nano 0 \/ 4/);assert.match(await x.page.locator('#active-status').innerText(),/1 old Nano interrupted/);
+ ok('Interrupted Gemini request is labeled as old and does not look like an active Nano generation');await x.context.close();
+ x=await workspace();await x.page.click('#tool-image');await x.page.selectOption('#image-engine','fal');await x.page.fill('#prompt','Editorial portrait in a warm room.');
+ await x.page.locator('#reference-images').setInputFiles([
+  {name:'pose.png',mimeType:'image/png',buffer:png},
+  {name:'identity.png',mimeType:'image/png',buffer:png}
+ ]);await ready(x.page);
+ const roles=x.page.locator('.reference-fields select');await roles.nth(0).selectOption('pose');await roles.nth(1).selectOption('identity');await ready(x.page);
+ assert.equal(await x.page.locator('#generate').isDisabled(),false);assert.equal(await x.page.locator('#generate').innerText(),'Generate controlled pose');
+ await x.page.click('#preview-pose');await ready(x.page);assert.equal(count(x,'/api/fal/pose-preview'),1);assert.match(await x.page.locator('#pose-preview-status').innerText(),/Pose ready/);
+ await x.page.click('#generate');await ready(x.page);assert.equal(count(x,'/api/fal/controlled-pose'),1);assert.equal(count(x,'/api/gemini/jobs'),0);assert.equal(count(x,'/api/quotes'),0);assert.equal(x.accepted(),1);
+ ok('Controlled Pose keeps FAL isolated from Seedream and Nano and reuses the preview pose map');await x.context.close();
+
  for(const tool of ['video']){
   x=await workspace();await x.page.click('#tool-'+tool);await x.page.locator('#image').setInputFiles({name:'sculpture.png',mimeType:'image/png',buffer:png});await ready(x.page);if(tool==='video')await x.page.fill('#prompt','The camera slowly moves around the sculpture.');
   assert.match(await x.page.locator('#generate').innerText(),/^Review price/);await x.page.click('#generate');await x.page.locator('#quote-dialog').waitFor({state:'visible'});assert.equal(x.accepted(),0);assert.equal(count(x,'/api/jobs'),0);await x.page.click('#confirm-generation');await ready(x.page);assert.equal(x.accepted(),1);ok(tool+': separate price confirmation remains required');await x.context.close();
