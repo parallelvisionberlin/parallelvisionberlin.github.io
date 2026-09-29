@@ -2,8 +2,8 @@
    The hosted provider is opt-in; no provider key or moderation bypass in source. */
 import {seedanceParameters, prepareSeedance, REFERENCE_MIME, sniffReference} from './seedance.mjs';
 import {FAL_CONTROLLED_POSE,FAL_CONTROLLED_INPAINT,FAL_DWPOSE,controlledPoseParameters,controlledRepairParameters,controlledPoseRefs,controlledRepairRefs,controlledPoseEstimateMicros,controlledRepairEstimateMicros,buildControlledPoseInput,buildRepairInput,falSubmit,falStatus,falResult,falAwait} from './fal-controlled-pose.mjs';
-import {SOUL_TEXT_MODEL,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-09-30.4-fal-submit-fix';
+import {SOUL_TEXT_MODEL,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
+export const VERSION = 'pv-lab-2026-09-30.5-soul-safe-retry';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:4,video:3});
@@ -665,6 +665,7 @@ async function route(request,env,ctx) {
   if(path==='/api/soul/characters'&&method==='POST')return json({character:await createSoulCharacter(request,env,owner,url,soulDeps())},202);
   if(path.startsWith('/api/soul/characters/')){
     const parts=path.split('/'),id=parts[4];
+    if(parts[5]==='retry'&&method==='POST')return json({character:await retrySoulCharacter(request,env,owner,id,url,soulDeps())},202);
     if(parts[5]==='resolve'&&method==='POST')return json(await resolveSoulCharacter(request,env,owner,id,soulDeps()));
     if(method==='DELETE')return json(await deleteSoulCharacter(env,owner,id,soulDeps()));
   }
