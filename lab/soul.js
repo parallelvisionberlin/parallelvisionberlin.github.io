@@ -73,6 +73,15 @@ export function createSoulController({api,action,notify,changed,owner}){
         use.onclick=()=>{selected=c.id;renderSelect();renderCharacters();};
         controls.append(use);
       }
+      if(c.state==='uncertain'){
+        const resolve=document.createElement('button');resolve.type='button';resolve.className='quiet';resolve.textContent='Resolve';
+        resolve.onclick=()=>action(async()=>{
+          if(!confirm('Check the FAL dashboard first. Continue only if you verified whether this training was submitted. This will mark the uncertain attempt as failed and will not submit another training.'))return;
+          await api('/api/soul/characters/'+c.id+'/resolve',{method:'POST',body:{confirm:true}});await load();
+          notify('Uncertain PV Soul training resolved. No new training was submitted.');
+        });
+        controls.append(resolve);
+      }
       if(terminal(c.state)){
         const del=document.createElement('button');del.type='button';del.className='quiet';del.textContent='Delete';
         del.onclick=()=>action(async()=>{
