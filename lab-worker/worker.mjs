@@ -613,6 +613,38 @@ async function refreshJob(env,j) {
     await run(env,'UPDATE jobs SET error=?,updated_at=? WHERE id=?','Archive retry: '+detail+' The provider result is safe; generation slots are released while saving retries.',now(),j.id);
   }
 }
+async function reserveFalImageJob(env,owner,sourceId,p,estimate){
+  if((await first(env,'SELECT COUNT(*) AS n FROM jobs WHERE owner_id=?',owner)).n>=500)fail(409,'History limit reached. Delete old records first.');
+  const c=await config(env,owner),limit=c?.daily_limit_microusd||10000000,t=now(),day=Math.floor(t/86400000)*86400000,id=crypto.randomUUID(),quoteId=crypto.randomUUID();
+  await run(env,'INSERT INTO quotes(id,owner_id,source_id,params,estimate_microusd,expires_at,vendor_quote_id,expected_cost,payload) VALUES(?,?,?,?,?,?,?,?,?)',
+    quoteId,owner,sourceId||null,JSON.stringify(p),estimate,t+600000,'fal-direct',String(estimate/1000000),'{}');
+  const falSql="COALESCE(json_extract(params,'$.provider'),'')='fal'";
+  const inserted=await run(env,"INSERT INTO jobs(id,owner_id,source_id,quote_id,params,state,estimate_microusd,created_at,updated_at) SELECT ?,?,?,?,?, 'submitting',?,?,? WHERE NOT EXISTS(SELECT 1 FROM jobs WHERE owner_id=? AND state='uncertain' AND "+falSql+") AND (SELECT COUNT(*) FROM jobs WHERE owner_id=? AND state IN ('submitting','queued','running','uncertain') AND "+falSql+" AND json_extract(params,'$.type')='image')<? AND (SELECT COALESCE(SUM(estimate_microusd),0) FROM spend WHERE owner_id=? AND created_at>=?)+?<=?",
+    id,owner,sourceId||null,quoteId,JSON.stringify(p),estimate,t,t,owner,owner,CONCURRENCY.image,owner,day,estimate,limit);
+  if(!inserted.meta.changes){
+    await run(env,'DELETE FROM quotes WHERE id=?',quoteId);
+    const uncertain=(await first(env,"SELECT COUNT(*) AS n FROM jobs WHERE owner_id=? AND state='uncertain' AND "+falSql,owner)).n;
+    const active=(await first(env,"SELECT COUNT(*) AS n FROM jobs WHERE owner_id=? AND state IN ('submitting','queued','running','uncertain') AND "+falSql+" AND json_extract(params,'$.type')='image'",owner)).n;
+    const spent=(await first(env,'SELECT COALESCE(SUM(estimate_microusd),0) AS n FROM spend WHERE owner_id=? AND created_at>=?',owner,day)).n;
+    if(uncertain)fail(409,'No generation submitted: a fal.ai request is interrupted. Resolve that fal.ai request before retrying.');
+    if(active>=CONCURRENCY.image)fail(409,'No generation submitted: '+active+' / '+CONCURRENCY.image+' FAL image slots are already active.');
+    if(spent+estimate>limit)fail(409,'No generation submitted: this FAL request would exceed your Lab daily spending limit.');
+    fail(409,'No generation submitted because capacity changed. Refresh History and try again.');
+  }
+  return first(env,'SELECT * FROM jobs WHERE id=? AND owner_id=?',id,owner);
+}
+async function submitReservedFalJob(env,j,p,input){
+  try{
+    const requestId=await falSubmit(p.model,env.FAL_KEY,input);
+    await run(env,"UPDATE jobs SET provider_id=?,state='queued',updated_at=? WHERE id=?",requestId,now(),j.id);
+  }catch(e){
+    const uncertain=e?.uncertain===true||e?.definite===false,state=uncertain?'uncertain':'failed';
+    const msg=uncertain?'fal.ai submission status is uncertain. Check the fal dashboard before retrying to avoid a duplicate charge.':String(e?.message||'fal.ai rejected the request.').slice(0,500);
+    await run(env,'UPDATE jobs SET state=?,error=?,updated_at=? WHERE id=?',state,msg,now(),j.id);
+  }
+  return first(env,'SELECT * FROM jobs WHERE id=?',j.id);
+}
+
 async function route(request,env,ctx) {
   const url=new URL(request.url),origin=request.headers.get('origin')||'';
   if(origin&&!ORIGINS.has(origin))fail(403,'Origin not allowed.');
