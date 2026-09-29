@@ -69,6 +69,18 @@ try{
  for(const initial of [[active(1),active(2),active(3),active(4)],[{...active(5),status:'uncertain'}]]){
   x=await workspace({initial});await imageForm(x);assert.equal(await x.page.locator('#generate').isDisabled(),true);assert.equal(count(x,'/api/jobs'),0);ok('Existing capacity/uncertain-job gate still blocks Image');await x.context.close();
  }
+ const saving=n=>({...active(n),status:'saving',providerTaskId:'settled-'+n,error:'Archive retry pending'});
+ x=await workspace({initial:[saving(10),saving(11),saving(12),saving(13)]});await imageForm(x);
+ assert.equal(await x.page.locator('#generate').isDisabled(),false);
+ assert.match(await x.page.locator('#active-status').innerText(),/4 saving \(no generation slot\)/);
+ await x.page.click('#generate');await ready(x.page);assert.equal(x.accepted(),1);
+ ok('Archive-only saves stay visible but do not consume Image generation slots');await x.context.close();
+
+ const geminiInterrupted={...active(20),status:'uncertain',settings:{...settings,provider:'gemini',engine:'gemini',model:'gemini-3-pro-image',processing:'normal'}};
+ x=await workspace({initial:[geminiInterrupted]});await imageForm(x);
+ assert.equal(await x.page.locator('#generate').isDisabled(),false);
+ assert.match(await x.page.locator('#active-status').innerText(),/Nano 1 \/ 4/);
+ ok('Interrupted Gemini request does not block Seedream generation');await x.context.close();
  for(const tool of ['video']){
   x=await workspace();await x.page.click('#tool-'+tool);await x.page.locator('#image').setInputFiles({name:'sculpture.png',mimeType:'image/png',buffer:png});await ready(x.page);if(tool==='video')await x.page.fill('#prompt','The camera slowly moves around the sculpture.');
   assert.match(await x.page.locator('#generate').innerText(),/^Review price/);await x.page.click('#generate');await x.page.locator('#quote-dialog').waitFor({state:'visible'});assert.equal(x.accepted(),0);assert.equal(count(x,'/api/jobs'),0);await x.page.click('#confirm-generation');await ready(x.page);assert.equal(x.accepted(),1);ok(tool+': separate price confirmation remains required');await x.context.close();
