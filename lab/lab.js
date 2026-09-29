@@ -114,18 +114,18 @@ function renderReferences(){
     const title=document.createElement('strong');title.textContent='Reference '+(i+1)+' / '+r.file.name;title.title=title.textContent;
     const role=document.createElement('select');role.setAttribute('aria-label','Role for reference '+(i+1));
     for(const name of ['none','identity','outfit','room','pose','object','style','lighting','custom'])role.add(new Option(name==='none'?'No assigned role':name,name));
-    role.value=r.role||'none';role.disabled=busy;role.onchange=()=>{r.role=role.value;autoPreview=null;};
+    role.value=r.role||'none';role.disabled=busy;role.onchange=()=>{r.role=role.value;autoPreview=null;if(imageEngine==='fal'){poseMapSourceId=null;$('pose-preview-status').textContent='Pose changed. Preview again if you want to inspect it.';}update();};
     const note=document.createElement('input');note.type='text';note.maxLength=300;note.placeholder='Use only the outfit, keep the room…';note.setAttribute('aria-label','Note for reference '+(i+1));note.value=r.note||'';note.disabled=busy;
     note.oninput=()=>{r.note=note.value;autoPreview=null;};fields.append(title,role,note);
     const controls=document.createElement('div');controls.className='reference-actions';
-    const remove=document.createElement('button');remove.type='button';remove.textContent='Remove';remove.onclick=()=>{if(busy)return;closeInputPreview();releaseReference(r);references.splice(i,1);renderReferences();refreshInputPreview();update();};
-    const up=document.createElement('button');up.type='button';up.textContent='Up';up.disabled=i===0;up.onclick=()=>{if(busy||i===0)return;closeInputPreview();[references[i-1],references[i]]=[references[i],references[i-1]];renderReferences();refreshInputPreview();update();};
+    const remove=document.createElement('button');remove.type='button';remove.textContent='Remove';remove.onclick=()=>{if(busy)return;closeInputPreview();releaseReference(r);references.splice(i,1);if(imageEngine==='fal')poseMapSourceId=null;renderReferences();refreshInputPreview();update();};
+    const up=document.createElement('button');up.type='button';up.textContent='Up';up.disabled=i===0;up.onclick=()=>{if(busy||i===0)return;closeInputPreview();[references[i-1],references[i]]=[references[i],references[i-1]];if(imageEngine==='fal')poseMapSourceId=null;renderReferences();refreshInputPreview();update();};
     controls.append(up,remove);item.append(img,fields,controls);fragment.append(item);
   });
   box.replaceChildren(fragment);box.scrollTop=scroll;$('ref-count').textContent=`${references.length} / ${referenceLimit()}`;
 }
 async function addReferences(list,ids=[],labels=[]){
-  const e=epoch,incoming=[...list];if(references.length+incoming.length>referenceLimit())throw new Error('This mode supports up to '+referenceLimit()+' image references.');
+  const e=epoch,incoming=[...list];if(imageEngine==='fal')poseMapSourceId=null;if(references.length+incoming.length>referenceLimit())throw new Error('This mode supports up to '+referenceLimit()+' image references.');
   autoPreview=null;$('reference-list').setAttribute('aria-busy','true');let added=0;
   try{
     for(let i=0;i<incoming.length;i++){
@@ -148,7 +148,7 @@ function configureVideoControls(){
   if(!model.modes.includes(mode))mode='start';
   $('mode-text').hidden=!isVideo||!sd;
   for(const m of ['start','reference','text']){$('mode-'+m).classList.toggle('active',mode===m);$('mode-'+m).setAttribute('aria-selected',String(mode===m));}
-  $('start-mode').hidden=tool==='image'||isVideo&&mode!=='start';$('reference-mode').hidden=tool==='upscale'||isVideo&&mode!=='reference';
+  $('start-mode').hidden=tool==='image'||isVideo&&mode!=='start';$('reference-mode').hidden=tool==='upscale'||isVideo&&mode!=='reference'||tool==='image'&&imageEngine==='soul';
   $('reference-media').hidden=!isVideo||!sd||mode!=='reference';
   $('start-frame-maker').hidden=!isVideo||mode!=='reference'||sd;
   if(isVideo){
