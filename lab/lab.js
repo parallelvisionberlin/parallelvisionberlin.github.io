@@ -236,10 +236,21 @@ async function submitQuotedGeneration(q, expectedEpoch=epoch) {
     (['image','upscale'].includes(q.settings.mode)?(q.settings.mode==='upscale'?'Upscale requested.':'Image requested.')+' Quoted maximum: '+money(q.maxUsd)+' USD. Results appear in History.':'Generation request recorded. You can leave the page and return to History.'),failed);
 }
 $('generate').onclick=()=>action(async()=>{
-  if(!config.enabled){connection();return;}
+  const provider=currentProvider();if(provider==='spicy'&&!config.enabled){connection();return;}if(provider==='gemini'&&!config.geminiEnabled)throw new Error('Gemini API key is not available on the Lab backend.');if(provider==='fal'&&!config.falEnabled)throw new Error('FAL API key is not available on the Lab backend.');
   if(submissionBlocked())throw new Error('An active-job limit or an interrupted request blocks another generation. Check History.');
   const selectedTool=tool,sessionEpoch=epoch;
   if(tool==='video'&&engine==='seedance'&&!config.videoEngines?.includes('seedance'))throw new Error('Seedance is not enabled on this backend.');
+  if(selectedTool==='image'&&imageEngine==='fal'){
+    const inputs=await ensureInputs(),imageSettings=settings();
+    notify('Submitting Controlled Pose to FAL…');
+    const data=await api('/api/fal/controlled-pose',{method:'POST',body:{...inputs,poseMapSourceId,settings:imageSettings}});
+    const job=data.job;if(!job)throw new Error('No Controlled Pose job was returned.');
+    if(activeStates.has(job.status))setActive(job);
+    resetPreview();autoPreview={id:job.id,revision:previewRevision};await syncHistory();
+    const failed=['failed','uncertain','resolved'].includes(job.status);
+    notify(failed?(job.error||'Controlled Pose was not confirmed. Check History before retrying.'):'Controlled Pose requested. Budget reserve: '+money(job.estimatedUsd||0)+' USD. Result will appear in History.',failed);
+    return;
+  }
   if(selectedTool==='image'&&imageEngine==='gemini'){
     if(!config.geminiEnabled)throw new Error('Gemini API key is not available on the Lab backend.');
     const inputs=await ensureInputs(),requested=Math.max(1,Math.min(imageProcessing==='batch'?20:4,Number($('image-count').value)||1)),imageSettings=settings();
@@ -321,8 +332,8 @@ $('confirm-generation').onclick=async()=>{
   await action(()=>submitQuotedGeneration(q));
 };
 function limitFor(kind){const n=Number(config.concurrency?.[kind]);return Number.isInteger(n)&&n>0?n:1;}
-function currentProvider(){return tool==='image'&&imageEngine==='gemini'?'gemini':'spicy';}
-function jobProvider(j){const s=j?.settings||{};return s.provider==='gemini'||s.engine==='gemini'||String(s.model||'').startsWith('gemini-')?'gemini':'spicy';}
+function currentProvider(){return tool==='image'&&imageEngine==='gemini'?'gemini':tool==='image'&&imageEngine==='fal'?'fal':'spicy';}
+function jobProvider(j){const s=j?.settings||{};return s.provider==='gemini'||s.engine==='gemini'||String(s.model||'').startsWith('gemini-')?'gemini':s.provider==='fal'||s.engine==='fal'?'fal':'spicy';}
 function submissionBlocked(){const kind=tool==='upscale'?'image':tool,provider=currentProvider();return activeJobs.some(j=>j.status==='uncertain'&&jobProvider(j)===provider)||activeJobs.filter(j=>{const jobKind=j.settings?.type==='image'?'image':'video',backgroundBatch=j.settings?.provider==='gemini'&&j.settings?.processing==='batch';return slotStates.has(j.status)&&jobKind===kind&&!backgroundBatch&&jobProvider(j)===provider;}).length>=limitFor(kind);}
 function schedulePoll(delay=10000){clearTimeout(timer);timer=null;if(owner&&activeJobs.some(j=>j.status!=='uncertain')&&!polling)timer=setTimeout(poll,delay);}
 function setActiveJobs(list){
@@ -332,11 +343,14 @@ function setActiveJobs(list){
   const saving=activeJobs.filter(j=>j.status==='saving').length;
   const batchImages=activeJobs.filter(j=>slotStates.has(j.status)&&j.settings?.type==='image'&&jobProvider(j)==='gemini'&&j.settings?.processing==='batch').length;
   const spicyImages=activeJobs.filter(j=>slotStates.has(j.status)&&j.settings?.type==='image'&&jobProvider(j)==='spicy').length;
-  const geminiImages=activeJobs.filter(j=>slotStates.has(j.status)&&j.settings?.type==='image'&&jobProvider(j)==='gemini'&&j.settings?.processing!=='batch').length;
+  const geminiRunning=activeJobs.filter(j=>slotStates.has(j.status)&&j.status!=='uncertain'&&j.settings?.type==='image'&&jobProvider(j)==='gemini'&&j.settings?.processing!=='batch').length;
+  const geminiInterrupted=activeJobs.filter(j=>j.status==='uncertain'&&j.settings?.type==='image'&&jobProvider(j)==='gemini').length;
+  const falImages=activeJobs.filter(j=>slotStates.has(j.status)&&j.settings?.type==='image'&&jobProvider(j)==='fal').length;
   const videos=activeJobs.filter(j=>slotStates.has(j.status)&&j.settings?.type!=='image').length;
-  $('active-status').textContent='Seedream '+spicyImages+' / '+limitFor('image')+' · Nano '+geminiImages+' / '+limitFor('image')+(batchImages?' · '+batchImages+' Nano batch queued':'')+' · videos '+videos+' / '+limitFor('video')+(saving?' · '+saving+' saving (no generation slot)':'');
+  $('active-status').textContent='Seedream '+spicyImages+' / '+limitFor('image')+' · Nano '+geminiRunning+' / '+limitFor('image')+(geminiInterrupted?' · '+geminiInterrupted+' old Nano interrupted':'')+(batchImages?' · '+batchImages+' Nano batch queued':'')+' · Controlled Pose '+falImages+' / '+limitFor('image')+' · videos '+videos+' / '+limitFor('video')+(saving?' · '+saving+' saving (no generation slot)':'');
   const labels={submitting:'Submitting',queued:'Queued',running:'Generating',saving:'Saving to private archive',uncertain:'Interrupted: check provider before another attempt'};
-  $('active-detail').textContent=activeJobs.map((j,i)=>(i+1)+'. '+(j.settings?.type==='image'?'Image':'Video')+' · '+(jobProvider(j)==='gemini'?'Gemini':'SpicyAPI')+' · '+labels[j.status]+(j.error?' · '+j.error:'')+(j.providerTaskId?' · '+j.providerTaskId:'')).join('\n');
+  const providerLabel=j=>jobProvider(j)==='gemini'?'Gemini':jobProvider(j)==='fal'?'FAL':'SpicyAPI';
+  $('active-detail').textContent=activeJobs.map((j,i)=>(i+1)+'. '+(j.settings?.type==='image'?'Image':'Video')+' · '+providerLabel(j)+' · '+labels[j.status]+(j.error?' · '+j.error:'')+(j.providerTaskId?' · '+j.providerTaskId:'')).join('\n');
   $('active-detail').style.whiteSpace='pre-line';
   $('resolve').hidden=!activeJobs.some(j=>j.status==='uncertain');
   schedulePoll();update();
