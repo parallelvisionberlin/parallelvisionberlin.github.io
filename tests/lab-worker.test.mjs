@@ -132,6 +132,14 @@ test('PV Soul trains once through FAL, archives weights privately and builds Qwe
   assert.equal(falSubmitCount,1);
 });
 
+test('PV Soul migration is additive and idempotent',()=>{
+  const db=new DatabaseSync(':memory:');db.exec('CREATE TABLE lab_migrations(id TEXT PRIMARY KEY,applied_at INTEGER NOT NULL);');
+  const migration=readFileSync(new URL('../lab-worker/migrations/0004-pv-soul.sql',import.meta.url),'utf8');
+  db.exec(migration);db.exec(migration);
+  assert.equal(db.prepare("SELECT COUNT(*) AS n FROM sqlite_master WHERE type='table' AND name IN ('soul_datasets','soul_characters')").get().n,2);
+  assert.equal(db.prepare("SELECT COUNT(*) AS n FROM lab_migrations WHERE id='0004-pv-soul'").get().n,1);
+});
+
 test('Atomic image migration preserves existing completed video, private media pointers, provider key and spending ledger',()=>{
   const schema=readFileSync(new URL('../lab-worker/schema.sql',import.meta.url),'utf8').replaceAll('source_id TEXT REFERENCES assets(id)','source_id TEXT NOT NULL REFERENCES assets(id)');const db=new DatabaseSync(':memory:');db.exec(schema);
   db.exec("INSERT INTO settings VALUES('owner','encrypted-key',1,1,10000000,1);INSERT INTO assets VALUES('source','owner','owner/source','source','image/png','source.png',9,1),('output','owner','owner/result','video','video/mp4','result.mp4',12,1);INSERT INTO quotes VALUES('q','owner','source','{}',2700000,1,'provider-quote','2.7','{}');INSERT INTO jobs(id,owner_id,source_id,quote_id,params,state,output_id,created_at,updated_at,estimate_microusd) VALUES('job','owner','source','q','{}','completed','output',1,1,2700000);");
