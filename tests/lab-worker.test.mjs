@@ -122,6 +122,7 @@ test('PV Soul trains once through FAL, archives weights privately and builds Qwe
   assert.equal(env.LAB_DB.db.prepare('SELECT COUNT(*) AS n FROM soul_datasets').get().n,0);
   assert.ok(env.LAB_DB.db.prepare('SELECT lora_object_key FROM soul_characters WHERE id=?').get(character.id).lora_object_key);
   const soulSettings={type:'image',engine:'soul',mode:'image',prompt:'Editorial portrait in soft window light.',resolution:'native',aspectRatio:'3:4',outputFormat:'png',referenceRoles:[],characterId:character.id,identityStrength:1};
+  const draft=await req(env,'/api/drafts',{method:'POST',data:{settings:soulSettings,referenceSourceIds:[]}});assert.equal(draft.status,201,await draft.clone().text());
   response=await req(env,'/api/quotes',{method:'POST',data:{settings:soulSettings,referenceSourceIds:[]}});
   assert.equal(response.status,200,await response.clone().text());assert.equal(quotedRequest.model,'alibaba/qwen-image-2512-lora/text-to-image');assert.equal(quotedRequest.input.aspect_ratio,'3:4');assert.equal(quotedRequest.input.loras.length,1);assert.equal(quotedRequest.input.loras[0].scale,1);assert.match(quotedRequest.input.loras[0].path,/\/soul-weight\//);assert.match(quotedRequest.input.prompt,/trained adult character identity|trained adult character/i);
   const weightUrl=new URL(quotedRequest.input.loras[0].path);const weights=await req(env,weightUrl.pathname+weightUrl.search,{method:'GET',authToken:null,headers:{Origin:''}});assert.equal(weights.status,200);assert.equal((await weights.arrayBuffer()).byteLength,8);
