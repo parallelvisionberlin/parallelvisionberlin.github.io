@@ -555,6 +555,29 @@ async function refreshGeminiJob(env,j,p){
   await run(env,"UPDATE jobs SET state=?,error='',updated_at=? WHERE owner_id=? AND provider_id=? AND state IN ('queued','running')",state==='JOB_STATE_RUNNING'?'running':'queued',now(),j.owner_id,j.provider_id);
 }
 
+async function refreshFalJob(env,j,p){
+  if(!env.FAL_KEY){await run(env,"UPDATE jobs SET state='failed',error=?,updated_at=? WHERE id=?",'fal.ai is not configured on the Lab backend.',now(),j.id);return;}
+  const lock=await run(env,'UPDATE jobs SET last_poll=? WHERE id=? AND last_poll<?',now(),j.id,now()-8000);if(!lock.meta.changes)return;
+  try{
+    const endpoint=p.model||FAL_CONTROLLED_POSE,status=await falStatus(endpoint,env.FAL_KEY,j.provider_id),state=String(status?.status||'').toUpperCase();
+    if(state==='COMPLETED'){
+      const result=await falResult(endpoint,env.FAL_KEY,j.provider_id),image=result?.images?.find?.(x=>typeof x?.url==='string'&&x.url);
+      if(!image)throw new Error('fal.ai completed without an image output.');
+      const safe=safeVideoUrl(image.url);
+      await run(env,"UPDATE jobs SET state='saving',remote_url=?,error='',updated_at=? WHERE id=?",safe,now(),j.id);
+      await copyResult(env,j,safe);return;
+    }
+    if(['FAILED','CANCELLED','CANCELED'].includes(state)){
+      const detail=String(status?.error||status?.detail||'fal.ai ended the request without an image.').replace(/[\r\n]+/g,' ').slice(0,400);
+      await run(env,"UPDATE jobs SET state='failed',error=?,updated_at=? WHERE id=?",detail,now(),j.id);return;
+    }
+    await run(env,"UPDATE jobs SET state=?,error='',updated_at=? WHERE id=?",state==='IN_PROGRESS'?'running':'queued',now(),j.id);
+  }catch(e){
+    const detail=String(e?.message||'fal.ai polling error').replace(/[\r\n]+/g,' ').slice(0,400);
+    await run(env,'UPDATE jobs SET error=?,updated_at=? WHERE id=?','fal.ai: '+detail,now(),j.id);
+  }
+}
+
 async function refreshJob(env,j) {
   if(!['queued','running','saving'].includes(j.state)||!j.provider_id)return;
   const params=JSON.parse(j.params||'{}');if(params.provider==='gemini')return refreshGeminiJob(env,j,params);
@@ -564,6 +587,7 @@ async function refreshJob(env,j) {
     catch(e){const detail=String(e?.message||'temporary archive error').replace(/[\r\n]/g,' ').slice(0,220);await run(env,'UPDATE jobs SET error=?,updated_at=? WHERE id=?','Archive retry: '+detail+' The provider result is safe; generation slots are released while saving retries.',now(),j.id);}
     return;
   }
+  if(params.provider==='fal')return refreshFalJob(env,j,params);
   const lock=await run(env,'UPDATE jobs SET last_poll=? WHERE id=? AND last_poll<?',now(),j.id,now()-8000);
   if(!lock.meta.changes)return;
   try {
