@@ -27,7 +27,7 @@ function options(id,values,value){$(id).replaceChildren(...values.map(v=>new Opt
 function setTool(value){
   tool=['image','upscale'].includes(value)?value:'video';const image=tool==='image',upscale=tool==='upscale',video=tool==='video';
   for(const name of ['image','video','upscale']){$('tool-'+name).classList.toggle('active',tool===name);$('tool-'+name).setAttribute('aria-pressed',String(tool===name));}
-  $('video-modes').hidden=!video;$('duration-control').hidden=!video;$('image-model-control').hidden=!image;$('image-processing-control').hidden=!image||imageEngine!=='gemini';$('image-count-control').hidden=!image;$('video-utilities').hidden=!video;$('format-control').hidden=video||(image&&imageEngine==='gemini');$('soul-controls').hidden=!image||imageEngine!=='soul';$('resolution-control').hidden=image&&imageEngine==='soul'||upscale?false:false;
+  $('video-modes').hidden=!video;$('duration-control').hidden=!video;$('image-model-control').hidden=!image;$('image-processing-control').hidden=!image||imageEngine!=='gemini';$('image-count-control').hidden=!image;$('video-utilities').hidden=!video;$('format-control').hidden=video||(image&&imageEngine==='gemini');$('soul-controls').hidden=!image||imageEngine!=='soul';
   $('start-mode').hidden=image||video&&mode!=='start';$('reference-mode').hidden=upscale||video&&mode!=='reference';
   $('last-upload').hidden=upscale;$('start-label').textContent=upscale?'Image to upscale':'Start frame';
   $('upscale-info').hidden=!upscale;$('prompt').hidden=upscale;$('prompt-label').hidden=upscale;$('resolution-control').hidden=image&&imageEngine==='soul';$('ratio-control').hidden=upscale;
