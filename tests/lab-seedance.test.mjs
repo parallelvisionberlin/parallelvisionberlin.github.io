@@ -66,7 +66,7 @@ test('Thirty image references supported without widening Wan or Image limits',as
  const{env}=fixture(),first=await setup(env),ids=[first];
  for(let i=1;i<31;i++){const r=await req(env,'/api/uploads',{method:'POST',raw:new Uint8Array([137,80,78,71,13,10,26,10,0]),headers:{'Content-Type':'image/png'}});ids.push((await r.json()).id);}
  createCount=0;
- const r=await req(env,'/api/quotes',{method:'POST',data:{settings:sd('reference'),referenceSourceIds:ids.slice(0,30)}});assert.equal(r.status,200);assert.equal(quotedRequest.input.reference_image_urls.length,30);
+ const r=await req(env,'/api/quotes',{method:'POST',data:{settings:sd('reference'),referenceSourceIds:ids.slice(0,30)}});assert.equal(r.status,200,await r.clone().text());assert.equal(quotedRequest.input.reference_image_urls.length,30);
  for(const settings of [sd('reference'),{...p,mode:'reference'}]){const n=settings.engine==='seedance'?31:11;assert.equal((await req(env,'/api/quotes',{method:'POST',data:{settings,referenceSourceIds:ids.slice(0,n)}})).status,400);}
  assert.equal(createCount,0);
 });

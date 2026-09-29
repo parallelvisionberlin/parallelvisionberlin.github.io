@@ -4,7 +4,7 @@ import { createSessionRequest } from './session-request.js?v=20260927-auth1';
 import { PROVIDER_IMAGE_LIMIT, UPSCALE_PIXELS, imageDimensions, providerWorkingCopy, wanUltrawideWorkingCopy, imagePreview, cancelImagePreparation } from './image-tools.js?v=20260927-ultrawide1';
 // General-purpose private image-to-video workspace. Credentials never enter browser storage.
 const API='https://parallel-vision-lab.parallelvision.workers.dev';
-const $=id=>document.getElementById(id), activeStates=new Set(['submitting','queued','running','saving','uncertain']);
+const $=id=>document.getElementById(id), activeStates=new Set(['submitting','queued','running','saving','uncertain']), slotStates=new Set(['submitting','queued','running','uncertain']);
 let clerk, owner=false, userId='', epoch=0, syncing=false, config={}, file=null, sourceId=null, imageRevision=0, busy=false;
 let sourceUrl=null, lastFile=null, lastSourceId=null, lastUrl=null, references=[], mode='start';
 let engine='wan', imageEngine='seedream', imageProcessing='normal';
@@ -251,7 +251,7 @@ $('generate').onclick=()=>action(async()=>{
   const inputs=await prepareQuoteInputs(await ensureInputs());if(!inputs)return;
   if(selectedTool==='image'){
     const requested=Math.max(1,Math.min(4,Number($('image-count').value)||1));
-    const activeImages=activeJobs.filter(j=>j.settings?.type==='image'&&jobProvider(j)==='spicy').length;
+    const activeImages=activeJobs.filter(j=>slotStates.has(j.status)&&j.settings?.type==='image'&&jobProvider(j)==='spicy').length;
     const available=Math.max(0,limitFor('image')-activeImages);
     if(requested>available)throw new Error('Only '+available+' image slot'+(available===1?' is':'s are')+' available right now. Wait for active images or choose a smaller batch.');
     notify('Preparing '+requested+' image'+(requested===1?'':'s')+'…');
@@ -307,18 +307,20 @@ $('confirm-generation').onclick=async()=>{
 function limitFor(kind){const n=Number(config.concurrency?.[kind]);return Number.isInteger(n)&&n>0?n:1;}
 function currentProvider(){return tool==='image'&&imageEngine==='gemini'?'gemini':'spicy';}
 function jobProvider(j){const s=j?.settings||{};return s.provider==='gemini'||s.engine==='gemini'||String(s.model||'').startsWith('gemini-')?'gemini':'spicy';}
-function submissionBlocked(){const kind=tool==='upscale'?'image':tool,provider=currentProvider();return activeJobs.some(j=>j.status==='uncertain'&&jobProvider(j)===provider)||activeJobs.filter(j=>{const jobKind=j.settings?.type==='image'?'image':'video',backgroundBatch=j.settings?.provider==='gemini'&&j.settings?.processing==='batch';return jobKind===kind&&!backgroundBatch&&jobProvider(j)===provider;}).length>=limitFor(kind);}
+function submissionBlocked(){const kind=tool==='upscale'?'image':tool,provider=currentProvider();return activeJobs.some(j=>j.status==='uncertain'&&jobProvider(j)===provider)||activeJobs.filter(j=>{const jobKind=j.settings?.type==='image'?'image':'video',backgroundBatch=j.settings?.provider==='gemini'&&j.settings?.processing==='batch';return slotStates.has(j.status)&&jobKind===kind&&!backgroundBatch&&jobProvider(j)===provider;}).length>=limitFor(kind);}
 function schedulePoll(delay=10000){clearTimeout(timer);timer=null;if(owner&&activeJobs.some(j=>j.status!=='uncertain')&&!polling)timer=setTimeout(poll,delay);}
 function setActiveJobs(list){
   activeJobs=[...new Map((list||[]).filter(j=>j&&activeStates.has(j.status)).map(j=>[j.id,j])).values()];
   activeJob=activeJobs.find(j=>j.status==='uncertain')||activeJobs[0]||null;
   $('active').hidden=!activeJobs.length;
-  const batchImages=activeJobs.filter(j=>j.settings?.type==='image'&&jobProvider(j)==='gemini'&&j.settings?.processing==='batch').length;
-  const images=activeJobs.filter(j=>j.settings?.type==='image'&&!(jobProvider(j)==='gemini'&&j.settings?.processing==='batch')).length;
-  const videos=activeJobs.filter(j=>j.settings?.type!=='image').length;
-  $('active-status').textContent=images+' / '+limitFor('image')+' images active'+(batchImages?' · '+batchImages+' batch queued':'')+' · '+videos+' / '+limitFor('video')+' videos active';
-  const labels={submitting:'Submitting',queued:'Queued',running:'Generating',saving:'Saving',uncertain:'Interrupted: check provider before another attempt'};
-  $('active-detail').textContent=activeJobs.map((j,i)=>(i+1)+'. '+(j.settings?.type==='image'?'Image':'Video')+' · '+labels[j.status]+(j.error?' · '+j.error:'')+(j.providerTaskId?' · '+j.providerTaskId:'')).join('\n');
+  const saving=activeJobs.filter(j=>j.status==='saving').length;
+  const batchImages=activeJobs.filter(j=>slotStates.has(j.status)&&j.settings?.type==='image'&&jobProvider(j)==='gemini'&&j.settings?.processing==='batch').length;
+  const spicyImages=activeJobs.filter(j=>slotStates.has(j.status)&&j.settings?.type==='image'&&jobProvider(j)==='spicy').length;
+  const geminiImages=activeJobs.filter(j=>slotStates.has(j.status)&&j.settings?.type==='image'&&jobProvider(j)==='gemini'&&j.settings?.processing!=='batch').length;
+  const videos=activeJobs.filter(j=>slotStates.has(j.status)&&j.settings?.type!=='image').length;
+  $('active-status').textContent='Seedream '+spicyImages+' / '+limitFor('image')+' · Nano '+geminiImages+' / '+limitFor('image')+(batchImages?' · '+batchImages+' Nano batch queued':'')+' · videos '+videos+' / '+limitFor('video')+(saving?' · '+saving+' saving (no generation slot)':'');
+  const labels={submitting:'Submitting',queued:'Queued',running:'Generating',saving:'Saving to private archive',uncertain:'Interrupted: check provider before another attempt'};
+  $('active-detail').textContent=activeJobs.map((j,i)=>(i+1)+'. '+(j.settings?.type==='image'?'Image':'Video')+' · '+(jobProvider(j)==='gemini'?'Gemini':'SpicyAPI')+' · '+labels[j.status]+(j.error?' · '+j.error:'')+(j.providerTaskId?' · '+j.providerTaskId:'')).join('\n');
   $('active-detail').style.whiteSpace='pre-line';
   $('resolve').hidden=!activeJobs.some(j=>j.status==='uncertain');
   schedulePoll();update();
