@@ -788,6 +788,42 @@ async function route(request,env,ctx) {
     return json({jobs},202);
   }
 
+  if(path==='/api/fal/pose-preview'&&method==='POST'){
+    if(!env.FAL_KEY)fail(503,'fal.ai is not configured on this Worker.');
+    const data=await body(request),pose=await source(env,owner,data.poseSourceId);
+    const map=await createFalPoseMap(env,owner,url,pose,null);
+    return json({assetId:map.id,billingNote:'DWPose preview uses fal.ai metered compute and is billed by fal.ai separately from the Lab image estimate.'},201);
+  }
+  if(path==='/api/fal/controlled-pose'&&method==='POST'){
+    if(!env.FAL_KEY)fail(503,'fal.ai is not configured on this Worker.');
+    const data=await body(request),p=parameters(data.settings);
+    if(p.provider!=='fal'||p.engine!=='fal'||p.mode!=='controlled-pose')fail(400,'Choose Controlled Pose and add a prompt.');
+    const refs=await sources(env,owner,data.referenceSourceIds,5),roles=controlledPoseRefs(p.referenceRoles,refs.length,{fail});
+    p.referenceSourceIds=refs.map(a=>a.id);p.referenceRoles=p.referenceRoles.slice(0,refs.length);
+    const pose=refs[roles.pose],identity=roles.identity.map(i=>refs[i]);
+    const poseMap=await createFalPoseMap(env,owner,url,pose,data.poseMapSourceId||null);p.poseMapSourceId=poseMap.id;
+    const poseMapUrl=await signedInput(env,url,poseMap.id),identityUrls=await Promise.all(identity.map(a=>signedInput(env,url,a.id)));
+    const input=buildControlledPoseInput(p,{poseMapUrl,identityUrls}),estimate=controlledPoseEstimateMicros(p);
+    const reserved=await reserveFalImageJob(env,owner,pose.id,p,estimate),job=await submitReservedFalJob(env,reserved,p,input);
+    return json({job:jobView(job)},202);
+  }
+  if(path==='/api/fal/repair'&&method==='POST'){
+    if(!env.FAL_KEY)fail(503,'fal.ai is not configured on this Worker.');
+    const data=await body(request),p=parameters(data.settings);
+    if(p.provider!=='fal'||p.engine!=='fal'||p.mode!=='controlled-repair')fail(400,'Choose Repair Region and add a prompt.');
+    const image=await source(env,owner,data.sourceId),mask=await source(env,owner,data.maskSourceId);
+    p.repairSourceId=image.id;p.maskSourceId=mask.id;
+    const refs=Array.isArray(data.referenceSourceIds)&&data.referenceSourceIds.length?await sources(env,owner,data.referenceSourceIds,5):[];
+    p.referenceSourceIds=refs.map(a=>a.id);p.referenceRoles=(p.referenceRoles||[]).slice(0,refs.length);
+    const roles=controlledRepairRefs(p.referenceRoles,refs.length,{fail});
+    let poseMap=null;
+    if(roles.pose!==null){poseMap=await createFalPoseMap(env,owner,url,refs[roles.pose],data.poseMapSourceId||null);p.poseMapSourceId=poseMap.id;}
+    const identity=roles.identity.map(i=>refs[i]),identityUrls=await Promise.all(identity.map(a=>signedInput(env,url,a.id)));
+    const input=buildRepairInput(p,{imageUrl:await signedInput(env,url,image.id),maskUrl:await signedInput(env,url,mask.id),poseMapUrl:poseMap?await signedInput(env,url,poseMap.id):null,identityUrls});
+    const estimate=controlledRepairEstimateMicros(p),reserved=await reserveFalImageJob(env,owner,image.id,p,estimate),job=await submitReservedFalJob(env,reserved,p,input);
+    return json({job:jobView(job)},202);
+  }
+
   if(path==='/api/quotes'&&method==='POST') {
     const {key}=await requireConfigured(env,owner),data=await body(request),p=parameters(data.settings);
     if(p.mode!=='upscale'&&!p.prompt)fail(400,'Add a prompt before generating.');
