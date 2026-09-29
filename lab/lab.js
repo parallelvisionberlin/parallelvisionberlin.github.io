@@ -27,25 +27,25 @@ function options(id,values,value){$(id).replaceChildren(...values.map(v=>new Opt
 function setTool(value){
   tool=['image','upscale'].includes(value)?value:'video';const image=tool==='image',upscale=tool==='upscale',video=tool==='video';
   for(const name of ['image','video','upscale']){$('tool-'+name).classList.toggle('active',tool===name);$('tool-'+name).setAttribute('aria-pressed',String(tool===name));}$('soul-launch').hidden=!image;
-  $('video-modes').hidden=!video;$('duration-control').hidden=!video;$('image-model-control').hidden=!image;$('image-processing-control').hidden=!image||imageEngine!=='gemini';$('image-count-control').hidden=!image;$('video-utilities').hidden=!video;$('format-control').hidden=video||(image&&imageEngine==='gemini');$('soul-controls').hidden=!image||imageEngine!=='soul';
+  $('video-modes').hidden=!video;$('duration-control').hidden=!video;$('image-model-control').hidden=!image;$('image-processing-control').hidden=!image||imageEngine!=='gemini';$('controlled-pose-settings').hidden=!image||imageEngine!=='fal';$('image-count-control').hidden=!image||imageEngine==='fal';$('video-utilities').hidden=!video;$('format-control').hidden=video||(image&&(imageEngine==='gemini'||imageEngine==='fal'));$('soul-controls').hidden=!image||imageEngine!=='soul';
   $('start-mode').hidden=image||video&&mode!=='start';$('reference-mode').hidden=upscale||video&&mode!=='reference'||image&&imageEngine==='soul';
   $('last-upload').hidden=upscale;$('start-label').textContent=upscale?'Image to upscale':'Start frame';
-  $('upscale-info').hidden=!upscale;$('prompt').hidden=upscale;$('prompt-label').hidden=upscale;$('resolution-control').hidden=image&&imageEngine==='soul';$('ratio-control').hidden=upscale;
+  $('upscale-info').hidden=!upscale;$('prompt').hidden=upscale;$('prompt-label').hidden=upscale;$('resolution-control').hidden=image&&(imageEngine==='soul'||imageEngine==='fal');$('ratio-control').hidden=upscale;
   $('mode-heading').textContent=upscale?'03 / Image Upscale':image?'02 / Text to Image + Reference Edit':'01 / Image to Video';
-  $('engine-name').textContent=upscale?'IMAGE UPSCALER':image?(imageEngine==='gemini'?'NANO BANANA PRO':imageEngine==='soul'?'PV SOUL':'SEEDREAM 5.0 PRO'):'WAN 3.0';
+  $('engine-name').textContent=upscale?'IMAGE UPSCALER':image?(imageEngine==='gemini'?'NANO BANANA PRO':imageEngine==='soul'?'PV SOUL':imageEngine==='fal'?'CONTROLLED POSE · FAL':'SEEDREAM 5.0 PRO'):'WAN 3.0';
   $('prompt-label').textContent=image?'Image direction':'Motion direction';$('prompt').maxLength=image?5000:6000;
   $('prompt').placeholder=image?'Describe the image. Add references for identity, wardrobe, a room or an object, or start with text only.':'One clear action, one camera move, light, atmosphere and sound.';
-  options('resolution',upscale?['2k','4k','8k']:image?(imageEngine==='gemini'?['1k','2k','4k']:imageEngine==='soul'?['native']:['1k','2k']):['480p','720p','1080p'],upscale?'4k':image?(imageEngine==='soul'?'native':'2k'):'1080p');
+  options('resolution',upscale?['2k','4k','8k']:image?(imageEngine==='fal'?['1k']:imageEngine==='gemini'?['1k','2k','4k']:imageEngine==='soul'?['native']:['1k','2k']):['480p','720p','1080p'],upscale?'4k':image?(imageEngine==='soul'?'native':imageEngine==='fal'?'1k':'2k'):'1080p');
   options('output-format',upscale?['png','jpeg','webp']:['png','jpeg'],'png');
-  options('ratio',image?(imageEngine==='gemini'?['auto','1:1','2:3','3:2','3:4','4:3','4:5','5:4','9:16','16:9','21:9']:imageEngine==='soul'?['1:1','16:9','9:16','4:3','3:4','3:2','2:3','21:9','9:21']:['auto','1:1','4:3','3:4','16:9','9:16','3:2','2:3','4:5','5:4','21:9','9:21','2:1','1:2','3:1','1:3']):['auto','16:9','9:16','1:1','4:3','3:4'],image&&imageEngine==='soul'?'1:1':'auto');
-  if(image){const values=imageEngine==='gemini'&&imageProcessing==='batch'?[1,2,4,10,20]:[1,2,3,4],selected=Math.min(Number($('image-count').value)||1,values.at(-1));$('image-count').replaceChildren(...values.map(n=>new Option(n+' image'+(n===1?'':'s'),String(n))));$('image-count').value=String(values.includes(selected)?selected:1);}
+  options('ratio',image?(imageEngine==='fal'?['1:1','4:3','3:4','16:9','9:16','21:9']:imageEngine==='gemini'?['auto','1:1','2:3','3:2','3:4','4:3','4:5','5:4','9:16','16:9','21:9']:imageEngine==='soul'?['1:1','16:9','9:16','4:3','3:4','3:2','2:3','21:9','9:21']:['auto','1:1','4:3','3:4','16:9','9:16','3:2','2:3','4:5','5:4','21:9','9:21','2:1','1:2','3:1','1:3']):['auto','16:9','9:16','1:1','4:3','3:4'],image&&imageEngine==='soul'?'1:1':image&&imageEngine==='fal'?'3:4':'auto');
+  if(image){const values=imageEngine==='fal'?[1]:imageEngine==='gemini'&&imageProcessing==='batch'?[1,2,4,10,20]:[1,2,3,4],selected=Math.min(Number($('image-count').value)||1,values.at(-1));$('image-count').replaceChildren(...values.map(n=>new Option(n+' image'+(n===1?'':'s'),String(n))));$('image-count').value=String(values.includes(selected)?selected:1);}
   configureVideoControls();resetPreview();update();
 }
 $('soul-use').onclick=()=>{if(busy)return;imageEngine='soul';$('image-engine').value='soul';setTool('image');window.scrollTo({top:0,behavior:'smooth'});};
 $('soul-launch-manage').onclick=()=>{if(busy)return;imageEngine='soul';$('image-engine').value='soul';setTool('image');$('soul-dialog').showModal();void soul.load().catch(e=>notify(e.message,true));};
 $('tool-upscale').onclick=()=>{if(!busy)setTool('upscale');};
 $('tool-image').onclick=()=>{if(!busy)setTool('image');};$('tool-video').onclick=()=>{if(!busy)setTool('video');};
-$('image-engine').onchange=()=>{if(busy)return;const value=$('image-engine').value;imageEngine=value==='gemini'?'gemini':value==='soul'?'soul':'seedream';$('image-processing').value=imageProcessing;setTool('image');renderReferences();};
+$('image-engine').onchange=()=>{if(busy)return;const value=$('image-engine').value;imageEngine=value==='gemini'?'gemini':value==='soul'?'soul':value==='fal'?'fal':'seedream';poseMapSourceId=null;$('pose-preview-status').textContent='';$('image-processing').value=imageProcessing;setTool('image');renderReferences();};
 $('image-processing').onchange=()=>{if(busy)return;imageProcessing=$('image-processing').value==='batch'?'batch':'normal';setTool('image');};
 const sessionRequest=createSessionRequest({baseUrl:API,getSession:()=>clerk?.session});
 async function api(path,options={}) {
@@ -141,7 +141,7 @@ async function addReferences(list,ids=[],labels=[]){
   }
 }
 
-function referenceLimit(){return tool==='video'?VIDEO_MODELS[engine].maxImages:tool==='image'&&imageEngine==='soul'?soul.referenceLimit():10;}
+function referenceLimit(){return tool==='video'?VIDEO_MODELS[engine].maxImages:tool==='image'&&imageEngine==='soul'?soul.referenceLimit():tool==='image'&&imageEngine==='fal'?5:10;}
 function configureVideoControls(){
   const isVideo=tool==='video',model=VIDEO_MODELS[engine],sd=engine==='seedance';
   $('video-model-control').hidden=!isVideo;$('video-engine').value=engine;
