@@ -137,6 +137,20 @@ export async function createDataset(request,env,owner,d){
   catch(error){await env.LAB_MEDIA.delete(objectKey);throw error;}
   return {id,bytes:bytes.length,photoCount:count};
 }
+async function submitTraining(env,row,dataset,url,d){
+  const datasetUrl=await signedUrl(env,url,'soul-dataset','/soul-dataset/',dataset.id,86400,d);
+  try{
+    const result=await falFetch(env,SOUL_TRAINER,{method:'POST',body:{image_data_url:datasetUrl,learning_rate:0.0005,steps:1000,default_caption:'photo of '+row.trigger_word},timeout:30000});
+    const requestId=clean(result.request_id,160);
+    if(!requestId||!/^[A-Za-z0-9_-]{12,160}$/.test(requestId))throw Object.assign(new Error('FAL did not return a usable request id.'),{definite:false});
+    await d.run(env,"UPDATE soul_characters SET state='queued',fal_request_id=?,error='',updated_at=? WHERE id=?",requestId,d.now(),row.id);
+  }catch(error){
+    const state=error.definite===true?'failed':'uncertain';
+    const message=error.definite===true?clean(error.message,400):'Training submission status is uncertain. Check the FAL dashboard before retrying.';
+    await d.run(env,'UPDATE soul_characters SET state=?,error=?,updated_at=? WHERE id=?',state,message,d.now(),row.id);
+  }
+  return d.first(env,'SELECT * FROM soul_characters WHERE id=?',row.id);
+}
 export async function createCharacter(request,env,owner,url,d){
   if(!env.FAL_KEY)d.fail(503,'FAL training is not configured on this Worker.');
   const data=await d.body(request);
@@ -147,18 +161,22 @@ export async function createCharacter(request,env,owner,url,d){
   const dataset=await d.first(env,'SELECT * FROM soul_datasets WHERE id=? AND owner_id=?',d.uid(data.datasetId),owner);if(!dataset)d.fail(404,'Training set not found. Upload it again.');
   const id=crypto.randomUUID(),slug=name.normalize('NFKD').replace(/[^A-Za-z0-9]+/g,'_').replace(/^_+|_+$/g,'').toLowerCase().slice(0,24)||'character',trigger='pv_'+slug+'_'+id.slice(0,6);
   await d.run(env,"INSERT INTO soul_characters(id,owner_id,name,trigger_word,state,dataset_id,created_at,updated_at) VALUES(?,?,?,?, 'submitting',?,?,?)",id,owner,name,trigger,dataset.id,d.now(),d.now());
-  try{
-    const datasetUrl=await signedUrl(env,url,'soul-dataset','/soul-dataset/',dataset.id,86400,d);
-    const result=await falFetch(env,SOUL_TRAINER,{method:'POST',body:{image_data_url:datasetUrl,learning_rate:0.0005,steps:1000,default_caption:'photo of '+trigger},timeout:30000});
-    const requestId=clean(result.request_id,160);
-    if(!requestId||!/^[A-Za-z0-9_-]{12,160}$/.test(requestId))throw Object.assign(new Error('FAL did not return a usable request id.'),{definite:false});
-    await d.run(env,"UPDATE soul_characters SET state='queued',fal_request_id=?,error='',updated_at=? WHERE id=?",requestId,d.now(),id);
-  }catch(error){
-    const state=error.definite===true?'failed':'uncertain',message=error.definite===true?clean(error.message,400):'Training submission status is uncertain. Check the FAL dashboard before starting another training.';
-    await d.run(env,'UPDATE soul_characters SET state=?,error=?,updated_at=? WHERE id=?',state,message,d.now(),id);
-    if(state==='failed')await cleanupDataset(env,{...dataset,dataset_id:dataset.id,owner_id:owner},d);
-  }
-  return view(await d.first(env,'SELECT * FROM soul_characters WHERE id=?',id));
+  return view(await submitTraining(env,{id,owner_id:owner,trigger_word:trigger},dataset,url,d));
+}
+export async function retryCharacter(request,env,owner,id,url,d){
+  if(!env.FAL_KEY)d.fail(503,'FAL training is not configured on this Worker.');
+  const data=await d.body(request);
+  if(data.confirm!==true)d.fail(400,'Confirm that you checked FAL and there is no matching request before retrying.');
+  const row=await d.first(env,'SELECT * FROM soul_characters WHERE id=? AND owner_id=?',d.uid(id),owner);
+  if(!row)d.fail(404,'PV Soul character not found.');
+  if(row.state!=='uncertain'||row.fal_request_id)d.fail(409,'Only an uncertain training with no FAL request id can be retried.');
+  const other=await d.first(env,"SELECT id FROM soul_characters WHERE owner_id=? AND id<>? AND state IN ('submitting','queued','training','uncertain') LIMIT 1",owner,row.id);
+  if(other)d.fail(409,'Another PV Soul training is active or unresolved.');
+  const dataset=await d.first(env,'SELECT * FROM soul_datasets WHERE id=? AND owner_id=?',row.dataset_id,owner);
+  if(!dataset)d.fail(404,'The original training dataset is no longer available. Upload the photos again.');
+  await d.run(env,"UPDATE soul_characters SET state='submitting',error='',updated_at=? WHERE id=? AND state='uncertain' AND fal_request_id IS NULL",d.now(),row.id);
+  const fresh=await submitTraining(env,row,dataset,url,d);
+  return view(fresh);
 }
 export async function deleteCharacter(env,owner,id,d){
   const row=await d.first(env,'SELECT * FROM soul_characters WHERE id=? AND owner_id=?',d.uid(id),owner);
