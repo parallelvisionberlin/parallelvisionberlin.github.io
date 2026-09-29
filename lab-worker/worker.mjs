@@ -3,7 +3,7 @@
 import {seedanceParameters, prepareSeedance, REFERENCE_MIME, sniffReference} from './seedance.mjs';
 import {FAL_CONTROLLED_POSE,FAL_CONTROLLED_INPAINT,FAL_DWPOSE,controlledPoseParameters,controlledRepairParameters,controlledPoseRefs,controlledRepairRefs,controlledPoseEstimateMicros,controlledRepairEstimateMicros,buildControlledPoseInput,buildRepairInput,falSubmit,falStatus,falResult,falAwait} from './fal-controlled-pose.mjs';
 import {SOUL_TEXT_MODEL,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-09-30.3-fal-diagnostic';
+export const VERSION = 'pv-lab-2026-09-30.4-fal-submit-fix';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:4,video:3});
@@ -650,13 +650,7 @@ async function route(request,env,ctx) {
   if(origin&&!ORIGINS.has(origin))fail(403,'Origin not allowed.');
   if(request.method==='OPTIONS')return new Response(null,{status:204,headers:{'Access-Control-Allow-Methods':'GET,HEAD,POST,DELETE,OPTIONS','Access-Control-Allow-Headers':'Authorization,Content-Type,X-Filename,X-Photo-Count,Range','Access-Control-Max-Age':'600'}});
   if(url.pathname==='/health'&&request.method==='GET')return json({ok:true,version:VERSION});
-  if(url.pathname==='/fal-connectivity'&&request.method==='GET'){
-    if(!env.FAL_KEY)return json({ok:false,error:'missing FAL_KEY'},503);
-    try{
-      const r=await fetch('https://queue.fal.run/fal-ai/qwen-image-2512-trainer',{method:'GET',headers:{Authorization:'Key '+env.FAL_KEY,Accept:'application/json'},redirect:'manual',signal:AbortSignal.timeout(10000)});
-      return json({ok:true,status:r.status,location:r.headers.get('location')||'',contentType:r.headers.get('content-type')||''});
-    }catch(e){return json({ok:false,error:String(e?.name||'Error')+': '+String(e?.message||e).slice(0,300)},502);}
-  }
+
   if(url.pathname.startsWith('/input/')&&request.method==='GET')return publicInput(request,env,url);
   if(url.pathname.startsWith('/soul-dataset/')&&request.method==='GET')return publicSoulDataset(request,env,url,soulDeps());
   if(url.pathname.startsWith('/soul-weight/')&&(request.method==='GET'||request.method==='HEAD'))return publicSoulWeight(request,env,url,soulDeps());
