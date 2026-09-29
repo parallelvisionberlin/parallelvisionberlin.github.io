@@ -1,4 +1,4 @@
-import { soulTrainingCopy } from './image-tools.js?v=20260929-soul1';
+import { soulTrainingCopy } from './image-tools.js?v=20260930-soul-v01';
 
 const ACTIVE = new Set(['submitting','queued','training','uncertain']);
 const terminal = state => !ACTIVE.has(state);
@@ -146,6 +146,6 @@ export function createSoulController({api,action,notify,changed,owner}){
     ready:()=>!!current(),
     character:current,
     setSelected(id){selected=id||'';renderSelect();},
-    referenceLimit:()=>3
+    referenceLimit:()=>0
   };
 }
