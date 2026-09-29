@@ -47,7 +47,6 @@ CREATE TABLE IF NOT EXISTS jobs (
   last_poll INTEGER NOT NULL DEFAULT 0
 );
 CREATE INDEX IF NOT EXISTS jobs_owner_history ON jobs(owner_id,created_at DESC,id DESC);
--- Capacity is reserved by the guarded INSERT in /api/jobs, in the same statement as spend.
 CREATE INDEX IF NOT EXISTS jobs_owner_active ON jobs(owner_id,state);
 CREATE TABLE IF NOT EXISTS spend (
   job_id TEXT PRIMARY KEY,
@@ -56,15 +55,40 @@ CREATE TABLE IF NOT EXISTS spend (
   created_at INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS spend_owner_day ON spend(owner_id,created_at);
--- The ledger survives history deletion. Failed/uncertain attempts remain counted conservatively.
 CREATE TRIGGER IF NOT EXISTS reserve_estimated_spend AFTER INSERT ON jobs
  WHEN NEW.quote_id IS NOT NULL
  BEGIN
   INSERT INTO spend(job_id,owner_id,estimate_microusd,created_at)
   VALUES (NEW.id,NEW.owner_id,NEW.estimate_microusd,NEW.created_at);
  END;
-
--- Source assets include original uploads and still-image outputs reusable in video.
 CREATE TABLE IF NOT EXISTS packs(id TEXT PRIMARY KEY,owner_id TEXT NOT NULL,name TEXT NOT NULL,refs TEXT NOT NULL,created_at INTEGER NOT NULL);
 CREATE INDEX IF NOT EXISTS packs_owner ON packs(owner_id,name);
 CREATE TABLE IF NOT EXISTS lab_migrations(id TEXT PRIMARY KEY,applied_at INTEGER NOT NULL);
+
+CREATE TABLE IF NOT EXISTS soul_datasets (
+  id TEXT PRIMARY KEY,
+  owner_id TEXT NOT NULL,
+  object_key TEXT NOT NULL UNIQUE,
+  bytes INTEGER NOT NULL CHECK (bytes >= 0),
+  photo_count INTEGER NOT NULL CHECK (photo_count BETWEEN 20 AND 80),
+  created_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS soul_datasets_owner ON soul_datasets(owner_id,created_at DESC);
+CREATE TABLE IF NOT EXISTS soul_characters (
+  id TEXT PRIMARY KEY,
+  owner_id TEXT NOT NULL,
+  name TEXT NOT NULL,
+  trigger_word TEXT NOT NULL,
+  state TEXT NOT NULL CHECK (state IN ('submitting','queued','training','ready','failed','uncertain')),
+  fal_request_id TEXT,
+  dataset_id TEXT,
+  lora_source_url TEXT,
+  lora_object_key TEXT,
+  lora_bytes INTEGER,
+  error TEXT NOT NULL DEFAULT '',
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL,
+  last_poll INTEGER NOT NULL DEFAULT 0
+);
+CREATE INDEX IF NOT EXISTS soul_characters_owner ON soul_characters(owner_id,created_at DESC);
+CREATE INDEX IF NOT EXISTS soul_characters_training ON soul_characters(state,last_poll);
