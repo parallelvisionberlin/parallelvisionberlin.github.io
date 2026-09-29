@@ -1,8 +1,9 @@
 /* Parallel Vision Lab. Private owner-only workspace, no public media bucket.
    The hosted provider is opt-in; no provider key or moderation bypass in source. */
 import {seedanceParameters, prepareSeedance, REFERENCE_MIME, sniffReference} from './seedance.mjs';
+import {FAL_CONTROLLED_POSE,FAL_CONTROLLED_INPAINT,FAL_DWPOSE,controlledPoseParameters,controlledRepairParameters,controlledPoseRefs,controlledRepairRefs,controlledPoseEstimateMicros,controlledRepairEstimateMicros,buildControlledPoseInput,buildRepairInput,falSubmit,falStatus,falResult,falAwait} from './fal-controlled-pose.mjs';
 import {SOUL_TEXT_MODEL,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-09-30.1-pv-soul-v01';
+export const VERSION = 'pv-lab-2026-09-30.2-controlled-pose';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:4,video:3});
@@ -150,6 +151,7 @@ function parameters(value) {
   if(value.engine&&value.engine!=='wan'&&value.type!=='image')fail(400,'Unknown video model.');
   const prompt=typeof value.prompt==='string'?value.prompt.trim():'';
   const referenceRoles=referenceLabels(value.referenceRoles);
+  if(value.type==='image'&&value.engine==='fal')return value.mode==='controlled-repair'?controlledRepairParameters({...value,referenceRoles},{fail}):controlledPoseParameters({...value,referenceRoles},{fail});
   if(value.type==='image'&&value.engine==='soul'){
     if(prompt.length<1||prompt.length>4700)fail(400,'PV Soul prompts must be 1 to 4,700 characters.');
     if(referenceRoles.length)fail(400,'PV Soul v0.1 uses the trained identity in text-to-image mode. Reference-conditioned identity generation is disabled until a matching edit-model trainer is verified.');
@@ -196,6 +198,18 @@ async function prepareInput(env,owner,data,p,url) {
   if(p.engine==='seedance'){
     const prepared=await prepareSeedance(env,owner,data,p,url,{fail,source,sources,signedInput});
     if(p.prompt)prepared.input.prompt=assembledPrompt(p);return prepared;
+  }
+  if(p.provider==='fal'||p.engine==='fal'){
+    const refs=data.referenceSourceIds?.length?await sources(env,owner,data.referenceSourceIds,5):[];
+    if(p.mode==='controlled-pose'){
+      const roles=controlledPoseRefs(p.referenceRoles,refs.length,{fail});
+      p.referenceSourceIds=refs.map(a=>a.id);p.referenceRoles=p.referenceRoles.slice(0,refs.length);p.lastSourceId=null;
+      return {primary:refs[roles.pose],input:{}};
+    }
+    if(p.mode==='controlled-repair'){
+      p.referenceSourceIds=refs.map(a=>a.id);p.referenceRoles=p.referenceRoles.slice(0,refs.length);p.maskSourceId=uid(data.maskSourceId);p.repairSourceId=uid(data.sourceId);p.lastSourceId=null;
+      return {primary:await source(env,owner,data.sourceId),input:{}};
+    }
   }
   let primary=null,input;
   if(p.type==='image'&&p.mode==='upscale'){
@@ -251,7 +265,7 @@ async function sources(env,owner,ids,max=10) {
 }
 function linkedSourceIds(row) {
   const ids=new Set();if(row?.source_id&&UUID.test(row.source_id))ids.add(row.source_id);
-  try{const p=JSON.parse(row?.params||'{}');if(UUID.test(p.lastSourceId||''))ids.add(p.lastSourceId);for(const key of ['referenceSourceIds','transferSourceIds','referenceVideoIds','referenceAudioIds'])if(Array.isArray(p[key]))for(const id of p[key])if(UUID.test(id||''))ids.add(id);}catch{}
+  try{const p=JSON.parse(row?.params||'{}');for(const key of ['lastSourceId','maskSourceId','repairSourceId','poseMapSourceId'])if(UUID.test(p[key]||''))ids.add(p[key]);for(const key of ['referenceSourceIds','transferSourceIds','referenceVideoIds','referenceAudioIds'])if(Array.isArray(p[key]))for(const id of p[key])if(UUID.test(id||''))ids.add(id);}catch{}
   return [...ids];
 }
 async function sourceReferenced(env,owner,id) {
@@ -291,7 +305,7 @@ async function media(request,env,a) {
 function jobView(j) {return {id:j.id,sourceId:j.source_id,settings:JSON.parse(j.params),status:j.state,outputId:j.output_id,estimatedUsd:j.estimate_microusd>0?j.estimate_microusd/1000000:null,settledUsd:j.settled_cost,providerTaskId:j.provider_id,error:j.error,createdAt:j.created_at,updatedAt:j.updated_at};}
 function safeVideoUrl(value) {
   const u=new URL(value);const host=u.hostname.toLowerCase();
-  if(u.protocol!=='https:'||u.username||u.password||(u.port&&u.port!=='443')||!(host==='spicyapi.ai'||host.endsWith('.spicyapi.ai')||host.endsWith('.r2.cloudflarestorage.com')||host.endsWith('.cloudfront.net')))throw new Error('Unexpected provider output location.');
+  if(u.protocol!=='https:'||u.username||u.password||(u.port&&u.port!=='443')||!(host==='spicyapi.ai'||host.endsWith('.spicyapi.ai')||host==='fal.media'||host.endsWith('.fal.media')||host.endsWith('.r2.cloudflarestorage.com')||host.endsWith('.cloudfront.net')))throw new Error('Unexpected provider output location.');
   return u.href;
 }
 async function copyResult(env,j,url) {
@@ -558,7 +572,7 @@ async function route(request,env,ctx) {
   const owner=await authenticate(request,env),path=url.pathname,method=request.method;
   if(path==='/api/session'&&method==='GET'){
     const c=await config(env,owner),spent=await first(env,'SELECT COALESCE(SUM(estimate_microusd),0) AS n FROM spend WHERE owner_id=? AND created_at>=?',owner,Math.floor(now()/86400000)*86400000);
-    return json({owner:true,ownerId:owner,version:VERSION,config:{...publicConfig(c),geminiEnabled:!!env.GEMINI_API_KEY,soulTrainingEnabled:!!env.FAL_KEY},estimatedSpentToday:spent.n/1000000});
+    return json({owner:true,ownerId:owner,version:VERSION,config:{...publicConfig(c),geminiEnabled:!!env.GEMINI_API_KEY,soulTrainingEnabled:!!env.FAL_KEY,falEnabled:!!env.FAL_KEY},estimatedSpentToday:spent.n/1000000});
   }
   if(path==='/api/soul/characters'&&method==='GET')return json({characters:await listSoulCharacters(env,owner,soulDeps())});
   if(path==='/api/soul/datasets'&&method==='POST')return json(await createSoulDataset(request,env,owner,soulDeps()),201);
