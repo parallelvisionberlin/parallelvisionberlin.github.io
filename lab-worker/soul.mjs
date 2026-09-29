@@ -1,6 +1,5 @@
 export const SOUL_TRAINER='fal-ai/qwen-image-2512-trainer';
 export const SOUL_TEXT_MODEL='alibaba/qwen-image-2512-lora/text-to-image';
-export const SOUL_EDIT_MODEL='alibaba/qwen-image-2512-lora/edit';
 export const SOUL_MAX_DATASET=64*1024*1024;
 const MAX_WEIGHT=2*1024*1024*1024;
 const MAX_SOUL_STORAGE=10*1024*1024*1024;
