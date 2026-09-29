@@ -1,7 +1,7 @@
 /* Parallel Vision Lab. Private owner-only workspace, no public media bucket.
    The hosted provider is opt-in; no provider key or moderation bypass in source. */
 import {seedanceParameters, prepareSeedance, REFERENCE_MIME, sniffReference} from './seedance.mjs';
-export const VERSION = 'pv-lab-2026-09-29.2-spicy-isolation';
+export const VERSION = 'pv-lab-2026-09-29.3-archive-recovery';
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:4,video:3});
 const ORIGINS = new Set(['https://parallelvisionlabel.com','https://www.parallelvisionlabel.com']);
@@ -25,7 +25,7 @@ function micros(value) {
 }
 const UUID = /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i;
 const ACTIVE = new Set(['submitting','queued','running','saving','uncertain']);
-const MAX_IMAGE = 20 * 1024 * 1024, MAX_VIDEO = 150 * 1024 * 1024, MAX_STORAGE = 2 * 1024 * 1024 * 1024;
+const MAX_IMAGE = 20 * 1024 * 1024, MAX_VIDEO = 150 * 1024 * 1024, MAX_STORAGE = 20 * 1024 * 1024 * 1024;
 const enc = new TextEncoder(), dec = new TextDecoder();
 let jwksCache = { keys: [], at: 0 };
 class HttpError extends Error { constructor(status,message) { super(message); this.status=status; } }
@@ -287,12 +287,13 @@ async function copyResult(env,j,url) {
   const declared=Number(r.headers.get('content-length')||0);
   if(!Number.isSafeInteger(declared)||declared<0||declared>limit)throw new Error('Output exceeds the archive limit.');
   const stored=await first(env,'SELECT COALESCE(SUM(bytes),0) AS n FROM assets WHERE owner_id=?',j.owner_id);
-  if(stored.n+(declared||limit)>MAX_STORAGE)throw new Error('Private archive storage limit reached.');
+  if(stored.n>=MAX_STORAGE||(declared>0&&stored.n+declared>MAX_STORAGE))throw new Error('Private archive storage limit reached.');
   const objectKey=`${j.owner_id}/results/${j.id}.${ext}`;let bytes=0;
   if(declared>0&&declared<=16*1024*1024||!env.LAB_MEDIA.createMultipartUpload){
     const buffer=await limitedBody(r,Math.min(limit,16*1024*1024));bytes=buffer.length;
     if(!bytes||isImage&&!sniff(buffer,mime))throw new Error('Invalid image output.');
     if(declared&&bytes!==declared)throw new Error('Incomplete output download.');
+    if(stored.n+bytes>MAX_STORAGE)throw new Error('Private archive storage limit reached.');
     await env.LAB_MEDIA.put(objectKey,buffer,{httpMetadata:{contentType:finalMime}});
   }else{
     const upload=await env.LAB_MEDIA.createMultipartUpload(objectKey,{httpMetadata:{contentType:finalMime}});
@@ -301,7 +302,7 @@ async function copyResult(env,j,url) {
     try{
       while(true){
         const item=await reader.read();if(item.done)break;
-        const chunk=item.value;bytes+=chunk.length;if(bytes>limit)throw new Error('Output exceeds archive limit.');
+        const chunk=item.value;bytes+=chunk.length;if(bytes>limit)throw new Error('Output exceeds archive limit.');if(stored.n+bytes>MAX_STORAGE)throw new Error('Private archive storage limit reached.');
         if(!verified){const n=Math.min(prefix.length-prefixUsed,chunk.length);prefix.set(chunk.subarray(0,n),prefixUsed);prefixUsed+=n;if(prefixUsed===12){if(!sniff(prefix,mime))throw new Error('Invalid image output.');verified=true;}}
         let offset=0;while(offset<chunk.length){const n=Math.min(buffer.length-used,chunk.length-offset);buffer.set(chunk.subarray(offset,offset+n),used);used+=n;offset+=n;if(used===buffer.length){parts.push(await upload.uploadPart(part++,buffer));used=0;}}
       }
@@ -492,6 +493,11 @@ async function refreshGeminiJob(env,j,p){
 async function refreshJob(env,j) {
   if(!['queued','running','saving'].includes(j.state)||!j.provider_id)return;
   const params=JSON.parse(j.params||'{}');if(params.provider==='gemini')return refreshGeminiJob(env,j,params);
+  if(j.state==='saving'&&j.remote_url){
+    try{await copyResult(env,j,j.remote_url);}
+    catch(e){const detail=String(e?.message||'temporary archive error').replace(/[\r\n]/g,' ').slice(0,220);await run(env,'UPDATE jobs SET error=?,updated_at=? WHERE id=?','Archive retry: '+detail+' The provider result is safe; generation slots are released while saving retries.',now(),j.id);}
+    return;
+  }
   const lock=await run(env,'UPDATE jobs SET last_poll=? WHERE id=? AND last_poll<?',now(),j.id,now()-8000);
   if(!lock.meta.changes)return;
   try {
@@ -514,7 +520,7 @@ async function refreshJob(env,j) {
     }
   }catch(e){
     const detail=String(e?.message||'temporary provider/archive error').replace(/[\r\n]/g,' ').slice(0,220);
-    await run(env,'UPDATE jobs SET error=? WHERE id=?','Archive retry: '+detail+' No new generation was submitted.',j.id);
+    await run(env,'UPDATE jobs SET error=?,updated_at=? WHERE id=?','Archive retry: '+detail+' The provider result is safe; generation slots are released while saving retries.',now(),j.id);
   }
 }
 async function route(request,env,ctx) {
@@ -533,7 +539,7 @@ async function route(request,env,ctx) {
     const data=await body(request),old=await config(env,owner);
     const limit=Number(data.dailyLimitUsd??10);if(!Number.isFinite(limit)||limit<1||limit>100)fail(400,'Daily estimate limit must be between $1 and $100.');
     if(data.enabled===true&&data.termsConfirmed!==true)fail(400,'Confirm provider suitability and terms before enabling paid generation.');
-    const active=await first(env,"SELECT id FROM jobs WHERE owner_id=? AND state IN ('submitting','queued','running','saving','uncertain')",owner);
+    const active=await first(env,"SELECT id FROM jobs WHERE owner_id=? AND state IN ('submitting','queued','running','uncertain')",owner);
     if(data.apiKey&&active)fail(409,'Wait for or resolve the active job before changing the API account.');
     let encrypted=old?.encrypted_key;
     if(typeof data.apiKey==='string'&&data.apiKey.trim()) {
@@ -547,7 +553,7 @@ async function route(request,env,ctx) {
     return json({config:publicConfig(await config(env,owner))});
   }
   if(path==='/api/settings'&&method==='DELETE') {
-    if(await first(env,"SELECT id FROM jobs WHERE owner_id=? AND state IN ('submitting','queued','running','saving','uncertain')",owner))fail(409,'Wait for or resolve the active job before removing its API key.');
+    if(await first(env,"SELECT id FROM jobs WHERE owner_id=? AND state IN ('submitting','queued','running','uncertain')",owner))fail(409,'Wait for or resolve the active job before removing its API key.');
     await run(env,'DELETE FROM settings WHERE owner_id=?',owner);return json({config:publicConfig(null)});
   }
   if(path==='/api/packs'&&method==='GET'){
@@ -609,6 +615,13 @@ async function route(request,env,ctx) {
     if(p.provider!=='gemini'||p.engine!=='gemini'||!p.prompt)fail(400,'Choose Nano Banana Pro and add a prompt.');
     const count=Number(data.count||1),max=p.processing==='batch'?20:1;
     if(!Number.isInteger(count)||count<1||count>max)fail(400,p.processing==='batch'?'Batch supports 1 to 20 images.':'Normal mode submits one Nano Banana Pro image per request.');
+    if(p.processing==='normal'){
+      const geminiSql="(COALESCE(json_extract(params,'$.provider'),'')='gemini' OR COALESCE(json_extract(params,'$.engine'),'')='gemini' OR COALESCE(json_extract(params,'$.model'),'') LIKE 'gemini-%')";
+      const interrupted=(await first(env,"SELECT COUNT(*) AS n FROM jobs WHERE owner_id=? AND state='uncertain' AND "+geminiSql,owner)).n;
+      if(interrupted)fail(409,'No generation submitted: a Gemini request is interrupted. Resolve that Gemini request after checking Google AI Studio. Seedream and SpicyAPI remain available.');
+      const active=(await first(env,"SELECT COUNT(*) AS n FROM jobs WHERE owner_id=? AND state IN ('submitting','queued','running','uncertain') AND "+geminiSql+" AND COALESCE(json_extract(params,'$.processing'),'normal')!='batch'",owner)).n;
+      if(active>=CONCURRENCY.image)fail(409,'No generation submitted: '+active+' / '+CONCURRENCY.image+' Nano Banana Pro slots are already active. Saving results do not use generation slots.');
+    }
     if((await first(env,'SELECT COUNT(*) AS n FROM jobs WHERE owner_id=?',owner)).n+count>500)fail(409,'History limit reached. Delete old records first.');
     const c=await config(env,owner),limit=c?.daily_limit_microusd||10000000,t=now(),day=Math.floor(t/86400000)*86400000,estimate=geminiEstimateMicros(p),totalEstimate=estimate*count;
     const spent=(await first(env,'SELECT COALESCE(SUM(estimate_microusd),0) AS n FROM spend WHERE owner_id=? AND created_at>=?',owner,day)).n;
@@ -691,10 +704,10 @@ async function route(request,env,ctx) {
       // Reserve both a per-kind slot and spending atomically. Concurrent tabs cannot overbook.
       // SpicyAPI submissions are isolated from Gemini jobs, including legacy Gemini rows that predate the provider field.
       const spicySql="NOT (COALESCE(json_extract(params,'$.provider'),'')='gemini' OR COALESCE(json_extract(params,'$.engine'),'')='gemini' OR COALESCE(json_extract(params,'$.model'),'') LIKE 'gemini-%')";
-      const inserted=await run(env,"INSERT INTO jobs(id,owner_id,source_id,quote_id,params,state,estimate_microusd,created_at,updated_at) SELECT ?,?,?,?,?,'submitting',?,?,? WHERE NOT EXISTS(SELECT 1 FROM jobs WHERE owner_id=? AND state='uncertain' AND "+spicySql+") AND (SELECT COUNT(*) FROM jobs WHERE owner_id=? AND state IN ('submitting','queued','running','saving','uncertain') AND "+spicySql+" AND CASE WHEN json_extract(params,'$.type')='image' THEN 'image' ELSE 'video' END=?)<? AND (SELECT COALESCE(SUM(estimate_microusd),0) FROM spend WHERE owner_id=? AND created_at>=?)+?<=?",id,owner,q.source_id,q.id,q.params,q.estimate_microusd,t,t,owner,owner,kind,CONCURRENCY[kind],owner,day,q.estimate_microusd,c.daily_limit_microusd);
+      const inserted=await run(env,"INSERT INTO jobs(id,owner_id,source_id,quote_id,params,state,estimate_microusd,created_at,updated_at) SELECT ?,?,?,?,?,'submitting',?,?,? WHERE NOT EXISTS(SELECT 1 FROM jobs WHERE owner_id=? AND state='uncertain' AND "+spicySql+") AND (SELECT COUNT(*) FROM jobs WHERE owner_id=? AND state IN ('submitting','queued','running','uncertain') AND "+spicySql+" AND CASE WHEN json_extract(params,'$.type')='image' THEN 'image' ELSE 'video' END=?)<? AND (SELECT COALESCE(SUM(estimate_microusd),0) FROM spend WHERE owner_id=? AND created_at>=?)+?<=?",id,owner,q.source_id,q.id,q.params,q.estimate_microusd,t,t,owner,owner,kind,CONCURRENCY[kind],owner,day,q.estimate_microusd,c.daily_limit_microusd);
       if(!inserted.meta.changes){
         const uncertain=(await first(env,"SELECT COUNT(*) AS n FROM jobs WHERE owner_id=? AND state='uncertain' AND "+spicySql,owner)).n;
-        const active=(await first(env,"SELECT COUNT(*) AS n FROM jobs WHERE owner_id=? AND state IN ('submitting','queued','running','saving','uncertain') AND "+spicySql+" AND CASE WHEN json_extract(params,'$.type')='image' THEN 'image' ELSE 'video' END=?",owner,kind)).n;
+        const active=(await first(env,"SELECT COUNT(*) AS n FROM jobs WHERE owner_id=? AND state IN ('submitting','queued','running','uncertain') AND "+spicySql+" AND CASE WHEN json_extract(params,'$.type')='image' THEN 'image' ELSE 'video' END=?",owner,kind)).n;
         const spent=(await first(env,'SELECT COALESCE(SUM(estimate_microusd),0) AS n FROM spend WHERE owner_id=? AND created_at>=?',owner,day)).n;
         if(uncertain)fail(409,'No generation submitted: a SpicyAPI request is interrupted. Resolve that SpicyAPI request in History before retrying.');
         if(active>=CONCURRENCY[kind])fail(409,'No generation submitted: '+active+' / '+CONCURRENCY[kind]+' '+kind+' slots are already active on SpicyAPI.');
