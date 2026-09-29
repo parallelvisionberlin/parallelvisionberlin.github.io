@@ -23,18 +23,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Apply PV Soul database migration
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          workingDirectory: lab-worker
-          command: d1 execute parallel-vision-lab --remote --file migrations/0004-pv-soul.sql
-
       - name: Deploy parallel-vision-lab
-        uses: cloudflare/wrangler-action@v3
+        uses: cloudflare/wrangler-action@v4
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           workingDirectory: lab-worker
+          wranglerVersion: "4"
+          preCommands: wrangler d1 execute parallel-vision-lab --remote --file migrations/0004-pv-soul.sql --yes
           command: deploy
 
       - name: Verify production health
