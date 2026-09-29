@@ -693,10 +693,10 @@ async function route(request,env,ctx) {
     const pose=refs[roles.pose],identity=roles.identity.map(i=>refs[i]);
     const poseUrl=await signedInput(env,url,pose.id),identityUrls=await Promise.all(identity.map(a=>signedInput(env,url,a.id)));
     const input=buildControlledPoseInput(p,{poseUrl,identityUrls}),estimate=controlledPoseEstimateMicros(p);
-    const c=await config(env,owner),limit=c?.daily_limit_microusd||10000000,t=now(),day=Math.floor(t/86400000)*86400000;
+    const c=await config(env,owner),limit=c?.daily_limit_microusd||10000000,t=now(),day=Math.floor(t/86400000)*86400000,id=crypto.randomUUID();
     const falSql="COALESCE(json_extract(params,'$.provider'),'')='fal'";
     const inserted=await run(env,"INSERT INTO jobs(id,owner_id,source_id,params,state,estimate_microusd,created_at,updated_at) SELECT ?,?,?,?,'submitting',?,?,? WHERE NOT EXISTS(SELECT 1 FROM jobs WHERE owner_id=? AND state='uncertain' AND "+falSql+") AND (SELECT COUNT(*) FROM jobs WHERE owner_id=? AND state IN ('submitting','queued','running','uncertain') AND "+falSql+" AND json_extract(params,'$.type')='image')<? AND (SELECT COALESCE(SUM(estimate_microusd),0) FROM spend WHERE owner_id=? AND created_at>=?)+?<=?",
-      crypto.randomUUID(),owner,pose.id,JSON.stringify(p),estimate,t,t,owner,owner,CONCURRENCY.image,owner,day,estimate,limit);
+      id,owner,pose.id,JSON.stringify(p),estimate,t,t,owner,owner,CONCURRENCY.image,owner,day,estimate,limit);
     if(!inserted.meta.changes){
       const uncertain=(await first(env,"SELECT COUNT(*) AS n FROM jobs WHERE owner_id=? AND state='uncertain' AND "+falSql,owner)).n;
       const active=(await first(env,"SELECT COUNT(*) AS n FROM jobs WHERE owner_id=? AND state IN ('submitting','queued','running','uncertain') AND "+falSql+" AND json_extract(params,'$.type')='image'",owner)).n;
@@ -706,9 +706,9 @@ async function route(request,env,ctx) {
       if(spent+estimate>limit)fail(409,'No generation submitted: this Controlled Pose request would exceed your Lab daily spending limit.');
       fail(409,'No generation submitted because capacity changed. Refresh History and try again.');
     }
-    const j=await first(env,"SELECT * FROM jobs WHERE owner_id=? AND state='submitting' AND "+falSql+" ORDER BY created_at DESC,id DESC LIMIT 1",owner);
+    const j=await first(env,'SELECT * FROM jobs WHERE id=? AND owner_id=?',id,owner);
     if(!j)fail(500,'Controlled Pose reservation could not be loaded.');
-    await run(env,'INSERT OR IGNORE INTO spend(job_id,owner_id,estimate_microusd,created_at) VALUES(?,?,?,?)',j.id,owner,estimate,t);
+    await run(env,'INSERT OR IGNORE INTO spend(job_id,owner_id,estimate_microusd,created_at) VALUES(?,?,?,?)',id,owner,estimate,t);
     try{
       const requestId=await falSubmit(FAL_CONTROLLED_POSE,env.FAL_KEY,input);
       await run(env,"UPDATE jobs SET provider_id=?,state='queued',updated_at=? WHERE id=?",requestId,now(),j.id);
