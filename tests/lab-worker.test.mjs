@@ -19,10 +19,18 @@ class DB {
  }
  async batch(statements){this.db.exec('BEGIN');try{const a=[];for(const s of statements)a.push(await s.run());this.db.exec('COMMIT');return a;}catch(e){this.db.exec('ROLLBACK');throw e;}}
 }
-function fixture(){const db=new DB(readFileSync(new URL('../lab-worker/schema.sql',import.meta.url),'utf8')),owner=new DB("CREATE TABLE users(id TEXT,auth_provider TEXT,auth_subject TEXT,role TEXT); INSERT INTO users VALUES('owner-internal','clerk','user_Owner','owner'),('guest','clerk','user_Guest','user');");const objects=new Map();const env={LAB_DB:db,OWNER_DB:owner,LAB_SECRET:'synthetic-test-secret-do-not-use-in-production-01234567890',LAB_MEDIA:{async put(k,value){objects.set(k,new Uint8Array(await new Response(value).arrayBuffer()));},async get(k){if(!objects.has(k))return null;const v=objects.get(k);return{body:new Response(v).body,size:v.length};},async delete(k){objects.delete(k);}}};return{env,objects};}
+function fixture(){const db=new DB(readFileSync(new URL('../lab-worker/schema.sql',import.meta.url),'utf8')),owner=new DB("CREATE TABLE users(id TEXT,auth_provider TEXT,auth_subject TEXT,role TEXT); INSERT INTO users VALUES('owner-internal','clerk','user_Owner','owner'),('guest','clerk','user_Guest','user');");const objects=new Map();const env={LAB_DB:db,OWNER_DB:owner,LAB_SECRET:'synthetic-test-secret-do-not-use-in-production-01234567890',FAL_KEY:'fal-synthetic-test-key',LAB_MEDIA:{async put(k,value){objects.set(k,new Uint8Array(await new Response(value).arrayBuffer()));},async get(k){if(!objects.has(k))return null;const v=objects.get(k);return{body:new Response(v).body,size:v.length};},async delete(k){objects.delete(k);}}};return{env,objects};}
 let calls=[],quotedRequest=null,createCount=0,providerState='queued',createMode='ok',maxPrice='2.700000';
-let uploadedReference=null;
-globalThis.fetch=async (url,options={})=>{const u=new URL(url);calls.push({url:String(url),options});if(u.pathname==='/.well-known/jwks.json')return Response.json({keys:[jwk]});if(u.hostname==='cdn.spicyapi.ai'){assert.ok(!options.headers?.Authorization);if(u.pathname.endsWith('.png'))return new Response(new Uint8Array([137,80,78,71,13,10,26,10,0]),{headers:{'content-type':'image/png'}});return new Response(new Uint8Array([0,0,0,24,102,116,121,112,109,112,52,50]),{headers:{'content-type':'video/mp4'}});}
+let uploadedReference=null,falState='IN_QUEUE',falSubmitCount=0;
+globalThis.fetch=async (url,options={})=>{const u=new URL(url);calls.push({url:String(url),options});if(u.pathname==='/.well-known/jwks.json')return Response.json({keys:[jwk]});
+ if(u.hostname==='queue.fal.run'){
+  assert.equal(new Headers(options.headers).get('authorization'),'Key fal-synthetic-test-key');
+  if(options.method==='POST'){falSubmitCount++;const input=JSON.parse(options.body);assert.match(input.image_data_url,/\/soul-dataset\//);assert.equal(input.steps,1000);assert.equal(input.learning_rate,0.0005);assert.match(input.default_caption,/^photo of pv_/);return Response.json({request_id:'fal_request_synthetic_1234567890'});}
+  if(u.pathname.endsWith('/status'))return Response.json({status:falState,logs:falState==='IN_PROGRESS'?[{message:'training step 500'}]:[]});
+  if(u.pathname.includes('/requests/'))return Response.json({diffusers_lora_file:{url:'https://v3b.fal.media/files/test/nina.safetensors',content_type:'application/octet-stream',file_name:'nina.safetensors',file_size:8},config_file:{url:'https://v3b.fal.media/files/test/config.json'}});
+ }
+ if(u.hostname==='v3b.fal.media'){const bytes=new Uint8Array([1,2,3,4,5,6,7,8]);return new Response(bytes,{headers:{'content-type':'application/octet-stream','content-length':String(bytes.length)}});}
+if(u.hostname==='cdn.spicyapi.ai'){assert.ok(!options.headers?.Authorization);if(u.pathname.endsWith('.png'))return new Response(new Uint8Array([137,80,78,71,13,10,26,10,0]),{headers:{'content-type':'image/png'}});return new Response(new Uint8Array([0,0,0,24,102,116,121,112,109,112,52,50]),{headers:{'content-type':'video/mp4'}});}
  if(u.hostname==='test.r2.cloudflarestorage.com'){assert.equal(options.method,'PUT');assert.equal(new Headers(options.headers).get('authorization'),null);uploadedReference=new Uint8Array(options.body);return new Response(null,{status:200});}
  assert.equal(u.hostname,'api.spicyapi.ai');assert.equal(options.headers.Authorization,'Bearer '+KEY);
  if(u.pathname.endsWith('/chat/credit'))return Response.json({code:200,data:{available:'10',held:'0',total:'10'}});
@@ -100,6 +108,29 @@ test('Reference editing preserves source order, roles, notes and original prompt
   const draft=(await(await req(env,'/api/drafts',{method:'POST',data:{settings,referenceSourceIds:[id]}})).json()).job;assert.equal(draft.settings.referenceRoles[0].note,labels[0].note);assert.equal((await req(env,'/api/jobs/'+draft.id,{method:'DELETE'})).status,200);assert.equal((await req(env,'/api/assets/'+id)).status,200);assert.equal((await req(env,'/api/packs',{authToken:guest})).status,403);assert.equal((await req(env,'/api/packs/'+pack.id,{method:'DELETE'})).status,200);
   const oversized={...imageSettings,prompt:'x'.repeat(5000),referenceRoles:labels};assert.equal((await req(env,'/api/quotes',{method:'POST',data:{settings:oversized,referenceSourceIds:[id]}})).status,400);
 });
+
+test('PV Soul trains once through FAL, archives weights privately and builds Qwen 2512 LoRA quotes',async()=>{
+  calls=[];falState='IN_QUEUE';falSubmitCount=0;const{env}=fixture();const referenceId=await setup(env);
+  const zip=new Uint8Array(40);zip.set([0x50,0x4b,0x03,0x04]);
+  let response=await req(env,'/api/soul/datasets',{method:'POST',raw:zip,headers:{'Content-Type':'application/zip','X-Photo-Count':'20'}});
+  assert.equal(response.status,201);const dataset=await response.json();
+  response=await req(env,'/api/soul/characters',{method:'POST',data:{name:'Nina FOK',datasetId:dataset.id,confirm:true}});
+  assert.equal(response.status,202);let character=(await response.json()).character;assert.equal(character.state,'queued');assert.equal(falSubmitCount,1);
+  falState='COMPLETED';
+  const listed=await(await req(env,'/api/soul/characters')).json();character=listed.characters.find(x=>x.id===character.id);
+  assert.equal(character.state,'ready');assert.equal(character.weightsArchived,true);
+  assert.equal(env.LAB_DB.db.prepare('SELECT COUNT(*) AS n FROM soul_datasets').get().n,0);
+  assert.ok(env.LAB_DB.db.prepare('SELECT lora_object_key FROM soul_characters WHERE id=?').get(character.id).lora_object_key);
+  const soulSettings={type:'image',engine:'soul',mode:'image',prompt:'Editorial portrait in soft window light.',resolution:'native',aspectRatio:'3:4',outputFormat:'png',referenceRoles:[],characterId:character.id,identityStrength:1};
+  response=await req(env,'/api/quotes',{method:'POST',data:{settings:soulSettings,referenceSourceIds:[]}});
+  assert.equal(response.status,200,await response.clone().text());assert.equal(quotedRequest.model,'alibaba/qwen-image-2512-lora/text-to-image');assert.equal(quotedRequest.input.aspect_ratio,'3:4');assert.equal(quotedRequest.input.loras.length,1);assert.equal(quotedRequest.input.loras[0].scale,1);assert.match(quotedRequest.input.loras[0].path,/\/soul-weight\//);assert.match(quotedRequest.input.prompt,/trained adult character identity|trained adult character/i);
+  const weightUrl=new URL(quotedRequest.input.loras[0].path);const weights=await req(env,weightUrl.pathname+weightUrl.search,{method:'GET',authToken:null,headers:{Origin:''}});assert.equal(weights.status,200);assert.equal((await weights.arrayBuffer()).byteLength,8);
+  const roles=[{name:'pose.png',role:'pose',note:'Keep the pose and framing.'}];const editSettings={...soulSettings,referenceRoles:roles};
+  response=await req(env,'/api/quotes',{method:'POST',data:{settings:editSettings,referenceSourceIds:[referenceId]}});
+  assert.equal(response.status,200,await response.clone().text());assert.equal(quotedRequest.model,'alibaba/qwen-image-2512-lora/edit');assert.equal(quotedRequest.input.image_urls.length,1);assert.equal(quotedRequest.input.image_urls[0],'spicy://f/fil_synthetic_reference');assert.equal(quotedRequest.input.loras.length,1);assert.match(quotedRequest.input.prompt,/Keep the pose and framing/);assert.match(quotedRequest.input.prompt,/Preserve that trained identity/);
+  assert.equal(falSubmitCount,1);
+});
+
 test('Atomic image migration preserves existing completed video, private media pointers, provider key and spending ledger',()=>{
   const schema=readFileSync(new URL('../lab-worker/schema.sql',import.meta.url),'utf8').replaceAll('source_id TEXT REFERENCES assets(id)','source_id TEXT NOT NULL REFERENCES assets(id)');const db=new DatabaseSync(':memory:');db.exec(schema);
   db.exec("INSERT INTO settings VALUES('owner','encrypted-key',1,1,10000000,1);INSERT INTO assets VALUES('source','owner','owner/source','source','image/png','source.png',9,1),('output','owner','owner/result','video','video/mp4','result.mp4',12,1);INSERT INTO quotes VALUES('q','owner','source','{}',2700000,1,'provider-quote','2.7','{}');INSERT INTO jobs(id,owner_id,source_id,quote_id,params,state,output_id,created_at,updated_at,estimate_microusd) VALUES('job','owner','source','q','{}','completed','output',1,1,2700000);");
