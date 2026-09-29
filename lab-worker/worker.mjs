@@ -186,6 +186,11 @@ async function prepareInput(env,owner,data,p,url) {
     const prepared=await prepareSeedance(env,owner,data,p,url,{fail,source,sources,signedInput});
     if(p.prompt)prepared.input.prompt=assembledPrompt(p);return prepared;
   }
+  if(p.provider==='fal'||p.engine==='fal'){
+    const refs=await sources(env,owner,data.referenceSourceIds,5),roles=controlledPoseRefs(p.referenceRoles,refs.length,{fail});
+    p.referenceSourceIds=refs.map(a=>a.id);p.referenceRoles=p.referenceRoles.slice(0,refs.length);p.lastSourceId=null;
+    return {primary:refs[roles.pose],input:{}};
+  }
   let primary=null,input;
   if(p.type==='image'&&p.mode==='upscale'){
     primary=await source(env,owner,data.sourceId);p.referenceSourceIds=[];p.lastSourceId=null;
