@@ -90,3 +90,16 @@ This is the standard model, not a Spicy endpoint or filter bypass. The provider'
 Existing encrypted credentials, owner verification, daily budgets, spending ledger, three-video capacity, Image batches, one-click image Upscale and private R2 archive are preserved. History and Reuse retain the exact selected model, original media, reference order, roles, notes and settings. Named packs store images only. No database migration, new subscription or payment integration is required.
 
 Deploy both worker.mjs and seedance.mjs as Worker modules, retaining the existing bindings and secret. Deploy the backend before the frontend: older backend configurations do not enable the new selector. Input reference media use owner-only upload/read endpoints and the same short-lived signed URLs supplied to the provider. Browser and backend tests use synthetic images, video, audio and mocked provider responses; no real paid generations are used.
+
+
+## PV Soul character training (2026-09-29)
+
+Image mode includes PV Soul, a private reusable-character workflow built on hosted APIs rather than a managed GPU server. The owner can train a character from 20–80 consented adult identity photos. The browser creates compact WebP working copies and a ZIP locally, the private archive stores that ZIP temporarily, and the Worker submits one Qwen Image 2512 LoRA training job to FAL. The FAL API key is a Cloudflare Worker secret named `FAL_KEY`; it is never returned to the browser or committed to GitHub.
+
+Training uses `fal-ai/qwen-image-2512-trainer` with 1,000 steps and a per-character trigger caption. D1 stores only the training state and character metadata. Completed LoRA weights are copied into private R2 when the provider result is available; temporary datasets are removed after successful or definite failed training and stale unused datasets are pruned by maintenance. An uncertain FAL submission must be checked in the FAL dashboard and explicitly resolved before another character training can start.
+
+PV Soul image generation still uses the existing encrypted SpicyAPI connection and the Lab's live quote, spending, concurrency, idempotency, History and private-result archive. Text-only generations use the Qwen Image 2512 LoRA endpoint. Adding up to three image references uses the matching Qwen Image Edit LoRA endpoint so references can guide pose, composition, wardrobe or set while the trained character supplies identity. Identity strength is saved with the generation settings.
+
+Training inputs must comply with FAL's rules. The UI requires confirmation that depicted people are adults and that the owner has the rights and consent to train the identity. No safety-checker bypass is implemented.
+
+Deployment requires the additive `lab-worker/migrations/0004-pv-soul.sql` migration before the updated Worker. The production deployment workflow applies this idempotent migration automatically, then deploys the Worker. Existing Lab records, encrypted SpicyAPI credentials, Nina authorization data and non-Soul media are unchanged.
