@@ -251,7 +251,7 @@ $('generate').onclick=()=>action(async()=>{
   const inputs=await prepareQuoteInputs(await ensureInputs());if(!inputs)return;
   if(selectedTool==='image'){
     const requested=Math.max(1,Math.min(4,Number($('image-count').value)||1));
-    const activeImages=activeJobs.filter(j=>j.settings?.type==='image').length;
+    const activeImages=activeJobs.filter(j=>j.settings?.type==='image'&&jobProvider(j)==='spicy').length;
     const available=Math.max(0,limitFor('image')-activeImages);
     if(requested>available)throw new Error('Only '+available+' image slot'+(available===1?' is':'s are')+' available right now. Wait for active images or choose a smaller batch.');
     notify('Preparing '+requested+' image'+(requested===1?'':'s')+'…');
@@ -306,15 +306,15 @@ $('confirm-generation').onclick=async()=>{
 };
 function limitFor(kind){const n=Number(config.concurrency?.[kind]);return Number.isInteger(n)&&n>0?n:1;}
 function currentProvider(){return tool==='image'&&imageEngine==='gemini'?'gemini':'spicy';}
-function jobProvider(j){return j?.settings?.provider==='gemini'?'gemini':'spicy';}
+function jobProvider(j){const s=j?.settings||{};return s.provider==='gemini'||s.engine==='gemini'||String(s.model||'').startsWith('gemini-')?'gemini':'spicy';}
 function submissionBlocked(){const kind=tool==='upscale'?'image':tool,provider=currentProvider();return activeJobs.some(j=>j.status==='uncertain'&&jobProvider(j)===provider)||activeJobs.filter(j=>{const jobKind=j.settings?.type==='image'?'image':'video',backgroundBatch=j.settings?.provider==='gemini'&&j.settings?.processing==='batch';return jobKind===kind&&!backgroundBatch&&jobProvider(j)===provider;}).length>=limitFor(kind);}
 function schedulePoll(delay=10000){clearTimeout(timer);timer=null;if(owner&&activeJobs.some(j=>j.status!=='uncertain')&&!polling)timer=setTimeout(poll,delay);}
 function setActiveJobs(list){
   activeJobs=[...new Map((list||[]).filter(j=>j&&activeStates.has(j.status)).map(j=>[j.id,j])).values()];
   activeJob=activeJobs.find(j=>j.status==='uncertain')||activeJobs[0]||null;
   $('active').hidden=!activeJobs.length;
-  const batchImages=activeJobs.filter(j=>j.settings?.type==='image'&&j.settings?.provider==='gemini'&&j.settings?.processing==='batch').length;
-  const images=activeJobs.filter(j=>j.settings?.type==='image'&&!(j.settings?.provider==='gemini'&&j.settings?.processing==='batch')).length;
+  const batchImages=activeJobs.filter(j=>j.settings?.type==='image'&&jobProvider(j)==='gemini'&&j.settings?.processing==='batch').length;
+  const images=activeJobs.filter(j=>j.settings?.type==='image'&&!(jobProvider(j)==='gemini'&&j.settings?.processing==='batch')).length;
   const videos=activeJobs.filter(j=>j.settings?.type!=='image').length;
   $('active-status').textContent=images+' / '+limitFor('image')+' images active'+(batchImages?' · '+batchImages+' batch queued':'')+' · '+videos+' / '+limitFor('video')+' videos active';
   const labels={submitting:'Submitting',queued:'Queued',running:'Generating',saving:'Saving',uncertain:'Interrupted: check provider before another attempt'};
