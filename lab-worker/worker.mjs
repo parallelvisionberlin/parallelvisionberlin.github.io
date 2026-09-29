@@ -205,11 +205,12 @@ async function prepareInput(env,owner,data,p,url) {
     const character=await readySoulCharacter(env,owner,p.characterId,soulDeps());
     const refs=data.referenceSourceIds?.length?await sources(env,owner,data.referenceSourceIds,3):[];
     primary=refs[0]||null;p.referenceSourceIds=refs.map(a=>a.id);p.lastSourceId=null;p.model=refs.length?SOUL_EDIT_MODEL:SOUL_TEXT_MODEL;p.triggerWord=character.trigger_word;
-    const weights=await soulWeightUrl(env,url,character,soulDeps()),direction=assembledPrompt(p);
+    const direction=assembledPrompt(p);
     const prefix=refs.length?'The trained adult character identity is '+character.trigger_word+'. Preserve that trained identity. Use the reference image'+(refs.length===1?'':'s')+' for composition, pose, wardrobe, environment or other roles described below; do not replace the trained identity unless the user explicitly asks.':'The subject is the trained adult character '+character.trigger_word+'. Preserve that trained identity.';
     const finalPrompt=prefix+'\n'+direction;if(finalPrompt.length>5000)fail(400,'PV Soul prompt plus identity and reference notes is too long.');
-    input={prompt:finalPrompt,loras:[{path:weights,scale:p.identityStrength}],output_format:p.outputFormat};
-    if(refs.length&&url)input.image_urls=await Promise.all(refs.map(a=>signedInput(env,url,a.id)));else input.aspect_ratio=p.aspectRatio;
+    input={prompt:finalPrompt,output_format:p.outputFormat};
+    if(url){const weights=await soulWeightUrl(env,url,character,soulDeps());input.loras=[{path:weights,scale:p.identityStrength}];}
+    if(refs.length&&url)input.image_urls=await Promise.all(refs.map(a=>signedInput(env,url,a.id)));else if(!refs.length)input.aspect_ratio=p.aspectRatio;
   }else if(p.type==='image'){
     const refs=data.referenceSourceIds?.length?await sources(env,owner,data.referenceSourceIds):[];
     primary=refs[0]||null;p.referenceSourceIds=refs.map(a=>a.id);p.lastSourceId=null;p.model=refs.length?STILL_EDIT:STILL_TEXT;
