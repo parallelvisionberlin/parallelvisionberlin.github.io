@@ -87,6 +87,37 @@ test('Saving retries the stored provider output directly and never consumes a Sp
 });
 
 const imageSettings={type:'image',prompt:'An architectural model on a white plinth',resolution:'2k',aspectRatio:'4:5',outputFormat:'png'};
+test('FAL Controlled Pose submits one queued request, keeps role separation, then archives the completed image',async()=>{
+  const originalFetch=globalThis.fetch,oldPrice=maxPrice;createCount=0;providerState='queued';
+  const {env}=fixture();env.FAL_KEY='fal-synthetic-test-key';const pose=await setup(env);
+  const idUpload=async name=>{const r=await req(env,'/api/uploads',{method:'POST',raw:new Uint8Array([137,80,78,71,13,10,26,10,0]),headers:{'Content-Type':'image/png','X-Filename':name}});assert.equal(r.status,201);return(await r.json()).id;};
+  const face=await idUpload('nina-front.png'),profile=await idUpload('nina-profile.png');
+  let submitted=null;
+  try{
+    globalThis.fetch=async(url,options={})=>{
+      const u=new URL(url);
+      if(u.hostname==='queue.fal.run'){
+        assert.equal(options.headers.Authorization,'Key fal-synthetic-test-key');
+        if(options.method==='POST'&&u.pathname==='/fal-ai/flux-general'){
+          submitted=JSON.parse(options.body);return Response.json({request_id:'fal_req_controlled'});
+        }
+        if(u.pathname==='/fal-ai/flux-general/requests/fal_req_controlled/status')return Response.json({status:'COMPLETED'});
+        if(u.pathname==='/fal-ai/flux-general/requests/fal_req_controlled')return Response.json({images:[{url:'https://fal.media/files/test/controlled.png',content_type:'image/png'}],seed:1,prompt:'x'});
+      }
+      if(u.hostname==='fal.media')return new Response(new Uint8Array([137,80,78,71,13,10,26,10,0]),{headers:{'content-type':'image/png','content-length':'9'}});
+      return originalFetch(url,options);
+    };
+    const settings={type:'image',engine:'fal',provider:'fal',mode:'controlled-pose',prompt:'adult editorial portrait',resolution:'1k',aspectRatio:'3:4',outputFormat:'png',poseStrength:.9,identityStrength:.7,seed:7,referenceRoles:[{name:'pose.png',role:'pose',note:''},{name:'front.png',role:'identity',note:''},{name:'profile.png',role:'identity',note:''}]};
+    const response=await req(env,'/api/fal/controlled-pose',{method:'POST',data:{referenceSourceIds:[pose,face,profile],sourceId:pose,settings}});
+    assert.equal(response.status,202,await response.clone().text());const job=(await response.json()).job;
+    assert.equal(job.status,'queued');assert.equal(job.settings.provider,'fal');assert.equal(job.providerTaskId,'fal_req_controlled');
+    assert.equal(submitted.easycontrols[0].control_method_url,'pose');assert.equal(submitted.easycontrols[0].image_control_type,'spatial');
+    assert.deepEqual(submitted.easycontrols.slice(1).map(x=>x.control_method_url),['subject','subject']);
+    const done=(await(await req(env,'/api/jobs/'+job.id)).json()).job;
+    assert.equal(done.status,'completed');assert.ok(done.outputId);assert.equal((await req(env,'/api/assets/'+done.outputId)).status,200);
+  }finally{globalThis.fetch=originalFetch;maxPrice=oldPrice;}
+});
+
 test('Text-to-image quotes need no source; image outputs can be reused by video without losing the source',async()=>{
   createMode='ok';createCount=0;providerState='queued';const {env}=fixture();await setup(env);
   let r=await req(env,'/api/quotes',{method:'POST',data:{settings:imageSettings,referenceSourceIds:[]}});assert.equal(r.status,200);const q=await r.json();assert.equal(quotedRequest.model,'bytedance/seedream-5.0-pro/text-to-image');assert.equal(quotedRequest.input.aspect_ratio,'4:5');assert.equal(quotedRequest.input.resolution,'2k');assert.ok(!('image_urls' in quotedRequest.input));assert.equal(createCount,0);

@@ -1,7 +1,8 @@
 /* Parallel Vision Lab. Private owner-only workspace, no public media bucket.
    The hosted provider is opt-in; no provider key or moderation bypass in source. */
 import {seedanceParameters, prepareSeedance, REFERENCE_MIME, sniffReference} from './seedance.mjs';
-export const VERSION = 'pv-lab-2026-09-29.3-archive-recovery';
+import {FAL_CONTROLLED_POSE, controlledPoseParameters, controlledPoseRefs, controlledPoseEstimateMicros, buildControlledPoseInput, falSubmit, falStatus, falResult} from './fal-controlled-pose.mjs';
+export const VERSION = 'pv-lab-2026-09-29.4-fal-controlled-pose';
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:4,video:3});
 const ORIGINS = new Set(['https://parallelvisionlabel.com','https://www.parallelvisionlabel.com']);
@@ -151,6 +152,7 @@ function parameters(value) {
     if(!['2k','4k','8k'].includes(value.resolution)||!['jpeg','png','webp'].includes(value.outputFormat||'jpeg'))fail(400,'Choose 2K, 4K or 8K and JPEG, PNG or WebP.');
     return {type:'image',model:UPSCALER,mode:'upscale',prompt:'',resolution:value.resolution,aspectRatio:'auto',outputFormat:value.outputFormat||'jpeg',referenceRoles:[]};
   }
+  if(value.type==='image'&&value.engine==='fal')return controlledPoseParameters({...value,referenceRoles},{fail});
   if(value.type==='image'&&value.engine==='gemini'){
     const processing=value.processing==='batch'?'batch':'normal',ratio=value.aspectRatio||'auto';
     if(prompt.length>5000||!['1k','2k','4k'].includes(value.resolution)||!GEMINI_RATIOS.includes(ratio))fail(400,'Nano Banana Pro supports 1K, 2K or 4K and the listed image ratios. Maximum prompt length is 5,000.');
@@ -183,6 +185,11 @@ async function prepareInput(env,owner,data,p,url) {
   if(p.engine==='seedance'){
     const prepared=await prepareSeedance(env,owner,data,p,url,{fail,source,sources,signedInput});
     if(p.prompt)prepared.input.prompt=assembledPrompt(p);return prepared;
+  }
+  if(p.provider==='fal'||p.engine==='fal'){
+    const refs=await sources(env,owner,data.referenceSourceIds,5),roles=controlledPoseRefs(p.referenceRoles,refs.length,{fail});
+    p.referenceSourceIds=refs.map(a=>a.id);p.referenceRoles=p.referenceRoles.slice(0,refs.length);p.lastSourceId=null;
+    return {primary:refs[roles.pose],input:{}};
   }
   let primary=null,input;
   if(p.type==='image'&&p.mode==='upscale'){
@@ -269,7 +276,7 @@ async function media(request,env,a) {
 function jobView(j) {return {id:j.id,sourceId:j.source_id,settings:JSON.parse(j.params),status:j.state,outputId:j.output_id,estimatedUsd:j.estimate_microusd>0?j.estimate_microusd/1000000:null,settledUsd:j.settled_cost,providerTaskId:j.provider_id,error:j.error,createdAt:j.created_at,updatedAt:j.updated_at};}
 function safeVideoUrl(value) {
   const u=new URL(value);const host=u.hostname.toLowerCase();
-  if(u.protocol!=='https:'||u.username||u.password||(u.port&&u.port!=='443')||!(host==='spicyapi.ai'||host.endsWith('.spicyapi.ai')||host.endsWith('.r2.cloudflarestorage.com')||host.endsWith('.cloudfront.net')))throw new Error('Unexpected provider output location.');
+  if(u.protocol!=='https:'||u.username||u.password||(u.port&&u.port!=='443')||!(host==='spicyapi.ai'||host.endsWith('.spicyapi.ai')||host==='fal.media'||host.endsWith('.fal.media')||host.endsWith('.r2.cloudflarestorage.com')||host.endsWith('.cloudfront.net')))throw new Error('Unexpected provider output location.');
   return u.href;
 }
 async function copyResult(env,j,url) {
@@ -490,6 +497,30 @@ async function refreshGeminiJob(env,j,p){
   await run(env,"UPDATE jobs SET state=?,error='',updated_at=? WHERE owner_id=? AND provider_id=? AND state IN ('queued','running')",state==='JOB_STATE_RUNNING'?'running':'queued',now(),j.owner_id,j.provider_id);
 }
 
+async function refreshFalJob(env,j,p){
+  if(!env.FAL_KEY){await run(env,"UPDATE jobs SET state='failed',error=?,updated_at=? WHERE id=?",'fal.ai is not configured on the Lab backend.',now(),j.id);return;}
+  const lock=await run(env,'UPDATE jobs SET last_poll=? WHERE id=? AND last_poll<?',now(),j.id,now()-8000);if(!lock.meta.changes)return;
+  try{
+    const status=await falStatus(p.model||FAL_CONTROLLED_POSE,env.FAL_KEY,j.provider_id),state=String(status?.status||'').toUpperCase();
+    if(state==='COMPLETED'){
+      const result=await falResult(p.model||FAL_CONTROLLED_POSE,env.FAL_KEY,j.provider_id);
+      const image=result?.images?.find?.(x=>typeof x?.url==='string'&&x.url);
+      if(!image)throw new Error('fal.ai completed without an image output.');
+      const safe=safeVideoUrl(image.url);
+      await run(env,"UPDATE jobs SET state='saving',remote_url=?,error='',updated_at=? WHERE id=?",safe,now(),j.id);
+      await copyResult(env,j,safe);return;
+    }
+    if(['FAILED','CANCELLED','CANCELED'].includes(state)){
+      const detail=String(status?.error||status?.detail||'fal.ai ended the request without an image.').replace(/[\r\n]+/g,' ').slice(0,400);
+      await run(env,"UPDATE jobs SET state='failed',error=?,updated_at=? WHERE id=?",detail,now(),j.id);return;
+    }
+    await run(env,"UPDATE jobs SET state=?,error='',updated_at=? WHERE id=?",state==='IN_PROGRESS'?'running':'queued',now(),j.id);
+  }catch(e){
+    const detail=String(e?.message||'fal.ai polling error').replace(/[\r\n]+/g,' ').slice(0,400);
+    await run(env,'UPDATE jobs SET error=?,updated_at=? WHERE id=?','fal.ai: '+detail,now(),j.id);
+  }
+}
+
 async function refreshJob(env,j) {
   if(!['queued','running','saving'].includes(j.state)||!j.provider_id)return;
   const params=JSON.parse(j.params||'{}');if(params.provider==='gemini')return refreshGeminiJob(env,j,params);
@@ -499,6 +530,7 @@ async function refreshJob(env,j) {
     catch(e){const detail=String(e?.message||'temporary archive error').replace(/[\r\n]/g,' ').slice(0,220);await run(env,'UPDATE jobs SET error=?,updated_at=? WHERE id=?','Archive retry: '+detail+' The provider result is safe; generation slots are released while saving retries.',now(),j.id);}
     return;
   }
+  if(params.provider==='fal')return refreshFalJob(env,j,params);
   const lock=await run(env,'UPDATE jobs SET last_poll=? WHERE id=? AND last_poll<?',now(),j.id,now()-8000);
   if(!lock.meta.changes)return;
   try {
@@ -534,7 +566,7 @@ async function route(request,env,ctx) {
   const owner=await authenticate(request,env),path=url.pathname,method=request.method;
   if(path==='/api/session'&&method==='GET'){
     const c=await config(env,owner),spent=await first(env,'SELECT COALESCE(SUM(estimate_microusd),0) AS n FROM spend WHERE owner_id=? AND created_at>=?',owner,Math.floor(now()/86400000)*86400000);
-    return json({owner:true,ownerId:owner,version:VERSION,config:{...publicConfig(c),geminiEnabled:!!env.GEMINI_API_KEY},estimatedSpentToday:spent.n/1000000});
+    return json({owner:true,ownerId:owner,version:VERSION,config:{...publicConfig(c),geminiEnabled:!!env.GEMINI_API_KEY,falEnabled:!!env.FAL_KEY},estimatedSpentToday:spent.n/1000000});
   }
   if(path==='/api/settings'&&method==='POST') {
     const data=await body(request),old=await config(env,owner);
@@ -655,6 +687,42 @@ async function route(request,env,ctx) {
     }
     const jobs=[];for(const id of ids)jobs.push(jobView(await first(env,'SELECT * FROM jobs WHERE id=?',id)));
     return json({jobs},202);
+  }
+
+  if(path==='/api/fal/controlled-pose'&&method==='POST'){
+    if(!env.FAL_KEY)fail(503,'fal.ai is not configured on this Worker.');
+    const data=await body(request),p=parameters(data.settings);
+    if(p.provider!=='fal'||p.engine!=='fal'||p.mode!=='controlled-pose')fail(400,'Choose Controlled Pose and add a prompt.');
+    const refs=await sources(env,owner,data.referenceSourceIds,5),roles=controlledPoseRefs(p.referenceRoles,refs.length,{fail});
+    p.referenceSourceIds=refs.map(a=>a.id);p.referenceRoles=p.referenceRoles.slice(0,refs.length);
+    const pose=refs[roles.pose],identity=roles.identity.map(i=>refs[i]);
+    const poseUrl=await signedInput(env,url,pose.id),identityUrls=await Promise.all(identity.map(a=>signedInput(env,url,a.id)));
+    const input=buildControlledPoseInput(p,{poseUrl,identityUrls}),estimate=controlledPoseEstimateMicros(p);
+    const c=await config(env,owner),limit=c?.daily_limit_microusd||10000000,t=now(),day=Math.floor(t/86400000)*86400000,id=crypto.randomUUID();
+    const falSql="COALESCE(json_extract(params,'$.provider'),'')='fal'";
+    const inserted=await run(env,"INSERT INTO jobs(id,owner_id,source_id,params,state,estimate_microusd,created_at,updated_at) SELECT ?,?,?,?,'submitting',?,?,? WHERE NOT EXISTS(SELECT 1 FROM jobs WHERE owner_id=? AND state='uncertain' AND "+falSql+") AND (SELECT COUNT(*) FROM jobs WHERE owner_id=? AND state IN ('submitting','queued','running','uncertain') AND "+falSql+" AND json_extract(params,'$.type')='image')<? AND (SELECT COALESCE(SUM(estimate_microusd),0) FROM spend WHERE owner_id=? AND created_at>=?)+?<=?",
+      id,owner,pose.id,JSON.stringify(p),estimate,t,t,owner,owner,CONCURRENCY.image,owner,day,estimate,limit);
+    if(!inserted.meta.changes){
+      const uncertain=(await first(env,"SELECT COUNT(*) AS n FROM jobs WHERE owner_id=? AND state='uncertain' AND "+falSql,owner)).n;
+      const active=(await first(env,"SELECT COUNT(*) AS n FROM jobs WHERE owner_id=? AND state IN ('submitting','queued','running','uncertain') AND "+falSql+" AND json_extract(params,'$.type')='image'",owner)).n;
+      const spent=(await first(env,'SELECT COALESCE(SUM(estimate_microusd),0) AS n FROM spend WHERE owner_id=? AND created_at>=?',owner,day)).n;
+      if(uncertain)fail(409,'No generation submitted: a fal.ai request is interrupted. Resolve that fal.ai request before retrying.');
+      if(active>=CONCURRENCY.image)fail(409,'No generation submitted: '+active+' / '+CONCURRENCY.image+' Controlled Pose slots are already active.');
+      if(spent+estimate>limit)fail(409,'No generation submitted: this Controlled Pose request would exceed your Lab daily spending limit.');
+      fail(409,'No generation submitted because capacity changed. Refresh History and try again.');
+    }
+    const j=await first(env,'SELECT * FROM jobs WHERE id=? AND owner_id=?',id,owner);
+    if(!j)fail(500,'Controlled Pose reservation could not be loaded.');
+    await run(env,'INSERT OR IGNORE INTO spend(job_id,owner_id,estimate_microusd,created_at) VALUES(?,?,?,?)',id,owner,estimate,t);
+    try{
+      const requestId=await falSubmit(FAL_CONTROLLED_POSE,env.FAL_KEY,input);
+      await run(env,"UPDATE jobs SET provider_id=?,state='queued',updated_at=? WHERE id=?",requestId,now(),j.id);
+    }catch(e){
+      const uncertain=e?.uncertain===true||e?.definite===false,state=uncertain?'uncertain':'failed';
+      const msg=uncertain?'fal.ai submission status is uncertain. Check the fal dashboard before retrying to avoid a duplicate charge.':String(e?.message||'fal.ai rejected the request.').slice(0,500);
+      await run(env,'UPDATE jobs SET state=?,error=?,updated_at=? WHERE id=?',state,msg,now(),j.id);
+    }
+    return json({job:jobView(await first(env,'SELECT * FROM jobs WHERE id=?',j.id))},202);
   }
 
   if(path==='/api/quotes'&&method==='POST') {
