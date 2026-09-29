@@ -7,8 +7,7 @@
 <link rel="icon" href="/favicon.png"><link rel="stylesheet" href="./lab.css?v=20260927-preview1">
 <link rel="stylesheet" href="./history.css?v=20260927-2">
 <link rel="stylesheet" href="./seedance.css?v=20260927-standard1">
-<link rel="stylesheet" href="./soul.css?v=20260929-soul1">
-<script type="module" src="./lab.js?v=20260929-soul1"></script>
+<script type="module" src="./lab.js?v=20260929-archive-slots1"></script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to workspace</a>
@@ -18,7 +17,7 @@
 <section id="gate" class="gate"><p class="eyebrow">Owner access</p><h2>Your private image and motion studio.</h2><p id="auth-status" role="status">Loading your Parallel Vision sign-in…</p><button id="signin" class="primary" disabled>Sign in</button><p class="fine">Use the same owner account as Nina. No new subscription.</p></section>
 <div id="app" hidden>
 <div class="connection-strip"><span id="connection-status">Checking connection…</span><button class="text-button" id="setup">Manage connection</button></div>
-<nav class="tool-switch" aria-label="Creative tool"><button id="tool-video" class="tool-tab active" type="button" aria-pressed="true">Video <small>Wan / Seedance</small></button><button id="tool-image" class="tool-tab" type="button" aria-pressed="false">Image <small>Seedream / Nano / PV Soul</small></button><button id="tool-upscale" class="tool-tab" type="button" aria-pressed="false">Upscale <small>Image Upscaler</small></button></nav>
+<nav class="tool-switch" aria-label="Creative tool"><button id="tool-video" class="tool-tab active" type="button" aria-pressed="true">Video <small>Wan / Seedance</small></button><button id="tool-image" class="tool-tab" type="button" aria-pressed="false">Image <small>Seedream / Nano Banana Pro</small></button><button id="tool-upscale" class="tool-tab" type="button" aria-pressed="false">Upscale <small>Image Upscaler</small></button></nav>
 <div class="workspace">
 <section class="controls" aria-label="Image to video settings">
 <div class="mode"><span id="mode-heading">01 / Image to Video</span><span class="engine-pill" id="engine-name">WAN 3.0</span></div>
@@ -64,20 +63,14 @@
 </div>
 <div class="pack-bar"><label><span class="label">Reference packs</span><select id="pack-select"><option value="">Choose a saved pack</option></select></label><button id="pack-load" class="quiet" type="button">Load</button><button id="pack-save" class="quiet" type="button">Save pack</button><button id="pack-delete" class="quiet" type="button">Delete pack</button></div>
 </div>
-<div id="soul-controls" class="soul-controls" hidden>
-<div class="soul-control-grid"><label><span class="label">Character</span><select id="soul-character"><option value="">No trained characters yet</option></select></label><button id="soul-manage" class="quiet" type="button">Train / manage</button></div>
-<div class="soul-strength"><div class="soul-strength-head"><span class="label">Identity strength</span><span class="micro" id="soul-strength-value">1.00</span></div><input id="soul-strength" type="range" min="0.25" max="1.75" value="1" step="0.05"></div>
-<p id="soul-empty" class="fine soul-note">Train a character first. Training uses FAL once; finished image generation uses your SpicyAPI connection.</p>
-<p class="fine soul-note">PV Soul uses the trained Qwen Image 2512 LoRA. Add up to three references when you want to preserve a pose, composition, wardrobe or set while the trained character supplies identity.</p>
-</div>
 <label class="label prompt-label" id="prompt-label" for="prompt">Motion direction</label><textarea id="prompt" maxlength="6000" placeholder="One clear action, one camera move, light, atmosphere and sound."></textarea>
 <div class="parameter-grid">
 <label id="duration-control"><span class="label">Duration</span><select id="duration"><option value="5">5 sec</option><option value="10">10 sec</option><option value="15" selected>15 sec</option><option value="30">30 sec</option></select></label>
-<label id="image-model-control" hidden><span class="label">Image model</span><select id="image-engine"><option value="seedream" selected>Seedream 5 Pro</option><option value="gemini">Nano Banana Pro</option><option value="soul">PV Soul</option></select></label>
+<label id="image-model-control" hidden><span class="label">Image model</span><select id="image-engine"><option value="seedream" selected>Seedream 5 Pro</option><option value="gemini">Nano Banana Pro</option></select></label>
 <label id="image-processing-control" hidden><span class="label">Processing</span><select id="image-processing"><option value="normal" selected>⚡ Normal</option><option value="batch">🕒 Batch · 50% cheaper</option></select></label>
 <label id="image-count-control" hidden><span class="label">Number of images</span><select id="image-count"><option value="1" selected>1 image</option><option value="2">2 images</option><option value="3">3 images</option><option value="4">4 images</option></select></label>
-<label id="resolution-control"><span class="label">Resolution</span><select id="resolution"><option value="480p">480p</option><option value="720p">720p</option><option value="1080p" selected>1080p</option></select></label>
-<label id="ratio-control"><span class="label">Aspect ratio</span><select id="ratio"><option value="auto">Follow image</option><option>16:9</option><option>9:16</option><option>1:1</option><option>4:3</option><option>3:4</option><option>21:9</option></select></label>
+<label><span class="label">Resolution</span><select id="resolution"><option value="480p">480p</option><option value="720p">720p</option><option value="1080p" selected>1080p</option></select></label>
+<label><span class="label">Aspect ratio</span><select id="ratio"><option value="auto">Follow image</option><option>16:9</option><option>9:16</option><option>1:1</option><option>4:3</option><option>3:4</option><option>21:9</option></select></label>
 </div>
 <label id="format-control" hidden><span class="label">Image format</span><select id="output-format"><option value="png" selected>PNG</option><option value="jpeg">JPEG</option></select></label>
 <div class="utility-row" id="video-utilities">
@@ -105,21 +98,5 @@
 <label class="check"><input id="terms" type="checkbox" required> I have checked that my provider account and its terms allow my intended content, and I have the necessary rights and consent for my inputs.</label>
 <div class="dialogactions"><button id="disconnect" type="button" class="quiet" hidden>Disconnect key</button><button id="connect-save" class="primary" type="submit">Save &amp; enable</button></div><p id="connect-notice" class="fine" role="status"></p></form></dialog>
 <dialog id="quote-dialog" aria-labelledby="quote-title"><div class="dialoghead"><h2 id="quote-title">Review generation</h2><button class="quiet" data-close="quote-dialog">Cancel</button></div><p id="quote-settings"></p><div class="quote-price" id="quote-price"></div><p id="quote-limit"></p><p class="fine" id="quote-expiry"></p><p class="fine">This quote is tied to the exact image and settings shown here. Your prompt and selected references are shared with the provider to generate the result. A result you dislike can still be charged. The Lab never automatically submits a second generation.</p><button class="primary full" id="confirm-generation">Confirm &amp; generate</button><p id="quote-notice" role="status" class="fine"></p></dialog>
-<dialog id="soul-dialog" aria-labelledby="soul-title">
-<div class="dialoghead"><h2 id="soul-title">PV Soul / Characters</h2><button id="soul-dialog-close" type="button" class="quiet">Close</button></div>
-<p>Train a reusable character from 20–80 photos. The browser prepares compact working copies, the private ZIP is stored temporarily in R2, and FAL runs a 1,000-step Qwen Image 2512 LoRA training job. Finished weights are archived privately when possible.</p>
-<p class="fine">Use varied, clear, non-explicit adult identity photos for training. Training data must comply with FAL terms. Final image generation is a separate SpicyAPI request under your existing provider settings.</p>
-<p id="soul-training-unavailable" class="fine" hidden>FAL training is not configured on the Worker. Add the FAL_KEY Cloudflare secret before training.</p>
-<div class="soul-trainer">
-<label><span class="label">Character name</span><input id="soul-name" maxlength="80" placeholder="Nina FOK" autocomplete="off"></label>
-<div><div class="upload-heading"><span class="label">Training photos</span><span class="micro" id="soul-photo-count">0 / 80</span></div>
-<label class="drop"><span>Choose 20–80 photos</span><small>JPG / PNG / WebP · varied face, angles and full body</small><input id="soul-photos" type="file" multiple accept="image/jpeg,image/png,image/webp"></label></div>
-<label class="soul-consent"><input id="soul-consent" type="checkbox"><span>I confirm everyone depicted is an adult, I have the rights and consent to train this identity, and this training set complies with FAL’s content rules.</span></label>
-<button id="soul-train" type="button" class="primary full">Train character</button>
-<p id="soul-train-status" class="fine" role="status" aria-live="polite"></p>
-</div>
-<div class="archivehead" style="margin-top:24px"><div><p class="eyebrow">Characters</p><h2>Saved identities</h2></div></div>
-<div id="soul-character-list" class="soul-character-list"></div>
-</dialog>
 <dialog id="input-preview-dialog" aria-labelledby="input-preview-title"><div class="dialoghead"><h2 id="input-preview-title">Input reference</h2><button class="quiet" data-close="input-preview-dialog" type="button">Close</button></div><p id="input-preview-description" class="fine"></p><img id="input-preview-image" alt="Uploaded input reference, not a generated result"></dialog>
 </body></html>
