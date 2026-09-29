@@ -1,7 +1,7 @@
 /* Parallel Vision Lab. Private owner-only workspace, no public media bucket.
    The hosted provider is opt-in; no provider key or moderation bypass in source. */
 import {seedanceParameters, prepareSeedance, REFERENCE_MIME, sniffReference} from './seedance.mjs';
-export const VERSION = 'pv-lab-2026-09-29.1-provider-isolation';
+export const VERSION = 'pv-lab-2026-09-29.2-spicy-isolation';
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:4,video:3});
 const ORIGINS = new Set(['https://parallelvisionlabel.com','https://www.parallelvisionlabel.com']);
@@ -689,9 +689,18 @@ async function route(request,env,ctx) {
     try {
       const kind=JSON.parse(q.params).type==='image'?'image':'video';
       // Reserve both a per-kind slot and spending atomically. Concurrent tabs cannot overbook.
-      // An uncertain charge still stops ALL new submissions until explicitly resolved.
-      const inserted=await run(env,"INSERT INTO jobs(id,owner_id,source_id,quote_id,params,state,estimate_microusd,created_at,updated_at) SELECT ?,?,?,?,?,'submitting',?,?,? WHERE NOT EXISTS(SELECT 1 FROM jobs WHERE owner_id=? AND state='uncertain') AND (SELECT COUNT(*) FROM jobs WHERE owner_id=? AND state IN ('submitting','queued','running','saving','uncertain') AND NOT (json_extract(params,'$.provider')='gemini') AND CASE WHEN json_extract(params,'$.type')='image' THEN 'image' ELSE 'video' END=?)<? AND (SELECT COALESCE(SUM(estimate_microusd),0) FROM spend WHERE owner_id=? AND created_at>=?)+?<=?",id,owner,q.source_id,q.id,q.params,q.estimate_microusd,t,t,owner,owner,kind,CONCURRENCY[kind],owner,day,q.estimate_microusd,c.daily_limit_microusd);
-      if(!inserted.meta.changes)fail(409,'No generation submitted: the '+kind+' limit ('+CONCURRENCY[kind]+' active), an uncertain request, or your daily spending limit blocks this request.');
+      // SpicyAPI submissions are isolated from Gemini jobs, including legacy Gemini rows that predate the provider field.
+      const spicySql="NOT (COALESCE(json_extract(params,'$.provider'),'')='gemini' OR COALESCE(json_extract(params,'$.engine'),'')='gemini' OR COALESCE(json_extract(params,'$.model'),'') LIKE 'gemini-%')";
+      const inserted=await run(env,"INSERT INTO jobs(id,owner_id,source_id,quote_id,params,state,estimate_microusd,created_at,updated_at) SELECT ?,?,?,?,?,'submitting',?,?,? WHERE NOT EXISTS(SELECT 1 FROM jobs WHERE owner_id=? AND state='uncertain' AND "+spicySql+") AND (SELECT COUNT(*) FROM jobs WHERE owner_id=? AND state IN ('submitting','queued','running','saving','uncertain') AND "+spicySql+" AND CASE WHEN json_extract(params,'$.type')='image' THEN 'image' ELSE 'video' END=?)<? AND (SELECT COALESCE(SUM(estimate_microusd),0) FROM spend WHERE owner_id=? AND created_at>=?)+?<=?",id,owner,q.source_id,q.id,q.params,q.estimate_microusd,t,t,owner,owner,kind,CONCURRENCY[kind],owner,day,q.estimate_microusd,c.daily_limit_microusd);
+      if(!inserted.meta.changes){
+        const uncertain=(await first(env,"SELECT COUNT(*) AS n FROM jobs WHERE owner_id=? AND state='uncertain' AND "+spicySql,owner)).n;
+        const active=(await first(env,"SELECT COUNT(*) AS n FROM jobs WHERE owner_id=? AND state IN ('submitting','queued','running','saving','uncertain') AND "+spicySql+" AND CASE WHEN json_extract(params,'$.type')='image' THEN 'image' ELSE 'video' END=?",owner,kind)).n;
+        const spent=(await first(env,'SELECT COALESCE(SUM(estimate_microusd),0) AS n FROM spend WHERE owner_id=? AND created_at>=?',owner,day)).n;
+        if(uncertain)fail(409,'No generation submitted: a SpicyAPI request is interrupted. Resolve that SpicyAPI request in History before retrying.');
+        if(active>=CONCURRENCY[kind])fail(409,'No generation submitted: '+active+' / '+CONCURRENCY[kind]+' '+kind+' slots are already active on SpicyAPI.');
+        if(spent+q.estimate_microusd>c.daily_limit_microusd)fail(409,'No generation submitted: your Lab daily spending limit would be exceeded. Increase the daily limit or wait for the UTC reset.');
+        fail(409,'No generation submitted because capacity changed while the request was being reserved. Refresh History and try once more.');
+      }
     }catch(e){old=await first(env,'SELECT * FROM jobs WHERE quote_id=? AND owner_id=?',quoteId,owner);if(old)return json({job:jobView(old)});throw e;}
     // Reuse the exact input URL and settings covered by the quote, never silently reprice.
     const payload={...JSON.parse(q.payload),quoteId:q.vendor_quote_id,expectedCost:q.expected_cost};
