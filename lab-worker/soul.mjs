@@ -18,7 +18,7 @@ async function falFetch(env,path,{method='GET',body,timeout=25000}={}){
   if(!env.FAL_KEY)throw Object.assign(new Error('FAL training is not configured on this Worker.'),{definite:true});
   let response;
   try{
-    response=await fetch('https://queue.fal.run/'+path,{method,headers:{Authorization:'Key '+env.FAL_KEY,Accept:'application/json',...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined,signal:AbortSignal.timeout(timeout),redirect:'error'});
+    response=await fetch('https://queue.fal.run/'+path,{method,headers:{Authorization:'Key '+env.FAL_KEY,Accept:'application/json',...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined,signal:AbortSignal.timeout(timeout),redirect:'follow'});
   }catch{
     throw Object.assign(new Error('FAL request could not be confirmed. Check the FAL dashboard before retrying.'),{definite:false});
   }
