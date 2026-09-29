@@ -1,7 +1,7 @@
 /* Parallel Vision Lab. Private owner-only workspace, no public media bucket.
    The hosted provider is opt-in; no provider key or moderation bypass in source. */
 import {seedanceParameters, prepareSeedance, REFERENCE_MIME, sniffReference} from './seedance.mjs';
-import {SOUL_TEXT_MODEL,SOUL_EDIT_MODEL,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
+import {SOUL_TEXT_MODEL,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
 export const VERSION = 'pv-lab-2026-09-29.4-pv-soul';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
@@ -151,8 +151,8 @@ function parameters(value) {
   const prompt=typeof value.prompt==='string'?value.prompt.trim():'';
   const referenceRoles=referenceLabels(value.referenceRoles);
   if(value.type==='image'&&value.engine==='soul'){
-    if(prompt.length<1||prompt.length>4700)fail(400,'PV Soul prompts must be 1 to 4,700 characters so the identity instruction and reference roles fit.');
-    if(referenceRoles.length>3)fail(400,'PV Soul supports up to three reference images.');
+    if(prompt.length<1||prompt.length>4700)fail(400,'PV Soul prompts must be 1 to 4,700 characters.');
+    if(referenceRoles.length)fail(400,'PV Soul v0.1 uses the trained identity in text-to-image mode. Reference-conditioned identity generation is disabled until a matching edit-model trainer is verified.');
     const strength=Number(value.identityStrength),ratio=value.aspectRatio||'1:1';
     const soulRatios=['1:1','16:9','9:16','4:3','3:4','3:2','2:3','21:9','9:21'];
     if(!UUID.test(value.characterId||''))fail(400,'Choose a trained PV Soul character.');
@@ -204,14 +204,13 @@ async function prepareInput(env,owner,data,p,url) {
     if(url)input.image_url=await signedInput(env,url,primary.id);
   }else if(p.type==='image'&&p.engine==='soul'){
     const character=await readySoulCharacter(env,owner,p.characterId,soulDeps());
-    const refs=data.referenceSourceIds?.length?await sources(env,owner,data.referenceSourceIds,3):[];
-    primary=refs[0]||null;p.referenceSourceIds=refs.map(a=>a.id);p.lastSourceId=null;p.model=refs.length?SOUL_EDIT_MODEL:SOUL_TEXT_MODEL;p.triggerWord=character.trigger_word;
+    if(data.referenceSourceIds?.length)fail(400,'PV Soul v0.1 does not accept reference images. Use the trained character with a text prompt, or switch to Seedream / Nano Banana for reference editing.');
+    primary=null;p.referenceSourceIds=[];p.lastSourceId=null;p.model=SOUL_TEXT_MODEL;p.triggerWord=character.trigger_word;
     const direction=assembledPrompt(p);
-    const prefix=refs.length?'The trained adult character identity is '+character.trigger_word+'. Preserve that trained identity. Use the reference image'+(refs.length===1?'':'s')+' for composition, pose, wardrobe, environment or other roles described below; do not replace the trained identity unless the user explicitly asks.':'The subject is the trained adult character '+character.trigger_word+'. Preserve that trained identity.';
-    const finalPrompt=prefix+'\n'+direction;if(finalPrompt.length>5000)fail(400,'PV Soul prompt plus identity and reference notes is too long.');
-    input={prompt:finalPrompt,output_format:p.outputFormat};
+    const prefix='The subject is the trained adult character '+character.trigger_word+'. Preserve that trained identity.';
+    const finalPrompt=prefix+'\n'+direction;if(finalPrompt.length>5000)fail(400,'PV Soul prompt plus identity instruction is too long.');
+    input={prompt:finalPrompt,output_format:p.outputFormat,aspect_ratio:p.aspectRatio};
     if(url){const weights=await soulWeightUrl(env,url,character,soulDeps());input.loras=[{path:weights,scale:p.identityStrength}];}
-    if(refs.length&&url)input.image_urls=await Promise.all(refs.map(a=>signedInput(env,url,a.id)));else if(!refs.length)input.aspect_ratio=p.aspectRatio;
   }else if(p.type==='image'){
     const refs=data.referenceSourceIds?.length?await sources(env,owner,data.referenceSourceIds):[];
     primary=refs[0]||null;p.referenceSourceIds=refs.map(a=>a.id);p.lastSourceId=null;p.model=refs.length?STILL_EDIT:STILL_TEXT;
