@@ -7,8 +7,8 @@
 <link rel="icon" href="/favicon.png"><link rel="stylesheet" href="./lab.css?v=20260927-preview1">
 <link rel="stylesheet" href="./history.css?v=20260927-2">
 <link rel="stylesheet" href="./seedance.css?v=20260927-standard1">
-<link rel="stylesheet" href="./soul.css?v=20260930-soul-v01">
-<script type="module" src="./lab.js?v=20260930-soul-v01"></script>
+<link rel="stylesheet" href="./soul.css?v=20260930-soul-v02">
+<script type="module" src="./lab.js?v=20260930-soul-v02"></script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to workspace</a>
@@ -19,6 +19,10 @@
 <div id="app" hidden>
 <div class="connection-strip"><span id="connection-status">Checking connection…</span><button class="text-button" id="setup">Manage connection</button></div>
 <nav class="tool-switch" aria-label="Creative tool"><button id="tool-video" class="tool-tab active" type="button" aria-pressed="true">Video <small>Wan / Seedance</small></button><button id="tool-image" class="tool-tab" type="button" aria-pressed="false">Image <small>Seedream / Nano / PV Soul</small></button><button id="tool-upscale" class="tool-tab" type="button" aria-pressed="false">Upscale <small>Image Upscaler</small></button></nav>
+<div id="soul-launch" class="soul-launch" hidden>
+<div><span class="eyebrow">PV Soul</span><strong id="soul-launch-title">Train a reusable character</strong><small id="soul-launch-note">FAL training is ready. Train from 20–80 photos, then use the character in Image.</small></div>
+<div class="soul-launch-actions"><button id="soul-use" class="secondary" type="button">Use PV Soul</button><button id="soul-launch-manage" class="primary" type="button">Train / manage character</button></div>
+</div>
 <div class="workspace">
 <section class="controls" aria-label="Image to video settings">
 <div class="mode"><span id="mode-heading">01 / Image to Video</span><span class="engine-pill" id="engine-name">WAN 3.0</span></div>
@@ -68,7 +72,7 @@
 <div class="soul-control-grid"><label><span class="label">Character</span><select id="soul-character"><option value="">No trained characters yet</option></select></label><button id="soul-manage" class="quiet" type="button">Train / manage</button></div>
 <div class="soul-strength"><div class="soul-strength-head"><span class="label">Identity strength</span><span class="micro" id="soul-strength-value">1.00</span></div><input id="soul-strength" type="range" min="0.25" max="1.75" value="1" step="0.05"></div>
 <p id="soul-empty" class="fine soul-note">Train a character first. Training uses FAL once; finished image generation uses your SpicyAPI connection.</p>
-<p class="fine soul-note">PV Soul uses the trained Qwen Image 2512 LoRA. Add up to three references when you want to preserve a pose, composition, wardrobe or set while the trained character supplies identity.</p>
+<p class="fine soul-note">PV Soul v0.1 uses the trained Qwen Image 2512 LoRA with text prompts. Use Seedream or Nano Banana when you need reference editing.</p>
 </div>
 <label class="label prompt-label" id="prompt-label" for="prompt">Motion direction</label><textarea id="prompt" maxlength="6000" placeholder="One clear action, one camera move, light, atmosphere and sound."></textarea>
 <div class="parameter-grid">
