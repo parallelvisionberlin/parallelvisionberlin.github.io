@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="./history.css?v=20260927-2">
 <link rel="stylesheet" href="./seedance.css?v=20260927-standard1">
 <link rel="stylesheet" href="./soul.css?v=20260930-soul-v02">
-<script type="module" src="./lab.js?v=20260930-h3family1"></script>
+<script type="module" src="./lab.js?v=20261001-reinterpret1"></script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to workspace</a>
@@ -70,9 +70,22 @@
 </div>
 <div id="soul-controls" class="soul-controls" hidden>
 <div class="soul-control-grid"><label><span class="label">Character</span><select id="soul-character"><option value="">No trained characters yet</option></select></label><button id="soul-manage" class="quiet" type="button">Train / manage</button></div>
+<div class="mode-switch" role="tablist" aria-label="Soul mode"><button id="soul-mode-text" class="mode-tab active" type="button" role="tab" aria-selected="true">Text</button><button id="soul-mode-reinterpret" class="mode-tab" type="button" role="tab" aria-selected="false">Reinterpret</button></div>
+<div id="soul-reinterpret-controls" hidden>
+<label class="label" for="soul-base-image">Base image</label><label id="soul-base-drop" class="drop compact-drop"><span>Drop or browse</span><small>One JPG / PNG / WebP</small><input id="soul-base-image" type="file" accept="image/jpeg,image/png,image/webp"></label>
+<img id="soul-base-preview" class="soul-base-preview" alt="Reinterpret base image" hidden><p id="soul-base-name" class="filemeta"></p>
+<p class="fine">The composition, pose, camera and scene are used as the visual starting point.</p>
+<label><span class="label">Preset</span><select id="soul-preset"></select></label><p id="soul-preset-description" class="fine"></p>
+<div class="soul-strength"><div class="soul-strength-head"><label class="label" for="soul-fidelity">Image fidelity</label><output class="micro" id="soul-fidelity-value">0.82</output></div><input id="soul-fidelity" type="range" min="0.35" max="0.95" value="0.82" step="0.01"></div>
+<p class="fine">Higher stays closer to the source and can retain the original face. Lower allows more identity and style changes.</p>
+<label class="check"><input id="soul-keep-composition" type="checkbox" checked> Keep composition</label>
+<label class="check"><input id="soul-keep-styling" type="checkbox" checked> Keep styling</label>
+<p class="fine">Preservation choices guide the prompt. They are not pixel locks.</p>
+<p id="soul-reinterpret-status" class="fine" role="status"></p><button id="soul-prepare-reinterpret" class="secondary full" type="button">Prepare Reinterpret identity</button>
+</div>
 <div class="soul-strength"><div class="soul-strength-head"><span class="label">Identity strength</span><span class="micro" id="soul-strength-value">1.00</span></div><input id="soul-strength" type="range" min="0.25" max="1.75" value="1" step="0.05"></div>
 <p id="soul-empty" class="fine soul-note">Train a character first. Training uses FAL once; finished image generation uses your SpicyAPI connection.</p>
-<p class="fine soul-note">PV Soul v0.1 uses the trained Qwen Image 2512 LoRA with text prompts. Use Seedream or Nano Banana when you need reference editing.</p>
+<p id="soul-mode-note" class="fine soul-note">Text uses your trained Qwen Image 2512 identity.</p>
 </div>
 <div id="controlled-pose-settings" class="controlled-pose-settings" hidden>
 <div class="upload-heading"><span class="label">Controlled Pose</span><span class="micro">FAL FLUX</span></div>
@@ -122,10 +135,13 @@
 <dialog id="quote-dialog" aria-labelledby="quote-title"><div class="dialoghead"><h2 id="quote-title">Review generation</h2><button class="quiet" data-close="quote-dialog">Cancel</button></div><p id="quote-settings"></p><div class="quote-price" id="quote-price"></div><p id="quote-limit"></p><p class="fine" id="quote-expiry"></p><p class="fine">This quote is tied to the exact image and settings shown here. Your prompt and selected references are shared with the provider to generate the result. A result you dislike can still be charged. The Lab never automatically submits a second generation.</p><button class="primary full" id="confirm-generation">Confirm &amp; generate</button><p id="quote-notice" role="status" class="fine"></p></dialog>
 <dialog id="soul-dialog" aria-labelledby="soul-title">
 <div class="dialoghead"><h2 id="soul-title">PV Soul / Characters</h2><button id="soul-dialog-close" type="button" class="quiet">Close</button></div>
-<p>Train a reusable character from 20–80 photos. The browser prepares compact working copies, the private ZIP is stored temporarily in R2, and FAL runs a 1,000-step Qwen Image 2512 LoRA training job. Finished weights are archived privately when possible.</p>
+<p>Train a reusable character from 20–80 photos. The browser prepares compact working copies, the private ZIP is stored temporarily in R2, and FAL runs a 1,000-step identity training job for the selected purpose. Finished weights are archived privately when possible.</p>
 <p class="fine">Use varied, clear, non-explicit adult identity photos for training. Training data must comply with FAL terms. Final image generation is a separate SpicyAPI request under your existing provider settings.</p>
 <p id="soul-training-unavailable" class="fine" hidden>FAL training is not configured on the Worker. Add the FAL_KEY Cloudflare secret before training.</p>
 <div class="soul-trainer">
+<label><span class="label">Training purpose</span><select id="soul-training-target"><option value="">New Text character</option></select></label>
+<p id="soul-training-detail" class="fine">Qwen Image 2512 text identity.</p>
+<label id="soul-paid-reinterpret-label" class="soul-consent" hidden><input id="soul-paid-reinterpret" type="checkbox"><span>I approve one separate Z-Image Turbo identity training: $2.26 for 1,000 steps, charged by FAL. This keeps the existing Text identity.</span></label>
 <label><span class="label">Character name</span><input id="soul-name" maxlength="80" placeholder="Nina FOK" autocomplete="off"></label>
 <div><div class="upload-heading"><span class="label">Training photos</span><span class="micro" id="soul-photo-count">0 / 80</span></div>
 <label class="drop"><span>Choose 20–80 photos</span><small>JPG / PNG / WebP · varied face, angles and full body</small><input id="soul-photos" type="file" multiple accept="image/jpeg,image/png,image/webp"></label></div>

@@ -27,3 +27,8 @@
 .soul-launch-actions{display:flex;gap:8px;flex:0 0 auto}
 .soul-launch-actions button{white-space:nowrap}
 @media(max-width:760px){.soul-launch{align-items:stretch;flex-direction:column}.soul-launch-actions{display:grid;grid-template-columns:1fr 1fr}.soul-launch-actions button{width:100%}}
+
+.soul-base-preview{display:block;width:100%;max-height:200px;object-fit:contain;margin:10px 0;background:#080809}
+#soul-reinterpret-controls{display:grid;gap:8px}
+#soul-reinterpret-controls[hidden],.soul-base-preview[hidden]{display:none}
+#soul-training-target{max-width:100%}

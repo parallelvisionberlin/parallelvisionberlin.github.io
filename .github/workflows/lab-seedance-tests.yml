@@ -35,6 +35,7 @@ jobs:
         env:
           PV_PLAYWRIGHT_MODULE: /tmp/pv-standard-ui/node_modules/playwright/index.mjs
         run: |
+          node tests/lab-soul-reinterpret-ui.mjs
           node tests/lab-image-oneclick-ui.mjs
           node tests/lab-upscale-ui.mjs
           node tests/lab-reference-ui.mjs
