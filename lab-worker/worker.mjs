@@ -178,8 +178,9 @@ function parameters(value) {
   }
   if(prompt.length>6000)fail(400,'Use no more than 6,000 prompt characters.');
   const duration=Number(value.duration),resolution=value.resolution;
-  if(!Number.isInteger(duration)||duration<2||duration>30||!RESOLUTIONS.has(resolution))fail(400,'Choose 2 to 30 seconds and 480p, 720p or 1080p.');
-  const mode=value.mode==='reference'?'reference':'start',ratio=value.aspectRatio||'auto';
+  const isH3=['h3','h3max','h3spicy'].includes(value.engine);
+  if(!Number.isInteger(duration)||duration<2||duration>30||(!isH3&&!RESOLUTIONS.has(resolution)))fail(400,'Choose a supported duration and resolution.');
+  const mode=value.mode==='reference'?'reference':value.mode==='text'?'text':'start',ratio=value.aspectRatio||'auto';
   const videoRatios=mode==='start'?['auto','16:9','9:16','1:1','4:3','3:4','21:9']:['auto','16:9','9:16','1:1','4:3','3:4'];
   if(!videoRatios.includes(ratio))fail(400,'Invalid video aspect ratio.');
   const seed=value.seed==null||value.seed===''?null:Number(value.seed);
