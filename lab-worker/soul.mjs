@@ -1,3 +1,4 @@
+import {SOUL_REINTERPRET_TRAINER,SOUL_REINTERPRET_BASE,REINTERPRET_TRAINING_MICROS} from './soul-reinterpret.mjs';
 export const SOUL_TRAINER='fal-ai/qwen-image-2512-trainer';
 export const SOUL_TEXT_MODEL='alibaba/qwen-image-2512-lora/text-to-image';
 export const SOUL_MAX_DATASET=64*1024*1024;
@@ -7,7 +8,7 @@ const ACTIVE=new Set(['submitting','queued','training','uncertain']);
 const enc=new TextEncoder();
 
 function clean(value,max=500){return String(value??'').replace(/[\u0000-\u001f\u007f]+/g,' ').replace(/\s+/g,' ').trim().slice(0,max);}
-function view(row){return {id:row.id,name:row.name,triggerWord:row.trigger_word,state:row.state,error:row.error||'',createdAt:row.created_at,updatedAt:row.updated_at,weightsArchived:!!row.lora_object_key};}
+function view(row){return {id:row.id,name:row.name,triggerWord:row.trigger_word,state:row.state,error:row.error||'',createdAt:row.created_at,updatedAt:row.updated_at,weightsArchived:!!row.lora_object_key,adapterFor:row.adapterFor||null,reinterpret:row.reinterpret||null};}
 function safeFalUrl(value){
   let u;try{u=new URL(value);}catch{throw new Error('FAL returned an invalid weights URL.');}
   const host=u.hostname.toLowerCase();
@@ -96,14 +97,15 @@ async function refreshOne(env,row,d){
   const locked=await d.run(env,'UPDATE soul_characters SET last_poll=? WHERE id=? AND last_poll<?',d.now(),row.id,d.now()-8000);
   if(!locked.meta.changes)return row;
   try{
-    const id=encodeURIComponent(row.fal_request_id),status=await falFetch(env,SOUL_TRAINER+'/requests/'+id+'/status?logs=1');
+    const link=await d.first(env,'SELECT * FROM soul_reinterpret_links WHERE adapter_id=?',row.id),trainer=link?.trainer||SOUL_TRAINER;
+    const id=encodeURIComponent(row.fal_request_id),status=await falFetch(env,trainer+'/requests/'+id+'/status?logs=1');
     if(status.status==='IN_QUEUE'){
       await d.run(env,"UPDATE soul_characters SET state='queued',error='',updated_at=? WHERE id=?",d.now(),row.id);
     }else if(status.status==='IN_PROGRESS'){
       const last=Array.isArray(status.logs)&&status.logs.length?clean(status.logs.at(-1)?.message,300):'';
       await d.run(env,"UPDATE soul_characters SET state='training',error=?,updated_at=? WHERE id=?",last,d.now(),row.id);
     }else if(status.status==='COMPLETED'){
-      const result=await falFetch(env,SOUL_TRAINER+'/requests/'+id),source=safeFalUrl(result?.diffusers_lora_file?.url);
+      const result=await falFetch(env,trainer+'/requests/'+id),source=safeFalUrl(result?.diffusers_lora_file?.url);
       await d.run(env,"UPDATE soul_characters SET state='ready',lora_source_url=?,error='',updated_at=? WHERE id=?",source,d.now(),row.id);
       const fresh=await d.first(env,'SELECT * FROM soul_characters WHERE id=?',row.id);
       await cleanupDataset(env,fresh,d);
@@ -121,8 +123,9 @@ async function refreshOne(env,row,d){
 export async function listCharacters(env,owner,d){
   const active=await d.rows(env,"SELECT * FROM soul_characters WHERE owner_id=? AND state IN ('queued','training') ORDER BY created_at DESC",owner);
   for(const row of active)if(d.now()-row.last_poll>8000)await refreshOne(env,row,d);
-  const list=await d.rows(env,'SELECT * FROM soul_characters WHERE owner_id=? ORDER BY created_at DESC LIMIT 20',owner);
-  return list.map(view);
+  const list=await d.rows(env,'SELECT * FROM soul_characters WHERE owner_id=? ORDER BY created_at DESC LIMIT 40',owner);
+  const links=await d.rows(env,'SELECT l.* FROM soul_reinterpret_links l JOIN soul_characters c ON c.id=l.adapter_id WHERE c.owner_id=?',owner);
+  return list.map(row=>{const link=links.find(l=>l.adapter_id===row.id),child=links.find(l=>l.parent_id===row.id),adapter=child&&list.find(c=>c.id===child.adapter_id);return view({...row,adapterFor:link?.parent_id,reinterpret:adapter?{id:adapter.id,state:adapter.state,error:adapter.error,baseModel:child.base_model}:null});});
 }
 export async function createDataset(request,env,owner,d){
   const count=Number(request.headers.get('x-photo-count'));
@@ -138,9 +141,10 @@ export async function createDataset(request,env,owner,d){
   return {id,bytes:bytes.length,photoCount:count};
 }
 async function submitTraining(env,row,dataset,url,d){
+  const link=await d.first(env,'SELECT * FROM soul_reinterpret_links WHERE adapter_id=?',row.id),trainer=link?.trainer||SOUL_TRAINER;
   const datasetUrl=await signedUrl(env,url,'soul-dataset','/soul-dataset/',dataset.id,86400,d);
   try{
-    const result=await falFetch(env,SOUL_TRAINER,{method:'POST',body:{image_data_url:datasetUrl,learning_rate:0.0005,steps:1000,default_caption:'photo of '+row.trigger_word},timeout:30000});
+    const result=await falFetch(env,trainer,{method:'POST',body:{image_data_url:datasetUrl,learning_rate:link?0.0001:0.0005,steps:1000,default_caption:'photo of '+row.trigger_word,...(link?{training_type:'content'}:{})},timeout:30000});
     const requestId=clean(result.request_id,160);
     if(!requestId||!/^[A-Za-z0-9_-]{12,160}$/.test(requestId))throw Object.assign(new Error('FAL did not return a usable request id.'),{definite:false});
     await d.run(env,"UPDATE soul_characters SET state='queued',fal_request_id=?,error='',updated_at=? WHERE id=?",requestId,d.now(),row.id);
@@ -154,13 +158,29 @@ async function submitTraining(env,row,dataset,url,d){
 export async function createCharacter(request,env,owner,url,d){
   if(!env.FAL_KEY)d.fail(503,'FAL training is not configured on this Worker.');
   const data=await d.body(request);
+  let parent=null;
+  if(data.reinterpretFor){
+    parent=await readyCharacter(env,owner,data.reinterpretFor,d);
+    if(await d.first(env,'SELECT * FROM soul_reinterpret_links WHERE adapter_id=?',parent.id))d.fail(400,'Choose the original Soul character.');
+    if(data.confirmPaidTraining!==true)d.fail(400,'Confirm the separate paid Reinterpret training ($2.26 for 1,000 steps).');
+    if(await d.first(env,'SELECT * FROM soul_reinterpret_links WHERE parent_id=?',parent.id))d.fail(409,'This Soul already has a Reinterpret training record. Check its status before another attempt.');
+  }
   if(data.confirm!==true)d.fail(400,'Confirm the adult-consent and training-data rights check.');
   const name=clean(data.name,80);if(!name)d.fail(400,'Give the character a name.');
   if((await d.first(env,"SELECT COUNT(*) AS n FROM soul_characters WHERE owner_id=? AND state IN ('submitting','queued','training','uncertain')",owner)).n>=1)d.fail(409,'A PV Soul training is already active or unresolved.');
-  if((await d.first(env,'SELECT COUNT(*) AS n FROM soul_characters WHERE owner_id=?',owner)).n>=20)d.fail(409,'Keep up to 20 trained characters.');
+  if(!parent&&(await d.first(env,'SELECT COUNT(*) AS n FROM soul_characters WHERE owner_id=? AND id NOT IN (SELECT adapter_id FROM soul_reinterpret_links)',owner)).n>=20)d.fail(409,'Keep up to 20 trained characters, each with one Reinterpret identity.');
   const dataset=await d.first(env,'SELECT * FROM soul_datasets WHERE id=? AND owner_id=?',d.uid(data.datasetId),owner);if(!dataset)d.fail(404,'Training set not found. Upload it again.');
   const id=crypto.randomUUID(),slug=name.normalize('NFKD').replace(/[^A-Za-z0-9]+/g,'_').replace(/^_+|_+$/g,'').toLowerCase().slice(0,24)||'character',trigger='pv_'+slug+'_'+id.slice(0,6);
-  await d.run(env,"INSERT INTO soul_characters(id,owner_id,name,trigger_word,state,dataset_id,created_at,updated_at) VALUES(?,?,?,?, 'submitting',?,?,?)",id,owner,name,trigger,dataset.id,d.now(),d.now());
+  // Reserve the record and training budget in one transaction before any paid call.
+  const t=d.now(),day=Math.floor(t/86400000)*86400000,c=await d.first(env,'SELECT daily_limit_microusd FROM settings WHERE owner_id=?',owner);
+  const limit=Number(c?.daily_limit_microusd||10000000),cost=parent?REINTERPRET_TRAINING_MICROS:0;
+  const statements=[env.LAB_DB.prepare("INSERT INTO soul_characters(id,owner_id,name,trigger_word,state,dataset_id,created_at,updated_at) SELECT ?,?,?,?, 'submitting',?,?,? WHERE NOT EXISTS(SELECT 1 FROM soul_characters WHERE owner_id=? AND state IN ('submitting','queued','training','uncertain')) AND (SELECT COUNT(*) FROM soul_characters WHERE owner_id=?)<40 AND (?=0 OR (SELECT COALESCE(SUM(estimate_microusd),0) FROM spend WHERE owner_id=? AND created_at>=?)+?<=?)").bind(id,owner,name,trigger,dataset.id,t,t,owner,owner,cost,owner,day,cost,limit)];
+  if(parent){
+    statements.push(env.LAB_DB.prepare('INSERT INTO soul_reinterpret_links(adapter_id,parent_id,base_model,trainer) SELECT id,?,?,? FROM soul_characters WHERE id=?').bind(parent.id,SOUL_REINTERPRET_BASE,SOUL_REINTERPRET_TRAINER,id));
+    statements.push(env.LAB_DB.prepare('INSERT INTO spend(job_id,owner_id,estimate_microusd,created_at) SELECT id,?,?,? FROM soul_characters WHERE id=?').bind(owner,cost,t,id));
+  }
+  const reserved=await env.LAB_DB.batch(statements);
+  if(!reserved[0].meta.changes)d.fail(409,'No training submitted: an active training, character limit or Lab daily spending limit prevents this reservation.');
   return view(await submitTraining(env,{id,owner_id:owner,trigger_word:trigger},dataset,url,d));
 }
 export async function retryCharacter(request,env,owner,id,url,d){
@@ -174,16 +194,21 @@ export async function retryCharacter(request,env,owner,id,url,d){
   if(other)d.fail(409,'Another PV Soul training is active or unresolved.');
   const dataset=await d.first(env,'SELECT * FROM soul_datasets WHERE id=? AND owner_id=?',row.dataset_id,owner);
   if(!dataset)d.fail(404,'The original training dataset is no longer available. Upload the photos again.');
-  await d.run(env,"UPDATE soul_characters SET state='submitting',error='',updated_at=? WHERE id=? AND state='uncertain' AND fal_request_id IS NULL",d.now(),row.id);
+  const lock=await d.run(env,"UPDATE soul_characters SET state='submitting',error='',updated_at=? WHERE id=? AND state='uncertain' AND fal_request_id IS NULL",d.now(),row.id);
+  if(!lock.meta.changes)d.fail(409,'This training retry was already claimed. Refresh its status.');
   const fresh=await submitTraining(env,row,dataset,url,d);
   return view(fresh);
 }
 export async function deleteCharacter(env,owner,id,d){
   const row=await d.first(env,'SELECT * FROM soul_characters WHERE id=? AND owner_id=?',d.uid(id),owner);
   if(!row)d.fail(404,'PV Soul character not found.');
+  const child=await d.first(env,'SELECT c.* FROM soul_characters c JOIN soul_reinterpret_links l ON l.adapter_id=c.id WHERE l.parent_id=? AND c.owner_id=?',row.id,owner);
+  if(child&&ACTIVE.has(child.state))d.fail(409,'Resolve the active or uncertain Reinterpret training before deleting this Soul.');
   if(ACTIVE.has(row.state))d.fail(409,'Active or uncertain training cannot be deleted. Resolve it after checking FAL first.');
+  if(child)await deleteCharacter(env,owner,child.id,d);
   if(row.lora_object_key)await env.LAB_MEDIA.delete(row.lora_object_key).catch(()=>{});
   await cleanupDataset(env,row,d);
+  await d.run(env,'DELETE FROM soul_reinterpret_links WHERE adapter_id=?',row.id);
   await d.run(env,'DELETE FROM soul_characters WHERE id=? AND owner_id=?',row.id,owner);
   return {ok:true};
 }
@@ -204,7 +229,7 @@ export async function publicDataset(request,env,url,d){
 }
 export async function publicWeight(request,env,url,d){
   const id=d.uid(url.pathname.split('/')[2]);
-  if(!await verifySigned(env,url,'soul-weight',id,21600,d))d.fail(403,'Expired or invalid weights link.');
+  if(!await verifySigned(env,url,'soul-weight',id,86400,d))d.fail(403,'Expired or invalid weights link.');
   const row=await d.first(env,"SELECT * FROM soul_characters WHERE id=? AND state='ready'",id);if(!row?.lora_object_key)d.fail(404,'Weights not archived.');
   const owner=await env.OWNER_DB.prepare("SELECT id FROM users WHERE id=? AND role='owner' AND auth_provider='clerk'").bind(row.owner_id).first();if(!owner)d.fail(403,'Access revoked.');
   const object=request.method==='HEAD'?await env.LAB_MEDIA.head(row.lora_object_key):await env.LAB_MEDIA.get(row.lora_object_key);if(!object)d.fail(404,'Weights unavailable.');
@@ -219,7 +244,7 @@ export async function readyCharacter(env,owner,id,d){
   return row;
 }
 export async function weightUrl(env,url,row,d){
-  if(row.lora_object_key)return signedUrl(env,url,'soul-weight','/soul-weight/',row.id,21600,d);
+  if(row.lora_object_key)return signedUrl(env,url,'soul-weight','/soul-weight/',row.id,86400,d);
   return safeFalUrl(row.lora_source_url);
 }
 export async function maintenance(env,d){
@@ -238,3 +263,10 @@ export async function maintenance(env,d){
   }
 }
 export function characterView(row){return view(row);}
+
+export async function readyReinterpretCharacter(env,owner,parentId,d){
+  await readyCharacter(env,owner,parentId,d);
+  const link=await d.first(env,'SELECT * FROM soul_reinterpret_links WHERE parent_id=?',parentId);
+  if(!link||link.base_model!==SOUL_REINTERPRET_BASE||link.trainer!==SOUL_REINTERPRET_TRAINER)d.fail(409,'This Soul needs a separate Reinterpret identity training. Its Qwen text weights cannot be used for image editing.');
+  return readyCharacter(env,owner,link.adapter_id,d);
+}

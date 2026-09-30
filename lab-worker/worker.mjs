@@ -1,9 +1,11 @@
+import {publicSoulPresets} from './soul-presets.mjs';
+import {reinterpretParameters,buildReinterpretInput} from './soul-reinterpret.mjs';
 /* Parallel Vision Lab. Private owner-only workspace, no public media bucket.
    The hosted provider is opt-in; no provider key or moderation bypass in source. */
 import {seedanceParameters, prepareSeedance, REFERENCE_MIME, sniffReference} from './seedance.mjs';
 import {FAL_CONTROLLED_POSE,FAL_CONTROLLED_INPAINT,FAL_DWPOSE,controlledPoseParameters,controlledRepairParameters,controlledPoseRefs,controlledRepairRefs,controlledPoseEstimateMicros,controlledRepairEstimateMicros,buildControlledPoseInput,buildRepairInput,falSubmit,falStatus,falResult,falAwait} from './fal-controlled-pose.mjs';
-import {SOUL_TEXT_MODEL,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-09-30.8-minimax-h3-family';
+import {SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
+export const VERSION = 'pv-lab-2026-10-01.1-soul-reinterpret';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -153,6 +155,7 @@ function parameters(value) {
   const referenceRoles=referenceLabels(value.referenceRoles);
   if(value.type==='image'&&value.engine==='fal')return value.mode==='controlled-repair'?controlledRepairParameters({...value,referenceRoles},{fail}):controlledPoseParameters({...value,referenceRoles},{fail});
   if(value.type==='image'&&value.engine==='soul'){
+    if(value.mode==='reinterpret')return reinterpretParameters(value,{fail});
     if(prompt.length<1||prompt.length>4700)fail(400,'PV Soul prompts must be 1 to 4,700 characters.');
     if(referenceRoles.length)fail(400,'PV Soul v0.1 uses the trained identity in text-to-image mode. Reference-conditioned identity generation is disabled until a matching edit-model trainer is verified.');
     const strength=Number(value.identityStrength),ratio=value.aspectRatio||'1:1';
@@ -235,7 +238,14 @@ async function prepareInput(env,owner,data,p,url) {
     primary=await source(env,owner,data.sourceId);p.referenceSourceIds=[];p.lastSourceId=null;
     input={resolution:p.resolution,output_format:p.outputFormat};
     if(url)input.image_url=await signedInput(env,url,primary.id);
+  }else if(p.type==='image'&&p.engine==='soul'&&p.mode==='reinterpret'){
+    if(data.referenceSourceIds?.length||data.lastSourceId)fail(400,'Reinterpret needs exactly one base image and no other references.');
+    primary=await source(env,owner,data.sourceId);
+    const character=await readyReinterpretCharacter(env,owner,p.characterId,soulDeps());
+    p.referenceSourceIds=[];p.lastSourceId=null;p.reinterpretAdapterId=character.id;
+    input=buildReinterpretInput(p,{triggerWord:character.trigger_word,weightsUrl:url?await soulWeightUrl(env,url,character,soulDeps()):null,imageUrl:url?await signedInput(env,url,primary.id):null});
   }else if(p.type==='image'&&p.engine==='soul'){
+    if(await first(env,'SELECT * FROM soul_reinterpret_links WHERE adapter_id=?',p.characterId))fail(400,'Use this secondary identity through its original Soul in Reinterpret mode.');
     const character=await readySoulCharacter(env,owner,p.characterId,soulDeps());
     if(data.referenceSourceIds?.length)fail(400,'PV Soul v0.1 does not accept reference images. Use the trained character with a text prompt, or switch to Seedream / Nano Banana for reference editing.');
     primary=null;p.referenceSourceIds=[];p.lastSourceId=null;p.model=SOUL_TEXT_MODEL;p.triggerWord=character.trigger_word;
@@ -309,14 +319,14 @@ async function pruneSource(env,owner,id) {
   const a=await first(env,"SELECT * FROM assets WHERE id=? AND owner_id=? AND kind='source'",id,owner);if(!a)return;
   await env.LAB_MEDIA.delete(a.object_key);await run(env,'DELETE FROM assets WHERE id=? AND owner_id=?',id,owner);
 }
-async function signedInput(env,url,id) {
-  const expires=Math.floor(now()/1000)+1800,key=await derived(env,'input-url',{name:'HMAC',hash:'SHA-256'},['sign']);
+async function signedInput(env,url,id,ttl=1800) {
+  const expires=Math.floor(now()/1000)+ttl,key=await derived(env,'input-url',{name:'HMAC',hash:'SHA-256'},['sign']);
   const sig=base(await crypto.subtle.sign('HMAC',key,enc.encode(id+':'+expires)));
   return url.origin+'/input/'+id+'?expires='+expires+'&signature='+sig;
 }
 async function publicInput(request,env,url) {
   const id=uid(url.pathname.split('/')[2]),expires=Number(url.searchParams.get('expires')),signature=url.searchParams.get('signature')||'';
-  if(!Number.isInteger(expires)||expires<Math.floor(now()/1000)||expires>Math.floor(now()/1000)+1805||!signature||signature.length>100)fail(403,'Expired input link.');
+  if(!Number.isInteger(expires)||expires<Math.floor(now()/1000)||expires>Math.floor(now()/1000)+86405||!signature||signature.length>100)fail(403,'Expired input link.');
   const key=await derived(env,'input-url',{name:'HMAC',hash:'SHA-256'},['verify']);let valid=false;
   try{valid=await crypto.subtle.verify('HMAC',key,unbase(signature),enc.encode(id+':'+expires));}catch{}
   if(!valid)fail(403,'Invalid input link.');
@@ -325,12 +335,12 @@ async function publicInput(request,env,url) {
   if(!owner)fail(403,'Access revoked.');return media(request,env,a);
 }
 async function media(request,env,a) {
-  const obj=await env.LAB_MEDIA.get(a.object_key,request.headers.has('range')?{range:request.headers}:{});
+  const obj=request.method==='HEAD'&&env.LAB_MEDIA.head?await env.LAB_MEDIA.head(a.object_key):await env.LAB_MEDIA.get(a.object_key,request.headers.has('range')?{range:request.headers}:{});
   if(!obj)fail(404,'Stored file is unavailable.');
   const h=new Headers({'Content-Type':a.mime,'Accept-Ranges':'bytes','Content-Disposition':`inline; filename="${a.kind==='video'?'parallel-vision-'+a.id+'.mp4':'source-'+a.id+'.'+(a.mime==='image/jpeg'?'jpg':a.mime.split('/')[1])}"`});
   h.set('Content-Length',String(obj.range?.length??obj.size));
   if(obj.range)h.set('Content-Range',`bytes ${obj.range.offset}-${obj.range.offset+obj.range.length-1}/${obj.size}`);
-  return new Response(obj.body,{status:obj.range?206:200,headers:h});
+  return new Response(request.method==='HEAD'?null:obj.body,{status:obj.range?206:200,headers:h});
 }
 function jobView(j) {return {id:j.id,sourceId:j.source_id,settings:JSON.parse(j.params),status:j.state,outputId:j.output_id,estimatedUsd:j.estimate_microusd>0?j.estimate_microusd/1000000:null,settledUsd:j.settled_cost,providerTaskId:j.provider_id,error:j.error,createdAt:j.created_at,updatedAt:j.updated_at};}
 function safeVideoUrl(value) {
@@ -406,7 +416,7 @@ async function createFalPoseMap(env,owner,url,poseAsset,existingId=null){
   if(existingId){
     const existing=await source(env,owner,existingId);if(!existing.mime.startsWith('image/'))fail(400,'Pose map must be an image.');return existing;
   }
-  const poseUrl=await signedInput(env,url,poseAsset.id);
+  const poseUrl=await signedInput(env,url,poseAsset.id,86400);
   const completed=await falAwait(FAL_DWPOSE,env.FAL_KEY,{image_url:poseUrl,draw_mode:'full-pose'},{timeoutMs:45000,pollMs:750});
   const output=completed.result?.image?.url;if(typeof output!=='string'||!output)throw new Error('fal.ai DWPose completed without a pose image.');
   const id=await storeRemoteImage(env,owner,output,'dwpose');
@@ -586,11 +596,13 @@ async function refreshGeminiJob(env,j,p){
 }
 
 async function refreshFalJob(env,j,p){
+  let resultPhase=false;
   if(!env.FAL_KEY){await run(env,"UPDATE jobs SET state='failed',error=?,updated_at=? WHERE id=?",'fal.ai is not configured on the Lab backend.',now(),j.id);return;}
   const lock=await run(env,'UPDATE jobs SET last_poll=? WHERE id=? AND last_poll<?',now(),j.id,now()-8000);if(!lock.meta.changes)return;
   try{
     const endpoint=p.model||FAL_CONTROLLED_POSE,status=await falStatus(endpoint,env.FAL_KEY,j.provider_id),state=String(status?.status||'').toUpperCase();
     if(state==='COMPLETED'){
+      resultPhase=true;
       const result=await falResult(endpoint,env.FAL_KEY,j.provider_id),image=result?.images?.find?.(x=>typeof x?.url==='string'&&x.url);
       if(!image)throw new Error('fal.ai completed without an image output.');
       const safe=safeVideoUrl(image.url);
@@ -605,6 +617,7 @@ async function refreshFalJob(env,j,p){
     await run(env,"UPDATE jobs SET state=?,error='',updated_at=? WHERE id=?",state==='IN_PROGRESS'?'running':'queued',now(),j.id);
   }catch(e){
     const detail=String(e?.message||'fal.ai polling error').replace(/[\r\n]+/g,' ').slice(0,400);
+    if(resultPhase&&e.status===422){await run(env,"UPDATE jobs SET state='failed',error=?,updated_at=? WHERE id=?",detail,now(),j.id);return;}
     await run(env,'UPDATE jobs SET error=?,updated_at=? WHERE id=?','fal.ai: '+detail,now(),j.id);
   }
 }
@@ -682,14 +695,14 @@ async function route(request,env,ctx) {
   if(request.method==='OPTIONS')return new Response(null,{status:204,headers:{'Access-Control-Allow-Methods':'GET,HEAD,POST,DELETE,OPTIONS','Access-Control-Allow-Headers':'Authorization,Content-Type,X-Filename,X-Photo-Count,Range','Access-Control-Max-Age':'600'}});
   if(url.pathname==='/health'&&request.method==='GET')return json({ok:true,version:VERSION});
 
-  if(url.pathname.startsWith('/input/')&&request.method==='GET')return publicInput(request,env,url);
+  if(url.pathname.startsWith('/input/')&&(request.method==='GET'||request.method==='HEAD'))return publicInput(request,env,url);
   if(url.pathname.startsWith('/soul-dataset/')&&request.method==='GET')return publicSoulDataset(request,env,url,soulDeps());
   if(url.pathname.startsWith('/soul-weight/')&&(request.method==='GET'||request.method==='HEAD'))return publicSoulWeight(request,env,url,soulDeps());
   if(!url.pathname.startsWith('/api/'))fail(404,'Not found.');
   const owner=await authenticate(request,env),path=url.pathname,method=request.method;
   if(path==='/api/session'&&method==='GET'){
     const c=await config(env,owner),spent=await first(env,'SELECT COALESCE(SUM(estimate_microusd),0) AS n FROM spend WHERE owner_id=? AND created_at>=?',owner,Math.floor(now()/86400000)*86400000);
-    return json({owner:true,ownerId:owner,version:VERSION,config:{...publicConfig(c),geminiEnabled:!!env.GEMINI_API_KEY,soulTrainingEnabled:!!env.FAL_KEY,falEnabled:!!env.FAL_KEY},estimatedSpentToday:spent.n/1000000});
+    return json({owner:true,ownerId:owner,version:VERSION,config:{...publicConfig(c),geminiEnabled:!!env.GEMINI_API_KEY,soulTrainingEnabled:!!env.FAL_KEY,soulReinterpretEnabled:true,soulPresets:publicSoulPresets(),falEnabled:!!env.FAL_KEY},estimatedSpentToday:spent.n/1000000});
   }
   if(path==='/api/soul/characters'&&method==='GET')return json({characters:await listSoulCharacters(env,owner,soulDeps())});
   if(path==='/api/soul/datasets'&&method==='POST')return json(await createSoulDataset(request,env,owner,soulDeps()),201);
@@ -835,7 +848,7 @@ async function route(request,env,ctx) {
     p.referenceSourceIds=refs.map(a=>a.id);p.referenceRoles=p.referenceRoles.slice(0,refs.length);
     const pose=refs[roles.pose],identity=roles.identity.map(i=>refs[i]);
     const poseMap=await createFalPoseMap(env,owner,url,pose,data.poseMapSourceId||null);p.poseMapSourceId=poseMap.id;
-    const poseMapUrl=await signedInput(env,url,poseMap.id),identityUrls=await Promise.all(identity.map(a=>signedInput(env,url,a.id)));
+    const poseMapUrl=await signedInput(env,url,poseMap.id,86400),identityUrls=await Promise.all(identity.map(a=>signedInput(env,url,a.id,86400)));
     const input=buildControlledPoseInput(p,{poseMapUrl,identityUrls}),estimate=controlledPoseEstimateMicros(p);
     const reserved=await reserveFalImageJob(env,owner,pose.id,p,estimate),job=await submitReservedFalJob(env,reserved,p,input);
     return json({job:jobView(job)},202);
@@ -851,15 +864,15 @@ async function route(request,env,ctx) {
     const roles=controlledRepairRefs(p.referenceRoles,refs.length,{fail});
     let poseMap=null;
     if(roles.pose!==null){poseMap=await createFalPoseMap(env,owner,url,refs[roles.pose],data.poseMapSourceId||null);p.poseMapSourceId=poseMap.id;}
-    const identity=roles.identity.map(i=>refs[i]),identityUrls=await Promise.all(identity.map(a=>signedInput(env,url,a.id)));
-    const input=buildRepairInput(p,{imageUrl:await signedInput(env,url,image.id),maskUrl:await signedInput(env,url,mask.id),poseMapUrl:poseMap?await signedInput(env,url,poseMap.id):null,identityUrls});
+    const identity=roles.identity.map(i=>refs[i]),identityUrls=await Promise.all(identity.map(a=>signedInput(env,url,a.id,86400)));
+    const input=buildRepairInput(p,{imageUrl:await signedInput(env,url,image.id,86400),maskUrl:await signedInput(env,url,mask.id,86400),poseMapUrl:poseMap?await signedInput(env,url,poseMap.id,86400):null,identityUrls});
     const estimate=controlledRepairEstimateMicros(p),reserved=await reserveFalImageJob(env,owner,image.id,p,estimate),job=await submitReservedFalJob(env,reserved,p,input);
     return json({job:jobView(job)},202);
   }
 
   if(path==='/api/quotes'&&method==='POST') {
     const {key}=await requireConfigured(env,owner),data=await body(request),p=parameters(data.settings);
-    if(p.mode!=='upscale'&&!p.prompt)fail(400,'Add a prompt before generating.');
+    if(!['upscale','reinterpret'].includes(p.mode)&&!p.prompt)fail(400,'Add a prompt before generating.');
     const {primary,input}=await prepareInput(env,owner,data,p,url);
     if(p.type==='video'&&Array.isArray(input.reference_image_urls)&&p.referenceSourceIds?.length){
       const ids=data.transferSourceIds??p.referenceSourceIds;
@@ -869,7 +882,7 @@ async function route(request,env,ctx) {
       input.reference_image_urls=await stageImageReferences(env,owner,p.transferSourceIds,key,p.engine==='seedance'?30:10);
     }
     if(p.type==='image'){
-      const originals=p.mode==='upscale'?[primary.id]:p.referenceSourceIds;
+      const originals=['upscale','reinterpret'].includes(p.mode)?[primary.id]:p.referenceSourceIds;
       if(originals.length){
         const ids=data.transferSourceIds??originals;
         if(!Array.isArray(ids)||ids.length!==originals.length||new Set(ids).size!==ids.length)fail(400,'Working copies must match the original images in order.');
@@ -878,7 +891,7 @@ async function route(request,env,ctx) {
         p.transferSourceIds=transfers.map(a=>a.id);
         p.transferNotes=transfers.map((a,i)=>a.id===originals[i]?'':originalsData[i].filename+': original '+(originalsData[i].bytes/1048576).toFixed(2)+' MiB; provider working copy '+(a.bytes/1048576).toFixed(2)+' MiB.').filter(Boolean);
         const uris=await stageImageReferences(env,owner,p.transferSourceIds,key);
-        if(p.mode==='upscale')input.image_url=uris[0];else input.image_urls=uris;
+        if(['upscale','reinterpret'].includes(p.mode))input.image_url=uris[0];else input.image_urls=uris;
       }
     }
     const payload={model:p.model,input},q=await vendorRequest('/jobs/quote',key,payload);

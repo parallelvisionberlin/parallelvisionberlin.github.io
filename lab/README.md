@@ -103,3 +103,29 @@ PV Soul image generation still uses the existing encrypted SpicyAPI connection a
 Training inputs must comply with FAL's rules. The UI requires confirmation that depicted people are adults and that the owner has the rights and consent to train the identity. No safety-checker bypass is implemented.
 
 Deployment requires the additive `lab-worker/migrations/0004-pv-soul.sql` migration before the updated Worker. The production deployment workflow applies this idempotent migration automatically, then deploys the Worker. Existing Lab records, encrypted SpicyAPI credentials, Nina authorization data and non-Soul media are unchanged.
+
+## PV Soul / Reinterpret
+
+Inside Image > PV Soul, Text keeps the existing Qwen Image 2512 identity. Reinterpret accepts one base photograph, an optional direction, eight photographic presets, image fidelity, identity strength, composition/styling guidance, source aspect ratio and PNG/JPEG output. History keeps the original source and all settings for Reuse; completed results retain Repair, Upscale, Use in Video and Download.
+
+### Compatibility and activation
+
+The current Qwen Image 2512 Text weights cannot be used on the hosted Qwen Edit 2511 route. Reinterpret therefore requires a **separate Z-Image Turbo identity** linked to the original Soul. Existing Text weights are never converted, relabelled or replaced. A missing, failed or unready linked identity blocks generation.
+
+In Reinterpret, choose **Prepare Reinterpret identity**, select 20–80 suitable identity photos and explicitly approve the separate training. Previous training ZIPs were temporary and are not recovered from unrelated assets. The published FAL price checked on 2026-10-01 is **$2.26 for 1,000 steps**. The Lab reserves that estimate against the daily spending limit before submitting once. Ambiguous submissions require an explicit owner check of FAL before any retry. Deleting a training record does not erase its spending reservation.
+
+Verified provider routes and schemas:
+
+- Training: [`fal-ai/z-image-trainer`](https://fal.ai/models/fal-ai/z-image-trainer/api), `image_data_url`, `steps:1000`, `learning_rate:0.0001`, `default_caption`, `training_type:content`.
+- Reinterpret: [`alibaba/z-image-turbo-lora/edit`](https://spicyapi.ai/ru/models/z-image-turbo-lora), `prompt`, one `image_url`, `resolution` (1k / 1.5k), `strength`, `loras[{path,scale}]`, `output_format`. Uses the existing SpicyAPI live quote and idempotent submission flow.
+- [Qwen editing compatibility](https://spicyapi.ai/blog/qwen-image-2512-lora-edit-compatibility).
+
+The backend owns preset directions and validates every control. Provider `strength = 1 - imageFidelity`; identity strength sets only the linked adapter scale. Composition/styling choices are prompt guidance. High fidelity may also retain the source person's face. Identity replacement quality, layout preservation and the best strength need visual evaluation with the newly trained identity. This release has mock coverage, **not a paid Nina Reinterpret quality benchmark**. No new identity training or generation was purchased during implementation.
+
+### Input lifetime and deployment
+
+Reinterpret stages the base image through the existing SpicyAPI file-upload mechanism. Weight links remain signed for 24 hours. Queued FAL pose, identity, source and mask links now last 24 hours and support unauthenticated signed HEAD requests. This reduces the former 30-minute queue expiry risk; jobs delayed beyond 24 hours can still fail. A FAL completed-request result returning HTTP 422 becomes failed without resubmission or removal of its spend reservation. The older uncertain Gemini job is untouched.
+
+Apply `lab-worker/migrations/0005-soul-reinterpret.sql` to LAB_DB only, then upload all Worker modules while retaining every secret, D1 and R2 binding. Verify `/health` before merging the UI. Worker auto-deploy stays manual. The migration is additive and idempotent.
+
+Verification: `node --test tests/lab*.test.mjs`, the new mock-only `tests/lab-soul-reinterpret-ui.mjs`, the four existing Lab browser suites, JavaScript syntax checks, and `npm run build`. Browser suites use `PV_PLAYWRIGHT_MODULE` and need Playwright Chromium. They make no real provider submissions.

@@ -19,14 +19,15 @@ class DB {
  }
  async batch(statements){this.db.exec('BEGIN');try{const a=[];for(const s of statements)a.push(await s.run());this.db.exec('COMMIT');return a;}catch(e){this.db.exec('ROLLBACK');throw e;}}
 }
-function fixture(){const db=new DB(readFileSync(new URL('../lab-worker/schema.sql',import.meta.url),'utf8')),owner=new DB("CREATE TABLE users(id TEXT,auth_provider TEXT,auth_subject TEXT,role TEXT); INSERT INTO users VALUES('owner-internal','clerk','user_Owner','owner'),('guest','clerk','user_Guest','user');");const objects=new Map();const env={LAB_DB:db,OWNER_DB:owner,LAB_SECRET:'synthetic-test-secret-do-not-use-in-production-01234567890',FAL_KEY:'fal-synthetic-test-key',LAB_MEDIA:{async put(k,value){objects.set(k,new Uint8Array(await new Response(value).arrayBuffer()));},async get(k){if(!objects.has(k))return null;const v=objects.get(k);return{body:new Response(v).body,size:v.length};},async delete(k){objects.delete(k);}}};return{env,objects};}
+function fixture(){const db=new DB(readFileSync(new URL('../lab-worker/schema.sql',import.meta.url),'utf8')),owner=new DB("CREATE TABLE users(id TEXT,auth_provider TEXT,auth_subject TEXT,role TEXT); INSERT INTO users VALUES('owner-internal','clerk','user_Owner','owner'),('guest','clerk','user_Guest','user');");const objects=new Map();const env={LAB_DB:db,OWNER_DB:owner,LAB_SECRET:'synthetic-test-secret-do-not-use-in-production-01234567890',FAL_KEY:'fal-synthetic-test-key',LAB_MEDIA:{async put(k,value){objects.set(k,new Uint8Array(await new Response(value).arrayBuffer()));},async get(k){if(!objects.has(k))return null;const v=objects.get(k);return{body:new Response(v).body,size:v.length};},async head(k){return objects.has(k)?{size:objects.get(k).length}:null;},async delete(k){objects.delete(k);}}};return{env,objects};}
 let calls=[],quotedRequest=null,createCount=0,providerState='queued',createMode='ok',maxPrice='2.700000';
-let uploadedReference=null,falState='IN_QUEUE',falSubmitCount=0;
+let uploadedReference=null,falState='IN_QUEUE',falSubmitCount=0,falResult422=false,falSubmitMode='ok';
 globalThis.fetch=async (url,options={})=>{const u=new URL(url);calls.push({url:String(url),options});if(u.pathname==='/.well-known/jwks.json')return Response.json({keys:[jwk]});
  if(u.hostname==='queue.fal.run'){
   assert.equal(new Headers(options.headers).get('authorization'),'Key fal-synthetic-test-key');
-  if(options.method==='POST'){falSubmitCount++;const input=JSON.parse(options.body);assert.match(input.image_data_url,/\/soul-dataset\//);assert.equal(input.steps,1000);assert.equal(input.learning_rate,0.0005);assert.match(input.default_caption,/^photo of pv_/);return Response.json({request_id:'fal_request_synthetic_1234567890'});}
+  if(options.method==='POST'){falSubmitCount++;if(falSubmitMode==='timeout')throw new Error('Synthetic timeout');if(u.pathname.includes('flux-general'))return Response.json({request_id:'fal_repair_synthetic_1234567890'});const input=JSON.parse(options.body);assert.match(input.image_data_url,/\/soul-dataset\//);assert.equal(input.steps,1000);assert.equal(input.learning_rate,u.pathname.includes('z-image-trainer')?0.0001:0.0005);if(u.pathname.includes('z-image-trainer'))assert.equal(input.training_type,'content');assert.match(input.default_caption,/^photo of pv_/);return Response.json({request_id:'fal_request_synthetic_1234567890'});}
   if(u.pathname.endsWith('/status'))return Response.json({status:falState,logs:falState==='IN_PROGRESS'?[{message:'training step 500'}]:[]});
+  if(u.pathname.includes('/requests/')&&falResult422)return Response.json({detail:'The provided image URL has expired.'},{status:422});
   if(u.pathname.includes('/requests/'))return Response.json({diffusers_lora_file:{url:'https://v3b.fal.media/files/test/nina.safetensors',content_type:'application/octet-stream',file_name:'nina.safetensors',file_size:8},config_file:{url:'https://v3b.fal.media/files/test/config.json'}});
  }
  if(u.hostname==='v3b.fal.media'){const bytes=new Uint8Array([1,2,3,4,5,6,7,8]);return new Response(bytes,{headers:{'content-type':'application/octet-stream','content-length':String(bytes.length)}});}
@@ -38,7 +39,7 @@ if(u.hostname==='cdn.spicyapi.ai'){assert.ok(!options.headers?.Authorization);if
  if(u.pathname.endsWith('/files/fil_synthetic_reference/commit')){assert.equal(options.method,'POST');return Response.json({code:200,data:{fileId:'fil_synthetic_reference',status:'ready',bytes:uploadedReference.length,contentType:'image/png',sha256:Buffer.from(await crypto.subtle.digest('SHA-256',uploadedReference)).toString('hex'),uri:'spicy://f/fil_synthetic_reference',expiresAt:new Date(Date.now()+86400000).toISOString()}});}
  if(u.pathname.endsWith('/jobs/quote')){quotedRequest=JSON.parse(options.body);return Response.json({code:200,data:{quoteId:'synthetic-quote',estimatedCost:maxPrice,maxCharge:maxPrice,currency:'USD',expiresAt:new Date(Date.now()+300000).toISOString()}});}
  if(u.pathname.endsWith('/jobs/createTask')){createCount++;const payload=JSON.parse(options.body);assert.deepEqual({model:payload.model,input:payload.input},quotedRequest);assert.equal(payload.quoteId,'synthetic-quote');assert.equal(payload.expectedCost,maxPrice);assert.match(options.headers['Idempotency-Key'],/^[a-f0-9-]{36}$/);if(createMode==='timeout')throw new Error('simulated interrupted network');if(createMode==='pricechange')return Response.json({code:40901,msg:'quote changed',data:null},{status:409});return Response.json({code:200,data:{taskId:'job_synthetic',state:'queued'}},{status:202});}
- if(u.pathname.endsWith('/jobs/recordInfo'))return Response.json({code:200,data:{taskId:'job_synthetic',state:providerState,settled:providerState==='succeeded',cost:'2.7',output:{assets:[(quotedRequest?.model?.includes('seedream')||quotedRequest?.model?.includes('image-upscaler'))?{mime:'image/png',url:'https://cdn.spicyapi.ai/test.png'}:{mime:'video/mp4',url:'https://cdn.spicyapi.ai/test.mp4'}]}}});
+ if(u.pathname.endsWith('/jobs/recordInfo'))return Response.json({code:200,data:{taskId:'job_synthetic',state:providerState,settled:providerState==='succeeded',cost:'2.7',output:{assets:[(quotedRequest?.model?.includes('seedream')||quotedRequest?.model?.includes('image-upscaler')||quotedRequest?.model?.includes('lora'))?{mime:'image/png',url:'https://cdn.spicyapi.ai/test.png'}:{mime:'video/mp4',url:'https://cdn.spicyapi.ai/test.mp4'}]}}});
  throw new Error('Unmocked network request: '+url);
 };
 const auth=await token(),guest=await token('user_Guest');
@@ -84,24 +85,24 @@ test('Saving retries the stored provider output directly and never consumes a Sp
     assert.ok(!calls.slice(marker).some(c=>new URL(c.url).pathname.endsWith('/jobs/recordInfo')));
 
     const savingIds=[];
-    for(let i=0;i<4;i++){
+    for(let i=0;i<10;i++){
       const jobId=crypto.randomUUID();savingIds.push(jobId);
       env.LAB_DB.db.prepare("INSERT INTO jobs(id,owner_id,source_id,params,state,provider_id,remote_url,estimate_microusd,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?)")
         .run(jobId,'owner-internal',sourceId,JSON.stringify({...imageSettings,model:'bytedance/seedream-5.0-pro/edit'}),'saving','job_saved_'+i,'https://cdn.spicyapi.ai/test.png',93000,t+i+1,t+i+1);
     }
-    for(let i=0;i<4;i++){
+    for(let i=0;i<10;i++){
       const q=await(await req(env,'/api/quotes',{method:'POST',data:{settings:imageSettings,referenceSourceIds:[]}})).json();
       const response=await req(env,'/api/jobs',{method:'POST',data:{quoteId:q.id,confirm:true}});
       assert.equal(response.status,202);
     }
-    assert.equal(createCount,4);
+    assert.equal(createCount,10);
     const fifth=await(await req(env,'/api/quotes',{method:'POST',data:{settings:imageSettings,referenceSourceIds:[]}})).json();
     const blocked=await req(env,'/api/jobs',{method:'POST',data:{quoteId:fifth.id,confirm:true}});
     assert.equal(blocked.status,409);
-    assert.match((await blocked.json()).error,/4 \/ 4 image slots/);
+    assert.match((await blocked.json()).error,/10 \/ 10 image slots/);
     const history=await(await req(env,'/api/jobs')).json();
-    assert.equal(history.activeJobs.filter(j=>j.status==='saving').length,4);
-    assert.equal(history.activeJobs.filter(j=>j.status==='queued'&&j.settings.type==='image').length,4);
+    assert.equal(history.activeJobs.filter(j=>j.status==='saving').length,10);
+    assert.equal(history.activeJobs.filter(j=>j.status==='queued'&&j.settings.type==='image').length,10);
   }finally{maxPrice=oldPrice;createMode='ok';providerState='queued';}
 });
 
@@ -215,4 +216,108 @@ test('Provider balance and spending-cap errors remain distinct and redact privat
       assert.equal(env.LAB_DB.db.prepare('SELECT daily_limit_microusd AS n FROM settings').get().n,10000000);
     }finally{globalThis.fetch=originalFetch;}
   }
+});
+
+async function soulPair(env,objects,{adapter=true}={}){
+ const parent=crypto.randomUUID(),child=crypto.randomUUID(),t=Date.now();
+ for(const [id,name] of [[parent,'Nina'],...(adapter?[[child,'Nina / Reinterpret']]:[])]){
+  const key='owner-internal/soul/weights/'+id+'.safetensors';objects.set(key,new Uint8Array([1,2,3,4]));
+  env.LAB_DB.db.prepare("INSERT INTO soul_characters(id,owner_id,name,trigger_word,state,lora_object_key,created_at,updated_at) VALUES(?,?,?,?,'ready',?,?,?)").run(id,'owner-internal',name,'pv_'+id.slice(0,8),key,t,t);
+ }
+ if(adapter)env.LAB_DB.db.prepare('INSERT INTO soul_reinterpret_links VALUES(?,?,?,?)').run(child,parent,'z-image-turbo','fal-ai/z-image-trainer');
+ return {parent,child};
+}
+const reSettings=characterId=>({type:'image',engine:'soul',mode:'reinterpret',characterId,preset:'photographic-real-skin',prompt:'',imageFidelity:.82,identityStrength:1.25,keepComposition:true,keepStyling:false,aspectRatio:'source',resolution:'1.5k',outputFormat:'png'});
+test('Reinterpret uses only compatible child weights and one staged source; archives output and restores settings',async()=>{
+ const {env,objects}=fixture(),sourceId=await setup(env),{parent,child}=await soulPair(env,objects);createMode='ok';createCount=0;providerState='queued';
+ const settings=reSettings(parent),r=await req(env,'/api/quotes',{method:'POST',data:{sourceId,settings}});assert.equal(r.status,200,await r.clone().text());const q=await r.json();
+ assert.equal(quotedRequest.model,'alibaba/z-image-turbo-lora/edit');const input=quotedRequest.input;
+ assert.deepEqual(Object.keys(input).sort(),['image_url','loras','output_format','prompt','resolution','strength']);
+ assert.equal(input.image_url,'spicy://f/fil_synthetic_reference');assert.equal(input.strength,.18);assert.equal(input.loras[0].scale,1.25);
+ assert.equal(new URL(input.loras[0].path).pathname,'/soul-weight/'+child);assert.match(input.prompt,new RegExp('pv_'+child.slice(0,8)));assert.ok(!input.prompt.includes('pv_'+parent.slice(0,8)));assert.match(input.prompt,/Same framing/);assert.match(input.prompt,/styling and lighting may follow/);assert.match(input.prompt,/pores/i);
+ const weight=new URL(input.loras[0].path);assert.equal((await req(env,weight.pathname+weight.search,{method:'HEAD',authToken:null,headers:{Origin:''}})).status,200);
+ const job=(await(await req(env,'/api/jobs',{method:'POST',data:{quoteId:q.id,confirm:true}})).json()).job;providerState='succeeded';
+ const done=(await(await req(env,'/api/jobs/'+job.id)).json()).job;assert.equal(done.status,'completed');assert.equal(done.sourceId,sourceId);assert.ok(done.outputId);assert.equal(done.settings.reinterpretAdapterId,child);
+ assert.equal((await req(env,'/api/assets/'+done.outputId)).headers.get('content-type'),'image/png');
+ const draft=(await(await req(env,'/api/drafts',{method:'POST',data:{sourceId,settings:done.settings}})).json()).job;
+ for(const [key,value] of Object.entries(settings))assert.deepEqual(draft.settings[key],value,key);
+ assert.equal(createCount,1);providerState='queued';
+});
+test('Reinterpret rejects missing or extra sources, incompatible identity, cross-owner assets and invalid controls before quotes',async()=>{
+ const {env,objects}=fixture(),sourceId=await setup(env),{parent,child}=await soulPair(env,objects),settings=reSettings(parent);createCount=0;
+ const absent=await soulPair(env,objects,{adapter:false});
+ for(const data of [
+  {settings}, {sourceId,referenceSourceIds:[sourceId],settings}, {sourceId,lastSourceId:sourceId,settings},
+  {sourceId,settings:{...settings,characterId:absent.parent}}, {sourceId,settings:{...settings,characterId:child}},
+  ...[{preset:'invented'},{imageFidelity:1},{identityStrength:4},{keepComposition:'yes'},{aspectRatio:'16:9'},{outputFormat:'webp'},{resolution:'4k'},{prompt:'x'.repeat(3001)}].map(x=>({sourceId,settings:{...settings,...x}}))
+ ]){const r=await req(env,'/api/quotes',{method:'POST',data});assert.ok([400,409].includes(r.status),await r.text());}
+ const foreign=crypto.randomUUID();env.LAB_DB.db.prepare('INSERT INTO assets VALUES(?,?,?,?,?,?,?,?)').run(foreign,'another-owner','foreign/source','source','image/png','source.png',9,Date.now());
+ assert.equal((await req(env,'/api/quotes',{method:'POST',data:{sourceId:foreign,settings}})).status,404);
+ env.LAB_DB.db.prepare("UPDATE soul_characters SET state='training' WHERE id=?").run(child);
+ assert.equal((await req(env,'/api/quotes',{method:'POST',data:{sourceId,settings}})).status,409);
+ assert.equal(createCount,0);
+});
+test('Reinterpret live quotes obey budget, concurrency and ambiguous-submit gates without automatic retry',async()=>{
+ const oldPrice=maxPrice;maxPrice='0.1';
+ try{
+  const {env,objects}=fixture(),sourceId=await setup(env),{parent}=await soulPair(env,objects),settings=reSettings(parent);createCount=0;createMode='timeout';
+  const quoteRe=async()=>{const r=await req(env,'/api/quotes',{method:'POST',data:{sourceId,settings}});assert.equal(r.status,200);return r.json();};
+  const q=await quoteRe(),res=await req(env,'/api/jobs',{method:'POST',data:{quoteId:q.id,confirm:true}}),job=(await res.json()).job;assert.equal(job.status,'uncertain');
+  const repeated=await req(env,'/api/jobs',{method:'POST',data:{quoteId:q.id,confirm:true}});assert.equal(repeated.status,200);assert.equal((await repeated.json()).job.id,job.id);
+  const q2=await quoteRe();assert.equal((await req(env,'/api/jobs',{method:'POST',data:{quoteId:q2.id,confirm:true}})).status,409);assert.equal(createCount,1);
+  await req(env,'/api/jobs/'+job.id+'/resolve',{method:'POST',data:{confirm:true}});createMode='ok';
+  env.LAB_DB.db.prepare('INSERT INTO spend VALUES(?,?,?,?)').run(crypto.randomUUID(),'owner-internal',10000000,Date.now());
+  assert.equal((await req(env,'/api/jobs',{method:'POST',data:{quoteId:q2.id,confirm:true}})).status,409);assert.equal(createCount,1);
+  env.LAB_DB.db.exec('DELETE FROM spend');
+  for(let n=0;n<10;n++)env.LAB_DB.db.prepare("INSERT INTO jobs(id,owner_id,params,state,created_at,updated_at) VALUES(?,?,?,'queued',?,?)").run(crypto.randomUUID(),'owner-internal',JSON.stringify(settings),Date.now(),Date.now());
+  assert.equal((await req(env,'/api/jobs',{method:'POST',data:{quoteId:q2.id,confirm:true}})).status,409);assert.equal(createCount,1);
+ }finally{maxPrice=oldPrice;createMode='ok';}
+});
+test('Secondary identity requires paid approval and budget, trains Z-Image once, and leaves the Text identity intact',async()=>{
+ const {env,objects}=fixture();await setup(env);const {parent}=await soulPair(env,objects,{adapter:false});falSubmitCount=0;falState='IN_QUEUE';
+ const before=env.LAB_DB.db.prepare('SELECT * FROM soul_characters WHERE id=?').get(parent),zip=new Uint8Array(40);zip.set([0x50,0x4b,0x03,0x04]);
+ const ds=await(await req(env,'/api/soul/datasets',{method:'POST',raw:zip,headers:{'Content-Type':'application/zip','X-Photo-Count':'20'}})).json();
+ const data={name:'Nina / Reinterpret',datasetId:ds.id,confirm:true,reinterpretFor:parent};
+ assert.equal((await req(env,'/api/soul/characters',{method:'POST',data})).status,400);
+ data.confirmPaidTraining=true;
+ await req(env,'/api/settings',{method:'POST',data:{enabled:true,termsConfirmed:true,dailyLimitUsd:1}});
+ assert.equal((await req(env,'/api/soul/characters',{method:'POST',data})).status,409);assert.equal(falSubmitCount,0);
+ await req(env,'/api/settings',{method:'POST',data:{enabled:true,termsConfirmed:true,dailyLimitUsd:10}});
+ const response=await req(env,'/api/soul/characters',{method:'POST',data});assert.equal(response.status,202,await response.clone().text());const child=(await response.json()).character;
+ assert.equal(falSubmitCount,1);assert.equal(env.LAB_DB.db.prepare('SELECT estimate_microusd FROM spend WHERE job_id=?').get(child.id).estimate_microusd,2260000);
+ assert.ok(calls.some(c=>c.url==='https://queue.fal.run/fal-ai/z-image-trainer'&&c.options.method==='POST'));
+ assert.equal((await req(env,'/api/soul/characters',{method:'POST',data})).status,409);assert.equal(falSubmitCount,1);
+ falState='COMPLETED';const list=(await(await req(env,'/api/soul/characters')).json()).characters;
+ assert.equal(list.find(c=>c.id===parent).reinterpret.state,'ready');assert.equal(list.find(c=>c.id===child.id).adapterFor,parent);assert.deepEqual(env.LAB_DB.db.prepare('SELECT * FROM soul_characters WHERE id=?').get(parent),before);
+ const text={...imageSettings,engine:'soul',characterId:parent,identityStrength:1,resolution:'native',aspectRatio:'3:4',referenceRoles:[]};
+ assert.equal((await req(env,'/api/quotes',{method:'POST',data:{settings:text}})).status,200);assert.equal(quotedRequest.model,'alibaba/qwen-image-2512-lora/text-to-image');assert.ok(quotedRequest.input.loras[0].path.includes(parent));
+ assert.equal((await req(env,'/api/quotes',{method:'POST',data:{settings:{...text,characterId:child.id}}})).status,400);
+ const migration=readFileSync(new URL('../lab-worker/migrations/0005-soul-reinterpret.sql',import.meta.url),'utf8');env.LAB_DB.db.exec(migration);env.LAB_DB.db.exec(migration);assert.deepEqual(env.LAB_DB.db.prepare('PRAGMA foreign_key_check').all(),[]);falState='IN_QUEUE';
+});
+test('FAL inputs last 24 hours, support anonymous HEAD, and definitive result 422 fails without a new paid call',async()=>{
+ const {env}=fixture(),sourceId=await setup(env);const settings={type:'image',engine:'fal',mode:'controlled-repair',prompt:'Repair natural texture',sourceWidth:512,sourceHeight:512,referenceRoles:[]};
+ falSubmitCount=0;falState='IN_QUEUE';
+ const res=await req(env,'/api/fal/repair',{method:'POST',data:{sourceId,maskSourceId:sourceId,settings}});assert.equal(res.status,202,await res.clone().text());const job=(await res.json()).job;
+ const call=calls.findLast(c=>c.options.method==='POST'&&c.url.includes('flux-general'));assert.ok(call);const input=JSON.parse(call.options.body);
+ for(const value of [input.image_url,input.mask_url]){
+  const u=new URL(value),ttl=Number(u.searchParams.get('expires'))-Math.floor(Date.now()/1000);assert.ok(ttl>=86395&&ttl<=86400);
+  const head=await req(env,u.pathname+u.search,{method:'HEAD',authToken:null,headers:{Origin:''}});assert.equal(head.status,200);assert.equal(head.headers.get('content-length'),'9');assert.equal(await head.text(),'');
+  u.searchParams.set('expires',String(Number(u.searchParams.get('expires'))+1));assert.equal((await req(env,u.pathname+u.search,{authToken:null,headers:{Origin:''}})).status,403);
+ }
+ const spent=env.LAB_DB.db.prepare('SELECT SUM(estimate_microusd) AS n FROM spend').get().n;
+ falState='COMPLETED';falResult422=true;
+ try{const done=(await(await req(env,'/api/jobs/'+job.id)).json()).job;assert.equal(done.status,'failed');assert.match(done.error,/expired/);await req(env,'/api/jobs/'+job.id);assert.equal(falSubmitCount,1);assert.equal(env.LAB_DB.db.prepare('SELECT SUM(estimate_microusd) AS n FROM spend').get().n,spent);}
+ finally{falState='IN_QUEUE';falResult422=false;}
+});
+test('Ambiguous secondary training never retries automatically; simultaneous approved retries claim it once',async()=>{
+ const {env,objects}=fixture();await setup(env);const {parent}=await soulPair(env,objects,{adapter:false}),zip=new Uint8Array(40);zip.set([0x50,0x4b,0x03,0x04]);
+ const ds=await(await req(env,'/api/soul/datasets',{method:'POST',raw:zip,headers:{'Content-Type':'application/zip','X-Photo-Count':'20'}})).json();
+ falSubmitMode='timeout';falSubmitCount=0;
+ try{
+  const r=await req(env,'/api/soul/characters',{method:'POST',data:{name:'Nina / Reinterpret',datasetId:ds.id,confirm:true,reinterpretFor:parent,confirmPaidTraining:true}});assert.equal(r.status,202);const c=(await r.json()).character;assert.equal(c.state,'uncertain');
+  await req(env,'/api/soul/characters');await req(env,'/api/soul/characters');assert.equal(falSubmitCount,1);
+  assert.equal((await req(env,'/api/soul/characters/'+c.id+'/retry',{method:'POST',data:{confirm:false}})).status,400);
+  falSubmitMode='ok';const attempts=await Promise.all([1,2].map(()=>req(env,'/api/soul/characters/'+c.id+'/retry',{method:'POST',data:{confirm:true}})));assert.deepEqual(attempts.map(r=>r.status).sort(),[202,409]);assert.equal(falSubmitCount,2);
+  assert.equal(env.LAB_DB.db.prepare('SELECT SUM(estimate_microusd) AS n FROM spend').get().n,2260000);
+ }finally{falSubmitMode='ok';}
 });
