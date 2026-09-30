@@ -540,7 +540,28 @@ async function upscaleImage(job){
 async function animateImage(job){clearMedia();setTool('video');setMode('start');await setImage(await assetFile(job.outputId,'generated-image'),job.outputId);$('prompt').value='';update();notify('Generated image loaded as the video start frame. Add motion direction and review the price.');window.scrollTo({top:0,behavior:'smooth'});}
 async function loadPacks(){const data=await api('/api/packs');packs=data.packs;$('pack-select').replaceChildren(new Option('Choose a saved pack',''),...packs.map(p=>new Option(p.name,p.id)));}
 $('pack-save').onclick=()=>action(async()=>{if(!references.length)throw new Error('Add reference images first.');const name=window.prompt('Name this reference pack, for example Nina FOK / Editorial');if(!name?.trim())return;const ids=await ensureReferences();await api('/api/packs',{method:'POST',body:{name:name.trim(),engine:tool==='video'?engine:'wan',referenceSourceIds:ids,referenceRoles:referenceRoles()}});await loadPacks();notify('Reference pack saved privately. No generation charge.');});
-$('pack-load').onclick=()=>action(async()=>{const pack=packs.find(p=>p.id===$('pack-select').value);if(!pack)throw new Error('Choose a saved pack.');if(pack.refs.length>referenceLimit())throw new Error('This pack needs Seedance reference mode: it contains more than '+referenceLimit()+' images.');if(references.length&&!confirm('Replace the current references with this pack?'))return;const files=await Promise.all(pack.refs.map(r=>assetFile(r.id,r.name.replace(/\.[^.]+$/,''))));references.forEach(releaseReference);references=[];await addReferences(files,pack.refs.map(r=>r.id),pack.refs);notify('Pack loaded with reference order, roles and notes.');});
+$('pack-load').onclick=()=>action(async()=>{
+  const pack=packs.find(p=>p.id===$('pack-select').value);
+  if(!pack)throw new Error('Choose a saved pack.');
+  if(tool==='image'&&imageEngine==='fal'){
+    const identities=pack.refs.filter(r=>r.role==='identity').slice(0,4);
+    if(!identities.length)throw new Error('This pack has no references marked Identity.');
+    const pose=references.find(r=>r.role==='pose')||null;
+    const keep=pose?[pose]:[];
+    for(const r of references)if(r!==pose)releaseReference(r);
+    references=keep;
+    const files=await Promise.all(identities.map(r=>assetFile(r.id,r.name.replace(/\.[^.]+$/,''))));
+    await addReferences(files,identities.map(r=>r.id),identities);
+    notify((pose?'Pose kept. ':'')+identities.length+' Nina identity reference'+(identities.length===1?'':'s')+' loaded from '+pack.name+'.');
+    return;
+  }
+  if(pack.refs.length>referenceLimit())throw new Error('This pack contains more than '+referenceLimit()+' images for the current mode.');
+  if(references.length&&!confirm('Replace the current references with this pack?'))return;
+  const files=await Promise.all(pack.refs.map(r=>assetFile(r.id,r.name.replace(/\.[^.]+$/,''))));
+  references.forEach(releaseReference);references=[];
+  await addReferences(files,pack.refs.map(r=>r.id),pack.refs);
+  notify('Pack loaded with reference order, roles and notes.');
+});
 $('pack-delete').onclick=()=>action(async()=>{const id=$('pack-select').value;if(!id||!confirm('Delete this reference pack? Existing generation history remains.'))return;await api('/api/packs/'+id,{method:'DELETE'});await loadPacks();notify('Reference pack deleted.');});
 const observer=new IntersectionObserver(entries=>{
   for(const entry of entries){
