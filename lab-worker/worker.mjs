@@ -148,7 +148,7 @@ function referenceLabels(value,max=10) {
 function parameters(value) {
   if(!value||typeof value!=='object'||Array.isArray(value))fail(400,'Invalid settings.');
   if(value.type!=='image'&&value.engine==='seedance')return seedanceParameters(value,{fail,referenceLabels});
-  if(value.engine&&value.engine!=='wan'&&value.type!=='image')fail(400,'Unknown video model.');
+  if(value.engine&&!['wan','wanprime'].includes(value.engine)&&value.type!=='image')fail(400,'Unknown video model.');
   const prompt=typeof value.prompt==='string'?value.prompt.trim():'';
   const referenceRoles=referenceLabels(value.referenceRoles);
   if(value.type==='image'&&value.engine==='fal')return value.mode==='controlled-repair'?controlledRepairParameters({...value,referenceRoles},{fail}):controlledPoseParameters({...value,referenceRoles},{fail});
@@ -184,7 +184,8 @@ function parameters(value) {
   if(!videoRatios.includes(ratio))fail(400,'Invalid video aspect ratio.');
   const seed=value.seed==null||value.seed===''?null:Number(value.seed);
   if(seed!==null&&(!Number.isInteger(seed)||seed<0||seed>2147483647))fail(400,'Seed must be a whole number from 0 to 2147483647.');
-  return {type:'video',model:mode==='reference'?MODEL_REFERENCE:MODEL_IMAGE,mode,prompt,duration,resolution,aspectRatio:ratio,seed,audio:value.audio!==false,referenceRoles};
+  const prime=value.engine==='wanprime';
+  return {type:'video',engine:prime?'wanprime':'wan',model:prime?(mode==='reference'?'alibaba/wan-3.0-prime/reference-to-video':'alibaba/wan-3.0-prime/image-to-video'):(mode==='reference'?MODEL_REFERENCE:MODEL_IMAGE),mode,prompt,duration,resolution,aspectRatio:ratio,seed,audio:value.audio!==false,referenceRoles};
 }
 function assembledPrompt(p) {
   const labels=(p.referenceRoles||[]).slice(0,p.referenceSourceIds?.length||0).map((r,i)=>r.role!=='none'||r.note?'Reference '+(i+1)+(r.name?' ('+r.name+')':'')+': '+(r.role!=='none'?r.role+'. ':'')+r.note:'').filter(Boolean);
