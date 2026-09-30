@@ -1,4 +1,4 @@
-import {VIDEO_MODELS,engineFor,videoLabel} from './video-models.js?v=20260927-standard1';
+import {VIDEO_MODELS,engineFor,videoLabel} from './video-models.js?v=20260930-wanprime1';
 import {createMediaReferences} from './media-references.js?v=20260927-standard1';
 import { createSessionRequest } from './session-request.js?v=20260927-auth1';
 import { createSoulController } from './soul.js?v=20260930-soul-v05';
@@ -163,7 +163,7 @@ function configureVideoControls(){
     $('mode-heading').textContent='01 / '+(mode==='text'?'Text to Video':mode==='reference'?'Reference to Video':'Image to Video');
     $('prompt').maxLength=sd?5000:6000;
     $('prompt-label').textContent=mode==='text'?'Scene direction':'Motion direction';
-    $('video-model-note').textContent=sd?'Seedance 2.5 Standard / 4–30s / up to 1080p. Start frame follows your image ratio. Reference mode supports image, video and audio guidance. Provider policies and refusals remain in force.':'Wan 3.0 / Start frame or image references. 21:9 start-frame mode makes a private local center crop, keeps your original, then uses Wan adaptive ratio because Wan rejects an explicit 21:9 parameter. Provider policies and model refusals apply.';
+    $('video-model-note').textContent=sd?'Seedance 2.5 Standard / 4–30s / up to 1080p. Start frame follows your image ratio. Reference mode supports image, video and audio guidance. Provider policies and refusals remain in force.':engine==='wanprime'?'Wan 3.0 Prime / faster Wan render / 2–30s / 480p–1080p / same Start frame and Reference modes as Wan 3.0. Higher live provider price.':'Wan 3.0 / Start frame or image references. 21:9 start-frame mode makes a private local center crop, keeps your original, then uses Wan adaptive ratio because Wan rejects an explicit 21:9 parameter. Provider policies and model refusals apply.';
   }
   $('reference-drop').querySelector('small').textContent='Up to '+referenceLimit()+' images';
   $('ref-count').textContent=references.length+' / '+referenceLimit();
@@ -471,7 +471,7 @@ $('repair-submit').onclick=()=>action(async()=>{
 });
 async function prepareQuoteInputs(inputs){
   if(tool==='video'){
-    if(engine==='wan'&&mode==='start'&&$('ratio').value==='21:9'){
+    if((engine==='wan'||engine==='wanprime')&&mode==='start'&&$('ratio').value==='21:9'){
       const sessionEpoch=epoch, originals=[{id:inputs.sourceId,file},...(inputs.lastSourceId&&lastFile?[{id:inputs.lastSourceId,file:lastFile}]:[])],transferSourceIds=[];
       for(const item of originals){
         const cacheKey='wan21x9:'+item.id;let copy=workingCopies.get(cacheKey);
