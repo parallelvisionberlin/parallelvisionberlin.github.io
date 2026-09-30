@@ -3,7 +3,7 @@
 import {seedanceParameters, prepareSeedance, REFERENCE_MIME, sniffReference} from './seedance.mjs';
 import {FAL_CONTROLLED_POSE,FAL_CONTROLLED_INPAINT,FAL_DWPOSE,controlledPoseParameters,controlledRepairParameters,controlledPoseRefs,controlledRepairRefs,controlledPoseEstimateMicros,controlledRepairEstimateMicros,buildControlledPoseInput,buildRepairInput,falSubmit,falStatus,falResult,falAwait} from './fal-controlled-pose.mjs';
 import {SOUL_TEXT_MODEL,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-09-30.7-fal-errors-wan-prime';
+export const VERSION = 'pv-lab-2026-09-30.8-minimax-h3-family';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -102,7 +102,7 @@ async function decryptKey(env,value) {
   return dec.decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:unbase(iv),additionalData:enc.encode(MODEL)},key,unbase(cipher)));
 }
 async function config(env,owner) {return first(env,'SELECT * FROM settings WHERE owner_id=?',owner);}
-function publicConfig(c) {return {concurrency:CONCURRENCY,configured:!!c,enabled:!!(c?.enabled&&c?.terms_confirmed),dailyLimitUsd:(c?.daily_limit_microusd||10000000)/1000000,provider:'SpicyAPI',videoEngines:['wan','wanprime','seedance'],model:'Wan 3.0 / Wan 3.0 Prime / Seedance 2.5 / Seedream 5.0 Pro / Image Upscaler',documentation:DOC,pricingNote:'A live provider quote is required before every generation. No subscription is added by this Lab. Provider terms apply.'};}
+function publicConfig(c) {return {concurrency:CONCURRENCY,configured:!!c,enabled:!!(c?.enabled&&c?.terms_confirmed),dailyLimitUsd:(c?.daily_limit_microusd||10000000)/1000000,provider:'SpicyAPI',videoEngines:['wan','wanprime','h3','h3max','h3spicy','seedance'],model:'Wan 3.0 / Wan Prime / MiniMax H3 / H3 Max / H3 Spicy / Seedance 2.5 / Seedream 5.0 Pro / Image Upscaler',documentation:DOC,pricingNote:'A live provider quote is required before every generation. No subscription is added by this Lab. Provider terms apply.'};}
 async function vendorRequest(path,key,data,idempotency,method=data?'POST':'GET') {
   let r;
   try {
@@ -148,7 +148,7 @@ function referenceLabels(value,max=10) {
 function parameters(value) {
   if(!value||typeof value!=='object'||Array.isArray(value))fail(400,'Invalid settings.');
   if(value.type!=='image'&&value.engine==='seedance')return seedanceParameters(value,{fail,referenceLabels});
-  if(value.engine&&!['wan','wanprime'].includes(value.engine)&&value.type!=='image')fail(400,'Unknown video model.');
+  if(value.engine&&!['wan','wanprime','h3','h3max','h3spicy'].includes(value.engine)&&value.type!=='image')fail(400,'Unknown video model.');
   const prompt=typeof value.prompt==='string'?value.prompt.trim():'';
   const referenceRoles=referenceLabels(value.referenceRoles);
   if(value.type==='image'&&value.engine==='fal')return value.mode==='controlled-repair'?controlledRepairParameters({...value,referenceRoles},{fail}):controlledPoseParameters({...value,referenceRoles},{fail});
@@ -184,6 +184,16 @@ function parameters(value) {
   if(!videoRatios.includes(ratio))fail(400,'Invalid video aspect ratio.');
   const seed=value.seed==null||value.seed===''?null:Number(value.seed);
   if(seed!==null&&(!Number.isInteger(seed)||seed<0||seed>2147483647))fail(400,'Seed must be a whole number from 0 to 2147483647.');
+  if(['h3','h3max','h3spicy'].includes(value.engine)){
+    const h3=value.engine,limits=h3==='h3'?{min:4,max:15,res:['480p','768p','2k'],modes:['start','reference','text']}:
+      h3==='h3max'?{min:5,max:15,res:['768p'],modes:['start','text']}:{min:3,max:15,res:['480p','540p','768p','1080p'],modes:['start']};
+    const hmode=value.mode==='reference'?'reference':value.mode==='text'?'text':'start';
+    if(!limits.modes.includes(hmode))fail(400,'This MiniMax H3 variant does not support that video mode.');
+    if(!Number.isInteger(duration)||duration<limits.min||duration>limits.max||!limits.res.includes(resolution))fail(400,'Choose a supported MiniMax H3 duration and resolution.');
+    const endpoint=h3==='h3'?('minimax/h3/'+(hmode==='reference'?'reference-to-video':hmode==='text'?'text-to-video':'image-to-video')):
+      h3==='h3max'?('minimax/h3-max/'+(hmode==='text'?'text-to-video':'image-to-video')):'minimax/h3-spicy/image-to-video';
+    return {type:'video',engine:h3,model:endpoint,mode:hmode,prompt,duration,resolution,aspectRatio:ratio,seed:null,audio:true,referenceRoles};
+  }
   const prime=value.engine==='wanprime';
   return {type:'video',engine:prime?'wanprime':'wan',model:prime?(mode==='reference'?'alibaba/wan-3.0-prime/reference-to-video':'alibaba/wan-3.0-prime/image-to-video'):(mode==='reference'?MODEL_REFERENCE:MODEL_IMAGE),mode,prompt,duration,resolution,aspectRatio:ratio,seed,audio:value.audio!==false,referenceRoles};
 }
