@@ -3,7 +3,7 @@
 import {seedanceParameters, prepareSeedance, REFERENCE_MIME, sniffReference} from './seedance.mjs';
 import {FAL_CONTROLLED_POSE,FAL_CONTROLLED_INPAINT,FAL_DWPOSE,controlledPoseParameters,controlledRepairParameters,controlledPoseRefs,controlledRepairRefs,controlledPoseEstimateMicros,controlledRepairEstimateMicros,buildControlledPoseInput,buildRepairInput,falSubmit,falStatus,falResult,falAwait} from './fal-controlled-pose.mjs';
 import {SOUL_TEXT_MODEL,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-09-30.6-image-concurrency-10';
+export const VERSION = 'pv-lab-2026-09-30.7-fal-errors-wan-prime';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -568,8 +568,9 @@ async function refreshFalJob(env,j,p){
       await copyResult(env,j,safe);return;
     }
     if(['FAILED','CANCELLED','CANCELED'].includes(state)){
-      const detail=String(status?.error||status?.detail||'fal.ai ended the request without an image.').replace(/[\r\n]+/g,' ').slice(0,400);
-      await run(env,"UPDATE jobs SET state='failed',error=?,updated_at=? WHERE id=?",detail,now(),j.id);return;
+      const rawDetail=status?.error??status?.detail??'fal.ai ended the request without an image.';
+      const detail=typeof rawDetail==='string'?rawDetail:(Array.isArray(rawDetail)?rawDetail.map(item=>typeof item==='string'?item:item&&typeof item==='object'?[Array.isArray(item.loc)?item.loc.join('.'):'',item.msg||item.message||'',item.type||''].filter(Boolean).join(': '):String(item)).filter(Boolean).join(' | '):JSON.stringify(rawDetail));
+      await run(env,"UPDATE jobs SET state='failed',error=?,updated_at=? WHERE id=?",String(detail).replace(/[\r\n]+/g,' ').slice(0,600),now(),j.id);return;
     }
     await run(env,"UPDATE jobs SET state=?,error='',updated_at=? WHERE id=?",state==='IN_PROGRESS'?'running':'queued',now(),j.id);
   }catch(e){
