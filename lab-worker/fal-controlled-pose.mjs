@@ -127,8 +127,19 @@ async function falJson(url,key,options={}){
   }
   const raw=await response.text();let data=null;try{data=raw?JSON.parse(raw):null;}catch{}
   if(!response.ok){
-    const detail=String(data?.detail||data?.message||data?.error||raw||'Provider rejected the request.').replace(/[\r\n]+/g,' ').slice(0,300);
-    const e=new Error('fal.ai: '+detail);e.status=response.status;e.definite=response.status>=400&&response.status<500&&response.status!==408&&response.status!==429;throw e;
+    const rawDetail=data?.detail??data?.message??data?.error??raw??'Provider rejected the request.';
+    const detail=typeof rawDetail==='string'?rawDetail:(Array.isArray(rawDetail)?rawDetail.map(item=>{
+      if(typeof item==='string')return item;
+      if(item&&typeof item==='object'){
+        const loc=Array.isArray(item.loc)?item.loc.join('.'):'';
+        const msg=typeof item.msg==='string'?item.msg:typeof item.message==='string'?item.message:'';
+        const type=typeof item.type==='string'?item.type:'';
+        return [loc,msg,type].filter(Boolean).join(': ');
+      }
+      return String(item);
+    }).filter(Boolean).join(' | '):JSON.stringify(rawDetail));
+    const safeDetail=String(detail||'Provider rejected the request.').replace(/[\r\n]+/g,' ').slice(0,600);
+    const e=new Error('fal.ai: '+safeDetail);e.status=response.status;e.definite=response.status>=400&&response.status<500&&response.status!==408&&response.status!==429;throw e;
   }
   return data||{};
 }
