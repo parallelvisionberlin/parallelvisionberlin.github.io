@@ -1,4 +1,4 @@
-import {VIDEO_MODELS,engineFor,videoLabel} from './video-models.js?v=20260930-wanprime1';
+import {VIDEO_MODELS,engineFor,videoLabel} from './video-models.js?v=20260930-h3family1';
 import {createMediaReferences} from './media-references.js?v=20260927-standard1';
 import { createSessionRequest } from './session-request.js?v=20260927-auth1';
 import { createSoulController } from './soul.js?v=20260930-soul-v05';
@@ -143,25 +143,26 @@ async function addReferences(list,ids=[],labels=[]){
 
 function referenceLimit(){return tool==='video'?VIDEO_MODELS[engine].maxImages:tool==='image'&&imageEngine==='soul'?soul.referenceLimit():tool==='image'&&imageEngine==='fal'?5:10;}
 function configureVideoControls(){
-  const isVideo=tool==='video',model=VIDEO_MODELS[engine],sd=engine==='seedance';
+  const isVideo=tool==='video',model=VIDEO_MODELS[engine],sd=engine==='seedance',h3=engine==='h3',h3max=engine==='h3max',h3spicy=engine==='h3spicy',minimax=h3||h3max||h3spicy;
   $('video-model-control').hidden=!isVideo;$('video-engine').value=engine;
   if(!model.modes.includes(mode))mode='start';
-  $('mode-text').hidden=!isVideo||!sd;
+  $('mode-text').hidden=!isVideo||!(sd||h3||h3max);
   for(const m of ['start','reference','text']){$('mode-'+m).classList.toggle('active',mode===m);$('mode-'+m).setAttribute('aria-selected',String(mode===m));}
   $('start-mode').hidden=tool==='image'||isVideo&&mode!=='start';$('reference-mode').hidden=tool==='upscale'||isVideo&&mode!=='reference'||tool==='image'&&imageEngine==='soul';
   $('reference-media').hidden=!isVideo||!sd||mode!=='reference';
   $('start-frame-maker').hidden=!isVideo||mode!=='reference'||sd;
   if(isVideo){
     const ratio=$('ratio').value,duration=Number($('duration').value)||15;
-    const ratios=sd&&mode==='start'?['auto']:(!sd&&mode==='start'?[...model.ratios,'21:9']:model.ratios);
+    const ratios=(sd||minimax)&&mode==='start'?['auto']:(!sd&&!minimax&&mode==='start'?[...model.ratios,'21:9']:model.ratios);
     options('ratio',ratios,sd&&mode==='start'?'auto':ratios.includes(ratio)?ratio:'auto');
-    $('ratio').parentElement.hidden=sd&&mode==='start';
-    $('duration').replaceChildren(...(sd?Array.from({length:27},(_,i)=>i+4):[5,10,15,30]).map(n=>new Option(n+' sec',String(n))));
+    $('ratio').parentElement.hidden=(sd||minimax)&&mode==='start';
+    const durations=sd?Array.from({length:27},(_,i)=>i+4):minimax?Array.from({length:model.maxSeconds-model.minSeconds+1},(_,i)=>i+model.minSeconds):[5,10,15,30];
+    $('duration').replaceChildren(...durations.map(n=>new Option(n+' sec',String(n))));
     if(duration>=model.minSeconds&&duration<=30&&!([...$('duration').options].some(o=>Number(o.value)===duration)))$('duration').add(new Option(duration+' sec',String(duration)));
     $('duration').value=duration>=model.minSeconds&&duration<=30?duration:5;
     $('engine-name').textContent=model.label.toUpperCase();
     $('mode-heading').textContent='01 / '+(mode==='text'?'Text to Video':mode==='reference'?'Reference to Video':'Image to Video');
-    $('prompt').maxLength=sd?5000:6000;
+    $('prompt').maxLength=minimax?7000:sd?5000:6000;
     $('prompt-label').textContent=mode==='text'?'Scene direction':'Motion direction';
     $('video-model-note').textContent=sd?'Seedance 2.5 Standard / 4–30s / up to 1080p. Start frame follows your image ratio. Reference mode supports image, video and audio guidance. Provider policies and refusals remain in force.':engine==='wanprime'?'Wan 3.0 Prime / faster Wan render / 2–30s / 480p–1080p / same Start frame and Reference modes as Wan 3.0. Higher live provider price.':'Wan 3.0 / Start frame or image references. 21:9 start-frame mode makes a private local center crop, keeps your original, then uses Wan adaptive ratio because Wan rejects an explicit 21:9 parameter. Provider policies and model refusals apply.';
   }
@@ -173,11 +174,14 @@ $('mode-text').onclick=()=>{if(!busy)setMode('text');};
 $('video-engine').onchange=()=>{
   if(busy)return;
   const requested=$('video-engine').value;
-  if(!Object.hasOwn(VIDEO_MODELS,requested)||requested==='seedance'&&!config.videoEngines?.includes('seedance')){$('video-engine').value=engine;notify('The backend has not enabled this model yet.',true);return;}
+  if(!Object.hasOwn(VIDEO_MODELS,requested)||!config.videoEngines?.includes(requested)){$('video-engine').value=engine;notify('The backend has not enabled this model yet.',true);return;}
   if(references.length>VIDEO_MODELS[requested].maxImages){$('video-engine').value=engine;notify('Remove excess references or save an image pack before choosing this model.',true);return;}
-  if(requested!=='seedance'&&mediaRefs.count()){$('video-engine').value=engine;notify('Remove video/audio references before changing to Wan. Your inputs have been kept.',true);return;}
+  if(requested!=='seedance'&&mediaRefs.count()){$('video-engine').value=engine;notify('Remove video/audio references before changing model. Your inputs have been kept.',true);return;}
   engine=requested;currentQuote=null;if($('quote-dialog').open)$('quote-dialog').close();
   if(engine==='seedance'){$('duration').value='5';$('resolution').value='720p';}
+  else if(engine==='h3'){$('duration').value='5';$('resolution').value='768p';}
+  else if(engine==='h3max'){$('duration').value='5';$('resolution').value='768p';}
+  else if(engine==='h3spicy'){$('duration').value='5';$('resolution').value='768p';}
   configureVideoControls();resetPreview();update();
 };
 const mediaRefs=createMediaReferences({element:$,owner:()=>owner,busy:()=>busy,epoch:()=>epoch,action,changed:()=>{autoPreview=null;update();},
@@ -190,7 +194,7 @@ async function ensureReferences(){
   for(let i=0;i<references.length;i++){const r=references[i];if(!r.id){notify('Uploading original reference '+(i+1)+' of '+references.length+'…');r.id=await uploadAsset(r.file);}}
   return references.map(r=>r.id);
 }
-async function ensureInputs(){if(tool==='video'&&engine==='seedance'){if(mode==='text')return {sourceId:null,lastSourceId:null,referenceSourceIds:[],referenceVideoIds:[],referenceAudioIds:[]};if(mode==='reference'){const ids=references.length?await ensureReferences():[];return {sourceId:ids[0]||null,lastSourceId:null,referenceSourceIds:ids,...await mediaRefs.inputs()};}}if(tool==='upscale')return {sourceId:await ensureSource(),lastSourceId:null,referenceSourceIds:[]};if(tool==='image'&&!references.length)return {sourceId:null,lastSourceId:null,referenceSourceIds:[]};if(tool==='image'||mode==='reference'){const ids=await ensureReferences();return {sourceId:ids[0],lastSourceId:null,referenceSourceIds:ids};}return {sourceId:await ensureSource(),lastSourceId:await ensureLast(),referenceSourceIds:[]};}
+async function ensureInputs(){if(tool==='video'&&['seedance','h3'].includes(engine)){if(mode==='text')return {sourceId:null,lastSourceId:null,referenceSourceIds:[],referenceVideoIds:[],referenceAudioIds:[]};if(mode==='reference'){const ids=references.length?await ensureReferences():[];return {sourceId:ids[0]||null,lastSourceId:null,referenceSourceIds:ids,...(engine==='seedance'?await mediaRefs.inputs():{referenceVideoIds:[],referenceAudioIds:[]})};}}if(tool==='upscale')return {sourceId:await ensureSource(),lastSourceId:null,referenceSourceIds:[]};if(tool==='image'&&!references.length)return {sourceId:null,lastSourceId:null,referenceSourceIds:[]};if(tool==='image'||mode==='reference'){const ids=await ensureReferences();return {sourceId:ids[0],lastSourceId:null,referenceSourceIds:ids};}return {sourceId:await ensureSource(),lastSourceId:await ensureLast(),referenceSourceIds:[]};}
 function applyConfig(c){config=c;soul.configure(c);$('soul-launch-note').textContent=c.soulTrainingEnabled?'FAL training is ready. Train from 20–80 photos, then use the character in Image.':'FAL training is not available on this Worker.';$('soul-launch-manage').disabled=!c.soulTrainingEnabled;const soulOption=$('image-engine').querySelector('[value=soul]'),falOption=$('image-engine').querySelector('[value=fal]');if(soulOption)soulOption.disabled=!c.soulTrainingEnabled;if(falOption)falOption.disabled=!c.falEnabled;if((imageEngine==='soul'&&!c.soulTrainingEnabled)||(imageEngine==='fal'&&!c.falEnabled)){imageEngine='seedream';$('image-engine').value='seedream';setTool('image');}$('video-engine').querySelector('[value=seedance]').disabled=!c.videoEngines?.includes('seedance');$('connection-status').textContent=(c.enabled?'SpicyAPI connected':'SpicyAPI disconnected')+(c.geminiEnabled?' · Gemini connected':'')+(c.soulTrainingEnabled?' · FAL training ready':'')+(c.falEnabled?' · FAL image controls ready':'')+' / Private archive ready';update();}
 function connection(){if(!owner)return;$('api-key').value='';$('daily-limit').value=config.dailyLimitUsd||10;$('terms').checked=false;$('disconnect').hidden=!config.configured;$('key-note').textContent=config.configured?'A key is stored encrypted. Leave blank to keep it, or paste a replacement.':'Stored encrypted on your private backend. Never committed to GitHub or saved in browser storage.';$('connect-notice').textContent='';$('connect-dialog').showModal();}
 $('connect-form').addEventListener('submit',async e=>{e.preventDefault();$('connect-save').disabled=true;try{const data=await api('/api/settings',{method:'POST',body:{apiKey:$('api-key').value,dailyLimitUsd:Number($('daily-limit').value),enabled:true,termsConfirmed:$('terms').checked}});$('api-key').value='';applyConfig(data.config);$('connect-dialog').close();notify('Provider key connected. Images and Upscale start on click; Video keeps price review.');}catch(error){$('connect-notice').textContent=error.message;}finally{$('connect-save').disabled=false;}});
