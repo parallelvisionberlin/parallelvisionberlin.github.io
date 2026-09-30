@@ -210,6 +210,13 @@ async function prepareInput(env,owner,data,p,url) {
     const prepared=await prepareSeedance(env,owner,data,p,url,{fail,source,sources,signedInput});
     if(p.prompt)prepared.input.prompt=assembledPrompt(p);return prepared;
   }
+  if(p.engine==='h3'&&p.mode==='reference'){
+    const refs=await sources(env,owner,data.referenceSourceIds,9);p.referenceSourceIds=refs.map(a=>a.id);p.lastSourceId=null;
+    const input={resolution:p.resolution,duration_seconds:p.duration,aspect_ratio:p.aspectRatio==='auto'?'16:9':p.aspectRatio};
+    if(url)input.reference_image_urls=await Promise.all(refs.map(a=>signedInput(env,url,a.id)));
+    if(p.prompt)input.prompt=assembledPrompt(p).replace(/^Reference (\d+)/gm,'Picture $1');
+    return {primary:refs[0],input};
+  }
   if(p.provider==='fal'||p.engine==='fal'){
     const refs=data.referenceSourceIds?.length?await sources(env,owner,data.referenceSourceIds,5):[];
     if(p.mode==='controlled-pose'){
@@ -241,6 +248,17 @@ async function prepareInput(env,owner,data,p,url) {
     primary=refs[0]||null;p.referenceSourceIds=refs.map(a=>a.id);p.lastSourceId=null;p.model=refs.length?STILL_EDIT:STILL_TEXT;
     input={resolution:p.resolution,aspect_ratio:p.aspectRatio==='auto'&&!refs.length?'1:1':p.aspectRatio,output_format:p.outputFormat};
     if(refs.length&&url)input.image_urls=await Promise.all(refs.map(a=>signedInput(env,url,a.id)));
+  }else if(['h3','h3max','h3spicy'].includes(p.engine)){
+    p.referenceSourceIds=[];p.lastSourceId=null;
+    input={resolution:p.resolution,duration_seconds:p.duration};
+    if(p.mode==='text'){
+      primary=null;
+      if(p.aspectRatio!=='auto')input.aspect_ratio=p.aspectRatio;
+    }else{
+      primary=await source(env,owner,data.sourceId);
+      const last=data.lastSourceId?await source(env,owner,data.lastSourceId):null;p.lastSourceId=last?.id||null;
+      if(url){input.image_url=await signedInput(env,url,primary.id);if(last)input.last_image_url=await signedInput(env,url,last.id);}
+    }
   }else if(p.mode==='reference'){
     const refs=await sources(env,owner,data.referenceSourceIds);primary=refs[0];p.referenceSourceIds=refs.map(a=>a.id);p.lastSourceId=null;
     input={resolution:p.resolution,duration_seconds:p.duration,generate_audio:p.audio,enable_prompt_expansion:false,aspect_ratio:p.aspectRatio==='auto'?'adaptive':p.aspectRatio};
