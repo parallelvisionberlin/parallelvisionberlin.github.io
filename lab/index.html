@@ -4,11 +4,11 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow,noarchive"><meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#111210"><title>Parallel Vision Lab</title>
-<link rel="icon" href="/favicon.png"><link rel="stylesheet" href="./lab.css?v=20260930-controlled-pose1">
+<link rel="icon" href="/favicon.png"><link rel="stylesheet" href="./lab.css?v=20260930-modeltop1">
 <link rel="stylesheet" href="./history.css?v=20260927-2">
 <link rel="stylesheet" href="./seedance.css?v=20260927-standard1">
 <link rel="stylesheet" href="./soul.css?v=20260930-soul-v02">
-<script type="module" src="./lab.js?v=20260930-soul-v05"></script>
+<script type="module" src="./lab.js?v=20260930-modeltop1"></script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to workspace</a>
@@ -25,7 +25,7 @@
 </div>
 <div class="workspace">
 <section class="controls" aria-label="Image to video settings">
-<div class="mode"><span id="mode-heading">01 / Image to Video</span><span class="engine-pill" id="engine-name">WAN 3.0</span></div>
+<div class="mode"><span id="mode-heading">01 / Image to Video</span><span class="engine-pill" id="engine-name">WAN 3.0</span><label id="image-model-control" class="mode-model-control" hidden><span class="label">Image model</span><select id="image-engine"><option value="seedream" selected>Seedream 5 Pro</option><option value="gemini">Nano Banana Pro</option><option value="soul">PV Soul</option><option value="fal">Controlled Pose · FAL FLUX</option></select></label></div>
 <div id="video-model-control"><label><span class="label">Video model</span><select id="video-engine"><option value="wan">Wan 3.0</option><option value="seedance" disabled>Seedance 2.5</option></select></label><p id="video-model-note" class="fine">Standard model access. Provider policies and model refusals apply. No automatic model switching.</p></div>
 <div id="video-modes" class="mode-switch" role="tablist" aria-label="Generation mode">
 <button id="mode-text" class="mode-tab" type="button" role="tab" aria-selected="false" hidden>Text to Video</button>
@@ -88,7 +88,7 @@
 <label class="label prompt-label" id="prompt-label" for="prompt">Motion direction</label><textarea id="prompt" maxlength="6000" placeholder="One clear action, one camera move, light, atmosphere and sound."></textarea>
 <div class="parameter-grid">
 <label id="duration-control"><span class="label">Duration</span><select id="duration"><option value="5">5 sec</option><option value="10">10 sec</option><option value="15" selected>15 sec</option><option value="30">30 sec</option></select></label>
-<label id="image-model-control" hidden><span class="label">Image model</span><select id="image-engine"><option value="seedream" selected>Seedream 5 Pro</option><option value="gemini">Nano Banana Pro</option><option value="soul">PV Soul</option><option value="fal">Controlled Pose · FAL FLUX</option></select></label>
+
 <label id="image-processing-control" hidden><span class="label">Processing</span><select id="image-processing"><option value="normal" selected>⚡ Normal</option><option value="batch">🕒 Batch · 50% cheaper</option></select></label>
 <label id="image-count-control" hidden><span class="label">Number of images</span><select id="image-count"><option value="1" selected>1 image</option><option value="2">2 images</option><option value="3">3 images</option><option value="4">4 images</option></select></label>
 <label id="resolution-control"><span class="label">Resolution</span><select id="resolution"><option value="480p">480p</option><option value="720p">720p</option><option value="1080p" selected>1080p</option></select></label>
