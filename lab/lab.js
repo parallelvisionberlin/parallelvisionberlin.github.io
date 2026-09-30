@@ -538,6 +538,24 @@ async function upscaleImage(job){
 }
 
 async function animateImage(job){clearMedia();setTool('video');setMode('start');await setImage(await assetFile(job.outputId,'generated-image'),job.outputId);$('prompt').value='';update();notify('Generated image loaded as the video start frame. Add motion direction and review the price.');window.scrollTo({top:0,behavior:'smooth'});}
+async function refineInSeedream(job,preset='full'){
+  if(!hasResult(job)||job.settings.type!=='image')throw new Error('Choose a completed image first.');
+  if(!config.enabled)throw new Error('SpicyAPI is not connected.');
+  const prompts={
+    full:'Preserve this exact adult person, identity, face, body proportions, pose, camera angle, framing, composition, room, lighting and overall image. Refine only photographic quality and anatomical detail. Improve hands, fingers, feet, toes, garment construction, fabric edges, hair strands, skin pores and subtle natural skin variation. Correct small anatomical or clothing artifacts without redesigning the person or scene. Keep the result realistic and unretouched, with natural texture, coherent shadows and restrained photographic detail. No body reshaping, no slimmer body, no enlarged features, no beauty-filter face, no plastic skin, no CGI look.',
+    face:'Preserve the entire image exactly. Refine only facial fidelity and photographic facial detail: coherent eyes, eyelids, nose, lips, teeth if visible, freckles, skin pores and individual hair strands. Keep the same adult identity, expression, face shape, body, pose, clothing, background, framing and lighting. No beauty-filter face, no facial redesign, no body changes.',
+    extremities:'Preserve the entire image exactly. Refine only hands, fingers, feet and toes for anatomically coherent realistic detail. Keep the exact adult identity, face, body proportions, pose, clothing, composition, room, camera and lighting unchanged. Do not reshape the body.',
+    clothing:'Preserve the exact adult person, identity, body proportions, pose, composition, camera and lighting. Refine only garment construction and textile realism: clean seams, straps, hems, closures, fabric tension, folds and edges. Remove fused or impossible clothing artifacts. Do not redesign the outfit or body.'
+  };
+  clearMedia();setTool('image');imageEngine='seedream';$('image-engine').value='seedream';setTool('image');
+  const file=await assetFile(job.outputId,'pv-soul-refine-source');
+  await addReferences([file],[job.outputId],[{name:file.name,role:'none',note:'Primary image. Preserve identity, body, pose, composition, camera and lighting; refine only requested defects.'}]);
+  $('prompt').value=prompts[preset]||prompts.full;
+  $('resolution').value='2k';$('ratio').value='auto';$('image-count').value='1';update();
+  notify('Loaded into Seedream Refine. Review the preset prompt, then click Generate. Nothing has been submitted yet.');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
 async function loadPacks(){const data=await api('/api/packs');packs=data.packs;$('pack-select').replaceChildren(new Option('Choose a saved pack',''),...packs.map(p=>new Option(p.name,p.id)));}
 $('pack-save').onclick=()=>action(async()=>{if(!references.length)throw new Error('Add reference images first.');const name=window.prompt('Name this reference pack, for example Nina FOK / Editorial');if(!name?.trim())return;const ids=await ensureReferences();await api('/api/packs',{method:'POST',body:{name:name.trim(),engine:tool==='video'?engine:'wan',referenceSourceIds:ids,referenceRoles:referenceRoles()}});await loadPacks();notify('Reference pack saved privately. No generation charge.');});
 $('pack-load').onclick=()=>action(async()=>{
@@ -616,7 +634,10 @@ function renderCards(jobs,{upsert=false}={}){
       const download=button(image?'Download image':'Download video',async()=>{});download.disabled=true;download.title='Available only when a completed output file exists.';actions.append(download);
     }
     actions.append(button('Reuse',()=>restore(j)));
-    if(ready&&image){actions.append(button('Repair',()=>openRepair(j)));actions.append(button('Upscale',()=>upscaleImage(j)));actions.append(button('Use in Video',()=>animateImage(j)));}
+    if(ready&&image){
+      if(j.settings?.engine==='soul')actions.append(button('Refine in Seedream',()=>refineInSeedream(j,'full')));
+      actions.append(button('Repair',()=>openRepair(j)));actions.append(button('Upscale',()=>upscaleImage(j)));actions.append(button('Use in Video',()=>animateImage(j)));
+    }
     if(!activeStates.has(j.status))actions.append(button('Delete',async()=>{
       if(!confirm('Delete this saved record and its unshared files? This cannot be undone.'))return;
       await api('/api/jobs/'+j.id,{method:'DELETE'});cleanupHistoryCard(card);card.remove();await syncHistory();notify('Record deleted. Spending history is unchanged.');
