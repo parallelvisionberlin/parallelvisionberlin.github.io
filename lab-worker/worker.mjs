@@ -5,8 +5,9 @@ import {reinterpretParameters,buildReinterpretInput} from './soul-reinterpret.mj
 import {seedanceParameters, prepareSeedance, REFERENCE_MIME, sniffReference} from './seedance.mjs';
 import {FAL_CONTROLLED_POSE,FAL_CONTROLLED_INPAINT,FAL_DWPOSE,controlledPoseParameters,controlledRepairParameters,controlledPoseRefs,controlledRepairRefs,controlledPoseEstimateMicros,controlledRepairEstimateMicros,buildControlledPoseInput,buildRepairInput,falSubmit,falStatus,falResult,falAwait} from './fal-controlled-pose.mjs';
 import {falVideoParameters,falVideoEstimateMicros,buildFalVideoInput} from './fal-video.mjs';
+import {soulProParameters,soulProEstimateMicros,buildSoulProInput} from './soul-pro.mjs';
 import {SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-01.4-soul-presets';
+export const VERSION = 'pv-lab-2026-10-02.1-soul-pro';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -155,6 +156,7 @@ function parameters(value) {
   if(value.engine&&!['wan','wanprime','h3','h3max','h3spicy'].includes(value.engine)&&value.type!=='image')fail(400,'Unknown video model.');
   const prompt=typeof value.prompt==='string'?value.prompt.trim():'';
   const referenceRoles=referenceLabels(value.referenceRoles);
+  if(value.type==='image'&&value.engine==='soulpro')return soulProParameters({...value,referenceRoles},{fail,referenceLabels});
   if(value.type==='image'&&value.engine==='fal')return value.mode==='controlled-repair'?controlledRepairParameters({...value,referenceRoles},{fail}):controlledPoseParameters({...value,referenceRoles},{fail});
   if(value.type==='image'&&value.engine==='soul'){
     if(value.mode==='reinterpret')return reinterpretParameters(value,{fail});
@@ -247,6 +249,19 @@ async function prepareInput(env,owner,data,p,url) {
     if(url)input.reference_image_urls=await Promise.all(refs.map(a=>signedInput(env,url,a.id)));
     if(p.prompt)input.prompt=assembledPrompt(p).replace(/^Reference (\d+)/gm,'Picture $1');
     return {primary:refs[0],input};
+  }
+  if(p.provider==='fal'&&p.engine==='soulpro'){
+    if(data.lastSourceId)fail(400,'PV Soul Pro does not use a last frame.');
+    const primary=await source(env,owner,data.sourceId);
+    if(!primary.mime?.startsWith('image/'))fail(400,'PV Soul Pro base must be an image.');
+    const refs=await sources(env,owner,data.referenceSourceIds,4);
+    if(refs.some(a=>!a.mime?.startsWith('image/')))fail(400,'PV Soul Pro identity references must be images.');
+    p.referenceSourceIds=refs.map(a=>a.id);p.referenceRoles=(p.referenceRoles||[]).slice(0,refs.length);p.lastSourceId=null;
+    const input=url?buildSoulProInput(p,{
+      sourceUrl:await signedInput(env,url,primary.id,86400),
+      identityUrls:await Promise.all(refs.map(a=>signedInput(env,url,a.id,86400)))
+    }):{};
+    return {primary,input};
   }
   if(p.provider==='fal'||p.engine==='fal'){
     const refs=data.referenceSourceIds?.length?await sources(env,owner,data.referenceSourceIds,5):[];
@@ -871,6 +886,23 @@ async function route(request,env,ctx) {
     const data=await body(request),pose=await source(env,owner,data.poseSourceId);
     const map=await createFalPoseMap(env,owner,url,pose,null);
     return json({assetId:map.id,billingNote:'DWPose preview uses fal.ai metered compute and is billed by fal.ai separately from the Lab image estimate.'},201);
+  }
+  if(path==='/api/fal/soul-pro'&&method==='POST'){
+    if(!env.FAL_KEY)fail(503,'fal.ai is not configured on this Worker.');
+    const data=await body(request),p=parameters(data.settings);
+    if(p.provider!=='fal'||p.engine!=='soulpro'||p.mode!=='identity-edit')fail(400,'Choose PV Soul Pro Identity Edit.');
+    const base=await source(env,owner,data.sourceId);
+    if(!base.mime?.startsWith('image/'))fail(400,'PV Soul Pro base must be an image.');
+    const refs=await sources(env,owner,data.referenceSourceIds,4);
+    if(refs.some(a=>!a.mime?.startsWith('image/')))fail(400,'PV Soul Pro identity references must be images.');
+    if(refs.length<1)fail(400,'Add at least one identity reference.');
+    p.referenceSourceIds=refs.map(a=>a.id);p.referenceRoles=(p.referenceRoles||[]).slice(0,refs.length);
+    const input=buildSoulProInput(p,{
+      sourceUrl:await signedInput(env,url,base.id,86400),
+      identityUrls:await Promise.all(refs.map(a=>signedInput(env,url,a.id,86400)))
+    });
+    const estimate=soulProEstimateMicros(p),reserved=await reserveFalImageJob(env,owner,base.id,p,estimate),job=await submitReservedFalJob(env,reserved,p,input);
+    return json({job:jobView(job)},202);
   }
   if(path==='/api/fal/controlled-pose'&&method==='POST'){
     if(!env.FAL_KEY)fail(503,'fal.ai is not configured on this Worker.');
