@@ -26,12 +26,12 @@ export function buildReinterpretInput(p,{triggerWord,weightsUrl,imageUrl}){
   const preset=soulPreset(p.preset);
   if(!preset||!triggerWord)throw new Error('Reinterpret identity or preset is missing.');
   const prompt=[
-    `Photograph of the trained adult character ${triggerWord}. Preserve that character's facial identity and natural features.`,
-    p.keepComposition?'Same framing, crop, camera height, perspective, body placement, pose, scene layout and furniture as the source photograph.':'Use the source as the starting image; composition may change with the direction.',
-    p.keepStyling?'Same wardrobe, styling, materials and broad lighting logic as the source, except for explicit changes below.':'Wardrobe, styling and lighting may follow the photographic direction.',
+    `Photograph of the trained adult character ${triggerWord}. The trained LoRA supplies identity only: face, hairline, characteristic facial structure and stable personal features. Do not import body shape, pose, sexual anatomy, wardrobe, room, lighting or camera from the training photographs.`,
+    p.keepComposition?'Lock the source camera geometry and body staging: same crop, framing, camera height, perspective, body placement, limb arrangement and pose. Preserve the source body proportions and anatomy. Do not enlarge, shrink or exaggerate breasts, hips, buttocks, waist, limbs or genital anatomy.':'Use the source only as a visual starting point. Camera geometry and pose may change when needed by the selected photographic treatment.',
+    p.keepStyling?'Preserve the source wardrobe, set, props, materials and broad lighting logic. Apply the preset mainly through photographic finish, colour, lens character and subtle art direction.':'The selected preset is dominant for wardrobe, set dressing, background treatment, lighting design, colour palette, lens character and photographic finish. Rebuild those elements decisively instead of merely recolouring the source.',
     preset.direction,
-    'Believable human anatomy, natural photographic skin, realistic material texture.',
-    p.prompt?`Requested changes and scene details: ${p.prompt}`:''
+    'Maintain one coherent adult human body with physically plausible joints, hands, feet and anatomy. Natural skin has pores, fine texture, subtle tonal variation and realistic contact shadows. Avoid inflated anatomy, duplicated forms, fused limbs, waxy skin, beauty-filter smoothing, glossy CGI and generic AI glamour rendering.',
+    p.prompt?`Additional user direction: ${p.prompt}`:''
   ].filter(Boolean).join('\n');
   return {prompt,resolution:p.resolution,strength:Number((1-p.imageFidelity).toFixed(4)),output_format:p.outputFormat,...(weightsUrl?{loras:[{path:weightsUrl,scale:p.identityStrength}]}:{}),...(imageUrl?{image_url:imageUrl}:{})};
 }
