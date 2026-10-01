@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="./history.css?v=20260927-2">
 <link rel="stylesheet" href="./seedance.css?v=20260927-standard1">
 <link rel="stylesheet" href="./soul.css?v=20260930-soul-v02">
-<script type="module" src="./lab.js?v=20261001-soul-presets2"></script>
+<script type="module" src="./lab.js?v=20261002-soul-pro1"></script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to workspace</a>
@@ -25,7 +25,7 @@
 </div>
 <div class="workspace">
 <section class="controls" aria-label="Image to video settings">
-<div class="mode"><span id="mode-heading">01 / Image to Video</span><span class="engine-pill" id="engine-name">WAN 3.0</span><label id="image-model-control" class="mode-model-control" hidden><span class="label">Image model</span><select id="image-engine"><option value="seedream" selected>Seedream 5 Pro</option><option value="gemini">Nano Banana Pro</option><option value="soul">PV Soul</option><option value="fal">Controlled Pose · FAL FLUX</option></select></label></div>
+<div class="mode"><span id="mode-heading">01 / Image to Video</span><span class="engine-pill" id="engine-name">WAN 3.0</span><label id="image-model-control" class="mode-model-control" hidden><span class="label">Image model</span><select id="image-engine"><option value="seedream" selected>Seedream 5 Pro</option><option value="gemini">Nano Banana Pro</option><option value="soulpro">PV Soul Pro · Identity Edit</option><option value="soul">PV Soul · Text</option><option value="fal">Controlled Pose · FAL FLUX</option></select></label></div>
 <div id="video-model-control"><label><span class="label">Video model</span><select id="video-engine"><option value="wan">Wan 3.0</option><option value="wanprime">Wan 3.0 Prime</option><option value="h3">MiniMax H3</option><option value="h3max">MiniMax H3 Max</option><option value="h3spicy">MiniMax H3 Spicy</option><option value="h3maxfal">MiniMax H3 Max Reference · FAL</option><option value="omni">Gemini Omni Flash 1.1 · FAL</option><option value="seedance">Seedance 2.5</option></select></label><p id="video-model-note" class="fine">Standard model access. Provider policies and model refusals apply. No automatic model switching.</p></div>
 <div id="video-modes" class="mode-switch" role="tablist" aria-label="Generation mode">
 <button id="mode-text" class="mode-tab" type="button" role="tab" aria-selected="false" hidden>Text to Video</button>
@@ -70,7 +70,7 @@
 </div>
 <div id="soul-controls" class="soul-controls" hidden>
 <div class="soul-control-grid"><label><span class="label">Character</span><select id="soul-character"><option value="">No trained characters yet</option></select></label><button id="soul-manage" class="quiet" type="button">Train / manage</button></div>
-<div class="mode-switch" role="tablist" aria-label="Soul mode"><button id="soul-mode-text" class="mode-tab active" type="button" role="tab" aria-selected="true">Text</button><button id="soul-mode-reinterpret" class="mode-tab" type="button" role="tab" aria-selected="false">Reinterpret</button></div>
+<div class="mode-switch" role="tablist" aria-label="Soul mode"><button id="soul-mode-text" class="mode-tab active" type="button" role="tab" aria-selected="true">Text</button><button id="soul-mode-reinterpret" class="mode-tab" type="button" role="tab" aria-selected="false" hidden>Legacy Reinterpret</button></div>
 <div id="soul-reinterpret-controls" hidden>
 <label class="label" for="soul-base-image">Base image</label><label id="soul-base-drop" class="drop compact-drop"><span>Drop or browse</span><small>One JPG / PNG / WebP</small><input id="soul-base-image" type="file" accept="image/jpeg,image/png,image/webp"></label>
 <img id="soul-base-preview" class="soul-base-preview" alt="Reinterpret base image" hidden><p id="soul-base-name" class="filemeta"></p>
@@ -86,6 +86,13 @@
 <div class="soul-strength"><div class="soul-strength-head"><span class="label">Identity strength</span><span class="micro" id="soul-strength-value">0.75</span></div><input id="soul-strength" type="range" min="0.25" max="1.75" value="0.75" step="0.05"></div>
 <p id="soul-empty" class="fine soul-note">Train a character first. Training uses FAL once; finished image generation uses your SpicyAPI connection.</p>
 <p id="soul-mode-note" class="fine soul-note">Text uses your trained Qwen Image 2512 identity.</p>
+</div>
+<div id="soul-pro-settings" class="controlled-pose-settings" hidden>
+<div class="upload-heading"><span class="label">PV Soul Pro</span><span class="micro">REFERENCE IDENTITY EDIT</span></div>
+<p class="fine">One base photograph defines pose, body, camera and scene. Add 1–4 clean images of the same identity. No trained Reinterpret LoRA, no fidelity slider and no style presets.</p>
+<label><span class="label">Identity engine</span><select id="soul-pro-model"><option value="ideogram45" selected>Ideogram 4.5 · Precise</option><option value="kontextmax">FLUX Kontext Max · Multi</option></select></label>
+<p class="fine" id="soul-pro-note">Precise Edit is the default: source geometry is preserved while the references supply identity. High quality is fixed for this mode.</p>
+<details class="seed-settings"><summary>Seed</summary><label><span class="label">Optional seed</span><input id="soul-pro-seed" type="number" min="0" max="2147483647" placeholder="Random"></label></details>
 </div>
 <div id="controlled-pose-settings" class="controlled-pose-settings" hidden>
 <div class="upload-heading"><span class="label">Controlled Pose</span><span class="micro">FAL FLUX</span></div>
