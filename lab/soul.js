@@ -42,7 +42,7 @@ async function zipStored(files,onProgress){
 
 export function createSoulController({api,action,notify,changed,owner,modeChanged=changed}){
   let characters=[],config={},timer=null,selected='',soulMode='text';
-  const strengths={text:1,reinterpret:1};
+  const strengths={text:1,reinterpret:.75};
   const $=id=>document.getElementById(id);
   const status=text=>{$('soul-train-status').textContent=text||'';};
   const readyCharacters=()=>characters.filter(c=>c.state==='ready'&&!c.adapterFor);
@@ -134,7 +134,13 @@ export function createSoulController({api,action,notify,changed,owner,modeChange
   function renderPreset(defaults){
     const p=(config.soulPresets||[]).find(p=>p.id===$('soul-preset').value);
     $('soul-preset-description').textContent=p?.description||'';
-    if(defaults&&p){$('soul-fidelity').value=p.imageFidelity;$('soul-strength').value=p.identityStrength;strengths.reinterpret=p.identityStrength;}
+    if(defaults&&p){
+      $('soul-fidelity').value=p.imageFidelity;
+      $('soul-strength').value=p.identityStrength;
+      strengths.reinterpret=p.identityStrength;
+      $('soul-keep-composition').checked=p.keepComposition!==false;
+      $('soul-keep-styling').checked=p.keepStyling===true;
+    }
     $('soul-fidelity-value').textContent=Number($('soul-fidelity').value).toFixed(2);
     $('soul-strength-value').textContent=Number($('soul-strength').value).toFixed(2);
   }

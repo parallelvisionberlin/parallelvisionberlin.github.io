@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="./history.css?v=20260927-2">
 <link rel="stylesheet" href="./seedance.css?v=20260927-standard1">
 <link rel="stylesheet" href="./soul.css?v=20260930-soul-v02">
-<script type="module" src="./lab.js?v=20261001-video-models2"></script>
+<script type="module" src="./lab.js?v=20261001-soul-presets2"></script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to workspace</a>
@@ -74,16 +74,16 @@
 <div id="soul-reinterpret-controls" hidden>
 <label class="label" for="soul-base-image">Base image</label><label id="soul-base-drop" class="drop compact-drop"><span>Drop or browse</span><small>One JPG / PNG / WebP</small><input id="soul-base-image" type="file" accept="image/jpeg,image/png,image/webp"></label>
 <img id="soul-base-preview" class="soul-base-preview" alt="Reinterpret base image" hidden><p id="soul-base-name" class="filemeta"></p>
-<p class="fine">The composition, pose, camera and scene are used as the visual starting point.</p>
+<p class="fine">The source supplies the pose and camera geometry. Presets can decisively rebuild styling, set, light, colour and photographic character.</p>
 <label><span class="label">Preset</span><select id="soul-preset"></select></label><p id="soul-preset-description" class="fine"></p>
-<div class="soul-strength"><div class="soul-strength-head"><label class="label" for="soul-fidelity">Image fidelity</label><output class="micro" id="soul-fidelity-value">0.82</output></div><input id="soul-fidelity" type="range" min="0.35" max="0.95" value="0.82" step="0.01"></div>
-<p class="fine">Higher stays closer to the source and can retain the original face. Lower allows more identity and style changes.</p>
-<label class="check"><input id="soul-keep-composition" type="checkbox" checked> Keep composition</label>
-<label class="check"><input id="soul-keep-styling" type="checkbox" checked> Keep styling</label>
-<p class="fine">Preservation choices guide the prompt. They are not pixel locks.</p>
+<div class="soul-strength"><div class="soul-strength-head"><label class="label" for="soul-fidelity">Source fidelity</label><output class="micro" id="soul-fidelity-value">0.70</output></div><input id="soul-fidelity" type="range" min="0.35" max="0.95" value="0.70" step="0.01"></div>
+<p class="fine">Higher preserves more source pixels. Lower gives the selected preset more freedom to rebuild the photograph. Every preset now sets its own starting fidelity.</p>
+<label class="check"><input id="soul-keep-composition" type="checkbox" checked> Keep pose + framing</label>
+<label class="check"><input id="soul-keep-styling" type="checkbox" checked> Keep wardrobe + set</label>
+<p class="fine">Selecting a preset changes fidelity, identity strength and preservation defaults. You can override them after choosing the preset.</p>
 <p id="soul-reinterpret-status" class="fine" role="status"></p><button id="soul-prepare-reinterpret" class="secondary full" type="button">Prepare Reinterpret identity</button>
 </div>
-<div class="soul-strength"><div class="soul-strength-head"><span class="label">Identity strength</span><span class="micro" id="soul-strength-value">1.00</span></div><input id="soul-strength" type="range" min="0.25" max="1.75" value="1" step="0.05"></div>
+<div class="soul-strength"><div class="soul-strength-head"><span class="label">Identity strength</span><span class="micro" id="soul-strength-value">0.75</span></div><input id="soul-strength" type="range" min="0.25" max="1.75" value="0.75" step="0.05"></div>
 <p id="soul-empty" class="fine soul-note">Train a character first. Training uses FAL once; finished image generation uses your SpicyAPI connection.</p>
 <p id="soul-mode-note" class="fine soul-note">Text uses your trained Qwen Image 2512 identity.</p>
 </div>
