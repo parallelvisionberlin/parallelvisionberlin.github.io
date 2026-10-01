@@ -30,6 +30,10 @@ async function workspace({failure='',width=1440,initial=[],quoteDelay=0}={}){
   if(path.startsWith('/api/assets/'))return route.fulfill({status:200,contentType:'image/png',body:png});
   if(path==='/api/drafts'){const job={id:id(sequence++),sourceId:data.sourceId,settings:{...data.settings,referenceSourceIds:data.referenceSourceIds||[]},status:'draft',createdAt:Date.now()};jobs.unshift(job);return send({job},201);}
   if(path==='/api/fal/pose-preview'&&method==='POST')return send({assetId:id(sequence++),billingNote:'synthetic preview'},201);
+  if(path==='/api/fal/soul-pro'&&method==='POST'){
+    const job={id:id(sequence++),sourceId:data.sourceId,settings:{...data.settings,referenceSourceIds:data.referenceSourceIds||[]},status:'queued',createdAt:Date.now(),estimatedUsd:data.settings.soulProModel==='kontextmax'?0.08:0.22,providerTaskId:'fal-soulpro-synthetic'};
+    accepted++;jobs.unshift(job);return send({job},202);
+  }
   if(path==='/api/fal/controlled-pose'&&method==='POST'){
     const job={id:id(sequence++),sourceId:data.referenceSourceIds?.[0]||null,settings:{...data.settings,referenceSourceIds:data.referenceSourceIds||[],poseMapSourceId:data.poseMapSourceId||null},status:'queued',createdAt:Date.now(),estimatedUsd:0.075,providerTaskId:'fal-synthetic'};
     accepted++;jobs.unshift(job);return send({job},202);
@@ -90,7 +94,24 @@ try{
  assert.equal(await x.page.locator('#generate').isDisabled(),false);
  assert.match(await x.page.locator('#active-status').innerText(),/Nano 0 \/ 4/);assert.match(await x.page.locator('#active-status').innerText(),/1 old Nano interrupted/);
  ok('Interrupted Gemini request is labeled as old and does not look like an active Nano generation');await x.context.close();
- x=await workspace();await x.page.click('#tool-image');await x.page.selectOption('#image-engine','fal');await x.page.fill('#prompt','Editorial portrait in a warm room.');
+ x=await workspace();await x.page.click('#tool-image');await x.page.selectOption('#image-engine','soulpro');
+ await x.page.locator('#image').setInputFiles({name:'base.png',mimeType:'image/png',buffer:png});await ready(x.page);
+ await x.page.locator('#reference-images').setInputFiles([
+   {name:'identity-front.png',mimeType:'image/png',buffer:png},
+   {name:'identity-three-quarter.png',mimeType:'image/png',buffer:png}
+ ]);await ready(x.page);
+ assert.equal(await x.page.locator('#generate').isDisabled(),false);assert.equal(await x.page.locator('#generate').innerText(),'Generate identity edit');
+ assert.equal(await x.page.locator('#soul-pro-settings').isVisible(),true);assert.equal(await x.page.locator('#resolution-control').isVisible(),false);assert.equal(await x.page.locator('#ratio-control').isVisible(),false);
+ assert.equal(await x.page.locator('.reference-fields select').first().isVisible(),false);assert.equal(await x.page.locator('.reference-fields input').first().isVisible(),false);
+ assert.match(await x.page.locator('#generation-help').innerText(),/\$0\.22/);
+ await x.page.click('#generate');await ready(x.page);assert.equal(count(x,'/api/fal/soul-pro'),1);assert.equal(x.accepted(),1);
+ const soulPro=x.requests.find(r=>r.path==='/api/fal/soul-pro').data;assert.ok(soulPro.sourceId);assert.equal(soulPro.referenceSourceIds.length,2);assert.equal(soulPro.settings.engine,'soulpro');assert.equal(soulPro.settings.soulProModel,'ideogram45');assert.equal(soulPro.settings.sourceWidth,320);assert.equal(soulPro.settings.sourceHeight,320);assert.equal(soulPro.settings.prompt,'');
+ assert.ok(soulPro.settings.referenceRoles.every(r=>r.role==='identity'));ok('PV Soul Pro separates one base image from identity-only references and submits one FAL job');await x.context.close();
+
+ x=await workspace();await x.page.click('#tool-image');await x.page.selectOption('#image-engine','soulpro');await x.page.selectOption('#soul-pro-model','kontextmax');await ready(x.page);
+ assert.match(await x.page.locator('#generation-help').innerText(),/\$0\.08/);assert.match(await x.page.locator('#soul-pro-note').innerText(),/more generative/i);ok('PV Soul Pro exposes Kontext Max only as an explicit alternate engine');await x.context.close();
+
+  x=await workspace();await x.page.click('#tool-image');await x.page.selectOption('#image-engine','fal');await x.page.fill('#prompt','Editorial portrait in a warm room.');
  await x.page.locator('#reference-images').setInputFiles([
   {name:'pose.png',mimeType:'image/png',buffer:png},
   {name:'identity.png',mimeType:'image/png',buffer:png}
