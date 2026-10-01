@@ -4,8 +4,9 @@ import {reinterpretParameters,buildReinterpretInput} from './soul-reinterpret.mj
    The hosted provider is opt-in; no provider key or moderation bypass in source. */
 import {seedanceParameters, prepareSeedance, REFERENCE_MIME, sniffReference} from './seedance.mjs';
 import {FAL_CONTROLLED_POSE,FAL_CONTROLLED_INPAINT,FAL_DWPOSE,controlledPoseParameters,controlledRepairParameters,controlledPoseRefs,controlledRepairRefs,controlledPoseEstimateMicros,controlledRepairEstimateMicros,buildControlledPoseInput,buildRepairInput,falSubmit,falStatus,falResult,falAwait} from './fal-controlled-pose.mjs';
+import {falVideoParameters,falVideoEstimateMicros,buildFalVideoInput} from './fal-video.mjs';
 import {SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-01.2-media-http-status';
+export const VERSION = 'pv-lab-2026-10-01.3-fal-video-models';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -104,7 +105,7 @@ async function decryptKey(env,value) {
   return dec.decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:unbase(iv),additionalData:enc.encode(MODEL)},key,unbase(cipher)));
 }
 async function config(env,owner) {return first(env,'SELECT * FROM settings WHERE owner_id=?',owner);}
-function publicConfig(c) {return {concurrency:CONCURRENCY,configured:!!c,enabled:!!(c?.enabled&&c?.terms_confirmed),dailyLimitUsd:(c?.daily_limit_microusd||10000000)/1000000,provider:'SpicyAPI',videoEngines:['wan','wanprime','h3','h3max','h3spicy','seedance'],model:'Wan 3.0 / Wan Prime / MiniMax H3 / H3 Max / H3 Spicy / Seedance 2.5 / Seedream 5.0 Pro / Image Upscaler',documentation:DOC,pricingNote:'A live provider quote is required before every generation. No subscription is added by this Lab. Provider terms apply.'};}
+function publicConfig(c,falEnabled=false) {return {concurrency:CONCURRENCY,configured:!!c,enabled:!!(c?.enabled&&c?.terms_confirmed),dailyLimitUsd:(c?.daily_limit_microusd||10000000)/1000000,provider:'SpicyAPI',videoEngines:['wan','wanprime','h3','h3max','h3spicy','seedance',...(falEnabled?['h3maxfal','omni']:[])],model:'Wan 3.0 / Wan Prime / MiniMax H3 / H3 Max / H3 Spicy / H3 Max Reference FAL / Gemini Omni Flash 1.1 / Seedance 2.5 / Seedream 5.0 Pro / Image Upscaler',documentation:DOC,pricingNote:'SpicyAPI videos use a live bound quote. fal.ai video routes use the current published per-second estimate shown before confirmation. Provider billing remains authoritative.'};}
 async function vendorRequest(path,key,data,idempotency,method=data?'POST':'GET') {
   let r;
   try {
@@ -149,6 +150,7 @@ function referenceLabels(value,max=10) {
 }
 function parameters(value) {
   if(!value||typeof value!=='object'||Array.isArray(value))fail(400,'Invalid settings.');
+  if(value.type!=='image'&&['h3maxfal','omni'].includes(value.engine))return falVideoParameters(value,{fail,referenceLabels});
   if(value.type!=='image'&&value.engine==='seedance')return seedanceParameters(value,{fail,referenceLabels});
   if(value.engine&&!['wan','wanprime','h3','h3max','h3spicy'].includes(value.engine)&&value.type!=='image')fail(400,'Unknown video model.');
   const prompt=typeof value.prompt==='string'?value.prompt.trim():'';
@@ -204,6 +206,8 @@ function parameters(value) {
 function assembledPrompt(p) {
   const labels=(p.referenceRoles||[]).slice(0,p.referenceSourceIds?.length||0).map((r,i)=>r.role!=='none'||r.note?'Reference '+(i+1)+(r.name?' ('+r.name+')':'')+': '+(r.role!=='none'?r.role+'. ':'')+r.note:'').filter(Boolean);
   if(p.engine==='seedance')for(let i=0;i<labels.length;i++)labels[i]=labels[i].replace(/^Reference (\d+)/,'@Image$1');
+  else if(p.engine==='h3maxfal')for(let i=0;i<labels.length;i++)labels[i]=labels[i].replace(/^Reference (\d+)/,'Image $1');
+  else if(p.engine==='omni')for(let i=0;i<labels.length;i++)labels[i]=labels[i].replace(/^Reference (\d+)/,(_,n)=>'<IMAGE_REF_'+(Number(n)-1)+'>');
   const mediaLabels=p.engine==='seedance'?['referenceVideos','referenceAudio'].flatMap((key,k)=>(p[key]||[]).slice(0,p[k===0?'referenceVideoIds':'referenceAudioIds']?.length||0).map((r,i)=>'@'+(k===0?'Video':'Audio')+(i+1)+(r.name?' ('+r.name+')':'')+(r.note?': '+r.note:''))):[];
   const prompt=[p.prompt,...labels,...mediaLabels].join('\n');
   if(prompt.length>(p.type==='image'||p.engine==='seedance'?5000:6000))fail(400,'Prompt plus reference notes is too long. Shorten the notes.');
@@ -213,6 +217,29 @@ async function prepareInput(env,owner,data,p,url) {
   if(p.engine==='seedance'){
     const prepared=await prepareSeedance(env,owner,data,p,url,{fail,source,sources,signedInput});
     if(p.prompt)prepared.input.prompt=assembledPrompt(p);return prepared;
+  }
+  if(p.provider==='fal'&&['h3maxfal','omni'].includes(p.engine)){
+    let primary=null,imageUrls=[],imageUrl=null,endImageUrl=null;
+    p.referenceSourceIds=[];p.lastSourceId=null;
+    if(p.mode==='reference'){
+      const max=p.engine==='h3maxfal'?12:10,refs=await sources(env,owner,data.referenceSourceIds,max);
+      primary=refs[0];p.referenceSourceIds=refs.map(a=>a.id);p.referenceRoles=(p.referenceRoles||[]).slice(0,refs.length);
+      if(p.engine==='h3maxfal'){
+        if(p.referencePixels.length&&p.referencePixels.length!==refs.length)fail(400,'H3 Max reference dimensions must match the selected images.');
+        if(!p.referencePixels.length)p.referencePixels=refs.map(()=>1048576);
+      }
+      if(url)imageUrls=await Promise.all(refs.map(a=>signedInput(env,url,a.id,86400)));
+    }else if(p.mode==='start'){
+      if(data.referenceSourceIds?.length)fail(400,'Start-frame mode cannot be combined with reference mode.');
+      primary=await source(env,owner,data.sourceId);const last=data.lastSourceId?await source(env,owner,data.lastSourceId):null;p.lastSourceId=last?.id||null;p.referenceRoles=[];
+      if(url){imageUrl=await signedInput(env,url,primary.id,86400);if(last)endImageUrl=await signedInput(env,url,last.id,86400);}
+    }else{
+      if(data.sourceId||data.lastSourceId||data.referenceSourceIds?.length)fail(400,'Text-to-video does not accept source images.');
+      p.referenceRoles=[];
+    }
+    const prompt=p.mode==='reference'?assembledPrompt(p):p.prompt;
+    const input=buildFalVideoInput({...p,prompt},{imageUrls,imageUrl,endImageUrl});
+    return {primary,input};
   }
   if(p.engine==='h3'&&p.mode==='reference'){
     const refs=await sources(env,owner,data.referenceSourceIds,9);p.referenceSourceIds=refs.map(a=>a.id);p.lastSourceId=null;
@@ -607,9 +634,10 @@ async function refreshFalJob(env,j,p){
     const endpoint=p.model||FAL_CONTROLLED_POSE,status=await falStatus(endpoint,env.FAL_KEY,j.provider_id),state=String(status?.status||'').toUpperCase();
     if(state==='COMPLETED'){
       resultPhase=true;
-      const result=await falResult(endpoint,env.FAL_KEY,j.provider_id),image=result?.images?.find?.(x=>typeof x?.url==='string'&&x.url);
-      if(!image)throw new Error('fal.ai completed without an image output.');
-      const safe=safeVideoUrl(image.url);
+      const result=await falResult(endpoint,env.FAL_KEY,j.provider_id),isVideo=p.type==='video';
+      const output=isVideo?(result?.video?.url||result?.videos?.find?.(x=>typeof x?.url==='string'&&x.url)?.url):(result?.images?.find?.(x=>typeof x?.url==='string'&&x.url)?.url||result?.image?.url);
+      if(typeof output!=='string'||!output)throw new Error('fal.ai completed without a compatible '+(isVideo?'video':'image')+' output.');
+      const safe=safeVideoUrl(output);
       await run(env,"UPDATE jobs SET state='saving',remote_url=?,error='',updated_at=? WHERE id=?",safe,now(),j.id);
       await copyResult(env,j,safe);return;
     }
@@ -706,7 +734,7 @@ async function route(request,env,ctx) {
   const owner=await authenticate(request,env),path=url.pathname,method=request.method;
   if(path==='/api/session'&&method==='GET'){
     const c=await config(env,owner),spent=await first(env,'SELECT COALESCE(SUM(estimate_microusd),0) AS n FROM spend WHERE owner_id=? AND created_at>=?',owner,Math.floor(now()/86400000)*86400000);
-    return json({owner:true,ownerId:owner,version:VERSION,config:{...publicConfig(c),geminiEnabled:!!env.GEMINI_API_KEY,soulTrainingEnabled:!!env.FAL_KEY,soulReinterpretEnabled:true,soulPresets:publicSoulPresets(),falEnabled:!!env.FAL_KEY},estimatedSpentToday:spent.n/1000000});
+    return json({owner:true,ownerId:owner,version:VERSION,config:{...publicConfig(c,!!env.FAL_KEY),geminiEnabled:!!env.GEMINI_API_KEY,soulTrainingEnabled:!!env.FAL_KEY,soulReinterpretEnabled:true,soulPresets:publicSoulPresets(),falEnabled:!!env.FAL_KEY},estimatedSpentToday:spent.n/1000000});
   }
   if(path==='/api/soul/characters'&&method==='GET')return json({characters:await listSoulCharacters(env,owner,soulDeps())});
   if(path==='/api/soul/datasets'&&method==='POST')return json(await createSoulDataset(request,env,owner,soulDeps()),201);
@@ -732,11 +760,11 @@ async function route(request,env,ctx) {
     }
     if(!encrypted)fail(400,'Enter your provider API key.');
     await run(env,'INSERT INTO settings(owner_id,encrypted_key,enabled,terms_confirmed,daily_limit_microusd,updated_at) VALUES(?,?,?,?,?,?) ON CONFLICT(owner_id) DO UPDATE SET encrypted_key=excluded.encrypted_key,enabled=excluded.enabled,terms_confirmed=excluded.terms_confirmed,daily_limit_microusd=excluded.daily_limit_microusd,updated_at=excluded.updated_at',owner,encrypted,data.enabled===true?1:0,data.termsConfirmed===true?1:0,Math.round(limit*1000000),now());
-    return json({config:publicConfig(await config(env,owner))});
+    return json({config:publicConfig(await config(env,owner),!!env.FAL_KEY)});
   }
   if(path==='/api/settings'&&method==='DELETE') {
     if(await first(env,"SELECT id FROM jobs WHERE owner_id=? AND state IN ('submitting','queued','running','uncertain')",owner))fail(409,'Wait for or resolve the active job before removing its API key.');
-    await run(env,'DELETE FROM settings WHERE owner_id=?',owner);return json({config:publicConfig(null)});
+    await run(env,'DELETE FROM settings WHERE owner_id=?',owner);return json({config:publicConfig(null,!!env.FAL_KEY)});
   }
   if(path==='/api/packs'&&method==='GET'){
     const list=await rows(env,'SELECT id,name,refs,created_at FROM packs WHERE owner_id=? ORDER BY name',owner);
