@@ -47,6 +47,48 @@ async function req(env,path,{method='GET',data,raw,authToken=auth,headers={}}={}
 const p={prompt:'A sculpture rotating slowly in a studio',duration:15,resolution:'1080p',aspectRatio:'auto',seed:42,audio:true};
 async function setup(env){const r=await req(env,'/api/settings',{method:'POST',data:{apiKey:KEY,enabled:true,termsConfirmed:true,dailyLimitUsd:10}});assert.equal(r.status,200);const x=await req(env,'/api/uploads',{method:'POST',raw:new Uint8Array([137,80,78,71,13,10,26,10,0]),headers:{'Content-Type':'image/png','X-Filename':'source.png'}});assert.equal(x.status,201);return(await x.json()).id;}
 async function quote(env,id){const r=await req(env,'/api/quotes',{method:'POST',data:{sourceId:id,settings:p}});assert.equal(r.status,200);return r.json();}
+test('Full media GET and HEAD return 200 despite R2 full-object range metadata',async()=>{
+  const{env,objects}=fixture(),id=await setup(env);await quote(env,id);
+  const input=new URL(quotedRequest.input.image_url),publicPath=input.pathname+input.search;
+  const videoId=crypto.randomUUID(),videoKey='test/archived.mp4',videoBytes=new Uint8Array([0,0,0,24,102,116,121,112,109,112,52,50]);
+  objects.set(videoKey,videoBytes);
+  env.LAB_DB.db.prepare('INSERT INTO assets(id,owner_id,object_key,kind,mime,filename,bytes,created_at) VALUES(?,?,?,?,?,?,?,?)')
+    .run(videoId,'owner-internal',videoKey,'video','video/mp4','archived.mp4',videoBytes.length,Date.now());
+  const reads=[];
+  env.LAB_MEDIA.get=async(k,options)=>{reads.push(options);const bytes=objects.get(k);return{body:new Response(bytes).body,size:bytes.length,range:{offset:0,length:bytes.length}};};
+  env.LAB_MEDIA.head=async(k)=>{const size=objects.get(k).length;return{size,range:{offset:0,length:size}};};
+  for(const[path,authToken,expected]of [[publicPath,null,[137,80,78,71,13,10,26,10,0]],['/api/assets/'+videoId,auth,[...videoBytes]]]){
+    const requests=authToken?[['GET',{}]]:[['GET',{}],['HEAD',{}],['HEAD',{Range:'bytes=0-3'}]];
+    for(const[method,headers]of requests){
+      const r=await req(env,path,{authToken,method,headers});
+      assert.equal(r.status,200);assert.equal(r.headers.get('content-length'),String(expected.length));
+      assert.equal(r.headers.get('content-range'),null);assert.equal(r.headers.get('accept-ranges'),'bytes');
+      assert.deepEqual([...new Uint8Array(await r.arrayBuffer())],method==='HEAD'?[]:expected);
+    }
+  }
+  delete env.LAB_MEDIA.head;
+  const fallback=await req(env,publicPath,{authToken:null,method:'HEAD',headers:{Range:'bytes=0-3'}});
+  assert.equal(fallback.status,200);assert.equal(fallback.headers.get('content-range'),null);
+  assert.equal(fallback.headers.get('content-length'),'9');assert.equal((await fallback.arrayBuffer()).byteLength,0);
+  assert.ok(reads.every(options=>!options.range),'Full GET and HEAD must not request an R2 range');
+});
+test('Explicit GET byte ranges return 206 and exact bytes for source images and archived videos',async()=>{
+  const{env,objects}=fixture(),id=await setup(env);await quote(env,id);
+  const input=new URL(quotedRequest.input.image_url),videoId=crypto.randomUUID(),videoKey='test/ranged.mp4';
+  const videoBytes=new Uint8Array([0,0,0,24,102,116,121,112,109,112,52,50]);objects.set(videoKey,videoBytes);
+  env.LAB_DB.db.prepare('INSERT INTO assets(id,owner_id,object_key,kind,mime,filename,bytes,created_at) VALUES(?,?,?,?,?,?,?,?)')
+    .run(videoId,'owner-internal',videoKey,'video','video/mp4','ranged.mp4',videoBytes.length,Date.now());
+  env.LAB_MEDIA.get=async(k,options)=>{
+    assert.equal(options.range.get('range'),'bytes=2-5');const bytes=objects.get(k);
+    return{body:new Response(bytes.slice(2,6)).body,size:bytes.length,range:{offset:2,length:4}};
+  };
+  for(const[path,authToken,size,expected]of [[input.pathname+input.search,null,9,[78,71,13,10]],['/api/assets/'+videoId,auth,12,[0,24,102,116]]]){
+    const r=await req(env,path,{authToken,headers:{Range:'bytes=2-5'}});
+    assert.equal(r.status,206);assert.equal(r.headers.get('content-length'),'4');
+    assert.equal(r.headers.get('content-range'),`bytes 2-5/${size}`);
+    assert.deepEqual([...new Uint8Array(await r.arrayBuffer())],expected);
+  }
+});
 test('PV Soul training ZIP preflight allows its photo-count header',async()=>{
   const{env}=fixture();
   const response=await req(env,'/api/soul/datasets',{method:'OPTIONS',authToken:null,headers:{

@@ -5,7 +5,7 @@ import {reinterpretParameters,buildReinterpretInput} from './soul-reinterpret.mj
 import {seedanceParameters, prepareSeedance, REFERENCE_MIME, sniffReference} from './seedance.mjs';
 import {FAL_CONTROLLED_POSE,FAL_CONTROLLED_INPAINT,FAL_DWPOSE,controlledPoseParameters,controlledRepairParameters,controlledPoseRefs,controlledRepairRefs,controlledPoseEstimateMicros,controlledRepairEstimateMicros,buildControlledPoseInput,buildRepairInput,falSubmit,falStatus,falResult,falAwait} from './fal-controlled-pose.mjs';
 import {SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-01.1-soul-reinterpret';
+export const VERSION = 'pv-lab-2026-10-01.2-media-http-status';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -335,12 +335,16 @@ async function publicInput(request,env,url) {
   if(!owner)fail(403,'Access revoked.');return media(request,env,a);
 }
 async function media(request,env,a) {
-  const obj=request.method==='HEAD'&&env.LAB_MEDIA.head?await env.LAB_MEDIA.head(a.object_key):await env.LAB_MEDIA.get(a.object_key,request.headers.has('range')?{range:request.headers}:{});
+  const rangeRequested=request.method==='GET'&&request.headers.has('range');
+  const obj=request.method==='HEAD'&&env.LAB_MEDIA.head?await env.LAB_MEDIA.head(a.object_key):await env.LAB_MEDIA.get(a.object_key,rangeRequested?{range:request.headers}:{});
   if(!obj)fail(404,'Stored file is unavailable.');
+  // R2 may describe the full object with range metadata even for an ordinary GET.
+  // Only an explicit ranged GET may produce a partial-content HTTP response.
+  const partial=rangeRequested&&obj.range;
   const h=new Headers({'Content-Type':a.mime,'Accept-Ranges':'bytes','Content-Disposition':`inline; filename="${a.kind==='video'?'parallel-vision-'+a.id+'.mp4':'source-'+a.id+'.'+(a.mime==='image/jpeg'?'jpg':a.mime.split('/')[1])}"`});
-  h.set('Content-Length',String(obj.range?.length??obj.size));
-  if(obj.range)h.set('Content-Range',`bytes ${obj.range.offset}-${obj.range.offset+obj.range.length-1}/${obj.size}`);
-  return new Response(request.method==='HEAD'?null:obj.body,{status:obj.range?206:200,headers:h});
+  h.set('Content-Length',String(partial?partial.length:obj.size));
+  if(partial)h.set('Content-Range',`bytes ${partial.offset}-${partial.offset+partial.length-1}/${obj.size}`);
+  return new Response(request.method==='HEAD'?null:obj.body,{status:partial?206:200,headers:h});
 }
 function jobView(j) {return {id:j.id,sourceId:j.source_id,settings:JSON.parse(j.params),status:j.state,outputId:j.output_id,estimatedUsd:j.estimate_microusd>0?j.estimate_microusd/1000000:null,settledUsd:j.settled_cost,providerTaskId:j.provider_id,error:j.error,createdAt:j.created_at,updatedAt:j.updated_at};}
 function safeVideoUrl(value) {
