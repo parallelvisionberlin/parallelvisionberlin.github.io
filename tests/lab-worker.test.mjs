@@ -25,11 +25,28 @@ let uploadedReference=null,falState='IN_QUEUE',falSubmitCount=0,falResult422=fal
 globalThis.fetch=async (url,options={})=>{const u=new URL(url);calls.push({url:String(url),options});if(u.pathname==='/.well-known/jwks.json')return Response.json({keys:[jwk]});
  if(u.hostname==='queue.fal.run'){
   assert.equal(new Headers(options.headers).get('authorization'),'Key fal-synthetic-test-key');
-  if(options.method==='POST'){falSubmitCount++;if(falSubmitMode==='timeout')throw new Error('Synthetic timeout');if(u.pathname.includes('flux-general'))return Response.json({request_id:'fal_repair_synthetic_1234567890'});const input=JSON.parse(options.body);assert.match(input.image_data_url,/\/soul-dataset\//);assert.equal(input.steps,1000);assert.equal(input.learning_rate,u.pathname.includes('z-image-trainer')?0.0001:0.0005);if(u.pathname.includes('z-image-trainer'))assert.equal(input.training_type,'content');assert.match(input.default_caption,/^photo of pv_/);return Response.json({request_id:'fal_request_synthetic_1234567890'});}
+  const soulPro=u.pathname.includes('/ideogram/v4.5/edit')||u.pathname.includes('/flux-pro/kontext/max/multi');
+  if(options.method==='POST'){
+    falSubmitCount++;if(falSubmitMode==='timeout')throw new Error('Synthetic timeout');
+    if(u.pathname.includes('flux-general'))return Response.json({request_id:'fal_repair_synthetic_1234567890'});
+    if(soulPro){
+      const input=JSON.parse(options.body);
+      if(u.pathname.includes('/ideogram/v4.5/edit')){
+        assert.equal(input.edit_precision,'high');assert.equal(input.quality,'high');assert.ok(input.image_url);assert.equal(input.reference_image_urls.length,1);assert.equal(input.num_images,1);
+      }else{
+        assert.equal(input.image_urls.length,2);assert.equal(input.guidance_scale,3.5);assert.equal(input.enhance_prompt,false);assert.equal(input.num_images,1);
+      }
+      assert.match(input.prompt,/primary source image is the structural truth/i);assert.match(input.prompt,/identity reference/i);
+      return Response.json({request_id:u.pathname.includes('/ideogram/')?'fal_soulpro_ideogram_1234567890':'fal_soulpro_kontext_1234567890'});
+    }
+    const input=JSON.parse(options.body);assert.match(input.image_data_url,/\/soul-dataset\//);assert.equal(input.steps,1000);assert.equal(input.learning_rate,u.pathname.includes('z-image-trainer')?0.0001:0.0005);if(u.pathname.includes('z-image-trainer'))assert.equal(input.training_type,'content');assert.match(input.default_caption,/^photo of pv_/);return Response.json({request_id:'fal_request_synthetic_1234567890'});
+  }
   if(u.pathname.endsWith('/status'))return Response.json({status:falState,logs:falState==='IN_PROGRESS'?[{message:'training step 500'}]:[]});
   if(u.pathname.includes('/requests/')&&falResult422)return Response.json({detail:'The provided image URL has expired.'},{status:422});
+  if(u.pathname.includes('/requests/')&&soulPro)return Response.json({images:[{url:'https://v3.fal.media/files/test/soulpro.png',content_type:'image/png'}]});
   if(u.pathname.includes('/requests/'))return Response.json({diffusers_lora_file:{url:'https://v3b.fal.media/files/test/nina.safetensors',content_type:'application/octet-stream',file_name:'nina.safetensors',file_size:8},config_file:{url:'https://v3b.fal.media/files/test/config.json'}});
  }
+ if(u.hostname==='v3.fal.media'){const bytes=new Uint8Array([137,80,78,71,13,10,26,10,0]);return new Response(bytes,{headers:{'content-type':'image/png','content-length':String(bytes.length)}});}
  if(u.hostname==='v3b.fal.media'){const bytes=new Uint8Array([1,2,3,4,5,6,7,8]);return new Response(bytes,{headers:{'content-type':'application/octet-stream','content-length':String(bytes.length)}});}
 if(u.hostname==='cdn.spicyapi.ai'){assert.ok(!options.headers?.Authorization);if(u.pathname.endsWith('.png'))return new Response(new Uint8Array([137,80,78,71,13,10,26,10,0]),{headers:{'content-type':'image/png'}});return new Response(new Uint8Array([0,0,0,24,102,116,121,112,109,112,52,50]),{headers:{'content-type':'video/mp4'}});}
  if(u.hostname==='test.r2.cloudflarestorage.com'){assert.equal(options.method,'PUT');assert.equal(new Headers(options.headers).get('authorization'),null);uploadedReference=new Uint8Array(options.body);return new Response(null,{status:200});}
@@ -161,6 +178,30 @@ test('Reference editing preserves source order, roles, notes and original prompt
   const settings={...imageSettings,referenceRoles:labels};const q=await(await req(env,'/api/quotes',{method:'POST',data:{settings,referenceSourceIds:[id]}})).json();assert.equal(quotedRequest.model,'bytedance/seedream-5.0-pro/edit');assert.equal(quotedRequest.input.image_urls.length,1);assert.match(quotedRequest.input.prompt,/Reference 1.*room.*Use the architecture only/);assert.equal(q.settings.prompt,imageSettings.prompt);
   const draft=(await(await req(env,'/api/drafts',{method:'POST',data:{settings,referenceSourceIds:[id]}})).json()).job;assert.equal(draft.settings.referenceRoles[0].note,labels[0].note);assert.equal((await req(env,'/api/jobs/'+draft.id,{method:'DELETE'})).status,200);assert.equal((await req(env,'/api/assets/'+id)).status,200);assert.equal((await req(env,'/api/packs',{authToken:guest})).status,403);assert.equal((await req(env,'/api/packs/'+pack.id,{method:'DELETE'})).status,200);
   const oversized={...imageSettings,prompt:'x'.repeat(5000),referenceRoles:labels};assert.equal((await req(env,'/api/quotes',{method:'POST',data:{settings:oversized,referenceSourceIds:[id]}})).status,400);
+});
+
+test('PV Soul Pro separates the structural source from identity references on Ideogram 4.5',async()=>{
+  calls=[];falSubmitCount=0;falState='IN_QUEUE';const {env}=fixture(),id=await setup(env);
+  const refUpload=await req(env,'/api/uploads',{method:'POST',raw:new Uint8Array([137,80,78,71,13,10,26,10,1]),headers:{'Content-Type':'image/png','X-Filename':'identity.png'}});assert.equal(refUpload.status,201);const refId=(await refUpload.json()).id;
+  const settings={type:'image',engine:'soulpro',mode:'identity-edit',soulProModel:'ideogram45',prompt:'',sourceWidth:512,sourceHeight:768,seed:42,referenceRoles:[{name:'identity.png',role:'identity',note:''}]};
+  const response=await req(env,'/api/fal/soul-pro',{method:'POST',data:{sourceId:id,referenceSourceIds:[refId],settings}});
+  assert.equal(response.status,202,await response.clone().text());const job=(await response.json()).job;
+  assert.equal(job.settings.engine,'soulpro');assert.equal(job.settings.soulProModel,'ideogram45');assert.equal(job.estimatedUsd,.22);assert.equal(falSubmitCount,1);
+  const submit=calls.findLast(c=>c.options.method==='POST'&&c.url.includes('/ideogram/v4.5/edit'));assert.ok(submit);
+  const input=JSON.parse(submit.options.body);assert.ok(input.image_url);assert.equal(input.reference_image_urls.length,1);assert.notEqual(input.image_url,input.reference_image_urls[0]);
+  assert.match(input.prompt,/keep the source crop/i);assert.match(input.prompt,/do not import pose, body shape, wardrobe, room, camera angle or lighting/i);
+  falState='COMPLETED';const done=(await(await req(env,'/api/jobs/'+job.id)).json()).job;assert.equal(done.status,'completed');assert.ok(done.outputId);assert.equal((await req(env,'/api/assets/'+done.outputId)).headers.get('content-type'),'image/png');
+});
+
+test('PV Soul Pro offers Kontext Max as a separate cheaper identity-edit engine without LoRA controls',async()=>{
+  calls=[];falSubmitCount=0;falState='IN_QUEUE';const {env}=fixture(),id=await setup(env);
+  const refUpload=await req(env,'/api/uploads',{method:'POST',raw:new Uint8Array([137,80,78,71,13,10,26,10,2]),headers:{'Content-Type':'image/png','X-Filename':'identity.png'}});assert.equal(refUpload.status,201);const refId=(await refUpload.json()).id;
+  const settings={type:'image',engine:'soulpro',mode:'identity-edit',soulProModel:'kontextmax',prompt:'keep the original room',sourceWidth:768,sourceHeight:512,seed:'',referenceRoles:[{name:'identity.png',role:'identity',note:''}]};
+  const response=await req(env,'/api/fal/soul-pro',{method:'POST',data:{sourceId:id,referenceSourceIds:[refId],settings}});
+  assert.equal(response.status,202,await response.clone().text());const job=(await response.json()).job;
+  assert.equal(job.estimatedUsd,.08);assert.equal(job.settings.soulProModel,'kontextmax');
+  const submit=calls.findLast(c=>c.options.method==='POST'&&c.url.includes('/flux-pro/kontext/max/multi'));assert.ok(submit);
+  const input=JSON.parse(submit.options.body);assert.equal(input.image_urls.length,2);assert.equal(input.enhance_prompt,false);assert.match(input.prompt,/User-requested change: keep the original room/);
 });
 
 test('PV Soul trains once through FAL, archives weights privately and builds Qwen 2512 LoRA quotes',async()=>{

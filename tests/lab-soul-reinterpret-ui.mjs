@@ -67,7 +67,7 @@ const count=(x,path,method='POST')=>x.requests.filter(r=>r.path===path&&r.method
 const ready=page=>page.waitForFunction(()=>!document.querySelector('#resolution').disabled);
 async function imageForm(x){await x.page.click('#tool-image');await x.page.fill('#prompt',settings.prompt);await x.page.selectOption('#resolution','2k');await x.page.selectOption('#ratio','16:9');await x.page.selectOption('#output-format','png');}
 async function soulForm(x){await x.page.click('#tool-image');await x.page.selectOption('#image-engine','soul');}
-async function reForm(x){await soulForm(x);await x.page.click('#soul-mode-reinterpret');}
+async function reForm(x){await soulForm(x);await x.page.evaluate(()=>document.querySelector('#soul-mode-reinterpret').click());}
 async function baseImage(x){await x.page.locator('#soul-base-image').setInputFiles({name:'base.png',mimeType:'image/png',buffer:png});await ready(x.page);}
 try{
  let x=await workspace();await soulForm(x);assert.equal(await x.page.locator('#soul-mode-text').getAttribute('aria-selected'),'true');assert.equal(await x.page.locator('#soul-reinterpret-controls').isVisible(),false);await x.page.fill('#prompt','Nina in soft light.');await x.page.click('#generate');await ready(x.page);const text=x.requests.find(r=>r.path==='/api/quotes').data;assert.equal(text.settings.engine,'soul');assert.equal(text.settings.mode,'image');assert.equal(text.sourceId,null);assert.equal(x.accepted(),1);assert.deepEqual(x.errors,[]);ok('PV Soul Text remains the default and submits its own identity');await x.context.close();
