@@ -31,6 +31,22 @@ export const VIDEO_MODELS = Object.freeze({
     ratios: ['auto'],
     endpoints: {start: 'minimax/h3-spicy/image-to-video'}
   }),
+  h3maxfal: Object.freeze({
+    label: 'MiniMax H3 Max Reference · FAL', minSeconds: 5, maxSeconds: 15, maxImages: 12,
+    modes: ['reference'], resolutions: ['480p', '768p', '1080p'],
+    ratios: ['auto', '21:9', '16:9', '4:3', '1:1', '3:4', '9:16'],
+    endpoints: {reference: 'minimax/h3-max/reference-to-video'}
+  }),
+  omni: Object.freeze({
+    label: 'Gemini Omni Flash 1.1 · FAL', minSeconds: 3, maxSeconds: 10, maxImages: 10,
+    modes: ['start', 'reference', 'text'], resolutions: ['360p', '720p', '1080p', '4k'],
+    ratios: ['16:9', '9:16'],
+    endpoints: {
+      start: 'google/gemini-omni-flash/v1.1/image-to-video',
+      reference: 'google/gemini-omni-flash/v1.1/reference-to-video',
+      text: 'google/gemini-omni-flash/v1.1/text-to-video'
+    }
+  }),
   seedance: Object.freeze({
     label: 'Seedance 2.5', minSeconds: 4, maxSeconds: 30, maxImages: 30,
     modes: ['start', 'reference', 'text'], resolutions: ['480p', '720p', '1080p'],
@@ -39,6 +55,8 @@ export const VIDEO_MODELS = Object.freeze({
   })
 });
 export function engineFor(settings = {}) {
+  if (settings.engine === 'omni' || /^google\/gemini-omni-flash\/v1\.1\//.test(settings.model || '')) return 'omni';
+  if (settings.engine === 'h3maxfal' || settings.model === 'minimax/h3-max/reference-to-video' && settings.provider === 'fal') return 'h3maxfal';
   if (settings.engine === 'seedance' || /^bytedance\/seedance-2\.5\//.test(settings.model || '')) return 'seedance';
   if (settings.engine === 'h3spicy' || /^minimax\/h3-spicy\//.test(settings.model || '')) return 'h3spicy';
   if (settings.engine === 'h3max' || /^minimax\/h3-max\//.test(settings.model || '')) return 'h3max';
