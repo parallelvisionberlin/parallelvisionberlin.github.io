@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="./history.css?v=20260927-2">
 <link rel="stylesheet" href="./seedance.css?v=20260927-standard1">
 <link rel="stylesheet" href="./soul.css?v=20260930-soul-v02">
-<script type="module" src="./lab.js?v=20261001-reinterpret1"></script>
+<script type="module" src="./lab.js?v=20261001-video-models2"></script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to workspace</a>
@@ -18,7 +18,7 @@
 <section id="gate" class="gate"><p class="eyebrow">Owner access</p><h2>Your private image and motion studio.</h2><p id="auth-status" role="status">Loading your Parallel Vision sign-in…</p><button id="signin" class="primary" disabled>Sign in</button><p class="fine">Use the same owner account as Nina. No new subscription.</p></section>
 <div id="app" hidden>
 <div class="connection-strip"><span id="connection-status">Checking connection…</span><button class="text-button" id="setup">Manage connection</button></div>
-<nav class="tool-switch" aria-label="Creative tool"><button id="tool-video" class="tool-tab active" type="button" aria-pressed="true">Video <small>Wan / Seedance</small></button><button id="tool-image" class="tool-tab" type="button" aria-pressed="false">Image <small>Seedream / Nano / Soul / Pose</small></button><button id="tool-upscale" class="tool-tab" type="button" aria-pressed="false">Upscale <small>Image Upscaler</small></button></nav>
+<nav class="tool-switch" aria-label="Creative tool"><button id="tool-video" class="tool-tab active" type="button" aria-pressed="true">Video <small>Wan / Seedance / H3 / Gemini</small></button><button id="tool-image" class="tool-tab" type="button" aria-pressed="false">Image <small>Seedream / Nano / Soul / Pose</small></button><button id="tool-upscale" class="tool-tab" type="button" aria-pressed="false">Upscale <small>Image Upscaler</small></button></nav>
 <div id="soul-launch" class="soul-launch" hidden>
 <div><span class="eyebrow">PV Soul</span><strong id="soul-launch-title">Train a reusable character</strong><small id="soul-launch-note">FAL training is ready. Train from 20–80 photos, then use the character in Image.</small></div>
 <div class="soul-launch-actions"><button id="soul-use" class="secondary" type="button">Use PV Soul</button><button id="soul-launch-manage" class="primary" type="button">Train / manage character</button></div>
@@ -26,7 +26,7 @@
 <div class="workspace">
 <section class="controls" aria-label="Image to video settings">
 <div class="mode"><span id="mode-heading">01 / Image to Video</span><span class="engine-pill" id="engine-name">WAN 3.0</span><label id="image-model-control" class="mode-model-control" hidden><span class="label">Image model</span><select id="image-engine"><option value="seedream" selected>Seedream 5 Pro</option><option value="gemini">Nano Banana Pro</option><option value="soul">PV Soul</option><option value="fal">Controlled Pose · FAL FLUX</option></select></label></div>
-<div id="video-model-control"><label><span class="label">Video model</span><select id="video-engine"><option value="wan">Wan 3.0</option><option value="wanprime">Wan 3.0 Prime</option><option value="h3">MiniMax H3</option><option value="h3max">MiniMax H3 Max</option><option value="h3spicy">MiniMax H3 Spicy</option><option value="seedance" disabled>Seedance 2.5</option></select></label><p id="video-model-note" class="fine">Standard model access. Provider policies and model refusals apply. No automatic model switching.</p></div>
+<div id="video-model-control"><label><span class="label">Video model</span><select id="video-engine"><option value="wan">Wan 3.0</option><option value="wanprime">Wan 3.0 Prime</option><option value="h3">MiniMax H3</option><option value="h3max">MiniMax H3 Max</option><option value="h3spicy">MiniMax H3 Spicy</option><option value="h3maxfal">MiniMax H3 Max Reference · FAL</option><option value="omni">Gemini Omni Flash 1.1 · FAL</option><option value="seedance">Seedance 2.5</option></select></label><p id="video-model-note" class="fine">Standard model access. Provider policies and model refusals apply. No automatic model switching.</p></div>
 <div id="video-modes" class="mode-switch" role="tablist" aria-label="Generation mode">
 <button id="mode-text" class="mode-tab" type="button" role="tab" aria-selected="false" hidden>Text to Video</button>
 <button id="mode-start" class="mode-tab active" type="button" role="tab" aria-selected="true">Start frame</button>
