@@ -42,7 +42,7 @@ async function zipStored(files,onProgress){
 
 export function createSoulController({api,action,notify,changed,owner,modeChanged=changed}){
   let characters=[],config={},timer=null,selected='',soulMode='text';
-  const strengths={text:1,reinterpret:.72};
+  const strengths={text:1,reinterpret:.75};
   const $=id=>document.getElementById(id);
   const status=text=>{$('soul-train-status').textContent=text||'';};
   const readyCharacters=()=>characters.filter(c=>c.state==='ready'&&!c.adapterFor);
