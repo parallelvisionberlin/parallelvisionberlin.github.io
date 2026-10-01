@@ -2,6 +2,11 @@ name: Deploy Parallel Vision Lab Worker
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'lab-worker/**'
+      - '.github/workflows/deploy-lab-worker.yml'
 
 permissions:
   contents: read
