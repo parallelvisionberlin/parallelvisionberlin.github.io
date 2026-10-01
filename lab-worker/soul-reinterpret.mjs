@@ -20,7 +20,9 @@ export function reinterpretParameters(value,{fail}){
   if(!['source',undefined].includes(value.aspectRatio)||!['png','jpeg'].includes(value.outputFormat||'png'))fail(400,'Reinterpret follows the source ratio and supports PNG or JPEG.');
   if(value.referenceRoles?.length)fail(400,'Reinterpret uses exactly one base image, without additional references.');
   if(!['1k','1.5k',undefined].includes(value.resolution))fail(400,'Choose 1K or 1.5K for Reinterpret.');
-  return {type:'image',provider:'spicy',engine:'soul',model:SOUL_REINTERPRET_MODEL,mode:'reinterpret',characterId:value.characterId,preset:preset.id,presetLabel:preset.label,prompt,imageFidelity,identityStrength,keepComposition:value.keepComposition!==false,keepStyling:value.keepStyling!==false,aspectRatio:'source',resolution:value.resolution||'1.5k',outputFormat:value.outputFormat||'png',referenceRoles:[]};
+  const keepComposition=value.keepComposition===undefined?preset.keepComposition:value.keepComposition;
+  const keepStyling=value.keepStyling===undefined?preset.keepStyling:value.keepStyling;
+  return {type:'image',provider:'spicy',engine:'soul',model:SOUL_REINTERPRET_MODEL,mode:'reinterpret',characterId:value.characterId,preset:preset.id,presetLabel:preset.label,prompt,imageFidelity,identityStrength,keepComposition,keepStyling,aspectRatio:'source',resolution:value.resolution||'1.5k',outputFormat:value.outputFormat||'png',referenceRoles:[]};
 }
 export function buildReinterpretInput(p,{triggerWord,weightsUrl,imageUrl}){
   const preset=soulPreset(p.preset);
