@@ -134,7 +134,13 @@ export function createSoulController({api,action,notify,changed,owner,modeChange
   function renderPreset(defaults){
     const p=(config.soulPresets||[]).find(p=>p.id===$('soul-preset').value);
     $('soul-preset-description').textContent=p?.description||'';
-    if(defaults&&p){$('soul-fidelity').value=p.imageFidelity;$('soul-strength').value=p.identityStrength;strengths.reinterpret=p.identityStrength;}
+    if(defaults&&p){
+      $('soul-fidelity').value=p.imageFidelity;
+      $('soul-strength').value=p.identityStrength;
+      strengths.reinterpret=p.identityStrength;
+      $('soul-keep-composition').checked=p.keepComposition!==false;
+      $('soul-keep-styling').checked=p.keepStyling===true;
+    }
     $('soul-fidelity-value').textContent=Number($('soul-fidelity').value).toFixed(2);
     $('soul-strength-value').textContent=Number($('soul-strength').value).toFixed(2);
   }
