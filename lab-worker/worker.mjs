@@ -944,9 +944,35 @@ async function route(request,env,ctx) {
     const data=await body(request);if(data.confirm!==true)fail(400,'Confirm the estimated charge.');
     const quoteId=uid(data.quoteId);
     let old=await first(env,'SELECT * FROM jobs WHERE quote_id=? AND owner_id=?',quoteId,owner);if(old)return json({job:jobView(old)});
-    const {c,key}=await requireConfigured(env,owner),q=await first(env,'SELECT * FROM quotes WHERE id=? AND owner_id=? AND expires_at>?',quoteId,owner,now());
+    const q=await first(env,'SELECT * FROM quotes WHERE id=? AND owner_id=? AND expires_at>?',quoteId,owner,now());
     if(!q)fail(409,'Quote expired. Review the cost again.');
-    const savedPayload=JSON.parse(q.payload);
+    const params=JSON.parse(q.params||'{}'),savedPayload=JSON.parse(q.payload);
+    if(params.provider==='fal'&&params.type==='video'){
+      if(!env.FAL_KEY)fail(503,'fal.ai video is not configured on this Worker.');
+      for(const assetId of linkedSourceIds(q))await source(env,owner,assetId);
+      const c=await config(env,owner),limit=c?.daily_limit_microusd||10000000,id=crypto.randomUUID(),t=now(),day=Math.floor(t/86400000)*86400000;
+      const falSql="COALESCE(json_extract(params,'$.provider'),'')='fal'";
+      const inserted=await run(env,"INSERT INTO jobs(id,owner_id,source_id,quote_id,params,state,estimate_microusd,created_at,updated_at) SELECT ?,?,?,?,?,'submitting',?,?,? WHERE NOT EXISTS(SELECT 1 FROM jobs WHERE owner_id=? AND state='uncertain' AND "+falSql+") AND (SELECT COUNT(*) FROM jobs WHERE owner_id=? AND state IN ('submitting','queued','running','uncertain') AND "+falSql+" AND CASE WHEN json_extract(params,'$.type')='image' THEN 'image' ELSE 'video' END='video')<? AND (SELECT COALESCE(SUM(estimate_microusd),0) FROM spend WHERE owner_id=? AND created_at>=?)+?<=?",id,owner,q.source_id,q.id,q.params,q.estimate_microusd,t,t,owner,owner,CONCURRENCY.video,owner,day,q.estimate_microusd,limit);
+      if(!inserted.meta.changes){
+        const uncertain=(await first(env,"SELECT COUNT(*) AS n FROM jobs WHERE owner_id=? AND state='uncertain' AND "+falSql,owner)).n;
+        const active=(await first(env,"SELECT COUNT(*) AS n FROM jobs WHERE owner_id=? AND state IN ('submitting','queued','running','uncertain') AND "+falSql+" AND CASE WHEN json_extract(params,'$.type')='image' THEN 'image' ELSE 'video' END='video'",owner)).n;
+        const spent=(await first(env,'SELECT COALESCE(SUM(estimate_microusd),0) AS n FROM spend WHERE owner_id=? AND created_at>=?',owner,day)).n;
+        if(uncertain)fail(409,'No generation submitted: a fal.ai request is interrupted. Resolve it in History before retrying.');
+        if(active>=CONCURRENCY.video)fail(409,'No generation submitted: '+active+' / '+CONCURRENCY.video+' fal.ai video slots are already active.');
+        if(spent+q.estimate_microusd>limit)fail(409,'No generation submitted: this fal.ai video estimate would exceed your Lab daily spending limit.');
+        fail(409,'No generation submitted because fal.ai video capacity changed. Refresh History and try again.');
+      }
+      try{
+        const requestId=await falSubmit(params.model,env.FAL_KEY,savedPayload.input);
+        await run(env,"UPDATE jobs SET provider_id=?,state='queued',updated_at=? WHERE id=?",requestId,now(),id);
+      }catch(e){
+        const uncertain=e?.uncertain===true||e?.definite===false,state=uncertain?'uncertain':'failed';
+        const msg=uncertain?'fal.ai submission status is uncertain. Check the fal dashboard before retrying to avoid a duplicate charge.':String(e?.message||'fal.ai rejected the video request.').slice(0,500);
+        await run(env,'UPDATE jobs SET state=?,error=?,updated_at=? WHERE id=?',state,msg,now(),id);
+      }
+      return json({job:jobView(await first(env,'SELECT * FROM jobs WHERE id=?',id))},202);
+    }
+    const {c,key}=await requireConfigured(env,owner);
     if(savedPayload.model===STILL_EDIT&&(!Array.isArray(savedPayload.input?.image_urls)||!savedPayload.input.image_urls.length||savedPayload.input.image_urls.some(uri=>!FILE_URI.test(uri))))
       fail(409,'This image quote uses the old reference transfer. Review a fresh price to verify your images before generating. Nothing was submitted.');
     if(savedPayload.model===UPSCALER&&!FILE_URI.test(savedPayload.input?.image_url||''))fail(409,'Review a fresh upscale quote to verify the input file. Nothing was submitted.');
