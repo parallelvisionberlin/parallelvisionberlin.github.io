@@ -182,8 +182,9 @@ test('Reference editing preserves source order, roles, notes and original prompt
 
 test('PV Soul Pro separates the structural source from identity references on Ideogram 4.5',async()=>{
   calls=[];falSubmitCount=0;falState='IN_QUEUE';const {env}=fixture(),id=await setup(env);
+  const refUpload=await req(env,'/api/uploads',{method:'POST',raw:new Uint8Array([137,80,78,71,13,10,26,10,1]),headers:{'Content-Type':'image/png','X-Filename':'identity.png'}});assert.equal(refUpload.status,201);const refId=(await refUpload.json()).id;
   const settings={type:'image',engine:'soulpro',mode:'identity-edit',soulProModel:'ideogram45',prompt:'',sourceWidth:512,sourceHeight:768,seed:42,referenceRoles:[{name:'identity.png',role:'identity',note:''}]};
-  const response=await req(env,'/api/fal/soul-pro',{method:'POST',data:{sourceId:id,referenceSourceIds:[id],settings}});
+  const response=await req(env,'/api/fal/soul-pro',{method:'POST',data:{sourceId:id,referenceSourceIds:[refId],settings}});
   assert.equal(response.status,202,await response.clone().text());const job=(await response.json()).job;
   assert.equal(job.settings.engine,'soulpro');assert.equal(job.settings.soulProModel,'ideogram45');assert.equal(job.estimatedUsd,.22);assert.equal(falSubmitCount,1);
   const submit=calls.findLast(c=>c.options.method==='POST'&&c.url.includes('/ideogram/v4.5/edit'));assert.ok(submit);
@@ -194,8 +195,9 @@ test('PV Soul Pro separates the structural source from identity references on Id
 
 test('PV Soul Pro offers Kontext Max as a separate cheaper identity-edit engine without LoRA controls',async()=>{
   calls=[];falSubmitCount=0;falState='IN_QUEUE';const {env}=fixture(),id=await setup(env);
+  const refUpload=await req(env,'/api/uploads',{method:'POST',raw:new Uint8Array([137,80,78,71,13,10,26,10,2]),headers:{'Content-Type':'image/png','X-Filename':'identity.png'}});assert.equal(refUpload.status,201);const refId=(await refUpload.json()).id;
   const settings={type:'image',engine:'soulpro',mode:'identity-edit',soulProModel:'kontextmax',prompt:'keep the original room',sourceWidth:768,sourceHeight:512,seed:'',referenceRoles:[{name:'identity.png',role:'identity',note:''}]};
-  const response=await req(env,'/api/fal/soul-pro',{method:'POST',data:{sourceId:id,referenceSourceIds:[id],settings}});
+  const response=await req(env,'/api/fal/soul-pro',{method:'POST',data:{sourceId:id,referenceSourceIds:[refId],settings}});
   assert.equal(response.status,202,await response.clone().text());const job=(await response.json()).job;
   assert.equal(job.estimatedUsd,.08);assert.equal(job.settings.soulProModel,'kontextmax');
   const submit=calls.findLast(c=>c.options.method==='POST'&&c.url.includes('/flux-pro/kontext/max/multi'));assert.ok(submit);
