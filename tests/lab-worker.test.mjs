@@ -276,7 +276,7 @@ test('Reinterpret uses only compatible child weights and one staged source; arch
  assert.equal(quotedRequest.model,'alibaba/z-image-turbo-lora/edit');const input=quotedRequest.input;
  assert.deepEqual(Object.keys(input).sort(),['image_url','loras','output_format','prompt','resolution','strength']);
  assert.equal(input.image_url,'spicy://f/fil_synthetic_reference');assert.equal(input.strength,.18);assert.equal(input.loras[0].scale,1.25);
- assert.equal(new URL(input.loras[0].path).pathname,'/soul-weight/'+child);assert.match(input.prompt,new RegExp('pv_'+child.slice(0,8)));assert.ok(!input.prompt.includes('pv_'+parent.slice(0,8)));assert.match(input.prompt,/Same framing/);assert.match(input.prompt,/styling and lighting may follow/);assert.match(input.prompt,/pores/i);
+ assert.equal(new URL(input.loras[0].path).pathname,'/soul-weight/'+child);assert.match(input.prompt,new RegExp('pv_'+child.slice(0,8)));assert.ok(!input.prompt.includes('pv_'+parent.slice(0,8)));assert.match(input.prompt,/Lock the source camera geometry/);assert.match(input.prompt,/preset is dominant/);assert.match(input.prompt,/Do not import body shape/);assert.match(input.prompt,/inflated anatomy/);assert.match(input.prompt,/pores/i);
  const weight=new URL(input.loras[0].path);assert.equal((await req(env,weight.pathname+weight.search,{method:'HEAD',authToken:null,headers:{Origin:''}})).status,200);
  const job=(await(await req(env,'/api/jobs',{method:'POST',data:{quoteId:q.id,confirm:true}})).json()).job;providerState='succeeded';
  const done=(await(await req(env,'/api/jobs/'+job.id)).json()).job;assert.equal(done.status,'completed');assert.equal(done.sourceId,sourceId);assert.ok(done.outputId);assert.equal(done.settings.reinterpretAdapterId,child);
