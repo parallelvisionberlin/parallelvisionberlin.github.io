@@ -7,7 +7,7 @@ import {FAL_CONTROLLED_POSE,FAL_CONTROLLED_INPAINT,FAL_DWPOSE,controlledPosePara
 import {falVideoParameters,falVideoEstimateMicros,buildFalVideoInput} from './fal-video.mjs';
 import {soulProParameters,soulProEstimateMicros,buildSoulProInput} from './soul-pro.mjs';
 import {SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-02.3-soul-pro-identity';
+export const VERSION = 'pv-lab-2026-10-02.4-provider-diagnostics';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -559,6 +559,12 @@ function standardBase64(bytes){
   for(let i=0;i<a.length;i+=0x8000)out+=String.fromCharCode(...a.subarray(i,Math.min(i+0x8000,a.length)));
   return btoa(out);
 }
+async function falImageDataUri(env,a){
+  if(!['image/jpeg','image/png','image/webp'].includes(a.mime))fail(400,'FAL image inputs must be JPG, PNG or WebP.');
+  const obj=await env.LAB_MEDIA.get(a.object_key);if(!obj)fail(404,'A FAL input image is missing from private storage.');
+  const bytes=new Uint8Array(await new Response(obj.body).arrayBuffer());if(bytes.length!==a.bytes||!sniff(bytes,a.mime))fail(409,'A stored FAL input image failed verification.');
+  return {url:'data:'+a.mime+';base64,'+standardBase64(bytes),bytes:bytes.length};
+}
 function geminiImagePart(response){
   const candidates=response?.candidates||[];
   for(const candidate of candidates)for(const part of candidate?.content?.parts||[]){
@@ -658,9 +664,25 @@ async function refreshFalJob(env,j,p){
       await copyResult(env,j,safe);return;
     }
     if(['FAILED','CANCELLED','CANCELED'].includes(state)){
-      const rawDetail=status?.error??status?.detail??'fal.ai ended the request without an image.';
-      const detail=typeof rawDetail==='string'?rawDetail:(Array.isArray(rawDetail)?rawDetail.map(item=>typeof item==='string'?item:item&&typeof item==='object'?[Array.isArray(item.loc)?item.loc.join('.'):'',item.msg||item.message||'',item.type||''].filter(Boolean).join(': '):String(item)).filter(Boolean).join(' | '):JSON.stringify(rawDetail));
-      const message=String(detail).replace(/[\r\n]+/g,' ').slice(0,600);
+      const bits=[];
+      const rawDetail=status?.error??status?.detail??status?.message;
+      if(rawDetail){
+        const detail=typeof rawDetail==='string'?rawDetail:(Array.isArray(rawDetail)?rawDetail.map(item=>typeof item==='string'?item:item&&typeof item==='object'?[Array.isArray(item.loc)?item.loc.join('.'):'',item.msg||item.message||'',item.type||''].filter(Boolean).join(': '):String(item)).filter(Boolean).join(' | '):JSON.stringify(rawDetail));
+        if(detail)bits.push(String(detail));
+      }
+      if(Array.isArray(status?.logs))for(const item of status.logs){
+        const msg=typeof item==='string'?item:item?.message||item?.msg;
+        if(typeof msg==='string'&&msg.trim()&&!bits.includes(msg.trim()))bits.push(msg.trim());
+      }
+      if(!bits.length||bits.every(x=>/provider rejected the request/i.test(x))){
+        try{await falResult(endpoint,env.FAL_KEY,j.provider_id);}
+        catch(resultError){
+          const msg=String(resultError?.message||'').replace(/^fal\.ai:\s*/,'').trim();
+          if(msg&&!bits.includes(msg))bits.push(msg);
+        }
+      }
+      const prefix=p.engine==='soulpro'?'Soul Pro / '+(p.soulProModel==='ideogram45'?'Ideogram 4.5':'FLUX Kontext Max')+': ':'fal.ai: ';
+      const message=(prefix+(bits.filter(Boolean).join(' | ')||'Provider ended the request without an output.')).replace(/[\r\n]+/g,' ').slice(0,900);
       await env.LAB_DB.batch([
         stmt(env,"UPDATE jobs SET state='failed',error=?,updated_at=? WHERE id=?",message,now(),j.id),
         stmt(env,'DELETE FROM spend WHERE job_id=?',j.id)
@@ -944,10 +966,14 @@ async function route(request,env,ctx) {
     const refs=await sources(env,owner,identityIds,4);
     if(refs.some(a=>!a.mime?.startsWith('image/')))fail(400,'PV Soul Pro identity references must be images.');
     p.referenceSourceIds=refs.map(a=>a.id);p.referenceRoles=refs.map(a=>({name:a.filename,role:'identity',note:''}));
-    const input=buildSoulProInput(p,{
-      sourceUrl:await signedInput(env,url,base.id,86400),
-      identityUrls:await Promise.all(refs.map(a=>signedInput(env,url,a.id,86400)))
-    });
+    // FAL documents that caller-hosted URLs may be blocked, rate-limited, or treated as bot traffic.
+    // Soul Pro therefore sends its private source and identity images inline as data URIs so both
+    // partner models receive the exact bytes without depending on workers.dev URL fetching.
+    const preparedBase=await falImageDataUri(env,base),preparedRefs=[];
+    let inlineBytes=preparedBase.bytes;
+    for(const ref of refs){const prepared=await falImageDataUri(env,ref);inlineBytes+=prepared.bytes;if(inlineBytes>14*1024*1024)fail(413,'PV Soul Pro inputs exceed the 14 MiB inline-input limit. Use smaller identity images.');preparedRefs.push(prepared.url);}
+    p.inputTransport='inline-data-uri';
+    const input=buildSoulProInput(p,{sourceUrl:preparedBase.url,identityUrls:preparedRefs});
     const estimate=soulProEstimateMicros(p),reserved=await reserveFalImageJob(env,owner,base.id,p,estimate),job=await submitReservedFalJob(env,reserved,p,input);
     return json({job:jobView(job)},202);
   }

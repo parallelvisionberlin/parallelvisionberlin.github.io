@@ -37,9 +37,9 @@ globalThis.fetch=async (url,options={})=>{const u=new URL(url);calls.push({url:S
     if(soulPro){
       const input=JSON.parse(options.body);
       if(u.pathname.includes('/ideogram/v4.5/edit')){
-        assert.equal(input.edit_precision,'high');assert.ok(['very_low','low','medium','high'].includes(input.quality));assert.ok(input.image_url);assert.equal(input.reference_image_urls.length,1);assert.equal(input.num_images,1);
+        assert.equal(input.edit_precision,'high');assert.ok(['very_low','low','medium','high'].includes(input.quality));assert.match(input.image_url,/^data:image\/png;base64,/);assert.equal(input.reference_image_urls.length,1);assert.match(input.reference_image_urls[0],/^data:image\/png;base64,/);assert.equal(input.num_images,1);
       }else{
-        assert.equal(input.image_urls.length,2);assert.equal(input.guidance_scale,3.5);assert.equal(input.enhance_prompt,false);assert.equal(input.num_images,1);
+        assert.equal(input.image_urls.length,2);assert.ok(input.image_urls.every(x=>/^data:image\/png;base64,/.test(x)));assert.equal(input.guidance_scale,3.5);assert.equal(input.enhance_prompt,false);assert.equal(input.num_images,1);
       }
       assert.match(input.prompt,/primary source image is the structural truth/i);assert.match(input.prompt,/identity reference/i);
       return Response.json({request_id:u.pathname.includes('/ideogram/')?'fal_soulpro_ideogram_1234567890':'fal_soulpro_kontext_1234567890'});
@@ -210,7 +210,7 @@ test('PV Soul Pro saves Nina identity once and reuses it with one base image on 
   const settings={type:'image',engine:'soulpro',mode:'identity-edit',soulProModel:'ideogram45',soulProQuality:'medium',prompt:'',sourceWidth:512,sourceHeight:768,seed:42,referenceRoles:[]};
   const response=await req(env,'/api/fal/soul-pro',{method:'POST',data:{sourceId:id,referenceSourceIds:[],settings}});
   assert.equal(response.status,202,await response.clone().text());const job=(await response.json()).job;
-  assert.equal(job.settings.engine,'soulpro');assert.equal(job.settings.soulProModel,'ideogram45');assert.deepEqual(job.settings.referenceSourceIds,[refId]);assert.equal(job.settings.soulProQuality,'medium');assert.equal(job.estimatedUsd,.06);assert.equal(falSubmitCount,1);
+  assert.equal(job.settings.engine,'soulpro');assert.equal(job.settings.soulProModel,'ideogram45');assert.deepEqual(job.settings.referenceSourceIds,[refId]);assert.equal(job.settings.inputTransport,'inline-data-uri');assert.equal(job.settings.soulProQuality,'medium');assert.equal(job.estimatedUsd,.06);assert.equal(falSubmitCount,1);
   const submit=calls.findLast(c=>c.options.method==='POST'&&c.url.includes('/ideogram/v4.5/edit'));assert.ok(submit);
   const input=JSON.parse(submit.options.body);assert.ok(input.image_url);assert.equal(input.reference_image_urls.length,1);assert.notEqual(input.image_url,input.reference_image_urls[0]);
   assert.match(input.prompt,/keep the source crop/i);assert.match(input.prompt,/do not import pose, body shape, wardrobe, room, camera angle or lighting/i);
