@@ -559,6 +559,12 @@ function standardBase64(bytes){
   for(let i=0;i<a.length;i+=0x8000)out+=String.fromCharCode(...a.subarray(i,Math.min(i+0x8000,a.length)));
   return btoa(out);
 }
+async function falImageDataUri(env,a){
+  if(!['image/jpeg','image/png','image/webp'].includes(a.mime))fail(400,'FAL image inputs must be JPG, PNG or WebP.');
+  const obj=await env.LAB_MEDIA.get(a.object_key);if(!obj)fail(404,'A FAL input image is missing from private storage.');
+  const bytes=new Uint8Array(await obj.arrayBuffer());if(bytes.length!==a.bytes||!sniff(bytes,a.mime))fail(409,'A stored FAL input image failed verification.');
+  return {url:'data:'+a.mime+';base64,'+standardBase64(bytes),bytes:bytes.length};
+}
 function geminiImagePart(response){
   const candidates=response?.candidates||[];
   for(const candidate of candidates)for(const part of candidate?.content?.parts||[]){
@@ -960,10 +966,14 @@ async function route(request,env,ctx) {
     const refs=await sources(env,owner,identityIds,4);
     if(refs.some(a=>!a.mime?.startsWith('image/')))fail(400,'PV Soul Pro identity references must be images.');
     p.referenceSourceIds=refs.map(a=>a.id);p.referenceRoles=refs.map(a=>({name:a.filename,role:'identity',note:''}));
-    const input=buildSoulProInput(p,{
-      sourceUrl:await signedInput(env,url,base.id,86400),
-      identityUrls:await Promise.all(refs.map(a=>signedInput(env,url,a.id,86400)))
-    });
+    // FAL documents that caller-hosted URLs may be blocked, rate-limited, or treated as bot traffic.
+    // Soul Pro therefore sends its private source and identity images inline as data URIs so both
+    // partner models receive the exact bytes without depending on workers.dev URL fetching.
+    const preparedBase=await falImageDataUri(env,base),preparedRefs=[];
+    let inlineBytes=preparedBase.bytes;
+    for(const ref of refs){const prepared=await falImageDataUri(env,ref);inlineBytes+=prepared.bytes;if(inlineBytes>14*1024*1024)fail(413,'PV Soul Pro inputs exceed the 14 MiB inline-input limit. Use smaller identity images.');preparedRefs.push(prepared.url);}
+    p.inputTransport='inline-data-uri';
+    const input=buildSoulProInput(p,{sourceUrl:preparedBase.url,identityUrls:preparedRefs});
     const estimate=soulProEstimateMicros(p),reserved=await reserveFalImageJob(env,owner,base.id,p,estimate),job=await submitReservedFalJob(env,reserved,p,input);
     return json({job:jobView(job)},202);
   }
