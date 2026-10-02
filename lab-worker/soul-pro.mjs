@@ -67,11 +67,12 @@ function identityPrompt(p,count,kontext=false){
 }
 
 export function buildSoulProInput(p,{sourceUrl,identityUrls}){
-  const prompt=identityPrompt(p,identityUrls.length,p.soulProModel==='kontextmax');
+  const kontextIdentityUrls=p.soulProModel==='kontextmax'?identityUrls.slice(0,3):identityUrls;
+  const prompt=identityPrompt(p,kontextIdentityUrls.length,p.soulProModel==='kontextmax');
   if(p.soulProModel==='kontextmax'){
     const input={
       prompt,
-      image_urls:[sourceUrl,...identityUrls],
+      image_urls:[sourceUrl,...kontextIdentityUrls],
       guidance_scale:3.5,
       num_images:1,
       output_format:'png',
