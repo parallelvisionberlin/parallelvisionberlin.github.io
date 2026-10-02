@@ -596,7 +596,7 @@ async function refineInSeedream(job,preset='full'){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
-async function loadPacks(){const data=await api('/api/packs');packs=data.packs;$('pack-select').replaceChildren(new Option('Choose a saved pack',''),...packs.map(p=>new Option(p.name,p.id)));if($('soul-pro-pack-select'))$('soul-pro-pack-select').replaceChildren(new Option('Choose a saved pack',''),...packs.filter(p=>p.refs?.length>=1&&p.refs.length<=4).map(p=>new Option(p.name,p.id)));}
+async function loadPacks(){const data=await api('/api/packs');packs=data.packs;$('pack-select').replaceChildren(new Option('Choose a saved pack',''),...packs.map(p=>new Option(p.name,p.id)));if($('soul-pro-pack-select'))$('soul-pro-pack-select').replaceChildren(new Option('Choose a saved pack',''),...packs.filter(p=>p.refs?.length>=1).map(p=>new Option(p.name+' · '+p.refs.length+' ref'+(p.refs.length===1?'':'s')+(p.refs.length>4?' · first 4 used':''),p.id)));}
 $('pack-save').onclick=()=>action(async()=>{if(!references.length)throw new Error('Add reference images first.');const name=window.prompt('Name this reference pack, for example Nina FOK / Editorial');if(!name?.trim())return;const ids=await ensureReferences();await api('/api/packs',{method:'POST',body:{name:name.trim(),engine:tool==='video'?engine:'wan',referenceSourceIds:ids,referenceRoles:referenceRoles()}});await loadPacks();notify('Reference pack saved privately. No generation charge.');});
 $('pack-load').onclick=()=>action(async()=>{
   const pack=packs.find(p=>p.id===$('pack-select').value);
@@ -637,9 +637,10 @@ $('soul-pro-save-identity').onclick=()=>action(async()=>{
 });
 $('soul-pro-use-pack').onclick=()=>action(async()=>{
   const packId=$('soul-pro-pack-select').value;if(!packId)throw new Error('Choose a saved reference pack.');
-  $('soul-pro-identity-dialog-status').textContent='Saving Nina identity from pack…';
+  const pack=packs.find(p=>p.id===packId),total=pack?.refs?.length||0;
+  $('soul-pro-identity-dialog-status').textContent=total>4?'This pack has '+total+' images. Soul Pro will use the first 4 in the saved pack order.':'Saving Nina identity from pack…';
   soulProIdentity=await api('/api/soul-pro/identity',{method:'POST',body:{packId}});
-  $('soul-pro-identity-dialog').close();update();notify('Nina identity loaded from the saved pack. Soul Pro now needs only one base image.');
+  $('soul-pro-identity-dialog').close();update();notify(total>4?'Nina identity loaded from the first 4 images of '+pack.name+'.':'Nina identity loaded from the saved pack. Soul Pro now needs only one base image.');
 });
 $('soul-pro-clear-identity').onclick=()=>action(async()=>{
   if(!soulProIdentity.configured)return;if(!confirm('Clear the saved Nina identity? Existing generation history remains.'))return;
