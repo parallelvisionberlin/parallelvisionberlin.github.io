@@ -5,6 +5,7 @@ import {readFileSync} from 'node:fs';
 import worker from '../lab-worker/worker.mjs';
 import {compileImagePrompt} from '../lab/reference-guidance.js';
 import {storedImageDimensions} from '../lab-worker/fal-upscale.mjs';
+import {buildSoulProInput} from '../lab-worker/soul-pro.mjs';
 const ORIGIN='https://parallelvisionlabel.com',BASE='https://parallel-vision-lab.parallelvision.workers.dev',KEY='sk-spicy-synthetic-test-only-not-a-real-key';
 const keypair=await crypto.subtle.generateKey({name:'RSASSA-PKCS1-v1_5',modulusLength:2048,publicExponent:new Uint8Array([1,0,1]),hash:'SHA-256'},true,['sign','verify']);
 const jwk=await crypto.subtle.exportKey('jwk',keypair.publicKey);jwk.kid='test-key';
@@ -24,8 +25,20 @@ class DB {
 function fixture(){const db=new DB(readFileSync(new URL('../lab-worker/schema.sql',import.meta.url),'utf8')),owner=new DB("CREATE TABLE users(id TEXT,auth_provider TEXT,auth_subject TEXT,role TEXT); INSERT INTO users VALUES('owner-internal','clerk','user_Owner','owner'),('guest','clerk','user_Guest','user');");const objects=new Map();const env={LAB_DB:db,OWNER_DB:owner,LAB_SECRET:'synthetic-test-secret-do-not-use-in-production-01234567890',FAL_KEY:'fal-synthetic-test-key',LAB_MEDIA:{async put(k,value){objects.set(k,new Uint8Array(await new Response(value).arrayBuffer()));},async get(k){if(!objects.has(k))return null;const v=objects.get(k);return{body:new Response(v).body,size:v.length};},async head(k){return objects.has(k)?{size:objects.get(k).length}:null;},async delete(k){objects.delete(k);}}};return{env,objects};}
 let calls=[],quotedRequest=null,createCount=0,providerState='queued',createMode='ok',maxPrice='2.700000';
 let uploadedReference=null,falState='IN_QUEUE',falSubmitCount=0,falResult422=false,falSubmitMode='ok',falVideoReject=false;
-let falUpscaleMode='ok',falPollError=0,falHistoryItems=[];
+let falUpscaleMode='ok',falPollError=0,falHistoryItems=[],falUploadMode='ok',falUploadCount=0;
 globalThis.fetch=async (url,options={})=>{const u=new URL(url);calls.push({url:String(url),options});if(u.pathname==='/.well-known/jwks.json')return Response.json({keys:[jwk]});
+ if(u.hostname==='rest.fal.ai'){
+  assert.equal(options.method,'POST');assert.equal(u.pathname,'/storage/upload/initiate');
+  assert.equal(new Headers(options.headers).get('authorization'),'Key fal-synthetic-test-key');
+  assert.equal(options.redirect,'manual');assert.equal(JSON.parse(options.body).file_name,'pv-lab-input.png');
+  const id=++falUploadCount;return Response.json({upload_url:'https://v3.fal.media/upload/'+id,file_url:'https://v3.fal.media/files/inputs/'+id+'.png'});
+ }
+ if(u.hostname==='v3.fal.media'&&options.method==='PUT'){
+  assert.equal(new Headers(options.headers).get('authorization'),null);assert.equal(options.redirect,'manual');assert.ok(options.body instanceof Uint8Array);
+  if(falUploadMode==='timeout')throw new Error('Synthetic upload timeout');
+  if(falUploadMode==='rejected')return new Response('Upload failed',{status:503});
+  return new Response(null,{status:200});
+ }
  if(u.hostname==='api.fal.ai'){
   assert.equal(options.method,'GET');assert.equal(new Headers(options.headers).get('authorization'),'Key fal-synthetic-test-key');assert.equal(u.pathname,'/v1/models/requests/by-endpoint');assert.equal(u.searchParams.get('expand'),'payloads');return Response.json({items:falHistoryItems,has_more:false,next_cursor:null});
  }
@@ -35,7 +48,7 @@ globalThis.fetch=async (url,options={})=>{const u=new URL(url);calls.push({url:S
   if(u.pathname.startsWith('/topaz/upscale/')){
     if(options.method==='POST'){
       falSubmitCount++;const input=JSON.parse(options.body);
-      assert.match(input.image_url,/^data:image\/(png|jpeg|webp);base64,/);
+      assert.match(input.image_url,/^https:\/\/v3\.fal\.media\/files\/inputs\//);
       assert.equal(input.crop_to_fill,false);assert.equal(input.face_enhancement,false);
       assert.ok([2,4].includes(input.upscale_factor));assert.ok(['jpeg','png'].includes(input.output_format));
       assert.deepEqual(Object.keys(input).sort(),['crop_to_fill','face_enhancement','image_url','model','output_format','upscale_factor']);
@@ -61,9 +74,9 @@ globalThis.fetch=async (url,options={})=>{const u=new URL(url);calls.push({url:S
     if(soulPro){
       const input=JSON.parse(options.body);
       if(u.pathname.includes('/ideogram/v4.5/edit')){
-        assert.equal(input.edit_precision,'high');assert.ok(['very_low','low','medium','high'].includes(input.quality));assert.match(input.image_url,/^data:image\/png;base64,/);assert.equal(input.reference_image_urls.length,1);assert.match(input.reference_image_urls[0],/^data:image\/png;base64,/);assert.equal(input.num_images,1);
+        assert.equal(input.edit_precision,'high');assert.ok(['very_low','low','medium','high'].includes(input.quality));assert.match(input.image_url,/^https:\/\/v3\.fal\.media\/files\/inputs\//);assert.equal(input.reference_image_urls.length,1);assert.match(input.reference_image_urls[0],/^https:\/\/v3\.fal\.media\/files\/inputs\//);assert.equal(input.num_images,1);
       }else{
-        assert.ok(input.image_urls.length>=2&&input.image_urls.length<=4);assert.ok(input.image_urls.every(x=>/^data:image\/png;base64,/.test(x)));assert.equal(input.guidance_scale,3.5);assert.equal(input.enhance_prompt,false);assert.equal(input.num_images,1);
+        assert.ok(input.image_urls.length>=2&&input.image_urls.length<=4);assert.ok(input.image_urls.every(x=>/^https:\/\/v3\.fal\.media\/files\/inputs\//.test(x)));assert.equal(input.guidance_scale,3.5);assert.equal(input.enhance_prompt,false);assert.equal(input.num_images,1);
       }
       assert.match(input.prompt,/BASE SOURCE IMAGE/i);assert.match(input.prompt,/identity reference/i);
       return Response.json({request_id:u.pathname.includes('/ideogram/')?'fal_soulpro_ideogram_1234567890':'fal_soulpro_kontext_1234567890'});
@@ -356,7 +369,7 @@ test('PV Soul Pro saves Nina identity once and reuses it with one base image on 
   const settings={type:'image',engine:'soulpro',mode:'identity-edit',soulProModel:'ideogram45',soulProQuality:'medium',prompt:'',sourceWidth:512,sourceHeight:768,seed:42,referenceRoles:[]};
   const response=await req(env,'/api/fal/soul-pro',{method:'POST',data:{sourceId:id,referenceSourceIds:[],settings}});
   assert.equal(response.status,202,await response.clone().text());const job=(await response.json()).job;
-  assert.equal(job.settings.engine,'soulpro');assert.equal(job.settings.soulProModel,'ideogram45');assert.deepEqual(job.settings.referenceSourceIds,[refId]);assert.equal(job.settings.inputTransport,'inline-data-uri');assert.equal(job.settings.soulProQuality,'medium');assert.equal(job.estimatedUsd,.06);assert.equal(falSubmitCount,1);
+  assert.equal(job.settings.engine,'soulpro');assert.equal(job.settings.soulProModel,'ideogram45');assert.deepEqual(job.settings.referenceSourceIds,[refId]);assert.equal(job.settings.inputTransport,'fal-cdn');assert.equal(job.settings.soulProQuality,'medium');assert.equal(job.estimatedUsd,.06);assert.equal(falSubmitCount,1);
   const submit=calls.findLast(c=>c.options.method==='POST'&&c.url.includes('/ideogram/v4.5/edit'));assert.ok(submit);
   const input=JSON.parse(submit.options.body);assert.ok(input.image_url);assert.equal(input.reference_image_urls.length,1);assert.notEqual(input.image_url,input.reference_image_urls[0]);
   assert.match(input.prompt,/Preserve the base source crop/i);assert.match(input.prompt,/Do not copy pose, body shape, wardrobe, room, background, camera angle or lighting/i);assert.match(input.prompt,/Never substitute a reference image for the base source/i);
@@ -402,7 +415,7 @@ test('Kontext Max keeps the base as Image 1 and caps the saved Nina profile at t
   assert.equal(input.image_urls.length,4,'Kontext accepts four images total: base + three identity refs');
   assert.match(input.prompt,/IMAGE 1 IS THE BASE SOURCE IMAGE TO EDIT/);
   assert.match(input.prompt,/Images 2 through 4 are identity references only/);
-  assert.ok(input.image_urls.every(x=>/^data:image\/png;base64,/.test(x)));
+  assert.ok(input.image_urls.every(x=>/^https:\/\/v3\.fal\.media\/files\/inputs\//.test(x)));
 });
 
 test('Failed FAL image jobs can recover an already-generated provider output without resubmission',async()=>{
@@ -455,6 +468,61 @@ test('Interrupted Soul Pro history reconciliation requires an exact saved input 
       else{assert.equal(stored.provider_id,null);assert.match((await checked.json()).error,mode==='absent'?/does not prove/:/already linked/);assert.equal(stored.updated_at,job.updatedAt);}
     }finally{falSubmitMode='ok';falHistoryItems=[];}
   }
+});
+
+test('Historical inline Soul Pro requests remain recoverable without CDN uploads or another generation',async()=>{
+  const{env,objects}=fixture(),sourceId=await setup(env);falSubmitMode='timeout';falSubmitCount=0;falHistoryItems=[];falState='COMPLETED';
+  try{
+    const job=(await(await req(env,'/api/fal/soul-pro',{method:'POST',data:{sourceId,referenceSourceIds:[sourceId],settings:{type:'image',engine:'soulpro',mode:'identity-edit',soulProModel:'ideogram45',sourceWidth:512,sourceHeight:768}}})).json()).job;
+    const old={...job.settings,inputTransport:'inline-data-uri'},asset=env.LAB_DB.db.prepare('SELECT * FROM assets WHERE id=?').get(sourceId),dataUrl='data:image/png;base64,'+Buffer.from(objects.get(asset.object_key)).toString('base64');
+    env.LAB_DB.db.prepare('UPDATE jobs SET params=? WHERE id=?').run(JSON.stringify(old),job.id);
+    env.LAB_DB.db.prepare("UPDATE quotes SET payload='{}' WHERE id=(SELECT quote_id FROM jobs WHERE id=?)").run(job.id);
+    falHistoryItems=[{endpoint_id:old.model,request_id:'fal_soulpro_ideogram_1234567890',sent_at:new Date(job.createdAt).toISOString(),json_input:buildSoulProInput(old,{sourceUrl:dataUrl,identityUrls:[dataUrl]})}];
+    const uploads=falUploadCount,response=await req(env,'/api/jobs/'+job.id+'/reconcile',{method:'POST',data:{}});
+    assert.equal(response.status,200,await response.clone().text());assert.equal((await response.json()).job.status,'completed');assert.equal(falSubmitCount,1);assert.equal(falUploadCount,uploads);
+  }finally{falSubmitMode='ok';falHistoryItems=[];}
+});
+
+test('Soul Pro and Topaz upload failures release the estimate without ever submitting inference',async()=>{
+  for(const engine of ['soulpro','topaz'])for(const mode of ['timeout','rejected']){
+    const{env}=fixture(),sourceId=engine==='topaz'?await topazSource(env):await setup(env);
+    falUploadMode=mode;falSubmitCount=0;calls=[];
+    try{
+      let response;
+      if(engine==='soulpro')response=await req(env,'/api/fal/soul-pro',{method:'POST',data:{sourceId,referenceSourceIds:[sourceId],settings:{type:'image',engine:'soulpro',mode:'identity-edit',soulProModel:'ideogram45',sourceWidth:512,sourceHeight:768}}});
+      else{const q=await(await req(env,'/api/quotes',{method:'POST',data:{sourceId,settings:topazSettings}})).json();response=await req(env,'/api/jobs',{method:'POST',data:{quoteId:q.id,confirm:true}});}
+      assert.equal(response.status,202,await response.clone().text());const job=(await response.json()).job;
+      assert.equal(job.status,'failed');assert.match(job.error,/FAL input upload:.*No generation was submitted/);
+      assert.equal(falSubmitCount,0);assert.ok(!calls.some(c=>c.url.includes('queue.fal.run')));
+      assert.equal(env.LAB_DB.db.prepare('SELECT COUNT(*) AS n FROM spend').get().n,0);
+      assert.equal(env.LAB_DB.db.prepare('SELECT COUNT(*) AS n FROM assets').get().n,1);
+    }finally{falUploadMode='ok';}
+  }
+});
+
+test('Multi-megabyte Soul Pro images are uploaded intact before one small, persisted queue submission',async()=>{
+  const{env,objects}=fixture(),sourceId=await setup(env);const base=env.LAB_DB.db.prepare('SELECT * FROM assets WHERE id=?').get(sourceId);
+  const bytes=new Uint8Array(3_642_201);bytes.set([137,80,78,71,13,10,26,10]);objects.set(base.object_key,bytes);
+  env.LAB_DB.db.prepare('UPDATE assets SET bytes=? WHERE id=?').run(bytes.length,sourceId);calls=[];falSubmitCount=0;
+  const response=await req(env,'/api/fal/soul-pro',{method:'POST',data:{sourceId,referenceSourceIds:[sourceId],settings:{type:'image',engine:'soulpro',mode:'identity-edit',soulProModel:'ideogram45',sourceWidth:512,sourceHeight:768}}});
+  assert.equal(response.status,202);const job=(await response.json()).job;assert.equal(job.status,'queued');assert.equal(falSubmitCount,1);
+  const submission=calls.find(c=>c.url.includes('queue.fal.run')&&c.options.method==='POST');assert.ok(submission.options.body.length<4000);assert.ok(!submission.options.body.includes('base64'));
+  const uploads=calls.filter(c=>c.options.method==='PUT');assert.equal(uploads.length,2);assert.ok(uploads.every(c=>c.options.body.length===bytes.length));
+  assert.ok(calls.indexOf(submission)>calls.indexOf(uploads.at(-1)));
+  const stored=env.LAB_DB.db.prepare('SELECT q.payload FROM quotes q JOIN jobs j ON j.quote_id=q.id WHERE j.id=?').get(job.id);
+  assert.deepEqual(JSON.parse(stored.payload).input,JSON.parse(submission.options.body));
+});
+
+test('Topaz can recover a lost acknowledgement from the exact persisted CDN input without re-uploading',async()=>{
+  const{env}=fixture(),sourceId=await topazSource(env);calls=[];falUpscaleMode='timeout';falSubmitCount=0;falHistoryItems=[];falState='COMPLETED';
+  try{
+    const q=await(await req(env,'/api/quotes',{method:'POST',data:{sourceId,settings:topazSettings}})).json();
+    const job=(await(await req(env,'/api/jobs',{method:'POST',data:{quoteId:q.id,confirm:true}})).json()).job;assert.equal(job.status,'uncertain');
+    const input=JSON.parse(calls.find(c=>c.url.includes('queue.fal.run')&&c.options.method==='POST').options.body),uploads=calls.filter(c=>c.options.method==='PUT').length;
+    falHistoryItems=[{endpoint_id:job.settings.model,request_id:'fal_topaz_test_1234567890',sent_at:new Date(job.createdAt).toISOString(),json_input:input}];
+    const recovered=await req(env,'/api/jobs/'+job.id+'/reconcile',{method:'POST',data:{}});assert.equal(recovered.status,200,await recovered.clone().text());assert.equal((await recovered.json()).job.status,'completed');
+    assert.equal(falSubmitCount,1);assert.equal(calls.filter(c=>c.options.method==='PUT').length,uploads);
+  }finally{falUpscaleMode='ok';falHistoryItems=[];}
 });
 
 test('Soul Pro successful response without a task ID retains its interruption and reserved budget',async()=>{
@@ -541,7 +609,9 @@ test('Topaz submits the checked source and settings once, archives output and ke
   const responses=await Promise.all([req(env,'/api/jobs',{method:'POST',data:{quoteId:q.id,confirm:true,settings:{...topazSettings,scale:4}}}),req(env,'/api/jobs',{method:'POST',data:{quoteId:q.id,confirm:true}})]);
   assert.ok(responses.every(r=>[200,202].includes(r.status)));const jobs=await Promise.all(responses.map(r=>r.json()));assert.equal(jobs[0].job.id,jobs[1].job.id);assert.equal(falSubmitCount,1);
   const posted=JSON.parse(calls.find(c=>c.options.method==='POST'&&c.url.includes('queue.fal.run/topaz/')).options.body);
-  assert.equal(posted.model,'Standard V2');assert.equal(posted.upscale_factor,2);assert.deepEqual(new Uint8Array(Buffer.from(posted.image_url.split(',')[1],'base64')),pngDimensions(2000,1000));
+  assert.equal(posted.model,'Standard V2');assert.equal(posted.upscale_factor,2);assert.match(posted.image_url,/^https:\/\/v3\.fal\.media\/files\/inputs\//);
+  assert.deepEqual(calls.find(c=>c.options.method==='PUT'&&c.url.startsWith('https://v3.fal.media/upload/')).options.body,pngDimensions(2000,1000));
+  assert.deepEqual(JSON.parse(env.LAB_DB.db.prepare('SELECT payload FROM quotes WHERE id=?').get(q.id).payload).submittedInput,posted);
   falState='COMPLETED';const completed=(await(await req(env,'/api/jobs/'+jobs[0].job.id)).json()).job;
   assert.equal(completed.status,'completed');assert.ok(completed.outputId);assert.equal(completed.sourceId,sourceId);assert.equal(completed.settledUsd,null);assert.equal(completed.estimatedUsd,.08);assert.equal(objects.size,2);
   const draft=await req(env,'/api/drafts',{method:'POST',data:{sourceId,settings:completed.settings}});assert.equal(draft.status,201);assert.equal(falSubmitCount,1);
