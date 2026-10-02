@@ -118,13 +118,13 @@ try{
   assert.equal(await x.page.locator('#generate').isDisabled(),false);
   await x.page.locator('#prompt').fill('');
   assert.equal(await x.page.locator('#generate').isDisabled(),false);assert.equal(await x.page.locator('#save').isDisabled(),false);
-  assert.equal(await x.page.locator('#prompt-label').innerText(),'Additional changes (optional)');
+  assert.equal(await x.page.locator('#prompt-label').textContent(),'Additional changes (optional)');
   pass('Detail requires a target, then Base plus Hands works with no written image direction');
   await role(x.page,3).selectOption('outfit');assert.equal(await target(x.page,3).inputValue(),'full');
   await target(x.page,3).selectOption('pants');
   assert.equal(await target(x.page,1).count(),0);
   assert.equal(await x.page.locator('#reference-guidance details').evaluate(e=>e.open),false);
-  assert.match(await x.page.locator('#reference-provider').innerText(),/Seedream 5 Pro.*SpicyAPI/);
+  assert.match(await x.page.locator('#reference-provider').textContent(),/Seedream 5 Pro.*SpicyAPI/);
   await x.page.locator('#reference-guidance summary').click();
   const preview=await x.page.locator('#reference-guidance-text').innerText();
   assert.match(preview,/Reference 1 \[Base image\]/);assert.match(preview,/Reference 2 \[Detail \/ Hands\]/);assert.match(preview,/Reference 3 \[Clothing \/ Pants\]/);
