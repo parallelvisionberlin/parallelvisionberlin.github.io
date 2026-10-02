@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="./history.css?v=20260927-2">
 <link rel="stylesheet" href="./seedance.css?v=20260927-standard1">
 <link rel="stylesheet" href="./soul.css?v=20260930-soul-v02">
-<script type="module" src="./lab.js?v=20261002-soul-pack-list1"></script>
+<script type="module" src="./lab.js?v=20261002-soul-pack-picker2"></script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to workspace</a>
@@ -92,7 +92,8 @@
 <p class="fine">Upload one base photograph. Its pose, body, camera, wardrobe and scene stay structural. Nina's identity is stored separately once and reused automatically on every render.</p>
 <div class="identity-profile-row"><div><strong>Nina FOK</strong><p id="soul-pro-identity-status" class="fine">Checking saved identity…</p></div><button id="soul-pro-identity-manage" type="button" class="quiet">Set / change identity</button></div>
 <label><span class="label">Identity engine</span><select id="soul-pro-model"><option value="ideogram45" selected>Ideogram 4.5 · Precise</option><option value="kontextmax">FLUX Kontext Max · Multi</option></select></label>
-<p class="fine" id="soul-pro-note">Precise Edit is the default: source geometry is preserved while the references supply identity. High quality is fixed for this mode.</p>
+<label id="soul-pro-quality-row"><span class="label">Ideogram quality</span><select id="soul-pro-quality"><option value="medium" selected>Medium · $0.06</option><option value="high">High · $0.22</option><option value="low">Low · $0.03</option><option value="very_low">Very Low · $0.008</option></select></label>
+<p class="fine" id="soul-pro-note">Precise Edit keeps high edit precision. Medium quality is the default at $0.06; High is optional at $0.22.</p>
 <details class="seed-settings"><summary>Seed</summary><label><span class="label">Optional seed</span><input id="soul-pro-seed" type="number" min="0" max="2147483647" placeholder="Random"></label></details>
 </div>
 <div id="controlled-pose-settings" class="controlled-pose-settings" hidden>
@@ -140,7 +141,13 @@
 <div class="dialog-head"><div><span class="eyebrow">PV SOUL PRO</span><h2>Nina identity</h2></div><button value="cancel" class="quiet" type="submit">Close</button></div>
 <p class="fine">Set this once. Future Soul Pro renders need only one base image. Ideogram 4.5 accepts up to four reference images, so Soul Pro keeps one shared Nina profile of up to four images for predictable switching between both engines.</p>
 <label class="drop compact-drop"><span>Choose 1–4 Nina identity images</span><small>JPG / PNG / WebP</small><input id="soul-pro-identity-files" type="file" multiple accept="image/jpeg,image/png,image/webp"></label>
-<div class="pack-bar"><label><span class="label">Or use an existing reference pack</span><select id="soul-pro-pack-select"><option value="">Choose a saved pack</option></select></label><button id="soul-pro-use-pack" type="button" class="quiet">Use pack</button></div><p class="fine">All saved packs appear here. If a pack has more than four images, Soul Pro uses the first four in that pack's saved order.</p>
+<div class="pack-bar"><label><span class="label">Or use an existing reference pack</span><select id="soul-pro-pack-select"><option value="">Choose a saved pack</option></select></label></div>
+<div id="soul-pro-pack-preview" class="soul-pro-pack-preview" hidden>
+<div class="upload-heading"><span class="label">Choose up to 4 images</span><span class="micro" id="soul-pro-pack-count">0 / 4 selected</span></div>
+<div id="soul-pro-pack-grid" class="soul-pro-pack-grid"></div>
+<button id="soul-pro-use-pack" type="button" class="quiet full">Use selected images</button>
+</div>
+<p class="fine">All saved packs appear here. For larger packs, pick exactly the Nina angles you want instead of using the first four automatically.</p>
 <p id="soul-pro-identity-dialog-status" class="fine" role="status"></p>
 <button id="soul-pro-save-identity" type="button" class="primary full">Save Nina identity</button>
 <button id="soul-pro-clear-identity" type="button" class="secondary full">Clear saved identity</button>
