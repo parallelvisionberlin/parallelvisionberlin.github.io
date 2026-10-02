@@ -15,7 +15,7 @@ const ORIGIN='http://127.0.0.1:4179',API='https://parallel-vision-lab.parallelvi
 let passed=0,png;const ok=name=>{passed++;console.log('PASS '+name);};
 const id=n=>'20000000-0000-4000-8000-'+String(n).padStart(12,'0');
 const settings={type:'image',mode:'image',prompt:'A ceramic sculpture in soft daylight.',resolution:'2k',aspectRatio:'16:9',outputFormat:'png',referenceRoles:[],referenceSourceIds:[]};
-async function workspace({failure='',width=1440,initial=[],quoteDelay=0}={}){
+async function workspace({failure='',width=1440,initial=[],savedPacks=[],quoteDelay=0}={}){
  const context=await browser.newContext({viewport:{width,height:1000},acceptDownloads:true}),page=await context.newPage();
  const requests=[],errors=[],dialogs=[],jobs=[...initial],quotes=new Map();let sequence=100,accepted=0,renewed=false;
  page.on('pageerror',e=>errors.push(e.message));page.on('dialog',async d=>{dialogs.push(d.message());await d.accept();});
@@ -25,7 +25,7 @@ async function workspace({failure='',width=1440,initial=[],quoteDelay=0}={}){
   requests.push({path,method,data});
   const send=(body,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(body)});
   if(path==='/api/jobs'&&method==='GET')return send({jobs,activeJobs:jobs.filter(j=>['queued','running','saving','uncertain','submitting'].includes(j.status)),concurrency:{image:4,video:1},next:null});
-  if(path==='/api/packs')return send({packs:[]});
+  if(path==='/api/packs')return send({packs:savedPacks});
   if(path==='/api/soul-pro/identity'&&method==='GET')return send({configured:true,count:2,refs:[{id:id(950),name:'nina-front.png'},{id:id(951),name:'nina-three-quarter.png'}]});
   if(path==='/api/soul-pro/identity'&&method==='POST')return send({configured:true,count:(data.referenceSourceIds||[]).length||1,refs:[]},201);
   if(path==='/api/soul-pro/identity'&&method==='DELETE')return send({configured:false,count:0,refs:[]});
@@ -97,7 +97,12 @@ try{
  assert.equal(await x.page.locator('#generate').isDisabled(),false);
  assert.match(await x.page.locator('#active-status').innerText(),/Nano 0 \/ 4/);assert.match(await x.page.locator('#active-status').innerText(),/1 old Nano interrupted/);
  ok('Interrupted Gemini request is labeled as old and does not look like an active Nano generation');await x.context.close();
- x=await workspace();await x.page.click('#tool-image');await x.page.selectOption('#image-engine','soulpro');await ready(x.page);
+ const manyPack={id:id(940),name:'Nina Master 8',refs:Array.from({length:8},(_,i)=>({id:id(960+i),name:'nina-'+(i+1)+'.png',role:'identity',note:''}))};
+ x=await workspace({savedPacks:[manyPack]});await x.page.click('#tool-image');await x.page.selectOption('#image-engine','soulpro');await ready(x.page);await x.page.click('#soul-pro-identity-manage');
+ const packText=await x.page.locator('#soul-pro-pack-select').innerText();assert.match(packText,/Nina Master 8/);assert.match(packText,/8 refs/);assert.match(packText,/first 4 used/);
+ ok('Soul Pro identity setup shows existing packs even when they contain more than four images');await x.context.close();
+
+  x=await workspace();await x.page.click('#tool-image');await x.page.selectOption('#image-engine','soulpro');await ready(x.page);
  assert.equal(await x.page.locator('#reference-mode').isVisible(),false);assert.match(await x.page.locator('#soul-pro-identity-status').innerText(),/Saved Nina identity.*2 references/);
  assert.equal(await x.page.locator('#generate').isDisabled(),true);
  await x.page.locator('#image').setInputFiles({name:'base.png',mimeType:'image/png',buffer:png});await ready(x.page);
