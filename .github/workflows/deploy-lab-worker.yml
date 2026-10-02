@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - 'lab-worker/**'
+      - 'lab/reference-guidance.js'
       - '.github/workflows/deploy-lab-worker.yml'
 
 permissions:

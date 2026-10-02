@@ -129,3 +129,20 @@ Reinterpret stages the base image through the existing SpicyAPI file-upload mech
 Apply `lab-worker/migrations/0005-soul-reinterpret.sql` to LAB_DB only, then upload all Worker modules while retaining every secret, D1 and R2 binding. Verify `/health` before merging the UI. Worker auto-deploy stays manual. The migration is additive and idempotent.
 
 Verification: `node --test tests/lab*.test.mjs`, the new mock-only `tests/lab-soul-reinterpret-ui.mjs`, the four existing Lab browser suites, JavaScript syntax checks, and `npm run build`. Browser suites use `PV_PLAYWRIGHT_MODULE` and need Playwright Chromium. They make no real provider submissions.
+## Reference guidance, 2026-10-02
+
+Seedream 5 Pro uses the existing SpicyAPI connection. Its role menu is compiled into the provider prompt; it is not a set of native provider parameters. Nano Banana Pro uses the same role compiler on its separate Google route. The compiler is shared between the browser preview and Worker.
+
+1. Choose **Base image** on the photograph to edit. This selection places it first and visibly renumbers the list. Only one base is allowed. The first reference controls Seedream's automatic aspect ratio.
+2. Assign only the property each other image contributes: Identity, Pose only, Composition, Detail, Clothing, Object, Environment, Style or Lighting.
+3. Detail reveals Hands, Feet, Hair, Face detail and Skin texture. Clothing and Object reveal their own choices. Optional notes describe small refinements.
+4. With a base and another assigned role, Image direction becomes optional. Otherwise write the desired edit. Expand **What will be sent** to inspect the exact compiled prompt and its 5,000-character budget.
+
+Selecting a role does not guarantee a pixel-identical base or exact identity. SpicyAPI's Seedream edit schema has no mask or region-coordinate field. The existing **Repair Region** action is a separate FAL inpainting operation; this change does not present it as a Seedream feature or add layer decomposition.
+
+Reference metadata survives saved packs and History Reuse. Duplicate asset IDs are rejected before a provider quote so subsequent image numbers cannot shift. Reference order is unchanged during submission. Switching the Base selection is the only automatic move, with an explicit on-screen notice.
+
+The same release fixes the SpicyAPI concurrency query: active or uncertain FAL jobs no longer occupy Seedream/Upscale slots or trigger a false SpicyAPI interruption. Existing unresolved records and budget reservations remain intact.
+
+Verified against https://spicyapi.ai/models/seedream-5-0-pro/edit and https://spicyapi.ai/models/seedream-5-0-pro/edit/api. Regression checks use synthetic inputs and mocked paid endpoints.
+

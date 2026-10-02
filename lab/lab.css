@@ -24,6 +24,10 @@ footer{border-top:1px solid var(--line-soft);padding:18px 0;color:var(--muted);f
 /* Reference lists must not determine the height or position of the result canvas. */
 .workspace{align-items:start}
 .reference-list{max-height:350px;overflow-y:auto;overflow-x:hidden;overscroll-behavior-y:contain;scrollbar-gutter:stable;padding-right:4px}
+.reference-guidance{margin:12px 0 18px;border-top:1px solid var(--line);padding-top:10px;min-width:0}
+.reference-guidance summary{font-size:11px;cursor:pointer;padding:6px 0;color:var(--ink)}
+.reference-guidance pre{white-space:pre-wrap;overflow-wrap:anywhere;font:11px/1.6 inherit;color:var(--muted);max-height:240px;overflow:auto;margin:10px 0}
+.reference-guidance .error{color:#ffadad}
 .reference-item{flex:none}
 .reference-item>img{cursor:zoom-in}
 .reference-fields strong{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}

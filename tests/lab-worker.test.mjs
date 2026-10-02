@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {DatabaseSync} from 'node:sqlite';
 import {readFileSync} from 'node:fs';
 import worker from '../lab-worker/worker.mjs';
+import {compileImagePrompt} from '../lab/reference-guidance.js';
 const ORIGIN='https://parallelvisionlabel.com',BASE='https://parallel-vision-lab.parallelvision.workers.dev',KEY='sk-spicy-synthetic-test-only-not-a-real-key';
 const keypair=await crypto.subtle.generateKey({name:'RSASSA-PKCS1-v1_5',modulusLength:2048,publicExponent:new Uint8Array([1,0,1]),hash:'SHA-256'},true,['sign','verify']);
 const jwk=await crypto.subtle.exportKey('jwk',keypair.publicKey);jwk.kid='test-key';
@@ -180,9 +181,90 @@ test('Text-to-image quotes need no source; image outputs can be reused by video 
 test('Reference editing preserves source order, roles, notes and original prompt; packs pin private media',async()=>{
   const{env}=fixture();const id=await setup(env);const labels=[{name:'reference.png',role:'room',note:'Use the architecture only.'}];
   const packResponse=await req(env,'/api/packs',{method:'POST',data:{name:'Architecture / Set',referenceSourceIds:[id],referenceRoles:labels}});assert.equal(packResponse.status,201);const pack=await packResponse.json();
-  const settings={...imageSettings,referenceRoles:labels};const q=await(await req(env,'/api/quotes',{method:'POST',data:{settings,referenceSourceIds:[id]}})).json();assert.equal(quotedRequest.model,'bytedance/seedream-5.0-pro/edit');assert.equal(quotedRequest.input.image_urls.length,1);assert.match(quotedRequest.input.prompt,/Reference 1.*room.*Use the architecture only/);assert.equal(q.settings.prompt,imageSettings.prompt);
+  const settings={...imageSettings,referenceRoles:labels};const q=await(await req(env,'/api/quotes',{method:'POST',data:{settings,referenceSourceIds:[id]}})).json();assert.equal(quotedRequest.model,'bytedance/seedream-5.0-pro/edit');assert.equal(quotedRequest.input.image_urls.length,1);assert.match(quotedRequest.input.prompt,/Reference 1.*Environment.*Use the architecture only/);assert.equal(q.settings.prompt,imageSettings.prompt);
   const draft=(await(await req(env,'/api/drafts',{method:'POST',data:{settings,referenceSourceIds:[id]}})).json()).job;assert.equal(draft.settings.referenceRoles[0].note,labels[0].note);assert.equal((await req(env,'/api/jobs/'+draft.id,{method:'DELETE'})).status,200);assert.equal((await req(env,'/api/assets/'+id)).status,200);assert.equal((await req(env,'/api/packs',{authToken:guest})).status,403);assert.equal((await req(env,'/api/packs/'+pack.id,{method:'DELETE'})).status,200);
   const oversized={...imageSettings,prompt:'x'.repeat(5000),referenceRoles:labels};assert.equal((await req(env,'/api/quotes',{method:'POST',data:{settings:oversized,referenceSourceIds:[id]}})).status,400);
+});
+
+async function uploadGuidanceReference(env,name,marker){
+  const r=await req(env,'/api/uploads',{method:'POST',raw:new Uint8Array([137,80,78,71,13,10,26,10,marker]),headers:{'Content-Type':'image/png','X-Filename':name}});
+  assert.equal(r.status,201);return (await r.json()).id;
+}
+test('Seedream uses SpicyAPI with ordered images, compiled properties and reusable detail metadata',async()=>{
+  const{env}=fixture();await setup(env);
+  const ids=await Promise.all(['base','hands','coat','identity'].map((name,i)=>uploadGuidanceReference(env,name+'.png',i+1)));
+  const labels=[{name:'base.png',role:'base',note:''},{name:'hands.png',role:'detail',target:'hands',note:'Keep natural proportions.'},{name:'coat.png',role:'outfit',target:'coat',note:''},{name:'identity.png',role:'identity',note:''}];
+  const settings={...imageSettings,engine:'seedream',prompt:'Keep the room.',referenceRoles:labels};
+  const originalFetch=globalThis.fetch,staged=new Map();let uploadNumber=0;
+  globalThis.fetch=async(url,options={})=>{
+    const u=new URL(url);
+    if(u.hostname==='api.spicyapi.ai'&&u.pathname.endsWith('/common/upload-url')){
+      const input=JSON.parse(options.body),fileId='fil_ordered_reference_'+(++uploadNumber);staged.set(fileId,{input});
+      return Response.json({code:200,data:{fileId,uploadUrl:'https://test.r2.cloudflarestorage.com/'+fileId,method:'PUT',headers:{'Content-Type':input.contentType,'Content-Length':String(input.bytes)},maxBytes:10485760,expiresAt:new Date(Date.now()+1200000).toISOString()}});
+    }
+    if(u.hostname==='test.r2.cloudflarestorage.com'){
+      staged.get(u.pathname.slice(1)).bytes=new Uint8Array(options.body);return new Response(null,{status:200});
+    }
+    if(u.hostname==='api.spicyapi.ai'&&u.pathname.endsWith('/commit')){
+      const fileId=u.pathname.split('/').at(-2),item=staged.get(fileId);
+      return Response.json({code:200,data:{fileId,status:'ready',bytes:item.bytes.length,contentType:'image/png',sha256:Buffer.from(await crypto.subtle.digest('SHA-256',item.bytes)).toString('hex'),uri:'spicy://f/'+fileId,expiresAt:new Date(Date.now()+86400000).toISOString()}});
+    }
+    return originalFetch(url,options);
+  };
+  try{
+    const before=createCount,response=await req(env,'/api/quotes',{method:'POST',data:{settings,referenceSourceIds:ids}});
+    assert.equal(response.status,200,await response.clone().text());const q=await response.json();
+    assert.equal(q.provider,'SpicyAPI');assert.equal(q.settings.provider,'spicy');assert.equal(q.settings.engine,'seedream');
+    assert.deepEqual(quotedRequest.input.image_urls.map(uri=>staged.get(uri.split('/').at(-1)).bytes.at(-1)),[1,2,3,4]);
+    assert.equal(quotedRequest.input.prompt,compileImagePrompt(settings.prompt,labels));
+    assert.match(quotedRequest.input.prompt,/Reference 2 \[Detail \/ Hands\]/);assert.match(quotedRequest.input.prompt,/Reference 3 \[Clothing \/ Coat \/ jacket\]/);
+    assert.deepEqual(q.settings.referenceSourceIds,ids);assert.deepEqual(q.settings.referenceRoles,labels);assert.equal(createCount,before);
+    const draftResponse=await req(env,'/api/drafts',{method:'POST',data:{settings,referenceSourceIds:ids}});assert.equal(draftResponse.status,201);
+    assert.deepEqual((await draftResponse.json()).job.settings.referenceRoles,labels);
+    const packed=await req(env,'/api/packs',{method:'POST',data:{name:'Hand and coat edit',referenceSourceIds:ids,referenceRoles:labels}});assert.equal(packed.status,201);
+    const pack=await packed.json();assert.equal(pack.refs[1].target,'hands');assert.equal(pack.refs[2].target,'coat');
+    const listed=await (await req(env,'/api/packs')).json();assert.deepEqual(listed.packs.find(x=>x.id===pack.id).refs,pack.refs);
+  }finally{globalThis.fetch=originalFetch;}
+});
+
+test('Image role-only edits compile automatically; invalid mappings and oversized final prompts stop before provider quotes',async()=>{
+  const{env}=fixture(),base=await setup(env),detail=await uploadGuidanceReference(env,'hands.png',0);
+  const labels=[{role:'base'},{role:'detail',target:'hands'}],settings={...imageSettings,engine:'seedream',prompt:'',referenceRoles:labels};
+  const roleOnly=await req(env,'/api/quotes',{method:'POST',data:{settings,referenceSourceIds:[base,detail]}});assert.equal(roleOnly.status,200,await roleOnly.clone().text());
+  assert.match(quotedRequest.input.prompt,/Apply the assigned reference properties to the base image/);
+  const rejected=[
+    {name:'duplicate',ids:[base,base],settings,match:/duplicate reference/},
+    {name:'mismatched roles',ids:[base],settings,match:/roles must match/},
+    {name:'unknown role',ids:[base,detail],settings:{...settings,prompt:'Edit',referenceRoles:[{role:'base'},{role:'unrecognized'}]},match:/Unknown reference role/},
+    {name:'missing detail',ids:[base,detail],settings:{...settings,prompt:'Edit',referenceRoles:[{role:'base'},{role:'detail'}]},match:/Choose a detail/},
+    {name:'base ordering',ids:[base,detail],settings:{...settings,prompt:'Edit',referenceRoles:[{role:'identity'},{role:'base'}]},match:/Base image to Reference 1/},
+    {name:'compiled length',ids:[base,detail],settings:{...settings,prompt:'a'.repeat(4900)},match:/automatic reference instructions is too long/}
+  ];
+  for(const item of rejected){
+    const before=calls.length,res=await req(env,'/api/quotes',{method:'POST',data:{settings:item.settings,referenceSourceIds:item.ids}});
+    assert.equal(res.status,400,item.name);assert.match((await res.json()).error,item.match,item.name);
+    assert.equal(calls.slice(before).filter(c=>/\/jobs\/(quote|createTask)$|\/common\/upload-url$/.test(new URL(c.url).pathname)).length,0,item.name);
+  }
+});
+
+test('Nano Banana accepts the same role-only guidance with image order and target metadata intact',async()=>{
+  const{env,objects}=fixture();env.GEMINI_API_KEY='synthetic-gemini-key';const base=await setup(env),detail=await uploadGuidanceReference(env,'hands.png',1);
+  const get=env.LAB_MEDIA.get;env.LAB_MEDIA.get=async(key)=>{const obj=await get(key);return obj?{...obj,arrayBuffer:async()=>objects.get(key).slice().buffer}:null;};
+  const originalFetch=globalThis.fetch;let submitted=null;
+  globalThis.fetch=async(url,options={})=>{
+    if(new URL(url).hostname==='generativelanguage.googleapis.com'){
+      submitted=JSON.parse(options.body);return Response.json({candidates:[{content:{parts:[{inlineData:{mimeType:'image/png',data:Buffer.from([137,80,78,71,13,10,26,10,0]).toString('base64')}}]}}]});
+    }
+    return originalFetch(url,options);
+  };
+  try{
+    const labels=[{role:'base'},{role:'detail',target:'hands'}];
+    const response=await req(env,'/api/gemini/jobs',{method:'POST',data:{count:1,referenceSourceIds:[base,detail],settings:{...imageSettings,engine:'gemini',prompt:'',referenceRoles:labels}}});
+    assert.equal(response.status,202,await response.clone().text());const job=(await response.json()).jobs[0];assert.equal(job.status,'completed');
+    const parts=submitted.contents[0].parts;assert.equal(parts[0].text,compileImagePrompt('',labels));
+    assert.deepEqual(parts.filter(x=>x.inlineData).map(x=>Buffer.from(x.inlineData.data,'base64').at(-1)),[0,1]);
+    assert.deepEqual(job.settings.referenceSourceIds,[base,detail]);assert.equal(job.settings.referenceRoles[1].target,'hands');
+  }finally{globalThis.fetch=originalFetch;}
 });
 
 test('Definite H3 Max FAL rejection becomes failed and releases its Lab budget reservation',async()=>{
@@ -322,6 +404,50 @@ test('Atomic image migration preserves existing completed video, private media p
 });
 
 const upscaleSettings={type:'image',mode:'upscale',resolution:'4k',outputFormat:'png'};
+test('Definite SpicyAPI submission rejection releases the local budget for image and upscale retries',async()=>{
+  const oldPrice=maxPrice;maxPrice='0.093000';providerState='queued';
+  try{
+    for(const settings of [imageSettings,upscaleSettings]){
+      const{env}=fixture(),id=await setup(env);createCount=0;
+      const data={sourceId:id,referenceSourceIds:settings.mode==='upscale'?[]:[id],settings};
+      const q=await(await req(env,'/api/quotes',{method:'POST',data})).json();
+      createMode='pricechange';
+      const rejected=await req(env,'/api/jobs',{method:'POST',data:{quoteId:q.id,confirm:true}}),failed=(await rejected.json()).job;
+      assert.equal(rejected.status,202);assert.equal(failed.status,'failed');assert.match(failed.error,/quote expired or changed/i);
+      assert.equal(env.LAB_DB.db.prepare('SELECT COUNT(*) AS n FROM spend WHERE job_id=?').get(failed.id).n,0,'A definite rejection before task acceptance must not consume Lab budget');
+      createMode='timeout';
+      const retry=await(await req(env,'/api/quotes',{method:'POST',data})).json();
+      const uncertain=(await(await req(env,'/api/jobs',{method:'POST',data:{quoteId:retry.id,confirm:true}})).json()).job;
+      assert.equal(uncertain.status,'uncertain');
+      assert.equal(env.LAB_DB.db.prepare('SELECT COUNT(*) AS n FROM spend WHERE job_id=?').get(uncertain.id).n,1,'An unconfirmed provider submission must retain its reservation');
+      assert.equal(createCount,2);
+    }
+  }finally{maxPrice=oldPrice;createMode='ok';}
+});
+test('SpicyAPI image and upscale submissions ignore fal.ai interrupted jobs and active slots',async()=>{
+  const oldPrice=maxPrice;maxPrice='0.093000';createMode='ok';providerState='queued';
+  const foreignSettings=[
+    {type:'image',provider:'fal',engine:'soulpro',model:'fal-ai/ideogram/v4.5/edit'},
+    {type:'image',engine:'fal',model:'fal-ai/flux-general'},
+    {type:'image',engine:'soulpro',model:'fal-ai/flux-pro/kontext/max/multi'},
+    {type:'video',engine:'h3maxfal',model:'fal-ai/minimax/h3-max/reference-to-video'},
+    {type:'video',engine:'omni',model:'fal-ai/gemini-omni-flash-1.1'},
+    {type:'image',model:'fal-ai/flux-general'}
+  ];
+  try{
+    for(const settings of [imageSettings,upscaleSettings])for(const foreign of foreignSettings){
+      createCount=0;const{env}=fixture(),id=await setup(env),t=Date.now();
+      for(let i=0;i<11;i++)env.LAB_DB.db.prepare('INSERT INTO jobs(id,owner_id,source_id,params,state,estimate_microusd,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?)')
+        .run(crypto.randomUUID(),'owner-internal',id,JSON.stringify(foreign),i===0?'uncertain':'queued',1000,t+i,t+i);
+      const quoted=await req(env,'/api/quotes',{method:'POST',data:{sourceId:id,referenceSourceIds:settings.mode==='upscale'?[]:[id],settings}});
+      assert.equal(quoted.status,200);const q=await quoted.json();
+      const submitted=await req(env,'/api/jobs',{method:'POST',data:{quoteId:q.id,confirm:true}}),result=await submitted.json();
+      assert.equal(submitted.status,202,JSON.stringify({settings,foreign,result}));
+      assert.equal(result.job.status,'queued');assert.equal(createCount,1);
+      assert.equal(env.LAB_DB.db.prepare("SELECT COUNT(*) AS n FROM jobs WHERE state='uncertain'").get().n,1,'Must preserve the other provider interruption for review');
+    }
+  }finally{maxPrice=oldPrice;}
+});
 test('Upscale quotes require one source but no prompt; completed image retains original and safe reuse',async()=>{
  createMode='ok';createCount=0;providerState='queued';const{env}=fixture(),id=await setup(env);
  const missing=await req(env,'/api/quotes',{method:'POST',data:{settings:upscaleSettings}});assert.equal(missing.status,400);
