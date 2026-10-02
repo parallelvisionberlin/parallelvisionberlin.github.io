@@ -10,7 +10,7 @@ import {SOUL_PRO_MODELS,soulProParameters,soulProEstimateMicros,buildSoulProInpu
 import {findFalRequest} from './fal-recovery.mjs';
 import {REFERENCE_ROLES,normalizeReferenceLabel,supportsReferenceGuidance,compileImagePrompt,canUseReferenceGuidance,referenceGuidanceError} from '../lab/reference-guidance.js';
 import {SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-02.8-provider-redirects';
+export const VERSION = 'pv-lab-2026-10-02.9-upscale-isolation';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -857,15 +857,19 @@ async function submitFalUpscaleQuote(env,owner,q,p,payload){
   const input={...payload.input,image_url:'data:'+verified.asset.mime+';base64,'+standardBase64(verified.bytes)};
   const c=await config(env,owner),limit=c?.daily_limit_microusd||10000000,id=crypto.randomUUID(),t=now(),day=Math.floor(t/86400000)*86400000;
   const falSql="(COALESCE(json_extract(params,'$.provider'),'')='fal' OR COALESCE(json_extract(params,'$.engine'),'') IN ('fal','soulpro','h3maxfal','omni') OR COALESCE(json_extract(params,'$.model'),'') LIKE 'fal-ai/%' OR COALESCE(json_extract(params,'$.model'),'') LIKE 'topaz/%')";
+  // A distinct upscale cannot retry an interrupted identity edit. Keep unknown
+  // upscale submissions blocked across Topaz engines; all FAL jobs still count
+  // toward the shared image capacity and every held estimate still counts spend.
+  const uncertainUpscaleSql=falSql+" AND COALESCE(json_extract(params,'$.mode'),'')='upscale'";
   try{
-    const inserted=await run(env,"INSERT INTO jobs(id,owner_id,source_id,quote_id,params,state,estimate_microusd,created_at,updated_at) SELECT ?,?,?,?,?,'submitting',?,?,? WHERE NOT EXISTS(SELECT 1 FROM jobs WHERE owner_id=? AND state='uncertain' AND "+falSql+") AND (SELECT COUNT(*) FROM jobs WHERE owner_id=? AND state IN ('submitting','queued','running','uncertain') AND "+falSql+" AND json_extract(params,'$.type')='image')<? AND (SELECT COALESCE(SUM(estimate_microusd),0) FROM spend WHERE owner_id=? AND created_at>=?)+?<=?",
+    const inserted=await run(env,"INSERT INTO jobs(id,owner_id,source_id,quote_id,params,state,estimate_microusd,created_at,updated_at) SELECT ?,?,?,?,?,'submitting',?,?,? WHERE NOT EXISTS(SELECT 1 FROM jobs WHERE owner_id=? AND state='uncertain' AND "+uncertainUpscaleSql+") AND (SELECT COUNT(*) FROM jobs WHERE owner_id=? AND state IN ('submitting','queued','running','uncertain') AND "+falSql+" AND json_extract(params,'$.type')='image')<? AND (SELECT COALESCE(SUM(estimate_microusd),0) FROM spend WHERE owner_id=? AND created_at>=?)+?<=?",
       id,owner,q.source_id,q.id,q.params,q.estimate_microusd,t,t,owner,owner,CONCURRENCY.image,owner,day,q.estimate_microusd,limit);
     if(!inserted.meta.changes){
       const old=await first(env,'SELECT * FROM jobs WHERE quote_id=? AND owner_id=?',q.id,owner);if(old)return old;
-      const uncertain=(await first(env,"SELECT COUNT(*) AS n FROM jobs WHERE owner_id=? AND state='uncertain' AND "+falSql,owner)).n;
+      const uncertain=(await first(env,"SELECT COUNT(*) AS n FROM jobs WHERE owner_id=? AND state='uncertain' AND "+uncertainUpscaleSql,owner)).n;
       const active=(await first(env,"SELECT COUNT(*) AS n FROM jobs WHERE owner_id=? AND state IN ('submitting','queued','running','uncertain') AND "+falSql+" AND json_extract(params,'$.type')='image'",owner)).n;
       const spent=(await first(env,'SELECT COALESCE(SUM(estimate_microusd),0) AS n FROM spend WHERE owner_id=? AND created_at>=?',owner,day)).n;
-      if(uncertain)fail(409,'No upscale submitted: a fal.ai request is interrupted. Resolve it in History before retrying.');
+      if(uncertain)fail(409,'No upscale submitted: a fal.ai upscale is interrupted. Check that upscale in History before retrying.');
       if(active>=CONCURRENCY.image)fail(409,'No upscale submitted: all '+CONCURRENCY.image+' fal.ai image slots are active.');
       if(spent+q.estimate_microusd>limit)fail(409,'No upscale submitted: this estimate would exceed your Lab daily spending limit.');
       fail(409,'No upscale submitted because capacity changed. Refresh History and try again.');
