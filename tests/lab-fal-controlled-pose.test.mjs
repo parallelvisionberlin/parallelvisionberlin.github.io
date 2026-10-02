@@ -58,7 +58,7 @@ test('Repair Region supports mask inpainting and optional pose/identity reuse',(
 });
 
 
-test('H3 Max Reference on fal disables the optional safety checker while preserving reference control',()=>{
+test('H3 Max Reference on fal keeps the provider safety checker enabled while preserving reference control',()=>{
   const referenceLabels=value=>value||[];
   const p=falVideoParameters({
     type:'video',engine:'h3maxfal',mode:'reference',prompt:'Keep the referenced subject consistent.',
@@ -66,7 +66,7 @@ test('H3 Max Reference on fal disables the optional safety checker while preserv
     referencePixels:[1048576,1048576],referenceRoles:[{role:'identity'},{role:'room'}]
   },{fail,referenceLabels});
   const input=buildFalVideoInput(p,{imageUrls:['https://example.test/subject','https://example.test/room']});
-  assert.equal(input.enable_safety_checker,false);
+  assert.equal(input.enable_safety_checker,true);
   assert.equal(input.prompt_expansion_mode,'disabled');
   assert.deepEqual(input.reference_image_urls,['https://example.test/subject','https://example.test/room']);
   assert.equal(input.resolution,'1080P');
