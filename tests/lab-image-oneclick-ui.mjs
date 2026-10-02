@@ -166,7 +166,7 @@ try{
  x=await workspace({initial:[inactive(1),inactive(2),inactive(3),active(1040)]});
  await x.page.click('#history-select');assert.equal(await x.page.locator('#history-selection').isVisible(),true);
  const checks=x.page.locator('.history-select-box input');assert.equal(await checks.count(),3);
- await checks.nth(0).check();await checks.nth(1).check();assert.match(await x.page.locator('#history-selection-count').innerText(),/2 selected/);
+ await checks.nth(0).check();await checks.nth(1).check();assert.match(await x.page.locator('#history-selection-count').innerText(),/2 selected/i);
  await x.page.click('#history-delete-selected');await ready(x.page);
  const bulk=x.requests.findLast(r=>r.path==='/api/jobs/bulk-delete'&&r.method==='POST');assert.equal(bulk.data.ids.length,2);assert.equal(await x.page.locator('.card').count(),2);
  ok('History multi-select deletes several inactive items in one compact bulk action');await x.context.close();
