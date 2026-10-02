@@ -39,7 +39,7 @@ globalThis.fetch=async (url,options={})=>{const u=new URL(url);calls.push({url:S
       if(u.pathname.includes('/ideogram/v4.5/edit')){
         assert.equal(input.edit_precision,'high');assert.ok(['very_low','low','medium','high'].includes(input.quality));assert.match(input.image_url,/^data:image\/png;base64,/);assert.equal(input.reference_image_urls.length,1);assert.match(input.reference_image_urls[0],/^data:image\/png;base64,/);assert.equal(input.num_images,1);
       }else{
-        assert.equal(input.image_urls.length,2);assert.ok(input.image_urls.every(x=>/^data:image\/png;base64,/.test(x)));assert.equal(input.guidance_scale,3.5);assert.equal(input.enhance_prompt,false);assert.equal(input.num_images,1);
+        assert.ok(input.image_urls.length>=2&&input.image_urls.length<=4);assert.ok(input.image_urls.every(x=>/^data:image\/png;base64,/.test(x)));assert.equal(input.guidance_scale,3.5);assert.equal(input.enhance_prompt,false);assert.equal(input.num_images,1);
       }
       assert.match(input.prompt,/BASE SOURCE IMAGE/i);assert.match(input.prompt,/identity reference/i);
       return Response.json({request_id:u.pathname.includes('/ideogram/')?'fal_soulpro_ideogram_1234567890':'fal_soulpro_kontext_1234567890'});
@@ -239,6 +239,24 @@ test('PV Soul Pro offers Kontext Max as a separate cheaper identity-edit engine 
   assert.equal(job.estimatedUsd,.08);assert.equal(job.settings.soulProModel,'kontextmax');
   const submit=calls.findLast(c=>c.options.method==='POST'&&c.url.includes('/flux-pro/kontext/max/multi'));assert.ok(submit);
   const input=JSON.parse(submit.options.body);assert.equal(input.image_urls.length,2);assert.notEqual(input.image_urls[0],input.image_urls[1]);assert.equal(input.enhance_prompt,false);assert.match(input.prompt,/IMAGE 1 IS THE BASE SOURCE IMAGE TO EDIT/);assert.match(input.prompt,/Images 2 through 2 are identity references only/);assert.match(input.prompt,/Additional user-requested change to the BASE SOURCE only: keep the original room/);
+});
+
+test('Kontext Max keeps the base as Image 1 and caps the saved Nina profile at three identity refs',async()=>{
+  calls=[];falSubmitCount=0;falState='IN_QUEUE';const {env}=fixture(),baseId=await setup(env),refIds=[];
+  for(let i=0;i<4;i++){
+    const up=await req(env,'/api/uploads',{method:'POST',raw:new Uint8Array([137,80,78,71,13,10,26,10,20+i]),headers:{'Content-Type':'image/png','X-Filename':'identity-'+i+'.png'}});
+    assert.equal(up.status,201);refIds.push((await up.json()).id);
+  }
+  const saved=await req(env,'/api/soul-pro/identity',{method:'POST',data:{referenceSourceIds:refIds}});assert.equal(saved.status,201,await saved.clone().text());
+  const settings={type:'image',engine:'soulpro',mode:'identity-edit',soulProModel:'kontextmax',prompt:'',sourceWidth:768,sourceHeight:512,seed:'',referenceRoles:[]};
+  const response=await req(env,'/api/fal/soul-pro',{method:'POST',data:{sourceId:baseId,referenceSourceIds:[],settings}});
+  assert.equal(response.status,202,await response.clone().text());
+  const submit=calls.findLast(c=>c.options.method==='POST'&&c.url.includes('/flux-pro/kontext/max/multi'));assert.ok(submit);
+  const input=JSON.parse(submit.options.body);
+  assert.equal(input.image_urls.length,4,'Kontext accepts four images total: base + three identity refs');
+  assert.match(input.prompt,/IMAGE 1 IS THE BASE SOURCE IMAGE TO EDIT/);
+  assert.match(input.prompt,/Images 2 through 4 are identity references only/);
+  assert.ok(input.image_urls.every(x=>/^data:image\/png;base64,/.test(x)));
 });
 
 test('Failed FAL image jobs can recover an already-generated provider output without resubmission',async()=>{
