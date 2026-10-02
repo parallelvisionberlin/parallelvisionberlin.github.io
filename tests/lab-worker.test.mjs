@@ -201,13 +201,16 @@ test('Definite H3 Max FAL rejection becomes failed and releases its Lab budget r
   }finally{falVideoReject=false;}
 });
 
-test('PV Soul Pro separates the structural source from identity references on Ideogram 4.5',async()=>{
+test('PV Soul Pro saves Nina identity once and reuses it with one base image on Ideogram 4.5',async()=>{
   calls=[];falSubmitCount=0;falState='IN_QUEUE';const {env}=fixture(),id=await setup(env);
   const refUpload=await req(env,'/api/uploads',{method:'POST',raw:new Uint8Array([137,80,78,71,13,10,26,10,1]),headers:{'Content-Type':'image/png','X-Filename':'identity.png'}});assert.equal(refUpload.status,201);const refId=(await refUpload.json()).id;
-  const settings={type:'image',engine:'soulpro',mode:'identity-edit',soulProModel:'ideogram45',prompt:'',sourceWidth:512,sourceHeight:768,seed:42,referenceRoles:[{name:'identity.png',role:'identity',note:''}]};
-  const response=await req(env,'/api/fal/soul-pro',{method:'POST',data:{sourceId:id,referenceSourceIds:[refId],settings}});
+  let identity=await req(env,'/api/soul-pro/identity',{method:'POST',data:{referenceSourceIds:[refId]}});assert.equal(identity.status,201,await identity.clone().text());assert.equal((await identity.json()).count,1);
+  const saved=await(await req(env,'/api/soul-pro/identity')).json();assert.equal(saved.configured,true);assert.equal(saved.count,1);
+  const packs=await(await req(env,'/api/packs')).json();assert.equal(packs.packs.length,0,'reserved Nina identity must stay out of normal packs');
+  const settings={type:'image',engine:'soulpro',mode:'identity-edit',soulProModel:'ideogram45',prompt:'',sourceWidth:512,sourceHeight:768,seed:42,referenceRoles:[]};
+  const response=await req(env,'/api/fal/soul-pro',{method:'POST',data:{sourceId:id,referenceSourceIds:[],settings}});
   assert.equal(response.status,202,await response.clone().text());const job=(await response.json()).job;
-  assert.equal(job.settings.engine,'soulpro');assert.equal(job.settings.soulProModel,'ideogram45');assert.equal(job.estimatedUsd,.22);assert.equal(falSubmitCount,1);
+  assert.equal(job.settings.engine,'soulpro');assert.equal(job.settings.soulProModel,'ideogram45');assert.deepEqual(job.settings.referenceSourceIds,[refId]);assert.equal(job.estimatedUsd,.22);assert.equal(falSubmitCount,1);
   const submit=calls.findLast(c=>c.options.method==='POST'&&c.url.includes('/ideogram/v4.5/edit'));assert.ok(submit);
   const input=JSON.parse(submit.options.body);assert.ok(input.image_url);assert.equal(input.reference_image_urls.length,1);assert.notEqual(input.image_url,input.reference_image_urls[0]);
   assert.match(input.prompt,/keep the source crop/i);assert.match(input.prompt,/do not import pose, body shape, wardrobe, room, camera angle or lighting/i);
