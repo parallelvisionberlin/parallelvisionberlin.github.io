@@ -103,10 +103,10 @@ try{
  await x.page.selectOption('#soul-pro-pack-select',manyPack.id);await ready(x.page);
  const packItems=x.page.locator('.soul-pro-pack-item');assert.equal(await packItems.count(),8);assert.equal(await x.page.locator('.soul-pro-pack-item input:checked').count(),4);
  await packItems.nth(0).locator('input').uncheck();await packItems.nth(4).locator('input').check();assert.equal(await x.page.locator('.soul-pro-pack-item input:checked').count(),4);
- await x.page.click('#soul-pro-use-pack');await ready(x.page);
+ await x.page.click('#soul-pro-save-identity');await ready(x.page);
  const identityPost=x.requests.findLast(r=>r.path==='/api/soul-pro/identity'&&r.method==='POST').data;
  assert.deepEqual(identityPost.referenceSourceIds,[id(961),id(962),id(963),id(964)]);
- ok('Soul Pro shows pack thumbnails and saves the exact four selected identity images');await x.context.close();
+ ok('Soul Pro Save Nina identity saves the exact four checked pack images');await x.context.close();
 
   x=await workspace();await x.page.click('#tool-image');await x.page.selectOption('#image-engine','soulpro');await ready(x.page);
  assert.equal(await x.page.locator('#reference-mode').isVisible(),false);assert.match(await x.page.locator('#soul-pro-identity-status').innerText(),/Saved Nina identity.*2 references/);
