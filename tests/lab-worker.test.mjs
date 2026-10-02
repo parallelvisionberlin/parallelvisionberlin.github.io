@@ -4,6 +4,7 @@ import {DatabaseSync} from 'node:sqlite';
 import {readFileSync} from 'node:fs';
 import worker from '../lab-worker/worker.mjs';
 import {compileImagePrompt} from '../lab/reference-guidance.js';
+import {storedImageDimensions} from '../lab-worker/fal-upscale.mjs';
 const ORIGIN='https://parallelvisionlabel.com',BASE='https://parallel-vision-lab.parallelvision.workers.dev',KEY='sk-spicy-synthetic-test-only-not-a-real-key';
 const keypair=await crypto.subtle.generateKey({name:'RSASSA-PKCS1-v1_5',modulusLength:2048,publicExponent:new Uint8Array([1,0,1]),hash:'SHA-256'},true,['sign','verify']);
 const jwk=await crypto.subtle.exportKey('jwk',keypair.publicKey);jwk.kid='test-key';
@@ -23,17 +24,39 @@ class DB {
 function fixture(){const db=new DB(readFileSync(new URL('../lab-worker/schema.sql',import.meta.url),'utf8')),owner=new DB("CREATE TABLE users(id TEXT,auth_provider TEXT,auth_subject TEXT,role TEXT); INSERT INTO users VALUES('owner-internal','clerk','user_Owner','owner'),('guest','clerk','user_Guest','user');");const objects=new Map();const env={LAB_DB:db,OWNER_DB:owner,LAB_SECRET:'synthetic-test-secret-do-not-use-in-production-01234567890',FAL_KEY:'fal-synthetic-test-key',LAB_MEDIA:{async put(k,value){objects.set(k,new Uint8Array(await new Response(value).arrayBuffer()));},async get(k){if(!objects.has(k))return null;const v=objects.get(k);return{body:new Response(v).body,size:v.length};},async head(k){return objects.has(k)?{size:objects.get(k).length}:null;},async delete(k){objects.delete(k);}}};return{env,objects};}
 let calls=[],quotedRequest=null,createCount=0,providerState='queued',createMode='ok',maxPrice='2.700000';
 let uploadedReference=null,falState='IN_QUEUE',falSubmitCount=0,falResult422=false,falSubmitMode='ok',falVideoReject=false;
+let falUpscaleMode='ok',falPollError=0,falHistoryItems=[];
 globalThis.fetch=async (url,options={})=>{const u=new URL(url);calls.push({url:String(url),options});if(u.pathname==='/.well-known/jwks.json')return Response.json({keys:[jwk]});
+ if(u.hostname==='api.fal.ai'){
+  assert.equal(options.method,'GET');assert.equal(new Headers(options.headers).get('authorization'),'Key fal-synthetic-test-key');assert.equal(u.pathname,'/v1/models/requests/by-endpoint');assert.equal(u.searchParams.get('expand'),'payloads');return Response.json({items:falHistoryItems,has_more:false,next_cursor:null});
+ }
  if(u.hostname==='queue.fal.run'){
   assert.equal(new Headers(options.headers).get('authorization'),'Key fal-synthetic-test-key');
-  const soulPro=u.pathname.includes('/ideogram/v4.5/edit')||u.pathname.includes('/flux-pro/kontext/max/multi');
-  const h3maxVideo=u.pathname.includes('/minimax/h3-max/reference-to-video');
+  if(falPollError&&options.method!=='POST')return Response.json({detail:'Synthetic lookup error'},{status:falPollError});
+  if(u.pathname.startsWith('/topaz/upscale/')){
+    if(options.method==='POST'){
+      falSubmitCount++;const input=JSON.parse(options.body);
+      assert.match(input.image_url,/^data:image\/(png|jpeg|webp);base64,/);
+      assert.equal(input.crop_to_fill,false);assert.equal(input.face_enhancement,false);
+      assert.ok([2,4].includes(input.upscale_factor));assert.ok(['jpeg','png'].includes(input.output_format));
+      assert.deepEqual(Object.keys(input).sort(),['crop_to_fill','face_enhancement','image_url','model','output_format','upscale_factor']);
+      if(falUpscaleMode==='timeout')throw new Error('Synthetic submission timeout');
+      if(falUpscaleMode==='rejected')return Response.json({detail:'Unsupported test image.'},{status:422});
+      if(falUpscaleMode==='missing-id')return Response.json({});
+      return Response.json({request_id:'fal_topaz_test_1234567890'});
+    }
+    if(u.pathname.endsWith('/status'))return Response.json({status:falState});
+    return Response.json({image:{url:'https://v3.fal.media/files/test/topaz.png',content_type:'image/png'}});
+  }
+  const soulPro=u.pathname.includes('/ideogram/v4.5/')||u.pathname.includes('/fal-ai/flux-pro/');
+  const h3maxVideo=u.pathname.includes('/minimax/h3-max/');
   if(h3maxVideo){
     if(options.method==='POST'){falSubmitCount++;const input=JSON.parse(options.body);assert.equal(input.enable_safety_checker,true);assert.ok(Array.isArray(input.reference_image_urls));return Response.json({request_id:'fal_h3max_video_1234567890'});}
-    if(u.pathname.endsWith('/status'))return falVideoReject?Response.json({detail:'Provider rejected the request.'},{status:422}):Response.json({status:'IN_QUEUE'});
+    if(u.pathname.endsWith('/status'))return Response.json({status:falVideoReject?'COMPLETED':'IN_QUEUE'});
+    if(falVideoReject)return Response.json({detail:'Provider rejected the request.'},{status:422});
   }
   if(options.method==='POST'){
     falSubmitCount++;if(falSubmitMode==='timeout')throw new Error('Synthetic timeout');
+    if(falSubmitMode==='missing-id')return Response.json({});
     if(u.pathname.includes('flux-general'))return Response.json({request_id:'fal_repair_synthetic_1234567890'});
     if(soulPro){
       const input=JSON.parse(options.body);
@@ -348,8 +371,58 @@ test('Failed FAL image jobs can recover an already-generated provider output wit
   const settings={type:'image',engine:'soulpro',mode:'identity-edit',soulProModel:'ideogram45',soulProQuality:'medium',prompt:'',sourceWidth:512,sourceHeight:768,seed:'',referenceRoles:[]};
   const response=await req(env,'/api/fal/soul-pro',{method:'POST',data:{sourceId:id,referenceSourceIds:[],settings}});const job=(await response.json()).job;
   assert.equal(falSubmitCount,1);env.LAB_DB.db.prepare("UPDATE jobs SET state='failed',error='fal.ai: Provider rejected the request.' WHERE id=?").run(job.id);
+  env.LAB_DB.db.prepare('DELETE FROM spend WHERE job_id=?').run(job.id);
   const recovered=await req(env,'/api/jobs/'+job.id+'/recover',{method:'POST'});assert.equal(recovered.status,200,await recovered.clone().text());const done=(await recovered.json()).job;
   assert.equal(done.status,'completed');assert.ok(done.outputId);assert.equal(falSubmitCount,1,'recovery must not submit a new generation');
+  const spent=env.LAB_DB.db.prepare('SELECT * FROM spend WHERE job_id=?').get(job.id);assert.equal(spent.estimate_microusd,60000);assert.equal(spent.created_at,job.createdAt);assert.equal(done.settledUsd,null);
+  assert.equal((await req(env,'/api/jobs/'+job.id+'/recover',{method:'POST'})).status,409);assert.equal(env.LAB_DB.db.prepare('SELECT COUNT(*) AS n FROM spend WHERE job_id=?').get(job.id).n,1);
+});
+
+test('FAL queue auth, lookup and transport failures preserve existing tasks and budget reservations',async()=>{
+  const{env}=fixture(),sourceId=await topazSource(env);falState='IN_QUEUE';falUpscaleMode='ok';falSubmitCount=0;
+  const q=await(await req(env,'/api/quotes',{method:'POST',data:{sourceId,settings:topazSettings}})).json();
+  const job=(await(await req(env,'/api/jobs',{method:'POST',data:{quoteId:q.id,confirm:true}})).json()).job;
+  try{
+    for(const status of [401,403,404,422,500]){
+      falPollError=status;env.LAB_DB.db.prepare('UPDATE jobs SET last_poll=0 WHERE id=?').run(job.id);
+      const refreshed=(await(await req(env,'/api/jobs/'+job.id)).json()).job;
+      assert.equal(refreshed.status,'queued');assert.match(refreshed.error,new RegExp('HTTP '+status));
+      assert.equal(env.LAB_DB.db.prepare('SELECT COUNT(*) AS n FROM spend WHERE job_id=?').get(job.id).n,1);
+    }
+    delete env.FAL_KEY;const configured=(await(await req(env,'/api/jobs/'+job.id)).json()).job;assert.equal(configured.status,'queued');
+    assert.equal(falSubmitCount,1);assert.ok(calls.some(c=>new URL(c.url).pathname==='/topaz/upscale/requests/fal_topaz_test_1234567890/status'));
+  }finally{falPollError=0;}
+});
+
+test('Interrupted Soul Pro history reconciliation requires an exact saved input and never submits another generation',async()=>{
+  for(const mode of ['absent','exact','claimed']){
+    const{env}=fixture(),sourceId=await setup(env);calls=[];falSubmitMode='timeout';falSubmitCount=0;falState='COMPLETED';falHistoryItems=[];
+    const refUpload=await req(env,'/api/uploads',{method:'POST',raw:new Uint8Array([137,80,78,71,13,10,26,10,99]),headers:{'Content-Type':'image/png','X-Filename':'identity.png'}});const refId=(await refUpload.json()).id;
+    const settings={type:'image',engine:'soulpro',mode:'identity-edit',soulProModel:'ideogram45',soulProQuality:'medium',prompt:'Keep the studio composition.',sourceWidth:512,sourceHeight:768,seed:42,referenceRoles:[]};
+    try{
+      const response=await req(env,'/api/fal/soul-pro',{method:'POST',data:{sourceId,referenceSourceIds:[refId],settings}});const job=(await response.json()).job;assert.equal(job.status,'uncertain');assert.equal(job.providerTaskId,null);
+      const original=JSON.parse(calls.find(c=>c.options.method==='POST'&&c.url.includes('/ideogram/v4.5/edit')).options.body);
+      falSubmitMode='ok';if(mode!=='absent')falHistoryItems=[{endpoint_id:'ideogram/v4.5/edit',request_id:'fal_soulpro_ideogram_1234567890',sent_at:new Date(job.createdAt).toISOString(),json_input:original}];
+      if(mode==='claimed')env.LAB_DB.db.prepare('INSERT INTO jobs(id,owner_id,source_id,params,state,provider_id,estimate_microusd,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?)').run(crypto.randomUUID(),'owner-internal',sourceId,JSON.stringify(job.settings),'completed','fal_soulpro_ideogram_1234567890',60000,job.createdAt-1000,job.createdAt);
+      // A later identity-pack change must not rewrite the interrupted request.
+      await req(env,'/api/soul-pro/identity',{method:'POST',data:{referenceSourceIds:[sourceId]}});
+      assert.equal((await req(env,'/api/jobs/'+job.id+'/reconcile',{method:'POST',data:{},authToken:guest})).status,403);
+      const checked=await req(env,'/api/jobs/'+job.id+'/reconcile',{method:'POST',data:{}});assert.equal(checked.status,mode==='exact'?200:409,await checked.clone().text());
+      const stored=env.LAB_DB.db.prepare('SELECT * FROM jobs WHERE id=?').get(job.id);assert.equal(stored.state,mode==='exact'?'completed':'uncertain');assert.equal(falSubmitCount,1);
+      assert.equal(env.LAB_DB.db.prepare('SELECT COUNT(*) AS n FROM spend WHERE job_id=?').get(job.id).n,1);
+      if(mode==='exact'){assert.ok(stored.output_id);assert.equal((await req(env,'/api/jobs/'+job.id+'/reconcile',{method:'POST',data:{}})).status,409);}
+      else{assert.equal(stored.provider_id,null);assert.match((await checked.json()).error,mode==='absent'?/does not prove/:/already linked/);assert.equal(stored.updated_at,job.updatedAt);}
+    }finally{falSubmitMode='ok';falHistoryItems=[];}
+  }
+});
+
+test('Soul Pro successful response without a task ID retains its interruption and reserved budget',async()=>{
+  const{env}=fixture(),sourceId=await setup(env);falSubmitMode='missing-id';falSubmitCount=0;
+  try{
+    const response=await req(env,'/api/fal/soul-pro',{method:'POST',data:{sourceId,referenceSourceIds:[sourceId],settings:{type:'image',engine:'soulpro',mode:'identity-edit',soulProModel:'ideogram45',sourceWidth:512,sourceHeight:768}}});
+    assert.equal(response.status,202);const job=(await response.json()).job;assert.equal(job.status,'uncertain');assert.equal(job.providerTaskId,null);
+    assert.equal(env.LAB_DB.db.prepare('SELECT COUNT(*) AS n FROM spend WHERE job_id=?').get(job.id).n,1);assert.equal(falSubmitCount,1);
+  }finally{falSubmitMode='ok';}
 });
 
 test('History bulk delete removes only selected inactive jobs and rejects active selections',async()=>{
@@ -404,6 +477,74 @@ test('Atomic image migration preserves existing completed video, private media p
 });
 
 const upscaleSettings={type:'image',mode:'upscale',resolution:'4k',outputFormat:'png'};
+function pngDimensions(width,height){const bytes=new Uint8Array(33);bytes.set([137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82]);const view=new DataView(bytes.buffer);view.setUint32(16,width);view.setUint32(20,height);bytes[24]=8;bytes[25]=2;return bytes;}
+async function topazSource(env,width=2000,height=1000){const bytes=pngDimensions(width,height),response=await req(env,'/api/uploads',{method:'POST',raw:bytes,headers:{'Content-Type':'image/png','X-Filename':'upscale-test.png'}});assert.equal(response.status,201);return(await response.json()).id;}
+const topazSettings={type:'image',mode:'upscale',upscaleEngine:'topaz-precision',scale:2,topazModel:'Standard V2',outputFormat:'png'};
+test('Topaz estimates use stored dimensions, started output-megapixel blocks and no paid provider request',async()=>{
+  const cases=[['topaz-precision','Standard V2',4000,1500,0.08],['topaz-precision','High Fidelity V3',4001,1500,0.16],['topaz-wonder','Wonder 3.5',2000,1000,0.08],['topaz-wonder','Wonder 3.5',2001,1000,0.16]];
+  for(const[upscaleEngine,topazModel,width,height,price]of cases){
+    const{env}=fixture(),sourceId=await topazSource(env,width,height);calls=[];falSubmitCount=0;
+    const response=await req(env,'/api/quotes',{method:'POST',data:{sourceId,settings:{...topazSettings,upscaleEngine,topazModel,sourceWidth:1,sourceHeight:1,targetWidth:1,targetHeight:1}}});
+    assert.equal(response.status,200,await response.clone().text());const q=await response.json();
+    assert.equal(q.provider,'fal.ai');assert.equal(q.priceIsEstimate,true);assert.equal(q.requiresPriceReview,true);assert.equal(q.estimatedUsd,price);
+    assert.equal(q.settings.sourceWidth,width);assert.equal(q.settings.sourceHeight,height);assert.equal(q.settings.targetWidth,width*2);assert.equal(q.settings.targetHeight,height*2);assert.equal(q.settings.resolution,'2x');
+    const stored=env.LAB_DB.db.prepare('SELECT * FROM quotes WHERE id=?').get(q.id),payload=JSON.parse(stored.payload);
+    assert.equal(payload.source.id,sourceId);assert.match(payload.source.sha256,/^[a-f0-9]{64}$/);assert.equal(payload.input.model,topazModel);assert.ok(!stored.payload.includes('data:image/'));assert.ok(stored.payload.length<1500);
+    assert.equal(falSubmitCount,0);assert.ok(!calls.some(c=>/queue\.fal\.run|api\.spicyapi\.ai/.test(c.url)));
+  }
+});
+test('Topaz submits the checked source and settings once, archives output and keeps estimates distinct from settlement',async()=>{
+  const{env,objects}=fixture(),sourceId=await topazSource(env);calls=[];falSubmitCount=0;falUpscaleMode='ok';falState='IN_QUEUE';
+  const q=await(await req(env,'/api/quotes',{method:'POST',data:{sourceId,settings:topazSettings}})).json();
+  assert.equal((await req(env,'/api/jobs',{method:'POST',data:{quoteId:q.id}})).status,400);
+  const responses=await Promise.all([req(env,'/api/jobs',{method:'POST',data:{quoteId:q.id,confirm:true,settings:{...topazSettings,scale:4}}}),req(env,'/api/jobs',{method:'POST',data:{quoteId:q.id,confirm:true}})]);
+  assert.ok(responses.every(r=>[200,202].includes(r.status)));const jobs=await Promise.all(responses.map(r=>r.json()));assert.equal(jobs[0].job.id,jobs[1].job.id);assert.equal(falSubmitCount,1);
+  const posted=JSON.parse(calls.find(c=>c.options.method==='POST'&&c.url.includes('queue.fal.run/topaz/')).options.body);
+  assert.equal(posted.model,'Standard V2');assert.equal(posted.upscale_factor,2);assert.deepEqual(new Uint8Array(Buffer.from(posted.image_url.split(',')[1],'base64')),pngDimensions(2000,1000));
+  falState='COMPLETED';const completed=(await(await req(env,'/api/jobs/'+jobs[0].job.id)).json()).job;
+  assert.equal(completed.status,'completed');assert.ok(completed.outputId);assert.equal(completed.sourceId,sourceId);assert.equal(completed.settledUsd,null);assert.equal(completed.estimatedUsd,.08);assert.equal(objects.size,2);
+  const draft=await req(env,'/api/drafts',{method:'POST',data:{sourceId,settings:completed.settings}});assert.equal(draft.status,201);assert.equal(falSubmitCount,1);
+  assert.equal((await req(env,'/api/quotes',{method:'POST',authToken:guest,data:{sourceId,settings:topazSettings}})).status,403);
+  falState='IN_QUEUE';
+});
+test('Topaz rejects changed source bytes, unsupported engines, invalid dimensions, formats, factors and expired quotes before spending',async()=>{
+  const{env,objects}=fixture(),sourceId=await topazSource(env);falSubmitCount=0;
+  for(const bad of [{...topazSettings,upscaleEngine:'seedvr2'},{...topazSettings,upscaleEngine:'invented'},{...topazSettings,scale:8},{...topazSettings,topazModel:'High Fidelity V2'},{...topazSettings,outputFormat:'webp'}])assert.equal((await req(env,'/api/quotes',{method:'POST',data:{sourceId,settings:bad}})).status,400);
+  const tooLarge=await topazSource(env,5000,5000);assert.equal((await req(env,'/api/quotes',{method:'POST',data:{sourceId:tooLarge,settings:{...topazSettings,scale:4}}})).status,400);
+  const truncated=await setup(env);assert.equal((await req(env,'/api/quotes',{method:'POST',data:{sourceId:truncated,settings:topazSettings}})).status,400);
+  const q=await(await req(env,'/api/quotes',{method:'POST',data:{sourceId,settings:topazSettings}})).json();
+  const asset=env.LAB_DB.db.prepare('SELECT * FROM assets WHERE id=?').get(sourceId);objects.get(asset.object_key)[32]^=1;
+  assert.equal((await req(env,'/api/jobs',{method:'POST',data:{quoteId:q.id,confirm:true}})).status,409);
+  const fresh=await(await req(env,'/api/quotes',{method:'POST',data:{sourceId,settings:topazSettings}})).json();env.LAB_DB.db.prepare('UPDATE quotes SET expires_at=? WHERE id=?').run(Date.now()-1,fresh.id);
+  assert.equal((await req(env,'/api/jobs',{method:'POST',data:{quoteId:fresh.id,confirm:true}})).status,409);assert.equal(falSubmitCount,0);
+});
+test('Topaz shares existing FAL interruption, image-capacity and daily-budget gates without affecting SpicyAPI',async()=>{
+  for(const mode of ['uncertain','capacity','budget']){
+    const{env}=fixture(),sourceId=await topazSource(env),t=Date.now();falSubmitCount=0;
+    if(mode==='budget')await req(env,'/api/settings',{method:'POST',data:{apiKey:KEY,enabled:true,termsConfirmed:true,dailyLimitUsd:1}});
+    else for(let i=0;i<(mode==='capacity'?10:1);i++)env.LAB_DB.db.prepare('INSERT INTO jobs(id,owner_id,source_id,params,state,estimate_microusd,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?)').run(crypto.randomUUID(),'owner-internal',sourceId,JSON.stringify({type:'image',provider:'fal',engine:'soulpro',model:'fal-ai/ideogram/v4.5/edit'}),mode==='uncertain'?'uncertain':'running',1000,t,t);
+    if(mode==='budget')env.LAB_DB.db.prepare('INSERT INTO spend(job_id,owner_id,estimate_microusd,created_at) VALUES(?,?,?,?)').run(crypto.randomUUID(),'owner-internal',950000,t);
+    const quoted=await req(env,'/api/quotes',{method:'POST',data:{sourceId,settings:topazSettings}});assert.equal(quoted.status,200);const q=await quoted.json();
+    assert.equal((await req(env,'/api/jobs',{method:'POST',data:{quoteId:q.id,confirm:true}})).status,409);assert.equal(falSubmitCount,0);
+  }
+});
+test('Topaz definite rejections release budget; timeout and malformed success retain reservation without automatic retries',async()=>{
+  for(const mode of ['rejected','timeout','missing-id']){
+    const{env}=fixture(),sourceId=await topazSource(env);falSubmitCount=0;falUpscaleMode=mode;
+    const q=await(await req(env,'/api/quotes',{method:'POST',data:{sourceId,settings:topazSettings}})).json();
+    const response=await req(env,'/api/jobs',{method:'POST',data:{quoteId:q.id,confirm:true}});assert.equal(response.status,202);const job=(await response.json()).job;
+    assert.equal(job.status,mode==='rejected'?'failed':'uncertain');assert.equal(env.LAB_DB.db.prepare('SELECT COUNT(*) AS n FROM spend WHERE job_id=?').get(job.id).n,mode==='rejected'?0:1);
+    await req(env,'/api/jobs',{method:'POST',data:{quoteId:q.id,confirm:true}});assert.equal(falSubmitCount,1);
+  }
+  falUpscaleMode='ok';
+});
+test('Stored image dimension parser supports JPEG orientation and WebP headers, and rejects truncated headers',()=>{
+  const jpeg=new Uint8Array([255,216,255,225,0,34,69,120,105,102,0,0,73,73,42,0,8,0,0,0,1,0,18,1,3,0,1,0,0,0,6,0,0,0,0,0,0,0,255,192,0,11,8,1,44,2,88,1,1,17,0,255,217]);
+  assert.deepEqual(storedImageDimensions(jpeg,'image/jpeg'),{width:300,height:600});
+  const webp=new Uint8Array(30);webp.set(Buffer.from('RIFF'));new DataView(webp.buffer).setUint32(4,22,true);webp.set(Buffer.from('WEBPVP8X'),8);new DataView(webp.buffer).setUint32(16,10,true);webp[24]=255;webp[25]=3;webp[27]=255;webp[28]=1;
+  assert.deepEqual(storedImageDimensions(webp,'image/webp'),{width:1024,height:512});
+  assert.throws(()=>storedImageDimensions(webp.subarray(0,29),'image/webp'),/Truncated/);assert.throws(()=>storedImageDimensions(jpeg.subarray(0,20),'image/jpeg'),/Invalid JPEG segment/);
+});
 test('Definite SpicyAPI submission rejection releases the local budget for image and upscale retries',async()=>{
   const oldPrice=maxPrice;maxPrice='0.093000';providerState='queued';
   try{

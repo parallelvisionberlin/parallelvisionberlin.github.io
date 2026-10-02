@@ -5,10 +5,12 @@ import {reinterpretParameters,buildReinterpretInput} from './soul-reinterpret.mj
 import {seedanceParameters, prepareSeedance, REFERENCE_MIME, sniffReference} from './seedance.mjs';
 import {FAL_CONTROLLED_POSE,FAL_CONTROLLED_INPAINT,FAL_DWPOSE,controlledPoseParameters,controlledRepairParameters,controlledPoseRefs,controlledRepairRefs,controlledPoseEstimateMicros,controlledRepairEstimateMicros,buildControlledPoseInput,buildRepairInput,falSubmit,falStatus,falResult,falAwait} from './fal-controlled-pose.mjs';
 import {falVideoParameters,falVideoEstimateMicros,buildFalVideoInput} from './fal-video.mjs';
-import {soulProParameters,soulProEstimateMicros,buildSoulProInput} from './soul-pro.mjs';
+import {falUpscaleParameters,storedImageDimensions,setFalUpscaleDimensions,falUpscaleEstimateMicros,buildFalUpscaleInput} from './fal-upscale.mjs';
+import {SOUL_PRO_MODELS,soulProParameters,soulProEstimateMicros,buildSoulProInput} from './soul-pro.mjs';
+import {findFalRequest} from './fal-recovery.mjs';
 import {REFERENCE_ROLES,normalizeReferenceLabel,supportsReferenceGuidance,compileImagePrompt,canUseReferenceGuidance,referenceGuidanceError} from '../lab/reference-guidance.js';
 import {SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-02.6-reference-guidance';
+export const VERSION = 'pv-lab-2026-10-02.7-topaz-upscale';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -155,6 +157,12 @@ function referenceLabels(value,max=10) {
 }
 function parameters(value) {
   if(!value||typeof value!=='object'||Array.isArray(value))fail(400,'Invalid settings.');
+  if(value.type==='image'&&value.mode==='upscale'){
+    const upscaleEngine=value.upscaleEngine??'spicy';
+    if(upscaleEngine!=='spicy')return falUpscaleParameters(value,{fail});
+    if(!['2k','4k','8k'].includes(value.resolution)||!['jpeg','png','webp'].includes(value.outputFormat||'jpeg'))fail(400,'Choose 2K, 4K or 8K and JPEG, PNG or WebP.');
+    return {type:'image',provider:'spicy',upscaleEngine:'spicy',model:UPSCALER,mode:'upscale',prompt:'',resolution:value.resolution,aspectRatio:'auto',outputFormat:value.outputFormat||'jpeg',referenceRoles:[]};
+  }
   if(value.type!=='image'&&['h3maxfal','omni'].includes(value.engine))return falVideoParameters(value,{fail,referenceLabels});
   if(value.type!=='image'&&value.engine==='seedance')return seedanceParameters(value,{fail,referenceLabels});
   if(value.engine&&!['wan','wanprime','h3','h3max','h3spicy'].includes(value.engine)&&value.type!=='image')fail(400,'Unknown video model.');
@@ -172,10 +180,6 @@ function parameters(value) {
     if(!Number.isFinite(strength)||strength<0.25||strength>1.75)fail(400,'Identity strength must be between 0.25 and 1.75.');
     if(!soulRatios.includes(ratio)||!['png','jpeg'].includes(value.outputFormat||'jpeg'))fail(400,'Choose a supported PV Soul aspect ratio and PNG or JPEG.');
     return {type:'image',provider:'spicy',engine:'soul',model:SOUL_TEXT_MODEL,mode:'image',prompt,characterId:value.characterId,identityStrength:strength,resolution:'native',aspectRatio:ratio,outputFormat:value.outputFormat||'jpeg',referenceRoles};
-  }
-  if(value.type==='image'&&value.mode==='upscale'){
-    if(!['2k','4k','8k'].includes(value.resolution)||!['jpeg','png','webp'].includes(value.outputFormat||'jpeg'))fail(400,'Choose 2K, 4K or 8K and JPEG, PNG or WebP.');
-    return {type:'image',model:UPSCALER,mode:'upscale',prompt:'',resolution:value.resolution,aspectRatio:'auto',outputFormat:value.outputFormat||'jpeg',referenceRoles:[]};
   }
   if(value.type==='image'&&value.engine==='gemini'){
     const processing=value.processing==='batch'?'batch':'normal',ratio=value.aspectRatio||'auto';
@@ -229,6 +233,12 @@ function assembledPrompt(p) {
   return prompt;
 }
 async function prepareInput(env,owner,data,p,url) {
+  if(p.mode==='upscale'&&p.provider==='fal'){
+    if(data.lastSourceId||data.referenceSourceIds?.length||data.transferSourceIds?.length)fail(400,'Topaz uses one original source image and no extra references or compressed working copies.');
+    const prepared=await readFalUpscaleSource(env,owner,data.sourceId);
+    setFalUpscaleDimensions(p,prepared.dimensions,{fail});
+    return {primary:prepared.asset,input:buildFalUpscaleInput(p),prepared};
+  }
   if(p.engine==='seedance'){
     const prepared=await prepareSeedance(env,owner,data,p,url,{fail,source,sources,signedInput});
     if(p.prompt)prepared.input.prompt=assembledPrompt(p);return prepared;
@@ -578,6 +588,16 @@ async function falImageDataUri(env,a){
   const bytes=new Uint8Array(await new Response(obj.body).arrayBuffer());if(bytes.length!==a.bytes||!sniff(bytes,a.mime))fail(409,'A stored FAL input image failed verification.');
   return {url:'data:'+a.mime+';base64,'+standardBase64(bytes),bytes:bytes.length};
 }
+async function readFalUpscaleSource(env,owner,id){
+  const asset=await source(env,owner,id);
+  if(!['image/jpeg','image/png','image/webp'].includes(asset.mime)||asset.bytes<=0||asset.bytes>MAX_IMAGE)fail(400,'Topaz needs one PNG, JPEG or WebP source up to 20 MiB.');
+  const object=await env.LAB_MEDIA.get(asset.object_key);if(!object)fail(404,'The upscale source is missing from private storage.');
+  const bytes=await limitedBody(new Response(object.body),MAX_IMAGE);
+  if(bytes.length!==asset.bytes||!sniff(bytes,asset.mime))fail(409,'The stored upscale source failed verification. Upload it again.');
+  let dimensions;try{dimensions=storedImageDimensions(bytes,asset.mime);}catch(e){fail(400,e.message);}
+  const sha256=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),b=>b.toString(16).padStart(2,'0')).join('');
+  return {asset,bytes,dimensions,sha256};
+}
 function geminiImagePart(response){
   const candidates=response?.candidates||[];
   for(const candidate of candidates)for(const part of candidate?.content?.parts||[]){
@@ -671,7 +691,10 @@ async function recoverFalOutput(env,j,p){
   const result=await falResult(endpoint,env.FAL_KEY,j.provider_id),output=falOutputUrl(result,p.type==='video');
   if(typeof output!=='string'||!output)return false;
   const safe=safeVideoUrl(output);
-  await run(env,"UPDATE jobs SET state='saving',remote_url=?,error='',updated_at=? WHERE id=?",safe,now(),j.id);
+  await env.LAB_DB.batch([
+    stmt(env,"UPDATE jobs SET state='saving',remote_url=?,error='',updated_at=? WHERE id=?",safe,now(),j.id),
+    stmt(env,'INSERT OR IGNORE INTO spend(job_id,owner_id,estimate_microusd,created_at) VALUES(?,?,?,?)',j.id,j.owner_id,j.estimate_microusd,j.created_at)
+  ]);
   await copyResult(env,j,safe);
   return true;
 }
@@ -691,7 +714,7 @@ async function deleteJobRecord(env,owner,j){
 }
 async function refreshFalJob(env,j,p){
   let resultPhase=false;
-  if(!env.FAL_KEY){await run(env,"UPDATE jobs SET state='failed',error=?,updated_at=? WHERE id=?",'fal.ai is not configured on the Lab backend.',now(),j.id);return;}
+  if(!env.FAL_KEY){await run(env,"UPDATE jobs SET error=?,updated_at=? WHERE id=?",'fal.ai is not configured on the Lab backend. The existing request remains active.',now(),j.id);return;}
   const lock=await run(env,'UPDATE jobs SET last_poll=? WHERE id=? AND last_poll<?',now(),j.id,now()-8000);if(!lock.meta.changes)return;
   try{
     const endpoint=p.model||FAL_CONTROLLED_POSE,status=await falStatus(endpoint,env.FAL_KEY,j.provider_id),state=String(status?.status||'').toUpperCase();
@@ -733,9 +756,10 @@ async function refreshFalJob(env,j,p){
     await run(env,"UPDATE jobs SET state=?,error='',updated_at=? WHERE id=?",state==='IN_PROGRESS'?'running':'queued',now(),j.id);
   }catch(e){
     const raw=String(e?.message||'fal.ai polling error').replace(/[\r\n]+/g,' ').slice(0,400);
-    const detail=raw.startsWith('fal.ai:')?raw:'fal.ai: '+raw;
-    const definite=e?.definite===true||(Number.isInteger(e?.status)&&e.status>=400&&e.status<500&&e.status!==408&&e.status!==429);
-    if(definite||resultPhase&&e.status===422){
+    const detail=/^fal\.ai(?:\s|:)/.test(raw)?raw:'fal.ai: '+raw;
+    // A queue lookup/auth/routing error says nothing about the paid job's outcome.
+    // Only a completed request's explicit result rejection is terminal here.
+    if(resultPhase&&e.status===422){
       await env.LAB_DB.batch([
         stmt(env,"UPDATE jobs SET state='failed',error=?,updated_at=? WHERE id=?",detail,now(),j.id),
         stmt(env,'DELETE FROM spend WHERE job_id=?',j.id)
@@ -802,19 +826,57 @@ async function reserveFalImageJob(env,owner,sourceId,p,estimate){
   return first(env,'SELECT * FROM jobs WHERE id=? AND owner_id=?',id,owner);
 }
 async function submitReservedFalJob(env,j,p,input){
+  let providerAccepted=false,requestId=null;
   try{
-    const requestId=await falSubmit(p.model,env.FAL_KEY,input);
+    requestId=await falSubmit(p.model,env.FAL_KEY,input);providerAccepted=true;
     await run(env,"UPDATE jobs SET provider_id=?,state='queued',updated_at=? WHERE id=?",requestId,now(),j.id);
   }catch(e){
-    const uncertain=e?.uncertain===true||e?.definite===false,state=uncertain?'uncertain':'failed';
+    const uncertain=providerAccepted||e?.definite!==true,state=uncertain?'uncertain':'failed';
     const msg=uncertain?'fal.ai submission status is uncertain. Check the fal dashboard before retrying to avoid a duplicate charge.':String(e?.message||'fal.ai rejected the request.').slice(0,500);
-    if(uncertain)await run(env,'UPDATE jobs SET state=?,error=?,updated_at=? WHERE id=?',state,msg,now(),j.id);
+    if(uncertain)await run(env,'UPDATE jobs SET state=?,provider_id=COALESCE(provider_id,?),error=?,updated_at=? WHERE id=?',state,requestId,msg,now(),j.id);
     else await env.LAB_DB.batch([
       stmt(env,'UPDATE jobs SET state=?,error=?,updated_at=? WHERE id=?',state,msg,now(),j.id),
       stmt(env,'DELETE FROM spend WHERE job_id=?',j.id)
     ]);
   }
   return first(env,'SELECT * FROM jobs WHERE id=?',j.id);
+}
+
+async function submitFalUpscaleQuote(env,owner,q,p,payload){
+  if(!env.FAL_KEY)fail(503,'fal.ai upscaling is not configured on this Worker.');
+  if(q.vendor_quote_id!=='fal-upscale-v1'||payload?.model!==p.model||payload?.source?.id!==q.source_id)fail(409,'Review a new upscale estimate. Nothing was submitted.');
+  const verified=await readFalUpscaleSource(env,owner,q.source_id);
+  if(verified.sha256!==payload.source.sha256||verified.asset.mime!==payload.source.mime||verified.bytes.length!==payload.source.bytes)fail(409,'The source changed since its estimate. Review the price again. Nothing was submitted.');
+  if(q.expires_at<=now())fail(409,'Quote expired. Review the cost again.');
+  const input={...payload.input,image_url:'data:'+verified.asset.mime+';base64,'+standardBase64(verified.bytes)};
+  const c=await config(env,owner),limit=c?.daily_limit_microusd||10000000,id=crypto.randomUUID(),t=now(),day=Math.floor(t/86400000)*86400000;
+  const falSql="(COALESCE(json_extract(params,'$.provider'),'')='fal' OR COALESCE(json_extract(params,'$.engine'),'') IN ('fal','soulpro','h3maxfal','omni') OR COALESCE(json_extract(params,'$.model'),'') LIKE 'fal-ai/%' OR COALESCE(json_extract(params,'$.model'),'') LIKE 'topaz/%')";
+  try{
+    const inserted=await run(env,"INSERT INTO jobs(id,owner_id,source_id,quote_id,params,state,estimate_microusd,created_at,updated_at) SELECT ?,?,?,?,?,'submitting',?,?,? WHERE NOT EXISTS(SELECT 1 FROM jobs WHERE owner_id=? AND state='uncertain' AND "+falSql+") AND (SELECT COUNT(*) FROM jobs WHERE owner_id=? AND state IN ('submitting','queued','running','uncertain') AND "+falSql+" AND json_extract(params,'$.type')='image')<? AND (SELECT COALESCE(SUM(estimate_microusd),0) FROM spend WHERE owner_id=? AND created_at>=?)+?<=?",
+      id,owner,q.source_id,q.id,q.params,q.estimate_microusd,t,t,owner,owner,CONCURRENCY.image,owner,day,q.estimate_microusd,limit);
+    if(!inserted.meta.changes){
+      const old=await first(env,'SELECT * FROM jobs WHERE quote_id=? AND owner_id=?',q.id,owner);if(old)return old;
+      const uncertain=(await first(env,"SELECT COUNT(*) AS n FROM jobs WHERE owner_id=? AND state='uncertain' AND "+falSql,owner)).n;
+      const active=(await first(env,"SELECT COUNT(*) AS n FROM jobs WHERE owner_id=? AND state IN ('submitting','queued','running','uncertain') AND "+falSql+" AND json_extract(params,'$.type')='image'",owner)).n;
+      const spent=(await first(env,'SELECT COALESCE(SUM(estimate_microusd),0) AS n FROM spend WHERE owner_id=? AND created_at>=?',owner,day)).n;
+      if(uncertain)fail(409,'No upscale submitted: a fal.ai request is interrupted. Resolve it in History before retrying.');
+      if(active>=CONCURRENCY.image)fail(409,'No upscale submitted: all '+CONCURRENCY.image+' fal.ai image slots are active.');
+      if(spent+q.estimate_microusd>limit)fail(409,'No upscale submitted: this estimate would exceed your Lab daily spending limit.');
+      fail(409,'No upscale submitted because capacity changed. Refresh History and try again.');
+    }
+  }catch(e){const old=await first(env,'SELECT * FROM jobs WHERE quote_id=? AND owner_id=?',q.id,owner);if(old)return old;throw e;}
+  let providerAccepted=false,requestId=null;
+  try{
+    requestId=await falSubmit(p.model,env.FAL_KEY,input);providerAccepted=true;
+    await run(env,"UPDATE jobs SET provider_id=?,state='queued',updated_at=? WHERE id=?",requestId,now(),id);
+  }catch(e){
+    if(e.definite===true&&!providerAccepted)await env.LAB_DB.batch([
+      stmt(env,"UPDATE jobs SET state='failed',error=?,updated_at=? WHERE id=?",String(e.message||'fal.ai rejected this upscale.').slice(0,600),now(),id),
+      stmt(env,'DELETE FROM spend WHERE job_id=?',id)
+    ]);
+    else await run(env,"UPDATE jobs SET state='uncertain',provider_id=COALESCE(provider_id,?),error=?,updated_at=? WHERE id=?",requestId,'fal.ai upscale submission is uncertain. Check History and the provider before retrying; nothing will be resubmitted automatically.',now(),id);
+  }
+  return first(env,'SELECT * FROM jobs WHERE id=?',id);
 }
 
 async function route(request,env,ctx) {
@@ -1053,6 +1115,13 @@ async function route(request,env,ctx) {
   if(path==='/api/quotes'&&method==='POST') {
     const data=await body(request),p=parameters(data.settings);
     if(!['upscale','reinterpret'].includes(p.mode)&&!p.prompt&&!(supportsReferenceGuidance(p)&&canUseReferenceGuidance(p.referenceRoles)))fail(400,'Add a prompt before generating, or assign a Base image and the properties to copy.');
+    if(p.provider==='fal'&&p.mode==='upscale'){
+      if(!env.FAL_KEY)fail(503,'fal.ai upscaling is not configured on this Worker.');
+      const {primary,input,prepared}=await prepareInput(env,owner,data,p,url),estimate=falUpscaleEstimateMicros(p),id=crypto.randomUUID(),expires=now()+290000;
+      const payload={model:p.model,input,source:{id:primary.id,mime:primary.mime,bytes:prepared.bytes.length,sha256:prepared.sha256}};
+      await run(env,'INSERT INTO quotes(id,owner_id,source_id,params,estimate_microusd,expires_at,vendor_quote_id,expected_cost,payload) VALUES(?,?,?,?,?,?,?,?,?)',id,owner,primary.id,JSON.stringify(p),estimate,expires,'fal-upscale-v1',String(estimate/1000000),JSON.stringify(payload));
+      return json({id,estimatedUsd:estimate/1000000,maxUsd:estimate/1000000,expiresAt:expires,settings:p,provider:'fal.ai',priceIsEstimate:true,requiresPriceReview:true,notice:'Estimated from the verified source dimensions and published Topaz output-megapixel pricing. The Lab reserves this estimate only when you submit; it is not a provider price cap. fal.ai billing remains authoritative. No upscale was submitted.'});
+    }
     if(p.provider==='fal'&&p.type==='video'){
       if(!env.FAL_KEY)fail(503,'fal.ai video is not configured on this Worker.');
       const {primary,input}=await prepareInput(env,owner,data,p,url),estimate=falVideoEstimateMicros(p),id=crypto.randomUUID(),expires=now()+290000,payload={model:p.model,input};
@@ -1095,6 +1164,7 @@ async function route(request,env,ctx) {
     const q=await first(env,'SELECT * FROM quotes WHERE id=? AND owner_id=? AND expires_at>?',quoteId,owner,now());
     if(!q)fail(409,'Quote expired. Review the cost again.');
     const params=JSON.parse(q.params||'{}'),savedPayload=JSON.parse(q.payload);
+    if(params.provider==='fal'&&params.mode==='upscale')return json({job:jobView(await submitFalUpscaleQuote(env,owner,q,params,savedPayload))},202);
     if(params.provider==='fal'&&params.type==='video'){
       if(!env.FAL_KEY)fail(503,'fal.ai video is not configured on this Worker.');
       for(const assetId of linkedSourceIds(q))await source(env,owner,assetId);
@@ -1184,6 +1254,27 @@ async function route(request,env,ctx) {
   }
   if(path.startsWith('/api/jobs/')) {
     const id=uid(path.split('/')[3]);let j=await first(env,'SELECT * FROM jobs WHERE id=? AND owner_id=?',id,owner);if(!j)fail(404,'Job not found.');
+    if(path.endsWith('/reconcile')&&method==='POST'){
+      const p=JSON.parse(j.params||'{}');
+      if(j.state!=='uncertain'||j.provider_id||p.provider!=='fal'||p.engine!=='soulpro'||p.inputTransport!=='inline-data-uri'||!Object.hasOwn(SOUL_PRO_MODELS,p.soulProModel)||SOUL_PRO_MODELS[p.soulProModel].id!==p.model)fail(409,'Only interrupted inline Soul Pro requests without a provider task can be checked here.');
+      if(!env.FAL_KEY)fail(503,'fal.ai is not configured on this Worker.');
+      if(!Array.isArray(p.referenceSourceIds)||p.referenceSourceIds.length<1||p.referenceSourceIds.length>4||new Set(p.referenceSourceIds).size!==p.referenceSourceIds.length)fail(409,'The original identity references are unavailable. The request remains interrupted.');
+      // Reconstruct the saved request only. Current form defaults and identity packs
+      // must not change the comparison against the originally submitted paid input.
+      const base=await source(env,owner,j.source_id),refs=await sources(env,owner,p.referenceSourceIds,4);
+      const preparedBase=await falImageDataUri(env,base),identityUrls=[];let inlineBytes=preparedBase.bytes;
+      for(const ref of refs){const prepared=await falImageDataUri(env,ref);inlineBytes+=prepared.bytes;if(inlineBytes>14*1024*1024)fail(413,'The original input is too large to verify safely. The request remains interrupted.');identityUrls.push(prepared.url);}
+      const input=buildSoulProInput(p,{sourceUrl:preparedBase.url,identityUrls});let match;
+      try{match=await findFalRequest({key:env.FAL_KEY,endpoint:p.model,input,createdAt:j.created_at,updatedAt:j.updated_at,nowMs:now()});}
+      catch(e){if(e?.code?.startsWith('history_'))fail(e.status,e.message);throw e;}
+      // A paid provider request may be claimed by only one local job, including
+      // when another history item submitted identical input around the same time.
+      await run(env,"UPDATE jobs SET provider_id=?,state='queued',error='',updated_at=? WHERE id=? AND owner_id=? AND state='uncertain' AND provider_id IS NULL AND NOT EXISTS(SELECT 1 FROM jobs other WHERE other.id<>? AND other.provider_id=?)",match.requestId,now(),id,owner,id,match.requestId);
+      j=await first(env,'SELECT * FROM jobs WHERE id=? AND owner_id=?',id,owner);
+      if(j.state==='uncertain'&&!j.provider_id)fail(409,'That FAL request is already linked to another History item. This request remains interrupted.');
+      await refreshJob(env,j);
+      return json({job:jobView(await first(env,'SELECT * FROM jobs WHERE id=? AND owner_id=?',id,owner))});
+    }
     if(path.endsWith('/resolve')&&method==='POST') {
       const data=await body(request);if(j.state!=='uncertain'||data.confirm!==true)fail(409,'Confirm you checked the provider dashboard first.');
       await run(env,"UPDATE jobs SET state='resolved',updated_at=?,error=? WHERE id=?",now(),'Owner resolved the interrupted request. No generation was resubmitted.',id);return json({ok:true});
