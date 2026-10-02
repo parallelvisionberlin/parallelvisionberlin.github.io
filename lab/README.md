@@ -76,7 +76,11 @@ Provider errors 40201 (available provider balance) and 40202 (key, team or platf
 
 ## One-click Image Upscale (2026-09-27)
 
-The Upscale button now authorizes one paid upscale without the price-review modal. The frontend still obtains a fresh, bound provider quote and submits its exact ID once through the existing session-safe helper. No batch, automatic repricing, paid retry, or backend change is introduced. Quote expiry, wrong-mode responses, account budgets, capacity and interrupted-request checks still stop submission. Compression permission and warnings about choosing a tier below the source resolution remain. The cost is shown after submission and in History. Video keeps its separate price confirmation; Image generation is unchanged. Reuse restores originals and settings without running a task.
+The Upscale button authorizes one paid upscale without the price-review modal. Without a checked price, the frontend obtains a fresh, bound provider quote and submits its exact ID once through the existing session-safe helper. No batch, automatic repricing, paid retry, or backend change is introduced. Quote expiry, wrong-mode responses, account budgets, capacity and interrupted-request checks still stop submission. Compression permission and warnings about choosing a tier below the source resolution remain. Video keeps its separate price confirmation; Image generation is unchanged. Reuse restores originals and settings without running a task.
+
+As of 2026-10-02, Upscale identifies **Image Upscaler v1 · SpicyAPI** and shows the provider's published **$0.012 per image**, the same across 2K/4K/8K tiers and PNG/JPEG/WebP formats. The source ratio is retained; tiers are pixel budgets of approximately 4/17/67 MP, not fixed dimensions. Source: https://spicyapi.ai/models/image-upscaler-v1 (checked 2026-10-02). This display is a published price, not an account-specific quote.
+
+The optional **Check live price** button uploads/prepares the selected image and requests `/api/quotes` only. It displays the estimate, a distinct maximum when returned, and expiry without submitting a generation. Upscale reuses that exact quote only while the original image, size, format and signed-in session still match. Changing those inputs or allowing the quote to expire clears its display and requires another explicit price check; it never silently replaces a checked price and submits a different one. Clearing the editor resets this optional flow. Ordinary one-click Upscale remains available when no price check has been started. The result's reported charge remains available in History.
 
 Changed files: lab/index.html, lab/lab.js, lab/README.md, tests/lab-image-oneclick-ui.mjs and tests/lab-upscale-ui.mjs. Tests use synthetic media and mocked API responses only.
 
@@ -145,4 +149,3 @@ Reference metadata survives saved packs and History Reuse. Duplicate asset IDs a
 The same release fixes the SpicyAPI concurrency query: active or uncertain FAL jobs no longer occupy Seedream/Upscale slots or trigger a false SpicyAPI interruption. Existing unresolved records and budget reservations remain intact.
 
 Verified against https://spicyapi.ai/models/seedream-5-0-pro/edit and https://spicyapi.ai/models/seedream-5-0-pro/edit/api. Regression checks use synthetic inputs and mocked paid endpoints.
-

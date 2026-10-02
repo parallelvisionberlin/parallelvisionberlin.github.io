@@ -15,8 +15,8 @@ const ORIGIN='http://127.0.0.1:4178',API='https://parallel-vision-lab.parallelvi
 const sourceId='10000000-0000-4000-8000-000000000001',outputId='10000000-0000-4000-8000-000000000002';
 let png,passed=0;
 const ok=name=>{passed++;console.log('PASS '+name);};
-async function workspace(jobs=[],width=1440){
- const context=await browser.newContext({viewport:{width,height:1000},acceptDownloads:true});const page=await context.newPage();let accepted=true;const requests=[],uploads=[];let count=3;
+async function workspace(jobs=[],width=1440,{quoteTtlMs=180000,quoteMaxUsd=.012,quoteDelayMs=0}={}){
+ const context=await browser.newContext({viewport:{width,height:1000},acceptDownloads:true});const page=await context.newPage();let accepted=true;const requests=[],uploads=[];let count=3,quoteCount=88,lastQuoteResponse=Promise.resolve();
  page.on('dialog',async d=>{if(accepted)await d.accept();else await d.dismiss();});
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await context.route('https://**/*',async route=>{
@@ -24,19 +24,23 @@ async function workspace(jobs=[],width=1440){
   if(!url.href.startsWith(API)){await route.abort();return;}
   const path=url.pathname,method=req.method();let data={};
   if(req.headers()['content-type']?.startsWith('application/json'))data=req.postDataJSON();
-  requests.push({path,method,data});let body;
+  requests.push({path,method,data});let body,finishQuote;
   if(path==='/api/jobs'&&method==='GET')body={jobs,activeJobs:[],concurrency:{image:4,video:1},next:null};
   else if(path==='/api/packs')body={packs:[]};
   else if(path==='/api/uploads'){const id='10000000-0000-4000-8000-'+String(count++).padStart(12,'0');uploads.push({id,type:req.headers()['content-type'],bytes:req.postDataBuffer()?.length,name:decodeURIComponent(req.headers()['x-filename']||'')});body={id};}
-  else if(path==='/api/quotes')body={id:'10000000-0000-4000-8000-000000000088',estimatedUsd:0.012,maxUsd:0.012,expiresAt:Date.now()+180000,settings:{...data.settings,referenceSourceIds:data.referenceSourceIds||[],transferNotes:[]}};
+  else if(path==='/api/quotes'){
+   lastQuoteResponse=new Promise(resolve=>{finishQuote=resolve;});
+   if(quoteDelayMs)await new Promise(r=>setTimeout(r,quoteDelayMs));
+   body={id:'10000000-0000-4000-8000-'+String(quoteCount++).padStart(12,'0'),provider:'SpicyAPI',estimatedUsd:0.012,maxUsd:quoteMaxUsd,expiresAt:Date.now()+quoteTtlMs,settings:{...data.settings,model:data.settings.mode==='upscale'?'spicyapi/image-upscaler-v1/upscale':'bytedance/seedream-5.0-pro/edit',referenceSourceIds:data.referenceSourceIds||[],transferNotes:[]}};
+  }
   else if(path==='/api/jobs'&&method==='POST')body={job:{id:'10000000-0000-4000-8000-000000000099',status:'queued',settings:{type:'image',mode:'upscale'},sourceId,createdAt:Date.now()}};
   else if(path.startsWith('/api/assets/')){await route.fulfill({status:200,contentType:'image/png',body:png});return;}
   else {await route.fulfill({status:404,contentType:'application/json',body:JSON.stringify({error:'Unmocked request '+path})});return;}
-  await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(body)});
+  try{await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(body)});}finally{finishQuote?.();}
  });
  await page.goto(ORIGIN+'/lab/');await page.waitForFunction(()=>!!window.__labTest);
  if(!png)png=Buffer.from(await page.evaluate(()=>{const c=document.createElement('canvas');c.width=c.height=320;const x=c.getContext('2d');x.fillStyle='#353b40';x.fillRect(0,0,320,320);x.fillStyle='#aaa49a';x.fillRect(70,70,180,180);return c.toDataURL('image/png').split(',')[1];}),'base64');
- return {page,context,requests,uploads,errors,decline:()=>{accepted=false;}};
+ return {page,context,requests,uploads,errors,decline:()=>{accepted=false;},waitForQuoteResponse:()=>lastQuoteResponse};
 }
 const countPaid=x=>x.requests.filter(r=>r.path==='/api/jobs'&&r.method==='POST').length;
 const uploadSmall=async page=>{await page.locator('#image').setInputFiles({name:'test-scene.png',mimeType:'image/png',buffer:png});await page.waitForFunction(()=>!document.querySelector('#generate').disabled);};
@@ -45,6 +49,28 @@ try{
  assert.equal(await x.page.locator('#generate').innerText(),'Upscale');await x.page.click('#generate');await x.page.waitForFunction(()=>!document.querySelector('#resolution').disabled);const q=x.requests.find(r=>r.path==='/api/quotes');assert.equal(q.data.settings.mode,'upscale');assert.equal(q.data.settings.prompt,'');assert.equal(q.data.settings.type,'image');assert.equal(x.requests.filter(r=>r.path==='/api/quotes').length,1);assert.equal(countPaid(x),1);assert.equal(await x.page.locator('#quote-dialog').isVisible(),false);ok('One click obtains a live quote and submits one upscale without review');
  const paid=x.requests.find(r=>r.path==='/api/jobs'&&r.method==='POST');assert.equal(paid.data.quoteId,'10000000-0000-4000-8000-000000000088');assert.equal(paid.data.confirm,true);assert.match(await x.page.locator('#notice').innerText(),/Upscale requested/);ok('Upscale uses the original quote ID and displays its cost');
  await x.page.click('#tool-image');assert.equal(await x.page.locator('#prompt').isVisible(),true);assert.equal(await x.page.locator('#reference-mode').isVisible(),true);assert.equal(await x.page.locator('#resolution').inputValue(),'2k');await x.page.click('#tool-video');assert.equal(await x.page.locator('#last-upload').isVisible(),true);assert.equal(await x.page.locator('#duration-control').isVisible(),true);assert.deepEqual(x.errors,[]);ok('Existing Image and Video controls still work');await x.context.close();
+ x=await workspace([],1440,{quoteMaxUsd:.018});await x.page.click('#tool-upscale');
+ assert.match(await x.page.locator('#upscale-info').innerText(),/Image Upscaler v1 · SpicyAPI/);assert.match(await x.page.locator('#upscale-info').innerText(),/\$0\.012 per image/);assert.match(await x.page.locator('#upscale-info').innerText(),/2 Oct 2026/);
+ assert.match(await x.page.locator('#filemeta').innerText(),/finished image to enlarge/);assert.doesNotMatch(await x.page.locator('#filemeta').innerText(),/pose|body|camera/);
+ assert.deepEqual(await x.page.locator('#resolution option').allTextContents(),['2K · ~4 MP','4K · ~17 MP','8K · ~67 MP']);
+ await uploadSmall(x.page);await x.page.click('#upscale-check-price');await x.page.waitForFunction(()=>document.querySelector('#upscale-price-status').textContent.startsWith('Live price:'));
+ assert.equal(countPaid(x),0);assert.equal(x.requests.filter(r=>r.path==='/api/quotes').length,1);assert.match(await x.page.locator('#upscale-price-status').innerText(),/Live price: \$0\.012 USD · maximum \$0\.018 USD/);assert.match(await x.page.locator('#generate').innerText(),/max \$0\.018/);assert.equal(await x.page.locator('#quote-dialog').isVisible(),false);ok('Model, published price and tier meaning are visible; optional live check submits no paid task');
+ await x.page.locator('#resolution').selectOption('8k');assert.equal(await x.page.locator('#generate').isDisabled(),true);assert.match(await x.page.locator('#upscale-price-status').innerText(),/settings changed/);assert.doesNotMatch(await x.page.locator('#upscale-price-status').innerText(),/Live price:/);
+ assert.equal(x.requests.filter(r=>r.path==='/api/quotes').length,1);assert.equal(countPaid(x),0);ok('Changing resolution invalidates the checked price without automatically repricing or generating');
+ await x.page.click('#upscale-check-price');await x.page.waitForFunction(()=>!document.querySelector('#generate').disabled);await x.page.locator('#output-format').selectOption('webp');assert.equal(await x.page.locator('#generate').isDisabled(),true);assert.equal(countPaid(x),0);
+ await x.page.click('#upscale-check-price');await x.page.waitForFunction(()=>!document.querySelector('#generate').disabled);
+ await x.page.locator('#image').setInputFiles({name:'replacement-scene.png',mimeType:'image/png',buffer:png});await x.page.waitForFunction(()=>!document.querySelector('#resolution').disabled&&document.querySelector('#filemeta').textContent.includes('replacement-scene'));
+ assert.equal(await x.page.locator('#generate').isDisabled(),true);assert.match(await x.page.locator('#upscale-price-status').innerText(),/Image or settings changed/);assert.equal(countPaid(x),0);ok('Format and source replacement invalidate the checked quote');
+ await x.page.click('#upscale-check-price');await x.page.waitForFunction(()=>!document.querySelector('#generate').disabled);assert.equal(x.requests.filter(r=>r.path==='/api/quotes').length,4);
+ await x.page.click('#generate');await x.page.waitForFunction(()=>!document.querySelector('#resolution').disabled);
+ assert.equal(x.requests.filter(r=>r.path==='/api/quotes').length,4);assert.equal(countPaid(x),1);assert.equal(x.requests.find(r=>r.path==='/api/jobs'&&r.method==='POST').data.quoteId,'10000000-0000-4000-8000-000000000091');
+ assert.equal(await x.page.locator('#quote-dialog').isVisible(),false);assert.deepEqual(x.errors,[]);ok('Upscale submits the exact latest checked quote once without requesting a replacement price');await x.context.close();
+ x=await workspace([],1440,{quoteTtlMs:350});await x.page.click('#tool-upscale');await uploadSmall(x.page);await x.page.click('#upscale-check-price');
+ await x.page.waitForFunction(()=>document.querySelector('#upscale-price-status').textContent.includes('quote expired'));
+ assert.equal(await x.page.locator('#generate').isDisabled(),true);assert.equal(x.requests.filter(r=>r.path==='/api/quotes').length,1);assert.equal(countPaid(x),0);ok('Expired checked quotes block submission and never refresh or buy automatically');await x.context.close();
+ x=await workspace([],1440,{quoteDelayMs:350});await x.page.click('#tool-upscale');await uploadSmall(x.page);
+ const pendingQuote=x.page.waitForRequest(API+'/api/quotes');await x.page.click('#upscale-check-price');await pendingQuote;await x.page.evaluate(()=>window.__labTest.lock());
+ await x.page.waitForFunction(()=>!document.querySelector('#resolution').disabled);await x.waitForQuoteResponse();assert.equal(await x.page.locator('#app').isVisible(),false);assert.doesNotMatch(await x.page.locator('#upscale-price-status').innerText(),/Live price:/);assert.equal(countPaid(x),0);ok('Sign-out during a price check clears the private quote and never submits a task');await x.context.close();
  const job={id:'10000000-0000-4000-8000-000000000010',status:'completed',sourceId,outputId,settings:{type:'image',mode:'upscale',resolution:'8k',aspectRatio:'auto',outputFormat:'png',prompt:'',referenceSourceIds:[]},createdAt:Date.now(),settledUsd:0.012};
  x=await workspace([job]);const card=x.page.locator('.card');assert.match(await card.locator('.cardmeta').innerText(),/UPSCALE/);const download=x.page.waitForEvent('download');await card.getByRole('button',{name:'Download image',exact:true}).click();const dl=await download;assert.match(dl.suggestedFilename(),new RegExp(outputId));assert.equal(countPaid(x),0);ok('Download addresses the result without generating');
  await card.getByRole('button',{name:'Reuse',exact:true}).click();await x.page.waitForFunction(()=>document.querySelector('#tool-upscale').getAttribute('aria-pressed')==='true'&&document.querySelector('#resolution').value==='8k'&&!document.querySelector('#resolution').disabled);assert.equal(await x.page.locator('#resolution').inputValue(),'8k');assert.equal(await x.page.locator('#output-format').inputValue(),'png');assert.equal(countPaid(x),0);ok('Reuse restores upscale source and exact settings');
