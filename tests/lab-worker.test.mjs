@@ -398,7 +398,7 @@ test('Secondary identity requires paid approval and budget, trains Z-Image once,
  assert.equal((await req(env,'/api/quotes',{method:'POST',data:{settings:{...text,characterId:child.id}}})).status,400);
  const migration=readFileSync(new URL('../lab-worker/migrations/0005-soul-reinterpret.sql',import.meta.url),'utf8');env.LAB_DB.db.exec(migration);env.LAB_DB.db.exec(migration);assert.deepEqual(env.LAB_DB.db.prepare('PRAGMA foreign_key_check').all(),[]);falState='IN_QUEUE';
 });
-test('FAL inputs last 24 hours, support anonymous HEAD, and definitive result 422 fails without a new paid call',async()=>{
+test('FAL inputs last 24 hours, support anonymous HEAD, and definitive result 422 fails once and releases the Lab estimate',async()=>{
  const {env}=fixture(),sourceId=await setup(env);const settings={type:'image',engine:'fal',mode:'controlled-repair',prompt:'Repair natural texture',sourceWidth:512,sourceHeight:512,referenceRoles:[]};
  falSubmitCount=0;falState='IN_QUEUE';
  const res=await req(env,'/api/fal/repair',{method:'POST',data:{sourceId,maskSourceId:sourceId,settings}});assert.equal(res.status,202,await res.clone().text());const job=(await res.json()).job;
@@ -408,9 +408,9 @@ test('FAL inputs last 24 hours, support anonymous HEAD, and definitive result 42
   const head=await req(env,u.pathname+u.search,{method:'HEAD',authToken:null,headers:{Origin:''}});assert.equal(head.status,200);assert.equal(head.headers.get('content-length'),'9');assert.equal(await head.text(),'');
   u.searchParams.set('expires',String(Number(u.searchParams.get('expires'))+1));assert.equal((await req(env,u.pathname+u.search,{authToken:null,headers:{Origin:''}})).status,403);
  }
- const spent=env.LAB_DB.db.prepare('SELECT SUM(estimate_microusd) AS n FROM spend').get().n;
+ const spent=env.LAB_DB.db.prepare('SELECT SUM(estimate_microusd) AS n FROM spend').get().n;assert.equal(spent,75000);
  falState='COMPLETED';falResult422=true;
- try{const done=(await(await req(env,'/api/jobs/'+job.id)).json()).job;assert.equal(done.status,'failed');assert.match(done.error,/expired/);await req(env,'/api/jobs/'+job.id);assert.equal(falSubmitCount,1);assert.equal(env.LAB_DB.db.prepare('SELECT SUM(estimate_microusd) AS n FROM spend').get().n,spent);}
+ try{const done=(await(await req(env,'/api/jobs/'+job.id)).json()).job;assert.equal(done.status,'failed');assert.match(done.error,/expired/);await req(env,'/api/jobs/'+job.id);assert.equal(falSubmitCount,1);assert.equal(env.LAB_DB.db.prepare('SELECT SUM(estimate_microusd) AS n FROM spend').get().n,null);}
  finally{falState='IN_QUEUE';falResult422=false;}
 });
 test('Ambiguous secondary training never retries automatically; simultaneous approved retries claim it once',async()=>{
