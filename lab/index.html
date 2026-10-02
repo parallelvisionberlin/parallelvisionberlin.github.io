@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="./history.css?v=20260927-2">
 <link rel="stylesheet" href="./seedance.css?v=20260927-standard1">
 <link rel="stylesheet" href="./soul.css?v=20260930-soul-v02">
-<script type="module" src="./lab.js?v=20261002-soul-pack-picker2"></script>
+<script type="module" src="./lab.js?v=20261002-soul-savefix1"></script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to workspace</a>
@@ -145,11 +145,10 @@
 <div id="soul-pro-pack-preview" class="soul-pro-pack-preview" hidden>
 <div class="upload-heading"><span class="label">Choose up to 4 images</span><span class="micro" id="soul-pro-pack-count">0 / 4 selected</span></div>
 <div id="soul-pro-pack-grid" class="soul-pro-pack-grid"></div>
-<button id="soul-pro-use-pack" type="button" class="quiet full">Use selected images</button>
 </div>
 <p class="fine">All saved packs appear here. For larger packs, pick exactly the Nina angles you want instead of using the first four automatically.</p>
 <p id="soul-pro-identity-dialog-status" class="fine" role="status"></p>
-<button id="soul-pro-save-identity" type="button" class="primary full">Save Nina identity</button>
+<button id="soul-pro-save-identity" type="button" class="primary full">Save Nina identity</button><p class="fine">The Save button uses either the uploaded Nina images above or the images currently checked in the selected pack.</p>
 <button id="soul-pro-clear-identity" type="button" class="secondary full">Clear saved identity</button>
 </form>
 </dialog>
