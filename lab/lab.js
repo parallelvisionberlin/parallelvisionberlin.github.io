@@ -11,7 +11,7 @@ let sourceUrl=null, lastFile=null, lastSourceId=null, lastUrl=null, references=[
 let engine='wan', imageEngine='seedream', imageProcessing='normal', soulProModel='ideogram45', soulProQuality='medium', soulProIdentity={configured:false,count:0,refs:[]}, soulProPackSelection=[], soulProPackUrls=[], poseMapSourceId=null, repairTarget=null, repairImage=null, repairMaskCanvas=null, repairMaskDirty=false;
 let tool='video', packs=[],resultKind='video',resultExt='mp4';
 let resultUrl=null, resultId=null, resultSettings=null, previewRevision=0, autoPreview=null, currentQuote=null, next=null, activeJob=null, timer=null, historyRevision=0;
-let activeJobs=[], polling=false;
+let activeJobs=[], polling=false, historySelectMode=false, historySelected=new Set();
 const downloadUrls=new Set();
 const workingCopies=new Map();
 let sourcePixels=0, sourceWidth=0, sourceHeight=0;
@@ -717,13 +717,30 @@ function historyImage(assetId,label,isResult=false){
   const caption=document.createElement('figcaption');caption.textContent=label;figure.append(img,caption);return {figure,img};
 }
 function historyFingerprint(j){return JSON.stringify([j.status,j.outputId||'',j.providerTaskId||'',j.error||'',j.estimatedUsd??null,j.settledUsd??null,j.updatedAt||'',j.settings]);}
+function updateHistorySelectionUi(){
+  $('history-selection').hidden=!historySelectMode;
+  $('history-select').hidden=historySelectMode;
+  $('history').classList.toggle('is-selecting',historySelectMode);
+  for(const box of $('history').querySelectorAll('.history-select-box'))box.hidden=!historySelectMode;
+  $('history-selection-count').textContent=historySelected.size+' selected';
+  $('history-delete-selected').disabled=historySelected.size===0;
+}
+function setHistorySelectMode(on){
+  historySelectMode=!!on;if(!historySelectMode)historySelected.clear();updateHistorySelectionUi();
+}
 function cleanupHistoryCard(card){if(!card)return;for(const img of card.querySelectorAll('img')){observer.unobserve(img);const u=img.dataset.objectUrl;if(u){release(u);cardUrls.delete(u);}}}
 function renderCards(jobs,{upsert=false}={}){
   const items=upsert?[...jobs].reverse():jobs;
   for(const j of items){
     const existing=upsert?[...$('history').children].find(el=>el.dataset.job===j.id):null,fingerprint=historyFingerprint(j);
     if(existing?.dataset.fingerprint===fingerprint)continue;
-    const card=document.createElement('article');card.className='card';card.dataset.job=j.id;card.dataset.state=j.status;card.dataset.fingerprint=fingerprint;
+    const card=document.createElement('article');card.className='card';card.dataset.job=j.id;card.dataset.state=j.status;card.dataset.fingerprint=fingerprint;card.dataset.deletable=String(!activeStates.has(j.status));
+    if(!activeStates.has(j.status)){
+      const select=document.createElement('label');select.className='history-select-box';select.hidden=!historySelectMode;
+      const checkbox=document.createElement('input');checkbox.type='checkbox';checkbox.checked=historySelected.has(j.id);checkbox.setAttribute('aria-label','Select this History item');
+      checkbox.onchange=()=>{if(checkbox.checked)historySelected.add(j.id);else historySelected.delete(j.id);updateHistorySelectionUi();};
+      select.append(checkbox);card.append(select);
+    }
     const image=j.settings.type==='image',ready=hasResult(j),previews=[];
     if(ready&&image){
       const {figure,img}=historyImage(j.outputId,'Generated image',true);previews.push(img);card.append(figure);
@@ -753,6 +770,13 @@ function renderCards(jobs,{upsert=false}={}){
       if(j.settings?.engine==='soul')actions.append(button('Refine in Seedream',()=>refineInSeedream(j,'full')));
       actions.append(button('Repair',()=>openRepair(j)));actions.append(button('Upscale',()=>upscaleImage(j)));actions.append(button('Use in Video',()=>animateImage(j)));
     }
+    if(j.status==='failed'&&jobProvider(j)==='fal'&&j.providerTaskId)actions.append(button('Recover FAL output',async()=>{
+      notify('Checking fal.ai for an existing output. No generation will be submitted.');
+      const data=await api('/api/jobs/'+j.id+'/recover',{method:'POST'});
+      await syncHistory();
+      if(data.job&&hasResult(data.job))await openVideo(data.job,{scroll:false});
+      notify(data.job&&hasResult(data.job)?'Recovered the existing fal.ai output into private History.':'No recoverable fal.ai output was found.',!(data.job&&hasResult(data.job)));
+    }));
     if(!activeStates.has(j.status))actions.append(button('Delete',async()=>{
       if(!confirm('Delete this saved record and its unshared files? This cannot be undone.'))return;
       await api('/api/jobs/'+j.id,{method:'DELETE'});cleanupHistoryCard(card);card.remove();await syncHistory();notify('Record deleted. Spending history is unchanged.');
@@ -771,11 +795,25 @@ function renderCards(jobs,{upsert=false}={}){
     if(existing){cleanupHistoryCard(existing);existing.replaceWith(card);}else if(upsert)$('history').prepend(card);else $('history').append(card);
     for(const img of previews)observer.observe(img);
   }
+  updateHistorySelectionUi();
 }
 async function loadHistory(append=false,incremental=false){const rev=historyRevision,query=append&&next?'?before='+next.before+'&afterId='+encodeURIComponent(next.afterId):'',data=await api('/api/jobs'+query);if(!owner||rev!==historyRevision)return;if(!append&&!incremental){historyRevision++;observer.disconnect();cardUrls.forEach(release);cardUrls.clear();$('history').replaceChildren();}renderCards(data.jobs,{upsert:incremental});next=data.next;$('more').hidden=!next;$('emptyarchive').hidden=$('history').children.length>0;if(data.concurrency)config.concurrency=data.concurrency;setActiveJobs(data.activeJobs||(data.active?[data.active]:[]));}
 async function syncHistory(){return loadHistory(false,true);}
 $('refresh').onclick=()=>action(()=>loadHistory());$('more').onclick=()=>action(()=>loadHistory(true));
-function lock(){epoch++;clearSoulProPackPreview();soulProIdentity={configured:false,count:0,refs:[]};workingCopies.clear();autoPreview=null;downloadUrls.forEach(release);downloadUrls.clear();owner=false;userId='';soul.reset();historyRevision++;clearTimeout(timer);timer=null;activeJob=null;activeJobs=[];polling=false;requestControllers.forEach(c=>c.abort());requestControllers.clear();observer.disconnect();cardUrls.forEach(release);cardUrls.clear();clearMedia();$('prompt').value='';$('history').replaceChildren();$('app').hidden=true;$('gate').hidden=false;$('connection').hidden=true;$('logout').hidden=true;$('api-key').value='';for(const d of document.querySelectorAll('dialog[open]'))d.close();currentQuote=null;config={};packs=[];$('pack-select').replaceChildren(new Option('Choose a saved pack',''));}
+$('history-select').onclick=()=>setHistorySelectMode(true);
+$('history-cancel-select').onclick=()=>setHistorySelectMode(false);
+$('history-select-all').onclick=()=>{
+  historySelected=new Set([...$('history').querySelectorAll('.card[data-deletable="true"]')].map(card=>card.dataset.job));
+  for(const box of $('history').querySelectorAll('.history-select-box input'))box.checked=true;
+  updateHistorySelectionUi();
+};
+$('history-delete-selected').onclick=()=>action(async()=>{
+  const ids=[...historySelected];if(!ids.length)return;
+  if(!confirm('Delete '+ids.length+' selected History item'+(ids.length===1?'':'s')+' and their unshared files? This cannot be undone.'))return;
+  const result=await api('/api/jobs/bulk-delete',{method:'POST',body:{ids}});
+  setHistorySelectMode(false);await loadHistory();notify((result.deleted||ids.length)+' History item'+((result.deleted||ids.length)===1?'':'s')+' deleted. Spending history is unchanged.');
+});
+function lock(){epoch++;historySelected.clear();historySelectMode=false;clearSoulProPackPreview();soulProIdentity={configured:false,count:0,refs:[]};workingCopies.clear();autoPreview=null;downloadUrls.forEach(release);downloadUrls.clear();owner=false;userId='';soul.reset();historyRevision++;clearTimeout(timer);timer=null;activeJob=null;activeJobs=[];polling=false;requestControllers.forEach(c=>c.abort());requestControllers.clear();observer.disconnect();cardUrls.forEach(release);cardUrls.clear();clearMedia();$('prompt').value='';$('history').replaceChildren();$('app').hidden=true;$('gate').hidden=false;$('connection').hidden=true;$('logout').hidden=true;$('api-key').value='';for(const d of document.querySelectorAll('dialog[open]'))d.close();currentQuote=null;config={};packs=[];$('pack-select').replaceChildren(new Option('Choose a saved pack',''));}
 async function sync(){if(syncing)return;syncing=true;try{if(!clerk.isSignedIn){lock();$('auth-status').textContent='Sign in with your Parallel Vision owner account.';$('signin').disabled=false;return;}if(owner&&userId===clerk.user.id)return;const data=await api('/api/session');owner=true;userId=clerk.user.id;applyConfig(data.config);$('identity').textContent='Owner workspace';$('gate').hidden=true;$('app').hidden=false;$('connection').hidden=false;$('logout').hidden=false;await Promise.all([loadHistory(),loadPacks(),soul.load(),loadSoulProIdentity()]);}catch(e){lock();$('auth-status').textContent=e.message;$('signin').disabled=false;$('logout').hidden=!clerk?.isSignedIn;}finally{syncing=false;}}
 $('signin').onclick=()=>clerk?.openSignIn();$('logout').onclick=async()=>{lock();await clerk?.signOut();$('auth-status').textContent='Signed out. Your archive remains private.';};
 try{const {Clerk}=await import('https://esm.sh/@clerk/clerk-js@6?bundle');await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='https://clerk.parallelvisionlabel.com/npm/@clerk/ui@1/dist/ui.browser.js';s.onload=resolve;s.onerror=reject;document.head.append(s);});clerk=new Clerk('pk_live_Y2xlcmsucGFyYWxsZWx2aXNpb25sYWJlbC5jb20k');await clerk.load({ui:window.__internal_ClerkUICtor,signInFallbackRedirectUrl:location.href,signUpFallbackRedirectUrl:location.href});clerk.addListener(()=>void sync());await sync();}catch{$('auth-status').textContent='Sign-in could not load. Refresh this page or check your browser connection.';}
