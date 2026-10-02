@@ -6,8 +6,9 @@ import {seedanceParameters, prepareSeedance, REFERENCE_MIME, sniffReference} fro
 import {FAL_CONTROLLED_POSE,FAL_CONTROLLED_INPAINT,FAL_DWPOSE,controlledPoseParameters,controlledRepairParameters,controlledPoseRefs,controlledRepairRefs,controlledPoseEstimateMicros,controlledRepairEstimateMicros,buildControlledPoseInput,buildRepairInput,falSubmit,falStatus,falResult,falAwait} from './fal-controlled-pose.mjs';
 import {falVideoParameters,falVideoEstimateMicros,buildFalVideoInput} from './fal-video.mjs';
 import {soulProParameters,soulProEstimateMicros,buildSoulProInput} from './soul-pro.mjs';
+import {REFERENCE_ROLES,normalizeReferenceLabel,supportsReferenceGuidance,compileImagePrompt,canUseReferenceGuidance,referenceGuidanceError} from '../lab/reference-guidance.js';
 import {SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-02.5-history-base-recovery';
+export const VERSION = 'pv-lab-2026-10-02.6-reference-guidance';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -147,8 +148,10 @@ function sniff(bytes,mime) {
 function referenceLabels(value,max=10) {
   if(value==null)return [];
   if(!Array.isArray(value)||value.length>max)fail(400,'Use up to '+max+' reference labels.');
-  const allowed=['none','identity','outfit','room','pose','object','style','lighting','custom'];
-  return value.map(x=>({name:String(x?.name||'').replace(/[\r\n]/g,' ').slice(0,180),role:allowed.includes(x?.role)?x.role:'none',note:String(x?.note||'').trim().slice(0,300)}));
+  return value.map(x=>{
+    if(x?.role&&!REFERENCE_ROLES.some(([role])=>role===x.role))fail(400,'Unknown reference role. Reload the Lab and choose a supported role.');
+    return normalizeReferenceLabel(x);
+  });
 }
 function parameters(value) {
   if(!value||typeof value!=='object'||Array.isArray(value))fail(400,'Invalid settings.');
@@ -182,7 +185,7 @@ function parameters(value) {
   if(value.type==='image'){
     if(prompt.length>5000||!['1k','2k'].includes(value.resolution)||!RATIOS.includes(value.aspectRatio||'1:1'))fail(400,'Choose 1K or 2K and a supported image ratio. Maximum prompt length is 5,000.');
     if(!['png','jpeg'].includes(value.outputFormat||'jpeg'))fail(400,'Choose PNG or JPEG.');
-    return {type:'image',model:STILL_TEXT,mode:'image',prompt,resolution:value.resolution,aspectRatio:value.aspectRatio||'1:1',outputFormat:value.outputFormat||'jpeg',referenceRoles};
+    return {type:'image',provider:'spicy',engine:'seedream',model:STILL_TEXT,mode:'image',prompt,resolution:value.resolution,aspectRatio:value.aspectRatio||'1:1',outputFormat:value.outputFormat||'jpeg',referenceRoles};
   }
   if(prompt.length>6000)fail(400,'Use no more than 6,000 prompt characters.');
   const duration=Number(value.duration),resolution=value.resolution;
@@ -207,6 +210,15 @@ function parameters(value) {
   return {type:'video',engine:prime?'wanprime':'wan',model:prime?(mode==='reference'?'alibaba/wan-3.0-prime/reference-to-video':'alibaba/wan-3.0-prime/image-to-video'):(mode==='reference'?MODEL_REFERENCE:MODEL_IMAGE),mode,prompt,duration,resolution,aspectRatio:ratio,seed,audio:value.audio!==false,referenceRoles};
 }
 function assembledPrompt(p) {
+  if(supportsReferenceGuidance(p)){
+    const count=p.referenceSourceIds?.length||0,labels=p.referenceRoles||[];
+    if(labels.length&&labels.length!==count)fail(400,'Reference roles must match the selected images in order.');
+    p.referenceRoles=Array.from({length:count},(_,i)=>normalizeReferenceLabel(labels[i]));
+    const error=referenceGuidanceError(p.referenceRoles);if(error)fail(400,error);
+    const prompt=compileImagePrompt(p.prompt,p.referenceRoles);
+    if(prompt.length>5000)fail(400,'Prompt plus automatic reference instructions is too long. Shorten the direction or reference notes.');
+    return prompt;
+  }
   const labels=(p.referenceRoles||[]).slice(0,p.referenceSourceIds?.length||0).map((r,i)=>r.role!=='none'||r.note?'Reference '+(i+1)+(r.name?' ('+r.name+')':'')+': '+(r.role!=='none'?r.role+'. ':'')+r.note:'').filter(Boolean);
   if(p.engine==='seedance')for(let i=0;i<labels.length;i++)labels[i]=labels[i].replace(/^Reference (\d+)/,'@Image$1');
   else if(p.engine==='h3maxfal')for(let i=0;i<labels.length;i++)labels[i]=labels[i].replace(/^Reference (\d+)/,'Image $1');
@@ -333,7 +345,7 @@ async function prepareInput(env,owner,data,p,url) {
       if(p.aspectRatio!=='auto'&&p.aspectRatio!=='21:9')input.aspect_ratio=p.aspectRatio;
     }
   }
-  if(p.prompt&&p.engine!=='soul')input.prompt=assembledPrompt(p);if(p.type!=='image'&&p.seed!==null)input.seed=p.seed;
+  if((p.prompt||supportsReferenceGuidance(p))&&p.engine!=='soul')input.prompt=assembledPrompt(p);if(p.type!=='image'&&p.seed!==null)input.seed=p.seed;
   return {primary,input};
 }
 async function source(env,owner,id) {
@@ -342,8 +354,9 @@ async function source(env,owner,id) {
 }
 async function sources(env,owner,ids,max=10) {
   if(!Array.isArray(ids)||ids.length<1||ids.length>max)fail(400,'Reference mode needs 1 to '+max+' images.');
-  const out=[],seen=new Set();
-  for(const value of ids){const id=uid(value);if(seen.has(id))continue;seen.add(id);out.push(await source(env,owner,id));}
+  const validIds=ids.map(uid);if(new Set(validIds).size!==validIds.length)fail(400,'The same source image is listed more than once. Remove the duplicate reference so image roles stay aligned.');
+  const out=[];
+  for(const id of validIds)out.push(await source(env,owner,id));
   if(!out.length)fail(400,'Add at least one reference image.');return out;
 }
 function linkedSourceIds(row) {
@@ -591,7 +604,8 @@ async function geminiFetch(env,path,{method='GET',body:payload,timeout=60000}={}
 async function geminiParts(env,owner,p,referenceSourceIds=[]){
   const ids=Array.isArray(referenceSourceIds)?referenceSourceIds:[];
   if(ids.length>10)fail(400,'Nano Banana Pro accepts up to 10 image references in this Lab.');
-  const refs=ids.length?await sources(env,owner,ids):[],parts=[{text:assembledPrompt({...p,referenceSourceIds:refs.map(a=>a.id)})}];
+  const refs=ids.length?await sources(env,owner,ids):[];p.referenceSourceIds=refs.map(a=>a.id);
+  const parts=[{text:assembledPrompt(p)}];
   let total=0;
   for(let i=0;i<refs.length;i++){
     const a=refs[i];if(!['image/jpeg','image/png','image/webp'].includes(a.mime))fail(400,'Nano Banana Pro references must be JPG, PNG or WebP.');
@@ -883,7 +897,8 @@ async function route(request,env,ctx) {
     if((await first(env,'SELECT COUNT(*) AS n FROM packs WHERE owner_id=?',owner)).n>=40)fail(409,'Keep up to 40 reference packs.');
     const max=data.engine==='seedance'?30:10;const list=await sources(env,owner,data.referenceSourceIds,max),labels=referenceLabels(data.referenceRoles,max);
     if(list.some(a=>!a.mime.startsWith('image/')))fail(400,'Reference packs contain images only.');
-    const refs=list.map((a,i)=>({id:a.id,name:a.filename,role:labels[i]?.role||'none',note:labels[i]?.note||''}));
+    if(labels.length&&labels.length!==list.length)fail(400,'Reference roles must match the selected images in order.');
+    const refs=list.map((a,i)=>({id:a.id,...normalizeReferenceLabel({...labels[i],name:a.filename})}));
     const id=crypto.randomUUID();await run(env,'INSERT INTO packs(id,owner_id,name,refs,created_at) VALUES(?,?,?,?,?)',id,owner,name,JSON.stringify(refs),now());
     return json({id,name,refs},201);
   }
@@ -929,7 +944,7 @@ async function route(request,env,ctx) {
   if(path==='/api/gemini/jobs'&&method==='POST') {
     if(!env.GEMINI_API_KEY)fail(503,'Gemini API key is not configured on this Worker.');
     const data=await body(request),p=parameters(data.settings);
-    if(p.provider!=='gemini'||p.engine!=='gemini'||!p.prompt)fail(400,'Choose Nano Banana Pro and add a prompt.');
+    if(p.provider!=='gemini'||p.engine!=='gemini'||(!p.prompt&&!canUseReferenceGuidance(p.referenceRoles)))fail(400,'Choose Nano Banana Pro and add a direction, or assign a Base image and the properties to copy.');
     const count=Number(data.count||1),max=p.processing==='batch'?20:1;
     if(!Number.isInteger(count)||count<1||count>max)fail(400,p.processing==='batch'?'Batch supports 1 to 20 images.':'Normal mode submits one Nano Banana Pro image per request.');
     if(p.processing==='normal'){
@@ -1037,7 +1052,7 @@ async function route(request,env,ctx) {
 
   if(path==='/api/quotes'&&method==='POST') {
     const data=await body(request),p=parameters(data.settings);
-    if(!['upscale','reinterpret'].includes(p.mode)&&!p.prompt)fail(400,'Add a prompt before generating.');
+    if(!['upscale','reinterpret'].includes(p.mode)&&!p.prompt&&!(supportsReferenceGuidance(p)&&canUseReferenceGuidance(p.referenceRoles)))fail(400,'Add a prompt before generating, or assign a Base image and the properties to copy.');
     if(p.provider==='fal'&&p.type==='video'){
       if(!env.FAL_KEY)fail(503,'fal.ai video is not configured on this Worker.');
       const {primary,input}=await prepareInput(env,owner,data,p,url),estimate=falVideoEstimateMicros(p),id=crypto.randomUUID(),expires=now()+290000,payload={model:p.model,input};
@@ -1118,8 +1133,8 @@ async function route(request,env,ctx) {
     try {
       const kind=JSON.parse(q.params).type==='image'?'image':'video';
       // Reserve both a per-kind slot and spending atomically. Concurrent tabs cannot overbook.
-      // SpicyAPI submissions are isolated from Gemini jobs, including legacy Gemini rows that predate the provider field.
-      const spicySql="NOT (COALESCE(json_extract(params,'$.provider'),'')='gemini' OR COALESCE(json_extract(params,'$.engine'),'')='gemini' OR COALESCE(json_extract(params,'$.model'),'') LIKE 'gemini-%')";
+      // Other providers do not consume SpicyAPI slots or block them with interrupted jobs, including legacy rows without a provider field.
+      const spicySql="NOT (COALESCE(json_extract(params,'$.provider'),'') IN ('gemini','fal') OR COALESCE(json_extract(params,'$.engine'),'') IN ('gemini','fal','soulpro','h3maxfal','omni') OR COALESCE(json_extract(params,'$.model'),'') LIKE 'gemini-%' OR COALESCE(json_extract(params,'$.model'),'') LIKE 'fal-ai/%')";
       const inserted=await run(env,"INSERT INTO jobs(id,owner_id,source_id,quote_id,params,state,estimate_microusd,created_at,updated_at) SELECT ?,?,?,?,?,'submitting',?,?,? WHERE NOT EXISTS(SELECT 1 FROM jobs WHERE owner_id=? AND state='uncertain' AND "+spicySql+") AND (SELECT COUNT(*) FROM jobs WHERE owner_id=? AND state IN ('submitting','queued','running','uncertain') AND "+spicySql+" AND CASE WHEN json_extract(params,'$.type')='image' THEN 'image' ELSE 'video' END=?)<? AND (SELECT COALESCE(SUM(estimate_microusd),0) FROM spend WHERE owner_id=? AND created_at>=?)+?<=?",id,owner,q.source_id,q.id,q.params,q.estimate_microusd,t,t,owner,owner,kind,CONCURRENCY[kind],owner,day,q.estimate_microusd,c.daily_limit_microusd);
       if(!inserted.meta.changes){
         const uncertain=(await first(env,"SELECT COUNT(*) AS n FROM jobs WHERE owner_id=? AND state='uncertain' AND "+spicySql,owner)).n;
@@ -1133,11 +1148,20 @@ async function route(request,env,ctx) {
     }catch(e){old=await first(env,'SELECT * FROM jobs WHERE quote_id=? AND owner_id=?',quoteId,owner);if(old)return json({job:jobView(old)});throw e;}
     // Reuse the exact input URL and settings covered by the quote, never silently reprice.
     const payload={...JSON.parse(q.payload),quoteId:q.vendor_quote_id,expectedCost:q.expected_cost};
+    let providerAccepted=false;
     try {
       const result=await vendorRequest('/jobs/createTask',key,payload,id);
+      providerAccepted=true;
       if(typeof result.taskId!=='string'||!result.taskId||result.taskId.length>200)throw new Error('Missing provider task ID.');
       await run(env,"UPDATE jobs SET provider_id=?,state='queued',updated_at=? WHERE id=?",result.taskId,now(),id);
-    }catch(e){await run(env,'UPDATE jobs SET state=?,error=?,updated_at=? WHERE id=?',e.definite?'failed':'uncertain',e.definite?e.message:'Submission status is uncertain. Do not resubmit: first check the provider console to avoid a duplicate charge.',now(),id);}
+    }catch(e){
+      const rejected=e.definite===true&&!providerAccepted;
+      if(rejected)await env.LAB_DB.batch([
+        stmt(env,"UPDATE jobs SET state='failed',error=?,updated_at=? WHERE id=?",e.message,now(),id),
+        stmt(env,'DELETE FROM spend WHERE job_id=?',id)
+      ]);
+      else await run(env,"UPDATE jobs SET state='uncertain',error=?,updated_at=? WHERE id=?",'Submission status is uncertain. Do not resubmit: first check the provider console to avoid a duplicate charge.',now(),id);
+    }
     return json({job:jobView(await first(env,'SELECT * FROM jobs WHERE id=?',id))},202);
   }
   if(path==='/api/jobs'&&method==='GET') {
