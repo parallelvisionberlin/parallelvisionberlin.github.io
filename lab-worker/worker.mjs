@@ -7,7 +7,7 @@ import {FAL_CONTROLLED_POSE,FAL_CONTROLLED_INPAINT,FAL_DWPOSE,controlledPosePara
 import {falVideoParameters,falVideoEstimateMicros,buildFalVideoInput} from './fal-video.mjs';
 import {soulProParameters,soulProEstimateMicros,buildSoulProInput} from './soul-pro.mjs';
 import {SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-02.4-provider-diagnostics';
+export const VERSION = 'pv-lab-2026-10-02.5-history-base-recovery';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -648,6 +648,33 @@ async function refreshGeminiJob(env,j,p){
   await run(env,"UPDATE jobs SET state=?,error='',updated_at=? WHERE owner_id=? AND provider_id=? AND state IN ('queued','running')",state==='JOB_STATE_RUNNING'?'running':'queued',now(),j.owner_id,j.provider_id);
 }
 
+function falOutputUrl(result,isVideo){
+  return isVideo?(result?.video?.url||result?.videos?.find?.(x=>typeof x?.url==='string'&&x.url)?.url):(result?.images?.find?.(x=>typeof x?.url==='string'&&x.url)?.url||result?.image?.url);
+}
+async function recoverFalOutput(env,j,p){
+  if(!env.FAL_KEY||!j.provider_id)return false;
+  const endpoint=p.model||FAL_CONTROLLED_POSE;
+  const result=await falResult(endpoint,env.FAL_KEY,j.provider_id),output=falOutputUrl(result,p.type==='video');
+  if(typeof output!=='string'||!output)return false;
+  const safe=safeVideoUrl(output);
+  await run(env,"UPDATE jobs SET state='saving',remote_url=?,error='',updated_at=? WHERE id=?",safe,now(),j.id);
+  await copyResult(env,j,safe);
+  return true;
+}
+async function deleteJobRecord(env,owner,j){
+  if(ACTIVE.has(j.state))fail(409,'Active or uncertain jobs cannot be deleted.');
+  const linked=linkedSourceIds(j);
+  await run(env,'DELETE FROM jobs WHERE id=? AND owner_id=?',j.id,owner);
+  if(j.quote_id)await run(env,'DELETE FROM quotes WHERE id=?',j.quote_id);
+  if(j.output_id){
+    const a=await first(env,'SELECT * FROM assets WHERE id=? AND owner_id=?',j.output_id,owner);
+    if(a){
+      if(a.kind==='source')await pruneSource(env,owner,a.id);
+      else{await env.LAB_MEDIA.delete(a.object_key);await run(env,'DELETE FROM assets WHERE id=?',a.id);}
+    }
+  }
+  for(const sourceId of linked)await pruneSource(env,owner,sourceId);
+}
 async function refreshFalJob(env,j,p){
   let resultPhase=false;
   if(!env.FAL_KEY){await run(env,"UPDATE jobs SET state='failed',error=?,updated_at=? WHERE id=?",'fal.ai is not configured on the Lab backend.',now(),j.id);return;}
@@ -657,13 +684,14 @@ async function refreshFalJob(env,j,p){
     if(state==='COMPLETED'){
       resultPhase=true;
       const result=await falResult(endpoint,env.FAL_KEY,j.provider_id),isVideo=p.type==='video';
-      const output=isVideo?(result?.video?.url||result?.videos?.find?.(x=>typeof x?.url==='string'&&x.url)?.url):(result?.images?.find?.(x=>typeof x?.url==='string'&&x.url)?.url||result?.image?.url);
+      const output=falOutputUrl(result,isVideo);
       if(typeof output!=='string'||!output)throw new Error('fal.ai completed without a compatible '+(isVideo?'video':'image')+' output.');
       const safe=safeVideoUrl(output);
       await run(env,"UPDATE jobs SET state='saving',remote_url=?,error='',updated_at=? WHERE id=?",safe,now(),j.id);
       await copyResult(env,j,safe);return;
     }
     if(['FAILED','CANCELLED','CANCELED'].includes(state)){
+      try{if(await recoverFalOutput(env,j,p))return;}catch{}
       const bits=[];
       const rawDetail=status?.error??status?.detail??status?.message;
       if(rawDetail){
@@ -1122,22 +1150,28 @@ async function route(request,env,ctx) {
     // Keep the previous field for old cached clients; new clients track every active job.
     return json({jobs:list.map(jobView),active:activeJobs[0]||null,activeJobs,concurrency:CONCURRENCY,next:more?{before:last.created_at,afterId:last.id}:null});
   }
+  if(path==='/api/jobs/bulk-delete'&&method==='POST'){
+    const data=await body(request),ids=Array.isArray(data.ids)?[...new Set(data.ids)]:[];
+    if(ids.length<1||ids.length>100)fail(400,'Select between 1 and 100 History items.');
+    const jobs=[];
+    for(const value of ids){const id=uid(value),j=await first(env,'SELECT * FROM jobs WHERE id=? AND owner_id=?',id,owner);if(!j)fail(404,'One selected History item no longer exists. Refresh History.');if(ACTIVE.has(j.state))fail(409,'Active or uncertain jobs cannot be bulk deleted.');jobs.push(j);}
+    for(const j of jobs)await deleteJobRecord(env,owner,j);
+    return json({ok:true,deleted:jobs.length});
+  }
   if(path.startsWith('/api/jobs/')) {
     const id=uid(path.split('/')[3]);let j=await first(env,'SELECT * FROM jobs WHERE id=? AND owner_id=?',id,owner);if(!j)fail(404,'Job not found.');
     if(path.endsWith('/resolve')&&method==='POST') {
       const data=await body(request);if(j.state!=='uncertain'||data.confirm!==true)fail(409,'Confirm you checked the provider dashboard first.');
       await run(env,"UPDATE jobs SET state='resolved',updated_at=?,error=? WHERE id=?",now(),'Owner resolved the interrupted request. No generation was resubmitted.',id);return json({ok:true});
     }
-    if(method==='GET') {await refreshJob(env,j);return json({job:jobView(await first(env,'SELECT * FROM jobs WHERE id=?',id))});}
-    if(method==='DELETE') {
-      if(ACTIVE.has(j.state))fail(409,'Active or uncertain jobs cannot be deleted.');
-      const linked=linkedSourceIds(j);
-      await run(env,'DELETE FROM jobs WHERE id=? AND owner_id=?',id,owner);
-      if(j.quote_id)await run(env,'DELETE FROM quotes WHERE id=?',j.quote_id);
-      if(j.output_id){const a=await first(env,'SELECT * FROM assets WHERE id=? AND owner_id=?',j.output_id,owner);if(a){if(a.kind==='source')await pruneSource(env,owner,a.id);else{await env.LAB_MEDIA.delete(a.object_key);await run(env,'DELETE FROM assets WHERE id=?',a.id);}}}
-      for(const sourceId of linked)await pruneSource(env,owner,sourceId);
-      return json({ok:true});
+    if(path.endsWith('/recover')&&method==='POST'){
+      const p=JSON.parse(j.params||'{}');if(j.state!=='failed'||p.provider!=='fal'||!j.provider_id)fail(409,'Only failed fal.ai jobs with a provider task can be recovered.');
+      try{if(!await recoverFalOutput(env,j,p))fail(409,'fal.ai has no downloadable output for this task.');}
+      catch(e){if(e instanceof HttpError)throw e;const detail=String(e?.message||'fal.ai output could not be recovered.').replace(/[\r\n]+/g,' ').slice(0,700);fail(409,detail);}
+      return json({job:jobView(await first(env,'SELECT * FROM jobs WHERE id=?',id))});
     }
+    if(method==='GET') {await refreshJob(env,j);return json({job:jobView(await first(env,'SELECT * FROM jobs WHERE id=?',id))});}
+    if(method==='DELETE') {await deleteJobRecord(env,owner,j);return json({ok:true});}
   }
   fail(404,'Not found.');
 }

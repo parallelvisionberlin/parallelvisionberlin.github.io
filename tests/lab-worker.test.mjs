@@ -41,7 +41,7 @@ globalThis.fetch=async (url,options={})=>{const u=new URL(url);calls.push({url:S
       }else{
         assert.equal(input.image_urls.length,2);assert.ok(input.image_urls.every(x=>/^data:image\/png;base64,/.test(x)));assert.equal(input.guidance_scale,3.5);assert.equal(input.enhance_prompt,false);assert.equal(input.num_images,1);
       }
-      assert.match(input.prompt,/primary source image is the structural truth/i);assert.match(input.prompt,/identity reference/i);
+      assert.match(input.prompt,/BASE SOURCE IMAGE/i);assert.match(input.prompt,/identity reference/i);
       return Response.json({request_id:u.pathname.includes('/ideogram/')?'fal_soulpro_ideogram_1234567890':'fal_soulpro_kontext_1234567890'});
     }
     const input=JSON.parse(options.body);assert.match(input.image_data_url,/\/soul-dataset\//);assert.equal(input.steps,1000);assert.equal(input.learning_rate,u.pathname.includes('z-image-trainer')?0.0001:0.0005);if(u.pathname.includes('z-image-trainer'))assert.equal(input.training_type,'content');assert.match(input.default_caption,/^photo of pv_/);return Response.json({request_id:'fal_request_synthetic_1234567890'});
@@ -213,7 +213,7 @@ test('PV Soul Pro saves Nina identity once and reuses it with one base image on 
   assert.equal(job.settings.engine,'soulpro');assert.equal(job.settings.soulProModel,'ideogram45');assert.deepEqual(job.settings.referenceSourceIds,[refId]);assert.equal(job.settings.inputTransport,'inline-data-uri');assert.equal(job.settings.soulProQuality,'medium');assert.equal(job.estimatedUsd,.06);assert.equal(falSubmitCount,1);
   const submit=calls.findLast(c=>c.options.method==='POST'&&c.url.includes('/ideogram/v4.5/edit'));assert.ok(submit);
   const input=JSON.parse(submit.options.body);assert.ok(input.image_url);assert.equal(input.reference_image_urls.length,1);assert.notEqual(input.image_url,input.reference_image_urls[0]);
-  assert.match(input.prompt,/keep the source crop/i);assert.match(input.prompt,/do not import pose, body shape, wardrobe, room, camera angle or lighting/i);
+  assert.match(input.prompt,/Preserve the base source crop/i);assert.match(input.prompt,/Do not copy pose, body shape, wardrobe, room, background, camera angle or lighting/i);assert.match(input.prompt,/Never substitute a reference image for the base source/i);
   falState='COMPLETED';const done=(await(await req(env,'/api/jobs/'+job.id)).json()).job;assert.equal(done.status,'completed');assert.ok(done.outputId);assert.equal((await req(env,'/api/assets/'+done.outputId)).headers.get('content-type'),'image/png');
 });
 
@@ -238,7 +238,30 @@ test('PV Soul Pro offers Kontext Max as a separate cheaper identity-edit engine 
   assert.equal(response.status,202,await response.clone().text());const job=(await response.json()).job;
   assert.equal(job.estimatedUsd,.08);assert.equal(job.settings.soulProModel,'kontextmax');
   const submit=calls.findLast(c=>c.options.method==='POST'&&c.url.includes('/flux-pro/kontext/max/multi'));assert.ok(submit);
-  const input=JSON.parse(submit.options.body);assert.equal(input.image_urls.length,2);assert.equal(input.enhance_prompt,false);assert.match(input.prompt,/User-requested change: keep the original room/);
+  const input=JSON.parse(submit.options.body);assert.equal(input.image_urls.length,2);assert.notEqual(input.image_urls[0],input.image_urls[1]);assert.equal(input.enhance_prompt,false);assert.match(input.prompt,/IMAGE 1 IS THE BASE SOURCE IMAGE TO EDIT/);assert.match(input.prompt,/Images 2 through 2 are identity references only/);assert.match(input.prompt,/Additional user-requested change to the BASE SOURCE only: keep the original room/);
+});
+
+test('Failed FAL image jobs can recover an already-generated provider output without resubmission',async()=>{
+  calls=[];falSubmitCount=0;falState='IN_QUEUE';const {env}=fixture(),id=await setup(env);
+  const refUpload=await req(env,'/api/uploads',{method:'POST',raw:new Uint8Array([137,80,78,71,13,10,26,10,4]),headers:{'Content-Type':'image/png','X-Filename':'identity.png'}});const refId=(await refUpload.json()).id;
+  await req(env,'/api/soul-pro/identity',{method:'POST',data:{referenceSourceIds:[refId]}});
+  const settings={type:'image',engine:'soulpro',mode:'identity-edit',soulProModel:'ideogram45',soulProQuality:'medium',prompt:'',sourceWidth:512,sourceHeight:768,seed:'',referenceRoles:[]};
+  const response=await req(env,'/api/fal/soul-pro',{method:'POST',data:{sourceId:id,referenceSourceIds:[],settings}});const job=(await response.json()).job;
+  assert.equal(falSubmitCount,1);env.LAB_DB.db.prepare("UPDATE jobs SET state='failed',error='fal.ai: Provider rejected the request.' WHERE id=?").run(job.id);
+  const recovered=await req(env,'/api/jobs/'+job.id+'/recover',{method:'POST'});assert.equal(recovered.status,200,await recovered.clone().text());const done=(await recovered.json()).job;
+  assert.equal(done.status,'completed');assert.ok(done.outputId);assert.equal(falSubmitCount,1,'recovery must not submit a new generation');
+});
+
+test('History bulk delete removes only selected inactive jobs and rejects active selections',async()=>{
+  const {env}=fixture(),sourceId=await setup(env);
+  const base={type:'image',engine:'seedream',mode:'image',prompt:'test',resolution:'1k',aspectRatio:'1:1',outputFormat:'png',referenceRoles:[]};
+  const ids=[];
+  for(let i=0;i<3;i++){const r=await req(env,'/api/drafts',{method:'POST',data:{sourceId,settings:base}});ids.push((await r.json()).job.id);}
+  let response=await req(env,'/api/jobs/bulk-delete',{method:'POST',data:{ids:ids.slice(0,2)}});assert.equal(response.status,200,await response.clone().text());assert.equal((await response.json()).deleted,2);
+  assert.equal(env.LAB_DB.db.prepare('SELECT COUNT(*) AS n FROM jobs').get().n,1);
+  env.LAB_DB.db.prepare("UPDATE jobs SET state='running' WHERE id=?").run(ids[2]);
+  response=await req(env,'/api/jobs/bulk-delete',{method:'POST',data:{ids:[ids[2]]}});assert.equal(response.status,409);
+  assert.equal(env.LAB_DB.db.prepare('SELECT COUNT(*) AS n FROM jobs').get().n,1);
 });
 
 test('PV Soul trains once through FAL, archives weights privately and builds Qwen 2512 LoRA quotes',async()=>{

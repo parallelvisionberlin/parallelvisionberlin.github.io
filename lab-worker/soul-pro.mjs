@@ -49,21 +49,25 @@ export function soulProEstimateMicros(p){
   return SOUL_PRO_MODELS[p.soulProModel]?.estimateMicros||80000;
 }
 
-function identityPrompt(p,count){
-  const refs=count===1?'Reference 1 is the identity reference.':`References 1–${count} all show the same identity from different angles.`;
+function identityPrompt(p,count,kontext=false){
+  const identityRange=count===1?'the identity reference':'the '+count+' identity references';
+  const sourceRule=kontext
+    ?'IMAGE 1 IS THE BASE SOURCE IMAGE TO EDIT. Images 2 through '+(count+1)+' are identity references only. Never use Images 2 through '+(count+1)+' as the composition, pose, body, wardrobe, room, background or camera.'
+    :'The primary image_url is the BASE SOURCE IMAGE TO EDIT. The separate reference_image_urls are identity references only. Never substitute a reference image for the base source.';
   return [
-    'IDENTITY EDIT. The primary source image is the structural truth.',
-    'Keep the source crop, camera position, lens perspective, pose, body silhouette, body proportions, hand and foot placement, clothing, room, props and lighting unless the user explicitly asks to change one of those things.',
-    refs,
-    'Transfer only the person identity from the reference images: facial structure, eyes, nose, mouth, hairline, hair character and stable identifying facial traits.',
-    'Do not import pose, body shape, wardrobe, room, camera angle or lighting from the identity references.',
-    'The result must remain a coherent photographic human image with natural skin texture and physically plausible anatomy. Do not beautify, inflate or reshape the source body merely to match the identity references.',
-    p.prompt?`User-requested change: ${p.prompt}`:'No additional change. Perform only the identity transfer.'
+    'IDENTITY REINTERPRET.',
+    sourceRule,
+    'Preserve the base source crop, camera position, lens perspective, pose, body silhouette, body proportions, hand and foot placement, clothing, room, props, background and lighting unless the user explicitly asks to change one of those things.',
+    'Use '+identityRange+' only to replace the visible person identity: facial structure, eyes, nose, mouth, hairline, hair character and stable identifying facial traits.',
+    'Do not copy pose, body shape, wardrobe, room, background, camera angle or lighting from the identity references.',
+    'The output must still visibly be the base source photograph, with the same composition and body staging, but with the target identity.',
+    'Keep realistic human anatomy, natural skin texture and physically plausible contact shadows. Do not beautify, inflate or reshape the base body merely to match the identity references.',
+    p.prompt?`Additional user-requested change to the BASE SOURCE only: ${p.prompt}`:'No additional change. Perform only the identity replacement on the base source.'
   ].join('\n');
 }
 
 export function buildSoulProInput(p,{sourceUrl,identityUrls}){
-  const prompt=identityPrompt(p,identityUrls.length);
+  const prompt=identityPrompt(p,identityUrls.length,p.soulProModel==='kontextmax');
   if(p.soulProModel==='kontextmax'){
     const input={
       prompt,

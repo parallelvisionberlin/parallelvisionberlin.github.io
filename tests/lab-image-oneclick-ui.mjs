@@ -25,6 +25,8 @@ async function workspace({failure='',width=1440,initial=[],savedPacks=[],quoteDe
   requests.push({path,method,data});
   const send=(body,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(body)});
   if(path==='/api/jobs'&&method==='GET')return send({jobs,activeJobs:jobs.filter(j=>['queued','running','saving','uncertain','submitting'].includes(j.status)),concurrency:{image:4,video:1},next:null});
+  if(path==='/api/jobs/bulk-delete'&&method==='POST'){const ids=data.ids||[];let deleted=0;for(let i=jobs.length-1;i>=0;i--)if(ids.includes(jobs[i].id)&&!['queued','running','saving','uncertain','submitting'].includes(jobs[i].status)){jobs.splice(i,1);deleted++;}return send({ok:true,deleted});}
+  if(path.startsWith('/api/jobs/')&&path.endsWith('/recover')&&method==='POST'){const job=jobs.find(j=>path.includes('/'+j.id+'/recover'));if(!job)return send({error:'Not found.'},404);job.status='completed';job.outputId=job.id;job.error='';return send({job});}
   if(path==='/api/packs')return send({packs:savedPacks});
   if(path==='/api/soul-pro/identity'&&method==='GET')return send({configured:true,count:2,refs:[{id:id(950),name:'nina-front.png'},{id:id(951),name:'nina-three-quarter.png'}]});
   if(path==='/api/soul-pro/identity'&&method==='POST')return send({configured:true,count:(data.referenceSourceIds||[]).length||1,refs:[]},201);
@@ -157,7 +159,17 @@ try{
  const cards=x.page.locator('.card');
  const failedCard=cards.filter({hasText:'FAILED /'});assert.equal(await failedCard.locator('.history-no-result strong').innerText(),'Generation failed');assert.doesNotMatch(await failedCard.innerText(),/Result pending/);assert.match(await failedCard.innerText(),/Lab estimate released: \$1\.721/);
  const uncertainCard=cards.filter({hasText:'UNCERTAIN /'});assert.equal(await uncertainCard.locator('.history-no-result strong').innerText(),'Status unknown');assert.doesNotMatch(await uncertainCard.innerText(),/Result pending/);assert.match(await uncertainCard.innerText(),/provider status unknown/);
- ok('History distinguishes definite FAL failure from uncertain provider status and releases the Lab estimate label');await x.context.close();
+ assert.equal(await failedCard.getByRole('button',{name:'Recover FAL output'}).count(),1);
+ ok('History distinguishes definite FAL failure from uncertain provider status and offers FAL recovery');await x.context.close();
+
+ const inactive=n=>({id:id(1000+n),status:'failed',sourceId:id(1100+n),settings:{type:'image',provider:'fal',engine:'soulpro',mode:'identity-edit',soulProModel:'ideogram45',soulProQuality:'medium',resolution:'source',prompt:''},createdAt:Date.now()-n,estimatedUsd:.06,error:'test failure',providerTaskId:'fal-'+n});
+ x=await workspace({initial:[inactive(1),inactive(2),inactive(3),active(1040)]});
+ await x.page.click('#history-select');assert.equal(await x.page.locator('#history-selection').isVisible(),true);
+ const checks=x.page.locator('.history-select-box input');assert.equal(await checks.count(),3);
+ await checks.nth(0).check();await checks.nth(1).check();assert.match(await x.page.locator('#history-selection-count').innerText(),/2 selected/i);
+ await x.page.click('#history-delete-selected');await ready(x.page);
+ const bulk=x.requests.findLast(r=>r.path==='/api/jobs/bulk-delete'&&r.method==='POST');assert.equal(bulk.data.ids.length,2);assert.equal(await x.page.locator('.card').count(),2);
+ ok('History multi-select deletes several inactive items in one compact bulk action');await x.context.close();
 
   for(const width of [390,1728]){x=await workspace({width});await imageForm(x);assert.ok(await x.page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));mkdirSync('test-results',{recursive:true});await x.page.screenshot({path:'test-results/image-oneclick-'+width+'.png',fullPage:true});assert.deepEqual(x.errors,[]);ok('Image layout without overflow at '+width+'px');await x.context.close();}
  console.log('ONECLICK_BROWSER_CHECKS_PASSED='+passed);

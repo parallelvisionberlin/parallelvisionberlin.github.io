@@ -65,3 +65,17 @@ footer{border-top:1px solid var(--line-soft);padding:18px 0;color:var(--muted);f
 .soul-pro-pack-item:has(input:checked){outline:1px solid var(--accent-2,#9c75ff);outline-offset:-1px}
 #soul-pro-quality-row{display:block;margin-top:10px}
 @media(max-width:560px){.soul-pro-pack-grid{grid-template-columns:repeat(2,minmax(0,1fr));max-height:360px}}
+
+/* Compact History multi-select */
+.history-head-actions{display:flex;gap:12px;justify-content:flex-end;align-items:center}
+.history-selection{position:sticky;top:10px;z-index:6;margin:12px 0 14px;padding:9px 11px;border:1px solid var(--line,#34352f);background:#111014f2;backdrop-filter:blur(8px);display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.history-selection span{font-size:10px;letter-spacing:.06em;text-transform:uppercase;margin-right:auto}
+.history-delete-selected{border:1px solid #6d3535;background:#2a1114;color:#ffd8d8;padding:8px 11px;font-size:10px;cursor:pointer}
+.history-delete-selected:disabled{opacity:.35;cursor:default}
+.card{position:relative}
+.history-select-box{position:absolute;top:9px;left:9px;z-index:5;width:27px;height:27px;border:1px solid #706b78;background:#0c0b0fe6;display:grid;place-items:center;cursor:pointer}
+.history-select-box input{width:14px;height:14px;margin:0;accent-color:#8b5cf6}
+#history.is-selecting .card[data-deletable="true"]{outline:1px solid transparent;outline-offset:-1px}
+#history.is-selecting .card[data-deletable="true"]:has(.history-select-box input:checked){outline-color:#8b5cf6;background:rgba(139,92,246,.035)}
+#history.is-selecting .card[data-deletable="false"]{opacity:.58}
+@media(max-width:560px){.history-head-actions{justify-content:flex-start}.history-selection{top:4px}.history-selection span{width:100%;margin-right:0}}
