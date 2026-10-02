@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="./history.css?v=20260927-2">
 <link rel="stylesheet" href="./seedance.css?v=20260927-standard1">
 <link rel="stylesheet" href="./soul.css?v=20260930-soul-v02">
-<script type="module" src="./lab.js?v=20261002-soul-savefix1"></script>
+<script type="module" src="./lab.js?v=20261002-history-select1"></script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to workspace</a>
@@ -131,7 +131,7 @@
 </div>
 <p id="notice" role="status" aria-live="polite"></p>
 <section id="active" class="active" hidden aria-live="polite"><div><p class="eyebrow">Generation & save status</p><p id="active-status"></p><p class="fine" id="active-detail"></p></div><button id="resolve" class="quiet" hidden>Resolve interrupted request</button></section>
-<section class="archive"><div class="archivehead"><div><p class="eyebrow">Your working archive</p><h2>History</h2></div><div><p>Generated results, drafts and job status.<br>Download saves the result. Reuse restores your original inputs.</p><button id="refresh" class="text-button">Refresh history</button></div></div><p id="emptyarchive" class="emptyarchive">No saved work yet.</p><div id="history" class="grid"></div><button id="more" class="secondary" hidden>Load earlier work</button></section>
+<section class="archive"><div class="archivehead"><div><p class="eyebrow">Your working archive</p><h2>History</h2></div><div><p>Generated results, drafts and job status.<br>Download saves the result. Reuse restores your original inputs.</p><div class="history-head-actions"><button id="history-select" class="text-button" type="button">Select</button><button id="refresh" class="text-button" type="button">Refresh history</button></div></div></div><div id="history-selection" class="history-selection" hidden><span id="history-selection-count">0 selected</span><button id="history-select-all" class="text-button" type="button">Select all visible</button><button id="history-delete-selected" class="history-delete-selected" type="button" disabled>Delete selected</button><button id="history-cancel-select" class="text-button" type="button">Cancel</button></div><p id="emptyarchive" class="emptyarchive">No saved work yet.</p><div id="history" class="grid"></div><button id="more" class="secondary" hidden>Load earlier work</button></section>
 </div>
 <noscript><p>Enable JavaScript to sign in and use the Lab.</p></noscript>
 </main>
