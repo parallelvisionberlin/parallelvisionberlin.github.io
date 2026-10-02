@@ -7,7 +7,7 @@ import {FAL_CONTROLLED_POSE,FAL_CONTROLLED_INPAINT,FAL_DWPOSE,controlledPosePara
 import {falVideoParameters,falVideoEstimateMicros,buildFalVideoInput} from './fal-video.mjs';
 import {soulProParameters,soulProEstimateMicros,buildSoulProInput} from './soul-pro.mjs';
 import {SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-02.3-soul-pro-identity';
+export const VERSION = 'pv-lab-2026-10-02.4-provider-diagnostics';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -658,9 +658,25 @@ async function refreshFalJob(env,j,p){
       await copyResult(env,j,safe);return;
     }
     if(['FAILED','CANCELLED','CANCELED'].includes(state)){
-      const rawDetail=status?.error??status?.detail??'fal.ai ended the request without an image.';
-      const detail=typeof rawDetail==='string'?rawDetail:(Array.isArray(rawDetail)?rawDetail.map(item=>typeof item==='string'?item:item&&typeof item==='object'?[Array.isArray(item.loc)?item.loc.join('.'):'',item.msg||item.message||'',item.type||''].filter(Boolean).join(': '):String(item)).filter(Boolean).join(' | '):JSON.stringify(rawDetail));
-      const message=String(detail).replace(/[\r\n]+/g,' ').slice(0,600);
+      const bits=[];
+      const rawDetail=status?.error??status?.detail??status?.message;
+      if(rawDetail){
+        const detail=typeof rawDetail==='string'?rawDetail:(Array.isArray(rawDetail)?rawDetail.map(item=>typeof item==='string'?item:item&&typeof item==='object'?[Array.isArray(item.loc)?item.loc.join('.'):'',item.msg||item.message||'',item.type||''].filter(Boolean).join(': '):String(item)).filter(Boolean).join(' | '):JSON.stringify(rawDetail));
+        if(detail)bits.push(String(detail));
+      }
+      if(Array.isArray(status?.logs))for(const item of status.logs){
+        const msg=typeof item==='string'?item:item?.message||item?.msg;
+        if(typeof msg==='string'&&msg.trim()&&!bits.includes(msg.trim()))bits.push(msg.trim());
+      }
+      if(!bits.length||bits.every(x=>/provider rejected the request/i.test(x))){
+        try{await falResult(endpoint,env.FAL_KEY,j.provider_id);}
+        catch(resultError){
+          const msg=String(resultError?.message||'').replace(/^fal\.ai:\s*/,'').trim();
+          if(msg&&!bits.includes(msg))bits.push(msg);
+        }
+      }
+      const prefix=p.engine==='soulpro'?'Soul Pro / '+(p.soulProModel==='ideogram45'?'Ideogram 4.5':'FLUX Kontext Max')+': ':'fal.ai: ';
+      const message=(prefix+(bits.filter(Boolean).join(' | ')||'Provider ended the request without an output.')).replace(/[\r\n]+/g,' ').slice(0,900);
       await env.LAB_DB.batch([
         stmt(env,"UPDATE jobs SET state='failed',error=?,updated_at=? WHERE id=?",message,now(),j.id),
         stmt(env,'DELETE FROM spend WHERE job_id=?',j.id)
