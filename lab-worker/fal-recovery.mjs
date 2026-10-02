@@ -52,9 +52,12 @@ async function fetchPage(url,key,fetchImpl,budget,timeoutMs){
   },timeoutMs);});
   try{
     return await Promise.race([timeout,(async()=>{
-      const response=await fetchImpl(url.toString(),{method:'GET',headers:{Authorization:'Key '+key,Accept:'application/json'},redirect:'error',cache:'no-store',signal:controller.signal});
+      // workerd rejects redirect:'error' before making the request. Manual mode
+      // keeps the key on this exact endpoint; redirects are rejected below.
+      const response=await fetchImpl(url.toString(),{method:'GET',headers:{Authorization:'Key '+key,Accept:'application/json'},redirect:'manual',cache:'no-store',signal:controller.signal});
       if(!response.ok){
         await response.body?.cancel().catch(()=>{});
+        if(response.status>=300&&response.status<400)throw recoveryError('history_redirect','FAL request history returned an unexpected redirect. The request remains interrupted.',502);
         const access=response.status===401||response.status===403;
         throw recoveryError(access?'history_access':'history_http',access?'The connected FAL key cannot read request history. The request remains interrupted.':'FAL request history is unavailable. The request remains interrupted.',502);
       }

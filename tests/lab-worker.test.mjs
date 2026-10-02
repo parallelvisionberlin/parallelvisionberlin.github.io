@@ -276,6 +276,7 @@ test('Nano Banana accepts the same role-only guidance with image order and targe
   const originalFetch=globalThis.fetch;let submitted=null;
   globalThis.fetch=async(url,options={})=>{
     if(new URL(url).hostname==='generativelanguage.googleapis.com'){
+      assert.equal(options.redirect,'manual');
       submitted=JSON.parse(options.body);return Response.json({candidates:[{content:{parts:[{inlineData:{mimeType:'image/png',data:Buffer.from([137,80,78,71,13,10,26,10,0]).toString('base64')}}]}}]});
     }
     return originalFetch(url,options);
@@ -287,6 +288,46 @@ test('Nano Banana accepts the same role-only guidance with image order and targe
     const parts=submitted.contents[0].parts;assert.equal(parts[0].text,compileImagePrompt('',labels));
     assert.deepEqual(parts.filter(x=>x.inlineData).map(x=>Buffer.from(x.inlineData.data,'base64').at(-1)),[0,1]);
     assert.deepEqual(job.settings.referenceSourceIds,[base,detail]);assert.equal(job.settings.referenceRoles[1].target,'hands');
+  }finally{globalThis.fetch=originalFetch;}
+});
+
+test('Gemini rejects redirects without forwarding credentials, retrying or releasing interrupted submissions',async()=>{
+  const originalFetch=globalThis.fetch;let responseStatus=302,providerCalls=0;
+  globalThis.fetch=async(url,options={})=>{
+    assert.notEqual(new URL(url).hostname,'redirect.invalid','provider credentials must never reach a redirect target');
+    if(new URL(url).hostname!=='generativelanguage.googleapis.com')return originalFetch(url,options);
+    providerCalls++;assert.equal(options.redirect,'manual');assert.equal(options.method,'POST');assert.equal(new Headers(options.headers).get('x-goog-api-key'),'synthetic-gemini-key');
+    return new Response('untrusted redirect response',{status:responseStatus,headers:{Location:'https://redirect.invalid/private?key=do-not-display'}});
+  };
+  try{
+    for(const processing of ['normal','batch'])for(const status of [301,302,303,307,308]){
+      responseStatus=status;providerCalls=0;const{env}=fixture();env.GEMINI_API_KEY='synthetic-gemini-key';
+      const response=await req(env,'/api/gemini/jobs',{method:'POST',data:{count:1,referenceSourceIds:[],settings:{...imageSettings,engine:'gemini',processing}}});
+      assert.equal(response.status,202);const job=(await response.json()).jobs[0];assert.equal(job.status,'uncertain');assert.match(job.error,/unexpected redirect/);assert.doesNotMatch(job.error,/redirect\.invalid|do-not-display|untrusted/);
+      assert.equal(providerCalls,1);assert.equal(env.LAB_DB.db.prepare('SELECT COUNT(*) AS n FROM spend WHERE job_id=?').get(job.id).n,1);
+      if(processing==='normal'){const blocked=await req(env,'/api/gemini/jobs',{method:'POST',data:{count:1,referenceSourceIds:[],settings:{...imageSettings,engine:'gemini',processing}}});assert.equal(blocked.status,409);assert.equal(providerCalls,1);}
+    }
+  }finally{globalThis.fetch=originalFetch;}
+});
+
+test('Gemini keeps status classification and queued batch reservations when manual polling rejects a redirect',async()=>{
+  const originalFetch=globalThis.fetch;let responseStatus=400,providerCalls=0;
+  globalThis.fetch=async(url,options={})=>{
+    if(new URL(url).hostname!=='generativelanguage.googleapis.com')return originalFetch(url,options);
+    providerCalls++;assert.equal(options.redirect,'manual');
+    if(responseStatus===200)return Response.json({name:'batches/synthetic-test'});
+    if(responseStatus===307)return new Response(null,{status:307,headers:{Location:'https://redirect.invalid/no-follow'}});
+    return Response.json({error:{message:'Synthetic provider error'}},{status:responseStatus});
+  };
+  try{
+    for(const [status,state]of [[400,'failed'],[429,'uncertain'],[500,'uncertain']]){
+      responseStatus=status;providerCalls=0;const{env}=fixture();env.GEMINI_API_KEY='synthetic-gemini-key';
+      const response=await req(env,'/api/gemini/jobs',{method:'POST',data:{count:1,referenceSourceIds:[],settings:{...imageSettings,engine:'gemini'}}});assert.equal(response.status,202);assert.equal((await response.json()).jobs[0].status,state);assert.equal(providerCalls,1);
+    }
+    const{env}=fixture();env.GEMINI_API_KEY='synthetic-gemini-key';responseStatus=200;providerCalls=0;
+    const queued=await req(env,'/api/gemini/jobs',{method:'POST',data:{count:1,referenceSourceIds:[],settings:{...imageSettings,engine:'gemini',processing:'batch'}}});assert.equal(queued.status,202);const job=(await queued.json()).jobs[0];assert.equal(job.status,'queued');
+    responseStatus=307;const refreshed=(await(await req(env,'/api/jobs/'+job.id)).json()).job;assert.equal(refreshed.status,'queued');assert.match(refreshed.error,/Gemini polling:.*unexpected redirect/);assert.equal(providerCalls,2);
+    assert.equal(env.LAB_DB.db.prepare('SELECT COUNT(*) AS n FROM spend WHERE job_id=?').get(job.id).n,1);
   }finally{globalThis.fetch=originalFetch;}
 });
 
