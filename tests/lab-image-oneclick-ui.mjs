@@ -7,7 +7,7 @@ import {pathToFileURL} from 'node:url';
 const {chromium}=await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE).href);
 const root=resolve('.'),source=readFileSync('lab/lab.js','utf8');
 const boot=source.indexOf("try{const {Clerk}=await import(");assert.ok(boot>0);
-const testSource=source.slice(0,boot)+`clerk={isSignedIn:true,user:{id:'test'},session:{id:'synthetic-session',getToken:async()=> 'synthetic-token'},signOut:async()=>{}};owner=true;userId='test';config={enabled:true,geminiEnabled:true,falEnabled:true,dailyLimitUsd:10,concurrency:{image:4,video:1}};$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();update();window.__labTest={lock};`;
+const testSource=source.slice(0,boot)+`clerk={isSignedIn:true,user:{id:'test'},session:{id:'synthetic-session',getToken:async()=> 'synthetic-token'},signOut:async()=>{}};owner=true;userId='test';config={enabled:true,geminiEnabled:true,falEnabled:true,dailyLimitUsd:10,concurrency:{image:4,video:1}};$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();await loadSoulProIdentity();update();window.__labTest={lock};`;
 const server=http.createServer((req,res)=>{const pathname=new URL(req.url,'http://localhost').pathname;const path=resolve(root,'.'+pathname+(pathname.endsWith('/')?'index.html':''));if(!path.startsWith(root+'/')||!existsSync(path)){res.writeHead(404).end();return;}res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css'})[extname(path)]||'text/plain');res.end(pathname==='/lab/lab.js'?testSource:readFileSync(path));});
 await new Promise(r=>server.listen(4179,'127.0.0.1',r));
 const browser=await chromium.launch({headless:true});
@@ -26,6 +26,9 @@ async function workspace({failure='',width=1440,initial=[],quoteDelay=0}={}){
   const send=(body,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(body)});
   if(path==='/api/jobs'&&method==='GET')return send({jobs,activeJobs:jobs.filter(j=>['queued','running','saving','uncertain','submitting'].includes(j.status)),concurrency:{image:4,video:1},next:null});
   if(path==='/api/packs')return send({packs:[]});
+  if(path==='/api/soul-pro/identity'&&method==='GET')return send({configured:true,count:2,refs:[{id:id(950),name:'nina-front.png'},{id:id(951),name:'nina-three-quarter.png'}]});
+  if(path==='/api/soul-pro/identity'&&method==='POST')return send({configured:true,count:(data.referenceSourceIds||[]).length||1,refs:[]},201);
+  if(path==='/api/soul-pro/identity'&&method==='DELETE')return send({configured:false,count:0,refs:[]});
   if(path==='/api/uploads')return send({id:id(sequence++)},201);
   if(path.startsWith('/api/assets/'))return route.fulfill({status:200,contentType:'image/png',body:png});
   if(path==='/api/drafts'){const job={id:id(sequence++),sourceId:data.sourceId,settings:{...data.settings,referenceSourceIds:data.referenceSourceIds||[]},status:'draft',createdAt:Date.now()};jobs.unshift(job);return send({job},201);}
@@ -94,19 +97,16 @@ try{
  assert.equal(await x.page.locator('#generate').isDisabled(),false);
  assert.match(await x.page.locator('#active-status').innerText(),/Nano 0 \/ 4/);assert.match(await x.page.locator('#active-status').innerText(),/1 old Nano interrupted/);
  ok('Interrupted Gemini request is labeled as old and does not look like an active Nano generation');await x.context.close();
- x=await workspace();await x.page.click('#tool-image');await x.page.selectOption('#image-engine','soulpro');
+ x=await workspace();await x.page.click('#tool-image');await x.page.selectOption('#image-engine','soulpro');await ready(x.page);
+ assert.equal(await x.page.locator('#reference-mode').isVisible(),false);assert.match(await x.page.locator('#soul-pro-identity-status').innerText(),/Saved Nina identity.*2 references/);
+ assert.equal(await x.page.locator('#generate').isDisabled(),true);
  await x.page.locator('#image').setInputFiles({name:'base.png',mimeType:'image/png',buffer:png});await ready(x.page);
- await x.page.locator('#reference-images').setInputFiles([
-   {name:'identity-front.png',mimeType:'image/png',buffer:png},
-   {name:'identity-three-quarter.png',mimeType:'image/png',buffer:png}
- ]);await ready(x.page);
  assert.equal(await x.page.locator('#generate').isDisabled(),false);assert.equal(await x.page.locator('#generate').innerText(),'Generate identity edit');
  assert.equal(await x.page.locator('#soul-pro-settings').isVisible(),true);assert.equal(await x.page.locator('#resolution-control').isVisible(),false);assert.equal(await x.page.locator('#ratio-control').isVisible(),false);
- assert.equal(await x.page.locator('.reference-fields select').first().isVisible(),false);assert.equal(await x.page.locator('.reference-fields input').first().isVisible(),false);
- assert.match(await x.page.locator('#generation-help').innerText(),/\$0\.22/);
+ assert.match(await x.page.locator('#generation-help').innerText(),/one base image only/i);assert.match(await x.page.locator('#generation-help').innerText(),/\$0\.22/);
  await x.page.click('#generate');await ready(x.page);assert.equal(count(x,'/api/fal/soul-pro'),1);assert.equal(x.accepted(),1);
- const soulPro=x.requests.find(r=>r.path==='/api/fal/soul-pro').data;assert.ok(soulPro.sourceId);assert.equal(soulPro.referenceSourceIds.length,2);assert.equal(soulPro.settings.engine,'soulpro');assert.equal(soulPro.settings.soulProModel,'ideogram45');assert.equal(soulPro.settings.sourceWidth,320);assert.equal(soulPro.settings.sourceHeight,320);assert.equal(soulPro.settings.prompt,'');
- assert.ok(soulPro.settings.referenceRoles.every(r=>r.role==='identity'));ok('PV Soul Pro separates one base image from identity-only references and submits one FAL job');await x.context.close();
+ const soulPro=x.requests.find(r=>r.path==='/api/fal/soul-pro').data;assert.ok(soulPro.sourceId);assert.deepEqual(soulPro.referenceSourceIds,[]);assert.equal(soulPro.settings.engine,'soulpro');assert.equal(soulPro.settings.soulProModel,'ideogram45');assert.equal(soulPro.settings.sourceWidth,320);assert.equal(soulPro.settings.sourceHeight,320);assert.equal(soulPro.settings.prompt,'');
+ ok('PV Soul Pro reuses persistent Nina identity and submits with one base image only');await x.context.close();
 
  x=await workspace();await x.page.click('#tool-image');await x.page.selectOption('#image-engine','soulpro');await x.page.selectOption('#soul-pro-model','kontextmax');await ready(x.page);
  assert.match(await x.page.locator('#generation-help').innerText(),/\$0\.08/);assert.match(await x.page.locator('#soul-pro-note').innerText(),/more generative/i);ok('PV Soul Pro exposes Kontext Max only as an explicit alternate engine');await x.context.close();
