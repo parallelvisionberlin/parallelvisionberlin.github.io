@@ -664,18 +664,31 @@ async function renderSoulProPack(pack){
 $('soul-pro-identity-manage').onclick=()=>{if(busy)return;clearSoulProPackPreview();$('soul-pro-pack-select').value='';$('soul-pro-identity-dialog-status').textContent='';$('soul-pro-identity-files').value='';$('soul-pro-identity-dialog').showModal();};
 $('soul-pro-pack-select').onchange=()=>action(async()=>{const pack=packs.find(p=>p.id===$('soul-pro-pack-select').value);await renderSoulProPack(pack);});
 $('soul-pro-save-identity').onclick=()=>action(async()=>{
-  const files=[...$('soul-pro-identity-files').files];if(files.length<1||files.length>4)throw new Error('Choose 1 to 4 Nina identity images.');
-  $('soul-pro-identity-dialog-status').textContent='Saving private Nina identity…';
-  const ids=[];for(const file of files){await inspectImage(file).then(item=>{release(item.url);release(item.thumbUrl);});ids.push(await uploadAsset(file));}
-  soulProIdentity=await api('/api/soul-pro/identity',{method:'POST',body:{referenceSourceIds:ids}});
-  clearSoulProPackPreview();$('soul-pro-identity-dialog').close();await loadPacks();update();notify('Nina identity saved privately. Soul Pro now needs only one base image.');
-});
-$('soul-pro-use-pack').onclick=()=>action(async()=>{
-  const pack=packs.find(p=>p.id===$('soul-pro-pack-select').value);if(!pack)throw new Error('Choose a saved reference pack.');
-  const ids=[...soulProPackSelection];if(ids.length<1||ids.length>4)throw new Error('Select 1 to 4 images from this pack.');
-  $('soul-pro-identity-dialog-status').textContent='Saving '+ids.length+' selected Nina image'+(ids.length===1?'':'s')+'…';
-  soulProIdentity=await api('/api/soul-pro/identity',{method:'POST',body:{referenceSourceIds:ids}});
-  clearSoulProPackPreview();$('soul-pro-identity-dialog').close();update();notify('Nina identity saved from '+ids.length+' selected image'+(ids.length===1?'':'s')+' in '+pack.name+'.');
+  const status=$('soul-pro-identity-dialog-status'),files=[...$('soul-pro-identity-files').files],pack=packs.find(p=>p.id===$('soul-pro-pack-select').value);
+  if(files.length&&soulProPackSelection.length){status.textContent='Use one source: uploaded images OR selected pack images.';return;}
+  let ids=[],sourceLabel='';
+  try{
+    if(files.length){
+      if(files.length>4){status.textContent='Choose at most 4 Nina identity images.';return;}
+      status.textContent='Uploading '+files.length+' Nina image'+(files.length===1?'':'s')+'…';
+      for(const file of files){await inspectImage(file).then(item=>{release(item.url);release(item.thumbUrl);});ids.push(await uploadAsset(file));}
+      sourceLabel=files.length+' uploaded image'+(files.length===1?'':'s');
+    }else if(pack){
+      ids=[...soulProPackSelection];
+      if(ids.length<1||ids.length>4){status.textContent='Select 1 to 4 images from this pack.';return;}
+      sourceLabel=ids.length+' selected image'+(ids.length===1?'':'s')+' from '+pack.name;
+    }else{
+      status.textContent='Upload 1–4 Nina images or choose images from a saved pack.';
+      return;
+    }
+    status.textContent='Saving Nina identity…';
+    soulProIdentity=await api('/api/soul-pro/identity',{method:'POST',body:{referenceSourceIds:ids}});
+    clearSoulProPackPreview();$('soul-pro-identity-dialog').close();await loadPacks();update();
+    notify('Nina identity saved from '+sourceLabel+'. Soul Pro now needs only one base image.');
+  }catch(error){
+    status.textContent=error.name==='AbortError'?'Identity save was interrupted. Try again.':error.message;
+    throw error;
+  }
 });
 $('soul-pro-identity-dialog').addEventListener('close',clearSoulProPackPreview);
 $('soul-pro-clear-identity').onclick=()=>action(async()=>{
