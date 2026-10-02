@@ -28,7 +28,7 @@ globalThis.fetch=async (url,options={})=>{const u=new URL(url);calls.push({url:S
   const soulPro=u.pathname.includes('/ideogram/v4.5/edit')||u.pathname.includes('/flux-pro/kontext/max/multi');
   const h3maxVideo=u.pathname.includes('/minimax/h3-max/reference-to-video');
   if(h3maxVideo){
-    if(options.method==='POST'){falSubmitCount++;const input=JSON.parse(options.body);assert.equal(input.enable_safety_checker,false);assert.ok(Array.isArray(input.reference_image_urls));return Response.json({request_id:'fal_h3max_video_1234567890'});}
+    if(options.method==='POST'){falSubmitCount++;const input=JSON.parse(options.body);assert.equal(input.enable_safety_checker,true);assert.ok(Array.isArray(input.reference_image_urls));return Response.json({request_id:'fal_h3max_video_1234567890'});}
     if(u.pathname.endsWith('/status'))return falVideoReject?Response.json({detail:'Provider rejected the request.'},{status:422}):Response.json({status:'IN_QUEUE'});
   }
   if(options.method==='POST'){
