@@ -135,7 +135,7 @@ async function api(path,options={}) {
   const generation=epoch;
   if(!owner&&path!=='/api/session')throw new Error('Sign in first.');
   const assertCurrent=()=>{if(generation!==epoch)throw new Error('Session changed.');};
-  const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),path==='/api/gemini/jobs'?240000:path==='/api/soul/datasets'?120000:65000);requestControllers.add(controller);
+  const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),path==='/api/gemini/jobs'?240000:path==='/api/fal/soul-pro'||path==='/api/jobs'&&options.method==='POST'?150000:path==='/api/soul/datasets'?120000:65000);requestControllers.add(controller);
   try{
     const headers={...options.headers};let b=options.body;
     if(b!==undefined&&!(b instanceof Blob)&&!(b instanceof ArrayBuffer)){headers['Content-Type']='application/json';b=JSON.stringify(b);}
@@ -830,7 +830,7 @@ $('soul-pro-save-identity').onclick=()=>action(async()=>{
     status.textContent='Saving Nina identity…';
     soulProIdentity=await api('/api/soul-pro/identity',{method:'POST',body:{referenceSourceIds:ids}});
     clearSoulProPackPreview();$('soul-pro-identity-dialog').close();await loadPacks();update();
-    notify('Nina identity saved from '+sourceLabel+'. Soul Pro now needs only one base image.');
+    notify('Nina identity saved from '+sourceLabel+'. '+(activeJobs.some(j=>j.status==='uncertain'&&jobProvider(j)==='fal')?'The previous FAL request still needs review in History before another generation.':'Add one base image, then Generate identity edit.'));
   }catch(error){
     status.textContent=error.name==='AbortError'?'Identity save was interrupted. Try again.':error.message;
     throw error;
@@ -923,12 +923,17 @@ function renderCards(jobs,{upsert=false}={}){
       if(data.job&&hasResult(data.job))await openVideo(data.job,{scroll:false});
       notify(data.job&&hasResult(data.job)?'Recovered the existing fal.ai output into private History.':'No recoverable fal.ai output was found.',!(data.job&&hasResult(data.job)));
     }));
-    const canReconcile=j.status==='uncertain'&&j.settings.provider==='fal'&&j.settings.engine==='soulpro'&&j.settings.inputTransport==='inline-data-uri'&&!j.providerTaskId;
+    const canReconcile=j.status==='uncertain'&&j.settings.provider==='fal'&&!j.providerTaskId&&(j.settings.engine==='soulpro'&&['inline-data-uri','fal-cdn'].includes(j.settings.inputTransport)||j.settings.mode==='upscale');
     if(canReconcile)actions.append(button('Check FAL status',async()=>{
       notify('Checking FAL for the original request. No generation will be submitted.');
       await api('/api/jobs/'+j.id+'/reconcile',{method:'POST',body:{}});
       await syncHistory();
       notify('FAL status checked. History refreshed. No generation submitted.');
+    }));
+    if(j.status==='uncertain')actions.append(button('Mark reviewed',async()=>{
+      if(!confirm('Have you checked this '+(jobProvider(j)==='fal'?'FAL':jobProvider(j)==='gemini'?'Google':'SpicyAPI')+' request in the provider dashboard? This closes only this interruption. The reserved estimate stays in spending history. It does not generate, retry, cancel or refund anything.'))return;
+      await api('/api/jobs/'+j.id+'/resolve',{method:'POST',body:{confirm:true}});
+      await syncHistory();notify('This interruption was marked reviewed. Nothing was generated or resubmitted.');
     }));
     if(!activeStates.has(j.status))actions.append(button('Delete',async()=>{
       if(!confirm('Delete this saved record and its unshared files? This cannot be undone.'))return;

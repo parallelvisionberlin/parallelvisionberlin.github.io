@@ -8,9 +8,10 @@ import {falVideoParameters,falVideoEstimateMicros,buildFalVideoInput} from './fa
 import {falUpscaleParameters,storedImageDimensions,setFalUpscaleDimensions,falUpscaleEstimateMicros,buildFalUpscaleInput} from './fal-upscale.mjs';
 import {SOUL_PRO_MODELS,soulProParameters,soulProEstimateMicros,buildSoulProInput} from './soul-pro.mjs';
 import {findFalRequest} from './fal-recovery.mjs';
+import {falUploadImage} from './fal-storage.mjs';
 import {REFERENCE_ROLES,normalizeReferenceLabel,supportsReferenceGuidance,compileImagePrompt,canUseReferenceGuidance,referenceGuidanceError} from '../lab/reference-guidance.js';
 import {SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-02.9-upscale-isolation';
+export const VERSION = 'pv-lab-2026-10-02.10-fal-file-transport';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -582,10 +583,14 @@ function standardBase64(bytes){
   for(let i=0;i<a.length;i+=0x8000)out+=String.fromCharCode(...a.subarray(i,Math.min(i+0x8000,a.length)));
   return btoa(out);
 }
-async function falImageDataUri(env,a){
+async function falImageBytes(env,a){
   if(!['image/jpeg','image/png','image/webp'].includes(a.mime))fail(400,'FAL image inputs must be JPG, PNG or WebP.');
   const obj=await env.LAB_MEDIA.get(a.object_key);if(!obj)fail(404,'A FAL input image is missing from private storage.');
   const bytes=new Uint8Array(await new Response(obj.body).arrayBuffer());if(bytes.length!==a.bytes||!sniff(bytes,a.mime))fail(409,'A stored FAL input image failed verification.');
+  return bytes;
+}
+async function falImageDataUri(env,a){
+  const bytes=await falImageBytes(env,a);
   return {url:'data:'+a.mime+';base64,'+standardBase64(bytes),bytes:bytes.length};
 }
 async function readFalUpscaleSource(env,owner,id){
@@ -832,13 +837,19 @@ async function reserveFalImageJob(env,owner,sourceId,p,estimate){
   return first(env,'SELECT * FROM jobs WHERE id=? AND owner_id=?',id,owner);
 }
 async function submitReservedFalJob(env,j,p,input){
-  let providerAccepted=false,requestId=null;
+  let providerAccepted=false,requestId=null,submissionStarted=false;
   try{
+    if(typeof input==='function')input=await input();
+    // Persist the exact submitted input so a lost acknowledgement can be matched
+    // to provider history even after the identity pack or source changes.
+    await run(env,'UPDATE quotes SET payload=? WHERE id=?',JSON.stringify({model:p.model,input}),j.quote_id);
+    submissionStarted=true;
     requestId=await falSubmit(p.model,env.FAL_KEY,input);providerAccepted=true;
     await run(env,"UPDATE jobs SET provider_id=?,state='queued',updated_at=? WHERE id=?",requestId,now(),j.id);
   }catch(e){
-    const uncertain=providerAccepted||e?.definite!==true,state=uncertain?'uncertain':'failed';
-    const msg=uncertain?'fal.ai submission status is uncertain. Check the fal dashboard before retrying to avoid a duplicate charge.':String(e?.message||'fal.ai rejected the request.').slice(0,500);
+    const uncertain=providerAccepted||submissionStarted&&e?.definite!==true,state=uncertain?'uncertain':'failed';
+    const detail=String(e?.message||'fal.ai request failed.').replace(/[\r\n]+/g,' ').slice(0,500);
+    const msg=uncertain?detail+' Check FAL status in History before retrying; no generation will be resubmitted automatically.':detail;
     if(uncertain)await run(env,'UPDATE jobs SET state=?,provider_id=COALESCE(provider_id,?),error=?,updated_at=? WHERE id=?',state,requestId,msg,now(),j.id);
     else await env.LAB_DB.batch([
       stmt(env,'UPDATE jobs SET state=?,error=?,updated_at=? WHERE id=?',state,msg,now(),j.id),
@@ -854,7 +865,7 @@ async function submitFalUpscaleQuote(env,owner,q,p,payload){
   const verified=await readFalUpscaleSource(env,owner,q.source_id);
   if(verified.sha256!==payload.source.sha256||verified.asset.mime!==payload.source.mime||verified.bytes.length!==payload.source.bytes)fail(409,'The source changed since its estimate. Review the price again. Nothing was submitted.');
   if(q.expires_at<=now())fail(409,'Quote expired. Review the cost again.');
-  const input={...payload.input,image_url:'data:'+verified.asset.mime+';base64,'+standardBase64(verified.bytes)};
+  const input={...payload.input};
   const c=await config(env,owner),limit=c?.daily_limit_microusd||10000000,id=crypto.randomUUID(),t=now(),day=Math.floor(t/86400000)*86400000;
   const falSql="(COALESCE(json_extract(params,'$.provider'),'')='fal' OR COALESCE(json_extract(params,'$.engine'),'') IN ('fal','soulpro','h3maxfal','omni') OR COALESCE(json_extract(params,'$.model'),'') LIKE 'fal-ai/%' OR COALESCE(json_extract(params,'$.model'),'') LIKE 'topaz/%')";
   // A distinct upscale cannot retry an interrupted identity edit. Keep unknown
@@ -875,16 +886,19 @@ async function submitFalUpscaleQuote(env,owner,q,p,payload){
       fail(409,'No upscale submitted because capacity changed. Refresh History and try again.');
     }
   }catch(e){const old=await first(env,'SELECT * FROM jobs WHERE quote_id=? AND owner_id=?',q.id,owner);if(old)return old;throw e;}
-  let providerAccepted=false,requestId=null;
+  let providerAccepted=false,requestId=null,submissionStarted=false;
   try{
+    input.image_url=await falUploadImage(env.FAL_KEY,verified.bytes,verified.asset.mime);
+    await run(env,'UPDATE quotes SET payload=? WHERE id=?',JSON.stringify({...payload,submittedInput:input}),q.id);
+    submissionStarted=true;
     requestId=await falSubmit(p.model,env.FAL_KEY,input);providerAccepted=true;
     await run(env,"UPDATE jobs SET provider_id=?,state='queued',updated_at=? WHERE id=?",requestId,now(),id);
   }catch(e){
-    if(e.definite===true&&!providerAccepted)await env.LAB_DB.batch([
+    if((!submissionStarted||e.definite===true)&&!providerAccepted)await env.LAB_DB.batch([
       stmt(env,"UPDATE jobs SET state='failed',error=?,updated_at=? WHERE id=?",String(e.message||'fal.ai rejected this upscale.').slice(0,600),now(),id),
       stmt(env,'DELETE FROM spend WHERE job_id=?',id)
     ]);
-    else await run(env,"UPDATE jobs SET state='uncertain',provider_id=COALESCE(provider_id,?),error=?,updated_at=? WHERE id=?",requestId,'fal.ai upscale submission is uncertain. Check History and the provider before retrying; nothing will be resubmitted automatically.',now(),id);
+    else await run(env,"UPDATE jobs SET state='uncertain',provider_id=COALESCE(provider_id,?),error=?,updated_at=? WHERE id=?",requestId,String(e?.message||'fal.ai upscale acknowledgement was lost.').slice(0,500)+' Check History and the provider before retrying; nothing will be resubmitted automatically.',now(),id);
   }
   return first(env,'SELECT * FROM jobs WHERE id=?',id);
 }
@@ -1081,15 +1095,16 @@ async function route(request,env,ctx) {
     const refs=await sources(env,owner,identityIds,4);
     if(refs.some(a=>!a.mime?.startsWith('image/')))fail(400,'PV Soul Pro identity references must be images.');
     p.referenceSourceIds=refs.map(a=>a.id);p.referenceRoles=refs.map(a=>({name:a.filename,role:'identity',note:''}));
-    // FAL documents that caller-hosted URLs may be blocked, rate-limited, or treated as bot traffic.
-    // Soul Pro therefore sends its private source and identity images inline as data URIs so both
-    // partner models receive the exact bytes without depending on workers.dev URL fetching.
-    const preparedBase=await falImageDataUri(env,base),preparedRefs=[];
-    let inlineBytes=preparedBase.bytes;
-    for(const ref of refs){const prepared=await falImageDataUri(env,ref);inlineBytes+=prepared.bytes;if(inlineBytes>14*1024*1024)fail(413,'PV Soul Pro inputs exceed the 14 MiB inline-input limit. Use smaller identity images.');preparedRefs.push(prepared.url);}
-    p.inputTransport='inline-data-uri';
-    const input=buildSoulProInput(p,{sourceUrl:preparedBase.url,identityUrls:preparedRefs});
-    const estimate=soulProEstimateMicros(p),reserved=await reserveFalImageJob(env,owner,base.id,p,estimate),job=await submitReservedFalJob(env,reserved,p,input);
+    if([base,...refs].reduce((n,a)=>n+a.bytes,0)>14*1024*1024)fail(413,'PV Soul Pro inputs exceed the 14 MiB total-input limit. Use smaller identity images.');
+    p.inputTransport='fal-cdn';
+    const estimate=soulProEstimateMicros(p),reserved=await reserveFalImageJob(env,owner,base.id,p,estimate);
+    const job=await submitReservedFalJob(env,reserved,p,async()=>{
+      const assets=[base,...(p.soulProModel==='kontextmax'?refs.slice(0,3):refs)];
+      const uploaded=await Promise.allSettled(assets.map(async a=>falUploadImage(env.FAL_KEY,await falImageBytes(env,a),a.mime)));
+      const failed=uploaded.find(r=>r.status==='rejected');if(failed)throw failed.reason;
+      const urls=uploaded.map(r=>r.value);
+      return buildSoulProInput(p,{sourceUrl:urls[0],identityUrls:urls.slice(1)});
+    });
     return json({job:jobView(job)},202);
   }
   if(path==='/api/fal/controlled-pose'&&method==='POST'){
@@ -1266,15 +1281,24 @@ async function route(request,env,ctx) {
     const id=uid(path.split('/')[3]);let j=await first(env,'SELECT * FROM jobs WHERE id=? AND owner_id=?',id,owner);if(!j)fail(404,'Job not found.');
     if(path.endsWith('/reconcile')&&method==='POST'){
       const p=JSON.parse(j.params||'{}');
-      if(j.state!=='uncertain'||j.provider_id||p.provider!=='fal'||p.engine!=='soulpro'||p.inputTransport!=='inline-data-uri'||!Object.hasOwn(SOUL_PRO_MODELS,p.soulProModel)||SOUL_PRO_MODELS[p.soulProModel].id!==p.model)fail(409,'Only interrupted inline Soul Pro requests without a provider task can be checked here.');
+      const soulPro=p.engine==='soulpro'&&['inline-data-uri','fal-cdn'].includes(p.inputTransport)&&Object.hasOwn(SOUL_PRO_MODELS,p.soulProModel)&&SOUL_PRO_MODELS[p.soulProModel].id===p.model;
+      const upscale=p.mode==='upscale'&&['topaz/upscale/image/precision','topaz/upscale/image/generative'].includes(p.model);
+      if(j.state!=='uncertain'||j.provider_id||p.provider!=='fal'||!soulPro&&!upscale)fail(409,'Only interrupted Soul Pro or Topaz requests without a provider task can be checked here.');
       if(!env.FAL_KEY)fail(503,'fal.ai is not configured on this Worker.');
-      if(!Array.isArray(p.referenceSourceIds)||p.referenceSourceIds.length<1||p.referenceSourceIds.length>4||new Set(p.referenceSourceIds).size!==p.referenceSourceIds.length)fail(409,'The original identity references are unavailable. The request remains interrupted.');
-      // Reconstruct the saved request only. Current form defaults and identity packs
-      // must not change the comparison against the originally submitted paid input.
-      const base=await source(env,owner,j.source_id),refs=await sources(env,owner,p.referenceSourceIds,4);
-      const preparedBase=await falImageDataUri(env,base),identityUrls=[];let inlineBytes=preparedBase.bytes;
-      for(const ref of refs){const prepared=await falImageDataUri(env,ref);inlineBytes+=prepared.bytes;if(inlineBytes>14*1024*1024)fail(413,'The original input is too large to verify safely. The request remains interrupted.');identityUrls.push(prepared.url);}
-      const input=buildSoulProInput(p,{sourceUrl:preparedBase.url,identityUrls});let match;
+      let input,match;
+      if(p.inputTransport==='fal-cdn'||upscale){
+        const q=await first(env,'SELECT payload FROM quotes WHERE id=? AND owner_id=?',j.quote_id,owner),saved=JSON.parse(q?.payload||'{}');
+        input=upscale?saved.submittedInput:saved.input;
+        if(saved.model!==p.model||!input||typeof input!=='object'||Array.isArray(input))fail(409,'The original FAL submission input is unavailable. The request remains interrupted.');
+      }else{
+        if(!Array.isArray(p.referenceSourceIds)||p.referenceSourceIds.length<1||p.referenceSourceIds.length>4||new Set(p.referenceSourceIds).size!==p.referenceSourceIds.length)fail(409,'The original identity references are unavailable. The request remains interrupted.');
+        // Keep reconciliation for historical inline requests. Never re-upload or
+        // rebuild a new request from the current identity pack during recovery.
+        const base=await source(env,owner,j.source_id),refs=await sources(env,owner,p.referenceSourceIds,4);
+        const preparedBase=await falImageDataUri(env,base),identityUrls=[];let inlineBytes=preparedBase.bytes;
+        for(const ref of refs){const prepared=await falImageDataUri(env,ref);inlineBytes+=prepared.bytes;if(inlineBytes>14*1024*1024)fail(413,'The original input is too large to verify safely. The request remains interrupted.');identityUrls.push(prepared.url);}
+        input=buildSoulProInput(p,{sourceUrl:preparedBase.url,identityUrls});
+      }
       try{match=await findFalRequest({key:env.FAL_KEY,endpoint:p.model,input,createdAt:j.created_at,updatedAt:j.updated_at,nowMs:now()});}
       catch(e){if(e?.code?.startsWith('history_'))fail(e.status,e.message);throw e;}
       // A paid provider request may be claimed by only one local job, including

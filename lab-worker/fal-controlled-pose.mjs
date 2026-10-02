@@ -118,11 +118,11 @@ export function buildRepairInput(p,{imageUrl,maskUrl,poseMapUrl=null,identityUrl
 }
 
 async function falJson(url,key,options={}){
-  let response;
+  let response;const timeout=options.timeout||20000,signal=AbortSignal.timeout(timeout);
   try{
-    response=await fetch(url,{...options,headers:{Authorization:'Key '+key,Accept:'application/json',...(options.body?{'Content-Type':'application/json'}:{}),...(options.headers||{})},signal:AbortSignal.timeout(options.timeout||20000)});
+    response=await fetch(url,{...options,headers:{Authorization:'Key '+key,Accept:'application/json',...(options.body?{'Content-Type':'application/json'}:{}),...(options.headers||{})},signal,redirect:'manual'});
   }catch{
-    const e=new Error('fal.ai could not be reached. Check History before retrying a paid submission.');
+    const e=new Error(signal.aborted?'fal.ai did not acknowledge the request within '+(timeout/1000)+' seconds.':'fal.ai connection failed before an acknowledgement was received.');
     e.uncertain=options.method==='POST';throw e;
   }
   const raw=await response.text();let data=null;try{data=raw?JSON.parse(raw):null;}catch{}
@@ -145,7 +145,7 @@ async function falJson(url,key,options={}){
 }
 export async function falSubmit(endpoint,key,input){
   try{
-    const data=await falJson('https://queue.fal.run/'+endpoint,key,{method:'POST',body:JSON.stringify(input)});
+    const data=await falJson('https://queue.fal.run/'+endpoint,key,{method:'POST',body:JSON.stringify(input),timeout:45000});
     if(typeof data.request_id!=='string'||!data.request_id)throw new Error('fal.ai did not return a request id. Check the original request before retrying.');
     return data.request_id;
   }catch(e){if(e.definite!==true)e.uncertain=true;throw e;}
