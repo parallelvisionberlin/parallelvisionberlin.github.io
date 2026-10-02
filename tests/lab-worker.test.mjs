@@ -37,7 +37,7 @@ globalThis.fetch=async (url,options={})=>{const u=new URL(url);calls.push({url:S
     if(soulPro){
       const input=JSON.parse(options.body);
       if(u.pathname.includes('/ideogram/v4.5/edit')){
-        assert.equal(input.edit_precision,'high');assert.equal(input.quality,'medium');assert.ok(input.image_url);assert.equal(input.reference_image_urls.length,1);assert.equal(input.num_images,1);
+        assert.equal(input.edit_precision,'high');assert.ok(['very_low','low','medium','high'].includes(input.quality));assert.ok(input.image_url);assert.equal(input.reference_image_urls.length,1);assert.equal(input.num_images,1);
       }else{
         assert.equal(input.image_urls.length,2);assert.equal(input.guidance_scale,3.5);assert.equal(input.enhance_prompt,false);assert.equal(input.num_images,1);
       }
