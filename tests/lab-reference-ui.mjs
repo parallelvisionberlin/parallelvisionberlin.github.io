@@ -130,7 +130,7 @@ try{
   assert.match(preview,/Reference 1 \[Base image\]/);assert.match(preview,/Reference 2 \[Detail \/ Hands\]/);assert.match(preview,/Reference 3 \[Clothing \/ Pants\]/);
   assert.match(preview,/Use only the hands as a localized visual reference/);assert.match(preview,/Use only the pants/);
   assert.match(preview,/REQUESTED EDIT: Apply the assigned reference properties to the base image/);
-  assert.match(await x.page.locator('#reference-guidance-count').innerText(),/\/ 5,000 characters/);
+  assert.match(await x.page.locator('#reference-guidance-count').textContent(),/\/ 5,000 characters/);
   assert.ok(preview.indexOf('Reference 1 [Base image]')<preview.indexOf('Reference 2 [Detail / Hands]'));
   pass('Clothing exposes Pants and the collapsed SpicyAPI preview expands into the ordered automatic instructions');
   await x.page.getByLabel('Note for reference 2',{exact:true}).fill('Keep the existing hand position.');
