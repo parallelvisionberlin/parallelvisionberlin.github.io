@@ -6,6 +6,7 @@ import {
   controlledPoseEstimateMicros,controlledRepairEstimateMicros,
   buildControlledPoseInput,buildRepairInput
 } from '../lab-worker/fal-controlled-pose.mjs';
+import {falVideoParameters,buildFalVideoInput} from '../lab-worker/fal-video.mjs';
 
 const fail=(status,message)=>{const e=new Error(message);e.status=status;throw e;};
 
@@ -54,4 +55,19 @@ test('Repair Region supports mask inpainting and optional pose/identity reuse',(
   assert.equal(input.easycontrols[0].control_method_url,'pose');
   assert.equal(input.easycontrols[1].control_method_url,'subject');
   assert.equal(controlledRepairEstimateMicros(p),75000);
+});
+
+
+test('H3 Max Reference on fal disables the optional safety checker while preserving reference control',()=>{
+  const referenceLabels=value=>value||[];
+  const p=falVideoParameters({
+    type:'video',engine:'h3maxfal',mode:'reference',prompt:'Keep the referenced subject consistent.',
+    duration:10,resolution:'1080p',aspectRatio:'auto',
+    referencePixels:[1048576,1048576],referenceRoles:[{role:'identity'},{role:'room'}]
+  },{fail,referenceLabels});
+  const input=buildFalVideoInput(p,{imageUrls:['https://example.test/subject','https://example.test/room']});
+  assert.equal(input.enable_safety_checker,false);
+  assert.equal(input.prompt_expansion_mode,'disabled');
+  assert.deepEqual(input.reference_image_urls,['https://example.test/subject','https://example.test/room']);
+  assert.equal(input.resolution,'1080P');
 });
