@@ -10,7 +10,7 @@ import {SOUL_PRO_MODELS,soulProParameters,soulProEstimateMicros,buildSoulProInpu
 import {findFalRequest} from './fal-recovery.mjs';
 import {REFERENCE_ROLES,normalizeReferenceLabel,supportsReferenceGuidance,compileImagePrompt,canUseReferenceGuidance,referenceGuidanceError} from '../lab/reference-guidance.js';
 import {SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-02.7-topaz-upscale';
+export const VERSION = 'pv-lab-2026-10-02.8-provider-redirects';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -610,9 +610,15 @@ async function geminiFetch(env,path,{method='GET',body:payload,timeout=60000}={}
   if(!env.GEMINI_API_KEY)fail(503,'Gemini API key is not configured on this Worker.');
   let r;
   try{
-    r=await fetch(GEMINI_API+path,{method,headers:{'x-goog-api-key':env.GEMINI_API_KEY,'Accept':'application/json',...(payload?{'Content-Type':'application/json'}:{})},body:payload?JSON.stringify(payload):undefined,signal:AbortSignal.timeout(timeout),redirect:'error'});
+    // Workers supports manual/follow redirects, but rejects redirect:'error'
+    // before any network request. Never forward the provider key to a redirect.
+    r=await fetch(GEMINI_API+path,{method,headers:{'x-goog-api-key':env.GEMINI_API_KEY,'Accept':'application/json',...(payload?{'Content-Type':'application/json'}:{})},body:payload?JSON.stringify(payload):undefined,signal:AbortSignal.timeout(timeout),redirect:'manual'});
   }catch{
     const e=new HttpError(502,'Gemini request could not be confirmed. Check Google AI Studio usage before retrying to avoid a duplicate charge.');e.definite=false;throw e;
+  }
+  if(r.status>=300&&r.status<400){
+    await r.body?.cancel().catch(()=>{});
+    const e=new HttpError(502,'Gemini API returned an unexpected redirect. It was not followed. Check Google AI Studio usage before retrying to avoid a duplicate charge.');e.definite=false;throw e;
   }
   const raw=await r.text();let data=null;try{data=raw?JSON.parse(raw):{};}catch{}
   if(!r.ok||!data){

@@ -13,7 +13,7 @@ function history(...pages){
   const fetch=async(url,init)=>{
     const parsed=new URL(url);calls.push({url:parsed,init});
     assert.equal(parsed.origin,'https://api.fal.ai');assert.equal(parsed.pathname,'/v1/models/requests/by-endpoint');
-    assert.equal(init.method,'GET');assert.equal(init.body,undefined);assert.equal(init.headers.Authorization,'Key test-key-not-real');assert.equal(init.redirect,'error');
+    assert.equal(init.method,'GET');assert.equal(init.body,undefined);assert.equal(init.headers.Authorization,'Key test-key-not-real');assert.equal(init.redirect,'manual');
     assert.equal(parsed.searchParams.get('endpoint_id'),endpoint);assert.equal(parsed.searchParams.get('expand'),'payloads');
     assert.equal(parsed.searchParams.get('start'),new Date(created-120_000).toISOString());assert.equal(parsed.searchParams.get('end'),new Date(now).toISOString());
     const result=pages[calls.length-1];assert.ok(result,'unexpected extra history request');
@@ -60,6 +60,12 @@ test('Unavailable HTTP response never exposes provider errors, input or keys',as
     await rejectsWith(findFalRequest(options,h.fetch),status===401||status===403?'history_access':'history_http');
   }
   await rejectsWith(findFalRequest(options,async()=>{throw new Error(options.key);}),'history_unavailable');
+});
+test('Worker-compatible manual redirects are rejected without forwarding the API key or following any location',async()=>{
+  for(const location of ['https://api.fal.ai/another-route','https://untrusted.example/collect-key']){
+    const h=history(new Response(null,{status:307,headers:{Location:location}}));
+    await rejectsWith(findFalRequest(options,h.fetch),'history_redirect');assert.equal(h.calls.length,1);
+  }
 });
 test('Malformed or contradictory pagination fails closed',async()=>{
   for(const body of [{items:[],has_more:false},{items:[],has_more:true,next_cursor:null},{items:[],has_more:false,next_cursor:'next'},{items:{},has_more:false,next_cursor:null}]){
