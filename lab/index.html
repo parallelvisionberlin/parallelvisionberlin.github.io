@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="./history.css?v=20260927-2">
 <link rel="stylesheet" href="./seedance.css?v=20260927-standard1">
 <link rel="stylesheet" href="./soul.css?v=20260930-soul-v02">
-<script type="module" src="./lab.js?v=20261002-soul-identity1"></script>
+<script type="module" src="./lab.js?v=20261002-soul-pack-list1"></script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to workspace</a>
@@ -138,9 +138,9 @@
 <dialog id="soul-pro-identity-dialog" class="dialog">
 <form method="dialog" class="dialog-card" id="soul-pro-identity-form">
 <div class="dialog-head"><div><span class="eyebrow">PV SOUL PRO</span><h2>Nina identity</h2></div><button value="cancel" class="quiet" type="submit">Close</button></div>
-<p class="fine">Set this once. Future Soul Pro renders need only one base image. Use one strong Nina reference, or up to four angles if you want a broader identity profile.</p>
+<p class="fine">Set this once. Future Soul Pro renders need only one base image. Ideogram 4.5 accepts up to four reference images, so Soul Pro keeps one shared Nina profile of up to four images for predictable switching between both engines.</p>
 <label class="drop compact-drop"><span>Choose 1–4 Nina identity images</span><small>JPG / PNG / WebP</small><input id="soul-pro-identity-files" type="file" multiple accept="image/jpeg,image/png,image/webp"></label>
-<div class="pack-bar"><label><span class="label">Or use an existing reference pack</span><select id="soul-pro-pack-select"><option value="">Choose a saved pack</option></select></label><button id="soul-pro-use-pack" type="button" class="quiet">Use pack</button></div>
+<div class="pack-bar"><label><span class="label">Or use an existing reference pack</span><select id="soul-pro-pack-select"><option value="">Choose a saved pack</option></select></label><button id="soul-pro-use-pack" type="button" class="quiet">Use pack</button></div><p class="fine">All saved packs appear here. If a pack has more than four images, Soul Pro uses the first four in that pack's saved order.</p>
 <p id="soul-pro-identity-dialog-status" class="fine" role="status"></p>
 <button id="soul-pro-save-identity" type="button" class="primary full">Save Nina identity</button>
 <button id="soul-pro-clear-identity" type="button" class="secondary full">Clear saved identity</button>
