@@ -37,7 +37,7 @@ globalThis.fetch=async (url,options={})=>{const u=new URL(url);calls.push({url:S
     if(soulPro){
       const input=JSON.parse(options.body);
       if(u.pathname.includes('/ideogram/v4.5/edit')){
-        assert.equal(input.edit_precision,'high');assert.equal(input.quality,'high');assert.ok(input.image_url);assert.equal(input.reference_image_urls.length,1);assert.equal(input.num_images,1);
+        assert.equal(input.edit_precision,'high');assert.ok(['very_low','low','medium','high'].includes(input.quality));assert.ok(input.image_url);assert.equal(input.reference_image_urls.length,1);assert.equal(input.num_images,1);
       }else{
         assert.equal(input.image_urls.length,2);assert.equal(input.guidance_scale,3.5);assert.equal(input.enhance_prompt,false);assert.equal(input.num_images,1);
       }
@@ -207,14 +207,27 @@ test('PV Soul Pro saves Nina identity once and reuses it with one base image on 
   let identity=await req(env,'/api/soul-pro/identity',{method:'POST',data:{referenceSourceIds:[refId]}});assert.equal(identity.status,201,await identity.clone().text());assert.equal((await identity.json()).count,1);
   const saved=await(await req(env,'/api/soul-pro/identity')).json();assert.equal(saved.configured,true);assert.equal(saved.count,1);
   const packs=await(await req(env,'/api/packs')).json();assert.equal(packs.packs.length,0,'reserved Nina identity must stay out of normal packs');
-  const settings={type:'image',engine:'soulpro',mode:'identity-edit',soulProModel:'ideogram45',prompt:'',sourceWidth:512,sourceHeight:768,seed:42,referenceRoles:[]};
+  const settings={type:'image',engine:'soulpro',mode:'identity-edit',soulProModel:'ideogram45',soulProQuality:'medium',prompt:'',sourceWidth:512,sourceHeight:768,seed:42,referenceRoles:[]};
   const response=await req(env,'/api/fal/soul-pro',{method:'POST',data:{sourceId:id,referenceSourceIds:[],settings}});
   assert.equal(response.status,202,await response.clone().text());const job=(await response.json()).job;
-  assert.equal(job.settings.engine,'soulpro');assert.equal(job.settings.soulProModel,'ideogram45');assert.deepEqual(job.settings.referenceSourceIds,[refId]);assert.equal(job.estimatedUsd,.22);assert.equal(falSubmitCount,1);
+  assert.equal(job.settings.engine,'soulpro');assert.equal(job.settings.soulProModel,'ideogram45');assert.deepEqual(job.settings.referenceSourceIds,[refId]);assert.equal(job.settings.soulProQuality,'medium');assert.equal(job.estimatedUsd,.06);assert.equal(falSubmitCount,1);
   const submit=calls.findLast(c=>c.options.method==='POST'&&c.url.includes('/ideogram/v4.5/edit'));assert.ok(submit);
   const input=JSON.parse(submit.options.body);assert.ok(input.image_url);assert.equal(input.reference_image_urls.length,1);assert.notEqual(input.image_url,input.reference_image_urls[0]);
   assert.match(input.prompt,/keep the source crop/i);assert.match(input.prompt,/do not import pose, body shape, wardrobe, room, camera angle or lighting/i);
   falState='COMPLETED';const done=(await(await req(env,'/api/jobs/'+job.id)).json()).job;assert.equal(done.status,'completed');assert.ok(done.outputId);assert.equal((await req(env,'/api/assets/'+done.outputId)).headers.get('content-type'),'image/png');
+});
+
+test('PV Soul Pro Ideogram quality tiers keep Precise Edit but change the estimate',async()=>{
+  calls=[];falSubmitCount=0;falState='IN_QUEUE';const {env}=fixture(),id=await setup(env);
+  const refUpload=await req(env,'/api/uploads',{method:'POST',raw:new Uint8Array([137,80,78,71,13,10,26,10,3]),headers:{'Content-Type':'image/png','X-Filename':'identity.png'}});const refId=(await refUpload.json()).id;
+  await req(env,'/api/soul-pro/identity',{method:'POST',data:{referenceSourceIds:[refId]}});
+  for(const [quality,cost] of [['very_low',.008],['low',.03],['medium',.06],['high',.22]]){
+    falState='IN_QUEUE';
+    const settings={type:'image',engine:'soulpro',mode:'identity-edit',soulProModel:'ideogram45',soulProQuality:quality,prompt:'',sourceWidth:512,sourceHeight:768,seed:'',referenceRoles:[]};
+    const response=await req(env,'/api/fal/soul-pro',{method:'POST',data:{sourceId:id,referenceSourceIds:[],settings}});assert.equal(response.status,202,await response.clone().text());const job=(await response.json()).job;
+    assert.equal(job.estimatedUsd,cost);assert.equal(job.settings.soulProQuality,quality);
+    env.LAB_DB.db.prepare("UPDATE jobs SET state='failed' WHERE id=?").run(job.id);env.LAB_DB.db.prepare('DELETE FROM spend WHERE job_id=?').run(job.id);
+  }
 });
 
 test('PV Soul Pro offers Kontext Max as a separate cheaper identity-edit engine without LoRA controls',async()=>{

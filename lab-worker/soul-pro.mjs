@@ -4,8 +4,7 @@
 export const SOUL_PRO_MODELS=Object.freeze({
   ideogram45:Object.freeze({
     id:'ideogram/v4.5/edit',
-    label:'Ideogram 4.5 · Precise',
-    estimateMicros:220000
+    label:'Ideogram 4.5 · Precise'
   }),
   kontextmax:Object.freeze({
     id:'fal-ai/flux-pro/kontext/max/multi',
@@ -13,6 +12,7 @@ export const SOUL_PRO_MODELS=Object.freeze({
     estimateMicros:80000
   })
 });
+const IDEOGRAM_QUALITY_USD=Object.freeze({very_low:.008,low:.03,medium:.06,high:.22});
 
 const RATIOS=Object.freeze([
   ['21:9',21/9],['16:9',16/9],['4:3',4/3],['3:2',3/2],['1:1',1],['2:3',2/3],['3:4',3/4],['9:16',9/16],['9:21',9/21]
@@ -34,9 +34,10 @@ export function soulProParameters(value,{fail,referenceLabels}){
   const seed=value.seed==null||value.seed===''?null:Number(value.seed);
   if(seed!==null&&(!Number.isInteger(seed)||seed<0||seed>2147483647))fail(400,'PV Soul Pro seed must be a whole number from 0 to 2147483647.');
   const model=SOUL_PRO_MODELS[variant];
+  const ideogramQuality=variant==='ideogram45'&&Object.hasOwn(IDEOGRAM_QUALITY_USD,value.soulProQuality)?value.soulProQuality:'medium';
   return {
     type:'image',provider:'fal',engine:'soulpro',mode:'identity-edit',
-    model:model.id,soulProModel:variant,soulProLabel:model.label,
+    model:model.id,soulProModel:variant,soulProLabel:model.label,soulProQuality:ideogramQuality,
     prompt,sourceWidth:width,sourceHeight:height,seed,
     resolution:'source',aspectRatio:'source',outputFormat:'png',
     referenceRoles:referenceLabels(value.referenceRoles,4)
@@ -44,7 +45,8 @@ export function soulProParameters(value,{fail,referenceLabels}){
 }
 
 export function soulProEstimateMicros(p){
-  return SOUL_PRO_MODELS[p.soulProModel]?.estimateMicros||SOUL_PRO_MODELS.ideogram45.estimateMicros;
+  if(p.soulProModel==='ideogram45')return Math.ceil((IDEOGRAM_QUALITY_USD[p.soulProQuality]??IDEOGRAM_QUALITY_USD.medium)*1000000);
+  return SOUL_PRO_MODELS[p.soulProModel]?.estimateMicros||80000;
 }
 
 function identityPrompt(p,count){
@@ -80,7 +82,7 @@ export function buildSoulProInput(p,{sourceUrl,identityUrls}){
     image_url:sourceUrl,
     reference_image_urls:identityUrls,
     edit_precision:'high',
-    quality:'high',
+    quality:p.soulProQuality||'medium',
     image_size:'auto',
     num_images:1
   };

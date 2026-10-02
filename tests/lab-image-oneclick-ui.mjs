@@ -34,7 +34,7 @@ async function workspace({failure='',width=1440,initial=[],savedPacks=[],quoteDe
   if(path==='/api/drafts'){const job={id:id(sequence++),sourceId:data.sourceId,settings:{...data.settings,referenceSourceIds:data.referenceSourceIds||[]},status:'draft',createdAt:Date.now()};jobs.unshift(job);return send({job},201);}
   if(path==='/api/fal/pose-preview'&&method==='POST')return send({assetId:id(sequence++),billingNote:'synthetic preview'},201);
   if(path==='/api/fal/soul-pro'&&method==='POST'){
-    const job={id:id(sequence++),sourceId:data.sourceId,settings:{...data.settings,referenceSourceIds:data.referenceSourceIds||[]},status:'queued',createdAt:Date.now(),estimatedUsd:data.settings.soulProModel==='kontextmax'?0.08:0.22,providerTaskId:'fal-soulpro-synthetic'};
+    const ideogramCosts={very_low:.008,low:.03,medium:.06,high:.22};const job={id:id(sequence++),sourceId:data.sourceId,settings:{...data.settings,referenceSourceIds:data.referenceSourceIds||[]},status:'queued',createdAt:Date.now(),estimatedUsd:data.settings.soulProModel==='kontextmax'?0.08:(ideogramCosts[data.settings.soulProQuality]??.06),providerTaskId:'fal-soulpro-synthetic'};
     accepted++;jobs.unshift(job);return send({job},202);
   }
   if(path==='/api/fal/controlled-pose'&&method==='POST'){
@@ -99,8 +99,14 @@ try{
  ok('Interrupted Gemini request is labeled as old and does not look like an active Nano generation');await x.context.close();
  const manyPack={id:id(940),name:'Nina Master 8',refs:Array.from({length:8},(_,i)=>({id:id(960+i),name:'nina-'+(i+1)+'.png',role:'identity',note:''}))};
  x=await workspace({savedPacks:[manyPack]});await x.page.click('#tool-image');await x.page.selectOption('#image-engine','soulpro');await ready(x.page);await x.page.click('#soul-pro-identity-manage');
- const packText=await x.page.locator('#soul-pro-pack-select').innerText();assert.match(packText,/Nina Master 8/);assert.match(packText,/8 refs/);assert.match(packText,/first 4 used/);
- ok('Soul Pro identity setup shows existing packs even when they contain more than four images');await x.context.close();
+ const packText=await x.page.locator('#soul-pro-pack-select').innerText();assert.match(packText,/Nina Master 8/);assert.match(packText,/8 refs/);
+ await x.page.selectOption('#soul-pro-pack-select',manyPack.id);await ready(x.page);
+ const packItems=x.page.locator('.soul-pro-pack-item');assert.equal(await packItems.count(),8);assert.equal(await x.page.locator('.soul-pro-pack-item input:checked').count(),4);
+ await packItems.nth(0).locator('input').uncheck();await packItems.nth(4).locator('input').check();assert.equal(await x.page.locator('.soul-pro-pack-item input:checked').count(),4);
+ await x.page.click('#soul-pro-use-pack');await ready(x.page);
+ const identityPost=x.requests.findLast(r=>r.path==='/api/soul-pro/identity'&&r.method==='POST').data;
+ assert.deepEqual(identityPost.referenceSourceIds,[id(961),id(962),id(963),id(964)]);
+ ok('Soul Pro shows pack thumbnails and saves the exact four selected identity images');await x.context.close();
 
   x=await workspace();await x.page.click('#tool-image');await x.page.selectOption('#image-engine','soulpro');await ready(x.page);
  assert.equal(await x.page.locator('#reference-mode').isVisible(),false);assert.match(await x.page.locator('#soul-pro-identity-status').innerText(),/Saved Nina identity.*2 references/);
@@ -108,13 +114,13 @@ try{
  await x.page.locator('#image').setInputFiles({name:'base.png',mimeType:'image/png',buffer:png});await ready(x.page);
  assert.equal(await x.page.locator('#generate').isDisabled(),false);assert.equal(await x.page.locator('#generate').innerText(),'Generate identity edit');
  assert.equal(await x.page.locator('#soul-pro-settings').isVisible(),true);assert.equal(await x.page.locator('#resolution-control').isVisible(),false);assert.equal(await x.page.locator('#ratio-control').isVisible(),false);
- assert.match(await x.page.locator('#generation-help').innerText(),/one base image only/i);assert.match(await x.page.locator('#generation-help').innerText(),/\$0\.22/);
+ assert.match(await x.page.locator('#generation-help').innerText(),/one base image only/i);assert.match(await x.page.locator('#generation-help').innerText(),/\$0\.06/);
  await x.page.click('#generate');await ready(x.page);assert.equal(count(x,'/api/fal/soul-pro'),1);assert.equal(x.accepted(),1);
- const soulPro=x.requests.find(r=>r.path==='/api/fal/soul-pro').data;assert.ok(soulPro.sourceId);assert.deepEqual(soulPro.referenceSourceIds,[]);assert.equal(soulPro.settings.engine,'soulpro');assert.equal(soulPro.settings.soulProModel,'ideogram45');assert.equal(soulPro.settings.sourceWidth,320);assert.equal(soulPro.settings.sourceHeight,320);assert.equal(soulPro.settings.prompt,'');
+ const soulPro=x.requests.find(r=>r.path==='/api/fal/soul-pro').data;assert.ok(soulPro.sourceId);assert.deepEqual(soulPro.referenceSourceIds,[]);assert.equal(soulPro.settings.engine,'soulpro');assert.equal(soulPro.settings.soulProModel,'ideogram45');assert.equal(soulPro.settings.soulProQuality,'medium');assert.equal(soulPro.settings.sourceWidth,320);assert.equal(soulPro.settings.sourceHeight,320);assert.equal(soulPro.settings.prompt,'');
  ok('PV Soul Pro reuses persistent Nina identity and submits with one base image only');await x.context.close();
 
- x=await workspace();await x.page.click('#tool-image');await x.page.selectOption('#image-engine','soulpro');await x.page.selectOption('#soul-pro-model','kontextmax');await ready(x.page);
- assert.match(await x.page.locator('#generation-help').innerText(),/\$0\.08/);assert.match(await x.page.locator('#soul-pro-note').innerText(),/more generative/i);ok('PV Soul Pro exposes Kontext Max only as an explicit alternate engine');await x.context.close();
+ x=await workspace();await x.page.click('#tool-image');await x.page.selectOption('#image-engine','soulpro');await x.page.selectOption('#soul-pro-quality','high');await ready(x.page);assert.match(await x.page.locator('#generation-help').innerText(),/\$0\.22/);await x.page.selectOption('#soul-pro-model','kontextmax');await ready(x.page);
+ assert.match(await x.page.locator('#generation-help').innerText(),/\$0\.08/);assert.equal(await x.page.locator('#soul-pro-quality-row').isVisible(),false);ok('PV Soul Pro keeps $0.22 High optional and exposes Kontext Max at $0.08');await x.context.close();
 
   x=await workspace();await x.page.click('#tool-image');await x.page.selectOption('#image-engine','fal');await x.page.fill('#prompt','Editorial portrait in a warm room.');
  await x.page.locator('#reference-images').setInputFiles([
