@@ -164,7 +164,7 @@ function configureVideoControls(){
   $('mode-reference').hidden=!isVideo||!model.modes.includes('reference');
   $('mode-text').hidden=!isVideo||!model.modes.includes('text');
   for(const m of ['start','reference','text']){$('mode-'+m).classList.toggle('active',mode===m);$('mode-'+m).setAttribute('aria-selected',String(mode===m));}
-  $('start-mode').hidden=tool==='image'||isVideo&&mode!=='start';$('reference-mode').hidden=tool==='upscale'||isVideo&&mode!=='reference'||tool==='image'&&imageEngine==='soul';
+  $('start-mode').hidden=tool==='image'&&imageEngine!=='soulpro'||isVideo&&mode!=='start';$('reference-mode').hidden=tool==='upscale'||isVideo&&mode!=='reference'||tool==='image'&&['soul','soulpro'].includes(imageEngine);
   $('reference-media').hidden=!isVideo||!sd||mode!=='reference';
   $('start-frame-maker').hidden=!isVideo||mode!=='reference'||sd;
   if(isVideo){
