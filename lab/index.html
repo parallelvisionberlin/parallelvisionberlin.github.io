@@ -4,11 +4,11 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow,noarchive"><meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#111210"><title>Parallel Vision Lab</title>
-<link rel="icon" href="/favicon.png"><link rel="stylesheet" href="./lab.css?v=20261002-reference1">
+<link rel="icon" href="/favicon.png"><link rel="stylesheet" href="./lab.css?v=20261002-upscale-price1">
 <link rel="stylesheet" href="./history.css?v=20260927-2">
 <link rel="stylesheet" href="./seedance.css?v=20260927-standard1">
 <link rel="stylesheet" href="./soul.css?v=20260930-soul-v02">
-<script type="module" src="./lab.js?v=20261002-reference1"></script>
+<script type="module" src="./lab.js?v=20261002-upscale-price1"></script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to workspace</a>
@@ -32,7 +32,7 @@
 <button id="mode-start" class="mode-tab active" type="button" role="tab" aria-selected="true">Start frame</button>
 <button id="mode-reference" class="mode-tab" type="button" role="tab" aria-selected="false">Reference mode</button>
 </div>
-<p id="upscale-info" class="fine upscale-info" hidden>Enlarge an existing image without writing a prompt. 2K, 4K and 8K are approximately 4, 17 and 67 megapixels, with the source ratio kept. Bigger is not automatically more realistic. Choose a tier above your source size. Click Upscale to start one paid job at the live provider price. The cost appears in History; no price-review popup.</p>
+<div id="upscale-info" class="fine upscale-info" hidden><strong>Image Upscaler v1 · SpicyAPI</strong><p>Enlarge one finished image, keeping its framing and aspect ratio. Size tiers are approximately 4, 17 and 67 megapixels. Choose a tier above your source size. No prompt, creativity or face controls.</p><p><strong>Published price: $0.012 per image</strong>, the same for every size and file format. <a href="https://spicyapi.ai/models/image-upscaler-v1" target="_blank" rel="noopener noreferrer">Provider pricing</a> · checked 2 Oct 2026.</p></div>
 <div id="start-mode" class="mode-panel">
 <div class="frame-pair">
 <div class="upload-block">
@@ -127,6 +127,7 @@
 <details class="seed-settings"><summary>Seed</summary><label><span class="label">Optional seed</span><input id="seed" type="number" min="0" max="2147483647" placeholder="Random"></label></details>
 </div>
 <div class="generate-zone">
+<div id="upscale-price" class="upscale-price" hidden><button id="upscale-check-price" class="quiet" type="button" disabled>Check live price</button><span class="fine">Optional · no generation charge</span><p id="upscale-price-status" class="fine" role="status">Check the price for this image before upscaling, or use Upscale directly.</p></div>
 <button id="generate" class="primary generate-button full" disabled>Review price &amp; generate</button>
 <button id="save" class="secondary full save-button" disabled>Save to private history</button>
 <p id="generation-help" class="fine">Images and Upscale start on click at the live provider price. Video keeps price review. Inputs over 10 MiB need a working copy for the image provider; the Lab asks first and keeps the original. Saving history is free of generation charges.</p>
