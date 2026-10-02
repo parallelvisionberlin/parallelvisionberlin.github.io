@@ -562,7 +562,7 @@ function standardBase64(bytes){
 async function falImageDataUri(env,a){
   if(!['image/jpeg','image/png','image/webp'].includes(a.mime))fail(400,'FAL image inputs must be JPG, PNG or WebP.');
   const obj=await env.LAB_MEDIA.get(a.object_key);if(!obj)fail(404,'A FAL input image is missing from private storage.');
-  const bytes=new Uint8Array(await obj.arrayBuffer());if(bytes.length!==a.bytes||!sniff(bytes,a.mime))fail(409,'A stored FAL input image failed verification.');
+  const bytes=new Uint8Array(await new Response(obj.body).arrayBuffer());if(bytes.length!==a.bytes||!sniff(bytes,a.mime))fail(409,'A stored FAL input image failed verification.');
   return {url:'data:'+a.mime+';base64,'+standardBase64(bytes),bytes:bytes.length};
 }
 function geminiImagePart(response){
