@@ -7,7 +7,7 @@ import {FAL_CONTROLLED_POSE,FAL_CONTROLLED_INPAINT,FAL_DWPOSE,controlledPosePara
 import {falVideoParameters,falVideoEstimateMicros,buildFalVideoInput} from './fal-video.mjs';
 import {soulProParameters,soulProEstimateMicros,buildSoulProInput} from './soul-pro.mjs';
 import {SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-02.1-soul-pro';
+export const VERSION = 'pv-lab-2026-10-02.2-h3max-fal';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -659,13 +659,25 @@ async function refreshFalJob(env,j,p){
     if(['FAILED','CANCELLED','CANCELED'].includes(state)){
       const rawDetail=status?.error??status?.detail??'fal.ai ended the request without an image.';
       const detail=typeof rawDetail==='string'?rawDetail:(Array.isArray(rawDetail)?rawDetail.map(item=>typeof item==='string'?item:item&&typeof item==='object'?[Array.isArray(item.loc)?item.loc.join('.'):'',item.msg||item.message||'',item.type||''].filter(Boolean).join(': '):String(item)).filter(Boolean).join(' | '):JSON.stringify(rawDetail));
-      await run(env,"UPDATE jobs SET state='failed',error=?,updated_at=? WHERE id=?",String(detail).replace(/[\r\n]+/g,' ').slice(0,600),now(),j.id);return;
+      const message=String(detail).replace(/[\r\n]+/g,' ').slice(0,600);
+      await env.LAB_DB.batch([
+        stmt(env,"UPDATE jobs SET state='failed',error=?,updated_at=? WHERE id=?",message,now(),j.id),
+        stmt(env,'DELETE FROM spend WHERE job_id=?',j.id)
+      ]);return;
     }
     await run(env,"UPDATE jobs SET state=?,error='',updated_at=? WHERE id=?",state==='IN_PROGRESS'?'running':'queued',now(),j.id);
   }catch(e){
-    const detail=String(e?.message||'fal.ai polling error').replace(/[\r\n]+/g,' ').slice(0,400);
-    if(resultPhase&&e.status===422){await run(env,"UPDATE jobs SET state='failed',error=?,updated_at=? WHERE id=?",detail,now(),j.id);return;}
-    await run(env,'UPDATE jobs SET error=?,updated_at=? WHERE id=?','fal.ai: '+detail,now(),j.id);
+    const raw=String(e?.message||'fal.ai polling error').replace(/[\r\n]+/g,' ').slice(0,400);
+    const detail=raw.startsWith('fal.ai:')?raw:'fal.ai: '+raw;
+    const definite=e?.definite===true||(Number.isInteger(e?.status)&&e.status>=400&&e.status<500&&e.status!==408&&e.status!==429);
+    if(definite||resultPhase&&e.status===422){
+      await env.LAB_DB.batch([
+        stmt(env,"UPDATE jobs SET state='failed',error=?,updated_at=? WHERE id=?",detail,now(),j.id),
+        stmt(env,'DELETE FROM spend WHERE job_id=?',j.id)
+      ]);
+      return;
+    }
+    await run(env,'UPDATE jobs SET error=?,updated_at=? WHERE id=?',detail,now(),j.id);
   }
 }
 
@@ -731,7 +743,11 @@ async function submitReservedFalJob(env,j,p,input){
   }catch(e){
     const uncertain=e?.uncertain===true||e?.definite===false,state=uncertain?'uncertain':'failed';
     const msg=uncertain?'fal.ai submission status is uncertain. Check the fal dashboard before retrying to avoid a duplicate charge.':String(e?.message||'fal.ai rejected the request.').slice(0,500);
-    await run(env,'UPDATE jobs SET state=?,error=?,updated_at=? WHERE id=?',state,msg,now(),j.id);
+    if(uncertain)await run(env,'UPDATE jobs SET state=?,error=?,updated_at=? WHERE id=?',state,msg,now(),j.id);
+    else await env.LAB_DB.batch([
+      stmt(env,'UPDATE jobs SET state=?,error=?,updated_at=? WHERE id=?',state,msg,now(),j.id),
+      stmt(env,'DELETE FROM spend WHERE job_id=?',j.id)
+    ]);
   }
   return first(env,'SELECT * FROM jobs WHERE id=?',j.id);
 }
@@ -748,6 +764,7 @@ async function route(request,env,ctx) {
   if(!url.pathname.startsWith('/api/'))fail(404,'Not found.');
   const owner=await authenticate(request,env),path=url.pathname,method=request.method;
   if(path==='/api/session'&&method==='GET'){
+    await run(env,"DELETE FROM spend WHERE owner_id=? AND job_id IN (SELECT id FROM jobs WHERE owner_id=? AND state='failed' AND COALESCE(json_extract(params,'$.provider'),'')='fal')",owner,owner);
     const c=await config(env,owner),spent=await first(env,'SELECT COALESCE(SUM(estimate_microusd),0) AS n FROM spend WHERE owner_id=? AND created_at>=?',owner,Math.floor(now()/86400000)*86400000);
     return json({owner:true,ownerId:owner,version:VERSION,config:{...publicConfig(c,!!env.FAL_KEY),geminiEnabled:!!env.GEMINI_API_KEY,soulTrainingEnabled:!!env.FAL_KEY,soulReinterpretEnabled:true,soulPresets:publicSoulPresets(),falEnabled:!!env.FAL_KEY},estimatedSpentToday:spent.n/1000000});
   }
@@ -1000,7 +1017,11 @@ async function route(request,env,ctx) {
       }catch(e){
         const uncertain=e?.uncertain===true||e?.definite===false,state=uncertain?'uncertain':'failed';
         const msg=uncertain?'fal.ai submission status is uncertain. Check the fal dashboard before retrying to avoid a duplicate charge.':String(e?.message||'fal.ai rejected the video request.').slice(0,500);
-        await run(env,'UPDATE jobs SET state=?,error=?,updated_at=? WHERE id=?',state,msg,now(),id);
+        if(uncertain)await run(env,'UPDATE jobs SET state=?,error=?,updated_at=? WHERE id=?',state,msg,now(),id);
+        else await env.LAB_DB.batch([
+          stmt(env,'UPDATE jobs SET state=?,error=?,updated_at=? WHERE id=?',state,msg,now(),id),
+          stmt(env,'DELETE FROM spend WHERE job_id=?',id)
+        ]);
       }
       return json({job:jobView(await first(env,'SELECT * FROM jobs WHERE id=?',id))},202);
     }

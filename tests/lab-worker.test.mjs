@@ -21,11 +21,16 @@ class DB {
 }
 function fixture(){const db=new DB(readFileSync(new URL('../lab-worker/schema.sql',import.meta.url),'utf8')),owner=new DB("CREATE TABLE users(id TEXT,auth_provider TEXT,auth_subject TEXT,role TEXT); INSERT INTO users VALUES('owner-internal','clerk','user_Owner','owner'),('guest','clerk','user_Guest','user');");const objects=new Map();const env={LAB_DB:db,OWNER_DB:owner,LAB_SECRET:'synthetic-test-secret-do-not-use-in-production-01234567890',FAL_KEY:'fal-synthetic-test-key',LAB_MEDIA:{async put(k,value){objects.set(k,new Uint8Array(await new Response(value).arrayBuffer()));},async get(k){if(!objects.has(k))return null;const v=objects.get(k);return{body:new Response(v).body,size:v.length};},async head(k){return objects.has(k)?{size:objects.get(k).length}:null;},async delete(k){objects.delete(k);}}};return{env,objects};}
 let calls=[],quotedRequest=null,createCount=0,providerState='queued',createMode='ok',maxPrice='2.700000';
-let uploadedReference=null,falState='IN_QUEUE',falSubmitCount=0,falResult422=false,falSubmitMode='ok';
+let uploadedReference=null,falState='IN_QUEUE',falSubmitCount=0,falResult422=false,falSubmitMode='ok',falVideoReject=false;
 globalThis.fetch=async (url,options={})=>{const u=new URL(url);calls.push({url:String(url),options});if(u.pathname==='/.well-known/jwks.json')return Response.json({keys:[jwk]});
  if(u.hostname==='queue.fal.run'){
   assert.equal(new Headers(options.headers).get('authorization'),'Key fal-synthetic-test-key');
   const soulPro=u.pathname.includes('/ideogram/v4.5/edit')||u.pathname.includes('/flux-pro/kontext/max/multi');
+  const h3maxVideo=u.pathname.includes('/minimax/h3-max/reference-to-video');
+  if(h3maxVideo){
+    if(options.method==='POST'){falSubmitCount++;const input=JSON.parse(options.body);assert.equal(input.enable_safety_checker,true);assert.ok(Array.isArray(input.reference_image_urls));return Response.json({request_id:'fal_h3max_video_1234567890'});}
+    if(u.pathname.endsWith('/status'))return falVideoReject?Response.json({detail:'Provider rejected the request.'},{status:422}):Response.json({status:'IN_QUEUE'});
+  }
   if(options.method==='POST'){
     falSubmitCount++;if(falSubmitMode==='timeout')throw new Error('Synthetic timeout');
     if(u.pathname.includes('flux-general'))return Response.json({request_id:'fal_repair_synthetic_1234567890'});
@@ -178,6 +183,22 @@ test('Reference editing preserves source order, roles, notes and original prompt
   const settings={...imageSettings,referenceRoles:labels};const q=await(await req(env,'/api/quotes',{method:'POST',data:{settings,referenceSourceIds:[id]}})).json();assert.equal(quotedRequest.model,'bytedance/seedream-5.0-pro/edit');assert.equal(quotedRequest.input.image_urls.length,1);assert.match(quotedRequest.input.prompt,/Reference 1.*room.*Use the architecture only/);assert.equal(q.settings.prompt,imageSettings.prompt);
   const draft=(await(await req(env,'/api/drafts',{method:'POST',data:{settings,referenceSourceIds:[id]}})).json()).job;assert.equal(draft.settings.referenceRoles[0].note,labels[0].note);assert.equal((await req(env,'/api/jobs/'+draft.id,{method:'DELETE'})).status,200);assert.equal((await req(env,'/api/assets/'+id)).status,200);assert.equal((await req(env,'/api/packs',{authToken:guest})).status,403);assert.equal((await req(env,'/api/packs/'+pack.id,{method:'DELETE'})).status,200);
   const oversized={...imageSettings,prompt:'x'.repeat(5000),referenceRoles:labels};assert.equal((await req(env,'/api/quotes',{method:'POST',data:{settings:oversized,referenceSourceIds:[id]}})).status,400);
+});
+
+test('Definite H3 Max FAL rejection becomes failed and releases its Lab budget reservation',async()=>{
+  calls=[];falSubmitCount=0;falVideoReject=false;const {env}=fixture(),id=await setup(env);
+  const settings={type:'video',engine:'h3maxfal',mode:'reference',prompt:'Keep the referenced subject consistent.',duration:10,resolution:'1080p',aspectRatio:'16:9',referenceRoles:[{name:'subject.png',role:'identity',note:''}],referencePixels:[1048576]};
+  const qr=await req(env,'/api/quotes',{method:'POST',data:{settings,referenceSourceIds:[id]}});assert.equal(qr.status,200,await qr.clone().text());const q=await qr.json();
+  assert.equal(q.settings.engine,'h3maxfal');
+  const jr=await req(env,'/api/jobs',{method:'POST',data:{quoteId:q.id,confirm:true}});assert.equal(jr.status,202,await jr.clone().text());const job=(await jr.json()).job;
+  assert.equal(job.status,'queued');assert.equal(falSubmitCount,1);
+  assert.equal(env.LAB_DB.db.prepare('SELECT COUNT(*) AS n FROM spend WHERE job_id=?').get(job.id).n,1);
+  falVideoReject=true;
+  try{
+    const refreshed=(await(await req(env,'/api/jobs/'+job.id)).json()).job;
+    assert.equal(refreshed.status,'failed');assert.match(refreshed.error,/Provider rejected the request/);
+    assert.equal(env.LAB_DB.db.prepare('SELECT COUNT(*) AS n FROM spend WHERE job_id=?').get(job.id).n,0);
+  }finally{falVideoReject=false;}
 });
 
 test('PV Soul Pro separates the structural source from identity references on Ideogram 4.5',async()=>{
@@ -377,7 +398,7 @@ test('Secondary identity requires paid approval and budget, trains Z-Image once,
  assert.equal((await req(env,'/api/quotes',{method:'POST',data:{settings:{...text,characterId:child.id}}})).status,400);
  const migration=readFileSync(new URL('../lab-worker/migrations/0005-soul-reinterpret.sql',import.meta.url),'utf8');env.LAB_DB.db.exec(migration);env.LAB_DB.db.exec(migration);assert.deepEqual(env.LAB_DB.db.prepare('PRAGMA foreign_key_check').all(),[]);falState='IN_QUEUE';
 });
-test('FAL inputs last 24 hours, support anonymous HEAD, and definitive result 422 fails without a new paid call',async()=>{
+test('FAL inputs last 24 hours, support anonymous HEAD, and definitive result 422 fails once and releases the Lab estimate',async()=>{
  const {env}=fixture(),sourceId=await setup(env);const settings={type:'image',engine:'fal',mode:'controlled-repair',prompt:'Repair natural texture',sourceWidth:512,sourceHeight:512,referenceRoles:[]};
  falSubmitCount=0;falState='IN_QUEUE';
  const res=await req(env,'/api/fal/repair',{method:'POST',data:{sourceId,maskSourceId:sourceId,settings}});assert.equal(res.status,202,await res.clone().text());const job=(await res.json()).job;
@@ -387,9 +408,9 @@ test('FAL inputs last 24 hours, support anonymous HEAD, and definitive result 42
   const head=await req(env,u.pathname+u.search,{method:'HEAD',authToken:null,headers:{Origin:''}});assert.equal(head.status,200);assert.equal(head.headers.get('content-length'),'9');assert.equal(await head.text(),'');
   u.searchParams.set('expires',String(Number(u.searchParams.get('expires'))+1));assert.equal((await req(env,u.pathname+u.search,{authToken:null,headers:{Origin:''}})).status,403);
  }
- const spent=env.LAB_DB.db.prepare('SELECT SUM(estimate_microusd) AS n FROM spend').get().n;
+ const spent=env.LAB_DB.db.prepare('SELECT SUM(estimate_microusd) AS n FROM spend').get().n;assert.equal(spent,75000);
  falState='COMPLETED';falResult422=true;
- try{const done=(await(await req(env,'/api/jobs/'+job.id)).json()).job;assert.equal(done.status,'failed');assert.match(done.error,/expired/);await req(env,'/api/jobs/'+job.id);assert.equal(falSubmitCount,1);assert.equal(env.LAB_DB.db.prepare('SELECT SUM(estimate_microusd) AS n FROM spend').get().n,spent);}
+ try{const done=(await(await req(env,'/api/jobs/'+job.id)).json()).job;assert.equal(done.status,'failed');assert.match(done.error,/expired/);await req(env,'/api/jobs/'+job.id);assert.equal(falSubmitCount,1);assert.equal(env.LAB_DB.db.prepare('SELECT SUM(estimate_microusd) AS n FROM spend').get().n,null);}
  finally{falState='IN_QUEUE';falResult422=false;}
 });
 test('Ambiguous secondary training never retries automatically; simultaneous approved retries claim it once',async()=>{

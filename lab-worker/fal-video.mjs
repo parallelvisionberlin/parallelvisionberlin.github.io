@@ -1,5 +1,5 @@
 // Direct fal.ai video integrations for PV Lab.
-// Provider safety settings stay enabled; no filter-bypass options are exposed.
+// Provider safety settings stay enabled; provider/model/account policies can reject a request.
 export const FAL_H3_MAX_REFERENCE='minimax/h3-max/reference-to-video';
 export const FAL_OMNI=Object.freeze({
   start:'google/gemini-omni-flash/v1.1/image-to-video',
