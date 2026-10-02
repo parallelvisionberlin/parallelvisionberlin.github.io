@@ -7,7 +7,7 @@ import {FAL_CONTROLLED_POSE,FAL_CONTROLLED_INPAINT,FAL_DWPOSE,controlledPosePara
 import {falVideoParameters,falVideoEstimateMicros,buildFalVideoInput} from './fal-video.mjs';
 import {soulProParameters,soulProEstimateMicros,buildSoulProInput} from './soul-pro.mjs';
 import {SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-02.2-h3max-fal';
+export const VERSION = 'pv-lab-2026-10-02.3-soul-pro-identity';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -25,6 +25,7 @@ const RATIOS = ['auto','1:1','4:3','3:4','16:9','9:16','3:2','2:3','4:5','5:4','
 const MODEL = MODEL_IMAGE; // Stable encryption context for existing stored provider keys.
 const DOC = 'https://spicyapi.ai/models/wan-3-0';
 const RESOLUTIONS = new Set(['480p','720p','1080p']);
+const SOUL_PRO_IDENTITY_PACK='__pv_soul_pro_nina__';
 // No hard-coded provider price. A live, bound quote is required before each paid request.
 function micros(value) {
   const text=String(value); if(!/^\d{1,6}(\.\d{1,6})?$/.test(text))fail(502,'Provider returned an invalid USD amount.');
@@ -768,6 +769,30 @@ async function route(request,env,ctx) {
     const c=await config(env,owner),spent=await first(env,'SELECT COALESCE(SUM(estimate_microusd),0) AS n FROM spend WHERE owner_id=? AND created_at>=?',owner,Math.floor(now()/86400000)*86400000);
     return json({owner:true,ownerId:owner,version:VERSION,config:{...publicConfig(c,!!env.FAL_KEY),geminiEnabled:!!env.GEMINI_API_KEY,soulTrainingEnabled:!!env.FAL_KEY,soulReinterpretEnabled:true,soulPresets:publicSoulPresets(),falEnabled:!!env.FAL_KEY},estimatedSpentToday:spent.n/1000000});
   }
+  if(path==='/api/soul-pro/identity'&&method==='GET'){
+    const pack=await first(env,'SELECT id,refs,created_at FROM packs WHERE owner_id=? AND name=? ORDER BY created_at DESC LIMIT 1',owner,SOUL_PRO_IDENTITY_PACK);
+    const refs=pack?JSON.parse(pack.refs):[];
+    return json({configured:refs.length>0,count:refs.length,refs:refs.map(r=>({id:r.id,name:r.name}))});
+  }
+  if(path==='/api/soul-pro/identity'&&method==='POST'){
+    const data=await body(request);let refs=[];
+    if(data.packId){
+      const pack=await first(env,'SELECT refs FROM packs WHERE owner_id=? AND id=?',owner,uid(data.packId));if(!pack)fail(404,'Reference pack not found.');
+      refs=JSON.parse(pack.refs).slice(0,4);
+    }else{
+      const ids=Array.isArray(data.referenceSourceIds)?data.referenceSourceIds:[];
+      const assets=await sources(env,owner,ids,4);
+      refs=assets.map(a=>({id:a.id,name:a.filename,role:'identity',note:''}));
+    }
+    if(refs.length<1||refs.length>4)fail(400,'Choose 1 to 4 Nina identity images.');
+    const assets=await sources(env,owner,refs.map(r=>r.id),4);if(assets.some(a=>!a.mime.startsWith('image/')))fail(400,'Nina identity references must be images.');
+    await run(env,'DELETE FROM packs WHERE owner_id=? AND name=?',owner,SOUL_PRO_IDENTITY_PACK);
+    const id=crypto.randomUUID();await run(env,'INSERT INTO packs(id,owner_id,name,refs,created_at) VALUES(?,?,?,?,?)',id,owner,SOUL_PRO_IDENTITY_PACK,JSON.stringify(refs),now());
+    return json({configured:true,count:refs.length,refs:refs.map(r=>({id:r.id,name:r.name}))},201);
+  }
+  if(path==='/api/soul-pro/identity'&&method==='DELETE'){
+    await run(env,'DELETE FROM packs WHERE owner_id=? AND name=?',owner,SOUL_PRO_IDENTITY_PACK);return json({configured:false,count:0,refs:[]});
+  }
   if(path==='/api/soul/characters'&&method==='GET')return json({characters:await listSoulCharacters(env,owner,soulDeps())});
   if(path==='/api/soul/datasets'&&method==='POST')return json(await createSoulDataset(request,env,owner,soulDeps()),201);
   if(path==='/api/soul/characters'&&method==='POST')return json({character:await createSoulCharacter(request,env,owner,url,soulDeps())},202);
@@ -799,7 +824,7 @@ async function route(request,env,ctx) {
     await run(env,'DELETE FROM settings WHERE owner_id=?',owner);return json({config:publicConfig(null,!!env.FAL_KEY)});
   }
   if(path==='/api/packs'&&method==='GET'){
-    const list=await rows(env,'SELECT id,name,refs,created_at FROM packs WHERE owner_id=? ORDER BY name',owner);
+    const list=await rows(env,'SELECT id,name,refs,created_at FROM packs WHERE owner_id=? AND name<>? ORDER BY name',owner,SOUL_PRO_IDENTITY_PACK);
     return json({packs:list.map(p=>({...p,refs:JSON.parse(p.refs)}))});
   }
   if(path==='/api/packs'&&method==='POST'){
@@ -910,10 +935,15 @@ async function route(request,env,ctx) {
     if(p.provider!=='fal'||p.engine!=='soulpro'||p.mode!=='identity-edit')fail(400,'Choose PV Soul Pro Identity Edit.');
     const base=await source(env,owner,data.sourceId);
     if(!base.mime?.startsWith('image/'))fail(400,'PV Soul Pro base must be an image.');
-    const refs=await sources(env,owner,data.referenceSourceIds,4);
+    let identityIds=Array.isArray(data.referenceSourceIds)&&data.referenceSourceIds.length?data.referenceSourceIds:null;
+    if(!identityIds){
+      const pack=await first(env,'SELECT refs FROM packs WHERE owner_id=? AND name=? ORDER BY created_at DESC LIMIT 1',owner,SOUL_PRO_IDENTITY_PACK);
+      if(pack)identityIds=JSON.parse(pack.refs).map(r=>r.id);
+    }
+    if(!identityIds?.length)fail(409,'Set the persistent Nina identity once before using PV Soul Pro.');
+    const refs=await sources(env,owner,identityIds,4);
     if(refs.some(a=>!a.mime?.startsWith('image/')))fail(400,'PV Soul Pro identity references must be images.');
-    if(refs.length<1)fail(400,'Add at least one identity reference.');
-    p.referenceSourceIds=refs.map(a=>a.id);p.referenceRoles=(p.referenceRoles||[]).slice(0,refs.length);
+    p.referenceSourceIds=refs.map(a=>a.id);p.referenceRoles=refs.map(a=>({name:a.filename,role:'identity',note:''}));
     const input=buildSoulProInput(p,{
       sourceUrl:await signedInput(env,url,base.id,86400),
       identityUrls:await Promise.all(refs.map(a=>signedInput(env,url,a.id,86400)))
