@@ -1,6 +1,5 @@
 // Direct fal.ai video integrations for PV Lab.
-// H3 Max exposes an optional fal.ai safety checker. PV Lab leaves that checker off
-// for this route; provider/model/account policies may still reject a request.
+// Provider safety settings stay enabled; provider/model/account policies can reject a request.
 export const FAL_H3_MAX_REFERENCE='minimax/h3-max/reference-to-video';
 export const FAL_OMNI=Object.freeze({
   start:'google/gemini-omni-flash/v1.1/image-to-video',
@@ -58,7 +57,7 @@ export function buildFalVideoInput(p,{imageUrls=[],imageUrl=null,endImageUrl=nul
       resolution:p.resolution.toUpperCase(),
       aspect_ratio:p.aspectRatio==='auto'?'adaptive':p.aspectRatio,
       prompt_expansion_mode:'disabled',
-      enable_safety_checker:false,
+      enable_safety_checker:true,
       reference_image_urls:imageUrls
     };
   }
