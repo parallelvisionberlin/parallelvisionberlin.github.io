@@ -559,16 +559,52 @@ test('Topaz rejects changed source bytes, unsupported engines, invalid dimension
   const fresh=await(await req(env,'/api/quotes',{method:'POST',data:{sourceId,settings:topazSettings}})).json();env.LAB_DB.db.prepare('UPDATE quotes SET expires_at=? WHERE id=?').run(Date.now()-1,fresh.id);
   assert.equal((await req(env,'/api/jobs',{method:'POST',data:{quoteId:fresh.id,confirm:true}})).status,409);assert.equal(falSubmitCount,0);
 });
-test('Topaz shares existing FAL interruption, image-capacity and daily-budget gates without affecting SpicyAPI',async()=>{
+test('Topaz shares FAL upscale interruption, image-capacity and daily-budget gates without affecting SpicyAPI',async()=>{
   for(const mode of ['uncertain','capacity','budget']){
     const{env}=fixture(),sourceId=await topazSource(env),t=Date.now();falSubmitCount=0;
     if(mode==='budget')await req(env,'/api/settings',{method:'POST',data:{apiKey:KEY,enabled:true,termsConfirmed:true,dailyLimitUsd:1}});
-    else for(let i=0;i<(mode==='capacity'?10:1);i++)env.LAB_DB.db.prepare('INSERT INTO jobs(id,owner_id,source_id,params,state,estimate_microusd,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?)').run(crypto.randomUUID(),'owner-internal',sourceId,JSON.stringify({type:'image',provider:'fal',engine:'soulpro',model:'fal-ai/ideogram/v4.5/edit'}),mode==='uncertain'?'uncertain':'running',1000,t,t);
+    else for(let i=0;i<(mode==='capacity'?10:1);i++)env.LAB_DB.db.prepare('INSERT INTO jobs(id,owner_id,source_id,params,state,estimate_microusd,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?)').run(crypto.randomUUID(),'owner-internal',sourceId,JSON.stringify(mode==='uncertain'?{type:'image',provider:'fal',engine:'upscale',mode:'upscale',model:'topaz/upscale/image/precision'}:{type:'image',provider:'fal',engine:'soulpro',mode:'identity-edit',model:'ideogram/v4.5/edit'}),mode==='uncertain'?'uncertain':'running',1000,t,t);
     if(mode==='budget')env.LAB_DB.db.prepare('INSERT INTO spend(job_id,owner_id,estimate_microusd,created_at) VALUES(?,?,?,?)').run(crypto.randomUUID(),'owner-internal',950000,t);
     const quoted=await req(env,'/api/quotes',{method:'POST',data:{sourceId,settings:topazSettings}});assert.equal(quoted.status,200);const q=await quoted.json();
     assert.equal((await req(env,'/api/jobs',{method:'POST',data:{quoteId:q.id,confirm:true}})).status,409);assert.equal(falSubmitCount,0);
   }
 });
+test('Distinct Topaz upscales can proceed beside an uncertain Soul Pro edit without changing its job, slot or held estimate',async()=>{
+  for(const block of ['none','capacity','budget']){
+    const{env}=fixture(),sourceId=await topazSource(env),t=Date.now(),oldId=crypto.randomUUID();falSubmitCount=0;falUpscaleMode='ok';
+    if(block==='budget')await req(env,'/api/settings',{method:'POST',data:{apiKey:KEY,enabled:true,termsConfirmed:true,dailyLimitUsd:1}});
+    const oldParams=JSON.stringify({type:'image',provider:'fal',engine:'soulpro',mode:'identity-edit',model:'ideogram/v4.5/edit'}),held=block==='budget'?950000:60000;
+    env.LAB_DB.db.prepare('INSERT INTO jobs(id,owner_id,source_id,params,state,estimate_microusd,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?)').run(oldId,'owner-internal',sourceId,oldParams,'uncertain',held,t,t);
+    env.LAB_DB.db.prepare('INSERT INTO spend(job_id,owner_id,estimate_microusd,created_at) VALUES(?,?,?,?)').run(oldId,'owner-internal',held,t);
+    const before=env.LAB_DB.db.prepare('SELECT * FROM jobs WHERE id=?').get(oldId);
+    if(block==='capacity')for(let i=0;i<9;i++)env.LAB_DB.db.prepare('INSERT INTO jobs(id,owner_id,source_id,params,state,estimate_microusd,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?)').run(crypto.randomUUID(),'owner-internal',sourceId,oldParams,'queued',1000,t,t);
+    const quoteResponse=await req(env,'/api/quotes',{method:'POST',data:{sourceId,settings:topazSettings}});assert.equal(quoteResponse.status,200);const q=await quoteResponse.json();assert.equal(falSubmitCount,0);
+    const submitted=await req(env,'/api/jobs',{method:'POST',data:{quoteId:q.id,confirm:true}});assert.equal(submitted.status,block==='none'?202:409,await submitted.clone().text());
+    if(block==='none'){
+      const job=(await submitted.json()).job;assert.equal(job.status,'queued');assert.notEqual(job.id,oldId);assert.equal(falSubmitCount,1);
+      const repeated=(await(await req(env,'/api/jobs',{method:'POST',data:{quoteId:q.id,confirm:true}})).json()).job;assert.equal(repeated.id,job.id);assert.equal(falSubmitCount,1);
+      assert.equal(env.LAB_DB.db.prepare('SELECT COUNT(*) AS n FROM spend WHERE job_id=?').get(job.id).n,1);
+    }else{assert.equal(falSubmitCount,0);assert.match((await submitted.json()).error,block==='capacity'?/slots are active/:/daily spending limit/);}
+    assert.deepEqual(env.LAB_DB.db.prepare('SELECT * FROM jobs WHERE id=?').get(oldId),before);
+    assert.equal(env.LAB_DB.db.prepare('SELECT estimate_microusd AS held FROM spend WHERE job_id=?').get(oldId).held,held);
+  }
+});
+
+test('An uncertain Topaz upscale blocks fresh submissions across both engines while the original quote remains idempotent',async()=>{
+  const{env}=fixture(),sourceId=await topazSource(env);falSubmitCount=0;falUpscaleMode='timeout';
+  try{
+    const q=await(await req(env,'/api/quotes',{method:'POST',data:{sourceId,settings:topazSettings}})).json();
+    const original=(await(await req(env,'/api/jobs',{method:'POST',data:{quoteId:q.id,confirm:true}})).json()).job;assert.equal(original.status,'uncertain');assert.equal(falSubmitCount,1);
+    falUpscaleMode='ok';
+    for(const upscaleEngine of ['topaz-precision','topaz-wonder']){
+      const fresh=await(await req(env,'/api/quotes',{method:'POST',data:{sourceId,settings:{...topazSettings,upscaleEngine,topazModel:upscaleEngine==='topaz-wonder'?'Wonder 3.5':'Standard V2'}}})).json();
+      const blocked=await req(env,'/api/jobs',{method:'POST',data:{quoteId:fresh.id,confirm:true}});assert.equal(blocked.status,409);assert.match((await blocked.json()).error,/fal.ai upscale is interrupted/);
+    }
+    const repeated=(await(await req(env,'/api/jobs',{method:'POST',data:{quoteId:q.id,confirm:true}})).json()).job;assert.equal(repeated.id,original.id);assert.equal(repeated.status,'uncertain');assert.equal(falSubmitCount,1);
+    assert.equal(env.LAB_DB.db.prepare('SELECT COUNT(*) AS n FROM jobs').get().n,1);assert.equal(env.LAB_DB.db.prepare('SELECT COUNT(*) AS n FROM spend WHERE job_id=?').get(original.id).n,1);
+  }finally{falUpscaleMode='ok';}
+});
+
 test('Topaz definite rejections release budget; timeout and malformed success retain reservation without automatic retries',async()=>{
   for(const mode of ['rejected','timeout','missing-id']){
     const{env}=fixture(),sourceId=await topazSource(env);falSubmitCount=0;falUpscaleMode=mode;
