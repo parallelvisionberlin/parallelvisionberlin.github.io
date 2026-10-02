@@ -149,3 +149,29 @@ Reference metadata survives saved packs and History Reuse. Duplicate asset IDs a
 The same release fixes the SpicyAPI concurrency query: active or uncertain FAL jobs no longer occupy Seedream/Upscale slots or trigger a false SpicyAPI interruption. Existing unresolved records and budget reservations remain intact.
 
 Verified against https://spicyapi.ai/models/seedream-5-0-pro/edit and https://spicyapi.ai/models/seedream-5-0-pro/edit/api. Regression checks use synthetic inputs and mocked paid endpoints.
+
+## Upscale methods and FAL recovery (2026-10-02)
+
+Upscale offers three methods through the existing provider connections:
+
+| Method | Provider/model | Price shown |
+| --- | --- | --- |
+| Economical | SpicyAPI Image Upscaler v1 | $0.012/image, all size tiers and formats |
+| Preserve | FAL Topaz Precision, Standard V2 or High Fidelity V3 | $0.08 per started 24 output megapixels |
+| Restore | FAL Topaz Wonder 3.5 | $0.08 per started 8 output megapixels |
+
+Topaz supports 2×/4× enlargement and PNG/JPEG here. The server reads source dimensions from the stored image, computes target dimensions and the published-price estimate, and binds the saved input and settings to that estimate. FAL pricing is explicitly an estimate, not a provider-guaranteed maximum. A free price check is required before a Topaz submission; changing the image, model, scale, format or session invalidates it. The existing SpicyAPI one-click and optional bound-price-check flow remains. Topaz uses the existing backend FAL key; no separate Topaz account or desktop licence is needed for this integration. Face enhancement is disabled to avoid an unsolicited face reconstruction. Wonder is a separate, explicit restoration choice because it can invent detail.
+
+Content labels describe the provider policy, not a promise of acceptance: SpicyAPI adds no platform filter to this upscaler but its model may still refuse; FAL prohibits sexually explicit content. No safety-checker bypass or automatic provider fallback is added. SeedVR2 is not enabled because its public image price does not establish whether billing uses input or output megapixels or how units are rounded.
+
+FAL queue polling and result retrieval now use the owning app route, matching the official JavaScript SDK. Submission retains the full model route. This fixes lookups such as `ideogram/v4.5/edit/requests/...`, which must instead use `ideogram/v4.5/requests/...`. HTTP status is retained in diagnostics, and lookup/authentication errors do not prove that a submitted generation failed. Failed records with an existing provider ID can retrieve the original result through **Recover FAL output**, without a new inference request.
+
+For eligible interrupted Soul Pro requests without a provider ID, **Check FAL status** searches the provider's request history. It requires a unique match of the complete original input and compatible submission time before associating a request ID and checking its result. Missing payloads, ambiguous matches, unavailable history or access errors leave the request unresolved. It never generates, retries inference, clears an unknown charge or guesses from time alone.
+
+Official sources, checked 2 October 2026:
+- https://fal.ai/models/topaz/upscale/image/precision
+- https://fal.ai/models/topaz/upscale/image/generative
+- https://fal.ai/legal/acceptable-use-policy
+- https://spicyapi.ai/models/image-upscaler-v1
+- https://github.com/fal-ai/fal-js/blob/012ef177b996b9c78ac0d5baf4c430b9a249028b/libs/client/src/queue.ts
+- https://fal.ai/docs/platform-apis/v1/models/requests/by-endpoint

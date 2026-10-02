@@ -139,17 +139,27 @@ async function falJson(url,key,options={}){
       return String(item);
     }).filter(Boolean).join(' | '):JSON.stringify(rawDetail));
     const safeDetail=String(detail||'Provider rejected the request.').replace(/[\r\n]+/g,' ').slice(0,600);
-    const e=new Error('fal.ai: '+safeDetail);e.status=response.status;e.definite=response.status>=400&&response.status<500&&response.status!==408&&response.status!==429;throw e;
+    const e=new Error('fal.ai (HTTP '+response.status+'): '+safeDetail);e.status=response.status;e.definite=options.method==='POST'&&response.status>=400&&response.status<500&&response.status!==408&&response.status!==429;throw e;
   }
   return data||{};
 }
 export async function falSubmit(endpoint,key,input){
-  const data=await falJson('https://queue.fal.run/'+endpoint,key,{method:'POST',body:JSON.stringify(input)});
-  if(typeof data.request_id!=='string'||!data.request_id)throw new Error('fal.ai did not return a request id.');
-  return data.request_id;
+  try{
+    const data=await falJson('https://queue.fal.run/'+endpoint,key,{method:'POST',body:JSON.stringify(input)});
+    if(typeof data.request_id!=='string'||!data.request_id)throw new Error('fal.ai did not return a request id. Check the original request before retrying.');
+    return data.request_id;
+  }catch(e){if(e.definite!==true)e.uncertain=true;throw e;}
 }
-export function falStatus(endpoint,key,id){return falJson('https://queue.fal.run/'+endpoint+'/requests/'+encodeURIComponent(id)+'/status',key);}
-export function falResult(endpoint,key,id){return falJson('https://queue.fal.run/'+endpoint+'/requests/'+encodeURIComponent(id),key);}
+// Match fal's official SDK: submit to the complete model route, but retrieve
+// status/results from its owning application. Model subpaths are not queue paths.
+// https://github.com/fal-ai/fal-js/blob/012ef177b996b9c78ac0d5baf4c430b9a249028b/libs/client/src/queue.ts
+function falQueueApp(endpoint){
+  const parts=String(endpoint).split('/'),count=['workflows','comfy'].includes(parts[0])?3:2;
+  if(parts.length<count||parts.some(x=>!x||! /^[a-zA-Z0-9_.-]+$/.test(x)))throw new Error('Invalid fal.ai model endpoint.');
+  return parts.slice(0,count).join('/');
+}
+export function falStatus(endpoint,key,id){return falJson('https://queue.fal.run/'+falQueueApp(endpoint)+'/requests/'+encodeURIComponent(id)+'/status?logs=1',key);}
+export function falResult(endpoint,key,id){return falJson('https://queue.fal.run/'+falQueueApp(endpoint)+'/requests/'+encodeURIComponent(id),key);}
 export async function falAwait(endpoint,key,input,{timeoutMs=45000,pollMs=750}={}){
   const id=await falSubmit(endpoint,key,input),started=Date.now();
   while(Date.now()-started<timeoutMs){
