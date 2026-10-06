@@ -194,6 +194,13 @@ export async function closeConversation(env, visitorId, conversationId) {
   return Number(result?.meta?.changes || 0) > 0;
 }
 
+const RECENT_PERSONA_CONTEXT_MAX_CHARACTERS = 500;
+
+function safeRecentContinuityMessage(message) {
+  if (!message || message.role !== "persona") return true;
+  return typeof message.content === "string" && message.content.trim().length <= RECENT_PERSONA_CONTEXT_MAX_CHARACTERS;
+}
+
 function formatRecentMessage(message) {
   return `${message.created_at ? `[${message.created_at}; conversation ${message.conversation_id}] ` : ""}${message.role === "user" ? "VISITOR" : "NINA"}: ${message.content}`;
 }
@@ -246,7 +253,7 @@ export async function buildOwnerMemoryContext(env, owner) {
   const controls = await memoryControls(env, owner.user_id, owner.visitor_id);
   const pinned = controlledRows(pinnedResult.results || [], controls, "pin", "memory_id").filter(item=>!isNinaImplementationMemory(item.content));
   const threads = controlledRows(threadsResult.results || [], controls, "thread", "thread_id").filter(item=>!isNinaImplementationMemory(item.content));
-  const recent = personalContinuityMessages((recentResult.results || []).reverse()).slice(-HISTORY_LIMIT);
+  const recent = personalContinuityMessages((recentResult.results || []).reverse()).filter(safeRecentContinuityMessage).slice(-HISTORY_LIMIT);
   const profileSection = `VALIDATED PERMANENT PROFILE\nName: ${owner.display_name}\nProfile: ${owner.profile_type}`;
   const recentItems = recent.map(formatRecentMessage);
   const recentSection = appendLatestItemsWithinBudget("LATEST COMPLETED MESSAGES", recentItems, 22000);
