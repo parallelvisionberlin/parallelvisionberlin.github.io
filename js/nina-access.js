@@ -1209,17 +1209,50 @@ function queueOwnerMemoryRequest(path, body, method = "POST") {
   return ninaMemorySyncPromise;
 }
 
+const NINA_TURN_SOFT_LIMIT = 420;
+const NINA_TURN_HARD_LIMIT = 520;
+const NINA_TURN_LOOP_PATTERN = /\\b(?:i(?:'m| am) waiting|still waiting|your turn|go on|tell me|come on|say it|i(?:'m| am) listening)\\b/gi;
+
+function shouldInterruptNinaOutput(content) {
+  const text = typeof content === "string" ? content.trim() : "";
+  if (!text) return false;
+  if (text.length >= NINA_TURN_HARD_LIMIT) return true;
+  if (text.length >= NINA_TURN_SOFT_LIMIT && /[.!?]["')\\]]?$/.test(text)) return true;
+  if (text.length >= 180 && (text.match(NINA_TURN_LOOP_PATTERN) || []).length >= 3) return true;
+  return false;
+}
+
 function trackNinaMessageCompletion(client, attempt) {
   const messages = new Map();
   ninaMessageCompletions.set(client, messages);
   const eventName = AnamEvent?.MESSAGE_STREAM_EVENT_RECEIVED;
+  const speechStartEvent = AnamEvent?.USER_SPEECH_STARTED;
+  const interrupt = () => {
+    try { client.interruptPersona?.(); } catch { /* Best-effort turn cancellation. */ }
+  };
+  const onUserSpeechStart = () => {
+    if (attempt !== ninaAttempt || client !== ninaClient) return;
+    for (const message of messages.values()) {
+      if (message.content.trim()) message.interrupted = true;
+    }
+    // Cancel both audible speech and any stale response still being generated.
+    interrupt();
+  };
   const onStream = event => {
     if (attempt !== ninaAttempt || client !== ninaClient || event?.role !== "persona" || typeof event.id !== "string") return;
     let message = messages.get(event.id);
-    if (!message) { message = { content: "", interrupted: false, completed: [], segment: 0 }; messages.set(event.id, message); }
+    if (!message) {
+      message = { content: "", interrupted: false, completed: [], segment: 0, watchdogInterrupted: false };
+      messages.set(event.id, message);
+    }
     // One endOfSpeech may cover several utterance IDs. Keep all its chunks together.
     message.content += typeof event.content === "string" ? event.content : "";
     message.interrupted ||= Boolean(event.interrupted);
+    if (!event.endOfSpeech && !message.watchdogInterrupted && shouldInterruptNinaOutput(message.content)) {
+      message.watchdogInterrupted = true;
+      message.interrupted = true;
+      interrupt();
+    }
     if (event.endOfSpeech) {
       const segmentId = Number.isSafeInteger(event.contentIndex) ? event.contentIndex : message.segment;
       if (!message.interrupted && message.content.trim()) message.completed.push({
@@ -1229,11 +1262,14 @@ function trackNinaMessageCompletion(client, attempt) {
       message.segment++;
       message.content = "";
       message.interrupted = false;
+      message.watchdogInterrupted = false;
     }
   };
   if (eventName) client.addListener(eventName, onStream);
+  if (speechStartEvent) client.addListener(speechStartEvent, onUserSpeechStart);
   return () => {
     if (eventName) client.removeListener(eventName, onStream);
+    if (speechStartEvent) client.removeListener(speechStartEvent, onUserSpeechStart);
     if (ninaMessageCompletions.get(client) === messages) ninaMessageCompletions.delete(client);
   };
 }
