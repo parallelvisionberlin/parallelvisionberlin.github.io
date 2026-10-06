@@ -57,8 +57,8 @@ function updateUpscaleModel(){
   $('resolution-control').hidden=fal;$('engine-name').textContent=model.name.toUpperCase()+' · '+model.provider.toUpperCase();
   $('upscale-model-name').textContent=upscaleName(settings());$('upscale-model-description').textContent=model.description+(fal?' Lab output limit: approximately 67 megapixels.':'');$('upscale-published-price').textContent=model.price;$('upscale-pricing-link').href=model.pricing;
   $('upscale-content-label').textContent=fal?'FAL content restrictions':'No added SpicyAPI filter';$('upscale-content-note').textContent=fal?'Sexually explicit content is not allowed.':'The model may still refuse an input.';$('upscale-content-link').href=fal?'https://fal.ai/legal/acceptable-use-policy':model.pricing;
-  $('upscale-price-help').textContent=fal?'Required estimate & size check · no generation charge':'Optional · no generation charge';
-  $('generation-help').textContent=fal?'Check price & size first, then Upscale submits one paid upscaling job. The displayed FAL price is an estimate; provider billing is authoritative.':'Upscale starts one paid upscaling job. You can check its live price above first; there is no extra price-review popup. Inputs over 10 MiB need a working copy; the Lab asks first and keeps the original.';
+  $('upscale-price-help').textContent='Optional · no generation charge';
+  $('generation-help').textContent=fal?'Upscale starts one paid Topaz job in one click. PV Lab checks the estimated price and output dimensions automatically before submission; the displayed FAL price is an estimate and provider billing is authoritative.':'Upscale starts one paid upscaling job. You can check its live price above first; there is no extra price-review popup. Inputs over 10 MiB need a working copy; the Lab asks first and keeps the original.';
 }
 function upscalePriceKey(){return JSON.stringify({epoch,imageRevision,sourceId,tool,settings:tool==='upscale'?settings():null});}
 function clearUpscalePrice(){clearTimeout(upscaleQuoteTimer);upscaleQuoteTimer=null;upscaleQuote=null;upscaleQuoteNeedsCheck=false;upscalePriceMessage='';}
@@ -74,7 +74,7 @@ function updateUpscalePrice(){
   $('upscale-check-price').textContent=fal?(upscaleQuoteNeedsCheck?'Check price & size again':'Check price & size'):(upscaleQuoteNeedsCheck?'Check live price again':'Check live price');
   const q=upscaleQuote?.quote;
   $('upscale-price-status').textContent=q?(q.priceIsEstimate?('Estimated charge: '+money(q.estimatedUsd)+' USD. '+q.settings.sourceWidth+' × '+q.settings.sourceHeight+' → '+q.settings.targetWidth+' × '+q.settings.targetHeight+' output. Not a guaranteed maximum. Valid until '+new Date(q.expiresAt).toLocaleTimeString()+'. No generation submitted.'):('Live price: '+money(q.estimatedUsd)+' USD'+(q.maxUsd!==q.estimatedUsd?' · maximum '+money(q.maxUsd)+' USD':'')+'. Valid until '+new Date(q.expiresAt).toLocaleTimeString()+'. No generation submitted.')):upscalePriceMessage||(fal?'Check the estimated charge and output dimensions before upscaling.':'Check the price for this image before upscaling, or use Upscale directly.');
-  if(active&&(upscaleQuoteNeedsCheck||fal&&(!q||!config.falEnabled)))$('generate').disabled=true;
+  if(active&&fal&&!config.falEnabled)$('generate').disabled=true;
   if(active&&q)$('generate').textContent='Upscale · '+(q.priceIsEstimate?'est. ':q.maxUsd!==q.estimatedUsd?'max ':'')+money(q.priceIsEstimate?q.estimatedUsd:q.maxUsd);
 }
 function validateUpscaleQuote(q,selected){
@@ -372,9 +372,26 @@ $('generate').onclick=()=>action(async()=>{
   const provider=currentProvider();if(provider==='spicy'&&!config.enabled){connection();return;}if(provider==='gemini'&&!config.geminiEnabled)throw new Error('Gemini API key is not available on the Lab backend.');if(provider==='fal'&&!config.falEnabled)throw new Error('FAL API key is not available on the Lab backend.');
   if(submissionBlocked())throw new Error('An active-job limit or an interrupted request blocks another generation. Check History.');
   const selectedTool=tool,sessionEpoch=epoch;
-  if(selectedTool==='upscale'&&(isFalUpscale()||upscaleQuote||upscaleQuoteNeedsCheck)){
+  if(selectedTool==='upscale'&&isFalUpscale()){
+    updateUpscalePrice();
+    let checked=upscaleQuote;
+    if(!checked||upscaleQuoteNeedsCheck||checked.key!==upscalePriceKey()){
+      const originals=await ensureInputs(),key=upscalePriceKey(),selected=settings();
+      upscaleQuoteNeedsCheck=true;upscalePriceMessage='Checking estimated price and output dimensions before Topaz submission…';updateUpscalePrice();
+      const q=await api('/api/quotes',{method:'POST',body:{...originals,settings:selected}});
+      if(!owner||epoch!==sessionEpoch||tool!=='upscale'||key!==upscalePriceKey())throw new Error('Image, settings or session changed before Topaz submission. Nothing was submitted.');
+      validateUpscaleQuote(q,selected);
+      checked={quote:q,key};upscaleQuote=checked;upscaleQuoteNeedsCheck=false;upscalePriceMessage='';updateUpscalePrice();
+    }else{
+      validateUpscaleQuote(checked.quote,settings());
+    }
+    invalidateUpscalePrice('Submitting Topaz with the checked estimate. If interrupted, refresh History before another attempt.');
+    await submitQuotedGeneration(checked.quote,sessionEpoch);clearUpscalePrice();
+    return;
+  }
+  if(selectedTool==='upscale'&&(upscaleQuote||upscaleQuoteNeedsCheck)){
     updateUpscalePrice();const checked=upscaleQuote;
-    if(!checked||upscaleQuoteNeedsCheck)throw new Error('Check the upscale price and output size before generating. Nothing was submitted.');
+    if(!checked||upscaleQuoteNeedsCheck)throw new Error('Check the upscale price before generating. Nothing was submitted.');
     validateUpscaleQuote(checked.quote,settings());
     if(checked.key!==upscalePriceKey())throw new Error('Image or settings changed. Check the price again. Nothing was submitted.');
     invalidateUpscalePrice('Submitting the checked quote. If interrupted, refresh History before another attempt.');
@@ -724,7 +741,7 @@ async function upscaleImage(job){
   if(!hasResult(job)||job.settings.type!=='image')throw new Error('Choose a completed image first.');
   clearMedia();setTool('upscale');
   await setImage(await assetFile(job.outputId,'image-to-upscale'),job.outputId);
-  update();notify(isFalUpscale()?'Image loaded for upscaling. Choose the scale, then check price & size before Upscale. Nothing has been submitted yet.':'Image loaded for upscaling. Choose the size, then click Upscale to start one paid job. Nothing has been submitted yet.');
+  update();notify(isFalUpscale()?'Image loaded for upscaling. Choose the Topaz model and scale, then click Upscale. PV Lab will check price and output size automatically before submitting.':'Image loaded for upscaling. Choose the size, then click Upscale to start one paid job. Nothing has been submitted yet.');
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
