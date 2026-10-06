@@ -226,15 +226,18 @@ test("latest completed relationship attempt exposes insufficient evidence or a s
   });
 });
 
-test("closed authenticated owner conversation schedules relationship evaluation", async () => {
+test("owner relationship evaluation is frozen while owner relationship context trial is disabled", async () => {
   const scheduled = [];
   const calls = [];
   const ctx = { waitUntil(promise) { scheduled.push(promise); } };
   const identity = { user_id: "owner-user-id", visitor_id: "owner-memory-id", role: "owner", account_authenticated: true };
   const evaluator = async (...args) => { calls.push(args); return { evaluated: true }; };
-  assert.equal(scheduleCompletedRelationshipEvaluation(ctx, { marker: "env" }, identity, "conversation-1", true, evaluator), true);
+  assert.equal(scheduleCompletedRelationshipEvaluation(ctx, { NINA_OWNER_RELATIONSHIP_CONTEXT_ENABLED: "false" }, identity, "conversation-1", true, evaluator), false);
+  assert.equal(scheduled.length, 0);
+  assert.equal(calls.length, 0);
+  assert.equal(scheduleCompletedRelationshipEvaluation(ctx, { NINA_OWNER_RELATIONSHIP_CONTEXT_ENABLED: "true" }, identity, "conversation-2", true, evaluator), true);
   await Promise.all(scheduled);
-  assert.deepEqual(calls[0].slice(1), ["owner-user-id", "owner-memory-id", "conversation-1"]);
+  assert.deepEqual(calls[0].slice(1), ["owner-user-id", "owner-memory-id", "conversation-2"]);
 });
 
 test("legacy owner identity does not schedule account relationship evaluation", () => {
