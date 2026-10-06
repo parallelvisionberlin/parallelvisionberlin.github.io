@@ -84,6 +84,23 @@ test("later call restores only the latest 20 while retaining summary and open th
   assert.ok(result.context.indexOf("ACTIVE OPEN THREADS") < result.context.indexOf("LATEST COMPLETED MESSAGES"));
 });
 
+
+test("runaway Nina output remains in transcript storage but is excluded from next-session recent context", async () => {
+  const runaway = "Nina keeps talking. ".repeat(40);
+  const recent = [
+    { role: "user", content: "Tell me something.", created_at: "2026-10-06T20:00:00Z", conversation_id: "c1" },
+    { role: "persona", content: runaway, created_at: "2026-10-06T20:00:01Z", conversation_id: "c1" },
+    { role: "user", content: "Now answer normally.", created_at: "2026-10-06T20:00:02Z", conversation_id: "c1" },
+    { role: "persona", content: "Okay. One thought, then I stop.", created_at: "2026-10-06T20:00:03Z", conversation_id: "c1" }
+  ];
+  const result = await buildOwnerMemoryContext({ NINA_MEMORY_DB: memoryDb({ recent }) },
+    { visitor_id: "visitor-owner", display_name: "Alejandro", profile_type: "owner" });
+  assert.doesNotMatch(result.context, /Nina keeps talking/);
+  assert.match(result.context, /Tell me something/);
+  assert.match(result.context, /Now answer normally/);
+  assert.match(result.context, /One thought, then I stop/);
+});
+
 test("summary and thread extraction remain conservative and user-grounded", () => {
   const messages = [
     { message_id: "user-1", role: "user", content: "I prefer concise answers. Can we discuss response length next time?" },
