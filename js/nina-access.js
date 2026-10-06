@@ -1211,13 +1211,13 @@ function queueOwnerMemoryRequest(path, body, method = "POST") {
 
 const NINA_TURN_SOFT_LIMIT = 420;
 const NINA_TURN_HARD_LIMIT = 520;
-const NINA_TURN_LOOP_PATTERN = /\\b(?:i(?:'m| am) waiting|still waiting|your turn|go on|tell me|come on|say it|i(?:'m| am) listening)\\b/gi;
+const NINA_TURN_LOOP_PATTERN = /\b(?:i(?:'m| am) waiting|still waiting|your turn|go on|tell me|come on|say it|i(?:'m| am) listening)\b/gi;
 
 function shouldInterruptNinaOutput(content) {
   const text = typeof content === "string" ? content.trim() : "";
   if (!text) return false;
   if (text.length >= NINA_TURN_HARD_LIMIT) return true;
-  if (text.length >= NINA_TURN_SOFT_LIMIT && /[.!?]["')\\]]?$/.test(text)) return true;
+  if (text.length >= NINA_TURN_SOFT_LIMIT && /[.!?]["')\]]?$/.test(text)) return true;
   if (text.length >= 180 && (text.match(NINA_TURN_LOOP_PATTERN) || []).length >= 3) return true;
   return false;
 }
