@@ -665,6 +665,7 @@ function observeBackgroundJob(job, work) {
 
 export function scheduleCompletedRelationshipEvaluation(ctx, env, identity, conversationId, closed, evaluator = evaluateCompletedRelationship) {
   if (!closed || !identity?.account_authenticated) return false;
+  if (identity.role === "owner" && env?.NINA_OWNER_RELATIONSHIP_CONTEXT_ENABLED === "false") return false;
   ctx.waitUntil(observeBackgroundJob("relationship", () => evaluator(env, identity.user_id, identity.visitor_id, conversationId)));
   return true;
 }
