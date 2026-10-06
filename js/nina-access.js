@@ -1792,22 +1792,13 @@ async function copyNinaReferralLink() {
 function showSignalEnded() {
   document.body.classList.remove("nina-connecting-mode", "nina-conversation-live", "nina-call-visible");
   document.body.classList.add("nina-scrim-visible", "nina-scrim-action");
-  setNinaScrim("THE SIGNAL ENDED", "", "Your history with Nina remains.", NINA_WEB_FLOW ? "CONTINUE · 6 MIN · €3.50" : "CONTINUE THE SIGNAL");
+  setNinaScrim("THE SIGNAL ENDED", "", "Your history with Nina remains.", "GET MORE SIGNAL CREDITS");
   if (ninaPostSignalActions) ninaPostSignalActions.hidden = false;
   if (ninaPostSignalReturn) ninaPostSignalReturn.tabIndex = 0;
   document.body.classList.add("nina-post-signal-visible");
   ninaScrim?.setAttribute("aria-hidden", "false");
   ninaStatus.textContent = "SIGNAL ENDED";
-  ninaScrimAction = NINA_WEB_FLOW ? "continue_6" : "credits";
-  if (NINA_WEB_FLOW && ninaPostSignalActions && !ninaPostSignalActions.querySelector("[data-more-packs]")) {
-    const more = document.createElement("button");
-    more.type = "button";
-    more.className = "nina-post-signal-return";
-    more.dataset.morePacks = "true";
-    more.textContent = "MORE TIME OPTIONS";
-    more.addEventListener("click", () => openSignalCreditPurchase());
-    ninaPostSignalActions.prepend(more);
-  }
+  ninaScrimAction = "credits";
   requestAnimationFrame(() => ninaScrimButton.focus({ preventScroll: true }));
 }
 
@@ -2754,11 +2745,7 @@ ninaReferralPanel?.addEventListener("click", event => {
   if (event.target === ninaReferralPanel) closeNinaReferralPanel(true);
 });
 ninaScrimButton.addEventListener("click", () => {
-  if (ninaScrimAction === "continue_6") {
-    openSignalCreditPurchase({ title: "Continue with Nina", lead: "6 minutes · €3.50. One-time purchase.", packsVisible: true });
-    void startSignalCreditCheckout("signal_60");
-  }
-  else if (ninaScrimAction === "credits") openSignalCreditPurchase();
+  if (ninaScrimAction === "credits") openSignalCreditPurchase();
   else if (ninaScrimAction === "signin") void openNinaAccountAuth("signin");
   else connectNina();
 });
