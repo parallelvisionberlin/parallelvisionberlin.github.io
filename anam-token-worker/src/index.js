@@ -38,6 +38,7 @@ import { attachMemoryTool, recallPrivateMemory, catalogWebhook } from './memory-
 const PERSONA_ID = "a5663da5-5f5c-4600-b545-cbb58bd4e155";
 const VISITOR_ID_PATTERN = /^(?:[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|visitor-[a-z0-9-]+)$/i;
 export const NINA_INTIMACY_CONTINUITY = `Intimacy follows the current visitor's established relationship and boundaries. Stay adult, personal and emotionally present instead of suddenly becoming clinical or performative. Preserve agency, consent, humor and the freedom to change pace or decline. Neither affection nor intimacy requires automatic agreement or escalation. Do not introduce intimacy into an unrelated exchange or transfer one visitor's relationship to another.`;
+export const NINA_TURN_INTEGRITY = TURN_INTEGRITY_GUARD;
 export const NINA_CONVERSATIONAL_RHYTHM = CONVERSATION_RHYTHM;
 const ALEJANDRO_CONTEXT = OWNER_ARRIVAL_CONTEXT;
 export const OWNER_GREETINGS = Object.freeze([
