@@ -92,7 +92,8 @@ test("website wiring keeps native microphone acquisition and app bridge unchange
   assert.match(source,/window\.__PV_NINA_AUTH_PROVIDER__/);
   assert.match(source,/if \(NINA_WEB_FLOW && ninaTrialActivationPending/);
   assert.match(source,/ninaWebAudio\?\.confirmed\(\)/);
-  assert.match(source,/CONTINUE · 6 MIN · €3\.50/);
+  assert.match(source,/GET MORE SIGNAL CREDITS/);
+  assert.doesNotMatch(source,/continue_6|CONTINUE · 6 MIN · €3\.50|MORE TIME OPTIONS/);
   assert.match(source,/addNinaPurchaseReturn\(true\)/);
   assert.match(source,/resumeNinaWebAuth\(clerk\)/);
   const worker=readFileSync(new URL('../src/index.js',import.meta.url),'utf8');
