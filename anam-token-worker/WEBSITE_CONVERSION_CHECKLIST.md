@@ -6,7 +6,7 @@ Website only. `/nina-app.html` uses the existing microphone/Clerk bridge and tri
 ## Changes
 - Resume a stored `signal` intent after same-page Clerk signup/signin. Never start a call for an arbitrary signed-in page load.
 - Website trial requires user-confirmed output playback and a captured user turn before activating billing. Existing 60-second grace limit remains. Audio help stops the call and gives recovery instructions.
-- End-of-trial primary action explicitly requests the existing 6-minute EUR 3.50 pack. Secondary action opens the other packs. Idle intro no longer intercepts the continuation buttons.
+- End-of-trial primary action opens the Signal Credit pack selector without preselecting or auto-purchasing the 6-minute pack. Return Later remains the secondary exit. Idle intro no longer intercepts the continuation buttons.
 - Checkout-return state does not claim success merely from a URL parameter. After the existing ledger/balance confirmation, show Return to Nina.
 - Website-only recovery prompt avoids blame/teasing for possible audio problems and points to the actual controls for pricing.
 - Qualified conversation requires explicit audio confirmation, visible playing video on the client, authenticated ownership, 60 seconds since Live activation and two user/reply pairs verified from stored role/timestamps. One acquisition milestone per account; stable event ID for Pixel/CAPI retries. No message content is sent to Meta.
