@@ -13,14 +13,16 @@ function fixture() {
   const requests = [], indicators = [], storage = new Map(), timers = new Map(), listeners = new Map();
   let timerId = 0;
   const client = {
+    interrupts: 0,
     getActiveSessionId: () => 'anam-session',
+    interruptPersona() { this.interrupts++; },
     addListener(event, listener) { listeners.set(event, listener); },
     removeListener(event, listener) { if (listeners.get(event) === listener) listeners.delete(event); }
   };
   const state = {
     AbortController, Error, Promise, Map, Set, WeakMap, Date,
     ANAM_SESSION_TOKEN_ENDPOINT: 'https://worker.example/session-token',
-    AnamEvent: { MESSAGE_STREAM_EVENT_RECEIVED: 'stream' },
+    AnamEvent: { MESSAGE_STREAM_EVENT_RECEIVED: 'stream', USER_SPEECH_STARTED: 'speech-start' },
     ninaMemorySyncPromise: Promise.resolve(), ninaVisitorId: 'visitor-a',
     ninaClerk: { session: { id: 'auth-a' } }, ninaClient: client, ninaAttempt: 1,
     ninaSessionMessageKeys: new Set(), ninaServerConversationId: 'conversation-a',
@@ -36,6 +38,7 @@ function fixture() {
   vm.runInContext(`${deadline}\n${section}\nthis.api={queueOwnerMemoryRequest,storeCompletedNinaMessages,trackNinaMessageCompletion,readNinaMemory};`, state);
   return { state, client, requests, indicators,
     emit(event) { listeners.get('stream')?.(event); },
+    speechStart() { listeners.get('speech-start')?.({}); },
     expire(milliseconds) {
       const entry = [...timers].find(([, timer]) => timer.milliseconds === milliseconds);
       assert.ok(entry, `A ${milliseconds}ms deadline is active`);
@@ -173,4 +176,21 @@ test('one endOfSpeech preserves earlier utterance IDs and saves the final answer
   assert.equal(saved.length, 1);
   assert.equal(saved[0].content, 'Hello. Second thought.');
   assert.equal(saved[0].messageId, 'persona-a:speech:2');
+});
+
+
+test('user speech cancels a stale persona generation before it can arrive late', () => {
+  const f = fixture(); f.state.ninaServerConversationId = '';
+  f.state.api.trackNinaMessageCompletion(f.client, 1);
+  f.speechStart();
+  assert.equal(f.client.interrupts, 1);
+});
+
+test('turn watchdog interrupts looping or overlong persona output once', () => {
+  const f = fixture(); f.state.ninaServerConversationId = '';
+  f.state.api.trackNinaMessageCompletion(f.client, 1);
+  f.emit({ id:'persona-long', role:'persona', utteranceId:'u1', content:'I am listening. Your turn. I am waiting. Tell me. '.repeat(5), endOfSpeech:false, interrupted:false });
+  assert.equal(f.client.interrupts, 1);
+  f.emit({ id:'persona-long', role:'persona', utteranceId:'u2', content:'More text that should not trigger a second interrupt.', endOfSpeech:false, interrupted:false });
+  assert.equal(f.client.interrupts, 1);
 });
