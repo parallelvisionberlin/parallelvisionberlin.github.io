@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import worker, {
-  EXPECTED_CONTACT_INTRODUCTION, KNOWN_PUBLIC_GREETINGS, NINA_CONVERSATIONAL_RHYTHM, NINA_INTIMACY_CONTINUITY, OWNER_GREETINGS, UNKNOWN_NAME_INSTRUCTION, UNKNOWN_PUBLIC_GREETINGS,
+  EXPECTED_CONTACT_INTRODUCTION, KNOWN_PUBLIC_GREETINGS, NINA_CONVERSATIONAL_RHYTHM, NINA_INTIMACY_CONTINUITY, NINA_TURN_INTEGRITY, OWNER_GREETINGS, UNKNOWN_NAME_INSTRUCTION, UNKNOWN_PUBLIC_GREETINGS,
   applyStartupGreeting, assembleSystemPrompt, authenticatedMemoryDisplayName, buildLivePersonaConfig, buildPersonaDiagnostic,
   schedulePreferredNameLearning, unknownNameInstruction
 } from "../src/index.js";
@@ -106,9 +106,11 @@ test("system prompt assembly adds intimacy and conversational rhythm exactly onc
 
   for (const systemPrompt of [publicConfig.systemPrompt, ownerConfig.systemPrompt]) {
     assert.equal(systemPrompt.split(NINA_INTIMACY_CONTINUITY).length - 1, 1);
+    assert.equal(systemPrompt.split(NINA_TURN_INTEGRITY).length - 1, 1);
     assert.equal(systemPrompt.split(NINA_CONVERSATIONAL_RHYTHM).length - 1, 1);
     assert.ok(systemPrompt.startsWith(`${basePrompt}\n\n${PUBLIC_IDENTITY_CONTEXT}\n\n${EXPECTED_CONTACT_INTRODUCTION}\n\n${NINA_INTIMACY_CONTINUITY}`));
-    assert.ok(systemPrompt.indexOf(NINA_INTIMACY_CONTINUITY) < systemPrompt.indexOf(NINA_CONVERSATIONAL_RHYTHM));
+    assert.ok(systemPrompt.indexOf(NINA_INTIMACY_CONTINUITY) < systemPrompt.indexOf(NINA_TURN_INTEGRITY));
+    assert.ok(systemPrompt.indexOf(NINA_TURN_INTEGRITY) < systemPrompt.indexOf(NINA_CONVERSATIONAL_RHYTHM));
     assert.match(systemPrompt, /two to four short sentences are natural/);
     assert.doesNotMatch(systemPrompt, /default to one or two short sentences|Let follow-up questions carry the conversation/);
     assert.match(systemPrompt, /not a hard sentence or word limit/);
@@ -116,7 +118,7 @@ test("system prompt assembly adds intimacy and conversational rhythm exactly onc
     assert.ok(systemPrompt.endsWith(privateMemory));
   }
 
-  assert.equal(publicConfig.systemPrompt, [basePrompt, PUBLIC_IDENTITY_CONTEXT, EXPECTED_CONTACT_INTRODUCTION, NINA_INTIMACY_CONTINUITY, NINA_CONVERSATIONAL_RHYTHM, conversationModeGuidance(false), privateMemory].join("\n\n"));
+  assert.equal(publicConfig.systemPrompt, [basePrompt, PUBLIC_IDENTITY_CONTEXT, EXPECTED_CONTACT_INTRODUCTION, NINA_INTIMACY_CONTINUITY, NINA_TURN_INTEGRITY, NINA_CONVERSATIONAL_RHYTHM, conversationModeGuidance(false), privateMemory].join("\n\n"));
   assert.match(publicConfig.systemPrompt, /Julia Payne artist Greenpoint Hamburger Bahnhof/);
   assert.doesNotMatch(publicConfig.systemPrompt, /The current visitor is Alejandro/);
   assert.ok(ownerConfig.systemPrompt.indexOf(NINA_CONVERSATIONAL_RHYTHM) < ownerConfig.systemPrompt.indexOf("The current visitor is Alejandro"));
