@@ -107,10 +107,13 @@ with sync_playwright() as p:
   assert page.locator('.nina-web-audio-check').count()==0
   page.evaluate('testEnd()');page.wait_for_timeout(450)
   page.screenshot(path=str(out/f'nina-continuation-{width}.png'))
-  expect(page.locator('#ninaScrimButton')).to_contain_text('6 MIN')
+  expect(page.locator('#ninaScrimButton')).to_have_text('GET MORE SIGNAL CREDITS')
   page.locator('#ninaScrimButton').click();page.wait_for_timeout(200)
+  expect(page.locator('.nina-credits-purchase')).to_be_visible()
+  assert page.evaluate("requests.filter(x=>x.url.includes('/credits/checkout')).length")==0
+  page.locator('[data-pack-id="signal_300"]').click();page.wait_for_timeout(200)
   checkout=page.evaluate("requests.filter(x=>x.url.includes('/credits/checkout')).at(-1)")
-  assert checkout and json.loads(checkout['body'])['packId']=='signal_60'
+  assert checkout and json.loads(checkout['body'])['packId']=='signal_300'
   assert page.locator('.nina-credits-purchase-status').text_content()=='Checkout unavailable. Please try again.'
   # Pure auth resume uses the real production listener and stored return intent.
   page.evaluate("testLocation.search=''; document.getElementById('ninaOverlay').classList.remove('is-open');testStoreAuth('signal');testClerk.listener()")
@@ -128,7 +131,7 @@ with sync_playwright() as p:
   assert page.locator('#ninaOverlay').evaluate("el=>el.classList.contains('is-open')")
   assert page.locator('.nina-credits-purchase').is_hidden()
   assert not errors,errors
-  results.append({'width':width,'checks':['no billing or online state before video playback','no billing before speech','first speech activates without any confirmation click','duplicate speech never double-activates','active microphone change preserves the call','connection closure cleans up and permits retry','audio help stops and cleans up','continuation requests 6-minute checkout','provider failure shown in modal','same-page signup resumes Nina','unrelated credits cannot falsely confirm checkout','verified added credits show Return to Nina'],'passed':True})
+  results.append({'width':width,'checks':['no billing or online state before video playback','no billing before speech','first speech activates without any confirmation click','duplicate speech never double-activates','active microphone change preserves the call','connection closure cleans up and permits retry','audio help stops and cleans up','continuation opens Signal Credit pack selector without auto-purchase','provider failure shown in modal','same-page signup resumes Nina','unrelated credits cannot falsely confirm checkout','verified added credits show Return to Nina'],'passed':True})
   page.close()
  browser.close()
 print(json.dumps(results,indent=2));(out/'results.json').write_text(json.dumps(results,indent=2))
