@@ -11,6 +11,10 @@ const SHARED_GROUP = 'Nina - Shared Canon';
 const PRIVATE_GROUP = 'Nina - Alejandro Private Canon';
 const OBSOLETE_GROUPS = new Set(['Nina - Previous Combined Canon', "Nina's Knowledge"]);
 const DOCUMENTS = [berlin, bio, culture, workroom, resonance, pv, alejandro];
+const CORE_SHARED = [berlin, bio, culture, workroom, resonance];
+const TEMP_PREFIX = '__NINA_CLEAN_V2__';
+const CLEAN_MARKER = 'NINA_CLEAN_CANON_V2';
+const FINALIZING_MARKER = 'NINA_CLEAN_CORE_FINALIZING_V2';
 
 function response(body, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -141,6 +145,89 @@ export async function runKnowledgeCentralization(env) {
     if (env.NINA_PRIVATE_KNOWLEDGE_FOLDER_ID && priv.id !== env.NINA_PRIVATE_KNOWLEDGE_FOLDER_ID)
       return response({ ok: false, error: 'private_binding_mismatch' }, 409);
 
+    const sharedDetail = await anam(env, `/knowledge/groups/${shared.id}`);
+    const sharedDescription = String(sharedDetail?.description || shared?.description || '');
+
+    // Core files 01-05 existed under the final names before this migration. Replace them
+    // safely via READY temporary copies so there is never a period with no core canon.
+    if (!sharedDescription.includes(CLEAN_MARKER)) {
+      let sharedDocs = await anam(env, `/knowledge/groups/${shared.id}/documents`);
+      const tempTargets = CORE_SHARED.map(doc => ({ ...doc, filename: TEMP_PREFIX + doc.filename }));
+      const missingTemps = tempTargets.filter(doc => !sharedDocs.some(item => item.filename === doc.filename));
+      if (missingTemps.length) {
+        const uploaded = [];
+        for (const doc of missingTemps) {
+          const created = await uploadDocument(env, shared.id, doc);
+          uploaded.push({ filename: doc.filename, status: created.status });
+        }
+        return response({ ok: true, phase: 'uploaded', stage: 'core_temp', uploaded });
+      }
+
+      const tempDocs = tempTargets.map(doc => sharedDocs.find(item => item.filename === doc.filename));
+      const failedTemp = tempDocs.filter(doc => doc?.status === 'FAILED');
+      if (failedTemp.length) {
+        for (const doc of failedTemp) await anam(env, `/knowledge/documents/${doc.id}`, { method: 'DELETE' });
+        return response({ ok: true, phase: 'uploaded', stage: 'core_temp_retry', deletedFailed: failedTemp.map(doc => doc.filename) });
+      }
+      const pendingTemp = tempDocs.filter(doc => doc?.status !== 'READY');
+      if (pendingTemp.length) return response({
+        ok: true, phase: 'processing', stage: 'core_temp',
+        documents: pendingTemp.map(doc => ({ filename: doc.filename, status: doc.status, error: doc.errorMessage || null }))
+      }, 202);
+
+      if (!sharedDescription.includes(FINALIZING_MARKER)) {
+        await anam(env, `/knowledge/groups/${shared.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ description: FINALIZING_MARKER })
+        });
+        sharedDocs = await anam(env, `/knowledge/groups/${shared.id}/documents`);
+        for (const doc of CORE_SHARED) {
+          const old = sharedDocs.find(item => item.filename === doc.filename);
+          if (old) await anam(env, `/knowledge/documents/${old.id}`, { method: 'DELETE' });
+        }
+        const uploaded = [];
+        for (const doc of CORE_SHARED) {
+          const created = await uploadDocument(env, shared.id, doc);
+          uploaded.push({ filename: doc.filename, status: created.status });
+        }
+        return response({ ok: true, phase: 'uploaded', stage: 'core_final', uploaded });
+      }
+
+      sharedDocs = await anam(env, `/knowledge/groups/${shared.id}/documents`);
+      const finals = CORE_SHARED.map(doc => sharedDocs.find(item => item.filename === doc.filename)).filter(Boolean);
+      const missingFinal = CORE_SHARED.filter(doc => !sharedDocs.some(item => item.filename === doc.filename));
+      if (missingFinal.length) {
+        const uploaded = [];
+        for (const doc of missingFinal) {
+          const created = await uploadDocument(env, shared.id, doc);
+          uploaded.push({ filename: doc.filename, status: created.status });
+        }
+        return response({ ok: true, phase: 'uploaded', stage: 'core_final_retry', uploaded });
+      }
+      const failedFinal = finals.filter(doc => doc.status === 'FAILED');
+      if (failedFinal.length) {
+        for (const doc of failedFinal) await anam(env, `/knowledge/documents/${doc.id}`, { method: 'DELETE' });
+        return response({ ok: true, phase: 'uploaded', stage: 'core_final_retry', deletedFailed: failedFinal.map(doc => doc.filename) });
+      }
+      const pendingFinal = finals.filter(doc => doc.status !== 'READY');
+      if (pendingFinal.length) return response({
+        ok: true, phase: 'processing', stage: 'core_final',
+        documents: pendingFinal.map(doc => ({ filename: doc.filename, status: doc.status, error: doc.errorMessage || null }))
+      }, 202);
+
+      for (const item of sharedDocs.filter(item => item.filename.startsWith(TEMP_PREFIX))) {
+        await anam(env, `/knowledge/documents/${item.id}`, { method: 'DELETE' });
+      }
+      await anam(env, `/knowledge/groups/${shared.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          description: `${CLEAN_MARKER} | Public factual canon for Nina FOK: Berlin 2063, biography, culture/materials, Workroom, Resonance/intimacy, and current Parallel Vision website artists/releases.`
+        })
+      });
+    }
+
     const sharedDocs = await anam(env, `/knowledge/groups/${shared.id}/documents`);
     const privateDocs = await anam(env, `/knowledge/groups/${priv.id}/documents`);
     const byGroup = new Map([[shared.id, sharedDocs], [priv.id, privateDocs]]);
@@ -176,7 +263,7 @@ export async function runKnowledgeCentralization(env) {
 
     const deletedDocuments = [];
     for (const item of refreshedShared) {
-      if (!desiredNames.has(item.filename)) {
+      if (!desiredNames.has(item.filename) && !item.filename.startsWith(TEMP_PREFIX)) {
         await anam(env, `/knowledge/documents/${item.id}`, { method: 'DELETE' });
         deletedDocuments.push(item.filename);
       }
@@ -196,11 +283,11 @@ export async function runKnowledgeCentralization(env) {
       }
     }
 
-    await anam(env, `/knowledge/groups/${shared.id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ description: 'Public factual canon for Nina FOK: Berlin 2063, biography, culture/materials, Workroom, Resonance/intimacy, and current Parallel Vision website artists/releases.' })
-    });
+    const finalShared = await anam(env, `/knowledge/groups/${shared.id}/documents`);
+    const finalPrivate = await anam(env, `/knowledge/groups/${priv.id}/documents`);
+    const tempLeft = finalShared.filter(doc => doc.filename.startsWith(TEMP_PREFIX));
+    for (const doc of tempLeft) await anam(env, `/knowledge/documents/${doc.id}`, { method: 'DELETE' });
+
     await anam(env, `/knowledge/groups/${priv.id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -210,9 +297,14 @@ export async function runKnowledgeCentralization(env) {
     return response({
       ok: true,
       phase: 'done',
+      cleanMarker: CLEAN_MARKER,
       keptGroups: [SHARED_GROUP, PRIVATE_GROUP],
       sharedDocuments: DOCUMENTS.filter(doc => doc.scope === 'shared').map(doc => doc.filename),
       privateDocuments: DOCUMENTS.filter(doc => doc.scope === 'private').map(doc => doc.filename),
+      statuses: {
+        shared: finalShared.filter(doc => desiredNames.has(doc.filename)).map(doc => ({ filename: doc.filename, status: doc.status })),
+        private: finalPrivate.filter(doc => desiredNames.has(doc.filename)).map(doc => ({ filename: doc.filename, status: doc.status }))
+      },
       deletedDocuments,
       deletedGroups
     });
