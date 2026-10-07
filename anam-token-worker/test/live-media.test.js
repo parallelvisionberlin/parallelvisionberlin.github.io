@@ -176,3 +176,12 @@ test('a current SDK startup remains connected after first video readiness', asyn
   assert.equal(stops, 0);
   f.guard.dispose();
 });
+
+
+test('provider duration detail survives a normal connection close', async () => {
+  const f = fixture(); f.client.emit(events.VIDEO_PLAY_STARTED); await f.guard.ready;
+  f.client.emit(events.CONNECTION_CLOSED, 'CONNECTION_CLOSED_CODE_SERVER_CLOSED_CONNECTION', 'Session reached max duration of 600.00 seconds');
+  assert.equal(f.failures.length, 1);
+  assert.equal(f.failures[0].code, 'connection_closed');
+  assert.match(f.failures[0].message, /max duration of 600/);
+});
