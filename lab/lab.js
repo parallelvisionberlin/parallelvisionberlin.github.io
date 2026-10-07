@@ -910,7 +910,7 @@ function renderCards(jobs,{upsert=false}={}){
       checkbox.onchange=()=>{if(checkbox.checked)historySelected.add(j.id);else historySelected.delete(j.id);updateHistorySelectionUi();};
       select.append(checkbox);card.append(select);
       card.addEventListener('click',event=>{if(!historySelectMode)return;if(event.target.closest('.history-select-box'))return;event.preventDefault();event.stopImmediatePropagation();toggleSelection();},true);
-      card.addEventListener('keydown',event=>{if(!historySelectMode||!['Enter',' '].includes(event.key))return;event.preventDefault();toggleSelection();});
+      card.addEventListener('keydown',event=>{if(event.target!==card||!historySelectMode||!['Enter',' '].includes(event.key))return;event.preventDefault();toggleSelection();});
     }
     const image=j.settings.type==='image',ready=hasResult(j),previews=[];
     if(ready&&image){
