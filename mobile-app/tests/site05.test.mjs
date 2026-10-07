@@ -14,3 +14,12 @@ test('hung token retrieval has a bounded wait and never sends a request later',a
 test('service errors are surfaced, never shown as saved',async()=>{await assert.rejects(accountRequest(async()=> 't','/api/account/preferences',{method:'PUT',body:{newsletterUpdates:true,ninaTransmissions:false}},async()=>response({error:'Preferences unavailable'},503)),/Preferences unavailable/);});
 test('memory deletion uses only the existing authenticated endpoint',async()=>{let result;await accountRequest(async()=> 't','/memory',{method:'DELETE',body:{}},async(url,o)=>{result={url,o};return response({deleted:true});});assert.equal(result.url,ACCOUNT_ORIGIN+'/memory');assert.equal(result.o.method,'DELETE');});
 test('time labels do not invent balances for absent data',()=>{assert.equal(formatTime(undefined),'Unavailable');assert.equal(formatTime(181),'3 min 1 sec');});
+
+test('project thumbnails correspond to three real canonical archive paths',()=>{
+ assert.deepEqual(projects.map(p=>p.path),['/berlin-2063.html','/future-fashion.html','/moving-transmissions.html']);
+ assert.ok(projects.every(p=>typeof p.image==='string'&&p.image.length>0));
+});
+test('each featured release keeps its specific original album artwork key',()=>{
+ assert.deepEqual(releases.map(r=>r.cover),['stayLowCover','tanzenCover','darkRockCover','builtCover']);
+ assert.equal(releases.filter(r=>r.playlist).length,3);
+});

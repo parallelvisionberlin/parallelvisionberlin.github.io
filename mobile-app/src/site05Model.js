@@ -1,17 +1,17 @@
 // Shared, testable data and transport. No Anam or microphone code belongs here.
 export const SITE_ORIGIN = 'https://parallelvisionlabel.com';
 export const ACCOUNT_ORIGIN = 'https://parallel-vision-anam-token.parallelvision.workers.dev';
-export const SITE_REVISION = 'SITE COHESION / 05.5';
+export const SITE_REVISION = 'MOBILE EDITORIAL / 06';
 export const projects = [
-  {id:'city', title:'THE CITY', copy:'Berlin as remembered, rebuilt and imagined.', path:'/berlin-2063.html', image:'city'},
-  {id:'fashion', title:'FASHION AFTER FABRIC', copy:'Bodies, material and identity beyond conventional clothing.', path:'/future-fashion.html', image:'fashion'},
-  {id:'transmissions', title:'MOVING TRANSMISSIONS', copy:'Films and fragments from Berlin 2063.', path:'/moving-transmissions.html', image:null},
+  {id:'city', title:'THE CITY', copy:'Structures, streets and everyday life in a transformed Berlin.', path:'/berlin-2063.html', image:'city'},
+  {id:'fashion', title:'FASHION AFTER FABRIC', copy:'New forms of clothing, material and identity.', path:'/future-fashion.html', image:'fashion'},
+  {id:'transmissions', title:'MOVING TRANSMISSIONS', copy:'Films, loops and projections from the archive.', path:'/moving-transmissions.html', image:'transmissions'},
 ];
 export const releases = [
-  {id:'stay-low',title:'STAY LOW',artist:'MOLINARI × NINA FOK',url:'https://soundcloud.com/parallelvisionlabel/stay-low',playlist:false},
-  {id:'tanzen',title:'TANZEN IM KREIS',artist:'ALEJANDRO MOLINARI',url:'https://soundcloud.com/parallelvisionlabel/sets/alejandro-molinari-tanzen-im',playlist:true},
-  {id:'dark-rock',title:'DARK ROCK EP',artist:'BLEX',url:'https://soundcloud.com/parallelvisionlabel/sets/dark-rock-ep',playlist:true},
-  {id:'built',title:'BUILT TO LAST EP',artist:'REFRAKT',url:'https://soundcloud.com/parallelvisionlabel/sets/refrakt-ny-built-to-last-matt',playlist:true},
+  {id:'stay-low',title:'STAY LOW',artist:'MOLINARI × NINA FOK',cover:'stayLowCover',url:'https://soundcloud.com/parallelvisionlabel/stay-low',playlist:false},
+  {id:'tanzen',title:'TANZEN IM KREIS',artist:'ALEJANDRO MOLINARI',cover:'tanzenCover',url:'https://soundcloud.com/parallelvisionlabel/sets/alejandro-molinari-tanzen-im',playlist:true},
+  {id:'dark-rock',title:'DARK ROCK EP',artist:'BLEX',cover:'darkRockCover',url:'https://soundcloud.com/parallelvisionlabel/sets/dark-rock-ep',playlist:true},
+  {id:'built',title:'BUILT TO LAST EP',artist:'REFRAKT',cover:'builtCover',url:'https://soundcloud.com/parallelvisionlabel/sets/refrakt-ny-built-to-last-matt',playlist:true},
 ];
 export const accountSections = [
   {id:'profile',title:'Profile'}, {id:'credits',title:'Signal Credits'},

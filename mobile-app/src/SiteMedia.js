@@ -4,7 +4,7 @@ import {useVideoPlayer,VideoView} from 'expo-video';
 
 // The bundled website films are already composed around their subjects.
 // Keep the native video visible and centered; the poster is only a short startup/error layer.
-export function SiteFilm({source,poster,paused=false,style,label='Parallel Vision film',contentFit='cover',posterStyle}){
+export function SiteFilm({source,poster,paused=false,style,label='Parallel Vision film',contentFit='cover',contentPosition={dx:0,dy:0},posterStyle}){
   const [posterVisible,setPosterVisible]=useState(true);
   const [failed,setFailed]=useState(false);
   const [active,setActive]=useState(!AppState.currentState||AppState.currentState==='active');
@@ -68,8 +68,8 @@ export function SiteFilm({source,poster,paused=false,style,label='Parallel Visio
   },[player]);
 
   return <View style={[s.frame,style]} accessible accessibilityLabel={label}>
-    {!failed&&<VideoView player={player} style={StyleSheet.absoluteFillObject} contentFit={contentFit} contentPosition={{dx:0,dy:0}} nativeControls={false} allowsPictureInPicture={false} allowsVideoFrameAnalysis={false} onFirstFrameRender={()=>{setPosterVisible(false);try{if(shouldPlay.current)player.play();}catch{}}}/>} 
-    {(posterVisible||failed)&&<Image pointerEvents="none" source={poster} style={[StyleSheet.absoluteFillObject,posterStyle]} resizeMode={contentFit}/>} 
+    {!failed&&<VideoView player={player} style={StyleSheet.absoluteFillObject} contentFit={contentFit} contentPosition={contentPosition} nativeControls={false} allowsPictureInPicture={false} allowsVideoFrameAnalysis={false} onFirstFrameRender={()=>{setPosterVisible(false);try{if(shouldPlay.current)player.play();}catch{}}}/>} 
+    {(posterVisible||failed)&&<Image pointerEvents="none" source={poster} style={[StyleSheet.absoluteFillObject,posterStyle,(contentPosition.dx||contentPosition.dy)?{transform:[{translateX:contentPosition.dx},{translateY:contentPosition.dy}]}:null]} resizeMode={contentFit}/>} 
   </View>;
 }
 const s=StyleSheet.create({frame:{overflow:'hidden',backgroundColor:'#090909'}});

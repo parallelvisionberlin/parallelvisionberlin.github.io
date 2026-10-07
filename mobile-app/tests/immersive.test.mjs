@@ -31,15 +31,15 @@ test('website films stay visible, retry playback and enforce the source-centered
  const media=readFileSync(new URL('../src/SiteMedia.js',import.meta.url),'utf8');
  const screens=readFileSync(new URL('../src/DeckScreens.js',import.meta.url),'utf8');
  assert.match(assets,/city.mp4/); assert.match(assets,/nina-room.mp4/);
- assert.match(assets,/city-poster.jpg/); assert.match(assets,/nina-poster.jpg/);
- assert.doesNotMatch(screens,/deck04\/nina-portrait/);
+ assert.match(assets,/city-poster.jpg/); assert.match(assets,/nina-poster.jpg/); assert.match(assets,/nina-canon.webp/); assert.match(assets,/robotloop-poster.webp/);
+ assert.doesNotMatch(screens,/deck04\/nina-portrait/); assert.match(screens,/source=\{media.ninaCanon\}/);
  assert.match(media,/nativeControls=\{false\}/);
  assert.match(media,/allowsVideoFrameAnalysis=\{false\}/);
  assert.doesNotMatch(media,/opacity:videoReady/);
  assert.match(media,/setTimeout\(\(\)=>setPosterVisible\(false\),900\)/);
  assert.match(media,/playingChange/);
  assert.match(media,/event\.status==='readyToPlay'/);
- assert.match(media,/contentPosition=\{\{dx:0,dy:0\}\}/);
+ assert.match(media,/contentPosition=\{contentPosition\}/);
  assert.match(media,/mixWithOthers/);
  for(const name of ['DeckHome','DeckNina','Deck2063','DeckMusic','DeckNav'])assert.match(screens,new RegExp('export function '+name));
 });

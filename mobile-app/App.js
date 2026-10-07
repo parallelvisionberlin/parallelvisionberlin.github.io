@@ -8,7 +8,6 @@ import {NinaLiveModal} from './src/NinaLiveModal';
 import {DeckHome,DeckNina,Deck2063,DeckMusic,DeckNav} from './src/DeckScreens';
 import {NativeAccount} from './src/NativeAccount';
 import {ProjectReader} from './src/ProjectReader';
-import {SITE_REVISION} from './src/site05Model';
 
 function ProfileScreen({pending,onCancel,onContinue,opening}){
   const {isSignedIn}=useAuth();
@@ -16,7 +15,6 @@ function ProfileScreen({pending,onCancel,onContinue,opening}){
     <ScrollView contentContainerStyle={styles.profileScroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
       {pending&&<View style={styles.signInNotice}><Text style={styles.notice}>Sign in to continue to Nina.</Text><Pressable accessibilityRole="button" onPress={onCancel} style={styles.cancel}><Text style={styles.cancelText}>CANCEL</Text></Pressable></View>}
       {isSignedIn?<NativeAccount onContinue={onContinue} opening={opening}/>:<AuthPanel onContinue={onContinue} opening={opening}/>}
-      <Text style={styles.revision}>{SITE_REVISION}</Text>
     </ScrollView>
   </KeyboardAvoidingView>;
 }

@@ -190,7 +190,6 @@ export function AuthPanel({ onContinue, opening = false }) {
       {!!message && <Text accessibilityRole="alert" style={styles.error}>{message}</Text>}
       {onContinue && <Action onPress={onContinue} busy={opening}>TALK TO NINA</Action>}
       <Action secondary busy={busy === 'signout'} onPress={() => run('signout', () => signOut())}>SIGN OUT</Action>
-      <Text style={styles.revision}>{AUTH_REVISION}</Text>
     </View>
   );
 
@@ -222,7 +221,6 @@ export function AuthPanel({ onContinue, opening = false }) {
         </View>
       </>}
       {!!message && <Text accessibilityRole="alert" style={styles.error}>{message}</Text>}
-      <Text style={styles.revision}>{AUTH_REVISION}</Text>
     </View>
   );
 }
