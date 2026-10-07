@@ -1265,7 +1265,7 @@ function trackNinaMessageCompletion(client, attempt) {
     if (attempt !== ninaAttempt || client !== ninaClient || event?.role !== "persona" || typeof event.id !== "string") return;
     let message = messages.get(event.id);
     if (!message) {
-      message = { content: "", interrupted: false, completed: [], segment: 0, watchdogInterrupted: false, staleInterrupted: false };
+      message = { content: "", fullContent: "", interrupted: false, completed: [], segment: 0, watchdogInterrupted: false, staleInterrupted: false };
       messages.set(event.id, message);
     }
     const correlation = event.id.startsWith("persona::") && !event.id.startsWith("persona::engine::")
@@ -1277,9 +1277,11 @@ function trackNinaMessageCompletion(client, attempt) {
       return;
     }
     // One endOfSpeech may cover several utterance IDs. Keep all its chunks together.
-    message.content += typeof event.content === "string" ? event.content : "";
+    const chunk = typeof event.content === "string" ? event.content : "";
+    message.content += chunk;
+    message.fullContent += chunk;
     message.interrupted ||= Boolean(event.interrupted);
-    if (!event.endOfSpeech && !message.watchdogInterrupted && shouldInterruptNinaOutput(message.content)) {
+    if (!message.watchdogInterrupted && shouldInterruptNinaOutput(message.fullContent)) {
       message.watchdogInterrupted = true;
       message.interrupted = true;
       interrupt();
@@ -1292,8 +1294,7 @@ function trackNinaMessageCompletion(client, attempt) {
       });
       message.segment++;
       message.content = "";
-      message.interrupted = false;
-      message.watchdogInterrupted = false;
+      message.interrupted = message.watchdogInterrupted;
     }
   };
   if (historyEvent) client.addListener(historyEvent, onHistory);
