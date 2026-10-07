@@ -53,7 +53,8 @@ test('visitor receives public identity with unchanged model, voice and inherited
   assert.equal(config.llmId, 'beta-model');
   assert.equal(config.voiceId, 'voice');
   assert.equal(config.avatarId, 'avatar');
-  assert.equal(config.tools[0].description, 'Keep the published Workroom instructions.');
+  assert.ok(config.tools[0].description.startsWith('Keep the published Workroom instructions.'));
+  assert.match(config.tools[0].description, /facts\/canon only/);
   assert.deepEqual(config.tools[0].documentFolderIds, ['shared']);
   assert.match(assembleSystemPrompt({ systemPrompt: persona.brain.systemPrompt }, true, '').systemPrompt, /PRIVATE_CANARY/);
 });
