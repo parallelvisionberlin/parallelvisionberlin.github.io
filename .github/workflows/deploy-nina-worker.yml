@@ -29,10 +29,14 @@ jobs:
           node-version: '22'
 
       - name: Install worker dependencies
-        run: npm ci --prefix anam-token-worker
+        run: |
+          npm install -g pnpm@10.15.1
+          pnpm --dir anam-token-worker install --frozen-lockfile
 
       - name: Run Nina worker tests
-        run: npm test --prefix anam-token-worker
+        run: |
+          npm run check --prefix anam-token-worker
+          npm test --prefix anam-token-worker
 
       - name: Normalize Cloudflare API token
         shell: bash
