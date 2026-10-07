@@ -1,5 +1,4 @@
 import { knowledgeToolDescription, optimizeKnowledgeInstructions } from './knowledge-policy.js';
-import { restoreEricKnowledgeOnce } from './eric-knowledge-restore-once.js';
 import { workspaceEnabled, memoryControls, correctionContext, saveMemoryControl, MemoryEditError } from './memory-controls.js';
 import { memoryWorkspace } from './memory-workspace.js';
 import { enqueueMemoryJob, processMemoryJob, drainMemoryJobs } from './memory-jobs.js';
@@ -1006,27 +1005,9 @@ export default {
   async scheduled(_event, env, ctx) {
     ctx.waitUntil(observeBackgroundJob('memory_retry', () => drainMemoryJobs(env)));
     ctx.waitUntil(observeBackgroundJob('live_usage_cleanup', () => expireStaleLiveNinaSessions(env)));
-    // Temporary: restore Eric's factual contact dossier without exposing a public admin route.
-    if (env?.ANAM_API_KEY && env?.NINA_PUBLIC_KNOWLEDGE_FOLDER_ID)
-      ctx.waitUntil(restoreEricKnowledgeOnce(env));
   },
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
-    // Temporary read-only verification; removed immediately after Anam confirms READY.
-    if (url.pathname === "/__nina_eric_kb_status_f0c96a482b7e20261008" && request.method === "GET") {
-      const id = env.NINA_PUBLIC_KNOWLEDGE_FOLDER_ID;
-      if (!id || !env.ANAM_API_KEY) return Response.json({status:"unavailable"},{status:503});
-      try {
-        const response = await fetch("https://api.anam.ai/v1/knowledge/groups/"+encodeURIComponent(id)+"/documents",{
-          headers:{Authorization:"Bearer "+env.ANAM_API_KEY}
-        });
-        if(!response.ok)return Response.json({status:"lookup_failed",http_status:response.status},{status:502});
-        const docs=await response.json();
-        const item=Array.isArray(docs)?docs.find(d=>d.filename==="07_Eric_Lohela_Shared.pdf"):null;
-        return Response.json({file:"07_Eric_Lohela_Shared.pdf",status:item?.status||"NOT_FOUND",count:Array.isArray(docs)?docs.length:null},
-          {headers:{"Cache-Control":"no-store"}});
-      }catch{return Response.json({status:"lookup_failed"},{status:502});}
-    }
     const origin = request.headers.get("Origin") || "";
     if(url.pathname==='/tools/lookup-music-catalog'&&request.method==='POST') {
       if(!workspaceEnabled(env))return jsonResponse({error:'Not found'},404);
