@@ -6,10 +6,12 @@ test('connection diagnostics preserve reason while removing details that may con
  const sent=[];
  const tracker=attachConversationDiagnostics({client:{addListener(){},removeListener(){}},events:{},conversationId:'c',send:async body=>{sent.push(...body.events);return true;}});
  tracker.record('media_failure',{reason:'video_stalled',phase:'playback',errorMessage:'Failed https://private.example?token=secret',transcript:'must not be sent'});
- await tracker.flush();tracker.stop();await tracker.flush();
+ await tracker.flush();tracker.stop('audio_help');await tracker.flush();
  const failure=sent.find(e=>e.kind==='media_failure');
+ const ended=sent.find(e=>e.kind==='client_end');
  assert.equal(failure.data.reason,'video_stalled');
  assert.equal(failure.data.phase,'playback');
+ assert.equal(ended.data.reason,'audio_help');
  assert.doesNotMatch(JSON.stringify(sent),/private.example|token=secret|must not be sent/);
 });
 test('collector ignores replayed history, captures new utterances and never sends tool secrets',async()=>{
