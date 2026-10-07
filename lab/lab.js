@@ -362,8 +362,7 @@ async function submitQuotedGeneration(q, expectedEpoch=epoch) {
   // Retain the same quote ID through the session-safe request helper. Never reprice/retry a paid task here.
   const data=await api('/api/jobs',{method:'POST',body:{quoteId:q.id,confirm:true}});
   if($('quote-dialog').open)$('quote-dialog').close();
-  resetPreview();autoPreview={id:data.job.id,revision:previewRevision};setActive(data.job);
-  await syncHistory();
+  resetPreview();autoPreview={id:data.job.id,revision:previewRevision};setActive(data.job);surfaceHistoryJob(data.job);refreshHistorySoon();
   const failed=['failed','uncertain','resolved'].includes(data.job.status);
   notify(failed?(data.job.error||'The generation was not confirmed. Check History before another attempt.'):
     (['image','upscale'].includes(q.settings.mode)?(q.settings.mode==='upscale'?'Upscale requested.':'Image requested.')+(q.priceIsEstimate?' Estimated provider charge: '+money(q.estimatedUsd)+' USD. Not a guaranteed maximum. Results appear in History.':' Quoted maximum: '+money(q.maxUsd)+' USD. Results appear in History.'):'Generation request recorded. You can leave the page and return to History.'),failed);
@@ -406,7 +405,7 @@ $('generate').onclick=()=>action(async()=>{
     const data=await api('/api/fal/soul-pro',{method:'POST',body:{...inputs,settings:imageSettings}});
     const job=data.job;if(!job)throw new Error('No PV Soul Pro job was returned.');
     if(activeStates.has(job.status))setActive(job);
-    resetPreview();autoPreview={id:job.id,revision:previewRevision};await syncHistory();
+    resetPreview();autoPreview={id:job.id,revision:previewRevision};surfaceHistoryJob(job);refreshHistorySoon();
     const failed=['failed','uncertain','resolved'].includes(job.status);
     notify(failed?(job.error||'PV Soul Pro was not confirmed. Check History before retrying.'):'PV Soul Pro requested. Budget reserve: '+money(job.estimatedUsd||0)+' USD. Result will appear in History.',failed);
     return;
@@ -417,7 +416,7 @@ $('generate').onclick=()=>action(async()=>{
     const data=await api('/api/fal/controlled-pose',{method:'POST',body:{...inputs,poseMapSourceId,settings:imageSettings}});
     const job=data.job;if(!job)throw new Error('No Controlled Pose job was returned.');
     if(activeStates.has(job.status))setActive(job);
-    resetPreview();autoPreview={id:job.id,revision:previewRevision};await syncHistory();
+    resetPreview();autoPreview={id:job.id,revision:previewRevision};surfaceHistoryJob(job);refreshHistorySoon();
     const failed=['failed','uncertain','resolved'].includes(job.status);
     notify(failed?(job.error||'Controlled Pose was not confirmed. Check History before retrying.'):'Controlled Pose requested. Budget reserve: '+money(job.estimatedUsd||0)+' USD. Result will appear in History.',failed);
     return;
@@ -428,8 +427,8 @@ $('generate').onclick=()=>action(async()=>{
     if(imageProcessing==='batch'){
       notify('Queueing '+requested+' Nano Banana Pro image'+(requested===1?'':'s')+' in Batch…');
       const data=await api('/api/gemini/jobs',{method:'POST',body:{...inputs,count:requested,settings:imageSettings}});
-      for(const job of data.jobs||[])setActive(job);
-      resetPreview();if(data.jobs?.length)autoPreview={id:data.jobs[0].id,revision:previewRevision};await syncHistory();
+      for(const job of data.jobs||[]){setActive(job);surfaceHistoryJob(job);}
+      resetPreview();if(data.jobs?.length)autoPreview={id:data.jobs[0].id,revision:previewRevision};refreshHistorySoon();
       notify(requested+' Nano Banana Pro image'+(requested===1?'':'s')+' queued in Batch at the discounted API rate.');
       return;
     }
@@ -438,10 +437,10 @@ $('generate').onclick=()=>action(async()=>{
     for(let i=0;i<requested;i++){
       if(!owner||epoch!==sessionEpoch||tool!=='image'||imageEngine!=='gemini')break;
       const data=await api('/api/gemini/jobs',{method:'POST',body:{...inputs,count:1,settings:imageSettings}});
-      const job=data.jobs?.[0];if(job){completed++;lastJob=job;if(activeStates.has(job.status))setActive(job);}
+      const job=data.jobs?.[0];if(job){completed++;lastJob=job;if(activeStates.has(job.status))setActive(job);surfaceHistoryJob(job);}
     }
     if(!completed)throw new Error('No Nano Banana Pro generation was submitted.');
-    resetPreview();if(lastJob)autoPreview={id:lastJob.id,revision:previewRevision};await syncHistory();
+    resetPreview();if(lastJob)autoPreview={id:lastJob.id,revision:previewRevision};refreshHistorySoon();
     if(lastJob&&hasResult(lastJob))await openVideo(lastJob,{scroll:false});
     notify(completed+' Nano Banana Pro image'+(completed===1?'':'s')+' completed.');
     return;
@@ -466,7 +465,7 @@ $('generate').onclick=()=>action(async()=>{
       if(!Number.isFinite(q.expiresAt)||Date.now()>=q.expiresAt)break;
       try{
         const data=await api('/api/jobs',{method:'POST',body:{quoteId:q.id,confirm:true}});
-        submitted++;lastJob=data.job;setActive(data.job);
+        submitted++;lastJob=data.job;setActive(data.job);surfaceHistoryJob(data.job);
         if(['failed','uncertain','resolved'].includes(data.job.status))break;
       }catch(e){
         if(!submitted)throw e;
@@ -477,7 +476,7 @@ $('generate').onclick=()=>action(async()=>{
     if(!submitted)throw new Error('No image generation was submitted.');
     resetPreview();
     if(lastJob)autoPreview={id:lastJob.id,revision:previewRevision};
-    await syncHistory();
+    refreshHistorySoon();
     if(submitted===requested)notify(requested===1?'Image requested. Result appears in History.':requested+' images requested as one batch. Results appear independently in History.');
     return;
   }
@@ -884,7 +883,13 @@ function updateHistorySelectionUi(){
   $('history-selection').hidden=!historySelectMode;
   $('history-select').hidden=historySelectMode;
   $('history').classList.toggle('is-selecting',historySelectMode);
-  for(const box of $('history').querySelectorAll('.history-select-box'))box.hidden=!historySelectMode;
+  for(const card of $('history').querySelectorAll('.card')){
+    const selectable=historySelectMode&&card.dataset.deletable==='true',selected=historySelected.has(card.dataset.job);
+    card.classList.toggle('is-selectable',selectable);card.classList.toggle('is-selected',selected);
+    if(selectable){card.tabIndex=0;card.setAttribute('aria-selected',String(selected));}
+    else{card.removeAttribute('tabindex');card.removeAttribute('aria-selected');}
+    const box=card.querySelector('.history-select-box');if(box){box.hidden=!historySelectMode;const input=box.querySelector('input');if(input)input.checked=selected;}
+  }
   $('history-selection-count').textContent=historySelected.size+' selected';
   $('history-delete-selected').disabled=historySelected.size===0;
 }
@@ -901,8 +906,11 @@ function renderCards(jobs,{upsert=false}={}){
     if(!activeStates.has(j.status)){
       const select=document.createElement('label');select.className='history-select-box';select.hidden=!historySelectMode;
       const checkbox=document.createElement('input');checkbox.type='checkbox';checkbox.checked=historySelected.has(j.id);checkbox.setAttribute('aria-label','Select this History item');
+      const toggleSelection=()=>{checkbox.checked=!checkbox.checked;if(checkbox.checked)historySelected.add(j.id);else historySelected.delete(j.id);updateHistorySelectionUi();};
       checkbox.onchange=()=>{if(checkbox.checked)historySelected.add(j.id);else historySelected.delete(j.id);updateHistorySelectionUi();};
       select.append(checkbox);card.append(select);
+      card.addEventListener('click',event=>{if(!historySelectMode)return;if(event.target.closest('.history-select-box'))return;event.preventDefault();event.stopImmediatePropagation();toggleSelection();},true);
+      card.addEventListener('keydown',event=>{if(!historySelectMode||!['Enter',' '].includes(event.key))return;event.preventDefault();toggleSelection();});
     }
     const image=j.settings.type==='image',ready=hasResult(j),previews=[];
     if(ready&&image){
@@ -974,6 +982,14 @@ function renderCards(jobs,{upsert=false}={}){
 }
 async function loadHistory(append=false,incremental=false){const rev=historyRevision,query=append&&next?'?before='+next.before+'&afterId='+encodeURIComponent(next.afterId):'',data=await api('/api/jobs'+query);if(!owner||rev!==historyRevision)return;if(!append&&!incremental){historyRevision++;observer.disconnect();cardUrls.forEach(release);cardUrls.clear();$('history').replaceChildren();}renderCards(data.jobs,{upsert:incremental});next=data.next;$('more').hidden=!next;$('emptyarchive').hidden=$('history').children.length>0;if(data.concurrency)config.concurrency=data.concurrency;setActiveJobs(data.activeJobs||(data.active?[data.active]:[]));}
 async function syncHistory(){return loadHistory(false,true);}
+function surfaceHistoryJob(job){
+  if(!job||!owner)return;
+  renderCards([job],{upsert:true});$('emptyarchive').hidden=true;
+}
+function refreshHistorySoon(){
+  const expectedEpoch=epoch;
+  queueMicrotask(()=>syncHistory().catch(error=>{if(owner&&epoch===expectedEpoch)notify('History refresh delayed. Your queued job is safe. '+error.message,true);}));
+}
 $('refresh').onclick=()=>action(()=>loadHistory());$('more').onclick=()=>action(()=>loadHistory(true));
 $('history-select').onclick=()=>setHistorySelectMode(true);
 $('history-cancel-select').onclick=()=>setHistorySelectMode(false);
