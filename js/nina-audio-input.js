@@ -1,5 +1,5 @@
 // Shared capture policy. These are preferences, never device requirements.
-export const NINA_AUDIO_INPUT_REVISION = 'noise-control01';
+export const NINA_AUDIO_INPUT_REVISION = 'noise-control02';
 export function speechConstraints(deviceId = '', supported = {}) {
   const audio = {};
   if (deviceId) audio.deviceId = { exact: deviceId };
@@ -30,7 +30,7 @@ export async function openSpeechMicrophone(mediaDevices, deviceId = '', isCurren
     return await mediaDevices.getUserMedia(speechConstraints(deviceId, mediaDevices.getSupportedConstraints?.() || {}));
   } catch (error) {
     if (!isCurrent() || !['NotFoundError', 'OverconstrainedError'].includes(error?.name)) throw error;
-    return await mediaDevices.getUserMedia({ audio: true, video: false });
+    return await mediaDevices.getUserMedia(speechConstraints("", mediaDevices.getSupportedConstraints?.() || {}));
   }
 }
 
