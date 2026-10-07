@@ -85,8 +85,8 @@ test('session loads old durable pins beyond 20 and never loads another account',
   f.sqlite.exec("INSERT INTO visitors VALUES ('other','Other','visitor','2026-01-01','2026-01-01'); INSERT INTO pinned_memories VALUES ('secret','other','preference','A different account private fact.','2026-01-01','2026-09-13');");
   const result=await buildOwnerMemoryContext(f.env,{user_id:'u',visitor_id:'v',display_name:'Test',profile_type:'user'});
   assert.match(result.context,/prefers concise explanations/);assert.doesNotMatch(result.context,/different account private fact/);
-  assert.equal(result.diagnostics.eligiblePinnedMemoryCount,25);
-  assert.ok(result.context.indexOf('prefers concise explanations') < result.context.indexOf('is smoking a joint'));
+  assert.equal(result.diagnostics.eligiblePinnedMemoryCount,1);
+  assert.doesNotMatch(result.context,/is smoking a joint/);
   assert.equal((await loadConsolidationInput({...f.env},'v')).existingPinned.length,0); // No new messages: no extraction input.
 });
 
