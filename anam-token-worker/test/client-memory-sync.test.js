@@ -22,7 +22,7 @@ function fixture() {
   const state = {
     AbortController, Error, Promise, Map, Set, WeakMap, Date,
     ANAM_SESSION_TOKEN_ENDPOINT: 'https://worker.example/session-token',
-    AnamEvent: { MESSAGE_STREAM_EVENT_RECEIVED: 'stream', USER_SPEECH_STARTED: 'speech-start' },
+    AnamEvent: { MESSAGE_STREAM_EVENT_RECEIVED: 'stream', MESSAGE_HISTORY_UPDATED: 'history' },
     ninaMemorySyncPromise: Promise.resolve(), ninaVisitorId: 'visitor-a',
     ninaClerk: { session: { id: 'auth-a' } }, ninaClient: client, ninaAttempt: 1,
     ninaSessionMessageKeys: new Set(), ninaServerConversationId: 'conversation-a',
@@ -38,7 +38,7 @@ function fixture() {
   vm.runInContext(`${deadline}\n${section}\nthis.api={queueOwnerMemoryRequest,storeCompletedNinaMessages,trackNinaMessageCompletion,readNinaMemory};`, state);
   return { state, client, requests, indicators,
     emit(event) { listeners.get('stream')?.(event); },
-    speechStart() { listeners.get('speech-start')?.({}); },
+    history(messages) { listeners.get('history')?.(messages); },
     expire(milliseconds) {
       const entry = [...timers].find(([, timer]) => timer.milliseconds === milliseconds);
       assert.ok(entry, `A ${milliseconds}ms deadline is active`);
@@ -179,10 +179,14 @@ test('one endOfSpeech preserves earlier utterance IDs and saves the final answer
 });
 
 
-test('user speech cancels a stale persona generation before it can arrive late', () => {
+test('microphone speech does not manually interrupt Nina, but a stale correlated reply is stopped', () => {
   const f = fixture(); f.state.ninaServerConversationId = '';
   f.state.api.trackNinaMessageCompletion(f.client, 1);
-  f.speechStart();
+  assert.equal(f.client.interrupts, 0);
+  f.history([{ id:'user::new-turn', role:'user', content:'Latest question' }]);
+  f.emit({ id:'persona::old-turn', role:'persona', utteranceId:'u1', content:'Old delayed reply', endOfSpeech:false, interrupted:false });
+  assert.equal(f.client.interrupts, 1);
+  f.emit({ id:'persona::new-turn', role:'persona', utteranceId:'u2', content:'Current reply', endOfSpeech:true, interrupted:false });
   assert.equal(f.client.interrupts, 1);
 });
 
