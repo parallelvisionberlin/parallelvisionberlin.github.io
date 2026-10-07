@@ -62,9 +62,11 @@ test("ordinary changes are clamped to one category and unsupported dimensions ar
   assert.deepEqual(RELATIONSHIP_LEVELS, ["very_low", "low", "developing", "moderate", "established", "high"]);
 });
 
-test("no-change output and malformed summaries cannot mutate state", () => {
+test("no-change output cannot mutate state and summaries are not required authority", () => {
   assert.equal(normalizeRelationshipUpdate(DEFAULT_RELATIONSHIP_STATE, { changed: false, changes: { trust: "high" }, summary: "No." }), null);
-  assert.equal(normalizeRelationshipUpdate(DEFAULT_RELATIONSHIP_STATE, { changed: true, changes: { trust: "high" }, summary: "" }), null);
+  const update = normalizeRelationshipUpdate(DEFAULT_RELATIONSHIP_STATE, { changed: true, changes: { trust: "high" }, summary: "" });
+  assert.equal(update.state.trust, "moderate");
+  assert.match(update.summary, /Relational posture:/);
 });
 
 test("evidence gate rejects trivial, romantic demand, single flirt and roleplay", () => {
@@ -272,21 +274,24 @@ test("personal-data deletion removes only the authenticated user's relationship 
   assert.equal(db.rows.has("user-b"), true);
 });
 
-test("prompt context contains summary only and never exposes raw categorical state", async () => {
+test("prompt context is compact deterministic posture and never reuses generated prose", async () => {
   const db = relationshipDb();
   const context = await buildRelationshipContext({ NINA_MEMORY_DB: db }, "user-a");
   assert.match(context, /HIDDEN INTERNAL RELATIONAL CONTEXT/);
-  assert.doesNotMatch(context, /very_low|state_json|familiarity/);
+  assert.match(context, /Relational posture:/);
+  assert.match(context, /familiarity very low/);
+  assert.doesNotMatch(context, /state_json/);
 });
 
 test("owner trial omits inferred posture without changing stored state and can be reversed", async () => {
   const db = relationshipDb();
   const env = { NINA_MEMORY_DB: db };
   await getOrCreateRelationshipState(env, "owner-user");
-  db.rows.get("owner-user").relationship_summary = "Nina feels more distant after the last conversation.";
+  db.rows.get("owner-user").relationship_summary = "Generated prose that must not be injected.";
   const before = structuredClone(db.rows.get("owner-user"));
   const baseline = await buildRelationshipContext(env, "owner-user", { establishedOwner: true });
-  assert.match(baseline, /more distant/);
+  assert.match(baseline, /Relational posture:/);
+  assert.doesNotMatch(baseline, /Generated prose/);
   env.NINA_OWNER_RELATIONSHIP_CONTEXT_ENABLED = "false";
   assert.equal(await buildRelationshipContext(env, "owner-user", { establishedOwner: true }), "");
   assert.deepEqual(db.rows.get("owner-user"), before);
