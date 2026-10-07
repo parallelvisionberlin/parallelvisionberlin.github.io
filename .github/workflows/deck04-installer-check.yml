@@ -1,4 +1,4 @@
-name: Site 05 Windows source and installer check
+name: Mobile 06 Windows source and installer check
 on:
   push:
     branches: [mobile-app-v1]
@@ -23,7 +23,7 @@ jobs:
         shell: powershell
         run: |
           $ErrorActionPreference = 'Stop'
-          $pin = 'a2c40619117818e8a98fde441e98918045301b1a'
+          $pin = '8d9147eecb17ad8edfebc3f217114fce1e715375'
           $path = 'mobile-app/finish-site05.ps1'
           $tokens = $null; $errors = $null
           $null = [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path $path).Path, [ref]$tokens, [ref]$errors)
@@ -31,7 +31,7 @@ jobs:
           $text = [IO.File]::ReadAllText((Resolve-Path $path))
           $needle = '$SourceCommit = ' + "'" + $pin + "'"
           if (!$text.Contains($needle)) { throw 'Installer source pin does not match verified source.' }
-          if (!$text.Contains('SITE COHESION / 05.5')) { throw 'Wrong release marker.' }
+          if (!$text.Contains('MOBILE EDITORIAL / 06')) { throw 'Wrong release marker.' }
           git cat-file -e "${pin}^{commit}"
           if ($LASTEXITCODE -ne 0) { throw 'Pinned source is unavailable.' }
           git diff --exit-code $pin HEAD -- mobile-app/App.js mobile-app/src mobile-app/assets mobile-app/tests mobile-app/scripts mobile-app/app.json mobile-app/eas.json mobile-app/package.json mobile-app/package-lock.json mobile-app/.easignore mobile-app/.npmrc

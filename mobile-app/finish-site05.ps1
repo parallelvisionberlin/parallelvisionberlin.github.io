@@ -1,7 +1,7 @@
 param([switch]$CheckOnly)
 $ErrorActionPreference = 'Stop'
-$SourceCommit = 'a2c40619117818e8a98fde441e98918045301b1a'
-$Revision = 'SITE COHESION / 05.5'
+$SourceCommit = '8d9147eecb17ad8edfebc3f217114fce1e715375'
+$Revision = 'MOBILE EDITORIAL / 06'
 $OriginalLocation = Get-Location
 $PriorNoVcs = [Environment]::GetEnvironmentVariable('EAS_NO_VCS', 'Process')
 $PriorRoot = [Environment]::GetEnvironmentVariable('EAS_PROJECT_ROOT', 'Process')
@@ -30,7 +30,7 @@ try {
     Invoke-Checked 'git.exe' @('-C', $Repository, 'cat-file', '-e', "${SourceCommit}^{commit}")
     & git.exe -C $Repository diff --quiet $SourceCommit FETCH_HEAD -- mobile-app/App.js mobile-app/src mobile-app/assets mobile-app/tests mobile-app/scripts mobile-app/app.json mobile-app/eas.json mobile-app/package.json mobile-app/package-lock.json mobile-app/.easignore mobile-app/.npmrc
     if ($LASTEXITCODE -ne 0) { throw 'Newer app code exists. Stopped rather than building the wrong version.' }
-    $Name = 'SITE055_' + (Get-Date -Format 'yyyyMMdd_HHmmss') + '_' + ([guid]::NewGuid().ToString('N').Substring(0, 6))
+    $Name = 'PV06_' + (Get-Date -Format 'yyyyMMdd_HHmmss') + '_' + ([guid]::NewGuid().ToString('N').Substring(0, 6))
     $Workspace = Join-Path (Join-Path $env:LOCALAPPDATA 'ParallelVision\Builds') $Name
     New-Item -ItemType Directory -Path $Workspace -Force | Out-Null
     $Archive = Join-Path $Workspace 'source.tar'
@@ -41,7 +41,7 @@ try {
     $Utf8 = New-Object System.Text.UTF8Encoding($false)
     [IO.File]::WriteAllText((Join-Path $App '.gitignore'), [IO.File]::ReadAllText((Join-Path $App '.easignore')), $Utf8)
     [IO.File]::WriteAllText((Join-Path $App 'BUILD_SOURCE.txt'), "$Revision`nSource: $SourceCommit`n", $Utf8)
-    if (![IO.File]::ReadAllText((Join-Path $App 'src\site05Model.js')).Contains($Revision)) { throw 'SITE 05.5 marker is missing.' }
+    if (![IO.File]::ReadAllText((Join-Path $App 'src\site05Model.js')).Contains($Revision)) { throw 'Mobile editorial source marker is missing.' }
     $Required = @('App.js', 'app.json', 'eas.json', 'package.json', 'package-lock.json', '.easignore', '.npmrc', 'BUILD_SOURCE.txt')
     foreach ($Folder in @('src', 'assets', 'tests')) {
         foreach ($File in @(Get-ChildItem -LiteralPath (Join-Path $App $Folder) -Recurse -File -Force)) {
@@ -50,7 +50,7 @@ try {
     }
     $Hashes = @{}
     foreach ($Relative in $Required) { $Hashes[$Relative] = (Get-FileHash -LiteralPath (Join-Path $App $Relative) -Algorithm SHA256).Hash }
-    Write-Host "$Revision : checking centered always-visible Home/Nina motion and iOS export." -ForegroundColor Cyan
+    Write-Host "$Revision : checking Home film, Nina portrait, original release covers and iOS export." -ForegroundColor Cyan
     Invoke-Checked 'npx.cmd' @('--yes', 'npm@10.9.8', 'ci', '--include=dev', '--ignore-scripts')
     Invoke-Checked 'npm.cmd' @('test')
     Invoke-Checked 'npx.cmd' @('expo', 'export', '--platform', 'ios', '--output-dir', (Join-Path $Workspace 'ios-check'))
@@ -84,7 +84,7 @@ try {
     if (!$CheckOnly) {
         Write-Host 'Building ONE iPhone preview. Apple login: No if the account is still locked / reuse profile: Yes.' -ForegroundColor Cyan
         Invoke-Checked 'eas.cmd' @('build', '--platform', 'ios', '--profile', 'preview')
-        Write-Host "Install from THIS build link over the current app. PROFILE must show $Revision." -ForegroundColor Green
+        Write-Host "Install from THIS build link over the current app. Verify the five tabs and the new artwork." -ForegroundColor Green
     }
 } catch {
     Write-Host ("STOP: " + $_.Exception.Message) -ForegroundColor Red

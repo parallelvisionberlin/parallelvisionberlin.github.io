@@ -1,4 +1,4 @@
-name: Mobile Interface 03 check
+name: Mobile 06 interface checks
 on:
   push:
     branches: [mobile-app-v1]
@@ -7,7 +7,7 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     defaults:
       run:
         working-directory: mobile-app
@@ -18,4 +18,13 @@ jobs:
           node-version: '22'
       - run: npm ci --ignore-scripts
       - run: npm test
+      - run: node scripts/site05-components.cjs
       - run: npx expo export --platform ios --output-dir /tmp/pv-interface03
+      - run: npx playwright install --with-deps chromium webkit
+      - run: node scripts/site05-browser.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mobile06-screen-previews
+          retention-days: 7
+          path: /tmp/site05-evidence/*.png
