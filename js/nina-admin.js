@@ -467,7 +467,7 @@ function renderCreditAdmin(data) {
   elements.vouchers.replaceChildren();
   for (const voucher of data.vouchers || []) {
     const expired = voucher.expiresAt && Date.parse(voucher.expiresAt) <= Date.now();
-    const status = !voucher.active ? "INACTIVE" : expired ? "EXPIRED" : voucher.redemptionCount >= voucher.maximumRedemptions ? "LIMIT REACHED" : "ACTIVE";
+    const status = !voucher.active ? "INACTIVE" : expired ? "EXPIRED" : voucher.redemptionCount >= voucher.maximumRedemptions ? "FULLY REDEEMED" : "ACTIVE";
     const row = document.createElement("tr");
     for (const value of [voucher.code, number(voucher.creditAmount), `${number(voucher.redemptionCount)} / ${number(voucher.maximumRedemptions)}`, dateTime(voucher.expiresAt), status]) { const cell = document.createElement("td"); cell.textContent = value; row.append(cell); }
     row.firstElementChild.append(document.createElement("br"), voucherCopyButton("Copy code", voucher.code));
