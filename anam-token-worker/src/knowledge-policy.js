@@ -12,7 +12,8 @@ export function knowledgeToolDescription(tools, sharedFolderId) {
   });
   const tool = matches.length === 1 ? matches[0] : null;
   const inherited = tool ? (tool.config?.description ?? tool.description) : '';
-  const base = typeof inherited === 'string' && inherited.trim() ? inherited.trim() : NINA_KNOWLEDGE_DESCRIPTION;
+  const validInherited = typeof inherited === 'string' && inherited.trim() && inherited.trim().length <= 1024;
+  const base = validInherited ? inherited.trim() : NINA_KNOWLEDGE_DESCRIPTION;
   const separator = '\n';
   const baseBudget = Math.max(0, 1024 - NINA_KNOWLEDGE_BEHAVIOR_GUARD.length - separator.length);
   return `${base.slice(0, baseBudget)}${separator}${NINA_KNOWLEDGE_BEHAVIOR_GUARD}`;
