@@ -76,5 +76,5 @@ export function attachConversationDiagnostics({client,events,conversationId,send
     if (typeof data.phase === 'string') metadata.phase = safe(data.phase);
     if (typeof data.errorMessage === 'string') metadata.errorMessage = sanitizeToolError(data.errorMessage);
     emit(kind, metadata);
-  },stop(){if(stopped)return;emit('client_end');stopped=true;clearInterval(timer);for(const [event,handler]of listeners)client.removeListener(event,handler);void flush();}};
+  },stop(reason='client_stop'){if(stopped)return;emit('client_end',{reason:safe(reason)});stopped=true;clearInterval(timer);for(const [event,handler]of listeners)client.removeListener(event,handler);void flush();}};
 }
