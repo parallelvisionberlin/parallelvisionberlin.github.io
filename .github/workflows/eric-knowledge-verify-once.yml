@@ -1,0 +1,29 @@
+name: Eric Knowledge READY Verification
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/eric-knowledge-verify-once.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify Eric's restored PDF is READY in Anam
+        shell: bash
+        run: |
+          set -euo pipefail
+          endpoint="https://parallel-vision-anam-token.parallelvision.workers.dev/__nina_eric_kb_status_f0c96a482b7e20261008"
+          for n in $(seq 1 12); do
+            body="$(curl --max-time 20 -fsS "$endpoint" || true)"
+            echo "CHECK=$n BODY=$body"
+            status="$(printf '%s' "$body" | jq -r '.status // "unknown"' 2>/dev/null || echo unknown)"
+            if [ "$status" = "READY" ]; then echo "ERIC_PDF_READY"; exit 0; fi
+            sleep 10
+          done
+          echo "Eric PDF not yet READY."
+          exit 1
