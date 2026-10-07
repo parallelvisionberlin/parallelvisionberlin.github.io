@@ -218,3 +218,13 @@ test('turn watchdog measures the whole persona reply across utterance boundaries
   f.emit({ id:'persona-total', role:'persona', utteranceId:'u3', content:'c'.repeat(180), endOfSpeech:false, interrupted:false });
   assert.equal(f.client.interrupts, 1);
 });
+
+
+test('turn watchdog catches exact repeated short sentences', () => {
+  const f = fixture(); f.state.ninaServerConversationId = '';
+  f.state.api.trackNinaMessageCompletion(f.client, 1);
+  f.emit({ id:'persona-short-repeat', role:'persona', utteranceId:'u1', content:"I won't. Deanna it is.", endOfSpeech:true, interrupted:false });
+  assert.equal(f.client.interrupts, 0);
+  f.emit({ id:'persona-short-repeat', role:'persona', utteranceId:'u2', content:" I won't.", endOfSpeech:false, interrupted:false });
+  assert.equal(f.client.interrupts, 1);
+});
