@@ -1,0 +1,59 @@
+name: Deploy Nina Worker
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'anam-token-worker/**'
+      - '.github/workflows/deploy-nina-worker.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: parallel-vision-nina-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: Test and deploy Nina Worker
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install worker dependencies
+        run: npm ci --prefix anam-token-worker
+
+      - name: Run Nina worker tests
+        run: npm test --prefix anam-token-worker
+
+      - name: Normalize Cloudflare API token
+        shell: bash
+        env:
+          RAW_CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          set -euo pipefail
+          token="$(printf '%s' "$RAW_CLOUDFLARE_API_TOKEN" | tr -d '\r\n\t ')"
+          if [ -z "$token" ]; then
+            echo "CLOUDFLARE_API_TOKEN is empty"
+            exit 1
+          fi
+          echo "::add-mask::$token"
+          printf 'CLOUDFLARE_API_TOKEN=%s\n' "$token" >> "$GITHUB_ENV"
+
+      - name: Deploy parallel-vision-anam-token
+        uses: cloudflare/wrangler-action@v4
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ env.CLOUDFLARE_API_TOKEN }}
+        with:
+          apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
+          workingDirectory: anam-token-worker
+          wranglerVersion: "4"
+          command: deploy --keep-vars
