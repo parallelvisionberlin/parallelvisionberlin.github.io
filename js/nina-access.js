@@ -1213,9 +1213,29 @@ const NINA_TURN_SOFT_LIMIT = 420;
 const NINA_TURN_HARD_LIMIT = 520;
 const NINA_TURN_LOOP_PATTERN = /\b(?:i(?:'m| am) waiting|still waiting|your turn|go on|tell me|come on|say it|i(?:'m| am) listening)\b/gi;
 
+function hasNearDuplicateNinaSentence(content) {
+  const sentences = String(content || "").match(/[^.!?]+[.!?]+/g)?.map(sentence => sentence.trim()) || [];
+  if (sentences.length < 2) return false;
+  const words = sentence => (sentence.toLowerCase().match(/[a-z0-9]+/g) || []);
+  for (let right = 1; right < sentences.length; right += 1) {
+    const b = words(sentences[right]);
+    if (b.length < 5) continue;
+    for (let left = Math.max(0, right - 3); left < right; left += 1) {
+      const a = words(sentences[left]);
+      if (a.length < 5 || a[0] !== b[0] || a[1] !== b[1]) continue;
+      const aset = new Set(a), bset = new Set(b);
+      let overlap = 0;
+      for (const word of aset) if (bset.has(word)) overlap += 1;
+      if (overlap / Math.min(aset.size, bset.size) >= 0.75) return true;
+    }
+  }
+  return false;
+}
+
 function shouldInterruptNinaOutput(content) {
   const text = typeof content === "string" ? content.trim() : "";
   if (!text) return false;
+  if (hasNearDuplicateNinaSentence(text)) return true;
   if (text.length >= NINA_TURN_HARD_LIMIT) return true;
   if (text.length >= NINA_TURN_SOFT_LIMIT && /[.!?]["')\]]?$/.test(text)) return true;
   if (text.length >= 180 && (text.match(NINA_TURN_LOOP_PATTERN) || []).length >= 3) return true;
