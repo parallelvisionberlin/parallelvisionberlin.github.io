@@ -179,15 +179,12 @@ test('one endOfSpeech preserves earlier utterance IDs and saves the final answer
 });
 
 
-test('microphone speech does not manually interrupt Nina, but a stale correlated reply is stopped', () => {
+test('fragmented user turns do not trigger manual persona interruption', () => {
   const f = fixture(); f.state.ninaServerConversationId = '';
   f.state.api.trackNinaMessageCompletion(f.client, 1);
+  f.history([{ id:'user::first', role:'user', content:'Alejandro Molinari.' }, { id:'user::second', role:'user', content:'You know Alejandro.' }]);
+  f.emit({ id:'persona::first', role:'persona', utteranceId:'u1', content:'Yes, I know who you mean.', endOfSpeech:true, interrupted:false });
   assert.equal(f.client.interrupts, 0);
-  f.history([{ id:'user::new-turn', role:'user', content:'Latest question' }]);
-  f.emit({ id:'persona::old-turn', role:'persona', utteranceId:'u1', content:'Old delayed reply', endOfSpeech:false, interrupted:false });
-  assert.equal(f.client.interrupts, 1);
-  f.emit({ id:'persona::new-turn', role:'persona', utteranceId:'u2', content:'Current reply', endOfSpeech:true, interrupted:false });
-  assert.equal(f.client.interrupts, 1);
 });
 
 test('turn watchdog interrupts looping or overlong persona output once', () => {
@@ -200,31 +197,30 @@ test('turn watchdog interrupts looping or overlong persona output once', () => {
 });
 
 
-test('turn watchdog catches repeated sentence variants across separate utterances', () => {
+test('short repeated or corrective phrases are not manually interrupted', () => {
   const f = fixture(); f.state.ninaServerConversationId = '';
   f.state.api.trackNinaMessageCompletion(f.client, 1);
   f.emit({ id:'persona-repeat', role:'persona', utteranceId:'u1', content:'Hi, Diana. Nice to meet you.', endOfSpeech:true, interrupted:false });
-  assert.equal(f.client.interrupts, 0);
   f.emit({ id:'persona-repeat', role:'persona', utteranceId:'u2', content:' Hi, Diana. Good to meet you.', endOfSpeech:false, interrupted:false });
-  assert.equal(f.client.interrupts, 1);
+  assert.equal(f.client.interrupts, 0);
 });
 
-test('turn watchdog measures the whole persona reply across utterance boundaries', () => {
+test('emergency watchdog measures the whole persona reply and waits for a genuine runaway', () => {
   const f = fixture(); f.state.ninaServerConversationId = '';
   f.state.api.trackNinaMessageCompletion(f.client, 1);
   f.emit({ id:'persona-total', role:'persona', utteranceId:'u1', content:'a'.repeat(180), endOfSpeech:true, interrupted:false });
   f.emit({ id:'persona-total', role:'persona', utteranceId:'u2', content:'b'.repeat(180), endOfSpeech:true, interrupted:false });
+  f.emit({ id:'persona-total', role:'persona', utteranceId:'u3', content:'c'.repeat(180), endOfSpeech:true, interrupted:false });
   assert.equal(f.client.interrupts, 0);
-  f.emit({ id:'persona-total', role:'persona', utteranceId:'u3', content:'c'.repeat(180), endOfSpeech:false, interrupted:false });
+  f.emit({ id:'persona-total', role:'persona', utteranceId:'u4', content:'d'.repeat(220), endOfSpeech:false, interrupted:false });
   assert.equal(f.client.interrupts, 1);
 });
 
 
-test('turn watchdog catches exact repeated short sentences', () => {
+test('exact short repetition is observable but not forcibly interrupted by the client', () => {
   const f = fixture(); f.state.ninaServerConversationId = '';
   f.state.api.trackNinaMessageCompletion(f.client, 1);
-  f.emit({ id:'persona-short-repeat', role:'persona', utteranceId:'u1', content:"I won't. Deanna it is.", endOfSpeech:true, interrupted:false });
-  assert.equal(f.client.interrupts, 0);
+  f.emit({ id:'persona-short-repeat', role:'persona', utteranceId:'u1', content:"I won't. Diana it is.", endOfSpeech:true, interrupted:false });
   f.emit({ id:'persona-short-repeat', role:'persona', utteranceId:'u2', content:" I won't.", endOfSpeech:false, interrupted:false });
-  assert.equal(f.client.interrupts, 1);
+  assert.equal(f.client.interrupts, 0);
 });
