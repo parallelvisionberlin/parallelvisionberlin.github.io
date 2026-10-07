@@ -6,7 +6,7 @@ import { summaryRecords, validSummaryReferences, normalizedFact, singleValueProp
 import { selectPinnedMemories, selectPinnedMemoriesForExtraction } from './memory-selection.js';
 import { assessExtractionIntegrity, makeExtractionRepairInstructions } from './extraction-integrity.js';
 import { journalStatements } from './nina-journal.js';
-export const HISTORY_LIMIT = 20;
+export const HISTORY_LIMIT = 12;
 export const MESSAGE_CHARACTER_LIMIT = 4000;
 export const MEMORY_CONTEXT_CHARACTER_LIMIT = 32000;
 const SUMMARY_LIMIT = 3000;
