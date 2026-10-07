@@ -134,9 +134,10 @@ export function watchNinaLiveMedia({
     note('video_ready');
     resolveReady();
   });
-  on('CONNECTION_CLOSED', reason => {
+  on('CONNECTION_CLOSED', (reason, details) => {
     note('connection_closed', { reason: typeof reason === 'string' ? reason.slice(0, 100) : '' });
-    fail(error('connection_closed', 'Nina connection ended.'));
+    const message = typeof details === 'string' && details.trim() ? details.trim().slice(0, 180) : 'Nina connection ended.';
+    fail(error('connection_closed', message));
   });
   on('MIC_PERMISSION_DENIED', () => fail(error('microphone_permission_denied', 'Microphone access was denied.')));
   for (const event of ['playing', 'pause', 'waiting', 'stalled', 'error']) {
