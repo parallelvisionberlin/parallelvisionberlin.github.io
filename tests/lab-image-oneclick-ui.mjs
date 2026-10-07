@@ -15,16 +15,16 @@ const ORIGIN='http://127.0.0.1:4179',API='https://parallel-vision-lab.parallelvi
 let passed=0,png;const ok=name=>{passed++;console.log('PASS '+name);};
 const id=n=>'20000000-0000-4000-8000-'+String(n).padStart(12,'0');
 const settings={type:'image',mode:'image',prompt:'A ceramic sculpture in soft daylight.',resolution:'2k',aspectRatio:'16:9',outputFormat:'png',referenceRoles:[],referenceSourceIds:[]};
-async function workspace({failure='',width=1440,initial=[],savedPacks=[],quoteDelay=0}={}){
+async function workspace({failure='',width=1440,initial=[],savedPacks=[],quoteDelay=0,historyDelay=0}={}){
  const context=await browser.newContext({viewport:{width,height:1000},acceptDownloads:true}),page=await context.newPage();
- const requests=[],errors=[],dialogs=[],jobs=[...initial],quotes=new Map();let sequence=100,accepted=0,renewed=false;
+ const requests=[],errors=[],dialogs=[],jobs=[...initial],quotes=new Map();let sequence=100,accepted=0,renewed=false,historyGets=0;
  page.on('pageerror',e=>errors.push(e.message));page.on('dialog',async d=>{dialogs.push(d.message());await d.accept();});
  await context.route('https://**/*',async route=>{
   const req=route.request(),url=new URL(req.url());if(!url.href.startsWith(API)){await route.abort();return;}
   const path=url.pathname,method=req.method(),data=req.headers()['content-type']?.startsWith('application/json')?req.postDataJSON():{};
   requests.push({path,method,data});
   const send=(body,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(body)});
-  if(path==='/api/jobs'&&method==='GET')return send({jobs,activeJobs:jobs.filter(j=>['queued','running','saving','uncertain','submitting'].includes(j.status)),concurrency:{image:4,video:1},next:null});
+  if(path==='/api/jobs'&&method==='GET'){historyGets++;if(historyDelay&&historyGets>1)await new Promise(r=>setTimeout(r,historyDelay));return send({jobs,activeJobs:jobs.filter(j=>['queued','running','saving','uncertain','submitting'].includes(j.status)),concurrency:{image:4,video:1},next:null});}
   if(path==='/api/jobs/bulk-delete'&&method==='POST'){const ids=data.ids||[];let deleted=0;for(let i=jobs.length-1;i>=0;i--)if(ids.includes(jobs[i].id)&&!['queued','running','saving','uncertain','submitting'].includes(jobs[i].status)){jobs.splice(i,1);deleted++;}return send({ok:true,deleted});}
   if(path.startsWith('/api/jobs/')&&path.endsWith('/recover')&&method==='POST'){const job=jobs.find(j=>path.includes('/'+j.id+'/recover'));if(!job)return send({error:'Not found.'},404);job.status='completed';job.outputId=job.id;job.error='';return send({job});}
   if(path==='/api/packs')return send({packs:savedPacks});
@@ -77,6 +77,7 @@ try{
  await x.page.click('#generate');await ready(x.page);assert.equal(x.accepted(),1);assert.equal(count(x,'/api/quotes'),1);assert.equal(count(x,'/api/jobs'),1);assert.equal(await x.page.locator('#quote-dialog').isVisible(),false);assert.deepEqual(x.dialogs,[]);
  const q=x.requests.find(r=>r.path==='/api/quotes').data;assert.equal(q.settings.prompt,settings.prompt);assert.equal(q.settings.resolution,'2k');assert.equal(q.settings.aspectRatio,'16:9');assert.equal(q.settings.outputFormat,'png');ok('Text-to-image: one click, one quote, one submission, no review modal');
  await x.page.click('#save');await ready(x.page);assert.equal(x.accepted(),1);const draft=x.page.locator('.card[data-state="draft"]');await draft.getByRole('button',{name:'Reuse',exact:true}).click();await ready(x.page);assert.equal(await x.page.locator('#prompt').inputValue(),settings.prompt);assert.equal(x.accepted(),1);ok('Saving and reusing a draft do not generate or charge');assert.deepEqual(x.errors,[]);await x.context.close();
+ x=await workspace({historyDelay:1200});await imageForm(x);const releaseStarted=Date.now();await x.page.click('#generate');await x.page.waitForFunction(()=>!document.querySelector('#resolution').disabled,{timeout:700});assert.ok(Date.now()-releaseStarted<900);assert.equal(x.accepted(),1);assert.equal(await x.page.locator('.card[data-state="queued"]').count(),1);ok('Image submission releases the editor before the background History refresh finishes');assert.deepEqual(x.errors,[]);await x.context.close();
  x=await workspace();await imageForm(x);await x.page.locator('#reference-images').setInputFiles({name:'sculpture.png',mimeType:'image/png',buffer:png});await ready(x.page);await x.page.click('#generate');await ready(x.page);const edit=x.requests.find(r=>r.path==='/api/quotes').data;assert.equal(edit.referenceSourceIds.length,1);assert.equal(edit.transferSourceIds.length,1);assert.equal(x.accepted(),1);assert.equal(await x.page.locator('#quote-dialog').isVisible(),false);ok('Reference edit submits once without review and preserves reference inputs');await x.context.close();
  x=await workspace({quoteDelay:300});await imageForm(x);await x.page.evaluate(()=>{document.querySelector('#generate').click();document.querySelector('#generate').click();});await ready(x.page);assert.equal(x.accepted(),1);assert.equal(count(x,'/api/quotes'),1);ok('Rapid repeated clicks cannot double-submit');await x.context.close();
  for(const failure of ['quote','expired','wrong-model','budget','server','network']){
