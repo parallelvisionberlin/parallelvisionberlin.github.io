@@ -1,8 +1,8 @@
-import { attachConversationDiagnostics } from "./nina-diagnostics.js?v=20260915-live-recovery";
+import { attachConversationDiagnostics } from "./nina-diagnostics.js?v=20261007-end-reasons";
 import { watchNinaLiveMedia, streamNinaVideoForAttempt } from "./nina-live-media.js?v=20260915-live-recovery";
 import { speechConstraints, openSpeechMicrophone, microphoneFailure } from "./nina-audio-input.js?v=20260914-mic-recovery";
 import { createNinaTrialPromotion } from "./nina-trial-promotion.js?v=20260905";
-import { isNinaWebsite, createConversationProgress, createAudioCheck } from "./nina-web-flow.js?v=20260910-speech-first";
+import { isNinaWebsite, createConversationProgress, createAudioCheck } from "./nina-web-flow.js?v=20261007-first-reply-recovery";
 /* The access gate is theatrical client-side UI; its public hash is not authorization. */
 import { createClient, AnamEvent } from "./vendor/anam-sdk-4.27.0-pv1.js";
 
@@ -986,7 +986,7 @@ async function startSignalCreditCheckout(packId) {
       throw new Error("Invalid checkout response");
     }
     rememberSignalCreditCheckout(checkoutSessionId, packId);
-    if (ninaClient || ninaUsageSessionId) await stopNinaSession();
+    if (ninaClient || ninaUsageSessionId) await stopNinaSession("checkout");
     window.location.assign(checkoutUrl.href);
   } catch (error) {
     if (error instanceof TypeError) console.warn("Signal Credit checkout could not reach the endpoint.", {
@@ -1944,7 +1944,7 @@ function setupNinaWebSession(attempt, client) {
     stage: ninaWindow.querySelector(".nina-stage"), video: ninaVideo, isCurrent: current,
     onProblem: async () => {
       ninaWebProgress?.fail();
-      await stopNinaSession();
+      await stopNinaSession("audio_help");
       if (ninaOverlay.classList.contains("is-open")) showNinaFailure("The call has stopped. Check media volume, Bluetooth output and microphone access. Then try again. Unused credits remain in your account.");
     }
   });
@@ -2171,13 +2171,13 @@ async function settleNinaUsage(end = false, keepalive = false) {
   }
 }
 
-async function stopNinaSession() {
+async function stopNinaSession(reason = "ended") {
   if (ninaStoppingPromise) return ninaStoppingPromise;
   ninaMicrophoneSwitch = null;
   ninaStoppingPromise = (async () => {
     if (NINA_WEB_FLOW) clearNinaWebSession();
     clearNinaLiveCountdown();
-    void endNinaAnalyticsSession("ended");
+    void endNinaAnalyticsSession(reason);
     ninaAttempt += 1;
     ninaConnecting = false;
     ninaTokenAbortController?.abort();
@@ -2185,7 +2185,7 @@ async function stopNinaSession() {
     ninaLiveMedia?.dispose();
     ninaLiveMedia = null;
     ninaVideoReady = false;
-    ninaDiagnostics?.stop();
+    ninaDiagnostics?.stop(reason);
     ninaDiagnostics = null;
     ninaMemoryListenerCleanup?.();
     ninaMemoryListenerCleanup = null;
@@ -2259,6 +2259,26 @@ async function requestSessionToken(signal, history) {
 function bindAnamLifecycle(client, attempt) {
   ninaMemoryListenerCleanup?.();
   const stopMessageTracking = trackNinaMessageCompletion(client, attempt);
+  let hearRecoveryTimer = null;
+  let hearRecoveryUsed = false;
+  const clearHearRecovery = () => {
+    if (hearRecoveryTimer) clearTimeout(hearRecoveryTimer);
+    hearRecoveryTimer = null;
+  };
+  const scheduleHearRecovery = () => {
+    if (!NINA_WEB_FLOW || ninaOwnerBypass || hearRecoveryUsed || hearRecoveryTimer) return;
+    hearRecoveryTimer = setTimeout(async () => {
+      hearRecoveryTimer = null;
+      if (attempt !== ninaAttempt || client !== ninaClient || hearRecoveryUsed) return;
+      hearRecoveryUsed = true;
+      try {
+        client.interruptPersona?.();
+        if (typeof client.talk === "function") await client.talk("Yes. I can hear you.");
+      } catch (error) {
+        logDevelopmentError("Nina first-reply recovery unavailable.", error);
+      }
+    }, 4500);
+  };
   const onConnectionEstablished = () => {
     if (attempt !== ninaAttempt || client !== ninaClient) return;
     ninaDiagnostics?.record('connection_opened');
@@ -2281,9 +2301,20 @@ function bindAnamLifecycle(client, attempt) {
       }
     });
   };
+  const onPersonaStream = event => {
+    if (attempt !== ninaAttempt || client !== ninaClient || event?.role !== "persona") return;
+    clearHearRecovery();
+    if (ninaStatus?.textContent === "NINA RESPONDING") ninaStatus.textContent = "NINA ONLINE";
+  };
   const onHistoryUpdated = history => {
     const completedMessages = storeCompletedNinaMessages(history, client, attempt);
     if (NINA_WEB_FLOW) ninaWebProgress?.observe(completedMessages);
+    const heardCheck = [...completedMessages].reverse().find(message =>
+      message.role === "user" && /\b(?:can|do) you hear me\b/i.test(message.content));
+    if (heardCheck) {
+      ninaStatus.textContent = "NINA RESPONDING";
+      scheduleHearRecovery();
+    }
     if (!ninaTrialActivationPending || !completedMessages.some(message => message.role === "user")) return;
     void activateNinaUsage(attempt, client).catch(async error => {
       logDevelopmentError("Unable to activate Live Nina time after user speech.", error);
@@ -2311,13 +2342,16 @@ function bindAnamLifecycle(client, attempt) {
   if (AnamEvent?.VIDEO_PLAY_STARTED) client.addListener(AnamEvent.VIDEO_PLAY_STARTED, onVideoPlayStarted);
   if (AnamEvent?.CONNECTION_CLOSED) client.addListener(AnamEvent.CONNECTION_CLOSED, onClosed);
   if (AnamEvent?.MESSAGE_HISTORY_UPDATED) client.addListener(AnamEvent.MESSAGE_HISTORY_UPDATED, onHistoryUpdated);
+  if (AnamEvent?.MESSAGE_STREAM_EVENT_RECEIVED) client.addListener(AnamEvent.MESSAGE_STREAM_EVENT_RECEIVED, onPersonaStream);
   if (AnamEvent?.INPUT_AUDIO_STREAM_STARTED) client.addListener(AnamEvent.INPUT_AUDIO_STREAM_STARTED, onInput);
   ninaMemoryListenerCleanup = () => {
     stopMessageTracking();
     if (AnamEvent?.CONNECTION_ESTABLISHED) client.removeListener(AnamEvent.CONNECTION_ESTABLISHED, onConnectionEstablished);
     if (AnamEvent?.VIDEO_PLAY_STARTED) client.removeListener(AnamEvent.VIDEO_PLAY_STARTED, onVideoPlayStarted);
     if (AnamEvent?.CONNECTION_CLOSED) client.removeListener(AnamEvent.CONNECTION_CLOSED, onClosed);
+    clearHearRecovery();
     if (AnamEvent?.MESSAGE_HISTORY_UPDATED) client.removeListener(AnamEvent.MESSAGE_HISTORY_UPDATED, onHistoryUpdated);
+    if (AnamEvent?.MESSAGE_STREAM_EVENT_RECEIVED) client.removeListener(AnamEvent.MESSAGE_STREAM_EVENT_RECEIVED, onPersonaStream);
     if (AnamEvent?.INPUT_AUDIO_STREAM_STARTED) client.removeListener(AnamEvent.INPUT_AUDIO_STREAM_STARTED, onInput);
   };
 }
@@ -2569,7 +2603,7 @@ async function closeNinaWindow() {
   window.scrollTo(0, ninaScrollPosition);
   ninaAccessVerifiedForCurrentOpen = false;
   ninaPrivateAccessVerified = false;
-  await stopNinaSession();
+  await stopNinaSession("user_close");
   document.body.classList.remove("nina-connecting-mode", "nina-call-visible", "nina-conversation-live", "nina-scrim-visible", "nina-scrim-action", "nina-post-signal-visible", "nina-time-warning-visible");
   ninaScrim?.setAttribute("aria-hidden", "true");
   (lastNinaTrigger || openNina)?.focus({ preventScroll: true });
@@ -2839,8 +2873,8 @@ document.addEventListener("keydown", event => {
   if (ninaAccess.classList.contains("is-open")) closeNinaAccess();
   else if (ninaOverlay.classList.contains("is-open")) closeNinaWindow();
 });
-window.addEventListener("pagehide", stopNinaSession);
-window.addEventListener("beforeunload", stopNinaSession);
+window.addEventListener("pagehide", () => void stopNinaSession("pagehide"));
+window.addEventListener("beforeunload", () => void stopNinaSession("beforeunload"));
 window.addEventListener("pageshow", resetCheckoutAfterHistoryRestore);
 if (new URLSearchParams(window.location.search).get("nina") === "1") void routeNinaTrigger(openNina);
 migrateLegacyNinaMemory();
