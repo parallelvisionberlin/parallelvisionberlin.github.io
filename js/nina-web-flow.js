@@ -51,11 +51,12 @@ export function createAudioCheck({ stage, video, onProblem, isCurrent }) {
     if (disposed || !isCurrent()) return;
     const playing = playbackReady();
     enableSound.hidden = playing;
-    title.hidden = active;
+    title.textContent = playing ? "SPEAK TO START" : "ENABLE SOUND";
+    title.hidden = active && playing;
     message.hidden = active && playing;
     message.textContent = playing
       ? "Say hello. Your trial starts automatically when Nina receives your voice."
-      : "Cannot hear Nina? Enable sound, or open Audio help. Your trial starts when Nina receives your voice.";
+      : "Enable sound first so you can hear Nina. Then say hello.";
   };
   enableSound.addEventListener("click", async () => {
     if (disposed || pending || !isCurrent()) return;
