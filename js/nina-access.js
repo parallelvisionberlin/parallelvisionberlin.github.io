@@ -1209,47 +1209,14 @@ function queueOwnerMemoryRequest(path, body, method = "POST") {
   return ninaMemorySyncPromise;
 }
 
-const NINA_TURN_SOFT_LIMIT = 420;
-const NINA_TURN_HARD_LIMIT = 520;
+const NINA_TURN_HARD_LIMIT = 750;
 const NINA_TURN_LOOP_PATTERN = /\b(?:i(?:'m| am) waiting|still waiting|your turn|go on|tell me|come on|say it|i(?:'m| am) listening)\b/gi;
-
-function hasNearDuplicateNinaSentence(content) {
-  const sentences = String(content || "").match(/[^.!?]+[.!?]+/g)?.map(sentence => sentence.trim()) || [];
-  if (sentences.length < 2) return false;
-  const exactKeys = sentences.map(sentence => sentence.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim());
-  const seenExact = new Set();
-  for (const key of exactKeys) {
-    if (key.split(/\s+/).length >= 2 && seenExact.has(key)) return true;
-    if (key) seenExact.add(key);
-  }
-  const greetingKeys = sentences.map(sentence => {
-    const match = sentence.toLowerCase().match(/^(hi|hey),?\s+([a-z][a-z'-]*)\b/);
-    return match ? match[1] + ":" + match[2] : "";
-  }).filter(Boolean);
-  if (greetingKeys.length !== new Set(greetingKeys).size) return true;
-  const words = sentence => (sentence.toLowerCase().match(/[a-z0-9]+/g) || []);
-  for (let right = 1; right < sentences.length; right += 1) {
-    const b = words(sentences[right]);
-    if (b.length < 5) continue;
-    for (let left = Math.max(0, right - 3); left < right; left += 1) {
-      const a = words(sentences[left]);
-      if (a.length < 5 || a[0] !== b[0] || a[1] !== b[1]) continue;
-      const aset = new Set(a), bset = new Set(b);
-      let overlap = 0;
-      for (const word of aset) if (bset.has(word)) overlap += 1;
-      if (overlap / Math.min(aset.size, bset.size) >= 0.75) return true;
-    }
-  }
-  return false;
-}
 
 function shouldInterruptNinaOutput(content) {
   const text = typeof content === "string" ? content.trim() : "";
   if (!text) return false;
-  if (hasNearDuplicateNinaSentence(text)) return true;
   if (text.length >= NINA_TURN_HARD_LIMIT) return true;
-  if (text.length >= NINA_TURN_SOFT_LIMIT && /[.!?]["')\]]?$/.test(text)) return true;
-  if (text.length >= 180 && (text.match(NINA_TURN_LOOP_PATTERN) || []).length >= 3) return true;
+  if (text.length >= 240 && (text.match(NINA_TURN_LOOP_PATTERN) || []).length >= 4) return true;
   return false;
 }
 
@@ -1257,45 +1224,24 @@ function trackNinaMessageCompletion(client, attempt) {
   const messages = new Map();
   ninaMessageCompletions.set(client, messages);
   const eventName = AnamEvent?.MESSAGE_STREAM_EVENT_RECEIVED;
-  const historyEvent = AnamEvent?.MESSAGE_HISTORY_UPDATED;
-  let latestUserCorrelation = "";
-  const interrupt = () => {
-    try { client.interruptPersona?.(); } catch { /* Best-effort turn cancellation. */ }
-  };
-  const onHistory = history => {
-    if (attempt !== ninaAttempt || client !== ninaClient || !Array.isArray(history)) return;
-    for (let index = history.length - 1; index >= 0; index -= 1) {
-      const id = history[index]?.id;
-      if (history[index]?.role === "user" && typeof id === "string" && id.startsWith("user::")) {
-        latestUserCorrelation = id.slice("user::".length);
-        break;
-      }
-    }
+  const interruptRunaway = () => {
+    try { client.interruptPersona?.(); } catch { /* Emergency-only best effort. */ }
   };
   const onStream = event => {
     if (attempt !== ninaAttempt || client !== ninaClient || event?.role !== "persona" || typeof event.id !== "string") return;
     let message = messages.get(event.id);
     if (!message) {
-      message = { content: "", fullContent: "", interrupted: false, completed: [], segment: 0, watchdogInterrupted: false, staleInterrupted: false };
+      message = { content: "", fullContent: "", interrupted: false, completed: [], segment: 0, runawayInterrupted: false };
       messages.set(event.id, message);
     }
-    const correlation = event.id.startsWith("persona::") && !event.id.startsWith("persona::engine::")
-      ? event.id.slice("persona::".length) : "";
-    if (latestUserCorrelation && correlation && correlation !== latestUserCorrelation && !message.staleInterrupted) {
-      message.staleInterrupted = true;
-      message.interrupted = true;
-      interrupt();
-      return;
-    }
-    // One endOfSpeech may cover several utterance IDs. Keep all its chunks together.
     const chunk = typeof event.content === "string" ? event.content : "";
     message.content += chunk;
     message.fullContent += chunk;
     message.interrupted ||= Boolean(event.interrupted);
-    if (!message.watchdogInterrupted && shouldInterruptNinaOutput(message.fullContent)) {
-      message.watchdogInterrupted = true;
+    if (!message.runawayInterrupted && shouldInterruptNinaOutput(message.fullContent)) {
+      message.runawayInterrupted = true;
       message.interrupted = true;
-      interrupt();
+      interruptRunaway();
     }
     if (event.endOfSpeech) {
       const segmentId = Number.isSafeInteger(event.contentIndex) ? event.contentIndex : message.segment;
@@ -1305,13 +1251,11 @@ function trackNinaMessageCompletion(client, attempt) {
       });
       message.segment++;
       message.content = "";
-      message.interrupted = message.watchdogInterrupted;
+      message.interrupted = message.runawayInterrupted;
     }
   };
-  if (historyEvent) client.addListener(historyEvent, onHistory);
   if (eventName) client.addListener(eventName, onStream);
   return () => {
-    if (historyEvent) client.removeListener(historyEvent, onHistory);
     if (eventName) client.removeListener(eventName, onStream);
     if (ninaMessageCompletions.get(client) === messages) ninaMessageCompletions.delete(client);
   };
@@ -2302,26 +2246,6 @@ async function requestSessionToken(signal, history) {
 function bindAnamLifecycle(client, attempt) {
   ninaMemoryListenerCleanup?.();
   const stopMessageTracking = trackNinaMessageCompletion(client, attempt);
-  let hearRecoveryTimer = null;
-  let hearRecoveryUsed = false;
-  const clearHearRecovery = () => {
-    if (hearRecoveryTimer) clearTimeout(hearRecoveryTimer);
-    hearRecoveryTimer = null;
-  };
-  const scheduleHearRecovery = () => {
-    if (!NINA_WEB_FLOW || ninaOwnerBypass || hearRecoveryUsed || hearRecoveryTimer) return;
-    hearRecoveryTimer = setTimeout(async () => {
-      hearRecoveryTimer = null;
-      if (attempt !== ninaAttempt || client !== ninaClient || hearRecoveryUsed) return;
-      hearRecoveryUsed = true;
-      try {
-        client.interruptPersona?.();
-        if (typeof client.talk === "function") await client.talk("Yes. I can hear you.");
-      } catch (error) {
-        logDevelopmentError("Nina first-reply recovery unavailable.", error);
-      }
-    }, 4500);
-  };
   const onConnectionEstablished = () => {
     if (attempt !== ninaAttempt || client !== ninaClient) return;
     ninaDiagnostics?.record('connection_opened');
@@ -2344,20 +2268,9 @@ function bindAnamLifecycle(client, attempt) {
       }
     });
   };
-  const onPersonaStream = event => {
-    if (attempt !== ninaAttempt || client !== ninaClient || event?.role !== "persona") return;
-    clearHearRecovery();
-    if (ninaStatus?.textContent === "NINA RESPONDING") ninaStatus.textContent = "NINA ONLINE";
-  };
   const onHistoryUpdated = history => {
     const completedMessages = storeCompletedNinaMessages(history, client, attempt);
     if (NINA_WEB_FLOW) ninaWebProgress?.observe(completedMessages);
-    const heardCheck = [...completedMessages].reverse().find(message =>
-      message.role === "user" && /\b(?:can|do) you hear me\b/i.test(message.content));
-    if (heardCheck) {
-      ninaStatus.textContent = "NINA RESPONDING";
-      scheduleHearRecovery();
-    }
     if (!ninaTrialActivationPending || !completedMessages.some(message => message.role === "user")) return;
     void activateNinaUsage(attempt, client).catch(async error => {
       logDevelopmentError("Unable to activate Live Nina time after user speech.", error);
@@ -2385,16 +2298,13 @@ function bindAnamLifecycle(client, attempt) {
   if (AnamEvent?.VIDEO_PLAY_STARTED) client.addListener(AnamEvent.VIDEO_PLAY_STARTED, onVideoPlayStarted);
   if (AnamEvent?.CONNECTION_CLOSED) client.addListener(AnamEvent.CONNECTION_CLOSED, onClosed);
   if (AnamEvent?.MESSAGE_HISTORY_UPDATED) client.addListener(AnamEvent.MESSAGE_HISTORY_UPDATED, onHistoryUpdated);
-  if (AnamEvent?.MESSAGE_STREAM_EVENT_RECEIVED) client.addListener(AnamEvent.MESSAGE_STREAM_EVENT_RECEIVED, onPersonaStream);
   if (AnamEvent?.INPUT_AUDIO_STREAM_STARTED) client.addListener(AnamEvent.INPUT_AUDIO_STREAM_STARTED, onInput);
   ninaMemoryListenerCleanup = () => {
     stopMessageTracking();
     if (AnamEvent?.CONNECTION_ESTABLISHED) client.removeListener(AnamEvent.CONNECTION_ESTABLISHED, onConnectionEstablished);
     if (AnamEvent?.VIDEO_PLAY_STARTED) client.removeListener(AnamEvent.VIDEO_PLAY_STARTED, onVideoPlayStarted);
     if (AnamEvent?.CONNECTION_CLOSED) client.removeListener(AnamEvent.CONNECTION_CLOSED, onClosed);
-    clearHearRecovery();
     if (AnamEvent?.MESSAGE_HISTORY_UPDATED) client.removeListener(AnamEvent.MESSAGE_HISTORY_UPDATED, onHistoryUpdated);
-    if (AnamEvent?.MESSAGE_STREAM_EVENT_RECEIVED) client.removeListener(AnamEvent.MESSAGE_STREAM_EVENT_RECEIVED, onPersonaStream);
     if (AnamEvent?.INPUT_AUDIO_STREAM_STARTED) client.removeListener(AnamEvent.INPUT_AUDIO_STREAM_STARTED, onInput);
   };
 }
