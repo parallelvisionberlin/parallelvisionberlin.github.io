@@ -1,5 +1,5 @@
 import { conversationModeGuidance } from '../src/conversation-runtime.js';
-import { NINA_KNOWLEDGE_DESCRIPTION } from '../src/knowledge-policy.js';
+import { NINA_KNOWLEDGE_BEHAVIOR_GUARD, NINA_KNOWLEDGE_DESCRIPTION } from '../src/knowledge-policy.js';
 import { PUBLIC_IDENTITY_CONTEXT } from '../src/persona-context.js';
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
@@ -222,11 +222,14 @@ test("live persona config injects exactly one configured knowledge tool and pres
   assert.deepEqual(config.toolIds, ["tool-weather"]);
   assert.equal(config.knowledge, undefined);
   assert.equal(config.documentFolderIds, undefined);
-  assert.deepEqual(config.tools, [{
-    type: "server", subtype: "knowledge", name: "nina_knowledge",
-    description: NINA_KNOWLEDGE_DESCRIPTION,
-    documentFolderIds: ["existing-folder-id"]
-  }]);
+  assert.equal(config.tools.length, 1);
+  assert.equal(config.tools[0].type, "server");
+  assert.equal(config.tools[0].subtype, "knowledge");
+  assert.equal(config.tools[0].name, "nina_knowledge");
+  assert.deepEqual(config.tools[0].documentFolderIds, ["existing-folder-id"]);
+  assert.match(config.tools[0].description, /The Workroom/);
+  assert.ok(config.tools[0].description.endsWith(NINA_KNOWLEDGE_BEHAVIOR_GUARD));
+  assert.ok(config.tools[0].description.length <= 1024);
 });
 
 test("live sessions retain the shared tool's published instructions without inheriting its folders", () => {
@@ -238,7 +241,8 @@ test("live sessions retain the shared tool's published instructions without inhe
     ]
   };
   const config = buildLivePersonaConfig(persona, 'shared');
-  assert.equal(config.tools[0].description, 'Search The Workroom and the shared biography.');
+  assert.ok(config.tools[0].description.startsWith('Search The Workroom and the shared biography.'));
+  assert.ok(config.tools[0].description.endsWith(NINA_KNOWLEDGE_BEHAVIOR_GUARD));
   assert.deepEqual(config.tools[0].documentFolderIds, ['shared']);
   assert.equal(config.systemPrompt, 'Unchanged character.');
   assert.equal(config.llmId, 'current-model');
@@ -252,11 +256,13 @@ test("missing, ambiguous or invalid shared descriptions use a bounded subject-sp
   for (const tools of [[], [shared('')], [shared('x'.repeat(1025))], [shared('one'), shared('two')],
     [{ subtype: 'knowledge', description: 'PRIVATE', documentFolderIds: ['private'] }]]) {
     const config = buildLivePersonaConfig({ ...base, tools }, 'shared');
-    assert.equal(config.tools[0].description, NINA_KNOWLEDGE_DESCRIPTION);
+    assert.match(config.tools[0].description, /The Workroom/);
+    assert.ok(config.tools[0].description.endsWith(NINA_KNOWLEDGE_BEHAVIOR_GUARD));
+    assert.ok(config.tools[0].description.length <= 1024);
     assert.doesNotMatch(config.tools[0].description, /PRIVATE/);
   }
-  assert.ok(NINA_KNOWLEDGE_DESCRIPTION.length <= 1024);
   assert.match(NINA_KNOWLEDGE_DESCRIPTION, /The Workroom/);
+  assert.ok(NINA_KNOWLEDGE_BEHAVIOR_GUARD.length < 300);
 });
 
 test("live persona config fails safely when the knowledge folder is missing", () => {
