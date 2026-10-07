@@ -32,7 +32,7 @@ test('website films stay visible, retry playback and enforce the source-centered
  const screens=readFileSync(new URL('../src/DeckScreens.js',import.meta.url),'utf8');
  assert.match(assets,/city.mp4/); assert.match(assets,/nina-room.mp4/);
  assert.match(assets,/city-poster.jpg/); assert.match(assets,/nina-poster.jpg/); assert.match(assets,/nina-canon.webp/); assert.match(assets,/robotloop-poster.webp/);
- assert.doesNotMatch(screens,/deck04\/nina-portrait/); assert.match(screens,/source=\{media.ninaCanon\}/);
+ assert.match(assets,/deck04\/nina-portrait.jpg/);assert.match(screens,/source=\{media.ninaPortrait\}/);assert.match(screens,/source=\{media.cityPoster\}/);assert.doesNotMatch(screens,/source=\{media.ninaCanon\}/);
  assert.match(media,/nativeControls=\{false\}/);
  assert.match(media,/allowsVideoFrameAnalysis=\{false\}/);
  assert.doesNotMatch(media,/opacity:videoReady/);

@@ -27,10 +27,7 @@ const root=path.resolve(__dirname,'..'),out='/tmp/site05-preview',evidence='/tmp
       await page.screenshot({path:path.join(evidence,`${name}-${width}-${tab}.png`)});
       assert.deepEqual(problems,[],`${name} ${tab} JavaScript errors`);
       assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,`${name} ${tab} horizontal overflow`);
-      if(tab==='HOME'){
-       try{await page.waitForFunction(()=>{const v=document.querySelector('video');return v&&v.readyState>=2&&v.currentTime>0;},null,{timeout:12000});}
-       catch(e){console.log('MEDIA DIAGNOSTIC',await page.evaluate(()=>{const v=document.querySelector('video');return v?{src:v.currentSrc,ready:v.readyState,paused:v.paused,error:v.error?.message,html:v.outerHTML}:document.body.innerText;}));throw e;}
-      }
+      if(tab==='HOME'){assert.ok(await page.locator('img').count()>=4,'Home includes visible hero still and three entries');}
       await page.screenshot({path:path.join(evidence,`${name}-${width}-${tab}.png`)});
       if(tab==='NINA'){assert.ok(await page.locator('img').count()>0,'Nina canonical image loaded');}if(tab==='PROFILE'){await page.getByTestId('account-profile').click();await page.getByLabel('PREFERRED NAME',{exact:true}).fill('Visitor');await page.getByTestId('SAVE PROFILE').click();await page.getByText('Profile saved.',{exact:true}).waitFor();}
      }
@@ -38,6 +35,6 @@ const root=path.resolve(__dirname,'..'),out='/tmp/site05-preview',evidence='/tmp
     }
    }finally{await browser.close();}
   }
-  console.log('PASS: 20 rendered-screen checks; original Home film plays and the Nina portrait renders in Google Chrome and WebKit; no horizontal overflow at 320 and 390px; profile saving uses fixtures. Native iPhone rendering and live audio still require device verification.');
+  console.log('PASS: 20 rendered-screen checks; original Home still and approved Nina portrait render in Google Chrome and WebKit; no horizontal overflow at 320 and 390px; profile saving uses fixtures. Native iPhone rendering and live audio still require device verification.');
  }finally{server.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

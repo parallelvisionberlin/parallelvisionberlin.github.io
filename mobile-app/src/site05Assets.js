@@ -9,6 +9,7 @@ export const siteAssets = {
   stayLow: require('../assets/site05/stay-low.jpg'),
   worldIndex: require('../assets/site05/world-index.webp'),
   ninaCanon: require('../assets/site05/nina-canon.webp'),
+  ninaPortrait: require('../assets/deck04/nina-portrait.jpg'),
   transmissions: require('../assets/site05/robotloop-poster.webp'),
   stayLowCover: require('../assets/site05/stay-low-cover.webp'),
   tanzenCover: require('../assets/site05/tanzen-cover.webp'),
