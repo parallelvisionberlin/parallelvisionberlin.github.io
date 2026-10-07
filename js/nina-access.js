@@ -1,6 +1,6 @@
 import { attachConversationDiagnostics } from "./nina-diagnostics.js?v=20261007-end-reasons";
 import { watchNinaLiveMedia, streamNinaVideoForAttempt } from "./nina-live-media.js?v=20260915-live-recovery";
-import { speechConstraints, openSpeechMicrophone, microphoneFailure } from "./nina-audio-input.js?v=20260914-mic-recovery";
+import { speechConstraints, openSpeechMicrophone, microphoneFailure } from "./nina-audio-input.js?v=20261007-noise-control02";
 import { createNinaTrialPromotion } from "./nina-trial-promotion.js?v=20260905";
 import { isNinaWebsite, createConversationProgress, createAudioCheck } from "./nina-web-flow.js?v=20261007-first-reply-recovery";
 /* The access gate is theatrical client-side UI; its public hash is not authorization. */
