@@ -63,7 +63,7 @@ test("raw transcript storage preserves Nina meta-break messages for audit", asyn
   assert.equal(boundRows[0][4], content);
 });
 
-test("later call restores only the latest 20 while retaining summary and open thread", async () => {
+test("later call restores only the latest 12 while retaining summary and open thread", async () => {
   const recent = Array.from({ length: 27 }, (_, index) => ({ role: index % 2 ? "persona" : "user", content: `message-${index + 1}` }));
   const result = await buildOwnerMemoryContext({ NINA_MEMORY_DB: memoryDb({
     pinned: [{ category: "identity", content: "Alejandro is the validated owner." }],
@@ -71,11 +71,11 @@ test("later call restores only the latest 20 while retaining summary and open th
     threads: [{ thread_id: "thread-1", content: "Return to the unresolved installation plan." }],
     recent
   }) }, { visitor_id: "visitor-owner", display_name: "Alejandro", profile_type: "owner" });
-  assert.equal(result.diagnostics.restoredRecentMessages, 20);
+  assert.equal(result.diagnostics.restoredRecentMessages, 12);
   assert.match(result.context, /Parallel Vision archive/);
   assert.match(result.context, /unresolved installation plan/);
-  assert.doesNotMatch(result.context, /message-7\n/);
-  assert.match(result.context, /message-8/);
+  assert.doesNotMatch(result.context, /message-15\n/);
+  assert.match(result.context, /message-16/);
   assert.match(result.context, /message-27/);
   assert.ok(result.context.length <= MEMORY_CONTEXT_CHARACTER_LIMIT);
   assert.ok(result.context.indexOf("VALIDATED PERMANENT PROFILE") < result.context.indexOf("PINNED MEMORIES"));
