@@ -2221,6 +2221,11 @@ async function stopNinaSession(reason = "ended") {
     if (NINA_WEB_FLOW) clearNinaWebSession();
     clearNinaLiveCountdown();
     void endNinaAnalyticsSession(reason);
+    const serverConversationId = ninaServerConversationId;
+    ninaServerConversationId = "";
+    if (serverConversationId) {
+      void queueOwnerMemoryRequest("/memory/conversations/end", { conversationId: serverConversationId }).catch(() => {});
+    }
     ninaAttempt += 1;
     ninaConnecting = false;
     ninaTokenAbortController?.abort();
@@ -2254,11 +2259,6 @@ async function stopNinaSession(reason = "ended") {
     ninaUsageSettlementSeconds = null;
     ninaUsageActivationPromise = null;
     ninaUsageSettlementFailures = 0;
-    const serverConversationId = ninaServerConversationId;
-    ninaServerConversationId = "";
-    if (serverConversationId) {
-      void queueOwnerMemoryRequest("/memory/conversations/end", { conversationId: serverConversationId }).catch(() => {});
-    }
     await mediaStopped;
   })();
   try { await ninaStoppingPromise; }
