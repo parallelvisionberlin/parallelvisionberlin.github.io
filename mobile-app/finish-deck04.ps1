@@ -1,6 +1,6 @@
 param([switch]$CheckOnly)
 $ErrorActionPreference = 'Stop'
-$SourceCommit = '58c7977c9c561e2dbb23019ad1562b7b6c0868db'
+$SourceCommit = '5e4d816cb16e60c0837ed87c613092e9360c36c8'
 $Revision = 'MOBILE EDITORIAL / 06'
 $OriginalLocation = Get-Location
 $PriorNoVcs = [Environment]::GetEnvironmentVariable('EAS_NO_VCS', 'Process')

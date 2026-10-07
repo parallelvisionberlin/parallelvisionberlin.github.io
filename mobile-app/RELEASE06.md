@@ -22,7 +22,7 @@ Changes:
 
 ## Validation
 
-The 06.1 photo/layout correction is source commit `58c7977c9c561e2dbb23019ad1562b7b6c0868db`. The installer is pinned to that implementation and must reject different source files. Confirm the latest 06.1 test runs have passed before starting one new EAS build.
+The 06.1 photo/layout correction is source commit `5e4d816cb16e60c0837ed87c613092e9360c36c8` (includes the final responsive portrait crop adjustment). The installer is pinned to that implementation and must reject different source files. Confirm the latest 06.1 test runs have passed before starting one new EAS build.
 
 
 GitHub Actions automatically run the mobile node tests, React component interaction checks, iOS Expo export and browser preview checks. The original source passed npm tests and iOS export in:

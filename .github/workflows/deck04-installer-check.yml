@@ -23,7 +23,7 @@ jobs:
         shell: powershell
         run: |
           $ErrorActionPreference = 'Stop'
-          $pin = '58c7977c9c561e2dbb23019ad1562b7b6c0868db'
+          $pin = '5e4d816cb16e60c0837ed87c613092e9360c36c8'
           $path = 'mobile-app/finish-site05.ps1'
           $tokens = $null; $errors = $null
           $null = [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path $path).Path, [ref]$tokens, [ref]$errors)
