@@ -198,3 +198,23 @@ test('turn watchdog interrupts looping or overlong persona output once', () => {
   f.emit({ id:'persona-long', role:'persona', utteranceId:'u2', content:'More text that should not trigger a second interrupt.', endOfSpeech:false, interrupted:false });
   assert.equal(f.client.interrupts, 1);
 });
+
+
+test('turn watchdog catches repeated sentence variants across separate utterances', () => {
+  const f = fixture(); f.state.ninaServerConversationId = '';
+  f.state.api.trackNinaMessageCompletion(f.client, 1);
+  f.emit({ id:'persona-repeat', role:'persona', utteranceId:'u1', content:'Hi, Diana. Nice to meet you.', endOfSpeech:true, interrupted:false });
+  assert.equal(f.client.interrupts, 0);
+  f.emit({ id:'persona-repeat', role:'persona', utteranceId:'u2', content:' Hi, Diana. Good to meet you.', endOfSpeech:false, interrupted:false });
+  assert.equal(f.client.interrupts, 1);
+});
+
+test('turn watchdog measures the whole persona reply across utterance boundaries', () => {
+  const f = fixture(); f.state.ninaServerConversationId = '';
+  f.state.api.trackNinaMessageCompletion(f.client, 1);
+  f.emit({ id:'persona-total', role:'persona', utteranceId:'u1', content:'a'.repeat(180), endOfSpeech:true, interrupted:false });
+  f.emit({ id:'persona-total', role:'persona', utteranceId:'u2', content:'b'.repeat(180), endOfSpeech:true, interrupted:false });
+  assert.equal(f.client.interrupts, 0);
+  f.emit({ id:'persona-total', role:'persona', utteranceId:'u3', content:'c'.repeat(180), endOfSpeech:false, interrupted:false });
+  assert.equal(f.client.interrupts, 1);
+});
