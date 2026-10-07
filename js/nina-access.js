@@ -2386,7 +2386,7 @@ async function connectNina() {
     const current = () => attempt === ninaAttempt && client === ninaClient;
     const media = watchNinaLiveMedia({ client, events: AnamEvent, video: ninaVideo, isCurrent: current,
       record: (kind, data) => {
-        if (kind === 'media_failure') ninaDiagnostics?.record('media_failure', { phase: 'playback', reason: data.code });
+        if (kind === 'connection_closed') ninaDiagnostics?.record('connection_closed', { reason: data.reason });
       },
       onFailure: async error => {
         if (!current()) return;
