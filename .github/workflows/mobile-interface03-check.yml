@@ -2,6 +2,15 @@ name: Mobile 06 interface checks
 on:
   push:
     branches: [mobile-app-v1]
+    paths:
+      - 'mobile-app/App.js'
+      - 'mobile-app/src/**'
+      - 'mobile-app/assets/**'
+      - 'mobile-app/tests/**'
+      - 'mobile-app/scripts/**'
+      - 'mobile-app/package.json'
+      - 'mobile-app/package-lock.json'
+
 permissions:
   contents: read
 jobs:

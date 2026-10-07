@@ -5,7 +5,7 @@
 **Repository:** `parallelvisionberlin/parallelvisionberlin.github.io`
 **Branch:** `mobile-app-v1`
 **Code inspected:** `mobile-app/src/DeckScreens.js`, `site05Model.js`, `site05Assets.js`, `SiteMedia.js`, `ProjectReader.js`, `NativeAccount.js`, and public project page source.
-**Status:** Approved-direction editorial brief for implementation. This document does not itself modify the app UI or replace images.
+**Status (08 October 2026):** First implementation completed on `mobile-app-v1` in commit `8d9147eecb17ad8edfebc3f217114fce1e715375`, with test-harness fix at `a2efe3a4e99b582e00e27763ab674c7efbb8c5fe`. The app now uses canonical website art in Home/Nina/2063, three illustrated projects and four original music covers. The Nina concrete-room art direction remains a future replacement, not a generated identity. An iPhone preview must still be built and installed separately. See `RELEASE06.md`.
 
 ### Product definition
 
