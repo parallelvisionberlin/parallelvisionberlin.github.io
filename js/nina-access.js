@@ -1,5 +1,5 @@
 import { attachConversationDiagnostics } from "./nina-diagnostics.js?v=20261007-end-reasons";
-import { watchNinaLiveMedia, streamNinaVideoForAttempt } from "./nina-live-media.js?v=20260915-live-recovery";
+import { watchNinaLiveMedia, streamNinaVideoForAttempt } from "./nina-live-media.js?v=20261007-close-reason";
 import { speechConstraints, openSpeechMicrophone, microphoneFailure } from "./nina-audio-input.js?v=20261007-noise-control02";
 import { createNinaTrialPromotion } from "./nina-trial-promotion.js?v=20260905";
 import { isNinaWebsite, createConversationProgress, createAudioCheck } from "./nina-web-flow.js?v=20261007-first-reply-recovery";
@@ -2480,9 +2480,14 @@ async function connectNina() {
       },
       onFailure: async error => {
         if (!current()) return;
+        const durationLimit = error?.code === 'connection_closed' && /max duration|duration limit/i.test(String(error?.message || ''));
         reportAppConnectionError('playback', error);
-        await stopNinaSession();
-        if (ninaOverlay.classList.contains("is-open")) showNinaFailure("The video connection stopped. Try again to continue with your remaining credits.");
+        await stopNinaSession(durationLimit ? "provider_duration_limit" : "playback_failed");
+        if (ninaOverlay.classList.contains("is-open")) {
+          showNinaFailure(durationLimit
+            ? "This transmission reached the provider session maximum. Try again to continue with your remaining Signal Credits."
+            : "The video connection stopped. Try again to continue with your remaining credits.");
+        }
       }
     });
     ninaLiveMedia = media;
