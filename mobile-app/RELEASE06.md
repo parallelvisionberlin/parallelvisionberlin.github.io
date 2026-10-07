@@ -4,9 +4,9 @@ Last updated: 08 October 2026
 ## Release status
 
 **First editorial implementation is in the actual mobile-app source.**
-Main implementation: \`8d9147eecb17ad8edfebc3f217114fce1e715375\`.
-Test-harness correction / pinned build source: \`a2efe3a4e99b582e00e27763ab674c7efbb8c5fe\`.
-Branch: \`mobile-app-v1\`.
+Main implementation: `8d9147eecb17ad8edfebc3f217114fce1e715375`.
+Test-harness correction / pinned build source: `a2efe3a4e99b582e00e27763ab674c7efbb8c5fe`.
+Branch: `mobile-app-v1`.
 
 This is *not yet installed in the user's iPhone app*. No EAS cloud preview build was triggered by this repository change.
 
@@ -37,20 +37,20 @@ Real iPhone media framing, Nina live call, and SoundCloud audio require an insta
 
 From your **existing local** Parallel Vision repository, in PowerShell:
 
-\`\`\`powershell
+```powershell
 git checkout mobile-app-v1
 git pull --ff-only origin mobile-app-v1
 cd mobile-app
 .\finish-site05.ps1 -CheckOnly
-\`\`\`
+```
 
-The \`-CheckOnly\` mode runs local/packaging validation and **does not start a cloud preview build**.
+The `-CheckOnly` mode runs local/packaging validation and **does not start a cloud preview build**.
 
 Only after the checks pass and when ready to consume the Expo preview-build allowance:
 
-\`\`\`powershell
+```powershell
 .\finish-site05.ps1
-\`\`\`
+```
 
 The installer pins the precise tested app source, refuses a mismatched repo or changed source, validates packages/files and upload archive, and starts **at most one preview build**. Do not run duplicate build windows. Install the resulting EAS link on the existing iPhone app without uninstalling or signing out.
 
