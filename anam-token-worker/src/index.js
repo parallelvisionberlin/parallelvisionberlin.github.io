@@ -1,4 +1,5 @@
 import { knowledgeToolDescription, optimizeKnowledgeInstructions } from './knowledge-policy.js';
+import { restoreEricKnowledgeOnce } from './eric-knowledge-restore-once.js';
 import { workspaceEnabled, memoryControls, correctionContext, saveMemoryControl, MemoryEditError } from './memory-controls.js';
 import { memoryWorkspace } from './memory-workspace.js';
 import { enqueueMemoryJob, processMemoryJob, drainMemoryJobs } from './memory-jobs.js';
@@ -1005,6 +1006,9 @@ export default {
   async scheduled(_event, env, ctx) {
     ctx.waitUntil(observeBackgroundJob('memory_retry', () => drainMemoryJobs(env)));
     ctx.waitUntil(observeBackgroundJob('live_usage_cleanup', () => expireStaleLiveNinaSessions(env)));
+    // Temporary: restore Eric's factual contact dossier without exposing a public admin route.
+    if (env?.ANAM_API_KEY && env?.NINA_PUBLIC_KNOWLEDGE_FOLDER_ID)
+      ctx.waitUntil(restoreEricKnowledgeOnce(env));
   },
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
