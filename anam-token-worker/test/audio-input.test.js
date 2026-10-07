@@ -48,7 +48,7 @@ test('a disconnected saved microphone retries once with system defaults', async 
   assert.equal(await openSpeechMicrophone(mediaDevices, 'old-earbuds'), stream);
   assert.equal(requests.length, 2);
   assert.deepEqual(requests[0].audio.deviceId, { exact: 'old-earbuds' });
-  assert.deepEqual(requests[1], { audio: true, video: false });
+  assert.deepEqual(requests[1], { audio: { echoCancellation: { ideal: true } }, video: false });
 });
 
 test('microphone permission denial is surfaced without another capture request', async () => {
@@ -95,7 +95,7 @@ test('diagnostics observe the stream actually attached by Anam and never claim r
     assert.equal(events[1].data.noiseSuppression, true);
     assert.equal(events[1].data.voiceIsolation, false);
     assert.equal(events[1].data.autoGainControl, false);
-    assert.equal(events[1].data.audioInputRevision, 'noise-control01');
+    assert.equal(events[1].data.audioInputRevision, 'noise-control02');
     assert.doesNotMatch(JSON.stringify(sent), /SECRET|deviceId/);
   } finally { tracker.stop(); await tracker.flush(); }
   assert.equal(listeners.size, 0);
