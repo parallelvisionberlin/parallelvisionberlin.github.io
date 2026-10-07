@@ -93,14 +93,14 @@ test('a complete empty extraction can legitimately mark an uninformative batch a
   assert.equal(writes[0].values[3], 'test-user-1');
 });
 
-test('saved temporary facts include the actual recorded date in the live context', async () => {
+test('saved temporary facts stay out of automatic live context', async () => {
   const { env } = memoryEnv('', { pins: [{
     category: 'user_fact', content: 'Example is awake at 3am', updated_at: '2026-09-10T01:00:00.000Z',
   }] });
   const { context } = await buildOwnerMemoryContext(env, {
     visitor_id: 'test-visitor', display_name: 'Example', profile_type: 'owner',
   });
-  assert.ok(context.includes('recorded 2026-09-10T01:00:00.000Z'));
+  assert.doesNotMatch(context, /awake at 3am/);
   assert.ok(context.includes('historical unless the current conversation confirms them'));
 });
 
@@ -117,19 +117,22 @@ function relationshipEnv(summary) {
   } } };
 }
 
-test('the owner receives no contradictory generic first-acquaintance instruction', async () => {
-  assert.equal(await buildRelationshipContext(relationshipEnv(DEFAULT_RELATIONSHIP_SUMMARY), 'owner', { establishedOwner: true }), '');
+test('the owner relationship posture is omitted when the owner trial is disabled', async () => {
+  const env = { ...relationshipEnv(DEFAULT_RELATIONSHIP_SUMMARY), NINA_OWNER_RELATIONSHIP_CONTEXT_ENABLED: 'false' };
+  assert.equal(await buildRelationshipContext(env, 'owner', { establishedOwner: true }), '');
 });
 
-test('the default posture is retained for ordinary accounts', async () => {
+test('ordinary accounts receive compact deterministic relationship posture', async () => {
   const context = await buildRelationshipContext(relationshipEnv(DEFAULT_RELATIONSHIP_SUMMARY), 'user');
-  assert.ok(context.includes(DEFAULT_RELATIONSHIP_SUMMARY));
+  assert.match(context, /Relational posture:/);
+  assert.doesNotMatch(context, /beginning of their acquaintance/);
 });
 
-test('learned owner relationship context is retained', async () => {
+test('generated relationship prose is not injected even when stored', async () => {
   const summary = 'They prefer an easy conversational pace and have discussed music together.';
-  const context = await buildRelationshipContext(relationshipEnv(summary), 'owner', { establishedOwner: true });
-  assert.ok(context.includes(summary));
+  const context = await buildRelationshipContext(relationshipEnv(summary), 'user');
+  assert.doesNotMatch(context, /easy conversational pace/);
+  assert.match(context, /Relational posture:/);
 });
 
 test('the existing microphone capture requests supported speech processing and keeps device selection', async () => {
