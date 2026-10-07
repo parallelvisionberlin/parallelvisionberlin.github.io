@@ -1,5 +1,5 @@
 import { sanitizeToolError } from './nina-tool-errors.js?v=20260913-recall';
-import { appliedSpeechSettings, NINA_AUDIO_INPUT_REVISION } from './nina-audio-input.js?v=20260913-noise';
+import { appliedSpeechSettings, NINA_AUDIO_INPUT_REVISION } from './nina-audio-input.js?v=20261007-noise-control02';
 // Metadata only: no audio, transcripts, tool arguments or tool results leave this collector.
 export function attachConversationDiagnostics({client,events,conversationId,send,active=()=>true,stream,now=()=>performance.now()}) {
   const start=now(),salt=crypto.randomUUID(),seen=new Set(),chunks=new Map(),listeners=[],pending=new Set();
