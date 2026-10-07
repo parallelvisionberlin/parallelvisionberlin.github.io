@@ -66,10 +66,13 @@ function invalidateUpscalePrice(message){
   clearTimeout(upscaleQuoteTimer);upscaleQuoteTimer=null;
   if(upscaleQuote||upscaleQuoteNeedsCheck){upscaleQuote=null;upscaleQuoteNeedsCheck=true;upscalePriceMessage=message;}
 }
+function expireUpscalePrice(message){
+  clearTimeout(upscaleQuoteTimer);upscaleQuoteTimer=null;upscaleQuote=null;upscaleQuoteNeedsCheck=false;upscalePriceMessage=message;
+}
 function updateUpscalePrice(){
   const active=tool==='upscale',fal=isFalUpscale();$('upscale-price').hidden=!active;
   if(upscaleQuote&&upscaleQuote.key!==upscalePriceKey())invalidateUpscalePrice(fal?'Image or settings changed. Check price & size again before upscaling.':'Image or settings changed. Check live price again before upscaling.');
-  if(upscaleQuote&&Date.now()>=upscaleQuote.quote.expiresAt)invalidateUpscalePrice(fal?'Estimate expired. Check price & size again before upscaling.':'Live quote expired. Check live price again before upscaling.');
+  if(upscaleQuote&&Date.now()>=upscaleQuote.quote.expiresAt)expireUpscalePrice(fal?'Estimate expired. A fresh estimate will be checked when you upscale.':'Live quote expired. A fresh price will be checked when you upscale.');
   $('upscale-check-price').disabled=!active||!owner||!file||busy||!(fal?config.falEnabled:config.enabled);
   $('upscale-check-price').textContent=fal?(upscaleQuoteNeedsCheck?'Check price & size again':'Check price & size'):(upscaleQuoteNeedsCheck?'Check live price again':'Check live price');
   const q=upscaleQuote?.quote;
@@ -351,7 +354,7 @@ $('upscale-check-price').onclick=()=>action(async()=>{
     const key=upscalePriceKey(),selected=settings(),q=await api('/api/quotes',{method:'POST',body:{...inputs,settings:selected}});
     if(!owner||epoch!==sessionEpoch||tool!=='upscale'||key!==upscalePriceKey())throw new Error('Image, settings or session changed. Check the price again. Nothing was submitted.');
     validateUpscaleQuote(q,selected);upscaleQuote={quote:q,key};upscaleQuoteNeedsCheck=false;upscalePriceMessage='';
-    upscaleQuoteTimer=setTimeout(()=>{if(upscaleQuote?.quote.id===q.id){invalidateUpscalePrice(q.priceIsEstimate?'Estimate expired. Check price & size again before upscaling.':'Live quote expired. Check live price again before upscaling.');update();}},Math.max(0,q.expiresAt-Date.now()));
+    upscaleQuoteTimer=setTimeout(()=>{if(upscaleQuote?.quote.id===q.id){expireUpscalePrice(q.priceIsEstimate?'Estimate expired. A fresh estimate will be checked when you upscale.':'Live quote expired. A fresh price will be checked when you upscale.');update();}},Math.max(0,q.expiresAt-Date.now()));
     notify(isFalUpscale()?'Upscale estimate and dimensions checked. No generation submitted.':'Live upscale price checked. No generation submitted.');
   }catch(e){if(epoch===sessionEpoch){upscalePriceMessage='The price could not be checked. Try the price check again. Nothing was submitted.';}throw e;}
 });
