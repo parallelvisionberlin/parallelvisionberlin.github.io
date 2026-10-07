@@ -34,7 +34,6 @@ import { buildTranscriptExport, TranscriptExportError } from "./transcript-expor
 import { agreementContext, captureAgreements, currentAgreements } from './agreements.js';
 import { PUBLIC_IDENTITY_CONTEXT, attachSystemTools, isKnowledgeTool, knowledgeFolderIds, partitionPersonaPrompt, personalContext, scopeKnowledge } from './persona-context.js';
 import { attachMemoryTool, recallPrivateMemory, catalogWebhook } from './memory-tools.js';
-import { runKnowledgeCentralization } from './knowledge-centralization.js';
 
 const PERSONA_ID = "a5663da5-5f5c-4600-b545-cbb58bd4e155";
 const VISITOR_ID_PATTERN = /^(?:[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|visitor-[a-z0-9-]+)$/i;
@@ -1009,9 +1008,6 @@ export default {
   },
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
-    if (url.pathname === "/__nina-kb-centralize-20261008-8d33b5d7" && request.method === "GET") {
-      return runKnowledgeCentralization(env);
-    }
     const origin = request.headers.get("Origin") || "";
     if(url.pathname==='/tools/lookup-music-catalog'&&request.method==='POST') {
       if(!workspaceEnabled(env))return jsonResponse({error:'Not found'},404);
