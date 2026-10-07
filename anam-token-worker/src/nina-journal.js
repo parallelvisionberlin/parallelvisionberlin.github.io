@@ -3,7 +3,7 @@ import { MemoryEditError, workspaceEnabled } from './memory-controls.js';
 
 export async function listJournal(env,userId,{editing=false}={}) {
   if(!workspaceEnabled(env)) return [];
-  return (await env.NINA_MEMORY_DB.prepare(`SELECT entry_id,kind,scope,content,story_date,status,origin,revision,recorded_at,updated_at,source_message_id,
+  return (await env.NINA_MEMORY_DB.prepare(`SELECT entry_id,kind,scope,content,story_date,status,origin,revision,recorded_at,updated_at,source_message_id,pin_memory_id,
     CASE WHEN user_id=? THEN 1 ELSE 0 END AS editable FROM nina_journal_entries
     WHERE (user_id=? OR (scope='shared' AND status='active')) AND (?=1 OR status='active')
     ORDER BY updated_at DESC LIMIT 160`).bind(userId,userId,editing?1:0).all()).results;
@@ -11,7 +11,10 @@ export async function listJournal(env,userId,{editing=false}={}) {
 
 export async function journalContext(env,userId) {
   const entries=await listJournal(env,userId); let used=0;
-  const selected=entries.filter(e=>!isNinaImplementationMemory(e.content)).filter(e=>{const size=e.content.length+200;if(used+size>5000)return false;used+=size;return true;});
+  const selected=entries
+    .filter(e=>!isNinaImplementationMemory(e.content))
+    .filter(e=>!(e.editable && e.pin_memory_id))
+    .filter(e=>{const size=e.content.length+200;if(used+size>5000)return false;used+=size;return true;});
   if(!selected.length)return '';
   return `NINA CONTINUITY JOURNAL\n${JSON.stringify(selected.map(e=>({kind:e.kind,scope:e.scope,text:e.content,storyDate:e.story_date,recordedAt:e.recorded_at})))}\nIndependent entries describe Nina's own life in Berlin 2063. Shared entries record experiences in conversation with this visitor; fantasy entries remain imagined scenes. Do not assign the visitor a part in an independent event; fantasies do not establish shared events. Recorded dates are real conversation dates; a story date is separate. Use relevant details naturally without reciting a diary or explaining these storage categories. Private entries belong only to this visitor. Later explicit corrections take precedence.`;
 }
