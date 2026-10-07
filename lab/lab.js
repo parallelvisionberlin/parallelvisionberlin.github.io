@@ -74,7 +74,7 @@ function updateUpscalePrice(){
   $('upscale-check-price').textContent=fal?(upscaleQuoteNeedsCheck?'Check price & size again':'Check price & size'):(upscaleQuoteNeedsCheck?'Check live price again':'Check live price');
   const q=upscaleQuote?.quote;
   $('upscale-price-status').textContent=q?(q.priceIsEstimate?('Estimated charge: '+money(q.estimatedUsd)+' USD. '+q.settings.sourceWidth+' × '+q.settings.sourceHeight+' → '+q.settings.targetWidth+' × '+q.settings.targetHeight+' output. Not a guaranteed maximum. Valid until '+new Date(q.expiresAt).toLocaleTimeString()+'. No generation submitted.'):('Live price: '+money(q.estimatedUsd)+' USD'+(q.maxUsd!==q.estimatedUsd?' · maximum '+money(q.maxUsd)+' USD':'')+'. Valid until '+new Date(q.expiresAt).toLocaleTimeString()+'. No generation submitted.')):upscalePriceMessage||(fal?'Check the estimated charge and output dimensions before upscaling.':'Check the price for this image before upscaling, or use Upscale directly.');
-  if(active&&fal&&!config.falEnabled)$('generate').disabled=true;
+  if(active&&(fal&&!config.falEnabled||upscaleQuoteNeedsCheck))$('generate').disabled=true;
   if(active&&q)$('generate').textContent='Upscale · '+(q.priceIsEstimate?'est. ':q.maxUsd!==q.estimatedUsd?'max ':'')+money(q.priceIsEstimate?q.estimatedUsd:q.maxUsd);
 }
 function validateUpscaleQuote(q,selected){
