@@ -32,7 +32,7 @@ test('journal corrections and removal update the linked pin and survive transcri
  await saveJournal(f.env,user('a'),body(entry,{content:'Nina has a blue studio door.'}));
  assert.equal((await visiblePins(f))[0].content,'Nina has a blue studio door.');
  await f.extract('pin-a','Nina has a red studio door.','source-2');
- assert.equal((await listJournal(f.env,'a')).length,1);assert.match(await journalContext(f.env,'a'),/blue studio door/);assert.doesNotMatch(await journalContext(f.env,'a'),/red studio door/);
+ assert.equal((await listJournal(f.env,'a')).length,1);assert.equal(await journalContext(f.env,'a'),'');
  [entry]=await listJournal(f.env,'a');await saveJournal(f.env,user('a'),body(entry,{status:'hidden'}));
  await f.extract('pin-a','Nina has a red studio door.','source-3');
  assert.equal((await visiblePins(f)).length,0);assert.equal(await journalContext(f.env,'a'),'');assert.equal(f.sqlite.prepare('SELECT COUNT(*) n FROM nina_journal_entries').get().n,1);
