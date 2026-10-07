@@ -13,8 +13,8 @@ test('considers preferences older than the newest twenty pins before recent temp
   const project = fact('lasting-project', 'project', 'The visitor is working on Fashion After Fabric.');
   const selected = selectPinnedMemories([...pins, preference, project], { now, characterBudget: 300 });
   assert.deepEqual(selected.items.slice(0, 2), [preference, project]);
-  assert.equal(selected.candidateCount, 25);
-  assert.equal(selected.omittedCount, 25 - selected.count);
+  assert.equal(selected.candidateCount, 2);
+  assert.equal(selected.omittedCount, 2 - selected.count);
   assert.ok(selected.used <= 300);
 });
 
@@ -88,4 +88,19 @@ test('one relevant historic temporary fact can be recalled without treating all 
   assert.equal(selected.items[0], sleep);
   assert.ok(selected.text.includes(`recorded ${old}`));
   assert.ok(selected.text.includes(sleep.content));
+});
+
+
+test('startup selection excludes trivial, temporary and generic fantasy pins without deleting retrieval access', () => {
+  const rows = [
+    fact('talking', 'user_fact', 'The visitor was talking to Nina.', recent),
+    fact('joint', 'user_fact', 'The visitor is smoking a joint.', recent),
+    fact('fantasy', 'fantasy_roleplay', 'The visitor and Nina discussed an erotic scenario.', recent),
+    fact('project', 'project', 'The visitor is working on Fashion After Fabric.', recent)
+  ];
+  const startup = selectPinnedMemories(rows, { now });
+  assert.deepEqual(startup.items.map(row => row.memory_id), ['project']);
+  const recalled = selectPinnedMemories(rows, { now, query: 'smoking joint' });
+  assert.equal(recalled.items[0].memory_id, 'joint');
+  assert.ok(rankMemoryCandidates(rows, { now }).some(row => row.memory_id === 'fantasy'));
 });
