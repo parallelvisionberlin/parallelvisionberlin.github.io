@@ -1,0 +1,44 @@
+name: Nina Knowledge Centralize Once
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/nina-knowledge-centralize-once.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run idempotent Anam knowledge migration
+        shell: bash
+        run: |
+          set -euo pipefail
+          endpoint='https://parallel-vision-anam-token.parallelvision.workers.dev/__nina-kb-centralize-20261008-8d33b5d7'
+          for attempt in $(seq 1 30); do
+            echo "Migration attempt $attempt"
+            body="$(curl --fail --silent --show-error "$endpoint?attempt=$attempt")"
+            echo "$body"
+            ok="$(printf '%s' "$body" | jq -r '.ok // false')"
+            phase="$(printf '%s' "$body" | jq -r '.phase // "unknown"')"
+            if [ "$ok" != "true" ]; then
+              echo "Migration returned failure"
+              exit 1
+            fi
+            if [ "$phase" = "done" ]; then
+              echo "Knowledge centralization complete."
+              exit 0
+            fi
+            if [ "$phase" = "processing" ] || [ "$phase" = "uploaded" ] || [ "$phase" = "missing_after_upload" ]; then
+              sleep 10
+              continue
+            fi
+            echo "Unexpected migration phase: $phase"
+            exit 1
+          done
+          echo "Migration did not finish within polling window."
+          exit 1
