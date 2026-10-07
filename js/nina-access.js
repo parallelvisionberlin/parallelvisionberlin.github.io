@@ -1216,6 +1216,11 @@ const NINA_TURN_LOOP_PATTERN = /\b(?:i(?:'m| am) waiting|still waiting|your turn
 function hasNearDuplicateNinaSentence(content) {
   const sentences = String(content || "").match(/[^.!?]+[.!?]+/g)?.map(sentence => sentence.trim()) || [];
   if (sentences.length < 2) return false;
+  const greetingKeys = sentences.map(sentence => {
+    const match = sentence.toLowerCase().match(/^(hi|hey),?\s+([a-z][a-z'-]*)\b/);
+    return match ? match[1] + ":" + match[2] : "";
+  }).filter(Boolean);
+  if (greetingKeys.length !== new Set(greetingKeys).size) return true;
   const words = sentence => (sentence.toLowerCase().match(/[a-z0-9]+/g) || []);
   for (let right = 1; right < sentences.length; right += 1) {
     const b = words(sentences[right]);
