@@ -92,8 +92,18 @@ function packRanked(rows, { characterBudget, prefix, suffix = '', separator = '\
   };
 }
 
+function eligibleForAlwaysOnContext(row) {
+  if (!row || typeof row.content !== 'string') return false;
+  if (row.category === 'fantasy_roleplay') return false;
+  if (row.category === 'user_fact' && (TRIVIAL_FACT.test(row.content) || TEMPORARY_FACT.test(row.content))) return false;
+  return true;
+}
+
 export function selectPinnedMemories(rows, { characterBudget = 5000, header = 'PINNED MEMORIES', ...ranking } = {}) {
-  return packRanked(rankMemoryCandidates(rows, ranking), {
+  const ranked = rankMemoryCandidates(rows, ranking);
+  const query = typeof ranking.query === 'string' ? ranking.query.trim() : '';
+  const candidates = query ? ranked : ranked.filter(eligibleForAlwaysOnContext);
+  return packRanked(candidates, {
     characterBudget,
     prefix: `${header}\n`,
     format: item => `[${item.category}${item.updated_at ? `; recorded ${item.updated_at}` : ''}] ${item.content}`
