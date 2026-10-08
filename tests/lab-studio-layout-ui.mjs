@@ -124,6 +124,8 @@ try{
   assert.equal(await bootPage.locator('#lab-boot').isVisible(),true,'Brand loading appears before external JS');
   assert.equal(await bootPage.locator('#gate').isVisible(),false,'No half-loaded sign-in page');
   assert.match(await bootPage.locator('#lab-boot-name').innerText(),/PARALLEL VISION/);
+  assert.equal(await bootPage.locator('#lab-boot img').count(),0,'Boot screen uses text and CSS only, never an icon placeholder');
+  await bootPage.screenshot({path:'test-results/lab-branded-loading.png',fullPage:false});
   await bootPage.waitForFunction(()=>window.__layoutTest===true);
   assert.equal(await bootPage.locator('#lab-boot').isVisible(),false,'Boot overlay removed on mock auth resolution');
   await bootContext.close();
