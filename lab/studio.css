@@ -503,3 +503,8 @@ header .actions .eyebrow {font-size:9px}
   .stage {height:clamp(300px,50dvh,500px)}
   .soul-launch {margin-top:12px;gap:10px}
 }
+
+/* Flush navigation with the authenticated workspace header. */
+#app:not([hidden]){padding-top:0!important}
+#app:not([hidden])>.tool-switch{margin-top:0!important;margin-bottom:8px!important}
+@media(max-width:820px){#app:not([hidden]){padding-top:0!important}}
