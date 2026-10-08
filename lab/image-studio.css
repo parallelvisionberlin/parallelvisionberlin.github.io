@@ -81,7 +81,7 @@
   border:0;color:#fff;
   opacity:0;transform:translateY(7px);
   transition:opacity .16s ease,transform .16s ease;
-  pointer-events:none;
+  pointer-events:auto;
 }
 .image-studio #history .card:hover .cardbody,
 .image-studio #history .card:focus-within .cardbody {
