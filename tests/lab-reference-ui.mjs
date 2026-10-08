@@ -169,6 +169,24 @@ try{
   assert.ok(Math.abs(detail.image.width/detail.image.height-1.5)<.02,'Full image retains source aspect ratio');
   assert.equal(await x.page.locator('#image-detail-prompt').innerText(),'A ceramic sculpture.');
   assert.equal(await x.page.locator('#image-detail-model').innerText(),'Seedream 5 Pro');
+  await x.page.waitForFunction(()=>document.querySelector('#image-detail-reference-thumb').naturalWidth>0
+    && !document.querySelector('#image-detail-reference-wrap').hidden);
+  assert.equal(await x.page.locator('#image-detail-reference-caption').innerText(),'Source image');
+  const polish=await x.page.evaluate(()=>{
+    const close=document.querySelector('#image-lightbox-close').getBoundingClientRect();
+    const panel=document.querySelector('.image-detail-inspector').getBoundingClientRect();
+    return {closeRight:close.right,panelLeft:panel.left,viewportWidth:innerWidth,
+      promptBorder:getComputedStyle(document.querySelector('.image-detail-prompt-card')).borderTopWidth,
+      detailsBorder:getComputedStyle(document.querySelector('#image-detail-metadata')).borderTopWidth};
+  });
+  assert.ok(polish.closeRight>=polish.viewportWidth-34&&polish.closeRight>polish.panelLeft,
+    'Close X occupies the upper-right corner of the inspector');
+  assert.equal(polish.promptBorder,'1px','Prompt is in a bordered card');
+  assert.equal(polish.detailsBorder,'1px','Details is in a separate bordered card');
+  await x.page.locator('#image-detail-metadata summary').click();
+  assert.equal(await x.page.locator('#image-detail-metadata').evaluate(el=>el.open),false);
+  await x.page.locator('#image-detail-metadata summary').click();
+  assert.equal(await x.page.locator('#image-detail-metadata').evaluate(el=>el.open),true);
   await x.page.locator('#image-lightbox-fit').click();
   assert.equal(await x.page.locator('#image-lightbox-stage').evaluate(e=>e.classList.contains('is-zoomed')),true,'100% zoom must be available on demand');
   await x.page.locator('#image-lightbox-fit').click();
@@ -179,6 +197,41 @@ try{
   assert.equal(await x.page.locator('#preview').getAttribute('src'),resultUrl);assert.equal(await x.page.locator('#preview').getAttribute('alt'),'Generated image result');
   assert.equal(await x.page.locator('#image-lightbox-download').isVisible(),true);pass('Adding references preserves the real result and visible Image viewer download');
   await x.page.evaluate(()=>window.__labTest.lock());assert.equal(await x.page.locator('#app').isVisible(),false);assert.equal(await x.page.locator('.reference-item').count(),0);assert.equal(await x.page.locator('#input-preview-image').getAttribute('src'),null);pass('Sign-out clears input previews, result previews and private reference state');await x.context.close();
+
+  const longPrompt='SECOND IMAGE. ' + 'Architectural fashion study with natural light, a continuous narrative and original composition. '.repeat(6);
+  const secondJob={...job,id:'30000000-0000-4000-8000-000000000020',
+    outputId:'30000000-0000-4000-8000-000000000021',settings:{...job.settings,prompt:longPrompt}};
+  x=await workspace({jobs:[job,secondJob]});
+  await x.page.click('#tool-image');
+  await x.page.locator('#history .card[data-kind="image"]').first().click();
+  await x.page.waitForFunction(()=>document.querySelector('#image-lightbox').open);
+  assert.equal(await x.page.locator('#image-lightbox-counter').innerText(),'1 / 2');
+  assert.equal(await x.page.locator('#image-detail-prev').isVisible(),false);
+  assert.equal(await x.page.locator('#image-detail-next').isVisible(),true);
+  await x.page.locator('#image-detail-next').click();
+  await x.page.waitForFunction(()=>document.querySelector('#image-detail-prompt').textContent.startsWith('SECOND IMAGE.'));
+  assert.equal(await x.page.locator('#image-lightbox-counter').innerText(),'2 / 2');
+  assert.equal(await x.page.locator('#image-detail-expand').isVisible(),true);
+  await x.page.locator('#image-detail-expand').click();
+  assert.equal(await x.page.locator('#image-detail-expand').getAttribute('aria-expanded'),'true');
+  await x.page.screenshot({path:'test-results/lab-image-detail-navigation.png',fullPage:false});
+  await x.page.keyboard.press('ArrowLeft');
+  await x.page.waitForFunction(()=>document.querySelector('#image-lightbox-counter').textContent==='1 / 2');
+  assert.equal(await x.page.locator('#image-detail-prompt').innerText(),'A ceramic sculpture.');
+  await x.page.evaluate(()=>{
+    const el=document.getElementById('image-lightbox-stage');
+    if(typeof Touch!=='function')return;
+    const start=new Touch({identifier:3,target:el,clientX:850,clientY:390});
+    const end=new Touch({identifier:3,target:el,clientX:660,clientY:390});
+    el.dispatchEvent(new TouchEvent('touchstart',{touches:[start],changedTouches:[start],bubbles:true}));
+    el.dispatchEvent(new TouchEvent('touchend',{touches:[],changedTouches:[end],bubbles:true}));
+  });
+  await x.page.waitForFunction(()=>document.querySelector('#image-lightbox-counter').textContent==='2 / 2');
+  await x.page.locator('#image-lightbox-close').click();
+  assert.equal(await x.page.locator('#image-lightbox').evaluate(el=>el.open),false);
+  assert.deepEqual(x.errors,[]);
+  pass('Gallery next/previous, keyboard and swipe navigation with collapsible prompt and source');
+  await x.context.close();
 
   const jpegJob={...job,settings:{...job.settings,outputFormat:'jpeg'}};
   x=await workspace({jobs:[jpegJob]});await x.page.click('#tool-image');await x.page.locator('#history .card[data-kind="image"]').first().click();await x.page.click('#image-detail-reuse');
