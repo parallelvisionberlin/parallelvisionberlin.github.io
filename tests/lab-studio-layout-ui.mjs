@@ -105,28 +105,46 @@ try{
   const chooser=await fileChooser;
   assert.ok(chooser,'Canvas imports real source files');
   await x.page.click('#tool-image');
-  assert.equal(await x.page.locator('#image-model-control').isVisible(),true);
-  assert.deepEqual(await x.page.locator('.tool-tab.active').evaluateAll(els=>els.map(e=>e.id)),['tool-image'],'Image tab must visually match active editor');
-  assert.notEqual(await x.page.locator('#image-engine').evaluate(e=>getComputedStyle(e).borderTopColor),'rgba(141, 99, 255, 0.34)','Image model select must not retain purple border');
+  assert.equal(await x.page.locator('#image-composer').isVisible(),true,'Image floating composer must appear');
+  assert.equal(await x.page.locator('.workspace').isVisible(),false,'Video editor must not occupy Image mode');
+  assert.equal(await x.page.locator('#history').evaluate(e=>e.closest('#image-gallery-host')!==null),true,'Existing History gallery must move to Image workspace');
+  assert.equal(await x.page.locator('.tool-tab.active').evaluateAll(els=>els.map(e=>e.id)).then(a=>a.join(',')),'tool-image');
+  const composerGeometry=await x.page.locator('#image-composer').evaluate(el=>{
+    const r=el.getBoundingClientRect();
+    return {top:r.top,bottom:r.bottom,width:r.width,radius:getComputedStyle(el).borderTopLeftRadius};
+  });
+  assert.ok(composerGeometry.bottom>=850 && composerGeometry.width>900,'Composer floats near bottom at desktop width');
+  assert.ok(parseFloat(composerGeometry.radius)>=19,'Composer must have generously rounded corners');
+  assert.equal(await x.page.locator('#image-gallery-empty').isVisible(),true,'Empty gallery must not invent images');
+  assert.equal(await x.page.locator('.empty-wordmark').count(),0,'Do not repeat central PV logo in gallery mode');
+
+  await x.page.click('#image-composer-model');
+  assert.equal(await x.page.locator('#image-composer-model-menu').isVisible(),true,'Model popup opens above floating bar');
+  await x.page.fill('#image-composer-model-search','banana');
+  await x.page.locator('.composer-model-option[data-value="gemini"]').click();
+  assert.equal(await x.page.locator('#image-engine').inputValue(),'gemini','Model menu changes actual provider selection');
+  await x.page.click('#image-composer-model');
+  await x.page.fill('#image-composer-model-search','seedream');
+  await x.page.locator('.composer-model-option[data-value="seedream"]').click();
+  assert.equal(await x.page.locator('#image-engine').inputValue(),'seedream');
+
+  const floatingChooser=x.page.waitForEvent('filechooser');
+  await x.page.click('#image-composer-add');
+  assert.ok(await floatingChooser,'Plus button opens reference input from same bar');
+  await x.page.locator('#image-composer-prompt').fill('A sculptural, atmospheric photographic still.');
+  assert.equal(await x.page.locator('#prompt').inputValue(),'A sculptural, atmospheric photographic still.','Prompt is synchronized with real Image form');
+  assert.equal(await x.page.locator('#image-composer-generate').isDisabled(),false,'Image generation button enables from floating prompt');
+  await x.page.selectOption('#image-composer-ratio','16:9');
+  assert.equal(await x.page.locator('#ratio').inputValue(),'16:9','Floating aspect ratio updates backend settings');
+  await x.page.click('#image-composer-more');
+  assert.equal(await x.page.locator('#image-model-control').isVisible(),true,'Advanced drawer reveals original model controls');
   const packTops=await x.page.evaluate(()=>['pack-load','pack-save','pack-delete'].map(id=>Math.round(document.getElementById(id).getBoundingClientRect().top)));
-  assert.equal(new Set(packTops).size,1,'Reference pack actions stay on one aligned row');
-  assert.match((await x.page.locator('#canvas-import').innerText()).replace(/\s+/g,' '),/Write an image prompt\s+↗/);
-  assert.match(await x.page.locator('#empty-title').innerText(),/idea a form/i);
-  await x.page.locator('#canvas-import').click();
-  assert.equal(await x.page.evaluate(()=>document.activeElement.id),'prompt','Primary Image action focuses prompt');
-  const secondaryChooser=x.page.waitForEvent('filechooser');
-  await x.page.locator('#canvas-secondary').click();
-  assert.ok(await secondaryChooser,'Secondary Image action opens references');
-  await x.page.fill('#prompt','A sculptural, atmospheric photographic still.');
-  assert.equal(await x.page.locator('#generate').isDisabled(),false,'Image Generate enables after the prompt is entered');
-  const generateColor=await x.page.locator('#generate').evaluate(e=>getComputedStyle(e).backgroundColor);
-  assert.ok(['rgb(228, 230, 234)','rgb(44, 46, 51)'].includes(generateColor),'Generate uses pearl white when enabled or neutral graphite when disabled, never bronze');
-  const positions=await x.page.evaluate(()=>({
-    soul:document.querySelector('#soul-launch').getBoundingClientRect().top,
-    editor:document.querySelector('.workspace').getBoundingClientRect().bottom,
-    navTop:document.querySelector('.tool-switch').getBoundingClientRect().top
-  }));
-  assert.ok(positions.soul>=positions.editor,'Soul promotional section does not block editor');
+  assert.equal(new Set(packTops).size,1,'Reference pack actions stay aligned inside advanced controls');
+  await x.page.click('#image-composer-more');
+  const galleryLayout=await x.page.locator('#history').evaluate(el=>{
+    const c=getComputedStyle(el);return {display:c.display,columns:c.gridTemplateColumns.split(' ').length};
+  });
+  assert.ok(galleryLayout.columns>=3,'Images use gallery grid with multiple columns');
   await x.page.screenshot({path:'test-results/lab-workspace-image.png',fullPage:false});
   await x.page.click('#tool-video');
   await x.page.click('#mode-reference');
@@ -203,6 +221,14 @@ try{
   assert.ok(d.documentWidth<=d.viewport.width,'Mobile must have no horizontal overflow');
   assert.ok(d.workspace.top<135,'Mobile editor appears immediately after tool navigation');
   assert.ok(d.stage.height<=620,'Preview remains bounded on mobile');
+  await x.page.click('#tool-image');
+  const compactComposer=await x.page.locator('#image-composer').evaluate(el=>{
+    const r=el.getBoundingClientRect();return {left:r.left,right:r.right,bottom:r.bottom,width:r.width};
+  });
+  assert.ok(compactComposer.left>=0&&compactComposer.right<=innerWidth,'Floating Image bar fits on mobile');
+  assert.ok(await x.page.locator('#image-composer-add').isVisible(),'Mobile Image bar keeps in-bar reference action');
+  await x.page.screenshot({path:'test-results/lab-image-floating-mobile.png',fullPage:false});
+  await x.page.click('#tool-video');
   assert.ok(await x.page.locator('.empty-actions').evaluate(el=>el.getBoundingClientRect().width<=document.querySelector('.canvas').getBoundingClientRect().width),'Empty actions must fit the mobile preview');
   await x.page.locator('#generate').scrollIntoViewIfNeeded();
   assert.equal(await x.page.locator('#generate').isVisible(),true);
