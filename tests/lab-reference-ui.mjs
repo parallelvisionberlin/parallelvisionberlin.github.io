@@ -79,7 +79,7 @@ try{
   const originals=await x.page.evaluate(()=>window.__labTest.refs());assert.equal(originals.length,7);
   assert.ok(originals.every(r=>r.size===1048576&&r.width===3072&&r.height===2048));pass('Sidebar decodes small thumbnails while original dimensions and file sizes remain intact');
   assert.equal(await x.page.locator('#preview').isVisible(),false);assert.equal(await x.page.locator('#download').isVisible(),false);
-  assert.match(await x.page.locator('#preview-label').innerText(),/Result/i);assert.match(await x.page.locator('#empty').innerText(),/generated image/i);pass('Image canvas does not misrepresent the first reference as a result');
+  assert.match(await x.page.locator('#preview-label').innerText(),/Result/i);assert.match(await x.page.locator('#empty-title').innerText(),/idea a form/i);pass('Image canvas does not misrepresent the first reference as a result');
   const layout=await x.page.evaluate(()=>({stage:document.querySelector('.stage').getBoundingClientRect().height,list:document.querySelector('#reference-list').clientHeight,scroll:document.querySelector('#reference-list').scrollHeight,canvas:document.querySelector('.canvas').getBoundingClientRect().height}));
   assert.ok(layout.stage<=741&&layout.canvas<650);assert.ok(layout.list<=351&&layout.scroll>layout.list);pass('Reference scrolling is bounded and cannot stretch the result canvas');
   await x.page.locator('.reference-item img').nth(6).click();await x.page.locator('#input-preview-dialog').waitFor({state:'visible'});
