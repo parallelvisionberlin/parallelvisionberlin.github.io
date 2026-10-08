@@ -66,7 +66,7 @@ try{
   const videoLayout=await x.page.evaluate(()=>{
     const workspace=document.querySelector('.workspace'),feed=document.querySelector('#video-feed-center');
     const editor=document.querySelector('.controls'),panel=document.querySelector('#video-inspector');
-    const fake=document.createElement('div');fake.style.height='1100px';feed.append(fake);
+    const fake=document.createElement('div');fake.style.height='1100px';fake.style.flex='0 0 1100px';feed.append(fake);
     feed.scrollTop=260;
     const positionBefore=editor.getBoundingClientRect().top;
     const result={mode:workspace.classList.contains('video-layout'),feedOverflow:getComputedStyle(feed).overflowY,
