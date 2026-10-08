@@ -358,6 +358,113 @@ body.pv-home .current-release a:focus-visible { outline: 1px solid #fff; outline
   body.pv-home .artists-section { padding-top: 56px; }
 }
 </style>
+
+<style id="home-editorial-navigation">
+/* Scoped to the homepage: visual continuity with Nina's existing exhibition header. */
+body.pv-home #homeNavigation {
+  position:absolute; top:0; left:0; right:0; width:100%;
+  height:76px; min-height:76px; margin:0; transform:none;
+  display:grid; grid-template-columns:175px minmax(0,1fr) auto;
+  align-items:center; gap:clamp(20px,2.5vw,42px);
+  padding:0 max(44px,calc((100vw - 1570px)/2));
+  background:#060707; border-bottom:1px solid rgba(242,240,237,.19);
+  opacity:1; color:#f2f0ed; white-space:nowrap; z-index:30;
+  font:500 10px/1.5 'Inter',Arial,sans-serif;
+  letter-spacing:.12em; text-transform:uppercase;
+  box-sizing:border-box;
+}
+body.pv-home #homeNavigation > .home-header-brand {
+  grid-column:1; display:inline-flex; align-items:center; justify-self:start;
+  min-height:48px; opacity:1; text-decoration:none;
+}
+body.pv-home #homeNavigation .home-header-wordmark {
+  display:block; width:175px; max-width:100%; max-height:46px; height:auto;
+  object-fit:contain; object-position:left center;
+}
+body.pv-home #homeNavigation .home-primary-links {
+  grid-column:2; display:flex; align-items:center; justify-content:center;
+  flex-wrap:nowrap; min-width:0; min-height:44px; width:100%;
+  gap:clamp(12px,1.8vw,29px);
+  font:500 10px/1.4 'Inter',Arial,sans-serif; letter-spacing:.12em;
+}
+body.pv-home #homeNavigation .home-primary-links > a {
+  display:inline-flex; align-items:center; min-height:44px;
+  color:#d9d9d6; text-decoration:none; transition:color .2s ease;
+}
+body.pv-home #homeNavigation .home-primary-links > a:hover {color:#fff;opacity:1;}
+body.pv-home #homeNavigation .home-primary-links .nina-nav-signal {background:#c3c8bf;box-shadow:none;}
+body.pv-home #homeNavigation .home-utility-controls {
+  grid-column:3; justify-self:end; display:flex; align-items:center;
+  gap:14px; min-height:44px;
+}
+body.pv-home #homeNavigation #ninaAccountToggle {
+  width:44px; height:44px; min-width:44px; padding:11px;
+  border:1px solid #858785; border-radius:50%;
+  background:transparent; color:#f2f0ed;
+}
+body.pv-home #homeNavigation #ninaAccountToggle svg {
+  width:20px; height:20px; stroke:currentColor;
+}
+body.pv-home #homeNavigation .pv-language-switch {
+  font:500 10px/1.4 'Inter',Arial,sans-serif;
+  letter-spacing:.06em; color:#d2d2cd; opacity:.8;
+}
+body.pv-home #homeNavigation :is(a,button):focus-visible {
+  outline:2px solid #f4eee9; outline-offset:4px;
+}
+@media (max-width:1100px) {
+  body.pv-home #homeNavigation {
+    height:66px; min-height:66px; padding:0 clamp(18px,3.5vw,44px);
+    grid-template-columns:minmax(0,1fr) auto; gap:12px;
+  }
+  body.pv-home #homeNavigation > .home-header-brand {grid-column:1;min-height:44px;}
+  body.pv-home #homeNavigation .home-header-wordmark {width:125px;height:auto;}
+  body.pv-home #homeNavigation .home-utility-controls {
+    grid-column:2; gap:10px; min-height:44px; position:relative; z-index:102;
+  }
+  body.pv-home #homeNavigation .home-mobile-menu-toggle {
+    display:inline-flex; align-items:center; justify-content:center;
+    min-width:48px; min-height:44px; padding:0 7px; border:0;
+    background:transparent; color:#f2f0ed; cursor:pointer;
+    font:500 11px/1.4 'Inter',Arial,sans-serif;
+    letter-spacing:.02em; text-transform:none;
+  }
+  body.pv-home #homeNavigation .home-primary-links {
+    position:absolute; top:100%; right:0; bottom:auto; left:auto; z-index:101;
+    display:none; grid-column:auto; grid-template-columns:1fr;
+    align-items:stretch; justify-content:stretch; gap:0;
+    width:min(84vw,370px); min-height:0;
+    max-height:calc(100dvh - 66px - env(safe-area-inset-top));
+    padding:10px 22px 18px;
+    border-left:1px solid rgba(255,255,255,.15);
+    border-bottom:1px solid rgba(255,255,255,.15);
+    background:#060707; box-shadow:-18px 18px 52px rgba(0,0,0,.56);
+    overflow-y:auto; overscroll-behavior:contain; box-sizing:border-box;
+  }
+  body.pv-home #homeNavigation.is-mobile-menu-open .home-primary-links {display:grid;}
+  body.pv-home #homeNavigation .home-primary-links > a {
+    display:flex; align-items:center; min-height:48px; padding:0 2px;
+    border-bottom:1px solid rgba(255,255,255,.12);
+    font:500 12px/1.4 'Inter',Arial,sans-serif;
+    letter-spacing:.05em; color:#eeece9;
+  }
+  body.pv-home #homeNavigation .home-primary-links > a::before {content:none;}
+  body.pv-home #homeNavigation .home-primary-links > .nina-nav-link {
+    display:flex; grid-template-columns:none; gap:9px;
+  }
+  body.pv-home #homeNavigation .home-mobile-language-slot {
+    display:flex; align-items:center; min-height:48px;
+    margin:0; padding:5px 2px 0; border-top:0;
+  }
+  body.pv-home #homeNavigation .home-mobile-language-slot .pv-language-switch {
+    padding:0; min-height:40px; font-size:11px; opacity:1;
+  }
+  body.pv-home #homeNavigation.is-mobile-menu-open::before {
+    content:""; display:block; position:fixed; inset:66px 0 0;
+    z-index:99; background:rgba(0,0,0,.4); pointer-events:none;
+  }
+}
+</style>
 </head>
 
 
@@ -396,7 +503,7 @@ body.pv-home .current-release a:focus-visible { outline: 1px solid #fff; outline
 
   <nav id="homeNavigation" aria-label="Primary navigation">
 
-    <a class="home-mobile-brand" href="#top" aria-label="Parallel Vision home">Parallel Vision</a>
+    <a class="home-mobile-brand home-header-brand" href="#top" aria-label="Parallel Vision home"><img class="home-header-wordmark" src="./lab/branding/pv-wordmark.png" alt="Parallel Vision" width="360" height="90"></a>
 
     <div class="home-primary-links" id="homePrimaryLinks">
 
@@ -2204,7 +2311,7 @@ body.pv-home .current-release a:focus-visible { outline: 1px solid #fff; outline
 
 
 
-  <script src="./js/home.js?v=20260905-hero-final" defer></script>
+  <script src="./js/home.js?v=20261009-editorial-nav" defer></script>
 
 <script type="module" src="./js/nina-access.js?v=20261007-context-centralized2"></script>
 
