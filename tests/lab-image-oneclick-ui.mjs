@@ -92,14 +92,14 @@ try{
  const saving=n=>({...active(n),status:'saving',providerTaskId:'settled-'+n,error:'Archive retry pending'});
  x=await workspace({initial:[saving(10),saving(11),saving(12),saving(13)]});await imageForm(x);
  assert.equal(await x.page.locator('#generate').isDisabled(),false);
- assert.match(await x.page.locator('#active-status').innerText(),/4 saving \(no generation slot\)/);
+ await x.page.locator('#active summary').click();assert.match(await x.page.locator('#active-status').innerText(),/4 saving \(no generation slot\)/);await x.page.locator('#active summary').click();
  await x.page.click('#generate');await ready(x.page);assert.equal(x.accepted(),1);
  ok('Archive-only saves stay visible but do not consume Image generation slots');await x.context.close();
 
  const geminiInterrupted={...active(20),status:'uncertain',settings:{...settings,provider:'gemini',engine:'gemini',model:'gemini-3-pro-image',processing:'normal'}};
  x=await workspace({initial:[geminiInterrupted]});await imageForm(x);
  assert.equal(await x.page.locator('#generate').isDisabled(),false);
- assert.match(await x.page.locator('#active-status').innerText(),/Nano 0 \/ 4/);assert.match(await x.page.locator('#active-status').innerText(),/1 old Nano interrupted/);
+ await x.page.locator('#active summary').click();assert.match(await x.page.locator('#active-status').innerText(),/Nano 0 \/ 4/);assert.match(await x.page.locator('#active-status').innerText(),/1 old Nano interrupted/);await x.page.locator('#active summary').click();
  ok('Interrupted Gemini request is labeled as old and does not look like an active Nano generation');await x.context.close();
  const manyPack={id:id(940),name:'Nina Master 8',refs:Array.from({length:8},(_,i)=>({id:id(960+i),name:'nina-'+(i+1)+'.png',role:'identity',note:''}))};
  x=await workspace({savedPacks:[manyPack]});await imageAdvanced(x.page);await x.page.selectOption('#image-engine','soulpro');await ready(x.page);await x.page.click('#soul-pro-identity-manage');

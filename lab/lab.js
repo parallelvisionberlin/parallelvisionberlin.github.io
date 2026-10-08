@@ -932,6 +932,14 @@ function setActiveJobs(list){
   activeJobs=[...new Map((list||[]).filter(j=>j&&activeStates.has(j.status)).map(j=>[j.id,j])).values()];
   activeJob=activeJobs.find(j=>j.status==='uncertain')||activeJobs[0]||null;
   $('active').hidden=!activeJobs.length;
+  const uncertainCount=activeJobs.filter(j=>j.status==='uncertain').length;
+  const workingCount=activeJobs.length-uncertainCount;
+  $('queue-count').textContent=[
+    workingCount?workingCount+' active':'',
+    uncertainCount?uncertainCount+' to review':''
+  ].filter(Boolean).join(' · ')||'0 jobs';
+  $('active').classList.toggle('has-uncertain',uncertainCount>0);
+  if(!activeJobs.length)$('active').open=false;
   const saving=activeJobs.filter(j=>j.status==='saving').length;
   const batchImages=activeJobs.filter(j=>slotStates.has(j.status)&&j.settings?.type==='image'&&jobProvider(j)==='gemini'&&j.settings?.processing==='batch').length;
   const spicyImages=activeJobs.filter(j=>slotStates.has(j.status)&&j.settings?.type==='image'&&jobProvider(j)==='spicy').length;
@@ -979,6 +987,14 @@ async function poll(){
   finally{if(startedEpoch===epoch){polling=false;schedulePoll();}}
 }
 $('resolve').onclick=()=>action(async()=>{const interrupted=activeJobs.find(j=>j.status==='uncertain');if(!interrupted||!confirm('First check the provider console and its charges. This clears only the interrupted request without sending another generation. Continue only after checking.'))return;await api('/api/jobs/'+interrupted.id+'/resolve',{method:'POST',body:{confirm:true}});await syncHistory();});
+/* The queue is a small navigation popover, not a persistent bottom status slab. */
+document.addEventListener('pointerdown',event=>{
+  const queue=$('active');
+  if(queue?.open&&!queue.contains(event.target))queue.open=false;
+});
+document.addEventListener('keydown',event=>{
+  if(event.key==='Escape'&&$('active')?.open)$('active').open=false;
+});
 function button(text,fn){const b=document.createElement('button');b.className='quiet';b.textContent=text;b.onclick=()=>action(fn);return b;}
 async function assetFile(id,name='source'){const blob=await api('/api/assets/'+id,{blob:true}),ext=({'image/jpeg':'jpg','video/quicktime':'mov','audio/mpeg':'mp3','audio/x-wav':'wav'})[blob.type]||blob.type.split('/')[1];return new File([blob],name+'.'+ext,{type:blob.type});}
 async function restore(job){
