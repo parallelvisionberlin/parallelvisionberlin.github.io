@@ -351,10 +351,10 @@ textarea:focus,select:focus,input:not([type=checkbox]):not([type=file]):focus {
     linear-gradient(145deg,#192021 0%,#13191a 49%,#0d1315 100%);
 }
 .canvas:before {
-  content:"";position:absolute;inset:13% 15%;z-index:0;
-  border:1px solid rgba(214,188,157,.09);border-radius:50%;
-  transform:scale(1.35,.92);pointer-events:none;
-  mask-image:linear-gradient(to bottom,transparent,black 25%,black 72%,transparent);
+  content:"";position:absolute;inset:15% 18%;z-index:0;
+  border:0;pointer-events:none;
+  background:radial-gradient(ellipse at 50% 45%,rgba(194,151,112,.075),transparent 73%);
+  filter:blur(34px);
 }
 .canvas:after {
   content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
@@ -529,8 +529,16 @@ dialog::backdrop {background:#060608d9;backdrop-filter:blur(8px)}
 #input-preview-dialog {max-width:min(1000px,calc(100vw - 32px))}
 #input-preview-image {max-width:100%;max-height:65dvh;object-fit:contain}
 footer {border-top-color:#333a39;color:#a49a90;font-size:10px}
-.skip {position:fixed;top:0;left:12px;transform:translateY(-130%);z-index:100;padding:10px;background:#eeeae4;color:#111}
-.skip:focus {transform:none;top:0}
+.skip {
+  position:fixed;top:0;left:12px;z-index:100;
+  width:1px;height:1px;overflow:hidden;white-space:nowrap;
+  clip-path:inset(50%);padding:0;border:0;
+}
+.skip:focus {
+  clip-path:none;width:auto;height:auto;overflow:visible;
+  top:8px;left:8px;padding:10px 13px;border-radius:7px;
+  background:#ead5bd;color:#171b1b;
+}
 
 /* Responsive: editor turns into a natural vertical page */
 @media(min-width:1800px) {
