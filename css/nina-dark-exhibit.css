@@ -17,12 +17,12 @@ body.pv-nina-project .n-nav>a { grid-column:1;justify-self:start;color:var(--nx-
 body.pv-nina-project .n-nav>span { grid-column:2;justify-self:center;color:#a9a5a0;letter-spacing:.13em; }
 body.pv-nina-project .n-nav .n-nav-actions { grid-column:3;justify-self:end;display:flex;align-items:center;gap:25px; }
 body.pv-nina-project .n-nav .n-nav-transmit {
-  display:flex;align-items:center;justify-content:center;min-height:43px;
+  display:flex;align-items:center;justify-content:center;min-height:44px;
   color:var(--nx-ink);padding:0 0 1px;border:0;border-bottom:1px solid #aea9a3;background:transparent;
   font:500 12px/1.2 "Inter Tight",sans-serif;letter-spacing:.02em;text-transform:none;
 }
 body.pv-nina-project .n-nav .n-nav-transmit:hover { color:#fff;border-color:#fff; }
-body.pv-nina-project .n-nav #ninaAccountToggle { color:var(--nx-ink);background:transparent;border:1px solid #777779;border-radius:50%;width:40px;height:40px;min-width:40px;padding:9px; }
+body.pv-nina-project .n-nav #ninaAccountToggle { color:var(--nx-ink);background:transparent;border:1px solid #777779;border-radius:50%;width:44px;height:44px;min-width:44px;padding:9px; }
 body.pv-nina-project .n-nav #ninaAccountToggle svg { width:19px;height:19px;stroke:currentColor; }
 body.pv-nina-project .n-nav #ninaAccountToggle:hover { background:#26292b;border-color:#b1b2b3; }
 body.pv-nina-project .n-nav .nina-account-shell { display:flex;align-items:center; }
@@ -32,7 +32,7 @@ body.pv-nina-project .nx-page :is(h1,h2,h3,p,figure,blockquote) { margin:0; }
 body.pv-nina-project .nx-page :is(img,video) { display:block;max-width:100%; }
 body.pv-nina-project .nx-page button { cursor:pointer; }
 body.pv-nina-project .nx-container { width:min(calc(100% - 88px),1600px);margin-inline:auto; }
-body.pv-nina-project .nx-mono {font:400 10.5px/1.6 "IBM Plex Mono",monospace;letter-spacing:.095em;text-transform:uppercase;}
+body.pv-nina-project .nx-mono {font:400 11px/1.6 "IBM Plex Mono",monospace;letter-spacing:.095em;text-transform:uppercase;}
 body.pv-nina-project .nx-muted { color:var(--nx-muted); }
 body.pv-nina-project .nx-index { color:var(--nx-blush); }
 body.pv-nina-project .nx-hairline { border-top:1px solid var(--nx-rule); }
@@ -76,7 +76,7 @@ body.pv-nina-project .nx-hero-actions {display:flex;gap:18px 26px;flex-wrap:wrap
 body.pv-nina-project .nx-hero-copy .nx-hero-caption { width:100%;max-width:450px;display:flex;gap:20px;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;color:#a9a8a5; }
 body.pv-nina-project .nx-hero-aside { position:absolute;z-index:2;right:33px;top:38px;color:#dedbda;text-align:right; }
 body.pv-nina-project .nx-hero-bottom {display:flex;gap:12px 26px;padding:18px 0 24px;color:#959899;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--nx-rule);}
-body.pv-nina-project .nx-hero-bottom a {color:#a8abaa;text-decoration:none;font:400 10.5px/1.6 "IBM Plex Mono",monospace;letter-spacing:.065em;text-transform:uppercase;transition:color .15s ease;}
+body.pv-nina-project .nx-hero-bottom a {display:inline-flex;align-items:center;min-height:40px;color:#b5b7b5;text-decoration:none;font:400 10.5px/1.6 "IBM Plex Mono",monospace;letter-spacing:.065em;text-transform:uppercase;transition:color .15s ease;}
 body.pv-nina-project .nx-hero-bottom a:hover,body.pv-nina-project .nx-hero-bottom a:focus-visible {color:#f7f5f1;}
 body.pv-nina-project .nx-hero-bottom .nx-index {color:var(--nx-blush);}
 body.pv-nina-project .nx-page [id] {scroll-margin-top:22px;}
@@ -103,7 +103,7 @@ body.pv-nina-project .nx-presence-film video {position:absolute;inset:0;width:10
 body.pv-nina-project .nx-presence-film::after { content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(0deg,rgba(7,8,9,.38) 0%,transparent 38%); }
 body.pv-nina-project .nx-film-caption { position:absolute;z-index:2;bottom:26px;left:30px;right:30px;display:flex;align-items:center;justify-content:space-between;gap:25px;color:#e0ddda; }
 body.pv-nina-project .nx-presence-film .n-sound {
-  position:absolute;z-index:4;top:20px;right:23px;bottom:auto;min-height:41px;padding:0 15px;
+  position:absolute;z-index:4;top:20px;right:23px;bottom:auto;min-height:44px;padding:0 15px;
   background:#151516c9;border:1px solid #999a9b;color:#f6f5f2;border-radius:0;
   font:500 11px/1.2 "Inter Tight",sans-serif;letter-spacing:.02em;text-transform:none;
 }
@@ -211,9 +211,9 @@ body.pv-nina-project .nina-window,body.pv-nina-project .nina-access,body.pv-nina
   body.pv-nina-project .n-nav>a {font-size:11px;letter-spacing:.035em;}
   body.pv-nina-project .n-nav>span {display:none;}
   body.pv-nina-project .n-nav .n-nav-actions {grid-column:2;gap:15px;}
-  body.pv-nina-project .n-nav .n-nav-transmit {font-size:11px;min-height:36px;}
-  body.pv-nina-project .n-nav #ninaAccountToggle {height:36px;width:36px;min-width:36px;padding:7px;}
-  body.pv-nina-project .nx-mono {font-size:9px;letter-spacing:.07em;}
+  body.pv-nina-project .n-nav .n-nav-transmit {font-size:11px;min-height:44px;}
+  body.pv-nina-project .n-nav #ninaAccountToggle {height:44px;width:44px;min-width:44px;padding:11px;}
+  body.pv-nina-project .nx-mono {font-size:10px;letter-spacing:.07em;}
   body.pv-nina-project .n-hero {padding-top:15px;}
   body.pv-nina-project .nx-hero-status {padding-bottom:13px;}
   body.pv-nina-project .nx-hero-status span:last-child {display:none;}
