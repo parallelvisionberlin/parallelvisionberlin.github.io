@@ -251,7 +251,7 @@
   margin:9px 8px 0;font-size:11px;color:#bac0c7;line-height:1.5;
 }
 .composer-model-menu {
-  position:fixed;left:15px;bottom:calc(100% + 12px);
+  position:absolute;left:0;bottom:calc(100% + 12px);
   width:min(385px,calc(100vw - 70px));max-height:min(510px,calc(100dvh - 220px));
   display:flex;flex-direction:column;z-index:120;
   padding:10px;border:1px solid #51535b;border-radius:19px;
@@ -342,7 +342,7 @@
   #image-composer .composer-select-pill select {height:34px;min-height:34px;max-width:100px;font-size:11px;padding-right:17px}
   #image-composer .composer-settings-pill {min-height:35px;padding:6px 8px;font-size:11px}
   #image-composer .composer-generate {min-height:39px;min-width:108px;padding:7px 12px;font-size:12px}
-  .composer-model-menu {bottom:calc(100% + 9px);left:9px;width:min(385px,calc(100vw - 36px))}
+  .composer-model-menu {bottom:calc(100% + 9px);left:0;width:min(385px,calc(100vw - 36px))}
   .image-studio .archive {padding-bottom:230px}
   .image-studio #history .cardbody {opacity:0}
   .image-studio #history .card:focus-within .cardbody {opacity:1}
