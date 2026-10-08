@@ -77,6 +77,10 @@ try{
   assert.ok(chooser,'Canvas imports real source files');
   await x.page.click('#tool-image');
   assert.equal(await x.page.locator('#image-model-control').isVisible(),true);
+  assert.deepEqual(await x.page.locator('.tool-tab.active').evaluateAll(els=>els.map(e=>e.id)),['tool-image'],'Image tab must visually match active editor');
+  assert.notEqual(await x.page.locator('#image-engine').evaluate(e=>getComputedStyle(e).borderTopColor),'rgba(141, 99, 255, 0.34)','Image model select must not retain purple border');
+  const packTops=await x.page.evaluate(()=>['pack-load','pack-save','pack-delete'].map(id=>Math.round(document.getElementById(id).getBoundingClientRect().top)));
+  assert.equal(new Set(packTops).size,1,'Reference pack actions stay on one aligned row');
   assert.match((await x.page.locator('#canvas-import').innerText()).replace(/\s+/g,' '),/Add references\s+↗/);
   const positions=await x.page.evaluate(()=>({
     soul:document.querySelector('#soul-launch').getBoundingClientRect().top,
