@@ -371,6 +371,7 @@ function updateVideoInspector(job){
   $('video-detail-watch').disabled=!ready;
   $('video-detail-download').disabled=!ready;
   $('video-detail-delete').disabled=activeStates.has(job.status);
+  fillDetailExtraActions(job,'video');
   for(const card of $('history').querySelectorAll('.card[data-kind="video"]'))
     card.classList.toggle('is-current-video',card.dataset.job===job.id);
 }
@@ -1041,6 +1042,29 @@ function detailDate(value){
   const date=new Date(value);
   return Number.isFinite(date.valueOf())?date.toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'}):'Unknown';
 }
+function fillDetailExtraActions(job,kind){
+  const extra=$(kind==='image'?'image-detail-extra':'video-detail-extra');
+  const box=$(kind==='image'?'image-detail-extra-list':'video-detail-extra-list');
+  if(!extra||!box)return;
+  box.replaceChildren();extra.open=false;
+  const card=[...$('history').children].find(item=>item.dataset.job===job.id);
+  const standard=kind==='image'
+    ? new Set(['Download image','View image','Reuse','Repair','Upscale','Use in Video','Delete'])
+    : new Set(['Download video','View video','Reuse','Delete']);
+  if(card){
+    for(const original of card.querySelectorAll('.cardactions button')){
+      if(standard.has(original.textContent)||original.disabled)continue;
+      const btn=document.createElement('button');btn.type='button';
+      btn.textContent=original.textContent;btn.className='detail-extra-action';
+      btn.onclick=()=>{
+        if(kind==='image')closeImageDetail();
+        original.click();
+      };
+      box.append(btn);
+    }
+  }
+  extra.hidden=box.children.length===0;
+}
 function showImageDetail(job,hasOutput){
   if(!job||!owner)return;
   imageDetailJob=job;
@@ -1067,6 +1091,7 @@ function showImageDetail(job,hasOutput){
   for(const id of ['image-detail-video','image-detail-reference','image-detail-upscale','image-detail-repair','image-lightbox-download'])
     $(id).disabled=!hasOutput;
   $('image-detail-delete').disabled=activeStates.has(job.status);
+  fillDetailExtraActions(job,'image');
   if(!dialog.open)dialog.showModal();
 }
 async function openImageRecord(job){
