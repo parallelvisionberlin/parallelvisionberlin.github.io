@@ -67,7 +67,8 @@ try{
   assert.ok(scrollState.scroll>50,'The whole page must scroll');
   assert.equal(scrollState.inner,0,'Editor has no independent vertical scrollbar');
   assert.equal(scrollState.bodyOverflow,'visible');
-  await x.page.evaluate(()=>window.scrollTo(0,0));
+  await x.page.evaluate(()=>window.scrollTo({top:0,behavior:'instant'}));
+  await x.page.waitForFunction(()=>window.scrollY===0);
   assert.ok(d.generate.top>=d.panel.top,'Generate remains visible without scrolling the form');
   assert.equal(d.scrollMode,'visible','Desktop settings must use the page scroll, not a nested scrollbar');
   assert.ok(d.stage.height<=741&&d.canvas.height<650,'Preview never exceeds viewport cap');
