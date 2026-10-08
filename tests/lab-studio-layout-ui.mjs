@@ -93,10 +93,11 @@ try{
       pageTheme:document.querySelector('meta[name="theme-color"]').content
     };
   });
-  assert.equal(palette.bg,'#100f11','Workspace foundation uses neutral charcoal');
+  assert.equal(palette.bg,'#101114','Workspace uses black graphite');
   assert.equal(palette.pageTheme,palette.bg,'Browser chrome and studio background agree');
-  assert.match(palette.image,/rgba?\(\s*145\s*,\s*129\s*,\s*126\b/,'Ambient fill is warm-neutral rather than teal');
-  assert.ok(!palette.image.includes('97, 130, 126'),'Former green halo is absent');
+  assert.match(palette.image,/rgba?\(\s*210\s*,\s*214\s*,\s*225\b/,'Canvas ambient light is neutral pearl gray');
+  assert.ok(!palette.image.includes('181, 145, 115')&&!palette.image.includes('145, 129, 126'),'Former bronze and brown halos are absent');
+  assert.equal(await x.page.locator('.empty-wordmark').count(),0,'Canvas should not repeat the brand logo');
   assert.ok(d.documentWidth<=d.viewport.width,'No horizontal overflow');
   await x.page.screenshot({path:'test-results/lab-workspace-desktop.png',fullPage:false});
   const fileChooser=x.page.waitForEvent('filechooser');
@@ -118,7 +119,7 @@ try{
   assert.ok(await secondaryChooser,'Secondary Image action opens references');
   await x.page.fill('#prompt','A sculptural, atmospheric photographic still.');
   assert.equal(await x.page.locator('#generate').isDisabled(),false,'Image Generate enables after the prompt is entered');
-  assert.match(await x.page.locator('#generate').evaluate(e=>getComputedStyle(e).backgroundImage),/linear-gradient/,'Generate has the bronze gradient when enabled');
+  assert.equal(await x.page.locator('#generate').evaluate(e=>getComputedStyle(e).backgroundColor),'rgb(228, 230, 234)','Generate uses neutral pearl white, not bronze');
   const positions=await x.page.evaluate(()=>({
     soul:document.querySelector('#soul-launch').getBoundingClientRect().top,
     editor:document.querySelector('.workspace').getBoundingClientRect().bottom,
@@ -136,6 +137,32 @@ try{
   assert.deepEqual(x.errors,[]);
   await x.context.close();
   console.log('PASS desktop workspace, canvas import, image tab and no hero');
+
+  // Regression for the exact owner complaint: duration, resolution and aspect ratio
+  // must be visible ABOVE the Generate dock without page scrolling on a desktop.
+  for(const [width,height] of [[1440,820],[1728,820]]){
+    const compact=await open(width,height);
+    const parts=await compact.page.evaluate(()=>{
+      const rect=id=>{const r=document.querySelector(id).getBoundingClientRect();return {top:r.top,bottom:r.bottom,height:r.height};};
+      return {duration:rect('#duration-control'),resolution:rect('#resolution-control'),ratio:rect('#ratio-control'),
+        dock:rect('.generate-zone'),generate:rect('#generate'),stage:rect('.stage'),
+        viewport:innerHeight,scrollY:window.scrollY,
+        visible:[...document.querySelectorAll('#duration-control,#resolution-control,#ratio-control')].every(x=>getComputedStyle(x).display!=='none')
+      };
+    });
+    console.log('COMPACT_VIDEO',width,height,JSON.stringify(parts));
+    assert.equal(parts.scrollY,0,'No scrolling required before viewing controls');
+    assert.equal(parts.visible,true,'Video parameters must be shown');
+    for(const id of ['duration','resolution','ratio']){
+      assert.ok(parts[id].bottom<=parts.dock.top-4,id+' must be fully above the Generate dock');
+      assert.ok(parts[id].bottom<height,id+' must fit inside the viewport');
+    }
+    assert.ok(parts.generate.bottom<height,'Generate button must also be visible on first view');
+    await compact.page.screenshot({path:'test-results/lab-compact-video-'+width+'.png',fullPage:false});
+    assert.deepEqual(compact.errors,[]);
+    await compact.context.close();
+  }
+  console.log('PASS video controls fully visible at 1440 and 1728 desktop widths');
 
   // Verify branded first paint while the JS module is deliberately delayed.
   const bootContext=await browser.newContext({viewport:{width:1440,height:900}});
