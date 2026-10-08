@@ -27,7 +27,7 @@ const geometry=async page=>page.evaluate(()=>{
   const rect=sel=>{const r=document.querySelector(sel).getBoundingClientRect();return {top:r.top,bottom:r.bottom,left:r.left,right:r.right,height:r.height,width:r.width};};
   return {
     header:rect('header'),navigation:rect('.tool-switch'),workspace:rect('.workspace'),
-    panel:rect('.controls'),scroll:rect('.controls-body'),dock:rect('.generate-zone'),
+    panel:rect('.controls'),scroll:rect('.controls-body'),dock:rect('.controls>.generate-zone'),
     generate:rect('#generate'),stage:rect('.stage'),canvas:rect('.canvas'),
     model:rect('#video-model-control'),modes:rect('#video-modes'),
     viewport:{width:innerWidth,height:innerHeight},
@@ -61,6 +61,7 @@ try{
   assert.ok(d.navigation.top-d.header.bottom<=2,'Tool tabs start directly under header');
   assert.ok(d.workspace.top-d.navigation.bottom<=3,'No second bar or giant gap before workspace');
   assert.ok(d.workspace.top<140,'Workspace must be above the fold');
+  assert.ok(d.dock.height>100&&d.dock.bottom<=d.panel.bottom+2,'Generation controls must have a real fixed dock');
   assert.ok(d.generate.bottom<=d.panel.bottom+2,'Generate dock must remain inside left panel');
   assert.ok(d.generate.top>=d.panel.top,'Generate remains visible without scrolling the form');
   assert.equal(d.scrollMode,'auto','Only settings panel should scroll on desktop');
@@ -76,7 +77,7 @@ try{
   assert.ok(chooser,'Canvas imports real source files');
   await x.page.click('#tool-image');
   assert.equal(await x.page.locator('#image-model-control').isVisible(),true);
-  assert.equal(await x.page.locator('#canvas-import').innerText(),'Add references ↗');
+  assert.match((await x.page.locator('#canvas-import').innerText()).replace(/\s+/g,' '),/Add references\s+↗/);
   const positions=await x.page.evaluate(()=>({
     soul:document.querySelector('#soul-launch').getBoundingClientRect().top,
     editor:document.querySelector('.workspace').getBoundingClientRect().bottom,
