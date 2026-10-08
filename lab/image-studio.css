@@ -131,7 +131,8 @@
 .image-studio #more {margin:16px auto;display:block}
 .image-studio #more[hidden]{display:none!important}
 .image-gallery-empty {
-  padding:min(13vh,125px) 20px 200px;
+  position:absolute;inset:75px 0 205px;
+  padding:24px 20px;
   text-align:center;color:#f2f3f6;display:flex;
   flex-direction:column;align-items:center;justify-content:center;
 }
@@ -142,6 +143,20 @@
   letter-spacing:-.055em;font-weight:520;
 }
 .image-gallery-empty p{margin:12px auto 0;color:#a1a5ad;max-width:460px;font-size:13px;line-height:1.65}
+
+.image-studio .visually-hidden {
+  position:absolute!important;width:1px!important;height:1px!important;
+  padding:0!important;margin:-1px!important;overflow:hidden!important;
+  clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important;
+}
+#image-composer .composer-select-pill:after {
+  content:"⌄";position:absolute;right:7px;top:8px;pointer-events:none;
+  font-size:13px;color:#aab0bd;font-weight:500;
+}
+#image-composer .composer-select-pill select {
+  text-align:left;min-width:50px;
+}
+.image-gallery-shell>.image-gallery-host:has(.card[data-kind="image"]) + .image-gallery-empty {display:none!important}
 
 /* Image composer floats over the actual results, not in a page block. */
 #image-composer {
@@ -221,13 +236,14 @@
 .composer-chevron {font-size:15px;color:#b9bbc2;font-weight:500}
 #image-composer-model-label {max-width:170px;overflow:hidden;text-overflow:ellipsis}
 .composer-select-pill {
-  display:inline-flex;align-items:center;justify-content:center;min-width:0;
+  position:relative;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;min-width:0;
   border:1px solid #444751;border-radius:10px;background:#292b31;
   height:40px;padding:0 7px;
 }
 #image-composer .composer-select-pill select {
   display:block;width:auto;min-width:55px;max-width:126px;height:37px;min-height:37px;
-  padding:6px 23px 6px 7px;margin:0;
+  padding:6px 18px 6px 9px;margin:0;
+  appearance:none;-webkit-appearance:none;
   border:0!important;outline:none!important;box-shadow:none!important;
   border-radius:8px;background-color:transparent;color:#e5e7ed;
   font-size:12px;font-weight:560;
