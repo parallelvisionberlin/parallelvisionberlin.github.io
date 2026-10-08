@@ -235,7 +235,7 @@ body.pv-nina-project .n-world-section .n-archive-id { margin:0; display:grid; ga
 body.pv-nina-project .n-world-section .n-archive-id strong { font-weight:400; color:var(--nf-accent); }
 body.pv-nina-project .n-world-section .n-archive-id span { color:#847d72; }
 body.pv-nina-project .n-world-section .n-berlin-head .n-copy {
-  display:block; max-width:100%; margin:0; 
+  display:block; max-width:100%; margin:0;
 }
 body.pv-nina-project .n-world-section .n-berlin-head .n-copy h2 {
   margin:-12px 0 28px; max-width:910px; color:var(--nf-ink);
