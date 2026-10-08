@@ -125,7 +125,7 @@ header {
 }
 .mode-model-control:not([hidden]) {display:block;width:100%;max-width:100%;margin:9px 0 0}
 .mode-model-control .label {margin:0 0 6px;font-size:11px;color:var(--muted)}
-.mode-model-control select {width:100%;font-size:12px}
+.mode-model-control select {width:100%;font-size:12px;border-color:#39373d;background:#0f0f11}
 
 /* Model selection and short disclosure replace the long paragraph */
 #video-model-control {margin:0;padding:0}
@@ -216,6 +216,7 @@ textarea,select,input:not([type=checkbox]):not([type=file]):not([type=range]) {
 }
 textarea {resize:vertical;min-height:100px;max-height:350px;padding:11px 12px;font-size:12px;line-height:1.55}
 textarea::placeholder,input::placeholder {color:#79757d}
+input[type=checkbox],input[type=radio] {accent-color:#e4dfd7}
 textarea:focus,select:focus,input:not([type=checkbox]):not([type=file]):focus {
   outline:none;border-color:#b5aea6;background:#141315;
   box-shadow:0 0 0 2px rgba(221,215,206,.09);
@@ -237,8 +238,9 @@ textarea:focus,select:focus,input:not([type=checkbox]):not([type=file]):focus {
 .controls .fine {font-size:10px;line-height:1.55}
 .controls .fine.compact-fine {margin-top:10px}
 .controls #generation-help {margin:9px 0 0}
-.pack-bar {margin:12px 0;gap:6px}
-.pack-bar button {padding:7px 9px;font-size:10px}
+.pack-bar {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:12px 0}
+.pack-bar label {grid-column:1/-1;min-width:0;width:100%}
+.pack-bar button {width:100%;min-height:34px;padding:7px 9px;font-size:10px}
 .controlled-pose-settings,.soul-controls {
   margin:12px 0 14px;padding:12px;border:1px solid #353239;
   border-radius:9px;background:#1a191b;
@@ -437,6 +439,8 @@ dialog::backdrop {background:#060608d9;backdrop-filter:blur(8px)}
 #input-preview-dialog {max-width:min(1000px,calc(100vw - 32px))}
 #input-preview-image {max-width:100%;max-height:65dvh;object-fit:contain}
 footer {border-top-color:#26252a;color:#76727a;font-size:10px}
+.skip {position:fixed;top:0;left:12px;transform:translateY(-130%);z-index:100;padding:10px;background:#eeeae4;color:#111}
+.skip:focus {transform:none;top:0}
 
 /* Responsive: editor turns into a natural vertical page */
 @media(min-width:1800px) {
