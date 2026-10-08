@@ -932,6 +932,14 @@ function setActiveJobs(list){
   activeJobs=[...new Map((list||[]).filter(j=>j&&activeStates.has(j.status)).map(j=>[j.id,j])).values()];
   activeJob=activeJobs.find(j=>j.status==='uncertain')||activeJobs[0]||null;
   $('active').hidden=!activeJobs.length;
+  const uncertainCount=activeJobs.filter(j=>j.status==='uncertain').length;
+  const workingCount=activeJobs.length-uncertainCount;
+  $('queue-count').textContent=[
+    workingCount?workingCount+' active':'',
+    uncertainCount?uncertainCount+' to review':''
+  ].filter(Boolean).join(' · ')||'0 jobs';
+  $('active').classList.toggle('has-uncertain',uncertainCount>0);
+  if(!activeJobs.length)$('active').open=false;
   const saving=activeJobs.filter(j=>j.status==='saving').length;
   const batchImages=activeJobs.filter(j=>slotStates.has(j.status)&&j.settings?.type==='image'&&jobProvider(j)==='gemini'&&j.settings?.processing==='batch').length;
   const spicyImages=activeJobs.filter(j=>slotStates.has(j.status)&&j.settings?.type==='image'&&jobProvider(j)==='spicy').length;
