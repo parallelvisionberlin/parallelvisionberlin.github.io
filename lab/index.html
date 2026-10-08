@@ -83,6 +83,15 @@ document.addEventListener('DOMContentLoaded',()=>{const retry=document.getElemen
   </section>
 </section>
 <button id="image-settings-scrim" class="image-settings-scrim" type="button" aria-label="Close image controls" hidden></button>
+<dialog id="image-lightbox" class="image-lightbox" aria-labelledby="image-lightbox-title">
+  <header class="image-lightbox-head">
+    <span id="image-lightbox-title">IMAGE RESULT</span>
+    <button id="image-lightbox-close" class="image-lightbox-close" type="button" aria-label="Close image viewer">×</button>
+  </header>
+  <div class="image-lightbox-stage"><img id="image-lightbox-img" alt="Generated image, full preview"></div>
+  <footer class="image-lightbox-foot"><span>PARALLEL VISION / PRIVATE IMAGE ARCHIVE</span><button id="image-lightbox-download" type="button">Download image <span aria-hidden="true">↓</span></button></footer>
+</dialog>
+
 <div class="workspace">
 <section class="controls" aria-label="Generation settings">
 <div class="controls-body">
