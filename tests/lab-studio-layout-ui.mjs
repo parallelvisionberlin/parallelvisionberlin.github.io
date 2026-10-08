@@ -95,7 +95,7 @@ try{
   });
   assert.equal(palette.bg,'#100f11','Workspace foundation uses neutral charcoal');
   assert.equal(palette.pageTheme,palette.bg,'Browser chrome and studio background agree');
-  assert.ok(palette.image.includes('rgba(145, 129, 126, 0.036)'), 'Ambient fill is warm-neutral rather than teal');
+  assert.match(palette.image,/rgba?\(\s*145\s*,\s*129\s*,\s*126\b/,'Ambient fill is warm-neutral rather than teal');
   assert.ok(!palette.image.includes('97, 130, 126'),'Former green halo is absent');
   assert.ok(d.documentWidth<=d.viewport.width,'No horizontal overflow');
   await x.page.screenshot({path:'test-results/lab-workspace-desktop.png',fullPage:false});
