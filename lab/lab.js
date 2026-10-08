@@ -23,6 +23,7 @@ const UPSCALE_MODELS=Object.freeze({
   'topaz-wonder':{name:'Topaz Wonder 3.5',provider:'FAL',model:'topaz/upscale/image/generative',pricing:'https://fal.ai/models/topaz/upscale/image/generative',price:'Published price: $0.08 per started 8 megapixels of output.',description:'Restore small or blurry images with reconstructed detail. Texture and facial details may change. Choose 2× or 4× width and height. Face enhancement and cropping stay off.'}
 });
 let sourcePixels=0, sourceWidth=0, sourceHeight=0;
+let ratioSourceKey='';
 const cardUrls=new Set(), requestControllers=new Set();
 const money=n=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:4}).format(n);
 const notify=(text,error=false)=>{$('notice').textContent=text;$('notice').classList.toggle('error',error);};
@@ -92,6 +93,20 @@ function settings(){if(tool==='upscale')return isFalUpscale()?{type:'image',mode
 function hasInput(){if(tool==='upscale')return !!file;if(tool==='image'&&imageEngine==='soulpro')return !!file&&soulProIdentity.configured;if(tool==='image'&&imageEngine==='fal'){const roles=referenceRoles(),poses=roles.filter(r=>r.role==='pose').length,identities=roles.filter(r=>r.role==='identity').length;return !!$('prompt').value.trim()&&references.length>=2&&references.length<=5&&poses===1&&identities>=1&&identities<=4&&poses+identities===references.length;}if(tool==='image'&&imageEngine==='soul')return isReinterpret()?soul.reinterpretReady()&&!!file:soul.ready()&&!!$('prompt').value.trim();if(usesReferenceGuidance())return !imageGuidance().error&&(!!$('prompt').value.trim()||canUseReferenceGuidance(referenceRoles()));return tool==='image'||mode==='text'?!!$('prompt').value.trim():mode==='start'?!!file:references.length>0||(engine==='seedance'&&mediaRefs.count()>0);}
 function update(){if($('soul-base-preview')){$('soul-base-preview').hidden=!sourceUrl;if(sourceUrl)$('soul-base-preview').src=sourceUrl;else $('soul-base-preview').removeAttribute('src');$('soul-base-name').textContent=file?.name||'';}const current=settings(),p=resultSettings||current,ratio=p.aspectRatio==='auto'?(p.mode==='reference'?'adaptive':'source ratio'):p.aspectRatio,imageName=p.mode==='upscale'?'Upscale':p.engine==='gemini'?'Nano Banana Pro':p.engine==='soulpro'?'PV Soul Pro':p.engine==='soul'?(p.mode==='reinterpret'?'PV Soul / Reinterpret':'PV Soul'):p.engine==='fal'?'Controlled Pose':'Image',resolution=p.resolution==='native'?'native':String(p.resolution||'').toUpperCase();$('settings-summary').textContent=p.mode==='upscale'?upscaleName(p)+' / '+upscaleSize(p)+' / source ratio':p.type==='image'?imageName+' / '+resolution+' / '+ratio:`${p.duration}s / ${p.resolution} / ${ratio}`;$('save').disabled=!owner||!hasInput()||busy;$('clear').disabled=(!file&&!lastFile&&!references.length&&!mediaRefs.count()&&!resultUrl&&!$('prompt').value.trim())||busy;const provider=currentProvider(),ready=provider==='gemini'?config.geminiEnabled:provider==='fal'?config.falEnabled:config.enabled,soulBlocked=tool==='image'&&imageEngine==='soul'&&(!config.soulTrainingEnabled||!soul.ready()||(isReinterpret()&&!soul.reinterpretReady()));$('generate').disabled=!owner||!hasInput()||(tool!=='upscale'&&!isReinterpret()&&imageEngine!=='soulpro'&&!current.prompt&&!(usesReferenceGuidance()&&canUseReferenceGuidance(referenceRoles())))||busy||submissionBlocked()||soulBlocked||(tool==='upscale'&&((!isFalUpscale()&&upscaleQuoteNeedsCheck)||upscaleManualReviewRequired));$('generate').textContent=ready?(tool==='image'?(imageEngine==='gemini'?(imageProcessing==='batch'?'Queue batch':'Generate now'):imageEngine==='soulpro'?'Generate identity edit':imageEngine==='fal'?'Generate controlled pose':isReinterpret()?'Reinterpret with Soul':'Generate'):tool==='upscale'?'Upscale':'Review price & generate'):(provider==='gemini'?'Gemini API not connected':provider==='fal'?'FAL API not connected':'Connect generation provider');$('generation-help').textContent=tool==='image'&&imageEngine==='soulpro'?(soulProIdentity.configured?(soulProModel==='ideogram45'?'One base image only. Nina identity loads automatically. Ideogram Precise keeps edit_precision=high; selected quality estimate: '+({very_low:'$0.008',low:'$0.03',medium:'$0.06',high:'$0.22'}[soulProQuality]||'$0.06')+' per image.':'One base image only. Nina identity loads automatically. Kontext Max uses the base plus up to 3 identity refs because its total image limit is 4. Estimate: $0.08 per image.'):'Set Nina identity once, then every Soul Pro render needs only one base image.'):tool==='image'&&imageEngine==='fal'?'Controlled Pose uses FAL DWPose + FLUX EasyControl. One Pose role and 1–4 Identity roles are required. Preview Pose is a small separate fal.ai compute charge.':tool==='image'&&imageEngine==='soul'?(isReinterpret()?'One base photograph and a separately trained Soul identity. High fidelity may keep the original face; lower it for more change. The live provider quote controls the charge.':'PV Soul Text uses your trained Qwen Image 2512 identity. The live provider quote is authoritative.'):tool==='image'&&imageEngine==='gemini'?(imageProcessing==='batch'?'Batch uses the same Nano Banana Pro model at 50% of standard API price. It runs asynchronously and can take minutes or hours; Google targets completion within 24 hours.':'Normal sends Nano Banana Pro immediately. 1K/2K are estimated at $0.134 per image and 4K at $0.24; Google billing is authoritative.'):(tool==='image'?'Generate starts one paid image at the live provider price, within your daily spending limit. No price-review popup.':tool==='upscale'?'Upscale starts one paid upscaling job. You can check its live price above first; there is no extra price-review popup.':'A live quote appears before any paid video.')+' Inputs over 10 MiB need a working copy; the Lab asks first and keeps the original. Saving history does not generate or charge.';for(const el of document.querySelectorAll('.controls input,.controls select,.controls textarea,.mode-tab,.tool-tab'))el.disabled=busy;updateReferenceGuidance();updateUpscaleModel();updateUpscalePrice();syncImageComposer();}
 function options(id,values,value){$(id).replaceChildren(...values.map(v=>new Option(v==='auto'?'Follow reference':v==='source'?'Source':v.toUpperCase(),v)));$(id).value=value;}
+function syncDefaultRatio(force=false){
+  const select=$('ratio'),values=[...select.options].map(o=>o.value);
+  if(tool==='upscale'||(tool==='image'&&(imageEngine==='soulpro'||isReinterpret())))return;
+  const ref=references.find(r=>r.role==='base')||references.find(r=>r.role==='pose')||references[0];
+  const source=tool==='image'&&imageEngine==='soul'?null:tool==='video'&&mode==='text'?null:
+    tool==='video'&&mode==='start'?(file?{width:sourceWidth,height:sourceHeight}:null):ref||((tool==='image'&&file)?{width:sourceWidth,height:sourceHeight}:null);
+  const key=[tool,imageEngine,mode,source?.width||0,source?.height||0,values.join(',')].join(':');
+  if(!force&&key===ratioSourceKey)return;
+  ratioSourceKey=key;
+  if(source?.width&&source?.height){
+    if(values.includes('auto'))select.value='auto';
+    else{const target=source.width/source.height,ratios=values.filter(v=>/^\d+:\d+$/.test(v));ratios.sort((a,b)=>{const ratio=v=>{const [w,h]=v.split(':').map(Number);return w/h;};return Math.abs(Math.log(ratio(a)/target))-Math.abs(Math.log(ratio(b)/target));});if(ratios[0])select.value=ratios[0];}
+  }else if(values.includes('16:9'))select.value='16:9';
+}
 function setTool(value){
   if($('soul-pro-identity-dialog').open)$('soul-pro-identity-dialog').close();
   tool=['image','upscale'].includes(value)?value:'video';const image=tool==='image',upscale=tool==='upscale',video=tool==='video';
@@ -122,7 +137,7 @@ function setTool(value){
     const drop=$('reference-drop');drop.querySelector('span').textContent='Add identity, wardrobe or set references';drop.querySelector('small').textContent='Up to 10 images';
     $('reference-help').textContent='Reference numbers, filenames, roles and notes are added to your generation prompt. They guide the model; they do not guarantee identity matching.';
   }
-  configureVideoControls();renderReferences();resetPreview();refreshCanvasImport();update();syncImageStudioMode();syncVideoStudioMode();
+  configureVideoControls();syncDefaultRatio(true);renderReferences();resetPreview();refreshCanvasImport();update();syncImageStudioMode();syncVideoStudioMode();
 }
 
 /* Floating Image Studio: one gallery, one real backend, no duplicate submissions.
@@ -718,7 +733,7 @@ async function inspectImage(candidate){
   return {file:candidate,id:null,url:URL.createObjectURL(prepared.preview),thumbUrl:URL.createObjectURL(prepared.thumbnail),width,height};
 }
 
-async function setImage(candidate,id=null){const revision=++imageRevision,item=await inspectImage(candidate);release(item.thumbUrl);if(revision!==imageRevision||!owner){release(item.url);return false;}release(sourceUrl);clearResult();file=item.file;sourceId=id;sourceUrl=item.url;sourceWidth=item.width;sourceHeight=item.height;sourcePixels=item.width*item.height;$('filemeta').textContent=`${candidate.name||'Start frame'} / ${item.width} × ${item.height} / ${(candidate.size/1048576).toFixed(1)} MB`;resetPreview();update();return true;}
+async function setImage(candidate,id=null){const revision=++imageRevision,item=await inspectImage(candidate);release(item.thumbUrl);if(revision!==imageRevision||!owner){release(item.url);return false;}release(sourceUrl);clearResult();file=item.file;sourceId=id;sourceUrl=item.url;sourceWidth=item.width;sourceHeight=item.height;sourcePixels=item.width*item.height;syncDefaultRatio(true);$('filemeta').textContent=`${candidate.name||'Start frame'} / ${item.width} × ${item.height} / ${(candidate.size/1048576).toFixed(1)} MB`;resetPreview();update();return true;}
 async function setLastImage(candidate,id=null){const e=epoch,item=await inspectImage(candidate);release(item.thumbUrl);if(e!==epoch||!owner){release(item.url);return false;}release(lastUrl);lastFile=item.file;lastSourceId=id;lastUrl=item.url;$('last-filemeta').textContent=`${candidate.name||'Last frame'} / ${item.width} × ${item.height} / ${(candidate.size/1048576).toFixed(1)} MB`;update();return true;}
 function renderReferences(){
   const box=$('reference-list'),scroll=box.scrollTop,fragment=document.createDocumentFragment();
@@ -759,7 +774,7 @@ function renderReferences(){
     const up=document.createElement('button');up.type='button';up.textContent='Up';up.disabled=i===0||(usesReferenceGuidance()&&i===1&&references[0].role==='base');up.onclick=()=>{if(busy||i===0)return;closeInputPreview();[references[i-1],references[i]]=[references[i],references[i-1]];if(imageEngine==='fal')poseMapSourceId=null;renderReferences();refreshInputPreview();update();};
     controls.append(up,remove);item.append(img,fields,controls);fragment.append(item);
   });
-  box.replaceChildren(fragment);box.scrollTop=scroll;$('ref-count').textContent=`${references.length} / ${referenceLimit()}`;
+  syncDefaultRatio();box.replaceChildren(fragment);box.scrollTop=scroll;$('ref-count').textContent=`${references.length} / ${referenceLimit()}`;
 }
 async function addReferences(list,ids=[],labels=[]){
   const e=epoch,incoming=[...list];if(imageEngine==='fal')poseMapSourceId=null;if(references.length+incoming.length>referenceLimit())throw new Error('This mode supports up to '+referenceLimit()+' image references.');
@@ -1854,6 +1869,7 @@ async function sync(){if(syncing)return;syncing=true;try{if(!clerk.isSignedIn){l
 $('auth-retry').onclick=()=>location.reload();$('signin').onclick=()=>clerk?.openSignIn();$('logout').onclick=async()=>{lock();await clerk?.signOut();$('auth-status').textContent='Signed out. Your archive remains private.';};
 setTool('image');
 try{const {Clerk}=await import('https://esm.sh/@clerk/clerk-js@6?bundle');await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='https://clerk.parallelvisionlabel.com/npm/@clerk/ui@1/dist/ui.browser.js';s.onload=resolve;s.onerror=reject;document.head.append(s);});clerk=new Clerk('pk_live_Y2xlcmsucGFyYWxsZWx2aXNpb25sYWJlbC5jb20k');await clerk.load({ui:{ClerkUI:window.__internal_ClerkUICtor},signInFallbackRedirectUrl:location.href,signUpFallbackRedirectUrl:location.href});clerk.addListener(()=>void sync());await sync();}catch{$('gate').hidden=false;$('auth-retry').hidden=false;$('signin').disabled=true;$('auth-status').textContent='Sign-in could not load. Check your connection and reload the page.';finishLabBoot();}
+
 
 
 

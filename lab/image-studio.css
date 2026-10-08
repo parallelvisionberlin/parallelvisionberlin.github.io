@@ -525,3 +525,12 @@ dialog.image-lightbox::backdrop {background:rgba(4,5,7,.86);backdrop-filter:blur
 #soul-pro-clear-identity{margin:0!important;grid-column:2;text-align:right}
 #soul-pro-identity-dialog-status:empty{display:none}
 @media(max-width:740px){#soul-pro-identity-form{grid-template-columns:1fr;gap:10px}#soul-pro-identity-form>*{grid-column:1!important}#soul-pro-identity-form .soul-pro-pack-grid{grid-template-columns:repeat(auto-fill,minmax(72px,1fr));max-height:150px}#soul-pro-clear-identity{text-align:left}}
+
+
+/* Keep inline controls within their column, including range inputs. */
+#composer-options{overflow-x:hidden}
+#composer-options-fields,#composer-options-fields>*{min-width:0;max-width:100%}
+#composer-options-fields #soul-controls>*{min-width:0;max-width:100%}
+#composer-options-fields .soul-strength{box-sizing:border-box;width:auto;min-width:0;max-width:100%}
+#composer-options-fields input[type=range]{box-sizing:border-box;display:block;width:100%;min-width:0;max-width:100%;margin-inline:0}
+html:has(#image-lightbox[open]),body:has(#image-lightbox[open]){overflow:hidden}
