@@ -508,3 +508,6 @@ header .actions .eyebrow {font-size:9px}
 #app:not([hidden]){padding-top:0!important}
 #app:not([hidden])>.tool-switch{margin-top:0!important;margin-bottom:8px!important}
 @media(max-width:820px){#app:not([hidden]){padding-top:0!important}}
+
+/* Keep the video editor fully within typical desktop viewports. */
+@media(min-width:821px){.stage{height:min(740px,calc(100dvh - 148px))}}
