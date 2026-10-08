@@ -115,8 +115,10 @@ try{
     return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(response)});
   });
   const bootPage=await bootContext.newPage();
+  let releaseLabScript;
+  const labScriptHeld=new Promise(resolve=>{releaseLabScript=resolve;});
   await bootPage.route(/\/lab\/lab\.js(?:\?.*)?$/,async route=>{
-    await new Promise(resolve=>setTimeout(resolve,1300));
+    await labScriptHeld;
     await route.continue();
   });
   await bootPage.goto('http://127.0.0.1:4182/lab/',{waitUntil:'commit'});
@@ -126,6 +128,7 @@ try{
   assert.match(await bootPage.locator('#lab-boot-name').innerText(),/PARALLEL VISION/);
   assert.equal(await bootPage.locator('#lab-boot img').count(),0,'Boot screen uses text and CSS only, never an icon placeholder');
   await bootPage.screenshot({path:'test-results/lab-branded-loading.png',fullPage:false});
+  releaseLabScript();
   await bootPage.waitForFunction(()=>window.__layoutTest===true);
   assert.equal(await bootPage.locator('#lab-boot').isVisible(),false,'Boot overlay removed on mock auth resolution');
   await bootContext.close();
