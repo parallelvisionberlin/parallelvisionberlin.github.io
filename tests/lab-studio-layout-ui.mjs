@@ -134,8 +134,8 @@ try{
   const imageChooser=await floatingChooser;
   assert.ok(imageChooser,'Plus button opens reference input from same bar');
   const referencePng=await x.page.evaluate(()=>{
-    const canvas=document.createElement('canvas');canvas.width=64;canvas.height=64;
-    const ctx=canvas.getContext('2d');ctx.fillStyle='#65788a';ctx.fillRect(0,0,64,64);
+    const canvas=document.createElement('canvas');canvas.width=320;canvas.height=320;
+    const ctx=canvas.getContext('2d');ctx.fillStyle='#65788a';ctx.fillRect(0,0,320,320);
     return canvas.toDataURL('image/png').split(',')[1];
   });
   await imageChooser.setFiles({name:'reference-photo.png',mimeType:'image/png',buffer:Buffer.from(referencePng,'base64')});
