@@ -121,8 +121,26 @@ function setTool(value){
     const drop=$('reference-drop');drop.querySelector('span').textContent='Add identity, wardrobe or set references';drop.querySelector('small').textContent='Up to 10 images';
     $('reference-help').textContent='Reference numbers, filenames, roles and notes are added to your generation prompt. They guide the model; they do not guarantee identity matching.';
   }
-  configureVideoControls();renderReferences();resetPreview();update();
+  configureVideoControls();renderReferences();resetPreview();refreshCanvasImport();update();
 }
+/* The canvas is a genuine import surface, not a dead decorative placeholder. */
+function refreshCanvasImport(){
+  const button=$('canvas-import');
+  if(!button)return;
+  const promptOnly=tool==='video'&&mode==='text'||tool==='image'&&imageEngine==='soul'&&!isReinterpret();
+  button.hidden=promptOnly;
+  const label=tool==='upscale'?'Choose image':tool==='image'&&imageEngine==='soulpro'?'Choose base image':tool==='video'&&mode==='reference'||tool==='image'?'Add references':'Choose start frame';
+  const textNode=button.firstChild;
+  if(textNode&&textNode.nodeType===Node.TEXT_NODE)textNode.textContent=label+' ';
+  else button.textContent=label;
+}
+$('canvas-import').addEventListener('click',()=>{
+  if(busy||!owner)return;
+  if(tool==='video'&&mode==='text'){ $('prompt').focus();return; }
+  const ref=tool==='image'&&!['soulpro','soul'].includes(imageEngine)||tool==='video'&&mode==='reference';
+  const input=ref?$('reference-images'):$('image');
+  if(input&&!input.disabled)input.click();
+});
 $('soul-use').onclick=()=>{if(busy)return;imageEngine='soul';$('image-engine').value='soul';setTool('image');window.scrollTo({top:0,behavior:'smooth'});};
 $('soul-launch-manage').onclick=()=>{if(busy)return;imageEngine='soul';$('image-engine').value='soul';setTool('image');$('soul-dialog').showModal();void soul.load().catch(e=>notify(e.message,true));};
 $('tool-upscale').onclick=()=>{if(!busy)setTool('upscale');};
