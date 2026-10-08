@@ -52,10 +52,10 @@ document.addEventListener('DOMContentLoaded',()=>{
 <link rel="stylesheet" href="./seedance.css?v=20260927-standard1">
 <link rel="stylesheet" href="./soul.css?v=20260930-soul-v02">
 <link rel="stylesheet" href="./studio.css?v=20261008-imagefloat-v1">
-<link rel="stylesheet" href="./image-studio.css?v=20261008-floating-v1">
+<link rel="stylesheet" href="./image-studio.css?v=20261009-inline-v1">
 <link rel="stylesheet" href="./detail-video-studio.css?v=20261008-queue-v2">
 <link rel="stylesheet" href="./editorial-polish.css?v=20261008-1">
-<script type="module" src="./lab.js?v=20261008-editorial-v1"></script>
+<script type="module" src="./lab.js?v=20261009-inline-v1"></script>
 </head>
 <body class="lab-booting">
 <div id="lab-boot" role="status" aria-live="polite" aria-label="Opening Parallel Vision Lab"><div class="lab-boot-content"><div class="lab-boot-brand" aria-label="Parallel Vision Lab"><img id="lab-boot-wordmark" src="./branding/pv-wordmark.png" alt="Parallel Vision" width="242" height="61" decoding="async"><span class="lab-boot-fallback" id="lab-boot-name">PARALLEL VISION</span><span class="lab-boot-sub">LAB <span aria-hidden="true">/</span> CREATIVE STUDIO</span></div><div class="lab-boot-track" aria-hidden="true"></div><p class="lab-boot-status" id="lab-boot-status">Opening your workspace</p><button id="lab-boot-retry" type="button" hidden>Reload page</button></div></div>
@@ -108,6 +108,15 @@ document.addEventListener('DOMContentLoaded',()=>{
     </div>
   </div>
   <section id="image-composer" class="image-composer" aria-label="Floating image generation composer">
+    <section id="composer-library" class="composer-library" aria-label="Saved characters and references" hidden>
+      <div class="composer-panel-head"><div><strong id="composer-library-title">Saved references</strong><p id="composer-library-note">Choose a saved pack.</p></div><button id="composer-library-close" type="button" aria-label="Close saved references">×</button></div>
+      <div id="composer-library-cards" class="composer-library-cards"></div>
+      <div class="composer-library-actions"><button id="composer-library-create" type="button">Save current references</button><button id="composer-library-manage" type="button">Manage identities</button></div>
+    </section>
+    <section id="composer-options" class="composer-options" aria-label="Image options" hidden>
+      <div class="composer-panel-head"><strong>Image options</strong><button id="composer-options-close" type="button" aria-label="Close image options">×</button></div>
+      <div id="composer-options-fields" class="composer-options-fields"></div>
+    </section>
     <div class="image-composer-top">
       <div id="image-composer-references" class="image-composer-references" hidden aria-label="Attached reference images"></div>
       <textarea id="image-composer-prompt" rows="2" placeholder="Describe the scene you imagine..." aria-label="Describe the image"></textarea>
@@ -129,8 +138,9 @@ document.addEventListener('DOMContentLoaded',()=>{
       <label class="composer-select-pill" title="Aspect ratio"><span class="visually-hidden">Aspect ratio</span><select id="image-composer-ratio" aria-label="Aspect ratio"></select></label>
       <label class="composer-select-pill" title="Resolution"><span class="visually-hidden">Image resolution</span><select id="image-composer-resolution" aria-label="Resolution"></select></label>
       <label id="image-composer-count-wrap" class="composer-select-pill" title="Image count"><span class="visually-hidden">Number of images</span><select id="image-composer-count" aria-label="Number of images"></select></label>
-      <button id="image-composer-more" type="button" class="composer-settings-pill" aria-expanded="false" aria-controls="image-settings-drawer" title="More image controls"> <span aria-hidden="true">☷</span> Controls</button>
+      <button id="image-composer-more" type="button" class="composer-settings-pill" aria-expanded="false" aria-controls="composer-options" title="Image options">Options</button>
       <span class="composer-flex"></span>
+      <button id="composer-character" class="composer-character" type="button" aria-expanded="false" aria-controls="composer-library"><span id="composer-character-photo">+</span><span id="composer-character-name">References</span></button>
       <button id="image-composer-generate" class="composer-generate" type="button" disabled>Generate</button>
     </div>
     <p id="image-composer-status" class="composer-status" role="status" hidden></p>
@@ -427,3 +437,4 @@ document.addEventListener('DOMContentLoaded',()=>{
 </dialog>
 <dialog id="input-preview-dialog" aria-labelledby="input-preview-title"><div class="dialoghead"><h2 id="input-preview-title">Input reference</h2><button class="quiet" data-close="input-preview-dialog" type="button">Close</button></div><p id="input-preview-description" class="fine"></p><img id="input-preview-image" alt="Uploaded input reference, not a generated result"></dialog>
 </body></html>
+

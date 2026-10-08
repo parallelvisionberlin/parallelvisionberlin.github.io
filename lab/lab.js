@@ -131,6 +131,82 @@ const imageStudio = $('image-studio');
 const imageComposer = $('image-composer');
 const archive = document.querySelector('.archive');
 let imageMenuOpen = false;
+const composerPortraits=new Map();
+const composerHomes=new Map();
+let composerLibraryKey='',composerPortraitKey='';
+function composerAssetPhoto(host,id){
+  host.replaceChildren();if(!id){host.textContent='+';return;}
+  const img=document.createElement('img');img.alt='Saved identity preview';host.append(img);
+  if(!composerPortraits.has(id)){
+    const revision=epoch;
+    composerPortraits.set(id,api('/api/assets/'+encodeURIComponent(id),{blob:true}).then(blob=>{
+      if(epoch!==revision||!owner)return null;
+      const url=URL.createObjectURL(blob);return url;
+    }).catch(()=>null));
+  }
+  composerPortraits.get(id).then(url=>{if(!img.isConnected)return;if(url)img.src=url;else{img.remove();host.textContent='+';}});
+}
+function composerCharacterAsset(id){
+  const job=[...imageDetailCache.values()].find(j=>j.settings?.characterId===id&&j.outputId);
+  return job?.outputId||null;
+}
+function composerMove(id,target){
+  const node=$(id);if(!node)return;
+  if(!composerHomes.has(id)){const anchor=document.createComment('Home: '+id);node.before(anchor);composerHomes.set(id,anchor);}
+  if(target){if(node.parentElement!==target)target.append(node);}
+  else composerHomes.get(id).after(node);
+}
+function syncComposerOptions(){
+  const image=tool==='image',target=$('composer-options-fields');
+  for(const id of ['format-control','image-processing-control','soul-controls','soul-pro-settings','controlled-pose-settings','reference-list','reference-guidance'])composerMove(id,image?target:null);
+  if(!image){$('reference-list').hidden=false;return;}
+  target.dataset.engine=imageEngine;
+  $('reference-list').hidden=['soul','soulpro'].includes(imageEngine);
+  for(const el of target.querySelectorAll('input,select,button,textarea'))el.disabled=busy;
+  const identity=imageEngine==='soulpro',trained=imageEngine==='soul';
+  const selected=identity?'Nina FOK':trained?($('soul-character').selectedOptions[0]?.textContent||'Character'):packs.find(p=>p.id===$('pack-select').value)?.name||'References';
+  $('composer-character-name').textContent=selected;
+  $('composer-character').disabled=busy;
+  const portrait=identity?soulProIdentity.refs?.[0]?.id:trained?composerCharacterAsset($('soul-character').value):packs.find(p=>p.id===$('pack-select').value)?.refs?.[0]?.id;
+  const key=selected+':'+(portrait||'');
+  if(key!==composerPortraitKey){composerPortraitKey=key;composerAssetPhoto($('composer-character-photo'),portrait);}
+  if(!$('composer-library').hidden)renderComposerLibrary();
+}
+function closeComposerLibrary(){
+  $('composer-library').hidden=true;$('composer-character').setAttribute('aria-expanded','false');
+}
+function renderComposerLibrary(){
+  const trained=imageEngine==='soul',identity=imageEngine==='soulpro';
+  const entries=trained?[...$('soul-character').options].filter(o=>o.value).map(o=>({id:o.value,name:o.textContent,photo:composerCharacterAsset(o.value)})):packs.filter(p=>p.refs?.length).map(p=>({...p,photo:p.refs[0].id}));
+  if(identity&&soulProIdentity.configured)entries.unshift({id:'current-identity',name:'Nina FOK · saved',photo:soulProIdentity.refs?.[0]?.id});
+  const key=JSON.stringify([imageEngine,entries.map(p=>[p.id,p.name,p.photo]),$('soul-character').value,$('pack-select').value,busy]);
+  $('composer-library-title').textContent=trained?'Your characters':identity?'Identity library':'Saved reference packs';
+  $('composer-library-note').textContent=trained?'Choose a trained identity.':identity?'Choose a pack, then select up to four identity photos. Your base image stays in place.':'Load a saved set with its reference roles.';
+  $('composer-library-create').textContent=trained?'Train character':identity?'Set identity photos':'Save current references';
+  $('composer-library-manage').hidden=!trained&&!identity;
+  if(key===composerLibraryKey)return;composerLibraryKey=key;
+  const grid=$('composer-library-cards');grid.replaceChildren();
+  for(const entry of entries){
+    const card=document.createElement('button');card.type='button';card.className='composer-library-card';card.disabled=busy;
+    card.setAttribute('aria-pressed',String(entry.id===(trained?$('soul-character').value:$('pack-select').value)));
+    const photo=document.createElement('span');photo.className='composer-library-photo';
+    const title=document.createElement('strong');title.textContent=entry.name;
+    card.append(photo,title);grid.append(card);composerAssetPhoto(photo,entry.photo);
+    card.onclick=()=>{
+      if(busy)return;
+      if(entry.id==='current-identity'){closeComposerLibrary();return;}
+      if(trained){$('soul-character').value=entry.id;$('soul-character').dispatchEvent(new Event('change',{bubbles:true}));closeComposerLibrary();}
+      else if(identity){$('soul-pro-identity-manage').click();$('soul-pro-pack-select').value=entry.id;$('soul-pro-pack-select').dispatchEvent(new Event('change',{bubbles:true}));closeComposerLibrary();}
+      else{$('pack-select').value=entry.id;$('pack-load').click();closeComposerLibrary();}
+    };
+  }
+  if(!entries.length){const empty=document.createElement('p');empty.className='fine';empty.textContent=trained?'No trained characters yet. Train one to keep it here.':'No saved packs yet. Add photos and save a pack to reuse it here.';grid.append(empty);}
+}
+$('composer-character').onclick=()=>{if(busy)return;const open=$('composer-library').hidden;toggleImageSettings(false);closeImageModelMenu();$('composer-library').hidden=!open;$('composer-character').setAttribute('aria-expanded',String(open));if(open)renderComposerLibrary();};
+$('composer-library-close').onclick=closeComposerLibrary;
+$('composer-options-close').onclick=()=>toggleImageSettings(false);
+$('composer-library-create').onclick=()=>{if(busy)return;if(imageEngine==='soul')$('soul-manage').click();else if(imageEngine==='soulpro')$('soul-pro-identity-manage').click();else $('pack-save').click();};
+$('composer-library-manage').onclick=()=>{if(busy)return;(imageEngine==='soulpro'?$('soul-pro-identity-manage'):$('soul-manage')).click();};
 const imageModelTokens=Object.freeze({seedream:'S',gemini:'N',soulpro:'PV',soul:'PV',fal:'F'});
 const imageModelDescriptions = Object.freeze({
   seedream:'Image creation and reference-guided edits',
@@ -162,7 +238,7 @@ function syncImageReferences(){
   tray.replaceChildren();
   if(tool!=='image'){tray.hidden=true;return;}
   const items=[...references];
-  if(imageEngine==='soulpro'&&sourceUrl)items.unshift({thumbUrl:sourceUrl,file:{name:'Base image'},isBase:true});
+  if((imageEngine==='soulpro'||isReinterpret())&&sourceUrl)items.unshift({thumbUrl:sourceUrl,file:{name:'Base image'},isBase:true});
   for(let i=0;i<items.length;i++){
     const ref=items[i],tile=document.createElement('div');
     tile.className='composer-reference-tile';tile.title=ref.file?.name||'Reference image';
@@ -170,8 +246,13 @@ function syncImageReferences(){
     img.src=ref.thumbUrl||ref.url;img.alt=(ref.isBase?'Base image':'Image reference '+(i+1));
     img.loading='lazy';img.decoding='async';tile.append(img);
     const marker=document.createElement('span');marker.className='composer-reference-index';
-    marker.textContent=ref.isBase?'BASE':String(i+1);
+    marker.textContent=ref.isBase||ref.role==='base'?'BASE':ref.role&&ref.role!=='none'?ref.role.toUpperCase():String(i+1);
     marker.setAttribute('aria-hidden','true');tile.append(marker);
+    if(ref.isBase){
+      tile.tabIndex=0;tile.setAttribute('role','button');tile.setAttribute('aria-label','Replace base image');
+      tile.onclick=()=>{if(!busy)$('soul-base-image').click();};
+      tile.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();tile.click();}};
+    }
     if(!ref.isBase){
       const remove=document.createElement('button');
       remove.type='button';remove.className='composer-reference-remove';remove.textContent='×';
@@ -190,7 +271,7 @@ function syncImageReferences(){
     tray.append(tile);
   }
   const remaining=Math.max(0,referenceLimit()-references.length);
-  if(items.length&&remaining>0){
+  if(items.length&&remaining>0&&imageEngine!=='soulpro'&&imageEngine!=='soul'){
     const more=document.createElement('button');more.type='button';
     more.className='composer-add-tile';more.textContent='+';
     more.title='Add more references';more.setAttribute('aria-label','Add more image references');
@@ -202,6 +283,7 @@ function syncImageComposer(){
   if(!imageStudio)return;
   const image=tool==='image';
   imageStudio.hidden=!image;
+  syncComposerOptions();
   if(!image)return;
   const textbox=$('image-composer-prompt');
   if(document.activeElement!==textbox && textbox.value!==$('prompt').value)
@@ -239,7 +321,7 @@ function populateImageModelMenu(query=''){
     const name=option.textContent,detail=imageModelDescriptions[option.value]||'Image creation';
     if(value&&!(name+' '+detail).toLowerCase().includes(value))continue;
     const row=document.createElement('button');row.type='button';
-    row.className='composer-model-option';row.dataset.value=option.value;
+    row.className='composer-model-option';row.dataset.value=option.value;row.disabled=busy||option.disabled;
     row.setAttribute('role','option');row.setAttribute('aria-selected',String(option.value===imageEngine));
     const icon=document.createElement('span');icon.className='composer-model-icon';icon.textContent=imageModelTokens[option.value]||'◎';
     const info=document.createElement('span');info.className='composer-model-info';
@@ -265,14 +347,16 @@ function populateImageModelMenu(query=''){
 function toggleImageSettings(force){
   const open=typeof force==='boolean'?force:!$('app').classList.contains('image-settings-open');
   $('app').classList.toggle('image-settings-open',open);
-  $('image-settings-scrim').hidden=!open;
+  $('image-settings-scrim').hidden=true;
+  $('composer-options').hidden=!open;
   $('image-composer-more').setAttribute('aria-expanded',String(open));
-  if(open)closeImageModelMenu();
+  if(open){closeImageModelMenu();closeComposerLibrary();}
 }
 function syncImageStudioMode(){
   const isImage=tool==='image';
   $('app').classList.toggle('image-studio-active',isImage);
   imageStudio.hidden=!isImage;
+  if(!isImage)closeComposerLibrary();
   if(isImage){
     $('image-gallery-host').append(archive);
   }else{
@@ -299,13 +383,15 @@ for(const [copy,real] of [
 $('image-composer-generate').onclick=()=>{if(!busy&&tool==='image')$('generate').click();};
 $('image-composer-add').onclick=()=>{
   if(busy)return;
-  const input=imageEngine==='soulpro'?$('soul-base-image'):$('reference-images');
+  const input=imageEngine==='soulpro'||isReinterpret()?$('soul-base-image'):$('reference-images');
+  if(imageEngine==='soul'&&!isReinterpret()){$('composer-character').click();return;}
   if(input&&!input.disabled)input.click();
 };
 $('image-composer-more').onclick=()=>toggleImageSettings();
 $('image-settings-scrim').onclick=()=>toggleImageSettings(false);
 $('image-composer-model').onclick=()=>{
   if(busy)return;
+  closeComposerLibrary();toggleImageSettings(false);
   imageMenuOpen=!imageMenuOpen;
   $('image-composer-model-menu').hidden=!imageMenuOpen;
   $('image-composer-model').setAttribute('aria-expanded',String(imageMenuOpen));
@@ -317,7 +403,7 @@ $('image-composer-train').onclick=()=>{
   if(!busy)$('soul-launch-manage').click();
 };
 document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){closeImageModelMenu();toggleImageSettings(false);}
+  if(e.key==='Escape'){closeImageModelMenu();toggleImageSettings(false);closeComposerLibrary();}
 });
 document.addEventListener('click',e=>{
   if(imageMenuOpen&&!e.target.closest('.composer-model-wrap'))closeImageModelMenu();
@@ -1442,7 +1528,7 @@ async function refineInSeedream(job,preset='full'){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
-async function loadPacks(){const data=await api('/api/packs');packs=data.packs;$('pack-select').replaceChildren(new Option('Choose a saved pack',''),...packs.map(p=>new Option(p.name,p.id)));if($('soul-pro-pack-select'))$('soul-pro-pack-select').replaceChildren(new Option('Choose a saved pack',''),...packs.filter(p=>p.refs?.length>=1).map(p=>new Option(p.name+' · '+p.refs.length+' ref'+(p.refs.length===1?'':'s'),p.id)));}
+async function loadPacks(){const data=await api('/api/packs');packs=data.packs;$('pack-select').replaceChildren(new Option('Choose a saved pack',''),...packs.map(p=>new Option(p.name,p.id)));if($('soul-pro-pack-select'))$('soul-pro-pack-select').replaceChildren(new Option('Choose a saved pack',''),...packs.filter(p=>p.refs?.length>=1).map(p=>new Option(p.name+' · '+p.refs.length+' ref'+(p.refs.length===1?'':'s'),p.id)));composerLibraryKey='';syncImageComposer();}
 $('pack-save').onclick=()=>action(async()=>{if(!references.length)throw new Error('Add reference images first.');const name=window.prompt('Name this reference pack, for example Nina FOK / Editorial');if(!name?.trim())return;const ids=await ensureReferences();await api('/api/packs',{method:'POST',body:{name:name.trim(),engine:tool==='video'?engine:'wan',referenceSourceIds:ids,referenceRoles:referenceRoles()}});await loadPacks();notify('Reference pack saved privately. No generation charge.');});
 $('pack-load').onclick=()=>action(async()=>{
   const pack=packs.find(p=>p.id===$('pack-select').value);
@@ -1716,7 +1802,8 @@ $('history-delete-selected').onclick=()=>action(async()=>{
   setHistorySelectMode(false);await loadHistory();notify((result.deleted||ids.length)+' History item'+((result.deleted||ids.length)===1?'':'s')+' deleted. Spending history is unchanged.');
 });
 function finishLabBoot(){window.__pvLabFinishBoot?.();}
-function lock(){epoch++;historySelected.clear();historySelectMode=false;clearSoulProPackPreview();soulProIdentity={configured:false,count:0,refs:[]};workingCopies.clear();autoPreview=null;downloadUrls.forEach(release);downloadUrls.clear();owner=false;userId='';soul.reset();historyRevision++;clearTimeout(timer);timer=null;activeJob=null;activeJobs=[];polling=false;requestControllers.forEach(c=>c.abort());requestControllers.clear();observer.disconnect();cardUrls.forEach(release);cardUrls.clear();clearMedia();$('prompt').value='';$('history').replaceChildren();$('app').hidden=true;$('gate').hidden=false;$('connection').hidden=true;$('logout').hidden=true;$('api-key').value='';for(const d of document.querySelectorAll('dialog[open]'))d.close();currentQuote=null;config={};packs=[];$('pack-select').replaceChildren(new Option('Choose a saved pack',''));closeImageModelMenu();toggleImageSettings(false);$('app').classList.remove('image-studio-active');imageStudio.hidden=true;imageDetailCache.clear();releaseImageDetailSource();videoJobCache.clear();selectedVideoJob=null;syncVideoStudioMode();finishLabBoot();}
+function lock(){epoch++;for(const p of composerPortraits.values())p.then(url=>{if(url)release(url);});composerPortraits.clear();composerLibraryKey='';composerPortraitKey='';closeComposerLibrary();historySelected.clear();historySelectMode=false;clearSoulProPackPreview();soulProIdentity={configured:false,count:0,refs:[]};workingCopies.clear();autoPreview=null;downloadUrls.forEach(release);downloadUrls.clear();owner=false;userId='';soul.reset();historyRevision++;clearTimeout(timer);timer=null;activeJob=null;activeJobs=[];polling=false;requestControllers.forEach(c=>c.abort());requestControllers.clear();observer.disconnect();cardUrls.forEach(release);cardUrls.clear();clearMedia();$('prompt').value='';$('history').replaceChildren();$('app').hidden=true;$('gate').hidden=false;$('connection').hidden=true;$('logout').hidden=true;$('api-key').value='';for(const d of document.querySelectorAll('dialog[open]'))d.close();currentQuote=null;config={};packs=[];$('pack-select').replaceChildren(new Option('Choose a saved pack',''));closeImageModelMenu();toggleImageSettings(false);$('app').classList.remove('image-studio-active');imageStudio.hidden=true;imageDetailCache.clear();releaseImageDetailSource();videoJobCache.clear();selectedVideoJob=null;syncVideoStudioMode();finishLabBoot();}
 async function sync(){if(syncing)return;syncing=true;try{if(!clerk.isSignedIn){lock();$('auth-status').textContent='Sign in with your Parallel Vision owner account.';$('signin').disabled=false;return;}if(owner&&userId===clerk.user.id)return;const data=await api('/api/session');owner=true;userId=clerk.user.id;applyConfig(data.config);$('identity').textContent='Owner workspace';$('gate').hidden=true;$('app').hidden=false;$('connection').hidden=false;$('logout').hidden=false;await Promise.all([loadHistory(),loadPacks(),soul.load(),loadSoulProIdentity()]);syncVideoStudioMode();}catch(e){lock();$('auth-status').textContent=e.message;$('signin').disabled=false;$('logout').hidden=!clerk?.isSignedIn;}finally{syncing=false;finishLabBoot();}}
 $('auth-retry').onclick=()=>location.reload();$('signin').onclick=()=>clerk?.openSignIn();$('logout').onclick=async()=>{lock();await clerk?.signOut();$('auth-status').textContent='Signed out. Your archive remains private.';};
 try{const {Clerk}=await import('https://esm.sh/@clerk/clerk-js@6?bundle');await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='https://clerk.parallelvisionlabel.com/npm/@clerk/ui@1/dist/ui.browser.js';s.onload=resolve;s.onerror=reject;document.head.append(s);});clerk=new Clerk('pk_live_Y2xlcmsucGFyYWxsZWx2aXNpb25sYWJlbC5jb20k');await clerk.load({ui:{ClerkUI:window.__internal_ClerkUICtor},signInFallbackRedirectUrl:location.href,signUpFallbackRedirectUrl:location.href});clerk.addListener(()=>void sync());await sync();}catch{$('gate').hidden=false;$('auth-retry').hidden=false;$('signin').disabled=true;$('auth-status').textContent='Sign-in could not load. Check your connection and reload the page.';finishLabBoot();}
+

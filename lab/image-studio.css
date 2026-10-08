@@ -442,3 +442,55 @@ dialog.image-lightbox::backdrop {background:rgba(4,5,7,.86);backdrop-filter:blur
 @media(prefers-reduced-motion:reduce){
   .image-studio #history .cardbody,#image-composer button {transition:none!important;transform:none!important}
 }
+
+/* Integrated image controls: a single composer, no duplicate side drawer. */
+#app.image-studio-active.image-settings-open>.workspace{display:none!important}
+#app.image-studio-active.image-settings-open>.tool-switch{z-index:auto}
+#image-composer{background:#171819;border-color:#414244}
+#image-composer .composer-model-pill,#image-composer .composer-settings-pill,#image-composer .composer-select-pill{background:#252627;border-color:#363739}
+#image-composer .composer-character{position:relative;flex:0 0 66px;width:66px;height:66px;padding:0;overflow:hidden;border:1px solid #525354;border-radius:10px;background:#292a2b;color:#fff}
+#composer-character-photo{display:grid;place-items:center;width:100%;height:100%;font-size:26px;color:#929394}
+#composer-character-photo img{width:100%;height:100%;object-fit:cover}
+#composer-character-name{position:absolute;bottom:0;left:0;right:0;padding:14px 4px 5px;background:linear-gradient(transparent,#000d);font-size:9px;line-height:1.2;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#image-composer .composer-character[aria-expanded=true]{border-color:#fff}
+.composer-library{position:absolute;bottom:calc(100% + 10px);left:0;right:0;padding:20px;background:#191a1b;border:1px solid #444547;border-radius:18px;box-shadow:0 16px 60px #0008;max-height:55dvh;overflow:auto}
+.composer-panel-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:14px}
+.composer-panel-head strong{font-size:15px;letter-spacing:-.02em;color:#eee}
+.composer-panel-head p{margin:5px 0 0;font-size:12px;color:#a4a5a6}
+#image-composer .composer-panel-head button{flex:0 0 30px;width:30px;height:30px;min-height:30px;padding:0;background:#292a2b;border:0;border-radius:50%;color:#ccc;font-size:21px}
+.composer-library-cards{display:flex;gap:12px;overflow-x:auto;padding:2px 2px 12px;scrollbar-width:thin;scrollbar-color:#555 transparent}
+#image-composer .composer-library-card{display:flex;flex-direction:column;gap:8px;flex:0 0 124px;width:124px;background:transparent;color:#eee;border:0;padding:0;text-align:left}
+.composer-library-photo{display:grid;place-items:center;width:124px;height:124px;overflow:hidden;border:1px solid #434446;border-radius:12px;background:#262728;color:#aaa;font-size:28px}
+.composer-library-photo img{width:100%;height:100%;object-fit:cover}
+.composer-library-card[aria-pressed=true] .composer-library-photo{border:2px solid #eee}
+.composer-library-card strong{font-size:12px;font-weight:500;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.composer-library-actions{display:flex;gap:8px;padding-top:12px;border-top:1px solid #333}
+#image-composer .composer-library-actions button{padding:8px 12px;border:1px solid #444;border-radius:8px;background:#252627;color:#ddd;font-size:12px}
+.composer-options{padding:3px 3px 16px;margin-bottom:12px;border-bottom:1px solid #3b3c3d;max-height:45dvh;overflow:auto;scrollbar-width:thin;scrollbar-color:#555 transparent}
+.composer-options-fields{display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap}
+.composer-options-fields>label{flex:1 1 150px;max-width:280px}
+#image-composer .composer-options-fields .label{display:block;margin-bottom:7px;color:#aaa;font-size:11px;font-weight:500}
+#image-composer .composer-options-fields select,#image-composer .composer-options-fields input:not([type=range]):not([type=checkbox]){width:100%;min-height:37px;padding:8px 10px;border:1px solid #424344;border-radius:8px;background:#242526;color:#eee;font-size:12px}
+.composer-options-fields #soul-pro-settings,.composer-options-fields #soul-controls,.composer-options-fields #controlled-pose-settings{display:flex;align-items:flex-start;flex-wrap:wrap;gap:14px;padding:0;margin:0;background:transparent;border:0;width:100%}
+.composer-options-fields #soul-pro-settings>label,.composer-options-fields .seed-settings,.composer-options-fields .soul-strength{flex:1 1 180px;min-width:0}
+.composer-options-fields #soul-pro-settings>.upload-heading,.composer-options-fields #soul-pro-settings>p,.composer-options-fields .identity-profile-row,.composer-options-fields .soul-control-grid,.composer-options-fields #soul-controls>.soul-note,.composer-options-fields #soul-controls>.mode-switch{display:none}
+.composer-options-fields #soul-reinterpret-controls{width:100%}
+.composer-options-fields #soul-base-drop,.composer-options-fields #soul-base-preview,.composer-options-fields #soul-base-name,.composer-options-fields label[for=soul-base-image]{display:none!important}
+.composer-options-fields #reference-list{flex:1 1 100%;width:100%;max-height:220px;overflow:auto;margin:0}
+.composer-options-fields #reference-list:empty{display:none}
+.composer-options-fields #reference-guidance{flex:1 1 100%;margin:0}
+#image-composer [hidden]{display:none!important}
+.composer-reference-index{position:absolute;bottom:0;left:0;right:0;background:#000b;font-size:8px;color:#fff;text-align:center;line-height:15px;border-radius:0 0 6px 6px}
+#image-composer .composer-reference-tile{flex-basis:62px;width:62px;height:62px}
+@media(max-width:740px){
+  #image-composer .composer-character{flex-basis:48px;width:48px;height:48px}
+  .composer-library{padding:14px;border-radius:14px;max-height:48dvh}
+  #image-composer .composer-library-card{flex-basis:98px;width:98px}
+  .composer-library-photo{width:98px;height:98px}
+  .composer-options-fields{gap:10px}
+  .composer-options-fields>label{flex-basis:120px}
+  .composer-panel-head p{font-size:11px}
+  #image-composer .composer-reference-tile{flex-basis:48px;width:48px;height:48px}
+  .composer-library-actions{flex-wrap:wrap}
+  .composer-options{max-height:36dvh}
+}
