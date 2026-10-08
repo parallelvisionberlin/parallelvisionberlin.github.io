@@ -225,7 +225,7 @@ try{
   const compactComposer=await x.page.locator('#image-composer').evaluate(el=>{
     const r=el.getBoundingClientRect();return {left:r.left,right:r.right,bottom:r.bottom,width:r.width};
   });
-  assert.ok(compactComposer.left>=0&&compactComposer.right<=innerWidth,'Floating Image bar fits on mobile');
+  assert.ok(compactComposer.left>=0&&compactComposer.right<=390,'Floating Image bar fits on mobile');
   assert.ok(await x.page.locator('#image-composer-add').isVisible(),'Mobile Image bar keeps in-bar reference action');
   await x.page.screenshot({path:'test-results/lab-image-floating-mobile.png',fullPage:false});
   await x.page.click('#tool-video');
