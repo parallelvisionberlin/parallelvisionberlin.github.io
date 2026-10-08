@@ -4,7 +4,7 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow,noarchive"><meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#09090b"><title>Parallel Vision Lab</title>
-<link rel="icon" href="./branding/pv-mark.svg" type="image/svg+xml"><style id="lab-boot-style">
+<link rel="icon" href="./branding/pv-mark.png" type="image/png"><style id="lab-boot-style">
 /* Visible before the external scripts and stylesheets load. No remote imagery or icon fonts. */
 body.lab-booting{margin:0;background:#09090b}
 #lab-boot{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:#09090b;color:#f1efeb;font-family:Arial,Helvetica,sans-serif}
@@ -30,13 +30,13 @@ document.addEventListener('DOMContentLoaded',()=>{const retry=document.getElemen
 <link rel="stylesheet" href="./history.css?v=20260927-2">
 <link rel="stylesheet" href="./seedance.css?v=20260927-standard1">
 <link rel="stylesheet" href="./soul.css?v=20260930-soul-v02">
-<link rel="stylesheet" href="./studio.css?v=20261008-experience-v4">
+<link rel="stylesheet" href="./studio.css?v=20261008-experience-v5">
 <script type="module" src="./lab.js?v=20261008-branded-load-v1"></script>
 </head>
 <body class="lab-booting">
 <div id="lab-boot" role="status" aria-live="polite" aria-label="Opening Parallel Vision Lab"><div class="lab-boot-content"><span class="lab-boot-name" id="lab-boot-name">PARALLEL VISION</span><span class="lab-boot-sub">LAB</span><div class="lab-boot-track" aria-hidden="true"></div><p class="lab-boot-status" id="lab-boot-status">Opening your workspace</p><button id="lab-boot-retry" type="button" hidden>Reload page</button></div></div>
 <a class="skip" href="#main">Skip to workspace</a>
-<header><div class="wrap top"><a class="brand" href="/" aria-label="Parallel Vision home"><img class="brand-icon" src="./branding/pv-mark.svg" alt="" width="42" height="42"><img class="brand-wordmark" src="./branding/pv-wordmark.svg" alt="" width="152" height="38"><span class="brand-lab">LAB</span></a><div class="actions"><span class="eyebrow" id="identity">Private workspace</span><button id="connection" class="quiet" hidden>Connection</button><button id="logout" class="quiet" hidden>Sign out</button></div></div></header>
+<header><div class="wrap top"><a class="brand" href="/" aria-label="Parallel Vision home"><img class="brand-icon" src="./branding/pv-mark.png" alt="" width="42" height="42"><img class="brand-wordmark" src="./branding/pv-wordmark.png" alt="" width="152" height="38"><span class="brand-lab">LAB</span></a><div class="actions"><span class="eyebrow" id="identity">Private workspace</span><button id="connection" class="quiet" hidden>Connection</button><button id="logout" class="quiet" hidden>Sign out</button></div></div></header>
 <main class="wrap" id="main">
 
 <section id="gate" class="gate" hidden><div class="intro"><div><p class="eyebrow">Private creative workspace</p><h1>Parallel Vision Lab</h1></div><p class="intro-note">Create, queue and refine.<br>Keep working while jobs run.</p></div><p class="eyebrow">Owner access</p><h2>Your private image and motion studio.</h2><p id="auth-status" role="status">Loading your Parallel Vision sign-in…</p><button id="signin" class="primary" disabled>Sign in</button><button id="auth-retry" type="button" class="quiet" hidden>Reload page</button><p class="fine">Use the same owner account as Nina. No new subscription.</p></section>
@@ -157,7 +157,7 @@ document.addEventListener('DOMContentLoaded',()=>{const retry=document.getElemen
 <p id="generation-help" class="fine">Images and Upscale start on click at the live provider price. Video keeps price review. Inputs over 10 MiB need a working copy for the image provider; the Lab asks first and keeps the original. Saving history is free of generation charges.</p>
 </div>
 </section>
-<section class="stage" aria-label="Media preview"><div class="stagehead"><span class="eyebrow" id="preview-label">Source / preview</span><button class="quiet" id="clear" disabled>Clear</button></div><div class="canvas"><div id="empty" class="empty"><img class="empty-wordmark" src="./branding/pv-wordmark.svg" alt="" width="220" height="55"><p>Create from your own frame.</p><small>Give a still image a new direction, or make something from words.</small><button id="canvas-import" type="button" class="canvas-import">Choose a frame <span aria-hidden="true">↗</span></button></div><img id="preview" alt="Selected source image" hidden><video id="video" controls playsinline preload="metadata" hidden></video></div><div class="stagefoot"><span id="settings-summary">15 seconds / 1080p</span><button id="download" class="quiet" hidden>Download result</button></div></section>
+<section class="stage" aria-label="Media preview"><div class="stagehead"><span class="eyebrow" id="preview-label">Source / preview</span><button class="quiet" id="clear" disabled>Clear</button></div><div class="canvas"><div id="empty" class="empty"><img class="empty-wordmark" src="./branding/pv-wordmark.png" alt="" width="220" height="55"><p>Create from your own frame.</p><small>Give a still image a new direction, or make something from words.</small><button id="canvas-import" type="button" class="canvas-import">Choose a frame <span aria-hidden="true">↗</span></button></div><img id="preview" alt="Selected source image" hidden><video id="video" controls playsinline preload="metadata" hidden></video></div><div class="stagefoot"><span id="settings-summary">15 seconds / 1080p</span><button id="download" class="quiet" hidden>Download result</button></div></section>
 </div>
 <div id="soul-launch" class="soul-launch" hidden>
 <div><span class="eyebrow">PV Soul</span><strong id="soul-launch-title">Train a reusable character</strong><small id="soul-launch-note">FAL training is ready. Train from 20–80 photos, then use the character in Image.</small></div>
