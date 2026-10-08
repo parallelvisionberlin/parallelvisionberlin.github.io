@@ -378,3 +378,23 @@ dialog#image-lightbox::backdrop {background:rgba(6,7,10,.95);backdrop-filter:blu
 @media(max-width:740px){
   #image-composer .composer-generate {min-width:119px;min-height:42px;font-size:12px;padding:8px 12px}
 }
+
+/* Secondary provider recovery and specialist controls stay accessible without tile clutter. */
+.detail-extra{
+  border-top:1px solid #383b43;margin-top:5px;padding-top:8px;
+}
+.detail-extra[hidden]{display:none!important}
+.detail-extra summary{
+  cursor:pointer;color:#aaaeb8;font-size:11px;
+  list-style:none;padding:7px 4px;
+}
+.detail-extra summary::-webkit-details-marker{display:none}
+.detail-extra summary:after{content:"⌄";float:right;color:#969ba5}
+.detail-extra[open] summary:after{content:"⌃"}
+.detail-extra-list{display:flex;flex-direction:column;gap:7px;padding:7px 0}
+.image-detail-actions .detail-extra-action,
+.video-inspector-actions .detail-extra-action{
+  min-height:35px;text-align:left;white-space:normal;
+  padding:8px 10px;border-radius:8px;
+  color:#d3d7df;background:#2e3138;border:1px solid #474b54;
+}
