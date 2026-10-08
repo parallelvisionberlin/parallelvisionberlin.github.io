@@ -124,23 +124,88 @@ function setTool(value){
   configureVideoControls();renderReferences();resetPreview();refreshCanvasImport();update();
 }
 /* The canvas is a genuine import surface, not a dead decorative placeholder. */
-function refreshCanvasImport(){
-  const button=$('canvas-import');
-  if(!button)return;
-  const promptOnly=tool==='video'&&mode==='text'||tool==='image'&&imageEngine==='soul'&&!isReinterpret();
-  button.hidden=promptOnly;
-  const label=tool==='upscale'?'Choose image':tool==='image'&&imageEngine==='soulpro'?'Choose base image':tool==='video'&&mode==='reference'||tool==='image'?'Add references':'Choose start frame';
-  const textNode=button.firstChild;
-  if(textNode&&textNode.nodeType===Node.TEXT_NODE)textNode.textContent=label+' ';
-  else button.textContent=label;
+/* Studio entry actions are UI only: never trigger paid requests. */
+function emptyExperience(){
+  if(tool==='upscale')return {
+    title:'Bring the details forward.',
+    description:'Choose an image to enlarge or restore, keeping its original composition.',
+    action:'source',button:'Choose an image',secondary:'Open Image Studio',secondaryAction:'image',
+    footnote:'A NEW OUTPUT WILL APPEAR IN YOUR PRIVATE HISTORY'
+  };
+  if(tool==='video'){
+    if(mode==='text')return {
+      title:'Imagine the next scene.',
+      description:'Describe a place, a movement or a moment worth seeing.',
+      action:'prompt',button:'Write a direction',secondary:'Create an image first',secondaryAction:'image',
+      footnote:'START WITH A DIRECTION'
+    };
+    if(mode==='reference')return {
+      title:'Build from your references.',
+      description:'Bring images, motion and atmosphere into a single visual direction.',
+      action:'references',button:'Add references',secondary:'Write the direction',secondaryAction:'prompt',
+      footnote:'YOUR REFERENCES STAY SEPARATE FROM GENERATED RESULTS'
+    };
+    return {
+      title:'Your next scene starts here.',
+      description:'Begin with a still, then shape its motion, light and atmosphere.',
+      action:'source',button:'Choose start frame',secondary:'Create an image first',secondaryAction:'image',
+      footnote:'A STILL IS ONLY THE BEGINNING'
+    };
+  }
+  if(imageEngine==='soulpro')return {
+    title:'Another identity. Same frame.',
+    description:'Choose a photograph. Your saved Nina identity can become part of the scene.',
+    action:'source',button:'Choose base image',secondary:'Add an instruction',secondaryAction:'prompt',
+    footnote:'YOUR BASE PHOTOGRAPH CONTROLS THE COMPOSITION'
+  };
+  if(imageEngine==='fal')return {
+    title:'A composition you control.',
+    description:'Combine pose and identity references, then direct the image.',
+    action:'references',button:'Add references',secondary:'Write the direction',secondaryAction:'prompt',
+    footnote:'NO GENERATED IMAGE YET'
+  };
+  if(imageEngine==='soul'&&!isReinterpret())return {
+    title:'A character in a new frame.',
+    description:'Write a direction for your trained character, then make the image.',
+    action:'prompt',button:'Write a direction',secondary:'',secondaryAction:'',
+    footnote:'NO GENERATED IMAGE YET'
+  };
+  return {
+    title:'Give an idea a form.',
+    description:'Begin with a few words, or bring visual references into the frame.',
+    action:'prompt',button:'Write an image prompt',secondary:'Add references',secondaryAction:'references',
+    footnote:'NO GENERATED IMAGE YET'
+  };
 }
-$('canvas-import').addEventListener('click',()=>{
+function refreshCanvasImport(){
+  const main=$('canvas-import'),secondary=$('canvas-secondary');
+  if(!main||!secondary)return;
+  const experience=emptyExperience();
+  $('empty-title').textContent=experience.title;
+  $('empty-description').textContent=experience.description;
+  $('empty-footnote').textContent=experience.footnote;
+  main.dataset.action=experience.action;
+  const mainText=main.firstChild;
+  if(mainText&&mainText.nodeType===Node.TEXT_NODE)mainText.textContent=experience.button+' ';
+  secondary.hidden=!experience.secondary;
+  secondary.dataset.action=experience.secondaryAction;
+  if(experience.secondary){
+    const label=secondary.firstChild;
+    if(label&&label.nodeType===Node.TEXT_NODE)label.textContent=experience.secondary+' ';
+  }
+}
+function runCanvasEntry(action){
   if(busy||!owner)return;
-  if(tool==='video'&&mode==='text'){ $('prompt').focus();return; }
-  const ref=tool==='image'&&!['soulpro','soul'].includes(imageEngine)||tool==='video'&&mode==='reference';
-  const input=ref?$('reference-images'):$('image');
+  if(action==='image'){$('tool-image').click();return;}
+  if(action==='prompt'){
+    if(!$('prompt').hidden&&!$('prompt').disabled)$('prompt').focus();
+    return;
+  }
+  const input=action==='references' ? $('reference-images') : $('image');
   if(input&&!input.disabled)input.click();
-});
+}
+$('canvas-import').addEventListener('click',()=>runCanvasEntry($('canvas-import').dataset.action));
+$('canvas-secondary').addEventListener('click',()=>runCanvasEntry($('canvas-secondary').dataset.action));
 $('soul-use').onclick=()=>{if(busy)return;imageEngine='soul';$('image-engine').value='soul';setTool('image');window.scrollTo({top:0,behavior:'smooth'});};
 $('soul-launch-manage').onclick=()=>{if(busy)return;imageEngine='soul';$('image-engine').value='soul';setTool('image');$('soul-dialog').showModal();void soul.load().catch(e=>notify(e.message,true));};
 $('tool-upscale').onclick=()=>{if(!busy)setTool('upscale');};
@@ -184,8 +249,7 @@ function resetPreview(){
   else{
     $('preview').removeAttribute('src');$('preview').hidden=true;$('empty').hidden=false;
     $('preview-label').textContent=tool==='image'?'Result / Image':'Source / preview';
-    $('empty').querySelector('p').textContent=tool==='image'?'Your generated image will appear here.':tool==='video'&&mode==='text'?'Describe a scene to begin.':'Start with your own frame.';
-    $('empty').querySelector('small').textContent=tool==='image'?'Input references stay on the left. Nothing generated yet.':'Your source and result appear here.';
+    refreshCanvasImport();
   }
 }
 function refreshInputPreview(){autoPreview=null;if(tool!=='image'||!resultUrl)resetPreview();}
