@@ -75,9 +75,11 @@ body.pv-nina-project .nx-hero-lede { max-width:350px;color:#e0ded9;font:400 clam
 body.pv-nina-project .nx-hero-actions {display:flex;gap:18px 26px;flex-wrap:wrap;align-items:center;margin-top:27px;}
 body.pv-nina-project .nx-hero-copy .nx-hero-caption { width:100%;max-width:450px;display:flex;gap:20px;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;color:#a9a8a5; }
 body.pv-nina-project .nx-hero-aside { position:absolute;z-index:2;right:33px;top:38px;color:#dedbda;text-align:right; }
-body.pv-nina-project .nx-hero-bottom {display:flex;grid-template-columns:1fr 1fr 1fr;gap:12px 26px;padding:18px 0 24px;color:#959899;align-items:center;justify-content:flex-start;flex-wrap:wrap;border-bottom:1px solid var(--nx-rule);}
-body.pv-nina-project .nx-hero-bottom span:nth-child(2) { text-align:center; }
-body.pv-nina-project .nx-hero-bottom span:last-child { text-align:right; }
+body.pv-nina-project .nx-hero-bottom {display:flex;gap:12px 26px;padding:18px 0 24px;color:#959899;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--nx-rule);}
+body.pv-nina-project .nx-hero-bottom a {color:#a8abaa;text-decoration:none;font:400 10.5px/1.6 "IBM Plex Mono",monospace;letter-spacing:.065em;text-transform:uppercase;transition:color .15s ease;}
+body.pv-nina-project .nx-hero-bottom a:hover,body.pv-nina-project .nx-hero-bottom a:focus-visible {color:#f7f5f1;}
+body.pv-nina-project .nx-hero-bottom .nx-index {color:var(--nx-blush);}
+body.pv-nina-project .nx-page [id] {scroll-margin-top:22px;}
 
 /* 01 / THE RESEARCH QUESTION */
 body.pv-nina-project .nx-thesis {padding:clamp(80px,6.8vw,118px) 0 clamp(93px,7.6vw,129px);
@@ -106,7 +108,7 @@ body.pv-nina-project .nx-presence-film .n-sound {
   font:500 11px/1.2 "Inter Tight",sans-serif;letter-spacing:.02em;text-transform:none;
 }
 body.pv-nina-project .nx-presence-film .n-sound:hover {background:#e5e3df;color:#111;}
-body.pv-nina-project .nx-presence-foot {display:flex;grid-template-columns:1.6fr .65fr;gap:0;align-items:flex-start;padding:20px 0;flex-direction:column;justify-content:center;min-width:0;}
+body.pv-nina-project .nx-presence-foot {display:flex;gap:0;align-items:flex-start;padding:20px 0;flex-direction:column;justify-content:center;min-width:0;}
 body.pv-nina-project .nx-presence-foot>p {max-width:620px;font:400 clamp(23px,2.2vw,34px)/1.42 "Inter Tight",sans-serif;letter-spacing:-.023em;color:#e3e3dd;}
 body.pv-nina-project .nx-presence-foot>div {display:flex;flex-direction:column;align-items:flex-start;gap:20px;width:100%;max-width:490px;margin-top:35px;padding-top:22px;border-top:1px solid var(--nx-rule);}
 body.pv-nina-project .nx-presence-foot>div p {max-width:410px;color:#b5b4b0;font:400 15px/1.64 "Inter Tight",sans-serif;}
@@ -228,8 +230,6 @@ body.pv-nina-project .nina-window,body.pv-nina-project .nina-access,body.pv-nina
   body.pv-nina-project .nx-hero-copy .nx-hero-caption {display:none;}
   body.pv-nina-project .nx-hero-aside {right:18px;top:24px;display:none;}
   body.pv-nina-project .nx-hero-bottom {grid-template-columns:repeat(3,minmax(0,1fr));padding:15px 0 18px;gap:10px 12px;display:grid;}
-  body.pv-nina-project .nx-hero-bottom span:nth-child(2) {display:inline;}
-  body.pv-nina-project .nx-hero-bottom span:last-child {text-align:left;}
   body.pv-nina-project .nx-thesis {grid-template-columns:1fr;gap:23px;padding:79px 0 92px;}
   body.pv-nina-project .nx-thesis>.nx-mono {padding:0;}
   body.pv-nina-project .nx-thesis h2 {font-size:clamp(42px,9.25vw,66px);line-height:1.075;letter-spacing:-.049em;}
