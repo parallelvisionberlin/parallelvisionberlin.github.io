@@ -162,19 +162,9 @@ dialog#image-lightbox::backdrop {background:rgba(6,7,10,.95);backdrop-filter:blu
   overflow:hidden;color:#f0f1f4;font-size:11px;
 }
 #app.image-studio-active #history .card[data-kind="image"] {
-  cursor:zoom-in;
+  cursor:pointer;
 }
-#app.image-studio-active #history .card[data-kind="image"]:after {
-  content:"↗";position:absolute;z-index:6;top:10px;right:10px;
-  display:grid;place-items:center;width:30px;height:30px;
-  border:1px solid rgba(225,226,233,.23);border-radius:9px;
-  background:rgba(17,18,22,.67);color:#e8e9ed;font-size:14px;
-  opacity:0;transition:opacity .13s;pointer-events:none;
-}
-#app.image-studio-active #history .card[data-kind="image"]:hover:after,
-#app.image-studio-active #history .card[data-kind="image"]:focus-within:after {opacity:1}
-#app.image-studio-active #history.is-selecting .card:after{display:none}
-#app.image-studio-active #history .card>.history-media img {cursor:zoom-in}
+#app.image-studio-active #history .card>.history-media img {cursor:pointer}
 
 /* Video timeline workspace: keep creator at left, scroll results in center. */
 #app.video-studio-active>.workspace.video-layout{
@@ -513,3 +503,4 @@ dialog#image-lightbox::backdrop {background:rgba(6,7,10,.95);backdrop-filter:blu
 @media(max-width:390px){
   #app .queue-popover .queue-summary-title{display:none}
 }
+

@@ -496,3 +496,32 @@ dialog.image-lightbox::backdrop {background:rgba(4,5,7,.86);backdrop-filter:blur
 }
 
 #composer-options-fields>#save,#composer-options-fields>#clear{flex:0 1 auto;width:auto;min-height:34px;padding:8px 12px;font-size:11px;background:#252627;border:1px solid #444;color:#ddd;border-radius:8px}
+
+/* Reference photo editing stays attached to the creation bar. */
+#image-composer #soul-pro-identity-dialog{position:absolute;inset:auto 0 calc(100% + 10px);margin:0;width:100%;max-width:none;max-height:min(58dvh,620px);padding:20px;border:1px solid #454647;border-radius:17px;background:#191a1b;color:#eee;box-shadow:0 16px 60px #0008;overflow:auto}
+#image-composer #soul-pro-identity-dialog:not([open]){display:none}
+#soul-pro-identity-form{padding:0!important;background:transparent}
+#soul-pro-identity-form .dialog-head{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:10px}
+#soul-pro-identity-form h2{font-size:20px;margin:5px 0}
+#soul-pro-identity-form>.fine{font-size:12px;line-height:1.5;max-width:650px;color:#aaa}
+#soul-pro-identity-form .compact-drop{min-height:60px;margin:10px 0;background:#242526;border-color:#515253}
+#soul-pro-identity-form .pack-bar{display:block;margin:12px 0}
+#soul-pro-identity-form .pack-bar label{display:block}
+#soul-pro-identity-form select{min-height:38px;width:100%;background:#242526;border:1px solid #48494a;color:#eee;border-radius:8px;padding:8px}
+#soul-pro-save-identity{background:#edb85d;color:#18140e;border-color:#edb85d;min-height:40px;margin-top:10px}
+#soul-pro-clear-identity{width:auto;margin-top:10px;background:transparent;color:#a8a8a8;border:0;font-size:11px}
+.composer-library-card small{font-size:10px;color:#a3a3a3;font-weight:400}
+#soul-pro-identity-form .soul-pro-pack-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(95px,1fr));gap:10px;max-height:230px;overflow:auto}
+@media(max-width:740px){#image-composer #soul-pro-identity-dialog{padding:13px;max-height:48dvh}#soul-pro-identity-form .dialog-head{align-items:flex-start}#soul-pro-identity-form h2{font-size:17px}#soul-pro-identity-form .dialog-head button{font-size:10px;padding:7px;min-height:32px}}
+#soul-pro-identity-form{display:grid;grid-template-columns:1fr 1fr;gap:10px 16px}
+#soul-pro-identity-form>.dialog-head,#soul-pro-identity-form>.fine,#soul-pro-pack-preview{grid-column:1/-1;margin:0}
+#soul-pro-identity-form>.compact-drop,#soul-pro-identity-form>.pack-bar{margin:3px 0;align-self:end}
+#soul-pro-identity-form>.compact-drop{min-height:65px}
+#soul-pro-identity-form .soul-pro-pack-grid{grid-template-columns:repeat(auto-fill,96px);max-height:210px}
+#soul-pro-identity-form .soul-pro-pack-item{border-radius:8px;overflow:hidden;padding:3px;margin:0}
+#soul-pro-identity-form .soul-pro-pack-item img{aspect-ratio:1/1;border-radius:5px}
+#soul-pro-identity-form .soul-pro-pack-item span{white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
+#soul-pro-save-identity{width:100%;margin:0!important;grid-column:1;position:sticky;bottom:0;z-index:2}
+#soul-pro-clear-identity{margin:0!important;grid-column:2;text-align:right}
+#soul-pro-identity-dialog-status:empty{display:none}
+@media(max-width:740px){#soul-pro-identity-form{grid-template-columns:1fr;gap:10px}#soul-pro-identity-form>*{grid-column:1!important}#soul-pro-identity-form .soul-pro-pack-grid{grid-template-columns:repeat(auto-fill,minmax(72px,1fr));max-height:150px}#soul-pro-clear-identity{text-align:left}}

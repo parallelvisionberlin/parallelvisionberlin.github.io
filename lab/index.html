@@ -52,10 +52,10 @@ document.addEventListener('DOMContentLoaded',()=>{
 <link rel="stylesheet" href="./seedance.css?v=20260927-standard1">
 <link rel="stylesheet" href="./soul.css?v=20260930-soul-v02">
 <link rel="stylesheet" href="./studio.css?v=20261008-imagefloat-v1">
-<link rel="stylesheet" href="./image-studio.css?v=20261009-inline-v2">
-<link rel="stylesheet" href="./detail-video-studio.css?v=20261008-queue-v2">
+<link rel="stylesheet" href="./image-studio.css?v=20261009-photos-v1">
+<link rel="stylesheet" href="./detail-video-studio.css?v=20261009-pointer1">
 <link rel="stylesheet" href="./editorial-polish.css?v=20261009-amber1">
-<script type="module" src="./lab.js?v=20261009-inline-v2"></script>
+<script type="module" src="./lab.js?v=20261009-photos-v1"></script>
 </head>
 <body class="lab-booting">
 <div id="lab-boot" role="status" aria-live="polite" aria-label="Opening Parallel Vision Lab"><div class="lab-boot-content"><div class="lab-boot-brand" aria-label="Parallel Vision Lab"><img id="lab-boot-wordmark" src="./branding/pv-wordmark.png" alt="Parallel Vision" width="242" height="61" decoding="async"><span class="lab-boot-fallback" id="lab-boot-name">PARALLEL VISION</span><span class="lab-boot-sub">LAB <span aria-hidden="true">/</span> CREATIVE STUDIO</span></div><div class="lab-boot-track" aria-hidden="true"></div><p class="lab-boot-status" id="lab-boot-status">Opening your workspace</p><button id="lab-boot-retry" type="button" hidden>Reload page</button></div></div>
@@ -132,7 +132,7 @@ document.addEventListener('DOMContentLoaded',()=>{
         <div id="image-composer-model-menu" class="composer-model-menu" hidden>
           <label class="composer-model-search"><span class="visually-hidden">Search models</span><input id="image-composer-model-search" type="search" placeholder="Search models..." autocomplete="off"></label>
           <div id="image-composer-model-items" class="composer-model-items"></div>
-          <div class="composer-model-footer"><button id="image-composer-train" type="button">Manage PV Soul identity <span aria-hidden="true">↗</span></button></div>
+          <div class="composer-model-footer"><button id="image-composer-train" type="button">Train / manage LoRAs <span aria-hidden="true">↗</span></button></div>
         </div>
       </div>
       <label class="composer-select-pill" title="Aspect ratio"><span class="visually-hidden">Aspect ratio</span><select id="image-composer-ratio" aria-label="Aspect ratio"></select></label>
@@ -220,7 +220,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 <div class="workspace">
 <section class="controls" aria-label="Generation settings">
 <div class="controls-body">
-<div class="mode"><span id="mode-heading">01 / Image to Video</span><span class="engine-pill" id="engine-name">WAN 3.0</span><label id="image-model-control" class="mode-model-control" hidden><span class="label">Image model</span><select id="image-engine"><option value="seedream" selected>Seedream 5 Pro</option><option value="gemini">Nano Banana Pro</option><option value="soulpro">PV Soul Pro · Nina Reinterpret</option><option value="soul">PV Soul · Text</option><option value="fal">Controlled Pose · FAL FLUX</option></select></label></div>
+<div class="mode"><span id="mode-heading">01 / Image to Video</span><span class="engine-pill" id="engine-name">WAN 3.0</span><label id="image-model-control" class="mode-model-control" hidden><span class="label">Image model</span><select id="image-engine"><option value="seedream" selected>Seedream 5 Pro</option><option value="gemini">Nano Banana Pro</option><option value="soulpro">PV Soul · Photo edit</option><option value="soul">PV Soul · LoRA</option><option value="fal">Controlled Pose · FAL FLUX</option></select></label></div>
 <div id="video-model-control"><label><span class="label">Video model</span><select id="video-engine"><option value="wan">Wan 3.0</option><option value="wanprime">Wan 3.0 Prime</option><option value="h3">MiniMax H3</option><option value="h3max">MiniMax H3 Max</option><option value="h3spicy">MiniMax H3 Spicy</option><option value="h3maxfal">MiniMax H3 Max Reference · FAL</option><option value="omni">Gemini Omni Flash 1.1 · FAL</option><option value="seedance">Seedance 2.5</option></select></label><details class="model-details"><summary>About this model</summary><p id="video-model-note" class="fine">Standard model access. Provider policies and model refusals apply. No automatic model switching.</p></details></div>
 <div id="video-modes" class="mode-switch" role="tablist" aria-label="Generation mode">
 <button id="mode-text" class="mode-tab" type="button" role="tab" aria-selected="false" hidden>Text to Video</button>
@@ -381,20 +381,20 @@ document.addEventListener('DOMContentLoaded',()=>{
 <noscript><style>#lab-boot{display:none!important}body>header,body>main,body>footer{visibility:visible!important}</style><p>Enable JavaScript to sign in and use the Lab.</p></noscript>
 </main>
 <footer><div class="wrap">Parallel Vision / Lab <span>Private archive · Hosted generation</span></div></footer>
-<dialog id="soul-pro-identity-dialog" class="dialog">
+<dialog id="soul-pro-identity-dialog" class="dialog" aria-labelledby="reference-editor-title">
 <form method="dialog" class="dialog-card" id="soul-pro-identity-form">
-<div class="dialog-head"><div><span class="eyebrow">PV SOUL PRO</span><h2>Nina identity</h2></div><button value="cancel" class="quiet" type="submit">Close</button></div>
-<p class="fine">Set this once. Future Soul Pro renders need only one base image. Ideogram 4.5 accepts up to four reference images, so Soul Pro keeps one shared Nina profile of up to four images for predictable switching between both engines.</p>
-<label class="drop compact-drop"><span>Choose 1–4 Nina identity images</span><small>JPG / PNG / WebP</small><input id="soul-pro-identity-files" type="file" multiple accept="image/jpeg,image/png,image/webp"></label>
-<div class="pack-bar"><label><span class="label">Or use an existing reference pack</span><select id="soul-pro-pack-select"><option value="">Choose a saved pack</option></select></label></div>
+<div class="dialog-head"><div><span class="eyebrow">PHOTO EDIT / REFERENCE PHOTOS</span><h2 id="reference-editor-title">Nina reference photos</h2></div><button value="cancel" class="quiet" type="submit">Back to photo packs</button></div>
+<p class="fine">Choose 1–4 photos of Nina to guide Photo edit. This uses reference images, not a trained LoRA. Your BASE image keeps the scene and framing.</p>
+<label class="drop compact-drop"><span>Upload new reference photos</span><small>JPG / PNG / WebP</small><input id="soul-pro-identity-files" type="file" multiple accept="image/jpeg,image/png,image/webp"></label>
+<div class="pack-bar"><label><span class="label">Choose from a saved photo pack</span><select id="soul-pro-pack-select"><option value="">Choose a saved pack</option></select></label></div>
 <div id="soul-pro-pack-preview" class="soul-pro-pack-preview" hidden>
 <div class="upload-heading"><span class="label">Choose up to 4 images</span><span class="micro" id="soul-pro-pack-count">0 / 4 selected</span></div>
 <div id="soul-pro-pack-grid" class="soul-pro-pack-grid"></div>
 </div>
-<p class="fine">All saved packs appear here. For larger packs, pick exactly the Nina angles you want instead of using the first four automatically.</p>
+
 <p id="soul-pro-identity-dialog-status" class="fine" role="status"></p>
-<button id="soul-pro-save-identity" type="button" class="primary full">Save Nina identity</button><p class="fine">The Save button uses either the uploaded Nina images above or the images currently checked in the selected pack.</p>
-<button id="soul-pro-clear-identity" type="button" class="secondary full">Clear saved identity</button>
+<button id="soul-pro-save-identity" type="button" class="primary full">Use these reference photos</button>
+<button id="soul-pro-clear-identity" type="button" class="secondary full">Clear active reference photos</button>
 </form>
 </dialog>
 <dialog id="connect-dialog" aria-labelledby="connect-title"><form id="connect-form"><div class="dialoghead"><h2 id="connect-title">Generation connection</h2><button type="button" class="quiet" data-close="connect-dialog">Close</button></div><p>Wan 3.0 and Seedance 2.5 handle video. Seedream 5.0 Pro handles images and reference-based edits. Image Upscaler enlarges a finished image. Your existing provider key is used for these tools. Image Generate starts your selected image count at the live provider price. Upscale starts one paid upscaling job per click without a price-review popup. Video keeps price review before payment. Your computer does not render the media.</p><p class="fine">Provider access, permitted content and model availability must be checked in your own account. A model name alone does not guarantee unrestricted use. No safety filters are bypassed by this Lab.</p><p><a href="https://spicyapi.ai" target="_blank" rel="noopener noreferrer">Open provider ↗</a> · <a href="https://docs.spicyapi.ai/docs/api-reference" target="_blank" rel="noopener noreferrer">API documentation ↗</a></p>
@@ -437,4 +437,5 @@ document.addEventListener('DOMContentLoaded',()=>{
 </dialog>
 <dialog id="input-preview-dialog" aria-labelledby="input-preview-title"><div class="dialoghead"><h2 id="input-preview-title">Input reference</h2><button class="quiet" data-close="input-preview-dialog" type="button">Close</button></div><p id="input-preview-description" class="fine"></p><img id="input-preview-image" alt="Uploaded input reference, not a generated result"></dialog>
 </body></html>
+
 

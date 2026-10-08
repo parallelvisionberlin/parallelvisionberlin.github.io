@@ -93,6 +93,7 @@ function hasInput(){if(tool==='upscale')return !!file;if(tool==='image'&&imageEn
 function update(){if($('soul-base-preview')){$('soul-base-preview').hidden=!sourceUrl;if(sourceUrl)$('soul-base-preview').src=sourceUrl;else $('soul-base-preview').removeAttribute('src');$('soul-base-name').textContent=file?.name||'';}const current=settings(),p=resultSettings||current,ratio=p.aspectRatio==='auto'?(p.mode==='reference'?'adaptive':'source ratio'):p.aspectRatio,imageName=p.mode==='upscale'?'Upscale':p.engine==='gemini'?'Nano Banana Pro':p.engine==='soulpro'?'PV Soul Pro':p.engine==='soul'?(p.mode==='reinterpret'?'PV Soul / Reinterpret':'PV Soul'):p.engine==='fal'?'Controlled Pose':'Image',resolution=p.resolution==='native'?'native':String(p.resolution||'').toUpperCase();$('settings-summary').textContent=p.mode==='upscale'?upscaleName(p)+' / '+upscaleSize(p)+' / source ratio':p.type==='image'?imageName+' / '+resolution+' / '+ratio:`${p.duration}s / ${p.resolution} / ${ratio}`;$('save').disabled=!owner||!hasInput()||busy;$('clear').disabled=(!file&&!lastFile&&!references.length&&!mediaRefs.count()&&!resultUrl&&!$('prompt').value.trim())||busy;const provider=currentProvider(),ready=provider==='gemini'?config.geminiEnabled:provider==='fal'?config.falEnabled:config.enabled,soulBlocked=tool==='image'&&imageEngine==='soul'&&(!config.soulTrainingEnabled||!soul.ready()||(isReinterpret()&&!soul.reinterpretReady()));$('generate').disabled=!owner||!hasInput()||(tool!=='upscale'&&!isReinterpret()&&imageEngine!=='soulpro'&&!current.prompt&&!(usesReferenceGuidance()&&canUseReferenceGuidance(referenceRoles())))||busy||submissionBlocked()||soulBlocked||(tool==='upscale'&&((!isFalUpscale()&&upscaleQuoteNeedsCheck)||upscaleManualReviewRequired));$('generate').textContent=ready?(tool==='image'?(imageEngine==='gemini'?(imageProcessing==='batch'?'Queue batch':'Generate now'):imageEngine==='soulpro'?'Generate identity edit':imageEngine==='fal'?'Generate controlled pose':isReinterpret()?'Reinterpret with Soul':'Generate'):tool==='upscale'?'Upscale':'Review price & generate'):(provider==='gemini'?'Gemini API not connected':provider==='fal'?'FAL API not connected':'Connect generation provider');$('generation-help').textContent=tool==='image'&&imageEngine==='soulpro'?(soulProIdentity.configured?(soulProModel==='ideogram45'?'One base image only. Nina identity loads automatically. Ideogram Precise keeps edit_precision=high; selected quality estimate: '+({very_low:'$0.008',low:'$0.03',medium:'$0.06',high:'$0.22'}[soulProQuality]||'$0.06')+' per image.':'One base image only. Nina identity loads automatically. Kontext Max uses the base plus up to 3 identity refs because its total image limit is 4. Estimate: $0.08 per image.'):'Set Nina identity once, then every Soul Pro render needs only one base image.'):tool==='image'&&imageEngine==='fal'?'Controlled Pose uses FAL DWPose + FLUX EasyControl. One Pose role and 1–4 Identity roles are required. Preview Pose is a small separate fal.ai compute charge.':tool==='image'&&imageEngine==='soul'?(isReinterpret()?'One base photograph and a separately trained Soul identity. High fidelity may keep the original face; lower it for more change. The live provider quote controls the charge.':'PV Soul Text uses your trained Qwen Image 2512 identity. The live provider quote is authoritative.'):tool==='image'&&imageEngine==='gemini'?(imageProcessing==='batch'?'Batch uses the same Nano Banana Pro model at 50% of standard API price. It runs asynchronously and can take minutes or hours; Google targets completion within 24 hours.':'Normal sends Nano Banana Pro immediately. 1K/2K are estimated at $0.134 per image and 4K at $0.24; Google billing is authoritative.'):(tool==='image'?'Generate starts one paid image at the live provider price, within your daily spending limit. No price-review popup.':tool==='upscale'?'Upscale starts one paid upscaling job. You can check its live price above first; there is no extra price-review popup.':'A live quote appears before any paid video.')+' Inputs over 10 MiB need a working copy; the Lab asks first and keeps the original. Saving history does not generate or charge.';for(const el of document.querySelectorAll('.controls input,.controls select,.controls textarea,.mode-tab,.tool-tab'))el.disabled=busy;updateReferenceGuidance();updateUpscaleModel();updateUpscalePrice();syncImageComposer();}
 function options(id,values,value){$(id).replaceChildren(...values.map(v=>new Option(v==='auto'?'Follow reference':v==='source'?'Source':v.toUpperCase(),v)));$(id).value=value;}
 function setTool(value){
+  if($('soul-pro-identity-dialog').open)$('soul-pro-identity-dialog').close();
   tool=['image','upscale'].includes(value)?value:'video';const image=tool==='image',upscale=tool==='upscale',video=tool==='video';
   for(const name of ['image','video','upscale']){$('tool-'+name).classList.toggle('active',tool===name);$('tool-'+name).setAttribute('aria-pressed',String(tool===name));}$('soul-launch').hidden=!image;
   $('video-modes').hidden=!video;$('duration-control').hidden=!video;$('image-model-control').hidden=!image;$('engine-name').hidden=image;$('image-processing-control').hidden=!image||imageEngine!=='gemini';$('soul-pro-settings').hidden=!image||imageEngine!=='soulpro';$('controlled-pose-settings').hidden=!image||imageEngine!=='fal';$('image-count-control').hidden=!image||imageEngine==='fal'||imageEngine==='soulpro';$('video-utilities').hidden=!video;$('format-control').hidden=video||(image&&(imageEngine==='gemini'||imageEngine==='fal'||imageEngine==='soulpro'));$('soul-controls').hidden=!image||imageEngine!=='soul';
@@ -133,7 +134,7 @@ const archive = document.querySelector('.archive');
 let imageMenuOpen = false;
 const composerPortraits=new Map();
 const composerHomes=new Map();
-let composerLibraryKey='',composerPortraitKey='';
+let composerLibraryKey='',composerPortraitKey='',soulProEditingCurrent=false;
 function composerAssetPhoto(host,id){
   host.replaceChildren();if(!id){host.textContent='+';return;}
   const img=document.createElement('img');img.alt='Saved identity preview';host.append(img);
@@ -178,25 +179,27 @@ function closeComposerLibrary(){
 function renderComposerLibrary(){
   const trained=imageEngine==='soul',identity=imageEngine==='soulpro';
   const entries=trained?[...$('soul-character').options].filter(o=>o.value).map(o=>({id:o.value,name:o.textContent,photo:composerCharacterAsset(o.value)})):packs.filter(p=>p.refs?.length).map(p=>({...p,photo:p.refs[0].id}));
-  if(identity&&soulProIdentity.configured)entries.unshift({id:'current-identity',name:'Nina FOK · saved',photo:soulProIdentity.refs?.[0]?.id});
+  if(identity&&soulProIdentity.configured)entries.unshift({id:'current-identity',name:'Active Nina photos',photo:soulProIdentity.refs?.[0]?.id});
   const key=JSON.stringify([imageEngine,entries.map(p=>[p.id,p.name,p.photo]),$('soul-character').value,$('pack-select').value,busy]);
-  $('composer-library-title').textContent=trained?'Your characters':identity?'Identity library':'Saved reference packs';
-  $('composer-library-note').textContent=trained?'Choose a trained identity.':identity?'Choose a pack, then select up to four identity photos. Your base image stays in place.':'Load a saved set with its reference roles.';
-  $('composer-library-create').textContent=trained?'Train character':identity?'Set identity photos':'Save current references';
-  $('composer-library-manage').hidden=!trained&&!identity;
+  $('composer-library-title').textContent=trained?'Trained LoRAs':identity?'Reference photo packs':'Saved photo packs';
+  $('composer-library-note').textContent=trained?'Choose a trained character for text-to-image generation.':identity?'Photo edit uses reference photos, not a LoRA. Choose a pack, then select up to 4 photos.':'Saved photos with their roles. These packs are not trained LoRAs.';
+  $('composer-library-create').textContent=trained?'Train a LoRA':identity?'Edit active photos':'Save current photos';
+  $('composer-library-manage').hidden=!trained;
+  $('composer-library-manage').textContent='Manage trained LoRAs';
   $('composer-library-delete').hidden=trained;
   $('composer-library-delete').disabled=busy||!$('pack-select').value;
   if(key===composerLibraryKey)return;composerLibraryKey=key;
   const grid=$('composer-library-cards');grid.replaceChildren();
   for(const entry of entries){
     const card=document.createElement('button');card.type='button';card.className='composer-library-card';card.disabled=busy;
-    card.setAttribute('aria-pressed',String(entry.id===(trained?$('soul-character').value:$('pack-select').value)));
+    card.setAttribute('aria-pressed',String(entry.id===(trained?$('soul-character').value:identity?'current-identity':$('pack-select').value)));
     const photo=document.createElement('span');photo.className='composer-library-photo';
     const title=document.createElement('strong');title.textContent=entry.name;
-    card.append(photo,title);grid.append(card);composerAssetPhoto(photo,entry.photo);
+    const kind=document.createElement('small');kind.textContent=trained?'Trained LoRA':entry.id==='current-identity'?soulProIdentity.count+' active photos':entry.refs.length+' reference photos';
+    card.append(photo,title,kind);grid.append(card);composerAssetPhoto(photo,entry.photo);
     card.onclick=()=>{
       if(busy)return;
-      if(entry.id==='current-identity'){closeComposerLibrary();return;}
+      if(entry.id==='current-identity'){$('soul-pro-identity-manage').click();return;}
       if(trained){$('soul-character').value=entry.id;$('soul-character').dispatchEvent(new Event('change',{bubbles:true}));closeComposerLibrary();}
       else if(identity){$('soul-pro-identity-manage').click();$('soul-pro-pack-select').value=entry.id;$('soul-pro-pack-select').dispatchEvent(new Event('change',{bubbles:true}));closeComposerLibrary();}
       else{$('pack-select').value=entry.id;$('pack-load').click();closeComposerLibrary();}
@@ -214,8 +217,8 @@ const imageModelTokens=Object.freeze({seedream:'S',gemini:'N',soulpro:'PV',soul:
 const imageModelDescriptions = Object.freeze({
   seedream:'Image creation and reference-guided edits',
   gemini:'Nano Banana Pro · image and reference editing',
-  soulpro:'Transfer a saved Nina identity into a base image',
-  soul:'Generate with your trained PV Soul character',
+  soulpro:'Edit a base image using Nina reference photos · no LoRA',
+  soul:'Text-to-image with a trained character LoRA',
   fal:'Controlled Pose · FAL FLUX image controls'
 });
 function imageStudioModelTitle(){
@@ -406,7 +409,7 @@ $('image-composer-train').onclick=()=>{
   if(!busy)$('soul-launch-manage').click();
 };
 document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){closeImageModelMenu();toggleImageSettings(false);closeComposerLibrary();}
+  if(e.key==='Escape'){if($('soul-pro-identity-dialog').open){$('soul-pro-identity-dialog').close();return;}closeImageModelMenu();toggleImageSettings(false);closeComposerLibrary();}
 });
 document.addEventListener('click',e=>{
   if(imageMenuOpen&&!e.target.closest('.composer-model-wrap'))closeImageModelMenu();
@@ -1589,10 +1592,22 @@ async function renderSoulProPack(pack){
     }).catch(()=>{img.alt='Preview unavailable';});
   }
   $('soul-pro-pack-count').textContent=soulProPackSelection.length+' / 4 selected';
-  $('soul-pro-identity-dialog-status').textContent='Select the exact Nina angles you want. 1 to 4 images.';
+  $('soul-pro-identity-dialog-status').textContent='';
 }
-$('soul-pro-identity-manage').onclick=()=>{if(busy)return;clearSoulProPackPreview();$('soul-pro-pack-select').value='';$('soul-pro-identity-dialog-status').textContent='';$('soul-pro-identity-files').value='';$('soul-pro-identity-dialog').showModal();};
-$('soul-pro-pack-select').onchange=()=>action(async()=>{const pack=packs.find(p=>p.id===$('soul-pro-pack-select').value);await renderSoulProPack(pack);});
+$('soul-pro-identity-manage').onclick=()=>{
+  if(busy)return;closeComposerLibrary();toggleImageSettings(false);clearSoulProPackPreview();
+  $('soul-pro-pack-select').value='';$('soul-pro-identity-dialog-status').textContent='';$('soul-pro-identity-files').value='';
+  soulProEditingCurrent=soulProIdentity.configured;
+  imageComposer.append($('soul-pro-identity-dialog'));
+  $('soul-pro-identity-dialog').show();
+  if(soulProEditingCurrent)void renderSoulProPack({refs:soulProIdentity.refs});
+};
+$('soul-pro-identity-files').onchange=()=>{
+  soulProEditingCurrent=false;clearSoulProPackPreview();$('soul-pro-pack-select').value='';
+  const files=[...$('soul-pro-identity-files').files];
+  $('soul-pro-identity-dialog-status').textContent=files.length>4?'Choose at most 4 photos.':files.length+' new reference photos selected.';
+};
+$('soul-pro-pack-select').onchange=()=>action(async()=>{soulProEditingCurrent=false;$('soul-pro-identity-files').value='';const pack=packs.find(p=>p.id===$('soul-pro-pack-select').value);await renderSoulProPack(pack);});
 $('soul-pro-save-identity').onclick=()=>action(async()=>{
   const status=$('soul-pro-identity-dialog-status'),files=[...$('soul-pro-identity-files').files],pack=packs.find(p=>p.id===$('soul-pro-pack-select').value);
   if(files.length&&soulProPackSelection.length){status.textContent='Use one source: uploaded images OR selected pack images.';return;}
@@ -1603,10 +1618,10 @@ $('soul-pro-save-identity').onclick=()=>action(async()=>{
       status.textContent='Uploading '+files.length+' Nina image'+(files.length===1?'':'s')+'…';
       for(const file of files){await inspectImage(file).then(item=>{release(item.url);release(item.thumbUrl);});ids.push(await uploadAsset(file));}
       sourceLabel=files.length+' uploaded image'+(files.length===1?'':'s');
-    }else if(pack){
+    }else if(pack||soulProEditingCurrent){
       ids=[...soulProPackSelection];
       if(ids.length<1||ids.length>4){status.textContent='Select 1 to 4 images from this pack.';return;}
-      sourceLabel=ids.length+' selected image'+(ids.length===1?'':'s')+' from '+pack.name;
+      sourceLabel=ids.length+' selected image'+(ids.length===1?'':'s')+' from '+(pack?.name||'active Nina photos');
     }else{
       status.textContent='Upload 1–4 Nina images or choose images from a saved pack.';
       return;
@@ -1620,7 +1635,13 @@ $('soul-pro-save-identity').onclick=()=>action(async()=>{
     throw error;
   }
 });
-$('soul-pro-identity-dialog').addEventListener('close',clearSoulProPackPreview);
+$('soul-pro-identity-dialog').addEventListener('close',()=>{
+  clearSoulProPackPreview();
+  if(owner&&tool==='image'&&imageEngine==='soulpro'){
+    $('composer-library').hidden=false;$('composer-character').setAttribute('aria-expanded','true');
+    composerLibraryKey='';renderComposerLibrary();$('composer-library-create').focus();
+  }
+});
 $('soul-pro-clear-identity').onclick=()=>action(async()=>{
   if(!soulProIdentity.configured)return;if(!confirm('Clear the saved Nina identity? Existing generation history remains.'))return;
   soulProIdentity=await api('/api/soul-pro/identity',{method:'DELETE'});$('soul-pro-identity-dialog').close();update();notify('Saved Nina identity cleared.');
@@ -1809,4 +1830,5 @@ function lock(){epoch++;for(const p of composerPortraits.values())p.then(url=>{i
 async function sync(){if(syncing)return;syncing=true;try{if(!clerk.isSignedIn){lock();$('auth-status').textContent='Sign in with your Parallel Vision owner account.';$('signin').disabled=false;return;}if(owner&&userId===clerk.user.id)return;const data=await api('/api/session');owner=true;userId=clerk.user.id;applyConfig(data.config);$('identity').textContent='Owner workspace';$('gate').hidden=true;$('app').hidden=false;$('connection').hidden=false;$('logout').hidden=false;await Promise.all([loadHistory(),loadPacks(),soul.load(),loadSoulProIdentity()]);syncVideoStudioMode();}catch(e){lock();$('auth-status').textContent=e.message;$('signin').disabled=false;$('logout').hidden=!clerk?.isSignedIn;}finally{syncing=false;finishLabBoot();}}
 $('auth-retry').onclick=()=>location.reload();$('signin').onclick=()=>clerk?.openSignIn();$('logout').onclick=async()=>{lock();await clerk?.signOut();$('auth-status').textContent='Signed out. Your archive remains private.';};
 try{const {Clerk}=await import('https://esm.sh/@clerk/clerk-js@6?bundle');await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='https://clerk.parallelvisionlabel.com/npm/@clerk/ui@1/dist/ui.browser.js';s.onload=resolve;s.onerror=reject;document.head.append(s);});clerk=new Clerk('pk_live_Y2xlcmsucGFyYWxsZWx2aXNpb25sYWJlbC5jb20k');await clerk.load({ui:{ClerkUI:window.__internal_ClerkUICtor},signInFallbackRedirectUrl:location.href,signUpFallbackRedirectUrl:location.href});clerk.addListener(()=>void sync());await sync();}catch{$('gate').hidden=false;$('auth-retry').hidden=false;$('signin').disabled=true;$('auth-status').textContent='Sign-in could not load. Check your connection and reload the page.';finishLabBoot();}
+
 
