@@ -1,3 +1,4 @@
+async function imageAdvanced(page){await page.click('#tool-image');const open=await page.locator('#app').evaluate(el=>el.classList.contains('image-settings-open'));if(!open)await page.click('#image-composer-more');}
 // Mock-only browser verification. No real credentials, private media or paid generations.
 import assert from 'node:assert/strict';
 import http from 'node:http';
@@ -53,7 +54,7 @@ async function workspace({failure='',width=1440,initial=[],quoteDelay=0}={}){
 }
 const count=(x,path,method='POST')=>x.requests.filter(r=>r.path===path&&r.method===method).length;
 const ready=page=>page.waitForFunction(()=>!document.querySelector('#resolution').disabled);
-async function imageForm(x){await x.page.click('#tool-image');await x.page.fill('#prompt',settings.prompt);await x.page.selectOption('#resolution','2k');await x.page.selectOption('#ratio','16:9');await x.page.selectOption('#output-format','png');}
+async function imageForm(x){await imageAdvanced(x.page);await x.page.fill('#prompt',settings.prompt);await x.page.selectOption('#resolution','2k');await x.page.selectOption('#ratio','16:9');await x.page.selectOption('#output-format','png');}
 
 const {execFileSync}=await import('node:child_process');
 mkdirSync('test-results',{recursive:true});
