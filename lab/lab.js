@@ -183,6 +183,7 @@ function syncComposerOptions(){
   for(const id of ['format-control','image-processing-control','soul-controls','soul-pro-settings','controlled-pose-settings','reference-list','reference-guidance','save','clear'])composerMove(id,image?target:null);
   if(!image){$('reference-list').hidden=false;return;}
   target.dataset.engine=imageEngine;
+  target.dataset.compact=String(imageEngine==='soul'&&!isReinterpret());
   $('reference-list').hidden=['soul','soulpro'].includes(imageEngine);
   for(const el of target.querySelectorAll('input,select,textarea'))el.disabled=busy;
   const identity=imageEngine==='soulpro',trained=imageEngine==='soul';
@@ -330,6 +331,10 @@ function syncImageComposer(){
     $(id).disabled=busy;
   $('image-composer-model').disabled=busy;
   $('image-composer-add').disabled=busy;
+  const strengthOnly=imageEngine==='soul'&&!isReinterpret();
+  $('image-composer-more').textContent=strengthOnly?'Identity strength '+Number($('soul-strength').value).toFixed(2):'Options';
+  $('image-composer-more').title=strengthOnly?'Adjust trained character identity strength':'Image options';
+  $('composer-options').querySelector('.composer-panel-head strong').textContent=strengthOnly?'Identity strength':'Image options';
   $('image-composer-more').disabled=busy;
   $('image-composer-more').hidden=imageEngine==='seedream';
   if(imageEngine==='seedream')toggleImageSettings(false);

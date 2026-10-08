@@ -534,3 +534,8 @@ dialog.image-lightbox::backdrop {background:rgba(4,5,7,.86);backdrop-filter:blur
 #composer-options-fields .soul-strength{box-sizing:border-box;width:auto;min-width:0;max-width:100%}
 #composer-options-fields input[type=range]{box-sizing:border-box;display:block;width:100%;min-width:0;max-width:100%;margin-inline:0}
 html:has(#image-lightbox[open]),body:has(#image-lightbox[open]){overflow:hidden}
+
+/* Soul text: expose its single useful adjustment directly from the bar. */
+#composer-options-fields[data-compact="true"]>:not(#soul-controls),
+#composer-options-fields[data-compact="true"] #soul-controls>:not(.soul-strength){display:none!important}
+#composer-options-fields[data-compact="true"] #soul-controls>.soul-strength{flex:1 1 100%;margin:0}
