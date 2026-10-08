@@ -81,6 +81,9 @@ try{
   assert.equal(await x.page.locator('#lab-boot').isVisible(),false,'Loading screen must disappear after workspace becomes usable');
   assert.equal(await x.page.locator('#gate').isVisible(),false,'Login gate must never flash inside signed-in workspace');
   assert.notEqual(d.accent,'rgb(141, 99, 255)','No default purple selection');
+  assert.ok(await x.page.locator('#empty-title').innerText().then(t=>/next scene/i.test(t)),'Video opens with an inviting scene direction');
+  assert.ok(await x.page.locator('#canvas-secondary').isVisible(),'Video offers an alternate entry into Image');
+  assert.ok(await x.page.locator('.canvas').evaluate(e=>getComputedStyle(e).backgroundImage.includes('radial-gradient')),'Preview has atmospheric lighting');
   assert.ok(d.documentWidth<=d.viewport.width,'No horizontal overflow');
   await x.page.screenshot({path:'test-results/lab-workspace-desktop.png',fullPage:false});
   const fileChooser=x.page.waitForEvent('filechooser');
@@ -93,7 +96,16 @@ try{
   assert.notEqual(await x.page.locator('#image-engine').evaluate(e=>getComputedStyle(e).borderTopColor),'rgba(141, 99, 255, 0.34)','Image model select must not retain purple border');
   const packTops=await x.page.evaluate(()=>['pack-load','pack-save','pack-delete'].map(id=>Math.round(document.getElementById(id).getBoundingClientRect().top)));
   assert.equal(new Set(packTops).size,1,'Reference pack actions stay on one aligned row');
-  assert.match((await x.page.locator('#canvas-import').innerText()).replace(/\s+/g,' '),/Add references\s+↗/);
+  assert.match((await x.page.locator('#canvas-import').innerText()).replace(/\s+/g,' '),/Write an image prompt\s+↗/);
+  assert.match(await x.page.locator('#empty-title').innerText(),/idea a form/i);
+  await x.page.locator('#canvas-import').click();
+  assert.equal(await x.page.evaluate(()=>document.activeElement.id),'prompt','Primary Image action focuses prompt');
+  const secondaryChooser=x.page.waitForEvent('filechooser');
+  await x.page.locator('#canvas-secondary').click();
+  assert.ok(await secondaryChooser,'Secondary Image action opens references');
+  await x.page.fill('#prompt','A sculptural, atmospheric photographic still.');
+  assert.equal(await x.page.locator('#generate').isDisabled(),false,'Image Generate enables after the prompt is entered');
+  assert.match(await x.page.locator('#generate').evaluate(e=>getComputedStyle(e).backgroundImage),/linear-gradient/,'Generate has the bronze gradient when enabled');
   const positions=await x.page.evaluate(()=>({
     soul:document.querySelector('#soul-launch').getBoundingClientRect().top,
     editor:document.querySelector('.workspace').getBoundingClientRect().bottom,
@@ -101,6 +113,13 @@ try{
   }));
   assert.ok(positions.soul>=positions.editor,'Soul promotional section does not block editor');
   await x.page.screenshot({path:'test-results/lab-workspace-image.png',fullPage:false});
+  await x.page.click('#tool-video');
+  await x.page.click('#mode-reference');
+  assert.match(await x.page.locator('#empty-title').innerText(),/references/i);
+  assert.match((await x.page.locator('#canvas-import').innerText()).replace(/\s+/g,' '),/Add references/);
+  await x.page.locator('#canvas-secondary').click();
+  assert.equal(await x.page.evaluate(()=>document.activeElement.id),'prompt','Reference secondary action focuses motion direction');
+  await x.page.screenshot({path:'test-results/lab-workspace-reference.png',fullPage:false});
   assert.deepEqual(x.errors,[]);
   await x.context.close();
   console.log('PASS desktop workspace, canvas import, image tab and no hero');
@@ -143,6 +162,7 @@ try{
   assert.ok(d.documentWidth<=d.viewport.width,'Mobile must have no horizontal overflow');
   assert.ok(d.workspace.top<135,'Mobile editor appears immediately after tool navigation');
   assert.ok(d.stage.height<=620,'Preview remains bounded on mobile');
+  assert.ok(await x.page.locator('.empty-actions').evaluate(el=>el.getBoundingClientRect().width<=document.querySelector('.canvas').getBoundingClientRect().width),'Empty actions must fit the mobile preview');
   await x.page.locator('#generate').scrollIntoViewIfNeeded();
   assert.equal(await x.page.locator('#generate').isVisible(),true);
   await x.page.screenshot({path:'test-results/lab-workspace-mobile.png',fullPage:true});
