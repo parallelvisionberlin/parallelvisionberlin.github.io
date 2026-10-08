@@ -90,7 +90,7 @@ function validateUpscaleQuote(q,selected){
 }
 function settings(){if(tool==='upscale')return isFalUpscale()?{type:'image',mode:'upscale',upscaleEngine,scale:Number($('upscale-scale').value),topazModel:upscaleEngine==='topaz-precision'?$('upscale-topaz-model').value:'Wonder 3.5',prompt:'',resolution:$('upscale-scale').value+'x',aspectRatio:'source',outputFormat:$('output-format').value,referenceRoles:[]}:{type:'image',mode:'upscale',upscaleEngine:'spicy',prompt:'',resolution:$('resolution').value,aspectRatio:'auto',outputFormat:$('output-format').value,referenceRoles:[]};if(tool==='image'&&imageEngine==='soulpro')return {type:'image',provider:'fal',engine:'soulpro',mode:'identity-edit',soulProModel,soulProQuality,prompt:$('prompt').value.trim(),sourceWidth,sourceHeight,seed:$('soul-pro-seed').value,resolution:'source',aspectRatio:'source',outputFormat:'png',referenceRoles:[]};if(tool==='image'&&imageEngine==='fal')return {type:'image',provider:'fal',engine:'fal',mode:'controlled-pose',prompt:$('prompt').value.trim(),resolution:'1k',aspectRatio:$('ratio').value,outputFormat:'png',poseStrength:Number($('pose-strength').value),identityStrength:Number($('identity-strength').value),seed:$('controlled-pose-seed').value,referenceRoles:referenceRoles()};if(tool==='image'){const base={type:'image',engine:imageEngine,processing:imageProcessing,mode:'image',prompt:$('prompt').value.trim(),resolution:imageEngine==='soul'?'native':$('resolution').value,aspectRatio:$('ratio').value,outputFormat:$('output-format').value,referenceRoles:imageEngine==='soul'?[]:referenceRoles()};return imageEngine==='soul'?{...base,characterId:soul.selectedId(),identityStrength:soul.strength(),...(isReinterpret()?{...soul.reinterpretSettings(),resolution:$('resolution').value,aspectRatio:'source'}:{})}:base;}return {type:'video',engine,mode,referenceVideos:mode==='reference'?mediaRefs.labels('video'):[],referenceAudio:mode==='reference'?mediaRefs.labels('audio'):[],prompt:$('prompt').value.trim(),duration:Number($('duration').value),resolution:$('resolution').value,aspectRatio:$('ratio').value,seed:$('seed').value,audio:$('audio').checked,referenceRoles:referenceRoles(),referencePixels:engine==='h3maxfal'?references.map(r=>r.width*r.height):[]};}
 function hasInput(){if(tool==='upscale')return !!file;if(tool==='image'&&imageEngine==='soulpro')return !!file&&soulProIdentity.configured;if(tool==='image'&&imageEngine==='fal'){const roles=referenceRoles(),poses=roles.filter(r=>r.role==='pose').length,identities=roles.filter(r=>r.role==='identity').length;return !!$('prompt').value.trim()&&references.length>=2&&references.length<=5&&poses===1&&identities>=1&&identities<=4&&poses+identities===references.length;}if(tool==='image'&&imageEngine==='soul')return isReinterpret()?soul.reinterpretReady()&&!!file:soul.ready()&&!!$('prompt').value.trim();if(usesReferenceGuidance())return !imageGuidance().error&&(!!$('prompt').value.trim()||canUseReferenceGuidance(referenceRoles()));return tool==='image'||mode==='text'?!!$('prompt').value.trim():mode==='start'?!!file:references.length>0||(engine==='seedance'&&mediaRefs.count()>0);}
-function update(){if($('soul-base-preview')){$('soul-base-preview').hidden=!sourceUrl;if(sourceUrl)$('soul-base-preview').src=sourceUrl;else $('soul-base-preview').removeAttribute('src');$('soul-base-name').textContent=file?.name||'';}const current=settings(),p=resultSettings||current,ratio=p.aspectRatio==='auto'?(p.mode==='reference'?'adaptive':'source ratio'):p.aspectRatio,imageName=p.mode==='upscale'?'Upscale':p.engine==='gemini'?'Nano Banana Pro':p.engine==='soulpro'?'PV Soul Pro':p.engine==='soul'?(p.mode==='reinterpret'?'PV Soul / Reinterpret':'PV Soul'):p.engine==='fal'?'Controlled Pose':'Image',resolution=p.resolution==='native'?'native':String(p.resolution||'').toUpperCase();$('settings-summary').textContent=p.mode==='upscale'?upscaleName(p)+' / '+upscaleSize(p)+' / source ratio':p.type==='image'?imageName+' / '+resolution+' / '+ratio:`${p.duration}s / ${p.resolution} / ${ratio}`;$('save').disabled=!owner||!hasInput()||busy;$('clear').disabled=(!file&&!lastFile&&!references.length&&!mediaRefs.count()&&!resultUrl&&!$('prompt').value.trim())||busy;const provider=currentProvider(),ready=provider==='gemini'?config.geminiEnabled:provider==='fal'?config.falEnabled:config.enabled,soulBlocked=tool==='image'&&imageEngine==='soul'&&(!config.soulTrainingEnabled||!soul.ready()||(isReinterpret()&&!soul.reinterpretReady()));$('generate').disabled=!owner||!hasInput()||(tool!=='upscale'&&!isReinterpret()&&imageEngine!=='soulpro'&&!current.prompt&&!(usesReferenceGuidance()&&canUseReferenceGuidance(referenceRoles())))||busy||submissionBlocked()||soulBlocked||(tool==='upscale'&&((!isFalUpscale()&&upscaleQuoteNeedsCheck)||upscaleManualReviewRequired));$('generate').textContent=ready?(tool==='image'?(imageEngine==='gemini'?(imageProcessing==='batch'?'Queue batch':'Generate now'):imageEngine==='soulpro'?'Generate identity edit':imageEngine==='fal'?'Generate controlled pose':isReinterpret()?'Reinterpret with Soul':'Generate'):tool==='upscale'?'Upscale':'Review price & generate'):(provider==='gemini'?'Gemini API not connected':provider==='fal'?'FAL API not connected':'Connect generation provider');$('generation-help').textContent=tool==='image'&&imageEngine==='soulpro'?(soulProIdentity.configured?(soulProModel==='ideogram45'?'One base image only. Nina identity loads automatically. Ideogram Precise keeps edit_precision=high; selected quality estimate: '+({very_low:'$0.008',low:'$0.03',medium:'$0.06',high:'$0.22'}[soulProQuality]||'$0.06')+' per image.':'One base image only. Nina identity loads automatically. Kontext Max uses the base plus up to 3 identity refs because its total image limit is 4. Estimate: $0.08 per image.'):'Set Nina identity once, then every Soul Pro render needs only one base image.'):tool==='image'&&imageEngine==='fal'?'Controlled Pose uses FAL DWPose + FLUX EasyControl. One Pose role and 1–4 Identity roles are required. Preview Pose is a small separate fal.ai compute charge.':tool==='image'&&imageEngine==='soul'?(isReinterpret()?'One base photograph and a separately trained Soul identity. High fidelity may keep the original face; lower it for more change. The live provider quote controls the charge.':'PV Soul Text uses your trained Qwen Image 2512 identity. The live provider quote is authoritative.'):tool==='image'&&imageEngine==='gemini'?(imageProcessing==='batch'?'Batch uses the same Nano Banana Pro model at 50% of standard API price. It runs asynchronously and can take minutes or hours; Google targets completion within 24 hours.':'Normal sends Nano Banana Pro immediately. 1K/2K are estimated at $0.134 per image and 4K at $0.24; Google billing is authoritative.'):(tool==='image'?'Generate starts one paid image at the live provider price, within your daily spending limit. No price-review popup.':tool==='upscale'?'Upscale starts one paid upscaling job. You can check its live price above first; there is no extra price-review popup.':'A live quote appears before any paid video.')+' Inputs over 10 MiB need a working copy; the Lab asks first and keeps the original. Saving history does not generate or charge.';for(const el of document.querySelectorAll('.controls input,.controls select,.controls textarea,.mode-tab,.tool-tab'))el.disabled=busy;updateReferenceGuidance();updateUpscaleModel();updateUpscalePrice();}
+function update(){if($('soul-base-preview')){$('soul-base-preview').hidden=!sourceUrl;if(sourceUrl)$('soul-base-preview').src=sourceUrl;else $('soul-base-preview').removeAttribute('src');$('soul-base-name').textContent=file?.name||'';}const current=settings(),p=resultSettings||current,ratio=p.aspectRatio==='auto'?(p.mode==='reference'?'adaptive':'source ratio'):p.aspectRatio,imageName=p.mode==='upscale'?'Upscale':p.engine==='gemini'?'Nano Banana Pro':p.engine==='soulpro'?'PV Soul Pro':p.engine==='soul'?(p.mode==='reinterpret'?'PV Soul / Reinterpret':'PV Soul'):p.engine==='fal'?'Controlled Pose':'Image',resolution=p.resolution==='native'?'native':String(p.resolution||'').toUpperCase();$('settings-summary').textContent=p.mode==='upscale'?upscaleName(p)+' / '+upscaleSize(p)+' / source ratio':p.type==='image'?imageName+' / '+resolution+' / '+ratio:`${p.duration}s / ${p.resolution} / ${ratio}`;$('save').disabled=!owner||!hasInput()||busy;$('clear').disabled=(!file&&!lastFile&&!references.length&&!mediaRefs.count()&&!resultUrl&&!$('prompt').value.trim())||busy;const provider=currentProvider(),ready=provider==='gemini'?config.geminiEnabled:provider==='fal'?config.falEnabled:config.enabled,soulBlocked=tool==='image'&&imageEngine==='soul'&&(!config.soulTrainingEnabled||!soul.ready()||(isReinterpret()&&!soul.reinterpretReady()));$('generate').disabled=!owner||!hasInput()||(tool!=='upscale'&&!isReinterpret()&&imageEngine!=='soulpro'&&!current.prompt&&!(usesReferenceGuidance()&&canUseReferenceGuidance(referenceRoles())))||busy||submissionBlocked()||soulBlocked||(tool==='upscale'&&((!isFalUpscale()&&upscaleQuoteNeedsCheck)||upscaleManualReviewRequired));$('generate').textContent=ready?(tool==='image'?(imageEngine==='gemini'?(imageProcessing==='batch'?'Queue batch':'Generate now'):imageEngine==='soulpro'?'Generate identity edit':imageEngine==='fal'?'Generate controlled pose':isReinterpret()?'Reinterpret with Soul':'Generate'):tool==='upscale'?'Upscale':'Review price & generate'):(provider==='gemini'?'Gemini API not connected':provider==='fal'?'FAL API not connected':'Connect generation provider');$('generation-help').textContent=tool==='image'&&imageEngine==='soulpro'?(soulProIdentity.configured?(soulProModel==='ideogram45'?'One base image only. Nina identity loads automatically. Ideogram Precise keeps edit_precision=high; selected quality estimate: '+({very_low:'$0.008',low:'$0.03',medium:'$0.06',high:'$0.22'}[soulProQuality]||'$0.06')+' per image.':'One base image only. Nina identity loads automatically. Kontext Max uses the base plus up to 3 identity refs because its total image limit is 4. Estimate: $0.08 per image.'):'Set Nina identity once, then every Soul Pro render needs only one base image.'):tool==='image'&&imageEngine==='fal'?'Controlled Pose uses FAL DWPose + FLUX EasyControl. One Pose role and 1–4 Identity roles are required. Preview Pose is a small separate fal.ai compute charge.':tool==='image'&&imageEngine==='soul'?(isReinterpret()?'One base photograph and a separately trained Soul identity. High fidelity may keep the original face; lower it for more change. The live provider quote controls the charge.':'PV Soul Text uses your trained Qwen Image 2512 identity. The live provider quote is authoritative.'):tool==='image'&&imageEngine==='gemini'?(imageProcessing==='batch'?'Batch uses the same Nano Banana Pro model at 50% of standard API price. It runs asynchronously and can take minutes or hours; Google targets completion within 24 hours.':'Normal sends Nano Banana Pro immediately. 1K/2K are estimated at $0.134 per image and 4K at $0.24; Google billing is authoritative.'):(tool==='image'?'Generate starts one paid image at the live provider price, within your daily spending limit. No price-review popup.':tool==='upscale'?'Upscale starts one paid upscaling job. You can check its live price above first; there is no extra price-review popup.':'A live quote appears before any paid video.')+' Inputs over 10 MiB need a working copy; the Lab asks first and keeps the original. Saving history does not generate or charge.';for(const el of document.querySelectorAll('.controls input,.controls select,.controls textarea,.mode-tab,.tool-tab'))el.disabled=busy;updateReferenceGuidance();updateUpscaleModel();updateUpscalePrice();syncImageComposer();}
 function options(id,values,value){$(id).replaceChildren(...values.map(v=>new Option(v==='auto'?'Follow reference':v==='source'?'Source':v.toUpperCase(),v)));$(id).value=value;}
 function setTool(value){
   tool=['image','upscale'].includes(value)?value:'video';const image=tool==='image',upscale=tool==='upscale',video=tool==='video';
@@ -121,8 +121,224 @@ function setTool(value){
     const drop=$('reference-drop');drop.querySelector('span').textContent='Add identity, wardrobe or set references';drop.querySelector('small').textContent='Up to 10 images';
     $('reference-help').textContent='Reference numbers, filenames, roles and notes are added to your generation prompt. They guide the model; they do not guarantee identity matching.';
   }
-  configureVideoControls();renderReferences();resetPreview();refreshCanvasImport();update();
+  configureVideoControls();renderReferences();resetPreview();refreshCanvasImport();update();syncImageStudioMode();
 }
+
+/* Floating Image Studio: one gallery, one real backend, no duplicate submissions.
+   The composer mirrors the existing hidden advanced controls, which remain
+   authoritative for pricing, authentication, model limits and provider calls. */
+const imageStudio = $('image-studio');
+const imageComposer = $('image-composer');
+const archive = document.querySelector('.archive');
+let imageMenuOpen = false;
+const imageModelDescriptions = Object.freeze({
+  seedream:'Image creation and reference-guided edits',
+  gemini:'Nano Banana Pro · image and reference editing',
+  soulpro:'Transfer a saved Nina identity into a base image',
+  soul:'Generate with your trained PV Soul character',
+  fal:'Controlled Pose · FAL FLUX image controls'
+});
+function imageStudioModelTitle(){
+  const select=$('image-engine');
+  return select.options[select.selectedIndex]?.textContent || 'Image model';
+}
+function synchronizeComposerSelect(composerId,realId){
+  const mirror=$(composerId),real=$(realId);
+  if(!mirror || !real)return;
+  const current=[...real.options].map(option=>[option.value,option.textContent]);
+  const previous=[...mirror.options].map(option=>[option.value,option.textContent]);
+  if(JSON.stringify(current)!==JSON.stringify(previous))
+    mirror.replaceChildren(...current.map(([value,label])=>new Option(label,value)));
+  if(mirror.value!==real.value)mirror.value=real.value;
+}
+function syncImageGalleryEmpty(){
+  const imageCards=$('history').querySelectorAll('.card[data-kind="image"]').length;
+  $('image-gallery-empty').hidden=imageCards>0;
+}
+function syncImageReferences(){
+  const tray=$('image-composer-references');
+  if(!tray)return;
+  tray.replaceChildren();
+  if(tool!=='image'){tray.hidden=true;return;}
+  const items=[...references];
+  if(imageEngine==='soulpro'&&sourceUrl)items.unshift({thumbUrl:sourceUrl,file:{name:'Base image'},isBase:true});
+  for(let i=0;i<items.length;i++){
+    const ref=items[i],tile=document.createElement('div');
+    tile.className='composer-reference-tile';tile.title=ref.file?.name||'Reference image';
+    const img=document.createElement('img');
+    img.src=ref.thumbUrl||ref.url;img.alt=(ref.isBase?'Base image':'Image reference '+(i+1));
+    img.loading='lazy';img.decoding='async';tile.append(img);
+    if(!ref.isBase){
+      const remove=document.createElement('button');
+      remove.type='button';remove.className='composer-reference-remove';remove.textContent='×';
+      remove.setAttribute('aria-label','Remove reference '+(i+1));
+      remove.disabled=busy;
+      const target=ref;
+      remove.onclick=()=>{
+        if(busy)return;
+        const idx=references.indexOf(target);if(idx<0)return;
+        closeInputPreview();releaseReference(target);references.splice(idx,1);
+        if(imageEngine==='fal')poseMapSourceId=null;
+        renderReferences();refreshInputPreview();update();
+      };
+      tile.append(remove);
+    }
+    tray.append(tile);
+  }
+  const remaining=Math.max(0,referenceLimit()-references.length);
+  if(items.length&&remaining>0){
+    const more=document.createElement('button');more.type='button';
+    more.className='composer-add-tile';more.textContent='+';
+    more.title='Add more references';more.setAttribute('aria-label','Add more image references');
+    more.onclick=()=>$('image-composer-add').click();tray.append(more);
+  }
+  tray.hidden=!items.length;
+}
+function syncImageComposer(){
+  if(!imageStudio)return;
+  const image=tool==='image';
+  imageStudio.hidden=!image;
+  if(!image)return;
+  const textbox=$('image-composer-prompt');
+  if(document.activeElement!==textbox && textbox.value!==$('prompt').value)
+    textbox.value=$('prompt').value;
+  textbox.placeholder=$('prompt').placeholder || 'Describe the scene you imagine...';
+  textbox.disabled=busy || $('prompt').disabled;
+  $('image-composer-model-label').textContent=imageStudioModelTitle();
+  for(const [copy,real] of [
+    ['image-composer-ratio','ratio'],['image-composer-resolution','resolution'],
+    ['image-composer-count','image-count']
+  ])synchronizeComposerSelect(copy,real);
+  $('image-composer-count-wrap').hidden=$('image-count-control').hidden;
+  $('image-composer-resolution').parentElement.hidden=$('resolution-control').hidden;
+  $('image-composer-ratio').parentElement.hidden=$('ratio-control').hidden;
+  for(const id of ['image-composer-ratio','image-composer-resolution','image-composer-count'])
+    $(id).disabled=busy;
+  $('image-composer-model').disabled=busy;
+  $('image-composer-add').disabled=busy;
+  $('image-composer-more').disabled=busy;
+  const generate=$('image-composer-generate');
+  generate.disabled=$('generate').disabled;
+  generate.textContent=$('generate').textContent;
+  syncImageReferences();
+  syncImageGalleryEmpty();
+}
+function closeImageModelMenu(){
+  imageMenuOpen=false;$('image-composer-model-menu').hidden=true;
+  $('image-composer-model').setAttribute('aria-expanded','false');
+}
+function populateImageModelMenu(query=''){
+  const items=$('image-composer-model-items'),value=query.trim().toLowerCase();
+  items.replaceChildren();
+  for(const option of $('image-engine').options){
+    const name=option.textContent,detail=imageModelDescriptions[option.value]||'Image creation';
+    if(value&&!(name+' '+detail).toLowerCase().includes(value))continue;
+    const row=document.createElement('button');row.type='button';
+    row.className='composer-model-option';row.dataset.value=option.value;
+    row.setAttribute('role','option');row.setAttribute('aria-selected',String(option.value===imageEngine));
+    const icon=document.createElement('span');icon.className='composer-model-icon';icon.textContent='◈';
+    const info=document.createElement('span');info.className='composer-model-info';
+    const title=document.createElement('strong');title.textContent=name;
+    const caption=document.createElement('small');caption.textContent=detail;
+    info.append(title,caption);
+    const active=document.createElement('span');active.className='composer-model-check';
+    active.textContent=option.value===imageEngine?'✓':'';
+    row.append(icon,info,active);
+    row.onclick=()=>{
+      if(busy)return;
+      $('image-engine').value=option.value;
+      $('image-engine').dispatchEvent(new Event('change',{bubbles:true}));
+      closeImageModelMenu();
+    };
+    items.append(row);
+  }
+  if(!items.children.length){
+    const empty=document.createElement('p');empty.className='composer-model-no-match';
+    empty.textContent='No matching models';items.append(empty);
+  }
+}
+function toggleImageSettings(force){
+  const open=typeof force==='boolean'?force:!$('app').classList.contains('image-settings-open');
+  $('app').classList.toggle('image-settings-open',open);
+  $('image-settings-scrim').hidden=!open;
+  $('image-composer-more').setAttribute('aria-expanded',String(open));
+  if(open)closeImageModelMenu();
+}
+function syncImageStudioMode(){
+  const isImage=tool==='image';
+  $('app').classList.toggle('image-studio-active',isImage);
+  imageStudio.hidden=!isImage;
+  if(isImage){
+    $('image-gallery-host').append(archive);
+  }else{
+    $('archive-rest-anchor').after(archive);
+    closeImageModelMenu();toggleImageSettings(false);
+  }
+  syncImageComposer();
+}
+$('image-composer-prompt').addEventListener('input',()=>{
+  if(busy)return;
+  $('prompt').value=$('image-composer-prompt').value;
+  $('prompt').dispatchEvent(new Event('input',{bubbles:true}));
+});
+for(const [copy,real] of [
+  ['image-composer-ratio','ratio'],['image-composer-resolution','resolution'],
+  ['image-composer-count','image-count']
+]){
+  $(copy).addEventListener('change',()=>{
+    if(busy)return;
+    $(real).value=$(copy).value;
+    $(real).dispatchEvent(new Event('input',{bubbles:true}));
+  });
+}
+$('image-composer-generate').onclick=()=>{if(!busy&&tool==='image')$('generate').click();};
+$('image-composer-add').onclick=()=>{
+  if(busy)return;
+  const input=imageEngine==='soulpro'?$('soul-base-image'):$('reference-images');
+  if(input&&!input.disabled)input.click();
+};
+$('image-composer-more').onclick=()=>toggleImageSettings();
+$('image-settings-scrim').onclick=()=>toggleImageSettings(false);
+$('image-composer-model').onclick=()=>{
+  if(busy)return;
+  imageMenuOpen=!imageMenuOpen;
+  $('image-composer-model-menu').hidden=!imageMenuOpen;
+  $('image-composer-model').setAttribute('aria-expanded',String(imageMenuOpen));
+  if(imageMenuOpen){$('image-composer-model-search').value='';populateImageModelMenu();$('image-composer-model-search').focus();}
+};
+$('image-composer-model-search').oninput=()=>populateImageModelMenu($('image-composer-model-search').value);
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){closeImageModelMenu();toggleImageSettings(false);}
+});
+document.addEventListener('click',e=>{
+  if(imageMenuOpen&&!e.target.closest('.composer-model-wrap'))closeImageModelMenu();
+});
+imageComposer.addEventListener('dragover',e=>{
+  if(e.dataTransfer?.types.includes('Files')){e.preventDefault();imageComposer.classList.add('is-dragging');}
+});
+imageComposer.addEventListener('dragleave',e=>{
+  if(!imageComposer.contains(e.relatedTarget))imageComposer.classList.remove('is-dragging');
+});
+imageComposer.addEventListener('drop',e=>{
+  e.preventDefault();imageComposer.classList.remove('is-dragging');
+  if(!owner||busy||tool!=='image')return;
+  const list=[...(e.dataTransfer?.files||[])].filter(f=>f.type.startsWith('image/'));
+  if(!list.length)return;
+  void action(async()=>{
+    if(imageEngine==='soulpro'){
+      if(list.length!==1)throw new Error('Choose exactly one base image for Soul Pro.');
+      await setImage(list[0]);
+    }else await addReferences(list);
+    syncImageComposer();
+  });
+});
+$('image-composer-prompt').addEventListener('paste',e=>{
+  const files=[...(e.clipboardData?.files||[])].filter(f=>f.type.startsWith('image/'));
+  if(!files.length||busy||!owner)return;
+  e.preventDefault();
+  void action(async()=>{if(imageEngine==='soulpro')await setImage(files[0]);else await addReferences(files);});
+});
+
 /* The canvas is a genuine import surface, not a dead decorative placeholder. */
 /* Studio entry actions are UI only: never trigger paid requests. */
 function emptyExperience(){
@@ -994,7 +1210,7 @@ function renderCards(jobs,{upsert=false}={}){
   for(const j of items){
     const existing=upsert?[...$('history').children].find(el=>el.dataset.job===j.id):null,fingerprint=historyFingerprint(j);
     if(existing?.dataset.fingerprint===fingerprint)continue;
-    const card=document.createElement('article');card.className='card';card.dataset.job=j.id;card.dataset.state=j.status;card.dataset.fingerprint=fingerprint;card.dataset.deletable=String(!activeStates.has(j.status));
+    const card=document.createElement('article');card.className='card';card.dataset.kind=j.settings.type==='image'?'image':'video';card.dataset.job=j.id;card.dataset.state=j.status;card.dataset.fingerprint=fingerprint;card.dataset.deletable=String(!activeStates.has(j.status));
     if(!activeStates.has(j.status)){
       const select=document.createElement('label');select.className='history-select-box';select.hidden=!historySelectMode;
       const checkbox=document.createElement('input');checkbox.type='checkbox';checkbox.checked=historySelected.has(j.id);checkbox.setAttribute('aria-label','Select this History item');
@@ -1072,7 +1288,7 @@ function renderCards(jobs,{upsert=false}={}){
   }
   updateHistorySelectionUi();
 }
-async function loadHistory(append=false,incremental=false){const rev=historyRevision,query=append&&next?'?before='+next.before+'&afterId='+encodeURIComponent(next.afterId):'',data=await api('/api/jobs'+query);if(!owner||rev!==historyRevision)return;if(!append&&!incremental){historyRevision++;observer.disconnect();cardUrls.forEach(release);cardUrls.clear();$('history').replaceChildren();}renderCards(data.jobs,{upsert:incremental});next=data.next;$('more').hidden=!next;$('emptyarchive').hidden=$('history').children.length>0;if(data.concurrency)config.concurrency=data.concurrency;setActiveJobs(data.activeJobs||(data.active?[data.active]:[]));}
+async function loadHistory(append=false,incremental=false){const rev=historyRevision,query=append&&next?'?before='+next.before+'&afterId='+encodeURIComponent(next.afterId):'',data=await api('/api/jobs'+query);if(!owner||rev!==historyRevision)return;if(!append&&!incremental){historyRevision++;observer.disconnect();cardUrls.forEach(release);cardUrls.clear();$('history').replaceChildren();}renderCards(data.jobs,{upsert:incremental});next=data.next;$('more').hidden=!next;$('emptyarchive').hidden=$('history').children.length>0;if(data.concurrency)config.concurrency=data.concurrency;setActiveJobs(data.activeJobs||(data.active?[data.active]:[]));syncImageGalleryEmpty();}
 async function syncHistory(){return loadHistory(false,true);}
 function surfaceHistoryJob(job){
   if(!job||!owner)return;
@@ -1097,7 +1313,7 @@ $('history-delete-selected').onclick=()=>action(async()=>{
   setHistorySelectMode(false);await loadHistory();notify((result.deleted||ids.length)+' History item'+((result.deleted||ids.length)===1?'':'s')+' deleted. Spending history is unchanged.');
 });
 function finishLabBoot(){window.__pvLabFinishBoot?.();}
-function lock(){epoch++;historySelected.clear();historySelectMode=false;clearSoulProPackPreview();soulProIdentity={configured:false,count:0,refs:[]};workingCopies.clear();autoPreview=null;downloadUrls.forEach(release);downloadUrls.clear();owner=false;userId='';soul.reset();historyRevision++;clearTimeout(timer);timer=null;activeJob=null;activeJobs=[];polling=false;requestControllers.forEach(c=>c.abort());requestControllers.clear();observer.disconnect();cardUrls.forEach(release);cardUrls.clear();clearMedia();$('prompt').value='';$('history').replaceChildren();$('app').hidden=true;$('gate').hidden=false;$('connection').hidden=true;$('logout').hidden=true;$('api-key').value='';for(const d of document.querySelectorAll('dialog[open]'))d.close();currentQuote=null;config={};packs=[];$('pack-select').replaceChildren(new Option('Choose a saved pack',''));finishLabBoot();}
+function lock(){epoch++;historySelected.clear();historySelectMode=false;clearSoulProPackPreview();soulProIdentity={configured:false,count:0,refs:[]};workingCopies.clear();autoPreview=null;downloadUrls.forEach(release);downloadUrls.clear();owner=false;userId='';soul.reset();historyRevision++;clearTimeout(timer);timer=null;activeJob=null;activeJobs=[];polling=false;requestControllers.forEach(c=>c.abort());requestControllers.clear();observer.disconnect();cardUrls.forEach(release);cardUrls.clear();clearMedia();$('prompt').value='';$('history').replaceChildren();$('app').hidden=true;$('gate').hidden=false;$('connection').hidden=true;$('logout').hidden=true;$('api-key').value='';for(const d of document.querySelectorAll('dialog[open]'))d.close();currentQuote=null;config={};packs=[];$('pack-select').replaceChildren(new Option('Choose a saved pack',''));closeImageModelMenu();toggleImageSettings(false);$('app').classList.remove('image-studio-active');imageStudio.hidden=true;finishLabBoot();}
 async function sync(){if(syncing)return;syncing=true;try{if(!clerk.isSignedIn){lock();$('auth-status').textContent='Sign in with your Parallel Vision owner account.';$('signin').disabled=false;return;}if(owner&&userId===clerk.user.id)return;const data=await api('/api/session');owner=true;userId=clerk.user.id;applyConfig(data.config);$('identity').textContent='Owner workspace';$('gate').hidden=true;$('app').hidden=false;$('connection').hidden=false;$('logout').hidden=false;await Promise.all([loadHistory(),loadPacks(),soul.load(),loadSoulProIdentity()]);}catch(e){lock();$('auth-status').textContent=e.message;$('signin').disabled=false;$('logout').hidden=!clerk?.isSignedIn;}finally{syncing=false;finishLabBoot();}}
 $('auth-retry').onclick=()=>location.reload();$('signin').onclick=()=>clerk?.openSignIn();$('logout').onclick=async()=>{lock();await clerk?.signOut();$('auth-status').textContent='Signed out. Your archive remains private.';};
 try{const {Clerk}=await import('https://esm.sh/@clerk/clerk-js@6?bundle');await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='https://clerk.parallelvisionlabel.com/npm/@clerk/ui@1/dist/ui.browser.js';s.onload=resolve;s.onerror=reject;document.head.append(s);});clerk=new Clerk('pk_live_Y2xlcmsucGFyYWxsZWx2aXNpb25sYWJlbC5jb20k');await clerk.load({ui:{ClerkUI:window.__internal_ClerkUICtor},signInFallbackRedirectUrl:location.href,signUpFallbackRedirectUrl:location.href});clerk.addListener(()=>void sync());await sync();}catch{$('gate').hidden=false;$('auth-retry').hidden=false;$('signin').disabled=true;$('auth-status').textContent='Sign-in could not load. Check your connection and reload the page.';finishLabBoot();}
