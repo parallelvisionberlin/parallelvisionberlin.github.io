@@ -445,3 +445,61 @@ dialog {max-height:calc(100dvh - 36px);overflow:auto}
   .card,.tool-tab,.drop,.primary,.secondary,.quiet,.generate-button{transition:none!important;transform:none!important}
   html{scroll-behavior:auto}
 }
+
+
+/* Workspace-first layout: avoid the three stacked banners before the editor. */
+body:has(#app:not([hidden])) .intro {display:none}
+#app:not([hidden]) {padding-top:15px}
+#app:not([hidden]) .connection-strip {display:none}
+#app:not([hidden]) .tool-switch {
+  display:flex;align-items:stretch;gap:4px;
+  width:max-content;max-width:100%;padding:4px;
+  margin:0 0 12px;border:1px solid #242329;
+  border-radius:11px;background:#121215;
+}
+.tool-switch .tool-tab {
+  min-height:41px;min-width:112px;text-align:center;
+  padding:10px 19px;font-size:13px;font-weight:500;
+  border-radius:8px;white-space:nowrap;
+}
+.tool-switch .tool-tab small {display:none}
+.top {min-height:55px}
+header .brand {font-size:12px;letter-spacing:.11em}
+header .brand span {font-size:10px;letter-spacing:.09em}
+header .actions .eyebrow {font-size:9px}
+.workspace {
+  grid-template-columns:minmax(360px,405px) minmax(0,1fr);
+  border-radius:13px;min-height:calc(100dvh - 132px);
+}
+.controls {padding:22px 22px 26px}
+.controls .mode {margin-bottom:13px;padding-bottom:12px}
+.stage {top:66px;height:calc(100dvh - 148px);min-height:560px}
+.stagehead,.stagefoot {min-height:46px;padding:10px 16px}
+.canvas {padding:20px}
+.soul-launch {margin:18px 0 0}
+#app .soul-launch strong {display:block;margin-top:4px}
+#app .soul-launch {padding:13px 18px;border-color:#28252b;background:#101013}
+#app .soul-launch .eyebrow {font-size:9px}
+#app .soul-launch small {font-size:10px}
+#app .soul-launch .primary,#app .soul-launch .secondary {min-height:36px}
+.archive {padding-top:35px}
+@media(max-width:820px) {
+  #app:not([hidden]) {padding-top:10px}
+  #app:not([hidden]) .tool-switch {width:100%;margin-bottom:10px}
+  .tool-switch .tool-tab {min-width:0;flex:1;padding:10px 8px}
+  .workspace {min-height:0;display:flex;flex-direction:column}
+  .stage {top:auto;height:clamp(330px,55dvh,610px);min-height:0}
+  .controls {padding:19px}
+}
+@media(max-width:560px) {
+  .top {min-height:50px}
+  header .brand {font-size:10px}
+  header .brand span {font-size:9px}
+  header .actions .eyebrow {display:none}
+  #app:not([hidden]) .tool-switch {margin-bottom:8px}
+  .tool-switch .tool-tab {font-size:12px;padding:9px 8px;min-height:39px}
+  .workspace {border-radius:11px}
+  .controls {padding:15px 14px}
+  .stage {height:clamp(300px,50dvh,500px)}
+  .soul-launch {margin-top:12px;gap:10px}
+}
