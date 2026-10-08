@@ -107,7 +107,7 @@ try{
   // Verify branded first paint while the JS module is deliberately delayed.
   const bootContext=await browser.newContext({viewport:{width:1440,height:900}});
   const bootPage=await bootContext.newPage();
-  await bootPage.route('**/lab/lab.js',async route=>{
+  await bootPage.route('**/lab/lab.js?*',async route=>{
     await new Promise(resolve=>setTimeout(resolve,1300));
     await route.continue();
   });
