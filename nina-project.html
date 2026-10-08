@@ -4,16 +4,16 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Nina FOK | Parallel Vision</title>
-  <meta name="description" content="Nina FOK is a consciousness developed by Parallel Vision, living inside a possible Berlin 2063. Speak with her live.">
+  <meta name="description" content="Nina FOK is an ongoing Parallel Vision artwork exploring identity, memory, voice and an imagined Berlin 2063. Meet Nina live.">
   <link rel="canonical" href="https://parallelvisionlabel.com/nina-project.html">
   <meta property="og:title" content="Nina FOK | Parallel Vision">
-  <meta property="og:description" content="Meet Nina FOK, an artist from Parallel Vision’s imagined Berlin 2063. Speak with her live.">
+  <meta property="og:description" content="Nina FOK. An ongoing artwork exploring presence, memory and identity within Berlin 2063.">
   <meta property="og:url" content="https://parallelvisionlabel.com/nina-project.html">
   <meta property="og:type" content="website">
   <meta property="og:image" content="https://parallelvisionlabel.com/assets/ninamain-page.webp">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Nina FOK | Parallel Vision">
-  <meta name="twitter:description" content="A consciousness developed by Parallel Vision, living inside a possible Berlin 2063. Speak with her live.">
+  <meta name="twitter:description" content="An ongoing artwork of biography, memory and live dialogue within Parallel Vision’s Berlin 2063.">
   <meta name="twitter:image" content="https://parallelvisionlabel.com/assets/ninamain-page.webp">
   <!-- Meta Pixel Code -->
   <script>
@@ -32,269 +32,9 @@
   <link rel="icon" type="image/png" href="./favicon.png">
   <link rel="stylesheet" href="./fashion.css?v=20260904-media-1">
   <link rel="stylesheet" href="./css/nina-access.css?v=20260909-web-conversion">
-  <style>
-    :root { --n-line: rgba(255,255,255,.15); --n-body: rgba(255,255,255,.7); --n-faint: rgba(255,255,255,.44); }
-    * { box-sizing: border-box; }
-    html { background: #000; scroll-behavior: smooth; }
-    body { margin: 0; overflow-x: hidden; background: #000; color: #fff; font-family: Inter, sans-serif; }
-    .n-shell { width: min(calc(100% - 48px), 1450px); margin: 0 auto; }
-    .n-nav.n-shell { width: min(calc(100% - 28px),1480px); }
-    .n-reading { width: min(100%,760px); }
-    .n-label,
-    .n-meta,
-    .n-nav,
-    .n-footer { font: 9px/1.55 'Courier New', monospace; letter-spacing: .24em; text-transform: uppercase; }
-    .n-label, .n-meta { color: var(--n-faint); }
-    .n-nav { min-height: 66px; display: grid; grid-template-columns: minmax(0,1fr) auto minmax(0,1fr); align-items: center; gap: 28px; border-bottom: 1px solid var(--n-line); font-size: 11.5px; letter-spacing: .19em; }
-    .n-nav > a { grid-column: 1; justify-self: start; }
-    .n-nav > span { grid-column: 2; justify-self: center; }
-    .n-nav-actions { grid-column: 3; justify-self: end; display: flex; align-items: center; gap: 18px; }
-    .n-nav-actions .nina-account-shell { display: flex; align-items: center; }
-    .n-nav > a,.n-nav-transmit { color: rgba(255,255,255,.84); text-decoration: none; }
-    .n-nav > a:hover,.n-nav > a:focus-visible,.n-nav-transmit:hover,.n-nav-transmit:focus-visible { color: #fff; }
-    .n-nav-transmit { padding:0; border:0; background:none; font:inherit; letter-spacing:inherit; text-transform:inherit; cursor:pointer; }
-
-    .n-hero { padding: 18px 0 34px; border-bottom: 1px solid var(--n-line); }
-    .n-hero-media { position: relative; height: clamp(620px,82vh,860px); margin: 0; overflow: hidden; background: #100304 url('./assets/optimized/nina-fok/HDNINACANON.webp') center 45% / cover no-repeat; }
-    .n-hero-asset { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center 45%; filter: saturate(.72) contrast(1.04) brightness(.78); }
-    .n-hero-media::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(90deg,rgba(0,0,0,.22) 0%,rgba(0,0,0,.06) 34%,transparent 58%),linear-gradient(180deg,transparent 46%,rgba(0,0,0,.82) 100%); }
-    .n-sound { position: absolute; right: 14px; bottom: 14px; z-index: 3; min-height: 28px; padding: 0 9px; border: 1px solid rgba(255,255,255,.34); background: rgba(0,0,0,.38); color: #fff; font: 8px 'Courier New', monospace; letter-spacing: .16em; text-transform: uppercase; cursor: pointer; backdrop-filter: blur(8px); }
-    .n-sound:hover, .n-sound:focus-visible { background: #fff; color: #000; outline: 0; }
-    .n-hero-copy { position: absolute; z-index: 2; left: clamp(18px,3.8vw,52px); right: clamp(22px,4.5vw,62px); bottom: clamp(64px,5.2vw,72px); }
-    .n-hero h1 { margin: 14px 0 24px; font: 400 clamp(62px,9.5vw,126px)/.92 Michroma, sans-serif; letter-spacing: .035em; text-transform: uppercase; }
-    .n-meta { margin: 0; color: rgba(255,255,255,.72); }
-    .n-hero-statement { max-width: 470px; margin: 0; color: rgba(255,255,255,.92); font: 300 clamp(13px,1.2vw,16px)/1.65 Inter,sans-serif; }
-    .n-hero-actions { display: flex; align-items: center; margin-top: 32px; }
-    .n-hero-actions .n-button-primary { min-height: 60px; padding-inline: 40px; border-color: rgba(255,255,255,.88); background: rgba(255,255,255,.08); color: rgba(255,255,255,.98); font-family: Inter,sans-serif; font-size: 14px; font-weight: 500; line-height: 1; letter-spacing: .09em; }
-    .n-hero-discover { position: absolute; z-index: 3; top: calc(40% + 25px); right: clamp(104px,11vw,156px); min-height: 34px; display: inline-flex; align-items: center; color: rgba(255,255,255,.78); font: 10.5px/1 'Courier New',monospace; letter-spacing: .14em; text-decoration: none; text-transform: uppercase; transform: translateY(-50%); transition: color .25s ease; }
-    .n-hero-discover:hover, .n-hero-discover:focus-visible { color: #fff; }
-
-    .n-question { display: flex; flex-direction: column; padding: clamp(78px,7vw,98px) clamp(0px,7vw,105px) clamp(82px,7.5vw,104px); border-bottom: 1px solid var(--n-line); }
-    .n-question h2 { max-width: 900px; margin: 24px 0 28px; font: 400 clamp(28px,3vw,40px)/1.3 Michroma, sans-serif; letter-spacing: -.015em; text-wrap: balance; }
-    .n-question-note { max-width: 780px; margin: 0; color: rgba(255,255,255,.76); font-size: clamp(17px,1.35vw,20px); line-height: 1.62; }
-    .n-question-note + .n-question-note { max-width: 780px; margin-top: 10px; }
-
-    .n-section { padding: clamp(82px,8vw,116px) 0; border-bottom: 1px solid var(--n-line); }
-    .n-chapter-head { display: grid; grid-template-columns: minmax(150px,.28fr) minmax(0,1fr); gap: clamp(42px,7vw,105px); }
-    .n-copy { max-width: 760px; }
-    .n-copy h2 { margin: 0 0 30px; font: 400 clamp(27px,3vw,39px)/1.32 Michroma, sans-serif; letter-spacing: .015em; }
-    .n-copy p { margin: 0; color: var(--n-body); font: 300 clamp(17px,1.3vw,19px)/1.82 Inter, sans-serif; }
-    .n-copy p + p { margin-top: 23px; }
-    .n-copy-wide { max-width: none; }
-    .n-who-grid { display: grid; grid-template-columns: minmax(360px,.88fr) minmax(0,1fr); gap: clamp(55px,8vw,112px); align-items: center; }
-    .n-who-section .n-copy { max-width: 700px; }
-    .n-who-section .n-copy p { line-height: 1.74; }
-    .n-editorial-image { margin: 0; overflow: hidden; background: #080808; }
-    .n-editorial-image img { display: block; width: 100%; height: 100%; object-fit: cover; filter: saturate(.58) contrast(1.07) brightness(.72); }
-    .n-who-image { aspect-ratio: 4 / 5.2; }
-    .n-who-image img { object-position: 70% center; }
-    .n-who-media { position: relative; aspect-ratio: 4 / 5.2; margin: 0; overflow: hidden; background: #100304 url('./assets/ninamain-page.webp') center/cover no-repeat; }
-    .n-who-media video { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center; filter: saturate(.68) contrast(1.04) brightness(.82); }
-    .n-condition { min-height: 720px; }
-    .n-condition-layout { display: grid; grid-template-columns: minmax(150px,.28fr) minmax(0,1fr); gap: clamp(42px,7vw,105px); }
-    .n-instruction { margin-top: 32px; border-left: 1px solid rgba(255,255,255,.72); padding: 4px 0 4px clamp(23px,3vw,42px); }
-    .n-condition-title { margin-bottom: 20px !important; font-size: clamp(35px,4vw,54px) !important; text-transform: uppercase; }
-    .n-condition-intro { color: rgba(255,255,255,.76); font-size: clamp(19px,1.6vw,23px); }
-    .n-instruction span { display: block; margin: 0 0 14px; font: 400 clamp(18px,1.65vw,23px)/1.65 Michroma, sans-serif; letter-spacing: .02em; text-transform: uppercase; }
-    .n-instruction span:last-child { margin-top: 28px; color: #fff; font-weight: 500; }
-    .n-emphasis { margin: 38px 0; color: #fff; font: 400 clamp(27px,3.2vw,36px)/1.28 Michroma, sans-serif; letter-spacing: .018em; text-transform: uppercase; }
-    .n-berlin-head { margin-bottom: clamp(36px,4vw,48px); }
-    .n-archive-id { display: grid; align-content: start; gap: 4px; color: var(--n-faint); font: 9px/1.55 'Courier New',monospace; letter-spacing: .1em; text-transform: uppercase; }
-    .n-archive-id strong { color: rgba(255,255,255,.72); font-weight: 400; }
-    .n-archive-id span:last-child { color: rgba(255,255,255,.5); }
-    .n-berlin-head > .n-archive-id { margin-bottom: 28px; }
-    .n-berlin-head .n-copy { max-width: none; display: grid; grid-template-columns: minmax(0,1.35fr) minmax(300px,.65fr); gap: clamp(54px,7vw,110px); align-items: start; }
-    .n-berlin-head .n-copy h2 { max-width: 780px; margin: 0; font-size: clamp(27px,2.7vw,36px); line-height: 1.28; }
-    .n-berlin-head .n-copy p { max-width: 520px; margin: 3px 0 0; font-size: clamp(17px,1.3vw,19px); line-height: 1.72; }
-    .n-world { margin: 0; aspect-ratio: 16 / 8.2; }
-    .n-world img { object-position: center 58%; }
-    .n-world-note { display: grid; grid-template-columns: minmax(190px,.28fr) minmax(0,1fr); gap: clamp(42px,7vw,105px); margin: 18px 0 72px; padding-top: 18px; border-top: 1px solid var(--n-line); }
-    .n-world-note .n-archive-id { font-size: 9px; letter-spacing: .1em; }
-    .n-world-note p { max-width: 520px; margin: 0; color: rgba(255,255,255,.74); font: 300 clamp(12px,1vw,14px)/1.6 Inter,sans-serif; }
-    .n-berlin-body { width: min(100%,760px); }
-    .n-berlin-body p { font-size: clamp(17px,1.3vw,19px); }
-    .n-berlin-body .n-emphasis { margin: 48px 0 0; font-size: clamp(19px,2vw,24px); line-height: 1.35; letter-spacing: .035em; }
-    .n-pull { margin: 42px 0; color: #fff; font: 400 clamp(34px,4vw,49px)/1.24 Michroma, sans-serif; letter-spacing: .012em; text-transform: uppercase; }
-    .n-pull-small { margin: 34px 0; color: #fff; font: 400 clamp(22px,2.4vw,29px)/1.35 Michroma, sans-serif; letter-spacing: .025em; text-transform: uppercase; }
-    .n-final-question { margin: 42px 0; color: #fff; font: 400 clamp(31px,3.7vw,45px)/1.27 Michroma, sans-serif; letter-spacing: .012em; text-transform: uppercase; }
-    .n-space-section,
-    .n-mirror-section { padding-top: clamp(76px,7vw,102px); padding-bottom: clamp(78px,7.5vw,108px); }
-    .n-space-section .n-copy,
-    .n-mirror-section .n-copy { max-width: 720px; }
-    .n-space-section .n-copy h2,
-    .n-mirror-section .n-copy h2 { margin-bottom: 26px; }
-    .n-space-section .n-copy p,
-    .n-mirror-section .n-copy p { line-height: 1.72; }
-    .n-space-section .n-copy p + p,
-    .n-mirror-section .n-copy p + p { margin-top: 18px; }
-
-    .n-system { padding-top: clamp(92px,9vw,132px); padding-bottom: clamp(96px,9vw,138px); }
-    .n-system-layout { display: grid; grid-template-columns: minmax(150px,.28fr) minmax(0,1fr); gap: clamp(42px,7vw,105px); }
-    .n-system-copy { max-width: 860px; }
-    .n-system-copy h2 { max-width: 810px; margin: 18px 0 34px; font: 400 clamp(31px,3.8vw,49px)/1.22 Michroma,sans-serif; letter-spacing: .015em; text-transform: uppercase; }
-    .n-system-copy p { max-width: 760px; margin: 0; color: var(--n-body); font: 300 clamp(17px,1.3vw,19px)/1.82 Inter,sans-serif; }
-    .n-system-copy p + p { margin-top: 23px; }
-    .n-system-status { display: flex; gap: 14px; margin-top: 38px; padding-top: 16px; border-top: 1px solid var(--n-line); color: var(--n-faint); font: 9px/1.5 'Courier New',monospace; letter-spacing: .16em; text-transform: uppercase; }
-    .n-study { padding-top: clamp(94px,9vw,136px); padding-bottom: clamp(98px,9vw,142px); }
-    .n-study-layout { display: grid; grid-template-columns: minmax(150px,.28fr) minmax(0,1fr); gap: clamp(42px,7vw,105px); }
-    .n-study-content { min-width: 0; }
-    .n-study-intro { max-width: 900px; }
-    .n-study h2 { max-width: 900px; margin: 0 0 38px; font: 400 clamp(31px,3.8vw,49px)/1.22 Michroma,sans-serif; letter-spacing: .015em; text-transform: uppercase; }
-    .n-study-intro > p { max-width: 780px; margin: 0; color: var(--n-body); font: 300 clamp(17px,1.3vw,19px)/1.82 Inter,sans-serif; }
-    .n-study-intro > p + p { margin-top: 23px; }
-    .n-study-block { margin-top: clamp(58px,6vw,82px); padding-top: 18px; border-top: 1px solid var(--n-line); }
-    .n-study-kicker { margin: 0 0 24px; color: var(--n-faint); font: 9px/1.55 'Courier New',monospace; letter-spacing: .2em; text-transform: uppercase; }
-    .n-study-question { max-width: 900px; margin: 0; color: rgba(255,255,255,.9); font: 400 clamp(22px,2.5vw,31px)/1.45 Michroma,sans-serif; letter-spacing: .015em; text-transform: uppercase; }
-    .n-observations { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); border-top: 1px solid var(--n-line); }
-    .n-observation { min-width: 0; padding: 24px 28px 30px 0; border-bottom: 1px solid var(--n-line); }
-    .n-observation:nth-child(odd) { padding-right: clamp(28px,4vw,58px); border-right: 1px solid var(--n-line); }
-    .n-observation:nth-child(even) { padding-left: clamp(28px,4vw,58px); }
-    .n-observation h3 { margin: 0 0 13px; color: rgba(255,255,255,.88); font: 400 11px/1.55 'Courier New',monospace; letter-spacing: .14em; text-transform: uppercase; }
-    .n-observation p { margin: 0; color: var(--n-body); font: 300 15px/1.7 Inter,sans-serif; }
-    .n-study-method h3 { max-width: 780px; margin: 0 0 28px; font: 400 clamp(26px,3vw,38px)/1.3 Michroma,sans-serif; letter-spacing: .015em; text-transform: uppercase; }
-    .n-study-method > p:not(.n-study-kicker) { max-width: 760px; margin: 0; color: var(--n-body); font: 300 clamp(17px,1.3vw,19px)/1.82 Inter,sans-serif; }
-    .n-study-method > p:not(.n-study-kicker) + p { margin-top: 23px; }
-    .n-study-note { display: grid; grid-template-columns: minmax(190px,.34fr) minmax(0,1fr); gap: clamp(32px,5vw,72px); margin-top: clamp(58px,6vw,82px); padding-top: 18px; border-top: 1px solid var(--n-line); }
-    .n-study-note .n-study-kicker { margin: 0; }
-    .n-study-note p:last-child { max-width: 650px; margin: 0; color: rgba(255,255,255,.58); font: 300 13px/1.7 Inter,sans-serif; }
-    .n-connect { position: relative; width: 74%; min-height: clamp(500px,58vw,720px); margin-inline: auto; display: flex; align-items: center; justify-content: center; overflow: hidden; border-bottom: 1px solid var(--n-line); background: #030303 url('./assets/optimized/nina-fok/HDNINACANON.webp') center 42% / cover no-repeat; text-align: center; isolation: isolate; }
-    .n-connect::before { content: ''; position: absolute; z-index: 1; inset: 0; background: linear-gradient(90deg,rgba(0,0,0,.82),rgba(0,0,0,.48) 50%,rgba(0,0,0,.84)),linear-gradient(180deg,rgba(0,0,0,.5),rgba(0,0,0,.2) 45%,rgba(0,0,0,.78)); pointer-events: none; }
-    .n-connect-video { position: absolute; z-index: 0; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 42%; filter: grayscale(.15) saturate(.42) contrast(1.16) brightness(.28); transform: scale(1.015); }
-    .n-connect-content { position: relative; z-index: 2; width: min(100% - 40px,700px); padding: 44px 0; }
-    .n-connect h2 { margin: 20px 0 30px; font: 400 clamp(33px,4.2vw,52px)/1.2 Michroma, sans-serif; letter-spacing: .025em; text-transform: uppercase; }
-    .n-button { min-height: 46px; display: inline-flex; align-items: center; justify-content: center; padding: 0 21px; border: 1px solid rgba(255,255,255,.48); background: transparent; color: #fff; font: 9px 'Courier New', monospace; letter-spacing: .22em; text-decoration: none; text-transform: uppercase; cursor: pointer; transition: background .25s ease,color .25s ease; }
-    .n-button:hover, .n-button:focus-visible { background: #fff; color: #000; outline: 0; }
-    .n-connect-note { margin: -14px 0 28px; color: rgba(255,255,255,.7); font: 10px/1.5 'Courier New',monospace; letter-spacing: .18em; text-transform: uppercase; }
-    .n-faq { padding: clamp(92px,8vw,124px) 0 clamp(104px,9vw,142px); border-bottom: 1px solid var(--n-line); }
-    .n-faq-head { display: grid; grid-template-columns: minmax(150px,.28fr) minmax(0,1fr); gap: clamp(42px,7vw,105px); margin-bottom: 46px; }
-    .n-faq h2 { margin: 0; font: 400 clamp(34px,4vw,50px)/1.2 Michroma,sans-serif; letter-spacing: .025em; text-transform: uppercase; }
-    .n-faq-list { margin-left: calc(28% + clamp(42px,7vw,105px)); border-top: 1px solid var(--n-line); }
-    .n-faq details { border-bottom: 1px solid var(--n-line); }
-    .n-faq summary { min-height: 76px; display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; gap: 24px; color: #eee; font: 400 19px/1.5 Inter,Arial,sans-serif; letter-spacing: 0; list-style: none; text-transform: none; cursor: pointer; }
-    .n-faq summary:focus-visible { outline: 1px solid #eee; outline-offset: 5px; }
-    .n-faq summary:hover { color: #fff; }
-    .n-faq summary::-webkit-details-marker { display: none; }
-    .n-faq summary::after { content: '+'; color: rgba(255,255,255,.5); font-size: 17px; font-weight: 300; }
-    .n-faq details[open] summary::after { content: '−'; }
-    .n-faq-answer { max-width: 760px; padding: 0 48px 30px 0; }
-    .n-faq-answer p { margin: 0; color: #c6c6c6; font: 400 17px/1.7 Inter,Arial,sans-serif; }
-    .n-faq-answer p + p { margin-top: 15px; }
-    .n-footer { min-height: 76px; display: flex; align-items: center; justify-content: space-between; gap: 24px; color: var(--n-faint); }
-    .n-footer a { color: inherit; }
-
-    @media (max-width: 860px) { .n-world-note { grid-template-columns: minmax(150px,.28fr) minmax(0,1fr); } }
-    @media (max-width: 700px) {
-      .n-shell { width: calc(100% - 36px); }
-      .n-nav.n-shell { width: calc(100% - 28px); }
-      .n-nav { min-height: 62px; letter-spacing: .15em; }
-      .n-nav > span { display: none; }
-      .n-hero { padding: 12px 0 20px; }
-      .n-hero-media { height: min(145vw,650px); min-height: 520px; }
-      .n-hero-asset { object-position: 56% center; }
-      .n-hero-copy { left: 19px; right: 19px; bottom: 76px; }
-      .n-hero h1 { margin: 11px 0 19px; font-size: clamp(46px,15vw,62px); }
-      .n-hero-statement { max-width: 290px; font-size: 12px; }
-      .n-hero-actions { width: min(100%,330px); margin-top: 26px; }
-      .n-hero-actions .n-button-primary { width: 100%; min-height: 58px; padding-inline: 22px; font-size: 14px; }
-      .n-hero-discover { top: auto; right: auto; left: 19px; bottom: 26px; min-height: 32px; font-size: 10.5px; transform: none; }
-      .n-question { padding: 56px 0 60px; }
-      .n-question h2 { margin: 18px 0 24px; font-size: clamp(24px,6vw,32px); line-height: 1.35; overflow-wrap: break-word; }
-      .n-question-note { max-width: 94%; font-size: 16.5px; line-height: 1.65; }
-      .n-question-note + .n-question-note { margin-top: 8px; }
-      .n-question + .n-section { padding-top: 56px; }
-      .n-section { padding: 62px 0 68px; }
-      .n-chapter-head, .n-condition-layout { grid-template-columns: 1fr; gap: 26px; }
-      .n-world-note { grid-template-columns: 1fr; gap: 24px; }
-      .n-world-note { margin: 18px 0 52px; }
-      .n-berlin-head { margin-bottom: 30px; }
-      .n-berlin-head > .n-archive-id { margin-bottom: 22px; }
-      .n-berlin-head .n-copy { display: block; }
-      .n-berlin-head .n-copy h2 { margin-bottom: 22px; }
-      .n-berlin-head .n-copy p { margin: 0; font-size: 16.5px; line-height: 1.7; }
-      .n-world-note .n-archive-id { font-size: 9px; }
-      .n-world-note p { font-size: 13px; }
-      .n-copy h2 { margin-bottom: 25px; font-size: clamp(24px,7.3vw,31px); }
-      .n-copy p { font-size: 17px; line-height: 1.78; }
-      .n-who-grid { grid-template-columns: 1fr; gap: 36px; }
-      .n-who-section .n-copy { max-width: 100%; }
-      .n-space-section,
-      .n-mirror-section { padding-top: 56px; padding-bottom: 62px; }
-      .n-space-section .n-copy h2,
-      .n-mirror-section .n-copy h2 { margin-bottom: 22px; }
-      .n-space-section .n-copy p + p,
-      .n-mirror-section .n-copy p + p { margin-top: 16px; }
-      .n-who-image { aspect-ratio: 4 / 5; }
-      .n-who-image img { object-position: 70% center; }
-      .n-who-media { aspect-ratio: 4 / 5; }
-      .n-condition { min-height: 680px; }
-      .n-world { aspect-ratio: 4 / 3; margin-bottom: 44px; }
-      .n-instruction { margin-top: 28px; }
-      .n-instruction span { font-size: clamp(19px,5.4vw,22px); line-height: 1.65; overflow-wrap: break-word; }
-      .n-emphasis { margin: 31px 0; font-size: clamp(24px,7.2vw,31px); }
-      .n-pull { margin: 34px 0; font-size: clamp(28px,8.2vw,37px); overflow-wrap: break-word; }
-      .n-pull-small { margin: 29px 0; font-size: clamp(21px,6.2vw,27px); }
-      .n-final-question { margin: 34px 0; font-size: clamp(27px,7.8vw,35px); overflow-wrap: break-word; }
-      .n-system { padding-top: 68px; padding-bottom: 72px; }
-      .n-system-layout, .n-faq-head { grid-template-columns: 1fr; gap: 24px; }
-      .n-system-copy h2 { margin-top: 14px; font-size: clamp(27px,8vw,36px); }
-      .n-system-copy p { font-size: 16.5px; line-height: 1.74; }
-      .n-system-status { flex-direction: column; gap: 3px; }
-      .n-study { padding-top: 70px; padding-bottom: 76px; }
-      .n-study-layout { grid-template-columns: 1fr; gap: 28px; }
-      .n-study h2 { margin-bottom: 30px; font-size: clamp(27px,8vw,36px); overflow-wrap: break-word; }
-      .n-study-intro > p { font-size: 16.5px; line-height: 1.74; }
-      .n-study-block { margin-top: 52px; }
-      .n-study-question { font-size: clamp(21px,6.2vw,27px); overflow-wrap: break-word; }
-      .n-observations { grid-template-columns: 1fr; }
-      .n-observation,
-      .n-observation:nth-child(odd),
-      .n-observation:nth-child(even) { padding: 22px 0 26px; border-right: 0; }
-      .n-study-method h3 { font-size: clamp(24px,7vw,31px); overflow-wrap: break-word; }
-      .n-study-method > p:not(.n-study-kicker) { font-size: 16.5px; line-height: 1.74; }
-      .n-study-note { grid-template-columns: 1fr; gap: 18px; margin-top: 52px; }
-      .n-connect { width: 100%; min-height: min(118vw,560px); }
-      .n-connect-video { object-position: 57% center; }
-      .n-connect h2 { font-size: clamp(29px,8.5vw,39px); }
-      .n-connect-content { width: calc(100% - 36px); }
-      .n-button { width: 100%; }
-      .n-faq { padding: 68px 0 82px; }
-      .n-faq-head { margin-bottom: 28px; }
-      .n-faq-list { margin-left: 0; }
-      .n-faq summary { min-height: 72px; gap: 18px; padding: 16px 0; font-size: 17px; letter-spacing: 0; }
-      .n-faq-answer { padding: 0 28px 27px 0; }
-      .n-faq-answer p { font-size: 16px; line-height: 1.7; }
-      .n-footer { display: grid; align-content: center; padding: 24px 0; letter-spacing: .15em; }
-    }
-    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .n-button { transition: none; } .n-hero-asset,.n-connect-video { display: none; } }
-
-    /* NINA_WORLD_DESKTOP_BALANCED_20260906 */
-    @media (min-width: 901px) {
-      .n-world {
-        width: 94%;
-        max-width: 1390px;
-        height: auto;
-        aspect-ratio: auto;
-        margin: 0 auto;
-        overflow: visible;
-      }
-      .n-world img {
-        display: block;
-        width: 100%;
-        height: auto;
-        object-fit: contain;
-        object-position: center;
-      }
-      .n-world-note {
-        width: 94%;
-        max-width: 1390px;
-        margin: 14px auto 56px;
-        padding-top: 14px;
-      }
-    }
-</style>
+  
   <link rel="stylesheet" href="./css/base.css?v=20260814-1">
   <link rel="stylesheet" href="./css/revamp.css?v=20260904-3">
-  <link rel="stylesheet" href="./css/nina-world.css?v=20260914-full-width">
   <link rel="preload" as="image" href="./assets/optimized/nina-fok/HDNINACANON.webp" fetchpriority="high">
 <style>[data-nina-trial-offer][hidden]{display:none!important}</style>
 <style>
@@ -386,46 +126,8 @@ body .nina-account-panel { background: #020202; border-color: #202020; }
 body .nina-account-panel .nina-account-buy-credits { border-bottom-color: #363632; }
 body .nina-account-panel .nina-account-signout { border-top-color: #242422; }
 </style>
-<style id="nina-editorial-entrance">
-  .pv-nina-project .n-hero-actions { display: flex; flex-wrap: wrap; gap: 20px 28px; align-items: center; }
-  .pv-nina-project .n-hero-actions .n-button-primary { font: 500 16px/1.3 Inter,Arial,sans-serif; letter-spacing: .045em; min-height: 64px; min-width: 220px; background: rgba(0,0,0,.16); }
-  .pv-nina-project .n-hero-actions .n-button-primary:hover { background: rgba(255,255,255,.1); color: #fff; }
-  .pv-nina-project .n-hero-discover { position: static; transform: none; font: 400 14px/1.5 Inter,Arial,sans-serif; letter-spacing: 0; text-transform: none; min-height: 44px; color: #d3d3d3; }
-  .pv-nina-project .n-hero-statement { max-width: 540px; font: 400 18px/1.6 Inter,Arial,sans-serif; text-wrap: balance; }
-  .pv-nina-project .n-nav-transmit { font-size: 13px; letter-spacing: .08em; }
-  .pv-nina-project .n-question { align-items: center; text-align: center; padding: 72px 24px 80px; }
-  .pv-nina-project .n-question h2 { max-width: 900px; margin: 0 0 28px; font: 400 clamp(30px,3.4vw,48px)/1.2 Inter,Arial,sans-serif; letter-spacing: -.035em; text-wrap: balance; }
-  .pv-nina-project .n-question-note { max-width: 680px; font-size: 19px; line-height: 1.65; color: #e0e0e0; text-wrap: pretty; }
-  .pv-nina-project .n-question-context { margin-top: 20px; font-size: 17px; color: #b8b8b8; }
-  @media(max-width:700px) {
-    .pv-nina-project .n-hero-statement { font-size: 16px; max-width: 310px; }
-    .pv-nina-project .n-hero-actions { gap: 12px; margin-top: 24px; }
-    .pv-nina-project .n-hero-actions .n-button-primary { min-height: 58px; min-width: 0; font-size: 16px; }
-    .pv-nina-project .n-hero-copy { bottom: 28px; }
-    .pv-nina-project .n-hero-discover { width: 100%; justify-content: center; }
-    .pv-nina-project .n-question { padding: 48px 0 52px; }
-    .pv-nina-project .n-question h2 { font-size: clamp(28px,7.5vw,36px); }
-    .pv-nina-project .n-question-note { max-width: 100%; font-size: 17px; }
-    .pv-nina-project .n-question-context { font-size: 16px; }
-  }
-</style>
-<style id="nina-unified-project-entrance">
-  .pv-nina-project .n-hero { border-bottom: 0; padding-bottom: 0; }
-  .pv-nina-project .n-project-entrance { border: 0; padding: clamp(48px,6vw,88px) 0; scroll-margin-top: 32px; }
-  .pv-nina-project .n-project-entrance .n-who-grid { grid-template-columns: minmax(0,.9fr) minmax(0,1fr); gap: clamp(32px,6vw,88px); align-items: center; }
-  .pv-nina-project .n-project-entrance .n-copy { min-width: 0; max-width: 620px; }
-  .pv-nina-project .n-project-entrance h2 { margin: 0 0 28px; font: 400 clamp(30px,3.5vw,52px)/1.16 Inter,Arial,sans-serif; letter-spacing: -.025em; text-transform: none; text-wrap: balance; }
-  .pv-nina-project .n-project-entrance .n-copy p { margin: 0; font: 400 clamp(17px,1.3vw,19px)/1.75 Inter,Arial,sans-serif; color: #ccc; }
-  .pv-nina-project .n-project-entrance .n-who-media { width: 100%; max-width: 520px; aspect-ratio: 4 / 5; }
-  .pv-nina-project .n-architecture-note { margin-top: 24px; }
-  @media (max-width:700px) {
-    .pv-nina-project .n-project-entrance { padding: 36px 0 48px; }
-    .pv-nina-project .n-project-entrance .n-who-grid { grid-template-columns: minmax(0,1fr); gap: 28px; }
-    .pv-nina-project .n-project-entrance .n-copy { grid-row: 1; }
-    .pv-nina-project .n-project-entrance h2 { font-size: clamp(30px,8vw,40px); margin-bottom: 20px; }
-    .pv-nina-project .n-project-entrance .n-who-media { max-width: 100%; aspect-ratio: 4 / 4.5; }
-  }
-</style>
+
+
 <style id="nina-call-viewport-fit">
   /* Keep the animated portrait inside the stage; scroll only the controls when needed. */
   #ninaOverlay .nina-intro { overflow: hidden; }
@@ -454,111 +156,15 @@ body .nina-account-panel .nina-account-signout { border-top-color: #242422; }
     #ninaOverlay .nina-open-live { min-height: 48px; margin-top: 10px; }
   }
 </style>
-<style id="nina-exploration-invitation">
-  .pv-nina-project .n-encounter-invitation { margin-top: 28px; }
-  .pv-nina-project .n-encounter-invitation p { font-size: 16px; color: #bcbcbc; margin-bottom: 20px; }
-  .pv-nina-project .n-encounter-button { min-height: 54px; width: auto; padding: 14px 28px; font: 500 16px/1.4 Inter,Arial,sans-serif; letter-spacing: .035em; }
-  .pv-nina-project .n-encounter-invitation a { display: inline-flex; align-items: center; min-height: 44px; margin: 8px 0 0 20px; color: #ccc; font: 400 14px/1.5 Inter,Arial,sans-serif; text-underline-offset: 5px; }
-  .n-architecture-details { margin-top: 28px; max-width: 780px; }
-  .n-architecture-details summary { cursor: pointer; padding: 16px 0; font: 400 18px/1.5 Inter,Arial,sans-serif; color: #eee; }
-  .n-architecture-details p { font-size: 17px; line-height: 1.7; }
-  .n-architecture-details summary:focus-visible { outline: 1px solid white; outline-offset: 4px; }
-  @media(max-width:700px) { .pv-nina-project .n-encounter-invitation a { display: flex; margin-left: 0; } }
-</style>
 
-<style id="nina-editorial-story">
-.n-hero { padding: 0; border: 0; }
-.n-black-hero { padding: clamp(64px,9vw,138px) 0 clamp(56px,7vw,108px); max-width: 1080px; margin: auto; background: #000; }
-.n-black-hero h1 { margin: 28px 0 30px; font-size: clamp(48px,8.5vw,118px); line-height: 1.1; letter-spacing: .015em; }
-.n-black-hero .n-hero-statement { max-width: 850px; font: 400 clamp(26px,3.4vw,46px)/1.25 Inter,Arial,sans-serif; color: #f2f2ee; text-wrap: balance; }
-.n-hero-context { max-width: 660px; margin: 28px 0 0; font: 400 clamp(17px,1.3vw,19px)/1.75 Inter,Arial,sans-serif; color: #c6c6c6; }
-.n-black-hero .n-hero-actions { gap: 24px; flex-wrap: wrap; width: auto; }
-.n-black-hero .n-hero-discover { position: static; transform: none; font: 400 15px/1.5 Inter,Arial,sans-serif; letter-spacing: 0; text-transform: none; }
-.n-project-entrance { padding-top: 28px; }
-.n-project-entrance h2 { font-size: clamp(30px,3.5vw,48px); }
-.n-label { font-size: 11px; letter-spacing: .14em; color: #999; }
-.n-world-note { margin-bottom: 32px; }
-.n-world-link { display: inline-flex; margin-top: 24px; padding: 12px 0; color: #eee; font-size: 16px; text-decoration: none; border-bottom: 1px solid #777; }
-.n-memory-story { display: grid; grid-template-columns: minmax(0,.85fr) minmax(0,1fr); gap: clamp(32px,6vw,88px); align-items: center; }
-.n-memory-photo { margin: 0; }
-.n-memory-photo img { display: block; width: 100%; height: auto; max-height: 820px; object-fit: cover; }
-.n-memory-story h2,.n-how-section h2 { font: 400 clamp(28px,3.2vw,44px)/1.2 Inter,Arial,sans-serif; letter-spacing: -.02em; margin: 18px 0 26px; text-wrap: balance; }
-.n-memory-layer { margin-top: 24px; padding-top: 20px; border-top: 1px solid #303030; }
-.n-memory-layer h3 { margin: 0 0 10px; font: 500 20px/1.4 Inter,Arial,sans-serif; }
-.n-memory-story .n-memory-note { margin-top: 24px; font-size: 14px; color: #aaa; }
-.n-memory-story .n-memory-question { margin-top: 24px; color: #eee; }
-.n-how-section .n-copy { max-width: 800px; margin: auto; }
-.n-connect { width: 100%; min-height: 420px; margin-top: 48px; }
-.n-connect .n-button { font: 500 16px/1.4 Inter,Arial,sans-serif; letter-spacing: .03em; min-height: 58px; }
-.n-faq-list { margin-left: 0; max-width: 940px; margin-inline: auto; }
-.n-faq-head { display: block; max-width: 940px; margin-inline: auto; }
-.n-faq-head .n-label { margin-bottom: 20px; }
-@media(max-width:700px) {
- .n-black-hero { padding: 54px 0 48px; }
- .n-black-hero h1 { font-size: clamp(36px,10.8vw,66px); }
- .n-black-hero .n-hero-statement { font-size: clamp(25px,6.5vw,36px); }
- .n-black-hero .n-hero-actions { gap: 16px; }
- .n-black-hero .n-button-primary { width: auto; min-width: 190px; }
- .n-project-entrance .n-copy { grid-row: auto; }
- .n-project-entrance .n-who-media { aspect-ratio: 4/4.5; }
- .n-memory-story { grid-template-columns: minmax(0,1fr); gap: 32px; }
- .n-memory-photo img { max-height: 520px; object-position: center 35%; }
- .n-memory-layer h3 { font-size: 19px; }
- .n-connect { min-height: 360px; margin-top: 28px; }
- .n-faq-head,.n-faq-list { width: 100%; }
-}
-</style>
-<style id="nina-concept-editorial">
-.n-concept-entry{padding-block:clamp(40px,5vw,72px)}
-.n-concept-entry .n-copy{max-width:800px;margin-inline:auto;text-align:center}
-.n-concept-entry h2{font-size:clamp(28px,3.5vw,48px);line-height:1.16;text-wrap:balance;margin:0 0 24px}
-.n-concept-entry p{font-size:clamp(17px,1.4vw,19px);line-height:1.7}
-.n-system-block{margin-top:28px}
-.n-system-block h3{font-size:20px;line-height:1.3;margin:0 0 10px;font-weight:500}
-.n-system-block p{margin:0}
-.n-system-closing{margin-top:32px!important}
-@media(max-width:760px){.n-concept-entry{padding-block:36px}.n-system-block{margin-top:22px}}
-</style><style id="nina-desktop-nav-refinement">
-@media(min-width:761px){
-.n-nav .n-nav-transmit{display:none}
-.n-nav #ninaAccountToggle{width:44px;height:44px;min-width:44px;padding:10px}
-.n-nav #ninaAccountToggle svg{width:22px;height:22px}
-}
-</style>
-<style>
-/* Connect memory, construction and world through a shared editorial width. */
-.pv-nina-project .n-how-section { padding-block: clamp(44px,6vw,80px); }
-.pv-nina-project .n-how-section > .n-copy {
-  max-width: none; width: 100%; margin: 0;
-  display: grid; grid-template-columns: minmax(0,.85fr) minmax(0,1fr);
-  column-gap: clamp(32px,6vw,88px); row-gap: 24px;
-}
-.pv-nina-project .n-how-section .n-label { grid-column: 1 / -1; margin: 0; }
-.pv-nina-project .n-how-section h2 { grid-column: 1; margin: 0; max-width: 430px; }
-.pv-nina-project .n-how-section .n-label + h2 + p {
-  grid-column: 2; margin: 0; font-size: clamp(17px,1.3vw,19px); line-height: 1.7;
-}
-.pv-nina-project .n-how-section .n-system-block {
-  margin: 12px 0 0; padding-top: 24px; border-top: 1px solid rgba(255,255,255,.18);
-}
-.pv-nina-project .n-how-section .n-system-block p { font-size: 17px; line-height: 1.7; }
-.pv-nina-project .n-how-section .n-system-closing {
-  grid-column: 1 / -1; max-width: 850px; margin: 12px 0 0 !important;
-  font-size: clamp(19px,1.65vw,23px); line-height: 1.6; color: rgba(255,255,255,.88);
-}
-.pv-nina-project .n-memory-story { align-items: start; }
-.pv-nina-project .n-memory-story .n-memory-question { font-size: 18px; line-height: 1.65; }
-@media(max-width:760px) {
-  .pv-nina-project .n-how-section > .n-copy { grid-template-columns: minmax(0,1fr); row-gap: 20px; }
-  .pv-nina-project .n-how-section h2,
-  .pv-nina-project .n-how-section .n-label + h2 + p { grid-column: 1; }
-  .pv-nina-project .n-how-section .n-system-block { margin-top: 4px; padding-top: 20px; }
-}
-</style>
+
+
+
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;family=Instrument+Serif:ital@0;1&amp;display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./css/nina-project-research.css?v=20261008-edition-1">
+  <link rel="stylesheet" href="./css/nina-project-research.css?v=20261008-edition-02">
 </head>
 <body class="pv-nina-project">
   <a class="skip-link" href="#main-content">Skip to main content</a>
@@ -623,182 +229,210 @@ body .nina-account-panel .nina-account-signout { border-top-color: #242422; }
     </section>
   </div>
 
-  <main class="n-shell" id="main-content">
-    <!-- 00 / Cover -->
+  <main class="nf-edition" id="main-content">
+    <!-- NINA FOK / EDITION 02 / COVER -->
     <header class="n-hero" id="nina">
-      <div class="n-cover-index"><span>Parallel Vision / Ongoing artwork</span><span>Nina FOK / Berlin 2063</span></div>
-      <div class="n-cover-grid">
-        <div class="n-cover-copy">
-          <p class="n-label">A study in identity, memory &amp; presence</p>
-          <h1>Nina <span>FOK</span></h1>
-          <div class="n-cover-summary">
-            <p class="n-cover-deck">A future to live in.<br>A voice to speak from it.</p>
-            <p class="n-hero-statement">She lives in Berlin, 2063. She makes music, has a history, and you can speak with her now.</p>
-            <div class="n-hero-actions n-cover-actions">
-              <button class="n-button n-button-primary" type="button" data-nina-open><span>Talk to Nina</span><span aria-hidden="true">↗</span><small data-nina-trial-offer hidden>3 minutes free</small></button>
-              <a class="n-hero-discover" href="#question">Discover the project ↘</a>
-            </div>
-          </div>
-        </div>
-        <figure class="n-hero-media n-cover-media">
-          <video class="n-hero-asset" id="ninaHeroVideo" data-src="./nina-fok/ninaloophero.mp4" poster="./assets/optimized/nina-fok/HDNINACANON.webp" autoplay muted loop playsinline preload="none" aria-label="Nina FOK seated in her Berlin 2063 space, surrounded by masks" data-optimized-src="./assets/optimized/video/nina-fok/ninaloophero-desktop.mp4" data-mobile-src="./assets/optimized/video/nina-fok/ninaloophero-mobile.mp4"></video>
-          <figcaption><span>Fig. 01 / Nina FOK</span><span>Portrait / Berlin 2063</span></figcaption>
-        </figure>
+      <div class="nf-inner nf-cover-note nf-mono">
+        <span>Parallel Vision / An ongoing artwork</span>
+        <span>Nina FOK · The Berlin 2063 project</span>
       </div>
-      <div class="n-cover-bottom"><span>Parallel Vision · Art / Research / Conversation</span><a href="#question">Read the study ↓</a></div>
+      <figure class="nf-inner nf-cover-photo">
+        <video class="n-hero-asset" id="ninaHeroVideo" data-src="./nina-fok/ninaloophero.mp4" poster="./assets/optimized/nina-fok/HDNINACANON.webp" autoplay muted loop playsinline preload="none" aria-label="Nina FOK in her Berlin 2063 space" data-optimized-src="./assets/optimized/video/nina-fok/ninaloophero-desktop.mp4" data-mobile-src="./assets/optimized/video/nina-fok/ninaloophero-mobile.mp4"></video>
+        <figcaption class="nf-photo-annotation nf-mono"><span>Plate 01 / Nina FOK</span><span>Moving portrait · Parallel Vision</span></figcaption>
+      </figure>
+      <div class="nf-inner nf-masthead">
+        <h1>NINA <em>FOK</em></h1>
+        <div class="nf-masthead-aside">
+          <span class="nf-mono nf-number">A work in progress / 2026</span>
+          <p>She lives in Berlin, 2063.<br>You can speak with her now.</p>
+          <button class="nf-action" type="button" data-nina-open>Talk to Nina <span aria-hidden="true">↗</span><small data-nina-trial-offer hidden>3 minutes free</small></button>
+        </div>
+      </div>
+      <div class="nf-inner nf-cover-base">
+        <p>Biography, voice, memory and an imagined city brought together in an ongoing artwork by Parallel Vision.</p>
+        <a class="nf-link" href="#question">Read the project <span aria-hidden="true">↓</span></a>
+      </div>
     </header>
 
-    <!-- 01 / Premise -->
-    <section class="n-section n-concept-entry" id="question" aria-labelledby="question-title">
-      <div class="n-section-index"><span>01 / The question</span><span>Project statement</span></div>
-      <div class="n-premise-content">
+    <!-- 01 / THE QUESTION -->
+    <section class="nf-thesis nf-inner nf-rule" id="question" aria-labelledby="question-title">
+      <div class="nf-index nf-mono">01 / The question<br>Artistic inquiry</div>
+      <div>
         <h2 id="question-title">What happens when you give an intelligence <em>a future to live in?</em></h2>
-        <p>Nina FOK is an ongoing artwork by Parallel Vision, exploring how identity takes shape through a biography, a world and encounters with others. Berlin 2063 gives her a history. Two layers of memory are designed to allow later encounters to carry something forward from those that came before.</p>
+        <p>Nina FOK is an ongoing artwork by Parallel Vision exploring how identity takes shape through a biography, a world and encounters with others. Berlin 2063 gives her a history. Memory and continuing conversations are part of the conditions through which her identity can develop.</p>
       </div>
     </section>
 
-    <!-- 02 / Subject -->
-    <section class="n-section n-who-section n-project-entrance" aria-labelledby="meet-nina-title">
-      <div class="n-who-grid">
-        <figure class="n-who-media">
-          <video id="ninaPersonalityVideo" autoplay muted loop playsinline preload="none" poster="./assets/optimized/ninamain-page.webp" aria-label="Nina FOK speaking from Berlin 2063">
+    <!-- 02 / THE SUBJECT -->
+    <section class="nf-subject nf-inner" aria-labelledby="meet-nina-title">
+      <div class="nf-chapter-top">
+        <div>
+          <p class="nf-mono">02 / Portrait of an artist</p>
+          <h2 id="meet-nina-title">A life already<br><i>in progress.</i></h2>
+        </div>
+        <span class="nf-mono">Berlin / 2063<br>Subject / Nina FOK</span>
+      </div>
+      <div class="nf-subject-stage">
+        <div class="nf-ghost" aria-hidden="true"><span>N</span><span>F</span></div>
+        <figure class="nf-subject-film">
+          <video id="ninaPersonalityVideo" autoplay muted loop playsinline preload="none" poster="./assets/optimized/ninamain-page.webp" aria-label="Nina FOK speaking">
             <source data-src="./nina-fok/NINATALKNEW.mp4" type="video/mp4">
           </video>
           <button class="n-sound" id="ninaVideoSound" type="button" aria-pressed="false" aria-label="Turn Nina video sound on">Sound On</button>
         </figure>
-        <div class="n-copy">
-          <p class="n-label">02 / The subject</p>
-          <h2 id="meet-nina-title">Meet Nina FOK.</h2>
-          <p>Nina is a DJ, producer and visual artist living in Berlin 2063. Her music, relationships and the everyday life of her city give you a way into her world. She has a biography and a point of view. You can meet her live, and return to continue the conversation.</p>
-          <div class="n-encounter-invitation">
-            <p>Ask about her music, the city, or something from your own life. Her responses unfold in real time; the dialogue is not written in advance.</p>
-            <button class="n-button n-encounter-button" type="button" data-nina-open>Speak with Nina ↗</button>
-            <a href="#study-title">On memory &amp; continuity ↓</a>
+        <span class="nf-subject-stamp nf-mono">Plate 02<br>Voice / Presence</span>
+        <span class="nf-subject-coordinate nf-mono">Unscripted dialogue<br>Real-time encounter</span>
+      </div>
+      <div class="nf-subject-text">
+        <p>Nina is a DJ, producer and visual artist living in Berlin 2063. Her music, relationships and the everyday life of her city are part of the perspective she brings to a conversation.</p>
+        <div class="nf-subject-aside">
+          <p>Ask her about her music, her city or something from your own life. The dialogue unfolds in real time.</p>
+          <button class="nf-action" type="button" data-nina-open>Meet Nina <span aria-hidden="true">↗</span></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 03 / MEMORY AND CONTINUITY -->
+    <section class="nf-memory nf-inner" aria-labelledby="study-title">
+      <div class="nf-memory-title">
+        <span class="nf-index nf-mono">03 / Continuity<br>Memory / Encounter</span>
+        <h2 id="study-title">What remains <em>after you leave?</em></h2>
+      </div>
+      <div class="nf-memory-image-row">
+        <div class="nf-memory-margin">
+          <span class="nf-mono">A private history</span>
+          <p>Not every moment stays. Some moments are carried forward.</p>
+        </div>
+        <figure class="nf-memory-photo">
+          <img src="./assets/optimized/nina-fok/nina-window.webp" alt="Nina FOK behind a scratched window with reflected city lights" width="563" height="1000" loading="lazy" decoding="async">
+          <figcaption class="nf-mono">Plate 03 / Nina, seen through a window</figcaption>
+        </figure>
+      </div>
+      <div class="nf-memory-notes">
+        <article>
+          <span class="nf-mono">Layer 01 / Recollection</span>
+          <h3>What she remembers</h3>
+          <p>Selected details, shared moments and unfinished conversations are kept alongside compact summaries. They are designed to give later encounters something specific to return to.</p>
+        </article>
+        <article>
+          <span class="nf-mono">Layer 02 / Relationship</span>
+          <h3>How familiarity develops</h3>
+          <p>A separate layer uses evidence from completed conversations to track changes in familiarity, trust and comfort. It gives Nina context for how to approach the next encounter.</p>
+        </article>
+      </div>
+      <p class="nf-memory-privacy">These systems are designed to support continuity, not perfect recall. Each signed-in account has its own history. Stored memories can be managed or deleted from account settings.</p>
+    </section>
+
+    <!-- 04 / CONSTRUCTION / RESEARCH NOTES -->
+    <section class="nf-method" aria-labelledby="condition-title">
+      <div class="nf-inner">
+        <div class="nf-method-heading">
+          <span class="nf-mono">04 / Construction<br>Notes on the work</span>
+          <div>
+            <h2 id="condition-title">How Nina <em>takes shape.</em></h2>
+            <p>Multiple models, a written biography, live voice and visual presence, and a two-layer memory architecture come together in Nina. Parallel Vision develops the conditions through which she speaks from Berlin 2063 and carries a history from one encounter to the next.</p>
           </div>
         </div>
+        <div class="nf-method-rows" role="list" aria-label="The components of the Nina FOK artwork">
+          <div class="nf-method-row" role="listitem">
+            <span class="nf-mono">I.</span>
+            <h3>World</h3>
+            <p>Her biography, relationships and the history of Berlin 2063 give each conversation context. They shape the perspective from which she responds.</p>
+          </div>
+          <div class="nf-method-row" role="listitem">
+            <span class="nf-mono">II.</span>
+            <h3>Presence</h3>
+            <p>Language, voice and visual systems work together in real time. Her replies unfold during the encounter. The dialogue is not written in advance.</p>
+          </div>
+          <div class="nf-method-row" role="listitem">
+            <span class="nf-mono">III.</span>
+            <h3>Continuity</h3>
+            <p>Selected details and changes in familiarity can inform a future conversation, making a return encounter different from a first meeting.</p>
+          </div>
+        </div>
+        <p class="nf-method-conclusion">The systems establish the conditions. They do not prescribe every response.</p>
       </div>
     </section>
 
-    <!-- 03 / Memory -->
-    <section class="n-section n-memory-story" aria-labelledby="study-title">
-      <figure class="n-memory-photo">
-        <img src="./assets/optimized/nina-fok/nina-window.webp" alt="Nina FOK behind a scratched window, with reflections of city lights" width="563" height="1000" loading="lazy" decoding="async">
+    <!-- 05 / BERLIN 2063 -->
+    <section class="nf-world" aria-labelledby="berlin-title">
+      <div class="nf-inner nf-world-top">
+        <span class="nf-index nf-mono">05 / The world<br>Parallel Vision archive<br>Active canon</span>
+        <h2 id="berlin-title">Berlin 2063 is the world she knows <em>as the present.</em></h2>
+      </div>
+      <figure class="nf-inner nf-world-image">
+        <img src="./assets/optimized/thecitysuperhd1.webp" alt="The built environment of Parallel Vision's imagined Berlin 2063" width="4500" height="2512" loading="lazy" decoding="async" fetchpriority="low">
+        <figcaption class="nf-mono"><span>World archive / Berlin 2063</span><span>Plate 04 / The city</span></figcaption>
       </figure>
-      <div class="n-copy">
-        <p class="n-label">03 / Memory &amp; continuity</p>
-        <h2 id="study-title">Two layers of memory.<br><i>One evolving history.</i></h2>
-        <p>What you tell Nina can become part of a longer history. Parallel Vision has built two complementary memory layers for signed-in conversations.</p>
-        <div class="n-memory-layer">
-          <h3>01 &nbsp; What she remembers</h3>
-          <p>Selected details, shared moments and unfinished conversations are kept alongside compact summaries. They give later encounters something specific to return to.</p>
-        </div>
-        <div class="n-memory-layer">
-          <h3>02 &nbsp; How familiarity develops</h3>
-          <p>A separate layer is designed to track changes in familiarity, trust and comfort using evidence from completed conversations. It gives Nina context for how to approach the next encounter.</p>
-        </div>
-        <p class="n-memory-note">Memory is selective, not a transcript of everything said. Each signed-in account has its own history, which can be managed or deleted from account settings.</p>
-        <p class="n-memory-question">How does an identity change through repeated encounters?</p>
+      <div class="nf-inner nf-world-caption">
+        <span class="nf-mono">The archive<br>is a world.</span>
+        <p>Its history, culture, technologies and tensions shape how Nina understands the people who enter it. The city is not a backdrop. It is where her point of view begins.</p>
+        <a href="./berlin-2063.html" class="nf-link">Explore Berlin 2063 <span aria-hidden="true">↗</span></a>
       </div>
     </section>
 
-    <!-- 04 / Construction -->
-    <section class="n-section n-how-section" aria-labelledby="condition-title">
-      <div class="n-method-top">
-        <p class="n-section-index"><span>04 / Construction</span><span>Inside the work</span></p>
-        <div>
-          <h2 id="condition-title">How Nina<br><i>takes shape.</i></h2>
-          <p class="n-method-intro">Multiple models, a written biography, live voice and visual presence, and a two-layer memory architecture come together in Nina. Parallel Vision develops the conditions through which she speaks from Berlin 2063 and carries a history from one encounter to the next.</p>
-        </div>
-      </div>
-      <div class="n-method-notes">
-        <div class="n-system-block">
-          <span>01 / World</span>
-          <h3>A world to speak from</h3>
-          <p>Her biography, relationships and the history of Berlin 2063 give each conversation a specific context. They shape the perspective from which she responds.</p>
-        </div>
-        <div class="n-system-block">
-          <span>02 / Presence</span>
-          <h3>A presence that responds</h3>
-          <p>Language, voice and visual systems work together in real time. Her replies unfold during the encounter. The dialogue is not written in advance.</p>
-        </div>
-      </div>
-      <p class="n-system-closing">The systems establish the conditions. They do not prescribe every response. The space between construction and unpredictability is part of the work.</p>
+    <!-- 06 / ON THE ENCOUNTER -->
+    <section class="nf-inner nf-interlude">
+      <span class="nf-mono">06 / An open question</span>
+      <blockquote>The space between construction and <em>unpredictability</em> is part of the artwork.</blockquote>
+      <p>Every conversation happens inside Nina's world, but no one writes out the entire exchange beforehand. What takes place between the visitor and Nina is part of the work.</p>
     </section>
 
-    <!-- 05 / World -->
-    <section class="n-section n-world-section" aria-labelledby="berlin-title">
-      <div class="n-berlin-head">
-        <div class="n-archive-id" aria-label="Berlin 2063 world archive">
-          <strong>05 / Her world</strong>
-          <span>Parallel Vision Archive</span>
-          <span>Berlin / 2063</span>
-        </div>
-        <div class="n-copy n-copy-wide">
-          <h2 id="berlin-title">Berlin 2063 is the world Nina knows <em>as the present.</em></h2>
-          <p>Its history, culture, technologies and tensions shape how she understands the people who enter it. The city is not a backdrop. It is where her point of view begins.</p>
-        </div>
-      </div>
-      <figure class="n-editorial-image n-world">
-        <img src="./assets/optimized/thecitysuperhd1.webp" alt="Parallel Vision's imagined Berlin 2063, with a dense vertical city and surviving historic architecture" decoding="async" loading="lazy" fetchpriority="low" width="4500" height="2512">
+    <!-- 07 / TALK TO NINA -->
+    <section class="nf-transmit" id="transmit" aria-labelledby="transmit-title">
+      <figure class="nf-transmit-media">
+        <video class="n-connect-video" id="ninaConnectVideo" data-src="./nina-fok/ninaloophero.mp4" poster="./assets/optimized/nina-fok/HDNINACANON.webp" autoplay muted loop playsinline preload="none" aria-hidden="true" data-optimized-src="./assets/optimized/video/nina-fok/ninaloophero-desktop.mp4" data-mobile-src="./assets/optimized/video/nina-fok/ninaloophero-mobile.mp4"></video>
       </figure>
-      <div class="n-world-note">
-        <div class="n-archive-id"><strong>World condition</strong><span>Berlin / 2063</span><span>Subject / Nina FOK</span></div>
-        <p>Nina is a DJ, producer and visual artist living in this imagined future. Her music, relationships and everyday life are part of the world you encounter through her.</p>
-        <a class="n-world-link" href="./berlin-2063.html">Explore Berlin 2063 ↗</a>
+      <div class="nf-transmit-copy">
+        <p class="nf-mono">07 / Live encounter</p>
+        <h2 id="transmit-title">Enter her<br><i>present.</i></h2>
+        <p>There is a way into Berlin 2063 that begins with a conversation. Tell her something, ask a question, or simply spend time with her.</p>
+        <p data-nina-trial-offer hidden>New accounts begin with 3 minutes free.</p>
+        <button class="nf-action nf-action--light" type="button" data-nina-open>Talk to Nina <span aria-hidden="true">↗</span></button>
       </div>
     </section>
 
-    <!-- 06 / Encounter -->
-    <section class="n-connect" id="transmit" aria-labelledby="transmit-title">
-      <video class="n-connect-video" id="ninaConnectVideo" data-src="./nina-fok/ninaloophero.mp4" poster="./assets/optimized/nina-fok/HDNINACANON.webp" autoplay muted loop playsinline preload="none" aria-hidden="true" data-optimized-src="./assets/optimized/video/nina-fok/ninaloophero-desktop.mp4" data-mobile-src="./assets/optimized/video/nina-fok/ninaloophero-mobile.mp4"></video>
-      <div class="n-connect-content">
-        <p class="n-label">06 / The encounter</p>
-        <h2 id="transmit-title">The work continues<br><i>when you speak.</i></h2>
-        <p class="n-connect-description">You can meet Nina now. Ask her a question, tell her something, or simply spend a little time with her in Berlin 2063.</p>
-        <p class="n-connect-note" data-nina-trial-offer hidden>3 minutes free with a new account</p>
-        <button class="n-button" type="button" data-nina-open>Begin a conversation ↗</button>
-      </div>
-    </section>
-
-    <!-- 07 / Reader's notes -->
-    <section class="n-faq" aria-labelledby="faq-title">
-      <div class="n-faq-head">
-        <p class="n-label">07 / Reader's notes</p>
-        <h2 id="faq-title">A few details.</h2>
-      </div>
-      <div class="n-faq-list">
-        <details name="nina-faq">
-          <summary>Who is Nina FOK?</summary>
-          <div class="n-faq-answer"><p>Nina FOK is a DJ, producer and visual artist from Parallel Vision's Berlin 2063. As an artwork, her presence is developed through a written biography, generative systems, live voice and visual technology, and memory.</p></div>
-        </details>
-        <details name="nina-faq">
-          <summary>Is Nina scripted?</summary>
-          <div class="n-faq-answer"><p>Not in the traditional sense. Parallel Vision establishes Nina's world, history and continuity, but individual conversations are not written in advance. Her responses emerge in real time, informed by the context available to her.</p></div>
-        </details>
-        <details name="nina-faq">
-          <summary>Does Nina remember me?</summary>
-          <div class="n-faq-answer"><p>With an account, Nina's memory system can retain selected details and summaries from previous conversations. It does not store or recall every detail, and each account's history remains separate.</p></div>
-        </details>
-        <details name="nina-faq">
-          <summary>Why Berlin 2063?</summary>
-          <div class="n-faq-answer"><p>2063 is the present Nina understands. Parallel Vision has built an imagined Berlin through music, film, fashion, architecture and world archives. Nina is one part of that world you can speak to directly.</p></div>
-        </details>
-        <details name="nina-faq" data-nina-trial-offer hidden>
-          <summary>Can I meet Nina for free?</summary>
-          <div class="n-faq-answer"><p>Yes. Every new verified account begins with 3 minutes of Live Nina.</p></div>
-        </details>
-        <details name="nina-faq">
-          <summary>What are Signal Credits?</summary>
-          <div class="n-faq-answer"><p>Signal Credits support the real-time voice, language and visual systems used by Live Nina. These systems incur costs while a conversation is open. Ten Signal Credits currently provide one minute of live conversation.</p></div>
-        </details>
-        <details name="nina-faq">
-          <summary>What happens when a conversation ends?</summary>
-          <div class="n-faq-answer"><p>Selected context can be saved to your private account history, giving later conversations a way to pick up parts of what you shared.</p></div>
-        </details>
-        <details name="nina-faq">
-          <summary>Can I delete what Nina remembers?</summary>
-          <div class="n-faq-answer"><p>Yes. You can manage or delete Nina's stored memory, or delete your account and associated data from account settings.</p></div>
-        </details>
+    <!-- 08 / READER NOTES -->
+    <section class="nf-notes nf-inner" aria-labelledby="faq-title">
+      <div class="nf-notes-layout">
+        <div class="nf-notes-heading">
+          <p class="nf-mono">08 / Reader's notes</p>
+          <h2 id="faq-title">A few details.</h2>
+        </div>
+        <div class="nf-notes-list">
+          <details name="nina-faq">
+            <summary>Who is Nina FOK?</summary>
+            <p>Nina FOK is a DJ, producer and visual artist in Parallel Vision's Berlin 2063. The artistic system behind her uses generative models, a written biography, real-time visual and voice systems, and a custom memory architecture.</p>
+          </details>
+          <details name="nina-faq">
+            <summary>Is her dialogue scripted?</summary>
+            <p>No individual conversations are written in advance. Parallel Vision establishes Nina's world, history, personality and continuity. Her responses unfold in real time within those conditions.</p>
+          </details>
+          <details name="nina-faq">
+            <summary>Does Nina remember me?</summary>
+            <p>With an account, Nina's system can retain selected details and summaries for later conversations. Memory is selective and does not guarantee recall of everything said. Each account has a separate history.</p>
+          </details>
+          <details name="nina-faq">
+            <summary>Why 2063?</summary>
+            <p>Berlin 2063 is the imagined future Nina understands as her present. Parallel Vision has built that world through music, film, fashion, architecture and its world archive. Nina offers a way to encounter it directly.</p>
+          </details>
+          <details name="nina-faq" data-nina-trial-offer hidden>
+            <summary>Can I speak with Nina for free?</summary>
+            <p>Every new verified account begins with three minutes of Live Nina.</p>
+          </details>
+          <details name="nina-faq">
+            <summary>What are Signal Credits?</summary>
+            <p>Live Nina uses language, voice and visual systems that incur costs while active. Signal Credits support these real-time systems. Ten credits provide one minute of live conversation.</p>
+          </details>
+          <details name="nina-faq">
+            <summary>What happens after a call?</summary>
+            <p>Selected context can become part of your account's history, allowing subsequent conversations to return to earlier moments without promising perfect recall.</p>
+          </details>
+          <details name="nina-faq">
+            <summary>Can I delete her memories of me?</summary>
+            <p>You can manage or delete stored memories, or delete your account and associated data, through your account settings.</p>
+          </details>
+        </div>
       </div>
     </section>
   </main>
