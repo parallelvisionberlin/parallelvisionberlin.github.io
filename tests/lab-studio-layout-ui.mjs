@@ -124,6 +124,12 @@ try{
 
   assert.ok(d.generate.top>=d.panel.top,'Generate remains visible without scrolling the form');
   assert.equal(d.scrollMode,'auto','Video creation controls may scroll separately if a chosen model has extra settings');
+  const videoTypography=await x.page.locator('#prompt').evaluate(el=>{
+    const style=getComputedStyle(el);
+    return {size:parseFloat(style.fontSize),family:style.fontFamily,color:style.color};
+  });
+  assert.ok(videoTypography.size>=14,'Video motion prompt is readable at desktop size');
+  assert.match(videoTypography.family,/DM Sans/,'PV Lab uses its own editorial UI typography');
   assert.ok(d.stage.height<=741&&d.canvas.height<650,'Preview never exceeds viewport cap');
   assert.ok(d.modes.top-d.model.bottom<20,'Start/reference buttons directly follow model info');
   assert.equal(d.explanationCollapsed,true);
@@ -194,6 +200,14 @@ try{
   await imageChooser.setFiles({name:'reference-photo.png',mimeType:'image/png',buffer:Buffer.from(referencePng,'base64')});
   await x.page.waitForFunction(()=>document.querySelectorAll('#image-composer-references .composer-reference-tile').length===1);
   assert.equal(await x.page.locator('.composer-reference-tile img').count(),1,'Reference thumbnail lives inside floating bar');
+  assert.equal(await x.page.locator('.composer-reference-index').innerText(),'1');
+  const inlineGeometry=await x.page.evaluate(()=>{
+    const ref=document.querySelector('.composer-reference-tile').getBoundingClientRect();
+    const prompt=document.querySelector('#image-composer-prompt').getBoundingClientRect();
+    return {refLeft:ref.left,refWidth:ref.width,promptLeft:prompt.left};
+  });
+  assert.ok(inlineGeometry.refLeft+inlineGeometry.refWidth<inlineGeometry.promptLeft,
+    'Higgsfield-like reference thumbnail sits to the left of the prompt in one composer');
   await x.page.screenshot({path:'test-results/lab-image-inline-reference.png',fullPage:false});
   await x.page.click('.composer-reference-remove');
   await x.page.waitForFunction(()=>document.querySelectorAll('.composer-reference-tile').length===0);
@@ -201,6 +215,11 @@ try{
   await x.page.locator('#image-composer-prompt').fill('A sculptural, atmospheric photographic still.');
   assert.equal(await x.page.locator('#prompt').inputValue(),'A sculptural, atmospheric photographic still.','Prompt is synchronized with real Image form');
   assert.equal(await x.page.locator('#image-composer-generate').isDisabled(),false,'Image generation button enables from floating prompt');
+  const generateUi=await x.page.locator('#image-composer-generate').evaluate(el=>{
+    const css=getComputedStyle(el);return {color:css.color,background:css.backgroundImage,font:css.fontFamily,weight:css.fontWeight};
+  });
+  assert.equal(generateUi.color,'rgb(251, 252, 254)','Image Generate displays white text on velvet-black background');
+  assert.ok(generateUi.background.includes('linear-gradient'),'Image Generate has a restrained dark surface');
   await x.page.selectOption('#image-composer-ratio','16:9');
   assert.equal(await x.page.locator('#ratio').inputValue(),'16:9','Floating aspect ratio updates backend settings');
   await x.page.click('#image-composer-more');
@@ -271,7 +290,10 @@ try{
   assert.equal(await bootPage.locator('#lab-boot').isVisible(),true,'Brand loading appears before external JS');
   assert.equal(await bootPage.locator('#gate').isVisible(),false,'No half-loaded sign-in page');
   assert.match(await bootPage.locator('#lab-boot-name').innerText(),/PARALLEL VISION/);
-  assert.equal(await bootPage.locator('#lab-boot img').count(),0,'Boot screen uses text and CSS only, never an icon placeholder');
+  const loaderLogo=bootPage.locator('#lab-boot-wordmark');
+  await bootPage.waitForFunction(()=>document.getElementById('lab-boot-wordmark')?.classList.contains('is-ready'),{timeout:8000});
+  assert.ok(await loaderLogo.evaluate(img=>img.complete&&img.naturalWidth>0),'Original PV wordmark loads while Lab module is still pending');
+  assert.equal(await loaderLogo.isVisible(),true,'Brand image is visibly rendered on loading screen');
   const loadingCdp=await bootContext.newCDPSession(bootPage);
   const loadingCapture=await loadingCdp.send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false,fromSurface:true});
   writeFileSync('test-results/lab-branded-loading.png',Buffer.from(loadingCapture.data,'base64'));
