@@ -511,3 +511,25 @@ header .actions .eyebrow {font-size:9px}
 
 /* Keep the video editor fully within typical desktop viewports. */
 @media(min-width:821px){.stage{height:min(740px,calc(100dvh - 148px))}}
+
+/* Monochrome studio controls and dense model-to-mode flow. */
+:root{--accent:#d9d5ce;--accent-2:#f4f1ec}
+.controls #video-model-note{margin:5px 0 8px!important;line-height:1.4!important;color:#85838a}
+.controls #video-model-control{margin-bottom:0!important;padding-bottom:0!important}
+.controls #video-modes{margin:0 0 13px!important;gap:0}
+.controls .mode-switch{border-color:#38373b;background:#101013}
+.controls .mode-tab{min-height:40px;border-color:#35343a!important;color:#a4a1a5}
+.controls .mode-tab.active,.controls .mode-tab[aria-selected="true"]{background:#e6e2dc!important;color:#111113!important;box-shadow:none!important;border-color:#e6e2dc!important}
+.controls .mode-tab:hover:not(.active){background:#242326}
+.controls .mode-tab:focus-visible,.controls select:focus-visible{outline:2px solid #dfdbd5!important;outline-offset:2px}
+.engine-pill{background:#1a191b!important;border-color:#3a383c!important;color:#d0ccc6!important}
+.soul-launch{border-color:#333136!important;background:#121214!important}
+.reference-guidance,.controlled-pose-settings,.soul-controls{border-color:#36343a}
+.generate-button,.primary{background:#e6e2dc;color:#121214;border-color:#e6e2dc}
+.generate-button:hover,.primary:hover{background:#fff;color:#121214;border-color:#fff}
+.controls input:focus,.controls textarea:focus,.controls select:focus{border-color:#b9b4ad!important;box-shadow:0 0 0 2px rgba(217,213,206,.08)!important}
+.history-select-box input{accent-color:#d9d5ce!important}
+#history.is-selecting .card.is-selected,#history.is-selecting .card[data-deletable="true"]:has(.history-select-box input:checked){border-color:#d9d5ce!important;outline-color:#d9d5ce!important}
+.soul-pro-pack-item:has(input:checked){outline-color:#d9d5ce!important}
+.quote-price{color:#e6e2dc}
+@media(max-width:560px){.controls #video-model-note{margin-bottom:7px!important}}
