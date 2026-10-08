@@ -27,14 +27,14 @@ const root=path.resolve(__dirname,'..'),out='/tmp/site05-preview',evidence='/tmp
       await page.screenshot({path:path.join(evidence,`${name}-${width}-${tab}.png`)});
       assert.deepEqual(problems,[],`${name} ${tab} JavaScript errors`);
       assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,`${name} ${tab} horizontal overflow`);
-      if(tab==='HOME'){assert.ok(await page.locator('img').count()>=4,'Home includes visible hero still and three entries');}
+      if(tab==='HOME'){assert.ok(await page.locator('img').count()>=4,'Home has original archive art and three entry images');if(width===390){const target=await page.getByRole('button',{name:'NINA FOK'}).boundingBox();assert.ok(target&&target.y<height-80,'Nina entry visible in first mobile viewport');}}
       await page.screenshot({path:path.join(evidence,`${name}-${width}-${tab}.png`)});
-      if(tab==='NINA'){assert.ok(await page.locator('img').count()>0,'Nina canonical image loaded');}if(tab==='PROFILE'){await page.getByTestId('account-profile').click();await page.getByLabel('PREFERRED NAME',{exact:true}).fill('Visitor');await page.getByTestId('SAVE PROFILE').click();await page.getByText('Profile saved.',{exact:true}).waitFor();}
+      if(tab==='NINA'){const info=await page.evaluate(()=>{const holder=document.querySelector('[data-testid="nina-image"]');if(!holder)return null;const el=holder.tagName==='IMG'?holder:holder.querySelector('img');const box=holder.getBoundingClientRect();return {loaded:!!el&&el.complete&&el.naturalWidth>0,ratio:box.width/box.height}});assert.ok(info&&info.loaded,'Nina original must be loaded');assert.ok(Math.abs(info.ratio-(512/288))<.12,'Nina full photo must keep original aspect ratio');}if(tab==='PROFILE'){await page.getByTestId('account-profile').click();await page.getByLabel('PREFERRED NAME',{exact:true}).fill('Visitor');await page.getByTestId('SAVE PROFILE').click();await page.getByText('Profile saved.',{exact:true}).waitFor();}
      }
      assert.deepEqual(problems,[],`${name} JavaScript errors`);await page.close();
     }
    }finally{await browser.close();}
   }
-  console.log('PASS: 20 rendered-screen checks; original Home still and approved Nina portrait render in Google Chrome and WebKit; no horizontal overflow at 320 and 390px; profile saving uses fixtures. Native iPhone rendering and live audio still require device verification.');
+  console.log('PASS: 20 rendered-screen checks; curated Home panorama and uncropped canonical Nina portrait render in Google Chrome and WebKit; no horizontal overflow at 320 and 390px; profile saving uses fixtures. Native iPhone rendering and live audio still require device verification.');
  }finally{server.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});
