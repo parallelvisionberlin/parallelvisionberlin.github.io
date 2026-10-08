@@ -323,3 +323,19 @@ details.image-detail-card dl{margin:12px 0 0}
 @media(prefers-reduced-motion:reduce){
   .image-detail-arrow,#image-composer .composer-generate{transition:none!important}
 }
+/* Warm primary action for the dark Lab workspace. */
+#image-composer .composer-generate:not(:disabled),
+#app .generate-zone .generate-button:not(:disabled),
+#app.video-studio-active .workspace.video-layout .generate-button:not(:disabled){
+  background:#edb85d!important;border-color:#edb85d!important;color:#18140e!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.25),0 4px 18px rgba(237,184,93,.14);
+}
+#image-composer .composer-generate:hover:not(:disabled),
+#app .generate-zone .generate-button:hover:not(:disabled),
+#app.video-studio-active .workspace.video-layout .generate-button:hover:not(:disabled){
+  background:#ffd18a!important;border-color:#ffd18a!important;color:#18140e!important;
+}
+#image-composer .composer-generate:focus-visible,
+#app .generate-zone .generate-button:focus-visible{
+  outline:2px solid #ffe1af!important;outline-offset:3px;
+}
