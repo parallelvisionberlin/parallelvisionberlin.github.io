@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="./history.css?v=20260927-2">
 <link rel="stylesheet" href="./seedance.css?v=20260927-standard1">
 <link rel="stylesheet" href="./soul.css?v=20260930-soul-v02">
-<link rel="stylesheet" href="./studio.css?v=20261008-monochrome-v7">
+<link rel="stylesheet" href="./studio.css?v=20261008-studio-rebuild-v2">
 <script type="module" src="./lab.js?v=20261007-workspace-flow6"></script>
 </head>
 <body>
@@ -19,11 +19,12 @@
 <section id="gate" class="gate"><div class="intro"><div><p class="eyebrow">Private creative workspace</p><h1>Parallel Vision Lab</h1></div><p class="intro-note">Create, queue and refine.<br>Keep working while jobs run.</p></div><p class="eyebrow">Owner access</p><h2>Your private image and motion studio.</h2><p id="auth-status" role="status">Loading your Parallel Vision sign-in…</p><button id="signin" class="primary" disabled>Sign in</button><p class="fine">Use the same owner account as Nina. No new subscription.</p></section>
 <div id="app" hidden>
 <div class="connection-strip" hidden><span id="connection-status">Checking connection…</span><button class="text-button" id="setup">Manage connection</button></div>
-<nav class="tool-switch" aria-label="Creative tool"><button id="tool-video" class="tool-tab active" type="button" aria-pressed="true">Video <small>Wan / Seedance / H3 / Gemini</small></button><button id="tool-image" class="tool-tab" type="button" aria-pressed="false">Image <small>Seedream / Nano / Soul / Pose</small></button><button id="tool-upscale" class="tool-tab" type="button" aria-pressed="false">Upscale <small>Image Upscaler</small></button></nav>
+<nav class="tool-switch" aria-label="Creative tools"><div class="tool-group"><button id="tool-video" class="tool-tab active" type="button" aria-pressed="true">Video</button><button id="tool-image" class="tool-tab" type="button" aria-pressed="false">Image</button><button id="tool-upscale" class="tool-tab" type="button" aria-pressed="false">Upscale</button></div><span class="tool-caption">PARALLEL VISION / STUDIO</span></nav>
 <div class="workspace">
-<section class="controls" aria-label="Image to video settings">
+<section class="controls" aria-label="Generation settings">
+<div class="controls-body">
 <div class="mode"><span id="mode-heading">01 / Image to Video</span><span class="engine-pill" id="engine-name">WAN 3.0</span><label id="image-model-control" class="mode-model-control" hidden><span class="label">Image model</span><select id="image-engine"><option value="seedream" selected>Seedream 5 Pro</option><option value="gemini">Nano Banana Pro</option><option value="soulpro">PV Soul Pro · Nina Reinterpret</option><option value="soul">PV Soul · Text</option><option value="fal">Controlled Pose · FAL FLUX</option></select></label></div>
-<div id="video-model-control"><label><span class="label">Video model</span><select id="video-engine"><option value="wan">Wan 3.0</option><option value="wanprime">Wan 3.0 Prime</option><option value="h3">MiniMax H3</option><option value="h3max">MiniMax H3 Max</option><option value="h3spicy">MiniMax H3 Spicy</option><option value="h3maxfal">MiniMax H3 Max Reference · FAL</option><option value="omni">Gemini Omni Flash 1.1 · FAL</option><option value="seedance">Seedance 2.5</option></select></label><p id="video-model-note" class="fine">Standard model access. Provider policies and model refusals apply. No automatic model switching.</p></div>
+<div id="video-model-control"><label><span class="label">Video model</span><select id="video-engine"><option value="wan">Wan 3.0</option><option value="wanprime">Wan 3.0 Prime</option><option value="h3">MiniMax H3</option><option value="h3max">MiniMax H3 Max</option><option value="h3spicy">MiniMax H3 Spicy</option><option value="h3maxfal">MiniMax H3 Max Reference · FAL</option><option value="omni">Gemini Omni Flash 1.1 · FAL</option><option value="seedance">Seedance 2.5</option></select></label><details class="model-details"><summary>About this model</summary><p id="video-model-note" class="fine">Standard model access. Provider policies and model refusals apply. No automatic model switching.</p></details></div>
 <div id="video-modes" class="mode-switch" role="tablist" aria-label="Generation mode">
 <button id="mode-text" class="mode-tab" type="button" role="tab" aria-selected="false" hidden>Text to Video</button>
 <button id="mode-start" class="mode-tab active" type="button" role="tab" aria-selected="true">Start frame</button>
@@ -114,7 +115,7 @@
 <div class="parameter-grid">
 <label id="duration-control"><span class="label">Duration</span><select id="duration"><option value="5">5 sec</option><option value="10">10 sec</option><option value="15" selected>15 sec</option><option value="30">30 sec</option></select></label>
 
-<label id="image-processing-control" hidden><span class="label">Processing</span><select id="image-processing"><option value="normal" selected>⚡ Normal</option><option value="batch">🕒 Batch · 50% cheaper</option></select></label>
+<label id="image-processing-control" hidden><span class="label">Processing</span><select id="image-processing"><option value="normal" selected>Standard</option><option value="batch">Batch · 50% lower rate</option></select></label>
 <label id="image-count-control" hidden><span class="label">Number of images</span><select id="image-count"><option value="1" selected>1 image</option><option value="2">2 images</option><option value="3">3 images</option><option value="4">4 images</option></select></label>
 <label id="resolution-control"><span class="label">Resolution</span><select id="resolution"><option value="480p">480p</option><option value="720p">720p</option><option value="1080p" selected>1080p</option></select></label>
 <label id="upscale-scale-control" hidden><span class="label">Enlargement</span><select id="upscale-scale"><option value="2">2× width and height</option><option value="4">4× width and height</option></select></label>
@@ -125,6 +126,7 @@
 <label class="switch-row" for="audio"><span><strong>Generate audio</strong><small>Native sound follows the shot</small></span><span class="switch"><input id="audio" type="checkbox" checked><i></i></span></label>
 <details class="seed-settings"><summary>Seed</summary><label><span class="label">Optional seed</span><input id="seed" type="number" min="0" max="2147483647" placeholder="Random"></label></details>
 </div>
+</div>
 <div class="generate-zone">
 <div id="upscale-price" class="upscale-price" hidden><button id="upscale-check-price" class="quiet" type="button" disabled>Check live price</button><span id="upscale-price-help" class="fine">Optional · no generation charge</span><p id="upscale-price-status" class="fine" role="status">Check the price for this image before upscaling, or use Upscale directly.</p></div>
 <button id="generate" class="primary generate-button full" disabled>Review price &amp; generate</button>
@@ -132,7 +134,7 @@
 <p id="generation-help" class="fine">Images and Upscale start on click at the live provider price. Video keeps price review. Inputs over 10 MiB need a working copy for the image provider; the Lab asks first and keeps the original. Saving history is free of generation charges.</p>
 </div>
 </section>
-<section class="stage" aria-label="Media preview"><div class="stagehead"><span class="eyebrow" id="preview-label">Source / preview</span><button class="quiet" id="clear" disabled>Clear</button></div><div class="canvas"><div id="empty" class="empty"><div class="frame" aria-hidden="true"></div><p>Start with your own frame.</p><small>Your source and result appear here.</small></div><img id="preview" alt="Selected source image" hidden><video id="video" controls playsinline preload="metadata" hidden></video></div><div class="stagefoot"><span id="settings-summary">15 seconds / 1080p</span><button id="download" class="quiet" hidden>Download result</button></div></section>
+<section class="stage" aria-label="Media preview"><div class="stagehead"><span class="eyebrow" id="preview-label">Source / preview</span><button class="quiet" id="clear" disabled>Clear</button></div><div class="canvas"><div id="empty" class="empty"><div class="frame" aria-hidden="true"></div><p>Start with your own frame.</p><small>Your source and result appear here.</small><button id="canvas-import" type="button" class="canvas-import">Add an image <span aria-hidden="true">↗</span></button></div><img id="preview" alt="Selected source image" hidden><video id="video" controls playsinline preload="metadata" hidden></video></div><div class="stagefoot"><span id="settings-summary">15 seconds / 1080p</span><button id="download" class="quiet" hidden>Download result</button></div></section>
 </div>
 <div id="soul-launch" class="soul-launch" hidden>
 <div><span class="eyebrow">PV Soul</span><strong id="soul-launch-title">Train a reusable character</strong><small id="soul-launch-note">FAL training is ready. Train from 20–80 photos, then use the character in Image.</small></div>
