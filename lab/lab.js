@@ -929,6 +929,12 @@ async function openVideo(job,{scroll=true}={}){
   else{$('video').src=resultUrl;$('video').hidden=false;$('preview').hidden=true;}
   $('empty').hidden=true;$('download').hidden=false;$('download').textContent='Download '+kind+' / '+ext.toUpperCase();
   $('preview-label').textContent='Generated result / '+(kind==='image'?'Image':job.settings.duration+'s');update();
+  if(tool==='image'&&kind==='image'){
+    $('image-lightbox-img').src=resultUrl;
+    $('image-lightbox-title').textContent='IMAGE RESULT / '+ext.toUpperCase();
+    if(!$('image-lightbox').open)$('image-lightbox').showModal();
+    return;
+  }
   if(scroll)document.querySelector('.stage').scrollIntoView({behavior:'smooth',block:'center'});
 }
 function saveDownload(url,id,ext){const a=document.createElement('a');a.href=url;a.download='parallel-vision-'+id+'.'+ext;document.body.append(a);a.click();a.remove();}
@@ -942,6 +948,10 @@ async function downloadJob(job){
   setTimeout(()=>{release(url);downloadUrls.delete(url);},30000);
 }
 $('download').onclick=downloadResult;
+$('image-lightbox-close').onclick=()=>$('image-lightbox').close();
+$('image-lightbox-download').onclick=downloadResult;
+$('image-lightbox').addEventListener('close',()=>{$('image-lightbox-img').removeAttribute('src');});
+
 
 
 function redrawRepairCanvas(){
