@@ -1,3 +1,4 @@
+async function imageAdvanced(page){await page.click('#tool-image');const open=await page.locator('#app').evaluate(el=>el.classList.contains('image-settings-open'));if(!open)await page.click('#image-composer-more');}
 // Mock-only browser verification. No real credentials, private media or paid generations.
 import assert from 'node:assert/strict';
 import http from 'node:http';
@@ -65,8 +66,8 @@ async function workspace({failure='',width=1440,initial=[],quoteDelay=0,adapterR
 }
 const count=(x,path,method='POST')=>x.requests.filter(r=>r.path===path&&r.method===method).length;
 const ready=page=>page.waitForFunction(()=>!document.querySelector('#resolution').disabled);
-async function imageForm(x){await x.page.click('#tool-image');await x.page.fill('#prompt',settings.prompt);await x.page.selectOption('#resolution','2k');await x.page.selectOption('#ratio','16:9');await x.page.selectOption('#output-format','png');}
-async function soulForm(x){await x.page.click('#tool-image');await x.page.selectOption('#image-engine','soul');}
+async function imageForm(x){await imageAdvanced(x.page);await x.page.fill('#prompt',settings.prompt);await x.page.selectOption('#resolution','2k');await x.page.selectOption('#ratio','16:9');await x.page.selectOption('#output-format','png');}
+async function soulForm(x){await imageAdvanced(x.page);await x.page.selectOption('#image-engine','soul');}
 async function reForm(x){await soulForm(x);await x.page.evaluate(()=>document.querySelector('#soul-mode-reinterpret').click());}
 async function baseImage(x){await x.page.locator('#soul-base-image').setInputFiles({name:'base.png',mimeType:'image/png',buffer:png});await ready(x.page);}
 try{
