@@ -987,6 +987,14 @@ async function poll(){
   finally{if(startedEpoch===epoch){polling=false;schedulePoll();}}
 }
 $('resolve').onclick=()=>action(async()=>{const interrupted=activeJobs.find(j=>j.status==='uncertain');if(!interrupted||!confirm('First check the provider console and its charges. This clears only the interrupted request without sending another generation. Continue only after checking.'))return;await api('/api/jobs/'+interrupted.id+'/resolve',{method:'POST',body:{confirm:true}});await syncHistory();});
+/* The queue is a small navigation popover, not a persistent bottom status slab. */
+document.addEventListener('pointerdown',event=>{
+  const queue=$('active');
+  if(queue?.open&&!queue.contains(event.target))queue.open=false;
+});
+document.addEventListener('keydown',event=>{
+  if(event.key==='Escape'&&$('active')?.open)$('active').open=false;
+});
 function button(text,fn){const b=document.createElement('button');b.className='quiet';b.textContent=text;b.onclick=()=>action(fn);return b;}
 async function assetFile(id,name='source'){const blob=await api('/api/assets/'+id,{blob:true}),ext=({'image/jpeg':'jpg','video/quicktime':'mov','audio/mpeg':'mp3','audio/x-wav':'wav'})[blob.type]||blob.type.split('/')[1];return new File([blob],name+'.'+ext,{type:blob.type});}
 async function restore(job){
