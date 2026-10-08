@@ -306,7 +306,7 @@ textarea:focus,select:focus,input:not([type=checkbox]):not([type=file]):focus {
 /* Minimal creative canvas: calm, neutral, and deliberately unbranded */
 .stage {
  display:grid;grid-template-rows:44px minmax(0,1fr) 42px;position:sticky;top:67px;align-self:start;
- min-width:0;width:100%;height:clamp(530px,calc(100dvh - 91px),740px);min-height:0;
+ min-width:0;width:100%;height:clamp(530px,calc(100dvh - 91px),734px);min-height:0;
  overflow:hidden;background:#111216;border:0;border-radius:0 11px 11px 0;
 }
 .stage:before {display:none}
