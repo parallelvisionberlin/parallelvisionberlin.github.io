@@ -1191,6 +1191,13 @@ const observer=new IntersectionObserver(entries=>{
     }).catch(()=>{
       if(!owner||rev!==historyRevision||!img.isConnected)return;
       img.alt=img.dataset.result==='true'?'Generated preview unavailable. Use View image or Download image to retry.':'Uploaded reference preview unavailable.';
+      const figure=img.closest('.history-media');if(figure){
+        figure.classList.add('is-unavailable');
+        if(!figure.querySelector('.history-preview-unavailable')){
+          const fallback=document.createElement('span');fallback.className='history-preview-unavailable';
+          fallback.textContent='Preview unavailable';figure.append(fallback);
+        }
+      }
       const caption=img.parentElement?.querySelector('figcaption');if(caption)caption.textContent=img.alt;
     });
   }
@@ -1198,6 +1205,9 @@ const observer=new IntersectionObserver(entries=>{
 function historyImage(assetId,label,isResult=false){
   const figure=document.createElement('figure');figure.className='history-media'+(isResult?' is-result':'');
   const img=document.createElement('img');img.alt=label;img.dataset.asset=assetId;img.dataset.result=String(isResult);img.loading='lazy';
+  img.classList.add('history-asset-loading');
+  img.onload=()=>{img.classList.remove('history-asset-loading');figure.classList.add('has-image');};
+  img.onerror=()=>{img.classList.add('history-asset-loading');figure.classList.add('is-unavailable');};
   const caption=document.createElement('figcaption');caption.textContent=label;figure.append(img,caption);return {figure,img};
 }
 function historyFingerprint(j){return JSON.stringify([j.status,j.outputId||'',j.providerTaskId||'',j.error||'',j.estimatedUsd??null,j.settledUsd??null,j.updatedAt||'',j.settings]);}
