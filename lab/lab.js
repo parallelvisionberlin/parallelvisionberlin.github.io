@@ -307,6 +307,10 @@ $('image-composer-model').onclick=()=>{
   if(imageMenuOpen){$('image-composer-model-search').value='';populateImageModelMenu();$('image-composer-model-search').focus();}
 };
 $('image-composer-model-search').oninput=()=>populateImageModelMenu($('image-composer-model-search').value);
+$('image-composer-train').onclick=()=>{
+  closeImageModelMenu();
+  if(!busy)$('soul-launch-manage').click();
+};
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'){closeImageModelMenu();toggleImageSettings(false);}
 });
