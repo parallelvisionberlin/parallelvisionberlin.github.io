@@ -319,6 +319,22 @@ function syncImageComposer(){
   const generate=$('image-composer-generate');
   generate.disabled=$('generate').disabled;
   generate.textContent=$('generate').textContent;
+  const block=$('composer-generation-block'),reason=$('composer-generation-reason'),review=$('composer-review-queue');
+  const queueBlocked=!busy&&owner&&submissionBlocked();
+  let message='';
+  if(generate.disabled){
+    if(busy)message='Preparing your request…';
+    else if(!owner)message='Sign in to generate.';
+    else if(queueBlocked)message=activeJobs.some(j=>j.status==='uncertain'&&jobProvider(j)===currentProvider())?'A previous request has an unknown status. Review it before generating again.':'The active generation limit has been reached. Wait for a job to finish.';
+    else if(imageEngine==='soulpro'&&!file)message='Add a base image.';
+    else if(imageEngine==='soulpro'&&!soulProIdentity.configured)message='Choose and save the identity reference photos.';
+    else if(imageEngine==='soul'&&!soul.ready())message='Choose a trained LoRA.';
+    else if(imageEngine==='soul'&&isReinterpret()&&!soul.reinterpretReady())message='This character needs a trained Reinterpret identity.';
+    else if(!hasInput()&&imageEngine==='fal')message='Add one pose image, 1–4 identity photos and a prompt.';
+    else if(!$('prompt').value.trim())message='Describe the image to generate.';
+  }
+  block.hidden=!message;reason.textContent=message;review.hidden=!queueBlocked;
+  generate.title=message;
   syncImageReferences();
   syncImageGalleryEmpty();
 }
@@ -392,6 +408,7 @@ for(const [copy,real] of [
     $(real).dispatchEvent(new Event('input',{bubbles:true}));
   });
 }
+$('composer-review-queue').onclick=()=>{$('active').open=true;$('active').scrollIntoView({behavior:'smooth',block:'start'});$('active').querySelector('summary')?.focus();};
 $('image-composer-generate').onclick=()=>{if(!busy&&tool==='image')$('generate').click();};
 $('image-composer-add').onclick=()=>{
   if(busy)return;
