@@ -32,6 +32,7 @@ document.addEventListener('DOMContentLoaded',()=>{const retry=document.getElemen
 <link rel="stylesheet" href="./soul.css?v=20260930-soul-v02">
 <link rel="stylesheet" href="./studio.css?v=20261008-imagefloat-v1">
 <link rel="stylesheet" href="./image-studio.css?v=20261008-floating-v1">
+<link rel="stylesheet" href="./detail-video-studio.css?v=20261008-v1">
 <script type="module" src="./lab.js?v=20261008-imagefloat-v1"></script>
 </head>
 <body class="lab-booting">
@@ -83,13 +84,62 @@ document.addEventListener('DOMContentLoaded',()=>{const retry=document.getElemen
   </section>
 </section>
 <button id="image-settings-scrim" class="image-settings-scrim" type="button" aria-label="Close image controls" hidden></button>
-<dialog id="image-lightbox" class="image-lightbox" aria-labelledby="image-lightbox-title">
-  <header class="image-lightbox-head">
-    <span id="image-lightbox-title">IMAGE RESULT</span>
-    <button id="image-lightbox-close" class="image-lightbox-close" type="button" aria-label="Close image viewer">×</button>
-  </header>
-  <div class="image-lightbox-stage"><img id="image-lightbox-img" alt="Generated image, full preview"></div>
-  <footer class="image-lightbox-foot"><span>PARALLEL VISION / PRIVATE IMAGE ARCHIVE</span><button id="image-lightbox-download" type="button">Download image <span aria-hidden="true">↓</span></button></footer>
+<dialog id="image-lightbox" class="image-lightbox image-detail" aria-labelledby="image-lightbox-title">
+  <div class="image-detail-layout">
+    <div class="image-detail-media">
+      <div class="image-detail-topbar">
+        <span id="image-lightbox-title">Image</span>
+        <span id="image-lightbox-counter">PARALLEL VISION LAB</span>
+        <div class="image-detail-media-actions">
+          <button id="image-lightbox-fit" type="button" title="Toggle actual size" aria-pressed="false">Fit</button>
+          <button id="image-lightbox-close" type="button" aria-label="Close image viewer" title="Close">×</button>
+        </div>
+      </div>
+      <div class="image-lightbox-stage" id="image-lightbox-stage">
+        <img id="image-lightbox-img" alt="Generated image, full-size preview" />
+        <p id="image-lightbox-unavailable" hidden>No output file is available for this record.</p>
+      </div>
+      <div class="image-detail-bottomline"><span id="image-detail-dimensions">IMAGE / ORIGINAL RATIO</span><span>PARALLEL VISION</span></div>
+    </div>
+    <aside class="image-detail-inspector" aria-label="Image details and actions">
+      <div class="image-detail-inspector-head">
+        <span class="detail-kicker">IMAGE DETAILS</span>
+        <span class="detail-state" id="image-detail-status">Completed</span>
+      </div>
+      <div class="image-detail-inspector-scroll">
+        <div class="image-detail-section">
+          <span class="detail-label">Prompt</span>
+          <p id="image-detail-prompt" class="image-detail-prompt"></p>
+          <button id="image-detail-copy" class="detail-inline-button" type="button">Copy prompt <span aria-hidden="true">↗</span></button>
+        </div>
+        <div class="image-detail-section image-detail-data">
+          <span class="detail-label">Generation details</span>
+          <dl>
+            <div><dt>Model</dt><dd id="image-detail-model"></dd></div>
+            <div><dt>Resolution</dt><dd id="image-detail-resolution"></dd></div>
+            <div><dt>Aspect ratio</dt><dd id="image-detail-ratio"></dd></div>
+            <div><dt>Date</dt><dd id="image-detail-created"></dd></div>
+            <div><dt>References</dt><dd id="image-detail-references"></dd></div>
+            <div><dt>Price</dt><dd id="image-detail-price"></dd></div>
+          </dl>
+        </div>
+        <div id="image-detail-status-help" class="image-detail-warning" hidden></div>
+      </div>
+      <div class="image-detail-actions">
+        <button id="image-detail-video" class="detail-primary" type="button"> <span aria-hidden="true">▹</span> Turn into video</button>
+        <div class="image-detail-action-grid">
+          <button id="image-detail-reuse" type="button">Reuse</button>
+          <button id="image-detail-reference" type="button">Reference</button>
+          <button id="image-lightbox-download" type="button">Download</button>
+          <button id="image-detail-upscale" type="button">Upscale</button>
+        </div>
+        <div class="image-detail-subactions">
+          <button id="image-detail-repair" type="button">Repair</button>
+          <button id="image-detail-delete" type="button">Delete</button>
+        </div>
+      </div>
+    </aside>
+  </div>
 </dialog>
 
 <div class="workspace">
@@ -215,6 +265,28 @@ document.addEventListener('DOMContentLoaded',()=>{const retry=document.getElemen
   </div>
   <span class="empty-footnote" id="empty-footnote" hidden></span>
 </div><img id="preview" alt="Selected source image" hidden><video id="video" controls playsinline preload="metadata" hidden></video></div><div class="stagefoot"><span id="settings-summary">15 seconds / 1080p</span><button id="download" class="quiet" hidden>Download result</button></div></section>
+<div id="video-feed-center" class="video-feed-center" hidden></div>
+<aside id="video-inspector" class="video-inspector" hidden aria-label="Selected video information">
+  <div class="video-inspector-heading"><span>Details</span><span id="video-detail-status" class="video-detail-status">Ready</span></div>
+  <div id="video-inspector-empty" class="video-inspector-empty">Select a video to see its settings and actions.</div>
+  <div id="video-inspector-selected" hidden>
+    <div class="video-inspector-body">
+      <span id="video-detail-model" class="video-detail-model"></span>
+      <p id="video-detail-prompt" class="video-detail-prompt"></p>
+      <dl class="video-detail-data">
+        <div><dt>Duration</dt><dd id="video-detail-duration"></dd></div>
+        <div><dt>Resolution</dt><dd id="video-detail-resolution"></dd></div>
+        <div><dt>Aspect ratio</dt><dd id="video-detail-ratio"></dd></div>
+        <div><dt>Created</dt><dd id="video-detail-date"></dd></div>
+      </dl>
+    </div>
+    <div class="video-inspector-actions">
+      <button id="video-detail-watch" class="detail-primary" type="button">▹ View video</button>
+      <button id="video-detail-reuse" type="button">Reuse settings</button>
+      <button id="video-detail-download" type="button">Download</button>
+    </div>
+  </div>
+</aside>
 </div>
 <div id="soul-launch" class="soul-launch" hidden>
 <div><span class="eyebrow">PV Soul</span><strong id="soul-launch-title">Train a reusable character</strong><small id="soul-launch-note">FAL training is ready. Train from 20–80 photos, then use the character in Image.</small></div>
