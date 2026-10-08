@@ -169,6 +169,9 @@ function syncImageReferences(){
     const img=document.createElement('img');
     img.src=ref.thumbUrl||ref.url;img.alt=(ref.isBase?'Base image':'Image reference '+(i+1));
     img.loading='lazy';img.decoding='async';tile.append(img);
+    const marker=document.createElement('span');marker.className='composer-reference-index';
+    marker.textContent=ref.isBase?'BASE':String(i+1);
+    marker.setAttribute('aria-hidden','true');tile.append(marker);
     if(!ref.isBase){
       const remove=document.createElement('button');
       remove.type='button';remove.className='composer-reference-remove';remove.textContent='×';
@@ -1147,6 +1150,7 @@ function showImageDetail(job,hasOutput){
   $('image-detail-status').textContent=job.status?.charAt(0).toUpperCase()+String(job.status||'').slice(1);
   const promptText=params.prompt||'No direction saved.';
   $('image-detail-prompt').textContent=promptText;
+  $('image-detail-prompt').classList.toggle('is-collapsible',promptText.length>250);
   $('image-detail-prompt').classList.remove('is-expanded');
   $('image-detail-expand').setAttribute('aria-expanded','false');
   $('image-detail-expand').innerHTML='Show more <span aria-hidden="true">⌄</span>';
@@ -1223,6 +1227,7 @@ $('image-lightbox-stage').addEventListener('touchend',event=>{
   detailTouchStart=null;
   if(Math.abs(dx)>65&&Math.abs(dx)>Math.abs(dy)*1.4)void navigateImageDetail(dx<0?1:-1);
 },{passive:true});
+$('image-lightbox-stage').addEventListener('touchcancel',()=>{detailTouchStart=null;},{passive:true});
 $('image-lightbox-fit').onclick=()=>{
   const stage=$('image-lightbox-stage'),zoom=!stage.classList.contains('is-zoomed');
   stage.classList.toggle('is-zoomed',zoom);
