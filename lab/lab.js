@@ -1438,8 +1438,8 @@ function updateHistorySelectionUi(){
   for(const card of $('history').querySelectorAll('.card')){
     const selectable=historySelectMode&&card.dataset.deletable==='true',selected=historySelected.has(card.dataset.job);
     card.classList.toggle('is-selectable',selectable);card.classList.toggle('is-selected',selected);
-    if(selectable){card.tabIndex=0;card.setAttribute('aria-selected',String(selected));}
-    else{card.removeAttribute('tabindex');card.removeAttribute('aria-selected');}
+    if(selectable){card.tabIndex=0;card.removeAttribute('role');card.setAttribute('aria-selected',String(selected));}
+    else{card.tabIndex=0;card.setAttribute('role','button');card.setAttribute('aria-label',(card.dataset.kind==='image'?'Open image':'Select video')+' details');card.removeAttribute('aria-selected');}
     const box=card.querySelector('.history-select-box');if(box){box.hidden=!historySelectMode;const input=box.querySelector('input');if(input)input.checked=selected;}
   }
   $('history-selection-count').textContent=historySelected.size+' selected';
@@ -1455,6 +1455,20 @@ function renderCards(jobs,{upsert=false}={}){
     const existing=upsert?[...$('history').children].find(el=>el.dataset.job===j.id):null,fingerprint=historyFingerprint(j);
     if(existing?.dataset.fingerprint===fingerprint)continue;
     const card=document.createElement('article');card.className='card';card.dataset.kind=j.settings.type==='image'?'image':'video';card.dataset.job=j.id;card.dataset.state=j.status;card.dataset.fingerprint=fingerprint;card.dataset.deletable=String(!activeStates.has(j.status));
+    if(j.settings.type==='video')videoJobCache.set(j.id,j);
+    const openCard=()=>{
+      if(!owner||historySelectMode)return;
+      if(j.settings.type==='image')void action(()=>openImageRecord(j));
+      else if(tool==='video')showVideoHistoryRecord(j,{play:true});
+    };
+    card.addEventListener('click',event=>{
+      if(historySelectMode||event.target.closest('button,input,select,textarea,a,label'))return;
+      openCard();
+    });
+    card.addEventListener('keydown',event=>{
+      if(historySelectMode||event.target!==card||!['Enter',' '].includes(event.key))return;
+      event.preventDefault();openCard();
+    });
     if(!activeStates.has(j.status)){
       const select=document.createElement('label');select.className='history-select-box';select.hidden=!historySelectMode;
       const checkbox=document.createElement('input');checkbox.type='checkbox';checkbox.checked=historySelected.has(j.id);checkbox.setAttribute('aria-label','Select this History item');
@@ -1468,7 +1482,7 @@ function renderCards(jobs,{upsert=false}={}){
     if(ready&&image){
       const {figure,img}=historyImage(j.outputId,'Generated image',true);previews.push(img);card.append(figure);
       img.tabIndex=0;img.setAttribute('role','button');img.setAttribute('aria-label','View generated image at full size');
-      img.onclick=()=>action(()=>openVideo(j));img.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();img.click();}};
+      img.onclick=e=>{e.stopPropagation();openCard();};img.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();img.click();}};
     }else if(ready&&j.sourceId){
       const {figure,img}=historyImage(j.sourceId,'Source thumbnail / generated video ready');previews.push(img);card.append(figure);
     }else{
@@ -1531,6 +1545,7 @@ function renderCards(jobs,{upsert=false}={}){
     for(const img of previews)observer.observe(img);
   }
   updateHistorySelectionUi();
+  if(tool==='video')restoreLatestVideoSelection();
 }
 async function loadHistory(append=false,incremental=false){const rev=historyRevision,query=append&&next?'?before='+next.before+'&afterId='+encodeURIComponent(next.afterId):'',data=await api('/api/jobs'+query);if(!owner||rev!==historyRevision)return;if(!append&&!incremental){videoJobCache.clear();historyRevision++;observer.disconnect();cardUrls.forEach(release);cardUrls.clear();$('history').replaceChildren();}renderCards(data.jobs,{upsert:incremental});next=data.next;$('more').hidden=!next;$('emptyarchive').hidden=$('history').children.length>0;if(data.concurrency)config.concurrency=data.concurrency;setActiveJobs(data.activeJobs||(data.active?[data.active]:[]));syncImageGalleryEmpty();if(tool==='video')restoreLatestVideoSelection();}
 async function syncHistory(){return loadHistory(false,true);}
