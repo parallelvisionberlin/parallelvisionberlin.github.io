@@ -29,7 +29,7 @@
     fbq('track', 'PageView');
   </script>
   <!-- End Meta Pixel Code -->
-  <link rel="icon" type="image/png" href="./favicon.png">
+  <link rel="icon" type="image/png" href="./lab/branding/pv-mark.png">
   <link rel="stylesheet" href="./fashion.css?v=20260904-media-1">
   <link rel="stylesheet" href="./css/nina-access.css?v=20260909-web-conversion">
 
@@ -164,8 +164,8 @@ body .nina-account-panel .nina-account-signout { border-top-color: #242422; }
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./css/nina-dark-exhibit.css?v=20261008-layout-audit-03">
-  <style id="nina-dark-root">html,body.pv-nina-project{background:#0a0b0c!important;color:#f1f0ed!important}</style>
+  <link rel="stylesheet" href="./css/nina-exhibition-v3.css?v=20261008-01">
+  
 </head>
 <body class="pv-nina-project">
   <a class="skip-link" href="#main-content">Skip to main content</a>
@@ -174,7 +174,7 @@ body .nina-account-panel .nina-account-signout { border-top-color: #242422; }
     alt=""
   ></noscript>
   <nav class="n-nav n-shell" aria-label="Nina project navigation">
-    <a href="./index.html">Parallel Vision</a>
+    <a class="nx-brand" href="./index.html" aria-label="Parallel Vision home"><img class="nx-brand-wordmark" src="./lab/branding/pv-wordmark.png" alt="Parallel Vision" width="360" height="90"></a>
     <span>Nina FOK / Berlin 2063</span>
     <div class="n-nav-actions">
       <button class="n-nav-transmit" type="button" data-nina-open>Talk to Nina</button>
@@ -232,40 +232,31 @@ body .nina-account-panel .nina-account-signout { border-top-color: #242422; }
 
   <main class="nx-page" id="main-content">
     <header class="n-hero" id="nina">
-      <div class="nx-container">
-        <div class="nx-hero-status nx-mono">
-          <span>Parallel Vision / An ongoing artwork</span>
-          <span>Identity / Voice / Continuity</span>
-        </div>
-        <div class="nx-hero-stage">
-          <video class="n-hero-asset" id="ninaHeroVideo" data-src="./nina-fok/ninaloophero.mp4" poster="./assets/optimized/nina-fok/HDNINACANON.webp" autoplay muted loop playsinline preload="none" aria-label="Nina FOK in her Berlin 2063 room, surrounded by masks" data-optimized-src="./assets/optimized/video/nina-fok/ninaloophero-desktop.mp4" data-mobile-src="./assets/optimized/video/nina-fok/ninaloophero-mobile.mp4"></video>
-          <div class="nx-hero-copy">
-            <p class="nx-mono">A voice from the world of 2063</p>
-            <div class="nx-hero-center">
-              <h1>NINA<span>FOK</span></h1>
-              <p class="nx-hero-lede">She lives in Berlin, 2063.<br>You can speak with her now.</p>
-              <div class="nx-hero-actions">
-                <button class="nx-cta" type="button" data-nina-open><span>Talk to Nina</span><span aria-hidden="true">↗</span><small data-nina-trial-offer hidden>3 minutes free</small></button>
-                <a class="nx-link" href="#question">Discover the work <span aria-hidden="true">↘</span></a>
-              </div>
-            </div>
-            <div class="nx-hero-caption nx-mono">
-              <span>Identity / Voice / Memory</span>
-              <span>Work in progress · 2026</span>
+      <div class="nx-hero-stage">
+        <video class="n-hero-asset" id="ninaHeroVideo" data-src="./nina-fok/ninaloophero.mp4" poster="./assets/optimized/nina-fok/HDNINACANON.webp" autoplay muted loop playsinline preload="none" aria-label="Nina FOK in her Berlin 2063 room, surrounded by masks" data-optimized-src="./assets/optimized/video/nina-fok/ninaloophero-desktop.mp4" data-mobile-src="./assets/optimized/video/nina-fok/ninaloophero-mobile.mp4"></video>
+        <div class="nx-hero-copy">
+          <p class="nx-mono">An ongoing artwork / Parallel Vision</p>
+          <div class="nx-hero-center">
+            <h1>NINA<span>FOK</span></h1>
+            <p class="nx-hero-lede">She lives in Berlin, 2063.<br>You can speak with her now.</p>
+            <div class="nx-hero-actions">
+              <button class="nx-cta" type="button" data-nina-open><span>Talk to Nina</span><span aria-hidden="true">↗</span><small data-nina-trial-offer hidden>3 minutes free</small></button>
+              <a class="nx-link" href="#question">Discover the work <span aria-hidden="true">↘</span></a>
             </div>
           </div>
-          <p class="nx-hero-aside nx-mono">Live encounter<br>Berlin / 2063</p>
+          <div class="nx-hero-caption nx-mono"><span>Identity / Voice / Memory</span><span>Berlin 2063 / Work in progress</span></div>
         </div>
-        <nav class="nx-hero-bottom nx-mono" aria-label="Project contents">
-          <span class="nx-index">Index / 07</span>
-          <a href="#question">01 / The idea</a>
-          <a href="#meet-nina-title">02 / Nina</a>
-          <a href="#study-title">03 / Memory</a>
-          <a href="#condition-title">04 / Construction</a>
-          <a href="#berlin-title">05 / Berlin 2063</a>
-          <a href="#transmit">06 / Meet her ↗</a>
-        </nav>
+        <p class="nx-hero-aside nx-mono">A live encounter<br>Berlin / 2063</p>
       </div>
+      <nav class="nx-hero-bottom nx-mono nx-container" aria-label="Project contents">
+        <span class="nx-index">Index / 07</span>
+        <a href="#question">01 / The idea</a>
+        <a href="#meet-nina-title">02 / Nina</a>
+        <a href="#study-title">03 / Memory</a>
+        <a href="#condition-title">04 / Construction</a>
+        <a href="#berlin-title">05 / Berlin 2063</a>
+        <a href="#transmit">06 / Meet her ↗</a>
+      </nav>
     </header>
 
     <section class="nx-thesis nx-container nx-hairline" id="question" aria-labelledby="question-title">
@@ -277,26 +268,22 @@ body .nina-account-panel .nina-account-signout { border-top-color: #242422; }
     </section>
 
     <section class="nx-presence" aria-labelledby="meet-nina-title">
-      <div class="nx-container">
-        <div class="nx-presence-head">
-          <p class="nx-mono">02 / The subject<br>Nina FOK</p>
-          <h2 id="meet-nina-title">She already<br>has a life.</h2>
-        </div>
-        <div class="nx-presence-layout">
+      <div class="nx-container nx-presence-layout">
         <figure class="nx-presence-film">
           <video id="ninaPersonalityVideo" autoplay muted loop playsinline preload="none" poster="./assets/optimized/ninamain-page.webp" aria-label="Nina FOK speaking from Berlin 2063">
             <source data-src="./nina-fok/NINATALKNEW.mp4" type="video/mp4">
           </video>
           <button class="n-sound" id="ninaVideoSound" type="button" aria-pressed="false" aria-label="Turn Nina video sound on">Sound On</button>
-          <figcaption class="nx-film-caption nx-mono"><span>Plate 02 / Nina FOK</span><span>Voice and visual presence</span></figcaption>
+          <figcaption class="nx-film-caption nx-mono"><span>Portrait / Nina FOK</span><span>Voice / Live presence</span></figcaption>
         </figure>
-        <div class="nx-presence-foot">
-          <p>Nina is a DJ, producer and visual artist living in Berlin 2063. Her music, friendships, relationships and everyday life give her a perspective on the world. She can talk about hers, and listen to yours.</p>
-          <div>
+        <div class="nx-presence-copy">
+          <p class="nx-mono">02 / The subject</p>
+          <h2 id="meet-nina-title">She already<br>has a life.</h2>
+          <p class="nx-presence-lede">Nina is a DJ, producer and visual artist living in Berlin 2063. Her music, friendships, relationships and everyday life give her a perspective on the world. She can talk about hers, and listen to yours.</p>
+          <div class="nx-presence-detail">
             <p>There is no predetermined dialogue. Her replies unfold during the conversation.</p>
             <button class="nx-cta nx-cta--line" type="button" data-nina-open><span>Meet Nina</span><span aria-hidden="true">↗</span></button>
           </div>
-        </div>
         </div>
       </div>
     </section>
@@ -330,49 +317,54 @@ body .nina-account-panel .nina-account-signout { border-top-color: #242422; }
 
     <section class="nx-method" aria-labelledby="condition-title">
       <div class="nx-container">
-        <div class="nx-method-head">
-          <p class="nx-mono">04 / Inside the work<br>Construction</p>
-          <div>
-            <h2 id="condition-title">How Nina<br><span>takes shape.</span></h2>
-            <p class="nx-method-summary">Multiple models, a written biography, live voice and visual presence, and a two-layer memory architecture come together in Nina. Parallel Vision develops the conditions through which she speaks from Berlin 2063 and carries a history from one encounter to the next.</p>
+        <div class="nx-method-top">
+          <p class="nx-mono">04 / Inside the work<br>Construction / Research notes</p>
+          <div class="nx-method-intro">
+            <h2 id="condition-title">The construction<br>of a presence.</h2>
+            <p>Multiple models, a written biography, live voice and visual presence, and two layers of memory come together in Nina. Parallel Vision establishes the conditions through which she speaks from Berlin 2063 and carries a history from one encounter to the next.</p>
           </div>
         </div>
-        <div class="nx-method-list">
-          <div class="nx-method-item">
-            <span class="nx-mono">I / World</span>
-            <h3>Her biography</h3>
-            <p>The people, places and history of Berlin 2063 give each conversation a context. They shape the perspective from which she responds.</p>
-          </div>
-          <div class="nx-method-item">
-            <span class="nx-mono">II / Presence</span>
-            <h3>Her voice</h3>
-            <p>Language, voice and visual systems work together in real time. The dialogue is not written in advance.</p>
-          </div>
-          <div class="nx-method-item">
-            <span class="nx-mono">III / Continuity</span>
-            <h3>Her memory</h3>
-            <p>Selected moments and developing familiarity can inform later conversations, giving a return encounter a different context from a first meeting.</p>
-          </div>
+        <div class="nx-method-systems" aria-label="Elements of the artwork">
+          <article class="nx-method-axis">
+            <span class="nx-mono">01 / Context</span>
+            <h3>Biography<br>and world</h3>
+            <p>The people, places and history of Berlin 2063 provide a frame for each exchange. They shape the perspective from which Nina responds.</p>
+          </article>
+          <article class="nx-method-axis">
+            <span class="nx-mono">02 / Presence</span>
+            <h3>Language<br>and voice</h3>
+            <p>Language, voice and visual systems meet in real time. Each encounter unfolds as it happens. The dialogue is not written in advance.</p>
+          </article>
+          <article class="nx-method-axis">
+            <span class="nx-mono">03 / Continuity</span>
+            <h3>Memory<br>and familiarity</h3>
+            <p>Selected details and changes in familiarity can influence future conversations, without scripting Nina's next response.</p>
+          </article>
         </div>
-        <div class="nx-method-footer">
-          <strong>The systems establish the conditions. They do not prescribe every response.</strong>
-          <p>That space between construction and unpredictability is part of the artwork.</p>
+        <div class="nx-method-close">
+          <span class="nx-mono">The artistic method</span>
+          <p>The systems establish the conditions. They do not prescribe every response.</p>
         </div>
       </div>
     </section>
 
     <section class="nx-world" aria-labelledby="berlin-title">
-      <div class="nx-world-head nx-container">
-        <p class="nx-mono">05 / Her world<br>World archive / Berlin 2063</p>
-        <h2 id="berlin-title">The future<br>is <span>her present.</span></h2>
+      <div class="nx-container nx-world-head">
+        <div class="nx-world-title">
+          <p class="nx-mono">05 / World archive<br>Parallel Vision / Berlin 2063</p>
+          <h2 id="berlin-title">Berlin,<br>2063.</h2>
+        </div>
+        <div class="nx-world-intro">
+          <p>The city is more than a setting. It has streets, habits, buildings, tensions and histories Nina knows as part of everyday life.</p>
+        </div>
       </div>
-      <figure class="nx-world-image nx-container">
-        <img src="./assets/optimized/thecitysuperhd1.webp" alt="The architecture and vertical skyline of Parallel Vision's imagined Berlin 2063" width="4500" height="2512" loading="lazy" decoding="async" fetchpriority="low">
-        <figcaption class="nx-mono"><span>Parallel Vision World Archive</span><span>Plate 04 / Berlin 2063</span></figcaption>
+      <figure class="nx-world-image">
+        <img src="./assets/optimized/2063/organic-futures/shared-street.webp" alt="Photographic study of an imagined Berlin street with historic buildings, a concrete elevated structure and people walking below" loading="lazy" decoding="async">
+        <figcaption class="nx-mono"><span>World archive / Street study</span><span>Berlin / 2063</span></figcaption>
       </figure>
-      <div class="nx-world-caption nx-container">
-        <p class="nx-mono">World condition<br>Active canon</p>
-        <p>Berlin 2063 is the world Nina understands as the present. Its culture, history, technologies and tensions shape how she understands the people who enter it. The city is not a backdrop. It is where her point of view begins.</p>
+      <div class="nx-container nx-world-caption">
+        <p class="nx-mono">The lived city<br>World study / 05</p>
+        <p>Its culture, architecture and everyday rhythms shape the way Nina understands the people she meets. This imagined Berlin is the place she speaks from, not an image behind her.</p>
         <a class="nx-link" href="./berlin-2063.html">Explore Berlin 2063 <span aria-hidden="true">↗</span></a>
       </div>
     </section>
@@ -438,7 +430,7 @@ body .nina-account-panel .nina-account-signout { border-top-color: #242422; }
   </main>
 
   <footer class="n-footer n-shell">
-    <span>Parallel Vision / Nina FOK / Berlin 2063</span>
+    <span class="nx-footer-brand"><img class="nx-footer-mark" src="./lab/branding/pv-mark.png" alt="" width="44" height="44"> <span>Parallel Vision / Nina FOK / Berlin 2063</span></span>
     <a href="./index.html">Return to homepage</a>
   </footer>
 <!-- ======================================================
