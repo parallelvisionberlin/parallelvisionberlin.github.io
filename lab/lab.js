@@ -131,6 +131,7 @@ const imageStudio = $('image-studio');
 const imageComposer = $('image-composer');
 const archive = document.querySelector('.archive');
 let imageMenuOpen = false;
+const imageModelTokens=Object.freeze({seedream:'S',gemini:'N',soulpro:'PV',soul:'PV',fal:'F'});
 const imageModelDescriptions = Object.freeze({
   seedream:'Image creation and reference-guided edits',
   gemini:'Nano Banana Pro · image and reference editing',
@@ -205,6 +206,7 @@ function syncImageComposer(){
   textbox.placeholder=$('prompt').placeholder || 'Describe the scene you imagine...';
   textbox.disabled=busy || $('prompt').disabled;
   $('image-composer-model-label').textContent=imageStudioModelTitle();
+  document.querySelector('.composer-model-symbol').textContent=imageModelTokens[imageEngine]||'◎';
   for(const [copy,real] of [
     ['image-composer-ratio','ratio'],['image-composer-resolution','resolution'],
     ['image-composer-count','image-count']
@@ -236,7 +238,7 @@ function populateImageModelMenu(query=''){
     const row=document.createElement('button');row.type='button';
     row.className='composer-model-option';row.dataset.value=option.value;
     row.setAttribute('role','option');row.setAttribute('aria-selected',String(option.value===imageEngine));
-    const icon=document.createElement('span');icon.className='composer-model-icon';icon.textContent='◈';
+    const icon=document.createElement('span');icon.className='composer-model-icon';icon.textContent=imageModelTokens[option.value]||'◎';
     const info=document.createElement('span');info.className='composer-model-info';
     const title=document.createElement('strong');title.textContent=name;
     const caption=document.createElement('small');caption.textContent=detail;
