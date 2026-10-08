@@ -1,0 +1,272 @@
+/* PARALLEL VISION / NINA FOK / EXHIBITION 03
+   Art direction: dark, photographic, restrained. Public editorial page ONLY.
+   Never restyle .nina-access, .nina-window, voice session, credits or authentication.
+*/
+:root { --nx-bg:#060707;--nx-depth:#080909;--nx-ink:#f2f0ed;--nx-muted:#c0bfba;--nx-dim:#898c8a;--nx-rule:rgba(242,240,237,.19);--nx-accent:#b4938c; }
+html { background:#060707!important; scroll-behavior:smooth; }
+body.pv-nina-project { margin:0; overflow-x:hidden; background:#060707!important; color:var(--nx-ink)!important; font-family:"Inter Tight",Arial,sans-serif; -webkit-font-smoothing:antialiased; }
+body.pv-nina-project *, body.pv-nina-project { box-sizing:border-box; }
+body.pv-nina-project .n-shell,body.pv-nina-project .nx-container { width:min(calc(100% - 88px),1570px);margin-inline:auto; }
+body.pv-nina-project .n-nav {
+ height:76px;min-height:76px;padding:0;position:relative;z-index:100;display:grid;
+ grid-template-columns:1fr auto 1fr;gap:24px;align-items:center;
+ border-bottom:1px solid var(--nx-rule);color:var(--nx-ink);
+ font:400 10px/1.5 "IBM Plex Mono",monospace;letter-spacing:.10em;text-transform:uppercase;
+}
+body.pv-nina-project .n-nav>a {grid-column:1;justify-self:start;display:inline-flex;align-items:center;min-height:48px;text-decoration:none;}
+body.pv-nina-project .n-nav .nx-brand-wordmark {display:block;width:175px;height:auto;max-height:46px;object-fit:contain;object-position:left center;}
+body.pv-nina-project .n-nav>span {grid-column:2;justify-self:center;color:#a9aaa7;}
+body.pv-nina-project .n-nav .n-nav-actions {grid-column:3;justify-self:end;display:flex;align-items:center;gap:25px;}
+body.pv-nina-project .n-nav .n-nav-transmit {
+ display:inline-flex;align-items:center;min-height:44px;padding:0 0 2px;border:0;
+ border-bottom:1px solid #a9a9a7;background:transparent;color:var(--nx-ink);
+ font:500 12px/1.2 "Inter Tight",sans-serif;letter-spacing:.02em;text-transform:none;
+}
+body.pv-nina-project .n-nav .n-nav-transmit:hover {border-color:white;color:white;}
+body.pv-nina-project .n-nav #ninaAccountToggle {
+ width:44px;height:44px;min-width:44px;padding:11px;border:1px solid #858785;
+ border-radius:50%;background:transparent;color:var(--nx-ink);
+}
+body.pv-nina-project .n-nav #ninaAccountToggle svg {width:20px;height:20px;stroke:currentColor;}
+body.pv-nina-project .n-nav .nina-account-shell {display:flex;align-items:center;}
+body.pv-nina-project :is(.n-nav a,.n-nav button,.nx-page a,.nx-page button,.nx-page summary):focus-visible {outline:2px solid #f4eee9;outline-offset:4px;}
+body.pv-nina-project .nx-page {background:#060707;color:var(--nx-ink);font-family:"Inter Tight",Arial,sans-serif;letter-spacing:0;max-width:none;margin:0;padding:0;}
+body.pv-nina-project .nx-page :is(h1,h2,h3,p,figure,blockquote) {margin:0;}
+body.pv-nina-project .nx-page :is(img,video) {display:block;max-width:100%;}
+body.pv-nina-project .nx-page button {cursor:pointer;}
+body.pv-nina-project .nx-mono {font:400 10px/1.62 "IBM Plex Mono",monospace;letter-spacing:.09em;text-transform:uppercase;}
+body.pv-nina-project .nx-index {color:var(--nx-accent);}
+body.pv-nina-project .nx-hairline {border-top:1px solid var(--nx-rule);}
+body.pv-nina-project .nx-page [id] {scroll-margin-top:26px;}
+body.pv-nina-project .nx-link {display:inline-flex;align-items:center;gap:15px;min-height:44px;width:fit-content;padding:5px 0;color:var(--nx-ink);border-bottom:1px solid #929592;text-decoration:none;font:500 13px/1.3 "Inter Tight",sans-serif;letter-spacing:.01em;}
+body.pv-nina-project .nx-link:hover {color:white;border-color:#fff;}
+body.pv-nina-project .nx-cta {display:inline-flex;align-items:center;justify-content:space-between;gap:30px;min-height:56px;width:fit-content;padding:0 24px;color:#080909;background:#f2f0ed;border:1px solid #f2f0ed;border-radius:0;font:600 13px/1.3 "Inter Tight",sans-serif;letter-spacing:.01em;text-decoration:none;text-transform:none;transition:background .2s,border-color .2s;}
+body.pv-nina-project .nx-cta:hover {background:#d4d2cd;border-color:#d4d2cd;}
+body.pv-nina-project .nx-cta--line {background:transparent;color:var(--nx-ink);border-color:#a6a9a7;}
+body.pv-nina-project .nx-cta--line:hover {background:#e4e2dd;color:#090a0a;border-color:#e4e2dd;}
+body.pv-nina-project .nx-cta small {font:400 10px/1.2 "Inter Tight",sans-serif;}
+
+/* Hero: full viewport width, single continuous film surface. */
+body.pv-nina-project .n-hero {width:100%;padding:0;margin:0;border:0;background:#060707;}
+body.pv-nina-project .nx-hero-status {display:none;}
+body.pv-nina-project .nx-hero-stage {position:relative;width:100%;height:clamp(640px,calc(100svh - 76px),970px);min-height:640px;isolation:isolate;overflow:hidden;background:#301b20 url("../assets/optimized/nina-fok/HDNINACANON.webp") 56% center/cover no-repeat;}
+body.pv-nina-project .nx-hero-stage video {position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:56% 45%;filter:saturate(.77) brightness(.86);}
+body.pv-nina-project .nx-hero-stage::after {content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(90deg,rgba(5,6,7,.91),rgba(5,6,7,.75) 21%,rgba(5,6,7,.34) 46%,rgba(5,6,7,.02) 80%),linear-gradient(180deg,rgba(5,6,7,.08),transparent 46%,rgba(5,6,7,.46));}
+body.pv-nina-project .nx-hero-copy {position:absolute;z-index:2;inset:0 auto 0 0;width:min(60%,875px);display:flex;flex-direction:column;align-items:flex-start;padding:clamp(42px,5vw,82px) clamp(24px,5vw,80px) clamp(30px,4vw,60px) max(5.5vw,calc((100vw - 1550px)/2 + 28px));}
+body.pv-nina-project .nx-hero-copy .nx-mono {color:#d8d5d0;}
+body.pv-nina-project .nx-hero-center {margin:auto 0;max-width:760px;}
+body.pv-nina-project .nx-hero-copy h1 {margin:0 0 32px;color:#f6f3ee;font:500 clamp(112px,11.7vw,194px)/.87 "Inter Tight",Arial,sans-serif;letter-spacing:-.073em;text-transform:uppercase;}
+body.pv-nina-project .nx-hero-copy h1 span {display:block;}
+body.pv-nina-project .nx-hero-lede {max-width:400px;color:#efede9;font:400 clamp(18px,1.4vw,22px)/1.48 "Inter Tight",sans-serif;letter-spacing:-.014em;}
+body.pv-nina-project .nx-hero-actions {display:flex;flex-wrap:wrap;align-items:center;gap:17px 28px;margin-top:29px;}
+body.pv-nina-project .nx-hero-copy .nx-hero-caption {display:flex;gap:15px 30px;flex-wrap:wrap;justify-content:space-between;width:min(100%,535px);color:#c5c1bc;}
+body.pv-nina-project .nx-hero-aside {position:absolute;z-index:2;right:clamp(23px,4vw,70px);top:clamp(32px,4vw,58px);color:#e6e2dd;text-align:right;}
+body.pv-nina-project .nx-hero-bottom {display:flex;align-items:center;justify-content:space-between;gap:8px 18px;flex-wrap:wrap;padding:13px 0 15px;border-bottom:1px solid var(--nx-rule);}
+body.pv-nina-project .nx-hero-bottom a {display:inline-flex;align-items:center;min-height:40px;color:#b4b6b3;text-decoration:none;font:400 10.5px/1.5 "IBM Plex Mono",monospace;letter-spacing:.07em;text-transform:uppercase;}
+body.pv-nina-project .nx-hero-bottom a:hover,body.pv-nina-project .nx-hero-bottom a:focus-visible {color:white;}
+body.pv-nina-project .nx-hero-bottom .nx-index {color:var(--nx-accent);}
+
+/* 01 / Artistic question. */
+body.pv-nina-project .nx-thesis {display:grid;grid-template-columns:minmax(175px,.24fr) minmax(0,1fr);gap:clamp(39px,5.5vw,100px);align-items:start;padding:clamp(79px,7vw,120px) 0 clamp(87px,8vw,133px);}
+body.pv-nina-project .nx-thesis>.nx-mono {color:var(--nx-accent);padding-top:10px;}
+body.pv-nina-project .nx-thesis h2 {max-width:1080px;font:400 clamp(51px,5.25vw,87px)/1.065 "Inter Tight",sans-serif;letter-spacing:-.05em;text-wrap:balance;}
+body.pv-nina-project .nx-thesis h2 .nx-shade {color:#c7c5c1;}
+body.pv-nina-project .nx-thesis p {max-width:715px;margin:33px 0 0 auto;padding:21px 0 0;border-top:1px solid #646561;color:#c6c4bf;font:400 clamp(16px,1.17vw,19px)/1.69 "Inter Tight",sans-serif;}
+
+/* 02 / Portrait and voice. No card, no grey feature panel. */
+body.pv-nina-project .nx-presence {background:#060707;padding:clamp(88px,8vw,133px) 0 clamp(86px,8vw,133px);}
+body.pv-nina-project .nx-presence-layout {display:grid;grid-template-columns:minmax(0,.88fr) minmax(0,1fr);gap:clamp(58px,8.5vw,145px);align-items:center;}
+body.pv-nina-project .nx-presence-film {position:relative;width:100%;height:clamp(520px,52vw,740px);overflow:hidden;margin:0;background:#090a0b;}
+body.pv-nina-project .nx-presence-film video {position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:center;filter:saturate(.82) brightness(.93);}
+body.pv-nina-project .nx-presence-film .n-sound {position:absolute;z-index:4;top:15px;right:15px;bottom:auto;min-height:44px;padding:0 16px;background:#090a0bdc;color:#eeeae5;border:1px solid #898a88;border-radius:0;font:500 11px/1.2 "Inter Tight",sans-serif;letter-spacing:0;text-transform:none;}
+body.pv-nina-project .nx-presence-film .n-sound:hover {background:#eeeae5;color:#111;}
+body.pv-nina-project .nx-film-caption {position:absolute;z-index:3;bottom:14px;left:18px;right:18px;display:flex;justify-content:space-between;gap:18px;color:#e5e2dc;text-shadow:0 1px 6px #000d;}
+body.pv-nina-project .nx-presence-copy {max-width:670px;padding:20px 0;}
+body.pv-nina-project .nx-presence-copy>.nx-mono {color:var(--nx-accent);margin-bottom:24px;}
+body.pv-nina-project .nx-presence-copy h2 {max-width:680px;margin:0 0 33px;font:400 clamp(52px,5.0vw,83px)/1.06 "Inter Tight",sans-serif;letter-spacing:-.058em;}
+body.pv-nina-project .nx-presence-lede {max-width:620px;color:#e8e6e1;font:400 clamp(20px,1.7vw,27px)/1.52 "Inter Tight",sans-serif;letter-spacing:-.014em;}
+body.pv-nina-project .nx-presence-detail {display:flex;flex-direction:column;align-items:flex-start;gap:21px;margin-top:35px;padding-top:24px;border-top:1px solid var(--nx-rule);}
+body.pv-nina-project .nx-presence-detail p {max-width:520px;color:#bebcb8;font:400 15.5px/1.67 "Inter Tight",sans-serif;}
+
+/* 03 / Memory and lived experience. */
+body.pv-nina-project .nx-memory {padding:clamp(82px,7.6vw,128px) 0 clamp(91px,8vw,130px);}
+body.pv-nina-project .nx-memory-head {display:flex;justify-content:space-between;align-items:flex-start;gap:36px;}
+body.pv-nina-project .nx-memory-head>.nx-mono {color:var(--nx-accent);padding-top:14px;flex:0 0 195px;}
+body.pv-nina-project .nx-memory-head h2 {flex:1;max-width:1000px;font:400 clamp(52px,5.65vw,91px)/1.06 "Inter Tight",sans-serif;letter-spacing:-.052em;}
+body.pv-nina-project .nx-memory-head h2 span {color:#cececa;}
+body.pv-nina-project .nx-memory-content {display:grid;grid-template-columns:minmax(0,.91fr) minmax(0,1fr);gap:clamp(42px,6.6vw,110px);align-items:start;margin-top:clamp(40px,4.8vw,75px);}
+body.pv-nina-project .nx-memory-image {width:100%;max-width:640px;margin:0;background:#141515;}
+body.pv-nina-project .nx-memory-image img {display:block;width:100%;height:auto;max-height:700px;object-fit:cover;object-position:center top;filter:saturate(.74) contrast(1.025);}
+body.pv-nina-project .nx-memory-image figcaption {display:flex;justify-content:space-between;gap:15px;padding:13px 0;color:#9c9d9b;}
+body.pv-nina-project .nx-memory-reading {padding:clamp(0px,1vw,16px) 0 0;}
+body.pv-nina-project .nx-memory-intro {max-width:560px;color:#dedbd6;font:400 clamp(20px,1.8vw,27px)/1.47 "Inter Tight",sans-serif;letter-spacing:-.017em;padding-bottom:33px;}
+body.pv-nina-project .nx-memory-note {padding:20px 0 24px;border-top:1px solid var(--nx-rule);}
+body.pv-nina-project .nx-memory-note .nx-mono {display:block;margin-bottom:14px;color:var(--nx-accent);}
+body.pv-nina-project .nx-memory-note h3 {margin-bottom:11px;font:500 clamp(22px,1.95vw,29px)/1.23 "Inter Tight",sans-serif;letter-spacing:-.025em;}
+body.pv-nina-project .nx-memory-note p {max-width:540px;color:#c0beba;font:400 15.5px/1.65 "Inter Tight",sans-serif;}
+body.pv-nina-project .nx-memory-policy {max-width:520px;margin-top:22px;color:#aaa9a4;font:400 13px/1.67 "Inter Tight",sans-serif;}
+
+/* 04 / Research materials, open typographic columns. */
+body.pv-nina-project .nx-method {background:#050606;border-top:1px solid var(--nx-rule);border-bottom:1px solid var(--nx-rule);padding:clamp(91px,8vw,139px) 0 clamp(87px,7vw,120px);}
+body.pv-nina-project .nx-method-top {display:grid;grid-template-columns:minmax(150px,.24fr) minmax(0,1fr);gap:clamp(45px,7vw,116px);align-items:start;}
+body.pv-nina-project .nx-method-top>.nx-mono {color:var(--nx-accent);padding-top:10px;}
+body.pv-nina-project .nx-method-intro {display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.86fr);gap:clamp(40px,6vw,100px);align-items:end;}
+body.pv-nina-project .nx-method h2 {font:400 clamp(44px,4.4vw,72px)/1.105 "Inter Tight",sans-serif;letter-spacing:-.055em;}
+body.pv-nina-project .nx-method-intro>p {max-width:580px;color:#c6c4bf;font:400 16px/1.76 "Inter Tight",sans-serif;}
+body.pv-nina-project .nx-method-systems {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(38px,5.8vw,100px);margin-top:clamp(64px,6.5vw,104px);}
+body.pv-nina-project .nx-method-axis {padding:20px 0 0;border-top:1px solid #666764;}
+body.pv-nina-project .nx-method-axis>span {display:block;margin-bottom:42px;color:var(--nx-accent);}
+body.pv-nina-project .nx-method-axis h3 {max-width:400px;margin-bottom:22px;color:#efeee9;font:400 clamp(27px,2.65vw,42px)/1.13 "Inter Tight",sans-serif;letter-spacing:-.038em;}
+body.pv-nina-project .nx-method-axis p {max-width:430px;color:#c1bfba;font:400 15.5px/1.73 "Inter Tight",sans-serif;}
+body.pv-nina-project .nx-method-close {display:grid;grid-template-columns:minmax(160px,.25fr) minmax(0,1fr);gap:clamp(40px,7vw,118px);align-items:start;margin-top:clamp(78px,7vw,115px);padding-top:24px;border-top:1px solid var(--nx-rule);}
+body.pv-nina-project .nx-method-close>.nx-mono {color:#999b98;}
+body.pv-nina-project .nx-method-close p {max-width:825px;color:#f0eee9;font:400 clamp(26px,2.7vw,43px)/1.25 "Inter Tight",sans-serif;letter-spacing:-.032em;}
+
+/* 05 / World archive, photographic Berlin instead of CGI skyline. */
+body.pv-nina-project .nx-world {background:#060707;padding:clamp(92px,8.6vw,150px) 0 0;}
+body.pv-nina-project .nx-world-head {display:grid;grid-template-columns:minmax(0,.93fr) minmax(0,1fr);gap:clamp(55px,8vw,140px);align-items:end;padding-bottom:clamp(39px,4.8vw,73px);}
+body.pv-nina-project .nx-world-title>.nx-mono {display:block;margin-bottom:24px;color:var(--nx-accent);}
+body.pv-nina-project .nx-world h2 {max-width:810px;color:#f0eee9;font:400 clamp(66px,7.1vw,118px)/1 "Inter Tight",sans-serif;letter-spacing:-.069em;}
+body.pv-nina-project .nx-world-intro {max-width:615px;padding-bottom:12px;}
+body.pv-nina-project .nx-world-intro p {color:#e0ddd7;font:400 clamp(19px,1.6vw,25px)/1.53 "Inter Tight",sans-serif;letter-spacing:-.018em;}
+body.pv-nina-project .nx-world-image {position:relative;width:100%;height:clamp(470px,55vw,760px);margin:0;overflow:hidden;background:#15191a;}
+body.pv-nina-project .nx-world-image img {display:block;width:100%;height:100%;object-fit:cover;object-position:center 52%;filter:brightness(.83) saturate(.77) contrast(1.04);}
+body.pv-nina-project .nx-world-image::after {content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,transparent 68%,rgba(4,5,6,.5));}
+body.pv-nina-project .nx-world-image figcaption {position:absolute;z-index:2;bottom:21px;left:clamp(21px,5vw,90px);right:clamp(21px,5vw,90px);display:flex;justify-content:space-between;gap:18px;color:#f5f3ee;text-shadow:0 1px 8px #000b;}
+body.pv-nina-project .nx-world-caption {display:grid;grid-template-columns:minmax(180px,.3fr) minmax(0,1fr) auto;gap:clamp(34px,5.5vw,95px);align-items:start;padding:30px 0 clamp(87px,8vw,135px);}
+body.pv-nina-project .nx-world-caption>.nx-mono {color:#a4a5a1;}
+body.pv-nina-project .nx-world-caption p {max-width:740px;color:#c1bfba;font:400 16px/1.76 "Inter Tight",sans-serif;}
+body.pv-nina-project .nx-world-caption .nx-link {white-space:nowrap;}
+
+/* 06 / Encounter, final invitation. */
+body.pv-nina-project .nx-encounter {border-top:1px solid var(--nx-rule);padding:clamp(67px,6vw,99px) 0;}
+body.pv-nina-project .nx-encounter-shell {display:grid;grid-template-columns:minmax(0,.94fr) minmax(0,1fr);gap:clamp(43px,6.5vw,111px);align-items:center;}
+body.pv-nina-project .nx-encounter-visual {position:relative;height:clamp(390px,38vw,600px);margin:0;overflow:hidden;background:#301d22 url("../assets/optimized/nina-fok/HDNINACANON.webp") center/cover no-repeat;}
+body.pv-nina-project .nx-encounter-visual video {position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 43%;filter:saturate(.68) brightness(.76);}
+body.pv-nina-project .nx-encounter-content {padding:25px 0;}
+body.pv-nina-project .nx-encounter-content>.nx-mono {color:var(--nx-accent);}
+body.pv-nina-project .nx-encounter h2 {max-width:630px;margin:30px 0 25px;font:400 clamp(65px,6.3vw,102px)/.98 "Inter Tight",sans-serif;letter-spacing:-.064em;}
+body.pv-nina-project .nx-encounter-content p {max-width:485px;color:#c3c0ba;font:400 clamp(18px,1.5vw,22px)/1.54 "Inter Tight",sans-serif;}
+body.pv-nina-project .nx-encounter-content .nx-cta {margin-top:31px;}
+body.pv-nina-project .nx-encounter-annotation {position:absolute;bottom:17px;right:20px;color:#e9e6df;text-shadow:0 1px 7px #000a;}
+
+/* 07 / Practical notes, visually subordinate. */
+body.pv-nina-project .nx-notes {border-top:1px solid var(--nx-rule);padding:clamp(65px,6.7vw,111px) 0 clamp(78px,7vw,112px);}
+body.pv-nina-project .nx-notes-layout {display:grid;grid-template-columns:minmax(175px,.24fr) minmax(0,1fr);gap:clamp(40px,5.6vw,104px);}
+body.pv-nina-project .nx-notes-head>.nx-mono {color:var(--nx-accent);}
+body.pv-nina-project .nx-notes-head h2 {margin-top:15px;font:400 clamp(39px,3.5vw,56px)/1.08 "Inter Tight",sans-serif;letter-spacing:-.042em;}
+body.pv-nina-project .nx-notes-list {border-top:1px solid var(--nx-rule);}
+body.pv-nina-project .nx-notes-list details {border-bottom:1px solid var(--nx-rule);}
+body.pv-nina-project .nx-notes-list summary {list-style:none;display:flex;justify-content:space-between;align-items:center;gap:23px;min-height:62px;padding:15px 0;color:#eceae6;font:500 16px/1.32 "Inter Tight",sans-serif;cursor:pointer;}
+body.pv-nina-project .nx-notes-list summary::-webkit-details-marker {display:none;}
+body.pv-nina-project .nx-notes-list summary::after {content:"+";color:#c5c4c0;font:400 23px/1 "Inter Tight",sans-serif;}
+body.pv-nina-project .nx-notes-list details[open] summary::after {content:"−";}
+body.pv-nina-project .nx-notes-list p {max-width:790px;padding:0 34px 25px 0;color:#c3c1bc;font:400 15.5px/1.68 "Inter Tight",sans-serif;}
+body.pv-nina-project .nx-notes-list summary:hover {color:#fff;}
+body.pv-nina-project .n-footer {display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:24px;min-height:97px;padding:24px 0;border-top:1px solid var(--nx-rule);color:#959693;font:400 10px/1.5 "IBM Plex Mono",monospace;letter-spacing:.07em;text-transform:uppercase;}
+body.pv-nina-project .n-footer a {color:#dedbd6;text-decoration:none;border-bottom:1px solid #969895;padding-bottom:4px;}
+body.pv-nina-project .n-footer a:hover {color:#fff;border-color:#fff;}
+body.pv-nina-project .nx-footer-brand {display:inline-flex;align-items:center;gap:12px;}
+body.pv-nina-project .nx-footer-mark {display:block;width:35px;height:35px;object-fit:contain;}
+
+/* Responsive art direction. */
+@media(max-width:1200px) {
+ body.pv-nina-project .nx-hero-copy {width:min(65%,770px);}
+ body.pv-nina-project .nx-hero-copy h1 {font-size:clamp(95px,12vw,167px);}
+ body.pv-nina-project .nx-presence-layout {gap:clamp(38px,5vw,82px);}
+ body.pv-nina-project .nx-presence-film {height:clamp(500px,55vw,680px);}
+ body.pv-nina-project .nx-method-intro {gap:35px;}
+ body.pv-nina-project .nx-method-systems {gap:35px;}
+ body.pv-nina-project .nx-world-caption {grid-template-columns:170px 1fr;}
+ body.pv-nina-project .nx-world-caption .nx-link {grid-column:2;justify-self:start;}
+}
+@media(max-width:760px) {
+ body.pv-nina-project .n-shell,body.pv-nina-project .nx-container {width:calc(100% - 36px);}
+ body.pv-nina-project .n-nav {height:66px;min-height:66px;grid-template-columns:1fr auto;gap:11px;}
+ body.pv-nina-project .n-nav .nx-brand-wordmark {width:125px;height:auto;}
+ body.pv-nina-project .n-nav>span {display:none;}
+ body.pv-nina-project .n-nav .n-nav-actions {grid-column:2;gap:14px;}
+ body.pv-nina-project .n-nav .n-nav-transmit {font-size:11px;min-height:44px;}
+ body.pv-nina-project .n-nav #ninaAccountToggle {height:44px;width:44px;min-width:44px;padding:11px;}
+ body.pv-nina-project .nx-mono {font-size:10px;letter-spacing:.075em;}
+ body.pv-nina-project .nx-hero-stage {height:calc(100svh - 66px);min-height:635px;max-height:875px;}
+ body.pv-nina-project .nx-hero-stage video {object-position:57% center;}
+ body.pv-nina-project .nx-hero-stage::after {background:linear-gradient(180deg,rgba(5,6,7,.12),rgba(5,6,7,.03) 28%,rgba(5,6,7,.3) 55%,rgba(5,6,7,.94) 100%);}
+ body.pv-nina-project .nx-hero-copy {inset:0;width:100%;padding:20px 24px 27px;justify-content:space-between;}
+ body.pv-nina-project .nx-hero-center {margin:auto 0 29px;max-width:100%;}
+ body.pv-nina-project .nx-hero-copy h1 {font-size:clamp(82px,18vw,134px);letter-spacing:-.07em;line-height:.88;margin-bottom:22px;}
+ body.pv-nina-project .nx-hero-lede {font-size:17px;max-width:305px;}
+ body.pv-nina-project .nx-hero-actions {gap:14px;margin-top:21px;}
+ body.pv-nina-project .nx-hero-copy .nx-hero-caption,body.pv-nina-project .nx-hero-aside {display:none;}
+ body.pv-nina-project .nx-hero-bottom {flex-wrap:nowrap;overflow-x:auto;gap:23px;padding:8px 0 14px;scrollbar-width:thin;overscroll-behavior-x:contain;}
+ body.pv-nina-project .nx-hero-bottom a,body.pv-nina-project .nx-hero-bottom .nx-index {flex:0 0 auto;min-height:44px;}
+ body.pv-nina-project .nx-thesis {grid-template-columns:1fr;gap:23px;padding:79px 0 90px;}
+ body.pv-nina-project .nx-thesis>.nx-mono {padding:0;}
+ body.pv-nina-project .nx-thesis h2 {font-size:clamp(45px,9.65vw,71px);line-height:1.05;}
+ body.pv-nina-project .nx-thesis p {margin:29px 0 0;padding-top:19px;font-size:16px;}
+ body.pv-nina-project .nx-presence {padding:68px 0 94px;}
+ body.pv-nina-project .nx-presence-layout {grid-template-columns:1fr;gap:33px;}
+ body.pv-nina-project .nx-presence-film {height:clamp(445px,107vw,670px);}
+ body.pv-nina-project .nx-presence-copy {padding:0;}
+ body.pv-nina-project .nx-presence-copy>.nx-mono {margin-bottom:17px;}
+ body.pv-nina-project .nx-presence-copy h2 {font-size:clamp(48px,10.5vw,73px);margin-bottom:24px;}
+ body.pv-nina-project .nx-presence-lede {font-size:clamp(19px,5vw,24px);}
+ body.pv-nina-project .nx-presence-detail {margin-top:25px;padding-top:19px;gap:16px;}
+ body.pv-nina-project .nx-memory {padding:85px 0 103px;}
+ body.pv-nina-project .nx-memory-head {display:block;}
+ body.pv-nina-project .nx-memory-head>.nx-mono {display:block;padding:0 0 22px;}
+ body.pv-nina-project .nx-memory-head h2 {font-size:clamp(45px,9.4vw,73px);}
+ body.pv-nina-project .nx-memory-content {grid-template-columns:1fr;gap:32px;margin-top:39px;}
+ body.pv-nina-project .nx-memory-image img {max-height:590px;}
+ body.pv-nina-project .nx-memory-reading {padding:0;}
+ body.pv-nina-project .nx-memory-intro {font-size:22px;padding-bottom:28px;}
+ body.pv-nina-project .nx-memory-note p {font-size:15px;}
+ body.pv-nina-project .nx-method {padding:74px 0 87px;}
+ body.pv-nina-project .nx-method-top {grid-template-columns:1fr;gap:22px;}
+ body.pv-nina-project .nx-method-intro {grid-template-columns:1fr;gap:23px;}
+ body.pv-nina-project .nx-method h2 {font-size:clamp(45px,10vw,71px);}
+ body.pv-nina-project .nx-method-intro>p {font-size:15.5px;}
+ body.pv-nina-project .nx-method-systems {grid-template-columns:1fr;gap:30px;margin-top:48px;}
+ body.pv-nina-project .nx-method-axis {padding-top:16px;}
+ body.pv-nina-project .nx-method-axis>span {margin-bottom:18px;}
+ body.pv-nina-project .nx-method-axis h3 {font-size:30px;margin-bottom:13px;}
+ body.pv-nina-project .nx-method-axis p {font-size:15px;}
+ body.pv-nina-project .nx-method-close {grid-template-columns:1fr;gap:21px;margin-top:56px;padding-top:21px;}
+ body.pv-nina-project .nx-method-close p {font-size:clamp(26px,6vw,37px);}
+ body.pv-nina-project .nx-world {padding-top:88px;}
+ body.pv-nina-project .nx-world-head {grid-template-columns:1fr;gap:22px;padding-bottom:34px;}
+ body.pv-nina-project .nx-world-title>.nx-mono {margin-bottom:17px;}
+ body.pv-nina-project .nx-world h2 {font-size:clamp(59px,12.3vw,96px);}
+ body.pv-nina-project .nx-world-intro {padding:0;}
+ body.pv-nina-project .nx-world-intro p {font-size:18px;}
+ body.pv-nina-project .nx-world-image {height:clamp(365px,71svh,590px);}
+ body.pv-nina-project .nx-world-image img {object-position:51% center;}
+ body.pv-nina-project .nx-world-image figcaption {bottom:12px;left:16px;right:16px;}
+ body.pv-nina-project .nx-world-caption {grid-template-columns:1fr;gap:19px;padding:28px 0 88px;}
+ body.pv-nina-project .nx-world-caption .nx-link {grid-column:1;}
+ body.pv-nina-project .nx-world-caption p {font-size:15.5px;}
+ body.pv-nina-project .nx-encounter {padding:80px 0;}
+ body.pv-nina-project .nx-encounter-shell {grid-template-columns:1fr;gap:34px;}
+ body.pv-nina-project .nx-encounter-visual {height:clamp(370px,88vw,560px);}
+ body.pv-nina-project .nx-encounter h2 {font-size:clamp(69px,13.5vw,95px);margin:26px 0 20px;}
+ body.pv-nina-project .nx-encounter-content p {font-size:18px;}
+ body.pv-nina-project .nx-notes {padding:78px 0 95px;}
+ body.pv-nina-project .nx-notes-layout {grid-template-columns:1fr;gap:28px;}
+ body.pv-nina-project .nx-notes-head h2 {font-size:45px;}
+ body.pv-nina-project .nx-notes-list summary {min-height:63px;font-size:16px;}
+ body.pv-nina-project .nx-notes-list p {font-size:15px;}
+ body.pv-nina-project .n-footer {padding:22px 0 30px;min-height:88px;}
+ body.pv-nina-project .nx-footer-mark {width:29px;height:29px;}
+}
+@media(max-width:390px) {
+ body.pv-nina-project .nx-hero-stage {min-height:540px;}
+ body.pv-nina-project .nx-hero-copy {padding:18px 19px 23px;}
+ body.pv-nina-project .nx-hero-copy h1 {font-size:18.7vw;}
+ body.pv-nina-project .nx-hero-actions {flex-direction:column;align-items:flex-start;gap:11px;}
+ body.pv-nina-project .nx-presence-film {height:105vw;}
+}
+@media(prefers-reduced-motion:reduce) {
+ html {scroll-behavior:auto;}
+ body.pv-nina-project .nx-cta {transition:none;}
+ body.pv-nina-project .nx-hero-stage video,body.pv-nina-project .nx-encounter-visual video {display:none;}
+}
