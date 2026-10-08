@@ -11,7 +11,7 @@ const source=readFileSync('lab/lab.js','utf8');
 const boot=source.indexOf("try{const {Clerk}=await import(");
 assert.ok(boot>0,'Expected browser bootstrap marker');
 const testSource=source.slice(0,boot)+
-"clerk={isSignedIn:true,user:{id:'layout-test'},session:{id:'mock',getToken:async()=> 'mock-token'},signOut:async()=>{}};owner=true;userId='layout-test';config={enabled:true,geminiEnabled:true,falEnabled:true,dailyLimitUsd:10,concurrency:{image:4,video:1}};$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();await loadSoulProIdentity();refreshCanvasImport();update();syncVideoStudioMode();window.__layoutTest=true;";
+"clerk={isSignedIn:true,user:{id:'layout-test'},session:{id:'mock',getToken:async()=> 'mock-token'},signOut:async()=>{}};owner=true;userId='layout-test';config={enabled:true,geminiEnabled:true,falEnabled:true,dailyLimitUsd:10,concurrency:{image:4,video:1}};$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();await loadSoulProIdentity();refreshCanvasImport();update();syncVideoStudioMode();window.__queueTestSetActiveJobs=setActiveJobs;window.__layoutTest=true;";
 
 const server=http.createServer((req,res)=>{
   const u=new URL(req.url,'http://localhost');
@@ -84,6 +84,40 @@ try{
   assert.ok(videoLayout.feedScroll>100,'Results feed scrolls independently of left creation panel');
   assert.equal(videoLayout.panelVisible,true,'Right video details panel is visible');
   await x.page.screenshot({path:'test-results/lab-video-feed-desktop.png',fullPage:false});
+
+  // The old Live Queue was a full-width slab *below* Video, introducing unwanted
+  // document scrolling and hiding provider warnings far from the workspace.
+  const overflow=await x.page.evaluate(()=>{
+    window.scrollTo({top:5000,behavior:'instant'});
+    return {windowY:window.scrollY,documentHeight:document.documentElement.scrollHeight,
+      viewportHeight:innerHeight,bodyOverflow:getComputedStyle(document.body).overflow,
+      mainOverflow:getComputedStyle(document.getElementById('main')).overflow};
+  });
+  console.log('VIDEO_OUTER_SCROLL',JSON.stringify(overflow));
+  assert.equal(overflow.windowY,0,'Desktop Video must not scroll outside the center results feed');
+  assert.equal(overflow.bodyOverflow,'hidden','Desktop Video locks the outer page scroll');
+  assert.equal(overflow.mainOverflow,'hidden','Video main workspace does not push to footer');
+  await x.page.evaluate(()=>window.__queueTestSetActiveJobs([
+    {id:'11111111-1111-4111-8111-111111111111',status:'uncertain',
+     settings:{type:'image',engine:'gemini',mode:'image'},error:'Provider response needs checking.'},
+    {id:'22222222-2222-4222-8222-222222222222',status:'uncertain',
+     settings:{type:'image',engine:'fal',mode:'image'},error:'Check status before retrying.'}
+  ]));
+  assert.equal(await x.page.locator('#active').isVisible(),true,'Queue status is visible when jobs need review');
+  assert.equal(await x.page.locator('#active').evaluate(el=>el.closest('.tool-switch')!==null),true,
+    'Live Queue belongs to tool bar instead of below editor');
+  assert.equal(await x.page.locator('#active').evaluate(el=>el.open),false,'Queue details collapsed by default');
+  assert.match(await x.page.locator('#queue-count').innerText(),/2 to review/);
+  assert.equal(await x.page.locator('#resolve').isVisible(),false,'Resolve action hidden until user opens Queue');
+  await x.page.locator('#active summary').click();
+  assert.equal(await x.page.locator('#resolve').isVisible(),true,'Provider recovery remains accessible in Queue');
+  assert.match(await x.page.locator('#active-detail').innerText(),/Check status before retrying/);
+  await x.page.screenshot({path:'test-results/lab-video-queue-popover.png',fullPage:false});
+  await x.page.locator('#active summary').click();
+  await x.page.evaluate(()=>window.__queueTestSetActiveJobs([]));
+  assert.equal(await x.page.locator('#active').isVisible(),false,'Queue chip disappears when there are no jobs');
+  assert.equal(await x.page.evaluate(()=>window.scrollY),0,'Queue does not introduce body scrolling');
+
   assert.ok(d.generate.top>=d.panel.top,'Generate remains visible without scrolling the form');
   assert.equal(d.scrollMode,'auto','Video creation controls may scroll separately if a chosen model has extra settings');
   assert.ok(d.stage.height<=741&&d.canvas.height<650,'Preview never exceeds viewport cap');
@@ -247,6 +281,21 @@ try{
   x=await open(390,844);
   d=await geometry(x.page);
   console.log('MOBILE_LAYOUT',JSON.stringify(d));
+
+  await x.page.evaluate(()=>window.__queueTestSetActiveJobs([
+    {id:'33333333-3333-4333-8333-333333333333',status:'uncertain',
+     settings:{type:'video',engine:'wan',mode:'start'},error:'Check provider account.'}
+  ]));
+  const mobileQueue=await x.page.locator('#active summary').evaluate(el=>{
+    const r=el.getBoundingClientRect();
+    return {left:r.left,right:r.right,top:r.top,bottom:r.bottom};
+  });
+  assert.ok(mobileQueue.left>=0&&mobileQueue.right<=390,'Compact queue button must fit in mobile toolbar');
+  await x.page.locator('#active summary').click();
+  assert.equal(await x.page.locator('#resolve').isVisible(),true,'Mobile user can inspect interrupted jobs');
+  await x.page.locator('#active summary').click();
+  await x.page.evaluate(()=>window.__queueTestSetActiveJobs([]));
+
   assert.ok(d.documentWidth<=d.viewport.width,'Mobile must have no horizontal overflow');
   assert.ok(d.workspace.top<135,'Mobile editor appears immediately after tool navigation');
   assert.ok(d.stage.height<=620,'Preview remains bounded on mobile');
