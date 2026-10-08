@@ -84,6 +84,19 @@ try{
   assert.ok(await x.page.locator('#empty-title').innerText().then(t=>/next scene/i.test(t)),'Video opens with an inviting scene direction');
   assert.ok(await x.page.locator('#canvas-secondary').isVisible(),'Video offers an alternate entry into Image');
   assert.ok(await x.page.locator('.canvas').evaluate(e=>getComputedStyle(e).backgroundImage.includes('radial-gradient')),'Preview has atmospheric lighting');
+  const palette=await x.page.evaluate(()=>{
+    const style=getComputedStyle(document.documentElement);
+    return {
+      bg:style.getPropertyValue('--bg').trim(),
+      canvas:style.getPropertyValue('--canvas').trim(),
+      image:getComputedStyle(document.querySelector('.canvas')).backgroundImage,
+      pageTheme:document.querySelector('meta[name="theme-color"]').content
+    };
+  });
+  assert.equal(palette.bg,'#100f11','Workspace foundation uses neutral charcoal');
+  assert.equal(palette.pageTheme,palette.bg,'Browser chrome and studio background agree');
+  assert.match(palette.image,/rgba?\(\s*145\s*,\s*129\s*,\s*126\b/,'Ambient fill is warm-neutral rather than teal');
+  assert.ok(!palette.image.includes('97, 130, 126'),'Former green halo is absent');
   assert.ok(d.documentWidth<=d.viewport.width,'No horizontal overflow');
   await x.page.screenshot({path:'test-results/lab-workspace-desktop.png',fullPage:false});
   const fileChooser=x.page.waitForEvent('filechooser');
