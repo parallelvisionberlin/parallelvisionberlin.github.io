@@ -164,7 +164,7 @@ body .nina-account-panel .nina-account-signout { border-top-color: #242422; }
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./css/nina-dark-exhibit.css?v=20261008-dark-01">
+  <link rel="stylesheet" href="./css/nina-dark-exhibit.css?v=20261008-layout-audit-02">
   <style id="nina-dark-root">html,body.pv-nina-project{background:#0a0b0c!important;color:#f1f0ed!important}</style>
 </head>
 <body class="pv-nina-project">
@@ -235,7 +235,7 @@ body .nina-account-panel .nina-account-signout { border-top-color: #242422; }
       <div class="nx-container">
         <div class="nx-hero-status nx-mono">
           <span>Parallel Vision / An ongoing artwork</span>
-          <span>Nina FOK / Berlin 2063</span>
+          <span>Identity / Voice / Continuity</span>
         </div>
         <div class="nx-hero-stage">
           <video class="n-hero-asset" id="ninaHeroVideo" data-src="./nina-fok/ninaloophero.mp4" poster="./assets/optimized/nina-fok/HDNINACANON.webp" autoplay muted loop playsinline preload="none" aria-label="Nina FOK in her Berlin 2063 room, surrounded by masks" data-optimized-src="./assets/optimized/video/nina-fok/ninaloophero-desktop.mp4" data-mobile-src="./assets/optimized/video/nina-fok/ninaloophero-mobile.mp4"></video>
@@ -256,11 +256,15 @@ body .nina-account-panel .nina-account-signout { border-top-color: #242422; }
           </div>
           <p class="nx-hero-aside nx-mono">Live encounter<br>Berlin / 2063</p>
         </div>
-        <div class="nx-hero-bottom nx-mono">
-          <span>Parallel Vision · An ongoing artwork</span>
-          <span>Moving image / Conversation</span>
-          <span>Scroll to enter ↓</span>
-        </div>
+        <nav class="nx-hero-bottom nx-mono" aria-label="Project contents">
+          <span class="nx-index">Index / 07</span>
+          <a href="#question">01 / The idea</a>
+          <a href="#meet-nina-title">02 / Nina</a>
+          <a href="#study-title">03 / Memory</a>
+          <a href="#condition-title">04 / Construction</a>
+          <a href="#berlin-title">05 / Berlin 2063</a>
+          <a href="#transmit">06 / Meet her ↗</a>
+        </nav>
       </div>
     </header>
 
@@ -278,6 +282,7 @@ body .nina-account-panel .nina-account-signout { border-top-color: #242422; }
           <p class="nx-mono">02 / The subject<br>Nina FOK</p>
           <h2 id="meet-nina-title">She already<br>has a life.</h2>
         </div>
+        <div class="nx-presence-layout">
         <figure class="nx-presence-film">
           <video id="ninaPersonalityVideo" autoplay muted loop playsinline preload="none" poster="./assets/optimized/ninamain-page.webp" aria-label="Nina FOK speaking from Berlin 2063">
             <source data-src="./nina-fok/NINATALKNEW.mp4" type="video/mp4">
@@ -291,6 +296,7 @@ body .nina-account-panel .nina-account-signout { border-top-color: #242422; }
             <p>There is no predetermined dialogue. Her replies unfold during the conversation.</p>
             <button class="nx-cta nx-cta--line" type="button" data-nina-open><span>Meet Nina</span><span aria-hidden="true">↗</span></button>
           </div>
+        </div>
         </div>
       </div>
     </section>
