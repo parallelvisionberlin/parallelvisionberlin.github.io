@@ -555,6 +555,10 @@ body .nina-account-panel .nina-account-signout { border-top-color: #242422; }
   .pv-nina-project .n-how-section .n-system-block { margin-top: 4px; padding-top: 20px; }
 }
 </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;family=Instrument+Serif:ital@0;1&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./css/nina-project-research.css?v=20261008-edition-1">
 </head>
 <body class="pv-nina-project">
   <a class="skip-link" href="#main-content">Skip to main content</a>
@@ -620,28 +624,41 @@ body .nina-account-panel .nina-account-signout { border-top-color: #242422; }
   </div>
 
   <main class="n-shell" id="main-content">
+    <!-- 00 / Cover -->
     <header class="n-hero" id="nina">
-      <figure class="n-hero-media">
-        <video class="n-hero-asset" id="ninaHeroVideo" data-src="./nina-fok/ninaloophero.mp4" poster="./assets/optimized/nina-fok/HDNINACANON.webp" autoplay muted loop playsinline preload="none" aria-label="Nina FOK in her Berlin 2063 environment" data-optimized-src="./assets/optimized/video/nina-fok/ninaloophero-desktop.mp4" data-mobile-src="./assets/optimized/video/nina-fok/ninaloophero-mobile.mp4"></video>
-        <figcaption class="n-hero-copy">
-          <p class="n-meta">Berlin / 2063</p>
-          <h1>Nina FOK</h1>
-          <p class="n-hero-statement">She lives in Berlin, 2063. You can speak with her now.</p>
-          <div class="n-hero-actions">
-            <button class="n-button n-button-primary" type="button" data-nina-open><span>Talk to Nina</span><small data-nina-trial-offer hidden>3 minutes free</small></button>
-            <a class="n-hero-discover" href="#question">Discover the project →</a>
+      <div class="n-cover-index"><span>Parallel Vision / Ongoing artwork</span><span>Nina FOK / Berlin 2063</span></div>
+      <div class="n-cover-grid">
+        <div class="n-cover-copy">
+          <p class="n-label">A study in identity, memory &amp; presence</p>
+          <h1>Nina <span>FOK</span></h1>
+          <div class="n-cover-summary">
+            <p class="n-cover-deck">A future to live in.<br>A voice to speak from it.</p>
+            <p class="n-hero-statement">She lives in Berlin, 2063. She makes music, has a history, and you can speak with her now.</p>
+            <div class="n-hero-actions n-cover-actions">
+              <button class="n-button n-button-primary" type="button" data-nina-open><span>Talk to Nina</span><span aria-hidden="true">↗</span><small data-nina-trial-offer hidden>3 minutes free</small></button>
+              <a class="n-hero-discover" href="#question">Discover the project ↘</a>
+            </div>
           </div>
-        </figcaption>
-      </figure>
+        </div>
+        <figure class="n-hero-media n-cover-media">
+          <video class="n-hero-asset" id="ninaHeroVideo" data-src="./nina-fok/ninaloophero.mp4" poster="./assets/optimized/nina-fok/HDNINACANON.webp" autoplay muted loop playsinline preload="none" aria-label="Nina FOK seated in her Berlin 2063 space, surrounded by masks" data-optimized-src="./assets/optimized/video/nina-fok/ninaloophero-desktop.mp4" data-mobile-src="./assets/optimized/video/nina-fok/ninaloophero-mobile.mp4"></video>
+          <figcaption><span>Fig. 01 / Nina FOK</span><span>Portrait / Berlin 2063</span></figcaption>
+        </figure>
+      </div>
+      <div class="n-cover-bottom"><span>Parallel Vision · Art / Research / Conversation</span><a href="#question">Read the study ↓</a></div>
     </header>
 
+    <!-- 01 / Premise -->
     <section class="n-section n-concept-entry" id="question" aria-labelledby="question-title">
-<div class="n-copy">
-<h2 id="question-title">What happens when you give an intelligence a future to live in?</h2>
-<p>Nina FOK is an ongoing artwork by Parallel Vision exploring how identity takes shape through a biography, a world and encounters with others. Berlin 2063 gives her a history. Two layers of memory allow new encounters to inform what follows.</p>
-</div>
-</section>
-<section class="n-section n-who-section n-project-entrance" aria-labelledby="meet-nina-title">
+      <div class="n-section-index"><span>01 / The question</span><span>Project statement</span></div>
+      <div class="n-premise-content">
+        <h2 id="question-title">What happens when you give an intelligence <em>a future to live in?</em></h2>
+        <p>Nina FOK is an ongoing artwork by Parallel Vision, exploring how identity takes shape through a biography, a world and encounters with others. Berlin 2063 gives her a history. Two layers of memory are designed to allow later encounters to carry something forward from those that came before.</p>
+      </div>
+    </section>
+
+    <!-- 02 / Subject -->
+    <section class="n-section n-who-section n-project-entrance" aria-labelledby="meet-nina-title">
       <div class="n-who-grid">
         <figure class="n-who-media">
           <video id="ninaPersonalityVideo" autoplay muted loop playsinline preload="none" poster="./assets/optimized/ninamain-page.webp" aria-label="Nina FOK speaking from Berlin 2063">
@@ -650,129 +667,137 @@ body .nina-account-panel .nina-account-signout { border-top-color: #242422; }
           <button class="n-sound" id="ninaVideoSound" type="button" aria-pressed="false" aria-label="Turn Nina video sound on">Sound On</button>
         </figure>
         <div class="n-copy">
-          <p class="n-label">Parallel Vision / An ongoing art project</p>
-          <h2 id="meet-nina-title">Meet Nina FOK</h2>
-          <p>Nina is a DJ, producer and visual artist living in Berlin 2063. Her music, relationships and the life of her city give you a way into her world. You can speak with her live and return to continue the conversation.</p>
+          <p class="n-label">02 / The subject</p>
+          <h2 id="meet-nina-title">Meet Nina FOK.</h2>
+          <p>Nina is a DJ, producer and visual artist living in Berlin 2063. Her music, relationships and the everyday life of her city give you a way into her world. She has a biography and a point of view. You can meet her live, and return to continue the conversation.</p>
           <div class="n-encounter-invitation">
-            <p>Ask about her music, her city, or something from your own life. Her responses unfold in real time.</p>
-            <button class="n-button n-encounter-button" type="button" data-nina-open>Talk to Nina</button>
-            <a href="#study-title">Explore her memory</a>
+            <p>Ask about her music, the city, or something from your own life. Her responses unfold in real time; the dialogue is not written in advance.</p>
+            <button class="n-button n-encounter-button" type="button" data-nina-open>Speak with Nina ↗</button>
+            <a href="#study-title">On memory &amp; continuity ↓</a>
           </div>
         </div>
       </div>
     </section>
 
+    <!-- 03 / Memory -->
     <section class="n-section n-memory-story" aria-labelledby="study-title">
       <figure class="n-memory-photo">
-        <img src="./assets/optimized/nina-fok/nina-window.webp" alt="Nina FOK behind a scratched window with city lights reflected in the glass" width="563" height="1000" loading="lazy" decoding="async">
+        <img src="./assets/optimized/nina-fok/nina-window.webp" alt="Nina FOK behind a scratched window, with reflections of city lights" width="563" height="1000" loading="lazy" decoding="async">
       </figure>
       <div class="n-copy">
-        <p class="n-label">Memory / Continuity</p>
-        <h2 id="study-title">Two layers of memory.<br>A conversation that can continue.</h2>
+        <p class="n-label">03 / Memory &amp; continuity</p>
+        <h2 id="study-title">Two layers of memory.<br><i>One evolving history.</i></h2>
         <p>What you tell Nina can become part of a longer history. Parallel Vision has built two complementary memory layers for signed-in conversations.</p>
         <div class="n-memory-layer">
-          <h3>What she remembers</h3>
+          <h3>01 &nbsp; What she remembers</h3>
           <p>Selected details, shared moments and unfinished conversations are kept alongside compact summaries. They give later encounters something specific to return to.</p>
         </div>
         <div class="n-memory-layer">
-          <h3>How familiarity develops</h3>
-          <p>A separate layer tracks changes in familiarity, trust and comfort, using evidence from completed conversations. It gives Nina context for how to approach the next encounter.</p>
+          <h3>02 &nbsp; How familiarity develops</h3>
+          <p>A separate layer is designed to track changes in familiarity, trust and comfort using evidence from completed conversations. It gives Nina context for how to approach the next encounter.</p>
         </div>
-        <p class="n-memory-note">Each account has its own history. You can manage stored memories or delete them from your account.</p>
-        <p class="n-memory-question">The artistic question runs through both layers: how does an identity change through repeated encounters?</p>
+        <p class="n-memory-note">Memory is selective, not a transcript of everything said. Each signed-in account has its own history, which can be managed or deleted from account settings.</p>
+        <p class="n-memory-question">How does an identity change through repeated encounters?</p>
       </div>
     </section>
 
+    <!-- 04 / Construction -->
     <section class="n-section n-how-section" aria-labelledby="condition-title">
-<div class="n-copy">
-<p class="n-label">Inside the project</p>
-<h2 id="condition-title">How Nina takes shape</h2>
-<p>Multiple models, a written biography, live voice and visual presence, and a two-layer memory architecture come together in Nina. Parallel Vision develops the conditions through which she speaks from Berlin 2063 and carries a history from one encounter to the next.</p>
-<div class="n-system-block"><h3>A world to speak from</h3><p>Her biography, relationships and the history of Berlin 2063 give each conversation a specific context. They shape the perspective from which she responds.</p></div>
-<div class="n-system-block"><h3>A presence that responds</h3><p>Language, voice and visual systems work together in real time. Her replies unfold during the encounter. The dialogue is not written in advance.</p></div>
+      <div class="n-method-top">
+        <p class="n-section-index"><span>04 / Construction</span><span>Inside the work</span></p>
+        <div>
+          <h2 id="condition-title">How Nina<br><i>takes shape.</i></h2>
+          <p class="n-method-intro">Multiple models, a written biography, live voice and visual presence, and a two-layer memory architecture come together in Nina. Parallel Vision develops the conditions through which she speaks from Berlin 2063 and carries a history from one encounter to the next.</p>
+        </div>
+      </div>
+      <div class="n-method-notes">
+        <div class="n-system-block">
+          <span>01 / World</span>
+          <h3>A world to speak from</h3>
+          <p>Her biography, relationships and the history of Berlin 2063 give each conversation a specific context. They shape the perspective from which she responds.</p>
+        </div>
+        <div class="n-system-block">
+          <span>02 / Presence</span>
+          <h3>A presence that responds</h3>
+          <p>Language, voice and visual systems work together in real time. Her replies unfold during the encounter. The dialogue is not written in advance.</p>
+        </div>
+      </div>
+      <p class="n-system-closing">The systems establish the conditions. They do not prescribe every response. The space between construction and unpredictability is part of the work.</p>
+    </section>
 
-<p class="n-system-closing">The systems establish the conditions. They do not prescribe every response. That space between construction and unpredictability is part of the artwork.</p>
-</div></section>
-
+    <!-- 05 / World -->
     <section class="n-section n-world-section" aria-labelledby="berlin-title">
       <div class="n-berlin-head">
-        <div class="n-archive-id" aria-label="Berlin 2063 archive status">
-          <strong>Berlin 2063 / Her world</strong>
-          <span>Parallel Vision World Archive</span>
-          <span>Active Canon</span>
+        <div class="n-archive-id" aria-label="Berlin 2063 world archive">
+          <strong>05 / Her world</strong>
+          <span>Parallel Vision Archive</span>
+          <span>Berlin / 2063</span>
         </div>
         <div class="n-copy n-copy-wide">
-          <h2 id="berlin-title">Berlin 2063 is the world Nina knows as the present.</h2>
-          <p>Its history, culture, technologies and tensions shape how she understands the people who enter it.</p>
+          <h2 id="berlin-title">Berlin 2063 is the world Nina knows <em>as the present.</em></h2>
+          <p>Its history, culture, technologies and tensions shape how she understands the people who enter it. The city is not a backdrop. It is where her point of view begins.</p>
         </div>
       </div>
       <figure class="n-editorial-image n-world">
-        <img src="./assets/optimized/thecitysuperhd1.webp" alt="Berlin 2063 vertical city and historic structures" decoding="async" loading="lazy" fetchpriority="low" width="4500" height="2512">
+        <img src="./assets/optimized/thecitysuperhd1.webp" alt="Parallel Vision's imagined Berlin 2063, with a dense vertical city and surviving historic architecture" decoding="async" loading="lazy" fetchpriority="low" width="4500" height="2512">
       </figure>
-      <div class="n-world-note" aria-label="Berlin 2063 canonical annotation">
-        <div class="n-archive-id">
-          <strong>World Condition</strong>
-          <span>Berlin / 2063</span>
-          <span>Subject / Nina FOK</span>
-        </div>
-        <p>The city is not a backdrop. It is where Nina's point of view begins.</p>
-      </div>
-      <div class="n-copy n-berlin-body">
-        <p>Nina is a DJ, producer and visual artist living in Parallel Vision’s imagined Berlin 2063. Her music, relationships and everyday life give her a perspective on the city you can discover through conversation.</p>
-        <a class="n-world-link" href="./berlin-2063.html">Explore Berlin 2063 →</a>
+      <div class="n-world-note">
+        <div class="n-archive-id"><strong>World condition</strong><span>Berlin / 2063</span><span>Subject / Nina FOK</span></div>
+        <p>Nina is a DJ, producer and visual artist living in this imagined future. Her music, relationships and everyday life are part of the world you encounter through her.</p>
+        <a class="n-world-link" href="./berlin-2063.html">Explore Berlin 2063 ↗</a>
       </div>
     </section>
 
+    <!-- 06 / Encounter -->
     <section class="n-connect" id="transmit" aria-labelledby="transmit-title">
       <video class="n-connect-video" id="ninaConnectVideo" data-src="./nina-fok/ninaloophero.mp4" poster="./assets/optimized/nina-fok/HDNINACANON.webp" autoplay muted loop playsinline preload="none" aria-hidden="true" data-optimized-src="./assets/optimized/video/nina-fok/ninaloophero-desktop.mp4" data-mobile-src="./assets/optimized/video/nina-fok/ninaloophero-mobile.mp4"></video>
       <div class="n-connect-content">
-        <p class="n-label">A channel to Berlin 2063 is open</p>
-        <h2 id="transmit-title">Talk to Nina</h2>
-        <p class="n-connect-note" data-nina-trial-offer hidden>3 Minutes Free</p>
-        <button class="n-button" type="button" data-nina-open>Begin conversation</button>
+        <p class="n-label">06 / The encounter</p>
+        <h2 id="transmit-title">The work continues<br><i>when you speak.</i></h2>
+        <p class="n-connect-description">You can meet Nina now. Ask her a question, tell her something, or simply spend a little time with her in Berlin 2063.</p>
+        <p class="n-connect-note" data-nina-trial-offer hidden>3 minutes free with a new account</p>
+        <button class="n-button" type="button" data-nina-open>Begin a conversation ↗</button>
       </div>
     </section>
 
+    <!-- 07 / Reader's notes -->
     <section class="n-faq" aria-labelledby="faq-title">
       <div class="n-faq-head">
-        <p class="n-label">Practical questions</p>
-        <h2 id="faq-title">FAQ</h2>
+        <p class="n-label">07 / Reader's notes</p>
+        <h2 id="faq-title">A few details.</h2>
       </div>
       <div class="n-faq-list">
         <details name="nina-faq">
           <summary>Who is Nina FOK?</summary>
-          <div class="n-faq-answer"><p>Nina FOK is a synthetic character and artist within Parallel Vision’s Berlin 2063. The project uses generative models, live voice and visual systems, and a custom memory architecture to make conversation with her possible.</p></div>
+          <div class="n-faq-answer"><p>Nina FOK is a DJ, producer and visual artist from Parallel Vision's Berlin 2063. As an artwork, her presence is developed through a written biography, generative systems, live voice and visual technology, and memory.</p></div>
         </details>
         <details name="nina-faq">
           <summary>Is Nina scripted?</summary>
-          <div class="n-faq-answer"><p>Not in the traditional sense. Parallel Vision establishes Nina’s world, history and continuity, but individual conversations are not written in advance. Her responses and relationships develop through interaction, memory and the circumstances of each encounter.</p></div>
+          <div class="n-faq-answer"><p>Not in the traditional sense. Parallel Vision establishes Nina's world, history and continuity, but individual conversations are not written in advance. Her responses emerge in real time, informed by the context available to her.</p></div>
         </details>
         <details name="nina-faq">
           <summary>Does Nina remember me?</summary>
-          <div class="n-faq-answer"><p>If you choose to create an account, Nina can remember selected details and unfinished conversations when you return. Each account remains separate.</p></div>
+          <div class="n-faq-answer"><p>With an account, Nina's memory system can retain selected details and summaries from previous conversations. It does not store or recall every detail, and each account's history remains separate.</p></div>
         </details>
         <details name="nina-faq">
-          <summary>Why 2063?</summary>
-          <div class="n-faq-answer"><p>Berlin 2063 is the world Nina understands as the present. Parallel Vision has been building that future through music, film, fashion, architecture and fictional archives. Nina is the first part of that world you can speak to directly.</p></div>
+          <summary>Why Berlin 2063?</summary>
+          <div class="n-faq-answer"><p>2063 is the present Nina understands. Parallel Vision has built an imagined Berlin through music, film, fashion, architecture and world archives. Nina is one part of that world you can speak to directly.</p></div>
         </details>
         <details name="nina-faq" data-nina-trial-offer hidden>
           <summary>Can I meet Nina for free?</summary>
           <div class="n-faq-answer"><p>Yes. Every new verified account begins with 3 minutes of Live Nina.</p></div>
         </details>
         <details name="nina-faq">
-          <summary>Why does Live Nina use Signal Credits?</summary>
-          <div class="n-faq-answer">
-            <p>Signal Credits keep the live transmission running. Live Nina uses real-time voice, language and visual systems continuously while the signal is open. Those systems carry a cost for every minute of live transmission.</p>
-            <p>10 Signal Credits = 1 minute.</p>
-          </div>
+          <summary>What are Signal Credits?</summary>
+          <div class="n-faq-answer"><p>Signal Credits support the real-time voice, language and visual systems used by Live Nina. These systems incur costs while a conversation is open. Ten Signal Credits currently provide one minute of live conversation.</p></div>
         </details>
         <details name="nina-faq">
-          <summary>What happens when the signal ends?</summary>
-          <div class="n-faq-answer"><p>Your history with Nina remains. When you return, the conversation does not have to begin again.</p></div>
+          <summary>What happens when a conversation ends?</summary>
+          <div class="n-faq-answer"><p>Selected context can be saved to your private account history, giving later conversations a way to pick up parts of what you shared.</p></div>
         </details>
         <details name="nina-faq">
           <summary>Can I delete what Nina remembers?</summary>
-          <div class="n-faq-answer"><p>Yes. You can remove Nina’s stored memory or permanently delete your account and associated data from your account settings.</p></div>
+          <div class="n-faq-answer"><p>Yes. You can manage or delete Nina's stored memory, or delete your account and associated data from account settings.</p></div>
         </details>
       </div>
     </section>
