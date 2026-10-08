@@ -473,7 +473,7 @@ dialog.image-lightbox::backdrop {background:rgba(4,5,7,.86);backdrop-filter:blur
 #image-composer .composer-options-fields select,#image-composer .composer-options-fields input:not([type=range]):not([type=checkbox]){width:100%;min-height:37px;padding:8px 10px;border:1px solid #424344;border-radius:8px;background:#242526;color:#eee;font-size:12px}
 .composer-options-fields #soul-pro-settings,.composer-options-fields #soul-controls,.composer-options-fields #controlled-pose-settings{display:flex;align-items:flex-start;flex-wrap:wrap;gap:14px;padding:0;margin:0;background:transparent;border:0;width:100%}
 .composer-options-fields #soul-pro-settings>label,.composer-options-fields .seed-settings,.composer-options-fields .soul-strength{flex:1 1 180px;min-width:0}
-.composer-options-fields #soul-pro-settings>.upload-heading,.composer-options-fields #soul-pro-settings>p,.composer-options-fields .identity-profile-row,.composer-options-fields .soul-control-grid,.composer-options-fields #soul-controls>.soul-note,.composer-options-fields #soul-controls>.mode-switch{display:none}
+.composer-options-fields #soul-pro-settings>.upload-heading,.composer-options-fields #soul-pro-settings>p,.composer-options-fields .identity-profile-row,.composer-options-fields .soul-control-grid,.composer-options-fields #soul-controls>.soul-note{display:none}
 .composer-options-fields #soul-reinterpret-controls{width:100%}
 .composer-options-fields #soul-base-drop,.composer-options-fields #soul-base-preview,.composer-options-fields #soul-base-name,.composer-options-fields label[for=soul-base-image]{display:none!important}
 .composer-options-fields #reference-list{flex:1 1 100%;width:100%;max-height:220px;overflow:auto;margin:0}
@@ -494,3 +494,5 @@ dialog.image-lightbox::backdrop {background:rgba(4,5,7,.86);backdrop-filter:blur
   .composer-library-actions{flex-wrap:wrap}
   .composer-options{max-height:36dvh}
 }
+
+#composer-options-fields>#save,#composer-options-fields>#clear{flex:0 1 auto;width:auto;min-height:34px;padding:8px 12px;font-size:11px;background:#252627;border:1px solid #444;color:#ddd;border-radius:8px}

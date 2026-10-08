@@ -158,11 +158,11 @@ function composerMove(id,target){
 }
 function syncComposerOptions(){
   const image=tool==='image',target=$('composer-options-fields');
-  for(const id of ['format-control','image-processing-control','soul-controls','soul-pro-settings','controlled-pose-settings','reference-list','reference-guidance'])composerMove(id,image?target:null);
+  for(const id of ['format-control','image-processing-control','soul-controls','soul-pro-settings','controlled-pose-settings','reference-list','reference-guidance','save','clear'])composerMove(id,image?target:null);
   if(!image){$('reference-list').hidden=false;return;}
   target.dataset.engine=imageEngine;
   $('reference-list').hidden=['soul','soulpro'].includes(imageEngine);
-  for(const el of target.querySelectorAll('input,select,button,textarea'))el.disabled=busy;
+  for(const el of target.querySelectorAll('input,select,textarea'))el.disabled=busy;
   const identity=imageEngine==='soulpro',trained=imageEngine==='soul';
   const selected=identity?'Nina FOK':trained?($('soul-character').selectedOptions[0]?.textContent||'Character'):packs.find(p=>p.id===$('pack-select').value)?.name||'References';
   $('composer-character-name').textContent=selected;

@@ -87,7 +87,7 @@ try{
   assert.match(await x.page.locator('#input-preview-description').innerText(),/not a generated result/);
   const size=await x.page.locator('#input-preview-image').evaluate(async i=>{await i.decode();return [i.naturalWidth,i.naturalHeight];});assert.ok(Math.max(...size)<=1280);
   await x.page.locator('#input-preview-dialog [data-close]').click();assert.equal(await x.page.locator('#preview').isVisible(),false);pass('Input previews open separately and never replace the result canvas');
-  await x.page.locator('#prompt').fill('Architectural sculpture in daylight.');
+  await x.page.locator('#prompt:visible, #image-composer-prompt:visible').fill('Architectural sculpture in daylight.');
   await x.page.locator('.reference-item select').first().selectOption('room');
   await x.page.locator('.reference-item input').first().fill('Use only the architecture.');
   await x.page.locator('#save').click();await x.page.waitForFunction(()=>document.querySelector('#notice').textContent.startsWith('Saved privately'));
@@ -110,14 +110,14 @@ try{
   assert.equal(assigned.filter(r=>r.role==='base').length,1);
   assert.equal(await x.page.locator('.reference-item').nth(1).getByRole('button',{name:'Up',exact:true}).isDisabled(),true);
   pass('Choosing Base moves that original to Reference 1, clears the previous Base, and keeps it first');
-  await x.page.locator('#prompt').fill('Preserve the studio lighting.');
+  await x.page.locator('#prompt:visible, #image-composer-prompt:visible').fill('Preserve the studio lighting.');
   await role(x.page,2).selectOption('detail');
   assert.equal(await target(x.page,2).inputValue(),'');
   assert.equal(await x.page.locator('#generate').isDisabled(),true);assert.equal(await x.page.locator('#save').isDisabled(),true);
   assert.match(await x.page.locator('#reference-guidance-warning').innerText(),/Choose a detail for Reference 2/);
   await target(x.page,2).selectOption('hands');
   assert.equal(await x.page.locator('#generate').isDisabled(),false);
-  await x.page.locator('#prompt').fill('');
+  await x.page.locator('#prompt:visible, #image-composer-prompt:visible').fill('');
   assert.equal(await x.page.locator('#generate').isDisabled(),false);assert.equal(await x.page.locator('#save').isDisabled(),false);
   assert.equal(await x.page.locator('#prompt-label').textContent(),'Additional changes (optional)');
   pass('Detail requires a target, then Base plus Hands works with no written image direction');
@@ -144,7 +144,7 @@ try{
   assert.deepEqual(guidedDraft.referenceSourceIds,x.uploads.map(u=>u.id));
   assert.equal(x.requests.filter(r=>r.path==='/api/jobs'&&r.method==='POST').length,0);
   pass('Draft keeps role-only direction, ordered originals, detail and clothing targets, and optional notes');
-  await x.page.locator('#prompt').fill('A'.repeat(4900));
+  await x.page.locator('#prompt:visible, #image-composer-prompt:visible').fill('A'.repeat(4900));
   assert.match(await x.page.locator('#reference-guidance-warning').innerText(),/exceed 5,000 characters/);
   assert.equal(await x.page.locator('#generate').isDisabled(),true);assert.equal(await x.page.locator('#save').isDisabled(),true);
   pass('The final instruction budget blocks oversized requests after automatic role text is included');
@@ -263,3 +263,4 @@ try{
   }
   console.log('REFERENCE_CHECKS_PASSED='+passed);
 }finally{await browser.close();await new Promise(r=>server.close(r));}
+

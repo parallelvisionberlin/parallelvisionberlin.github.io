@@ -1,3 +1,4 @@
+async function chooseImageModel(page,value){await page.click('#image-composer-model');await page.click('.composer-model-option[data-value="'+value+'"]');await page.click('#image-composer-more');}
 async function imageAdvanced(page){await page.click('#tool-image');const open=await page.locator('#app').evaluate(el=>el.classList.contains('image-settings-open'));if(!open)await page.click('#image-composer-more');}
 // Mock-only browser verification. No real credentials, private media or paid generations.
 import assert from 'node:assert/strict';
@@ -72,19 +73,19 @@ async function workspace({failure='',width=1440,initial=[],savedPacks=[],quoteDe
 }
 const count=(x,path,method='POST')=>x.requests.filter(r=>r.path===path&&r.method===method).length;
 const ready=page=>page.waitForFunction(()=>!document.querySelector('#resolution').disabled);
-async function imageForm(x){await imageAdvanced(x.page);await x.page.fill('#prompt',settings.prompt);await x.page.selectOption('#resolution','2k');await x.page.selectOption('#ratio','16:9');await x.page.selectOption('#output-format','png');}
+async function imageForm(x){await imageAdvanced(x.page);await x.page.fill('#prompt:visible, #image-composer-prompt:visible',settings.prompt);await x.page.selectOption('#resolution:visible, #image-composer-resolution:visible','2k');await x.page.selectOption('#ratio:visible, #image-composer-ratio:visible','16:9');await x.page.selectOption('#output-format','png');}
 try{
  let x=await workspace();await imageForm(x);assert.equal(await x.page.locator('#generate').innerText(),'Generate');assert.match(await x.page.locator('#generation-help').innerText(),/one paid image/);
  await x.page.click('#image-composer-more');await x.page.click('#image-composer-generate');await ready(x.page);assert.equal(x.accepted(),1);assert.equal(count(x,'/api/quotes'),1);assert.equal(count(x,'/api/jobs'),1);assert.equal(await x.page.locator('#quote-dialog').isVisible(),false);assert.deepEqual(x.dialogs,[]);
  const q=x.requests.find(r=>r.path==='/api/quotes').data;assert.equal(q.settings.prompt,settings.prompt);assert.equal(q.settings.resolution,'2k');assert.equal(q.settings.aspectRatio,'16:9');assert.equal(q.settings.outputFormat,'png');ok('Text-to-image: one click, one quote, one submission, no review modal');
  await x.page.click('#image-composer-more');await x.page.click('#save');await ready(x.page);assert.equal(x.accepted(),1);const draft=x.page.locator('.card[data-state="draft"]');await x.page.click('#image-composer-more');await draft.click();await x.page.click('#image-detail-reuse');await ready(x.page);await x.page.click('#image-composer-more');assert.equal(await x.page.locator('#prompt').inputValue(),settings.prompt);assert.equal(x.accepted(),1);ok('Saving and reusing a draft do not generate or charge');assert.deepEqual(x.errors,[]);await x.context.close();
- x=await workspace({historyDelay:1200});await imageForm(x);const releaseStarted=Date.now();await x.page.click('#generate');await x.page.waitForFunction(()=>!document.querySelector('#resolution').disabled,{timeout:700});assert.ok(Date.now()-releaseStarted<900);assert.equal(x.accepted(),1);assert.equal(await x.page.locator('.card[data-state="queued"]').count(),1);ok('Image submission releases the editor before the background History refresh finishes');assert.deepEqual(x.errors,[]);await x.context.close();
- x=await workspace();await imageForm(x);await x.page.locator('#reference-images').setInputFiles({name:'sculpture.png',mimeType:'image/png',buffer:png});await ready(x.page);await x.page.click('#generate');await ready(x.page);const edit=x.requests.find(r=>r.path==='/api/quotes').data;assert.equal(edit.referenceSourceIds.length,1);assert.equal(edit.transferSourceIds.length,1);assert.equal(x.accepted(),1);assert.equal(await x.page.locator('#quote-dialog').isVisible(),false);ok('Reference edit submits once without review and preserves reference inputs');await x.context.close();
+ x=await workspace({historyDelay:1200});await imageForm(x);const releaseStarted=Date.now();await x.page.click('#generate:visible, #image-composer-generate:visible');await x.page.waitForFunction(()=>!document.querySelector('#resolution').disabled,{timeout:700});assert.ok(Date.now()-releaseStarted<900);assert.equal(x.accepted(),1);assert.equal(await x.page.locator('.card[data-state="queued"]').count(),1);ok('Image submission releases the editor before the background History refresh finishes');assert.deepEqual(x.errors,[]);await x.context.close();
+ x=await workspace();await imageForm(x);await x.page.locator('#reference-images').setInputFiles({name:'sculpture.png',mimeType:'image/png',buffer:png});await ready(x.page);await x.page.click('#generate:visible, #image-composer-generate:visible');await ready(x.page);const edit=x.requests.find(r=>r.path==='/api/quotes').data;assert.equal(edit.referenceSourceIds.length,1);assert.equal(edit.transferSourceIds.length,1);assert.equal(x.accepted(),1);assert.equal(await x.page.locator('#quote-dialog').isVisible(),false);ok('Reference edit submits once without review and preserves reference inputs');await x.context.close();
  x=await workspace({quoteDelay:300});await imageForm(x);await x.page.evaluate(()=>{document.querySelector('#generate').click();document.querySelector('#generate').click();});await ready(x.page);assert.equal(x.accepted(),1);assert.equal(count(x,'/api/quotes'),1);ok('Rapid repeated clicks cannot double-submit');await x.context.close();
  for(const failure of ['quote','expired','wrong-model','budget','server','network']){
-  x=await workspace({failure});await imageForm(x);await x.page.click('#generate');await ready(x.page);await x.page.waitForTimeout(150);assert.equal(x.accepted(),0);assert.equal(count(x,'/api/quotes'),1);assert.equal(count(x,'/api/jobs'),['quote','expired','wrong-model'].includes(failure)?0:1);assert.equal(await x.page.locator('#quote-dialog').isVisible(),false);assert.ok((await x.page.locator('#notice').innerText()).length>0);ok(failure+': stops without another paid attempt');await x.context.close();
+  x=await workspace({failure});await imageForm(x);await x.page.click('#generate:visible, #image-composer-generate:visible');await ready(x.page);await x.page.waitForTimeout(150);assert.equal(x.accepted(),0);assert.equal(count(x,'/api/quotes'),1);assert.equal(count(x,'/api/jobs'),['quote','expired','wrong-model'].includes(failure)?0:1);assert.equal(await x.page.locator('#quote-dialog').isVisible(),false);assert.ok((await x.page.locator('#notice').innerText()).length>0);ok(failure+': stops without another paid attempt');await x.context.close();
  }
- x=await workspace({failure:'auth'});await imageForm(x);await x.page.click('#generate');await ready(x.page);const submissions=x.requests.filter(r=>r.path==='/api/jobs'&&r.method==='POST');assert.equal(submissions.length,2);assert.deepEqual(submissions[0].data,submissions[1].data);assert.equal(x.accepted(),1);ok('Authentication-only renewal retains the quote ID and creates one job');await x.context.close();
+ x=await workspace({failure:'auth'});await imageForm(x);await x.page.click('#generate:visible, #image-composer-generate:visible');await ready(x.page);const submissions=x.requests.filter(r=>r.path==='/api/jobs'&&r.method==='POST');assert.equal(submissions.length,2);assert.deepEqual(submissions[0].data,submissions[1].data);assert.equal(x.accepted(),1);ok('Authentication-only renewal retains the quote ID and creates one job');await x.context.close();
  const active=n=>({id:id(n),status:'running',settings,createdAt:Date.now()});
  for(const initial of [[active(1),active(2),active(3),active(4)],[{...active(5),status:'uncertain'}]]){
   x=await workspace({initial});await imageForm(x);assert.equal(await x.page.locator('#generate').isDisabled(),true);assert.equal(count(x,'/api/jobs'),0);ok('Existing capacity/uncertain-job gate still blocks Image');await x.context.close();
@@ -93,7 +94,7 @@ try{
  x=await workspace({initial:[saving(10),saving(11),saving(12),saving(13)]});await imageForm(x);
  assert.equal(await x.page.locator('#generate').isDisabled(),false);
  await x.page.locator('#active summary').click();assert.match(await x.page.locator('#active-status').innerText(),/4 saving \(no generation slot\)/);await x.page.locator('#active summary').click();
- await x.page.click('#generate');await ready(x.page);assert.equal(x.accepted(),1);
+ await x.page.click('#generate:visible, #image-composer-generate:visible');await ready(x.page);assert.equal(x.accepted(),1);
  ok('Archive-only saves stay visible but do not consume Image generation slots');await x.context.close();
 
  const geminiInterrupted={...active(20),status:'uncertain',settings:{...settings,provider:'gemini',engine:'gemini',model:'gemini-3-pro-image',processing:'normal'}};
@@ -102,7 +103,7 @@ try{
  await x.page.locator('#active summary').click();assert.match(await x.page.locator('#active-status').innerText(),/Nano 0 \/ 4/);assert.match(await x.page.locator('#active-status').innerText(),/1 old Nano interrupted/);await x.page.locator('#active summary').click();
  ok('Interrupted Gemini request is labeled as old and does not look like an active Nano generation');await x.context.close();
  const manyPack={id:id(940),name:'Nina Master 8',refs:Array.from({length:8},(_,i)=>({id:id(960+i),name:'nina-'+(i+1)+'.png',role:'identity',note:''}))};
- x=await workspace({savedPacks:[manyPack]});await imageAdvanced(x.page);await x.page.selectOption('#image-engine','soulpro');await ready(x.page);await x.page.click('#soul-pro-identity-manage');
+ x=await workspace({savedPacks:[manyPack]});await imageAdvanced(x.page);await chooseImageModel(x.page,'soulpro');await ready(x.page);await x.page.click('#composer-character');await x.page.click('#composer-library-manage');
  const packText=await x.page.locator('#soul-pro-pack-select').innerText();assert.match(packText,/Nina Master 8/);assert.match(packText,/8 refs/);
  await x.page.selectOption('#soul-pro-pack-select',manyPack.id);await ready(x.page);
  const packItems=x.page.locator('.soul-pro-pack-item');assert.equal(await packItems.count(),8);assert.equal(await x.page.locator('.soul-pro-pack-item input:checked').count(),4);
@@ -112,21 +113,21 @@ try{
  assert.deepEqual(identityPost.referenceSourceIds,[id(961),id(962),id(963),id(964)]);
  ok('Soul Pro Save Nina identity saves the exact four checked pack images');await x.context.close();
 
-  x=await workspace();await imageAdvanced(x.page);await x.page.selectOption('#image-engine','soulpro');await ready(x.page);
+  x=await workspace();await imageAdvanced(x.page);await chooseImageModel(x.page,'soulpro');await ready(x.page);
  assert.equal(await x.page.locator('#reference-mode').isVisible(),false);assert.match(await x.page.locator('#soul-pro-identity-status').innerText(),/Saved Nina identity.*2 references/);
  assert.equal(await x.page.locator('#generate').isDisabled(),true);
  await x.page.locator('#image').setInputFiles({name:'base.png',mimeType:'image/png',buffer:png});await ready(x.page);
  assert.equal(await x.page.locator('#generate').isDisabled(),false);assert.equal(await x.page.locator('#generate').innerText(),'Generate identity edit');
  assert.equal(await x.page.locator('#soul-pro-settings').isVisible(),true);assert.equal(await x.page.locator('#resolution-control').isVisible(),false);assert.equal(await x.page.locator('#ratio-control').isVisible(),false);
  assert.match(await x.page.locator('#generation-help').innerText(),/one base image only/i);assert.match(await x.page.locator('#generation-help').innerText(),/\$0\.06/);
- await x.page.click('#generate');await ready(x.page);assert.equal(count(x,'/api/fal/soul-pro'),1);assert.equal(x.accepted(),1);
+ await x.page.click('#generate:visible, #image-composer-generate:visible');await ready(x.page);assert.equal(count(x,'/api/fal/soul-pro'),1);assert.equal(x.accepted(),1);
  const soulPro=x.requests.find(r=>r.path==='/api/fal/soul-pro').data;assert.ok(soulPro.sourceId);assert.deepEqual(soulPro.referenceSourceIds,[]);assert.equal(soulPro.settings.engine,'soulpro');assert.equal(soulPro.settings.soulProModel,'ideogram45');assert.equal(soulPro.settings.soulProQuality,'medium');assert.equal(soulPro.settings.sourceWidth,320);assert.equal(soulPro.settings.sourceHeight,320);assert.equal(soulPro.settings.prompt,'');
  ok('PV Soul Pro reuses persistent Nina identity and submits with one base image only');await x.context.close();
 
- x=await workspace();await imageAdvanced(x.page);await x.page.selectOption('#image-engine','soulpro');await x.page.selectOption('#soul-pro-quality','high');await ready(x.page);assert.match(await x.page.locator('#generation-help').innerText(),/\$0\.22/);await x.page.selectOption('#soul-pro-model','kontextmax');await ready(x.page);
+ x=await workspace();await imageAdvanced(x.page);await chooseImageModel(x.page,'soulpro');await x.page.selectOption('#soul-pro-quality','high');await ready(x.page);assert.match(await x.page.locator('#generation-help').innerText(),/\$0\.22/);await x.page.selectOption('#soul-pro-model','kontextmax');await ready(x.page);
  assert.match(await x.page.locator('#generation-help').innerText(),/\$0\.08/);assert.equal(await x.page.locator('#soul-pro-quality-row').isVisible(),false);ok('PV Soul Pro keeps $0.22 High optional and exposes Kontext Max at $0.08');await x.context.close();
 
-  x=await workspace();await imageAdvanced(x.page);await x.page.selectOption('#image-engine','fal');await x.page.fill('#prompt','Editorial portrait in a warm room.');
+  x=await workspace();await imageAdvanced(x.page);await chooseImageModel(x.page,'fal');await x.page.fill('#prompt:visible, #image-composer-prompt:visible','Editorial portrait in a warm room.');
  await x.page.locator('#reference-images').setInputFiles([
   {name:'pose.png',mimeType:'image/png',buffer:png},
   {name:'identity.png',mimeType:'image/png',buffer:png}
@@ -134,24 +135,24 @@ try{
  const roles=x.page.locator('.reference-fields select');await roles.nth(0).selectOption('pose');await roles.nth(1).selectOption('identity');await ready(x.page);
  assert.equal(await x.page.locator('#generate').isDisabled(),false);assert.equal(await x.page.locator('#generate').innerText(),'Generate controlled pose');
  await x.page.click('#preview-pose');await ready(x.page);assert.equal(count(x,'/api/fal/pose-preview'),1);assert.match(await x.page.locator('#pose-preview-status').innerText(),/Pose ready/);
- await x.page.click('#generate');await ready(x.page);assert.equal(count(x,'/api/fal/controlled-pose'),1);assert.equal(count(x,'/api/gemini/jobs'),0);assert.equal(count(x,'/api/quotes'),0);assert.equal(x.accepted(),1);
+ await x.page.click('#generate:visible, #image-composer-generate:visible');await ready(x.page);assert.equal(count(x,'/api/fal/controlled-pose'),1);assert.equal(count(x,'/api/gemini/jobs'),0);assert.equal(count(x,'/api/quotes'),0);assert.equal(x.accepted(),1);
  ok('Controlled Pose keeps FAL isolated from Seedream and Nano and reuses the preview pose map');await x.context.close();
 
  for(const tool of ['video']){
-  x=await workspace();await x.page.click('#tool-'+tool);if(tool==='image')await x.page.click('#image-composer-more');await x.page.locator('#image').setInputFiles({name:'sculpture.png',mimeType:'image/png',buffer:png});await ready(x.page);if(tool==='video')await x.page.fill('#prompt','The camera slowly moves around the sculpture.');
-  assert.match(await x.page.locator('#generate').innerText(),/^Review price/);await x.page.click('#generate');await x.page.locator('#quote-dialog').waitFor({state:'visible'});assert.equal(x.accepted(),0);assert.equal(count(x,'/api/jobs'),0);await x.page.click('#confirm-generation');await ready(x.page);assert.equal(x.accepted(),1);ok(tool+': separate price confirmation remains required');await x.context.close();
+  x=await workspace();await x.page.click('#tool-'+tool);if(tool==='image')await x.page.click('#image-composer-more');await x.page.locator('#image').setInputFiles({name:'sculpture.png',mimeType:'image/png',buffer:png});await ready(x.page);if(tool==='video')await x.page.fill('#prompt:visible, #image-composer-prompt:visible','The camera slowly moves around the sculpture.');
+  assert.match(await x.page.locator('#generate').innerText(),/^Review price/);await x.page.click('#generate:visible, #image-composer-generate:visible');await x.page.locator('#quote-dialog').waitFor({state:'visible'});assert.equal(x.accepted(),0);assert.equal(count(x,'/api/jobs'),0);await x.page.click('#confirm-generation');await ready(x.page);assert.equal(x.accepted(),1);ok(tool+': separate price confirmation remains required');await x.context.close();
  }
 
  // Image upscaling is one paid job per click, independent of the Image batch selector.
  const upscaleForm=async x=>{await x.page.click('#tool-upscale');await x.page.locator('#image').setInputFiles({name:'sculpture.png',mimeType:'image/png',buffer:png});await ready(x.page);};
- x=await workspace();await imageForm(x);await x.page.selectOption('#image-count','4');await upscaleForm(x);
+ x=await workspace();await imageForm(x);await x.page.selectOption('#image-count:visible, #image-composer-count:visible','4');await upscaleForm(x);
  assert.equal(await x.page.locator('#generate').innerText(),'Upscale');assert.match(await x.page.locator('#generation-help').innerText(),/one paid upscaling job/);
- await x.page.click('#generate');await ready(x.page);assert.equal(x.accepted(),1);assert.equal(count(x,'/api/quotes'),1);assert.equal(count(x,'/api/jobs'),1);assert.equal(await x.page.locator('#quote-dialog').isVisible(),false);assert.deepEqual(x.dialogs,[]);ok('Upscale ignores Image batch count and creates one job without review');await x.context.close();
+ await x.page.click('#generate:visible, #image-composer-generate:visible');await ready(x.page);assert.equal(x.accepted(),1);assert.equal(count(x,'/api/quotes'),1);assert.equal(count(x,'/api/jobs'),1);assert.equal(await x.page.locator('#quote-dialog').isVisible(),false);assert.deepEqual(x.dialogs,[]);ok('Upscale ignores Image batch count and creates one job without review');await x.context.close();
  x=await workspace({quoteDelay:300});await upscaleForm(x);await x.page.evaluate(()=>{document.querySelector('#generate').click();document.querySelector('#generate').click();});await ready(x.page);assert.equal(x.accepted(),1);assert.equal(count(x,'/api/quotes'),1);ok('Rapid repeated Upscale clicks cannot double-submit');await x.context.close();
  for(const failure of ['quote','expired','wrong-model','budget','server','network']){
-  x=await workspace({failure});await upscaleForm(x);await x.page.click('#generate');await ready(x.page);await x.page.waitForTimeout(150);assert.equal(x.accepted(),0);assert.equal(count(x,'/api/quotes'),1);assert.equal(count(x,'/api/jobs'),['quote','expired','wrong-model'].includes(failure)?0:1);assert.equal(await x.page.locator('#quote-dialog').isVisible(),false);assert.ok((await x.page.locator('#notice').innerText()).length>0);ok('Upscale '+failure+': stops without automatic repricing or retry');await x.context.close();
+  x=await workspace({failure});await upscaleForm(x);await x.page.click('#generate:visible, #image-composer-generate:visible');await ready(x.page);await x.page.waitForTimeout(150);assert.equal(x.accepted(),0);assert.equal(count(x,'/api/quotes'),1);assert.equal(count(x,'/api/jobs'),['quote','expired','wrong-model'].includes(failure)?0:1);assert.equal(await x.page.locator('#quote-dialog').isVisible(),false);assert.ok((await x.page.locator('#notice').innerText()).length>0);ok('Upscale '+failure+': stops without automatic repricing or retry');await x.context.close();
  }
- x=await workspace({failure:'auth'});await upscaleForm(x);await x.page.click('#generate');await ready(x.page);const upscaleSubmissions=x.requests.filter(r=>r.path==='/api/jobs'&&r.method==='POST');assert.equal(upscaleSubmissions.length,2);assert.deepEqual(upscaleSubmissions[0].data,upscaleSubmissions[1].data);assert.equal(x.accepted(),1);ok('Upscale authentication-only renewal reuses the exact quote ID');await x.context.close();
+ x=await workspace({failure:'auth'});await upscaleForm(x);await x.page.click('#generate:visible, #image-composer-generate:visible');await ready(x.page);const upscaleSubmissions=x.requests.filter(r=>r.path==='/api/jobs'&&r.method==='POST');assert.equal(upscaleSubmissions.length,2);assert.deepEqual(upscaleSubmissions[0].data,upscaleSubmissions[1].data);assert.equal(x.accepted(),1);ok('Upscale authentication-only renewal reuses the exact quote ID');await x.context.close();
  for(const initial of [[active(1),active(2),active(3),active(4)],[{...active(5),status:'uncertain'}]]){
   x=await workspace({initial});await upscaleForm(x);assert.equal(await x.page.locator('#generate').isDisabled(),true);assert.equal(count(x,'/api/jobs'),0);ok('Capacity and interrupted-request gates still block Upscale');await x.context.close();
  }
@@ -165,7 +166,7 @@ try{
  ok('History distinguishes definite FAL failure from uncertain provider status and offers FAL recovery');await x.context.close();
 
  const inactive=n=>({id:id(1000+n),status:'failed',sourceId:id(1100+n),settings:{type:'image',provider:'fal',engine:'soulpro',mode:'identity-edit',soulProModel:'ideogram45',soulProQuality:'medium',resolution:'source',prompt:''},createdAt:Date.now()-n,estimatedUsd:.06,error:'test failure',providerTaskId:'fal-'+n});
- x=await workspace({initial:[inactive(1),inactive(2),inactive(3),active(1040)]});
+ x=await workspace({initial:[inactive(1),inactive(2),inactive(3),active(1040)]});await x.page.click('#tool-image');
  await x.page.click('#history-select');assert.equal(await x.page.locator('#history-selection').isVisible(),true);
  const checks=x.page.locator('.history-select-box input');assert.equal(await checks.count(),3);
  const selectable=x.page.locator('.card[data-deletable="true"]');
@@ -178,3 +179,4 @@ try{
   for(const width of [390,1728]){x=await workspace({width});await imageForm(x);assert.ok(await x.page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));mkdirSync('test-results',{recursive:true});await x.page.screenshot({path:'test-results/image-oneclick-'+width+'.png',fullPage:true});assert.deepEqual(x.errors,[]);ok('Image layout without overflow at '+width+'px');await x.context.close();}
  console.log('ONECLICK_BROWSER_CHECKS_PASSED='+passed);
 }finally{await browser.close();await new Promise(r=>server.close(r));}
+
