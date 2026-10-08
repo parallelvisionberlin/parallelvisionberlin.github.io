@@ -4,13 +4,30 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow,noarchive"><meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#101114"><title>Parallel Vision Lab</title>
-<link rel="icon" href="./branding/pv-mark.png" type="image/png"><style id="lab-boot-style">
+<link rel="icon" href="./branding/pv-mark.png" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;450;500;550;600;650;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet"><style id="lab-boot-style">
 /* Visible before the external scripts and stylesheets load. No remote imagery or icon fonts. */
 body.lab-booting{margin:0;background:#101114}
 #lab-boot{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 55% 38%,#202126 0%,#101114 70%);color:#f1efeb;font-family:Arial,Helvetica,sans-serif}
 .lab-boot-content{width:min(340px,calc(100vw - 56px));text-align:center}
-.lab-boot-name{display:block;font-size:20px;font-weight:600;letter-spacing:.17em}
-.lab-boot-sub{display:block;margin-top:7px;font-size:10px;letter-spacing:.28em;color:#aaa5a0}
+.lab-boot-brand{display:grid;grid-template-columns:1fr;justify-items:center;align-items:center}
+#lab-boot-wordmark,.lab-boot-fallback{grid-row:1;grid-column:1}
+#lab-boot-wordmark{
+  display:block;width:min(240px,72vw);height:auto;max-height:70px;
+  object-fit:contain;visibility:hidden;opacity:0;
+  transition:opacity .27s ease;
+}
+#lab-boot-wordmark.is-ready{visibility:visible;opacity:1}
+.lab-boot-fallback{display:block;font-size:20px;font-weight:620;letter-spacing:.17em;opacity:1;transition:opacity .18s ease}
+#lab-boot-wordmark.is-ready + .lab-boot-fallback{opacity:0;pointer-events:none}
+.lab-boot-sub{
+  display:block;grid-row:2;grid-column:1;
+  margin-top:12px;font-size:9px;letter-spacing:.28em;color:#aba7a7
+}
+.lab-boot-sub span{color:#62656d;margin:0 7px}
+@media(max-width:560px){#lab-boot-wordmark{width:min(195px,74vw)}.lab-boot-fallback{font-size:16px}}
 .lab-boot-track{height:1px;background:#292728;margin:29px auto 16px;overflow:hidden}
 .lab-boot-track:after{content:"";display:block;width:32%;height:100%;background:#d3d6da;animation:pv-load 1.8s ease-in-out infinite alternate}
 .lab-boot-status{margin:0;font-size:11px;letter-spacing:.04em;color:#8d8888}
@@ -24,7 +41,11 @@ body.lab-ready #lab-boot,body:has(#app:not([hidden])) #lab-boot{display:none!imp
 <script>
 (()=>{let timer=window.setTimeout(()=>{if(document.body?.classList.contains('lab-ready')||!document.getElementById('app')?.hidden)return;const status=document.getElementById('lab-boot-status'),retry=document.getElementById('lab-boot-retry');if(status)status.textContent='This is taking longer than expected.';if(retry)retry.hidden=false;},16000);
 window.__pvLabFinishBoot=()=>{window.clearTimeout(timer);document.body.classList.add('lab-ready');};
-document.addEventListener('DOMContentLoaded',()=>{const retry=document.getElementById('lab-boot-retry');if(retry)retry.onclick=()=>location.reload();});
+document.addEventListener('DOMContentLoaded',()=>{
+  const retry=document.getElementById('lab-boot-retry');
+  if(retry)retry.onclick=()=>location.reload();
+
+});
 })();
 </script><link rel="stylesheet" href="./lab.css?v=20261002-upscale-models1">
 <link rel="stylesheet" href="./history.css?v=20260927-2">
@@ -33,10 +54,16 @@ document.addEventListener('DOMContentLoaded',()=>{const retry=document.getElemen
 <link rel="stylesheet" href="./studio.css?v=20261008-imagefloat-v1">
 <link rel="stylesheet" href="./image-studio.css?v=20261008-floating-v1">
 <link rel="stylesheet" href="./detail-video-studio.css?v=20261008-queue-v2">
-<script type="module" src="./lab.js?v=20261008-queue-v3"></script>
+<link rel="stylesheet" href="./editorial-polish.css?v=20261008-1">
+<script type="module" src="./lab.js?v=20261008-editorial-v1"></script>
 </head>
 <body class="lab-booting">
-<div id="lab-boot" role="status" aria-live="polite" aria-label="Opening Parallel Vision Lab"><div class="lab-boot-content"><span class="lab-boot-name" id="lab-boot-name">PARALLEL VISION</span><span class="lab-boot-sub">LAB</span><div class="lab-boot-track" aria-hidden="true"></div><p class="lab-boot-status" id="lab-boot-status">Opening your workspace</p><button id="lab-boot-retry" type="button" hidden>Reload page</button></div></div>
+<div id="lab-boot" role="status" aria-live="polite" aria-label="Opening Parallel Vision Lab"><div class="lab-boot-content"><div class="lab-boot-brand" aria-label="Parallel Vision Lab"><img id="lab-boot-wordmark" src="./branding/pv-wordmark.png" alt="Parallel Vision" width="242" height="61" decoding="async"><span class="lab-boot-fallback" id="lab-boot-name">PARALLEL VISION</span><span class="lab-boot-sub">LAB <span aria-hidden="true">/</span> CREATIVE STUDIO</span></div><div class="lab-boot-track" aria-hidden="true"></div><p class="lab-boot-status" id="lab-boot-status">Opening your workspace</p><button id="lab-boot-retry" type="button" hidden>Reload page</button></div></div>
+<script>
+(()=>{const wordmark=document.getElementById('lab-boot-wordmark');
+  if(wordmark)wordmark.decode().then(()=>wordmark.classList.add('is-ready')).catch(()=>{});
+})();
+</script>
 <a class="skip" href="#main">Skip to workspace</a>
 <header><div class="wrap top"><a class="brand" href="/" aria-label="Parallel Vision home"><img class="brand-icon" src="./branding/pv-mark.png" alt="" width="42" height="42"><img class="brand-wordmark" src="./branding/pv-wordmark.png" alt="" width="152" height="38"><span class="brand-lab">LAB</span></a><div class="actions"><span class="eyebrow" id="identity">Private workspace</span><button id="connection" class="quiet" hidden>Connection</button><button id="logout" class="quiet" hidden>Sign out</button></div></div></header>
 <main class="wrap" id="main">
@@ -82,8 +109,8 @@ document.addEventListener('DOMContentLoaded',()=>{const retry=document.getElemen
   </div>
   <section id="image-composer" class="image-composer" aria-label="Floating image generation composer">
     <div class="image-composer-top">
-      <textarea id="image-composer-prompt" rows="2" placeholder="Describe the scene you imagine..." aria-label="Describe the image"></textarea>
       <div id="image-composer-references" class="image-composer-references" hidden aria-label="Attached reference images"></div>
+      <textarea id="image-composer-prompt" rows="2" placeholder="Describe the scene you imagine..." aria-label="Describe the image"></textarea>
     </div>
     <div class="image-composer-toolbar">
       <button id="image-composer-add" type="button" class="composer-add" aria-label="Add image references" title="Add image references">+</button>
@@ -118,28 +145,37 @@ document.addEventListener('DOMContentLoaded',()=>{const retry=document.getElemen
         <span id="image-lightbox-counter">PARALLEL VISION LAB</span>
         <div class="image-detail-media-actions">
           <button id="image-lightbox-fit" type="button" title="Toggle actual size" aria-pressed="false">Fit</button>
-          <button id="image-lightbox-close" type="button" aria-label="Close image viewer" title="Close">×</button>
         </div>
       </div>
       <div class="image-lightbox-stage" id="image-lightbox-stage">
+        <button id="image-detail-prev" type="button" class="image-detail-arrow is-prev" aria-label="Previous image" aria-keyshortcuts="ArrowLeft" hidden><span aria-hidden="true">‹</span></button>
         <img id="image-lightbox-img" alt="Generated image, full-size preview" />
+        <button id="image-detail-next" type="button" class="image-detail-arrow is-next" aria-label="Next image" aria-keyshortcuts="ArrowRight" hidden><span aria-hidden="true">›</span></button>
         <p id="image-lightbox-unavailable" hidden>No output file is available for this record.</p>
       </div>
       <div class="image-detail-bottomline"><span id="image-detail-dimensions">IMAGE / ORIGINAL RATIO</span><span>PARALLEL VISION</span></div>
     </div>
     <aside class="image-detail-inspector" aria-label="Image details and actions">
       <div class="image-detail-inspector-head">
-        <span class="detail-kicker">IMAGE DETAILS</span>
+        <span class="detail-kicker">Image details</span>
         <span class="detail-state" id="image-detail-status">Completed</span>
+        <button id="image-lightbox-close" type="button" aria-label="Close image viewer" title="Close image viewer">×</button>
       </div>
       <div class="image-detail-inspector-scroll">
-        <div class="image-detail-section">
-          <span class="detail-label">Prompt</span>
+        <section class="image-detail-card image-detail-prompt-card" aria-label="Prompt and references">
+          <div class="detail-card-header">
+            <span class="detail-label">Prompt</span>
+            <button id="image-detail-copy" class="detail-inline-button" type="button">Copy <span aria-hidden="true">⧉</span></button>
+          </div>
+          <div id="image-detail-reference-wrap" class="image-detail-reference-wrap" hidden>
+            <img id="image-detail-reference-thumb" alt="Original image used for the generation" width="62" height="75" hidden>
+            <span id="image-detail-reference-caption">Source photo</span>
+          </div>
           <p id="image-detail-prompt" class="image-detail-prompt"></p>
-          <button id="image-detail-copy" class="detail-inline-button" type="button">Copy prompt <span aria-hidden="true">↗</span></button>
-        </div>
-        <div class="image-detail-section image-detail-data">
-          <span class="detail-label">Generation details</span>
+          <button id="image-detail-expand" class="image-detail-expand" type="button" aria-expanded="false" hidden>Show more <span aria-hidden="true">⌄</span></button>
+        </section>
+        <details id="image-detail-metadata" class="image-detail-card image-detail-data" open>
+          <summary>Details <span aria-hidden="true">⌄</span></summary>
           <dl>
             <div><dt>Model</dt><dd id="image-detail-model"></dd></div>
             <div><dt>Resolution</dt><dd id="image-detail-resolution"></dd></div>
@@ -148,7 +184,7 @@ document.addEventListener('DOMContentLoaded',()=>{const retry=document.getElemen
             <div><dt>References</dt><dd id="image-detail-references"></dd></div>
             <div><dt>Price</dt><dd id="image-detail-price"></dd></div>
           </dl>
-        </div>
+        </details>
         <div id="image-detail-status-help" class="image-detail-warning" hidden></div>
       </div>
       <div class="image-detail-actions">
