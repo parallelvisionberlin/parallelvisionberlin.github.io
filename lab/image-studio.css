@@ -302,6 +302,9 @@
 .composer-model-check {color:#e9eef5;font-size:17px}
 .composer-model-no-match {font-size:12px;color:#a0a3ad;padding:13px}
 
+#app.image-studio-active.image-settings-open>.tool-switch {
+  position:relative;z-index:115;
+}
 /* Advanced panel retains every niche control without cluttering the floating bar. */
 .image-settings-scrim {
   position:fixed;inset:0;z-index:90;background:rgba(5,5,7,.49);
