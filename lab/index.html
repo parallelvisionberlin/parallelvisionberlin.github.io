@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="./history.css?v=20260927-2">
 <link rel="stylesheet" href="./seedance.css?v=20260927-standard1">
 <link rel="stylesheet" href="./soul.css?v=20260930-soul-v02">
-<link rel="stylesheet" href="./studio.css?v=20261008-editorial-v2">
+<link rel="stylesheet" href="./studio.css?v=20261008-workspace-v3">
 <script type="module" src="./lab.js?v=20261007-workspace-flow6"></script>
 </head>
 <body>
@@ -20,10 +20,6 @@
 <div id="app" hidden>
 <div class="connection-strip"><span id="connection-status">Checking connection…</span><button class="text-button" id="setup">Manage connection</button></div>
 <nav class="tool-switch" aria-label="Creative tool"><button id="tool-video" class="tool-tab active" type="button" aria-pressed="true">Video <small>Wan / Seedance / H3 / Gemini</small></button><button id="tool-image" class="tool-tab" type="button" aria-pressed="false">Image <small>Seedream / Nano / Soul / Pose</small></button><button id="tool-upscale" class="tool-tab" type="button" aria-pressed="false">Upscale <small>Image Upscaler</small></button></nav>
-<div id="soul-launch" class="soul-launch" hidden>
-<div><span class="eyebrow">PV Soul</span><strong id="soul-launch-title">Train a reusable character</strong><small id="soul-launch-note">FAL training is ready. Train from 20–80 photos, then use the character in Image.</small></div>
-<div class="soul-launch-actions"><button id="soul-use" class="secondary" type="button">Use PV Soul</button><button id="soul-launch-manage" class="primary" type="button">Train / manage character</button></div>
-</div>
 <div class="workspace">
 <section class="controls" aria-label="Image to video settings">
 <div class="mode"><span id="mode-heading">01 / Image to Video</span><span class="engine-pill" id="engine-name">WAN 3.0</span><label id="image-model-control" class="mode-model-control" hidden><span class="label">Image model</span><select id="image-engine"><option value="seedream" selected>Seedream 5 Pro</option><option value="gemini">Nano Banana Pro</option><option value="soulpro">PV Soul Pro · Nina Reinterpret</option><option value="soul">PV Soul · Text</option><option value="fal">Controlled Pose · FAL FLUX</option></select></label></div>
@@ -137,6 +133,10 @@
 </div>
 </section>
 <section class="stage" aria-label="Media preview"><div class="stagehead"><span class="eyebrow" id="preview-label">Source / preview</span><button class="quiet" id="clear" disabled>Clear</button></div><div class="canvas"><div id="empty" class="empty"><div class="frame" aria-hidden="true"></div><p>Start with your own frame.</p><small>Your source and result appear here.</small></div><img id="preview" alt="Selected source image" hidden><video id="video" controls playsinline preload="metadata" hidden></video></div><div class="stagefoot"><span id="settings-summary">15 seconds / 1080p</span><button id="download" class="quiet" hidden>Download result</button></div></section>
+</div>
+<div id="soul-launch" class="soul-launch" hidden>
+<div><span class="eyebrow">PV Soul</span><strong id="soul-launch-title">Train a reusable character</strong><small id="soul-launch-note">FAL training is ready. Train from 20–80 photos, then use the character in Image.</small></div>
+<div class="soul-launch-actions"><button id="soul-use" class="secondary" type="button">Use PV Soul</button><button id="soul-launch-manage" class="primary" type="button">Train / manage character</button></div>
 </div>
 <p id="notice" role="status" aria-live="polite"></p>
 <section id="active" class="active" hidden aria-live="polite"><div><p class="eyebrow">Live queue</p><p id="active-status"></p><p class="fine" id="active-detail"></p></div><button id="resolve" class="quiet" hidden>Resolve interrupted request</button></section>
