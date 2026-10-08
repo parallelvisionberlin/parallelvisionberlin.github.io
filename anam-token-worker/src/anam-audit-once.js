@@ -2,7 +2,7 @@
 // Results are written once to an existing D1 audit table and removed after verification.
 import { promptFingerprint } from './conversation-runtime.js';
 
-const AUDIT_ID = 'anam-config-readonly-20261008-v2';
+const AUDIT_ID = 'anam-config-readonly-20261008-v3';
 const ORIGINAL_ID = 'a5663da5-5f5c-4600-b545-cbb58bd4e155';
 const BASE = 'https://api.anam.ai';
 
@@ -115,6 +115,17 @@ export async function recordAnamConfigAuditOnce(env) {
           topLevelCandidates: Object.fromEntries(Object.entries(sessionConfig).filter(([key,value]) =>
             /^(?:model|modelId|llmId|brainType|personaId|voiceId|provider|engineRegion|region|sdkVersion)$/i.test(key)
             && (typeof value==='string'||typeof value==='number'||typeof value==='boolean')))
+        };
+        // Analytics session-level fields retained by Anam; exclude arbitrary object values.
+        configSnapshot.actualHistoricalValues = {
+          llmModel: typeof sessionConfig.llmModel === 'string' ? sessionConfig.llmModel : null,
+          llmProvider: typeof sessionConfig.llmProvider === 'string' ? sessionConfig.llmProvider : null,
+          avatarKey: typeof sessionConfig.avatarKey === 'string' ? sessionConfig.avatarKey : null,
+          languageCode: typeof sessionConfig.languageCode === 'string' ? sessionConfig.languageCode : null,
+          personaName: typeof sessionConfig.personaName === 'string' ? sessionConfig.personaName : null,
+          ttsProvider: typeof sessionConfig.ttsProvider === 'string' ? sessionConfig.ttsProvider : null,
+          ttsVoice: typeof sessionConfig.ttsVoice === 'string' ? sessionConfig.ttsVoice : null,
+          transcriptsEnabled: typeof sessionConfig.transcriptsEnabled === 'boolean' ? sessionConfig.transcriptsEnabled : null
         };
         const turns = Array.isArray(d?.turns) ? d.turns : [];
         audit.sessions.push({
