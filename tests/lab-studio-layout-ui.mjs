@@ -1,7 +1,7 @@
 // Mock-only Lab UI layout verification. Never contacts paid providers.
 import assert from 'node:assert/strict';
 import http from 'node:http';
-import {readFileSync,existsSync,mkdirSync} from 'node:fs';
+import {readFileSync,existsSync,mkdirSync,writeFileSync} from 'node:fs';
 import {resolve,extname} from 'node:path';
 import {pathToFileURL} from 'node:url';
 
@@ -127,7 +127,10 @@ try{
   assert.equal(await bootPage.locator('#gate').isVisible(),false,'No half-loaded sign-in page');
   assert.match(await bootPage.locator('#lab-boot-name').innerText(),/PARALLEL VISION/);
   assert.equal(await bootPage.locator('#lab-boot img').count(),0,'Boot screen uses text and CSS only, never an icon placeholder');
-  await bootPage.screenshot({path:'test-results/lab-branded-loading.png',fullPage:false});
+  const loadingCdp=await bootContext.newCDPSession(bootPage);
+  const loadingCapture=await loadingCdp.send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false,fromSurface:true});
+  writeFileSync('test-results/lab-branded-loading.png',Buffer.from(loadingCapture.data,'base64'));
+  await loadingCdp.detach();
   releaseLabScript();
   await bootPage.waitForFunction(()=>window.__layoutTest===true);
   assert.equal(await bootPage.locator('#lab-boot').isVisible(),false,'Boot overlay removed on mock auth resolution');
