@@ -2,7 +2,7 @@
 // Results are written once to an existing D1 audit table and removed after verification.
 import { promptFingerprint } from './conversation-runtime.js';
 
-const AUDIT_ID = 'anam-config-readonly-20261008-v1';
+const AUDIT_ID = 'anam-config-readonly-20261008-v2';
 const ORIGINAL_ID = 'a5663da5-5f5c-4600-b545-cbb58bd4e155';
 const BASE = 'https://api.anam.ai';
 
@@ -76,6 +76,16 @@ export async function recordAnamConfigAuditOnce(env) {
         } else audit.copyError = remote.errorStatus;
       }
     } else audit.listError = listings.errorStatus;
+    // Lookup only the selected model's public configuration metadata.
+    if (audit.original?.llmId) {
+      const modelResult = await get('/v1/llms/' + encodeURIComponent(audit.original.llmId));
+      if (modelResult.data) {
+        const model = modelResult.data;
+        audit.llmInfo = { id:model?.id ?? audit.original.llmId, name:model?.name ?? model?.displayName ?? null,
+          provider:model?.provider ?? null, model:model?.model ?? model?.modelId ?? null,
+          keys:Object.keys(model).sort() };
+      } else audit.llmInfoError = modelResult.errorStatus;
+    }
     const sessionIds = ['fedc15f2-819d-496f-bbda-0a0bb8e316b5', '39a4c2e5-a63e-4435-b595-1e93c5313be0'];
     audit.sessions = [];
     for (const sid of sessionIds) {
@@ -83,9 +93,32 @@ export async function recordAnamConfigAuditOnce(env) {
         const report = await get('/v1/sessions/' + sid + '/analytics?includeMessages=false');
         if (!report.data) { audit.sessions.push({ id:sid, errorStatus:report.errorStatus }); continue; }
         const d = report.data;
+        const sessionConfig = d?.config && typeof d.config === 'object' ? d.config : {};
+        const nestedConfig = sessionConfig.personaConfig && typeof sessionConfig.personaConfig === 'object'
+          ? sessionConfig.personaConfig : sessionConfig;
+        const savedSessionPrompt = typeof nestedConfig.systemPrompt === 'string' ? nestedConfig.systemPrompt
+          : typeof nestedConfig.brain?.systemPrompt === 'string' ? nestedConfig.brain.systemPrompt : '';
+        const configSnapshot = {
+          configKeys: Object.keys(sessionConfig).sort(),
+          nestedKeys: Object.keys(nestedConfig).sort(),
+          promptLength: savedSessionPrompt.length,
+          promptSha256: savedSessionPrompt ? await promptFingerprint(savedSessionPrompt) : null,
+          llmId: nestedConfig.llmId ?? sessionConfig.llmId ?? null,
+          llm: typeof nestedConfig.llm === 'string' ? nestedConfig.llm : null,
+          voiceId: nestedConfig.voiceId ?? nestedConfig.voice?.id ?? null,
+          avatarId: nestedConfig.avatarId ?? nestedConfig.avatar?.id ?? null,
+          avatarModel: nestedConfig.avatarModel ?? null,
+          directorNotes: nestedConfig.directorNotes ?? sessionConfig.directorNotes ?? null,
+          voiceDetectionOptions: nestedConfig.voiceDetectionOptions ?? null,
+          voiceGenerationOptions: nestedConfig.voiceGenerationOptions ?? null,
+          initialMessage: typeof nestedConfig.initialMessage === 'string' ? nestedConfig.initialMessage.slice(0,200) : null,
+          topLevelCandidates: Object.fromEntries(Object.entries(sessionConfig).filter(([key,value]) =>
+            /^(?:model|modelId|llmId|brainType|personaId|voiceId|provider|engineRegion|region|sdkVersion)$/i.test(key)
+            && (typeof value==='string'||typeof value==='number'||typeof value==='boolean')))
+        };
         const turns = Array.isArray(d?.turns) ? d.turns : [];
         audit.sessions.push({
-          id:sid,keys:Object.keys(d),model:d?.llmId ?? d?.model ?? d?.llmModel ?? null,
+          id:sid,keys:Object.keys(d),configSnapshot,model:d?.llmId ?? d?.model ?? d?.llmModel ?? null,
           personaId:d?.personaId ?? null,sessionStart:d?.startTime ?? d?.startedAt ?? d?.createdAt ?? null,
           turnsCount:turns.length,
           turns:turns.slice(0,40).map(t=>({
