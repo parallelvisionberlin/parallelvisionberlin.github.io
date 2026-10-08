@@ -341,6 +341,52 @@
 #app.image-studio-active.image-settings-open .image-composer {z-index:110}
 .image-studio .archive .history-selection {z-index:19}
 
+/* True image result viewer, independent of the Video source canvas. */
+dialog.image-lightbox {
+  padding:0;overflow:hidden;
+  width:min(1260px,calc(100vw - 34px));max-width:min(1260px,calc(100vw - 34px));
+  max-height:calc(100dvh - 34px);height:min(94dvh,950px);
+  border:1px solid #464952;border-radius:17px;
+  background:#17191e;color:#e9ebf1;
+  box-shadow:0 30px 110px rgba(0,0,0,.8);
+}
+dialog.image-lightbox::backdrop {background:rgba(4,5,7,.86);backdrop-filter:blur(11px)}
+.image-lightbox-head,.image-lightbox-foot {
+  position:relative;display:flex;align-items:center;justify-content:space-between;gap:12px;
+  height:55px;min-height:55px;padding:0 18px;margin:0;
+  background:#1d1f25;border:0;color:#c7cbd3;
+  font-size:10px;letter-spacing:.11em;font-weight:600;
+}
+.image-lightbox-head {border-bottom:1px solid #34363e}
+.image-lightbox-foot {border-top:1px solid #34363e}
+.image-lightbox-stage {
+  height:calc(100% - 110px);width:100%;display:grid;place-items:center;
+  padding:18px;background:#111216;
+}
+.image-lightbox-stage img {
+  display:block;width:100%;height:100%;max-width:100%;max-height:100%;
+  object-fit:contain;
+}
+.image-lightbox-head .image-lightbox-close {
+  width:36px;height:36px;min-height:36px;border-radius:9px;
+  border:1px solid #4b4e57;background:#2b2e35;
+  color:#f4f5f8;font-size:23px;font-weight:350;line-height:1;
+}
+.image-lightbox-foot #image-lightbox-download {
+  min-height:36px;border-radius:9px;
+  padding:8px 16px;display:inline-flex;align-items:center;gap:12px;
+  border:1px solid #eceef3;background:#eceef3;color:#1c1e23;
+  font-size:11px;letter-spacing:0;font-weight:650;
+}
+.image-lightbox-foot #image-lightbox-download:hover {background:#fff;border-color:#fff}
+@media(max-width:560px){
+  dialog.image-lightbox {height:calc(100dvh - 18px);max-height:calc(100dvh - 18px);max-width:calc(100vw - 14px);width:calc(100vw - 14px);border-radius:12px}
+  .image-lightbox-head,.image-lightbox-foot {padding:0 10px}
+  .image-lightbox-foot>span {display:none}
+  .image-lightbox-foot #image-lightbox-download {width:100%;justify-content:center}
+  .image-lightbox-stage {padding:7px}
+}
+
 /* Smaller gallery screens: retain the floating composer but allow chips to scroll. */
 @media(max-width:1400px){
   .image-studio #history {grid-template-columns:repeat(3,minmax(0,1fr))}
