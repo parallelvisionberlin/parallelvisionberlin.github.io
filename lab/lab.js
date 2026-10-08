@@ -441,6 +441,8 @@ $('video-detail-delete').onclick=()=>{
   if(!confirm('Delete this History record and its unshared files? This cannot be undone.'))return;
   void action(async()=>{
     await api('/api/jobs/'+job.id,{method:'DELETE'});
+    const card=[...$('history').children].find(el=>el.dataset.job===job.id);
+    if(card){cleanupHistoryCard(card);card.remove();}
     selectedVideoJob=null;videoJobCache.delete(job.id);
     await syncHistory();restoreLatestVideoSelection();
     notify('Video record deleted. Spending history is unchanged.');
@@ -1126,7 +1128,10 @@ $('image-detail-delete').onclick=()=>{
   closeImageDetail();
   void action(async()=>{
     await api('/api/jobs/'+job.id,{method:'DELETE'});
-    clearResult();await syncHistory();notify('History record deleted. Spending history is unchanged.');
+    const card=[...$('history').children].find(el=>el.dataset.job===job.id);
+    if(card){cleanupHistoryCard(card);card.remove();}
+    clearResult();await syncHistory();syncImageGalleryEmpty();
+    notify('History record deleted. Spending history is unchanged.');
   });
 };
 $('image-lightbox').addEventListener('close',()=>{
