@@ -33,13 +33,13 @@ h1,h2,h3,.archive h2,.empty-title,.image-gallery-empty h2{
 }
 #app .controls textarea#prompt::placeholder{color:#9297a3}
 #app.video-studio-active .workspace.video-layout .controls textarea#prompt{
-  min-height:109px!important;max-height:300px;padding:12px 13px;
+  min-height:101px!important;max-height:300px;padding:10px 13px;
   font-size:14.5px!important;line-height:1.7;
 }
 #app.video-studio-active .workspace.video-layout .controls .controls-body{
-  padding:16px 19px 12px;
+  padding:12px 19px 9px;
 }
-#app.video-studio-active .workspace.video-layout .controls .drop{min-height:89px}
+#app.video-studio-active .workspace.video-layout .controls .drop{min-height:84px}
 #app.video-studio-active .workspace.video-layout .controls input,
 #app.video-studio-active .workspace.video-layout .controls select{font-size:12.5px}
 #app.video-studio-active .workspace.video-layout .controls .mode {font-weight:560}
