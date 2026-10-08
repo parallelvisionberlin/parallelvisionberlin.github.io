@@ -120,6 +120,7 @@ try{
 
   await x.page.click('#image-composer-model');
   assert.equal(await x.page.locator('#image-composer-model-menu').isVisible(),true,'Model popup opens above floating bar');
+  await x.page.screenshot({path:'test-results/lab-image-model-popup.png',fullPage:false});
   await x.page.fill('#image-composer-model-search','banana');
   await x.page.locator('.composer-model-option[data-value="gemini"]').click();
   assert.equal(await x.page.locator('#image-engine').inputValue(),'gemini','Model menu changes actual provider selection');
@@ -130,7 +131,20 @@ try{
 
   const floatingChooser=x.page.waitForEvent('filechooser');
   await x.page.click('#image-composer-add');
-  assert.ok(await floatingChooser,'Plus button opens reference input from same bar');
+  const imageChooser=await floatingChooser;
+  assert.ok(imageChooser,'Plus button opens reference input from same bar');
+  const referencePng=await x.page.evaluate(()=>{
+    const canvas=document.createElement('canvas');canvas.width=64;canvas.height=64;
+    const ctx=canvas.getContext('2d');ctx.fillStyle='#65788a';ctx.fillRect(0,0,64,64);
+    return canvas.toDataURL('image/png').split(',')[1];
+  });
+  await imageChooser.setFiles({name:'reference-photo.png',mimeType:'image/png',buffer:Buffer.from(referencePng,'base64')});
+  await x.page.waitForFunction(()=>document.querySelectorAll('#image-composer-references .composer-reference-tile').length===1);
+  assert.equal(await x.page.locator('.composer-reference-tile img').count(),1,'Reference thumbnail lives inside floating bar');
+  await x.page.screenshot({path:'test-results/lab-image-inline-reference.png',fullPage:false});
+  await x.page.click('.composer-reference-remove');
+  await x.page.waitForFunction(()=>document.querySelectorAll('.composer-reference-tile').length===0);
+  assert.equal(await x.page.locator('#ref-count').textContent().then(t=>t.includes('0')),true,'Removing in-bar thumbnail updates true reference list');
   await x.page.locator('#image-composer-prompt').fill('A sculptural, atmospheric photographic still.');
   assert.equal(await x.page.locator('#prompt').inputValue(),'A sculptural, atmospheric photographic still.','Prompt is synchronized with real Image form');
   assert.equal(await x.page.locator('#image-composer-generate').isDisabled(),false,'Image generation button enables from floating prompt');
