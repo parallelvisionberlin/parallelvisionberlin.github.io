@@ -1,0 +1,410 @@
+/* Nina FOK / Research edition
+   Public editorial only. No authentication, live-call, or memory interface selectors. */
+:root { --nf-paper:#f1eee8; --nf-paper-light:#f8f5ef; --nf-ink:#272520; --nf-muted:#656158; --nf-line:#c8c3b9; --nf-accent:#7b4b42; --nf-dark:#20201e; }
+html { background:var(--nf-paper); scroll-behavior:smooth; }
+body.pv-nina-project {
+  background:var(--nf-paper); color:var(--nf-ink);
+  --n-line:var(--nf-line); --n-body:var(--nf-muted); --n-faint:var(--nf-muted);
+  font-family:"DM Sans","Helvetica Neue",Arial,sans-serif;
+  font-size:16px; -webkit-font-smoothing:antialiased;
+}
+body.pv-nina-project .n-shell { width:min(calc(100% - 76px),1480px); }
+body.pv-nina-project :is(.n-label,.n-meta,.n-archive-id,.n-footer) {
+  font-family:"IBM Plex Mono",monospace; font-size:11px; font-weight:400;
+  letter-spacing:.09em; line-height:1.5; text-transform:uppercase; color:var(--nf-muted);
+}
+body.pv-nina-project .n-nav {
+  width:min(calc(100% - 76px),1480px);
+  min-height:82px; padding:0; position:relative; z-index:90;
+  border-bottom:1px solid var(--nf-line); color:var(--nf-ink);
+  font:500 11px/1.45 "DM Sans",Arial,sans-serif; letter-spacing:.16em;
+  grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);
+}
+body.pv-nina-project .n-nav > a { color:var(--nf-ink); font-size:14px; letter-spacing:.115em; font-weight:600; }
+body.pv-nina-project .n-nav > span { color:#767067; font:400 10px/1.5 "IBM Plex Mono",monospace; letter-spacing:.08em; }
+body.pv-nina-project .n-nav .n-nav-actions { gap:26px; }
+body.pv-nina-project .n-nav .n-nav-transmit {
+  display:inline-flex; align-items:center; justify-content:center; min-height:42px;
+  font:500 11px/1.35 "DM Sans",sans-serif; letter-spacing:.09em;
+  border-bottom:1px solid #77736c; color:var(--nf-ink);
+}
+body.pv-nina-project .n-nav .n-nav-transmit:hover { color:var(--nf-accent); border-color:var(--nf-accent); }
+body.pv-nina-project .n-nav #ninaAccountToggle {
+  width:42px; height:42px; min-width:42px; border:1px solid #8f8a80;
+  border-radius:50%; color:var(--nf-ink); background:transparent; padding:9px;
+}
+body.pv-nina-project .n-nav #ninaAccountToggle:hover { background:#dedad1; }
+body.pv-nina-project .n-nav #ninaAccountToggle svg { width:20px; height:20px; stroke:currentColor; }
+body.pv-nina-project :is(.n-nav a,.n-nav button,.n-button,.n-editorial-link,.n-world-link):focus-visible {
+  outline:2px solid var(--nf-accent); outline-offset:5px;
+}
+body.pv-nina-project #main-content { overflow:visible; }
+body.pv-nina-project .n-section { border-bottom:1px solid var(--nf-line); }
+
+/* Exhibition cover: typography never obscures Nina's face. */
+body.pv-nina-project .n-hero { padding:0; border:0; }
+body.pv-nina-project .n-cover-index,
+body.pv-nina-project .n-cover-bottom {
+  display:flex; justify-content:space-between; gap:24px; padding:17px 0;
+  font:400 10px/1.4 "IBM Plex Mono",monospace; letter-spacing:.105em;
+  text-transform:uppercase; color:#716b61;
+}
+body.pv-nina-project .n-cover-index { border-bottom:1px solid var(--nf-line); }
+body.pv-nina-project .n-cover-bottom { border-top:1px solid var(--nf-line); padding-block:18px 28px; }
+body.pv-nina-project .n-cover-bottom a { color:var(--nf-ink); text-decoration:none; border-bottom:1px solid var(--nf-ink); padding-bottom:4px; }
+body.pv-nina-project .n-cover-bottom a:hover { color:var(--nf-accent); border-color:var(--nf-accent); }
+body.pv-nina-project .n-cover-grid {
+  display:grid; grid-template-columns:minmax(0, .78fr) minmax(0, 1.22fr);
+  align-items:stretch; min-height:clamp(650px,72svh,850px); gap:0;
+}
+body.pv-nina-project .n-cover-copy {
+  display:flex; flex-direction:column; position:relative; padding:clamp(44px,5vw,82px) clamp(30px,4.2vw,76px) 55px 0;
+}
+body.pv-nina-project .n-cover-copy .n-label { margin:0; color:var(--nf-accent); }
+body.pv-nina-project .n-cover-copy h1 {
+  margin:clamp(68px,9vh,110px) 0 auto; color:var(--nf-ink);
+  font:400 clamp(108px,9.1vw,170px)/.76 "Instrument Serif",Georgia,serif;
+  letter-spacing:-.07em; text-transform:none;
+}
+body.pv-nina-project .n-cover-copy h1 span { display:block; margin-top:.11em; padding-right:.1em; font-style:italic; font-weight:400; }
+body.pv-nina-project .n-cover-summary { max-width:390px; padding-top:62px; }
+body.pv-nina-project .n-cover-deck {
+  font:400 clamp(25px,2vw,33px)/1.18 "Instrument Serif",Georgia,serif;
+  letter-spacing:-.015em; margin:0 0 14px; color:#393631;
+}
+body.pv-nina-project .n-cover-copy .n-hero-statement {
+  margin:0; color:var(--nf-muted); max-width:380px;
+  font:400 15px/1.65 "DM Sans",Arial,sans-serif; text-wrap:pretty;
+}
+body.pv-nina-project .n-cover-actions { display:flex; flex-wrap:wrap; align-items:center; gap:14px 26px; margin-top:28px; }
+body.pv-nina-project .n-cover-actions .n-button-primary {
+  display:inline-flex; gap:16px; justify-content:space-between; width:auto; min-width:188px;
+  min-height:56px; padding:0 21px; background:var(--nf-ink); color:#f8f5ee;
+  border:1px solid var(--nf-ink); border-radius:0;
+  font:500 13px/1.2 "DM Sans",sans-serif; letter-spacing:0; text-transform:none;
+}
+body.pv-nina-project .n-cover-actions .n-button-primary:hover { background:var(--nf-accent); color:white; border-color:var(--nf-accent); }
+body.pv-nina-project .n-cover-actions .n-hero-discover {
+  position:static; transform:none; display:inline-flex; align-items:center;
+  min-height:50px; color:var(--nf-ink); text-decoration:none; border-bottom:1px solid #9d9486;
+  font:500 12px/1.4 "DM Sans",sans-serif; letter-spacing:0; text-transform:none;
+}
+body.pv-nina-project .n-cover-actions .n-hero-discover:hover { color:var(--nf-accent); border-bottom-color:var(--nf-accent); }
+body.pv-nina-project .n-cover-media {
+  margin:0; height:auto; min-height:650px; position:relative; overflow:hidden;
+  background:#3e2021 url("../assets/optimized/nina-fok/HDNINACANON.webp") center/cover no-repeat;
+}
+body.pv-nina-project .n-cover-media::after { content:none; }
+body.pv-nina-project .n-cover-media .n-hero-asset {
+  display:block; height:100%; width:100%; position:absolute; inset:0;
+  object-fit:cover; object-position:52% 45%;
+  filter:saturate(.76) contrast(1.02) brightness(.88);
+}
+body.pv-nina-project .n-cover-media figcaption {
+  position:absolute; z-index:3; bottom:21px; left:24px; right:24px;
+  display:flex; justify-content:space-between; gap:18px; color:#f4eee6;
+  text-shadow:0 1px 8px #0008;
+  font:400 10px/1.4 "IBM Plex Mono",monospace; letter-spacing:.06em; text-transform:uppercase;
+}
+
+/* The question: open, asymmetrical book typography. */
+body.pv-nina-project .n-concept-entry {
+  display:grid; grid-template-columns: minmax(165px,.32fr) minmax(0,1fr);
+  column-gap:clamp(40px,7vw,110px); padding:clamp(104px,10vw,170px) 0;
+  align-items:start; text-align:left;
+}
+body.pv-nina-project .n-section-index { margin:0; display:flex; flex-direction:column; gap:7px; color:var(--nf-accent); font:400 11px/1.4 "IBM Plex Mono",monospace; letter-spacing:.065em; text-transform:uppercase; }
+body.pv-nina-project .n-section-index span+span { color:#847d73; }
+body.pv-nina-project .n-premise-content { max-width:1030px; }
+body.pv-nina-project .n-premise-content h2 {
+  margin:-12px 0 clamp(26px,4vw,52px); color:var(--nf-ink);
+  font:400 clamp(54px,6vw,98px)/.99 "Instrument Serif",Georgia,serif;
+  letter-spacing:-.034em; text-wrap:balance;
+}
+body.pv-nina-project .n-premise-content h2 em { font-weight:400; color:var(--nf-accent); }
+body.pv-nina-project .n-premise-content p {
+  max-width:705px; margin:0 0 0 auto; padding-left:28px;
+  border-left:1px solid #aeaa9f;
+  font:400 clamp(16px,1.28vw,19px)/1.72 "DM Sans",sans-serif; color:#565149;
+}
+
+/* The subject: moving portrait, editorial copy, open invitation. */
+body.pv-nina-project .n-project-entrance { padding:clamp(100px,9vw,148px) 0; border:0; }
+body.pv-nina-project .n-project-entrance .n-who-grid {
+  display:grid; grid-template-columns:minmax(0,.93fr) minmax(0,1fr);
+  align-items:center; gap:clamp(60px,8.3vw,146px);
+}
+body.pv-nina-project .n-project-entrance .n-who-media { max-width:none; width:100%; aspect-ratio:4/5; background:#222; }
+body.pv-nina-project .n-project-entrance .n-who-media video {
+  object-position:center 25%; filter:saturate(.75) contrast(1.01) brightness(.98);
+}
+body.pv-nina-project .n-project-entrance .n-copy { max-width:635px; width:100%; }
+body.pv-nina-project .n-project-entrance .n-copy .n-label { margin:0 0 26px; color:var(--nf-accent); }
+body.pv-nina-project .n-project-entrance .n-copy h2 {
+  margin:0 0 30px; color:var(--nf-ink);
+  font:400 clamp(55px,5.2vw,85px)/1.01 "Instrument Serif",Georgia,serif;
+  letter-spacing:-.035em; text-transform:none;
+}
+body.pv-nina-project .n-project-entrance .n-copy > p {
+  font:400 clamp(17px,1.4vw,20px)/1.72 "DM Sans",Arial,sans-serif;
+  color:#56514b;
+}
+body.pv-nina-project .n-encounter-invitation { border-top:1px solid var(--nf-line); margin-top:36px; padding-top:27px; }
+body.pv-nina-project .n-encounter-invitation p { color:#676057; font:400 15px/1.7 "DM Sans",sans-serif; margin:0 0 22px; }
+body.pv-nina-project .n-encounter-invitation .n-encounter-button {
+  min-height:50px; width:auto; padding:0 23px; background:transparent; color:var(--nf-ink);
+  border:1px solid var(--nf-ink); font:500 13px/1.3 "DM Sans",sans-serif; letter-spacing:0; text-transform:none;
+}
+body.pv-nina-project .n-encounter-invitation .n-encounter-button:hover { background:var(--nf-ink); color:white; }
+body.pv-nina-project .n-encounter-invitation a { display:inline-flex; margin:0 0 0 16px; min-height:44px; align-items:center; font:500 13px/1.4 "DM Sans",sans-serif; color:var(--nf-ink); }
+body.pv-nina-project .n-project-entrance .n-sound {
+  bottom:15px; right:15px; border:1px solid #ddd3c9a6; border-radius:0;
+  background:#242322cf; color:white; font:500 10px/1.3 "DM Sans",sans-serif;
+  padding:10px 13px; min-height:38px; letter-spacing:.02em;
+}
+
+/* Memory: the image becomes an artifact rather than a card. */
+body.pv-nina-project .n-memory-story {
+  display:grid; grid-template-columns:minmax(0,1fr) minmax(0,.9fr);
+  align-items:start; gap:clamp(60px,9vw,152px);
+  padding:clamp(100px,10vw,158px) 0; border-top:1px solid var(--nf-line);
+}
+body.pv-nina-project .n-memory-story .n-copy { grid-column:1; grid-row:1; max-width:680px; padding-top:24px; }
+body.pv-nina-project .n-memory-story .n-memory-photo { grid-column:2; grid-row:1; margin:0; }
+body.pv-nina-project .n-memory-story .n-memory-photo img {
+  display:block; width:100%; height:auto; max-height:800px; object-fit:cover; object-position:center 20%;
+  filter:saturate(.8) contrast(1.04);
+}
+body.pv-nina-project .n-memory-story .n-label { margin:0 0 26px; color:var(--nf-accent); }
+body.pv-nina-project .n-memory-story h2 {
+  margin:0 0 28px; color:var(--nf-ink); font:400 clamp(51px,4.8vw,77px)/1.04 "Instrument Serif",Georgia,serif;
+  letter-spacing:-.035em; text-wrap:balance;
+}
+body.pv-nina-project .n-memory-story .n-copy > p:not(.n-label) {
+  font:400 16px/1.7 "DM Sans",sans-serif; color:#625c53;
+}
+body.pv-nina-project .n-memory-story .n-memory-layer { margin-top:33px; padding-top:21px; border-color:var(--nf-line); }
+body.pv-nina-project .n-memory-story .n-memory-layer h3 {
+  margin:0 0 10px; color:var(--nf-ink); font:500 18px/1.4 "DM Sans",sans-serif; letter-spacing:-.025em;
+}
+body.pv-nina-project .n-memory-story .n-memory-layer p { font:400 15px/1.72 "DM Sans",sans-serif; color:#6b665f; }
+body.pv-nina-project .n-memory-story .n-memory-note { color:#7b756d!important; font-size:12px!important; margin-top:28px!important; }
+body.pv-nina-project .n-memory-story .n-memory-question {
+  margin-top:32px!important; color:var(--nf-ink)!important;
+  font:400 23px/1.32 "Instrument Serif",Georgia,serif!important;
+}
+
+/* Method / construction: a dark folio, no glossy "AI-tech" card grid. */
+body.pv-nina-project .n-how-section {
+  background:var(--nf-dark); color:#eae6df; border:0;
+  padding:clamp(70px,8vw,124px) clamp(30px,6vw,98px); margin:0;
+}
+body.pv-nina-project .n-how-section .n-method-top {
+  display:grid; grid-template-columns:minmax(170px,.32fr) minmax(0,1fr);
+  gap:clamp(44px,6vw,104px); align-items:start;
+}
+body.pv-nina-project .n-how-section .n-section-index { color:#b99d8b; }
+body.pv-nina-project .n-how-section .n-section-index span+span { color:#99938a; }
+body.pv-nina-project .n-how-section h2 {
+  color:#f1eee8; max-width:770px; margin:-12px 0 32px;
+  font:400 clamp(55px,5.5vw,90px)/1.01 "Instrument Serif",Georgia,serif; letter-spacing:-.03em;
+}
+body.pv-nina-project .n-how-section .n-method-intro {
+  margin:0; max-width:710px; color:#c0bbb3; font:400 clamp(16px,1.3vw,19px)/1.75 "DM Sans",sans-serif;
+}
+body.pv-nina-project .n-how-section .n-method-notes {
+  display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:clamp(42px,7vw,110px);
+  margin:clamp(55px,7vw,100px) 0 0; padding:0;
+}
+body.pv-nina-project .n-how-section .n-system-block { padding-top:22px; border-top:1px solid #716b62; margin:0; }
+body.pv-nina-project .n-how-section .n-system-block > span { display:block; margin-bottom:28px; color:#b29c8c; font:400 10px/1.4 "IBM Plex Mono",monospace; letter-spacing:.07em; }
+body.pv-nina-project .n-how-section .n-system-block h3 { margin:0 0 12px; color:#eeeae2; font:400 clamp(25px,2.5vw,36px)/1.13 "Instrument Serif",Georgia,serif; }
+body.pv-nina-project .n-how-section .n-system-block p { max-width:490px; margin:0; color:#c6c1b7; font:400 15px/1.72 "DM Sans",sans-serif; }
+body.pv-nina-project .n-how-section .n-system-closing {
+  display:block; margin:66px 0 0!important; padding:22px 0 0; max-width:700px;
+  border-top:1px solid #716b62; color:#eae6df; font:400 clamp(23px,2.6vw,37px)/1.18 "Instrument Serif",Georgia,serif;
+}
+
+/* The world: an atlas plate between two narrow text columns. */
+body.pv-nina-project .n-world-section { padding:clamp(110px,10vw,162px) 0; }
+body.pv-nina-project .n-world-section .n-berlin-head {
+  display:grid; grid-template-columns:minmax(165px,.32fr) minmax(0,1fr);
+  column-gap:clamp(40px,7vw,110px); margin:0 0 46px; align-items:start;
+}
+body.pv-nina-project .n-world-section .n-archive-id { margin:0; display:grid; gap:6px; color:var(--nf-accent); }
+body.pv-nina-project .n-world-section .n-archive-id strong { font-weight:400; color:var(--nf-accent); }
+body.pv-nina-project .n-world-section .n-archive-id span { color:#847d72; }
+body.pv-nina-project .n-world-section .n-berlin-head .n-copy {
+  display:block; max-width:100%; margin:0; 
+}
+body.pv-nina-project .n-world-section .n-berlin-head .n-copy h2 {
+  margin:-12px 0 28px; max-width:910px; color:var(--nf-ink);
+  font:400 clamp(54px,5.8vw,91px)/1.0 "Instrument Serif",Georgia,serif; letter-spacing:-.038em;
+}
+body.pv-nina-project .n-world-section .n-berlin-head .n-copy h2 em { color:var(--nf-accent); font-weight:400; }
+body.pv-nina-project .n-world-section .n-berlin-head .n-copy p { margin:0; max-width:670px; color:#625c53; font:400 17px/1.7 "DM Sans",sans-serif; }
+body.pv-nina-project .n-world-section .n-world {
+  width:100%; max-width:none; margin:0; height:auto;
+  aspect-ratio:1.95; overflow:hidden; background:#242628;
+}
+body.pv-nina-project .n-world-section .n-world img { display:block; width:100%; height:100%; object-fit:cover; object-position:center 55%; filter:saturate(.8) contrast(1.02); }
+body.pv-nina-project .n-world-section .n-world-note {
+  display:grid; grid-template-columns:minmax(165px,.32fr) minmax(0,1fr) auto;
+  gap:28px; align-items:start; width:100%; max-width:none; margin:0; padding:22px 0 0; border-top:0;
+}
+body.pv-nina-project .n-world-section .n-world-note p { margin:0; max-width:590px; color:#69635b; font:400 15px/1.65 "DM Sans",sans-serif; }
+body.pv-nina-project .n-world-section .n-world-link {
+  display:inline-flex; margin:0; padding:2px 0 8px; border:0; border-bottom:1px solid var(--nf-ink);
+  text-decoration:none; color:var(--nf-ink); white-space:nowrap;
+  font:500 13px/1.3 "DM Sans",sans-serif;
+}
+body.pv-nina-project .n-world-section .n-world-link:hover { border-color:var(--nf-accent); color:var(--nf-accent); }
+
+/* The return: the original moving image reappears only as a subdued echo. */
+body.pv-nina-project .n-connect {
+  width:100%; min-height:clamp(440px,42vw,620px); display:flex; justify-content:flex-start; align-items:center;
+  margin:0; padding:clamp(54px,7vw,110px) clamp(30px,6vw,98px);
+  overflow:hidden; border:0; background:#251f20; text-align:left;
+}
+body.pv-nina-project .n-connect:before {
+  content:""; position:absolute; z-index:1; inset:0;
+  background:linear-gradient(90deg,#191816 3%,#191816ed 34%,#19181666 100%);
+}
+body.pv-nina-project .n-connect-video {
+  position:absolute; inset:0; width:100%; height:100%;
+  object-fit:cover; object-position:72% 35%; transform:none;
+  filter:saturate(.63) brightness(.56); opacity:.56;
+}
+body.pv-nina-project .n-connect .n-connect-content {
+  z-index:2; width:min(100%,710px); padding:0; margin:0;
+}
+body.pv-nina-project .n-connect .n-label { margin:0 0 28px; color:#ccb3a3; }
+body.pv-nina-project .n-connect h2 {
+  color:#f0ebe1; margin:0 0 26px; max-width:680px;
+  font:400 clamp(62px,6.3vw,102px)/.96 "Instrument Serif",Georgia,serif; letter-spacing:-.038em; text-transform:none;
+}
+body.pv-nina-project .n-connect .n-connect-description { max-width:510px; color:#d2ccc4; margin:0 0 28px; font:400 16px/1.7 "DM Sans",sans-serif; }
+body.pv-nina-project .n-connect .n-button {
+  min-height:55px; width:auto; padding:0 26px; background:#efebe3;
+  color:#24221e; border:1px solid #efebe3; border-radius:0;
+  font:500 14px/1.3 "DM Sans",sans-serif; letter-spacing:0; text-transform:none;
+}
+body.pv-nina-project .n-connect .n-button:hover { background:#cbbeb1; border-color:#cbbeb1; color:#211d1b; }
+body.pv-nina-project .n-connect .n-connect-note { font:400 12px/1.5 "DM Sans",sans-serif; color:#ddd1c3; }
+
+/* Reading room, not a customer-support FAQ. */
+body.pv-nina-project .n-faq {
+  display:grid; grid-template-columns:minmax(165px,.32fr) minmax(0,1fr);
+  column-gap:clamp(40px,7vw,110px); padding:clamp(106px,9vw,152px) 0;
+  border-bottom:1px solid var(--nf-line);
+}
+body.pv-nina-project .n-faq-head { max-width:none; margin:0; display:block; }
+body.pv-nina-project .n-faq-head .n-label { margin:0 0 16px; color:var(--nf-accent); }
+body.pv-nina-project .n-faq-head h2 {
+  margin:0; color:var(--nf-ink);
+  font:400 clamp(35px,4vw,60px)/1 "Instrument Serif",Georgia,serif; letter-spacing:-.03em;
+}
+body.pv-nina-project .n-faq-list { max-width:none; width:auto; margin:0; }
+body.pv-nina-project .n-faq details { border-color:var(--nf-line); }
+body.pv-nina-project .n-faq details:first-child { border-top:1px solid var(--nf-line); }
+body.pv-nina-project .n-faq summary {
+  min-height:70px; padding:18px 0; color:var(--nf-ink);
+  font:500 clamp(16px,1.3vw,19px)/1.4 "DM Sans",sans-serif; letter-spacing:-.018em;
+}
+body.pv-nina-project .n-faq summary:hover { color:var(--nf-accent); }
+body.pv-nina-project .n-faq summary::after { color:#716960; }
+body.pv-nina-project .n-faq .n-faq-answer { padding:0 38px 28px 0; }
+body.pv-nina-project .n-faq .n-faq-answer p { max-width:680px; color:#666056; font:400 15px/1.7 "DM Sans",sans-serif; }
+body.pv-nina-project .n-footer {
+  min-height:98px; padding:27px 0; display:flex; flex-wrap:wrap;
+  align-items:center; justify-content:space-between; gap:18px;
+  color:#7b766b; border:0;
+}
+body.pv-nina-project .n-footer a { color:var(--nf-ink); font:500 12px/1.5 "DM Sans",sans-serif; letter-spacing:0; text-transform:none; text-decoration:none; border-bottom:1px solid #8b857c; padding-bottom:4px; }
+body.pv-nina-project .n-footer a:hover { color:var(--nf-accent); border-color:var(--nf-accent); }
+body.pv-nina-project .n-account-panel, body.pv-nina-project .nina-window, body.pv-nina-project .nina-access { color-scheme:dark; }
+
+@media (max-width:1080px) {
+  body.pv-nina-project .n-cover-grid { grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr); min-height:640px; }
+  body.pv-nina-project .n-cover-copy { padding-right:26px; }
+  body.pv-nina-project .n-cover-copy h1 { font-size:clamp(96px,10vw,140px); }
+  body.pv-nina-project .n-project-entrance .n-who-grid,
+  body.pv-nina-project .n-memory-story { gap:clamp(30px,5vw,70px); }
+  body.pv-nina-project .n-world-section .n-world-note { grid-template-columns:1fr 1.5fr; }
+  body.pv-nina-project .n-world-section .n-world-link { grid-column:2; width:max-content; }
+}
+@media (max-width:760px) {
+  body.pv-nina-project .n-shell,
+  body.pv-nina-project .n-nav { width:calc(100% - 36px); }
+  body.pv-nina-project .n-nav { min-height:65px; grid-template-columns:1fr auto; gap:12px; }
+  body.pv-nina-project .n-nav > a { font-size:11px; letter-spacing:.065em; }
+  body.pv-nina-project .n-nav > span { display:none; }
+  body.pv-nina-project .n-nav .n-nav-actions { grid-column:2; gap:13px; }
+  body.pv-nina-project .n-nav .n-nav-transmit { font-size:10px; min-height:38px; }
+  body.pv-nina-project .n-nav #ninaAccountToggle { width:37px; height:37px; min-width:37px; padding:8px; }
+  body.pv-nina-project .n-cover-index { font-size:9px; padding:12px 0; }
+  body.pv-nina-project .n-cover-index span:last-child { display:none; }
+  body.pv-nina-project .n-cover-grid { display:flex; flex-direction:column; min-height:0; }
+  body.pv-nina-project .n-cover-media { order:0; min-height:0; height:clamp(350px,60svh,600px); }
+  body.pv-nina-project .n-cover-media .n-hero-asset { object-position:center 42%; }
+  body.pv-nina-project .n-cover-copy { order:1; padding:34px 0 48px; }
+  body.pv-nina-project .n-cover-copy h1 { margin:36px 0 0; font-size:clamp(90px,20vw,154px); line-height:.75; }
+  body.pv-nina-project .n-cover-copy h1 span { display:inline; padding-left:.08em; white-space:nowrap; }
+  body.pv-nina-project .n-cover-summary { padding-top:38px; max-width:580px; }
+  body.pv-nina-project .n-cover-deck { font-size:30px; margin-bottom:10px; }
+  body.pv-nina-project .n-cover-copy .n-hero-statement { font-size:15px; }
+  body.pv-nina-project .n-cover-actions { margin-top:22px; }
+  body.pv-nina-project .n-cover-bottom { font-size:9px; padding:15px 0 20px; }
+  body.pv-nina-project .n-concept-entry,
+  body.pv-nina-project .n-world-section .n-berlin-head,
+  body.pv-nina-project .n-faq {
+    display:grid; grid-template-columns:1fr; gap:31px;
+  }
+  body.pv-nina-project .n-concept-entry { padding:79px 0 90px; }
+  body.pv-nina-project .n-premise-content h2 { margin:0 0 26px; font-size:clamp(48px,10.4vw,77px); }
+  body.pv-nina-project .n-premise-content p { padding-left:18px; margin:0; font-size:16px; }
+  body.pv-nina-project .n-project-entrance { padding:80px 0; }
+  body.pv-nina-project .n-project-entrance .n-who-grid { grid-template-columns:1fr; gap:36px; }
+  body.pv-nina-project .n-project-entrance .n-who-media { max-width:none; aspect-ratio:4/4.2; }
+  body.pv-nina-project .n-project-entrance .n-copy { grid-row:auto; }
+  body.pv-nina-project .n-project-entrance .n-copy h2 { margin-bottom:20px; font-size:clamp(52px,10vw,72px); }
+  body.pv-nina-project .n-project-entrance .n-copy > p { font-size:16px; }
+  body.pv-nina-project .n-encounter-invitation { margin-top:25px; }
+  body.pv-nina-project .n-memory-story {
+    display:grid; grid-template-columns:1fr; gap:36px; padding:84px 0;
+  }
+  body.pv-nina-project .n-memory-story .n-memory-photo { grid-row:1; grid-column:1; }
+  body.pv-nina-project .n-memory-story .n-memory-photo img { width:100%; max-height:570px; }
+  body.pv-nina-project .n-memory-story .n-copy { grid-row:2; grid-column:1; padding:0; }
+  body.pv-nina-project .n-memory-story h2 { font-size:clamp(48px,10vw,70px); }
+  body.pv-nina-project .n-how-section { padding:62px 24px 70px; }
+  body.pv-nina-project .n-how-section .n-method-top { grid-template-columns:1fr; gap:22px; }
+  body.pv-nina-project .n-how-section h2 { margin:0 0 20px; font-size:clamp(50px,10vw,76px); }
+  body.pv-nina-project .n-how-section .n-method-notes { grid-template-columns:1fr; gap:35px; margin-top:50px; }
+  body.pv-nina-project .n-how-section .n-system-closing { margin-top:45px!important; font-size:27px; }
+  body.pv-nina-project .n-world-section { padding:85px 0; }
+  body.pv-nina-project .n-world-section .n-berlin-head { margin-bottom:30px; }
+  body.pv-nina-project .n-world-section .n-berlin-head .n-copy h2 { margin:0 0 24px; font-size:clamp(48px,10vw,77px); }
+  body.pv-nina-project .n-world-section .n-berlin-head .n-copy p { font-size:16px; }
+  body.pv-nina-project .n-world-section .n-world { aspect-ratio:4/3; margin:0; }
+  body.pv-nina-project .n-world-section .n-world-note { grid-template-columns:1fr; gap:20px; padding-top:18px; }
+  body.pv-nina-project .n-world-section .n-world-link { grid-column:auto; }
+  body.pv-nina-project .n-connect { min-height:490px; padding:60px 25px; }
+  body.pv-nina-project .n-connect h2 { font-size:clamp(54px,10.7vw,79px); }
+  body.pv-nina-project .n-connect .n-connect-description { font-size:15px; }
+  body.pv-nina-project .n-faq { padding:88px 0; }
+  body.pv-nina-project .n-faq-head h2 { font-size:55px; }
+  body.pv-nina-project .n-faq summary { min-height:66px; font-size:16px; }
+  body.pv-nina-project .n-footer { min-height:100px; font-size:9px; }
+}
+@media (max-width:390px) {
+  body.pv-nina-project .n-cover-copy h1 { font-size:clamp(72px,19vw,100px); }
+  body.pv-nina-project .n-cover-actions { align-items:stretch; gap:5px 14px; }
+  body.pv-nina-project .n-cover-actions .n-button-primary { min-width:175px; }
+  body.pv-nina-project .n-encounter-invitation a { margin:12px 0 0; display:flex; }
+  body.pv-nina-project .n-nav > a { letter-spacing:.02em; }
+}
+@media (prefers-reduced-motion:reduce) {
+  html { scroll-behavior:auto; }
+  body.pv-nina-project .n-button { transition:none; }
+}
