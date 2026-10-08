@@ -151,10 +151,10 @@ try{
   assert.deepEqual(x.errors,[]);await x.context.close();
 
   x=await workspace({jobs:[job]});await imageAdvanced(x.page);await x.page.click('#image-composer-more');await x.page.getByRole('button',{name:'View image',exact:true}).click();
-  await x.page.waitForFunction(()=>!document.querySelector('#download').hidden);const resultUrl=await x.page.locator('#preview').getAttribute('src');
+  await x.page.waitForFunction(()=>document.querySelector('#image-lightbox').open);const resultUrl=await x.page.locator('#preview').getAttribute('src');
   await x.page.locator('#reference-images').setInputFiles(references());await ready(x.page);
   assert.equal(await x.page.locator('#preview').getAttribute('src'),resultUrl);assert.equal(await x.page.locator('#preview').getAttribute('alt'),'Generated image result');
-  assert.equal(await x.page.locator('#download').isVisible(),true);pass('Adding references preserves an already displayed real result and its Download button');
+  assert.equal(await x.page.locator('#image-lightbox-download').isVisible(),true);pass('Adding references preserves the real result and visible Image viewer download');
   await x.page.evaluate(()=>window.__labTest.lock());assert.equal(await x.page.locator('#app').isVisible(),false);assert.equal(await x.page.locator('.reference-item').count(),0);assert.equal(await x.page.locator('#input-preview-image').getAttribute('src'),null);pass('Sign-out clears input previews, result previews and private reference state');await x.context.close();
 
   const jpegJob={...job,settings:{...job.settings,outputFormat:'jpeg'}};
