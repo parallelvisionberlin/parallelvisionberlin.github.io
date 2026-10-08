@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded',()=>{const retry=document.getElemen
 <link rel="stylesheet" href="./soul.css?v=20260930-soul-v02">
 <link rel="stylesheet" href="./studio.css?v=20261008-imagefloat-v1">
 <link rel="stylesheet" href="./image-studio.css?v=20261008-floating-v1">
-<link rel="stylesheet" href="./detail-video-studio.css?v=20261008-v1">
+<link rel="stylesheet" href="./detail-video-studio.css?v=20261008-queue-v2">
 <script type="module" src="./lab.js?v=20261008-detail-video-v2"></script>
 </head>
 <body class="lab-booting">
@@ -44,7 +44,33 @@ document.addEventListener('DOMContentLoaded',()=>{const retry=document.getElemen
 <section id="gate" class="gate" hidden><div class="intro"><div><p class="eyebrow">Private creative workspace</p><h1>Parallel Vision Lab</h1></div><p class="intro-note">Create, queue and refine.<br>Keep working while jobs run.</p></div><p class="eyebrow">Owner access</p><h2>Your private image and motion studio.</h2><p id="auth-status" role="status">Loading your Parallel Vision sign-in…</p><button id="signin" class="primary" disabled>Sign in</button><button id="auth-retry" type="button" class="quiet" hidden>Reload page</button><p class="fine">Use the same owner account as Nina. No new subscription.</p></section>
 <div id="app" hidden>
 <div class="connection-strip" hidden><span id="connection-status">Checking connection…</span><button class="text-button" id="setup">Manage connection</button></div>
-<nav class="tool-switch" aria-label="Creative tools"><div class="tool-group"><button id="tool-video" class="tool-tab active" type="button" aria-pressed="true">Video</button><button id="tool-image" class="tool-tab" type="button" aria-pressed="false">Image</button><button id="tool-upscale" class="tool-tab" type="button" aria-pressed="false">Upscale</button></div><span class="tool-caption">PARALLEL VISION LAB</span></nav>
+<nav class="tool-switch" aria-label="Creative tools">
+  <div class="tool-group">
+    <button id="tool-video" class="tool-tab active" type="button" aria-pressed="true">Video</button>
+    <button id="tool-image" class="tool-tab" type="button" aria-pressed="false">Image</button>
+    <button id="tool-upscale" class="tool-tab" type="button" aria-pressed="false">Upscale</button>
+  </div>
+  <div class="tool-status">
+    <span class="tool-caption">PARALLEL VISION LAB</span>
+    <details id="active" class="queue-popover" hidden>
+      <summary aria-label="Show live generation queue">
+        <span class="queue-status-dot" aria-hidden="true"></span>
+        <span class="queue-summary-title">Queue</span>
+        <span id="queue-count" aria-live="polite">0 jobs</span>
+        <span class="queue-summary-chevron" aria-hidden="true">⌄</span>
+      </summary>
+      <div class="queue-popover-panel">
+        <div class="queue-popover-heading">
+          <strong>Live queue</strong>
+          <span>Requests and status</span>
+        </div>
+        <p id="active-status" class="queue-capacity"></p>
+        <p class="fine" id="active-detail" aria-live="polite"></p>
+        <button id="resolve" class="quiet" type="button" hidden>Resolve interrupted request</button>
+      </div>
+    </details>
+  </div>
+</nav>
 <section id="image-studio" class="image-studio" aria-label="Image creation studio" hidden>
   <div class="image-gallery-shell">
     <div id="image-gallery-host" class="image-gallery-host"></div>
@@ -302,7 +328,7 @@ document.addEventListener('DOMContentLoaded',()=>{const retry=document.getElemen
 <div class="soul-launch-actions"><button id="soul-use" class="secondary" type="button">Use PV Soul</button><button id="soul-launch-manage" class="primary" type="button">Train / manage character</button></div>
 </div>
 <p id="notice" role="status" aria-live="polite"></p>
-<section id="active" class="active" hidden aria-live="polite"><div><p class="eyebrow">Live queue</p><p id="active-status"></p><p class="fine" id="active-detail"></p></div><button id="resolve" class="quiet" hidden>Resolve interrupted request</button></section>
+
 <div id="archive-rest-anchor"></div>
 <section class="archive"><div class="archivehead"><div><p class="eyebrow">Private archive</p><h2>History</h2></div><div><p>Results, drafts and active jobs in one place.<br>In Select mode, click anywhere on a card to add or remove it.</p><div class="history-head-actions"><button id="history-select" class="text-button" type="button">Select</button><button id="refresh" class="text-button" type="button">Refresh</button></div></div></div><div id="history-selection" class="history-selection" hidden><span id="history-selection-count">0 selected</span><button id="history-select-all" class="text-button" type="button">Select all visible</button><button id="history-delete-selected" class="history-delete-selected" type="button" disabled>Delete selected</button><button id="history-cancel-select" class="text-button" type="button">Cancel</button></div><p id="emptyarchive" class="emptyarchive">No saved work yet.</p><div id="history" class="grid"></div><button id="more" class="secondary" hidden>Load earlier work</button></section>
 </div>
