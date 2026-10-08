@@ -1,3 +1,4 @@
+async function imageAdvanced(page){await page.click('#tool-image');const open=await page.locator('#app').evaluate(el=>el.classList.contains('image-settings-open'));if(!open)await page.click('#image-composer-more');}
 // Synthetic media and mock authentication/API only. Does not purchase generations.
 import assert from 'node:assert/strict';
 import http from 'node:http';
@@ -63,12 +64,12 @@ async function populatedReferenceControls(page){
   for(const index of [4,5,6,7])await role(page,index).selectOption('identity');
 }
 try{
-  let x=await workspace();await x.page.click('#tool-image');
+  let x=await workspace();await imageAdvanced(x.page);
   assert.equal(await x.page.locator('#output-format').inputValue(),'png');
   await x.page.locator('#output-format').selectOption('jpeg');
   assert.equal(await x.page.locator('#output-format').inputValue(),'jpeg');
   await x.page.click('#tool-upscale');assert.equal(await x.page.locator('#output-format').inputValue(),'png');
-  await x.page.click('#tool-image');assert.equal(await x.page.locator('#output-format').inputValue(),'png');
+  await imageAdvanced(x.page);assert.equal(await x.page.locator('#output-format').inputValue(),'png');
   pass('New Image and Upscale default to PNG while JPEG stays available');
   await x.page.evaluate(()=>{window.framesDuringPreparation=0;const tick=()=>{window.framesDuringPreparation++;window.tick=requestAnimationFrame(tick);};tick();});
   await x.page.locator('#reference-images').setInputFiles(references());await ready(x.page);
@@ -97,7 +98,7 @@ try{
   await x.page.locator('.reference-item').first().getByText('Remove',{exact:true}).click();assert.equal(await x.page.locator('.reference-item').count(),6);pass('Reorder and remove still operate on the correct originals');
   assert.deepEqual(x.errors,[]);await x.context.close();
 
-  x=await workspace();await x.page.click('#tool-image');
+  x=await workspace();await imageAdvanced(x.page);
   await x.page.locator('#reference-images').setInputFiles(references());await ready(x.page);
   await role(x.page,3).selectOption('base');
   let assigned=await x.page.evaluate(()=>window.__labTest.refs());
@@ -149,7 +150,7 @@ try{
   pass('The final instruction budget blocks oversized requests after automatic role text is included');
   assert.deepEqual(x.errors,[]);await x.context.close();
 
-  x=await workspace({jobs:[job]});await x.page.click('#tool-image');await x.page.getByRole('button',{name:'View image',exact:true}).click();
+  x=await workspace({jobs:[job]});await imageAdvanced(x.page);await x.page.getByRole('button',{name:'View image',exact:true}).click();
   await x.page.waitForFunction(()=>!document.querySelector('#download').hidden);const resultUrl=await x.page.locator('#preview').getAttribute('src');
   await x.page.locator('#reference-images').setInputFiles(references());await ready(x.page);
   assert.equal(await x.page.locator('#preview').getAttribute('src'),resultUrl);assert.equal(await x.page.locator('#preview').getAttribute('alt'),'Generated image result');
@@ -173,10 +174,10 @@ try{
   assert.equal(x.requests.filter(r=>r.path==='/api/jobs'&&r.method==='POST').length,0);
   assert.deepEqual(x.errors,[]);pass('Reuse restores a role-only edit with its original Base, Hands, Pants and note without generating');await x.context.close();
 
-  x=await workspace({fallback:true});await x.page.click('#tool-image');await x.page.locator('#reference-images').setInputFiles([{name:'fallback.png',mimeType:'image/png',buffer:small}]);
+  x=await workspace({fallback:true});await imageAdvanced(x.page);await x.page.locator('#reference-images').setInputFiles([{name:'fallback.png',mimeType:'image/png',buffer:small}]);
   await x.page.waitForFunction(()=>document.querySelectorAll('.reference-item').length===1&&!document.querySelector('#prompt').disabled);assert.equal(x.workers.length,0);assert.deepEqual(x.errors,[]);pass('Browsers without workers retain an operational local fallback');await x.context.close();
   for(const width of [390,1728]){
-    x=await workspace({width});await x.page.click('#tool-image');await x.page.locator('#reference-images').setInputFiles(references());await ready(x.page);
+    x=await workspace({width});await imageAdvanced(x.page);await x.page.locator('#reference-images').setInputFiles(references());await ready(x.page);
     await populatedReferenceControls(x.page);
     await x.page.locator('#reference-list').evaluate(e=>e.scrollTop=0);
     assert.ok(await x.page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth));
