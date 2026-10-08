@@ -150,7 +150,7 @@ try{
   pass('The final instruction budget blocks oversized requests after automatic role text is included');
   assert.deepEqual(x.errors,[]);await x.context.close();
 
-  x=await workspace({jobs:[job]});await imageAdvanced(x.page);await x.page.getByRole('button',{name:'View image',exact:true}).click();
+  x=await workspace({jobs:[job]});await imageAdvanced(x.page);await x.page.click('#image-composer-more');await x.page.getByRole('button',{name:'View image',exact:true}).click();
   await x.page.waitForFunction(()=>!document.querySelector('#download').hidden);const resultUrl=await x.page.locator('#preview').getAttribute('src');
   await x.page.locator('#reference-images').setInputFiles(references());await ready(x.page);
   assert.equal(await x.page.locator('#preview').getAttribute('src'),resultUrl);assert.equal(await x.page.locator('#preview').getAttribute('alt'),'Generated image result');
