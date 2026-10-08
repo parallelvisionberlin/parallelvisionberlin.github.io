@@ -141,12 +141,12 @@ try{
 
   // Regression for the exact owner complaint: duration, resolution and aspect ratio
   // must be visible ABOVE the Generate dock without page scrolling on a desktop.
-  for(const [width,height] of [[1440,820],[1728,820]]){
+  for(const [width,height] of [[1440,768],[1440,820],[1728,820]]){
     const compact=await open(width,height);
     const parts=await compact.page.evaluate(()=>{
       const rect=id=>{const r=document.querySelector(id).getBoundingClientRect();return {top:r.top,bottom:r.bottom,height:r.height};};
       return {duration:rect('#duration-control'),resolution:rect('#resolution-control'),ratio:rect('#ratio-control'),
-        dock:rect('.generate-zone'),generate:rect('#generate'),stage:rect('.stage'),
+        dock:rect('.controls>.generate-zone'),generate:rect('#generate'),stage:rect('.stage'),
         viewport:innerHeight,scrollY:window.scrollY,
         visible:[...document.querySelectorAll('#duration-control,#resolution-control,#ratio-control')].every(x=>getComputedStyle(x).display!=='none')
       };
@@ -163,7 +163,7 @@ try{
     assert.deepEqual(compact.errors,[]);
     await compact.context.close();
   }
-  console.log('PASS video controls fully visible at 1440 and 1728 desktop widths');
+  console.log('PASS video settings + Generate fit without scrolling at 768px and 820px desktop heights');
 
   // Verify branded first paint while the JS module is deliberately delayed.
   const bootContext=await browser.newContext({viewport:{width:1440,height:900}});
