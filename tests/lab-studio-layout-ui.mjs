@@ -63,7 +63,7 @@ try{
   assert.ok(d.workspace.top<140,'Workspace must be above the fold');
   assert.ok(d.dock.height>100&&d.dock.bottom<=d.panel.bottom+2,'Generation controls must have a real fixed dock');
   assert.ok(d.generate.bottom<=d.panel.bottom+2,'Generate dock must remain inside left panel');
-  const scrollState=await x.page.evaluate(()=>{window.scrollTo(0,400);return {scroll:window.scrollY,inner:document.querySelector('.controls-body').scrollTop,bodyOverflow:getComputedStyle(document.querySelector('.controls-body')).overflowY};});
+  const scrollState=await x.page.evaluate(()=>{window.scrollTo({top:400,behavior:'instant'});return {scroll:window.scrollY,inner:document.querySelector('.controls-body').scrollTop,bodyOverflow:getComputedStyle(document.querySelector('.controls-body')).overflowY};});
   assert.ok(scrollState.scroll>50,'The whole page must scroll');
   assert.equal(scrollState.inner,0,'Editor has no independent vertical scrollbar');
   assert.equal(scrollState.bodyOverflow,'visible');
