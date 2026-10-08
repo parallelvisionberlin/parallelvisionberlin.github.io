@@ -1,7 +1,7 @@
 // Mock-only Lab UI layout verification. Never contacts paid providers.
 import assert from 'node:assert/strict';
 import http from 'node:http';
-import {readFileSync,existsSync,mkdirSync} from 'node:fs';
+import {readFileSync,existsSync,mkdirSync,writeFileSync} from 'node:fs';
 import {resolve,extname} from 'node:path';
 import {pathToFileURL} from 'node:url';
 
@@ -17,7 +17,7 @@ const server=http.createServer((req,res)=>{
   const u=new URL(req.url,'http://localhost');
   const file=resolve(root,'.'+u.pathname+(u.pathname.endsWith('/')?'index.html':''));
   if(!file.startsWith(root+'/')||!existsSync(file)){res.writeHead(404).end();return;}
-  res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css'})[extname(file)]||'text/plain');
+  res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css','.png':'image/png','.svg':'image/svg+xml','.jpg':'image/jpeg','.webp':'image/webp'})[extname(file)]||'text/plain');
   res.end(u.pathname==='/lab/lab.js'?testSource:readFileSync(file));
 });
 await new Promise(r=>server.listen(4182,'127.0.0.1',r));
@@ -63,11 +63,23 @@ try{
   assert.ok(d.workspace.top<140,'Workspace must be above the fold');
   assert.ok(d.dock.height>100&&d.dock.bottom<=d.panel.bottom+2,'Generation controls must have a real fixed dock');
   assert.ok(d.generate.bottom<=d.panel.bottom+2,'Generate dock must remain inside left panel');
+  const scrollState=await x.page.evaluate(()=>{window.scrollTo({top:400,behavior:'instant'});return {scroll:window.scrollY,inner:document.querySelector('.controls-body').scrollTop,bodyOverflow:getComputedStyle(document.querySelector('.controls-body')).overflowY};});
+  assert.ok(scrollState.scroll>50,'The whole page must scroll');
+  assert.equal(scrollState.inner,0,'Editor has no independent vertical scrollbar');
+  assert.equal(scrollState.bodyOverflow,'visible');
+  await x.page.evaluate(()=>window.scrollTo({top:0,behavior:'instant'}));
+  await x.page.waitForFunction(()=>window.scrollY===0);
   assert.ok(d.generate.top>=d.panel.top,'Generate remains visible without scrolling the form');
-  assert.equal(d.scrollMode,'auto','Only settings panel should scroll on desktop');
+  assert.equal(d.scrollMode,'visible','Desktop settings must use the page scroll, not a nested scrollbar');
   assert.ok(d.stage.height<=741&&d.canvas.height<650,'Preview never exceeds viewport cap');
   assert.ok(d.modes.top-d.model.bottom<20,'Start/reference buttons directly follow model info');
   assert.equal(d.explanationCollapsed,true);
+  const images=await x.page.locator('.brand img').evaluateAll(async nodes=>Promise.all(nodes.map(async img=>{try{await img.decode()}catch{}return {src:img.getAttribute('src'),complete:img.complete,width:img.naturalWidth}})));
+  console.log('BRAND_IMAGES',JSON.stringify(images));
+  assert.ok(images[0].complete&&images[0].width>0,'Official PV icon must load');
+  assert.ok(images[1].complete&&images[1].width>0,'Official PV wordmark must load');
+  assert.equal(await x.page.locator('#lab-boot').isVisible(),false,'Loading screen must disappear after workspace becomes usable');
+  assert.equal(await x.page.locator('#gate').isVisible(),false,'Login gate must never flash inside signed-in workspace');
   assert.notEqual(d.accent,'rgb(141, 99, 255)','No default purple selection');
   assert.ok(d.documentWidth<=d.viewport.width,'No horizontal overflow');
   await x.page.screenshot({path:'test-results/lab-workspace-desktop.png',fullPage:false});
@@ -92,6 +104,38 @@ try{
   assert.deepEqual(x.errors,[]);
   await x.context.close();
   console.log('PASS desktop workspace, canvas import, image tab and no hero');
+
+  // Verify branded first paint while the JS module is deliberately delayed.
+  const bootContext=await browser.newContext({viewport:{width:1440,height:900}});
+  await bootContext.route('https://**/*',async route=>{
+    const url=new URL(route.request().url());
+    if(!url.hostname.endsWith('parallelvision.workers.dev'))return route.abort();
+    const path=url.pathname;
+    const response=path==='/api/jobs'?{jobs:[],activeJobs:[],concurrency:{image:4,video:1},next:null}:path==='/api/packs'?{packs:[]}:path==='/api/soul-pro/identity'?{configured:false,count:0,refs:[]}:{};
+    return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(response)});
+  });
+  const bootPage=await bootContext.newPage();
+  let releaseLabScript;
+  const labScriptHeld=new Promise(resolve=>{releaseLabScript=resolve;});
+  await bootPage.route(/\/lab\/lab\.js(?:\?.*)?$/,async route=>{
+    await labScriptHeld;
+    await route.continue();
+  });
+  await bootPage.goto('http://127.0.0.1:4182/lab/',{waitUntil:'commit'});
+  await bootPage.waitForSelector('#lab-boot');
+  assert.equal(await bootPage.locator('#lab-boot').isVisible(),true,'Brand loading appears before external JS');
+  assert.equal(await bootPage.locator('#gate').isVisible(),false,'No half-loaded sign-in page');
+  assert.match(await bootPage.locator('#lab-boot-name').innerText(),/PARALLEL VISION/);
+  assert.equal(await bootPage.locator('#lab-boot img').count(),0,'Boot screen uses text and CSS only, never an icon placeholder');
+  const loadingCdp=await bootContext.newCDPSession(bootPage);
+  const loadingCapture=await loadingCdp.send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false,fromSurface:true});
+  writeFileSync('test-results/lab-branded-loading.png',Buffer.from(loadingCapture.data,'base64'));
+  await loadingCdp.detach();
+  releaseLabScript();
+  await bootPage.waitForFunction(()=>window.__layoutTest===true);
+  assert.equal(await bootPage.locator('#lab-boot').isVisible(),false,'Boot overlay removed on mock auth resolution');
+  await bootContext.close();
+  console.log('PASS first paint, no broken image loading icon and delayed module');
 
   x=await open(390,844);
   d=await geometry(x.page);

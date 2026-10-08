@@ -42,12 +42,14 @@ header {
 }
 .top {min-height:56px;gap:20px}
 .brand {
-  font-size:11px;letter-spacing:.13em;font-weight:650;white-space:nowrap;
-  color:#f6f3ed;
+  display:inline-flex;align-items:center;gap:10px;
+  white-space:nowrap;color:#f6f3ed;flex-shrink:0;
 }
-.brand span {
-  color:#716e74;font-size:10px;letter-spacing:.11em;
-  margin-left:14px;padding-left:14px;border-left:1px solid #3b383e;
+.brand-icon {width:30px;height:30px;display:block;object-fit:contain;flex-shrink:0}
+.brand-wordmark {width:125px;height:36px;display:block;object-fit:contain}
+.brand .brand-lab {
+  color:#b9b4ad;font-size:10px;font-weight:600;letter-spacing:.16em;
+  margin:0 0 0 5px;padding:1px 0 0 15px;border-left:1px solid #484349;
 }
 .actions {gap:8px}
 .actions .eyebrow {font-size:9px;letter-spacing:.1em;margin-right:6px}
@@ -92,26 +94,26 @@ header {
 }
 .tool-caption {margin-left:auto;font-size:9px;color:#77737a;letter-spacing:.15em;white-space:nowrap}
 
-/* Entire generator occupies one screen; only its settings area scrolls */
+/* A single natural page scroll. The preview remains in view on desktop. */
 .workspace {
   display:grid;grid-template-columns:minmax(350px,402px) minmax(0,1fr);
-  align-items:stretch;
-  height:min(740px,calc(100dvh - 125px));min-height:560px;
-  overflow:hidden;border:1px solid #303036;border-radius:12px;
+  align-items:start;min-height:550px;height:auto;
+  overflow:visible;border:1px solid #303036;border-radius:12px;
   background:var(--editor);box-shadow:none;
 }
 .controls {
   display:flex;flex-direction:column;min-width:0;min-height:0;
-  height:100%;padding:0;border-right:1px solid #2e2c31;
-  overflow:hidden;background:#141416;
+  height:auto;padding:0;border-right:1px solid #2e2c31;
+  overflow:visible;background:#141416;
+  border-radius:11px 0 0 11px;
 }
 .controls-body {
-  flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;
-  overscroll-behavior-y:contain;
-  padding:23px 24px 20px;scrollbar-width:thin;scrollbar-color:#3b383f transparent;
+  flex:0 0 auto;min-height:0;overflow:visible;
+  padding:23px 24px 20px;
 }
-.controls-body::-webkit-scrollbar,.reference-list::-webkit-scrollbar {width:7px}
-.controls-body::-webkit-scrollbar-thumb,.reference-list::-webkit-scrollbar-thumb {background:#36343a;border-radius:10px}
+.reference-list {scrollbar-width:thin;scrollbar-color:#343136 transparent}
+.reference-list::-webkit-scrollbar {width:6px}
+.reference-list::-webkit-scrollbar-thumb {background:#343136;border-radius:10px}
 .controls .mode {
   display:flex;align-items:center;justify-content:space-between;
   flex-wrap:wrap;gap:9px;margin:0 0 19px;padding:0;
@@ -255,11 +257,12 @@ textarea:focus,select:focus,input:not([type=checkbox]):not([type=file]):focus {
 #upscale-info p {font-size:10px;line-height:1.5}
 #upscale-info strong {font-weight:520;color:#dedad5}
 
-/* Always-visible action dock, independent of form scrolling */
+/* Generation actions travel with the page without a separate editor scrollbar. */
 .generate-zone {
-  flex:0 0 auto;position:relative;z-index:4;
+  flex:0 0 auto;position:sticky;bottom:0;z-index:6;
   padding:13px 24px 16px;margin:0;border:0;border-top:1px solid #38353b;
-  background:#171719;box-shadow:0 -12px 24px rgba(0,0,0,.14);
+  background:#171719;box-shadow:0 -16px 28px rgba(0,0,0,.26);
+  border-radius:0 0 0 11px;
 }
 .primary,.secondary,.quiet {
   min-height:39px;padding:9px 13px;
@@ -293,9 +296,10 @@ textarea:focus,select:focus,input:not([type=checkbox]):not([type=file]):focus {
 /* Clean cinema canvas */
 .stage {
   display:grid;grid-template-rows:51px minmax(0,1fr) 49px;
-  position:relative;top:auto;align-self:stretch;
-  min-width:0;width:100%;height:100%;min-height:0;
+  position:sticky;top:72px;align-self:start;
+  min-width:0;width:100%;height:clamp(540px,calc(100dvh - 94px),740px);min-height:0;
   overflow:hidden;background:var(--canvas);border:0;
+  border-radius:0 11px 11px 0;
 }
 .stage:before {
   inset:50px 0 49px;
@@ -316,7 +320,7 @@ textarea:focus,select:focus,input:not([type=checkbox]):not([type=file]):focus {
   position:relative;z-index:1;
   display:flex;align-items:center;justify-content:center;
   min-width:0;min-height:0;height:100%;padding:26px;overflow:hidden;
-  background:radial-gradient(ellipse at center,#101012 0%,#080809 68%);
+  background:radial-gradient(ellipse 74% 66% at 50% 45%,#191819 0%,#101011 44%,#080809 100%);
 }
 .canvas img,.canvas video {
   display:block;width:100%;height:100%;max-width:100%;max-height:100%;
@@ -326,6 +330,11 @@ textarea:focus,select:focus,input:not([type=checkbox]):not([type=file]):focus {
   display:flex;align-items:center;flex-direction:column;justify-content:center;
   width:min(350px,100%);max-width:none;text-align:center;
   color:#9a969d;font-size:12px;
+}
+.canvas .empty-wordmark {
+  display:block;width:min(210px,68%);height:auto;max-height:58px;
+  margin:0 auto 24px;object-fit:contain;
+  opacity:.42;filter:grayscale(1);flex:none;
 }
 .frame {
   position:relative;width:86px;height:65px;margin:0 auto 23px;
@@ -464,8 +473,8 @@ footer {border-top-color:#26252a;color:#76727a;font-size:10px}
   }
   .controls {height:auto;min-height:0;overflow:visible;border-right:0;border-bottom:1px solid #302d32}
   .controls-body {min-height:0;overflow:visible;padding:20px}
-  .generate-zone {padding:15px 20px 17px;box-shadow:none}
-  .stage {height:clamp(370px,59dvh,620px);min-height:0;position:relative;top:auto}
+  .generate-zone {padding:15px 20px 17px;position:relative;bottom:auto;box-shadow:none;border-radius:0}
+  .stage {height:clamp(370px,59dvh,620px);min-height:0;position:relative;top:auto;align-self:stretch;border-radius:0 0 11px 11px}
   .canvas {padding:20px}
   .archive {padding-top:34px}
   .history-selection {top:8px}
@@ -475,8 +484,10 @@ footer {border-top-color:#26252a;color:#76727a;font-size:10px}
 @media(max-width:560px) {
   .wrap {padding:0 12px}
   .top {min-height:52px}
-  .brand {font-size:10px}
-  .brand span {font-size:9px;margin-left:8px;padding-left:8px}
+  .brand {gap:6px}
+  .brand-icon {width:27px;height:27px}
+  .brand-wordmark {width:102px;height:30px}
+  .brand .brand-lab {font-size:9px;padding-left:8px;margin-left:2px}
   .actions {gap:5px}
   .actions .eyebrow {display:none}
   .actions .quiet {min-height:31px;font-size:10px;padding:6px 9px}
