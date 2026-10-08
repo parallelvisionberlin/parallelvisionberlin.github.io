@@ -6,7 +6,7 @@ import { journalContext, saveJournal } from './nina-journal.js';
 import { lookupCatalog } from './catalog.js';
 import { recordSessionSetup, storeConversationEvents, conversationDiagnostics } from './conversation-diagnostics.js';
 import { applyAudioInputPolicy, audioInputDiagnostics } from './audio-input.js';
-import { RUNTIME_REVISION, conversationModeGuidance, CONVERSATION_RHYTHM, TURN_INTEGRITY_GUARD, OWNER_ARRIVAL_CONTEXT, NEW_NAME_INSTRUCTION, CONTEXT_BOUNDARY, createStartupTimer, prepareSessionContext, promptFingerprint, summarizeSessionPerformance } from "./conversation-runtime.js";
+import { RUNTIME_REVISION, conversationModeGuidance, CONVERSATION_RHYTHM, TURN_INTEGRITY_GUARD, restoreEverydayLife, OWNER_ARRIVAL_CONTEXT, NEW_NAME_INSTRUCTION, CONTEXT_BOUNDARY, createStartupTimer, prepareSessionContext, promptFingerprint, summarizeSessionPerformance } from "./conversation-runtime.js";
 import { qualifyWebConversation, WEB_SIGNAL_GUIDANCE } from "./web-conversation.js";
 import { sendGiftEmail } from "./gift-email.js";
 import {
@@ -80,7 +80,7 @@ export function authenticatedMemoryDisplayName(user, preferredName) {
 }
 
 export function assembleSystemPrompt(personaConfig, owner, privateMemory) {
-  const scoped = partitionPersonaPrompt(optimizeKnowledgeInstructions(personaConfig.systemPrompt));
+  const scoped = partitionPersonaPrompt(optimizeKnowledgeInstructions(restoreEverydayLife(personaConfig.systemPrompt)));
   // The consolidated Lab core already contains the full delivery and repair rules.
   // Keep the legacy overlay for older or incomplete prompts, including rollback.
   const consolidated = ['PRESENCE', 'SPEAKING AND TURNS', 'LISTENING AND REPAIR', 'PEOPLE AND CONTINUITY', 'KNOWLEDGE', 'YOUR LIFE IN BERLIN', 'ADULT INTIMACY']
