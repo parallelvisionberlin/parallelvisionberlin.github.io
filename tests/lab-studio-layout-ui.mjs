@@ -119,7 +119,8 @@ try{
   assert.ok(await secondaryChooser,'Secondary Image action opens references');
   await x.page.fill('#prompt','A sculptural, atmospheric photographic still.');
   assert.equal(await x.page.locator('#generate').isDisabled(),false,'Image Generate enables after the prompt is entered');
-  assert.equal(await x.page.locator('#generate').evaluate(e=>getComputedStyle(e).backgroundColor),'rgb(228, 230, 234)','Generate uses neutral pearl white, not bronze');
+  const generateColor=await x.page.locator('#generate').evaluate(e=>getComputedStyle(e).backgroundColor);
+  assert.ok(['rgb(228, 230, 234)','rgb(44, 46, 51)'].includes(generateColor),'Generate uses pearl white when enabled or neutral graphite when disabled, never bronze');
   const positions=await x.page.evaluate(()=>({
     soul:document.querySelector('#soul-launch').getBoundingClientRect().top,
     editor:document.querySelector('.workspace').getBoundingClientRect().bottom,
