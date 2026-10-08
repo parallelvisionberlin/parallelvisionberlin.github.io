@@ -11,7 +11,7 @@ const source=readFileSync('lab/lab.js','utf8');
 const boot=source.indexOf("try{const {Clerk}=await import(");
 assert.ok(boot>0,'Expected browser bootstrap marker');
 const testSource=source.slice(0,boot)+
-"clerk={isSignedIn:true,user:{id:'layout-test'},session:{id:'mock',getToken:async()=> 'mock-token'},signOut:async()=>{}};owner=true;userId='layout-test';config={enabled:true,geminiEnabled:true,falEnabled:true,dailyLimitUsd:10,concurrency:{image:4,video:1}};$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();await loadSoulProIdentity();refreshCanvasImport();update();window.__layoutTest=true;";
+"clerk={isSignedIn:true,user:{id:'layout-test'},session:{id:'mock',getToken:async()=> 'mock-token'},signOut:async()=>{}};owner=true;userId='layout-test';config={enabled:true,geminiEnabled:true,falEnabled:true,dailyLimitUsd:10,concurrency:{image:4,video:1}};$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();await loadSoulProIdentity();refreshCanvasImport();update();syncVideoStudioMode();window.__layoutTest=true;";
 
 const server=http.createServer((req,res)=>{
   const u=new URL(req.url,'http://localhost');
@@ -63,14 +63,29 @@ try{
   assert.ok(d.workspace.top<140,'Workspace must be above the fold');
   assert.ok(d.dock.height>100&&d.dock.bottom<=d.panel.bottom+2,'Generation controls must have a real fixed dock');
   assert.ok(d.generate.bottom<=d.panel.bottom+2,'Generate dock must remain inside left panel');
-  const scrollState=await x.page.evaluate(()=>{window.scrollTo({top:400,behavior:'instant'});return {scroll:window.scrollY,inner:document.querySelector('.controls-body').scrollTop,bodyOverflow:getComputedStyle(document.querySelector('.controls-body')).overflowY};});
-  assert.ok(scrollState.scroll>50,'The whole page must scroll');
-  assert.equal(scrollState.inner,0,'Editor has no independent vertical scrollbar');
-  assert.equal(scrollState.bodyOverflow,'visible');
-  await x.page.evaluate(()=>window.scrollTo({top:0,behavior:'instant'}));
-  await x.page.waitForFunction(()=>window.scrollY===0);
+  const videoLayout=await x.page.evaluate(()=>{
+    const workspace=document.querySelector('.workspace'),feed=document.querySelector('#video-feed-center');
+    const editor=document.querySelector('.controls'),panel=document.querySelector('#video-inspector');
+    const fake=document.createElement('div');fake.style.height='1100px';fake.style.flex='0 0 1100px';feed.append(fake);
+    feed.scrollTop=260;
+    const positionBefore=editor.getBoundingClientRect().top;
+    const result={mode:workspace.classList.contains('video-layout'),feedOverflow:getComputedStyle(feed).overflowY,
+      feedScroll:feed.scrollTop,panelVisible:getComputedStyle(panel).display!=='none',
+      editorPositionAfter:editor.getBoundingClientRect().top,editorPositionBefore:positionBefore,
+      stageParent:document.querySelector('.stage').parentElement.id,
+      historyParent:document.querySelector('#history').closest('.video-feed-center')?.id};
+    fake.remove();feed.scrollTop=0;
+    return result;
+  });
+  console.log('VIDEO_WORKSPACE',JSON.stringify(videoLayout));
+  assert.equal(videoLayout.mode,true,'Video has its dedicated three-column workspace');
+  assert.equal(videoLayout.stageParent,'video-feed-center','Existing video stage lives inside results feed');
+  assert.equal(videoLayout.historyParent,'video-feed-center','Existing private History lives inside results feed');
+  assert.ok(videoLayout.feedScroll>100,'Results feed scrolls independently of left creation panel');
+  assert.equal(videoLayout.panelVisible,true,'Right video details panel is visible');
+  await x.page.screenshot({path:'test-results/lab-video-feed-desktop.png',fullPage:false});
   assert.ok(d.generate.top>=d.panel.top,'Generate remains visible without scrolling the form');
-  assert.equal(d.scrollMode,'visible','Desktop settings must use the page scroll, not a nested scrollbar');
+  assert.equal(d.scrollMode,'auto','Video creation controls may scroll separately if a chosen model has extra settings');
   assert.ok(d.stage.height<=741&&d.canvas.height<650,'Preview never exceeds viewport cap');
   assert.ok(d.modes.top-d.model.bottom<20,'Start/reference buttons directly follow model info');
   assert.equal(d.explanationCollapsed,true);
@@ -83,7 +98,7 @@ try{
   assert.notEqual(d.accent,'rgb(141, 99, 255)','No default purple selection');
   assert.ok(await x.page.locator('#empty-title').innerText().then(t=>/next scene/i.test(t)),'Video opens with an inviting scene direction');
   assert.ok(await x.page.locator('#canvas-secondary').isVisible(),'Video offers an alternate entry into Image');
-  assert.ok(await x.page.locator('.canvas').evaluate(e=>getComputedStyle(e).backgroundImage.includes('radial-gradient')),'Preview has atmospheric lighting');
+  assert.equal(await x.page.locator('.canvas').evaluate(e=>getComputedStyle(e).backgroundColor),'rgb(21, 22, 25)','Video playback uses a neutral dark canvas');
   const palette=await x.page.evaluate(()=>{
     const style=getComputedStyle(document.documentElement);
     return {
@@ -95,7 +110,7 @@ try{
   });
   assert.equal(palette.bg,'#101114','Workspace uses black graphite');
   assert.equal(palette.pageTheme,palette.bg,'Browser chrome and studio background agree');
-  assert.match(palette.image,/rgba?\(\s*210\s*,\s*214\s*,\s*225\b/,'Canvas ambient light is neutral pearl gray');
+  assert.ok(palette.image==='none'||palette.image.includes('210, 214, 225'),'Video playback must not have a colored overlay');
   assert.ok(!palette.image.includes('181, 145, 115')&&!palette.image.includes('145, 129, 126'),'Former bronze and brown halos are absent');
   assert.equal(await x.page.locator('.empty-wordmark').count(),0,'Canvas should not repeat the brand logo');
   assert.ok(d.documentWidth<=d.viewport.width,'No horizontal overflow');

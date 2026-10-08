@@ -48,7 +48,7 @@ async function workspace({ width=1440, jobs=[], fallback=false }={}) {
   await page.goto('http://127.0.0.1:4181/lab/');await page.waitForFunction(()=>!!window.__labTest);
   if(!input){
     const make=async(w,h,color)=>Buffer.from(await page.evaluate(({w,h,color})=>{const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.fillStyle=color;x.fillRect(0,0,w,h);x.fillStyle='#cac0aa';for(let i=0;i<15;i++)x.fillRect(20+i*100,30+i*50,80,100);return c.toDataURL('image/png').split(',')[1];},{w,h,color}),'base64');
-    small=await make(320,320,'#283947');output=await make(640,640,'#594c32');
+    small=await make(320,320,'#283947');output=await make(960,640,'#594c32');
     const full=await make(3072,2048,'#283947');input=Buffer.concat([full,Buffer.alloc(1048576-full.length)]);
   }
   return {page,context,errors,requests,uploads,workers};
@@ -150,22 +150,45 @@ try{
   pass('The final instruction budget blocks oversized requests after automatic role text is included');
   assert.deepEqual(x.errors,[]);await x.context.close();
 
-  x=await workspace({jobs:[job]});await imageAdvanced(x.page);await x.page.click('#image-composer-more');await x.page.getByRole('button',{name:'View image',exact:true}).click();
+  x=await workspace({jobs:[job]});await imageAdvanced(x.page);await x.page.click('#image-composer-more');await x.page.locator('#history .card[data-kind="image"]').first().click();
   await x.page.waitForFunction(()=>document.querySelector('#image-lightbox').open);const resultUrl=await x.page.locator('#preview').getAttribute('src');
+  await x.page.locator('#image-lightbox-img').evaluate(async img=>{await img.decode();});
+  const detail=await x.page.evaluate(()=>{
+    const rect=id=>{const r=document.querySelector(id).getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height};};
+    return {dialog:rect('#image-lightbox'),stage:rect('#image-lightbox-stage'),image:rect('#image-lightbox-img'),
+      right:rect('.image-detail-inspector'),viewport:{width:innerWidth,height:innerHeight},
+      imageSize:[document.querySelector('#image-lightbox-img').naturalWidth,document.querySelector('#image-lightbox-img').naturalHeight]};
+  });
+  console.log('FULL_IMAGE_DETAIL',JSON.stringify(detail));
+  assert.ok(detail.dialog.width>=detail.viewport.width-1,'Image viewer occupies full browser width');
+  assert.ok(detail.dialog.height>=detail.viewport.height-1,'Image viewer occupies full browser height');
+  assert.ok(detail.right.width>=300,'Right inspector is visible and usable');
+  assert.ok(detail.image.right<=detail.right.left,'Complete image cannot extend beneath inspector');
+  assert.ok(detail.image.width<=detail.stage.width&&detail.image.height<=detail.stage.height,'Image fits its stage without cropping');
+  assert.deepEqual(detail.imageSize,[960,640],'Native image retains landscape dimensions');
+  assert.ok(Math.abs(detail.image.width/detail.image.height-1.5)<.02,'Full image retains source aspect ratio');
+  assert.equal(await x.page.locator('#image-detail-prompt').innerText(),'A ceramic sculpture.');
+  assert.equal(await x.page.locator('#image-detail-model').innerText(),'Seedream 5 Pro');
+  await x.page.locator('#image-lightbox-fit').click();
+  assert.equal(await x.page.locator('#image-lightbox-stage').evaluate(e=>e.classList.contains('is-zoomed')),true,'100% zoom must be available on demand');
+  await x.page.locator('#image-lightbox-fit').click();
+  assert.equal(await x.page.locator('#image-lightbox-stage').evaluate(e=>e.classList.contains('is-zoomed')),false,'Fit mode restores complete uncropped image');
+  mkdirSync('test-results',{recursive:true});
+  await x.page.screenshot({path:'test-results/lab-image-detail-fullscreen.png',fullPage:false});
   await x.page.locator('#reference-images').setInputFiles(references());await ready(x.page);
   assert.equal(await x.page.locator('#preview').getAttribute('src'),resultUrl);assert.equal(await x.page.locator('#preview').getAttribute('alt'),'Generated image result');
   assert.equal(await x.page.locator('#image-lightbox-download').isVisible(),true);pass('Adding references preserves the real result and visible Image viewer download');
   await x.page.evaluate(()=>window.__labTest.lock());assert.equal(await x.page.locator('#app').isVisible(),false);assert.equal(await x.page.locator('.reference-item').count(),0);assert.equal(await x.page.locator('#input-preview-image').getAttribute('src'),null);pass('Sign-out clears input previews, result previews and private reference state');await x.context.close();
 
   const jpegJob={...job,settings:{...job.settings,outputFormat:'jpeg'}};
-  x=await workspace({jobs:[jpegJob]});await x.page.getByRole('button',{name:'Reuse',exact:true}).click();
+  x=await workspace({jobs:[jpegJob]});await x.page.click('#tool-image');await x.page.locator('#history .card[data-kind="image"]').first().click();await x.page.click('#image-detail-reuse');
   await x.page.waitForFunction(()=>document.querySelector('#prompt').value==='A ceramic sculpture.'&&!document.querySelector('#prompt').disabled);
   assert.equal(await x.page.locator('#output-format').inputValue(),'jpeg');
   assert.equal(x.requests.filter(r=>r.path==='/api/jobs'&&r.method==='POST').length,0);
   pass('Reuse preserves an older JPEG setting and never starts a generation');await x.context.close();
 
   const roleOnlyJob={...job,settings:{...job.settings,prompt:'',referenceSourceIds:['30000000-0000-4000-8000-000000000004','30000000-0000-4000-8000-000000000005','30000000-0000-4000-8000-000000000006'],referenceRoles:[{name:'studio-base.png',role:'base',note:''},{name:'hand-reference.png',role:'detail',target:'hands',note:'Keep the existing hand position.'},{name:'pants-reference.png',role:'outfit',target:'pants',note:''}]}};
-  x=await workspace({jobs:[roleOnlyJob]});await x.page.getByRole('button',{name:'Reuse',exact:true}).click();
+  x=await workspace({jobs:[roleOnlyJob]});await x.page.click('#tool-image');await x.page.locator('#history .card[data-kind="image"]').first().click();await x.page.click('#image-detail-reuse');
   await x.page.waitForFunction(()=>document.querySelectorAll('.reference-item').length===3&&!document.querySelector('#prompt').disabled);
   assert.equal(await x.page.locator('#prompt').inputValue(),'');assert.equal(await x.page.locator('#generate').isDisabled(),false);
   assert.equal(await role(x.page,1).inputValue(),'base');assert.equal(await target(x.page,2).inputValue(),'hands');assert.equal(await target(x.page,3).inputValue(),'pants');

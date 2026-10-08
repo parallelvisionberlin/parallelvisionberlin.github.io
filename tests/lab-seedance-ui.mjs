@@ -8,7 +8,7 @@ import {pathToFileURL} from 'node:url';
 const {chromium}=await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE).href);
 const root=resolve('.'),source=readFileSync('lab/lab.js','utf8');
 const boot=source.indexOf("try{const {Clerk}=await import(");assert.ok(boot>0);
-const testSource=source.slice(0,boot)+`clerk={isSignedIn:true,user:{id:'test'},session:{id:'synthetic-session',getToken:async()=> 'synthetic-token'},signOut:async()=>{}};owner=true;userId='test';config={enabled:true,dailyLimitUsd:10,videoEngines:['wan','seedance'],concurrency:{image:4,video:1}};applyConfig(config);$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();update();window.__labTest={lock};`;
+const testSource=source.slice(0,boot)+`clerk={isSignedIn:true,user:{id:'test'},session:{id:'synthetic-session',getToken:async()=> 'synthetic-token'},signOut:async()=>{}};owner=true;userId='test';config={enabled:true,dailyLimitUsd:10,videoEngines:['wan','seedance'],concurrency:{image:4,video:1}};applyConfig(config);$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();update();syncVideoStudioMode();window.__labTest={lock};`;
 const server=http.createServer((req,res)=>{const pathname=new URL(req.url,'http://localhost').pathname;const path=resolve(root,'.'+pathname+(pathname.endsWith('/')?'index.html':''));if(!path.startsWith(root+'/')||!existsSync(path)){res.writeHead(404).end();return;}res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css'})[extname(path)]||'text/plain');res.end(pathname==='/lab/lab.js'?testSource:readFileSync(path));});
 await new Promise(r=>server.listen(4183,'127.0.0.1',r));
 const browser=await chromium.launch({headless:true});
@@ -19,6 +19,7 @@ const settings={type:'image',mode:'image',prompt:'A ceramic sculpture in soft da
 async function workspace({failure='',width=1440,initial=[],quoteDelay=0}={}){
  const context=await browser.newContext({viewport:{width,height:1000},acceptDownloads:true}),page=await context.newPage();
  const requests=[],errors=[],dialogs=[],jobs=[...initial],quotes=new Map(),assets=new Map();let sequence=100,accepted=0,renewed=false;
+ for(const entry of initial)if(entry.outputId&&entry.settings?.type==='video')assets.set(entry.outputId,{mime:'video/mp4',bytes:motion});
  page.on('pageerror',e=>errors.push(e.message));page.on('dialog',async d=>{dialogs.push(d.message());await d.accept();});
  await context.route('https://**/*',async route=>{
   const req=route.request(),url=new URL(req.url());if(!url.href.startsWith(API)){await route.abort();return;}
@@ -69,14 +70,14 @@ try{
  await x.page.click('#generate');await x.page.locator('#quote-dialog').waitFor({state:'visible'});assert.equal(count(x,'/api/jobs'),0);assert.match(await x.page.locator('#quote-settings').innerText(),/Seedance 2.5/);
  const quote=x.requests.find(r=>r.path==='/api/quotes').data;assert.equal(quote.settings.engine,'seedance');assert.equal(quote.settings.mode,'start');assert.ok(quote.sourceId);assert.ok(quote.lastSourceId);
  await x.page.click('#confirm-generation');await ready(x.page);assert.equal(x.accepted(),1);assert.equal(count(x,'/api/jobs'),1);ok('Seedance start/end frames, defaults and separate paid confirmation');
- await x.page.locator('.card').getByRole('button',{name:'Reuse',exact:true}).click();await ready(x.page);assert.equal(await x.page.locator('#video-engine').inputValue(),'seedance');assert.match(await x.page.locator('#filemeta').innerText(),/320/);assert.match(await x.page.locator('#last-filemeta').innerText(),/320/);assert.equal(count(x,'/api/jobs'),1);ok('Reuse restores model, first/last images and exact settings without generating');assert.deepEqual(x.errors,[]);await x.context.close();
+ await x.page.locator('.card').first().click();await x.page.click('#video-detail-reuse');await ready(x.page);assert.equal(await x.page.locator('#video-engine').inputValue(),'seedance');assert.match(await x.page.locator('#filemeta').innerText(),/320/);assert.match(await x.page.locator('#last-filemeta').innerText(),/320/);assert.equal(count(x,'/api/jobs'),1);ok('Reuse restores model, first/last images and exact settings without generating');assert.deepEqual(x.errors,[]);await x.context.close();
  x=await workspace();await choose(x,'text');assert.equal(await x.page.locator('#start-mode').isVisible(),false);assert.equal(await x.page.locator('#reference-mode').isVisible(),false);await x.page.selectOption('#ratio','21:9');await x.page.selectOption('#duration','12');await x.page.click('#generate');await x.page.locator('#quote-dialog').waitFor({state:'visible'});assert.equal(count(x,'/api/uploads'),0);assert.equal(x.requests.find(r=>r.path==='/api/quotes').data.sourceId,null);assert.match(await x.page.locator('#quote-settings').innerText(),/Text to Video/);assert.equal(x.accepted(),0);ok('Text-to-video sends no hidden image and supports 21:9 and whole seconds');await x.context.close();
  x=await workspace();await choose(x,'reference');await still(x,'reference-images');
  await x.page.locator('#video-references').setInputFiles({name:'motion.mp4',mimeType:'video/mp4',buffer:motion});await ready(x.page);assert.match(await x.page.locator('#video-ref-count').innerText(),/1 \/ 10/);
  await x.page.locator('#audio-references').setInputFiles({name:'score.wav',mimeType:'audio/wav',buffer:sound});await ready(x.page);assert.match(await x.page.locator('#audio-ref-count').innerText(),/1 \/ 10/);
  await x.page.locator('#video-reference-list input').fill('Camera movement only.');await x.page.locator('#audio-reference-list input').fill('Rhythm.');
  await x.page.click('#save');await ready(x.page);assert.equal(count(x,'/api/jobs'),0);assert.equal(count(x,'/api/reference-uploads'),2);
- await x.page.click('#clear');await x.page.locator('.card[data-state="draft"]').getByRole('button',{name:'Reuse',exact:true}).click();await ready(x.page);
+ await x.page.click('#clear');await x.page.locator('.card[data-state="draft"]').click();await x.page.click('#video-detail-reuse');await ready(x.page);
  assert.match(await x.page.locator('#video-ref-count').innerText(),/1 \/ 10/);assert.match(await x.page.locator('#audio-ref-count').innerText(),/1 \/ 10/);assert.equal(await x.page.locator('#video-reference-list input').inputValue(),'Camera movement only.');assert.equal(await x.page.locator('#audio-reference-list input').inputValue(),'Rhythm.');assert.equal(count(x,'/api/jobs'),0);ok('Mixed references retain media, durations and notes through draft, clear and Reuse');
  await x.page.click('#generate');await x.page.locator('#quote-dialog').waitFor({state:'visible'});const mixed=x.requests.find(r=>r.path==='/api/quotes').data;assert.equal(mixed.referenceVideoIds.length,1);assert.equal(mixed.referenceAudioIds.length,1);assert.equal(mixed.referenceSourceIds.length,1);assert.equal(mixed.settings.referenceVideos[0].seconds,3);assert.equal(mixed.settings.referenceAudio[0].seconds,3);assert.equal(x.accepted(),0);ok('Mixed references use a quoted, not automatic, paid request');
  await x.page.click('[data-close="quote-dialog"]');await x.page.selectOption('#video-engine','wan');assert.equal(await x.page.locator('#video-engine').inputValue(),'seedance');ok('Changing models cannot silently discard unsupported media');assert.deepEqual(x.errors,[]);await x.context.close();
@@ -91,5 +92,20 @@ try{
   assert.ok(await x.page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));mkdirSync('test-results',{recursive:true});await x.page.screenshot({path:'test-results/seedance-standard-'+width+'.png',fullPage:true});assert.deepEqual(x.errors,[]);ok('Seedance responsive reference workspace at '+width+'px');
   await x.page.evaluate(()=>window.__labTest.lock());assert.equal(await x.page.locator('#app').isVisible(),false);assert.equal(await x.page.locator('#video-reference-list').locator('video').count(),0);ok('Sign-out clears reference media from browser');await x.context.close();
  }
+
+  const completedVideo={id:id(80),outputId:id(82),sourceId:null,status:'completed',createdAt:Date.now(),
+    settings:{type:'video',engine:'seedance',mode:'start',prompt:'A sculptural object slowly turning in natural light.',
+      duration:5,resolution:'720p',aspectRatio:'16:9',referenceSourceIds:[]}};
+  x=await workspace({initial:[completedVideo]});
+  await x.page.waitForFunction(()=>document.querySelector('#video')?.src.startsWith('blob:')&&!document.querySelector('#video').hidden);
+  assert.equal(await x.page.locator('#video-feed-center').isVisible(),true,'Completed Video uses center preview');
+  assert.equal(await x.page.locator('#video-inspector').isVisible(),true,'Video metadata inspector stays visible');
+  assert.match(await x.page.locator('#video-detail-prompt').innerText(),/sculptural object/i);
+  assert.equal(await x.page.locator('#video-detail-model').innerText(),'Seedance 2.5');
+  assert.equal(await x.page.locator('#video-detail-watch').isEnabled(),true);
+  await x.page.screenshot({path:'test-results/lab-video-selected-result.png',fullPage:false});
+  assert.deepEqual(x.errors,[]);
+  ok('Latest completed video previews in center with right inspector and no paid job');
+  await x.context.close();
  console.log('SEEDANCE_STANDARD_BROWSER_CHECKS_PASSED='+passed);
 }finally{await browser.close();await new Promise(r=>server.close(r));}
