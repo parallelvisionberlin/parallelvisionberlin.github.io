@@ -1,3 +1,4 @@
+async function imageAdvanced(page){await page.click('#tool-image');const open=await page.locator('#app').evaluate(el=>el.classList.contains('image-settings-open'));if(!open)await page.click('#image-composer-more');}
 // Mock-only browser verification. No real credentials, private media or paid generations.
 import assert from 'node:assert/strict';
 import http from 'node:http';
@@ -71,7 +72,7 @@ async function workspace({failure='',width=1440,initial=[],savedPacks=[],quoteDe
 }
 const count=(x,path,method='POST')=>x.requests.filter(r=>r.path===path&&r.method===method).length;
 const ready=page=>page.waitForFunction(()=>!document.querySelector('#resolution').disabled);
-async function imageForm(x){await x.page.click('#tool-image');await x.page.fill('#prompt',settings.prompt);await x.page.selectOption('#resolution','2k');await x.page.selectOption('#ratio','16:9');await x.page.selectOption('#output-format','png');}
+async function imageForm(x){await imageAdvanced(x.page);await x.page.fill('#prompt',settings.prompt);await x.page.selectOption('#resolution','2k');await x.page.selectOption('#ratio','16:9');await x.page.selectOption('#output-format','png');}
 try{
  let x=await workspace();await imageForm(x);assert.equal(await x.page.locator('#generate').innerText(),'Generate');assert.match(await x.page.locator('#generation-help').innerText(),/one paid image/);
  await x.page.click('#generate');await ready(x.page);assert.equal(x.accepted(),1);assert.equal(count(x,'/api/quotes'),1);assert.equal(count(x,'/api/jobs'),1);assert.equal(await x.page.locator('#quote-dialog').isVisible(),false);assert.deepEqual(x.dialogs,[]);
@@ -101,7 +102,7 @@ try{
  assert.match(await x.page.locator('#active-status').innerText(),/Nano 0 \/ 4/);assert.match(await x.page.locator('#active-status').innerText(),/1 old Nano interrupted/);
  ok('Interrupted Gemini request is labeled as old and does not look like an active Nano generation');await x.context.close();
  const manyPack={id:id(940),name:'Nina Master 8',refs:Array.from({length:8},(_,i)=>({id:id(960+i),name:'nina-'+(i+1)+'.png',role:'identity',note:''}))};
- x=await workspace({savedPacks:[manyPack]});await x.page.click('#tool-image');await x.page.selectOption('#image-engine','soulpro');await ready(x.page);await x.page.click('#soul-pro-identity-manage');
+ x=await workspace({savedPacks:[manyPack]});await imageAdvanced(x.page);await x.page.selectOption('#image-engine','soulpro');await ready(x.page);await x.page.click('#soul-pro-identity-manage');
  const packText=await x.page.locator('#soul-pro-pack-select').innerText();assert.match(packText,/Nina Master 8/);assert.match(packText,/8 refs/);
  await x.page.selectOption('#soul-pro-pack-select',manyPack.id);await ready(x.page);
  const packItems=x.page.locator('.soul-pro-pack-item');assert.equal(await packItems.count(),8);assert.equal(await x.page.locator('.soul-pro-pack-item input:checked').count(),4);
@@ -111,7 +112,7 @@ try{
  assert.deepEqual(identityPost.referenceSourceIds,[id(961),id(962),id(963),id(964)]);
  ok('Soul Pro Save Nina identity saves the exact four checked pack images');await x.context.close();
 
-  x=await workspace();await x.page.click('#tool-image');await x.page.selectOption('#image-engine','soulpro');await ready(x.page);
+  x=await workspace();await imageAdvanced(x.page);await x.page.selectOption('#image-engine','soulpro');await ready(x.page);
  assert.equal(await x.page.locator('#reference-mode').isVisible(),false);assert.match(await x.page.locator('#soul-pro-identity-status').innerText(),/Saved Nina identity.*2 references/);
  assert.equal(await x.page.locator('#generate').isDisabled(),true);
  await x.page.locator('#image').setInputFiles({name:'base.png',mimeType:'image/png',buffer:png});await ready(x.page);
@@ -122,10 +123,10 @@ try{
  const soulPro=x.requests.find(r=>r.path==='/api/fal/soul-pro').data;assert.ok(soulPro.sourceId);assert.deepEqual(soulPro.referenceSourceIds,[]);assert.equal(soulPro.settings.engine,'soulpro');assert.equal(soulPro.settings.soulProModel,'ideogram45');assert.equal(soulPro.settings.soulProQuality,'medium');assert.equal(soulPro.settings.sourceWidth,320);assert.equal(soulPro.settings.sourceHeight,320);assert.equal(soulPro.settings.prompt,'');
  ok('PV Soul Pro reuses persistent Nina identity and submits with one base image only');await x.context.close();
 
- x=await workspace();await x.page.click('#tool-image');await x.page.selectOption('#image-engine','soulpro');await x.page.selectOption('#soul-pro-quality','high');await ready(x.page);assert.match(await x.page.locator('#generation-help').innerText(),/\$0\.22/);await x.page.selectOption('#soul-pro-model','kontextmax');await ready(x.page);
+ x=await workspace();await imageAdvanced(x.page);await x.page.selectOption('#image-engine','soulpro');await x.page.selectOption('#soul-pro-quality','high');await ready(x.page);assert.match(await x.page.locator('#generation-help').innerText(),/\$0\.22/);await x.page.selectOption('#soul-pro-model','kontextmax');await ready(x.page);
  assert.match(await x.page.locator('#generation-help').innerText(),/\$0\.08/);assert.equal(await x.page.locator('#soul-pro-quality-row').isVisible(),false);ok('PV Soul Pro keeps $0.22 High optional and exposes Kontext Max at $0.08');await x.context.close();
 
-  x=await workspace();await x.page.click('#tool-image');await x.page.selectOption('#image-engine','fal');await x.page.fill('#prompt','Editorial portrait in a warm room.');
+  x=await workspace();await imageAdvanced(x.page);await x.page.selectOption('#image-engine','fal');await x.page.fill('#prompt','Editorial portrait in a warm room.');
  await x.page.locator('#reference-images').setInputFiles([
   {name:'pose.png',mimeType:'image/png',buffer:png},
   {name:'identity.png',mimeType:'image/png',buffer:png}
@@ -137,7 +138,7 @@ try{
  ok('Controlled Pose keeps FAL isolated from Seedream and Nano and reuses the preview pose map');await x.context.close();
 
  for(const tool of ['video']){
-  x=await workspace();await x.page.click('#tool-'+tool);await x.page.locator('#image').setInputFiles({name:'sculpture.png',mimeType:'image/png',buffer:png});await ready(x.page);if(tool==='video')await x.page.fill('#prompt','The camera slowly moves around the sculpture.');
+  x=await workspace();await x.page.click('#tool-'+tool);if(tool==='image')await x.page.click('#image-composer-more');await x.page.locator('#image').setInputFiles({name:'sculpture.png',mimeType:'image/png',buffer:png});await ready(x.page);if(tool==='video')await x.page.fill('#prompt','The camera slowly moves around the sculpture.');
   assert.match(await x.page.locator('#generate').innerText(),/^Review price/);await x.page.click('#generate');await x.page.locator('#quote-dialog').waitFor({state:'visible'});assert.equal(x.accepted(),0);assert.equal(count(x,'/api/jobs'),0);await x.page.click('#confirm-generation');await ready(x.page);assert.equal(x.accepted(),1);ok(tool+': separate price confirmation remains required');await x.context.close();
  }
 
