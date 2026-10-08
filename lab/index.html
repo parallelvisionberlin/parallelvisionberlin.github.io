@@ -137,6 +137,9 @@ document.addEventListener('DOMContentLoaded',()=>{const retry=document.getElemen
           <button id="image-detail-repair" type="button">Repair</button>
           <button id="image-detail-delete" type="button">Delete</button>
         </div>
+        <details id="image-detail-extra" class="detail-extra" hidden>
+          <summary>More actions</summary><div id="image-detail-extra-list" class="detail-extra-list"></div>
+        </details>
       </div>
     </aside>
   </div>
@@ -287,6 +290,9 @@ document.addEventListener('DOMContentLoaded',()=>{const retry=document.getElemen
       <button id="video-detail-reuse" type="button">Reuse settings</button>
       <button id="video-detail-download" type="button">Download</button>
       <button id="video-detail-delete" type="button">Delete record</button>
+      <details id="video-detail-extra" class="detail-extra" hidden>
+        <summary>More actions</summary><div id="video-detail-extra-list" class="detail-extra-list"></div>
+      </details>
     </div>
   </div>
 </aside>
