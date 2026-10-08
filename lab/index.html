@@ -265,7 +265,9 @@ document.addEventListener('DOMContentLoaded',()=>{const retry=document.getElemen
   </div>
   <span class="empty-footnote" id="empty-footnote" hidden></span>
 </div><img id="preview" alt="Selected source image" hidden><video id="video" controls playsinline preload="metadata" hidden></video></div><div class="stagefoot"><span id="settings-summary">15 seconds / 1080p</span><button id="download" class="quiet" hidden>Download result</button></div></section>
-<div id="video-feed-center" class="video-feed-center" hidden></div>
+<div id="video-feed-center" class="video-feed-center" hidden>
+  <div id="video-feed-empty" class="video-feed-empty" hidden>No videos in your archive yet. Create one using the controls on the left.</div>
+</div>
 <aside id="video-inspector" class="video-inspector" hidden aria-label="Selected video information">
   <div class="video-inspector-heading"><span>Details</span><span id="video-detail-status" class="video-detail-status">Ready</span></div>
   <div id="video-inspector-empty" class="video-inspector-empty">Select a video to see its settings and actions.</div>
@@ -284,6 +286,7 @@ document.addEventListener('DOMContentLoaded',()=>{const retry=document.getElemen
       <button id="video-detail-watch" class="detail-primary" type="button">▹ View video</button>
       <button id="video-detail-reuse" type="button">Reuse settings</button>
       <button id="video-detail-download" type="button">Download</button>
+      <button id="video-detail-delete" type="button">Delete record</button>
     </div>
   </div>
 </aside>
