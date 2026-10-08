@@ -63,11 +63,20 @@ try{
   assert.ok(d.workspace.top<140,'Workspace must be above the fold');
   assert.ok(d.dock.height>100&&d.dock.bottom<=d.panel.bottom+2,'Generation controls must have a real fixed dock');
   assert.ok(d.generate.bottom<=d.panel.bottom+2,'Generate dock must remain inside left panel');
+  const scrollState=await x.page.evaluate(()=>{window.scrollTo(0,400);return {scroll:window.scrollY,inner:document.querySelector('.controls-body').scrollTop,bodyOverflow:getComputedStyle(document.querySelector('.controls-body')).overflowY};});
+  assert.ok(scrollState.scroll>50,'The whole page must scroll');
+  assert.equal(scrollState.inner,0,'Editor has no independent vertical scrollbar');
+  assert.equal(scrollState.bodyOverflow,'visible');
+  await x.page.evaluate(()=>window.scrollTo(0,0));
   assert.ok(d.generate.top>=d.panel.top,'Generate remains visible without scrolling the form');
-  assert.equal(d.scrollMode,'auto','Only settings panel should scroll on desktop');
+  assert.equal(d.scrollMode,'visible','Desktop settings must use the page scroll, not a nested scrollbar');
   assert.ok(d.stage.height<=741&&d.canvas.height<650,'Preview never exceeds viewport cap');
   assert.ok(d.modes.top-d.model.bottom<20,'Start/reference buttons directly follow model info');
   assert.equal(d.explanationCollapsed,true);
+  assert.ok(await x.page.locator('.brand-icon').evaluate(img=>img.complete&&img.naturalWidth>0),'Official PV icon must load');
+  assert.ok(await x.page.locator('.brand-wordmark').evaluate(img=>img.complete&&img.naturalWidth>0),'Official PV wordmark must load');
+  assert.equal(await x.page.locator('#lab-boot').isVisible(),false,'Loading screen must disappear after workspace becomes usable');
+  assert.equal(await x.page.locator('#gate').isVisible(),false,'Login gate must never flash inside signed-in workspace');
   assert.notEqual(d.accent,'rgb(141, 99, 255)','No default purple selection');
   assert.ok(d.documentWidth<=d.viewport.width,'No horizontal overflow');
   await x.page.screenshot({path:'test-results/lab-workspace-desktop.png',fullPage:false});
@@ -92,6 +101,23 @@ try{
   assert.deepEqual(x.errors,[]);
   await x.context.close();
   console.log('PASS desktop workspace, canvas import, image tab and no hero');
+
+  // Verify branded first paint while the JS module is deliberately delayed.
+  const bootContext=await browser.newContext({viewport:{width:1440,height:900}});
+  const bootPage=await bootContext.newPage();
+  await bootPage.route('**/lab/lab.js',async route=>{
+    await new Promise(resolve=>setTimeout(resolve,1300));
+    await route.continue();
+  });
+  await bootPage.goto('http://127.0.0.1:4182/lab/',{waitUntil:'commit'});
+  await bootPage.waitForSelector('#lab-boot');
+  assert.equal(await bootPage.locator('#lab-boot').isVisible(),true,'Brand loading appears before external JS');
+  assert.equal(await bootPage.locator('#gate').isVisible(),false,'No half-loaded sign-in page');
+  assert.match(await bootPage.locator('#lab-boot-name').innerText(),/PARALLEL VISION/);
+  await bootPage.waitForFunction(()=>window.__layoutTest===true);
+  assert.equal(await bootPage.locator('#lab-boot').isVisible(),false,'Boot overlay removed on mock auth resolution');
+  await bootContext.close();
+  console.log('PASS first paint, no broken image loading icon and delayed module');
 
   x=await open(390,844);
   d=await geometry(x.page);
