@@ -331,9 +331,10 @@ textarea:focus,select:focus,input:not([type=checkbox]):not([type=file]):focus {
   width:min(350px,100%);max-width:none;text-align:center;
   color:#9a969d;font-size:12px;
 }
-.empty-wordmark {
-  display:block;width:min(210px,68%);height:auto;margin:0 auto 20px;
-  object-fit:contain;opacity:.56;filter:grayscale(1);
+.canvas .empty-wordmark {
+  display:block;width:min(210px,68%);height:auto;max-height:58px;
+  margin:0 auto 24px;object-fit:contain;
+  opacity:.42;filter:grayscale(1);flex:none;
 }
 .frame {
   position:relative;width:86px;height:65px;margin:0 auto 23px;
