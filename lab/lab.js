@@ -1045,6 +1045,60 @@ function resultFormat(blob){
 
 /* Image detail: full viewport artwork plus a persistent metadata inspector. */
 let imageDetailJob=null;
+const imageDetailCache=new Map();
+let imageDetailNavBusy=false;
+let imageDetailSourceURL=null;
+let imageDetailSourceRevision=0;
+function imageDetailSequence(){
+  return [...$('history').querySelectorAll('.card[data-kind="image"]')]
+    .map(card=>imageDetailCache.get(card.dataset.job))
+    .filter(job=>job&&hasResult(job));
+}
+function refreshImageDetailNavigation(){
+  const items=imageDetailSequence();
+  const pos=items.findIndex(job=>job.id===imageDetailJob?.id);
+  $('image-lightbox-counter').textContent=pos>=0?(pos+1)+' / '+items.length:'Image archive';
+  $('image-detail-prev').hidden=pos<=0;
+  $('image-detail-next').hidden=pos<0||pos>=items.length-1;
+  $('image-detail-prev').disabled=imageDetailNavBusy;
+  $('image-detail-next').disabled=imageDetailNavBusy;
+}
+async function navigateImageDetail(direction){
+  if(!owner||imageDetailNavBusy||!$('image-lightbox').open)return;
+  const items=imageDetailSequence(),position=items.findIndex(job=>job.id===imageDetailJob?.id);
+  const next=items[position+direction];
+  if(!next||position<0)return;
+  imageDetailNavBusy=true;
+  refreshImageDetailNavigation();
+  try{await openVideo(next,{scroll:false});}
+  catch(error){if(owner)notify('Unable to open this image. '+error.message,true);}
+  finally{imageDetailNavBusy=false;refreshImageDetailNavigation();}
+}
+function releaseImageDetailSource(){
+  ++imageDetailSourceRevision;
+  if(imageDetailSourceURL){release(imageDetailSourceURL);imageDetailSourceURL=null;}
+  $('image-detail-reference-thumb').hidden=true;
+  $('image-detail-reference-thumb').removeAttribute('src');
+  $('image-detail-reference-wrap').hidden=true;
+}
+function showImageDetailSource(job){
+  releaseImageDetailSource();
+  const refIds=[job.sourceId,...(Array.isArray(job.settings?.referenceSourceIds)?job.settings.referenceSourceIds:[])]
+    .filter((value,index,items)=>typeof value==='string'&&value&&items.indexOf(value)===index);
+  if(!refIds.length)return;
+  const assetId=refIds[0],revision=imageDetailSourceRevision;
+  $('image-detail-reference-caption').textContent=refIds.length===1?'Source image':'Source image · '+refIds.length+' references';
+  void api('/api/assets/'+encodeURIComponent(assetId),{blob:true}).then(blob=>{
+    if(!owner||revision!==imageDetailSourceRevision||imageDetailJob?.id!==job.id||!$('image-lightbox').open)return;
+    if(!blob?.type.startsWith('image/'))return;
+    imageDetailSourceURL=URL.createObjectURL(blob);
+    const img=$('image-detail-reference-thumb');
+    img.src=imageDetailSourceURL;
+    img.hidden=false;
+    $('image-detail-reference-wrap').hidden=false;
+  }).catch(()=>{/* Reference thumbnail is optional, never block viewing the generated result. */});
+}
+
 function detailModelName(job){
   const settings=job?.settings||{};
   if(settings.mode==='upscale')return upscaleName(settings);
@@ -1091,7 +1145,13 @@ function showImageDetail(job,hasOutput){
   $('image-lightbox-fit').disabled=!hasOutput;
   $('image-lightbox-title').textContent=hasOutput?'Image result':'Image record';
   $('image-detail-status').textContent=job.status?.charAt(0).toUpperCase()+String(job.status||'').slice(1);
-  $('image-detail-prompt').textContent=params.prompt||'No direction saved.';
+  const promptText=params.prompt||'No direction saved.';
+  $('image-detail-prompt').textContent=promptText;
+  $('image-detail-prompt').classList.remove('is-expanded');
+  $('image-detail-expand').setAttribute('aria-expanded','false');
+  $('image-detail-expand').innerHTML='Show more <span aria-hidden="true">⌄</span>';
+  $('image-detail-expand').hidden=promptText.length<=250;
+  $('image-detail-metadata').open=true;
   $('image-detail-model').textContent=detailModelName(job);
   $('image-detail-resolution').textContent=String(params.resolution||'Source').toUpperCase();
   $('image-detail-ratio').textContent=params.aspectRatio==='auto'?'Adaptive':String(params.aspectRatio||'Original');
@@ -1109,6 +1169,8 @@ function showImageDetail(job,hasOutput){
   $('image-detail-delete').disabled=activeStates.has(job.status);
   fillDetailExtraActions(job,'image');
   if(!dialog.open)dialog.showModal();
+  showImageDetailSource(job);
+  refreshImageDetailNavigation();
 }
 async function openImageRecord(job){
   if(!job||tool!=='image')return;
@@ -1136,6 +1198,31 @@ async function useImageAsReference(job){
   notify('Image added to the current references. Choose its role in Controls if needed.');
 }
 $('image-lightbox-close').onclick=closeImageDetail;
+$('image-detail-prev').onclick=()=>void navigateImageDetail(-1);
+$('image-detail-next').onclick=()=>void navigateImageDetail(1);
+$('image-detail-expand').onclick=()=>{
+  const expanded=$('image-detail-prompt').classList.toggle('is-expanded');
+  $('image-detail-expand').setAttribute('aria-expanded',String(expanded));
+  $('image-detail-expand').innerHTML=expanded?'Show less <span aria-hidden="true">⌃</span>':'Show more <span aria-hidden="true">⌄</span>';
+};
+document.addEventListener('keydown',event=>{
+  if(!$('image-lightbox').open||event.altKey||event.ctrlKey||event.metaKey||event.target.closest('input,textarea,select,[contenteditable="true"]'))return;
+  if(event.key==='ArrowLeft'||event.key==='ArrowRight'){
+    event.preventDefault();
+    void navigateImageDetail(event.key==='ArrowLeft'?-1:1);
+  }
+});
+let detailTouchStart=null;
+$('image-lightbox-stage').addEventListener('touchstart',event=>{
+  if(event.touches.length===1)detailTouchStart={x:event.touches[0].clientX,y:event.touches[0].clientY};
+},{passive:true});
+$('image-lightbox-stage').addEventListener('touchend',event=>{
+  if(!detailTouchStart||!event.changedTouches.length)return;
+  const dx=event.changedTouches[0].clientX-detailTouchStart.x;
+  const dy=event.changedTouches[0].clientY-detailTouchStart.y;
+  detailTouchStart=null;
+  if(Math.abs(dx)>65&&Math.abs(dx)>Math.abs(dy)*1.4)void navigateImageDetail(dx<0?1:-1);
+},{passive:true});
 $('image-lightbox-fit').onclick=()=>{
   const stage=$('image-lightbox-stage'),zoom=!stage.classList.contains('is-zoomed');
   stage.classList.toggle('is-zoomed',zoom);
@@ -1171,15 +1258,19 @@ $('image-detail-delete').onclick=()=>{
     await api('/api/jobs/'+job.id,{method:'DELETE'});
     const card=[...$('history').children].find(el=>el.dataset.job===job.id);
     if(card){cleanupHistoryCard(card);card.remove();}
-    clearResult();await syncHistory();syncImageGalleryEmpty();
+    imageDetailCache.delete(job.id);clearResult();await syncHistory();syncImageGalleryEmpty();
     notify('History record deleted. Spending history is unchanged.');
   });
 };
 $('image-lightbox').addEventListener('close',()=>{
+  ++previewRevision; // Cancel an in-flight next/previous asset fetch.
+  releaseImageDetailSource();
   $('image-lightbox-img').removeAttribute('src');
   $('image-lightbox-stage').classList.remove('is-zoomed');
-  $('image-detail-copy').textContent='Copy prompt ↗';
+  $('image-detail-copy').textContent='Copy ⧉';
+  $('image-detail-prompt').classList.remove('is-expanded');
   imageDetailJob=null;
+  refreshImageDetailNavigation();
 });
 
 async function openVideo(job,{scroll=true}={}){
@@ -1197,7 +1288,8 @@ async function openVideo(job,{scroll=true}={}){
     showImageDetail(job,true);
     return;
   }
-  if(scroll)document.querySelector('.stage').scrollIntoView({behavior:'smooth',block:'center'});
+  if(scroll&&tool==='video')videoFeedCenter.scrollTo({top:0,behavior:'smooth'});
+  else if(scroll&&tool==='upscale')document.querySelector('.stage').scrollIntoView({behavior:'auto',block:'nearest'});
 }
 function saveDownload(url,id,ext){const a=document.createElement('a');a.href=url;a.download='parallel-vision-'+id+'.'+ext;document.body.append(a);a.click();a.remove();}
 function downloadResult(){if(!owner||!resultUrl||!resultId)return;saveDownload(resultUrl,resultId,resultExt);}
@@ -1500,6 +1592,7 @@ function renderCards(jobs,{upsert=false}={}){
   for(const j of items){
     const existing=upsert?[...$('history').children].find(el=>el.dataset.job===j.id):null,fingerprint=historyFingerprint(j);
     if(existing?.dataset.fingerprint===fingerprint)continue;
+    if(j.settings.type==='image')imageDetailCache.set(j.id,j);
     const card=document.createElement('article');card.className='card';card.dataset.kind=j.settings.type==='image'?'image':'video';card.dataset.job=j.id;card.dataset.state=j.status;card.dataset.fingerprint=fingerprint;card.dataset.deletable=String(!activeStates.has(j.status));
     if(j.settings.type==='video')videoJobCache.set(j.id,j);
     const openCard=()=>{
@@ -1593,7 +1686,7 @@ function renderCards(jobs,{upsert=false}={}){
   updateHistorySelectionUi();
   if(tool==='video')restoreLatestVideoSelection();
 }
-async function loadHistory(append=false,incremental=false){const rev=historyRevision,query=append&&next?'?before='+next.before+'&afterId='+encodeURIComponent(next.afterId):'',data=await api('/api/jobs'+query);if(!owner||rev!==historyRevision)return;if(!append&&!incremental){videoJobCache.clear();historyRevision++;observer.disconnect();cardUrls.forEach(release);cardUrls.clear();$('history').replaceChildren();}renderCards(data.jobs,{upsert:incremental});next=data.next;$('more').hidden=!next;$('emptyarchive').hidden=$('history').children.length>0;if(data.concurrency)config.concurrency=data.concurrency;setActiveJobs(data.activeJobs||(data.active?[data.active]:[]));syncImageGalleryEmpty();if(tool==='video')restoreLatestVideoSelection();}
+async function loadHistory(append=false,incremental=false){const rev=historyRevision,query=append&&next?'?before='+next.before+'&afterId='+encodeURIComponent(next.afterId):'',data=await api('/api/jobs'+query);if(!owner||rev!==historyRevision)return;if(!append&&!incremental){videoJobCache.clear();imageDetailCache.clear();historyRevision++;observer.disconnect();cardUrls.forEach(release);cardUrls.clear();$('history').replaceChildren();}renderCards(data.jobs,{upsert:incremental});next=data.next;$('more').hidden=!next;$('emptyarchive').hidden=$('history').children.length>0;if(data.concurrency)config.concurrency=data.concurrency;setActiveJobs(data.activeJobs||(data.active?[data.active]:[]));syncImageGalleryEmpty();if(tool==='video')restoreLatestVideoSelection();}
 async function syncHistory(){return loadHistory(false,true);}
 function surfaceHistoryJob(job){
   if(!job||!owner)return;
@@ -1618,7 +1711,7 @@ $('history-delete-selected').onclick=()=>action(async()=>{
   setHistorySelectMode(false);await loadHistory();notify((result.deleted||ids.length)+' History item'+((result.deleted||ids.length)===1?'':'s')+' deleted. Spending history is unchanged.');
 });
 function finishLabBoot(){window.__pvLabFinishBoot?.();}
-function lock(){epoch++;historySelected.clear();historySelectMode=false;clearSoulProPackPreview();soulProIdentity={configured:false,count:0,refs:[]};workingCopies.clear();autoPreview=null;downloadUrls.forEach(release);downloadUrls.clear();owner=false;userId='';soul.reset();historyRevision++;clearTimeout(timer);timer=null;activeJob=null;activeJobs=[];polling=false;requestControllers.forEach(c=>c.abort());requestControllers.clear();observer.disconnect();cardUrls.forEach(release);cardUrls.clear();clearMedia();$('prompt').value='';$('history').replaceChildren();$('app').hidden=true;$('gate').hidden=false;$('connection').hidden=true;$('logout').hidden=true;$('api-key').value='';for(const d of document.querySelectorAll('dialog[open]'))d.close();currentQuote=null;config={};packs=[];$('pack-select').replaceChildren(new Option('Choose a saved pack',''));closeImageModelMenu();toggleImageSettings(false);$('app').classList.remove('image-studio-active');imageStudio.hidden=true;videoJobCache.clear();selectedVideoJob=null;syncVideoStudioMode();finishLabBoot();}
+function lock(){epoch++;historySelected.clear();historySelectMode=false;clearSoulProPackPreview();soulProIdentity={configured:false,count:0,refs:[]};workingCopies.clear();autoPreview=null;downloadUrls.forEach(release);downloadUrls.clear();owner=false;userId='';soul.reset();historyRevision++;clearTimeout(timer);timer=null;activeJob=null;activeJobs=[];polling=false;requestControllers.forEach(c=>c.abort());requestControllers.clear();observer.disconnect();cardUrls.forEach(release);cardUrls.clear();clearMedia();$('prompt').value='';$('history').replaceChildren();$('app').hidden=true;$('gate').hidden=false;$('connection').hidden=true;$('logout').hidden=true;$('api-key').value='';for(const d of document.querySelectorAll('dialog[open]'))d.close();currentQuote=null;config={};packs=[];$('pack-select').replaceChildren(new Option('Choose a saved pack',''));closeImageModelMenu();toggleImageSettings(false);$('app').classList.remove('image-studio-active');imageStudio.hidden=true;imageDetailCache.clear();releaseImageDetailSource();videoJobCache.clear();selectedVideoJob=null;syncVideoStudioMode();finishLabBoot();}
 async function sync(){if(syncing)return;syncing=true;try{if(!clerk.isSignedIn){lock();$('auth-status').textContent='Sign in with your Parallel Vision owner account.';$('signin').disabled=false;return;}if(owner&&userId===clerk.user.id)return;const data=await api('/api/session');owner=true;userId=clerk.user.id;applyConfig(data.config);$('identity').textContent='Owner workspace';$('gate').hidden=true;$('app').hidden=false;$('connection').hidden=false;$('logout').hidden=false;await Promise.all([loadHistory(),loadPacks(),soul.load(),loadSoulProIdentity()]);syncVideoStudioMode();}catch(e){lock();$('auth-status').textContent=e.message;$('signin').disabled=false;$('logout').hidden=!clerk?.isSignedIn;}finally{syncing=false;finishLabBoot();}}
 $('auth-retry').onclick=()=>location.reload();$('signin').onclick=()=>clerk?.openSignIn();$('logout').onclick=async()=>{lock();await clerk?.signOut();$('auth-status').textContent='Signed out. Your archive remains private.';};
 try{const {Clerk}=await import('https://esm.sh/@clerk/clerk-js@6?bundle');await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='https://clerk.parallelvisionlabel.com/npm/@clerk/ui@1/dist/ui.browser.js';s.onload=resolve;s.onerror=reject;document.head.append(s);});clerk=new Clerk('pk_live_Y2xlcmsucGFyYWxsZWx2aXNpb25sYWJlbC5jb20k');await clerk.load({ui:{ClerkUI:window.__internal_ClerkUICtor},signInFallbackRedirectUrl:location.href,signUpFallbackRedirectUrl:location.href});clerk.addListener(()=>void sync());await sync();}catch{$('gate').hidden=false;$('auth-retry').hidden=false;$('signin').disabled=true;$('auth-status').textContent='Sign-in could not load. Check your connection and reload the page.';finishLabBoot();}
