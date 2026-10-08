@@ -1,4 +1,5 @@
 import { knowledgeToolDescription, optimizeKnowledgeInstructions } from './knowledge-policy.js';
+import { recordAnamConfigAuditOnce } from './anam-audit-once.js';
 import { workspaceEnabled, memoryControls, correctionContext, saveMemoryControl, MemoryEditError } from './memory-controls.js';
 import { memoryWorkspace } from './memory-workspace.js';
 import { enqueueMemoryJob, processMemoryJob, drainMemoryJobs } from './memory-jobs.js';
@@ -1005,6 +1006,7 @@ export default {
   async scheduled(_event, env, ctx) {
     ctx.waitUntil(observeBackgroundJob('memory_retry', () => drainMemoryJobs(env)));
     ctx.waitUntil(observeBackgroundJob('live_usage_cleanup', () => expireStaleLiveNinaSessions(env)));
+    ctx.waitUntil(observeBackgroundJob('anam_config_audit_once', () => recordAnamConfigAuditOnce(env)));
   },
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
