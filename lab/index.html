@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 <link rel="stylesheet" href="./image-studio.css?v=20261009-photos-v1">
 <link rel="stylesheet" href="./detail-video-studio.css?v=20261009-pointer1">
 <link rel="stylesheet" href="./editorial-polish.css?v=20261009-amber1">
-<script type="module" src="./lab.js?v=20261009-lora-portrait1"></script>
+<script type="module" src="./lab.js?v=20261009-image-default1"></script>
 </head>
 <body class="lab-booting">
 <div id="lab-boot" role="status" aria-live="polite" aria-label="Opening Parallel Vision Lab"><div class="lab-boot-content"><div class="lab-boot-brand" aria-label="Parallel Vision Lab"><img id="lab-boot-wordmark" src="./branding/pv-wordmark.png" alt="Parallel Vision" width="242" height="61" decoding="async"><span class="lab-boot-fallback" id="lab-boot-name">PARALLEL VISION</span><span class="lab-boot-sub">LAB <span aria-hidden="true">/</span> CREATIVE STUDIO</span></div><div class="lab-boot-track" aria-hidden="true"></div><p class="lab-boot-status" id="lab-boot-status">Opening your workspace</p><button id="lab-boot-retry" type="button" hidden>Reload page</button></div></div>
@@ -73,8 +73,8 @@ document.addEventListener('DOMContentLoaded',()=>{
 <div class="connection-strip" hidden><span id="connection-status">Checking connection…</span><button class="text-button" id="setup">Manage connection</button></div>
 <nav class="tool-switch" aria-label="Creative tools">
   <div class="tool-group">
-    <button id="tool-image" class="tool-tab" type="button" aria-pressed="false">Image</button>
-    <button id="tool-video" class="tool-tab active" type="button" aria-pressed="true">Video</button>
+    <button id="tool-image" class="tool-tab active" type="button" aria-pressed="true">Image</button>
+    <button id="tool-video" class="tool-tab" type="button" aria-pressed="false">Video</button>
     <button id="tool-upscale" class="tool-tab" type="button" aria-pressed="false">Upscaler</button>
   </div>
   <div class="tool-status">
