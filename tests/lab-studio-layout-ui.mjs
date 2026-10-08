@@ -113,7 +113,11 @@ try{
   assert.equal(await x.page.locator('#resolve').isVisible(),true,'Provider recovery remains accessible in Queue');
   assert.match(await x.page.locator('#active-detail').innerText(),/Check status before retrying/);
   await x.page.screenshot({path:'test-results/lab-video-queue-popover.png',fullPage:false});
+  await x.page.keyboard.press('Escape');
+  assert.equal(await x.page.locator('#active').evaluate(el=>el.open),false,'Escape dismisses Queue');
   await x.page.locator('#active summary').click();
+  await x.page.locator('.tool-caption').click();
+  assert.equal(await x.page.locator('#active').evaluate(el=>el.open),false,'Outside click dismisses Queue');
   await x.page.evaluate(()=>window.__queueTestSetActiveJobs([]));
   assert.equal(await x.page.locator('#active').isVisible(),false,'Queue chip disappears when there are no jobs');
   assert.equal(await x.page.evaluate(()=>window.scrollY),0,'Queue does not introduce body scrolling');
