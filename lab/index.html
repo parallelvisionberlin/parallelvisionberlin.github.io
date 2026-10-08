@@ -12,8 +12,22 @@
 body.lab-booting{margin:0;background:#101114}
 #lab-boot{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 55% 38%,#202126 0%,#101114 70%);color:#f1efeb;font-family:Arial,Helvetica,sans-serif}
 .lab-boot-content{width:min(340px,calc(100vw - 56px));text-align:center}
-.lab-boot-name{display:block;font-size:20px;font-weight:600;letter-spacing:.17em}
-.lab-boot-sub{display:block;margin-top:7px;font-size:10px;letter-spacing:.28em;color:#aaa5a0}
+.lab-boot-brand{display:grid;grid-template-columns:1fr;justify-items:center;align-items:center}
+#lab-boot-wordmark,.lab-boot-fallback{grid-row:1;grid-column:1}
+#lab-boot-wordmark{
+  display:block;width:min(240px,72vw);height:auto;max-height:70px;
+  object-fit:contain;visibility:hidden;opacity:0;
+  transition:opacity .27s ease;
+}
+#lab-boot-wordmark.is-ready{visibility:visible;opacity:1}
+.lab-boot-fallback{display:block;font-size:20px;font-weight:620;letter-spacing:.17em;opacity:1;transition:opacity .18s ease}
+#lab-boot-wordmark.is-ready + .lab-boot-fallback{opacity:0;pointer-events:none}
+.lab-boot-sub{
+  display:block;grid-row:2;grid-column:1;
+  margin-top:12px;font-size:9px;letter-spacing:.28em;color:#aba7a7
+}
+.lab-boot-sub span{color:#62656d;margin:0 7px}
+@media(max-width:560px){#lab-boot-wordmark{width:min(195px,74vw)}.lab-boot-fallback{font-size:16px}}
 .lab-boot-track{height:1px;background:#292728;margin:29px auto 16px;overflow:hidden}
 .lab-boot-track:after{content:"";display:block;width:32%;height:100%;background:#d3d6da;animation:pv-load 1.8s ease-in-out infinite alternate}
 .lab-boot-status{margin:0;font-size:11px;letter-spacing:.04em;color:#8d8888}
@@ -27,7 +41,14 @@ body.lab-ready #lab-boot,body:has(#app:not([hidden])) #lab-boot{display:none!imp
 <script>
 (()=>{let timer=window.setTimeout(()=>{if(document.body?.classList.contains('lab-ready')||!document.getElementById('app')?.hidden)return;const status=document.getElementById('lab-boot-status'),retry=document.getElementById('lab-boot-retry');if(status)status.textContent='This is taking longer than expected.';if(retry)retry.hidden=false;},16000);
 window.__pvLabFinishBoot=()=>{window.clearTimeout(timer);document.body.classList.add('lab-ready');};
-document.addEventListener('DOMContentLoaded',()=>{const retry=document.getElementById('lab-boot-retry');if(retry)retry.onclick=()=>location.reload();});
+document.addEventListener('DOMContentLoaded',()=>{
+  const retry=document.getElementById('lab-boot-retry');
+  if(retry)retry.onclick=()=>location.reload();
+  const wordmark=document.getElementById('lab-boot-wordmark');
+  if(wordmark){
+    wordmark.decode().then(()=>wordmark.classList.add('is-ready')).catch(()=>{});
+  }
+});
 })();
 </script><link rel="stylesheet" href="./lab.css?v=20261002-upscale-models1">
 <link rel="stylesheet" href="./history.css?v=20260927-2">
