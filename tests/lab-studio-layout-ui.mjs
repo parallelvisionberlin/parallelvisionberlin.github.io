@@ -17,7 +17,7 @@ const server=http.createServer((req,res)=>{
   const u=new URL(req.url,'http://localhost');
   const file=resolve(root,'.'+u.pathname+(u.pathname.endsWith('/')?'index.html':''));
   if(!file.startsWith(root+'/')||!existsSync(file)){res.writeHead(404).end();return;}
-  res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css'})[extname(file)]||'text/plain');
+  res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css','.png':'image/png','.svg':'image/svg+xml','.jpg':'image/jpeg','.webp':'image/webp'})[extname(file)]||'text/plain');
   res.end(u.pathname==='/lab/lab.js'?testSource:readFileSync(file));
 });
 await new Promise(r=>server.listen(4182,'127.0.0.1',r));
