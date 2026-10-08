@@ -30,8 +30,9 @@ document.addEventListener('DOMContentLoaded',()=>{const retry=document.getElemen
 <link rel="stylesheet" href="./history.css?v=20260927-2">
 <link rel="stylesheet" href="./seedance.css?v=20260927-standard1">
 <link rel="stylesheet" href="./soul.css?v=20260930-soul-v02">
-<link rel="stylesheet" href="./studio.css?v=20261008-runway-v1">
-<script type="module" src="./lab.js?v=20261008-atmosphere-v1"></script>
+<link rel="stylesheet" href="./studio.css?v=20261008-imagefloat-v1">
+<link rel="stylesheet" href="./image-studio.css?v=20261008-floating-v1">
+<script type="module" src="./lab.js?v=20261008-imagefloat-v1"></script>
 </head>
 <body class="lab-booting">
 <div id="lab-boot" role="status" aria-live="polite" aria-label="Opening Parallel Vision Lab"><div class="lab-boot-content"><span class="lab-boot-name" id="lab-boot-name">PARALLEL VISION</span><span class="lab-boot-sub">LAB</span><div class="lab-boot-track" aria-hidden="true"></div><p class="lab-boot-status" id="lab-boot-status">Opening your workspace</p><button id="lab-boot-retry" type="button" hidden>Reload page</button></div></div>
@@ -43,6 +44,54 @@ document.addEventListener('DOMContentLoaded',()=>{const retry=document.getElemen
 <div id="app" hidden>
 <div class="connection-strip" hidden><span id="connection-status">Checking connection…</span><button class="text-button" id="setup">Manage connection</button></div>
 <nav class="tool-switch" aria-label="Creative tools"><div class="tool-group"><button id="tool-video" class="tool-tab active" type="button" aria-pressed="true">Video</button><button id="tool-image" class="tool-tab" type="button" aria-pressed="false">Image</button><button id="tool-upscale" class="tool-tab" type="button" aria-pressed="false">Upscale</button></div><span class="tool-caption">PARALLEL VISION LAB</span></nav>
+<section id="image-studio" class="image-studio" aria-label="Image creation studio" hidden>
+  <div class="image-gallery-shell">
+    <div id="image-gallery-host" class="image-gallery-host"></div>
+    <div id="image-gallery-empty" class="image-gallery-empty" hidden>
+      <span class="image-empty-kicker">PRIVATE IMAGE STUDIO</span>
+      <h2>No images yet.</h2>
+      <p>Your renders and edits will appear here. Start with a prompt or attach references in the bar below.</p>
+    </div>
+  </div>
+  <section id="image-composer" class="image-composer" aria-label="Floating image generation composer">
+    <div class="image-composer-top">
+      <textarea id="image-composer-prompt" rows="2" placeholder="Describe the scene you imagine..." aria-label="Describe the image"></textarea>
+      <div id="image-composer-references" class="image-composer-references" hidden aria-label="Attached reference images"></div>
+    </div>
+    <div class="image-composer-toolbar">
+      <button id="image-composer-add" type="button" class="composer-add" aria-label="Add image references" title="Add image references">+</button>
+      <div class="composer-model-wrap">
+        <button id="image-composer-model" class="composer-model-pill" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="image-composer-model-menu">
+          <span class="composer-model-symbol" aria-hidden="true">◈</span>
+          <span id="image-composer-model-label">Seedream 5 Pro</span>
+          <span class="composer-chevron" aria-hidden="true">⌄</span>
+        </button>
+        <div id="image-composer-model-menu" class="composer-model-menu" hidden>
+          <label class="composer-model-search"><span class="visually-hidden">Search models</span><input id="image-composer-model-search" type="search" placeholder="Search models..." autocomplete="off"></label>
+          <div id="image-composer-model-items" class="composer-model-items"></div>
+          <div class="composer-model-footer"><button id="image-composer-train" type="button">Manage PV Soul identity <span aria-hidden="true">↗</span></button></div>
+        </div>
+      </div>
+      <label class="composer-select-pill" title="Aspect ratio"><span class="visually-hidden">Aspect ratio</span><select id="image-composer-ratio" aria-label="Aspect ratio"></select></label>
+      <label class="composer-select-pill" title="Resolution"><span class="visually-hidden">Image resolution</span><select id="image-composer-resolution" aria-label="Resolution"></select></label>
+      <label id="image-composer-count-wrap" class="composer-select-pill" title="Image count"><span class="visually-hidden">Number of images</span><select id="image-composer-count" aria-label="Number of images"></select></label>
+      <button id="image-composer-more" type="button" class="composer-settings-pill" aria-expanded="false" aria-controls="image-settings-drawer" title="More image controls"> <span aria-hidden="true">☷</span> Controls</button>
+      <span class="composer-flex"></span>
+      <button id="image-composer-generate" class="composer-generate" type="button" disabled>Generate</button>
+    </div>
+    <p id="image-composer-status" class="composer-status" role="status" hidden></p>
+  </section>
+</section>
+<button id="image-settings-scrim" class="image-settings-scrim" type="button" aria-label="Close image controls" hidden></button>
+<dialog id="image-lightbox" class="image-lightbox" aria-labelledby="image-lightbox-title">
+  <header class="image-lightbox-head">
+    <span id="image-lightbox-title">IMAGE RESULT</span>
+    <button id="image-lightbox-close" class="image-lightbox-close" type="button" aria-label="Close image viewer">×</button>
+  </header>
+  <div class="image-lightbox-stage"><img id="image-lightbox-img" alt="Generated image, full preview"></div>
+  <footer class="image-lightbox-foot"><span>PARALLEL VISION / PRIVATE IMAGE ARCHIVE</span><button id="image-lightbox-download" type="button">Download image <span aria-hidden="true">↓</span></button></footer>
+</dialog>
+
 <div class="workspace">
 <section class="controls" aria-label="Generation settings">
 <div class="controls-body">
@@ -173,6 +222,7 @@ document.addEventListener('DOMContentLoaded',()=>{const retry=document.getElemen
 </div>
 <p id="notice" role="status" aria-live="polite"></p>
 <section id="active" class="active" hidden aria-live="polite"><div><p class="eyebrow">Live queue</p><p id="active-status"></p><p class="fine" id="active-detail"></p></div><button id="resolve" class="quiet" hidden>Resolve interrupted request</button></section>
+<div id="archive-rest-anchor"></div>
 <section class="archive"><div class="archivehead"><div><p class="eyebrow">Private archive</p><h2>History</h2></div><div><p>Results, drafts and active jobs in one place.<br>In Select mode, click anywhere on a card to add or remove it.</p><div class="history-head-actions"><button id="history-select" class="text-button" type="button">Select</button><button id="refresh" class="text-button" type="button">Refresh</button></div></div></div><div id="history-selection" class="history-selection" hidden><span id="history-selection-count">0 selected</span><button id="history-select-all" class="text-button" type="button">Select all visible</button><button id="history-delete-selected" class="history-delete-selected" type="button" disabled>Delete selected</button><button id="history-cancel-select" class="text-button" type="button">Cancel</button></div><p id="emptyarchive" class="emptyarchive">No saved work yet.</p><div id="history" class="grid"></div><button id="more" class="secondary" hidden>Load earlier work</button></section>
 </div>
 <noscript><style>#lab-boot{display:none!important}body>header,body>main,body>footer{visibility:visible!important}</style><p>Enable JavaScript to sign in and use the Lab.</p></noscript>
