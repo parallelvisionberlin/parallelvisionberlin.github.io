@@ -354,3 +354,27 @@ dialog#image-lightbox::backdrop {background:rgba(6,7,10,.95);backdrop-filter:blu
   .image-detail-bottomline{height:23px;padding:0 12px}
   .image-detail-bottomline span:last-child{display:none}
 }
+
+/* More confident, high-contrast Image action without turning the UI neon. */
+#image-composer {
+  border-radius:25px;
+  box-shadow:0 26px 90px rgba(0,0,0,.74),inset 0 1px rgba(255,255,255,.045);
+}
+#image-composer .composer-generate {
+  min-width:161px;min-height:54px;padding:11px 21px;
+  border-radius:14px;
+  background:linear-gradient(132deg,#e6e8ec,#fbfcff);
+  border-color:#f0f2f6;color:#111216;
+  font-size:14px;font-weight:750;letter-spacing:.005em;
+  box-shadow:0 3px 18px rgba(255,255,255,.06);
+}
+#image-composer .composer-generate:hover:not(:disabled){
+  background:#fff;border-color:#fff;box-shadow:0 5px 25px rgba(255,255,255,.14);
+}
+#image-composer .composer-generate:disabled {
+  background:#35373d;color:#c1c3c9;border-color:#454851;
+  box-shadow:none;
+}
+@media(max-width:740px){
+  #image-composer .composer-generate {min-width:119px;min-height:42px;font-size:12px;padding:8px 12px}
+}
