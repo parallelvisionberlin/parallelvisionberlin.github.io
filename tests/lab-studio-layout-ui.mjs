@@ -107,6 +107,13 @@ try{
 
   // Verify branded first paint while the JS module is deliberately delayed.
   const bootContext=await browser.newContext({viewport:{width:1440,height:900}});
+  await bootContext.route('https://**/*',async route=>{
+    const url=new URL(route.request().url());
+    if(!url.hostname.endsWith('parallelvision.workers.dev'))return route.abort();
+    const path=url.pathname;
+    const response=path==='/api/jobs'?{jobs:[],activeJobs:[],concurrency:{image:4,video:1},next:null}:path==='/api/packs'?{packs:[]}:path==='/api/soul-pro/identity'?{configured:false,count:0,refs:[]}:{};
+    return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(response)});
+  });
   const bootPage=await bootContext.newPage();
   await bootPage.route(/\/lab\/lab\.js(?:\?.*)?$/,async route=>{
     await new Promise(resolve=>setTimeout(resolve,1300));
