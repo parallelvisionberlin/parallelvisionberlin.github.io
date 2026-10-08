@@ -121,7 +121,7 @@
   const links = navigation?.querySelector(".home-primary-links");
   const utilityControls = navigation?.querySelector(".home-utility-controls");
   const languageSlot = document.getElementById("homeMobileLanguageSlot");
-  const mobileQuery = window.matchMedia("(max-width: 620px)");
+  const mobileQuery = window.matchMedia("(max-width: 1100px)");
   if (!navigation || !toggle || !links || !utilityControls || !languageSlot) return;
 
   const closeMenu = () => {
