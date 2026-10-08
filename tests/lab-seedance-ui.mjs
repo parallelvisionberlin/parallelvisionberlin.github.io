@@ -8,7 +8,7 @@ import {pathToFileURL} from 'node:url';
 const {chromium}=await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE).href);
 const root=resolve('.'),source=readFileSync('lab/lab.js','utf8');
 const boot=source.indexOf("try{const {Clerk}=await import(");assert.ok(boot>0);
-const testSource=source.slice(0,boot)+`clerk={isSignedIn:true,user:{id:'test'},session:{id:'synthetic-session',getToken:async()=> 'synthetic-token'},signOut:async()=>{}};owner=true;userId='test';config={enabled:true,dailyLimitUsd:10,videoEngines:['wan','seedance'],concurrency:{image:4,video:1}};applyConfig(config);$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();update();window.__labTest={lock};`;
+const testSource=source.slice(0,boot)+`clerk={isSignedIn:true,user:{id:'test'},session:{id:'synthetic-session',getToken:async()=> 'synthetic-token'},signOut:async()=>{}};owner=true;userId='test';config={enabled:true,dailyLimitUsd:10,videoEngines:['wan','seedance'],concurrency:{image:4,video:1}};applyConfig(config);$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();update();syncVideoStudioMode();window.__labTest={lock};`;
 const server=http.createServer((req,res)=>{const pathname=new URL(req.url,'http://localhost').pathname;const path=resolve(root,'.'+pathname+(pathname.endsWith('/')?'index.html':''));if(!path.startsWith(root+'/')||!existsSync(path)){res.writeHead(404).end();return;}res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css'})[extname(path)]||'text/plain');res.end(pathname==='/lab/lab.js'?testSource:readFileSync(path));});
 await new Promise(r=>server.listen(4183,'127.0.0.1',r));
 const browser=await chromium.launch({headless:true});
