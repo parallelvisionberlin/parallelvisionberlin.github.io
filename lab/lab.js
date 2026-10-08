@@ -184,6 +184,8 @@ function renderComposerLibrary(){
   $('composer-library-note').textContent=trained?'Choose a trained identity.':identity?'Choose a pack, then select up to four identity photos. Your base image stays in place.':'Load a saved set with its reference roles.';
   $('composer-library-create').textContent=trained?'Train character':identity?'Set identity photos':'Save current references';
   $('composer-library-manage').hidden=!trained&&!identity;
+  $('composer-library-delete').hidden=trained;
+  $('composer-library-delete').disabled=busy||!$('pack-select').value;
   if(key===composerLibraryKey)return;composerLibraryKey=key;
   const grid=$('composer-library-cards');grid.replaceChildren();
   for(const entry of entries){
@@ -204,6 +206,7 @@ function renderComposerLibrary(){
 }
 $('composer-character').onclick=()=>{if(busy)return;const open=$('composer-library').hidden;toggleImageSettings(false);closeImageModelMenu();$('composer-library').hidden=!open;$('composer-character').setAttribute('aria-expanded',String(open));if(open)renderComposerLibrary();};
 $('composer-library-close').onclick=closeComposerLibrary;
+$('composer-library-delete').onclick=()=>{if(!busy)$('pack-delete').click();};
 $('composer-options-close').onclick=()=>toggleImageSettings(false);
 $('composer-library-create').onclick=()=>{if(busy)return;if(imageEngine==='soul')$('soul-manage').click();else if(imageEngine==='soulpro')$('soul-pro-identity-manage').click();else $('pack-save').click();};
 $('composer-library-manage').onclick=()=>{if(busy)return;(imageEngine==='soulpro'?$('soul-pro-identity-manage'):$('soul-manage')).click();};

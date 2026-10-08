@@ -218,14 +218,13 @@ try{
   const generateUi=await x.page.locator('#image-composer-generate').evaluate(el=>{
     const css=getComputedStyle(el);return {color:css.color,background:css.backgroundImage,font:css.fontFamily,weight:css.fontWeight};
   });
-  assert.equal(generateUi.color,'rgb(251, 252, 254)','Image Generate displays white text on velvet-black background');
-  assert.ok(generateUi.background.includes('linear-gradient'),'Image Generate has a restrained dark surface');
+  assert.equal(generateUi.color,'rgb(24, 20, 14)','Available Image Generate uses dark text on amber');
   await x.page.selectOption('#image-composer-ratio','16:9');
   assert.equal(await x.page.locator('#ratio').inputValue(),'16:9','Floating aspect ratio updates backend settings');
   await x.page.click('#image-composer-more');
-  assert.equal(await x.page.locator('#image-model-control').isVisible(),true,'Advanced drawer reveals original model controls');
-  const packTops=await x.page.evaluate(()=>['pack-load','pack-save','pack-delete'].map(id=>Math.round(document.getElementById(id).getBoundingClientRect().top)));
-  assert.equal(new Set(packTops).size,1,'Reference pack actions stay aligned inside advanced controls');
+  assert.equal(await x.page.locator('#composer-options').isVisible(),true,'Options expand inside the composer');
+  assert.equal(await x.page.locator('.workspace').isVisible(),false,'Image options never reopen the duplicate side form');
+  assert.equal(await x.page.locator('#output-format').isVisible(),true,'Existing output settings remain available inline');
   await x.page.click('#image-composer-more');
   const galleryLayout=await x.page.locator('#history').evaluate(el=>{
     const c=getComputedStyle(el);return {display:c.display,columns:c.gridTemplateColumns.split(' ').length};
