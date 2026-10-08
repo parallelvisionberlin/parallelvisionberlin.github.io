@@ -98,7 +98,7 @@ try{
   assert.notEqual(d.accent,'rgb(141, 99, 255)','No default purple selection');
   assert.ok(await x.page.locator('#empty-title').innerText().then(t=>/next scene/i.test(t)),'Video opens with an inviting scene direction');
   assert.ok(await x.page.locator('#canvas-secondary').isVisible(),'Video offers an alternate entry into Image');
-  assert.ok(await x.page.locator('.canvas').evaluate(e=>getComputedStyle(e).backgroundImage.includes('radial-gradient')),'Preview has atmospheric lighting');
+  assert.equal(await x.page.locator('.canvas').evaluate(e=>getComputedStyle(e).backgroundColor),'rgb(21, 22, 25)','Video playback uses a neutral dark canvas');
   const palette=await x.page.evaluate(()=>{
     const style=getComputedStyle(document.documentElement);
     return {
@@ -110,7 +110,7 @@ try{
   });
   assert.equal(palette.bg,'#101114','Workspace uses black graphite');
   assert.equal(palette.pageTheme,palette.bg,'Browser chrome and studio background agree');
-  assert.match(palette.image,/rgba?\(\s*210\s*,\s*214\s*,\s*225\b/,'Canvas ambient light is neutral pearl gray');
+  assert.ok(palette.image==='none'||palette.image.includes('210, 214, 225'),'Video playback must not have a colored overlay');
   assert.ok(!palette.image.includes('181, 145, 115')&&!palette.image.includes('145, 129, 126'),'Former bronze and brown halos are absent');
   assert.equal(await x.page.locator('.empty-wordmark').count(),0,'Canvas should not repeat the brand logo');
   assert.ok(d.documentWidth<=d.viewport.width,'No horizontal overflow');
