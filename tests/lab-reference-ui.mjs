@@ -169,6 +169,10 @@ try{
   assert.ok(Math.abs(detail.image.width/detail.image.height-1.5)<.02,'Full image retains source aspect ratio');
   assert.equal(await x.page.locator('#image-detail-prompt').innerText(),'A ceramic sculpture.');
   assert.equal(await x.page.locator('#image-detail-model').innerText(),'Seedream 5 Pro');
+  await x.page.locator('#image-lightbox-fit').click();
+  assert.equal(await x.page.locator('#image-lightbox-stage').evaluate(e=>e.classList.contains('is-zoomed')),true,'100% zoom must be available on demand');
+  await x.page.locator('#image-lightbox-fit').click();
+  assert.equal(await x.page.locator('#image-lightbox-stage').evaluate(e=>e.classList.contains('is-zoomed')),false,'Fit mode restores complete uncropped image');
   mkdirSync('test-results',{recursive:true});
   await x.page.screenshot({path:'test-results/lab-image-detail-fullscreen.png',fullPage:false});
   await x.page.locator('#reference-images').setInputFiles(references());await ready(x.page);
