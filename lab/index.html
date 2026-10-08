@@ -4,19 +4,42 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow,noarchive"><meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#09090b"><title>Parallel Vision Lab</title>
-<link rel="icon" href="/favicon.png"><link rel="stylesheet" href="./lab.css?v=20261002-upscale-models1">
+<link rel="icon" href="./branding/pv-mark.svg" type="image/svg+xml"><style id="lab-boot-style">
+/* Visible before the external scripts and stylesheets load. No remote imagery or icon fonts. */
+body.lab-booting{margin:0;background:#09090b}
+#lab-boot{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:#09090b;color:#f1efeb;font-family:Arial,Helvetica,sans-serif}
+.lab-boot-content{width:min(340px,calc(100vw - 56px));text-align:center}
+.lab-boot-name{display:block;font-size:20px;font-weight:600;letter-spacing:.17em}
+.lab-boot-sub{display:block;margin-top:7px;font-size:10px;letter-spacing:.28em;color:#aaa5a0}
+.lab-boot-track{height:1px;background:#292728;margin:29px auto 16px;overflow:hidden}
+.lab-boot-track:after{content:"";display:block;width:32%;height:100%;background:#ded7cf;animation:pv-load 1.8s ease-in-out infinite alternate}
+.lab-boot-status{margin:0;font-size:11px;letter-spacing:.04em;color:#8d8888}
+#lab-boot-retry{margin-top:18px;padding:9px 15px;color:#ded9d2;background:transparent;border:1px solid #5a5657;border-radius:7px;cursor:pointer}
+#lab-boot-retry[hidden]{display:none}
+@keyframes pv-load{from{transform:translateX(-110%)}to{transform:translateX(335%)}}
+body.lab-booting:not(.lab-ready):not(:has(#app:not([hidden])))>header,body.lab-booting:not(.lab-ready):not(:has(#app:not([hidden])))>main,body.lab-booting:not(.lab-ready):not(:has(#app:not([hidden])))>footer{visibility:hidden}
+body.lab-ready #lab-boot,body:has(#app:not([hidden])) #lab-boot{display:none!important}
+@media(prefers-reduced-motion:reduce){.lab-boot-track:after{animation:none;width:100%;background:#5a5657}}
+</style>
+<script>
+(()=>{let timer=window.setTimeout(()=>{if(document.body?.classList.contains('lab-ready')||!document.getElementById('app')?.hidden)return;const status=document.getElementById('lab-boot-status'),retry=document.getElementById('lab-boot-retry');if(status)status.textContent='This is taking longer than expected.';if(retry)retry.hidden=false;},16000);
+window.__pvLabFinishBoot=()=>{window.clearTimeout(timer);document.body.classList.add('lab-ready');};
+document.addEventListener('DOMContentLoaded',()=>{const retry=document.getElementById('lab-boot-retry');if(retry)retry.onclick=()=>location.reload();});
+})();
+</script><link rel="stylesheet" href="./lab.css?v=20261002-upscale-models1">
 <link rel="stylesheet" href="./history.css?v=20260927-2">
 <link rel="stylesheet" href="./seedance.css?v=20260927-standard1">
 <link rel="stylesheet" href="./soul.css?v=20260930-soul-v02">
-<link rel="stylesheet" href="./studio.css?v=20261008-branded-v3">
+<link rel="stylesheet" href="./studio.css?v=20261008-experience-v4">
 <script type="module" src="./lab.js?v=20261007-workspace-flow6"></script>
 </head>
-<body>
+<body class="lab-booting">
+<div id="lab-boot" role="status" aria-live="polite" aria-label="Opening Parallel Vision Lab"><div class="lab-boot-content"><span class="lab-boot-name">PARALLEL VISION</span><span class="lab-boot-sub">LAB</span><div class="lab-boot-track" aria-hidden="true"></div><p class="lab-boot-status" id="lab-boot-status">Opening your workspace</p><button id="lab-boot-retry" type="button" hidden>Reload page</button></div></div>
 <a class="skip" href="#main">Skip to workspace</a>
 <header><div class="wrap top"><a class="brand" href="/" aria-label="Parallel Vision home"><img class="brand-icon" src="./branding/pv-mark.svg" alt="" width="42" height="42"><img class="brand-wordmark" src="./branding/pv-wordmark.svg" alt="" width="152" height="38"><span class="brand-lab">LAB</span></a><div class="actions"><span class="eyebrow" id="identity">Private workspace</span><button id="connection" class="quiet" hidden>Connection</button><button id="logout" class="quiet" hidden>Sign out</button></div></div></header>
 <main class="wrap" id="main">
 
-<section id="gate" class="gate"><div class="intro"><div><p class="eyebrow">Private creative workspace</p><h1>Parallel Vision Lab</h1></div><p class="intro-note">Create, queue and refine.<br>Keep working while jobs run.</p></div><p class="eyebrow">Owner access</p><h2>Your private image and motion studio.</h2><p id="auth-status" role="status">Loading your Parallel Vision sign-in…</p><button id="signin" class="primary" disabled>Sign in</button><p class="fine">Use the same owner account as Nina. No new subscription.</p></section>
+<section id="gate" class="gate" hidden><div class="intro"><div><p class="eyebrow">Private creative workspace</p><h1>Parallel Vision Lab</h1></div><p class="intro-note">Create, queue and refine.<br>Keep working while jobs run.</p></div><p class="eyebrow">Owner access</p><h2>Your private image and motion studio.</h2><p id="auth-status" role="status">Loading your Parallel Vision sign-in…</p><button id="signin" class="primary" disabled>Sign in</button><button id="auth-retry" type="button" class="quiet" hidden>Reload page</button><p class="fine">Use the same owner account as Nina. No new subscription.</p></section>
 <div id="app" hidden>
 <div class="connection-strip" hidden><span id="connection-status">Checking connection…</span><button class="text-button" id="setup">Manage connection</button></div>
 <nav class="tool-switch" aria-label="Creative tools"><div class="tool-group"><button id="tool-video" class="tool-tab active" type="button" aria-pressed="true">Video</button><button id="tool-image" class="tool-tab" type="button" aria-pressed="false">Image</button><button id="tool-upscale" class="tool-tab" type="button" aria-pressed="false">Upscale</button></div><span class="tool-caption">CREATIVE WORKSPACE</span></nav>
@@ -134,7 +157,7 @@
 <p id="generation-help" class="fine">Images and Upscale start on click at the live provider price. Video keeps price review. Inputs over 10 MiB need a working copy for the image provider; the Lab asks first and keeps the original. Saving history is free of generation charges.</p>
 </div>
 </section>
-<section class="stage" aria-label="Media preview"><div class="stagehead"><span class="eyebrow" id="preview-label">Source / preview</span><button class="quiet" id="clear" disabled>Clear</button></div><div class="canvas"><div id="empty" class="empty"><div class="empty-emblem" aria-hidden="true"><img src="./branding/pv-mark.svg" alt="" width="112" height="112"></div><p>Begin with a frame.</p><small>Add a starting image, then give it a direction.</small><button id="canvas-import" type="button" class="canvas-import">Choose a frame <span aria-hidden="true">↗</span></button></div><img id="preview" alt="Selected source image" hidden><video id="video" controls playsinline preload="metadata" hidden></video></div><div class="stagefoot"><span id="settings-summary">15 seconds / 1080p</span><button id="download" class="quiet" hidden>Download result</button></div></section>
+<section class="stage" aria-label="Media preview"><div class="stagehead"><span class="eyebrow" id="preview-label">Source / preview</span><button class="quiet" id="clear" disabled>Clear</button></div><div class="canvas"><div id="empty" class="empty"><img class="empty-wordmark" src="./branding/pv-wordmark.svg" alt="" width="220" height="55"><p>Create from your own frame.</p><small>Give a still image a new direction, or make something from words.</small><button id="canvas-import" type="button" class="canvas-import">Choose a frame <span aria-hidden="true">↗</span></button></div><img id="preview" alt="Selected source image" hidden><video id="video" controls playsinline preload="metadata" hidden></video></div><div class="stagefoot"><span id="settings-summary">15 seconds / 1080p</span><button id="download" class="quiet" hidden>Download result</button></div></section>
 </div>
 <div id="soul-launch" class="soul-launch" hidden>
 <div><span class="eyebrow">PV Soul</span><strong id="soul-launch-title">Train a reusable character</strong><small id="soul-launch-note">FAL training is ready. Train from 20–80 photos, then use the character in Image.</small></div>
@@ -144,7 +167,7 @@
 <section id="active" class="active" hidden aria-live="polite"><div><p class="eyebrow">Live queue</p><p id="active-status"></p><p class="fine" id="active-detail"></p></div><button id="resolve" class="quiet" hidden>Resolve interrupted request</button></section>
 <section class="archive"><div class="archivehead"><div><p class="eyebrow">Private archive</p><h2>History</h2></div><div><p>Results, drafts and active jobs in one place.<br>In Select mode, click anywhere on a card to add or remove it.</p><div class="history-head-actions"><button id="history-select" class="text-button" type="button">Select</button><button id="refresh" class="text-button" type="button">Refresh</button></div></div></div><div id="history-selection" class="history-selection" hidden><span id="history-selection-count">0 selected</span><button id="history-select-all" class="text-button" type="button">Select all visible</button><button id="history-delete-selected" class="history-delete-selected" type="button" disabled>Delete selected</button><button id="history-cancel-select" class="text-button" type="button">Cancel</button></div><p id="emptyarchive" class="emptyarchive">No saved work yet.</p><div id="history" class="grid"></div><button id="more" class="secondary" hidden>Load earlier work</button></section>
 </div>
-<noscript><p>Enable JavaScript to sign in and use the Lab.</p></noscript>
+<noscript><style>#lab-boot{display:none!important}body>header,body>main,body>footer{visibility:visible!important}</style><p>Enable JavaScript to sign in and use the Lab.</p></noscript>
 </main>
 <footer><div class="wrap">Parallel Vision / Lab <span>Private archive · Hosted generation</span></div></footer>
 <dialog id="soul-pro-identity-dialog" class="dialog">
