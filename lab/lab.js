@@ -135,17 +135,23 @@ let imageMenuOpen = false;
 const composerPortraits=new Map();
 const composerHomes=new Map();
 let composerLibraryKey='',composerPortraitKey='',soulProEditingCurrent=false;
-function composerAssetPhoto(host,id){
-  host.replaceChildren();if(!id){host.textContent='+';return;}
-  const img=document.createElement('img');img.alt='Saved identity preview';host.append(img);
-  if(!composerPortraits.has(id)){
+function composerAssetPhoto(host,id,characterName='',characterId=''){
+  host.replaceChildren();
+  const cover=/^nina[\s._-]*fok$/i.test(characterName.trim())?'/assets/optimized/nina-fok/Canon.webp':null;
+  const placeholder=()=>{host.textContent=characterName?characterName.trim().split(/\s+/).map(s=>s[0]).slice(0,2).join('').toUpperCase():'+';};
+  if(!id&&!cover&&!characterId){placeholder();return;}
+  const img=document.createElement('img');img.alt=characterName?characterName+' portrait':'Saved identity preview';img.onerror=()=>{if(img.isConnected)placeholder();};host.append(img);
+  if(cover){img.src=cover;return;}
+  const cacheKey=characterId?'character:'+characterId:id;
+  if(!composerPortraits.has(cacheKey)){
     const revision=epoch;
-    composerPortraits.set(id,api('/api/assets/'+encodeURIComponent(id),{blob:true}).then(blob=>{
+    const photo=characterId?api('/api/soul/characters/'+encodeURIComponent(characterId)+'/preview',{blob:true}).catch(error=>{if(id)return api('/api/assets/'+encodeURIComponent(id),{blob:true});throw error;}):api('/api/assets/'+encodeURIComponent(id),{blob:true});
+    composerPortraits.set(cacheKey,photo.then(blob=>{
       if(epoch!==revision||!owner)return null;
       const url=URL.createObjectURL(blob);return url;
     }).catch(()=>null));
   }
-  composerPortraits.get(id).then(url=>{if(!img.isConnected)return;if(url)img.src=url;else{img.remove();host.textContent='+';}});
+  composerPortraits.get(cacheKey).then(url=>{if(!img.isConnected)return;if(url)img.src=url;else{placeholder();}});
 }
 function composerCharacterAsset(id){
   const job=[...imageDetailCache.values()].find(j=>j.settings?.characterId===id&&j.outputId);
@@ -169,8 +175,8 @@ function syncComposerOptions(){
   $('composer-character-name').textContent=selected;
   $('composer-character').disabled=busy;
   const portrait=identity?soulProIdentity.refs?.[0]?.id:trained?composerCharacterAsset($('soul-character').value):packs.find(p=>p.id===$('pack-select').value)?.refs?.[0]?.id;
-  const key=selected+':'+(portrait||'');
-  if(key!==composerPortraitKey){composerPortraitKey=key;composerAssetPhoto($('composer-character-photo'),portrait);}
+  const key=selected+':'+(portrait||'')+':'+(trained?$('soul-character').value:'');
+  if(key!==composerPortraitKey){composerPortraitKey=key;composerAssetPhoto($('composer-character-photo'),portrait,trained&&$('soul-character').value?selected:'',trained?$('soul-character').value:'');}
   if(!$('composer-library').hidden)renderComposerLibrary();
 }
 function closeComposerLibrary(){
@@ -196,7 +202,7 @@ function renderComposerLibrary(){
     const photo=document.createElement('span');photo.className='composer-library-photo';
     const title=document.createElement('strong');title.textContent=entry.name;
     const kind=document.createElement('small');kind.textContent=trained?'Trained LoRA':entry.id==='current-identity'?soulProIdentity.count+' active photos':entry.refs.length+' reference photos';
-    card.append(photo,title,kind);grid.append(card);composerAssetPhoto(photo,entry.photo);
+    card.append(photo,title,kind);grid.append(card);composerAssetPhoto(photo,entry.photo,trained?entry.name:'',trained?entry.id:'');
     card.onclick=()=>{
       if(busy)return;
       if(entry.id==='current-identity'){$('soul-pro-identity-manage').click();return;}
@@ -1830,5 +1836,6 @@ function lock(){epoch++;for(const p of composerPortraits.values())p.then(url=>{i
 async function sync(){if(syncing)return;syncing=true;try{if(!clerk.isSignedIn){lock();$('auth-status').textContent='Sign in with your Parallel Vision owner account.';$('signin').disabled=false;return;}if(owner&&userId===clerk.user.id)return;const data=await api('/api/session');owner=true;userId=clerk.user.id;applyConfig(data.config);$('identity').textContent='Owner workspace';$('gate').hidden=true;$('app').hidden=false;$('connection').hidden=false;$('logout').hidden=false;await Promise.all([loadHistory(),loadPacks(),soul.load(),loadSoulProIdentity()]);syncVideoStudioMode();}catch(e){lock();$('auth-status').textContent=e.message;$('signin').disabled=false;$('logout').hidden=!clerk?.isSignedIn;}finally{syncing=false;finishLabBoot();}}
 $('auth-retry').onclick=()=>location.reload();$('signin').onclick=()=>clerk?.openSignIn();$('logout').onclick=async()=>{lock();await clerk?.signOut();$('auth-status').textContent='Signed out. Your archive remains private.';};
 try{const {Clerk}=await import('https://esm.sh/@clerk/clerk-js@6?bundle');await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='https://clerk.parallelvisionlabel.com/npm/@clerk/ui@1/dist/ui.browser.js';s.onload=resolve;s.onerror=reject;document.head.append(s);});clerk=new Clerk('pk_live_Y2xlcmsucGFyYWxsZWx2aXNpb25sYWJlbC5jb20k');await clerk.load({ui:{ClerkUI:window.__internal_ClerkUICtor},signInFallbackRedirectUrl:location.href,signUpFallbackRedirectUrl:location.href});clerk.addListener(()=>void sync());await sync();}catch{$('gate').hidden=false;$('auth-retry').hidden=false;$('signin').disabled=true;$('auth-status').textContent='Sign-in could not load. Check your connection and reload the page.';finishLabBoot();}
+
 
 

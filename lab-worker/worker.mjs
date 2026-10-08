@@ -10,8 +10,8 @@ import {SOUL_PRO_MODELS,soulProParameters,soulProEstimateMicros,buildSoulProInpu
 import {findFalRequest} from './fal-recovery.mjs';
 import {falUploadImage} from './fal-storage.mjs';
 import {REFERENCE_ROLES,normalizeReferenceLabel,supportsReferenceGuidance,compileImagePrompt,canUseReferenceGuidance,referenceGuidanceError} from '../lab/reference-guidance.js';
-import {SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-02.10-fal-file-transport';
+import {characterPreview as soulCharacterPreview,SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
+export const VERSION = 'pv-lab-2026-10-09.1-lora-portraits';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -948,6 +948,7 @@ async function route(request,env,ctx) {
   if(path==='/api/soul/characters'&&method==='POST')return json({character:await createSoulCharacter(request,env,owner,url,soulDeps())},202);
   if(path.startsWith('/api/soul/characters/')){
     const parts=path.split('/'),id=parts[4];
+    if(parts[5]==='preview'&&method==='GET')return soulCharacterPreview(env,owner,id,soulDeps());
     if(parts[5]==='retry'&&method==='POST')return json({character:await retrySoulCharacter(request,env,owner,id,url,soulDeps())},202);
     if(parts[5]==='resolve'&&method==='POST')return json(await resolveSoulCharacter(request,env,owner,id,soulDeps()));
     if(method==='DELETE')return json(await deleteSoulCharacter(env,owner,id,soulDeps()));
@@ -1341,3 +1342,4 @@ export default {
   },
   async scheduled(event,env,ctx) {ctx.waitUntil(maintenance(env));}
 };
+

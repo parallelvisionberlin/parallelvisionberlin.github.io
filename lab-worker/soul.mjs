@@ -41,6 +41,31 @@ async function verifySigned(env,url,label,id,maxTtl,d){
   const key=await d.derived(env,label,{name:'HMAC',hash:'SHA-256'},['verify']);
   try{return await crypto.subtle.verify('HMAC',key,d.unbase(signature),enc.encode(id+':'+expires));}catch{return false;}
 }
+// Training ZIPs made by the Lab use stored WebP entries. Keep the first photo
+// separately so the character portrait survives training-set cleanup.
+export function trainingPreview(bytes){
+  if(bytes.length<30)return null;
+  const v=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength);
+  if(v.getUint32(0,true)!==0x04034b50||v.getUint16(6,true)!==0||v.getUint16(8,true)!==0)return null;
+  const size=v.getUint32(18,true),start=30+v.getUint16(26,true)+v.getUint16(28,true);
+  if(size<12||size>4*1024*1024||size!==v.getUint32(22,true)||start+size>bytes.length)return null;
+  const photo=bytes.slice(start,start+size);
+  if(String.fromCharCode(...photo.slice(0,4))!=='RIFF'||String.fromCharCode(...photo.slice(8,12))!=='WEBP')return null;
+  return photo;
+}
+const previewKey=(owner,datasetId)=>`${owner}/soul/previews/${datasetId}.webp`;
+export async function characterPreview(env,owner,id,d){
+  const row=await d.first(env,'SELECT * FROM soul_characters WHERE id=? AND owner_id=?',d.uid(id),owner);
+  if(!row?.dataset_id)d.fail(404,'Character portrait not found.');
+  const obj=await env.LAB_MEDIA.get(previewKey(owner,row.dataset_id));
+  if(!obj)d.fail(404,'Character portrait not found.');
+  return new Response(obj.body,{headers:{'Content-Type':'image/webp','Cache-Control':'private, max-age=3600','X-Content-Type-Options':'nosniff'}});
+}
+async function cleanupPreview(env,owner,datasetId,d){
+  if(!datasetId)return;
+  const used=await d.first(env,'SELECT id FROM soul_characters WHERE dataset_id=? AND owner_id=? LIMIT 1',datasetId,owner);
+  if(!used)await env.LAB_MEDIA.delete(previewKey(owner,datasetId));
+}
 async function cleanupDataset(env,row,d){
   if(!row?.dataset_id)return;
   const ds=await d.first(env,'SELECT * FROM soul_datasets WHERE id=? AND owner_id=?',row.dataset_id,row.owner_id);
@@ -136,8 +161,8 @@ export async function createDataset(request,env,owner,d){
   if(bytes.length<32||bytes[0]!==0x50||bytes[1]!==0x4b||bytes[2]!==0x03||bytes[3]!==0x04)d.fail(400,'Training set is not a valid ZIP archive.');
   const id=crypto.randomUUID(),objectKey=`${owner}/soul/datasets/${id}.zip`;
   await env.LAB_MEDIA.put(objectKey,bytes,{httpMetadata:{contentType:'application/zip'}});
-  try{await d.run(env,'INSERT INTO soul_datasets(id,owner_id,object_key,bytes,photo_count,created_at) VALUES(?,?,?,?,?,?)',id,owner,objectKey,bytes.length,count,d.now());}
-  catch(error){await env.LAB_MEDIA.delete(objectKey);throw error;}
+  try{const photo=trainingPreview(bytes);if(photo)await env.LAB_MEDIA.put(previewKey(owner,id),photo,{httpMetadata:{contentType:'image/webp'}});await d.run(env,'INSERT INTO soul_datasets(id,owner_id,object_key,bytes,photo_count,created_at) VALUES(?,?,?,?,?,?)',id,owner,objectKey,bytes.length,count,d.now());}
+  catch(error){await env.LAB_MEDIA.delete(objectKey);await env.LAB_MEDIA.delete(previewKey(owner,id));throw error;}
   return {id,bytes:bytes.length,photoCount:count};
 }
 async function submitTraining(env,row,dataset,url,d){
@@ -210,6 +235,7 @@ export async function deleteCharacter(env,owner,id,d){
   await cleanupDataset(env,row,d);
   await d.run(env,'DELETE FROM soul_reinterpret_links WHERE adapter_id=?',row.id);
   await d.run(env,'DELETE FROM soul_characters WHERE id=? AND owner_id=?',row.id,owner);
+  await cleanupPreview(env,owner,row.dataset_id,d);
   return {ok:true};
 }
 export async function resolveCharacter(request,env,owner,id,d){
@@ -259,7 +285,7 @@ export async function maintenance(env,d){
   const stale=await d.rows(env,'SELECT * FROM soul_datasets WHERE created_at<? ORDER BY created_at LIMIT 5',d.now()-3*86400000);
   for(const ds of stale){
     const linked=await d.first(env,"SELECT id FROM soul_characters WHERE dataset_id=? AND state IN ('submitting','queued','training','uncertain')",ds.id);if(linked)continue;
-    await env.LAB_MEDIA.delete(ds.object_key).catch(()=>{});await d.run(env,'DELETE FROM soul_datasets WHERE id=?',ds.id).catch(()=>{});
+    await env.LAB_MEDIA.delete(ds.object_key).catch(()=>{});await d.run(env,'DELETE FROM soul_datasets WHERE id=?',ds.id).catch(()=>{});await cleanupPreview(env,ds.owner_id,ds.id,d);
   }
 }
 export function characterView(row){return view(row);}
@@ -270,3 +296,4 @@ export async function readyReinterpretCharacter(env,owner,parentId,d){
   if(!link||link.base_model!==SOUL_REINTERPRET_BASE||link.trainer!==SOUL_REINTERPRET_TRAINER)d.fail(409,'This Soul needs a separate Reinterpret identity training. Its Qwen text weights cannot be used for image editing.');
   return readyCharacter(env,owner,link.adapter_id,d);
 }
+
