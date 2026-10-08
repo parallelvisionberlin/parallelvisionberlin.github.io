@@ -73,8 +73,10 @@ try{
   assert.ok(d.stage.height<=741&&d.canvas.height<650,'Preview never exceeds viewport cap');
   assert.ok(d.modes.top-d.model.bottom<20,'Start/reference buttons directly follow model info');
   assert.equal(d.explanationCollapsed,true);
-  assert.ok(await x.page.locator('.brand-icon').evaluate(img=>img.complete&&img.naturalWidth>0),'Official PV icon must load');
-  assert.ok(await x.page.locator('.brand-wordmark').evaluate(img=>img.complete&&img.naturalWidth>0),'Official PV wordmark must load');
+  const images=await x.page.locator('.brand img').evaluateAll(async nodes=>Promise.all(nodes.map(async img=>{try{await img.decode()}catch{}return {src:img.getAttribute('src'),complete:img.complete,width:img.naturalWidth}})));
+  console.log('BRAND_IMAGES',JSON.stringify(images));
+  assert.ok(images[0].complete&&images[0].width>0,'Official PV icon must load');
+  assert.ok(images[1].complete&&images[1].width>0,'Official PV wordmark must load');
   assert.equal(await x.page.locator('#lab-boot').isVisible(),false,'Loading screen must disappear after workspace becomes usable');
   assert.equal(await x.page.locator('#gate').isVisible(),false,'Login gate must never flash inside signed-in workspace');
   assert.notEqual(d.accent,'rgb(141, 99, 255)','No default purple selection');
