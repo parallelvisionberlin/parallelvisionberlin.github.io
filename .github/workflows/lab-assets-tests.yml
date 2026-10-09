@@ -17,7 +17,7 @@ jobs:
       - run: node tests/lab-assets.test.mjs
       - run: node --test tests/lab-reference-mode.test.mjs
       - run: node tests/lab-image-models.test.mjs
-      - run: npm install --no-save --package-lock=false playwright miniflare
+      - run: npm install --no-save --package-lock=false playwright miniflare@4
       - run: node tests/lab-image-runtime.mjs
       - run: npx playwright install --with-deps chromium
       - run: node tests/lab-assets-ui.cjs

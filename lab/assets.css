@@ -262,3 +262,53 @@ header .wrap.top{max-width:none;padding-inline:16px;min-height:48px}
  #image-composer.is-pv-soul.has-soul-source{grid-template-columns:minmax(0,1fr) 84px 144px}
  #image-composer.is-pv-soul.has-soul-source .composer-generate{grid-column:3}
 }
+
+/* Selection actions share the studio's contemporary typography. */
+#app .history-selection{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:12px 16px;border:1px solid #303136;border-radius:12px;background:#191a1d}
+#app .history-selection[hidden]{display:none}
+#app .history-selection,#app .history-selection button,#app #history-selection-count{font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;line-height:1.4;letter-spacing:0;text-transform:none}
+#app #history-selection-count{margin-right:auto;color:#dedee2;padding:8px 0}
+#app .history-selection button{min-height:38px;padding:8px 12px;border-radius:8px}
+#app .history-selection button:hover:not(:disabled){background:#303136;color:#fff}
+#app .history-selection button:disabled{opacity:.4}
+/* Upscaler: a centered canvas and compact settings, without the legacy sidebar. */
+#app.upscale-studio-active>.workspace{display:flex;flex-direction:column;gap:16px;max-width:1060px;margin:24px auto 40px;padding:0 20px}
+#app.upscale-studio-active .stage{order:0;width:100%;min-width:0;border:0;background:transparent;box-shadow:none}
+#app.upscale-studio-active .stagehead,#app.upscale-studio-active .stagefoot{padding:10px 2px;background:transparent;border:0;font-family:'DM Sans',sans-serif;font-size:13px;letter-spacing:0;text-transform:none}
+#app.upscale-studio-active .stagehead .eyebrow{font:500 13px 'DM Sans',sans-serif;letter-spacing:0;text-transform:none;color:#95959e}
+#app.upscale-studio-active .canvas{position:relative;min-height:420px;height:clamp(420px,52vh,660px);aspect-ratio:auto;border:1px dashed #3c3d42;border-radius:18px;background:#151518;overflow:hidden}
+#app.upscale-studio-active .canvas.drag{border-color:#eab256;background:#22201a}
+#app.upscale-studio-active .canvas>img,#app.upscale-studio-active .canvas>video{width:100%;height:100%;max-height:100%;object-fit:contain}
+#app.upscale-studio-active .empty{width:100%;height:100%;min-height:420px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;text-align:center;background:transparent}
+#app.upscale-studio-active .empty[hidden]{display:none}
+#app.upscale-studio-active .empty:before{content:'↗';display:grid;place-items:center;width:72px;height:72px;margin-bottom:24px;border:1px solid #42434a;border-radius:20px;background:#24252a;color:#e5e5ec;font:36px 'DM Sans',sans-serif}
+#app.upscale-studio-active .empty-title{font:600 36px/1.15 'DM Sans',sans-serif;letter-spacing:-1px;margin:0 0 12px;text-transform:none;color:#f5f5f7}
+#app.upscale-studio-active .empty-description{font:400 15px/1.6 'DM Sans',sans-serif;letter-spacing:0;max-width:390px;color:#a6a6af;text-transform:none}
+#app.upscale-studio-active .empty-actions{margin-top:24px}
+#app.upscale-studio-active #canvas-import{padding:12px 24px;min-height:46px;border:0;border-radius:10px;background:#f0f0f3;color:#17171b;font:600 14px 'DM Sans',sans-serif;letter-spacing:0;text-transform:none}
+#app.upscale-studio-active .controls{order:1;position:static;width:100%;max-width:none;min-width:0;padding:18px;border:1px solid #303136;border-radius:16px;background:#1b1b1f;box-shadow:none;overflow:visible}
+#app.upscale-studio-active .controls-body{display:flex;flex-wrap:wrap;align-items:flex-end;gap:14px;padding:0;overflow:visible;max-height:none}
+#app.upscale-studio-active .controls-body>.mode,#app.upscale-studio-active #start-mode .upload-heading,#app.upscale-studio-active #filemeta,#app.upscale-studio-active #generation-help{display:none}
+#app.upscale-studio-active #upscale-model-control{flex:2 1 280px;display:flex;gap:12px}
+#app.upscale-studio-active #upscale-model-control>label{flex:1;min-width:0}
+#app.upscale-studio-active .parameter-grid{display:flex;gap:12px;flex:1 1 150px;margin:0}
+#app.upscale-studio-active .parameter-grid>label{flex:1;min-width:0}
+#app.upscale-studio-active #format-control{flex:0 1 110px}
+#app.upscale-studio-active #upscale-info{order:9;flex:1 0 100%;margin:0;padding:10px 0 0;border:0;background:transparent;color:#9999a3;font:400 13px/1.6 'DM Sans',sans-serif;letter-spacing:0}
+#app.upscale-studio-active #upscale-info summary{cursor:pointer;font-weight:500;color:#bbbbc4}
+#app.upscale-studio-active #upscale-info>strong{display:block;margin-top:12px}
+#app.upscale-studio-active .label{font:500 12px/1.5 'DM Sans',sans-serif;letter-spacing:0;text-transform:none;color:#a6a6af;margin-bottom:6px}
+#app.upscale-studio-active select{height:42px;width:100%;min-width:0;background:#27272d;border:1px solid #3b3b42;border-radius:9px;font:500 13px 'DM Sans',sans-serif;color:#eeeeef;letter-spacing:0;text-transform:none}
+#app.upscale-studio-active #start-mode{flex:1 0 100%;order:8}
+#app.upscale-studio-active #start-mode .frame-pair{display:block}
+#app.upscale-studio-active #drop{min-height:0;display:flex;align-items:center;justify-content:center;padding:10px;border:1px solid #3b3b42;border-radius:9px;background:transparent;font:500 13px 'DM Sans',sans-serif}
+#app.upscale-studio-active #drop small{display:none}
+#app.upscale-studio-active:not(:has(#preview:not([hidden]))) #start-mode{display:none}
+#app.upscale-studio-active .controls>.generate-zone{display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:16px 0 0;margin-top:14px;border-top:1px solid #33333a;background:transparent}
+#app.upscale-studio-active #upscale-price{flex:1 1 260px;border:0;padding:0;margin:0;background:transparent}
+#app.upscale-studio-active #upscale-price .fine{font:400 12px/1.5 'DM Sans',sans-serif;letter-spacing:0;text-transform:none}
+#app.upscale-studio-active #generate{flex:0 0 180px;width:180px;min-height:46px;height:46px;margin:0;border-radius:10px;font:600 15px 'DM Sans',sans-serif;letter-spacing:0;text-transform:none;background:#ecb252;color:#151515}
+#app.upscale-studio-active #save{flex:1 0 100%;font:500 13px 'DM Sans',sans-serif;letter-spacing:0;text-transform:none}
+#app.upscale-studio-active #save:disabled{display:none}
+@media(max-width:640px){#app.upscale-studio-active>.workspace{padding:0 12px;margin-top:12px;gap:8px}#app.upscale-studio-active .canvas{height:390px;min-height:390px}#app.upscale-studio-active .empty{min-height:390px}#app.upscale-studio-active .controls{padding:14px}#app.upscale-studio-active #upscale-model-control{flex-basis:100%;flex-wrap:wrap}#app.upscale-studio-active #generate{flex:1 0 100%;width:100%}#app .history-selection{padding:10px;gap:4px}#app #history-selection-count{flex:1 0 100%}#app .history-selection button{font-size:13px;padding:8px 10px}}
+#app.upscale-studio-active [hidden]{display:none!important}

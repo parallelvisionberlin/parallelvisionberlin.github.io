@@ -55,9 +55,9 @@ document.addEventListener('DOMContentLoaded',()=>{
 <link rel="stylesheet" href="./image-studio.css?v=20261009-strength1">
 <link rel="stylesheet" href="./detail-video-studio.css?v=20261009-pointer1">
 <link rel="stylesheet" href="./editorial-polish.css?v=20261009-amber1">
-<script type="module" src="./lab.js?v=20261009-flash-runtime"></script>
+<script type="module" src="./lab.js?v=20261009-upscale-refresh"></script>
 <link rel="stylesheet" href="./higgsfield.css?v=20261009-background-submit">
-<link rel="stylesheet" href="./assets.css?v=20261009-dock-height">
+<link rel="stylesheet" href="./assets.css?v=20261009-upscale-refresh">
 <script type="module" src="./gallery-layout.js?v=20261009-stable-gallery"></script>
 </head>
 <body class="lab-booting">
@@ -234,7 +234,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 <button id="mode-reference" class="mode-tab" type="button" role="tab" aria-selected="false">Reference mode</button>
 </div>
 <div id="upscale-model-control" hidden><label><span class="label">Upscale method</span><select id="upscale-engine"><option value="spicy">Economical · SpicyAPI Basic</option><option value="topaz-precision">Preserve · Topaz Precision</option><option value="topaz-wonder">Restore · Topaz Wonder 3.5</option></select></label><label id="upscale-topaz-control" hidden><span class="label">Precision model</span><select id="upscale-topaz-model"><option value="Standard V2">Standard V2</option><option value="High Fidelity V3">High Fidelity V3</option></select></label></div>
-<div id="upscale-info" class="fine upscale-info" hidden><strong id="upscale-model-name">Image Upscaler v1 · SpicyAPI</strong><p id="upscale-model-description">Enlarge one finished image, keeping its framing and aspect ratio. Size tiers are approximately 4, 17 and 67 megapixels. Choose a tier above your source size. No prompt, creativity or face controls.</p><p><strong id="upscale-published-price">Published price: $0.012 per image, the same for every size and file format.</strong> <a id="upscale-pricing-link" href="https://spicyapi.ai/models/image-upscaler-v1" target="_blank" rel="noopener noreferrer">Provider pricing</a> · checked 2 Oct 2026.</p><p class="upscale-content"><a id="upscale-content-link" href="https://spicyapi.ai/models/image-upscaler-v1" target="_blank" rel="noopener noreferrer"><strong id="upscale-content-label">No added SpicyAPI filter</strong></a>. <span id="upscale-content-note">The model may still refuse an input.</span></p></div>
+<details id="upscale-info" class="fine upscale-info" hidden><summary>Model details &amp; pricing</summary><strong id="upscale-model-name">Image Upscaler v1 · SpicyAPI</strong><p id="upscale-model-description">Enlarge one finished image, keeping its framing and aspect ratio. Size tiers are approximately 4, 17 and 67 megapixels. Choose a tier above your source size. No prompt, creativity or face controls.</p><p><strong id="upscale-published-price">Published price: $0.012 per image, the same for every size and file format.</strong> <a id="upscale-pricing-link" href="https://spicyapi.ai/models/image-upscaler-v1" target="_blank" rel="noopener noreferrer">Provider pricing</a> · checked 2 Oct 2026.</p><p class="upscale-content"><a id="upscale-content-link" href="https://spicyapi.ai/models/image-upscaler-v1" target="_blank" rel="noopener noreferrer"><strong id="upscale-content-label">No added SpicyAPI filter</strong></a>. <span id="upscale-content-note">The model may still refuse an input.</span></p></details>
 <div id="start-mode" class="mode-panel">
 <div class="frame-pair">
 <div class="upload-block">
@@ -344,7 +344,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 <p id="generation-help" class="fine">Images and Upscale start on click at the live provider price. Video keeps price review. Inputs over 10 MiB need a working copy for the image provider; the Lab asks first and keeps the original. Saving history is free of generation charges.</p>
 </div>
 </section>
-<section class="stage" aria-label="Media preview"><div class="stagehead"><span class="eyebrow" id="preview-label">Source / preview</span><button class="quiet" id="clear" disabled>Clear</button></div><div class="canvas"><div id="empty" class="empty">
+<section class="stage" aria-label="Media preview"><div class="stagehead"><span class="eyebrow" id="preview-label">Source / preview</span><button class="quiet" id="clear" disabled>Clear</button></div><div class="canvas" id="upscale-canvas"><div id="empty" class="empty">
   <p class="empty-title" id="empty-title">Your next scene starts here.</p>
   <small class="empty-description" id="empty-description">Begin with a still, then shape its motion, light and atmosphere.</small>
   <div class="empty-actions">

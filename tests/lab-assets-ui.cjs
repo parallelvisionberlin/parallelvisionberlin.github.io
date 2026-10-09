@@ -92,4 +92,18 @@ await page.evaluate(()=>window.__setTestJobs([{id:'unrelated-gemini',status:'unc
 assert.equal(await page.locator('#image-composer-generate').isEnabled(),true,'Unrelated Gemini interruption never blocks Flash');
 console.log('PASS interrupted Flash explains blocking and opens review; unrelated interruptions do not block Flash');
 assert.deepEqual(errors,[]);console.log('PASS Flash/Kling selection, default 1K, PNG, text-only submission and mobile geometry');
+await page.evaluate(()=>window.__setTestJobs([]));
+await page.click('#tool-upscale');
+assert.equal(await page.locator('#canvas-import').isVisible(),true);
+assert.equal(await page.locator('#empty-title').textContent(),'Upscale');
+assert.equal(await page.locator('#upscale-info').getAttribute('open'),null);
+const canvasBox=await page.locator('.stage').boundingBox(), controlsBox=await page.locator('.controls').boundingBox();
+assert.ok(controlsBox.y>=canvasBox.y+canvasBox.height,'Upscaler controls sit below the central canvas');
+await page.setViewportSize({width:390,height:844});
+assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'Upscaler fits mobile');
+await page.setViewportSize({width:1440,height:1000});
+await page.click('#tool-image');await page.click('#history-select');
+assert.equal(await page.locator('#history-selection-count').evaluate(el=>getComputedStyle(el).textTransform),'none');
+assert.equal(await page.locator('#history-select-all').evaluate(el=>getComputedStyle(el).fontSize),'14px');
+console.log('PASS centered Upscaler, compact details, mobile layout and cohesive selection typography');
 await browser.close();server.close();})().catch(e=>{console.error(e);server.close();process.exit(1)});

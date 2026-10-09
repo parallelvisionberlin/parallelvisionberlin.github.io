@@ -125,6 +125,7 @@ function setTool(value){
   assetLibrary?.close();
   if($('soul-pro-identity-dialog').open)$('soul-pro-identity-dialog').close();
   tool=['image','upscale'].includes(value)?value:'video';const image=tool==='image',upscale=tool==='upscale',video=tool==='video';
+  $('app').classList.toggle('upscale-studio-active',upscale);
   for(const name of ['image','video','upscale']){$('tool-'+name).classList.toggle('active',tool===name);$('tool-'+name).setAttribute('aria-pressed',String(tool===name));}$('soul-launch').hidden=!image;
   $('video-modes').hidden=!video;$('duration-control').hidden=!video;$('image-model-control').hidden=!image;$('engine-name').hidden=image;$('image-processing-control').hidden=!image||imageEngine!=='gemini';$('soul-pro-settings').hidden=!image||imageEngine!=='soulpro';$('controlled-pose-settings').hidden=!image||imageEngine!=='fal';$('image-count-control').hidden=!image||imageEngine==='fal'||imageEngine==='soulpro';$('video-utilities').hidden=!video;$('format-control').hidden=video||(image&&(imageEngine==='gemini'||imageEngine==='fal'||imageEngine==='soulpro'));$('soul-controls').hidden=!image||imageEngine!=='soul';
   $('start-mode').hidden=(image&&imageEngine!=='soulpro')||video&&mode!=='start';$('reference-mode').hidden=upscale||video&&mode!=='reference'||image&&['soul','soulpro'].includes(imageEngine);
@@ -675,9 +676,9 @@ $('video-detail-delete').onclick=()=>{
 /* Studio entry actions are UI only: never trigger paid requests. */
 function emptyExperience(){
   if(tool==='upscale')return {
-    title:'Bring the details forward.',
-    description:'Choose an image to enlarge or restore, keeping its original composition.',
-    action:'source',button:'Choose an image',secondary:'Open Image Studio',secondaryAction:'image',
+    title:'Upscale',
+    description:'Enhance resolution and detail. Keep your original composition.',
+    action:'source',button:'Upload image',secondary:'',secondaryAction:'',
     footnote:'A NEW OUTPUT WILL APPEAR IN YOUR PRIVATE HISTORY'
   };
   if(tool==='video'){
@@ -965,6 +966,7 @@ $('reference-images').onchange=e=>action(async()=>{if(e.target.files.length)awai
 function bindDrop(zone,input,handler){for(const name of ['dragenter','dragover'])$(zone).addEventListener(name,e=>{e.preventDefault();$(zone).classList.add('drag');});for(const name of ['dragleave','drop'])$(zone).addEventListener(name,e=>{e.preventDefault();$(zone).classList.remove('drag');});$(zone).addEventListener('drop',e=>action(async()=>{await handler(e.dataTransfer.files);$(input).value='';}));}
 bindDrop('soul-base-drop','soul-base-image',async files=>{if(files.length!==1)throw new Error('Choose exactly one base image.');await setImage(files[0]);});
 bindDrop('drop','image',async files=>{if(files[0])await setImage(files[0]);});
+bindDrop('upscale-canvas','image',async files=>{if(tool==='upscale'&&files[0])await setImage(files[0]);});
 bindDrop('last-drop','last-image',async files=>{if(files[0])await setLastImage(files[0]);});
 bindDrop('reference-drop','reference-images',async files=>{if(files.length)await addReferences(files);});
 $('clear').onclick=()=>{clearMedia();notify('Editor cleared. Saved work is unchanged.');};
