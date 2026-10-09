@@ -7,7 +7,7 @@ export const FASHION_MODELS = Object.freeze({
 });
 const MAX_MODES = Object.freeze({fast:[1,2,3],balanced:[2,3,4],quality:[3,4,5]});
 const MAX_RESOLUTIONS = Object.freeze(['1k','2k','4k']);
-const UUID = /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{12}$/i;
+const UUID = /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i;
 export function fashionParameters(data,fail) {
   const name=String(data?.model||'').trim(),definition=FASHION_MODELS[name];
   if(!definition)fail(400,'Choose a supported virtual try-on model.');
