@@ -246,3 +246,19 @@ header .wrap.top{max-width:none;padding-inline:16px;min-height:48px}
 }
 
 #image-composer #composer-character-create[hidden]{display:none!important}
+
+/* Model changes share the compact baseline; attached photos add a reference row. */
+#image-composer.is-pv-soul .image-composer-top{min-height:0;flex-direction:column;align-items:stretch;gap:8px}
+#image-composer.is-pv-soul .composer-controls{min-height:0;height:auto}
+#image-composer.is-pv-soul .image-composer-references{flex:initial;width:100%;max-width:none;flex-wrap:wrap;overflow:visible;padding:2px 5px 4px;gap:10px}
+#image-composer.is-pv-soul .composer-reference-tile{flex-basis:58px;width:58px;height:62px;overflow:visible}
+#image-composer.is-seedream #composer-character{display:none!important}
+@media(min-width:900px){
+ #image-composer.is-pv-soul{padding:22px 24px;grid-template-rows:minmax(38px,auto) minmax(40px,auto);gap:8px 12px}
+ #image-composer.is-pv-soul #image-composer-prompt{padding:3px 0;box-sizing:border-box}
+ #image-composer.is-seedream{grid-template-columns:minmax(0,1fr) 144px}
+ #image-composer.is-seedream .image-composer-top{grid-column:1}
+ #image-composer.is-seedream .composer-generate{grid-column:2}
+ #image-composer.is-pv-soul.has-soul-source{grid-template-columns:minmax(0,1fr) 84px 144px}
+ #image-composer.is-pv-soul.has-soul-source .composer-generate{grid-column:3}
+}

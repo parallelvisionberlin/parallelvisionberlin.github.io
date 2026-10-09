@@ -311,8 +311,8 @@ function syncImageReferences(){
   const tray=$('image-composer-references');
   if(!tray)return;
   tray.replaceChildren();
-  if(tool!=='image'||isSoul2()||imageEngine==='soul'&&!isReinterpret()){tray.hidden=true;return;}
-  const items=[...references];
+  if(tool!=='image'||imageEngine==='soul'&&!isReinterpret()){tray.hidden=true;return;}
+  const items=isSoul2()?[]:[...references];
   if((imageEngine==='soulpro'||isReinterpret())&&sourceUrl)items.unshift({thumbUrl:sourceUrl,file:{name:'Base image'},isBase:true});
   for(let i=0;i<items.length;i++){
     const ref=items[i],tile=document.createElement('div');
@@ -334,7 +334,7 @@ function syncImageReferences(){
     }
     const marker=document.createElement('span');marker.className='composer-reference-index';
     marker.textContent=ref.isBase||ref.role==='base'?'BASE':ref.role&&ref.role!=='none'?ref.role.toUpperCase():String(i+1);
-    marker.setAttribute('aria-hidden','true');tile.append(marker);
+    marker.setAttribute('aria-hidden','true');if(isSoul2())marker.hidden=true;tile.append(marker);
     if(usesReferenceGuidance()&&(i>0||referencesOnly())){
       marker.hidden=true;
       const role=document.createElement('select');role.className='composer-reference-role';role.setAttribute('aria-label','Role for image '+(i+1));role.disabled=busy;
@@ -347,14 +347,16 @@ function syncImageReferences(){
       tile.onclick=()=>{if(!busy)$('soul-base-image').click();};
       tile.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();tile.click();}};
     }
-    if(!ref.isBase){
+    if(!ref.isBase||isSoul2()){
       const remove=document.createElement('button');
       remove.type='button';remove.className='composer-reference-remove';remove.textContent='×';
       remove.setAttribute('aria-label','Remove reference '+(i+1));
       remove.disabled=busy;
       const target=ref;
-      remove.onclick=()=>{
+      remove.onclick=e=>{
+        e.stopPropagation();
         if(busy)return;
+        if(target.isBase){file=null;sourceId=null;release(sourceUrl);sourceUrl=null;sourceWidth=0;sourceHeight=0;sourcePixels=0;update();return;}
         const idx=references.indexOf(target);if(idx<0)return;
         closeInputPreview();releaseReference(target);references.splice(idx,1);
         if(imageEngine==='fal')poseMapSourceId=null;
@@ -1917,9 +1919,9 @@ try{const {Clerk}=await import('https://esm.sh/@clerk/clerk-js@6?bundle');await 
 
 // Soul composer: independent scene and optional character, with visible output controls.
 function syncSoulBar(){
-  const active=isSoul2();imageComposer.classList.toggle('is-pv-soul',active);
+  const active=isSoul2();imageComposer.classList.toggle('is-pv-soul',active);imageComposer.classList.toggle('is-seedream',tool==='image'&&imageEngine==='seedream');imageComposer.classList.toggle('has-soul-source',active&&!!sourceUrl);
   document.querySelectorAll('.hf-bar-control').forEach(el=>el.hidden=!active);
-  $('hf-bar-source').hidden=!active;
+  $('hf-bar-source').hidden=!active||!!sourceUrl;
   if(!active)return;
   $('hf-bar-resolution').value=$('hf-resolution').value;
   const ratios=['16:9','9:16','4:3','3:4','1:1','2:3','3:2'];
