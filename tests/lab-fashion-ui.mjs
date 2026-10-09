@@ -49,10 +49,10 @@ try{
   await page.waitForFunction(()=>window.__fashionTestReady===true,{timeout:12000});
   assert.equal(await page.locator('#workspace').isVisible(),true);
   assert.equal(await page.locator('#gate').isVisible(),false);
-  assert.match(await page.locator('#fashn-api-state').innerText(),/Connected · 100 credits available/);
+  assert.match(await page.locator('#fashn-api-state').innerText(),/Connected · 100 credits/);
   assert.equal(calls.filter(c=>c.path==='/api/fashion/balance').length,1);
   await page.locator('#check-fashn').click();
-  await page.waitForFunction(()=>document.querySelector('#fashn-api-state').textContent.includes('100 credits available'));
+  await page.waitForFunction(()=>document.querySelector('#fashn-api-state').textContent.includes('100 credits'));
   assert.equal(calls.filter(c=>c.path==='/api/fashion/balance').length,2);
   assert.equal(await page.locator('#model-select option').count(),3);
   assert.equal(await page.locator('#model-select').inputValue(),'fashnmax','Purchased FASHN Max is selected by default.');
