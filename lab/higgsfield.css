@@ -66,3 +66,8 @@
 #image-composer:not(.is-pv-soul) .image-composer-toolbar{margin-top:6px}
 #image-composer #composer-generation-block[hidden]{display:none!important;margin:0!important;padding:0!important}
 #image-composer:not(.is-pv-soul) #image-composer-prompt{flex:none;box-sizing:border-box}
+
+#image-composer .composer-reference-tile[draggable=true]{cursor:grab}
+#image-composer .composer-reference-tile.is-reordering{opacity:.4;cursor:grabbing}
+#image-composer .composer-reference-tile.drop-before{box-shadow:-4px 0 0 #efb951}
+#image-composer .composer-reference-tile.drop-after{box-shadow:4px 0 0 #efb951}

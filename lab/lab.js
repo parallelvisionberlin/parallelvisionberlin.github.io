@@ -1,4 +1,4 @@
-import {createSoul2UI} from './higgsfield-ui.js?v=20261009-reference-bar';
+import {createSoul2UI} from './higgsfield-ui.js?v=20261009-drag-order';
 import {VIDEO_MODELS,engineFor,videoLabel} from './video-models.js?v=20261001-video-models2';
 import {REFERENCE_ROLES,REFERENCE_TARGETS,normalizeReferenceLabel,compileImagePrompt,referenceGuidanceError,canUseReferenceGuidance} from './reference-guidance.js?v=20261002-reference1';
 import {createMediaReferences} from './media-references.js?v=20260927-standard1';
@@ -270,6 +270,14 @@ function syncImageGalleryEmpty(){
   const imageCards=$('history').querySelectorAll('.card[data-kind="image"]').length;
   $('image-gallery-empty').hidden=imageCards>0;
 }
+let draggedComposerReference=null;
+function moveComposerReference(ref,target,after=false){
+  if(busy||ref===target)return;
+  const from=references.indexOf(ref);if(from<0||!references.includes(target))return;
+  references.splice(from,1);references.splice(references.indexOf(target)+(after?1:0),0,ref);
+  autoPreview=null;if(imageEngine==='fal')poseMapSourceId=null;
+  closeInputPreview();renderReferences();refreshInputPreview();update();
+}
 function syncImageReferences(){
   const tray=$('image-composer-references');
   if(!tray)return;
@@ -282,7 +290,19 @@ function syncImageReferences(){
     tile.className='composer-reference-tile';tile.title=ref.file?.name||'Reference image';
     const img=document.createElement('img');
     img.src=ref.thumbUrl||ref.url;img.alt=(ref.isBase?'Base image':'Image reference '+(i+1));
-    img.loading='lazy';img.decoding='async';tile.append(img);
+    img.loading='lazy';img.decoding='async';img.draggable=false;tile.append(img);
+    if(!ref.isBase){
+      tile.draggable=!busy;tile.tabIndex=0;tile.setAttribute('aria-label','Image '+(i+1)+'. Drag to reorder, or use Alt and arrow keys.');
+      tile.addEventListener('dragstart',e=>{
+        if(busy||e.target.closest('button,select')){e.preventDefault();return;}
+        draggedComposerReference=ref;e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/x-pv-reference',String(references.indexOf(ref)));tile.classList.add('is-reordering');
+      });
+      tile.addEventListener('dragover',e=>{if(!draggedComposerReference||draggedComposerReference===ref)return;e.preventDefault();e.stopPropagation();e.dataTransfer.dropEffect='move';const after=e.clientX>tile.getBoundingClientRect().left+tile.offsetWidth/2;tile.classList.toggle('drop-after',after);tile.classList.toggle('drop-before',!after);});
+      tile.addEventListener('dragleave',()=>tile.classList.remove('drop-before','drop-after'));
+      tile.addEventListener('drop',e=>{if(!draggedComposerReference)return;e.preventDefault();e.stopPropagation();const moving=draggedComposerReference;draggedComposerReference=null;const after=e.clientX>tile.getBoundingClientRect().left+tile.offsetWidth/2;moveComposerReference(moving,ref,after);});
+      tile.addEventListener('dragend',()=>{draggedComposerReference=null;tray.querySelectorAll('.composer-reference-tile').forEach(t=>t.classList.remove('is-reordering','drop-before','drop-after'));});
+      tile.addEventListener('keydown',e=>{if(e.target!==tile||!e.altKey||!['ArrowLeft','ArrowRight'].includes(e.key))return;e.preventDefault();const next=references.indexOf(ref)+(e.key==='ArrowLeft'?-1:1);if(references[next]){moveComposerReference(ref,references[next],e.key==='ArrowRight');tray.querySelectorAll('.composer-reference-tile')[next]?.focus();}});
+    }
     const marker=document.createElement('span');marker.className='composer-reference-index';
     marker.textContent=ref.isBase||ref.role==='base'?'BASE':ref.role&&ref.role!=='none'?ref.role.toUpperCase():String(i+1);
     marker.setAttribute('aria-hidden','true');tile.append(marker);
