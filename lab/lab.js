@@ -1306,7 +1306,7 @@ function executeImageDetail(fn){
 }
 async function useImageAsReference(job){
   if(!hasResult(job))throw new Error('Choose a completed image first.');
-  if(tool!=='image')setTool('image');
+  if(tool!=='image'||assetLibrary?.active())setTool('image');
   if(['soul','soulpro'].includes(imageEngine)){
     imageEngine='seedream';$('image-engine').value='seedream';setTool('image');
   }
@@ -1401,11 +1401,12 @@ async function openVideo(job,{scroll=true}={}){
   else{$('video').src=resultUrl;$('video').hidden=false;$('preview').hidden=true;}
   $('empty').hidden=true;$('download').hidden=false;$('download').textContent='Download '+kind+' / '+ext.toUpperCase();
   $('preview-label').textContent='Generated result / '+(kind==='image'?'Image':job.settings.duration+'s');update();
-  if(tool==='image'&&kind==='image'){
+  if((tool==='image'||assetLibrary?.active())&&kind==='image'){
     $('image-lightbox-img').src=resultUrl;
     showImageDetail(job,true);
     return;
   }
+  if(assetLibrary?.active()&&kind==='video'){$('asset-video-player').src=resultUrl;$('asset-video-dialog').showModal();return;}
   if(scroll&&tool==='video')videoFeedCenter.scrollTo({top:0,behavior:'smooth'});
   else if(scroll&&tool==='upscale')document.querySelector('.stage').scrollIntoView({behavior:'auto',block:'nearest'});
 }
@@ -1419,6 +1420,9 @@ async function downloadJob(job){
   saveDownload(url,job.outputId,ext);
   setTimeout(()=>{release(url);downloadUrls.delete(url);},30000);
 }
+$('asset-video-download').onclick=downloadResult;
+$('asset-video-close').onclick=()=>$('asset-video-dialog').close();
+$('asset-video-dialog').addEventListener('close',()=>{const v=$('asset-video-player');v.pause();v.removeAttribute('src');v.load();});
 $('download').onclick=downloadResult;
 $('image-lightbox-download').onclick=downloadResult;
 

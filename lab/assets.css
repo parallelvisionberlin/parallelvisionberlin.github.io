@@ -64,3 +64,7 @@ body:not(:has(#app.assets-active)) #assets-kind{display:none}
 #assets-gallery .history-head-actions{display:flex;align-items:center;justify-content:flex-end;gap:9px}
 #assets-gallery .history-head-actions button{white-space:nowrap}
 @media(max-width:640px){#assets-gallery .archivehead{display:flex;align-items:center}#assets-gallery .archivehead>div:last-child{flex:1 1 100%}#assets-gallery .history-head-actions{justify-content:flex-start}#assets-gallery #assets-kind{margin-right:auto}#assets-gallery .archivehead h2{font-size:21px}}
+
+#asset-video-dialog{width:min(1100px,calc(100vw - 32px));max-height:92vh;background:#111214;border:1px solid #3b3d41;border-radius:12px;padding:12px;color:white}
+#asset-video-player{display:block;width:100%;max-height:78vh;background:#080808}
+.asset-video-actions{display:flex;justify-content:flex-end;gap:8px;padding-bottom:10px}
