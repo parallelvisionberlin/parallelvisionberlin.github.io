@@ -55,7 +55,8 @@ document.addEventListener('DOMContentLoaded',()=>{
 <link rel="stylesheet" href="./image-studio.css?v=20261009-strength1">
 <link rel="stylesheet" href="./detail-video-studio.css?v=20261009-pointer1">
 <link rel="stylesheet" href="./editorial-polish.css?v=20261009-amber1">
-<script type="module" src="./lab.js?v=20261009-lora-source-guard1"></script>
+<script type="module" src="./lab.js?v=20261009-soul2"></script>
+<link rel="stylesheet" href="./higgsfield.css?v=20261009-soul2">
 </head>
 <body class="lab-booting">
 <div id="lab-boot" role="status" aria-live="polite" aria-label="Opening Parallel Vision Lab"><div class="lab-boot-content"><div class="lab-boot-brand" aria-label="Parallel Vision Lab"><img id="lab-boot-wordmark" src="./branding/pv-wordmark.png" alt="Parallel Vision" width="242" height="61" decoding="async"><span class="lab-boot-fallback" id="lab-boot-name">PARALLEL VISION</span><span class="lab-boot-sub">LAB <span aria-hidden="true">/</span> CREATIVE STUDIO</span></div><div class="lab-boot-track" aria-hidden="true"></div><p class="lab-boot-status" id="lab-boot-status">Opening your workspace</p><button id="lab-boot-retry" type="button" hidden>Reload page</button></div></div>
@@ -221,7 +222,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 <div class="workspace">
 <section class="controls" aria-label="Generation settings">
 <div class="controls-body">
-<div class="mode"><span id="mode-heading">01 / Image to Video</span><span class="engine-pill" id="engine-name">WAN 3.0</span><label id="image-model-control" class="mode-model-control" hidden><span class="label">Image model</span><select id="image-engine"><option value="seedream" selected>Seedream 5 Pro</option><option value="gemini">Nano Banana Pro</option><option value="soulpro">PV Soul · Photo edit</option><option value="soul">PV Soul · LoRA</option><option value="fal">Controlled Pose · FAL FLUX</option></select></label></div>
+<div class="mode"><span id="mode-heading">01 / Image to Video</span><span class="engine-pill" id="engine-name">WAN 3.0</span><label id="image-model-control" class="mode-model-control" hidden><span class="label">Image model</span><select id="image-engine"><option value="seedream" selected>Seedream 5 Pro</option><option value="gemini">Nano Banana Pro</option><option value="soulpro">Soul 2 · Photo edit</option><option value="soul">PV Soul · LoRA</option><option value="fal">Controlled Pose · FAL FLUX</option></select></label></div>
 <div id="video-model-control"><label><span class="label">Video model</span><select id="video-engine"><option value="wan">Wan 3.0</option><option value="wanprime">Wan 3.0 Prime</option><option value="h3">MiniMax H3</option><option value="h3max">MiniMax H3 Max</option><option value="h3spicy">MiniMax H3 Spicy</option><option value="h3maxfal">MiniMax H3 Max Reference · FAL</option><option value="omni">Gemini Omni Flash 1.1 · FAL</option><option value="seedance">Seedance 2.5</option></select></label><details class="model-details"><summary>About this model</summary><p id="video-model-note" class="fine">Standard model access. Provider policies and model refusals apply. No automatic model switching.</p></details></div>
 <div id="video-modes" class="mode-switch" role="tablist" aria-label="Generation mode">
 <button id="mode-text" class="mode-tab" type="button" role="tab" aria-selected="false" hidden>Text to Video</button>
@@ -292,9 +293,16 @@ document.addEventListener('DOMContentLoaded',()=>{
 <div id="soul-pro-settings" class="controlled-pose-settings" hidden>
 <div class="upload-heading"><span class="label">PV Soul Pro</span><span class="micro">NINA REINTERPRET</span></div>
 <p class="fine">Upload one base photograph. Its pose, body, camera, wardrobe and scene stay structural. Nina's identity is stored separately once and reused automatically on every render.</p>
-<div class="identity-profile-row"><div><strong>Nina FOK</strong><p id="soul-pro-identity-status" class="fine">Checking saved identity…</p></div><button id="soul-pro-identity-manage" type="button" class="quiet">Set / change identity</button></div>
-<label><span class="label">Identity engine</span><select id="soul-pro-model"><option value="ideogram45" selected>Ideogram 4.5 · Precise</option><option value="kontextmax">FLUX Kontext Max · Multi</option></select></label>
+<div id="soul-pro-reference-profile" class="identity-profile-row"><div><strong>Nina FOK</strong><p id="soul-pro-identity-status" class="fine">Checking saved identity…</p></div><button id="soul-pro-identity-manage" type="button" class="quiet">Set / change identity</button></div>
+<label><span class="label">Identity engine</span><select id="soul-pro-model"><option value="soul2" selected>Higgsfield Soul 2 · Soul ID</option><option value="ideogram45">Ideogram 4.5 · Precise</option><option value="kontextmax">FLUX Kontext Max · Multi</option></select></label>
 <label id="soul-pro-quality-row"><span class="label">Ideogram quality</span><select id="soul-pro-quality"><option value="medium" selected>Medium · $0.06</option><option value="high">High · $0.22</option><option value="low">Low · $0.03</option><option value="very_low">Very Low · $0.008</option></select></label>
+<div id="hf-settings" hidden>
+<div class="identity-profile-row"><p id="hf-status" class="fine">Create or choose a Soul ID.</p><button id="hf-manage" type="button" class="quiet">Soul IDs</button></div>
+<div id="hf-connection" class="fine">One-time setup: add your Higgsfield API credential as the Cloudflare Worker secret <code>HF_CREDENTIALS</code>. <a href="https://open.higgsfield.ai" target="_blank" rel="noopener">Open Higgsfield API</a>. Never paste a secret into chat.</div>
+<label><span class="label">Identity strength <output id="hf-strength-value">1.00</output></span><input id="hf-strength" type="range" min="0" max="1" step="0.05" value="1"></label>
+<label><span class="label">Soul 2 resolution</span><select id="hf-resolution"><option value="1080p">1080p · est. $0.0057 / image</option><option value="720p">720p · est. $0.0032 / image</option></select></label>
+<p class="fine">The base photograph supplies the scene. Soul ID supplies identity. Output uses the nearest supported source ratio. Visual preservation must be checked on the result.</p>
+</div>
 <p class="fine" id="soul-pro-note">Precise Edit keeps high edit precision. Medium quality is the default at $0.06; High is optional at $0.22.</p>
 <details class="seed-settings"><summary>Seed</summary><label><span class="label">Optional seed</span><input id="soul-pro-seed" type="number" min="0" max="2147483647" placeholder="Random"></label></details>
 </div>
@@ -437,7 +445,22 @@ document.addEventListener('DOMContentLoaded',()=>{
 <p id="repair-status" class="fine" role="status"></p>
 </dialog>
 <dialog id="input-preview-dialog" aria-labelledby="input-preview-title"><div class="dialoghead"><h2 id="input-preview-title">Input reference</h2><button class="quiet" data-close="input-preview-dialog" type="button">Close</button></div><p id="input-preview-description" class="fine"></p><img id="input-preview-image" alt="Uploaded input reference, not a generated result"></dialog>
+<dialog id="hf-dialog" aria-labelledby="hf-title">
+<div class="hf-head"><h2 id="hf-title">Your Soul IDs</h2><button id="hf-close" type="button" class="quiet">Close</button></div>
+<p class="fine">Create an identity here in PV Lab. Training and generation run on Higgsfield Soul 2.</p>
+<button id="hf-refresh" type="button" class="quiet">Refresh training status</button>
+<div id="hf-characters"></div>
+<hr><h3>Create a Soul ID</h3>
+<label><span class="label">Name</span><input id="hf-training-name" maxlength="100" placeholder="Nina FOK"></label>
+<label><span class="label">Identity photos · 1–100</span><input id="hf-training-files" type="file" accept="image/jpeg,image/png,image/webp" multiple></label>
+<p id="hf-training-count" class="fine">Choose clear photos of the same person.</p><div id="hf-training-preview"></div>
+<label><span class="label">Or use a saved photo pack</span><select id="hf-training-pack"><option value="">Upload new photos instead</option></select></label>
+<label class="hf-consent"><input id="hf-training-confirm" type="checkbox"><span>I authorize sending these photos to Higgsfield and the estimated $2.50 one-time Soul ID training charge. Provider billing is authoritative.</span></label>
+<button id="hf-training-submit" type="button" class="primary">Create Soul ID · est. $2.50</button>
+<p id="hf-training-status" class="fine" role="status"></p>
+</dialog>
 </body></html>
+
 
 
 

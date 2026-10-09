@@ -28,3 +28,7 @@ bucket_name = "parallel-vision-lab-private"
 # LAB_SECRET is a Cloudflare secret, never a committed variable.
 # Preserve it across deployments or existing API credentials cannot be decrypted.
 # FAL_KEY is also a Cloudflare secret. It is used only for PV Soul character training.
+
+
+# HF_CREDENTIALS is a Cloudflare secret: Higgsfield KEY_ID:KEY_SECRET.
+# Soul 2 stays unavailable until configured. Never commit its value.

@@ -1,3 +1,4 @@
+import {higgsfieldRoute,refreshHiggsfield,SOUL2_PRICES,soul2Parameters} from './higgsfield.mjs';
 import {publicSoulPresets} from './soul-presets.mjs';
 import {reinterpretParameters,buildReinterpretInput} from './soul-reinterpret.mjs';
 /* Parallel Vision Lab. Private owner-only workspace, no public media bucket.
@@ -11,7 +12,7 @@ import {findFalRequest} from './fal-recovery.mjs';
 import {falUploadImage} from './fal-storage.mjs';
 import {REFERENCE_ROLES,normalizeReferenceLabel,supportsReferenceGuidance,compileImagePrompt,canUseReferenceGuidance,referenceGuidanceError} from '../lab/reference-guidance.js';
 import {characterPreview as soulCharacterPreview,SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-09.1-lora-portraits';
+export const VERSION = 'pv-lab-2026-10-09.2-higgsfield-soul2';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -49,6 +50,7 @@ const first = (env,sql,...p) => stmt(env,sql,...p).first();
 const run = (env,sql,...p) => stmt(env,sql,...p).run();
 const rows = async (env,sql,...p) => (await stmt(env,sql,...p).all()).results;
 const uid = value => UUID.test(value || '') ? value : fail(400,'Invalid record identifier.');
+const hfDeps = () => ({fail,now,body,first,run,rows,config,source,sources,signedInput,jobView,copyResult,safeVideoUrl,storedImageDimensions});
 const soulDeps = () => ({fail,now,body,limitedBody,first,run,rows,uid,derived,base,unbase});
 function unbase(s) { return Uint8Array.from(atob(s.replace(/-/g,'+').replace(/_/g,'/').padEnd(Math.ceil(s.length/4)*4,'=')),c=>c.charCodeAt(0)); }
 function base(b) { let s=''; for(const n of new Uint8Array(b))s+=String.fromCharCode(n); return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
@@ -169,6 +171,7 @@ function parameters(value) {
   if(value.engine&&!['wan','wanprime','h3','h3max','h3spicy'].includes(value.engine)&&value.type!=='image')fail(400,'Unknown video model.');
   const prompt=typeof value.prompt==='string'?value.prompt.trim():'';
   const referenceRoles=referenceLabels(value.referenceRoles);
+  if(value.type==='image'&&value.engine==='soulpro'&&value.soulProModel==='soul2')return soul2Parameters(value,fail);
   if(value.type==='image'&&value.engine==='soulpro')return soulProParameters({...value,referenceRoles},{fail,referenceLabels});
   if(value.type==='image'&&value.engine==='fal')return value.mode==='controlled-repair'?controlledRepairParameters({...value,referenceRoles},{fail}):controlledPoseParameters({...value,referenceRoles},{fail});
   if(value.type==='image'&&value.engine==='soul'){
@@ -234,6 +237,7 @@ function assembledPrompt(p) {
   return prompt;
 }
 async function prepareInput(env,owner,data,p,url) {
+  if(p.provider==='higgsfield'){if(url)fail(400,'Use the Soul 2 generation route.');const primary=await source(env,owner,data.sourceId);return {primary,input:{}};}
   if(p.mode==='upscale'&&p.provider==='fal'){
     if(data.lastSourceId||data.referenceSourceIds?.length||data.transferSourceIds?.length)fail(400,'Topaz uses one original source image and no extra references or compressed working copies.');
     const prepared=await readFalUpscaleSource(env,owner,data.sourceId);
@@ -416,7 +420,7 @@ async function media(request,env,a) {
 function jobView(j) {return {id:j.id,sourceId:j.source_id,settings:JSON.parse(j.params),status:j.state,outputId:j.output_id,estimatedUsd:j.estimate_microusd>0?j.estimate_microusd/1000000:null,settledUsd:j.settled_cost,providerTaskId:j.provider_id,error:j.error,createdAt:j.created_at,updatedAt:j.updated_at};}
 function safeVideoUrl(value) {
   const u=new URL(value);const host=u.hostname.toLowerCase();
-  if(u.protocol!=='https:'||u.username||u.password||(u.port&&u.port!=='443')||!(host==='spicyapi.ai'||host.endsWith('.spicyapi.ai')||host==='fal.media'||host.endsWith('.fal.media')||host.endsWith('.r2.cloudflarestorage.com')||host.endsWith('.cloudfront.net')))throw new Error('Unexpected provider output location.');
+  if(u.protocol!=='https:'||u.username||u.password||(u.port&&u.port!=='443')||!(host==='spicyapi.ai'||host.endsWith('.spicyapi.ai')||host==='higgsfield.ai'||host.endsWith('.higgsfield.ai')||host==='fal.media'||host.endsWith('.fal.media')||host.endsWith('.r2.cloudflarestorage.com')||host.endsWith('.cloudfront.net')))throw new Error('Unexpected provider output location.');
   return u.href;
 }
 async function copyResult(env,j,url) {
@@ -790,6 +794,7 @@ async function refreshJob(env,j) {
     catch(e){const detail=String(e?.message||'temporary archive error').replace(/[\r\n]/g,' ').slice(0,220);await run(env,'UPDATE jobs SET error=?,updated_at=? WHERE id=?','Archive retry: '+detail+' The provider result is safe; generation slots are released while saving retries.',now(),j.id);}
     return;
   }
+  if(params.provider==='higgsfield')return refreshHiggsfield(env,j,params,hfDeps());
   if(params.provider==='fal')return refreshFalJob(env,j,params);
   const lock=await run(env,'UPDATE jobs SET last_poll=? WHERE id=? AND last_poll<?',now(),j.id,now()-8000);
   if(!lock.meta.changes)return;
@@ -914,10 +919,11 @@ async function route(request,env,ctx) {
   if(url.pathname.startsWith('/soul-weight/')&&(request.method==='GET'||request.method==='HEAD'))return publicSoulWeight(request,env,url,soulDeps());
   if(!url.pathname.startsWith('/api/'))fail(404,'Not found.');
   const owner=await authenticate(request,env),path=url.pathname,method=request.method;
+  if(path.startsWith('/api/higgsfield/'))return json(await higgsfieldRoute(request,env,owner,url,hfDeps()),request.method==='POST'?202:200);
   if(path==='/api/session'&&method==='GET'){
     await run(env,"DELETE FROM spend WHERE owner_id=? AND job_id IN (SELECT id FROM jobs WHERE owner_id=? AND state='failed' AND COALESCE(json_extract(params,'$.provider'),'')='fal')",owner,owner);
     const c=await config(env,owner),spent=await first(env,'SELECT COALESCE(SUM(estimate_microusd),0) AS n FROM spend WHERE owner_id=? AND created_at>=?',owner,Math.floor(now()/86400000)*86400000);
-    return json({owner:true,ownerId:owner,version:VERSION,config:{...publicConfig(c,!!env.FAL_KEY),geminiEnabled:!!env.GEMINI_API_KEY,soulTrainingEnabled:!!env.FAL_KEY,soulReinterpretEnabled:true,soulPresets:publicSoulPresets(),falEnabled:!!env.FAL_KEY},estimatedSpentToday:spent.n/1000000});
+    return json({owner:true,ownerId:owner,version:VERSION,config:{...publicConfig(c,!!env.FAL_KEY),higgsfieldEnabled:!!env.HF_CREDENTIALS,higgsfieldPrices:SOUL2_PRICES,geminiEnabled:!!env.GEMINI_API_KEY,soulTrainingEnabled:!!env.FAL_KEY,soulReinterpretEnabled:true,soulPresets:publicSoulPresets(),falEnabled:!!env.FAL_KEY},estimatedSpentToday:spent.n/1000000});
   }
   if(path==='/api/soul-pro/identity'&&method==='GET'){
     const pack=await first(env,'SELECT id,refs,created_at FROM packs WHERE owner_id=? AND name=? ORDER BY created_at DESC LIMIT 1',owner,SOUL_PRO_IDENTITY_PACK);
@@ -1230,7 +1236,7 @@ async function route(request,env,ctx) {
       const kind=JSON.parse(q.params).type==='image'?'image':'video';
       // Reserve both a per-kind slot and spending atomically. Concurrent tabs cannot overbook.
       // Other providers do not consume SpicyAPI slots or block them with interrupted jobs, including legacy rows without a provider field.
-      const spicySql="NOT (COALESCE(json_extract(params,'$.provider'),'') IN ('gemini','fal') OR COALESCE(json_extract(params,'$.engine'),'') IN ('gemini','fal','soulpro','h3maxfal','omni') OR COALESCE(json_extract(params,'$.model'),'') LIKE 'gemini-%' OR COALESCE(json_extract(params,'$.model'),'') LIKE 'fal-ai/%')";
+      const spicySql="NOT (COALESCE(json_extract(params,'$.provider'),'') IN ('gemini','fal','higgsfield') OR COALESCE(json_extract(params,'$.engine'),'') IN ('gemini','fal','soulpro','h3maxfal','omni') OR COALESCE(json_extract(params,'$.model'),'') LIKE 'gemini-%' OR COALESCE(json_extract(params,'$.model'),'') LIKE 'fal-ai/%')";
       const inserted=await run(env,"INSERT INTO jobs(id,owner_id,source_id,quote_id,params,state,estimate_microusd,created_at,updated_at) SELECT ?,?,?,?,?,'submitting',?,?,? WHERE NOT EXISTS(SELECT 1 FROM jobs WHERE owner_id=? AND state='uncertain' AND "+spicySql+") AND (SELECT COUNT(*) FROM jobs WHERE owner_id=? AND state IN ('submitting','queued','running','uncertain') AND "+spicySql+" AND CASE WHEN json_extract(params,'$.type')='image' THEN 'image' ELSE 'video' END=?)<? AND (SELECT COALESCE(SUM(estimate_microusd),0) FROM spend WHERE owner_id=? AND created_at>=?)+?<=?",id,owner,q.source_id,q.id,q.params,q.estimate_microusd,t,t,owner,owner,kind,CONCURRENCY[kind],owner,day,q.estimate_microusd,c.daily_limit_microusd);
       if(!inserted.meta.changes){
         const uncertain=(await first(env,"SELECT COUNT(*) AS n FROM jobs WHERE owner_id=? AND state='uncertain' AND "+spicySql,owner)).n;
@@ -1342,4 +1348,5 @@ export default {
   },
   async scheduled(event,env,ctx) {ctx.waitUntil(maintenance(env));}
 };
+
 
