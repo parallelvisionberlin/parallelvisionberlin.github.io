@@ -390,6 +390,7 @@ function syncImageComposer(){
   $('image-composer-more').hidden=imageEngine==='seedream'||isSoul2()&&!hf.current();
   if(imageEngine==='seedream')toggleImageSettings(false);
   $('image-composer-add').hidden=imageEngine==='soul'&&!isReinterpret();
+  $('composer-character').setAttribute('aria-label',imageEngine==='soul'||imageEngine==='soulpro'?'Choose character':'Saved reference photos');
   const generate=$('image-composer-generate');
   generate.disabled=$('generate').disabled;
   generate.textContent=imageSubmissionPending?'Sending…':$('generate').textContent;

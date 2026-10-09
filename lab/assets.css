@@ -177,3 +177,25 @@ header .wrap.top{max-width:none;padding-inline:16px;min-height:48px}
 #image-composer .composer-model-pill{font-size:14px}
 .composer-model-option .composer-model-info strong{font-size:14px;line-height:1.35}
 .composer-model-option .composer-model-info small{font-size:12px;line-height:1.4}
+
+/* A tighter dock: quiet controls and one clear generation action. */
+#image-composer{background:linear-gradient(110deg,#151719,#252729);border-color:#45484b;box-shadow:0 12px 38px #0006,inset 0 1px #ffffff08}
+#image-composer .composer-model-pill,#image-composer .composer-settings-pill,#image-composer .composer-select-pill{border-radius:9px;border-color:#383a37;background:#232523;box-shadow:none}
+#image-composer .composer-add{border-radius:9px;background:#232523;border-color:#383a37;box-shadow:none}
+#image-composer .composer-generate{border-radius:13px;font-weight:600;box-shadow:none!important}
+#image-composer .composer-select-pill select{font-size:13px;font-weight:550}
+@media(min-width:900px){
+ #image-composer:not(.is-pv-soul){display:grid;grid-template-columns:minmax(0,1fr) 44px 144px;grid-template-rows:minmax(38px,auto) 40px;gap:8px 12px;padding:22px 24px;border-radius:25px}
+ #image-composer:not(.is-pv-soul) .image-composer-top{grid-column:1/3;grid-row:1;gap:8px}
+ #image-composer:not(.is-pv-soul) .image-composer-toolbar{display:contents}
+ #image-composer:not(.is-pv-soul) .composer-controls{display:flex;align-items:center;flex-wrap:wrap;gap:7px;grid-column:1;grid-row:2;min-width:0}
+ #image-composer:not(.is-pv-soul) .composer-flex{display:none}
+ #image-composer:not(.is-pv-soul) #composer-character{grid-column:2;grid-row:2;width:40px;height:40px;min-height:40px;border-radius:9px;align-self:center}
+ #image-composer:not(.is-pv-soul) #composer-character-name{display:none}
+ #image-composer:not(.is-pv-soul) #composer-character-photo{font-size:20px}
+ #image-composer:not(.is-pv-soul) .composer-generate{grid-column:3;grid-row:1/3;align-self:stretch;min-width:0;width:144px;min-height:84px;font-size:15px}
+ #image-composer:not(.is-pv-soul) #composer-generation-block,#image-composer:not(.is-pv-soul) #image-composer-status{grid-column:1/-1}
+ #image-composer:not(.is-pv-soul) #image-composer-prompt{min-height:38px;padding:3px 0}
+ #image-composer.is-pv-soul{padding:20px 24px;border-radius:25px;grid-template-columns:minmax(0,1fr) 80px 96px 144px;gap:8px 12px}
+ #image-composer.is-pv-soul #composer-character,#image-composer.is-pv-soul .hf-source-card{border-radius:12px}
+}
