@@ -339,3 +339,12 @@ details.image-detail-card dl{margin:12px 0 0}
 #app .generate-zone .generate-button:focus-visible{
   outline:2px solid #ffe1af!important;outline-offset:3px;
 }
+
+/* Pearl-white file-drop feedback across the whole image deck. */
+#image-composer{transition:border-color .18s ease,box-shadow .18s ease}
+#image-composer.is-dragging{
+  border-color:#fff;
+  background:linear-gradient(115deg,rgba(255,255,255,.10),rgba(255,255,255,.025) 32%,transparent 60%),linear-gradient(125deg,#232426,#191a1c);
+  box-shadow:0 0 0 1px rgba(255,255,255,.75),0 0 18px rgba(255,255,255,.18),0 0 40px rgba(255,255,255,.07),inset 0 1px 0 rgba(255,255,255,.42),inset 0 -1px 0 rgba(255,255,255,.08),0 25px 82px rgba(0,0,0,.75);
+}
+@media(prefers-reduced-motion:reduce){#image-composer{transition:none}}
