@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 <link rel="stylesheet" href="./editorial-polish.css?v=20261009-amber1">
 <script type="module" src="./lab.js?v=20261009-assets3"></script>
 <link rel="stylesheet" href="./higgsfield.css?v=20261009-background-submit">
-<link rel="stylesheet" href="./assets.css?v=20261009-assets1">
+<link rel="stylesheet" href="./assets.css?v=20261009-header-queue">
 </head>
 <body class="lab-booting">
 <div id="lab-boot" role="status" aria-live="polite" aria-label="Opening Parallel Vision Lab"><div class="lab-boot-content"><div class="lab-boot-brand" aria-label="Parallel Vision Lab"><img id="lab-boot-wordmark" src="./branding/pv-wordmark.png" alt="Parallel Vision" width="242" height="61" decoding="async"><span class="lab-boot-fallback" id="lab-boot-name">PARALLEL VISION</span><span class="lab-boot-sub">LAB <span aria-hidden="true">/</span> CREATIVE STUDIO</span></div><div class="lab-boot-track" aria-hidden="true"></div><p class="lab-boot-status" id="lab-boot-status">Opening your workspace</p><button id="lab-boot-retry" type="button" hidden>Reload page</button></div></div>
@@ -67,7 +67,22 @@ document.addEventListener('DOMContentLoaded',()=>{
 })();
 </script>
 <a class="skip" href="#main">Skip to workspace</a>
-<header><div class="wrap top"><a class="brand" href="/" aria-label="Parallel Vision home"><img class="brand-icon" src="./branding/pv-mark.png" alt="" width="42" height="42"><img class="brand-wordmark" src="./branding/pv-wordmark.png" alt="" width="152" height="38"><span class="brand-lab">LAB</span></a><div class="actions"><span class="eyebrow" id="identity">Private workspace</span><details class="account-menu"><summary>Account</summary><div class="account-options"><button id="connection" class="quiet" hidden>Connection</button><button id="logout" class="quiet" hidden>Sign out</button></div></details></div></div></header>
+<header><div class="wrap top"><a class="brand" href="/" aria-label="Parallel Vision home"><img class="brand-icon" src="./branding/pv-mark.png" alt="" width="42" height="42"><img class="brand-wordmark" src="./branding/pv-wordmark.png" alt="" width="152" height="38"><span class="brand-lab">LAB</span></a><div class="actions"><span class="eyebrow" id="identity">Private workspace</span><details id="active" class="queue-popover" hidden>
+      <summary aria-label="Show live generation queue">
+        <span class="queue-status-dot" aria-hidden="true"></span>
+        <span class="queue-summary-title">Queue</span>
+        <span class="queue-summary-chevron" aria-hidden="true">⌄</span>
+      </summary>
+      <div class="queue-popover-panel">
+        <div class="queue-popover-heading">
+          <strong>Live queue</strong>
+          <span id="queue-count" aria-live="polite">0 jobs</span>
+        </div>
+        <p id="active-status" class="queue-capacity"></p>
+        <p class="fine" id="active-detail" aria-live="polite"></p>
+        <button id="resolve" class="quiet" type="button" hidden>Resolve interrupted request</button>
+      </div>
+    </details><details class="account-menu"><summary>Account</summary><div class="account-options"><button id="connection" class="quiet" hidden>Connection</button><button id="logout" class="quiet" hidden>Sign out</button></div></details></div></div></header>
 <main class="wrap" id="main">
 
 <section id="gate" class="gate" hidden><div class="intro"><div><p class="eyebrow">Private creative workspace</p><h1>Parallel Vision Lab</h1></div><p class="intro-note">Create, queue and refine.<br>Keep working while jobs run.</p></div><p class="eyebrow">Owner access</p><h2>Your private image and motion studio.</h2><p id="auth-status" role="status">Loading your Parallel Vision sign-in…</p><button id="signin" class="primary" disabled>Sign in</button><button id="auth-retry" type="button" class="quiet" hidden>Reload page</button><p class="fine">Use the same owner account as Nina. No new subscription.</p></section>
@@ -80,26 +95,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     <button id="tool-upscale" class="tool-tab" type="button" aria-pressed="false">Upscaler</button>
     <button id="tool-assets" type="button" aria-pressed="false">Assets</button>
   </div>
-  <div class="tool-status">
-    <span class="tool-caption">PARALLEL VISION LAB</span>
-    <details id="active" class="queue-popover" hidden>
-      <summary aria-label="Show live generation queue">
-        <span class="queue-status-dot" aria-hidden="true"></span>
-        <span class="queue-summary-title">Queue</span>
-        <span id="queue-count" aria-live="polite">0 jobs</span>
-        <span class="queue-summary-chevron" aria-hidden="true">⌄</span>
-      </summary>
-      <div class="queue-popover-panel">
-        <div class="queue-popover-heading">
-          <strong>Live queue</strong>
-          <span>Requests and status</span>
-        </div>
-        <p id="active-status" class="queue-capacity"></p>
-        <p class="fine" id="active-detail" aria-live="polite"></p>
-        <button id="resolve" class="quiet" type="button" hidden>Resolve interrupted request</button>
-      </div>
-    </details>
-  </div>
+
 </nav>
 <section id="image-studio" class="image-studio" aria-label="Image creation studio" hidden>
   <div class="image-gallery-shell">
