@@ -25,6 +25,7 @@ await page.waitForFunction(()=>[...document.querySelectorAll('#history img')].ev
 await page.click('#image-composer-model');await page.locator('.composer-model-option[data-value="soulpro"]').click();
 await page.click('#image-composer-model');await page.locator('.composer-model-option[data-value="seedream"]').click();
 assert.equal(await beforeModel.evaluate(el=>el.isConnected),true,'Switching models preserves existing gallery cards');assert.equal(modelReloads,0,'Model switching does not reload History or images');page.off('request',trackModel);
+await page.setViewportSize({width:1440,height:1000});
 const compactDockHeight=(await page.locator('#image-composer').boundingBox()).height;assert.equal(await page.locator('#composer-character').isVisible(),false,'Seedream has no duplicate right-side plus');
 const generateBeforeRefs=await page.locator('#image-composer-generate').boundingBox();
 await page.locator('#reference-images').setInputFiles([{name:'face.png',mimeType:'image/png',buffer:png},{name:'body.png',mimeType:'image/png',buffer:png}]);
