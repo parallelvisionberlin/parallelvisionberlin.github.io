@@ -46,11 +46,11 @@ jobs:
           for attempt in $(seq 1 12); do
             curl --fail --silent --show-error --max-time 18 \
               -H 'Cache-Control: no-cache' \
-              "https://parallelvisionlabel.com/lab/fashion.html?pv-check=graphite-20261010-${attempt}" -o /tmp/pv-fashion.html
-            if grep -Fq 'fashion.css?v=20261010-graphite01' /tmp/pv-fashion.html; then
+              "https://parallelvisionlabel.com/lab/fashion.html?pv-check=ghost-icons-20261010-${attempt}" -o /tmp/pv-fashion.html
+            if grep -Fq 'fashion.css?v=20261010-fashion-ghost01' /tmp/pv-fashion.html; then
               published=1; break
             fi
-            echo "Waiting for GitHub Pages to publish Fashion graphite (attempt ${attempt}/12)"
+            echo "Waiting for GitHub Pages to publish Fashion ghost icons (attempt ${attempt}/12)"
             sleep 5
           done
           if [ "$published" != 1 ]; then echo "The live HTML remains the prior version."; exit 1; fi
@@ -59,12 +59,15 @@ jobs:
           grep -o 'fashion.css?v=[^"]*' /tmp/pv-fashion.html | head -1 || true
           grep -Fq 'Replace <em>outfit.</em>' /tmp/pv-fashion.html
           grep -Fq '<option value="fashnmax" selected>' /tmp/pv-fashion.html
-          grep -Fq 'fashion.css?v=20261010-graphite01' /tmp/pv-fashion.html
+          grep -Fq 'fashion.css?v=20261010-fashion-ghost01' /tmp/pv-fashion.html
           grep -Fq '<meta name="theme-color" content="#101114">' /tmp/pv-fashion.html
+          grep -Fq 'class="empty-art empty-art-person"' /tmp/pv-fashion.html
+          grep -Fq 'class="empty-art empty-art-garment"' /tmp/pv-fashion.html
+          grep -Fq 'class="empty-art empty-art-result"' /tmp/pv-fashion.html
           grep -Fq 'id="person-slot"' /tmp/pv-fashion.html
           grep -Fq 'id="garment-slot"' /tmp/pv-fashion.html
           grep -Fq 'id="result-stage"' /tmp/pv-fashion.html
           if grep -Fq 'editorial-reference' /tmp/pv-fashion.html; then
             echo "Unexpected decorative image in actual result panel"; exit 1
           fi
-          echo "Published graphite Fashion Studio verified. No paid provider calls."
+          echo "Published Fashion ghost icons verified. No paid provider calls."
