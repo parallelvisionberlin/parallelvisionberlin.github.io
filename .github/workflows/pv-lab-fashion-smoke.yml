@@ -21,6 +21,15 @@ jobs:
         run: |
           set -euo pipefail
           gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/deploy-lab-worker.yml/runs?per_page=8" --jq '.workflow_runs[] | [.id,.created_at,.head_sha,.status,(.conclusion // "pending")] | @tsv'
+      - name: Inspect GitHub Pages source and live cache headers
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo 'GitHub Pages settings:'
+          gh api "repos/${GITHUB_REPOSITORY}/pages" --jq '{build_type: .build_type, source: .source, html_url: .html_url, status: .status}' || true
+          echo 'Live HTML headers:'
+          curl -fsSI --max-time 15 "https://parallelvisionlabel.com/lab/fashion.html?diagnostic=20261009" | grep -iE '^(HTTP/|server:|last-modified:|etag:|cf-cache-status:|cache-control:|age:|x-github-request-id:)' || true
       - name: Verify deployed Worker version without credentials
         shell: bash
         run: |
