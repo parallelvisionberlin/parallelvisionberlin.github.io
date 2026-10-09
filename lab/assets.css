@@ -329,9 +329,9 @@ body:has(#app.image-studio-active) #main.wrap,
 body:has(#app.assets-active) #main.wrap{--studio-inset:0px}
 body #main.wrap:has(>#app.video-studio-active){--studio-inset:12px}
 body #main #app>.tool-switch{
-  box-sizing:border-box;flex:0 0 48px;height:48px;min-height:48px;
+  box-sizing:border-box;flex:0 0 42px;height:42px;min-height:42px;
   width:calc(100% + var(--studio-inset) + var(--studio-inset));
-  margin:0 calc(0px - var(--studio-inset));padding:6px 16px;
+  margin:0 calc(0px - var(--studio-inset));padding:3px 16px;
   align-items:center;justify-content:flex-start;overflow:visible;
 }
 body #main #app>.tool-switch>.tool-group{
