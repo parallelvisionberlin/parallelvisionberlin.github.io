@@ -14,6 +14,14 @@ Owner-only fashion tools. This feature does not add customer accounts, a public 
 
 **Cloudflare:** https://dash.cloudflare.com/ . Select the account, Workers & Pages > parallel-vision-lab > Settings > Variables and Secrets. Add a secret, save and deploy the Worker with its existing D1, R2, owner DB bindings and LAB_SECRET preserved. Do not create a new Nina database. Existing GitHub Actions deploy workflow on main detects changes under lab-worker; it does not automatically create new secrets.
 
+## Verify that the key is actually connected, without buying an image
+1. Open `https://parallelvisionlabel.com/lab/fashion.html`, sign in to the existing owner account.
+2. The FASHN API connection strip makes one owner-authorized read-only request to `/api/fashion/balance`.
+3. The Worker contacts `GET https://api.fashn.ai/v1/credits` with its `FASHN_API_KEY` secret.
+4. A response like `Connected · 100 credits available (100 on-demand)` confirms the key and provider balance without any generation charge.
+5. If it reports an invalid key, revisit the existing Cloudflare secret under Workers & Pages > parallel-vision-lab > Settings > Variables and Secrets, then re-deploy. Do not expose or paste the secret.
+6. Fashion generations remain paid actions requiring image uploads, a separate estimate review and an explicit confirmation.
+
 ## FASHN direct on-demand cost table
 Each API credit costs published $0.075 on-demand; one generated image only:
 
