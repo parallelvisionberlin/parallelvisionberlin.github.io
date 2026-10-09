@@ -1,3 +1,4 @@
+import {ensureGalleryDimensions} from './gallery-dimensions.mjs';
 // Account-scoped organization. Membership never copies or alters media files.
 export async function ensureLibrary(env){
   await env.LAB_DB.batch([
@@ -51,5 +52,7 @@ export async function libraryJobs(env,owner,url,{rows,uid,fail,jobView}){
   if(['image','video'].includes(kind)){clauses.push("json_extract(j.params,'$.type')=?");args.push(kind);}
   const list=await rows(env,`SELECT j.*,EXISTS(SELECT 1 FROM library_favorites f WHERE f.owner_id=j.owner_id AND f.job_id=j.id) AS favorite FROM jobs j WHERE ${clauses.join(' AND ')} ORDER BY j.created_at DESC,j.id DESC LIMIT 21`,...args);
   const more=list.length>20;if(more)list.pop();const last=list.at(-1);
+  // Resolve stored output geometry before returning any cards. Cache it once per asset.
+  for(let i=0;i<list.length;i+=4)await Promise.all(list.slice(i,i+4).map(j=>ensureGalleryDimensions(env,j)));
   return {jobs:list.map(j=>({...jobView(j),favorite:!!j.favorite})),next:more?{before:last.created_at,afterId:last.id}:null};
 }

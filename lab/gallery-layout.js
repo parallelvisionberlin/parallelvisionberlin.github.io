@@ -18,8 +18,7 @@ function layout(){
   };
   for(const card of cards){
     if(getComputedStyle(card).display==='none')continue;
-    const img=card.querySelector('.history-media.is-result img');
-    const ratio=img?.naturalWidth&&img.naturalHeight?img.naturalWidth/img.naturalHeight:Number(card.dataset.ratio)||16/9;
+    const ratio=Number(card.dataset.ratio)||16/9;
     // End the row nearest the target height, without stretching a lone portrait.
     if(row.length&&sum*target+gap*(row.length-1)<width&&(sum+ratio)*target+gap*row.length>=width){
       const before=(width-gap*(row.length-1))/sum;
@@ -34,5 +33,5 @@ function layout(){
 new ResizeObserver(schedule).observe(gallery);
 new MutationObserver(schedule).observe(gallery,{childList:true});
 new MutationObserver(schedule).observe(document.getElementById('app'),{attributes:true,attributeFilter:['class']});
-gallery.addEventListener('load',schedule,true);
+// Image decoding never changes geometry. The API supplies stored dimensions.
 schedule();
