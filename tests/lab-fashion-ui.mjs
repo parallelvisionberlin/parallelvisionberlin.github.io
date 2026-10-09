@@ -60,6 +60,31 @@ try{
   assert.equal(await page.locator('#fashn16-options').isVisible(),false);
   assert.match(await page.locator('#fashion-title').innerText(),/replace outfit/i);
   assert.equal(await page.locator('#editorial-reference').count(),0,'No unrelated fashion image masquerading as an output.');
+  const icons=await page.evaluate(()=>{
+    const find=id=>{
+      const svg=document.querySelector('#'+id+' svg.empty-art');
+      if(!svg)return null;
+      const style=getComputedStyle(svg);
+      return {role:svg.getAttribute('aria-hidden'),width:svg.getBoundingClientRect().width,
+        opacity:parseFloat(style.opacity),strokeWidth:parseFloat(style.strokeWidth),
+        paths:[...svg.querySelectorAll('path')].map(path=>path.getAttribute('d'))};
+    };
+    return {person:find('person-hint'),garment:find('garment-hint'),result:find('result-placeholder')};
+  });
+  for(const [kind,spec] of Object.entries(icons)){
+    assert.ok(spec,'Missing ghost icon for '+kind);
+    assert.equal(spec.role,'true',kind+' artwork must remain decorative for screen readers');
+    assert.ok(spec.width>=70,kind+' ghost icon needs a visible editorial footprint');
+    assert.ok(spec.opacity>=.18&&spec.opacity<=.32,kind+' icon must remain a low-opacity outline');
+    assert.ok(spec.strokeWidth<=1.4,kind+' icon must use a delicate stroke');
+    assert.ok(spec.paths.length>=2,kind+' icon needs recognizable vector geometry');
+  }
+  assert.notDeepEqual(icons.person.paths,icons.garment.paths,'Person and garment need distinct fashion-specific artwork');
+  assert.notDeepEqual(icons.garment.paths,icons.result.paths,'Result needs a distinct transformation/artwork frame');
+  assert.equal(await page.locator('.upload-icon').count(),0,'Generic oversized plus glyphs must be replaced');
+  assert.match(await page.locator('#person-hint').innerText(),/Portrait or full-body photo/);
+  assert.match(await page.locator('#garment-hint').innerText(),/Flat garment or outfit reference/);
+  assert.equal(await page.locator('#result-placeholder').isVisible(),true,'Empty result prompt stays visible before rendering');
   const desktop=await page.evaluate(()=>{
     const rect=selector=>{const r=document.querySelector(selector).getBoundingClientRect();return{top:r.top,bottom:r.bottom,left:r.left,right:r.right,width:r.width}};
     return{
@@ -97,11 +122,21 @@ try{
   assert.ok(desktop.controls.top>desktop.person.bottom,'Advanced controls stay below the work imagery.');
   mkdirSync('test-results',{recursive:true});
   await page.screenshot({path:'test-results/pv-fashion-editorial-desktop.png',fullPage:true});
+  await page.setViewportSize({width:390,height:844});
+  assert.equal(await page.locator('#person-hint svg.empty-art').isVisible(),true,'Person ghost image remains visible on mobile');
+  assert.equal(await page.locator('#garment-hint svg.empty-art').isVisible(),true,'Garment ghost image remains visible on mobile');
+  assert.equal(await page.locator('#result-placeholder svg.empty-art').isVisible(),true,'Result icon remains visible on mobile');
+  await page.screenshot({path:'test-results/pv-fashion-ghost-mobile.png',fullPage:true});
+  await page.setViewportSize({width:1440,height:900});
   await page.locator('#model-select').selectOption('fashnmax');
   assert.equal(await page.locator('#quote').isEnabled(),false);
   const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+Xfy8AAAAASUVORK5CYII=','base64');
   await page.setInputFiles('#person-file',{name:'synthetic-person.png',mimeType:'image/png',buffer:png});
   await page.setInputFiles('#garment-file',{name:'synthetic-jacket.png',mimeType:'image/png',buffer:png});
+  assert.equal(await page.locator('#person-hint').isVisible(),false,'Person ghost artwork disappears after upload');
+  assert.equal(await page.locator('#garment-hint').isVisible(),false,'Garment ghost artwork disappears after upload');
+  assert.equal(await page.locator('#person-preview').isVisible(),true);
+  assert.equal(await page.locator('#garment-preview').isVisible(),true);
   assert.equal(await page.locator('#quote').isEnabled(),true);
   await page.locator('#quote').click();
   await page.waitForFunction(()=>!document.querySelector('#quote-box').hidden);
@@ -123,7 +158,7 @@ try{
   assert.equal(await page.locator('#result-stage').isVisible(),true);
   await page.screenshot({path:'test-results/pv-fashion-editorial-mobile.png',fullPage:true});
   assert.deepEqual(errors,[]);
-  console.log('PASS graphite Fashion matches Video palette and header, keeps photo-first desktop/mobile geometry, FASHN Max and no-cost price review.');
+  console.log('PASS distinct low-opacity Fashion ghost icons, upload visibility, desktop/mobile layout, FASHN Max and no-cost review.');
 }finally{
   await browser.close();await new Promise(ok=>server.close(ok));
 }
