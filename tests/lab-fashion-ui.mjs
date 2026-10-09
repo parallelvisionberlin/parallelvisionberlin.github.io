@@ -10,10 +10,16 @@ assert.ok(playwrightPath,'Install Playwright and set PV_PLAYWRIGHT_MODULE.');
 const {chromium}=await import(pathToFileURL(playwrightPath).href);
 const root=resolve('.');
 const source=readFileSync('lab/fashion.js','utf8');
-const boot=source.indexOf("try{\n  const {Clerk}=await import(");
-assert.ok(boot>0,'Fashion client owner bootstrap marker must be present.');
-const testSource=source.slice(0,boot)+
-  "clerk={isSignedIn:true,user:{id:'synthetic-owner'},session:{id:'mock-session',getToken:async()=> 'mock.jwt.token'},signOut:async()=>{}};await sync();window.__fashionTestReady=true;\n";
+const autoStart="if(document.getElementById('fashion-form'))createFashionStudio();";
+assert.ok(source.includes(autoStart),'Expected current Fashion studio startup marker.');
+// Keep the whole production module intact and inject the synthetic owner via the
+// supported studio factory. Cutting the older inline Clerk bootstrap leaves an
+// unterminated module after the studio was refactored to createFashionStudio().
+const testSource=source.replace(autoStart,
+  "if(document.getElementById('fashion-form')){"+
+  "const studio=createFashionStudio(document,{sessionClient:{isSignedIn:true,user:{id:'synthetic-owner'},session:{id:'mock-session',getToken:async()=> 'mock.jwt.token'},signOut:async()=>{}}});"+
+  "studio.ready.then(()=>{window.__fashionTestReady=true;}).catch(e=>{window.__fashionTestError=String(e);});"+
+  "}");
 const types={'.html':'text/html','.js':'text/javascript','.css':'text/css','.png':'image/png','.jpg':'image/jpeg','.webp':'image/webp'};
 const server=http.createServer((req,res)=>{
   const url=new URL(req.url,'http://localhost'),path=resolve(root,'.'+url.pathname);
@@ -46,7 +52,16 @@ await page.route('https://**/*',async route=>{
 });
 try{
   await page.goto('http://127.0.0.1:'+port+'/lab/fashion.html',{waitUntil:'domcontentloaded'});
-  await page.waitForFunction(()=>window.__fashionTestReady===true,{timeout:12000});
+  try{
+    await page.waitForFunction(()=>window.__fashionTestReady===true,null,{timeout:15000});
+  }catch(e){
+    const debug=await page.evaluate(()=>({
+      authStatus:document.getElementById('auth-status')?.textContent,
+      startupError:window.__fashionTestError||null,
+      htmlLoaded:!!document.getElementById('fashion-form')
+    })).catch(()=>({}));
+    throw new Error('Fashion mock session did not initialize: '+JSON.stringify({debug,pageErrors:errors,apiCalls:calls})+'; '+e.message);
+  }
   assert.equal(await page.locator('#workspace').isVisible(),true);
   assert.equal(await page.locator('#gate').isVisible(),false);
   assert.match(await page.locator('#fashn-api-state').innerText(),/Connected · 100 credits/);
