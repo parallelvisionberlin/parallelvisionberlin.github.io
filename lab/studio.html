@@ -55,10 +55,10 @@ document.addEventListener('DOMContentLoaded',()=>{
 <link rel="stylesheet" href="./image-studio.css?v=20261009-strength1">
 <link rel="stylesheet" href="./detail-video-studio.css?v=20261009-pointer1">
 <link rel="stylesheet" href="./editorial-polish.css?v=20261009-amber1">
-<script type="module" src="./lab.js?v=20261009-video-refresh2"></script>
+<script type="module" src="./lab.js?v=20261009-extend1"></script>
 <link rel="stylesheet" href="./higgsfield.css?v=20261009-background-submit">
 <link rel="stylesheet" href="./assets.css?v=20261009-upscale-refresh2">
-<link rel="stylesheet" href="./video-refresh.css?v=20261009-1">
+<link rel="stylesheet" href="./video-refresh.css?v=20261009-extend1">
 <script type="module" src="./gallery-layout.js?v=20261009-stable-gallery"></script>
 </head>
 <body class="lab-booting">
@@ -228,7 +228,8 @@ document.addEventListener('DOMContentLoaded',()=>{
 <section class="controls" aria-label="Generation settings">
 <div class="controls-body">
 <div class="mode"><span id="mode-heading">01 / Image to Video</span><span class="engine-pill" id="engine-name">WAN 3.0</span><label id="image-model-control" class="mode-model-control" hidden><span class="label">Image model</span><select id="image-engine"><option value="seedream" selected>Seedream 5 Pro</option><option value="flash">Seedream Flash</option><option value="kling">Kling V3</option><option value="gemini">Nano Banana Pro</option><option value="soulpro">PV Soul</option><option value="soul" hidden>PV Soul · LoRA</option><option value="fal">Controlled Pose · FAL FLUX</option></select></label></div>
-<div id="video-model-control"><label><span class="label">Video model</span><select id="video-engine"><option value="seedance" selected>Seedance 2.5</option><option value="wan">Wan 3.0</option><option value="wanprime">Wan 3.0 Prime</option><option value="h3">MiniMax H3</option><option value="h3max">MiniMax H3 Max</option><option value="h3spicy">MiniMax H3 Spicy</option><option value="h3maxfal">MiniMax H3 Max Reference · FAL</option><option value="omni">Gemini Omni Flash 1.1 · FAL</option></select></label><details class="model-details"><summary>About this model</summary><p id="video-model-note" class="fine">Standard model access. Provider policies and model refusals apply. No automatic model switching.</p></details></div>
+<div id="video-model-control"><span class="video-model-kicker" aria-hidden="true">GENERAL</span><label><span class="label">Video model</span><select id="video-engine"><option value="seedance" selected>Seedance 2.5</option><option value="wan">Wan 3.0</option><option value="wanprime">Wan 3.0 Prime</option><option value="h3">MiniMax H3</option><option value="h3max">MiniMax H3 Max</option><option value="h3spicy">MiniMax H3 Spicy</option><option value="h3maxfal">MiniMax H3 Max Reference · FAL</option><option value="omni">Gemini Omni Flash 1.1 · FAL</option></select></label><details class="model-details"><summary>About this model</summary><p id="video-model-note" class="fine">Standard model access. Provider policies and model refusals apply. No automatic model switching.</p></details></div>
+<div id="video-task-switch" role="tablist" aria-label="Video task" hidden><button id="video-create-task" type="button" role="tab" aria-selected="true">References</button><button id="mode-extend" type="button" role="tab" aria-selected="false">Extend video</button></div>
 <div id="video-modes" class="mode-switch" role="tablist" aria-label="Generation mode">
 <button id="mode-text" class="mode-tab" type="button" role="tab" aria-selected="false" hidden>Text</button>
 <button id="mode-start" class="mode-tab active" type="button" role="tab" aria-selected="true">Start frame</button>
@@ -250,17 +251,17 @@ document.addEventListener('DOMContentLoaded',()=>{
 </div>
 </div>
 </div>
-<div id="reference-mode" class="mode-panel" hidden>
+<div id="reference-mode" class="mode-panel" hidden><p id="extend-help" class="fine" hidden>Upload one clip and describe what happens next. The continuation uses its framing.</p>
 <div class="upload-heading"><span class="label">Reference images</span><span class="micro" id="ref-count">0 / 10</span></div>
 <label class="drop reference-drop" id="reference-drop"><span>Add identity, wardrobe or set references</span><small>Up to 10 images</small><input id="reference-images" type="file" multiple accept="image/jpeg,image/png,image/webp"></label>
 <p id="reference-progress" class="fine" role="status" aria-live="polite"></p>
 <div id="reference-list" class="reference-list" role="region" aria-label="Input references" tabindex="0"></div>
 <div id="reference-media" hidden>
-<div class="upload-heading"><span class="label">Video references</span><span class="micro" id="video-ref-count">0 / 10 · 0 / 30s</span></div>
-<label class="drop compact-drop"><span>Add motion or camera references</span><small>MP4 / MOV · 20 MiB each · 2 to 30 seconds</small><input id="video-references" type="file" multiple accept="video/mp4,video/quicktime"></label>
+<div class="upload-heading video-media-heading"><span class="label" id="video-media-label">Video references</span><span class="micro" id="video-ref-count">0 / 10 · 0 / 30s</span></div>
+<label id="video-media-drop" class="drop compact-drop"><span id="video-media-title">Add motion or camera references</span><small>MP4 / MOV · 20 MiB each · 2 to 30 seconds</small><input id="video-references" type="file" multiple accept="video/mp4,video/quicktime"></label>
 <div id="video-reference-list" class="reference-media-list"></div>
-<div class="upload-heading"><span class="label">Audio references</span><span class="micro" id="audio-ref-count">0 / 10 · 0 / 30s</span></div>
-<label class="drop compact-drop"><span>Add sound or music references</span><small>MP3 / WAV · 15 MiB each · 2 to 30 seconds</small><input id="audio-references" type="file" multiple accept="audio/mpeg,audio/wav,audio/x-wav"></label>
+<div class="upload-heading audio-media-heading"><span class="label">Audio references</span><span class="micro" id="audio-ref-count">0 / 10 · 0 / 30s</span></div>
+<label class="drop compact-drop audio-media-drop"><span>Add sound or music references</span><small>MP3 / WAV · 15 MiB each · 2 to 30 seconds</small><input id="audio-references" type="file" multiple accept="audio/mpeg,audio/wav,audio/x-wav"></label>
 <div id="audio-reference-list" class="reference-media-list"></div>
 <p class="fine">Up to 30 seconds combined per media type. Video references may add billable seconds; the live quote controls the maximum charge. History and Reuse retain every reference. Named packs below save images only.</p>
 </div>

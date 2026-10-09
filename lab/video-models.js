@@ -49,9 +49,9 @@ export const VIDEO_MODELS = Object.freeze({
   }),
   seedance: Object.freeze({
     label: 'Seedance 2.5', minSeconds: 4, maxSeconds: 30, maxImages: 30,
-    modes: ['start', 'reference', 'text'], resolutions: ['480p', '720p', '1080p'],
+    modes: ['start', 'reference', 'text', 'extend'], resolutions: ['480p', '720p', '1080p'],
     ratios: ['auto', '21:9', '16:9', '9:16', '1:1', '4:3', '3:4'],
-    endpoints: {start: 'bytedance/seedance-2.5/image-to-video', reference: 'bytedance/seedance-2.5/reference-to-video', text: 'bytedance/seedance-2.5/text-to-video'}
+    endpoints: {start: 'bytedance/seedance-2.5/image-to-video', reference: 'bytedance/seedance-2.5/reference-to-video', text: 'bytedance/seedance-2.5/text-to-video', extend: 'bytedance/seedance-2.5/video-extend'}
   })
 });
 export function engineFor(settings = {}) {

@@ -37,7 +37,8 @@ export async function hfRequest(env,path,{input,idempotencyKey}={}){
   if(!env.HF_CREDENTIALS){const e=new Error('Connect the Higgsfield API in the Worker secret HF_CREDENTIALS first.');e.definite=true;throw e;}
   const headers={'Authorization':'Key '+env.HF_CREDENTIALS,'Content-Type':'application/json'};
   if(idempotencyKey)headers['Idempotency-Key']=idempotencyKey;
-  const r=await fetch(higgsfieldApiUrl(path),{method:input?'POST':'GET',headers,body:input?JSON.stringify(input):undefined,redirect:'error',signal:AbortSignal.timeout(25000)});
+  const r=await fetch(higgsfieldApiUrl(path),{method:input?'POST':'GET',headers,body:input?JSON.stringify(input):undefined,redirect:'manual',signal:AbortSignal.timeout(25000)});
+  if(r.status>=300&&r.status<400){const e=new Error('Higgsfield returned an unexpected redirect.');e.definite=true;throw e;}
   if(!r.ok){
     // Do not echo provider response bodies, which can include signed media URLs.
     const messages={401:'API credentials were rejected.',402:'Add API credit in Higgsfield.',403:'This API account does not have access.',422:'Higgsfield rejected the input. Check the model settings.',429:'Higgsfield capacity is full. Try again later.'};
@@ -53,7 +54,7 @@ async function reserve(env,owner,sourceId,p,estimate,d){
   if(!inserted.meta.changes){await run(env,'DELETE FROM quotes WHERE id=?',quoteId);fail(409,'Nothing submitted: check Higgsfield requests in History, the two-request capacity, and your daily spending limit.');}
   return first(env,'SELECT * FROM jobs WHERE id=? AND owner_id=?',id,owner);
 }
-async function submit(env,j,p,input,d){
+export async function submitHiggsfieldJob(env,j,p,input,d){
   const {run,first,now}=d;let started=false,accepted=false,providerId=null;
   try{
     await run(env,'UPDATE quotes SET payload=? WHERE id=?',JSON.stringify({input,model:p.model}),j.quote_id);
@@ -77,7 +78,7 @@ export async function refreshHiggsfield(env,j,p,d){
     const r=await hfRequest(env,p.mode===TRAIN?'/v1/custom-references/'+j.provider_id:p.statusUrl),state=String(r.status||'');
     if(state==='completed'){
       if(p.mode===TRAIN){await run(env,"UPDATE jobs SET state='completed',error='',updated_at=? WHERE id=?",now(),j.id);return;}
-      const output=r.images?.[0]?.url;if(!output)throw new Error('Higgsfield completed without an image.');
+      const output=p.type==='video'?(r.video?.url||r.videos?.[0]?.url):r.images?.[0]?.url;if(!output)throw new Error('Higgsfield completed without the expected media.');
       const safe=d.safeVideoUrl(output);
       await run(env,"UPDATE jobs SET state='saving',remote_url=?,error='',updated_at=? WHERE id=?",safe,now(),j.id);
       await d.copyResult(env,j,safe);return;
@@ -110,7 +111,7 @@ export async function higgsfieldRoute(request,env,owner,url,d){
     const input={name,model_version:'v2',input_images:await Promise.all(refs.map(async a=>({type:'image_url',image_url:await signedInput(env,url,a.id,86400)})))};
     const p={provider:'higgsfield',engine:'soulpro',soulProModel:'soul2',type:'image',mode:TRAIN,model:'soul-id',characterName:name,referenceSourceIds:refs.map(a=>a.id),resolution:'training',aspectRatio:'source',prompt:'Train Soul ID: '+name};
     const j=await reserve(env,owner,refs[0].id,p,SOUL2_PRICES.training,d);
-    return {job:jobView(await submit(env,j,p,input,d))};
+    return {job:jobView(await submitHiggsfieldJob(env,j,p,input,d))};
   }
   if(path==='/api/higgsfield/generate'&&request.method==='POST'){
     const data=await body(request),p=soul2Parameters(data.settings,fail),character=p.characterId?await first(env,"SELECT * FROM jobs WHERE id=? AND owner_id=? AND state='completed' AND json_extract(params,'$.provider')='higgsfield' AND json_extract(params,'$.mode')=?",p.characterId,owner,TRAIN):null;
@@ -136,7 +137,7 @@ export async function higgsfieldRoute(request,env,owner,url,d){
     if(estimate>SOUL2_PRICES[p.resolution])fail(409,'Your Higgsfield account estimates $'+quote.usd+' for this image, above the displayed rate. Nothing generated or charged. Review your API account pricing first.');
     p.accountEstimateUsd=Number(quote.usd);
     const j=await reserve(env,owner,base?.id||null,p,estimate,d);
-    return {job:jobView(await submit(env,j,p,input,d))};
+    return {job:jobView(await submitHiggsfieldJob(env,j,p,input,d))};
   }
   fail(404,'Unknown Higgsfield route.');
 }

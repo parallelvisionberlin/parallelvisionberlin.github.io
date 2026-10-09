@@ -23,7 +23,7 @@ test('default ratio and nearest source aspect ratio',()=>{assert.equal(soul2Rati
 test('credential-bearing requests stay on the official API host',async()=>{
   assert.throws(()=>higgsfieldApiUrl('https://attacker.example/requests/test/status'));assert.throws(()=>higgsfieldApiUrl('https://api.higgsfield.ai@attacker.example/'));
   const previous=globalThis.fetch;let calls=0;
-  globalThis.fetch=async(url,opts)=>{calls++;assert.equal(new URL(url).origin,'https://api.higgsfield.ai');assert.equal(opts.headers.Authorization,'Key test:secret');assert.equal(opts.headers['Idempotency-Key'],id);assert.equal(opts.redirect,'error');return Response.json({request_id:id});};
+  globalThis.fetch=async(url,opts)=>{calls++;assert.equal(new URL(url).origin,'https://api.higgsfield.ai');assert.equal(opts.headers.Authorization,'Key test:secret');assert.equal(opts.headers['Idempotency-Key'],id);assert.equal(opts.redirect,'manual');return Response.json({request_id:id});};
   try{await assert.rejects(()=>hfRequest({},'/x'),/not connected|Connect/);assert.equal(calls,0);await hfRequest({HF_CREDENTIALS:'test:secret'},'/higgsfield-ai/soul/v2/image-to-image',{input:{prompt:'test'},idempotencyKey:id});assert.equal(calls,1);}finally{globalThis.fetch=previous;}
 });
 test('ambiguous server errors never become definite failures; validation failures do',async()=>{
@@ -72,3 +72,5 @@ test('training, owned identity, source generation, budget and ambiguous submissi
     const other={...input,settings:{...input.settings,characterId:asset}};await assert.rejects(()=>invoke('/api/higgsfield/generate',other),/completed Soul 2/);
   }finally{globalThis.fetch=previous;db.close();}
 });
+
+test('Higgsfield redirects are rejected without following credentials',async()=>{const original=globalThis.fetch;let calls=0;globalThis.fetch=async()=>{calls++;return new Response(null,{status:302,headers:{location:'https://attacker.example'}});};try{await assert.rejects(()=>hfRequest({HF_CREDENTIALS:'test:secret'},'/test',{input:{}}),e=>e.definite===true);assert.equal(calls,1);}finally{globalThis.fetch=original;}});

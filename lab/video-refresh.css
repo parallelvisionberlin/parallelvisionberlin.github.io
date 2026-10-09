@@ -80,3 +80,43 @@
 @media(min-width:1700px){#app.video-studio-active>.workspace.video-layout{grid-template-columns:325px minmax(0,1fr) 250px}}
 @media(max-width:1160px){#app.video-studio-active>.workspace.video-layout{grid-template-columns:300px minmax(0,1fr)}#app.video-studio-active .workspace.video-layout>.video-inspector{display:none!important}}
 @media(max-width:820px){#main:has(>#app.video-studio-active){padding:0 10px}#app.video-studio-active>.workspace.video-layout{display:flex!important;height:auto;min-height:0;overflow:visible;gap:12px}#app.video-studio-active .workspace.video-layout>.controls{height:auto;min-height:0;width:100%}#app.video-studio-active .workspace.video-layout .controls-body{overflow:visible;padding:16px;gap:12px}#app.video-studio-active .workspace.video-layout .generate-zone{padding:12px 16px}#app.video-studio-active .controls textarea#prompt{height:130px;min-height:130px}#app.video-studio-active .video-feed-center{height:auto;overflow:visible;padding:0}#app.video-studio-active .video-feed-center>.stage{height:clamp(320px,58dvh,600px)}#app.video-studio-active .workspace.video-layout>.video-inspector{display:flex!important;height:auto;border:1px solid #292b30;border-radius:12px}#app.video-studio-active .video-inspector-body{overflow:visible}#app.video-studio-active .video-feed-center #history{grid-template-columns:1fr}#app.video-studio-active .tool-switch{padding-inline:0}}
+/* Model first, then a focused references or continuation workspace. */
+.video-model-kicker{display:none}
+#app.video-studio-active #video-model-control{order:1;position:relative;min-height:124px;padding:55px 14px 12px;background:linear-gradient(0deg,#080a0be8,#080a0b40),url('../assets/optimized/video/fashion-after-fabric/artists/elorian/multionetwo-poster.webp') center 35%/cover;border:0;border-radius:12px;isolation:isolate}
+#app.video-studio-active .video-model-kicker{display:block;font-size:19px;line-height:1.1;font-weight:600;letter-spacing:-.04em;color:#f2f0e9;margin-bottom:5px}
+#app.video-studio-active #video-model-control>label>.label{display:none}
+#app.video-studio-active #video-engine{font-size:14px;color:#fff;text-shadow:0 1px 4px #000;background:#1118;border-radius:4px;padding-left:5px}
+#app.video-studio-active .model-details{display:none}
+#app.video-studio-active #video-task-switch{order:2;display:flex;gap:4px;padding:5px;background:#202124;border-radius:10px}
+#app.video-studio-active #video-task-switch button{flex:1;min-height:36px;border:0;border-radius:7px;background:transparent;color:#a7a8ac;font:500 13px 'DM Sans',sans-serif}
+#app.video-studio-active #video-task-switch button[aria-selected="true"]{background:#353639;color:#fff}
+#app.video-studio-active #video-modes{order:3;border:0;padding:0;margin:0}
+#app.video-studio-active #video-modes .mode-tab{font-size:11px;min-height:28px;padding:6px 4px;background:transparent}
+#app.video-studio-active #video-modes .mode-tab.active{background:#242629}
+#app.video-studio-active #start-mode,#app.video-studio-active #reference-mode{order:4}
+#app.video-studio-active #prompt-label{order:5}
+#app.video-studio-active .workspace.video-layout .controls textarea#prompt{order:6;min-height:130px;height:130px;border-radius:10px}
+#app.video-studio-active .controls-body>.parameter-grid{order:7}
+#app.video-studio-active #video-utilities{order:8}
+#app.video-studio-active #reference-mode{padding:12px;border:1px dashed #393b40;border-radius:12px;background:#1c1e21}
+#app.video-studio-active #reference-drop{min-height:60px;padding:10px;border:0;background:#27292d;border-radius:9px;font-size:12px}
+#app.video-studio-active #reference-drop small{font-size:10px}
+#app.video-studio-active #reference-list{display:flex;flex-wrap:wrap;gap:8px;max-height:none;overflow:visible;padding:0;margin:8px 0}
+#app.video-studio-active .reference-item{display:flex;flex-wrap:wrap;gap:4px;width:72px;padding:0;border:0;background:transparent}
+#app.video-studio-active .reference-item img{width:72px;height:72px;object-fit:cover;border-radius:9px}
+#app.video-studio-active .reference-fields{display:none}
+#app.video-studio-active .reference-actions{display:flex;gap:2px;flex-wrap:wrap}
+#app.video-studio-active .reference-actions button{font-size:9px;padding:3px 4px;border-radius:4px;min-width:0}
+#app.video-studio-active #reference-help,#app.video-studio-active .pack-bar,#app.video-studio-active #reference-media>p{display:none}
+#app.video-studio-active #reference-media{margin-top:10px}
+#app.video-studio-active #reference-media .upload-heading{margin:10px 0 5px}
+#app.video-studio-active #reference-media .drop{min-height:48px;padding:9px;border-radius:8px;font-size:11px}
+#app.video-studio-active #reference-media .drop small{font-size:9px}
+#app.video-studio-active .reference-media-list{max-height:none;overflow:visible;margin:6px 0}
+#app.video-studio-active .reference-media-item{padding:7px;border-radius:8px}
+#app.video-studio-active .reference-media-item strong{font-size:10px}
+#app.video-studio-active .reference-media-item video{max-height:145px;border-radius:6px}
+#app.video-extend-active #reference-mode>.upload-heading,#app.video-extend-active #reference-drop,#app.video-extend-active #reference-list,#app.video-extend-active #reference-progress,#app.video-extend-active .audio-media-heading,#app.video-extend-active .audio-media-drop,#app.video-extend-active #audio-reference-list{display:none!important}
+#app.video-extend-active #extend-help{font:400 12px/1.5 'DM Sans',sans-serif;color:#b8bbc1;margin:0 0 12px}
+#app.video-extend-active #video-media-drop{min-height:94px!important}
+#app.video-studio-active [hidden]{display:none!important}
