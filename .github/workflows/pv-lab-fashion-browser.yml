@@ -25,3 +25,13 @@ jobs:
         env:
           PV_PLAYWRIGHT_MODULE: /tmp/pv-fashion-browser/node_modules/playwright/index.mjs
         run: node tests/lab-fashion-ui.mjs
+
+      - name: Capture desktop/mobile verification screens
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pv-fashion-editorial-previews
+          retention-days: 2
+          path: |
+            test-results/pv-fashion-editorial-desktop.png
+            test-results/pv-fashion-editorial-mobile.png
