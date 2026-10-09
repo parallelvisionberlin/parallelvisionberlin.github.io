@@ -395,3 +395,9 @@ body:has(#app.fashion-studio-active)>footer{display:none}
 .fashion-loading{display:flex;align-items:center;justify-content:center;gap:14px;min-height:320px;color:#a4a8b0;font:400 12px 'DM Sans',Arial,sans-serif}
 .fashion-loading img{opacity:.3;animation:pv-preview-pulse 1.8s ease-in-out infinite alternate}
 @media(prefers-reduced-motion:reduce){.fashion-loading img{animation:none}}
+
+@media(max-width:360px){
+  body #main #app>.tool-switch>.tool-group>:is(button,a){
+    flex:1 1 0;min-width:0;width:auto;padding-inline:4px;
+  }
+}

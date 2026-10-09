@@ -246,6 +246,7 @@ for(const width of [768,390,320]){
   await page.setViewportSize({width,height:844});
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'Fashion fits viewport '+width+' '+JSON.stringify(await page.evaluate(()=>[...document.querySelectorAll('body *'),...document.querySelector('#fashion-studio').shadowRoot.querySelectorAll('*')].map(el=>({tag:el.tagName,id:el.id,class:el.className,x:el.getBoundingClientRect().x,right:el.getBoundingClientRect().right,w:el.getBoundingClientRect().width})).filter(r=>r.w&&r.right>innerWidth+1).slice(0,18))));
 }
+assert.ok((await page.locator('#tool-fashion').boundingBox()).x+(await page.locator('#tool-fashion').boundingBox()).width<=320,'All five tabs fit the narrow mobile viewport');
 console.log('FASHION_IN_STUDIO_MOBILE='+Buffer.from(await page.screenshot({type:'jpeg',quality:75,fullPage:true})).toString('base64'));
 await page.setViewportSize({width:1440,height:1000});
 await page.click('#tool-assets');
