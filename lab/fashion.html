@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Bodoni+Moda:ital,opsz,wght@1,6..96,400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./fashion.css?v=20261010-graphite01">
+<link rel="stylesheet" href="./fashion.css?v=20261010-fashion-ghost01">
 <script type="module" src="./fashion.js?v=20261009-atelier01"></script>
 </head>
 <body>
@@ -49,14 +49,28 @@
       <input id="person-file" type="file" accept="image/jpeg,image/png,image/webp" aria-label="Upload the person photograph" required>
       <span class="slot-number" aria-hidden="true">01</span>
       <img id="person-preview" alt="Person photograph preview" hidden>
-      <span class="slot-invite" id="person-hint"><span class="upload-icon" aria-hidden="true">+</span><strong>Add person</strong><small>Drop image or browse</small></span>
+      <span class="slot-invite" id="person-hint">
+       <svg class="empty-art empty-art-person" viewBox="0 0 96 112" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+        <path d="M48 16.5c-10.8 0-18.5 9.4-18.5 21.1S37.2 59 48 59s18.5-9.7 18.5-21.4S58.8 16.5 48 16.5Z"/>
+        <path d="M37 56.5v8c0 3.3-2.1 5.6-6.3 6.9l-8.1 3.2C12.2 79 9 88 9 100h78c0-12-3.2-21-13.6-25.4l-8.1-3.2c-4.2-1.3-6.3-3.6-6.3-6.9v-8"/>
+        <path d="m31 71 17 20 17-20"/>
+       </svg>
+       <strong>Add person</strong><small>Portrait or full-body photo</small>
+      </span>
       <span class="slot-caption">PERSON <span aria-hidden="true">↗</span></span>
      </label>
      <label class="image-slot" id="garment-slot">
       <input id="garment-file" type="file" accept="image/jpeg,image/png,image/webp" aria-label="Upload the garment reference photograph" required>
       <span class="slot-number" aria-hidden="true">02</span>
       <img id="garment-preview" alt="Garment reference preview" hidden>
-      <span class="slot-invite" id="garment-hint"><span class="upload-icon" aria-hidden="true">+</span><strong>Add garment</strong><small>Drop image or browse</small></span>
+      <span class="slot-invite" id="garment-hint">
+       <svg class="empty-art empty-art-garment" viewBox="0 0 96 112" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+        <path d="m35 17-16 9-10 33 13 5 5-19 1 54h40l1-54 5 19 13-5-10-33-16-9-8 12H43Z"/>
+        <path d="m35 17 8 12 5 27 5-27 8-12M48 56v43"/>
+        <path d="M32 72h9m14 0h9"/>
+       </svg>
+       <strong>Add garment</strong><small>Flat garment or outfit reference</small>
+      </span>
       <span class="slot-caption">GARMENT <span aria-hidden="true">↗</span></span>
      </label>
     </div>
@@ -113,9 +127,15 @@
    <div class="section-header result-header"><h2>02 <span>/</span> Result</h2><span>OUTPUT PHOTOGRAPH</span></div>
    <div id="result-stage" class="result-stage">
     <div id="result-placeholder" class="result-placeholder">
-     <svg viewBox="0 0 56 56" width="56" height="56" aria-hidden="true" fill="none"><path d="M8 20V8h12M36 8h12v12M48 36v12H36M20 48H8V36" stroke="currentColor" stroke-width=".7"/><path d="M28 21v14M21 28h14" stroke="currentColor" stroke-width=".65"/></svg>
+     <svg class="empty-art empty-art-result" viewBox="0 0 96 112" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+      <path class="art-secondary" d="M17 77V16h56"/>
+      <path d="M25 24h55v72H25Z"/>
+      <circle cx="52.5" cy="49" r="8"/>
+      <path d="M37 79c0-9.5 6-15 15.5-15S68 69.5 68 79"/>
+      <path class="art-secondary" d="M69 31h5v5"/>
+     </svg>
      <strong>YOUR RESULT APPEARS HERE</strong>
-     <small>One look at a time</small>
+     <small>One generated look at a time</small>
     </div>
     <img id="result-image" alt="Completed fashion try-on image" hidden>
    </div>
