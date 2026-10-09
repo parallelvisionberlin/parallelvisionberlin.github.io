@@ -1,0 +1,41 @@
+name: One-time Fashion Pages rebuild
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/pv-fashion-pages-rebuild.yml'
+permissions:
+  contents: read
+  pages: write
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Inspect current Pages state
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo 'GitHub Pages settings:'
+          gh api "repos/${GITHUB_REPOSITORY}/pages" --jq '{build_type,source,status}'
+          echo 'Latest Pages builds:'
+          gh api "repos/${GITHUB_REPOSITORY}/pages/builds?per_page=4" --jq '.[] | [.commit,.status,.created_at] | @tsv'
+      - name: Request a new Pages build
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api --method POST "repos/${GITHUB_REPOSITORY}/pages/builds" --jq '{status,url}'
+      - name: Verify live graphite Fashion page (read only)
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 20); do
+            curl --fail --silent --show-error --max-time 15 -H 'Cache-Control: no-cache' "https://parallelvisionlabel.com/lab/fashion.html?graphite-verify=${attempt}" -o /tmp/fashion.html
+            if grep -Fq 'fashion.css?v=20261010-graphite01' /tmp/fashion.html; then
+              grep -Fq '<meta name="theme-color" content="#101114">' /tmp/fashion.html
+              echo 'LIVE: Fashion dark graphite version published successfully.'
+              exit 0
+            fi
+            echo "Waiting for GitHub Pages (attempt ${attempt}/20)"
+            sleep 8
+          done
+          echo 'New Fashion stylesheet is not live yet.'
+          exit 1
