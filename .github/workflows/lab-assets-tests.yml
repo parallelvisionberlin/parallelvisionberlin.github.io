@@ -1,7 +1,7 @@
 name: Lab asset library tests
 on:
   push:
-    paths: ['lab/assets.*', 'lab/lab.js', 'lab/index.html', 'lab-worker/asset-library.mjs', 'tests/lab-assets*', 'tests/lab-reference-mode*', 'lab/reference-guidance.js', '.github/workflows/lab-assets-tests.yml']
+    paths: ['lab/assets.*', 'lab/lab.js', 'lab/index.html', 'lab-worker/asset-library.mjs', 'tests/lab-assets*', 'tests/lab-reference-mode*', 'tests/lab-image-models*', 'lab-worker/image-models.mjs', 'lab/reference-guidance.js', '.github/workflows/lab-assets-tests.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -16,6 +16,7 @@ jobs:
           node-version: '24'
       - run: node tests/lab-assets.test.mjs
       - run: node --test tests/lab-reference-mode.test.mjs
+      - run: node tests/lab-image-models.test.mjs
       - run: npm install --no-save --package-lock=false playwright
       - run: npx playwright install --with-deps chromium
       - run: node tests/lab-assets-ui.cjs

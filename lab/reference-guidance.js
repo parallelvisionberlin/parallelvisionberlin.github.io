@@ -23,7 +23,7 @@ const descriptions = Object.freeze({
   none:'No role assigned. Use only if the requested edit explicitly identifies a contribution from this reference.'
 });
 export function supportsReferenceGuidance(p){
-  return p?.type==='image' && p.mode==='image' && (!p.engine || ['seedream','gemini'].includes(p.engine));
+  return p?.type==='image' && p.mode==='image' && (!p.engine || ['seedream','gemini','flash','kling'].includes(p.engine));
 }
 export function normalizeReferenceLabel(x){
   const role=REFERENCE_ROLES.some(([id])=>id===x?.role)?x.role:'none';

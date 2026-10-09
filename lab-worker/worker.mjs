@@ -1,3 +1,4 @@
+import {IMAGE_PRICES,IMAGE_RATIOS,imageModelParameters,buildImageModelInput,requestFlash} from './image-models.mjs';
 import {ensureGalleryDimensions} from './gallery-dimensions.mjs';
 import {libraryRoute,libraryJobs} from './asset-library.mjs';
 import {higgsfieldRoute,refreshHiggsfield,SOUL2_PRICES,soul2Parameters} from './higgsfield.mjs';
@@ -14,7 +15,7 @@ import {findFalRequest} from './fal-recovery.mjs';
 import {falUploadImage} from './fal-storage.mjs';
 import {REFERENCE_ROLES,normalizeReferenceLabel,supportsReferenceGuidance,compileImagePrompt,canUseReferenceGuidance,referenceGuidanceError} from '../lab/reference-guidance.js';
 import {characterPreview as soulCharacterPreview,SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-09.8-reference-mode';
+export const VERSION = 'pv-lab-2026-10-09.9-flash-kling';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -173,11 +174,12 @@ function parameters(value) {
   if(value.engine&&!['wan','wanprime','h3','h3max','h3spicy'].includes(value.engine)&&value.type!=='image')fail(400,'Unknown video model.');
   const prompt=typeof value.prompt==='string'?value.prompt.trim():'';
   const referenceMode=value.referenceMode==='references'?'references':'base';
-  const referenceRoles=referenceLabels(value.referenceRoles);
-  if(value.type==='image'&&['seedream','gemini'].includes(value.engine)&&referenceMode==='references'){
+  const referenceRoles=referenceLabels(value.referenceRoles,value.type==='image'&&value.engine==='flash'?14:10);
+  if(value.type==='image'&&['seedream','gemini','flash','kling'].includes(value.engine)&&referenceMode==='references'){
     for(const r of referenceRoles)if(r.role==='base')r.role='none';
     if(!value.aspectRatio||value.aspectRatio==='auto')value={...value,aspectRatio:'16:9'};
   }
+  if(value.type==='image'&&['flash','kling'].includes(value.engine))return imageModelParameters({...value,referenceMode},{fail,referenceRoles});
   if(value.type==='image'&&value.engine==='soulpro'&&value.soulProModel==='soul2')return soul2Parameters(value,fail);
   if(value.type==='image'&&value.engine==='soulpro')return soulProParameters({...value,referenceRoles},{fail,referenceLabels});
   if(value.type==='image'&&value.engine==='fal')return value.mode==='controlled-repair'?controlledRepairParameters({...value,referenceRoles},{fail}):controlledPoseParameters({...value,referenceRoles},{fail});
@@ -244,6 +246,7 @@ function assembledPrompt(p) {
   return prompt;
 }
 async function prepareInput(env,owner,data,p,url) {
+  if(['flash','kling'].includes(p.engine)){if(url)fail(400,'Use the image model generation route.');const ids=data.referenceSourceIds||[],refs=ids.length?await sources(env,owner,ids,p.engine==='flash'?14:1):[];p.referenceSourceIds=refs.map(a=>a.id);return {primary:refs[0]||null,input:{}};}
   if(p.provider==='higgsfield'){if(url)fail(400,'Use the Soul 2 generation route.');const primary=await source(env,owner,data.sourceId);return {primary,input:{}};}
   if(p.mode==='upscale'&&p.provider==='fal'){
     if(data.lastSourceId||data.referenceSourceIds?.length||data.transferSourceIds?.length)fail(400,'Topaz uses one original source image and no extra references or compressed working copies.');
@@ -795,7 +798,7 @@ async function refreshFalJob(env,j,p){
 
 async function refreshJob(env,j) {
   if(!['queued','running','saving'].includes(j.state)||!j.provider_id)return;
-  const params=JSON.parse(j.params||'{}');if(params.provider==='gemini')return refreshGeminiJob(env,j,params);
+  const params=JSON.parse(j.params||'{}');if(params.provider==='openrouter'){if(j.state==='saving'){const lock=await run(env,'UPDATE jobs SET last_poll=? WHERE id=? AND last_poll<?',now(),j.id,now()-8000);if(lock.meta.changes)try{await saveFlashResult(env,j);}catch(e){await run(env,'UPDATE jobs SET error=? WHERE id=?','Archive retry: '+String(e.message).slice(0,300),j.id);}}return;}if(params.provider==='gemini')return refreshGeminiJob(env,j,params);
   if(j.state==='saving'&&j.remote_url){
     const saveLock=await run(env,'UPDATE jobs SET last_poll=? WHERE id=? AND last_poll<?',now(),j.id,now()-8000);if(!saveLock.meta.changes)return;
     try{await copyResult(env,j,j.remote_url);}
@@ -833,8 +836,8 @@ async function reserveFalImageJob(env,owner,sourceId,p,estimate){
   if((await first(env,'SELECT COUNT(*) AS n FROM jobs WHERE owner_id=?',owner)).n>=500)fail(409,'History limit reached. Delete old records first.');
   const c=await config(env,owner),limit=c?.daily_limit_microusd||10000000,t=now(),day=Math.floor(t/86400000)*86400000,id=crypto.randomUUID(),quoteId=crypto.randomUUID();
   await run(env,'INSERT INTO quotes(id,owner_id,source_id,params,estimate_microusd,expires_at,vendor_quote_id,expected_cost,payload) VALUES(?,?,?,?,?,?,?,?,?)',
-    quoteId,owner,sourceId||null,JSON.stringify(p),estimate,t+600000,'fal-direct',String(estimate/1000000),'{}');
-  const falSql="COALESCE(json_extract(params,'$.provider'),'')='fal'";
+    quoteId,owner,sourceId||null,JSON.stringify(p),estimate,t+600000,p.provider+'-direct',String(estimate/1000000),'{}');
+  const provider=p.provider==='openrouter'?'openrouter':'fal',falSql="COALESCE(json_extract(params,'$.provider'),'')='"+provider+"'";
   const inserted=await run(env,"INSERT INTO jobs(id,owner_id,source_id,quote_id,params,state,estimate_microusd,created_at,updated_at) SELECT ?,?,?,?,?, 'submitting',?,?,? WHERE NOT EXISTS(SELECT 1 FROM jobs WHERE owner_id=? AND state='uncertain' AND "+falSql+") AND (SELECT COUNT(*) FROM jobs WHERE owner_id=? AND state IN ('submitting','queued','running','uncertain') AND "+falSql+" AND json_extract(params,'$.type')='image')<? AND (SELECT COALESCE(SUM(estimate_microusd),0) FROM spend WHERE owner_id=? AND created_at>=?)+?<=?",
     id,owner,sourceId||null,quoteId,JSON.stringify(p),estimate,t,t,owner,owner,CONCURRENCY.image,owner,day,estimate,limit);
   if(!inserted.meta.changes){
@@ -842,9 +845,9 @@ async function reserveFalImageJob(env,owner,sourceId,p,estimate){
     const uncertain=(await first(env,"SELECT COUNT(*) AS n FROM jobs WHERE owner_id=? AND state='uncertain' AND "+falSql,owner)).n;
     const active=(await first(env,"SELECT COUNT(*) AS n FROM jobs WHERE owner_id=? AND state IN ('submitting','queued','running','uncertain') AND "+falSql+" AND json_extract(params,'$.type')='image'",owner)).n;
     const spent=(await first(env,'SELECT COALESCE(SUM(estimate_microusd),0) AS n FROM spend WHERE owner_id=? AND created_at>=?',owner,day)).n;
-    if(uncertain)fail(409,'No generation submitted: a fal.ai request is interrupted. Resolve that fal.ai request before retrying.');
-    if(active>=CONCURRENCY.image)fail(409,'No generation submitted: '+active+' / '+CONCURRENCY.image+' FAL image slots are already active.');
-    if(spent+estimate>limit)fail(409,'No generation submitted: this FAL request would exceed your Lab daily spending limit.');
+    if(uncertain)fail(409,'No generation submitted: a provider request is interrupted. Resolve that provider request before retrying.');
+    if(active>=CONCURRENCY.image)fail(409,'No generation submitted: '+active+' / '+CONCURRENCY.image+' image slots are already active.');
+    if(spent+estimate>limit)fail(409,'No generation submitted: this image request would exceed your Lab daily spending limit.');
     fail(409,'No generation submitted because capacity changed. Refresh History and try again.');
   }
   return first(env,'SELECT * FROM jobs WHERE id=? AND owner_id=?',id,owner);
@@ -916,6 +919,16 @@ async function submitFalUpscaleQuote(env,owner,q,p,payload){
   return first(env,'SELECT * FROM jobs WHERE id=?',id);
 }
 
+async function saveFlashResult(env,j){
+  const key=j.owner_id+'/pending-images/'+j.id+'.json',cached=await env.LAB_MEDIA.get(key);
+  if(!cached)throw new Error('OpenRouter result archive is missing. Check provider activity before retrying.');
+  const result=await cached.json(),image=result.data[0],mime=image.media_type||'image/png';
+  if(!['image/png','image/jpeg','image/webp'].includes(mime))throw new Error('Unsupported OpenRouter image format.');
+  await saveGeminiImage(env,j,{candidates:[{content:{parts:[{inlineData:{mimeType:mime,data:image.b64_json}}]}}]});
+  if(Number.isFinite(result.usage?.cost)&&result.usage.cost>=0)await run(env,'UPDATE jobs SET settled_cost=? WHERE id=?',result.usage.cost,j.id);
+  await env.LAB_MEDIA.delete(key);
+}
+
 async function route(request,env,ctx) {
   const url=new URL(request.url),origin=request.headers.get('origin')||'';
   if(origin&&!ORIGINS.has(origin))fail(403,'Origin not allowed.');
@@ -932,7 +945,7 @@ async function route(request,env,ctx) {
   if(path==='/api/session'&&method==='GET'){
     await run(env,"DELETE FROM spend WHERE owner_id=? AND job_id IN (SELECT id FROM jobs WHERE owner_id=? AND state='failed' AND COALESCE(json_extract(params,'$.provider'),'')='fal')",owner,owner);
     const c=await config(env,owner),spent=await first(env,'SELECT COALESCE(SUM(estimate_microusd),0) AS n FROM spend WHERE owner_id=? AND created_at>=?',owner,Math.floor(now()/86400000)*86400000);
-    return json({owner:true,ownerId:owner,version:VERSION,config:{...publicConfig(c,!!env.FAL_KEY),higgsfieldEnabled:!!env.HF_CREDENTIALS,higgsfieldPrices:SOUL2_PRICES,geminiEnabled:!!env.GEMINI_API_KEY,soulTrainingEnabled:!!env.FAL_KEY,soulReinterpretEnabled:true,soulPresets:publicSoulPresets(),falEnabled:!!env.FAL_KEY},estimatedSpentToday:spent.n/1000000});
+    return json({owner:true,ownerId:owner,version:VERSION,config:{...publicConfig(c,!!env.FAL_KEY),higgsfieldEnabled:!!env.HF_CREDENTIALS,higgsfieldPrices:SOUL2_PRICES,geminiEnabled:!!env.GEMINI_API_KEY,openrouterEnabled:!!env.OPENROUTER_API_KEY,soulTrainingEnabled:!!env.FAL_KEY,soulReinterpretEnabled:true,soulPresets:publicSoulPresets(),falEnabled:!!env.FAL_KEY},estimatedSpentToday:spent.n/1000000});
   }
   if(path==='/api/soul-pro/identity'&&method==='GET'){
     const pack=await first(env,'SELECT id,refs,created_at FROM packs WHERE owner_id=? AND name=? ORDER BY created_at DESC LIMIT 1',owner,SOUL_PRO_IDENTITY_PACK);
@@ -1042,6 +1055,53 @@ async function route(request,env,ctx) {
     if((await first(env,'SELECT COUNT(*) AS n FROM jobs WHERE owner_id=?',owner)).n>=500)fail(409,'History limit reached. Delete old records first.');
     await run(env,"INSERT INTO jobs(id,owner_id,source_id,params,state,created_at,updated_at) VALUES(?,?,?,?,'draft',?,?)",id,owner,primary?.id||null,JSON.stringify(p),now(),now());
     return json({job:jobView(await first(env,'SELECT * FROM jobs WHERE id=?',id))},201);
+  }
+  if(path==='/api/image-models/generate'&&method==='POST'){
+    const data=await body(request),p=parameters(data.settings);
+    if(!['flash','kling'].includes(p.engine))fail(400,'Choose Seedream Flash or Kling.');
+    if(p.engine==='flash'&&!env.OPENROUTER_API_KEY)fail(503,'Add OPENROUTER_API_KEY as a Secret in the parallel-vision-lab Worker, then deploy.');
+    if(p.engine==='kling'&&!env.FAL_KEY)fail(503,'FAL API is not connected.');
+    const ids=data.referenceSourceIds||[];if(!Array.isArray(ids))fail(400,'Invalid image references.');
+    const refs=ids.length?await sources(env,owner,ids,p.engine==='flash'?14:1):[];
+    p.referenceSourceIds=refs.map(a=>a.id);p.referenceRoles=p.referenceRoles.slice(0,refs.length);
+    if(refs.reduce((n,a)=>n+a.bytes,0)>16*1024*1024)fail(413,'Use smaller reference images: this route accepts up to 16 MiB combined.');
+    const verified=[];
+    for(const ref of refs){
+      const bytes=await falImageBytes(env,ref),dimensions=storedImageDimensions(bytes,ref.mime);
+      if(p.engine==='kling'&&(bytes.length>10000000||dimensions.width<300||dimensions.height<300||dimensions.width/dimensions.height<0.4||dimensions.width/dimensions.height>2.5))fail(400,'Kling needs a PNG, JPEG or WebP under 10 MB, at least 300 × 300 pixels, with a ratio between 0.4 and 2.5.');
+      verified.push({ref,bytes,dimensions});
+    }
+    if(p.aspectRatio==='auto'){
+      const first=p.referenceMode==='base'?verified[0]?.dimensions:null;
+      p.aspectRatio=first?IMAGE_RATIOS.reduce((a,b)=>{const d=r=>Math.abs(Math.log(r.split(':')[0]/r.split(':')[1]/(first.width/first.height)));return d(b)<d(a)?b:a;},'16:9'):'16:9';
+    }
+    const prompt=assembledPrompt(p);
+    if(p.engine==='kling'&&prompt.length>2500)fail(400,'Kling prompt plus reference instructions exceeds 2,500 characters. Shorten the direction or notes.');
+    if(p.engine==='kling')p.model='fal-ai/kling-image/v3/'+(refs.length?'image-to-image':'text-to-image');
+    // Validate all input before reserving or sending a paid request.
+    buildImageModelInput(p,refs.map(()=>''),prompt);
+    const reserved=await reserveFalImageJob(env,owner,refs[0]?.id||null,p,IMAGE_PRICES[p.engine]);
+    if(p.engine==='kling'){
+      const job=await submitReservedFalJob(env,reserved,p,async()=>{
+        const urls=await Promise.all(verified.map(({ref,bytes})=>falUploadImage(env.FAL_KEY,bytes,ref.mime)));
+        return buildImageModelInput(p,urls,prompt);
+      });
+      return json({job:jobView(job)},202);
+    }
+    let accepted=false,started=false,cached=false;
+    try{
+      const urls=verified.map(({ref,bytes})=>'data:'+ref.mime+';base64,'+standardBase64(bytes));
+      const input=buildImageModelInput(p,urls,prompt);started=true;
+      const result=await requestFlash(env.OPENROUTER_API_KEY,input);accepted=true;
+      await env.LAB_MEDIA.put(owner+'/pending-images/'+reserved.id+'.json',JSON.stringify(result),{httpMetadata:{contentType:'application/json'}});cached=true;
+      await run(env,"UPDATE jobs SET state='saving',provider_id='openrouter-image',updated_at=? WHERE id=?",now(),reserved.id);
+      await saveFlashResult(env,reserved);
+    }catch(e){
+      const state=cached?'saving':accepted||started&&e.definite!==true?'uncertain':'failed';
+      await run(env,'UPDATE jobs SET state=?,provider_id=COALESCE(?,provider_id),error=?,updated_at=? WHERE id=?',state,cached?'openrouter-image':null,String(e.message||'OpenRouter image request failed.').slice(0,500),now(),reserved.id);
+      if(state==='failed')await run(env,'DELETE FROM spend WHERE job_id=?',reserved.id);
+    }
+    return json({job:jobView(await first(env,'SELECT * FROM jobs WHERE id=?',reserved.id))},202);
   }
   if(path==='/api/gemini/jobs'&&method==='POST') {
     if(!env.GEMINI_API_KEY)fail(503,'Gemini API key is not configured on this Worker.');
