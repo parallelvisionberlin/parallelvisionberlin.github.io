@@ -114,11 +114,11 @@ function syncDefaultRatio(force=false){
   const ref=referencesOnly()?null:references.find(r=>r.role==='base')||references.find(r=>r.role==='pose')||references[0];
   const source=referencesOnly()?null:tool==='image'&&imageEngine==='soul'?null:tool==='video'&&mode==='text'?null:
     tool==='video'&&mode==='start'?(file?{width:sourceWidth,height:sourceHeight}:null):ref||((tool==='image'&&file)?{width:sourceWidth,height:sourceHeight}:null);
-  const key=[tool,imageEngine,imageReferenceMode,mode,source?.width||0,source?.height||0,values.join(',')].join(':');
+  const key=[tool,imageEngine,imageReferenceMode,mode,source?.width||0,source?.height||0,ref?.url||sourceUrl||'',values.join(',')].join(':');
   if(!force&&key===ratioSourceKey)return;
   ratioSourceKey=key;
   if(source?.width&&source?.height){
-    if(values.includes('auto'))select.value='auto';
+    if(values.includes('auto')&&!(tool==='image'&&imageEngine==='seedream'))select.value='auto';
     else{const target=source.width/source.height,ratios=values.filter(v=>/^\d+:\d+$/.test(v));ratios.sort((a,b)=>{const ratio=v=>{const [w,h]=v.split(':').map(Number);return w/h;};return Math.abs(Math.log(ratio(a)/target))-Math.abs(Math.log(ratio(b)/target));});if(ratios[0])select.value=ratios[0];}
   }else if(values.includes('16:9'))select.value='16:9';
 }
