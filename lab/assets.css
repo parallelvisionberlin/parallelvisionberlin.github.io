@@ -185,7 +185,7 @@ header .wrap.top{max-width:none;padding-inline:16px;min-height:48px}
 #image-composer .composer-generate{border-radius:13px;font-weight:600;box-shadow:none!important}
 #image-composer .composer-select-pill select{font-size:13px;font-weight:550}
 @media(min-width:900px){
- #image-composer:not(.is-pv-soul){display:grid;grid-template-columns:minmax(0,1fr) 44px 144px;grid-template-rows:minmax(38px,auto) 40px;gap:8px 12px;padding:22px 24px;border-radius:25px}
+ #image-composer:not(.is-pv-soul){display:grid;grid-template-columns:minmax(0,1fr) 44px 144px;grid-template-rows:minmax(38px,auto) minmax(40px,auto);gap:8px 12px;padding:22px 24px;border-radius:25px}
  #image-composer:not(.is-pv-soul) .image-composer-top{grid-column:1/3;grid-row:1;gap:8px}
  #image-composer:not(.is-pv-soul) .image-composer-toolbar{display:contents}
  #image-composer:not(.is-pv-soul) .composer-controls{display:flex;align-items:center;flex-wrap:wrap;gap:7px;grid-column:1;grid-row:2;min-width:0}

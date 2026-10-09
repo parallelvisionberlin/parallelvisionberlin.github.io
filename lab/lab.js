@@ -508,7 +508,7 @@ $('image-composer-model').onclick=()=>{
 $('image-composer-model-search').oninput=()=>populateImageModelMenu($('image-composer-model-search').value);
 $('image-composer-train').onclick=()=>{
   closeImageModelMenu();
-  if(!busy)$('soul-launch-manage').click();
+  if(!busy)void hf.open();
 };
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'){if($('soul-pro-identity-dialog').open){$('soul-pro-identity-dialog').close();return;}closeImageModelMenu();toggleImageSettings(false);closeComposerLibrary();}
