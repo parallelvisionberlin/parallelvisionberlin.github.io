@@ -44,6 +44,7 @@ export function createMediaReferences({element,owner,busy,epoch,action,changed,u
     element(kind+'-references').onchange=e=>action(async()=>{try{await add(e.target.files,kind);}finally{e.target.value='';}});
   }
   return {
+    firstVideo:()=>groups.video[0]||null,
     count:()=>groups.video.length+groups.audio.length,
     labels:kind=>groups[kind].map(r=>({name:r.file.name,seconds:r.seconds,note:r.note})),
     clear(){for(const kind of ['video','audio']){groups[kind].forEach(release);groups[kind]=[];element(kind+'-references').value='';render(kind);}},

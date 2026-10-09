@@ -137,7 +137,7 @@ await page.fill('#prompt','A slow camera move across the garment, with natural f
 assert.equal(await page.locator('#generate').textContent(),'Generate');assert.equal(await page.locator('#generate').isEnabled(),true);
 assert.equal(await page.locator('#video-detail-prompt').evaluate(el=>getComputedStyle(el).fontSize),'14px');
 assert.ok((await page.locator('#video-model-control').boundingBox()).y<(await page.locator('#prompt').boundingBox()).y,'Model precedes references and prompt');
-await page.click('#mode-extend');assert.equal(await page.locator('#video-media-drop').isVisible(),true);assert.equal(await page.locator('#start-mode').isVisible(),false);assert.equal(await page.locator('#reference-drop').isVisible(),false);assert.equal(await page.locator('#generate').isDisabled(),true);await page.click('#video-create-task');await page.click('#mode-start');
+await page.click('#mode-extend');assert.equal(await page.locator('#video-media-drop').isVisible(),true);assert.equal(await page.locator('#start-mode').isVisible(),false);assert.equal(await page.locator('#reference-drop').isVisible(),false);assert.equal(await page.locator('#generate').isDisabled(),true);await page.click('#video-create-task');await page.click('#mode-start');assert.equal(await page.evaluate(()=>window.__referenceSettings().mode),'start');assert.equal(await page.locator('#mode-start').getAttribute('aria-selected'),'true');assert.equal(await page.locator('#generate').isEnabled(),true);
 console.log('VIDEO_REFRESH_DESKTOP='+Buffer.from(await page.screenshot({type:'jpeg',quality:75})).toString('base64'));
 await page.selectOption('#video-engine','wan');assert.equal(await page.locator('#video-engine').inputValue(),'wan');
 await page.click('#tool-image');await page.click('#tool-video');assert.equal(await page.locator('#video-engine').inputValue(),'wan','Explicit model choice persists between tools');
@@ -151,7 +151,7 @@ await page.setInputFiles('#video-references','assets/optimized/video/fashion-aft
 await page.waitForFunction(()=>document.querySelectorAll('#video-reference-list video').length===1);
 await page.fill('#prompt','Continue the slow movement through the room.');
 assert.equal(await page.locator('#generate').isEnabled(),true,'An uploaded video enables extension');
-assert.equal(await page.evaluate(()=>window.__referenceSettings().provider),'higgsfield');
+assert.equal(await page.evaluate(()=>window.__referenceSettings().provider),'higgsfield');assert.equal(await page.locator('#preview-label').textContent(),'Video to extend');
 assert.equal(await page.evaluate(()=>window.__referenceSettings().referenceVideos.length),1);
 assert.equal(await page.locator('#ratio-control').isVisible(),false,'Extension follows the input framing');
 console.log('VIDEO_EXTEND_MOBILE='+Buffer.from(await page.screenshot({type:'jpeg',quality:75,fullPage:true})).toString('base64'));

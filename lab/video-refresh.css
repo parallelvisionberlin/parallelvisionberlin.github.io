@@ -120,3 +120,10 @@
 #app.video-extend-active #extend-help{font:400 12px/1.5 'DM Sans',sans-serif;color:#b8bbc1;margin:0 0 12px}
 #app.video-extend-active #video-media-drop{min-height:94px!important}
 #app.video-studio-active [hidden]{display:none!important}
+
+#app.video-extend-active .reference-media-item input,#app.video-extend-active .reference-actions button:first-child{display:none}
+#app.video-extend-active .reference-media-item video{max-height:110px}
+#app.video-extend-active.extension-loaded #extend-help{display:none}
+#app.video-extend-active.extension-loaded #video-media-drop{min-height:38px!important;padding:8px}
+#app.video-extend-active.extension-loaded #video-media-drop small{display:none}
+#app.video-extend-active #reference-mode{padding:10px}
