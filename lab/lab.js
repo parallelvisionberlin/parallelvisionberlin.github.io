@@ -114,6 +114,8 @@ function syncDefaultRatio(force=false){
   }else if(values.includes('16:9'))select.value='16:9';
 }
 function setTool(value){
+  const nextTool=['image','upscale'].includes(value)?value:'video';
+  const galleryChanged=nextTool!==tool||!!assetLibrary?.active();
   assetLibrary?.close();
   if($('soul-pro-identity-dialog').open)$('soul-pro-identity-dialog').close();
   tool=['image','upscale'].includes(value)?value:'video';const image=tool==='image',upscale=tool==='upscale',video=tool==='video';
@@ -145,7 +147,7 @@ function setTool(value){
     $('reference-help').textContent='Reference numbers, filenames, roles and notes are added to your generation prompt. They guide the model; they do not guarantee identity matching.';
   }
   configureVideoControls();syncDefaultRatio(true);renderReferences();resetPreview();refreshCanvasImport();update();syncImageStudioMode();syncVideoStudioMode();
-  if(owner&&assetLibrary){setHistorySelectMode(false);void loadHistory().catch(e=>notify(e.message,true));}
+  if(owner&&assetLibrary&&galleryChanged){setHistorySelectMode(false);void loadHistory().catch(e=>notify(e.message,true));}
 }
 
 /* Floating Image Studio: one gallery, one real backend, no duplicate submissions.
@@ -461,7 +463,7 @@ function syncImageStudioMode(){
   imageStudio.hidden=!isImage;
   if(!isImage)closeComposerLibrary();
   if(isImage){
-    $('image-gallery-host').append(archive);
+    if(archive.parentElement!==$('image-gallery-host'))$('image-gallery-host').append(archive);
   }else{
     $('archive-rest-anchor').after(archive);
     closeImageModelMenu();toggleImageSettings(false);
