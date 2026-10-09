@@ -20,6 +20,22 @@ await page.click('.tool-card[href="./studio.html?tool=upscale"]');await page.wai
 assert.equal(await page.locator('#tool-upscale').getAttribute('aria-pressed'),'true','Landing card opens Upscaler directly');
 await page.setViewportSize({width:1440,height:1000});await page.emulateMedia({reducedMotion:'no-preference'});
 console.log('PASS public fashion hero, accessible reduced motion, three destinations, direct Upscaler entry and mobile layout');
+for(const width of [1920,1440,768,390,320]){
+  await page.setViewportSize({width,height:1000});
+  let baseline;
+  for(const tool of ['image','video','upscale','assets','image']){
+    await page.click('#tool-'+tool);
+    const boxes=await page.locator('.tool-switch .tool-group > *').evaluateAll(els=>els.map(el=>{
+      const r=el.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height};
+    }));
+    if(!baseline)baseline=boxes;
+    boxes.forEach((box,i)=>Object.keys(box).forEach(k=>assert.ok(Math.abs(box[k]-baseline[i][k])<1,'Navigation '+k+' stays fixed: '+width+' '+tool)));
+    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'Studio fits viewport '+width+' '+tool);
+  }
+}
+await page.setViewportSize({width:1440,height:1000});
+console.log('PASS stable navigation across image, video, upscale and assets at five widths');
+
 await page.goto('http://127.0.0.1:8765/lab/studio.html',{waitUntil:'domcontentloaded'});await page.waitForFunction(()=>window.__ready);assert.deepEqual(errors,[]);
 await page.waitForFunction(()=>document.querySelector('#history').classList.contains('justified-gallery'));
 await page.waitForFunction(()=>document.querySelector('#history .card')?.style.width);
