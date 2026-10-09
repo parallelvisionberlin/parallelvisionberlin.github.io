@@ -29,7 +29,7 @@ for(const width of [1920,1440,768,390,320]){
       const r=el.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height};
     }));
     if(!baseline)baseline=boxes;
-    boxes.forEach((box,i)=>Object.keys(box).forEach(k=>assert.ok(Math.abs(box[k]-baseline[i][k])<1,'Navigation '+k+' stays fixed: '+width+' '+tool)));
+    boxes.forEach((box,i)=>Object.keys(box).forEach(k=>assert.ok(Math.abs(box[k]-baseline[i][k])<1,'Navigation '+k+' stays fixed: '+width+' '+tool+' '+JSON.stringify({box,baseline:baseline[i]}))));
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'Studio fits viewport '+width+' '+tool);
   }
 }

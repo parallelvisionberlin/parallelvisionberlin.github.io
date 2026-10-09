@@ -328,18 +328,18 @@ body #main.wrap{
 body:has(#app.image-studio-active) #main.wrap,
 body:has(#app.assets-active) #main.wrap{--studio-inset:0px}
 body #main.wrap:has(>#app.video-studio-active){--studio-inset:12px}
-body #app>.tool-switch{
+body #main #app>.tool-switch{
   box-sizing:border-box;flex:0 0 48px;height:48px;min-height:48px;
   width:calc(100% + var(--studio-inset) + var(--studio-inset));
   margin:0 calc(0px - var(--studio-inset));padding:6px 16px;
   align-items:center;justify-content:flex-start;overflow:visible;
 }
-body #app>.tool-switch>.tool-group{
+body #main #app>.tool-switch>.tool-group{
   display:flex;flex-wrap:nowrap;align-items:center;gap:5px;
   width:100%;min-width:0;overflow-x:auto;scrollbar-width:none;
 }
-body #app>.tool-switch>.tool-group::-webkit-scrollbar{display:none}
-body #app>.tool-switch>.tool-group>:is(button,a){
+body #main #app>.tool-switch>.tool-group::-webkit-scrollbar{display:none}
+body #main #app>.tool-switch>.tool-group>:is(button,a){
   box-sizing:border-box;flex:0 0 88px;width:88px;min-width:88px;
   height:35px;min-height:35px;margin:0;padding:7px 10px;
   font-family:'DM Sans',Arial,sans-serif;font-size:13px;font-weight:500;
@@ -351,9 +351,9 @@ body #app>.tool-switch>.tool-group>:is(button,a){
 @media(max-width:760px){body #main.wrap{--studio-inset:18px}}
 @media(max-width:640px){
   body #main.wrap{--studio-inset:12px}
-  body #app>.tool-switch{padding-inline:8px}
-  body #app>.tool-switch>.tool-group{gap:2px}
-  body #app>.tool-switch>.tool-group>:is(button,a){
+  body #main #app>.tool-switch{padding-inline:8px}
+  body #main #app>.tool-switch>.tool-group{gap:2px}
+  body #main #app>.tool-switch>.tool-group>:is(button,a){
     flex-basis:68px;width:68px;min-width:68px;padding-inline:6px;font-size:11px;
   }
 }
