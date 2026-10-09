@@ -44,12 +44,17 @@ jobs:
           set -euo pipefail
           curl --fail --silent --show-error --retry 2 --max-time 18 \
             -H 'Cache-Control: no-cache' \
-            'https://parallelvisionlabel.com/lab/fashion.html?pv-check=editorial-20261009' -o /tmp/pv-fashion.html
+            'https://parallelvisionlabel.com/lab/fashion.html?pv-check=atelier-20261009' -o /tmp/pv-fashion.html
           echo "Live page metadata:"
           grep -o '<title>[^<]*' /tmp/pv-fashion.html | head -1 || true
           grep -o 'fashion.css?v=[^"]*' /tmp/pv-fashion.html | head -1 || true
-          grep -Fq 'The look, <em>reimagined.</em>' /tmp/pv-fashion.html
+          grep -Fq 'Replace <em>outfit.</em>' /tmp/pv-fashion.html
           grep -Fq '<option value="fashnmax" selected>' /tmp/pv-fashion.html
-          grep -Fq 'fashion.css?v=20261009-editorial2' /tmp/pv-fashion.html
-          grep -Fq 'editorial-reference' /tmp/pv-fashion.html
-          echo "Published Fashion editorial design and FASHN Max default verified. No generation submitted."
+          grep -Fq 'fashion.css?v=20261009-atelier01' /tmp/pv-fashion.html
+          grep -Fq 'id="person-slot"' /tmp/pv-fashion.html
+          grep -Fq 'id="garment-slot"' /tmp/pv-fashion.html
+          grep -Fq 'id="result-stage"' /tmp/pv-fashion.html
+          if grep -Fq 'editorial-reference' /tmp/pv-fashion.html; then
+            echo "Unexpected decorative image in actual result panel"; exit 1
+          fi
+          echo "Published ivory Fashion atelier verified. No paid provider calls."
