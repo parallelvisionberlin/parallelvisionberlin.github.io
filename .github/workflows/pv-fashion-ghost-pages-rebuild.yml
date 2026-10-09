@@ -1,0 +1,44 @@
+name: One-time Fashion ghost icon Pages rebuild
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/pv-fashion-ghost-pages-rebuild.yml'
+permissions:
+  contents: read
+  pages: write
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Inspect Pages publish status
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo 'GitHub Pages latest:'
+          gh api "repos/${GITHUB_REPOSITORY}/pages/builds/latest" --jq '{status,commit,created_at,errors}' || true
+          echo 'Main SHA:'
+          gh api "repos/${GITHUB_REPOSITORY}/commits/main" --jq '.sha'
+      - name: Request a legacy GitHub Pages rebuild
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api --method POST "repos/${GITHUB_REPOSITORY}/pages/builds" --jq '{status,url}'
+      - name: Verify published ghost icons without provider requests
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 20); do
+            curl --fail --silent --show-error --max-time 15 -H 'Cache-Control: no-cache' \
+              "https://parallelvisionlabel.com/lab/fashion.html?pv-icon-check=${attempt}" -o /tmp/fashion.html
+            if grep -Fq 'fashion.css?v=20261010-fashion-ghost01' /tmp/fashion.html; then
+              grep -Fq 'class="empty-art empty-art-person"' /tmp/fashion.html
+              grep -Fq 'class="empty-art empty-art-garment"' /tmp/fashion.html
+              grep -Fq 'class="empty-art empty-art-result"' /tmp/fashion.html
+              echo 'LIVE: three Fashion ghost icons published.'
+              exit 0
+            fi
+            echo "Waiting for published ghost icons (${attempt}/20)"
+            sleep 8
+          done
+          echo 'The public site is not on the updated Fashion version yet.'
+          exit 1
