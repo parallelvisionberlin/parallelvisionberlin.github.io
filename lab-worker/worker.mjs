@@ -1,3 +1,4 @@
+import {libraryRoute,libraryJobs} from './asset-library.mjs';
 import {higgsfieldRoute,refreshHiggsfield,SOUL2_PRICES,soul2Parameters} from './higgsfield.mjs';
 import {publicSoulPresets} from './soul-presets.mjs';
 import {reinterpretParameters,buildReinterpretInput} from './soul-reinterpret.mjs';
@@ -12,7 +13,7 @@ import {findFalRequest} from './fal-recovery.mjs';
 import {falUploadImage} from './fal-storage.mjs';
 import {REFERENCE_ROLES,normalizeReferenceLabel,supportsReferenceGuidance,compileImagePrompt,canUseReferenceGuidance,referenceGuidanceError} from '../lab/reference-guidance.js';
 import {characterPreview as soulCharacterPreview,SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-09.2-higgsfield-soul2';
+export const VERSION = 'pv-lab-2026-10-09.3-assets';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -919,6 +920,7 @@ async function route(request,env,ctx) {
   if(url.pathname.startsWith('/soul-weight/')&&(request.method==='GET'||request.method==='HEAD'))return publicSoulWeight(request,env,url,soulDeps());
   if(!url.pathname.startsWith('/api/'))fail(404,'Not found.');
   const owner=await authenticate(request,env),path=url.pathname,method=request.method;
+  if(path==='/api/library'||path.startsWith('/api/library/'))return json(await libraryRoute(request,env,owner,url,{body,uid,fail,rows,first,run}));
   if(path.startsWith('/api/higgsfield/'))return json(await higgsfieldRoute(request,env,owner,url,hfDeps()),request.method==='POST'?202:200);
   if(path==='/api/session'&&method==='GET'){
     await run(env,"DELETE FROM spend WHERE owner_id=? AND job_id IN (SELECT id FROM jobs WHERE owner_id=? AND state='failed' AND COALESCE(json_extract(params,'$.provider'),'')='fal')",owner,owner);
@@ -1265,6 +1267,11 @@ async function route(request,env,ctx) {
       else await run(env,"UPDATE jobs SET state='uncertain',error=?,updated_at=? WHERE id=?",'Submission status is uncertain. Do not resubmit: first check the provider console to avoid a duplicate charge.',now(),id);
     }
     return json({job:jobView(await first(env,'SELECT * FROM jobs WHERE id=?',id))},202);
+  }
+  if(path==='/api/jobs'&&method==='GET'&&url.searchParams.get('library')==='1'){
+    const data=await libraryJobs(env,owner,url,{rows,uid,fail,jobView});
+    const active=await rows(env,"SELECT * FROM jobs WHERE owner_id=? AND state IN ('submitting','queued','running','saving','uncertain') ORDER BY created_at,id",owner);
+    const activeJobs=active.map(jobView);return json({...data,activeJobs,active:activeJobs[0]||null,concurrency:CONCURRENCY});
   }
   if(path==='/api/jobs'&&method==='GET') {
     const before=Number(url.searchParams.get('before')||now()+1),afterId=url.searchParams.get('afterId')||'~';
