@@ -8,18 +8,26 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+  actions: read
 jobs:
   public-smoke:
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
+      - name: Report latest Lab deployment runs (GitHub metadata only)
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/deploy-lab-worker.yml/runs?per_page=8" --jq '.workflow_runs[] | [.id,.created_at,.head_sha,.status,(.conclusion // "pending")] | @tsv'
       - name: Verify deployed Worker version without credentials
         shell: bash
         run: |
           set -euo pipefail
           curl --fail --silent --show-error --retry 2 --max-time 18 \
             https://parallel-vision-lab.parallelvision.workers.dev/health -o /tmp/pv-lab-health.json
-          node -e "const x=require('/tmp/pv-lab-health.json');if(x.ok!==true||!/^pv-lab-2026-10-09\\.12-fashion-tryon/.test(x.version)){console.error('Worker not on expected fashion integration:',x.version);process.exit(1)}console.log('Worker healthy:',x.version)"
+          node -e "const x=require('/tmp/pv-lab-health.json');if(x.ok!==true||!/^pv-lab-2026-10-09\\.13-fashion-balance/.test(x.version)){console.error('Worker not on expected fashion integration:',x.version);process.exit(1)}console.log('Worker healthy:',x.version)"
       - name: Verify owner-only API rejects anonymous calls
         shell: bash
         run: |
