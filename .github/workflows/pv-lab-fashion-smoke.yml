@@ -1,0 +1,40 @@
+name: PV Lab Fashion public smoke (read only)
+on:
+  pull_request:
+    paths:
+      - 'lab/fashion.*'
+      - 'lab-worker/fashion-tools.mjs'
+      - '.github/workflows/pv-lab-fashion-smoke.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  public-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Verify deployed Worker version without credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --retry 2 --max-time 18 \
+            https://parallel-vision-lab.parallelvision.workers.dev/health -o /tmp/pv-lab-health.json
+          node -e "const x=require('/tmp/pv-lab-health.json');if(x.ok!==true||!/^pv-lab-2026-10-09\\.12-fashion-tryon/.test(x.version)){console.error('Worker not on expected fashion integration:',x.version);process.exit(1)}console.log('Worker healthy:',x.version)"
+      - name: Verify owner-only API rejects anonymous calls
+        shell: bash
+        run: |
+          set -euo pipefail
+          for path in /api/fashion/models /api/fashion/balance; do
+            code="$(curl --silent --show-error --max-time 18 -o /tmp/response.json -w '%{http_code}' \
+              "https://parallel-vision-lab.parallelvision.workers.dev$path")"
+            test "$code" = '401' || { echo "Owner-only route $path returned HTTP $code, expected 401"; exit 1; }
+          done
+          echo "Fashion API correctly rejects anonymous requests."
+      - name: Verify Fashion page HTML is published
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --retry 2 --max-time 18 \
+            https://parallelvisionlabel.com/lab/fashion.html -o /tmp/pv-fashion.html
+          grep -Fq 'FASHN Try-On Max' /tmp/pv-fashion.html
+          echo "Fashion page published. No provider generation submitted."

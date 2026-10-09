@@ -120,3 +120,41 @@ test('Confirmed fashion quote submits once; duplicate confirmation returns the o
  assert.equal(submitted[0].input.garment_image,'https://private.example/input/'+garment);
  assert.equal(jobs.size,1);
 });
+
+test('FASHN balance check uses read-only credits endpoint and never submits generation',async()=>{
+  const original=globalThis.fetch,requests=[];
+  globalThis.fetch=async(url,options)=>{
+    requests.push({url,method:options.method,authorization:options.headers.Authorization});
+    return new Response(JSON.stringify({credits:{total:98,subscription:0,on_demand:98}}),
+      {status:200,headers:{'Content-Type':'application/json'}});
+  };
+  try{
+    const result=await fashionRoute(new Request('https://lab.example/api/fashion/balance'),
+      {FASHN_API_KEY:'server-only-test-key'},'owner-test',new URL('https://lab.example/api/fashion/balance'),{fail});
+    assert.deepEqual(result,{connected:true,credits:{total:98,onDemand:98,subscription:0}});
+    assert.deepEqual(requests,[{url:'https://api.fashn.ai/v1/credits',method:'GET',authorization:'Bearer server-only-test-key'}]);
+    assert.equal(JSON.stringify(result).includes('server-only-test-key'),false);
+  }finally{globalThis.fetch=original;}
+});
+test('Without FASHN secret, read-only balance says unavailable and does not call provider',async()=>{
+  const original=globalThis.fetch;
+  globalThis.fetch=()=>{throw new Error('Must not call provider');};
+  try{
+    const result=await fashionRoute(new Request('https://lab.example/api/fashion/balance'),
+      {},'owner-test',new URL('https://lab.example/api/fashion/balance'),{fail});
+    assert.equal(result.connected,false);assert.equal(result.credits,null);
+  }finally{globalThis.fetch=original;}
+});
+test('Invalid FASHN token generates a safe diagnostic without spending credits',async()=>{
+  const original=globalThis.fetch;
+  globalThis.fetch=async(url,options)=>{
+    assert.equal(options.method,'GET');
+    assert.ok(url.endsWith('/credits'));
+    return new Response(JSON.stringify({message:'Unauthorized token'}),{status:401,headers:{'Content-Type':'application/json'}});
+  };
+  try{
+    await assert.rejects(()=>fashionRoute(new Request('https://lab.example/api/fashion/balance'),
+      {FASHN_API_KEY:'invalid-test-key'},'owner-test',new URL('https://lab.example/api/fashion/balance'),{fail}),
+      /FASHN rejected the configured API key/);
+  }finally{globalThis.fetch=original;}
+});
