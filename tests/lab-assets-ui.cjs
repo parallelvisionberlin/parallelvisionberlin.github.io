@@ -20,6 +20,13 @@ await page.click('.tool-card[href="./studio.html?tool=upscale"]');await page.wai
 assert.equal(await page.locator('#tool-upscale').getAttribute('aria-pressed'),'true','Landing card opens Upscaler directly');
 await page.setViewportSize({width:1440,height:1000});await page.emulateMedia({reducedMotion:'no-preference'});
 console.log('PASS public fashion hero, accessible reduced motion, three destinations, direct Upscaler entry and mobile layout');
+
+
+await page.goto('http://127.0.0.1:8765/lab/studio.html',{waitUntil:'domcontentloaded'});await page.waitForFunction(()=>window.__ready);assert.deepEqual(errors,[]);
+await page.waitForFunction(()=>document.querySelector('#history').classList.contains('justified-gallery'));
+await page.waitForFunction(()=>document.querySelector('#history .card')?.style.width);
+const beforeImages=await page.locator('#history .card').evaluateAll(cards=>cards.map(c=>({x:c.offsetLeft,y:c.offsetTop,w:c.offsetWidth,h:c.offsetHeight})));
+releaseImages();await page.waitForFunction(()=>[...document.querySelectorAll('#history .history-media img')].every(i=>i.naturalWidth>0));
 for(const width of [1920,1440,768,390,320]){
   await page.setViewportSize({width,height:1000});
   let baseline;
@@ -35,12 +42,7 @@ for(const width of [1920,1440,768,390,320]){
 }
 await page.setViewportSize({width:1440,height:1000});
 console.log('PASS stable navigation across image, video, upscale and assets at five widths');
-
-await page.goto('http://127.0.0.1:8765/lab/studio.html',{waitUntil:'domcontentloaded'});await page.waitForFunction(()=>window.__ready);assert.deepEqual(errors,[]);
-await page.waitForFunction(()=>document.querySelector('#history').classList.contains('justified-gallery'));
-await page.waitForFunction(()=>document.querySelector('#history .card')?.style.width);
-const beforeImages=await page.locator('#history .card').evaluateAll(cards=>cards.map(c=>({x:c.offsetLeft,y:c.offsetTop,w:c.offsetWidth,h:c.offsetHeight})));
-releaseImages();await page.waitForFunction(()=>[...document.querySelectorAll('#history .history-media img')].every(i=>i.naturalWidth>0));
+await page.click('#tool-image');
 const afterImages=await page.locator('#history .card').evaluateAll(cards=>cards.map(c=>({x:c.offsetLeft,y:c.offsetTop,w:c.offsetWidth,h:c.offsetHeight})));
 assert.deepEqual(afterImages,beforeImages,'Images retain identical positions and sizes before and after decoding');console.log('PASS zero gallery movement while image bytes load');
 const bounds=await page.locator('#history').boundingBox();assert.equal(bounds.x,0,'Image gallery reaches left edge');assert.equal(bounds.width,1440,'Image gallery reaches right edge');assert.ok(bounds.y<=135,'Compact top chrome');
