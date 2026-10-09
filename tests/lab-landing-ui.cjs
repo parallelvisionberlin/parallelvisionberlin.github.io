@@ -22,19 +22,17 @@ const server=http.createServer((req,res)=>{
   assert.equal(await page.locator('nav a[href="./fashion.html"]').count(),1);
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'No overflow at '+width);
   assert.equal(await page.locator('.hero-poster').evaluate(el=>getComputedStyle(el).animationName),'none');
-  assert.equal(await page.locator('#motion-toggle').isVisible(),false);
-  const current=await page.locator('.hero-poster').evaluate(el=>el.currentSrc);assert.ok(current.includes(width<=700?'silver-daylight-mobile':'silver-daylight-hero'));
+  assert.equal(await page.locator('#motion-toggle').count(),0);
+  const current=await page.locator('.hero-poster').evaluate(el=>el.currentSrc);assert.ok(current.includes(width<=700?'ivory-motion':'greenhouse-hero'));
   await page.locator('#tools').scrollIntoViewIfNeeded();await page.locator('.tool-card img').evaluateAll(imgs=>Promise.all(imgs.map(img=>img.decode())));
   await page.evaluate(()=>scrollTo(0,0));
   if(width===1440||width===390)console.log('SILVER_LANDING_'+width+'='+Buffer.from(await page.screenshot({type:'jpeg',quality:75,fullPage:true})).toString('base64'));
  }
- await page.emulateMedia({reducedMotion:'no-preference'});await page.evaluate(()=>scrollTo(0,0));
- await page.waitForFunction(()=>document.querySelector('.lab-hero').classList.contains('is-visible'));
- await page.locator('#motion-toggle').click();assert.equal(await page.locator('.hero-poster').evaluate(el=>getComputedStyle(el).animationPlayState),'paused');
- await page.locator('#motion-toggle').click();assert.equal(await page.locator('.hero-poster').evaluate(el=>getComputedStyle(el).animationPlayState),'running');
- await page.locator('#tools').scrollIntoViewIfNeeded();await page.waitForFunction(()=>document.querySelector('.motion-card').classList.contains('is-visible'));
- assert.equal(await page.locator('.motion-card img').evaluate(el=>getComputedStyle(el).animationPlayState),'running');
- await page.emulateMedia({reducedMotion:'reduce'});assert.equal(await page.locator('.motion-card img').evaluate(el=>getComputedStyle(el).animationName),'none');
- assert.deepEqual(errors,[]);console.log('PASS silver landing: images, three destinations, Fashion link, 4 responsive widths, reduced motion and pause control');
+ await page.emulateMedia({reducedMotion:'no-preference'});
+ assert.equal(await page.locator('.hero-poster').evaluate(el=>getComputedStyle(el).animationName),'none');
+ for(const card of await page.locator('.tool-card').all()){
+ const heading=await card.locator('.card-caption').boundingBox(),media=await card.locator('.card-media').boundingBox();assert.ok(heading.y+heading.height<=media.y+1,'Titles sit above photographs');
+ }
+ assert.deepEqual(errors,[]);console.log('PASS ivory landing: images, destinations, Fashion, four responsive widths, static hero and titles above photographs');
  await browser.close();server.close();
 })().catch(e=>{console.error(e);server.close();process.exit(1)});
