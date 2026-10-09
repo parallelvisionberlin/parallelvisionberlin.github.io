@@ -219,3 +219,30 @@ header .wrap.top{max-width:none;padding-inline:16px;min-height:48px}
  #image-composer.is-pv-soul .composer-controls{gap:6px}
 }
 @media(max-width:650px){#image-composer.is-pv-soul #composer-character,#image-composer.is-pv-soul .hf-source-card,#image-composer.is-pv-soul .composer-generate{height:72px;min-height:72px}}
+
+/* Stable Generate geometry, independent of the reference tray height. */
+#image-composer:not(.is-pv-soul) .composer-generate{align-self:end;height:84px;min-height:84px;max-height:84px}
+#image-composer #composer-library.is-character-library{padding:0;background:linear-gradient(125deg,#1d1f20,#151617);border-color:#373a3a;border-radius:20px}
+#image-composer .is-character-library .composer-panel-head{padding:28px 30px 26px;align-items:flex-start;margin:0;border:0}
+#image-composer .is-character-library #composer-library-title{display:block;font-size:27px;line-height:1.12;font-weight:800;letter-spacing:-.8px;color:#f2f2ef}
+#image-composer .is-character-library #composer-library-note{max-width:480px;margin:12px 0 22px;font-size:14px;line-height:1.5;color:#a0a3a2}
+#image-composer #composer-character-create{display:inline-flex;align-items:center;justify-content:center;gap:22px;height:46px;padding:0 22px;border:1px solid #efb951;border-radius:11px;background:#efb951;color:#171309;font-size:14px;font-weight:700;box-shadow:none;cursor:pointer}
+#image-composer #composer-character-create:hover{background:#facb6b;border-color:#facb6b}
+#image-composer #composer-character-create span{font-size:19px}
+#image-composer .is-character-library #composer-library-close{flex-shrink:0;width:32px;height:32px;border:0;border-radius:50%;background:#ffffff08;color:#c7c9c6}
+#image-composer .is-character-library .composer-library-cards{display:flex;flex-wrap:wrap;align-items:flex-start;gap:18px;padding:20px 30px;background:#ffffff04;overflow:visible}
+#image-composer .is-character-library .composer-library-card:not(:has(.composer-library-photo)){width:auto;flex:0 0 auto;padding:10px 14px;border:1px solid #454846;border-radius:9px;font-size:12px;background:#242625}
+#image-composer .is-character-library .composer-library-card[aria-pressed=true]:not(:has(.composer-library-photo)){border-color:#efb951}
+#image-composer .is-character-library .character-library-empty{align-self:center;margin:8px 0;color:#919691;font-size:13px;line-height:1.5;flex:1 1 200px}
+#image-composer .is-character-library .composer-library-actions{padding:12px 30px 18px;border:0;background:#ffffff04}
+#image-composer .is-character-library #composer-library-manage{background:transparent;border:0;padding:0;color:#a1a6a1;font-size:12px}
+@media(max-width:650px){
+ #image-composer:not(.is-pv-soul) .composer-generate{height:72px;min-height:72px;max-height:72px}
+ #image-composer .is-character-library .composer-panel-head{padding:20px}
+ #image-composer .is-character-library #composer-library-title{font-size:22px;letter-spacing:-.5px}
+ #image-composer .is-character-library #composer-library-note{font-size:13px;margin:10px 0 16px}
+ #image-composer .is-character-library .composer-library-cards{padding:16px 20px}
+ #image-composer .is-character-library .composer-library-actions{padding:10px 20px 18px}
+}
+
+#image-composer #composer-character-create[hidden]{display:none!important}

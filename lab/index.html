@@ -55,9 +55,9 @@ document.addEventListener('DOMContentLoaded',()=>{
 <link rel="stylesheet" href="./image-studio.css?v=20261009-strength1">
 <link rel="stylesheet" href="./detail-video-studio.css?v=20261009-pointer1">
 <link rel="stylesheet" href="./editorial-polish.css?v=20261009-amber1">
-<script type="module" src="./lab.js?v=20261009-reference-mode"></script>
+<script type="module" src="./lab.js?v=20261009-dock-character"></script>
 <link rel="stylesheet" href="./higgsfield.css?v=20261009-background-submit">
-<link rel="stylesheet" href="./assets.css?v=20261009-soul-tiles">
+<link rel="stylesheet" href="./assets.css?v=20261009-dock-character">
 <script type="module" src="./gallery-layout.js?v=20261009-stable-gallery"></script>
 </head>
 <body class="lab-booting">
@@ -109,7 +109,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   </div>
   <section id="image-composer" class="image-composer" aria-label="Floating image generation composer">
     <section id="composer-library" class="composer-library" aria-label="Saved characters and references" hidden>
-      <div class="composer-panel-head"><div><strong id="composer-library-title">Saved references</strong><p id="composer-library-note">Choose a saved pack.</p></div><button id="composer-library-close" type="button" aria-label="Close saved references">×</button></div>
+      <div class="composer-panel-head"><div><strong id="composer-library-title">Saved references</strong><p id="composer-library-note">Choose a saved pack.</p><button id="composer-character-create" type="button" hidden>Create character <span aria-hidden="true">✦</span></button></div><button id="composer-library-close" type="button" aria-label="Close saved references">×</button></div>
       <div id="composer-library-cards" class="composer-library-cards"></div>
       <div class="composer-library-actions"><button id="composer-library-create" type="button">Save current references</button><button id="composer-library-delete" type="button" disabled>Delete selected pack</button><button id="composer-library-manage" type="button">Manage identities</button></div>
     </section>
@@ -140,7 +140,7 @@ document.addEventListener('DOMContentLoaded',()=>{
       <label class="composer-select-pill" title="Resolution"><span class="visually-hidden">Image resolution</span><select id="image-composer-resolution" aria-label="Resolution"></select></label>
       <label id="image-composer-count-wrap" class="composer-select-pill" title="Image count"><span class="visually-hidden">Number of images</span><select id="image-composer-count" aria-label="Number of images"></select></label>
       <button id="image-composer-more" type="button" class="composer-settings-pill" aria-expanded="false" aria-controls="composer-options" title="Image options">Options</button>
-      <label class="composer-select-pill hf-bar-control" hidden><span class="visually-hidden">Aspect ratio</span><select id="hf-bar-ratio" aria-label="Soul aspect ratio"><option value="source">16:9 · Auto</option><option>16:9</option><option>9:16</option><option>4:3</option><option>3:4</option><option>1:1</option><option>2:3</option><option>3:2</option></select></label>
+      <label class="composer-select-pill hf-bar-control" hidden><span class="visually-hidden">Aspect ratio</span><select id="hf-bar-ratio" aria-label="Soul aspect ratio"><option value="source">16:9</option><option>16:9</option><option>9:16</option><option>4:3</option><option>3:4</option><option>1:1</option><option>2:3</option><option>3:2</option></select></label>
       <label class="composer-select-pill hf-bar-control" hidden><span class="visually-hidden">Resolution</span><select id="hf-bar-resolution" aria-label="Soul resolution"><option value="1080p">1080p</option><option value="720p">720p</option></select></label>
       </div><span class="composer-flex"></span>
       <button id="composer-character" class="composer-character" type="button" aria-expanded="false" aria-controls="composer-library"><span id="composer-character-photo">+</span><span id="composer-character-name">References</span></button>

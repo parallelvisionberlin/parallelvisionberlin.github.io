@@ -1,5 +1,5 @@
 import {createAssetLibrary} from './assets.js?v=20261009-assets3';
-import {createSoul2UI} from './higgsfield-ui.js?v=20261009-soul-text';
+import {createSoul2UI} from './higgsfield-ui.js?v=20261009-dock-character';
 import {VIDEO_MODELS,engineFor,videoLabel} from './video-models.js?v=20261001-video-models2';
 import {REFERENCE_ROLES,REFERENCE_TARGETS,normalizeReferenceLabel,compileImagePrompt,referenceGuidanceError,canUseReferenceGuidance} from './reference-guidance.js?v=20261009-reference-mode';
 import {createMediaReferences} from './media-references.js?v=20260927-standard1';
@@ -215,9 +215,12 @@ function closeComposerLibrary(){
   $('composer-library').hidden=true;$('composer-character').setAttribute('aria-expanded','false');
 }
 function renderComposerLibrary(){
+  $('composer-library').classList.toggle('is-character-library',isSoul2());
+  $('composer-character-create').hidden=!isSoul2();
+  $('composer-library-create').hidden=isSoul2();
   if(isSoul2()){
-    $('composer-library-title').textContent='Trained Soul IDs';$('composer-library-note').textContent='Higgsfield identities created from your photos inside PV Lab.';
-    $('composer-library-create').textContent='Create Soul ID';$('composer-library-manage').hidden=false;$('composer-library-manage').textContent='Manage Soul IDs';$('composer-library-delete').hidden=true;
+    $('composer-library-title').textContent='MAKE YOUR OWN CHARACTER';$('composer-library-note').textContent='Upload photos from different angles to create your character. Then use the same identity across new images in PV Lab.';
+    $('composer-library-create').textContent='Create Soul ID';$('composer-library-manage').hidden=false;$('composer-library-manage').textContent='Manage characters';$('composer-library-delete').hidden=true;
     hf.renderLibrary($('composer-library-cards'));return;
   }
 
@@ -253,9 +256,10 @@ function renderComposerLibrary(){
 }
 $('composer-character').onclick=()=>{if(busy)return;const open=$('composer-library').hidden;toggleImageSettings(false);closeImageModelMenu();$('composer-library').hidden=!open;$('composer-character').setAttribute('aria-expanded',String(open));if(open)renderComposerLibrary();};
 $('composer-library-close').onclick=closeComposerLibrary;
+$('composer-character-create').onclick=()=>{if(busy)return;closeComposerLibrary();void hf.open({create:true});};
 $('composer-library-delete').onclick=()=>{if(!busy)$('pack-delete').click();};
 $('composer-options-close').onclick=()=>toggleImageSettings(false);
-$('composer-library-create').onclick=()=>{if(busy)return;if(isSoul2()){closeComposerLibrary();void hf.open();return;}if(imageEngine==='soul')$('soul-manage').click();else if(imageEngine==='soulpro')$('soul-pro-identity-manage').click();else $('pack-save').click();};
+$('composer-library-create').onclick=()=>{if(busy)return;if(isSoul2()){closeComposerLibrary();void hf.open({create:true});return;}if(imageEngine==='soul')$('soul-manage').click();else if(imageEngine==='soulpro')$('soul-pro-identity-manage').click();else $('pack-save').click();};
 $('composer-library-manage').onclick=()=>{if(busy)return;if(isSoul2()){closeComposerLibrary();void hf.open();return;}(imageEngine==='soulpro'?$('soul-pro-identity-manage'):$('soul-manage')).click();};
 function setModelIcon(element,engine){
   const paths={seedream:'bytedance.svg',gemini:'google.svg',soulpro:'pv-mark.png',soul:'pv-mark.png'};
@@ -275,10 +279,17 @@ function imageStudioModelTitle(){
   const select=$('image-engine');
   return select.options[select.selectedIndex]?.textContent || 'Image model';
 }
+function referenceRatioLabel(){
+  const ref=references.find(r=>r.role==='base')||references[0];
+  if(!ref?.width||!ref?.height)return '16:9';
+  const ratios=[...$('ratio').options].map(o=>o.value).filter(v=>/^\d+:\d+$/.test(v));
+  const distance=r=>{const [w,h]=r.split(':').map(Number);return Math.abs(Math.log(w/h/(ref.width/ref.height)));};
+  return ratios.reduce((a,b)=>distance(b)<distance(a)?b:a,ratios[0]||'16:9');
+}
 function synchronizeComposerSelect(composerId,realId){
   const mirror=$(composerId),real=$(realId);
   if(!mirror || !real)return;
-  const current=[...real.options].filter(option=>!(realId==='ratio'&&referencesOnly()&&option.value==='auto')).map(option=>[option.value,option.textContent]);
+  const current=[...real.options].filter(option=>!(realId==='ratio'&&referencesOnly()&&option.value==='auto')).map(option=>[option.value,realId==='ratio'&&option.value==='auto'?referenceRatioLabel():option.textContent]);
   const previous=[...mirror.options].map(option=>[option.value,option.textContent]);
   if(JSON.stringify(current)!==JSON.stringify(previous))
     mirror.replaceChildren(...current.map(([value,label])=>new Option(label,value)));
@@ -1913,7 +1924,7 @@ function syncSoulBar(){
   $('hf-bar-resolution').value=$('hf-resolution').value;
   const ratios=['16:9','9:16','4:3','3:4','1:1','2:3','3:2'];
   const ratio=sourceWidth&&sourceHeight?ratios.reduce((a,b)=>{const d=r=>{const [w,h]=r.split(':').map(Number);return Math.abs(Math.log(w/h/(sourceWidth/sourceHeight)));};return d(b)<d(a)?b:a;},'16:9'):'16:9';
-  $('hf-bar-ratio').options[0].textContent=ratio+' · Auto';
+  $('hf-bar-ratio').options[0].textContent=ratio;
   const img=$('hf-bar-source-photo');img.hidden=!sourceUrl;
   if(sourceUrl&&img.getAttribute('src')!==sourceUrl)img.src=sourceUrl;
   if(!sourceUrl)img.removeAttribute('src');

@@ -25,8 +25,11 @@ await page.waitForFunction(()=>[...document.querySelectorAll('#history img')].ev
 await page.click('#image-composer-model');await page.locator('.composer-model-option[data-value="soulpro"]').click();
 await page.click('#image-composer-model');await page.locator('.composer-model-option[data-value="seedream"]').click();
 assert.equal(await beforeModel.evaluate(el=>el.isConnected),true,'Switching models preserves existing gallery cards');assert.equal(modelReloads,0,'Model switching does not reload History or images');page.off('request',trackModel);
+const generateBeforeRefs=await page.locator('#image-composer-generate').boundingBox();
 await page.locator('#reference-images').setInputFiles([{name:'face.png',mimeType:'image/png',buffer:png},{name:'body.png',mimeType:'image/png',buffer:png}]);
 await page.waitForFunction(()=>document.querySelectorAll('.composer-reference-tile').length===2);
+assert.equal((await page.locator('#image-composer-generate').boundingBox()).height,generateBeforeRefs.height,'Generate stays the same height after adding images');
+assert.match(await page.locator('#image-composer-ratio option:checked').textContent(),/^\d+:\d+$/,'Automatic ratio displays dimensions only');
 await page.selectOption('#image-reference-mode','references');
 assert.equal(await page.locator('.composer-reference-role').count(),2,'Every reference has a role without a base');
 await page.selectOption('[aria-label="Role for image 1"]','identity');await page.selectOption('[aria-label="Role for image 2"]','body');
@@ -43,6 +46,13 @@ await page.locator('.composer-reference-remove').first().click();await page.loca
 console.log('PASS reference-only roles, settings, prompt, toggle, reorder and mobile layout');
 await page.click('#image-composer-model');await page.locator('.composer-model-option[data-value="soulpro"]').click();
 
+assert.equal(await page.locator('#hf-bar-ratio option:checked').textContent(),'16:9');
+await page.click('#composer-character');
+assert.equal(await page.locator('#composer-library-title').textContent(),'MAKE YOUR OWN CHARACTER');
+assert.equal(await page.locator('#composer-character-create').isVisible(),true);
+await page.setViewportSize({width:390,height:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'Character panel fits mobile');await page.setViewportSize({width:1440,height:1000});
+await page.click('#composer-character-create');await page.waitForFunction(()=>document.querySelector('#hf-dialog').open&&document.activeElement.id==='hf-training-name');await page.click('#hf-close');
+console.log('PASS fixed Generate geometry, numeric ratio label and character creation entry');
 assert.equal(await page.locator('#image-composer-generate').isEnabled(),false,'Empty Soul cannot submit');
 await page.fill('#image-composer-prompt','A quiet concrete room in daylight');
 assert.equal(await page.locator('#image-composer-generate').isEnabled(),true,'Prompt alone enables Soul');
