@@ -34,7 +34,7 @@ test('training, owned identity, source generation, budget and ambiguous submissi
   const invoke=(path,data)=>higgsfieldRoute(new Request('https://lab.example'+path,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(data)}),env,'owner',new URL('https://lab.example'+path),deps);
   const previous=globalThis.fetch;let posts=0,sent;
   try{
-    globalThis.fetch=async(url,options)=>{if(options.method==='POST'){posts++;sent=JSON.parse(options.body);return Response.json({id:reference,status:'queued'});}return Response.json({status:'completed',id:reference});};
+    globalThis.fetch=async(url,options)=>{if(String(url).includes('/estimate/'))return Response.json({usd:'0.0057'});if(options.method==='POST'){posts++;sent=JSON.parse(options.body);return Response.json({id:reference,status:'queued'});}return Response.json({status:'completed',id:reference});};
     const {job:training}=await invoke('/api/higgsfield/characters',{name:'Nina',referenceSourceIds:[asset],confirmTraining:true});
     assert.equal(training.state,'queued');assert.equal(sent.model_version,'v2');assert.equal(posts,1);assert.equal(db.prepare('SELECT SUM(estimate_microusd) AS n FROM spend').get().n,2500000);
     await refreshHiggsfield(env,training,JSON.parse(training.params),deps);
@@ -42,10 +42,11 @@ test('training, owned identity, source generation, budget and ambiguous submissi
     let input={sourceId:asset,settings:{type:'image',characterId:training.id,identityStrength:.8,resolution:'1080p'}};
     budget=2500100;await assert.rejects(()=>invoke('/api/higgsfield/generate',input),/spending/);assert.equal(posts,1);
     budget=10000000;
-    globalThis.fetch=async(url,options)=>{if(options.method==='POST'){posts++;sent=JSON.parse(options.body);return Response.json({request_id:id,status_url:'https://api.higgsfield.ai/requests/'+id+'/status'});}return Response.json({request_id:id,status:'completed',images:[{url:'https://example.com/output.png'}]});};
+    globalThis.fetch=async()=>Response.json({usd:'0.094'});await assert.rejects(()=>invoke('/api/higgsfield/generate',input),/above the displayed rate/);assert.equal(posts,1);
+    globalThis.fetch=async(url,options)=>{if(String(url).includes('/estimate/'))return Response.json({usd:'0.0057'});if(options.method==='POST'){posts++;sent=JSON.parse(options.body);return Response.json({request_id:id,status_url:'https://api.higgsfield.ai/requests/'+id+'/status'});}return Response.json({request_id:id,status:'completed',images:[{url:'https://example.com/output.png'}]});};
     const {job:generation}=await invoke('/api/higgsfield/generate',input);assert.equal(sent.image_url,'https://lab.example/input/base');assert.equal(sent.custom_reference_id,reference);assert.equal(sent.aspect_ratio,'3:4');assert.equal(generation.state,'queued');
     await refreshHiggsfield(env,generation,JSON.parse(generation.params),deps);assert.equal(copied,true);
-    globalThis.fetch=async()=>{posts++;throw new Error('network timeout');};
+    globalThis.fetch=async(url)=>{if(String(url).includes('/estimate/'))return Response.json({usd:'0.0057'});posts++;throw new Error('network timeout');};
     const {job:uncertain}=await invoke('/api/higgsfield/generate',input);assert.equal(uncertain.state,'uncertain');const count=posts;
     await assert.rejects(()=>invoke('/api/higgsfield/generate',input),/Nothing submitted/);assert.equal(posts,count);
     const other={...input,settings:{...input.settings,characterId:asset}};await assert.rejects(()=>invoke('/api/higgsfield/generate',other),/completed Soul 2/);

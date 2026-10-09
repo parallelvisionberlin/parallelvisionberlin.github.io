@@ -82,7 +82,8 @@ export async function refreshHiggsfield(env,j,p,d){
     }
     if(['failed','nsfw','canceled','cancelled'].includes(state)){
       await run(env,"UPDATE jobs SET state='failed',error=?,updated_at=? WHERE id=?",'Higgsfield ended this '+(p.mode===TRAIN?'training':'generation')+' with status '+state+'. Check provider billing for the final charge.',now(),j.id);
-      // Keep reserved spend until billing is known, including failed training.
+      // Documented generation failures are refunded; training billing is separate.
+      if(p.mode!==TRAIN)await run(env,'DELETE FROM spend WHERE job_id=?',j.id);
       return;
     }
     if(!['queued','not_ready','in_progress'].includes(state))throw new Error('Unrecognized Higgsfield status.');
@@ -118,7 +119,12 @@ export async function higgsfieldRoute(request,env,owner,url,d){
     const dimensions=d.storedImageDimensions(new Uint8Array(await object.arrayBuffer()),base.mime);
     p.aspectRatio=soul2Ratio(dimensions.width,dimensions.height);p.characterName=JSON.parse(character.params).characterName;
     const input=soul2Input(p,await signedInput(env,url,base.id,86400),character.provider_id);
-    const j=await reserve(env,owner,base.id,p,SOUL2_PRICES[p.resolution],d);
+    const quote=await hfRequest(env,'/estimate/'+SOUL2_MODEL,{input});
+    if(!/^\d{1,6}(\.\d{1,6})?$/.test(String(quote.usd)))fail(502,'Higgsfield did not return a valid USD estimate. Nothing generated.');
+    const estimate=Math.round(Number(quote.usd)*1000000);
+    if(estimate>SOUL2_PRICES[p.resolution])fail(409,'Your Higgsfield account estimates $'+quote.usd+' for this image, above the displayed rate. Nothing generated or charged. Review your API account pricing first.');
+    p.accountEstimateUsd=Number(quote.usd);
+    const j=await reserve(env,owner,base.id,p,estimate,d);
     return {job:jobView(await submit(env,j,p,input,d))};
   }
   fail(404,'Unknown Higgsfield route.');
