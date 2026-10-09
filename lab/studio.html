@@ -55,9 +55,10 @@ document.addEventListener('DOMContentLoaded',()=>{
 <link rel="stylesheet" href="./image-studio.css?v=20261009-strength1">
 <link rel="stylesheet" href="./detail-video-studio.css?v=20261009-pointer1">
 <link rel="stylesheet" href="./editorial-polish.css?v=20261009-amber1">
-<script type="module" src="./lab.js?v=20261009-landing"></script>
+<script type="module" src="./lab.js?v=20261009-video-refresh"></script>
 <link rel="stylesheet" href="./higgsfield.css?v=20261009-background-submit">
 <link rel="stylesheet" href="./assets.css?v=20261009-upscale-refresh2">
+<link rel="stylesheet" href="./video-refresh.css?v=20261009-1">
 <script type="module" src="./gallery-layout.js?v=20261009-stable-gallery"></script>
 </head>
 <body class="lab-booting">
@@ -227,7 +228,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 <section class="controls" aria-label="Generation settings">
 <div class="controls-body">
 <div class="mode"><span id="mode-heading">01 / Image to Video</span><span class="engine-pill" id="engine-name">WAN 3.0</span><label id="image-model-control" class="mode-model-control" hidden><span class="label">Image model</span><select id="image-engine"><option value="seedream" selected>Seedream 5 Pro</option><option value="flash">Seedream Flash</option><option value="kling">Kling V3</option><option value="gemini">Nano Banana Pro</option><option value="soulpro">PV Soul</option><option value="soul" hidden>PV Soul · LoRA</option><option value="fal">Controlled Pose · FAL FLUX</option></select></label></div>
-<div id="video-model-control"><label><span class="label">Video model</span><select id="video-engine"><option value="wan">Wan 3.0</option><option value="wanprime">Wan 3.0 Prime</option><option value="h3">MiniMax H3</option><option value="h3max">MiniMax H3 Max</option><option value="h3spicy">MiniMax H3 Spicy</option><option value="h3maxfal">MiniMax H3 Max Reference · FAL</option><option value="omni">Gemini Omni Flash 1.1 · FAL</option><option value="seedance">Seedance 2.5</option></select></label><details class="model-details"><summary>About this model</summary><p id="video-model-note" class="fine">Standard model access. Provider policies and model refusals apply. No automatic model switching.</p></details></div>
+<div id="video-model-control"><label><span class="label">Video model</span><select id="video-engine"><option value="seedance" selected>Seedance 2.5</option><option value="wan">Wan 3.0</option><option value="wanprime">Wan 3.0 Prime</option><option value="h3">MiniMax H3</option><option value="h3max">MiniMax H3 Max</option><option value="h3spicy">MiniMax H3 Spicy</option><option value="h3maxfal">MiniMax H3 Max Reference · FAL</option><option value="omni">Gemini Omni Flash 1.1 · FAL</option></select></label><details class="model-details"><summary>About this model</summary><p id="video-model-note" class="fine">Standard model access. Provider policies and model refusals apply. No automatic model switching.</p></details></div>
 <div id="video-modes" class="mode-switch" role="tablist" aria-label="Generation mode">
 <button id="mode-text" class="mode-tab" type="button" role="tab" aria-selected="false" hidden>Text to Video</button>
 <button id="mode-start" class="mode-tab active" type="button" role="tab" aria-selected="true">Start frame</button>
@@ -239,12 +240,12 @@ document.addEventListener('DOMContentLoaded',()=>{
 <div class="frame-pair">
 <div class="upload-block">
 <div class="upload-heading"><span class="label" id="start-label">Start frame</span><span class="micro">Required</span></div>
-<label class="drop compact-drop" id="drop"><span>Drop or browse</span><small>JPG / PNG / WebP</small><input id="image" type="file" accept="image/jpeg,image/png,image/webp"></label>
+<label class="drop compact-drop" id="drop"><img id="video-start-thumb" class="video-frame-thumb" alt="Selected start frame" hidden><span class="video-frame-label">Start frame</span><span>Drop or browse</span><small>JPG / PNG / WebP</small><input id="image" type="file" accept="image/jpeg,image/png,image/webp"></label>
 <p class="filemeta" id="filemeta">Choose the exact opening frame.</p>
 </div>
 <div class="upload-block" id="last-upload">
 <div class="upload-heading"><span class="label">Last frame</span><span class="micro">Optional</span></div>
-<label class="drop compact-drop" id="last-drop"><span>Drop or browse</span><small>Land on a chosen frame</small><input id="last-image" type="file" accept="image/jpeg,image/png,image/webp"></label>
+<label class="drop compact-drop" id="last-drop"><img id="video-end-thumb" class="video-frame-thumb" alt="Selected end frame" hidden><span class="video-frame-label">End frame</span><span>Drop or browse</span><small>Land on a chosen frame</small><input id="last-image" type="file" accept="image/jpeg,image/png,image/webp"></label>
 <p class="filemeta" id="last-filemeta">Leave empty for an open ending.</p>
 </div>
 </div>
@@ -323,7 +324,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 </div>
 <label class="label prompt-label" id="prompt-label" for="prompt">Motion direction</label><textarea id="prompt" maxlength="6000" placeholder="One clear action, one camera move, light, atmosphere and sound."></textarea>
 <div class="parameter-grid">
-<label id="duration-control"><span class="label">Duration</span><select id="duration"><option value="5">5 sec</option><option value="10">10 sec</option><option value="15" selected>15 sec</option><option value="30">30 sec</option></select></label>
+<label id="duration-control"><span class="label">Duration</span><select id="duration"><option value="5" selected>5 sec</option><option value="10">10 sec</option><option value="15">15 sec</option><option value="30">30 sec</option></select></label>
 
 <label id="image-processing-control" hidden><span class="label">Processing</span><select id="image-processing"><option value="normal" selected>Standard</option><option value="batch">Batch · 50% lower rate</option></select></label>
 <label id="image-count-control" hidden><span class="label">Number of images</span><select id="image-count"><option value="1" selected>1 image</option><option value="2">2 images</option><option value="3">3 images</option><option value="4">4 images</option></select></label>
