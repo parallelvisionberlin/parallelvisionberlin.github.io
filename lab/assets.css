@@ -385,3 +385,13 @@ body #main #app>.tool-switch>.tool-group>:is(button,a){
 @media(prefers-reduced-motion:reduce){
   #app #history .history-media:not(.has-image)::after{animation:none;opacity:.28}
 }
+
+/* Fashion shares the studio shell and keeps its editorial workbench inside it. */
+body:has(#app.fashion-studio-active) #main.wrap{--studio-inset:0px}
+#app.fashion-studio-active{display:block;height:auto}
+#app.fashion-studio-active > :not(.tool-switch):not(#fashion-studio){display:none!important}
+body:has(#app.fashion-studio-active)>footer{display:none}
+#fashion-studio{min-width:0;min-height:calc(100svh - 100px)}
+.fashion-loading{display:flex;align-items:center;justify-content:center;gap:14px;min-height:320px;color:#a4a8b0;font:400 12px 'DM Sans',Arial,sans-serif}
+.fashion-loading img{opacity:.3;animation:pv-preview-pulse 1.8s ease-in-out infinite alternate}
+@media(prefers-reduced-motion:reduce){.fashion-loading img{animation:none}}

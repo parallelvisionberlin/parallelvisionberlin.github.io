@@ -200,4 +200,60 @@ await page.click('#video-create-task');await page.click('#mode-extend');
 assert.equal(await page.locator('#video-reference-list video').count(),1,'Changing task keeps the uploaded video');
 await page.click('#clear');assert.equal(await page.locator('#generate').isDisabled(),true);
 assert.deepEqual(errors,[]);console.log('PASS extension upload, provider selection, preserved inputs and clearing');
+
+let fashionQuotes=0,fashionSubmits=0,fashionUploads=0,quotedFashion=null;
+await page.route('https://parallel-vision-lab.parallelvision.workers.dev/api/fashion/**',async route=>{
+  const path=new URL(route.request().url()).pathname;
+  let result={};
+  if(path==='/api/fashion/models')result={models:['fashn16','fashnmax','fluxvto'].map(id=>({id,label:id,available:true}))};
+  else if(path==='/api/fashion/balance')result={connected:true,credits:{total:40,onDemand:40,subscription:0}};
+  else if(path==='/api/fashion/quote'){fashionQuotes++;quotedFashion=route.request().postDataJSON();result={id:'fashion-test-quote',estimatedUsd:.15,notice:'Test quote.',expiresAt:Date.now()+60000};}
+  else if(path==='/api/fashion/submit'){fashionSubmits++;result={job:{id:'fashion-test-job',status:'queued',settings:{mode:'fashion',fashionModel:'fashnmax'}}};}
+  return route.fulfill({contentType:'application/json',body:JSON.stringify(result)});
+});
+await page.route('https://parallel-vision-lab.parallelvision.workers.dev/api/uploads',route=>{
+  fashionUploads++;return route.fulfill({contentType:'application/json',body:JSON.stringify({id:'fashion-input-'+fashionUploads})});
+});
+await page.setViewportSize({width:1440,height:1000});
+await page.click('#tool-image');await page.fill('#image-composer-prompt','Keep this image direction when visiting Fashion.');
+const studioUrl=page.url();await page.evaluate(()=>window.__fashionDocument='same-studio');
+const navGeometry=await page.locator('.tool-switch .tool-group > *').evaluateAll(els=>els.map(el=>{const r=el.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height};}));
+await page.click('#tool-fashion');
+const fashion=page.locator('#fashion-studio');
+await fashion.locator('#workspace').waitFor({state:'visible'});
+assert.equal(page.url(),studioUrl,'Fashion does not navigate to another page');
+assert.equal(await page.evaluate(()=>window.__fashionDocument),'same-studio');
+assert.equal(await page.locator('#tool-fashion').getAttribute('aria-pressed'),'true');
+assert.deepEqual(await page.locator('.tool-switch .tool-group > *').evaluateAll(els=>els.map(el=>{const r=el.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height};})),navGeometry,'Fashion preserves navigation geometry');
+assert.equal(await page.locator('#image-composer').isVisible(),false);
+assert.equal(await fashion.locator('.site-header').count(),0,'No second Fashion header');
+assert.equal(fashionSubmits,0,'Opening Fashion never generates');
+await fashion.locator('#person-file').setInputFiles({name:'person.png',mimeType:'image/png',buffer:png});
+await fashion.locator('#garment-file').setInputFiles({name:'garment.png',mimeType:'image/png',buffer:png});
+await fashion.locator('#direction').fill('Preserve the pose and natural fabric texture.');
+await fashion.locator('#person-preview').evaluate(img=>img.decode());
+await fashion.locator('#garment-preview').evaluate(img=>img.decode());
+const person=await fashion.locator('#person-preview').getAttribute('src');
+await page.click('#tool-video');await page.click('#tool-fashion');
+assert.equal(await fashion.locator('#direction').inputValue(),'Preserve the pose and natural fabric texture.');
+assert.equal(await fashion.locator('#person-preview').getAttribute('src'),person,'Fashion uploads persist across sections');
+await fashion.locator('#quote').click();await fashion.locator('#quote-box').waitFor({state:'visible'});
+assert.equal(fashionQuotes,1);assert.equal(fashionSubmits,0,'Price review requires a separate paid confirmation');
+assert.equal(quotedFashion.model,'fashnmax');assert.equal(quotedFashion.modelSourceId,'fashion-input-1');assert.equal(quotedFashion.garmentSourceId,'fashion-input-2');
+assert.ok((await fashion.locator('#result-stage').boundingBox()).x>(await fashion.locator('#person-slot').boundingBox()).x,'Result remains beside source images');
+console.log('FASHION_IN_STUDIO_DESKTOP='+Buffer.from(await page.screenshot({type:'jpeg',quality:75})).toString('base64'));
+for(const width of [768,390,320]){
+  await page.setViewportSize({width,height:844});
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'Fashion fits viewport '+width);
+}
+console.log('FASHION_IN_STUDIO_MOBILE='+Buffer.from(await page.screenshot({type:'jpeg',quality:75,fullPage:true})).toString('base64'));
+await page.setViewportSize({width:1440,height:1000});
+await page.click('#tool-assets');
+assert.equal(await fashion.isVisible(),false);assert.equal(await page.locator('#tool-assets').getAttribute('aria-pressed'),'true');
+await page.click('#tool-fashion');await fashion.locator('.result-actions a').click();
+assert.equal(await page.locator('#image-composer-prompt').inputValue(),'Keep this image direction when visiting Fashion.');
+assert.equal(await fashion.isVisible(),false);assert.equal(page.url(),studioUrl,'Image Studio return stays in the same document');
+assert.equal(fashionSubmits,0);assert.deepEqual(errors,[]);
+console.log('PASS integrated Fashion: stable shell, shared session, preserved inputs, quotation gate and responsive design');
+
 await browser.close();server.close();})().catch(e=>{console.error(e);server.close();process.exit(1)});

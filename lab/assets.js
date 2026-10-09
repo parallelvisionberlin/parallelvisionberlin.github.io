@@ -1,4 +1,4 @@
-export function createAssetLibrary({api,notify,archive,app,selected,selectMode,reload,restoreStudio,kind,ready}){
+export function createAssetLibrary({api,notify,archive,app,selected,selectMode,reload,restoreStudio,kind,ready,beforeOpen=()=>{}}){
   const $=id=>document.getElementById(id);
   let active=false,filter='all',media='all',folders=[],revision=0;
   const panel=$('assets-workspace'),sidebar=$('assets-folders'),dialog=$('asset-folder-dialog');
@@ -13,7 +13,7 @@ export function createAssetLibrary({api,notify,archive,app,selected,selectMode,r
   }
   async function load(){const rev=revision,data=await api('/api/library');if(rev!==revision)return;folders=data.folders||[];renderFolders();}
   async function navigate(value){filter=value;selectMode(false);renderFolders();await reload();}
-  async function open(){if(!ready())return;active=true;app.classList.add('assets-active');panel.hidden=false;$('assets-gallery').append(archive);$('tool-assets').classList.add('active');$('tool-assets').setAttribute('aria-pressed','true');for(const b of document.querySelectorAll('.tool-tab')){b.classList.remove('active');b.setAttribute('aria-pressed','false');}selectMode(false);heading();await Promise.all([load(),reload()]);}
+  async function open(){if(!ready())return;beforeOpen();active=true;app.classList.add('assets-active');panel.hidden=false;$('assets-gallery').append(archive);$('tool-assets').classList.add('active');$('tool-assets').setAttribute('aria-pressed','true');for(const b of document.querySelectorAll('.tool-tab')){b.classList.remove('active');b.setAttribute('aria-pressed','false');}selectMode(false);heading();await Promise.all([load(),reload()]);}
   function close(){if(!active)return;active=false;panel.hidden=true;app.classList.remove('assets-active');$('tool-assets').classList.remove('active');$('tool-assets').setAttribute('aria-pressed','false');selectMode(false);heading();restoreStudio();}
   function selection(){const count=selected().size;$('history-archive-selected').disabled=!count;$('history-add-folder').disabled=!count;$('history-remove-folder').disabled=!count;}
   async function chooseFolder(){await load();$('asset-folder-choices').replaceChildren(...folders.map(f=>{const b=document.createElement('button');b.type='button';b.textContent=f.name;b.onclick=safe(async()=>{await assign(f.id);dialog.close();});return b;}));$('asset-folder-title').textContent=selected().size?'Add to folder':'New folder';$('asset-folder-choices').hidden=!selected().size;$('asset-folder-name').value='';$('asset-folder-error').textContent='';dialog.showModal();}

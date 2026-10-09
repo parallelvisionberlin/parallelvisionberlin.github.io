@@ -1,4 +1,4 @@
-import {createAssetLibrary} from './assets.js?v=20261009-assets3';
+import {createAssetLibrary} from './assets.js?v=20261010-integrated1';
 import {createSoul2UI} from './higgsfield-ui.js?v=20261009-dock-character';
 import {VIDEO_MODELS,engineFor,videoLabel} from './video-models.js?v=20261009-extend1';
 import {REFERENCE_ROLES,REFERENCE_TARGETS,normalizeReferenceLabel,compileImagePrompt,referenceGuidanceError,canUseReferenceGuidance} from './reference-guidance.js?v=20261009-flash-kling';
@@ -12,6 +12,8 @@ const $=id=>document.getElementById(id), activeStates=new Set(['submitting','que
 let clerk, owner=false, userId='', epoch=0, syncing=false, config={}, file=null, sourceId=null, imageRevision=0, busy=false;
 let imageSubmissionPending=false;
 let assetLibrary=null;
+let fashionActive=false,fashionController=null,fashionMount=null;
+let fashionEntry=new URLSearchParams(location.search).get('tool')==='fashion';
 let sourceUrl=null, lastFile=null, lastSourceId=null, lastUrl=null, references=[], mode='start';
 let engine='seedance', imageEngine='seedream', imageProcessing='normal', soulProModel='soul2', soulProQuality='medium', soulProIdentity={configured:false,count:0,refs:[]}, soulProPackSelection=[], soulProPackUrls=[], poseMapSourceId=null, repairTarget=null, repairImage=null, repairMaskCanvas=null, repairMaskDirty=false;
 let tool='image', packs=[],resultKind='video',resultExt='mp4';
@@ -122,7 +124,53 @@ function syncDefaultRatio(force=false){
     else{const target=source.width/source.height,ratios=values.filter(v=>/^\d+:\d+$/.test(v));ratios.sort((a,b)=>{const ratio=v=>{const [w,h]=v.split(':').map(Number);return w/h;};return Math.abs(Math.log(ratio(a)/target))-Math.abs(Math.log(ratio(b)/target));});if(ratios[0])select.value=ratios[0];}
   }else if(values.includes('16:9'))select.value='16:9';
 }
+
+function setFashionActive(active){
+  if(fashionActive===active)return;
+  fashionActive=active;
+  $('app').classList.toggle('fashion-studio-active',active);
+  $('fashion-studio').hidden=!active;
+  for(const name of ['image','video','upscale','fashion']){
+    const selected=active?name==='fashion':name===tool;
+    $('tool-'+name).classList.toggle('active',selected);
+    $('tool-'+name).setAttribute('aria-pressed',String(selected));
+  }
+  syncImageStudioMode();syncVideoStudioMode();
+}
+async function openFashionStudio(){
+  if(!owner){fashionEntry=true;return;}
+  if(busy)return;
+  assetLibrary?.close();
+  if($('soul-pro-identity-dialog').open)$('soul-pro-identity-dialog').close();
+  setFashionActive(true);
+  const host=$('fashion-studio');
+  const sessionClient={
+    get session(){return owner?clerk?.session:null;},
+    get isSignedIn(){return owner&&!!clerk?.session;},
+    openSignIn:()=>clerk?.openSignIn()
+  };
+  try{
+    if(!fashionMount){
+      host.setAttribute('aria-busy','true');
+      fashionMount=import('./fashion-studio.js?v=20261010-integrated1')
+        .then(({mountFashionStudio})=>mountFashionStudio(host,{sessionClient,onNavigate:setTool}))
+        .then(controller=>{fashionController=controller;return controller;})
+        .catch(error=>{fashionMount=null;throw error;});
+    }
+    const controller=await fashionMount;
+    if(!owner)controller.lock();else await controller.sync();
+  }catch(error){
+    notify(error.message,true);
+    if(!host.shadowRoot){
+      const retry=document.createElement('button');retry.type='button';retry.textContent='Retry loading Fashion';
+      retry.onclick=()=>void openFashionStudio();host.replaceChildren(retry);
+    }
+  }finally{host.setAttribute('aria-busy','false');}
+}
+
 function setTool(value){
+  if(value==='fashion'){void openFashionStudio();return;}
+  setFashionActive(false);
   const nextTool=['image','upscale'].includes(value)?value:'video';
   const galleryChanged=nextTool!==tool||!!assetLibrary?.active();
   assetLibrary?.close();
@@ -488,7 +536,7 @@ function toggleImageSettings(force){
   if(open){closeImageModelMenu();closeComposerLibrary();}
 }
 function syncImageStudioMode(){
-  const isImage=tool==='image';
+  const isImage=tool==='image'&&!fashionActive;
   $('app').classList.toggle('image-studio-active',isImage);
   imageStudio.hidden=!isImage;
   if(!isImage)closeComposerLibrary();
@@ -631,7 +679,7 @@ function restoreLatestVideoSelection(){
 }
 function syncVideoStudioMode(){
   if(!mainWorkspace)return;
-  const videoMode=tool==='video';
+  const videoMode=tool==='video'&&!fashionActive;
   $('app').classList.toggle('video-studio-active',videoMode);
   mainWorkspace.classList.toggle('video-layout',videoMode);
   videoFeedCenter.hidden=!videoMode;
@@ -764,6 +812,7 @@ $('soul-launch-manage').onclick=()=>{if(busy)return;imageEngine='soul';$('image-
 $('tool-upscale').onclick=()=>{if(!busy)setTool('upscale');};
 $('upscale-engine').onchange=()=>{if(busy)return;const value=$('upscale-engine').value;upscaleEngine=Object.hasOwn(UPSCALE_MODELS,value)?value:'spicy';invalidateUpscalePrice('Upscale method changed. Check the price again before upscaling.');setTool('upscale');};
 for(const id of ['upscale-topaz-model','upscale-scale'])$(id).onchange=()=>{if(busy)return;invalidateUpscalePrice('Upscale settings changed. Check the price and output size again.');update();};
+$('tool-fashion').onclick=()=>void openFashionStudio();
 $('tool-image').onclick=()=>{if(!busy)setTool('image');};$('tool-video').onclick=()=>{if(!busy)setTool('video');};
 $('image-engine').onchange=()=>{if(busy)return;const value=$('image-engine').value;imageEngine=['flash','kling'].includes(value)?value:value==='gemini'?'gemini':value==='soulpro'?'soulpro':value==='soul'?'soul':value==='fal'?'fal':'seedream';poseMapSourceId=null;$('pose-preview-status').textContent='';$('image-processing').value=imageProcessing;setTool('image');renderReferences();};
 $('image-processing').onchange=()=>{if(busy)return;imageProcessing=$('image-processing').value==='batch'?'batch':'normal';setTool('image');};
@@ -1931,11 +1980,11 @@ $('history-delete-selected').onclick=()=>action(async()=>{
   setHistorySelectMode(false);await loadHistory();if(assetLibrary?.active())await assetLibrary.load();notify((result.deleted||ids.length)+' History item'+((result.deleted||ids.length)===1?'':'s')+' deleted. Spending history is unchanged.');
 });
 function finishLabBoot(){window.__pvLabFinishBoot?.();}
-function lock(){assetLibrary?.reset();hf.reset();epoch++;for(const p of composerPortraits.values())p.then(url=>{if(url)release(url);});composerPortraits.clear();composerLibraryKey='';composerPortraitKey='';closeComposerLibrary();historySelected.clear();historySelectMode=false;clearSoulProPackPreview();soulProIdentity={configured:false,count:0,refs:[]};workingCopies.clear();autoPreview=null;downloadUrls.forEach(release);downloadUrls.clear();owner=false;userId='';soul.reset();historyRevision++;clearTimeout(timer);timer=null;activeJob=null;activeJobs=[];polling=false;requestControllers.forEach(c=>c.abort());requestControllers.clear();observer.disconnect();cardUrls.forEach(release);cardUrls.clear();clearMedia();$('prompt').value='';$('history').replaceChildren();$('app').hidden=true;$('gate').hidden=false;$('connection').hidden=true;$('logout').hidden=true;$('api-key').value='';for(const d of document.querySelectorAll('dialog[open]'))d.close();currentQuote=null;config={};packs=[];$('pack-select').replaceChildren(new Option('Choose a saved pack',''));closeImageModelMenu();toggleImageSettings(false);$('app').classList.remove('image-studio-active');imageStudio.hidden=true;imageDetailCache.clear();releaseImageDetailSource();videoJobCache.clear();selectedVideoJob=null;syncVideoStudioMode();finishLabBoot();}
-async function sync(){if(syncing)return;syncing=true;try{if(!clerk.isSignedIn){lock();$('auth-status').textContent='Sign in with your Parallel Vision owner account.';$('signin').disabled=false;return;}if(owner&&userId===clerk.user.id)return;const data=await api('/api/session');owner=true;userId=clerk.user.id;applyConfig(data.config);$('identity').textContent='Owner workspace';$('gate').hidden=true;$('app').hidden=false;$('connection').hidden=false;$('logout').hidden=false;await Promise.all([loadHistory(),loadPacks(),soul.load(),loadSoulProIdentity()]);syncVideoStudioMode();}catch(e){lock();$('auth-status').textContent=e.message;$('signin').disabled=false;$('logout').hidden=!clerk?.isSignedIn;}finally{syncing=false;finishLabBoot();}}
+function lock(){fashionController?.lock();setFashionActive(false);assetLibrary?.reset();hf.reset();epoch++;for(const p of composerPortraits.values())p.then(url=>{if(url)release(url);});composerPortraits.clear();composerLibraryKey='';composerPortraitKey='';closeComposerLibrary();historySelected.clear();historySelectMode=false;clearSoulProPackPreview();soulProIdentity={configured:false,count:0,refs:[]};workingCopies.clear();autoPreview=null;downloadUrls.forEach(release);downloadUrls.clear();owner=false;userId='';soul.reset();historyRevision++;clearTimeout(timer);timer=null;activeJob=null;activeJobs=[];polling=false;requestControllers.forEach(c=>c.abort());requestControllers.clear();observer.disconnect();cardUrls.forEach(release);cardUrls.clear();clearMedia();$('prompt').value='';$('history').replaceChildren();$('app').hidden=true;$('gate').hidden=false;$('connection').hidden=true;$('logout').hidden=true;$('api-key').value='';for(const d of document.querySelectorAll('dialog[open]'))d.close();currentQuote=null;config={};packs=[];$('pack-select').replaceChildren(new Option('Choose a saved pack',''));closeImageModelMenu();toggleImageSettings(false);$('app').classList.remove('image-studio-active');imageStudio.hidden=true;imageDetailCache.clear();releaseImageDetailSource();videoJobCache.clear();selectedVideoJob=null;syncVideoStudioMode();finishLabBoot();}
+async function sync(){if(syncing)return;syncing=true;try{if(!clerk.isSignedIn){lock();$('auth-status').textContent='Sign in with your Parallel Vision owner account.';$('signin').disabled=false;return;}if(owner&&userId===clerk.user.id)return;const data=await api('/api/session');owner=true;userId=clerk.user.id;applyConfig(data.config);$('identity').textContent='Owner workspace';$('gate').hidden=true;$('app').hidden=false;$('connection').hidden=false;$('logout').hidden=false;await Promise.all([loadHistory(),loadPacks(),soul.load(),loadSoulProIdentity()]);syncVideoStudioMode();if(fashionEntry){fashionEntry=false;void openFashionStudio();}else if(fashionController)void fashionController.sync();}catch(e){lock();$('auth-status').textContent=e.message;$('signin').disabled=false;$('logout').hidden=!clerk?.isSignedIn;}finally{syncing=false;finishLabBoot();}}
 $('auth-retry').onclick=()=>location.reload();$('signin').onclick=()=>clerk?.openSignIn();$('logout').onclick=async()=>{lock();await clerk?.signOut();$('auth-status').textContent='Signed out. Your archive remains private.';};
-assetLibrary=createAssetLibrary({api,notify,archive,app:$('app'),selected:()=>historySelected,selectMode:setHistorySelectMode,reload:()=>loadHistory(),restoreStudio:()=>{syncImageStudioMode();syncVideoStudioMode();},kind:()=>tool==='video'?'video':'image',ready:()=>owner});
-setTool(new URLSearchParams(location.search).get('tool')||'image');
+assetLibrary=createAssetLibrary({api,notify,archive,app:$('app'),selected:()=>historySelected,selectMode:setHistorySelectMode,reload:()=>loadHistory(),restoreStudio:()=>{syncImageStudioMode();syncVideoStudioMode();},beforeOpen:()=>setFashionActive(false),kind:()=>tool==='video'?'video':'image',ready:()=>owner});
+setTool(fashionEntry?'image':new URLSearchParams(location.search).get('tool')||'image');
 try{const {Clerk}=await import('https://esm.sh/@clerk/clerk-js@6?bundle');await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='https://clerk.parallelvisionlabel.com/npm/@clerk/ui@1/dist/ui.browser.js';s.onload=resolve;s.onerror=reject;document.head.append(s);});clerk=new Clerk('pk_live_Y2xlcmsucGFyYWxsZWx2aXNpb25sYWJlbC5jb20k');await clerk.load({ui:{ClerkUI:window.__internal_ClerkUICtor},signInFallbackRedirectUrl:location.href,signUpFallbackRedirectUrl:location.href});clerk.addListener(()=>void sync());await sync();}catch{$('gate').hidden=false;$('auth-retry').hidden=false;$('signin').disabled=true;$('auth-status').textContent='Sign-in could not load. Check your connection and reload the page.';finishLabBoot();}
 
 

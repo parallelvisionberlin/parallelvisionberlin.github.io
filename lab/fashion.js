@@ -1,6 +1,7 @@
 import {createSessionRequest} from './session-request.js?v=20260927-auth1';
+export function createFashionStudio(root=document,{sessionClient=null,onNavigate=null}={}){
 const API='https://parallel-vision-lab.parallelvision.workers.dev';
-const $=id=>document.getElementById(id);
+const $=id=>root.getElementById(id);
 const money=n=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:4}).format(n);
 const modes={
   fashn16:{description:'An alternative for straightforward garment transfer, through fal.ai.',note:'fal.ai charges separately. Published estimate: $0.075 per image.',provider:'fal'},
@@ -8,13 +9,14 @@ const modes={
   fluxvto:{description:'Prompt-directed styling for layering, fit and the way clothing is worn.',note:'fal.ai charges by megapixel. Person image maximum 2 MP; garment maximum 1 MP.',provider:'fal'}
 };
 let clerk=null,authenticated=false,sessionId='',models=[],busy=false,quote=null,pollTimeout=null,activeJobId='',resultUrl='',signingIn=false;
-let fileKeys=new Map(),previews=new Map(),revision=0;
+let fileKeys=new Map(),previews=new Map(),revision=0,authVersion=0;
 const request=createSessionRequest({baseUrl:API,getSession:()=>clerk?.session});
 function status(message,error=false){$('status').textContent=message||'';$('status').classList.toggle('error',error);}
 function revokeResult(){if(resultUrl)URL.revokeObjectURL(resultUrl);resultUrl='';$('result-image').hidden=true;$('result-image').removeAttribute('src');$('result-placeholder').hidden=false;$('download').hidden=true;}
 function clearQuote(){quote=null;$('quote-box').hidden=true;$('quote').hidden=false;}
 function change(){revision++;clearQuote();update();}
 async function api(path,{method='GET',body,headers={}}={}){
+  const version=authVersion;
   const init={method,headers:{...headers}};
   if(body!==undefined){
     if(body instanceof File || body instanceof Blob){init.body=body;}
@@ -22,6 +24,7 @@ async function api(path,{method='GET',body,headers={}}={}){
   }
   const res=await request(path,init);
   let payload;try{payload=await res.json();}catch{payload={};}
+  if(version!==authVersion)throw new Error('Session changed.');
   if(!res.ok)throw new Error(payload.error||('The Lab returned HTTP '+res.status));
   return payload;
 }
@@ -124,7 +127,9 @@ $('confirm').addEventListener('click',async()=>{
 });
 async function loadResult(job){
   if(!job.outputId)throw new Error('This generation has no archived output yet.');
+  const version=authVersion;
   const blob=await assetBlob(job.outputId);
+  if(!authenticated||version!==authVersion)return;
   revokeResult();resultUrl=URL.createObjectURL(blob);$('result-image').src=resultUrl;$('result-image').hidden=false;$('result-placeholder').hidden=true;$('download').hidden=false;
 }
 async function showJob(job){
@@ -189,6 +194,7 @@ $('download').addEventListener('click',()=>{
 $('signin').addEventListener('click',()=>clerk?.openSignIn());
 $('reload').addEventListener('click',()=>location.reload());
 function lock(){
+  authVersion++;$('fashion-history').replaceChildren();models=[];
   authenticated=false;sessionId='';clearTimeout(pollTimeout);pollTimeout=null;activeJobId='';busy=false;clearQuote();revokeResult();
   for(const url of previews.values())URL.revokeObjectURL(url);
   previews.clear();fileKeys.clear();revision++;
@@ -201,16 +207,24 @@ function lock(){
 }
 async function sync(){
   if(signingIn)return;signingIn=true;
+  const version=authVersion;
   try{
     if(!clerk?.isSignedIn){lock();$('auth-status').textContent='Sign in with your Parallel Vision owner account.';return;}
     if(authenticated&&sessionId===clerk.session?.id)return;
     await api('/api/session');const info=await api('/api/fashion/models');
     models=info.models||[];authenticated=true;sessionId=clerk.session?.id||'';
     $('gate').hidden=true;$('workspace').hidden=false;update();await Promise.all([loadHistory(),checkFashnBalance()]);
-  }catch(e){lock();$('auth-status').textContent=e.message;}
+  }catch(e){if(version===authVersion){lock();$('auth-status').textContent=e.message;}}
   finally{signingIn=false;}
 }
+if(onNavigate)root.addEventListener('click',event=>{
+  const link=event.target.closest?.('a[href*="studio.html?tool="]');
+  if(!link||event.ctrlKey||event.metaKey||event.shiftKey||event.altKey)return;
+  event.preventDefault();onNavigate(new URL(link.href,location.href).searchParams.get('tool')||'image');
+});
 update();
+const ready=(async()=>{
+if(sessionClient){clerk=sessionClient;await sync();return;}
 try{
   const {Clerk}=await import('https://esm.sh/@clerk/clerk-js@6?bundle');
   await new Promise((resolve,reject)=>{
@@ -224,3 +238,8 @@ try{
   $('auth-status').textContent='Sign-in could not load. Reload the page.';
   $('reload').hidden=false;$('signin').disabled=true;
 }
+
+})();
+return {ready,sync,lock};
+}
+if(document.getElementById('fashion-form'))createFashionStudio();

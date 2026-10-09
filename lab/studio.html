@@ -55,9 +55,9 @@ document.addEventListener('DOMContentLoaded',()=>{
 <link rel="stylesheet" href="./image-studio.css?v=20261009-strength1">
 <link rel="stylesheet" href="./detail-video-studio.css?v=20261009-pointer1">
 <link rel="stylesheet" href="./editorial-polish.css?v=20261009-pearl-drop1">
-<script type="module" src="./lab.js?v=20261010-media-loading1"></script>
+<script type="module" src="./lab.js?v=20261010-integrated-fashion1"></script>
 <link rel="stylesheet" href="./higgsfield.css?v=20261009-background-submit">
-<link rel="stylesheet" href="./assets.css?v=20261010-media-loading1">
+<link rel="stylesheet" href="./assets.css?v=20261010-integrated-fashion1">
 <link rel="stylesheet" href="./video-refresh.css?v=20261009-extend2">
 <script type="module" src="./gallery-layout.js?v=20261009-stable-gallery"></script>
 </head>
@@ -96,10 +96,11 @@ document.addEventListener('DOMContentLoaded',()=>{
     <button id="tool-video" class="tool-tab" type="button" aria-pressed="false">Video</button>
     <button id="tool-upscale" class="tool-tab" type="button" aria-pressed="false">Upscaler</button>
     <button id="tool-assets" type="button" aria-pressed="false">Assets</button>
-    <a class="tool-tab" href="./fashion.html" title="Fashion: dedicated garment replacement models">Fashion</a>
+    <button id="tool-fashion" class="tool-tab" type="button" aria-pressed="false">Fashion</button>
   </div>
 
 </nav>
+<section id="fashion-studio" aria-label="Fashion studio" hidden><div class="fashion-loading"><img src="./branding/pv-mark.png" alt="" width="40" height="40"><span>Opening Fashion</span></div></section>
 <section id="image-studio" class="image-studio" aria-label="Image creation studio" hidden>
   <div class="image-gallery-shell">
     <div id="image-gallery-host" class="image-gallery-host"></div>
