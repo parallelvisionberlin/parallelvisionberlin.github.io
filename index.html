@@ -314,271 +314,42 @@ body.pv-home #contact .contact-socials a::after { content: none; display: none; 
     #ninaOverlay .nina-open-live { min-height: 48px; margin-top: 10px; }
   }
 </style>
-<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
 <style id="current-release-refinement">
-/* Homepage release insert: a quiet, uncoated-paper editorial spread.
-   The original cover is the dominant headline, not a duplicated poster. */
-body.pv-home .current-release-editorial {
-  display: block;
-  position: relative;
-  isolation: isolate;
-  width: 100%;
-  max-width: none;
-  margin: 0;
-  padding: clamp(54px, 6vw, 100px) 0 clamp(58px, 6.5vw, 110px);
-  min-height: 0;
-  overflow: hidden;
-  background: #dedbd3;
-  color: #191c1d;
-  box-sizing: border-box;
-}
-body.pv-home .current-release-editorial::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(112deg, #e5e1d7 0%, #dedbd3 58%, #d5d2ca 100%);
-  pointer-events: none;
-}
-body.pv-home .current-release-editorial::after {
-  content: "";
-  position: absolute;
-  inset: auto 0 0;
-  height: 1px;
-  background: rgba(15,17,19,.25);
-  pointer-events: none;
-}
-body.pv-home .current-release-editorial .current-release-inner {
-  position: relative;
-  z-index: 1;
-  width: min(1360px, calc(100% - 100px));
-  margin: 0 auto;
-}
-body.pv-home .current-release-editorial .current-release-masthead {
-  display: flex;
-  justify-content: space-between;
+body.pv-home .current-release {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(32px, 5vw, 72px);
   align-items: center;
-  gap: 12px 26px;
-  min-height: 28px;
-  padding: 0 0 17px;
-  border-bottom: 1px solid rgba(19,22,25,.43);
-  color: #464740;
-  font: 400 10px/1.4 "Courier New", monospace;
-  letter-spacing: .16em;
-  text-transform: uppercase;
+  margin-bottom: 56px;
 }
-body.pv-home .current-release-editorial .current-release-spread {
-  display: grid;
-  grid-template-columns: minmax(0,.78fr) minmax(0,1.12fr);
-  align-items: center;
-  gap: clamp(45px,6.6vw,120px);
-  padding: clamp(38px,4.8vw,72px) 0 0;
-}
-body.pv-home .current-release-editorial .current-release-copy {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  min-width: 0;
-  max-width: 440px;
-  padding: 0;
-}
-body.pv-home .current-release-editorial .current-release-label {
-  margin: 0 0 clamp(36px,5vw,78px);
-  color: #4b4c49;
-  font: 400 10px/1.6 "Courier New", monospace;
-  letter-spacing: .13em;
-  text-transform: uppercase;
-}
-body.pv-home .current-release-editorial #current-release-title {
-  margin: 0 0 28px;
-  color: #161819;
-  font: italic 400 clamp(56px,5.25vw,86px)/1.01 Georgia, "Times New Roman", serif;
-  letter-spacing: -.065em;
-  text-transform: none;
-  text-shadow: none;
-}
-body.pv-home .current-release-editorial .current-release-artist {
-  max-width: 18ch;
-  margin: 0;
-  color: #1c2225;
-  font: 400 clamp(21px,2.1vw,29px)/1.3 "Inter Tight","Inter",Arial,sans-serif;
-  letter-spacing: -.045em;
-}
-body.pv-home .current-release-editorial .current-release-note {
-  max-width: 32ch;
-  margin: 25px 0 0;
-  color: #595b59;
-  font: 400 clamp(14px,1.05vw,16px)/1.62 "Inter Tight","Inter",Arial,sans-serif;
-  letter-spacing: 0;
-}
-body.pv-home .current-release-editorial .current-release-actions {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  width: min(100%,390px);
-  margin-top: clamp(45px,6vw,86px);
-}
-body.pv-home .current-release-editorial .pv-text-link.release-editorial-listen {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  min-height: 60px;
-  margin: 0;
-  padding: 9px 0;
-  gap: 22px;
-  border: 0;
-  border-top: 1px solid #262a2d;
-  border-bottom: 1px solid rgba(31,34,35,.25);
-  background: transparent;
-  color: #171a1b;
-  font: 500 15px/1.4 "Inter Tight","Inter",Arial,sans-serif;
-  letter-spacing: -.01em;
-  text-transform: none;
-  text-decoration: none;
-  transition: color .2s ease;
-}
-body.pv-home .current-release-editorial .release-editorial-arrow {
-  font: 400 25px/1 "Inter Tight",Arial,sans-serif;
-  color: #13191d;
-  transition: transform .2s ease;
-}
-body.pv-home .current-release-editorial .pv-text-link.release-editorial-listen:hover {
-  color: #23477e;
-}
-body.pv-home .current-release-editorial .release-editorial-listen:hover .release-editorial-arrow {
-  transform: translate(3px,-3px);
-}
-body.pv-home .current-release-editorial .release-editorial-archive {
-  display: inline-flex;
-  align-items: center;
-  gap: 12px;
-  min-height: 44px;
-  margin: 9px 0 0;
-  padding: 4px 0;
-  color: #565a5a;
-  font: 400 12px/1.4 "Inter Tight","Inter",Arial,sans-serif;
-  letter-spacing: 0;
-  text-decoration: none;
-  transition: color .2s ease;
-}
-body.pv-home .current-release-editorial .release-editorial-archive:hover {
-  color: #1e467c;
-}
-body.pv-home .current-release-editorial .current-release-figure {
-  display: block;
-  width: 100%;
-  min-width: 0;
-  margin: 0;
-  padding: 0;
-}
-body.pv-home .current-release-editorial .current-release-media {
-  display: block;
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  border: 1px solid rgba(16,17,19,.18);
-  border-radius: 0;
-  overflow: hidden;
-  background: #142238;
-  box-shadow: 0 25px 55px rgba(16,20,24,.17);
-}
-body.pv-home .current-release-editorial .current-release-media img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  min-height: 0;
-  aspect-ratio: 1 / 1;
-  object-fit: cover;
-  border: 0;
-  border-radius: 0;
-  filter: none;
-  transform: none;
-  transition: filter .3s ease;
-}
-body.pv-home .current-release-editorial .current-release-media:is(:hover,:focus-visible) img {
-  transform: none;
-  filter: brightness(1.055);
-}
-body.pv-home .current-release-editorial .current-release-figure-caption {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px 18px;
-  flex-wrap: wrap;
-  margin-top: 13px;
-  color: #555951;
-  font: 400 9px/1.6 "Courier New",monospace;
+body.pv-home .current-release-media { aspect-ratio: 1; border: 0; border-radius: 0; }
+/* Crop the rounded edge printed into the cover for a square presentation. */
+body.pv-home .current-release-media img { border-radius: 0; transform: scale(1.035); }
+body.pv-home .current-release-media:hover img,
+body.pv-home .current-release-media:focus-visible img { transform: scale(1.05); }
+body.pv-home .current-release-copy { min-width: 0; padding: 0; }
+body.pv-home .current-release-label { font-size: 11px; letter-spacing: .16em; }
+body.pv-home .current-release h2 { margin: 16px 0 12px; font-size: clamp(32px, 4vw, 54px); }
+body.pv-home .current-release-artist { font-size: clamp(17px, 1.5vw, 20px); line-height: 1.5; }
+body.pv-home .current-release .pv-text-link {
+  min-height: 50px;
+  margin-top: 28px;
+  padding: 0 20px;
+  gap: 32px;
+  border: 1px solid rgba(255, 255, 255, .5);
+  color: #f1f1ed;
+  font: 500 13px/1.3 var(--pv-body);
   letter-spacing: .1em;
-  text-transform: uppercase;
+  transition: border-color .2s ease, background-color .2s ease;
 }
-body.pv-home .current-release-editorial a:focus-visible {
-  outline: 2px solid #24416b;
-  outline-offset: 4px;
-}
-@media (max-width: 1000px) {
-  body.pv-home .current-release-editorial .current-release-inner {
-    width: calc(100% - 64px);
-  }
-  body.pv-home .current-release-editorial .current-release-spread {
-    grid-template-columns: minmax(0,.85fr) minmax(0,1fr);
-    gap: clamp(28px,4vw,58px);
-  }
-  body.pv-home .current-release-editorial .current-release-label {
-    margin-bottom: 35px;
-  }
-  body.pv-home .current-release-editorial .current-release-actions {
-    margin-top: 42px;
-  }
-}
+body.pv-home .current-release .pv-text-link span { font-size: 19px; }
+body.pv-home .current-release .pv-text-link:hover { border-color: #fff; background: #151515; }
+body.pv-home .current-release a:focus-visible { outline: 1px solid #fff; outline-offset: 5px; }
 @media (max-width: 700px) {
-  body.pv-home .current-release-editorial {
-    padding: 32px 0 58px;
-  }
-  body.pv-home .current-release-editorial .current-release-inner {
-    width: calc(100% - 40px);
-  }
-  body.pv-home .current-release-editorial .current-release-masthead {
-    padding-bottom: 14px;
-    font-size: 9px;
-    letter-spacing: .08em;
-  }
-  body.pv-home .current-release-editorial .current-release-spread {
-    grid-template-columns: minmax(0,1fr);
-    gap: 35px;
-    padding-top: 28px;
-  }
-  body.pv-home .current-release-editorial .current-release-figure {
-    order: -1;
-  }
-  body.pv-home .current-release-editorial .current-release-figure-caption {
-    font-size: 9px;
-    margin-top: 11px;
-  }
-  body.pv-home .current-release-editorial .current-release-copy {
-    max-width: none;
-  }
-  body.pv-home .current-release-editorial .current-release-label {
-    margin-bottom: 19px;
-  }
-  body.pv-home .current-release-editorial #current-release-title {
-    margin: 0 0 17px;
-    font-size: clamp(52px,12vw,73px);
-  }
-  body.pv-home .current-release-editorial .current-release-artist {
-    font-size: clamp(21px,6vw,26px);
-  }
-  body.pv-home .current-release-editorial .current-release-note {
-    margin-top: 19px;
-    font-size: 15px;
-  }
-  body.pv-home .current-release-editorial .current-release-actions {
-    width: 100%;
-    margin-top: 31px;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  body.pv-home .current-release-editorial .release-editorial-arrow,
-  body.pv-home .current-release-editorial .current-release-media img {
-    transition: none;
-  }
+  body.pv-home .current-release { width: calc(100% - 40px); grid-template-columns: minmax(0, 1fr); gap: 0; margin-bottom: 32px; }
+  body.pv-home .current-release-copy { padding: 24px 0 0; }
+  body.pv-home .current-release h2 { margin: 14px 0 10px; font-size: clamp(30px, 8.5vw, 42px); }
+  body.pv-home .current-release-artist { font-size: 17px; }
+  body.pv-home .current-release .pv-text-link { margin-top: 24px; }
 }
 </style>
 <style id="nina-artists-spacing">
@@ -768,43 +539,15 @@ body.pv-home .current-release-editorial a:focus-visible {
   <small data-nina-trial-offer hidden>3 minutes free</small>
 </button>
 
-<section class="current-release current-release-editorial" aria-labelledby="current-release-title">
-  <div class="current-release-inner">
-    <div class="current-release-masthead">
-      <span>PARALLEL VISION / RECORDS</span>
-      <span>PV013 / 2026</span>
-    </div>
-
-    <div class="current-release-spread">
-      <div class="current-release-copy">
-        <div class="current-release-main-copy">
-          <p class="current-release-label">Current release / Parallel Vision</p>
-          <h2 id="current-release-title">Stay Low</h2>
-          <p class="current-release-artist">Alejandro Molinari feat. Nina FOK</p>
-          <p class="current-release-note">Nina's first appearance as a recording artist inside the Parallel Vision catalog.</p>
-        </div>
-        <div class="current-release-actions">
-          <a class="pv-text-link release-editorial-listen" href="https://soundcloud.com/parallelvisionlabel/stay-low" target="_blank" rel="noopener noreferrer">
-            <span class="release-editorial-listen-label">Listen on SoundCloud</span>
-            <span class="release-editorial-arrow" aria-hidden="true">↗</span>
-          </a>
-          <a class="release-editorial-archive" href="#releases">
-            <span class="release-editorial-archive-label">Explore all releases</span>
-            <span aria-hidden="true">↗</span>
-          </a>
-        </div>
-      </div>
-
-      <figure class="current-release-figure">
-        <a class="current-release-media" href="https://soundcloud.com/parallelvisionlabel/stay-low" target="_blank" rel="noopener noreferrer" aria-label="Listen to Stay Low on SoundCloud">
-          <img src="./assets/optimized/artworks/staylowart.webp" alt="Stay Low cover art, Alejandro Molinari featuring Nina FOK" decoding="async" loading="lazy" width="900" height="900">
-        </a>
-        <figcaption class="current-release-figure-caption">
-          <span>ARTWORK / STAY LOW</span>
-          <span>PARALLEL VISION / 013</span>
-        </figcaption>
-      </figure>
-    </div>
+<section class="current-release" aria-labelledby="current-release-title">
+  <a class="current-release-media" href="https://soundcloud.com/parallelvisionlabel/stay-low" target="_blank" rel="noopener noreferrer" aria-label="Listen to Stay Low on SoundCloud">
+    <img src="./assets/optimized/artworks/staylowart.webp" alt="Stay Low by Alejandro Molinari featuring Nina FOK" decoding="async" loading="lazy" width="900" height="900">
+  </a>
+  <div class="current-release-copy">
+    <p class="current-release-label">Current release / Parallel Vision</p>
+    <h2 id="current-release-title">Stay Low</h2>
+    <p class="current-release-artist">Alejandro Molinari feat. Nina FOK</p>
+    <a class="pv-text-link" href="https://soundcloud.com/parallelvisionlabel/stay-low" target="_blank" rel="noopener noreferrer">Listen now <span aria-hidden="true">↗</span></a>
   </div>
 </section>
 
