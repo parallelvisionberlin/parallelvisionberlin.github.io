@@ -1,5 +1,6 @@
 // Official Soul 2 / Soul ID API. Credentials stay in the Worker secret HF_CREDENTIALS.
 export const SOUL2_MODEL='higgsfield-ai/soul/v2/image-to-image';
+export const SOUL2_TEXT_MODEL='higgsfield-ai/soul/v2/standard';
 export const SOUL2_PRICES={training:2500000,'720p':3200,'1080p':5700};
 const ORIGIN='https://api.higgsfield.ai';
 const ID=/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
@@ -21,10 +22,11 @@ export function soul2Parameters(value,fail){
   return {type:'image',provider:'higgsfield',engine:'soulpro',soulProModel:'soul2',mode:'identity-edit',model:SOUL2_MODEL,prompt,identityStrength:strength,characterId:value.characterId,resolution,aspectRatio:RATIOS.includes(value.aspectRatio)?value.aspectRatio:'source',outputFormat:'png',seed,referenceRoles:[]};
 }
 export function soul2Input(p,imageUrl,referenceId){
-  if(!imageUrl||referenceId&&!ID.test(referenceId))throw new Error('A source photograph and a valid optional Soul ID are required.');
-  return {image_url:imageUrl,...(referenceId?{custom_reference_id:referenceId,custom_reference_strength:p.identityStrength}:{}),
-    prompt:(referenceId?'Reinterpret the supplied photograph with the selected character identity. Preserve the source outfit, accessories, body pose, framing, camera angle, background and lighting. Change the person’s identity to the trained character. Natural photographic skin and fabric texture.':'Reinterpret the supplied photograph with natural photographic detail. Preserve its subject, outfit, pose, composition, background and lighting unless directed otherwise. Natural skin and fabric texture.')+(p.prompt?' Additional direction: '+p.prompt:''),
-    resolution:p.resolution,aspect_ratio:p.aspectRatio,batch_size:1,enhance_prompt:true,...(p.seed===null?{}:{seed:p.seed})};
+  if(referenceId&&!ID.test(referenceId))throw new Error('Choose a valid Soul ID.');
+  if(!imageUrl&&!p.prompt)throw new Error('Write a prompt or add a photograph.');
+  return {...(imageUrl?{image_url:imageUrl}:{}),...(referenceId?{custom_reference_id:referenceId,custom_reference_strength:p.identityStrength}:{}),
+    prompt:imageUrl?((referenceId?'Reinterpret the supplied photograph with the selected character identity. Preserve the source outfit, accessories, body pose, framing, camera angle, background and lighting. Change the person’s identity to the trained character. Natural photographic skin and fabric texture.':'Reinterpret the supplied photograph with natural photographic detail. Preserve its subject, outfit, pose, composition, background and lighting unless directed otherwise. Natural skin and fabric texture.')+(p.prompt?' Additional direction: '+p.prompt:'')):p.prompt,
+    resolution:p.resolution,aspect_ratio:p.aspectRatio==='source'?'16:9':p.aspectRatio,batch_size:1,enhance_prompt:true,...(p.seed===null?{}:{seed:p.seed})};
 }
 export function higgsfieldApiUrl(path){
   const u=new URL(path,ORIGIN);
@@ -56,7 +58,7 @@ async function submit(env,j,p,input,d){
   try{
     await run(env,'UPDATE quotes SET payload=? WHERE id=?',JSON.stringify({input,model:p.model}),j.quote_id);
     started=true;
-    const r=await hfRequest(env,p.mode===TRAIN?'/v1/custom-references':'/'+SOUL2_MODEL,{input,...(p.mode===TRAIN?{}:{idempotencyKey:j.id})});
+    const r=await hfRequest(env,p.mode===TRAIN?'/v1/custom-references':'/'+p.model,{input,...(p.mode===TRAIN?{}:{idempotencyKey:j.id})});
     accepted=true;providerId=p.mode===TRAIN?r.id:r.request_id;
     if(!ID.test(providerId||''))throw new Error('Higgsfield returned no usable request ID.');
     if(p.mode!==TRAIN){p.statusUrl=higgsfieldApiUrl(r.status_url);if(new URL(p.statusUrl).pathname!=='/requests/'+providerId+'/status')throw new Error('Unexpected Higgsfield status URL.');}
@@ -113,18 +115,27 @@ export async function higgsfieldRoute(request,env,owner,url,d){
   if(path==='/api/higgsfield/generate'&&request.method==='POST'){
     const data=await body(request),p=soul2Parameters(data.settings,fail),character=p.characterId?await first(env,"SELECT * FROM jobs WHERE id=? AND owner_id=? AND state='completed' AND json_extract(params,'$.provider')='higgsfield' AND json_extract(params,'$.mode')=?",p.characterId,owner,TRAIN):null;
     if(p.characterId&&!character?.provider_id)fail(409,'Choose a completed Soul 2 identity created in this Lab.');
-    const base=await source(env,owner,data.sourceId);
-    if(!['image/jpeg','image/png','image/webp'].includes(base.mime))fail(400,'Add a JPG, PNG or WebP base image.');
-    const object=await env.LAB_MEDIA.get(base.object_key);if(!object)fail(404,'Base image is missing.');
-    const dimensions=d.storedImageDimensions(new Uint8Array(await object.arrayBuffer()),base.mime);
-    if(p.aspectRatio==='source')p.aspectRatio=soul2Ratio(dimensions.width,dimensions.height);if(character)p.characterName=JSON.parse(character.params).characterName;
-    const input=soul2Input(p,await signedInput(env,url,base.id,86400),character?.provider_id);
-    const quote=await hfRequest(env,'/estimate/'+SOUL2_MODEL,{input});
+    if(!data.sourceId&&!p.prompt)fail(400,'Write a prompt or add a photograph.');
+    let base=null,imageUrl=null;
+    if(data.sourceId){
+      base=await source(env,owner,data.sourceId);
+      if(!['image/jpeg','image/png','image/webp'].includes(base.mime))fail(400,'Add a JPG, PNG or WebP base image.');
+      const object=await env.LAB_MEDIA.get(base.object_key);if(!object)fail(404,'Base image is missing.');
+      const dimensions=d.storedImageDimensions(new Uint8Array(await object.arrayBuffer()),base.mime);
+      if(p.aspectRatio==='source')p.aspectRatio=soul2Ratio(dimensions.width,dimensions.height);
+      imageUrl=await signedInput(env,url,base.id,86400);
+    }else{
+      p.model=SOUL2_TEXT_MODEL;p.mode='image';
+      if(p.aspectRatio==='source')p.aspectRatio='16:9';
+    }
+    if(character)p.characterName=JSON.parse(character.params).characterName;
+    const input=soul2Input(p,imageUrl,character?.provider_id);
+    const quote=await hfRequest(env,'/estimate/'+p.model,{input});
     if(!/^\d{1,6}(\.\d{1,6})?$/.test(String(quote.usd)))fail(502,'Higgsfield did not return a valid USD estimate. Nothing generated.');
     const estimate=Math.round(Number(quote.usd)*1000000);
     if(estimate>SOUL2_PRICES[p.resolution])fail(409,'Your Higgsfield account estimates $'+quote.usd+' for this image, above the displayed rate. Nothing generated or charged. Review your API account pricing first.');
     p.accountEstimateUsd=Number(quote.usd);
-    const j=await reserve(env,owner,base.id,p,estimate,d);
+    const j=await reserve(env,owner,base?.id||null,p,estimate,d);
     return {job:jobView(await submit(env,j,p,input,d))};
   }
   fail(404,'Unknown Higgsfield route.');

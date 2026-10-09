@@ -170,3 +170,10 @@ header .wrap.top{max-width:none;padding-inline:16px;min-height:48px}
   #assets-workspace .assets-sidebar{margin-inline:8px}
   #assets-gallery .archivehead{padding-inline:10px}
 }
+
+/* Provider marks replace placeholder initials in the model menu and dock. */
+#image-composer .composer-model-symbol{display:inline-flex;align-items:center;justify-content:center;background:none;width:22px;height:22px;font-size:0}
+#image-composer .composer-model-symbol img,.composer-model-icon img{display:block;width:21px;height:21px;object-fit:contain}
+#image-composer .composer-model-pill{font-size:14px}
+.composer-model-option .composer-model-info strong{font-size:14px;line-height:1.35}
+.composer-model-option .composer-model-info small{font-size:12px;line-height:1.4}

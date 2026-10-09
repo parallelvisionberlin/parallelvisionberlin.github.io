@@ -56,6 +56,16 @@ test('training, owned identity, source generation, budget and ambiguous submissi
     const {job:plain}=await invoke('/api/higgsfield/generate',{sourceId:asset,settings:{type:'image',aspectRatio:'16:9'}});
     assert.equal(plain.state,'queued');assert.equal(sent.custom_reference_id,undefined);assert.equal(sent.aspect_ratio,'16:9');
     await run(env,"UPDATE jobs SET state='completed' WHERE id=?",plain.id);
+    await assert.rejects(()=>invoke('/api/higgsfield/generate',{settings:{type:'image',prompt:'   '}}),/Write a prompt/);
+    let urls=[];
+    globalThis.fetch=async(url,options)=>{urls.push(String(url));if(String(url).includes('/estimate/'))return Response.json({usd:'0.0057'});sent=JSON.parse(options.body);return Response.json({request_id:id,status_url:'https://api.higgsfield.ai/requests/'+id+'/status'});};
+    for(const characterId of [undefined,training.id]){
+      const {job:text}=await invoke('/api/higgsfield/generate',{settings:{type:'image',prompt:'A sunlit room',characterId}});
+      assert.equal(text.source_id,null);assert.equal(sent.image_url,undefined);assert.equal(sent.prompt,'A sunlit room');assert.equal(sent.aspect_ratio,'16:9');assert.equal(sent.custom_reference_id,characterId?reference:undefined);
+      assert.equal(JSON.parse(text.params).model,'higgsfield-ai/soul/v2/standard');
+      await run(env,"UPDATE jobs SET state='completed' WHERE id=?",text.id);
+    }
+    assert.ok(urls.every(u=>u.endsWith('/higgsfield-ai/soul/v2/standard')),'Both quote and submit use text endpoint');
     globalThis.fetch=async(url)=>{if(String(url).includes('/estimate/'))return Response.json({usd:'0.0057'});posts++;throw new Error('network timeout');};
     const {job:uncertain}=await invoke('/api/higgsfield/generate',input);assert.equal(uncertain.state,'uncertain');const count=posts;
     await assert.rejects(()=>invoke('/api/higgsfield/generate',input),/Nothing submitted/);assert.equal(posts,count);
