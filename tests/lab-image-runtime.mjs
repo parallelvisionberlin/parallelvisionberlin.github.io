@@ -2,7 +2,7 @@ import {Miniflare} from 'miniflare';
 import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 const module=await readFile(new URL('../lab-worker/image-models.mjs',import.meta.url),'utf8');
-const mf=new Miniflare({workers:[{name:'flash-runtime-test',modules:true,compatibilityDate:'2026-08-01',script:module+`
+const mf=new Miniflare({workers:[{name:'flash-runtime-test',modules:true,compatibilityDate:'2026-08-01',script:module.replace(/^export /gm,'')+`
 export default {async fetch(){
   let legacyRejected=false;
   try{new Request('https://openrouter.ai/api/v1/images',{method:'POST',redirect:'error',body:'{}'});}catch(e){legacyRejected=String(e.message).includes('Invalid redirect');}
