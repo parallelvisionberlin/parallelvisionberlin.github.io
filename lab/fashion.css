@@ -35,16 +35,16 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 .page-intro h1 em{font-style:normal;color:#b8b7b3;font-weight:400}
 .intro-description{color:#a5a5a5;font-size:12.5px;line-height:1.6;margin:0;max-width:600px}
 .intro-index{margin:0 0 5px;font:500 10px var(--text);letter-spacing:.1em;color:#a6a5a2;white-space:nowrap}
-.fashion-workspace{display:grid;grid-template-columns:minmax(390px,440px) minmax(0,1fr);gap:clamp(22px,2.8vw,50px);align-items:start;padding-bottom:55px}
-#fashion-form{min-width:0;border:1px solid var(--line);background:var(--panel);padding:20px 23px 18px}
+.fashion-workspace{display:grid;grid-template-columns:minmax(620px,1.06fr) minmax(0,1fr);gap:clamp(22px,2.2vw,42px);align-items:start;padding-bottom:55px}
+#fashion-form{min-width:0;border:1px solid var(--line);background:var(--panel);padding:20px;display:grid;grid-template-columns:minmax(0,.82fr) minmax(0,1fr);gap:20px;align-items:start}
 .composer-section{min-width:0}
-.composer-section+.composer-section{border-top:1px solid var(--line);margin-top:19px;padding-top:18px}
+.composer-section+.composer-section{border-left:1px solid var(--line);padding:0 0 0 20px;margin:0}
 .section-header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:0 0 15px}
 .section-header h2{font:500 12px/1.3 var(--text);margin:0;color:#e7e5e1;letter-spacing:0}
 .section-header h2 span{font-weight:400;color:#797b7f}
 .section-header>span{color:#797b7e;font-size:9px;letter-spacing:.10em;white-space:nowrap}
-.image-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.image-slot{position:relative;display:flex;align-items:center;justify-content:center;min-width:0;aspect-ratio:1/1;min-height:150px;overflow:hidden;cursor:pointer;border:1px solid rgba(220,222,223,.22);background:linear-gradient(145deg,#24262a,#1a1b1e 72%);transition:border-color .2s ease,box-shadow .2s ease,background .2s ease}
+.image-pair{display:grid;grid-template-columns:1fr;gap:11px}
+.image-slot{position:relative;display:flex;align-items:center;justify-content:center;min-width:0;aspect-ratio:1.55/1;min-height:146px;overflow:hidden;cursor:pointer;border:1px solid rgba(220,222,223,.22);background:linear-gradient(145deg,#24262a,#1a1b1e 72%);transition:border-color .2s ease,box-shadow .2s ease,background .2s ease}
 .image-slot:hover,.image-slot:focus-within,.image-slot.drag-over{border-color:#f5f4f1;box-shadow:inset 0 0 35px rgba(255,255,255,.035),0 0 0 1px rgba(255,255,255,.56),0 0 0 5px rgba(255,255,255,.04)}
 .image-slot input{position:absolute;inset:0;width:100%;height:100%;opacity:0;z-index:5;cursor:pointer;padding:0}
 .image-slot img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;z-index:1;display:block}
@@ -130,18 +130,13 @@ textarea::placeholder{color:#71747a;opacity:1}
 .sign-in-panel button:disabled{opacity:.5}
 .sign-in-panel button span{margin-left:14px}
 footer{display:flex;justify-content:space-between;gap:20px;border-top:1px solid var(--line);padding:20px 0 33px;color:#8d8d8c;font-size:9px;letter-spacing:.13em}
-@media(max-width:1150px){
- .fashion-workspace{grid-template-columns:minmax(350px,400px) minmax(0,1fr);gap:20px}
- #fashion-form{padding:18px}
- .result-stage{height:clamp(430px,62svh,650px);min-height:430px}
- .page-intro h1{font-size:clamp(34px,4.1vw,50px)}
-}
-@media(max-width:900px){
- .fashion-workspace{grid-template-columns:1fr;gap:22px}
- #fashion-form{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:20px;padding:19px}
- .composer-section+.composer-section{border-top:0;border-left:1px solid var(--line);margin:0;padding:0 0 0 20px}
+@media(max-width:1200px){
+ .fashion-workspace{grid-template-columns:1fr;gap:23px}
+ #fashion-form{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:24px}
+ .image-pair{grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+ .image-slot{aspect-ratio:1/1;min-height:145px}
  .result-panel{position:static}
- .result-stage{height:clamp(380px,65svh,630px);min-height:380px}
+ .result-stage{height:clamp(400px,58svh,660px);min-height:400px}
  .intro-index{display:none}
 }
 @media(max-width:640px){
@@ -155,7 +150,7 @@ footer{display:flex;justify-content:space-between;gap:20px;border-top:1px solid 
  .intro-description{font-size:12px}
  #fashion-form{display:block;padding:17px}
  .composer-section+.composer-section{margin-top:19px;padding:18px 0 0;border-top:1px solid var(--line);border-left:0}
- .image-slot{min-height:0}
+ .image-slot{min-height:0;aspect-ratio:1/1}
  .source-note{font-size:8px}
  .result-stage{height:clamp(365px,65svh,570px);min-height:365px}
  .result-placeholder{padding:22px}
