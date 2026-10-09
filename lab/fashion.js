@@ -129,6 +129,24 @@ async function poll(id){
   try{const data=await api('/api/jobs/'+encodeURIComponent(id));if(activeJobId!==id)return;await showJob(data.job);if(data.job.status==='completed')await loadHistory();}
   catch(e){status('Status check interrupted. Your existing generation was not resubmitted. '+e.message,true);pollTimeout=setTimeout(()=>void poll(id),8000);}
 }
+async function checkFashnBalance(){
+  if(!authenticated)return;
+  const button=$('check-fashn');
+  button.disabled=true;
+  $('fashn-api-state').textContent='Verifying connection…';
+  try{
+    const result=await api('/api/fashion/balance');
+    if(!authenticated)return;
+    $('fashn-api-state').textContent=result.connected?
+      'Connected · '+result.credits.total+' credits available ('+result.credits.onDemand+' on-demand)':
+      (result.note||'FASHN API key is not configured.');
+  }catch(e){
+    if(authenticated)$('fashn-api-state').textContent='Connection not verified · '+e.message;
+  }finally{
+    button.disabled=!authenticated;
+  }
+}
+$('check-fashn').addEventListener('click',()=>void checkFashnBalance());
 async function loadHistory(){
   if(!authenticated)return;
   const container=$('fashion-history');
@@ -158,6 +176,7 @@ function lock(){
   for(const [fileId,imgId,hintId] of [['person-file','person-preview','person-hint'],['garment-file','garment-preview','garment-hint']]){
     $(fileId).value='';$(imgId).hidden=true;$(imgId).removeAttribute('src');$(hintId).hidden=false;
   }
+  $('fashn-api-state').textContent='Sign in to check API credits';$('check-fashn').disabled=true;
   $('gate').hidden=false;$('workspace').hidden=true;$('signin').disabled=!clerk;
   update();
 }
@@ -168,7 +187,7 @@ async function sync(){
     if(authenticated&&sessionId===clerk.session?.id)return;
     await api('/api/session');const info=await api('/api/fashion/models');
     models=info.models||[];authenticated=true;sessionId=clerk.session?.id||'';
-    $('gate').hidden=true;$('workspace').hidden=false;update();await loadHistory();
+    $('gate').hidden=true;$('workspace').hidden=false;update();await Promise.all([loadHistory(),checkFashnBalance()]);
   }catch(e){lock();$('auth-status').textContent=e.message;}
   finally{signingIn=false;}
 }
