@@ -81,6 +81,22 @@ export async function fashionRoute(request,env,owner,url,d) {
       id,label:m.label,provider:m.provider,source:m.source,available:m.provider==='fal'?!!env.FAL_KEY:!!env.FASHN_API_KEY
     }))};
   }
+  if(path==='/api/fashion/balance'&&method==='GET'){
+    // Owner-authorized, read-only API check. Never submits to /v1/run or spends generation credits.
+    if(!env.FASHN_API_KEY)return {connected:false,credits:null,note:'FASHN_API_KEY is not configured in Cloudflare.'};
+    try{
+      const {value}=await fashnCall(env.FASHN_API_KEY,'/credits');
+      const raw=value?.credits;
+      if(!raw||!Number.isSafeInteger(raw.total)||raw.total<0||!Number.isSafeInteger(raw.on_demand)||raw.on_demand<0||!Number.isSafeInteger(raw.subscription)||raw.subscription<0)
+        fail(502,'FASHN returned an unexpected balance. No generation submitted.');
+      return {connected:true,credits:{total:raw.total,onDemand:raw.on_demand,subscription:raw.subscription}};
+    }catch(e){
+      if(e?.status===502)throw e;
+      if(/^FASHN \(HTTP 401\)/.test(String(e?.message||'')))fail(502,'FASHN rejected the configured API key. Check the Cloudflare Secret value.');
+      if(/^FASHN \(HTTP 403\)/.test(String(e?.message||'')))fail(502,'The configured FASHN key cannot access this API account.');
+      fail(502,'Could not check FASHN balance right now. No generation submitted. Verify the key and credits in FASHN Developer API.');
+    }
+  }
   if(path==='/api/fashion/quote'&&method==='POST'){
     const data=await body(request),p=fashionParameters(data,fail);
     if(p.provider==='fal'&&!env.FAL_KEY||p.provider==='fashn'&&!env.FASHN_API_KEY)fail(503,p.provider==='fal'?'FAL_KEY is not configured.':'Set the FASHN_API_KEY Worker secret to enable Try-On Max.');
