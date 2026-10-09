@@ -1,4 +1,4 @@
-import {createSoul2UI} from './higgsfield-ui.js?v=20261009-drag-order';
+import {createSoul2UI} from './higgsfield-ui.js?v=20261009-background-submit';
 import {VIDEO_MODELS,engineFor,videoLabel} from './video-models.js?v=20261001-video-models2';
 import {REFERENCE_ROLES,REFERENCE_TARGETS,normalizeReferenceLabel,compileImagePrompt,referenceGuidanceError,canUseReferenceGuidance} from './reference-guidance.js?v=20261002-reference1';
 import {createMediaReferences} from './media-references.js?v=20260927-standard1';
@@ -9,6 +9,7 @@ import { PROVIDER_IMAGE_LIMIT, UPSCALE_PIXELS, imageDimensions, providerWorkingC
 const API='https://parallel-vision-lab.parallelvision.workers.dev';
 const $=id=>document.getElementById(id), activeStates=new Set(['submitting','queued','running','saving','uncertain']), slotStates=new Set(['submitting','queued','running','uncertain']);
 let clerk, owner=false, userId='', epoch=0, syncing=false, config={}, file=null, sourceId=null, imageRevision=0, busy=false;
+let imageSubmissionPending=false;
 let sourceUrl=null, lastFile=null, lastSourceId=null, lastUrl=null, references=[], mode='start';
 let engine='wan', imageEngine='seedream', imageProcessing='normal', soulProModel='soul2', soulProQuality='medium', soulProIdentity={configured:false,count:0,refs:[]}, soulProPackSelection=[], soulProPackUrls=[], poseMapSourceId=null, repairTarget=null, repairImage=null, repairMaskCanvas=null, repairMaskDirty=false;
 let tool='image', packs=[],resultKind='video',resultExt='mp4';
@@ -94,7 +95,7 @@ function validateUpscaleQuote(q,selected){
 }
 function settings(){if(tool==='upscale')return isFalUpscale()?{type:'image',mode:'upscale',upscaleEngine,scale:Number($('upscale-scale').value),topazModel:upscaleEngine==='topaz-precision'?$('upscale-topaz-model').value:'Wonder 3.5',prompt:'',resolution:$('upscale-scale').value+'x',aspectRatio:'source',outputFormat:$('output-format').value,referenceRoles:[]}:{type:'image',mode:'upscale',upscaleEngine:'spicy',prompt:'',resolution:$('resolution').value,aspectRatio:'auto',outputFormat:$('output-format').value,referenceRoles:[]};if(isSoul2())return {type:'image',provider:'higgsfield',engine:'soulpro',soulProModel:'soul2',mode:'identity-edit',prompt:$('prompt').value.trim(),...hf.parameters(),seed:$('soul-pro-seed').value,aspectRatio:$('hf-bar-ratio').value,outputFormat:'png',referenceRoles:[]};if(tool==='image'&&imageEngine==='soulpro')return {type:'image',provider:'fal',engine:'soulpro',mode:'identity-edit',soulProModel,soulProQuality,prompt:$('prompt').value.trim(),sourceWidth,sourceHeight,seed:$('soul-pro-seed').value,resolution:'source',aspectRatio:'source',outputFormat:'png',referenceRoles:[]};if(tool==='image'&&imageEngine==='fal')return {type:'image',provider:'fal',engine:'fal',mode:'controlled-pose',prompt:$('prompt').value.trim(),resolution:'1k',aspectRatio:$('ratio').value,outputFormat:'png',poseStrength:Number($('pose-strength').value),identityStrength:Number($('identity-strength').value),seed:$('controlled-pose-seed').value,referenceRoles:referenceRoles()};if(tool==='image'){const base={type:'image',engine:imageEngine,processing:imageProcessing,mode:'image',prompt:$('prompt').value.trim(),resolution:imageEngine==='soul'?'native':$('resolution').value,aspectRatio:$('ratio').value,outputFormat:imageEngine==='seedream'?'png':$('output-format').value,referenceRoles:imageEngine==='soul'?[]:referenceRoles()};return imageEngine==='soul'?{...base,characterId:soul.selectedId(),identityStrength:soul.strength(),...(isReinterpret()?{...soul.reinterpretSettings(),resolution:$('resolution').value,aspectRatio:'source'}:{})}:base;}return {type:'video',engine,mode,referenceVideos:mode==='reference'?mediaRefs.labels('video'):[],referenceAudio:mode==='reference'?mediaRefs.labels('audio'):[],prompt:$('prompt').value.trim(),duration:Number($('duration').value),resolution:$('resolution').value,aspectRatio:$('ratio').value,seed:$('seed').value,audio:$('audio').checked,referenceRoles:referenceRoles(),referencePixels:engine==='h3maxfal'?references.map(r=>r.width*r.height):[]};}
 function hasInput(){if(tool==='upscale')return !!file;if(tool==='image'&&imageEngine==='soulpro')return !!file&&(isSoul2()?hf.ready():soulProIdentity.configured);if(tool==='image'&&imageEngine==='fal'){const roles=referenceRoles(),poses=roles.filter(r=>r.role==='pose').length,identities=roles.filter(r=>r.role==='identity').length;return !!$('prompt').value.trim()&&references.length>=2&&references.length<=5&&poses===1&&identities>=1&&identities<=4&&poses+identities===references.length;}if(tool==='image'&&imageEngine==='soul')return isReinterpret()?soul.reinterpretReady()&&!!file:soul.ready()&&!references.length&&!!$('prompt').value.trim();if(usesReferenceGuidance())return !imageGuidance().error&&(!!$('prompt').value.trim()||canUseReferenceGuidance(referenceRoles()));return tool==='image'||mode==='text'?!!$('prompt').value.trim():mode==='start'?!!file:references.length>0||(engine==='seedance'&&mediaRefs.count()>0);}
-function update(){if($('soul-base-preview')){$('soul-base-preview').hidden=!sourceUrl;if(sourceUrl)$('soul-base-preview').src=sourceUrl;else $('soul-base-preview').removeAttribute('src');$('soul-base-name').textContent=file?.name||'';}const current=settings(),p=resultSettings||current,ratio=p.aspectRatio==='auto'?(p.mode==='reference'?'adaptive':'source ratio'):p.aspectRatio,imageName=p.mode==='upscale'?'Upscale':p.engine==='gemini'?'Nano Banana Pro':p.provider==='higgsfield'?'Higgsfield Soul 2':p.engine==='soulpro'?'PV Soul Pro':p.engine==='soul'?(p.mode==='reinterpret'?'PV Soul / Reinterpret':'PV Soul'):p.engine==='fal'?'Controlled Pose':'Image',resolution=p.resolution==='native'?'native':String(p.resolution||'').toUpperCase();$('settings-summary').textContent=p.mode==='upscale'?upscaleName(p)+' / '+upscaleSize(p)+' / source ratio':p.type==='image'?imageName+' / '+resolution+' / '+ratio:`${p.duration}s / ${p.resolution} / ${ratio}`;$('save').disabled=!owner||!hasInput()||busy;$('clear').disabled=(!file&&!lastFile&&!references.length&&!mediaRefs.count()&&!resultUrl&&!$('prompt').value.trim())||busy;const provider=currentProvider(),ready=provider==='higgsfield'?config.higgsfieldEnabled:provider==='gemini'?config.geminiEnabled:provider==='fal'?config.falEnabled:config.enabled,soulBlocked=tool==='image'&&imageEngine==='soul'&&(!config.soulTrainingEnabled||!soul.ready()||(isReinterpret()&&!soul.reinterpretReady()));$('generate').disabled=!owner||!hasInput()||(tool!=='upscale'&&!isReinterpret()&&imageEngine!=='soulpro'&&!current.prompt&&!(usesReferenceGuidance()&&canUseReferenceGuidance(referenceRoles())))||busy||submissionBlocked()||soulBlocked||(tool==='upscale'&&((!isFalUpscale()&&upscaleQuoteNeedsCheck)||upscaleManualReviewRequired));$('generate').textContent=ready?(tool==='image'?(imageEngine==='gemini'?(imageProcessing==='batch'?'Queue batch':'Generate now'):imageEngine==='soulpro'?'Generate':imageEngine==='fal'?'Generate controlled pose':isReinterpret()?'Reinterpret with Soul':'Generate'):tool==='upscale'?'Upscale':'Review price & generate'):(provider==='higgsfield'?'Higgsfield API not connected':provider==='gemini'?'Gemini API not connected':provider==='fal'?'FAL API not connected':'Connect generation provider');$('generation-help').textContent=isSoul2()?'PV Soul 2 reinterprets your photograph, with an optional trained character. One image per click. '+($('hf-resolution').value==='720p'?'$0.0032':'$0.0057')+' estimated; provider billing is authoritative.':tool==='image'&&imageEngine==='soulpro'?(soulProIdentity.configured?(soulProModel==='ideogram45'?'One base image only. Nina identity loads automatically. Ideogram Precise keeps edit_precision=high; selected quality estimate: '+({very_low:'$0.008',low:'$0.03',medium:'$0.06',high:'$0.22'}[soulProQuality]||'$0.06')+' per image.':'One base image only. Nina identity loads automatically. Kontext Max uses the base plus up to 3 identity refs because its total image limit is 4. Estimate: $0.08 per image.'):'Set Nina identity once, then every Soul Pro render needs only one base image.'):tool==='image'&&imageEngine==='fal'?'Controlled Pose uses FAL DWPose + FLUX EasyControl. One Pose role and 1–4 Identity roles are required. Preview Pose is a small separate fal.ai compute charge.':tool==='image'&&imageEngine==='soul'?(isReinterpret()?'One base photograph and a separately trained Soul identity. High fidelity may keep the original face; lower it for more change. The live provider quote controls the charge.':'PV Soul Text uses your trained Qwen Image 2512 identity. The live provider quote is authoritative.'):tool==='image'&&imageEngine==='gemini'?(imageProcessing==='batch'?'Batch uses the same Nano Banana Pro model at 50% of standard API price. It runs asynchronously and can take minutes or hours; Google targets completion within 24 hours.':'Normal sends Nano Banana Pro immediately. 1K/2K are estimated at $0.134 per image and 4K at $0.24; Google billing is authoritative.'):(tool==='image'?'Generate starts one paid image at the live provider price, within your daily spending limit. No price-review popup.':tool==='upscale'?'Upscale starts one paid upscaling job. You can check its live price above first; there is no extra price-review popup.':'A live quote appears before any paid video.')+' Inputs over 10 MiB need a working copy; the Lab asks first and keeps the original. Saving history does not generate or charge.';for(const el of document.querySelectorAll('.controls input,.controls select,.controls textarea,.mode-tab,.tool-tab'))el.disabled=busy;updateReferenceGuidance();updateUpscaleModel();updateUpscalePrice();syncImageComposer();}
+function update(){if($('soul-base-preview')){$('soul-base-preview').hidden=!sourceUrl;if(sourceUrl)$('soul-base-preview').src=sourceUrl;else $('soul-base-preview').removeAttribute('src');$('soul-base-name').textContent=file?.name||'';}const current=settings(),p=resultSettings||current,ratio=p.aspectRatio==='auto'?(p.mode==='reference'?'adaptive':'source ratio'):p.aspectRatio,imageName=p.mode==='upscale'?'Upscale':p.engine==='gemini'?'Nano Banana Pro':p.provider==='higgsfield'?'Higgsfield Soul 2':p.engine==='soulpro'?'PV Soul Pro':p.engine==='soul'?(p.mode==='reinterpret'?'PV Soul / Reinterpret':'PV Soul'):p.engine==='fal'?'Controlled Pose':'Image',resolution=p.resolution==='native'?'native':String(p.resolution||'').toUpperCase();$('settings-summary').textContent=p.mode==='upscale'?upscaleName(p)+' / '+upscaleSize(p)+' / source ratio':p.type==='image'?imageName+' / '+resolution+' / '+ratio:`${p.duration}s / ${p.resolution} / ${ratio}`;$('save').disabled=!owner||!hasInput()||busy;$('clear').disabled=(!file&&!lastFile&&!references.length&&!mediaRefs.count()&&!resultUrl&&!$('prompt').value.trim())||busy;const provider=currentProvider(),ready=provider==='higgsfield'?config.higgsfieldEnabled:provider==='gemini'?config.geminiEnabled:provider==='fal'?config.falEnabled:config.enabled,soulBlocked=tool==='image'&&imageEngine==='soul'&&(!config.soulTrainingEnabled||!soul.ready()||(isReinterpret()&&!soul.reinterpretReady()));$('generate').disabled=!owner||!hasInput()||(tool!=='upscale'&&!isReinterpret()&&imageEngine!=='soulpro'&&!current.prompt&&!(usesReferenceGuidance()&&canUseReferenceGuidance(referenceRoles())))||busy||imageSubmissionPending||submissionBlocked()||soulBlocked||(tool==='upscale'&&((!isFalUpscale()&&upscaleQuoteNeedsCheck)||upscaleManualReviewRequired));$('generate').textContent=ready?(tool==='image'?(imageEngine==='gemini'?(imageProcessing==='batch'?'Queue batch':'Generate now'):imageEngine==='soulpro'?'Generate':imageEngine==='fal'?'Generate controlled pose':isReinterpret()?'Reinterpret with Soul':'Generate'):tool==='upscale'?'Upscale':'Review price & generate'):(provider==='higgsfield'?'Higgsfield API not connected':provider==='gemini'?'Gemini API not connected':provider==='fal'?'FAL API not connected':'Connect generation provider');$('generation-help').textContent=isSoul2()?'PV Soul 2 reinterprets your photograph, with an optional trained character. One image per click. '+($('hf-resolution').value==='720p'?'$0.0032':'$0.0057')+' estimated; provider billing is authoritative.':tool==='image'&&imageEngine==='soulpro'?(soulProIdentity.configured?(soulProModel==='ideogram45'?'One base image only. Nina identity loads automatically. Ideogram Precise keeps edit_precision=high; selected quality estimate: '+({very_low:'$0.008',low:'$0.03',medium:'$0.06',high:'$0.22'}[soulProQuality]||'$0.06')+' per image.':'One base image only. Nina identity loads automatically. Kontext Max uses the base plus up to 3 identity refs because its total image limit is 4. Estimate: $0.08 per image.'):'Set Nina identity once, then every Soul Pro render needs only one base image.'):tool==='image'&&imageEngine==='fal'?'Controlled Pose uses FAL DWPose + FLUX EasyControl. One Pose role and 1–4 Identity roles are required. Preview Pose is a small separate fal.ai compute charge.':tool==='image'&&imageEngine==='soul'?(isReinterpret()?'One base photograph and a separately trained Soul identity. High fidelity may keep the original face; lower it for more change. The live provider quote controls the charge.':'PV Soul Text uses your trained Qwen Image 2512 identity. The live provider quote is authoritative.'):tool==='image'&&imageEngine==='gemini'?(imageProcessing==='batch'?'Batch uses the same Nano Banana Pro model at 50% of standard API price. It runs asynchronously and can take minutes or hours; Google targets completion within 24 hours.':'Normal sends Nano Banana Pro immediately. 1K/2K are estimated at $0.134 per image and 4K at $0.24; Google billing is authoritative.'):(tool==='image'?'Generate starts one paid image at the live provider price, within your daily spending limit. No price-review popup.':tool==='upscale'?'Upscale starts one paid upscaling job. You can check its live price above first; there is no extra price-review popup.':'A live quote appears before any paid video.')+' Inputs over 10 MiB need a working copy; the Lab asks first and keeps the original. Saving history does not generate or charge.';for(const el of document.querySelectorAll('.controls input,.controls select,.controls textarea,.mode-tab,.tool-tab'))el.disabled=busy;updateReferenceGuidance();updateUpscaleModel();updateUpscalePrice();syncImageComposer();}
 function options(id,values,value){$(id).replaceChildren(...values.map(v=>new Option(v==='auto'?'Follow reference':v==='source'?'Source':v.toUpperCase(),v)));$(id).value=value;}
 function syncDefaultRatio(force=false){
   const select=$('ratio'),values=[...select.options].map(o=>o.value);
@@ -379,12 +380,13 @@ function syncImageComposer(){
   if(imageEngine==='seedream')toggleImageSettings(false);
   const generate=$('image-composer-generate');
   generate.disabled=$('generate').disabled;
-  generate.textContent=$('generate').textContent;
+  generate.textContent=imageSubmissionPending?'Sending…':$('generate').textContent;
   const block=$('composer-generation-block'),reason=$('composer-generation-reason'),review=$('composer-review-queue');
   const queueBlocked=!busy&&owner&&submissionBlocked();
   let message='';
   if(generate.disabled){
-    if(busy)message='Preparing your request…';
+    if(imageSubmissionPending)message='';
+    else if(busy)message='Preparing your request…';
     else if(!owner)message='Sign in to generate.';
     else if(queueBlocked)message=activeJobs.some(j=>j.status==='uncertain'&&jobProvider(j)===currentProvider())?'A previous request has an unknown status. Review it before generating again.':'The active generation limit has been reached. Wait for a job to finish.';
     else if(imageEngine==='soulpro'&&!file)message=isSoul2()?'':'Add a base image.';
@@ -968,7 +970,7 @@ async function submitQuotedGeneration(q, expectedEpoch=epoch) {
   notify(failed?(data.job.error||'The generation was not confirmed. Check History before another attempt.'):
     (['image','upscale'].includes(q.settings.mode)?(q.settings.mode==='upscale'?'Upscale requested.':'Image requested.')+(q.priceIsEstimate?' Estimated provider charge: '+money(q.estimatedUsd)+' USD. Not a guaranteed maximum. Results appear in History.':' Quoted maximum: '+money(q.maxUsd)+' USD. Results appear in History.'):'Generation request recorded. You can leave the page and return to History.'),failed);
 }
-$('generate').onclick=()=>action(async()=>{
+$('generate').onclick=()=>{if(tool==='image')return submitImageSnapshot();return action(async()=>{
   const provider=currentProvider();if(provider==='spicy'&&!config.enabled){connection();return;}if(provider==='gemini'&&!config.geminiEnabled)throw new Error('Gemini API key is not available on the Lab backend.');if(provider==='fal'&&!config.falEnabled)throw new Error('FAL API key is not available on the Lab backend.');
   if(submissionBlocked())throw new Error('An active-job limit or an interrupted request blocks another generation. Check History.');
   const selectedTool=tool,sessionEpoch=epoch;
@@ -1002,97 +1004,12 @@ $('generate').onclick=()=>action(async()=>{
     return;
   }
   if(tool==='video'&&engine==='seedance'&&!config.videoEngines?.includes('seedance'))throw new Error('Seedance is not enabled on this backend.');
-  if(selectedTool==='image'&&isSoul2()){
-    if(!hf.ready())throw new Error('Connect the provider or choose a completed character.');
-    const inputs=await ensureInputs();notify('Submitting PV Soul 2 generation…');
-    const data=await api('/api/higgsfield/generate',{method:'POST',body:{...inputs,settings:settings()}}),job=data.job;
-    if(!job)throw new Error('No Higgsfield job returned.');
-    if(activeStates.has(job.status))setActive(job);
-    resetPreview();autoPreview={id:job.id,revision:previewRevision};surfaceHistoryJob(job);refreshHistorySoon();
-    notify(job.error||'Soul 2 requested. Estimated cost: '+money(job.estimatedUsd)+'. Result will appear in History.',!!job.error);return;
-  }
-  if(selectedTool==='image'&&imageEngine==='soulpro'){
-    if(!soulProIdentity.configured)throw new Error('Set Nina identity once before generating.');
-    const inputs=await ensureInputs(),imageSettings=settings();
-    notify('Submitting PV Soul Pro identity edit to FAL…');
-    const data=await api('/api/fal/soul-pro',{method:'POST',body:{...inputs,settings:imageSettings}});
-    const job=data.job;if(!job)throw new Error('No PV Soul Pro job was returned.');
-    if(activeStates.has(job.status))setActive(job);
-    resetPreview();autoPreview={id:job.id,revision:previewRevision};surfaceHistoryJob(job);refreshHistorySoon();
-    const failed=['failed','uncertain','resolved'].includes(job.status);
-    notify(failed?(job.error||'PV Soul Pro was not confirmed. Check History before retrying.'):'PV Soul Pro requested. Budget reserve: '+money(job.estimatedUsd||0)+' USD. Result will appear in History.',failed);
-    return;
-  }
-  if(selectedTool==='image'&&imageEngine==='fal'){
-    const inputs=await ensureInputs(),imageSettings=settings();
-    notify('Submitting Controlled Pose to FAL…');
-    const data=await api('/api/fal/controlled-pose',{method:'POST',body:{...inputs,poseMapSourceId,settings:imageSettings}});
-    const job=data.job;if(!job)throw new Error('No Controlled Pose job was returned.');
-    if(activeStates.has(job.status))setActive(job);
-    resetPreview();autoPreview={id:job.id,revision:previewRevision};surfaceHistoryJob(job);refreshHistorySoon();
-    const failed=['failed','uncertain','resolved'].includes(job.status);
-    notify(failed?(job.error||'Controlled Pose was not confirmed. Check History before retrying.'):'Controlled Pose requested. Budget reserve: '+money(job.estimatedUsd||0)+' USD. Result will appear in History.',failed);
-    return;
-  }
-  if(selectedTool==='image'&&imageEngine==='gemini'){
-    if(!config.geminiEnabled)throw new Error('Gemini API key is not available on the Lab backend.');
-    const inputs=await ensureInputs(),requested=Math.max(1,Math.min(imageProcessing==='batch'?20:4,Number($('image-count').value)||1)),imageSettings=settings();
-    if(imageProcessing==='batch'){
-      notify('Queueing '+requested+' Nano Banana Pro image'+(requested===1?'':'s')+' in Batch…');
-      const data=await api('/api/gemini/jobs',{method:'POST',body:{...inputs,count:requested,settings:imageSettings}});
-      for(const job of data.jobs||[]){setActive(job);surfaceHistoryJob(job);}
-      resetPreview();if(data.jobs?.length)autoPreview={id:data.jobs[0].id,revision:previewRevision};refreshHistorySoon();
-      notify(requested+' Nano Banana Pro image'+(requested===1?'':'s')+' queued in Batch at the discounted API rate.');
-      return;
-    }
-    notify('Generating '+requested+' Nano Banana Pro image'+(requested===1?'':'s')+'…');
-    let completed=0,lastJob=null;
-    for(let i=0;i<requested;i++){
-      if(!owner||epoch!==sessionEpoch||tool!=='image'||imageEngine!=='gemini')break;
-      const data=await api('/api/gemini/jobs',{method:'POST',body:{...inputs,count:1,settings:imageSettings}});
-      const job=data.jobs?.[0];if(job){completed++;lastJob=job;if(activeStates.has(job.status))setActive(job);surfaceHistoryJob(job);}
-    }
-    if(!completed)throw new Error('No Nano Banana Pro generation was submitted.');
-    resetPreview();if(lastJob)autoPreview={id:lastJob.id,revision:previewRevision};refreshHistorySoon();
-    if(lastJob&&hasResult(lastJob))await openVideo(lastJob,{scroll:false});
-    notify(completed+' Nano Banana Pro image'+(completed===1?'':'s')+' completed.');
-    return;
-  }
+
+
+
+
   const inputs=await prepareQuoteInputs(await ensureInputs());if(!inputs)return;
-  if(selectedTool==='image'){
-    const requested=Math.max(1,Math.min(4,Number($('image-count').value)||1));
-    const activeImages=activeJobs.filter(j=>slotStates.has(j.status)&&j.settings?.type==='image'&&jobProvider(j)==='spicy').length;
-    const available=Math.max(0,limitFor('image')-activeImages);
-    if(requested>available)throw new Error('Only '+available+' image slot'+(available===1?' is':'s are')+' available right now. Wait for active images or choose a smaller batch.');
-    notify('Preparing '+requested+' image'+(requested===1?'':'s')+'…');
-    const imageSettings=settings(),quotes=[];
-    for(let i=0;i<requested;i++){
-      if(!owner||epoch!==sessionEpoch||tool!=='image')throw new Error('Session or tool changed. No further images submitted.');
-      const q=await api('/api/quotes',{method:'POST',body:{...inputs,settings:imageSettings}});
-      if(q.settings.type!=='image'||q.settings.mode!==imageSettings.mode||imageSettings.engine==='soul'&&(q.settings.engine!=='soul'||q.settings.characterId!==imageSettings.characterId||q.settings.preset!==imageSettings.preset))throw new Error('Unexpected image quote. No generation submitted.');
-      quotes.push(q);
-    }
-    let submitted=0,lastJob=null;
-    for(const q of quotes){
-      if(!owner||epoch!==sessionEpoch||tool!=='image')break;
-      if(!Number.isFinite(q.expiresAt)||Date.now()>=q.expiresAt)break;
-      try{
-        const data=await api('/api/jobs',{method:'POST',body:{quoteId:q.id,confirm:true}});
-        submitted++;lastJob=data.job;setActive(data.job);surfaceHistoryJob(data.job);
-        if(['failed','uncertain','resolved'].includes(data.job.status))break;
-      }catch(e){
-        if(!submitted)throw e;
-        notify(submitted+' of '+requested+' images submitted. '+e.message,true);
-        break;
-      }
-    }
-    if(!submitted)throw new Error('No image generation was submitted.');
-    resetPreview();
-    if(lastJob)autoPreview={id:lastJob.id,revision:previewRevision};
-    refreshHistorySoon();
-    if(submitted===requested)notify(requested===1?'Image requested. Result appears in History.':requested+' images requested as one batch. Results appear independently in History.');
-    return;
-  }
+
   notify(selectedTool==='upscale'?'Preparing one paid upscale at the live provider price…':'Requesting a live price. No generation submitted.');
   const q=await api('/api/quotes',{method:'POST',body:{...inputs,settings:settings()}});
   if(!owner||epoch!==sessionEpoch||tool!==selectedTool)throw new Error('Session or tool changed. No generation submitted.');
@@ -1107,7 +1024,7 @@ $('generate').onclick=()=>action(async()=>{
   $('quote-price').textContent=money(q.estimatedUsd);$('quote-limit').textContent=q.priceIsEstimate?`Estimated provider charge: ${money(q.maxUsd)} USD`:`Quoted maximum: ${money(q.maxUsd)} USD`;
   $('quote-expiry').textContent='Valid until '+new Date(q.expiresAt).toLocaleTimeString()+'. No automatic repricing. '+(q.settings.transferNotes||[]).join(' ');
   $('quote-notice').textContent='';$('confirm-generation').disabled=false;$('quote-dialog').showModal();
-});
+});};
 $('confirm-generation').onclick=async()=>{
   const q=currentQuote;if(!q||busy)return;
   if(Date.now()>=q.expiresAt){$('quote-notice').textContent='Quote expired. Close and review a new price.';return;}
@@ -1547,8 +1464,8 @@ $('repair-submit').onclick=()=>action(async()=>{
   if(data.job&&activeStates.has(data.job.status))setActive(data.job);if(data.job)autoPreview={id:data.job.id,revision:previewRevision};
   $('repair-dialog').close();await syncHistory();notify('Repair requested. The original image is unchanged; the repaired version will appear as a new History item.');
 });
-async function prepareQuoteInputs(inputs){
-  if(tool==='video'){
+async function prepareQuoteInputs(inputs,snapshot=null){
+  if(!snapshot&&tool==='video'){
     if((engine==='wan'||engine==='wanprime')&&mode==='start'&&$('ratio').value==='21:9'){
       const sessionEpoch=epoch, originals=[{id:inputs.sourceId,file},...(inputs.lastSourceId&&lastFile?[{id:inputs.lastSourceId,file:lastFile}]:[])],transferSourceIds=[];
       for(const item of originals){
@@ -1588,8 +1505,8 @@ async function prepareQuoteInputs(inputs){
     return inputs;
   }
   const sessionEpoch=epoch;
-  if(tool==='upscale'&&!isFalUpscale()&&sourcePixels>UPSCALE_PIXELS[$('resolution').value]&&!confirm('This size tier is smaller than your source and would reduce its resolution. Continue with this tier?'))return null;
-  const originals=tool==='upscale'||isReinterpret()?[{id:inputs.sourceId,file}]:imageEngine==='soul'&&tool==='image'?[]:references;
+  if(!snapshot&&tool==='upscale'&&!isFalUpscale()&&sourcePixels>UPSCALE_PIXELS[$('resolution').value]&&!confirm('This size tier is smaller than your source and would reduce its resolution. Continue with this tier?'))return null;
+  const originals=snapshot?snapshot.originals:tool==='upscale'||isReinterpret()?[{id:inputs.sourceId,file}]:imageEngine==='soul'&&tool==='image'?[]:references;
   const oversized=originals.filter(r=>r.file.size>PROVIDER_IMAGE_LIMIT);
   if(oversized.length&&!confirm('SpicyAPI limits uploads to 10 MiB per image. Prepare a compressed WebP working copy for '+oversized.length+' oversized image(s)? Pixel dimensions and transparency are kept, but compression can affect fine detail and metadata. The originals stay unchanged in your private archive.')){notify('Preparation cancelled. No generation was submitted.');return null;}
   const transferSourceIds=[];
@@ -1965,3 +1882,65 @@ $('hf-bar-source').onclick=()=>{if(!busy)$('soul-base-image').click();};
 $('hf-bar-ratio').onchange=()=>{resultSettings=null;update();};
 $('hf-bar-resolution').onchange=()=>{$('hf-resolution').value=$('hf-bar-resolution').value;resultSettings=null;update();};
 window.addEventListener('resize',()=>{const text=$('image-composer-prompt');if(!text||imageComposer.hidden)return;text.style.height='auto';text.style.height=Math.max(42,text.scrollHeight)+'px';});
+
+// The editor stays interactive: a paid submission only reads this captured request.
+async function submitImageSnapshot(){
+  if(busy||imageSubmissionPending||!owner||!hasInput()||submissionBlocked())return;
+  const sessionEpoch=epoch,selected=structuredClone(settings()),provider=currentProvider();
+  const requested=Math.max(1,Math.min(imageProcessing==='batch'?20:4,Number($('image-count').value)||1));
+  const selectedPose=poseMapSourceId,selectedBase=file,selectedSourceId=sourceId;
+  const sourceMode=imageEngine==='soulpro'||isReinterpret();
+  const chosen=sourceMode?[{file:selectedBase,id:selectedSourceId}]:imageEngine==='soul'?[]:references.map(ref=>({file:ref.file,id:ref.id,ref}));
+  const check=()=>{if(!owner||epoch!==sessionEpoch)throw new Error('Session changed. No further requests submitted.');};
+  const record=job=>{if(!job)return;check();if(activeStates.has(job.status))setActive(job);surfaceHistoryJob(job);refreshHistorySoon();};
+  imageSubmissionPending=true;update();
+  let submitted=0;
+  try{
+    if(provider==='spicy'&&!config.enabled){connection();return;}
+    if(provider==='gemini'&&!config.geminiEnabled)throw new Error('Gemini API is not connected.');
+    if(provider==='fal'&&!config.falEnabled)throw new Error('FAL API is not connected.');
+    if(provider==='higgsfield'&&!config.higgsfieldEnabled)throw new Error('Higgsfield API is not connected.');
+    if(provider==='spicy'){
+      const used=activeJobs.filter(j=>slotStates.has(j.status)&&j.settings?.type==='image'&&jobProvider(j)==='spicy').length;
+      if(requested>Math.max(0,limitFor('image')-used))throw new Error('Not enough available image slots for this batch.');
+    }
+    const originals=[];
+    for(const item of chosen){
+      check();const id=item.id||await uploadAsset(item.file);check();originals.push({id,file:item.file});
+      if(item.ref&&references.includes(item.ref))item.ref.id=id;
+      if(sourceMode&&file===selectedBase)sourceId=id;
+    }
+    let inputs={sourceId:originals[0]?.id||null,lastSourceId:null,referenceSourceIds:sourceMode?[]:originals.map(r=>r.id)};
+    if(provider==='higgsfield'||provider==='fal'){
+      const path=provider==='higgsfield'?'/api/higgsfield/generate':selected.engine==='soulpro'?'/api/fal/soul-pro':'/api/fal/controlled-pose';
+      check();const data=await api(path,{method:'POST',body:{...inputs,settings:selected,...(selected.engine==='fal'?{poseMapSourceId:selectedPose}:{})}});
+      if(!data.job)throw new Error('No generation record returned. Check History before retrying.');
+      record(data.job);submitted=1;if(data.job.error)throw new Error(data.job.error);
+    }else if(provider==='gemini'){
+      const batch=selected.processing==='batch';
+      for(let i=0;i<(batch?1:requested);i++){
+        check();const data=await api('/api/gemini/jobs',{method:'POST',body:{...inputs,count:batch?requested:1,settings:selected}});
+        if(!data.jobs?.length)throw new Error('No generation record returned. Check History before retrying.');
+        for(const job of data.jobs){record(job);submitted++;}
+        if(data.jobs.some(job=>['failed','uncertain','resolved'].includes(job.status)))break;
+      }
+    }else{
+      inputs=await prepareQuoteInputs(inputs,{originals});if(!inputs)return;
+      const quotes=[];
+      for(let i=0;i<requested;i++){
+        check();const q=await api('/api/quotes',{method:'POST',body:{...inputs,settings:selected}});
+        if(q.settings.type!=='image'||q.settings.mode!==selected.mode||selected.engine==='soul'&&(q.settings.engine!=='soul'||q.settings.characterId!==selected.characterId||q.settings.preset!==selected.preset))throw new Error('Unexpected image quote. Nothing further submitted.');
+        quotes.push(q);
+      }
+      for(const q of quotes){
+        check();if(!Number.isFinite(q.expiresAt)||Date.now()>=q.expiresAt)throw new Error('Quote expired. Nothing further submitted.');
+        const data=await api('/api/jobs',{method:'POST',body:{quoteId:q.id,confirm:true}});
+        if(!data.job)throw new Error('No generation record returned. Check History before retrying.');
+        record(data.job);submitted++;
+        if(['failed','uncertain','resolved'].includes(data.job.status)){notify(data.job.error||'Request needs review in History.',true);return;}
+      }
+    }
+    check();notify(submitted+' image request'+(submitted===1?'':'s')+' recorded. Results appear in History.');
+  }catch(e){if(owner&&epoch===sessionEpoch)notify((submitted?submitted+' request(s) recorded. ':'')+(e.name==='AbortError'?'Request interrupted. Check History before retrying.':e.message),true);}
+  finally{imageSubmissionPending=false;update();}
+}
