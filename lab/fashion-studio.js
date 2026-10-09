@@ -18,7 +18,7 @@ export async function mountFashionStudio(host,options){
   const root=host.shadowRoot||host.attachShadow({mode:'open'});
   const style=document.createElement('style');
   style.textContent=css.replace(/:root\b/g,':host').replace(/\bhtml\s*\{/g,':host{').replace(/\bbody\s*\{/g,':host{display:block;')+
-    '\n:host{display:block}#content{max-width:none;padding-inline:clamp(16px,2.3vw,42px)}';
+    '\n:host{display:block}#content{max-width:none;padding-inline:clamp(16px,2.3vw,42px)}.result-stage{width:100%;min-width:0;max-width:100%}';
   root.replaceChildren(style,document.importNode(content,true));
   const controller=createFashionStudio(root,options);
   await controller.ready;

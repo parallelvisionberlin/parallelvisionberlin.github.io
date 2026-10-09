@@ -142,6 +142,7 @@ async function openFashionStudio(){
   if(busy)return;
   assetLibrary?.close();
   if($('soul-pro-identity-dialog').open)$('soul-pro-identity-dialog').close();
+  $('video').pause();
   setFashionActive(true);
   const host=$('fashion-studio');
   const sessionClient={
