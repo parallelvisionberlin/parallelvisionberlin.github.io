@@ -58,15 +58,27 @@ try{
   assert.equal(await page.locator('#model-select').inputValue(),'fashnmax','Purchased FASHN Max is selected by default.');
   assert.equal(await page.locator('#fashnmax-options').isVisible(),true);
   assert.equal(await page.locator('#fashn16-options').isVisible(),false);
-  assert.match(await page.locator('#fashion-title').innerText(),/look, reimagined/i);
+  assert.match(await page.locator('#fashion-title').innerText(),/replace outfit/i);
+  assert.equal(await page.locator('#editorial-reference').count(),0,'No unrelated fashion image masquerading as an output.');
   const desktop=await page.evaluate(()=>{
     const rect=selector=>{const r=document.querySelector(selector).getBoundingClientRect();return{top:r.top,bottom:r.bottom,left:r.left,right:r.right,width:r.width}};
-    return{bodyWidth:document.documentElement.scrollWidth,viewportWidth:innerWidth,quote:rect('#quote'),preview:rect('#result-stage'),person:rect('#person-slot'),garment:rect('#garment-slot')};
+    return{
+      bodyWidth:document.documentElement.scrollWidth,viewportWidth:innerWidth,
+      background:getComputedStyle(document.body).backgroundColor,
+      quote:rect('#quote'),preview:rect('#result-stage'),person:rect('#person-slot'),
+      garment:rect('#garment-slot'),controls:rect('.engine-section'),title:rect('#fashion-title')
+    };
   });
   assert.ok(desktop.bodyWidth<=desktop.viewportWidth,'Desktop Fashion has no horizontal overflow.');
   assert.ok(desktop.quote.top<900,'Price action starts within the desktop viewport.');
-  assert.ok(desktop.preview.width>350,'Editorial output has a meaningful desktop preview area.');
-  assert.ok(desktop.person.top<desktop.garment.top,'Source images have a deliberate stacked editorial layout on desktop.');
+  assert.equal(desktop.background,'rgb(244, 243, 240)','Work area uses warm ivory, not a dark card dashboard.');
+  assert.ok(desktop.title.top<125,'Fashion header does not push the work area down.');
+  assert.ok(desktop.preview.width>500,'Result window is large enough for examining details.');
+  assert.ok(desktop.person.width>=250&&desktop.garment.width>=250,'Both drop zones are large.');
+  assert.ok(Math.abs(desktop.person.top-desktop.garment.top)<3,'Uploads are side by side.');
+  assert.ok(desktop.preview.left>desktop.garment.right,'Result sits to the right of both upload zones.');
+  assert.ok(desktop.person.top<200&&desktop.preview.top<200,'Image work starts near the top.');
+  assert.ok(desktop.controls.top>desktop.person.bottom,'Advanced controls stay below the work imagery.');
   mkdirSync('test-results',{recursive:true});
   await page.screenshot({path:'test-results/pv-fashion-editorial-desktop.png',fullPage:true});
   await page.locator('#model-select').selectOption('fashnmax');
@@ -84,13 +96,18 @@ try{
   assert.equal(calls.filter(c=>c.path==='/api/fashion/quote').length,1);
   assert.equal(calls.some(c=>c.path==='/api/fashion/submit'),false,'Price review must not buy a generation.');
   await page.setViewportSize({width:390,height:844});
-  const mobile=await page.evaluate(()=>({bodyWidth:document.documentElement.scrollWidth,viewportWidth:innerWidth}));
+  const mobile=await page.evaluate(()=>{
+    const a=selector=>{const r=document.querySelector(selector).getBoundingClientRect();return{top:r.top,left:r.left,right:r.right,width:r.width}};
+    return{bodyWidth:document.documentElement.scrollWidth,viewportWidth:innerWidth,person:a('#person-slot'),garment:a('#garment-slot'),preview:a('#result-stage'),controls:a('.engine-section')};
+  });
   assert.ok(mobile.bodyWidth<=mobile.viewportWidth,'Mobile Fashion has no horizontal overflow.');
+  assert.ok(Math.abs(mobile.person.top-mobile.garment.top)<3,'Mobile retains paired upload tiles.');
+  assert.ok(mobile.preview.top>mobile.controls.top,'Mobile controls appear before the result.');
   assert.equal(await page.locator('#quote-box').isVisible(),true);
   assert.equal(await page.locator('#result-stage').isVisible(),true);
   await page.screenshot({path:'test-results/pv-fashion-editorial-mobile.png',fullPage:true});
   assert.deepEqual(errors,[]);
-  console.log('PASS Fashion editorial desktop/mobile, FASHN credit balance, default Max, and no-cost price review.');
+  console.log('PASS warm-white Fashion photo-first desktop/mobile, large upload wells, right result, FASHN Max and no-cost price review.');
 }finally{
   await browser.close();await new Promise(ok=>server.close(ok));
 }
