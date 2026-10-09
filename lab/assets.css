@@ -142,3 +142,31 @@ header .queue-popover.has-uncertain>summary{border-color:#303236}
 header .queue-popover .queue-summary-chevron{display:none}
 header .queue-popover-panel{z-index:210}
 @media(max-width:640px){header .queue-popover>summary{padding:8px;font-size:11px}header .queue-popover-panel{position:fixed;top:64px;right:12px;width:calc(100vw - 24px);min-width:0;max-height:65dvh}.top{gap:8px}header .account-menu>summary{padding:9px 10px;font-size:11px}}
+
+/* Edge-to-edge image canvas and proportion-aware rows. */
+body:has(#app.image-studio-active) #main.wrap,
+body:has(#app.assets-active) #main.wrap{max-width:none;padding-inline:0}
+header .wrap.top{max-width:none;padding-inline:16px;min-height:48px}
+#app .tool-switch{height:42px;min-height:42px;padding:3px 16px;margin:0}
+#app .image-studio .archive{padding-top:0}
+#app .image-studio .archivehead{padding:3px 16px 6px;min-height:40px;gap:10px}
+#app .image-gallery-host .archive h2{font-size:14px}
+#app .image-studio .history-head-actions .text-button{min-height:29px;padding:5px 10px}
+#app .image-studio .archivehead>div:last-child{margin-top:0}
+#app #history.justified-gallery{display:flex;flex-wrap:wrap;align-items:flex-start;gap:2px;margin:0;padding:0;grid-template-columns:none}
+#app #history.justified-gallery .card{flex:none;aspect-ratio:auto;min-height:0;min-width:0;max-width:100%;border:0!important;border-radius:0!important;transform:none!important}
+#app #history.justified-gallery .history-media img{object-fit:contain;background:#17181b}
+#app .image-studio .history-selection{margin-inline:12px}
+#assets-workspace{gap:16px;padding-top:6px}
+#assets-workspace .assets-sidebar{margin-left:12px}
+#assets-gallery .archivehead{margin-bottom:8px;padding-right:12px;gap:8px}
+#assets-gallery .archivehead h2{font-size:17px}
+@media(max-width:640px){
+  header .wrap.top{padding-inline:10px;gap:6px}
+  header .brand{gap:6px}header .brand-wordmark{width:100px}
+  #app .tool-switch{height:40px;min-height:40px;padding:2px 8px}
+  #app .image-studio .archivehead{padding-inline:10px;display:flex}
+  #app .image-studio .archivehead>div:last-child{margin:0}
+  #assets-workspace .assets-sidebar{margin-inline:8px}
+  #assets-gallery .archivehead{padding-inline:10px}
+}

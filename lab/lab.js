@@ -1743,6 +1743,7 @@ function renderCards(jobs,{upsert=false}={}){
     if(existing?.dataset.fingerprint===fingerprint)continue;
     if(j.settings.type==='image')imageDetailCache.set(j.id,j);
     const card=document.createElement('article');card.className='card';card.dataset.kind=j.settings.type==='image'?'image':'video';card.dataset.job=j.id;card.dataset.state=j.status;card.dataset.fingerprint=fingerprint;card.dataset.deletable=String(!activeStates.has(j.status));
+    const proportions=String(j.settings.aspectRatio||'16:9').split(':').map(Number);card.dataset.ratio=String(proportions[0]/proportions[1]||16/9);
     if(j.settings.type==='video')videoJobCache.set(j.id,j);
     const openCard=()=>{
       if(!owner||historySelectMode)return;
