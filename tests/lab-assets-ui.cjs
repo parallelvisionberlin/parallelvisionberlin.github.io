@@ -49,7 +49,7 @@ await page.click('#image-composer-model');await page.locator('.composer-model-op
 assert.equal(await page.locator('#hf-bar-ratio option:checked').textContent(),'16:9');
 await page.click('#composer-character');
 assert.equal(await page.locator('#composer-library-title').textContent(),'MAKE YOUR OWN CHARACTER');
-assert.equal(await page.locator('#composer-character-create').isVisible(),true);
+assert.equal(await page.locator('#composer-character-create').isVisible(),true);assert.ok((await page.locator('#composer-character-create').boundingBox()).width>=190,'Create character has room for its label');
 await page.setViewportSize({width:390,height:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'Character panel fits mobile');await page.setViewportSize({width:1440,height:1000});
 await page.click('#composer-character-create');await page.waitForFunction(()=>document.querySelector('#hf-dialog').open&&document.activeElement.id==='hf-training-name');await page.click('#hf-close');
 console.log('PASS fixed Generate geometry, numeric ratio label and character creation entry');
