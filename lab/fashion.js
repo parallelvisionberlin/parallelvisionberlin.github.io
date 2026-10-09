@@ -104,7 +104,7 @@ $('fashion-form').addEventListener('submit',async event=>{
     const credits=current()==='fashnmax'?Math.round(response.estimatedUsd/.075):null;
     $('quote-price').textContent=(credits===null?'Estimated provider cost: ':'Estimated: '+credits+' credits · ')+money(response.estimatedUsd);
     $('quote-note').textContent=response.notice+' This price check does not generate an image. Quote expires at '+new Date(response.expiresAt).toLocaleTimeString()+'.';
-    $('quote-box').hidden=false;$('quote').hidden=true;status('Review the estimate. Confirm only if you want one paid render.');
+    $('quote-box').hidden=false;$('quote').hidden=true;status('');
   }catch(e){status(e.message,true);}
   finally{busy=false;update();}
 });
@@ -155,9 +155,10 @@ async function checkFashnBalance(){
   try{
     const result=await api('/api/fashion/balance');
     if(!authenticated)return;
-    $('fashn-api-state').textContent=result.connected?
-      'Connected · '+result.credits.total+' credits available ('+result.credits.onDemand+' on-demand)':
-      (result.note||'FASHN API key is not configured.');
+    const balance=$('fashn-api-state');
+    balance.textContent=result.connected?'Connected · '+result.credits.total+' credits':(result.note||'FASHN API key is not configured.');
+    balance.title=result.connected?result.credits.onDemand+' on-demand / '+result.credits.subscription+' subscription credits':'';
+
   }catch(e){
     if(authenticated)$('fashn-api-state').textContent='Connection not verified · '+e.message;
   }finally{
