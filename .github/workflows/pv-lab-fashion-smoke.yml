@@ -8,11 +8,19 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+  actions: read
 jobs:
   public-smoke:
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
+      - name: Report latest Lab deployment runs (GitHub metadata only)
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/deploy-lab-worker.yml/runs?per_page=8" --jq '.workflow_runs[] | [.id,.created_at,.head_sha,.status,(.conclusion // "pending")] | @tsv'
       - name: Verify deployed Worker version without credentials
         shell: bash
         run: |
