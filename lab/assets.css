@@ -312,3 +312,10 @@ header .wrap.top{max-width:none;padding-inline:16px;min-height:48px}
 #app.upscale-studio-active #save:disabled{display:none}
 @media(max-width:640px){#app.upscale-studio-active>.workspace{padding:0 12px;margin-top:12px;gap:8px}#app.upscale-studio-active .canvas{height:390px;min-height:390px}#app.upscale-studio-active .empty{min-height:390px}#app.upscale-studio-active .controls{padding:14px}#app.upscale-studio-active #upscale-model-control{flex-basis:100%;flex-wrap:wrap}#app.upscale-studio-active #generate{flex:1 0 100%;width:100%}#app .history-selection{padding:10px;gap:4px}#app #history-selection-count{flex:1 0 100%}#app .history-selection button{font-size:13px;padding:8px 10px}}
 #app.upscale-studio-active [hidden]{display:none!important}
+/* Reset the old sticky sidebar geometry for the new vertical workspace. */
+#app.upscale-studio-active>.workspace{border:0;background:transparent;box-shadow:none;min-height:0}
+#app.upscale-studio-active .stage{position:relative;top:auto;display:flex;flex-direction:column;height:auto;min-height:0;overflow:visible;border-radius:0}
+#app.upscale-studio-active .canvas{flex:none;padding:0}
+#app.upscale-studio-active .stagehead,#app.upscale-studio-active .stagefoot{flex:none;min-height:38px}
+#app.upscale-studio-active .controls>.generate-zone{position:static;bottom:auto;box-shadow:none;border-radius:0}
+#app.upscale-studio-active #upscale-model-control,#app.upscale-studio-active #format-control{margin:0}

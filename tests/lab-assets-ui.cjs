@@ -100,6 +100,7 @@ assert.equal(await page.locator('#upscale-info').getAttribute('open'),null);
 console.log('UPSCALE_DESKTOP='+Buffer.from(await page.screenshot({type:'jpeg',quality:75})).toString('base64'));
 const canvasBox=await page.locator('.stage').boundingBox(), controlsBox=await page.locator('.controls').boundingBox();
 assert.ok(controlsBox.y>=canvasBox.y+canvasBox.height,'Upscaler controls sit below the central canvas');
+assert.equal(await page.locator('.controls>.generate-zone').evaluate(el=>getComputedStyle(el).position),'static','Actions never overlap settings');
 await page.setViewportSize({width:390,height:844});
 assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'Upscaler fits mobile');
 console.log('UPSCALE_MOBILE='+Buffer.from(await page.screenshot({type:'jpeg',quality:75})).toString('base64'));
