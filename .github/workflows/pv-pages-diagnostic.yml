@@ -1,0 +1,28 @@
+name: Diagnose Fashion Pages publication
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/pv-pages-diagnostic.yml'
+permissions:
+  contents: read
+  actions: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Read GitHub Pages published build status
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          echo "PAGE_SETTINGS"
+          gh api "repos/${GITHUB_REPOSITORY}/pages" --jq '{status,build_type,source,html_url}' || true
+          echo "LATEST_BUILD"
+          gh api "repos/${GITHUB_REPOSITORY}/pages/builds/latest" --jq '{status,created_at,updated_at,commit,errors}' || true
+          echo "RECENT_BUILDS"
+          gh api "repos/${GITHUB_REPOSITORY}/pages/builds?per_page=6" --jq '.[] | [.created_at,.status,.commit] | @tsv' || true
+          echo "CURRENT_MAIN"
+          gh api "repos/${GITHUB_REPOSITORY}/commits/main" --jq '.sha'
+          echo "LIVE"
+          curl -fsS --max-time 15 "https://parallelvisionlabel.com/lab/fashion.html?diagnostic=$(date +%s)" | grep -E 'fashion.css\?v=|<title>' | head -3 || true
