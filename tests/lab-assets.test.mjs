@@ -35,3 +35,13 @@ assert.equal((await query('alice','folder='+folder.id)).jobs.length,1);
 await route('alice','/api/library/members',{favorite:false,ids:['a1']});assert.equal((await query('alice','favorite=1')).jobs.length,0);
 db.prepare('DELETE FROM jobs WHERE id=?').run('a1');assert.equal((await route('alice','/api/library')).folders[0].count,0);
 console.log('PASS persistence, media folders, favorites, ownership isolation, pagination, removal, deleted-record cleanup');
+
+await route('alice','/api/library/archive',{ids:['a2','a3']});
+await route('alice','/api/library/archive',{ids:['a4']});
+const archives=(await route('alice','/api/library')).folders.filter(f=>f.name==='Archive');
+assert.equal(archives.length,1);assert.equal(archives[0].count,3);
+assert.deepEqual((await query('alice','folder='+archives[0].id)).jobs.map(j=>j.id),['a4','a3','a2']);
+assert.ok((await query('alice','unfiled=1')).jobs.every(j=>!['a2','a3','a4'].includes(j.id)));
+assert.ok((await query('alice','kind=video')).jobs.some(j=>j.id==='a4'));
+await assert.rejects(route('bob','/api/library/archive',{ids:['a2']}),/404/);
+console.log('PASS dedicated Archive action, one Archive folder, account isolation and All assets retention');

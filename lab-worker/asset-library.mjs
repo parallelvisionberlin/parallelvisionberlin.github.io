@@ -16,10 +16,16 @@ export async function libraryRoute(request,env,owner,url,{body,uid,fail,rows,fir
     if((await first(env,'SELECT COUNT(*) AS n FROM library_folders WHERE owner_id=?',owner)).n>=200)fail(409,'Folder limit reached.');
     const id=crypto.randomUUID();await run(env,'INSERT INTO library_folders VALUES(?,?,?,?)',id,owner,name,Date.now());return {folder:{id,name,count:0}};
   }
-  if(path==='/api/library/members'&&method==='POST'){
+  if((path==='/api/library/members'||path==='/api/library/archive')&&method==='POST'){
     const data=await body(request),ids=Array.isArray(data.ids)?[...new Set(data.ids.map(uid))]:[];
     if(!ids.length||ids.length>100)fail(400,'Select 1–100 items.');
     for(const id of ids)if(!await first(env,'SELECT id FROM jobs WHERE owner_id=? AND id=?',owner,id))fail(404,'Selected item not found.');
+    if(path==='/api/library/archive'){
+      // Insert-if-absent is atomic, including concurrent first-time Archive actions.
+      await run(env,'INSERT INTO library_folders(id,owner_id,name,created_at) SELECT ?,?,?,? WHERE NOT EXISTS(SELECT 1 FROM library_folders WHERE owner_id=? AND name=?)',crypto.randomUUID(),owner,'Archive',Date.now(),owner,'Archive');
+      data.folderId=(await first(env,'SELECT id FROM library_folders WHERE owner_id=? AND name=? ORDER BY created_at,id LIMIT 1',owner,'Archive')).id;
+      delete data.favorite;delete data.remove;
+    }
     let sql;
     if(typeof data.favorite==='boolean')sql=data.favorite?'INSERT OR IGNORE INTO library_favorites(owner_id,job_id) VALUES(?,?)':'DELETE FROM library_favorites WHERE owner_id=? AND job_id=?';
     else{

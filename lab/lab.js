@@ -1,4 +1,4 @@
-import {createAssetLibrary} from './assets.js?v=20261009-assets2';
+import {createAssetLibrary} from './assets.js?v=20261009-assets3';
 import {createSoul2UI} from './higgsfield-ui.js?v=20261009-background-submit';
 import {VIDEO_MODELS,engineFor,videoLabel} from './video-models.js?v=20261001-video-models2';
 import {REFERENCE_ROLES,REFERENCE_TARGETS,normalizeReferenceLabel,compileImagePrompt,referenceGuidanceError,canUseReferenceGuidance} from './reference-guidance.js?v=20261002-reference1';
