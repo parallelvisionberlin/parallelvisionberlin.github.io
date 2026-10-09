@@ -26,6 +26,15 @@ await page.goto('http://127.0.0.1:8765/lab/studio.html',{waitUntil:'domcontentlo
 await page.waitForFunction(()=>document.querySelector('#history').classList.contains('justified-gallery'));
 await page.waitForFunction(()=>document.querySelector('#history .card')?.style.width);
 const beforeImages=await page.locator('#history .card').evaluateAll(cards=>cards.map(c=>({x:c.offsetLeft,y:c.offsetTop,w:c.offsetWidth,h:c.offsetHeight})));
+
+assert.equal(await page.locator('#history .history-media img').evaluateAll(imgs=>imgs.length>0&&imgs.every(i=>getComputedStyle(i).visibility==='hidden')),true,'Image placeholders hide native broken-file graphics');
+await page.click('#tool-assets');
+await page.waitForFunction(()=>document.querySelectorAll('#history .card').length===6);
+assert.equal(await page.locator('#history .history-media img').evaluateAll(imgs=>imgs.length>0&&imgs.every(i=>getComputedStyle(i).visibility==='hidden')),true,'Assets uses the same loading treatment');
+assert.equal(await page.locator('#history .history-media').first().evaluate(el=>getComputedStyle(el,'::after').backgroundImage.includes('pv-mark.png')),true,'Loading uses PV mark');
+await page.click('#tool-image');
+await page.waitForFunction(()=>document.querySelectorAll('#history .card').length===4);
+await page.waitForFunction(()=>document.querySelector('#history .card')?.style.width);
 releaseImages();await page.waitForFunction(()=>[...document.querySelectorAll('#history .history-media img')].every(i=>i.naturalWidth>0));
 for(const width of [1920,1440,768,390,320]){
   await page.setViewportSize({width,height:1000});
@@ -45,6 +54,18 @@ console.log('PASS stable navigation across image, video, upscale and assets at f
 await page.click('#tool-image');
 const afterImages=await page.locator('#history .card').evaluateAll(cards=>cards.map(c=>({x:c.offsetLeft,y:c.offsetTop,w:c.offsetWidth,h:c.offsetHeight})));
 assert.deepEqual(afterImages,beforeImages,'Images retain identical positions and sizes before and after decoding');console.log('PASS zero gallery movement while image bytes load');
+const preview=page.locator('#history .history-media img').first();
+const previewBounds=await preview.boundingBox();
+await preview.evaluate(img=>img.dispatchEvent(new Event('error')));
+assert.equal(await preview.evaluate(img=>getComputedStyle(img).visibility),'hidden','Decode errors never show broken-file icon');
+assert.equal(await page.locator('#history .history-preview-unavailable').first().textContent(),'Preview unavailable');
+assert.equal(await preview.evaluate(img=>getComputedStyle(img.closest('figure'),'::after').animationName),'none','Failed preview stops loading animation');
+await preview.evaluate(img=>img.dispatchEvent(new Event('load')));
+assert.equal(await preview.evaluate(img=>getComputedStyle(img).visibility),'visible','Successful retry reveals preview');
+assert.equal(await page.locator('#history .history-preview-unavailable').count(),0,'Successful retry removes fallback');
+assert.deepEqual(await preview.boundingBox(),previewBounds,'Loading and failure do not change image geometry');
+console.log('PASS shared image and assets loaders, PV mark, decode failure and retry');
+
 const bounds=await page.locator('#history').boundingBox();assert.equal(bounds.x,0,'Image gallery reaches left edge');assert.equal(bounds.width,1440,'Image gallery reaches right edge');assert.ok(bounds.y<=135,'Compact top chrome');
 await page.setViewportSize({width:390,height:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'Mobile image view has no horizontal overflow');await page.setViewportSize({width:1440,height:1000});
 await page.locator('#history .card').first().hover();await page.getByRole('button',{name:'Add to favorites',exact:true}).first().click();assert.equal(favorites.size,1);

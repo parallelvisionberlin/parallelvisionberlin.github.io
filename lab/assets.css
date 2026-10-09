@@ -357,3 +357,31 @@ body #main #app>.tool-switch>.tool-group>:is(button,a){
     flex-basis:68px;width:68px;min-width:68px;padding-inline:6px;font-size:11px;
   }
 }
+
+/* One media loading treatment for Image, Video, Upscaler and Assets. */
+#app #history .history-media{position:relative}
+#app #history .history-media img.history-asset-loading{
+  opacity:0!important;visibility:hidden;
+}
+#app #history .history-media:not(.has-image)::before{
+  content:"";position:absolute;inset:0;z-index:0;
+  background:#17181b;pointer-events:none;
+}
+#app #history .history-media:not(.has-image)::after{
+  content:"";position:absolute;top:50%;left:50%;z-index:1;
+  width:40px;height:40px;transform:translate(-50%,-50%);
+  background:url('./branding/pv-mark.png') center/contain no-repeat;
+  opacity:.3;pointer-events:none;animation:pv-preview-pulse 1.8s ease-in-out infinite alternate;
+}
+#app #history .history-media.is-unavailable::after{
+  animation:none;opacity:.25;transform:translate(-50%,calc(-50% - 12px));
+}
+#app #history .history-preview-unavailable{
+  position:absolute;inset:calc(50% + 18px) 8px auto;z-index:2;
+  display:block;padding:0;background:transparent;color:#92969e;
+  font:400 11px/1.4 'DM Sans',Arial,sans-serif;text-align:center;pointer-events:none;
+}
+@keyframes pv-preview-pulse{from{opacity:.16}to{opacity:.38}}
+@media(prefers-reduced-motion:reduce){
+  #app #history .history-media:not(.has-image)::after{animation:none;opacity:.28}
+}
