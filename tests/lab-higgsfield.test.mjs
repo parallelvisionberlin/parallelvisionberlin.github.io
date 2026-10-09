@@ -6,11 +6,18 @@ import {higgsfieldRoute,refreshHiggsfield} from '../lab-worker/higgsfield.mjs';
 import {soul2Ratio,soul2Parameters,soul2Input,hfRequest,higgsfieldApiUrl} from '../lab-worker/higgsfield.mjs';
 const fail=(status,message)=>{throw Object.assign(new Error(message),{status});};
 const id='a0f563e2-97ee-4b12-931f-0307400c7381';
-test('source and identity are distinct required fields, strength zero survives',()=>{
+test('source and optional identity stay distinct, strength zero survives',()=>{
   const p=soul2Parameters({type:'image',characterId:id,identityStrength:0,resolution:'1080p',seed:42},fail);p.aspectRatio=soul2Ratio(1776,2368);
   const input=soul2Input(p,'https://example.com/base.png',id);
   assert.equal(input.image_url,'https://example.com/base.png');assert.equal(input.custom_reference_id,id);assert.equal(input.custom_reference_strength,0);assert.equal(input.aspect_ratio,'3:4');assert.equal(input.seed,42);assert.equal(input.batch_size,1);
   assert.throws(()=>soul2Input(p,null,id));assert.throws(()=>soul2Parameters({type:'image',characterId:id,identityStrength:1.7},fail));assert.throws(()=>soul2Parameters({type:'image',characterId:id,seed:0},fail));
+});
+test('photo reinterpretation needs no character and respects an explicit ratio',()=>{
+  const p=soul2Parameters({type:'image',aspectRatio:'16:9'},fail);
+  const input=soul2Input(p,'https://example.com/photo.png');
+  assert.equal(input.aspect_ratio,'16:9');assert.equal(input.custom_reference_id,undefined);
+  assert.equal(input.custom_reference_strength,undefined);assert.ok(!input.prompt.includes('trained character'));
+  assert.throws(()=>soul2Parameters({type:'image',characterId:'invalid'},fail));
 });
 test('default ratio and nearest source aspect ratio',()=>{assert.equal(soul2Ratio(0,0),'16:9');assert.equal(soul2Ratio(1920,1080),'16:9');assert.equal(soul2Ratio(1080,1920),'9:16');});
 test('credential-bearing requests stay on the official API host',async()=>{
@@ -46,6 +53,9 @@ test('training, owned identity, source generation, budget and ambiguous submissi
     globalThis.fetch=async(url,options)=>{if(String(url).includes('/estimate/'))return Response.json({usd:'0.0057'});if(options.method==='POST'){posts++;sent=JSON.parse(options.body);return Response.json({request_id:id,status_url:'https://api.higgsfield.ai/requests/'+id+'/status'});}return Response.json({request_id:id,status:'completed',images:[{url:'https://example.com/output.png'}]});};
     const {job:generation}=await invoke('/api/higgsfield/generate',input);assert.equal(sent.image_url,'https://lab.example/input/base');assert.equal(sent.custom_reference_id,reference);assert.equal(sent.aspect_ratio,'3:4');assert.equal(generation.state,'queued');
     await refreshHiggsfield(env,generation,JSON.parse(generation.params),deps);assert.equal(copied,true);
+    const {job:plain}=await invoke('/api/higgsfield/generate',{sourceId:asset,settings:{type:'image',aspectRatio:'16:9'}});
+    assert.equal(plain.state,'queued');assert.equal(sent.custom_reference_id,undefined);assert.equal(sent.aspect_ratio,'16:9');
+    await run(env,"UPDATE jobs SET state='completed' WHERE id=?",plain.id);
     globalThis.fetch=async(url)=>{if(String(url).includes('/estimate/'))return Response.json({usd:'0.0057'});posts++;throw new Error('network timeout');};
     const {job:uncertain}=await invoke('/api/higgsfield/generate',input);assert.equal(uncertain.state,'uncertain');const count=posts;
     await assert.rejects(()=>invoke('/api/higgsfield/generate',input),/Nothing submitted/);assert.equal(posts,count);

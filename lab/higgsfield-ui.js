@@ -23,7 +23,7 @@ export function createSoul2UI({api,uploadAsset,assetPhoto,notify,onChange,onJob,
   async function load(){
     if(!enabled){render();return;}
     const data=await api('/api/higgsfield/characters');characters=data.characters||[];
-    if(!characters.some(c=>c.id===selected))selected=characters.find(c=>c.state==='completed')?.id||'';
+    if(!characters.some(c=>c.id===selected))selected='';
     render();onChange();clearTimeout(timer);
     if(characters.some(c=>['queued','running','submitting'].includes(c.state)))timer=setTimeout(()=>load().catch(e=>notify(e.message,true)),10000);
   }
@@ -60,11 +60,11 @@ export function createSoul2UI({api,uploadAsset,assetPhoto,notify,onChange,onJob,
       $('hf-training-confirm').checked=false;await load();
     }catch(e){status.textContent=e.message;}finally{uploading=false;render();}
   };
-  return {current,ready:()=>enabled&&current()?.state==='completed',open,
+  return {current,ready:()=>enabled&&(!selected||current()?.state==='completed'),open,
     configure(value){enabled=!!value;render();if(enabled)void load().catch(e=>notify(e.message,true));},
     parameters:()=>({characterId:selected,identityStrength:Number($('hf-strength').value),resolution:$('hf-resolution').value}),
     select(id){selected=id;render();},
     reset(){clearTimeout(timer);characters=[];selected='';enabled=false;render();},
-    renderLibrary(grid){grid.replaceChildren();for(const c of characters){const b=document.createElement('button');b.type='button';b.className='composer-library-card';b.disabled=c.state!=='completed';const photo=document.createElement('span');photo.className='composer-library-photo';const name=document.createElement('strong');name.textContent=c.name;const state=document.createElement('small');state.textContent='Soul ID · '+(c.state==='completed'?'ready':c.state);b.append(photo,name,state);grid.append(b);assetPhoto(photo,c.portraitAssetId,c.name);b.onclick=()=>{selected=c.id;onChange();};}if(!characters.length){const p=document.createElement('p');p.textContent='Create your first Soul ID from photos.';grid.append(p);}}
+    renderLibrary(grid){grid.replaceChildren();const none=document.createElement('button');none.type='button';none.className='composer-library-card';none.textContent='No character · reinterpret photo';none.setAttribute('aria-pressed',String(!selected));none.onclick=()=>{selected='';render();onChange();};grid.append(none);for(const c of characters){const b=document.createElement('button');b.type='button';b.className='composer-library-card';b.disabled=c.state!=='completed';const photo=document.createElement('span');photo.className='composer-library-photo';const name=document.createElement('strong');name.textContent=c.name;const state=document.createElement('small');state.textContent='Soul ID · '+(c.state==='completed'?'ready':c.state);b.append(photo,name,state);grid.append(b);assetPhoto(photo,c.portraitAssetId,c.name);b.onclick=()=>{selected=c.id;onChange();};}if(!characters.length){const p=document.createElement('p');p.textContent='Create your first Soul ID from photos.';grid.append(p);}}
   };
 }

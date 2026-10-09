@@ -55,8 +55,8 @@ document.addEventListener('DOMContentLoaded',()=>{
 <link rel="stylesheet" href="./image-studio.css?v=20261009-strength1">
 <link rel="stylesheet" href="./detail-video-studio.css?v=20261009-pointer1">
 <link rel="stylesheet" href="./editorial-polish.css?v=20261009-amber1">
-<script type="module" src="./lab.js?v=20261009-soul2"></script>
-<link rel="stylesheet" href="./higgsfield.css?v=20261009-soul2">
+<script type="module" src="./lab.js?v=20261009-soul-bar"></script>
+<link rel="stylesheet" href="./higgsfield.css?v=20261009-soul-bar">
 </head>
 <body class="lab-booting">
 <div id="lab-boot" role="status" aria-live="polite" aria-label="Opening Parallel Vision Lab"><div class="lab-boot-content"><div class="lab-boot-brand" aria-label="Parallel Vision Lab"><img id="lab-boot-wordmark" src="./branding/pv-wordmark.png" alt="Parallel Vision" width="242" height="61" decoding="async"><span class="lab-boot-fallback" id="lab-boot-name">PARALLEL VISION</span><span class="lab-boot-sub">LAB <span aria-hidden="true">/</span> CREATIVE STUDIO</span></div><div class="lab-boot-track" aria-hidden="true"></div><p class="lab-boot-status" id="lab-boot-status">Opening your workspace</p><button id="lab-boot-retry" type="button" hidden>Reload page</button></div></div>
@@ -122,7 +122,7 @@ document.addEventListener('DOMContentLoaded',()=>{
       <div id="image-composer-references" class="image-composer-references" hidden aria-label="Attached reference images"></div>
       <textarea id="image-composer-prompt" rows="2" placeholder="Describe the scene you imagine..." aria-label="Describe the image"></textarea>
     </div>
-    <div class="image-composer-toolbar">
+    <div class="image-composer-toolbar"><div class="composer-controls">
       <button id="image-composer-add" type="button" class="composer-add" aria-label="Add image references" title="Add image references">+</button>
       <div class="composer-model-wrap">
         <button id="image-composer-model" class="composer-model-pill" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="image-composer-model-menu">
@@ -140,8 +140,11 @@ document.addEventListener('DOMContentLoaded',()=>{
       <label class="composer-select-pill" title="Resolution"><span class="visually-hidden">Image resolution</span><select id="image-composer-resolution" aria-label="Resolution"></select></label>
       <label id="image-composer-count-wrap" class="composer-select-pill" title="Image count"><span class="visually-hidden">Number of images</span><select id="image-composer-count" aria-label="Number of images"></select></label>
       <button id="image-composer-more" type="button" class="composer-settings-pill" aria-expanded="false" aria-controls="composer-options" title="Image options">Options</button>
-      <span class="composer-flex"></span>
+      <label class="composer-select-pill hf-bar-control" hidden><span class="visually-hidden">Aspect ratio</span><select id="hf-bar-ratio" aria-label="Soul aspect ratio"><option value="source">16:9 · Auto</option><option>16:9</option><option>9:16</option><option>4:3</option><option>3:4</option><option>1:1</option><option>2:3</option><option>3:2</option></select></label>
+      <label class="composer-select-pill hf-bar-control" hidden><span class="visually-hidden">Resolution</span><select id="hf-bar-resolution" aria-label="Soul resolution"><option value="1080p">1080p</option><option value="720p">720p</option></select></label>
+      </div><span class="composer-flex"></span>
       <button id="composer-character" class="composer-character" type="button" aria-expanded="false" aria-controls="composer-library"><span id="composer-character-photo">+</span><span id="composer-character-name">References</span></button>
+      <button id="hf-bar-source" class="hf-source-card" type="button" aria-label="Upload or change source photograph" hidden><img id="hf-bar-source-photo" alt="Source photograph" hidden><span class="hf-source-plus">+</span><span class="hf-source-label">IMAGE</span><span class="hf-source-change">Change</span></button>
       <button id="image-composer-generate" class="composer-generate" type="button" aria-describedby="composer-generation-reason" disabled>Generate</button>
     </div>
     <div id="composer-generation-block" class="fine" role="status" hidden><span id="composer-generation-reason"></span> <button id="composer-review-queue" type="button" hidden>Review queue</button></div>
@@ -222,7 +225,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 <div class="workspace">
 <section class="controls" aria-label="Generation settings">
 <div class="controls-body">
-<div class="mode"><span id="mode-heading">01 / Image to Video</span><span class="engine-pill" id="engine-name">WAN 3.0</span><label id="image-model-control" class="mode-model-control" hidden><span class="label">Image model</span><select id="image-engine"><option value="seedream" selected>Seedream 5 Pro</option><option value="gemini">Nano Banana Pro</option><option value="soulpro">Soul 2 · Photo edit</option><option value="soul">PV Soul · LoRA</option><option value="fal">Controlled Pose · FAL FLUX</option></select></label></div>
+<div class="mode"><span id="mode-heading">01 / Image to Video</span><span class="engine-pill" id="engine-name">WAN 3.0</span><label id="image-model-control" class="mode-model-control" hidden><span class="label">Image model</span><select id="image-engine"><option value="seedream" selected>Seedream 5 Pro</option><option value="gemini">Nano Banana Pro</option><option value="soulpro">PV Soul 2</option><option value="soul">PV Soul · LoRA</option><option value="fal">Controlled Pose · FAL FLUX</option></select></label></div>
 <div id="video-model-control"><label><span class="label">Video model</span><select id="video-engine"><option value="wan">Wan 3.0</option><option value="wanprime">Wan 3.0 Prime</option><option value="h3">MiniMax H3</option><option value="h3max">MiniMax H3 Max</option><option value="h3spicy">MiniMax H3 Spicy</option><option value="h3maxfal">MiniMax H3 Max Reference · FAL</option><option value="omni">Gemini Omni Flash 1.1 · FAL</option><option value="seedance">Seedance 2.5</option></select></label><details class="model-details"><summary>About this model</summary><p id="video-model-note" class="fine">Standard model access. Provider policies and model refusals apply. No automatic model switching.</p></details></div>
 <div id="video-modes" class="mode-switch" role="tablist" aria-label="Generation mode">
 <button id="mode-text" class="mode-tab" type="button" role="tab" aria-selected="false" hidden>Text to Video</button>
