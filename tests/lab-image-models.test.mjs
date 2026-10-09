@@ -13,6 +13,7 @@ assert.throws(()=>imageModelParameters({...input('kling'),resolution:'4k'},{fail
 assert.throws(()=>imageModelParameters({...input('kling'),prompt:'a'.repeat(2501)},{fail}),/2,500/);
 await assert.rejects(requestFlash('test',{},async()=>{throw Error('network')}),e=>e.definite===false);
 await assert.rejects(requestFlash('test',{},async()=>new Response('{}',{status:401})),e=>e.definite===true);
+let redirectCalls=0;await assert.rejects(requestFlash('test',{},async(url,options)=>{redirectCalls++;assert.equal(options.redirect,'manual');return new Response(null,{status:307,headers:{location:'https://other.test'}})}),e=>e.definite===true);assert.equal(redirectCalls,1);
 const temporary=new URL('../lab-worker/.image-models-test-worker.mjs',import.meta.url);
 const source=(await readFile(new URL('../lab-worker/worker.mjs',import.meta.url),'utf8')).replace('const owner=await authenticate(request,env),path=url.pathname,method=request.method;',"const owner='test-owner',path=url.pathname,method=request.method;");
 await writeFile(temporary,source+'\nexport {route,refreshJob};\n');

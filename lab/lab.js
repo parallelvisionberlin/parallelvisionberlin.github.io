@@ -432,9 +432,10 @@ function syncImageComposer(){
     else if(imageEngine==='soul'&&!soul.ready())message='Choose a trained LoRA.';
     else if(imageEngine==='soul'&&isReinterpret()&&!soul.reinterpretReady())message='This character needs a trained Reinterpret identity.';
     else if(!hasInput()&&imageEngine==='fal')message='Add one pose image, 1–4 identity photos and a prompt.';
+    else if(usesReferenceGuidance()&&imageGuidance().error)message=imageGuidance().error;
     else if(!$('prompt').value.trim())message='';
   }
-  block.hidden=!message||queueBlocked;reason.textContent=queueBlocked?'':message;review.hidden=true;
+  block.hidden=!message;reason.textContent=message;review.hidden=!queueBlocked;
   generate.title=message;
   syncImageReferences();
   syncImageGalleryEmpty();
@@ -1136,7 +1137,7 @@ async function poll(){
   }catch(e){if(owner&&startedEpoch===epoch)notify(e.message,true);}
   finally{if(startedEpoch===epoch){polling=false;schedulePoll();}}
 }
-$('resolve').onclick=()=>action(async()=>{const interrupted=activeJobs.find(j=>j.status==='uncertain');if(!interrupted||!confirm('First check the provider console and its charges. This clears only the interrupted request without sending another generation. Continue only after checking.'))return;await api('/api/jobs/'+interrupted.id+'/resolve',{method:'POST',body:{confirm:true}});await syncHistory();});
+$('resolve').onclick=()=>action(async()=>{const interrupted=activeJobs.find(j=>j.status==='uncertain'&&jobProvider(j)===currentProvider())||activeJobs.find(j=>j.status==='uncertain');if(!interrupted||!confirm('First check '+({openrouter:'OpenRouter',gemini:'Google AI Studio',fal:'FAL',higgsfield:'Higgsfield',spicy:'SpicyAPI'}[jobProvider(interrupted)])+' activity and charges for request '+interrupted.id+'. This clears only this interrupted request without sending another generation. Continue only after checking.'))return;await api('/api/jobs/'+interrupted.id+'/resolve',{method:'POST',body:{confirm:true}});await syncHistory();});
 /* The queue is a small navigation popover, not a persistent bottom status slab. */
 document.addEventListener('pointerdown',event=>{
   const queue=$('active');

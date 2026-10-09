@@ -17,8 +17,9 @@ export function buildImageModelInput(p,urls,prompt=p.prompt){
 }
 export async function requestFlash(key,input,fetcher=fetch){
   let response;
-  try{response=await fetcher('https://openrouter.ai/api/v1/images',{method:'POST',redirect:'error',headers:{Authorization:'Bearer '+key,'Content-Type':'application/json'},body:JSON.stringify(input),signal:AbortSignal.timeout(180000)});}
+  try{response=await fetcher('https://openrouter.ai/api/v1/images',{method:'POST',redirect:'manual',headers:{Authorization:'Bearer '+key,'Content-Type':'application/json'},body:JSON.stringify(input),signal:AbortSignal.timeout(180000)});}
   catch{throw Object.assign(new Error('OpenRouter response was interrupted. Check OpenRouter activity before retrying.'),{definite:false});}
+  if(response.status>=300&&response.status<400)throw Object.assign(new Error('OpenRouter returned an unexpected redirect. It was not followed. No image request was sent to the redirected destination.'),{definite:true});
   if(!response.ok)throw Object.assign(new Error('OpenRouter rejected the image request (HTTP '+response.status+'). Check the API key, balance and model availability.'),{definite:response.status>=400&&response.status<500||response.status===502});
   let result;try{result=await response.json();}catch{throw Object.assign(new Error('OpenRouter returned unreadable image data. Check activity before retrying.'),{definite:false});}
   if(!result?.data?.[0]?.b64_json)throw Object.assign(new Error('OpenRouter returned no image. Check activity before retrying.'),{definite:false});
