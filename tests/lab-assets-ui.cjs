@@ -71,9 +71,9 @@ const outgoing=page.waitForRequest(r=>r.url().endsWith('/api/higgsfield/generate
 assert.ok(await page.locator('.composer-model-symbol img').getAttribute('src').then(x=>x.endsWith('pv-mark.png')));console.log('PASS Soul text-only Generate and request without image upload');
 await page.route('**/api/image-models/generate',route=>{const payload=route.request().postDataJSON();return route.fulfill({contentType:'application/json',body:JSON.stringify({job:{id:'new-'+payload.settings.engine,status:'queued',createdAt:Date.now(),settings:{...payload.settings,provider:payload.settings.engine==='flash'?'openrouter':'fal'}}})});});
 for(const engine of ['flash','kling']){
-  await page.click('#clear');await page.selectOption('#image-engine',engine);
+  await page.click('#image-composer-model');await page.locator('.composer-model-option[data-value="'+engine+'"]').click();
   await page.fill('#image-composer-prompt','Editorial architecture in daylight');
-  await page.selectOption('#image-count','1');
+  await page.selectOption('#image-composer-count','1');
   assert.equal(await page.locator('#resolution').inputValue(),'1k');
   assert.equal(await page.locator('#composer-character').isVisible(),false,'No redundant plus in the new models');
   const send=page.waitForRequest(r=>r.url().endsWith('/api/image-models/generate')&&r.method()==='POST');
