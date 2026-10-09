@@ -10,7 +10,7 @@ assert.equal(await page.locator('h1').textContent(),'PV LAB');
 assert.equal(await page.locator('.start-link').getAttribute('href'),'./studio.html?tool=image');
 assert.deepEqual(await page.locator('.tool-card').evaluateAll(els=>els.map(el=>el.getAttribute('href'))),['./studio.html?tool=image','./studio.html?tool=video','./studio.html?tool=upscale']);
 await page.locator('.hero-poster').evaluate(img=>img.decode());
-assert.equal(await page.locator('.hero-film').count(),3);assert.equal(await page.locator('.card-film').count(),1);assert.ok((await page.locator('.hero-poster').boundingBox()).y>=(await page.locator('.landing-header').boundingBox()).height,'Film starts below navigation');
+assert.equal(await page.locator('.hero-film').count(),1);assert.equal(await page.locator('.card-film').count(),0);assert.equal((await page.locator('.hero-poster').boundingBox()).y,0,'Film remains full bleed behind navigation');
 assert.equal(await page.locator('#hero-film').evaluate(v=>v.paused),true,'Reduced motion preserves still hero');
 console.log('LAB_HERO_DESKTOP='+Buffer.from(await page.screenshot({type:'jpeg',quality:80,fullPage:true})).toString('base64'));
 await page.setViewportSize({width:390,height:844});
