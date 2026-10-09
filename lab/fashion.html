@@ -4,14 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
-<meta name="theme-color" content="#111214">
-<title>Fashion Studio / PV Lab</title>
+<meta name="theme-color" content="#f4f3f0">
+<title>Replace Outfit | PV Lab</title>
 <link rel="icon" href="./branding/pv-mark.png" type="image/png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;450;500;600&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./fashion.css?v=20261009-editorial2">
-<script type="module" src="./fashion.js?v=20261009-editorial2"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Bodoni+Moda:ital,opsz,wght@1,6..96,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./fashion.css?v=20261009-atelier01">
+<script type="module" src="./fashion.js?v=20261009-atelier01"></script>
 </head>
 <body>
 <a class="skip" href="#content">Skip to studio</a>
@@ -28,11 +28,10 @@
 <main id="content">
  <section class="page-intro" aria-labelledby="fashion-title">
   <div class="intro-copy">
-   <p class="eyebrow">PV LAB <span aria-hidden="true">/</span> FASHION TOOLS</p>
-   <h1 id="fashion-title">The look, <em>reimagined.</em></h1>
-   <p class="intro-description">Replace an outfit with a reference garment. Keep the person, pose and photograph as your starting point.</p>
+   <p class="eyebrow">PV LAB <span aria-hidden="true">/</span> FASHION STUDIO</p>
+   <h1 id="fashion-title">Replace <em>outfit.</em></h1>
   </div>
-  <p class="intro-index" aria-hidden="true">01 <span>/</span> REPLACE OUTFIT</p>
+  <p class="intro-description">One photograph. One garment. A different look.</p>
  </section>
  <section class="sign-in-panel" id="gate" aria-label="Private access">
   <p class="eyebrow">PRIVATE WORKSPACE</p>
@@ -63,58 +62,69 @@
     </div>
     <p class="source-note">JPG, PNG, WEBP <span aria-hidden="true">·</span> 20 MB MAX EACH <span aria-hidden="true">·</span> USE IMAGES YOU HAVE RIGHTS TO EDIT</p>
    </section>
-   <section class="composer-section engine-section" aria-label="Model settings">
-    <div class="section-header"><h2>02 <span>/</span> Transformation</h2><span>ONE IMAGE PER RUN</span></div>
-    <label for="model-select" class="field-title">Model <span>CHOOSE ENGINE</span></label>
-    <select id="model-select" name="model" required>
-     <option value="fashnmax" selected>FASHN Try-On Max</option>
-     <option value="fashn16">FASHN Try-On v1.6 · fal.ai</option>
-     <option value="fluxvto">FLUX Virtual Try-On Pro · fal.ai</option>
-    </select>
-    <p id="model-description" class="model-description"></p>
-    <div class="api-status-strip" aria-label="FASHN API connection">
-     <span class="api-name">FASHN API <span class="status-point" aria-hidden="true"></span></span>
-     <span id="fashn-api-state" role="status" aria-live="polite">Sign in to check API credits</span>
-     <button type="button" id="check-fashn" disabled aria-label="Refresh FASHN API credit balance">↻</button>
+   <section class="composer-section engine-section" aria-label="Transformation settings">
+    <div class="section-header"><h2>03 <span>/</span> Direction</h2><span>ART DIRECTION &amp; MODEL</span></div>
+    <div class="engine-grid">
+     <div class="control-block model-block">
+      <label for="model-select" class="field-title">Model</label>
+      <select id="model-select" name="model" required>
+       <option value="fashnmax" selected>FASHN Try-On Max</option>
+       <option value="fashn16">FASHN Try-On v1.6 · fal.ai</option>
+       <option value="fluxvto">FLUX Virtual Try-On Pro · fal.ai</option>
+      </select>
+     </div>
+     <div class="control-block detail-block">
+      <div id="fashn16-options" class="model-fields" hidden>
+       <div><label class="field-title" for="fashn16-category">Garment</label><select id="fashn16-category"><option value="auto">Automatic</option><option value="tops">Tops</option><option value="bottoms">Bottoms</option><option value="one-pieces">One-piece</option></select></div>
+       <div><label class="field-title" for="fashn16-quality">Mode</label><select id="fashn16-quality"><option value="balanced">Balanced</option><option value="performance">Performance</option><option value="quality">Quality</option></select></div>
+      </div>
+      <div id="fashnmax-options" class="model-fields">
+       <div><label class="field-title" for="max-resolution">Resolution</label><select id="max-resolution"><option value="1k">1K</option><option value="2k">2K</option><option value="4k">4K</option></select></div>
+       <div><label class="field-title" for="max-mode">Quality</label><select id="max-mode"><option value="balanced">Balanced</option><option value="fast">Fast</option><option value="quality">Quality</option></select></div>
+      </div>
+     </div>
+     <div class="control-block direction-block">
+      <label class="field-title" for="direction">Styling direction <span id="direction-required">OPTIONAL</span></label>
+      <textarea id="direction" rows="2" maxlength="1200" placeholder="Keep the pose. Fit the garment naturally…"></textarea>
+     </div>
+     <div class="control-block action-block">
+      <p class="field-title">Create</p>
+      <div class="quote-box" id="quote-box" hidden aria-live="polite">
+       <p class="eyebrow">REVIEW CHARGE</p><strong id="quote-price"></strong>
+       <p id="quote-note"></p>
+       <button class="action-primary" id="confirm" type="button">Confirm generation <span aria-hidden="true">↗</span></button>
+      </div>
+      <button class="action-primary" id="quote" type="submit" disabled>Review price <span aria-hidden="true">↗</span></button>
+      <p id="action-hint" class="action-hint">Add a person and garment.</p>
+     </div>
     </div>
-    <div id="fashn16-options" class="model-fields" hidden>
-     <label class="field-title" for="fashn16-category">Garment type</label>
-     <select id="fashn16-category"><option value="auto">Automatic</option><option value="tops">Tops</option><option value="bottoms">Bottoms</option><option value="one-pieces">One-piece / dress</option></select>
-     <label class="field-title" for="fashn16-quality">Render mode</label>
-     <select id="fashn16-quality"><option value="balanced">Balanced</option><option value="performance">Performance</option><option value="quality">Quality</option></select>
+    <div class="engine-footer">
+     <div class="api-status-strip" aria-label="FASHN API connection">
+      <span class="api-name">FASHN API</span><span id="fashn-api-state" role="status" aria-live="polite">Sign in to check credits</span>
+      <button type="button" id="check-fashn" disabled aria-label="Refresh FASHN API credit balance">↻</button>
+     </div>
+     <p id="model-description" class="model-description"></p>
+     <p id="model-note" class="model-note"></p>
+     <p id="status" class="status" role="status" aria-live="polite"></p>
     </div>
-    <div id="fashnmax-options" class="model-fields">
-     <label class="field-title" for="max-resolution">Resolution</label>
-     <select id="max-resolution"><option value="1k">1K</option><option value="2k">2K</option><option value="4k">4K</option></select>
-     <label class="field-title" for="max-mode">Quality</label>
-     <select id="max-mode"><option value="balanced">Balanced</option><option value="fast">Fast</option><option value="quality">Quality</option></select>
-    </div>
-    <label class="field-title" for="direction">Styling direction <span id="direction-required">OPTIONAL</span></label>
-    <textarea id="direction" rows="2" maxlength="1200" placeholder="Keep the same silhouette. Open the jacket, soften the folds…"></textarea>
-    <p id="model-note" class="model-note"></p>
-    <div class="quote-box" id="quote-box" hidden aria-live="polite">
-     <p class="eyebrow">PRICE CONFIRMATION</p>
-     <strong id="quote-price"></strong>
-     <p id="quote-note"></p>
-     <button class="action-primary" id="confirm" type="button">Confirm one paid generation <span aria-hidden="true">↗</span></button>
-    </div>
-    <button class="action-primary" id="quote" type="submit" disabled>Review price <span aria-hidden="true">↗</span></button>
-    <p id="action-hint" class="action-hint">Upload a person and a garment to review the cost.</p>
-    <p id="status" class="status" role="status" aria-live="polite"></p>
    </section>
   </form>
-  <aside class="result-panel" aria-label="Generated image">
-   <div class="section-header result-header"><h2>03 <span>/</span> Output</h2><span>PRIVATE RENDER</span></div>
+  <aside class="result-panel" aria-label="Generation result">
+   <div class="section-header result-header"><h2>02 <span>/</span> Result</h2><span>OUTPUT PHOTOGRAPH</span></div>
    <div id="result-stage" class="result-stage">
-    <img class="editorial-reference" id="editorial-reference" src="../assets/optimized/liquid-metal-hero.webp" alt="Chromia fashion artwork from the Parallel Vision archive, shown as an editorial example, not a generation result" width="1400" height="788" loading="eager">
     <div id="result-placeholder" class="result-placeholder">
-     <span class="reference-label">PARALLEL VISION ARCHIVE <span aria-hidden="true">/</span> EDITORIAL REFERENCE, NOT OUTPUT</span>
-     <div><span class="reference-kicker">YOUR NEXT LOOK</span><h2>From reference<br>to reality.</h2><p>Upload a person and a garment to begin.</p></div>
+     <svg viewBox="0 0 56 56" width="56" height="56" aria-hidden="true" fill="none"><path d="M8 20V8h12M36 8h12v12M48 36v12H36M20 48H8V36" stroke="currentColor" stroke-width=".7"/><path d="M28 21v14M21 28h14" stroke="currentColor" stroke-width=".65"/></svg>
+     <strong>YOUR RESULT APPEARS HERE</strong>
+     <small>One look at a time</small>
     </div>
     <img id="result-image" alt="Completed fashion try-on image" hidden>
    </div>
-   <div class="result-actions"><span>01 / ONE FRAME AT A TIME</span><button type="button" id="download" hidden>Download original <span aria-hidden="true">↓</span></button><a href="./studio.html?tool=image">Open Image Studio <span aria-hidden="true">↗</span></a></div>
-   <section class="recent-work" aria-label="Recent fashion work">
+   <div class="result-actions">
+    <span>PRIVATE RENDER <span aria-hidden="true">/</span> NOT SHARED</span>
+    <button type="button" id="download" hidden>Download ↓</button>
+    <a href="./studio.html?tool=image">Image Studio ↗</a>
+   </div>
+   <section class="recent-work" aria-label="Private fashion archive">
     <div class="section-header"><h2>PRIVATE ARCHIVE</h2><button id="refresh-history" type="button">Refresh ↻</button></div>
     <div id="fashion-history" class="history-list"></div>
    </section>
