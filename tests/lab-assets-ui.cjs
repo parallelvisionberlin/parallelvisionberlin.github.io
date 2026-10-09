@@ -127,9 +127,10 @@ console.log('PASS centered Upscaler, compact details, mobile layout and cohesive
 await page.goto('http://127.0.0.1:8765/lab/studio.html?tool=video',{waitUntil:'domcontentloaded'});await page.waitForFunction(()=>window.__ready);
 assert.equal(await page.locator('#video-engine').inputValue(),'seedance','Video starts with Seedance');
 assert.equal(await page.locator('#duration').inputValue(),'5');assert.equal(await page.locator('#resolution').inputValue(),'720p');
-await page.setInputFiles('#image',{name:'editorial-frame.png',mimeType:'image/png',buffer:png});
+const videoFrame=fs.readFileSync('assets/optimized/liquid-metal-hero.webp');
+await page.setInputFiles('#image',{name:'editorial-frame.webp',mimeType:'image/webp',buffer:videoFrame});
 await page.waitForFunction(()=>!document.querySelector('#video-start-thumb').hidden);
-await page.setInputFiles('#last-image',{name:'ending-frame.png',mimeType:'image/png',buffer:png});
+await page.setInputFiles('#last-image',{name:'ending-frame.webp',mimeType:'image/webp',buffer:videoFrame});
 await page.waitForFunction(()=>!document.querySelector('#video-end-thumb').hidden);
 await page.fill('#prompt','A slow camera move across the garment, with natural fabric movement.');
 assert.equal(await page.locator('#generate').textContent(),'Generate');assert.equal(await page.locator('#generate').isEnabled(),true);

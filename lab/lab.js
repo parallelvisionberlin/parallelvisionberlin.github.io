@@ -799,7 +799,7 @@ function resetPreview(){
     (sourceUrl?{url:sourceUrl,label:tool==='upscale'?'Upscale input':'Start frame'}:null):
     (references[0]?{url:references[0].url,label:'Reference 1 / input'}:null);
   $('preview').alt='Uploaded source image, not a generated result';
-  if(item){$('preview').src=item.url;$('preview').hidden=false;$('empty').hidden=true;$('preview-label').textContent=item.label+' / not a result';}
+  if(item){$('preview').src=item.url;$('preview').hidden=false;$('empty').hidden=true;$('preview-label').textContent=tool==='video'?item.label:item.label+' / not a result';}
   else{
     $('preview').removeAttribute('src');$('preview').hidden=true;$('empty').hidden=false;
     $('preview-label').textContent=tool==='image'?'Result / Image':'Source / preview';
