@@ -28,10 +28,10 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 .back-studio{margin-left:auto;white-space:nowrap;font-size:11px;display:inline-flex;align-items:center;gap:16px;color:#383835}
 .back-studio span{font-size:14px}
 #content{width:100%;max-width:1860px;margin:0 auto;padding:0 clamp(20px,3.2vw,60px)}
-.page-intro{display:flex;align-items:end;justify-content:space-between;gap:20px;padding:21px 0 22px}
+.page-intro{display:flex;align-items:end;justify-content:space-between;gap:20px;padding:10px 0 12px}
 .eyebrow{font:600 9px/1.3 var(--font);letter-spacing:.14em;color:#777671;margin:0;text-transform:uppercase}
 .eyebrow span{color:#aaa9a5;margin:0 5px}
-.page-intro h1{font:400 clamp(38px,3.7vw,63px)/1.07 var(--font);letter-spacing:-.07em;margin:5px 0 0}
+.page-intro h1{font:400 clamp(38px,3.3vw,56px)/1.07 var(--font);letter-spacing:-.07em;margin:5px 0 0}
 .page-intro h1 em{font:italic 400 1.12em/1 var(--display);letter-spacing:-.035em}
 .intro-description{margin:0 0 5px;color:#777671;font-size:12px;line-height:1.6;text-align:right}
 .fashion-workspace{display:grid;grid-template-columns:minmax(0,1.02fr) minmax(0,1fr);grid-template-rows:auto auto;column-gap:clamp(18px,2.2vw,42px);row-gap:19px;align-items:start;padding-bottom:40px}
