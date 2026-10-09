@@ -65,13 +65,29 @@ try{
     return{
       bodyWidth:document.documentElement.scrollWidth,viewportWidth:innerWidth,
       background:getComputedStyle(document.body).backgroundColor,
+      foreground:getComputedStyle(document.body).color,
+      headerBackground:getComputedStyle(document.querySelector('.site-header')).backgroundColor,
+      photoBackground:getComputedStyle(document.querySelector('#person-slot')).backgroundColor,
+      resultBackground:getComputedStyle(document.querySelector('#result-stage')).backgroundColor,
+      dropdownBackground:getComputedStyle(document.querySelector('#model-select')).backgroundColor,
+      markFilter:getComputedStyle(document.querySelector('.wordmark img')).filter,
+      colorScheme:getComputedStyle(document.documentElement).colorScheme,
+      themeColor:document.querySelector('meta[name="theme-color"]').content,
       quote:rect('#quote'),preview:rect('#result-stage'),person:rect('#person-slot'),
       garment:rect('#garment-slot'),controls:rect('.engine-section'),title:rect('#fashion-title')
     };
   });
   assert.ok(desktop.bodyWidth<=desktop.viewportWidth,'Desktop Fashion has no horizontal overflow.');
   assert.ok(desktop.quote.top<900,'Price action starts within the desktop viewport.');
-  assert.equal(desktop.background,'rgb(244, 243, 240)','Work area uses warm ivory, not a dark card dashboard.');
+  assert.equal(desktop.background,'rgb(16, 17, 20)','Fashion shares the Video Studio graphite background.');
+  assert.equal(desktop.foreground,'rgb(241, 242, 245)','Fashion retains readable near-white text.');
+  assert.equal(desktop.headerBackground,'rgba(18, 19, 21, 0.96)','Fashion header matches the Video Studio surface.');
+  assert.equal(desktop.colorScheme,'dark','Dark native inputs and scrollbar match the Studio.');
+  assert.equal(desktop.themeColor,'#101114','Browser chrome matches PV Lab Video.');
+  assert.equal(desktop.markFilter,'none','PV Lab logo uses the same source colors as Video.');
+  assert.equal(desktop.photoBackground,'rgb(25, 26, 27)','Upload image wells remain graphite.');
+  assert.equal(desktop.resultBackground,'rgb(25, 26, 27)','Result well remains graphite.');
+  assert.equal(desktop.dropdownBackground,'rgb(26, 28, 33)','No white form fields remain.');
   assert.ok(desktop.title.top<125,'Fashion header does not push the work area down.');
   assert.ok(desktop.preview.width>500,'Result window is large enough for examining details.');
   assert.ok(desktop.person.width>=250&&desktop.garment.width>=250,'Both drop zones are large.');
@@ -107,7 +123,7 @@ try{
   assert.equal(await page.locator('#result-stage').isVisible(),true);
   await page.screenshot({path:'test-results/pv-fashion-editorial-mobile.png',fullPage:true});
   assert.deepEqual(errors,[]);
-  console.log('PASS warm-white Fashion photo-first desktop/mobile, large upload wells, right result, FASHN Max and no-cost price review.');
+  console.log('PASS graphite Fashion matches Video palette and header, keeps photo-first desktop/mobile geometry, FASHN Max and no-cost price review.');
 }finally{
   await browser.close();await new Promise(ok=>server.close(ok));
 }
