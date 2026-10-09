@@ -10,8 +10,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./fashion.css?v=20261009-1">
-<script type="module" src="./fashion.js?v=20261009-1"></script>
+<link rel="stylesheet" href="./fashion.css?v=20261009-balance1">
+<script type="module" src="./fashion.js?v=20261009-balance1"></script>
 </head>
 <body>
 <a class="skip" href="#content">Skip to tools</a>
@@ -52,6 +52,11 @@
       <option value="fluxvto">FLUX Virtual Try-On Pro / fal.ai</option>
     </select>
     <p id="model-description" class="model-description"></p>
+    <div class="api-status-strip" aria-label="FASHN API connection">
+      <span class="api-name">FASHN API</span>
+      <span id="fashn-api-state" role="status" aria-live="polite">Sign in to check API credits</span>
+      <button type="button" id="check-fashn" disabled>Check balance ↻</button>
+    </div>
     <div id="fashn16-options" class="model-fields">
       <label class="field-title" for="fashn16-category">Clothing category</label>
       <select id="fashn16-category"><option value="auto">Automatic</option><option value="tops">Tops</option><option value="bottoms">Bottoms</option><option value="one-pieces">One-piece / dress</option></select>
