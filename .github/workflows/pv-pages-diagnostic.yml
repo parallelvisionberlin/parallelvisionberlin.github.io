@@ -21,7 +21,7 @@ jobs:
           echo "LATEST_BUILD"
           gh api "repos/${GITHUB_REPOSITORY}/pages/builds/latest" --jq '{status,created_at,updated_at,commit,errors}' || true
           echo "RECENT_BUILDS"
-          gh api "repos/${GITHUB_REPOSITORY}/pages/builds?per_page=6" --jq '.[] | [.created_at,.status,.commit] | @tsv' || true
+          gh api "repos/${GITHUB_REPOSITORY}/pages/builds?per_page=8" --jq '.[] | {created_at,status,commit,error,errors}' || true
           echo "CURRENT_MAIN"
           gh api "repos/${GITHUB_REPOSITORY}/commits/main" --jq '.sha'
           echo "LIVE"
