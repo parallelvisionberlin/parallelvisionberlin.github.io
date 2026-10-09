@@ -1,0 +1,27 @@
+name: PV Lab Fashion browser checks
+on:
+  pull_request:
+    paths:
+      - 'lab/fashion.*'
+      - 'tests/lab-fashion-ui.mjs'
+      - '.github/workflows/pv-lab-fashion-browser.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  fashion-browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install mock-only browser tools
+        run: |
+          npm install --prefix /tmp/pv-fashion-browser --no-save playwright@1.57.0
+          node /tmp/pv-fashion-browser/node_modules/playwright/cli.js install --with-deps chromium
+      - name: Verify Fashion screen and read-only FASHN credit check
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-fashion-browser/node_modules/playwright/index.mjs
+        run: node tests/lab-fashion-ui.mjs
