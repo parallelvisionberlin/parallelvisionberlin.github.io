@@ -2,15 +2,15 @@
 Owner-only fashion tools. This feature does not add customer accounts, a public checkout or any new auto-billed subscription. No generations are triggered by deployment or visiting the page.
 
 ## What's integrated
-- FASHN Try-On v1.6 via **fal.ai**, endpoint \`fal-ai/fashn/tryon/v1.6\`. Default balanced. One output only. Published fal.ai price on 2026-10-09: **$0.075 / generation**.
-- FLUX Virtual Try-On Pro via **fal.ai**, endpoint \`fal-ai/flux-pro/v1/vto\`. Requires a styling prompt. Provider pricing from **$0.0375** for the first input megapixel, then $0.005 per extra input megapixel and $0.005 per output megapixel. The Lab conservatively reserves an estimated USD $0.075, but provider billing is authoritative. The model input is limited to 2 MP for the person and 1 MP for the garment.
-- FASHN Try-On Max via the **direct FASHN API**, \`POST https://api.fashn.ai/v1/run\` with \`model_name=tryon-max\` and polling \`GET /v1/status/{id}\`. Direct API credits are separate from fal.ai and from the FASHN consumer app.
-- The primary studio remains unchanged except for the Fashion navigation link. Open \`/lab/fashion.html\` after owner sign-in.
+- FASHN Try-On v1.6 via **fal.ai**, endpoint `fal-ai/fashn/tryon/v1.6`. Default balanced. One output only. Published fal.ai price on 2026-10-09: **$0.075 / generation**.
+- FLUX Virtual Try-On Pro via **fal.ai**, endpoint `fal-ai/flux-pro/v1/vto`. Requires a styling prompt. Provider pricing from **$0.0375** for the first input megapixel, then $0.005 per extra input megapixel and $0.005 per output megapixel. The Lab conservatively reserves an estimated USD $0.075, but provider billing is authoritative. The model input is limited to 2 MP for the person and 1 MP for the garment.
+- FASHN Try-On Max via the **direct FASHN API**, `POST https://api.fashn.ai/v1/run` with `model_name=tryon-max` and polling `GET /v1/status/{id}`. Direct API credits are separate from fal.ai and from the FASHN consumer app.
+- The primary studio remains unchanged except for the Fashion navigation link. Open `/lab/fashion.html` after owner sign-in.
 
 ## Where to obtain credentials
-**fal.ai:** https://fal.ai/dashboard/keys . Sign in and create an API key if your existing \`FAL_KEY\` Cloudflare Worker secret is not already configured. FASHN v1.6 and FLUX VTO share this **same** key and your fal.ai API account billing. Never paste a key into chat or commit it to GitHub.
+**fal.ai:** https://fal.ai/dashboard/keys . Sign in and create an API key if your existing `FAL_KEY` Cloudflare Worker secret is not already configured. FASHN v1.6 and FLUX VTO share this **same** key and your fal.ai API account billing. Never paste a key into chat or commit it to GitHub.
 
-**Direct FASHN:** https://app.fashn.ai . Follow the official API setup instructions at https://docs.fashn.ai/getting-started/api-setup . Sign up, purchase **Developer API** credits from Billing > FASHN API (minimum on-demand purchase reported at **$7.50 / 100 credits**), then open Developer API and choose **Create new API key**. Add the new key to the **parallel-vision-lab** Cloudflare Worker as a secret named exactly \`FASHN_API_KEY\`, not as a plain text variable. The key is shown once. Direct Max remains disabled in the Fashion page until the secret is configured and the Worker deployed. Do not buy FASHN API credits until you're ready to test.
+**Direct FASHN:** https://app.fashn.ai . Follow the official API setup instructions at https://docs.fashn.ai/getting-started/api-setup . Sign up, purchase **Developer API** credits from Billing > FASHN API (minimum on-demand purchase reported at **$7.50 / 100 credits**), then open Developer API and choose **Create new API key**. Add the new key to the **parallel-vision-lab** Cloudflare Worker as a secret named exactly `FASHN_API_KEY`, not as a plain text variable. The key is shown once. Direct Max remains disabled in the Fashion page until the secret is configured and the Worker deployed. Do not buy FASHN API credits until you're ready to test.
 
 **Cloudflare:** https://dash.cloudflare.com/ . Select the account, Workers & Pages > parallel-vision-lab > Settings > Variables and Secrets. Add a secret, save and deploy the Worker with its existing D1, R2, owner DB bindings and LAB_SECRET preserved. Do not create a new Nina database. Existing GitHub Actions deploy workflow on main detects changes under lab-worker; it does not automatically create new secrets.
 
@@ -40,7 +40,7 @@ Pricing and provider billing can change. The in-app estimate is based on publish
 - No claim that replacing garments preserves every logo, fabric, pose or identity detail accurately.
 
 ## Verification
-New pure/mocked tests: \`node --test tests/lab-fashion-tools.test.mjs\`. Standard source checks: \`find lab lab-worker -type f \\( -name '*.js' -o -name '*.mjs' \\) -exec node --check {} \\;\`. CI on PR runs these automatically, without sending paid jobs. Test one real licensed photograph pair per model only after budget approval and API credit confirmation.
+New pure/mocked tests: `node --test tests/lab-fashion-tools.test.mjs`. Standard source checks: `find lab lab-worker -type f \\( -name '*.js' -o -name '*.mjs' \\) -exec node --check {} \\;`. CI on PR runs these automatically, without sending paid jobs. Test one real licensed photograph pair per model only after budget approval and API credit confirmation.
 
 Official sources:
 - https://fal.ai/models/fal-ai/fashn/tryon/v1.6/api
