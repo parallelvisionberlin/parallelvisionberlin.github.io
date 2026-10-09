@@ -1833,11 +1833,11 @@ function renderCards(jobs,{upsert=false}={}){
 }
 let historyLoadId=0;
 async function loadHistory(append=false,incremental=false){
+  if(!append&&!incremental){historySelected.clear();next=null;videoJobCache.clear();imageDetailCache.clear();historyRevision++;observer.disconnect();cardUrls.forEach(release);cardUrls.clear();$('history').replaceChildren();updateHistorySelectionUi();}
   const rev=historyRevision,loadId=++historyLoadId,q=assetLibrary?.query()||new URLSearchParams();
   if(append&&next){q.set('before',next.before);q.set('afterId',next.afterId);}
   const data=await api('/api/jobs?'+q);
   if(!owner||rev!==historyRevision||loadId!==historyLoadId)return;
-  if(!append&&!incremental){historySelected.clear();videoJobCache.clear();imageDetailCache.clear();historyRevision++;observer.disconnect();cardUrls.forEach(release);cardUrls.clear();$('history').replaceChildren();}
   renderCards(data.jobs,{upsert:incremental});if(!incremental||!next)next=data.next;$('more').hidden=!next;
   $('emptyarchive').hidden=$('history').children.length>0;$('emptyarchive').textContent=assetLibrary?.active()?'No items here yet. Add work using Select → Add to folder, or mark a heart for Favorites.':'No saved work yet.';
   if(data.concurrency)config.concurrency=data.concurrency;setActiveJobs(data.activeJobs||(data.active?[data.active]:[]));syncImageGalleryEmpty();if(tool==='video'&&!assetLibrary?.active())restoreLatestVideoSelection();
@@ -1864,7 +1864,7 @@ $('history-delete-selected').onclick=()=>action(async()=>{
   const ids=[...historySelected];if(!ids.length)return;
   if(!confirm('Delete '+ids.length+' selected History item'+(ids.length===1?'':'s')+' and their unshared files? This cannot be undone.'))return;
   const result=await api('/api/jobs/bulk-delete',{method:'POST',body:{ids}});
-  setHistorySelectMode(false);await loadHistory();notify((result.deleted||ids.length)+' History item'+((result.deleted||ids.length)===1?'':'s')+' deleted. Spending history is unchanged.');
+  setHistorySelectMode(false);await loadHistory();if(assetLibrary?.active())await assetLibrary.load();notify((result.deleted||ids.length)+' History item'+((result.deleted||ids.length)===1?'':'s')+' deleted. Spending history is unchanged.');
 });
 function finishLabBoot(){window.__pvLabFinishBoot?.();}
 function lock(){assetLibrary?.reset();hf.reset();epoch++;for(const p of composerPortraits.values())p.then(url=>{if(url)release(url);});composerPortraits.clear();composerLibraryKey='';composerPortraitKey='';closeComposerLibrary();historySelected.clear();historySelectMode=false;clearSoulProPackPreview();soulProIdentity={configured:false,count:0,refs:[]};workingCopies.clear();autoPreview=null;downloadUrls.forEach(release);downloadUrls.clear();owner=false;userId='';soul.reset();historyRevision++;clearTimeout(timer);timer=null;activeJob=null;activeJobs=[];polling=false;requestControllers.forEach(c=>c.abort());requestControllers.clear();observer.disconnect();cardUrls.forEach(release);cardUrls.clear();clearMedia();$('prompt').value='';$('history').replaceChildren();$('app').hidden=true;$('gate').hidden=false;$('connection').hidden=true;$('logout').hidden=true;$('api-key').value='';for(const d of document.querySelectorAll('dialog[open]'))d.close();currentQuote=null;config={};packs=[];$('pack-select').replaceChildren(new Option('Choose a saved pack',''));closeImageModelMenu();toggleImageSettings(false);$('app').classList.remove('image-studio-active');imageStudio.hidden=true;imageDetailCache.clear();releaseImageDetailSource();videoJobCache.clear();selectedVideoJob=null;syncVideoStudioMode();finishLabBoot();}
