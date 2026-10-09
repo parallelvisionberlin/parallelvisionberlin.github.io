@@ -4,92 +4,123 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
-<meta name="theme-color" content="#101114">
-<title>Fashion Tools / PV LAB</title>
+<meta name="theme-color" content="#111214">
+<title>Fashion Studio / PV Lab</title>
 <link rel="icon" href="./branding/pv-mark.png" type="image/png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./fashion.css?v=20261009-balance1">
-<script type="module" src="./fashion.js?v=20261009-balance1"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;450;500;600&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./fashion.css?v=20261009-editorial2">
+<script type="module" src="./fashion.js?v=20261009-editorial2"></script>
 </head>
 <body>
-<a class="skip" href="#content">Skip to tools</a>
+<a class="skip" href="#content">Skip to studio</a>
 <header class="site-header">
- <a class="wordmark" href="./" aria-label="PV Lab home"><img src="./branding/pv-mark.png" alt="" width="28" height="28"><span>PV LAB</span></a>
- <nav aria-label="Studio navigation"><a href="./studio.html?tool=image">Image</a><a href="./studio.html?tool=video">Video</a><a href="./studio.html?tool=upscale">Upscaler</a><a class="selected" href="./fashion.html" aria-current="page">Fashion</a></nav>
- <a class="back-studio" href="./studio.html">Back to studio <span aria-hidden="true">↗</span></a>
+ <a class="wordmark" href="./" aria-label="PV Lab home"><img src="./branding/pv-mark.png" alt="" width="29" height="29"><span>PV LAB</span></a>
+ <nav aria-label="Studio navigation">
+  <a href="./studio.html?tool=image">Image</a>
+  <a href="./studio.html?tool=video">Video</a>
+  <a href="./studio.html?tool=upscale">Upscaler</a>
+  <a href="./fashion.html" class="selected" aria-current="page">Fashion</a>
+ </nav>
+ <a class="back-studio" href="./studio.html?tool=image">Enter studio <span aria-hidden="true">↗</span></a>
 </header>
 <main id="content">
- <section class="page-intro">
-  <span class="kicker">PV LAB / EDITORIAL TOOLS</span>
-  <h1>Replace the outfit.<br><em>Keep the vision.</em></h1>
-  <p>Photographic virtual try-on for designers, stylists and image-makers. Your original photographs stay in your private PV Lab archive.</p>
+ <section class="page-intro" aria-labelledby="fashion-title">
+  <div class="intro-copy">
+   <p class="eyebrow">PV LAB <span aria-hidden="true">/</span> FASHION TOOLS</p>
+   <h1 id="fashion-title">The look, <em>reimagined.</em></h1>
+   <p class="intro-description">Replace an outfit with a reference garment. Keep the person, pose and photograph as your starting point.</p>
+  </div>
+  <p class="intro-index" aria-hidden="true">01 <span>/</span> REPLACE OUTFIT</p>
  </section>
  <section class="sign-in-panel" id="gate" aria-label="Private access">
-  <p class="kicker">OWNER WORKSPACE</p>
-  <h2>Sign in to your private studio</h2>
+  <p class="eyebrow">PRIVATE WORKSPACE</p>
+  <h2>Sign in to your studio.</h2>
   <p id="auth-status" role="status">Connecting to your account…</p>
-  <button id="signin" type="button" disabled>Sign in</button>
+  <button id="signin" type="button" disabled>Sign in <span aria-hidden="true">↗</span></button>
   <button id="reload" type="button" hidden>Reload</button>
  </section>
- <section class="fashion-workspace" id="workspace" hidden>
+ <section class="fashion-workspace" id="workspace" hidden aria-label="Fashion outfit replacement">
   <form id="fashion-form" autocomplete="off" novalidate>
-   <section class="panel panel-inputs" aria-label="Input photographs">
-    <div class="panel-header"><span class="kicker">01 / SOURCE MATERIAL</span><span class="micro">Two photographs</span></div>
+   <section class="composer-section source-section" aria-label="Input photographs">
+    <div class="section-header"><h2>01 <span>/</span> Source material</h2><span>2 PHOTOGRAPHS</span></div>
     <div class="image-pair">
-      <label class="image-slot" id="person-slot"><input id="person-file" type="file" accept="image/jpeg,image/png,image/webp" required><img id="person-preview" alt="Person photograph preview" hidden><span class="slot-caption">PERSON IMAGE</span><span class="slot-invite" id="person-hint">+<small>Upload person</small></span></label>
-      <label class="image-slot" id="garment-slot"><input id="garment-file" type="file" accept="image/jpeg,image/png,image/webp" required><img id="garment-preview" alt="Garment reference preview" hidden><span class="slot-caption">GARMENT IMAGE</span><span class="slot-invite" id="garment-hint">+<small>Upload outfit</small></span></label>
+     <label class="image-slot" id="person-slot">
+      <input id="person-file" type="file" accept="image/jpeg,image/png,image/webp" aria-label="Upload the person photograph" required>
+      <span class="slot-number" aria-hidden="true">01</span>
+      <img id="person-preview" alt="Person photograph preview" hidden>
+      <span class="slot-invite" id="person-hint"><span class="upload-glyph" aria-hidden="true">↗</span><small>Drop or browse</small></span>
+      <span class="slot-caption">PERSON <span aria-hidden="true">↗</span></span>
+     </label>
+     <label class="image-slot" id="garment-slot">
+      <input id="garment-file" type="file" accept="image/jpeg,image/png,image/webp" aria-label="Upload the garment reference photograph" required>
+      <span class="slot-number" aria-hidden="true">02</span>
+      <img id="garment-preview" alt="Garment reference preview" hidden>
+      <span class="slot-invite" id="garment-hint"><span class="upload-glyph" aria-hidden="true">↗</span><small>Drop or browse</small></span>
+      <span class="slot-caption">GARMENT <span aria-hidden="true">↗</span></span>
+     </label>
     </div>
-    <p class="tip">Use images you own or have permission to edit. A clear garment photograph and visible body usually produce better results. Virtual try-on is generative, not an exact product photograph.</p>
+    <p class="source-note">JPG, PNG, WEBP <span aria-hidden="true">·</span> 20 MB MAX EACH <span aria-hidden="true">·</span> USE IMAGES YOU HAVE RIGHTS TO EDIT</p>
    </section>
-   <section class="panel panel-options" aria-label="Generation settings">
-    <div class="panel-header"><span class="kicker">02 / MODEL</span><span class="micro">One image per request</span></div>
-    <label for="model-select" class="field-title">Virtual try-on model</label>
+   <section class="composer-section engine-section" aria-label="Model settings">
+    <div class="section-header"><h2>02 <span>/</span> Transformation</h2><span>ONE IMAGE PER RUN</span></div>
+    <label for="model-select" class="field-title">Model <span>CHOOSE ENGINE</span></label>
     <select id="model-select" name="model" required>
-      <option value="fashn16">FASHN Try-On v1.6 / fal.ai</option>
-      <option value="fashnmax">FASHN Try-On Max / FASHN API</option>
-      <option value="fluxvto">FLUX Virtual Try-On Pro / fal.ai</option>
+     <option value="fashnmax" selected>FASHN Try-On Max</option>
+     <option value="fashn16">FASHN Try-On v1.6 · fal.ai</option>
+     <option value="fluxvto">FLUX Virtual Try-On Pro · fal.ai</option>
     </select>
     <p id="model-description" class="model-description"></p>
     <div class="api-status-strip" aria-label="FASHN API connection">
-      <span class="api-name">FASHN API</span>
-      <span id="fashn-api-state" role="status" aria-live="polite">Sign in to check API credits</span>
-      <button type="button" id="check-fashn" disabled>Check balance ↻</button>
+     <span class="api-name">FASHN API <span class="status-point" aria-hidden="true"></span></span>
+     <span id="fashn-api-state" role="status" aria-live="polite">Sign in to check API credits</span>
+     <button type="button" id="check-fashn" disabled aria-label="Refresh FASHN API credit balance">↻</button>
     </div>
-    <div id="fashn16-options" class="model-fields">
-      <label class="field-title" for="fashn16-category">Clothing category</label>
-      <select id="fashn16-category"><option value="auto">Automatic</option><option value="tops">Tops</option><option value="bottoms">Bottoms</option><option value="one-pieces">One-piece / dress</option></select>
-      <label class="field-title" for="fashn16-quality">Render mode</label>
-      <select id="fashn16-quality"><option value="balanced">Balanced</option><option value="performance">Performance</option><option value="quality">Quality</option></select>
+    <div id="fashn16-options" class="model-fields" hidden>
+     <label class="field-title" for="fashn16-category">Garment type</label>
+     <select id="fashn16-category"><option value="auto">Automatic</option><option value="tops">Tops</option><option value="bottoms">Bottoms</option><option value="one-pieces">One-piece / dress</option></select>
+     <label class="field-title" for="fashn16-quality">Render mode</label>
+     <select id="fashn16-quality"><option value="balanced">Balanced</option><option value="performance">Performance</option><option value="quality">Quality</option></select>
     </div>
-    <div id="fashnmax-options" class="model-fields" hidden>
-      <label class="field-title" for="max-resolution">Resolution</label>
-      <select id="max-resolution"><option value="1k">1K</option><option value="2k">2K</option><option value="4k">4K</option></select>
-      <label class="field-title" for="max-mode">Generation quality</label>
-      <select id="max-mode"><option value="balanced">Balanced</option><option value="fast">Fast</option><option value="quality">Quality</option></select>
+    <div id="fashnmax-options" class="model-fields">
+     <label class="field-title" for="max-resolution">Resolution</label>
+     <select id="max-resolution"><option value="1k">1K</option><option value="2k">2K</option><option value="4k">4K</option></select>
+     <label class="field-title" for="max-mode">Quality</label>
+     <select id="max-mode"><option value="balanced">Balanced</option><option value="fast">Fast</option><option value="quality">Quality</option></select>
     </div>
-    <label class="field-title" for="direction">Styling direction <span class="micro" id="direction-required">Optional</span></label>
-    <textarea id="direction" rows="3" maxlength="1200" placeholder="How should the garment be worn? Keep the same person and composition."></textarea>
-    <p class="tip" id="model-note"></p>
+    <label class="field-title" for="direction">Styling direction <span id="direction-required">OPTIONAL</span></label>
+    <textarea id="direction" rows="2" maxlength="1200" placeholder="Keep the same silhouette. Open the jacket, soften the folds…"></textarea>
+    <p id="model-note" class="model-note"></p>
     <div class="quote-box" id="quote-box" hidden aria-live="polite">
-      <p class="kicker">REVIEW BEFORE GENERATION</p>
-      <strong id="quote-price"></strong>
-      <p id="quote-note"></p>
-      <button class="action-primary" id="confirm" type="button">Confirm one paid generation</button>
+     <p class="eyebrow">PRICE CONFIRMATION</p>
+     <strong id="quote-price"></strong>
+     <p id="quote-note"></p>
+     <button class="action-primary" id="confirm" type="button">Confirm one paid generation <span aria-hidden="true">↗</span></button>
     </div>
-    <button class="action-primary" id="quote" type="submit" disabled>Review price</button>
+    <button class="action-primary" id="quote" type="submit" disabled>Review price <span aria-hidden="true">↗</span></button>
+    <p id="action-hint" class="action-hint">Upload a person and a garment to review the cost.</p>
     <p id="status" class="status" role="status" aria-live="polite"></p>
    </section>
   </form>
-  <aside class="panel result-panel" aria-label="Generated image">
-    <div class="panel-header"><span class="kicker">03 / OUTPUT</span><span class="micro">Private image</span></div>
-    <div id="result-stage" class="result-stage"><p id="result-placeholder">Your transformed image will appear here.</p><img id="result-image" alt="Completed fashion try-on image" hidden></div>
-    <div class="result-actions"><button type="button" id="download" hidden>Download image ↓</button><a href="./studio.html?tool=image">Return to image studio ↗</a></div>
-    <section class="recent-work"><div class="panel-header"><span class="kicker">RECENT FASHION WORK</span><button id="refresh-history" type="button">Refresh ↻</button></div><div id="fashion-history" class="history-list"></div></section>
+  <aside class="result-panel" aria-label="Generated image">
+   <div class="section-header result-header"><h2>03 <span>/</span> Output</h2><span>PRIVATE RENDER</span></div>
+   <div id="result-stage" class="result-stage">
+    <img class="editorial-reference" id="editorial-reference" src="../assets/optimized/liquid-metal-hero.webp" alt="Chromia fashion artwork from the Parallel Vision archive, shown as an editorial example, not a generation result" width="1400" height="788" loading="eager">
+    <div id="result-placeholder" class="result-placeholder">
+     <span class="reference-label">PARALLEL VISION ARCHIVE <span aria-hidden="true">/</span> EDITORIAL REFERENCE, NOT OUTPUT</span>
+     <div><span class="reference-kicker">YOUR NEXT LOOK</span><h2>From reference<br>to reality.</h2><p>Upload a person and a garment to begin.</p></div>
+    </div>
+    <img id="result-image" alt="Completed fashion try-on image" hidden>
+   </div>
+   <div class="result-actions"><span>01 / ONE FRAME AT A TIME</span><button type="button" id="download" hidden>Download original <span aria-hidden="true">↓</span></button><a href="./studio.html?tool=image">Open Image Studio <span aria-hidden="true">↗</span></a></div>
+   <section class="recent-work" aria-label="Recent fashion work">
+    <div class="section-header"><h2>PRIVATE ARCHIVE</h2><button id="refresh-history" type="button">Refresh ↻</button></div>
+    <div id="fashion-history" class="history-list"></div>
+   </section>
   </aside>
  </section>
- <footer><span>PARALLEL VISION LAB / FASHION TOOLS</span><span>Artistic direction before automation.</span></footer>
+ <footer><span>PV LAB <span aria-hidden="true">/</span> FASHION</span><span>ART DIRECTION <span aria-hidden="true">/</span> PARALLEL VISION</span></footer>
 </main>
 </body>
 </html>

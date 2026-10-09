@@ -3,9 +3,9 @@ const API='https://parallel-vision-lab.parallelvision.workers.dev';
 const $=id=>document.getElementById(id);
 const money=n=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:4}).format(n);
 const modes={
-  fashn16:{description:'Stable garment transfer, designed to preserve patterns and clothing details.',note:'Published fal.ai estimate: $0.075 per image. The model decides the final garment fit.',provider:'fal'},
-  fashnmax:{description:'Premium product fidelity, including accessories and detailed fashion looks. Direct FASHN API.',note:'Requires FASHN API credits and a FASHN_API_KEY Worker secret. One successful 1K Balanced output costs two FASHN credits.',provider:'fashn'},
-  fluxvto:{description:'Prompt-directed styling: layering, rolled sleeves and the way garments are worn.',note:'fal.ai charges by input and output megapixels. This workspace requires a person image ≤2 MP and a garment image ≤1 MP.',provider:'fal'}
+  fashn16:{description:'An alternative for straightforward garment transfer, through fal.ai.',note:'fal.ai charges separately. Published estimate: $0.075 per image.',provider:'fal'},
+  fashnmax:{description:'High-detail garment transfer using your FASHN API credits.',note:'Balanced 1K estimates 2 FASHN credits ($0.15). Review the quote before generating.',provider:'fashn'},
+  fluxvto:{description:'Prompt-directed styling for layering, fit and the way clothing is worn.',note:'fal.ai charges by megapixel. Person image maximum 2 MP; garment maximum 1 MP.',provider:'fal'}
 };
 let clerk=null,authenticated=false,sessionId='',models=[],busy=false,quote=null,pollTimeout=null,activeJobId='',resultUrl='',signingIn=false;
 let fileKeys=new Map(),previews=new Map(),revision=0;
@@ -37,10 +37,18 @@ function update(){
   $('fashnmax-options').hidden=selected!=='fashnmax';
   $('model-description').textContent=d.description;
   $('model-note').textContent=d.note+(providerModel&&!providerModel.available?' This model is not connected yet.':'');
-  $('direction-required').textContent=selected==='fluxvto'?'Required':'Optional';
-  $('direction').placeholder=selected==='fluxvto'?'Describe how the garment should be worn (required).':'Optional: roll up sleeves, open jacket, or keep original styling.';
+  $('direction-required').textContent=selected==='fluxvto'?'REQUIRED':'OPTIONAL';
+  $('direction').placeholder=selected==='fluxvto'?'Describe how the garment should be worn…':'Keep the silhouette. Open the jacket, soften the folds…';
   $('quote').disabled=!authenticated||busy||!$('person-file').files.length||!$('garment-file').files.length||!providerModel?.available||(selected==='fluxvto'&&!$('direction').value.trim());
-  $('quote').textContent=busy?'Working…':'Review price';
+  const title=busy?'Preparing…':'Review price';
+  if($('quote').dataset.caption!==title){
+    $('quote').dataset.caption=title;
+    const arrow=document.createElement('span');arrow.textContent='↗';arrow.setAttribute('aria-hidden','true');
+    $('quote').replaceChildren(document.createTextNode(title+' '),arrow);
+  }
+  const person=!!$('person-file').files.length,garment=!!$('garment-file').files.length;
+  $('action-hint').textContent=!person||!garment?'Add a person and garment to review your cost.':!providerModel?.available?'This model is not connected. Select another available engine.':selected==='fluxvto'&&!$('direction').value.trim()?'Add a styling direction for FLUX.':'Review the estimate first. Generating always needs confirmation.';
+  $('action-hint').hidden=!!quote;
   $('confirm').disabled=busy||!quote||quote.expiresAt<=Date.now();
 }
 function choosePhoto(id,slot,img,hint){
@@ -54,8 +62,16 @@ function choosePhoto(id,slot,img,hint){
     const src=URL.createObjectURL(file);previews.set(id,src);preview.src=src;preview.hidden=false;invitation.hidden=true;
     fileKeys.delete(id);status('Photographs selected. Review the model and estimated cost.');change();
   });
-  for(const event of ['dragenter','dragover'])container.addEventListener(event,()=>container.classList.add('drag-over'));
-  for(const event of ['dragleave','drop'])container.addEventListener(event,()=>container.classList.remove('drag-over'));
+  for(const event of ['dragenter','dragover'])container.addEventListener(event,e=>{e.preventDefault();container.classList.add('drag-over');});
+  container.addEventListener('dragleave',e=>{if(!container.contains(e.relatedTarget))container.classList.remove('drag-over');});
+  container.addEventListener('drop',e=>{
+    e.preventDefault();container.classList.remove('drag-over');
+    const file=e.dataTransfer?.files?.[0];if(!file)return;
+    try{
+      const transfer=new DataTransfer();transfer.items.add(file);input.files=transfer.files;
+      input.dispatchEvent(new Event('change',{bubbles:true}));
+    }catch{status('Could not load the dropped photograph. Click the tile to browse instead.',true);}
+  });
 }
 choosePhoto('person-file','person-slot','person-preview','person-hint');
 choosePhoto('garment-file','garment-slot','garment-preview','garment-hint');
@@ -84,9 +100,11 @@ $('fashion-form').addEventListener('submit',async event=>{
       category:$('fashn16-category').value,quality:$('fashn16-quality').value};
     const response=await api('/api/fashion/quote',{method:'POST',body:settings});
     if(revision!==editVersion)throw new Error('Settings changed. Request a new quote.');
-    quote=response;$('quote-price').textContent='Estimated provider cost: '+money(response.estimatedUsd);
+    quote=response;
+    const credits=current()==='fashnmax'?Math.round(response.estimatedUsd/.075):null;
+    $('quote-price').textContent=(credits===null?'Estimated provider cost: ':'Estimated: '+credits+' credits · ')+money(response.estimatedUsd);
     $('quote-note').textContent=response.notice+' This price check does not generate an image. Quote expires at '+new Date(response.expiresAt).toLocaleTimeString()+'.';
-    $('quote-box').hidden=false;$('quote').hidden=true;status('Review the estimate. Confirm only if you want one paid render.');
+    $('quote-box').hidden=false;$('quote').hidden=true;status('');
   }catch(e){status(e.message,true);}
   finally{busy=false;update();}
 });
@@ -137,9 +155,10 @@ async function checkFashnBalance(){
   try{
     const result=await api('/api/fashion/balance');
     if(!authenticated)return;
-    $('fashn-api-state').textContent=result.connected?
-      'Connected · '+result.credits.total+' credits available ('+result.credits.onDemand+' on-demand)':
-      (result.note||'FASHN API key is not configured.');
+    const balance=$('fashn-api-state');
+    balance.textContent=result.connected?'Connected · '+result.credits.total+' credits':(result.note||'FASHN API key is not configured.');
+    balance.title=result.connected?result.credits.onDemand+' on-demand / '+result.credits.subscription+' subscription credits':'';
+
   }catch(e){
     if(authenticated)$('fashn-api-state').textContent='Connection not verified · '+e.message;
   }finally{
