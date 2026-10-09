@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 <link rel="stylesheet" href="./image-studio.css?v=20261009-strength1">
 <link rel="stylesheet" href="./detail-video-studio.css?v=20261009-pointer1">
 <link rel="stylesheet" href="./editorial-polish.css?v=20261009-amber1">
-<script type="module" src="./lab.js?v=20261009-stable-gallery"></script>
+<script type="module" src="./lab.js?v=20261009-reference-mode"></script>
 <link rel="stylesheet" href="./higgsfield.css?v=20261009-background-submit">
 <link rel="stylesheet" href="./assets.css?v=20261009-soul-tiles">
 <script type="module" src="./gallery-layout.js?v=20261009-stable-gallery"></script>
@@ -135,6 +135,7 @@ document.addEventListener('DOMContentLoaded',()=>{
           <div class="composer-model-footer"><button id="image-composer-train" type="button">Create / manage characters <span aria-hidden="true">↗</span></button></div>
         </div>
       </div>
+      <label id="image-reference-mode-wrap" class="composer-select-pill" hidden title="How to use reference images"><span class="visually-hidden">Reference mode</span><select id="image-reference-mode" aria-label="Reference mode"><option value="base">Base + references</option><option value="references">References only</option></select></label>
       <label class="composer-select-pill" title="Aspect ratio"><span class="visually-hidden">Aspect ratio</span><select id="image-composer-ratio" aria-label="Aspect ratio"></select></label>
       <label class="composer-select-pill" title="Resolution"><span class="visually-hidden">Image resolution</span><select id="image-composer-resolution" aria-label="Resolution"></select></label>
       <label id="image-composer-count-wrap" class="composer-select-pill" title="Image count"><span class="visually-hidden">Number of images</span><select id="image-composer-count" aria-label="Number of images"></select></label>

@@ -14,7 +14,7 @@ import {findFalRequest} from './fal-recovery.mjs';
 import {falUploadImage} from './fal-storage.mjs';
 import {REFERENCE_ROLES,normalizeReferenceLabel,supportsReferenceGuidance,compileImagePrompt,canUseReferenceGuidance,referenceGuidanceError} from '../lab/reference-guidance.js';
 import {characterPreview as soulCharacterPreview,SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-09.7-gallery-dimensions';
+export const VERSION = 'pv-lab-2026-10-09.8-reference-mode';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -172,7 +172,12 @@ function parameters(value) {
   if(value.type!=='image'&&value.engine==='seedance')return seedanceParameters(value,{fail,referenceLabels});
   if(value.engine&&!['wan','wanprime','h3','h3max','h3spicy'].includes(value.engine)&&value.type!=='image')fail(400,'Unknown video model.');
   const prompt=typeof value.prompt==='string'?value.prompt.trim():'';
+  const referenceMode=value.referenceMode==='references'?'references':'base';
   const referenceRoles=referenceLabels(value.referenceRoles);
+  if(value.type==='image'&&['seedream','gemini'].includes(value.engine)&&referenceMode==='references'){
+    for(const r of referenceRoles)if(r.role==='base')r.role='none';
+    if(!value.aspectRatio||value.aspectRatio==='auto')value={...value,aspectRatio:'16:9'};
+  }
   if(value.type==='image'&&value.engine==='soulpro'&&value.soulProModel==='soul2')return soul2Parameters(value,fail);
   if(value.type==='image'&&value.engine==='soulpro')return soulProParameters({...value,referenceRoles},{fail,referenceLabels});
   if(value.type==='image'&&value.engine==='fal')return value.mode==='controlled-repair'?controlledRepairParameters({...value,referenceRoles},{fail}):controlledPoseParameters({...value,referenceRoles},{fail});
@@ -190,12 +195,12 @@ function parameters(value) {
   if(value.type==='image'&&value.engine==='gemini'){
     const processing=value.processing==='batch'?'batch':'normal',ratio=value.aspectRatio||'auto';
     if(prompt.length>5000||!['1k','2k','4k'].includes(value.resolution)||!GEMINI_RATIOS.includes(ratio))fail(400,'Nano Banana Pro supports 1K, 2K or 4K and the listed image ratios. Maximum prompt length is 5,000.');
-    return {type:'image',provider:'gemini',engine:'gemini',processing,model:GEMINI_MODEL,mode:'image',prompt,resolution:value.resolution,aspectRatio:ratio,outputFormat:'auto',referenceRoles};
+    return {type:'image',provider:'gemini',engine:'gemini',processing,referenceMode,model:GEMINI_MODEL,mode:'image',prompt,resolution:value.resolution,aspectRatio:ratio,outputFormat:'auto',referenceRoles};
   }
   if(value.type==='image'){
     if(prompt.length>5000||!['1k','2k'].includes(value.resolution)||!RATIOS.includes(value.aspectRatio||'1:1'))fail(400,'Choose 1K or 2K and a supported image ratio. Maximum prompt length is 5,000.');
     if(!['png','jpeg'].includes(value.outputFormat||'jpeg'))fail(400,'Choose PNG or JPEG.');
-    return {type:'image',provider:'spicy',engine:'seedream',model:STILL_TEXT,mode:'image',prompt,resolution:value.resolution,aspectRatio:value.aspectRatio||'1:1',outputFormat:value.outputFormat||'jpeg',referenceRoles};
+    return {type:'image',provider:'spicy',engine:'seedream',referenceMode,model:STILL_TEXT,mode:'image',prompt,resolution:value.resolution,aspectRatio:value.aspectRatio||'1:1',outputFormat:value.outputFormat||'jpeg',referenceRoles};
   }
   if(prompt.length>6000)fail(400,'Use no more than 6,000 prompt characters.');
   const duration=Number(value.duration),resolution=value.resolution;
