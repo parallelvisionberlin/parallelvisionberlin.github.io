@@ -153,6 +153,11 @@ $('signin').addEventListener('click',()=>clerk?.openSignIn());
 $('reload').addEventListener('click',()=>location.reload());
 function lock(){
   authenticated=false;sessionId='';clearTimeout(pollTimeout);pollTimeout=null;activeJobId='';busy=false;clearQuote();revokeResult();
+  for(const url of previews.values())URL.revokeObjectURL(url);
+  previews.clear();fileKeys.clear();revision++;
+  for(const [fileId,imgId,hintId] of [['person-file','person-preview','person-hint'],['garment-file','garment-preview','garment-hint']]){
+    $(fileId).value='';$(imgId).hidden=true;$(imgId).removeAttribute('src');$(hintId).hidden=false;
+  }
   $('gate').hidden=false;$('workspace').hidden=true;$('signin').disabled=!clerk;
   update();
 }
