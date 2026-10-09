@@ -1,7 +1,7 @@
 // Mock-only browser regression of PV Lab Fashion. No live providers or paid generations.
 import assert from 'node:assert/strict';
 import http from 'node:http';
-import {readFileSync,existsSync} from 'node:fs';
+import {readFileSync,existsSync,mkdirSync} from 'node:fs';
 import {resolve,extname} from 'node:path';
 import {pathToFileURL} from 'node:url';
 
@@ -55,6 +55,20 @@ try{
   await page.waitForFunction(()=>document.querySelector('#fashn-api-state').textContent.includes('100 credits available'));
   assert.equal(calls.filter(c=>c.path==='/api/fashion/balance').length,2);
   assert.equal(await page.locator('#model-select option').count(),3);
+  assert.equal(await page.locator('#model-select').inputValue(),'fashnmax','Purchased FASHN Max is selected by default.');
+  assert.equal(await page.locator('#fashnmax-options').isVisible(),true);
+  assert.equal(await page.locator('#fashn16-options').isVisible(),false);
+  assert.match(await page.locator('#fashion-title').innerText(),/look, reimagined/i);
+  const desktop=await page.evaluate(()=>{
+    const rect=selector=>{const r=document.querySelector(selector).getBoundingClientRect();return{top:r.top,bottom:r.bottom,left:r.left,right:r.right,width:r.width}};
+    return{bodyWidth:document.documentElement.scrollWidth,viewportWidth:innerWidth,quote:rect('#quote'),preview:rect('#result-stage'),person:rect('#person-slot'),garment:rect('#garment-slot')};
+  });
+  assert.ok(desktop.bodyWidth<=desktop.viewportWidth,'Desktop Fashion has no horizontal overflow.');
+  assert.ok(desktop.quote.top<900,'Price action starts within the desktop viewport.');
+  assert.ok(desktop.preview.width>350,'Editorial output has a meaningful desktop preview area.');
+  assert.ok(desktop.person.top<desktop.garment.top,'Source images have a deliberate stacked editorial layout on desktop.');
+  mkdirSync('test-results',{recursive:true});
+  await page.screenshot({path:'test-results/pv-fashion-editorial-desktop.png',fullPage:true});
   await page.locator('#model-select').selectOption('fashnmax');
   assert.equal(await page.locator('#quote').isEnabled(),false);
   const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+Xfy8AAAAASUVORK5CYII=','base64');
@@ -64,12 +78,19 @@ try{
   await page.locator('#quote').click();
   await page.waitForFunction(()=>!document.querySelector('#quote-box').hidden);
   assert.match(await page.locator('#quote-price').innerText(),/\$0\.15/);
+  assert.match(await page.locator('#quote-price').innerText(),/2 credits/);
   assert.equal(await page.locator('#confirm').isEnabled(),true);
   assert.equal(calls.filter(c=>c.path==='/api/uploads').length,2);
   assert.equal(calls.filter(c=>c.path==='/api/fashion/quote').length,1);
   assert.equal(calls.some(c=>c.path==='/api/fashion/submit'),false,'Price review must not buy a generation.');
+  await page.setViewportSize({width:390,height:844});
+  const mobile=await page.evaluate(()=>({bodyWidth:document.documentElement.scrollWidth,viewportWidth:innerWidth}));
+  assert.ok(mobile.bodyWidth<=mobile.viewportWidth,'Mobile Fashion has no horizontal overflow.');
+  assert.equal(await page.locator('#quote-box').isVisible(),true);
+  assert.equal(await page.locator('#result-stage').isVisible(),true);
+  await page.screenshot({path:'test-results/pv-fashion-editorial-mobile.png',fullPage:true});
   assert.deepEqual(errors,[]);
-  console.log('PASS Fashion owner screen, FASHN credit balance, 3-model selector and no-cost review.');
+  console.log('PASS Fashion editorial desktop/mobile, FASHN credit balance, default Max, and no-cost price review.');
 }finally{
   await browser.close();await new Promise(ok=>server.close(ok));
 }
