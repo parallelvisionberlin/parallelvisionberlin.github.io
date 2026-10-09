@@ -6,6 +6,12 @@ const fail=(status,message)=>{throw Object.assign(new Error(message),{status})};
 const input=engine=>({type:'image',engine,prompt:'Editorial photograph',resolution:'1k',aspectRatio:'16:9',mode:'image'});
 const flash=imageModelParameters(input('flash'),{fail}),kling=imageModelParameters(input('kling'),{fail});
 assert.equal(buildImageModelInput(flash,[]).n,1);
+// Flash's endpoint does not advertise output_format. Do not send unsupported knobs.
+assert.equal(Object.hasOwn(buildImageModelInput(flash,[]),'output_format'),false);
+assert.equal(Object.hasOwn(buildImageModelInput(flash,['data:image/png;base64,AA==']),'output_format'),false);
+await assert.rejects(requestFlash('secret-key',{},async()=>Response.json({error:{message:'Unsupported parameter: output_format'}},{status:400})),e=>e.definite===true&&e.message.includes('Unsupported parameter: output_format'));
+await assert.rejects(requestFlash('secret-key',{},async()=>Response.json({error:{message:'Invalid secret-key Bearer sk-test123 https://private.test/a data:image/png;base64,AAAA'}},{status:400})),e=>!e.message.includes('secret-key')&&!e.message.includes('sk-test123')&&!e.message.includes('private.test')&&!e.message.includes('AAAA'));
+await assert.rejects(requestFlash('test',{},async()=>new Response('gateway',{status:502})),e=>e.definite===true&&e.message.includes('HTTP 502'));
 assert.equal(buildImageModelInput(flash,['data:image/png;base64,AA==']).input_references[0].image_url.url,'data:image/png;base64,AA==');
 assert.equal(buildImageModelInput(kling,['https://test/image.png']).image_url,'https://test/image.png');
 assert.throws(()=>buildImageModelInput(kling,['a','b']),/one base/);
