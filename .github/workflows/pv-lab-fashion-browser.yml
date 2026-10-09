@@ -35,3 +35,4 @@ jobs:
           path: |
             test-results/pv-fashion-editorial-desktop.png
             test-results/pv-fashion-editorial-mobile.png
+            test-results/pv-fashion-ghost-mobile.png
