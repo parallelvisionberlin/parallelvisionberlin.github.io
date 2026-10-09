@@ -56,3 +56,13 @@
 #image-composer.is-pv-soul .composer-model-symbol{font-size:0;width:20px;height:20px;background:url('./branding/pv-mark.png') center/contain no-repeat}
 #image-composer.is-pv-soul #composer-character-name{white-space:normal!important;text-overflow:clip!important;font-size:9px;max-width:none;width:100%;box-sizing:border-box}
 #image-composer.is-pv-soul .composer-generate:not(:disabled){background:#efb951!important;border-color:#efb951!important;color:#171309!important}
+
+/* Reference-guided models: all uploads stay visible, the prompt has its own row. */
+#image-composer:not(.is-pv-soul) .image-composer-top{flex-direction:column;align-items:stretch;gap:9px;min-height:0}
+#image-composer:not(.is-pv-soul) .image-composer-references{flex:initial;max-width:none;width:100%;flex-wrap:wrap;overflow:visible;padding:2px 5px 4px;gap:10px}
+#image-composer:not(.is-pv-soul) .composer-reference-tile{flex-basis:58px;width:58px;height:62px;overflow:visible}
+#image-composer .composer-reference-role{position:absolute;left:0;bottom:0;box-sizing:border-box;width:100%;height:22px;min-height:22px;border:0;border-radius:0 0 7px 7px;padding:2px 3px;background:#161818e8;color:#fff;font-size:9px;line-height:1;cursor:pointer}
+#image-composer #image-composer-prompt{overflow:hidden;resize:none;min-height:42px;max-height:none}
+#image-composer:not(.is-pv-soul) .image-composer-toolbar{margin-top:6px}
+#image-composer #composer-generation-block[hidden]{display:none!important;margin:0!important;padding:0!important}
+#image-composer:not(.is-pv-soul) #image-composer-prompt{flex:none;box-sizing:border-box}

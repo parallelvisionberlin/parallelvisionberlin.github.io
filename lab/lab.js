@@ -1,4 +1,4 @@
-import {createSoul2UI} from './higgsfield-ui.js?v=20261009-soul-bar';
+import {createSoul2UI} from './higgsfield-ui.js?v=20261009-reference-bar';
 import {VIDEO_MODELS,engineFor,videoLabel} from './video-models.js?v=20261001-video-models2';
 import {REFERENCE_ROLES,REFERENCE_TARGETS,normalizeReferenceLabel,compileImagePrompt,referenceGuidanceError,canUseReferenceGuidance} from './reference-guidance.js?v=20261002-reference1';
 import {createMediaReferences} from './media-references.js?v=20260927-standard1';
@@ -122,7 +122,7 @@ function setTool(value){
   $('engine-name').textContent=upscale?'IMAGE UPSCALER V1 · SPICYAPI':image?(imageEngine==='gemini'?'NANO BANANA PRO':imageEngine==='soulpro'?'PV SOUL PRO':imageEngine==='soul'?'PV SOUL':imageEngine==='fal'?'CONTROLLED POSE · FAL':'SEEDREAM 5.0 PRO'):'WAN 3.0';
   $('prompt-label').textContent=image?'Image direction':'Motion direction';$('prompt').maxLength=image?5000:6000;
   $('prompt').placeholder=image?'Describe the image. Add references for identity, wardrobe, a room or an object, or start with text only.':'One clear action, one camera move, light, atmosphere and sound.';
-  options('resolution',upscale?['2k','4k','8k']:image?(imageEngine==='soulpro'?['source']:imageEngine==='fal'?['1k']:imageEngine==='gemini'?['1k','2k','4k']:imageEngine==='soul'?(isReinterpret()?['1k','1.5k']:['native']):['1k','2k']):['480p','720p','1080p'],upscale?'4k':image?(imageEngine==='soulpro'?'source':imageEngine==='soul'?(isReinterpret()?'1.5k':'native'):imageEngine==='fal'?'1k':'2k'):'1080p');
+  options('resolution',upscale?['2k','4k','8k']:image?(imageEngine==='soulpro'?['source']:imageEngine==='fal'?['1k']:imageEngine==='gemini'?['1k','2k','4k']:imageEngine==='soul'?(isReinterpret()?['1k','1.5k']:['native']):['1k','2k']):['480p','720p','1080p'],upscale?'4k':image?(imageEngine==='soulpro'?'source':imageEngine==='soul'?(isReinterpret()?'1.5k':'native'):['fal','seedream'].includes(imageEngine)?'1k':'2k'):'1080p');
   if(upscale)for(const option of $('resolution').options)option.textContent=option.value.toUpperCase()+' · ~'+({'2k':4,'4k':17,'8k':67}[option.value])+' MP';
   options('output-format',upscale&&!isFalUpscale()?['png','jpeg','webp']:['png','jpeg'],'png');
   if(!file)$('filemeta').textContent=sourceHelp();
@@ -286,6 +286,13 @@ function syncImageReferences(){
     const marker=document.createElement('span');marker.className='composer-reference-index';
     marker.textContent=ref.isBase||ref.role==='base'?'BASE':ref.role&&ref.role!=='none'?ref.role.toUpperCase():String(i+1);
     marker.setAttribute('aria-hidden','true');tile.append(marker);
+    if(usesReferenceGuidance()&&i>0){
+      marker.hidden=true;
+      const role=document.createElement('select');role.className='composer-reference-role';role.setAttribute('aria-label','Role for image '+(i+1));role.disabled=busy;
+      for(const [value,label] of REFERENCE_ROLES.filter(([value])=>value!=='base'))role.add(new Option(value==='none'?'REF '+(i+1):label,value));
+      role.value=ref.role||'none';role.onchange=()=>{ref.role=role.value;ref.target=role.value==='outfit'?'full':'';renderReferences();update();};tile.append(role);
+    }
+
     if(ref.isBase){
       tile.tabIndex=0;tile.setAttribute('role','button');tile.setAttribute('aria-label','Replace base image');
       tile.onclick=()=>{if(!busy)$('soul-base-image').click();};
@@ -326,7 +333,8 @@ function syncImageComposer(){
   const textbox=$('image-composer-prompt');
   if(document.activeElement!==textbox && textbox.value!==$('prompt').value)
     textbox.value=$('prompt').value;
-  textbox.placeholder=isSoul2()?'Describe the scene you imagine…':$('prompt').placeholder || 'Describe the scene you imagine...';
+  textbox.placeholder='Describe the scene you imagine…';
+  textbox.style.height='auto';textbox.style.height=Math.max(42,textbox.scrollHeight)+'px';
   syncSoulBar();
   textbox.disabled=busy || $('prompt').disabled;
   $('image-composer-model-label').textContent=imageStudioModelTitle();
@@ -367,7 +375,7 @@ function syncImageComposer(){
     else if(imageEngine==='soul'&&!soul.ready())message='Choose a trained LoRA.';
     else if(imageEngine==='soul'&&isReinterpret()&&!soul.reinterpretReady())message='This character needs a trained Reinterpret identity.';
     else if(!hasInput()&&imageEngine==='fal')message='Add one pose image, 1–4 identity photos and a prompt.';
-    else if(!$('prompt').value.trim())message='Describe the image to generate.';
+    else if(!$('prompt').value.trim())message='';
   }
   block.hidden=!message;reason.textContent=message;review.hidden=!queueBlocked;
   generate.title=message;
@@ -759,6 +767,7 @@ async function inspectImage(candidate){
 async function setImage(candidate,id=null){const revision=++imageRevision,item=await inspectImage(candidate);release(item.thumbUrl);if(revision!==imageRevision||!owner){release(item.url);return false;}release(sourceUrl);clearResult();file=item.file;sourceId=id;sourceUrl=item.url;sourceWidth=item.width;sourceHeight=item.height;sourcePixels=item.width*item.height;if(isSoul2())$('hf-bar-ratio').value='source';syncDefaultRatio(true);$('filemeta').textContent=`${candidate.name||'Start frame'} / ${item.width} × ${item.height} / ${(candidate.size/1048576).toFixed(1)} MB`;resetPreview();update();return true;}
 async function setLastImage(candidate,id=null){const e=epoch,item=await inspectImage(candidate);release(item.thumbUrl);if(e!==epoch||!owner){release(item.url);return false;}release(lastUrl);lastFile=item.file;lastSourceId=id;lastUrl=item.url;$('last-filemeta').textContent=`${candidate.name||'Last frame'} / ${item.width} × ${item.height} / ${(candidate.size/1048576).toFixed(1)} MB`;update();return true;}
 function renderReferences(){
+  if(usesReferenceGuidance()&&references.length){references[0].role='base';for(const r of references.slice(1))if(r.role==='base')r.role='none';}
   const box=$('reference-list'),scroll=box.scrollTop,fragment=document.createDocumentFragment();
   references.forEach((r,i)=>{
     const item=document.createElement('div');item.className='reference-item';
@@ -807,7 +816,7 @@ async function addReferences(list,ids=[],labels=[]){
       $('reference-progress').textContent='Preparing reference '+(i+1)+' of '+incoming.length+'…';
       const item=await inspectImage(incoming[i]);
       if(e!==epoch||!owner){releaseReference(item);return;}
-      item.id=ids[i]||null;item.role=imageEngine==='soulpro'?'identity':labels[i]?.role||'none';item.note=imageEngine==='soulpro'?'':labels[i]?.note||'';item.target=labels[i]?.target||'';references.push(item);added++;
+      item.id=ids[i]||null;item.role=imageEngine==='soulpro'?'identity':labels[i]?.role||'none';item.note=imageEngine==='soulpro'?'':labels[i]?.note||'';item.target=labels[i]?.target||'';if(usesReferenceGuidance()){if(!references.length)item.role='base';else if(item.role==='base')item.role='none';}references.push(item);added++;
       renderReferences();refreshInputPreview();update();
       await new Promise(resolve=>setTimeout(resolve,0));
     }
@@ -1191,7 +1200,7 @@ async function restore(job){
   if(soulPro){$('soul-pro-model').value=soulProModel;$('soul-pro-seed').value=p.seed??'';}
   if(p.duration&&!([...$('duration').options].some(o=>Number(o.value)===p.duration)))$('duration').add(new Option(p.duration+' sec',String(p.duration)));
   $('duration').value=p.duration||15;
-  if(!isFalUpscale())$('resolution').value=p.resolution||(tool==='upscale'?'4k':tool==='image'?'2k':'1080p');
+  if(!isFalUpscale())$('resolution').value=p.resolution||(tool==='upscale'?'4k':tool==='image'?(imageEngine==='seedream'?'1k':'2k'):'1080p');
   $('ratio').value=p.aspectRatio||'auto';$('seed').value=p.seed??'';$('audio').checked=p.audio!==false;$('output-format').value=p.outputFormat||'jpeg';
   if(controlledPose){$('pose-strength').value=String(p.poseStrength??1);$('identity-strength').value=String(p.identityStrength??0.7);$('controlled-pose-seed').value=p.seed??'';$('pose-strength-value').textContent=Number(p.poseStrength??1).toFixed(2);$('identity-strength-value').textContent=Number(p.identityStrength??0.7).toFixed(2);$('pose-preview-status').textContent=poseMapSourceId?'Saved pose map will be reused.':'';}
   if(p.engine==='seedance'||engineFor(p)==='seedance')await mediaRefs.restore(p);
@@ -1600,7 +1609,7 @@ async function refineInSeedream(job,preset='full'){
   const file=await assetFile(job.outputId,'pv-soul-refine-source');
   await addReferences([file],[job.outputId],[{name:file.name,role:'none',note:'Primary image. Preserve identity, body, pose, composition, camera and lighting; refine only requested defects.'}]);
   $('prompt').value=prompts[preset]||prompts.full;
-  $('resolution').value='2k';$('ratio').value='auto';$('image-count').value='1';update();
+  $('resolution').value='1k';$('ratio').value='auto';$('image-count').value='1';update();
   notify('Loaded into Seedream Refine. Review the preset prompt, then click Generate. Nothing has been submitted yet.');
   window.scrollTo({top:0,behavior:'smooth'});
 }
@@ -1621,6 +1630,14 @@ $('pack-load').onclick=()=>action(async()=>{
     await addReferences(files,identities.map(r=>r.id),identities);
     notify((pose?'Pose kept. ':'')+identities.length+' Nina identity reference'+(identities.length===1?'':'s')+' loaded from '+pack.name+'.');
     return;
+  }
+  if(usesReferenceGuidance()&&references.length){
+    const base=references[0];
+    if(pack.refs.length+1>referenceLimit())throw new Error('Keep the base and choose a pack with up to '+(referenceLimit()-1)+' references.');
+    const files=await Promise.all(pack.refs.map(r=>assetFile(r.id,r.name.replace(/\.[^.]+$/,''))));
+    for(const r of references.slice(1))releaseReference(r);references=[base];base.role='base';
+    await addReferences(files,pack.refs.map(r=>r.id),pack.refs.map(r=>({...r,role:r.role==='base'?'none':r.role})));
+    notify('Base kept. Reference pack loaded.');return;
   }
   if(pack.refs.length>referenceLimit())throw new Error('This pack contains more than '+referenceLimit()+' images for the current mode.');
   if(references.length&&!confirm('Replace the current references with this pack?'))return;
@@ -1927,3 +1944,4 @@ function syncSoulBar(){
 $('hf-bar-source').onclick=()=>{if(!busy)$('soul-base-image').click();};
 $('hf-bar-ratio').onchange=()=>{resultSettings=null;update();};
 $('hf-bar-resolution').onchange=()=>{$('hf-resolution').value=$('hf-bar-resolution').value;resultSettings=null;update();};
+window.addEventListener('resize',()=>{const text=$('image-composer-prompt');if(!text||imageComposer.hidden)return;text.style.height='auto';text.style.height=Math.max(42,text.scrollHeight)+'px';});
