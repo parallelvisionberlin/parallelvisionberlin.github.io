@@ -39,6 +39,8 @@ export async function libraryJobs(env,owner,url,{rows,uid,fail,jobView}){
   const clauses=['j.owner_id=?','(j.created_at<? OR (j.created_at=? AND j.id<?))'],args=[owner,before,before,afterId];
   const folder=url.searchParams.get('folder'),kind=url.searchParams.get('kind');
   if(folder){clauses.push('EXISTS(SELECT 1 FROM library_members m WHERE m.owner_id=j.owner_id AND m.job_id=j.id AND m.folder_id=?)');args.push(uid(folder));}
+  // Image/Video grids request unfiled work. Assets retains the complete library.
+  if(url.searchParams.get('unfiled')==='1'&&!folder&&url.searchParams.get('favorite')!=='1')clauses.push('NOT EXISTS(SELECT 1 FROM library_members m WHERE m.owner_id=j.owner_id AND m.job_id=j.id)');
   if(url.searchParams.get('favorite')==='1')clauses.push('EXISTS(SELECT 1 FROM library_favorites f WHERE f.owner_id=j.owner_id AND f.job_id=j.id)');
   if(['image','video'].includes(kind)){clauses.push("json_extract(j.params,'$.type')=?");args.push(kind);}
   const list=await rows(env,`SELECT j.*,EXISTS(SELECT 1 FROM library_favorites f WHERE f.owner_id=j.owner_id AND f.job_id=j.id) AS favorite FROM jobs j WHERE ${clauses.join(' AND ')} ORDER BY j.created_at DESC,j.id DESC LIMIT 21`,...args);

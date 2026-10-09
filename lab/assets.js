@@ -3,7 +3,7 @@ export function createAssetLibrary({api,notify,archive,app,selected,selectMode,r
   let active=false,filter='all',media='all',folders=[],revision=0;
   const panel=$('assets-workspace'),sidebar=$('assets-folders'),dialog=$('asset-folder-dialog');
   const safe=fn=>async()=>{try{await fn();}catch(e){notify(e.message,true);}};
-  function query(){const q=new URLSearchParams({library:'1'});const type=active?media:kind();if(['image','video'].includes(type))q.set('kind',type);if(active&&filter==='favorites')q.set('favorite','1');else if(active&&filter!=='all')q.set('folder',filter);return q;}
+  function query(){const q=new URLSearchParams({library:'1'});if(!active)q.set('unfiled','1');const type=active?media:kind();if(['image','video'].includes(type))q.set('kind',type);if(active&&filter==='favorites')q.set('favorite','1');else if(active&&filter!=='all')q.set('folder',filter);return q;}
   function heading(){archive.querySelector('h2').textContent=active?(filter==='favorites'?'Favorites':filter==='all'?'Assets':folders.find(f=>f.id===filter)?.name||'Folder'):'History';}
   function renderFolders(){
     sidebar.replaceChildren();
@@ -17,7 +17,7 @@ export function createAssetLibrary({api,notify,archive,app,selected,selectMode,r
   function close(){if(!active)return;active=false;panel.hidden=true;app.classList.remove('assets-active');$('tool-assets').classList.remove('active');$('tool-assets').setAttribute('aria-pressed','false');selectMode(false);heading();restoreStudio();}
   function selection(){const count=selected().size;$('history-add-folder').disabled=!count;$('history-remove-folder').disabled=!count;}
   async function chooseFolder(){await load();$('asset-folder-choices').replaceChildren(...folders.map(f=>{const b=document.createElement('button');b.type='button';b.textContent=f.name;b.onclick=safe(async()=>{await assign(f.id);dialog.close();});return b;}));$('asset-folder-title').textContent=selected().size?'Add to folder':'New folder';$('asset-folder-choices').hidden=!selected().size;$('asset-folder-name').value='';$('asset-folder-error').textContent='';dialog.showModal();}
-  async function assign(id){const ids=[...selected()];if(!ids.length)return;await api('/api/library/members',{method:'POST',body:{ids,folderId:id}});selectMode(false);await load();notify(ids.length+' item'+(ids.length===1?'':'s')+' added to folder.');}
+  async function assign(id){const ids=[...selected()];if(!ids.length)return;await api('/api/library/members',{method:'POST',body:{ids,folderId:id}});selectMode(false);await Promise.all([load(),reload()]);notify(ids.length+' item'+(ids.length===1?'':'s')+' archived in folder.');}
   function decorate(card,job){
     if(job.favorite===undefined)return;
     const heart=document.createElement('button');heart.type='button';heart.className='asset-heart';

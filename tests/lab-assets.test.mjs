@@ -20,8 +20,17 @@ assert.deepEqual((await query('alice','favorite=1')).jobs,[{id:'a1',favorite:tru
 assert.deepEqual((await query('bob','folder='+folder.id)).jobs,[]);
 await assert.rejects(route('bob','/api/library/members',{folderId:folder.id,ids:['b1']}),/404/);
 await assert.rejects(route('alice','/api/library/members',{favorite:true,ids:['b1']}),/404/);
-const page1=await query('alice'),page2=await query('alice',new URLSearchParams(page1.next));assert.equal(page1.jobs.length,20);assert.equal(page2.jobs.length,5);assert.equal(new Set([...page1.jobs,...page2.jobs].map(j=>j.id)).size,25);
+const page1=await query('alice','unfiled=1'),page2=await query('alice',new URLSearchParams({...page1.next,unfiled:'1'}));assert.equal(page1.jobs.length,20);assert.equal(page2.jobs.length,3);assert.equal(new Set([...page1.jobs,...page2.jobs].map(j=>j.id)).size,23);
+const all1=await query('alice'),all2=await query('alice',new URLSearchParams(all1.next));assert.equal(all1.jobs.length+all2.jobs.length,25,'All assets includes filed work');
+assert.ok([...all1.jobs,...all2.jobs].some(j=>j.id==='a1'));
+assert.ok([...page1.jobs,...page2.jobs].every(j=>!['a0','a1'].includes(j.id)));
+for(const kind of ['image','video'])assert.ok((await query('alice','unfiled=1&kind='+kind)).jobs.every(j=>!['a0','a1'].includes(j.id)));
+const {folder:second}=await route('alice','/api/library/folders',{name:'Second folder'});
+await route('alice','/api/library/members',{folderId:second.id,ids:['a0']});
 await route('alice','/api/library/members',{folderId:folder.id,ids:['a0'],remove:true});
+assert.ok(!(await query('alice','unfiled=1&kind=video')).jobs.some(j=>j.id==='a0'),'Still archived while in another folder');
+await route('alice','/api/library/members',{folderId:second.id,ids:['a0'],remove:true});
+assert.ok((await query('alice','unfiled=1&kind=video')).jobs.some(j=>j.id==='a0'),'Returns to main grid after last folder membership removed');
 assert.equal((await query('alice','folder='+folder.id)).jobs.length,1);
 await route('alice','/api/library/members',{favorite:false,ids:['a1']});assert.equal((await query('alice','favorite=1')).jobs.length,0);
 db.prepare('DELETE FROM jobs WHERE id=?').run('a1');assert.equal((await route('alice','/api/library')).folders[0].count,0);
