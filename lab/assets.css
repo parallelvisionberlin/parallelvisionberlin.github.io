@@ -199,3 +199,23 @@ header .wrap.top{max-width:none;padding-inline:16px;min-height:48px}
  #image-composer.is-pv-soul{padding:20px 24px;border-radius:25px;grid-template-columns:minmax(0,1fr) 80px 96px 144px;gap:8px 12px}
  #image-composer.is-pv-soul #composer-character,#image-composer.is-pv-soul .hf-source-card{border-radius:12px}
 }
+
+/* Soul tiles: compact photo cards, with the add affordance in the corner. */
+#image-composer.is-pv-soul #composer-character,
+#image-composer.is-pv-soul .hf-source-card{height:84px;min-height:84px;align-self:end;border:0;background:linear-gradient(160deg,#202223,#393c3b);box-shadow:none;border-radius:11px}
+#image-composer.is-pv-soul #composer-character-photo{background:transparent}
+#image-composer.is-pv-soul #composer-character-photo:not(:has(img)){font-size:0}
+#image-composer.is-pv-soul #composer-character-photo:not(:has(img)):before{content:'+';position:absolute;top:7px;left:7px;width:23px;height:23px;display:grid;place-items:center;background:#ffffff08;border-radius:6px;font-size:20px;color:#a6aaa7;font-weight:400}
+#image-composer.is-pv-soul .hf-source-plus{position:absolute;top:7px;left:7px;width:23px;height:23px;display:grid;place-items:center;background:#ffffff08;border-radius:6px;font-size:20px}
+#image-composer.is-pv-soul .has-photo .hf-source-plus{display:none}
+#image-composer.is-pv-soul #composer-character-name,#image-composer.is-pv-soul .hf-source-label{font-size:10px!important;font-weight:650;line-height:1.15;text-align:left;padding:20px 8px 8px;background:linear-gradient(transparent,#0005)}
+#image-composer.is-pv-soul .composer-generate{align-self:end;height:84px;min-height:84px;border-radius:12px}
+#image-composer.is-pv-soul .composer-select-pill:has(#hf-bar-ratio):before{content:'';position:absolute;left:12px;top:50%;width:13px;height:8px;transform:translateY(-50%);border:1px solid #c3c6c2;border-radius:2px;pointer-events:none}
+#image-composer.is-pv-soul .composer-select-pill:has(#hf-bar-resolution):before{content:'';position:absolute;left:13px;top:50%;width:9px;height:9px;transform:translateY(-50%) rotate(45deg);border:1px solid #c3c6c2;border-radius:2px;pointer-events:none}
+#image-composer.is-pv-soul .hf-bar-control select{padding-left:33px}
+@media(min-width:1000px){
+ #image-composer.is-pv-soul{grid-template-columns:minmax(0,1fr) 84px 144px 144px;grid-template-rows:minmax(34px,auto) auto;gap:6px 12px;padding:20px 24px}
+ #image-composer.is-pv-soul #composer-character{width:84px}
+ #image-composer.is-pv-soul .composer-controls{gap:6px}
+}
+@media(max-width:650px){#image-composer.is-pv-soul #composer-character,#image-composer.is-pv-soul .hf-source-card,#image-composer.is-pv-soul .composer-generate{height:72px;min-height:72px}}
