@@ -19,6 +19,30 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     $('precision-status-text').classList.toggle('is-error',error);
   };
   const isOpen=()=>!view.hidden;
+  // Fit the complete original photograph to the available panel height.
+  // The Retouch deck grows with the viewport; the brush overlay must follow
+  // the same image scale rather than crop a tall canvas behind the footer.
+  function syncPreviewFit(){
+    if(!isOpen())return;
+    if(window.matchMedia('(max-width:900px)').matches){
+      view.style.removeProperty('--precision-source-fit-height');
+      view.style.removeProperty('--precision-result-fit-height');
+      return;
+    }
+    for(const [id,property] of [
+      ['precision-source-holder','--precision-source-fit-height'],
+      ['precision-output-holder','--precision-result-fit-height']
+    ]){
+      const holder=$(id);
+      if(holder.hidden)continue;
+      const height=Math.max(110,Math.floor(holder.getBoundingClientRect().height-22))+'px';
+      if(view.style.getPropertyValue(property)!==height)view.style.setProperty(property,height);
+    }
+  }
+  const previewResizeObserver=new ResizeObserver(syncPreviewFit);
+  previewResizeObserver.observe($('precision-source-holder'));
+  previewResizeObserver.observe($('precision-output-holder'));
+  window.addEventListener('resize',syncPreviewFit);
   const maskChanged=()=>{selected=hasSelection();renderMask();refreshButtons();};
   function hasSelection(){
     if(!mask.width||!mask.height)return false;
@@ -140,6 +164,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     else if(!base)setStatus('Drop your original photograph on the left to begin.');
     if(!falReady())selectMode('brush');
     refreshButtons();
+    syncPreviewFit();
     settleRetouchScroll();
   }
   function close(){
@@ -176,6 +201,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     $('precision-selection-message').textContent='Click an object to select it. Brush tools refine your mask.';
     $('precision-price-review').hidden=true;setStatus('The original pixels will be preserved outside the selected area.');
     selectMode(falReady()?'magic':'brush');refreshButtons();
+    syncPreviewFit();
     // File-picker/drop imports may resize a previously empty panel. Keep the
     // heading visible after decoding instead of following an old scroll anchor.
     if(isOpen())settleRetouchScroll();
