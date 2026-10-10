@@ -320,6 +320,8 @@ await page.waitForFunction(()=>document.querySelector('#image-lightbox-counter')
 await page.keyboard.press('Escape');
 for(const width of [1440,390,320]){
   await page.setViewportSize({width,height:1000});
+  await page.evaluate(()=>window.scrollTo(0,0));
+  assert.equal(await page.locator('#history .cardbody').first().isVisible(),false,'Gallery keeps controls inside the image detail view');
   const deck=await page.locator('.workspace').boundingBox(),gallery=await page.locator('.archive').boundingBox();
   assert.ok(gallery.y>=deck.y+deck.height,'Upscaled work sits below the entire deck at '+width);
   assert.equal(await page.locator('.archive').isVisible(),true);

@@ -4,7 +4,7 @@ let pending=false;
 function schedule(){if(!pending){pending=true;requestAnimationFrame(layout);}}
 function layout(){
   pending=false;
-  const enabled=!!gallery.closest('.image-studio,#assets-gallery');
+  const enabled=!!gallery.closest('.image-studio,#assets-gallery,#app.upscale-studio-active');
   gallery.classList.toggle('justified-gallery',enabled);
   const cards=[...gallery.children];
   if(!enabled){for(const card of cards){card.style.removeProperty('width');card.style.removeProperty('height');}return;}
