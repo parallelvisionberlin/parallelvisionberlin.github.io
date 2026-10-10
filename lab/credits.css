@@ -179,3 +179,42 @@
 .lab-soul-offer-description strong{font-weight:500;color:#1a1c1a}
 .lab-soul-offer-description small{font-size:11px;line-height:1.6;color:#737770;display:block;max-width:560px}
 @media(max-width:700px){.lab-soul-offer{grid-template-columns:1fr;gap:16px}.lab-soul-offer-description p{font-size:14px}}
+
+/* Clickable pricing cards: the existing checkout button owns the entire hit area. */
+.lab-plan{
+  position:relative;
+  cursor:pointer;
+  transition:background-color .22s ease,border-color .22s ease,box-shadow .22s ease,transform .22s ease;
+}
+.lab-plan > button[data-lab-buy]::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:1;
+  cursor:pointer;
+}
+.lab-plan:hover,
+.lab-plan:has(> button[data-lab-buy]:focus-visible){
+  background:#fbfaf6;
+  border-color:#737b73;
+  box-shadow:0 12px 30px rgba(23,28,23,.10);
+  transform:translateY(-2px);
+}
+.lab-plan[data-featured="true"]:hover,
+.lab-plan[data-featured="true"]:has(> button[data-lab-buy]:focus-visible){
+  background:#343a34;
+  border-color:#afbdaf;
+  box-shadow:0 12px 30px rgba(20,23,20,.21);
+}
+.lab-plan:has(> button[data-lab-buy]:focus-visible){
+  outline:2px solid #68786b;
+  outline-offset:3px;
+}
+.lab-plan[data-featured="true"]:has(> button[data-lab-buy]:focus-visible){
+  outline-color:#afbdaf;
+}
+.lab-plan > button[data-lab-buy]:focus-visible{outline:none}
+@media(prefers-reduced-motion:reduce){
+  .lab-plan{transition:none}
+  .lab-plan:hover,.lab-plan:has(> button[data-lab-buy]:focus-visible){transform:none}
+}
