@@ -181,6 +181,22 @@ try{
   await x.page.waitForTimeout(100);
   await retouchTopAndBackButton(x.page);
   await retouchPanelsAreClear(x.page);
+  // Real 3:2 source dimensions must grow the board, not overlap its footers.
+  await x.page.evaluate(async()=>{
+    const canvas=document.createElement('canvas');canvas.width=2200;canvas.height=1450;
+    const ctx=canvas.getContext('2d');ctx.fillStyle='#34323b';ctx.fillRect(0,0,2200,1450);
+    ctx.fillStyle='#e6d4c2';ctx.fillRect(500,250,1100,900);
+    const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));
+    const transfer=new DataTransfer();
+    transfer.items.add(new File([blob],'large-landscape-reference.png',{type:'image/png'}));
+    const input=document.querySelector('#precision-photo-input');
+    input.files=transfer.files;
+    input.dispatchEvent(new Event('change',{bubbles:true}));
+  });
+  await x.page.waitForFunction(()=>document.querySelector('#precision-source-meta').textContent.includes('large-landscape-reference.png'));
+  await x.page.waitForTimeout(120);
+  await retouchTopAndBackButton(x.page);
+  await retouchPanelsAreClear(x.page);
   await x.page.click('#precision-return');
   assert.match(x.page.url(),/tool=image/);
   // Public customers can inspect Retouch, but no metered service is enabled.
