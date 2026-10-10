@@ -1,8 +1,8 @@
 // Credit wallet UI. Backend verifies every price, balance, webhook and receipt.
 export function createCustomerWallet({api,notify=()=>{}}){
   const $=id=>document.getElementById(id);
-  let account=false,billingReady=false,balance=0,products=[],referralLoaded=false,referralLoading=false;
-  const toggle=$('lab-wallet-toggle'),dialog=$('lab-credits-dialog'),amount=$('lab-credit-balance'),
+  let account=false,billingReady=false,balance=0,products=[],referralLoading=false,referralEpoch=0;
+  const toggle=$('lab-wallet-toggle'),dialog=$('lab-credits-dialog'),referralDialog=$('lab-referrals-dialog'),amount=$('lab-credit-balance'),
         list=$('lab-credit-products'),state=$('lab-wallet-state'),
         referralUrl=$('lab-referral-url'),referralCopy=$('lab-referral-copy'),
         referralState=$('lab-referral-status'),referralStats=$('lab-referral-stats');
@@ -10,7 +10,7 @@ export function createCustomerWallet({api,notify=()=>{}}){
   function describe(usd){return (Number.isFinite(Number(usd))?cost(Number(usd)).toLocaleString():'?')+' credits';}
   function update(){
     toggle.hidden=!account;
-    if(!account){if(dialog?.open)dialog.close();return;}
+    if(!account){if(dialog?.open)dialog.close();if(referralDialog?.open)referralDialog.close();return;}
     toggle.textContent=balance.toLocaleString()+' credits';
     amount.textContent=balance.toLocaleString()+' credits';
     state.textContent=billingReady?'Your private credit balance.':'Checkout setup is being finalized. Payments are not being accepted yet.';
@@ -37,10 +37,18 @@ export function createCustomerWallet({api,notify=()=>{}}){
   }
   function open(){
     if(!account)return;
+    if(referralDialog.open)referralDialog.close();
     if(!dialog.open)dialog.showModal();
+  }
+  function openReferrals(){
+    if(!account)return;
+    if(dialog.open)dialog.close();
+    if(!referralDialog.open)referralDialog.showModal();
     void loadReferral();
   }
   toggle.onclick=open;
+  $('lab-credit-invite').onclick=openReferrals;
+  $('lab-referrals-close').onclick=()=>referralDialog.close();
   referralCopy.onclick=async()=>{
     if(!referralUrl.value)return;
     try{await navigator.clipboard.writeText(referralUrl.value);referralState.textContent='Invite link copied.';}
@@ -58,18 +66,20 @@ export function createCustomerWallet({api,notify=()=>{}}){
     }catch(e){state.textContent=e.message;}
   };
   async function loadReferral(){
-    if(!account||referralLoaded||referralLoading)return;
+    if(!account||referralLoading)return;
+    const epoch=referralEpoch;
     referralLoading=true;referralState.textContent='Preparing your invite link…';
     try{
       const data=await api('/api/customer/referrals');
-      if(!account)return;
+      if(!account||epoch!==referralEpoch)return;
       const url=new URL(data.url);
       if(url.protocol!=='https:')throw new Error('Invalid referral link.');
-      referralUrl.value=url.href;referralCopy.disabled=false;referralLoaded=true;
-      referralStats.textContent=(data.rewarded||0)+' successful invite'+(data.rewarded===1?'':'s')+' · '+(data.invited||0)+' registered';
+      referralUrl.value=url.href;referralCopy.disabled=false;
+      const count=Number(data.rewarded)||0;
+      referralStats.textContent=count+' successful invite'+(count===1?'':'s')+' · '+(Number(data.invited)||0)+' registered';
       referralState.textContent=data.rewardsAvailable?'Bonus credits are granted after your friend’s first qualifying payment.':'Rewards unlock when PV Lab public billing opens.';
-    }catch(e){referralState.textContent=e.message||'Your referral link is temporarily unavailable.';}
-    finally{referralLoading=false;}
+    }catch(e){if(epoch===referralEpoch)referralState.textContent=e.message||'Your referral link is temporarily unavailable.';}
+    finally{if(epoch===referralEpoch)referralLoading=false;}
   }
   async function refresh(){
     if(!account)return;
@@ -81,10 +91,11 @@ export function createCustomerWallet({api,notify=()=>{}}){
   }
   function connect(data){
     const next=!!data.customer;
-    if(!next){referralLoaded=false;referralUrl.value='';referralCopy.disabled=true;referralStats.textContent='';referralState.textContent='';}
+    referralEpoch++;referralLoading=false;
+    referralUrl.value='';referralCopy.disabled=true;referralStats.textContent='';referralState.textContent='';
     account=next;
     if(account){balance=Number(data.balanceCredits)||0;billingReady=!!data.billingReady;products=data.products||[];}
     update();
   }
-  return {connect,refresh,open,cost,describe,isCustomer:()=>account};
+  return {connect,refresh,open,openReferrals,cost,describe,isCustomer:()=>account};
 }
