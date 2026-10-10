@@ -113,6 +113,25 @@ export const MOODS=Object.freeze([
 ].map(m=>Object.freeze(m)));
 export const MOOD_MODELS=Object.freeze(['seedream','gemini']);
 export const moodById=id=>MOODS.find(m=>m.id===id)||null;
+// This is intentionally presentation-only. Jobs retain the full provider prompt for
+// reproduction, but the viewer and History show only user-authored text.
+export function userFacingImagePrompt(settings={}){
+  const raw=typeof settings?.prompt==='string'?settings.prompt.trim():'';
+  const marker=raw.search(/(?:^|\n)\s*PV LAB MOOD\s*\//i);
+  if(settings?.moodId){
+    if(typeof settings.moodOriginalPrompt==='string')return settings.moodOriginalPrompt.trim();
+    return marker>=0?raw.slice(0,marker).trim():'';
+  }
+  return marker>=0?raw.slice(0,marker).trim():raw;
+}
+export function imageHistoryCaption(settings={}){
+  const text=userFacingImagePrompt(settings),mood=moodById(settings?.moodId);
+  if(mood)return [mood.name,text].filter(Boolean).join(' · ');
+  if(settings?.moodId)return ['Mood',text].filter(Boolean).join(' · ');
+  if(settings?.mode==='upscale')return 'Image upscale / '+String(settings.resolution||'').toUpperCase();
+  return text||'No direction saved.';
+}
+
 
 export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',referenceCount=0,referenceMode='base'}={}){
   const original=String(input||'').trim(),mood=moodById(id);

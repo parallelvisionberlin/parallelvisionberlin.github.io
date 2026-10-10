@@ -186,6 +186,20 @@ h1,h2,h3,.archive h2,.empty-title,.image-gallery-empty h2{
   display:block;color:#a8acb6;font-size:11px;letter-spacing:.01em;
   margin:0;text-transform:none;font-weight:600;
 }
+.image-detail-prompt-card [hidden]{display:none!important}
+.image-detail-mood-feature{
+  display:flex;align-items:center;justify-content:space-between;gap:14px;
+  margin:0 0 12px;padding:12px 13px;border:1px solid #41464c;
+  border-radius:11px;background:#22252b;
+}
+.image-detail-mood-feature>div{min-width:0}
+.image-detail-mood-kicker{display:block;color:#9fa5af;font-size:9px;font-weight:650;letter-spacing:.12em}
+#image-detail-mood-name{
+  display:block;margin-top:4px;color:#f1f2f3;font-family:var(--pv-display);
+  font-size:19px;line-height:1.2;font-weight:600;letter-spacing:-.035em;
+}
+.image-detail-mood-strength{white-space:nowrap;color:#b9bec8;font-size:11px;font-weight:560}
+
 .image-detail-card .detail-card-header {
   display:flex;align-items:center;justify-content:space-between;
   margin:0 0 12px;gap:12px;

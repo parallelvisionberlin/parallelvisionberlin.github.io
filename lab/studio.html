@@ -55,8 +55,8 @@ document.addEventListener('DOMContentLoaded',()=>{
 <link rel="stylesheet" href="./image-studio.css?v=20261009-strength1">
 <link rel="stylesheet" href="./moods.css?v=20261010-moods1">
 <link rel="stylesheet" href="./detail-video-studio.css?v=20261009-pointer1">
-<link rel="stylesheet" href="./editorial-polish.css?v=20261010-image-preparing1">
-<script type="module" src="./lab.js?v=20261010-moods-seedream-batch1&wallet=1"></script>
+<link rel="stylesheet" href="./editorial-polish.css?v=20261010-mood-details1">
+<script type="module" src="./lab.js?v=20261010-mood-details1&wallet=1"></script>
 <link rel="stylesheet" href="./credits.css?v=20261010-commercial1">
 <link rel="stylesheet" href="./higgsfield.css?v=20261010-compact-image-prompt1">
 <link rel="stylesheet" href="./assets.css?v=20261010-submit-feedback1">
@@ -194,9 +194,13 @@ document.addEventListener('DOMContentLoaded',()=>{
         <button id="image-lightbox-close" type="button" aria-label="Close image viewer" title="Close image viewer">×</button>
       </div>
       <div class="image-detail-inspector-scroll">
-        <section class="image-detail-card image-detail-prompt-card" aria-label="Prompt and references">
-          <div class="detail-card-header">
-            <span class="detail-label">Prompt</span>
+        <section class="image-detail-card image-detail-prompt-card" aria-label="Creative direction and source image">
+          <div id="image-detail-mood-feature" class="image-detail-mood-feature" hidden>
+            <div><span class="image-detail-mood-kicker">MOOD</span><strong id="image-detail-mood-name"></strong></div>
+            <span id="image-detail-mood-strength" class="image-detail-mood-strength"></span>
+          </div>
+          <div class="detail-card-header" id="image-detail-prompt-header">
+            <span class="detail-label" id="image-detail-prompt-heading">Prompt</span>
             <button id="image-detail-copy" class="detail-inline-button" type="button">Copy <span aria-hidden="true">⧉</span></button>
           </div>
           <div id="image-detail-reference-wrap" class="image-detail-reference-wrap" hidden>

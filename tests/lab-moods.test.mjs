@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {MOODS,MOOD_MODELS,moodById,prepareMoodPrompt} from '../lab/moods.js';
+import {MOODS,MOOD_MODELS,moodById,prepareMoodPrompt,userFacingImagePrompt,imageHistoryCaption} from '../lab/moods.js';
+import {readFileSync} from 'node:fs';
 
 test('exactly ten unique curated moods with imagery',()=>{
   assert.equal(MOODS.length,10);
@@ -34,4 +35,29 @@ test('mood alone needs either a source or a subject; long prompts are blocked',(
 });
 test('clear mood returns the unmodified original prompt',()=>{
   assert.deepEqual(prepareMoodPrompt('  portrait  ','',50),{prompt:'portrait',metadata:{},error:''});
+});
+
+test('Moods show only the user-authored direction, never compiled provider instructions',()=>{
+  const settings={moodId:'hong-kong-nights',moodIntensity:90,moodOriginalPrompt:'Portrait beside a window',
+    prompt:'Portrait beside a window\n\nPV LAB MOOD / Hong Kong Nights: internal art direction'};
+  assert.equal(userFacingImagePrompt(settings),'Portrait beside a window');
+  assert.equal(imageHistoryCaption(settings),'Hong Kong Nights · Portrait beside a window');
+  assert.equal(userFacingImagePrompt({...settings,moodOriginalPrompt:''}),'');
+  assert.equal(imageHistoryCaption({...settings,moodOriginalPrompt:''}),'Hong Kong Nights');
+  assert.equal(userFacingImagePrompt({...settings,moodOriginalPrompt:undefined}),'Portrait beside a window');
+});
+test('Older Moods prompts are not exposed in the viewer or history',()=>{
+  assert.equal(userFacingImagePrompt({prompt:'PV LAB MOOD / Hong Kong Nights: secret directions'}),'');
+  assert.equal(userFacingImagePrompt({prompt:'My photograph\n\nPV LAB MOOD / Hong Kong Nights: secret directions'}),'My photograph');
+  assert.equal(imageHistoryCaption({prompt:'Normal text-only image'}),'Normal text-only image');
+  assert.equal(userFacingImagePrompt({moodId:'unlisted',prompt:'private prompt'}),'');
+});
+test('Image viewer, Copy and History render the public-facing prompt only',()=>{
+  const js=readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8');
+  const html=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
+  assert.match(js,/const mood=moodById\(params.moodId\),promptText=userFacingImagePrompt\(params\)/);
+  assert.match(js,/const text=userFacingImagePrompt\(imageDetailJob.settings\)/);
+  assert.match(js,/image\?imageHistoryCaption\(j.settings\)/);
+  assert.match(html,/id="image-detail-mood-feature"/);
+  assert.match(html,/id="image-detail-prompt-header"/);
 });
