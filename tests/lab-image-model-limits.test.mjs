@@ -16,6 +16,7 @@ test('Kling validates decimal file limit, resolution and ratio', () => {
   assert.match(modelImageInputIssue('kling',[image(MiB,240,800)]),/Minimum 300/);
   assert.match(modelImageInputIssue('kling',[image(MiB,800,300)]),/aspect ratios/);
   assert.equal(modelImageInputIssue('kling',[image(MiB,500,300)]),'');
+  assert.match(modelImageInputIssue('kling',[{file:{size:MiB,name:'already-loaded.jpg'},ref:{width:240,height:800}}]),/Minimum 300/);
 });
 test('Nano Banana Pro validates combined inline and batch limits', () => {
   assert.equal(modelImageInputIssue('gemini',[image(14*MiB)]),'');
