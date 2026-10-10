@@ -160,6 +160,10 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
   const summary=panel.querySelector('#composer-moods-summary');
   const hint=panel.querySelector('#composer-moods-compat');
   const switcher=panel.querySelector('#composer-moods-switch');
+  const done=panel.querySelector('#composer-moods-done');
+  const clearButton=panel.querySelector('#composer-moods-none');
+  const aboutButton=panel.querySelector('#composer-moods-about');
+  const aboutDetails=panel.querySelector('#composer-moods-explanation');
   let selected=null,intensity=60,category='All';
   const tabs=new Map(),cards=new Map();
   for(const name of ['All','Cinema','Fashion','Analog','Experimental']){
@@ -183,16 +187,27 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
     for(const mood of MOODS){const card=cards.get(mood.id);card.hidden=category!=='All'&&category!==mood.category;card.classList.toggle('is-selected',mood.id===selected);card.setAttribute('aria-pressed',String(mood.id===selected));}
     slider.value=String(intensity);slider.style.setProperty('--moods-progress',((intensity-1)/99*100).toFixed(2)+'%');slider.disabled=!selected;amount.textContent=intensity+'%';
     const chosen=moodById(selected);
-    summary.textContent=chosen?chosen.name+' / '+(intensity<=34?'Subtle':intensity>=76?'Strong':'Balanced'):'No mood selected';
+    summary.textContent=chosen?chosen.name:'Select a mood';
     const compatible=MOOD_MODELS.includes(getEngine());
-    hint.textContent=compatible?'AI styling may change details. Reference preservation is guidance, not a guarantee.':'Switch to Seedream or Nano Banana Pro to use a mood.';
+    hint.textContent=compatible?'':'This image model does not support Moods. Switch to Seedream or Nano Banana Pro.';
+    hint.hidden=compatible;
     switcher.hidden=compatible;
+    switcher.disabled=!chosen;
+    done.hidden=!compatible;
+    done.disabled=!chosen;
+    clearButton.disabled=!chosen;
     button.textContent=chosen?'✦ '+chosen.name:'✦ Moods';
     button.classList.toggle('is-mood-selected',!!chosen);
     button.setAttribute('aria-expanded',String(!panel.hidden));
   }
-  function close(){panel.hidden=true;button.setAttribute('aria-expanded','false');}
-  function open(){if(button.disabled)return;onOpen();panel.hidden=false;render();panel.querySelector('#composer-moods-title')?.focus();}
+  function closeAbout(restoreFocus=false){
+    if(aboutDetails.hidden)return;
+    aboutDetails.hidden=true;
+    aboutButton.setAttribute('aria-expanded','false');
+    if(restoreFocus&&!panel.hidden)aboutButton.focus();
+  }
+  function close(){closeAbout();panel.hidden=true;button.setAttribute('aria-expanded','false');}
+  function open(){if(button.disabled)return;onOpen();closeAbout();panel.hidden=false;render();panel.querySelector('#composer-moods-title')?.focus();}
   function clear(silent=false){selected=null;intensity=60;close();render();if(!silent)onChange();}
   function restore(settings,silent=false){selected=moodById(settings?.moodId)?.id||null;intensity=Math.min(100,Math.max(1,Number(settings?.moodIntensity)||60));close();render();if(!silent)onChange();}
   function enrich(prompt,options={}){return prepareMoodPrompt(prompt,selected,intensity,options);}
@@ -201,8 +216,23 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
   slider.addEventListener('input',()=>{intensity=Number(slider.value);render();onChange();});
   button.onclick=()=>{if(panel.hidden)open();else close();};
   panel.querySelector('#composer-moods-close').onclick=close;
-  panel.querySelector('#composer-moods-done').onclick=close;
-  panel.querySelector('#composer-moods-none').onclick=()=>clear();
+  done.onclick=close;
+  clearButton.onclick=()=>clear();
+  aboutButton.addEventListener('click',()=>{
+    const opening=aboutDetails.hidden;
+    aboutDetails.hidden=!opening;
+    aboutButton.setAttribute('aria-expanded',String(opening));
+  });
+  panel.addEventListener('click',event=>{
+    if(!event.target.closest('.moods-about'))closeAbout();
+  });
+  panel.addEventListener('keydown',event=>{
+    if(event.key==='Escape'&&!aboutDetails.hidden){
+      event.preventDefault();
+      event.stopPropagation();
+      closeAbout(true);
+    }
+  });
   switcher.onclick=()=>{chooseEngine('seedream');render();onChange();};
   render();
   return {active:()=>!!selected,selected:()=>selected,intensity:()=>intensity,enrich,error,
