@@ -513,3 +513,72 @@ body:has(#app[hidden])>#studio-header .tool-switch{display:none}
 #app #history .submission-dismiss{padding:4px 8px;background:transparent;border:0;color:#bfc1c6;font:inherit;font-size:12px;text-decoration:underline;text-underline-offset:3px}
 #app #history .submission-card[aria-busy="false"] .submission-mark{display:none;animation:none}
 @media(prefers-reduced-motion:reduce){#app #history .submission-mark{animation:none}}
+
+
+/* Upscaler deck V2. Only Upscale changes. Reuses existing form controls and paid quote logic. */
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls{
+  display:grid;grid-template-columns:minmax(0,3fr) minmax(0,1.18fr) minmax(0,.85fr) minmax(150px,1.22fr);
+  column-gap:12px;row-gap:9px;align-items:end;padding:12px 14px;border-radius:13px;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.controls-body,
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls>.generate-zone{
+  display:contents!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-model-control{
+  order:0;grid-column:1;display:flex;gap:8px;align-items:end;min-width:0;margin:0;
+}
+#app.upscale-studio-active #upscale-model-control>label{min-width:0}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .controls-body>.parameter-grid{
+  order:0;grid-column:2;display:flex;width:100%;min-width:0;gap:0;margin:0;
+}
+#app.upscale-studio-active .controls-body>.parameter-grid>label:not([hidden]){flex:1 1 auto;min-width:0}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #format-control{
+  order:0;grid-column:3;min-width:0;width:100%;margin:0;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #generate{
+  order:0;grid-column:4;width:100%;min-width:0;min-height:42px;height:42px;max-height:42px;
+  margin:0;font-size:13px;line-height:1.2;border-radius:9px;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-notice-slot{
+  order:1;grid-column:1/-1;min-width:0;width:100%;margin:1px 0 0;
+}
+#app.upscale-studio-active #upscale-notice-slot #notice{padding:8px 11px;border-radius:8px}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-info{
+  order:2;grid-column:1/-1;width:100%;min-width:0;margin:0;padding:1px 0 0;border:0;
+  background:transparent;font:400 11px/1.5 'DM Sans',sans-serif;
+}
+#app.upscale-studio-active #upscale-info summary{
+  display:inline-flex;align-items:center;min-height:20px;padding:0;
+  font-size:11px;line-height:1.5;color:#a6a9b3;
+}
+#app.upscale-studio-active #upscale-info[open]{padding:8px 0 3px;border-top:1px solid #33363e}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-price{
+  order:3;grid-column:1/-1;display:none!important;width:100%;min-width:0;
+  margin:0;padding:9px 0 0;border-top:1px solid #33363e;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .controls:has(#upscale-info[open]) #upscale-price:not([hidden]){
+  display:flex!important;align-items:center;flex-wrap:wrap;gap:8px 12px;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #save{
+  order:4;grid-column:1/-1;display:none!important;width:100%;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .controls:has(#upscale-info[open]) #save:not(:disabled){
+  display:block!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #generation-help,
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #start-mode{display:none!important}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .controls .label{
+  margin-bottom:5px;font-size:11px;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .controls select{
+  height:42px;min-height:42px;
+}
+@media(max-width:890px){
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls{
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:9px 11px;
+  }
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-model-control{grid-column:1/-1}
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .controls-body>.parameter-grid{grid-column:1}
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #format-control{grid-column:2}
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #generate{grid-column:1/-1}
+}

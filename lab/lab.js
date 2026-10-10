@@ -199,6 +199,7 @@ function updateUpscalePrice(){
   if(upscaleManualReviewRequired&&upscaleManualReviewKey&&upscaleManualReviewKey!==key){upscaleManualReviewRequired=false;upscaleManualReviewKey='';upscaleQuoteNeedsCheck=false;upscalePriceMessage='Settings changed. A fresh estimate will be checked automatically when you upscale.';}
   if(upscaleQuote&&upscaleQuote.key!==key)invalidateUpscalePrice(fal?'Image or settings changed. A fresh estimate will be checked automatically when you upscale.':'Image or settings changed. Check live price again before upscaling.');
   if(upscaleQuote&&Date.now()>=upscaleQuote.quote.expiresAt)expireUpscalePrice(fal?'Estimate expired. A fresh estimate will be checked when you upscale.':'Live quote expired. A fresh price will be checked when you upscale.');
+  if(active&&(upscaleQuoteNeedsCheck||upscaleManualReviewRequired))$('upscale-info').open=true;
   $('upscale-check-price').disabled=!active||!owner||!file||busy||!(fal?config.falEnabled:config.enabled);
   $('upscale-check-price').textContent=fal?(upscaleQuoteNeedsCheck?'Check price & size again':'Check price & size'):(upscaleQuoteNeedsCheck?'Check live price again':'Check live price');
   const q=upscaleQuote?.quote;
