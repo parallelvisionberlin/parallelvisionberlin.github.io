@@ -50,7 +50,7 @@ async function open(width,height){
     return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(content)});
   });
   await page.goto('http://127.0.0.1:4182/lab/studio.html');
-  await page.waitForFunction(()=>window.__layoutTest===true);
+  await page.waitForFunction(()=>window.__layoutTest===true,{timeout:30000}).catch(e=>{console.error('STUDIO_BOOT_DIAGNOSTICS',JSON.stringify({errors,body:page.url()}));throw e;});
   return {page,context,errors};
 }
 try{
