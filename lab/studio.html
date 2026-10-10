@@ -144,13 +144,18 @@ document.addEventListener('DOMContentLoaded',()=>{
       <div class="precision-tool-size"><label for="precision-brush-size">Brush</label><input id="precision-brush-size" type="range" min="4" max="100" value="25"><output id="precision-size-label">25</output></div>
     </div>
     <div class="precision-deck">
-      <div class="precision-deck-copy"><label for="precision-prompt">EDIT DIRECTION</label><textarea id="precision-prompt" rows="2" maxlength="5000" placeholder="Describe what should change in the selected area..."></textarea></div>
+      <div class="precision-deck-copy">
+        <label for="precision-prompt">EDIT DIRECTION</label>
+        <textarea id="precision-prompt" rows="2" maxlength="5000" placeholder="Describe what should change in the selected area..."></textarea>
+      </div>
       <div class="precision-bottom">
-        <div class="precision-status"><strong>Precision Edit <span>/ FLUX Inpainting</span></strong><span id="precision-price-note">Magic Select approx. $0.005 per click. FLUX price checked before generation.</span></div>
         <div class="precision-strength"><label for="precision-strength">Edit strength</label><input id="precision-strength" type="range" min=".3" max="1" step=".05" value=".75"><output id="precision-strength-value">0.75</output></div>
         <button id="precision-generate" type="button" disabled>Review price <span aria-hidden="true">↗</span></button>
       </div>
-      <p id="precision-status-text" class="precision-status-text" role="status" aria-live="polite"></p>
+      <div class="precision-deck-meta">
+        <div class="precision-status"><strong>Precision Edit <span>/ FLUX Inpainting</span></strong><span id="precision-price-note">Magic Select approx. $0.005 per click · Price checked before generation</span></div>
+        <p id="precision-status-text" class="precision-status-text" role="status" aria-live="polite"></p>
+      </div>
     </div>
     <div id="precision-price-review" class="precision-price-review" role="dialog" aria-modal="false" aria-labelledby="precision-review-title" hidden>
       <strong id="precision-review-title">Review Precision Edit</strong><p id="precision-review-body"></p><div class="precision-price-actions"><button id="precision-review-cancel" type="button">Cancel</button><button id="precision-review-confirm" type="button">Generate image</button></div>
