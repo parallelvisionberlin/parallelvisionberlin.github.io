@@ -631,8 +631,11 @@ function syncImageComposer(){
     else if(moodUI.invalid(imageEngine,$('prompt').value,references.length,imageReferenceMode))message=moodUI.error(imageEngine,$('prompt').value,references.length,imageReferenceMode);
     else if(!$('prompt').value.trim())message='';
   }
-  block.hidden=!message;reason.textContent=message;review.hidden=!queueBlocked;
-  generate.title=message||(isSoul2()?'Review the live Higgsfield price before any charge. PV Soul accepts one base image and one optional trained Soul ID; use Seedream for multiple reference photos.':'');
+  // A blocked/uncertain queue belongs in the top navigation Queue popover, not as a third row in the image deck.
+  // Keep generation disabled until reviewed, and preserve the reason in the button tooltip.
+  const inlineMessage=queueBlocked?'':message;
+  block.hidden=!inlineMessage;reason.textContent=inlineMessage;review.hidden=true;
+  generate.title=message?(message+(queueBlocked?' Open Queue at the top right to review it.':'')):(isSoul2()?'Review the live Higgsfield price before any charge. PV Soul accepts one base image and one optional trained Soul ID; use Seedream for multiple reference photos.':'');
   syncImageReferences();
   fitImageComposerPrompt();
   syncImageGalleryEmpty();
@@ -1316,6 +1319,10 @@ function setActiveJobs(list){
     uncertainCount?uncertainCount+' to review':''
   ].filter(Boolean).join(' · ')||'0 jobs';
   $('active').classList.toggle('has-uncertain',uncertainCount>0);
+  const queueSummary=$('active').querySelector('summary');
+  const queueHint=uncertainCount?uncertainCount+' interrupted request'+(uncertainCount===1?'':'s')+'. Open Queue to review before submitting another generation.':activeJobs.length?activeJobs.length+' generation request'+(activeJobs.length===1?'':'s')+' in Queue.':'Show live generation queue';
+  queueSummary.title=queueHint;
+  queueSummary.setAttribute('aria-label',queueHint);
   if(!activeJobs.length)$('active').open=false;
   const saving=activeJobs.filter(j=>j.status==='saving').length;
   const batchImages=activeJobs.filter(j=>slotStates.has(j.status)&&j.settings?.type==='image'&&jobProvider(j)==='gemini'&&j.settings?.processing==='batch').length;
