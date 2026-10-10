@@ -5,7 +5,7 @@ import {readFileSync} from 'node:fs';
 
 test('exactly eleven unique curated moods with imagery',()=>{
   assert.equal(MOODS.length,11);
-  assert.equal(new Set(MOODS.map(m=>m.id)).size,10);
+  assert.equal(new Set(MOODS.map(m=>m.id)).size,11);
   for(const mood of MOODS)for(const field of ['name','category','preview','direction','subtle','intense','avoid'])assert.ok(mood[field]);
 });
 test('only explicitly compatible image engines receive moods',()=>{
