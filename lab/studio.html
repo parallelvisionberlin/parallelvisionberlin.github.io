@@ -54,10 +54,10 @@ document.addEventListener('DOMContentLoaded',()=>{
 <link rel="stylesheet" href="./studio.css?v=20261010-upscale-inline-final2">
 <link rel="stylesheet" href="./image-studio.css?v=20261009-strength1">
 <link rel="stylesheet" href="./precision-edit.css?v=20261010-editarea1">
-<link rel="stylesheet" href="./moods.css?v=20261010-intensity-bar2">
+<link rel="stylesheet" href="./moods.css?v=20261010-mood-footer3">
 <link rel="stylesheet" href="./detail-video-studio.css?v=20261009-pointer1">
 <link rel="stylesheet" href="./editorial-polish.css?v=20261010-mood-details1">
-<script type="module" src="./lab.js?v=20261010-intensity-bar2&wallet=1&fashiondeck=1"></script>
+<script type="module" src="./lab.js?v=20261010-mood-footer3&wallet=1&fashiondeck=1"></script>
 <link rel="stylesheet" href="./credits.css?v=20261010-referrals3">
 <link rel="stylesheet" href="./higgsfield.css?v=20261010-compact-image-prompt1">
 <link rel="stylesheet" href="./assets.css?v=20261010-reference-flow2">
@@ -170,9 +170,29 @@ document.addEventListener('DOMContentLoaded',()=>{
       <div id="composer-moods-filters" class="moods-filters" aria-label="Mood categories"></div>
       <div id="composer-moods-grid" class="moods-grid" aria-label="Available moods"></div>
       <div class="moods-footer">
-        <strong id="composer-moods-summary" class="moods-selected">No mood selected</strong>
-        <div class="moods-strength"><label for="composer-moods-intensity">Intensity</label><input id="composer-moods-intensity" type="range" min="1" max="100" step="1" value="60"><output id="composer-moods-amount" for="composer-moods-intensity">60%</output></div>
-        <div class="moods-bottom"><p id="composer-moods-compat">AI styling may change details of your original image.</p><div class="moods-actions"><button id="composer-moods-switch" type="button" hidden>Use Seedream</button><button id="composer-moods-none" type="button">Clear</button><button id="composer-moods-done" type="button">Use mood</button></div></div>
+        <div class="moods-footer-heading">
+          <div class="moods-current"><span class="moods-current-label">Selected mood</span><strong id="composer-moods-summary" class="moods-selected">Select a mood</strong></div>
+          <div class="moods-about">
+            <button id="composer-moods-about" type="button" aria-expanded="false" aria-controls="composer-moods-explanation"><span class="moods-info-icon" aria-hidden="true">i</span>About moods</button>
+            <div id="composer-moods-explanation" class="moods-about-popover" role="note" hidden>
+              <strong>How moods work</strong>
+              <p>Moods guide the image model with an art direction rather than applying a pixel filter. Visual details can change; preserving identity, pose and composition from a reference is guidance, not a guarantee.</p>
+            </div>
+          </div>
+        </div>
+        <div class="moods-controls">
+          <div class="moods-strength">
+            <div class="moods-strength-header"><label for="composer-moods-intensity">Intensity</label><output id="composer-moods-amount" for="composer-moods-intensity">60%</output></div>
+            <input id="composer-moods-intensity" type="range" min="1" max="100" step="1" value="60">
+            <div class="moods-scale" aria-hidden="true"><span>Subtle</span><span>Balanced</span><span>Strong</span></div>
+          </div>
+          <div class="moods-actions">
+            <button id="composer-moods-switch" type="button" hidden>Use Seedream <span aria-hidden="true">→</span></button>
+            <button id="composer-moods-done" type="button">Use mood <span aria-hidden="true">→</span></button>
+            <button id="composer-moods-none" type="button">Clear selection</button>
+          </div>
+        </div>
+        <p id="composer-moods-compat" class="moods-compat" role="status" hidden></p>
       </div>
     </section>
     <section id="composer-library" class="composer-library" aria-label="Saved characters and references" hidden>
