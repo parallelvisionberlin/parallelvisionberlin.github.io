@@ -34,6 +34,8 @@ export function normalizeReferenceLabel(x){
 export function referenceGuidanceError(labels){
   if(labels.filter(r=>r.role==='base').length>1)return 'Choose one Base image. Assign the other references only the properties to copy.';
   if(labels.findIndex(r=>r.role==='base')>0)return 'Move the Base image to Reference 1. The first image also controls the automatic aspect ratio.';
+  const missing=labels.findIndex(r=>!r.role||r.role==='none');
+  if(missing>=0)return 'Choose a role for Reference '+(missing+1)+' before generating. Unassigned photos must not influence a paid generation.';
   for(let i=0;i<labels.length;i++){
     const r=labels[i];
     if(r.role==='detail'&&!r.target)return 'Choose a detail for Reference '+(i+1)+'.';

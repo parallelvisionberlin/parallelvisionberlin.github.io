@@ -709,3 +709,59 @@ body:has(#app[hidden])>#studio-header .tool-switch{display:none}
   #app.upscale-studio-active .canvas,
   #app.upscale-studio-active #upscale-info summary::after{transition:none}
 }
+
+
+/* PV Lab reference intent chooser: floats over the gallery, never adds a permanent deck row. */
+#image-composer .reference-intent-toggle[hidden],
+#image-composer .composer-reference-intent[hidden],
+#image-composer #image-reference-mode-wrap[hidden]{display:none!important}
+#image-composer .reference-intent-toggle.needs-roles{
+  border-color:#af8c60;background:#342c25;color:#f2d4a6;
+}
+#image-composer .composer-reference-intent{
+  position:absolute;left:0;bottom:calc(100% + 12px);z-index:150;
+  display:flex;flex-direction:column;gap:14px;box-sizing:border-box;
+  width:min(650px,calc(100vw - 40px));max-height:min(70dvh,510px);
+  padding:20px;border:1px solid #55504b;border-radius:19px;
+  background:linear-gradient(142deg,#252625,#191a1b);
+  box-shadow:0 22px 88px #000c;color:#f3f1ed;overflow:auto;
+  scrollbar-width:thin;scrollbar-color:#66615b transparent;
+}
+#image-composer .reference-intent-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:20px}
+#image-composer .reference-intent-heading>div{min-width:0}
+#image-composer .reference-intent-kicker{display:block;font-size:10px;font-weight:600;letter-spacing:.14em;color:#a4a49f}
+#image-composer .reference-intent-heading strong{display:block;margin:8px 0 5px;font-size:20px;line-height:1.18;font-weight:590;letter-spacing:-.045em;color:#f5f3f0}
+#image-composer .reference-intent-heading p{margin:0;color:#a9aaa5;font-size:11px;line-height:1.4}
+#image-composer #composer-reference-intent-close{
+ flex:0 0 29px;width:29px;height:29px;min-height:29px;padding:0;
+ border:1px solid #454643;border-radius:50%;background:#303130;
+ color:#c9cac6;font-size:20px;line-height:1
+}
+#image-composer #composer-reference-intent-close:hover{background:#424340}
+#image-composer .reference-intent-choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+#image-composer .reference-intent-choice{
+ display:flex;flex-direction:column;align-items:flex-start;min-width:0;gap:5px;
+ min-height:128px;padding:14px 13px;border:1px solid #454541;border-radius:11px;
+ background:#232424;color:#eee;text-align:left;box-shadow:none;
+ transition:border-color .16s ease,background .16s ease
+}
+#image-composer .reference-intent-choice:hover{border-color:#aaa49b;background:#2d2e2c}
+#image-composer .reference-intent-choice[aria-pressed="true"]{border-color:#e0ba80;background:#373127}
+#image-composer .reference-intent-number{font-size:9px;font-weight:650;letter-spacing:.12em;color:#afafa9}
+#image-composer .reference-intent-choice[aria-pressed="true"] .reference-intent-number{color:#e6bc7f}
+#image-composer .reference-intent-choice strong{margin-top:5px;font-size:13px;line-height:1.25;font-weight:620;color:#f3f1ed}
+#image-composer .reference-intent-choice small{font-size:10.5px;line-height:1.45;color:#aaa9a3}
+#image-composer .reference-intent-help{margin:0;color:#a9aaa5;font-size:10.5px;line-height:1.5}
+#image-composer .composer-reference-tile.role-unassigned{
+ border-color:#c59c69;box-shadow:0 0 0 1px #c59c6955;
+}
+#image-composer .composer-reference-tile.role-unassigned .composer-reference-role{
+ background:#493721;color:#f6dbb5;font-weight:720;font-size:8.5px;
+}
+@media(max-width:710px){
+ #image-composer .composer-reference-intent{width:calc(100vw - 32px);left:50%;transform:translateX(-50%);padding:15px;max-height:min(67dvh,530px)}
+ #image-composer .reference-intent-choices{grid-template-columns:1fr;gap:7px}
+ #image-composer .reference-intent-choice{min-height:0;padding:12px 13px;gap:4px}
+ #image-composer .reference-intent-choice strong{margin-top:1px}
+ #image-composer .reference-intent-heading strong{font-size:18px}
+}
