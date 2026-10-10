@@ -1,0 +1,46 @@
+name: One-time Fashion box radius Pages build
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/pv-fashion-boxes-pages-build.yml'
+permissions:
+  contents: read
+  pages: write
+jobs:
+  verify-live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Show latest Pages revision
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api "repos/${GITHUB_REPOSITORY}/pages/builds/latest" --jq '{status,commit,created_at,error}' || true
+          gh api "repos/${GITHUB_REPOSITORY}/commits/main" --jq '.sha'
+      - name: Request new Pages build
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api --method POST "repos/${GITHUB_REPOSITORY}/pages/builds" --jq '{status,url}'
+      - name: Verify live corrected photo panel version
+        shell: bash
+        run: |
+          set -euo pipefail
+          for n in $(seq 1 25); do
+            curl -fsS --max-time 15 -H 'Cache-Control: no-cache' \
+              "https://parallelvisionlabel.com/lab/fashion.html?boxes-check=${n}" -o /tmp/fashion.html
+            if grep -Fq 'fashion.css?v=20261010-box-radius01' /tmp/fashion.html; then
+              grep -Fq 'class="image-slot" id="person-slot"' /tmp/fashion.html
+              grep -Fq 'class="image-slot" id="garment-slot"' /tmp/fashion.html
+              grep -Fq 'id="result-stage"' /tmp/fashion.html
+              grep -Fq '<path d="M25 24h55v72H25Z"/>' /tmp/fashion.html
+              curl -fsS --max-time 15 'https://parallelvisionlabel.com/lab/fashion.css?v=20261010-box-radius01' -o /tmp/fashion.css
+              grep -Fq 'border-radius:14px;' /tmp/fashion.css
+              echo 'LIVE PASS: three rounded large photo boxes; no circular icon badges.'
+              exit 0
+            fi
+            echo "Waiting for GitHub Pages (${n}/25)"
+            sleep 7
+          done
+          echo 'New Fashion photo box layout not yet published.'
+          exit 1
