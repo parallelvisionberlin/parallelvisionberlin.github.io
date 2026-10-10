@@ -40,7 +40,7 @@ let number=1,paidJobs=0;
 page.on('pageerror',e=>errors.push(e.message));
 const id=()=> '20000000-0000-4000-8000-'+String(number++).padStart(12,'0');
 await context.route('https://**/*',async route=>{
- const req=route.request(),url=new URL(req.url);if(!url.href.startsWith('https://parallel-vision-lab.parallelvision.workers.dev'))return route.abort();
+ const req=route.request(),url=new URL(req.url());if(!url.href.startsWith('https://parallel-vision-lab.parallelvision.workers.dev'))return route.abort();
  const path=url.pathname,data=req.headers()['content-type']?.includes('application/json')?req.postDataJSON():{};
  requests.push({path,data});
  const send=(x,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(x)});
