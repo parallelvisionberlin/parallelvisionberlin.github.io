@@ -1,11 +1,12 @@
 /* PV Lab Precision Edit. Scoped to Image Studio; no changes to other decks. */
+.precision-workspace [hidden]{display:none!important}
 #image-studio.is-precision-active>.image-gallery-shell,
 #image-studio.is-precision-active>#image-composer{display:none!important}
 #image-studio.is-precision-active>#precision-workspace:not([hidden]){display:flex!important}
 #image-studio #precision-workspace[hidden]{display:none!important}
 .precision-workspace{
   --pe-accent:#d6ff00;--pe-bg:#191a1d;--pe-edge:#36383f;
-  display:flex;flex-direction:column;gap:12px;width:100%;
+  position:relative;display:flex;flex-direction:column;gap:12px;width:100%;
   min-height:calc(100dvh - 120px);margin:0 auto;padding:19px 0 30px;
   color:#f2f2f2;font-family:'DM Sans',system-ui,sans-serif;
 }
