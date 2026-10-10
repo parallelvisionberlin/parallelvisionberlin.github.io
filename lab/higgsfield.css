@@ -59,10 +59,29 @@
 
 /* Reference-guided models: all uploads stay visible, the prompt has its own row. */
 #image-composer:not(.is-pv-soul) .image-composer-top{flex-direction:column;align-items:stretch;gap:9px;min-height:0}
-#image-composer:not(.is-pv-soul) .image-composer-references{flex:initial;max-width:none;width:100%;flex-wrap:wrap;overflow:visible;padding:2px 5px 4px;gap:10px}
+#image-composer:not(.is-pv-soul) .image-composer-references{flex:initial;max-width:none;width:100%;max-height:92px;flex-wrap:wrap;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;padding:9px 9px 4px;gap:10px;scrollbar-width:thin;scrollbar-color:#62666d transparent}
 #image-composer:not(.is-pv-soul) .composer-reference-tile{flex-basis:58px;width:58px;height:62px;overflow:visible}
 #image-composer .composer-reference-role{position:absolute;left:0;bottom:0;box-sizing:border-box;width:100%;height:22px;min-height:22px;border:0;border-radius:0 0 7px 7px;padding:2px 3px;background:#161818e8;color:#fff;font-size:9px;line-height:1;cursor:pointer}
-#image-composer #image-composer-prompt{overflow:hidden;resize:none;min-height:42px;max-height:none}
+/* Long pasted prompts scroll inside the input instead of growing the entire
+   dock over the image results. A separate height cap keeps Generate visible. */
+#image-composer #image-composer-prompt{
+  box-sizing:border-box;resize:none;min-height:42px;
+  max-height:min(176px,25dvh);
+  overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;
+  overflow-wrap:anywhere;white-space:pre-wrap;
+  scrollbar-width:thin;scrollbar-color:#666a72 transparent;
+  font-size:13px!important;line-height:1.55!important;
+}
+#image-composer #image-composer-prompt::-webkit-scrollbar{width:6px}
+#image-composer #image-composer-prompt::-webkit-scrollbar-thumb{background:#63666d;border-radius:8px}
+@media(max-width:740px){
+  #image-composer #image-composer-prompt{max-height:min(122px,22dvh);min-height:47px;font-size:12px!important}
+  #image-composer:not(.is-pv-soul) .image-composer-references{max-height:73px;gap:7px}
+}
+@media(max-height:640px){
+  #image-composer #image-composer-prompt{max-height:min(104px,21dvh)}
+  #image-composer:not(.is-pv-soul) .image-composer-references{max-height:74px}
+}
 #image-composer:not(.is-pv-soul) .image-composer-toolbar{margin-top:6px}
 #image-composer #composer-generation-block[hidden]{display:none!important;margin:0!important;padding:0!important}
 #image-composer:not(.is-pv-soul) #image-composer-prompt{flex:none;box-sizing:border-box}
