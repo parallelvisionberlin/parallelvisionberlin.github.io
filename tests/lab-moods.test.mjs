@@ -25,7 +25,7 @@ test('mood intensity actually affects the generated directions',()=>{
   const low=prepareMoodPrompt('portrait','kodak-gold',10);
   const high=prepareMoodPrompt('portrait','kodak-gold',90);
   assert.notEqual(low.prompt,high.prompt);
-  assert.match(low.prompt,/golden highlights/i);
+  assert.match(low.prompt,/golden color-negative print influence/i);
   assert.match(high.prompt,/visibly organic 35mm grain/i);
 });
 test('mood alone needs either a source or a subject; long prompts are blocked',()=>{
