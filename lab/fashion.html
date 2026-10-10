@@ -10,8 +10,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Bodoni+Moda:ital,opsz,wght@1,6..96,400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./fashion.css?v=20261010-box-radius01">
-<script type="module" src="./fashion.js?v=20261009-atelier01"></script>
+<link rel="stylesheet" href="./fashion.css?v=20261010-gallery01">
+<script type="module" src="./fashion.js?v=20261010-gallery01"></script>
 </head>
 <body>
 <a class="skip" href="#content">Skip to studio</a>
@@ -144,11 +144,15 @@
     <button type="button" id="download" hidden>Download ↓</button>
     <a href="./studio.html?tool=image">Image Studio ↗</a>
    </div>
-   <section class="recent-work" aria-label="Private fashion archive">
-    <div class="section-header"><h2>PRIVATE ARCHIVE</h2><button id="refresh-history" type="button">Refresh ↻</button></div>
-    <div id="fashion-history" class="history-list"></div>
-   </section>
   </aside>
+  <section class="fashion-gallery" id="fashion-gallery" aria-label="Fashion generation gallery">
+   <div class="fashion-gallery-head">
+    <div><p class="eyebrow">PRIVATE FASHION ARCHIVE</p><h2>Generations <span id="fashion-gallery-count" aria-live="polite"></span></h2></div>
+    <button id="refresh-history" type="button">Refresh <span aria-hidden="true">↻</span></button>
+   </div>
+   <div id="fashion-history" class="history-list" aria-live="polite"></div>
+   <button id="fashion-more" class="fashion-more" type="button" hidden>Load earlier generations <span aria-hidden="true">↓</span></button>
+  </section>
  </section>
  <footer><span>PV LAB <span aria-hidden="true">/</span> FASHION</span><span>ART DIRECTION <span aria-hidden="true">/</span> PARALLEL VISION</span></footer>
 </main>
