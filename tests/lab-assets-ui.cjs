@@ -413,4 +413,55 @@ assert.equal(await page.locator('#emptyarchive').textContent(),'Your upscaled im
 assert.deepEqual(errors,[]);
 console.log('PASS restored Upscaler gallery: only upscales, below deck, immediate results, archive behavior, full Assets and mobile');
 
+// Mixed portrait, landscape and video thumbnails fill the proportional cards.
+const layoutSizes=[[900,1200],[1600,900],[900,1600],[1200,900],[1200,1200],[800,1200]];
+const layoutImages=await page.evaluate(sizes=>sizes.map(([width,height],i)=>{
+  const canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;
+  const ctx=canvas.getContext('2d');ctx.fillStyle=['#b8b0a2','#615c58','#979384','#b9a88f','#777e7b','#8f8881'][i];ctx.fillRect(0,0,width,height);
+  ctx.fillStyle='#28282a';ctx.fillRect(width*.25,height*.12,width*.5,height*.77);
+  return canvas.toDataURL().split(',')[1];
+}),layoutSizes);
+jobs=layoutSizes.map(([width,height],i)=>({id:'layout-'+i,sourceId:'layout-source-'+i,outputId:'layout-output-'+i,status:'completed',createdAt:Date.now()-i*100,settings:{type:i===5?'video':'image',mode:i===5?'start':i===4?'upscale':'image',engine:'seedream',aspectRatio:width+':'+height,galleryDimensions:{assetId:'layout-output-'+i,width,height},resolution:'1k',prompt:'Mixed gallery proportions'}}));
+let releaseLayout;const layoutReady=new Promise(resolve=>releaseLayout=resolve);
+await page.route('**/api/assets/layout-*',async route=>{
+  await layoutReady;const i=Number(new URL(route.request().url()).pathname.split('-').at(-1));
+  return route.fulfill({contentType:'image/png',body:Buffer.from(layoutImages[i],'base64')});
+});
+await page.setViewportSize({width:1911,height:1000});
+await page.goto('http://127.0.0.1:8765/lab/studio.html?tool=assets');await page.waitForFunction(()=>window.__ready);
+await page.waitForFunction(()=>document.querySelectorAll('#history .card').length===6&&[...document.querySelectorAll('#history .card')].every(c=>c.style.width));
+const mediaGeometry=()=>page.locator('#history .card').evaluateAll(cards=>cards.filter(c=>c.querySelector(':scope>.history-media img')).map(card=>{
+  const rect=el=>{const r=el.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height};};
+  const figure=card.querySelector(':scope>.history-media'),img=figure.querySelector('img');
+  return {id:card.dataset.job,card:rect(card),figure:rect(figure),image:rect(img),ratio:Number(card.dataset.ratio),naturalRatio:img.naturalWidth/img.naturalHeight};
+}));
+const assertFills=(items,label)=>{
+  assert.ok(items.length>0,label+' has thumbnails');
+  for(const item of items){
+    for(const child of ['figure','image'])for(const key of ['x','y','width','height'])
+      assert.ok(Math.abs(item[child][key]-item.card[key])<.75,label+' '+item.id+' '+child+' '+key+' fills card: '+JSON.stringify(item));
+    assert.ok(Math.abs(item.card.width/item.card.height-item.ratio)<.005,label+' preserves each asset aspect ratio');
+  }
+};
+const pendingGeometry=await mediaGeometry();assertFills(pendingGeometry,'Loading Assets');
+assert.equal(await page.locator('#history img').evaluateAll(imgs=>imgs.every(img=>getComputedStyle(img).visibility==='hidden')),true);
+releaseLayout();
+await page.waitForFunction(()=>[...document.querySelectorAll('#history .history-media img')].every(i=>i.naturalWidth>0));
+assert.deepEqual((await mediaGeometry()).map(({card})=>card),pendingGeometry.map(({card})=>card),'Decoding does not move or resize cards');
+for(const width of [1911,1440,390,320]){
+  await page.setViewportSize({width,height:1000});
+  for(const section of ['assets','image','upscale']){
+    await page.click('#tool-'+section);
+    const count=section==='assets'?6:section==='image'?5:1;
+    await page.waitForFunction(n=>document.querySelectorAll('#history .card').length===n&&[...document.querySelectorAll('#history .history-media img')].every(i=>i.naturalWidth>0),count);
+    await page.waitForFunction(()=>[...document.querySelectorAll('#history .card')].every(c=>c.style.width));
+    const geometry=await mediaGeometry();assertFills(geometry,section+' at '+width);
+    assert.ok(geometry.every(g=>Math.abs(g.card.width/g.card.height-g.naturalRatio)<.005),'Full original image fits without cropping or empty image-size bands');
+    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'No overflow '+section+' at '+width);
+    if(section==='assets'&&(width===1911||width===390))console.log('ASSETS_MEDIA_FIT_'+width+'='+Buffer.from(await page.screenshot({type:'jpeg',quality:75,fullPage:true})).toString('base64'));
+  }
+}
+assert.deepEqual(errors,[]);
+console.log('PASS mixed-ratio Assets, Image and Upscaler: thumbnails fill their cards before and after decode at desktop and mobile widths');
+
 await browser.close();server.close();})().catch(e=>{console.error(e);server.close();process.exit(1)});
