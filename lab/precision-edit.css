@@ -129,6 +129,8 @@
   #precision-prompt{font-size:12px}
 }
 
+/* Retouch shares Image Studio's full-width canvas without resizing the global header. */
+body:has(#app.retouch-studio-active) #main.wrap{max-width:none;padding-inline:0}
 /* Keep independent Retouch workspace clear of the global Image deck layout. */
 @media(min-width:901px){
   #app.retouch-studio-active #precision-workspace{max-width:1920px}
