@@ -1,0 +1,52 @@
+/* Commercial Lab surfaces inherit the original editorial image-led landing style. */
+.lab-auth-link{font:500 12px/1.2 "DM Sans",Arial,sans-serif;letter-spacing:.02em;color:inherit;border:1px solid rgba(255,255,255,.42);background:rgba(12,12,12,.19);border-radius:100px;padding:11px 17px;cursor:pointer;text-decoration:none;white-space:nowrap;backdrop-filter:blur(12px)}
+.lab-auth-link:hover,.lab-auth-link:focus-visible{background:rgba(255,255,255,.17);border-color:rgba(255,255,255,.9)}
+.lab-account-strip{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;padding:22px clamp(22px,5vw,80px);background:#131413;color:#e8e7e4;border-top:1px solid #363737;border-bottom:1px solid #363737;font:400 13px/1.5 "DM Sans",Arial,sans-serif}
+.lab-account-strip strong{font-weight:500}
+.lab-account-strip[hidden],.lab-auth-link[hidden]{display:none!important}
+.lab-account-strip .lab-strip-actions{display:flex;flex-wrap:wrap;gap:10px}
+.lab-account-strip button,.lab-account-strip a{color:#eae9e4;border:1px solid #5a5b59;background:transparent;padding:10px 16px;border-radius:24px;font:inherit;cursor:pointer;text-decoration:none}
+.lab-account-strip button:hover,.lab-account-strip a:hover{border-color:#fff}
+.lab-plans{background:#f5f4f0;color:#181a19;padding:clamp(58px,8vw,124px) clamp(22px,5vw,90px) clamp(65px,8vw,118px);font-family:"DM Sans",Arial,sans-serif}
+.lab-plans-inner{max-width:1280px;margin-inline:auto}
+.lab-plans-kicker{font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:#777a75}
+.lab-plans h2{font-size:clamp(36px,5.5vw,76px);line-height:1.06;letter-spacing:-.055em;max-width:740px;font-weight:400;margin:20px 0 16px}
+.lab-plans-intro{max-width:625px;font-size:clamp(14px,1.5vw,17px);line-height:1.65;color:#686a66;margin:0 0 38px}
+.lab-plans-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.lab-plan{background:#ebeae6;border:1px solid #d9d9d4;padding:clamp(22px,2.5vw,38px);min-height:330px;display:flex;flex-direction:column;align-items:start}
+.lab-plan[data-featured="true"]{background:#232622;color:#f6f5f1;border-color:#232622}
+.lab-plan-name{font-size:12px;letter-spacing:.15em;text-transform:uppercase;font-weight:500}
+.lab-plan-price{font-size:clamp(39px,4vw,62px);letter-spacing:-.075em;line-height:1.05;margin:27px 0 5px}
+.lab-plan-price small{font-size:14px;letter-spacing:0;font-weight:400;color:#878882}
+.lab-plan[data-featured="true"] .lab-plan-price small{color:#bdbfb8}
+.lab-plan-credits{font-size:15px;line-height:1.5;margin:6px 0 28px}
+.lab-plan-description{font-size:13px;line-height:1.6;color:#6c6d69;margin:0 0 25px}
+.lab-plan[data-featured="true"] .lab-plan-description{color:#b7b9b3}
+.lab-plan button{margin-top:auto;border:1px solid currentColor;border-radius:50px;background:transparent;color:inherit;cursor:pointer;font:500 12px "DM Sans",Arial,sans-serif;padding:14px 22px;width:100%;text-align:left;display:flex;align-items:center;justify-content:space-between;gap:15px}
+.lab-plan button:hover{background:#202221;color:#fff}
+.lab-plan[data-featured="true"] button:hover{background:#e8e9e4;color:#171917}
+.lab-topups{display:flex;justify-content:space-between;flex-wrap:wrap;gap:18px;align-items:center;border-top:1px solid #d5d7d1;margin-top:35px;padding-top:24px}
+.lab-topups p{margin:0;font-size:13px;line-height:1.6;color:#666963}
+.lab-topups-actions{display:flex;flex-wrap:wrap;gap:8px}
+.lab-topups-actions button{border:1px solid #777a75;color:#202220;border-radius:50px;padding:10px 16px;background:transparent;font:500 12px "DM Sans",Arial,sans-serif;cursor:pointer}
+.lab-topups-actions button:hover{background:#181a19;color:#fff}
+.lab-pricing-note{margin:28px 0 0;color:#757874;font-size:12px;line-height:1.6}
+#lab-entry-status{font-size:12px;color:#aaaea5;padding:0;margin:0}
+.lab-wallet-toggle{border:1px solid #6d6f70;background:rgba(255,255,255,.03);border-radius:30px;padding:9px 13px;color:#ddd;font-size:12px;white-space:nowrap;cursor:pointer}
+.lab-wallet-toggle[hidden]{display:none!important}
+.lab-wallet-toggle:hover{border-color:#d9d9d9}
+.lab-credit-dialog{border:1px solid #4d504a;background:#171a18;color:#e6e9e5;border-radius:6px;width:min(490px,calc(100vw - 24px));max-height:85dvh;box-shadow:0 18px 80px #0009;padding:30px;font-family:"DM Sans",Arial,sans-serif}
+.lab-credit-dialog::backdrop{background:rgba(0,0,0,.67);backdrop-filter:blur(4px)}
+.lab-credit-dialog header{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.lab-credit-dialog header strong{font-size:21px;font-weight:450}
+.lab-credit-dialog header button{background:none;border:0;color:inherit;font-size:28px;cursor:pointer}
+.lab-credit-dialog p{font-size:13px;line-height:1.6;color:#b6b9b3}
+.lab-credit-dialog .credit-balance{font-size:39px;letter-spacing:-.04em;font-weight:400;margin:10px 0 20px}
+.lab-credit-list{display:grid;gap:7px;margin:22px 0 10px}
+.lab-credit-list button{display:flex;align-items:center;justify-content:space-between;gap:16px;background:#222622;border:1px solid #41473f;color:#f3f4ef;padding:15px 17px;text-align:left;cursor:pointer}
+.lab-credit-list button:hover{border-color:#e4e7de}
+.lab-credit-list button:disabled{opacity:.55;cursor:not-allowed}
+.lab-credit-list button span:last-child{color:#c2c6be;font-size:12px;white-space:nowrap}
+.lab-wallet-state{font-size:12px!important;min-height:20px}
+@media(max-width:800px){.lab-plans-grid{grid-template-columns:1fr}.lab-plan{min-height:260px}.lab-auth-link{padding:9px 12px}.lab-account-strip{padding:17px 22px}}
+@media(max-width:560px){.lab-credit-dialog{padding:23px}.lab-wallet-toggle{font-size:11px;padding:7px 10px}}
