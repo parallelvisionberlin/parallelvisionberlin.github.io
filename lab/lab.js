@@ -484,6 +484,15 @@ function fitImageComposerPrompt(){
   textbox.style.height=Math.min(maximum,Math.max(minimum,naturalHeight))+'px';
   textbox.style.overflowY=naturalHeight>maximum?'auto':'hidden';
   textbox.scrollTop=Math.min(previousScroll,Math.max(0,textbox.scrollHeight-textbox.clientHeight));
+  // Soul's first grid row otherwise sizes to the textarea's one-line intrinsic
+  // minimum and flex-shrinks even when the textarea has a bounded inline height.
+  const top=imageComposer.querySelector('.image-composer-top');
+  if(imageComposer.classList.contains('is-pv-soul')){
+    const tray=$('image-composer-references');
+    const referencesHeight=!tray.hidden?Math.ceil(tray.getBoundingClientRect().height):0;
+    const fittedHeight=Math.min(maximum,Math.max(minimum,naturalHeight));
+    top.style.minHeight=(fittedHeight+referencesHeight+(referencesHeight?8:0))+'px';
+  }else top.style.removeProperty('min-height');
 }
 function syncImageComposer(){
   if(!imageStudio)return;
@@ -497,7 +506,6 @@ function syncImageComposer(){
   if(document.activeElement!==textbox && textbox.value!==$('prompt').value)
     textbox.value=$('prompt').value;
   textbox.placeholder='Describe the scene you imagine…';
-  fitImageComposerPrompt();
   syncSoulBar();
   textbox.disabled=busy || $('prompt').disabled;
   $('image-composer-model-label').textContent=imageStudioModelTitle();
@@ -546,6 +554,7 @@ function syncImageComposer(){
   block.hidden=!message;reason.textContent=message;review.hidden=!queueBlocked;
   generate.title=message;
   syncImageReferences();
+  fitImageComposerPrompt();
   syncImageGalleryEmpty();
 }
 function closeImageModelMenu(){
