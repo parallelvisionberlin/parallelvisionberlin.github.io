@@ -846,3 +846,30 @@ body:has(#app[hidden])>#studio-header .tool-switch{display:none}
     animation:none;background:#22242a;
   }
 }
+
+
+/* Image import errors appear outside the floating deck so its size stays fixed. */
+#image-composer #image-composer-status[hidden]{display:none!important}
+#image-composer #image-composer-status.is-import-error{
+  position:absolute;right:0;bottom:calc(100% + 12px);z-index:165;
+  display:flex;align-items:flex-start;justify-content:space-between;gap:16px;
+  box-sizing:border-box;width:min(490px,calc(100vw - 40px));max-width:100%;
+  padding:13px 13px 13px 16px;margin:0;
+  border:1px solid #876e57;border-radius:12px;
+  background:#272420;color:#f0e3d2;
+  box-shadow:0 12px 40px rgba(0,0,0,.6);
+  font-size:12px;font-weight:480;line-height:1.5;
+  overflow-wrap:anywhere;
+}
+#image-composer #image-composer-status.is-import-error button{
+  flex:0 0 24px;width:24px;height:24px;min-height:24px;
+  margin:-3px -4px 0 0;padding:0;
+  border:0;border-radius:6px;background:transparent;color:#d4c4b1;
+  font-size:20px;line-height:1;text-align:center;
+}
+#image-composer #image-composer-status.is-import-error button:hover{background:#ffffff12;color:#fff}
+@media(max-width:650px){
+  #image-composer #image-composer-status.is-import-error{
+    width:100%;right:0;left:0;font-size:11px;padding:11px 12px;
+  }
+}
