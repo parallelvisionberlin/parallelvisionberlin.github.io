@@ -45,7 +45,7 @@ try{
       if(path==='/api/precision/segment'&&method==='POST')
         return {requestId:'synthetic-request',ticket:'synthetic-ticket',expires:Date.now()+3600000};
       if(path.startsWith('/api/precision/segment?'))return {status:'completed',maskSourceId:'magic-mask'};
-      if(path==='/api/precision/quote')return {ticket:'safe-quote',expiresAt:Date.now()+120000,estimatedUsd:.15,priceIsEstimate:true};
+      if(path==='/api/precision/quote')return {quoteId:'e38e4a07-4564-491a-9e1b-d2fd3a167411',ticket:'safe-quote',expiresAt:Date.now()+120000,estimatedUsd:.15,priceIsEstimate:true};
       if(path==='/api/precision/submit')
         return {job:{id:'job-one',status:'queued',outputId:null,settings:{precisionEdit:true,precisionOriginalId:window.pvBaseId,maskSourceId:body.maskSourceId}}};
       if(path==='/api/jobs/job-one')
