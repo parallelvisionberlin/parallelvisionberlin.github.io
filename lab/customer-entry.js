@@ -17,7 +17,6 @@ async function refresh(){
 function show(){
   const signed=!!clerk?.isSignedIn,customer=!!profile?.customer;
   $('lab-header-signin').hidden=signed;
-  $('lab-header-open').hidden=!signed;
   $('lab-account-strip').hidden=!signed;
   if(signed){
     $('lab-account-summary').textContent=customer?
