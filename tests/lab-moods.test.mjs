@@ -94,3 +94,14 @@ test('90s Cinema thumbnail and applied mood share a film-scan style',()=>{
   const css=readFileSync(new URL('../lab/moods.css',import.meta.url),'utf8');
   assert.ok(css.includes('.moods-look-90s-cinema img{filter:none'));
 });
+
+test('Mood intensity control is prominent, responsive and reflects each live setting',()=>{
+  const css=readFileSync(new URL('../lab/moods.css',import.meta.url),'utf8');
+  const js=readFileSync(new URL('../lab/moods.js',import.meta.url),'utf8');
+  assert.match(css,/grid-template-columns:minmax\(170px,\.9fr\) minmax\(0,1\.7fr\)/);
+  assert.match(css,/moods-intensity::\-webkit-slider-runnable-track/);
+  assert.match(css,/height:9px/);
+  assert.match(css,/moods-intensity::\-moz-range-progress/);
+  assert.match(css,/@media\(max-width:740px\)/);
+  assert.match(js,/slider\.style\.setProperty\('--moods-progress'/);
+});
