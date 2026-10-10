@@ -1,3 +1,4 @@
+import {rewardQualifiedReferral} from './referrals.mjs';
 // Customer billing belongs only to PV Lab's D1 database.
 // All changes in balances are immutable ledger entries. Never trust browser-supplied prices.
 export const CREDIT_MULTIPLIER = 460;
@@ -182,6 +183,7 @@ export async function stripeWebhook(request,env){
       if(data.mode==='payment'&&item.type==='payment'&&data.payment_status==='paid'&&Number(data.amount_total)===item.cents){
         await setStripeCustomer(env,subject,typeof data.customer==='string'?data.customer:data.customer?.id);
         await credit(env,subject,item.credits,'purchase','checkout:'+data.id);
+        await rewardQualifiedReferral(env,subject,'checkout:'+data.id,item.cents);
       } else if(data.mode==='subscription'&&item.type==='subscription'&&data.subscription){
         const sub=await subscriptionDetails(env,typeof data.subscription==='string'?data.subscription:data.subscription.id);
         await syncSubscription(env,sub);
@@ -197,6 +199,7 @@ export async function stripeWebhook(request,env){
       const meta=await syncSubscription(env,sub);
       if(meta&&data.currency==='eur'&&data.id&&sub.customer&&Number(data.amount_paid)>=PACKS[meta.sku].cents){
         await credit(env,meta.subject,PACKS[meta.sku].credits,'subscription','invoice:'+data.id);
+        await rewardQualifiedReferral(env,meta.subject,'invoice:'+data.id,Number(data.amount_paid));
       }
     }
   } else if(['customer.subscription.updated','customer.subscription.deleted','customer.subscription.created'].includes(event.type)){
