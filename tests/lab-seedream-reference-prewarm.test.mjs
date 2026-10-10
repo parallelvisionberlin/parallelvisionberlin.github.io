@@ -104,7 +104,7 @@ test('Studio wiring starts after references enter the deck, never uploads in pre
   const html=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
   assert.match(code,/references.push\(item\);added\+\+;\s*prewarmSeedreamReference\(item\)/);
   assert.match(code,/setTool\('image'\);renderReferences\(\);prewarmSeedreamDeck\(\)/);
-  assert.match(code,/await seedreamPreparer.forSubmission\(item\)/);
+  assert.match(code,/await seedreamPreparer.forSubmission\(prepareItem\)/);
   assert.match(code,/seedreamPreparer.clear\(\)/);
   assert.match(module,/inflight\.get\(source\)/);
   assert.doesNotMatch(module,/uploadAsset|\/api\/|jobs\/quote|billing/);
