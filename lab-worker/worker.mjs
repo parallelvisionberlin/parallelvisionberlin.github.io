@@ -102,7 +102,9 @@ async function authenticate(request,env) {
   // Read only: never changes Nina's identity, memory or account tables.
   const owner=await env.OWNER_DB.prepare("SELECT id FROM users WHERE auth_provider='clerk' AND auth_subject=? AND role='owner' LIMIT 1").bind(p.sub).first();
   if(owner)return owner.id;
-  // A verified Clerk identity may create a PV Lab customer, never a Nina user.
+  // Existing private Lab remains owner-only until public registration is explicitly enabled.
+  if(env.LAB_CUSTOMER_SIGNUPS_ENABLED!=='true')fail(403,'PV Lab registration is not enabled.');
+  // Verified Clerk users have new Lab records, never Nina user records.
   return ensureCustomer(env,p.sub);
 }
 async function derived(env,label,algorithm,usages) {
