@@ -262,14 +262,14 @@ async function fetchCustomerImagePrice(s,check){
       const reply=await api('/api/quotes',{method:'POST',
         body:{...inputs,settings:selected,...(count>1?{count}:{})}});
       check();
-      const priced=pricedBoundQuotes(reply,count,usd=>wallet.cost(usd),'SpicyAPI');
+      const priced=pricedBoundQuotes(reply,count,'SpicyAPI');
       if(priced.quotes.some(q=>q.settings?.engine!==selected.engine||q.settings?.type!=='image'))
         throw new Error('Provider priced a different image model.');
       return {...priced,provider,inputs};
     }
     const quote=await api('/api/higgsfield/quote',{method:'POST',body:{...inputs,settings:selected}});
     check();
-    const priced=pricedBoundQuotes(quote,1,usd=>wallet.cost(usd),'Higgsfield');
+    const priced=pricedBoundQuotes(quote,1,'Higgsfield');
     if(quote.settings?.characterId!==selected.characterId||quote.sourceId!==inputs.sourceId)
       throw new Error('The Soul 2 quote does not match the selected identity or photograph.');
     return {...priced,provider,inputs};
