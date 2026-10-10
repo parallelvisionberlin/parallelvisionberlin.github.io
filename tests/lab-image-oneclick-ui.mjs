@@ -201,6 +201,7 @@ try{
   await x.page.locator('.composer-reference-role').nth(0).selectOption('pose');
   await x.page.locator('.composer-reference-role').nth(1).selectOption('lighting');
   await x.page.click('#composer-reference-intent-toggle');
+  await x.page.click('#composer-role-preview summary');
   assert.match(await x.page.locator('#composer-role-preview-text').innerText(),/Reference 1 \[Pose only\]/);
   assert.match(await x.page.locator('#composer-role-preview-text').innerText(),/REQUESTED IMAGE/);
   await x.page.click('[data-reference-intent="base"]');
