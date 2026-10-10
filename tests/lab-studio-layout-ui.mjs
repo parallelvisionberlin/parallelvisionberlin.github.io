@@ -224,7 +224,21 @@ try{
     const css=getComputedStyle(el);return {color:css.color,background:css.backgroundImage,font:css.fontFamily,weight:css.fontWeight};
   });
   assert.equal(generateUi.color,'rgb(24, 20, 14)','Available Image Generate uses dark text on amber');
+  await x.page.evaluate(()=>{
+    window.__ratioEventTrace=[];
+    for(const id of ['image-composer-ratio','ratio']){
+      const control=document.getElementById(id);
+      for(const type of ['input','change']){
+        control.addEventListener(type,()=>window.__ratioEventTrace.push({
+          target:id,event:type,value:control.value,
+          mirror:document.getElementById('image-composer-ratio').value,
+          real:document.getElementById('ratio').value
+        }),true);
+      }
+    }
+  });
   await x.page.selectOption('#image-composer-ratio','16:9');
+  console.log('IMAGE_RATIO_EVENT_TRACE',JSON.stringify(await x.page.evaluate(()=>window.__ratioEventTrace)));
   const ratioDiagnostic=await x.page.evaluate(()=>{
     const mirror=document.getElementById('image-composer-ratio'),real=document.getElementById('ratio');
     return {mirrorValue:mirror.value,realValue:real.value,
