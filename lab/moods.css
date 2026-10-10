@@ -33,7 +33,7 @@
 .moods-look-80s-film img{filter:sepia(.25) saturate(.8) contrast(.9)}
 .moods-look-kodak-gold img{filter:sepia(.22) saturate(1.52) contrast(1.15) brightness(1.06)}
 .moods-look-soft-pastel-film img{filter:brightness(1.11) saturate(.68) contrast(.9)}
-.moods-look-frutiger-aero img{filter:saturate(1.25) brightness(1.07)}
+.moods-look-frutiger-aero img{filter:none}
 .moods-look-sumi-ink img{filter:contrast(1.07) saturate(.8)}
 .moods-look-hyper-pop img{filter:saturate(1.65) contrast(1.2)}
 .moods-footer{display:grid;grid-template-columns:1fr auto;gap:9px 24px;padding-top:13px;border-top:1px solid #3b3c3d}
