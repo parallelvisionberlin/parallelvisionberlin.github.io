@@ -116,7 +116,7 @@ test('Moods footer has a larger primary action and a compact accessible explanat
   assert.match(html,/id="composer-moods-none" type="button">Clear selection/);
   assert.doesNotMatch(html,/class="moods-bottom"/);
   assert.match(css,/#composer-moods-done,[\s\S]*?#composer-moods-switch\{[\s\S]*?min-height:40px/);
-  assert.match(css,/\.moods-about-popover\{position:absolute/);
+  assert.match(css,/\.moods-about-popover\{\s*position:absolute/);
   assert.match(js,/hint\.hidden=compatible/);
   assert.match(js,/done\.disabled=!chosen/);
   assert.match(js,/event\.key==='Escape'&&!aboutDetails\.hidden/);
