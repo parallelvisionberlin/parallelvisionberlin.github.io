@@ -80,3 +80,17 @@ test('Gallery hover metadata identifies the exact image model',()=>{
   assert.match(src,/modelLabel=image\?galleryImageModelName\(j\)\.toUpperCase\(\)/);
   assert.match(src,/meta\.textContent=\[j\.status\.toUpperCase\(\),imageLabel,modelLabel/);
 });
+
+test('90s Cinema thumbnail and applied mood share a film-scan style',()=>{
+  const preset=moodById('90s-cinema');
+  assert.equal(preset.preview,'/lab/mood-previews/90s-cinema-record-shop-20261010.webp');
+  for(const intensity of [15,60,100]){
+    const result=prepareMoodPrompt('A person in a room','90s-cinema',intensity,{engine:'seedream',referenceCount:1});
+    assert.equal(result.error,'');
+    assert.match(result.prompt,/35mm/i);
+  }
+  assert.match(prepareMoodPrompt('Portrait','90s-cinema',60).prompt,/film-gate edge/i);
+  assert.match(prepareMoodPrompt('Portrait','90s-cinema',100).prompt,/sprocket perforations/i);
+  const css=readFileSync(new URL('../lab/moods.css',import.meta.url),'utf8');
+  assert.match(css,/\\.moods-look-90s-cinema img\\{filter:none/);
+});
