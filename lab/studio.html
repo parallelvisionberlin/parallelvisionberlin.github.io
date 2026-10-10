@@ -53,6 +53,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 <link rel="stylesheet" href="./soul.css?v=20260930-soul-v02">
 <link rel="stylesheet" href="./studio.css?v=20261010-upscale-inline-final2">
 <link rel="stylesheet" href="./image-studio.css?v=20261009-strength1">
+<link rel="stylesheet" href="./precision-edit.css?v=20261010-editarea1">
 <link rel="stylesheet" href="./moods.css?v=20261010-hong-kong-emerald1">
 <link rel="stylesheet" href="./detail-video-studio.css?v=20261009-pointer1">
 <link rel="stylesheet" href="./editorial-polish.css?v=20261010-mood-details1">
@@ -113,6 +114,56 @@ document.addEventListener('DOMContentLoaded',()=>{
       <p>Your renders and edits will appear here. Start with a prompt or attach references in the bar below.</p>
     </div>
   </div>
+    <section id="precision-workspace" class="precision-workspace" aria-label="Precision Edit workspace" hidden>
+    <header class="precision-head">
+      <div><span class="precision-eyebrow">PV LAB / IMAGE STUDIO</span><h2>Precision Edit</h2><p>Select what changes. Keep the original everywhere else.</p></div>
+      <div class="precision-head-actions"><span class="precision-method">SAM 3 <span>+</span> FLUX</span><button id="precision-return" type="button" aria-label="Return to image gallery">Back to Image <span aria-hidden="true">×</span></button></div>
+    </header>
+    <div class="precision-board">
+      <section class="precision-panel precision-input-panel" aria-labelledby="precision-source-title">
+        <div class="precision-panel-label"><span id="precision-source-title">01 / ORIGINAL</span><span id="precision-source-meta">DROP IMAGE</span></div>
+        <div id="precision-drop" class="precision-drop" tabindex="0" role="button" aria-label="Choose or drop a base photograph">
+          <span class="precision-drop-symbol" aria-hidden="true">+</span><strong>Drop a photograph</strong><span>Or click to browse your files</span><small>JPG, PNG, WebP · 20 MB maximum</small>
+        </div>
+        <div id="precision-source-holder" class="precision-source-holder" hidden>
+          <div id="precision-stage" class="precision-stage">
+            <canvas id="precision-source-canvas" aria-hidden="true"></canvas>
+            <canvas id="precision-selection-canvas" aria-label="Precision Edit selection canvas"></canvas>
+          </div>
+        </div>
+        <div class="precision-input-footer"><span id="precision-selection-message" role="status">Upload a photograph to begin.</span><button id="precision-change-photo" type="button" hidden>Replace image</button></div>
+      </section>
+      <section class="precision-panel precision-output-panel" aria-labelledby="precision-output-title">
+        <div class="precision-panel-label"><span id="precision-output-title">02 / RESULT</span><span id="precision-result-label">AWAITING EDIT</span></div>
+        <div id="precision-output-holder" class="precision-output-holder"><div id="precision-output-empty" class="precision-output-empty"><span aria-hidden="true">✳</span><strong>The original remains intact.</strong><p>Select an area and describe the change. The edited version appears here.</p></div><canvas id="precision-result-canvas" aria-label="Precision edit result comparison" hidden></canvas></div>
+        <div class="precision-compare-row"><label for="precision-compare">Before <input id="precision-compare" type="range" min="0" max="100" value="100" aria-label="Compare original and edited image" disabled> After</label><button id="precision-download" type="button" disabled>Download PNG ↗</button></div>
+      </section>
+    </div>
+    <div class="precision-tools">
+      <div class="precision-tool-buttons" role="group" aria-label="Selection tools">
+        <button id="precision-tool-magic" class="is-selected" type="button" aria-pressed="true">✦ Magic select</button>
+        <button id="precision-tool-brush" type="button" aria-pressed="false">＋ Add brush</button>
+        <button id="precision-tool-erase" type="button" aria-pressed="false">− Erase</button>
+        <button id="precision-expand" type="button" title="Grow the selected region">↗ Expand</button>
+        <button id="precision-undo" type="button" disabled>↶ Undo</button>
+        <button id="precision-clear-mask" type="button" disabled>Clear</button>
+      </div>
+      <div class="precision-tool-size"><label for="precision-brush-size">Brush</label><input id="precision-brush-size" type="range" min="4" max="100" value="25"><output id="precision-size-label">25</output></div>
+    </div>
+    <div class="precision-deck">
+      <div class="precision-deck-copy"><label for="precision-prompt">EDIT DIRECTION</label><textarea id="precision-prompt" rows="2" maxlength="5000" placeholder="Replace the selected garment with matte black fabric shorts..."></textarea></div>
+      <div class="precision-bottom">
+        <div class="precision-status"><strong>Precision Edit <span>/ FLUX Inpainting</span></strong><span id="precision-price-note">Magic Select approx. $0.005 per click. FLUX price checked before generation.</span></div>
+        <div class="precision-strength"><label for="precision-strength">Edit strength</label><input id="precision-strength" type="range" min=".3" max="1" step=".05" value=".75"><output id="precision-strength-value">0.75</output></div>
+        <button id="precision-generate" type="button" disabled>Review price <span aria-hidden="true">↗</span></button>
+      </div>
+      <p id="precision-status-text" class="precision-status-text" role="status" aria-live="polite"></p>
+    </div>
+    <div id="precision-price-review" class="precision-price-review" role="dialog" aria-modal="false" aria-labelledby="precision-review-title" hidden>
+      <strong id="precision-review-title">Review Precision Edit</strong><p id="precision-review-body"></p><div class="precision-price-actions"><button id="precision-review-cancel" type="button">Cancel</button><button id="precision-review-confirm" type="button">Generate image</button></div>
+    </div>
+    <input id="precision-photo-input" type="file" accept="image/jpeg,image/png,image/webp" hidden>
+  </section>
   <section id="image-composer" class="image-composer" aria-label="Floating image generation composer">
     <section id="composer-moods" class="composer-moods" aria-label="Image moods" hidden>
       <div class="moods-header"><div><span class="moods-kicker">PV Lab / Creative direction</span><strong id="composer-moods-title" tabindex="-1">Moods</strong><p>Ten curated looks. Your prompt and original photo remain yours.</p></div><button id="composer-moods-close" type="button" aria-label="Close moods">×</button></div>
@@ -167,6 +218,7 @@ document.addEventListener('DOMContentLoaded',()=>{
           <div class="composer-model-footer"><button id="image-composer-train" type="button">Create / manage characters <span aria-hidden="true">↗</span></button></div>
         </div>
       </div>
+      <button id="image-composer-edit-area" type="button" class="composer-settings-pill" title="Edit just one selected area" aria-label="Open Precision Edit workspace">◈ Edit Area</button>
       <button id="image-composer-moods" type="button" class="composer-settings-pill" aria-controls="composer-moods" aria-expanded="false" aria-label="Choose an image mood">✦ Moods</button>
       <button id="composer-reference-intent-toggle" type="button" class="composer-settings-pill reference-intent-toggle" aria-controls="composer-reference-intent" aria-expanded="false" hidden>Base image ⌄</button>
        <label id="image-reference-mode-wrap" class="composer-select-pill" hidden title="How to use reference images"><span class="visually-hidden">Reference mode</span><select id="image-reference-mode" aria-label="Reference mode"><option value="base">Base image</option><option value="references">References only</option></select></label>
@@ -252,6 +304,7 @@ document.addEventListener('DOMContentLoaded',()=>{
         <div class="image-detail-subactions">
           <button id="image-detail-mood" type="button">Apply Mood</button>
            <button id="image-detail-repair" type="button">Repair</button>
+          <button id="image-detail-edit-area" type="button">Edit Area</button>
           <button id="image-detail-delete" type="button">Delete</button>
         </div>
         <details id="image-detail-extra" class="detail-extra" hidden>
