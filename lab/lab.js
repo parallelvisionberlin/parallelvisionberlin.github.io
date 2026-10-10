@@ -206,11 +206,11 @@ function clearImageComposerNotice(){
 function showImageComposerError(message){
   if(tool!=='image'||!owner||assetLibrary?.active())return;
   const status=$('image-composer-status');if(!status)return;
-  const large=message.match(/^Image too large: (.+) \\(([\\d.]+) MB\\)\\./);
-  const small=message.match(/^Image too small: (.+) \\((\\d+) × (\\d+) px\\)\\./);
-  const dimensions=message.match(/^Image dimensions too large: (.+) \\((\\d+) × (\\d+) px\\)\\./);
-  const proportions=message.match(/^Unsupported image proportions: (.+) \\((\\d+) × (\\d+) px\\)\\./);
-  const format=message.match(/^Unsupported image format: (.+)\\. Use JPG, PNG or WebP\\.$/);
+  const large=message.match(/^Image too large: (.+) \(([\d.]+) MB\)\./);
+  const small=message.match(/^Image too small: (.+) \((\d+) × (\d+) px\)\./);
+  const dimensions=message.match(/^Image dimensions too large: (.+) \((\d+) × (\d+) px\)\./);
+  const proportions=message.match(/^Unsupported image proportions: (.+) \((\d+) × (\d+) px\)\./);
+  const format=message.match(/^Unsupported image format: (.+)\. Use JPG, PNG or WebP\.$/);
   const fileName=large?.[1]||small?.[1]||dimensions?.[1]||proportions?.[1]||format?.[1]||'';
   const originalDimensions=small||dimensions||proportions;
   const measurement=large?large[2]+' MB':originalDimensions?originalDimensions[2]+' × '+originalDimensions[3]+' px':'';
