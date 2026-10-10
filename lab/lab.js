@@ -1,5 +1,5 @@
 import {createAssetLibrary} from './assets.js?v=20261010-navigation-media1';
-import {createCustomerWallet} from './customer-wallet.js?v=20261010-wallet1';
+import {createCustomerWallet} from './customer-wallet.js?v=20261010-wallet2';
 import {createSoul2UI} from './higgsfield-ui.js?v=20261009-dock-character';
 import {VIDEO_MODELS,engineFor,videoLabel} from './video-models.js?v=20261009-extend1';
 import {REFERENCE_ROLES,REFERENCE_TARGETS,normalizeReferenceLabel,compileImagePrompt,referenceGuidanceError,canUseReferenceGuidance} from './reference-guidance.js?v=20261009-flash-kling';
