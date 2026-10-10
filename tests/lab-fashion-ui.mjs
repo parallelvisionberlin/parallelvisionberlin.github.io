@@ -33,17 +33,36 @@ const context=await browser.newContext({viewport:{width:1440,height:900},acceptD
 const page=await context.newPage(),errors=[],calls=[];
 const imageIds=['11111111-1111-4111-8111-111111111111','22222222-2222-4222-8222-222222222222'];
 let uploaded=0;
+const fakePng=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+Xfy8AAAAASUVORK5CYII=','base64');
+const completedFashion=(id,outputId,model='fashnmax')=>({
+  id,status:'completed',outputId,createdAt:Date.now()-3600000,
+  settings:{type:'image',mode:'fashion',fashionModel:model}
+});
+const baseJobs=[
+  completedFashion('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'),
+  completedFashion('cccccccc-cccc-4ccc-8ccc-cccccccccccc','dddddddd-dddd-4ddd-8ddd-dddddddddddd','fashn16'),
+  {id:'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',status:'failed',error:'Provider declined the image',createdAt:Date.now()-7200000,settings:{type:'image',mode:'fashion',fashionModel:'fashn16'}},
+  {id:'ffffffff-ffff-4fff-8fff-ffffffffffff',status:'queued',createdAt:Date.now()-8600000,settings:{type:'image',mode:'fashion',fashionModel:'fashnmax'}},
+  {id:'11111111-2222-4333-8444-555555555555',status:'completed',createdAt:Date.now(),settings:{type:'video',mode:'start',engine:'wan'}}
+];
+const olderFashion=[completedFashion('12345678-1234-4234-8234-123456789abc','22222222-3333-4333-8333-222222222222')];
 page.on('pageerror',e=>errors.push(e.message));
 await page.route('https://**/*',async route=>{
   const request=route.request(),url=new URL(request.url()),path=url.pathname;calls.push({path,method:request.method()});
   if(url.hostname!=='parallel-vision-lab.parallelvision.workers.dev')return route.abort();
+  if(path.startsWith('/api/assets/')&&request.method()==='GET'){
+    return route.fulfill({status:200,contentType:'image/png',body:fakePng});
+  }
   const data=path==='/api/session'?{owner:true,config:{enabled:true}}:
     path==='/api/fashion/models'?{models:[
       {id:'fashn16',provider:'fal',label:'FASHN v1.6',available:true},
       {id:'fashnmax',provider:'fashn',label:'FASHN Max',available:true},
       {id:'fluxvto',provider:'fal',label:'FLUX VTO',available:true}
     ]}:path==='/api/fashion/balance'?{connected:true,credits:{total:100,onDemand:100,subscription:0}}:
-    path==='/api/jobs'?{jobs:[]}:path==='/api/uploads'?{id:imageIds[uploaded++]}:
+    path==='/api/jobs'?(url.searchParams.has('before')?
+      {jobs:olderFashion,next:null}:
+      {jobs:baseJobs,next:{before:Date.now()-9500000,afterId:'ffffffff-ffff-4fff-8fff-ffffffffffff'}}):
+    path==='/api/uploads'?{id:imageIds[uploaded++]}:
     path==='/api/fashion/quote'?{id:'33333333-3333-4333-8333-333333333333',
       estimatedUsd:0.15,expiresAt:Date.now()+600000,notice:'One generation after confirmation.'}:
     {error:'Unexpected test request '+path};
@@ -64,6 +83,37 @@ try{
   }
   assert.equal(await page.locator('#workspace').isVisible(),true);
   assert.equal(await page.locator('#gate').isVisible(),false);
+  // The Fashion gallery lives below the editor and receives real private image
+  // blobs; mixed image/video job types must not leak into this view.
+  await page.waitForFunction(()=>document.querySelectorAll('#fashion-history .history-item').length===5);
+  assert.equal(await page.locator('#fashion-history .history-item').count(),5);
+  assert.equal(await page.locator('#fashion-more').isVisible(),false,'Exhausted gallery needs no extra paging control');
+  assert.equal(await page.locator('#fashion-gallery-count').innerText(),'5 shown');
+  assert.equal(await page.locator('#fashion-history .history-status-detail').count(),2,
+    'Failed/queued jobs should be lightweight gallery states, not a scrollable text log');
+  assert.equal(await page.locator('#fashion-history .history-state[data-status="failed"]').count(),1);
+  assert.equal(await page.locator('#fashion-history .history-state[data-status="queued"]').count(),1);
+  await page.waitForFunction(()=>document.querySelectorAll('#fashion-history .history-media img').length===3);
+  assert.equal(await page.locator('#fashion-history .history-media img').count(),3,
+    'Completed Fashion jobs render image thumbnails from the private asset endpoint');
+  assert.equal(await page.locator('.recent-work').count(),0,'Remove the old right-column micro archive');
+  const galleryLayout=await page.evaluate(()=>{
+    const r=selector=>{const el=document.querySelector(selector),b=el.getBoundingClientRect();
+      return{top:b.top,bottom:b.bottom,left:b.left,right:b.right,width:b.width};
+    };
+    const style=getComputedStyle(document.getElementById('fashion-history'));
+    return{gallery:r('#fashion-gallery'),controls:r('.engine-section'),result:r('.result-panel'),
+      main:r('.fashion-workspace'),columns:style.gridTemplateColumns.split(' ').length,
+      overflow:style.overflowY,maxHeight:style.maxHeight};
+  });
+  assert.ok(galleryLayout.gallery.top>=galleryLayout.controls.bottom,
+    'Fashion generations belong below the model and styling controls');
+  assert.ok(galleryLayout.gallery.width>=galleryLayout.main.width-2,
+    'The gallery spans the full Fashion workspace');
+  assert.ok(galleryLayout.columns>=4,'Desktop renders a multi-column photo gallery');
+  assert.equal(galleryLayout.overflow,'visible','No tiny gallery scrollbar');
+  assert.equal(galleryLayout.maxHeight,'none','No 110px gallery limit');
+  assert.equal(await page.locator('#fashion-history button[aria-pressed="true"]').count(),0);
   assert.match(await page.locator('#fashn-api-state').innerText(),/Connected · 100 credits/);
   assert.equal(calls.filter(c=>c.path==='/api/fashion/balance').length,1);
   await page.locator('#check-fashn').click();
@@ -188,11 +238,31 @@ try{
   assert.ok(mobile.bodyWidth<=mobile.viewportWidth,'Mobile Fashion has no horizontal overflow.');
   assert.ok(Math.abs(mobile.person.top-mobile.garment.top)<3,'Mobile retains paired upload tiles.');
   assert.ok(mobile.preview.top>mobile.controls.top,'Mobile controls appear before the result.');
+  const mobileGallery=await page.evaluate(()=>{
+    const g=document.getElementById('fashion-gallery').getBoundingClientRect(), 
+          controls=document.querySelector('.engine-section').getBoundingClientRect(),
+          result=document.querySelector('.result-panel').getBoundingClientRect();
+    return {top:g.top,width:g.width,controlsEnd:controls.bottom,resultEnd:result.bottom,
+      cols:getComputedStyle(document.getElementById('fashion-history')).gridTemplateColumns.split(' ').length};
+  });
+  assert.ok(mobileGallery.top>=mobileGallery.resultEnd,
+    'Mobile gallery appears after the result preview, without overlapping the editor');
+  assert.equal(mobileGallery.cols,2,'Mobile Fashion uses two readable image columns');
   assert.equal(await page.locator('#quote-box').isVisible(),true);
   assert.equal(await page.locator('#result-stage').isVisible(),true);
   await page.screenshot({path:'test-results/pv-fashion-editorial-mobile.png',fullPage:true});
+  // Opening a completed generation places the actual stored image in the
+  // Result panel. It must not trigger an additional paid generation.
+  await page.setViewportSize({width:1440,height:900});
+  await page.locator('#fashion-history .history-item').first().click();
+  await page.waitForFunction(()=>!document.getElementById('result-image').hidden);
+  assert.equal(await page.locator('#result-image').isVisible(),true,'Clicking a gallery thumbnail opens the image result');
+  assert.equal(await page.locator('#download').isVisible(),true);
+  assert.equal(await page.locator('#fashion-history [aria-pressed="true"]').count(),1);
+  assert.ok(calls.some(c=>c.path.startsWith('/api/assets/')&&c.method==='GET'),'Private asset fetch is used for gallery previews');
+  assert.equal(calls.some(c=>c.path==='/api/fashion/submit'),false,'Gallery viewing must never submit a paid job');
   assert.deepEqual(errors,[]);
-  console.log('PASS 14px rounded large Person/Garment/Result boxes, original unfenced icons, clipped previews, desktop/mobile and no-cost review.');
+  console.log('PASS full-width Fashion thumbnail gallery below controls, responsive grid, pagination, real private previews, and no paid calls.');
 }finally{
   await browser.close();await new Promise(ok=>server.close(ok));
 }
