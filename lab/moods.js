@@ -26,7 +26,7 @@ export const MOODS=Object.freeze([
     "id": "night-flash",
     "name": "Night Flash",
     "category": "Fashion",
-    "preview": "/assets/optimized/2063/nightlife/ALE IRENA CANON.webp",
+    "preview": "/lab/mood-previews/night-flash-elevator-20261010.webp",
     "description": "Raw after-dark photography",
     "direction": "Direct on-camera flash night fashion photography, crisp cast shadows, textured natural skin, convincing specular reflections, dark ambient falloff, candid imperfect framing, early-2000s party photography and tactile clothes.",
     "subtle": "Slight credible direct flash and dark ambient falloff with scene unchanged.",
