@@ -28,7 +28,15 @@ export async function ensureCustomer(env,subject) {
   await exec(env,'INSERT OR IGNORE INTO lab_customers(id,clerk_subject,balance_credits,created_at,updated_at) VALUES(?,?,0,?,?)',subject,subject,t,t);
   return subject;
 }
-export async function isLabCustomer(env,id){return !!(await one(env,'SELECT id FROM lab_customers WHERE id=?',id));}
+export async function isLabCustomer(env,id){
+  try{return !!(await one(env,'SELECT id FROM lab_customers WHERE id=?',id));}
+  catch(e){
+    // Historical owner-only test fixtures and pre-migration owner deployments
+    // have no customer table. Never block or mutate the existing owner account.
+    if(/no such table:\s*lab_customers\b/i.test(String(e?.message||'')))return false;
+    throw e;
+  }
+}
 export async function customerSession(env,id){
   const c=await one(env,'SELECT balance_credits,stripe_customer_id FROM lab_customers WHERE id=?',id);
   if(!c)fail(403,'This PV Lab account is unavailable.');
