@@ -216,3 +216,6 @@ Verification:
 
 ### Moods gallery and controls (2026-10-10)
 The selector now shows **ten** moods in a consistent five-by-two desktop grid. Dreamcore replaces Japanese Sumi-e in the visible presets. The original `sumi-ink` definition and Worker validation remain available for previously saved generations and History/Reuse. Dreamcore is included in the Worker's accepted mood metadata. The footer uses two aligned rows: selected mood with a small About link above a wide intensity slider and compact Use mood control. Selecting a thumbnail keeps the selector open so the intensity can be adjusted before applying; applying does not start generation or incur costs.
+
+### Centered Moods deck and scroll-only Sumi-e (2026-10-10)
+The gallery offers eleven moods: ten full cards in the initial five-by-two desktop grid, with Japanese Sumi-e eleventh in an internal scroll region. Card geometry sets the viewport to two full rows, not a cut-off third card. The overlay is centered over the floating Image composer and the thumbnails are slightly larger. The empty state says only Select a mood; Selected mood appears after choice. About moods sits below Use mood and Clear selection. Model prompts, intensity and paid generation behavior are unchanged.

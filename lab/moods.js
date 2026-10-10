@@ -123,7 +123,7 @@ const ALL_MOODS=Object.freeze([
   }
 ].map(m=>Object.freeze(m)));
 // Sumi-e remains available for previously saved jobs, but is not a selectable preset.
-export const MOODS=Object.freeze(ALL_MOODS.filter(m=>m.id!=='sumi-ink'));
+export const MOODS=Object.freeze([...ALL_MOODS.filter(m=>m.id!=='sumi-ink'),ALL_MOODS.find(m=>m.id==='sumi-ink')]);
 export const MOOD_MODELS=Object.freeze(['seedream','gemini']);
 export const moodById=id=>ALL_MOODS.find(m=>m.id===id)||null;
 // This is intentionally presentation-only. Jobs retain the full provider prompt for
@@ -171,6 +171,7 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
   const slider=panel.querySelector('#composer-moods-intensity');
   const amount=panel.querySelector('#composer-moods-amount');
   const summary=panel.querySelector('#composer-moods-summary');
+  const selectedLabel=panel.querySelector('#composer-moods-current-label');
   const hint=panel.querySelector('#composer-moods-compat');
   const switcher=panel.querySelector('#composer-moods-switch');
   const done=panel.querySelector('#composer-moods-done');
@@ -178,10 +179,11 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
   const aboutButton=panel.querySelector('#composer-moods-about');
   const aboutDetails=panel.querySelector('#composer-moods-explanation');
   let selected=null,intensity=60,category='All';
+  const desktopGridColumns=5,initiallyVisibleRows=2;
   const tabs=new Map(),cards=new Map();
   for(const name of ['All','Cinema','Fashion','Analog','Experimental']){
     const tab=document.createElement('button');tab.type='button';tab.className='moods-filter';tab.textContent=name;
-    tab.onclick=()=>{category=name;render();};filters.append(tab);tabs.set(name,tab);
+    tab.onclick=()=>{category=name;grid.scrollTop=0;render();fitGridViewport();};filters.append(tab);tabs.set(name,tab);
   }
   for(const mood of MOODS){
     const card=document.createElement('button');card.type='button';card.className='moods-card';
@@ -201,6 +203,7 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
     slider.value=String(intensity);slider.style.setProperty('--moods-progress',((intensity-1)/99*100).toFixed(2)+'%');slider.disabled=!selected;amount.textContent=intensity+'%';
     const chosen=moodById(selected);
     summary.textContent=chosen?chosen.name:'Select a mood';
+    selectedLabel.hidden=!chosen;
     const compatible=MOOD_MODELS.includes(getEngine());
     hint.textContent=compatible?'':'This image model does not support Moods. Switch to Seedream or Nano Banana Pro.';
     hint.hidden=compatible;
@@ -213,6 +216,21 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
     button.classList.toggle('is-mood-selected',!!chosen);
     button.setAttribute('aria-expanded',String(!panel.hidden));
   }
+  // Show exactly two complete rows before the internal scrollbar reveals Sumi-e.
+  function fitGridViewport(){
+    if(panel.hidden)return;
+    const visible=[...cards.values()].filter(card=>!card.hidden);
+    grid.style.maxHeight='';
+    if(window.innerWidth<=740||visible.length<=desktopGridColumns*initiallyVisibleRows){
+      grid.tabIndex=visible.length>desktopGridColumns?0:-1;
+      return;
+    }
+    const last=visible[desktopGridColumns*initiallyVisibleRows-1];
+    const bounds=grid.getBoundingClientRect(),cardBounds=last.getBoundingClientRect();
+    const firstTwoRows=Math.ceil(cardBounds.bottom-bounds.top+3);
+    if(firstTwoRows>0)grid.style.maxHeight=firstTwoRows+'px';
+    grid.tabIndex=0;
+  }
   function closeAbout(restoreFocus=false){
     if(aboutDetails.hidden)return;
     aboutDetails.hidden=true;
@@ -220,7 +238,16 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
     if(restoreFocus&&!panel.hidden)aboutButton.focus();
   }
   function close(){closeAbout();panel.hidden=true;button.setAttribute('aria-expanded','false');}
-  function open(){if(button.disabled)return;onOpen();closeAbout();panel.hidden=false;render();panel.querySelector('#composer-moods-title')?.focus();}
+  function open(){
+    if(button.disabled)return;
+    onOpen();closeAbout();panel.hidden=false;render();grid.scrollTop=0;fitGridViewport();
+    if(selected==='sumi-ink'){
+      const card=cards.get(selected),viewport=grid.getBoundingClientRect();
+      if(card&&card.getBoundingClientRect().bottom>viewport.bottom)
+        grid.scrollTop+=card.getBoundingClientRect().bottom-viewport.bottom+4;
+    }
+    panel.querySelector('#composer-moods-title')?.focus();
+  }
   function clear(silent=false){selected=null;intensity=60;close();render();if(!silent)onChange();}
   function restore(settings,silent=false){selected=moodById(settings?.moodId)?.id||null;intensity=Math.min(100,Math.max(1,Number(settings?.moodIntensity)||60));close();render();if(!silent)onChange();}
   function enrich(prompt,options={}){return prepareMoodPrompt(prompt,selected,intensity,options);}
@@ -247,6 +274,8 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
     }
   });
   switcher.onclick=()=>{chooseEngine('seedream');render();onChange();};
+  grid.setAttribute('aria-label','Available moods; scroll down to explore more looks');
+  window.addEventListener('resize',()=>{if(!panel.hidden)fitGridViewport();});
   render();
   return {active:()=>!!selected,selected:()=>selected,intensity:()=>intensity,enrich,error,
     invalid:(engine,prompt,count=0,referenceMode='base')=>!!error(engine,prompt,count,referenceMode),

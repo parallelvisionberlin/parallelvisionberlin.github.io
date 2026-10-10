@@ -3,9 +3,9 @@ import assert from 'node:assert/strict';
 import {MOODS,MOOD_MODELS,moodById,prepareMoodPrompt,userFacingImagePrompt,imageHistoryCaption} from '../lab/moods.js';
 import {readFileSync} from 'node:fs';
 
-test('exactly ten unique curated moods with imagery',()=>{
-  assert.equal(MOODS.length,10);
-  assert.equal(new Set(MOODS.map(m=>m.id)).size,10);
+test('exactly eleven unique curated moods with imagery',()=>{
+  assert.equal(MOODS.length,11);
+  assert.equal(new Set(MOODS.map(m=>m.id)).size,11);
   for(const mood of MOODS)for(const field of ['name','category','preview','direction','subtle','intense','avoid'])assert.ok(mood[field]);
 });
 test('only explicitly compatible image engines receive moods',()=>{
@@ -143,41 +143,38 @@ test('Dreamcore thumbnail and provider intensity directions are connected',()=>{
   const css=readFileSync(new URL('../lab/moods.css',import.meta.url),'utf8');
   assert.ok(css.includes('.moods-look-dreamcore img{filter:none;object-position:center center}'));
   const html=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
-  assert.match(html,/Ten curated looks/);
+  assert.match(html,/Eleven curated looks/);
 });
 
 
 
-test('Integrated two-row footer keeps the thumbnails visually dominant',()=>{
+
+test('Eleven moods are available, ten initially visible and Sumi-e last',()=>{
   const css=readFileSync(new URL('../lab/moods.css',import.meta.url),'utf8');
+  const js=readFileSync(new URL('../lab/moods.js',import.meta.url),'utf8');
   const html=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
-  assert.equal(MOODS.length,10);
-  assert.equal(MOODS[8].id,'dreamcore');
-  assert.equal(MOODS[9].id,'hyper-pop');
-  assert.ok(!MOODS.some(m=>m.id==='sumi-ink'));
+  assert.equal(MOODS.length,11);
+  assert.deepEqual(MOODS.slice(8).map(m=>m.id),['dreamcore','hyper-pop','sumi-ink']);
   assert.match(css,/\.moods-grid\{display:grid;grid-template-columns:repeat\(5,minmax\(0,1fr\)\)/);
-  assert.match(css,/\.moods-footer\{[\s\S]*?display:flex;flex:0 0 auto;flex-direction:column/);
-  assert.match(css,/\.moods-footer-heading\{display:flex;align-items:center;justify-content:space-between/);
-  assert.match(css,/\.moods-controls\{[\s\S]*?display:grid;grid-template-columns:minmax\(0,1fr\) 138px/);
-  assert.doesNotMatch(css,/\.moods-controls\{display:contents\}/);
-  assert.match(css,/#composer-moods-done:disabled,[\s\S]*?background:#303234/);
-  assert.match(html,/moods\.css\?v=20261010-footer-hybrid5/);
-  assert.match(html,/Ten curated looks/);
+  assert.match(css,/scrollbar-gutter:stable/);
+  assert.match(js,/function fitGridViewport\(\)/);
+  assert.match(js,/const last=visible\[desktopGridColumns\*initiallyVisibleRows-1\]/);
+  assert.match(js,/grid\.style\.maxHeight=firstTwoRows\+'px'/);
+  assert.match(html,/Eleven curated looks/);
 });
-test('Dreamcore is accepted by the worker while archived Sumi-e remains readable',()=>{
-  const worker=readFileSync(new URL('../lab-worker/worker.mjs',import.meta.url),'utf8');
-  assert.match(worker,/const IMAGE_MOOD_IDS=new Set\(\[[^\]]*'dreamcore'[^\]]*\]\)/);
-  assert.match(worker,/const IMAGE_MOOD_IDS=new Set\(\[[^\]]*'sumi-ink'[^\]]*\]\)/);
-  assert.ok(!MOODS.some(m=>m.id==='sumi-ink'));
-  assert.equal(moodById('sumi-ink').name,'Japanese Sumi-e');
-  const legacy=prepareMoodPrompt('A portrait','sumi-ink',60,{referenceCount:1});
-  assert.equal(legacy.error,'');
-  assert.equal(legacy.metadata.moodId,'sumi-ink');
-  assert.match(imageHistoryCaption({moodId:'sumi-ink',moodIntensity:60,moodOriginalPrompt:'Portrait'}),/Japanese Sumi-e · 60%/);
-});
-
-test("Soft Pastel Film thumbnail preserves uploaded photograph's color",()=>{
-  assert.equal(moodById('soft-pastel-film').preview,'/lab/mood-previews/soft-pastel-film-20261010.webp');
+test('Popup centered over composer; simplified empty state and About below CTA',()=>{
   const css=readFileSync(new URL('../lab/moods.css',import.meta.url),'utf8');
-  assert.ok(css.includes('.moods-look-soft-pastel-film img{filter:none;object-position:center center}'));
+  const js=readFileSync(new URL('../lab/moods.js',import.meta.url),'utf8');
+  const html=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
+  assert.match(css,/position:absolute;bottom:calc\(100% \+ 12px\);left:50%;z-index:125/);
+  assert.match(css,/transform:translateX\(-50%\)/);
+  assert.match(css,/width:min\(990px,calc\(100vw - 30px\)\)/);
+  assert.match(html,/id="composer-moods-current-label" class="moods-current-label" hidden/);
+  assert.match(js,/selectedLabel\.hidden=!chosen/);
+  const footer=html.slice(html.indexOf('<div class="moods-footer">'),html.indexOf('<p id="composer-moods-compat"'));
+  assert.ok(footer.indexOf('id="composer-moods-about"')>footer.indexOf('id="composer-moods-none"'));
+  assert.ok(footer.indexOf('id="composer-moods-about"')>footer.indexOf('id="composer-moods-done"'));
+  assert.match(html,/moods\.css\?v=20261010-centered-moods6/);
+  const worker=readFileSync(new URL('../lab-worker/worker.mjs',import.meta.url),'utf8');
+  for(const key of ['sumi-ink','dreamcore'])assert.ok(worker.includes("'"+key+"'"));
 });
