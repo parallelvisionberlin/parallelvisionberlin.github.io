@@ -9,8 +9,10 @@ const {chromium}=await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE).hr
 const root=resolve('.');
 const source=readFileSync('lab/lab.js','utf8');
 const boot=source.indexOf("try{const {Clerk}=await import(");
-assert.ok(boot>0,'Expected browser bootstrap marker');
-const testSource=source.slice(0,boot)+
+const bootEnd=source.indexOf("\n// Soul composer:",boot);
+assert.ok(boot>0&&bootEnd>boot,'Expected distinct auth bootstrap and Soul composer tail');
+// Replace only remote Clerk bootstrap. Preserve all remaining local Studio helpers.
+const testSource=source.slice(0,boot)+source.slice(bootEnd)+
 "clerk={isSignedIn:true,user:{id:'layout-test'},session:{id:'mock',getToken:async()=> 'mock-token'},signOut:async()=>{}};owner=true;userId='layout-test';config={enabled:true,geminiEnabled:true,falEnabled:true,dailyLimitUsd:10,concurrency:{image:4,video:1}};$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();await loadSoulProIdentity();refreshCanvasImport();update();syncVideoStudioMode();window.__queueTestSetActiveJobs=setActiveJobs;window.__layoutTest=true;";
 
 const server=http.createServer((req,res)=>{
