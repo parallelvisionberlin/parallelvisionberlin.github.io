@@ -600,7 +600,7 @@ body:has(#app[hidden])>#studio-header .tool-switch{display:none}
   font-size:10px;color:#9499a3;
 }
 #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .canvas{
-  height:clamp(300px,39dvh,390px);min-height:300px;
+  height:clamp(420px,52vh,660px);min-height:420px;
   border-radius:13px;border-color:#41434b;
   background:radial-gradient(ellipse 50% 80% at 50% 45%,#1e1f24 0%,#16171b 78%);
   transition:border-color .15s ease;
@@ -628,7 +628,7 @@ body:has(#app[hidden])>#studio-header .tool-switch{display:none}
   min-height:40px;padding:9px 20px;border-radius:9px;font-size:12px;
 }
 #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active):has(#preview:not([hidden])) .canvas{
-  height:clamp(355px,50dvh,530px);min-height:355px;
+  height:clamp(420px,52vh,660px);min-height:420px;
 }
 #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls{
   padding:10px 12px 7px;column-gap:11px;row-gap:3px;
@@ -684,10 +684,10 @@ body:has(#app[hidden])>#studio-header .tool-switch{display:none}
     margin-top:8px;gap:5px;
   }
   #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .canvas{
-    height:clamp(245px,34dvh,330px);min-height:245px;
+    height:390px;min-height:390px;
   }
   #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active):has(#preview:not([hidden])) .canvas{
-    height:clamp(310px,45dvh,460px);min-height:310px;
+    height:390px;min-height:390px;
   }
   #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .empty::before{
     width:46px;height:46px;margin-bottom:12px;font-size:24px;
