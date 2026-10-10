@@ -109,7 +109,7 @@ try{
   assert.equal(await x.page.locator('#active').evaluate(el=>el.closest('#studio-header')!==null),true,
     'Live Queue belongs to Studio header instead of below editor');
   assert.equal(await x.page.locator('#active').evaluate(el=>el.open),false,'Queue details collapsed by default');
-  assert.match(await x.page.locator('#queue-count').innerText(),/2 to review/);
+  assert.match(await x.page.locator('#queue-count').textContent(),/2 to review/);
   assert.equal(await x.page.locator('#resolve').isVisible(),false,'Resolve action hidden until user opens Queue');
   await x.page.locator('#active summary').click();
   assert.equal(await x.page.locator('#resolve').isVisible(),true,'Provider recovery remains accessible in Queue');
