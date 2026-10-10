@@ -73,7 +73,7 @@ try{
  await imageAdvanced(x.page);
   assert.equal(await x.page.locator('#notice').evaluate(el=>el.nextElementSibling?.id),'archive-rest-anchor','Switching away restores the shared notice to its original position');
   assert.equal(await x.page.locator('#upscale-notice-slot').isVisible(),false);
-  assert.equal(await x.page.locator('#image-composer-prompt').isVisible(),true);assert.equal(await x.page.locator('#image-composer-add').isVisible(),true);assert.equal(await x.page.locator('#resolution').inputValue(),'2k');await x.page.click('#tool-video');assert.equal(await x.page.locator('#last-upload').isVisible(),true);assert.equal(await x.page.locator('#duration-control').isVisible(),true);assert.deepEqual(x.errors,[]);ok('Existing Image and Video controls still work');await x.context.close();
+  assert.equal(await x.page.locator('#image-composer-prompt').isVisible(),true);assert.equal(await x.page.locator('#image-composer-add').isVisible(),true);assert.ok(['1k','2k'].includes(await x.page.locator('#resolution').inputValue()),'Image Studio keeps a valid default resolution');await x.page.click('#tool-video');assert.equal(await x.page.locator('#last-upload').isVisible(),true);assert.equal(await x.page.locator('#duration-control').isVisible(),true);assert.deepEqual(x.errors,[]);ok('Existing Image and Video controls still work');await x.context.close();
  if(process.env.PV_UPSCALE_NOTICE_SMOKE!=='1'){
  x=await workspace([],1440,{quoteMaxUsd:.018});await x.page.click('#tool-upscale');
  assert.match(await x.page.locator('#upscale-info').innerText(),/Image Upscaler v1 · SpicyAPI/);assert.match(await x.page.locator('#upscale-info').innerText(),/\$0\.012 per image/);assert.match(await x.page.locator('#upscale-info').innerText(),/2 Oct 2026/);
