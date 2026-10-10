@@ -266,6 +266,14 @@ test('Seedream uses SpicyAPI with ordered images, compiled properties and reusab
     assert.equal(onlyResponse.status,200,await onlyResponse.clone().text());
     assert.match(quotedRequest.input.prompt,/There is no base image/);
     assert.match(quotedRequest.input.prompt,/Reference 4 \[Identity\]/);
+    const noDirection={...general,prompt:'',referenceRoles:[{role:'base'},...ids.slice(1).map(()=>({role:'none'}))]};
+    const variation=await req(env,'/api/quotes',{method:'POST',data:{settings:noDirection,referenceSourceIds:ids}});
+    assert.equal(variation.status,200,await variation.clone().text());
+    assert.match(quotedRequest.input.prompt,/thoughtful variation of the Base photograph/);
+    const freeReferences=await req(env,'/api/quotes',{method:'POST',data:{settings:{...noDirection,referenceMode:'references',referenceRoles:ids.map(()=>({role:'none'}))},referenceSourceIds:ids}});
+    assert.equal(freeReferences.status,200,await freeReferences.clone().text());
+    assert.match(quotedRequest.input.prompt,/cohesive new image inspired by the supplied photographs/);
+
 
     const draftResponse=await req(env,'/api/drafts',{method:'POST',data:{settings,referenceSourceIds:ids}});assert.equal(draftResponse.status,201);
     assert.deepEqual((await draftResponse.json()).job.settings.referenceRoles,labels);
