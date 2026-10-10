@@ -163,6 +163,7 @@ $('composer-reference-intent-close').onclick=closeReferenceIntent;
 for(const button of $('composer-reference-intent').querySelectorAll('[data-reference-intent]'))
   button.onclick=()=>setImageReferenceMode(button.dataset.referenceIntent);
 $('composer-reference-same-person').onclick=applySamePerson;
+$('composer-reference-advanced').onclick=()=>{if(busy)return;closeReferenceIntent();toggleImageSettings(true);};
 document.addEventListener('pointerdown',event=>{
   if(referenceIntentOpen&&!event.target.closest('#composer-reference-intent,#composer-reference-intent-toggle'))closeReferenceIntent();
 });
@@ -718,7 +719,7 @@ function syncImageReferences(){
     if(usesReferenceGuidance()&&(i>0||referencesOnly())){
       marker.hidden=true;
       const role=document.createElement('select');role.className='composer-reference-role';role.setAttribute('aria-label','Role for image '+(i+1));role.disabled=busy;
-      for(const [value,label] of REFERENCE_ROLES.filter(([value])=>value!=='base'))role.add(new Option(label,value));
+      for(const [value,label] of REFERENCE_ROLES.filter(([value])=>value!=='base'))role.add(new Option(value==='none'?'General':label,value));
       role.value=ref.role||'none';role.title=role.value==='none'?'General reference. Choose a role for more precise guidance.':'Reference role: '+role.value;
       role.onchange=()=>{ref.role=role.value;ref.target=role.value==='outfit'?'full':'';if(referencesOnly())ref.nonBaseRole=ref.role;autoPreview=null;renderReferences();update();};tile.append(role);
     }
@@ -820,7 +821,6 @@ function syncImageComposer(){
   $('composer-options').querySelector('.composer-panel-head strong').textContent=strengthOnly?'Identity strength':'Image options';
   $('image-composer-more').disabled=busy;
   $('image-composer-more').hidden=['seedream','flash','kling'].includes(imageEngine)||isSoul2()&&!hf.current();
-  if(['seedream','flash','kling'].includes(imageEngine))toggleImageSettings(false);
   $('image-composer-add').hidden=imageEngine==='soul'&&!isReinterpret();
   $('composer-character').setAttribute('aria-label',imageEngine==='soul'||imageEngine==='soulpro'?'Choose character':'Saved reference photos');
   const generate=$('image-composer-generate');
@@ -891,7 +891,7 @@ function populateImageModelMenu(query=''){
   }
 }
 function toggleImageSettings(force){
-  const open=!['seedream','flash','kling'].includes(imageEngine)&&(typeof force==='boolean'?force:!$('app').classList.contains('image-settings-open'));
+  const open=typeof force==='boolean'?force:!$('app').classList.contains('image-settings-open');
   $('app').classList.toggle('image-settings-open',open);
   $('image-settings-scrim').hidden=true;
   $('composer-options').hidden=!open;
