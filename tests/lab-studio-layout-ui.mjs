@@ -226,11 +226,14 @@ try{
   assert.equal(generateUi.color,'rgb(24, 20, 14)','Available Image Generate uses dark text on amber');
   await x.page.selectOption('#image-composer-ratio','16:9');
   assert.equal(await x.page.locator('#ratio').inputValue(),'16:9','Floating aspect ratio updates backend settings');
-  await x.page.click('#image-composer-more');
-  assert.equal(await x.page.locator('#composer-options').isVisible(),true,'Options expand inside the composer');
-  assert.equal(await x.page.locator('.workspace').isVisible(),false,'Image options never reopen the duplicate side form');
-  assert.equal(await x.page.locator('#output-format').isVisible(),true,'Existing output settings remain available inline');
-  await x.page.click('#image-composer-more');
+  assert.equal(await x.page.locator('#image-composer-more').isVisible(),false,
+    'Seedream intentionally uses inline options without a redundant Options button');
+  assert.equal(await x.page.locator('#image-composer-ratio').isVisible(),true,
+    'Seedream aspect ratio is always accessible in the composer');
+  assert.equal(await x.page.locator('#image-composer-resolution').isVisible(),true,
+    'Seedream resolution is always accessible in the composer');
+  assert.equal(await x.page.locator('.workspace').isVisible(),false,
+    'Seedream inline options never reopen a duplicate side form');
   const galleryLayout=await x.page.locator('#history').evaluate(el=>{
     const c=getComputedStyle(el);return {display:c.display,columns:c.gridTemplateColumns.split(' ').length};
   });
