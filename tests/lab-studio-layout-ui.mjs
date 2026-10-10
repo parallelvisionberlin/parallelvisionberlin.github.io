@@ -206,10 +206,13 @@ try{
   const inlineGeometry=await x.page.evaluate(()=>{
     const ref=document.querySelector('.composer-reference-tile').getBoundingClientRect();
     const prompt=document.querySelector('#image-composer-prompt').getBoundingClientRect();
-    return {refLeft:ref.left,refWidth:ref.width,promptLeft:prompt.left};
+    return {refLeft:ref.left,refRight:ref.right,refTop:ref.top,refBottom:ref.bottom,
+      promptLeft:prompt.left,promptRight:prompt.right,promptTop:prompt.top};
   });
-  assert.ok(inlineGeometry.refLeft+inlineGeometry.refWidth<inlineGeometry.promptLeft,
-    'Higgsfield-like reference thumbnail sits to the left of the prompt in one composer');
+  assert.ok(inlineGeometry.refBottom<=inlineGeometry.promptTop+12 &&
+    inlineGeometry.refLeft>=inlineGeometry.promptLeft-12 &&
+    inlineGeometry.refRight<=inlineGeometry.promptRight+12,
+    'Reference thumbnails live in the dedicated row above the prompt, within the same composer');
   await x.page.screenshot({path:'test-results/lab-image-inline-reference.png',fullPage:false});
   await x.page.click('.composer-reference-remove');
   await x.page.waitForFunction(()=>document.querySelectorAll('.composer-reference-tile').length===0);
