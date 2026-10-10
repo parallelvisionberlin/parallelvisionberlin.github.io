@@ -134,7 +134,17 @@ async function assetBlob(id){
   assetReads.set(id,pending);return pending;
 }
 const money=n=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:4}).format(n);
-const notify=(text,error=false)=>{$('notice').textContent=text;$('notice').classList.toggle('error',error);};
+// Keep Upscaler progress and confirmation alongside the Upscale controls.
+function syncNoticePlacement(){
+  const notice=$('notice'),slot=$('upscale-notice-slot'),inline=tool==='upscale'&&owner&&!assetLibrary?.active()&&!fashionActive;
+  if(inline&&notice.parentElement!==slot)slot.append(notice);
+  else if(!inline&&notice.parentElement===slot)$('archive-rest-anchor').before(notice);
+  slot.hidden=!inline||!notice.textContent.trim();
+}
+const notify=(text,error=false)=>{
+  const notice=$('notice');notice.textContent=text;notice.classList.toggle('error',error);
+  syncNoticePlacement();
+};
 function release(url){if(url)URL.revokeObjectURL(url);}
 function isSoul2(){return tool==='image'&&imageEngine==='soulpro'&&soulProModel==='soul2';}
 const hf=createSoul2UI({api,uploadAsset,assetPhoto:composerAssetPhoto,notify,getPacks:()=>packs,onChange:()=>{composerLibraryKey='';update();},onJob:job=>{if(activeStates.has(job.status))setActive(job);surfaceHistoryJob(job);refreshHistorySoon();}});
@@ -275,8 +285,11 @@ function setTool(value){
   const galleryChanged=nextTool!==tool||!!assetLibrary?.active();
   assetLibrary?.close();
   if($('soul-pro-identity-dialog').open)$('soul-pro-identity-dialog').close();
+  const toolChanged=tool!==nextTool;
   tool=nextTool;syncStudioRoute(tool);const image=tool==='image',upscale=tool==='upscale',video=tool==='video';
   $('app').classList.toggle('upscale-studio-active',upscale);
+  if(toolChanged){$('notice').textContent='';$('notice').classList.remove('error');}
+  syncNoticePlacement();
   for(const name of ['image','video','upscale']){$('tool-'+name).classList.toggle('active',tool===name);$('tool-'+name).setAttribute('aria-pressed',String(tool===name));}$('soul-launch').hidden=!image;
   $('video-modes').hidden=!video;$('duration-control').hidden=!video;$('image-model-control').hidden=!image;$('engine-name').hidden=image;$('image-processing-control').hidden=!image||imageEngine!=='gemini';$('soul-pro-settings').hidden=!image||imageEngine!=='soulpro';$('controlled-pose-settings').hidden=!image||imageEngine!=='fal';$('image-count-control').hidden=!image||imageEngine==='fal'||imageEngine==='soulpro';$('video-utilities').hidden=!video;$('format-control').hidden=video||(image&&(imageEngine==='gemini'||imageEngine==='fal'||imageEngine==='soulpro'));$('soul-controls').hidden=!image||imageEngine!=='soul';
   $('start-mode').hidden=(image&&imageEngine!=='soulpro')||video&&mode!=='start';$('reference-mode').hidden=upscale||video&&mode!=='reference'||image&&['soul','soulpro'].includes(imageEngine);
@@ -1222,6 +1235,7 @@ async function submitQuotedGeneration(q, expectedEpoch=epoch) {
     (['image','upscale'].includes(q.settings.mode)?(q.settings.mode==='upscale'?'Upscale requested.':'Image requested.')+(q.priceIsEstimate?' Estimated provider charge: '+money(q.estimatedUsd)+' USD. Not a guaranteed maximum. Results appear in '+destination+'.':' Quoted maximum: '+money(q.maxUsd)+' USD. Results appear in '+destination+'.'):'Generation request recorded. You can leave the page and return to History.'),failed);
 }
 $('generate').onclick=()=>{if(tool==='image')return submitImageSnapshot();return action(async()=>{
+  if(tool==='upscale'&&!isFalUpscale())notify('Preparing your image and checking the live price. Nothing submitted yet…');
   const provider=currentProvider();if(provider==='spicy'&&!config.enabled){connection();return;}if(provider==='gemini'&&!config.geminiEnabled)throw new Error('Gemini API key is not available on the Lab backend.');if(provider==='fal'&&!config.falEnabled)throw new Error('FAL API key is not available on the Lab backend.');
   if(submissionBlocked())throw new Error('An active-job limit or an interrupted request blocks another generation. Check History.');
   const selectedTool=tool,sessionEpoch=epoch;
@@ -1261,7 +1275,7 @@ $('generate').onclick=()=>{if(tool==='image')return submitImageSnapshot();return
 
   const inputs=await prepareQuoteInputs(await ensureInputs());if(!inputs)return;
 
-  notify(selectedTool==='upscale'?'Preparing one paid upscale at the live provider price…':'Requesting a live price. No generation submitted.');
+  notify(selectedTool==='upscale'?'Checking live upscale price before submission…':'Requesting a live price. No generation submitted.');
   const q=await api('/api/quotes',{method:'POST',body:{...inputs,settings:settings()}});
   if(!owner||epoch!==sessionEpoch||tool!==selectedTool)throw new Error('Session or tool changed. No generation submitted.');
   if(selectedTool==='upscale'){
