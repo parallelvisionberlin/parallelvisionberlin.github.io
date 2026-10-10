@@ -118,3 +118,54 @@
   #image-composer #composer-moods-switch{gap:8px;padding-inline:10px}
 }
 @media(prefers-reduced-motion:reduce){#image-composer .composer-moods *{scroll-behavior:auto}}
+
+
+/* Moods: thumbnails are the hero, controls form a quiet compact editing strip. */
+@media(min-width:741px){
+  .moods-footer{display:grid;grid-template-columns:minmax(145px,1.05fr) minmax(0,2.5fr) 134px;align-items:center;column-gap:18px;row-gap:6px;padding-top:10px}
+  .moods-footer-heading{flex-direction:column;align-items:flex-start;justify-content:center;gap:4px;min-width:0;min-height:0}
+  .moods-controls{display:contents}
+}
+.moods-footer{border-top-color:#353638}
+.moods-current-label{font-size:9px;font-weight:600;letter-spacing:.09em;color:#85898d}
+.moods-selected{display:block;max-width:100%;margin-top:2px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-size:13px;font-weight:600;line-height:1.2;color:#f0f0f0}
+#image-composer #composer-moods-about{gap:5px;min-height:21px;padding:1px 0;color:#898e92;font-size:10px}
+.moods-info-icon{width:14px;height:14px;font-size:10px;font-weight:600}
+.moods-strength{gap:2px}
+.moods-strength label{font-size:11px;color:#c9cbcd;font-weight:600}
+#image-composer #composer-moods-amount{min-width:36px;color:#cbd0d3;font-size:11px;font-weight:650}
+#image-composer #composer-moods-intensity{height:23px}
+#image-composer #composer-moods-intensity::-webkit-slider-runnable-track{
+  height:6px;background:linear-gradient(to right,#c5df35 0%,#c5df35 var(--moods-progress,60%),#424548 var(--moods-progress,60%),#424548 100%)
+}
+#image-composer #composer-moods-intensity::-webkit-slider-thumb{
+  width:18px;height:18px;margin-top:-6px;box-shadow:0 0 0 1px #d6ff0026
+}
+#image-composer #composer-moods-intensity::-moz-range-track{height:6px;background:#424548}
+#image-composer #composer-moods-intensity::-moz-range-progress{height:6px;background:#c5df35}
+#image-composer #composer-moods-intensity::-moz-range-thumb{width:16px;height:16px}
+#image-composer #composer-moods-intensity:disabled{opacity:.28}
+.moods-scale{font-size:9px;color:#797e82;line-height:1.1}
+.moods-actions{gap:2px;justify-content:center}
+#image-composer #composer-moods-done,
+#image-composer #composer-moods-switch{
+  min-height:39px;padding:8px 12px;gap:9px;border-radius:8px;font-size:12px;font-weight:680
+}
+#image-composer #composer-moods-done:disabled,
+#image-composer #composer-moods-switch:disabled{
+  opacity:1;background:#303234;border-color:#424447;color:#787d82;cursor:not-allowed
+}
+#image-composer #composer-moods-none{min-height:20px;padding:2px 6px;color:#82878b;font-size:10px}
+#image-composer #composer-moods-none:disabled{visibility:hidden}
+.moods-compat{grid-column:1/-1}
+@media(max-width:740px){
+  .moods-footer{display:flex;flex-direction:column;gap:7px;padding-top:10px}
+  .moods-footer-heading{justify-content:space-between;gap:12px;min-height:0}
+  .moods-controls{display:grid;grid-template-columns:minmax(0,1fr) 126px;gap:12px;align-items:center}
+  .moods-actions{flex-direction:column;align-items:stretch;gap:2px}
+  #image-composer #composer-moods-done,
+  #image-composer #composer-moods-switch{width:100%;flex:0 0 auto}
+}
+@media(max-width:390px){
+  .moods-controls{grid-template-columns:minmax(0,1fr) 113px;gap:8px}
+}
