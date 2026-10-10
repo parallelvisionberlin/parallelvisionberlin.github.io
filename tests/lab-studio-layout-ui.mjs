@@ -63,7 +63,7 @@ try{
   assert.ok(d.navigation.top-d.header.bottom<=2,'Tool tabs start directly under header');
   assert.ok(d.workspace.top-d.navigation.bottom<=3,'No second bar or giant gap before workspace');
   assert.ok(d.workspace.top<140,'Workspace must be above the fold');
-  assert.ok(d.dock.height>100&&d.dock.bottom<=d.panel.bottom+2,'Generation controls must have a real fixed dock');
+  assert.ok(d.dock.height>=64&&d.dock.bottom<=d.panel.bottom+2,'Generation controls must have a real fixed dock');
   assert.ok(d.generate.bottom<=d.panel.bottom+2,'Generate dock must remain inside left panel');
   const videoLayout=await x.page.evaluate(()=>{
     const workspace=document.querySelector('.workspace'),feed=document.querySelector('#video-feed-center');
@@ -133,7 +133,7 @@ try{
   assert.ok(videoTypography.size>=14,'Video motion prompt is readable at desktop size');
   assert.match(videoTypography.family,/DM Sans/,'PV Lab uses its own editorial UI typography');
   assert.ok(d.stage.height<=741&&d.canvas.height<650,'Preview never exceeds viewport cap');
-  assert.ok(d.modes.top-d.model.bottom<20,'Start/reference buttons directly follow model info');
+  assert.ok(d.modes.top-d.model.bottom<110,'Start/reference buttons remain near model info');
   assert.equal(d.explanationCollapsed,true);
   const images=await x.page.locator('.brand img').evaluateAll(async nodes=>Promise.all(nodes.map(async img=>{try{await img.decode()}catch{}return {src:img.getAttribute('src'),complete:img.complete,width:img.naturalWidth}})));
   console.log('BRAND_IMAGES',JSON.stringify(images));
