@@ -92,7 +92,9 @@ async function retouchTopAndBackButton(page){
     const header=document.querySelector('#studio-header').getBoundingClientRect();
     const button=document.querySelector('#precision-return');
     const box=button.getBoundingClientRect(),style=getComputedStyle(button);
-    return {y:window.scrollY,headTop:head.top,headerBottom:header.bottom,
+    return {y:window.scrollY,headTop:head.top,headHeight:head.height,
+      boardTop:document.querySelector('.precision-board').getBoundingClientRect().top,
+      headerBottom:header.bottom,
       backTop:box.top,backBottom:box.bottom,backHeight:box.height,backWidth:box.width,
       bg:style.backgroundColor,label:button.textContent.trim(),viewport:window.innerHeight};
   });
@@ -100,10 +102,13 @@ async function retouchTopAndBackButton(page){
   assert.ok(state.headTop>=state.headerBottom-3,'Retouch title must be visible below the sticky header');
   assert.ok(state.backTop>=state.headerBottom-3&&state.backBottom<=state.viewport,
     'Back to Image must be immediately visible without scrolling');
-  assert.ok(state.backHeight>=43&&state.backWidth>=150,'Back to Image must be a prominent tap target');
+  assert.ok(state.backHeight>=35&&state.backHeight<=42&&state.backWidth>=125,
+    'Back to Image must be a compact secondary navigation control');
   const rgb=(state.bg.match(/[\d.]+/g)||[]).map(Number);
-  assert.ok(rgb.length===3&&rgb[0]>=214&&rgb[0]<=237&&rgb[1]===255&&rgb[2]>=0&&rgb[2]<=136,
-    'Back to Image must keep its high-contrast lime color, including during hover transitions: '+state.bg);
+  assert.ok(rgb.length===3&&rgb.every(v=>v>=30&&v<=75),
+    'Back to Image must use a neutral dark PV Lab background: '+state.bg);
+  assert.ok(state.headHeight<=77&&state.boardTop-state.headerBottom<100,
+    'Compact Retouch heading must give priority to the photo panels: '+JSON.stringify(state));
   assert.match(state.label,/Back to Image/);
 }
 async function retouchPanelsAreClear(page){
