@@ -1,6 +1,6 @@
 /* Precision Edit: large base canvas, SAM 3 point segmentation, mask brushes,
    non-destructive FLUX inpainting and original-pixel client-side compositing. */
-export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,owner,falReady,onJob}){
+export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,owner,falReady,onJob,onExit}){
   const $=id=>document.getElementById(id);
   const view=$('precision-workspace'),sourceCanvas=$('precision-source-canvas'),
     overlay=$('precision-selection-canvas'),resultCanvas=$('precision-result-canvas');
@@ -115,7 +115,9 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     if(!owner())throw new Error('Sign in to edit an image.');
     host.classList.add('is-precision-active');view.hidden=false;
     $('precision-price-review').hidden=true;view.scrollIntoView({block:'start',behavior:'instant'});
-    if(file)await setBase(file,id);
+    // Navigating between Image and Retouch must not clear a work-in-progress mask.
+    // Only load a new source when it is actually a different photograph.
+    if(file&&(!base||(id?base.id!==id:base.file!==file)))await setBase(file,id);
     else if(!base)setStatus('Drop your original photograph on the left to begin.');
     refreshButtons();
   }
@@ -354,7 +356,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     $('precision-prompt').value='';setStatus('');refreshButtons();
   }
   const handle=async promise=>{try{await promise;}catch(e){setStatus(e.message,true);notify(e.message,true);}};
-  $('precision-return').onclick=close;
+  $('precision-return').onclick=()=>{if(typeof onExit==='function')onExit();else close();};
   $('precision-tool-magic').onclick=()=>selectMode('magic');
   $('precision-tool-brush').onclick=()=>selectMode('brush');
   $('precision-tool-erase').onclick=()=>selectMode('erase');
@@ -387,5 +389,5 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
   for(const name of ['pointerup','pointercancel','lostpointercapture'])overlay.addEventListener(name,()=>{if(drawing){drawing=false;lastPoint=null;maskChanged();}});
   // No source is opened automatically in the normal gallery. This workspace is opt-in.
   reset();
-  return {open,close,isOpen,reset,finalize,setBase};
+  return {open,close,isOpen,hasBase:()=>!!base,reset,finalize,setBase};
 }
