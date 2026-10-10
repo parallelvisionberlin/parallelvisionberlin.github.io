@@ -53,3 +53,13 @@
 .lab-wallet-state{font-size:12px!important;min-height:20px}
 @media(max-width:800px){.lab-plans-grid{grid-template-columns:1fr}.lab-plan{min-height:260px}.lab-auth-link{padding:9px 12px}.lab-account-strip{padding:17px 22px}}
 @media(max-width:560px){.lab-credit-dialog{padding:23px}.lab-wallet-toggle{font-size:11px;padding:7px 10px}}
+
+/* Five tool links plus account access must fit a narrow mobile viewport. */
+@media(max-width:700px){
+  .landing-header{gap:11px}
+  .landing-header .lab-brand{font-size:17px}
+  .landing-header .studio-link{font-size:11px}
+  .landing-header>.lab-auth-link{padding:8px 10px;font-size:11px;flex-shrink:0}
+  .landing-header nav{right:22px;max-width:calc(100vw - 44px);gap:18px;overflow-x:auto;scrollbar-width:none;white-space:nowrap;overscroll-behavior-x:contain}
+  .landing-header nav::-webkit-scrollbar{display:none}
+}
