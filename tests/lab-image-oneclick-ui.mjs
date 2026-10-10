@@ -137,13 +137,14 @@ async function retouchFillsDesktop(page){
       deckBottom:box('.precision-deck').bottom,
       headingSize:parseFloat(getComputedStyle(document.querySelector('.precision-head h2')).fontSize),
       dropSize:box('.precision-drop-symbol').width,
+      dropVisible:getComputedStyle(document.querySelector('#precision-drop')).display!=='none',
       horizontalOverflow:document.documentElement.scrollWidth-innerWidth};
   });
   if(g.width>900&&g.height>=810){
     assert.ok(g.boardHeight>=Math.min(400,g.height*.43),'The image panels should dominate Retouch: '+JSON.stringify(g));
     assert.ok(Math.abs(g.height-g.deckBottom)<=32,'The edit direction deck should sit at the bottom of the screen: '+JSON.stringify(g));
     assert.ok(g.headingSize>=30,'Retouch title should be visually prominent: '+JSON.stringify(g));
-    assert.ok(g.dropSize>=78,'The photograph upload target should invite immediate action: '+JSON.stringify(g));
+    if(g.dropVisible)assert.ok(g.dropSize>=78,'The empty photograph upload target should invite immediate action: '+JSON.stringify(g));
   }
   assert.ok(g.horizontalOverflow<=3,'No horizontal scroll allowed: '+JSON.stringify(g));
 }
