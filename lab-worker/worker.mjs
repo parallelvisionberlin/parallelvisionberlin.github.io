@@ -990,7 +990,8 @@ async function route(request,env,ctx) {
     if(customer){
       const account=await customerSession(env,owner);
       const c=await config(env,owner);
-      return json({...account,owner:false,ownerId:owner,version:VERSION,config:{...publicConfig(c,!!env.FAL_KEY),enabled:account.generationReady,configured:account.generationReady,customer:true,higgsfieldEnabled:!!env.HF_CREDENTIALS,geminiEnabled:!!env.GEMINI_API_KEY,openrouterEnabled:!!env.OPENROUTER_API_KEY,soulTrainingEnabled:false,soulReinterpretEnabled:false,soulPresets:publicSoulPresets(),falEnabled:!!env.FAL_KEY}});
+      const ready=account.generationReady;
+      return json({...account,owner:false,ownerId:owner,version:VERSION,config:{...publicConfig(c,ready&&!!env.FAL_KEY),enabled:ready,configured:ready,customer:true,videoEngines:ready?publicConfig(c,!!env.FAL_KEY).videoEngines:[],higgsfieldEnabled:ready&&!!env.HF_CREDENTIALS,geminiEnabled:ready&&!!env.GEMINI_API_KEY,openrouterEnabled:ready&&!!env.OPENROUTER_API_KEY,soulTrainingEnabled:false,soulReinterpretEnabled:false,soulPresets:publicSoulPresets(),falEnabled:ready&&!!env.FAL_KEY}});
     }
     await run(env,"DELETE FROM spend WHERE owner_id=? AND job_id IN (SELECT id FROM jobs WHERE owner_id=? AND state='failed' AND COALESCE(json_extract(params,'$.provider'),'')='fal')",owner,owner);
     const c=await config(env,owner),spent=await first(env,'SELECT COALESCE(SUM(estimate_microusd),0) AS n FROM spend WHERE owner_id=? AND created_at>=?',owner,Math.floor(now()/86400000)*86400000);
