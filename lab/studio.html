@@ -39,7 +39,7 @@ body.lab-ready #lab-boot,body:has(#app:not([hidden])) #lab-boot{display:none!imp
 @media(prefers-reduced-motion:reduce){.lab-boot-track:after{animation:none;width:100%;background:#5a5657}}
 </style>
 <script>
-(()=>{let timer=window.setTimeout(()=>{if(document.body?.classList.contains('lab-ready')||!document.getElementById('app')?.hidden)return;const status=document.getElementById('lab-boot-status'),retry=document.getElementById('lab-boot-retry');if(status)status.textContent='This is taking longer than expected.';if(retry)retry.hidden=false;},16000);
+(()=>{if(new URLSearchParams(location.search).get('tool')==='retouch'){history.scrollRestoration='manual';window.scrollTo(0,0);}let timer=window.setTimeout(()=>{if(document.body?.classList.contains('lab-ready')||!document.getElementById('app')?.hidden)return;const status=document.getElementById('lab-boot-status'),retry=document.getElementById('lab-boot-retry');if(status)status.textContent='This is taking longer than expected.';if(retry)retry.hidden=false;},16000);
 window.__pvLabFinishBoot=()=>{window.clearTimeout(timer);document.body.classList.add('lab-ready');};
 document.addEventListener('DOMContentLoaded',()=>{
   const retry=document.getElementById('lab-boot-retry');
