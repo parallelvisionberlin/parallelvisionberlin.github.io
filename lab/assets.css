@@ -395,11 +395,17 @@ body:has(#app.fashion-studio-active)>footer{display:none}
 @media(prefers-reduced-motion:reduce){.fashion-loading img{animation:none}}
 
 
-/* One editorial masthead for every studio. Navigation never moves with content. */
-:root{--studio-header-height:64px}
+/* One editorial masthead for every studio. Navigation never moves with content.
+   Satin graphite finish, with just enough depth to separate the work area. */
+:root{--studio-header-height:70px}
 body>#studio-header{
   position:sticky;top:0;z-index:60;height:var(--studio-header-height);
-  background:#101114;border-bottom:1px solid #292a2d;backdrop-filter:none;
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.047),rgba(255,255,255,.014) 29%,transparent 54%),
+    linear-gradient(180deg,#191a1e 0%,#121317 70%,#0d0e11 100%);
+  border-bottom:1px solid rgba(203,207,215,.2);
+  box-shadow:inset 0 1px rgba(255,255,255,.065),0 4px 18px rgba(0,0,0,.2);
+  backdrop-filter:none;
 }
 body>#studio-header .wrap.top{
   display:flex;align-items:center;justify-content:flex-start;
@@ -426,14 +432,16 @@ body>#studio-header .tool-switch{
   position:relative;display:inline-flex;align-items:center;justify-content:center;
   flex:none;width:auto;min-width:0;height:100%;min-height:44px;
   margin:0;padding:0 1px;border:0;border-radius:0;background:transparent;
-  box-shadow:none;color:#969698;font-size:14px;font-weight:450;line-height:1;
-  letter-spacing:0;white-space:nowrap;transition:color .15s ease;
+  box-shadow:none;color:#b0b2b7;font-size:14px;font-weight:500;line-height:1;
+  letter-spacing:0;white-space:nowrap;transition:color .18s ease;
 }
 #studio-header .tool-switch>.tool-group>button::after{
-  content:"";position:absolute;bottom:0;left:0;right:0;height:1px;
-  background:#f0eee8;opacity:0;
+  content:"";position:absolute;bottom:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,#a2a5ad,#f4f5f7 50%,#a5a8b0);
+  box-shadow:0 -2px 8px rgba(220,223,229,.12);opacity:0;
+  transition:opacity .18s ease;
 }
-#studio-header .tool-switch>.tool-group>button[aria-pressed="true"]{color:#f0eee8}
+#studio-header .tool-switch>.tool-group>button[aria-pressed="true"]{color:#f4f5f8}
 #studio-header .tool-switch>.tool-group>button[aria-pressed="true"]::after{opacity:1}
 #studio-header .tool-switch>.tool-group>button:hover:not(:disabled){color:#fff;background:transparent}
 #studio-header .tool-switch>.tool-group>button:focus-visible{outline:1px solid #c4c1ba;outline-offset:-5px}
@@ -441,7 +449,7 @@ body>#studio-header .tool-switch{
 #studio-header .actions>details>summary{
   display:flex;align-items:center;justify-content:center;gap:7px;
   min-height:40px;margin:0;padding:0;list-style:none;border:0;border-radius:0;
-  background:transparent;box-shadow:none;color:#a7a7aa;
+  background:transparent;box-shadow:none;color:#b3b5bb;
   font-size:12px;font-weight:450;line-height:1;letter-spacing:0;
   cursor:pointer;transition:color .15s ease;
 }
