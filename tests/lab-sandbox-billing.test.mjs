@@ -15,13 +15,23 @@ function setup(t){
     '../lab-worker/migrations/0007-lab-referrals.sql',
     '../lab-worker/migrations/0008-soul-id-launch-credits.sql'])
     db.exec(readFileSync(new URL(path,import.meta.url),'utf8'));
-  const LAB_DB={prepare(sql){return {bind(...args){
-    return {
-      async first(){return db.prepare(sql).get(...args)||null;},
-      async run(){return db.prepare(sql).run(...args);},
-      async all(){return {results:db.prepare(sql).all(...args)};}
-    };
-  }};}};
+  const LAB_DB={
+    prepare(sql){return {bind(...args){
+      return {
+        async first(){return db.prepare(sql).get(...args)||null;},
+        async run(){const result=db.prepare(sql).run(...args);return {meta:{changes:result.changes}};},
+        async all(){return {results:db.prepare(sql).all(...args)};}
+      };
+    }};},
+    async batch(statements){
+      // Match D1's atomic batch behavior for exactly-once referral rewards.
+      const results=[];db.exec('BEGIN');
+      try{
+        for(const statement of statements)results.push(await statement.run());
+        db.exec('COMMIT');return results;
+      }catch(error){db.exec('ROLLBACK');throw error;}
+    }
+  };
   const env={LAB_DB,LAB_SANDBOX_MODE:'true',LAB_STRIPE_SECRET_KEY:'sk_test_sandboxdummy12345',
     LAB_STRIPE_WEBHOOK_SECRET:'whsec_sandboxdummy12345'};
   return {db,env};
