@@ -48,7 +48,7 @@ export const MOODS=Object.freeze([
     "id": "80s-film",
     "name": "80s Film",
     "category": "Analog",
-    "preview": "/assets/optimized/2063/after-the-collapse/post-apo-bedroom-panorama.webp",
+    "preview": "/lab/mood-previews/80s-film.svg",
     "description": "Tungsten light, faded dyes",
     "direction": "Authentic early-1980s color-film atmosphere: warm tungsten practicals, restrained dye fade, gentle halation, lightly softened contrast, subtle fine grain, lifted shadow tones and period-credible lens rendering.",
     "subtle": "Gentle tungsten warmth with delicate halation and grain.",
