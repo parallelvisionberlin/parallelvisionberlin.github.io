@@ -42,7 +42,7 @@ const id=()=> '20000000-0000-4000-8000-'+String(number++).padStart(12,'0');
 await context.route('https://**/*',async route=>{
  const req=route.request(),url=new URL(req.url());if(!url.href.startsWith('https://parallel-vision-lab.parallelvision.workers.dev'))return route.abort();
  const path=url.pathname,data=req.headers()['content-type']?.includes('application/json')?req.postDataJSON():{};
- requests.push({path,data});
+ requests.push({path,data,method:req.method()});
  const send=(x,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(x)});
  if(path==='/api/jobs'&&req.method()==='GET')return send({jobs:[],activeJobs:[],next:null,concurrency:{image:10,video:3}});
  if(path==='/api/packs')return send({packs:[]});
@@ -89,9 +89,9 @@ try{
  await page.click('#image-composer-generate');
  await page.waitForFunction(()=>!document.querySelector('#generate').disabled);
  assert.equal(paidJobs,2);
- const firstSubmission=requests.findIndex(x=>x.path==='/api/jobs');
+ const firstSubmission=requests.findIndex(x=>x.path==='/api/jobs'&&x.method==='POST');
  assert.equal(requests.slice(0,firstSubmission).filter(x=>x.path==='/api/quotes').length,3,'Generate must use the displayed quote IDs without repricing');
- assert.equal(requests.filter(x=>x.path==='/api/jobs').length,2);
+ assert.equal(requests.filter(x=>x.path==='/api/jobs'&&x.method==='POST').length,2);
  console.log('PASS Generate uses the bound price without a second quote or double charge');
  // Set a 3:4 base photo and verify that it follows the reference until overridden.
  const png=Buffer.from((await page.evaluate(()=>{
