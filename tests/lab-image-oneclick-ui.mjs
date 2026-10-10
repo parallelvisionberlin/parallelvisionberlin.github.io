@@ -10,7 +10,7 @@ import {pathToFileURL} from 'node:url';
 const {chromium}=await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE).href);
 const root=resolve('.'),source=readFileSync('lab/lab.js','utf8');
 const boot=source.indexOf("try{const {Clerk}=await import(");const bootEnd=source.indexOf("\n// Soul composer:",boot);assert.ok(boot>0&&bootEnd>boot);
-const testSource=source.slice(0,boot)+source.slice(bootEnd)+`clerk={isSignedIn:true,user:{id:'test'},session:{id:'synthetic-session',getToken:async()=> 'synthetic-token'},signOut:async()=>{}};owner=true;userId='test';config={enabled:true,geminiEnabled:true,falEnabled:true,dailyLimitUsd:10,concurrency:{image:4,video:1}};$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();await loadSoulProIdentity();update();window.__labTest={lock};`;
+const testSource=source.slice(0,boot)+source.slice(bootEnd)+`clerk={isSignedIn:true,user:{id:'test'},session:{id:'synthetic-session',getToken:async()=> 'synthetic-token'},signOut:async()=>{}};owner=true;userId='test';config={enabled:true,geminiEnabled:true,falEnabled:true,dailyLimitUsd:10,concurrency:{image:4,video:1}};$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();await loadSoulProIdentity();update();window.__labTest={lock,setBusy:value=>{busy=!!value;update();}};`;
 const server=http.createServer((req,res)=>{const pathname=new URL(req.url,'http://localhost').pathname;const path=resolve(root,'.'+pathname+(pathname.endsWith('/')?'index.html':''));if(!path.startsWith(root+'/')||!existsSync(path)){res.writeHead(404).end();return;}res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css'})[extname(path)]||'text/plain');res.end(pathname==='/lab/lab.js'?testSource:readFileSync(path));});
 await new Promise(r=>server.listen(4179,'127.0.0.1',r));
 const browser=await chromium.launch({headless:true});
@@ -88,6 +88,26 @@ const waitRefs=(page,n)=>page.waitForFunction(expected=>document.querySelectorAl
 async function imageForm(x){await imageAdvanced(x.page);await x.page.fill('#prompt:visible, #image-composer-prompt:visible',settings.prompt);await x.page.selectOption('#resolution:visible, #image-composer-resolution:visible','2k');await x.page.selectOption('#ratio:visible, #image-composer-ratio:visible','16:9');await x.page.selectOption('#output-format','png');}
 try{
  let x;
+ // Upload preparation must not grow a temporary third status row in the deck.
+ {
+  x=await workspace({width:1440});
+  await x.page.fill('#image-composer-prompt','Soft pastel film portrait.');
+  const dock=x.page.locator('#image-composer');
+  const idleHeight=await dock.evaluate(el=>el.getBoundingClientRect().height);
+  await x.page.evaluate(()=>window.__labTest.setBusy(true));
+  assert.equal(await x.page.locator('#composer-generation-block').isVisible(),false,'Preparation must not add a status row');
+  const busyHeight=await dock.evaluate(el=>el.getBoundingClientRect().height);
+  assert.ok(Math.abs(busyHeight-idleHeight)<1,'Deck must remain the same height while a photo is prepared');
+  await x.page.evaluate(()=>window.__labTest.setBusy(false));
+  await x.page.locator('#reference-images').setInputFiles({name:'portrait.png',mimeType:'image/png',buffer:png});
+  await waitRefs(x.page,1);await ready(x.page);
+  assert.equal(await x.page.locator('#composer-generation-block').isVisible(),false,'Loaded reference must not leave preparation status inside the deck');
+  await x.page.evaluate(()=>window.__labTest.setBusy(true));
+  assert.equal(await x.page.locator('#composer-generation-block').isVisible(),false,'Repeat preparation must not grow the loaded deck');
+  await x.page.evaluate(()=>window.__labTest.setBusy(false));
+  ok('Image deck keeps its geometry during upload preparation');
+  assert.deepEqual(x.errors,[]);await x.context.close();
+ }
  if(!process.env.PV_REFERENCE_FLOW_ONLY){
  x=await workspace();await imageForm(x);assert.equal(await x.page.locator('#generate').innerText(),'Generate');assert.match(await x.page.locator('#generation-help').innerText(),/one paid image/);
  await clickAdvanced(x.page);await x.page.click('#image-composer-generate');await ready(x.page);assert.equal(x.accepted(),1);assert.equal(count(x,'/api/quotes'),1);assert.equal(count(x,'/api/jobs'),1);assert.equal(await x.page.locator('#quote-dialog').isVisible(),false);assert.deepEqual(x.dialogs,[]);
