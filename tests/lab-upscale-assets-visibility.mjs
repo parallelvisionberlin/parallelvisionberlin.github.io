@@ -74,6 +74,15 @@ for(const [width,height,profile] of [[1440,900,'desktop'],[390,844,'mobile']]){
         options:rect('#upscale-info summary'),size:rect('#resolution'),imageLoaded:false
       };
     });
+    const spacing=await page.evaluate(()=>{
+      const deck=document.querySelector('#app .workspace>.controls');
+      const computed=getComputedStyle(deck);
+      const preview=document.getElementById('upscale-canvas').getBoundingClientRect();
+      const box=deck.getBoundingClientRect();
+      return {gap:box.top-preview.bottom,paddingTop:parseFloat(computed.paddingTop),paddingBottom:parseFloat(computed.paddingBottom)};
+    });
+    assert.ok(spacing.gap>=17&&spacing.gap<=40,profile+': preserve breathing room below the large preview');
+    assert.ok(spacing.paddingTop>=14&&spacing.paddingBottom>=12,profile+': workdeck is slightly taller');
     if(profile==='desktop'){
       assert.ok(geometry.canvas.height>=420&&geometry.canvas.height<=660,'Empty desktop preview restored to its original large format');
       assert.ok(geometry.results.top>=680&&geometry.results.top<=1000,'Gallery follows the restored large preview rather than a shrunken canvas');
