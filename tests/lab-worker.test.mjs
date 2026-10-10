@@ -215,16 +215,20 @@ test('Text-to-image quotes need no source; image outputs can be reused by video 
   const draft=await req(env,'/api/drafts',{method:'POST',data:{sourceId:done.outputId,settings:p}});assert.equal(draft.status,201);assert.equal((await req(env,'/api/jobs/'+done.id,{method:'DELETE'})).status,200);assert.equal((await req(env,'/api/assets/'+done.outputId)).status,200);assert.equal(createCount,1);
 });
 test('Reference editing preserves source order, roles, notes and original prompt; packs pin private media',async()=>{
-  const{env}=fixture();const id=await setup(env);const labels=[{name:'reference.png',role:'room',note:'Use the architecture only.'}];
+  const{env}=fixture();await setup(env);const id=await seedreamTestReference(env,'reference.png',9);const labels=[{name:'reference.png',role:'room',note:'Use the architecture only.'}];
   const packResponse=await req(env,'/api/packs',{method:'POST',data:{name:'Architecture / Set',referenceSourceIds:[id],referenceRoles:labels}});assert.equal(packResponse.status,201);const pack=await packResponse.json();
   const settings={...imageSettings,referenceRoles:labels};const q=await(await req(env,'/api/quotes',{method:'POST',data:{settings,referenceSourceIds:[id]}})).json();assert.equal(quotedRequest.model,'bytedance/seedream-5.0-pro/edit');assert.equal(quotedRequest.input.image_urls.length,1);assert.match(quotedRequest.input.prompt,/Reference 1.*Environment.*Use the architecture only/);assert.equal(q.settings.prompt,imageSettings.prompt);
   const draft=(await(await req(env,'/api/drafts',{method:'POST',data:{settings,referenceSourceIds:[id]}})).json()).job;assert.equal(draft.settings.referenceRoles[0].note,labels[0].note);assert.equal((await req(env,'/api/jobs/'+draft.id,{method:'DELETE'})).status,200);assert.equal((await req(env,'/api/assets/'+id)).status,200);assert.equal((await req(env,'/api/packs',{authToken:guest})).status,403);assert.equal((await req(env,'/api/packs/'+pack.id,{method:'DELETE'})).status,200);
   const oversized={...imageSettings,prompt:'x'.repeat(5000),referenceRoles:labels};assert.equal((await req(env,'/api/quotes',{method:'POST',data:{settings:oversized,referenceSourceIds:[id]}})).status,400);
 });
 
-async function uploadGuidanceReference(env,name,marker){
-  const r=await req(env,'/api/uploads',{method:'POST',raw:new Uint8Array([137,80,78,71,13,10,26,10,marker]),headers:{'Content-Type':'image/png','X-Filename':name}});
+async function seedreamTestReference(env,name,marker=0,width=512,height=512){
+  const bytes=pngDimensions(width,height);bytes[bytes.length-1]=marker;
+  const r=await req(env,'/api/uploads',{method:'POST',raw:bytes,headers:{'Content-Type':'image/png','X-Filename':name}});
   assert.equal(r.status,201);return (await r.json()).id;
+}
+async function uploadGuidanceReference(env,name,marker){
+  return seedreamTestReference(env,name,marker);
 }
 test('Seedream uses SpicyAPI with ordered images, compiled properties and reusable detail metadata',async()=>{
   const{env}=fixture();await setup(env);
@@ -330,7 +334,7 @@ test('A multi-image Seedream price request stages each reference only once and p
 });
 
 test('Image role-only edits compile automatically; invalid mappings and oversized final prompts stop before provider quotes',async()=>{
-  const{env}=fixture(),base=await setup(env),detail=await uploadGuidanceReference(env,'hands.png',0);
+  const{env}=fixture();await setup(env);const base=await seedreamTestReference(env,'base.png',0),detail=await uploadGuidanceReference(env,'hands.png',0);
   const labels=[{role:'base'},{role:'detail',target:'hands'}],settings={...imageSettings,engine:'seedream',prompt:'',referenceRoles:labels};
   const roleOnly=await req(env,'/api/quotes',{method:'POST',data:{settings,referenceSourceIds:[base,detail]}});assert.equal(roleOnly.status,200,await roleOnly.clone().text());
   assert.match(quotedRequest.input.prompt,/Apply the assigned reference properties to the base image/);
@@ -790,7 +794,7 @@ test('SpicyAPI image and upscale submissions ignore fal.ai interrupted jobs and 
   ];
   try{
     for(const settings of [imageSettings,upscaleSettings])for(const foreign of foreignSettings){
-      createCount=0;const{env}=fixture(),id=await setup(env),t=Date.now();
+      createCount=0;const{env}=fixture(),setupId=await setup(env),id=settings.mode==='upscale'?setupId:await seedreamTestReference(env,'spicy-reference.png',8),t=Date.now();
       for(let i=0;i<11;i++)env.LAB_DB.db.prepare('INSERT INTO jobs(id,owner_id,source_id,params,state,estimate_microusd,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?)')
         .run(crypto.randomUUID(),'owner-internal',id,JSON.stringify(foreign),i===0?'uncertain':'queued',1000,t+i,t+i);
       const quoted=await req(env,'/api/quotes',{method:'POST',data:{sourceId:id,referenceSourceIds:settings.mode==='upscale'?[]:[id],settings}});
@@ -819,7 +823,7 @@ test('Upscale rejects invented presets and unsupported formats without buying a 
  assert.equal(createCount,0);
 });
 test('Oversized originals can use a separately-owned working copy while preserving original history pointers',async()=>{
- const{env}=fixture(),copyId=await setup(env);createCount=0;createMode='ok';providerState='queued';
+ const{env}=fixture();await setup(env);const copyId=await seedreamTestReference(env,'working-copy.png',0);createCount=0;createMode='ok';providerState='queued';
  const bytes=new Uint8Array(11*1024*1024);bytes.set([137,80,78,71,13,10,26,10]);
  const upload=await req(env,'/api/uploads',{method:'POST',raw:bytes,headers:{'Content-Type':'image/png','X-Filename':'large-source.png'}});assert.equal(upload.status,201);const id=(await upload.json()).id;
  const blocked=await req(env,'/api/quotes',{method:'POST',data:{referenceSourceIds:[id],settings:imageSettings}});assert.equal(blocked.status,400);assert.equal(createCount,0);
@@ -1004,4 +1008,22 @@ test('Precision Edit binds each paid FLUX job to exactly one approved quote, eve
   const quoted=(await separate.json());
   const mismatch=await req(env,'/api/precision/submit',{method:'POST',data:{...submission,quoteId:quoted.quoteId}});
   assert.equal(mismatch.status,409,'Quote ticket cannot be reused for a different quote');
+});
+
+test('Seedream rejects >36MP input before a provider quote and accepts a separate working copy',async()=>{
+  const {env}=fixture();await setup(env);
+  const high=await seedreamTestReference(env,'high-resolution.png',1,7728,5152);
+  const before=calls.length,created=createCount;
+  const rejected=await req(env,'/api/quotes',{method:'POST',data:{settings:imageSettings,referenceSourceIds:[high]}});
+  assert.equal(rejected.status,400,await rejected.clone().text());
+  assert.match((await rejected.json()).error,/36 megapixels/);
+  assert.equal(createCount,created);
+  assert.equal(calls.slice(before).filter(x=>/\/jobs\/(quote|createTask)$/.test(new URL(x.url).pathname)).length,0);
+  const safe=await seedreamTestReference(env,'sized-working-copy.png',2,7000,4700);
+  const quoted=await req(env,'/api/quotes',{method:'POST',data:{settings:imageSettings,referenceSourceIds:[high],transferSourceIds:[safe]}});
+  assert.equal(quoted.status,200,await quoted.clone().text());
+  const q=await quoted.json();
+  assert.deepEqual(q.settings.referenceSourceIds,[high]);
+  assert.deepEqual(q.settings.transferSourceIds,[safe]);
+  assert.equal(createCount,created,'Working-copy preparation and quotes never submit a paid task.');
 });

@@ -589,6 +589,8 @@ async function stageImageReferences(env,owner,ids,key,max=10,maxPixels=0) {
   };
   const attempts=await Promise.allSettled(Array.from({length:Math.min(3,assets.length)},()=>work()));
   const failure=attempts.find(r=>r.status==='rejected');
+  // Validation failures must remain actionable 400s, not generic provider 502s.
+  if(failure?.reason instanceof HttpError&&failure.reason.status===400)throw failure.reason;
   if(failure)fail(502,'Reference preparation failed: '+cleanProviderDetail(failure.reason?.message||'Upload timed out.')+' No generation was submitted.');
   return result;
 }

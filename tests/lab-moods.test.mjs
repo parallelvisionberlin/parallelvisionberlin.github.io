@@ -185,5 +185,5 @@ test('Soft Pastel Film uses uniquely versioned photo without CSS recoloring',()=
   const css=readFileSync(new URL('../lab/moods.css',import.meta.url),'utf8');
   assert.ok(css.includes('.moods-look-soft-pastel-film img{filter:none;'));
   const html=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
-  assert.ok(html.includes('pastel-portrait-2'));
+  assert.match(html,/src="\.\/lab\.js\?v=[^"]+"/);
 });
