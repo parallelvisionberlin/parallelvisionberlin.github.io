@@ -47,7 +47,7 @@ async function workspace(jobs=[],width=1440,{quoteTtlMs=180000,quoteMaxUsd=.012,
   else {await route.fulfill({status:404,contentType:'application/json',body:JSON.stringify({error:'Unmocked request '+path})});return;}
   try{await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(body)});}finally{finishQuote?.();}
  });
- await page.goto(ORIGIN+'/lab/');await page.waitForFunction(()=>!!window.__labTest);
+ await page.goto(ORIGIN+'/lab/studio.html?tool=image');await page.waitForFunction(()=>!!window.__labTest);
  if(!png)png=Buffer.from(await page.evaluate(()=>{const c=document.createElement('canvas');c.width=c.height=320;const x=c.getContext('2d');x.fillStyle='#353b40';x.fillRect(0,0,320,320);x.fillStyle='#aaa49a';x.fillRect(70,70,180,180);return c.toDataURL('image/png').split(',')[1];}),'base64');
  return {page,context,requests,uploads,errors,historyJobs:()=>structuredClone(jobs),decline:()=>{accepted=false;},waitForQuoteResponse:()=>lastQuoteResponse};
 }
