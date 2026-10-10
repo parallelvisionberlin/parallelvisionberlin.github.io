@@ -1,13 +1,25 @@
 // PV Lab owns the UI; the authenticated Worker owns credentials and provider calls.
 export function createSoul2UI({api,uploadAsset,assetPhoto,notify,onChange,onJob,getPacks}){
   const $=id=>document.getElementById(id);
-  let characters=[],selected='',enabled=false,timer=null,uploading=false;
+  let characters=[],selected='',enabled=false,timer=null,uploading=false,customerTrainingCredits=null,customerImageCredits=null;
   const current=()=>characters.find(c=>c.id===selected);
   function render(){
     const c=current();
     $('hf-status').textContent=!enabled?'Connect Higgsfield API to train and generate.':c?c.name+' · '+(c.state==='completed'?'ready':c.state):'No Soul ID selected. Text or base-image generations will NOT preserve Nina.';
     $('hf-connection').hidden=enabled;
     $('hf-training-submit').disabled=!enabled||uploading;
+    if(customerTrainingCredits!==null){
+      const images=Math.floor(Math.max(0,1000-customerTrainingCredits)/customerImageCredits);
+      $('hf-training-consent-copy').textContent='I confirm the identity photos depict consenting adults and authorize the one-time charge of '+customerTrainingCredits+' PV Lab credits for Soul ID training.';
+      $('hf-training-submit').textContent='Create Soul ID · '+customerTrainingCredits+' credits';
+      $('hf-training-offer-note').hidden=false;
+      $('hf-training-offer-note').textContent='With 1,000 credits, training leaves '+(1000-customerTrainingCredits)+' credits for up to '+images+' Soul 2 images at '+customerImageCredits+' credits each, subject to a valid live image quote.';
+    }else{
+      $('hf-training-consent-copy').textContent='I authorize sending these photos to Higgsfield and the estimated $2.50 one-time Soul ID training charge. Provider billing is authoritative.';
+      $('hf-training-submit').textContent='Create Soul ID · est. $2.50';
+      $('hf-training-offer-note').hidden=true;
+      $('hf-training-offer-note').textContent='';
+    }
     const grid=$('hf-characters');grid.replaceChildren();
     for(const character of characters){
       const card=document.createElement('button');card.type='button';card.className='composer-library-card';card.disabled=character.state!=='completed';card.setAttribute('aria-pressed',String(character.id===selected));
@@ -50,7 +62,7 @@ export function createSoul2UI({api,uploadAsset,assetPhoto,notify,onChange,onJob,
     if(!name){status.textContent='Name this identity first.';return;}
     if(files.length&&pack){status.textContent='Choose uploaded photos or a saved pack, not both.';return;}
     if((files.length||pack?.refs.length||0)<1||(files.length||pack?.refs.length||0)>100){status.textContent='Choose 1–100 identity photos.';return;}
-    if(!$('hf-training-confirm').checked){status.textContent='Confirm the $2.50 training estimate below.';return;}
+    if(!$('hf-training-confirm').checked){status.textContent=customerTrainingCredits!==null?'Confirm the '+customerTrainingCredits+'-credit Soul ID training charge.':'Confirm the $2.50 training estimate below.';return;}
     uploading=true;render();
     try{
       let ids=pack?pack.refs.map(r=>r.id):[];
@@ -62,10 +74,16 @@ export function createSoul2UI({api,uploadAsset,assetPhoto,notify,onChange,onJob,
     }catch(e){status.textContent=e.message;}finally{uploading=false;render();}
   };
   return {current,ready:()=>enabled&&(!selected||current()?.state==='completed'),open,
+    setCustomerPricing(price){
+      const training=Number(price?.trainingCredits),image=Number(price?.imageCredits);
+      customerTrainingCredits=Number.isSafeInteger(training)&&training>0&&Number.isSafeInteger(image)&&image>0?training:null;
+      customerImageCredits=customerTrainingCredits===null?null:image;
+      render();
+    },
     configure(value){enabled=!!value;render();if(enabled)void load().catch(e=>notify(e.message,true));},
     parameters:()=>({characterId:selected,identityStrength:Number($('hf-strength').value),resolution:$('hf-resolution').value}),
     select(id){selected=id;render();},
-    reset(){clearTimeout(timer);characters=[];selected='';enabled=false;render();},
+    reset(){clearTimeout(timer);characters=[];selected='';enabled=false;customerTrainingCredits=null;customerImageCredits=null;render();},
     renderLibrary(grid){grid.replaceChildren();const none=document.createElement('button');none.type='button';none.className='composer-library-card';none.textContent='No character';none.setAttribute('aria-pressed',String(!selected));none.onclick=()=>{selected='';render();onChange();};grid.append(none);for(const c of characters){const b=document.createElement('button');b.type='button';b.className='composer-library-card';b.disabled=c.state!=='completed';const photo=document.createElement('span');photo.className='composer-library-photo';const name=document.createElement('strong');name.textContent=c.name;const state=document.createElement('small');state.textContent='Soul ID · '+(c.state==='completed'?'ready':c.state);b.append(photo,name,state);grid.append(b);assetPhoto(photo,c.portraitAssetId,c.name);b.onclick=()=>{selected=c.id;onChange();};}if(!characters.length){const p=document.createElement('p');p.className='character-library-empty';p.textContent='Your characters will appear here once training is complete.';grid.append(p);}}
   };
 }
