@@ -4,7 +4,7 @@ import {captureReferralCode,claimReferral} from './referral-capture.js?v=2026101
 captureReferralCode();
 import {createSoul2UI} from './higgsfield-ui.js?v=20261010-soul-price1';
 import {VIDEO_MODELS,engineFor,videoLabel} from './video-models.js?v=20261009-extend1';
-import {REFERENCE_ROLES,REFERENCE_TARGETS,normalizeReferenceLabel,compileImagePrompt,referenceGuidanceError,canUseReferenceGuidance} from './reference-guidance.js?v=20261009-flash-kling';
+import {REFERENCE_ROLES,REFERENCE_TARGETS,normalizeReferenceLabel,compileImagePrompt,referenceGuidanceError,canUseReferenceGuidance} from './reference-guidance.js?v=20261010-reference-intent1';
 import {createMoodSelector,moodById,userFacingImagePrompt,imageHistoryCaption} from './moods.js?v=20261010-80s-photo1';
 import {createMediaReferences} from './media-references.js?v=20261009-extend2';
 import { createSessionRequest } from './session-request.js?v=20260927-auth1';
