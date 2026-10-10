@@ -1,0 +1,82 @@
+name: Deploy PV Lab billing sandbox (isolated)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'sandbox/stripe-billing/**'
+      - 'tests/lab-sandbox-billing.test.mjs'
+      - '.github/workflows/deploy-pv-lab-billing-sandbox.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pv-lab-stripe-test-only
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    name: Verify sandbox cannot charge real cards or expose generation
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Check sandbox syntax
+        run: |
+          node --check sandbox/stripe-billing/worker.mjs
+          node --check lab/billing-sandbox.js
+          node --check tests/lab-sandbox-billing.test.mjs
+      - name: Run signed webhook and isolated-wallet tests
+        run: node --test tests/lab-sandbox-billing.test.mjs
+
+  deploy:
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    name: Deploy separate parallel-vision-lab-sandbox Worker
+    steps:
+      - uses: actions/checkout@v4
+      - name: Normalize existing Cloudflare deploy credential
+        shell: bash
+        env:
+          RAW_CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          set -euo pipefail
+          token="$(printf '%s' "$RAW_CLOUDFLARE_API_TOKEN" | tr -d '\r\n\t ')"
+          test -n "$token"
+          echo "::add-mask::$token"
+          printf 'CLOUDFLARE_API_TOKEN=%s\n' "$token" >> "$GITHUB_ENV"
+      - name: Initialize only the isolated sandbox D1 and deploy only sandbox Worker
+        uses: cloudflare/wrangler-action@v4
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ env.CLOUDFLARE_API_TOKEN }}
+        with:
+          apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
+          workingDirectory: sandbox/stripe-billing
+          wranglerVersion: "4"
+          preCommands: |
+            wrangler d1 execute parallel-vision-lab-sandbox --remote --file ../../lab-worker/schema.sql --yes
+            wrangler d1 execute parallel-vision-lab-sandbox --remote --file ../../lab-worker/migrations/0004-pv-soul.sql --yes
+            wrangler d1 execute parallel-vision-lab-sandbox --remote --file ../../lab-worker/migrations/0006-customers-billing.sql --yes
+            wrangler d1 execute parallel-vision-lab-sandbox --remote --file ../../lab-worker/migrations/0007-lab-referrals.sql --yes
+            wrangler d1 execute parallel-vision-lab-sandbox --remote --file ../../lab-worker/migrations/0008-soul-id-launch-credits.sql --yes
+          command: deploy
+      - name: Confirm test-only Worker health
+        shell: bash
+        run: |
+          set -euo pipefail
+          for i in 1 2 3 4 5 6; do
+            body="$(curl -fsS https://parallel-vision-lab-sandbox.parallelvision.workers.dev/health || true)"
+            echo "$body"
+            if echo "$body" | grep -Fq '"testOnly":true' && echo "$body" | grep -Fq 'pv-lab-billing-sandbox'; then
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "The sandbox Worker did not confirm its isolated health."
+          exit 1

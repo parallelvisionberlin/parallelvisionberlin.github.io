@@ -17,6 +17,7 @@ jobs:
           sparse-checkout: |
             lab
             lab-worker
+            sandbox
             tests
             js
       - uses: actions/setup-node@v4

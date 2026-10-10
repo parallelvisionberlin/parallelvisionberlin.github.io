@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#111216">
+<title>PV Lab / Stripe Sandbox</title>
+<link rel="icon" href="./branding/pv-mark.png" type="image/png">
+<style>
+:root{color-scheme:dark;font-family:Arial,Helvetica,sans-serif;background:#111216;color:#f0eff0}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:radial-gradient(circle at 75% 15%,#22242a 0%,#111216 45%)}
+main{max-width:1010px;margin:0 auto;padding:65px 28px 85px}
+header{display:flex;align-items:center;justify-content:space-between;gap:22px}
+.brand{display:flex;align-items:center;gap:12px;color:#f0eff0;text-decoration:none;font-weight:600;letter-spacing:.15em;font-size:12px}
+.brand img{width:34px;height:34px;object-fit:contain}
+.pill{display:inline-flex;align-items:center;border:1px solid #58595d;border-radius:2px;padding:7px 10px;font-size:10px;text-transform:uppercase;letter-spacing:.16em;color:#cdced4}
+h1{font-weight:400;letter-spacing:-.055em;font-size:clamp(35px,6vw,65px);line-height:1.06;margin:88px 0 21px;max-width:760px}
+.intro{font-size:15px;line-height:1.75;color:#b7b6bc;max-width:600px}
+.surface{margin:32px 0 0;border-top:1px solid #515157;padding-top:27px}
+.meta{color:#97989d;font-size:11px;letter-spacing:.12em;text-transform:uppercase}
+.balance{font-weight:400;letter-spacing:-.05em;font-size:50px;margin:11px 0 4px}
+.accounts{display:flex;gap:10px;flex-wrap:wrap;margin:19px 0 14px}
+button{font:inherit;border-radius:5px;background:#eeeeef;color:#151519;border:1px solid #e6e6e7;cursor:pointer;padding:12px 17px;font-size:12px;font-weight:600}
+button.secondary{background:transparent;color:#e3e2e5;border-color:#55555c}
+button:disabled{opacity:.38;cursor:not-allowed}
+button:focus-visible,a:focus-visible{outline:2px solid #dfe5ff;outline-offset:3px}
+.plan-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;margin-top:19px}
+.plan{padding:21px;border:1px solid #4a4a50;background:#1a1b20;display:flex;flex-direction:column;align-items:flex-start;min-height:167px}
+.plan strong{font-size:27px;font-weight:450;letter-spacing:-.04em;margin:14px 0}
+.plan small{font-size:12px;color:#b0aeb6;margin-bottom:15px}
+.plan button{margin-top:auto}
+#status{min-height:28px;font-size:12px;color:#d3d3d6;line-height:1.7}
+.activity{padding:0;list-style:none}
+.activity li{display:flex;justify-content:space-between;border-bottom:1px solid #3b3d42;padding:12px 0;gap:12px;font-size:12px}
+.activity small{color:#85868a}
+footer{border-top:1px solid #33353a;padding:25px 0;font-size:11px;color:#999ca1}
+footer a{color:inherit}
+@media(max-width:640px){main{padding:30px 20px 45px}h1{margin-top:58px}.plan-grid{grid-template-columns:1fr}.plan{min-height:134px}}
+</style>
+<script type="module" src="./billing-sandbox.js?v=20261010-1"></script>
+</head>
+<body>
+<main>
+<header>
+<a class="brand" href="./"><img src="./branding/pv-mark.png" width="34" height="34" alt=""> PARALLEL VISION LAB</a>
+<span class="pill">Stripe sandbox / test only</span>
+</header>
+<h1>Test the payment. Not the production.</h1>
+<p class="intro">This isolated workspace verifies Stripe Checkout, webhook credit delivery and subscription events. Use only Stripe test cards. No real payments or image generations can occur here.</p>
+<section class="surface">
+<div class="meta">Authenticated sandbox account</div>
+<div class="accounts">
+<button id="signin" type="button">Sign in to test</button>
+<button class="secondary" id="signout" type="button" hidden>Sign out</button>
+<button class="secondary" id="refresh" type="button" hidden>Refresh wallet</button>
+</div>
+<p id="status" role="status">Connecting to the test workspace…</p>
+<div id="account" hidden>
+<div class="meta">Available test credits</div>
+<div class="balance" id="balance">0</div>
+<p class="intro" style="margin:0">Credits in the isolated sandbox D1 database; they are not usable for production generation.</p>
+</div>
+</section>
+<section class="surface">
+<div class="meta">Stripe test-mode Checkout</div>
+<div class="plan-grid">
+<div class="plan"><div class="meta">One-time</div><strong>€10</strong><small>1,000 test credits</small><button data-sku="topup10" type="button" disabled>Test purchase ↗</button></div>
+<div class="plan"><div class="meta">One-time</div><strong>€29</strong><small>3,000 test credits</small><button data-sku="topup29" type="button" disabled>Test purchase ↗</button></div>
+<div class="plan"><div class="meta">Monthly test subscription</div><strong>€15</strong><small>1,600 credits per paid cycle</small><button data-sku="starter" type="button" disabled>Test subscription ↗</button></div>
+</div>
+<p class="intro" style="font-size:12px">Complete test checkout using Stripe's test card <code>4242 4242 4242 4242</code> and a future expiration date. Returning from checkout does not grant credits; only a verified signed webhook does.</p>
+</section>
+<section class="surface">
+<div class="meta">Recent sandbox credit entries</div>
+<ul id="activity" class="activity"><li>Sign in to see your isolated wallet.</li></ul>
+</section>
+<footer>
+Internal validation only. Production checkout and customer generation remain disabled.
+<a href="./">Return to PV Lab</a>
+</footer>
+</main>
+</body>
+</html>

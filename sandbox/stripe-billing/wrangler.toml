@@ -1,0 +1,26 @@
+# Isolated PV Lab Stripe sandbox. NEVER replace production wrangler.toml.
+name = "parallel-vision-lab-sandbox"
+main = "worker.mjs"
+compatibility_date = "2026-09-26"
+workers_dev = true
+
+[vars]
+LAB_SANDBOX_MODE = "true"
+LAB_PUBLIC_APP_URL = "https://parallelvisionlabel.com/lab/billing-sandbox.html"
+
+[observability]
+enabled = false
+
+# Created in Cloudflare by the account owner 2026-10-10.
+[[d1_databases]]
+binding = "LAB_DB"
+database_name = "parallel-vision-lab-sandbox"
+database_id = "41fc7cb0-f7a8-4b53-98f6-43c74ecc669f"
+
+# This Worker deliberately has no OWNER_DB, no production D1, no R2 media
+# bucket, no provider keys, and no image/video-generation endpoints.
+#
+# Configure ONLY Stripe sandbox secrets on this NEW Cloudflare Worker:
+# LAB_STRIPE_SECRET_KEY = sk_test_... or rk_test_...
+# LAB_STRIPE_WEBHOOK_SECRET = whsec_... from a test-mode destination.
+# NEVER copy rk_live_, sk_live_ or the live whsec into this Worker.
