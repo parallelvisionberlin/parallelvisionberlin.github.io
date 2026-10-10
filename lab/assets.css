@@ -589,6 +589,8 @@ body:has(#app[hidden])>#studio-header .tool-switch{display:none}
 #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace{
   max-width:1120px;margin:12px auto 18px;gap:7px;
 }
+/* Restore a little space below the large preview, without changing its size. */
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.stage{margin-bottom:14px}
 #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .stagehead,
 #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .stagefoot{
   min-height:28px;height:28px;padding:0 2px;
@@ -631,7 +633,7 @@ body:has(#app[hidden])>#studio-header .tool-switch{display:none}
   height:clamp(420px,52vh,660px);min-height:420px;
 }
 #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls{
-  padding:10px 12px 7px;column-gap:11px;row-gap:3px;
+  padding:14px 12px 12px;column-gap:11px;row-gap:3px;
   background:#1d1e23;border:1px solid #373a43;border-radius:12px;
 }
 #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .controls .label{
@@ -702,7 +704,7 @@ body:has(#app[hidden])>#studio-header .tool-switch{display:none}
     margin-top:12px;
   }
   #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls{
-    padding:11px 12px 7px;gap:7px 9px;
+    padding:14px 12px 12px;gap:7px 9px;
   }
 }
 @media(prefers-reduced-motion:reduce){
