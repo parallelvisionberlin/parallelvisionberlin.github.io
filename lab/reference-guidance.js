@@ -1,6 +1,6 @@
 // Shared by the image UI and Worker so the preview matches the submitted prompt.
 export const REFERENCE_ROLES = Object.freeze([
-  ['none','Choose role'],['base','Base image'],['composition','Composition'],
+  ['none','General reference'],['base','Base image'],['composition','Composition'],
   ['pose','Pose only'],['identity','Identity'],['body','Body'],['detail','Detail'],
   ['outfit','Clothing'],['object','Object'],['room','Environment'],
   ['style','Style'],['lighting','Lighting'],['custom','Custom instruction']
@@ -20,7 +20,7 @@ const descriptions = Object.freeze({
   style:'Use only the photographic treatment, palette and texture. Do not copy subjects, pose, clothing or scene layout.',
   lighting:'Use only the light direction, softness and color. Do not copy identity, pose, clothing or background.',
   custom:'Use only for the specific instruction below.',
-  none:'No role assigned. Use only if the requested edit explicitly identifies a contribution from this reference.'
+  none:'General visual reference. Use only details relevant to the requested image or its specific reference note. Do not replace the base identity, composition, clothing, pose or environment unless the prompt explicitly asks for that change.'
 });
 export function supportsReferenceGuidance(p){
   return p?.type==='image' && p.mode==='image' && (!p.engine || ['seedream','gemini','flash','kling'].includes(p.engine));
@@ -34,8 +34,7 @@ export function normalizeReferenceLabel(x){
 export function referenceGuidanceError(labels){
   if(labels.filter(r=>r.role==='base').length>1)return 'Choose one Base image. Assign the other references only the properties to copy.';
   if(labels.findIndex(r=>r.role==='base')>0)return 'Move the Base image to Reference 1. The first image also controls the automatic aspect ratio.';
-  const missing=labels.findIndex(r=>!r.role||r.role==='none');
-  if(missing>=0)return 'Choose a role for Reference '+(missing+1)+' before generating. Unassigned photos must not influence a paid generation.';
+  // General references are valid without manual labels. Explicit roles remain available for precision.
   for(let i=0;i<labels.length;i++){
     const r=labels[i];
     if(r.role==='detail'&&!r.target)return 'Choose a detail for Reference '+(i+1)+'.';
@@ -44,7 +43,7 @@ export function referenceGuidanceError(labels){
   return '';
 }
 export function canUseReferenceGuidance(labels){
-  return !referenceGuidanceError(labels) && labels[0]?.role==='base' && labels.slice(1).some(r=>r.role!=='none'&&r.role!=='base');
+  return !referenceGuidanceError(labels) && labels[0]?.role==='base' && labels.slice(1).some(r=>(r.role!=='none'&&r.role!=='base')||r.note?.trim());
 }
 export function referenceInstruction(raw,index){
   const r=normalizeReferenceLabel(raw),target=REFERENCE_TARGETS[r.role]?.find(([id])=>id===r.target)?.[1];
@@ -58,8 +57,8 @@ export function compileImagePrompt(direction,labels=[]){
   const prompt=String(direction||'').trim();
   if(!labels.length)return prompt;
   const hasBase=labels.some(r=>r.role==='base');
-  if(!hasBase)return ['REFERENCE MAP (same order as the attached images). Create a new image, not an edit of any one reference. There is no base image. Image order does not assign priority or composition. Use only each assigned property and the contributions explicitly requested in the prompt. Identity defines facial features; Body defines physique and proportions, not pose. Compose the new scene, pose, clothing, framing and lighting according to the prompt unless a reference is explicitly assigned that property. Keep one consistent subject when the references show the same person.',...labels.map(referenceInstruction),'REQUESTED IMAGE: '+prompt].join('\n');
-  const rules='REFERENCE MAP (same order as the attached images). Copy only each assigned property. Base supplies everything else; other roles change only their assigned property. A separate Pose role changes posture only. Identity references define the person; detail, clothing and object references do not replace that identity. Match the final lighting consistently. Follow explicit requested changes.';
+  if(!hasBase)return ['REFERENCE MAP (same order as the attached images). Create a new image, not an edit of any one reference. There is no base image. Image order does not assign priority or composition. Honor each explicitly assigned property; treat General references as optional visual guidance only where relevant to the request. Identity defines facial features; Body defines physique and proportions, not pose. Compose the new scene, pose, clothing, framing and lighting according to the prompt unless a reference is explicitly assigned that property. Keep one consistent subject when the references show the same person.',...labels.map(referenceInstruction),'REQUESTED IMAGE: '+prompt].join('\n');
+  const rules='REFERENCE MAP (same order as the attached images). Respect explicitly assigned properties. General references supply only cues relevant to the request; the Base supplies everything else; other roles change only their assigned property. A separate Pose role changes posture only. Identity references define the person; detail, clothing and object references do not replace that identity. Match the final lighting consistently. Follow explicit requested changes.';
   return [rules,...labels.map(referenceInstruction),'REQUESTED EDIT: '+(prompt||'Apply the assigned reference properties to the base image; preserve everything else.')].join('\n');
 }
 
