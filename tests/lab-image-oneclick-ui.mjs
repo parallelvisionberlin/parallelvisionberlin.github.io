@@ -88,6 +88,47 @@ const waitRefs=(page,n)=>page.waitForFunction(expected=>document.querySelectorAl
 async function imageForm(x){await imageAdvanced(x.page);await x.page.fill('#prompt:visible, #image-composer-prompt:visible',settings.prompt);await x.page.selectOption('#resolution:visible, #image-composer-resolution:visible','2k');await x.page.selectOption('#ratio:visible, #image-composer-ratio:visible','16:9');await x.page.selectOption('#output-format','png');}
 try{
  let x;
+ // Retouch is a true route, not an overlay that forgets Image settings.
+ {
+  x=await workspace();
+  await x.page.fill('#image-composer-prompt','A soft gray studio portrait.');
+  await x.page.locator('#reference-images').setInputFiles({name:'retouch-base.png',mimeType:'image/png',buffer:png});
+  await waitRefs(x.page,1);await ready(x.page);
+  const before=await x.page.evaluate(()=>({
+    prompt:document.querySelector('#image-composer-prompt').value,
+    ratio:document.querySelector('#image-composer-ratio').value,
+    model:document.querySelector('#image-composer-model-label').textContent.trim(),
+    role:document.querySelector('#reference-list .reference-item select')?.value||''
+  }));
+  await x.page.click('#image-composer-edit-area');
+  await x.page.waitForFunction(()=>document.getElementById('app').classList.contains('retouch-studio-active')&&
+    !document.getElementById('precision-source-holder').hidden);
+  assert.match(x.page.url(),/tool=retouch/);
+  assert.equal(await x.page.locator('#tool-retouch').getAttribute('aria-pressed'),'true');
+  assert.equal(await x.page.locator('#tool-image').getAttribute('aria-pressed'),'false');
+  assert.equal(await x.page.locator('#precision-source-holder').isVisible(),true);
+  assert.match(await x.page.locator('#precision-source-meta').innerText(),/retouch-base\.png/);
+  assert.equal(count(x,'/api/uploads'),0,'Opening Retouch must reuse the local image without uploading it');
+  await x.page.goBack();
+  await x.page.waitForFunction(()=>!document.getElementById('app').classList.contains('retouch-studio-active'));
+  assert.match(x.page.url(),/tool=image/);
+  assert.equal(await x.page.locator('#image-composer').isVisible(),true);
+  assert.deepEqual(await x.page.evaluate(()=>({
+    prompt:document.querySelector('#image-composer-prompt').value,
+    ratio:document.querySelector('#image-composer-ratio').value,
+    model:document.querySelector('#image-composer-model-label').textContent.trim(),
+    role:document.querySelector('#reference-list .reference-item select')?.value||''
+  })),before,'Image sources, prompt, model and ratio must remain untouched');
+  await x.page.click('#tool-retouch');
+  assert.match(x.page.url(),/tool=retouch/);
+  await x.page.click('#precision-return');
+  await x.page.waitForFunction(()=>new URL(location.href).searchParams.get('tool')==='image');
+  assert.equal(await x.page.locator('#tool-image').getAttribute('aria-pressed'),'true');
+  assert.equal(count(x,'/api/jobs'),0,'Navigation must not authorize a paid generation');
+  assert.equal(count(x,'/api/precision/segment'),0,'Navigation must not start Magic Select');
+  ok('Retouch has its own URL and tab, reuses Base and returns with Image workspace intact');
+  assert.deepEqual(x.errors,[]);await x.context.close();
+ }
  // Upload preparation must not grow a temporary third status row in the deck.
  {
   x=await workspace({width:1440});
