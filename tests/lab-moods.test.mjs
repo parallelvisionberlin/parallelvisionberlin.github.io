@@ -175,3 +175,9 @@ test('Dreamcore is accepted by the worker while archived Sumi-e remains readable
   assert.equal(legacy.metadata.moodId,'sumi-ink');
   assert.match(imageHistoryCaption({moodId:'sumi-ink',moodIntensity:60,moodOriginalPrompt:'Portrait'}),/Japanese Sumi-e · 60%/);
 });
+
+test("Soft Pastel Film thumbnail preserves uploaded photograph's color",()=>{
+  assert.equal(moodById('soft-pastel-film').preview,'/lab/mood-previews/soft-pastel-film-20261010.webp');
+  const css=readFileSync(new URL('../lab/moods.css',import.meta.url),'utf8');
+  assert.ok(css.includes('.moods-look-soft-pastel-film img{filter:none;object-position:center center}'));
+});
