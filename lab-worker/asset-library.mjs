@@ -50,6 +50,8 @@ export async function libraryJobs(env,owner,url,{rows,uid,fail,jobView}){
   if(url.searchParams.get('unfiled')==='1'&&!folder&&url.searchParams.get('favorite')!=='1')clauses.push('NOT EXISTS(SELECT 1 FROM library_members m WHERE m.owner_id=j.owner_id AND m.job_id=j.id)');
   if(url.searchParams.get('favorite')==='1')clauses.push('EXISTS(SELECT 1 FROM library_favorites f WHERE f.owner_id=j.owner_id AND f.job_id=j.id)');
   if(['image','video'].includes(kind)){clauses.push("json_extract(j.params,'$.type')=?");args.push(kind);}
+  // Filter before pagination so older upscales are reachable without unrelated image pages.
+  if(url.searchParams.get('mode')==='upscale'){clauses.push("json_extract(j.params,'$.mode')=?");args.push('upscale');}
   const list=await rows(env,`SELECT j.*,EXISTS(SELECT 1 FROM library_favorites f WHERE f.owner_id=j.owner_id AND f.job_id=j.id) AS favorite FROM jobs j WHERE ${clauses.join(' AND ')} ORDER BY j.created_at DESC,j.id DESC LIMIT 21`,...args);
   const more=list.length>20;if(more)list.pop();const last=list.at(-1);
   // Resolve stored output geometry before returning any cards. Cache it once per asset.

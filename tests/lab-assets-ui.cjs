@@ -1,9 +1,9 @@
 const {chromium}=require(process.env.CODEX_PRIMARY_RUNTIME_NODE_MODULES+'/playwright');
 const fs=require('fs'),http=require('http'),path=require('path'),assert=require('assert/strict');
-const root=process.cwd();let source=fs.readFileSync('lab/lab.js','utf8');const a=source.indexOf("try{const {Clerk}=await import("),b=source.indexOf('// Soul composer:',a);source=source.slice(0,a)+`clerk={session:{getToken:async()=> 'test'}};owner=true;userId='test';config={enabled:true,higgsfieldEnabled:true,openrouterEnabled:true,falEnabled:true,videoEngines:['seedance','wan'],concurrency:{image:10,video:3}};$('app').hidden=false;$('gate').hidden=true;hf.configure(true);await loadHistory();update();finishLabBoot();window.__referenceSettings=()=>settings();window.__setTestJobs=setActiveJobs;window.__ready=true;\n`+source.slice(b);
+const root=process.cwd();let source=fs.readFileSync('lab/lab.js','utf8');const a=source.indexOf("try{const {Clerk}=await import("),b=source.indexOf('// Soul composer:',a);source=source.slice(0,a)+`clerk={session:{getToken:async()=> 'test'}};owner=true;userId='test';config={enabled:true,higgsfieldEnabled:true,openrouterEnabled:true,falEnabled:true,videoEngines:['seedance','wan'],concurrency:{image:10,video:3}};$('app').hidden=false;$('gate').hidden=true;hf.configure(true);await loadHistory();update();finishLabBoot();window.__referenceSettings=()=>settings();window.__setTestJobs=setActiveJobs;window.__surfaceTestJob=surfaceHistoryJob;window.__ready=true;\n`+source.slice(b);
 const server=http.createServer((req,res)=>{const url=new URL(req.url,'http://localhost'),rel=url.pathname.replace(/^\//,'')+(url.pathname.endsWith('/')?'index.html':'');const f=['.'].map(x=>path.join(root,x,rel)).find(fs.existsSync);if(!f){res.writeHead(404).end();return;}res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css','.png':'image/png'})[path.extname(f)]||'text/plain');res.end(rel==='lab/lab.js'?source:fs.readFileSync(f));});
 (async()=>{await new Promise(r=>server.listen(8765,'127.0.0.1',r));const browser=await chromium.launch({headless:true,args:['--no-sandbox']});const page=await browser.newPage({viewport:{width:1440,height:1000}});const png=Buffer.from(await page.evaluate(()=>{const c=document.createElement('canvas');c.width=900;c.height=600;const x=c.getContext('2d');x.fillStyle='#454b50';x.fillRect(0,0,900,600);x.fillStyle='#9b9489';x.fillRect(240,80,400,450);return c.toDataURL().split(',')[1];}),'base64');const errors=[];page.on('pageerror',e=>errors.push(e.message));let releaseImages;const imagesReady=new Promise(r=>releaseImages=r);let folders=[],members={},favorites=new Set();let jobs=Array.from({length:6},(_,i)=>({id:'job-'+i,sourceId:'source-'+i,outputId:'out-'+i,status:'completed',createdAt:Date.now()-i*100,settings:{galleryDimensions:{assetId:'out-'+i,width:900,height:600},type:i<4?'image':'video',mode:i<4?'image':'start',engine:i<4?'seedream':'wan',resolution:'1k',prompt:'A quiet room',aspectRatio:'16:9',duration:5}}));
-await page.route('https://**/*',async route=>{const req=route.request(),u=new URL(req.url());if(!u.href.includes('parallel-vision-lab.parallelvision.workers.dev'))return route.abort();let result={};const d=req.method()==='POST'?req.postDataJSON():{};if(u.pathname==='/api/jobs'){let list=jobs.filter(j=>(u.searchParams.get('unfiled')!=='1'||u.searchParams.get('folder')||u.searchParams.get('favorite')||!Object.values(members).some(ids=>ids.includes(j.id)))&&(!u.searchParams.get('kind')||j.settings.type===u.searchParams.get('kind'))&&(!u.searchParams.get('favorite')||favorites.has(j.id))&&(!u.searchParams.get('folder')||(members[u.searchParams.get('folder')]||[]).includes(j.id)));result={jobs:list.map(j=>({...j,favorite:favorites.has(j.id)})),next:null,activeJobs:[]};}else if(u.pathname==='/api/library')result={folders:folders.map(f=>({...f,count:(members[f.id]||[]).length}))};else if(u.pathname==='/api/library/folders'){const folder={id:'folder-'+folders.length,name:d.name};folders.push(folder);result={folder};}else if(u.pathname==='/api/library/archive'){let folder=folders.find(f=>f.name==='Archive');if(!folder){folder={id:'archive',name:'Archive'};folders.push(folder);}members[folder.id]=[...new Set([...(members[folder.id]||[]),...d.ids])];}else if(u.pathname==='/api/library/members'){for(const id of d.ids){if(typeof d.favorite==='boolean'){d.favorite?favorites.add(id):favorites.delete(id);}else{const m=new Set(members[d.folderId]||[]);d.remove?m.delete(id):m.add(id);members[d.folderId]=[...m];}}}else if(u.pathname==='/api/jobs/bulk-delete'){jobs=jobs.filter(j=>!d.ids.includes(j.id));result={deleted:d.ids.length};}else if(u.pathname.startsWith('/api/assets/')){await imagesReady;return route.fulfill({contentType:/out-[45]$/.test(u.pathname)?'video/mp4':'image/png',body:/out-[45]$/.test(u.pathname)?Buffer.from('mock video bytes'):png});}return route.fulfill({contentType:'application/json',body:JSON.stringify(result)});});
+await page.route('https://**/*',async route=>{const req=route.request(),u=new URL(req.url());if(!u.href.includes('parallel-vision-lab.parallelvision.workers.dev'))return route.abort();let result={};const d=req.method()==='POST'?req.postDataJSON():{};if(u.pathname==='/api/jobs'){let list=jobs.filter(j=>(u.searchParams.get('unfiled')!=='1'||u.searchParams.get('folder')||u.searchParams.get('favorite')||!Object.values(members).some(ids=>ids.includes(j.id)))&&(!u.searchParams.get('kind')||j.settings.type===u.searchParams.get('kind'))&&(!u.searchParams.get('mode')||j.settings.mode===u.searchParams.get('mode'))&&(!u.searchParams.get('favorite')||favorites.has(j.id))&&(!u.searchParams.get('folder')||(members[u.searchParams.get('folder')]||[]).includes(j.id)));result={jobs:list.map(j=>({...j,favorite:favorites.has(j.id)})),next:null,activeJobs:[]};}else if(u.pathname==='/api/library')result={folders:folders.map(f=>({...f,count:(members[f.id]||[]).length}))};else if(u.pathname==='/api/library/folders'){const folder={id:'folder-'+folders.length,name:d.name};folders.push(folder);result={folder};}else if(u.pathname==='/api/library/archive'){let folder=folders.find(f=>f.name==='Archive');if(!folder){folder={id:'archive',name:'Archive'};folders.push(folder);}members[folder.id]=[...new Set([...(members[folder.id]||[]),...d.ids])];}else if(u.pathname==='/api/library/members'){for(const id of d.ids){if(typeof d.favorite==='boolean'){d.favorite?favorites.add(id):favorites.delete(id);}else{const m=new Set(members[d.folderId]||[]);d.remove?m.delete(id):m.add(id);members[d.folderId]=[...m];}}}else if(u.pathname==='/api/jobs/bulk-delete'){jobs=jobs.filter(j=>!d.ids.includes(j.id));result={deleted:d.ids.length};}else if(u.pathname.startsWith('/api/assets/')){await imagesReady;return route.fulfill({contentType:/out-[45]$/.test(u.pathname)?'video/mp4':'image/png',body:/out-[45]$/.test(u.pathname)?Buffer.from('mock video bytes'):png});}return route.fulfill({contentType:'application/json',body:JSON.stringify(result)});});
 await page.emulateMedia({reducedMotion:'reduce'});
 await page.goto('http://127.0.0.1:8765/lab/',{waitUntil:'domcontentloaded'});
 assert.equal(await page.locator('h1').textContent(),'PV LAB');
@@ -294,5 +294,51 @@ assert.equal(await page.locator('#image-composer-prompt').inputValue(),'Keep thi
 assert.equal(await fashion.isVisible(),false);assert.equal(page.url(),studioUrl,'Image Studio return stays in the same document');
 assert.equal(fashionSubmits,0);assert.deepEqual(errors,[]);
 console.log('PASS integrated Fashion: stable shell, shared session, preserved inputs, quotation gate and responsive design');
+
+
+jobs=[
+  {id:'up-spicy',sourceId:'up-source-1',outputId:'up-out-1',status:'completed',createdAt:Date.now(),settings:{type:'image',mode:'upscale',engine:'spicy',resolution:'4k',outputFormat:'png',aspectRatio:'16:9'}},
+  {id:'up-fal',sourceId:'up-source-2',outputId:'up-out-2',status:'completed',createdAt:Date.now()-1,settings:{type:'image',mode:'upscale',provider:'fal',upscaleModel:'topaz',resolution:'4k',outputFormat:'png',aspectRatio:'16:9'}},
+  {id:'regular-image',outputId:'regular-out',status:'completed',createdAt:Date.now()-2,settings:{type:'image',mode:'image',engine:'seedream',resolution:'1k',aspectRatio:'16:9'}},
+  {id:'regular-video',outputId:'video-out',status:'completed',createdAt:Date.now()-3,settings:{type:'video',mode:'start',engine:'seedance',resolution:'720p',duration:5,aspectRatio:'16:9'}}
+];
+let lastUpscaleQuery=null;
+page.on('request',request=>{if(request.url().includes('/api/jobs?'))lastUpscaleQuery=new URL(request.url()).searchParams;});
+await page.goto('http://127.0.0.1:8765/lab/studio.html?tool=upscale',{waitUntil:'domcontentloaded'});
+await page.waitForFunction(()=>window.__ready);
+assert.equal(lastUpscaleQuery.get('kind'),'image');assert.equal(lastUpscaleQuery.get('mode'),'upscale');
+assert.equal(await page.locator('.archive h2').textContent(),'Upscaled images');
+assert.deepEqual(await page.locator('#history .card').evaluateAll(els=>els.map(el=>el.dataset.job)),['up-spicy','up-fal']);
+const upscalePromptless=await page.locator('#history .card[data-job="up-spicy"] img').first();
+await upscalePromptless.scrollIntoViewIfNeeded();
+await page.waitForFunction(()=>document.querySelector('#history .card[data-job="up-spicy"] img')?.naturalWidth>0);
+await page.locator('#history .card[data-job="up-spicy"]').click();
+await page.locator('#image-lightbox').waitFor({state:'visible'});await page.keyboard.press('Escape');
+for(const width of [1440,390,320]){
+  await page.setViewportSize({width,height:1000});
+  const deck=await page.locator('.workspace').boundingBox(),gallery=await page.locator('.archive').boundingBox();
+  assert.ok(gallery.y>=deck.y+deck.height,'Upscaled work sits below the entire deck at '+width);
+  assert.equal(await page.locator('.archive').isVisible(),true);
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'Upscale gallery fits '+width);
+  if(width!==320)console.log('UPSCALE_FILTERED_'+width+'='+Buffer.from(await page.screenshot({type:'jpeg',quality:75,fullPage:true})).toString('base64'));
+}
+await page.evaluate(()=>window.__surfaceTestJob({id:'late-image',outputId:'late-image-out',status:'completed',createdAt:Date.now(),settings:{type:'image',mode:'image',engine:'seedream',aspectRatio:'16:9',resolution:'1k'}}));
+assert.equal(await page.locator('#history .card').count(),2,'Unrelated image completions do not enter Upscaler');
+await page.evaluate(()=>window.__surfaceTestJob({id:'late-upscale',outputId:'late-upscale-out',status:'completed',createdAt:Date.now(),settings:{type:'image',mode:'upscale',resolution:'4k',aspectRatio:'16:9'}}));
+assert.equal(await page.locator('#history .card[data-job="late-upscale"]').count(),1,'New upscales appear immediately');
+await page.click('#tool-assets');await page.waitForFunction(()=>document.querySelectorAll('#history .card').length===4);
+assert.equal(lastUpscaleQuery.has('mode'),false,'Assets removes the upscale filter');
+assert.equal(await page.locator('#history .card[data-job="regular-video"]').count(),1);
+await page.click('#tool-upscale');await page.waitForFunction(()=>document.querySelectorAll('#history .card').length===2);
+await page.click('#history-select');await page.locator('#history .card[data-job="up-spicy"]').click();await page.click('#history-archive-selected');
+await page.waitForFunction(()=>document.querySelectorAll('#history .card').length===1);
+assert.equal(await page.locator('#history .card').getAttribute('data-job'),'up-fal','Archived upscale leaves working grid');
+await page.click('#tool-assets');await page.click('#assets-all');await page.waitForFunction(()=>document.querySelectorAll('#history .card').length===4);
+assert.equal(await page.locator('#history .card[data-job="up-spicy"]').count(),1,'Archived upscale remains in Assets');
+jobs=jobs.filter(j=>j.settings.mode!=='upscale');
+await page.click('#tool-upscale');await page.waitForFunction(()=>document.querySelectorAll('#history .card').length===0);
+assert.equal(await page.locator('#emptyarchive').textContent(),'Your upscaled images will appear here.');
+assert.deepEqual(errors,[]);
+console.log('PASS restored Upscaler gallery: only upscales, below deck, immediate results, archive behavior, full Assets and mobile');
 
 await browser.close();server.close();})().catch(e=>{console.error(e);server.close();process.exit(1)});
