@@ -10,7 +10,7 @@ import {pathToFileURL} from 'node:url';
 const {chromium}=await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE).href);
 const root=resolve('.'),source=readFileSync('lab/lab.js','utf8');
 const boot=source.indexOf("try{const {Clerk}=await import(");const bootEnd=source.indexOf("\n// Soul composer:",boot);assert.ok(boot>0&&bootEnd>boot);
-const testSource=source.slice(0,boot)+source.slice(bootEnd)+`clerk={isSignedIn:true,user:{id:'test'},session:{id:'synthetic-session',getToken:async()=> 'synthetic-token'},signOut:async()=>{}};owner=true;userId='test';config={enabled:true,geminiEnabled:true,falEnabled:true,dailyLimitUsd:10,concurrency:{image:4,video:1}};$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();await loadSoulProIdentity();update();window.__labTest={lock,setBusy:value=>{busy=!!value;update();}};`;
+const testSource=source.slice(0,boot)+source.slice(bootEnd)+`clerk={isSignedIn:true,user:{id:'test'},session:{id:'synthetic-session',getToken:async()=> 'synthetic-token'},signOut:async()=>{}};owner=true;userId='test';config={enabled:true,geminiEnabled:true,falEnabled:true,dailyLimitUsd:10,concurrency:{image:4,video:1}};$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();await loadSoulProIdentity();await restoreStudioEntry();update();window.__labTest={lock,setBusy:value=>{busy=!!value;update();},setCustomerMode:value=>{customerMode=!!value;update();}};`;
 const server=http.createServer((req,res)=>{const pathname=new URL(req.url,'http://localhost').pathname;const path=resolve(root,'.'+pathname+(pathname.endsWith('/')?'index.html':''));if(!path.startsWith(root+'/')||!existsSync(path)){res.writeHead(404).end();return;}res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css'})[extname(path)]||'text/plain');res.end(pathname==='/lab/lab.js'?testSource:readFileSync(path));});
 await new Promise(r=>server.listen(4179,'127.0.0.1',r));
 const browser=await chromium.launch({headless:true});
@@ -126,9 +126,25 @@ try{
   assert.equal(await x.page.locator('#tool-image').getAttribute('aria-pressed'),'true');
   assert.equal(count(x,'/api/jobs'),0,'Navigation must not authorize a paid generation');
   assert.equal(count(x,'/api/precision/segment'),0,'Navigation must not start Magic Select');
-  ok('Retouch has its own URL and tab, reuses Base and returns with Image workspace intact');
+  // Direct Retouch URLs must not rely on a previous Image navigation entry.
+  await x.page.goto(ORIGIN+'/lab/studio.html?tool=retouch');
+  await x.page.waitForFunction(()=>document.getElementById('app').classList.contains('retouch-studio-active'));
+  assert.equal(await x.page.locator('#precision-drop').isVisible(),true);
+  await x.page.click('#precision-return');
+  assert.match(x.page.url(),/tool=image/);
+  // Public customers can inspect Retouch, but no metered service is enabled.
+  await x.page.evaluate(()=>window.__labTest.setCustomerMode(true));
+  await x.page.click('#tool-retouch');
+  assert.equal(await x.page.locator('#precision-access-note').isVisible(),true);
+  assert.equal(await x.page.locator('#precision-tool-magic').isDisabled(),true);
+  assert.equal(await x.page.locator('#precision-generate').isDisabled(),true);
+  assert.equal(count(x,'/api/precision/segment'),0);
+  await x.page.click('#precision-return');
+  await x.page.evaluate(()=>window.__labTest.setCustomerMode(false));
+  ok('Retouch route, native Back, direct URL and customer preview preserve safe Image state');
   assert.deepEqual(x.errors,[]);await x.context.close();
  }
+ if(!process.env.PV_RETOUCH_NAV_ONLY){
  // Upload preparation must not grow a temporary third status row in the deck.
  {
   x=await workspace({width:1440});
@@ -390,6 +406,7 @@ try{
  ok('History multi-select deletes several inactive items in one compact bulk action');await x.context.close();
 
   for(const width of [390,1728]){x=await workspace({width});await imageForm(x);assert.ok(await x.page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));mkdirSync('test-results',{recursive:true});await x.page.screenshot({path:'test-results/image-oneclick-'+width+'.png',fullPage:true});assert.deepEqual(x.errors,[]);ok('Image layout without overflow at '+width+'px');await x.context.close();}
+ }
  }
  console.log('ONECLICK_BROWSER_CHECKS_PASSED='+passed);
 }finally{await browser.close();await new Promise(r=>server.close(r));}
