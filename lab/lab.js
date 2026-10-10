@@ -198,9 +198,28 @@ function syncNoticePlacement(){
   else if(!inline&&notice.parentElement===slot)$('archive-rest-anchor').before(notice);
   slot.hidden=!inline||!notice.textContent.trim();
 }
+function clearImageComposerNotice(){
+  const status=$('image-composer-status');
+  if(!status)return;
+  status.hidden=true;status.replaceChildren();status.classList.remove('is-import-error');
+}
+function showImageComposerError(message){
+  if(tool!=='image'||!owner||assetLibrary?.active())return;
+  const status=$('image-composer-status');if(!status)return;
+  const description=document.createElement('span');description.textContent=message;
+  const dismiss=document.createElement('button');dismiss.type='button';dismiss.textContent='×';
+  dismiss.setAttribute('aria-label','Dismiss image upload error');
+  dismiss.onclick=clearImageComposerNotice;
+  status.replaceChildren(description,dismiss);
+  status.classList.add('is-import-error');
+  status.setAttribute('role','alert');
+  status.hidden=false;
+}
 const notify=(text,error=false)=>{
   const notice=$('notice');notice.textContent=text;notice.classList.toggle('error',error);
   syncNoticePlacement();
+  if(error)showImageComposerError(text);
+  else clearImageComposerNotice();
 };
 function release(url){if(url)URL.revokeObjectURL(url);}
 function isSoul2(){return tool==='image'&&imageEngine==='soulpro'&&soulProModel==='soul2';}
@@ -918,8 +937,11 @@ imageComposer.addEventListener('dragleave',e=>{
 imageComposer.addEventListener('drop',e=>{
   e.preventDefault();imageComposer.classList.remove('is-dragging');
   if(!owner||busy||tool!=='image')return;
-  const list=[...(e.dataTransfer?.files||[])].filter(f=>f.type.startsWith('image/'));
+  const list=[...(e.dataTransfer?.files||[])];
+  // Internal reference reordering and gallery drag behavior remain unchanged.
   if(!list.length)return;
+  const unsupported=list.find(f=>!['image/jpeg','image/png','image/webp'].includes(f.type));
+  if(unsupported){notify('Unsupported image format: '+(unsupported.name||'file')+'. Use JPG, PNG or WebP.',true);return;}
   void action(async()=>{
     if(imageEngine==='soulpro'){
       if(list.length!==1)throw new Error('Choose exactly one base image for Soul Pro.');
@@ -1189,14 +1211,17 @@ $('input-preview-dialog').addEventListener('close',()=>{$('input-preview-image')
 
 function clearMedia(){referenceIntent=null;imageReferenceMode='base';closeReferenceIntent();imageRatioExplicit=false;soulRatioExplicit=false;customerImagePricing?.reset();clearUpscalePrice();mediaRefs.clear();cancelImagePreparation();closeInputPreview();poseMapSourceId=null;$('pose-preview-status').textContent='';$('reference-progress').textContent='';imageRevision++;sourcePixels=0;sourceWidth=0;sourceHeight=0;release(sourceUrl);release(lastUrl);sourceUrl=null;lastUrl=null;file=null;sourceId=null;lastFile=null;lastSourceId=null;$('image').value='';$('last-image').value='';for(const r of references)releaseReference(r);references=[];$('reference-images').value='';$('filemeta').textContent=sourceHelp();$('last-filemeta').textContent='Leave empty for an open ending.';renderReferences();clearResult();resetPreview();update();}
 async function inspectImage(candidate){
-  if(!candidate||!['image/jpeg','image/png','image/webp'].includes(candidate.type)||!candidate.size||candidate.size>20*1024*1024)throw new Error('Choose a JPG, PNG or WebP image up to 20 MB.');
+  if(!candidate)throw new Error('No image was provided. Drop a JPG, PNG or WebP photograph.');
+  if(candidate.size>20*1024*1024)throw new Error('Image too large: '+(candidate.name||'photograph')+' ('+(candidate.size/1048576).toFixed(1)+' MB). Maximum size is 20 MB per image. Compress it and try again.');
+  if(!['image/jpeg','image/png','image/webp'].includes(candidate.type))throw new Error('Unsupported image format: '+(candidate.name||'file')+'. Use JPG, PNG or WebP.');
+  if(!candidate.size)throw new Error('This image is empty. Choose another JPG, PNG or WebP photograph.');
   const seedanceInput=tool==='video'&&engine==='seedance',maxSide=tool==='upscale'?16000:seedanceInput?6000:8000;
   const prepared=await imagePreview(candidate),{width,height}=prepared;
   if(Math.min(width,height)<(seedanceInput?300:240)||Math.max(width,height)>maxSide||Math.max(width/height,height/width)>(seedanceInput?2.5:8))throw new Error('Use an image within the model dimensions and aspect ratio, up to '+maxSide.toLocaleString()+' pixels per side.');
   return {file:candidate,id:null,url:URL.createObjectURL(prepared.preview),thumbUrl:URL.createObjectURL(prepared.thumbnail),width,height};
 }
 
-async function setImage(candidate,id=null){const revision=++imageRevision,item=await inspectImage(candidate);release(item.thumbUrl);if(revision!==imageRevision||!owner){release(item.url);return false;}release(sourceUrl);clearResult();file=item.file;sourceId=id;sourceUrl=item.url;sourceWidth=item.width;sourceHeight=item.height;sourcePixels=item.width*item.height;if(isSoul2()&&!soulRatioExplicit)$('hf-bar-ratio').value='source';syncDefaultRatio(!imageRatioExplicit);$('filemeta').textContent=`${candidate.name||'Start frame'} / ${item.width} × ${item.height} / ${(candidate.size/1048576).toFixed(1)} MB`;resetPreview();update();return true;}
+async function setImage(candidate,id=null){clearImageComposerNotice();const revision=++imageRevision,item=await inspectImage(candidate);release(item.thumbUrl);if(revision!==imageRevision||!owner){release(item.url);return false;}release(sourceUrl);clearResult();file=item.file;sourceId=id;sourceUrl=item.url;sourceWidth=item.width;sourceHeight=item.height;sourcePixels=item.width*item.height;if(isSoul2()&&!soulRatioExplicit)$('hf-bar-ratio').value='source';syncDefaultRatio(!imageRatioExplicit);$('filemeta').textContent=`${candidate.name||'Start frame'} / ${item.width} × ${item.height} / ${(candidate.size/1048576).toFixed(1)} MB`;resetPreview();update();return true;}
 async function setLastImage(candidate,id=null){const e=epoch,item=await inspectImage(candidate);release(item.thumbUrl);if(e!==epoch||!owner){release(item.url);return false;}release(lastUrl);lastFile=item.file;lastSourceId=id;lastUrl=item.url;$('last-filemeta').textContent=`${candidate.name||'Last frame'} / ${item.width} × ${item.height} / ${(candidate.size/1048576).toFixed(1)} MB`;update();return true;}
 function renderReferences(){
   if(usesReferenceGuidance()&&references.length){
@@ -1245,6 +1270,7 @@ function renderReferences(){
   syncDefaultRatio();box.replaceChildren(fragment);box.scrollTop=scroll;$('ref-count').textContent=`${references.length} / ${referenceLimit()}`;
 }
 async function addReferences(list,ids=[],labels=[]){
+  clearImageComposerNotice();
   const e=epoch,incoming=[...list];if(imageEngine==='fal')poseMapSourceId=null;if(references.length+incoming.length>referenceLimit())throw new Error('This mode supports up to '+referenceLimit()+' image references.');
   autoPreview=null;$('reference-list').setAttribute('aria-busy','true');let added=0;
   try{
