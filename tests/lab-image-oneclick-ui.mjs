@@ -1,5 +1,5 @@
 async function chooseImageModel(page,value){await page.click('#image-composer-model');await page.click('.composer-model-option[data-value="'+value+'"]');await page.click('#image-composer-more');}
-async function imageAdvanced(page){await page.click('#tool-image');const open=await page.locator('#app').evaluate(el=>el.classList.contains('image-settings-open'));if(!open)await page.click('#image-composer-more');}
+async function imageAdvanced(page){await page.click('#tool-image');const open=await page.locator('#app').evaluate(el=>el.classList.contains('image-settings-open'));if(!open){const control=page.locator('#image-composer-more');if(await control.isVisible())await control.click();else await page.evaluate(()=>document.querySelector('#image-composer-more').click());}}
 // Mock-only browser verification. No real credentials, private media or paid generations.
 import assert from 'node:assert/strict';
 import http from 'node:http';
@@ -74,7 +74,7 @@ async function workspace({failure='',width=1440,initial=[],savedPacks=[],quoteDe
   if(path.startsWith('/api/jobs/')&&method==='GET'){const job=jobs.find(j=>path.endsWith('/'+j.id));return job?send({job}):send({error:'Not found.'},404);}
   return send({error:'Unmocked request '+path},404);
  });
- await page.goto(ORIGIN+'/lab/');await page.waitForFunction(()=>!!window.__labTest);
+ await page.goto(ORIGIN+'/lab/studio.html?tool=image');await page.waitForFunction(()=>!!window.__labTest);
  if(!png)png=Buffer.from(await page.evaluate(()=>{const c=document.createElement('canvas');c.width=c.height=320;const x=c.getContext('2d');x.fillStyle='#333';x.fillRect(0,0,320,320);x.fillStyle='#aaa';x.fillRect(75,75,170,170);return c.toDataURL().split(',')[1];}),'base64');
  return {page,context,requests,errors,dialogs,jobs,accepted:()=>accepted};
 }
