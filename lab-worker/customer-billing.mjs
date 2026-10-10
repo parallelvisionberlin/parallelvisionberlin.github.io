@@ -56,7 +56,7 @@ function appUrl(env){
   return u.href;
 }
 function safeUrl(url){
-  try { const u=new URL(url);return u.protocol==='https:'&&u.hostname.endsWith('stripe.com')&&!u.username&&!u.password ?u.href:null;}catch{return null;}
+  try { const u=new URL(url);return u.protocol==='https:'&&(u.hostname==='stripe.com'||u.hostname.endsWith('.stripe.com'))&&!u.username&&!u.password ?u.href:null;}catch{return null;}
 }
 export async function customerRoute(request,env,subject){
   const url=new URL(request.url),p=url.pathname,method=request.method;
