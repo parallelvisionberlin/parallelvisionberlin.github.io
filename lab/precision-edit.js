@@ -113,25 +113,34 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     if(!base)throw new Error('Source changed during upload.');
     base.id=id;return id;
   }
+  function resetRetouchScroll(){
+    if(view.hidden)return;
+    // This is the page scroller, not an inner canvas scroll. Avoid the browser
+    // restoring an old Image/Assets position when the large canvas is mounted.
+    window.scrollTo({top:0,left:0,behavior:'instant'});
+    const scrolling=document.scrollingElement;
+    if(scrolling)scrolling.scrollTop=0;
+  }
+  function settleRetouchScroll(){
+    resetRetouchScroll();
+    requestAnimationFrame(()=>{
+      if(view.hidden)return;
+      resetRetouchScroll();
+      requestAnimationFrame(resetRetouchScroll);
+    });
+  }
   async function open({file=null,id=null}={}){
     if(!owner())throw new Error('Sign in to edit an image.');
     host.classList.add('is-precision-active');view.hidden=false;
     $('precision-price-review').hidden=true;
-    // Retouch is a top-level route. scrollIntoView() previously positioned its
-    // heading underneath the sticky PV Lab header, leaving the page half scrolled.
-    // Always begin at page top, including SPA entries and direct deep links.
-    const showFromTop=()=>window.scrollTo({top:0,left:0,behavior:'instant'});
-    showFromTop();
+    settleRetouchScroll();
     // Navigating between Image and Retouch must not clear a work-in-progress mask.
     // Only load a new source when it is actually a different photograph.
     if(file&&(!base||(id?base.id!==id:base.file!==file)))await setBase(file,id);
     else if(!base)setStatus('Drop your original photograph on the left to begin.');
     if(!falReady())selectMode('brush');
     refreshButtons();
-    // Decoding a large transferred Base can change document geometry.
-    // Reassert the initial scroll after the editor's canvas has been laid out.
-    showFromTop();
-    requestAnimationFrame(showFromTop);
+    settleRetouchScroll();
   }
   function close(){
     view.hidden=true;host.classList.remove('is-precision-active');
@@ -167,6 +176,9 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     $('precision-selection-message').textContent='Click an object to select it. Brush tools refine your mask.';
     $('precision-price-review').hidden=true;setStatus('The original pixels will be preserved outside the selected area.');
     selectMode(falReady()?'magic':'brush');refreshButtons();
+    // File-picker/drop imports may resize a previously empty panel. Keep the
+    // heading visible after decoding instead of following an old scroll anchor.
+    if(isOpen())settleRetouchScroll();
   }
   async function ensureWorkingId(){
     if(workingId)return workingId;
