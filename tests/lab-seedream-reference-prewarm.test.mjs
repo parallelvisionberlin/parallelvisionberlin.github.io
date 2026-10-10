@@ -116,3 +116,10 @@ test('Background copy never resorts to a CPU-heavy main-thread fallback',()=>{
   assert.match(tools,/if\(backgroundOnly\)throw error/);
   assert.match(tools,/if\(backgroundOnly\)throw backgroundUnavailable\(\)/);
 });
+
+test('Restored references without dimensions are measured before prewarm cache lookup',()=>{
+  const code=readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8');
+  assert.match(code,/const prepareItem=seedreamInput&&!hasDimensions/);
+  assert.match(code,/\{\.\.\.item,\.\.\.\(await imageDimensions\(item.file\)\)\}/);
+  assert.match(code,/await seedreamPreparer.forSubmission\(prepareItem\)/);
+});

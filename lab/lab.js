@@ -2207,11 +2207,15 @@ async function prepareQuoteInputs(inputs,snapshot=null){
   for(const item of originals){
     // Dimensions are known from inspectImage. If a legacy input omitted them,
     // decode it before quoting rather than silently passing through an unsafe ID.
-    const pixels=selectedEngine==='seedream'&&tool==='image'
-      ?((Number(item.width)>0&&Number(item.height)>0)
-        ?Number(item.width)*Number(item.height)
-        :(await imageDimensions(item.file)).pixels)
-      :0;
+    const seedreamInput=selectedEngine==='seedream'&&tool==='image';
+    const hasDimensions=Number.isSafeInteger(Number(item.width))&&Number(item.width)>0
+      &&Number.isSafeInteger(Number(item.height))&&Number(item.height)>0;
+    // Legacy restored drafts may lack width/height. Pass measured dimensions
+    // into the same prewarm cache so pixel-limited inputs are never skipped.
+    const prepareItem=seedreamInput&&!hasDimensions
+      ?{...item,...(await imageDimensions(item.file))}
+      :item;
+    const pixels=seedreamInput?Number(prepareItem.width)*Number(prepareItem.height):0;
     const resizeForSeedream=pixels>SEEDREAM_INPUT_MAX_PIXELS;
     if(!resizeForSeedream&&item.file.size<=PROVIDER_IMAGE_LIMIT){
       transferSourceIds.push(item.id);continue;
@@ -2227,7 +2231,7 @@ async function prepareQuoteInputs(inputs,snapshot=null){
       // Reuse the already-running background preparation or its 15-minute
       // local result. No local work is duplicated when Generate is pressed.
       const prepared=selectedEngine==='seedream'&&tool==='image'
-        ?await seedreamPreparer.forSubmission(item)
+        ?await seedreamPreparer.forSubmission(prepareItem)
         :(resizeForSeedream?await seedreamWorkingCopy(item.file):await providerWorkingCopy(item.file));
       if(epoch!==sessionEpoch||!owner)throw new Error('Session changed.');
       const id=await uploadAsset(prepared);copy={id,at:Date.now()};
