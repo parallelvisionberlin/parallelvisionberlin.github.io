@@ -1,3 +1,5 @@
+import {captureReferralCode,claimReferral} from './referral-capture.js?v=20261010-referrals1';
+captureReferralCode();
 import {createSessionRequest} from './session-request.js?v=20260927-auth1';
 const API='https://parallel-vision-lab.parallelvision.workers.dev';
 const CLERK_KEY='pk_live_Y2xlcmsucGFyYWxsZWx2aXNpb25sYWJlbC5jb20k';
@@ -10,7 +12,7 @@ async function refresh(){
   if(loading)return;loading=true;
   try{
     if(!clerk?.isSignedIn){profile=null;show();return;}
-    profile=await call('/api/session');show();
+    profile=await call('/api/session');if(profile.customer)await claimReferral(code=>call('/api/customer/referrals/claim',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code})}));show();
   }catch(e){profile=null;status(e.message);show();}
   finally{loading=false;}
 }
