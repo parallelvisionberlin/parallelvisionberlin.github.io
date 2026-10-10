@@ -32,6 +32,7 @@ jobs:
       - name: Verify inline Upscaler status and one paid submission with mocked provider
         env:
           PV_PLAYWRIGHT_MODULE: /tmp/pv-upscale-visibility/node_modules/playwright/index.mjs
+          PV_UPSCALE_NOTICE_SMOKE: '1'
         run: node tests/lab-upscale-ui.mjs
       - name: Keep desktop and mobile screenshots for review
         if: always()
