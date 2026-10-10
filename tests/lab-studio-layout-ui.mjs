@@ -118,7 +118,7 @@ try{
   await x.page.keyboard.press('Escape');
   assert.equal(await x.page.locator('#active').evaluate(el=>el.open),false,'Escape dismisses Queue');
   await x.page.locator('#active summary').click();
-  await x.page.locator('.tool-caption').click();
+  await x.page.locator('#video-feed-center').click({position:{x:40,y:40}});
   assert.equal(await x.page.locator('#active').evaluate(el=>el.open),false,'Outside click dismisses Queue');
   await x.page.evaluate(()=>window.__queueTestSetActiveJobs([]));
   assert.equal(await x.page.locator('#active').isVisible(),false,'Queue chip disappears when there are no jobs');
