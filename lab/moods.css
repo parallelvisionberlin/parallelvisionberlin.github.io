@@ -36,13 +36,28 @@
 .moods-look-frutiger-aero img{filter:none}
 .moods-look-sumi-ink img{filter:contrast(1.07) saturate(.8)}
 .moods-look-hyper-pop img{filter:saturate(1.65) contrast(1.2)}
-.moods-footer{display:grid;grid-template-columns:1fr auto;gap:9px 24px;padding-top:13px;border-top:1px solid #3b3c3d}
+.moods-footer{display:grid;grid-template-columns:minmax(170px,.9fr) minmax(0,1.7fr);gap:9px 24px;padding-top:13px;border-top:1px solid #3b3c3d}
 .moods-selected{font-size:12px;color:#ececec;font-weight:540}
-.moods-strength{display:flex;align-items:center;gap:10px}
-.moods-strength label{font-size:11px;color:#aaa}
-#image-composer #composer-moods-intensity{width:min(220px,22vw);accent-color:#d6ff00}
-#image-composer #composer-moods-intensity:disabled{opacity:.3}
-#image-composer #composer-moods-amount{min-width:33px;color:#ddd;font-size:11px}
+.moods-strength{display:flex;align-items:center;gap:13px;width:100%;min-width:0}
+.moods-strength label{flex:0 0 auto;font-size:12px;color:#e4e4e4;font-weight:650}
+#image-composer #composer-moods-intensity{
+  -webkit-appearance:none;appearance:none;display:block;flex:1 1 auto;min-width:0;width:100%;height:34px;
+  margin:0;border:0;background:transparent;cursor:pointer;accent-color:#d6ff00
+}
+#image-composer #composer-moods-intensity::-webkit-slider-runnable-track{
+  height:9px;border-radius:999px;
+  background:linear-gradient(to right,#d6ff00 0%,#d6ff00 var(--moods-progress,60%),#5a5c60 var(--moods-progress,60%),#5a5c60 100%)
+}
+#image-composer #composer-moods-intensity::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;width:22px;height:22px;margin-top:-6.5px;
+  border:2px solid #242526;border-radius:50%;background:#d6ff00;box-shadow:0 0 0 1px #d6ff0040
+}
+#image-composer #composer-moods-intensity::-moz-range-track{height:9px;border:0;border-radius:999px;background:#5a5c60}
+#image-composer #composer-moods-intensity::-moz-range-progress{height:9px;border:0;border-radius:999px;background:#d6ff00}
+#image-composer #composer-moods-intensity::-moz-range-thumb{width:20px;height:20px;border:2px solid #242526;border-radius:50%;background:#d6ff00}
+#image-composer #composer-moods-intensity:focus-visible{outline:2px solid #d6ff00;outline-offset:3px;border-radius:10px}
+#image-composer #composer-moods-intensity:disabled{opacity:.3;cursor:not-allowed}
+#image-composer #composer-moods-amount{min-width:38px;color:#ececec;font-size:12px;font-weight:650;font-variant-numeric:tabular-nums;text-align:right}
 .moods-bottom{grid-column:1/-1;display:flex;justify-content:space-between;gap:16px;align-items:center}
 .moods-bottom p{max-width:60%;font-size:11px;line-height:1.4;color:#a2a2a2;margin:0}
 .moods-actions{display:flex;align-items:center;gap:7px}
