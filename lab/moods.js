@@ -181,7 +181,7 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
   function render(){
     for(const [name,tab] of tabs){tab.classList.toggle('is-selected',category===name);tab.setAttribute('aria-pressed',String(category===name));}
     for(const mood of MOODS){const card=cards.get(mood.id);card.hidden=category!=='All'&&category!==mood.category;card.classList.toggle('is-selected',mood.id===selected);card.setAttribute('aria-pressed',String(mood.id===selected));}
-    slider.value=String(intensity);slider.disabled=!selected;amount.textContent=intensity+'%';
+    slider.value=String(intensity);slider.style.setProperty('--moods-progress',((intensity-1)/99*100).toFixed(2)+'%');slider.disabled=!selected;amount.textContent=intensity+'%';
     const chosen=moodById(selected);
     summary.textContent=chosen?chosen.name+' / '+(intensity<=34?'Subtle':intensity>=76?'Strong':'Balanced'):'No mood selected';
     const compatible=MOOD_MODELS.includes(getEngine());
