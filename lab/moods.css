@@ -30,7 +30,7 @@
 .moods-look-90s-cinema img{filter:contrast(1.25) saturate(1.32) sepia(.13) brightness(1.02)}
 .moods-look-night-flash img{filter:contrast(1.28) brightness(1.1) saturate(.88)}
 .moods-look-fashion-editorial img{filter:contrast(1.04) saturate(.84)}
-.moods-look-80s-film img{filter:sepia(.25) saturate(.8) contrast(.9)}
+.moods-look-80s-film img{filter:none}
 .moods-look-kodak-gold img{filter:sepia(.22) saturate(1.52) contrast(1.15) brightness(1.06)}
 .moods-look-soft-pastel-film img{filter:brightness(1.11) saturate(.68) contrast(.9)}
 .moods-look-frutiger-aero img{filter:none}
