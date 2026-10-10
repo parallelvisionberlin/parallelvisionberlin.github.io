@@ -26,7 +26,7 @@ test('mood intensity actually affects the generated directions',()=>{
   const high=prepareMoodPrompt('portrait','kodak-gold',90);
   assert.notEqual(low.prompt,high.prompt);
   assert.match(low.prompt,/golden highlights/i);
-  assert.match(high.prompt,/summer film warmth/i);
+  assert.match(high.prompt,/visibly organic 35mm grain/i);
 });
 test('mood alone needs either a source or a subject; long prompts are blocked',()=>{
   assert.match(prepareMoodPrompt('','90s-cinema',60).error,/Describe a subject/);
@@ -41,9 +41,9 @@ test('Moods show only the user-authored direction, never compiled provider instr
   const settings={moodId:'hong-kong-nights',moodIntensity:90,moodOriginalPrompt:'Portrait beside a window',
     prompt:'Portrait beside a window\n\nPV LAB MOOD / Hong Kong Nights: internal art direction'};
   assert.equal(userFacingImagePrompt(settings),'Portrait beside a window');
-  assert.equal(imageHistoryCaption(settings),'Hong Kong Nights · Portrait beside a window');
+  assert.equal(imageHistoryCaption(settings),'Hong Kong Nights · 90% · Portrait beside a window');
   assert.equal(userFacingImagePrompt({...settings,moodOriginalPrompt:''}),'');
-  assert.equal(imageHistoryCaption({...settings,moodOriginalPrompt:''}),'Hong Kong Nights');
+  assert.equal(imageHistoryCaption({...settings,moodOriginalPrompt:''}),'Hong Kong Nights · 90%');
   assert.equal(userFacingImagePrompt({...settings,moodOriginalPrompt:undefined}),'Portrait beside a window');
 });
 test('Older Moods prompts are not exposed in the viewer or history',()=>{
@@ -60,4 +60,23 @@ test('Image viewer, Copy and History render the public-facing prompt only',()=>{
   assert.match(js,/image\?imageHistoryCaption\(j.settings\)/);
   assert.match(html,/id="image-detail-mood-feature"/);
   assert.match(html,/id="image-detail-prompt-header"/);
+});
+
+test('High intensity is genuinely distinct for Cinema, Kodak and Sumi-e',()=>{
+  const cinema=prepareMoodPrompt('Portrait','90s-cinema',100,{referenceCount:1});
+  assert.match(cinema.prompt,/dramatic, glossy 1990s feature-film scene/i);
+  assert.match(cinema.prompt,/DO NOT preserve the original flat daylight look/i);
+  const gold=prepareMoodPrompt('Portrait','kodak-gold',100,{referenceCount:1});
+  assert.match(gold.prompt,/abundant visibly organic 35mm grain/i);
+  assert.match(gold.prompt,/Do not turn the face orange/i);
+  const ink=prepareMoodPrompt('Portrait','sumi-ink',100,{referenceCount:1});
+  assert.match(ink.prompt,/confidently executed Japanese ink-wash painting/i);
+  assert.equal(moodById('sumi-ink').name,'Japanese Sumi-e');
+  assert.equal(moodById('hong-kong-nights').direction,'1990s Hong Kong romantic cinema, red and green practical lights, rain-softened window reflections, tungsten pools, deep layered shadow, organic 35mm halation and intimate urban melancholy.');
+});
+test('Gallery hover metadata identifies the exact image model',()=>{
+  const src=readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8');
+  assert.match(src,/function galleryImageModelName\(job\)/);
+  assert.match(src,/modelLabel=image\?galleryImageModelName\(j\)\.toUpperCase\(\)/);
+  assert.match(src,/meta\.textContent=\[j\.status\.toUpperCase\(\),imageLabel,modelLabel/);
 });

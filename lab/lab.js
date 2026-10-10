@@ -3,7 +3,7 @@ import {createCustomerWallet} from './customer-wallet.js?v=20261010-wallet2';
 import {createSoul2UI} from './higgsfield-ui.js?v=20261010-soul-live-quote';
 import {VIDEO_MODELS,engineFor,videoLabel} from './video-models.js?v=20261009-extend1';
 import {REFERENCE_ROLES,REFERENCE_TARGETS,normalizeReferenceLabel,compileImagePrompt,referenceGuidanceError,canUseReferenceGuidance} from './reference-guidance.js?v=20261009-flash-kling';
-import {createMoodSelector,moodById,userFacingImagePrompt,imageHistoryCaption} from './moods.js?v=20261010-mood-details1';
+import {createMoodSelector,moodById,userFacingImagePrompt,imageHistoryCaption} from './moods.js?v=20261010-moods2';
 import {createMediaReferences} from './media-references.js?v=20261009-extend2';
 import { createSessionRequest } from './session-request.js?v=20260927-auth1';
 import { createSoulController } from './soul.js?v=20261001-presets2';
@@ -1464,6 +1464,15 @@ function detailModelName(job){
   if(settings.engine==='fal')return 'Controlled Pose';
   return 'Seedream 5 Pro';
 }
+function galleryImageModelName(job){
+  const s=job?.settings||{};
+  if(s.engine==='soulpro'&&s.soulProModel==='ideogram45')return 'Ideogram 4.5';
+  if(s.engine==='soulpro'&&s.soulProModel==='kontextmax')return 'FLUX Kontext Max';
+  if(s.engine==='soulpro'&&s.soulProModel==='soul2')return 'Higgsfield Soul 2';
+  if(s.provider==='higgsfield'&&s.mode!=='soul-id-training')return 'Higgsfield Soul 2';
+  if(s.engine==='fal'&&s.mode==='controlled-pose')return 'FLUX Controlled Pose';
+  return detailModelName(job);
+}
 function detailDate(value){
   const date=new Date(value);
   return Number.isFinite(date.valueOf())?date.toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'}):'Unknown';
@@ -2058,7 +2067,12 @@ function renderCards(jobs,{upsert=false}={}){
       empty.append(title,detail);card.append(empty);
     }
     const body=document.createElement('div');body.className='cardbody';
-    const meta=document.createElement('div');meta.className='cardmeta';const imageLabel=image?(j.settings.mode==='upscale'?'UPSCALE / '+upscaleName(j.settings):j.settings.provider==='higgsfield'?(j.settings.mode==='soul-id-training'?'SOUL ID TRAINING':'HIGGSFIELD SOUL 2'):j.settings.engine==='soulpro'?'PV SOUL PRO / '+(j.settings.soulProModel==='ideogram45'?'IDEOGRAM 4.5 '+String(j.settings.soulProQuality||'medium').toUpperCase():'FLUX KONTEXT MAX'):j.settings.mode==='reinterpret'?'PV SOUL / REINTERPRET / '+(j.settings.presetLabel||j.settings.preset||'').toUpperCase():'IMAGE'):videoLabel(j.settings)+' / '+j.settings.duration+'s';meta.textContent=`${j.status.toUpperCase()} / ${imageLabel} / ${j.settings.mode==='upscale'?upscaleSize(j.settings):j.settings.resolution} / ${new Date(j.createdAt).toLocaleDateString()}`;
+    const meta=document.createElement('div');meta.className='cardmeta';
+    const imageLabel=image?(j.settings.mode==='upscale'?'UPSCALE':j.settings.mode==='soul-id-training'?'SOUL ID TRAINING':j.settings.mode==='reinterpret'?'IMAGE · REINTERPRET':'IMAGE'):videoLabel(j.settings)+' / '+j.settings.duration+'s';
+    const modelLabel=image?galleryImageModelName(j).toUpperCase():null;
+    const resolutionLabel=j.settings.mode==='upscale'?upscaleSize(j.settings):j.settings.resolution;
+    meta.textContent=[j.status.toUpperCase(),imageLabel,modelLabel,resolutionLabel,new Date(j.createdAt).toLocaleDateString()].filter(Boolean).join(' / ');
+    meta.title=image?'Model: '+galleryImageModelName(j):'Video model: '+videoLabel(j.settings);
     const p=document.createElement('p');p.textContent=image?imageHistoryCaption(j.settings):(j.settings.prompt||'No direction saved.');
     const actions=document.createElement('div');actions.className='cardactions';
     if(ready){

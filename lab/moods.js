@@ -4,8 +4,8 @@ export const MOODS=Object.freeze([
     "id": "hong-kong-nights",
     "name": "Hong Kong Nights",
     "category": "Cinema",
-    "preview": "/assets/optimized/2063/lived-city/bedroom-before-dawn.webp",
-    "description": "Neon, rain and longing",
+    "preview": "/lab/mood-previews/hong-kong-nights.webp",
+    "description": "Humid neon streets, melancholy and grain",
     "direction": "1990s Hong Kong romantic cinema, red and green practical lights, rain-softened window reflections, tungsten pools, deep layered shadow, organic 35mm halation and intimate urban melancholy.",
     "subtle": "Restrained practical red and green light and a little film halation; keep the original room.",
     "intense": "Full nocturnal cinematic atmosphere with wet reflections, but keep all referenced faces, poses and composition.",
@@ -16,11 +16,11 @@ export const MOODS=Object.freeze([
     "name": "90s Cinema",
     "category": "Cinema",
     "preview": "/assets/optimized/2063/lived-city/nina-bedroom-afternoon.webp",
-    "description": "Human, imperfect, cinematic",
-    "direction": "Grounded late-1990s independent film still, unforced composition, natural imperfect light, credible wardrobe and production design, subtle 35mm grain, warm neutral film colors, soft highlight transitions and unstaged emotion.",
-    "subtle": "Subtle 1990s film color and fine grain; retain the source setting.",
-    "intense": "More pronounced independent-film light and narrative depth with believable physical materials.",
-    "avoid": "plastic skin, overly polished CGI, teal-orange blockbuster colors"
+    "description": "Luminous, glossy 1990s movie stills",
+    "direction": "An unmistakably stylized and glossy late-1990s motion-picture still, not a modern fashion e-commerce photograph. Exquisite richly saturated 35mm theatrical film-print color, carefully shaped cinematic key and rim lighting, deep velvet blacks, warm golden skin highlights, jewel-tone blue-green shadows, gentle diffusion-filter glow, pronounced analog halation around real practical lights, bright specular rolloff, fine organic film grain and physically believable period-optical softness. Luxurious, sensual 90s film production lighting; retain photographic detail and a recognizable subject.",
+    "subtle": "Introduce clearly visible late-1990s photochemical color, rich soft blacks, tasteful halation, slight lens diffusion, luminous highlights and fine grain without changing the scene layout.",
+    "intense": "At HIGH and 100% intensity, radically enhance the lighting and film-print character. Even a neutral white modern room must become a dramatic, glossy 1990s feature-film scene through rich warm-versus-cool theatrical illumination, powerful shaped highlights, vivid jewel-tone separation, deep rich blacks, slight 35mm optical softness, visible film grain and luminous practical-light halation. Preserve exact face, pose, garments and camera geometry, but DO NOT preserve the original flat daylight look. This should look like a 1990s movie frame, not contemporary minimalist editorial photography.",
+    "avoid": "flat neutral interiors, beige minimalist photography, clean digital HDR, AI skin smoothing, CGI shine, costume parody, fake VHS artifacts"
   },
   {
     "id": "night-flash",
@@ -60,11 +60,11 @@ export const MOODS=Object.freeze([
     "name": "Kodak Gold",
     "category": "Analog",
     "preview": "/lab/visuals/greenhouse-portrait.webp",
-    "description": "Sun-warmed 35mm color",
-    "direction": "Classic warm consumer color negative film character inspired by Kodak Gold, golden sunlight, gentle highlight rolloff, accurate warm skin, natural deep greens, fine organic grain, subtle exposure variation and realistic microcontrast.",
-    "subtle": "A hint of golden highlights and delicate fine-grain texture.",
-    "intense": "Bright summer film warmth, warm color separation and rich negative-film rolloff.",
-    "avoid": "orange faces, clipped highlights, heavy fake scratches"
+    "description": "Bold golden negative-film color and grain",
+    "direction": "Visibly strong Kodak Gold-inspired 35mm color negative and printed-photo character, not a faint warm preset. Radiant honey-gold highlights, brilliant luminous yellows, rich emerald film greens, dense summer blues with cool shadow color separation, colorful warm reds, punchy but tactile analog contrast and striking organic fine-to-medium grain. Soft halation around real bright sources, creamy highlight shoulder, subtle imperfect scan color and a wonderfully saturated 1990s summer print feeling. Keep skin realistically warm and preserve intricate photographic texture.",
+    "subtle": "Visible golden color-negative print influence: warm honey-colored highlights, rich but natural film colors, optical glow, modest but clearly discernible organic grain and a gentle photographic print curve.",
+    "intense": "At HIGH and 100% intensity, make this unabashedly colorful and filmic: luminous golden-yellow highlights, highly saturated yet photographic greens and blues, deep rich print contrast, bold warm-cool negative-film color separation, abundant visibly organic 35mm grain, gentle color-channel irregularities, noticeable realistic highlight halation and joyful sunlit 1990s photo-print atmosphere. Do not turn the face orange or create a monochrome sepia wash; preserve beautiful real skin.",
+    "avoid": "orange skin, entire scene dyed yellow, beige flatness, plastic smoothing, fake film borders, arbitrary dust scratches, cheap filter overlays, clipped skin highlights"
   },
   {
     "id": "soft-pastel-film",
@@ -90,14 +90,14 @@ export const MOODS=Object.freeze([
   },
   {
     "id": "sumi-ink",
-    "name": "Sumi Ink",
+    "name": "Japanese Sumi-e",
     "category": "Experimental",
-    "preview": "/assets/optimized/2063/hyperfuture/16-ninas-bath-grown-from-obsidian.webp",
-    "description": "Japanese brush and negative space",
-    "direction": "Refined traditional Japanese sumi-e ink wash: handmade washi paper, expressive deliberate brush marks, sensitive grayscale ink transitions, restrained composition, poetic negative space and minimal tonal gesture.",
-    "subtle": "Keep the original silhouettes legible with subtle monochrome ink wash and paper texture.",
-    "intense": "More expressive abstraction and atmospheric negative space, preserving the important subject arrangement.",
-    "avoid": "anime, manga outlines, random calligraphy, glossy digital painting"
+    "preview": "/lab/mood-previews/japanese-sumi-e.webp",
+    "description": "Canonical black-ink wash on warm washi",
+    "direction": "Canonical Japanese sumi-e (suibokuga) artwork, physically painted with black sumi ink, controlled diluted gray wash and restrained dry-brush marks on handmade warm ivory washi paper with visible subtle paper fibers. Authentic Japanese brush economy, decisive expressive black contours, gentle ink diffusion, delicate gray tonal gradients, purposeful unpainted negative space and disciplined asymmetrical composition. In portraits, keep the person's face softly recognizable through nuanced grayscale wash and careful delicate eyes, while the room, textiles, furniture and silhouette simplify into handmade brush marks. A refined Japanese ink painting with subtle realistic facial continuity, never just a black-and-white photograph.",
+    "subtle": "Transform the reference into an elegant restrained sumi-e and photographic fusion: real washi paper grain, visible ink brush borders, natural gray wash and negative space while retaining recognizable features and the original arrangement.",
+    "intense": "At HIGH and 100% intensity, recreate the whole scene as a confidently executed Japanese ink-wash painting. Simplify architecture, cloth, light and shadow into painterly black brush structure, water-diffused gray ink, broad ivory negative spaces, deliberate dry-brush breaks and handmade paper fibers. Keep only the important readable facial features and pose through delicate black and gray tonal drawing. This must look like real brushed sumi ink, not a grayscale filter.",
+    "avoid": "anime or manga, ink cartoon outline, random kanji or seals, digital grayscale-filter photographs, brightly colored accents, messy paint splatters, watercolor postcards, glossy AI airbrush skin"
   },
   {
     "id": "hyper-pop",
@@ -126,7 +126,11 @@ export function userFacingImagePrompt(settings={}){
 }
 export function imageHistoryCaption(settings={}){
   const text=userFacingImagePrompt(settings),mood=moodById(settings?.moodId);
-  if(mood)return [mood.name,text].filter(Boolean).join(' · ');
+  if(mood){
+    const intensity=Number(settings.moodIntensity);
+    const strength=Number.isInteger(intensity)&&intensity>=1&&intensity<=100?intensity+'%':'';
+    return [mood.name,strength,text].filter(Boolean).join(' · ');
+  }
   if(settings?.moodId)return ['Mood',text].filter(Boolean).join(' · ');
   if(settings?.mode==='upscale')return 'Image upscale / '+String(settings.resolution||'').toUpperCase();
   return text||'No direction saved.';
