@@ -97,6 +97,8 @@ try{
       });
       assert.ok(metrics.prompt.height<=178,kind+': editor must never fill the screen');
       if(width<=740)assert.ok(metrics.prompt.height<=124,kind+': mobile prompt stays smaller');
+      if(kind==='soul')assert.ok(metrics.prompt.height>=120,
+        'Soul reference cards must not flex-shrink a long prompt down to one visible line');
       assert.ok(metrics.textScrollHeight>metrics.textClientHeight+100,kind+': long text scrolls internally');
       assert.equal(metrics.textOverflow,'auto',kind+': text uses an independent scrollbar');
       assert.ok(metrics.dock.height<Math.min(height-60,480),kind+': floating composer remains compact');
