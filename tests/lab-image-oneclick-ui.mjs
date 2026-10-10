@@ -104,6 +104,24 @@ async function retouchTopAndBackButton(page){
   assert.equal(state.bg,'rgb(214, 255, 0)','Back to Image must use the bright PV Lab return accent');
   assert.match(state.label,/Back to Image/);
 }
+async function retouchPanelsAreClear(page){
+  const g=await page.evaluate(()=>{
+    const box=selector=>{
+      const {top,bottom,height}=document.querySelector(selector).getBoundingClientRect();
+      return {top,bottom,height};
+    };
+    return {board:box('.precision-board'),left:box('.precision-input-panel'),
+      right:box('.precision-output-panel'),source:box('#precision-stage'),
+      leftFooter:box('.precision-input-footer'),rightFooter:box('.precision-compare-row'),
+      toolbar:box('.precision-tools'),deck:box('.precision-deck')};
+  });
+  assert.ok(g.leftFooter.bottom<=g.left.bottom+1,'Photo instructions clipped inside image panel: '+JSON.stringify(g));
+  assert.ok(g.rightFooter.bottom<=g.right.bottom+1,'Before/After controls clipped inside result panel: '+JSON.stringify(g));
+  assert.ok(g.source.bottom<=g.leftFooter.top+1,'Photo overlaps selection instructions: '+JSON.stringify(g));
+  assert.ok(g.leftFooter.bottom+6<=g.toolbar.top,'Toolbar overlaps selection instructions: '+JSON.stringify(g));
+  assert.ok(g.rightFooter.bottom+6<=g.toolbar.top,'Toolbar overlaps Before/After controls: '+JSON.stringify(g));
+  assert.ok(g.toolbar.bottom+6<=g.deck.top,'Edit directions overlap toolbar: '+JSON.stringify(g));
+}
 async function imageForm(x){await imageAdvanced(x.page);await x.page.fill('#prompt:visible, #image-composer-prompt:visible',settings.prompt);await x.page.selectOption('#resolution:visible, #image-composer-resolution:visible','2k');await x.page.selectOption('#ratio:visible, #image-composer-ratio:visible','16:9');await x.page.selectOption('#output-format','png');}
 try{
  let x;
@@ -125,6 +143,7 @@ try{
   await x.page.waitForFunction(()=>document.getElementById('app').classList.contains('retouch-studio-active')&&
     !document.getElementById('precision-source-holder').hidden);
   await retouchTopAndBackButton(x.page);
+  await retouchPanelsAreClear(x.page);
   assert.match(x.page.url(),/tool=retouch/);
   assert.equal(await x.page.locator('#tool-retouch').getAttribute('aria-pressed'),'true');
   assert.equal(await x.page.locator('#tool-image').getAttribute('aria-pressed'),'false');
@@ -154,6 +173,14 @@ try{
   await x.page.waitForFunction(()=>document.getElementById('app').classList.contains('retouch-studio-active'));
   await retouchTopAndBackButton(x.page);
   assert.equal(await x.page.locator('#precision-drop').isVisible(),true);
+  // A new file after an empty Retouch view changes the board height. Even
+  // when previously scrolled, the editor must reset and keep footers clear.
+  await x.page.evaluate(()=>window.scrollTo(0,document.documentElement.scrollHeight));
+  await x.page.locator('#precision-photo-input').setInputFiles({name:'imported-in-retouch.png',mimeType:'image/png',buffer:png});
+  await x.page.waitForFunction(()=>document.getElementById('precision-source-meta').textContent.includes('imported-in-retouch.png'));
+  await x.page.waitForTimeout(100);
+  await retouchTopAndBackButton(x.page);
+  await retouchPanelsAreClear(x.page);
   await x.page.click('#precision-return');
   assert.match(x.page.url(),/tool=image/);
   // Public customers can inspect Retouch, but no metered service is enabled.
@@ -180,6 +207,9 @@ try{
   await x.page.locator('#image-detail-edit-area').click();
   await x.page.waitForFunction(()=>document.getElementById('app').classList.contains('retouch-studio-active')&&
     !document.getElementById('precision-source-holder').hidden);
+  await x.page.waitForTimeout(100);
+  await retouchTopAndBackButton(x.page);
+  await retouchPanelsAreClear(x.page);
   assert.match(x.page.url(),/tool=retouch/);
   assert.match(await x.page.locator('#precision-source-meta').textContent(),/retouch-original/);
   assert.equal(count(x,'/api/precision/submit'),0);
