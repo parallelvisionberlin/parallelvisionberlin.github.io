@@ -98,10 +98,27 @@ test('90s Cinema thumbnail and applied mood share a film-scan style',()=>{
 test('Mood intensity control is prominent, responsive and reflects each live setting',()=>{
   const css=readFileSync(new URL('../lab/moods.css',import.meta.url),'utf8');
   const js=readFileSync(new URL('../lab/moods.js',import.meta.url),'utf8');
-  assert.match(css,/grid-template-columns:minmax\(170px,\.9fr\) minmax\(0,1\.7fr\)/);
+  assert.match(css,/grid-template-columns:minmax\(0,1fr\) 154px/);
   assert.match(css,/moods-intensity::\-webkit-slider-runnable-track/);
   assert.match(css,/height:9px/);
   assert.match(css,/moods-intensity::\-moz-range-progress/);
   assert.match(css,/@media\(max-width:740px\)/);
   assert.match(js,/slider\.style\.setProperty\('--moods-progress'/);
+});
+
+test('Moods footer has a larger primary action and a compact accessible explanation',()=>{
+  const css=readFileSync(new URL('../lab/moods.css',import.meta.url),'utf8');
+  const html=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
+  const js=readFileSync(new URL('../lab/moods.js',import.meta.url),'utf8');
+  assert.match(html,/id="composer-moods-about"[^>]*aria-expanded="false"[^>]*aria-controls="composer-moods-explanation"/);
+  assert.match(html,/id="composer-moods-explanation"[^>]*role="note" hidden/);
+  assert.match(html,/class="moods-scale" aria-hidden="true"/);
+  assert.match(html,/id="composer-moods-none" type="button">Clear selection/);
+  assert.doesNotMatch(html,/class="moods-bottom"/);
+  assert.match(css,/#composer-moods-done,[\s\S]*?#composer-moods-switch\{[\s\S]*?min-height:46px/);
+  assert.match(css,/\.moods-about-popover\{position:absolute/);
+  assert.match(js,/hint\.hidden=compatible/);
+  assert.match(js,/done\.disabled=!chosen/);
+  assert.match(js,/event\.key==='Escape'&&!aboutDetails\.hidden/);
+  assert.match(js,/aboutButton\.setAttribute\('aria-expanded',String\(opening\)\)/);
 });
