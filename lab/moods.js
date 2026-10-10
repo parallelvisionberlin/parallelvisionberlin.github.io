@@ -81,7 +81,7 @@ export const MOODS=Object.freeze([
     "id": "frutiger-aero",
     "name": "Frutiger Aero",
     "category": "Experimental",
-    "preview": "/assets/optimized/2063/organic-futures/green-avenue.webp",
+    "preview": "/lab/mood-previews/frutiger-aero.svg",
     "description": "Translucent Y2K optimism",
     "direction": "Early 2000s technology-optimist Frutiger Aero design: luminous pale blue-white light, convincing translucent objects, watery reflections, subtle soft gradients, airy modern materials and elegant utopian visual optimism.",
     "subtle": "Clean airy blue-white color and believable reflections, no new distracting elements.",
