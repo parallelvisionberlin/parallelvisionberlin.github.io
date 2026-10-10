@@ -112,6 +112,10 @@ try{
   const importError=x.page.locator('#image-composer-status');
   await importError.waitFor({state:'visible'});
   assert.match(await importError.innerText(),/Image too large.*20 MB/i);
+  assert.match(await importError.innerText(),/MIN 240 × 240 PX/);
+  assert.match(await importError.innerText(),/MAX 20 MB/);
+  assert.equal(await importError.locator('.import-toast-title').innerText(),'Image too large');
+  assert.equal(await importError.locator('.import-toast-filename').innerText(),'too-large.png');
   assert.equal(await x.page.locator('#image-composer-references .composer-reference-tile').count(),0);
   assert.equal(count(x,'/api/uploads'),0);
   assert.equal(count(x,'/api/quotes'),0);
@@ -122,6 +126,28 @@ try{
   await x.page.waitForFunction(()=>document.querySelectorAll('#image-composer-references .composer-reference-tile').length===1);
   assert.equal(await importError.isVisible(),false);
   ok('Oversized deck drop shows a clear error; subsequent valid import works');
+  assert.deepEqual(x.errors,[]);await x.context.close();
+ }
+
+
+ // Undersized photos must explain the minimum resolution, rather than the maximum file size.
+ {
+  x=await workspace();await imageForm(x);
+  await x.page.evaluate(async()=>{
+    const canvas=document.createElement('canvas');canvas.width=239;canvas.height=320;
+    const context=canvas.getContext('2d');context.fillStyle='#555';context.fillRect(0,0,239,320);
+    const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));
+    const file=new File([blob],'too-small.png',{type:'image/png'});
+    const transfer=new DataTransfer();transfer.items.add(file);
+    document.getElementById('image-composer').dispatchEvent(new DragEvent('drop',{bubbles:true,cancelable:true,dataTransfer:transfer}));
+  });
+  const error=x.page.locator('#image-composer-status');await error.waitFor({state:'visible'});
+  assert.equal(await error.locator('.import-toast-title').innerText(),'Image too small');
+  assert.equal(await error.locator('.import-toast-filename').innerText(),'too-small.png');
+  assert.match(await error.innerText(),/MIN 240 × 240 PX/);
+  assert.match(await error.innerText(),/239 × 320 px/);
+  assert.equal(count(x,'/api/quotes'),0);
+  ok('Undersized photograph shows the minimum dimensions and never generates');
   assert.deepEqual(x.errors,[]);await x.context.close();
  }
 
