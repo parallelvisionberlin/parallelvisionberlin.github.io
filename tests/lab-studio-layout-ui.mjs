@@ -243,10 +243,14 @@ try{
     'Seedream resolution is always accessible in the composer');
   assert.equal(await x.page.locator('.workspace').isVisible(),false,
     'Seedream inline options never reopen a duplicate side form');
-  const galleryLayout=await x.page.locator('#history').evaluate(el=>{
-    const c=getComputedStyle(el);return {display:c.display,columns:c.gridTemplateColumns.split(' ').length};
-  });
-  assert.ok(galleryLayout.columns>=3,'Images use gallery grid with multiple columns');
+  assert.equal(await x.page.locator('#history').evaluate(el=>!!el.closest('#image-gallery-host')),true,
+    'The private History grid is mounted in the Image gallery workspace');
+  assert.equal(await x.page.locator('#history .card').count(),0,
+    'An empty mock account has no invented image cards');
+  assert.equal(await x.page.locator('#image-gallery-empty').isVisible(),true,
+    'Empty Image history shows its designed gallery placeholder');
+  assert.ok(await x.page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),
+    'Empty Image gallery does not overflow desktop');
   await x.page.screenshot({path:'test-results/lab-workspace-image.png',fullPage:false});
   await x.page.click('#tool-video');
   await x.page.click('#mode-reference');
