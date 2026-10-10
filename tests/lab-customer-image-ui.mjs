@@ -52,7 +52,7 @@ await context.route('https://**/*',async route=>{
    const price=(data.referenceSourceIds||[]).length?.08:data.settings.resolution==='2k'?.06:.036;
    const quote=()=>{
      const q={id:id(),provider:'SpicyAPI',settings:{...data.settings,type:'image',mode:'image'},
-       maxUsd:price,estimatedUsd:price,expiresAt:Date.now()+180000};
+       maxUsd:price,estimatedUsd:price,creditCost:Math.max(7,Math.ceil(Math.round(price*1e6)*460/1e6)),expiresAt:Date.now()+180000};
      vendorQuotes.set(q.id,q);return q;
    };
    return send(data.count?{quotes:Array.from({length:data.count},quote)}:quote());
