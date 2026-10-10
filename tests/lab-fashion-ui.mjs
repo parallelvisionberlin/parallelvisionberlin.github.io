@@ -81,7 +81,8 @@ try{
       if(!svg)return null;
       const style=getComputedStyle(svg);
       return {role:svg.getAttribute('aria-hidden'),width:svg.getBoundingClientRect().width,
-        opacity:parseFloat(style.opacity),strokeWidth:parseFloat(style.strokeWidth),
+        height:svg.getBoundingClientRect().height,opacity:parseFloat(style.opacity),
+        strokeWidth:parseFloat(style.strokeWidth),radius:parseFloat(style.borderTopLeftRadius),
         paths:[...svg.querySelectorAll('path')].map(path=>path.getAttribute('d'))};
     };
     return {person:find('person-hint'),garment:find('garment-hint'),result:find('result-placeholder')};
@@ -90,12 +91,16 @@ try{
     assert.ok(spec,'Missing ghost icon for '+kind);
     assert.equal(spec.role,'true',kind+' artwork must remain decorative for screen readers');
     assert.ok(spec.width>=70,kind+' ghost icon needs a visible editorial footprint');
+    assert.ok(Math.abs(spec.width-spec.height)<=2,kind+' icon medallion should be circular, not a tall rectangle');
+    assert.ok(spec.radius>=spec.width*.45,kind+' icon must have a genuinely round border');
     assert.ok(spec.opacity>=.18&&spec.opacity<=.32,kind+' icon must remain a low-opacity outline');
     assert.ok(spec.strokeWidth<=1.4,kind+' icon must use a delicate stroke');
     assert.ok(spec.paths.length>=2,kind+' icon needs recognizable vector geometry');
   }
   assert.notDeepEqual(icons.person.paths,icons.garment.paths,'Person and garment need distinct fashion-specific artwork');
   assert.notDeepEqual(icons.garment.paths,icons.result.paths,'Result needs a distinct transformation/artwork frame');
+  assert.equal(await page.locator('#result-placeholder svg.empty-art-result rect[rx="8"]').count(),1,
+    'Result frame corners should also be softly rounded');
   assert.equal(await page.locator('.upload-icon').count(),0,'Generic oversized plus glyphs must be replaced');
   assert.match(await page.locator('#person-hint').innerText(),/Portrait or full-body photo/);
   assert.match(await page.locator('#garment-hint').innerText(),/Flat garment or outfit reference/);
@@ -141,6 +146,15 @@ try{
   assert.equal(await page.locator('#person-hint svg.empty-art').isVisible(),true,'Person ghost image remains visible on mobile');
   assert.equal(await page.locator('#garment-hint svg.empty-art').isVisible(),true,'Garment ghost image remains visible on mobile');
   assert.equal(await page.locator('#result-placeholder svg.empty-art').isVisible(),true,'Result icon remains visible on mobile');
+  const mobileOrbs=await page.locator('svg.empty-art').evaluateAll(items=>items.map(el=>{
+    const r=el.getBoundingClientRect(),style=getComputedStyle(el);
+    return {w:r.width,h:r.height,radius:parseFloat(style.borderTopLeftRadius)};
+  }));
+  assert.equal(mobileOrbs.length,3,'All three empty states have circles on mobile');
+  for(const orb of mobileOrbs){
+    assert.ok(Math.abs(orb.w-orb.h)<=2&&orb.radius>=orb.w*.45,
+      'Mobile icon framing stays consistently circular');
+  }
   await page.screenshot({path:'test-results/pv-fashion-ghost-mobile.png',fullPage:true});
   await page.setViewportSize({width:1440,height:900});
   await page.locator('#model-select').selectOption('fashnmax');
@@ -173,7 +187,7 @@ try{
   assert.equal(await page.locator('#result-stage').isVisible(),true);
   await page.screenshot({path:'test-results/pv-fashion-editorial-mobile.png',fullPage:true});
   assert.deepEqual(errors,[]);
-  console.log('PASS distinct low-opacity Fashion ghost icons, upload visibility, desktop/mobile layout, FASHN Max and no-cost review.');
+  console.log('PASS rounded Fashion icon medallions, distinct low-opacity art, automatic upload hiding, desktop/mobile layout and no-cost review.');
 }finally{
   await browser.close();await new Promise(ok=>server.close(ok));
 }
