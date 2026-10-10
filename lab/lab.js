@@ -13,6 +13,7 @@ import {createMediaReferences} from './media-references.js?v=20261009-extend2';
 import { createSessionRequest } from './session-request.js?v=20260927-auth1';
 import { createSoulController } from './soul.js?v=20261001-presets2';
 import { PROVIDER_IMAGE_LIMIT, UPSCALE_PIXELS, imageDimensions, providerWorkingCopy, wanUltrawideWorkingCopy, imagePreview, cancelImagePreparation } from './image-tools.js?v=20260930-soul-v02';
+import {modelImageInputIssue} from './image-model-limits.js?v=20261010-model-limits1';
 // General-purpose private image-to-video workspace. Credentials never enter browser storage.
 const API='https://parallel-vision-lab.parallelvision.workers.dev';
 const $=id=>document.getElementById(id), activeStates=new Set(['submitting','queued','running','saving','uncertain']), slotStates=new Set(['submitting','queued','running','uncertain']);
@@ -207,26 +208,35 @@ function clearImageComposerNotice(){
   if(!status)return;
   status.hidden=true;status.replaceChildren();status.classList.remove('is-import-error');
 }
+function imageFailureHeading(message){
+  const reason=String(message||'').replace(/^Generation failed:\s*/i,'');
+  if(/^Image too small for /i.test(reason))return 'Image too small for model';
+  if(/^Unsupported image proportions for /i.test(reason))return 'Unsupported image ratio';
+  if(/^(?:Image too large for |Batch input too large for |SpicyAPI image uploads are limited|Nano Banana Pro references exceed|Use smaller reference images:|Kling needs |This Batch would exceed|File or request is too large)/i.test(reason)||/\bHTTP 413\b/i.test(reason))return 'Image exceeds model limit';
+  return 'Generation failed';
+}
 function showImageComposerError(message){
+  const reason=String(message||'').replace(/^Generation failed:\s*/i,'');
   if(tool!=='image'||!owner||assetLibrary?.active())return;
   const status=$('image-composer-status');if(!status)return;
-  const large=message.match(/^Image too large: (.+) \(([\d.]+) MB\)\./);
-  const small=message.match(/^Image too small: (.+) \((\d+) × (\d+) px\)\./);
-  const dimensions=message.match(/^Image dimensions too large: (.+) \((\d+) × (\d+) px\)\./);
-  const proportions=message.match(/^Unsupported image proportions: (.+) \((\d+) × (\d+) px\)\./);
-  const format=message.match(/^Unsupported image format: (.+)\. Use JPG, PNG or WebP\.$/);
+  const large=reason.match(/^Image too large: (.+) \(([\d.]+) MB\)\./);
+  const small=reason.match(/^Image too small: (.+) \((\d+) × (\d+) px\)\./);
+  const dimensions=reason.match(/^Image dimensions too large: (.+) \((\d+) × (\d+) px\)\./);
+  const proportions=reason.match(/^Unsupported image proportions: (.+) \((\d+) × (\d+) px\)\./);
+  const format=reason.match(/^Unsupported image format: (.+)\. Use JPG, PNG or WebP\.$/);
   const fileName=large?.[1]||small?.[1]||dimensions?.[1]||proportions?.[1]||format?.[1]||'';
   const originalDimensions=small||dimensions||proportions;
   const measurement=large?large[2]+' MB':originalDimensions?originalDimensions[2]+' × '+originalDimensions[3]+' px':'';
-  const isFileError=!!(fileName||message.startsWith('This image is empty.')||message.startsWith('No image was provided.'));
-  const heading=large?'Image too large':small?'Image too small':dimensions?'Image dimensions too large':proportions?'Unsupported proportions':format?'Unsupported format':message.startsWith('This image is empty.')?'Empty file':isFileError?'Image unavailable':'Request interrupted';
+  const modelHeading=imageFailureHeading(reason),isModelInputError=modelHeading!=='Generation failed';
+  const isFileError=!!(fileName||reason.startsWith('This image is empty.')||reason.startsWith('No image was provided.')||isModelInputError);
+  const heading=large?'Image too large':small?'Image too small':dimensions?'Image dimensions too large':proportions?'Unsupported proportions':format?'Unsupported format':reason.startsWith('This image is empty.')?'Empty file':isModelInputError?modelHeading:isFileError?'Image unavailable':message.startsWith('Generation failed:')||imageSubmissionPending?'Generation failed':'Request failed';
   const detail=large?'Maximum file size is 20 MB. Compress this image and try again.':
     small?'Minimum dimensions are 240 × 240 px. Choose a larger image.':
     dimensions?'Each side must be 8,000 px or smaller. Resize this image.':
     proportions?'Image proportions exceed the supported 8:1 range.':
     format?'Use a JPG, PNG or WebP image.':
-    message.startsWith('This image is empty.')?'Choose an image containing actual picture data.':
-    message.startsWith('No image was provided.')?'Drop or browse for an image file.':message;
+    reason.startsWith('This image is empty.')?'Choose an image containing actual picture data.':
+    reason.startsWith('No image was provided.')?'Drop or browse for an image file.':reason;
   const el=(tag,className,text)=>{const node=document.createElement(tag);node.className=className;if(text!==undefined)node.textContent=text;return node;};
   const icon=el('span','import-toast-icon','!');icon.setAttribute('aria-hidden','true');
   const copy=el('span','import-toast-copy');
@@ -242,9 +252,14 @@ function showImageComposerError(message){
   copy.append(el('span','import-toast-detail',detail));
   if(isFileError){
     const limits=el('span','import-toast-limits');
-    limits.append(el('span','import-toast-limit','MIN 240 × 240 PX'));
-    limits.append(el('span','import-toast-limit','MAX 20 MB'));
-    limits.append(el('span','import-toast-limit','JPG / PNG / WEBP'));
+    if(isModelInputError){
+      limits.append(el('span','import-toast-limit',modelHeading==='Image too small for model'?'MODEL MINIMUM':modelHeading==='Unsupported image ratio'?'MODEL ASPECT RATIO':'MODEL SIZE LIMIT'));
+      limits.append(el('span','import-toast-limit','ORIGINAL KEPT'));
+    }else{
+      limits.append(el('span','import-toast-limit','MIN 240 × 240 PX'));
+      limits.append(el('span','import-toast-limit','MAX 20 MB'));
+      limits.append(el('span','import-toast-limit','JPG / PNG / WEBP'));
+    }
     copy.append(limits);
   }
   const dismiss=el('button','import-toast-dismiss','×');dismiss.type='button';
@@ -1268,7 +1283,13 @@ async function inspectImage(candidate){
   if(!['image/jpeg','image/png','image/webp'].includes(candidate.type))throw new Error('Unsupported image format: '+(candidate.name||'file')+'. Use JPG, PNG or WebP.');
   if(!candidate.size)throw new Error('This image is empty. Choose another JPG, PNG or WebP photograph.');
   const seedanceInput=tool==='video'&&engine==='seedance',maxSide=tool==='upscale'?16000:seedanceInput?6000:8000;
+  if(tool==='image'&&imageEngine==='kling'){
+    const issue=modelImageInputIssue('kling',[{file:candidate}]);if(issue)throw new Error(issue);
+  }
   const prepared=await imagePreview(candidate),{width,height}=prepared;
+  if(tool==='image'&&imageEngine==='kling'){
+    const issue=modelImageInputIssue('kling',[{file:candidate,width,height}]);if(issue)throw new Error(issue);
+  }
   const minimum=seedanceInput?300:240;
   if(Math.min(width,height)<minimum)throw new Error('Image too small: '+(candidate.name||'photograph')+' ('+width+' × '+height+' px). Minimum '+minimum+' × '+minimum+' px.');
   if(Math.max(width,height)>maxSide)throw new Error('Image dimensions too large: '+(candidate.name||'photograph')+' ('+width+' × '+height+' px). Maximum '+maxSide.toLocaleString()+' pixels per side.');
@@ -1330,6 +1351,9 @@ async function addReferences(list,ids=[],labels=[]){
   try{
     for(let i=0;i<incoming.length;i++){
       $('reference-progress').textContent='Preparing reference '+(i+1)+' of '+incoming.length+'…';
+      if(tool==='image'){
+        const issue=modelImageInputIssue(imageEngine,[...references,{file:incoming[i]}]);if(issue)throw new Error(issue);
+      }
       const item=await inspectImage(incoming[i]);
       if(e!==epoch||!owner){releaseReference(item);return;}
       item.id=ids[i]||null;item.role=imageEngine==='soulpro'?'identity':labels[i]?.role||'none';item.note=imageEngine==='soulpro'?'':labels[i]?.note||'';item.target=labels[i]?.target||'';if(usesReferenceGuidance()){if(!referencesOnly()&&!references.length){item.nonBaseRole=item.role==='base'?'none':item.role;item.role='base';}else if(item.role==='base')item.role='none';}references.push(item);added++;
@@ -1606,8 +1630,9 @@ async function poll(){
       await syncHistory();
       if(!owner||startedEpoch!==epoch)return;
       if(show&&hasResult(chosen))await openVideo(chosen,{scroll:false});
-      const ready=finished.filter(hasResult).length;
-      if(ready)notify(ready===1?'Result saved. View or download it from History.':ready+' results saved. View or download them from History.');
+      const ready=finished.filter(hasResult).length,failed=finished.filter(j=>j.status==='failed');
+      if(failed.length)notify('Generation failed: '+(failed.length>1?failed.length+' jobs failed. ':'')+(failed[0].error||'The provider did not return an image. Check History.'),true);
+      else if(ready)notify(ready===1?'Result saved. View or download it from History.':ready+' results saved. View or download them from History.');
       else notify(finished[0].error||'No output file was returned. Nothing is available to download.',true);
     }
     if(error)notify(error.message,true);
@@ -2345,7 +2370,7 @@ function renderCards(jobs,{upsert=false}={}){
     }else{
       const empty=document.createElement('div');empty.className='history-no-result';
       const title=document.createElement('strong'),detail=document.createElement('span');
-      title.textContent=j.settings.mode==='soul-id-training'&&j.status==='completed'?'Soul ID ready':j.status==='draft'?'Saved draft':j.status==='failed'?'Generation failed':j.status==='uncertain'?'Status unknown':activeStates.has(j.status)?({submitting:'Submitting',queued:'Queued',running:'Generating',saving:'Saving'}[j.status]||'Result pending'):ready?'Video ready':j.status==='completed'?'Output unavailable':'No result';
+      title.textContent=j.settings.mode==='soul-id-training'&&j.status==='completed'?'Soul ID ready':j.status==='draft'?'Saved draft':j.status==='failed'?imageFailureHeading(j.error):j.status==='uncertain'?'Status unknown':activeStates.has(j.status)?({submitting:'Submitting',queued:'Queued',running:'Generating',saving:'Saving'}[j.status]||'Result pending'):ready?'Video ready':j.status==='completed'?'Output unavailable':'No result';
       detail.textContent=j.settings.mode==='soul-id-training'&&j.status==='completed'?'Choose this identity from the Soul ID photo tile to generate.':j.status==='draft'?'No generation submitted.':j.status==='failed'?(j.error||'The provider ended this request without a generated file.'):j.status==='uncertain'?'PV Lab could not confirm the provider state. Check the provider before retrying; nothing will be resubmitted automatically.':activeStates.has(j.status)?'The finished output will appear here.':ready?'View or download your generated video below.':'No generated file is available to view or download.';
       empty.append(title,detail);card.append(empty);
     }
@@ -2523,6 +2548,8 @@ async function submitImageSnapshot(){
       const used=activeJobs.filter(j=>slotStates.has(j.status)&&j.settings?.type==='image'&&jobProvider(j)==='spicy').length;
       if(requested>Math.max(0,limitFor('image')-used))throw new Error('Not enough available image slots for this batch.');
     }
+    const modelInputError=modelImageInputIssue(selected.engine,chosen,{count:requested,processing:selected.processing});
+    if(modelInputError)throw new Error(modelInputError);
     const ratioParts=String(selected.aspectRatio||'').split(':').map(Number);
     const inputRatio=sourceMode?sourceWidth/sourceHeight:chosen[0]?.ref?.width/chosen[0]?.ref?.height;
     const ratio=ratioParts.length===2&&ratioParts.every(n=>n>0)?ratioParts[0]/ratioParts[1]:inputRatio>0?inputRatio:16/9;
