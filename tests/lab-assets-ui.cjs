@@ -533,7 +533,7 @@ assert.deepEqual(captured.settings,capturedImageSettings,'The request keeps the 
 assert.deepEqual(captured.referenceSourceIds,referenceFiles.map(f=>'uploaded-'+f.name),'Parallel uploads preserve reference order');
 assert.deepEqual(captured.transferSourceIds,referenceFiles.map((f,i)=>'uploaded-'+(i<2?f.name.replace('.png','-working-copy.webp'):f.name)));
 releaseSubmit();
-await page.waitForFunction(()=>document.querySelector('[data-job="feedback-job-1"]')?.dataset.state==='queued'&&!document.querySelector('[data-local-submission]'));
+await page.waitForFunction(()=>document.querySelector('[data-job="feedback-job-1"]')?.dataset.state==='queued'&&!document.querySelector('[data-local-submission]')).catch(async error=>{console.log('SUBMISSION_HANDOFF_DEBUG='+JSON.stringify({submitCount,quoteCount,jobs:jobs.map(j=>({id:j.id,status:j.status})),errors,ui:await page.evaluate(()=>({notice:document.querySelector('#notice').textContent,cards:[...document.querySelectorAll('#history .card')].map(c=>({job:c.dataset.job,state:c.dataset.state,local:c.dataset.localSubmission,text:c.innerText.slice(0,250)})),tool:location.search}))}));throw error;});
 assert.equal(await page.locator('[data-job="feedback-job-1"]').count(),1,'Real job replaces the local card once');assert.equal(submitCount,1);
 await page.click('#image-composer-generate');
 await page.waitForFunction(()=>document.querySelector('[data-job="feedback-job-2"]')?.dataset.state==='queued'&&!document.querySelector('[data-local-submission]'));
