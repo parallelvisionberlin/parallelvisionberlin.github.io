@@ -3,7 +3,7 @@ const API='https://parallel-vision-lab.parallelvision.workers.dev';
 const CLERK_KEY='pk_live_Y2xlcmsucGFyYWxsZWx2aXNpb25sYWJlbC5jb20k';
 const $=id=>document.getElementById(id);
 let clerk=null,loading=false,profile=null;
-const status=message=>{if($('lab-entry-status'))$('lab-entry-status').textContent=message||'';};
+const status=message=>{for(const id of ['lab-entry-status','lab-pricing-status'])if($(id))$(id).textContent=message||'';};
 const api=createSessionRequest({baseUrl:API,getSession:()=>clerk?.session});
 async function call(path,init){const result=await api(path,init);const data=await result.json().catch(()=>({}));if(!result.ok)throw new Error(data.error||'Lab account is unavailable.');return data;}
 async function refresh(){
