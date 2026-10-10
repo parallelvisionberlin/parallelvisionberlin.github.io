@@ -179,3 +179,6 @@ Official sources, checked 2 October 2026:
 ## Moods V1
 
 Ten editorial mood presets are available in Image Studio, with intensity and original-prompt preservation. Only Seedream 5 Pro and Nano Banana Pro support moods in V1. Selecting a mood never starts generation; the existing paid workflow remains unchanged. Job settings retain the selected mood for History and Reuse. Moods are AI generation styling, not pixel-based image filters.
+
+### Clean image details (2026-10-10)
+The Image result viewer prominently labels the chosen Mood and intensity. It shows and copies only the original user-authored direction, not the compiled provider prompt. If the user selected a Mood without writing a direction, the prompt text and Copy control are hidden, while source images remain visible. Gallery history captions likewise omit internally injected mood instructions. Full settings are still retained in private generation history for Reuse. This change is presentation-only, not a secrecy boundary for browser API consumers.
