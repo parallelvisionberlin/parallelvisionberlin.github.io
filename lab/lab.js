@@ -206,11 +206,47 @@ function clearImageComposerNotice(){
 function showImageComposerError(message){
   if(tool!=='image'||!owner||assetLibrary?.active())return;
   const status=$('image-composer-status');if(!status)return;
-  const description=document.createElement('span');description.textContent=message;
-  const dismiss=document.createElement('button');dismiss.type='button';dismiss.textContent='×';
+  const large=message.match(/^Image too large: (.+) \\(([\\d.]+) MB\\)\\./);
+  const small=message.match(/^Image too small: (.+) \\((\\d+) × (\\d+) px\\)\\./);
+  const dimensions=message.match(/^Image dimensions too large: (.+) \\((\\d+) × (\\d+) px\\)\\./);
+  const proportions=message.match(/^Unsupported image proportions: (.+) \\((\\d+) × (\\d+) px\\)\\./);
+  const format=message.match(/^Unsupported image format: (.+)\\. Use JPG, PNG or WebP\\.$/);
+  const fileName=large?.[1]||small?.[1]||dimensions?.[1]||proportions?.[1]||format?.[1]||'';
+  const originalDimensions=small||dimensions||proportions;
+  const measurement=large?large[2]+' MB':originalDimensions?originalDimensions[2]+' × '+originalDimensions[3]+' px':'';
+  const isFileError=!!(fileName||message.startsWith('This image is empty.')||message.startsWith('No image was provided.'));
+  const heading=large?'Image too large':small?'Image too small':dimensions?'Image dimensions too large':proportions?'Unsupported proportions':format?'Unsupported format':message.startsWith('This image is empty.')?'Empty file':isFileError?'Image unavailable':'Request interrupted';
+  const detail=large?'Maximum file size is 20 MB. Compress this image and try again.':
+    small?'Minimum dimensions are 240 × 240 px. Choose a larger image.':
+    dimensions?'Each side must be 8,000 px or smaller. Resize this image.':
+    proportions?'Image proportions exceed the supported 8:1 range.':
+    format?'Use a JPG, PNG or WebP image.':
+    message.startsWith('This image is empty.')?'Choose an image containing actual picture data.':
+    message.startsWith('No image was provided.')?'Drop or browse for an image file.':message;
+  const el=(tag,className,text)=>{const node=document.createElement(tag);node.className=className;if(text!==undefined)node.textContent=text;return node;};
+  const icon=el('span','import-toast-icon','!');icon.setAttribute('aria-hidden','true');
+  const copy=el('span','import-toast-copy');
+  copy.append(el('span','import-toast-kicker',isFileError?'PV LAB / IMAGE INPUT':'PV LAB / NOTICE'));
+  copy.append(el('strong','import-toast-title',heading));
+  if(fileName){
+    const file=el('span','import-toast-file');
+    const name=el('span','import-toast-filename',fileName);name.title=fileName;
+    file.append(name);
+    if(measurement)file.append(el('span','import-toast-measure',measurement));
+    copy.append(file);
+  }
+  copy.append(el('span','import-toast-detail',detail));
+  if(isFileError){
+    const limits=el('span','import-toast-limits');
+    limits.append(el('span','import-toast-limit','MIN 240 × 240 PX'));
+    limits.append(el('span','import-toast-limit','MAX 20 MB'));
+    limits.append(el('span','import-toast-limit','JPG / PNG / WEBP'));
+    copy.append(limits);
+  }
+  const dismiss=el('button','import-toast-dismiss','×');dismiss.type='button';
   dismiss.setAttribute('aria-label','Dismiss image upload error');
   dismiss.onclick=clearImageComposerNotice;
-  status.replaceChildren(description,dismiss);
+  status.replaceChildren(icon,copy,dismiss);
   status.classList.add('is-import-error');
   status.setAttribute('role','alert');
   status.hidden=false;
@@ -1217,7 +1253,10 @@ async function inspectImage(candidate){
   if(!candidate.size)throw new Error('This image is empty. Choose another JPG, PNG or WebP photograph.');
   const seedanceInput=tool==='video'&&engine==='seedance',maxSide=tool==='upscale'?16000:seedanceInput?6000:8000;
   const prepared=await imagePreview(candidate),{width,height}=prepared;
-  if(Math.min(width,height)<(seedanceInput?300:240)||Math.max(width,height)>maxSide||Math.max(width/height,height/width)>(seedanceInput?2.5:8))throw new Error('Use an image within the model dimensions and aspect ratio, up to '+maxSide.toLocaleString()+' pixels per side.');
+  const minimum=seedanceInput?300:240;
+  if(Math.min(width,height)<minimum)throw new Error('Image too small: '+(candidate.name||'photograph')+' ('+width+' × '+height+' px). Minimum '+minimum+' × '+minimum+' px.');
+  if(Math.max(width,height)>maxSide)throw new Error('Image dimensions too large: '+(candidate.name||'photograph')+' ('+width+' × '+height+' px). Maximum '+maxSide.toLocaleString()+' pixels per side.');
+  if(Math.max(width/height,height/width)>(seedanceInput?2.5:8))throw new Error('Unsupported image proportions: '+(candidate.name||'photograph')+' ('+width+' × '+height+' px). Choose a less extreme aspect ratio.');
   return {file:candidate,id:null,url:URL.createObjectURL(prepared.preview),thumbUrl:URL.createObjectURL(prepared.thumbnail),width,height};
 }
 
