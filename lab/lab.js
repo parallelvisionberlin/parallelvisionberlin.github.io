@@ -1443,7 +1443,7 @@ function renderReferences(){
 async function addReferences(list,ids=[],labels=[]){
   clearImageComposerNotice();
   const e=epoch,incoming=[...list];if(imageEngine==='fal')poseMapSourceId=null;if(references.length+incoming.length>referenceLimit())throw new Error('This mode supports up to '+referenceLimit()+' image references.');
-  autoPreview=null;$('reference-list').setAttribute('aria-busy','true');let added=0;
+  autoPreview=null;$('reference-list').setAttribute('aria-busy','true');let added=0;const toWarm=[];
   try{
     for(let i=0;i<incoming.length;i++){
       $('reference-progress').textContent='Preparing reference '+(i+1)+' of '+incoming.length+'…';
@@ -1452,8 +1452,7 @@ async function addReferences(list,ids=[],labels=[]){
       }
       const item=await inspectImage(incoming[i]);
       if(e!==epoch||!owner){releaseReference(item);return;}
-      item.id=ids[i]||null;item.role=imageEngine==='soulpro'?'identity':labels[i]?.role||'none';item.note=imageEngine==='soulpro'?'':labels[i]?.note||'';item.target=labels[i]?.target||'';if(usesReferenceGuidance()){if(!referencesOnly()&&!references.length){item.nonBaseRole=item.role==='base'?'none':item.role;item.role='base';}else if(item.role==='base')item.role='none';}references.push(item);added++;
-      prewarmSeedreamReference(item);
+      item.id=ids[i]||null;item.role=imageEngine==='soulpro'?'identity':labels[i]?.role||'none';item.note=imageEngine==='soulpro'?'':labels[i]?.note||'';item.target=labels[i]?.target||'';if(usesReferenceGuidance()){if(!referencesOnly()&&!references.length){item.nonBaseRole=item.role==='base'?'none':item.role;item.role='base';}else if(item.role==='base')item.role='none';}references.push(item);added++;toWarm.push(item);
       renderReferences();refreshInputPreview();update();
       await new Promise(resolve=>setTimeout(resolve,0));
     }
@@ -1461,6 +1460,9 @@ async function addReferences(list,ids=[],labels=[]){
     if(e===epoch){
       $('reference-list').setAttribute('aria-busy','false');$('reference-progress').textContent=added?added+' reference'+(added===1?'':'s')+' ready. Originals kept unchanged.':'';
       update();
+      // Load every thumbnail first; prewarming must not delay the next preview
+      // behind an expensive 34 MP decode/encode in the image-worker queue.
+      for(const item of toWarm)if(references.includes(item))prewarmSeedreamReference(item);
     }
   }
 }

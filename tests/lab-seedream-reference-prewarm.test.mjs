@@ -102,13 +102,14 @@ test('Studio wiring starts after references enter the deck, never uploads in pre
   const code=readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8');
   const module=readFileSync(new URL('../lab/seedream-reference-prep.js',import.meta.url),'utf8');
   const html=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
-  assert.match(code,/references.push\(item\);added\+\+;\s*prewarmSeedreamReference\(item\)/);
+  assert.match(code,/references.push\(item\);added\+\+;toWarm.push\(item\)/);
+  assert.match(code,/for\(const item of toWarm\)if\(references.includes\(item\)\)prewarmSeedreamReference\(item\)/);
   assert.match(code,/setTool\('image'\);renderReferences\(\);prewarmSeedreamDeck\(\)/);
   assert.match(code,/await seedreamPreparer.forSubmission\(prepareItem\)/);
   assert.match(code,/seedreamPreparer.clear\(\)/);
   assert.match(module,/inflight\.get\(source\)/);
   assert.doesNotMatch(module,/uploadAsset|\/api\/|jobs\/quote|billing/);
-  assert.match(html,/src="\.\/lab\.js\?v=20261011-reference-prewarm2/);
+  assert.match(html,/src="\.\/lab\.js\?v=20261011-reference-prewarm3/);
 });
 test('Background copy never resorts to a CPU-heavy main-thread fallback',()=>{
   const tools=readFileSync(new URL('../lab/image-tools.js',import.meta.url),'utf8');
@@ -122,4 +123,12 @@ test('Restored references without dimensions are measured before prewarm cache l
   assert.match(code,/const prepareItem=seedreamInput&&!hasDimensions/);
   assert.match(code,/\{\.\.\.item,\.\.\.\(await imageDimensions\(item.file\)\)\}/);
   assert.match(code,/await seedreamPreparer.forSubmission\(prepareItem\)/);
+});
+
+test('Batch of references is displayed before costly background conversion starts',()=>{
+  const code=readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8');
+  const section=code.slice(code.indexOf('async function addReferences('),code.indexOf('function referenceLimit()'));
+  assert.ok(section.indexOf("renderReferences();refreshInputPreview();update();")<section.indexOf('for(const item of toWarm)'));
+  assert.ok(section.indexOf('for(const item of toWarm)')>section.indexOf('}finally{'));
+  assert.ok(section.includes('if(references.includes(item))prewarmSeedreamReference(item)'));
 });
