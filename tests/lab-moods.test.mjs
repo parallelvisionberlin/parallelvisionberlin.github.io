@@ -39,7 +39,7 @@ test('clear mood returns the unmodified original prompt',()=>{
 
 test('Moods show only the user-authored direction, never compiled provider instructions',()=>{
   const settings={moodId:'hong-kong-nights',moodIntensity:90,moodOriginalPrompt:'Portrait beside a window',
-    prompt:'Portrait beside a window\\n\\nPV LAB MOOD / Hong Kong Nights: internal art direction'};
+    prompt:'Portrait beside a window\n\nPV LAB MOOD / Hong Kong Nights: internal art direction'};
   assert.equal(userFacingImagePrompt(settings),'Portrait beside a window');
   assert.equal(imageHistoryCaption(settings),'Hong Kong Nights · Portrait beside a window');
   assert.equal(userFacingImagePrompt({...settings,moodOriginalPrompt:''}),'');
@@ -48,7 +48,7 @@ test('Moods show only the user-authored direction, never compiled provider instr
 });
 test('Older Moods prompts are not exposed in the viewer or history',()=>{
   assert.equal(userFacingImagePrompt({prompt:'PV LAB MOOD / Hong Kong Nights: secret directions'}),'');
-  assert.equal(userFacingImagePrompt({prompt:'My photograph\\n\\nPV LAB MOOD / Hong Kong Nights: secret directions'}),'My photograph');
+  assert.equal(userFacingImagePrompt({prompt:'My photograph\n\nPV LAB MOOD / Hong Kong Nights: secret directions'}),'My photograph');
   assert.equal(imageHistoryCaption({prompt:'Normal text-only image'}),'Normal text-only image');
   assert.equal(userFacingImagePrompt({moodId:'unlisted',prompt:'private prompt'}),'');
 });
