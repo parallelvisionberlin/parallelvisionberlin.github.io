@@ -1,4 +1,5 @@
 import {quoteVideoExtension,submitVideoExtension} from './higgsfield-video.mjs';
+import {ensureCustomer,isLabCustomer,customerSession,customerRoute,stripeWebhook} from './customer-billing.mjs';
 import {fashionRoute,refreshFashionJob} from './fashion-tools.mjs';
 import {IMAGE_PRICES,IMAGE_RATIOS,imageModelParameters,buildImageModelInput,requestFlash} from './image-models.mjs';
 import {ensureGalleryDimensions} from './gallery-dimensions.mjs';
@@ -17,7 +18,7 @@ import {findFalRequest} from './fal-recovery.mjs';
 import {falUploadImage} from './fal-storage.mjs';
 import {REFERENCE_ROLES,normalizeReferenceLabel,supportsReferenceGuidance,compileImagePrompt,canUseReferenceGuidance,referenceGuidanceError} from '../lab/reference-guidance.js';
 import {characterPreview as soulCharacterPreview,SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-10.1-upscale-history';
+export const VERSION = 'pv-lab-2026-10-10.2-customer-beta';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -100,8 +101,9 @@ async function authenticate(request,env) {
   if(!valid)fail(401,'Invalid sign-in signature.');
   // Read only: never changes Nina's identity, memory or account tables.
   const owner=await env.OWNER_DB.prepare("SELECT id FROM users WHERE auth_provider='clerk' AND auth_subject=? AND role='owner' LIMIT 1").bind(p.sub).first();
-  if(!owner)fail(403,'This Lab is private. Only the Parallel Vision owner has access.');
-  return owner.id;
+  if(owner)return owner.id;
+  // A verified Clerk identity may create a PV Lab customer, never a Nina user.
+  return ensureCustomer(env,p.sub);
 }
 async function derived(env,label,algorithm,usages) {
   if(!env.LAB_SECRET || env.LAB_SECRET.length<40)fail(503,'Private storage is not configured.');
@@ -117,7 +119,12 @@ async function decryptKey(env,value) {
   const [iv,cipher]=value.split('.');const key=await derived(env,'credential','AES-GCM',['decrypt']);
   return dec.decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:unbase(iv),additionalData:enc.encode(MODEL)},key,unbase(cipher)));
 }
-async function config(env,owner) {return first(env,'SELECT * FROM settings WHERE owner_id=?',owner);}
+async function config(env,owner) {
+  const original=await first(env,'SELECT * FROM settings WHERE owner_id=?',owner);
+  if(original)return original;
+  if(env.LAB_PUBLIC_GENERATION_ENABLED!=='true'||!env.LAB_CUSTOMER_SPICY_API_KEY||!await isLabCustomer(env,owner))return null;
+  return {owner_id:owner,encrypted_key:await encryptKey(env,env.LAB_CUSTOMER_SPICY_API_KEY),enabled:1,terms_confirmed:1,daily_limit_microusd:10000000};
+}
 function publicConfig(c,falEnabled=false) {return {concurrency:CONCURRENCY,configured:!!c,enabled:!!(c?.enabled&&c?.terms_confirmed),dailyLimitUsd:(c?.daily_limit_microusd||10000000)/1000000,provider:'SpicyAPI',videoEngines:['wan','wanprime','h3','h3max','h3spicy','seedance',...(falEnabled?['h3maxfal','omni']:[])],model:'Wan 3.0 / Wan Prime / MiniMax H3 / H3 Max / H3 Spicy / H3 Max Reference FAL / Gemini Omni Flash 1.1 / Seedance 2.5 / Seedream 5.0 Pro / Image Upscaler',documentation:DOC,pricingNote:'SpicyAPI videos use a live bound quote. fal.ai video routes use the current published per-second estimate shown before confirmation. Provider billing remains authoritative.'};}
 async function vendorRequest(path,key,data,idempotency,method=data?'POST':'GET') {
   let r;
@@ -416,7 +423,7 @@ async function publicInput(request,env,url) {
   if(!valid)fail(403,'Invalid input link.');
   const a=await first(env,"SELECT * FROM assets WHERE id=? AND kind='source'",id);if(!a)fail(404,'Not found.');
   const owner=await env.OWNER_DB.prepare("SELECT id FROM users WHERE id=? AND role='owner' AND auth_provider='clerk'").bind(a.owner_id).first();
-  if(!owner)fail(403,'Access revoked.');return media(request,env,a);
+  if(!owner&&!await isLabCustomer(env,a.owner_id))fail(403,'Access revoked.');return media(request,env,a);
 }
 async function media(request,env,a) {
   const rangeRequested=request.method==='GET'&&request.headers.has('range');
@@ -582,7 +589,7 @@ async function backfillFailureDetails(env) {
   const jobs=await rows(env,"SELECT * FROM jobs WHERE state='failed' AND provider_id IS NOT NULL AND error=? AND created_at>? ORDER BY created_at DESC LIMIT 3",'The provider ended this job without a downloadable result. Check its dashboard for billing details.',now()-86400000);
   for(const job of jobs){
     const owner=await env.OWNER_DB.prepare("SELECT id FROM users WHERE id=? AND role='owner' AND auth_provider='clerk'").bind(job.owner_id).first();
-    if(!owner)continue;
+    if(!owner&&!await isLabCustomer(env,job.owner_id))continue;
     try{
       const c=await config(env,job.owner_id);if(!c)continue;
       const result=await vendorRequest('/jobs/recordInfo?taskId='+encodeURIComponent(job.provider_id),await decryptKey(env,c.encrypted_key));
@@ -942,12 +949,26 @@ async function route(request,env,ctx) {
   if(url.pathname.startsWith('/input/')&&(request.method==='GET'||request.method==='HEAD'))return publicInput(request,env,url);
   if(url.pathname.startsWith('/soul-dataset/')&&request.method==='GET')return publicSoulDataset(request,env,url,soulDeps());
   if(url.pathname.startsWith('/soul-weight/')&&(request.method==='GET'||request.method==='HEAD'))return publicSoulWeight(request,env,url,soulDeps());
+  if(url.pathname==='/api/stripe/webhook'&&request.method==='POST')return stripeWebhook(request,env);
   if(!url.pathname.startsWith('/api/'))fail(404,'Not found.');
   const owner=await authenticate(request,env),path=url.pathname,method=request.method;
+  const customer=await isLabCustomer(env,owner);
+  if(path.startsWith('/api/customer/')||path.startsWith('/api/billing/')){
+    if(!customer)fail(403,'Only customer accounts use the PV Lab credit wallet.');
+    return customerRoute(request,env,owner);
+  }
+  // Dataset training and the metered pose-preview route have no customer job charge yet.
+  // Fail closed so they cannot bypass the wallet's atomic generation debit.
+  if(customer&&(path==='/api/soul/datasets'||path==='/api/soul/characters'&&method==='POST'||path==='/api/fal/pose-preview'))fail(403,'This feature is not yet enabled for customer billing.');
   if(path==='/api/library'||path.startsWith('/api/library/'))return json(await libraryRoute(request,env,owner,url,{body,uid,fail,rows,first,run}));
   if(path.startsWith('/api/fashion/'))return json(await fashionRoute(request,env,owner,url,{fail,body,first,run,stmt,jobView,source,signedInput,config,storedImageDimensions,falImageBytes,falSubmit}),path==='/api/fashion/submit'?202:200);
   if(path.startsWith('/api/higgsfield/'))return json(await higgsfieldRoute(request,env,owner,url,hfDeps()),request.method==='POST'?202:200);
   if(path==='/api/session'&&method==='GET'){
+    if(customer){
+      const account=await customerSession(env,owner);
+      const c=await config(env,owner);
+      return json({...account,owner:false,ownerId:owner,version:VERSION,config:{...publicConfig(c,!!env.FAL_KEY),enabled:account.generationReady,configured:account.generationReady,customer:true,higgsfieldEnabled:!!env.HF_CREDENTIALS,geminiEnabled:!!env.GEMINI_API_KEY,openrouterEnabled:!!env.OPENROUTER_API_KEY,soulTrainingEnabled:false,soulReinterpretEnabled:false,soulPresets:publicSoulPresets(),falEnabled:!!env.FAL_KEY}});
+    }
     await run(env,"DELETE FROM spend WHERE owner_id=? AND job_id IN (SELECT id FROM jobs WHERE owner_id=? AND state='failed' AND COALESCE(json_extract(params,'$.provider'),'')='fal')",owner,owner);
     const c=await config(env,owner),spent=await first(env,'SELECT COALESCE(SUM(estimate_microusd),0) AS n FROM spend WHERE owner_id=? AND created_at>=?',owner,Math.floor(now()/86400000)*86400000);
     return json({owner:true,ownerId:owner,version:VERSION,config:{...publicConfig(c,!!env.FAL_KEY),higgsfieldEnabled:!!env.HF_CREDENTIALS,higgsfieldPrices:SOUL2_PRICES,geminiEnabled:!!env.GEMINI_API_KEY,openrouterEnabled:!!env.OPENROUTER_API_KEY,soulTrainingEnabled:!!env.FAL_KEY,soulReinterpretEnabled:true,soulPresets:publicSoulPresets(),falEnabled:!!env.FAL_KEY},estimatedSpentToday:spent.n/1000000});
@@ -987,6 +1008,7 @@ async function route(request,env,ctx) {
     if(method==='DELETE')return json(await deleteSoulCharacter(env,owner,id,soulDeps()));
   }
   if(path==='/api/settings'&&method==='POST') {
+    if(customer)fail(403,'API provider settings are managed by PV Lab.');
     const data=await body(request),old=await config(env,owner);
     const limit=Number(data.dailyLimitUsd??10);if(!Number.isFinite(limit)||limit<1||limit>100)fail(400,'Daily estimate limit must be between $1 and $100.');
     if(data.enabled===true&&data.termsConfirmed!==true)fail(400,'Confirm provider suitability and terms before enabling paid generation.');
@@ -1004,6 +1026,7 @@ async function route(request,env,ctx) {
     return json({config:publicConfig(await config(env,owner),!!env.FAL_KEY)});
   }
   if(path==='/api/settings'&&method==='DELETE') {
+    if(customer)fail(403,'API provider settings are managed by PV Lab.');
     if(await first(env,"SELECT id FROM jobs WHERE owner_id=? AND state IN ('submitting','queued','running','uncertain')",owner))fail(409,'Wait for or resolve the active job before removing its API key.');
     await run(env,'DELETE FROM settings WHERE owner_id=?',owner);return json({config:publicConfig(null,!!env.FAL_KEY)});
   }
@@ -1417,14 +1440,14 @@ async function maintenance(env) {
   await soulMaintenance(env,soulDeps());
   await run(env,"UPDATE jobs SET state='uncertain',error='Submission was interrupted. Check the provider dashboard before retrying.',updated_at=? WHERE state='submitting' AND updated_at<?",now(),now()-120000);
   const pending=await rows(env,"SELECT * FROM jobs WHERE state IN ('queued','running','saving') ORDER BY last_poll LIMIT 5");
-  for(const j of pending){const owner=await env.OWNER_DB.prepare("SELECT id FROM users WHERE id=? AND role='owner' AND auth_provider='clerk'").bind(j.owner_id).first();if(owner)await refreshJob(env,j);}
+  for(const j of pending){const owner=await env.OWNER_DB.prepare("SELECT id FROM users WHERE id=? AND role='owner' AND auth_provider='clerk'").bind(j.owner_id).first();if(owner||await isLabCustomer(env,j.owner_id))await refreshJob(env,j);}
   await run(env,'DELETE FROM quotes WHERE expires_at<? AND NOT EXISTS(SELECT 1 FROM jobs WHERE jobs.quote_id=quotes.id)',now());
   const unused=await rows(env,"SELECT * FROM assets WHERE kind='source' AND created_at<? ORDER BY created_at LIMIT 30",now()-86400000);
   for(const a of unused)await pruneSource(env,a.owner_id,a.id);
 }
 export default {
   async fetch(request,env,ctx) {
-    let response;try{response=await route(request,env,ctx);}catch(e){response=json({error:e instanceof HttpError?e.message:'The Lab could not finish this request. Your stored work is unchanged.'},e instanceof HttpError?e.status:500);}
+    let response;try{response=await route(request,env,ctx);}catch(e){const depleted=/Insufficient PV Lab credits/.test(String(e?.message||''));response=json({error:depleted?'Insufficient PV Lab credits. Add credits before generating.':e instanceof HttpError?e.message:'The Lab could not finish this request. Your stored work is unchanged.'},depleted?402:e instanceof HttpError?e.status:500);}
     return decorate(response,request.headers.get('origin')||'');
   },
   async scheduled(event,env,ctx) {ctx.waitUntil(maintenance(env));}
