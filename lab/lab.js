@@ -6,7 +6,7 @@ import {captureReferralCode,claimReferral} from './referral-capture.js?v=2026101
 captureReferralCode();
 import {createSoul2UI} from './higgsfield-ui.js?v=20261010-soul-price1';
 import {VIDEO_MODELS,engineFor,videoLabel} from './video-models.js?v=20261009-extend1';
-import {REFERENCE_ROLES,REFERENCE_TARGETS,normalizeReferenceLabel,compileImagePrompt,referenceGuidanceError,canUseReferenceGuidance} from './reference-guidance.js?v=20261010-reference-intent1';
+import {REFERENCE_ROLES,REFERENCE_TARGETS,normalizeReferenceLabel,compileImagePrompt,referenceGuidanceError,canUseReferenceGuidance} from './reference-guidance.js?v=20261010-reference-flow2';
 import {createMoodSelector,moodById,userFacingImagePrompt,imageHistoryCaption} from './moods.js?v=20261010-hong-kong-emerald1';
 import {createMediaReferences} from './media-references.js?v=20261009-extend2';
 import { createSessionRequest } from './session-request.js?v=20260927-auth1';
@@ -101,19 +101,15 @@ const UPSCALE_MODELS=Object.freeze({
 let sourcePixels=0, sourceWidth=0, sourceHeight=0;
 let ratioSourceKey='';
 let imageReferenceMode='base';
-let referenceIntent=null,referenceIntentOpen=false;
+let referenceIntentOpen=false;
 const moodUI=createMoodSelector({panel:$('composer-moods'),button:$('image-composer-moods'),getEngine:()=>imageEngine,
   chooseEngine:engine=>{if(busy)return;$('image-engine').value=engine;$('image-engine').dispatchEvent(new Event('change',{bubbles:true}));},
   onOpen:()=>{closeReferenceIntent();closeImageModelMenu();closeComposerLibrary();toggleImageSettings(false);},
   onChange:()=>{autoPreview=null;update();}
 });
 function referencesOnly(){return usesReferenceGuidance()&&imageReferenceMode==='references';}
-$('image-reference-mode').onchange=()=>{
-  imageReferenceMode=$('image-reference-mode').value;autoPreview=null;
-  referenceIntent=imageReferenceMode==='base'?'edit':'mix';
-  closeReferenceIntent();renderReferences();syncDefaultRatio(!imageRatioExplicit);update();
-};
-
+$('image-reference-mode').onchange=()=>setImageReferenceMode($('image-reference-mode').value);
+function referencesOnly(){return usesReferenceGuidance()&&imageReferenceMode==='references';}
 function closeReferenceIntent(){
   referenceIntentOpen=false;
   $('composer-reference-intent').hidden=true;
@@ -123,43 +119,50 @@ function syncReferenceIntentUi(){
   const eligible=tool==='image'&&usesReferenceGuidance()&&references.length>0;
   const toggle=$('composer-reference-intent-toggle'),panel=$('composer-reference-intent');
   toggle.hidden=!eligible;toggle.disabled=busy;
-  if(!eligible){panel.hidden=true;referenceIntentOpen=false;toggle.setAttribute('aria-expanded','false');return;}
-  const unassigned=references.filter(ref=>!ref.role||ref.role==='none').length;
-  const needsChoice=references.length>1&&!referenceIntent;
-  const titles={edit:'Edit first photo',same:'Same person',mix:'Mix references'};
-  toggle.textContent=needsChoice?'Set references':unassigned?('Assign '+unassigned+' role'+(unassigned===1?'':'s')):(titles[referenceIntent]||'Edit first photo');
-  toggle.classList.toggle('needs-roles',needsChoice||unassigned>0);
-  toggle.title=needsChoice?'Choose how PV Lab should use the uploaded photographs.':unassigned?'Choose a role on each highlighted thumbnail before generating.':'Change how PV Lab uses the uploaded photographs.';
+  if(!eligible){closeReferenceIntent();return;}
+  toggle.textContent=(referencesOnly()?'References only':'Base image')+' ⌄';
+  toggle.title=referencesOnly()?'Create a new composition using all images as references.':'Build on the first image. Your prompt can change anything.';
   toggle.setAttribute('aria-expanded',String(referenceIntentOpen));
   panel.hidden=!referenceIntentOpen;
-  $('reference-intent-count').textContent=references.length+' photo'+(references.length===1?'':'s')+' attached. Choose how they should guide the result.';
-  $('reference-intent-help').textContent=needsChoice?'Choose one approach before generating. This step does not use credits.':unassigned?unassigned+' photo'+(unassigned===1?' still needs':'s still need')+' a role. Use each thumbnail dropdown to assign it.':'Roles can be changed on individual thumbnails. Identity preservation is guidance, not a guarantee.';
+  $('reference-intent-count').textContent=references.length+' image'+(references.length===1?'':'s')+' attached. Switch modes without losing roles or notes.';
+  $('reference-intent-help').textContent=referencesOnly()?'Each image is a reference. Choose specific roles on thumbnails only when you need more control.':'The first image is the base. Other photographs can guide specific changes through their role menus.';
   for(const button of panel.querySelectorAll('[data-reference-intent]')){
-    button.setAttribute('aria-pressed',String(button.dataset.referenceIntent===referenceIntent));
-    button.disabled=busy;
+    button.setAttribute('aria-pressed',String(button.dataset.referenceIntent===imageReferenceMode));
+    button.disabled=busy||(imageEngine==='kling'&&button.dataset.referenceIntent==='references');
   }
+  const identityRefs=referencesOnly()?references:references.slice(1);
+  const identityButton=$('composer-reference-same-person');
+  identityButton.disabled=busy||!identityRefs.length;
+  identityButton.setAttribute('aria-pressed',String(identityRefs.length>0&&identityRefs.every(ref=>ref.role==='identity')));
+  const guidance=imageGuidance();
+  $('composer-role-preview-count').textContent=guidance.prompt.length.toLocaleString()+' / 5,000 characters';
+  $('composer-role-preview-text').textContent=guidance.prompt||'Write a direction to preview the exact reference guidance.';
+  $('composer-role-preview-warning').textContent=guidance.error;
+  $('composer-role-preview-warning').hidden=!guidance.error;
 }
 function openReferenceIntent(){
   if(busy||tool!=='image'||!usesReferenceGuidance()||!references.length)return;
   moodUI.close();closeImageModelMenu();closeComposerLibrary();toggleImageSettings(false);
   referenceIntentOpen=true;syncReferenceIntentUi();
 }
-function applyReferenceIntent(intent){
-  if(busy||!usesReferenceGuidance()||!references.length||!['edit','same','mix'].includes(intent))return;
-  // Reopening the selected option must not erase individual role edits or notes.
-  if(referenceIntent===intent){closeReferenceIntent();update();return;}
-  // Do not automatically misclassify an outfit or pose as an identity reference.
-  referenceIntent=intent;imageReferenceMode=intent==='edit'?'base':'references';
-  references.forEach((ref,i)=>{
-    ref.role=intent==='same'?'identity':intent==='edit'&&i===0?'base':'none';
-    ref.target='';ref.note='';ref.nonBaseRole=ref.role;
-  });
-  autoPreview=null;closeReferenceIntent();renderReferences();syncDefaultRatio(!imageRatioExplicit);update();
+function setImageReferenceMode(value){
+  if(busy||!usesReferenceGuidance()||!['base','references'].includes(value)||(imageEngine==='kling'&&value==='references'))return;
+  if(imageReferenceMode===value){closeReferenceIntent();update();return;}
+  imageReferenceMode=value;autoPreview=null;
+  closeReferenceIntent();renderReferences();syncDefaultRatio(!imageRatioExplicit);update();
+}
+function applySamePerson(){
+  if(busy||!usesReferenceGuidance()||!references.length)return;
+  const targets=referencesOnly()?references:references.slice(1);
+  if(!targets.length)return;
+  for(const ref of targets){ref.role='identity';ref.nonBaseRole='identity';ref.target='';}
+  autoPreview=null;closeReferenceIntent();renderReferences();update();
 }
 $('composer-reference-intent-toggle').onclick=()=>referenceIntentOpen?closeReferenceIntent():openReferenceIntent();
 $('composer-reference-intent-close').onclick=closeReferenceIntent;
 for(const button of $('composer-reference-intent').querySelectorAll('[data-reference-intent]'))
-  button.onclick=()=>applyReferenceIntent(button.dataset.referenceIntent);
+  button.onclick=()=>setImageReferenceMode(button.dataset.referenceIntent);
+$('composer-reference-same-person').onclick=applySamePerson;
 document.addEventListener('pointerdown',event=>{
   if(referenceIntentOpen&&!event.target.closest('#composer-reference-intent,#composer-reference-intent-toggle'))closeReferenceIntent();
 });
