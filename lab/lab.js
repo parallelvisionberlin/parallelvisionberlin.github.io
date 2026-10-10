@@ -688,11 +688,18 @@ for(const [copy,real] of [
   ['image-composer-ratio','ratio'],['image-composer-resolution','resolution'],
   ['image-composer-count','image-count']
 ]){
-  $(copy).addEventListener('change',()=>{
+  // Keep the visible composer authoritative for every explicit user selection.
+  // Some browsers fire input before change on selects; handle both consistently.
+  const syncFromComposer=()=>{
     if(busy)return;
-    $(real).value=$(copy).value;
-    $(real).dispatchEvent(new Event('input',{bubbles:true}));
-  });
+    const next=$(copy).value,control=$(real);
+    if(![...control.options].some(option=>option.value===next))return;
+    if(control.value===next)return;
+    control.value=next;
+    control.dispatchEvent(new Event('input',{bubbles:true}));
+  };
+  $(copy).addEventListener('input',syncFromComposer);
+  $(copy).addEventListener('change',syncFromComposer);
 }
 $('composer-review-queue').onclick=()=>{$('active').open=true;$('active').scrollIntoView({behavior:'smooth',block:'start'});$('active').querySelector('summary')?.focus();};
 $('image-composer-generate').onclick=()=>{if(!busy&&tool==='image')$('generate').click();};
