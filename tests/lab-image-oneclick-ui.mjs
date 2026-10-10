@@ -18,8 +18,8 @@ const ORIGIN='http://127.0.0.1:4179',API='https://parallel-vision-lab.parallelvi
 let passed=0,png;const ok=name=>{passed++;console.log('PASS '+name);};
 const id=n=>'20000000-0000-4000-8000-'+String(n).padStart(12,'0');
 const settings={type:'image',mode:'image',prompt:'A ceramic sculpture in soft daylight.',resolution:'2k',aspectRatio:'16:9',outputFormat:'png',referenceRoles:[],referenceSourceIds:[]};
-async function workspace({failure='',width=1440,initial=[],savedPacks=[],quoteDelay=0,historyDelay=0}={}){
- const context=await browser.newContext({viewport:{width,height:1000},acceptDownloads:true}),page=await context.newPage();
+async function workspace({failure='',width=1440,height=1000,initial=[],savedPacks=[],quoteDelay=0,historyDelay=0}={}){
+ const context=await browser.newContext({viewport:{width,height},acceptDownloads:true}),page=await context.newPage();
  const requests=[],errors=[],dialogs=[],jobs=[...initial],quotes=new Map();let sequence=100,accepted=0,renewed=false,historyGets=0;
  page.on('pageerror',e=>errors.push(e.message));page.on('dialog',async d=>{dialogs.push(d.message());await d.accept();});
  await context.route('https://**/*',async route=>{
@@ -107,8 +107,8 @@ async function retouchTopAndBackButton(page){
   const rgb=(state.bg.match(/[\d.]+/g)||[]).map(Number);
   assert.ok(rgb.length===3&&rgb.every(v=>v>=30&&v<=75),
     'Back to Image must use a neutral dark PV Lab background: '+state.bg);
-  assert.ok(state.headHeight<=77&&state.boardTop-state.headerBottom<100,
-    'Compact Retouch heading must give priority to the photo panels: '+JSON.stringify(state));
+  assert.ok(state.headHeight>=75&&state.headHeight<=130&&state.boardTop-state.headerBottom<165,
+    'Retouch needs a legible title while keeping the photo panels near the top: '+JSON.stringify(state));
   assert.match(state.label,/Back to Image/);
 }
 async function retouchPanelsAreClear(page){
@@ -118,16 +118,34 @@ async function retouchPanelsAreClear(page){
       return {top,bottom,height};
     };
     return {board:box('.precision-board'),left:box('.precision-input-panel'),
-      right:box('.precision-output-panel'),source:box('#precision-stage'),
+      right:box('.precision-output-panel'),source:box('#precision-stage'),sourceCanvas:box('#precision-source-canvas'),
       leftFooter:box('.precision-input-footer'),rightFooter:box('.precision-compare-row'),
       toolbar:box('.precision-tools'),deck:box('.precision-deck')};
   });
   assert.ok(g.leftFooter.bottom<=g.left.bottom+1,'Photo instructions clipped inside image panel: '+JSON.stringify(g));
   assert.ok(g.rightFooter.bottom<=g.right.bottom+1,'Before/After controls clipped inside result panel: '+JSON.stringify(g));
   assert.ok(g.source.bottom<=g.leftFooter.top+1,'Photo overlaps selection instructions: '+JSON.stringify(g));
+  if(g.sourceCanvas.height>0){assert.ok(g.sourceCanvas.bottom<=g.source.bottom+2,'Photo clips inside source stage: '+JSON.stringify(g));}
   assert.ok(g.leftFooter.bottom+6<=g.toolbar.top,'Toolbar overlaps selection instructions: '+JSON.stringify(g));
   assert.ok(g.rightFooter.bottom+6<=g.toolbar.top,'Toolbar overlaps Before/After controls: '+JSON.stringify(g));
   assert.ok(g.toolbar.bottom+6<=g.deck.top,'Edit directions overlap toolbar: '+JSON.stringify(g));
+}
+async function retouchFillsDesktop(page){
+  const g=await page.evaluate(()=>{
+    const box=q=>document.querySelector(q).getBoundingClientRect();
+    return {width:innerWidth,height:innerHeight,boardHeight:box('.precision-board').height,
+      deckBottom:box('.precision-deck').bottom,
+      headingSize:parseFloat(getComputedStyle(document.querySelector('.precision-head h2')).fontSize),
+      dropSize:box('.precision-drop-symbol').width,
+      horizontalOverflow:document.documentElement.scrollWidth-innerWidth};
+  });
+  if(g.width>900&&g.height>=810){
+    assert.ok(g.boardHeight>=Math.min(400,g.height*.43),'The image panels should dominate Retouch: '+JSON.stringify(g));
+    assert.ok(Math.abs(g.height-g.deckBottom)<=32,'The edit direction deck should sit at the bottom of the screen: '+JSON.stringify(g));
+    assert.ok(g.headingSize>=30,'Retouch title should be visually prominent: '+JSON.stringify(g));
+    assert.ok(g.dropSize>=78,'The photograph upload target should invite immediate action: '+JSON.stringify(g));
+  }
+  assert.ok(g.horizontalOverflow<=3,'No horizontal scroll allowed: '+JSON.stringify(g));
 }
 async function imageForm(x){await imageAdvanced(x.page);await x.page.fill('#prompt:visible, #image-composer-prompt:visible',settings.prompt);await x.page.selectOption('#resolution:visible, #image-composer-resolution:visible','2k');await x.page.selectOption('#ratio:visible, #image-composer-ratio:visible','16:9');await x.page.selectOption('#output-format','png');}
 try{
