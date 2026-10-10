@@ -468,6 +468,23 @@ function syncImageReferences(){
   }
   tray.hidden=!items.length;
 }
+// Keep even very long pasted prompts inside the scrollable editor. The
+// textarea is never allowed to determine the height of the floating dock.
+function fitImageComposerPrompt(){
+  const textbox=$('image-composer-prompt');
+  if(!textbox)return;
+  const narrow=window.innerWidth<=740;
+  const short=window.innerHeight<=640;
+  const minimum=narrow?47:42;
+  const viewport=window.visualViewport?.height||window.innerHeight;
+  const maximum=Math.max(minimum,Math.min(narrow?122:176,Math.floor(viewport*(short?.21:narrow?.22:.25))));
+  const previousScroll=textbox.scrollTop;
+  textbox.style.height=minimum+'px';
+  const naturalHeight=textbox.scrollHeight;
+  textbox.style.height=Math.min(maximum,Math.max(minimum,naturalHeight))+'px';
+  textbox.style.overflowY=naturalHeight>maximum?'auto':'hidden';
+  textbox.scrollTop=Math.min(previousScroll,Math.max(0,textbox.scrollHeight-textbox.clientHeight));
+}
 function syncImageComposer(){
   if(!imageStudio)return;
   const image=tool==='image';
@@ -480,7 +497,7 @@ function syncImageComposer(){
   if(document.activeElement!==textbox && textbox.value!==$('prompt').value)
     textbox.value=$('prompt').value;
   textbox.placeholder='Describe the scene you imagine…';
-  textbox.style.height='auto';textbox.style.height=Math.max(42,textbox.scrollHeight)+'px';
+  fitImageComposerPrompt();
   syncSoulBar();
   textbox.disabled=busy || $('prompt').disabled;
   $('image-composer-model-label').textContent=imageStudioModelTitle();
@@ -2065,7 +2082,8 @@ function syncSoulBar(){
 $('hf-bar-source').onclick=()=>{if(!busy)$('soul-base-image').click();};
 $('hf-bar-ratio').onchange=()=>{resultSettings=null;update();};
 $('hf-bar-resolution').onchange=()=>{$('hf-resolution').value=$('hf-bar-resolution').value;resultSettings=null;update();};
-window.addEventListener('resize',()=>{const text=$('image-composer-prompt');if(!text||imageComposer.hidden)return;text.style.height='auto';text.style.height=Math.max(42,text.scrollHeight)+'px';});
+window.addEventListener('resize',()=>{if(!imageComposer.hidden)fitImageComposerPrompt();});
+window.visualViewport?.addEventListener('resize',()=>{if(!imageComposer.hidden)fitImageComposerPrompt();});
 
 // The editor stays interactive: a paid submission only reads this captured request.
 async function submitImageSnapshot(){
