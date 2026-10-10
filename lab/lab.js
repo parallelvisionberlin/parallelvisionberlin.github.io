@@ -377,7 +377,7 @@ function currentImageSubmissionKey(selected=null,count=null){
   const frozen=selected||settings();
   const sourceMode=imageEngine==='soulpro'||isReinterpret();
   const imageSources=sourceMode?[sourceUrl||sourceId||'']:references.map(r=>r.url||r.id||'');
-  return JSON.stringify([frozen,imageSources,count??Number($('image-count').value)||1]);
+  return JSON.stringify([frozen,imageSources,count??(Number($('image-count').value)||1)]);
 }
 function imageCreditQuoteSnapshot(){
   if(!customerMode||!owner||tool!=='image'||fashionActive||busy||imageSubmissionPending||!hasInput())return null;
