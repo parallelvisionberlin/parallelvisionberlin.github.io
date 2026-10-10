@@ -10,6 +10,9 @@ const modes={
 };
 let clerk=null,authenticated=false,sessionId='',models=[],busy=false,quote=null,pollTimeout=null,activeJobId='',resultUrl='',signingIn=false;
 let fileKeys=new Map(),previews=new Map(),revision=0,authVersion=0;
+let galleryCursor=null,galleryItems=[],galleryLoading=false,galleryRevision=0,selectedGalleryJob='';
+const galleryPreviews=new Map(),galleryCards=new Map();
+const GALLERY_PAGE_SIZE=12;
 const request=createSessionRequest({baseUrl:API,getSession:()=>clerk?.session});
 function status(message,error=false){$('status').textContent=message||'';$('status').classList.toggle('error',error);}
 function revokeResult(){if(resultUrl)URL.revokeObjectURL(resultUrl);resultUrl='';$('result-image').hidden=true;$('result-image').removeAttribute('src');$('result-placeholder').hidden=false;$('download').hidden=true;}
@@ -117,7 +120,7 @@ $('confirm').addEventListener('click',async()=>{
   const quoted=quote;busy=true;update();status('Submitting one paid fashion generation. Please do not repeat this request.');
   try{
     const response=await api('/api/fashion/submit',{method:'POST',body:{quoteId:quoted.id,confirm:true}});
-    clearQuote();revokeResult();const job=response.job;
+    clearQuote();revokeResult();const job=response.job;selectedGalleryJob=job.id;
     await showJob(job);
     await loadHistory();
   }catch(e){
@@ -140,10 +143,10 @@ async function showJob(job){
     status('Fashion image completed and saved privately.');return;
   }
   if(['queued','running','saving','submitting'].includes(state)){
-    activeJobId=job.id;status('Generation '+state+'. The output will be saved to your PV Lab archive.');
+    revokeResult();activeJobId=job.id;status('Generation '+state+'. The output will be saved to your PV Lab archive.');
     clearTimeout(pollTimeout);pollTimeout=setTimeout(()=>void poll(job.id),4000);return;
   }
-  activeJobId='';clearTimeout(pollTimeout);
+  activeJobId='';clearTimeout(pollTimeout);revokeResult();
   if(state==='uncertain')status('Submission status is uncertain. Check the provider dashboard before retrying. '+(job.error||''),true);
   else status(name+'. '+(job.error||('Generation status: '+state)),true);
 }
@@ -171,30 +174,158 @@ async function checkFashnBalance(){
   }
 }
 $('check-fashn').addEventListener('click',()=>void checkFashnBalance());
-async function loadHistory(){
-  if(!authenticated)return;
-  const container=$('fashion-history');
-  try{
-    const data=await api('/api/jobs');
-    const jobs=(data.jobs||[]).filter(j=>j.settings?.mode==='fashion').slice(0,8);
-    container.replaceChildren();
-    if(!jobs.length){const empty=document.createElement('p');empty.className='tip';empty.textContent='No fashion generations yet.';container.append(empty);return;}
-    for(const job of jobs){
-      const btn=document.createElement('button');btn.type='button';btn.className='history-item';
-      const label=document.createElement('span');label.textContent=models.find(m=>m.id===job.settings?.fashionModel)?.label||job.settings?.fashionModel||'Fashion';
-      const st=document.createElement('small');st.textContent=job.status;btn.append(label,st);
-      btn.addEventListener('click',()=>void showJob(job).catch(e=>status(e.message,true)));container.append(btn);
+// A single owner-scoped Fashion archive. The API returns 20 mixed jobs per
+// page; follow existing cursors until we have a page of Fashion jobs.
+function clearGalleryPreviews(){
+  galleryRevision++;
+  for(const objectUrl of galleryPreviews.values())URL.revokeObjectURL(objectUrl);
+  galleryPreviews.clear();galleryCards.clear();
+}
+function fashionLabel(job){
+  return models.find(m=>m.id===job.settings?.fashionModel)?.label||
+    ({fashnmax:'FASHN Try-On Max',fashn16:'FASHN Try-On v1.6',fluxvto:'FLUX Virtual Try-On Pro'}[job.settings?.fashionModel])||
+    'Fashion generation';
+}
+function galleryState(job){
+  return job.status==='completed'&&job.outputId?'Completed':
+    job.status==='completed'?'Missing output':
+    job.status==='failed'?'Failed':job.status==='uncertain'?'Needs review':
+    ['queued','running','submitting','saving'].includes(job.status)?'Generating':job.status||'Pending';
+}
+function renderGallery(){
+  const container=$('fashion-history');container.replaceChildren();galleryCards.clear();
+  $('fashion-gallery-count').textContent=galleryItems.length?String(galleryItems.length)+' shown':'';
+  $('fashion-more').hidden=!galleryCursor;
+  if(!galleryItems.length){
+    const empty=document.createElement('p');empty.className='tip';
+    empty.textContent=galleryCursor?'No Fashion results on this page. Load earlier work.':'Your Fashion generations will appear here after you create them.';
+    container.append(empty);return;
+  }
+  for(const job of galleryItems){
+    const label=fashionLabel(job);
+    const button=document.createElement('button');button.type='button';button.className='history-item';
+    button.dataset.job=job.id;
+    button.setAttribute('aria-label',label+', '+galleryState(job)+'. Open in Result panel');
+    button.setAttribute('aria-pressed',String(selectedGalleryJob===job.id));
+    const media=document.createElement('span');media.className='history-media';
+    const placeholder=document.createElement('span');placeholder.className='history-media-placeholder';
+    const illustration=document.createElementNS('http://www.w3.org/2000/svg','svg');
+    illustration.setAttribute('viewBox','0 0 24 24');
+    illustration.setAttribute('width','30');illustration.setAttribute('height','30');illustration.setAttribute('aria-hidden','true');
+    illustration.setAttribute('fill','none');illustration.setAttribute('stroke','currentColor');illustration.setAttribute('stroke-width','1');
+    const path=document.createElementNS('http://www.w3.org/2000/svg','path');
+    path.setAttribute('d','M3 4h18v16H3z M6 16l4-4 3 3 3-5 3 6');
+    illustration.append(path);
+    const emptyLabel=document.createElement('span');
+    emptyLabel.textContent=job.status==='completed'&&job.outputId?'Loading image…':
+      job.status==='failed'?'No image produced':
+      job.status==='uncertain'?'Check provider status':'Result pending';
+    placeholder.append(illustration,emptyLabel);
+    media.append(placeholder);
+    const url=galleryPreviews.get(job.id);
+    if(url){
+      const img=document.createElement('img');img.src=url;img.alt='Fashion image generated with '+label;
+      media.append(img);
     }
-  }catch(e){container.textContent='History is temporarily unavailable. '+e.message;}
+    const info=document.createElement('span');info.className='history-info';
+    const title=document.createElement('span');title.className='history-model';title.textContent=label;
+    const line=document.createElement('span');line.className='history-info-line';
+    const date=document.createElement('span');
+    const time=Number(job.createdAt);
+    date.textContent=Number.isFinite(time)&&time>0?new Date(time).toLocaleDateString(undefined,{day:'numeric',month:'short'}):'';
+    const state=document.createElement('span');state.className='history-state';
+    state.dataset.status=job.status||'';state.textContent=galleryState(job);
+    line.append(date,state);
+    info.append(title,line);
+    if(['failed','uncertain'].includes(job.status)){
+      const hint=document.createElement('span');hint.className='history-status-detail';
+      hint.textContent=job.status==='uncertain'?'Check provider before retrying.':'No completed result. Select to see details.';
+      info.append(hint);
+    }
+    button.append(media,info);
+    button.addEventListener('click',()=>{
+      selectedGalleryJob=job.id;
+      for(const card of galleryCards.values())card.setAttribute('aria-pressed',String(card.dataset.job===job.id));
+      void showJob(job).then(()=>$('result-stage').scrollIntoView({behavior:'smooth',block:'center'})).catch(e=>status(e.message,true));
+    });
+    galleryCards.set(job.id,button);container.append(button);
+  }
+}
+async function loadGalleryThumbnails(revision){
+  const images=galleryItems.filter(j=>j.status==='completed'&&j.outputId&&!galleryPreviews.has(j.id));
+  let index=0;
+  await Promise.all(Array.from({length:Math.min(3,images.length)},async()=>{
+    while(index<images.length){
+      const job=images[index++],version=authVersion;
+      try{
+        const blob=await assetBlob(job.outputId);
+        if(!authenticated||version!==authVersion||revision!==galleryRevision)return;
+        if(!blob.type.startsWith('image/'))throw new Error('The saved result was not an image.');
+        const url=URL.createObjectURL(blob);
+        const card=galleryCards.get(job.id);
+        if(!card?.isConnected){URL.revokeObjectURL(url);continue;}
+        galleryPreviews.set(job.id,url);
+        const media=card.querySelector('.history-media');
+        const img=document.createElement('img');img.src=url;img.alt='Fashion image generated with '+fashionLabel(job);
+        media.append(img);
+      }catch{
+        if(revision===galleryRevision){
+          const card=galleryCards.get(job.id);
+          const hint=card?.querySelector('.history-media-placeholder span');
+          if(hint)hint.textContent='Preview unavailable';
+        }
+      }
+    }
+  }));
+}
+async function loadHistory(append=false){
+  if(!authenticated||galleryLoading)return;
+  galleryLoading=true;
+  const auth=authVersion,revision=galleryRevision;
+  $('refresh-history').disabled=true;$('fashion-more').disabled=true;
+  try{
+    let cursor=append?galleryCursor:null,pages=0,found=0;
+    const jobs=append?[...galleryItems]:[],seen=new Set(jobs.map(j=>j.id));
+    do{
+      const query=cursor?'?before='+encodeURIComponent(cursor.before)+'&afterId='+encodeURIComponent(cursor.afterId):'';
+      const data=await api('/api/jobs'+query);
+      if(auth!==authVersion||revision!==galleryRevision||!authenticated)return;
+      for(const job of data.jobs||[]){
+        if(job.settings?.mode==='fashion'&&!seen.has(job.id)){
+          seen.add(job.id);jobs.push(job);found++;
+        }
+      }
+      cursor=data.next||null;
+      pages++;
+    }while(cursor&&found<GALLERY_PAGE_SIZE&&pages<8);
+    if(!append)clearGalleryPreviews();
+    galleryItems=jobs;
+    galleryCursor=cursor;
+    renderGallery();
+    void loadGalleryThumbnails(galleryRevision);
+  }catch(error){
+    if(auth===authVersion&&authenticated){
+      if(!append&&!galleryItems.length){
+        const empty=document.createElement('p');empty.className='tip';
+        empty.textContent='Could not load Fashion generations. Refresh to try again.';
+        $('fashion-history').replaceChildren(empty);
+      }else status('The gallery could not refresh. '+error.message,true);
+    }
+  }finally{
+    galleryLoading=false;
+    $('refresh-history').disabled=!authenticated;
+    $('fashion-more').disabled=!authenticated;
+  }
 }
 $('refresh-history').addEventListener('click',()=>void loadHistory());
+$('fashion-more').addEventListener('click',()=>void loadHistory(true));
 $('download').addEventListener('click',()=>{
   if(!resultUrl)return;const a=document.createElement('a');a.href=resultUrl;a.download='pv-lab-fashion.png';document.body.append(a);a.click();a.remove();
 });
 $('signin').addEventListener('click',()=>clerk?.openSignIn());
 $('reload').addEventListener('click',()=>location.reload());
 function lock(){
-  authVersion++;$('fashion-history').replaceChildren();models=[];
+  authVersion++;clearGalleryPreviews();galleryCursor=null;galleryItems=[];selectedGalleryJob='';$('fashion-history').replaceChildren();$('fashion-gallery-count').textContent='';$('fashion-more').hidden=true;models=[];
   authenticated=false;sessionId='';clearTimeout(pollTimeout);pollTimeout=null;activeJobId='';busy=false;clearQuote();revokeResult();
   for(const url of previews.values())URL.revokeObjectURL(url);
   previews.clear();fileKeys.clear();revision++;
