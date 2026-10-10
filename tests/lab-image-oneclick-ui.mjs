@@ -74,7 +74,9 @@ async function workspace({failure='',width=1440,initial=[],savedPacks=[],quoteDe
   if(path.startsWith('/api/jobs/')&&method==='GET'){const job=jobs.find(j=>path.endsWith('/'+j.id));return job?send({job}):send({error:'Not found.'},404);}
   return send({error:'Unmocked request '+path},404);
  });
- await page.goto(ORIGIN+'/lab/studio.html?tool=image');await page.waitForFunction(()=>!!window.__labTest);
+ await page.goto(ORIGIN+'/lab/studio.html?tool=image');
+ try{await page.waitForFunction(()=>!!window.__labTest,undefined,{timeout:12000});}
+ catch(e){console.error('IMAGE_STUDIO_BOOT_DIAGNOSTICS',JSON.stringify({url:page.url(),title:await page.title(),errors,requests:requests.slice(0,9),scripts:await page.locator('script[src]').evaluateAll(a=>a.map(el=>el.src))}));throw e;}
  if(!png)png=Buffer.from(await page.evaluate(()=>{const c=document.createElement('canvas');c.width=c.height=320;const x=c.getContext('2d');x.fillStyle='#333';x.fillRect(0,0,320,320);x.fillStyle='#aaa';x.fillRect(75,75,170,170);return c.toDataURL().split(',')[1];}),'base64');
  return {page,context,requests,errors,dialogs,jobs,accepted:()=>accepted};
 }
