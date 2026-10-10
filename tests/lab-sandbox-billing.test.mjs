@@ -42,8 +42,8 @@ function checkoutEvent({id='evt_TestABC1',amount=1000,livemode=false}={}){
   }}};
 }
 function balance(db){return db.prepare("SELECT balance_credits AS amount FROM lab_customers WHERE id='user_SandboxABC1'").get()?.amount||0;}
-test('sandbox exposes no generative routes, owner DB, live keys or images',async()=>{
-  const {env}=setup({after:()=>{}});
+test('sandbox exposes no generative routes, owner DB, live keys or images',async t=>{
+  const {env}=setup(t);
   const health=await worker.fetch(new Request('https://test/health'),env);
   assert.equal(health.status,200);
   const info=await health.json();
