@@ -144,7 +144,7 @@ try{
   assert.notEqual(d.accent,'rgb(141, 99, 255)','No default purple selection');
   assert.ok(await x.page.locator('#empty-title').innerText().then(t=>/next scene/i.test(t)),'Video opens with an inviting scene direction');
   assert.ok(await x.page.locator('#canvas-secondary').isVisible(),'Video offers an alternate entry into Image');
-  assert.equal(await x.page.locator('.canvas').evaluate(e=>getComputedStyle(e).backgroundColor),'rgb(21, 22, 25)','Video playback uses a neutral dark canvas');
+  assert.equal(await x.page.locator('.canvas').evaluate(e=>getComputedStyle(e).backgroundColor),'rgb(13, 14, 16)','Video playback uses the intended near-black #0d0e10 canvas, without a colored overlay');
   const palette=await x.page.evaluate(()=>{
     const style=getComputedStyle(document.documentElement);
     return {
@@ -202,14 +202,17 @@ try{
   await imageChooser.setFiles({name:'reference-photo.png',mimeType:'image/png',buffer:Buffer.from(referencePng,'base64')});
   await x.page.waitForFunction(()=>document.querySelectorAll('#image-composer-references .composer-reference-tile').length===1);
   assert.equal(await x.page.locator('.composer-reference-tile img').count(),1,'Reference thumbnail lives inside floating bar');
-  assert.equal(await x.page.locator('.composer-reference-index').innerText(),'1');
+  assert.equal(await x.page.locator('.composer-reference-index').innerText(),'BASE','First reference defaults to Base in Seedream base-image mode');
   const inlineGeometry=await x.page.evaluate(()=>{
     const ref=document.querySelector('.composer-reference-tile').getBoundingClientRect();
     const prompt=document.querySelector('#image-composer-prompt').getBoundingClientRect();
-    return {refLeft:ref.left,refWidth:ref.width,promptLeft:prompt.left};
+    return {refLeft:ref.left,refRight:ref.right,refTop:ref.top,refBottom:ref.bottom,
+      promptLeft:prompt.left,promptRight:prompt.right,promptTop:prompt.top};
   });
-  assert.ok(inlineGeometry.refLeft+inlineGeometry.refWidth<inlineGeometry.promptLeft,
-    'Higgsfield-like reference thumbnail sits to the left of the prompt in one composer');
+  assert.ok(inlineGeometry.refBottom<=inlineGeometry.promptTop+12 &&
+    inlineGeometry.refLeft>=inlineGeometry.promptLeft-12 &&
+    inlineGeometry.refRight<=inlineGeometry.promptRight+12,
+    'Reference thumbnails live in the dedicated row above the prompt, within the same composer');
   await x.page.screenshot({path:'test-results/lab-image-inline-reference.png',fullPage:false});
   await x.page.click('.composer-reference-remove');
   await x.page.waitForFunction(()=>document.querySelectorAll('.composer-reference-tile').length===0);

@@ -19,12 +19,16 @@ async function refresh(){
 function show(){
   const signed=!!clerk?.isSignedIn,customer=!!profile?.customer;
   $('lab-header-signin').hidden=signed;
-  $('lab-account-strip').hidden=!signed;
+  const accountMenu=$('lab-account-strip');
+  accountMenu.hidden=!signed;
+  if(!signed)accountMenu.open=false;
+  document.querySelectorAll('[data-lab-signin]').forEach(button=>{button.hidden=signed;});
   if(signed){
     $('lab-account-summary').textContent=customer?
       'Your PV Lab workspace · '+profile.balanceCredits.toLocaleString()+' credits':
       'Parallel Vision · owner workspace';
     $('lab-account-buy').hidden=!customer;
+    $('lab-account-refer').hidden=!customer;
     $('lab-account-logout').hidden=false;
   }
 }
@@ -44,8 +48,19 @@ async function purchase(sku){
 $('lab-header-signin')?.addEventListener('click',signIn);
 document.querySelectorAll('[data-lab-signin]').forEach(button=>button.addEventListener('click',signIn));
 $('lab-account-buy')?.addEventListener('click',()=>purchase('topup10'));
+$('lab-account-refer')?.addEventListener('click',()=>location.assign('./studio.html?referrals=1'));
 $('lab-account-logout')?.addEventListener('click',async()=>{await clerk?.signOut();profile=null;show();});
 document.querySelectorAll('[data-lab-buy]').forEach(button=>button.addEventListener('click',()=>purchase(button.dataset.labBuy)));
+const accountMenu=$('lab-account-strip');
+document.addEventListener('pointerdown',event=>{
+  if(accountMenu?.open&&!accountMenu.contains(event.target))accountMenu.open=false;
+});
+document.addEventListener('keydown',event=>{
+  if(event.key==='Escape'&&accountMenu?.open){
+    accountMenu.open=false;
+    accountMenu.querySelector('summary')?.focus();
+  }
+});
 try{
   const {Clerk}=await import('https://esm.sh/@clerk/clerk-js@6?bundle');
   await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='https://clerk.parallelvisionlabel.com/npm/@clerk/ui@1/dist/ui.browser.js';s.onload=resolve;s.onerror=reject;document.head.append(s);});
