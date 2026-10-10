@@ -1,12 +1,24 @@
 name: PV Lab Precision Edit browser regression
 
 on:
-  pull_request:
+  push:
+    branches: [main]
     paths:
+      - 'lab/lab.js'
       - 'lab/precision-edit.js'
       - 'lab/precision-edit.css'
       - 'lab/studio.html'
       - 'tests/lab-precision-edit-ui.mjs'
+      - 'tests/lab-image-oneclick-ui.mjs'
+      - '.github/workflows/pv-lab-precision-edit-ui.yml'
+  pull_request:
+    paths:
+      - 'lab/lab.js'
+      - 'lab/precision-edit.js'
+      - 'lab/precision-edit.css'
+      - 'lab/studio.html'
+      - 'tests/lab-precision-edit-ui.mjs'
+      - 'tests/lab-image-oneclick-ui.mjs'
       - '.github/workflows/pv-lab-precision-edit-ui.yml'
   workflow_dispatch:
 
@@ -30,6 +42,11 @@ jobs:
         env:
           PV_PLAYWRIGHT_MODULE: /tmp/pv-precision-check/node_modules/playwright/index.mjs
         run: node tests/lab-precision-edit-ui.mjs
+      - name: Verify Retouch routing, existing Base, browser Back and customer preview
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-precision-check/node_modules/playwright/index.mjs
+          PV_RETOUCH_NAV_ONLY: '1'
+        run: node tests/lab-image-oneclick-ui.mjs
       - name: Retain desktop and mobile screenshots
         if: always()
         uses: actions/upload-artifact@v4
