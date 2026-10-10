@@ -21,6 +21,9 @@ test('invite link opens a dedicated modal, not the purchasing wallet',()=>{
   assert.match(html,/id="lab-referrals-close"/);
   const walletMarkup=html.slice(html.indexOf('<dialog id="lab-credits-dialog"'),html.indexOf('<dialog id="lab-referrals-dialog"'));
   assert.doesNotMatch(walletMarkup,/id="lab-referral-url"/);
+  const inviteMarkup=html.slice(html.indexOf('<dialog id="lab-referrals-dialog"'),html.indexOf('<main class="wrap"'));
+  assert.match(inviteMarkup,/id="lab-referral-url"/);
+  assert.match(inviteMarkup,/id="lab-referral-copy"/);
   assert.match(wallet,/function openReferrals\(\)/);
   assert.match(wallet,/if\(dialog\.open\)dialog\.close\(\)/);
   assert.match(wallet,/referralDialog\.showModal\(\)/);
