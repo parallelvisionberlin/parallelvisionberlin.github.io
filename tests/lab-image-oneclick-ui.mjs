@@ -99,6 +99,32 @@ try{
  x=await workspace({historyDelay:1200});await imageForm(x);const releaseStarted=Date.now();await x.page.click('#generate:visible, #image-composer-generate:visible');await x.page.waitForFunction(()=>!document.querySelector('#resolution').disabled,{timeout:700});assert.ok(Date.now()-releaseStarted<900);assert.equal(x.accepted(),1);assert.equal(await x.page.locator('.card[data-state="queued"]').count(),1);ok('Image submission releases the editor before the background History refresh finishes');assert.deepEqual(x.errors,[]);await x.context.close();
  x=await workspace();await imageForm(x);await x.page.locator('#reference-images').setInputFiles({name:'sculpture.png',mimeType:'image/png',buffer:png});await ready(x.page);await x.page.click('#generate:visible, #image-composer-generate:visible');await ready(x.page);const edit=x.requests.find(r=>r.path==='/api/quotes').data;assert.equal(edit.referenceSourceIds.length,1);assert.equal(edit.transferSourceIds.length,1);assert.equal(x.accepted(),1);assert.equal(await x.page.locator('#quote-dialog').isVisible(),false);ok('Reference edit submits once without review and preserves reference inputs');await x.context.close();
 
+
+ // Oversized deck drops must report the size limit without creating paid requests.
+ {
+  x=await workspace();await imageForm(x);
+  await x.page.evaluate(()=>{
+    const oversized=new File([new Uint8Array(20*1024*1024+1)],'too-large.png',{type:'image/png'});
+    const transfer=new DataTransfer();transfer.items.add(oversized);
+    const event=new DragEvent('drop',{bubbles:true,cancelable:true,dataTransfer:transfer});
+    document.getElementById('image-composer').dispatchEvent(event);
+  });
+  const importError=x.page.locator('#image-composer-status');
+  await importError.waitFor({state:'visible'});
+  assert.match(await importError.innerText(),/Image too large.*20 MB/i);
+  assert.equal(await x.page.locator('#image-composer-references .composer-reference-tile').count(),0);
+  assert.equal(count(x,'/api/uploads'),0);
+  assert.equal(count(x,'/api/quotes'),0);
+  await importError.getByRole('button',{name:'Dismiss image upload error'}).click();
+  assert.equal(await importError.isVisible(),false);
+  await x.page.locator('#reference-images').setInputFiles({name:'valid.png',mimeType:'image/png',buffer:png});
+  await ready(x.page);
+  await x.page.waitForFunction(()=>document.querySelectorAll('#image-composer-references .composer-reference-tile').length===1);
+  assert.equal(await importError.isVisible(),false);
+  ok('Oversized deck drop shows a clear error; subsequent valid import works');
+  assert.deepEqual(x.errors,[]);await x.context.close();
+ }
+
  {
   const refPhotos=[{name:'front.png',mimeType:'image/png',buffer:png},{name:'side.png',mimeType:'image/png',buffer:png},{name:'back.png',mimeType:'image/png',buffer:png}];
   x=await workspace();await imageForm(x);
