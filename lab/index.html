@@ -11,19 +11,21 @@
 <link rel="preload" href="./visuals/greenhouse-hero.webp" as="image" media="(min-width:701px)" fetchpriority="high">
 <link rel="preload" href="./visuals/ivory-motion.webp" as="image" media="(max-width:700px)" fetchpriority="high">
 <link rel="stylesheet" href="./landing.css?v=20261009-compact-cards">
+<link rel="stylesheet" href="./credits.css?v=20261010-commercial1">
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
 <header class="landing-header">
 <a class="lab-brand" href="./" aria-label="PV Lab home">PV LAB</a>
-<nav aria-label="Creative tools"><a href="./studio.html?tool=image">Image</a><a href="./studio.html?tool=video">Video</a><a href="./studio.html?tool=upscale">Upscaler</a><a href="./fashion.html">Fashion</a></nav>
-<a class="studio-link" href="./studio.html">Enter studio <span aria-hidden="true">↗</span></a>
+<nav aria-label="Creative tools"><a href="./studio.html?tool=image">Image</a><a href="./studio.html?tool=video">Video</a><a href="./studio.html?tool=upscale">Upscaler</a><a href="./fashion.html">Fashion</a><a href="#pricing">Pricing</a></nav>
+<button class="lab-auth-link" id="lab-header-signin" type="button">Sign in</button><a class="studio-link" id="lab-header-open" href="./studio.html" hidden>My studio <span aria-hidden="true">↗</span></a><a class="studio-link" href="./studio.html">Enter studio <span aria-hidden="true">↗</span></a>
 </header>
+<div id="lab-account-strip" class="lab-account-strip" hidden><strong id="lab-account-summary">Your workspace</strong><div class="lab-strip-actions"><a href="./studio.html">Open studio ↗</a><button id="lab-account-buy" type="button">Buy credits</button><button id="lab-account-logout" type="button">Sign out</button></div></div>
 <main id="main">
 <section class="lab-hero" aria-labelledby="hero-title">
 <picture><source media="(max-width:700px)" srcset="./visuals/ivory-motion.webp"><img class="hero-poster" src="./visuals/greenhouse-hero.webp" alt="Ivory sculptural tailoring in a sunlit greenhouse" width="1672" height="941" fetchpriority="high"></picture>
 <div class="hero-shade" aria-hidden="true"></div>
-<div class="hero-copy"><h1 id="hero-title">PV LAB</h1><h2>Fashion. <br>Reimagined.</h2><p class="hero-description">Create images, reinterpret photographs<br class="desktop-break"> and bring them into motion.</p><a class="start-link" href="./studio.html?tool=image">Start creating <span aria-hidden="true">↗</span></a></div>
+<div class="hero-copy"><h1 id="hero-title">PV LAB</h1><h2>Fashion. <br>Reimagined.</h2><p class="hero-description">Create images, reinterpret photographs<br class="desktop-break"> and bring them into motion.</p><a class="start-link" href="./studio.html?tool=image">Start creating <span aria-hidden="true">↗</span></a><div class="hero-auth-row"><button class="lab-auth-link" data-lab-signin type="button">Continue with Google</button><p id="lab-entry-status" role="status" aria-live="polite"></p></div></div>
 <div class="hero-bottom"><a class="explore-link" href="#tools">Explore the studio <span aria-hidden="true">↓</span></a><span class="film-credit">A studio by Parallel Vision</span></div>
 </section>
 <section class="tools-section" id="tools" aria-labelledby="tools-title">
@@ -34,7 +36,20 @@
 <a class="tool-card" href="./studio.html?tool=upscale"><div class="card-media detail-media"><img src="./visuals/reptare-detail.webp" alt="Macro photograph of silver forms and fine ivory fibers" width="900" height="900" loading="lazy"></div><div class="card-caption"><div><h3>Upscaler</h3><p>Refine every detail</p></div><span class="card-arrow" aria-hidden="true">↗</span></div></a>
 </div>
 </section>
+<section class="lab-plans" id="pricing" aria-labelledby="lab-plans-title"><div class="lab-plans-inner">
+  <span class="lab-plans-kicker">PV Lab / Your creative workspace</span>
+  <h2 id="lab-plans-title">Create without interruption.</h2>
+  <p class="lab-plans-intro">Your images, moving work and identities in one private workspace. Choose a plan or buy credits when you need them. Every generation displays its credit cost before submission.</p>
+  <div class="lab-plans-grid">
+    <article class="lab-plan"><span class="lab-plan-name">Starter</span><div class="lab-plan-price">€15 <small>/ month</small></div><div class="lab-plan-credits">1,600 credits / month</div><p class="lab-plan-description">For exploring scenes, references and editing.</p><button type="button" data-lab-buy="starter">Choose Starter <span aria-hidden="true">↗</span></button></article>
+    <article class="lab-plan" data-featured="true"><span class="lab-plan-name">Creator</span><div class="lab-plan-price">€39 <small>/ month</small></div><div class="lab-plan-credits">4,500 credits / month</div><p class="lab-plan-description">A complete workspace for regular image and motion projects.</p><button type="button" data-lab-buy="creator">Choose Creator <span aria-hidden="true">↗</span></button></article>
+    <article class="lab-plan"><span class="lab-plan-name">Studio</span><div class="lab-plan-price">€99 <small>/ month</small></div><div class="lab-plan-credits">12,000 credits / month</div><p class="lab-plan-description">For production runs, creative teams and ambitious volumes.</p><button type="button" data-lab-buy="studio">Choose Studio <span aria-hidden="true">↗</span></button></article>
+  </div>
+  <div class="lab-topups"><p>Prefer to work without a subscription? Buy credits separately.</p><div class="lab-topups-actions"><button type="button" data-lab-buy="topup10">1,000 · €10</button><button type="button" data-lab-buy="topup29">3,000 · €29</button><button type="button" data-lab-buy="topup75">8,000 · €75</button></div></div>
+  <p class="lab-pricing-note">Illustrative euro prices include applicable VAT. Subscriptions require monthly payment. Payments remain disabled until production billing is verified; no funds will be collected before then.</p>
+</div></section>
 </main>
 <footer><a href="/" aria-label="Visit Parallel Vision"><img src="./branding/pv-wordmark.png" alt="Parallel Vision" width="145" height="37"></a><p>Image. Motion. Possibility.</p><a href="./fashion.html">Explore Fashion <span aria-hidden="true">↗</span></a></footer>
+<script type="module" src="./customer-entry.js?v=20261010-commercial1"></script>
 </body>
 </html>
