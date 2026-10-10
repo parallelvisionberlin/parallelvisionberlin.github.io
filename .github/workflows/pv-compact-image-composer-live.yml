@@ -1,0 +1,49 @@
+name: One-time compact Image composer Pages publication
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/pv-compact-image-composer-live.yml'
+permissions:
+  contents: read
+  pages: write
+jobs:
+  verify-live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Confirm GitHub Pages settings and request latest main build
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh api "repos/${GITHUB_REPOSITORY}/pages/builds/latest" --jq '{status,commit,created_at,error}' || true
+          gh api --method POST "repos/${GITHUB_REPOSITORY}/pages/builds" --jq '{status,url}'
+      - name: Verify compact prompt CSS and JS on published PV Lab
+        shell: bash
+        run: |
+          set -euo pipefail
+          published=0
+          for i in $(seq 1 34); do
+            curl --fail --silent --show-error --max-time 15 -H 'Cache-Control: no-cache' \
+              "https://parallelvisionlabel.com/lab/studio.html?pv-compact-image-check=${i}" -o /tmp/studio.html
+            if grep -Fq 'lab.js?v=20261010-compact-image-prompt1' /tmp/studio.html && \
+               grep -Fq 'higgsfield.css?v=20261010-compact-image-prompt1' /tmp/studio.html; then
+              published=1;break
+            fi
+            echo "Waiting for GitHub Pages Image composer publication (${i}/34)"
+            sleep 6
+          done
+          test "$published" = 1 || { echo 'Live PV Lab has not published the new Image composer yet.';exit 1; }
+          curl --fail --silent --show-error --max-time 18 \
+            'https://parallelvisionlabel.com/lab/higgsfield.css?v=20261010-compact-image-prompt1' -o /tmp/image.css
+          grep -Fq 'max-height:min(176px,25dvh)' /tmp/image.css
+          grep -Fq 'overflow-x:hidden;overflow-y:auto' /tmp/image.css
+          grep -Fq 'flex-wrap:nowrap;overflow-x:auto' /tmp/image.css
+          curl --fail --silent --show-error --max-time 18 \
+            'https://parallelvisionlabel.com/lab/lab.js?v=20261010-compact-image-prompt1' -o /tmp/lab.js
+          grep -Fq 'function fitImageComposerPrompt()' /tmp/lab.js
+          grep -Fq "top.style.minHeight=(fittedHeight+referencesHeight+" /tmp/lab.js
+          if grep -Fq "textbox.style.height=Math.max(42,textbox.scrollHeight)" /tmp/lab.js; then
+            echo 'Old unlimited prompt sizing survived';exit 1
+          fi
+          echo 'LIVE PASS: floating Image composer is compact and scrollable after long pastes.'
