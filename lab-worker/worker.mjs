@@ -967,7 +967,10 @@ async function route(request,env,ctx) {
   const customer=await isLabCustomer(env,owner);
   if(path.startsWith('/api/customer/')||path.startsWith('/api/billing/')){
     if(!customer)fail(403,'Only customer accounts use the PV Lab credit wallet.');
-    if(path.startsWith('/api/customer/referrals'))return referralRoute(request,env,owner);
+    if(path.startsWith('/api/customer/referrals')){
+      try{return await referralRoute(request,env,owner);}
+      catch(e){if(Number.isInteger(e?.status)&&e.status>=400&&e.status<=599)fail(e.status,e.message);throw e;}
+    }
     return customerRoute(request,env,owner);
   }
   // Until payment/webhooks and shared vendor credentials have been tested, customer
