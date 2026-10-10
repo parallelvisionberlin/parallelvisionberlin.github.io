@@ -131,28 +131,41 @@ export async function precisionEditRoute(request,env,owner,url,d){
     return d.json({status:'completed',maskSourceId:maskId});
   }
   if(path==='/api/precision/quote'&&method==='POST'){
-    const q=await quotedEdit(request,env,owner,d);
-    return d.json({ticket:q.ticket,expiresAt:q.expires,estimatedUsd:q.price/1000000,
+    const q=await quotedEdit(request,env,owner,d),quoteId=crypto.randomUUID();
+    const payload={originalSourceId:q.original.id,sourceId:q.working.id,maskSourceId:q.mask.id,
+      prompt:q.p.prompt,strength:q.p.strength,sourceWidth:q.p.sourceWidth,sourceHeight:q.p.sourceHeight,ticket:q.ticket};
+    await d.run(env,'INSERT INTO quotes(id,owner_id,source_id,params,estimate_microusd,expires_at,vendor_quote_id,expected_cost,payload) VALUES(?,?,?,?,?,?,?,?,?)',
+      quoteId,owner,q.working.id,JSON.stringify(q.p),q.price,q.expires,'fal-precision-edit',String(q.price/1000000),JSON.stringify(payload));
+    return d.json({quoteId,ticket:q.ticket,expiresAt:q.expires,estimatedUsd:q.price/1000000,
       priceIsEstimate:true,model:FAL_CONTROLLED_INPAINT,notice:'Published fal.ai estimate, not a live bound quote. No generation submitted.'});
   }
   if(path==='/api/precision/submit'&&method==='POST'){
     const data=await d.body(request);
-    // Validate the unchanged client-approved quote before reserving any paid inference.
+    const quoteId=verifyUuid(data.quoteId,d.fail);
+    const previous=await d.first(env,'SELECT * FROM jobs WHERE quote_id=? AND owner_id=?',quoteId,owner);
+    if(previous)return d.json({job:d.jobView(previous)},202);
+    const approved=await d.first(env,"SELECT * FROM quotes WHERE id=? AND owner_id=? AND expires_at>? AND vendor_quote_id='fal-precision-edit'",quoteId,owner,Date.now());
+    if(!approved)d.fail(409,'Precision Edit quote expired. Check the price again.');
+    const stored=JSON.parse(approved.payload||'{}');
+    const sourceData={originalSourceId:data.originalSourceId,sourceId:data.sourceId,maskSourceId:data.maskSourceId,
+      prompt:data.prompt,strength:data.strength,sourceWidth:stored.sourceWidth,sourceHeight:stored.sourceHeight,ticket:data.ticket};
+    for(const field of ['originalSourceId','sourceId','maskSourceId','prompt','strength','sourceWidth','sourceHeight','ticket'])
+      if(sourceData[field]!==stored[field])d.fail(409,'Precision Edit inputs changed since price approval. Check the price again.');
+    if(Number(data.expiresAt)!==approved.expires_at||data.ticket!==stored.ticket)
+      d.fail(409,'Precision Edit price approval has changed. Check price again.');
     const serialized=new Request(request.url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
     const q=await quotedEdit(serialized,env,owner,d);
-    if(q.expires!==Number(data.expiresAt)||q.ticket!==data.ticket){
-      // Quote signature is checked below against the original expiry, not a newly created timestamp.
-      const expires=Number(data.expiresAt);
-      const payload=[owner,q.original.id,q.working.id,q.mask.id,q.p.prompt,q.p.strength,q.p.sourceWidth,q.p.sourceHeight,expires].join(':');
-      if(!Number.isInteger(expires)||expires<Date.now()||expires>Date.now()+120000||await signTicket(env,payload)!==data.ticket)
-        d.fail(409,'Precision Edit price approval expired or the selected image changed. Check price again.');
-    }
+    const payload=[owner,q.original.id,q.working.id,q.mask.id,q.p.prompt,q.p.strength,q.p.sourceWidth,q.p.sourceHeight,approved.expires_at].join(':');
+    if(q.price!==approved.estimate_microusd||await signTicket(env,payload)!==data.ticket)
+      d.fail(409,'Precision Edit quote no longer matches the images. Check price again.');
     const p={...q.p,precisionEdit:true,precisionFinalized:false,precisionOriginalId:q.original.id,
       precisionWorkingId:q.working.id,maskSourceId:q.mask.id,repairSourceId:q.working.id,
       precisionPriceEstimateUsd:q.price/1000000};
+    // jobs.quote_id is UNIQUE. Reusing one quote never triggers a second inference.
+    const reserved=await d.reserveFalImageJob(env,owner,q.working.id,p,q.price,quoteId);
+    if(reserved._precisionReused)return d.json({job:d.jobView(reserved)},202);
     const input=buildRepairInput(p,{imageUrl:await d.signedInput(env,url,q.working.id,86400),
       maskUrl:await d.signedInput(env,url,q.mask.id,86400)});
-    const reserved=await d.reserveFalImageJob(env,owner,q.working.id,p,q.price);
     const job=await d.submitReservedFalJob(env,reserved,p,input);
     return d.json({job:d.jobView(job)},202);
   }
