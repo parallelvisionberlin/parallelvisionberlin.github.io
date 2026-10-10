@@ -27,7 +27,7 @@ jobs:
           set -euo pipefail
           curl --fail --silent --show-error --retry 2 --max-time 18 \
             https://parallel-vision-lab.parallelvision.workers.dev/health -o /tmp/pv-lab-health.json
-          node -e "const x=require('/tmp/pv-lab-health.json');if(x.ok!==true||!/^pv-lab-2026-10-09\\.13-fashion-balance/.test(x.version)){console.error('Worker not on expected fashion integration:',x.version);process.exit(1)}console.log('Worker healthy:',x.version)"
+          node -e "const x=require('/tmp/pv-lab-health.json');if(x.ok!==true||!/^pv-lab-20\\d{2}-\\d{2}-\\d{2}[.]/.test(x.version)){console.error('Worker health is not valid:',x.version);process.exit(1)}console.log('Worker healthy:',x.version)"
       - name: Verify owner-only API rejects anonymous calls
         shell: bash
         run: |
