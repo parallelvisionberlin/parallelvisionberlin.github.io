@@ -8,7 +8,7 @@ const modes={
   fashnmax:{description:'High-detail garment transfer using your FASHN API credits.',note:'Balanced 1K estimates 2 FASHN credits ($0.15). Review the quote before generating.',provider:'fashn'},
   fluxvto:{description:'Prompt-directed styling for layering, fit and the way clothing is worn.',note:'fal.ai charges by megapixel. Person image maximum 2 MP; garment maximum 1 MP.',provider:'fal'}
 };
-let clerk=null,authenticated=false,sessionId='',models=[],busy=false,quote=null,pollTimeout=null,activeJobId='',resultUrl='',signingIn=false;
+let clerk=null,authenticated=false,isCustomer=false,sessionId='',models=[],busy=false,quote=null,pollTimeout=null,activeJobId='',resultUrl='',signingIn=false;
 let fileKeys=new Map(),previews=new Map(),revision=0,authVersion=0;
 let galleryCursor=null,galleryItems=[],galleryLoading=false,galleryRevision=0,selectedGalleryJob='';
 const galleryPreviews=new Map(),galleryCards=new Map();
@@ -108,7 +108,7 @@ $('fashion-form').addEventListener('submit',async event=>{
     if(revision!==editVersion)throw new Error('Settings changed. Request a new quote.');
     quote=response;
     const credits=current()==='fashnmax'?Math.round(response.estimatedUsd/.075):null;
-    $('quote-price').textContent=(credits===null?'Estimated provider cost: ':'Estimated: '+credits+' credits · ')+money(response.estimatedUsd);
+    $('quote-price').textContent=isCustomer?Math.max(7,Math.ceil(Math.round(response.estimatedUsd*1e6)*460/1e6)).toLocaleString()+' PV credits':(credits===null?'Estimated provider cost: ':'Estimated: '+credits+' credits · ')+money(response.estimatedUsd);
     $('quote-note').textContent=response.notice+' This price check does not generate an image. Quote expires at '+new Date(response.expiresAt).toLocaleTimeString()+'.';
     $('quote-box').hidden=false;$('quote').hidden=true;status('');
   }catch(e){status(e.message,true);}
@@ -164,8 +164,8 @@ async function checkFashnBalance(){
     const result=await api('/api/fashion/balance');
     if(!authenticated)return;
     const balance=$('fashn-api-state');
-    balance.textContent=result.connected?'Connected · '+result.credits.total+' credits':(result.note||'FASHN API key is not configured.');
-    balance.title=result.connected?result.credits.onDemand+' on-demand / '+result.credits.subscription+' subscription credits':'';
+    balance.textContent=isCustomer?(result.connected?'Fashion provider connected. Your PV Lab wallet handles payment.':result.note||'Fashion provider is not ready.'):result.connected?'Connected · '+result.credits.total+' credits':(result.note||'FASHN API key is not configured.');
+    balance.title=!isCustomer&&result.connected&&result.credits?result.credits.onDemand+' on-demand / '+result.credits.subscription+' subscription credits':'';
 
   }catch(e){
     if(authenticated)$('fashn-api-state').textContent='Connection not verified · '+e.message;
@@ -342,7 +342,7 @@ async function sync(){
   try{
     if(!clerk?.isSignedIn){lock();$('auth-status').textContent='Sign in with your Parallel Vision owner account.';return;}
     if(authenticated&&sessionId===clerk.session?.id)return;
-    await api('/api/session');const info=await api('/api/fashion/models');
+    const session=await api('/api/session');isCustomer=!!session.customer;const info=await api('/api/fashion/models');
     models=info.models||[];authenticated=true;sessionId=clerk.session?.id||'';
     $('gate').hidden=true;$('workspace').hidden=false;update();await Promise.all([loadHistory(),checkFashnBalance()]);
   }catch(e){if(version===authVersion){lock();$('auth-status').textContent=e.message;}}
