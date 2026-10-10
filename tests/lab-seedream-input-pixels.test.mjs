@@ -26,7 +26,7 @@ test('Invalid dimensions are rejected before a paid request',()=>{
 test('Pixel-limited working copy is independent of the file size limit',()=>{
   const code=src('../lab/image-tools.js'),lab=src('../lab/lab.js');
   assert.match(code,/seedream-working-copy/);
-  assert.match(code,/draw\(target.width,target.height\)/);
+  assert.match(code,/draw\(outputWidth,outputHeight\)/);
   assert.match(code,/SEEDREAM_WORKING_TARGET_PIXELS\/pixels/);
   assert.match(lab,/resizeForSeedream=pixels>SEEDREAM_INPUT_MAX_PIXELS/);
   assert.match(lab,/const prepared=resizeForSeedream\?await seedreamWorkingCopy\(item.file\):await providerWorkingCopy\(item.file\)/);
@@ -44,4 +44,29 @@ test('Worker rejects >36 MP Seedream inputs before asking for a paid quote',()=>
   const ticket=backend.indexOf("vendorRequest('/common/upload-url',key");
   assert.ok(validation>=0 && validation<ticket);
   assert.match(backend,/No paid generation was submitted/);
+});
+
+test('Seedream temporary copy falls back to a smaller canvas when 34MP still exceeds 10 MiB',async()=>{
+  const {runImageTask}=await import('../lab/image-tools.js');
+  const previousBitmap=globalThis.createImageBitmap,previousCanvas=globalThis.OffscreenCanvas;
+  const requested=[];
+  globalThis.createImageBitmap=async()=>({width:7728,height:5152,close(){}});
+  globalThis.OffscreenCanvas=class{
+    constructor(width,height){this.width=width;this.height=height;}
+    getContext(){return {drawImage(){},imageSmoothingEnabled:false,imageSmoothingQuality:'low'};}
+    async convertToBlob({type}){
+      const pixels=this.width*this.height;requested.push(pixels);
+      return {type,size:pixels>27000000?11*1024*1024:2*1024*1024};
+    }
+  };
+  try{
+    const result=await runImageTask('seedream-working-copy',{name:'synthetic-photo.png'});
+    assert.ok(requested.length>=4,'A too-large encoding should trigger a smaller canvas.');
+    assert.ok(result.outputWidth*result.outputHeight<27000000);
+    assert.ok(result.outputWidth*result.outputHeight<=SEEDREAM_WORKING_TARGET_PIXELS);
+    assert.equal(result.blob.size,2*1024*1024);
+  }finally{
+    if(previousBitmap===undefined)delete globalThis.createImageBitmap;else globalThis.createImageBitmap=previousBitmap;
+    if(previousCanvas===undefined)delete globalThis.OffscreenCanvas;else globalThis.OffscreenCanvas=previousCanvas;
+  }
 });

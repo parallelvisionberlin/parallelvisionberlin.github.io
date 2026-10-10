@@ -1,5 +1,5 @@
 // Browser-local worker. No network, storage, API keys, prompts or generation requests.
-import { runImageTask } from './image-tools.js?v=20261010-seedream-pixels1';
+import { runImageTask } from './image-tools.js?v=20261010-seedream-pixels2';
 let queue = Promise.resolve();
 self.onmessage = ({ data }) => {
   queue = queue.catch(() => {}).then(async () => {

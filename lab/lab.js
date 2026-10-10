@@ -12,7 +12,7 @@ import {createMoodSelector,moodById,userFacingImagePrompt,imageHistoryCaption} f
 import {createMediaReferences} from './media-references.js?v=20261009-extend2';
 import { createSessionRequest } from './session-request.js?v=20260927-auth1';
 import { createSoulController } from './soul.js?v=20261001-presets2';
-import { PROVIDER_IMAGE_LIMIT, SEEDREAM_INPUT_MAX_PIXELS, UPSCALE_PIXELS, imageDimensions, providerWorkingCopy, seedreamWorkingCopy, wanUltrawideWorkingCopy, imagePreview, cancelImagePreparation } from './image-tools.js?v=20261010-seedream-pixels1';
+import { PROVIDER_IMAGE_LIMIT, SEEDREAM_INPUT_MAX_PIXELS, UPSCALE_PIXELS, imageDimensions, providerWorkingCopy, seedreamWorkingCopy, wanUltrawideWorkingCopy, imagePreview, cancelImagePreparation } from './image-tools.js?v=20261010-seedream-pixels2';
 import {modelImageInputIssue} from './image-model-limits.js?v=20261010-model-limits1';
 // General-purpose private image-to-video workspace. Credentials never enter browser storage.
 const API='https://parallel-vision-lab.parallelvision.workers.dev';

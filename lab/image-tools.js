@@ -31,7 +31,7 @@ export function cancelImagePreparation() {
 }
 function workerTask(operation, file) {
   if (!imageWorker) {
-    imageWorker = new Worker(new URL('./image-worker.js?v=20261010-seedream-pixels1', import.meta.url), { type: 'module' });
+    imageWorker = new Worker(new URL('./image-worker.js?v=20261010-seedream-pixels2', import.meta.url), { type: 'module' });
     imageWorker.onmessage = ({ data }) => {
       const task = pending.get(data.id); if (!task) return;
       pending.delete(data.id); clearTimeout(task.timer);
@@ -155,18 +155,33 @@ export async function runImageTask(operation, file) {
       }
       throw new Error('A training copy could not be reduced below 700 KiB. Export this source photo smaller and try again.');
     }
-    if (!['working-copy','seedream-working-copy'].includes(operation)) throw new Error('Unknown image operation.');
-    // Only Seedream's pixel-limited transfer is downscaled. All original
-    // uploads and other providers' working copies keep their dimensions.
-    const target=operation==='seedream-working-copy'?seedreamWorkingDimensions(width,height):{width,height};
-    draw(target.width,target.height);
-    // Alpha is retained through WebP encoding; the original file is unchanged.
+    if (operation === 'seedream-working-copy') {
+      // Pixel-limit and byte-limit are independent. If a detailed photo stays
+      // above 10 MiB at 34 MP, progressively shrink this temporary copy only.
+      const target=seedreamWorkingDimensions(width,height);
+      for (const factor of [1,0.88,0.76,0.65]) {
+        const outputWidth=Math.max(1,Math.floor(target.width*factor));
+        const outputHeight=Math.max(1,Math.floor(target.height*factor));
+        draw(outputWidth,outputHeight);
+        for (const quality of [0.92,0.83,0.72]) {
+          const blob=await encode(quality);
+          if (blob.type==='image/webp'&&blob.size<=PROVIDER_IMAGE_LIMIT)
+            return {...dimensions,outputWidth,outputHeight,blob};
+          await yieldUI();
+        }
+      }
+      throw new Error('The Seedream working copy is still above 10 MiB. Choose a smaller source image; your original is unchanged. No generation submitted.');
+    }
+    if (operation !== 'working-copy') throw new Error('Unknown image operation.');
+    draw(width,height);
+    // Other models retain the same-dimension compressed working copy.
     for (const quality of [0.96, 0.92, 0.88, 0.84]) {
-      const blob = await encode(quality);
-      if (blob.type === 'image/webp' && blob.size <= PROVIDER_IMAGE_LIMIT) return { ...dimensions, outputWidth:target.width, outputHeight:target.height, blob };
+      const blob=await encode(quality);
+      if(blob.type==='image/webp'&&blob.size<=PROVIDER_IMAGE_LIMIT)
+        return {...dimensions,outputWidth:width,outputHeight:height,blob};
       await yieldUI();
     }
-    throw new Error('A provider working copy could not be reduced below 10 MiB. Try a smaller source image; the original was not changed. No generation submitted.');
+    throw new Error('A same-dimension copy is still above 10 MiB. Export a smaller working image; the original is unchanged. No generation submitted.');
   } finally {
     image?.close?.();
     if (sourceUrl) URL.revokeObjectURL(sourceUrl);
