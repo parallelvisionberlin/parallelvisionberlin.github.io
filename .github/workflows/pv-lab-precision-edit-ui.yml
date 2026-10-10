@@ -1,0 +1,39 @@
+name: PV Lab Precision Edit browser regression
+
+on:
+  pull_request:
+    paths:
+      - 'lab/precision-edit.js'
+      - 'lab/precision-edit.css'
+      - 'lab/studio.html'
+      - 'tests/lab-precision-edit-ui.mjs'
+      - '.github/workflows/pv-lab-precision-edit-ui.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  precision-browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Install Chromium for mocked UI verification
+        run: |
+          npm install --prefix /tmp/pv-precision-check --no-save playwright@1.57.0
+          node /tmp/pv-precision-check/node_modules/playwright/cli.js install --with-deps chromium
+      - name: Verify Magic Select, masking, price authorization, compositing and mobile layout
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-precision-check/node_modules/playwright/index.mjs
+        run: node tests/lab-precision-edit-ui.mjs
+      - name: Retain desktop and mobile screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pv-precision-edit-preview
+          path: test-results/pv-precision-*.png
+          retention-days: 2
