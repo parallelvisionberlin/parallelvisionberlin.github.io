@@ -1,5 +1,6 @@
 import {quoteVideoExtension,submitVideoExtension} from './higgsfield-video.mjs';
-import {ensureCustomer,isLabCustomer,customerSession,customerRoute,stripeWebhook} from './customer-billing.mjs';
+import {ensureCustomer,isLabCustomer,customerSession,customerRoute,stripeWebhook,creditsForUsd} from './customer-billing.mjs';
+import {quoteCustomerImageCredits} from './customer-image-pricing.mjs';
 import {referralRoute} from './referrals.mjs';
 import {fashionRoute,refreshFashionJob} from './fashion-tools.mjs';
 import {IMAGE_PRICES,IMAGE_RATIOS,imageModelParameters,buildImageModelInput,requestFlash} from './image-models.mjs';
@@ -19,7 +20,7 @@ import {findFalRequest} from './fal-recovery.mjs';
 import {falUploadImage} from './fal-storage.mjs';
 import {REFERENCE_ROLES,normalizeReferenceLabel,supportsReferenceGuidance,compileImagePrompt,canUseReferenceGuidance,referenceGuidanceError} from '../lab/reference-guidance.js';
 import {characterPreview as soulCharacterPreview,SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-10.6-soul-id-pricing';
+export const VERSION = 'pv-lab-2026-10-10.7-customer-image-quotes';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -967,6 +968,16 @@ async function route(request,env,ctx) {
   const customer=await isLabCustomer(env,owner);
   if(path.startsWith('/api/customer/')||path.startsWith('/api/billing/')){
     if(!customer)fail(403,'Only customer accounts use the PV Lab credit wallet.');
+    if(path==='/api/customer/image-price'&&method==='POST'){
+      // A read-only, server-calculated quote. The client cannot supply a price.
+      // Live provider quotes for Seedream and Higgsfield use their existing,
+      // authenticated quote endpoints instead.
+      if(env.LAB_PUBLIC_GENERATION_ENABLED!=='true')
+        fail(503,'Customer generation pricing will open when checkout is verified.');
+      const data=await body(request),p=parameters(data.settings);
+      try{return json(quoteCustomerImageCredits(p,Number(data.count??1),{geminiEstimateMicros}));}
+      catch(e){fail(400,String(e?.message||'This model cannot be quoted.').slice(0,260));}
+    }
     if(path.startsWith('/api/customer/referrals')){
       try{return await referralRoute(request,env,owner);}
       catch(e){if(Number.isInteger(e?.status)&&e.status>=400&&e.status<=599)fail(e.status,e.message);throw e;}
@@ -1340,7 +1351,7 @@ async function route(request,env,ctx) {
     const insertArgs=q=>[q.id,owner,primary?.id||null,paramsJson,Math.round(q.maxUsd*1000000),q.expiresAt,q.vendorQuoteId,q.expectedCost,payloadJson];
     if(quoteCount===1)await run(env,statement,...insertArgs(priced[0]));
     else await env.LAB_DB.batch(priced.map(q=>stmt(env,statement,...insertArgs(q))));
-    const response=priced.map(({vendorQuoteId,expectedCost,...publicQuote})=>publicQuote);
+    const response=priced.map(({vendorQuoteId,expectedCost,...publicQuote})=>({...publicQuote,creditCost:creditsForUsd(publicQuote.maxUsd)}));
     return json(quoteCount===1?response[0]:{quotes:response});
   }
   if(path==='/api/jobs'&&method==='POST') {

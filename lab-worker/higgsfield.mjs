@@ -1,3 +1,4 @@
+import {creditsForUsd} from './customer-billing.mjs';
 // Official Soul 2 / Soul ID API. Credentials stay in the Worker secret HF_CREDENTIALS.
 export const SOUL2_MODEL='higgsfield-ai/soul/v2/image-to-image';
 export const SOUL2_TEXT_MODEL='higgsfield-ai/soul/v2/standard';
@@ -150,7 +151,7 @@ export async function higgsfieldRoute(request,env,owner,url,d){
     p.accountEstimateUsd=estimate/1000000;
     const id=crypto.randomUUID(),expiresAt=d.now()+300000;
     await d.run(env,'INSERT INTO quotes(id,owner_id,source_id,params,estimate_microusd,expires_at,vendor_quote_id,expected_cost,payload) VALUES(?,?,?,?,?,?,?,?,?)',id,owner,base?.id||null,JSON.stringify(p),estimate,expiresAt,'higgsfield-soul2-quote-v1',String(estimateReply.usd),JSON.stringify({model:p.model,input}));
-    return {id,provider:'Higgsfield',sourceId:base?.id||null,settings:p,estimatedUsd:estimate/1000000,maxUsd:estimate/1000000,priceIsEstimate:true,expiresAt,
+    return {id,provider:'Higgsfield',sourceId:base?.id||null,settings:p,estimatedUsd:estimate/1000000,maxUsd:estimate/1000000,creditCost:creditsForUsd(estimate/1000000),priceIsEstimate:true,expiresAt,
       notice:character?'Soul ID: '+p.characterName+'. The quoted image will use this saved identity and '+(base?'your base photograph.':'your text prompt.'):'NO SOUL ID SELECTED. This is a generic generation and will not preserve Nina. Choose a trained character before confirming if identity matters.'};
   }
   if(path==='/api/higgsfield/generate'&&request.method==='POST'){
