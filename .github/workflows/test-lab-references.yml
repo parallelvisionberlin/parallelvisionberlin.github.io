@@ -1,0 +1,49 @@
+name: Verify PV Lab image references
+
+on:
+  pull_request:
+    paths:
+      - 'lab/**'
+      - 'lab-worker/**'
+      - 'tests/lab-image-oneclick-ui.mjs'
+      - 'tests/lab-worker.test.mjs'
+      - '.github/workflows/test-lab-references.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'lab/**'
+      - 'lab-worker/**'
+      - 'tests/lab-image-oneclick-ui.mjs'
+      - 'tests/lab-worker.test.mjs'
+      - '.github/workflows/test-lab-references.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Check JavaScript syntax
+        run: |
+          node --check lab/lab.js
+          node --check lab/reference-guidance.js
+          node --check lab-worker/worker.mjs
+          node --check tests/lab-image-oneclick-ui.mjs
+          node --check tests/lab-worker.test.mjs
+      - name: Test image role compilation and Worker submission
+        run: node --test tests/lab-worker.test.mjs
+      - name: Install browser test runner
+        run: |
+          npm install --no-save --no-package-lock playwright
+          npx playwright install chromium --with-deps
+      - name: Test reference deck with mocked API
+        env:
+          PV_PLAYWRIGHT_MODULE: ${{ github.workspace }}/node_modules/playwright/index.mjs
+        run: node tests/lab-image-oneclick-ui.mjs
