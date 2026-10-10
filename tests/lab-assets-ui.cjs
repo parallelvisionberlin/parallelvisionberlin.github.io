@@ -465,4 +465,88 @@ for(const width of [1911,1440,390,320]){
 assert.deepEqual(errors,[]);
 console.log('PASS mixed-ratio Assets, Image and Upscaler: thumbnails fill their cards before and after decode at desktop and mobile widths');
 
+// Generate must paint a local card before uploads, pricing or provider acceptance.
+await page.setViewportSize({width:1440,height:1000});
+await page.goto('http://127.0.0.1:8765/lab/studio.html?tool=image');await page.waitForFunction(()=>window.__ready);
+const largePng=Buffer.concat([png,Buffer.alloc(11*1024*1024)]);
+const referenceFiles=Array.from({length:5},(_,i)=>({name:'submit-ref-'+i+'.png',mimeType:'image/png',buffer:i<2?largePng:png}));
+await page.locator('#reference-images').setInputFiles(referenceFiles);
+await page.waitForFunction(()=>document.querySelectorAll('.composer-reference-tile').length===5);
+await page.fill('#image-composer-prompt','Capture this exact direction before upload.');
+let releaseUploads,releaseQuote,releaseSubmit,uploadsStarted;
+const threeUploadsStarted=new Promise(r=>uploadsStarted=r);
+const uploadsGate=new Promise(r=>releaseUploads=r),quoteGate=new Promise(r=>releaseQuote=r),submitGate=new Promise(r=>releaseSubmit=r);
+let uploadCount=0,inflightUploads=0,maxInflight=0,quoteCount=0,submitCount=0,dialogs=0,failQuote=false,interruptSubmit=false;
+const originalNames=[],copyNames=[],quotes=new Map();
+const noPopup=async dialog=>{dialogs++;await dialog.dismiss();};page.on('dialog',noPopup);
+await page.route('**/api/uploads',async route=>{
+  const request=route.request(),name=decodeURIComponent(request.headers()['x-filename']);uploadCount++;inflightUploads++;maxInflight=Math.max(maxInflight,inflightUploads);if(inflightUploads===3)uploadsStarted();
+  await uploadsGate;
+  if(name.endsWith('.png')){
+    originalNames.push(name);assert.ok(request.postDataBuffer().equals(referenceFiles.find(f=>f.name===name).buffer),'Original bytes stay unchanged');
+  }else{copyNames.push(name);assert.equal(request.headers()['content-type'],'image/webp');assert.ok(request.postDataBuffer().length<10*1024*1024,'Working copy meets the transfer limit');}
+  inflightUploads--;return route.fulfill({contentType:'application/json',body:JSON.stringify({id:'uploaded-'+name})});
+});
+await page.route('**/api/quotes',async route=>{
+  quoteCount++;await quoteGate;
+  if(failQuote)return route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({error:'Price temporarily unavailable.'})});
+  const payload=route.request().postDataJSON(),id='feedback-quote-'+quoteCount;
+  quotes.set(id,payload);return route.fulfill({contentType:'application/json',body:JSON.stringify({id,settings:payload.settings,expiresAt:Date.now()+60000,maxUsd:.1,estimatedUsd:.1})});
+});
+await page.route('**/api/jobs',async route=>{
+  if(route.request().method()!=='POST')return route.fallback();
+  submitCount++;await submitGate;
+  if(interruptSubmit)return route.abort('failed');
+  const payload=route.request().postDataJSON();assert.equal(payload.confirm,true);
+  const quoted=quotes.get(payload.quoteId);assert.ok(quoted);
+  const job={id:'feedback-job-'+submitCount,status:'queued',createdAt:Date.now(),sourceId:quoted.sourceId,settings:quoted.settings};jobs.unshift(job);
+  return route.fulfill({contentType:'application/json',body:JSON.stringify({job})});
+});
+await page.click('#image-composer-generate');
+await page.waitForFunction(()=>document.querySelector('.submission-title')?.textContent==='Uploading references');
+assert.equal(await page.locator('[data-local-submission]').count(),1,'Card appears before any upload completes');
+assert.equal(submitCount,0);assert.equal(quoteCount,0);
+await page.waitForFunction(()=>document.querySelector('.submission-detail')?.textContent==='0 / 5');
+// The upload routes are already held open; allow their request handlers to run.
+await threeUploadsStarted;
+assert.equal(maxInflight,3,'Three references upload concurrently');
+assert.equal(await page.locator('#tool-video').isEnabled(),true);
+await page.evaluate(()=>{document.querySelector('#generate').onclick();document.querySelector('#generate').onclick();});
+assert.equal(await page.locator('[data-local-submission]').count(),1,'Repeated clicks do not create duplicate submissions');
+await page.fill('#image-composer-prompt','This edit belongs to the next image.');
+await page.click('#tool-video');assert.equal(await page.locator('[data-local-submission]').count(),0);
+await page.click('#tool-image');await page.waitForFunction(()=>document.querySelectorAll('[data-local-submission]').length===1);
+await page.setViewportSize({width:390,height:844});
+assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'Pending card fits mobile');
+console.log('IMAGE_SUBMISSION_PROGRESS='+Buffer.from(await page.screenshot({type:'jpeg',quality:75})).toString('base64'));
+await page.setViewportSize({width:1440,height:1000});
+releaseUploads();
+await page.waitForFunction(()=>document.querySelector('.submission-title')?.textContent==='Checking price');
+assert.equal(dialogs,0,'Automatic working copies do not interrupt Generate with a confirmation');
+assert.equal(originalNames.length,5);assert.equal(copyNames.length,2);assert.equal(uploadCount,7);
+releaseQuote();
+await page.waitForFunction(()=>document.querySelector('.submission-title')?.textContent==='Submitting');
+assert.equal(await page.locator('[data-local-submission][data-state="queued"]').count(),0,'Unaccepted request is never labelled queued');
+const captured=quotes.values().next().value;
+assert.equal(captured.settings.prompt,'Capture this exact direction before upload.');
+assert.deepEqual(captured.referenceSourceIds,referenceFiles.map(f=>'uploaded-'+f.name),'Parallel uploads preserve reference order');
+assert.deepEqual(captured.transferSourceIds,referenceFiles.map((f,i)=>'uploaded-'+(i<2?f.name.replace('.png','-working-copy.webp'):f.name)));
+releaseSubmit();
+await page.waitForFunction(()=>document.querySelector('[data-job="feedback-job-1"]')?.dataset.state==='queued'&&!document.querySelector('[data-local-submission]'));
+assert.equal(await page.locator('[data-job="feedback-job-1"]').count(),1,'Real job replaces the local card once');assert.equal(submitCount,1);
+await page.click('#image-composer-generate');
+await page.waitForFunction(()=>document.querySelector('[data-job="feedback-job-2"]')?.dataset.state==='queued'&&!document.querySelector('[data-local-submission]'));
+assert.equal(uploadCount,7,'Second generation reuses originals and prepared working copies');assert.equal(dialogs,0);assert.equal(submitCount,2);
+failQuote=true;await page.click('#image-composer-generate');
+await page.waitForFunction(()=>document.querySelector('.submission-title')?.textContent==='Could not prepare');
+assert.equal(submitCount,2,'Pricing failure never submits a paid request');
+await page.locator('.submission-dismiss').click();assert.equal(await page.locator('[data-local-submission]').count(),0);
+failQuote=false;interruptSubmit=true;await page.click('#image-composer-generate');
+await page.waitForFunction(()=>document.querySelector('.submission-title')?.textContent==='Request not confirmed');
+assert.equal(submitCount,3,'Interrupted paid request is not automatically retried');
+await page.click('#refresh');assert.equal(submitCount,3,'History refresh does not repeat the generation');
+await page.evaluate(()=>window.__lockTest());assert.equal(await page.locator('[data-local-submission]').count(),0,'Sign-out clears local submission state');
+page.off('dialog',noPopup);assert.deepEqual(errors,[]);
+console.log('PASS immediate submission cards, bounded parallel uploads, immutable snapshots, automatic cached working copies, provider handoff, failures and no duplicate paid requests');
+
 await browser.close();server.close();})().catch(e=>{console.error(e);server.close();process.exit(1)});
