@@ -175,3 +175,7 @@ Official sources, checked 2 October 2026:
 - https://spicyapi.ai/models/image-upscaler-v1
 - https://github.com/fal-ai/fal-js/blob/012ef177b996b9c78ac0d5baf4c430b9a249028b/libs/client/src/queue.ts
 - https://fal.ai/docs/platform-apis/v1/models/requests/by-endpoint
+
+## Moods V1
+
+Ten editorial mood presets are available in Image Studio, with intensity and original-prompt preservation. Only Seedream 5 Pro and Nano Banana Pro support moods in V1. Selecting a mood never starts generation; the existing paid workflow remains unchanged. Job settings retain the selected mood for History and Reuse. Moods are AI generation styling, not pixel-based image filters.
