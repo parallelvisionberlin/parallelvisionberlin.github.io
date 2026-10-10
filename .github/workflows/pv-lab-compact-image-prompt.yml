@@ -1,0 +1,36 @@
+name: PV Lab compact Image prompt browser regression
+on:
+  pull_request:
+    paths:
+      - 'lab/lab.js'
+      - 'lab/higgsfield.css'
+      - 'lab/studio.html'
+      - 'tests/lab-image-prompt-dock-ui.mjs'
+      - '.github/workflows/pv-lab-compact-image-prompt.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  compact-image-prompt:
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install mocked Chromium browser
+        run: |
+          npm install --prefix /tmp/pv-image-prompt-check --no-save playwright@1.57.0
+          node /tmp/pv-image-prompt-check/node_modules/playwright/cli.js install --with-deps chromium
+      - name: Test long prompt paste with independent scrolling and visible controls
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-image-prompt-check/node_modules/playwright/index.mjs
+        run: node tests/lab-image-prompt-dock-ui.mjs
+      - name: Retain desktop and mobile screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pv-image-compact-long-prompt-previews
+          path: test-results/pv-compact-composer-*.png
+          retention-days: 2
