@@ -55,11 +55,11 @@ document.addEventListener('DOMContentLoaded',()=>{
 <link rel="stylesheet" href="./image-studio.css?v=20261009-strength1">
 <link rel="stylesheet" href="./detail-video-studio.css?v=20261009-pointer1">
 <link rel="stylesheet" href="./editorial-polish.css?v=20261009-pearl-drop1">
-<script type="module" src="./lab.js?v=20261010-upscale-assets1"></script>
+<script type="module" src="./lab.js?v=20261010-upscale-history1"></script>
 <link rel="stylesheet" href="./higgsfield.css?v=20261009-background-submit">
-<link rel="stylesheet" href="./assets.css?v=20261010-editorial-bar1">
+<link rel="stylesheet" href="./assets.css?v=20261010-upscale-history1">
 <link rel="stylesheet" href="./video-refresh.css?v=20261009-extend2">
-<script type="module" src="./gallery-layout.js?v=20261009-stable-gallery"></script>
+<script type="module" src="./gallery-layout.js?v=20261010-upscale-history1"></script>
 </head>
 <body class="lab-booting">
 <div id="lab-boot" role="status" aria-live="polite" aria-label="Opening Parallel Vision Lab"><div class="lab-boot-content"><div class="lab-boot-brand" aria-label="Parallel Vision Lab"><img id="lab-boot-wordmark" src="./branding/pv-wordmark.png" alt="Parallel Vision" width="242" height="61" decoding="async"><span class="lab-boot-fallback" id="lab-boot-name">PARALLEL VISION</span><span class="lab-boot-sub">LAB <span aria-hidden="true">/</span> CREATIVE STUDIO</span></div><div class="lab-boot-track" aria-hidden="true"></div><p class="lab-boot-status" id="lab-boot-status">Opening your workspace</p><button id="lab-boot-retry" type="button" hidden>Reload page</button></div></div>
@@ -391,10 +391,6 @@ document.addEventListener('DOMContentLoaded',()=>{
 <div class="soul-launch-actions"><button id="soul-use" class="secondary" type="button">Use PV Soul</button><button id="soul-launch-manage" class="primary" type="button">Train / manage character</button></div>
 </div>
 <p id="notice" role="status" aria-live="polite"></p>
-<div class="upscale-assets-shortcut" aria-label="Upscale results location">
-  <span>Upscaled images are saved in your private Assets library.</span>
-  <button id="upscale-view-assets" type="button">Open Assets <span aria-hidden="true">↗</span></button>
-</div>
 
 <div id="archive-rest-anchor"></div>
 <section class="archive"><div class="archivehead"><div><p class="eyebrow">Private archive</p><h2>History</h2></div><div><p>Results, drafts and active jobs in one place.<br>In Select mode, click anywhere on a card to add or remove it.</p><div class="history-head-actions"><select id="assets-kind" aria-label="Asset type"><option value="all">All media</option><option value="image">Images</option><option value="video">Videos</option></select><button id="history-select" class="text-button" type="button">Select</button><button id="refresh" class="text-button" type="button">Refresh</button></div></div></div><div id="history-selection" class="history-selection" hidden><span id="history-selection-count">0 selected</span><button id="history-select-all" class="text-button" type="button">Select all visible</button><button id="history-archive-selected" class="text-button" type="button" disabled>Archive</button><button id="history-add-folder" class="text-button" type="button" disabled>Add to folder</button><button id="history-remove-folder" class="text-button" type="button" hidden>Remove from folder</button><button id="history-delete-selected" class="history-delete-selected" type="button" disabled>Delete selected</button><button id="history-cancel-select" class="text-button" type="button">Cancel</button></div><p id="emptyarchive" class="emptyarchive">No saved work yet.</p><div id="history" class="grid"></div><button id="more" class="secondary" hidden>Load earlier work</button></section>

@@ -45,3 +45,22 @@ assert.ok((await query('alice','unfiled=1')).jobs.every(j=>!['a2','a3','a4'].inc
 assert.ok((await query('alice','kind=video')).jobs.some(j=>j.id==='a4'));
 await assert.rejects(route('bob','/api/library/archive',{ids:['a2']}),/404/);
 console.log('PASS dedicated Archive action, one Archive folder, account isolation and All assets retention');
+
+// Mixed image histories still return full pages of upscales, scoped to their owner.
+for(let i=0;i<25;i++){
+  db.prepare('INSERT INTO jobs VALUES(?,?,?,?)').run('up'+i,'alice',1000+i*2,JSON.stringify({type:'image',mode:'upscale'}));
+  db.prepare('INSERT INTO jobs VALUES(?,?,?,?)').run('regular'+i,'alice',1001+i*2,JSON.stringify({type:'image',mode:'image'}));
+}
+db.prepare('INSERT INTO jobs VALUES(?,?,?,?)').run('bob-upscale','bob',5000,JSON.stringify({type:'image',mode:'upscale'}));
+const upscale1=await query('alice','kind=image&mode=upscale&unfiled=1');
+const upscale2=await query('alice',new URLSearchParams({...upscale1.next,kind:'image',mode:'upscale',unfiled:'1'}));
+assert.equal(upscale1.jobs.length,20);assert.equal(upscale2.jobs.length,5);assert.equal(upscale2.next,null);
+const upscaleIds=[...upscale1.jobs,...upscale2.jobs].map(j=>j.id);
+assert.equal(new Set(upscaleIds).size,25);
+assert.ok(upscaleIds.every(id=>id.startsWith('up')));
+assert.deepEqual((await query('bob','mode=upscale')).jobs.map(j=>j.id),['bob-upscale']);
+await route('alice','/api/library/members',{folderId:folder.id,ids:['up24']});
+assert.ok(!(await query('alice','kind=image&mode=upscale&unfiled=1')).jobs.some(j=>j.id==='up24'));
+assert.ok((await query('alice','kind=image')).jobs.some(j=>j.id==='up24'),'Filed upscales remain in Assets');
+assert.ok((await query('alice','kind=image')).jobs.some(j=>j.id.startsWith('regular')),'Assets retains ordinary images');
+console.log('PASS upscale-only pagination, ownership, archived work and complete Assets library');

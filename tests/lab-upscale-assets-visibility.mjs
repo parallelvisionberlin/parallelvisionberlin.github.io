@@ -1,4 +1,4 @@
-// Read-only browser regression for Upscaler -> Assets presentation.
+// Read-only browser regression for restored Upscaler results and shared Assets.
 // No Clerk sign-in, live network providers, private records, or generation calls.
 import assert from 'node:assert/strict';
 import http from 'node:http';
@@ -12,10 +12,10 @@ const html=readFileSync('lab/studio.html','utf8');
 const css=readFileSync('lab/assets.css','utf8');
 const lib=readFileSync('lab-worker/asset-library.mjs','utf8');
 assert.ok(main.includes("app').classList.toggle('upscale-studio-active',upscale)"),'Upscaler mode must flag the root app');
-assert.ok(main.includes("$('upscale-view-assets').onclick=()=>{if(owner&&!busy)$('tool-assets').click();};"),'Existing Assets tab must handle the shortcut');
-assert.ok(main.includes("const destination=q.settings.mode==='upscale'?'Assets':'History'"),'Upscaler completion points to Assets, not History');
-assert.ok(html.includes('id="upscale-view-assets"'),'A visible shortcut must exist');
-assert.ok(css.includes('#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .archive{display:none!important}'),'Hide archive only in Upscaler mode');
+assert.ok(main.includes('historyJobVisible'),'Live results respect the Upscaler-only history filter');
+assert.ok(main.includes("Upscaled images below and Assets"),'Upscaler completion points to its results and Assets');
+assert.ok(!html.includes('id="upscale-view-assets"'),'Results replace the former Assets-only shortcut');
+assert.ok(!css.includes('.archive{display:none!important}'),'Upscaler archive remains visible');
 assert.ok(lib.includes("const clauses=['j.owner_id=?'"),'Assets selection must remain owner-scoped');
 assert.ok(lib.includes("if(url.searchParams.get('unfiled')==='1'"),'Assets retains the entire library when unfiled is absent');
 const server=http.createServer((req,res)=>{
@@ -48,11 +48,9 @@ for(const [width,height,profile] of [[1440,900,'desktop'],[390,844,'mobile']]){
       app.classList.add('upscale-studio-active');
       const tool=document.getElementById('tool-upscale');tool.classList.add('active');tool.setAttribute('aria-pressed','true');
     });
-    assert.equal(await page.locator('.archive').isVisible(),false,profile+': Upscaler must hide full History grid');
-    assert.equal(await page.locator('.upscale-assets-shortcut').isVisible(),true,profile+': Upscaler must show direct Assets link');
-    assert.equal(await page.locator('#upscale-view-assets').isVisible(),true,profile+': Assets shortcut accessible');
-    assert.match(await page.locator('.upscale-assets-shortcut').innerText(),/Upscaled images are saved in your private Assets library/);
-    await page.screenshot({path:'test-results/upscaler-assets-only-'+profile+'.png',fullPage:true});
+    assert.equal(await page.locator('.archive').isVisible(),true,profile+': Upscaler shows its results');
+    assert.equal(await page.locator('.card').isVisible(),true,profile+': Upscaled result is visible beneath deck');
+    await page.screenshot({path:'test-results/upscaler-results-'+profile+'.png',fullPage:true});
     await page.evaluate(()=>{
       const app=document.getElementById('app'),panel=document.getElementById('assets-workspace');
       app.classList.add('assets-active');panel.hidden=false;
@@ -77,4 +75,4 @@ for(const [width,height,profile] of [[1440,900,'desktop'],[390,844,'mobile']]){
   }finally{await context.close();}
 }
 await browser.close();await new Promise(ok=>server.close(ok));
-console.log('PASS Upscaler hides History; Assets still contains results; Image/Video retain History; responsive: '+results.join(', '));
+console.log('PASS Upscaler shows results; Assets retains them; Image/Video retain History; responsive: '+results.join(', '));
