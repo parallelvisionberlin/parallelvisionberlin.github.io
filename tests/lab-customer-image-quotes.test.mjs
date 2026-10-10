@@ -79,7 +79,7 @@ test('customer preview is read-only and customer generation remains behind deplo
   assert.match(worker,/quoteCustomerImageCredits\(p,Number\(data.count\?\?1\)/);
   assert.match(config,/LAB_PUBLIC_GENERATION_ENABLED = "false"/);
   assert.match(config,/LAB_CHECKOUT_ENABLED = "false"/);
-  assert.match(studio,/lab\.js\?v=20261010-customer-image-quotes[12]&wallet=1/);
+  assert.match(studio,/lab\.js\?v=20261010-customer-image-quotes[123]&wallet=1/);
   assert.match(lab,/customerImagePricing\?\.consume/);
   assert.match(lab,/\.kind==='bound'&&customerPriced\.provider==='spicy'/);
   assert.match(lab,/button\.textContent='Generate · '/);

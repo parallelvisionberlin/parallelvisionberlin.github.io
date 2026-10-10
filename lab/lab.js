@@ -6,7 +6,7 @@ import {captureReferralCode,claimReferral} from './referral-capture.js?v=2026101
 captureReferralCode();
 import {createSoul2UI} from './higgsfield-ui.js?v=20261010-soul-price1';
 import {VIDEO_MODELS,engineFor,videoLabel} from './video-models.js?v=20261009-extend1';
-import {REFERENCE_ROLES,REFERENCE_TARGETS,normalizeReferenceLabel,compileImagePrompt,referenceGuidanceError,canUseReferenceGuidance} from './reference-guidance.js?v=20261009-flash-kling';
+import {REFERENCE_ROLES,REFERENCE_TARGETS,normalizeReferenceLabel,compileImagePrompt,referenceGuidanceError,canUseReferenceGuidance} from './reference-guidance.js?v=20261010-reference-intent1';
 import {createMoodSelector,moodById,userFacingImagePrompt,imageHistoryCaption} from './moods.js?v=20261010-80s-photo1';
 import {createMediaReferences} from './media-references.js?v=20261009-extend2';
 import { createSessionRequest } from './session-request.js?v=20260927-auth1';
@@ -101,16 +101,71 @@ const UPSCALE_MODELS=Object.freeze({
 let sourcePixels=0, sourceWidth=0, sourceHeight=0;
 let ratioSourceKey='';
 let imageReferenceMode='base';
+let referenceIntent=null,referenceIntentOpen=false;
 const moodUI=createMoodSelector({panel:$('composer-moods'),button:$('image-composer-moods'),getEngine:()=>imageEngine,
   chooseEngine:engine=>{if(busy)return;$('image-engine').value=engine;$('image-engine').dispatchEvent(new Event('change',{bubbles:true}));},
-  onOpen:()=>{closeImageModelMenu();closeComposerLibrary();toggleImageSettings(false);},
+  onOpen:()=>{closeReferenceIntent();closeImageModelMenu();closeComposerLibrary();toggleImageSettings(false);},
   onChange:()=>{autoPreview=null;update();}
 });
 function referencesOnly(){return usesReferenceGuidance()&&imageReferenceMode==='references';}
 $('image-reference-mode').onchange=()=>{
   imageReferenceMode=$('image-reference-mode').value;autoPreview=null;
-  renderReferences();syncDefaultRatio(!imageRatioExplicit);update();
+  referenceIntent=imageReferenceMode==='base'?'edit':'mix';
+  closeReferenceIntent();renderReferences();syncDefaultRatio(!imageRatioExplicit);update();
 };
+
+function closeReferenceIntent(){
+  referenceIntentOpen=false;
+  $('composer-reference-intent').hidden=true;
+  $('composer-reference-intent-toggle').setAttribute('aria-expanded','false');
+}
+function syncReferenceIntentUi(){
+  const eligible=tool==='image'&&usesReferenceGuidance()&&references.length>0;
+  const toggle=$('composer-reference-intent-toggle'),panel=$('composer-reference-intent');
+  toggle.hidden=!eligible;toggle.disabled=busy;
+  if(!eligible){panel.hidden=true;referenceIntentOpen=false;toggle.setAttribute('aria-expanded','false');return;}
+  const unassigned=references.filter(ref=>!ref.role||ref.role==='none').length;
+  const needsChoice=references.length>1&&!referenceIntent;
+  const titles={edit:'Edit first photo',same:'Same person',mix:'Mix references'};
+  toggle.textContent=needsChoice?'Set references':unassigned?('Assign '+unassigned+' role'+(unassigned===1?'':'s')):(titles[referenceIntent]||'Edit first photo');
+  toggle.classList.toggle('needs-roles',needsChoice||unassigned>0);
+  toggle.title=needsChoice?'Choose how PV Lab should use the uploaded photographs.':unassigned?'Choose a role on each highlighted thumbnail before generating.':'Change how PV Lab uses the uploaded photographs.';
+  toggle.setAttribute('aria-expanded',String(referenceIntentOpen));
+  panel.hidden=!referenceIntentOpen;
+  $('reference-intent-count').textContent=references.length+' photo'+(references.length===1?'':'s')+' attached. Choose how they should guide the result.';
+  $('reference-intent-help').textContent=needsChoice?'Choose one approach before generating. This step does not use credits.':unassigned?unassigned+' photo'+(unassigned===1?' still needs':'s still need')+' a role. Use each thumbnail dropdown to assign it.':'Roles can be changed on individual thumbnails. Identity preservation is guidance, not a guarantee.';
+  for(const button of panel.querySelectorAll('[data-reference-intent]')){
+    button.setAttribute('aria-pressed',String(button.dataset.referenceIntent===referenceIntent));
+    button.disabled=busy;
+  }
+}
+function openReferenceIntent(){
+  if(busy||tool!=='image'||!usesReferenceGuidance()||!references.length)return;
+  moodUI.close();closeImageModelMenu();closeComposerLibrary();toggleImageSettings(false);
+  referenceIntentOpen=true;syncReferenceIntentUi();
+}
+function applyReferenceIntent(intent){
+  if(busy||!usesReferenceGuidance()||!references.length||!['edit','same','mix'].includes(intent))return;
+  // Reopening the selected option must not erase individual role edits or notes.
+  if(referenceIntent===intent){closeReferenceIntent();update();return;}
+  // Do not automatically misclassify an outfit or pose as an identity reference.
+  referenceIntent=intent;imageReferenceMode=intent==='edit'?'base':'references';
+  references.forEach((ref,i)=>{
+    ref.role=intent==='same'?'identity':intent==='edit'&&i===0?'base':'none';
+    ref.target='';ref.note='';ref.nonBaseRole=ref.role;
+  });
+  autoPreview=null;closeReferenceIntent();renderReferences();syncDefaultRatio(!imageRatioExplicit);update();
+}
+$('composer-reference-intent-toggle').onclick=()=>referenceIntentOpen?closeReferenceIntent():openReferenceIntent();
+$('composer-reference-intent-close').onclick=closeReferenceIntent;
+for(const button of $('composer-reference-intent').querySelectorAll('[data-reference-intent]'))
+  button.onclick=()=>applyReferenceIntent(button.dataset.referenceIntent);
+document.addEventListener('pointerdown',event=>{
+  if(referenceIntentOpen&&!event.target.closest('#composer-reference-intent,#composer-reference-intent-toggle'))closeReferenceIntent();
+});
+document.addEventListener('keydown',event=>{
+  if(referenceIntentOpen&&event.key==='Escape')closeReferenceIntent();
+});
 const cardUrls=new Set(), requestControllers=new Set();
 // Private, bounded session cache. Gallery and viewer share original bytes and
 // in-flight reads; each surface owns its own revocable object URL.
@@ -155,7 +210,8 @@ function usesReferenceGuidance(){return tool==='image'&&['seedream','gemini','fl
 function imageGuidance(){
   const labels=referenceRoles(),mood=moodUI.enrich($('prompt').value,{engine:imageEngine,referenceCount:references.length,referenceMode:imageReferenceMode});
   const prompt=compileImagePrompt(mood.prompt,labels);
-  return {prompt,error:referenceGuidanceError(labels)||mood.error||(prompt.length>5000?'Direction, mood and reference instructions exceed 5,000 characters. Shorten the direction or optional notes.':'')};
+  const needsStrategy=usesReferenceGuidance()&&references.length>1&&!referenceIntent;
+  return {prompt,error:(needsStrategy?'Choose how PV Lab should use these reference photos before generating.':'')||referenceGuidanceError(labels)||mood.error||(prompt.length>5000?'Direction, mood and reference instructions exceed 5,000 characters. Shorten the direction or optional notes.':'')};
 }
 function updateReferenceGuidance(){
   const panel=$('reference-guidance'),active=usesReferenceGuidance();panel.hidden=!active||!references.length;
@@ -179,7 +235,9 @@ function updateUpscaleModel(){
   for(const option of $('upscale-engine').options)option.disabled=option.value!=='spicy'&&!config.falEnabled;
   if(!active)return;
   $('resolution-control').hidden=fal;$('engine-name').textContent=model.name.toUpperCase()+' · '+model.provider.toUpperCase();
-  $('upscale-model-name').textContent=upscaleName(settings());$('upscale-model-description').textContent=model.description+(fal?' Lab output limit: approximately 67 megapixels.':'');$('upscale-published-price').textContent=model.price;$('upscale-pricing-link').href=model.pricing;
+  const liveUpscaleSettings=settings();
+  $('upscale-technical-summary').textContent=upscaleName(liveUpscaleSettings)+' / '+upscaleSize(liveUpscaleSettings)+' / source ratio';
+  $('upscale-model-name').textContent=upscaleName(liveUpscaleSettings);$('upscale-model-description').textContent=model.description+(fal?' Lab output limit: approximately 67 megapixels.':'');$('upscale-published-price').textContent=model.price;$('upscale-pricing-link').href=model.pricing;
   $('upscale-content-label').textContent=fal?'FAL content restrictions':'No added SpicyAPI filter';$('upscale-content-note').textContent=fal?'Sexually explicit content is not allowed.':'The model may still refuse an input.';$('upscale-content-link').href=fal?'https://fal.ai/legal/acceptable-use-policy':model.pricing;
   $('upscale-price-help').textContent='Optional · no generation charge';
   $('generation-help').textContent=fal?'Upscale starts one paid Topaz job in one click. PV Lab checks the estimated price and output dimensions automatically before submission; the displayed FAL price is an estimate and provider billing is authoritative.':'Upscale starts one paid upscaling job. You can check its live price above first; there is no extra price-review popup. Inputs over 10 MiB need a working copy; the Lab prepares it automatically and keeps the original.';
@@ -218,7 +276,6 @@ function hasInput(){if(tool==='video'&&mode==='extend')return mediaRefs.labels('
 function syncVideoFrameCards(){
   for(const [id,url] of [['video-start-thumb',sourceUrl],['video-end-thumb',lastUrl]]){const img=$(id);if(!img)continue;img.hidden=!url;img.parentElement.classList.toggle('has-frame',!!url);if(url&&img.getAttribute('src')!==url)img.src=url;else if(!url)img.removeAttribute('src');}
 }
-
 function imageCreditQuoteSnapshot(){
   if(!customerMode||!owner||tool!=='image'||fashionActive||busy||imageSubmissionPending||!hasInput())return null;
   const selected=structuredClone(settings());
@@ -582,6 +639,7 @@ function syncImageReferences(){
   for(let i=0;i<items.length;i++){
     const ref=items[i],tile=document.createElement('div');
     tile.className='composer-reference-tile';tile.title=ref.file?.name||'Reference image';
+    tile.classList.toggle('role-unassigned',usesReferenceGuidance()&&!ref.isBase&&(!ref.role||ref.role==='none'));
     const img=document.createElement('img');
     img.src=ref.thumbUrl||ref.url;img.alt=(ref.isBase?'Base image':'Image reference '+(i+1));
     img.loading='lazy';img.decoding='async';img.draggable=false;tile.append(img);
@@ -603,8 +661,9 @@ function syncImageReferences(){
     if(usesReferenceGuidance()&&(i>0||referencesOnly())){
       marker.hidden=true;
       const role=document.createElement('select');role.className='composer-reference-role';role.setAttribute('aria-label','Role for image '+(i+1));role.disabled=busy;
-      for(const [value,label] of REFERENCE_ROLES.filter(([value])=>value!=='base'))role.add(new Option(value==='none'?'REF '+(i+1):label,value));
-      role.value=ref.role||'none';role.onchange=()=>{ref.role=role.value;ref.target=role.value==='outfit'?'full':'';renderReferences();update();};tile.append(role);
+      for(const [value,label] of REFERENCE_ROLES.filter(([value])=>value!=='base'))role.add(new Option(value==='none'?'ROLE?':label,value));
+      role.value=ref.role||'none';role.title=role.value==='none'?'Choose how to use this photo':'Reference role: '+role.value;
+      role.onchange=()=>{ref.role=role.value;ref.target=role.value==='outfit'?'full':'';if(!referenceIntent&&references.every(r=>r.role&&r.role!=='none'))referenceIntent=imageReferenceMode==='base'?'edit':'mix';renderReferences();update();};tile.append(role);
     }
 
     if(ref.isBase){
@@ -624,6 +683,7 @@ function syncImageReferences(){
         if(target.isBase){file=null;sourceId=null;release(sourceUrl);sourceUrl=null;sourceWidth=0;sourceHeight=0;sourcePixels=0;update();return;}
         const idx=references.indexOf(target);if(idx<0)return;
         closeInputPreview();releaseReference(target);references.splice(idx,1);
+        if(!references.length){referenceIntent=null;imageReferenceMode='base';closeReferenceIntent();}
         if(imageEngine==='fal')poseMapSourceId=null;
         renderReferences();refreshInputPreview();update();
       };
@@ -674,8 +734,10 @@ function syncImageComposer(){
   imageStudio.hidden=!image;
   syncComposerOptions();
   if(!image)return;
-  $('image-reference-mode-wrap').hidden=!usesReferenceGuidance()||!references.length;
+  // Keep the legacy selection wired internally, without a duplicate toolbar control.
+  $('image-reference-mode-wrap').hidden=true;
   $('image-reference-mode').value=imageReferenceMode;$('image-reference-mode').disabled=busy;
+  syncReferenceIntentUi();
   const textbox=$('image-composer-prompt');
   if(document.activeElement!==textbox && textbox.value!==$('prompt').value)
     textbox.value=$('prompt').value;
@@ -727,8 +789,10 @@ function syncImageComposer(){
     else if(moodUI.invalid(imageEngine,$('prompt').value,references.length,imageReferenceMode))message=moodUI.error(imageEngine,$('prompt').value,references.length,imageReferenceMode);
     else if(!$('prompt').value.trim())message='';
   }
-  // Keep blocked queue requests in the compact top navigation, never add a third dock row.
-  const inlineMessage=queueBlocked?'':message;
+  // A blocked/uncertain queue belongs in the top navigation Queue popover, not as a third row in the image deck.
+  // Keep generation disabled until reviewed, and preserve the reason in the button tooltip.
+  const intentIncomplete=usesReferenceGuidance()&&references.length>0&&((references.length>1&&!referenceIntent)||references.some(ref=>!ref.role||ref.role==='none'));
+  const inlineMessage=queueBlocked||intentIncomplete?'':message;
   block.hidden=!inlineMessage;reason.textContent=inlineMessage;review.hidden=true;
   generate.title=message?(message+(queueBlocked?' Open Queue at the top right to review it.':'')):(isSoul2()?'Review the live Higgsfield price before any charge. PV Soul accepts one base image and one optional trained Soul ID; use Seedream for multiple reference photos.':'');
   syncImageReferences();
@@ -828,6 +892,7 @@ $('image-composer-model').onclick=()=>{
   if(busy)return;
   closeComposerLibrary();toggleImageSettings(false);
   imageMenuOpen=!imageMenuOpen;
+  if(imageMenuOpen)closeReferenceIntent();
   $('image-composer-model-menu').hidden=!imageMenuOpen;
   $('image-composer-model').setAttribute('aria-expanded',String(imageMenuOpen));
   if(imageMenuOpen){$('image-composer-model-search').value='';populateImageModelMenu();$('image-composer-model-search').focus();}
@@ -1122,7 +1187,7 @@ function viewReference(item,index){
 }
 $('input-preview-dialog').addEventListener('close',()=>{$('input-preview-image').removeAttribute('src');});
 
-function clearMedia(){imageRatioExplicit=false;soulRatioExplicit=false;customerImagePricing?.reset();clearUpscalePrice();mediaRefs.clear();cancelImagePreparation();closeInputPreview();poseMapSourceId=null;$('pose-preview-status').textContent='';$('reference-progress').textContent='';imageRevision++;sourcePixels=0;sourceWidth=0;sourceHeight=0;release(sourceUrl);release(lastUrl);sourceUrl=null;lastUrl=null;file=null;sourceId=null;lastFile=null;lastSourceId=null;$('image').value='';$('last-image').value='';for(const r of references)releaseReference(r);references=[];$('reference-images').value='';$('filemeta').textContent=sourceHelp();$('last-filemeta').textContent='Leave empty for an open ending.';renderReferences();clearResult();resetPreview();update();}
+function clearMedia(){referenceIntent=null;imageReferenceMode='base';closeReferenceIntent();imageRatioExplicit=false;soulRatioExplicit=false;customerImagePricing?.reset();clearUpscalePrice();mediaRefs.clear();cancelImagePreparation();closeInputPreview();poseMapSourceId=null;$('pose-preview-status').textContent='';$('reference-progress').textContent='';imageRevision++;sourcePixels=0;sourceWidth=0;sourceHeight=0;release(sourceUrl);release(lastUrl);sourceUrl=null;lastUrl=null;file=null;sourceId=null;lastFile=null;lastSourceId=null;$('image').value='';$('last-image').value='';for(const r of references)releaseReference(r);references=[];$('reference-images').value='';$('filemeta').textContent=sourceHelp();$('last-filemeta').textContent='Leave empty for an open ending.';renderReferences();clearResult();resetPreview();update();}
 async function inspectImage(candidate){
   if(!candidate||!['image/jpeg','image/png','image/webp'].includes(candidate.type)||!candidate.size||candidate.size>20*1024*1024)throw new Error('Choose a JPG, PNG or WebP image up to 20 MB.');
   const seedanceInput=tool==='video'&&engine==='seedance',maxSide=tool==='upscale'?16000:seedanceInput?6000:8000;
@@ -1153,6 +1218,7 @@ function renderReferences(){
     if(imageEngine==='soulpro')r.role='identity';role.value=r.role||'none';role.disabled=busy||imageEngine==='soulpro';if(imageEngine==='soulpro')role.hidden=true;
     role.onchange=()=>{
       r.role=role.value;r.target=r.role==='outfit'?'full':'';autoPreview=null;
+      if(!referenceIntent&&references.every(ref=>ref.role&&ref.role!=='none'))referenceIntent=imageReferenceMode==='base'?'edit':'mix';
       if(r.role==='base'&&usesReferenceGuidance()){
         for(const ref of references)if(ref!==r&&ref.role==='base')ref.role='none';
         if(i>0){references.splice(i,1);references.unshift(r);notify('Base moved to Reference 1. Reference numbers updated; check any numbered notes.');}
@@ -1172,7 +1238,7 @@ function renderReferences(){
     }
     fields.append(note);
     const controls=document.createElement('div');controls.className='reference-actions';
-    const remove=document.createElement('button');remove.type='button';remove.textContent='Remove';remove.onclick=()=>{if(busy)return;closeInputPreview();releaseReference(r);references.splice(i,1);if(imageEngine==='fal')poseMapSourceId=null;renderReferences();refreshInputPreview();update();};
+    const remove=document.createElement('button');remove.type='button';remove.textContent='Remove';remove.onclick=()=>{if(busy)return;closeInputPreview();releaseReference(r);references.splice(i,1);if(!references.length){referenceIntent=null;imageReferenceMode='base';closeReferenceIntent();}if(imageEngine==='fal')poseMapSourceId=null;renderReferences();refreshInputPreview();update();};
     const up=document.createElement('button');up.type='button';up.textContent='Up';up.disabled=i===0||(usesReferenceGuidance()&&i===1&&references[0].role==='base');up.onclick=()=>{if(busy||i===0)return;closeInputPreview();[references[i-1],references[i]]=[references[i],references[i-1]];if(imageEngine==='fal')poseMapSourceId=null;renderReferences();refreshInputPreview();update();};
     controls.append(up,remove);item.append(img,fields,controls);fragment.append(item);
   });
@@ -1186,12 +1252,19 @@ async function addReferences(list,ids=[],labels=[]){
       $('reference-progress').textContent='Preparing reference '+(i+1)+' of '+incoming.length+'…';
       const item=await inspectImage(incoming[i]);
       if(e!==epoch||!owner){releaseReference(item);return;}
-      item.id=ids[i]||null;item.role=imageEngine==='soulpro'?'identity':labels[i]?.role||'none';item.note=imageEngine==='soulpro'?'':labels[i]?.note||'';item.target=labels[i]?.target||'';if(usesReferenceGuidance()){if(!referencesOnly()&&!references.length){item.nonBaseRole=item.role;item.role='base';}else if(item.role==='base')item.role='none';}references.push(item);added++;
+      item.id=ids[i]||null;item.role=imageEngine==='soulpro'?'identity':labels[i]?.role||'none';item.note=imageEngine==='soulpro'?'':labels[i]?.note||'';item.target=labels[i]?.target||'';if(usesReferenceGuidance()){if(referenceIntent==='same'){item.role='identity';item.target='';}else if(!referencesOnly()&&!references.length){item.nonBaseRole=item.role;item.role='base';}else if(item.role==='base')item.role='none';}references.push(item);added++;
       renderReferences();refreshInputPreview();update();
       await new Promise(resolve=>setTimeout(resolve,0));
     }
   }finally{
-    if(e===epoch){$('reference-list').setAttribute('aria-busy','false');$('reference-progress').textContent=added?added+' reference'+(added===1?'':'s')+' ready. Originals kept unchanged.':'';}
+    if(e===epoch){
+      $('reference-list').setAttribute('aria-busy','false');$('reference-progress').textContent=added?added+' reference'+(added===1?'':'s')+' ready. Originals kept unchanged.':'';
+      if(added&&usesReferenceGuidance()&&references.length>1&&!referenceIntent){
+        if(labels.length&&references.every(ref=>ref.role&&ref.role!=='none'))referenceIntent=imageReferenceMode==='base'?'edit':references.every(ref=>ref.role==='identity')?'same':'mix';
+        else openReferenceIntent();
+      }
+      update();
+    }
   }
 }
 
@@ -2262,7 +2335,7 @@ async function loadHistory(append=false,incremental=false){
   const data=await api('/api/jobs?'+q);
   if(!owner||rev!==historyRevision||loadId!==historyLoadId)return;
   renderCards(data.jobs,{upsert:incremental});if(!incremental||!next)next=data.next;$('more').hidden=!next;
-  $('emptyarchive').hidden=$('history').children.length>0;$('emptyarchive').textContent=assetLibrary?.active()?'No items here yet. Add work using Select → Add to folder, or mark a heart for Favorites.':tool==='upscale'?'Your upscaled images will appear here.':'No saved work yet.';
+  $('emptyarchive').hidden=$('history').children.length>0;$('emptyarchive').textContent=assetLibrary?.active()?'No items here yet. Add work using Select → Add to folder, or mark a heart for Favorites.':tool==='upscale'?'No upscaled images yet':'No saved work yet.';
   if(data.concurrency)config.concurrency=data.concurrency;setActiveJobs(data.activeJobs||(data.active?[data.active]:[]));syncImageGalleryEmpty();if(tool==='video'&&!assetLibrary?.active())restoreLatestVideoSelection();
 }
 async function syncHistory(){return loadHistory(false,true);}
@@ -2292,11 +2365,7 @@ $('history-delete-selected').onclick=()=>action(async()=>{
 function finishLabBoot(){window.__pvLabFinishBoot?.();}
 function lock(){customerMode=false;customerGenerationReady=false;customerImagePricing?.reset();wallet.connect({customer:false});$('studio-invite-friends').hidden=true;fashionController?.lock();setFashionActive(false);assetLibrary?.reset();hf.reset();epoch++;imageSubmissionPending=false;pendingImageCards.clear();moodUI.clear(true);clearAssetCache();for(const p of composerPortraits.values())p.then(url=>{if(url)release(url);});composerPortraits.clear();composerLibraryKey='';composerPortraitKey='';closeComposerLibrary();historySelected.clear();historySelectMode=false;clearSoulProPackPreview();soulProIdentity={configured:false,count:0,refs:[]};workingCopies.clear();autoPreview=null;downloadUrls.forEach(release);downloadUrls.clear();owner=false;userId='';soul.reset();historyRevision++;clearTimeout(timer);timer=null;activeJob=null;activeJobs=[];polling=false;requestControllers.forEach(c=>c.abort());requestControllers.clear();observer.disconnect();cardUrls.forEach(release);cardUrls.clear();clearMedia();$('prompt').value='';$('history').replaceChildren();$('app').hidden=true;$('gate').hidden=false;$('connection').hidden=true;$('logout').hidden=true;$('api-key').value='';for(const d of document.querySelectorAll('dialog[open]'))d.close();currentQuote=null;config={};packs=[];$('pack-select').replaceChildren(new Option('Choose a saved pack',''));closeImageModelMenu();toggleImageSettings(false);$('app').classList.remove('image-studio-active');imageStudio.hidden=true;imageDetailCache.clear();releaseImageDetailSource();videoJobCache.clear();selectedVideoJob=null;syncVideoStudioMode();finishLabBoot();}
 const wallet=createCustomerWallet({api,notify});
-customerImagePricing=createCustomerImagePricing({
-  snapshot:imageCreditQuoteSnapshot,
-  quote:fetchCustomerImagePrice,
-  changed:()=>update()
-});
+customerImagePricing=createCustomerImagePricing({snapshot:imageCreditQuoteSnapshot,quote:fetchCustomerImagePrice,changed:()=>update()});
 async function sync(){if(syncing)return;syncing=true;try{if(!clerk.isSignedIn){lock();$('auth-status').textContent='Sign in to your PV Lab workspace.';$('signin').disabled=false;return;}if(owner&&userId===clerk.user.id)return;const data=await api('/api/session');owner=true;customerMode=!!data.customer;customerGenerationReady=!!data.generationReady;userId=clerk.user.id;wallet.connect(data);hf.setCustomerPricing(customerMode?{trainingCredits:data.soulIdTrainingCredits,imageCredits:data.soul2ImageCredits}:null);$('studio-invite-friends').hidden=!customerMode;if(customerMode)await claimReferral(code=>api('/api/customer/referrals/claim',{method:'POST',body:{code}}));applyConfig(data.config);$('identity').textContent=customerMode?'My workspace':'Owner workspace';$('gate').hidden=true;$('app').hidden=false;$('connection').hidden=customerMode;$('logout').hidden=false;if(customerMode&&new URLSearchParams(location.search).get('referrals')==='1')wallet.openReferrals();await Promise.all([loadHistory(),loadPacks(),soul.load(),loadSoulProIdentity()]);syncVideoStudioMode();await restoreStudioEntry();if(!fashionActive&&fashionController)void fashionController.sync();if(customerMode&&new URLSearchParams(location.search).get('billing')==='success'){notify('Checkout returned. Credits appear when Stripe confirms payment.');void wallet.refresh();}}catch(e){lock();$('auth-status').textContent=e.message;$('signin').disabled=false;$('logout').hidden=!clerk?.isSignedIn;}finally{syncing=false;finishLabBoot();}}
 $('studio-invite-friends').onclick=()=>{$('studio-invite-friends').closest('details').open=false;wallet.openReferrals();};
 $('auth-retry').onclick=()=>location.reload();$('signin').onclick=()=>clerk?.openSignIn();$('logout').onclick=async()=>{lock();await clerk?.signOut();$('auth-status').textContent='Signed out. Your archive remains private.';};
@@ -2398,8 +2467,7 @@ async function submitImageSnapshot(){
     }else if(provider==='higgsfield'){
       // Price checking does not submit a paid job. Keep the compose settings frozen in this quote.
       feedback.phase('Checking live price','No image has been generated or charged.');
-      const cached=customerPriced?.kind==='bound'&&customerPriced.provider==='higgsfield'?
-        customerPriced.quotes[0]:null;
+      const cached=customerPriced?.kind==='bound'&&customerPriced.provider==='higgsfield'?customerPriced.quotes[0]:null;
       const q=cached||await api('/api/higgsfield/quote',{method:'POST',body:{...inputs,settings:selected}});
       check();
       if(!q?.id||q.provider!=='Higgsfield'||q.settings?.provider!=='higgsfield'||(q.settings.characterId||'')!==(selected.characterId||'')||q.sourceId!==inputs.sourceId||!Number.isFinite(q.estimatedUsd)||q.estimatedUsd<=0||!Number.isFinite(q.expiresAt)||q.expiresAt<=Date.now())throw new Error('Higgsfield price review did not match your selected image and identity. Nothing generated.');
@@ -2425,8 +2493,7 @@ async function submitImageSnapshot(){
         if(data.jobs.some(job=>['failed','uncertain','resolved'].includes(job.status)))break;
       }
     }else{
-      const bound=customerPriced?.kind==='bound'&&customerPriced.provider==='spicy'&&
-        customerPriced.count===requested?customerPriced:null;
+      const bound=customerPriced?.kind==='bound'&&customerPriced.provider==='spicy'&&customerPriced.count===requested?customerPriced:null;
       if(bound){
         if(JSON.stringify(bound.inputs.referenceSourceIds)!==JSON.stringify(inputs.referenceSourceIds)||
            (bound.inputs.sourceId||null)!==(inputs.sourceId||null))

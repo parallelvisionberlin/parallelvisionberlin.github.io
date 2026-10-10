@@ -98,6 +98,51 @@ try{
   ok('Two Seedream images share one price-check request and each use a distinct price');assert.deepEqual(x.errors,[]);await x.context.close();
  x=await workspace({historyDelay:1200});await imageForm(x);const releaseStarted=Date.now();await x.page.click('#generate:visible, #image-composer-generate:visible');await x.page.waitForFunction(()=>!document.querySelector('#resolution').disabled,{timeout:700});assert.ok(Date.now()-releaseStarted<900);assert.equal(x.accepted(),1);assert.equal(await x.page.locator('.card[data-state="queued"]').count(),1);ok('Image submission releases the editor before the background History refresh finishes');assert.deepEqual(x.errors,[]);await x.context.close();
  x=await workspace();await imageForm(x);await x.page.locator('#reference-images').setInputFiles({name:'sculpture.png',mimeType:'image/png',buffer:png});await ready(x.page);await x.page.click('#generate:visible, #image-composer-generate:visible');await ready(x.page);const edit=x.requests.find(r=>r.path==='/api/quotes').data;assert.equal(edit.referenceSourceIds.length,1);assert.equal(edit.transferSourceIds.length,1);assert.equal(x.accepted(),1);assert.equal(await x.page.locator('#quote-dialog').isVisible(),false);ok('Reference edit submits once without review and preserves reference inputs');await x.context.close();
+
+ {
+  const refPhotos=[{name:'front.png',mimeType:'image/png',buffer:png},{name:'side.png',mimeType:'image/png',buffer:png},{name:'back.png',mimeType:'image/png',buffer:png}];
+  x=await workspace();await imageForm(x);
+  assert.equal(await x.page.locator('#composer-reference-intent-toggle').isVisible(),false);
+  await x.page.locator('#reference-images').setInputFiles(refPhotos);
+  await x.page.locator('#composer-reference-intent').waitFor({state:'visible'});
+  assert.equal(await x.page.locator('#image-composer-generate').isDisabled(),true);
+  assert.equal(count(x,'/api/quotes'),0);
+  await x.page.click('[data-reference-intent="same"]');
+  assert.equal(await x.page.locator('#image-reference-mode').inputValue(),'references');
+  assert.deepEqual(await x.page.locator('#image-composer-references .composer-reference-role').evaluateAll(a=>a.map(el=>el.value)),['identity','identity','identity']);
+  await x.page.click('#image-composer-generate');await ready(x.page);
+  assert.deepEqual(x.requests.find(req=>req.path==='/api/quotes').data.settings.referenceRoles.map(ref=>ref.role),['identity','identity','identity']);
+  assert.equal(x.accepted(),1);ok('Same person automatically assigns all photos to Identity');assert.deepEqual(x.errors,[]);await x.context.close();
+  x=await workspace();await imageForm(x);
+  await x.page.locator('#reference-images').setInputFiles(refPhotos);
+  await x.page.locator('#composer-reference-intent').waitFor({state:'visible'});
+  await x.page.click('[data-reference-intent="edit"]');
+  assert.equal(await x.page.locator('#image-reference-mode').inputValue(),'base');
+  assert.equal(await x.page.locator('.composer-reference-index').first().innerText(),'BASE');
+  assert.equal(await x.page.locator('#image-composer-generate').isDisabled(),true);
+  assert.equal(await x.page.locator('#image-composer-references .role-unassigned').count(),2);
+  const editRoles=x.page.locator('#image-composer-references .composer-reference-role');
+  await editRoles.nth(0).selectOption('outfit');await editRoles.nth(1).selectOption('identity');
+  assert.equal(await x.page.locator('#image-composer-generate').isDisabled(),false);
+  await x.page.click('#image-composer-generate');await ready(x.page);
+  assert.deepEqual(x.requests.find(req=>req.path==='/api/quotes').data.settings.referenceRoles.map(ref=>ref.role),['base','outfit','identity']);
+  assert.equal(x.accepted(),1);ok('Edit first photo protects base and requires purpose for other photos');assert.deepEqual(x.errors,[]);await x.context.close();
+  x=await workspace();await imageForm(x);
+  await x.page.locator('#reference-images').setInputFiles(refPhotos.slice(0,2));
+  await x.page.locator('#composer-reference-intent').waitFor({state:'visible'});
+  await x.page.click('[data-reference-intent="mix"]');
+  assert.equal(await x.page.locator('#image-composer-generate').isDisabled(),true);
+  const mixRoles=x.page.locator('#image-composer-references .composer-reference-role');
+  await mixRoles.nth(0).selectOption('pose');await mixRoles.nth(1).selectOption('lighting');
+  assert.equal(await x.page.locator('#image-composer-generate').isDisabled(),false);
+  await x.page.click('#composer-reference-intent-toggle');
+  assert.equal(await x.page.locator('#composer-reference-intent').isVisible(),true);
+  await x.page.click('#composer-reference-intent-close');
+  await x.page.click('#image-composer-generate');await ready(x.page);
+  assert.deepEqual(x.requests.find(req=>req.path==='/api/quotes').data.settings.referenceRoles.map(ref=>ref.role),['pose','lighting']);
+  assert.equal(x.accepted(),1);ok('Mix references requires individual roles and the chooser is reopenable');assert.deepEqual(x.errors,[]);await x.context.close();
+ }
+
  x=await workspace({quoteDelay:300});await imageForm(x);await x.page.evaluate(()=>{document.querySelector('#generate').click();document.querySelector('#generate').click();});await ready(x.page);assert.equal(x.accepted(),1);assert.equal(count(x,'/api/quotes'),1);ok('Rapid repeated clicks cannot double-submit');await x.context.close();
  for(const failure of ['quote','expired','wrong-model','budget','server','network']){
   x=await workspace({failure});await imageForm(x);await x.page.click('#generate:visible, #image-composer-generate:visible');await ready(x.page);await x.page.waitForTimeout(150);assert.equal(x.accepted(),0);assert.equal(count(x,'/api/quotes'),1);assert.equal(count(x,'/api/jobs'),['quote','expired','wrong-model'].includes(failure)?0:1);assert.equal(await x.page.locator('#quote-dialog').isVisible(),false);assert.ok((await x.page.locator('#notice').innerText()).length>0);ok(failure+': stops without another paid attempt');await x.context.close();
