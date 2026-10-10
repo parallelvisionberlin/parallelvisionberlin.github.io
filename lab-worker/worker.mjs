@@ -1,5 +1,5 @@
 import {quoteVideoExtension,submitVideoExtension} from './higgsfield-video.mjs';
-import {ensureCustomer,isLabCustomer,customerSession,customerRoute,stripeWebhook} from './customer-billing.mjs';
+import {ensureCustomer,isLabCustomer,customerSession,customerRoute,stripeWebhook,creditsForUsd} from './customer-billing.mjs';
 import {quoteCustomerImageCredits} from './customer-image-pricing.mjs';
 import {referralRoute} from './referrals.mjs';
 import {fashionRoute,refreshFashionJob} from './fashion-tools.mjs';
@@ -1351,7 +1351,7 @@ async function route(request,env,ctx) {
     const insertArgs=q=>[q.id,owner,primary?.id||null,paramsJson,Math.round(q.maxUsd*1000000),q.expiresAt,q.vendorQuoteId,q.expectedCost,payloadJson];
     if(quoteCount===1)await run(env,statement,...insertArgs(priced[0]));
     else await env.LAB_DB.batch(priced.map(q=>stmt(env,statement,...insertArgs(q))));
-    const response=priced.map(({vendorQuoteId,expectedCost,...publicQuote})=>publicQuote);
+    const response=priced.map(({vendorQuoteId,expectedCost,...publicQuote})=>({...publicQuote,creditCost:creditsForUsd(publicQuote.maxUsd)}));
     return json(quoteCount===1?response[0]:{quotes:response});
   }
   if(path==='/api/jobs'&&method==='POST') {
