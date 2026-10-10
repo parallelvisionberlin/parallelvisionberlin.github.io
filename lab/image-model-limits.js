@@ -25,7 +25,7 @@ export function modelImageInputIssue(engine, items = [], {count = 1, processing 
       if (Number(file.size) > 10000000)
         return 'Image too large for Kling: ' + name + ' (' + mb(file.size) +
           ' MB). Maximum 10 MB per image. Compress the image and try again. No generation submitted.';
-      const width = Number(item.width), height = Number(item.height);
+      const width = Number(item.width ?? item.ref?.width), height = Number(item.height ?? item.ref?.height);
       if (width > 0 && height > 0) {
         if (width < 300 || height < 300)
           return 'Image too small for Kling: ' + name + ' (' + width + ' × ' + height +
