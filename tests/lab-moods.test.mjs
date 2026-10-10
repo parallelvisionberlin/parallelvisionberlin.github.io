@@ -92,5 +92,5 @@ test('90s Cinema thumbnail and applied mood share a film-scan style',()=>{
   assert.match(prepareMoodPrompt('Portrait','90s-cinema',60).prompt,/film-gate edge/i);
   assert.match(prepareMoodPrompt('Portrait','90s-cinema',100).prompt,/sprocket perforations/i);
   const css=readFileSync(new URL('../lab/moods.css',import.meta.url),'utf8');
-  assert.match(css,/\\.moods-look-90s-cinema img\\{filter:none/);
+  assert.ok(css.includes('.moods-look-90s-cinema img{filter:none'));
 });
