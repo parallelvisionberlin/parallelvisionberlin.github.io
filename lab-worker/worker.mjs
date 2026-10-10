@@ -172,6 +172,15 @@ function referenceLabels(value,max=10) {
     return normalizeReferenceLabel(x);
   });
 }
+const IMAGE_MOOD_IDS=new Set(['hong-kong-nights','90s-cinema','night-flash','fashion-editorial','80s-film','kodak-gold','soft-pastel-film','frutiger-aero','sumi-ink','hyper-pop']);
+function imageMoodMetadata(value){
+  if(value.moodId==null||value.moodId==='')return {};
+  if(!IMAGE_MOOD_IDS.has(value.moodId))fail(400,'Unknown image mood.');
+  const moodIntensity=Number(value.moodIntensity),moodOriginalPrompt=value.moodOriginalPrompt;
+  if(!Number.isInteger(moodIntensity)||moodIntensity<1||moodIntensity>100||typeof moodOriginalPrompt!=='string'||moodOriginalPrompt.length>5000)
+    fail(400,'Invalid image mood intensity or original prompt.');
+  return {moodId:value.moodId,moodIntensity,moodOriginalPrompt};
+}
 function parameters(value) {
   if(!value||typeof value!=='object'||Array.isArray(value))fail(400,'Invalid settings.');
   if(value.type==='image'&&value.mode==='upscale'){
@@ -208,12 +217,12 @@ function parameters(value) {
   if(value.type==='image'&&value.engine==='gemini'){
     const processing=value.processing==='batch'?'batch':'normal',ratio=value.aspectRatio||'auto';
     if(prompt.length>5000||!['1k','2k','4k'].includes(value.resolution)||!GEMINI_RATIOS.includes(ratio))fail(400,'Nano Banana Pro supports 1K, 2K or 4K and the listed image ratios. Maximum prompt length is 5,000.');
-    return {type:'image',provider:'gemini',engine:'gemini',processing,referenceMode,model:GEMINI_MODEL,mode:'image',prompt,resolution:value.resolution,aspectRatio:ratio,outputFormat:'auto',referenceRoles};
+    return {type:'image',provider:'gemini',engine:'gemini',processing,referenceMode,model:GEMINI_MODEL,mode:'image',prompt,resolution:value.resolution,aspectRatio:ratio,outputFormat:'auto',referenceRoles,...imageMoodMetadata(value)};
   }
   if(value.type==='image'){
     if(prompt.length>5000||!['1k','2k'].includes(value.resolution)||!RATIOS.includes(value.aspectRatio||'1:1'))fail(400,'Choose 1K or 2K and a supported image ratio. Maximum prompt length is 5,000.');
     if(!['png','jpeg'].includes(value.outputFormat||'jpeg'))fail(400,'Choose PNG or JPEG.');
-    return {type:'image',provider:'spicy',engine:'seedream',referenceMode,model:STILL_TEXT,mode:'image',prompt,resolution:value.resolution,aspectRatio:value.aspectRatio||'1:1',outputFormat:value.outputFormat||'jpeg',referenceRoles};
+    return {type:'image',provider:'spicy',engine:'seedream',referenceMode,model:STILL_TEXT,mode:'image',prompt,resolution:value.resolution,aspectRatio:value.aspectRatio||'1:1',outputFormat:value.outputFormat||'jpeg',referenceRoles,...imageMoodMetadata(value)};
   }
   if(prompt.length>6000)fail(400,'Use no more than 6,000 prompt characters.');
   const duration=Number(value.duration),resolution=value.resolution;
