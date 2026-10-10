@@ -1,4 +1,4 @@
-async function imageAdvanced(page){await page.click('#tool-image');const open=await page.locator('#app').evaluate(el=>el.classList.contains('image-settings-open'));if(!open)await page.click('#image-composer-more');}
+async function imageAdvanced(page){await page.click('#tool-image');const options=page.locator('#image-composer-more');if(await options.isVisible()){const open=await page.locator('#app').evaluate(el=>el.classList.contains('image-settings-open'));if(!open)await options.click();}}
 // Isolated browser tests with synthetic media and a fully mocked API. No paid tasks.
 import assert from 'node:assert/strict';
 import http from 'node:http';
