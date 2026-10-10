@@ -22,14 +22,15 @@ test('backend-rated image quote uses current model costs and counts, never clien
   assert.throws(()=>quoteCustomerImageCredits({type:'image',engine:'flash'},0),/supported image count/);
 });
 test('bound quotes sum individual server-confirmed credit charges, including batches',()=>{
-  const future=Date.now()+180000,quote=(id,usd)=>({id,provider:'SpicyAPI',maxUsd:usd,expiresAt:future});
-  const result=pricedBoundQuotes({quotes:[quote('a',.018),quote('b',.045)]},2,creditsForUsd,'SpicyAPI');
+  const future=Date.now()+180000,quote=(id,usd)=>({id,provider:'SpicyAPI',maxUsd:usd,creditCost:creditsForUsd(usd),expiresAt:future});
+  const result=pricedBoundQuotes({quotes:[quote('a',.018),quote('b',.045)]},2,'SpicyAPI');
   assert.equal(result.credits,creditsForUsd(.018)+creditsForUsd(.045));
   assert.deepEqual(result.quotes.map(x=>x.id),['a','b']);
-  assert.throws(()=>pricedBoundQuotes({quotes:[quote('a',.01),quote('a',.01)]},2,creditsForUsd,'SpicyAPI'),/Price quote/);
-  assert.throws(()=>pricedBoundQuotes({quotes:[quote('a',.01)]},2,creditsForUsd,'SpicyAPI'),/Incomplete/);
-  assert.throws(()=>pricedBoundQuotes(quote('a',.01),1,creditsForUsd,'Higgsfield'),/Price quote/);
-  assert.throws(()=>pricedBoundQuotes({...quote('a',.01),expiresAt:Date.now()+1000},1,creditsForUsd,'SpicyAPI'),/expired/);
+  assert.throws(()=>pricedBoundQuotes({...quote('z',.01),creditCost:undefined},1,'SpicyAPI'),/Price quote/);
+  assert.throws(()=>pricedBoundQuotes({quotes:[quote('a',.01),quote('a',.01)]},2,'SpicyAPI'),/Price quote/);
+  assert.throws(()=>pricedBoundQuotes({quotes:[quote('a',.01)]},2,'SpicyAPI'),/Incomplete/);
+  assert.throws(()=>pricedBoundQuotes(quote('a',.01),1,'Higgsfield'),/Price quote/);
+  assert.throws(()=>pricedBoundQuotes({...quote('a',.01),expiresAt:Date.now()+1000},1,'SpicyAPI'),/expired/);
 });
 test('16:9 is default without a base and base-photo ratio follows Auto unless manually overridden',()=>{
   const values=['auto','16:9','9:16','1:1','4:3','3:4'];
