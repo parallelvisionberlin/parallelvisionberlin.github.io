@@ -570,6 +570,71 @@ const precisionEditor=createPrecisionEditor({host:$('app'),api,assetBlob,uploadA
   owner:()=>owner&&!customerMode,falReady:()=>!!config.falEnabled,
   onExit:()=>returnToImageFromRetouch(),
   onJob:job=>{surfaceHistoryJob(job);refreshHistorySoon();}});
+// Retouch is an independent route. Image state stays in its existing deck.
+function syncStudioNav(){
+  const selected=retouchActive?'retouch':assetLibrary?.active()?'assets':fashionActive?'fashion':tool;
+  for(const name of ['image','retouch','video','upscale','assets','fashion']){
+    const tab=$('tool-'+name);if(!tab)continue;
+    const active=selected===name;
+    tab.classList.toggle('active',active);
+    tab.setAttribute('aria-pressed',String(active));
+  }
+}
+function imageBaseForRetouch(){
+  if(tool!=='image')return null;
+  if(imageEngine==='soulpro'||isReinterpret())return file?{file,id:sourceId}:null;
+  if(referencesOnly())return null;
+  const source=references.find(ref=>ref.role==='base')||references[0];
+  return source?{file:source.file,id:source.id}:null;
+}
+function leaveRetouch(){
+  if(!retouchActive&&!precisionEditor.isOpen())return;
+  retouchActive=false;precisionEditor.close();
+  $('app').classList.remove('retouch-studio-active');
+  syncImageStudioMode();syncVideoStudioMode();syncStudioNav();
+}
+async function openRetouch({file:chosenFile=null,id=null,autofill=false,push=true}={}){
+  if(!owner||busy)return;
+  if(customerMode){
+    notify('Retouch generation is currently available in the owner workspace only. No paid task started.',true);
+    return;
+  }
+  const from=studioRoute();
+  const selected=chosenFile?{file:chosenFile,id}:
+    autofill&&!precisionEditor.hasBase()?imageBaseForRetouch():null;
+  if($('image-lightbox').open)closeImageDetail();
+  if($('soul-pro-identity-dialog').open)$('soul-pro-identity-dialog').close();
+  setFashionActive(false);
+  if(assetLibrary?.active())assetLibrary.close();
+  retouchActive=true;
+  $('app').classList.add('retouch-studio-active');
+  syncStudioRoute('retouch',{push:push&&from!=='retouch',retouchFrom:from});
+  syncImageStudioMode();syncVideoStudioMode();syncStudioNav();
+  // Reuse the exact File object and uploaded asset ID. Do not upload or bill here.
+  try{await precisionEditor.open(selected||{});}
+  catch(error){notify(error.message,true);}
+}
+function returnToImageFromRetouch(){
+  if(!retouchActive)return;
+  // A Retouch shortcut opened from Image has a genuine Image history entry.
+  if(history.state?.pvLabRetouchEntry&&history.state.pvLabRetouchFrom==='image'){
+    history.back();return;
+  }
+  if(tool==='image'){leaveRetouch();syncStudioRoute('image');syncStudioNav();}
+  else setTool('image');
+}
+window.addEventListener('popstate',()=>{
+  if(!owner)return;
+  const route=studioRoute();
+  if(route==='retouch'){void openRetouch({push:false});return;}
+  if(retouchActive)leaveRetouch();
+  if(route==='assets'){void assetLibrary?.open();return;}
+  if(route==='fashion'){void openFashionStudio();return;}
+  if(['image','video','upscale'].includes(route)){
+    if(tool!==route||fashionActive||assetLibrary?.active())setTool(route);
+    else{syncImageStudioMode();syncVideoStudioMode();syncStudioNav();}
+  }
+});
 const archive = document.querySelector('.archive');
 let imageMenuOpen = false;
 const composerPortraits=new Map();
