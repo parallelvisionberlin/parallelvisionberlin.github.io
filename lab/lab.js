@@ -263,7 +263,7 @@ function showImageComposerError(message){
     copy.append(limits);
   }
   const dismiss=el('button','import-toast-dismiss','×');dismiss.type='button';
-  dismiss.setAttribute('aria-label','Dismiss image upload error');
+  dismiss.setAttribute('aria-label','Dismiss PV Lab notification');
   dismiss.onclick=clearImageComposerNotice;
   status.replaceChildren(icon,copy,dismiss);
   status.classList.add('is-import-error');
