@@ -1,5 +1,5 @@
 import {createAssetLibrary} from './assets.js?v=20261010-navigation-media1';
-import {createPrecisionEditor} from './precision-edit.js?v=20261010-editarea1';
+import {createPrecisionEditor} from './precision-edit.js?v=20261010-retouch-final2';
 import {createCustomerWallet} from './customer-wallet.js?v=20261010-referrals3';
 import {createCustomerImagePricing} from './customer-image-pricing.js?v=20261010-customer-credits1';
 import {customerImagePriceKey,pricedBoundQuotes,imageAutoRatio} from './image-credit-preview.js?v=20261010-customer-credits1';
@@ -593,8 +593,8 @@ function leaveRetouch(){
   $('app').classList.remove('retouch-studio-active');
   syncImageStudioMode();syncVideoStudioMode();syncStudioNav();
 }
-async function openRetouch({file:chosenFile=null,id=null,autofill=false,push=true}={}){
-  if(!owner||busy)return;
+async function openRetouch({file:chosenFile=null,id=null,autofill=false,push=true,allowBusy=false}={}){
+  if(!owner||(busy&&!allowBusy))return;
   const from=studioRoute();
   const selected=chosenFile?{file:chosenFile,id}:
     autofill&&!precisionEditor.hasBase()?imageBaseForRetouch():null;
@@ -2019,9 +2019,8 @@ $('image-detail-mood').onclick=()=>executeImageDetail(applyMoodToImage);
 $('image-detail-upscale').onclick=()=>executeImageDetail(upscaleImage);
 $('image-detail-repair').onclick=()=>executeImageDetail(openRepair);
 $('image-detail-edit-area').onclick=()=>executeImageDetail(async job=>{
-  if(customerMode)throw new Error('Retouch is currently owner-only until model credit billing has been verified.');
   const photo=await assetFile(job.outputId,'retouch-original');
-  await openRetouch({file:photo,id:job.outputId});
+  await openRetouch({file:photo,id:job.outputId,allowBusy:true});
 });
 $('image-detail-delete').onclick=()=>{
   const job=imageDetailJob;
