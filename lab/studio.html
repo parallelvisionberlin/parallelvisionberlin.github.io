@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 <link rel="stylesheet" href="./image-studio.css?v=20261009-strength1">
 <link rel="stylesheet" href="./detail-video-studio.css?v=20261009-pointer1">
 <link rel="stylesheet" href="./editorial-polish.css?v=20261009-pearl-drop1">
-<script type="module" src="./lab.js?v=20261010-submit-feedback1&wallet=1"></script>
+<script type="module" src="./lab.js?v=20261010-soul-live-quote1&wallet=1"></script>
 <link rel="stylesheet" href="./credits.css?v=20261010-commercial1">
 <link rel="stylesheet" href="./higgsfield.css?v=20261010-compact-image-prompt1">
 <link rel="stylesheet" href="./assets.css?v=20261010-submit-feedback1">
@@ -310,8 +310,8 @@ document.addEventListener('DOMContentLoaded',()=>{
 <div class="identity-profile-row"><p id="hf-status" class="fine">Create or choose a Soul ID.</p><button id="hf-manage" type="button" class="quiet">Soul IDs</button></div>
 <div id="hf-connection" class="fine">One-time setup: add your Higgsfield API credential as the Cloudflare Worker secret <code>HF_CREDENTIALS</code>. <a href="https://open.higgsfield.ai" target="_blank" rel="noopener">Open Higgsfield API</a>. Never paste a secret into chat.</div>
 <label><span class="label">Identity strength <output id="hf-strength-value">1.00</output></span><input id="hf-strength" type="range" min="0" max="1" step="0.05" value="1"></label>
-<label><span class="label">Soul 2 resolution</span><select id="hf-resolution"><option value="1080p">1080p · est. $0.0057 / image</option><option value="720p">720p · est. $0.0032 / image</option></select></label>
-<p class="fine">The base photograph supplies the scene. Soul ID supplies identity. Output uses the nearest supported source ratio. Visual preservation must be checked on the result.</p>
+<label><span class="label">Soul 2 resolution</span><select id="hf-resolution"><option value="1080p">1080p · live price on review</option><option value="720p">720p · live price on review</option></select></label>
+<p class="fine">One base image supplies the scene; a selected trained Soul ID supplies identity. Without a Soul ID, results will not preserve Nina. Multiple reference photos require Seedream. Higgsfield's live price must be reviewed and confirmed before generation.</p>
 </div>
 <p class="fine" id="soul-pro-note">Precise Edit keeps high edit precision. Medium quality is the default at $0.06; High is optional at $0.22.</p>
 <details class="seed-settings"><summary>Seed</summary><label><span class="label">Optional seed</span><input id="soul-pro-seed" type="number" min="0" max="2147483647" placeholder="Random"></label></details>
@@ -421,7 +421,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 <label class="label" for="daily-limit">Daily generation budget (USD)</label><input id="daily-limit" type="number" min="1" max="100" step="0.01" value="10"><p class="fine">UTC day. This Lab conservatively counts quoted maximums, including failed or uncertain attempts. Also set limits on the provider API key. Provider invoices remain the billing authority.</p>
 <label class="check"><input id="terms" type="checkbox" required> I have checked that my provider account and its terms allow my intended content, and I have the necessary rights and consent for my inputs.</label>
 <div class="dialogactions"><button id="disconnect" type="button" class="quiet" hidden>Disconnect key</button><button id="connect-save" class="primary" type="submit">Save &amp; enable</button></div><p id="connect-notice" class="fine" role="status"></p></form></dialog>
-<dialog id="quote-dialog" aria-labelledby="quote-title"><div class="dialoghead"><h2 id="quote-title">Review generation</h2><button class="quiet" data-close="quote-dialog">Cancel</button></div><p id="quote-settings"></p><div class="quote-price" id="quote-price"></div><p id="quote-limit"></p><p class="fine" id="quote-expiry"></p><p class="fine">This quote is tied to the exact image and settings shown here. Your prompt and selected references are shared with the provider to generate the result. A result you dislike can still be charged. The Lab never automatically submits a second generation.</p><button class="primary full" id="confirm-generation">Confirm &amp; generate</button><p id="quote-notice" role="status" class="fine"></p></dialog>
+<dialog id="quote-dialog" aria-labelledby="quote-title"><div class="dialoghead"><h2 id="quote-title">Review generation</h2><button class="quiet" data-close="quote-dialog">Cancel</button></div><p id="quote-settings"></p><div class="quote-price" id="quote-price"></div><p id="quote-limit"></p><p class="fine" id="quote-expiry"></p><p class="fine">Your prompt and selected inputs are shared with the provider only after confirmation. Higgsfield shows a live estimate and its final billed amount may differ. A result you dislike can still be charged. PV Lab never automatically submits a second generation.</p><button class="primary full" id="confirm-generation">Confirm &amp; generate</button><p id="quote-notice" role="status" class="fine"></p></dialog>
 <dialog id="soul-dialog" aria-labelledby="soul-title">
 <div class="dialoghead"><h2 id="soul-title">PV Soul / Characters</h2><button id="soul-dialog-close" type="button" class="quiet">Close</button></div>
 <p>Train a reusable character from 20–80 photos. The browser prepares compact working copies, the private ZIP is stored temporarily in R2, and FAL runs a 1,000-step identity training job for the selected purpose. Finished weights are archived privately when possible.</p>

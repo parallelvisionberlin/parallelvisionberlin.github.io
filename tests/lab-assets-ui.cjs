@@ -195,7 +195,28 @@ console.log('PASS fixed Generate geometry, numeric ratio label and character cre
 assert.equal(await page.locator('#image-composer-generate').isEnabled(),false,'Empty Soul cannot submit');
 await page.fill('#image-composer-prompt','A quiet concrete room in daylight');
 assert.equal(await page.locator('#image-composer-generate').isEnabled(),true,'Prompt alone enables Soul');
-const outgoing=page.waitForRequest(r=>r.url().endsWith('/api/higgsfield/generate')&&r.method()==='POST');await page.click('#image-composer-generate');const payload=(await outgoing).postDataJSON();assert.equal(payload.sourceId,null);assert.equal(payload.settings.prompt,'A quiet concrete room in daylight');
+let soulPaidSubmissions=0;
+await page.route('**/api/higgsfield/quote',route=>{
+  const payload=route.request().postDataJSON();
+  return route.fulfill({contentType:'application/json',body:JSON.stringify({id:'ab000000-0000-4000-8000-000000000001',provider:'Higgsfield',sourceId:payload.sourceId,settings:{...payload.settings,aspectRatio:'16:9',provider:'higgsfield'},estimatedUsd:0.006,maxUsd:0.006,priceIsEstimate:true,expiresAt:Date.now()+300000,notice:'NO SOUL ID SELECTED. Generic image, Nina identity is not preserved.'})});
+});
+await page.route('**/api/higgsfield/generate',route=>{
+  soulPaidSubmissions++;
+  return route.fulfill({contentType:'application/json',body:JSON.stringify({job:{id:'ab000000-0000-4000-8000-000000000002',status:'queued',createdAt:Date.now(),settings:{type:'image',provider:'higgsfield',engine:'soulpro',mode:'image',prompt:'A quiet concrete room in daylight'}}})});
+});
+const outgoingQuote=page.waitForRequest(r=>r.url().endsWith('/api/higgsfield/quote')&&r.method()==='POST');
+await page.click('#image-composer-generate');
+const quotedPayload=(await outgoingQuote).postDataJSON();
+assert.equal(quotedPayload.sourceId,null);assert.equal(quotedPayload.settings.prompt,'A quiet concrete room in daylight');
+await page.locator('#quote-dialog').waitFor({state:'visible'});
+assert.equal(soulPaidSubmissions,0,'Checking the PV Soul price does not start a paid generation');
+assert.match(await page.locator('#quote-notice').innerText(),/NO SOUL ID/);
+const outgoingGeneration=page.waitForRequest(r=>r.url().endsWith('/api/higgsfield/generate')&&r.method()==='POST');
+await page.click('#confirm-generation');
+const paidPayload=(await outgoingGeneration).postDataJSON();
+assert.equal(paidPayload.quoteId,'ab000000-0000-4000-8000-000000000001');
+assert.equal(paidPayload.confirm,true);assert.equal(soulPaidSubmissions,1);
+await page.locator('#quote-dialog').waitFor({state:'hidden'});
 assert.ok(await page.locator('.composer-model-symbol img').getAttribute('src').then(x=>x.endsWith('pv-mark.png')));console.log('PASS Soul text-only Generate and request without image upload');
 await page.route('**/api/image-models/generate',route=>{const payload=route.request().postDataJSON();return route.fulfill({contentType:'application/json',body:JSON.stringify({job:{id:'new-'+payload.settings.engine,status:'queued',createdAt:Date.now(),settings:{...payload.settings,provider:payload.settings.engine==='flash'?'openrouter':'fal'}}})});});
 for(const engine of ['flash','kling']){

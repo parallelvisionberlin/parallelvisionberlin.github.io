@@ -1,7 +1,8 @@
 // Official Soul 2 / Soul ID API. Credentials stay in the Worker secret HF_CREDENTIALS.
 export const SOUL2_MODEL='higgsfield-ai/soul/v2/image-to-image';
 export const SOUL2_TEXT_MODEL='higgsfield-ai/soul/v2/standard';
-export const SOUL2_PRICES={training:2500000,'720p':3200,'1080p':5700};
+export const SOUL2_PRICES={training:2500000,'720p':3200,'1080p':5700}; // Published estimates, not a billing ceiling.
+const SOUL2_MAX_QUOTE_MICROS=250000; // Independent $0.25/image abnormal-price guard.
 const ORIGIN='https://api.higgsfield.ai';
 const ID=/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
 const RATIOS=['16:9','9:16','4:3','3:4','1:1','2:3','3:2'];
@@ -47,11 +48,14 @@ export async function hfRequest(env,path,{input,idempotencyKey}={}){
   }
   return r.json();
 }
-async function reserve(env,owner,sourceId,p,estimate,d){
-  const {first,run,fail,now,config}=d,t=now(),id=crypto.randomUUID(),quoteId=crypto.randomUUID(),c=await config(env,owner),limit=c?.daily_limit_microusd||10000000;
-  await run(env,'INSERT INTO quotes(id,owner_id,source_id,params,estimate_microusd,expires_at,vendor_quote_id,expected_cost,payload) VALUES(?,?,?,?,?,?,?,?,?)',quoteId,owner,sourceId,JSON.stringify(p),estimate,t+600000,'higgsfield-direct',String(estimate/1000000),'{}');
-  const inserted=await run(env,"INSERT INTO jobs(id,owner_id,source_id,quote_id,params,state,estimate_microusd,created_at,updated_at) SELECT ?,?,?,?,?, 'submitting',?,?,? WHERE NOT EXISTS(SELECT 1 FROM jobs WHERE owner_id=? AND state='uncertain' AND json_extract(params,'$.provider')='higgsfield') AND (SELECT COUNT(*) FROM jobs WHERE owner_id=? AND state IN ('submitting','queued','running','uncertain') AND json_extract(params,'$.provider')='higgsfield')<2 AND (SELECT COUNT(*) FROM jobs WHERE owner_id=?)<500 AND (SELECT COALESCE(SUM(estimate_microusd),0) FROM spend WHERE owner_id=? AND created_at>=?)+?<=?",id,owner,sourceId,quoteId,JSON.stringify(p),estimate,t,t,owner,owner,owner,owner,Math.floor(t/86400000)*86400000,estimate,limit);
-  if(!inserted.meta.changes){await run(env,'DELETE FROM quotes WHERE id=?',quoteId);fail(409,'Nothing submitted: check Higgsfield requests in History, the two-request capacity, and your daily spending limit.');}
+async function reserve(env,owner,sourceId,p,estimate,d,approvedQuote=null){
+  const {first,run,fail,now,config}=d,t=now(),id=crypto.randomUUID(),quoteId=approvedQuote?.id||crypto.randomUUID(),c=await config(env,owner),limit=c?.daily_limit_microusd||10000000;
+  if(!approvedQuote)await run(env,'INSERT INTO quotes(id,owner_id,source_id,params,estimate_microusd,expires_at,vendor_quote_id,expected_cost,payload) VALUES(?,?,?,?,?,?,?,?,?)',quoteId,owner,sourceId,JSON.stringify(p),estimate,t+600000,'higgsfield-direct',String(estimate/1000000),'{}');
+  const inserted=await run(env,"INSERT INTO jobs(id,owner_id,source_id,quote_id,params,state,estimate_microusd,created_at,updated_at) SELECT ?,?,?,?,?, 'submitting',?,?,? WHERE (SELECT COUNT(*) FROM quotes WHERE id=? AND owner_id=? AND expires_at>?)=1 AND NOT EXISTS(SELECT 1 FROM jobs WHERE quote_id=?) AND NOT EXISTS(SELECT 1 FROM jobs WHERE owner_id=? AND state='uncertain' AND json_extract(params,'$.provider')='higgsfield') AND (SELECT COUNT(*) FROM jobs WHERE owner_id=? AND state IN ('submitting','queued','running','uncertain') AND json_extract(params,'$.provider')='higgsfield')<2 AND (SELECT COUNT(*) FROM jobs WHERE owner_id=?)<500 AND (SELECT COALESCE(SUM(estimate_microusd),0) FROM spend WHERE owner_id=? AND created_at>=?)+?<=?",id,owner,sourceId,quoteId,JSON.stringify(p),estimate,t,t,quoteId,owner,t,quoteId,owner,owner,owner,owner,Math.floor(t/86400000)*86400000,estimate,limit);
+  if(!inserted.meta.changes){
+    if(!approvedQuote)await run(env,'DELETE FROM quotes WHERE id=?',quoteId);
+    fail(409,'Nothing submitted: the price review expired, the quote was already used, a Higgsfield request is interrupted, two generation slots are full, or your daily spending limit was reached. Review History or request a fresh quote.');
+  }
   return first(env,'SELECT * FROM jobs WHERE id=? AND owner_id=?',id,owner);
 }
 export async function submitHiggsfieldJob(env,j,p,input,d){
@@ -113,10 +117,13 @@ export async function higgsfieldRoute(request,env,owner,url,d){
     const j=await reserve(env,owner,refs[0].id,p,SOUL2_PRICES.training,d);
     return {job:jobView(await submitHiggsfieldJob(env,j,p,input,d))};
   }
-  if(path==='/api/higgsfield/generate'&&request.method==='POST'){
-    const data=await body(request),p=soul2Parameters(data.settings,fail),character=p.characterId?await first(env,"SELECT * FROM jobs WHERE id=? AND owner_id=? AND state='completed' AND json_extract(params,'$.provider')='higgsfield' AND json_extract(params,'$.mode')=?",p.characterId,owner,TRAIN):null;
+  // A Soul 2 price check is read-only with respect to generation and spending.
+  if(path==='/api/higgsfield/quote'&&request.method==='POST'){
+    const data=await body(request),p=soul2Parameters(data.settings,fail);
+    if(data.referenceSourceIds?.length)fail(400,'PV Soul accepts one base image plus a trained Soul ID, not multiple identity photos. Use Seedream for multi-reference editing.');
+    const character=p.characterId?await first(env,"SELECT * FROM jobs WHERE id=? AND owner_id=? AND state='completed' AND json_extract(params,'$.provider')='higgsfield' AND json_extract(params,'$.mode')=?",p.characterId,owner,TRAIN):null;
     if(p.characterId&&!character?.provider_id)fail(409,'Choose a completed Soul 2 identity created in this Lab.');
-    if(!data.sourceId&&!p.prompt)fail(400,'Write a prompt or add a photograph.');
+    if(!data.sourceId&&!p.prompt)fail(400,'Write a prompt or add a base photograph.');
     let base=null,imageUrl=null;
     if(data.sourceId){
       base=await source(env,owner,data.sourceId);
@@ -131,13 +138,33 @@ export async function higgsfieldRoute(request,env,owner,url,d){
     }
     if(character)p.characterName=JSON.parse(character.params).characterName;
     const input=soul2Input(p,imageUrl,character?.provider_id);
-    const quote=await hfRequest(env,'/estimate/'+p.model,{input});
-    if(!/^\d{1,6}(\.\d{1,6})?$/.test(String(quote.usd)))fail(502,'Higgsfield did not return a valid USD estimate. Nothing generated.');
-    const estimate=Math.round(Number(quote.usd)*1000000);
-    if(estimate>SOUL2_PRICES[p.resolution])fail(409,'Your Higgsfield account estimates $'+quote.usd+' for this image, above the displayed rate. Nothing generated or charged. Review your API account pricing first.');
-    p.accountEstimateUsd=Number(quote.usd);
-    const j=await reserve(env,owner,base?.id||null,p,estimate,d);
-    return {job:jobView(await submitHiggsfieldJob(env,j,p,input,d))};
+    const estimateReply=await hfRequest(env,'/estimate/'+p.model,{input});
+    if(!/^\d{1,6}(\.\d{1,6})?$/.test(String(estimateReply.usd)))fail(502,'Higgsfield did not return a valid USD estimate. Nothing generated.');
+    const estimate=Math.round(Number(estimateReply.usd)*1000000);
+    if(!Number.isSafeInteger(estimate)||estimate<=0)fail(502,'Higgsfield did not return a positive image price. Nothing generated.');
+    if(estimate>SOUL2_MAX_QUOTE_MICROS)fail(409,'Higgsfield estimates $'+estimateReply.usd+', above the independent $0.25/image safety ceiling. Nothing submitted or charged.');
+    p.accountEstimateUsd=estimate/1000000;
+    const id=crypto.randomUUID(),expiresAt=d.now()+300000;
+    await d.run(env,'INSERT INTO quotes(id,owner_id,source_id,params,estimate_microusd,expires_at,vendor_quote_id,expected_cost,payload) VALUES(?,?,?,?,?,?,?,?,?)',id,owner,base?.id||null,JSON.stringify(p),estimate,expiresAt,'higgsfield-soul2-quote-v1',String(estimateReply.usd),JSON.stringify({model:p.model,input}));
+    return {id,provider:'Higgsfield',sourceId:base?.id||null,settings:p,estimatedUsd:estimate/1000000,maxUsd:estimate/1000000,priceIsEstimate:true,expiresAt,
+      notice:character?'Soul ID: '+p.characterName+'. The quoted image will use this saved identity and '+(base?'your base photograph.':'your text prompt.'):'NO SOUL ID SELECTED. This is a generic generation and will not preserve Nina. Choose a trained character before confirming if identity matters.'};
+  }
+  if(path==='/api/higgsfield/generate'&&request.method==='POST'){
+    const data=await body(request);
+    if(data.confirm!==true)fail(400,'Review the live price and explicitly confirm the Higgsfield charge before generating.');
+    if(!ID.test(data.quoteId||''))fail(400,'A valid live Higgsfield quote is required. Nothing submitted.');
+    const existing=await first(env,'SELECT * FROM jobs WHERE quote_id=? AND owner_id=?',data.quoteId,owner);
+    if(existing)return {job:jobView(existing)}; // A replay cannot create a second paid request.
+    const quote=await first(env,'SELECT * FROM quotes WHERE id=? AND owner_id=?',data.quoteId,owner);
+    if(!quote||quote.vendor_quote_id!=='higgsfield-soul2-quote-v1')fail(409,'Review a new Higgsfield price. No generation submitted.');
+    if(quote.expires_at<=d.now())fail(409,'Higgsfield price review expired. No generation submitted; review again.');
+    const p=JSON.parse(quote.params),payload=JSON.parse(quote.payload||'{}');
+    if(p.provider!=='higgsfield'||p.soulProModel!=='soul2'||payload.model!==p.model||!payload.input||quote.estimate_microusd<=0||quote.estimate_microusd>SOUL2_MAX_QUOTE_MICROS)fail(409,'Invalid Higgsfield quote; review the price again.');
+    if(quote.source_id)await source(env,owner,quote.source_id);
+    let j;
+    try{j=await reserve(env,owner,quote.source_id,p,quote.estimate_microusd,d,quote);}
+    catch(e){const replay=await first(env,'SELECT * FROM jobs WHERE quote_id=? AND owner_id=?',quote.id,owner);if(replay)return {job:jobView(replay)};throw e;}
+    return {job:jobView(await submitHiggsfieldJob(env,j,p,payload.input,d))};
   }
   fail(404,'Unknown Higgsfield route.');
 }

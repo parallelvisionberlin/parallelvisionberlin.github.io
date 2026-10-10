@@ -5,7 +5,7 @@ export function createSoul2UI({api,uploadAsset,assetPhoto,notify,onChange,onJob,
   const current=()=>characters.find(c=>c.id===selected);
   function render(){
     const c=current();
-    $('hf-status').textContent=!enabled?'Connect Higgsfield API to train and generate.':c?c.name+' · '+(c.state==='completed'?'ready':c.state):'Create or choose a Soul ID.';
+    $('hf-status').textContent=!enabled?'Connect Higgsfield API to train and generate.':c?c.name+' · '+(c.state==='completed'?'ready':c.state):'No Soul ID selected. Text or base-image generations will NOT preserve Nina.';
     $('hf-connection').hidden=enabled;
     $('hf-training-submit').disabled=!enabled||uploading;
     const grid=$('hf-characters');grid.replaceChildren();
