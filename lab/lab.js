@@ -443,7 +443,7 @@ function referenceRatioLabel(){
 function synchronizeComposerSelect(composerId,realId){
   const mirror=$(composerId),real=$(realId);
   if(!mirror || !real)return;
-  const current=[...real.options].filter(option=>!(realId==='ratio'&&referencesOnly()&&option.value==='auto')).map(option=>[option.value,realId==='ratio'&&option.value==='auto'?referenceRatioLabel():option.textContent]);
+  const current=[...real.options].filter(option=>!(realId==='ratio'&&referencesOnly()&&option.value==='auto')).map(option=>[option.value,realId==='ratio'&&option.value==='auto'?'Auto · '+referenceRatioLabel():option.textContent]);
   const previous=[...mirror.options].map(option=>[option.value,option.textContent]);
   if(JSON.stringify(current)!==JSON.stringify(previous))
     mirror.replaceChildren(...current.map(([value,label])=>new Option(label,value)));
