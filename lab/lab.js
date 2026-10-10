@@ -696,7 +696,6 @@ $('image-composer-more').onclick=()=>toggleImageSettings();
 $('image-settings-scrim').onclick=()=>toggleImageSettings(false);
 $('image-composer-model').onclick=()=>{
   moodUI.close();
-  if(!e.target.closest('#composer-moods,#image-composer-moods'))moodUI.close();
   if(busy)return;
   closeComposerLibrary();toggleImageSettings(false);
   imageMenuOpen=!imageMenuOpen;
@@ -714,6 +713,7 @@ document.addEventListener('keydown',e=>{
 });
 document.addEventListener('click',e=>{
   if(imageMenuOpen&&!e.target.closest('.composer-model-wrap'))closeImageModelMenu();
+  if(!e.target.closest('#composer-moods,#image-composer-moods'))moodUI.close();
 });
 imageComposer.addEventListener('dragover',e=>{
   if(e.dataTransfer?.types.includes('Files')){e.preventDefault();imageComposer.classList.add('is-dragging');}
