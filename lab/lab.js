@@ -696,7 +696,8 @@ function syncImageComposer(){
   }
   // A blocked/uncertain queue belongs in the top navigation Queue popover, not as a third row in the image deck.
   // Keep generation disabled until reviewed, and preserve the reason in the button tooltip.
-  const inlineMessage=queueBlocked||(usesReferenceGuidance()&&references.length&&imageGuidance().error)?'':message;
+  const intentIncomplete=usesReferenceGuidance()&&references.length>0&&((references.length>1&&!referenceIntent)||references.some(ref=>!ref.role||ref.role==='none'));
+  const inlineMessage=queueBlocked||intentIncomplete?'':message;
   block.hidden=!inlineMessage;reason.textContent=inlineMessage;review.hidden=true;
   generate.title=message?(message+(queueBlocked?' Open Queue at the top right to review it.':'')):(isSoul2()?'Review the live Higgsfield price before any charge. PV Soul accepts one base image and one optional trained Soul ID; use Seedream for multiple reference photos.':'');
   syncImageReferences();
