@@ -144,6 +144,27 @@ try{
   ok('Retouch route, native Back, direct URL and customer preview preserve safe Image state');
   assert.deepEqual(x.errors,[]);await x.context.close();
  }
+ // A completed-image viewer must open Retouch even while the source asset is fetched.
+ // This catches an accidental busy-state guard that makes the shortcut do nothing.
+ {
+  const completed={id:id(880),status:'completed',sourceId:id(881),outputId:id(882),
+    settings:{type:'image',provider:'spicy',engine:'seedream',mode:'image',prompt:'Editorial still.',
+      resolution:'1k',aspectRatio:'1:1',referenceSourceIds:[],referenceRoles:[]},
+    createdAt:Date.now(),estimatedUsd:.02};
+  x=await workspace({initial:[completed]});
+  await x.page.locator('#history .card[data-state="completed"]').first().click();
+  await x.page.locator('#image-detail-edit-area').click();
+  await x.page.waitForFunction(()=>document.getElementById('app').classList.contains('retouch-studio-active')&&
+    !document.getElementById('precision-source-holder').hidden);
+  assert.match(x.page.url(),/tool=retouch/);
+  assert.match(await x.page.locator('#precision-source-meta').textContent(),/retouch-original/);
+  assert.equal(count(x,'/api/precision/submit'),0);
+  assert.equal(count(x,'/api/uploads'),0);
+  await x.page.click('#precision-return');
+  await x.page.waitForFunction(()=>new URL(location.href).searchParams.get('tool')==='image');
+  ok('Completed image opens in Retouch without uploading twice or paying');
+  assert.deepEqual(x.errors,[]);await x.context.close();
+ }
  if(!process.env.PV_RETOUCH_NAV_ONLY){
  // Upload preparation must not grow a temporary third status row in the deck.
  {
