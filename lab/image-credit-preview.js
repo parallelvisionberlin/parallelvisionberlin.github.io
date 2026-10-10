@@ -21,19 +21,17 @@ export function customerImagePriceKey({sessionEpoch,settings,count,images=[],sou
       width:source.width||0,height:source.height||0}:null
   });
 }
-export function pricedBoundQuotes(payload,count,creditCost,expectedProvider){
+export function pricedBoundQuotes(payload,count,expectedProvider){
   const quotes=Array.isArray(payload?.quotes)?payload.quotes:payload?[payload]:[];
-  if(quotes.length!==count||typeof creditCost!=='function')throw new Error('Incomplete provider price quote.');
+  if(quotes.length!==count)throw new Error('Incomplete provider price quote.');
   let credits=0,expiry=Infinity;
   const ids=new Set();
   for(const q of quotes){
     if(!q||q.provider!==expectedProvider||typeof q.id!=='string'||!q.id||
-       ids.has(q.id)||!Number.isFinite(q.maxUsd)||q.maxUsd<0||
+       ids.has(q.id)||!Number.isFinite(q.maxUsd)||q.maxUsd<0||!Number.isSafeInteger(q.creditCost)||q.creditCost<1||
        !Number.isFinite(q.expiresAt)||q.expiresAt<=Date.now()+20000)
       throw new Error('Price quote expired or does not match the selected image request.');
-    const item=creditCost(q.maxUsd);
-    if(!Number.isSafeInteger(item)||item<1)throw new Error('Invalid credit price.');
-    credits+=item;expiry=Math.min(expiry,q.expiresAt);ids.add(q.id);
+    credits+=q.creditCost;expiry=Math.min(expiry,q.expiresAt);ids.add(q.id);
   }
   return {kind:'bound',credits,count,quotes,expiresAt:expiry};
 }
