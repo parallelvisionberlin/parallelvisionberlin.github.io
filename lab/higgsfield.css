@@ -74,6 +74,9 @@
 }
 #image-composer #image-composer-prompt::-webkit-scrollbar{width:6px}
 #image-composer #image-composer-prompt::-webkit-scrollbar-thumb{background:#63666d;border-radius:8px}
+/* Soul uses a flex column inside a grid row. Prevent flex shrinking the prompt
+   back to one line after JavaScript has deliberately fitted it to 176px. */
+#image-composer.is-pv-soul #image-composer-prompt{flex-shrink:0}
 @media(max-width:740px){
   #image-composer #image-composer-prompt{max-height:min(122px,22dvh);min-height:47px;font-size:12px!important}
   #image-composer:not(.is-pv-soul) .image-composer-references{max-height:74px;gap:7px;padding-top:8px}
