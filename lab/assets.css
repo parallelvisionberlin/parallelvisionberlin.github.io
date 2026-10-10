@@ -277,7 +277,8 @@ header .wrap.top{max-width:none;padding-inline:16px;min-height:48px}
 #image-composer.is-pv-soul .composer-reference-tile{flex-basis:58px;width:58px;height:62px;overflow:visible}
 #image-composer.is-seedream #composer-character{display:none!important}
 @media(min-width:900px){
- #image-composer.is-pv-soul{padding:22px 24px;grid-template-rows:minmax(38px,auto) minmax(40px,auto);gap:8px 12px}
+ /* The empty Soul dock must match the Seedream compact baseline (5px vertical gap). */
+ #image-composer.is-pv-soul{padding:22px 24px 27px;grid-template-rows:minmax(38px,auto) minmax(40px,auto);gap:8px 12px}
  #image-composer.is-pv-soul #image-composer-prompt{padding:3px 0;box-sizing:border-box}
  #image-composer.is-seedream{grid-template-columns:minmax(0,1fr) 144px}
  #image-composer.is-seedream .image-composer-top{grid-column:1}

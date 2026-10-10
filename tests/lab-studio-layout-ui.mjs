@@ -144,7 +144,7 @@ try{
   assert.notEqual(d.accent,'rgb(141, 99, 255)','No default purple selection');
   assert.ok(await x.page.locator('#empty-title').innerText().then(t=>/next scene/i.test(t)),'Video opens with an inviting scene direction');
   assert.ok(await x.page.locator('#canvas-secondary').isVisible(),'Video offers an alternate entry into Image');
-  assert.equal(await x.page.locator('.canvas').evaluate(e=>getComputedStyle(e).backgroundColor),'rgb(21, 22, 25)','Video playback uses a neutral dark canvas');
+  assert.equal(await x.page.locator('.canvas').evaluate(e=>getComputedStyle(e).backgroundColor),'rgb(13, 14, 16)','Video playback uses the intended near-black #0d0e10 canvas, without a colored overlay');
   const palette=await x.page.evaluate(()=>{
     const style=getComputedStyle(document.documentElement);
     return {
