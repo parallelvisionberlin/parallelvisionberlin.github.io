@@ -145,3 +145,16 @@ test('Dreamcore thumbnail and provider intensity directions are connected',()=>{
   const html=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
   assert.match(html,/Eleven curated looks/);
 });
+
+
+test('Compact thumbnail-first Moods footer keeps inputs usable',()=>{
+  const css=readFileSync(new URL('../lab/moods.css',import.meta.url),'utf8');
+  const html=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
+  assert.match(css,/Moods: thumbnails are the hero/);
+  assert.match(css,/grid-template-columns:minmax\(145px,1\.05fr\) minmax\(0,2\.5fr\) 134px/);
+  assert.match(css,/\.moods-controls\{display:contents\}/);
+  assert.match(css,/#composer-moods-intensity::-webkit-slider-runnable-track\{[\s\S]*?height:6px/);
+  assert.match(css,/#composer-moods-done:disabled,[\s\S]*?background:#303234/);
+  assert.match(css,/@media\(max-width:740px\)\{[\s\S]*?moods-controls\{display:grid;grid-template-columns:minmax\(0,1fr\) 126px/);
+  assert.match(html,/moods\.css\?v=20261010-thumb-focus4/);
+});
