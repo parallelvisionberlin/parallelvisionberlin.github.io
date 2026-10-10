@@ -106,8 +106,8 @@ try{
      settings:{type:'image',engine:'fal',mode:'image'},error:'Check status before retrying.'}
   ]));
   assert.equal(await x.page.locator('#active').isVisible(),true,'Queue status is visible when jobs need review');
-  assert.equal(await x.page.locator('#active').evaluate(el=>el.closest('.tool-switch')!==null),true,
-    'Live Queue belongs to tool bar instead of below editor');
+  assert.equal(await x.page.locator('#active').evaluate(el=>el.closest('#studio-header')!==null),true,
+    'Live Queue belongs to Studio header instead of below editor');
   assert.equal(await x.page.locator('#active').evaluate(el=>el.open),false,'Queue details collapsed by default');
   assert.match(await x.page.locator('#queue-count').innerText(),/2 to review/);
   assert.equal(await x.page.locator('#resolve').isVisible(),false,'Resolve action hidden until user opens Queue');
