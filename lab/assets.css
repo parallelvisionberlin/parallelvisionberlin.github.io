@@ -765,3 +765,82 @@ body:has(#app[hidden])>#studio-header .tool-switch{display:none}
  #image-composer .reference-intent-choice strong{margin-top:1px}
  #image-composer .reference-intent-heading strong{font-size:18px}
 }
+
+
+/* Upscaler gallery V4. Keep the large preview and existing working deck geometry. */
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #settings-summary{
+  display:none!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .stagefoot:has(#download[hidden]){
+  display:none!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .stagefoot{
+  justify-content:flex-end;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .upscale-technical-summary{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  margin:12px 0 9px;padding:9px 11px;border:1px solid #343740;border-radius:8px;
+  background:#23252a;color:#b1b5be;font:400 11px/1.4 'DM Sans',sans-serif;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .upscale-technical-summary span:first-child{
+  flex:0 0 auto;color:#c1c5ce;font-weight:600;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-technical-summary{
+  text-align:right;overflow-wrap:anywhere;color:#d9dae1;
+}
+/* Loading actual owner thumbnails is visually distinct from missing results. */
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #history .history-media[aria-busy="true"]:not(.has-image):not(.is-unavailable)::before{
+  background:linear-gradient(108deg,#1a1c20 10%,#2b2e36 46%,#1a1c20 82%);
+  background-size:230% 100%;
+  animation:pv-upscale-image-shimmer 1.8s ease-in-out infinite;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #history .history-media[aria-busy="true"]:not(.has-image):not(.is-unavailable)::after{
+  width:27px;height:27px;opacity:.23;
+}
+@keyframes pv-upscale-image-shimmer{
+  0%{background-position:100% 0}
+  100%{background-position:-105% 0}
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #emptyarchive:not([hidden]){
+  display:block;max-width:500px;margin:0 auto;padding:33px 16px 48px;
+  text-align:center;color:#a6abb6;font:500 13px/1.6 'DM Sans',sans-serif;
+}
+/* Refine results header without shifting the workspace or shrinking the canvas. */
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace{
+  margin-bottom:13px;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.archive .archivehead{
+  margin-bottom:9px;gap:12px;min-height:32px;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.archive .archivehead h2{
+  font-size:18px!important;line-height:1.25;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.archive .history-head-actions{
+  display:flex;align-items:center;justify-content:flex-end;gap:7px;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.archive .history-head-actions button{
+  min-height:30px;padding:5px 9px;border-radius:7px;
+  color:#b7bac3;font-size:11px;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.archive .history-head-actions button:hover{
+  color:#f0f1f3;background:#292b32;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-info summary{
+  min-height:28px;padding:5px 9px;
+}
+@media(max-width:640px){
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .upscale-technical-summary{
+    flex-direction:column;align-items:flex-start;gap:3px;
+  }
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-technical-summary{
+    text-align:left;
+  }
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.archive .archivehead h2{
+    font-size:17px!important;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  #app.upscale-studio-active #history .history-media[aria-busy="true"]:not(.has-image):not(.is-unavailable)::before{
+    animation:none;background:#22242a;
+  }
+}

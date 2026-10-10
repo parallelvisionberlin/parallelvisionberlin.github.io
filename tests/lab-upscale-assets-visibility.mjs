@@ -90,9 +90,31 @@ for(const [width,height,profile] of [[1440,900,'desktop'],[390,844,'mobile']]){
     const filledCanvasHeight=await page.locator('#upscale-canvas').evaluate(el=>el.getBoundingClientRect().height);
     assert.ok(Math.abs(filledCanvasHeight-emptyCanvasHeight)<=2,'Source preview remains equally spacious before and after upload');
     await page.evaluate(()=>{document.getElementById('preview').hidden=true;document.getElementById('empty').hidden=false;});
+    assert.equal(await page.locator('.stagefoot').isVisible(),false,'Empty Upscaler does not show a technical footer');
+    assert.equal(await page.locator('#settings-summary').isVisible(),false,'Redundant technical text is hidden on Upscaler');
+    await page.evaluate(()=>{document.querySelector('#download').hidden=false;});
+    assert.equal(await page.locator('.stagefoot').isVisible(),true,'Finished result keeps its Download action');
+    await page.evaluate(()=>{document.querySelector('#download').hidden=true;});
+    await page.evaluate(()=>{
+      const card=document.querySelector('#history .card'),figure=document.createElement('figure');
+      figure.className='history-media';figure.setAttribute('aria-busy','true');
+      const img=document.createElement('img');img.className='history-asset-loading';
+      figure.append(img);card.prepend(figure);
+    });
+    const loadingState=await page.locator('#history .history-media').evaluate(el=>({
+      name:getComputedStyle(el,'::before').animationName,
+      hidden:getComputedStyle(el.querySelector('img')).visibility==='hidden'
+    }));
+    assert.ok(loadingState.name.includes('pv-upscale-image-shimmer'),'Actual loading thumbnails have a subtle shimmer');
+    assert.equal(loadingState.hidden,true,'Unloaded image elements stay hidden until decoded');
+    await page.locator('#history .history-media').evaluate(el=>{
+      el.classList.add('has-image');el.setAttribute('aria-busy','false');el.querySelector('img').classList.remove('history-asset-loading');
+    });
+    assert.equal(await page.locator('#history .history-media').evaluate(el=>getComputedStyle(el,'::before').animationName),'none','Shimmer ends when the image loads');
     assert.equal(await page.locator('#upscale-price').isVisible(),false,'Optional pricing is initially hidden');
     await page.locator('#upscale-info summary').click();
     assert.equal(await page.locator('#upscale-price').isVisible(),true,'More options exposes live price check');
+    assert.equal(await page.locator('#upscale-technical-summary').isVisible(),true,'Current settings appear only in More options');
     await page.locator('#upscale-info summary').click();
     assert.equal(await page.locator('#upscale-price').isVisible(),false,'More options can collapse');
     assert.equal(await page.locator('.archive').isVisible(),true,profile+': Upscaler shows its results');
@@ -114,6 +136,7 @@ for(const [width,height,profile] of [[1440,900,'desktop'],[390,844,'mobile']]){
       document.getElementById('assets-workspace').hidden=true;
     });
     assert.equal(await page.locator('.archive').isVisible(),true,profile+': Image and Video History remain available');
+    assert.ok(main.includes("tool==='upscale'?'No upscaled images yet'"),'Empty Upscaler response uses a true no-results label');
     assert.equal(await page.locator('.upscale-assets-shortcut').isVisible(),false,profile+': No Upscale shortcut in other tools');
     const widthCheck=await page.evaluate(()=>({documentWidth:document.documentElement.scrollWidth,viewportWidth:innerWidth}));
     assert.ok(widthCheck.documentWidth<=widthCheck.viewportWidth,profile+': No horizontal overflow');

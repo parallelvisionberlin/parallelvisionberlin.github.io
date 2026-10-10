@@ -62,6 +62,11 @@ try{
  let x=await workspace();await x.page.click('#tool-upscale');
   assert.equal(await x.page.locator('#notice').evaluate(el=>el.parentElement.id),'upscale-notice-slot','Upscale reuses the global accessible status within its controls');
   assert.equal(await x.page.locator('#upscale-notice-slot').isVisible(),false,'Empty upscale status has no blank panel');
+  assert.equal(await x.page.locator('#settings-summary').isVisible(),false,'Upscaler hides the technical line below preview');
+  assert.equal(await x.page.locator('#upscale-technical-summary').isVisible(),false,'Advanced technical setup starts collapsed');
+  await openUpscaleOptions(x.page);
+  assert.match(await x.page.locator('#upscale-technical-summary').innerText(),/SpicyAPI.*4K.*source ratio/);
+  await x.page.locator('#upscale-info summary').click();
   assert.equal(await x.page.locator('#prompt').isVisible(),false);assert.equal(await x.page.locator('#last-upload').isVisible(),false);assert.equal(await x.page.locator('#resolution').inputValue(),'4k');await uploadSmall(x.page);ok('Upscale needs one image and no prompt');
  assert.equal(await x.page.locator('#generate').innerText(),'Upscale');await x.page.click('#generate:visible, #image-composer-generate:visible');await x.page.waitForFunction(()=>!document.querySelector('#resolution').disabled);const q=x.requests.find(r=>r.path==='/api/quotes');assert.equal(q.data.settings.mode,'upscale');assert.equal(q.data.settings.prompt,'');assert.equal(q.data.settings.type,'image');assert.equal(x.requests.filter(r=>r.path==='/api/quotes').length,1);assert.equal(countPaid(x),1);assert.equal(await x.page.locator('#quote-dialog').isVisible(),false);ok('One click obtains a live quote and submits one upscale without review');
  const paid=x.requests.find(r=>r.path==='/api/jobs'&&r.method==='POST');assert.equal(paid.data.quoteId,'10000000-0000-4000-8000-000000000088');assert.equal(paid.data.confirm,true);assert.match(await x.page.locator('#notice').innerText(),/Upscale requested/);
