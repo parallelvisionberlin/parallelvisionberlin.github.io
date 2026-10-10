@@ -3,6 +3,7 @@ import {ensureCustomer,isLabCustomer,customerSession,customerRoute,stripeWebhook
 import {quoteCustomerImageCredits} from './customer-image-pricing.mjs';
 import {referralRoute} from './referrals.mjs';
 import {fashionRoute,refreshFashionJob} from './fashion-tools.mjs';
+import {precisionEditRoute} from './precision-edit.mjs';
 import {IMAGE_PRICES,IMAGE_RATIOS,imageModelParameters,buildImageModelInput,requestFlash} from './image-models.mjs';
 import {ensureGalleryDimensions} from './gallery-dimensions.mjs';
 import {libraryRoute,libraryJobs} from './asset-library.mjs';
@@ -20,7 +21,7 @@ import {findFalRequest} from './fal-recovery.mjs';
 import {falUploadImage} from './fal-storage.mjs';
 import {REFERENCE_ROLES,normalizeReferenceLabel,supportsReferenceGuidance,compileImagePrompt,canUseReferenceGuidance,referenceGuidanceError} from '../lab/reference-guidance.js';
 import {characterPreview as soulCharacterPreview,SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-10.7-customer-image-quotes';
+export const VERSION = 'pv-lab-2026-10-10.8-precision-edit';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -1009,6 +1010,10 @@ async function route(request,env,ctx) {
   if(path==='/api/library'||path.startsWith('/api/library/'))return json(await libraryRoute(request,env,owner,url,{body,uid,fail,rows,first,run}));
   // FASHN balance reports our wholesale API account balance, not the customer's credits.
   if(customer&&path==='/api/fashion/balance'&&method==='GET')return json({connected:!!env.FASHN_API_KEY,credits:null,note:'Your generation allowance is shown in your PV Lab credit wallet.'});
+  if(path.startsWith('/api/precision/'))return precisionEditRoute(request,env,owner,url,{
+    customer,fail,body,first,run,source,signedInput,config,storedImageDimensions,falImageBytes,
+    reserveFalImageJob,submitReservedFalJob,jobView,json,limitedBody,sniff
+  });
   if(path.startsWith('/api/fashion/'))return json(await fashionRoute(request,env,owner,url,{fail,body,first,run,stmt,jobView,source,signedInput,config,storedImageDimensions,falImageBytes,falSubmit}),path==='/api/fashion/submit'?202:200);
   if(path.startsWith('/api/higgsfield/'))return json(await higgsfieldRoute(request,env,owner,url,hfDeps()),request.method==='POST'?202:200);
   if(path==='/api/session'&&method==='GET'){
