@@ -496,3 +496,7 @@ body:has(#app[hidden])>#studio-header .tool-switch{display:none}
   #studio-header .tool-switch>.tool-group>button,
   #studio-header .actions>details>summary{transition:none}
 }
+
+/* The detail viewer opens immediately, with the same PV loading mark as History. */
+#image-lightbox-stage{position:relative}
+#image-lightbox-stage[aria-busy="true"]::after{content:"";position:absolute;left:50%;top:50%;width:34px;height:34px;transform:translate(-50%,-50%);background:url('./branding/pv-mark.png') center/contain no-repeat;opacity:.4;pointer-events:none;}

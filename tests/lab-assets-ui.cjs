@@ -1,6 +1,6 @@
 const {chromium}=require(process.env.CODEX_PRIMARY_RUNTIME_NODE_MODULES+'/playwright');
 const fs=require('fs'),http=require('http'),path=require('path'),assert=require('assert/strict');
-const root=process.cwd();let source=fs.readFileSync('lab/lab.js','utf8');const a=source.indexOf("try{const {Clerk}=await import("),b=source.indexOf('// Soul composer:',a);source=source.slice(0,a)+`clerk={session:{getToken:async()=> 'test'}};owner=true;userId='test';config={enabled:true,higgsfieldEnabled:true,openrouterEnabled:true,falEnabled:true,videoEngines:['seedance','wan'],concurrency:{image:10,video:3}};$('app').hidden=false;$('gate').hidden=true;hf.configure(true);await loadHistory();update();finishLabBoot();window.__referenceSettings=()=>settings();window.__setTestJobs=setActiveJobs;window.__surfaceTestJob=surfaceHistoryJob;window.__ready=true;\n`+source.slice(b);
+const root=process.cwd();let source=fs.readFileSync('lab/lab.js','utf8');const a=source.indexOf("try{const {Clerk}=await import("),b=source.indexOf('// Soul composer:',a);source=source.slice(0,a)+`clerk={session:{getToken:async()=> 'test'}};owner=true;userId='test';config={enabled:true,higgsfieldEnabled:true,openrouterEnabled:true,falEnabled:true,videoEngines:['seedance','wan'],concurrency:{image:10,video:3}};$('app').hidden=false;$('gate').hidden=true;hf.configure(true);await loadHistory();await restoreStudioEntry();update();finishLabBoot();window.__lockTest=lock;window.__assetCacheSize=()=>assetBlobs.size;window.__referenceSettings=()=>settings();window.__setTestJobs=setActiveJobs;window.__surfaceTestJob=surfaceHistoryJob;window.__ready=true;\n`+source.slice(b);
 const server=http.createServer((req,res)=>{const url=new URL(req.url,'http://localhost'),rel=url.pathname.replace(/^\//,'')+(url.pathname.endsWith('/')?'index.html':'');const f=['.'].map(x=>path.join(root,x,rel)).find(fs.existsSync);if(!f){res.writeHead(404).end();return;}res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css','.png':'image/png'})[path.extname(f)]||'text/plain');res.end(rel==='lab/lab.js'?source:fs.readFileSync(f));});
 (async()=>{await new Promise(r=>server.listen(8765,'127.0.0.1',r));const browser=await chromium.launch({headless:true,args:['--no-sandbox']});const page=await browser.newPage({viewport:{width:1440,height:1000}});const png=Buffer.from(await page.evaluate(()=>{const c=document.createElement('canvas');c.width=900;c.height=600;const x=c.getContext('2d');x.fillStyle='#454b50';x.fillRect(0,0,900,600);x.fillStyle='#9b9489';x.fillRect(240,80,400,450);return c.toDataURL().split(',')[1];}),'base64');const errors=[];page.on('pageerror',e=>errors.push(e.message));let releaseImages;const imagesReady=new Promise(r=>releaseImages=r);let folders=[],members={},favorites=new Set();let jobs=Array.from({length:6},(_,i)=>({id:'job-'+i,sourceId:'source-'+i,outputId:'out-'+i,status:'completed',createdAt:Date.now()-i*100,settings:{galleryDimensions:{assetId:'out-'+i,width:900,height:600},type:i<4?'image':'video',mode:i<4?'image':'start',engine:i<4?'seedream':'wan',resolution:'1k',prompt:'A quiet room',aspectRatio:'16:9',duration:5}}));
 await page.route('https://**/*',async route=>{const req=route.request(),u=new URL(req.url());if(!u.href.includes('parallel-vision-lab.parallelvision.workers.dev'))return route.abort();let result={};const d=req.method()==='POST'?req.postDataJSON():{};if(u.pathname==='/api/jobs'){let list=jobs.filter(j=>(u.searchParams.get('unfiled')!=='1'||u.searchParams.get('folder')||u.searchParams.get('favorite')||!Object.values(members).some(ids=>ids.includes(j.id)))&&(!u.searchParams.get('kind')||j.settings.type===u.searchParams.get('kind'))&&(!u.searchParams.get('mode')||j.settings.mode===u.searchParams.get('mode'))&&(!u.searchParams.get('favorite')||favorites.has(j.id))&&(!u.searchParams.get('folder')||(members[u.searchParams.get('folder')]||[]).includes(j.id)));result={jobs:list.map(j=>({...j,favorite:favorites.has(j.id)})),next:null,activeJobs:[]};}else if(u.pathname==='/api/library')result={folders:folders.map(f=>({...f,count:(members[f.id]||[]).length}))};else if(u.pathname==='/api/library/folders'){const folder={id:'folder-'+folders.length,name:d.name};folders.push(folder);result={folder};}else if(u.pathname==='/api/library/archive'){let folder=folders.find(f=>f.name==='Archive');if(!folder){folder={id:'archive',name:'Archive'};folders.push(folder);}members[folder.id]=[...new Set([...(members[folder.id]||[]),...d.ids])];}else if(u.pathname==='/api/library/members'){for(const id of d.ids){if(typeof d.favorite==='boolean'){d.favorite?favorites.add(id):favorites.delete(id);}else{const m=new Set(members[d.folderId]||[]);d.remove?m.delete(id):m.add(id);members[d.folderId]=[...m];}}}else if(u.pathname==='/api/jobs/bulk-delete'){jobs=jobs.filter(j=>!d.ids.includes(j.id));result={deleted:d.ids.length};}else if(u.pathname.startsWith('/api/assets/')){await imagesReady;return route.fulfill({contentType:/out-[45]$/.test(u.pathname)?'video/mp4':'image/png',body:/out-[45]$/.test(u.pathname)?Buffer.from('mock video bytes'):png});}return route.fulfill({contentType:'application/json',body:JSON.stringify(result)});});
@@ -36,6 +36,40 @@ await page.click('#tool-image');
 await page.waitForFunction(()=>document.querySelectorAll('#history .card').length===4);
 await page.waitForFunction(()=>document.querySelector('#history .card')?.style.width);
 releaseImages();await page.waitForFunction(()=>[...document.querySelectorAll('#history .history-media img')].every(i=>i.naturalWidth>0));
+// A loaded gallery output opens without downloading it again.
+const reads=new Map();
+const trackAssets=request=>{const u=new URL(request.url());if(u.pathname.startsWith('/api/assets/'))reads.set(u.pathname,(reads.get(u.pathname)||0)+1);};
+page.on('request',trackAssets);
+await page.locator('#history .card[data-job="job-0"]').click();
+await page.waitForFunction(()=>document.querySelector('#image-lightbox-img').naturalWidth>0);
+assert.equal(reads.get('/api/assets/out-0')||0,0,'Gallery and viewer reuse the original image bytes');
+assert.equal(await page.locator('#tool-video').isEnabled(),true,'Viewing never locks studio navigation');
+await page.keyboard.press('Escape');
+// No full video fetch on entry; an explicit slow view must not lock navigation.
+let releaseVideo;
+const slowVideo=new Promise(resolve=>releaseVideo=resolve);
+await page.route('**/api/assets/out-4',async route=>{await slowVideo;await route.fulfill({contentType:'video/mp4',body:Buffer.from('mock video bytes')});});
+await page.click('#tool-video');
+await page.waitForFunction(()=>document.querySelectorAll('#history .card').length===2);
+assert.equal(reads.get('/api/assets/out-4')||0,0,'Entering Video does not download or autoplay a previous MP4');
+const explicitVideo=page.waitForRequest('**/api/assets/out-4');
+await page.locator('#history .card[data-job="job-4"]').click();await explicitVideo;
+assert.equal(await page.locator('#tool-image').isEnabled(),true,'Slow video playback does not disable tabs');
+await page.click('#tool-image');
+const videoFinished=page.waitForResponse('**/api/assets/out-4');releaseVideo();await videoFinished;
+await page.waitForFunction(()=>document.querySelectorAll('#history .card').length===4);
+assert.equal(await page.locator('#video').getAttribute('src'),null,'Late MP4 cannot replace the new section');
+await page.unroute('**/api/assets/out-4');
+for(const section of ['upscale','image','video','assets']){
+  await page.click('#tool-'+section);
+  assert.equal(new URL(page.url()).searchParams.get('tool'),section);
+  await page.reload();await page.waitForFunction(()=>window.__ready);
+  assert.equal(await page.locator('#tool-'+section).getAttribute('aria-pressed'),'true','Reload restores '+section);
+}
+await page.click('#tool-image');
+await page.waitForFunction(()=>document.querySelectorAll('#history .card').length===4&&[...document.querySelectorAll('#history img')].every(i=>i.naturalWidth>0));
+page.off('request',trackAssets);
+console.log('PASS section URLs and reloads, shared gallery bytes, no Video auto-download and nonblocking slow playback');
 for(const width of [1920,1440,900,899,821,768,390,320]){
   await page.setViewportSize({width,height:1000});
   const header=await page.locator('.studio-header').boundingBox();
@@ -50,6 +84,7 @@ for(const width of [1920,1440,900,899,821,768,390,320]){
   let baseline;
   for(const tool of ['image','video','upscale','assets','image']){
     await page.click('#tool-'+tool);
+    assert.equal(new URL(page.url()).searchParams.get('tool'),tool,'URL follows active section');
     const boxes=await page.locator('.tool-switch .tool-group > *').evaluateAll(els=>els.map(el=>{
       const r=el.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height};
     }));
@@ -259,7 +294,7 @@ const navGeometry=await page.locator('.tool-switch .tool-group > *').evaluateAll
 await page.click('#tool-fashion');
 const fashion=page.locator('#fashion-studio');
 await fashion.locator('#workspace').waitFor({state:'visible'});
-assert.equal(page.url(),studioUrl,'Fashion does not navigate to another page');
+assert.equal(new URL(page.url()).searchParams.get('tool'),'fashion','Fashion updates the section URL');assert.equal(new URL(page.url()).pathname,new URL(studioUrl).pathname,'Fashion stays in the same document');
 assert.equal(await page.evaluate(()=>window.__fashionDocument),'same-studio');
 assert.equal(await page.locator('#tool-fashion').getAttribute('aria-pressed'),'true');
 assert.deepEqual(await page.locator('.tool-switch .tool-group > *').evaluateAll(els=>els.map(el=>{const r=el.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height};})),navGeometry,'Fashion preserves navigation geometry');
@@ -294,6 +329,37 @@ assert.equal(await page.locator('#image-composer-prompt').inputValue(),'Keep thi
 assert.equal(await fashion.isVisible(),false);assert.equal(page.url(),studioUrl,'Image Studio return stays in the same document');
 assert.equal(fashionSubmits,0);assert.deepEqual(errors,[]);
 console.log('PASS integrated Fashion: stable shell, shared session, preserved inputs, quotation gate and responsive design');
+
+await page.reload();await page.waitForFunction(()=>window.__ready);
+assert.equal(await page.locator('#tool-image').getAttribute('aria-pressed'),'true');
+await page.click('#tool-fashion');
+await page.reload();await page.waitForFunction(()=>window.__ready);
+assert.equal(await page.locator('#tool-fashion').getAttribute('aria-pressed'),'true','Reload restores embedded Fashion');
+await page.click('#tool-image');
+let releaseCold;const coldReady=new Promise(resolve=>releaseCold=resolve);let coldReads=0;
+await page.route('**/api/assets/cold-output',async route=>{coldReads++;await coldReady;await route.fulfill({contentType:'image/png',body:png});});
+const coldRequested=page.waitForRequest('**/api/assets/cold-output');
+await page.evaluate(()=>window.__surfaceTestJob({id:'cold-image',outputId:'cold-output',status:'completed',createdAt:Date.now(),settings:{type:'image',mode:'image',engine:'seedream',aspectRatio:'16:9',prompt:'Loading test'}}));
+await coldRequested;
+await page.locator('#history .card[data-job="cold-image"]').click();
+assert.equal(await page.locator('#image-lightbox').isVisible(),true,'Viewer opens before a slow image finishes loading');
+assert.equal(await page.locator('#image-lightbox-stage').getAttribute('aria-busy'),'true');
+assert.equal(await page.locator('#tool-video').isEnabled(),true,'Slow image viewing never locks the studio');
+assert.equal(coldReads,1,'Pending gallery and viewer share one asset read');
+await page.keyboard.press('Escape');
+const coldFinished=page.waitForResponse('**/api/assets/cold-output');releaseCold();await coldFinished;
+await page.waitForFunction(()=>document.querySelector('[data-job="cold-image"] img')?.naturalWidth>0);
+assert.equal(await page.locator('#image-lightbox').isVisible(),false,'Late image response cannot reopen a closed viewer');
+await page.locator('#history .card[data-job="cold-image"]').click();
+await page.waitForFunction(()=>document.querySelector('#image-lightbox-img').naturalWidth>0);
+assert.equal(coldReads,1,'Reopening the same output needs no download');
+await page.keyboard.press('Escape');
+assert.ok(await page.evaluate(()=>window.__assetCacheSize())>0);
+await page.evaluate(()=>window.__lockTest());
+assert.equal(await page.evaluate(()=>window.__assetCacheSize()),0,'Sign-out removes private cached image bytes');
+assert.equal(await page.locator('#image-lightbox').isVisible(),false);
+console.log('PASS direct Fashion refresh, immediate image viewer, pending-read deduplication, safe close and session cache clearing');
+
 
 
 jobs=[

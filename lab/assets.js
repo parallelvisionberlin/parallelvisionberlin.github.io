@@ -33,5 +33,5 @@ export function createAssetLibrary({api,notify,archive,app,selected,selectMode,r
   $('asset-folder-close').onclick=()=>dialog.close();
   $('asset-folder-form').onsubmit=async e=>{e.preventDefault();const b=$('asset-folder-create');b.disabled=true;try{const name=$('asset-folder-name').value.trim();const {folder}=await api('/api/library/folders',{method:'POST',body:{name}});await assign(folder.id);await load();dialog.close();if(active)await navigate(folder.id);}catch(error){$('asset-folder-error').textContent=error.message;}finally{b.disabled=false;}};
   $('history-remove-folder').onclick=safe(async()=>{await api('/api/library/members',{method:'POST',body:{ids:[...selected()],folderId:filter,remove:true}});selectMode(false);await Promise.all([load(),reload()]);});
-  return {query,heading,selection,decorate,load,active:()=>active,close,reset(){revision++;close();folders=[];filter='all';media='all';renderFolders();}};
+  return {query,heading,selection,decorate,load,open,active:()=>active,close,reset(){revision++;close();folders=[];filter='all';media='all';renderFolders();}};
 }
