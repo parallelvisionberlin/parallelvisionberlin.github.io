@@ -183,7 +183,7 @@ test('Soft Pastel Film uses uniquely versioned photo without CSS recoloring',()=
   const preset=moodById('soft-pastel-film');
   assert.equal(preset.preview,'/lab/mood-previews/soft-pastel-film-portrait-f77111b4.webp');
   const css=readFileSync(new URL('../lab/moods.css',import.meta.url),'utf8');
-  assert.match(css,/\\.moods-look-soft-pastel-film img\\{filter:none;/);
+  assert.ok(css.includes('.moods-look-soft-pastel-film img{filter:none;'));
   const html=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
   assert.ok(html.includes('pastel-portrait-2'));
 });
