@@ -216,6 +216,11 @@ Verification:
 - Real FAL SAM 3 mask accuracy, prompt response, color edges and billable inference cost still need controlled verification before enabling commercial accounts.
 
 
+
+### Dreamcore V3, immersive photographic dream logic (2026-10-11)
+Dreamcore deliberately differs from a simple pastel filter. Its art direction combines familiar, nostalgic liminal spaces with a single coherent surreal spatial contradiction selected to suit the source photograph. Photographic imperfections, natural skin and fabric texture, restrained scene-dependent powder colors, imperfect analog exposure, real occlusion and consistent environmental light prevent glossy AI-resort results. The first image remains the Base for person, pose, lens and recognizable clothing while high intensity can substantially transform the background. The mood prompt honors other reference roles.
+The intensity instructions are distinct: 1-34 subtle film atmosphere; 35-69 visible haze plus one small liminal cue; 70-89 significant background transformation; 90-99 a clearly impossible world; and exactly 100 an unmistakable world-scale change. Only the Dreamcore preset and its base-reference exception were updated; Hong Kong Nights and other mood definitions, UI layout, provider pricing and paid generation flow are untouched. Changes to prompts affect new generations; existing stored results are not re-rendered.
+
 ### Moods gallery and controls (2026-10-10)
 The selector now shows **ten** moods in a consistent five-by-two desktop grid. Dreamcore replaces Japanese Sumi-e in the visible presets. The original `sumi-ink` definition and Worker validation remain available for previously saved generations and History/Reuse. Dreamcore is included in the Worker's accepted mood metadata. The footer uses two aligned rows: selected mood with a small About link above a wide intensity slider and compact Use mood control. Selecting a thumbnail keeps the selector open so the intensity can be adjusted before applying; applying does not start generation or incur costs.
 
