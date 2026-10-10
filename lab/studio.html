@@ -51,12 +51,12 @@ document.addEventListener('DOMContentLoaded',()=>{
 <link rel="stylesheet" href="./history.css?v=20260927-2">
 <link rel="stylesheet" href="./seedance.css?v=20260927-standard1">
 <link rel="stylesheet" href="./soul.css?v=20260930-soul-v02">
-<link rel="stylesheet" href="./studio.css?v=20261008-imagefloat-v1">
+<link rel="stylesheet" href="./studio.css?v=20261010-upscale-inline-final2">
 <link rel="stylesheet" href="./image-studio.css?v=20261009-strength1">
 <link rel="stylesheet" href="./moods.css?v=20261010-moods2">
 <link rel="stylesheet" href="./detail-video-studio.css?v=20261009-pointer1">
 <link rel="stylesheet" href="./editorial-polish.css?v=20261010-mood-details1">
-<script type="module" src="./lab.js?v=20261010-referrals3&wallet=1"></script>
+<script type="module" src="./lab.js?v=20261010-referrals3&wallet=1&fashiondeck=1"></script>
 <link rel="stylesheet" href="./credits.css?v=20261010-referrals3">
 <link rel="stylesheet" href="./higgsfield.css?v=20261010-compact-image-prompt1">
 <link rel="stylesheet" href="./assets.css?v=20261010-compact-soul-height2">
@@ -96,7 +96,7 @@ document.addEventListener('DOMContentLoaded',()=>{
         <button id="resolve" class="quiet" type="button" hidden>Resolve interrupted request</button>
       </div>
     </details><button id="lab-wallet-toggle" class="lab-wallet-toggle" type="button" hidden>Credits</button><details class="account-menu"><summary>Account</summary><div class="account-options"><button id="connection" class="quiet" hidden>Connection</button><button id="studio-invite-friends" class="quiet" type="button" hidden>Invite friends</button><button id="logout" class="quiet" hidden>Sign out</button></div></details></div></div></header>
-<dialog id="lab-credits-dialog" class="lab-credit-dialog" aria-label="Your PV Lab credits"><header><strong>Lab credits</strong><button id="lab-credits-close" type="button" aria-label="Close wallet">×</button></header><p>Every generation reserves credits based on its cost. Failed submissions are automatically refunded when the provider confirms failure.</p><div class="credit-balance" id="lab-credit-balance">0 credits</div><button id="lab-credit-invite" class="lab-wallet-invite" type="button">Invite friends <span>Earn 200 credits each ↗</span></button><div class="lab-credit-list" id="lab-credit-products"></div><div class="lab-strip-actions"><button id="lab-credit-refresh" type="button">Refresh balance</button> <button id="lab-credit-manage" type="button">Manage subscription</button></div><p class="lab-wallet-state" id="lab-wallet-state" role="status"></p></dialog><dialog id="lab-referrals-dialog" class="lab-credit-dialog lab-referrals-dialog" aria-labelledby="lab-referral-title"><header><strong>INVITE / PV LAB</strong><button id="lab-referrals-close" type="button" aria-label="Close invitations">×</button></header></dialog>
+<dialog id="lab-credits-dialog" class="lab-credit-dialog" aria-label="Your PV Lab credits"><header><strong>Lab credits</strong><button id="lab-credits-close" type="button" aria-label="Close wallet">×</button></header><p>Every generation reserves credits based on its cost. Failed submissions are automatically refunded when the provider confirms failure.</p><div class="credit-balance" id="lab-credit-balance">0 credits</div><button id="lab-credit-invite" class="lab-wallet-invite" type="button">Invite friends <span>Earn 200 credits each ↗</span></button><div class="lab-credit-list" id="lab-credit-products"></div><div class="lab-strip-actions"><button id="lab-credit-refresh" type="button">Refresh balance</button> <button id="lab-credit-manage" type="button">Manage subscription</button></div><p class="lab-wallet-state" id="lab-wallet-state" role="status"></p></dialog><dialog id="lab-referrals-dialog" class="lab-credit-dialog lab-referrals-dialog" aria-labelledby="lab-referral-title"><header><strong>INVITE / PV LAB</strong><button id="lab-referrals-close" type="button" aria-label="Close invitations">×</button></header><section class="lab-referral-panel" aria-labelledby="lab-referral-title"><span class="lab-referral-eyebrow">Invite friends</span><h2 id="lab-referral-title">Give 200. Get 200.</h2><p>Share PV Lab with a friend. When they make their first purchase of €10 or more, you each receive 200 bonus credits.</p><div class="lab-referral-link-row"><input type="text" id="lab-referral-url" aria-label="Your personal referral link" placeholder="Your invite link" readonly><button type="button" id="lab-referral-copy" disabled>Copy link</button></div><p id="lab-referral-stats" class="lab-referral-stats"></p><p id="lab-referral-status" class="lab-referral-status" role="status"></p></section></dialog>
 <main class="wrap" id="main">
 
 <section id="gate" class="gate" hidden><div class="intro"><div><p class="eyebrow">Private creative workspace</p><h1>Parallel Vision Lab</h1></div><p class="intro-note">Create, queue and refine.<br>Keep working while jobs run.</p></div><p class="eyebrow">Your creative workspace</p><h2>Make an image. Build a world.</h2><p id="auth-status" role="status">Loading your Parallel Vision sign-in…</p><button id="signin" class="primary" disabled>Sign in</button><button id="auth-retry" type="button" class="quiet" hidden>Reload page</button><p class="fine">Create a private account or sign in with Google through Clerk. Your projects are yours.</p></section>
@@ -366,6 +366,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 <button id="generate" class="primary generate-button full" disabled>Review price &amp; generate</button>
 <button id="save" class="secondary full save-button" disabled>Save to private history</button>
 <p id="generation-help" class="fine">Images and Upscale start on click at the live provider price. Video keeps price review. Inputs over 10 MiB need a working copy for the image provider; the Lab prepares it automatically and keeps the original. Saving history is free of generation charges.</p>
+<div id="upscale-notice-slot" class="upscale-notice-slot" hidden aria-label="Upscale progress and confirmation"></div>
 </div>
 </section>
 <section class="stage" aria-label="Media preview"><div class="stagehead"><span class="eyebrow" id="preview-label">Source / preview</span><button class="quiet" id="clear" disabled>Clear</button></div><div class="canvas" id="upscale-canvas"><div id="empty" class="empty">

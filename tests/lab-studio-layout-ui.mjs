@@ -224,37 +224,17 @@ try{
     const css=getComputedStyle(el);return {color:css.color,background:css.backgroundImage,font:css.fontFamily,weight:css.fontWeight};
   });
   assert.equal(generateUi.color,'rgb(24, 20, 14)','Available Image Generate uses dark text on amber');
-  await x.page.evaluate(()=>{
-    window.__ratioEventTrace=[];
-    for(const id of ['image-composer-ratio','ratio']){
-      const control=document.getElementById(id);
-      for(const type of ['input','change']){
-        control.addEventListener(type,()=>window.__ratioEventTrace.push({
-          target:id,event:type,value:control.value,
-          mirror:document.getElementById('image-composer-ratio').value,
-          real:document.getElementById('ratio').value
-        }),true);
-      }
-    }
-  });
-  await x.page.selectOption('#image-composer-ratio','16:9');
-  console.log('IMAGE_RATIO_EVENT_TRACE',JSON.stringify(await x.page.evaluate(()=>window.__ratioEventTrace)));
-  const ratioDiagnostic=await x.page.evaluate(()=>{
-    const mirror=document.getElementById('image-composer-ratio'),real=document.getElementById('ratio');
-    return {mirrorValue:mirror.value,realValue:real.value,
-      mirrorDisabled:mirror.disabled,realDisabled:real.disabled,
-      options:[...mirror.options].map(o=>({value:o.value,label:o.textContent,selected:o.selected})),
-      tool:document.getElementById('tool-image').getAttribute('aria-pressed'),
-      referenceMode:document.getElementById('image-reference-mode').value};
-  });
-  console.log('IMAGE_RATIO_DIAGNOSTIC',JSON.stringify(ratioDiagnostic));
-  if(ratioDiagnostic.realValue!=='16:9'){
-    await x.page.locator('#image-composer-ratio').evaluate(el=>el.dispatchEvent(new Event('change',{bubbles:true})));
-    console.log('IMAGE_RATIO_AFTER_MANUAL_CHANGE',await x.page.evaluate(()=>JSON.stringify({
-      mirror:document.getElementById('image-composer-ratio').value,
-      real:document.getElementById('ratio').value})));
-  }
+  const ratioOptions=await x.page.locator('#image-composer-ratio option').evaluateAll(options=>options.map(o=>({value:o.value,label:o.textContent})));
+  assert.match(ratioOptions.find(o=>o.value==='auto').label,/^Auto · /,
+    'Automatic framing has a distinct visible label and cannot be confused with fixed 16:9');
+  assert.equal(ratioOptions.find(o=>o.value==='16:9').label,'16:9',
+    'Fixed 16:9 remains a separate explicit choice');
+  await x.page.selectOption('#image-composer-ratio',{value:'16:9'});
   assert.equal(await x.page.locator('#ratio').inputValue(),'16:9','Floating aspect ratio updates backend settings');
+  await x.page.selectOption('#image-composer-ratio',{value:'auto'});
+  assert.equal(await x.page.locator('#ratio').inputValue(),'auto','Auto framing stays available as an intentional separate choice');
+  await x.page.selectOption('#image-composer-ratio',{value:'16:9'});
+  assert.equal(await x.page.locator('#ratio').inputValue(),'16:9','Selecting fixed ratio after Auto is preserved');
   assert.equal(await x.page.locator('#image-composer-more').isVisible(),false,
     'Seedream intentionally uses inline options without a redundant Options button');
   assert.equal(await x.page.locator('#image-composer-ratio').isVisible(),true,
@@ -263,10 +243,14 @@ try{
     'Seedream resolution is always accessible in the composer');
   assert.equal(await x.page.locator('.workspace').isVisible(),false,
     'Seedream inline options never reopen a duplicate side form');
-  const galleryLayout=await x.page.locator('#history').evaluate(el=>{
-    const c=getComputedStyle(el);return {display:c.display,columns:c.gridTemplateColumns.split(' ').length};
-  });
-  assert.ok(galleryLayout.columns>=3,'Images use gallery grid with multiple columns');
+  assert.equal(await x.page.locator('#history').evaluate(el=>!!el.closest('#image-gallery-host')),true,
+    'The private History grid is mounted in the Image gallery workspace');
+  assert.equal(await x.page.locator('#history .card').count(),0,
+    'An empty mock account has no invented image cards');
+  assert.equal(await x.page.locator('#image-gallery-empty').isVisible(),true,
+    'Empty Image history shows its designed gallery placeholder');
+  assert.ok(await x.page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),
+    'Empty Image gallery does not overflow desktop');
   await x.page.screenshot({path:'test-results/lab-workspace-image.png',fullPage:false});
   await x.page.click('#tool-video');
   await x.page.click('#mode-reference');

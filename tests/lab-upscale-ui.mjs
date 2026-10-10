@@ -1,4 +1,4 @@
-async function imageAdvanced(page){await page.click('#tool-image');const open=await page.locator('#app').evaluate(el=>el.classList.contains('image-settings-open'));if(!open)await page.click('#image-composer-more');}
+async function imageAdvanced(page){await page.click('#tool-image');const options=page.locator('#image-composer-more');if(await options.isVisible()){const open=await page.locator('#app').evaluate(el=>el.classList.contains('image-settings-open'));if(!open)await options.click();}}
 // Isolated browser tests with synthetic media and a fully mocked API. No paid tasks.
 import assert from 'node:assert/strict';
 import http from 'node:http';
@@ -7,8 +7,11 @@ import {resolve, extname} from 'node:path';
 import {pathToFileURL} from 'node:url';
 const {chromium}=await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE).href);
 const source=readFileSync('lab/lab.js','utf8');
-const boot=source.indexOf("try{const {Clerk}=await import(");assert.ok(boot>0);
-const testSource=source.slice(0,boot)+`clerk={session:{getToken:async()=> 'synthetic-token'},signOut:async()=>{}};owner=true;userId='test';config={enabled:true,falEnabled:true,concurrency:{image:4,video:1}};$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();update();window.__labTest={lock};`;
+const boot=source.indexOf("try{const {Clerk}=await import(");
+const bootEnd=source.indexOf("\n// Soul composer:",boot);
+assert.ok(boot>0&&bootEnd>boot,'Preserve the current image composer after replacing only Clerk bootstrap');
+const testSource=source.slice(0,boot)+source.slice(bootEnd)+
+  `clerk={session:{getToken:async()=> 'synthetic-token'},signOut:async()=>{}};owner=true;userId='test';config={enabled:true,falEnabled:true,concurrency:{image:4,video:1}};$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();update();window.__labTest={lock};`;
 const server=http.createServer((req,res)=>{const pathname=new URL(req.url,'http://localhost').pathname;const path=resolve('.','.'+pathname+(pathname.endsWith('/')?'index.html':''));if(!path.startsWith(resolve('.')+'/')||!existsSync(path)){res.writeHead(404).end();return;}res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css','.png':'image/png'})[extname(path)]||'text/plain');res.end(pathname==='/lab/lab.js'?testSource:readFileSync(path));});
 await new Promise(r=>server.listen(4178,'127.0.0.1',r));
 const browser=await chromium.launch({headless:true});
@@ -44,7 +47,7 @@ async function workspace(jobs=[],width=1440,{quoteTtlMs=180000,quoteMaxUsd=.012,
   else {await route.fulfill({status:404,contentType:'application/json',body:JSON.stringify({error:'Unmocked request '+path})});return;}
   try{await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(body)});}finally{finishQuote?.();}
  });
- await page.goto(ORIGIN+'/lab/');await page.waitForFunction(()=>!!window.__labTest);
+ await page.goto(ORIGIN+'/lab/studio.html?tool=image');await page.waitForFunction(()=>!!window.__labTest);
  if(!png)png=Buffer.from(await page.evaluate(()=>{const c=document.createElement('canvas');c.width=c.height=320;const x=c.getContext('2d');x.fillStyle='#353b40';x.fillRect(0,0,320,320);x.fillStyle='#aaa49a';x.fillRect(70,70,180,180);return c.toDataURL('image/png').split(',')[1];}),'base64');
  return {page,context,requests,uploads,errors,historyJobs:()=>structuredClone(jobs),decline:()=>{accepted=false;},waitForQuoteResponse:()=>lastQuoteResponse};
 }
@@ -54,10 +57,24 @@ const uploadSmall=async page=>{await page.locator('#image').setInputFiles({name:
 const checkFalPrice=async x=>{await x.page.click('#upscale-check-price');await x.page.waitForFunction(()=>document.querySelector('#upscale-price-status').textContent.startsWith('Estimated charge:')&&!document.querySelector('#generate').disabled);return quoteRequests(x).at(-1).data;};
 const assertInvalidated=async x=>{assert.equal(await x.page.locator('#generate').isDisabled(),false);assert.doesNotMatch(await x.page.locator('#upscale-price-status').innerText(),/^Estimated charge:/);assert.equal(countPaid(x),0);};
 try{
- let x=await workspace();await x.page.click('#tool-upscale');assert.equal(await x.page.locator('#prompt').isVisible(),false);assert.equal(await x.page.locator('#last-upload').isVisible(),false);assert.equal(await x.page.locator('#resolution').inputValue(),'4k');await uploadSmall(x.page);ok('Upscale needs one image and no prompt');
+ let x=await workspace();await x.page.click('#tool-upscale');
+  assert.equal(await x.page.locator('#notice').evaluate(el=>el.parentElement.id),'upscale-notice-slot','Upscale reuses the global accessible status within its controls');
+  assert.equal(await x.page.locator('#upscale-notice-slot').isVisible(),false,'Empty upscale status has no blank panel');
+  assert.equal(await x.page.locator('#prompt').isVisible(),false);assert.equal(await x.page.locator('#last-upload').isVisible(),false);assert.equal(await x.page.locator('#resolution').inputValue(),'4k');await uploadSmall(x.page);ok('Upscale needs one image and no prompt');
  assert.equal(await x.page.locator('#generate').innerText(),'Upscale');await x.page.click('#generate:visible, #image-composer-generate:visible');await x.page.waitForFunction(()=>!document.querySelector('#resolution').disabled);const q=x.requests.find(r=>r.path==='/api/quotes');assert.equal(q.data.settings.mode,'upscale');assert.equal(q.data.settings.prompt,'');assert.equal(q.data.settings.type,'image');assert.equal(x.requests.filter(r=>r.path==='/api/quotes').length,1);assert.equal(countPaid(x),1);assert.equal(await x.page.locator('#quote-dialog').isVisible(),false);ok('One click obtains a live quote and submits one upscale without review');
- const paid=x.requests.find(r=>r.path==='/api/jobs'&&r.method==='POST');assert.equal(paid.data.quoteId,'10000000-0000-4000-8000-000000000088');assert.equal(paid.data.confirm,true);assert.match(await x.page.locator('#notice').innerText(),/Upscale requested/);ok('Upscale uses the original quote ID and displays its cost');
- await imageAdvanced(x.page);assert.equal(await x.page.locator('#image-composer-prompt').isVisible(),true);assert.equal(await x.page.locator('#image-composer-add').isVisible(),true);assert.equal(await x.page.locator('#resolution').inputValue(),'2k');await x.page.click('#tool-video');assert.equal(await x.page.locator('#last-upload').isVisible(),true);assert.equal(await x.page.locator('#duration-control').isVisible(),true);assert.deepEqual(x.errors,[]);ok('Existing Image and Video controls still work');await x.context.close();
+ const paid=x.requests.find(r=>r.path==='/api/jobs'&&r.method==='POST');assert.equal(paid.data.quoteId,'10000000-0000-4000-8000-000000000088');assert.equal(paid.data.confirm,true);assert.match(await x.page.locator('#notice').innerText(),/Upscale requested/);
+  assert.equal(await x.page.locator('#notice').evaluate(el=>el.parentElement.id),'upscale-notice-slot');
+  const feedbackPosition=await x.page.locator('#upscale-notice-slot').evaluate(el=>{
+    const notice=el.getBoundingClientRect(),editor=el.closest('.controls').getBoundingClientRect(),actions=el.closest('.generate-zone').getBoundingClientRect();
+    return {insideEditor:notice.left>=editor.left-1&&notice.right<=editor.right+1,insideActions:notice.top>=actions.top-1&&notice.bottom<=actions.bottom+1};
+  });
+  assert.deepEqual(feedbackPosition,{insideEditor:true,insideActions:true},'Queued status sits within the upscale action card instead of outside the workspace');
+  ok('Upscale uses the original quote ID and displays its cost beside the action controls');
+ await imageAdvanced(x.page);
+  assert.equal(await x.page.locator('#notice').evaluate(el=>el.nextElementSibling?.id),'archive-rest-anchor','Switching away restores the shared notice to its original position');
+  assert.equal(await x.page.locator('#upscale-notice-slot').isVisible(),false);
+  assert.equal(await x.page.locator('#image-composer-prompt').isVisible(),true);assert.equal(await x.page.locator('#image-composer-add').isVisible(),true);assert.ok(['1k','2k'].includes(await x.page.locator('#resolution').inputValue()),'Image Studio keeps a valid default resolution');await x.page.click('#tool-video');assert.equal(await x.page.locator('#last-upload').isVisible(),true);assert.equal(await x.page.locator('#duration-control').isVisible(),true);assert.deepEqual(x.errors,[]);ok('Existing Image and Video controls still work');await x.context.close();
+ if(process.env.PV_UPSCALE_NOTICE_SMOKE!=='1'){
  x=await workspace([],1440,{quoteMaxUsd:.018});await x.page.click('#tool-upscale');
  assert.match(await x.page.locator('#upscale-info').innerText(),/Image Upscaler v1 · SpicyAPI/);assert.match(await x.page.locator('#upscale-info').innerText(),/\$0\.012 per image/);assert.match(await x.page.locator('#upscale-info').innerText(),/2 Oct 2026/);
  assert.match(await x.page.locator('#filemeta').innerText(),/finished image to enlarge/);assert.doesNotMatch(await x.page.locator('#filemeta').innerText(),/pose|body|camera/);
@@ -140,6 +157,7 @@ try{
  const dimensions=await x.page.evaluate(async()=>{const {providerWorkingCopy}=await import('./image-tools.js?v=20260927-2');const b=new Blob([new Uint8Array(await (await fetch(document.querySelector('.reference-item img').src)).arrayBuffer())],{type:'image/png'});const f=new File([b],'large.png',{type:'image/png'});const copy=await providerWorkingCopy(f);const img=new Image();img.src=URL.createObjectURL(copy);await img.decode();return [img.naturalWidth,img.naturalHeight];});assert.deepEqual(dimensions,[320,320]);ok('Working-copy compression keeps pixel dimensions');assert.deepEqual(x.errors,[]);await x.context.close();
  x=await workspace();await imageAdvanced(x.page);await x.page.fill('#prompt:visible, #image-composer-prompt:visible','A ceramic sculpture.');await x.page.locator('#reference-images').setInputFiles({name:'large-reference.png',mimeType:'image/png',buffer:large});await x.page.waitForFunction(()=>!document.querySelector('#generate').disabled);x.decline();await x.page.click('#generate:visible, #image-composer-generate:visible');await x.page.waitForTimeout(100);assert.equal(x.requests.filter(r=>r.path==='/api/quotes').length,0);assert.equal(countPaid(x),0);ok('Declining preparation sends no quote or paid task');await x.context.close();
  for(const width of [390,1728]){x=await workspace([job],width);await x.page.click('#tool-upscale');assert.ok(await x.page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth));mkdirSync('test-results',{recursive:true});await x.page.screenshot({path:'test-results/lab-upscale-'+width+'.png',fullPage:true});assert.deepEqual(x.errors,[]);ok('No horizontal overflow at '+width+'px');for(const value of ['topaz-precision','topaz-wonder']){await x.page.locator('#upscale-engine').selectOption(value);assert.ok(await x.page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth));assert.equal(await x.page.locator('#upscale-content-label').isVisible(),true);}await x.page.screenshot({path:'test-results/lab-topaz-upscale-'+width+'.png',fullPage:true});assert.deepEqual(x.errors,[]);ok('Topaz controls and restriction labels fit at '+width+'px');await x.context.close();}
+ }
  console.log('BROWSER_CHECKS_PASSED='+passed);
 }finally{await browser.close();await new Promise(r=>server.close(r));}
 

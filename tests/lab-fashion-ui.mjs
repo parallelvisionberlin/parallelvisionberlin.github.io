@@ -195,6 +195,23 @@ try{
   assert.ok(desktop.preview.left>desktop.garment.right,'Result sits to the right of both upload zones.');
   assert.ok(desktop.person.top<200&&desktop.preview.top<200,'Image work starts near the top.');
   assert.ok(desktop.controls.top>desktop.person.bottom,'Advanced controls stay below the work imagery.');
+  assert.ok(Math.abs(desktop.preview.bottom-desktop.person.bottom)<2 &&
+    Math.abs(desktop.preview.bottom-desktop.garment.bottom)<2,
+    'Person, Garment, and Result photo wells finish on the same horizontal line.');
+  assert.ok(desktop.quote.bottom<900,'Full direction and Create controls fit the desktop working deck.');
+  await page.setViewportSize({width:1759,height:832});
+  const compactDeck=await page.evaluate(()=>{
+    const rect=selector=>{const r=document.querySelector(selector).getBoundingClientRect();return {top:r.top,bottom:r.bottom};};
+    return {person:rect('#person-slot'),garment:rect('#garment-slot'),result:rect('#result-stage'),
+      direction:rect('.engine-section'),create:rect('#quote'),viewport:innerHeight};
+  });
+  assert.ok(Math.abs(compactDeck.person.bottom-compactDeck.garment.bottom)<2 &&
+    Math.abs(compactDeck.person.bottom-compactDeck.result.bottom)<2,
+    'Fashion deck keeps the three working images vertically aligned on wide monitors.');
+  assert.ok(compactDeck.direction.top>compactDeck.result.bottom &&
+    compactDeck.create.bottom<compactDeck.viewport,
+    '03 / Direction and Create stay visible at 1759 × 832 without moving the top bar.');
+  await page.setViewportSize({width:1440,height:900});
   mkdirSync('test-results',{recursive:true});
   await page.screenshot({path:'test-results/pv-fashion-editorial-desktop.png',fullPage:true});
   await page.setViewportSize({width:390,height:844});
