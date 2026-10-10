@@ -1,5 +1,5 @@
 /* PV Lab Moods V1. Editorial generation directions, not pixel filters. */
-export const MOODS=Object.freeze([
+const ALL_MOODS=Object.freeze([
   {
     "id": "hong-kong-nights",
     "name": "Hong Kong Nights",
@@ -122,8 +122,10 @@ export const MOODS=Object.freeze([
     "avoid": "cheap overlays, emoji, oversaturation, plastic skin"
   }
 ].map(m=>Object.freeze(m)));
+// Sumi-e remains available for previously saved jobs, but is not a selectable preset.
+export const MOODS=Object.freeze(ALL_MOODS.filter(m=>m.id!=='sumi-ink'));
 export const MOOD_MODELS=Object.freeze(['seedream','gemini']);
-export const moodById=id=>MOODS.find(m=>m.id===id)||null;
+export const moodById=id=>ALL_MOODS.find(m=>m.id===id)||null;
 // This is intentionally presentation-only. Jobs retain the full provider prompt for
 // reproduction, but the viewer and History show only user-authored text.
 export function userFacingImagePrompt(settings={}){

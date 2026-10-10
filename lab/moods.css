@@ -38,134 +38,118 @@
 .moods-look-sumi-ink img{filter:contrast(1.07) saturate(.8)}
 .moods-look-hyper-pop img{filter:saturate(1.65) contrast(1.2)}
 
-/* Editorial controls: clear selection, expressive intensity, primary action. */
-.moods-footer{display:flex;flex:0 0 auto;flex-direction:column;gap:12px;padding-top:14px;border-top:1px solid #3b3c3d}
-.moods-footer-heading{display:flex;align-items:center;justify-content:space-between;gap:20px;min-height:38px}
-.moods-current{min-width:0}
-.moods-current-label{display:block;font-size:9px;font-weight:650;letter-spacing:.13em;color:#92969c}
-.moods-selected{display:block;margin-top:4px;font-size:15px;font-weight:620;line-height:1.2;letter-spacing:-.02em;color:#f5f5f5}
+
+/* Moods editor: the gallery stays primary; selected look, intensity and actions
+   share a calm two-row footer that never competes with the thumbnails. */
+.moods-footer{
+  display:flex;flex:0 0 auto;flex-direction:column;gap:9px;
+  padding-top:12px;border-top:1px solid #393a3c
+}
+.moods-footer-heading{display:flex;align-items:center;justify-content:space-between;gap:14px;min-height:34px}
+.moods-current{min-width:0;flex:1 1 auto}
+.moods-current-label{display:block;font-size:9px;font-weight:600;letter-spacing:.1em;color:#989a9d}
+.moods-selected{
+  display:block;max-width:100%;margin-top:3px;overflow:hidden;text-overflow:ellipsis;
+  white-space:nowrap;font-size:14px;font-weight:630;letter-spacing:-.02em;line-height:1.25;color:#f1f1f1
+}
 .moods-about{position:relative;flex:0 0 auto}
-#image-composer #composer-moods-about{display:inline-flex;align-items:center;gap:7px;min-height:32px;padding:5px 1px;border:0;background:none;color:#b6b9bc;font:inherit;font-size:11px;cursor:pointer}
+#image-composer #composer-moods-about{
+  display:inline-flex;align-items:center;gap:6px;min-height:26px;padding:3px 0;
+  border:0;background:none;color:#a2a5a8;font:inherit;font-size:10px;white-space:nowrap;cursor:pointer
+}
 #image-composer #composer-moods-about:hover,
-#image-composer #composer-moods-about[aria-expanded="true"]{color:#f2f2f2}
-.moods-info-icon{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;border:1px solid #777b80;border-radius:50%;font-size:11px;line-height:1;font-weight:700}
+#image-composer #composer-moods-about[aria-expanded="true"]{color:#ededed}
 #image-composer #composer-moods-about:focus-visible{outline:2px solid #d6ff00;outline-offset:3px;border-radius:5px}
-.moods-about-popover{position:absolute;right:0;bottom:calc(100% + 9px);z-index:10;width:min(295px,calc(100vw - 45px));padding:15px 17px;border:1px solid #515357;border-radius:11px;background:#292a2d;box-shadow:0 14px 35px #0009;color:#ddd}
+.moods-info-icon{
+  display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;
+  border:1px solid #8c8f93;border-radius:50%;font-size:10px;line-height:1;font-weight:600
+}
+.moods-about-popover{
+  position:absolute;right:0;bottom:calc(100% + 9px);z-index:10;
+  width:min(295px,calc(100vw - 45px));padding:15px 17px;
+  border:1px solid #515357;border-radius:11px;background:#292a2d;box-shadow:0 14px 35px #0009;color:#ddd
+}
 #image-composer .moods-about-popover[hidden]{display:none!important}
 .moods-about-popover strong{font-size:12px;color:#fafafa;font-weight:650}
 .moods-about-popover p{font-size:11px;line-height:1.55;margin:7px 0 0;color:#bbbfc2}
-.moods-controls{display:grid;grid-template-columns:minmax(0,1fr) 154px;gap:29px;align-items:end}
-.moods-strength{display:flex;flex-direction:column;gap:6px;min-width:0;width:100%}
+.moods-controls{
+  display:grid;grid-template-columns:minmax(0,1fr) 138px;column-gap:20px;align-items:center
+}
+.moods-strength{display:flex;flex-direction:column;gap:4px;min-width:0;width:100%}
 .moods-strength-header{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.moods-strength label{font-size:12px;color:#ebebeb;font-weight:650}
-#image-composer #composer-moods-amount{min-width:42px;color:#f5f5f5;font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;text-align:right}
+.moods-strength label{font-size:11px;color:#d7d9da;font-weight:640}
+#image-composer #composer-moods-amount{
+  min-width:36px;color:#e5e5e5;font-size:11px;font-weight:650;
+  font-variant-numeric:tabular-nums;text-align:right
+}
 #image-composer #composer-moods-intensity{
-  -webkit-appearance:none;appearance:none;display:block;flex:1 1 auto;min-width:0;width:100%;height:27px;
+  -webkit-appearance:none;appearance:none;display:block;min-width:0;width:100%;height:25px;
   margin:0;border:0;background:transparent;cursor:pointer;accent-color:#d6ff00
 }
 #image-composer #composer-moods-intensity::-webkit-slider-runnable-track{
-  height:9px;border-radius:999px;
-  background:linear-gradient(to right,#d6ff00 0%,#d6ff00 var(--moods-progress,60%),#5a5c60 var(--moods-progress,60%),#5a5c60 100%)
+  height:7px;border-radius:999px;
+  background:linear-gradient(to right,#d6ff00 0%,#d6ff00 var(--moods-progress,60%),#515457 var(--moods-progress,60%),#515457 100%)
 }
 #image-composer #composer-moods-intensity::-webkit-slider-thumb{
-  -webkit-appearance:none;appearance:none;width:22px;height:22px;margin-top:-6.5px;
-  border:2px solid #242526;border-radius:50%;background:#d6ff00;box-shadow:0 0 0 1px #d6ff0040
+  -webkit-appearance:none;appearance:none;width:19px;height:19px;margin-top:-6px;
+  border:2px solid #242526;border-radius:50%;background:#d6ff00;box-shadow:0 0 0 1px #d6ff0030
 }
-#image-composer #composer-moods-intensity::-moz-range-track{height:9px;border:0;border-radius:999px;background:#5a5c60}
-#image-composer #composer-moods-intensity::-moz-range-progress{height:9px;border:0;border-radius:999px;background:#d6ff00}
-#image-composer #composer-moods-intensity::-moz-range-thumb{width:20px;height:20px;border:2px solid #242526;border-radius:50%;background:#d6ff00}
+#image-composer #composer-moods-intensity::-moz-range-track{height:7px;border:0;border-radius:999px;background:#515457}
+#image-composer #composer-moods-intensity::-moz-range-progress{height:7px;border:0;border-radius:999px;background:#d6ff00}
+#image-composer #composer-moods-intensity::-moz-range-thumb{width:17px;height:17px;border:2px solid #242526;border-radius:50%;background:#d6ff00}
 #image-composer #composer-moods-intensity:focus-visible{outline:2px solid #d6ff00;outline-offset:3px;border-radius:10px}
-#image-composer #composer-moods-intensity:disabled{opacity:.35;cursor:not-allowed}
-.moods-scale{display:flex;align-items:center;justify-content:space-between;gap:10px;color:#94979b;font-size:10px;line-height:1.15;user-select:none}
-.moods-actions{display:flex;flex-direction:column;align-items:stretch;gap:4px;min-width:0}
-#image-composer .moods-actions button{border:0;background:transparent;color:#b8b9ba;font:inherit;font-size:11px;cursor:pointer}
+#image-composer #composer-moods-intensity:disabled{opacity:.3;cursor:not-allowed}
+.moods-scale{display:flex;justify-content:space-between;gap:10px;color:#8e9194;font-size:9px;line-height:1.15;user-select:none}
+.moods-actions{display:flex;flex-direction:column;align-items:stretch;justify-content:center;gap:3px;min-width:0}
+#image-composer .moods-actions button{
+  border:0;background:transparent;color:#b0b3b5;font:inherit;font-size:10px;cursor:pointer
+}
 #image-composer .moods-actions button[hidden]{display:none!important}
 #image-composer #composer-moods-done,
 #image-composer #composer-moods-switch{
-  display:flex;align-items:center;justify-content:center;gap:13px;width:100%;min-height:46px;padding:10px 15px;
-  border:1px solid #d6ff00;border-radius:10px;background:#d6ff00;color:#171717;font-size:13px;font-weight:720;white-space:nowrap
+  display:flex;align-items:center;justify-content:center;gap:9px;
+  width:100%;min-height:40px;padding:9px 12px;border:1px solid #d6ff00;border-radius:8px;
+  background:#d6ff00;color:#171717;font-size:12px;font-weight:700;white-space:nowrap
 }
 #image-composer #composer-moods-done span,
-#image-composer #composer-moods-switch span{font-size:18px;font-weight:500;line-height:1}
+#image-composer #composer-moods-switch span{font-size:16px;font-weight:500;line-height:1}
 #image-composer #composer-moods-done:not(:disabled):hover,
 #image-composer #composer-moods-switch:not(:disabled):hover{background:#e4ff51;border-color:#e4ff51}
 #image-composer .moods-actions button:focus-visible{outline:2px solid #fff;outline-offset:3px}
-#image-composer .moods-actions button:disabled{opacity:.42;cursor:not-allowed}
-#image-composer #composer-moods-none{min-height:26px;padding:4px 8px;border:none;background:none;color:#a9adb1;font-size:11px;text-align:center}
-#image-composer #composer-moods-none:not(:disabled):hover{color:#f2f2f2;text-decoration:underline;text-underline-offset:3px}
+#image-composer #composer-moods-done:disabled,
+#image-composer #composer-moods-switch:disabled{
+  opacity:1;background:#303234;border-color:#45474a;color:#878b8e;cursor:not-allowed
+}
+#image-composer #composer-moods-none{
+  min-height:19px;padding:2px 6px;border:0;background:none;color:#8d9194;font-size:10px;text-align:center
+}
+#image-composer #composer-moods-none:not(:disabled):hover{
+  color:#f2f2f2;text-decoration:underline;text-underline-offset:3px
+}
+#image-composer #composer-moods-none:disabled{visibility:hidden}
 .moods-compat{margin:0;color:#dfc79e;font-size:11px;line-height:1.3}
 #image-composer .moods-compat[hidden]{display:none!important}
 #image-composer .composer-settings-pill.is-mood-selected{border-color:#b8ce32;background:#323923;color:#edffb3}
 @media(max-width:740px){
-  #image-composer .composer-moods{left:0;width:calc(100vw - 18px);padding:12px;max-height:67dvh}
+  #image-composer .composer-moods{left:0;width:calc(100vw - 18px);padding:12px;max-height:70dvh}
   #image-composer #composer-moods-title{font-size:21px}
   .moods-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
   .moods-card-media{aspect-ratio:5/4}
   .moods-card-copy small{min-height:0}
-  .moods-footer{gap:10px;padding-top:11px}
-  .moods-controls{grid-template-columns:minmax(0,1fr);gap:10px}
-  .moods-strength{width:100%}
-  .moods-actions{flex-direction:row-reverse;align-items:center;width:100%;gap:10px}
+  .moods-footer{gap:8px;padding-top:10px}
+  .moods-footer-heading{min-height:32px}
+  .moods-controls{grid-template-columns:minmax(0,1fr) 122px;gap:12px}
+  .moods-strength{gap:3px}
+  .moods-actions{gap:2px}
   #image-composer #composer-moods-done,
-  #image-composer #composer-moods-switch{width:auto;flex:1;min-width:0}
-  #image-composer #composer-moods-none{flex:0 0 auto}
+  #image-composer #composer-moods-switch{min-height:40px;padding:8px 8px}
 }
 @media(max-width:390px){
-  .moods-footer-heading{gap:9px}
-  .moods-selected{font-size:14px}
-  .moods-actions{gap:5px}
+  .moods-footer-heading{gap:8px}
+  .moods-selected{font-size:13px}
+  .moods-controls{grid-template-columns:minmax(0,1fr) 110px;gap:8px}
+  .moods-scale span:nth-child(2){display:none}
   #image-composer #composer-moods-done,
-  #image-composer #composer-moods-switch{gap:8px;padding-inline:10px}
+  #image-composer #composer-moods-switch{gap:6px}
 }
 @media(prefers-reduced-motion:reduce){#image-composer .composer-moods *{scroll-behavior:auto}}
-
-
-/* Moods: thumbnails are the hero, controls form a quiet compact editing strip. */
-@media(min-width:741px){
-  .moods-footer{display:grid;grid-template-columns:minmax(145px,1.05fr) minmax(0,2.5fr) 134px;align-items:center;column-gap:18px;row-gap:6px;padding-top:10px}
-  .moods-footer-heading{flex-direction:column;align-items:flex-start;justify-content:center;gap:4px;min-width:0;min-height:0}
-  .moods-controls{display:contents}
-}
-.moods-footer{border-top-color:#353638}
-.moods-current-label{font-size:9px;font-weight:600;letter-spacing:.09em;color:#85898d}
-.moods-selected{display:block;max-width:100%;margin-top:2px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-size:13px;font-weight:600;line-height:1.2;color:#f0f0f0}
-#image-composer #composer-moods-about{gap:5px;min-height:21px;padding:1px 0;color:#898e92;font-size:10px}
-.moods-info-icon{width:14px;height:14px;font-size:10px;font-weight:600}
-.moods-strength{gap:2px}
-.moods-strength label{font-size:11px;color:#c9cbcd;font-weight:600}
-#image-composer #composer-moods-amount{min-width:36px;color:#cbd0d3;font-size:11px;font-weight:650}
-#image-composer #composer-moods-intensity{height:23px}
-#image-composer #composer-moods-intensity::-webkit-slider-runnable-track{
-  height:6px;background:linear-gradient(to right,#c5df35 0%,#c5df35 var(--moods-progress,60%),#424548 var(--moods-progress,60%),#424548 100%)
-}
-#image-composer #composer-moods-intensity::-webkit-slider-thumb{
-  width:18px;height:18px;margin-top:-6px;box-shadow:0 0 0 1px #d6ff0026
-}
-#image-composer #composer-moods-intensity::-moz-range-track{height:6px;background:#424548}
-#image-composer #composer-moods-intensity::-moz-range-progress{height:6px;background:#c5df35}
-#image-composer #composer-moods-intensity::-moz-range-thumb{width:16px;height:16px}
-#image-composer #composer-moods-intensity:disabled{opacity:.28}
-.moods-scale{font-size:9px;color:#797e82;line-height:1.1}
-.moods-actions{gap:2px;justify-content:center}
-#image-composer #composer-moods-done,
-#image-composer #composer-moods-switch{
-  min-height:39px;padding:8px 12px;gap:9px;border-radius:8px;font-size:12px;font-weight:680
-}
-#image-composer #composer-moods-done:disabled,
-#image-composer #composer-moods-switch:disabled{
-  opacity:1;background:#303234;border-color:#424447;color:#787d82;cursor:not-allowed
-}
-#image-composer #composer-moods-none{min-height:20px;padding:2px 6px;color:#82878b;font-size:10px}
-#image-composer #composer-moods-none:disabled{visibility:hidden}
-.moods-compat{grid-column:1/-1}
-@media(max-width:740px){
-  .moods-footer{display:flex;flex-direction:column;gap:7px;padding-top:10px}
-  .moods-footer-heading{justify-content:space-between;gap:12px;min-height:0}
-  .moods-controls{display:grid;grid-template-columns:minmax(0,1fr) 126px;gap:12px;align-items:center}
-  .moods-actions{flex-direction:column;align-items:stretch;gap:2px}
-  #image-composer #composer-moods-done,
-  #image-composer #composer-moods-switch{width:100%;flex:0 0 auto}
-}
-@media(max-width:390px){
-  .moods-controls{grid-template-columns:minmax(0,1fr) 113px;gap:8px}
-}

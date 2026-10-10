@@ -3,9 +3,9 @@ import assert from 'node:assert/strict';
 import {MOODS,MOOD_MODELS,moodById,prepareMoodPrompt,userFacingImagePrompt,imageHistoryCaption} from '../lab/moods.js';
 import {readFileSync} from 'node:fs';
 
-test('exactly eleven unique curated moods with imagery',()=>{
-  assert.equal(MOODS.length,11);
-  assert.equal(new Set(MOODS.map(m=>m.id)).size,11);
+test('exactly ten unique curated moods with imagery',()=>{
+  assert.equal(MOODS.length,10);
+  assert.equal(new Set(MOODS.map(m=>m.id)).size,10);
   for(const mood of MOODS)for(const field of ['name','category','preview','direction','subtle','intense','avoid'])assert.ok(mood[field]);
 });
 test('only explicitly compatible image engines receive moods',()=>{
@@ -98,9 +98,9 @@ test('90s Cinema thumbnail and applied mood share a film-scan style',()=>{
 test('Mood intensity control is prominent, responsive and reflects each live setting',()=>{
   const css=readFileSync(new URL('../lab/moods.css',import.meta.url),'utf8');
   const js=readFileSync(new URL('../lab/moods.js',import.meta.url),'utf8');
-  assert.match(css,/grid-template-columns:minmax\(0,1fr\) 154px/);
+  assert.match(css,/grid-template-columns:minmax\(0,1fr\) 138px/);
   assert.match(css,/moods-intensity::\-webkit-slider-runnable-track/);
-  assert.match(css,/height:9px/);
+  assert.match(css,/height:7px/);
   assert.match(css,/moods-intensity::\-moz-range-progress/);
   assert.match(css,/@media\(max-width:740px\)/);
   assert.match(js,/slider\.style\.setProperty\('--moods-progress'/);
@@ -115,7 +115,7 @@ test('Moods footer has a larger primary action and a compact accessible explanat
   assert.match(html,/class="moods-scale" aria-hidden="true"/);
   assert.match(html,/id="composer-moods-none" type="button">Clear selection/);
   assert.doesNotMatch(html,/class="moods-bottom"/);
-  assert.match(css,/#composer-moods-done,[\s\S]*?#composer-moods-switch\{[\s\S]*?min-height:46px/);
+  assert.match(css,/#composer-moods-done,[\s\S]*?#composer-moods-switch\{[\s\S]*?min-height:40px/);
   assert.match(css,/\.moods-about-popover\{position:absolute/);
   assert.match(js,/hint\.hidden=compatible/);
   assert.match(js,/done\.disabled=!chosen/);
@@ -143,18 +143,35 @@ test('Dreamcore thumbnail and provider intensity directions are connected',()=>{
   const css=readFileSync(new URL('../lab/moods.css',import.meta.url),'utf8');
   assert.ok(css.includes('.moods-look-dreamcore img{filter:none;object-position:center center}'));
   const html=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
-  assert.match(html,/Eleven curated looks/);
+  assert.match(html,/Ten curated looks/);
 });
 
 
-test('Compact thumbnail-first Moods footer keeps inputs usable',()=>{
+
+test('Integrated two-row footer keeps the thumbnails visually dominant',()=>{
   const css=readFileSync(new URL('../lab/moods.css',import.meta.url),'utf8');
   const html=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
-  assert.match(css,/Moods: thumbnails are the hero/);
-  assert.match(css,/grid-template-columns:minmax\(145px,1\.05fr\) minmax\(0,2\.5fr\) 134px/);
-  assert.match(css,/\.moods-controls\{display:contents\}/);
-  assert.match(css,/#composer-moods-intensity::-webkit-slider-runnable-track\{[\s\S]*?height:6px/);
+  assert.equal(MOODS.length,10);
+  assert.equal(MOODS[8].id,'dreamcore');
+  assert.equal(MOODS[9].id,'hyper-pop');
+  assert.ok(!MOODS.some(m=>m.id==='sumi-ink'));
+  assert.match(css,/\.moods-grid\{display:grid;grid-template-columns:repeat\(5,minmax\(0,1fr\)\)/);
+  assert.match(css,/\.moods-footer\{[\s\S]*?display:flex;flex:0 0 auto;flex-direction:column/);
+  assert.match(css,/\.moods-footer-heading\{display:flex;align-items:center;justify-content:space-between/);
+  assert.match(css,/\.moods-controls\{[\s\S]*?display:grid;grid-template-columns:minmax\(0,1fr\) 138px/);
+  assert.doesNotMatch(css,/\.moods-controls\{display:contents\}/);
   assert.match(css,/#composer-moods-done:disabled,[\s\S]*?background:#303234/);
-  assert.match(css,/@media\(max-width:740px\)\{[\s\S]*?moods-controls\{display:grid;grid-template-columns:minmax\(0,1fr\) 126px/);
-  assert.match(html,/moods\.css\?v=20261010-thumb-focus4/);
+  assert.match(html,/moods\.css\?v=20261010-footer-hybrid5/);
+  assert.match(html,/Ten curated looks/);
+});
+test('Dreamcore is accepted by the worker while archived Sumi-e remains readable',()=>{
+  const worker=readFileSync(new URL('../lab-worker/worker.mjs',import.meta.url),'utf8');
+  assert.match(worker,/const IMAGE_MOOD_IDS=new Set\(\[[^\]]*'dreamcore'[^\]]*\]\)/);
+  assert.match(worker,/const IMAGE_MOOD_IDS=new Set\(\[[^\]]*'sumi-ink'[^\]]*\]\)/);
+  assert.ok(!MOODS.some(m=>m.id==='sumi-ink'));
+  assert.equal(moodById('sumi-ink').name,'Japanese Sumi-e');
+  const legacy=prepareMoodPrompt('A portrait','sumi-ink',60,{referenceCount:1});
+  assert.equal(legacy.error,'');
+  assert.equal(legacy.metadata.moodId,'sumi-ink');
+  assert.match(imageHistoryCaption({moodId:'sumi-ink',moodIntensity:60,moodOriginalPrompt:'Portrait'}),/Japanese Sumi-e · 60%/);
 });

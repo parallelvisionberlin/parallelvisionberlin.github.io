@@ -212,3 +212,7 @@ Verification:
 - node tests/lab-precision-edit-ui.mjs with PV_PLAYWRIGHT_MODULE pointing to an installed Playwright Chromium module.
 - The .github/workflows/pv-lab-precision-edit-ui.yml workflow runs a synthetic browser test covering pixel preservation, mask editing, price confirmation, responsive layout and status handling. No paid inference is performed by tests.
 - Real FAL SAM 3 mask accuracy, prompt response, color edges and billable inference cost still need controlled verification before enabling commercial accounts.
+
+
+### Moods gallery and controls (2026-10-10)
+The selector now shows **ten** moods in a consistent five-by-two desktop grid. Dreamcore replaces Japanese Sumi-e in the visible presets. The original `sumi-ink` definition and Worker validation remain available for previously saved generations and History/Reuse. Dreamcore is included in the Worker's accepted mood metadata. The footer uses two aligned rows: selected mood with a small About link above a wide intensity slider and compact Use mood control. Selecting a thumbnail keeps the selector open so the intensity can be adjusted before applying; applying does not start generation or incur costs.
