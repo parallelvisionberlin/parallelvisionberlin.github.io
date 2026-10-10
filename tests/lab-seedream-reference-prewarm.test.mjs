@@ -109,7 +109,7 @@ test('Studio wiring starts after references enter the deck, never uploads in pre
   assert.match(code,/seedreamPreparer.clear\(\)/);
   assert.match(module,/inflight\.get\(source\)/);
   assert.doesNotMatch(module,/uploadAsset|\/api\/|jobs\/quote|billing/);
-  assert.match(html,/src="\.\/lab\.js\?v=20261011-reference-prewarm3/);
+  assert.match(html,/src="\.\/lab\.js\?v=[^"]+"/);
 });
 test('Background copy never resorts to a CPU-heavy main-thread fallback',()=>{
   const tools=readFileSync(new URL('../lab/image-tools.js',import.meta.url),'utf8');

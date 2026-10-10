@@ -1,0 +1,33 @@
+name: PV Lab instant image queue browser
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'lab/**'
+      - 'tests/lab-fastqueue-browser.mjs'
+      - '.github/workflows/pv-lab-fastqueue-browser.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  queue-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            lab
+            lab-worker
+            tests
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Browser dependencies
+        run: |
+          npm install --prefix /tmp/pv-fastqueue --no-save playwright@1.57.0
+          node /tmp/pv-fastqueue/node_modules/playwright/cli.js install --with-deps chromium
+      - name: Verify independent Seedream preparations without paid requests
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-fastqueue/node_modules/playwright/index.mjs
+        run: node tests/lab-fastqueue-browser.mjs
