@@ -12,8 +12,8 @@
 .precision-workspace{
   box-sizing:border-box;
   --pe-accent:#d6ff00;--pe-bg:#191a1d;--pe-edge:#36383f;
-  position:relative;display:flex;flex-direction:column;gap:12px;width:100%;
-  min-height:calc(100dvh - 112px);margin:0 auto;padding:18px clamp(0px,1.3vw,20px) 24px;
+  position:relative;display:flex;flex-direction:column;gap:9px;width:100%;
+  min-height:calc(100dvh - 112px);margin:0 auto;padding:9px clamp(0px,1.3vw,20px) 22px;
   color:#f2f2f2;font-family:'DM Sans',system-ui,sans-serif;
 }
 .precision-workspace *{box-sizing:border-box}
@@ -24,34 +24,33 @@
 .precision-workspace input:focus-visible,
 .precision-workspace textarea:focus-visible,
 .precision-drop:focus-visible{outline:2px solid var(--pe-accent);outline-offset:2px}
-.precision-head{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:4px 5px 14px}
-.precision-head h2{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:clamp(23px,2vw,32px);letter-spacing:-.055em;line-height:1.05;margin:4px 0 5px}
-.precision-head p{font-size:12px;color:#a3a5ac;margin:0}
+.precision-head{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:2px 4px 9px;border-bottom:1px solid #292b30}
+.precision-head h2{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:clamp(22px,1.65vw,26px);letter-spacing:-.055em;line-height:1.05;margin:2px 0 2px}
+.precision-head p{font-size:11px;line-height:1.3;color:#a3a5ac;margin:0}
 .precision-access-note{border:1px solid #474b53;border-radius:9px;padding:11px 14px;background:#222328;color:#c3c5ca;font-size:11px;line-height:1.55;margin:0}
 .precision-access-note[hidden]{display:none!important}
-.precision-eyebrow{font-size:9px;font-weight:700;letter-spacing:.15em;color:#9e9fa5}
-.precision-head-actions{display:flex;align-items:center;gap:18px;flex-shrink:0}
-.precision-method{font-size:10px;color:#a4a8af;letter-spacing:.08em;white-space:nowrap}
+.precision-eyebrow{font-size:8px;line-height:1.1;font-weight:700;letter-spacing:.15em;color:#9e9fa5}
+.precision-head-actions{display:flex;align-items:center;gap:12px;flex-shrink:0}
+.precision-method{font-size:9px;color:#a4a8af;letter-spacing:.08em;white-space:nowrap}
 .precision-method span{color:var(--pe-accent);margin:0 5px}
-/* Main navigation escape hatch: unmissable, but still PV Lab's restrained palette. */
+/* Quiet secondary navigation within Retouch. The photo and result are primary. */
 #precision-return{
-  display:inline-flex;align-items:center;justify-content:center;gap:9px;
-  min-height:46px;min-width:181px;padding:10px 18px;
-  border:1px solid #d6ff00;border-radius:11px;
-  background:#d6ff00;color:#171b11;
-  font-size:12px;font-weight:800;line-height:1.15;letter-spacing:.025em;
-  box-shadow:0 0 0 1px #d6ff0022,0 8px 24px #d6ff001b;
-  white-space:nowrap;
-  transition:background .15s ease,box-shadow .15s ease,transform .15s ease;
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  min-height:36px;min-width:137px;padding:8px 13px;
+  border:1px solid #4c4f56;border-radius:9px;
+  background:#25272d;color:#eaecef;
+  font-size:11px;font-weight:650;line-height:1.2;letter-spacing:0;
+  box-shadow:none;white-space:nowrap;
+  transition:background .15s ease,border-color .15s ease;
 }
 #precision-return span{
   display:inline-flex;align-items:center;justify-content:center;
-  width:23px;height:23px;flex:none;border-radius:7px;
-  background:#151b171e;color:#171b11;font-size:20px;font-weight:800;
+  width:auto;height:auto;flex:none;border:0;border-radius:0;
+  background:transparent;color:#d7d9de;font-size:15px;font-weight:600;
 }
-#precision-return:hover{background:#edff88;box-shadow:0 0 0 1px #d6ff0060,0 10px 28px #d6ff0033;transform:translateY(-1px)}
-#precision-return:focus-visible{outline:2px solid #f4ffac;outline-offset:3px}
-#precision-return:active{transform:translateY(0)}
+#precision-return:hover{background:#34363c;border-color:#6c7078}
+#precision-return:focus-visible{outline:2px solid #b7bbc4;outline-offset:2px}
+#precision-return:active{background:#404249}
 .precision-board{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;flex:0 0 auto;align-items:stretch;min-height:335px;height:auto}
 .precision-panel{display:flex;flex-direction:column;min-width:0;min-height:0;border:1px solid var(--pe-edge);border-radius:14px;overflow:hidden;background:#161719}
 .precision-panel-label{height:43px;flex:0 0 43px;padding:0 17px;display:flex;align-items:center;justify-content:space-between;background:#1e2024;border-bottom:1px solid #34363a;gap:12px}
@@ -125,7 +124,7 @@
 .precision-price-actions button{padding:10px 14px;border-radius:8px;border:1px solid #565961;background:#35363d;color:white;font-size:11px}
 #precision-review-confirm{border-color:#d7ddc2;background:#d7ddc2;color:#181a13;font-weight:800}
 @media(max-width:900px){
-  .precision-workspace{min-height:auto;padding:12px 0 25px}
+  .precision-workspace{min-height:auto;padding:8px 0 23px}
   .precision-board{grid-template-columns:1fr;min-height:0}
   .precision-panel{min-height:345px}
   .precision-source-holder,.precision-output-holder{min-height:325px}
@@ -141,11 +140,11 @@
 }
 @media(max-width:520px){
   .precision-head{align-items:flex-start}
-  .precision-head h2{font-size:24px}
+  .precision-head h2{font-size:22px}
   .precision-head p{max-width:230px}
-  .precision-head{flex-wrap:wrap;gap:10px}
+  .precision-head{flex-wrap:wrap;gap:6px}
   .precision-head-actions{width:100%;flex-direction:row;align-items:center;justify-content:space-between;gap:8px}
-  #precision-return{min-width:156px;min-height:43px;padding:9px 12px;font-size:11px}
+  #precision-return{min-width:133px;min-height:36px;padding:8px 11px;font-size:11px}
   .precision-method{font-size:9px}
   .precision-tool-buttons button{padding:6px 8px;font-size:9px}
   .precision-source-holder,.precision-output-holder{min-height:280px}
