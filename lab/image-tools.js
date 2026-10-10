@@ -1,5 +1,18 @@
 // Local browser preparation only. Display previews never replace original uploads.
 export const PROVIDER_IMAGE_LIMIT = 10 * 1024 * 1024;
+// The Seedream edit provider rejects images above 36 megapixels, even when
+// the encoded file is under 10 MiB. Keep headroom for integer rounding.
+export const SEEDREAM_INPUT_MAX_PIXELS = 36000000;
+export const SEEDREAM_WORKING_TARGET_PIXELS = 34000000;
+export function seedreamWorkingDimensions(width,height) {
+  if(!Number.isSafeInteger(width)||!Number.isSafeInteger(height)||width<1||height<1)
+    throw new Error('Invalid source image dimensions.');
+  const pixels=width*height;
+  if(!Number.isSafeInteger(pixels))throw new Error('Invalid source image pixel count.');
+  if(pixels<=SEEDREAM_INPUT_MAX_PIXELS)return {width,height};
+  const scale=Math.sqrt(SEEDREAM_WORKING_TARGET_PIXELS/pixels);
+  return {width:Math.max(1,Math.floor(width*scale)),height:Math.max(1,Math.floor(height*scale))};
+}
 export const UPSCALE_PIXELS = Object.freeze({ '2k': 4194304, '4k': 16777216, '8k': 67108864 });
 const MAX_PIXELS = 72000000;
 let imageWorker = null, workerUnavailable = false, taskId = 0, generation = 0;
@@ -18,7 +31,7 @@ export function cancelImagePreparation() {
 }
 function workerTask(operation, file) {
   if (!imageWorker) {
-    imageWorker = new Worker(new URL('./image-worker.js?v=20260930-soul-v01', import.meta.url), { type: 'module' });
+    imageWorker = new Worker(new URL('./image-worker.js?v=20261010-seedream-pixels1', import.meta.url), { type: 'module' });
     imageWorker.onmessage = ({ data }) => {
       const task = pending.get(data.id); if (!task) return;
       pending.delete(data.id); clearTimeout(task.timer);
@@ -66,6 +79,11 @@ export async function providerWorkingCopy(file) {
   const { blob } = await processLocally('working-copy', file);
   const name = (file.name || 'reference').replace(/\.[^.]+$/, '') + '-working-copy.webp';
   return new File([blob], name, { type: 'image/webp' });
+}
+export async function seedreamWorkingCopy(file) {
+  const {blob} = await processLocally('seedream-working-copy',file);
+  const name=(file.name||'reference').replace(/\.[^.]+$/,'')+'-seedream-working.webp';
+  return new File([blob],name,{type:'image/webp'});
 }
 export async function wanUltrawideWorkingCopy(file) {
   const { blob } = await processLocally('wan-ultrawide', file);
@@ -137,15 +155,18 @@ export async function runImageTask(operation, file) {
       }
       throw new Error('A training copy could not be reduced below 700 KiB. Export this source photo smaller and try again.');
     }
-    if (operation !== 'working-copy') throw new Error('Unknown image operation.');
-    draw(width, height);
-    // Same dimensions and alpha channel. This copy is prepared only after UI permission.
+    if (!['working-copy','seedream-working-copy'].includes(operation)) throw new Error('Unknown image operation.');
+    // Only Seedream's pixel-limited transfer is downscaled. All original
+    // uploads and other providers' working copies keep their dimensions.
+    const target=operation==='seedream-working-copy'?seedreamWorkingDimensions(width,height):{width,height};
+    draw(target.width,target.height);
+    // Alpha is retained through WebP encoding; the original file is unchanged.
     for (const quality of [0.96, 0.92, 0.88, 0.84]) {
       const blob = await encode(quality);
-      if (blob.type === 'image/webp' && blob.size <= PROVIDER_IMAGE_LIMIT) return { ...dimensions, blob };
+      if (blob.type === 'image/webp' && blob.size <= PROVIDER_IMAGE_LIMIT) return { ...dimensions, outputWidth:target.width, outputHeight:target.height, blob };
       await yieldUI();
     }
-    throw new Error('A same-dimension copy is still above 10 MiB. Export a smaller working image manually; your original was not changed.');
+    throw new Error('A provider working copy could not be reduced below 10 MiB. Try a smaller source image; the original was not changed. No generation submitted.');
   } finally {
     image?.close?.();
     if (sourceUrl) URL.revokeObjectURL(sourceUrl);

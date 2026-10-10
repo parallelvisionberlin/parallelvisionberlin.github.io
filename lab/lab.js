@@ -12,7 +12,7 @@ import {createMoodSelector,moodById,userFacingImagePrompt,imageHistoryCaption} f
 import {createMediaReferences} from './media-references.js?v=20261009-extend2';
 import { createSessionRequest } from './session-request.js?v=20260927-auth1';
 import { createSoulController } from './soul.js?v=20261001-presets2';
-import { PROVIDER_IMAGE_LIMIT, UPSCALE_PIXELS, imageDimensions, providerWorkingCopy, wanUltrawideWorkingCopy, imagePreview, cancelImagePreparation } from './image-tools.js?v=20260930-soul-v02';
+import { PROVIDER_IMAGE_LIMIT, SEEDREAM_INPUT_MAX_PIXELS, UPSCALE_PIXELS, imageDimensions, providerWorkingCopy, seedreamWorkingCopy, wanUltrawideWorkingCopy, imagePreview, cancelImagePreparation } from './image-tools.js?v=20261010-seedream-pixels1';
 import {modelImageInputIssue} from './image-model-limits.js?v=20261010-model-limits1';
 // General-purpose private image-to-video workspace. Credentials never enter browser storage.
 const API='https://parallel-vision-lab.parallelvision.workers.dev';
@@ -385,13 +385,13 @@ async function fetchCustomerImagePrice(s,check){
         if(item.ref&&references.includes(item.ref)&&item.ref.file===item.file)item.ref.id=id;
         if(sourceMode&&file===item.file)sourceId=id;
       }
-      originals.push({id,file:item.file});
+      originals.push({id,file:item.file,width:item.width,height:item.height});
     }
     check();
     let inputs={sourceId:sourceMode?originals[0]?.id||null:null,lastSourceId:null,
       referenceSourceIds:sourceMode?[]:originals.map(item=>item.id)};
     if(provider==='spicy'){
-      inputs=await prepareQuoteInputs(inputs,{originals});check();
+      inputs=await prepareQuoteInputs(inputs,{originals,engine:selected.engine});check();
       if(!inputs)throw new Error('Price checking was cancelled. Nothing was charged.');
       const reply=await api('/api/quotes',{method:'POST',
         body:{...inputs,settings:selected,...(count>1?{count}:{})}});
@@ -2180,16 +2180,32 @@ async function prepareQuoteInputs(inputs,snapshot=null){
   const sessionEpoch=epoch;
   if(!snapshot&&tool==='upscale'&&!isFalUpscale()&&sourcePixels>UPSCALE_PIXELS[$('resolution').value]&&!confirm('This size tier is smaller than your source and would reduce its resolution. Continue with this tier?'))return null;
   const originals=snapshot?snapshot.originals:tool==='upscale'||isReinterpret()?[{id:inputs.sourceId,file}]:imageEngine==='soul'&&tool==='image'?[]:references;
+  const selectedEngine=snapshot?.engine??(tool==='image'?imageEngine:null);
   const transferSourceIds=[];
   for(const item of originals){
-    if(item.file.size<=PROVIDER_IMAGE_LIMIT){transferSourceIds.push(item.id);continue;}
-    let copy=workingCopies.get(item.id);
+    // Dimensions are known from inspectImage. If a legacy input omitted them,
+    // decode it before quoting rather than silently passing through an unsafe ID.
+    const pixels=selectedEngine==='seedream'&&tool==='image'
+      ?((Number(item.width)>0&&Number(item.height)>0)
+        ?Number(item.width)*Number(item.height)
+        :(await imageDimensions(item.file)).pixels)
+      :0;
+    const resizeForSeedream=pixels>SEEDREAM_INPUT_MAX_PIXELS;
+    if(!resizeForSeedream&&item.file.size<=PROVIDER_IMAGE_LIMIT){
+      transferSourceIds.push(item.id);continue;
+    }
+    const cacheKey=resizeForSeedream?'seedream-pixels:'+item.id:item.id;
+    let copy=workingCopies.get(cacheKey);
     if(!copy||Date.now()-copy.at>900000){
-      snapshot?.onProgress?.('Optimizing references','Preparing a working copy; originals are kept.');
-      notify('Preparing a same-dimension working copy of '+item.file.name+'…');
-      const prepared=await providerWorkingCopy(item.file);
+      snapshot?.onProgress?.('Optimizing references',
+        resizeForSeedream?'Fitting source pixels to Seedream; original kept.':'Preparing a smaller encoded copy; original kept.');
+      notify(resizeForSeedream
+        ?'Preparing a Seedream-compatible working copy of '+item.file.name+' ('+(pixels/1000000).toFixed(1)+' MP). Original unchanged.'
+        :'Preparing a same-dimension working copy of '+item.file.name+'…');
+      const prepared=resizeForSeedream?await seedreamWorkingCopy(item.file):await providerWorkingCopy(item.file);
       if(epoch!==sessionEpoch||!owner)throw new Error('Session changed.');
-      const id=await uploadAsset(prepared);copy={id,at:Date.now()};workingCopies.set(item.id,copy);
+      const id=await uploadAsset(prepared);copy={id,at:Date.now()};
+      workingCopies.set(cacheKey,copy);
     }
     transferSourceIds.push(copy.id);
   }
@@ -2604,7 +2620,7 @@ async function submitImageSnapshot(){
   const requested=Math.max(1,Math.min(imageProcessing==='batch'?20:4,Number($('image-count').value)||1));
   const selectedPose=poseMapSourceId,selectedBase=file,selectedSourceId=sourceId;
   const sourceMode=imageEngine==='soulpro'||isReinterpret();
-  const chosen=sourceMode?(selectedBase?[{file:selectedBase,id:selectedSourceId}]:[]):imageEngine==='soul'?[]:references.map(ref=>({file:ref.file,id:ref.id,ref}));
+  const chosen=sourceMode?(selectedBase?[{file:selectedBase,id:selectedSourceId,width:sourceWidth,height:sourceHeight}]:[]):imageEngine==='soul'?[]:references.map(ref=>({file:ref.file,id:ref.id,width:ref.width,height:ref.height,ref}));
   const check=()=>{if(!owner||epoch!==sessionEpoch)throw new Error('Session changed. No further requests submitted.');};
   let feedback=null,dispatched=false;
   const record=job=>{if(!job)return;check();dispatched=false;feedback?.accept();if(activeStates.has(job.status))setActive(job);surfaceHistoryJob(job);refreshHistorySoon();};
@@ -2637,7 +2653,7 @@ async function submitImageSnapshot(){
       while(!uploadError&&cursor<chosen.length){
         const index=cursor++,item=chosen[index];
         try{
-          check();const id=item.id||await uploadAsset(item.file);check();originals[index]={id,file:item.file};
+          check();const id=item.id||await uploadAsset(item.file);check();originals[index]={id,file:item.file,width:item.width,height:item.height};
           if(item.ref&&references.includes(item.ref))item.ref.id=id;
           if(sourceMode&&file===selectedBase)sourceId=id;
           if(!item.id){uploaded++;feedback.phase('Uploading references',uploaded+' / '+missing);}
@@ -2690,7 +2706,7 @@ async function submitImageSnapshot(){
            (bound.inputs.sourceId||null)!==(inputs.sourceId||null))
           throw new Error('References changed after the price check. Nothing submitted.');
         inputs=bound.inputs;
-      }else inputs=await prepareQuoteInputs(inputs,{originals,onProgress:(...args)=>feedback.phase(...args)});
+      }else inputs=await prepareQuoteInputs(inputs,{originals,engine:selected.engine,onProgress:(...args)=>feedback.phase(...args)});
       if(!inputs)return;
       const batchSeedream=selected.engine==='seedream'&&requested>1;
       const refCount=inputs.referenceSourceIds?.length||0;

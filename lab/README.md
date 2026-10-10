@@ -221,3 +221,6 @@ The selector now shows **ten** moods in a consistent five-by-two desktop grid. D
 
 ### Centered Moods deck and scroll-only Sumi-e (2026-10-10)
 The gallery offers eleven moods: ten full cards in the initial five-by-two desktop grid, with Japanese Sumi-e eleventh in an internal scroll region. Card geometry sets the viewport to two full rows, not a cut-off third card. The overlay is centered over the floating Image composer and the thumbnails are slightly larger. The empty state says only Select a mood; Selected mood appears after choice. About moods sits below Use mood and Clear selection. Model prompts, intensity and paid generation behavior are unchanged.
+
+### Seedream reference megapixel preflight (2026-10-10)
+SpicyAPI's Seedream edit endpoint rejects input images above 36 megapixels. Some completed PV Lab outputs (such as 7728 × 5152) have about 39.8 MP despite being smaller than 10 MiB as files. Source images reintroduced from History or the gallery retain their original IDs, but before a paid Seedream quote PV Lab now prepares a private WebP working copy at approximately 34 MP, preserving aspect ratio and the untouched original. The server verifies staged Seedream input dimensions before requesting the provider quote. File-size-only optimizations and all other image engines are unchanged. No automatic paid retries are made for earlier failed jobs.

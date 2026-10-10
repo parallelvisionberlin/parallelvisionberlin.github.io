@@ -21,7 +21,7 @@ import {findFalRequest} from './fal-recovery.mjs';
 import {falUploadImage} from './fal-storage.mjs';
 import {REFERENCE_ROLES,normalizeReferenceLabel,supportsReferenceGuidance,compileImagePrompt,canUseReferenceGuidance,referenceGuidanceError} from '../lab/reference-guidance.js';
 import {characterPreview as soulCharacterPreview,SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-10.9-dreamcore';
+export const VERSION = 'pv-lab-2026-10-10.10-seedream-input-pixels';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -543,7 +543,7 @@ function validUploadUrl(value) {
     throw new Error('Unexpected provider upload location.');
   return u.href;
 }
-async function stageImageReferences(env,owner,ids,key,max=10) {
+async function stageImageReferences(env,owner,ids,key,max=10,maxPixels=0) {
   const assets=await sources(env,owner,ids,max);
   // Validate the entire batch before any transfer. Keep the private originals unchanged.
   for(const a of assets)if(!['image/jpeg','image/png','image/webp'].includes(a.mime)||a.bytes<=0||a.bytes>MAX_PROVIDER_IMAGE)
@@ -557,6 +557,13 @@ async function stageImageReferences(env,owner,ids,key,max=10) {
         if(!object)throw new Error('Stored reference image is unavailable.');
         const bytes=await limitedBody(new Response(object.body),MAX_PROVIDER_IMAGE);
         if(bytes.length!==a.bytes||!sniff(bytes,a.mime))throw new Error('Stored reference image failed verification.');
+        if(maxPixels){
+          let dimensions;
+          try{dimensions=storedImageDimensions(bytes,a.mime);}
+          catch{fail(400,'Cannot verify the reference dimensions. Upload a valid image before pricing; no generation submitted.');}
+          if(dimensions.width*dimensions.height>maxPixels)
+            fail(400,'Seedream accepts at most 36 megapixels per input image. PV Lab must prepare a resized working copy first. Reload the editor and try again. No paid generation was submitted.');
+        }
         const ticket=await vendorRequest('/common/upload-url',key,{contentType:a.mime,bytes:bytes.length});
         if(!ticket||!/^fil_[A-Za-z0-9_-]{8,128}$/.test(ticket.fileId||'')||ticket.method!=='PUT'||
           !Number.isSafeInteger(ticket.maxBytes)||ticket.maxBytes<bytes.length||
@@ -1352,7 +1359,7 @@ async function route(request,env,ctx) {
         const originalsData=await sources(env,owner,originals);
         p.transferSourceIds=transfers.map(a=>a.id);
         p.transferNotes=transfers.map((a,i)=>a.id===originals[i]?'':originalsData[i].filename+': original '+(originalsData[i].bytes/1048576).toFixed(2)+' MiB; provider working copy '+(a.bytes/1048576).toFixed(2)+' MiB.').filter(Boolean);
-        const uris=await stageImageReferences(env,owner,p.transferSourceIds,key);
+        const uris=await stageImageReferences(env,owner,p.transferSourceIds,key,10,p.engine==='seedream'?36000000:0);
         if(['upscale','reinterpret'].includes(p.mode))input.image_url=uris[0];else input.image_urls=uris;
       }
     }
