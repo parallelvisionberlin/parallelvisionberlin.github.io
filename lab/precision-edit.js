@@ -43,6 +43,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     const have=!!base;
     for(const id of ['precision-tool-magic','precision-tool-brush','precision-tool-erase','precision-expand','precision-change-photo','precision-prompt','precision-brush-size','precision-strength'])
       $(id).disabled=!have||taskBusy;
+    $('precision-tool-magic').disabled=!have||taskBusy||!falReady();
     $('precision-expand').disabled=!selected||taskBusy;
     $('precision-clear-mask').disabled=!selected||taskBusy;
     $('precision-undo').disabled=!undoStack.length||taskBusy;
@@ -50,6 +51,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     $('precision-change-photo').hidden=!have;
     $('precision-tool-magic').title='Select a whole object with SAM 3. Published price approximately $0.005 per click.';
     $('precision-generate').textContent=taskBusy?'Working…':'Review price ↗';
+    $('precision-generate').title=(!owner()||!falReady())?'Paid Retouch generation is not enabled on this account.':'Confirm a quote before starting paid inference.';
   }
   function renderMask(){
     oc.clearRect(0,0,overlay.width,overlay.height);
@@ -119,6 +121,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     // Only load a new source when it is actually a different photograph.
     if(file&&(!base||(id?base.id!==id:base.file!==file)))await setBase(file,id);
     else if(!base)setStatus('Drop your original photograph on the left to begin.');
+    if(!falReady())selectMode('brush');
     refreshButtons();
   }
   function close(){
@@ -154,7 +157,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     $('precision-drop').hidden=true;$('precision-source-holder').hidden=false;
     $('precision-selection-message').textContent='Click an object to select it. Brush tools refine your mask.';
     $('precision-price-review').hidden=true;setStatus('The original pixels will be preserved outside the selected area.');
-    selectMode('magic');refreshButtons();
+    selectMode(falReady()?'magic':'brush');refreshButtons();
   }
   async function ensureWorkingId(){
     if(workingId)return workingId;
