@@ -196,9 +196,11 @@ The empty Upscaler preview is intentionally shorter than a loaded-image preview 
 The Upscaler hides its duplicate technical footer when empty or showing a source; a finished preview still offers Download. Its provider, current output tier and source ratio are displayed dynamically within More options. The archived Upscaled images gallery keeps its existing owner-scoped asset loading and cache. Cards loading their real thumbnails show an animated skeleton instead of inert dark tiles; loaded images stop animating and failures still show Preview unavailable. A genuine zero-results response says No upscaled images yet, without fictitious skeleton records. Select/Refresh remain functional and closer together. The original large preview dimensions, working deck and generation/credit logic remain unchanged.
 
 
-## Precision Edit / Magic Select (2026-10-10)
+## Retouch / Precision Edit (2026-10-10)
 
-Image Studio has a separate, full-size **Edit Area** workspace without modifying the regular generation deck. Enter it from the Image composer or from the Edit Area action on a completed image. A Base image loads at editing size with an original image panel, a result panel and a compact edit deck. The source remains unchanged.
+**Retouch** is a dedicated PV Lab studio destination alongside Image, Video, Upscaler, Assets and Fashion, at `/lab/studio.html?tool=retouch`. The editor is no longer embedded in the Image gallery. Image retains its original deck, uploaded references, roles, mood, prompt and settings while Retouch is open. The Image deck shortcut hands the current Base image and existing uploaded source ID to Retouch, without uploading again or requesting paid generation; image details also has a Retouch action. Switching between sections does not discard the Retouch working mask or source. Native browser Back and the visible Back to Image button return to Image without resetting its workspace. Direct Retouch URLs show a standalone photograph drop zone.
+
+The underlying tool remains **Precision Edit** using SAM 3 point segmentation, local mask tools and FLUX inpainting. The editor is still owner-only until customer-credit authorization is enabled.
 
 - **Magic Select** submits one click coordinate to fal-ai/sam-3/image. SAM 3 returns a PNG mask. Each click is a separately metered provider operation. The interface shows the published approximation of **$0.005 per click**; it does not claim a bound quote.
 - **Add, Erase, Expand, Undo, Clear** modify the mask locally in the browser. The selected area is visible before any generation. Brush tools do not contact the provider.
