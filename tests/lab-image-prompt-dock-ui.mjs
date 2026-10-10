@@ -20,7 +20,7 @@ assert.ok(!source.includes("text.style.height=Math.max(42,text.scrollHeight)+'px
 assert.match(css,/#image-composer #image-composer-prompt\{[\s\S]*?max-height:min\(176px,25dvh\)/);
 assert.match(css,/#image-composer #image-composer-prompt\{[\s\S]*?overflow-x:hidden;overflow-y:auto/);
 assert.ok(html.includes('higgsfield.css?v=20261010-compact-image-prompt1'));
-assert.ok(html.includes('lab.js?v=20261010-submit-feedback1'))
+assert.match(html,/lab\.js\?v=20261010-[a-z0-9-]+&wallet=1/,'Image composer must load a versioned Lab module');
 const sizingHelper=source.slice(fnStart,fnEnd);
 
 const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml','.png':'image/png','.jpg':'image/jpeg','.webp':'image/webp'};
