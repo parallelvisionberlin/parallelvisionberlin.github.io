@@ -16,11 +16,21 @@
 <body>
 <a class="skip" href="#main">Skip to content</a>
 <header class="landing-header">
-<a class="lab-brand" href="./" aria-label="PV Lab home">PV LAB</a>
-<nav aria-label="Creative tools"><a href="./studio.html?tool=image">Image</a><a href="./studio.html?tool=video">Video</a><a href="./studio.html?tool=upscale">Upscaler</a><a href="./fashion.html">Fashion</a><a href="#pricing">Pricing</a></nav>
-<button class="lab-auth-link" id="lab-header-signin" type="button">Sign in</button><a class="studio-link" href="./studio.html">Enter studio <span aria-hidden="true">↗</span></a>
+  <a class="lab-brand" href="./" aria-label="PV Lab home">PV LAB</a>
+  <nav aria-label="Creative tools"><a href="./studio.html?tool=image">Image</a><a href="./studio.html?tool=video">Video</a><a href="./studio.html?tool=upscale">Upscaler</a><a href="./fashion.html">Fashion</a><a href="#pricing">Pricing</a></nav>
+  <div class="landing-header-actions">
+    <button class="lab-auth-link" id="lab-header-signin" type="button">Sign in</button>
+    <a class="studio-link" href="./studio.html"><span class="studio-link-label-full">Open studio</span><span class="studio-link-label-compact">Studio</span><span aria-hidden="true">↗</span></a>
+    <details id="lab-account-strip" class="lab-account-menu" hidden>
+      <summary aria-label="Open account menu">Account <span aria-hidden="true">⌄</span></summary>
+      <div class="lab-account-panel">
+        <div class="lab-account-details"><span class="lab-account-eyebrow">PV LAB / YOUR WORKSPACE</span><strong id="lab-account-summary">Your workspace</strong></div>
+        <button id="lab-account-buy" type="button">Buy credits <span aria-hidden="true">↗</span></button>
+        <button id="lab-account-logout" type="button">Sign out</button>
+      </div>
+    </details>
+  </div>
 </header>
-<div id="lab-account-strip" class="lab-account-strip" hidden><strong id="lab-account-summary">Your workspace</strong><div class="lab-strip-actions"><a href="./studio.html">Open studio ↗</a><button id="lab-account-buy" type="button">Buy credits</button><button id="lab-account-logout" type="button">Sign out</button></div></div>
 <main id="main">
 <section class="lab-hero" aria-labelledby="hero-title">
 <picture><source media="(max-width:700px)" srcset="./visuals/ivory-motion.webp"><img class="hero-poster" src="./visuals/greenhouse-hero.webp" alt="Ivory sculptural tailoring in a sunlit greenhouse" width="1672" height="941" fetchpriority="high"></picture>
