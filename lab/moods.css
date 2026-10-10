@@ -26,7 +26,7 @@
 #image-composer .moods-card:hover .moods-card-media{border-color:#909090}
 #image-composer .moods-card.is-selected .moods-card-media{border-color:#d6ff00}
 #image-composer .moods-card.is-selected strong{color:#d6ff00}
-.moods-look-hong-kong-nights img{object-position:center 40%;filter:contrast(1.09) saturate(1.12)}
+.moods-look-hong-kong-nights img{object-position:center center;filter:none}
 .moods-look-90s-cinema img{filter:contrast(1.25) saturate(1.32) sepia(.13) brightness(1.02)}
 .moods-look-night-flash img{filter:contrast(1.28) brightness(1.1) saturate(.88)}
 .moods-look-fashion-editorial img{filter:contrast(1.04) saturate(.84)}

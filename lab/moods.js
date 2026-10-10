@@ -4,12 +4,12 @@ export const MOODS=Object.freeze([
     "id": "hong-kong-nights",
     "name": "Hong Kong Nights",
     "category": "Cinema",
-    "preview": "/lab/mood-previews/hong-kong-nights.webp",
-    "description": "Humid neon streets, melancholy and grain",
-    "direction": "1990s Hong Kong romantic cinema, red and green practical lights, rain-softened window reflections, tungsten pools, deep layered shadow, organic 35mm halation and intimate urban melancholy.",
-    "subtle": "Restrained practical red and green light and a little film halation; keep the original room.",
-    "intense": "Full nocturnal cinematic atmosphere with wet reflections, but keep all referenced faces, poses and composition.",
-    "avoid": "generic cyberpunk, synthetic skin, neon outlines"
+    "preview": "/lab/mood-previews/hong-kong-nights-emerald-20261010.webp",
+    "description": "Emerald haze, neon bloom and nocturnal melancholy",
+    "direction": "Dreamlike 1990s Hong Kong night-film photography: humid urban darkness, atmospheric emerald haze, softened practical neon, diffused city lights, rain-wet reflections, organic 35mm grain, optical halation and nocturnal melancholy. Respect the original scene and lighting. Emerald green is an atmospheric possibility, not a mandatory color overlay.",
+    "subtle": "Gentle night-film diffusion, soft practical-light bloom, subtle grain and intimate haze. Keep natural skin tones and recognizable surroundings.",
+    "intense": "Immersive humid nighttime atmosphere, thick but realistic haze, luminous diffused neon in scene-appropriate greens or warm tones, wet reflections, deep layered shadows, strong analog halation and grain. Preserve referenced faces, poses and composition.",
+    "avoid": "forced all-green tint, generic cyberpunk, synthetic skin, neon outlines, fake rain pasted onto dry rooms, smudged facial features"
   },
   {
     "id": "90s-cinema",
