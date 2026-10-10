@@ -102,8 +102,8 @@ async function retouchTopAndBackButton(page){
   assert.ok(state.headTop>=state.headerBottom-3,'Retouch title must be visible below the sticky header');
   assert.ok(state.backTop>=state.headerBottom-3&&state.backBottom<=state.viewport,
     'Back to Image must be immediately visible without scrolling');
-  assert.ok(state.backHeight>=35&&state.backHeight<=42&&state.backWidth>=125,
-    'Back to Image must be a compact secondary navigation control');
+  assert.ok(state.backHeight>=43&&state.backHeight<=55&&state.backWidth>=155,
+    'Back to Image must be easy to find and click without becoming a bright primary button');
   const rgb=(state.bg.match(/[\d.]+/g)||[]).map(Number);
   assert.ok(rgb.length===3&&rgb.every(v=>v>=30&&v<=75),
     'Back to Image must use a neutral dark PV Lab background: '+state.bg);
@@ -133,18 +133,24 @@ async function retouchPanelsAreClear(page){
 async function retouchFillsDesktop(page){
   const g=await page.evaluate(()=>{
     const box=q=>document.querySelector(q).getBoundingClientRect();
+    const font=q=>parseFloat(getComputedStyle(document.querySelector(q)).fontSize);
     return {width:innerWidth,height:innerHeight,boardHeight:box('.precision-board').height,
-      deckBottom:box('.precision-deck').bottom,
-      headingSize:parseFloat(getComputedStyle(document.querySelector('.precision-head h2')).fontSize),
+      deckHeight:box('.precision-deck').height,deckBottom:box('.precision-deck').bottom,
+      headingSize:font('.precision-head h2'),panelLabelSize:font('#precision-source-title'),
+      controlsSize:font('#precision-tool-brush'),promptSize:font('#precision-prompt'),
+      footerSize:font('#precision-price-note'),
       dropSize:box('.precision-drop-symbol').width,
       dropVisible:getComputedStyle(document.querySelector('#precision-drop')).display!=='none',
       horizontalOverflow:document.documentElement.scrollWidth-innerWidth};
   });
-  if(g.width>900&&g.height>=810){
-    assert.ok(g.boardHeight>=Math.min(400,g.height*.43),'The image panels should dominate Retouch: '+JSON.stringify(g));
-    assert.ok(Math.abs(g.height-g.deckBottom)<=32,'The edit direction deck should sit at the bottom of the screen: '+JSON.stringify(g));
-    assert.ok(g.headingSize>=30,'Retouch title should be visually prominent: '+JSON.stringify(g));
-    if(g.dropVisible)assert.ok(g.dropSize>=78,'The empty photograph upload target should invite immediate action: '+JSON.stringify(g));
+  if(g.width>=1200&&g.height>=810){
+    assert.ok(g.boardHeight>=g.height*.46,'The image panels must dominate the workspace: '+JSON.stringify(g));
+    assert.ok(g.deckHeight<=126,'The edit direction deck must be compact, not a second large panel: '+JSON.stringify(g));
+    assert.ok(Math.abs(g.height-g.deckBottom)<=32,'The edit deck must rest near the screen bottom: '+JSON.stringify(g));
+    assert.ok(g.headingSize>=30,'Retouch title should remain prominent: '+JSON.stringify(g));
+    if(g.dropVisible)assert.ok(g.dropSize>=78,'The empty photograph upload target must invite immediate action: '+JSON.stringify(g));
+    assert.ok(g.panelLabelSize>=11.5&&g.controlsSize>=11.5&&g.promptSize>=13.5&&g.footerSize>=11,
+      'Controls, captions and pricing should be readable and consistent with PV Lab: '+JSON.stringify(g));
   }
   assert.ok(g.horizontalOverflow<=3,'No horizontal scroll allowed: '+JSON.stringify(g));
 }
