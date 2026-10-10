@@ -93,6 +93,7 @@ try{
   x=await workspace();await imageForm(x);
   await x.page.selectOption('#image-composer-count','2');
   await x.page.click('#image-composer-generate');await ready(x.page);
+  if(x.accepted()!==2)console.error('BATCH_IMAGE_DIAG',JSON.stringify({accepted:x.accepted(),requests:x.requests.filter(r=>['/api/quotes','/api/jobs'].includes(r.path)),errors:x.errors,notice:await x.page.locator('#notice').innerText(),disabled:await x.page.locator('#image-composer-generate').isDisabled(),count:await x.page.locator('#image-composer-count').inputValue()}));
   assert.equal(x.accepted(),2,'Two images require two independent paid submissions');
   assert.equal(count(x,'/api/quotes'),1,'Two Seedream images use one provider reference staging');
   assert.equal(count(x,'/api/jobs'),2);
