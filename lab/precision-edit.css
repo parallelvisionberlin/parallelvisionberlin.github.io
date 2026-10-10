@@ -10,6 +10,7 @@
 #app.assets-active > #precision-workspace{display:none!important}
 #app.retouch-studio-active > #precision-workspace:not([hidden]){display:flex!important}
 .precision-workspace{
+  box-sizing:border-box;
   --pe-accent:#d6ff00;--pe-bg:#191a1d;--pe-edge:#36383f;
   position:relative;display:flex;flex-direction:column;gap:12px;width:100%;
   min-height:calc(100dvh - 112px);margin:0 auto;padding:18px clamp(0px,1.3vw,20px) 24px;
