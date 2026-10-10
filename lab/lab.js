@@ -11,6 +11,50 @@ const API='https://parallel-vision-lab.parallelvision.workers.dev';
 const $=id=>document.getElementById(id), activeStates=new Set(['submitting','queued','running','saving','uncertain']), slotStates=new Set(['submitting','queued','running','uncertain']);
 let clerk, owner=false, userId='', epoch=0, syncing=false, config={}, file=null, sourceId=null, imageRevision=0, busy=false;
 let imageSubmissionPending=false;
+const pendingImageCards=new Map();
+function renderPendingImageCards(){
+  const visible=owner&&tool==='image'&&!fashionActive&&!assetLibrary?.active();
+  for(const card of $('history').querySelectorAll('[data-local-submission]'))
+    if(!visible||!pendingImageCards.has(card.dataset.localSubmission))card.remove();
+  if(!visible)return;
+  for(const entry of [...pendingImageCards.values()].reverse()){
+    let card=[...$('history').children].find(el=>el.dataset.localSubmission===entry.id);
+    if(!card){
+      card=document.createElement('article');card.className='card submission-card';
+      card.dataset.localSubmission=entry.id;card.dataset.job=entry.id;card.dataset.kind='image';card.dataset.deletable='false';card.dataset.ratio=String(entry.ratio);
+      const content=document.createElement('div');content.className='submission-progress';
+      const mark=document.createElement('span');mark.className='submission-mark';mark.setAttribute('aria-hidden','true');
+      const title=document.createElement('strong');title.className='submission-title';
+      const detail=document.createElement('span');detail.className='submission-detail';
+      const dismiss=document.createElement('button');dismiss.className='submission-dismiss';dismiss.type='button';dismiss.textContent='Dismiss';
+      dismiss.onclick=()=>{pendingImageCards.delete(entry.id);syncImageGalleryEmpty();};
+      content.append(mark,title,detail,dismiss);card.append(content);$('history').prepend(card);
+    }
+    card.dataset.state=entry.error?'submission-error':'preparing';card.setAttribute('aria-busy',String(!entry.error));
+    card.querySelector('.submission-title').textContent=entry.title;
+    card.querySelector('.submission-detail').textContent=entry.detail;
+    card.querySelector('.submission-dismiss').hidden=!entry.error;
+  }
+  if(pendingImageCards.size)$('emptyarchive').hidden=true;
+}
+function beginImageFeedback(count,selected,ratio){
+  for(const [id,entry] of pendingImageCards)if(entry.error)pendingImageCards.delete(id);
+  const ids=Array.from({length:count},()=> 'local-'+crypto.randomUUID());
+  for(const id of ids)pendingImageCards.set(id,{id,ratio,title:'Preparing',detail:detailModelName({settings:selected}),error:false});
+  syncImageGalleryEmpty();
+  return {
+    phase(title,detail=''){for(const id of ids){const entry=pendingImageCards.get(id);if(entry){entry.title=title;entry.detail=detail;}}renderPendingImageCards();},
+    accept(){const id=ids.shift();if(id)pendingImageCards.delete(id);renderPendingImageCards();},
+    fail(error,dispatched){
+      const first=ids.shift();
+      for(const id of ids.splice(0))pendingImageCards.delete(id);
+      const entry=pendingImageCards.get(first);
+      if(entry){entry.error=true;entry.title=dispatched?'Request not confirmed':'Could not prepare';entry.detail=dispatched?'Check History before trying again. '+error.message:error.message;}
+      syncImageGalleryEmpty();
+    },
+    finish(){for(const id of ids)pendingImageCards.delete(id);syncImageGalleryEmpty();}
+  };
+}
 let assetLibrary=null;
 let fashionActive=false,fashionController=null,fashionMount=null;
 function studioRoute(){const value=new URLSearchParams(location.search).get('tool');return ['image','video','upscale','assets','fashion'].includes(value)?value:'image';}
@@ -109,7 +153,7 @@ function updateUpscaleModel(){
   $('upscale-model-name').textContent=upscaleName(settings());$('upscale-model-description').textContent=model.description+(fal?' Lab output limit: approximately 67 megapixels.':'');$('upscale-published-price').textContent=model.price;$('upscale-pricing-link').href=model.pricing;
   $('upscale-content-label').textContent=fal?'FAL content restrictions':'No added SpicyAPI filter';$('upscale-content-note').textContent=fal?'Sexually explicit content is not allowed.':'The model may still refuse an input.';$('upscale-content-link').href=fal?'https://fal.ai/legal/acceptable-use-policy':model.pricing;
   $('upscale-price-help').textContent='Optional · no generation charge';
-  $('generation-help').textContent=fal?'Upscale starts one paid Topaz job in one click. PV Lab checks the estimated price and output dimensions automatically before submission; the displayed FAL price is an estimate and provider billing is authoritative.':'Upscale starts one paid upscaling job. You can check its live price above first; there is no extra price-review popup. Inputs over 10 MiB need a working copy; the Lab asks first and keeps the original.';
+  $('generation-help').textContent=fal?'Upscale starts one paid Topaz job in one click. PV Lab checks the estimated price and output dimensions automatically before submission; the displayed FAL price is an estimate and provider billing is authoritative.':'Upscale starts one paid upscaling job. You can check its live price above first; there is no extra price-review popup. Inputs over 10 MiB need a working copy; the Lab prepares it automatically and keeps the original.';
 }
 function upscalePriceKey(){return JSON.stringify({epoch,imageRevision,sourceId,tool,settings:tool==='upscale'?settings():null});}
 function clearUpscalePrice(){clearTimeout(upscaleQuoteTimer);upscaleQuoteTimer=null;upscaleQuote=null;upscaleQuoteNeedsCheck=false;upscalePriceMessage='';upscaleManualReviewRequired=false;upscaleManualReviewKey='';}
@@ -144,7 +188,7 @@ function hasInput(){if(tool==='video'&&mode==='extend')return mediaRefs.labels('
 function syncVideoFrameCards(){
   for(const [id,url] of [['video-start-thumb',sourceUrl],['video-end-thumb',lastUrl]]){const img=$(id);if(!img)continue;img.hidden=!url;img.parentElement.classList.toggle('has-frame',!!url);if(url&&img.getAttribute('src')!==url)img.src=url;else if(!url)img.removeAttribute('src');}
 }
-function update(){syncVideoFrameCards();$('app').classList.toggle('extension-loaded',tool==='video'&&mode==='extend'&&mediaRefs.labels('video').length>0);if(tool==='video'&&mode==='extend')$('video-ref-count').textContent=mediaRefs.labels('video').length+' / 1';$('save').textContent=tool==='video'?'Save draft':tool==='upscale'?'Save upscale draft':'Save to private history';if($('soul-base-preview')){$('soul-base-preview').hidden=!sourceUrl;if(sourceUrl)$('soul-base-preview').src=sourceUrl;else $('soul-base-preview').removeAttribute('src');$('soul-base-name').textContent=file?.name||'';}const current=settings(),p=resultSettings||current,ratio=p.aspectRatio==='auto'?(p.mode==='reference'?'adaptive':'source ratio'):p.aspectRatio,imageName=p.mode==='upscale'?'Upscale':p.engine==='flash'?'Seedream Flash':p.engine==='kling'?'Kling V3':p.engine==='gemini'?'Nano Banana Pro':p.provider==='higgsfield'?'PV Soul':p.engine==='soulpro'?'PV Soul Pro':p.engine==='soul'?(p.mode==='reinterpret'?'PV Soul / Reinterpret':'PV Soul'):p.engine==='fal'?'Controlled Pose':'Image',resolution=p.resolution==='native'?'native':String(p.resolution||'').toUpperCase();$('settings-summary').textContent=p.mode==='upscale'?upscaleName(p)+' / '+upscaleSize(p)+' / source ratio':p.type==='image'?imageName+' / '+resolution+' / '+ratio:`${p.duration}s / ${p.resolution} / ${ratio}`;$('save').disabled=!owner||!hasInput()||busy;$('clear').disabled=(!file&&!lastFile&&!references.length&&!mediaRefs.count()&&!resultUrl&&!$('prompt').value.trim())||busy;const provider=currentProvider(),ready=provider==='openrouter'?config.openrouterEnabled:provider==='higgsfield'?config.higgsfieldEnabled:provider==='gemini'?config.geminiEnabled:provider==='fal'?config.falEnabled:config.enabled,soulBlocked=tool==='image'&&imageEngine==='soul'&&(!config.soulTrainingEnabled||!soul.ready()||(isReinterpret()&&!soul.reinterpretReady()));$('generate').disabled=!owner||!hasInput()||(tool!=='upscale'&&!isReinterpret()&&imageEngine!=='soulpro'&&!current.prompt&&!(usesReferenceGuidance()&&canUseReferenceGuidance(referenceRoles())))||busy||imageSubmissionPending||submissionBlocked()||soulBlocked||(tool==='upscale'&&((!isFalUpscale()&&upscaleQuoteNeedsCheck)||upscaleManualReviewRequired));$('generate').textContent=ready?(tool==='image'?(imageEngine==='gemini'?(imageProcessing==='batch'?'Queue batch':'Generate now'):imageEngine==='soulpro'?'Generate':imageEngine==='fal'?'Generate controlled pose':isReinterpret()?'Reinterpret with Soul':'Generate'):tool==='upscale'?'Upscale':'Generate'):(provider==='openrouter'?'Connect OpenRouter':provider==='higgsfield'?'Higgsfield API not connected':provider==='gemini'?'Gemini API not connected':provider==='fal'?'FAL API not connected':'Connect generation provider');$('generation-help').textContent=tool==='image'&&imageEngine==='flash'?'Seedream Flash · $0.018 estimated per image · OpenRouter. '+(config.openrouterEnabled?'':'Add OPENROUTER_API_KEY in the Worker secrets to connect. '):tool==='image'&&imageEngine==='kling'?'Kling V3 · $0.028 estimated per image · FAL. Text or one base image; 1K / 2K.':isSoul2()?'PV Soul creates from a prompt or reinterprets a photograph, with an optional trained character. One image per click. '+($('hf-resolution').value==='720p'?'$0.0032':'$0.0057')+' estimated; provider billing is authoritative.':tool==='image'&&imageEngine==='soulpro'?(soulProIdentity.configured?(soulProModel==='ideogram45'?'One base image only. Nina identity loads automatically. Ideogram Precise keeps edit_precision=high; selected quality estimate: '+({very_low:'$0.008',low:'$0.03',medium:'$0.06',high:'$0.22'}[soulProQuality]||'$0.06')+' per image.':'One base image only. Nina identity loads automatically. Kontext Max uses the base plus up to 3 identity refs because its total image limit is 4. Estimate: $0.08 per image.'):'Set Nina identity once, then every Soul Pro render needs only one base image.'):tool==='image'&&imageEngine==='fal'?'Controlled Pose uses FAL DWPose + FLUX EasyControl. One Pose role and 1–4 Identity roles are required. Preview Pose is a small separate fal.ai compute charge.':tool==='image'&&imageEngine==='soul'?(isReinterpret()?'One base photograph and a separately trained Soul identity. High fidelity may keep the original face; lower it for more change. The live provider quote controls the charge.':'PV Soul Text uses your trained Qwen Image 2512 identity. The live provider quote is authoritative.'):tool==='image'&&imageEngine==='gemini'?(imageProcessing==='batch'?'Batch uses the same Nano Banana Pro model at 50% of standard API price. It runs asynchronously and can take minutes or hours; Google targets completion within 24 hours.':'Normal sends Nano Banana Pro immediately. 1K/2K are estimated at $0.134 per image and 4K at $0.24; Google billing is authoritative.'):(tool==='image'?'Generate starts one paid image at the live provider price, within your daily spending limit. No price-review popup.':tool==='upscale'?'Upscale starts one paid upscaling job. You can check its live price above first; there is no extra price-review popup.':'A live quote appears before any paid video.')+' Inputs over 10 MiB need a working copy; the Lab asks first and keeps the original. Saving a draft does not generate or charge.';for(const el of document.querySelectorAll('.controls input,.controls select,.controls textarea,.mode-tab,.tool-tab'))el.disabled=busy;updateReferenceGuidance();updateUpscaleModel();updateUpscalePrice();syncImageComposer();}
+function update(){syncVideoFrameCards();$('app').classList.toggle('extension-loaded',tool==='video'&&mode==='extend'&&mediaRefs.labels('video').length>0);if(tool==='video'&&mode==='extend')$('video-ref-count').textContent=mediaRefs.labels('video').length+' / 1';$('save').textContent=tool==='video'?'Save draft':tool==='upscale'?'Save upscale draft':'Save to private history';if($('soul-base-preview')){$('soul-base-preview').hidden=!sourceUrl;if(sourceUrl)$('soul-base-preview').src=sourceUrl;else $('soul-base-preview').removeAttribute('src');$('soul-base-name').textContent=file?.name||'';}const current=settings(),p=resultSettings||current,ratio=p.aspectRatio==='auto'?(p.mode==='reference'?'adaptive':'source ratio'):p.aspectRatio,imageName=p.mode==='upscale'?'Upscale':p.engine==='flash'?'Seedream Flash':p.engine==='kling'?'Kling V3':p.engine==='gemini'?'Nano Banana Pro':p.provider==='higgsfield'?'PV Soul':p.engine==='soulpro'?'PV Soul Pro':p.engine==='soul'?(p.mode==='reinterpret'?'PV Soul / Reinterpret':'PV Soul'):p.engine==='fal'?'Controlled Pose':'Image',resolution=p.resolution==='native'?'native':String(p.resolution||'').toUpperCase();$('settings-summary').textContent=p.mode==='upscale'?upscaleName(p)+' / '+upscaleSize(p)+' / source ratio':p.type==='image'?imageName+' / '+resolution+' / '+ratio:`${p.duration}s / ${p.resolution} / ${ratio}`;$('save').disabled=!owner||!hasInput()||busy;$('clear').disabled=(!file&&!lastFile&&!references.length&&!mediaRefs.count()&&!resultUrl&&!$('prompt').value.trim())||busy;const provider=currentProvider(),ready=provider==='openrouter'?config.openrouterEnabled:provider==='higgsfield'?config.higgsfieldEnabled:provider==='gemini'?config.geminiEnabled:provider==='fal'?config.falEnabled:config.enabled,soulBlocked=tool==='image'&&imageEngine==='soul'&&(!config.soulTrainingEnabled||!soul.ready()||(isReinterpret()&&!soul.reinterpretReady()));$('generate').disabled=!owner||!hasInput()||(tool!=='upscale'&&!isReinterpret()&&imageEngine!=='soulpro'&&!current.prompt&&!(usesReferenceGuidance()&&canUseReferenceGuidance(referenceRoles())))||busy||imageSubmissionPending||submissionBlocked()||soulBlocked||(tool==='upscale'&&((!isFalUpscale()&&upscaleQuoteNeedsCheck)||upscaleManualReviewRequired));$('generate').textContent=ready?(tool==='image'?(imageEngine==='gemini'?(imageProcessing==='batch'?'Queue batch':'Generate now'):imageEngine==='soulpro'?'Generate':imageEngine==='fal'?'Generate controlled pose':isReinterpret()?'Reinterpret with Soul':'Generate'):tool==='upscale'?'Upscale':'Generate'):(provider==='openrouter'?'Connect OpenRouter':provider==='higgsfield'?'Higgsfield API not connected':provider==='gemini'?'Gemini API not connected':provider==='fal'?'FAL API not connected':'Connect generation provider');$('generation-help').textContent=tool==='image'&&imageEngine==='flash'?'Seedream Flash · $0.018 estimated per image · OpenRouter. '+(config.openrouterEnabled?'':'Add OPENROUTER_API_KEY in the Worker secrets to connect. '):tool==='image'&&imageEngine==='kling'?'Kling V3 · $0.028 estimated per image · FAL. Text or one base image; 1K / 2K.':isSoul2()?'PV Soul creates from a prompt or reinterprets a photograph, with an optional trained character. One image per click. '+($('hf-resolution').value==='720p'?'$0.0032':'$0.0057')+' estimated; provider billing is authoritative.':tool==='image'&&imageEngine==='soulpro'?(soulProIdentity.configured?(soulProModel==='ideogram45'?'One base image only. Nina identity loads automatically. Ideogram Precise keeps edit_precision=high; selected quality estimate: '+({very_low:'$0.008',low:'$0.03',medium:'$0.06',high:'$0.22'}[soulProQuality]||'$0.06')+' per image.':'One base image only. Nina identity loads automatically. Kontext Max uses the base plus up to 3 identity refs because its total image limit is 4. Estimate: $0.08 per image.'):'Set Nina identity once, then every Soul Pro render needs only one base image.'):tool==='image'&&imageEngine==='fal'?'Controlled Pose uses FAL DWPose + FLUX EasyControl. One Pose role and 1–4 Identity roles are required. Preview Pose is a small separate fal.ai compute charge.':tool==='image'&&imageEngine==='soul'?(isReinterpret()?'One base photograph and a separately trained Soul identity. High fidelity may keep the original face; lower it for more change. The live provider quote controls the charge.':'PV Soul Text uses your trained Qwen Image 2512 identity. The live provider quote is authoritative.'):tool==='image'&&imageEngine==='gemini'?(imageProcessing==='batch'?'Batch uses the same Nano Banana Pro model at 50% of standard API price. It runs asynchronously and can take minutes or hours; Google targets completion within 24 hours.':'Normal sends Nano Banana Pro immediately. 1K/2K are estimated at $0.134 per image and 4K at $0.24; Google billing is authoritative.'):(tool==='image'?'Generate starts one paid image at the live provider price, within your daily spending limit. No price-review popup.':tool==='upscale'?'Upscale starts one paid upscaling job. You can check its live price above first; there is no extra price-review popup.':'A live quote appears before any paid video.')+' Inputs over 10 MiB need a working copy; the Lab prepares it automatically and keeps the original. Saving a draft does not generate or charge.';for(const el of document.querySelectorAll('.controls input,.controls select,.controls textarea,.mode-tab,.tool-tab'))el.disabled=busy;updateReferenceGuidance();updateUpscaleModel();updateUpscalePrice();syncImageComposer();}
 function options(id,values,value){$(id).replaceChildren(...values.map(v=>new Option(v==='auto'?'Follow reference':v==='source'?'Source':v.toUpperCase(),v)));$(id).value=value;}
 function syncDefaultRatio(force=false){
   const select=$('ratio'),values=[...select.options].map(o=>o.value);
@@ -389,6 +433,7 @@ function synchronizeComposerSelect(composerId,realId){
   if(mirror.value!==real.value)mirror.value=real.value;
 }
 function syncImageGalleryEmpty(){
+  renderPendingImageCards();
   const imageCards=$('history').querySelectorAll('.card[data-kind="image"]').length;
   $('image-gallery-empty').hidden=imageCards>0;
 }
@@ -479,6 +524,8 @@ function fitImageComposerPrompt(){
   const viewport=window.visualViewport?.height||window.innerHeight;
   const maximum=Math.max(minimum,Math.min(narrow?122:176,Math.floor(viewport*(short ? 0.21 : narrow ? 0.22 : 0.25))));
   const previousScroll=textbox.scrollTop;
+  const top=imageComposer.querySelector('.image-composer-top');
+  top.style.removeProperty('min-height');
   textbox.style.height=minimum+'px';
   const naturalHeight=textbox.scrollHeight;
   textbox.style.height=Math.min(maximum,Math.max(minimum,naturalHeight))+'px';
@@ -486,7 +533,6 @@ function fitImageComposerPrompt(){
   textbox.scrollTop=Math.min(previousScroll,Math.max(0,textbox.scrollHeight-textbox.clientHeight));
   // Soul's first grid row otherwise sizes to the textarea's one-line intrinsic
   // minimum and flex-shrinks even when the textarea has a bounded inline height.
-  const top=imageComposer.querySelector('.image-composer-top');
   if(imageComposer.classList.contains('is-pv-soul')){
     const tray=$('image-composer-references');
     const referencesHeight=!tray.hidden?Math.ceil(tray.getBoundingClientRect().height):0;
@@ -1678,7 +1724,6 @@ async function prepareQuoteInputs(inputs,snapshot=null){
       const originals=mode==='reference'?references:[{id:inputs.sourceId,file},...(inputs.lastSourceId&&lastFile?[{id:inputs.lastSourceId,file:lastFile}]:[])];
       const oversized=originals.filter(r=>r.file.size>PROVIDER_IMAGE_LIMIT);
       if(!oversized.length)return inputs;
-      if(!confirm('SpicyAPI limits image inputs to 10 MiB each. Prepare a private compressed WebP working copy for '+oversized.length+' oversized Seedance reference image(s)? Originals stay unchanged in History.')){notify('Preparation cancelled. No generation was submitted.');return null;}
       const transferSourceIds=[];
       for(const item of originals){
         if(item.file.size<=PROVIDER_IMAGE_LIMIT){transferSourceIds.push(item.id);continue;}
@@ -1699,13 +1744,12 @@ async function prepareQuoteInputs(inputs,snapshot=null){
   const sessionEpoch=epoch;
   if(!snapshot&&tool==='upscale'&&!isFalUpscale()&&sourcePixels>UPSCALE_PIXELS[$('resolution').value]&&!confirm('This size tier is smaller than your source and would reduce its resolution. Continue with this tier?'))return null;
   const originals=snapshot?snapshot.originals:tool==='upscale'||isReinterpret()?[{id:inputs.sourceId,file}]:imageEngine==='soul'&&tool==='image'?[]:references;
-  const oversized=originals.filter(r=>r.file.size>PROVIDER_IMAGE_LIMIT);
-  if(oversized.length&&!confirm('SpicyAPI limits uploads to 10 MiB per image. Prepare a compressed WebP working copy for '+oversized.length+' oversized image(s)? Pixel dimensions and transparency are kept, but compression can affect fine detail and metadata. The originals stay unchanged in your private archive.')){notify('Preparation cancelled. No generation was submitted.');return null;}
   const transferSourceIds=[];
   for(const item of originals){
     if(item.file.size<=PROVIDER_IMAGE_LIMIT){transferSourceIds.push(item.id);continue;}
     let copy=workingCopies.get(item.id);
     if(!copy||Date.now()-copy.at>900000){
+      snapshot?.onProgress?.('Optimizing references','Preparing a working copy; originals are kept.');
       notify('Preparing a same-dimension working copy of '+item.file.name+'…');
       const prepared=await providerWorkingCopy(item.file);
       if(epoch!==sessionEpoch||!owner)throw new Error('Session changed.');
@@ -1921,7 +1965,7 @@ function setHistorySelectMode(on){
   historySelectMode=!!on;if(!historySelectMode)historySelected.clear();updateHistorySelectionUi();
 }
 function cleanupHistoryCard(card){if(!card)return;for(const img of card.querySelectorAll('img')){observer.unobserve(img);const u=img.dataset.objectUrl;if(u){release(u);cardUrls.delete(u);}}}
-function historyJobVisible(job){return !!assetLibrary?.active()||tool!=='upscale'||job.settings?.mode==='upscale';}
+function historyJobVisible(job){return !!assetLibrary?.active()||(tool==='upscale'?job.settings?.mode==='upscale':job.settings?.type===tool);}
 function renderCards(jobs,{upsert=false}={}){
   const items=upsert?[...jobs].reverse():jobs;
   for(const j of items){
@@ -1930,7 +1974,7 @@ function renderCards(jobs,{upsert=false}={}){
     if(existing?.dataset.fingerprint===fingerprint)continue;
     if(j.settings.type==='image')imageDetailCache.set(j.id,j);
     const card=document.createElement('article');card.className='card';card.dataset.kind=j.settings.type==='image'?'image':'video';card.dataset.job=j.id;card.dataset.state=j.status;card.dataset.fingerprint=fingerprint;card.dataset.deletable=String(!activeStates.has(j.status));
-    const proportions=String(j.settings.aspectRatio||'16:9').split(':').map(Number);const geometry=j.settings.galleryDimensions;card.dataset.ratio=String(geometry?.assetId===j.outputId&&geometry.width>0&&geometry.height>0?geometry.width/geometry.height:proportions[0]/proportions[1]||16/9);
+    const proportions=String(j.settings.aspectRatio||'16:9').split(':').map(Number);const geometry=j.settings.galleryDimensions;card.dataset.ratio=String(geometry&&geometry.assetId===j.outputId&&geometry.width>0&&geometry.height>0?geometry.width/geometry.height:proportions[0]/proportions[1]||16/9);
     if(j.settings.type==='video')videoJobCache.set(j.id,j);
     const openCard=()=>{
       if(!owner||historySelectMode)return;
@@ -1964,7 +2008,7 @@ function renderCards(jobs,{upsert=false}={}){
     }else{
       const empty=document.createElement('div');empty.className='history-no-result';
       const title=document.createElement('strong'),detail=document.createElement('span');
-      title.textContent=j.settings.mode==='soul-id-training'&&j.status==='completed'?'Soul ID ready':j.status==='draft'?'Saved draft':j.status==='failed'?'Generation failed':j.status==='uncertain'?'Status unknown':activeStates.has(j.status)?'Result pending':ready?'Video ready':j.status==='completed'?'Output unavailable':'No result';
+      title.textContent=j.settings.mode==='soul-id-training'&&j.status==='completed'?'Soul ID ready':j.status==='draft'?'Saved draft':j.status==='failed'?'Generation failed':j.status==='uncertain'?'Status unknown':activeStates.has(j.status)?({submitting:'Submitting',queued:'Queued',running:'Generating',saving:'Saving'}[j.status]||'Result pending'):ready?'Video ready':j.status==='completed'?'Output unavailable':'No result';
       detail.textContent=j.settings.mode==='soul-id-training'&&j.status==='completed'?'Choose this identity from the Soul ID photo tile to generate.':j.status==='draft'?'No generation submitted.':j.status==='failed'?(j.error||'The provider ended this request without a generated file.'):j.status==='uncertain'?'PV Lab could not confirm the provider state. Check the provider before retrying; nothing will be resubmitted automatically.':activeStates.has(j.status)?'The finished output will appear here.':ready?'View or download your generated video below.':'No generated file is available to view or download.';
       empty.append(title,detail);card.append(empty);
     }
@@ -2027,6 +2071,7 @@ let historyLoadId=0;
 async function loadHistory(append=false,incremental=false){
   assetLibrary?.heading();
   if(!append&&!incremental){historySelected.clear();next=null;videoJobCache.clear();imageDetailCache.clear();historyRevision++;observer.disconnect();cardUrls.forEach(release);cardUrls.clear();$('history').replaceChildren();updateHistorySelectionUi();}
+  renderPendingImageCards();
   const rev=historyRevision,loadId=++historyLoadId,q=assetLibrary?.query()||new URLSearchParams();
   if(append&&next){q.set('before',next.before);q.set('afterId',next.afterId);}
   const data=await api('/api/jobs?'+q);
@@ -2060,7 +2105,7 @@ $('history-delete-selected').onclick=()=>action(async()=>{
   setHistorySelectMode(false);await loadHistory();if(assetLibrary?.active())await assetLibrary.load();notify((result.deleted||ids.length)+' History item'+((result.deleted||ids.length)===1?'':'s')+' deleted. Spending history is unchanged.');
 });
 function finishLabBoot(){window.__pvLabFinishBoot?.();}
-function lock(){fashionController?.lock();setFashionActive(false);assetLibrary?.reset();hf.reset();epoch++;clearAssetCache();for(const p of composerPortraits.values())p.then(url=>{if(url)release(url);});composerPortraits.clear();composerLibraryKey='';composerPortraitKey='';closeComposerLibrary();historySelected.clear();historySelectMode=false;clearSoulProPackPreview();soulProIdentity={configured:false,count:0,refs:[]};workingCopies.clear();autoPreview=null;downloadUrls.forEach(release);downloadUrls.clear();owner=false;userId='';soul.reset();historyRevision++;clearTimeout(timer);timer=null;activeJob=null;activeJobs=[];polling=false;requestControllers.forEach(c=>c.abort());requestControllers.clear();observer.disconnect();cardUrls.forEach(release);cardUrls.clear();clearMedia();$('prompt').value='';$('history').replaceChildren();$('app').hidden=true;$('gate').hidden=false;$('connection').hidden=true;$('logout').hidden=true;$('api-key').value='';for(const d of document.querySelectorAll('dialog[open]'))d.close();currentQuote=null;config={};packs=[];$('pack-select').replaceChildren(new Option('Choose a saved pack',''));closeImageModelMenu();toggleImageSettings(false);$('app').classList.remove('image-studio-active');imageStudio.hidden=true;imageDetailCache.clear();releaseImageDetailSource();videoJobCache.clear();selectedVideoJob=null;syncVideoStudioMode();finishLabBoot();}
+function lock(){fashionController?.lock();setFashionActive(false);assetLibrary?.reset();hf.reset();epoch++;imageSubmissionPending=false;pendingImageCards.clear();clearAssetCache();for(const p of composerPortraits.values())p.then(url=>{if(url)release(url);});composerPortraits.clear();composerLibraryKey='';composerPortraitKey='';closeComposerLibrary();historySelected.clear();historySelectMode=false;clearSoulProPackPreview();soulProIdentity={configured:false,count:0,refs:[]};workingCopies.clear();autoPreview=null;downloadUrls.forEach(release);downloadUrls.clear();owner=false;userId='';soul.reset();historyRevision++;clearTimeout(timer);timer=null;activeJob=null;activeJobs=[];polling=false;requestControllers.forEach(c=>c.abort());requestControllers.clear();observer.disconnect();cardUrls.forEach(release);cardUrls.clear();clearMedia();$('prompt').value='';$('history').replaceChildren();$('app').hidden=true;$('gate').hidden=false;$('connection').hidden=true;$('logout').hidden=true;$('api-key').value='';for(const d of document.querySelectorAll('dialog[open]'))d.close();currentQuote=null;config={};packs=[];$('pack-select').replaceChildren(new Option('Choose a saved pack',''));closeImageModelMenu();toggleImageSettings(false);$('app').classList.remove('image-studio-active');imageStudio.hidden=true;imageDetailCache.clear();releaseImageDetailSource();videoJobCache.clear();selectedVideoJob=null;syncVideoStudioMode();finishLabBoot();}
 async function sync(){if(syncing)return;syncing=true;try{if(!clerk.isSignedIn){lock();$('auth-status').textContent='Sign in with your Parallel Vision owner account.';$('signin').disabled=false;return;}if(owner&&userId===clerk.user.id)return;const data=await api('/api/session');owner=true;userId=clerk.user.id;applyConfig(data.config);$('identity').textContent='Owner workspace';$('gate').hidden=true;$('app').hidden=false;$('connection').hidden=false;$('logout').hidden=false;await Promise.all([loadHistory(),loadPacks(),soul.load(),loadSoulProIdentity()]);syncVideoStudioMode();await restoreStudioEntry();if(!fashionActive&&fashionController)void fashionController.sync();}catch(e){lock();$('auth-status').textContent=e.message;$('signin').disabled=false;$('logout').hidden=!clerk?.isSignedIn;}finally{syncing=false;finishLabBoot();}}
 $('auth-retry').onclick=()=>location.reload();$('signin').onclick=()=>clerk?.openSignIn();$('logout').onclick=async()=>{lock();await clerk?.signOut();$('auth-status').textContent='Signed out. Your archive remains private.';};
 assetLibrary=createAssetLibrary({api,notify,archive,app:$('app'),selected:()=>historySelected,selectMode:setHistorySelectMode,reload:()=>loadHistory(),restoreStudio:()=>{syncImageStudioMode();syncVideoStudioMode();},beforeOpen:()=>{++previewRevision;$('video').pause();setFashionActive(false);syncStudioRoute('assets');},kind:()=>tool==='upscale'?'upscale':tool==='video'?'video':'image',ready:()=>owner});
@@ -2103,7 +2148,9 @@ async function submitImageSnapshot(){
   const sourceMode=imageEngine==='soulpro'||isReinterpret();
   const chosen=sourceMode?(selectedBase?[{file:selectedBase,id:selectedSourceId}]:[]):imageEngine==='soul'?[]:references.map(ref=>({file:ref.file,id:ref.id,ref}));
   const check=()=>{if(!owner||epoch!==sessionEpoch)throw new Error('Session changed. No further requests submitted.');};
-  const record=job=>{if(!job)return;check();if(activeStates.has(job.status))setActive(job);surfaceHistoryJob(job);refreshHistorySoon();};
+  let feedback=null,dispatched=false;
+  const record=job=>{if(!job)return;check();dispatched=false;feedback?.accept();if(activeStates.has(job.status))setActive(job);surfaceHistoryJob(job);refreshHistorySoon();};
+  const send=async(path,body)=>{check();feedback?.phase('Submitting','Waiting for the provider to confirm.');dispatched=true;return api(path,{method:'POST',body});};
   imageSubmissionPending=true;update();
   let submitted=0;
   try{
@@ -2117,35 +2164,53 @@ async function submitImageSnapshot(){
       const used=activeJobs.filter(j=>slotStates.has(j.status)&&j.settings?.type==='image'&&jobProvider(j)==='spicy').length;
       if(requested>Math.max(0,limitFor('image')-used))throw new Error('Not enough available image slots for this batch.');
     }
-    const originals=[];
-    for(const item of chosen){
-      check();const id=item.id||await uploadAsset(item.file);check();originals.push({id,file:item.file});
-      if(item.ref&&references.includes(item.ref))item.ref.id=id;
-      if(sourceMode&&file===selectedBase)sourceId=id;
-    }
+    const ratioParts=String(selected.aspectRatio||'').split(':').map(Number);
+    const inputRatio=sourceMode?sourceWidth/sourceHeight:chosen[0]?.ref?.width/chosen[0]?.ref?.height;
+    const ratio=ratioParts.length===2&&ratioParts.every(n=>n>0)?ratioParts[0]/ratioParts[1]:inputRatio>0?inputRatio:16/9;
+    feedback=beginImageFeedback(['higgsfield','fal'].includes(provider)&&!['flash','kling'].includes(selected.engine)?1:requested,selected,ratio);
+    // Upload up to three original references at once, retaining snapshot order
+    // and successful IDs for reuse. No paid call starts before every upload succeeds.
+    const originals=new Array(chosen.length),missing=chosen.filter(item=>!item.id).length;
+    let cursor=0,uploaded=0,uploadError=null;
+    if(missing)feedback.phase('Uploading references','0 / '+missing);
+    const uploadNext=async()=>{
+      while(!uploadError&&cursor<chosen.length){
+        const index=cursor++,item=chosen[index];
+        try{
+          check();const id=item.id||await uploadAsset(item.file);check();originals[index]={id,file:item.file};
+          if(item.ref&&references.includes(item.ref))item.ref.id=id;
+          if(sourceMode&&file===selectedBase)sourceId=id;
+          if(!item.id){uploaded++;feedback.phase('Uploading references',uploaded+' / '+missing);}
+        }catch(error){uploadError=error;}
+      }
+    };
+    await Promise.all(Array.from({length:Math.min(3,chosen.length)},uploadNext));
+    if(uploadError)throw uploadError;
+    check();
     let inputs={sourceId:originals[0]?.id||null,lastSourceId:null,referenceSourceIds:sourceMode?[]:originals.map(r=>r.id)};
     if(['flash','kling'].includes(selected.engine)){
       for(let i=0;i<requested;i++){
-        check();const data=await api('/api/image-models/generate',{method:'POST',body:{...inputs,settings:selected}});
+        const data=await send('/api/image-models/generate',{...inputs,settings:selected});
         if(!data.job)throw new Error('No generation record returned. Check History before retrying.');
         record(data.job);submitted++;
         if(data.job.error)throw new Error(data.job.error);
       }
     }else if(provider==='higgsfield'||provider==='fal'){
       const path=provider==='higgsfield'?'/api/higgsfield/generate':selected.engine==='soulpro'?'/api/fal/soul-pro':'/api/fal/controlled-pose';
-      check();const data=await api(path,{method:'POST',body:{...inputs,settings:selected,...(selected.engine==='fal'?{poseMapSourceId:selectedPose}:{})}});
+      const data=await send(path,{...inputs,settings:selected,...(selected.engine==='fal'?{poseMapSourceId:selectedPose}:{})});
       if(!data.job)throw new Error('No generation record returned. Check History before retrying.');
       record(data.job);submitted=1;if(data.job.error)throw new Error(data.job.error);
     }else if(provider==='gemini'){
       const batch=selected.processing==='batch';
       for(let i=0;i<(batch?1:requested);i++){
-        check();const data=await api('/api/gemini/jobs',{method:'POST',body:{...inputs,count:batch?requested:1,settings:selected}});
+        const data=await send('/api/gemini/jobs',{...inputs,count:batch?requested:1,settings:selected});
         if(!data.jobs?.length)throw new Error('No generation record returned. Check History before retrying.');
         for(const job of data.jobs){record(job);submitted++;}
         if(data.jobs.some(job=>['failed','uncertain','resolved'].includes(job.status)))break;
       }
     }else{
-      inputs=await prepareQuoteInputs(inputs,{originals});if(!inputs)return;
+      inputs=await prepareQuoteInputs(inputs,{originals,onProgress:(...args)=>feedback.phase(...args)});if(!inputs)return;
+      feedback.phase('Checking price','Preparing the generation request.');
       const quotes=[];
       for(let i=0;i<requested;i++){
         check();const q=await api('/api/quotes',{method:'POST',body:{...inputs,settings:selected}});
@@ -2154,13 +2219,14 @@ async function submitImageSnapshot(){
       }
       for(const q of quotes){
         check();if(!Number.isFinite(q.expiresAt)||Date.now()>=q.expiresAt)throw new Error('Quote expired. Nothing further submitted.');
-        const data=await api('/api/jobs',{method:'POST',body:{quoteId:q.id,confirm:true}});
+        const data=await send('/api/jobs',{quoteId:q.id,confirm:true});
         if(!data.job)throw new Error('No generation record returned. Check History before retrying.');
         record(data.job);submitted++;
         if(['failed','uncertain','resolved'].includes(data.job.status)){notify(data.job.error||'Request needs review in History.',true);return;}
       }
     }
     check();notify(submitted+' image request'+(submitted===1?'':'s')+' recorded. Results appear in History.');
-  }catch(e){if(owner&&epoch===sessionEpoch)notify((submitted?submitted+' request(s) recorded. ':'')+(e.name==='AbortError'?'Request interrupted. Check History before retrying.':e.message),true);}
-  finally{imageSubmissionPending=false;update();}
+  }catch(e){if(owner&&epoch===sessionEpoch){feedback?.fail(e,dispatched);notify((submitted?submitted+' request(s) recorded. ':'')+(e.name==='AbortError'?'Request interrupted. Check History before retrying.':e.message),true);if(dispatched)refreshHistorySoon();}}
+  finally{feedback?.finish();if(epoch===sessionEpoch){imageSubmissionPending=false;update();}}
 }
+
