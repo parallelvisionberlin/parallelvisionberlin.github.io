@@ -35,3 +35,13 @@ Subscriptions: €15/1600, €39/4500, €99/12000 per billing month.
 1 USD of quoted API cost reserves 460 PV credits, minimum 7 credits; the backend stores one debit for each paid job and a refund when the job is definitively failed. This credit multiplier is a **launch assumption**, not a verified sustainable unit cost. Review per-provider actual usage and processor fees before selling.
  
 Billing actions must only be considered complete when the signed webhook has been accepted and the durable ledger has updated. A browser redirect alone must never grant credits.
+
+## Referral invitations (staged with checkout disabled)
+
+Lab referrals are entirely separate from Nina's Signal Credits/referral database.
+The signed-in Lab wallet and public landing link to the user's unique Lab invitation URL.
+An invite code is recorded for a new authenticated Lab account within 24 hours of creation and before any payment. A customer can attribute one referrer only, and cannot refer their own account. The invite code survives Clerk sign-in via tab-scoped sessionStorage. The current URL is derived from `LAB_PUBLIC_APP_URL`, so when a dedicated Lab domain is chosen, update that setting and verify the invite path.
+
+**Reward:** on the invited customer's first verified paid credit top-up or subscription payment of at least €10, the existing Stripe webhook adds **200 credits to each account** once, in an atomic D1 transaction. No signup reward and no credit based on a browser return or unverified payment. Referral wallet entries use kind `adjustment` with unique `referral:` references to preserve the original ledger constraints. The total 400-credit reward equates to ~USD 0.87 in *quoted* model costs at the provisional 460-credit/USD rate. This is not a verified margin or provider invoice.
+
+Run `lab-worker/migrations/0007-lab-referrals.sql` against **LAB_DB only**, after migration 0006, before deploying the Worker. The Lab Worker deployment workflow is set up to apply it. Public checkout and paid generation remain disabled until the existing release criteria are met. Before public launch, add dispute/refund handling and monitoring for abusive duplicate accounts and update the customer terms for referral-credit expiration and abuse rules. The MVP's 24-hour attribution window is a launch assumption, not a Clerk fraud-control guarantee.
