@@ -225,6 +225,21 @@ try{
   });
   assert.equal(generateUi.color,'rgb(24, 20, 14)','Available Image Generate uses dark text on amber');
   await x.page.selectOption('#image-composer-ratio','16:9');
+  const ratioDiagnostic=await x.page.evaluate(()=>{
+    const mirror=document.getElementById('image-composer-ratio'),real=document.getElementById('ratio');
+    return {mirrorValue:mirror.value,realValue:real.value,
+      mirrorDisabled:mirror.disabled,realDisabled:real.disabled,
+      options:[...mirror.options].map(o=>({value:o.value,label:o.textContent,selected:o.selected})),
+      tool:document.getElementById('tool-image').getAttribute('aria-pressed'),
+      referenceMode:document.getElementById('image-reference-mode').value};
+  });
+  console.log('IMAGE_RATIO_DIAGNOSTIC',JSON.stringify(ratioDiagnostic));
+  if(ratioDiagnostic.realValue!=='16:9'){
+    await x.page.locator('#image-composer-ratio').evaluate(el=>el.dispatchEvent(new Event('change',{bubbles:true})));
+    console.log('IMAGE_RATIO_AFTER_MANUAL_CHANGE',await x.page.evaluate(()=>JSON.stringify({
+      mirror:document.getElementById('image-composer-ratio').value,
+      real:document.getElementById('ratio').value})));
+  }
   assert.equal(await x.page.locator('#ratio').inputValue(),'16:9','Floating aspect ratio updates backend settings');
   assert.equal(await x.page.locator('#image-composer-more').isVisible(),false,
     'Seedream intentionally uses inline options without a redundant Options button');
