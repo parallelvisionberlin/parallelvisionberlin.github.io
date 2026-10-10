@@ -56,10 +56,10 @@ document.addEventListener('DOMContentLoaded',()=>{
 <link rel="stylesheet" href="./moods.css?v=20261010-hong-kong-emerald1">
 <link rel="stylesheet" href="./detail-video-studio.css?v=20261009-pointer1">
 <link rel="stylesheet" href="./editorial-polish.css?v=20261010-mood-details1">
-<script type="module" src="./lab.js?v=20261010-upload-notice2&wallet=1&fashiondeck=1"></script>
+<script type="module" src="./lab.js?v=20261010-reference-flow2&wallet=1&fashiondeck=1"></script>
 <link rel="stylesheet" href="./credits.css?v=20261010-referrals3">
 <link rel="stylesheet" href="./higgsfield.css?v=20261010-compact-image-prompt1">
-<link rel="stylesheet" href="./assets.css?v=20261010-upload-notice2">
+<link rel="stylesheet" href="./assets.css?v=20261010-reference-flow2">
 <link rel="stylesheet" href="./video-refresh.css?v=20261009-extend2">
 <script type="module" src="./gallery-layout.js?v=20261010-upscale-history1"></script>
 </head>
@@ -133,17 +133,20 @@ document.addEventListener('DOMContentLoaded',()=>{
       <div class="composer-panel-head"><strong>Image options</strong><button id="composer-options-close" type="button" aria-label="Close image options">×</button></div>
       <div id="composer-options-fields" class="composer-options-fields"></div>
     </section>
-    <section id="composer-reference-intent" class="composer-reference-intent" role="dialog" aria-modal="false" aria-label="How to use image references" hidden>
+    <section id="composer-reference-intent" class="composer-reference-intent" role="group" aria-label="Image reference setup" hidden>
       <div class="reference-intent-heading">
-        <div><span class="reference-intent-kicker">PV LAB / REFERENCES</span><strong>How should PV Lab use these photos?</strong><p id="reference-intent-count">Choose what the uploaded images contribute.</p></div>
+        <div><span class="reference-intent-kicker">PV LAB / IMAGES</span><strong>How to use your photos</strong><p id="reference-intent-count">Choose how to guide the image.</p></div>
         <button id="composer-reference-intent-close" type="button" aria-label="Close reference options">×</button>
       </div>
-      <div class="reference-intent-choices" role="group" aria-label="Reference purpose">
-        <button type="button" class="reference-intent-choice" data-reference-intent="edit" aria-pressed="false"><span class="reference-intent-number">01 / BASE</span><strong>Edit first photo</strong><small>Keep the first photo's scene and composition. Choose roles for the others.</small></button>
-        <button type="button" class="reference-intent-choice" data-reference-intent="same" aria-pressed="false"><span class="reference-intent-number">02 / IDENTITY</span><strong>Same person</strong><small>All photos guide one person's appearance. Make a new composition.</small></button>
-        <button type="button" class="reference-intent-choice" data-reference-intent="mix" aria-pressed="false"><span class="reference-intent-number">03 / CREATIVE</span><strong>Mix references</strong><small>Assign each photo its own role, such as pose, outfit or lighting.</small></button>
+      <div class="reference-intent-choices" role="group" aria-label="Image composition">
+        <button type="button" class="reference-intent-choice" data-reference-intent="base" aria-pressed="true"><span class="reference-intent-number">01 / SOURCE</span><strong>Base image</strong><small>Build on the first photo. Change anything you like through your prompt.</small></button>
+        <button type="button" class="reference-intent-choice" data-reference-intent="references" aria-pressed="false"><span class="reference-intent-number">02 / CREATE</span><strong>References only</strong><small>Make a new composition using the photos for guidance. No fixed base.</small></button>
       </div>
-      <p class="reference-intent-help" id="reference-intent-help">You can change individual reference roles on their thumbnails. Results still depend on the model.</p>
+      <button type="button" id="composer-reference-same-person" class="reference-same-person" aria-pressed="false">
+        <span class="reference-same-person-mark" aria-hidden="true">◎</span><span><strong>Same person</strong><small>Use Identity for all supporting photos. Adjust each role anytime.</small></span>
+      </button>
+      <p class="reference-intent-help" id="reference-intent-help">Roles can be changed directly on the thumbnails.</p>
+      <details class="composer-role-preview" id="composer-role-preview"><summary>View model instructions</summary><span id="composer-role-preview-count"></span><pre id="composer-role-preview-text"></pre><p id="composer-role-preview-warning" hidden></p><small>These role instructions travel with the selected image order. A role is guidance, not a guarantee.</small></details>
     </section>
     <div class="image-composer-top">
       <div id="image-composer-references" class="image-composer-references" hidden aria-label="Attached reference images"></div>
@@ -164,8 +167,8 @@ document.addEventListener('DOMContentLoaded',()=>{
         </div>
       </div>
       <button id="image-composer-moods" type="button" class="composer-settings-pill" aria-controls="composer-moods" aria-expanded="false" aria-label="Choose an image mood">✦ Moods</button>
-      <button id="composer-reference-intent-toggle" type="button" class="composer-settings-pill reference-intent-toggle" aria-controls="composer-reference-intent" aria-expanded="false" hidden>Reference roles</button>
-       <label id="image-reference-mode-wrap" class="composer-select-pill" hidden title="How to use reference images"><span class="visually-hidden">Reference mode</span><select id="image-reference-mode" aria-label="Reference mode"><option value="base">Base + references</option><option value="references">References only</option></select></label>
+      <button id="composer-reference-intent-toggle" type="button" class="composer-settings-pill reference-intent-toggle" aria-controls="composer-reference-intent" aria-expanded="false" hidden>Base image ⌄</button>
+       <label id="image-reference-mode-wrap" class="composer-select-pill" hidden title="How to use reference images"><span class="visually-hidden">Reference mode</span><select id="image-reference-mode" aria-label="Reference mode"><option value="base">Base image</option><option value="references">References only</option></select></label>
       <label class="composer-select-pill" title="Aspect ratio"><span class="visually-hidden">Aspect ratio</span><select id="image-composer-ratio" aria-label="Aspect ratio"></select></label>
       <label class="composer-select-pill" title="Resolution"><span class="visually-hidden">Image resolution</span><select id="image-composer-resolution" aria-label="Resolution"></select></label>
       <label id="image-composer-count-wrap" class="composer-select-pill" title="Image count"><span class="visually-hidden">Number of images</span><select id="image-composer-count" aria-label="Number of images"></select></label>
