@@ -7,11 +7,11 @@ import {pathToFileURL} from 'node:url';
 const {chromium}=await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE).href);
 const studio=readFileSync('lab/studio.html','utf8');
 const start=studio.indexOf('<section id="precision-workspace"');
-const end=studio.indexOf('<section id="image-composer"',start);
+const end=studio.indexOf('<section id="image-studio"',start);
 assert.ok(start>0&&end>start,'Real Precision Edit markup must be present in the studio');
 const html='<html><head><meta name="viewport" content="width=device-width,initial-scale=1">'
   +'<link rel="stylesheet" href="/lab/precision-edit.css"></head>'
-  +'<body style="background:#101114;margin:0;color:white"><div id="image-studio" class="image-studio" style="display:block;padding:12px;max-width:1400px;margin:auto">'
+  +'<body style="background:#101114;margin:0;color:white"><div id="app" class="retouch-studio-active" style="display:block;padding:12px;max-width:1400px;margin:auto">'
   +studio.slice(start,end)+'</div></body></html>';
 const server=http.createServer((req,res)=>{
   const p=new URL(req.url,'http://localhost').pathname;
@@ -28,7 +28,7 @@ try{
   await page.goto('http://127.0.0.1:4189/test');
   await page.evaluate(async()=>{
     const {createPrecisionEditor}=await import('/lab/precision-edit.js');
-    const blobs=new Map();let seq=0;window.pvRequests=[];window.pvJobs=[];
+    const blobs=new Map();let seq=0;window.pvRequests=[];window.pvJobs=[];window.pvExits=0;
     const make=async(kind)=>{
       const c=document.createElement('canvas');c.width=640;c.height=480;
       const x=c.getContext('2d');x.fillStyle=kind==='original'?'#456a82':kind==='raw'?'#f04422':'#000';
@@ -64,9 +64,9 @@ try{
       if(blobs.has(id))return blobs.get(id);
       throw new Error('Unknown asset '+id);
     };
-    const editor=createPrecisionEditor({host:document.querySelector('#image-studio'),api,assetBlob,
+    const editor=createPrecisionEditor({host:document.querySelector('#app'),api,assetBlob,
       uploadAsset:async file=>{const id=await store(file);if(file.name==='editorial.png')window.pvBaseId=id;if(file.name==='precision-selection.png')window.pvMaskId=id;return id;},
-      notify:()=>{},owner:()=>true,falReady:()=>true,onJob:job=>window.pvJobs.push(job)});
+      notify:()=>{},owner:()=>true,falReady:()=>true,onExit:()=>{window.pvExits++;editor.close();},onJob:job=>window.pvJobs.push(job)});
     const file=new File([original],'editorial.png',{type:'image/png'});
     await editor.open({file});
     window.pvEditor=editor;
@@ -115,8 +115,15 @@ try{
   await page.screenshot({path:'test-results/pv-precision-mobile.png',fullPage:true});
   const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>window.innerWidth+3);
   assert.equal(overflow,false,'Precision Edit may not overflow horizontally on mobile');
+  const priorRequests=await page.evaluate(()=>window.pvRequests.length);
   await page.locator('#precision-return').click();
   assert.equal(await page.locator('#precision-workspace').isVisible(),false);
+  assert.equal(await page.evaluate(()=>window.pvExits),1,'Back delegates to the parent studio');
+  await page.evaluate(()=>window.pvEditor.open());
+  assert.equal(await page.locator('#precision-workspace').isVisible(),true,'Returning opens the Retouch workspace');
+  assert.match(await page.locator('#precision-source-meta').textContent(),/editorial\.png/);
+  assert.match(await page.locator('#precision-prompt').inputValue(),/vivid red material/);
+  assert.equal(await page.evaluate(()=>window.pvRequests.length),priorRequests,'Returning does not resubmit paid work');
   assert.deepEqual(errors,[]);
-  console.log('PASS Magic Select, brush/expand/undo, quote before authorization, History commit, exact untouched pixels, mobile layout');
+  console.log('PASS standalone Retouch, Magic Select, brush/undo, quote before authorization, exact untouched pixels, Back callback, source persistence and mobile layout');
 }finally{await browser.close();await new Promise(resolve=>server.close(resolve));}
