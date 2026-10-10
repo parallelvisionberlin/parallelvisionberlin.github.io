@@ -89,6 +89,17 @@ export const MOODS=Object.freeze([
     "avoid": "childish vector stickers, floating UI icons, grim cyberpunk"
   },
   {
+    "id": "dreamcore",
+    "name": "Dreamcore",
+    "category": "Experimental",
+    "preview": "/lab/mood-previews/dreamcore-train-20261010.webp",
+    "description": "Iridescent haze, surreal light and impossible calm",
+    "direction": "Photographic dreamcore, like a beautiful place remembered through a vivid dream. Gently transform the original scene's color, light and atmosphere, not its identity or objects: pearl-blue and milky aqua shadows, glowing shell-pink and lilac highlights, subtle spectral iridescence in real reflective materials, soft halation around existing light sources, moist-looking gloss where surfaces allow it, delicate optical haze, and a luminous pastel dream state. Preserve real photographic camera perspective and recognizable details. Keep skin tones and fabric texture credible. The goal is wondrous and nostalgic, never frightening, glossy CGI or generic vaporwave.",
+    "subtle": "Delicate pastel pink-aqua color separation, gentle optical bloom around existing highlights, natural atmospheric softness and faint iridescent reflections only where the original materials support them. Preserve faces, clothing, framing, recognizable places and natural detail.",
+    "intense": "Strong dreamlike editorial transformation: softly luminous lavender and pearl-cyan atmosphere, generous but believable fog and bloom, vivid iridescent spectral reflections on suitable glass, water, metal or glossy flooring, enchanting pastel lighting and subtle changes to perceived sky color when a sky already exists. Keep architecture, vehicles, faces, outfits, camera framing and the underlying subject consistent with the original image; the surreal effect should arise from atmosphere and light, not invented set pieces. Prioritize wonder and calm over eerie or unsettling imagery.",
+    "avoid": "copying the preview's train or platform, inserting trains, new pools or giant moons into unrelated photos, symmetrical luxury-resort CGI, heavy neon outlines, cartoon pastel illustration, plastic skin, overexposure, scary horror atmosphere, arbitrary wet floors, unmotivated colored light, exaggerated fantasy structures"
+  },
+  {
     "id": "sumi-ink",
     "name": "Japanese Sumi-e",
     "category": "Experimental",

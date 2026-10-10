@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import {MOODS,MOOD_MODELS,moodById,prepareMoodPrompt,userFacingImagePrompt,imageHistoryCaption} from '../lab/moods.js';
 import {readFileSync} from 'node:fs';
 
-test('exactly ten unique curated moods with imagery',()=>{
-  assert.equal(MOODS.length,10);
+test('exactly eleven unique curated moods with imagery',()=>{
+  assert.equal(MOODS.length,11);
   assert.equal(new Set(MOODS.map(m=>m.id)).size,10);
   for(const mood of MOODS)for(const field of ['name','category','preview','direction','subtle','intense','avoid'])assert.ok(mood[field]);
 });
@@ -121,4 +121,27 @@ test('Moods footer has a larger primary action and a compact accessible explanat
   assert.match(js,/done\.disabled=!chosen/);
   assert.match(js,/event\.key==='Escape'&&!aboutDetails\.hidden/);
   assert.match(js,/aboutButton\.setAttribute\('aria-expanded',String\(opening\)\)/);
+});
+
+test('Dreamcore thumbnail and provider intensity directions are connected',()=>{
+  const mood=moodById('dreamcore');
+  assert.equal(mood.category,'Experimental');
+  assert.equal(mood.preview,'/lab/mood-previews/dreamcore-train-20261010.webp');
+  const low=prepareMoodPrompt('A person in a room','dreamcore',20,{engine:'seedream',referenceCount:1});
+  const middle=prepareMoodPrompt('A person in a room','dreamcore',60,{engine:'gemini',referenceCount:1});
+  const high=prepareMoodPrompt('A person in a room','dreamcore',100,{engine:'seedream',referenceCount:1});
+  for(const result of [low,middle,high]){
+    assert.equal(result.error,'');
+    assert.equal(result.metadata.moodId,'dreamcore');
+    assert.match(result.prompt,/preserve face, identity, real body proportions/i);
+  }
+  assert.match(low.prompt,/gentle optical bloom/i);
+  assert.match(middle.prompt,/Photographic dreamcore/i);
+  assert.match(high.prompt,/Strong dreamlike editorial transformation/i);
+  assert.notEqual(low.prompt,high.prompt);
+  assert.match(high.prompt,/copying the preview's train or platform/i);
+  const css=readFileSync(new URL('../lab/moods.css',import.meta.url),'utf8');
+  assert.ok(css.includes('.moods-look-dreamcore img{filter:none;object-position:center center}'));
+  const html=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
+  assert.match(html,/Eleven curated looks/);
 });
