@@ -67,6 +67,29 @@ for(const [width,height,profile] of [[1440,900,'desktop'],[390,844,'mobile']]){
       assert.ok(deck.method.width>0&&deck.generate.width>0,'Mobile upscale controls remain usable');
       assert.ok(deck.generate.top>deck.size.top,'Mobile Upscale button wraps below settings');
     }
+    const geometry=await page.evaluate(()=>{
+      const rect=selector=>{const r=document.querySelector(selector).getBoundingClientRect();return {top:r.top,bottom:r.bottom,left:r.left,right:r.right,height:r.height};};
+      return {
+        canvas:rect('#upscale-canvas'),deck:rect('#app .workspace>.controls'),results:rect('.archive'),
+        options:rect('#upscale-info summary'),size:rect('#resolution'),imageLoaded:false
+      };
+    });
+    if(profile==='desktop'){
+      assert.ok(geometry.canvas.height>=300&&geometry.canvas.height<400,'Empty desktop preview remains compact');
+      assert.ok(geometry.results.top<770,'More of the Upscaled images gallery remains visible in a 900px viewport');
+      assert.ok(geometry.options.left>=geometry.deck.right-165&&geometry.options.right<=geometry.deck.right,'More options aligns right within the working deck');
+    }else{
+      assert.ok(geometry.canvas.height>=245&&geometry.canvas.height<=340,'Mobile empty preview fits the shorter working deck');
+    }
+    const emptyCanvasHeight=geometry.canvas.height;
+    await page.evaluate(()=>{
+      const preview=document.getElementById('preview'),empty=document.getElementById('empty');
+      preview.src='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="100" height="140"><rect width="100" height="140" fill="#4c5360"/></svg>');
+      preview.hidden=false;empty.hidden=true;
+    });
+    const filledCanvasHeight=await page.locator('#upscale-canvas').evaluate(el=>el.getBoundingClientRect().height);
+    assert.ok(filledCanvasHeight>emptyCanvasHeight+20,'Loaded image preview expands to provide more room');
+    await page.evaluate(()=>{document.getElementById('preview').hidden=true;document.getElementById('empty').hidden=false;});
     assert.equal(await page.locator('#upscale-price').isVisible(),false,'Optional pricing is initially hidden');
     await page.locator('#upscale-info summary').click();
     assert.equal(await page.locator('#upscale-price').isVisible(),true,'More options exposes live price check');

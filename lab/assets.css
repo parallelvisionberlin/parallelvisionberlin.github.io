@@ -582,3 +582,130 @@ body:has(#app[hidden])>#studio-header .tool-switch{display:none}
   #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #format-control{grid-column:2}
   #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #generate{grid-column:1/-1}
 }
+
+
+/* Upscaler Workdeck V3: improve density and visual hierarchy without moving any
+   existing source, price, history or generation controls. */
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace{
+  max-width:1120px;margin:12px auto 18px;gap:7px;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .stagehead,
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .stagefoot{
+  min-height:28px;height:28px;padding:0 2px;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .stagehead .eyebrow{
+  font-size:11px;font-weight:540;color:#a9a9b1;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .stagefoot{
+  font-size:10px;color:#9499a3;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .canvas{
+  height:clamp(300px,39dvh,390px);min-height:300px;
+  border-radius:13px;border-color:#41434b;
+  background:radial-gradient(ellipse 50% 80% at 50% 45%,#1e1f24 0%,#16171b 78%);
+  transition:border-color .15s ease;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .canvas:hover{
+  border-color:#61656f;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .empty{
+  min-height:0;height:100%;padding:15px 20px;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .empty::before{
+  width:55px;height:55px;margin-bottom:16px;border-radius:15px;
+  font-size:28px;background:#25262d;border-color:#474951;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .empty-title{
+  font-size:30px;line-height:1.13;letter-spacing:-.035em;margin:0 0 8px;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .empty-description{
+  font-size:13px;line-height:1.5;max-width:360px;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .empty-actions{
+  margin-top:17px;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #canvas-import{
+  min-height:40px;padding:9px 20px;border-radius:9px;font-size:12px;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active):has(#preview:not([hidden])) .canvas{
+  height:clamp(355px,50dvh,530px);min-height:355px;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls{
+  padding:10px 12px 7px;column-gap:11px;row-gap:3px;
+  background:#1d1e23;border:1px solid #373a43;border-radius:12px;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .controls .label{
+  font-size:10px;color:#aeb1bb;letter-spacing:.015em;margin-bottom:4px;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .controls select{
+  height:39px;min-height:39px;border:1px solid #3c3e47;background:#282a30;
+  border-radius:8px;font-size:12px;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #generate{
+  height:39px;min-height:39px;max-height:39px;
+  border-radius:8px;font-size:13px;font-weight:650;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-info{
+  padding:0;min-height:25px;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-info summary{
+  display:flex;align-items:center;justify-content:flex-end;gap:8px;
+  width:max-content;min-height:25px;margin-left:auto;padding:4px 7px;
+  border:1px solid transparent;border-radius:7px;
+  list-style:none;font-size:11px;font-weight:560;color:#aeb2bd;
+  line-height:1.4;cursor:pointer;
+}
+#app.upscale-studio-active #upscale-info summary::-webkit-details-marker{display:none}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-info summary::after{
+  content:"";width:6px;height:6px;display:inline-block;
+  border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;
+  transform:rotate(45deg) translate(-1px,-1px);
+  transition:transform .12s ease;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-info[open] summary::after{
+  transform:rotate(225deg) translate(-1px,-1px);
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-info summary:hover{
+  color:#f2f2f5;background:#292b32;border-color:#3c3e46;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-info summary:focus-visible,
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .controls select:focus-visible,
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #generate:focus-visible{
+  outline:2px solid #d5d9df;outline-offset:2px;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-notice-slot #notice{
+  padding:8px 11px;font-size:11px;line-height:1.5;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-info[open]{
+  padding-top:8px;
+}
+@media(max-width:640px){
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace{
+    margin-top:8px;gap:5px;
+  }
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .canvas{
+    height:clamp(245px,34dvh,330px);min-height:245px;
+  }
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active):has(#preview:not([hidden])) .canvas{
+    height:clamp(310px,45dvh,460px);min-height:310px;
+  }
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .empty::before{
+    width:46px;height:46px;margin-bottom:12px;font-size:24px;
+  }
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .empty-title{
+    font-size:26px;
+  }
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .empty-description{
+    font-size:12px;
+  }
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .empty-actions{
+    margin-top:12px;
+  }
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls{
+    padding:11px 12px 7px;gap:7px 9px;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  #app.upscale-studio-active .canvas,
+  #app.upscale-studio-active #upscale-info summary::after{transition:none}
+}
