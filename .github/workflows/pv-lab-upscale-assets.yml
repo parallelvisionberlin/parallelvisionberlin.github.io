@@ -5,7 +5,9 @@ on:
       - 'lab/studio.html'
       - 'lab/assets.css'
       - 'lab/lab.js'
+      - 'lab/studio.css'
       - 'tests/lab-upscale-assets-visibility.mjs'
+      - 'tests/lab-upscale-ui.mjs'
       - '.github/workflows/pv-lab-upscale-assets.yml'
   workflow_dispatch:
 permissions:
@@ -27,6 +29,10 @@ jobs:
         env:
           PV_PLAYWRIGHT_MODULE: /tmp/pv-upscale-visibility/node_modules/playwright/index.mjs
         run: node tests/lab-upscale-assets-visibility.mjs
+      - name: Verify inline Upscaler status and one paid submission with mocked provider
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-upscale-visibility/node_modules/playwright/index.mjs
+        run: node tests/lab-upscale-ui.mjs
       - name: Keep desktop and mobile screenshots for review
         if: always()
         uses: actions/upload-artifact@v4
