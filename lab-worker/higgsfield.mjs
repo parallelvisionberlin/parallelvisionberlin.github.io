@@ -2,7 +2,8 @@
 export const SOUL2_MODEL='higgsfield-ai/soul/v2/image-to-image';
 export const SOUL2_TEXT_MODEL='higgsfield-ai/soul/v2/standard';
 export const SOUL2_PRICES={training:2500000,'720p':3200,'1080p':5700}; // Published estimates, not a billing ceiling.
-const SOUL2_MAX_QUOTE_MICROS=250000; // Independent $0.25/image abnormal-price guard.
+const SOUL2_MAX_QUOTE_MICROS=250000; // Owner/editor abnormal-price guard.
+export const SOUL2_CUSTOMER_MAX_QUOTE_MICROS=15000; // At 460 credits/USD, any eligible Soul 2 image costs exactly 7 credits.
 const ORIGIN='https://api.higgsfield.ai';
 const ID=/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
 const RATIOS=['16:9','9:16','4:3','3:4','1:1','2:3','3:2'];
@@ -142,7 +143,10 @@ export async function higgsfieldRoute(request,env,owner,url,d){
     if(!/^\d{1,6}(\.\d{1,6})?$/.test(String(estimateReply.usd)))fail(502,'Higgsfield did not return a valid USD estimate. Nothing generated.');
     const estimate=Math.round(Number(estimateReply.usd)*1000000);
     if(!Number.isSafeInteger(estimate)||estimate<=0)fail(502,'Higgsfield did not return a positive image price. Nothing generated.');
-    if(estimate>SOUL2_MAX_QUOTE_MICROS)fail(409,'Higgsfield estimates $'+estimateReply.usd+', above the independent $0.25/image safety ceiling. Nothing submitted or charged.');
+    if(estimate>SOUL2_MAX_QUOTE_MICROS)
+      fail(409,'Higgsfield price exceeds the independent 0.25 USD per-image safety ceiling. Nothing submitted or charged.');
+    if(d.isLabCustomer&&await d.isLabCustomer(env,owner)&&estimate>SOUL2_CUSTOMER_MAX_QUOTE_MICROS)
+      fail(409,'Soul 2 is temporarily above the 7-credit launch price. Nothing submitted or charged. The live API quote must be reviewed before the model can be sold at the advertised rate.');
     p.accountEstimateUsd=estimate/1000000;
     const id=crypto.randomUUID(),expiresAt=d.now()+300000;
     await d.run(env,'INSERT INTO quotes(id,owner_id,source_id,params,estimate_microusd,expires_at,vendor_quote_id,expected_cost,payload) VALUES(?,?,?,?,?,?,?,?,?)',id,owner,base?.id||null,JSON.stringify(p),estimate,expiresAt,'higgsfield-soul2-quote-v1',String(estimateReply.usd),JSON.stringify({model:p.model,input}));

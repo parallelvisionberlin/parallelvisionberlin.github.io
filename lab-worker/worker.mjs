@@ -19,7 +19,7 @@ import {findFalRequest} from './fal-recovery.mjs';
 import {falUploadImage} from './fal-storage.mjs';
 import {REFERENCE_ROLES,normalizeReferenceLabel,supportsReferenceGuidance,compileImagePrompt,canUseReferenceGuidance,referenceGuidanceError} from '../lab/reference-guidance.js';
 import {characterPreview as soulCharacterPreview,SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-10.5-referral-rewards';
+export const VERSION = 'pv-lab-2026-10-10.6-soul-id-pricing';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -57,7 +57,7 @@ const first = (env,sql,...p) => stmt(env,sql,...p).first();
 const run = (env,sql,...p) => stmt(env,sql,...p).run();
 const rows = async (env,sql,...p) => (await stmt(env,sql,...p).all()).results;
 const uid = value => UUID.test(value || '') ? value : fail(400,'Invalid record identifier.');
-const hfDeps = () => ({fail,now,body,first,run,rows,config,source,sources,signedInput,jobView,copyResult,safeVideoUrl,storedImageDimensions});
+const hfDeps = () => ({fail,now,body,first,run,rows,config,source,sources,signedInput,jobView,copyResult,safeVideoUrl,storedImageDimensions,isLabCustomer});
 const soulDeps = () => ({fail,now,body,limitedBody,first,run,rows,uid,derived,base,unbase});
 function unbase(s) { return Uint8Array.from(atob(s.replace(/-/g,'+').replace(/_/g,'/').padEnd(Math.ceil(s.length/4)*4,'=')),c=>c.charCodeAt(0)); }
 function base(b) { let s=''; for(const n of new Uint8Array(b))s+=String.fromCharCode(n); return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }

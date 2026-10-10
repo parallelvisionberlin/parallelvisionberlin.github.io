@@ -50,6 +50,7 @@ jobs:
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0004-pv-soul.sql --yes
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0006-customers-billing.sql --yes
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0007-lab-referrals.sql --yes
+            wrangler d1 execute parallel-vision-lab --remote --file migrations/0008-soul-id-launch-credits.sql --yes
           command: deploy
 
       - name: Verify production health

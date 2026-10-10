@@ -1,13 +1,18 @@
 // Credit wallet UI. Backend verifies every price, balance, webhook and receipt.
 export function createCustomerWallet({api,notify=()=>{}}){
   const $=id=>document.getElementById(id);
-  let account=false,billingReady=false,balance=0,products=[],referralLoading=false,referralEpoch=0;
+  let account=false,billingReady=false,balance=0,products=[],referralLoading=false,referralEpoch=0,soulIdTrainingCredits=null;
   const toggle=$('lab-wallet-toggle'),dialog=$('lab-credits-dialog'),referralDialog=$('lab-referrals-dialog'),amount=$('lab-credit-balance'),
         list=$('lab-credit-products'),state=$('lab-wallet-state'),
         referralUrl=$('lab-referral-url'),referralCopy=$('lab-referral-copy'),
         referralState=$('lab-referral-status'),referralStats=$('lab-referral-stats');
   const cost=usd=>Math.max(7,Math.ceil(Math.round(Number(usd)*1e6)*460/1e6));
   function describe(usd){return (Number.isFinite(Number(usd))?cost(Number(usd)).toLocaleString():'?')+' credits';}
+  function jobCharge(job){
+    if(job?.settings?.provider==='higgsfield'&&job.settings.mode==='soul-id-training'&&soulIdTrainingCredits!==null)
+      return soulIdTrainingCredits.toLocaleString()+' credits';
+    return describe(job?.estimatedUsd);
+  }
   function update(){
     toggle.hidden=!account;
     if(!account){if(dialog?.open)dialog.close();if(referralDialog?.open)referralDialog.close();return;}
@@ -93,9 +98,9 @@ export function createCustomerWallet({api,notify=()=>{}}){
     const next=!!data.customer;
     referralEpoch++;referralLoading=false;
     referralUrl.value='';referralCopy.disabled=true;referralStats.textContent='';referralState.textContent='';
-    account=next;
+    account=next;soulIdTrainingCredits=account&&Number.isSafeInteger(data.soulIdTrainingCredits)?data.soulIdTrainingCredits:null;
     if(account){balance=Number(data.balanceCredits)||0;billingReady=!!data.billingReady;products=data.products||[];}
     update();
   }
-  return {connect,refresh,open,openReferrals,cost,describe,isCustomer:()=>account};
+  return {connect,refresh,open,openReferrals,cost,describe,jobCharge,isCustomer:()=>account};
 }
