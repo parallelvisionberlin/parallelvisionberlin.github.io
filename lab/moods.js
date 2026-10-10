@@ -70,7 +70,7 @@ const ALL_MOODS=Object.freeze([
     "id": "soft-pastel-film",
     "name": "Soft Pastel Film",
     "category": "Analog",
-    "preview": "/lab/mood-previews/soft-pastel-film-20261010.webp",
+    "preview": "/lab/mood-previews/soft-pastel-film-portrait-f77111b4.webp",
     "description": "Quiet creamy daylight",
     "direction": "Airy premium analog photography with creamy neutrals, soft daylight, restrained powdered pastel hues, gentle shadow separation, subtle grain, natural skin color and elegant optical softness without loss of detail.",
     "subtle": "Slightly creamy daylight and reduced color harshness; keep contrast intelligible.",
