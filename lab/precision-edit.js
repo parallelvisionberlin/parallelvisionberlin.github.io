@@ -161,7 +161,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     // Navigating between Image and Retouch must not clear a work-in-progress mask.
     // Only load a new source when it is actually a different photograph.
     if(file&&(!base||(id?base.id!==id:base.file!==file)))await setBase(file,id);
-    else if(!base)setStatus('Drop your original photograph on the left to begin.');
+    else if(!base)setStatus('');
     if(!falReady())selectMode('brush');
     refreshButtons();
     syncPreviewFit();
@@ -199,7 +199,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     $('precision-result-label').textContent='AWAITING EDIT';
     $('precision-drop').hidden=true;$('precision-source-holder').hidden=false;
     $('precision-selection-message').textContent='Click an object to select it. Brush tools refine your mask.';
-    $('precision-price-review').hidden=true;setStatus('The original pixels will be preserved outside the selected area.');
+    $('precision-price-review').hidden=true;setStatus('');
     selectMode(falReady()?'magic':'brush');refreshButtons();
     syncPreviewFit();
     // File-picker/drop imports may resize a previously empty panel. Keep the
