@@ -29,7 +29,7 @@ test('Pixel-limited working copy is independent of the file size limit',()=>{
   assert.match(code,/draw\(outputWidth,outputHeight\)/);
   assert.match(code,/SEEDREAM_WORKING_TARGET_PIXELS\/pixels/);
   assert.match(lab,/resizeForSeedream=pixels>SEEDREAM_INPUT_MAX_PIXELS/);
-  assert.match(lab,/const prepared=resizeForSeedream\?await seedreamWorkingCopy\(item.file\):await providerWorkingCopy\(item.file\)/);
+  assert.match(lab,/await seedreamPreparer.forSubmission\(item\)/);
   assert.match(lab,/cacheKey=resizeForSeedream\?'seedream-pixels:'/);
   assert.match(lab,/originals\[index\]=\{id,file:item.file,width:item.width,height:item.height\}/);
   assert.match(lab,/originals.push\(\{id,file:item.file,width:item.width,height:item.height\}\)/);

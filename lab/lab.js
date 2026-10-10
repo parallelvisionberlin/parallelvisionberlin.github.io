@@ -12,8 +12,9 @@ import {createMoodSelector,moodById,userFacingImagePrompt,imageHistoryCaption} f
 import {createMediaReferences} from './media-references.js?v=20261009-extend2';
 import { createSessionRequest } from './session-request.js?v=20260927-auth1';
 import { createSoulController } from './soul.js?v=20261001-presets2';
-import { PROVIDER_IMAGE_LIMIT, SEEDREAM_INPUT_MAX_PIXELS, UPSCALE_PIXELS, imageDimensions, providerWorkingCopy, seedreamWorkingCopy, wanUltrawideWorkingCopy, imagePreview, cancelImagePreparation } from './image-tools.js?v=20261010-seedream-pixels2';
+import { PROVIDER_IMAGE_LIMIT, SEEDREAM_INPUT_MAX_PIXELS, UPSCALE_PIXELS, imageDimensions, providerWorkingCopy, seedreamWorkingCopy, canPrepareImagesInBackground, wanUltrawideWorkingCopy, imagePreview, cancelImagePreparation } from './image-tools.js?v=20261011-reference-prewarm1';
 import {modelImageInputIssue} from './image-model-limits.js?v=20261010-model-limits1';
+import {createSeedreamReferencePreparer} from './seedream-reference-prep.js?v=20261011-reference-prewarm1';
 // General-purpose private image-to-video workspace. Credentials never enter browser storage.
 const API='https://parallel-vision-lab.parallelvision.workers.dev';
 const $=id=>document.getElementById(id), activeStates=new Set(['submitting','queued','running','saving','uncertain']), slotStates=new Set(['submitting','queued','running','uncertain']);
@@ -97,6 +98,22 @@ let resultUrl=null, resultId=null, resultSettings=null, previewRevision=0, autoP
 let activeJobs=[], polling=false, historySelectMode=false, historySelected=new Set();
 const downloadUrls=new Set();
 const workingCopies=new Map();
+// Prefetch only local files. Uploads, quotes and credits remain at their
+// existing explicit generation/price-check boundaries.
+const seedreamPreparer=createSeedreamReferencePreparer({
+  pixelCopy:seedreamWorkingCopy,byteCopy:providerWorkingCopy,
+  canBackground:canPrepareImagesInBackground
+});
+function prewarmSeedreamReference(item){
+  if(!owner||tool!=='image'||imageEngine!=='seedream')return;
+  const task=seedreamPreparer.warm(item);
+  // Speculative failures stay silent. Generate can retry the normal path.
+  if(task)void task.catch(()=>{});
+}
+function prewarmSeedreamDeck(){
+  if(!owner||tool!=='image'||imageEngine!=='seedream')return;
+  for(const item of references)prewarmSeedreamReference(item);
+}
 let upscaleQuote=null,upscaleQuoteNeedsCheck=false,upscaleQuoteTimer=null,upscalePriceMessage='',upscaleManualReviewRequired=false,upscaleManualReviewKey='';
 let upscaleEngine='spicy';
 const UPSCALE_MODELS=Object.freeze({
@@ -557,7 +574,7 @@ function setTool(value){
     const drop=$('reference-drop');drop.querySelector('span').textContent='Add identity, wardrobe or set references';drop.querySelector('small').textContent='Up to 10 images';
     $('reference-help').textContent='Reference numbers, filenames, roles and notes are added to your generation prompt. They guide the model; they do not guarantee identity matching.';
   }
-  configureVideoControls();syncDefaultRatio(true);renderReferences();resetPreview();refreshCanvasImport();update();syncImageStudioMode();syncVideoStudioMode();syncStudioNav();
+  configureVideoControls();syncDefaultRatio(true);renderReferences();prewarmSeedreamDeck();resetPreview();refreshCanvasImport();update();syncImageStudioMode();syncVideoStudioMode();syncStudioNav();
   if(owner&&assetLibrary&&galleryChanged){setHistorySelectMode(false);void loadHistory().catch(e=>notify(e.message,true));}
 }
 
@@ -1299,7 +1316,7 @@ $('tool-fashion').onclick=()=>void openFashionStudio();
 $('tool-retouch').onclick=()=>{if(!busy)void openRetouch({autofill:true});};
 $('tool-image').onclick=()=>{if(!busy)setTool('image');};
 $('tool-video').onclick=()=>{if(!busy)setTool('video');};
-$('image-engine').onchange=()=>{if(busy)return;const value=$('image-engine').value;imageRatioExplicit=false;soulRatioExplicit=false;imageEngine=['flash','kling'].includes(value)?value:value==='gemini'?'gemini':value==='soulpro'?'soulpro':value==='soul'?'soul':value==='fal'?'fal':'seedream';if(imageEngine==='kling'&&imageReferenceMode==='references')imageReferenceMode='base';poseMapSourceId=null;$('pose-preview-status').textContent='';$('image-processing').value=imageProcessing;setTool('image');renderReferences();};
+$('image-engine').onchange=()=>{if(busy)return;const value=$('image-engine').value;imageRatioExplicit=false;soulRatioExplicit=false;imageEngine=['flash','kling'].includes(value)?value:value==='gemini'?'gemini':value==='soulpro'?'soulpro':value==='soul'?'soul':value==='fal'?'fal':'seedream';if(imageEngine==='kling'&&imageReferenceMode==='references')imageReferenceMode='base';poseMapSourceId=null;$('pose-preview-status').textContent='';$('image-processing').value=imageProcessing;setTool('image');renderReferences();prewarmSeedreamDeck();};
 $('image-processing').onchange=()=>{if(busy)return;imageProcessing=$('image-processing').value==='batch'?'batch':'normal';setTool('image');};
 function updateSoulProModelUi(){
   $('hf-settings').hidden=soulProModel!=='soul2';$('soul-pro-reference-profile').hidden=soulProModel==='soul2';
@@ -1344,7 +1361,7 @@ function resetPreview(){
   }
 }
 function refreshInputPreview(){autoPreview=null;if(tool!=='image'||!resultUrl)resetPreview();}
-function releaseReference(item){release(item.url);release(item.thumbUrl);}
+function releaseReference(item){seedreamPreparer.forget(item.file);release(item.url);release(item.thumbUrl);}
 function closeInputPreview(){const dialog=$('input-preview-dialog');if(dialog.open)dialog.close();$('input-preview-image').removeAttribute('src');}
 function viewReference(item,index){
   if(!owner)return;
@@ -1355,7 +1372,7 @@ function viewReference(item,index){
 }
 $('input-preview-dialog').addEventListener('close',()=>{$('input-preview-image').removeAttribute('src');});
 
-function clearMedia(){imageReferenceMode='base';closeReferenceIntent();imageRatioExplicit=false;soulRatioExplicit=false;customerImagePricing?.reset();clearUpscalePrice();mediaRefs.clear();cancelImagePreparation();closeInputPreview();poseMapSourceId=null;$('pose-preview-status').textContent='';$('reference-progress').textContent='';imageRevision++;sourcePixels=0;sourceWidth=0;sourceHeight=0;release(sourceUrl);release(lastUrl);sourceUrl=null;lastUrl=null;file=null;sourceId=null;lastFile=null;lastSourceId=null;$('image').value='';$('last-image').value='';for(const r of references)releaseReference(r);references=[];$('reference-images').value='';$('filemeta').textContent=sourceHelp();$('last-filemeta').textContent='Leave empty for an open ending.';renderReferences();clearResult();resetPreview();update();}
+function clearMedia(){imageReferenceMode='base';closeReferenceIntent();imageRatioExplicit=false;soulRatioExplicit=false;customerImagePricing?.reset();clearUpscalePrice();mediaRefs.clear();cancelImagePreparation();seedreamPreparer.clear();closeInputPreview();poseMapSourceId=null;$('pose-preview-status').textContent='';$('reference-progress').textContent='';imageRevision++;sourcePixels=0;sourceWidth=0;sourceHeight=0;release(sourceUrl);release(lastUrl);sourceUrl=null;lastUrl=null;file=null;sourceId=null;lastFile=null;lastSourceId=null;$('image').value='';$('last-image').value='';for(const r of references)releaseReference(r);references=[];$('reference-images').value='';$('filemeta').textContent=sourceHelp();$('last-filemeta').textContent='Leave empty for an open ending.';renderReferences();clearResult();resetPreview();update();}
 async function inspectImage(candidate){
   if(!candidate)throw new Error('No image was provided. Drop a JPG, PNG or WebP photograph.');
   if(candidate.size>20*1024*1024)throw new Error('Image too large: '+(candidate.name||'photograph')+' ('+(Math.ceil(candidate.size/104857.6)/10).toFixed(1)+' MB). Maximum size is 20 MB per image. Compress it and try again.');
@@ -1436,6 +1453,7 @@ async function addReferences(list,ids=[],labels=[]){
       const item=await inspectImage(incoming[i]);
       if(e!==epoch||!owner){releaseReference(item);return;}
       item.id=ids[i]||null;item.role=imageEngine==='soulpro'?'identity':labels[i]?.role||'none';item.note=imageEngine==='soulpro'?'':labels[i]?.note||'';item.target=labels[i]?.target||'';if(usesReferenceGuidance()){if(!referencesOnly()&&!references.length){item.nonBaseRole=item.role==='base'?'none':item.role;item.role='base';}else if(item.role==='base')item.role='none';}references.push(item);added++;
+      prewarmSeedreamReference(item);
       renderReferences();refreshInputPreview();update();
       await new Promise(resolve=>setTimeout(resolve,0));
     }
@@ -2206,7 +2224,11 @@ async function prepareQuoteInputs(inputs,snapshot=null){
       notify(resizeForSeedream
         ?'Preparing a Seedream-compatible working copy of '+item.file.name+' ('+(pixels/1000000).toFixed(1)+' MP). Original unchanged.'
         :'Preparing a same-dimension working copy of '+item.file.name+'…');
-      const prepared=resizeForSeedream?await seedreamWorkingCopy(item.file):await providerWorkingCopy(item.file);
+      // Reuse the already-running background preparation or its 15-minute
+      // local result. No local work is duplicated when Generate is pressed.
+      const prepared=selectedEngine==='seedream'&&tool==='image'
+        ?await seedreamPreparer.forSubmission(item)
+        :(resizeForSeedream?await seedreamWorkingCopy(item.file):await providerWorkingCopy(item.file));
       if(epoch!==sessionEpoch||!owner)throw new Error('Session changed.');
       const id=await uploadAsset(prepared);copy={id,at:Date.now()};
       workingCopies.set(cacheKey,copy);

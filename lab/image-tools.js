@@ -52,7 +52,18 @@ function workerTask(operation, file) {
     catch (error) { clearTimeout(timer); pending.delete(id); reject(error); }
   });
 }
-function processLocally(operation, file) {
+export function canPrepareImagesInBackground(){
+  return !workerUnavailable&&typeof Worker!=='undefined'&&typeof OffscreenCanvas!=='undefined';
+}
+const backgroundUnavailable=()=>{
+  const error=new Error('Background image preparation is unavailable.');error.code='unavailable';
+  return error;
+};
+function processLocally(operation, file,{backgroundOnly=false}={}) {
+  // Prewarm never falls back to CPU-heavy canvas work on the UI thread.
+  // Explicit Generate still retains the original fallback on older browsers.
+  if(backgroundOnly&&!canPrepareImagesInBackground())
+    return Promise.reject(backgroundUnavailable());
   const requestedGeneration = generation;
   const result = queue.catch(() => {}).then(async () => {
     if (requestedGeneration !== generation) throw cancelled();
@@ -63,10 +74,14 @@ function processLocally(operation, file) {
       catch (error) {
         if (error.code !== 'unavailable') throw error;
         workerUnavailable = true;
+        if(backgroundOnly)throw error;
       }
     }
     if (requestedGeneration !== generation) throw cancelled();
-    if (!data) data = await runImageTask(operation, file);
+    if (!data) {
+      if(backgroundOnly)throw backgroundUnavailable();
+      data = await runImageTask(operation, file);
+    }
     if (requestedGeneration !== generation) throw cancelled();
     await yieldUI(); return data;
   });
@@ -74,14 +89,14 @@ function processLocally(operation, file) {
 }
 export async function imageDimensions(file) { return processLocally('dimensions', file); }
 export async function imagePreview(file) { return processLocally('preview', file); }
-export async function providerWorkingCopy(file) {
+export async function providerWorkingCopy(file,options={}) {
   if (file.size <= PROVIDER_IMAGE_LIMIT) return file;
-  const { blob } = await processLocally('working-copy', file);
+  const { blob } = await processLocally('working-copy', file,options);
   const name = (file.name || 'reference').replace(/\.[^.]+$/, '') + '-working-copy.webp';
   return new File([blob], name, { type: 'image/webp' });
 }
-export async function seedreamWorkingCopy(file) {
-  const {blob} = await processLocally('seedream-working-copy',file);
+export async function seedreamWorkingCopy(file,options={}) {
+  const {blob} = await processLocally('seedream-working-copy',file,options);
   const name=(file.name||'reference').replace(/\.[^.]+$/,'')+'-seedream-working.webp';
   return new File([blob],name,{type:'image/webp'});
 }
