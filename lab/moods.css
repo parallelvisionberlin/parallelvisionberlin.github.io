@@ -26,15 +26,15 @@
 #image-composer .moods-card:hover .moods-card-media{border-color:#909090}
 #image-composer .moods-card.is-selected .moods-card-media{border-color:#d6ff00}
 #image-composer .moods-card.is-selected strong{color:#d6ff00}
-.moods-look-hong-kong-nights img{filter:contrast(1.2) saturate(1.18) brightness(.73)}
-.moods-look-90s-cinema img{filter:contrast(.9) saturate(.84) sepia(.08)}
+.moods-look-hong-kong-nights img{object-position:center 40%;filter:contrast(1.09) saturate(1.12)}
+.moods-look-90s-cinema img{filter:contrast(1.25) saturate(1.32) sepia(.13) brightness(1.02)}
 .moods-look-night-flash img{filter:contrast(1.28) brightness(1.1) saturate(.88)}
 .moods-look-fashion-editorial img{filter:contrast(1.04) saturate(.84)}
 .moods-look-80s-film img{filter:sepia(.25) saturate(.8) contrast(.9)}
-.moods-look-kodak-gold img{filter:sepia(.18) saturate(1.13)}
+.moods-look-kodak-gold img{filter:sepia(.22) saturate(1.52) contrast(1.15) brightness(1.06)}
 .moods-look-soft-pastel-film img{filter:brightness(1.11) saturate(.68) contrast(.9)}
 .moods-look-frutiger-aero img{filter:saturate(1.25) brightness(1.07)}
-.moods-look-sumi-ink img{filter:grayscale(1) contrast(1.6)}
+.moods-look-sumi-ink img{filter:contrast(1.07) saturate(.8)}
 .moods-look-hyper-pop img{filter:saturate(1.65) contrast(1.2)}
 .moods-footer{display:grid;grid-template-columns:1fr auto;gap:9px 24px;padding-top:13px;border-top:1px solid #3b3c3d}
 .moods-selected{font-size:12px;color:#ececec;font-weight:540}
