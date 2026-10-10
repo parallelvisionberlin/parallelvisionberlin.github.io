@@ -41,6 +41,7 @@ async function purchase(sku){
   }catch(e){status(e.message);}
 }
 $('lab-header-signin')?.addEventListener('click',signIn);
+document.querySelectorAll('[data-lab-signin]').forEach(button=>button.addEventListener('click',signIn));
 $('lab-account-buy')?.addEventListener('click',()=>purchase('topup10'));
 $('lab-account-logout')?.addEventListener('click',async()=>{await clerk?.signOut();profile=null;show();});
 document.querySelectorAll('[data-lab-buy]').forEach(button=>button.addEventListener('click',()=>purchase(button.dataset.labBuy)));
