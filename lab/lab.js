@@ -524,6 +524,8 @@ function fitImageComposerPrompt(){
   const viewport=window.visualViewport?.height||window.innerHeight;
   const maximum=Math.max(minimum,Math.min(narrow?122:176,Math.floor(viewport*(short ? 0.21 : narrow ? 0.22 : 0.25))));
   const previousScroll=textbox.scrollTop;
+  const top=imageComposer.querySelector('.image-composer-top');
+  top.style.removeProperty('min-height');
   textbox.style.height=minimum+'px';
   const naturalHeight=textbox.scrollHeight;
   textbox.style.height=Math.min(maximum,Math.max(minimum,naturalHeight))+'px';
@@ -531,7 +533,6 @@ function fitImageComposerPrompt(){
   textbox.scrollTop=Math.min(previousScroll,Math.max(0,textbox.scrollHeight-textbox.clientHeight));
   // Soul's first grid row otherwise sizes to the textarea's one-line intrinsic
   // minimum and flex-shrinks even when the textarea has a bounded inline height.
-  const top=imageComposer.querySelector('.image-composer-top');
   if(imageComposer.classList.contains('is-pv-soul')){
     const tray=$('image-composer-references');
     const referencesHeight=!tray.hidden?Math.ceil(tray.getBoundingClientRect().height):0;
