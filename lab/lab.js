@@ -144,6 +144,8 @@ function openReferenceIntent(){
 }
 function applyReferenceIntent(intent){
   if(busy||!usesReferenceGuidance()||!references.length||!['edit','same','mix'].includes(intent))return;
+  // Reopening the selected option must not erase individual role edits or notes.
+  if(referenceIntent===intent){closeReferenceIntent();update();return;}
   // Do not automatically misclassify an outfit or pose as an identity reference.
   referenceIntent=intent;imageReferenceMode=intent==='edit'?'base':'references';
   references.forEach((ref,i)=>{
