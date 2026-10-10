@@ -358,6 +358,15 @@ body.pv-home .current-release a:focus-visible { outline: 1px solid #fff; outline
   body.pv-home .artists-section { padding-top: 56px; }
 }
 </style>
+<style id="pv-lab-hero-nav">
+/* A discreet NEW cue next to Lab in the Parallel Vision homepage navigation. */
+.pv-home .home-primary-links>a.home-lab-link{display:inline-flex;align-items:center;white-space:nowrap;gap:7px}
+.pv-home .home-lab-new{font:500 8px/1.2 Inter,Arial,sans-serif;letter-spacing:.08em;color:#e7e5dc;border:1px solid rgba(225,225,218,.45);border-radius:2px;padding:3px 4px;text-transform:uppercase}
+@media(max-width:620px){
+  .pv-home .home-primary-links>a.home-lab-link{display:grid;grid-template-columns:30px max-content auto;justify-content:start;gap:7px}
+  .pv-home .home-primary-links>a:nth-of-type(7)::before{content:"07"}
+}
+</style>
 </head>
 
 
@@ -412,8 +421,8 @@ body.pv-home .current-release a:focus-visible { outline: 1px solid #fff; outline
       Fashion After Fabric
     </a>
 
-    <a href="./lab/" aria-label="Explore the Parallel Vision creative Lab">
-      Lab
+    <a class="home-lab-link" href="./lab/" aria-label="Open PV Lab">
+      Lab <span class="home-lab-new">New</span>
     </a>
 
     <a href="./berlin-2063.html">
