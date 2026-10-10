@@ -36,8 +36,17 @@ await page.click('#tool-image');
 await page.waitForFunction(()=>document.querySelectorAll('#history .card').length===4);
 await page.waitForFunction(()=>document.querySelector('#history .card')?.style.width);
 releaseImages();await page.waitForFunction(()=>[...document.querySelectorAll('#history .history-media img')].every(i=>i.naturalWidth>0));
-for(const width of [1920,1440,768,390,320]){
+for(const width of [1920,1440,900,899,821,768,390,320]){
   await page.setViewportSize({width,height:1000});
+  const header=await page.locator('.studio-header').boundingBox();
+  const nav=await page.locator('.studio-header .tool-switch').boundingBox();
+  const brand=await page.locator('.studio-header .brand').boundingBox();
+  const account=await page.locator('.account-menu').boundingBox();
+  assert.equal(header.height,width>=900?64:100,'Shared header height');
+  if(width>=900){
+    assert.ok(Math.abs(brand.y+brand.height/2-(nav.y+nav.height/2))<1,'Brand and navigation share one row');
+    assert.ok(brand.x+brand.width<nav.x&&nav.x+nav.width<=account.x,'Navigation fits between brand and account');
+  }
   let baseline;
   for(const tool of ['image','video','upscale','assets','image']){
     await page.click('#tool-'+tool);
@@ -47,10 +56,39 @@ for(const width of [1920,1440,768,390,320]){
     if(!baseline)baseline=boxes;
     boxes.forEach((box,i)=>Object.keys(box).forEach(k=>assert.ok(Math.abs(box[k]-baseline[i][k])<1,'Navigation '+k+' stays fixed: '+width+' '+tool+' '+JSON.stringify({box,baseline:baseline[i]}))));
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'Studio fits viewport '+width+' '+tool);
+    const selected=await page.locator('.studio-header button[aria-pressed="true"]').evaluate(el=>({
+      border:getComputedStyle(el).borderWidth,background:getComputedStyle(el).backgroundColor,
+      underline:getComputedStyle(el,'::after').opacity,shadow:getComputedStyle(el).boxShadow
+    }));
+    assert.deepEqual(selected,{border:'0px',background:'rgba(0, 0, 0, 0)',underline:'1',shadow:'none'},'Only a fine underline marks the current section');
+    if(tool==='video'&&width>820){
+      const work=await page.locator('#main').boundingBox();
+      assert.equal(Math.round(work.y+work.height),1000,'Video workspace fits below the shared header');
+    }
   }
 }
 await page.setViewportSize({width:1440,height:1000});
-console.log('PASS stable navigation across image, video, upscale and assets at five widths');
+console.log('PASS single-row desktop header, consistent active treatment and stable navigation at eight widths');
+const navBeforeQueue=await page.locator('.tool-switch').boundingBox();
+await page.evaluate(()=>window.__setTestJobs([{id:'header-queue',status:'uncertain',settings:{type:'image',engine:'flash',provider:'openrouter'}}]));
+assert.deepEqual(await page.locator('.tool-switch').boundingBox(),navBeforeQueue,'Queue arrival does not move navigation');
+await page.locator('.account-menu>summary').click();
+assert.equal(await page.locator('.account-options').isVisible(),true);
+await page.locator('.account-menu>summary').click();
+await page.locator('#active>summary').click();
+assert.equal(await page.locator('.queue-popover-panel').isVisible(),true);
+await page.locator('#active>summary').click();
+console.log('EDITORIAL_HEADER_DESKTOP='+Buffer.from(await page.screenshot({type:'jpeg',quality:80})).toString('base64'));
+await page.setViewportSize({width:320,height:844});
+assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'Queue and account fit narrow mobile');
+const mobileBrand=await page.locator('.brand').boundingBox(),mobileActions=await page.locator('.actions').boundingBox();
+assert.ok(mobileBrand.x+mobileBrand.width<=mobileActions.x,'Brand and account never overlap');
+console.log('EDITORIAL_HEADER_MOBILE='+Buffer.from(await page.screenshot({type:'jpeg',quality:80})).toString('base64'));
+await page.evaluate(()=>window.__setTestJobs([]));
+await page.setViewportSize({width:1440,height:1000});
+await page.evaluate(()=>document.querySelector('#app').hidden=true);
+assert.equal(await page.locator('.studio-header .tool-switch').isVisible(),false,'Tools are hidden without an authenticated workspace');
+await page.evaluate(()=>document.querySelector('#app').hidden=false);
 await page.click('#tool-image');
 const afterImages=await page.locator('#history .card').evaluateAll(cards=>cards.map(c=>({x:c.offsetLeft,y:c.offsetTop,w:c.offsetWidth,h:c.offsetHeight})));
 assert.deepEqual(afterImages,beforeImages,'Images retain identical positions and sizes before and after decoding');console.log('PASS zero gallery movement while image bytes load');

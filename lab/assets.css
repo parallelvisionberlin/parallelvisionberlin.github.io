@@ -330,7 +330,7 @@ header .wrap.top{max-width:none;padding-inline:16px;min-height:48px}
 #app.upscale-studio-active .controls>.generate-zone{position:static;bottom:auto;box-shadow:none;border-radius:0}
 #app.upscale-studio-active #upscale-model-control,#app.upscale-studio-active #format-control{margin:0}
 
-/* Keep navigation anchored to the same viewport gutter in every studio mode. */
+/* Workspace gutters stay independent of the shared header. */
 body #main.wrap{
   --studio-inset:clamp(16px,2.3vw,42px);
   max-width:none;padding-inline:var(--studio-inset);
@@ -338,35 +338,9 @@ body #main.wrap{
 body:has(#app.image-studio-active) #main.wrap,
 body:has(#app.assets-active) #main.wrap{--studio-inset:0px}
 body #main.wrap:has(>#app.video-studio-active){--studio-inset:12px}
-body #main #app>.tool-switch{
-  box-sizing:border-box;flex:0 0 42px;height:42px;min-height:42px;
-  width:calc(100% + var(--studio-inset) + var(--studio-inset));
-  margin:0 calc(0px - var(--studio-inset));padding:3px 16px;
-  align-items:center;justify-content:flex-start;overflow:visible;
-}
-body #main #app>.tool-switch>.tool-group{
-  display:flex;flex-wrap:nowrap;align-items:center;gap:5px;
-  width:100%;min-width:0;overflow-x:auto;scrollbar-width:none;
-}
-body #main #app>.tool-switch>.tool-group::-webkit-scrollbar{display:none}
-body #main #app>.tool-switch>.tool-group>:is(button,a){
-  box-sizing:border-box;flex:0 0 88px;width:88px;min-width:88px;
-  height:35px;min-height:35px;margin:0;padding:7px 10px;
-  font-family:'DM Sans',Arial,sans-serif;font-size:13px;font-weight:500;
-  line-height:1;letter-spacing:0;white-space:nowrap;
-}
-@media(max-width:820px){
-  body #main.wrap:has(>#app.video-studio-active){--studio-inset:10px}
-}
+@media(max-width:820px){body #main.wrap:has(>#app.video-studio-active){--studio-inset:10px}}
 @media(max-width:760px){body #main.wrap{--studio-inset:18px}}
-@media(max-width:640px){
-  body #main.wrap{--studio-inset:12px}
-  body #main #app>.tool-switch{padding-inline:8px}
-  body #main #app>.tool-switch>.tool-group{gap:2px}
-  body #main #app>.tool-switch>.tool-group>:is(button,a){
-    flex-basis:68px;width:68px;min-width:68px;padding-inline:6px;font-size:11px;
-  }
-}
+@media(max-width:640px){body #main.wrap{--studio-inset:12px}}
 
 /* One media loading treatment for Image, Video, Upscaler and Assets. */
 #app #history .history-media{position:relative}
@@ -406,8 +380,108 @@ body:has(#app.fashion-studio-active)>footer{display:none}
 .fashion-loading img{opacity:.3;animation:pv-preview-pulse 1.8s ease-in-out infinite alternate}
 @media(prefers-reduced-motion:reduce){.fashion-loading img{animation:none}}
 
-@media(max-width:360px){
-  body #main #app>.tool-switch>.tool-group>:is(button,a){
-    flex:1 1 0;min-width:0;width:auto;padding-inline:4px;
+
+/* One editorial masthead for every studio. Navigation never moves with content. */
+:root{--studio-header-height:64px}
+body>#studio-header{
+  position:sticky;top:0;z-index:60;height:var(--studio-header-height);
+  background:#101114;border-bottom:1px solid #292a2d;backdrop-filter:none;
+}
+body>#studio-header .wrap.top{
+  display:flex;align-items:center;justify-content:flex-start;
+  height:100%;min-height:0;max-width:none;
+  padding:0 24px;gap:clamp(24px,3vw,48px);
+}
+#studio-header .brand{gap:8px}
+#studio-header .brand-icon{width:26px;height:26px}
+#studio-header .brand-wordmark{width:112px;height:28px}
+#studio-header .brand .brand-lab{
+  display:block;margin:0 0 0 2px;padding:0;border:0;
+  color:#a5a5a8;font-size:9px;font-weight:500;letter-spacing:.16em;
+}
+body>#studio-header .tool-switch{
+  display:flex;flex:1 1 auto;align-self:stretch;align-items:stretch;
+  width:auto;min-width:0;height:auto;min-height:0;margin:0;padding:0;
+  border:0;background:transparent;box-shadow:none;overflow:visible;
+}
+#studio-header .tool-switch>.tool-group{
+  display:flex;flex-wrap:nowrap;align-items:stretch;
+  gap:clamp(20px,2.2vw,34px);width:max-content;min-width:0;
+}
+#studio-header .tool-switch>.tool-group>button{
+  position:relative;display:inline-flex;align-items:center;justify-content:center;
+  flex:none;width:auto;min-width:0;height:100%;min-height:44px;
+  margin:0;padding:0 1px;border:0;border-radius:0;background:transparent;
+  box-shadow:none;color:#969698;font-size:14px;font-weight:450;line-height:1;
+  letter-spacing:0;white-space:nowrap;transition:color .15s ease;
+}
+#studio-header .tool-switch>.tool-group>button::after{
+  content:"";position:absolute;bottom:0;left:0;right:0;height:1px;
+  background:#f0eee8;opacity:0;
+}
+#studio-header .tool-switch>.tool-group>button[aria-pressed="true"]{color:#f0eee8}
+#studio-header .tool-switch>.tool-group>button[aria-pressed="true"]::after{opacity:1}
+#studio-header .tool-switch>.tool-group>button:hover:not(:disabled){color:#fff;background:transparent}
+#studio-header .tool-switch>.tool-group>button:focus-visible{outline:1px solid #c4c1ba;outline-offset:-5px}
+#studio-header .actions{margin-left:auto;gap:22px;flex:none;min-width:144px;justify-content:flex-end}
+#studio-header .actions>details>summary{
+  display:flex;align-items:center;justify-content:center;gap:7px;
+  min-height:40px;margin:0;padding:0;list-style:none;border:0;border-radius:0;
+  background:transparent;box-shadow:none;color:#a7a7aa;
+  font-size:12px;font-weight:450;line-height:1;letter-spacing:0;
+  cursor:pointer;transition:color .15s ease;
+}
+#studio-header .actions>details>summary::-webkit-details-marker{display:none}
+#studio-header .actions>details>summary::marker{content:""}
+#studio-header .actions>details>summary:hover,
+#studio-header .actions>details[open]>summary{background:transparent;border:0;color:#f0eee8}
+#studio-header .account-menu>summary::after{
+  content:"";width:5px;height:5px;margin-left:2px;margin-top:-3px;
+  border:solid currentColor;border-width:0 1px 1px 0;transform:rotate(45deg);
+}
+#studio-header .account-menu[open]>summary::after{margin-top:3px;transform:rotate(225deg)}
+#studio-header .queue-popover .queue-status-dot{width:4px;height:4px;flex-basis:4px}
+#studio-header .account-menu .account-options,
+#studio-header .queue-popover-panel{
+  top:calc(100% + 12px);border-color:#333438;border-radius:8px;
+  background:#17181b;box-shadow:0 12px 35px #0005;
+}
+body:has(#app[hidden])>#studio-header .tool-switch{display:none}
+#fashion-studio{min-height:calc(100svh - var(--studio-header-height))}
+@media(min-width:821px){
+  body:has(#app.video-studio-active:not([hidden]))>main#main{
+    height:calc(100dvh - var(--studio-header-height));
   }
+}
+@media(max-width:899px){
+  :root{--studio-header-height:100px}
+  body>#studio-header .wrap.top{
+    display:grid;grid-template-columns:minmax(0,1fr) auto;
+    grid-template-rows:56px 43px;gap:0 16px;padding:0 18px;
+  }
+  #studio-header .brand{grid-column:1;grid-row:1;justify-self:start}
+  #studio-header .actions{grid-column:2;grid-row:1;gap:20px}
+  body>#studio-header .tool-switch{grid-column:1/-1;grid-row:2;width:100%}
+  #studio-header .tool-switch>.tool-group{width:100%;justify-content:space-between;gap:14px}
+  #studio-header .tool-switch>.tool-group>button{min-height:43px;font-size:13px}
+  body:has(#app[hidden])>#studio-header{height:56px}
+  body:has(#app[hidden])>#studio-header .wrap.top{grid-template-rows:55px}
+}
+@media(max-width:480px){
+  body>#studio-header .wrap.top{padding-inline:14px;column-gap:12px}
+  #studio-header .brand{gap:6px}
+  #studio-header .brand-icon{width:23px;height:23px}
+  #studio-header .brand-wordmark{width:96px;height:25px}
+  #studio-header .brand .brand-lab{font-size:8px;letter-spacing:.1em}
+  #studio-header .actions{gap:14px;min-width:118px}
+  #studio-header .actions>details>summary{font-size:11px;gap:5px}
+  #studio-header .tool-switch>.tool-group{gap:10px}
+  #studio-header .tool-switch>.tool-group>button{font-size:12px}
+  #studio-header .queue-popover-panel{
+    position:fixed;top:56px;right:12px;width:calc(100vw - 24px);min-width:0;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  #studio-header .tool-switch>.tool-group>button,
+  #studio-header .actions>details>summary{transition:none}
 }
