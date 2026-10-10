@@ -1,4 +1,14 @@
 /* A calm library view, with account organization separate from generation. */
+/* Upscale is an editing surface, not a second copy of the full History grid.
+   The same archive remains accessible from Assets, where owner-scoped D1/R2
+   jobs and their original outputs are already recorded. Keep Image/Video intact. */
+.upscale-assets-shortcut{display:none;align-items:center;justify-content:space-between;gap:16px;margin:18px 0 28px;padding:13px 16px;border:1px solid #35383d;border-radius:9px;background:#17191c;color:#adb2bb;font-size:11px;line-height:1.5}
+.upscale-assets-shortcut button{display:inline-flex;gap:13px;align-items:center;flex:none;min-height:33px;padding:8px 13px;border:1px solid #545861;border-radius:6px;background:#23262b;color:#edf0f4;font-size:11px;cursor:pointer}
+.upscale-assets-shortcut button:hover{background:#30343b;border-color:#777d87}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .upscale-assets-shortcut{display:flex}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .archive{display:none!important}
+@media(max-width:640px){.upscale-assets-shortcut{align-items:flex-start;flex-wrap:wrap;padding:12px;margin:12px 0 22px}.upscale-assets-shortcut button{margin-left:auto}}
+
 header .actions #identity,.tool-status .tool-caption{display:none!important}
 .account-menu{position:relative}
 .account-menu>summary{cursor:pointer;list-style:none;padding:9px 13px;border:1px solid #303236;border-radius:8px;font-size:12px}

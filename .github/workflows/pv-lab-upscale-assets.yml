@@ -1,0 +1,36 @@
+name: PV Lab Upscaler to Assets regression
+on:
+  pull_request:
+    paths:
+      - 'lab/studio.html'
+      - 'lab/assets.css'
+      - 'lab/lab.js'
+      - 'tests/lab-upscale-assets-visibility.mjs'
+      - '.github/workflows/pv-lab-upscale-assets.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  upscale-assets:
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install mocked Chromium browser
+        run: |
+          npm install --prefix /tmp/pv-upscale-visibility --no-save playwright@1.57.0
+          node /tmp/pv-upscale-visibility/node_modules/playwright/cli.js install --with-deps chromium
+      - name: Verify Upscaler UI, Assets visibility and no paid calls
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-upscale-visibility/node_modules/playwright/index.mjs
+        run: node tests/lab-upscale-assets-visibility.mjs
+      - name: Keep desktop and mobile screenshots for review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: upscaler-assets-visibility-previews
+          path: test-results/upscaler-*.png
+          retention-days: 2
