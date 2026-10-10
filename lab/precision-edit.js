@@ -1,0 +1,388 @@
+/* Precision Edit: large base canvas, SAM 3 point segmentation, mask brushes,
+   non-destructive FLUX inpainting and original-pixel client-side compositing. */
+export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,owner,falReady,onJob}){
+  const $=id=>document.getElementById(id);
+  const view=$('precision-workspace'),sourceCanvas=$('precision-source-canvas'),
+    overlay=$('precision-selection-canvas'),resultCanvas=$('precision-result-canvas');
+  const sc=sourceCanvas.getContext('2d',{willReadFrequently:false});
+  const oc=overlay.getContext('2d');
+  const rc=resultCanvas.getContext('2d');
+  const mask=document.createElement('canvas'),maskCtx=mask.getContext('2d',{willReadFrequently:true});
+  const undoStack=[],maxUndo=12,finalizing=new Map();
+  let base=null,mode='magic',drawing=false,lastPoint=null,taskBusy=false,pending=null;
+  let selected=false,resultBlob=null,resultBitmap=null,disposed=false,workingId=null,session=0;
+  const mimeTypes=new Set(['image/png','image/jpeg','image/webp']);
+  const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+  const readBlob=canvas=>new Promise((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(blob):reject(new Error('Unable to export this image.')),'image/png'));
+  const setStatus=(message,error=false)=>{
+    $('precision-status-text').textContent=message||'';
+    $('precision-status-text').classList.toggle('is-error',error);
+  };
+  const isOpen=()=>!view.hidden;
+  const maskChanged=()=>{selected=hasSelection();renderMask();refreshButtons();};
+  function hasSelection(){
+    if(!mask.width||!mask.height)return false;
+    const image=maskCtx.getImageData(0,0,mask.width,mask.height).data;
+    // Sample the whole image uniformly. Even a small brush mark is kept.
+    let hits=0;for(let i=3;i<image.length;i+=4)if(image[i]>64){hits++;if(hits>2)return true;}
+    return false;
+  }
+  function selectMode(next){
+    if(!['magic','brush','erase'].includes(next))return;
+    mode=next;
+    for(const m of ['magic','brush','erase']){
+      const b=$('precision-tool-'+m);
+      b.classList.toggle('is-selected',m===mode);
+      b.setAttribute('aria-pressed',String(m===mode));
+    }
+    $('precision-selection-message').textContent=!base?'Upload a photograph to begin.':
+      mode==='magic'?'Click an object to select the whole area. Each click uses SAM 3.':
+      mode==='erase'?'Erase unwanted parts of the selection.':'Paint to add to the selection.';
+  }
+  function refreshButtons(){
+    const have=!!base;
+    for(const id of ['precision-tool-magic','precision-tool-brush','precision-tool-erase','precision-expand','precision-change-photo','precision-prompt','precision-brush-size','precision-strength'])
+      $(id).disabled=!have||taskBusy;
+    $('precision-expand').disabled=!selected||taskBusy;
+    $('precision-clear-mask').disabled=!selected||taskBusy;
+    $('precision-undo').disabled=!undoStack.length||taskBusy;
+    $('precision-generate').disabled=!have||!selected||!$('precision-prompt').value.trim()||taskBusy||!owner()||!falReady();
+    $('precision-change-photo').hidden=!have;
+    $('precision-tool-magic').title='Select a whole object with SAM 3. Published price approximately $0.005 per click.';
+    $('precision-generate').textContent=taskBusy?'Working…':'Review price ↗';
+  }
+  function renderMask(){
+    oc.clearRect(0,0,overlay.width,overlay.height);
+    if(!mask.width)return;
+    // Alpha-only selection becomes a high-visibility PV yellow overlay.
+    oc.globalCompositeOperation='source-over';
+    oc.drawImage(mask,0,0);
+    oc.globalCompositeOperation='source-in';oc.fillStyle='rgba(214,255,0,.58)';
+    oc.fillRect(0,0,overlay.width,overlay.height);oc.globalCompositeOperation='source-over';
+  }
+  async function saveUndo(){
+    if(!mask.width)return;
+    undoStack.push(await readBlob(mask));
+    if(undoStack.length>maxUndo)undoStack.shift();
+  }
+  async function undo(){
+    if(!undoStack.length||taskBusy)return;
+    const blob=undoStack.pop(),bitmap=await createImageBitmap(blob);
+    maskCtx.clearRect(0,0,mask.width,mask.height);
+    maskCtx.drawImage(bitmap,0,0);bitmap.close();maskChanged();
+  }
+  function pointAt(event){
+    const r=overlay.getBoundingClientRect();
+    return {x:Math.max(0,Math.min(mask.width-1,(event.clientX-r.left)*mask.width/r.width)),
+      y:Math.max(0,Math.min(mask.height-1,(event.clientY-r.top)*mask.height/r.height))};
+  }
+  function stroke(point){
+    if(!lastPoint)lastPoint=point;
+    const r=Math.max(2,Number($('precision-brush-size').value)*mask.width/Math.max(1,overlay.clientWidth)/2);
+    maskCtx.save();maskCtx.globalCompositeOperation=mode==='erase'?'destination-out':'source-over';
+    maskCtx.lineWidth=r*2;maskCtx.lineCap='round';maskCtx.lineJoin='round';
+    maskCtx.strokeStyle='#fff';maskCtx.fillStyle='#fff';
+    maskCtx.beginPath();maskCtx.moveTo(lastPoint.x,lastPoint.y);maskCtx.lineTo(point.x,point.y);maskCtx.stroke();
+    maskCtx.beginPath();maskCtx.arc(point.x,point.y,r,0,Math.PI*2);maskCtx.fill();maskCtx.restore();
+    lastPoint=point;renderMask();
+  }
+  async function growMask(){
+    if(!selected||taskBusy)return;
+    await saveUndo();
+    // Grow by 6 working pixels, preserving individual garment fragments.
+    for(let pass=0;pass<6;pass++){
+      const tmp=document.createElement('canvas');tmp.width=mask.width;tmp.height=mask.height;
+      const t=tmp.getContext('2d');
+      for(let y=-1;y<=1;y++)for(let x=-1;x<=1;x++)t.drawImage(mask,x,y);
+      maskCtx.clearRect(0,0,mask.width,mask.height);maskCtx.drawImage(tmp,0,0);
+    }
+    maskChanged();
+    setStatus('Selection expanded. You can refine the edges with Add or Erase.');
+  }
+  function resetSelection(){
+    maskCtx.clearRect(0,0,mask.width,mask.height);
+    undoStack.length=0;selected=false;renderMask();refreshButtons();
+  }
+  async function ensureBaseId(){
+    if(!base)throw new Error('Add a base photograph first.');
+    if(base.id)return base.id;
+    const id=await uploadAsset(base.file);
+    if(!base)throw new Error('Source changed during upload.');
+    base.id=id;return id;
+  }
+  async function open({file=null,id=null}={}){
+    if(!owner())throw new Error('Sign in to edit an image.');
+    host.classList.add('is-precision-active');view.hidden=false;
+    $('precision-price-review').hidden=true;view.scrollIntoView({block:'start',behavior:'instant'});
+    if(file)await setBase(file,id);
+    else if(!base)setStatus('Drop your original photograph on the left to begin.');
+    refreshButtons();
+  }
+  function close(){
+    view.hidden=true;host.classList.remove('is-precision-active');
+    $('precision-price-review').hidden=true;
+    // Keep a queued job in History; closing never resubmits or cancels it.
+  }
+  async function setBase(file,id=null){
+    if(taskBusy)throw new Error('Wait for the current operation to finish.');
+    if(!mimeTypes.has(file?.type))throw new Error('Choose a JPG, PNG or WebP photograph.');
+    if(!file.size||file.size>20*1024*1024)throw new Error('Image too large or empty. Maximum size is 20 MB.');
+    const bitmap=await createImageBitmap(file);
+    if(Math.min(bitmap.width,bitmap.height)<240||Math.max(bitmap.width,bitmap.height)>8192){
+      bitmap.close();throw new Error('Use an image from 240 to 8192 pixels on each side.');
+    }
+    const originalRatio=bitmap.width/bitmap.height;
+    if(Math.max(originalRatio,1/originalRatio)>8){bitmap.close();throw new Error('This photograph has an unsupported aspect ratio.');}
+    if(base?.bitmap)base.bitmap.close();
+    base={file,id,bitmap,name:file.name||'Original image',width:bitmap.width,height:bitmap.height};
+    const scale=Math.min(1,2048/Math.max(base.width,base.height));
+    const w=Math.max(1,Math.round(base.width*scale)),h=Math.max(1,Math.round(base.height*scale));
+    sourceCanvas.width=overlay.width=mask.width=w;
+    sourceCanvas.height=overlay.height=mask.height=h;
+    sc.clearRect(0,0,w,h);sc.drawImage(bitmap,0,0,w,h);
+    const stage=$('precision-stage');stage.style.aspectRatio=String(w)+' / '+String(h);
+    maskCtx.clearRect(0,0,w,h);resetSelection();workingId=null;resultBlob=null;
+    if(resultBitmap){resultBitmap.close();resultBitmap=null;}
+    resultCanvas.hidden=true;$('precision-output-empty').hidden=false;
+    $('precision-compare').value='100';$('precision-compare').disabled=true;
+    $('precision-download').disabled=true;
+    $('precision-source-meta').textContent=base.width+' × '+base.height+' / '+base.name;
+    $('precision-result-label').textContent='AWAITING EDIT';
+    $('precision-drop').hidden=true;$('precision-source-holder').hidden=false;
+    $('precision-selection-message').textContent='Click an object to select it. Brush tools refine your mask.';
+    $('precision-price-review').hidden=true;setStatus('The original pixels will be preserved outside the selected area.');
+    selectMode('magic');refreshButtons();
+  }
+  async function ensureWorkingId(){
+    if(workingId)return workingId;
+    const blob=await readBlob(sourceCanvas);
+    workingId=await uploadAsset(new File([blob],'precision-working.png',{type:'image/png'}));
+    return workingId;
+  }
+  function maskFromSam(bitmap,point){
+    const stage=document.createElement('canvas');stage.width=mask.width;stage.height=mask.height;
+    const c=stage.getContext('2d',{willReadFrequently:true});c.drawImage(bitmap,0,0,stage.width,stage.height);
+    const pixels=c.getImageData(0,0,stage.width,stage.height),data=pixels.data;
+    let transparent=0,light=0;
+    for(let i=0;i<data.length;i+=128){if(data[i+3]<230)transparent++;if((data[i]+data[i+1]+data[i+2])/3>127)light++;}
+    const transparency=transparent>15,values=new Uint8Array(stage.width*stage.height);
+    let count=0;
+    for(let i=0;i<values.length;i++){
+      const o=i*4,alpha=data[o+3],luma=(data[o]+data[o+1]+data[o+2])/3;
+      const on=transparency?alpha>90:luma>130;
+      values[i]=on?255:0;if(on)count++;
+    }
+    const index=Math.round(point.y)*stage.width+Math.round(point.x),hit=values[Math.max(0,Math.min(values.length-1,index))]===255;
+    // SAM mask may use inverted black/white convention. Prefer clicked foreground.
+    if(!hit&&count>values.length*.15){
+      for(let i=0;i<values.length;i++)values[i]=255-values[i];count=values.length-count;
+    }
+    if(count<15||count>=values.length*.97)throw new Error('SAM returned an unclear selection. Try another point or use Add brush.');
+    const image=c.createImageData(stage.width,stage.height);
+    for(let i=0;i<values.length;i++){const o=i*4;image.data[o]=image.data[o+1]=image.data[o+2]=255;image.data[o+3]=values[i];}
+    c.putImageData(image,0,0);
+    maskCtx.drawImage(stage,0,0);
+    maskChanged();
+  }
+  async function magicSelect(point){
+    if(!base||taskBusy||!falReady())return;
+    taskBusy=true;refreshButtons();$('precision-source-holder').classList.add('is-busy');
+    const revision=++session;
+    try{
+      const sourceId=await ensureBaseId();
+      setStatus('SAM 3 is selecting the object. This selection uses a metered API request.');
+      const p={x:Math.min(base.width-1,Math.round(point.x*base.width/mask.width)),
+        y:Math.min(base.height-1,Math.round(point.y*base.height/mask.height))};
+      const reply=await api('/api/precision/segment',{method:'POST',body:{sourceId,point:p}});
+      if(!reply?.requestId||!reply.ticket)throw new Error('Segmentation did not return a request ID.');
+      let ready=null;
+      for(let attempt=0;attempt<65&&revision===session;attempt++){
+        if(attempt)await sleep(1700);
+        const qs=new URLSearchParams({sourceId,requestId:reply.requestId,expires:String(reply.expires),ticket:reply.ticket});
+        const result=await api('/api/precision/segment?'+qs.toString());
+        if(result?.status==='completed'){ready=result;break;}
+      }
+      if(revision!==session)throw new Error('The source photograph changed.');
+      if(!ready?.maskSourceId)throw new Error('SAM 3 is still processing. Do not click again until you have checked the request.');
+      const blob=await assetBlob(ready.maskSourceId),bitmap=await createImageBitmap(blob);
+      try{await saveUndo();maskFromSam(bitmap,point);}finally{bitmap.close();}
+      setStatus('Object selected. Click another garment to add it, or refine with the brush.');
+    }catch(e){setStatus(e.message,true);}
+    finally{taskBusy=false;$('precision-source-holder').classList.remove('is-busy');refreshButtons();}
+  }
+  function maskExport(){
+    const c=document.createElement('canvas');c.width=mask.width;c.height=mask.height;
+    const x=c.getContext('2d');x.fillStyle='#000';x.fillRect(0,0,c.width,c.height);x.drawImage(mask,0,0);
+    return c;
+  }
+  async function reviewPrice(){
+    if(!base||!selected||taskBusy)return;
+    const prompt=$('precision-prompt').value.trim();
+    if(!prompt){setStatus('Describe the change inside the selection.',true);return;}
+    taskBusy=true;refreshButtons();setStatus('Preparing the private working image and selection. No generation submitted.');
+    try{
+      const originalSourceId=await ensureBaseId(),sourceId=await ensureWorkingId(),blob=await readBlob(maskExport());
+      const maskSourceId=await uploadAsset(new File([blob],'precision-selection.png',{type:'image/png'}));
+      const strength=Number($('precision-strength').value);
+      const body={originalSourceId,sourceId,maskSourceId,prompt,strength};
+      const quoted=await api('/api/precision/quote',{method:'POST',body});
+      pending={...body,ticket:quoted.ticket,expiresAt:quoted.expiresAt,maskSourceId};
+      const usd=Number(quoted.estimatedUsd||0);
+      $('precision-review-body').textContent='FLUX Inpainting · estimated $'+usd.toFixed(3)+' USD for this image. This is a published-price estimate, not a bound vendor quote. Click Generate image to authorize one paid inference. Your original remains private and unchanged.';
+      $('precision-price-review').hidden=false;
+      setStatus('Price checked. No generation has started.');
+    }catch(e){pending=null;setStatus(e.message,true);}
+    finally{taskBusy=false;refreshButtons();}
+  }
+  async function submit(){
+    if(!pending||taskBusy)return;
+    if(Date.now()>=pending.expiresAt){pending=null;$('precision-price-review').hidden=true;setStatus('Price approval expired. Review it again.',true);return;}
+    const snapshot={...pending};pending=null;$('precision-price-review').hidden=true;
+    taskBusy=true;refreshButtons();setStatus('Submitting one paid FLUX inpainting job.');
+    try{
+      const response=await api('/api/precision/submit',{method:'POST',body:snapshot});
+      let job=response?.job;
+      if(!job?.id)throw new Error('No job ID was returned. Check Queue before retrying.');
+      onJob(job);
+      setStatus('Generation queued. The source remains unchanged; your job is saved in History.');
+      for(let i=0;i<110;i++){
+        if(['completed','failed','resolved','uncertain'].includes(job.status))break;
+        await sleep(3000);
+        const answer=await api('/api/jobs/'+encodeURIComponent(job.id));
+        job=answer.job;if(!job)throw new Error('Could not retrieve the queued generation.');
+        if(i%4===0)onJob(job);
+      }
+      if(job.status==='completed'){
+        setStatus('Rebuilding the original photograph outside the edited region.');
+        const final=await finalize(job);
+        onJob(final);
+        if(isOpen()&&base&&base.id===final.settings.precisionOriginalId){
+          resultBlob=await assetBlob(final.outputId);
+          if(resultBitmap)resultBitmap.close();
+          resultBitmap=await createImageBitmap(resultBlob);
+          showResult(resultBitmap);
+        }
+        setStatus('Precision Edit finished. Unselected pixels remain from your original photograph.');
+      }else if(job.status==='failed'||job.status==='resolved'){
+        setStatus(job.error||'The model did not complete this edit.',true);
+      }else if(job.status==='uncertain'){
+        setStatus('The provider submission is uncertain. Check Queue before retrying.',true);
+      }else{
+        setStatus('The edit is still in Queue. Reopen it from History when complete.');
+      }
+    }catch(e){setStatus(e.message,true);}
+    finally{taskBusy=false;refreshButtons();}
+  }
+  async function composeWithOriginal(original,provider,maskImage){
+    const w=original.width,h=original.height;
+    const work=document.createElement('canvas');work.width=maskImage.width;work.height=maskImage.height;
+    const wc=work.getContext('2d',{willReadFrequently:true});
+    wc.drawImage(maskImage,0,0,work.width,work.height);
+    const pixels=wc.getImageData(0,0,work.width,work.height);
+    for(let i=0;i<pixels.data.length;i+=4){
+      const a=pixels.data[i+3],v=(pixels.data[i]+pixels.data[i+1]+pixels.data[i+2])/3;
+      pixels.data[i]=pixels.data[i+1]=pixels.data[i+2]=255;
+      pixels.data[i+3]=a===0?0:Math.max(0,Math.min(255,Math.round(v)));
+    }
+    wc.putImageData(pixels,0,0);
+    const alpha=document.createElement('canvas');alpha.width=w;alpha.height=h;
+    const ax=alpha.getContext('2d');ax.filter='blur('+Math.max(1,Math.round(Math.max(w,h)/1900))+'px)';
+    ax.drawImage(work,0,0,w,h);ax.filter='none';
+    const patch=document.createElement('canvas');patch.width=w;patch.height=h;
+    const px=patch.getContext('2d');px.drawImage(provider,0,0,w,h);
+    px.globalCompositeOperation='destination-in';px.drawImage(alpha,0,0);px.globalCompositeOperation='source-over';
+    const result=document.createElement('canvas');result.width=w;result.height=h;
+    const cx=result.getContext('2d');cx.drawImage(original,0,0);cx.drawImage(patch,0,0);
+    return readBlob(result);
+  }
+  async function finalize(job){
+    if(job?.settings?.precisionFinalized||!job?.settings?.precisionEdit)return job;
+    if(finalizing.has(job.id))return finalizing.get(job.id);
+    const promise=(async()=>{
+      const settings=job.settings;
+      if(job.status!=='completed'||!job.outputId)throw new Error('Precision Edit has no completed result to finalize.');
+      const ids=[settings.precisionOriginalId,settings.maskSourceId,job.outputId];
+      if(ids.some(id=>!id))throw new Error('Precision Edit provenance is incomplete; your raw result is retained in History.');
+      const [originalBlob,maskBlob,generatedBlob]=await Promise.all(ids.map(assetBlob));
+      const [original,selection,generated]=await Promise.all([createImageBitmap(originalBlob),createImageBitmap(maskBlob),createImageBitmap(generatedBlob)]);
+      let composite;
+      try{composite=await composeWithOriginal(original,generated,selection);}
+      finally{original.close();selection.close();generated.close();}
+      if(composite.size>20*1024*1024)throw new Error('Final PNG exceeds 20 MB. The raw edit is still saved; download a smaller original for this workflow.');
+      const compositeSourceId=await uploadAsset(new File([composite],'precision-composite.png',{type:'image/png'}));
+      const response=await api('/api/precision/commit',{method:'POST',body:{jobId:job.id,compositeSourceId,expectedOutputId:job.outputId}});
+      if(!response?.job?.settings?.precisionFinalized)throw new Error('Edited result was not confirmed by the private archive.');
+      return response.job;
+    })();
+    finalizing.set(job.id,promise);
+    try{return await promise;}finally{finalizing.delete(job.id);}
+  }
+  function showResult(bitmap){
+    if(!base)return;
+    resultCanvas.width=mask.width;resultCanvas.height=mask.height;
+    $('precision-output-empty').hidden=true;resultCanvas.hidden=false;
+    $('precision-result-label').textContent='EDIT COMPLETE';
+    $('precision-compare').disabled=false;$('precision-download').disabled=!resultBlob;
+    renderComparison();
+  }
+  function renderComparison(){
+    if(!resultBitmap||!base)return;
+    const w=resultCanvas.width,h=resultCanvas.height,r=Math.max(0,Math.min(1,Number($('precision-compare').value)/100));
+    rc.clearRect(0,0,w,h);rc.drawImage(resultBitmap,0,0,w,h);
+    if(r<1){rc.save();rc.beginPath();rc.rect(0,0,w*(1-r),h);rc.clip();rc.drawImage(base.bitmap,0,0,w,h);rc.restore();}
+    if(r>0&&r<1){rc.fillStyle='rgba(255,255,255,.7)';rc.fillRect(w*(1-r)-1,0,2,h);}
+  }
+  async function download(){
+    if(!resultBlob)return;
+    const url=URL.createObjectURL(resultBlob),a=document.createElement('a');
+    a.href=url;a.download='parallel-vision-precision-edit.png';document.body.append(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),5000);
+  }
+  function reset(){
+    session++;close();
+    if(base?.bitmap)base.bitmap.close();base=null;
+    if(resultBitmap)resultBitmap.close();resultBitmap=null;resultBlob=null;workingId=null;
+    sourceCanvas.width=overlay.width=mask.width=0;sourceCanvas.height=overlay.height=mask.height=0;
+    undoStack.length=0;selected=false;pending=null;taskBusy=false;
+    $('precision-source-holder').hidden=true;$('precision-drop').hidden=false;
+    $('precision-result-canvas').hidden=true;$('precision-output-empty').hidden=false;
+    $('precision-source-meta').textContent='DROP IMAGE';
+    $('precision-result-label').textContent='AWAITING EDIT';
+    $('precision-prompt').value='';setStatus('');refreshButtons();
+  }
+  const handle=async promise=>{try{await promise;}catch(e){setStatus(e.message,true);notify(e.message,true);}};
+  $('precision-return').onclick=close;
+  $('precision-tool-magic').onclick=()=>selectMode('magic');
+  $('precision-tool-brush').onclick=()=>selectMode('brush');
+  $('precision-tool-erase').onclick=()=>selectMode('erase');
+  $('precision-undo').onclick=()=>handle(undo());
+  $('precision-expand').onclick=()=>handle(growMask());
+  $('precision-clear-mask').onclick=()=>resetSelection();
+  $('precision-brush-size').oninput=()=>$('precision-size-label').textContent=$('precision-brush-size').value;
+  $('precision-strength').oninput=()=>{$('precision-strength-value').textContent=Number($('precision-strength').value).toFixed(2);pending=null;$('precision-price-review').hidden=true;};
+  $('precision-prompt').oninput=()=>{pending=null;$('precision-price-review').hidden=true;refreshButtons();};
+  $('precision-generate').onclick=()=>handle(reviewPrice());
+  $('precision-review-confirm').onclick=()=>handle(submit());
+  $('precision-review-cancel').onclick=()=>{$('precision-price-review').hidden=true;pending=null;};
+  $('precision-compare').oninput=renderComparison;
+  $('precision-download').onclick=download;
+  $('precision-change-photo').onclick=()=>$('precision-photo-input').click();
+  $('precision-photo-input').onchange=e=>{if(e.target.files?.[0])handle(setBase(e.target.files[0]));e.target.value='';};
+  $('precision-drop').onclick=()=>$('precision-photo-input').click();
+  $('precision-drop').onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();$('precision-photo-input').click();}};
+  for(const name of ['dragenter','dragover'])$('precision-drop').addEventListener(name,e=>{e.preventDefault();$('precision-drop').classList.add('is-dragging');});
+  $('precision-drop').addEventListener('dragleave',()=>{$('precision-drop').classList.remove('is-dragging');});
+  $('precision-drop').addEventListener('drop',e=>{e.preventDefault();$('precision-drop').classList.remove('is-dragging');if(e.dataTransfer.files[0])handle(setBase(e.dataTransfer.files[0]));});
+  overlay.onpointerdown=e=>{
+    if(!base||taskBusy||e.button!==0)return;
+    e.preventDefault();const point=pointAt(e);
+    if(mode==='magic'){handle(magicSelect(point));return;}
+    drawing=true;lastPoint=point;overlay.setPointerCapture(e.pointerId);
+    handle(saveUndo());stroke(point);
+  };
+  overlay.onpointermove=e=>{if(!drawing)return;stroke(pointAt(e));};
+  for(const name of ['pointerup','pointercancel','lostpointercapture'])overlay.addEventListener(name,()=>{if(drawing){drawing=false;lastPoint=null;maskChanged();}});
+  // No source is opened automatically in the normal gallery. This workspace is opt-in.
+  reset();
+  return {open,close,isOpen,reset,finalize,setBase};
+}
