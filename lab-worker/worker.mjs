@@ -1153,6 +1153,7 @@ async function route(request,env,ctx) {
       p.aspectRatio=first?IMAGE_RATIOS.reduce((a,b)=>{const d=r=>Math.abs(Math.log(r.split(':')[0]/r.split(':')[1]/(first.width/first.height)));return d(b)<d(a)?b:a;},'16:9'):'16:9';
     }
     const prompt=assembledPrompt(p);
+    if(!prompt.trim())fail(400,'Add a prompt or at least one reference photograph. No generation started.');
     if(p.engine==='kling'&&prompt.length>2500)fail(400,'Kling prompt plus reference instructions exceeds 2,500 characters. Shorten the direction or notes.');
     if(p.engine==='kling')p.model='fal-ai/kling-image/v3/'+(refs.length?'image-to-image':'text-to-image');
     // Validate all input before reserving or sending a paid request.
@@ -1183,7 +1184,7 @@ async function route(request,env,ctx) {
   if(path==='/api/gemini/jobs'&&method==='POST') {
     if(!env.GEMINI_API_KEY)fail(503,'Gemini API key is not configured on this Worker.');
     const data=await body(request),p=parameters(data.settings);
-    if(p.provider!=='gemini'||p.engine!=='gemini'||(!p.prompt&&!canUseReferenceGuidance(p.referenceRoles)))fail(400,'Choose Nano Banana Pro and add a direction, or assign a Base image and the properties to copy.');
+    if(p.provider!=='gemini'||p.engine!=='gemini'||(!p.prompt&&!(Array.isArray(data.referenceSourceIds)&&data.referenceSourceIds.length>0)))fail(400,'Choose Nano Banana Pro and add a prompt or reference photograph.');
     const count=Number(data.count||1),max=p.processing==='batch'?20:1;
     if(!Number.isInteger(count)||count<1||count>max)fail(400,p.processing==='batch'?'Batch supports 1 to 20 images.':'Normal mode submits one Nano Banana Pro image per request.');
     if(p.processing==='normal'){
@@ -1295,7 +1296,7 @@ async function route(request,env,ctx) {
     const quoteCount=data.count===undefined?1:Number(data.count);
     if(!Number.isInteger(quoteCount)||quoteCount<1||quoteCount>4)fail(400,'Choose 1 to 4 images for one price check.');
     if(quoteCount>1&&!(p.type==='image'&&p.engine==='seedream'&&p.mode==='image'&&p.provider==='spicy'))fail(400,'Multiple prices in one request are supported only for Seedream image generation.');
-    if(!['upscale','reinterpret'].includes(p.mode)&&!p.prompt&&!(supportsReferenceGuidance(p)&&canUseReferenceGuidance(p.referenceRoles)))fail(400,'Add a prompt before generating, or assign a Base image and the properties to copy.');
+    if(!['upscale','reinterpret'].includes(p.mode)&&!p.prompt&&!(supportsReferenceGuidance(p)&&Array.isArray(data.referenceSourceIds)&&data.referenceSourceIds.length>0))fail(400,'Add a prompt or at least one reference photograph.');
     if(p.provider==='higgsfield'&&p.mode==='extend')return json(await quoteVideoExtension(env,owner,data,p,url,hfDeps()));
     if(p.provider==='fal'&&p.mode==='upscale'){
       if(!env.FAL_KEY)fail(503,'fal.ai upscaling is not configured on this Worker.');
