@@ -1,4 +1,7 @@
 /* Commercial Lab surfaces inherit the original editorial image-led landing style. */
+.hero-auth-row{display:flex;flex-wrap:wrap;align-items:center;gap:14px;margin-top:14px;max-width:570px}
+.hero-auth-row .lab-auth-link{background:#e7e5df;border-color:#e7e5df;color:#171917}
+.hero-auth-row .lab-auth-link:hover{background:#fff;border-color:#fff}
 .lab-auth-link{font:500 12px/1.2 "DM Sans",Arial,sans-serif;letter-spacing:.02em;color:inherit;border:1px solid rgba(255,255,255,.42);background:rgba(12,12,12,.19);border-radius:100px;padding:11px 17px;cursor:pointer;text-decoration:none;white-space:nowrap;backdrop-filter:blur(12px)}
 .lab-auth-link:hover,.lab-auth-link:focus-visible{background:rgba(255,255,255,.17);border-color:rgba(255,255,255,.9)}
 .lab-account-strip{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;padding:22px clamp(22px,5vw,80px);background:#131413;color:#e8e7e4;border-top:1px solid #363737;border-bottom:1px solid #363737;font:400 13px/1.5 "DM Sans",Arial,sans-serif}
