@@ -1,13 +1,18 @@
-/* PV Lab Precision Edit. Scoped to Image Studio; no changes to other decks. */
-.precision-workspace [hidden]{display:none!important}
-#image-studio.is-precision-active>.image-gallery-shell,
-#image-studio.is-precision-active>#image-composer{display:none!important}
-#image-studio.is-precision-active>#precision-workspace:not([hidden]){display:flex!important}
-#image-studio #precision-workspace[hidden]{display:none!important}
+/* Retouch is an independent PV Lab studio. Keep the Image and Video decks mounted,
+   but visually isolated while the precision workspace is selected. */
+.precision-workspace [hidden],#precision-workspace[hidden]{display:none!important}
+#app.retouch-studio-active > .workspace,
+#app.retouch-studio-active > #image-studio,
+#app.retouch-studio-active > #assets-workspace,
+#app.retouch-studio-active > #fashion-studio,
+#app.retouch-studio-active > #soul-launch,
+#app.retouch-studio-active > #notice,
+#app.assets-active > #precision-workspace{display:none!important}
+#app.retouch-studio-active > #precision-workspace:not([hidden]){display:flex!important}
 .precision-workspace{
   --pe-accent:#d6ff00;--pe-bg:#191a1d;--pe-edge:#36383f;
   position:relative;display:flex;flex-direction:column;gap:12px;width:100%;
-  min-height:calc(100dvh - 120px);margin:0 auto;padding:19px 0 30px;
+  min-height:calc(100dvh - 112px);margin:0 auto;padding:18px clamp(0px,1.3vw,20px) 24px;
   color:#f2f2f2;font-family:'DM Sans',system-ui,sans-serif;
 }
 .precision-workspace *{box-sizing:border-box}
@@ -18,7 +23,7 @@
 .precision-workspace input:focus-visible,
 .precision-workspace textarea:focus-visible,
 .precision-drop:focus-visible{outline:2px solid var(--pe-accent);outline-offset:2px}
-.precision-head{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:2px 3px 10px}
+.precision-head{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:4px 5px 14px}
 .precision-head h2{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:clamp(23px,2vw,32px);letter-spacing:-.055em;line-height:1.05;margin:4px 0 5px}
 .precision-head p{font-size:12px;color:#a3a5ac;margin:0}
 .precision-eyebrow{font-size:9px;font-weight:700;letter-spacing:.15em;color:#9e9fa5}
@@ -26,14 +31,14 @@
 .precision-method{font-size:10px;color:#a4a8af;letter-spacing:.08em;white-space:nowrap}
 .precision-method span{color:var(--pe-accent);margin:0 5px}
 #precision-return{border:1px solid #4c4f56;border-radius:10px;color:#eaecef;background:#25272d;min-height:36px;padding:9px 13px;font-size:11px;font-weight:600}
-#precision-return span{font-size:14px;margin-left:12px;color:#a5a7ad}
+#precision-return span{font-size:14px;margin-right:8px;color:#d7d9de}
 #precision-return:hover{background:#33363c}
-.precision-board{display:grid;grid-template-columns:1fr 1fr;gap:12px;flex:1;min-height:365px}
+.precision-board{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;flex:1;min-height:335px}
 .precision-panel{display:flex;flex-direction:column;min-width:0;min-height:0;border:1px solid var(--pe-edge);border-radius:14px;overflow:hidden;background:#161719}
 .precision-panel-label{height:43px;padding:0 17px;display:flex;align-items:center;justify-content:space-between;background:#1e2024;border-bottom:1px solid #34363a;gap:12px}
 .precision-panel-label span:first-child{font-size:10px;color:#e7e8ea;letter-spacing:.095em;font-weight:750}
 .precision-panel-label span:last-child{font-size:9px;color:#8e9198;letter-spacing:.08em;max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.precision-drop{flex:1;min-height:320px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:28px;text-align:center;outline:none;background:radial-gradient(circle at 50% 45%,#292a30 0%,#151619 72%)}
+.precision-drop{flex:1;min-height:285px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:28px;text-align:center;outline:none;background:radial-gradient(circle at 50% 45%,#292a30 0%,#151619 72%)}
 .precision-drop.is-dragging{background:#262c22;outline:2px dashed var(--pe-accent);outline-offset:-10px}
 .precision-drop-symbol{display:flex;align-items:center;justify-content:center;width:66px;height:66px;margin-bottom:8px;border:1px solid #656970;border-radius:15px;font-size:33px;font-weight:250;color:#e1e3e6}
 .precision-drop strong{font-family:'Space Grotesk',sans-serif;letter-spacing:-.025em;font-size:18px;font-weight:600}
@@ -48,7 +53,7 @@
 .precision-input-footer{min-height:43px;display:flex;align-items:center;justify-content:space-between;gap:14px;border-top:1px solid #33353a;background:#1a1b1f;padding:8px 12px}
 #precision-selection-message{font-size:10px;color:#b9bbbf;line-height:1.4;white-space:normal}
 #precision-change-photo{border:0;background:none;color:#dde1e5;font-size:10px;font-weight:650;white-space:nowrap}
-.precision-output-holder{min-height:320px;position:relative}
+.precision-output-holder{min-height:285px;position:relative}
 .precision-output-empty{max-width:245px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px}
 .precision-output-empty>span{font-size:32px;color:#50555c}
 .precision-output-empty strong{font-size:13px;font-weight:650}
@@ -64,7 +69,7 @@
 .precision-tool-buttons{display:flex;align-items:center;flex-wrap:wrap;gap:6px}
 .precision-tool-buttons button{border:1px solid #46484f;border-radius:8px;background:#2a2b30;color:#d3d5d9;min-height:33px;padding:7px 11px;font-size:10px;font-weight:650}
 .precision-tool-buttons button:hover{background:#393b41;color:white}
-.precision-tool-buttons button.is-selected{background:#c9ed22;color:#1a1b18;border-color:#c9ed22}
+.precision-tool-buttons button.is-selected{background:#d7ddc2;color:#161a16;border-color:#d7ddc2}
 .precision-tool-size{display:flex;align-items:center;gap:9px;margin:0 4px;white-space:nowrap;font-size:10px;color:#b5b7bc}
 .precision-tool-size input{width:90px;accent-color:var(--pe-accent)}
 .precision-tool-size output{min-width:19px;text-align:right;font-variant-numeric:tabular-nums}
@@ -82,8 +87,8 @@
 .precision-strength label{white-space:nowrap}
 .precision-strength input{width:85px;accent-color:var(--pe-accent)}
 .precision-strength output{min-width:28px;text-align:right}
-#precision-generate{background:#d6ff00;color:#171814;border:0;border-radius:10px;padding:14px 23px;min-height:49px;min-width:145px;font-size:12px;font-weight:800;white-space:nowrap}
-#precision-generate:hover:not(:disabled){background:#e6ff54}
+#precision-generate{background:#d7ddc2;color:#171814;border:0;border-radius:10px;padding:14px 23px;min-height:49px;min-width:145px;font-size:12px;font-weight:800;white-space:nowrap}
+#precision-generate:hover:not(:disabled){background:#edf0e3}
 #precision-generate span{margin-left:6px}
 .precision-status-text{font-size:10px;line-height:1.45;color:#abb2bb;margin:6px 0 0}
 .precision-status-text:empty{display:none}
@@ -94,7 +99,7 @@
 .precision-price-review p{font-size:11px;line-height:1.55;color:#cccfd5}
 .precision-price-actions{display:flex;justify-content:flex-end;gap:9px}
 .precision-price-actions button{padding:10px 14px;border-radius:8px;border:1px solid #565961;background:#35363d;color:white;font-size:11px}
-#precision-review-confirm{border-color:#d6ff00;background:#d6ff00;color:#181a13;font-weight:800}
+#precision-review-confirm{border-color:#d7ddc2;background:#d7ddc2;color:#181a13;font-weight:800}
 @media(max-width:900px){
   .precision-workspace{min-height:auto;padding:12px 0 25px}
   .precision-board{grid-template-columns:1fr;min-height:0}
@@ -119,4 +124,19 @@
   .precision-source-holder,.precision-output-holder{min-height:280px}
   .precision-deck{border-radius:12px}
   #precision-prompt{font-size:12px}
+}
+
+/* Keep independent Retouch workspace clear of the global Image deck layout. */
+@media(min-width:901px){
+  #app.retouch-studio-active #precision-workspace{max-width:1920px}
+  #app.retouch-studio-active .precision-panel{min-height:0}
+  #app.retouch-studio-active .precision-board{max-height:min(60vh,670px)}
+  #app.retouch-studio-active .precision-source-holder,
+  #app.retouch-studio-active .precision-output-holder{min-height:270px}
+}
+@media(max-width:900px){
+  #app.retouch-studio-active #precision-workspace{padding-inline:10px}
+}
+@media(prefers-reduced-motion:reduce){
+  .precision-workspace{scroll-behavior:auto}
 }
