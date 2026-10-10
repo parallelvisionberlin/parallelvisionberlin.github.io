@@ -20,7 +20,7 @@
 .precision-workspace *{box-sizing:border-box}
 .precision-workspace button,.precision-workspace input,.precision-workspace textarea{font:inherit}
 .precision-workspace button{cursor:pointer}
-.precision-workspace button:disabled{cursor:not-allowed;opacity:.45}
+.precision-workspace button:disabled{cursor:not-allowed;opacity:.60}
 .precision-workspace button:focus-visible,
 .precision-workspace input:focus-visible,
 .precision-workspace textarea:focus-visible,
@@ -37,10 +37,10 @@
 /* Quiet secondary navigation within Retouch. The photo and result are primary. */
 #precision-return{
   display:inline-flex;align-items:center;justify-content:center;gap:8px;
-  min-height:36px;min-width:137px;padding:8px 13px;
+  min-height:44px;min-width:161px;padding:10px 16px;
   border:1px solid #4c4f56;border-radius:9px;
   background:#25272d;color:#eaecef;
-  font-size:11px;font-weight:650;line-height:1.2;letter-spacing:0;
+  font-size:13px;font-weight:650;line-height:1.2;letter-spacing:0;
   box-shadow:none;white-space:nowrap;
   transition:background .15s ease,border-color .15s ease;
 }
@@ -55,68 +55,76 @@
 .precision-board{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;flex:1 1 auto;align-items:stretch;min-height:0;height:auto}
 .precision-panel{display:flex;flex-direction:column;min-width:0;min-height:0;border:1px solid var(--pe-edge);border-radius:14px;overflow:hidden;background:#161719}
 .precision-panel-label{height:43px;flex:0 0 43px;padding:0 17px;display:flex;align-items:center;justify-content:space-between;background:#1e2024;border-bottom:1px solid #34363a;gap:12px}
-.precision-panel-label span:first-child{font-size:10px;color:#e7e8ea;letter-spacing:.095em;font-weight:750}
-.precision-panel-label span:last-child{font-size:9px;color:#8e9198;letter-spacing:.08em;max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.precision-panel-label span:first-child{font-size:12px;color:#e7e8ea;letter-spacing:.075em;font-weight:700}
+.precision-panel-label span:last-child{font-size:11px;color:#a3a6ae;letter-spacing:.035em;max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .precision-drop{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:13px;padding:34px;text-align:center;outline:none;background:radial-gradient(ellipse at 50% 44%,#292a30 0%,#151619 74%);transition:background .18s ease,border-color .18s ease}
 .precision-drop:hover{background:radial-gradient(ellipse at 50% 44%,#31333b 0%,#17181c 75%)}
 .precision-drop.is-dragging{background:#262c22;outline:2px dashed var(--pe-accent);outline-offset:-10px}
 .precision-drop-symbol{display:flex;align-items:center;justify-content:center;width:80px;height:80px;margin-bottom:8px;border:1px solid #666b75;border-radius:18px;background:#ffffff06;font-size:38px;font-weight:250;color:#f2f3f5}
 .precision-drop strong{font-family:'Space Grotesk',sans-serif;letter-spacing:-.028em;font-size:22px;font-weight:600}
 .precision-drop span:not(.precision-drop-symbol){font-size:13px;color:#b3b6bf}
-.precision-drop small{margin-top:9px;color:#858991;font-size:10px}
+.precision-drop small{margin-top:8px;color:#a0a4ae;font-size:11.5px}
 .precision-source-holder,.precision-output-holder{position:relative;min-height:0;flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#111214;padding:10px}
 .precision-source-holder[hidden]{display:none!important}
 /* Make room for the entire displayed canvas plus padding. Never let the mask
    or photo push a panel footer behind the selection toolbar. */
 #precision-source-holder:not([hidden]){min-height:0}
 .precision-stage{position:relative;max-width:100%;max-height:100%;display:flex;align-items:center;justify-content:center;overflow:hidden}
-#precision-source-canvas{display:block;max-width:100%;max-height:min(52dvh,var(--precision-source-fit-height,680px));object-fit:contain}
+#precision-source-canvas{display:block;max-width:100%;max-height:min(75dvh,var(--precision-source-fit-height,680px));object-fit:contain}
 #precision-selection-canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;touch-action:none;cursor:crosshair}
 .precision-source-holder.is-busy #precision-selection-canvas{cursor:progress}
 .precision-input-footer{min-height:43px;flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;gap:14px;border-top:1px solid #33353a;background:#1a1b1f;padding:8px 12px}
-#precision-selection-message{font-size:10px;color:#b9bbbf;line-height:1.4;white-space:normal}
-#precision-change-photo{border:0;background:none;color:#dde1e5;font-size:10px;font-weight:650;white-space:nowrap}
+#precision-selection-message{font-size:12px;color:#c7c9ce;line-height:1.4;white-space:normal}
+#precision-change-photo{border:0;background:none;color:#dde1e5;font-size:12px;font-weight:650;white-space:nowrap}
 .precision-output-holder{min-height:0;position:relative}
 .precision-output-empty{max-width:290px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:13px}
 .precision-output-empty>span{font-size:32px;color:#50555c}
 .precision-output-empty strong{font-size:15px;font-weight:650}
-.precision-output-empty p{font-size:11px;color:#81858e;line-height:1.65;margin:0}
-#precision-result-canvas{display:block;max-width:100%;max-height:min(52dvh,var(--precision-result-fit-height,680px));object-fit:contain}
+.precision-output-empty p{font-size:13px;color:#a0a4af;line-height:1.55;margin:0}
+#precision-result-canvas{display:block;max-width:100%;max-height:min(75dvh,var(--precision-result-fit-height,680px));object-fit:contain}
 #precision-result-canvas[hidden],#precision-output-empty[hidden]{display:none!important}
 .precision-compare-row{height:43px;flex:0 0 43px;display:flex;justify-content:space-between;align-items:center;gap:12px;border-top:1px solid #34363a;background:#1b1c20;padding:5px 12px}
-.precision-compare-row label{display:flex;align-items:center;gap:9px;color:#b5b7bc;font-size:10px;flex:1;min-width:0}
+.precision-compare-row label{display:flex;align-items:center;gap:10px;color:#bec1c9;font-size:12px;flex:1;min-width:0}
 .precision-compare-row input{min-width:40px;max-width:170px;width:100%;accent-color:var(--pe-accent)}
-#precision-download{background:none;border:1px solid #4a4d54;padding:8px 12px;border-radius:8px;color:#e3e5e8;font-size:10px;font-weight:650;white-space:nowrap}
+#precision-download{background:none;border:1px solid #4a4d54;padding:8px 12px;border-radius:8px;color:#e3e5e8;font-size:12px;font-weight:650;white-space:nowrap}
 #precision-download:hover{border-color:#b3b6be}
-.precision-tools{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 10px;border:1px solid #393b40;border-radius:12px;background:#202126}
+.precision-tools{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 12px;border:1px solid #393b40;border-radius:12px;background:#202126}
 .precision-tool-buttons{display:flex;align-items:center;flex-wrap:wrap;gap:6px}
-.precision-tool-buttons button{border:1px solid #46484f;border-radius:8px;background:#2a2b30;color:#d3d5d9;min-height:33px;padding:7px 11px;font-size:10px;font-weight:650}
+.precision-tool-buttons button{border:1px solid #46484f;border-radius:8px;background:#2a2b30;color:#d3d5d9;min-height:36px;padding:8px 12px;font-size:12px;font-weight:620}
 .precision-tool-buttons button:hover{background:#393b41;color:white}
 .precision-tool-buttons button.is-selected{background:#d7ddc2;color:#161a16;border-color:#d7ddc2}
-.precision-tool-size{display:flex;align-items:center;gap:9px;margin:0 4px;white-space:nowrap;font-size:10px;color:#b5b7bc}
+.precision-tool-size{display:flex;align-items:center;gap:9px;margin:0 4px;white-space:nowrap;font-size:12px;color:#c0c2ca}
 .precision-tool-size input{width:90px;accent-color:var(--pe-accent)}
 .precision-tool-size output{min-width:19px;text-align:right;font-variant-numeric:tabular-nums}
-.precision-deck{position:relative;background:#242528;border:1px solid #45474c;border-radius:15px;padding:13px 15px 12px;box-shadow:0 14px 42px #0004}
-.precision-deck-copy{display:flex;flex-direction:column;gap:7px}
-.precision-deck-copy label{font-size:9px;color:#9ea1a8;font-weight:800;letter-spacing:.115em}
-#precision-prompt{background:transparent;outline:none;border:0;color:#f4f5f6;width:100%;min-height:44px;max-height:116px;resize:vertical;line-height:1.45;font-size:13px;padding:3px 0}
-#precision-prompt::placeholder{color:#8e9197}
-.precision-bottom{display:flex;align-items:center;gap:18px;border-top:1px solid #484b50;padding-top:12px}
-.precision-status{display:flex;flex-direction:column;gap:5px;flex:1;min-width:0}
-.precision-status strong{font-size:11px;font-weight:700}
-.precision-status strong span{font-weight:400;color:#a2a5aa}
-.precision-status>span{color:#9c9fa6;font-size:10px;line-height:1.35}
-.precision-strength{display:flex;align-items:center;gap:8px;font-size:10px;color:#c2c4c7}
+.precision-deck{
+  position:relative;display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  grid-template-areas:"direction actions" "meta meta";
+  column-gap:22px;row-gap:5px;align-items:center;
+  background:#242528;border:1px solid #45474c;border-radius:15px;
+  padding:10px 15px 9px;box-shadow:0 14px 42px #0004;
+}
+.precision-deck-copy{grid-area:direction;display:flex;flex-direction:column;gap:3px;min-width:0}
+.precision-deck-copy label{font-size:11px;color:#b2b5be;font-weight:700;letter-spacing:.10em}
+#precision-prompt{background:transparent;outline:none;border:0;color:#f4f5f6;width:100%;height:48px;min-height:48px;max-height:116px;resize:vertical;line-height:1.45;font-size:14px;padding:3px 0}
+#precision-prompt::placeholder{color:#a4a6ae}
+.precision-bottom{grid-area:actions;display:flex;align-items:center;justify-content:flex-end;gap:17px;padding:0;border:0;min-width:0}
+.precision-deck-meta{grid-area:meta;display:flex;align-items:center;flex-wrap:wrap;gap:7px 18px;border-top:1px solid #44464b;padding-top:7px;min-width:0}
+.precision-status{display:flex;align-items:center;flex-wrap:wrap;gap:4px 13px;flex:1 1 auto;min-width:0}
+.precision-status strong{font-size:11.5px;font-weight:700;white-space:nowrap}
+.precision-status strong span{font-weight:450;color:#bdc0c7}
+.precision-status>span{color:#b1b5bf;font-size:11.5px;line-height:1.35}
+.precision-strength{display:flex;align-items:center;gap:9px;font-size:12px;color:#d2d4d9}
 .precision-strength label{white-space:nowrap}
-.precision-strength input{width:85px;accent-color:var(--pe-accent)}
+.precision-strength input{width:105px;accent-color:var(--pe-accent)}
 .precision-strength output{min-width:28px;text-align:right}
-#precision-generate{background:#d7ddc2;color:#171814;border:0;border-radius:10px;padding:14px 23px;min-height:49px;min-width:145px;font-size:12px;font-weight:800;white-space:nowrap}
+#precision-generate{background:#d7ddc2;color:#171814;border:0;border-radius:10px;padding:11px 20px;min-height:46px;min-width:155px;font-size:13px;font-weight:700;white-space:nowrap}
 #precision-generate:hover:not(:disabled){background:#edf0e3}
 #precision-generate span{margin-left:6px}
-.precision-status-text{font-size:10px;line-height:1.45;color:#abb2bb;margin:6px 0 0}
+.precision-status-text{font-size:11.5px;line-height:1.4;color:#c3c5cb;margin:0;flex:0 1 auto}
 .precision-status-text:empty{display:none}
 .precision-status-text.is-error{color:#f5af9c}
-.precision-price-review{position:absolute;z-index:40;bottom:160px;right:18px;width:min(350px,calc(100% - 36px));border:1px solid #676c75;border-radius:13px;background:#2b2c31;padding:16px 18px;box-shadow:0 12px 45px #0009}
+.precision-price-review{position:absolute;z-index:40;bottom:clamp(125px,14vh,176px);right:18px;width:min(350px,calc(100% - 36px));border:1px solid #676c75;border-radius:13px;background:#2b2c31;padding:16px 18px;box-shadow:0 12px 45px #0009}
 .precision-price-review[hidden]{display:none!important}
 .precision-price-review strong{font-size:14px}
 .precision-price-review p{font-size:11px;line-height:1.55;color:#cccfd5}
@@ -131,12 +139,12 @@
   #precision-source-holder:not([hidden]){min-height:max(325px,calc(min(50vh,640px) + 20px))}
   #precision-source-canvas,#precision-result-canvas{max-height:min(50vh,640px)}
   .precision-tools{align-items:flex-start;flex-wrap:wrap}
-  .precision-deck{padding:13px}
-  .precision-bottom{flex-wrap:wrap;gap:10px}
-  .precision-status{min-width:100%;flex-basis:100%}
+  .precision-deck{grid-template-columns:minmax(0,1fr);grid-template-areas:"direction" "actions" "meta";gap:8px;padding:12px}
+  .precision-bottom{justify-content:space-between;flex-wrap:wrap;gap:10px}
   .precision-strength{flex:1}
+  .precision-deck-meta{gap:5px 12px}
   #precision-generate{min-width:142px}
-  .precision-price-review{bottom:150px}
+  .precision-price-review{bottom:155px}
 }
 @media(max-width:520px){
   .precision-head{align-items:flex-start}
@@ -146,10 +154,10 @@
   .precision-head-actions{width:100%;flex-direction:row;align-items:center;justify-content:space-between;gap:8px}
   #precision-return{min-width:133px;min-height:36px;padding:8px 11px;font-size:11px}
   .precision-method{font-size:9px}
-  .precision-tool-buttons button{padding:6px 8px;font-size:9px}
+  .precision-tool-buttons button{padding:7px 9px;font-size:11px}
   .precision-source-holder,.precision-output-holder{min-height:280px}
   .precision-deck{border-radius:12px}
-  #precision-prompt{font-size:12px}
+  #precision-prompt{font-size:14px}
 }
 
 /* Retouch shares Image Studio's full-width canvas without resizing the global header. */
