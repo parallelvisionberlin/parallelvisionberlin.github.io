@@ -766,7 +766,7 @@ test('Definite SpicyAPI submission rejection releases the local budget for image
   const oldPrice=maxPrice;maxPrice='0.093000';providerState='queued';
   try{
     for(const settings of [imageSettings,upscaleSettings]){
-      const{env}=fixture(),id=await setup(env);createCount=0;
+      const{env}=fixture(),setupId=await setup(env),id=settings.mode==='upscale'?setupId:await seedreamTestReference(env,'retry-image.png',7);createCount=0;
       const data={sourceId:id,referenceSourceIds:settings.mode==='upscale'?[]:[id],settings};
       const q=await(await req(env,'/api/quotes',{method:'POST',data})).json();
       createMode='pricechange';
