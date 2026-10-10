@@ -3,6 +3,8 @@ import {rewardQualifiedReferral} from './referrals.mjs';
 // All changes in balances are immutable ledger entries. Never trust browser-supplied prices.
 export const CREDIT_MULTIPLIER = 460;
 export const CREDIT_MINIMUM = 7;
+// Commercial Soul ID launch price. Keep in sync with migration 0008.
+export const SOUL_ID_TRAINING_CREDITS = 400;
 export const PACKS = Object.freeze({
   topup10:{type:'payment',cents:1000,credits:1000,title:'PV Lab · 1,000 credits'},
   topup29:{type:'payment',cents:2900,credits:3000,title:'PV Lab · 3,000 credits'},
@@ -44,7 +46,8 @@ export async function customerSession(env,id){
   const sub=await one(env,'SELECT plan_id,status FROM lab_subscriptions WHERE customer_id=?',id);
   return {customer:true,balanceCredits:c.balance_credits,subscription:sub||{plan_id:null,status:'none'},
     billingReady:enabled(env),generationReady:env.LAB_PUBLIC_GENERATION_ENABLED==='true'&&!!env.LAB_CUSTOMER_SPICY_API_KEY,
-    products:catalog(),creditMultiplier:CREDIT_MULTIPLIER};
+    products:catalog(),creditMultiplier:CREDIT_MULTIPLIER,
+    soulIdTrainingCredits:SOUL_ID_TRAINING_CREDITS,soul2ImageCredits:CREDIT_MINIMUM};
 }
 async function stripe(env,path,params,method='POST'){
   if(!env.LAB_STRIPE_SECRET_KEY)fail(503,'Stripe billing is not configured.');
