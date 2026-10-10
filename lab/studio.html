@@ -53,9 +53,10 @@ document.addEventListener('DOMContentLoaded',()=>{
 <link rel="stylesheet" href="./soul.css?v=20260930-soul-v02">
 <link rel="stylesheet" href="./studio.css?v=20261008-imagefloat-v1">
 <link rel="stylesheet" href="./image-studio.css?v=20261009-strength1">
+<link rel="stylesheet" href="./moods.css?v=20261010-moods1">
 <link rel="stylesheet" href="./detail-video-studio.css?v=20261009-pointer1">
 <link rel="stylesheet" href="./editorial-polish.css?v=20261009-pearl-drop1">
-<script type="module" src="./lab.js?v=20261010-submit-feedback1&wallet=1"></script>
+<script type="module" src="./lab.js?v=20261010-moods1&wallet=1"></script>
 <link rel="stylesheet" href="./credits.css?v=20261010-commercial1">
 <link rel="stylesheet" href="./higgsfield.css?v=20261010-compact-image-prompt1">
 <link rel="stylesheet" href="./assets.css?v=20261010-submit-feedback1">
@@ -113,6 +114,16 @@ document.addEventListener('DOMContentLoaded',()=>{
     </div>
   </div>
   <section id="image-composer" class="image-composer" aria-label="Floating image generation composer">
+    <section id="composer-moods" class="composer-moods" aria-label="Image moods" hidden>
+      <div class="moods-header"><div><span class="moods-kicker">PV Lab / Creative direction</span><strong id="composer-moods-title" tabindex="-1">Moods</strong><p>Ten curated looks. Your prompt and original photo remain yours.</p></div><button id="composer-moods-close" type="button" aria-label="Close moods">×</button></div>
+      <div id="composer-moods-filters" class="moods-filters" aria-label="Mood categories"></div>
+      <div id="composer-moods-grid" class="moods-grid" aria-label="Available moods"></div>
+      <div class="moods-footer">
+        <strong id="composer-moods-summary" class="moods-selected">No mood selected</strong>
+        <div class="moods-strength"><label for="composer-moods-intensity">Intensity</label><input id="composer-moods-intensity" type="range" min="1" max="100" step="1" value="60"><output id="composer-moods-amount" for="composer-moods-intensity">60%</output></div>
+        <div class="moods-bottom"><p id="composer-moods-compat">AI styling may change details of your original image.</p><div class="moods-actions"><button id="composer-moods-switch" type="button" hidden>Use Seedream</button><button id="composer-moods-none" type="button">Clear</button><button id="composer-moods-done" type="button">Use mood</button></div></div>
+      </div>
+    </section>
     <section id="composer-library" class="composer-library" aria-label="Saved characters and references" hidden>
       <div class="composer-panel-head"><div><strong id="composer-library-title">Saved references</strong><p id="composer-library-note">Choose a saved pack.</p><button id="composer-character-create" type="button" hidden>Create character <span aria-hidden="true">✦</span></button></div><button id="composer-library-close" type="button" aria-label="Close saved references">×</button></div>
       <div id="composer-library-cards" class="composer-library-cards"></div>
@@ -140,7 +151,8 @@ document.addEventListener('DOMContentLoaded',()=>{
           <div class="composer-model-footer"><button id="image-composer-train" type="button">Create / manage characters <span aria-hidden="true">↗</span></button></div>
         </div>
       </div>
-      <label id="image-reference-mode-wrap" class="composer-select-pill" hidden title="How to use reference images"><span class="visually-hidden">Reference mode</span><select id="image-reference-mode" aria-label="Reference mode"><option value="base">Base + references</option><option value="references">References only</option></select></label>
+      <button id="image-composer-moods" type="button" class="composer-settings-pill" aria-controls="composer-moods" aria-expanded="false" aria-label="Choose an image mood">✦ Moods</button>
+       <label id="image-reference-mode-wrap" class="composer-select-pill" hidden title="How to use reference images"><span class="visually-hidden">Reference mode</span><select id="image-reference-mode" aria-label="Reference mode"><option value="base">Base + references</option><option value="references">References only</option></select></label>
       <label class="composer-select-pill" title="Aspect ratio"><span class="visually-hidden">Aspect ratio</span><select id="image-composer-ratio" aria-label="Aspect ratio"></select></label>
       <label class="composer-select-pill" title="Resolution"><span class="visually-hidden">Image resolution</span><select id="image-composer-resolution" aria-label="Resolution"></select></label>
       <label id="image-composer-count-wrap" class="composer-select-pill" title="Image count"><span class="visually-hidden">Number of images</span><select id="image-composer-count" aria-label="Number of images"></select></label>
@@ -198,6 +210,7 @@ document.addEventListener('DOMContentLoaded',()=>{
           <summary>Details <span aria-hidden="true">⌄</span></summary>
           <dl>
             <div><dt>Model</dt><dd id="image-detail-model"></dd></div>
+            <div id="image-detail-mood-row" hidden><dt>Mood</dt><dd id="image-detail-mood-value"></dd></div>
             <div><dt>Resolution</dt><dd id="image-detail-resolution"></dd></div>
             <div><dt>Requested ratio</dt><dd id="image-detail-ratio"></dd></div>
             <div><dt>Date</dt><dd id="image-detail-created"></dd></div>
@@ -216,7 +229,8 @@ document.addEventListener('DOMContentLoaded',()=>{
           <button id="image-detail-upscale" type="button">Upscale</button>
         </div>
         <div class="image-detail-subactions">
-          <button id="image-detail-repair" type="button">Repair</button>
+          <button id="image-detail-mood" type="button">Apply Mood</button>
+           <button id="image-detail-repair" type="button">Repair</button>
           <button id="image-detail-delete" type="button">Delete</button>
         </div>
         <details id="image-detail-extra" class="detail-extra" hidden>
