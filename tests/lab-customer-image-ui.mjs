@@ -10,7 +10,9 @@ const {chromium}=await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE).hr
 const root=resolve('.'),source=readFileSync('lab/lab.js','utf8');
 const boot=source.indexOf("try{const {Clerk}=await import(");
 assert.ok(boot>0,'Studio bootstrap must be found');
-const mocked=source.slice(0,boot)+`
+const authEnd=source.indexOf('\n',boot);
+assert.ok(authEnd>boot,'Clerk bootstrap must end before editor tool handlers');
+const mocked=source.slice(0,boot)+source.slice(authEnd+1)+`
 clerk={isSignedIn:true,user:{id:'user_browser'},session:{id:'test-customer-session',getToken:async()=> 'synthetic-token'}};
 owner=true;customerMode=true;customerGenerationReady=true;userId='user_browser';
 config={enabled:true,configured:true,geminiEnabled:true,openrouterEnabled:true,falEnabled:true,
