@@ -202,7 +202,7 @@ try{
   await imageChooser.setFiles({name:'reference-photo.png',mimeType:'image/png',buffer:Buffer.from(referencePng,'base64')});
   await x.page.waitForFunction(()=>document.querySelectorAll('#image-composer-references .composer-reference-tile').length===1);
   assert.equal(await x.page.locator('.composer-reference-tile img').count(),1,'Reference thumbnail lives inside floating bar');
-  assert.equal(await x.page.locator('.composer-reference-index').innerText(),'1');
+  assert.equal(await x.page.locator('.composer-reference-index').innerText(),'BASE','First reference defaults to Base in Seedream base-image mode');
   const inlineGeometry=await x.page.evaluate(()=>{
     const ref=document.querySelector('.composer-reference-tile').getBoundingClientRect();
     const prompt=document.querySelector('#image-composer-prompt').getBoundingClientRect();
