@@ -46,4 +46,5 @@ jobs:
       - name: Test reference deck with mocked API
         env:
           PV_PLAYWRIGHT_MODULE: ${{ github.workspace }}/node_modules/playwright/index.mjs
+          PV_REFERENCE_FLOW_ONLY: '1'
         run: node tests/lab-image-oneclick-ui.mjs
