@@ -89,8 +89,8 @@ try{
   assert.equal(await page.locator('#fashion-history .history-item').count(),5);
   assert.equal(await page.locator('#fashion-more').isVisible(),false,'Exhausted gallery needs no extra paging control');
   assert.equal(await page.locator('#fashion-gallery-count').innerText(),'5 shown');
-  assert.equal(await page.locator('#fashion-history .history-status-detail').count(),2,
-    'Failed/queued jobs should be lightweight gallery states, not a scrollable text log');
+  assert.equal(await page.locator('#fashion-history .history-status-detail').count(),1,
+    'Failed jobs should show a brief diagnostic, not a long scrollable text log');
   assert.equal(await page.locator('#fashion-history .history-state[data-status="failed"]').count(),1);
   assert.equal(await page.locator('#fashion-history .history-state[data-status="queued"]').count(),1);
   await page.waitForFunction(()=>document.querySelectorAll('#fashion-history .history-media img').length===3);
