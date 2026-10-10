@@ -1,5 +1,7 @@
 import {createAssetLibrary} from './assets.js?v=20261010-navigation-media1';
 import {createCustomerWallet} from './customer-wallet.js?v=20261010-referrals3';
+import {createCustomerImagePricing} from './customer-image-pricing.js?v=20261010-customer-credits1';
+import {customerImagePriceKey,pricedBoundQuotes,imageAutoRatio} from './image-credit-preview.js?v=20261010-customer-credits1';
 import {captureReferralCode,claimReferral} from './referral-capture.js?v=20261010-referrals1';
 captureReferralCode();
 import {createSoul2UI} from './higgsfield-ui.js?v=20261010-soul-price1';
@@ -13,7 +15,7 @@ import { PROVIDER_IMAGE_LIMIT, UPSCALE_PIXELS, imageDimensions, providerWorkingC
 // General-purpose private image-to-video workspace. Credentials never enter browser storage.
 const API='https://parallel-vision-lab.parallelvision.workers.dev';
 const $=id=>document.getElementById(id), activeStates=new Set(['submitting','queued','running','saving','uncertain']), slotStates=new Set(['submitting','queued','running','uncertain']);
-let clerk, owner=false, customerMode=false, userId='', epoch=0, syncing=false, config={}, file=null, sourceId=null, imageRevision=0, busy=false;
+let clerk, owner=false, customerMode=false, customerGenerationReady=false, customerImagePricing=null, imageRatioExplicit=false, soulRatioExplicit=false, userId='', epoch=0, syncing=false, config={}, file=null, sourceId=null, imageRevision=0, busy=false;
 let imageSubmissionPending=false,imageSubmissionStage='Sending…';
 const pendingImageCards=new Map();
 function renderPendingImageCards(){
@@ -107,7 +109,7 @@ const moodUI=createMoodSelector({panel:$('composer-moods'),button:$('image-compo
 function referencesOnly(){return usesReferenceGuidance()&&imageReferenceMode==='references';}
 $('image-reference-mode').onchange=()=>{
   imageReferenceMode=$('image-reference-mode').value;autoPreview=null;
-  renderReferences();syncDefaultRatio(true);update();
+  renderReferences();syncDefaultRatio(!imageRatioExplicit);update();
 };
 const cardUrls=new Set(), requestControllers=new Set();
 // Private, bounded session cache. Gallery and viewer share original bytes and
@@ -221,16 +223,14 @@ function options(id,values,value){$(id).replaceChildren(...values.map(v=>new Opt
 function syncDefaultRatio(force=false){
   const select=$('ratio'),values=[...select.options].map(o=>o.value);
   if(tool==='upscale'||(tool==='image'&&(imageEngine==='soulpro'||isReinterpret())))return;
+  if(force)imageRatioExplicit=false;
   const ref=referencesOnly()?null:references.find(r=>r.role==='base')||references.find(r=>r.role==='pose')||references[0];
   const source=referencesOnly()?null:tool==='image'&&imageEngine==='soul'?null:tool==='video'&&mode==='text'?null:
     tool==='video'&&mode==='start'?(file?{width:sourceWidth,height:sourceHeight}:null):ref||((tool==='image'&&file)?{width:sourceWidth,height:sourceHeight}:null);
   const key=[tool,imageEngine,imageReferenceMode,mode,source?.width||0,source?.height||0,ref?.url||sourceUrl||'',values.join(',')].join(':');
   if(!force&&key===ratioSourceKey)return;
   ratioSourceKey=key;
-  if(source?.width&&source?.height){
-    if(values.includes('auto')&&!(tool==='image'&&imageEngine==='seedream'))select.value='auto';
-    else{const target=source.width/source.height,ratios=values.filter(v=>/^\d+:\d+$/.test(v));ratios.sort((a,b)=>{const ratio=v=>{const [w,h]=v.split(':').map(Number);return w/h;};return Math.abs(Math.log(ratio(a)/target))-Math.abs(Math.log(ratio(b)/target));});if(ratios[0])select.value=ratios[0];}
-  }else if(values.includes('16:9'))select.value='16:9';
+  select.value=imageAutoRatio({values,reference:source,explicit:tool==='image'&&imageRatioExplicit&&!force,current:select.value,defaultRatio:'16:9'});
 }
 
 function setFashionActive(active){
@@ -968,7 +968,7 @@ $('upscale-engine').onchange=()=>{if(busy)return;const value=$('upscale-engine')
 for(const id of ['upscale-topaz-model','upscale-scale'])$(id).onchange=()=>{if(busy)return;invalidateUpscalePrice('Upscale settings changed. Check the price and output size again.');update();};
 $('tool-fashion').onclick=()=>void openFashionStudio();
 $('tool-image').onclick=()=>{if(!busy)setTool('image');};$('tool-video').onclick=()=>{if(!busy)setTool('video');};
-$('image-engine').onchange=()=>{if(busy)return;const value=$('image-engine').value;imageEngine=['flash','kling'].includes(value)?value:value==='gemini'?'gemini':value==='soulpro'?'soulpro':value==='soul'?'soul':value==='fal'?'fal':'seedream';poseMapSourceId=null;$('pose-preview-status').textContent='';$('image-processing').value=imageProcessing;setTool('image');renderReferences();};
+$('image-engine').onchange=()=>{if(busy)return;const value=$('image-engine').value;imageRatioExplicit=false;soulRatioExplicit=false;imageEngine=['flash','kling'].includes(value)?value:value==='gemini'?'gemini':value==='soulpro'?'soulpro':value==='soul'?'soul':value==='fal'?'fal':'seedream';poseMapSourceId=null;$('pose-preview-status').textContent='';$('image-processing').value=imageProcessing;setTool('image');renderReferences();};
 $('image-processing').onchange=()=>{if(busy)return;imageProcessing=$('image-processing').value==='batch'?'batch':'normal';setTool('image');};
 function updateSoulProModelUi(){
   $('hf-settings').hidden=soulProModel!=='soul2';$('soul-pro-reference-profile').hidden=soulProModel==='soul2';
@@ -1024,7 +1024,7 @@ function viewReference(item,index){
 }
 $('input-preview-dialog').addEventListener('close',()=>{$('input-preview-image').removeAttribute('src');});
 
-function clearMedia(){clearUpscalePrice();mediaRefs.clear();cancelImagePreparation();closeInputPreview();poseMapSourceId=null;$('pose-preview-status').textContent='';$('reference-progress').textContent='';imageRevision++;sourcePixels=0;sourceWidth=0;sourceHeight=0;release(sourceUrl);release(lastUrl);sourceUrl=null;lastUrl=null;file=null;sourceId=null;lastFile=null;lastSourceId=null;$('image').value='';$('last-image').value='';for(const r of references)releaseReference(r);references=[];$('reference-images').value='';$('filemeta').textContent=sourceHelp();$('last-filemeta').textContent='Leave empty for an open ending.';renderReferences();clearResult();resetPreview();update();}
+function clearMedia(){imageRatioExplicit=false;soulRatioExplicit=false;customerImagePricing?.reset();clearUpscalePrice();mediaRefs.clear();cancelImagePreparation();closeInputPreview();poseMapSourceId=null;$('pose-preview-status').textContent='';$('reference-progress').textContent='';imageRevision++;sourcePixels=0;sourceWidth=0;sourceHeight=0;release(sourceUrl);release(lastUrl);sourceUrl=null;lastUrl=null;file=null;sourceId=null;lastFile=null;lastSourceId=null;$('image').value='';$('last-image').value='';for(const r of references)releaseReference(r);references=[];$('reference-images').value='';$('filemeta').textContent=sourceHelp();$('last-filemeta').textContent='Leave empty for an open ending.';renderReferences();clearResult();resetPreview();update();}
 async function inspectImage(candidate){
   if(!candidate||!['image/jpeg','image/png','image/webp'].includes(candidate.type)||!candidate.size||candidate.size>20*1024*1024)throw new Error('Choose a JPG, PNG or WebP image up to 20 MB.');
   const seedanceInput=tool==='video'&&engine==='seedance',maxSide=tool==='upscale'?16000:seedanceInput?6000:8000;
@@ -1033,7 +1033,7 @@ async function inspectImage(candidate){
   return {file:candidate,id:null,url:URL.createObjectURL(prepared.preview),thumbUrl:URL.createObjectURL(prepared.thumbnail),width,height};
 }
 
-async function setImage(candidate,id=null){const revision=++imageRevision,item=await inspectImage(candidate);release(item.thumbUrl);if(revision!==imageRevision||!owner){release(item.url);return false;}release(sourceUrl);clearResult();file=item.file;sourceId=id;sourceUrl=item.url;sourceWidth=item.width;sourceHeight=item.height;sourcePixels=item.width*item.height;if(isSoul2())$('hf-bar-ratio').value='source';syncDefaultRatio(true);$('filemeta').textContent=`${candidate.name||'Start frame'} / ${item.width} × ${item.height} / ${(candidate.size/1048576).toFixed(1)} MB`;resetPreview();update();return true;}
+async function setImage(candidate,id=null){const revision=++imageRevision,item=await inspectImage(candidate);release(item.thumbUrl);if(revision!==imageRevision||!owner){release(item.url);return false;}release(sourceUrl);clearResult();file=item.file;sourceId=id;sourceUrl=item.url;sourceWidth=item.width;sourceHeight=item.height;sourcePixels=item.width*item.height;if(isSoul2()&&!soulRatioExplicit)$('hf-bar-ratio').value='source';syncDefaultRatio(!imageRatioExplicit);$('filemeta').textContent=`${candidate.name||'Start frame'} / ${item.width} × ${item.height} / ${(candidate.size/1048576).toFixed(1)} MB`;resetPreview();update();return true;}
 async function setLastImage(candidate,id=null){const e=epoch,item=await inspectImage(candidate);release(item.thumbUrl);if(e!==epoch||!owner){release(item.url);return false;}release(lastUrl);lastFile=item.file;lastSourceId=id;lastUrl=item.url;$('last-filemeta').textContent=`${candidate.name||'Last frame'} / ${item.width} × ${item.height} / ${(candidate.size/1048576).toFixed(1)} MB`;update();return true;}
 function renderReferences(){
   if(usesReferenceGuidance()&&references.length){
@@ -1192,7 +1192,7 @@ bindDrop('upscale-canvas','image',async files=>{if(tool==='upscale'&&files[0])aw
 bindDrop('last-drop','last-image',async files=>{if(files[0])await setLastImage(files[0]);});
 bindDrop('reference-drop','reference-images',async files=>{if(files.length)await addReferences(files);});
 $('clear').onclick=()=>{moodUI.clear(true);clearMedia();notify('Editor cleared. Saved work is unchanged.');};
-for(const id of ['prompt','duration','resolution','ratio','seed','audio','output-format','image-count','pose-strength','identity-strength','controlled-pose-seed'])$(id).addEventListener('input',()=>{autoPreview=null;if(id==='pose-strength')$('pose-strength-value').textContent=Number($('pose-strength').value).toFixed(2);if(id==='identity-strength')$('identity-strength-value').textContent=Number($('identity-strength').value).toFixed(2);update();});
+for(const id of ['prompt','duration','resolution','ratio','seed','audio','output-format','image-count','pose-strength','identity-strength','controlled-pose-seed'])$(id).addEventListener('input',()=>{autoPreview=null;if(id==='ratio'&&tool==='image')imageRatioExplicit=true;if(id==='pose-strength')$('pose-strength-value').textContent=Number($('pose-strength').value).toFixed(2);if(id==='identity-strength')$('identity-strength-value').textContent=Number($('identity-strength').value).toFixed(2);update();});
 $('preview-pose').onclick=()=>action(async()=>{
   if(imageEngine!=='fal')throw new Error('Choose Controlled Pose first.');
   const poseIndexes=references.map((r,i)=>r.role==='pose'?i:-1).filter(i=>i>=0);
@@ -2219,7 +2219,7 @@ function syncSoulBar(){
   $('hf-bar-source').disabled=busy;$('hf-bar-ratio').disabled=busy;$('hf-bar-resolution').disabled=busy;
 }
 $('hf-bar-source').onclick=()=>{if(!busy)$('soul-base-image').click();};
-$('hf-bar-ratio').onchange=()=>{resultSettings=null;update();};
+$('hf-bar-ratio').onchange=()=>{soulRatioExplicit=$('hf-bar-ratio').value!=='source';resultSettings=null;update();};
 $('hf-bar-resolution').onchange=()=>{$('hf-resolution').value=$('hf-bar-resolution').value;resultSettings=null;update();};
 window.addEventListener('resize',()=>{if(!imageComposer.hidden)fitImageComposerPrompt();});
 window.visualViewport?.addEventListener('resize',()=>{if(!imageComposer.hidden)fitImageComposerPrompt();});
