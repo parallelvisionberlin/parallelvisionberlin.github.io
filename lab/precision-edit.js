@@ -228,7 +228,8 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
       const strength=Number($('precision-strength').value);
       const body={originalSourceId,sourceId,maskSourceId,prompt,strength};
       const quoted=await api('/api/precision/quote',{method:'POST',body});
-      pending={...body,ticket:quoted.ticket,expiresAt:quoted.expiresAt,maskSourceId};
+      if(!quoted?.quoteId||!quoted.ticket)throw new Error('Precision Edit did not return a reusable price approval.');
+      pending={...body,quoteId:quoted.quoteId,ticket:quoted.ticket,expiresAt:quoted.expiresAt,maskSourceId};
       const usd=Number(quoted.estimatedUsd||0);
       $('precision-review-body').textContent='FLUX Inpainting · estimated $'+usd.toFixed(3)+' USD for this image. This is a published-price estimate, not a bound vendor quote. Click Generate image to authorize one paid inference. Your original remains private and unchanged.';
       $('precision-price-review').hidden=false;
