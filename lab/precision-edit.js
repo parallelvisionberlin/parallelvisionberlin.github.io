@@ -116,13 +116,22 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
   async function open({file=null,id=null}={}){
     if(!owner())throw new Error('Sign in to edit an image.');
     host.classList.add('is-precision-active');view.hidden=false;
-    $('precision-price-review').hidden=true;view.scrollIntoView({block:'start',behavior:'instant'});
+    $('precision-price-review').hidden=true;
+    // Retouch is a top-level route. scrollIntoView() previously positioned its
+    // heading underneath the sticky PV Lab header, leaving the page half scrolled.
+    // Always begin at page top, including SPA entries and direct deep links.
+    const showFromTop=()=>window.scrollTo({top:0,left:0,behavior:'instant'});
+    showFromTop();
     // Navigating between Image and Retouch must not clear a work-in-progress mask.
     // Only load a new source when it is actually a different photograph.
     if(file&&(!base||(id?base.id!==id:base.file!==file)))await setBase(file,id);
     else if(!base)setStatus('Drop your original photograph on the left to begin.');
     if(!falReady())selectMode('brush');
     refreshButtons();
+    // Decoding a large transferred Base can change document geometry.
+    // Reassert the initial scroll after the editor's canvas has been laid out.
+    showFromTop();
+    requestAnimationFrame(showFromTop);
   }
   function close(){
     view.hidden=true;host.classList.remove('is-precision-active');
