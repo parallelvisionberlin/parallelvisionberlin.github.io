@@ -959,9 +959,28 @@ async function route(request,env,ctx) {
     if(!customer)fail(403,'Only customer accounts use the PV Lab credit wallet.');
     return customerRoute(request,env,owner);
   }
-  // Dataset training and the metered pose-preview route have no customer job charge yet.
-  // Fail closed so they cannot bypass the wallet's atomic generation debit.
-  if(customer&&(path==='/api/soul/datasets'||path==='/api/soul/characters'&&method==='POST'||path==='/api/fal/pose-preview'))fail(403,'This feature is not yet enabled for customer billing.');
+  // Until payment/webhooks and shared vendor credentials have been tested, customer
+  // accounts are read-only. Do not accidentally spend admin provider balances.
+  const billable=method==='POST'&&(
+    ['/api/jobs','/api/quotes','/api/gemini/jobs','/api/image-models/generate'].includes(path)||
+    path.startsWith('/api/higgsfield/')||path.startsWith('/api/fal/')||
+    path.startsWith('/api/fashion/')||
+    path.startsWith('/api/soul/characters/')||
+    ['/api/soul/datasets','/api/soul/characters'].includes(path)
+  );
+  if(customer&&billable&&env.LAB_PUBLIC_GENERATION_ENABLED!=='true')
+    fail(503,'Customer generation will open after payment and model billing verification. No job submitted.');
+  // Dataset training and the metered pose-preview route have no job-wallet charge yet.
+  if(customer&&method==='POST'&&(
+    path==='/api/soul/datasets'||path==='/api/soul/characters'||
+    path.endsWith('/retry')&&path.startsWith('/api/soul/characters/')||
+    path==='/api/fal/pose-preview'))
+    fail(403,'This feature is not yet enabled for customer billing.');
+  // Unfunded trial accounts must not consume unbounded private R2 storage.
+  if(customer&&method==='POST'&&['/api/uploads','/api/reference-uploads'].includes(path)){
+    const wallet=await first(env,'SELECT balance_credits FROM lab_customers WHERE id=?',owner);
+    if(!wallet?.balance_credits)fail(402,'Add PV Lab credits before uploading files.');
+  }
   if(path==='/api/library'||path.startsWith('/api/library/'))return json(await libraryRoute(request,env,owner,url,{body,uid,fail,rows,first,run}));
   if(path.startsWith('/api/fashion/'))return json(await fashionRoute(request,env,owner,url,{fail,body,first,run,stmt,jobView,source,signedInput,config,storedImageDimensions,falImageBytes,falSubmit}),path==='/api/fashion/submit'?202:200);
   if(path.startsWith('/api/higgsfield/'))return json(await higgsfieldRoute(request,env,owner,url,hfDeps()),request.method==='POST'?202:200);
