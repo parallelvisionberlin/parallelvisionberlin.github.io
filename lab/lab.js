@@ -251,7 +251,7 @@ async function openFashionStudio(){
   try{
     if(!fashionMount){
       host.setAttribute('aria-busy','true');
-      fashionMount=import('./fashion-studio.js?v=20261010-gallery1')
+      fashionMount=import('./fashion-studio.js?v=20261010-deck01')
         .then(({mountFashionStudio})=>mountFashionStudio(host,{sessionClient,onNavigate:setTool}))
         .then(controller=>{fashionController=controller;return controller;})
         .catch(error=>{fashionMount=null;throw error;});
