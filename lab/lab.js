@@ -53,10 +53,12 @@ function beginImageFeedback(count,selected,ratio){
   const ids=Array.from({length:count},()=> 'local-'+crypto.randomUUID());
   for(const id of ids)pendingImageCards.set(id,{id,ratio,title:'Preparing',detail:detailModelName({settings:selected}),error:false});
   syncImageGalleryEmpty();
+  let drivesComposerButton=true;
   return {
+    detachButton(){drivesComposerButton=false;},
     phase(title,detail=''){
       for(const id of ids){const entry=pendingImageCards.get(id);if(entry){entry.title=title;entry.detail=detail;}}
-      if(imageSubmissionPending){
+      if(drivesComposerButton&&imageSubmissionPending){
         imageSubmissionStage=title==='Uploading references'?'Uploading '+detail:title==='Preparing provider files'?'Preparing files…':title==='Checking price'?'Checking price…':title==='Optimizing references'?'Optimizing…':title==='Submitting'?'Submitting…':'Sending…';
         const button=$('image-composer-generate');if(button)button.textContent=imageSubmissionStage;
       }
@@ -2707,7 +2709,7 @@ async function submitImageSnapshot(){
     if(fastEligible){
       fastTicket=fastImageHandoff.reserve(requestKey,provider,requested);
       if(!fastTicket)throw new Error('This exact request is already preparing. No duplicate generation submitted.');
-      detached=true;
+      detached=true;feedback.detachButton();
       // The frozen request proceeds asynchronously, but the editor can now
       // accept a different prompt. Preparing remains visible in History.
       imageSubmissionPending=false;imageSubmissionStage='Sending…';update();

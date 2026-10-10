@@ -46,3 +46,10 @@ test('Only one owner Seedream image unlocks before server confirmation',()=>{
   assert.match(source,/if\(!detached\)\{imageSubmissionPending=false/);
   assert.match(html,/src="\.\/lab\.js\?v=20261011-fast-queue1/);
 });
+
+test('Detached preparation cannot repaint a later in-flight button',()=>{
+  const source=readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8');
+  assert.match(source,/detachButton\(\)\{drivesComposerButton=false;\}/);
+  assert.match(source,/if\(drivesComposerButton&&imageSubmissionPending\)/);
+  assert.match(source,/detached=true;feedback.detachButton\(\)/);
+});
