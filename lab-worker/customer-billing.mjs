@@ -162,6 +162,10 @@ async function subscriptionDetails(env,id){
 async function syncSubscription(env,sub) {
   const subject=sub.metadata?.lab_customer_id,sku=sub.metadata?.lab_sku;
   if(!subject||!PACKS[sku]||PACKS[sku].type!=='subscription'||!await isLabCustomer(env,subject))return null;
+  // Refuse to link or credit a subscription whose billed price differs from
+  // the fixed public PV Lab catalog, including externally edited subscriptions.
+  const items=sub.items?.data||[];
+  if(items.length!==1||items[0]?.price?.unit_amount!==PACKS[sku].cents||items[0]?.price?.currency!=='eur')return null;
   const customerId=typeof sub.customer==='string'?sub.customer:sub.customer?.id;
   await setStripeCustomer(env,subject,customerId);
   await exec(env,'INSERT INTO lab_subscriptions(customer_id,stripe_subscription_id,stripe_customer_id,plan_id,status,updated_at) VALUES(?,?,?,?,?,?) ON CONFLICT(customer_id) DO UPDATE SET stripe_subscription_id=excluded.stripe_subscription_id,stripe_customer_id=excluded.stripe_customer_id,plan_id=excluded.plan_id,status=excluded.status,updated_at=excluded.updated_at',
@@ -191,7 +195,7 @@ export async function stripeWebhook(request,env){
     if(id&&data.status==='paid'){
       const sub=await subscriptionDetails(env,id);
       const meta=await syncSubscription(env,sub);
-      if(meta&&data.currency==='eur'&&data.id&&sub.customer){
+      if(meta&&data.currency==='eur'&&data.id&&sub.customer&&Number(data.amount_paid)>=PACKS[meta.sku].cents){
         await credit(env,meta.subject,PACKS[meta.sku].credits,'subscription','invoice:'+data.id);
       }
     }
