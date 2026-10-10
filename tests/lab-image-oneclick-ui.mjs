@@ -167,6 +167,15 @@ try{
   await x.page.click('#image-composer-generate');await ready(x.page);
   assert.deepEqual(x.requests.find(req=>req.path==='/api/quotes').data.settings.referenceRoles.map(ref=>ref.role),['base','none','none']);
   assert.equal(x.accepted(),1);ok('Upload immediately works with Base and General references');assert.deepEqual(x.errors,[]);await x.context.close();
+  x=await workspace();await imageForm(x);await x.page.locator('#reference-images').setInputFiles(refPhotos);await ready(x.page);
+  await x.page.fill('#image-composer-prompt','');
+  assert.equal(await x.page.locator('#image-composer-generate').isDisabled(),false,'No prompt and unassigned roles must be allowed');
+  assert.match(await x.page.locator('#image-composer-generate').innerText(),/Create variation/);
+  await x.page.click('#image-composer-generate');await ready(x.page);
+  assert.equal(x.requests.find(req=>req.path==='/api/quotes').data.settings.prompt,'');
+  assert.deepEqual(x.requests.find(req=>req.path==='/api/quotes').data.settings.referenceRoles.map(ref=>ref.role),['base','none','none']);
+  assert.equal(x.accepted(),1);ok('No prompt + no roles creates a labeled variation without guessing an edit');assert.deepEqual(x.errors,[]);await x.context.close();
+
 
   x=await workspace();await imageForm(x);await x.page.locator('#reference-images').setInputFiles(refPhotos);await ready(x.page);
   await x.page.click('#composer-reference-intent-toggle');
@@ -203,6 +212,16 @@ try{
   await x.page.click('#image-composer-generate');await ready(x.page);
   assert.deepEqual(x.requests.find(req=>req.path==='/api/quotes').data.settings.referenceRoles.map(ref=>ref.role),['identity','identity']);
   assert.equal(x.accepted(),1);ok('Same person preset works in References only');assert.deepEqual(x.errors,[]);await x.context.close();
+  x=await workspace();await imageForm(x);await x.page.locator('#reference-images').setInputFiles(refPhotos.slice(0,2));await ready(x.page);
+  await x.page.click('#composer-reference-intent-toggle');await x.page.click('[data-reference-intent="references"]');
+  await x.page.fill('#image-composer-prompt','');
+  assert.equal(await x.page.locator('#image-composer-generate').isDisabled(),false);
+  assert.match(await x.page.locator('#image-composer-generate').innerText(),/Create from references/);
+  await x.page.click('#image-composer-generate');await ready(x.page);
+  assert.equal(x.requests.find(req=>req.path==='/api/quotes').data.settings.prompt,'');
+  assert.deepEqual(x.requests.find(req=>req.path==='/api/quotes').data.settings.referenceRoles.map(ref=>ref.role),['none','none']);
+  assert.equal(x.accepted(),1);ok('No prompt + no roles can create a new composition in References only');assert.deepEqual(x.errors,[]);await x.context.close();
+
  }
 
  x=await workspace({quoteDelay:300});await imageForm(x);await x.page.evaluate(()=>{document.querySelector('#generate').click();document.querySelector('#generate').click();});await ready(x.page);assert.equal(x.accepted(),1);assert.equal(count(x,'/api/quotes'),1);ok('Rapid repeated clicks cannot double-submit');await x.context.close();
