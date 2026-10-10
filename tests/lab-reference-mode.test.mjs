@@ -10,6 +10,6 @@ test('reference-only composition has no inherited base instructions',()=>{
 });
 test('base editing and plain text retain their original behavior',()=>{
  const prompt=compileImagePrompt('Change the jacket',[{role:'base'},{role:'outfit'}]);
- assert.match(prompt,/Base supplies everything else/);assert.match(prompt,/REQUESTED EDIT/);
+ assert.match(prompt,/Base supplies everything else/);assert.match(prompt,/REQUESTED IMAGE/);
  assert.equal(compileImagePrompt('A quiet room',[]),'A quiet room');
 });

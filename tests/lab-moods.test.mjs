@@ -16,7 +16,7 @@ test('only explicitly compatible image engines receive moods',()=>{
 test('original prompt is not lost; mood metadata can be restored',()=>{
   const data=prepareMoodPrompt('Nina sitting by a window','hong-kong-nights',64,{engine:'gemini',referenceCount:1});
   assert.ok(data.prompt.startsWith('Nina sitting by a window\n\n'));
-  assert.match(data.prompt,/red and green/);
+  assert.match(data.prompt,/atmospheric emerald haze/);
   assert.match(data.prompt,/first reference is the base/);
   assert.deepEqual(data.metadata,{moodId:'hong-kong-nights',moodIntensity:64,moodOriginalPrompt:'Nina sitting by a window'});
   assert.equal(data.error,'');

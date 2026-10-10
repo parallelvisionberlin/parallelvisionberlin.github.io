@@ -5,7 +5,7 @@ export const IMAGE_RATIOS=['16:9','9:16','1:1','4:3','3:4','3:2','2:3','21:9'];
 export function imageModelParameters(value,{fail,referenceRoles=[]}){
   const engine=value.engine,prompt=String(value.prompt||'').trim(),aspectRatio=value.aspectRatio||'auto';
   if(!['flash','kling'].includes(engine))fail(400,'Unknown image model.');
-  if(!prompt||prompt.length>(engine==='kling'?2500:5000))fail(400,engine==='kling'?'Kling needs a prompt of 1–2,500 characters.':'Flash needs a prompt of 1–5,000 characters.');
+  if((!prompt&&!referenceRoles.length)||prompt.length>(engine==='kling'?2500:5000))fail(400,engine==='kling'?'Kling needs a prompt or base photograph. Text directions are limited to 2,500 characters.':'Flash needs a prompt or reference photographs. Text directions are limited to 5,000 characters.');
   if(!['1k','2k'].includes(value.resolution)||!['auto',...IMAGE_RATIOS].includes(aspectRatio))fail(400,'Choose 1K or 2K and a supported image ratio.');
   return {type:'image',engine,provider:engine==='flash'?'openrouter':'fal',model:engine==='flash'?FLASH_MODEL:'fal-ai/kling-image/v3/text-to-image',mode:'image',prompt,resolution:value.resolution,aspectRatio,outputFormat:'png',referenceMode:value.referenceMode==='references'?'references':'base',referenceRoles};
 }

@@ -1,5 +1,6 @@
-async function chooseImageModel(page,value){await page.click('#image-composer-model');await page.click('.composer-model-option[data-value="'+value+'"]');await page.click('#image-composer-more');}
-async function imageAdvanced(page){await page.click('#tool-image');const open=await page.locator('#app').evaluate(el=>el.classList.contains('image-settings-open'));if(!open)await page.click('#image-composer-more');}
+async function clickAdvanced(page){await page.evaluate(()=>document.querySelector('#image-composer-more').click());}
+async function chooseImageModel(page,value){await page.click('#image-composer-model');await page.click('.composer-model-option[data-value="'+value+'"]');await clickAdvanced(page);}
+async function imageAdvanced(page){await page.click('#tool-image');const open=await page.locator('#app').evaluate(el=>el.classList.contains('image-settings-open'));if(!open){const control=page.locator('#image-composer-more');if(await control.isVisible())await control.click();else await page.evaluate(()=>document.querySelector('#image-composer-more').click());}}
 // Mock-only browser verification. No real credentials, private media or paid generations.
 import assert from 'node:assert/strict';
 import http from 'node:http';
@@ -8,8 +9,8 @@ import {resolve,extname} from 'node:path';
 import {pathToFileURL} from 'node:url';
 const {chromium}=await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE).href);
 const root=resolve('.'),source=readFileSync('lab/lab.js','utf8');
-const boot=source.indexOf("try{const {Clerk}=await import(");assert.ok(boot>0);
-const testSource=source.slice(0,boot)+`clerk={isSignedIn:true,user:{id:'test'},session:{id:'synthetic-session',getToken:async()=> 'synthetic-token'},signOut:async()=>{}};owner=true;userId='test';config={enabled:true,geminiEnabled:true,falEnabled:true,dailyLimitUsd:10,concurrency:{image:4,video:1}};$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();await loadSoulProIdentity();update();window.__labTest={lock};`;
+const boot=source.indexOf("try{const {Clerk}=await import(");const bootEnd=source.indexOf("\n// Soul composer:",boot);assert.ok(boot>0&&bootEnd>boot);
+const testSource=source.slice(0,boot)+source.slice(bootEnd)+`clerk={isSignedIn:true,user:{id:'test'},session:{id:'synthetic-session',getToken:async()=> 'synthetic-token'},signOut:async()=>{}};owner=true;userId='test';config={enabled:true,geminiEnabled:true,falEnabled:true,dailyLimitUsd:10,concurrency:{image:4,video:1}};$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();await loadSoulProIdentity();update();window.__labTest={lock};`;
 const server=http.createServer((req,res)=>{const pathname=new URL(req.url,'http://localhost').pathname;const path=resolve(root,'.'+pathname+(pathname.endsWith('/')?'index.html':''));if(!path.startsWith(root+'/')||!existsSync(path)){res.writeHead(404).end();return;}res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css'})[extname(path)]||'text/plain');res.end(pathname==='/lab/lab.js'?testSource:readFileSync(path));});
 await new Promise(r=>server.listen(4179,'127.0.0.1',r));
 const browser=await chromium.launch({headless:true});
@@ -74,22 +75,29 @@ async function workspace({failure='',width=1440,initial=[],savedPacks=[],quoteDe
   if(path.startsWith('/api/jobs/')&&method==='GET'){const job=jobs.find(j=>path.endsWith('/'+j.id));return job?send({job}):send({error:'Not found.'},404);}
   return send({error:'Unmocked request '+path},404);
  });
- await page.goto(ORIGIN+'/lab/');await page.waitForFunction(()=>!!window.__labTest);
+ await page.goto(ORIGIN+'/lab/studio.html?tool=image');
+ try{await page.waitForFunction(()=>!!window.__labTest,undefined,{timeout:12000});}
+ catch(e){console.error('IMAGE_STUDIO_BOOT_DIAGNOSTICS',JSON.stringify({url:page.url(),title:await page.title(),errors,requests:requests.slice(0,9),scripts:await page.locator('script[src]').evaluateAll(a=>a.map(el=>el.src))}));throw e;}
  if(!png)png=Buffer.from(await page.evaluate(()=>{const c=document.createElement('canvas');c.width=c.height=320;const x=c.getContext('2d');x.fillStyle='#333';x.fillRect(0,0,320,320);x.fillStyle='#aaa';x.fillRect(75,75,170,170);return c.toDataURL().split(',')[1];}),'base64');
  return {page,context,requests,errors,dialogs,jobs,accepted:()=>accepted};
 }
 const count=(x,path,method='POST')=>x.requests.filter(r=>r.path===path&&r.method===method).length;
 const ready=page=>page.waitForFunction(()=>!document.querySelector('#resolution').disabled);
+const waitAccepted=async(x,n)=>{const until=Date.now()+7000;while(x.accepted()<n&&Date.now()<until)await new Promise(r=>setTimeout(r,40));};
+const waitRefs=(page,n)=>page.waitForFunction(expected=>document.querySelectorAll('#reference-list .reference-item').length===expected,n);
 async function imageForm(x){await imageAdvanced(x.page);await x.page.fill('#prompt:visible, #image-composer-prompt:visible',settings.prompt);await x.page.selectOption('#resolution:visible, #image-composer-resolution:visible','2k');await x.page.selectOption('#ratio:visible, #image-composer-ratio:visible','16:9');await x.page.selectOption('#output-format','png');}
 try{
- let x=await workspace();await imageForm(x);assert.equal(await x.page.locator('#generate').innerText(),'Generate');assert.match(await x.page.locator('#generation-help').innerText(),/one paid image/);
- await x.page.click('#image-composer-more');await x.page.click('#image-composer-generate');await ready(x.page);assert.equal(x.accepted(),1);assert.equal(count(x,'/api/quotes'),1);assert.equal(count(x,'/api/jobs'),1);assert.equal(await x.page.locator('#quote-dialog').isVisible(),false);assert.deepEqual(x.dialogs,[]);
+ let x;
+ if(!process.env.PV_REFERENCE_FLOW_ONLY){
+ x=await workspace();await imageForm(x);assert.equal(await x.page.locator('#generate').innerText(),'Generate');assert.match(await x.page.locator('#generation-help').innerText(),/one paid image/);
+ await clickAdvanced(x.page);await x.page.click('#image-composer-generate');await ready(x.page);assert.equal(x.accepted(),1);assert.equal(count(x,'/api/quotes'),1);assert.equal(count(x,'/api/jobs'),1);assert.equal(await x.page.locator('#quote-dialog').isVisible(),false);assert.deepEqual(x.dialogs,[]);
  const q=x.requests.find(r=>r.path==='/api/quotes').data;assert.equal(q.settings.prompt,settings.prompt);assert.equal(q.settings.resolution,'2k');assert.equal(q.settings.aspectRatio,'16:9');assert.equal(q.settings.outputFormat,'png');ok('Text-to-image: one click, one quote, one submission, no review modal');
- await x.page.click('#image-composer-more');await x.page.click('#save');await ready(x.page);assert.equal(x.accepted(),1);const draft=x.page.locator('.card[data-state="draft"]');await x.page.click('#image-composer-more');await draft.click();await x.page.click('#image-detail-reuse');await ready(x.page);await x.page.click('#image-composer-more');assert.equal(await x.page.locator('#prompt').inputValue(),settings.prompt);assert.equal(x.accepted(),1);ok('Saving and reusing a draft do not generate or charge');assert.deepEqual(x.errors,[]);await x.context.close();
+ await clickAdvanced(x.page);await x.page.click('#save');await ready(x.page);assert.equal(x.accepted(),1);const draft=x.page.locator('.card[data-state="draft"]');await clickAdvanced(x.page);await draft.click();await x.page.click('#image-detail-reuse');await ready(x.page);await clickAdvanced(x.page);assert.equal(await x.page.locator('#prompt').inputValue(),settings.prompt);assert.equal(x.accepted(),1);ok('Saving and reusing a draft do not generate or charge');assert.deepEqual(x.errors,[]);await x.context.close();
 
   x=await workspace();await imageForm(x);
   await x.page.selectOption('#image-composer-count','2');
-  await x.page.click('#image-composer-generate');await ready(x.page);
+  await x.page.click('#image-composer-generate');await waitAccepted(x,2);await ready(x.page);
+  if(x.accepted()!==2)console.error('BATCH_IMAGE_DIAG',JSON.stringify({accepted:x.accepted(),requests:x.requests.filter(r=>['/api/quotes','/api/jobs'].includes(r.path)),errors:x.errors,notice:await x.page.locator('#notice').innerText(),disabled:await x.page.locator('#image-composer-generate').isDisabled(),count:await x.page.locator('#image-composer-count').inputValue()}));
   assert.equal(x.accepted(),2,'Two images require two independent paid submissions');
   assert.equal(count(x,'/api/quotes'),1,'Two Seedream images use one provider reference staging');
   assert.equal(count(x,'/api/jobs'),2);
@@ -151,50 +159,80 @@ try{
   assert.deepEqual(x.errors,[]);await x.context.close();
  }
 
+ }
  {
+  x=await workspace();await imageForm(x);
   const refPhotos=[{name:'front.png',mimeType:'image/png',buffer:png},{name:'side.png',mimeType:'image/png',buffer:png},{name:'back.png',mimeType:'image/png',buffer:png}];
-  x=await workspace();await imageForm(x);
   assert.equal(await x.page.locator('#composer-reference-intent-toggle').isVisible(),false);
-  await x.page.locator('#reference-images').setInputFiles(refPhotos);
-  await x.page.locator('#composer-reference-intent').waitFor({state:'visible'});
-  assert.equal(await x.page.locator('#image-composer-generate').isDisabled(),true);
-  assert.equal(count(x,'/api/quotes'),0);
-  await x.page.click('[data-reference-intent="same"]');
-  assert.equal(await x.page.locator('#image-reference-mode').inputValue(),'references');
-  assert.deepEqual(await x.page.locator('#image-composer-references .composer-reference-role').evaluateAll(a=>a.map(el=>el.value)),['identity','identity','identity']);
-  await x.page.click('#image-composer-generate');await ready(x.page);
-  assert.deepEqual(x.requests.find(req=>req.path==='/api/quotes').data.settings.referenceRoles.map(ref=>ref.role),['identity','identity','identity']);
-  assert.equal(x.accepted(),1);ok('Same person automatically assigns all photos to Identity');assert.deepEqual(x.errors,[]);await x.context.close();
-  x=await workspace();await imageForm(x);
-  await x.page.locator('#reference-images').setInputFiles(refPhotos);
-  await x.page.locator('#composer-reference-intent').waitFor({state:'visible'});
-  await x.page.click('[data-reference-intent="edit"]');
-  assert.equal(await x.page.locator('#image-reference-mode').inputValue(),'base');
+  await x.page.locator('#reference-images').setInputFiles(refPhotos);await waitRefs(x.page,3);await ready(x.page);
+  assert.equal(await x.page.locator('#composer-reference-intent').isVisible(),false,'Upload must not open a compulsory chooser');
+  assert.match(await x.page.locator('#composer-reference-intent-toggle').innerText(),/Base image/);
   assert.equal(await x.page.locator('.composer-reference-index').first().innerText(),'BASE');
-  assert.equal(await x.page.locator('#image-composer-generate').isDisabled(),true);
-  assert.equal(await x.page.locator('#image-composer-references .role-unassigned').count(),2);
-  const editRoles=x.page.locator('#image-composer-references .composer-reference-role');
-  await editRoles.nth(0).selectOption('outfit');await editRoles.nth(1).selectOption('identity');
+  assert.equal(await x.page.locator('#image-composer-references .role-general').count(),2);
+  assert.deepEqual(await x.page.locator('#image-composer-references .composer-reference-role').evaluateAll(a=>a.map(el=>el.value)),['none','none']);
   assert.equal(await x.page.locator('#image-composer-generate').isDisabled(),false);
-  await x.page.click('#image-composer-generate');await ready(x.page);
-  assert.deepEqual(x.requests.find(req=>req.path==='/api/quotes').data.settings.referenceRoles.map(ref=>ref.role),['base','outfit','identity']);
-  assert.equal(x.accepted(),1);ok('Edit first photo protects base and requires purpose for other photos');assert.deepEqual(x.errors,[]);await x.context.close();
-  x=await workspace();await imageForm(x);
-  await x.page.locator('#reference-images').setInputFiles(refPhotos.slice(0,2));
-  await x.page.locator('#composer-reference-intent').waitFor({state:'visible'});
-  await x.page.click('[data-reference-intent="mix"]');
-  assert.equal(await x.page.locator('#image-composer-generate').isDisabled(),true);
-  const mixRoles=x.page.locator('#image-composer-references .composer-reference-role');
-  await mixRoles.nth(0).selectOption('pose');await mixRoles.nth(1).selectOption('lighting');
-  assert.equal(await x.page.locator('#image-composer-generate').isDisabled(),false);
+  await x.page.click('#image-composer-generate');await waitAccepted(x,1);await ready(x.page);
+  assert.deepEqual(x.requests.find(req=>req.path==='/api/quotes').data.settings.referenceRoles.map(ref=>ref.role),['base','none','none']);
+  assert.equal(x.accepted(),1);ok('Upload immediately works with Base and General references');assert.deepEqual(x.errors,[]);await x.context.close();
+  x=await workspace();await imageForm(x);await x.page.locator('#reference-images').setInputFiles(refPhotos);await waitRefs(x.page,3);await ready(x.page);
+  await x.page.fill('#image-composer-prompt','');
+  assert.equal(await x.page.locator('#image-composer-generate').isDisabled(),false,'No prompt and unassigned roles must be allowed');
+  assert.match(await x.page.locator('#image-composer-generate').innerText(),/Create variation/);
+  await x.page.click('#image-composer-generate');await waitAccepted(x,1);await ready(x.page);
+  assert.equal(x.requests.find(req=>req.path==='/api/quotes').data.settings.prompt,'');
+  assert.deepEqual(x.requests.find(req=>req.path==='/api/quotes').data.settings.referenceRoles.map(ref=>ref.role),['base','none','none']);
+  assert.equal(x.accepted(),1);ok('No prompt + no roles creates a labeled variation without guessing an edit');assert.deepEqual(x.errors,[]);await x.context.close();
+
+
+  x=await workspace();await imageForm(x);await x.page.locator('#reference-images').setInputFiles(refPhotos);await waitRefs(x.page,3);await ready(x.page);
   await x.page.click('#composer-reference-intent-toggle');
   assert.equal(await x.page.locator('#composer-reference-intent').isVisible(),true);
-  await x.page.click('#composer-reference-intent-close');
-  await x.page.click('#image-composer-generate');await ready(x.page);
-  assert.deepEqual(x.requests.find(req=>req.path==='/api/quotes').data.settings.referenceRoles.map(ref=>ref.role),['pose','lighting']);
-  assert.equal(x.accepted(),1);ok('Mix references requires individual roles and the chooser is reopenable');assert.deepEqual(x.errors,[]);await x.context.close();
+  await x.page.click('#composer-reference-same-person');
+  assert.equal(await x.page.locator('#image-reference-mode').inputValue(),'base');
+  assert.deepEqual(await x.page.locator('.composer-reference-role').evaluateAll(a=>a.map(el=>el.value)),['identity','identity']);
+  await x.page.click('#image-composer-generate');await waitAccepted(x,1);await ready(x.page);
+  assert.deepEqual(x.requests.find(req=>req.path==='/api/quotes').data.settings.referenceRoles.map(ref=>ref.role),['base','identity','identity']);
+  assert.equal(x.accepted(),1);ok('Same person presets reference roles without dropping the base');assert.deepEqual(x.errors,[]);await x.context.close();
+
+  x=await workspace();await imageForm(x);await x.page.locator('#reference-images').setInputFiles(refPhotos);await waitRefs(x.page,3);await ready(x.page);
+  await x.page.click('#composer-reference-intent-toggle');await x.page.click('[data-reference-intent="references"]');
+  assert.equal(await x.page.locator('#image-reference-mode').inputValue(),'references');
+  assert.equal(await x.page.locator('.composer-reference-role').count(),3);
+  await x.page.locator('.composer-reference-role').nth(0).selectOption('pose');
+  await x.page.locator('.composer-reference-role').nth(1).selectOption('lighting');
+  await x.page.click('#composer-reference-intent-toggle');
+  await x.page.click('#composer-role-preview summary');
+  assert.match(await x.page.locator('#composer-role-preview-text').innerText(),/Reference 1 \[Pose only\]/);
+  assert.match(await x.page.locator('#composer-role-preview-text').innerText(),/REQUESTED IMAGE/);
+  await x.page.click('[data-reference-intent="base"]');
+  assert.equal(await x.page.locator('.composer-reference-index').first().innerText(),'BASE');
+  assert.equal(await x.page.locator('.composer-reference-role').first().inputValue(),'lighting');
+  await x.page.click('#composer-reference-intent-toggle');await x.page.click('[data-reference-intent="references"]');
+  assert.equal(await x.page.locator('.composer-reference-role').first().inputValue(),'pose','Original role restored');
+  await x.page.click('#image-composer-generate');await waitAccepted(x,1);await ready(x.page);
+  assert.deepEqual(x.requests.find(req=>req.path==='/api/quotes').data.settings.referenceRoles.map(ref=>ref.role),['pose','lighting','none']);
+  assert.equal(x.accepted(),1);ok('Switching modes preserves roles and preview matches settings');assert.deepEqual(x.errors,[]);await x.context.close();
+
+  x=await workspace();await imageForm(x);await x.page.locator('#reference-images').setInputFiles(refPhotos.slice(0,2));await waitRefs(x.page,2);await ready(x.page);
+  await x.page.click('#composer-reference-intent-toggle');await x.page.click('[data-reference-intent="references"]');
+  await x.page.click('#composer-reference-intent-toggle');await x.page.click('#composer-reference-same-person');
+  assert.deepEqual(await x.page.locator('.composer-reference-role').evaluateAll(a=>a.map(el=>el.value)),['identity','identity']);
+  await x.page.click('#image-composer-generate');await waitAccepted(x,1);await ready(x.page);
+  assert.deepEqual(x.requests.find(req=>req.path==='/api/quotes').data.settings.referenceRoles.map(ref=>ref.role),['identity','identity']);
+  assert.equal(x.accepted(),1);ok('Same person preset works in References only');assert.deepEqual(x.errors,[]);await x.context.close();
+  x=await workspace();await imageForm(x);await x.page.locator('#reference-images').setInputFiles(refPhotos.slice(0,2));await waitRefs(x.page,2);await ready(x.page);
+  await x.page.click('#composer-reference-intent-toggle');await x.page.click('[data-reference-intent="references"]');
+  await x.page.fill('#image-composer-prompt','');
+  assert.equal(await x.page.locator('#image-composer-generate').isDisabled(),false);
+  assert.match(await x.page.locator('#image-composer-generate').innerText(),/Create from references/);
+  await x.page.click('#image-composer-generate');await waitAccepted(x,1);await ready(x.page);
+  assert.equal(x.requests.find(req=>req.path==='/api/quotes').data.settings.prompt,'');
+  assert.deepEqual(x.requests.find(req=>req.path==='/api/quotes').data.settings.referenceRoles.map(ref=>ref.role),['none','none']);
+  assert.equal(x.accepted(),1);ok('No prompt + no roles can create a new composition in References only');assert.deepEqual(x.errors,[]);await x.context.close();
+
  }
 
+ if(!process.env.PV_REFERENCE_FLOW_ONLY){
  x=await workspace({quoteDelay:300});await imageForm(x);await x.page.evaluate(()=>{document.querySelector('#generate').click();document.querySelector('#generate').click();});await ready(x.page);assert.equal(x.accepted(),1);assert.equal(count(x,'/api/quotes'),1);ok('Rapid repeated clicks cannot double-submit');await x.context.close();
  for(const failure of ['quote','expired','wrong-model','budget','server','network']){
   x=await workspace({failure});await imageForm(x);await x.page.click('#generate:visible, #image-composer-generate:visible');await ready(x.page);await x.page.waitForTimeout(150);assert.equal(x.accepted(),0);assert.equal(count(x,'/api/quotes'),1);assert.equal(count(x,'/api/jobs'),['quote','expired','wrong-model'].includes(failure)?0:1);assert.equal(await x.page.locator('#quote-dialog').isVisible(),false);assert.ok((await x.page.locator('#notice').innerText()).length>0);ok(failure+': stops without another paid attempt');await x.context.close();
@@ -253,7 +291,7 @@ try{
  ok('Controlled Pose keeps FAL isolated from Seedream and Nano and reuses the preview pose map');await x.context.close();
 
  for(const tool of ['video']){
-  x=await workspace();await x.page.click('#tool-'+tool);if(tool==='image')await x.page.click('#image-composer-more');await x.page.locator('#image').setInputFiles({name:'sculpture.png',mimeType:'image/png',buffer:png});await ready(x.page);if(tool==='video')await x.page.fill('#prompt:visible, #image-composer-prompt:visible','The camera slowly moves around the sculpture.');
+  x=await workspace();await x.page.click('#tool-'+tool);if(tool==='image')await clickAdvanced(x.page);await x.page.locator('#image').setInputFiles({name:'sculpture.png',mimeType:'image/png',buffer:png});await ready(x.page);if(tool==='video')await x.page.fill('#prompt:visible, #image-composer-prompt:visible','The camera slowly moves around the sculpture.');
   assert.match(await x.page.locator('#generate').innerText(),/^Review price/);await x.page.click('#generate:visible, #image-composer-generate:visible');await x.page.locator('#quote-dialog').waitFor({state:'visible'});assert.equal(x.accepted(),0);assert.equal(count(x,'/api/jobs'),0);await x.page.click('#confirm-generation');await ready(x.page);assert.equal(x.accepted(),1);ok(tool+': separate price confirmation remains required');await x.context.close();
  }
 
@@ -291,6 +329,7 @@ try{
  ok('History multi-select deletes several inactive items in one compact bulk action');await x.context.close();
 
   for(const width of [390,1728]){x=await workspace({width});await imageForm(x);assert.ok(await x.page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));mkdirSync('test-results',{recursive:true});await x.page.screenshot({path:'test-results/image-oneclick-'+width+'.png',fullPage:true});assert.deepEqual(x.errors,[]);ok('Image layout without overflow at '+width+'px');await x.context.close();}
+ }
  console.log('ONECLICK_BROWSER_CHECKS_PASSED='+passed);
 }finally{await browser.close();await new Promise(r=>server.close(r));}
 
