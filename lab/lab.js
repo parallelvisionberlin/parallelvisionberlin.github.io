@@ -2328,6 +2328,14 @@ window.visualViewport?.addEventListener('resize',()=>{if(!imageComposer.hidden)f
 // The editor stays interactive: a paid submission only reads this captured request.
 async function submitImageSnapshot(){
   if(busy||imageSubmissionPending||!owner||!hasInput()||submissionBlocked())return;
+  // Customer Generate must be backed by the currently displayed server quote.
+  // An error-click retries pricing and never silently submits a paid job.
+  const snapshot=customerMode?imageCreditQuoteSnapshot():null;
+  const customerPriced=customerMode?customerImagePricing?.consume(snapshot?.key):null;
+  if(customerMode&&!customerPriced){
+    if(customerGenerationReady)customerImagePricing?.retry();
+    return;
+  }
   const sessionEpoch=epoch,selected=structuredClone(settings()),provider=currentProvider();
   const requested=Math.max(1,Math.min(imageProcessing==='batch'?20:4,Number($('image-count').value)||1));
   const selectedPose=poseMapSourceId,selectedBase=file,selectedSourceId=sourceId;
@@ -2384,7 +2392,9 @@ async function submitImageSnapshot(){
     }else if(provider==='higgsfield'){
       // Price checking does not submit a paid job. Keep the compose settings frozen in this quote.
       feedback.phase('Checking live price','No image has been generated or charged.');
-      const q=await api('/api/higgsfield/quote',{method:'POST',body:{...inputs,settings:selected}});
+      const cached=customerPriced?.kind==='bound'&&customerPriced.provider==='higgsfield'?
+        customerPriced.quotes[0]:null;
+      const q=cached||await api('/api/higgsfield/quote',{method:'POST',body:{...inputs,settings:selected}});
       check();
       if(!q?.id||q.provider!=='Higgsfield'||q.settings?.provider!=='higgsfield'||(q.settings.characterId||'')!==(selected.characterId||'')||q.sourceId!==inputs.sourceId||!Number.isFinite(q.estimatedUsd)||q.estimatedUsd<=0||!Number.isFinite(q.expiresAt)||q.expiresAt<=Date.now())throw new Error('Higgsfield price review did not match your selected image and identity. Nothing generated.');
       feedback.finish();feedback=null;
@@ -2409,7 +2419,15 @@ async function submitImageSnapshot(){
         if(data.jobs.some(job=>['failed','uncertain','resolved'].includes(job.status)))break;
       }
     }else{
-      inputs=await prepareQuoteInputs(inputs,{originals,onProgress:(...args)=>feedback.phase(...args)});if(!inputs)return;
+      const bound=customerPriced?.kind==='bound'&&customerPriced.provider==='spicy'&&
+        customerPriced.count===requested?customerPriced:null;
+      if(bound){
+        if(JSON.stringify(bound.inputs.referenceSourceIds)!==JSON.stringify(inputs.referenceSourceIds)||
+           (bound.inputs.sourceId||null)!==(inputs.sourceId||null))
+          throw new Error('References changed after the price check. Nothing submitted.');
+        inputs=bound.inputs;
+      }else inputs=await prepareQuoteInputs(inputs,{originals,onProgress:(...args)=>feedback.phase(...args)});
+      if(!inputs)return;
       const batchSeedream=selected.engine==='seedream'&&requested>1;
       const refCount=inputs.referenceSourceIds?.length||0;
       const pricingTitle=refCount?'Preparing provider files':'Checking price';
@@ -2418,6 +2436,8 @@ async function submitImageSnapshot(){
       let pricingTimer=null;const pricingStarted=Date.now();
       const quotes=[];
       try{
+        if(bound)quotes.push(...bound.quotes);
+        else{
         pricingTimer=setInterval(()=>feedback?.phase(pricingTitle,priceDetail+' · '+Math.floor((Date.now()-pricingStarted)/1000)+'s'),2500);
         if(batchSeedream){
           // A single request stages the reference bytes once and returns independently
@@ -2430,6 +2450,7 @@ async function submitImageSnapshot(){
             check();const q=await api('/api/quotes',{method:'POST',body:{...inputs,settings:selected}});
             quotes.push(q);
           }
+        }
         }
       }finally{clearInterval(pricingTimer);}
       check();
