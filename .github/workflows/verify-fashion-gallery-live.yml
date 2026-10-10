@@ -1,0 +1,54 @@
+name: Verify Fashion photo gallery publication
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/verify-fashion-gallery-live.yml'
+permissions:
+  contents: read
+  pages: write
+jobs:
+  publish-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Request GitHub Pages build of current main
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh api "repos/${GITHUB_REPOSITORY}/pages/builds/latest" --jq '{status,commit,created_at,error}' || true
+          gh api --method POST "repos/${GITHUB_REPOSITORY}/pages/builds" --jq '{status,url}'
+      - name: Verify gallery published on standalone and integrated Fashion
+        shell: bash
+        run: |
+          set -euo pipefail
+          published=0
+          for n in $(seq 1 34); do
+            curl -fsS --max-time 15 -H 'Cache-Control: no-cache' \
+              "https://parallelvisionlabel.com/lab/fashion.html?gallery-publish=${n}" -o /tmp/fashion.html
+            if grep -Fq 'fashion.css?v=20261010-gallery01' /tmp/fashion.html; then
+              published=1
+              break
+            fi
+            echo "Waiting for updated Fashion gallery (${n}/34)"
+            sleep 6
+          done
+          test "$published" = 1 || { echo "The public page still serves old Fashion markup";exit 1; }
+          grep -Fq 'id="fashion-gallery"' /tmp/fashion.html
+          grep -Fq 'id="fashion-more"' /tmp/fashion.html
+          grep -Fq 'id="fashion-history"' /tmp/fashion.html
+          grep -Fq 'fashion.js?v=20261010-gallery01' /tmp/fashion.html
+          if grep -Fq 'class="recent-work"' /tmp/fashion.html; then echo 'Old scroll list still in Result';exit 1;fi
+          curl -fsS --max-time 15 'https://parallelvisionlabel.com/lab/fashion.css?v=20261010-gallery01' -o /tmp/fashion.css
+          grep -Fq '.fashion-gallery{grid-column:1 / -1;grid-row:3' /tmp/fashion.css
+          grep -Fq 'max-height:none;overflow:visible' /tmp/fashion.css
+          curl -fsS --max-time 15 'https://parallelvisionlabel.com/lab/fashion.js?v=20261010-gallery01' -o /tmp/fashion.js
+          grep -Fq 'loadGalleryThumbnails' /tmp/fashion.js
+          curl -fsS --max-time 15 "https://parallelvisionlabel.com/lab/studio.html?gallery-publish=${n}" -o /tmp/studio.html
+          grep -Fq 'lab.js?v=20261010-gallery1' /tmp/studio.html
+          curl -fsS --max-time 15 'https://parallelvisionlabel.com/lab/lab.js?v=20261010-gallery1' -o /tmp/lab.js
+          grep -Fq 'fashion-studio.js?v=20261010-gallery1' /tmp/lab.js
+          curl -fsS --max-time 15 'https://parallelvisionlabel.com/lab/fashion-studio.js?v=20261010-gallery1' -o /tmp/fashion-studio.js
+          grep -Fq 'fashion.html?v=20261010-gallery1' /tmp/fashion-studio.js
+          grep -Fq 'fashion.css?v=20261010-gallery1' /tmp/fashion-studio.js
+          echo 'LIVE PASS: standalone + integrated Fashion gallery published, full-width thumbnails and no nested archive.'
