@@ -513,6 +513,32 @@ function syncImageReferences(){
   }
   tray.hidden=!items.length;
 }
+// Keep even very long pasted prompts inside the scrollable editor. The
+// textarea is never allowed to determine the height of the floating dock.
+function fitImageComposerPrompt(){
+  const textbox=$('image-composer-prompt');
+  if(!textbox)return;
+  const narrow=window.innerWidth<=740;
+  const short=window.innerHeight<=640;
+  const minimum=narrow?47:42;
+  const viewport=window.visualViewport?.height||window.innerHeight;
+  const maximum=Math.max(minimum,Math.min(narrow?122:176,Math.floor(viewport*(short ? 0.21 : narrow ? 0.22 : 0.25))));
+  const previousScroll=textbox.scrollTop;
+  textbox.style.height=minimum+'px';
+  const naturalHeight=textbox.scrollHeight;
+  textbox.style.height=Math.min(maximum,Math.max(minimum,naturalHeight))+'px';
+  textbox.style.overflowY=naturalHeight>maximum?'auto':'hidden';
+  textbox.scrollTop=Math.min(previousScroll,Math.max(0,textbox.scrollHeight-textbox.clientHeight));
+  // Soul's first grid row otherwise sizes to the textarea's one-line intrinsic
+  // minimum and flex-shrinks even when the textarea has a bounded inline height.
+  const top=imageComposer.querySelector('.image-composer-top');
+  if(imageComposer.classList.contains('is-pv-soul')){
+    const tray=$('image-composer-references');
+    const referencesHeight=!tray.hidden?Math.ceil(tray.getBoundingClientRect().height):0;
+    const fittedHeight=Math.min(maximum,Math.max(minimum,naturalHeight));
+    top.style.minHeight=(fittedHeight+referencesHeight+(referencesHeight?8:0))+'px';
+  }else top.style.removeProperty('min-height');
+}
 function syncImageComposer(){
   if(!imageStudio)return;
   const image=tool==='image';
@@ -525,7 +551,6 @@ function syncImageComposer(){
   if(document.activeElement!==textbox && textbox.value!==$('prompt').value)
     textbox.value=$('prompt').value;
   textbox.placeholder='Describe the scene you imagine…';
-  textbox.style.height='auto';textbox.style.height=Math.max(42,textbox.scrollHeight)+'px';
   syncSoulBar();
   textbox.disabled=busy || $('prompt').disabled;
   $('image-composer-model-label').textContent=imageStudioModelTitle();
@@ -574,6 +599,7 @@ function syncImageComposer(){
   block.hidden=!message;reason.textContent=message;review.hidden=!queueBlocked;
   generate.title=message;
   syncImageReferences();
+  fitImageComposerPrompt();
   syncImageGalleryEmpty();
 }
 function closeImageModelMenu(){
@@ -2109,7 +2135,8 @@ function syncSoulBar(){
 $('hf-bar-source').onclick=()=>{if(!busy)$('soul-base-image').click();};
 $('hf-bar-ratio').onchange=()=>{resultSettings=null;update();};
 $('hf-bar-resolution').onchange=()=>{$('hf-resolution').value=$('hf-bar-resolution').value;resultSettings=null;update();};
-window.addEventListener('resize',()=>{const text=$('image-composer-prompt');if(!text||imageComposer.hidden)return;text.style.height='auto';text.style.height=Math.max(42,text.scrollHeight)+'px';});
+window.addEventListener('resize',()=>{if(!imageComposer.hidden)fitImageComposerPrompt();});
+window.visualViewport?.addEventListener('resize',()=>{if(!imageComposer.hidden)fitImageComposerPrompt();});
 
 // The editor stays interactive: a paid submission only reads this captured request.
 async function submitImageSnapshot(){
@@ -2201,3 +2228,4 @@ async function submitImageSnapshot(){
   }catch(e){if(owner&&epoch===sessionEpoch){feedback?.fail(e,dispatched);notify((submitted?submitted+' request(s) recorded. ':'')+(e.name==='AbortError'?'Request interrupted. Check History before retrying.':e.message),true);if(dispatched)refreshHistorySoon();}}
   finally{feedback?.finish();if(epoch===sessionEpoch){imageSubmissionPending=false;update();}}
 }
+
