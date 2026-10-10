@@ -49,6 +49,7 @@ jobs:
           preCommands: |
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0004-pv-soul.sql --yes
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0006-customers-billing.sql --yes
+            wrangler d1 execute parallel-vision-lab --remote --file migrations/0007-lab-referrals.sql --yes
           command: deploy
 
       - name: Verify production health

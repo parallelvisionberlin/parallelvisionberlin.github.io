@@ -1,9 +1,11 @@
 // Credit wallet UI. Backend verifies every price, balance, webhook and receipt.
 export function createCustomerWallet({api,notify=()=>{}}){
   const $=id=>document.getElementById(id);
-  let account=false,billingReady=false,balance=0,products=[];
+  let account=false,billingReady=false,balance=0,products=[],referralLoaded=false,referralLoading=false;
   const toggle=$('lab-wallet-toggle'),dialog=$('lab-credits-dialog'),amount=$('lab-credit-balance'),
-        list=$('lab-credit-products'),state=$('lab-wallet-state');
+        list=$('lab-credit-products'),state=$('lab-wallet-state'),
+        referralUrl=$('lab-referral-url'),referralCopy=$('lab-referral-copy'),
+        referralState=$('lab-referral-status'),referralStats=$('lab-referral-stats');
   const cost=usd=>Math.max(7,Math.ceil(Math.round(Number(usd)*1e6)*460/1e6));
   function describe(usd){return (Number.isFinite(Number(usd))?cost(Number(usd)).toLocaleString():'?')+' credits';}
   function update(){
@@ -33,7 +35,17 @@ export function createCustomerWallet({api,notify=()=>{}}){
       location.assign(uri.href);
     }catch(e){state.textContent=e.message;notify(e.message,true);}
   }
-  toggle.onclick=()=>{if(account)dialog.showModal();};
+  function open(){
+    if(!account)return;
+    if(!dialog.open)dialog.showModal();
+    void loadReferral();
+  }
+  toggle.onclick=open;
+  referralCopy.onclick=async()=>{
+    if(!referralUrl.value)return;
+    try{await navigator.clipboard.writeText(referralUrl.value);referralState.textContent='Invite link copied.';}
+    catch{referralUrl.focus();referralUrl.select();referralState.textContent='Select and copy this invite link.';}
+  };
   $('lab-credits-close').onclick=()=>dialog.close();
   $('lab-credit-refresh').onclick=()=>void refresh();
   $('lab-credit-manage').onclick=async()=>{
@@ -45,6 +57,20 @@ export function createCustomerWallet({api,notify=()=>{}}){
       location.assign(uri.href);
     }catch(e){state.textContent=e.message;}
   };
+  async function loadReferral(){
+    if(!account||referralLoaded||referralLoading)return;
+    referralLoading=true;referralState.textContent='Preparing your invite link…';
+    try{
+      const data=await api('/api/customer/referrals');
+      if(!account)return;
+      const url=new URL(data.url);
+      if(url.protocol!=='https:')throw new Error('Invalid referral link.');
+      referralUrl.value=url.href;referralCopy.disabled=false;referralLoaded=true;
+      referralStats.textContent=(data.rewarded||0)+' successful invite'+(data.rewarded===1?'':'s')+' · '+(data.invited||0)+' registered';
+      referralState.textContent=data.rewardsAvailable?'Bonus credits are granted after your friend’s first qualifying payment.':'Rewards unlock when PV Lab public billing opens.';
+    }catch(e){referralState.textContent=e.message||'Your referral link is temporarily unavailable.';}
+    finally{referralLoading=false;}
+  }
   async function refresh(){
     if(!account)return;
     try{
@@ -54,9 +80,11 @@ export function createCustomerWallet({api,notify=()=>{}}){
     }catch(e){notify(e.message,true);}
   }
   function connect(data){
-    account=!!data.customer;
+    const next=!!data.customer;
+    if(!next){referralLoaded=false;referralUrl.value='';referralCopy.disabled=true;referralStats.textContent='';referralState.textContent='';}
+    account=next;
     if(account){balance=Number(data.balanceCredits)||0;billingReady=!!data.billingReady;products=data.products||[];}
     update();
   }
-  return {connect,refresh,cost,describe,isCustomer:()=>account};
+  return {connect,refresh,open,cost,describe,isCustomer:()=>account};
 }
