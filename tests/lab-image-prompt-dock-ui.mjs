@@ -86,8 +86,12 @@ try{
           viewport:{width:innerWidth,height:innerHeight},
           textScrollHeight:el.scrollHeight,textClientHeight:el.clientHeight,
           textOverflow:getComputedStyle(el).overflowY,
+          textInlineHeight:el.style.height,textComputedHeight:getComputedStyle(el).height,
+          textComputedMaxHeight:getComputedStyle(el).maxHeight,
           refHeight:tray.getBoundingClientRect().height,refScrollHeight:tray.scrollHeight,
           refOverflow:getComputedStyle(tray).overflowY,
+          refScrollWidth:tray.scrollWidth,refClientWidth:tray.clientWidth,
+          refOverflowX:getComputedStyle(tray).overflowX,
           docWidth:document.documentElement.scrollWidth
         };
       });
@@ -101,6 +105,10 @@ try{
         kind+': Generate remains visible within the dock');
       assert.ok(metrics.row.bottom<=metrics.dock.bottom+1,kind+': toolbar stays visible');
       assert.ok(metrics.refHeight<=100,kind+': thumbnail tray does not become an unbounded grid');
+      if(kind==='seedream'){
+        assert.equal(metrics.refOverflowX,'auto','Extra references must scroll horizontally, not clip onto a new row');
+        assert.ok(metrics.refScrollWidth>metrics.refClientWidth,'Long reference packs must have a usable horizontal scrollbar');
+      }
       assert.ok(metrics.docWidth<=width+3,kind+': no horizontal overflow');
       await textbox.evaluate(el=>{el.scrollTop=el.scrollHeight;});
       assert.ok(await textbox.evaluate(el=>el.scrollTop)>0,kind+': last prompt lines are accessible');
@@ -110,7 +118,9 @@ try{
       await page.screenshot({path:'test-results/pv-compact-composer-'+kind+'.png',fullPage:false});
       assert.deepEqual(errors,[],kind+': browser errors');
       records.push({kind,composerHeight:Math.round(metrics.dock.height),promptHeight:Math.round(metrics.prompt.height),
-        refHeight:Math.round(metrics.refHeight),generateBottom:Math.round(metrics.generate.bottom)});
+        refHeight:Math.round(metrics.refHeight),generateBottom:Math.round(metrics.generate.bottom),
+        inlineHeight:metrics.textInlineHeight,computedHeight:metrics.textComputedHeight,
+        maxHeight:metrics.textComputedMaxHeight});
     }finally{await context.close();}
   }
   console.log('PASS compact scrollable pasted prompts and visible Generate:',JSON.stringify(records));
