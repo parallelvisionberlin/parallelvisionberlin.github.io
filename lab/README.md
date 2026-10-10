@@ -194,3 +194,21 @@ The empty Upscaler preview is intentionally shorter than a loaded-image preview 
 
 ### Upscaler advanced setup and gallery loading (2026-10-10)
 The Upscaler hides its duplicate technical footer when empty or showing a source; a finished preview still offers Download. Its provider, current output tier and source ratio are displayed dynamically within More options. The archived Upscaled images gallery keeps its existing owner-scoped asset loading and cache. Cards loading their real thumbnails show an animated skeleton instead of inert dark tiles; loaded images stop animating and failures still show Preview unavailable. A genuine zero-results response says No upscaled images yet, without fictitious skeleton records. Select/Refresh remain functional and closer together. The original large preview dimensions, working deck and generation/credit logic remain unchanged.
+
+
+## Precision Edit / Magic Select (2026-10-10)
+
+Image Studio has a separate, full-size **Edit Area** workspace without modifying the regular generation deck. Enter it from the Image composer or from the Edit Area action on a completed image. A Base image loads at editing size with an original image panel, a result panel and a compact edit deck. The source remains unchanged.
+
+- **Magic Select** submits one click coordinate to fal-ai/sam-3/image. SAM 3 returns a PNG mask. Each click is a separately metered provider operation. The interface shows the published approximation of **$0.005 per click**; it does not claim a bound quote.
+- **Add, Erase, Expand, Undo, Clear** modify the mask locally in the browser. The selected area is visible before any generation. Brush tools do not contact the provider.
+- **FLUX** generation uses the verified fal-ai/flux-general/inpainting endpoint and the same signed private-source URLs, daily spending limit, active FAL capacity and no-automatic-paid-retry queue policy as Repair Region. The editor uploads the source working copy and mask privately. Before inference, the Worker confirms image dimensions and model estimate. Approval lasts two minutes and is bound to a unique quotes.id, exact source files, prompt and strength; the UNIQUE jobs.quote_id constraint prevents repeated requests from creating a second paid generation.
+- After the provider completes, PV Lab rebuilds the full-resolution original with generated pixels only inside the mask, slightly blending mask edges. The final PNG is stored as the job's output and shown in History; the raw provider result is separately archived. The result panel has Before/After and PNG download. If the browser closes after submission, opening a pending completed job or History finalizes it instead of resubmitting inference.
+
+The editor is currently **owner-only**. Customer generation and customer-credit charging have not been enabled for this route pending real-account cost verification and controlled rollout. There is no new secret or database migration. It requires the existing FAL_KEY, LAB_SECRET, D1 and private R2 bindings. No provider keys or user photographs are committed to GitHub.
+
+Verification:
+- node --test tests/lab-precision-edit.test.mjs tests/lab-worker.test.mjs
+- node tests/lab-precision-edit-ui.mjs with PV_PLAYWRIGHT_MODULE pointing to an installed Playwright Chromium module.
+- The .github/workflows/pv-lab-precision-edit-ui.yml workflow runs a synthetic browser test covering pixel preservation, mask editing, price confirmation, responsive layout and status handling. No paid inference is performed by tests.
+- Real FAL SAM 3 mask accuracy, prompt response, color edges and billable inference cost still need controlled verification before enabling commercial accounts.

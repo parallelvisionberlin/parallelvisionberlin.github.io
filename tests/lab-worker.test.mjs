@@ -962,3 +962,46 @@ test('Ambiguous secondary training never retries automatically; simultaneous app
   assert.equal(env.LAB_DB.db.prepare('SELECT SUM(estimate_microusd) AS n FROM spend').get().n,2260000);
  }finally{falSubmitMode='ok';}
 });
+
+
+test('Precision Edit binds each paid FLUX job to exactly one approved quote, even on repeated submit',async()=>{
+  const {env}=fixture();await setup(env);
+  const png=new Uint8Array(33),view=new DataView(png.buffer);
+  png.set([137,80,78,71,13,10,26,10],0);view.setUint32(8,13);
+  png.set([73,72,68,82],12);view.setUint32(16,640);view.setUint32(20,480);
+  const upload=async name=>{
+    const response=await req(env,'/api/uploads',{method:'POST',raw:png,headers:{'Content-Type':'image/png','X-Filename':name}});
+    assert.equal(response.status,201,await response.clone().text());return (await response.json()).id;
+  };
+  const originalSourceId=await upload('original.png'),sourceId=await upload('working.png'),maskSourceId=await upload('mask.png');
+  const details={originalSourceId,sourceId,maskSourceId,prompt:'Change only the selected clothing',strength:.75};
+  const quote=await req(env,'/api/precision/quote',{method:'POST',data:details});
+  assert.equal(quote.status,200,await quote.clone().text());
+  const priced=await quote.json();
+  assert.match(priced.quoteId,/^[a-f0-9-]{36}$/);
+  assert.equal(priced.priceIsEstimate,true);
+  assert.ok(priced.estimatedUsd>0);
+  const submission={...details,quoteId:priced.quoteId,ticket:priced.ticket,expiresAt:priced.expiresAt};
+  const before=falSubmitCount;
+  const firstResponse=await req(env,'/api/precision/submit',{method:'POST',data:submission});
+  assert.equal(firstResponse.status,202,await firstResponse.clone().text());
+  const firstJob=(await firstResponse.json()).job;
+  assert.equal(firstJob.status,'queued');
+  assert.equal(firstJob.settings.precisionOriginalId,originalSourceId);
+  const secondResponse=await req(env,'/api/precision/submit',{method:'POST',data:submission});
+  assert.equal(secondResponse.status,202,await secondResponse.clone().text());
+  assert.equal((await secondResponse.json()).job.id,firstJob.id);
+  assert.equal(falSubmitCount,before+1,'Repeated approval may never create a second provider inference');
+  const jobs=env.LAB_DB.db.prepare('SELECT COUNT(*) AS n FROM jobs WHERE quote_id=?').get(priced.quoteId);
+  assert.equal(jobs.n,1);
+  const altered=await req(env,'/api/precision/submit',{method:'POST',data:{...submission,prompt:'Change the entire photograph'}});
+  // The quote is already consumed, so retry returns the original job without new inference.
+  assert.equal(altered.status,202);
+  assert.equal((await altered.json()).job.id,firstJob.id);
+  assert.equal(falSubmitCount,before+1);
+  const separate=await req(env,'/api/precision/quote',{method:'POST',data:details});
+  assert.equal(separate.status,200);
+  const quoted=(await separate.json());
+  const mismatch=await req(env,'/api/precision/submit',{method:'POST',data:{...submission,quoteId:quoted.quoteId}});
+  assert.equal(mismatch.status,409,'Quote ticket cannot be reused for a different quote');
+});

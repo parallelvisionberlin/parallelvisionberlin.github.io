@@ -3,6 +3,7 @@ import {ensureCustomer,isLabCustomer,customerSession,customerRoute,stripeWebhook
 import {quoteCustomerImageCredits} from './customer-image-pricing.mjs';
 import {referralRoute} from './referrals.mjs';
 import {fashionRoute,refreshFashionJob} from './fashion-tools.mjs';
+import {precisionEditRoute} from './precision-edit.mjs';
 import {IMAGE_PRICES,IMAGE_RATIOS,imageModelParameters,buildImageModelInput,requestFlash} from './image-models.mjs';
 import {ensureGalleryDimensions} from './gallery-dimensions.mjs';
 import {libraryRoute,libraryJobs} from './asset-library.mjs';
@@ -20,7 +21,7 @@ import {findFalRequest} from './fal-recovery.mjs';
 import {falUploadImage} from './fal-storage.mjs';
 import {REFERENCE_ROLES,normalizeReferenceLabel,supportsReferenceGuidance,compileImagePrompt,canUseReferenceGuidance,referenceGuidanceError} from '../lab/reference-guidance.js';
 import {characterPreview as soulCharacterPreview,SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-10.7-customer-image-quotes';
+export const VERSION = 'pv-lab-2026-10-10.8-precision-edit';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -856,16 +857,34 @@ async function refreshJob(env,j) {
     await run(env,'UPDATE jobs SET error=?,updated_at=? WHERE id=?','Archive retry: '+detail+' The provider result is safe; generation slots are released while saving retries.',now(),j.id);
   }
 }
-async function reserveFalImageJob(env,owner,sourceId,p,estimate){
+async function reserveFalImageJob(env,owner,sourceId,p,estimate,approvedQuoteId=null){
+  // Precision Edit reuses its explicitly approved quote. jobs.quote_id is UNIQUE,
+  // so two requests cannot reserve or submit two paid jobs for one approval.
+  if(approvedQuoteId){
+    const existing=await first(env,'SELECT * FROM jobs WHERE quote_id=? AND owner_id=?',approvedQuoteId,owner);
+    if(existing)return {...existing,_precisionReused:true};
+    const approved=await first(env,"SELECT * FROM quotes WHERE id=? AND owner_id=? AND expires_at>? AND vendor_quote_id='fal-precision-edit'",approvedQuoteId,owner,now());
+    if(!approved||approved.source_id!==sourceId||approved.estimate_microusd!==estimate)
+      fail(409,'Precision Edit quote expired or does not match the selected image. Check price again.');
+  }
   if((await first(env,'SELECT COUNT(*) AS n FROM jobs WHERE owner_id=?',owner)).n>=500)fail(409,'History limit reached. Delete old records first.');
-  const c=await config(env,owner),limit=c?.daily_limit_microusd||10000000,t=now(),day=Math.floor(t/86400000)*86400000,id=crypto.randomUUID(),quoteId=crypto.randomUUID();
-  await run(env,'INSERT INTO quotes(id,owner_id,source_id,params,estimate_microusd,expires_at,vendor_quote_id,expected_cost,payload) VALUES(?,?,?,?,?,?,?,?,?)',
+  const c=await config(env,owner),limit=c?.daily_limit_microusd||10000000,t=now(),day=Math.floor(t/86400000)*86400000,id=crypto.randomUUID(),quoteId=approvedQuoteId||crypto.randomUUID();
+  if(!approvedQuoteId)await run(env,'INSERT INTO quotes(id,owner_id,source_id,params,estimate_microusd,expires_at,vendor_quote_id,expected_cost,payload) VALUES(?,?,?,?,?,?,?,?,?)',
     quoteId,owner,sourceId||null,JSON.stringify(p),estimate,t+600000,p.provider+'-direct',String(estimate/1000000),'{}');
   const provider=p.provider==='openrouter'?'openrouter':'fal',falSql="COALESCE(json_extract(params,'$.provider'),'')='"+provider+"'";
-  const inserted=await run(env,"INSERT INTO jobs(id,owner_id,source_id,quote_id,params,state,estimate_microusd,created_at,updated_at) SELECT ?,?,?,?,?, 'submitting',?,?,? WHERE NOT EXISTS(SELECT 1 FROM jobs WHERE owner_id=? AND state='uncertain' AND "+falSql+") AND (SELECT COUNT(*) FROM jobs WHERE owner_id=? AND state IN ('submitting','queued','running','uncertain') AND "+falSql+" AND json_extract(params,'$.type')='image')<? AND (SELECT COALESCE(SUM(estimate_microusd),0) FROM spend WHERE owner_id=? AND created_at>=?)+?<=?",
-    id,owner,sourceId||null,quoteId,JSON.stringify(p),estimate,t,t,owner,owner,CONCURRENCY.image,owner,day,estimate,limit);
+  let inserted;
+  try{inserted=await run(env,"INSERT INTO jobs(id,owner_id,source_id,quote_id,params,state,estimate_microusd,created_at,updated_at) SELECT ?,?,?,?,?, 'submitting',?,?,? WHERE NOT EXISTS(SELECT 1 FROM jobs WHERE owner_id=? AND state='uncertain' AND "+falSql+") AND (SELECT COUNT(*) FROM jobs WHERE owner_id=? AND state IN ('submitting','queued','running','uncertain') AND "+falSql+" AND json_extract(params,'$.type')='image')<? AND (SELECT COALESCE(SUM(estimate_microusd),0) FROM spend WHERE owner_id=? AND created_at>=?)+?<=?",
+    id,owner,sourceId||null,quoteId,JSON.stringify(p),estimate,t,t,owner,owner,CONCURRENCY.image,owner,day,estimate,limit);}
+  catch(e){
+    // Concurrent submission may win the UNIQUE quote lease after our first read.
+    if(approvedQuoteId){
+      const existing=await first(env,'SELECT * FROM jobs WHERE quote_id=? AND owner_id=?',quoteId,owner);
+      if(existing)return {...existing,_precisionReused:true};
+    }
+    throw e;
+  }
   if(!inserted.meta.changes){
-    await run(env,'DELETE FROM quotes WHERE id=?',quoteId);
+    if(!approvedQuoteId)await run(env,'DELETE FROM quotes WHERE id=?',quoteId);
     const uncertain=(await first(env,"SELECT COUNT(*) AS n FROM jobs WHERE owner_id=? AND state='uncertain' AND "+falSql,owner)).n;
     const active=(await first(env,"SELECT COUNT(*) AS n FROM jobs WHERE owner_id=? AND state IN ('submitting','queued','running','uncertain') AND "+falSql+" AND json_extract(params,'$.type')='image'",owner)).n;
     const spent=(await first(env,'SELECT COALESCE(SUM(estimate_microusd),0) AS n FROM spend WHERE owner_id=? AND created_at>=?',owner,day)).n;
@@ -1009,6 +1028,10 @@ async function route(request,env,ctx) {
   if(path==='/api/library'||path.startsWith('/api/library/'))return json(await libraryRoute(request,env,owner,url,{body,uid,fail,rows,first,run}));
   // FASHN balance reports our wholesale API account balance, not the customer's credits.
   if(customer&&path==='/api/fashion/balance'&&method==='GET')return json({connected:!!env.FASHN_API_KEY,credits:null,note:'Your generation allowance is shown in your PV Lab credit wallet.'});
+  if(path.startsWith('/api/precision/'))return precisionEditRoute(request,env,owner,url,{
+    customer,fail,body,first,run,source,signedInput,config,storedImageDimensions,falImageBytes,
+    reserveFalImageJob,submitReservedFalJob,jobView,json,limitedBody,sniff
+  });
   if(path.startsWith('/api/fashion/'))return json(await fashionRoute(request,env,owner,url,{fail,body,first,run,stmt,jobView,source,signedInput,config,storedImageDimensions,falImageBytes,falSubmit}),path==='/api/fashion/submit'?202:200);
   if(path.startsWith('/api/higgsfield/'))return json(await higgsfieldRoute(request,env,owner,url,hfDeps()),request.method==='POST'?202:200);
   if(path==='/api/session'&&method==='GET'){

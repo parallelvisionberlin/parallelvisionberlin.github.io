@@ -1,0 +1,122 @@
+/* PV Lab Precision Edit. Scoped to Image Studio; no changes to other decks. */
+.precision-workspace [hidden]{display:none!important}
+#image-studio.is-precision-active>.image-gallery-shell,
+#image-studio.is-precision-active>#image-composer{display:none!important}
+#image-studio.is-precision-active>#precision-workspace:not([hidden]){display:flex!important}
+#image-studio #precision-workspace[hidden]{display:none!important}
+.precision-workspace{
+  --pe-accent:#d6ff00;--pe-bg:#191a1d;--pe-edge:#36383f;
+  position:relative;display:flex;flex-direction:column;gap:12px;width:100%;
+  min-height:calc(100dvh - 120px);margin:0 auto;padding:19px 0 30px;
+  color:#f2f2f2;font-family:'DM Sans',system-ui,sans-serif;
+}
+.precision-workspace *{box-sizing:border-box}
+.precision-workspace button,.precision-workspace input,.precision-workspace textarea{font:inherit}
+.precision-workspace button{cursor:pointer}
+.precision-workspace button:disabled{cursor:not-allowed;opacity:.45}
+.precision-workspace button:focus-visible,
+.precision-workspace input:focus-visible,
+.precision-workspace textarea:focus-visible,
+.precision-drop:focus-visible{outline:2px solid var(--pe-accent);outline-offset:2px}
+.precision-head{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:2px 3px 10px}
+.precision-head h2{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:clamp(23px,2vw,32px);letter-spacing:-.055em;line-height:1.05;margin:4px 0 5px}
+.precision-head p{font-size:12px;color:#a3a5ac;margin:0}
+.precision-eyebrow{font-size:9px;font-weight:700;letter-spacing:.15em;color:#9e9fa5}
+.precision-head-actions{display:flex;align-items:center;gap:18px;flex-shrink:0}
+.precision-method{font-size:10px;color:#a4a8af;letter-spacing:.08em;white-space:nowrap}
+.precision-method span{color:var(--pe-accent);margin:0 5px}
+#precision-return{border:1px solid #4c4f56;border-radius:10px;color:#eaecef;background:#25272d;min-height:36px;padding:9px 13px;font-size:11px;font-weight:600}
+#precision-return span{font-size:14px;margin-left:12px;color:#a5a7ad}
+#precision-return:hover{background:#33363c}
+.precision-board{display:grid;grid-template-columns:1fr 1fr;gap:12px;flex:1;min-height:365px}
+.precision-panel{display:flex;flex-direction:column;min-width:0;min-height:0;border:1px solid var(--pe-edge);border-radius:14px;overflow:hidden;background:#161719}
+.precision-panel-label{height:43px;padding:0 17px;display:flex;align-items:center;justify-content:space-between;background:#1e2024;border-bottom:1px solid #34363a;gap:12px}
+.precision-panel-label span:first-child{font-size:10px;color:#e7e8ea;letter-spacing:.095em;font-weight:750}
+.precision-panel-label span:last-child{font-size:9px;color:#8e9198;letter-spacing:.08em;max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.precision-drop{flex:1;min-height:320px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:28px;text-align:center;outline:none;background:radial-gradient(circle at 50% 45%,#292a30 0%,#151619 72%)}
+.precision-drop.is-dragging{background:#262c22;outline:2px dashed var(--pe-accent);outline-offset:-10px}
+.precision-drop-symbol{display:flex;align-items:center;justify-content:center;width:66px;height:66px;margin-bottom:8px;border:1px solid #656970;border-radius:15px;font-size:33px;font-weight:250;color:#e1e3e6}
+.precision-drop strong{font-family:'Space Grotesk',sans-serif;letter-spacing:-.025em;font-size:18px;font-weight:600}
+.precision-drop span:not(.precision-drop-symbol){font-size:12px;color:#b3b6bf}
+.precision-drop small{margin-top:9px;color:#858991;font-size:10px}
+.precision-source-holder,.precision-output-holder{position:relative;min-height:0;flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#111214;padding:10px}
+.precision-source-holder[hidden]{display:none!important}
+.precision-stage{position:relative;max-width:100%;max-height:100%;display:flex;align-items:center;justify-content:center;overflow:hidden}
+#precision-source-canvas{display:block;max-width:100%;max-height:min(52vh,680px);object-fit:contain}
+#precision-selection-canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;touch-action:none;cursor:crosshair}
+.precision-source-holder.is-busy #precision-selection-canvas{cursor:progress}
+.precision-input-footer{min-height:43px;display:flex;align-items:center;justify-content:space-between;gap:14px;border-top:1px solid #33353a;background:#1a1b1f;padding:8px 12px}
+#precision-selection-message{font-size:10px;color:#b9bbbf;line-height:1.4;white-space:normal}
+#precision-change-photo{border:0;background:none;color:#dde1e5;font-size:10px;font-weight:650;white-space:nowrap}
+.precision-output-holder{min-height:320px;position:relative}
+.precision-output-empty{max-width:245px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px}
+.precision-output-empty>span{font-size:32px;color:#50555c}
+.precision-output-empty strong{font-size:13px;font-weight:650}
+.precision-output-empty p{font-size:11px;color:#81858e;line-height:1.65;margin:0}
+#precision-result-canvas{display:block;max-width:100%;max-height:min(52vh,680px);object-fit:contain}
+#precision-result-canvas[hidden],#precision-output-empty[hidden]{display:none!important}
+.precision-compare-row{height:43px;display:flex;justify-content:space-between;align-items:center;gap:12px;border-top:1px solid #34363a;background:#1b1c20;padding:5px 12px}
+.precision-compare-row label{display:flex;align-items:center;gap:9px;color:#b5b7bc;font-size:10px;flex:1;min-width:0}
+.precision-compare-row input{min-width:40px;max-width:170px;width:100%;accent-color:var(--pe-accent)}
+#precision-download{background:none;border:1px solid #4a4d54;padding:8px 12px;border-radius:8px;color:#e3e5e8;font-size:10px;font-weight:650;white-space:nowrap}
+#precision-download:hover{border-color:#b3b6be}
+.precision-tools{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 10px;border:1px solid #393b40;border-radius:12px;background:#202126}
+.precision-tool-buttons{display:flex;align-items:center;flex-wrap:wrap;gap:6px}
+.precision-tool-buttons button{border:1px solid #46484f;border-radius:8px;background:#2a2b30;color:#d3d5d9;min-height:33px;padding:7px 11px;font-size:10px;font-weight:650}
+.precision-tool-buttons button:hover{background:#393b41;color:white}
+.precision-tool-buttons button.is-selected{background:#c9ed22;color:#1a1b18;border-color:#c9ed22}
+.precision-tool-size{display:flex;align-items:center;gap:9px;margin:0 4px;white-space:nowrap;font-size:10px;color:#b5b7bc}
+.precision-tool-size input{width:90px;accent-color:var(--pe-accent)}
+.precision-tool-size output{min-width:19px;text-align:right;font-variant-numeric:tabular-nums}
+.precision-deck{position:relative;background:#242528;border:1px solid #45474c;border-radius:15px;padding:13px 15px 12px;box-shadow:0 14px 42px #0004}
+.precision-deck-copy{display:flex;flex-direction:column;gap:7px}
+.precision-deck-copy label{font-size:9px;color:#9ea1a8;font-weight:800;letter-spacing:.115em}
+#precision-prompt{background:transparent;outline:none;border:0;color:#f4f5f6;width:100%;min-height:44px;max-height:116px;resize:vertical;line-height:1.45;font-size:13px;padding:3px 0}
+#precision-prompt::placeholder{color:#8e9197}
+.precision-bottom{display:flex;align-items:center;gap:18px;border-top:1px solid #484b50;padding-top:12px}
+.precision-status{display:flex;flex-direction:column;gap:5px;flex:1;min-width:0}
+.precision-status strong{font-size:11px;font-weight:700}
+.precision-status strong span{font-weight:400;color:#a2a5aa}
+.precision-status>span{color:#9c9fa6;font-size:10px;line-height:1.35}
+.precision-strength{display:flex;align-items:center;gap:8px;font-size:10px;color:#c2c4c7}
+.precision-strength label{white-space:nowrap}
+.precision-strength input{width:85px;accent-color:var(--pe-accent)}
+.precision-strength output{min-width:28px;text-align:right}
+#precision-generate{background:#d6ff00;color:#171814;border:0;border-radius:10px;padding:14px 23px;min-height:49px;min-width:145px;font-size:12px;font-weight:800;white-space:nowrap}
+#precision-generate:hover:not(:disabled){background:#e6ff54}
+#precision-generate span{margin-left:6px}
+.precision-status-text{font-size:10px;line-height:1.45;color:#abb2bb;margin:6px 0 0}
+.precision-status-text:empty{display:none}
+.precision-status-text.is-error{color:#f5af9c}
+.precision-price-review{position:absolute;z-index:40;bottom:160px;right:18px;width:min(350px,calc(100% - 36px));border:1px solid #676c75;border-radius:13px;background:#2b2c31;padding:16px 18px;box-shadow:0 12px 45px #0009}
+.precision-price-review[hidden]{display:none!important}
+.precision-price-review strong{font-size:14px}
+.precision-price-review p{font-size:11px;line-height:1.55;color:#cccfd5}
+.precision-price-actions{display:flex;justify-content:flex-end;gap:9px}
+.precision-price-actions button{padding:10px 14px;border-radius:8px;border:1px solid #565961;background:#35363d;color:white;font-size:11px}
+#precision-review-confirm{border-color:#d6ff00;background:#d6ff00;color:#181a13;font-weight:800}
+@media(max-width:900px){
+  .precision-workspace{min-height:auto;padding:12px 0 25px}
+  .precision-board{grid-template-columns:1fr;min-height:0}
+  .precision-panel{min-height:345px}
+  .precision-source-holder,.precision-output-holder{min-height:325px}
+  #precision-source-canvas,#precision-result-canvas{max-height:55vh}
+  .precision-tools{align-items:flex-start;flex-wrap:wrap}
+  .precision-deck{padding:13px}
+  .precision-bottom{flex-wrap:wrap;gap:10px}
+  .precision-status{min-width:100%;flex-basis:100%}
+  .precision-strength{flex:1}
+  #precision-generate{min-width:142px}
+  .precision-price-review{bottom:150px}
+}
+@media(max-width:520px){
+  .precision-head{align-items:flex-start}
+  .precision-head h2{font-size:24px}
+  .precision-head p{max-width:230px}
+  .precision-head-actions{flex-direction:column;align-items:flex-end;gap:8px}
+  .precision-method{font-size:9px}
+  .precision-tool-buttons button{padding:6px 8px;font-size:9px}
+  .precision-source-holder,.precision-output-holder{min-height:280px}
+  .precision-deck{border-radius:12px}
+  #precision-prompt{font-size:12px}
+}
