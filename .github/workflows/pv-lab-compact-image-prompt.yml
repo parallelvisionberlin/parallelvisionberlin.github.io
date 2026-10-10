@@ -6,6 +6,9 @@ on:
       - 'lab/higgsfield.css'
       - 'lab/studio.html'
       - 'tests/lab-image-prompt-dock-ui.mjs'
+      - 'tests/lab-customer-image-ui.mjs'
+      - 'lab/customer-image-pricing.js'
+      - 'lab/image-credit-preview.js'
       - '.github/workflows/pv-lab-compact-image-prompt.yml'
   workflow_dispatch:
 permissions:
@@ -27,6 +30,10 @@ jobs:
         env:
           PV_PLAYWRIGHT_MODULE: /tmp/pv-image-prompt-check/node_modules/playwright/index.mjs
         run: node tests/lab-image-prompt-dock-ui.mjs
+      - name: Test customer credit preview, quote reuse and aspect defaults
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-image-prompt-check/node_modules/playwright/index.mjs
+        run: node tests/lab-customer-image-ui.mjs
       - name: Retain desktop and mobile screenshots
         if: always()
         uses: actions/upload-artifact@v4
