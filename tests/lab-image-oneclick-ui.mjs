@@ -101,7 +101,9 @@ async function retouchTopAndBackButton(page){
   assert.ok(state.backTop>=state.headerBottom-3&&state.backBottom<=state.viewport,
     'Back to Image must be immediately visible without scrolling');
   assert.ok(state.backHeight>=43&&state.backWidth>=150,'Back to Image must be a prominent tap target');
-  assert.equal(state.bg,'rgb(214, 255, 0)','Back to Image must use the bright PV Lab return accent');
+  const rgb=(state.bg.match(/[\d.]+/g)||[]).map(Number);
+  assert.ok(rgb.length===3&&rgb[0]>=214&&rgb[0]<=237&&rgb[1]===255&&rgb[2]>=0&&rgb[2]<=136,
+    'Back to Image must keep its high-contrast lime color, including during hover transitions: '+state.bg);
   assert.match(state.label,/Back to Image/);
 }
 async function retouchPanelsAreClear(page){
