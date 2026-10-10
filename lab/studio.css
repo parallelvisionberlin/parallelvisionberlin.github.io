@@ -358,6 +358,28 @@ textarea:focus,select:focus,input:not([type=checkbox]):not([type=file]):focus {
 #notice {margin:13px 1px 0;min-height:0;font-size:12px;color:#b9babc}
 #notice:empty {display:none}
 #notice.error {color:#e3a5a0}
+/* Keep upscale progress and confirmation attached to the action controls. */
+#upscale-notice-slot[hidden] {display:none!important}
+#upscale-notice-slot {margin:11px 0 0;min-width:0}
+#upscale-notice-slot #notice {
+  display:flex;align-items:flex-start;gap:10px;
+  padding:10px 12px;margin:0;min-width:0;min-height:0;
+  border:1px solid #41454d;border-radius:10px;
+  background:#23262b;color:#dadde4;
+  font-size:11px;line-height:1.6;font-weight:480;
+  overflow-wrap:anywhere;
+}
+#upscale-notice-slot #notice::before {
+  content:"";display:block;flex:0 0 7px;width:7px;height:7px;
+  margin-top:6px;border-radius:50%;background:#c5c8d0;
+  box-shadow:0 0 0 3px rgba(197,200,208,.09);
+}
+#upscale-notice-slot #notice.error {
+  border-color:#735354;background:#2b2226;color:#f1c2bf;
+}
+#upscale-notice-slot #notice.error::before {
+  background:#dfa6a4;box-shadow:0 0 0 3px rgba(223,166,164,.1);
+}
 .active {
   display:flex;align-items:center;justify-content:space-between;
   padding:13px 16px;margin-top:10px;gap:12px;
