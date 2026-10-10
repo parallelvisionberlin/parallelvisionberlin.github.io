@@ -71,19 +71,23 @@ function beginImageFeedback(count,selected,ratio){
   };
 }
 let assetLibrary=null;
+let retouchActive=false;
 let fashionActive=false,fashionController=null,fashionMount=null;
-function studioRoute(){const value=new URLSearchParams(location.search).get('tool');return ['image','video','upscale','assets','fashion'].includes(value)?value:'image';}
-function syncStudioRoute(value){
+function studioRoute(){const value=new URLSearchParams(location.search).get('tool');return ['image','retouch','video','upscale','assets','fashion'].includes(value)?value:'image';}
+function syncStudioRoute(value,{push=false,retouchFrom=null}={}){
   if(!owner)return;
   const url=new URL(location.href);
   if(url.searchParams.get('tool')===value)return;
   url.searchParams.set('tool',value);
-  history.replaceState(history.state,'',url);
+  const state={...(history.state||{}),pvLabRetouchEntry:push&&value==='retouch',pvLabRetouchFrom:push&&value==='retouch'?retouchFrom:null};
+  if(push)history.pushState(state,'',url);
+  else history.replaceState(state,'',url);
 }
 async function restoreStudioEntry(){
   const route=studioRoute();
   if(route==='assets')await assetLibrary.open();
   else if(route==='fashion')await openFashionStudio();
+  else if(route==='retouch')await openRetouch({push:false,autofill:false});
   else syncStudioRoute(tool);
 }
 let sourceUrl=null, lastFile=null, lastSourceId=null, lastUrl=null, references=[], mode='start';
@@ -467,15 +471,16 @@ function setFashionActive(active){
   $('app').classList.toggle('fashion-studio-active',active);
   $('fashion-studio').hidden=!active;
   for(const name of ['image','video','upscale','fashion']){
-    const selected=active?name==='fashion':name===tool;
+    const selected=active?name==='fashion':!retouchActive&&name===tool;
     $('tool-'+name).classList.toggle('active',selected);
     $('tool-'+name).setAttribute('aria-pressed',String(selected));
   }
-  syncImageStudioMode();syncVideoStudioMode();
+  syncImageStudioMode();syncVideoStudioMode();syncStudioNav();
 }
 async function openFashionStudio(){
   if(!owner)return;
   if(busy)return;
+  if(retouchActive)leaveRetouch();
   ++previewRevision;syncStudioRoute('fashion');
   assetLibrary?.close();
   if($('soul-pro-identity-dialog').open)$('soul-pro-identity-dialog').close();
@@ -507,11 +512,16 @@ async function openFashionStudio(){
 }
 
 function setTool(value){
-  if(value==='fashion'){precisionEditor?.close();void openFashionStudio();return;}
-  if(value==='assets'){precisionEditor?.close();void viewMedia(()=>assetLibrary.open());return;}
+  if(value==='retouch'){void openRetouch({autofill:true});return;}
+  // Retouch keeps the Image composer mounted. Do not reset its settings on return.
+  if(value==='image'&&retouchActive&&tool==='image'){
+    leaveRetouch();syncStudioRoute('image');syncStudioNav();return;
+  }
+  if(retouchActive)leaveRetouch();
+  if(value==='fashion'){void openFashionStudio();return;}
+  if(value==='assets'){void viewMedia(()=>assetLibrary.open());return;}
   setFashionActive(false);
   const nextTool=['image','video','upscale'].includes(value)?value:'image';
-  if(nextTool!=='image')precisionEditor?.close();
   const galleryChanged=nextTool!==tool||!!assetLibrary?.active();
   assetLibrary?.close();
   if($('soul-pro-identity-dialog').open)$('soul-pro-identity-dialog').close();
@@ -547,7 +557,7 @@ function setTool(value){
     const drop=$('reference-drop');drop.querySelector('span').textContent='Add identity, wardrobe or set references';drop.querySelector('small').textContent='Up to 10 images';
     $('reference-help').textContent='Reference numbers, filenames, roles and notes are added to your generation prompt. They guide the model; they do not guarantee identity matching.';
   }
-  configureVideoControls();syncDefaultRatio(true);renderReferences();resetPreview();refreshCanvasImport();update();syncImageStudioMode();syncVideoStudioMode();
+  configureVideoControls();syncDefaultRatio(true);renderReferences();resetPreview();refreshCanvasImport();update();syncImageStudioMode();syncVideoStudioMode();syncStudioNav();
   if(owner&&assetLibrary&&galleryChanged){setHistorySelectMode(false);void loadHistory().catch(e=>notify(e.message,true));}
 }
 
@@ -556,8 +566,9 @@ function setTool(value){
    authoritative for pricing, authentication, model limits and provider calls. */
 const imageStudio = $('image-studio');
 const imageComposer = $('image-composer');
-const precisionEditor=createPrecisionEditor({host:imageStudio,api,assetBlob,uploadAsset,notify,
+const precisionEditor=createPrecisionEditor({host:$('app'),api,assetBlob,uploadAsset,notify,
   owner:()=>owner&&!customerMode,falReady:()=>!!config.falEnabled,
+  onExit:()=>returnToImageFromRetouch(),
   onJob:job=>{surfaceHistoryJob(job);refreshHistorySoon();}});
 const archive = document.querySelector('.archive');
 let imageMenuOpen = false;
@@ -924,7 +935,7 @@ function toggleImageSettings(force){
   if(open){closeImageModelMenu();closeComposerLibrary();}
 }
 function syncImageStudioMode(){
-  const isImage=tool==='image'&&!fashionActive;
+  const isImage=tool==='image'&&!fashionActive&&!retouchActive;
   $('app').classList.toggle('image-studio-active',isImage);
   imageStudio.hidden=!isImage;
   if(!isImage)closeComposerLibrary();
@@ -1085,7 +1096,7 @@ function restoreLatestVideoSelection(){
 }
 function syncVideoStudioMode(){
   if(!mainWorkspace)return;
-  const videoMode=tool==='video'&&!fashionActive;
+  const videoMode=tool==='video'&&!fashionActive&&!retouchActive;
   $('app').classList.toggle('video-studio-active',videoMode);
   mainWorkspace.classList.toggle('video-layout',videoMode);
   videoFeedCenter.hidden=!videoMode;
