@@ -107,7 +107,6 @@ const moodUI=createMoodSelector({panel:$('composer-moods'),button:$('image-compo
   onOpen:()=>{closeReferenceIntent();closeImageModelMenu();closeComposerLibrary();toggleImageSettings(false);},
   onChange:()=>{autoPreview=null;update();}
 });
-function referencesOnly(){return usesReferenceGuidance()&&imageReferenceMode==='references';}
 $('image-reference-mode').onchange=()=>setImageReferenceMode($('image-reference-mode').value);
 function referencesOnly(){return usesReferenceGuidance()&&imageReferenceMode==='references';}
 function closeReferenceIntent(){
