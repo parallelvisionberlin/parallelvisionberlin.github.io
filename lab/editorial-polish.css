@@ -348,3 +348,20 @@ details.image-detail-card dl{margin:12px 0 0}
   box-shadow:0 0 0 1px rgba(255,255,255,.75),0 0 18px rgba(255,255,255,.18),0 0 40px rgba(255,255,255,.07),inset 0 1px 0 rgba(255,255,255,.42),inset 0 -1px 0 rgba(255,255,255,.08),0 25px 82px rgba(0,0,0,.75);
 }
 @media(prefers-reduced-motion:reduce){#image-composer{transition:none}}
+
+
+/* pv-image-submitting: a visible, non-clickable work state while references and quotes are prepared. */
+#image-composer .composer-generate.is-submitting:disabled{
+  background:#c39b54!important;border-color:#e1b76c!important;color:#17140e!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.25)!important;
+  opacity:1!important;cursor:progress;
+}
+#image-composer .composer-generate.is-submitting:disabled::before{
+  content:"";display:inline-block;width:10px;height:10px;margin-right:7px;
+  border:2px solid currentColor;border-right-color:transparent;border-radius:50%;
+  vertical-align:-2px;animation:pv-preparing-spin .9s linear infinite;
+}
+@keyframes pv-preparing-spin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){
+  #image-composer .composer-generate.is-submitting:disabled::before{animation:none}
+}

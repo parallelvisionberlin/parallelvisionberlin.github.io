@@ -18,7 +18,7 @@ import {findFalRequest} from './fal-recovery.mjs';
 import {falUploadImage} from './fal-storage.mjs';
 import {REFERENCE_ROLES,normalizeReferenceLabel,supportsReferenceGuidance,compileImagePrompt,canUseReferenceGuidance,referenceGuidanceError} from '../lab/reference-guidance.js';
 import {characterPreview as soulCharacterPreview,SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-10.3-soul-live-quote';
+export const VERSION = 'pv-lab-2026-10-10.4-seedream-batch-quote';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -577,7 +577,7 @@ async function stageImageReferences(env,owner,ids,key,max=10) {
       }catch(e){stopped=true;throw e;}
     }
   };
-  const attempts=await Promise.allSettled(Array.from({length:Math.min(2,assets.length)},()=>work()));
+  const attempts=await Promise.allSettled(Array.from({length:Math.min(3,assets.length)},()=>work()));
   const failure=attempts.find(r=>r.status==='rejected');
   if(failure)fail(502,'Reference preparation failed: '+cleanProviderDetail(failure.reason?.message||'Upload timed out.')+' No generation was submitted.');
   return result;
@@ -1276,6 +1276,9 @@ async function route(request,env,ctx) {
 
   if(path==='/api/quotes'&&method==='POST') {
     const data=await body(request),p=parameters(data.settings);
+    const quoteCount=data.count===undefined?1:Number(data.count);
+    if(!Number.isInteger(quoteCount)||quoteCount<1||quoteCount>4)fail(400,'Choose 1 to 4 images for one price check.');
+    if(quoteCount>1&&!(p.type==='image'&&p.engine==='seedream'&&p.mode==='image'&&p.provider==='spicy'))fail(400,'Multiple prices in one request are supported only for Seedream image generation.');
     if(!['upscale','reinterpret'].includes(p.mode)&&!p.prompt&&!(supportsReferenceGuidance(p)&&canUseReferenceGuidance(p.referenceRoles)))fail(400,'Add a prompt before generating, or assign a Base image and the properties to copy.');
     if(p.provider==='higgsfield'&&p.mode==='extend')return json(await quoteVideoExtension(env,owner,data,p,url,hfDeps()));
     if(p.provider==='fal'&&p.mode==='upscale'){
@@ -1313,12 +1316,27 @@ async function route(request,env,ctx) {
         if(['upscale','reinterpret'].includes(p.mode))input.image_url=uris[0];else input.image_urls=uris;
       }
     }
-    const payload={model:p.model,input},q=await vendorRequest('/jobs/quote',key,payload);
-    const estimate=micros(q.estimatedCost),maximum=micros(q.maxCharge),expiry=Date.parse(q.expiresAt);
-    if(q.currency!=='USD'||typeof q.quoteId!=='string'||!q.quoteId||maximum<estimate||!Number.isFinite(expiry)||expiry<=now())fail(502,'Provider did not return a usable, bounded quote. Nothing submitted.');
-    const id=crypto.randomUUID(),expires=Math.min(expiry,now()+290000);
-    await run(env,'INSERT INTO quotes(id,owner_id,source_id,params,estimate_microusd,expires_at,vendor_quote_id,expected_cost,payload) VALUES(?,?,?,?,?,?,?,?,?)',id,owner,primary?.id||null,JSON.stringify(p),maximum,expires,q.quoteId,String(q.estimatedCost),JSON.stringify(payload));
-    return json({id,estimatedUsd:estimate/1000000,maxUsd:maximum/1000000,expiresAt:expires,settings:p,provider:'SpicyAPI',notice:'This quote is bound to your exact input. Generation starts only when you confirm. Provider terms apply; a result you dislike is still a paid generation.'});
+    // Stage the exact reference bytes once, then price each image independently.
+    // Every quote has its own vendor quote ID; no paid inference begins here.
+    const payload={model:p.model,input};
+    const replies=await Promise.all(Array.from({length:quoteCount},()=>vendorRequest('/jobs/quote',key,payload)));
+    const time=now(),paramsJson=JSON.stringify(p),payloadJson=JSON.stringify(payload);
+    const priced=replies.map(q=>{
+      const estimate=micros(q.estimatedCost),maximum=micros(q.maxCharge),expiry=Date.parse(q.expiresAt);
+      if(q.currency!=='USD'||typeof q.quoteId!=='string'||!q.quoteId||maximum<estimate||!Number.isFinite(expiry)||expiry<=time)
+        fail(502,'Provider did not return a usable, bounded quote. Nothing submitted.');
+      const id=crypto.randomUUID(),expires=Math.min(expiry,time+290000);
+      return {id,estimatedUsd:estimate/1000000,maxUsd:maximum/1000000,expiresAt:expires,
+        settings:p,provider:'SpicyAPI',vendorQuoteId:q.quoteId,expectedCost:String(q.estimatedCost),
+        notice:'This quote is bound to your exact input. Generation starts only when you confirm. Provider terms apply; a result you dislike is still a paid generation.'};
+    });
+    if(new Set(priced.map(q=>q.vendorQuoteId)).size!==priced.length)fail(502,'The provider returned duplicate price identifiers. Nothing generated; please retry the price check.');
+    const statement='INSERT INTO quotes(id,owner_id,source_id,params,estimate_microusd,expires_at,vendor_quote_id,expected_cost,payload) VALUES(?,?,?,?,?,?,?,?,?)';
+    const insertArgs=q=>[q.id,owner,primary?.id||null,paramsJson,Math.round(q.maxUsd*1000000),q.expiresAt,q.vendorQuoteId,q.expectedCost,payloadJson];
+    if(quoteCount===1)await run(env,statement,...insertArgs(priced[0]));
+    else await env.LAB_DB.batch(priced.map(q=>stmt(env,statement,...insertArgs(q))));
+    const response=priced.map(({vendorQuoteId,expectedCost,...publicQuote})=>publicQuote);
+    return json(quoteCount===1?response[0]:{quotes:response});
   }
   if(path==='/api/jobs'&&method==='POST') {
     const data=await body(request);if(data.confirm!==true)fail(400,'Confirm the estimated charge.');

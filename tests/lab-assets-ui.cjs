@@ -544,7 +544,7 @@ assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=inner
 console.log('IMAGE_SUBMISSION_PROGRESS='+Buffer.from(await page.screenshot({type:'jpeg',quality:75})).toString('base64'));
 await page.setViewportSize({width:1440,height:1000});
 releaseUploads();
-await page.waitForFunction(()=>document.querySelector('.submission-title')?.textContent==='Checking price');
+await page.waitForFunction(()=>document.querySelector('.submission-title')?.textContent==='Preparing provider files');
 assert.equal(dialogs,0,'Automatic working copies do not interrupt Generate with a confirmation');
 assert.equal(originalNames.length,5);assert.equal(copyNames.length,2);assert.equal(uploadCount,7);
 releaseQuote();

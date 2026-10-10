@@ -263,6 +263,52 @@ test('Seedream uses SpicyAPI with ordered images, compiled properties and reusab
   }finally{globalThis.fetch=originalFetch;}
 });
 
+test('A multi-image Seedream price request stages each reference only once and preserves independent quotes',async()=>{
+  const {env}=fixture();await setup(env);
+  const ids=await Promise.all(['body','front','profile','hair'].map((name,i)=>uploadGuidanceReference(env,name+'.png',i+1)));
+  const settings={...imageSettings,engine:'seedream',referenceRoles:ids.map((_,i)=>({role:i===0?'base':'identity',name:'reference-'+i+'.png'}))};
+  const prior=globalThis.fetch, staged=new Map();let stagingCount=0,priceCount=0;
+  const before=createCount;
+  globalThis.fetch=async(url,options={})=>{
+    const u=new URL(url);
+    if(u.hostname==='api.spicyapi.ai'&&u.pathname.endsWith('/common/upload-url')){
+      const input=JSON.parse(options.body),fileId='fil_batch_reference_'+(++stagingCount);
+      staged.set(fileId,{input});
+      return Response.json({code:200,data:{fileId,uploadUrl:'https://test.r2.cloudflarestorage.com/'+fileId,method:'PUT',headers:{'Content-Type':input.contentType,'Content-Length':String(input.bytes)},maxBytes:10485760,expiresAt:new Date(Date.now()+1200000).toISOString()}});
+    }
+    if(u.hostname==='test.r2.cloudflarestorage.com'){
+      staged.get(u.pathname.slice(1)).bytes=new Uint8Array(options.body);
+      return new Response(null,{status:200});
+    }
+    if(u.hostname==='api.spicyapi.ai'&&u.pathname.endsWith('/commit')){
+      const fileId=u.pathname.split('/').at(-2),item=staged.get(fileId);
+      return Response.json({code:200,data:{fileId,status:'ready',bytes:item.bytes.length,contentType:'image/png',sha256:Buffer.from(await crypto.subtle.digest('SHA-256',item.bytes)).toString('hex'),uri:'spicy://f/'+fileId,expiresAt:new Date(Date.now()+86400000).toISOString()}});
+    }
+    if(u.hostname==='api.spicyapi.ai'&&u.pathname.endsWith('/jobs/quote')){
+      priceCount++;
+      return Response.json({code:200,data:{quoteId:'unique-seedream-quote-'+priceCount,estimatedCost:'0.010000',maxCharge:'0.010000',currency:'USD',expiresAt:new Date(Date.now()+300000).toISOString()}});
+    }
+    return prior(url,options);
+  };
+  try{
+    const result=await req(env,'/api/quotes',{method:'POST',data:{settings,referenceSourceIds:ids,count:2}});
+    assert.equal(result.status,200,await result.clone().text());
+    const priced=await result.json();
+    assert.equal(priced.quotes.length,2);
+    assert.equal(stagingCount,4,'Eight-reference batch must transfer 4 refs once, not twice');
+    assert.equal(priceCount,2,'Each requested image receives its own provider quote');
+    assert.equal(createCount,before,'Checking both prices never submits a paid task');
+    assert.equal(env.LAB_DB.db.prepare('SELECT COUNT(*) AS n FROM spend').get().n,0);
+    assert.equal(new Set(priced.quotes.map(q=>q.id)).size,2);
+    assert.deepEqual(env.LAB_DB.db.prepare('SELECT vendor_quote_id FROM quotes ORDER BY vendor_quote_id').all().map(q=>q.vendor_quote_id),['unique-seedream-quote-1','unique-seedream-quote-2']);
+    assert.deepEqual(priced.quotes.map(q=>q.estimatedUsd),[0.01,0.01]);
+    assert.ok(priced.quotes.every(q=>q.settings.referenceSourceIds.join(',')===ids.join(',')));
+    const unsupported=await req(env,'/api/quotes',{method:'POST',data:{settings,referenceSourceIds:ids,count:5}});
+    assert.equal(unsupported.status,400,'Unbounded multi-image quotes are not allowed');
+    assert.equal(stagingCount,4,'Invalid counts do not transfer media');
+  }finally{globalThis.fetch=prior;}
+});
+
 test('Image role-only edits compile automatically; invalid mappings and oversized final prompts stop before provider quotes',async()=>{
   const{env}=fixture(),base=await setup(env),detail=await uploadGuidanceReference(env,'hands.png',0);
   const labels=[{role:'base'},{role:'detail',target:'hands'}],settings={...imageSettings,engine:'seedream',prompt:'',referenceRoles:labels};

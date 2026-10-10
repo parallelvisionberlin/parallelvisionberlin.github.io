@@ -12,7 +12,7 @@ import { PROVIDER_IMAGE_LIMIT, UPSCALE_PIXELS, imageDimensions, providerWorkingC
 const API='https://parallel-vision-lab.parallelvision.workers.dev';
 const $=id=>document.getElementById(id), activeStates=new Set(['submitting','queued','running','saving','uncertain']), slotStates=new Set(['submitting','queued','running','uncertain']);
 let clerk, owner=false, customerMode=false, userId='', epoch=0, syncing=false, config={}, file=null, sourceId=null, imageRevision=0, busy=false;
-let imageSubmissionPending=false;
+let imageSubmissionPending=false,imageSubmissionStage='Sending…';
 const pendingImageCards=new Map();
 function renderPendingImageCards(){
   const visible=owner&&tool==='image'&&!fashionActive&&!assetLibrary?.active();
@@ -45,7 +45,14 @@ function beginImageFeedback(count,selected,ratio){
   for(const id of ids)pendingImageCards.set(id,{id,ratio,title:'Preparing',detail:detailModelName({settings:selected}),error:false});
   syncImageGalleryEmpty();
   return {
-    phase(title,detail=''){for(const id of ids){const entry=pendingImageCards.get(id);if(entry){entry.title=title;entry.detail=detail;}}renderPendingImageCards();},
+    phase(title,detail=''){
+      for(const id of ids){const entry=pendingImageCards.get(id);if(entry){entry.title=title;entry.detail=detail;}}
+      if(imageSubmissionPending){
+        imageSubmissionStage=title==='Uploading references'?'Uploading '+detail:title==='Preparing provider files'?'Preparing files…':title==='Checking price'?'Checking price…':title==='Optimizing references'?'Optimizing…':title==='Submitting'?'Submitting…':'Sending…';
+        const button=$('image-composer-generate');if(button)button.textContent=imageSubmissionStage;
+      }
+      renderPendingImageCards();
+    },
     accept(){const id=ids.shift();if(id)pendingImageCards.delete(id);renderPendingImageCards();},
     fail(error,dispatched){
       const first=ids.shift();
@@ -586,8 +593,9 @@ function syncImageComposer(){
   $('image-composer-add').hidden=imageEngine==='soul'&&!isReinterpret();
   $('composer-character').setAttribute('aria-label',imageEngine==='soul'||imageEngine==='soulpro'?'Choose character':'Saved reference photos');
   const generate=$('image-composer-generate');
+  generate.classList.toggle('is-submitting',imageSubmissionPending);
   generate.disabled=$('generate').disabled;
-  generate.textContent=imageSubmissionPending?'Sending…':$('generate').textContent;
+  generate.textContent=imageSubmissionPending?imageSubmissionStage:$('generate').textContent;
   const block=$('composer-generation-block'),reason=$('composer-generation-reason'),review=$('composer-review-queue');
   const queueBlocked=!busy&&owner&&submissionBlocked();
   let message='';
@@ -2176,8 +2184,8 @@ async function submitImageSnapshot(){
   const check=()=>{if(!owner||epoch!==sessionEpoch)throw new Error('Session changed. No further requests submitted.');};
   let feedback=null,dispatched=false;
   const record=job=>{if(!job)return;check();dispatched=false;feedback?.accept();if(activeStates.has(job.status))setActive(job);surfaceHistoryJob(job);refreshHistorySoon();};
-  const send=async(path,body)=>{check();feedback?.phase('Submitting','Waiting for the provider to confirm.');dispatched=true;return api(path,{method:'POST',body});};
-  imageSubmissionPending=true;update();
+  const send=async(path,body,detail='Waiting for the provider to confirm.')=>{check();feedback?.phase('Submitting',detail);dispatched=true;return api(path,{method:'POST',body});};
+  imageSubmissionPending=true;imageSubmissionStage='Preparing…';update();
   let submitted=0;
   try{
     if(provider==='spicy'&&!config.enabled){connection();return;}
@@ -2250,16 +2258,38 @@ async function submitImageSnapshot(){
       }
     }else{
       inputs=await prepareQuoteInputs(inputs,{originals,onProgress:(...args)=>feedback.phase(...args)});if(!inputs)return;
-      feedback.phase('Checking price','Preparing the generation request.');
+      const batchSeedream=selected.engine==='seedream'&&requested>1;
+      const refCount=inputs.referenceSourceIds?.length||0;
+      const pricingTitle=refCount?'Preparing provider files':'Checking price';
+      const priceDetail=refCount?refCount+' references · '+requested+' price'+(requested===1?'':'s')+' · no paid generation yet':requested+' live price'+(requested===1?'':'s')+' · no paid generation yet';
+      feedback.phase(pricingTitle,priceDetail);
+      let pricingTimer=null;const pricingStarted=Date.now();
       const quotes=[];
-      for(let i=0;i<requested;i++){
-        check();const q=await api('/api/quotes',{method:'POST',body:{...inputs,settings:selected}});
-        if(q.settings.type!=='image'||q.settings.mode!==selected.mode||selected.engine==='soul'&&(q.settings.engine!=='soul'||q.settings.characterId!==selected.characterId||q.settings.preset!==selected.preset))throw new Error('Unexpected image quote. Nothing further submitted.');
-        quotes.push(q);
-      }
+      try{
+        pricingTimer=setInterval(()=>feedback?.phase(pricingTitle,priceDetail+' · '+Math.floor((Date.now()-pricingStarted)/1000)+'s'),2500);
+        if(batchSeedream){
+          // A single request stages the reference bytes once and returns independently
+          // bound prices for each image. The provider still receives unique paid jobs.
+          const priced=await api('/api/quotes',{method:'POST',body:{...inputs,settings:selected,count:requested}});
+          if(!Array.isArray(priced?.quotes)||priced.quotes.length!==requested)throw new Error('Seedream did not return the complete set of independent prices. Nothing submitted.');
+          quotes.push(...priced.quotes);
+        }else{
+          for(let i=0;i<requested;i++){
+            check();const q=await api('/api/quotes',{method:'POST',body:{...inputs,settings:selected}});
+            quotes.push(q);
+          }
+        }
+      }finally{clearInterval(pricingTimer);}
+      check();
+      if(new Set(quotes.map(q=>q?.id)).size!==quotes.length)throw new Error('Price identifiers were duplicated. Nothing submitted.');
       for(const q of quotes){
+        if(!q||q.settings?.type!=='image'||q.settings.mode!==selected.mode||selected.engine==='soul'&&(q.settings.engine!=='soul'||q.settings.characterId!==selected.characterId||q.settings.preset!==selected.preset)||!Number.isFinite(q.maxUsd)||q.maxUsd<0)
+          throw new Error('Unexpected image quote. No images submitted.');
+      }
+      for(let i=0;i<quotes.length;i++){
+        const q=quotes[i];
         check();if(!Number.isFinite(q.expiresAt)||Date.now()>=q.expiresAt)throw new Error('Quote expired. Nothing further submitted.');
-        const data=await send('/api/jobs',{quoteId:q.id,confirm:true});
+        const data=await send('/api/jobs',{quoteId:q.id,confirm:true},'Sending image '+(i+1)+' of '+quotes.length+' to the provider.');
         if(!data.job)throw new Error('No generation record returned. Check History before retrying.');
         record(data.job);submitted++;
         if(['failed','uncertain','resolved'].includes(data.job.status)){notify(data.job.error||'Request needs review in History.',true);return;}
@@ -2267,6 +2297,6 @@ async function submitImageSnapshot(){
     }
     check();notify(submitted+' image request'+(submitted===1?'':'s')+' recorded. Results appear in History.');
   }catch(e){if(owner&&epoch===sessionEpoch){feedback?.fail(e,dispatched);notify((submitted?submitted+' request(s) recorded. ':'')+(e.name==='AbortError'?'Request interrupted. Check History before retrying.':e.message),true);if(dispatched)refreshHistorySoon();}}
-  finally{feedback?.finish();if(epoch===sessionEpoch){imageSubmissionPending=false;update();}}
+  finally{feedback?.finish();if(epoch===sessionEpoch){imageSubmissionPending=false;imageSubmissionStage='Sending…';update();}}
 }
 
