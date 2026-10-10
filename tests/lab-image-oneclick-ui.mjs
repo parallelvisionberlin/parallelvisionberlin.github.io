@@ -85,6 +85,25 @@ const count=(x,path,method='POST')=>x.requests.filter(r=>r.path===path&&r.method
 const ready=page=>page.waitForFunction(()=>!document.querySelector('#resolution').disabled);
 const waitAccepted=async(x,n)=>{const until=Date.now()+7000;while(x.accepted()<n&&Date.now()<until)await new Promise(r=>setTimeout(r,40));};
 const waitRefs=(page,n)=>page.waitForFunction(expected=>document.querySelectorAll('#reference-list .reference-item').length===expected,n);
+async function retouchTopAndBackButton(page){
+  await page.waitForFunction(()=>window.scrollY<2);
+  const state=await page.evaluate(()=>{
+    const head=document.querySelector('.precision-head').getBoundingClientRect();
+    const header=document.querySelector('#studio-header').getBoundingClientRect();
+    const button=document.querySelector('#precision-return');
+    const box=button.getBoundingClientRect(),style=getComputedStyle(button);
+    return {y:window.scrollY,headTop:head.top,headerBottom:header.bottom,
+      backTop:box.top,backBottom:box.bottom,backHeight:box.height,backWidth:box.width,
+      bg:style.backgroundColor,label:button.textContent.trim(),viewport:window.innerHeight};
+  });
+  assert.ok(state.y<2,'Retouch must open at scroll position zero');
+  assert.ok(state.headTop>=state.headerBottom-3,'Retouch title must be visible below the sticky header');
+  assert.ok(state.backTop>=state.headerBottom-3&&state.backBottom<=state.viewport,
+    'Back to Image must be immediately visible without scrolling');
+  assert.ok(state.backHeight>=43&&state.backWidth>=150,'Back to Image must be a prominent tap target');
+  assert.equal(state.bg,'rgb(214, 255, 0)','Back to Image must use the bright PV Lab return accent');
+  assert.match(state.label,/Back to Image/);
+}
 async function imageForm(x){await imageAdvanced(x.page);await x.page.fill('#prompt:visible, #image-composer-prompt:visible',settings.prompt);await x.page.selectOption('#resolution:visible, #image-composer-resolution:visible','2k');await x.page.selectOption('#ratio:visible, #image-composer-ratio:visible','16:9');await x.page.selectOption('#output-format','png');}
 try{
  let x;
@@ -100,9 +119,12 @@ try{
     model:document.querySelector('#image-composer-model-label').textContent.trim(),
     role:document.querySelector('#reference-list .reference-item select')?.value||''
   }));
+  // Reproduce the old bug by starting from an already scrolled Image page.
+  await x.page.evaluate(()=>window.scrollTo(0,document.documentElement.scrollHeight));
   await x.page.click('#image-composer-edit-area');
   await x.page.waitForFunction(()=>document.getElementById('app').classList.contains('retouch-studio-active')&&
     !document.getElementById('precision-source-holder').hidden);
+  await retouchTopAndBackButton(x.page);
   assert.match(x.page.url(),/tool=retouch/);
   assert.equal(await x.page.locator('#tool-retouch').getAttribute('aria-pressed'),'true');
   assert.equal(await x.page.locator('#tool-image').getAttribute('aria-pressed'),'false');
@@ -121,6 +143,7 @@ try{
   })),before,'Image sources, prompt, model and ratio must remain untouched');
   await x.page.click('#tool-retouch');
   assert.match(x.page.url(),/tool=retouch/);
+  await retouchTopAndBackButton(x.page);
   await x.page.click('#precision-return');
   await x.page.waitForFunction(()=>new URL(location.href).searchParams.get('tool')==='image');
   assert.equal(await x.page.locator('#tool-image').getAttribute('aria-pressed'),'true');
@@ -129,6 +152,7 @@ try{
   // Direct Retouch URLs must not rely on a previous Image navigation entry.
   await x.page.goto(ORIGIN+'/lab/studio.html?tool=retouch');
   await x.page.waitForFunction(()=>document.getElementById('app').classList.contains('retouch-studio-active'));
+  await retouchTopAndBackButton(x.page);
   assert.equal(await x.page.locator('#precision-drop').isVisible(),true);
   await x.page.click('#precision-return');
   assert.match(x.page.url(),/tool=image/);
