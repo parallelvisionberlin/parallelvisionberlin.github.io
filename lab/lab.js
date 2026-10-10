@@ -1292,7 +1292,7 @@ async function navigateImageDetail(direction){
   if(!next||position<0)return;
   imageDetailNavBusy=true;
   refreshImageDetailNavigation();
-  try{await openVideo(next,{scroll:false});}
+  try{await openVideo(next,{scroll:false,detail:true});}
   catch(error){if(owner)notify('Unable to open this image. '+error.message,true);}
   finally{imageDetailNavBusy=false;refreshImageDetailNavigation();}
 }
@@ -1399,8 +1399,8 @@ function showImageDetail(job,hasOutput){
   refreshImageDetailNavigation();
 }
 async function openImageRecord(job){
-  if(!job||(tool!=='image'&&!assetLibrary?.active()))return;
-  if(hasResult(job))return openVideo(job,{scroll:false});
+  if(!job||(!['image','upscale'].includes(tool)&&!assetLibrary?.active()))return;
+  if(hasResult(job))return openVideo(job,{scroll:false,detail:true});
   $('image-lightbox-img').removeAttribute('src');
   showImageDetail(job,false);
 }
@@ -1500,7 +1500,7 @@ $('image-lightbox').addEventListener('close',()=>{
   refreshImageDetailNavigation();
 });
 
-async function openVideo(job,{scroll=true}={}){
+async function openVideo(job,{scroll=true,detail=false}={}){
   if(!hasResult(job))throw new Error('This job has no completed output to view or download.');
   const revision=++previewRevision,blob=await api('/api/assets/'+job.outputId,{blob:true});
   if(!owner||revision!==previewRevision)return;
@@ -1510,7 +1510,7 @@ async function openVideo(job,{scroll=true}={}){
   else{$('video').src=resultUrl;$('video').hidden=false;$('preview').hidden=true;}
   $('empty').hidden=true;$('download').hidden=false;$('download').textContent='Download '+kind+' / '+ext.toUpperCase();
   $('preview-label').textContent='Generated result / '+(kind==='image'?'Image':job.settings.duration+'s');update();
-  if((tool==='image'||assetLibrary?.active())&&kind==='image'){
+  if((tool==='image'||assetLibrary?.active()||detail)&&kind==='image'){
     $('image-lightbox-img').src=resultUrl;
     showImageDetail(job,true);
     return;
@@ -1899,7 +1899,7 @@ function renderCards(jobs,{upsert=false}={}){
     const actions=document.createElement('div');actions.className='cardactions';
     if(ready){
       const download=button(image?'Download image':'Download video',()=>downloadJob(j));download.classList.add('result-download');actions.append(download);
-      actions.append(button(image?'View image':'View video',()=>openVideo(j)));
+      actions.append(button(image?'View image':'View video',()=>image?openImageRecord(j):openVideo(j)));
     }else{
       const download=button(image?'Download image':'Download video',async()=>{});download.disabled=true;download.title='Available only when a completed output file exists.';actions.append(download);
     }

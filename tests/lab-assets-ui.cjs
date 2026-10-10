@@ -313,7 +313,11 @@ const upscalePromptless=await page.locator('#history .card[data-job="up-spicy"] 
 await upscalePromptless.scrollIntoViewIfNeeded();
 await page.waitForFunction(()=>document.querySelector('#history .card[data-job="up-spicy"] img')?.naturalWidth>0);
 await page.locator('#history .card[data-job="up-spicy"]').click();
-await page.locator('#image-lightbox').waitFor({state:'visible'});await page.keyboard.press('Escape');
+await page.locator('#image-lightbox').waitFor({state:'visible'});
+assert.equal(await page.locator('#image-lightbox-download').isEnabled(),true);
+await page.click('#image-detail-next');
+await page.waitForFunction(()=>document.querySelector('#image-lightbox-counter').textContent==='2 / 2');
+await page.keyboard.press('Escape');
 for(const width of [1440,390,320]){
   await page.setViewportSize({width,height:1000});
   const deck=await page.locator('.workspace').boundingBox(),gallery=await page.locator('.archive').boundingBox();
