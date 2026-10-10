@@ -123,29 +123,41 @@ test('Moods footer has a larger primary action and a compact accessible explanat
   assert.match(js,/aboutButton\.setAttribute\('aria-expanded',String\(opening\)\)/);
 });
 
-test('Dreamcore thumbnail and provider intensity directions are connected',()=>{
+test('Dreamcore thumbnail and four distinct provider intensity tiers are connected',()=>{
   const mood=moodById('dreamcore');
   assert.equal(mood.category,'Experimental');
   assert.equal(mood.preview,'/lab/mood-previews/dreamcore-train-20261010.webp');
-  const low=prepareMoodPrompt('A person in a room','dreamcore',20,{engine:'seedream',referenceCount:1});
-  const middle=prepareMoodPrompt('A person in a room','dreamcore',60,{engine:'gemini',referenceCount:1});
-  const high=prepareMoodPrompt('A person in a room','dreamcore',100,{engine:'seedream',referenceCount:1});
-  for(const result of [low,middle,high]){
+  const values=[20,50,80,100];
+  const results=values.map((amount,i)=>prepareMoodPrompt('A person in a room','dreamcore',amount,{engine:i%2?'gemini':'seedream',referenceCount:1}));
+  for(const result of results){
     assert.equal(result.error,'');
     assert.equal(result.metadata.moodId,'dreamcore');
-    assert.match(result.prompt,/preserve face, identity, real body proportions/i);
+    assert.match(result.prompt,/Preserve face, identity, real body proportions/i);
+    assert.match(result.prompt,/tactile photographic materials/i);
   }
-  assert.match(low.prompt,/gentle optical bloom/i);
-  assert.match(middle.prompt,/Photographic dreamcore/i);
-  assert.match(high.prompt,/Strong dreamlike editorial transformation/i);
-  assert.notEqual(low.prompt,high.prompt);
-  assert.match(high.prompt,/copying the preview's train or platform/i);
+  assert.match(results[0].prompt,/SUBTLE \(1-34%\)/);
+  assert.match(results[1].prompt,/ATMOSPHERIC \(35-69%\)/);
+  assert.match(results[2].prompt,/IMMERSIVE \(70-89%\)/);
+  assert.match(results[3].prompt,/IMPOSSIBLE REALITY \(90-100%\)/);
+  assert.match(results[3].prompt,/actual world transformation/i);
+  assert.match(results[3].prompt,/only gentle wardrobe hue drift/i);
+  assert.match(results[3].prompt,/clouds can drift into an ordinary room/i);
+  assert.doesNotMatch(results[0].prompt,/IMPOSSIBLE REALITY/);
+  assert.doesNotMatch(results[1].prompt,/IMMERSIVE \(70-89%\)/);
+  assert.doesNotMatch(results[2].prompt,/IMPOSSIBLE REALITY/);
+  assert.equal(new Set(results.map(r=>r.prompt)).size,4);
+  for(const boundary of [1,34,35,69,70,89,90,100]){
+    const r=prepareMoodPrompt('Portrait','dreamcore',boundary,{referenceCount:1});
+    assert.equal(r.error,'');
+    assert.equal(r.metadata.moodIntensity,boundary);
+  }
+  assert.match(prepareMoodPrompt('Portrait','dreamcore',100,{referenceMode:'references',referenceCount:2}).prompt,/assigned reference roles/);
+  assert.match(prepareMoodPrompt('Portrait','hong-kong-nights',100,{referenceCount:1}).prompt,/Immersive humid nighttime atmosphere/);
   const css=readFileSync(new URL('../lab/moods.css',import.meta.url),'utf8');
   assert.ok(css.includes('.moods-look-dreamcore img{filter:none;object-position:center center}'));
   const html=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
   assert.match(html,/Eleven curated looks/);
 });
-
 
 
 
