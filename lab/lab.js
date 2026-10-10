@@ -477,7 +477,7 @@ function fitImageComposerPrompt(){
   const short=window.innerHeight<=640;
   const minimum=narrow?47:42;
   const viewport=window.visualViewport?.height||window.innerHeight;
-  const maximum=Math.max(minimum,Math.min(narrow?122:176,Math.floor(viewport*(short?.21:narrow?.22:.25))));
+  const maximum=Math.max(minimum,Math.min(narrow?122:176,Math.floor(viewport*(short ? 0.21 : narrow ? 0.22 : 0.25))));
   const previousScroll=textbox.scrollTop;
   textbox.style.height=minimum+'px';
   const naturalHeight=textbox.scrollHeight;
