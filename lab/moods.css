@@ -1,0 +1,64 @@
+
+/* PV Lab / Moods V1. Keeps the established compact floating composer. */
+#image-composer .composer-moods {
+  position:absolute;bottom:calc(100% + 12px);left:0;z-index:125;
+  width:min(930px,calc(100vw - 24px));max-height:min(76dvh,720px);
+  display:flex;flex-direction:column;overflow:hidden;padding:18px;
+  border:1px solid #4b4b4d;border-radius:18px;background:#1a1b1c;color:#f0f0f0;
+  box-shadow:0 24px 90px #000b;
+}
+#image-composer .composer-moods[hidden]{display:none!important}
+.moods-header{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}
+.moods-kicker{font-size:10px;color:#a1a1a1;letter-spacing:.13em;text-transform:uppercase}
+#image-composer #composer-moods-title{display:block;margin:4px 0 0;font-size:26px;letter-spacing:-.055em;font-weight:540;line-height:1.1;color:#fff;outline:none}
+.moods-header p{margin:8px 0 10px;font-size:12px;line-height:1.4;color:#a5a5a5}
+#image-composer #composer-moods-close{flex:0 0 32px;width:32px;min-height:32px;padding:0;border:0;border-radius:50%;background:#313232;color:#ddd;font-size:22px}
+.moods-filters{display:flex;gap:6px;overflow-x:auto;padding:2px 0 13px;flex:0 0 auto}
+#image-composer .moods-filter{flex:0 0 auto;min-height:31px;padding:7px 12px;border:1px solid #444546;border-radius:30px;background:transparent;color:#bbb;font-size:11px}
+#image-composer .moods-filter.is-selected{background:#eee;border-color:#eee;color:#171717}
+.moods-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:11px;overflow-y:auto;min-height:0;padding:2px 2px 12px;scrollbar-width:thin;scrollbar-color:#666 transparent}
+#image-composer .moods-card{display:flex;flex-direction:column;gap:7px;min-width:0;padding:0;border:0;background:transparent;color:#ededed;text-align:left;border-radius:9px}
+#image-composer .moods-card[hidden]{display:none!important}
+.moods-card-media{display:block;position:relative;aspect-ratio:4/3;width:100%;background:#2c2c2c;overflow:hidden;border:2px solid transparent;border-radius:9px}
+.moods-card-media img{display:block;width:100%;height:100%;object-fit:cover}
+.moods-card-copy strong{display:block;font-size:12px;font-weight:570;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#eee}
+.moods-card-copy small{display:block;color:#999;font-size:10px;line-height:1.32;min-height:25px}
+#image-composer .moods-card:hover .moods-card-media{border-color:#909090}
+#image-composer .moods-card.is-selected .moods-card-media{border-color:#d6ff00}
+#image-composer .moods-card.is-selected strong{color:#d6ff00}
+.moods-look-hong-kong-nights img{filter:contrast(1.2) saturate(1.18) brightness(.73)}
+.moods-look-90s-cinema img{filter:contrast(.9) saturate(.84) sepia(.08)}
+.moods-look-night-flash img{filter:contrast(1.28) brightness(1.1) saturate(.88)}
+.moods-look-fashion-editorial img{filter:contrast(1.04) saturate(.84)}
+.moods-look-80s-film img{filter:sepia(.25) saturate(.8) contrast(.9)}
+.moods-look-kodak-gold img{filter:sepia(.18) saturate(1.13)}
+.moods-look-soft-pastel-film img{filter:brightness(1.11) saturate(.68) contrast(.9)}
+.moods-look-frutiger-aero img{filter:saturate(1.25) brightness(1.07)}
+.moods-look-sumi-ink img{filter:grayscale(1) contrast(1.6)}
+.moods-look-hyper-pop img{filter:saturate(1.65) contrast(1.2)}
+.moods-footer{display:grid;grid-template-columns:1fr auto;gap:9px 24px;padding-top:13px;border-top:1px solid #3b3c3d}
+.moods-selected{font-size:12px;color:#ececec;font-weight:540}
+.moods-strength{display:flex;align-items:center;gap:10px}
+.moods-strength label{font-size:11px;color:#aaa}
+#image-composer #composer-moods-intensity{width:min(220px,22vw);accent-color:#d6ff00}
+#image-composer #composer-moods-intensity:disabled{opacity:.3}
+#image-composer #composer-moods-amount{min-width:33px;color:#ddd;font-size:11px}
+.moods-bottom{grid-column:1/-1;display:flex;justify-content:space-between;gap:16px;align-items:center}
+.moods-bottom p{max-width:60%;font-size:11px;line-height:1.4;color:#a2a2a2;margin:0}
+.moods-actions{display:flex;align-items:center;gap:7px}
+#image-composer .moods-actions button{min-height:34px;padding:7px 12px;border:1px solid #474849;border-radius:8px;background:#292a2b;color:#d9d9d9;font-size:11px;white-space:nowrap}
+#image-composer #composer-moods-done{background:#d6ff00;border-color:#d6ff00;color:#171717;font-weight:700}
+#image-composer .composer-settings-pill.is-mood-selected{border-color:#b8ce32;background:#323923;color:#edffb3}
+@media(max-width:740px){
+  #image-composer .composer-moods{left:0;width:calc(100vw - 18px);padding:12px;max-height:67dvh}
+  #image-composer #composer-moods-title{font-size:21px}
+  .moods-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .moods-card-media{aspect-ratio:5/4}
+  .moods-card-copy small{min-height:0}
+  .moods-footer{grid-template-columns:1fr;gap:9px}
+  .moods-strength{grid-row:2}
+  #image-composer #composer-moods-intensity{width:100%;flex:1}
+  .moods-bottom p{font-size:10px;max-width:50%}
+}
+@media(max-width:390px){.moods-bottom{align-items:flex-start;flex-direction:column}.moods-bottom p{max-width:100%}}
+@media(prefers-reduced-motion:reduce){#image-composer .composer-moods *{scroll-behavior:auto}}
