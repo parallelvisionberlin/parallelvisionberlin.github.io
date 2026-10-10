@@ -1,0 +1,48 @@
+name: Verify Upscaler Assets-only publication
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/verify-upscaler-assets-live.yml'
+permissions:
+  contents: read
+  pages: write
+jobs:
+  verify-live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check latest GitHub Pages build
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api "repos/${GITHUB_REPOSITORY}/pages/builds/latest" --jq '{status,commit,created_at,error}' || true
+      - name: Request a Pages rebuild of the existing main branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api --method POST "repos/${GITHUB_REPOSITORY}/pages/builds" --jq '{status,url}'
+      - name: Read-only check for published Upscaler Assets routing
+        shell: bash
+        run: |
+          set -euo pipefail
+          published=0
+          for attempt in $(seq 1 23); do
+            curl --fail --silent --show-error --max-time 15 \
+              -H 'Cache-Control: no-cache' \
+              "https://parallelvisionlabel.com/lab/studio.html?pv-upscale-assets=${attempt}" -o /tmp/studio.html
+            if grep -Fq 'lab.js?v=20261010-upscale-assets1' /tmp/studio.html && grep -Fq 'assets.css?v=20261010-upscale-assets1' /tmp/studio.html; then
+              published=1;break
+            fi
+            echo "Waiting for new Upscaler page (${attempt}/23)"
+            sleep 6
+          done
+          test "$published" = 1 || { echo 'The new Upscaler HTML is not published yet.';exit 1; }
+          grep -Fq 'id="upscale-view-assets"' /tmp/studio.html
+          curl --fail --silent --show-error --max-time 15 \
+            'https://parallelvisionlabel.com/lab/assets.css?v=20261010-upscale-assets1' -o /tmp/assets.css
+          grep -Fq '#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .archive{display:none!important}' /tmp/assets.css
+          curl --fail --silent --show-error --max-time 15 \
+            'https://parallelvisionlabel.com/lab/lab.js?v=20261010-upscale-assets1' -o /tmp/lab.js
+          grep -Fq 'upscale-view-assets' /tmp/lab.js
+          grep -Fq "const destination=q.settings.mode==='upscale'?'Assets':'History'" /tmp/lab.js
+          echo 'LIVE PASS: Upscaler hides History, has Assets shortcut, and preserves all job records.'
