@@ -473,6 +473,7 @@ const referenceFiles=Array.from({length:5},(_,i)=>({name:'submit-ref-'+i+'.png',
 await page.locator('#reference-images').setInputFiles(referenceFiles);
 await page.waitForFunction(()=>document.querySelectorAll('.composer-reference-tile').length===5);
 await page.fill('#image-composer-prompt','Capture this exact direction before upload.');
+const capturedImageSettings=await page.evaluate(()=>window.__referenceSettings());
 let releaseUploads,releaseQuote,releaseSubmit,uploadsStarted;
 const threeUploadsStarted=new Promise(r=>uploadsStarted=r);
 const uploadsGate=new Promise(r=>releaseUploads=r),quoteGate=new Promise(r=>releaseQuote=r),submitGate=new Promise(r=>releaseSubmit=r);
@@ -528,7 +529,7 @@ releaseQuote();
 await page.waitForFunction(()=>document.querySelector('.submission-title')?.textContent==='Submitting');
 assert.equal(await page.locator('[data-local-submission][data-state="queued"]').count(),0,'Unaccepted request is never labelled queued');
 const captured=quotes.values().next().value;
-assert.equal(captured.settings.prompt,'Capture this exact direction before upload.');
+assert.deepEqual(captured.settings,capturedImageSettings,'The request keeps the captured direction, roles and settings');
 assert.deepEqual(captured.referenceSourceIds,referenceFiles.map(f=>'uploaded-'+f.name),'Parallel uploads preserve reference order');
 assert.deepEqual(captured.transferSourceIds,referenceFiles.map((f,i)=>'uploaded-'+(i<2?f.name.replace('.png','-working-copy.webp'):f.name)));
 releaseSubmit();
