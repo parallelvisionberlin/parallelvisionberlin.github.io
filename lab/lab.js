@@ -840,7 +840,9 @@ function syncImageComposer(){
   let message='';
   if(generate.disabled){
     if(imageSubmissionPending)message='';
-    else if(busy)message='Preparing your request…';
+    // The action button already indicates busy state. Keep upload preparation out of
+    // document flow so the deck does not temporarily acquire a third row.
+    else if(busy)message='';
     else if(!owner)message='Sign in to generate.';
     else if(queueBlocked)message=activeJobs.some(j=>j.status==='uncertain'&&jobProvider(j)===currentProvider())?'A previous request has an unknown status. Review it before generating again.':'The active generation limit has been reached. Wait for a job to finish.';
     else if(imageEngine==='soulpro'&&!file)message=isSoul2()?'':'Add a base image.';
