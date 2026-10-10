@@ -169,6 +169,7 @@ try{
     !document.getElementById('precision-source-holder').hidden);
   await retouchTopAndBackButton(x.page);
   await retouchPanelsAreClear(x.page);
+  await retouchFillsDesktop(x.page);
   assert.match(x.page.url(),/tool=retouch/);
   assert.equal(await x.page.locator('#tool-retouch').getAttribute('aria-pressed'),'true');
   assert.equal(await x.page.locator('#tool-image').getAttribute('aria-pressed'),'false');
@@ -197,6 +198,7 @@ try{
   await x.page.goto(ORIGIN+'/lab/studio.html?tool=retouch');
   await x.page.waitForFunction(()=>document.getElementById('app').classList.contains('retouch-studio-active'));
   await retouchTopAndBackButton(x.page);
+  await retouchFillsDesktop(x.page);
   assert.equal(await x.page.locator('#precision-drop').isVisible(),true);
   // A new file after an empty Retouch view changes the board height. Even
   // when previously scrolled, the editor must reset and keep footers clear.
@@ -222,6 +224,14 @@ try{
   await x.page.waitForTimeout(120);
   await retouchTopAndBackButton(x.page);
   await retouchPanelsAreClear(x.page);
+  await retouchFillsDesktop(x.page);
+  for(const viewport of [{width:1800,height:828},{width:1440,height:900}]){
+    await x.page.setViewportSize(viewport);
+    await x.page.waitForTimeout(80);
+    await retouchFillsDesktop(x.page);
+    await retouchPanelsAreClear(x.page);
+  }
+  await x.page.setViewportSize({width:1440,height:1000});
   await x.page.click('#precision-return');
   assert.match(x.page.url(),/tool=image/);
   // Public customers can inspect Retouch, but no metered service is enabled.
