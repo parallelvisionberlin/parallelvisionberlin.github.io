@@ -60,14 +60,15 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     oc.globalCompositeOperation='source-in';oc.fillStyle='rgba(214,255,0,.58)';
     oc.fillRect(0,0,overlay.width,overlay.height);oc.globalCompositeOperation='source-over';
   }
-  async function saveUndo(){
+  function saveUndo(){
     if(!mask.width)return;
-    undoStack.push(await readBlob(mask));
+    // Snapshot synchronously before the first brush mark. An async toBlob would race pointermove.
+    undoStack.push(mask.toDataURL('image/png'));
     if(undoStack.length>maxUndo)undoStack.shift();
   }
   async function undo(){
     if(!undoStack.length||taskBusy)return;
-    const blob=undoStack.pop(),bitmap=await createImageBitmap(blob);
+    const snapshot=undoStack.pop(),blob=await (await fetch(snapshot)).blob(),bitmap=await createImageBitmap(blob);
     maskCtx.clearRect(0,0,mask.width,mask.height);
     maskCtx.drawImage(bitmap,0,0);bitmap.close();maskChanged();
   }
@@ -185,7 +186,8 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     maskChanged();
   }
   async function magicSelect(point){
-    if(!base||taskBusy||!falReady())return;
+    if(!base||taskBusy)return;
+    if(!falReady()){setStatus('Magic Select requires the FAL API connection.',true);return;}
     taskBusy=true;refreshButtons();$('precision-source-holder').classList.add('is-busy');
     const revision=++session;
     try{
@@ -378,7 +380,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     e.preventDefault();const point=pointAt(e);
     if(mode==='magic'){handle(magicSelect(point));return;}
     drawing=true;lastPoint=point;overlay.setPointerCapture(e.pointerId);
-    handle(saveUndo());stroke(point);
+    saveUndo();stroke(point);
   };
   overlay.onpointermove=e=>{if(!drawing)return;stroke(pointAt(e));};
   for(const name of ['pointerup','pointercancel','lostpointercapture'])overlay.addEventListener(name,()=>{if(drawing){drawing=false;lastPoint=null;maskChanged();}});
