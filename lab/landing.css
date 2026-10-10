@@ -15,3 +15,20 @@ footer{display:flex;align-items:center;justify-content:space-between;gap:25px;pa
 @media(min-width:1700px){.hero-copy{bottom:26%}}
 @media(max-width:900px) and (min-width:701px){.hero-copy{max-width:57vw}.hero-copy h1{font-size:72px}.hero-copy h2{font-size:36px}.hero-description{max-width:390px}.card-caption h3{font-size:36px}.card-caption{padding:6px 0 18px}}
 @media(max-width:700px){.hero-poster{object-position:center top}.hero-shade{background:linear-gradient(0deg,#10160ff5,#10160fa8 28%,transparent 60%)}.hero-copy{bottom:85px;max-width:400px}.hero-copy h1{font-size:48px}.hero-copy h2{font-size:clamp(48px,12.7vw,64px);white-space:normal}.hero-copy h2 br{display:block}.hero-description{font-size:13px}.tools-section{padding:28px 20px 36px}.tool-cards{gap:32px}.card-caption{padding:0 0 14px}.card-caption h3{font-size:36px}.card-media{aspect-ratio:4/5;max-height:500px}.card-arrow{font-size:24px}}
+
+/* Editorial hero refinements: preserve the image, crop, copy and left alignment. */
+.hero-copy h1{font-size:clamp(70px,7.65vw,130px)}
+.start-link{
+  min-height:50px;padding:15px 30px;gap:31px;
+  background:#f5f2eb;border-color:#f5f2eb;color:#181a17;
+  font-size:14px;font-weight:500;
+  transition:background .2s,border-color .2s,color .2s;
+}
+.start-link:hover{background:#fff;border-color:#fff;color:#181a17}
+@media(max-width:900px) and (min-width:701px){
+  .hero-copy h1{font-size:66px}
+}
+@media(max-width:700px){
+  .hero-copy h1{font-size:48px}
+  .start-link{min-height:46px;padding:13px 24px;gap:24px;font-size:13px}
+}
