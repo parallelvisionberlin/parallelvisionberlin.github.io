@@ -567,7 +567,7 @@ function setTool(value){
 const imageStudio = $('image-studio');
 const imageComposer = $('image-composer');
 const precisionEditor=createPrecisionEditor({host:$('app'),api,assetBlob,uploadAsset,notify,
-  owner:()=>owner&&!customerMode,falReady:()=>!!config.falEnabled,
+  owner:()=>owner,falReady:()=>!!config.falEnabled&&!customerMode,
   onExit:()=>returnToImageFromRetouch(),
   onJob:job=>{surfaceHistoryJob(job);refreshHistorySoon();}});
 // Retouch is an independent route. Image state stays in its existing deck.
@@ -595,10 +595,6 @@ function leaveRetouch(){
 }
 async function openRetouch({file:chosenFile=null,id=null,autofill=false,push=true}={}){
   if(!owner||busy)return;
-  if(customerMode){
-    notify('Retouch generation is currently available in the owner workspace only. No paid task started.',true);
-    return;
-  }
   const from=studioRoute();
   const selected=chosenFile?{file:chosenFile,id}:
     autofill&&!precisionEditor.hasBase()?imageBaseForRetouch():null;
@@ -608,6 +604,7 @@ async function openRetouch({file:chosenFile=null,id=null,autofill=false,push=tru
   if(assetLibrary?.active())assetLibrary.close();
   retouchActive=true;
   $('app').classList.add('retouch-studio-active');
+  $('precision-access-note').hidden=!customerMode;
   syncStudioRoute('retouch',{push:push&&from!=='retouch',retouchFrom:from});
   syncImageStudioMode();syncVideoStudioMode();syncStudioNav();
   // Reuse the exact File object and uploaded asset ID. Do not upload or bill here.
