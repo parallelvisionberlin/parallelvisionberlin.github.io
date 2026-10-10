@@ -65,7 +65,7 @@ try{
       throw new Error('Unknown asset '+id);
     };
     const editor=createPrecisionEditor({host:document.querySelector('#image-studio'),api,assetBlob,
-      uploadAsset:async file=>{const id=await store(file);if(file.name==='precision-selection.png')window.pvMaskId=id;return id;},
+      uploadAsset:async file=>{const id=await store(file);if(file.name==='editorial.png')window.pvBaseId=id;if(file.name==='precision-selection.png')window.pvMaskId=id;return id;},
       notify:()=>{},owner:()=>true,falReady:()=>true,onJob:job=>window.pvJobs.push(job)});
     const file=new File([original],'editorial.png',{type:'image/png'});
     await editor.open({file});
@@ -107,7 +107,7 @@ try{
   });
   assert.deepEqual(colors.afterOutside,colors.beforeOutside,'Outside the selection must remain pixel-identical');
   assert.ok(colors.inside[0]>180&&colors.inside[2]<80,'Selected region must contain the generated edit');
-  await page.locator('#precision-compare').fill('20');
+  await page.locator('#precision-compare').evaluate(el=>{el.value='20';el.dispatchEvent(new Event('input',{bubbles:true}));});
   assert.equal(await page.locator('#precision-compare').inputValue(),'20');
   mkdirSync('test-results',{recursive:true});
   await page.screenshot({path:'test-results/pv-precision-desktop.png',fullPage:false});
