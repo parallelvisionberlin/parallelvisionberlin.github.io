@@ -49,7 +49,7 @@ await context.route('https://**/*',async route=>{
  if(path==='/api/soul-pro/identity')return send({configured:false,count:0,refs:[]});
  if(path==='/api/uploads')return send({id:id()},201);
  if(path==='/api/quotes'){
-   const price=data.settings.resolution==='2k'?.06:(data.referenceSourceIds||[]).length?.08:.036;
+   const price=(data.referenceSourceIds||[]).length?.08:data.settings.resolution==='2k'?.06:.036;
    const quote=()=>{
      const q={id:id(),provider:'SpicyAPI',settings:{...data.settings,type:'image',mode:'image'},
        maxUsd:price,estimatedUsd:price,expiresAt:Date.now()+180000};
@@ -89,7 +89,9 @@ try{
  await page.click('#image-composer-generate');
  await page.waitForFunction(()=>!document.querySelector('#generate').disabled);
  assert.equal(paidJobs,2);
- assert.equal(requests.filter(x=>x.path==='/api/quotes').length,3,'Generate must reuse the displayed quote IDs');
+ const firstSubmission=requests.findIndex(x=>x.path==='/api/jobs');
+ assert.equal(requests.slice(0,firstSubmission).filter(x=>x.path==='/api/quotes').length,3,'Generate must use the displayed quote IDs without repricing');
+ assert.equal(requests.filter(x=>x.path==='/api/jobs').length,2);
  console.log('PASS Generate uses the bound price without a second quote or double charge');
  // Set a 3:4 base photo and verify that it follows the reference until overridden.
  const png=Buffer.from((await page.evaluate(()=>{
