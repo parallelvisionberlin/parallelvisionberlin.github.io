@@ -1,0 +1,38 @@
+name: Verify compact Image prompt live
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/verify-compact-prompt-published.yml'
+permissions:
+  contents: read
+  pages: write
+jobs:
+  verify-live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Request Pages refresh of current main
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api --method POST "repos/${GITHUB_REPOSITORY}/pages/builds" --jq '{status,url}' || true
+      - name: Confirm compact Image editor on published Lab
+        shell: bash
+        run: |
+          set -euo pipefail
+          for n in $(seq 1 28); do
+            curl -fsS --max-time 15 -H 'Cache-Control: no-cache' \
+              "https://parallelvisionlabel.com/lab/studio.html?compact-prompt-check=${n}" -o /tmp/lab.html
+            if grep -Fq 'higgsfield.css?v=20261010-compact-image-prompt1' /tmp/lab.html; then
+              echo "Published HTML has new compact prompt version"
+              break
+            fi
+            if [ "${n}" = '28' ];then echo 'Live page still old';exit 1;fi
+            sleep 6
+          done
+          curl -fsS --max-time 18 'https://parallelvisionlabel.com/lab/higgsfield.css?v=20261010-compact-image-prompt1' -o /tmp/higgsfield.css
+          grep -Fq 'max-height:min(176px,25dvh)' /tmp/higgsfield.css
+          grep -Fq 'overflow-x:hidden;overflow-y:auto' /tmp/higgsfield.css
+          curl -fsS --max-time 18 'https://parallelvisionlabel.com/lab/lab.js?v=20261010-submit-feedback1' -o /tmp/lab.js
+          grep -Fq 'function fitImageComposerPrompt(){' /tmp/lab.js
+          echo 'LIVE PASS: compact, scrollable Image prompt and size helper published.'
