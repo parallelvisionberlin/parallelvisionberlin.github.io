@@ -430,8 +430,8 @@ await page.click('#tool-assets');await page.click('#assets-all');await page.wait
 assert.equal(await page.locator('#history .card[data-job="up-spicy"]').count(),1,'Archived upscale remains in Assets');
 jobs=jobs.filter(j=>j.settings.mode!=='upscale');
 await page.click('#tool-upscale');await page.waitForFunction(()=>document.querySelectorAll('#history .card').length===0);
-await page.waitForFunction(()=>document.querySelector('#emptyarchive').textContent==='Your upscaled images will appear here.');
-assert.equal(await page.locator('#emptyarchive').textContent(),'Your upscaled images will appear here.');
+await page.waitForFunction(()=>document.querySelector('#emptyarchive').textContent==='No upscaled images yet');
+assert.equal(await page.locator('#emptyarchive').textContent(),'No upscaled images yet');
 assert.deepEqual(errors,[]);
 console.log('PASS restored Upscaler gallery: only upscales, below deck, immediate results, archive behavior, full Assets and mobile');
 

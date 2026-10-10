@@ -231,7 +231,9 @@ function updateUpscaleModel(){
   for(const option of $('upscale-engine').options)option.disabled=option.value!=='spicy'&&!config.falEnabled;
   if(!active)return;
   $('resolution-control').hidden=fal;$('engine-name').textContent=model.name.toUpperCase()+' · '+model.provider.toUpperCase();
-  $('upscale-model-name').textContent=upscaleName(settings());$('upscale-model-description').textContent=model.description+(fal?' Lab output limit: approximately 67 megapixels.':'');$('upscale-published-price').textContent=model.price;$('upscale-pricing-link').href=model.pricing;
+  const liveUpscaleSettings=settings();
+  $('upscale-technical-summary').textContent=upscaleName(liveUpscaleSettings)+' / '+upscaleSize(liveUpscaleSettings)+' / source ratio';
+  $('upscale-model-name').textContent=upscaleName(liveUpscaleSettings);$('upscale-model-description').textContent=model.description+(fal?' Lab output limit: approximately 67 megapixels.':'');$('upscale-published-price').textContent=model.price;$('upscale-pricing-link').href=model.pricing;
   $('upscale-content-label').textContent=fal?'FAL content restrictions':'No added SpicyAPI filter';$('upscale-content-note').textContent=fal?'Sexually explicit content is not allowed.':'The model may still refuse an input.';$('upscale-content-link').href=fal?'https://fal.ai/legal/acceptable-use-policy':model.pricing;
   $('upscale-price-help').textContent='Optional · no generation charge';
   $('generation-help').textContent=fal?'Upscale starts one paid Topaz job in one click. PV Lab checks the estimated price and output dimensions automatically before submission; the displayed FAL price is an estimate and provider billing is authoritative.':'Upscale starts one paid upscaling job. You can check its live price above first; there is no extra price-review popup. Inputs over 10 MiB need a working copy; the Lab prepares it automatically and keeps the original.';
@@ -2235,7 +2237,7 @@ async function loadHistory(append=false,incremental=false){
   const data=await api('/api/jobs?'+q);
   if(!owner||rev!==historyRevision||loadId!==historyLoadId)return;
   renderCards(data.jobs,{upsert:incremental});if(!incremental||!next)next=data.next;$('more').hidden=!next;
-  $('emptyarchive').hidden=$('history').children.length>0;$('emptyarchive').textContent=assetLibrary?.active()?'No items here yet. Add work using Select → Add to folder, or mark a heart for Favorites.':tool==='upscale'?'Your upscaled images will appear here.':'No saved work yet.';
+  $('emptyarchive').hidden=$('history').children.length>0;$('emptyarchive').textContent=assetLibrary?.active()?'No items here yet. Add work using Select → Add to folder, or mark a heart for Favorites.':tool==='upscale'?'No upscaled images yet':'No saved work yet.';
   if(data.concurrency)config.concurrency=data.concurrency;setActiveJobs(data.activeJobs||(data.active?[data.active]:[]));syncImageGalleryEmpty();if(tool==='video'&&!assetLibrary?.active())restoreLatestVideoSelection();
 }
 async function syncHistory(){return loadHistory(false,true);}
