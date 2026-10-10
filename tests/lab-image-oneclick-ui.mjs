@@ -84,6 +84,7 @@ async function workspace({failure='',width=1440,initial=[],savedPacks=[],quoteDe
 const count=(x,path,method='POST')=>x.requests.filter(r=>r.path===path&&r.method===method).length;
 const ready=page=>page.waitForFunction(()=>!document.querySelector('#resolution').disabled);
 const waitAccepted=async(x,n)=>{const until=Date.now()+7000;while(x.accepted()<n&&Date.now()<until)await new Promise(r=>setTimeout(r,40));};
+const waitRefs=(page,n)=>page.waitForFunction(expected=>document.querySelectorAll('#reference-list .reference-item').length===expected,n);
 async function imageForm(x){await imageAdvanced(x.page);await x.page.fill('#prompt:visible, #image-composer-prompt:visible',settings.prompt);await x.page.selectOption('#resolution:visible, #image-composer-resolution:visible','2k');await x.page.selectOption('#ratio:visible, #image-composer-ratio:visible','16:9');await x.page.selectOption('#output-format','png');}
 try{
  let x;
@@ -160,10 +161,10 @@ try{
 
  }
  {
-  const refPhotos=[{name:'front.png',mimeType:'image/png',buffer:png},{name:'side.png',mimeType:'image/png',buffer:png},{name:'back.png',mimeType:'image/png',buffer:png}];
   x=await workspace();await imageForm(x);
+  const refPhotos=[{name:'front.png',mimeType:'image/png',buffer:png},{name:'side.png',mimeType:'image/png',buffer:png},{name:'back.png',mimeType:'image/png',buffer:png}];
   assert.equal(await x.page.locator('#composer-reference-intent-toggle').isVisible(),false);
-  await x.page.locator('#reference-images').setInputFiles(refPhotos);await ready(x.page);
+  await x.page.locator('#reference-images').setInputFiles(refPhotos);await waitRefs(x.page,3);await ready(x.page);
   assert.equal(await x.page.locator('#composer-reference-intent').isVisible(),false,'Upload must not open a compulsory chooser');
   assert.match(await x.page.locator('#composer-reference-intent-toggle').innerText(),/Base image/);
   assert.equal(await x.page.locator('.composer-reference-index').first().innerText(),'BASE');
@@ -173,7 +174,7 @@ try{
   await x.page.click('#image-composer-generate');await ready(x.page);
   assert.deepEqual(x.requests.find(req=>req.path==='/api/quotes').data.settings.referenceRoles.map(ref=>ref.role),['base','none','none']);
   assert.equal(x.accepted(),1);ok('Upload immediately works with Base and General references');assert.deepEqual(x.errors,[]);await x.context.close();
-  x=await workspace();await imageForm(x);await x.page.locator('#reference-images').setInputFiles(refPhotos);await ready(x.page);
+  x=await workspace();await imageForm(x);await x.page.locator('#reference-images').setInputFiles(refPhotos);await waitRefs(x.page,3);await ready(x.page);
   await x.page.fill('#image-composer-prompt','');
   assert.equal(await x.page.locator('#image-composer-generate').isDisabled(),false,'No prompt and unassigned roles must be allowed');
   assert.match(await x.page.locator('#image-composer-generate').innerText(),/Create variation/);
@@ -183,7 +184,7 @@ try{
   assert.equal(x.accepted(),1);ok('No prompt + no roles creates a labeled variation without guessing an edit');assert.deepEqual(x.errors,[]);await x.context.close();
 
 
-  x=await workspace();await imageForm(x);await x.page.locator('#reference-images').setInputFiles(refPhotos);await ready(x.page);
+  x=await workspace();await imageForm(x);await x.page.locator('#reference-images').setInputFiles(refPhotos);await waitRefs(x.page,3);await ready(x.page);
   await x.page.click('#composer-reference-intent-toggle');
   assert.equal(await x.page.locator('#composer-reference-intent').isVisible(),true);
   await x.page.click('#composer-reference-same-person');
@@ -193,7 +194,7 @@ try{
   assert.deepEqual(x.requests.find(req=>req.path==='/api/quotes').data.settings.referenceRoles.map(ref=>ref.role),['base','identity','identity']);
   assert.equal(x.accepted(),1);ok('Same person presets reference roles without dropping the base');assert.deepEqual(x.errors,[]);await x.context.close();
 
-  x=await workspace();await imageForm(x);await x.page.locator('#reference-images').setInputFiles(refPhotos);await ready(x.page);
+  x=await workspace();await imageForm(x);await x.page.locator('#reference-images').setInputFiles(refPhotos);await waitRefs(x.page,3);await ready(x.page);
   await x.page.click('#composer-reference-intent-toggle');await x.page.click('[data-reference-intent="references"]');
   assert.equal(await x.page.locator('#image-reference-mode').inputValue(),'references');
   assert.equal(await x.page.locator('.composer-reference-role').count(),3);
@@ -211,14 +212,14 @@ try{
   assert.deepEqual(x.requests.find(req=>req.path==='/api/quotes').data.settings.referenceRoles.map(ref=>ref.role),['pose','lighting','none']);
   assert.equal(x.accepted(),1);ok('Switching modes preserves roles and preview matches settings');assert.deepEqual(x.errors,[]);await x.context.close();
 
-  x=await workspace();await imageForm(x);await x.page.locator('#reference-images').setInputFiles(refPhotos.slice(0,2));await ready(x.page);
+  x=await workspace();await imageForm(x);await x.page.locator('#reference-images').setInputFiles(refPhotos.slice(0,2));await waitRefs(x.page,2);await ready(x.page);
   await x.page.click('#composer-reference-intent-toggle');await x.page.click('[data-reference-intent="references"]');
   await x.page.click('#composer-reference-intent-toggle');await x.page.click('#composer-reference-same-person');
   assert.deepEqual(await x.page.locator('.composer-reference-role').evaluateAll(a=>a.map(el=>el.value)),['identity','identity']);
   await x.page.click('#image-composer-generate');await ready(x.page);
   assert.deepEqual(x.requests.find(req=>req.path==='/api/quotes').data.settings.referenceRoles.map(ref=>ref.role),['identity','identity']);
   assert.equal(x.accepted(),1);ok('Same person preset works in References only');assert.deepEqual(x.errors,[]);await x.context.close();
-  x=await workspace();await imageForm(x);await x.page.locator('#reference-images').setInputFiles(refPhotos.slice(0,2));await ready(x.page);
+  x=await workspace();await imageForm(x);await x.page.locator('#reference-images').setInputFiles(refPhotos.slice(0,2));await waitRefs(x.page,2);await ready(x.page);
   await x.page.click('#composer-reference-intent-toggle');await x.page.click('[data-reference-intent="references"]');
   await x.page.fill('#image-composer-prompt','');
   assert.equal(await x.page.locator('#image-composer-generate').isDisabled(),false);
