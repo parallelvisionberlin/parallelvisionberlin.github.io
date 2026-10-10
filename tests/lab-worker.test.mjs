@@ -259,13 +259,13 @@ test('Seedream uses SpicyAPI with ordered images, compiled properties and reusab
     const generalResponse=await req(env,'/api/quotes',{method:'POST',data:{settings:general,referenceSourceIds:ids}});
     assert.equal(generalResponse.status,200,await generalResponse.clone().text());
     assert.deepEqual((await generalResponse.json()).settings.referenceRoles.map(r=>r.role),['base','none','none','none']);
-    assert.match(quotedRequest.input.prompt,/Reference 2 \\[General reference\\]/);
+    assert.match(quotedRequest.input.prompt,/Reference 2 \[General reference\]/);
     assert.match(quotedRequest.input.prompt,/General visual reference/);
     const only={...general,referenceMode:'references',referenceRoles:ids.map(()=>({role:'identity'}))};
     const onlyResponse=await req(env,'/api/quotes',{method:'POST',data:{settings:only,referenceSourceIds:ids}});
     assert.equal(onlyResponse.status,200,await onlyResponse.clone().text());
     assert.match(quotedRequest.input.prompt,/There is no base image/);
-    assert.match(quotedRequest.input.prompt,/Reference 4 \\[Identity\\]/);
+    assert.match(quotedRequest.input.prompt,/Reference 4 \[Identity\]/);
 
     const draftResponse=await req(env,'/api/drafts',{method:'POST',data:{settings,referenceSourceIds:ids}});assert.equal(draftResponse.status,201);
     assert.deepEqual((await draftResponse.json()).job.settings.referenceRoles,labels);
