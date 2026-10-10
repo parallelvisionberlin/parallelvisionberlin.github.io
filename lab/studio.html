@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 <link rel="stylesheet" href="./moods.css?v=20261010-frutiger-aero1">
 <link rel="stylesheet" href="./detail-video-studio.css?v=20261009-pointer1">
 <link rel="stylesheet" href="./editorial-polish.css?v=20261010-mood-details1">
-<script type="module" src="./lab.js?v=20261010-frutiger-aero1&wallet=1&fashiondeck=1"></script>
+<script type="module" src="./lab.js?v=20261010-soul-price1&wallet=1&fashiondeck=1"></script>
 <link rel="stylesheet" href="./credits.css?v=20261010-referrals3">
 <link rel="stylesheet" href="./higgsfield.css?v=20261010-compact-image-prompt1">
 <link rel="stylesheet" href="./assets.css?v=20261010-upscale-deck1">
@@ -484,8 +484,9 @@ document.addEventListener('DOMContentLoaded',()=>{
 <label><span class="label">Identity photos · 1–100</span><input id="hf-training-files" type="file" accept="image/jpeg,image/png,image/webp" multiple></label>
 <p id="hf-training-count" class="fine">Choose clear photos of the same person.</p><div id="hf-training-preview"></div>
 <label><span class="label">Or use a saved photo pack</span><select id="hf-training-pack"><option value="">Upload new photos instead</option></select></label>
-<label class="hf-consent"><input id="hf-training-confirm" type="checkbox"><span>I authorize sending these photos to Higgsfield and the estimated $2.50 one-time Soul ID training charge. Provider billing is authoritative.</span></label>
+<label class="hf-consent"><input id="hf-training-confirm" type="checkbox"><span id="hf-training-consent-copy">I authorize sending these photos to Higgsfield and the estimated $2.50 one-time Soul ID training charge. Provider billing is authoritative.</span></label>
 <button id="hf-training-submit" type="button" class="primary">Create Soul ID · est. $2.50</button>
+<p id="hf-training-offer-note" class="fine" hidden></p>
 <p id="hf-training-status" class="fine" role="status"></p>
 </dialog>
 <dialog id="asset-folder-dialog" aria-labelledby="asset-folder-title"><div class="folder-dialog-head"><h2 id="asset-folder-title">Add to folder</h2><button id="asset-folder-close" type="button" aria-label="Close folder dialog">×</button></div><div id="asset-folder-choices"></div><form id="asset-folder-form"><label for="asset-folder-name">Create a new folder</label><div class="folder-create-row"><input id="asset-folder-name" maxlength="80" placeholder="Folder name" required><button id="asset-folder-create" type="submit">Create</button></div><p id="asset-folder-error" role="alert"></p></form></dialog>
