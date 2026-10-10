@@ -46,7 +46,9 @@ jobs:
           apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
           workingDirectory: lab-worker
           wranglerVersion: "4"
-          preCommands: wrangler d1 execute parallel-vision-lab --remote --file migrations/0004-pv-soul.sql --yes
+          preCommands: |
+            wrangler d1 execute parallel-vision-lab --remote --file migrations/0004-pv-soul.sql --yes
+            wrangler d1 execute parallel-vision-lab --remote --file migrations/0006-customers-billing.sql --yes
           command: deploy
 
       - name: Verify production health

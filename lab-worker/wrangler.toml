@@ -3,6 +3,12 @@ main = "worker.mjs"
 compatibility_date = "2026-09-26"
 workers_dev = true
 
+[vars]
+LAB_CUSTOMER_SIGNUPS_ENABLED = "true"
+LAB_PUBLIC_GENERATION_ENABLED = "false"
+LAB_CHECKOUT_ENABLED = "false"
+LAB_PUBLIC_APP_URL = "https://parallelvisionlabel.com/lab/studio.html"
+
 [triggers]
 crons = ["*/5 * * * *"]
 

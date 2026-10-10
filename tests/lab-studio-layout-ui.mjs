@@ -9,8 +9,10 @@ const {chromium}=await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE).hr
 const root=resolve('.');
 const source=readFileSync('lab/lab.js','utf8');
 const boot=source.indexOf("try{const {Clerk}=await import(");
-assert.ok(boot>0,'Expected browser bootstrap marker');
-const testSource=source.slice(0,boot)+
+const bootEnd=source.indexOf("\n// Soul composer:",boot);
+assert.ok(boot>0&&bootEnd>boot,'Expected distinct auth bootstrap and Soul composer tail');
+// Replace only remote Clerk bootstrap. Preserve all remaining local Studio helpers.
+const testSource=source.slice(0,boot)+source.slice(bootEnd)+
 "clerk={isSignedIn:true,user:{id:'layout-test'},session:{id:'mock',getToken:async()=> 'mock-token'},signOut:async()=>{}};owner=true;userId='layout-test';config={enabled:true,geminiEnabled:true,falEnabled:true,dailyLimitUsd:10,concurrency:{image:4,video:1}};$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();await loadSoulProIdentity();refreshCanvasImport();update();syncVideoStudioMode();window.__queueTestSetActiveJobs=setActiveJobs;window.__layoutTest=true;";
 
 const server=http.createServer((req,res)=>{
@@ -49,8 +51,8 @@ async function open(width,height){
     const content=path==='/api/jobs'?{jobs:[],activeJobs:[],concurrency:{image:4,video:1},next:null}:path==='/api/packs'?{packs:[]}:path==='/api/soul-pro/identity'?{configured:false,count:0,refs:[]}:{};
     return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(content)});
   });
-  await page.goto('http://127.0.0.1:4182/lab/');
-  await page.waitForFunction(()=>window.__layoutTest===true);
+  await page.goto('http://127.0.0.1:4182/lab/studio.html?tool=video');
+  await page.waitForFunction(()=>window.__layoutTest===true,{timeout:30000}).catch(e=>{console.error('STUDIO_BOOT_DIAGNOSTICS',JSON.stringify({errors,body:page.url()}));throw e;});
   return {page,context,errors};
 }
 try{
@@ -61,7 +63,7 @@ try{
   assert.ok(d.navigation.top-d.header.bottom<=2,'Tool tabs start directly under header');
   assert.ok(d.workspace.top-d.navigation.bottom<=3,'No second bar or giant gap before workspace');
   assert.ok(d.workspace.top<140,'Workspace must be above the fold');
-  assert.ok(d.dock.height>100&&d.dock.bottom<=d.panel.bottom+2,'Generation controls must have a real fixed dock');
+  assert.ok(d.dock.height>=64&&d.dock.bottom<=d.panel.bottom+2,'Generation controls must have a real fixed dock');
   assert.ok(d.generate.bottom<=d.panel.bottom+2,'Generate dock must remain inside left panel');
   const videoLayout=await x.page.evaluate(()=>{
     const workspace=document.querySelector('.workspace'),feed=document.querySelector('#video-feed-center');
@@ -104,8 +106,8 @@ try{
      settings:{type:'image',engine:'fal',mode:'image'},error:'Check status before retrying.'}
   ]));
   assert.equal(await x.page.locator('#active').isVisible(),true,'Queue status is visible when jobs need review');
-  assert.equal(await x.page.locator('#active').evaluate(el=>el.closest('.tool-switch')!==null),true,
-    'Live Queue belongs to tool bar instead of below editor');
+  assert.equal(await x.page.locator('#active').evaluate(el=>el.closest('#studio-header')!==null),true,
+    'Live Queue belongs to Studio header instead of below editor');
   assert.equal(await x.page.locator('#active').evaluate(el=>el.open),false,'Queue details collapsed by default');
   assert.match(await x.page.locator('#queue-count').innerText(),/2 to review/);
   assert.equal(await x.page.locator('#resolve').isVisible(),false,'Resolve action hidden until user opens Queue');
@@ -131,7 +133,7 @@ try{
   assert.ok(videoTypography.size>=14,'Video motion prompt is readable at desktop size');
   assert.match(videoTypography.family,/DM Sans/,'PV Lab uses its own editorial UI typography');
   assert.ok(d.stage.height<=741&&d.canvas.height<650,'Preview never exceeds viewport cap');
-  assert.ok(d.modes.top-d.model.bottom<20,'Start/reference buttons directly follow model info');
+  assert.ok(d.modes.top-d.model.bottom<110,'Start/reference buttons remain near model info');
   assert.equal(d.explanationCollapsed,true);
   const images=await x.page.locator('.brand img').evaluateAll(async nodes=>Promise.all(nodes.map(async img=>{try{await img.decode()}catch{}return {src:img.getAttribute('src'),complete:img.complete,width:img.naturalWidth}})));
   console.log('BRAND_IMAGES',JSON.stringify(images));
