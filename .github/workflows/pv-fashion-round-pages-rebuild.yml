@@ -1,0 +1,44 @@
+name: One-time rounded Fashion icons Pages rebuild
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/pv-fashion-round-pages-rebuild.yml'
+permissions:
+  contents: read
+  pages: write
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Report Pages latest revision
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api "repos/${GITHUB_REPOSITORY}/pages/builds/latest" --jq '{status,commit,created_at,error}' || true
+          gh api "repos/${GITHUB_REPOSITORY}/commits/main" --jq '.sha'
+      - name: Request Pages build from existing main
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api --method POST "repos/${GITHUB_REPOSITORY}/pages/builds" --jq '{status,url}'
+      - name: Confirm live Fashion rounded CSS and SVG output frame
+        shell: bash
+        run: |
+          set -euo pipefail
+          for n in $(seq 1 24); do
+            curl -fsS --max-time 15 -H 'Cache-Control: no-cache' \
+              "https://parallelvisionlabel.com/lab/fashion.html?round-icons-check=${n}" -o /tmp/fashion.html
+            if grep -Fq 'fashion.css?v=20261010-fashion-round01' /tmp/fashion.html; then
+              grep -Fq 'class="empty-art empty-art-person"' /tmp/fashion.html
+              grep -Fq 'class="empty-art empty-art-garment"' /tmp/fashion.html
+              grep -Fq 'class="empty-art empty-art-result"' /tmp/fashion.html
+              grep -Fq 'rect x="25" y="24" width="55" height="72" rx="8"' /tmp/fashion.html
+              echo "LIVE PASS: rounded Fashion icons and frame published."
+              exit 0
+            fi
+            echo "Waiting for GitHub Pages (${n}/24)"
+            sleep 7
+          done
+          echo "GitHub Pages has not published the round Fashion CSS yet."
+          exit 1
