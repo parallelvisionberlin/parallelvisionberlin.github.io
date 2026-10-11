@@ -218,3 +218,49 @@
   .lab-plan{transition:none}
   .lab-plan:hover,.lab-plan:has(> button[data-lab-buy]:focus-visible){transform:none}
 }
+
+
+/* Pricing as one compact comparison, not three full-screen cards. */
+@media(max-width:800px){
+  .lab-plans{padding:44px 18px 51px!important}
+  .lab-plans h2{font-size:clamp(35px,9vw,49px);line-height:1.04;margin:15px 0 12px}
+  .lab-plans-intro{font-size:13px;line-height:1.55;margin:0 0 22px}
+  .lab-plans-grid{
+    display:grid;grid-template-columns:1fr;gap:0!important;
+    border:1px solid #c9cdc5;background:#c9cdc5;
+  }
+  .lab-plan{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) auto;
+    grid-template-areas:"name price" "credits price" "description description" "action action";
+    column-gap:10px;row-gap:7px;align-items:center;
+    min-height:0!important;padding:19px 18px 18px!important;
+    margin:0!important;border:0!important;border-radius:0!important;
+    background:#eeede8;
+  }
+  .lab-plan+.lab-plan{border-top:1px solid #c9cdc5!important}
+  .lab-plan-name{grid-area:name;font-size:11px;letter-spacing:.15em;align-self:end}
+  .lab-plan-price{
+    grid-area:price;margin:0!important;font-size:clamp(32px,8vw,42px)!important;
+    line-height:1;white-space:nowrap;align-self:center;
+  }
+  .lab-plan-price small{font-size:11px;letter-spacing:0}
+  .lab-plan-credits{grid-area:credits;font-size:12px;margin:0!important;line-height:1.35}
+  .lab-plan-description{
+    grid-area:description;font-size:11px;line-height:1.45;
+    margin:5px 0 0!important;max-width:100%;
+  }
+  .lab-plan button{
+    grid-area:action;min-height:36px;margin:5px 0 0!important;
+    padding:10px 14px!important;font-size:11px!important;
+    border-radius:100px;text-align:center;justify-content:center;
+  }
+  .lab-plan[data-featured="true"]{background:#242823!important;color:#f6f5f1}
+  .lab-plan[data-featured="true"] .lab-plan-description{color:#c0c9bf}
+  .lab-plan:hover,.lab-plan:has(>button[data-lab-buy]:focus-visible){
+    transform:none!important;box-shadow:none!important;
+  }
+  .lab-topups{margin-top:24px;padding-top:18px;gap:12px}
+  .lab-topups-actions{gap:7px}
+  .lab-topups-actions button{font-size:11px;padding:9px 12px}
+}
