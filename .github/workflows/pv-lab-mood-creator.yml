@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'lab/mood-creator*'
+      - 'lab/explore-moods*'
       - 'lab/mood-home.css'
       - 'lab/mood-handoff.js'
       - 'lab/moods.js'
@@ -36,6 +37,7 @@ jobs:
       - name: Syntax and private Moodboard tests
         run: |
           node --check lab/mood-creator.js
+          node --check lab/explore-moods.js
           node --check lab/mood-handoff.js
           node --check lab/my-moods.js
           node --check lab/moods.js
@@ -61,7 +63,7 @@ jobs:
         run: |
           npm install --prefix /tmp/pv-mood-creator --no-save playwright@1.57.0
           node /tmp/pv-mood-creator/node_modules/playwright/cli.js install --with-deps chromium
-      - name: Gallery, photo handoff and personal Moods
+      - name: Explore gallery, photo handoff and personal Mood synthesis
         env:
           PV_PLAYWRIGHT_MODULE: /tmp/pv-mood-creator/node_modules/playwright/index.mjs
         run: node tests/lab-mood-creator-browser.mjs
@@ -78,7 +80,7 @@ jobs:
         run: |
           npm install --prefix /tmp/pv-mood-masthead --no-save playwright@1.57.0
           node /tmp/pv-mood-masthead/node_modules/playwright/cli.js install --with-deps chromium
-      - name: Verify icon, tooltip, six tabs and nine screen widths
+      - name: Verify Mood links, icon, six tools and nine screen widths
         env:
           PV_PLAYWRIGHT_MODULE: /tmp/pv-mood-masthead/node_modules/playwright/index.mjs
         run: node tests/lab-mood-nav-browser.mjs
