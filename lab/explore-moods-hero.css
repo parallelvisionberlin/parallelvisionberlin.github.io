@@ -1,0 +1,27 @@
+/* The photographs dissolve independently of the fixed headline and actions. */
+.mc-explore-page [data-hero-carousel] .mc-explore-hero-art{inset:0}
+.mc-explore-page [data-hero-carousel] .mc-explore-hero-art img{
+  object-position:var(--hero-position,65%) center;
+}
+.mc-explore-page [data-hero-carousel] .mc-explore-hero-veil{
+  background:linear-gradient(90deg,#0a100ff2 0%,#0a100fdf 24%,#0a100f82 43%,transparent 72%),linear-gradient(0deg,#0a100f85,transparent 25%);
+}
+.mc-hero-controls{
+  position:absolute;z-index:2;right:clamp(18px,3.9vw,72px);bottom:14px;
+  display:flex;align-items:center;gap:14px;color:#f4f6f2;
+  padding:0 10px;background:#0a100f99;border-radius:24px;
+  font:500 10px/1.2 'DM Sans',Arial,sans-serif;letter-spacing:.08em;
+}
+.mc-hero-controls[hidden]{display:none}
+.mc-hero-controls button{
+  min-height:36px;padding:0 4px;border:0;background:none;color:inherit;
+  font:inherit;cursor:pointer;
+}
+.mc-hero-controls button:focus-visible{outline:2px solid var(--pv-acid);outline-offset:2px}
+.mc-hero-position{font-variant-numeric:tabular-nums;opacity:.75}
+@media(max-width:700px){
+  .mc-explore-page [data-hero-carousel] .mc-explore-hero-veil{
+    background:linear-gradient(90deg,#0a100fee,#0a100fa8 45%,#0a100f25),linear-gradient(0deg,#0a100fe0,transparent 55%);
+  }
+  .mc-hero-controls{bottom:8px;gap:10px}
+}
