@@ -44,3 +44,47 @@ footer{display:flex;align-items:center;justify-content:space-between;gap:25px;pa
 }
 .start-link{justify-content:center}
 .studio-link span[aria-hidden="true"],.card-arrow:empty{display:none}
+
+
+/* Mobile studio tools: photographic navigation cards, not three tall sections.
+   Names stay inside their images, unobscured by neighboring sections. */
+@media(max-width:700px){
+  .tools-section{padding:24px 18px 34px!important}
+  .tool-cards{
+    display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:10px!important;max-width:100%;
+  }
+  .tool-card{
+    position:relative!important;display:block!important;
+    min-width:0;overflow:hidden;border-radius:5px;
+    background:#1b1e1b!important;color:#fff!important;
+  }
+  .tool-card .card-media{
+    position:relative;aspect-ratio:4/5!important;
+    max-height:none!important;overflow:hidden;
+  }
+  .tool-card .card-media::after{
+    display:block!important;content:"";position:absolute;z-index:2;
+    inset:45% 0 0;pointer-events:none;
+    background:linear-gradient(0deg,#080a09d9,transparent);
+  }
+  .tool-card .card-media img{width:100%;height:100%;object-fit:cover;object-position:50% 30%}
+  .tool-card .card-caption{
+    position:absolute!important;z-index:3;inset:auto 0 0!important;
+    display:flex!important;align-items:end!important;
+    padding:0 13px 13px!important;margin:0!important;
+    order:unset!important;pointer-events:none;color:#f7f8f4!important;
+  }
+  .tool-card .card-caption h3{
+    margin:0!important;font-size:clamp(23px,6.3vw,32px)!important;
+    line-height:1.05;letter-spacing:-.065em;color:inherit;
+  }
+  .tool-card .card-caption p{display:none!important}
+  .tool-card:last-child{grid-column:1 / -1}
+  .tool-card:last-child .card-media{aspect-ratio:2.15/1!important;max-height:205px!important}
+  .tool-card:last-child .card-media img{object-position:50% 49%}
+  .tool-card:focus-visible{outline:2px solid #baff67;outline-offset:3px}
+}
+@media(min-width:701px){
+  .tools-section .card-caption h3{position:relative;z-index:3}
+}
