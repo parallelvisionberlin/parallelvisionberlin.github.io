@@ -42,6 +42,13 @@ for(const [width,height] of [[390,730],[320,590],[768,900]]){
  });
  await page.goto('http://127.0.0.1:4187/lab/studio.html?native=1');
  try{await page.waitForFunction(()=>window.__nativeMessages.some(m=>m.type==='PV_LAB_READY')&&!document.querySelector('#app').hidden);}catch(e){await page.screenshot({path:out+'/boot-failure.png',fullPage:true});console.error(JSON.stringify({errors,requests,body:await page.locator('body').innerText()}));throw e;}
+ assert.equal(await page.locator('#lab-boot').isVisible(),true,'Native workspace waits for its initial destination');
+ assert.equal(await page.locator('#mobile-add-photo').isVisible(),false,'Create must not flash before Gallery');
+ await page.evaluate(()=>window.__PV_LAB_COMMAND__({action:'gallery'}));
+ assert.equal(await page.locator('#assets-gallery').isVisible(),true,'Initial Gallery command opens Gallery');
+ assert.equal(await page.locator('#mobile-add-photo').isVisible(),false,'Gallery keeps Create hidden');
+ assert.equal(await page.locator('#lab-boot').isVisible(),false,'Loading screen leaves when destination is ready');
+ await page.evaluate(()=>window.__PV_LAB_COMMAND__({action:'create'}));
  await page.locator('#mobile-add-photo').waitFor({state:'visible'});
  await page.screenshot({path:out+`/create-${width}.png`,fullPage:true});
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,'No horizontal page overflow');
