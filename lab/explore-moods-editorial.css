@@ -366,3 +366,29 @@
  .mc-explore-page .mc-invent-collage:hover .mc-invent-frame-one{transform:rotate(-8deg)}
  .mc-explore-page .mc-invent-collage:hover .mc-invent-frame-three{transform:rotate(-3deg)}
 }
+
+/* Canonical PV LAB line arrows: never platform emoji, colored glyphs or app-style icons. */
+.mc-explore-page .pv-arrow{
+  display:inline-block;flex:0 0 auto;width:19px;height:19px;min-width:19px;
+  vertical-align:middle;color:inherit;fill:none;stroke:currentColor;
+  stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;
+}
+.mc-explore-page .mc-look-copy .pv-arrow{width:18px;height:18px}
+.mc-explore-page .mc-discovery-actions .pv-arrow{width:21px;height:21px}
+.mc-explore-page .mc-navigation .pv-arrow,
+.mc-explore-page .mc-footer .pv-arrow{width:13px;height:13px;margin-left:3px}
+.mc-explore-page .mc-invent-primary .pv-arrow{width:21px;height:21px}
+.mc-explore-page .mc-invent-idea .pv-arrow,
+.mc-explore-page .mc-invent-photo .pv-arrow{width:19px;height:19px}
+.mc-explore-page .mc-look-copy>span,
+.mc-explore-page .mc-discovery-actions a>span,
+.mc-explore-page .mc-invent-primary>span:last-child,
+.mc-explore-page .mc-invent-idea>span:last-child,
+.mc-explore-page .mc-invent-photo>span:last-child{
+  display:inline-flex;align-items:center;justify-content:center;
+  font-size:0!important;line-height:0!important;
+}
+@media(max-width:700px){
+  .mc-explore-page .mc-look-copy .pv-arrow{width:17px;height:17px}
+  .mc-explore-page .mc-discovery-actions .pv-arrow{width:19px;height:19px}
+}
