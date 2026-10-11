@@ -313,3 +313,29 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
   .mc-analysis-options{align-items:flex-start;flex-wrap:wrap;gap:7px}
   .mc-analysis-options .mc-use-idea{white-space:normal}
 }
+
+
+/* Mood Creator: restore photographic, editorial proposition rather than
+   duplicating the curated filter catalog. The workdeck follows immediately. */
+.mc-hero--creator{min-height:550px;grid-template-columns:minmax(0,1fr) minmax(0,1.02fr)}
+.mc-hero--creator .mc-hero-copy{
+  align-self:center;padding:50px clamp(32px,5.5vw,92px) 55px clamp(27px,5.5vw,92px);
+}
+.mc-hero--creator h1{font-size:clamp(65px,7vw,112px);margin:23px 0 22px}
+.mc-hero--creator .mc-editorial{min-height:550px}
+.mc-hero--creator .mc-start-options{margin:25px 0 9px}
+.mc-hero--creator .mc-start-option{padding:12px 0}
+.mc-creator-hero-links{display:flex;flex-wrap:wrap;gap:25px;margin-top:8px}
+.mc-creator-hero-links .mc-saved-shortcut{margin-top:10px}
+@media(max-width:820px){
+  .mc-hero--creator{grid-template-columns:1fr;min-height:0}
+  .mc-hero--creator .mc-hero-copy{padding:54px 24px 50px}
+  .mc-hero--creator h1{font-size:clamp(63px,10vw,90px)}
+  .mc-hero--creator .mc-editorial{min-height:405px}
+}
+@media(max-width:540px){
+  .mc-hero--creator .mc-hero-copy{padding:45px 20px 42px}
+  .mc-hero--creator h1{font-size:clamp(57px,12vw,78px)}
+  .mc-hero--creator .mc-editorial{min-height:322px}
+  .mc-creator-hero-links{gap:16px}
+}
