@@ -187,7 +187,15 @@ try{
   assert.equal(await page.locator('#precision-ideas').isVisible(),true);
   assert.equal(await page.locator('#precision-result-canvas').isVisible(),false,
     'The sample must never masquerade as a completed AI edit');
-  assert.match(await page.locator('#precision-prompt').inputValue(),/reflective liquid chrome/i);
+  assert.match(await page.locator('#precision-prompt').inputValue(),/matte black sculptural tailoring/i);
+  const sampleMask=await page.evaluate(()=>{
+    const canvas=document.getElementById('precision-selection-canvas');
+    const ctx=canvas.getContext('2d');
+    const point=(x,y)=>ctx.getImageData(Math.round(canvas.width*x),Math.round(canvas.height*y),1,1).data[3];
+    return {chest:point(.5,.35),head:point(.5,.1),floor:point(.5,.88)};
+  });
+  assert.ok(sampleMask.chest>90&&sampleMask.head===0&&sampleMask.floor===0,
+    'The free starter selection should cover the chrome garment, not the face or floor: '+JSON.stringify(sampleMask));
   await page.screenshot({path:'test-results/pv-precision-sample.png',fullPage:false});
   assert.equal(await page.evaluate(()=>window.pvRequests.length),beforeSample,
     'Sample loading and local mask generation must not call any provider API');
