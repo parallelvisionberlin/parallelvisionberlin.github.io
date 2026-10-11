@@ -37,6 +37,7 @@ async function purchase(sku){
   if(!clerk?.isSignedIn){signIn();return;}
   if(!profile){status('Account is still loading.');return;}
   if(!profile.customer){status('Your owner account uses the private studio.');return;}
+  if(profile.pilot&&sku!=='topup10'){status('The private live payment test permits the €10 credit pack only.');return;}
   if(!profile.billingReady){status('Credit checkout is not enabled yet. No payment has been initiated.');return;}
   status('Opening secure checkout…');
   try{
