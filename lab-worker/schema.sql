@@ -77,6 +77,10 @@ CREATE TABLE IF NOT EXISTS moodboard_analysis_quota(
   used INTEGER NOT NULL CHECK(used BETWEEN 0 AND 6),
   PRIMARY KEY(owner_id,day_key)
 );
+CREATE TABLE IF NOT EXISTS moodboard_analysis_global(
+  day_key INTEGER PRIMARY KEY,
+  used INTEGER NOT NULL CHECK(used BETWEEN 0 AND 100)
+);
 CREATE TABLE IF NOT EXISTS moodboard_style_data(
   id TEXT PRIMARY KEY REFERENCES moodboards(id) ON DELETE CASCADE,
   owner_id TEXT NOT NULL,
