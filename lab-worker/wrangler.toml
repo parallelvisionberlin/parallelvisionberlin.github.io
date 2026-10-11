@@ -31,6 +31,11 @@ database_id = "9f31c8a3-8101-408d-a002-22188c67b3b0"
 binding = "LAB_MEDIA"
 bucket_name = "parallel-vision-lab-private"
 
+# Resizes private originals into cached gallery WebP previews. Existing originals
+# remain in R2; first 5,000 unique transformations/month are included on Free.
+[images]
+binding = "IMAGES"
+
 # LAB_SECRET is a Cloudflare secret, never a committed variable.
 # Preserve it across deployments or existing API credentials cannot be decrypted.
 # FAL_KEY is also a Cloudflare secret. It is used only for PV Soul character training.
