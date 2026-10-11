@@ -72,6 +72,11 @@ CREATE TABLE IF NOT EXISTS moodboards(
   created_at INTEGER NOT NULL,updated_at INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS moodboards_owner ON moodboards(owner_id,updated_at DESC);
+CREATE TABLE IF NOT EXISTS moodboard_analysis_quota(
+  owner_id TEXT NOT NULL,day_key INTEGER NOT NULL,
+  used INTEGER NOT NULL CHECK(used BETWEEN 0 AND 6),
+  PRIMARY KEY(owner_id,day_key)
+);
 CREATE TABLE IF NOT EXISTS lab_migrations(id TEXT PRIMARY KEY,applied_at INTEGER NOT NULL);
 
 CREATE TABLE IF NOT EXISTS soul_datasets (
