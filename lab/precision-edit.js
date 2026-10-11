@@ -12,7 +12,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
   let base=null,mode='magic',drawing=false,lastPoint=null,taskBusy=false,pending=null;
   let selected=false,resultBlob=null,resultBitmap=null,disposed=false,workingId=null,session=0;
   let resultFormat='png',zoom=1,panX=0,panY=0,panDrag=null,spaceHeld=false;
-  let selectionAllowance=0,consentPoint=null,queueRevision=0;
+  let selectionAllowance=0,consentPoint=null,queueRevision=0,editEpoch=0;
   const pendingPolls=new Map();
   const exportRiskPixels=5000000;
   const mimeTypes=new Set(['image/png','image/jpeg','image/webp']);
@@ -95,7 +95,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     if(base)paintZoom();
   }
   const maskChanged=()=>{
-    selected=hasSelection();renderMask();
+    editEpoch++;selected=hasSelection();renderMask();
     // A previous quote is bound to a specific mask PNG. Never allow it to
     // survive further selection edits, brush strokes or undo.
     pending=null;$('precision-price-review').hidden=true;refreshButtons();
@@ -213,8 +213,9 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     setStatus('Selection expanded. You can refine the edges with Add or Erase.');
   }
   function resetSelection(){
-    maskCtx.clearRect(0,0,mask.width,mask.height);
-    undoStack.length=0;selected=false;renderMask();refreshButtons();
+    editEpoch++;maskCtx.clearRect(0,0,mask.width,mask.height);
+    undoStack.length=0;selected=false;pending=null;$('precision-price-review').hidden=true;
+    renderMask();refreshButtons();
   }
   async function ensureBaseId(){
     if(!base)throw new Error('Add a base photograph first.');
@@ -269,7 +270,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     const originalRatio=bitmap.width/bitmap.height;
     if(Math.max(originalRatio,1/originalRatio)>8){bitmap.close();throw new Error('This photograph has an unsupported aspect ratio.');}
     if(base?.bitmap)base.bitmap.close();
-    base={file,id,bitmap,name:file.name||'Original image',width:bitmap.width,height:bitmap.height};
+    editEpoch++;base={file,id,bitmap,name:file.name||'Original image',width:bitmap.width,height:bitmap.height};
     const scale=Math.min(1,2048/Math.max(base.width,base.height));
     const w=Math.max(1,Math.round(base.width*scale)),h=Math.max(1,Math.round(base.height*scale));
     sourceCanvas.width=overlay.width=mask.width=w;
@@ -383,45 +384,73 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     }catch(e){pending=null;setStatus(e.message,true);}
     finally{taskBusy=false;refreshButtons();}
   }
-  async function submit(){
-    if(!pending||taskBusy)return;
-    if(Date.now()>=pending.expiresAt){pending=null;$('precision-price-review').hidden=true;setStatus('Price approval expired. Review it again.',true);return;}
-    const snapshot={...pending};pending=null;$('precision-price-review').hidden=true;
-    taskBusy=true;refreshButtons();setStatus('Submitting one paid FLUX inpainting job.');
+  async function monitorSubmittedJob(initial,revision,sourceEpoch){
+    let job=initial;
     try{
-      const response=await api('/api/precision/submit',{method:'POST',body:snapshot});
-      let job=response?.job;
-      if(!job?.id)throw new Error('No job ID was returned. Check Queue before retrying.');
-      onJob(job);
-      setStatus('Generation queued. The source remains unchanged; your job is saved in History.');
-      for(let i=0;i<110;i++){
+      for(let i=0;i<110&&revision===queueRevision;i++){
         if(['completed','failed','resolved','uncertain'].includes(job.status))break;
         await sleep(3000);
+        if(revision!==queueRevision)return;
         const answer=await api('/api/jobs/'+encodeURIComponent(job.id));
-        job=answer.job;if(!job)throw new Error('Could not retrieve the queued generation.');
+        job=answer?.job;if(!job)throw new Error('The queued edit could not be refreshed. Check Queue.');
         if(i%4===0)onJob(job);
       }
+      if(revision!==queueRevision)return;
       if(job.status==='completed'){
-        setStatus('Rebuilding the original photograph outside the edited region.');
-        const final=await finalize(job);
-        onJob(final);
-        if(isOpen()&&base&&base.id===final.settings.precisionOriginalId){
-          resultBlob=await assetBlob(final.outputId);
-          resultFormat=final.settings?.precisionOutputFormat==='jpeg'?'jpeg':'png';
+        if(sourceEpoch===editEpoch&&isOpen())setStatus('Finishing the original-preserving composite…');
+        const final=await finalize(job);onJob(final);
+        const sameEdit=sourceEpoch===editEpoch&&isOpen()&&base&&base.id===final.settings.precisionOriginalId;
+        if(sameEdit){
+          const output=await assetBlob(final.outputId);
+          if(sourceEpoch!==editEpoch||revision!==queueRevision)return;
+          resultBlob=output;resultFormat=final.settings?.precisionOutputFormat==='jpeg'?'jpeg':'png';
           if(resultBitmap)resultBitmap.close();
-          resultBitmap=await createImageBitmap(resultBlob);
-          showResult(resultBitmap);
+          resultBitmap=await createImageBitmap(output);showResult(resultBitmap);
+          setStatus(resultFormat==='jpeg'?
+            'Retouch ready as JPEG. High-quality export re-encodes pixels beyond the edited area.':
+            'Retouch ready. Pixels outside the selected area are preserved from the original.');
         }
-        setStatus('Precision Edit finished. Unselected pixels remain from your original photograph.');
-      }else if(job.status==='failed'||job.status==='resolved'){
-        setStatus(job.error||'The model did not complete this edit.',true);
-      }else if(job.status==='uncertain'){
-        setStatus('The provider submission is uncertain. Check Queue before retrying.',true);
-      }else{
-        setStatus('The edit is still in Queue. Reopen it from History when complete.');
+      }else if(sourceEpoch===editEpoch&&isOpen()){
+        if(job.status==='failed'||job.status==='resolved')setStatus(job.error||'This edit failed. No automatic resubmission.',true);
+        else if(job.status==='uncertain')setStatus('Provider status uncertain. Check Queue before trying again.',true);
+        else setStatus('Edit still processing in Queue. You can continue working.');
       }
-    }catch(e){setStatus(e.message,true);}
-    finally{taskBusy=false;refreshButtons();}
+    }catch(error){
+      if(revision===queueRevision&&sourceEpoch===editEpoch&&isOpen())
+        setStatus('The job remains in Queue, but its automatic follow-up needs attention: '+error.message,true);
+    }finally{
+      pendingPolls.delete(initial.id);
+    }
+  }
+  async function submit(){
+    if(!pending||taskBusy)return;
+    if(Date.now()>=pending.expiresAt){
+      pending=null;$('precision-price-review').hidden=true;
+      setStatus('Price approval expired. Review it again.',true);return;
+    }
+    const snapshot={...pending};pending=null;$('precision-price-review').hidden=true;
+    taskBusy=true;refreshButtons();setStatus('Submitting one paid FLUX inpainting job…');
+    try{
+      const response=await api('/api/precision/submit',{method:'POST',body:snapshot});
+      const job=response?.job;
+      if(!job?.id)throw new Error('No job ID was returned. Check Queue before retrying.');
+      onJob(job);
+      $('precision-result-label').textContent='IN QUEUE';
+      if(!resultBlob){
+        $('precision-output-empty').querySelector('strong').textContent='Edit in Queue';
+        $('precision-output-empty').querySelector('p').textContent='Your edit is processing. You can keep working here.';
+      }
+      setStatus('Queued. You can start another edit without waiting for this result.');
+      if(!pendingPolls.has(job.id)){
+        pendingPolls.set(job.id,true);
+        // Follow-up and lossless compositing continue without holding the deck.
+        void monitorSubmittedJob(job,queueRevision,editEpoch);
+      }
+    }catch(error){
+      setStatus('Generation was not confirmed. Check Queue before trying again: '+error.message,true);
+    }finally{
+      taskBusy=false;refreshButtons();
+    }
   }
   async function composeWithOriginal(original,provider,maskImage,{allowJpegFallback=false}={}){
     const w=original.width,h=original.height;
@@ -544,15 +573,15 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     $('precision-select-consent').close();selectionAllowance=5;
     if(point&&base)attemptMagic(point);
   };
-  $('precision-allow-jpeg').onchange=()=>{pending=null;$('precision-price-review').hidden=true;refreshButtons();};
+  $('precision-allow-jpeg').onchange=()=>{editEpoch++;pending=null;$('precision-price-review').hidden=true;refreshButtons();};
   $('precision-tool-brush').onclick=()=>selectMode('brush');
   $('precision-tool-erase').onclick=()=>selectMode('erase');
   $('precision-undo').onclick=()=>handle(undo());
   $('precision-expand').onclick=()=>handle(growMask());
   $('precision-clear-mask').onclick=()=>resetSelection();
   $('precision-brush-size').oninput=()=>$('precision-size-label').textContent=$('precision-brush-size').value;
-  $('precision-strength').oninput=()=>{$('precision-strength-value').textContent=Number($('precision-strength').value).toFixed(2);pending=null;$('precision-price-review').hidden=true;};
-  $('precision-prompt').oninput=()=>{pending=null;$('precision-price-review').hidden=true;refreshButtons();};
+  $('precision-strength').oninput=()=>{editEpoch++;$('precision-strength-value').textContent=Number($('precision-strength').value).toFixed(2);pending=null;$('precision-price-review').hidden=true;refreshButtons();};
+  $('precision-prompt').oninput=()=>{editEpoch++;pending=null;$('precision-price-review').hidden=true;refreshButtons();};
   $('precision-generate').onclick=()=>handle(reviewPrice());
   $('precision-review-confirm').onclick=()=>handle(submit());
   $('precision-review-cancel').onclick=()=>{$('precision-price-review').hidden=true;pending=null;};
