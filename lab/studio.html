@@ -57,10 +57,10 @@ document.addEventListener('DOMContentLoaded',()=>{
 <link rel="stylesheet" href="./moods.css?v=20261011-viewport-float1">
 <link rel="stylesheet" href="./detail-video-studio.css?v=20261009-pointer1">
 <link rel="stylesheet" href="./editorial-polish.css?v=20261010-mood-details1">
-<script type="module" src="./lab.js?v=20261011-retouch-workdeck-v1&wallet=1&fashiondeck=1&dreamcore=4&moodsLayout=2"></script>
+<script type="module" src="./lab.js?v=20261011-composer-mood-flow1&wallet=1&fashiondeck=1&dreamcore=4&moodsLayout=2"></script>
 <link rel="stylesheet" href="./credits.css?v=20261010-referrals3">
 <link rel="stylesheet" href="./higgsfield.css?v=20261010-compact-image-prompt1">
-<link rel="stylesheet" href="./assets.css?v=20261011-satin-header1">
+<link rel="stylesheet" href="./assets.css?v=20261011-composer-mood-flow1">
 <link rel="stylesheet" href="./video-refresh.css?v=20261009-extend2">
 <script type="module" src="./gallery-layout.js?v=20261010-upscale-history1"></script>
 </head>
@@ -268,7 +268,7 @@ document.addEventListener('DOMContentLoaded',()=>{
         </div>
       </div>
       <button id="image-composer-edit-area" type="button" class="composer-settings-pill" title="Edit just one selected area" aria-label="Open Retouch and edit a selected area">◈ Retouch</button>
-      <button id="image-composer-moods" type="button" class="composer-settings-pill" aria-controls="composer-moods" aria-expanded="false" aria-label="Choose an image mood">✦ Moods</button>
+      <span class="composer-mood-control"><button id="image-composer-moods" type="button" class="composer-settings-pill" aria-controls="composer-moods" aria-expanded="false" aria-label="Choose an image mood">✦ Moods</button><button id="image-composer-moods-clear" type="button" aria-label="Remove selected mood" title="Remove selected mood" hidden>×</button></span>
       <button id="composer-reference-intent-toggle" type="button" class="composer-settings-pill reference-intent-toggle" aria-controls="composer-reference-intent" aria-expanded="false" hidden>Base image ⌄</button>
        <label id="image-reference-mode-wrap" class="composer-select-pill" hidden title="How to use reference images"><span class="visually-hidden">Reference mode</span><select id="image-reference-mode" aria-label="Reference mode"><option value="base">Base image</option><option value="references">References only</option></select></label>
       <label class="composer-select-pill" title="Aspect ratio"><span class="visually-hidden">Aspect ratio</span><select id="image-composer-ratio" aria-label="Aspect ratio"></select></label>
