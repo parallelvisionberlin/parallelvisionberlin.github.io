@@ -129,3 +129,64 @@
 .mc-home--chapter .mc-chapter-bottom{display:flex;gap:24px;flex-wrap:wrap;margin-top:42px;padding-top:19px;border-top:1px solid #444948;color:#a5aaa6;font-size:10px;letter-spacing:.1em}
 @media(max-width:1050px){.mc-home.mc-home--chapter{grid-template-columns:.9fr 1.1fr;min-height:590px}.mc-home--chapter .mc-chapter-art{min-height:590px}.mc-home--chapter .mc-chapter-content{padding:45px 36px}.mc-home--chapter h2{font-size:clamp(59px,7vw,92px)}}
 @media(max-width:700px){.mc-home.mc-home--chapter{display:flex;flex-direction:column;min-height:0}.mc-home--chapter .mc-chapter-content{order:1;padding:48px 24px}.mc-home--chapter .mc-chapter-art{order:2;min-height:390px}.mc-home--chapter h2{font-size:clamp(60px,12vw,91px)}.mc-home--chapter .mc-chapter-topline{margin-bottom:27px}.mc-home--chapter .mc-chapter-bottom{margin-top:28px}.mc-home--chapter .mc-chapter-art-index{left:24px;top:22px}.mc-home--chapter .mc-chapter-art-mark{left:24px;bottom:24px}}
+
+
+/* Mood Creator: one connected editorial chapter, with the metallic study as
+   an integrated photographic lead rather than a detached giant panel. */
+@media(max-width:700px){
+  .mc-home.mc-home--chapter{
+    display:block!important;position:relative;min-height:0;
+    background:#101313;overflow:hidden;
+  }
+  .mc-home--chapter .mc-chapter-art{
+    position:absolute!important;top:0;left:0;right:0;
+    height:230px!important;min-height:0!important;overflow:hidden;
+    background:#242826;
+  }
+  .mc-home--chapter .mc-chapter-art img{
+    width:100%;height:100%;object-fit:cover;object-position:50% 53%;
+  }
+  .mc-home--chapter .mc-chapter-art::after{
+    content:"";position:absolute;inset:0;
+    background:linear-gradient(0deg,#101313 0%,#10131342 28%,transparent 73%);
+  }
+  .mc-home--chapter .mc-chapter-art-index{top:18px;left:20px;font-size:9px}
+  .mc-home--chapter .mc-chapter-art-mark{display:none}
+  .mc-home--chapter .mc-chapter-content{
+    position:relative;z-index:2;order:unset;
+    padding:194px 21px 29px!important;
+    background:transparent!important;
+    display:flex;flex-direction:column;justify-content:start;
+  }
+  .mc-home--chapter .mc-chapter-topline{
+    margin:0 0 13px;gap:10px;font-size:8px;letter-spacing:.11em;
+  }
+  .mc-home--chapter .mc-chapter-topline span:last-child{display:none}
+  .mc-home--chapter h2{
+    font-size:clamp(48px,11vw,66px)!important;line-height:.89;
+    letter-spacing:-.079em;margin:0!important;
+  }
+  .mc-home--chapter .mc-chapter-summary{
+    font-size:clamp(19px,5vw,24px);line-height:1.15;
+    margin:17px 0 9px;max-width:330px;
+  }
+  .mc-home--chapter .mc-chapter-description{
+    font-size:12px;line-height:1.5;max-width:340px;margin:0;
+  }
+  .mc-home--chapter .mc-chapter-actions{
+    margin-top:20px;gap:12px;display:flex;flex-direction:column;
+    align-items:stretch;
+  }
+  .mc-home--chapter .mc-chapter-start{
+    min-width:0;min-height:43px;box-sizing:border-box;
+    justify-content:center;padding:12px 18px;font-size:12px;
+  }
+  .mc-home--chapter .mc-chapter-alt{
+    min-height:33px;padding:7px 0;font-size:12px;
+    align-self:flex-start;
+  }
+  .mc-home--chapter .mc-chapter-bottom{
+    margin-top:19px;padding-top:12px;gap:14px;
+    font-size:9px;letter-spacing:.08em;
+  }
+}
