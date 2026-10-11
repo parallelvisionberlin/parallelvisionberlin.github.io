@@ -198,6 +198,10 @@ try{
     assert.ok(spacing.hasLineIcon&&!spacing.emojiArrow,'Navigation and saved buttons use line icons instead of emoji arrows');
 
   }
+  assert.equal(await phone.locator('#mc-new').isVisible(),false);
+  assert.equal(await phone.locator('#mc-name').isVisible(),false);
+  assert.equal(await phone.locator('#mc-direction').isVisible(),false);
+  assert.ok(await phone.locator('#mc-drop-trigger').evaluate(el=>el.getBoundingClientRect().height<210),'Phone upload is compact');
   assert.equal(await phone.locator('.mc-editorial-frame img').count(),3);
   const startY=await phone.evaluate(()=>scrollY);
   const canceled=phone.waitForEvent('filechooser');
@@ -210,9 +214,31 @@ try{
   await phone.waitForFunction(()=>document.querySelectorAll('.mc-shot').length===1&&Math.abs(document.querySelector('.mc-board-column').getBoundingClientRect().top-16)<3);
   assert.equal(await phone.locator('#mc-board').evaluate(el=>document.activeElement===el),true);
   pass('Mobile collage upload is above the fold and only a selected image moves to the board');
+  assert.equal(await phone.locator('#mc-new').isVisible(),true);
+  assert.equal(await phone.locator('.mc-board-footnote').isVisible(),true);
+  assert.equal(await phone.locator('#mc-name').isVisible(),false);
+  await phone.locator('#mc-analyze').click();
+  await phone.waitForFunction(()=>document.getElementById('mc-direction').value.includes('Analog-film haze'));
+  assert.equal(await phone.locator('#mc-direction').isVisible(),true);
+  assert.equal(await phone.locator('#mc-name').inputValue(),'Liquid Memory');
+  assert.equal(await phone.locator('#mc-save').isVisible(),true);
+  await phone.locator('#mc-new').click();
+  assert.equal(await phone.locator('#mc-direction').isVisible(),false);
+  await phone.locator('#mc-mobile-idea').click();
+  assert.equal(await phone.locator('#mc-idea').evaluate(el=>document.activeElement===el),true);
+  await phone.locator('#mc-idea').fill('Soft silver light and tactile film grain');
+  await phone.locator('#mc-use-idea').click();
+  assert.equal(await phone.locator('#mc-direction').inputValue(),'Soft silver light and tactile film grain');
+  await phone.locator('#mc-new').click();
+  await phone.locator('#mc-write-style').click();
+  assert.equal(await phone.locator('#mc-direction').isVisible(),true);
+  assert.equal(await phone.locator('#mc-name').isVisible(),true);
+  assert.deepEqual(mobileErrors,[]);
+  pass('Phone flow reveals results and naming after development, preserves idea/manual routes and resets cleanly');
   await mobile.close();await context.close();
 }finally{
   await browser.close();
   await new Promise(resolve=>server.close(resolve));
 }
 console.log('PV Lab Explore / Mood Creator browser checks: '+successes+' passed (synthetic API).');
+

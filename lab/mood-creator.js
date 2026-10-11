@@ -64,6 +64,7 @@ function initMoodCreator(){
   const q=new URLSearchParams(location.search),chosenBoard=q.get('board'),sourceJob=q.get('fromJob'),initialBase=q.get('base'),initialHandoff=q.get('handoff');
   let clerk=null,account=null,authGeneration=0,sessionVersion=0;
   let boards=[],boardId=null,items=[],urls=new Map(),busy=false,analyzing=false,selectedIndex=0;
+  let manualStyle=false;
   let suggestion=null,analysisApplied=false,loadGeneration=0,libraryGeneration=0,loadedJob=false;
   const sessionRequest=createSessionRequest({baseUrl:API,getSession:()=>clerk?.session});
   const label=$('mc-account-label'),signin=$('mc-signin'),signout=$('mc-signout');
@@ -97,6 +98,19 @@ function initMoodCreator(){
     palette:analysisApplied?(suggestion?.palette||[]):[],
     qualities:analysisApplied?(suggestion?.qualities||[]):[]
   });
+  function syncFlow(){
+    const ready=manualStyle||!!direction.value.trim()||!!base.value||!!boardId;
+    $('mc-style-result').hidden=!ready;
+    document.querySelector('.mc-direction-footer').hidden=!ready;
+    create.hidden=!(items.length||concept.value.trim()||name.value.trim()||ready);
+    document.querySelector('.mc-board-footnote').hidden=!items.length;
+    $('mc-use-idea').hidden=!concept.value.trim();
+  }
+  function revealStyle(){
+    manualStyle=true;syncFlow();
+    direction.focus({preventScroll:true});
+    direction.scrollIntoView({behavior:'smooth',block:'center'});
+  }
   function clearItemUrls(){
     for(const item of items)if(item.localUrl)URL.revokeObjectURL(item.localUrl);
     items=[];
@@ -106,7 +120,7 @@ function initMoodCreator(){
     urls.clear();
   }
   function resetBoard({scroll=false}={}){
-    clearItemUrls();boardId=null;selectedIndex=0;suggestion=null;analysisApplied=false;
+    clearItemUrls();manualStyle=false;boardId=null;selectedIndex=0;suggestion=null;analysisApplied=false;
     name.value='';concept.value='';direction.value='';base.value='';intensity.value='70';
     $('mc-intensity-value').textContent='70%';
     $('mc-direction-count').textContent='0 / 900';
@@ -136,6 +150,7 @@ function initMoodCreator(){
     for(const [i,el] of [...board.querySelectorAll('.mc-shot')].entries())el.classList.toggle('is-active',i===selectedIndex);
   }
   function renderBoard(){
+    syncFlow();
     const revision=++loadGeneration;
     board.replaceChildren();
     $('mc-image-count').textContent=items.length+' / 12 images';
@@ -201,10 +216,13 @@ function initMoodCreator(){
   $('mc-start-image').onclick=loadFilePicker;
   $('mc-hero-upload').onclick=loadFilePicker;
   $('mc-start-idea').onclick=()=>{concept.focus({preventScroll:true});concept.scrollIntoView({behavior:'smooth',block:'center'});};
+  $('mc-mobile-idea').onclick=$('mc-start-idea').onclick;
+  $('mc-write-style').onclick=()=>{manualStyle=true;revealStyle();};
+  for(const field of [name,concept,base])field.addEventListener('input',syncFlow);
   $('mc-new').onclick=()=>resetBoard({scroll:true});
   $('mc-library-create').onclick=()=>resetBoard({scroll:true});
   intensity.addEventListener('input',()=>{$('mc-intensity-value').textContent=intensity.value+'%';});
-  direction.addEventListener('input',()=>{$('mc-direction-count').textContent=direction.value.length+' / 900';});
+  direction.addEventListener('input',()=>{$('mc-direction-count').textContent=direction.value.length+' / 900';syncFlow();});
 
   function renderStyleAccents(analysis){
     const tags=$('mc-analysis-qualities'),palette=$('mc-analysis-palette');
@@ -237,6 +255,7 @@ function initMoodCreator(){
     $('mc-direction-count').textContent=direction.value.length+' / 900';
     $('mc-suggestion').hidden=true;
     feedback('Art direction ready. Refine it, name your Mood, then save.');
+    revealStyle();
   }
   $('mc-suggestion-apply').onclick=applyAnalysisResult;
   $('mc-use-idea').onclick=()=>{
@@ -248,6 +267,7 @@ function initMoodCreator(){
     $('mc-direction-count').textContent=direction.value.length+' / 900';
     $('mc-suggestion').hidden=true;
     feedback('Your words are now the reusable art direction. No AI analysis was needed.');
+    revealStyle();
   };
   async function analyzeStyle(){
     if(analyzing||busy)return;
@@ -274,7 +294,7 @@ function initMoodCreator(){
       setAnalysisResult(result);
       feedback('A style was developed from '+(items.length||'your written')+' reference'+(items.length===1?'':'s')+'. Edit the direction before saving.');
     }catch(error){feedback(error.message+' Your photo and written direction have not been changed.',true);}
-    finally{analyzing=false;analyze.disabled=busy;analyze.querySelector('strong').textContent='Develop the aesthetic';}
+    finally{analyzing=false;analyze.disabled=busy;analyze.querySelector('strong').textContent='Develop Mood';}
   }
   analyze.onclick=()=>void analyzeStyle();
 
@@ -477,7 +497,7 @@ function initMoodCreator(){
   if(initialBase&&!moodById(initialBase))
     feedback('Unknown curated look. Start from an original Mood or explore the collection.',true);
   if(initialBase&&moodById(initialBase)&&!chosenBoard&&!sourceJob){
-    base.value=initialBase;
+    base.value=initialBase;syncFlow();
     intensity.value=String(moodById(initialBase).defaultIntensity||70);$('mc-intensity-value').textContent=intensity.value+'%';
     void (async()=>{
       try{
@@ -507,3 +527,4 @@ function initMoodCreator(){
   })();
 }
 if(typeof document!=='undefined')initMoodCreator();
+

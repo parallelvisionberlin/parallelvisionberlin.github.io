@@ -139,16 +139,16 @@ test('Art Direction flows naturally and keeps settings with Save actions',()=>{
   assert.match(aside,/class="mc-direction-main" id="mc-direction-main"/);
   assert.match(aside,/class="mc-direction-footer" aria-label="Finish and save your Mood"/);
   const footerStart=aside.indexOf('class="mc-direction-footer"');
-  for(const id of ['mc-name','mc-idea','mc-analyze','mc-analysis-note','mc-use-idea','mc-direction'])
+  for(const id of ['mc-idea','mc-analyze','mc-analysis-note','mc-use-idea','mc-direction','mc-message'])
     assert.ok(aside.indexOf('id="'+id+'"')>0&&aside.indexOf('id="'+id+'"')<footerStart,'Art direction field '+id);
-  for(const id of ['mc-base','mc-intensity','mc-message','mc-save','mc-use','mc-saved-actions'])
+  for(const id of ['mc-name','mc-base','mc-intensity','mc-save','mc-use','mc-saved-actions'])
     assert.ok(aside.indexOf('id="'+id+'"')>footerStart,'Final action '+id);
   assert.match(css,/\.mc-direction\{display:flex;flex-direction:column;height:auto;min-height:0;max-height:none;overflow:visible/);
   assert.match(css,/\.mc-direction-main\{[^}]*overflow:visible/);
   assert.doesNotMatch(css,/--mc-deck-height|scroll-snap-type|overflow-y:auto;overflow-x:hidden/);
   assert.match(css,/\.mc-direction-footer\{[\s\S]*?border-top:1px solid #4e5850/);
   assert.match(css,/@media\(max-width:820px\)\{[\s\S]*?\.mc-direction\{display:flex;flex-direction:column;height:auto/);
-  assert.match(page,/mood-creator\.css\?v=20261011-mobile-flow8/);
+  assert.match(page,/mood-creator\.css\?v=20261011-guided-flow9/);
   assert.match(page,/all selected Moodboard previews and your idea go to Google's AI service/);
   assert.match(js,/save\.onclick=\(\)=>void saveMood\(\)/);
   assert.match(js,/use\.onclick=\(\)=>void \(async\(\)=>\{/);
@@ -196,3 +196,4 @@ test('Mood Creator analyzes every board photo only after deliberate consent',()=
   assert.match(html,/No style model is trained/);
   assert.match(style,/VISUAL FOCUS · ALL IMAGES USED/);
 });
+

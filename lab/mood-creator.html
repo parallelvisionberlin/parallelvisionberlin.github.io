@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;450;500;550;600;700&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./mood-creator.css?v=20261011-mobile-flow8">
+<link rel="stylesheet" href="./mood-creator.css?v=20261011-guided-flow9">
 </head>
 <body>
 <a class="mc-skip" href="#main">Skip to Mood Creator</a>
@@ -61,13 +61,14 @@
    <button id="mc-hero-upload" class="mc-hero-upload" type="button" aria-label="Add a photograph to your Mood" title="Start with an image"><span aria-hidden="true">+</span><small>Start with an image</small></button>
     <span class="mc-editorial-credit">01 / 02 / 03 · THE VISUAL ARCHIVE</span>
  </div>
+ <button id="mc-mobile-idea" class="mc-mobile-idea" type="button">Or start with an idea <span aria-hidden="true">→</span></button>
  <span class="mc-hero-edge" aria-hidden="true">AESTHETICS ARE MADE, NOT SELECTED.</span>
 </section>
 
 <section class="mc-workspace" id="workspace" aria-labelledby="mc-workspace-title">
  <div class="mc-workspace-heading">
   <div><span class="mc-eyebrow">THE MOOD WORKSPACE / PV LAB</span><h2 id="mc-workspace-title"><span class="mc-workspace-title-full">Your next <em>visual language.</em></span><span class="mc-workspace-title-short">Your Mood</span></h2></div>
-  <div class="mc-workspace-intro"><p>Collect references. Shape the feeling.<br>Make it a Mood you can use again.</p><button id="mc-new" type="button">New Mood <span aria-hidden="true">+</span></button></div>
+  <div class="mc-workspace-intro"><p>Collect references. Shape the feeling.<br>Make it a Mood you can use again.</p><button id="mc-new" type="button" hidden>New Mood <span aria-hidden="true">+</span></button></div>
  </div>
  <div class="mc-workspace-body">
   <div class="mc-board-column">
@@ -77,35 +78,37 @@
       <div id="mc-board" class="mc-board" tabindex="-1" aria-label="Editable moodboard image collection"></div>
       <label class="mc-add-photo" for="mc-upload" id="mc-drop-trigger" tabindex="0" role="button" aria-label="Browse inspiration photographs">
         <span class="mc-add-mark" aria-hidden="true">+</span>
-        <strong>Drop your inspiration here</strong>
-        <small>or <u>choose photographs</u></small>
+        <strong><span class="mc-upload-desktop">Drop your inspiration here</span><span class="mc-upload-mobile">Add images</span></strong>
+        <small class="mc-upload-desktop">or <u>choose photographs</u></small>
         <span>UP TO 12 IMAGES · JPG / PNG / WEBP</span>
       </label>
       <input type="file" id="mc-upload" accept="image/jpeg,image/png,image/webp" multiple hidden>
     </div>
-    <p class="mc-board-footnote">Every photograph shapes the aesthetic. Select one as your visual focus; drag to reorder.</p>
-    <div class="mc-workflow-note"><span class="mc-note-star" aria-hidden="true"><svg class="mc-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path d="M5 19 19 5M5 5h14v14"/></svg></span><p><strong>No photographs yet?</strong> Start with a few words in Art Direction. You can create a Mood from an idea alone.</p><a href="#mc-idea">Start with an idea <span aria-hidden="true">→</span></a></div>
+    <p class="mc-board-footnote" hidden>Every photograph shapes the aesthetic. Select one as your visual focus; drag to reorder.</p>
+
   </div>
   <aside class="mc-direction" aria-label="Define your Mood">
     <div class="mc-block-caption"><span>02 / ART DIRECTION</span><span>SHAPE YOUR MOOD</span></div>
     <div class="mc-direction-main" id="mc-direction-main">
-    <div class="mc-field"><label for="mc-name">Name your Mood</label><input id="mc-name" maxlength="64" autocomplete="off" placeholder="Liquid Memory"></div>
     <div class="mc-field">
       <label for="mc-idea">Describe the feeling <span class="mc-optional">optional with photos</span></label>
       <textarea id="mc-idea" rows="3" maxlength="1400" placeholder="Faded film. Wet glass. Something nocturnal and romantic." aria-describedby="mc-idea-hint"></textarea>
-      <small id="mc-idea-hint">Use photographs, an idea, or both. Develop the aesthetic to turn them into a reusable style.</small>
+      <small id="mc-idea-hint">Add a few words, or let your photographs lead.</small>
     </div>
-    <button type="button" id="mc-analyze" class="mc-analyze-button"><span><svg class="mc-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M5.6 18.4 18.4 5.6"/></svg></span><strong>Develop the aesthetic</strong><span aria-hidden="true"><svg class="mc-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path d="M5 19 19 5M5 5h14v14"/></svg></span></button>
+    <button type="button" id="mc-analyze" class="mc-analyze-button"><span><svg class="mc-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M5.6 18.4 18.4 5.6"/></svg></span><strong>Develop Mood</strong><span aria-hidden="true"><svg class="mc-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path d="M5 19 19 5M5 5h14v14"/></svg></span></button>
     <div class="mc-analysis-options">
       <details class="mc-analysis-details"><summary>How AI analysis uses your photos</summary><p class="mc-analysis-note" id="mc-analysis-note">Optional AI analysis. Only when you click, all selected Moodboard previews and your idea go to Google's AI service. Up to six analyses daily. No style model is trained.</p></details>
       <button id="mc-use-idea" type="button" class="mc-use-idea">Use my idea instead <span aria-hidden="true">→</span></button>
+      <button id="mc-write-style" type="button" class="mc-use-idea">Write my own style <span aria-hidden="true">→</span></button>
     </div>
+    <p id="mc-message" class="mc-message" role="status" aria-live="polite"></p>
     <div id="mc-suggestion" class="mc-suggestion" hidden>
       <span>PROPOSED CREATIVE DIRECTION</span><strong id="mc-suggestion-name"></strong>
       <p id="mc-suggestion-text"></p><button id="mc-suggestion-apply" type="button">Use this direction <span aria-hidden="true"><svg class="mc-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path d="M5 19 19 5M5 5h14v14"/></svg></span></button>
     </div>
     <div id="mc-analysis-qualities" class="mc-quality-list" aria-label="Suggested visual qualities" hidden></div>
     <div id="mc-analysis-palette" class="mc-palette" aria-label="Extracted color palette" hidden></div>
+    <div id="mc-style-result" hidden>
     <div class="mc-rule" role="separator"></div>
     <div class="mc-field">
       <div class="mc-field-heading"><label for="mc-direction">Your reusable style</label><span id="mc-direction-count">0 / 900</span></div>
@@ -113,13 +116,14 @@
       <small id="mc-style-hint">Refine this description before saving. It guides the style of your next image.</small>
     </div>
     </div>
-    <div class="mc-direction-footer" aria-label="Finish and save your Mood">
+    </div>
+    <div class="mc-direction-footer" aria-label="Finish and save your Mood" hidden>
     <div class="mc-finish-heading"><span>03 / MAKE IT YOURS</span><span>Save it. Use it. Refine it.</span></div>
+    <div class="mc-field"><label for="mc-name">Name your Mood</label><input id="mc-name" maxlength="64" autocomplete="off" placeholder="Liquid Memory"></div>
     <div class="mc-settings">
       <div class="mc-field"><label for="mc-base">Starting Mood <span class="mc-optional">optional</span></label><select id="mc-base"><option value="">Original aesthetic</option></select></div>
       <div class="mc-field mc-strength"><div class="mc-field-heading"><label for="mc-intensity">Starting intensity</label><output id="mc-intensity-value" for="mc-intensity">70%</output></div><input id="mc-intensity" type="range" min="1" max="100" value="70"><span>Subtle <i></i> Immersive</span></div>
     </div>
-    <p id="mc-message" class="mc-message" role="status" aria-live="polite"></p>
     <div class="mc-save-row">
       <button type="button" id="mc-save" class="mc-primary">Save to My Moods <span aria-hidden="true"><svg class="mc-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path d="M5 19 19 5M5 5h14v14"/></svg></span></button>
       <button type="button" id="mc-use" class="mc-secondary">Create with this Mood <span aria-hidden="true">→</span></button>
@@ -140,5 +144,6 @@
 </section>
 </main>
 <footer class="mc-footer"><a href="./">PV LAB</a><p>A studio by Parallel Vision</p><a href="./studio.html?tool=image">Continue to Image <svg class="mc-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path d="M5 19 19 5M5 5h14v14"/></svg></a></footer>
-<script type="module" src="./mood-creator.js?v=20261011-mobile-flow8&nativeLab=2&hd=20261011&raveBudget=1&editorialHD=2&moodImageHD=1"></script>
+<script type="module" src="./mood-creator.js?v=20261011-guided-flow9&nativeLab=2&hd=20261011&raveBudget=1&editorialHD=2&moodImageHD=1"></script>
 </body></html>
+
