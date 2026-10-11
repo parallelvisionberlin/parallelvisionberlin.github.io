@@ -628,15 +628,30 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
       saveUndo();
       const w=mask.width,h=mask.height;
       maskCtx.save();maskCtx.fillStyle='#fff';
+      // Approximate the chrome upper garment in the bundled fashion photograph
+      // rather than drawing an unrelated oval across the model and floor.
+      // This is intentionally a hand-painted LOCAL teaching selection,
+      // not a claimed automatic or provider-generated segmentation.
       maskCtx.beginPath();
-      maskCtx.ellipse(w*.5,h*.57,w*.16,h*.22,0,0,Math.PI*2);
+      maskCtx.moveTo(w*.445,h*.205);
+      maskCtx.bezierCurveTo(w*.417,h*.212,w*.396,h*.221,w*.403,h*.282);
+      maskCtx.bezierCurveTo(w*.407,h*.333,w*.429,h*.349,w*.435,h*.405);
+      maskCtx.lineTo(w*.443,h*.551);
+      maskCtx.quadraticCurveTo(w*.5,h*.575,w*.557,h*.551);
+      maskCtx.lineTo(w*.565,h*.405);
+      maskCtx.bezierCurveTo(w*.570,h*.349,w*.595,h*.333,w*.599,h*.282);
+      maskCtx.bezierCurveTo(w*.603,h*.222,w*.577,h*.213,w*.555,h*.205);
+      maskCtx.quadraticCurveTo(w*.531,h*.200,w*.516,h*.231);
+      maskCtx.lineTo(w*.484,h*.231);
+      maskCtx.quadraticCurveTo(w*.470,h*.200,w*.445,h*.205);
+      maskCtx.closePath();
       maskCtx.fill();maskCtx.restore();
       maskChanged();
       selectMode('brush');
-      $('precision-prompt').value=ideaPrompts.material;
+      $('precision-prompt').value='Change the selected chrome jacket and bodice into matte black sculptural tailoring with realistic fabric grain. Preserve the face, pose, ambient light and everything outside the selection.';
       $('precision-prompt').dispatchEvent(new Event('input',{bubbles:true}));
-      $('precision-empty-title').textContent='Your local starter selection is ready.';
-      $('precision-empty-description').textContent='Refine the highlighted area with Add brush or Erase, or try another creative direction. This is not an AI-generated result.';
+      $('precision-empty-title').textContent='Starter selection ready.';
+      $('precision-empty-description').textContent='Refine the selected chrome garment with the free brush tools, or choose a different edit below. No AI result has been generated.';
       setStatus('PV Lab sample opened. The starter mask was painted locally, with no paid selection or generation request.');
     }finally{
       button.disabled=false;button.innerHTML=originalLabel;
