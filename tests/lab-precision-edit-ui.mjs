@@ -18,7 +18,7 @@ const server=http.createServer((req,res)=>{
   if(p==='/test'){res.writeHead(200,{'Content-Type':'text/html'}).end(html);return;}
   const target=resolve('.',p.slice(1));
   if(!target.startsWith(resolve('.')+'/')||!existsSync(target)){res.writeHead(404).end();return;}
-  res.writeHead(200,{'Content-Type':({'.js':'text/javascript','.css':'text/css'}[extname(target)]||'text/plain')}).end(readFileSync(target));
+  res.writeHead(200,{'Content-Type':({'.js':'text/javascript','.css':'text/css','.png':'image/png','.webp':'image/webp','.jpg':'image/jpeg'}[extname(target)]||'text/plain')}).end(readFileSync(target));
 });
 await new Promise(resolve=>server.listen(4189,'127.0.0.1',resolve));
 const browser=await chromium.launch({headless:true});
@@ -166,6 +166,32 @@ try{
   assert.equal(await page.locator('#precision-allow-jpeg').isChecked(),true);
   assert.equal(await page.evaluate(()=>window.pvRequests.filter(r=>r.path==='/api/precision/submit').length),1,
     'Changing export permission must never automatically submit a paid job');
+
+  // First-visit discovery: a real PV sample opens with a free local selection.
+  // No paid API inference, quote, SAM request or upload may occur here.
+  await page.evaluate(async()=>{window.pvEditor.reset();await window.pvEditor.open();});
+  assert.equal(await page.locator('#precision-demo').isVisible(),true);
+  assert.equal(await page.locator('#precision-ideas').isVisible(),false);
+  assert.equal(await page.locator('#precision-try-sample').isVisible(),true);
+  assert.match(await page.locator('.precision-demo-honesty').innerText(),/not a generated result/);
+  await page.waitForFunction(()=>{
+    const image=document.querySelector('.precision-demo-frame img');
+    return image.complete&&image.naturalWidth>0;
+  });
+  const beforeSample=await page.evaluate(()=>window.pvRequests.length);
+  await page.locator('#precision-try-sample').click();
+  await page.waitForFunction(()=>document.querySelector('#precision-source-meta').textContent.includes('Fashion Sample'));
+  assert.equal(await page.locator('#precision-demo').isVisible(),false);
+  assert.equal(await page.locator('#precision-ideas').isVisible(),true);
+  assert.equal(await page.locator('#precision-result-canvas').isVisible(),false,
+    'The sample must never masquerade as a completed AI edit');
+  assert.match(await page.locator('#precision-prompt').inputValue(),/reflective liquid chrome/i);
+  assert.equal(await page.evaluate(()=>window.pvRequests.length),beforeSample,
+    'Sample loading and local mask generation must not call any provider API');
+  await page.locator('[data-retouch-idea="remove"]').click();
+  assert.match(await page.locator('#precision-prompt').inputValue(),/Remove the selected object/);
+  assert.equal(await page.evaluate(()=>window.pvRequests.length),beforeSample,
+    'Idea suggestions are purely local and must not trigger a paid request');
   assert.deepEqual(errors,[]);
   console.log('PASS Retouch V2: zoom/pan, paid-selection consent, mask edit, quote and nonblocking queue, exact PNG pixels, mobile controls');
 }finally{await browser.close();await new Promise(resolve=>server.close(resolve));}
