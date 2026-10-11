@@ -28,8 +28,8 @@ test('four-tab app starts in public Moods and preserves photo selection through 
   await act(async()=>{renderer=TestRenderer.create(React.createElement(App));});
   const root=renderer.root;
   const tabs=()=>root.findAllByType('Pressable').filter(n=>n.props.accessibilityRole==='tab');
-  assert.deepEqual(tabs().map(n=>n.props.accessibilityLabel),['Gallery','Moods','Create','Profile']);
-  assert.equal(tabs()[1].props.accessibilityState.selected,true);
+  assert.deepEqual(tabs().map(n=>n.props.accessibilityLabel),['Gallery','Create','Moods','Profile']);
+  assert.equal(tabs().find(n=>n.props.accessibilityLabel==='Moods').props.accessibilityState.selected,true);
   assert.equal(root.findAllByType('WebView').length,1);
   const discover=root.findByType('WebView');assert.match(discover.props.source.uri,/app-moods.html/);
   const url='https://parallelvisionlabel.com/lab/studio.html?mood=night-flash&handoff=20000000-0000-4000-8000-000000000001';
@@ -39,7 +39,7 @@ test('four-tab app starts in public Moods and preserves photo selection through 
   globalThis.__pvAuth={isLoaded:true,isSignedIn:true,userId:'user_Test',sessionId:'sess_Test',getToken:async()=>'test'};
   await act(async()=>{renderer.update(React.createElement(App));});
   assert.equal(root.findByType('Modal').props.visible,false);
-  assert.equal(tabs()[2].props.accessibilityState.selected,true);
+  assert.equal(tabs().find(n=>n.props.accessibilityLabel==='Create').props.accessibilityState.selected,true);
   const studio=root.findAllByType('WebView').find(n=>n.props.source.uri.includes('studio.html'));
   await act(async()=>{studio.props.onLoadStart();});
   await act(async()=>{await studio.props.onMessage({nativeEvent:{url:studio.props.source.uri,data:JSON.stringify({type:'PV_LAB_READY'})}});});
