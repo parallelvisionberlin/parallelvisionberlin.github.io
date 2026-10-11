@@ -11,7 +11,8 @@ export function createMyMoods({api,assetBlob,moodUI,notify,active}){
   const base=$('moodboard-base'),intensity=$('moodboard-intensity');
   const imageList=$('moodboard-images'),imageCount=$('moodboard-images-count');
   const save=$('moodboard-save'),remove=$('moodboard-delete'),message=$('moodboard-editor-status');
-  let boards=[],editing=null,fromJob=null,stagedIds=[],saving=false,epoch=0,loading=null;
+  const upload=$('moodboard-upload');
+  let boards=[],editing=null,fromJob=null,stagedIds=[],stagedFiles=[],saving=false,epoch=0,loading=null;
   const urls=new Map();
   function find(id){return boards.find(board=>board.id===id)||null;}
   function all(){return [...boards];}
@@ -23,6 +24,24 @@ export function createMyMoods({api,assetBlob,moodUI,notify,active}){
     intensity:Number(intensity.value),
     imageIds:[...stagedIds]
   };}
+  function clearStagedFiles(){
+    for(const item of stagedFiles)URL.revokeObjectURL(item.url);
+    stagedFiles=[];
+    upload.value='';
+  }
+  async function uploadStagedFiles(){
+    const ids=[];
+    for(const item of stagedFiles){
+      if(!item.assetId){
+        const answer=await api('/api/uploads',{method:'POST',headers:{
+          'Content-Type':item.file.type,'X-Filename':encodeURIComponent(item.file.name)
+        },body:item.file});
+        item.assetId=answer.id;
+      }
+      ids.push(item.assetId);
+    }
+    return ids;
+  }
   function updatePersonal(){
     moodUI.setPersonalMoods(boards.map(board=>({...board,previewUrl:urls.get(board.imageIds?.[0])||''})));
   }
@@ -57,7 +76,7 @@ export function createMyMoods({api,assetBlob,moodUI,notify,active}){
     try{await loading;}finally{loading=null;}
   }
   function reset(){
-    ++epoch;boards=[];editing=null;fromJob=null;stagedIds=[];loading=null;
+    ++epoch;boards=[];editing=null;fromJob=null;stagedIds=[];clearStagedFiles();loading=null;
     for(const url of urls.values())URL.revokeObjectURL(url);
     urls.clear();moodUI.setPersonalMoods([]);
     if(dialog.open)dialog.close();
@@ -70,7 +89,7 @@ export function createMyMoods({api,assetBlob,moodUI,notify,active}){
   }
   async function renderImages(){
     imageList.replaceChildren();
-    imageCount.textContent=stagedIds.length+' / 12 images';
+    imageCount.textContent=stagedIds.length+stagedFiles.length+' / 12 images';
     const current=epoch;
     for(const id of stagedIds){
       const tile=document.createElement('div');tile.className='moodboard-image-tile';
@@ -82,6 +101,17 @@ export function createMyMoods({api,assetBlob,moodUI,notify,active}){
       void imageUrl(id).then(url=>{
         if(current===epoch&&stagedIds.includes(id)&&tile.isConnected&&url)img.src=url;
       }).catch(()=>{});
+    }
+    for(const item of stagedFiles){
+      const tile=document.createElement('div');tile.className='moodboard-image-tile';
+      const img=document.createElement('img');img.alt='Local inspiration image to be saved';img.src=item.url;
+      const removeButton=document.createElement('button');removeButton.type='button';
+      removeButton.className='moodboard-image-remove';removeButton.textContent='×';
+      removeButton.setAttribute('aria-label','Remove this inspiration image');
+      removeButton.onclick=()=>{
+        stagedFiles=stagedFiles.filter(x=>x!==item);URL.revokeObjectURL(item.url);void renderImages();
+      };
+      tile.append(img,removeButton);imageList.append(tile);
     }
   }
   function setMode(mode){
@@ -97,6 +127,7 @@ export function createMyMoods({api,assetBlob,moodUI,notify,active}){
   async function openCreate(job=null){
     if(!active())return;
     try{await refresh();}catch(error){notify('My Moods is unavailable. '+error.message,true);return;}
+    clearStagedFiles();
     populate();editing=null;fromJob=job;stagedIds=job?.outputId?[job.outputId]:[];
     const settings=job?.settings||{};
     const existingCustom=settings.moodId==='custom'?find(settings.customMoodBoardId):null;
@@ -116,6 +147,7 @@ export function createMyMoods({api,assetBlob,moodUI,notify,active}){
   function openEdit(board){
     if(!active())return;
     const found=find(board?.id);if(!found){notify('This Mood is no longer available. Refresh My Moods.',true);return;}
+    clearStagedFiles();
     editing=found;fromJob=null;stagedIds=[...found.imageIds];
     populate();name.value=found.name;direction.value=found.direction;
     base.value=found.baseMoodId||'';intensity.value=String(found.intensity||60);
@@ -123,9 +155,19 @@ export function createMyMoods({api,assetBlob,moodUI,notify,active}){
     if(!dialog.open)dialog.showModal();
     name.focus();
   }
+  upload.addEventListener('change',()=>{
+    for(const file of upload.files||[]){
+      if(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size<=0||file.size>20*1024*1024){
+        flash('Use JPG, PNG or WebP images under 20 MB.',true);continue;
+      }
+      if(stagedIds.length+stagedFiles.length>=12){flash('A Moodboard can contain up to 12 images.',true);break;}
+      const url=URL.createObjectURL(file);stagedFiles.push({file,url,assetId:null});
+    }
+    upload.value='';void renderImages();
+  });
   target.addEventListener('change',()=>{setMode(target.value?'add':'create');});
   $('moodboard-cancel').onclick=()=>dialog.close();
-  dialog.addEventListener('close',()=>{editing=null;fromJob=null;stagedIds=[];saving=false;flash('');});
+  dialog.addEventListener('close',()=>{editing=null;fromJob=null;stagedIds=[];clearStagedFiles();saving=false;flash('');});
   form.addEventListener('submit',event=>{
     event.preventDefault();
     if(saving||!active())return;
@@ -133,14 +175,17 @@ export function createMyMoods({api,assetBlob,moodUI,notify,active}){
       saving=true;save.disabled=true;remove.disabled=true;flash('Saving to your private account…');
       try{
         const selected=fromJob&&target.value?find(target.value):null;
+        const uploadedIds=await uploadStagedFiles();
         if(selected){
-          const ids=[...new Set([...selected.imageIds,fromJob.outputId])];
+          const ids=[...new Set([...selected.imageIds,...stagedIds,...uploadedIds])];
           if(ids.length>12)throw Error('This Mood already has 12 images. Edit the board to make space.');
           await api('/api/moodboards/'+encodeURIComponent(selected.id),{method:'POST',body:{
             name:selected.name,direction:selected.direction,baseMoodId:selected.baseMoodId,intensity:selected.intensity,imageIds:ids
           }});
         }else{
           const payload=getPayload();
+          payload.imageIds=[...new Set([...payload.imageIds,...uploadedIds])];
+          if(payload.imageIds.length>12)throw Error('A Mood can contain at most 12 images.');
           if(!payload.name)throw Error('Give this Mood a name.');
           if(!payload.direction&&!payload.baseMoodId)throw Error('Write a style direction or choose a curated Mood.');
           if(editing)await api('/api/moodboards/'+encodeURIComponent(editing.id),{method:'POST',body:payload});
