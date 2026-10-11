@@ -178,6 +178,8 @@ try{
     const image=document.querySelector('.precision-demo-frame img');
     return image.complete&&image.naturalWidth>0;
   });
+  await page.setViewportSize({width:1440,height:900});
+  await page.screenshot({path:'test-results/pv-precision-onboarding.png',fullPage:false});
   const beforeSample=await page.evaluate(()=>window.pvRequests.length);
   await page.locator('#precision-try-sample').click();
   await page.waitForFunction(()=>document.querySelector('#precision-source-meta').textContent.includes('Fashion Sample'));
@@ -186,6 +188,7 @@ try{
   assert.equal(await page.locator('#precision-result-canvas').isVisible(),false,
     'The sample must never masquerade as a completed AI edit');
   assert.match(await page.locator('#precision-prompt').inputValue(),/reflective liquid chrome/i);
+  await page.screenshot({path:'test-results/pv-precision-sample.png',fullPage:false});
   assert.equal(await page.evaluate(()=>window.pvRequests.length),beforeSample,
     'Sample loading and local mask generation must not call any provider API');
   await page.locator('[data-retouch-idea="remove"]').click();
