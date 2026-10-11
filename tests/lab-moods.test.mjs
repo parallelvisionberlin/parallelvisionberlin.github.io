@@ -24,6 +24,8 @@ test('My Moods live in the existing selector, result viewer and authenticated Wo
   const editor=readFileSync(new URL('../lab/my-moods.js',import.meta.url),'utf8');
   const worker=readFileSync(new URL('../lab-worker/worker.mjs',import.meta.url),'utf8');
   assert.match(moods,/'My Moods'/);
+  assert.match(moods,/moods-board-create/);
+  assert.match(moods,/createTile\.hidden=category!=='My Moods'\|\|personalMoods\.length===0/);
   assert.match(moods,/function setPersonalMoods\(next=\[\]\)/);
   assert.match(ui,/createMyMoods\(\{api,assetBlob,moodUI/);
   assert.match(ui,/image-detail-save-mood/);
@@ -283,7 +285,7 @@ test('Popup stays centered; selected mood and About are in the upper controls',(
   assert.match(html,/id="composer-moods-selection" class="moods-selection" hidden/);
   assert.match(js,/selection\.hidden=!chosen/);
   assert.match(css,/grid-template-columns:minmax\(0,1fr\) 170px/);
-  assert.match(html,/moods\.css\?v=20261011-moods-toolbar1/);
+  assert.match(html,/moods\.css\?v=20261011-my-moods-tile1/);
   const worker=readFileSync(new URL('../lab-worker/worker.mjs',import.meta.url),'utf8');
   for(const key of ['sumi-ink','dreamcore'])assert.ok(worker.includes("'"+key+"'"));
 });
@@ -324,5 +326,5 @@ test('Moods prioritizes previews and toggles an already-selected thumbnail off',
   assert.match(css,/#composer-moods-done,[\s\S]*?#composer-moods-switch\{[\s\S]*?min-height:48px/);
   assert.match(css,/#composer-moods-intensity::-webkit-slider-runnable-track\{[\s\S]*?height:7px/);
   assert.match(html,/Clear selected mood/);
-  assert.match(html,/moods\.css\?v=20261011-moods-toolbar1/);
+  assert.match(html,/moods\.css\?v=20261011-my-moods-tile1/);
 });
