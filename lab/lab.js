@@ -256,6 +256,7 @@ const thumbnailBlobs=new Map(),thumbnailReads=new Map();
 let assetBlobBytes=0,thumbnailBytes=0;
 function clearAssetCache(){
   assetBlobs.clear();assetReads.clear();assetBlobBytes=0;
+  imageDetailPrefetchQueue.length=0;releaseImageDetailPreview();
   thumbnailBlobs.clear();thumbnailReads.clear();thumbnailBytes=0;
 }
 async function assetBlob(id){
@@ -1912,7 +1913,40 @@ function resultFormat(blob){
 /* Image detail: full viewport artwork plus a persistent metadata inspector. */
 let imageDetailJob=null;
 const imageDetailCache=new Map();
-let imageDetailNavBusy=false;
+let imageDetailPreviewURL=null;
+let imageDetailNavDirection=1,imageDetailPrefetchReads=0;
+const imageDetailPrefetchQueue=[];
+function releaseImageDetailPreview(){
+  release(imageDetailPreviewURL);imageDetailPreviewURL=null;
+}
+function imageDetailPreview(id){
+  const blob=thumbnailBlobs.get(id);
+  if(blob)return imageDetailPreviewURL=URL.createObjectURL(blob);
+  // Reuse the already painted gallery preview even if its Blob was evicted.
+  const card=[...$('history').querySelectorAll('img[data-asset]')]
+    .find(img=>img.dataset.asset===id&&img.complete&&img.naturalWidth);
+  return card?.currentSrc||'';
+}
+function prefetchImageDetailNeighbors(){
+  const items=imageDetailSequence(),position=items.findIndex(job=>job.id===imageDetailJob?.id);
+  imageDetailPrefetchQueue.length=0;
+  if(position<0||!owner||!$('image-lightbox').open)return;
+  for(const offset of [imageDetailNavDirection,-imageDetailNavDirection,2*imageDetailNavDirection]){
+    const id=items[position+offset]?.outputId;
+    if(id&&!assetBlobs.has(id)&&!assetReads.has(id))imageDetailPrefetchQueue.push(id);
+  }
+  pumpImageDetailPrefetch();
+}
+function pumpImageDetailPrefetch(){
+  // Bound speculative downloads; current navigation uses the shared in-flight
+  // read immediately and never waits behind this queue. The 96 MB cache owns bytes.
+  while(owner&&$('image-lightbox').open&&imageDetailPrefetchReads<2&&imageDetailPrefetchQueue.length){
+    const id=imageDetailPrefetchQueue.shift();
+    if(assetBlobs.has(id)||assetReads.has(id))continue;
+    imageDetailPrefetchReads++;
+    void assetBlob(id).catch(()=>{}).finally(()=>{imageDetailPrefetchReads--;pumpImageDetailPrefetch();});
+  }
+}
 let imageDetailSourceURL=null; // small inspector preview
 let imageDetailSourceOriginalURL=null; // full resolution, only while opened
 let imageDetailSourceOriginalMime=null;
@@ -1929,19 +1963,18 @@ function refreshImageDetailNavigation(){
   $('image-lightbox-counter').textContent=pos>=0?(pos+1)+' / '+items.length:'Image archive';
   $('image-detail-prev').hidden=pos<=0;
   $('image-detail-next').hidden=pos<0||pos>=items.length-1;
-  $('image-detail-prev').disabled=imageDetailNavBusy;
-  $('image-detail-next').disabled=imageDetailNavBusy;
+  $('image-detail-prev').disabled=false;
+  $('image-detail-next').disabled=false;
 }
 async function navigateImageDetail(direction){
-  if(!owner||imageDetailNavBusy||!$('image-lightbox').open||$('image-source-lightbox').open)return;
+  if(!owner||!$('image-lightbox').open||$('image-source-lightbox').open)return;
   const items=imageDetailSequence(),position=items.findIndex(job=>job.id===imageDetailJob?.id);
   const next=items[position+direction];
   if(!next||position<0)return;
-  imageDetailNavBusy=true;
-  refreshImageDetailNavigation();
+  imageDetailNavDirection=direction<0?-1:1;
   try{await openVideo(next,{scroll:false,detail:true});}
   catch(error){if(owner)notify('Unable to open this image. '+error.message,true);}
-  finally{imageDetailNavBusy=false;refreshImageDetailNavigation();}
+  finally{refreshImageDetailNavigation();}
 }
 function closeImageSourceViewer(){
   ++imageDetailSourceOpenRevision;
@@ -2074,13 +2107,14 @@ function fillDetailExtraActions(job,kind){
 }
 function showImageDetail(job,hasOutput,loading=false){
   if(!job||!owner)return;
+  const changed=imageDetailJob?.id!==job.id;
   imageDetailJob=job;
   const params=job.settings||{},dialog=$('image-lightbox'),stage=$('image-lightbox-stage');
   stage.setAttribute('aria-busy',String(loading));
   stage.classList.remove('is-zoomed');stage.scrollTo({top:0,left:0,behavior:'instant'});
   $('image-lightbox-fit').setAttribute('aria-pressed','false');
   $('image-lightbox-fit').textContent='Fit';
-  $('image-lightbox-fit').disabled=!hasOutput;
+  $('image-lightbox-fit').disabled=!hasOutput||loading;
   $('image-lightbox-title').textContent=hasOutput||loading?'Image result':'Image record';
   $('image-detail-status').textContent=job.status?.charAt(0).toUpperCase()+String(job.status||'').slice(1);
   const mood=moodById(params.moodId),customMood=params.moodId==='custom'&&params.customMoodName;
@@ -2111,18 +2145,18 @@ function showImageDetail(job,hasOutput,loading=false){
   $('image-detail-created').textContent=detailDate(job.createdAt);
   $('image-detail-references').textContent=String(params.referenceSourceIds?.length||0);
   $('image-detail-price').textContent=customerMode?(job.estimatedUsd!=null?wallet.jobCharge(job):'Not charged'):job.settledUsd!=null?money(job.settledUsd):job.estimatedUsd!=null?'Estimate '+money(job.estimatedUsd):'Not reported';
-  $('image-detail-dimensions').textContent=loading?'Loading image…':hasOutput?'FIT TO VIEW / ORIGINAL RATIO':'NO RESULT AVAILABLE';
+  $('image-detail-dimensions').textContent=loading?(hasOutput?'PREVIEW / LOADING FULL IMAGE…':'Loading image…'):hasOutput?'FIT TO VIEW / ORIGINAL RATIO':'NO RESULT AVAILABLE';
   $('image-lightbox-img').hidden=!hasOutput;
   $('image-lightbox-unavailable').hidden=hasOutput||loading;
   $('image-lightbox-unavailable').textContent=job.status==='uncertain'?'Provider status is unknown. Nothing will be resubmitted automatically.':job.status==='draft'?'Saved draft. Choose Reuse to continue editing.':'No finished output file is available for this record.';
   $('image-detail-status-help').hidden=!['failed','uncertain'].includes(job.status);
   $('image-detail-status-help').textContent=job.error||(job.status==='uncertain'?'Verify the provider request before trying again.':'The provider did not return an output.');
   for(const id of ['image-detail-video','image-detail-reference','image-detail-upscale','image-detail-repair','image-detail-edit-area','image-lightbox-download'])
-    $(id).disabled=!hasOutput;
+    $(id).disabled=!hasOutput||loading;
   $('image-detail-delete').disabled=activeStates.has(job.status);
   fillDetailExtraActions(job,'image');
   if(!dialog.open)dialog.showModal();
-  showImageDetailSource(job);
+  if(changed)showImageDetailSource(job);
   refreshImageDetailNavigation();
 }
 async function openImageRecord(job){
@@ -2242,6 +2276,7 @@ $('image-lightbox-fit').onclick=()=>{
 };
 $('image-lightbox-img').onload=()=>{
   const img=$('image-lightbox-img');
+  if($('image-lightbox-stage').getAttribute('aria-busy')==='true')return;
   if(img.naturalWidth&&img.naturalHeight)
     $('image-detail-dimensions').textContent=img.naturalWidth+' × '+img.naturalHeight+' / ORIGINAL RATIO';
 };
@@ -2284,7 +2319,9 @@ $('image-detail-delete').onclick=()=>{
   });
 };
 $('image-lightbox').addEventListener('close',()=>{
+  if($('image-lightbox').open)return; // Ignore a delayed close event after reopening.
   ++previewRevision; // Cancel an in-flight next/previous asset fetch.
+  imageDetailPrefetchQueue.length=0;releaseImageDetailPreview();
   releaseImageDetailSource();
   $('image-lightbox-img').removeAttribute('src');
   $('image-lightbox-stage').classList.remove('is-zoomed');
@@ -2299,26 +2336,59 @@ async function openVideo(job,{scroll=true,detail=false}={}){
     try{job=await precisionEditor.finalize(job);}catch(error){notify('The raw edit is saved, but preserving original pixels needs attention: '+error.message,true);}
   }
   if(!hasResult(job))throw new Error('This job has no completed output to view or download.');
-  const revision=++previewRevision;
   const imageDetail=job.settings?.type==='image'&&(tool==='image'||assetLibrary?.active()||detail);
-  if(imageDetail){$('image-lightbox-img').removeAttribute('src');showImageDetail(job,false,true);}
-  let blob,kind,ext;
-  try{blob=await assetBlob(job.outputId);[kind,ext]=resultFormat(blob);}
-  catch(error){
-    if(!owner||revision!==previewRevision)return;
-    if(imageDetail){showImageDetail(job,false);$('image-lightbox-unavailable').textContent='Image could not load. Close and reopen to retry.';}
+  if(imageDetail)clearResult(); // Never leave the previous image's download active.
+  const revision=++previewRevision;
+  const current=()=>owner&&revision===previewRevision&&(!imageDetail||$('image-lightbox').open);
+  if(imageDetail){
+    releaseImageDetailPreview();
+    const img=$('image-lightbox-img'),preview=imageDetailPreview(job.outputId);
+    if(preview)img.src=preview;else img.removeAttribute('src');
+    showImageDetail(job,!!preview,true);
+    if(!preview&&!assetBlobs.has(job.outputId))void assetThumbnailBlob(job.outputId).then(blob=>{
+      if(!current())return;
+      releaseImageDetailPreview();imageDetailPreviewURL=URL.createObjectURL(blob);
+      img.src=imageDetailPreviewURL;showImageDetail(job,true,true);
+    }).catch(()=>{});
+  }
+  let blob,kind,ext,decodedURL=null;
+  try{
+    const original=assetBlob(job.outputId);
+    if(imageDetail)prefetchImageDetailNeighbors();
+    blob=await original;[kind,ext]=resultFormat(blob);
+    if(!current())return;
+    if(imageDetail){
+      if(kind!=='image')throw Error('Image unavailable');
+      // Keep the preview visible until the full-resolution pixels are decoded.
+      decodedURL=URL.createObjectURL(blob);
+      const decoded=new Image();decoded.src=decodedURL;
+      await decoded.decode();
+    }
+  }catch(error){
+    release(decodedURL);
+    if(!current())return;
+    if(imageDetail){
+      const preview=!!$('image-lightbox-img').getAttribute('src');
+      showImageDetail(job,preview,true);
+      $('image-lightbox-stage').setAttribute('aria-busy','false');
+      $('image-detail-dimensions').textContent=preview?'PREVIEW / FULL IMAGE UNAVAILABLE':'IMAGE UNAVAILABLE';
+      $('image-lightbox-unavailable').hidden=preview;
+      $('image-lightbox-unavailable').textContent='Image could not load. Close and reopen to retry.';
+    }
     throw error;
   }
-  if(!owner||revision!==previewRevision)return;
+  if(!current()){release(decodedURL);return;}
   clearResult();
-  resultUrl=URL.createObjectURL(blob);resultId=job.outputId;resultKind=kind;resultExt=ext;resultSettings={...job.settings,type:kind};
+  resultUrl=decodedURL||URL.createObjectURL(blob);resultId=job.outputId;resultKind=kind;resultExt=ext;resultSettings={...job.settings,type:kind};
   if(kind==='image'){$('preview').src=resultUrl;$('preview').alt='Generated image result';$('preview').hidden=false;$('video').hidden=true;}
   else{$('video').src=resultUrl;$('video').hidden=false;$('preview').hidden=true;}
   $('empty').hidden=true;$('download').hidden=false;$('download').textContent='Download '+kind+' / '+ext.toUpperCase();
   $('preview-label').textContent='Generated result / '+(kind==='image'?'Image':job.settings.duration+'s');update();
   if((tool==='image'||assetLibrary?.active()||detail)&&kind==='image'){
     $('image-lightbox-img').src=resultUrl;
+    releaseImageDetailPreview();
     showImageDetail(job,true);
+    prefetchImageDetailNeighbors();
     return;
   }
   if(assetLibrary?.active()&&kind==='video'){$('asset-video-player').src=resultUrl;$('asset-video-dialog').showModal();return;}
