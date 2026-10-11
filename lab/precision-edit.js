@@ -281,6 +281,8 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     maskCtx.clearRect(0,0,w,h);resetSelection();workingId=null;resultBlob=null;
     if(resultBitmap){resultBitmap.close();resultBitmap=null;}
     resultCanvas.hidden=true;$('precision-output-empty').hidden=false;
+    $('precision-output-empty').querySelector('strong').textContent='Ready for your edit.';
+    $('precision-output-empty').querySelector('p').textContent='The result appears here when it is finished.';
     $('precision-compare').value='100';$('precision-compare').disabled=true;
     $('precision-compare-control').hidden=true;$('precision-compare-idle').hidden=false;
     $('precision-download').disabled=true;$('precision-download').hidden=true;
@@ -584,6 +586,9 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
   });
   window.addEventListener('blur',()=>{spaceHeld=false;if(base&&isOpen())paintZoom();});
   $('precision-select-cancel').onclick=()=>{consentPoint=null;$('precision-select-consent').close();selectMode('brush');};
+  $('precision-select-consent').addEventListener('close',()=>{
+    if(consentPoint){consentPoint=null;if(base&&selectionAllowance<=0)selectMode('brush');}
+  });
   $('precision-select-approve').onclick=()=>{
     const point=consentPoint;consentPoint=null;
     $('precision-select-consent').close();selectionAllowance=5;
@@ -610,6 +615,19 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
   for(const name of ['dragenter','dragover'])$('precision-drop').addEventListener(name,e=>{e.preventDefault();$('precision-drop').classList.add('is-dragging');});
   $('precision-drop').addEventListener('dragleave',()=>{$('precision-drop').classList.remove('is-dragging');});
   $('precision-drop').addEventListener('drop',e=>{e.preventDefault();$('precision-drop').classList.remove('is-dragging');if(e.dataTransfer.files[0])handle(setBase(e.dataTransfer.files[0]));});
+  const sourceHolder=$('precision-source-holder');
+  for(const type of ['dragenter','dragover'])sourceHolder.addEventListener(type,e=>{
+    if(!e.dataTransfer?.types?.includes('Files'))return;
+    e.preventDefault();sourceHolder.classList.add('is-dragging');
+  });
+  sourceHolder.addEventListener('dragleave',e=>{
+    if(!sourceHolder.contains(e.relatedTarget))sourceHolder.classList.remove('is-dragging');
+  });
+  sourceHolder.addEventListener('drop',e=>{
+    if(!e.dataTransfer?.files?.length)return;
+    e.preventDefault();sourceHolder.classList.remove('is-dragging');
+    handle(setBase(e.dataTransfer.files[0]));
+  });
   function attemptMagic(point){
     if(!base||taskBusy||!falReady())return;
     if(selectionAllowance<=0){
