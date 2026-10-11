@@ -1,0 +1,217 @@
+{
+  "version": "2026-10-11",
+  "bucket": "parallel-vision-visuals",
+  "assets": [
+    {
+      "mood": "80s-film",
+      "sourceFilename": "80S FILM.png",
+      "path": "lab/mood-bank/2026-10-11/80s-film/originals/80s-film.png",
+      "width": 2048,
+      "height": 1536,
+      "bytes": 5777728,
+      "sha256": "02603b9568aec8a08e176c4736c6608a90ebb620eed618e6b2af1d435ebbe7ac",
+      "primary": true
+    },
+    {
+      "mood": "90s-cinema",
+      "sourceFilename": "90S FILM.png",
+      "path": "lab/mood-bank/2026-10-11/90s-cinema/originals/90s-film.png",
+      "width": 506,
+      "height": 628,
+      "bytes": 565856,
+      "sha256": "7b7d3108155267ff58ee85c27bc2a31bb3558e4ba5f94e52cfa04bcdf06aa202",
+      "primary": true
+    },
+    {
+      "mood": "fashion-editorial",
+      "sourceFilename": "FASHION EDITORAL.png",
+      "path": "lab/mood-bank/2026-10-11/fashion-editorial/originals/fashion-editoral.png",
+      "width": 2048,
+      "height": 1536,
+      "bytes": 6627446,
+      "sha256": "0210920ee5c0aa2f115157bac482ba0db8cdf0c956d7a43316dba72b42457419",
+      "primary": true
+    },
+    {
+      "mood": "fashion-editorial",
+      "sourceFilename": "midnight_elevator_fashion_editorial(3).png",
+      "path": "lab/mood-bank/2026-10-11/fashion-editorial/originals/midnight-elevator-fashion-editorial-3-.png",
+      "width": 1448,
+      "height": 1086,
+      "bytes": 3244989,
+      "sha256": "8415bf2d9dab10de5d9c636bc3e75dece69b458823083c23c765368db3a15fb8",
+      "primary": false
+    },
+    {
+      "mood": "frutiger-aero",
+      "sourceFilename": "FRUTIGER AERO.png",
+      "path": "lab/mood-bank/2026-10-11/frutiger-aero/originals/frutiger-aero.png",
+      "width": 2048,
+      "height": 1536,
+      "bytes": 7253600,
+      "sha256": "835d76043842128fe0c1cc1e614b3b4193888a2cf3ec100e8a9f4d8ae1d7bfc4",
+      "primary": true
+    },
+    {
+      "mood": "sumi-ink",
+      "sourceFilename": "parallel-vision-8c5ceb4a-42e5-47e4-8009-550de60d84ef(2).png",
+      "path": "lab/mood-bank/2026-10-11/sumi-ink/originals/parallel-vision-8c5ceb4a-42e5-47e4-8009-550de60d84ef-2-.png",
+      "width": 1344,
+      "height": 768,
+      "bytes": 2550002,
+      "sha256": "98e5494ace4fb77462dd2a84992af0eabcd139ea87422b77606c6ec1e59a69e5",
+      "primary": true
+    },
+    {
+      "mood": "early-reference-unassigned",
+      "sourceFilename": "hf_20261011_023058_95417004-153e-4166-b152-bb647f5d148f(2).png",
+      "path": "lab/mood-bank/2026-10-11/early-reference-unassigned/originals/hf-20261011-023058-95417004-153e-4166-b152-bb647f5d148f-2-.png",
+      "width": 2048,
+      "height": 1536,
+      "bytes": 5988898,
+      "sha256": "1c0f027861242027bf84d1a8b3355535e1dc322a24ccb90473502bd664292d7b",
+      "primary": false
+    },
+    {
+      "mood": "soft-pastel-film",
+      "sourceFilename": "SOFT PASTE(1).png",
+      "path": "lab/mood-bank/2026-10-11/soft-pastel-film/originals/soft-paste-1-.png",
+      "width": 2048,
+      "height": 1536,
+      "bytes": 4064156,
+      "sha256": "1505c72bcd2a778e6b96e863570aa57117fa3fb23e72ae9dd4df1447d1bb4e26",
+      "primary": true
+    },
+    {
+      "mood": "dreamcore",
+      "sourceFilename": "DREAMCORE ONE.png",
+      "path": "lab/mood-bank/2026-10-11/dreamcore/originals/dreamcore-one.png",
+      "width": 1448,
+      "height": 1086,
+      "bytes": 3187363,
+      "sha256": "fe55c883d1cbaf02b4aee4fdc990366246b0dec38dc0b8c89d40daa8cc6ea8b1",
+      "primary": true
+    },
+    {
+      "mood": "dreamcore",
+      "sourceFilename": "DREAMCORES.png",
+      "path": "lab/mood-bank/2026-10-11/dreamcore/originals/dreamcores.png",
+      "width": 1448,
+      "height": 1086,
+      "bytes": 3185592,
+      "sha256": "59d55dae18ba3c288901b539b03aa10a6a7b56d4e3dfe7ecba1d136f445c347e",
+      "primary": false
+    },
+    {
+      "mood": "dreamcore",
+      "sourceFilename": "DREAMCORE HALLO.png",
+      "path": "lab/mood-bank/2026-10-11/dreamcore/originals/dreamcore-hallo.png",
+      "width": 1448,
+      "height": 1086,
+      "bytes": 3238146,
+      "sha256": "8482920b5a5548c131c08ceff071373e1e9b9049ccbcf4fe55403a86e9b5a446",
+      "primary": false
+    },
+    {
+      "mood": "dreamcore",
+      "sourceFilename": "DREAMCOREPOOL.png",
+      "path": "lab/mood-bank/2026-10-11/dreamcore/originals/dreamcorepool.png",
+      "width": 1448,
+      "height": 1086,
+      "bytes": 3346116,
+      "sha256": "38026e748cac295571234c78823503915bdd3ee2c73fe1cd45d8049fd12bd253",
+      "primary": false
+    },
+    {
+      "mood": "night-flash",
+      "sourceFilename": "NIGHT FLASH.png",
+      "path": "lab/mood-bank/2026-10-11/night-flash/originals/night-flash.png",
+      "width": 2048,
+      "height": 1536,
+      "bytes": 6252418,
+      "sha256": "1e475ba2088f0c5e555f2cb0b2994ace83a28e41e18e54e794ceacefad3509b5",
+      "primary": true
+    },
+    {
+      "mood": "80s-film",
+      "path": "lab/mood-bank/2026-10-11/80s-film/preview.webp",
+      "width": 1800,
+      "height": 1350,
+      "bytes": 134346,
+      "sha256": "437c6aa0f279768385e65e941793ba80e9e7b59d395ec7c36a0f93802ac819c5",
+      "role": "preview"
+    },
+    {
+      "mood": "90s-cinema",
+      "path": "lab/mood-bank/2026-10-11/90s-cinema/preview.webp",
+      "width": 506,
+      "height": 628,
+      "bytes": 65518,
+      "sha256": "f48eb9244d3fb380e97a404b7d4cdd15c55803340133d364904a9d7516be5c17",
+      "role": "preview"
+    },
+    {
+      "mood": "dreamcore",
+      "path": "lab/mood-bank/2026-10-11/dreamcore/preview.webp",
+      "width": 1448,
+      "height": 1086,
+      "bytes": 333510,
+      "sha256": "99fc0713c726c5143c019bd5667cee70e347224801d3438e34ec7edc6d38a03d",
+      "role": "preview"
+    },
+    {
+      "mood": "fashion-editorial",
+      "path": "lab/mood-bank/2026-10-11/fashion-editorial/preview.webp",
+      "width": 1800,
+      "height": 1350,
+      "bytes": 418024,
+      "sha256": "86effc8bfc30598b84e2dda65ea405015a5043fb6511083861a548f45746ce8b",
+      "role": "preview"
+    },
+    {
+      "mood": "frutiger-aero",
+      "path": "lab/mood-bank/2026-10-11/frutiger-aero/preview.webp",
+      "width": 1800,
+      "height": 1350,
+      "bytes": 525028,
+      "sha256": "9ab8336227f68cfd41e3670a89205b15fceae50c4cd44a59aed0dc5ead99a033",
+      "role": "preview"
+    },
+    {
+      "mood": "night-flash",
+      "path": "lab/mood-bank/2026-10-11/night-flash/preview.webp",
+      "width": 1800,
+      "height": 1350,
+      "bytes": 364392,
+      "sha256": "d5ca80cf123dcf4281be8079a8bfef51dd175bfa2c559187ac078ba8d20040af",
+      "role": "preview"
+    },
+    {
+      "mood": "polaroid-600",
+      "path": "lab/mood-bank/2026-10-11/polaroid-600/preview.webp",
+      "width": 646,
+      "height": 791,
+      "bytes": 23164,
+      "sha256": "97a3380601fe04a5dbcf47b52c35eb3f57cb8016c98c46c02260fc83e527f6ac",
+      "role": "preview"
+    },
+    {
+      "mood": "soft-pastel-film",
+      "path": "lab/mood-bank/2026-10-11/soft-pastel-film/preview.webp",
+      "width": 1800,
+      "height": 1350,
+      "bytes": 368170,
+      "sha256": "e9bc3cafdfaaffb8df29b9f8f3aa3bef259f72f765251f96ba95982fb5152630",
+      "role": "preview"
+    },
+    {
+      "mood": "sumi-ink",
+      "path": "lab/mood-bank/2026-10-11/sumi-ink/preview.webp",
+      "width": 1344,
+      "height": 768,
+      "bytes": 228338,
+      "sha256": "4a42c400d9680f2fa345cb5b65f278283241d284d2ba8acffd10387bf8d28c06",
+      "role": "preview"
+    }
+  ]
+}

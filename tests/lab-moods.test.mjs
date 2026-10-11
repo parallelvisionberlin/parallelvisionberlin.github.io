@@ -185,7 +185,7 @@ test('Gallery hover metadata identifies the exact image model',()=>{
 
 test('90s Cinema thumbnail and applied mood share a film-scan style',()=>{
   const preset=moodById('90s-cinema');
-  assert.equal(preset.preview,'/lab/mood-previews/90s-cinema-record-shop-20261010.webp');
+  assert.equal(preset.preview,'/lab/mood-bank/2026-10-11/90s-cinema/preview.webp');
   for(const intensity of [15,60,100]){
     const result=prepareMoodPrompt('A person in a room','90s-cinema',intensity,{engine:'seedream',referenceCount:1});
     assert.equal(result.error,'');
@@ -228,7 +228,7 @@ test('Moods footer has a larger primary action and a compact accessible explanat
 
 test('Dreamcore V5 routes organic nature, people and built environments',()=>{
   const m=moodById('dreamcore');
-  assert.equal(m.preview,'/lab/mood-previews/dreamcore-train-20261010.webp');
+  assert.equal(m.preview,'/lab/mood-bank/2026-10-11/dreamcore/preview.webp');
   assert.match(m.routing,/EVEN WHEN A PERSON IS PRESENT/);
   assert.match(m.routing,/ARCHITECTURE if houses/);
   assert.match(m.routing,/Otherwise PORTRAIT/);
@@ -352,7 +352,7 @@ test('Popup stays centered; selected mood and About are in the upper controls',(
 
 test('Soft Pastel Film uses uniquely versioned photo without CSS recoloring',()=>{
   const preset=moodById('soft-pastel-film');
-  assert.equal(preset.preview,'/lab/mood-previews/soft-pastel-film-portrait-f77111b4.webp');
+  assert.equal(preset.preview,'/lab/mood-bank/2026-10-11/soft-pastel-film/preview.webp');
   const css=readFileSync(new URL('../lab/moods.css',import.meta.url),'utf8');
   assert.ok(css.includes('.moods-look-soft-pastel-film img{filter:none;'));
   const html=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
