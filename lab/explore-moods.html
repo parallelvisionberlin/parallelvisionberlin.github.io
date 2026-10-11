@@ -9,13 +9,15 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;450;500;550;600;700&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="./mood-creator.css?v=20261011-direction-deck1">
-<link rel="stylesheet" href="./explore-moods.css?v=20261011-hero-editorial6">
+<link rel="stylesheet" href="./explore-moods-editorial.css?v=20261011-full-design1">
 </head>
 <body class="mc-explore-page">
 <a class="mc-skip" href="#discover">Skip to Moods</a>
-<header class="mc-header">
+<header class="mc-header mc-explore-header" id="mc-explore-header">
   <a class="mc-wordmark" href="./" aria-label="PV Lab home">PV LAB<span> / EXPLORE MOODS</span></a>
-  <nav class="mc-navigation" aria-label="Creative tools">
+  <a class="mc-mobile-section" href="#discover" aria-current="page">Explore Moods</a>
+  <button class="mc-menu-toggle" id="mc-menu-toggle" type="button" aria-expanded="false" aria-controls="mc-explore-nav" aria-label="Open navigation menu"><span></span><span></span><span></span></button>
+  <nav class="mc-navigation" id="mc-explore-nav" aria-label="Creative tools">
     <a href="./studio.html?tool=image">Image ↗</a>
     <a href="./explore-moods.html" aria-current="page">Explore Moods</a>
     <a href="./mood-creator.html">Mood Creator</a>
@@ -24,109 +26,133 @@
 </header>
 <main id="main">
 <section class="mc-discovery mc-discovery--explore" id="discover" aria-labelledby="mc-headline">
-  <div class="mc-explore-hero-art" aria-hidden="true"></div>
-  <div class="mc-discovery-intro">
-    <span class="mc-overline"><span class="mc-signal" aria-hidden="true"></span> PV LAB / CURATED CREATIVE DIRECTION <span class="mc-discovery-edition">COLLECTION 001 / 015</span></span>
-    <div class="mc-discovery-heading">
-      <div><h1 id="mc-headline">Explore <em>Moods.</em></h1><p>Choose a look. Transform your image.</p></div>
+  <div class="mc-explore-masthead">
+    <div class="mc-explore-hero-art" aria-hidden="true">
+      <img src="/lab/mood-previews/hd/explore-hero-reference-20261011.jpg" alt="" fetchpriority="high" decoding="async">
+    </div>
+    <div class="mc-explore-hero-veil" aria-hidden="true"></div>
+    <div class="mc-explore-hero-copy">
+      <div class="mc-overline"><span class="mc-signal" aria-hidden="true"></span>PV LAB / CURATED CREATIVE DIRECTION</div>
+      <h1 id="mc-headline">Explore <em>Moods.</em></h1>
+      <p class="mc-explore-lede">Choose a look. Transform your image.</p>
+      <p class="mc-explore-intro">Fifteen visual worlds. Choose one, drop your photograph, and make it yours.</p>
       <div class="mc-discovery-actions">
-        <a href="./mood-creator.html">Create your own Mood <span aria-hidden="true">↗</span></a>
+        <a href="./mood-creator.html">Create your own <span aria-hidden="true">↗</span></a>
         <a href="./mood-creator.html#my-moods">Saved Moods <span aria-hidden="true">→</span></a>
       </div>
     </div>
-    <p class="mc-discovery-intro-note">Choose a mood, drop a photograph, transform.</p>
+    <span class="mc-discovery-edition">COLLECTION 001 / 015</span>
   </div>
-  <div class="mc-discovery-bar"><span>01 / EXPLORE THE MOODS</span><span>CHOOSE · DROP · TRANSFORM</span></div>
-  <div class="mc-look-grid" id="mc-look-grid" aria-label="Fifteen curated visual Moods">
-    <div class="mc-featured-mood">
-      <button class="mc-look-card" type="button" data-mood-id="hong-kong-nights" aria-label="Explore Hong Kong Nights Mood. Click to add a photograph or direction.">
-    <span class="mc-look-photo"><img src="/lab/mood-previews/hong-kong-nights-emerald-20261010.webp" alt="Hong Kong Nights visual aesthetic" fetchpriority="high" decoding="async"><span class="mc-look-index">01 / PV MOOD</span><span class="mc-look-drop">DROP YOUR PHOTO HERE</span></span>
-    <span class="mc-look-copy"><strong>Hong Kong Nights</strong><span aria-hidden="true">↗</span></span>
-    <small>Emerald haze, neon bloom and nocturnal melancholy</small>
-  </button>
+  <div class="mc-explore-collection">
+    <div class="mc-discovery-bar"><span>01 / EXPLORE THE MOODS</span><span>CHOOSE · DROP · TRANSFORM</span></div>
+    <div class="mc-look-grid" id="mc-look-grid" aria-label="Five featured visual Moods">
+      <div class="mc-featured-mood"><button class="mc-look-card" type="button" data-mood-id="hong-kong-nights" aria-label="Explore Hong Kong Nights Mood photography. Add a photograph or direction.">
+  <span class="mc-look-photo"><svg class="mc-hk-picture" viewBox="786 61 315 408" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Hong Kong Nights Mood photography"><image href="/lab/mood-previews/hd/explore-hero-reference-20261011.jpg" x="0" y="0" width="1534" height="928"></image></svg><span class="mc-look-drop">DROP YOUR PHOTO HERE</span></span>
+  <span class="mc-look-index">01</span>
+  <span class="mc-look-copy"><strong>Hong Kong Nights</strong><span aria-hidden="true">↗</span></span>
+  <small>Neon. Rain. Reality on film.</small>
+</button></div>
+      <div class="mc-mood-rail" aria-label="Featured Moods. Swipe horizontally on mobile.">
+        <button class="mc-look-card" type="button" data-mood-id="night-flash" aria-label="Explore Night Flash Mood photography. Add a photograph or direction.">
+  <span class="mc-look-photo"><img src="/lab/mood-previews/hd/night-flash-20261011.jpg" alt="Night Flash Mood photography" decoding="async" fetchpriority="high"><span class="mc-look-drop">DROP YOUR PHOTO HERE</span></span>
+  <span class="mc-look-index">02</span>
+  <span class="mc-look-copy"><strong>Night Flash</strong><span aria-hidden="true">↗</span></span>
+  <small>Direct flash. Pure presence.</small>
+</button>
+<button class="mc-look-card" type="button" data-mood-id="dreamcore" aria-label="Explore Dreamcore Mood photography. Add a photograph or direction.">
+  <span class="mc-look-photo"><img src="/lab/mood-bank/2026-10-11/dreamcore/preview.webp" alt="Dreamcore Mood photography" decoding="async" fetchpriority="high"><span class="mc-look-drop">DROP YOUR PHOTO HERE</span></span>
+  <span class="mc-look-index">03</span>
+  <span class="mc-look-copy"><strong>Dreamcore</strong><span aria-hidden="true">↗</span></span>
+  <small>Surreal places. Softer realities.</small>
+</button>
+<button class="mc-look-card" type="button" data-mood-id="90s-cinema" aria-label="Explore 90s Cinema Mood photography. Add a photograph or direction.">
+  <span class="mc-look-photo"><img src="/lab/mood-previews/hd/90s-cinema-20261011.jpg" alt="90s Cinema Mood photography" decoding="async" fetchpriority="high"><span class="mc-look-drop">DROP YOUR PHOTO HERE</span></span>
+  <span class="mc-look-index">04</span>
+  <span class="mc-look-copy"><strong>90s Cinema</strong><span aria-hidden="true">↗</span></span>
+  <small>Stories in another light.</small>
+</button>
+<button class="mc-look-card" type="button" data-mood-id="polaroid-600" aria-label="Explore Polaroid 600 Mood photography. Add a photograph or direction.">
+  <span class="mc-look-photo"><img src="/lab/mood-previews/hd/polaroid-600-20261011.jpg" alt="Polaroid 600 Mood photography" decoding="async" fetchpriority="high"><span class="mc-look-drop">DROP YOUR PHOTO HERE</span></span>
+  <span class="mc-look-index">05</span>
+  <span class="mc-look-copy"><strong>Polaroid 600</strong><span aria-hidden="true">↗</span></span>
+  <small>Instant. Intimate. Iconic.</small>
+</button>
+      </div>
     </div>
-    <div class="mc-mobile-rail-heading" aria-hidden="true"><span>THE COLLECTION</span><span>SWIPE TO EXPLORE ↗</span></div>
-    <div class="mc-mood-rail" aria-label="More curated Moods, swipe horizontally">
-      <button class="mc-look-card" type="button" data-mood-id="night-flash" aria-label="Explore Night Flash Mood. Click to add a photograph or direction.">
-    <span class="mc-look-photo"><img src="/lab/mood-bank/2026-10-11/night-flash/preview.webp" alt="Night Flash visual aesthetic" fetchpriority="high" decoding="async"><span class="mc-look-index">02 / PV MOOD</span><span class="mc-look-drop">DROP YOUR PHOTO HERE</span></span>
-    <span class="mc-look-copy"><strong>Night Flash</strong><span aria-hidden="true">↗</span></span>
-    <small>Raw after-dark photography</small>
-  </button>
-<button class="mc-look-card" type="button" data-mood-id="dreamcore" aria-label="Explore Dreamcore Mood. Click to add a photograph or direction.">
-    <span class="mc-look-photo"><img src="/lab/mood-bank/2026-10-11/dreamcore/preview.webp" alt="Dreamcore visual aesthetic" fetchpriority="high" decoding="async"><span class="mc-look-index">03 / PV MOOD</span><span class="mc-look-drop">DROP YOUR PHOTO HERE</span></span>
-    <span class="mc-look-copy"><strong>Dreamcore</strong><span aria-hidden="true">↗</span></span>
-    <small>Pearlescent reality, iridescent mist and liminal light</small>
-  </button>
-<button class="mc-look-card" type="button" data-mood-id="90s-cinema" aria-label="Explore 90s Cinema Mood. Click to add a photograph or direction.">
-    <span class="mc-look-photo"><img src="/lab/mood-bank/2026-10-11/90s-cinema/preview.webp" alt="90s Cinema visual aesthetic" fetchpriority="high" decoding="async"><span class="mc-look-index">04 / PV MOOD</span><span class="mc-look-drop">DROP YOUR PHOTO HERE</span></span>
-    <span class="mc-look-copy"><strong>90s Cinema</strong><span aria-hidden="true">↗</span></span>
-    <small>1990s 35mm movie-film color and texture</small>
-  </button>
-<button class="mc-look-card" type="button" data-mood-id="polaroid-600" aria-label="Explore Polaroid 600 Mood. Click to add a photograph or direction.">
-    <span class="mc-look-photo"><img src="/lab/mood-bank/2026-10-11/polaroid-600/preview.webp" alt="Instant-film inspired dark fashion portrait" loading="lazy" decoding="async"><span class="mc-look-index">05 / PV MOOD</span><span class="mc-look-drop">DROP YOUR PHOTO HERE</span></span>
-    <span class="mc-look-copy"><strong>Polaroid 600</strong><span aria-hidden="true">↗</span></span>
-    <small>Flash-lit fashion on tactile instant film</small>
-  </button>
-<button class="mc-look-card" type="button" data-mood-id="fashion-editorial" aria-label="Explore Fashion Editorial Mood. Click to add a photograph or direction.">
-    <span class="mc-look-photo"><img src="/lab/mood-bank/2026-10-11/fashion-editorial/preview.webp" alt="Fashion Editorial visual aesthetic" loading="lazy" decoding="async"><span class="mc-look-index">06 / PV MOOD</span><span class="mc-look-drop">DROP YOUR PHOTO HERE</span></span>
-    <span class="mc-look-copy"><strong>Fashion Editorial</strong><span aria-hidden="true">↗</span></span>
-    <small>Refined fashion art direction</small>
-  </button>
-<button class="mc-look-card" type="button" data-mood-id="berlin-rave" aria-label="Explore Berlin Rave Mood. Click to transform your outfit.">
-    <span class="mc-look-photo"><img src="/lab/mood-previews/berlin-rave-20261011.webp" alt="Exaggerated black leather underground Berlin Rave outfit" loading="lazy" decoding="async"><span class="mc-look-index">07 / PV MOOD</span><span class="mc-look-drop">DROP YOUR PHOTO HERE</span></span>
-    <span class="mc-look-copy"><strong>Berlin Rave</strong><span aria-hidden="true">↗</span></span>
-    <small>Source-adaptive Berlin underground couture</small>
-  </button>
-<button class="mc-look-card" type="button" data-mood-id="soft-pastel-film" aria-label="Explore Soft Pastel Film Mood. Click to add a photograph or direction.">
-    <span class="mc-look-photo"><img src="/lab/mood-bank/2026-10-11/soft-pastel-film/preview.webp" alt="Soft Pastel Film visual aesthetic" loading="lazy" decoding="async"><span class="mc-look-index">08 / PV MOOD</span><span class="mc-look-drop">DROP YOUR PHOTO HERE</span></span>
-    <span class="mc-look-copy"><strong>Soft Pastel Film</strong><span aria-hidden="true">↗</span></span>
-    <small>Quiet creamy daylight</small>
-  </button>
-<button class="mc-look-card" type="button" data-mood-id="80s-film" aria-label="Explore 80s Film Mood. Click to add a photograph or direction.">
-    <span class="mc-look-photo"><img src="/lab/mood-bank/2026-10-11/80s-film/preview.webp" alt="80s Film visual aesthetic" loading="lazy" decoding="async"><span class="mc-look-index">09 / PV MOOD</span><span class="mc-look-drop">DROP YOUR PHOTO HERE</span></span>
-    <span class="mc-look-copy"><strong>80s Film</strong><span aria-hidden="true">↗</span></span>
-    <small>35mm movie scenes, burned light and saturated color</small>
-  </button>
-<button class="mc-look-card" type="button" data-mood-id="synthetic-romance" aria-label="Explore Synthetic Romance Mood. Transform your photograph into a synthetic being.">
-    <span class="mc-look-photo"><img src="/lab/mood-previews/synthetic-romance-canon-kiss-20261011.webp" alt="Original Parallel Vision Canon II Kiss artwork, two intimate humanoid figures in a dark retro-futurist corridor" loading="lazy" decoding="async"><span class="mc-look-index">10 / PV MOOD</span><span class="mc-look-drop">DROP YOUR PHOTO HERE</span></span>
-    <span class="mc-look-copy"><strong>Synthetic Romance</strong><span aria-hidden="true">↗</span></span>
-    <small>Black chrome, human longing and 1980s synthetic cinema</small>
-  </button>
-<button class="mc-look-card" type="button" data-mood-id="kodak-gold" aria-label="Explore Kodak Gold Mood. Click to add a photograph or direction.">
-    <span class="mc-look-photo"><img src="/lab/visuals/greenhouse-portrait.webp" alt="Kodak Gold visual aesthetic" loading="lazy" decoding="async"><span class="mc-look-index">11 / PV MOOD</span><span class="mc-look-drop">DROP YOUR PHOTO HERE</span></span>
-    <span class="mc-look-copy"><strong>Kodak Gold</strong><span aria-hidden="true">↗</span></span>
-    <small>Bold golden negative-film color and grain</small>
-  </button>
-<button class="mc-look-card" type="button" data-mood-id="frutiger-aero" aria-label="Explore Frutiger Aero Mood. Click to add a photograph or direction.">
-    <span class="mc-look-photo"><img src="/lab/mood-bank/2026-10-11/frutiger-aero/preview.webp" alt="Frutiger Aero visual aesthetic" loading="lazy" decoding="async"><span class="mc-look-index">12 / PV MOOD</span><span class="mc-look-drop">DROP YOUR PHOTO HERE</span></span>
-    <span class="mc-look-copy"><strong>Frutiger Aero</strong><span aria-hidden="true">↗</span></span>
-    <small>Translucent Y2K optimism</small>
-  </button>
-<button class="mc-look-card" type="button" data-mood-id="hyper-pop" aria-label="Explore Hyper Pop Mood. Click to add a photograph or direction.">
-    <span class="mc-look-photo"><img src="/lab/visuals/reptare-detail.webp" alt="Hyper Pop visual aesthetic" loading="lazy" decoding="async"><span class="mc-look-index">13 / PV MOOD</span><span class="mc-look-drop">DROP YOUR PHOTO HERE</span></span>
-    <span class="mc-look-copy"><strong>Hyper Pop</strong><span aria-hidden="true">↗</span></span>
-    <small>Vivid editorial energy</small>
-  </button>
-<button class="mc-look-card" type="button" data-mood-id="sumi-ink" aria-label="Explore Japanese Sumi-e Mood. Click to add a photograph or direction.">
-    <span class="mc-look-photo"><img src="/lab/mood-bank/2026-10-11/sumi-ink/preview.webp" alt="Japanese Sumi-e visual aesthetic" loading="lazy" decoding="async"><span class="mc-look-index">14 / PV MOOD</span><span class="mc-look-drop">DROP YOUR PHOTO HERE</span></span>
-    <span class="mc-look-copy"><strong>Japanese Sumi-e</strong><span aria-hidden="true">↗</span></span>
-    <small>Canonical black-ink wash on warm washi</small>
-  </button>
-<button class="mc-look-card" type="button" data-mood-id="midnight-reverie" aria-label="Explore Midnight Reverie Mood. Click to add a photograph or direction.">
-    <span class="mc-look-photo"><img src="/lab/mood-previews/midnight-reverie-original-20261011.png" alt="Original Midnight Reverie reference: a woman in cyan street light with soft motion" width="399" height="668" loading="lazy" decoding="async"><span class="mc-look-index">15 / PV MOOD</span><span class="mc-look-drop">DROP YOUR PHOTO HERE</span></span>
-    <span class="mc-look-copy"><strong>Midnight Reverie</strong><span aria-hidden="true">↗</span></span>
-    <small>Cyan light, fleeting movement and intimate night-film texture</small>
-  </button>
-
-      <button id="mc-create-look" class="mc-look-card mc-create-card" type="button" aria-label="Create your own visual Mood">
-      <span class="mc-look-photo mc-create-photo"><span class="mc-create-plus">+</span><span class="mc-create-note">YOUR OWN LOOK<br>STARTS HERE</span></span>
-      <span class="mc-look-copy"><strong>Create your Mood</strong><span aria-hidden="true">↗</span></span>
-      <small>From a photograph or an idea</small>
-    </button>
+    <div class="mc-gallery-controls">
+      <div class="mc-gallery-dots" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+      <button type="button" id="mc-view-all" class="mc-view-all" aria-expanded="false" aria-controls="mc-expanded-moods">VIEW ALL MOODS <span aria-hidden="true">→</span></button>
+    </div>
+    <div id="mc-expanded-moods" hidden>
+      <div class="mc-more-moods" aria-label="More curated visual Moods">
+        <button class="mc-look-card" type="button" data-mood-id="fashion-editorial" aria-label="Explore Fashion Editorial Mood photography. Add a photograph or direction.">
+  <span class="mc-look-photo"><img src="/lab/mood-previews/hd/fashion-editorial-20261011.jpg" alt="Fashion Editorial Mood photography" decoding="async" loading="lazy"><span class="mc-look-drop">DROP YOUR PHOTO HERE</span></span>
+  <span class="mc-look-index">06</span>
+  <span class="mc-look-copy"><strong>Fashion Editorial</strong><span aria-hidden="true">↗</span></span>
+  <small>Refined fashion art direction</small>
+</button>
+<button class="mc-look-card" type="button" data-mood-id="berlin-rave" aria-label="Explore Berlin Rave Mood photography. Add a photograph or direction.">
+  <span class="mc-look-photo"><img src="/lab/mood-previews/berlin-rave-20261011.webp" alt="Berlin Rave Mood photography" decoding="async" loading="lazy"><span class="mc-look-drop">DROP YOUR PHOTO HERE</span></span>
+  <span class="mc-look-index">07</span>
+  <span class="mc-look-copy"><strong>Berlin Rave</strong><span aria-hidden="true">↗</span></span>
+  <small>Source-adaptive Berlin underground couture</small>
+</button>
+<button class="mc-look-card" type="button" data-mood-id="soft-pastel-film" aria-label="Explore Soft Pastel Film Mood photography. Add a photograph or direction.">
+  <span class="mc-look-photo"><img src="/lab/mood-bank/2026-10-11/soft-pastel-film/preview.webp" alt="Soft Pastel Film Mood photography" decoding="async" loading="lazy"><span class="mc-look-drop">DROP YOUR PHOTO HERE</span></span>
+  <span class="mc-look-index">08</span>
+  <span class="mc-look-copy"><strong>Soft Pastel Film</strong><span aria-hidden="true">↗</span></span>
+  <small>Quiet creamy daylight</small>
+</button>
+<button class="mc-look-card" type="button" data-mood-id="80s-film" aria-label="Explore 80s Film Mood photography. Add a photograph or direction.">
+  <span class="mc-look-photo"><img src="/lab/mood-previews/hd/80s-film-20261011.jpg" alt="80s Film Mood photography" decoding="async" loading="lazy"><span class="mc-look-drop">DROP YOUR PHOTO HERE</span></span>
+  <span class="mc-look-index">09</span>
+  <span class="mc-look-copy"><strong>80s Film</strong><span aria-hidden="true">↗</span></span>
+  <small>35mm movie scenes, burned light and saturated color</small>
+</button>
+<button class="mc-look-card" type="button" data-mood-id="synthetic-romance" aria-label="Explore Synthetic Romance Mood photography. Add a photograph or direction.">
+  <span class="mc-look-photo"><img src="/lab/mood-previews/synthetic-romance-canon-kiss-20261011.webp" alt="Synthetic Romance Mood photography" decoding="async" loading="lazy"><span class="mc-look-drop">DROP YOUR PHOTO HERE</span></span>
+  <span class="mc-look-index">10</span>
+  <span class="mc-look-copy"><strong>Synthetic Romance</strong><span aria-hidden="true">↗</span></span>
+  <small>Black chrome, human longing and 1980s synthetic cinema</small>
+</button>
+<button class="mc-look-card" type="button" data-mood-id="kodak-gold" aria-label="Explore Kodak Gold Mood photography. Add a photograph or direction.">
+  <span class="mc-look-photo"><img src="/lab/visuals/greenhouse-portrait.webp" alt="Kodak Gold Mood photography" decoding="async" loading="lazy"><span class="mc-look-drop">DROP YOUR PHOTO HERE</span></span>
+  <span class="mc-look-index">11</span>
+  <span class="mc-look-copy"><strong>Kodak Gold</strong><span aria-hidden="true">↗</span></span>
+  <small>Bold golden negative-film color and grain</small>
+</button>
+<button class="mc-look-card" type="button" data-mood-id="frutiger-aero" aria-label="Explore Frutiger Aero Mood photography. Add a photograph or direction.">
+  <span class="mc-look-photo"><img src="/lab/mood-previews/hd/frutiger-aero-20261011.jpg" alt="Frutiger Aero Mood photography" decoding="async" loading="lazy"><span class="mc-look-drop">DROP YOUR PHOTO HERE</span></span>
+  <span class="mc-look-index">12</span>
+  <span class="mc-look-copy"><strong>Frutiger Aero</strong><span aria-hidden="true">↗</span></span>
+  <small>Translucent Y2K optimism</small>
+</button>
+<button class="mc-look-card" type="button" data-mood-id="hyper-pop" aria-label="Explore Hyper Pop Mood photography. Add a photograph or direction.">
+  <span class="mc-look-photo"><img src="/lab/visuals/reptare-detail.webp" alt="Hyper Pop Mood photography" decoding="async" loading="lazy"><span class="mc-look-drop">DROP YOUR PHOTO HERE</span></span>
+  <span class="mc-look-index">13</span>
+  <span class="mc-look-copy"><strong>Hyper Pop</strong><span aria-hidden="true">↗</span></span>
+  <small>Vivid editorial energy</small>
+</button>
+<button class="mc-look-card" type="button" data-mood-id="sumi-ink" aria-label="Explore Japanese Sumi-e Mood photography. Add a photograph or direction.">
+  <span class="mc-look-photo"><img src="/lab/mood-previews/hd/japanese-sumi-e-20261011.jpg" alt="Japanese Sumi-e Mood photography" decoding="async" loading="lazy"><span class="mc-look-drop">DROP YOUR PHOTO HERE</span></span>
+  <span class="mc-look-index">14</span>
+  <span class="mc-look-copy"><strong>Japanese Sumi-e</strong><span aria-hidden="true">↗</span></span>
+  <small>Canonical black-ink wash on warm washi</small>
+</button>
+<button class="mc-look-card" type="button" data-mood-id="midnight-reverie" aria-label="Explore Midnight Reverie Mood photography. Add a photograph or direction.">
+  <span class="mc-look-photo"><img src="/lab/mood-previews/midnight-reverie-original-20261011.png" alt="Midnight Reverie Mood photography" decoding="async" loading="lazy"><span class="mc-look-drop">DROP YOUR PHOTO HERE</span></span>
+  <span class="mc-look-index">15</span>
+  <span class="mc-look-copy"><strong>Midnight Reverie</strong><span aria-hidden="true">↗</span></span>
+  <small>Cyan light, fleeting movement and intimate night-film texture</small>
+</button>
+        <button id="mc-create-look" class="mc-look-card mc-create-card" type="button" aria-label="Create your own visual Mood">
+  <span class="mc-look-photo mc-create-photo"><span class="mc-create-plus">+</span><span class="mc-create-note">YOUR OWN LOOK<br>STARTS HERE</span></span>
+  <span class="mc-look-copy"><strong>Create your Mood</strong><span aria-hidden="true">↗</span></span>
+  <small>From a photograph or an idea</small>
+</button>
+      </div>
     </div>
   </div>
-
-  <div class="mc-discovery-foot"><span>FIND YOUR LOOK. MAKE IT YOURS.</span><a href="./mood-creator.html">Build a visual language of your own ↗</a></div>
 </section>
 <dialog id="mc-look-dialog" class="mc-look-dialog" aria-labelledby="mc-look-title">
   <div class="mc-look-dialog-media"><img id="mc-look-preview" alt="Selected Mood thumbnail"></div>
@@ -159,6 +185,6 @@
 </section>
 </main>
 <footer class="mc-footer"><a href="./">PV LAB</a><p>Image. Atmosphere. Possibility.</p><a href="./mood-creator.html#my-moods">My Moods ↗</a></footer>
-<script type="module" src="./explore-moods.js?v=20261011-midnight-reverie1&hd=20261011&raveBudget=1"></script>
+<script type="module" src="./explore-moods.js?v=20261011-full-design1"></script>
 </body>
 </html>
