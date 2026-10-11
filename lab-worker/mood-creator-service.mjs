@@ -3,6 +3,7 @@
 // The user must press Analyze. No background provider calls or model training.
 export const MOOD_ANALYSIS_MODEL='gemini-2.5-flash';
 export const MOOD_ANALYSIS_DAILY_LIMIT=6;
+export const MOOD_ANALYSIS_GLOBAL_LIMIT=100;
 export const BOARD_IMAGE_BYTES_MAX=900000;
 export function parseMoodAnalysisInput(value,fail){
   if(!value||typeof value!=='object'||Array.isArray(value))fail(400,'Invalid creative brief.');
@@ -78,8 +79,13 @@ export async function moodCreatorRoute(request,env,owner,url,{limitedBody,fail,j
       if(binary.length<64||binary.length>1050000||!sniff(binary,match[1]))fail(413,'Use a smaller JPG, PNG or WebP for analysis.');
       parts.push({inlineData:{mimeType:match[1],data:match[2]}});
     }
-    // One atomic quota reservation per explicit press. No unbounded owner/vendor usage.
+    // Bound both the total API exposure and individual account usage.
+    // The request comes from a deliberate Analyze click, never from upload.
     const day=Math.floor(now()/86400000);
+    const global=await run(env,
+      'INSERT INTO moodboard_analysis_global(day_key,used) VALUES(?,1) ON CONFLICT(day_key) DO UPDATE SET used=used+1 WHERE used<?',
+      day,MOOD_ANALYSIS_GLOBAL_LIMIT);
+    if(!global?.meta?.changes)fail(429,'Style analysis has reached today\'s platform limit. You can still save your Mood manually.');
     const reserved=await run(env,
       'INSERT INTO moodboard_analysis_quota(owner_id,day_key,used) VALUES(?,?,1) ON CONFLICT(owner_id,day_key) DO UPDATE SET used=used+1 WHERE used<?',
       owner,day,MOOD_ANALYSIS_DAILY_LIMIT);
