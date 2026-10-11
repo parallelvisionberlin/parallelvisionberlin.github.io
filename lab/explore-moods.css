@@ -308,3 +308,33 @@
    font-size:16px
  }
 }
+
+/* October 11 precise gallery correction. First row must contain five cards on
+   desktop, and mobile retains a quick visual first impression. */
+@media(min-width:1000px){
+  .mc-explore-page .mc-discovery--explore #mc-look-grid{
+    display:grid!important;
+    grid-template-columns:repeat(5,minmax(0,1fr))!important;
+    gap:25px 14px!important;
+  }
+  .mc-explore-page .mc-discovery--explore #mc-look-grid .mc-look-photo{
+    aspect-ratio:3/4!important;
+  }
+  .mc-explore-page .mc-discovery--explore .mc-discovery-actions{
+    margin-left:auto!important;justify-self:end;
+  }
+}
+.mc-explore-page .mc-discovery--explore [data-mood-id="polaroid-600"] .mc-look-photo{
+  background:#d7d9d1;padding:0!important;border-color:#515d54;
+  box-shadow:none;
+}
+.mc-explore-page .mc-discovery--explore [data-mood-id="polaroid-600"] .mc-look-photo img{
+  width:100%;height:100%;object-fit:cover;object-position:center;
+  filter:none!important;
+}
+.mc-explore-page .mc-discovery--explore [data-mood-id="polaroid-600"] .mc-look-photo::after{
+  content:none!important;
+}
+.mc-explore-page .mc-discovery--explore [data-mood-id="polaroid-600"] .mc-look-index{
+  left:9px;bottom:10px;color:#202b24;text-shadow:none;
+}
