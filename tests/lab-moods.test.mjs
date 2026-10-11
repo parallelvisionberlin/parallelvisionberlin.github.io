@@ -201,7 +201,7 @@ test('Gallery hover metadata identifies the exact image model',()=>{
 
 test('90s Cinema thumbnail and applied mood share a film-scan style',()=>{
   const preset=moodById('90s-cinema');
-  assert.equal(preset.preview,'/lab/mood-bank/2026-10-11/90s-cinema/preview.webp');
+  assert.equal(preset.preview,'/lab/mood-previews/hd/90s-cinema-clean-final-20261011.jpg');
   for(const intensity of [15,60,100]){
     const result=prepareMoodPrompt('A person in a room','90s-cinema',intensity,{engine:'seedream',referenceCount:1});
     assert.equal(result.error,'');
