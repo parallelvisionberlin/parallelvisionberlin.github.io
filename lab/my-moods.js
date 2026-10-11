@@ -43,7 +43,9 @@ export function createMyMoods({api,assetBlob,moodUI,notify,active}){
     return ids;
   }
   function updatePersonal(){
-    moodUI.setPersonalMoods(boards.map(board=>({...board,previewUrl:urls.get(board.imageIds?.[0])||''})));
+    moodUI.setPersonalMoods(boards.map(board=>({...board,
+      previewUrl:urls.get(board.imageIds?.[0])||moodById(board.baseMoodId)?.preview||''
+    })));
   }
   async function imageUrl(id){
     if(!id||!active())return null;
