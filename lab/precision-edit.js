@@ -17,7 +17,8 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
   const exportRiskPixels=5000000;
   const mimeTypes=new Set(['image/png','image/jpeg','image/webp']);
   const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
-  const readBlob=canvas=>new Promise((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(blob):reject(new Error('Unable to export this image.')),'image/png'));
+  const readBlob=(canvas,mime='image/png',quality)=>new Promise((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(blob):reject(new Error('Unable to export this image.')),mime,quality));
+  const MAX_COMPOSITE=20*1024*1024;
   const setStatus=(message,error=false)=>{
     $('precision-status-text').textContent=message||'';
     $('precision-status-text').classList.toggle('is-error',error);
@@ -145,7 +146,9 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     $('precision-expand').disabled=!selected||taskBusy;
     $('precision-clear-mask').disabled=!selected||taskBusy;
     $('precision-undo').disabled=!undoStack.length||taskBusy;
-    $('precision-generate').disabled=!have||!selected||!$('precision-prompt').value.trim()||taskBusy||!owner()||!falReady();
+    const highRisk=!!(base&&base.width*base.height>=exportRiskPixels);
+    const exportReady=!highRisk||$('precision-allow-jpeg').checked;
+    $('precision-generate').disabled=!have||!selected||!$('precision-prompt').value.trim()||taskBusy||!owner()||!falReady()||!exportReady;
     $('precision-change-photo').hidden=!have;
     $('precision-tool-magic').title='Select a whole object with SAM 3. Published price approximately $0.005 per click.';
     $('precision-generate').textContent=taskBusy?'Working…':'Review price ↗';
@@ -154,6 +157,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
       !$('precision-prompt').value.trim()?'Describe the edit before reviewing its price.':
       'Confirm a quote before starting paid inference.';
     $('precision-zoom-controls').hidden=!have;
+    $('precision-export-option').hidden=!highRisk;
     $('precision-tool-pan').disabled=!have||taskBusy;
     view.querySelector('.precision-deck').classList.toggle('is-ready',have&&selected&&!!$('precision-prompt').value.trim());
     view.dataset.phase=!have?'empty':!selected?'select':$('precision-prompt').value.trim()?'ready':'describe';
@@ -361,12 +365,14 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     if(!base||!selected||taskBusy)return;
     const prompt=$('precision-prompt').value.trim();
     if(!prompt){setStatus('Describe the change inside the selection.',true);return;}
+    const allowJpegFallback=$('precision-allow-jpeg').checked;
+    if(base.width*base.height>=exportRiskPixels&&!allowJpegFallback){setStatus('High-resolution photo: approve JPEG backup before paying for generation.',true);return;}
     taskBusy=true;refreshButtons();setStatus('Preparing the private working image and selection. No generation submitted.');
     try{
       const originalSourceId=await ensureBaseId(),sourceId=await ensureWorkingId(),blob=await readBlob(maskExport());
       const maskSourceId=await uploadAsset(new File([blob],'precision-selection.png',{type:'image/png'}));
       const strength=Number($('precision-strength').value);
-      const body={originalSourceId,sourceId,maskSourceId,prompt,strength};
+      const body={originalSourceId,sourceId,maskSourceId,prompt,strength,allowJpegFallback};
       const quoted=await api('/api/precision/quote',{method:'POST',body});
       if(!quoted?.quoteId||!quoted.ticket)throw new Error('Precision Edit did not return a reusable price approval.');
       pending={...body,quoteId:quoted.quoteId,ticket:quoted.ticket,expiresAt:quoted.expiresAt,maskSourceId};
