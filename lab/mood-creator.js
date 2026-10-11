@@ -145,7 +145,7 @@ function initMoodCreator(){
     for(const [i,item] of items.entries()){
       const tile=document.createElement('div');tile.className='mc-shot'+(i===selectedIndex?' is-active':'');
       tile.draggable=!busy;tile.tabIndex=0;tile.setAttribute('role','button');
-      tile.setAttribute('aria-label','Inspiration photograph '+(i+1)+'. Select to analyze its style.');
+      tile.setAttribute('aria-label','Inspiration photograph '+(i+1)+'. Select as visual focus; analysis still considers every photograph.');
       const img=document.createElement('img');img.alt='Moodboard inspiration '+(i+1);img.decoding='async';img.loading='lazy';
       const index=document.createElement('span');index.className='mc-shot-index';index.textContent=String(i+1).padStart(2,'0');
       const remove=document.createElement('button');remove.className='mc-shot-remove';remove.type='button';remove.textContent='×';
@@ -368,21 +368,27 @@ function initMoodCreator(){
   async function analyzeStyle(){
     if(analyzing||busy)return;
     if(!authenticated()){feedback('Sign in to develop a style from a photograph or idea.',true);signin.click();return;}
-    const text=concept.value.trim(),item=items[selectedIndex]||items[0];
-    if(!text&&!item){feedback('Add a photograph or write an idea first.',true);return;}
+    const text=concept.value.trim();
+    if(!text&&!items.length){feedback('Add a photograph or write an idea first.',true);return;}
     analyzing=true;analyze.disabled=true;
     analyze.querySelector('strong').textContent='Reading the visual language…';
-    feedback('Analyzing light, materials, color and atmosphere. No image is being generated.');
+    feedback('Developing one aesthetic across '+(items.length||'your written')+' reference'+(items.length===1?'':'s')+'. No image generation has started.');
+    const generation=sessionVersion;
     try{
-      let imageDataUrl=null;
-      if(item){
+      const imageDataUrls=[];
+      for(const [index,item] of items.entries()){
+        if(generation!==sessionVersion||!authenticated())throw Error('Your account changed. Analyze again.');
+        analyze.querySelector('strong').textContent='Reading '+(index+1)+' / '+items.length+' photographs…';
         const input=item.file||await call('/api/assets/'+encodeURIComponent(item.assetId),{blob:true});
-        const copy=await prepareMoodboardImage(input,{maxEdge:1050,maxBytes:700000});
-        imageDataUrl=await blobDataUrl(copy);
+        // Analysis copies are temporary and small. Originals stay private.
+        const copy=await prepareMoodboardImage(input,{maxEdge:600,maxBytes:145000});
+        imageDataUrls.push(await blobDataUrl(copy));
       }
-      const result=await call('/api/moodboards/analyze',{method:'POST',body:{concept:text,imageDataUrl}});
+      analyze.querySelector('strong').textContent='Combining the visual language…';
+      const result=await call('/api/moodboards/analyze',{method:'POST',
+        body:{concept:text,imageDataUrls,focusIndex:items.length?Math.min(selectedIndex,items.length-1):-1}});
       setAnalysisResult(result);
-      feedback('A reusable aesthetic has been suggested. Edit the words before saving.');
+      feedback('A style was developed from '+(items.length||'your written')+' reference'+(items.length===1?'':'s')+'. Edit the direction before saving.');
     }catch(error){feedback(error.message+' Your photo and written direction have not been changed.',true);}
     finally{analyzing=false;analyze.disabled=busy;analyze.querySelector('strong').textContent='Develop the aesthetic';}
   }
