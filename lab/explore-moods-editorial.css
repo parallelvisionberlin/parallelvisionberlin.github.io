@@ -179,6 +179,10 @@
 .mc-explore-page .mc-look-card.is-drag-over .mc-look-drop{opacity:1}
 .mc-explore-page .mc-look-card[data-mood-id="night-flash"] img{object-position:50% 45%}
 .mc-explore-page .mc-look-card[data-mood-id="fashion-editorial"] img{object-position:50% 35%}
+.mc-explore-page .mc-look-card[data-mood-id="berlin-rave"] img{object-position:50% top}
+/* Inset the screenshot edge while retaining the card's subtle hover motion. */
+.mc-explore-page .mc-look-card[data-mood-id="midnight-reverie"] img{transform:scale(1.05)}
+.mc-explore-page .mc-look-card[data-mood-id="midnight-reverie"]:hover img{transform:scale(1.075)}
 .mc-explore-page .mc-look-card[data-mood-id="synthetic-romance"] img{object-position:60% 50%}
 /* Keep each opened photograph framed correctly through the full-resolution swap. */
 #mc-look-preview[data-mood-id="synthetic-romance"]{object-position:56% 50%}
