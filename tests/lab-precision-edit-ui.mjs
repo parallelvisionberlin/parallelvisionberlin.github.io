@@ -77,11 +77,25 @@ try{
   assert.equal(await page.locator('#precision-generate').isDisabled(),true);
   assert.equal(await page.locator('#precision-tool-magic').getAttribute('aria-pressed'),'true');
   assert.equal(await page.evaluate(()=>window.pvRequests.length),0,'Opening must not charge or submit any inference');
+  assert.equal(await page.locator('#precision-zoom-controls').isVisible(),true,'Loaded photo exposes zoom and pan tools');
+  const fit=await page.locator('#precision-zoom-value').textContent();assert.equal(fit,'Fit');
+  await page.locator('#precision-zoom-in').click();
+  assert.notEqual(await page.locator('#precision-zoom-value').textContent(),'Fit','Zoom must change the working view');
+  await page.locator('#precision-tool-pan').click();
+  const panBox=await page.locator('#precision-selection-canvas').boundingBox();
+  await page.mouse.move(panBox.x+panBox.width/2,panBox.y+panBox.height/2);
+  await page.mouse.down();await page.mouse.move(panBox.x+panBox.width/2-45,panBox.y+panBox.height/2,{steps:4});await page.mouse.up();
+  await page.locator('#precision-zoom-fit').click();
+  assert.equal(await page.locator('#precision-zoom-value').textContent(),'Fit');
+  await page.locator('#precision-tool-magic').click();
   const source=page.locator('#precision-selection-canvas');
   const rect=await source.boundingBox();assert.ok(rect?.width>200&&rect?.height>100);
   await page.mouse.click(rect.x+rect.width*330/640,rect.y+rect.height*200/480);
-  await page.waitForFunction(()=>document.querySelector('#precision-selection-message').textContent.includes('Click an object')
-    && document.querySelector('#precision-status-text').textContent.includes('Object selected'));
+  await page.locator('#precision-select-consent').waitFor({state:'visible'});
+  assert.equal(await page.evaluate(()=>window.pvRequests.filter(r=>r.path==='/api/precision/segment'&&r.method==='POST').length),0,
+    'Magic Select must never call the metered provider before explicit approval');
+  await page.locator('#precision-select-approve').click();
+  await page.waitForFunction(()=>document.querySelector('#precision-status-text').textContent.includes('Object selected'));
   assert.equal(await page.evaluate(()=>window.pvRequests.filter(r=>r.path==='/api/precision/segment'&&r.method==='POST').length),1);
   assert.equal(await page.locator('#precision-generate').isDisabled(),true,'Prompt is still required');
   await page.locator('#precision-tool-brush').click();
@@ -96,6 +110,10 @@ try{
   assert.equal(await page.evaluate(()=>window.pvRequests.filter(r=>r.path==='/api/precision/submit').length),0,
     'Pricing does not authorize inference');
   await page.locator('#precision-review-confirm').click();
+  await page.waitForFunction(()=>window.pvJobs.length>0,{timeout:10000});
+  assert.equal(await page.locator('#precision-tool-brush').isEnabled(),true,
+    'Paid submission must release the editing controls while the job is in Queue');
+  assert.match(await page.locator('#precision-status-text').textContent(),/Queued/i);
   await page.waitForFunction(()=>!!window.pvComposite,{timeout:18000});
   assert.equal(await page.locator('#precision-result-canvas').isVisible(),true);
   assert.equal(await page.locator('#precision-download').isEnabled(),true);
@@ -125,5 +143,5 @@ try{
   assert.match(await page.locator('#precision-prompt').inputValue(),/vivid red material/);
   assert.equal(await page.evaluate(()=>window.pvRequests.length),priorRequests,'Returning does not resubmit paid work');
   assert.deepEqual(errors,[]);
-  console.log('PASS standalone Retouch, Magic Select, brush/undo, quote before authorization, exact untouched pixels, Back callback, source persistence and mobile layout');
+  console.log('PASS Retouch V2: zoom/pan, paid-selection consent, mask edit, quote and nonblocking queue, exact PNG pixels, mobile controls');
 }finally{await browser.close();await new Promise(resolve=>server.close(resolve));}
