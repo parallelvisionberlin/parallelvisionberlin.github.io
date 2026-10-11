@@ -10,7 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;450;500;550;600;700&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="./mood-creator.css?v=20261011-direction-deck1">
 <link rel="stylesheet" href="./explore-moods-editorial.css?v=20261012-rounded-dialog1">
-<link rel="stylesheet" href="./explore-moods-hero.css?v=20261012-carousel1">
+<link rel="stylesheet" href="./explore-moods-hero.css?v=20261012-hero-toggle1">
 </head>
 <body class="mc-explore-page">
 <a class="mc-skip" href="#discover">Skip to Moods</a>
@@ -31,7 +31,12 @@
     <div class="mc-explore-hero-art" aria-hidden="true">
       <img src="/lab/mood-previews/hero/dreamcore-train.webp" alt="" fetchpriority="high" decoding="async">
     </div>
-    <div class="mc-hero-controls" hidden><button type="button" class="mc-hero-toggle" aria-label="Pause hero slideshow">Pause</button><span class="mc-hero-position">01 / 05</span><button type="button" class="mc-hero-next" aria-label="Show next hero image">Next <span aria-hidden="true">→</span></button></div>
+    <div class="mc-hero-controls" hidden>
+      <button type="button" class="mc-hero-toggle" aria-label="Pause hero slideshow" title="Pause hero slideshow">
+        <svg class="mc-hero-pause-icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M4 3h3v10H4zm5 0h3v10H9z"/></svg>
+        <svg class="mc-hero-play-icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M5 3l8 5-8 5z"/></svg>
+      </button>
+    </div>
     <div class="mc-explore-hero-veil" aria-hidden="true"></div>
     <div class="mc-explore-hero-copy">
       <div class="mc-overline"><span class="mc-signal" aria-hidden="true"></span>PV LAB / CURATED CREATIVE DIRECTION</div>
@@ -187,6 +192,6 @@
 </main>
 <footer class="mc-footer"><a href="./">PV LAB</a><p>Image. Atmosphere. Possibility.</p><a href="./mood-creator.html#my-moods">My Moods </a></footer>
 <script type="module" src="./explore-moods.js?v=20261012-rounded-dialog1&moodImageHD=1&raveNight=3"></script>
-<script type="module" src="./explore-moods-hero.js?v=20261012-carousel1"></script>
+<script type="module" src="./explore-moods-hero.js?v=20261012-hero-toggle1"></script>
 </body>
 </html>

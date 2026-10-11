@@ -11,8 +11,6 @@ if (hero) {
   const art = hero.querySelector('.mc-explore-hero-art');
   const controls = hero.querySelector('.mc-hero-controls');
   const toggle = controls.querySelector('.mc-hero-toggle');
-  const next = controls.querySelector('.mc-hero-next');
-  const position = controls.querySelector('.mc-hero-position');
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
   let current = 0;
   let active = art.querySelector('img');
@@ -40,24 +38,24 @@ if (hero) {
 
   function schedule() {
     clearTimeout(timer);
-    if (allowed() && !busy) timer = setTimeout(() => advance(false), 5000);
+    if (allowed() && !busy) timer = setTimeout(() => advance(), 5000);
   }
 
   function updateControls() {
-    toggle.textContent = paused ? 'Play' : 'Pause';
-    toggle.setAttribute('aria-label', `${paused ? 'Play' : 'Pause'} hero slideshow`);
-    position.textContent = `${String(current + 1).padStart(2, '0')} / 05`;
-    next.setAttribute('aria-label', `Show ${slides[(current + 1) % slides.length][1]}`);
+    const label = `${paused ? 'Play' : 'Pause'} hero slideshow`;
+    toggle.classList.toggle('is-paused', paused);
+    toggle.setAttribute('aria-label', label);
+    toggle.setAttribute('title', label);
     hero.dataset.heroSlide = slides[current][0];
   }
 
-  async function advance(manual) {
+  async function advance() {
     if (busy) return;
     clearTimeout(timer);
     busy = true;
     const index = (current + 1) % slides.length;
     const incoming = await load(index);
-    if (incoming && (manual || allowed())) {
+    if (incoming && allowed()) {
       // Keep the outgoing image fully opaque underneath to avoid a dark flash.
       art.append(incoming);
       if (!reduced.matches) {
@@ -79,11 +77,6 @@ if (hero) {
     paused = !paused;
     updateControls();
     schedule();
-  });
-  next.addEventListener('click', () => {
-    paused = true;
-    updateControls();
-    advance(true);
   });
   reduced.addEventListener('change', () => {
     paused = reduced.matches;

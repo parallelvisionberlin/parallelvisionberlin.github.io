@@ -8,20 +8,23 @@
 }
 .mc-hero-controls{
   position:absolute;z-index:2;right:clamp(18px,3.9vw,72px);bottom:14px;
-  display:flex;align-items:center;gap:14px;color:#f4f6f2;
-  padding:0 10px;background:#0a100f99;border-radius:24px;
-  font:500 10px/1.2 'DM Sans',Arial,sans-serif;letter-spacing:.08em;
+  color:#f4f6f2;
 }
 .mc-hero-controls[hidden]{display:none}
-.mc-hero-controls button{
-  min-height:36px;padding:0 4px;border:0;background:none;color:inherit;
-  font:inherit;cursor:pointer;
+.mc-hero-controls .mc-hero-toggle{
+  position:relative;display:grid;place-items:center;width:28px;height:28px;
+  min-width:0;min-height:0;padding:0;border:0;border-radius:50%;
+  background:#0a100f99;color:inherit;cursor:pointer;
 }
-.mc-hero-controls button:focus-visible{outline:2px solid var(--pv-acid);outline-offset:2px}
-.mc-hero-position{font-variant-numeric:tabular-nums;opacity:.75}
+.mc-hero-toggle::before{content:"";position:absolute;inset:-8px}
+.mc-hero-toggle svg{width:12px;height:12px;fill:currentColor;pointer-events:none}
+.mc-hero-toggle .mc-hero-play-icon,.mc-hero-toggle.is-paused .mc-hero-pause-icon{display:none}
+.mc-hero-toggle.is-paused .mc-hero-play-icon{display:block}
+.mc-hero-controls .mc-hero-toggle:hover{background:#0a100fcc}
+.mc-hero-controls .mc-hero-toggle:focus-visible{outline:2px solid var(--pv-acid);outline-offset:2px}
 @media(max-width:700px){
   .mc-explore-page [data-hero-carousel] .mc-explore-hero-veil{
     background:linear-gradient(90deg,#0a100fee,#0a100fa8 45%,#0a100f25),linear-gradient(0deg,#0a100fe0,transparent 55%);
   }
-  .mc-hero-controls{bottom:8px;gap:10px}
+  .mc-hero-controls{bottom:8px}
 }
