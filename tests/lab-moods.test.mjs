@@ -508,3 +508,25 @@ test('Berlin Rave V2 respects text directions, non-base reference roles and unch
   const explore=readFileSync(new URL('../lab/explore-moods.html',import.meta.url),'utf8');
   assert.match(explore,/berlin-rave-20261011\.webp/);
 });
+
+
+test('Moods remains a compact electric-citron discovery action without recoloring other controls',()=>{
+  const css=readFileSync(new URL('../lab/assets.css',import.meta.url),'utf8');
+  const html=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
+  const start=css.indexOf('/* PV LAB / MOODS DISCOVERY CTA');
+  assert.ok(start>0);
+  const style=css.slice(start);
+  assert.match(style,/#image-composer \.composer-mood-control #image-composer-moods\{/);
+  assert.match(style,/background:linear-gradient\(160deg,#e8ff69 0%,#d6ff00 53%,#c7ee00 100%\)/);
+  assert.match(style,/color:#19220f/);
+  assert.match(style,/min-height:40px;min-width:94px/);
+  assert.match(style,/#image-composer \.composer-mood-control #image-composer-moods\.is-mood-selected\{/);
+  assert.match(style,/#image-composer \.composer-mood-control #image-composer-moods-clear\{/);
+  assert.match(style,/color:#1b2a09/);
+  assert.match(style,/@media\(max-width:740px\)/);
+  assert.match(style,/min-height:35px;min-width:0/);
+  assert.match(style,/@media\(prefers-reduced-motion:reduce\)/);
+  assert.doesNotMatch(style,/#image-composer \.composer-generate/);
+  assert.doesNotMatch(style,/#image-composer \.composer-settings-pill\{/);
+  assert.match(html,/assets\.css\?v=[^"]+&moodsCitron=1/);
+});
