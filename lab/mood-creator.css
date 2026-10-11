@@ -339,3 +339,6 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
   .mc-hero--creator .mc-editorial{min-height:322px}
   .mc-creator-hero-links{gap:16px}
 }
+
+/* Selected reference is a creative focus, not the only image analyzed. */
+.mc-shot.is-active::before{content:"VISUAL FOCUS · ALL IMAGES USED"}
