@@ -268,18 +268,18 @@ test('Dreamcore V5 compact direction fits ten references',()=>{
   assert.equal(r.error,'');
   assert.ok(compileImagePrompt(r.prompt,refs).length<=5000);
 });
-test('Twelve moods are available, ten initially visible and Sumi-e last',()=>{
+test('Fourteen moods are available, ten initially visible and Sumi-e last',()=>{
   const css=readFileSync(new URL('../lab/moods.css',import.meta.url),'utf8');
   const js=readFileSync(new URL('../lab/moods.js',import.meta.url),'utf8');
   const html=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
   assert.equal(MOODS.length,14);
-  assert.deepEqual(MOODS.slice(9).map(m=>m.id),['dreamcore','hyper-pop','sumi-ink']);
+  assert.deepEqual(MOODS.slice(-3).map(m=>m.id),['dreamcore','hyper-pop','sumi-ink']);
   assert.match(css,/\.moods-grid\{display:grid;grid-template-columns:repeat\(5,minmax\(0,1fr\)\)/);
   assert.match(css,/scrollbar-gutter:stable/);
   assert.match(js,/function fitGridViewport\(\)/);
   assert.match(js,/const last=visible\[desktopGridColumns\*initiallyVisibleRows-1\]/);
   assert.match(js,/grid\.style\.maxHeight=firstTwoRows\+'px'/);
-  assert.match(html,/Twelve curated looks/);
+  assert.match(html,/Fourteen curated looks/);
 });
 test('Moods preserves its gallery height as the image deck grows and stays in the viewport',()=>{
   for(const [width,height,composerTop] of [
