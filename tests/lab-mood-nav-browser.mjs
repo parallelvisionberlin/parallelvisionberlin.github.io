@@ -44,7 +44,7 @@ try{
     ['Image','Retouch','Video','Upscaler','Fashion'],
     'Five text tools remain; Assets is a separate icon');
   const moodLinks=page.locator('#studio-header .tool-group>a.tool-link');
-  assert.deepEqual(await moodLinks.allTextContents(),['Moods','Mood Creator']);
+  assert.deepEqual(await moodLinks.allTextContents(),['My Moods','Mood Creator']);
   assert.equal(await page.locator('#tool-explore-moods').getAttribute('href'),'./explore-moods.html');
   assert.equal(await page.locator('#tool-mood-creator').getAttribute('href'),'./mood-creator.html');
   assert.equal(await page.locator('#studio-header .studio-mood-link').count(),0,
