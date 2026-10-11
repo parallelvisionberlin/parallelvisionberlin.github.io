@@ -145,7 +145,7 @@ test('Art Direction keeps settings and Save actions in one visible deck footer',
   assert.match(css,/\.mc-direction-main\{[\s\S]*?overflow-y:auto;overflow-x:hidden/);
   assert.match(css,/\.mc-direction-footer\{[\s\S]*?border-top:1px solid #4e5850/);
   assert.match(css,/@media\(max-width:820px\)\{[\s\S]*?\.mc-direction\{display:flex;flex-direction:column;height:auto/);
-  assert.match(page,/mood-creator\.css\?v=20261011-collage-creator1/);
+  assert.match(page,/mood-creator\.css\?v=20261011-board-focus1/);
   assert.match(page,/all selected Moodboard previews and your idea go to Google's AI service/);
   assert.match(js,/save\.onclick=\(\)=>void saveMood\(\)/);
   assert.match(js,/use\.onclick=\(\)=>void \(async\(\)=>\{/);
@@ -177,4 +177,19 @@ test('One explicit style analysis includes every Moodboard image and respects it
     assert.equal(parts.filter(p=>p.text?.includes('(VISUAL FOCUS)')).length,1);
     assert.match(parts[5].text,/VISUAL FOCUS/);
   }finally{globalThis.fetch=fetchBefore;}
+});
+
+test('Mood Creator analyzes every board photo only after deliberate consent',()=>{
+  const source=readFileSync(new URL('../lab/mood-creator.js',import.meta.url),'utf8');
+  const html=readFileSync(new URL('../lab/mood-creator.html',import.meta.url),'utf8');
+  const style=readFileSync(new URL('../lab/mood-creator.css',import.meta.url),'utf8');
+  assert.match(source,/for\(const \[index,item\] of items\.entries\(\)\)/);
+  assert.match(source,/prepareMoodboardImage\(input,\{maxEdge:600,maxBytes:145000\}\)/);
+  assert.match(source,/imageDataUrls\.push\(await blobDataUrl\(copy\)\)/);
+  assert.match(source,/body:\{concept:text,imageDataUrls,focusIndex:items\.length/);
+  assert.match(source,/analyze\.onclick=\(\)=>void analyzeStyle\(\)/);
+  assert.doesNotMatch(source,/body:\{concept:text,imageDataUrl\}/);
+  assert.match(html,/all selected Moodboard previews and your idea go to Google's AI service/);
+  assert.match(html,/No style model is trained/);
+  assert.match(style,/VISUAL FOCUS · ALL IMAGES USED/);
 });
