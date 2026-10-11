@@ -302,13 +302,18 @@ function initMoodCreator(){
   })();
   $('mc-look-make').onclick=()=>{
     if(!selectedLook||lookSending)return;
-    const mood=selectedLook,photo=lookPhoto;
+    const mood=selectedLook,photo=lookPhoto,idea=lookDirection.value.trim();
+    if((boardId||items.length||name.value.trim()||direction.value.trim())&&
+       !confirm('Start a new Mood? Your unsaved editor changes will be replaced.'))return;
     resetBoard();base.value=mood.id;intensity.value='70';
     $('mc-intensity-value').textContent='70%';
+    // The preview field can describe the subject, not the reusable aesthetic.
+    // Preserve it as an IDEA, never silently as a style recipe.
+    if(idea)concept.value=idea;
     if(photo)addFiles([photo]);
     lookDialog.close();scrollToWorkspace();
     name.focus({preventScroll:true});
-    feedback('Starting with '+mood.name+'. Give your variation a name and define what makes it yours.');
+    feedback('Starting with '+mood.name+'. Refine the idea, then save your own creative direction.');
   };
   $('mc-start-image').onclick=loadFilePicker;
   $('mc-start-idea').onclick=()=>{scrollToWorkspace();concept.focus({preventScroll:true});};
