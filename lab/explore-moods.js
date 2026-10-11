@@ -54,6 +54,7 @@ function initialize(){
     if(!selected)return;
     mood=selected;clearPhoto();direction.value='';status.textContent='';
     const preview=$('mc-look-preview');
+    preview.dataset.moodId=selected.id;
     // Reuse the gallery's HD image while the untouched original decodes offscreen.
     preview.src=selected.preview;
     preview.alt=selected.name+' aesthetic';
