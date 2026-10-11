@@ -1,26 +1,31 @@
-// Non-billable Mood Creator browser smoke. All account/media/API calls are mocked.
+// Non-billable PV Lab browser smoke: distinct Explore and Mood Creator experiences.
+// All customer, media and Gemini requests are mocked. No provider charge.
 import assert from 'node:assert/strict';
 import http from 'node:http';
-import {readFileSync,existsSync} from 'node:fs';
+import {readFileSync,existsSync,mkdirSync} from 'node:fs';
 import {resolve,extname} from 'node:path';
 import {pathToFileURL} from 'node:url';
 const {chromium}=await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE).href);
 const root=resolve('.');
-const source=readFileSync('lab/mood-creator.js','utf8');
-const start=source.indexOf("  (async()=>{\n    try{\n      const {Clerk}=await import(");
-const end=source.indexOf("\n  })();",start);
-assert.ok(start>0&&end>start,'Locate Mood Creator authentication bootstrap');
+const creatorSource=readFileSync('lab/mood-creator.js','utf8');
+const begin=creatorSource.indexOf("  (async()=>{\n    try{\n      const {Clerk}=await import(");
+const finish=creatorSource.indexOf("\n  })();",begin);
+assert.ok(begin>0&&finish>begin,'Locate Mood Creator authentication bootstrap');
 const token='synthetic.'+Buffer.from(JSON.stringify({exp:Math.floor(Date.now()/1000)+3600})).toString('base64url')+'.signature';
-const simulatedBoot="  clerk={isSignedIn:true,user:{id:'test-owner'},session:{id:'test-session',getToken:async()=> '"+token+"'},addListener:()=>{},openSignIn:()=>{},signOut:async()=>{}};\n  void syncAuth();";
-const patched=source.slice(0,start)+simulatedBoot+source.slice(end+"\n  })();".length);
+const localBoot="  clerk={isSignedIn:true,user:{id:'test-owner'},session:{id:'test-session',getToken:async()=> '"+token+"'},addListener:()=>{},openSignIn:()=>{},signOut:async()=>{}};\n  void syncAuth();";
+const patched=creatorSource.slice(0,begin)+localBoot+creatorSource.slice(finish+"\n  })();".length);
 const types={'.html':'text/html','.js':'text/javascript','.css':'text/css','.webp':'image/webp','.svg':'image/svg+xml','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg'};
-const server=http.createServer((req,res)=>{
-  const pathName=new URL(req.url,'http://localhost').pathname;
-  if(pathName==='/lab/studio.html'){res.setHeader('Content-Type','text/html');res.end('<!doctype html><title>Image handoff received</title><h1>Image Studio</h1>');return;}
-  const file=resolve(root,'.'+pathName+(pathName.endsWith('/')?'index.html':''));
-  if(!file.startsWith(root+'/')||!existsSync(file)){res.writeHead(404).end();return;}
-  res.setHeader('Content-Type',types[extname(file)]||'application/octet-stream');
-  res.end(pathName==='/lab/mood-creator.js'?patched:readFileSync(file));
+const server=http.createServer((request,response)=>{
+  const path=new URL(request.url,'http://localhost').pathname;
+  if(path==='/lab/studio.html'){
+    response.writeHead(200,{'Content-Type':'text/html'});
+    response.end('<!doctype html><title>Image handoff received</title><h1>Image Studio</h1>');
+    return;
+  }
+  const file=resolve(root,'.'+path+(path.endsWith('/')?'index.html':''));
+  if(!file.startsWith(root+'/')||!existsSync(file)){response.writeHead(404).end();return;}
+  response.setHeader('Content-Type',types[extname(file)]||'application/octet-stream');
+  response.end(path==='/lab/mood-creator.js'?patched:readFileSync(file));
 });
 await new Promise(resolve=>server.listen(4191,'127.0.0.1',resolve));
 const browser=await chromium.launch({headless:true});
@@ -29,110 +34,126 @@ const uuid=n=>'30000000-0000-4000-8000-'+String(n).padStart(12,'0');
 const boards=[],requests=[];
 async function fillRoutes(context){
   await context.route('https://**/*',async route=>{
-    const r=route.request(),u=new URL(r.url()),method=r.method();
-    if(u.hostname!=='parallel-vision-lab.parallelvision.workers.dev'){await route.abort();return;}
-    requests.push({path:u.pathname,method,body:method==='POST'&&r.headers()['content-type']?.includes('json')?r.postDataJSON():null});
+    const req=route.request(),url=new URL(req.url()),method=req.method();
+    if(url.hostname!=='parallel-vision-lab.parallelvision.workers.dev'){await route.abort();return;}
+    const body=method==='POST'&&req.headers()['content-type']?.includes('json')?req.postDataJSON():null;
+    requests.push({path:url.pathname,method,body});
     const json=(data,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(data)});
-    if(u.pathname==='/api/session')return json({owner:true,ownerId:'test-owner',customer:false,config:{}});
-    if(u.pathname==='/api/moodboards'&&method==='GET')return json({moodboards:boards});
-    if(u.pathname==='/api/moodboards'&&method==='POST'){
-      const data=r.postDataJSON(),record={id:uuid(boards.length+3),...data,createdAt:Date.now(),updatedAt:Date.now()};
+    if(url.pathname==='/api/session')return json({owner:true,ownerId:'test-owner',customer:false,config:{}});
+    if(url.pathname==='/api/moodboards'&&method==='GET')return json({moodboards:boards});
+    if(url.pathname==='/api/moodboards'&&method==='POST'){
+      const record={id:uuid(boards.length+3),...body,createdAt:Date.now(),updatedAt:Date.now()};
       boards.unshift(record);return json({moodboard:record},201);
     }
-    if(/^\/api\/moodboards\/[0-9a-f-]{36}$/.test(u.pathname)&&method==='POST'){
-      const idx=boards.findIndex(x=>x.id===u.pathname.split('/').at(-1));
-      if(idx<0)return json({error:'Not found'},404);
-      boards[idx]={...boards[idx],...r.postDataJSON()};
-      return json({moodboard:boards[idx]});
+    if(/^\/api\/moodboards\/[0-9a-f-]{36}$/.test(url.pathname)&&method==='POST'){
+      const index=boards.findIndex(b=>b.id===url.pathname.split('/').at(-1));
+      if(index<0)return json({error:'Not found'},404);
+      boards[index]={...boards[index],...body};return json({moodboard:boards[index]});
     }
-    if(u.pathname==='/api/moodboards/analyze'&&method==='POST')return json({
+    if(url.pathname==='/api/moodboards/analyze'&&method==='POST')return json({
       name:'Liquid Memory',
       direction:'Analog-film haze, source-led pearlescent wet highlights, softly iridescent reflective materials, dimensional atmospheric depth and delicate photochemical halation with natural skin texture.',
       qualities:['wet reflections','soft halation'],palette:['#c4d7d8','#e1bec9']
     });
-    return json({error:'Unexpected private test request '+u.pathname},500);
+    return json({error:'Unexpected mocked request '+url.pathname},500);
   });
 }
-let passed=0;
-const ok=name=>{passed++;console.log('PASS '+name);};
+let successes=0;const pass=name=>{successes++;console.log('PASS '+name)};
+const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScL9VAAAAABJRU5ErkJggg==','base64');
 try{
   const context=await browser.newContext({viewport:{width:1440,height:900},acceptDownloads:true});
   await fillRoutes(context);
-  const page=await context.newPage();
-  const errors=[];page.on('pageerror',error=>errors.push(error.message));
-  await page.goto(origin+'/lab/mood-creator.html',{waitUntil:'domcontentloaded'});
-  await page.waitForFunction(()=>document.getElementById('mc-signin').hidden,{timeout:20000});
+  const page=await context.newPage(),errors=[];
+  page.on('pageerror',err=>errors.push(err.message));
+  await page.goto(origin+'/lab/explore-moods.html',{waitUntil:'domcontentloaded'});
   assert.equal(await page.locator('.mc-look-card[data-mood-id]').count(),11);
-  const layout=await page.evaluate(()=>{
-    const grid=document.querySelector('.mc-look-grid'),card=grid.querySelector('.mc-look-card');
-    const image=card.querySelector('.mc-look-photo').getBoundingClientRect();
-    return {columns:getComputedStyle(grid).gridTemplateColumns.split(' ').length,width:image.width,height:image.height,top:image.top};
+  assert.equal(await page.locator('#mc-look-dialog').count(),1);
+  const grid=await page.evaluate(()=>{
+    const gallery=document.querySelector('.mc-look-grid'),photo=gallery.querySelector('.mc-look-photo').getBoundingClientRect();
+    return {columns:getComputedStyle(gallery).gridTemplateColumns.split(' ').length,width:photo.width,height:photo.height,top:photo.top};
   });
-  assert.equal(layout.columns,4);
-  assert.ok(layout.width>=200&&layout.height>=250,'Large curated look card '+JSON.stringify(layout));
-  assert.ok(layout.top<900,'First row visible without scrolling');
-  ok('Eleven large curated Moods appear immediately');
+  assert.equal(grid.columns,4);
+  assert.ok(grid.width>=200&&grid.height>=250);
+  assert.ok(grid.top<900,'The first image row should be visible without scrolling');
+  assert.equal(await page.locator('.mc-workspace').count(),0,'Explore has no duplicate Mood Creator workbench');
+  pass('Explore Moods shows eleven big looks on a dedicated page');
 
   await page.locator('.mc-look-card[data-mood-id="dreamcore"]').click();
   assert.equal(await page.locator('#mc-look-dialog').evaluate(el=>el.open),true);
   assert.equal((await page.locator('#mc-look-title').innerText()).trim(),'Dreamcore');
   await page.locator('#mc-look-make').click();
+  await page.waitForURL(u=>u.pathname.endsWith('/lab/mood-creator.html'),{timeout:16000});
+  await page.waitForFunction(()=>document.getElementById('mc-signin').hidden,{timeout:18000});
   assert.equal(await page.locator('#mc-base').inputValue(),'dreamcore');
+  assert.equal(await page.locator('.mc-editorial-frame img').count(),3);
+  assert.equal(await page.locator('.mc-look-card').count(),0,'No curated card grid inside personal Mood Creator');
   await page.locator('#mc-name').fill('Pearl Drift');
   await page.locator('#mc-save').click();
-  await page.getByRole('button',{name:/Open saved Mood Pearl Drift/}).waitFor();
+  await page.getByRole('button',{name:/Open saved Mood Pearl Drift/}).waitFor({timeout:16000});
   assert.equal(boards[0].baseMoodId,'dreamcore');
   assert.equal(boards[0].direction,'');
-  assert.equal(boards[0].imageIds.length,0);
-  assert.ok((await page.locator('.mc-library-use').getAttribute('href')).includes('moodboard='+boards[0].id));
-  ok('Make it yours saves a personal Mood and creates an Image shortcut');
+  assert.ok((await page.locator('.mc-library-use').first().getAttribute('href')).includes('moodboard='+boards[0].id));
+  pass('Explore Make it yours opens the editorial creator and saves to My Moods');
 
+  await page.locator('#mc-new').click();
+  const inputs=[0,1,2].map(i=>({name:'inspiration-'+i+'.png',mimeType:'image/png',buffer:png}));
+  await page.locator('#mc-upload').setInputFiles(inputs);
+  await page.locator('.mc-shot').nth(2).click();
+  await page.locator('#mc-idea').fill('Soft pearl light, analog film melancholy');
+  await page.locator('#mc-analyze').click();
+  await page.waitForFunction(()=>document.getElementById('mc-direction').value.includes('Analog-film haze'),{timeout:20000});
+  const analyzed=requests.filter(x=>x.path==='/api/moodboards/analyze');
+  assert.equal(analyzed.length,1);
+  assert.equal(analyzed[0].body.imageDataUrls.length,3);
+  assert.equal(analyzed[0].body.focusIndex,2);
+  assert.ok(analyzed[0].body.imageDataUrls.every(x=>x.startsWith('data:image/jpeg;base64,')));
+  pass('One explicit analysis receives all three photos and the chosen visual focus');
+
+  await page.goto(origin+'/lab/explore-moods.html',{waitUntil:'domcontentloaded'});
   await page.locator('.mc-look-card[data-mood-id="hong-kong-nights"]').click();
   await page.locator('#mc-look-direction').fill('Portrait with deep cinematic shadows');
-  await page.locator('#mc-look-file').setInputFiles({
-    name:'source.png',mimeType:'image/png',
-    buffer:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScL9VAAAAABJRU5ErkJggg==','base64')
-  });
+  await page.locator('#mc-look-file').setInputFiles({name:'source.png',mimeType:'image/png',buffer:png});
   assert.equal(await page.locator('#mc-look-file-clear').isVisible(),true);
   await page.locator('#mc-look-continue').click();
-  await page.waitForURL(url=>url.pathname.endsWith('/lab/studio.html'),{timeout:16000});
-  const next=new URL(page.url());
-  assert.equal(next.searchParams.get('mood'),'hong-kong-nights');
-  const token=next.searchParams.get('handoff');
-  assert.match(token,/^[a-f0-9-]{36}$/i);
+  await page.waitForURL(u=>u.pathname.endsWith('/lab/studio.html'),{timeout:16000});
+  const url=new URL(page.url());
+  assert.equal(url.searchParams.get('mood'),'hong-kong-nights');
+  const handoff=url.searchParams.get('handoff');
+  assert.match(handoff,/^[a-f0-9-]{36}$/i);
   const transfer=await page.evaluate(async id=>{
     const {takeMoodHandoff}=await import('/lab/mood-handoff.js');
     const packet=await takeMoodHandoff(id);
     let replay=false;try{await takeMoodHandoff(id);}catch{replay=true;}
     return {name:packet.file?.name,size:packet.file?.size,prompt:packet.prompt,replay};
-  },token);
+  },handoff);
   assert.equal(transfer.name,'source.png');
   assert.ok(transfer.size>0);
   assert.equal(transfer.prompt,'Portrait with deep cinematic shadows');
   assert.equal(transfer.replay,true);
-  assert.ok(!requests.some(x=>/\/api\/(?:jobs|quotes|billing|customer\/image-price)/.test(x.path)));
-  ok('Photo and prompt hand off privately once, without billable requests');
+  assert.ok(!requests.some(x=>/\/api\/(?:jobs|quotes|billing|customer\/image-price)/.test(x.path)),
+    'Browsing, composing and saving a Mood must not trigger paid generation');
   assert.deepEqual(errors,[]);
-  await context.close();
+  pass('Single-use photo handoff to Image does not submit or charge');
 
   const mobile=await browser.newContext({viewport:{width:390,height:844},isMobile:true,deviceScaleFactor:1});
   await fillRoutes(mobile);
-  const phone=await mobile.newPage();
-  const mobileErrors=[];phone.on('pageerror',error=>mobileErrors.push(error.message));
-  await phone.goto(origin+'/lab/mood-creator.html',{waitUntil:'domcontentloaded'});
-  await phone.waitForFunction(()=>document.getElementById('mc-signin').hidden,{timeout:20000});
+  const phone=await mobile.newPage(),mobileErrors=[];
+  phone.on('pageerror',error=>mobileErrors.push(error.message));
+  await phone.goto(origin+'/lab/explore-moods.html',{waitUntil:'domcontentloaded'});
   const metrics=await phone.evaluate(()=>{
-    const grid=document.querySelector('.mc-look-grid');
-    const item=grid.querySelector('.mc-look-photo').getBoundingClientRect();
-    return {columns:getComputedStyle(grid).gridTemplateColumns.split(' ').length,width:item.width,screenWidth:innerWidth,scrollWidth:document.documentElement.scrollWidth};
+    const gallery=document.querySelector('.mc-look-grid'),image=gallery.querySelector('.mc-look-photo').getBoundingClientRect();
+    return {columns:getComputedStyle(gallery).gridTemplateColumns.split(' ').length,width:image.width,viewport:innerWidth,scrollWidth:document.documentElement.scrollWidth};
   });
   assert.equal(metrics.columns,2);
-  assert.ok(metrics.width>=145,'Readable mobile cards '+JSON.stringify(metrics));
-  assert.ok(metrics.scrollWidth<=metrics.screenWidth+3,'No horizontal overflow '+JSON.stringify(metrics));
+  assert.ok(metrics.width>=145);
+  assert.ok(metrics.scrollWidth<=metrics.viewport+3,'Mobile Explore has no document overflow');
   await phone.locator('.mc-look-card[data-mood-id="night-flash"]').click();
   assert.equal(await phone.locator('#mc-look-dialog').evaluate(el=>el.open),true);
   assert.deepEqual(mobileErrors,[]);
-  ok('Mobile gallery and quick Mood tray work without horizontal overflow');
-  await mobile.close();
-}finally{await browser.close();server.close();}
-console.log('Mood Creator browser checks: '+passed+' passed; all provider responses synthetic.');
+  pass('Mobile Explore and its quick photo tray work without overflow');
+  await mobile.close();await context.close();
+}finally{
+  await browser.close();
+  await new Promise(resolve=>server.close(resolve));
+}
+console.log('PV Lab Explore / Mood Creator browser checks: '+successes+' passed (synthetic API).');
