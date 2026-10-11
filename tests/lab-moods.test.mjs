@@ -71,6 +71,11 @@ test('Create Mood stays prominent across tabs without a duplicate My Moods tile'
   assert.doesNotMatch(js,/\bcreateTile\b/);
   assert.doesNotMatch(css,/\.moods-board-create/);
   assert.match(css,/#image-composer #composer-moods-create\{/);
+  assert.match(css,/min-height:42px;padding:9px 15px/);
+  assert.match(css,/transform:translateY\(18px\)/);
+  assert.match(css,/\.moods-header-actions\{display:flex;flex:0 0 auto;align-items:flex-start/);
+  assert.match(css,/min-height:38px;padding:7px 10px;font-size:11\.5px;gap:5px;transform:translateY\(16px\)/);
+  assert.match(html,/moods\.css\?v=20261011-preview-first2&berlinRave=1&createMoodHeader=2/);
   assert.match(css,/@media\(max-width:420px\)/);
   assert.match(css,/\.moods-create-tail\{display:none\}/);
 });

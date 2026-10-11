@@ -1,36 +1,6 @@
 /* PV Lab Moods V1. Editorial generation directions, not pixel filters. */
 const ALL_MOODS=Object.freeze([
   {
-    "id": "synthetic-romance",
-    "name": "Synthetic Romance",
-    "category": "Cinema",
-    "preview": "/lab/mood-previews/synthetic-romance-canon-kiss-20261011.webp",
-    "description": "Black chrome, human longing and 1980s synthetic cinema",
-    "defaultIntensity": 82,
-    "direction": "SYNTHETIC ROMANCE / PARALLEL VISION CANON. Rebuild the uploaded person as an extraordinary human-machine hybrid in the photographic world of the user's original canon references: dark industrial retro-futurism, intimate artificial beings, 1980s photochemical science-fiction cinema. This is an INVASIVE PHYSICAL BODY TRANSFORMATION, not a color grade or costume. Read the actual source person, visible body, pose, expression, number of people, camera and spatial relationships. Reengineer visible anatomy: replace or integrate parts of head, temples, neck, shoulders, arms, torso, hands or legs with precise functional-looking mechanical structures. Choose ONE coherent morphology, not a checklist: almost-human with invasive exposed neck mechanisms; recognizable human face with a complete engineered black-chrome body; segmented cyborg skin with embedded cables and visible internals; or a nearly total android with residual human facial character. Different subjects may have different transformation degrees. Mechanical joints must actually connect, with believable thickness, articulated plates, fasteners, cable routing, contact shadows and worn interfaces. Preserve the source pose, number of subjects, camera perspective and readable identity when a human face is visible; clothing and body surfaces MAY be physically replaced by engineered anatomy, particularly at high intensity. Do not automatically create another robot, a couple, a kiss or an embrace. The photograph must have narrative tension and emotion without repeating the thumbnail scene. MATERIALS: smoked mirror chrome, black nickel, graphite titanium, subtly abraded polished steel, oxidized seams, organic skin, fine condensation and surface wear. REAL OPTICAL GLOSS: reflected narrow fluorescent tubes and broad dim practical sources produce long specular ribbons tracking curved metal anatomy, dark reflection bands between lights, roughness variation, restrained red highlights, physically plausible reflections and imperfect local contrast. No fake gloss overlay. CINEMATOGRAPHY: photographed as an early-1980s 35mm feature-film negative, fine irregular grain in shadows, dense readable blacks, restrained soft halation around actual light sources, subtle lens softness, imperfect photochemical colors and authentic highlight rolloff. Sparse red practicals, cold-white fluorescent spill, blue-grey ambient darkness, motivated backlight and thin atmospheric haze. Wet concrete or reflective flooring only when a new environment is allowed and physically credible. Environment should be functional, aged and industrial, with analog machinery, not neon decoration. At strong intensities, rebuild a bland source environment into a coherent retro-futurist industrial interior without changing subject geometry; at lower intensity keep the location recognizable. Emotion: synthetic romance, loneliness, desire, vulnerability, quiet menace and human tenderness. Respect assigned references and explicit user directions. Create a different visually intelligent transformation each time.",
-    "subtle": "1-34% / SUBTLE MUTATION: clearly introduce engineered mechanical implants around visible temples, neck, shoulders or hands, plus tactile 1980s film photography. The person remains predominantly human, pose and location recognizable. Even low intensity must change anatomy, not just grading.",
-    "moderate": "35-69% / PARTIAL CYBORG: substantially replace several visible body regions with real black-chrome anatomy, articulated plates and plausible internal cabling. Preserve recognizable facial structure and composition. Film lighting and atmosphere deepen.",
-    "immersive": "70-89% / MAJOR SYNTHETIC RECONSTRUCTION: extensively replace the visible body with functional biomechanical construction, chrome and routed cables. Keep the human face if suitable, with a visible physical transition into the machinery. Bold industrial film atmosphere, source pose and identity respected.",
-    "intense": "90-99% / RADICAL ANDROID: transform nearly the entire visible body into engineered reflective dark metal, retaining recognizable human facial cues where possible. Expose meaningful cables, mechanical joints and intricate assembly. Rebuild atmosphere and background as a credible aged 1980s industrial film set.",
-    "climax": "100% / TOTAL SYNTHETIC LIBERATION: full artistic freedom for a breathtaking cyborg or android transformation. Human face can remain within a fully engineered head and body, or become partly synthetic; retain enough source facial structure to anchor identity if Lock Identity is requested. Extreme physical reconstruction, never a generic robot suit. Cinematic analog realism and restrained color remain nonnegotiable.",
-    "avoid": "generic cyberpunk, neon city, Blade Runner scene recreation, flying cars, holograms, luminous circuit skin, glowing eyes by default, superhero armor, glossy plastic, CGI showroom shine, perfect chrome gradient, rubbery AI skin, mirror liquid blobs, pasted fog, random cables, floating machinery, fake red light overlay, excessive teal orange grading, contemporary digital HDR, 3D render, video game, anime, changing pose, inventing extra people, automatic kissing, identical robots, anatomical distortions, losing facial identity when requested, fake film scratches and VHS effects"
-  },
-  {
-    "id": "polaroid-600",
-    "name": "Polaroid 600",
-    "category": "Analog",
-    "preview": "/lab/mood-previews/soft-pastel-film-portrait-f77111b4.webp",
-    "description": "Intimate instant-film color, imperfect flash and tactile chemistry",
-    "defaultIntensity": 75,
-    "direction": "PV LAB POLAROID 600 / REAL INSTANT FILM. Transform the source into a believable single exposure on integral instant color film, with the physical character of a late-1980s/1990s Polaroid 600 photograph. Personal, spontaneous, tactile and editorial, never a digital retro preset. Moderate optical softness and reduced microcontrast, thick creamy highlights, compressed but detailed shadows, restrained warm/green and cyan/magenta dye irregularities, gently imperfect exposure, rich but imperfect color density and finely textured emulsion. Use credible straight-on camera flash only where source lighting and perspective allow; it can lift a nearby subject while the room falls into natural darkness, but do not invent a new night scene. Maintain the original face, identity, skin, body, clothing, pose, crop and surroundings. These are characteristics of the photograph, NOT instructions to introduce a white Polaroid paper border. Keep the image edge-to-edge unless the user explicitly asks for a print frame. Analog intimacy; considered underground fashion photography.",
-    "subtle": "Subtle instant-film softness and gentle tonal compression, lightly creamy highlights, warm-cool emulsion color variation and faint organic mottling. Keep the subject and original light recognizable. No print border.",
-    "moderate": "Distinct Polaroid 600 color density and soft optical definition, characterful skin texture, compressed shadows, believable close flash where motivated, delicate chemical irregularities and modest exposure drift. No pasted frames or scratches.",
-    "immersive": "Unmistakable integral instant-film rendering: intimate flash falloff when credible, creamy bright exposure rolloff, dense slightly unstable dyes, soft photographic edges, organic emulsion variation and imperfect yet sophisticated fashion-documentary character. Preserve the original scene and anatomy.",
-    "intense": "Strong authentic instant-film personality with substantial optical softness, uneven but physically plausible emulsion color, naturally washed highlight areas, dark flash falloff, conspicuous analog dye shifts and tactile photographic density. Keep realistic skin and the exact person; no artificial paper frame.",
-    "climax": "Maximum believable Polaroid 600 chemistry, exposure accident and editorial immediacy without losing subject recognition. Strong creamy flash exposure, moody muted shadow density, wonderfully inconsistent dye color, significant analog softness and faint uneven chemical development. Edge-to-edge photograph only, never automatic white borders or digital vintage stickers.",
-    "avoid": "automatic white Polaroid frame, scrapbook collage, printed text or handwriting, fake date stamps, fake film scratches, fake light leaks, all-over sepia filter, VHS artifacts, digital HDR clarity, artificial skin smoothing, plastic faces, forced night scenery, changing identity or wardrobe, exaggerated chemical destruction, blurred faces"
-  },
-  {
     "id": "hong-kong-nights",
     "name": "Hong Kong Nights",
     "category": "Cinema",
@@ -40,6 +10,44 @@ const ALL_MOODS=Object.freeze([
     "subtle": "Gentle night-film diffusion, soft practical-light bloom, subtle grain and intimate haze. Keep natural skin tones and recognizable surroundings.",
     "intense": "Immersive humid nighttime atmosphere, thick but realistic haze, luminous diffused neon in scene-appropriate greens or warm tones, wet reflections, deep layered shadows, strong analog halation and grain. Preserve referenced faces, poses and composition.",
     "avoid": "forced all-green tint, generic cyberpunk, synthetic skin, neon outlines, fake rain pasted onto dry rooms, smudged facial features"
+  },
+  {
+    "id": "night-flash",
+    "name": "Night Flash",
+    "category": "Fashion",
+    "preview": "/lab/mood-previews/night-flash-elevator-20261010.webp",
+    "description": "Raw after-dark photography",
+    "direction": "Direct on-camera flash night fashion photography, crisp cast shadows, textured natural skin, convincing specular reflections, dark ambient falloff, candid imperfect framing, early-2000s party photography and tactile clothes.",
+    "subtle": "Slight credible direct flash and dark ambient falloff with scene unchanged.",
+    "intense": "Punchy flash lighting with deep surrounding darkness and raw nightlife energy.",
+    "avoid": "smoothing filters, paparazzi text, hard fake glow"
+  },
+  {
+    "id": "dreamcore",
+    "name": "Dreamcore",
+    "category": "Experimental",
+    "preview": "/lab/mood-previews/dreamcore-train-20261010.webp",
+    "description": "Pearlescent reality, iridescent mist and liminal light",
+    "direction": "PV LAB DREAMCORE V5: A real photograph inside a softly impossible dream. Keep source camera, location, composition and natural material texture. Transform existing matter, light and atmosphere rather than inventing fantasy structures. Pearl cyan, lavender and pink are reflected-light accents, not universal filters.",
+    "subtle": "SUBTLE 1-34%: Faint natural bloom, soft haze and subtle material sheen; real geometry stays intact.",
+    "moderate": "ATMOSPHERIC 35-69%: Organic matter and portraits gain discernible pearly gloss, iridescent reflections and mist. Built spaces gain restrained color and atmosphere.",
+    "immersive": "IMMERSIVE 70-89%: Organic water, foam and skin gain strong luminous material changes and physical fog; portraits richer gloss; architecture preserves structure with stronger light.",
+    "intense": "IMPOSSIBLE REALITY 90-99%: Organic transformation becomes spectacular but photographic, portrait opalescence bold; built geometry remains real and quietly uncanny.",
+    "climax": "MAXIMUM 100%: ORGANIC: exceptional wet pearlescent skin, luminous sea foam, shimmering wet rocks, iridescent water and naturally scattered fog integrated across foreground, middle distance and depth. PORTRAIT: vivid photographic opalescence on the SAME person, pose and clothes. ARCHITECTURE: keep the real building and furniture; use deeply atmospheric coherent light and only one subtle local impossibility, never fantasy structures. No flat pastel tint, pasted smoke or generic woman in front of clouds.",
+    "avoid": "palaces, royal arches, castles, fantasy resorts, inserted beds, CGI dream buildings, stock cloud wallpaper, fake indoor floods, pasted fog, plastic skin, random neon patches, anatomy changes, lost identity, new outfits or different coverage",
+    "person": "PERSON PRESERVATION: Preserve SAME face, eyes, hair, expression, proportions, anatomy, pose, crop and camera. Skin may become realistically pearlescent, wet-glossy or faintly metallic, but keep skin pores and truthful light on body curvature. Existing outfits can gain modest color shifts, satin or opalescent sheen, keeping garment cut and coverage. No replaced identity or cutout figure.",
+    "atmosphere": "FOG PHYSICS: Fog occupies real volume, changes density with distance, scatters the actual light, occludes some distant surfaces and wraps contours. Gloss must belong to existing skin, water, foam, glass and fabric. No pasted fog, random wet floor, plastic skin, CGI walls or decorative rainbow spray.",
+    "compact": "DREAMCORE: Real source photographed inside a dream, no fantasy CGI. Read scene and route: ORGANIC if beach, sea, water, foam, rocks or nature, even WITH a person; ARCHITECTURE for real rooms, houses, façades or streets; otherwise PORTRAIT for a person with simple background. Preserve every person's face, pose, proportions, crop and outfit coverage. ORGANIC: strong pearly water/foam, wet skin gloss and luminous real mist. PORTRAIT: realistic opalescent skin and fabric with coherent haze. ARCHITECTURE: retain walls, windows, furniture and camera; only light, reflections and restrained haze may change. Fog has real depth, scattering and occlusion.",
+    "compactSubtle": "SUBTLE 1-34%: Soft haze, gloss and bloom only.",
+    "compactModerate": "ATMOSPHERIC 35-69%: Layered mist, real pearl highlights; built scene restrained.",
+    "compactImmersive": "IMMERSIVE 70-89%: Strong organic iridescence, glossy people, preserved built geometry.",
+    "compactIntense": "IMPOSSIBLE REALITY 90-99%: Spectacular organic matter, spatial fog, subdued architecture.",
+    "compactClimax": "MAXIMUM 100%: ORGANIC intense luminous water/foam/skin; PORTRAIT bold pearly sheen and identity preserved; ARCHITECTURE real building, liminal light only.",
+    "compactAvoid": "palaces, royal arches, random bed, CGI buildings, cloud wallpaper, pasted fog, mannequin skin, lost identity",
+    "routing": "SOURCE ROUTING: Inspect source and choose ONE route. ORGANIC if sea, foam, water, beach, wet rocks, vegetation or natural landscape dominates, EVEN WHEN A PERSON IS PRESENT. ARCHITECTURE if houses, corridors, interiors, façades or streets dominate. Otherwise PORTRAIT if a person dominates a simple background. Every visible person follows PERSON PRESERVATION. Never use a new place as a default.",
+    "organic": "ORGANIC ROUTE, STRONGEST: Make REAL foam, water, wet rock, sand, foliage and skin physically extraordinary with luminous iridescence, pearly wet highlights, refracted color and mist naturally rising from the scene. Keep actual coast, horizon, terrain, waves and subjects recognizable. No invented architecture or fantasy props.",
+    "portrait": "PORTRAIT ROUTE: In studio or simple settings, preserve person and camera; give skin and existing clothing elegant opalescent gloss and reflective color. Create coherent atmospheric depth around the person, not a stock cloud backdrop or new model.",
+    "architecture": "ARCHITECTURE ROUTE, CONTROLLED: Preserve existing rooms, buildings, windows, façades, doors, furniture and perspective. Add natural optical bloom, site-specific colored reflections and subtle real atmospheric haze. Even at 100%, alter light and one small source-led detail, never the actual architectural design. No palace arches, fantasy terraces, resorts or invented beds."
   },
   {
     "id": "90s-cinema",
@@ -53,15 +61,19 @@ const ALL_MOODS=Object.freeze([
     "avoid": "forced golden sunset in an unlit scene, changing the scene into a record shop, modern digital HDR, generic e-commerce fashion, AI skin smoothing, CGI shine, costume parody, fake VHS artifacts, oversized film borders, scratches across faces, borders covering subjects"
   },
   {
-    "id": "night-flash",
-    "name": "Night Flash",
-    "category": "Fashion",
-    "preview": "/lab/mood-previews/night-flash-elevator-20261010.webp",
-    "description": "Raw after-dark photography",
-    "direction": "Direct on-camera flash night fashion photography, crisp cast shadows, textured natural skin, convincing specular reflections, dark ambient falloff, candid imperfect framing, early-2000s party photography and tactile clothes.",
-    "subtle": "Slight credible direct flash and dark ambient falloff with scene unchanged.",
-    "intense": "Punchy flash lighting with deep surrounding darkness and raw nightlife energy.",
-    "avoid": "smoothing filters, paparazzi text, hard fake glow"
+    "id": "polaroid-600",
+    "name": "Polaroid 600",
+    "category": "Analog",
+    "preview": "/lab/mood-previews/polaroid-600-reference.svg",
+    "description": "Intimate instant-film color, imperfect flash and tactile chemistry",
+    "defaultIntensity": 75,
+    "direction": "PV LAB POLAROID 600 / REAL INSTANT FILM. Transform the source into a believable single exposure on integral instant color film, with the physical character of a late-1980s/1990s Polaroid 600 photograph. Personal, spontaneous, tactile and editorial, never a digital retro preset. Moderate optical softness and reduced microcontrast, thick creamy highlights, compressed but detailed shadows, restrained warm/green and cyan/magenta dye irregularities, gently imperfect exposure, rich but imperfect color density and finely textured emulsion. Use credible straight-on camera flash only where source lighting and perspective allow; it can lift a nearby subject while the room falls into natural darkness, but do not invent a new night scene. Maintain the original face, identity, skin, body, clothing, pose, crop and surroundings. These are characteristics of the photograph, NOT instructions to introduce a white Polaroid paper border. Keep the image edge-to-edge unless the user explicitly asks for a print frame. Analog intimacy; considered underground fashion photography.",
+    "subtle": "Subtle instant-film softness and gentle tonal compression, lightly creamy highlights, warm-cool emulsion color variation and faint organic mottling. Keep the subject and original light recognizable. No print border.",
+    "moderate": "Distinct Polaroid 600 color density and soft optical definition, characterful skin texture, compressed shadows, believable close flash where motivated, delicate chemical irregularities and modest exposure drift. No pasted frames or scratches.",
+    "immersive": "Unmistakable integral instant-film rendering: intimate flash falloff when credible, creamy bright exposure rolloff, dense slightly unstable dyes, soft photographic edges, organic emulsion variation and imperfect yet sophisticated fashion-documentary character. Preserve the original scene and anatomy.",
+    "intense": "Strong authentic instant-film personality with substantial optical softness, uneven but physically plausible emulsion color, naturally washed highlight areas, dark flash falloff, conspicuous analog dye shifts and tactile photographic density. Keep realistic skin and the exact person; no artificial paper frame.",
+    "climax": "Maximum believable Polaroid 600 chemistry, exposure accident and editorial immediacy without losing subject recognition. Strong creamy flash exposure, moody muted shadow density, wonderfully inconsistent dye color, significant analog softness and faint uneven chemical development. Edge-to-edge photograph only, never automatic white borders or digital vintage stickers.",
+    "avoid": "automatic white Polaroid frame, scrapbook collage, printed text or handwriting, fake date stamps, fake film scratches, fake light leaks, all-over sepia filter, VHS artifacts, digital HDR clarity, artificial skin smoothing, plastic faces, forced night scenery, changing identity or wardrobe, exaggerated chemical destruction, blurred faces"
   },
   {
     "id": "fashion-editorial",
@@ -97,6 +109,17 @@ const ALL_MOODS=Object.freeze([
     "compactAvoid": "stock oversized leather coat, compulsory platform boots, excessive straps, red neon, fabricated nightclub, fake wet floor, pasted fog, plastic AI skin, changing face, hair, pose, original light or scene"
   },
   {
+    "id": "soft-pastel-film",
+    "name": "Soft Pastel Film",
+    "category": "Analog",
+    "preview": "/lab/mood-previews/soft-pastel-film-portrait-f77111b4.webp",
+    "description": "Quiet creamy daylight",
+    "direction": "Airy premium analog photography with creamy neutrals, soft daylight, restrained powdered pastel hues, gentle shadow separation, subtle grain, natural skin color and elegant optical softness without loss of detail.",
+    "subtle": "Slightly creamy daylight and reduced color harshness; keep contrast intelligible.",
+    "intense": "Deliberate pastel art direction and diffused morning atmosphere, retaining real texture.",
+    "avoid": "overexposed white void, artificial pink skin, blurred facial details"
+  },
+  {
     "id": "80s-film",
     "name": "80s Film",
     "category": "Analog",
@@ -122,6 +145,21 @@ const ALL_MOODS=Object.freeze([
     "compactAvoid": "wigs, costumes, VHS, neon wash, wax skin, flat fog, props copied from films, unrequested changes of identity or clothes"
   },
   {
+    "id": "synthetic-romance",
+    "name": "Synthetic Romance",
+    "category": "Cinema",
+    "preview": "/lab/mood-previews/synthetic-romance-canon-kiss-20261011.webp",
+    "description": "Black chrome, human longing and 1980s synthetic cinema",
+    "defaultIntensity": 82,
+    "direction": "SYNTHETIC ROMANCE / PARALLEL VISION CANON. Rebuild the uploaded person as an extraordinary human-machine hybrid in the photographic world of the user's original canon references: dark industrial retro-futurism, intimate artificial beings, 1980s photochemical science-fiction cinema. This is an INVASIVE PHYSICAL BODY TRANSFORMATION, not a color grade or costume. Read the actual source person, visible body, pose, expression, number of people, camera and spatial relationships. Reengineer visible anatomy: replace or integrate parts of head, temples, neck, shoulders, arms, torso, hands or legs with precise functional-looking mechanical structures. Choose ONE coherent morphology, not a checklist: almost-human with invasive exposed neck mechanisms; recognizable human face with a complete engineered black-chrome body; segmented cyborg skin with embedded cables and visible internals; or a nearly total android with residual human facial character. Different subjects may have different transformation degrees. Mechanical joints must actually connect, with believable thickness, articulated plates, fasteners, cable routing, contact shadows and worn interfaces. Preserve the source pose, number of subjects, camera perspective and readable identity when a human face is visible; clothing and body surfaces MAY be physically replaced by engineered anatomy, particularly at high intensity. Do not automatically create another robot, a couple, a kiss or an embrace. The photograph must have narrative tension and emotion without repeating the thumbnail scene. MATERIALS: smoked mirror chrome, black nickel, graphite titanium, subtly abraded polished steel, oxidized seams, organic skin, fine condensation and surface wear. REAL OPTICAL GLOSS: reflected narrow fluorescent tubes and broad dim practical sources produce long specular ribbons tracking curved metal anatomy, dark reflection bands between lights, roughness variation, restrained red highlights, physically plausible reflections and imperfect local contrast. No fake gloss overlay. CINEMATOGRAPHY: photographed as an early-1980s 35mm feature-film negative, fine irregular grain in shadows, dense readable blacks, restrained soft halation around actual light sources, subtle lens softness, imperfect photochemical colors and authentic highlight rolloff. Sparse red practicals, cold-white fluorescent spill, blue-grey ambient darkness, motivated backlight and thin atmospheric haze. Wet concrete or reflective flooring only when a new environment is allowed and physically credible. Environment should be functional, aged and industrial, with analog machinery, not neon decoration. At strong intensities, rebuild a bland source environment into a coherent retro-futurist industrial interior without changing subject geometry; at lower intensity keep the location recognizable. Emotion: synthetic romance, loneliness, desire, vulnerability, quiet menace and human tenderness. Respect assigned references and explicit user directions. Create a different visually intelligent transformation each time.",
+    "subtle": "1-34% / SUBTLE MUTATION: clearly introduce engineered mechanical implants around visible temples, neck, shoulders or hands, plus tactile 1980s film photography. The person remains predominantly human, pose and location recognizable. Even low intensity must change anatomy, not just grading.",
+    "moderate": "35-69% / PARTIAL CYBORG: substantially replace several visible body regions with real black-chrome anatomy, articulated plates and plausible internal cabling. Preserve recognizable facial structure and composition. Film lighting and atmosphere deepen.",
+    "immersive": "70-89% / MAJOR SYNTHETIC RECONSTRUCTION: extensively replace the visible body with functional biomechanical construction, chrome and routed cables. Keep the human face if suitable, with a visible physical transition into the machinery. Bold industrial film atmosphere, source pose and identity respected.",
+    "intense": "90-99% / RADICAL ANDROID: transform nearly the entire visible body into engineered reflective dark metal, retaining recognizable human facial cues where possible. Expose meaningful cables, mechanical joints and intricate assembly. Rebuild atmosphere and background as a credible aged 1980s industrial film set.",
+    "climax": "100% / TOTAL SYNTHETIC LIBERATION: full artistic freedom for a breathtaking cyborg or android transformation. Human face can remain within a fully engineered head and body, or become partly synthetic; retain enough source facial structure to anchor identity if Lock Identity is requested. Extreme physical reconstruction, never a generic robot suit. Cinematic analog realism and restrained color remain nonnegotiable.",
+    "avoid": "generic cyberpunk, neon city, Blade Runner scene recreation, flying cars, holograms, luminous circuit skin, glowing eyes by default, superhero armor, glossy plastic, CGI showroom shine, perfect chrome gradient, rubbery AI skin, mirror liquid blobs, pasted fog, random cables, floating machinery, fake red light overlay, excessive teal orange grading, contemporary digital HDR, 3D render, video game, anime, changing pose, inventing extra people, automatic kissing, identical robots, anatomical distortions, losing facial identity when requested, fake film scratches and VHS effects"
+  },
+  {
     "id": "kodak-gold",
     "name": "Kodak Gold",
     "category": "Analog",
@@ -131,17 +169,6 @@ const ALL_MOODS=Object.freeze([
     "subtle": "Visible golden color-negative print influence: warm honey-colored highlights, rich but natural film colors, optical glow, modest but clearly discernible organic grain and a gentle photographic print curve.",
     "intense": "At HIGH and 100% intensity, make this unabashedly colorful and filmic: luminous golden-yellow highlights, highly saturated yet photographic greens and blues, deep rich print contrast, bold warm-cool negative-film color separation, abundant visibly organic 35mm grain, gentle color-channel irregularities, noticeable realistic highlight halation and joyful sunlit 1990s photo-print atmosphere. Do not turn the face orange or create a monochrome sepia wash; preserve beautiful real skin.",
     "avoid": "orange skin, entire scene dyed yellow, beige flatness, plastic smoothing, fake film borders, arbitrary dust scratches, cheap filter overlays, clipped skin highlights"
-  },
-  {
-    "id": "soft-pastel-film",
-    "name": "Soft Pastel Film",
-    "category": "Analog",
-    "preview": "/lab/mood-previews/soft-pastel-film-portrait-f77111b4.webp",
-    "description": "Quiet creamy daylight",
-    "direction": "Airy premium analog photography with creamy neutrals, soft daylight, restrained powdered pastel hues, gentle shadow separation, subtle grain, natural skin color and elegant optical softness without loss of detail.",
-    "subtle": "Slightly creamy daylight and reduced color harshness; keep contrast intelligible.",
-    "intense": "Deliberate pastel art direction and diffused morning atmosphere, retaining real texture.",
-    "avoid": "overexposed white void, artificial pink skin, blurred facial details"
   },
   {
     "id": "frutiger-aero",
@@ -155,31 +182,15 @@ const ALL_MOODS=Object.freeze([
     "avoid": "childish vector stickers, floating UI icons, grim cyberpunk"
   },
   {
-    "id": "dreamcore",
-    "name": "Dreamcore",
+    "id": "hyper-pop",
+    "name": "Hyper Pop",
     "category": "Experimental",
-    "preview": "/lab/mood-previews/dreamcore-train-20261010.webp",
-    "description": "Pearlescent reality, iridescent mist and liminal light",
-    "direction": "PV LAB DREAMCORE V5: A real photograph inside a softly impossible dream. Keep source camera, location, composition and natural material texture. Transform existing matter, light and atmosphere rather than inventing fantasy structures. Pearl cyan, lavender and pink are reflected-light accents, not universal filters.",
-    "subtle": "SUBTLE 1-34%: Faint natural bloom, soft haze and subtle material sheen; real geometry stays intact.",
-    "moderate": "ATMOSPHERIC 35-69%: Organic matter and portraits gain discernible pearly gloss, iridescent reflections and mist. Built spaces gain restrained color and atmosphere.",
-    "immersive": "IMMERSIVE 70-89%: Organic water, foam and skin gain strong luminous material changes and physical fog; portraits richer gloss; architecture preserves structure with stronger light.",
-    "intense": "IMPOSSIBLE REALITY 90-99%: Organic transformation becomes spectacular but photographic, portrait opalescence bold; built geometry remains real and quietly uncanny.",
-    "climax": "MAXIMUM 100%: ORGANIC: exceptional wet pearlescent skin, luminous sea foam, shimmering wet rocks, iridescent water and naturally scattered fog integrated across foreground, middle distance and depth. PORTRAIT: vivid photographic opalescence on the SAME person, pose and clothes. ARCHITECTURE: keep the real building and furniture; use deeply atmospheric coherent light and only one subtle local impossibility, never fantasy structures. No flat pastel tint, pasted smoke or generic woman in front of clouds.",
-    "avoid": "palaces, royal arches, castles, fantasy resorts, inserted beds, CGI dream buildings, stock cloud wallpaper, fake indoor floods, pasted fog, plastic skin, random neon patches, anatomy changes, lost identity, new outfits or different coverage",
-    "person": "PERSON PRESERVATION: Preserve SAME face, eyes, hair, expression, proportions, anatomy, pose, crop and camera. Skin may become realistically pearlescent, wet-glossy or faintly metallic, but keep skin pores and truthful light on body curvature. Existing outfits can gain modest color shifts, satin or opalescent sheen, keeping garment cut and coverage. No replaced identity or cutout figure.",
-    "atmosphere": "FOG PHYSICS: Fog occupies real volume, changes density with distance, scatters the actual light, occludes some distant surfaces and wraps contours. Gloss must belong to existing skin, water, foam, glass and fabric. No pasted fog, random wet floor, plastic skin, CGI walls or decorative rainbow spray.",
-    "compact": "DREAMCORE: Real source photographed inside a dream, no fantasy CGI. Read scene and route: ORGANIC if beach, sea, water, foam, rocks or nature, even WITH a person; ARCHITECTURE for real rooms, houses, façades or streets; otherwise PORTRAIT for a person with simple background. Preserve every person's face, pose, proportions, crop and outfit coverage. ORGANIC: strong pearly water/foam, wet skin gloss and luminous real mist. PORTRAIT: realistic opalescent skin and fabric with coherent haze. ARCHITECTURE: retain walls, windows, furniture and camera; only light, reflections and restrained haze may change. Fog has real depth, scattering and occlusion.",
-    "compactSubtle": "SUBTLE 1-34%: Soft haze, gloss and bloom only.",
-    "compactModerate": "ATMOSPHERIC 35-69%: Layered mist, real pearl highlights; built scene restrained.",
-    "compactImmersive": "IMMERSIVE 70-89%: Strong organic iridescence, glossy people, preserved built geometry.",
-    "compactIntense": "IMPOSSIBLE REALITY 90-99%: Spectacular organic matter, spatial fog, subdued architecture.",
-    "compactClimax": "MAXIMUM 100%: ORGANIC intense luminous water/foam/skin; PORTRAIT bold pearly sheen and identity preserved; ARCHITECTURE real building, liminal light only.",
-    "compactAvoid": "palaces, royal arches, random bed, CGI buildings, cloud wallpaper, pasted fog, mannequin skin, lost identity",
-    "routing": "SOURCE ROUTING: Inspect source and choose ONE route. ORGANIC if sea, foam, water, beach, wet rocks, vegetation or natural landscape dominates, EVEN WHEN A PERSON IS PRESENT. ARCHITECTURE if houses, corridors, interiors, façades or streets dominate. Otherwise PORTRAIT if a person dominates a simple background. Every visible person follows PERSON PRESERVATION. Never use a new place as a default.",
-    "organic": "ORGANIC ROUTE, STRONGEST: Make REAL foam, water, wet rock, sand, foliage and skin physically extraordinary with luminous iridescence, pearly wet highlights, refracted color and mist naturally rising from the scene. Keep actual coast, horizon, terrain, waves and subjects recognizable. No invented architecture or fantasy props.",
-    "portrait": "PORTRAIT ROUTE: In studio or simple settings, preserve person and camera; give skin and existing clothing elegant opalescent gloss and reflective color. Create coherent atmospheric depth around the person, not a stock cloud backdrop or new model.",
-    "architecture": "ARCHITECTURE ROUTE, CONTROLLED: Preserve existing rooms, buildings, windows, façades, doors, furniture and perspective. Add natural optical bloom, site-specific colored reflections and subtle real atmospheric haze. Even at 100%, alter light and one small source-led detail, never the actual architectural design. No palace arches, fantasy terraces, resorts or invented beds."
+    "preview": "/lab/visuals/reptare-detail.webp",
+    "description": "Vivid editorial energy",
+    "direction": "Bold fashion-pop photographic treatment, saturated but controlled chromatic accents, luminous highlights, confident flash energy, sharp tactile subject detail, graphic composition, fine bloom and playful 2000s magazine sensibility.",
+    "subtle": "Slightly richer chroma and highlight energy without changing anything else.",
+    "intense": "Strong confident color separation, editorial flash and pop color treatments without skin artifacts.",
+    "avoid": "cheap overlays, emoji, oversaturation, plastic skin"
   },
   {
     "id": "sumi-ink",
@@ -191,21 +202,8 @@ const ALL_MOODS=Object.freeze([
     "subtle": "Transform the reference into an elegant restrained sumi-e and photographic fusion: real washi paper grain, visible ink brush borders, natural gray wash and negative space while retaining recognizable features and the original arrangement.",
     "intense": "At HIGH and 100% intensity, recreate the whole scene as a confidently executed Japanese ink-wash painting. Simplify architecture, cloth, light and shadow into painterly black brush structure, water-diffused gray ink, broad ivory negative spaces, deliberate dry-brush breaks and handmade paper fibers. Keep only the important readable facial features and pose through delicate black and gray tonal drawing. This must look like real brushed sumi ink, not a grayscale filter.",
     "avoid": "anime or manga, ink cartoon outline, random kanji or seals, digital grayscale-filter photographs, brightly colored accents, messy paint splatters, watercolor postcards, glossy AI airbrush skin"
-  },
-  {
-    "id": "hyper-pop",
-    "name": "Hyper Pop",
-    "category": "Experimental",
-    "preview": "/lab/visuals/reptare-detail.webp",
-    "description": "Vivid editorial energy",
-    "direction": "Bold fashion-pop photographic treatment, saturated but controlled chromatic accents, luminous highlights, confident flash energy, sharp tactile subject detail, graphic composition, fine bloom and playful 2000s magazine sensibility.",
-    "subtle": "Slightly richer chroma and highlight energy without changing anything else.",
-    "intense": "Strong confident color separation, editorial flash and pop color treatments without skin artifacts.",
-    "avoid": "cheap overlays, emoji, oversaturation, plastic skin"
   }
-].map(m=>Object.freeze(m)));
-// Sumi-e remains available for previously saved jobs, but is not a selectable preset.
-export const MOODS=Object.freeze([...ALL_MOODS.filter(m=>m.id!=='sumi-ink'),ALL_MOODS.find(m=>m.id==='sumi-ink')]);
+]);
 export const MOOD_MODELS=Object.freeze(['seedream','gemini']);
 export const moodById=id=>ALL_MOODS.find(m=>m.id===id)||null;
 // This is intentionally presentation-only. Jobs retain the full provider prompt for
