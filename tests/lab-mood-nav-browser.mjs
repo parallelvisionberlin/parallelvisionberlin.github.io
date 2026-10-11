@@ -13,6 +13,7 @@ const end=studio.indexOf('</header>',start);
 assert.ok(start>0&&end>start,'Real PV Lab header is present');
 const header=studio.slice(start,end+'</header>'.length);
 const html='<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
+  +'<base href="/lab/">'
   +'<link rel="stylesheet" href="/lab/lab.css"><link rel="stylesheet" href="/lab/studio.css">'
   +'<link rel="stylesheet" href="/lab/assets.css">'
   +'</head><body>'+header+'<main id="main" class="wrap"><div id="app" aria-label="Test studio"></div></main></body></html>';
@@ -38,6 +39,7 @@ try{
   await page.goto('http://127.0.0.1:4193/test',{waitUntil:'domcontentloaded'});
   // In the real studio, the Queue control appears after session setup.
   await page.evaluate(()=>document.getElementById('active').hidden=false);
+  await page.waitForFunction(()=>[...document.querySelectorAll('#studio-header .brand img')].every(img=>img.complete&&img.naturalWidth>0));
   assert.deepEqual(await page.locator('#studio-header .tool-group>button').allTextContents(),
     ['Image','Retouch','Video','Upscaler','Assets','Fashion'],
     'Mood Creator must not occupy the six creative text tabs');
@@ -94,8 +96,14 @@ try{
       assert.ok(Math.abs(size.header.height-100)<=2,
         'Mobile two-row header retains its existing height at '+width);
     }
-    if(width===390)await page.screenshot({path:'test-results/pv-mood-icon-mobile.png'});
-    if(width===320)await page.screenshot({path:'test-results/pv-mood-icon-320.png'});
+    if(width===390){
+      await page.mouse.move(3,600);
+      await page.screenshot({path:'test-results/pv-mood-icon-mobile.png'});
+    }
+    if(width===320){
+      await page.mouse.move(3,600);
+      await page.screenshot({path:'test-results/pv-mood-icon-320.png'});
+    }
   }
   assert.deepEqual(errors,[],'No browser script errors');
   console.log('PASS Mood Creator icon-only right header shortcut, PV graphite styling, tooltip and nine breakpoints');
