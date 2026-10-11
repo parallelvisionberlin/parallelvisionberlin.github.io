@@ -18,3 +18,28 @@
 .mc-explore-ending>a:hover{background:#152017;color:#f4f4ec}
 @media(max-width:820px){.mc-discovery--explore .mc-discovery-heading{align-items:start}.mc-discovery--explore .mc-discovery-heading h1{font-size:clamp(50px,8vw,74px)}.mc-discovery--explore .mc-discovery-actions{width:38%}.mc-explore-ending{padding:48px 22px}}
 @media(max-width:600px){.mc-discovery--explore{padding-top:30px}.mc-discovery--explore .mc-discovery-heading h1{font-size:clamp(42px,11vw,62px)}.mc-discovery--explore .mc-discovery-actions{width:100%;margin-top:20px}.mc-explore-ending{display:block;padding:46px 18px}.mc-explore-ending>a{display:inline-flex;margin-top:20px}.mc-header .mc-navigation{gap:12px;overflow-x:auto;scrollbar-width:none}.mc-header .mc-navigation::-webkit-scrollbar{display:none}}
+
+/* Desktop entrance: treat the first four Moods as the visual hero.
+   Preserve the editorial type scale and existing cards/interactions. */
+@media(min-width:1000px){
+ .mc-discovery--explore{padding-top:18px;padding-bottom:54px}
+ .mc-discovery--explore .mc-discovery-heading{margin-top:7px;gap:22px;align-items:center}
+ .mc-discovery--explore .mc-discovery-heading h1{font-size:clamp(47px,4.8vw,72px);line-height:.99}
+ .mc-discovery--explore .mc-discovery-heading p{margin-top:7px;font-size:clamp(18px,1.35vw,23px)}
+ .mc-discovery--explore .mc-discovery-intro-note{margin:8px 0 15px;max-width:800px;font-size:12px;line-height:1.55}
+ .mc-discovery--explore .mc-discovery-actions{width:min(260px,26%)}
+ .mc-discovery--explore .mc-discovery-actions a{padding:10px 0}
+ .mc-discovery--explore .mc-discovery-bar{padding:8px 0 10px}
+ .mc-discovery--explore .mc-look-grid{gap:24px 15px}
+ .mc-discovery--explore .mc-look-photo{aspect-ratio:4/3}
+ .mc-discovery--explore .mc-look-copy{margin-top:3px}
+ .mc-discovery--explore .mc-look-copy strong{font-size:clamp(17px,1.5vw,23px)}
+ .mc-discovery--explore .mc-look-card>small{font-size:10px}
+}
+@media(min-width:1000px) and (max-height:850px){
+ .mc-discovery--explore .mc-discovery-heading h1{font-size:clamp(44px,4vw,62px)}
+ .mc-discovery--explore .mc-discovery-intro-note{margin-bottom:10px}
+ .mc-discovery--explore .mc-look-photo{aspect-ratio:1.42}
+}
+/* Do not enlarge a thumbnail with blur or sharpening filters. */
+.mc-discovery--explore .mc-look-photo img{image-rendering:auto}
