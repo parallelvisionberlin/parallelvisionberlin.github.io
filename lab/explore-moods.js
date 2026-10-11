@@ -1,4 +1,4 @@
-import {moodById} from './moods.js?v=20261011-midnight-reverie1&hd=20261011&raveBudget=1&editorialHD=2';
+import {moodById} from './moods.js?v=20261011-midnight-reverie1&hd=20261011&raveBudget=1&editorialHD=2&hongKongStreet=1';
 import {saveMoodHandoff,validateMoodHandoff} from './mood-handoff.js?v=20261011-discovery1';
 // Discovering and selecting a look must never perform a paid generation.
 export function moodExploreDestination(moodId,{create=false,handoff=null}={}){
@@ -68,7 +68,6 @@ function initialize(){
     if(!event.dataTransfer?.files?.length||event.target.closest('.mc-look-card[data-mood-id]'))return;
     event.preventDefault();status.textContent='Drop directly onto the Mood you want to use.';
   });
-  $('mc-create-look').onclick=()=>location.assign('./mood-creator.html?start=image');
   async function continueWithMood(create=false){
     if(!mood||busy)return;
     busy=true;$('mc-look-continue').disabled=true;$('mc-look-make').disabled=true;
@@ -84,17 +83,6 @@ function initialize(){
   $('mc-look-continue').onclick=()=>void continueWithMood();
   $('mc-look-make').onclick=()=>void continueWithMood(true);
 
-  // Reveal the complete collection without forcing every card into the first viewport.
-  const extraMoods=$('mc-expanded-moods'),viewAll=$('mc-view-all');
-  if(viewAll&&extraMoods){
-    viewAll.addEventListener('click',()=>{
-      const expanding=extraMoods.hidden;
-      extraMoods.hidden=!expanding;
-      viewAll.setAttribute('aria-expanded',String(expanding));
-      viewAll.innerHTML=(expanding?'SHOW FEWER MOODS':'VIEW ALL MOODS')+' <span aria-hidden="true">'+(expanding?'↑':'→')+'</span>';
-      if(expanding)extraMoods.scrollIntoView({block:'nearest',behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
-    });
-  }
   // Mobile navigation follows the native PV Lab links, with a genuine close action.
   const header=$('mc-explore-header'),menu=$('mc-menu-toggle');
   if(header&&menu){

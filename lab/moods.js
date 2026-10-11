@@ -16,7 +16,7 @@ const ALL_MOODS=Object.freeze([
     "id": "hong-kong-nights",
     "name": "Hong Kong Nights",
     "category": "Cinema",
-    "preview": "/lab/mood-previews/hd/hong-kong-nights-photo-final-20261011.jpg",
+    "preview": "/lab/mood-previews/hong-kong-nights-street-20261011.svg",
     "description": "Emerald haze, neon bloom and nocturnal melancholy",
     "direction": "Dreamlike 1990s Hong Kong night-film photography: humid urban darkness, atmospheric emerald haze, softened practical neon, diffused city lights, rain-wet reflections, organic 35mm grain, optical halation and nocturnal melancholy. Respect the original scene and lighting. Emerald green is an atmospheric possibility, not a mandatory color overlay.",
     "subtle": "Gentle night-film diffusion, soft practical-light bloom, subtle grain and intimate haze. Keep natural skin tones and recognizable surroundings.",
