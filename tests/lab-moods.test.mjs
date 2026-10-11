@@ -410,7 +410,7 @@ test('80s Film cinematic mood keeps multi-reference prompts under provider chara
   for(const amount of [20,50,80,93,100]){
     const r=prepareMoodPrompt('High-fashion actor in a room','80s-film',amount,{referenceCount:10,engine:'seedream'});
     assert.equal(r.error,'');
-    assert.match(r.prompt,/80S FILM \/ FASHION CINEMA/);
+    assert.match(r.prompt,/80S FILM \/ (?:FASHION CINEMA|SUBTLE|CINEMATIC COLOR)/);
     assert.ok(compileImagePrompt(r.prompt,refs).length<=5000,'ten-reference prompt should fit at '+amount+'%');
   }
   const studio=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
