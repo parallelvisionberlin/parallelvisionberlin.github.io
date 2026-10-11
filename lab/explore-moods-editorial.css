@@ -424,36 +424,7 @@
 .mc-explore-page .mc-invent-photo>span:last-child:empty{display:none!important}
 .mc-explore-page .mc-look-card .mc-look-copy strong{max-width:100%}
 
-/* Headlight-table direction: a continuous photographic masthead and quiet captions. */
-.mc-explore-page .mc-explore-header{background:#080f0c;border-bottom-color:#ccd8ce25}
-.mc-explore-page .mc-explore-header .mc-wordmark span{display:none}
-.mc-explore-page .mc-explore-masthead{
-  height:clamp(390px,29vw,550px);background:#080f0c;
-}
-.mc-explore-page .mc-explore-hero-art{
-  inset:0 0 0 43%;background:#080f0c;
-  mask-image:linear-gradient(90deg,transparent,#000 16%);
-}
-.mc-explore-page .mc-explore-masthead .mc-explore-hero-art img{
-  object-position:center;object-fit:cover;
-}
-.mc-explore-page .mc-explore-hero-veil{
-  background:linear-gradient(90deg,#080f0c 0%,#080f0c 40%,#080f0c00 52%),
-    linear-gradient(0deg,#0b100f 0%,#0b100f00 8%);
-}
-.mc-explore-page .mc-explore-hero-copy{
-  max-width:none;padding:clamp(54px,4.3vw,82px) 4.3vw 0;
-}
-.mc-explore-page .mc-explore-hero-copy h1{
-  font-size:clamp(64px,6.25vw,118px);letter-spacing:-.075em;margin:29px 0 17px;
-}
-.mc-explore-page .mc-explore-lede{font-size:clamp(20px,2vw,34px);letter-spacing:-.045em}
-.mc-explore-page .mc-discovery-actions{margin-top:34px;gap:16px}
-.mc-explore-page .mc-discovery-actions a,
-.mc-explore-page .mc-discovery-actions a:last-child{
-  min-width:0;width:clamp(190px,15vw,250px);height:52px;justify-content:flex-start;
-  font-family:'DM Sans',Arial,sans-serif;
-}
+/* Keep the current square Mood cards and quiet captions below the restored portrait hero. */
 .mc-explore-page .mc-look-card{
   aspect-ratio:auto;overflow:visible;border:0;border-radius:0;background:transparent;
 }
@@ -473,39 +444,7 @@
 }
 .mc-explore-page .mc-look-card:hover .mc-look-photo{border-color:var(--pv-acid)}
 .mc-explore-page .mc-look-card:focus-visible{outline:2px solid var(--pv-acid);outline-offset:5px}
-@media(min-width:701px) and (max-width:1100px){
-  .mc-explore-page .mc-explore-hero-copy h1{font-size:7vw}
-  .mc-explore-page .mc-explore-hero-copy{padding-top:65px}
-  .mc-explore-page .mc-explore-hero-art{left:39%}
-  .mc-explore-page .mc-explore-hero-veil{
-    background:linear-gradient(90deg,#080f0c 25%,#080f0ced 38%,#080f0c00 63%),
-      linear-gradient(0deg,#0b100f,transparent 15%);
-  }
-}
 @media(max-width:700px){
-  .mc-explore-page .mc-explore-masthead{height:570px}
-  .mc-explore-page .mc-explore-hero-art{
-    inset:260px 0 0 0;width:100%;mask-image:linear-gradient(180deg,transparent,#000 12%);
-  }
-  .mc-explore-page .mc-explore-masthead .mc-explore-hero-art img{object-position:55% center}
-  .mc-explore-page .mc-explore-hero-veil{
-    background:linear-gradient(180deg,#080f0c 0%,#080f0c 43%,#080f0c00 59%),
-      linear-gradient(0deg,#0b100f 0%,#0b100f00 12%);
-  }
-  .mc-explore-page .mc-explore-hero-copy{padding:33px 20px 0}
-  .mc-explore-page .mc-explore-hero-copy h1{
-    font-size:clamp(43px,11.5vw,77px);line-height:1;white-space:nowrap;
-    letter-spacing:-.07em;max-width:none;margin:24px 0 15px;
-  }
-  .mc-explore-page .mc-explore-hero-copy h1 em{display:inline}
-  .mc-explore-page .mc-explore-lede{font-size:17px;max-width:none;letter-spacing:-.035em}
-  .mc-explore-page .mc-discovery-actions{
-    flex-direction:row;flex-wrap:nowrap;width:100%;max-width:420px;gap:10px;margin-top:25px;
-  }
-  .mc-explore-page .mc-discovery-actions a,
-  .mc-explore-page .mc-discovery-actions a:last-child{
-    width:auto;flex:1;height:46px;padding:0 16px;font-size:12px;
-  }
   .mc-explore-page .mc-look-card{aspect-ratio:auto}
   .mc-explore-page .mc-look-card .mc-look-copy strong{font-size:14px}
 }
