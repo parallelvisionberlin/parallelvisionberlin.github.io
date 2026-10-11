@@ -41,10 +41,14 @@ test('Mood Creator gallery handoff accepts saved board UUIDs and preserves an op
   const reg=lab.match(/if\(boardId&&!((?:\/\^.*?\/i))\.test\(boardId\)\)/)?.[1];
   assert.ok(reg,'Studio board link must have a UUID validator');
   assert.equal(Function('return '+reg)().test(goodId),true,'Saved Mood UUID must be accepted');
-  assert.match(creator,/const mood=selectedLook,photo=lookPhoto,idea=lookDirection\.value\.trim\(\)/);
-  assert.match(creator,/if\(idea\)concept\.value=idea/);
+  const explore=readFileSync(new URL('../lab/explore-moods.html',import.meta.url),'utf8');
+  const exploreCode=readFileSync(new URL('../lab/explore-moods.js',import.meta.url),'utf8');
+  assert.match(explore,/data-mood-id="dreamcore"/);
+  assert.match(exploreCode,/const token=await saveMoodHandoff\(\{file,prompt:direction\.value\.trim\(\)\}\)/);
+  assert.match(exploreCode,/location\.assign\(moodExploreDestination\(mood\.id,\{create,handoff:token\}\)\)/);
+  assert.match(creator,/if\(packet\.prompt\)concept\.value=packet\.prompt/);
   assert.match(page,/href="#my-moods">My Moods/);
-  assert.match(homepage,/mood-creator\.html#discover/);
+  assert.match(homepage,/href="\.\/explore-moods\.html"/);
 });
 test('Mood Creator validates original ideas, image inputs and optional curated base',()=>{
  assert.equal(moodCreatorInputValidation({name:'Liquid Memory',direction:'Pearlescent light, real film grain',baseMoodId:null,imageCount:2}),'');
@@ -63,7 +67,7 @@ test('The editor is a distinct page, preserves Image prices and has two entry po
  const studio=readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8');
  assert.match(home,/id="mood-creator"/);
  assert.match(home,/href="\.\/mood-creator.html"/);
- assert.match(home,/href="\.\/mood-creator.html#discover"/);
+ assert.match(home,/href="\.\/explore-moods.html"/);
  assert.match(page,/id="mc-start-image"/);
  assert.match(page,/id="mc-start-idea"/);
  assert.match(page,/id="mc-board"/);
@@ -77,7 +81,11 @@ test('The editor is a distinct page, preserves Image prices and has two entry po
  assert.match(js,/location\.assign\('\.\/studio\.html\?tool=image&moodboard='/);
  assert.match(studio,/moodUI\.restore\(\{moodId:'custom',customMoodBoardId:boardId,moodIntensity:personal\.intensity\}/);
  assert.doesNotMatch(js,/fetch\('https:\/\/api\.spicyapi\.ai/);
- assert.match(style,/\.mc-look-grid/);
+ assert.match(style,/\.mc-editorial/);
+ assert.match(page,/class="mc-hero mc-hero--creator"/);
+ assert.doesNotMatch(page,/id="mc-look-dialog"/);
+ const explore=readFileSync(new URL('../lab/explore-moods.html',import.meta.url),'utf8');
+ assert.equal((explore.match(/data-mood-id=/g)||[]).length,11);
  assert.match(style,/\.mc-workspace-body/);
  assert.match(style,/\.mc-library-grid/);
 });
@@ -137,8 +145,8 @@ test('Art Direction keeps settings and Save actions in one visible deck footer',
   assert.match(css,/\.mc-direction-main\{[\s\S]*?overflow-y:auto;overflow-x:hidden/);
   assert.match(css,/\.mc-direction-footer\{[\s\S]*?border-top:1px solid #4e5850/);
   assert.match(css,/@media\(max-width:820px\)\{[\s\S]*?\.mc-direction\{display:flex;flex-direction:column;height:auto/);
-  assert.match(page,/mood-creator\.css\?v=20261011-direction-deck1/);
-  assert.match(page,/selected photo and\/or idea are sent to Google's AI service/);
+  assert.match(page,/mood-creator\.css\?v=20261011-collage-creator1/);
+  assert.match(page,/all selected Moodboard previews and your idea go to Google's AI service/);
   assert.match(js,/save\.onclick=\(\)=>void saveMood\(\)/);
   assert.match(js,/use\.onclick=\(\)=>void \(async\(\)=>\{/);
 });
