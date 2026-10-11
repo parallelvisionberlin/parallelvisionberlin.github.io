@@ -70,8 +70,9 @@
 #image-composer .moods-card[hidden]{display:none!important}
 .moods-card-media{display:block;position:relative;aspect-ratio:4/3;width:100%;background:#2c2c2c;overflow:hidden;border:2px solid transparent;border-radius:9px}
 .moods-card-media img{display:block;width:100%;height:100%;object-fit:cover}
-.moods-card-copy strong{display:block;font-size:12px;font-weight:570;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#eee}
-.moods-card-copy small{display:block;color:#999;font-size:10px;line-height:1.32;min-height:25px}
+.moods-card-copy{display:block;min-width:0}
+.moods-card-copy strong{display:block;font-size:14px;line-height:1.3;font-weight:570;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#f0f0f0}
+.moods-card-copy small{display:block;margin-top:3px;color:#b3b5b7;font-size:12px;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #image-composer .moods-card:hover .moods-card-media{border-color:#909090}
 #image-composer .moods-card.is-selected .moods-card-media{border-color:#d6ff00}
 #image-composer .moods-card.is-selected strong{color:#d6ff00}
@@ -123,9 +124,11 @@
 }
 .moods-strength{display:flex;flex-direction:column;gap:4px;min-width:0;width:100%}
 .moods-strength-header{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.moods-strength label{font-size:11px;color:#d7d9da;font-weight:640}
+.moods-strength label{font-size:12px;color:#d7d9da;font-weight:640}
+.moods-browse-count{min-width:0;color:#aeb1b3;font-size:11px;font-weight:400;white-space:nowrap;font-variant-numeric:tabular-nums}
+.moods-browse-count[hidden]{display:none!important}
 #image-composer #composer-moods-amount{
-  min-width:36px;color:#e5e5e5;font-size:11px;font-weight:650;
+  min-width:36px;color:#e5e5e5;font-size:12px;font-weight:650;
   font-variant-numeric:tabular-nums;text-align:right
 }
 #image-composer #composer-moods-intensity{
@@ -145,7 +148,6 @@
 #image-composer #composer-moods-intensity::-moz-range-thumb{width:17px;height:17px;border:2px solid #242526;border-radius:50%;background:#d6ff00}
 #image-composer #composer-moods-intensity:focus-visible{outline:2px solid #d6ff00;outline-offset:3px;border-radius:10px}
 #image-composer #composer-moods-intensity:disabled{opacity:.3;cursor:not-allowed}
-.moods-scale{display:flex;justify-content:space-between;gap:10px;color:#8e9194;font-size:9px;line-height:1.15;user-select:none}
 .moods-actions{display:flex;flex-direction:column;align-items:stretch;justify-content:center;gap:2px;min-width:0}
 #image-composer .moods-actions button{
   border:0;background:transparent;color:#b0b3b5;font:inherit;font-size:10px;cursor:pointer
@@ -194,7 +196,7 @@
   .moods-toolbar{flex-wrap:wrap;gap:6px}
   .moods-filters{width:100%;padding-bottom:5px}
   .moods-selection{justify-content:flex-start;max-width:100%;width:100%;padding-bottom:6px}
-  .moods-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .moods-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 10px;margin:8px 0 12px}
   .moods-card-media{aspect-ratio:5/4}
   .moods-card-copy small{min-height:0}
   .moods-footer{gap:6px;padding-top:9px}
@@ -215,30 +217,36 @@
 @media(max-width:390px){
   .moods-selected{font-size:12px}
   .moods-controls{grid-template-columns:minmax(0,1fr) 110px;gap:8px}
-  .moods-scale span:nth-child(2){display:none}
+  .moods-browse-count{display:none}
   #image-composer #composer-moods-done,
   #image-composer #composer-moods-switch{gap:6px}
 }
 @media(prefers-reduced-motion:reduce){#image-composer .composer-moods *{scroll-behavior:auto}}
 
-/* Preview-first desktop. Reuse a redundant caption row for larger images,
-   without reducing the intensity track, thumb or primary-action dimensions. */
+/* Two complete desktop rows with room around the photographs and readable,
+   single-line captions. The header and action rail stay outside the scroller. */
 @media(min-width:741px){
   .moods-card-media{aspect-ratio:6/5}
   .moods-header p{margin-bottom:7px}
-  .moods-filters{padding-bottom:5px}
-  .moods-selection{padding-bottom:10px}
-  .moods-footer{gap:2px;padding-top:6px}
+  .moods-toolbar{margin-bottom:20px}
+  .moods-filters{padding-bottom:2px}
+  .moods-selection{padding-bottom:2px}
+  .moods-grid{row-gap:20px;margin-bottom:16px}
+  .moods-footer{gap:2px;padding-top:12px}
   .moods-strength{
-    display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:17px 25px;gap:1px
+    display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:17px 25px;gap:4px
   }
   .moods-strength-header{grid-column:1;grid-row:1;align-self:center;min-width:0}
-  .moods-scale{
-    grid-column:1;grid-row:1;justify-self:center;align-self:center;
-    width:min(310px,53%);max-width:53%;gap:9px;pointer-events:none
-  }
   #image-composer #composer-moods-intensity{grid-column:1;grid-row:2}
 }
+/* Short laptop windows keep the two-row composition within the viewport. */
+@media(min-width:741px) and (max-height:760px){
+  #image-composer .composer-moods{padding:16px}
+  .moods-toolbar{margin-bottom:16px}
+  .moods-grid{row-gap:16px;margin-bottom:12px}
+  .moods-card-media{max-height:max(88px,calc((100dvh - 440px)/2))}
+}
+.pv-native-lab .moods-browse-count{display:none}
 
 /* My Moods gallery cards remain inside the existing floating mood selector. */
 #image-composer .moods-my-empty[hidden],#image-composer .moods-board-wrap[hidden]{display:none!important}
