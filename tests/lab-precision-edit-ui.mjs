@@ -143,6 +143,22 @@ try{
   assert.match(await page.locator('#precision-source-meta').textContent(),/editorial\.png/);
   assert.match(await page.locator('#precision-prompt').inputValue(),/vivid red material/);
   assert.equal(await page.evaluate(()=>window.pvRequests.length),priorRequests,'Returning does not resubmit paid work');
+  // Large originals require explicit export risk acknowledgment before any
+  // paid quote. Use a uniformly colored PNG so the synthetic test stays cheap.
+  await page.evaluate(async()=>{
+    const canvas=document.createElement('canvas');canvas.width=2500;canvas.height=2100;
+    const ctx=canvas.getContext('2d');ctx.fillStyle='#4e535b';ctx.fillRect(0,0,2500,2100);
+    const blob=await new Promise(done=>canvas.toBlob(done,'image/png'));
+    await window.pvEditor.setBase(new File([blob],'large-original.png',{type:'image/png'}));
+  });
+  assert.equal(await page.locator('#precision-export-option').isVisible(),true,
+    'Retouch must disclose JPEG backup before quoting large originals');
+  assert.equal(await page.locator('#precision-allow-jpeg').isChecked(),false,
+    'JPEG fallback must not be silently pre-approved');
+  await page.locator('#precision-allow-jpeg').check();
+  assert.equal(await page.locator('#precision-allow-jpeg').isChecked(),true);
+  assert.equal(await page.evaluate(()=>window.pvRequests.filter(r=>r.path==='/api/precision/submit').length),1,
+    'Changing export permission must never automatically submit a paid job');
   assert.deepEqual(errors,[]);
   console.log('PASS Retouch V2: zoom/pan, paid-selection consent, mask edit, quote and nonblocking queue, exact PNG pixels, mobile controls');
 }finally{await browser.close();await new Promise(resolve=>server.close(resolve));}
