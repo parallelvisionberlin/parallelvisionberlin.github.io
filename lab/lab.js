@@ -10,6 +10,7 @@ import {VIDEO_MODELS,engineFor,videoLabel} from './video-models.js?v=20261009-ex
 import {REFERENCE_ROLES,REFERENCE_TARGETS,normalizeReferenceLabel,compileImagePrompt,referenceGuidanceError,canUseReferenceGuidance} from './reference-guidance.js?v=20261010-reference-flow2';
 import {createMoodSelector,moodById,userFacingImagePrompt,imageHistoryCaption} from './moods.js?v=20261011-mood-steady-deck1';
 import {createMyMoods} from './my-moods.js?v=20261011-my-moods2';
+import {takeMoodHandoff} from './mood-handoff.js?v=20261011-discovery1';
 import {createMediaReferences} from './media-references.js?v=20261009-extend2';
 import { createSessionRequest } from './session-request.js?v=20260927-auth1';
 import { createSoulController } from './soul.js?v=20261001-presets2';
@@ -94,23 +95,48 @@ async function restoreStudioEntry(){
   if(route==='assets')await assetLibrary.open();
   else if(route==='fashion')await openFashionStudio();
   else if(route==='retouch')await openRetouch({push:false,autofill:false});
-  else if(route==='image'&&query.has('moodboard')){
-    // Mood Creator handoff only selects a saved art direction. Paid generation
-    // remains behind the explicit Image Generate action and its normal quote.
-    const id=query.get('moodboard');
-    if(!/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{12}$/i.test(id||'')){
-      notify('Invalid Mood Creator link. Choose a Mood from My Moods.',true);
+  else if(route==='image'&&(query.has('moodboard')||query.has('mood'))){
+    // Both curated and custom Moods are selected without quoting, paying
+    // for or automatically submitting a new image-generation request.
+    const moodId=query.get('mood'),boardId=query.get('moodboard');
+    if(moodId&&!moodById(moodId)){
+      notify('That curated Mood no longer exists. Choose another look in Moods.',true);
       return;
     }
+    if(boardId&&!/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[89ab][a-f0-9]{12}$/i.test(boardId)){
+      notify('Invalid personal Mood link.',true);return;
+    }
     try{
-      await myMoods.refresh();
-      const board=myMoods.find(id);
-      if(!board)throw Error('This saved Mood is not available on your account.');
       setTool('image');
-      moodUI.restore({moodId:'custom',customMoodBoardId:id,moodIntensity:board.intensity},true);
+      let title='Mood';
+      if(boardId){
+        await myMoods.refresh();
+        const personal=myMoods.find(boardId);
+        if(!personal)throw Error('This saved Mood is not available on your account.');
+        moodUI.restore({moodId:'custom',customMoodBoardId:boardId,moodIntensity:personal.intensity},true);
+        title=personal.name;
+      }else{
+        const mood=moodById(moodId);
+        moodUI.restore({moodId:mood.id,moodIntensity:70},true);
+        title=mood.name;
+      }
+      let hadPhoto=false;
+      if(query.has('handoff')){
+        try{
+          const packet=await takeMoodHandoff(query.get('handoff'));
+          if(packet.file){await addReferences([packet.file]);hadPhoto=true;}
+          if(packet.prompt)$('prompt').value=packet.prompt;
+        }finally{
+          // The handoff token is one-shot; a refresh may still re-select the
+          // Mood but cannot accidentally replay a private draft photograph.
+          const clean=new URL(location.href);
+          clean.searchParams.delete('handoff');
+          history.replaceState(history.state,'',clean);
+        }
+      }
       update();
-      notify(board.name+' is ready in Image. Add a photo or write a prompt, then Generate when you are ready. No image has been submitted.');
-    }catch(error){notify('Could not load that Mood. '+error.message,true);}
+      notify(title+' is selected. '+(hadPhoto?'Your photograph is ready. ':'')+'Press Generate when you are ready. No generation was submitted.');
+    }catch(error){notify('Could not prepare your Mood. '+error.message,true);}
   }else syncStudioRoute(tool);
 }
 let sourceUrl=null, lastFile=null, lastSourceId=null, lastUrl=null, references=[], mode='start';
