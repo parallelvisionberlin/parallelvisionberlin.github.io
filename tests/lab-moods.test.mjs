@@ -37,6 +37,15 @@ test('My Moods live in the existing selector, result viewer and authenticated Wo
   assert.match(worker,/customMoodName/);
 });
 
+test('My Moods never silently treat the original image subject prompt as a reusable style',()=>{
+  const editor=readFileSync(new URL('../lab/my-moods.js',import.meta.url),'utf8');
+  const ui=readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8');
+  assert.doesNotMatch(editor,/direction\.value=userFacingImagePrompt\(settings\)/);
+  assert.match(editor,/subject, not a reusable style/);
+  assert.match(editor,/if\(!proposed\.direction&&!proposed\.baseMoodId\)/);
+  assert.ok(editor.indexOf('const uploadedIds=await uploadStagedFiles()')>editor.indexOf('if(!proposed.direction&&!proposed.baseMoodId)'));
+  assert.match(ui,/Curated Moods remain usable while personal boards are unavailable/);
+});
 test('exactly eleven unique curated moods with imagery',()=>{
   assert.equal(MOODS.length,11);
   assert.equal(new Set(MOODS.map(m=>m.id)).size,11);
