@@ -25,3 +25,34 @@
 .mc-home-last{margin-top:30px;font-size:10px;letter-spacing:.08em;color:#7f8d82}
 @media(max-width:940px){.mc-home{grid-template-columns:1fr 1fr}.mc-home-copy{padding:55px 30px}.mc-home-copy h2{font-size:clamp(55px,7vw,75px)}.mc-home-image:nth-child(1){left:4%;width:47%}.mc-home-image:nth-child(2){right:0;width:49%}.mc-home-image:nth-child(3){left:27%;width:53%}}
 @media(max-width:700px){.mc-home{display:flex;flex-direction:column}.mc-home-copy{order:1;padding:55px 25px 61px;border:0}.mc-home-images{order:2;min-height:370px}.mc-home-copy h2{font-size:clamp(63px,12.5vw,88px)}.mc-home-copy h3{font-size:24px}.mc-home-copy p{font-size:13px}.mc-home-links{gap:19px}.mc-home-image:nth-child(1){left:9%;width:42%;height:73%;top:9%}.mc-home-image:nth-child(2){right:5%;width:48%;height:78%;top:0}.mc-home-image:nth-child(3){left:33%;width:45%;height:50%;bottom:0}.mc-home-image-label{left:20px;bottom:16px;font-size:9px}}
+
+/* Move the existing editorial mood collage to the top of the homepage story. */
+.landing-header nav>.lab-mood-nav{
+  position:relative;color:#fbfaf4;font-weight:500;
+  text-decoration-thickness:1px;text-underline-offset:7px;
+}
+.landing-header nav>.lab-mood-nav::after{
+  content:'';position:absolute;bottom:8px;left:0;right:0;height:1px;
+  background:rgba(246,248,229,.67);transform:scaleX(.2);
+  transform-origin:left center;transition:transform .18s;
+}
+.landing-header nav>.lab-mood-nav:hover::after,
+.landing-header nav>.lab-mood-nav:focus-visible::after{transform:scaleX(1)}
+.mc-home{min-height:clamp(550px,48vw,660px)}
+.mc-home-images{min-height:clamp(540px,48vw,650px)}
+.mc-home-copy{padding-right:clamp(28px,5vw,105px)}
+@media(min-width:901px) and (max-width:1270px){
+  .landing-header{column-gap:20px;padding-inline:3vw}
+  .landing-header nav{gap:clamp(11px,1.45vw,20px);font-size:12px}
+  .landing-header-actions{gap:12px}
+  .landing-header .studio-link{padding-inline:13px}
+}
+@media(max-width:900px){
+  .landing-header nav>.lab-mood-nav{font-weight:600}
+  .landing-header nav>.lab-mood-nav::after{bottom:5px}
+}
+@media(max-width:700px){
+  .mc-home,.mc-home-images{min-height:0}
+  .mc-home-images{height:390px}
+}
+@media(prefers-reduced-motion:reduce){.landing-header nav>.lab-mood-nav::after{transition:none}}
