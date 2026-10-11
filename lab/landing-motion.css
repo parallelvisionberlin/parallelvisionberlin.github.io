@@ -25,3 +25,12 @@
 @media(prefers-reduced-motion:reduce){
  .lab-hero .hero-motion,.tool-card .tool-motion{display:none!important;transition:none}
 }
+
+/* Keep the clearer still photograph visible on phones rather than
+   covering it with the previous mobile video asset. */
+@media(max-width:700px){
+  .lab-hero .hero-motion,.lab-hero .hero-motion.is-playing{display:none!important;opacity:0!important}
+  .lab-hero.motion-active .hero-shade{
+    background:linear-gradient(0deg,#10160ff0 0%,#10160fc7 20%,#10160f52 43%,transparent 70%);
+  }
+}
