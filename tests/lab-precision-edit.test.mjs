@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   precisionPoint,precisionOutputSize,precisionPrice,precisionFinalMetadata,
-  precisionEditRoute,PRECISION_SEGMENT_MODEL,PRECISION_SEGMENT_ESTIMATE_MICROS
+  precisionEditRoute,PRECISION_SEGMENT_MODEL,PRECISION_SEGMENT_ESTIMATE_MICROS,PRECISION_LARGE_IMAGE_PIXELS,PRECISION_COMPOSITE_LIMIT
 } from '../lab-worker/precision-edit.mjs';
 import {controlledRepairParameters} from '../lab-worker/fal-controlled-pose.mjs';
 
@@ -25,6 +25,20 @@ test('Precision FLUX quote uses the existing estimated output-megapixel pricing'
   assert.equal(p.model,'fal-ai/flux-general/inpainting');
   assert.equal(p.mode,'controlled-repair');
   assert.equal(precisionPrice(p),225000);
+});
+test('Retouch lossless/JPEG policies are explicit and bound to source approval',()=>{
+  assert.equal(PRECISION_LARGE_IMAGE_PIXELS,5000000);
+  assert.equal(PRECISION_COMPOSITE_LIMIT,20*1024*1024);
+  const settings={precisionEdit:true,precisionOriginalId:'original',precisionFinalized:false,
+    precisionAllowJpegFallback:true};
+  const jpeg=precisionFinalMetadata(settings,'original','image/jpeg');
+  assert.equal(jpeg.precisionOutputFormat,'jpeg');
+  assert.equal(jpeg.precisionFinalized,true);
+  assert.equal(settings.precisionFinalized,false);
+  const png=precisionFinalMetadata({...settings,precisionAllowJpegFallback:false},'original','image/png');
+  assert.equal(png.precisionOutputFormat,'png');
+  assert.throws(()=>precisionFinalMetadata({...settings,precisionAllowJpegFallback:false},'original','image/jpeg'),/not authorized/);
+  assert.throws(()=>precisionFinalMetadata(settings,'original','image/webp'),/Unsupported/);
 });
 test('Only a pending Precision Edit of the specified original can be finalized',()=>{
   const original='a';const settings={precisionEdit:true,precisionFinalized:false,precisionOriginalId:original,prompt:'test'};
