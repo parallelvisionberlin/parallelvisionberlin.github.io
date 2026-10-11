@@ -120,7 +120,8 @@ test('Moods footer has a larger primary action and a compact accessible explanat
   assert.match(css,/\.moods-about-popover\{\s*position:absolute/);
   assert.match(js,/hint\.hidden=compatible/);
   assert.match(js,/done\.disabled=!chosen/);
-  assert.match(js,/event\.key==='Escape'&&!aboutDetails\.hidden/);
+  assert.match(js,/if\(event\.key==='Escape'\)\{/);
+  assert.match(js,/if\(!aboutDetails\.hidden\)closeAbout\(true\)/);
   assert.match(js,/aboutButton\.setAttribute\('aria-expanded',String\(opening\)\)/);
 });
 
