@@ -257,7 +257,12 @@ document.addEventListener('DOMContentLoaded',()=>{
           </div>
           <p>Twelve curated looks. Your prompt and original photo remain yours.</p>
         </div>
-        <button id="composer-moods-close" type="button" aria-label="Close moods">×</button>
+        <div class="moods-header-actions">
+          <button id="composer-moods-create" class="moods-create-action" type="button" title="Create a private Mood">
+            <span class="moods-create-plus" aria-hidden="true">+</span><span class="moods-create-label">Create Mood</span>
+          </button>
+          <button id="composer-moods-close" type="button" aria-label="Close moods">×</button>
+        </div>
       </div>
       <div class="moods-toolbar">
         <div id="composer-moods-filters" class="moods-filters" aria-label="Mood categories"></div>
