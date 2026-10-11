@@ -407,6 +407,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
         onJob(final);
         if(isOpen()&&base&&base.id===final.settings.precisionOriginalId){
           resultBlob=await assetBlob(final.outputId);
+          resultFormat=final.settings?.precisionOutputFormat==='jpeg'?'jpeg':'png';
           if(resultBitmap)resultBitmap.close();
           resultBitmap=await createImageBitmap(resultBlob);
           showResult(resultBitmap);
@@ -422,7 +423,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     }catch(e){setStatus(e.message,true);}
     finally{taskBusy=false;refreshButtons();}
   }
-  async function composeWithOriginal(original,provider,maskImage){
+  async function composeWithOriginal(original,provider,maskImage,{allowJpegFallback=false}={}){
     const w=original.width,h=original.height;
     const work=document.createElement('canvas');work.width=maskImage.width;work.height=maskImage.height;
     const wc=work.getContext('2d',{willReadFrequently:true});
@@ -442,7 +443,14 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     px.globalCompositeOperation='destination-in';px.drawImage(alpha,0,0);px.globalCompositeOperation='source-over';
     const result=document.createElement('canvas');result.width=w;result.height=h;
     const cx=result.getContext('2d');cx.drawImage(original,0,0);cx.drawImage(patch,0,0);
-    return readBlob(result);
+    const png=await readBlob(result,'image/png');
+    if(png.size<=MAX_COMPOSITE)return {blob:png,mime:'image/png',format:'png'};
+    if(!allowJpegFallback)throw new Error('Lossless PNG exceeds 20 MB. Raw paid output is retained in History. Use a smaller photograph before retrying.');
+    for(const quality of [.97,.93,.88,.83]){
+      const jpeg=await readBlob(result,'image/jpeg',quality);
+      if(jpeg.type==='image/jpeg'&&jpeg.size<=MAX_COMPOSITE)return {blob:jpeg,mime:'image/jpeg',format:'jpeg'};
+    }
+    throw new Error('This composite exceeds 20 MB even as JPEG. The raw paid output is retained in History. No automatic repeat charge.');
   }
   async function finalize(job){
     if(job?.settings?.precisionFinalized||!job?.settings?.precisionEdit)return job;
@@ -455,10 +463,11 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
       const [originalBlob,maskBlob,generatedBlob]=await Promise.all(ids.map(assetBlob));
       const [original,selection,generated]=await Promise.all([createImageBitmap(originalBlob),createImageBitmap(maskBlob),createImageBitmap(generatedBlob)]);
       let composite;
-      try{composite=await composeWithOriginal(original,generated,selection);}
+      try{composite=await composeWithOriginal(original,generated,selection,{
+        allowJpegFallback:settings.precisionAllowJpegFallback===true});}
       finally{original.close();selection.close();generated.close();}
-      if(composite.size>20*1024*1024)throw new Error('Final PNG exceeds 20 MB. The raw edit is still saved; download a smaller original for this workflow.');
-      const compositeSourceId=await uploadAsset(new File([composite],'precision-composite.png',{type:'image/png'}));
+      const ext=composite.format==='jpeg'?'jpg':'png';
+      const compositeSourceId=await uploadAsset(new File([composite.blob],'precision-composite.'+ext,{type:composite.mime}));
       const response=await api('/api/precision/commit',{method:'POST',body:{jobId:job.id,compositeSourceId,expectedOutputId:job.outputId}});
       if(!response?.job?.settings?.precisionFinalized)throw new Error('Edited result was not confirmed by the private archive.');
       return response.job;
