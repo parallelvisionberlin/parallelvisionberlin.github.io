@@ -962,10 +962,8 @@ body:has(#app[hidden])>#studio-header .tool-switch{display:none}
  #image-composer.is-gemini .composer-controls>.reference-intent-toggle{max-width:98px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 }
 
-/* Mood Creator is a distinct creative workspace, but not a sixth long
-   navigation label. One discreet photo-board icon lives with the right-side
-   tools, after Fashion and before Queue, in the same satin graphite family. */
-#studio-header .actions>.studio-mood-icon{
+/* Assets shortcut in the right masthead. Mood Creator is a text tab after Fashion. */
+#studio-header .actions>.studio-assets-icon{
   position:relative;display:inline-grid;place-items:center;flex:0 0 40px;
   width:40px;height:40px;min-width:40px;min-height:40px;margin:0;padding:0;
   border:1px solid #51565c;border-radius:10px;
@@ -974,22 +972,22 @@ body:has(#app[hidden])>#studio-header .tool-switch{display:none}
   text-decoration:none;cursor:pointer;
   transition:border-color .16s ease,background .16s ease,color .16s ease,box-shadow .16s ease,transform .16s ease;
 }
-#studio-header .studio-mood-icon svg{display:block;width:21px;height:21px;flex:none}
-#studio-header .studio-mood-icon .studio-mood-spark{opacity:.85;transition:opacity .16s ease}
-#studio-header .actions>.studio-mood-icon:hover{
+#studio-header .studio-assets-icon svg{display:block;width:21px;height:21px;flex:none}
+#studio-header .studio-assets-icon .studio-assets-spark{opacity:.85;transition:opacity .16s ease}
+#studio-header .actions>.studio-assets-icon:hover{
   background:linear-gradient(145deg,#31343a,#25282b);
   border-color:#979da1;color:#f7f8f6;
   box-shadow:inset 0 1px rgba(255,255,255,.09),0 0 0 1px rgba(211,220,210,.04);
   transform:translateY(-1px);
 }
-#studio-header .studio-mood-icon:hover .studio-mood-spark{opacity:1}
-#studio-header .actions>.studio-mood-icon:active{transform:none}
-#studio-header .actions>.studio-mood-icon:focus-visible{
+#studio-header .studio-assets-icon:hover .studio-assets-spark{opacity:1}
+#studio-header .actions>.studio-assets-icon:active{transform:none}
+#studio-header .actions>.studio-assets-icon:focus-visible{
   outline:2px solid #d2d9c9;outline-offset:3px;
   border-color:#bfc7b8;
 }
 /* The icon is silent by default; its label appears only on hover/focus. */
-#studio-header .studio-mood-icon::after{
+#studio-header .studio-assets-icon::after{
   content:attr(data-tooltip);position:absolute;z-index:150;
   top:calc(100% + 10px);left:50%;
   transform:translate(-50%,-4px);
@@ -999,12 +997,12 @@ body:has(#app[hidden])>#studio-header .tool-switch{display:none}
   white-space:nowrap;pointer-events:none;
   opacity:0;visibility:hidden;transition:opacity .15s ease,transform .15s ease,visibility .15s;
 }
-#studio-header .studio-mood-icon:is(:hover,:focus-visible)::after{
+#studio-header .studio-assets-icon:is(:hover,:focus-visible)::after{
   opacity:1;visibility:visible;transform:translate(-50%,0);
 }
 /* Like the Image/Video/Fashion tabs, the private studio shortcut is not
    presented while the authenticated workspace is still gated. */
-body:has(#app[hidden])>#studio-header .studio-mood-icon{display:none!important}
+body:has(#app[hidden])>#studio-header .studio-assets-icon{display:none!important}
 @media(min-width:900px) and (max-width:1300px){
   #studio-header .tool-switch>.tool-group{gap:clamp(12px,1.35vw,20px)}
   #studio-header .tool-switch>.tool-group>button{font-size:12px}
@@ -1014,7 +1012,7 @@ body:has(#app[hidden])>#studio-header .studio-mood-icon{display:none!important}
 @media(max-width:899px){
   /* A touch tap follows the shortcut immediately. Do not let the desktop
      hover label obscure the second navigation row. Keyboard focus remains. */
-  #studio-header .studio-mood-icon::after{
+  #studio-header .studio-assets-icon::after{
     display:none!important;
   }
   body>#studio-header .tool-switch{
@@ -1031,13 +1029,13 @@ body:has(#app[hidden])>#studio-header .studio-mood-icon{display:none!important}
 @media(max-width:480px){
   #studio-header .tool-switch>.tool-group{gap:19px}
   #studio-header .actions{gap:8px;min-width:0}
-  #studio-header .actions>.studio-mood-icon{
+  #studio-header .actions>.studio-assets-icon{
     width:35px;height:35px;min-width:35px;min-height:35px;flex-basis:35px;
     border-radius:9px;
   }
-  #studio-header .studio-mood-icon svg{width:20px;height:20px}
-  #studio-header .studio-mood-icon::after{left:auto;right:0;transform:translateY(-4px)}
-  #studio-header .studio-mood-icon:is(:hover,:focus-visible)::after{transform:translateY(0)}
+  #studio-header .studio-assets-icon svg{width:20px;height:20px}
+  #studio-header .studio-assets-icon::after{left:auto;right:0;transform:translateY(-4px)}
+  #studio-header .studio-assets-icon:is(:hover,:focus-visible)::after{transform:translateY(0)}
 }
 @media(max-width:360px){
   body>#studio-header .wrap.top{padding-inline:9px;column-gap:6px}
@@ -1046,20 +1044,26 @@ body:has(#app[hidden])>#studio-header .studio-mood-icon{display:none!important}
   #studio-header .brand-wordmark{width:78px;height:auto}
   #studio-header .brand .brand-lab{display:none}
   #studio-header .actions{gap:7px}
-  #studio-header .actions>.studio-mood-icon{
+  #studio-header .actions>.studio-assets-icon{
     width:33px;height:33px;min-width:33px;min-height:33px;flex-basis:33px;
   }
   #studio-header .queue-popover>summary{padding-inline:3px}
   #studio-header .account-menu>summary{padding-inline:2px}
 }
 @media(prefers-reduced-motion:reduce){
-  #studio-header .studio-mood-icon,
-  #studio-header .studio-mood-icon::after,
-  #studio-header .studio-mood-icon .studio-mood-spark{transition:none}
-  #studio-header .actions>.studio-mood-icon:hover{transform:none}
+  #studio-header .studio-assets-icon,
+  #studio-header .studio-assets-icon::after,
+  #studio-header .studio-assets-icon .studio-assets-spark{transition:none}
+  #studio-header .actions>.studio-assets-icon:hover{transform:none}
 }
 
 
+
+#studio-header .actions>#tool-assets.studio-assets-icon{display:inline-grid;align-items:center;justify-content:center;min-width:40px;min-height:40px;width:40px;height:40px;padding:0;margin:0;border:1px solid #51565c;border-radius:10px;background:linear-gradient(145deg,#27292d,#1b1d21);color:#d9dddf;box-shadow:inset 0 1px rgba(255,255,255,.065)}
+#studio-header .actions>#tool-assets.studio-assets-icon:hover{background:linear-gradient(145deg,#31343a,#25282b);border-color:#979da1;color:#f7f8f6}
+#studio-header .actions>#tool-assets.studio-assets-icon[aria-pressed="true"]{border-color:#b2baa8;color:#eff4e8}
+@media(max-width:480px){#studio-header .actions>#tool-assets.studio-assets-icon{width:35px;height:35px;min-width:35px;min-height:35px}}
+@media(max-width:360px){#studio-header .actions>#tool-assets.studio-assets-icon{width:33px;height:33px;min-width:33px;min-height:33px}}
 /* Discover and Create are first-class Studio destinations, not more settings.
    Existing sticky masthead and floating generation deck retain their geometry. */
 #studio-header .tool-switch>.tool-group>a.tool-link{
