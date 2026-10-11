@@ -123,13 +123,25 @@ document.addEventListener('DOMContentLoaded',()=>{
             <canvas id="precision-source-canvas" aria-hidden="true"></canvas>
             <canvas id="precision-selection-canvas" aria-label="Precision Edit selection canvas"></canvas>
           </div>
+          <div id="precision-zoom-controls" class="precision-zoom-controls" role="group" aria-label="Photo view controls">
+            <button id="precision-zoom-fit" type="button" title="Fit the whole image">Fit</button>
+            <button id="precision-zoom-out" type="button" aria-label="Zoom out" title="Zoom out">−</button>
+            <output id="precision-zoom-value" aria-live="off">Fit</output>
+            <button id="precision-zoom-in" type="button" aria-label="Zoom in" title="Zoom in">+</button>
+            <button id="precision-zoom-actual" type="button" title="Show working preview at 1 pixel per screen pixel">100%</button>
+            <button id="precision-tool-pan" type="button" aria-pressed="false" title="Drag to pan. Hold Space to pan with any editing tool.">Pan</button>
+          </div>
         </div>
-        <div class="precision-input-footer"><span id="precision-selection-message" role="status">Upload a photograph to begin.</span><button id="precision-change-photo" type="button" hidden>Replace image</button></div>
+        <div class="precision-input-footer"><span id="precision-selection-message" role="status">Start by dropping a photograph above.</span><button id="precision-change-photo" type="button" hidden>Replace image</button></div>
       </section>
       <section class="precision-panel precision-output-panel" aria-labelledby="precision-output-title">
         <div class="precision-panel-label"><span id="precision-output-title">02 / RESULT</span><span id="precision-result-label">AWAITING EDIT</span></div>
-        <div id="precision-output-holder" class="precision-output-holder"><div id="precision-output-empty" class="precision-output-empty"><span aria-hidden="true">✳</span><strong>Your original stays intact.</strong><p>Select an area on the left, describe the change below, and see your retouched result here.</p></div><canvas id="precision-result-canvas" aria-label="Precision edit result comparison" hidden></canvas></div>
-        <div class="precision-compare-row"><label for="precision-compare">Before <input id="precision-compare" type="range" min="0" max="100" value="100" aria-label="Compare original and edited image" disabled> After</label><button id="precision-download" type="button" disabled>Download PNG ↗</button></div>
+        <div id="precision-output-holder" class="precision-output-holder"><div id="precision-output-empty" class="precision-output-empty"><span aria-hidden="true">✳</span><strong>Ready for your edit.</strong><p>The result appears here when it is finished.</p></div><canvas id="precision-result-canvas" aria-label="Precision edit result comparison" hidden></canvas></div>
+        <div class="precision-compare-row">
+          <span id="precision-compare-idle" class="precision-compare-idle">Original preserved · Result will appear here</span>
+          <label id="precision-compare-control" for="precision-compare" hidden>Before <input id="precision-compare" type="range" min="0" max="100" value="100" aria-label="Compare original and edited image" disabled> After</label>
+          <button id="precision-download" type="button" disabled hidden>Download PNG ↗</button>
+        </div>
       </section>
     </div>
     <div class="precision-tools">
@@ -153,10 +165,19 @@ document.addEventListener('DOMContentLoaded',()=>{
         <button id="precision-generate" type="button" disabled>Review price <span aria-hidden="true">↗</span></button>
       </div>
       <div class="precision-deck-meta">
-        <div class="precision-status"><strong>Precision Edit <span>/ FLUX Inpainting</span></strong><span id="precision-price-note">Magic Select approx. $0.005 per click · Price checked before generation</span></div>
+        <div class="precision-status"><strong>Precision Edit <span>/ FLUX Inpainting</span></strong><span id="precision-price-note">Add photo → Select area → Describe edit → Review price</span></div>
         <p id="precision-status-text" class="precision-status-text" role="status" aria-live="polite"></p>
+        <label id="precision-export-option" class="precision-export-option" hidden>
+          <input id="precision-allow-jpeg" type="checkbox">
+          <span>High-resolution export: allow JPEG if the lossless PNG exceeds 20 MB. Only PNG preserves the original pixels exactly outside the edit.</span>
+        </label>
       </div>
     </div>
+    <dialog id="precision-select-consent" class="precision-select-consent" aria-labelledby="precision-select-consent-title">
+      <strong id="precision-select-consent-title">Enable Magic Select</strong>
+      <p>Each SAM 3 object selection is a paid request, approximately $0.005 per click at the current published rate. Authorize up to five selections in this session (approximately $0.025 total). No charge happens until you confirm.</p>
+      <div class="precision-price-actions"><button id="precision-select-cancel" type="button">Use brush instead</button><button id="precision-select-approve" type="button">Enable 5 selections</button></div>
+    </dialog>
     <div id="precision-price-review" class="precision-price-review" role="dialog" aria-modal="false" aria-labelledby="precision-review-title" hidden>
       <strong id="precision-review-title">Review Precision Edit</strong><p id="precision-review-body"></p><div class="precision-price-actions"><button id="precision-review-cancel" type="button">Cancel</button><button id="precision-review-confirm" type="button">Generate image</button></div>
     </div>
