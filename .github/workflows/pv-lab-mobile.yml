@@ -2,7 +2,12 @@ name: PV Lab mobile review
 on:
   workflow_dispatch:
   push:
-    branches: [mobile-lab-moods-web, app-moods-web-release]
+    branches: [main, mobile-lab-moods-web, app-moods-web-release]
+    paths:
+      - 'lab/app-moods.*'
+      - 'lab/app-mood-generation.js'
+      - 'tests/lab-app*.mjs'
+      - '.github/workflows/pv-lab-mobile.yml'
 permissions:
   contents: read
 jobs:
@@ -25,6 +30,7 @@ jobs:
         env:
           PV_PLAYWRIGHT_MODULE: /tmp/pv-mobile-browser/node_modules/@playwright/test/index.mjs
         run: |
+          node tests/lab-app-mood-deck.mjs
           node tests/lab-app-discovery.mjs
           node tests/lab-native-mobile-ui.mjs
       - uses: actions/upload-artifact@v4
@@ -32,3 +38,4 @@ jobs:
         with:
           name: pv-lab-mobile-review
           path: /tmp/pv-lab-mobile-review
+

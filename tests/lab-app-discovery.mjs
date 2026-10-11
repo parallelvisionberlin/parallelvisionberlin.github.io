@@ -47,22 +47,21 @@ for(const [width,height] of [[390,730],[320,590],[768,900]]){
  await page.screenshot({path:out+`/discover-${width}.png`,fullPage:true});
  await page.getByRole('button',{name:'Explore Hong Kong Nights',exact:true}).click();
  assert.equal(await page.locator('#detail-title').innerText(),'Hong Kong Nights');
- const chooser=page.waitForEvent('filechooser');await page.click('#use-mood');
+ const chooser=page.waitForEvent('filechooser');await page.click('#photo-input');
  const photo=Buffer.from(await page.evaluate(()=>{const c=document.createElement('canvas');c.width=480;c.height=640;c.getContext('2d').fillRect(0,0,480,640);return c.toDataURL().split(',')[1];}),'base64');
  await (await chooser).setFiles({name:'source.png',mimeType:'image/png',buffer:photo});
- assert.equal(await page.locator('#continue-create').isEnabled(),true);
+ await page.waitForFunction(()=>document.querySelector('#continue-create').textContent.includes('$0.20'));
+ assert.equal(requests.filter(r=>r.method==='POST'&&r.path==='/api/jobs').length,0,'Upload and price never submit a job');
  await page.screenshot({path:out+`/mood-photo-${width}.png`,fullPage:true});
- // The native shell intercepts this navigation, keeping the guest discovery page alive while sign-in opens.
- let target='';await page.route('**/studio.html?**',async route=>{target=route.request().url();await route.abort();});
- await page.click('#continue-create');await page.waitForTimeout(250);
- assert.ok(target.includes('handoff='));const handoff=new URL(target).searchParams.get('handoff');
- await page.unroute('**/studio.html?**');
- await page.goto('http://127.0.0.1:4187/lab/studio.html?native=1');
- await page.waitForFunction(()=>window.__nativeMessages.some(m=>m.type==='PV_LAB_READY')&&!document.querySelector('#app').hidden);
- await page.evaluate(handoff=>window.__PV_LAB_COMMAND__({action:'mood',mood:'hong-kong-nights',handoff}),handoff);
- assert.equal(await page.locator('#image-composer-references img').count(),1,'Photo crosses the sign-in handoff into Create');
- assert.equal(await page.locator('#composer-moods-summary').textContent(),'Hong Kong Nights');
- assert.equal(requests.filter(r=>r.method==='POST'&&r.path==='/api/jobs').length,0,'Handoff never generates automatically');
+ await page.click('#continue-create');
+ await page.waitForFunction(()=>document.querySelector('#continue-create').textContent==='Sent to Gallery');
+ assert.equal(requests.filter(r=>r.method==='POST'&&r.path==='/api/jobs').length,1,'Generate submits exactly one quoted job');
+ await page.locator('#deck-form').evaluate(form=>form.requestSubmit());
+ assert.equal(requests.filter(r=>r.method==='POST'&&r.path==='/api/jobs').length,1,'Duplicate submission is blocked');
+ await page.click('#close-detail');
+ await page.getByRole('button',{name:'Explore Dreamcore',exact:true}).click();
+ assert.equal(await page.locator('#photo-preview').isVisible(),false,'New deck does not reuse the previous private photo');
+ await page.click('#close-detail');
  await page.goto('http://127.0.0.1:4187/lab/mood-creator.html?native=1#my-moods');
  await page.waitForSelector('#mobile-new');
  assert.equal(await page.locator('#workspace').isVisible(),false);
@@ -74,7 +73,8 @@ for(const [width,height] of [[390,730],[320,590],[768,900]]){
  await page.screenshot({path:out+`/mood-style-${width}.png`,fullPage:true});
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);
  assert.deepEqual(errors,[]);total++;await page.close();
- console.log('PASS',width,'guest discovery, selection, photo handoff, private collection, progressive editor');
+ console.log('PASS',width,'guest discovery, direct deck, quoted generation, private collection, progressive editor');
 }
-console.log('PASS',total,'widths. No paid generation requests.');
+console.log('PASS',total,'widths. Only fixture generation requests; no real provider requests.');
 }finally{await browser.close();server.close();}
+
