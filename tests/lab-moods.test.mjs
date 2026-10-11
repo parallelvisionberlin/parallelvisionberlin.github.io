@@ -1,8 +1,41 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {MOODS,MOOD_MODELS,moodById,prepareMoodPrompt,userFacingImagePrompt,imageHistoryCaption,moodsPanelViewportGeometry} from '../lab/moods.js';
+import {MOODS,MOOD_MODELS,moodById,prepareMoodPrompt,preparePersonalMoodPrompt,userFacingImagePrompt,imageHistoryCaption,moodsPanelViewportGeometry} from '../lab/moods.js';
 import {readFileSync} from 'node:fs';
 import {compileImagePrompt} from '../lab/reference-guidance.js';
+
+test('My Moods reuse saved visual direction, not hidden board image references',()=>{
+  const id='30000000-0000-4000-8000-000000000012';
+  const board={id,name:'Liquid Memory',direction:'Pearlescent skin, humid cyan reflections, analog fog',baseMoodId:'dreamcore',intensity:85,imageIds:['30000000-0000-4000-8000-000000000003']};
+  const r=preparePersonalMoodPrompt('A woman on a beach',board,85,{engine:'seedream',referenceCount:1});
+  assert.equal(r.error,'');
+  assert.match(r.prompt,/PV LAB MY MOOD \/ Liquid Memory/);
+  assert.match(r.prompt,/PV LAB MOOD \/ Dreamcore/);
+  assert.doesNotMatch(r.prompt,/000000000003/);
+  assert.deepEqual(r.metadata,{moodId:'custom',customMoodName:'Liquid Memory',customMoodBoardId:id,moodIntensity:85,moodOriginalPrompt:'A woman on a beach'});
+  assert.equal(userFacingImagePrompt({...r.metadata,prompt:r.prompt}),'A woman on a beach');
+  assert.equal(imageHistoryCaption({...r.metadata,prompt:r.prompt}),'Liquid Memory · 85% · A woman on a beach');
+  assert.match(preparePersonalMoodPrompt('',board,85,{engine:'seedream'}).error,/Describe a subject/);
+});
+test('My Moods live in the existing selector, result viewer and authenticated Worker',()=>{
+  const html=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
+  const moods=readFileSync(new URL('../lab/moods.js',import.meta.url),'utf8');
+  const ui=readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8');
+  const editor=readFileSync(new URL('../lab/my-moods.js',import.meta.url),'utf8');
+  const worker=readFileSync(new URL('../lab-worker/worker.mjs',import.meta.url),'utf8');
+  assert.match(moods,/'My Moods'/);
+  assert.match(moods,/function setPersonalMoods\(next=\[\]\)/);
+  assert.match(ui,/createMyMoods\(\{api,assetBlob,moodUI/);
+  assert.match(ui,/image-detail-save-mood/);
+  assert.match(ui,/myMoods\.reset\(\);owner=false/);
+  assert.match(html,/id="moodboard-editor" class="moodboard-editor"/);
+  assert.match(html,/id="moodboard-upload"/);
+  assert.match(editor,/api\('\/api\/moodboards'/);
+  assert.match(editor,/api\('\/api\/uploads'/);
+  assert.match(worker,/moodBoardsRoute\(request,env,owner/);
+  assert.match(worker,/SELECT image_ids FROM moodboards/);
+  assert.match(worker,/customMoodName/);
+});
 
 test('exactly eleven unique curated moods with imagery',()=>{
   assert.equal(MOODS.length,11);
@@ -234,7 +267,7 @@ test('Popup centered over composer; simplified empty state and About below CTA',
   const footer=html.slice(html.indexOf('<div class="moods-footer">'),html.indexOf('<p id="composer-moods-compat"'));
   assert.ok(footer.indexOf('id="composer-moods-about"')>footer.indexOf('id="composer-moods-none"'));
   assert.ok(footer.indexOf('id="composer-moods-about"')>footer.indexOf('id="composer-moods-done"'));
-  assert.match(html,/moods\.css\?v=20261011-mood-gallery-priority1/);
+  assert.match(html,/moods\.css\?v=20261011-my-moods2/);
   const worker=readFileSync(new URL('../lab-worker/worker.mjs',import.meta.url),'utf8');
   for(const key of ['sumi-ink','dreamcore'])assert.ok(worker.includes("'"+key+"'"));
 });
@@ -274,5 +307,5 @@ test('Moods prioritizes previews and toggles an already-selected thumbnail off',
   assert.match(css,/#composer-moods-done,[\s\S]*?#composer-moods-switch\{[\s\S]*?min-height:40px/);
   assert.match(css,/#composer-moods-intensity::-webkit-slider-runnable-track\{[\s\S]*?height:7px/);
   assert.match(html,/Clear selected mood/);
-  assert.match(html,/moods\.css\?v=20261011-mood-gallery-priority1/);
+  assert.match(html,/moods\.css\?v=20261011-my-moods2/);
 });
