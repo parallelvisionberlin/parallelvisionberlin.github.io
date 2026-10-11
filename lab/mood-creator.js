@@ -62,7 +62,7 @@ function initMoodCreator(){
   const q=new URLSearchParams(location.search),chosenBoard=q.get('board'),sourceJob=q.get('fromJob');
   let clerk=null,account=null,authGeneration=0,sessionVersion=0;
   let boards=[],boardId=null,items=[],urls=new Map(),busy=false,analyzing=false,selectedIndex=0;
-  let suggestion=null,loadGeneration=0,libraryGeneration=0,loadedJob=false;
+  let suggestion=null,analysisApplied=false,loadGeneration=0,libraryGeneration=0,loadedJob=false;
   const sessionRequest=createSessionRequest({baseUrl:API,getSession:()=>clerk?.session});
   const label=$('mc-account-label'),signin=$('mc-signin'),signout=$('mc-signout');
   const message=$('mc-message'),board=$('mc-board'),boardShell=$('mc-drop-zone');
@@ -91,7 +91,9 @@ function initMoodCreator(){
   const currentPayload=()=>({
     name:name.value.trim(),direction:direction.value.trim(),baseMoodId:base.value||null,
     intensity:Number(intensity.value),
-    imageIds:items.map(item=>item.assetId).filter(Boolean)
+    imageIds:items.map(item=>item.assetId).filter(Boolean),
+    palette:analysisApplied?(suggestion?.palette||[]):[],
+    qualities:analysisApplied?(suggestion?.qualities||[]):[]
   });
   function clearItemUrls(){
     for(const item of items)if(item.localUrl)URL.revokeObjectURL(item.localUrl);
@@ -102,7 +104,7 @@ function initMoodCreator(){
     urls.clear();
   }
   function resetBoard({scroll=false}={}){
-    clearItemUrls();boardId=null;selectedIndex=0;suggestion=null;
+    clearItemUrls();boardId=null;selectedIndex=0;suggestion=null;analysisApplied=false;
     name.value='';concept.value='';direction.value='';base.value='';intensity.value='70';
     $('mc-intensity-value').textContent='70%';
     $('mc-direction-count').textContent='0 / 900';
@@ -194,18 +196,22 @@ function initMoodCreator(){
   intensity.addEventListener('input',()=>{$('mc-intensity-value').textContent=intensity.value+'%';});
   direction.addEventListener('input',()=>{$('mc-direction-count').textContent=direction.value.length+' / 900';});
 
-  function setAnalysisResult(analysis){
-    suggestion=analysis;
+  function renderStyleAccents(analysis){
     const tags=$('mc-analysis-qualities'),palette=$('mc-analysis-palette');
     tags.replaceChildren();palette.replaceChildren();
-    for(const tag of analysis.qualities||[]){
-      const label=document.createElement('span');label.textContent=tag;tags.append(label);
+    for(const quality of analysis?.qualities||[]){
+      const label=document.createElement('span');label.textContent=quality;tags.append(label);
     }
-    for(const color of analysis.palette||[]){
+    for(const color of analysis?.palette||[]){
+      if(!/^#[a-f0-9]{6}$/i.test(color))continue;
       const block=document.createElement('span');block.style.backgroundColor=color;
-      block.title=color;block.setAttribute('aria-label','Suggested color '+color);palette.append(block);
+      block.title=color;block.setAttribute('aria-label','Saved Mood color '+color);palette.append(block);
     }
     tags.hidden=!tags.children.length;palette.hidden=!palette.children.length;
+  }
+  function setAnalysisResult(analysis){
+    suggestion=analysis;analysisApplied=false;
+    renderStyleAccents(analysis);
     if(!name.value.trim())name.value=analysis.name||'';
     if(!direction.value.trim())applyAnalysisResult();
     else{
@@ -217,6 +223,7 @@ function initMoodCreator(){
   function applyAnalysisResult(){
     if(!suggestion)return;
     direction.value=suggestion.direction.slice(0,900);
+    analysisApplied=true;
     $('mc-direction-count').textContent=direction.value.length+' / 900';
     $('mc-suggestion').hidden=true;
     feedback('Art direction ready. Refine it, name your Mood, then save.');
@@ -227,6 +234,7 @@ function initMoodCreator(){
     if(!text){feedback('Write a few words about the aesthetic first.',true);concept.focus();return;}
     if(direction.value.trim()&&!confirm('Replace the current style direction with your written idea?'))return;
     direction.value=text.slice(0,900);
+    analysisApplied=false;suggestion=null;renderStyleAccents(null);
     $('mc-direction-count').textContent=direction.value.length+' / 900';
     $('mc-suggestion').hidden=true;
     feedback('Your words are now the reusable art direction. No AI analysis was needed.');
@@ -319,7 +327,17 @@ function initMoodCreator(){
       const copy=document.createElement('div'),title=document.createElement('strong'),text=document.createElement('small'),arrow=document.createElement('span');
       title.textContent=item.name;text.textContent=(item.imageIds?.length||0)+' images · '+(moodById(item.baseMoodId)?.name||'Original look');
       copy.append(title,text);arrow.textContent='↗';caption.append(copy,arrow);
-      card.append(picture,caption);card.onclick=()=>void openBoard(item.id,{scroll:true});
+      card.append(picture,caption);
+      if(item.palette?.length){
+        const row=document.createElement('div');row.className='mc-library-palette';
+        for(const color of item.palette.slice(0,5)){
+          if(!/^#[0-9a-f]{6}$/i.test(color))continue;
+          const swatch=document.createElement('span');swatch.style.backgroundColor=color;swatch.title=color;
+          row.append(swatch);
+        }
+        card.append(row);
+      }
+      card.onclick=()=>void openBoard(item.id,{scroll:true});
       library.append(card);
     }
   }
@@ -335,13 +353,16 @@ function initMoodCreator(){
     if(!authenticated())return;
     const selected=boards.find(item=>item.id===id);
     if(!selected){feedback('That Mood is unavailable. Refresh your private collection.',true);return;}
-    clearItemUrls();boardId=selected.id;suggestion=null;
+    clearItemUrls();boardId=selected.id;
+    suggestion={name:selected.name,direction:selected.direction,palette:selected.palette||[],qualities:selected.qualities||[]};
+    analysisApplied=!!(suggestion.palette.length||suggestion.qualities.length);
+    renderStyleAccents(suggestion);
     name.value=selected.name;direction.value=selected.direction;concept.value='';
     base.value=selected.baseMoodId||'';intensity.value=String(selected.intensity);
     $('mc-intensity-value').textContent=intensity.value+'%';
     $('mc-direction-count').textContent=direction.value.length+' / 900';
     items=(selected.imageIds||[]).map(assetId=>({assetId,file:null,localUrl:null}));
-    selectedIndex=0;$('mc-analysis-qualities').hidden=true;$('mc-analysis-palette').hidden=true;
+    selectedIndex=0;
     $('mc-suggestion').hidden=true;$('mc-saved-actions').hidden=false;
     save.innerHTML='Save changes <span aria-hidden="true">↗</span>';
     renderBoard();feedback('Editing '+selected.name+'. Your original board is safe until you press Save.');
