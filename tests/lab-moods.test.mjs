@@ -132,7 +132,7 @@ test('90s Cinema thumbnail and applied mood share a film-scan style',()=>{
 test('Mood intensity control is prominent, responsive and reflects each live setting',()=>{
   const css=readFileSync(new URL('../lab/moods.css',import.meta.url),'utf8');
   const js=readFileSync(new URL('../lab/moods.js',import.meta.url),'utf8');
-  assert.match(css,/grid-template-columns:minmax\(0,1fr\) 138px/);
+  assert.match(css,/grid-template-columns:minmax\(0,1fr\) 170px/);
   assert.match(css,/moods-intensity::\-webkit-slider-runnable-track/);
   assert.match(css,/height:7px/);
   assert.match(css,/moods-intensity::\-moz-range-progress/);
@@ -149,7 +149,7 @@ test('Moods footer has a larger primary action and a compact accessible explanat
   assert.match(html,/class="moods-scale" aria-hidden="true"/);
   assert.match(html,/id="composer-moods-none" type="button" aria-label="Clear selected mood">Clear/);
   assert.doesNotMatch(html,/class="moods-bottom"/);
-  assert.match(css,/#composer-moods-done,[\s\S]*?#composer-moods-switch\{[\s\S]*?min-height:40px/);
+  assert.match(css,/#composer-moods-done,[\s\S]*?#composer-moods-switch\{[\s\S]*?min-height:48px/);
   assert.match(css,/\.moods-about-popover\{\s*position:absolute/);
   assert.match(js,/hint\.hidden=compatible/);
   assert.match(js,/done\.disabled=!chosen/);
@@ -255,7 +255,7 @@ test('Moods stays inside the viewport and reserves room for the floating compose
   assert.match(html,/id="composer-moods" class="composer-moods" role="dialog"/);
 });
 
-test('Popup centered over composer; simplified empty state and About below CTA',()=>{
+test('Popup stays centered; selected mood and About are in the upper controls',()=>{
   const css=readFileSync(new URL('../lab/moods.css',import.meta.url),'utf8');
   const js=readFileSync(new URL('../lab/moods.js',import.meta.url),'utf8');
   const html=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
@@ -264,10 +264,16 @@ test('Popup centered over composer; simplified empty state and About below CTA',
   assert.match(css,/width:min\(990px,calc\(100vw - 36px\)\)/);
   assert.match(html,/id="composer-moods-current-label" class="moods-current-label" hidden/);
   assert.match(js,/selectedLabel\.hidden=!chosen/);
+  const header=html.slice(html.indexOf('<div class="moods-header">'),html.indexOf('<div id="composer-moods-grid"'));
   const footer=html.slice(html.indexOf('<div class="moods-footer">'),html.indexOf('<p id="composer-moods-compat"'));
-  assert.ok(footer.indexOf('id="composer-moods-about"')>footer.indexOf('id="composer-moods-none"'));
-  assert.ok(footer.indexOf('id="composer-moods-about"')>footer.indexOf('id="composer-moods-done"'));
-  assert.match(html,/moods\.css\?v=20261011-my-moods2/);
+  assert.ok(header.includes('id="composer-moods-about"'));
+  assert.ok(header.includes('id="composer-moods-summary"'));
+  assert.ok(header.includes('id="composer-moods-none"'));
+  for(const id of ['composer-moods-about','composer-moods-summary','composer-moods-none'])assert.ok(!footer.includes('id="'+id+'"'));
+  assert.match(html,/id="composer-moods-selection" class="moods-selection" hidden/);
+  assert.match(js,/selection\.hidden=!chosen/);
+  assert.match(css,/grid-template-columns:minmax\(0,1fr\) 170px/);
+  assert.match(html,/moods\.css\?v=20261011-moods-toolbar1/);
   const worker=readFileSync(new URL('../lab-worker/worker.mjs',import.meta.url),'utf8');
   for(const key of ['sumi-ink','dreamcore'])assert.ok(worker.includes("'"+key+"'"));
 });
@@ -304,7 +310,7 @@ test('Moods prioritizes previews and toggles an already-selected thumbnail off',
   assert.match(css,/\.moods-card-media\{aspect-ratio:5\/4\}/);
   assert.match(css,/\.moods-footer\{gap:3px;padding-top:7px\}/);
   assert.match(css,/\.moods-actions\{[\s\S]*?display:grid;grid-template-columns:48px minmax\(0,1fr\)/);
-  assert.match(css,/#composer-moods-done,[\s\S]*?#composer-moods-switch\{[\s\S]*?min-height:40px/);
+  assert.match(css,/#composer-moods-done,[\s\S]*?#composer-moods-switch\{[\s\S]*?min-height:48px/);
   assert.match(css,/#composer-moods-intensity::-webkit-slider-runnable-track\{[\s\S]*?height:7px/);
   assert.match(html,/Clear selected mood/);
   assert.match(html,/moods\.css\?v=20261011-my-moods2/);

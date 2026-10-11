@@ -21,6 +21,8 @@
 #image-composer .composer-moods.is-viewport-tight{overflow-y:auto;overscroll-behavior:contain}
 #image-composer .composer-moods.is-viewport-tight .moods-grid{flex:0 0 auto;max-height:150px!important}
 .moods-header{display:flex;flex:0 0 auto;justify-content:space-between;align-items:flex-start;gap:16px;padding:2px 2px 0}
+.moods-header-copy{min-width:0}
+.moods-title-row{display:flex;align-items:center;gap:10px}
 .moods-kicker{font-size:10px;color:#a1a1a1;letter-spacing:.13em;text-transform:uppercase}
 #image-composer #composer-moods-title{display:block;margin:4px 0 0;font-size:26px;letter-spacing:-.055em;font-weight:540;line-height:1.1;color:#fff;outline:none}
 .moods-header p{margin:8px 0 10px;font-size:12px;line-height:1.4;color:#a5a5a5}
@@ -31,7 +33,8 @@
 }
 #image-composer #composer-moods-close:hover{background:#434548;border-color:#707277}
 #image-composer #composer-moods-close:focus-visible{outline:2px solid #d6ff00!important;outline-offset:3px}
-.moods-filters{display:flex;gap:6px;overflow-x:auto;padding:2px 0 13px;flex:0 0 auto;scrollbar-width:thin}
+.moods-toolbar{display:flex;flex:0 0 auto;align-items:center;justify-content:space-between;gap:16px;min-width:0}
+.moods-filters{display:flex;gap:6px;overflow-x:auto;padding:2px 0 13px;flex:0 1 auto;min-width:0;scrollbar-width:thin}
 #image-composer .moods-filter{flex:0 0 auto;min-height:31px;padding:7px 12px;border:1px solid #444546;border-radius:30px;background:transparent;color:#bbb;font-size:11px}
 #image-composer .moods-filter.is-selected{background:#eee;border-color:#eee;color:#171717}
 .moods-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:11px;flex:0 1 auto;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-gutter:stable;min-height:0;padding:2px 2px 2px;scrollbar-width:thin;scrollbar-color:#666 transparent}
@@ -57,33 +60,30 @@
 .moods-look-hyper-pop img{filter:saturate(1.65) contrast(1.2)}
 
 
-/* Moods editor: the gallery stays primary; selected look, intensity and actions
-   share a calm two-row footer that never competes with the thumbnails. */
+/* Selected mood is beside filters; intensity and CTA occupy the lower rail. */
 .moods-footer{
   display:flex;flex:0 0 auto;flex-direction:column;gap:6px;
   padding-top:10px;border-top:1px solid #393a3c;background:#1a1b1c
 }
-.moods-footer-heading{display:flex;align-items:center;justify-content:space-between;gap:14px;min-height:27px}
-.moods-current{min-width:0;flex:1 1 auto}
-.moods-current-label{display:block;font-size:9px;font-weight:600;letter-spacing:.1em;color:#989a9d}
-.moods-selected{
-  display:block;max-width:100%;margin-top:3px;overflow:hidden;text-overflow:ellipsis;
-  white-space:nowrap;font-size:14px;font-weight:630;letter-spacing:-.02em;line-height:1.25;color:#f1f1f1
-}
-.moods-about{position:relative;display:flex;align-items:center;justify-content:center;flex:0 0 auto;min-height:19px}
+.moods-selection{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex:0 1 auto;min-width:0;max-width:42%;padding-bottom:11px}
+#image-composer .moods-selection[hidden]{display:none!important}
+.moods-current{display:flex;align-items:center;gap:8px;min-width:0}
+.moods-current-label{flex:0 0 auto;font-size:9px;font-weight:650;letter-spacing:.08em;text-transform:uppercase;color:#979a9c}
+.moods-selected{display:block;min-width:0;max-width:230px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-weight:650;line-height:1.2;color:#dfff9a}
+.moods-about{position:relative;display:flex;align-items:center;justify-content:center;flex:0 0 auto;min-height:28px}
 #image-composer #composer-moods-about{
-  display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:19px;padding:1px 0;
-  border:0;background:none;color:#a2a5a8;font:inherit;font-size:10px;white-space:nowrap;cursor:pointer
+  display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;min-height:28px;padding:0;
+  border:0;border-radius:50%;background:none;color:#a2a5a8;font:inherit;font-size:11px;cursor:pointer
 }
 #image-composer #composer-moods-about:hover,
 #image-composer #composer-moods-about[aria-expanded="true"]{color:#ededed}
 #image-composer #composer-moods-about:focus-visible{outline:2px solid #d6ff00;outline-offset:3px;border-radius:5px}
 .moods-info-icon{
-  display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;
+  display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;
   border:1px solid #8c8f93;border-radius:50%;font-size:10px;line-height:1;font-weight:600
 }
 .moods-about-popover{
-  position:absolute;right:0;bottom:calc(100% + 9px);z-index:10;
+  position:absolute;left:0;top:calc(100% + 9px);z-index:10;
   width:min(295px,calc(100vw - 45px));padding:15px 17px;
   border:1px solid #515357;border-radius:11px;background:#292a2d;box-shadow:0 14px 35px #0009;color:#ddd
 }
@@ -91,7 +91,7 @@
 .moods-about-popover strong{font-size:12px;color:#fafafa;font-weight:650}
 .moods-about-popover p{font-size:11px;line-height:1.55;margin:7px 0 0;color:#bbbfc2}
 .moods-controls{
-  display:grid;grid-template-columns:minmax(0,1fr) 138px;column-gap:20px;align-items:center
+  display:grid;grid-template-columns:minmax(0,1fr) 170px;column-gap:22px;align-items:center
 }
 .moods-strength{display:flex;flex-direction:column;gap:4px;min-width:0;width:100%}
 .moods-strength-header{display:flex;align-items:center;justify-content:space-between;gap:12px}
@@ -126,8 +126,8 @@
 #image-composer #composer-moods-done,
 #image-composer #composer-moods-switch{
   display:flex;align-items:center;justify-content:center;gap:9px;
-  width:100%;min-height:40px;padding:9px 12px;border:1px solid #d6ff00;border-radius:8px;
-  background:#d6ff00;color:#171717;font-size:12px;font-weight:700;white-space:nowrap
+  width:100%;min-height:48px;padding:12px 14px;border:1px solid #d6ff00;border-radius:9px;
+  background:#d6ff00;color:#171717;font-size:13px;font-weight:700;white-space:nowrap
 }
 #image-composer #composer-moods-done span,
 #image-composer #composer-moods-switch span{font-size:16px;font-weight:500;line-height:1}
@@ -139,7 +139,7 @@
   opacity:1;background:#303234;border-color:#45474a;color:#878b8e;cursor:not-allowed
 }
 #image-composer #composer-moods-none{
-  min-height:19px;padding:2px 6px;border:0;background:none;color:#8d9194;font-size:10px;text-align:center
+  flex:0 0 auto;min-height:28px;padding:4px 6px;border:0;background:none;color:#a2a6a7;font:inherit;font-size:11px;text-align:center;cursor:pointer
 }
 #image-composer #composer-moods-none:not(:disabled):hover{
   color:#f2f2f2;text-decoration:underline;text-underline-offset:3px
@@ -151,20 +151,21 @@
 @media(max-width:740px){
   #image-composer .composer-moods{left:50%;width:calc(100vw - 18px);padding:14px;max-height:min(70dvh,var(--moods-available-height,70dvh))}
   #image-composer #composer-moods-title{font-size:21px}
+  .moods-toolbar{flex-wrap:wrap;gap:6px}
+  .moods-filters{width:100%;padding-bottom:3px}
+  .moods-selection{justify-content:flex-start;max-width:100%;width:100%;padding-bottom:6px}
   .moods-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
   .moods-card-media{aspect-ratio:5/4}
   .moods-card-copy small{min-height:0}
   .moods-footer{gap:6px;padding-top:9px}
-  .moods-footer-heading{min-height:32px}
   .moods-controls{grid-template-columns:minmax(0,1fr) 122px;gap:12px}
   .moods-strength{gap:3px}
   .moods-actions{gap:2px}
   #image-composer #composer-moods-done,
-  #image-composer #composer-moods-switch{min-height:40px;padding:8px 8px}
+  #image-composer #composer-moods-switch{min-height:44px;padding:9px 8px}
 }
 @media(max-width:390px){
-  .moods-footer-heading{gap:8px}
-  .moods-selected{font-size:13px}
+  .moods-selected{font-size:12px}
   .moods-controls{grid-template-columns:minmax(0,1fr) 110px;gap:8px}
   .moods-scale span:nth-child(2){display:none}
   #image-composer #composer-moods-done,
@@ -172,35 +173,14 @@
 }
 @media(prefers-reduced-motion:reduce){#image-composer .composer-moods *{scroll-behavior:auto}}
 
-
-/* Gallery-first desktop footer: give the ten visible previews more visual room
-   by combining secondary actions, not by shrinking the intensity control or CTA.
-   The overlay's viewport geometry still owns the top clearance. */
+/* Preserve the existing thumbnail proportions. */
 @media(min-width:741px){
   .moods-card-media{aspect-ratio:5/4}
   .moods-filters{padding-bottom:10px}
+  .moods-selection{padding-bottom:10px}
   .moods-footer{gap:3px;padding-top:7px}
-  .moods-footer-heading{min-height:20px;gap:8px}
-  .moods-current{display:flex;align-items:center;gap:9px;min-width:0;min-height:20px}
-  .moods-current-label{flex:0 0 auto;white-space:nowrap}
-  .moods-selected{margin-top:0;line-height:1.2}
   .moods-strength{gap:3px}
-  .moods-actions{
-    display:grid;grid-template-columns:48px minmax(0,1fr);
-    align-items:center;column-gap:6px;row-gap:2px;min-width:0
-  }
-  #image-composer #composer-moods-done,
-  #image-composer #composer-moods-switch{
-    grid-column:1/-1;min-height:40px;padding:9px 12px
-  }
-  #image-composer #composer-moods-none{
-    grid-column:1;min-height:19px;padding:0;white-space:nowrap;
-    font-size:10px;text-align:left
-  }
-  .moods-actions>.moods-about{grid-column:2;min-width:0;min-height:19px;justify-content:flex-end}
-  #image-composer #composer-moods-about{gap:4px;font-size:10px}
 }
-
 
 /* My Moods gallery cards remain inside the existing floating mood selector. */
 #image-composer .moods-my-empty[hidden],#image-composer .moods-board-wrap[hidden]{display:none!important}

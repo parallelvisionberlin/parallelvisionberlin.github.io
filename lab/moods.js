@@ -231,6 +231,7 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
   const slider=panel.querySelector('#composer-moods-intensity');
   const amount=panel.querySelector('#composer-moods-amount');
   const summary=panel.querySelector('#composer-moods-summary');
+  const selection=panel.querySelector('#composer-moods-selection');
   const selectedLabel=panel.querySelector('#composer-moods-current-label');
   const hint=panel.querySelector('#composer-moods-compat');
   const switcher=panel.querySelector('#composer-moods-switch');
@@ -280,7 +281,8 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
     emptyPersonal.hidden=category!=='My Moods'||personalMoods.length>0;
     slider.value=String(intensity);slider.style.setProperty('--moods-progress',((intensity-1)/99*100).toFixed(2)+'%');slider.disabled=!selected;amount.textContent=intensity+'%';
     const chosen=findMood(selected);
-    summary.textContent=chosen?chosen.name:'Select a mood';
+    summary.textContent=chosen?chosen.name:'';
+    selection.hidden=!chosen;
     selectedLabel.hidden=!chosen;
     const compatible=MOOD_MODELS.includes(getEngine());
     hint.textContent=compatible?'':'This image model does not support Moods. Switch to Seedream or Nano Banana Pro.';
