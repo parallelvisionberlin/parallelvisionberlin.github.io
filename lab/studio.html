@@ -115,8 +115,15 @@ document.addEventListener('DOMContentLoaded',()=>{
     <div class="precision-board">
       <section class="precision-panel precision-input-panel" aria-labelledby="precision-source-title">
         <div class="precision-panel-label"><span id="precision-source-title">01 / ORIGINAL</span><span id="precision-source-meta">DROP IMAGE</span></div>
-        <div id="precision-drop" class="precision-drop" tabindex="0" role="button" aria-label="Choose or drop a base photograph">
-          <span class="precision-drop-symbol" aria-hidden="true">+</span><strong>Drop a photograph</strong><span>Or click to browse your files</span><small>JPG, PNG, WebP · 20 MB maximum</small>
+        <div id="precision-drop" class="precision-drop" role="group" aria-label="Add an original photograph">
+          <span class="precision-drop-symbol" aria-hidden="true">+</span>
+          <strong>Drop a photograph</strong>
+          <span>One image. Change only what you select.</span>
+          <div class="precision-drop-actions">
+            <button id="precision-browse-photo" type="button">Choose photo <span aria-hidden="true">↗</span></button>
+            <button id="precision-try-sample" type="button">Try with a sample <span aria-hidden="true">↗</span></button>
+          </div>
+          <small>JPG, PNG, WebP · Maximum 20 MiB</small>
         </div>
         <div id="precision-source-holder" class="precision-source-holder" hidden>
           <div id="precision-stage" class="precision-stage">
@@ -136,7 +143,38 @@ document.addEventListener('DOMContentLoaded',()=>{
       </section>
       <section class="precision-panel precision-output-panel" aria-labelledby="precision-output-title">
         <div class="precision-panel-label"><span id="precision-output-title">02 / RESULT</span><span id="precision-result-label">AWAITING EDIT</span></div>
-        <div id="precision-output-holder" class="precision-output-holder"><div id="precision-output-empty" class="precision-output-empty"><span aria-hidden="true">✳</span><strong>Ready for your edit.</strong><p>The result appears here when it is finished.</p></div><canvas id="precision-result-canvas" aria-label="Precision edit result comparison" hidden></canvas></div>
+        <div id="precision-output-holder" class="precision-output-holder">
+          <div id="precision-output-empty" class="precision-output-empty">
+            <div id="precision-demo" class="precision-demo" aria-hidden="true">
+              <div class="precision-demo-frame">
+                <img src="../assets/fashion-hero.png" alt="" loading="eager" decoding="async">
+                <span class="precision-demo-topline">PARALLEL VISION / RETOUCH</span>
+                <span class="precision-demo-target"></span>
+                <span class="precision-demo-cursor">+</span>
+                <span class="precision-demo-selected">SELECTED AREA</span>
+                <span class="precision-demo-direction">“Change only this material”</span>
+                <span class="precision-demo-guide"></span>
+              </div>
+              <div class="precision-demo-sequence">
+                <span>01 SELECT</span><span>02 DESCRIBE</span><span>03 COMPARE</span>
+              </div>
+              <span class="precision-demo-honesty">Illustrated selection workflow · not a generated result</span>
+            </div>
+            <span id="precision-empty-icon" aria-hidden="true" hidden>✳</span>
+            <strong id="precision-empty-title">See what you can change.</strong>
+            <p id="precision-empty-description">Select one area. Describe the change. Keep the rest.</p>
+            <div id="precision-ideas" class="precision-ideas" hidden>
+              <span>TRY A DIRECTION</span>
+              <div role="group" aria-label="Suggested edits">
+                <button type="button" data-retouch-idea="outfit">Change outfit</button>
+                <button type="button" data-retouch-idea="material">Chrome material</button>
+                <button type="button" data-retouch-idea="remove">Remove object</button>
+                <button type="button" data-retouch-idea="skin">Skin finish</button>
+              </div>
+            </div>
+          </div>
+          <canvas id="precision-result-canvas" aria-label="Precision edit result comparison" hidden></canvas>
+        </div>
         <div class="precision-compare-row">
           <span id="precision-compare-idle" class="precision-compare-idle">Original preserved · Result will appear here</span>
           <label id="precision-compare-control" for="precision-compare" hidden>Before <input id="precision-compare" type="range" min="0" max="100" value="100" aria-label="Compare original and edited image" disabled> After</label>
