@@ -49,11 +49,21 @@ const ALL_MOODS=Object.freeze([
     "name": "80s Film",
     "category": "Analog",
     "preview": "/lab/mood-previews/80s-film.svg",
-    "description": "Tungsten light, faded dyes",
-    "direction": "Authentic early-1980s color-film atmosphere: warm tungsten practicals, restrained dye fade, gentle halation, lightly softened contrast, subtle fine grain, lifted shadow tones and period-credible lens rendering.",
-    "subtle": "Gentle tungsten warmth with delicate halation and grain.",
-    "intense": "Pronounced but tasteful analog film characteristics and warm practical interiors.",
-    "avoid": "fake VHS bars, scratches, excessive yellow, retro costume caricature"
+    "description": "35mm movie scenes, burned light and saturated color",
+    "direction": "PV LAB 80S FILM / HIGH-FASHION FEATURE CINEMA. Transform the user's requested subject or existing photograph into a vivid frame from an exceptionally photographed mid-1980s theatrical motion picture, with European luxury-fashion art direction. It must be a believable STORY MOMENT, not a posed contemporary portrait with a vintage filter. PHOTOCHEMICAL IMAGE: organic 35mm cinema-negative and film-print character, visible irregular fine-to-medium grain living in the shadows and skin texture, slight color-layer imperfections, real lens softness and falloff, tactile midtones, dense but readable blacks, optical halation and creamy overexposed or lightly burned highlights around genuine light sources without bleaching faces. CINEMATIC COLOR: saturated crimson reds, rich amber/yellows, luminous tungsten practicals, expressive cyan or deep blue ambient fill when the scene supports it, bold warm-cool separation and strong shaped contrast; never a uniform sepia, orange or neon overlay. PHYSICAL AIR: believable suspended dust and delicate cinematic haze occupying real depth, interacting with existing window light and practical lamps, scattering light into luminous shafts and softened background planes; never pasted-on smoke. LIVING FRAME: subtle physically plausible motion in hair, the edge of a garment or a curtain, and a compelling sense of something happening just outside the frame. FASHION: elegant high-fashion silhouettes, intelligent tailoring, textured fabrics and refined editorial confidence, never decade parody. With a Base image, retain the person's identity, proportions, original garments, pose, framing and recognizable setting unless the user specifically asks to change them; achieve the fashion upgrade through lighting, fabric texture and natural breeze, not unauthorized outfit replacement. With no Base, style the requested subjects in cinematic designer-quality clothes appropriate to the scene. Compose for the user's chosen aspect ratio, never impose widescreen or copied movie sets.",
+    "subtle": "SUBTLE 1-34% / ANALOG TREATMENT: introduce credible 35mm grain, photochemical density and softly luminous highlights, restrained warmth and slight optical softness. Keep the original lighting, scene, garments and action substantially intact. No forced wind, haze or scene redesign.",
+    "moderate": "CINEMATIC COLOR 35-69%: establish distinct 1980s feature-film color separation, deeper shadows, visible authentic grain, beautiful tungsten-to-cool-light interplay, natural skin and motivated practical-light bloom. Add only a trace of atmospheric depth where the source supports it. Keep the existing people and surroundings recognizable.",
+    "immersive": "MOVIE STILL 70-89%: make the whole frame feel photographed for an evocative 1980s feature film. Rich saturated reds, amber and cinematic blues where credible; powerful shaped lighting, prominent natural film grain, burned light-source edges, nuanced lens bloom and airborne haze illuminated by real light. Give existing fabric or hair a slight, believable sense of motion. Retain the source identity, clothes and camera.",
+    "intense": "FULL CINEMATIC SCENE 90-99%: unmistakable mid-1980s movie-frame atmosphere rather than retro portraiture. Intense but photochemical color, tactile abundant 35mm grain, radiant practicals with gently burned highlight bloom, deep cinematic blacks, strong motivated warm/cool contrast, layered luminous haze with real spatial depth, and subtle wind animating hair or garment edges. Make even a plain portrait feel like a story close-up. High-fashion elegance without forced costume or replacing referenced clothing.",
+    "climax": "MAXIMUM 100% / FULL MOVIE PRODUCTION: deliver the most powerful cinematic transformation permitted by the user's instructions. A breathtaking 1980s theatrical 35mm film still with abundant integrated analog grain, saturated yet photographic reds, ambers and cool blues, radiant burned highlights, glowing practical lamps, sculpted shadows and luminous real air: suspended dust or thin smoke scatters window and set lighting into volumetric shafts at several depths. Build credible mid-action energy through slightly moving hair, flowing existing fabric, a stirring curtain or another context-appropriate subtle physical cue. Art-direct everything with sophisticated, sensual European high-fashion discipline, beautifully lit tailoring and fabric, exceptional silhouettes and lived-in realism. For text-only creation or explicitly authorized restyling, dress subjects in original designer-quality editorial fashion; for a supplied Base, DO NOT replace clothes, change pose, body, face, location or framing without permission. This is a movie scene, never a sterile fashion catalog or retro cosplay.",
+    "avoid": "costume parody, huge default 80s perms, fake period props or copied famous movie scenes, random DeLorean, 1950s diner aesthetic, flat nostalgic sepia, orange faces, all-over neon cyberpunk, digital HDR sharpness, CGI shine, airbrushed or plastic skin, makeup-smoothed identity, fake VHS bars, scratches or sprocket borders, stickers, pasted fog, artificial wind contorting anatomy, changing reference people, outfit changes without permission, melted fabric, unrelated new scenery",
+    "compact": "80S FILM / FASHION CINEMA: turn the requested subject or Base into a believable mid-1980s feature-film FRAME, not an 80s-costume portrait. Physical 35mm motion-picture grain, optical softness, deep textured blacks, saturated reds/amber/yellows contrasted with credible cyan/blue, tungsten practicals, burned light-source highlights, halation. Suspended haze catches REAL light in spatial depth, not a flat fog overlay. Suggest subtle hair/fabric movement and narrative action. Sophisticated designer-fashion silhouettes without costume cliché. Preserve source faces, proportions, pose, camera, room and existing clothes unless the user explicitly requests restyling; if no Base, freely create high-fashion wardrobe. Use the chosen original aspect ratio.",
+    "compactSubtle": "1-34%: subtle film grain, natural photochemical warmth and soft optical bloom; retain scene and clothes.",
+    "compactModerate": "35-69%: rich 80s movie-film color separation, grain, shaped practical lighting, minimal haze.",
+    "compactImmersive": "70-89%: strong movie-still color, luminous motivated air, grain, burned practicals and slight fabric movement.",
+    "compactIntense": "90-99%: powerful feature-film light, saturated rich color, heavy organic grain, volumetric haze and high-fashion story moment.",
+    "compactClimax": "100%: full cinematic scene transformation: abundant real 35mm grain, radiant burned lights, richly saturated color, visible suspended haze and motivated volumetric beams; living hair/fabric motion, luxurious editorial art direction. Keep locked Base person, clothes, setting and crop.",
+    "compactAvoid": "default perms, costume parody, fake VHS, neon wash, waxy faces, pasted smoke, random movie props, changed identity or unrequested outfit"
   },
   {
     "id": "kodak-gold",
@@ -172,8 +182,9 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
   if(!mood)return {prompt:original,metadata:{},error:''};
   if(!MOOD_MODELS.includes(engine))return {prompt:original,metadata:{},error:'Moods v1 supports Seedream 5 Pro and Nano Banana Pro. Choose one of these models first.'};
   const intensity=Math.max(1,Math.min(100,Math.round(Number(amount)||60)));
-  const dreamcore=mood.id==='dreamcore';
+  const dreamcore=mood.id==='dreamcore',cinematic80s=mood.id==='80s-film';
   const compactDreamcore=dreamcore&&(compact===true||referenceCount>=3||original.length>=800);
+  const compact80s=cinematic80s&&(compact===true||referenceCount>=3||original.length>=800);
   const dreamcoreTier=intensity<=34?'Subtle':intensity<=69?'Moderate':intensity<=89?'Immersive':intensity<=99?'Intense':'Climax';
   const dreamcoreKey=intensity<=34?'subtle':intensity<=69?'moderate':intensity<=89?'immersive':intensity<=99?'intense':'climax';
   const context=referenceCount===0?'No Base: use the written subject.':referenceMode==='references'?'Reference-only: follow requested output and explicitly assigned roles.':'Inspect the first Base image to choose PERSON or SCENE.';
@@ -182,7 +193,12 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
       context,'Creative intensity '+intensity+'/100; artistic instruction strength, NOT literal pixel opacity.',
       compactDreamcore?mood['compact'+dreamcoreTier]:mood[dreamcoreKey]
     ].join(' ')
-    :intensity<=34?mood.subtle:intensity>=76?mood.direction+' '+mood.intense:mood.direction;
+    :cinematic80s
+      ?[compact80s?mood.compact:mood.direction,context,
+        'Creative intensity '+intensity+'/100; cinematic generation instructions, NOT a pixel filter.',
+        compact80s?mood['compact'+dreamcoreTier]:mood[dreamcoreKey]
+      ].join(' ')
+      :intensity<=34?mood.subtle:intensity>=76?mood.direction+' '+mood.intense:mood.direction;
   const preservation=referenceCount>0
     ?referenceMode==='references'
       ?'The uploaded images only supply their assigned reference roles. Keep referenced people recognisable without copying unintended people.'
@@ -192,7 +208,7 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
           :'Base: preserve person identity, pose, camera, proportions and garment coverage where present; keep original scene recognizable and follow ORGANIC, PORTRAIT or ARCHITECTURE direction. Respect reference roles. Guidance, not a guarantee.'
         :'The first reference is the base photograph. Preserve face, identity, real body proportions, pose, camera, wardrobe and composition unless the user specifically asks to change them. Preservation is guidance, not a guarantee.'
     :'Honor the requested subject and composition.';
-  const prompt=[original,'PV LAB MOOD / '+mood.name+': '+style+' '+preservation+' Avoid: '+(compactDreamcore?mood.compactAvoid:mood.avoid)+'.'].filter(Boolean).join('\n\n');
+  const prompt=[original,'PV LAB MOOD / '+mood.name+': '+style+' '+preservation+' Avoid: '+(compactDreamcore||compact80s?mood.compactAvoid:mood.avoid)+'.'].filter(Boolean).join('\n\n');
   return {prompt,metadata:{moodId:mood.id,moodIntensity:intensity,moodOriginalPrompt:original},
     error:prompt.length>5000?'Prompt and mood exceed 5,000 characters. Shorten the direction or clear the mood.':(!original&&!referenceCount?'Describe a subject or add an image before generating with a mood.':'')};
 }
@@ -223,7 +239,7 @@ export function preparePersonalMoodPrompt(input='',mood,intensity=60,options={})
   // A rich personal style can push the detailed Dreamcore instructions above
   // the provider limit. Recompile only the base art direction compactly.
   // Keep the person's own prompt and all authored style details untouched.
-  if(prompt.length>5000&&baseId==='dreamcore'){
+  if(prompt.length>5000&&(baseId==='dreamcore'||baseId==='80s-film')){
     base=prepareMoodPrompt(original,baseId,strength,{...options,compact:true});
     prompt=[base.prompt,added].filter(Boolean).join('\n\n');
   }
