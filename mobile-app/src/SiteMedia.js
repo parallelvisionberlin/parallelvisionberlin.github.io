@@ -68,8 +68,8 @@ export function SiteFilm({source,poster,paused=false,style,label='Parallel Visio
   },[player]);
 
   return <View style={[s.frame,style]} accessible accessibilityLabel={label}>
-    {!failed&&<VideoView player={player} style={StyleSheet.absoluteFillObject} contentFit={contentFit} contentPosition={contentPosition} nativeControls={false} allowsPictureInPicture={false} allowsVideoFrameAnalysis={false} onFirstFrameRender={()=>{setPosterVisible(false);try{if(shouldPlay.current)player.play();}catch{}}}/>} 
-    {(posterVisible||failed)&&<Image pointerEvents="none" source={poster} style={[StyleSheet.absoluteFillObject,posterStyle,(contentPosition.dx||contentPosition.dy)?{transform:[{translateX:contentPosition.dx},{translateY:contentPosition.dy}]}:null]} resizeMode={contentFit}/>} 
+    {!failed&&<VideoView player={player} style={StyleSheet.absoluteFillObject} contentFit={contentFit} contentPosition={contentPosition} nativeControls={false} allowsPictureInPicture={false} allowsVideoFrameAnalysis={false} onFirstFrameRender={()=>{setPosterVisible(false);try{if(shouldPlay.current)player.play();}catch{}}}/>}
+    {(posterVisible||failed)&&<Image pointerEvents="none" source={poster} style={[StyleSheet.absoluteFillObject,posterStyle,(contentPosition.dx||contentPosition.dy)?{transform:[{translateX:contentPosition.dx},{translateY:contentPosition.dy}]}:null]} resizeMode={contentFit}/>}
   </View>;
 }
 const s=StyleSheet.create({frame:{overflow:'hidden',backgroundColor:'#090909'}});
