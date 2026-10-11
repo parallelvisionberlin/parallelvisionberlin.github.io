@@ -2868,7 +2868,7 @@ if(window.__PV_LAB_NATIVE__===1&&window.ReactNativeWebView){
       if(command?.action==='gallery'){await assetLibrary.open();return;}
       if(command?.action==='credits'){if(customerMode)$('lab-wallet-toggle').click();else notify('Owner workspace. Provider costs appear before generation.');return;}
       if(command?.action==='create'||command?.action==='mood'){
-        assetLibrary.close();setTool('image');
+        assetLibrary.close();if(tool!=='image'||retouchActive||fashionActive)setTool('image');else{syncStudioRoute('image');syncImageStudioMode();syncStudioNav();}
         if(command.action==='mood'){
           if(command.moodboard){await myMoods.refresh();const board=myMoods.find(command.moodboard);if(!board)throw Error('This Mood is unavailable.');moodUI.restore({moodId:'custom',customMoodBoardId:board.id,moodIntensity:board.intensity});}
           else {const mood=moodById(command.mood);if(!mood)throw Error('This Mood is unavailable.');moodUI.restore({moodId:mood.id,moodIntensity:mood.defaultIntensity||70});}

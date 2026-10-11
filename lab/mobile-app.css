@@ -3,7 +3,7 @@
 .pv-native-lab body{background:#080808!important;overflow-x:hidden;padding:0!important;min-height:100dvh}
 .pv-native-lab #studio-header,.pv-native-lab body>footer,.pv-native-lab .mc-header,.pv-native-lab .mc-hero{display:none!important}
 .pv-native-lab main.wrap,.pv-native-lab #main{padding:0!important;max-width:100%!important;width:100%!important;margin:0!important}
-.pv-native-lab #image-studio{padding:0!important;min-height:100dvh;display:flex;flex-direction:column}
+.pv-native-lab #image-studio{padding:0!important;min-height:100dvh;display:flex!important;flex-direction:column}
 .pv-native-lab #image-studio[hidden]{display:none!important}
 .pv-native-lab .image-gallery-shell{order:2;min-height:0!important;padding:0 16px 20px!important}
 .pv-native-lab #image-gallery-empty,.pv-native-lab .image-gallery-shell .archivehead{display:none!important}
@@ -24,7 +24,7 @@
 .pv-native-lab .composer-reference-remove{width:44px!important;height:44px!important;right:auto!important;left:5px!important;top:5px!important;font-size:22px!important}
 .pv-native-lab .composer-reference-role{min-height:36px;font-size:12px}
 .pv-native-lab .composer-reference-add{min-width:52px;min-height:64px}
-.pv-native-lab #composer-moods{position:static!important;inset:auto!important;display:flex!important;flex-direction:column!important;transform:none!important;width:100%!important;max-width:none!important;max-height:none!important;height:auto!important;min-height:0!important;padding:0!important;gap:10px!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;overflow:visible!important}
+.pv-native-lab #image-composer #composer-moods{position:static!important;inset:auto!important;display:flex!important;flex-direction:column!important;transform:none!important;width:100%!important;max-width:none!important;max-height:none!important;height:auto!important;min-height:0!important;padding:0!important;gap:10px!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;overflow:visible!important}
 .pv-native-lab #composer-moods-backdrop,.pv-native-lab #composer-moods-close,.pv-native-lab #composer-moods-done,.pv-native-lab .moods-kicker,.pv-native-lab .moods-header-copy>p,.pv-native-lab .moods-scale,.pv-native-lab .moods-about{display:none!important}
 .pv-native-lab .moods-header{padding:0!important;min-height:0!important;border:0!important;gap:8px}
 .pv-native-lab #composer-moods-title{font-size:19px;letter-spacing:-.03em}
@@ -42,7 +42,7 @@
 .pv-native-lab #composer-moods-intensity{min-height:36px}
 .pv-native-lab .moods-selection{width:100%;min-height:28px}
 .pv-native-lab .image-composer-top{display:block!important;min-height:0!important;padding:0!important;width:100%}
-.pv-native-lab #image-composer-prompt{font-size:15px!important;min-height:48px!important;max-height:140px!important;padding:12px!important;background:#141514!important;border:1px solid #30332c!important;border-radius:10px!important;width:100%!important;box-sizing:border-box;line-height:22px!important}
+.pv-native-lab #image-composer #image-composer-prompt{font-size:15px!important;min-height:48px!important;max-height:140px!important;padding:12px!important;background:#141514!important;border:1px solid #30332c!important;border-radius:10px!important;width:100%!important;box-sizing:border-box;line-height:22px!important}
 .pv-native-lab .image-composer-toolbar{display:flex!important;flex-wrap:wrap!important;gap:10px!important;align-items:stretch!important;padding:0!important;width:100%!important}
 .pv-native-lab .composer-controls{display:none!important;flex-wrap:wrap!important;overflow:visible!important;max-width:100%;gap:8px!important}
 .pv-native-lab .mobile-show-advanced .composer-controls{display:flex!important;width:100%}
@@ -73,3 +73,5 @@
 .pv-native-lab .mc-library-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
 .pv-native-lab input,.pv-native-lab textarea,.pv-native-lab select{font-size:16px}
 @media(min-width:600px){.pv-native-lab #image-composer{max-width:650px!important;align-self:center}.pv-native-lab #image-composer-references .composer-reference-tile{width:440px!important}}
+
+.pv-native-lab #image-studio .archive{min-height:0!important;padding:0!important}
