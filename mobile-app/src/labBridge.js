@@ -1,7 +1,8 @@
 export const LAB_ORIGIN='https://parallelvisionlabel.com';
-export const LAB_STUDIO=LAB_ORIGIN+'/lab/studio.html?tool=image&native=1';
-export const LAB_MOODS=LAB_ORIGIN+'/lab/mood-creator.html?native=1#my-moods';
-const paths=new Set(['/lab/studio.html','/lab/mood-creator.html']);
+export const LAB_STUDIO=LAB_ORIGIN+'/lab/studio.html?tool=image&native=1&app=2';
+export const LAB_MOODS=LAB_ORIGIN+'/lab/mood-creator.html?native=1&app=2#my-moods';
+export const LAB_DISCOVER=LAB_ORIGIN+'/lab/app-moods.html?v=2';
+const paths=new Set(['/lab/studio.html','/lab/mood-creator.html','/lab/app-moods.html']);
 export function isLabURL(value){try{const u=new URL(value);return u.origin===LAB_ORIGIN&&!u.username&&!u.password&&paths.has(u.pathname);}catch{return false;}}
 export function readLabMessage(event){
   if(!isLabURL(event?.url)||typeof event.data!=='string'||event.data.length>36*1024*1024)return null;
@@ -16,9 +17,10 @@ export function labReplyScript(reply){return `if(location.origin===${JSON.string
 export function labCommandScript(command){return `if(location.origin===${JSON.stringify(LAB_ORIGIN)}&&location.pathname==='/lab/studio.html'){window.__PV_LAB_COMMAND__?.(${JSON.stringify(command).replace(/</g,'\\u003c')});}true;`;}
 export function moodCommand(url){
   if(!isLabURL(url))return null;const u=new URL(url);if(u.pathname!=='/lab/studio.html')return null;
-  const mood=u.searchParams.get('mood'),moodboard=u.searchParams.get('moodboard');
-  if(moodboard&&/^[a-f0-9-]{36}$/i.test(moodboard))return {action:'mood',moodboard};
-  if(mood&&/^[a-z0-9-]{1,80}$/.test(mood))return {action:'mood',mood};
+  const mood=u.searchParams.get('mood'),moodboard=u.searchParams.get('moodboard'),handoff=u.searchParams.get('handoff');
+  const extra=handoff&&/^[a-f0-9-]{36}$/i.test(handoff)?{handoff}:{};
+  if(moodboard&&/^[a-f0-9-]{36}$/i.test(moodboard))return {action:'mood',moodboard,...extra};
+  if(mood&&/^[a-z0-9-]{1,80}$/.test(mood))return {action:'mood',mood,...extra};
   return {action:'create'};
 }
 export function sharePayload(message){
