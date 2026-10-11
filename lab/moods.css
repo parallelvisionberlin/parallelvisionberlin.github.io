@@ -249,3 +249,9 @@
 .image-detail-action-grid #image-detail-save-mood{grid-column:1/-1;min-height:37px;border-color:#63695c;color:#ddedc6;background:#30352d;font-size:12px}
 .image-detail-action-grid #image-detail-save-mood:hover{background:#3c4534}
 @media(max-width:560px){#moodboard-editor form{padding:17px;gap:13px}.moodboard-settings{grid-template-columns:1fr}.moodboard-images{grid-template-columns:repeat(4,minmax(0,1fr))}.moodboard-head h2{font-size:22px}}
+
+.moodboard-images-heading>div{display:flex;align-items:center;gap:11px}
+#moodboard-editor .moodboard-upload-label{display:inline-block;padding:7px 9px;border:1px solid #515559;border-radius:7px;color:#dce7c5;background:#2b302a;font-size:11px;cursor:pointer}
+#moodboard-editor .moodboard-upload-label:hover{border-color:#88916c;background:#363e31}
+#moodboard-editor #moodboard-upload[hidden]{display:none}
+@media(max-width:390px){.moodboard-images-heading>div{gap:6px}#moodboard-editor .moodboard-upload-label{font-size:10px;padding:6px}}
