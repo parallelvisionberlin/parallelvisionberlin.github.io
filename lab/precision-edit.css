@@ -140,6 +140,13 @@
 .precision-compare-row input{min-width:40px;max-width:170px;width:100%;accent-color:var(--pe-accent)}
 #precision-download{background:none;border:1px solid #4a4d54;padding:8px 12px;border-radius:8px;color:#e3e5e8;font-size:12px;font-weight:650;white-space:nowrap}
 #precision-download:hover{border-color:#b3b6be}
+#precision-continue{
+  border:1px solid #676d76;background:#30333a;color:#f0f2f5;
+  border-radius:8px;min-height:34px;padding:8px 13px;
+  white-space:nowrap;font-size:12px;font-weight:680;
+}
+#precision-continue:hover:not(:disabled){background:#41464f;border-color:#929aa6}
+#precision-continue[hidden]{display:none!important}
 .precision-tools{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 12px;border:1px solid #393b40;border-radius:12px;background:#202126}
 .precision-tool-buttons{display:flex;align-items:center;flex-wrap:wrap;gap:6px}
 .precision-tool-buttons button{border:1px solid #46484f;border-radius:8px;background:#2a2b30;color:#d3d5d9;min-height:36px;padding:8px 12px;font-size:12px;font-weight:620}
@@ -247,4 +254,9 @@ body:has(#app.retouch-studio-active),
 }
 @media(prefers-reduced-motion:reduce){
   .precision-workspace{scroll-behavior:auto}
+}
+@media(max-width:650px){
+  .precision-compare-row{height:auto;min-height:43px;flex-wrap:wrap;padding:7px 10px}
+  .precision-compare-row label{flex:1 1 100%;min-height:28px}
+  #precision-continue,#precision-download{flex:1 1 auto;text-align:center}
 }
