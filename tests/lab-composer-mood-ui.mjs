@@ -7,6 +7,7 @@ import http from 'node:http';
 import {readFileSync,existsSync,mkdirSync} from 'node:fs';
 import {resolve,extname} from 'node:path';
 import {pathToFileURL} from 'node:url';
+import {compileImagePrompt} from '../lab/reference-guidance.js';
 const {chromium}=await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE).href);
 const root=resolve('.'),source=readFileSync('lab/lab.js','utf8');
 const boot=source.indexOf("try{clerk=await loadLabAccount();");const bootEnd=source.indexOf("\n// Soul composer:",boot);assert.ok(boot>0&&bootEnd>boot);
@@ -157,6 +158,31 @@ async function retouchFillsDesktop(page){
 async function imageForm(x){await imageAdvanced(x.page);await x.page.fill('#prompt:visible, #image-composer-prompt:visible',settings.prompt);await x.page.selectOption('#resolution:visible, #image-composer-resolution:visible','2k');await x.page.selectOption('#ratio:visible, #image-composer-ratio:visible','16:9');await x.page.selectOption('#output-format','png');}
 
 try{
+  // Reproduce the reported empty-direction + Base + Synthetic Romance failure.
+  // The quote and generation endpoints are intercepted above; no paid jobs run.
+  for(const width of [1440,390]){
+    const romance=await workspace({width,height:900});
+    await romance.page.locator('#reference-images').setInputFiles({name:'base.png',mimeType:'image/png',buffer:png});
+    await waitRefs(romance.page,1);
+    await romance.page.click('#image-composer-moods');
+    await romance.page.locator('.moods-card[aria-label="Select Synthetic Romance"]').click();
+    await romance.page.click('#composer-moods-done');
+    assert.equal(await romance.page.locator('#image-composer-prompt').inputValue(),'');
+    assert.equal(await romance.page.locator('#image-composer-generate').isEnabled(),true);
+    assert.doesNotMatch(await romance.page.locator('#composer-generation-reason').textContent(),/exceed/);
+    await romance.page.click('#image-composer-generate');
+    await waitAccepted(romance,1);
+    assert.equal(romance.accepted(),1,'Synthetic Romance must reach job submission');
+    const quote=romance.requests.find(r=>r.path==='/api/quotes'&&r.method==='POST');
+    assert.equal(quote.data.settings.moodId,'synthetic-romance');
+    assert.equal(quote.data.settings.moodIntensity,82);
+    assert.equal(quote.data.settings.moodOriginalPrompt,'');
+    assert.ok(compileImagePrompt(quote.data.settings.prompt,quote.data.settings.referenceRoles).length<=5000);
+    assert.match(quote.data.settings.prompt,/INVASIVE PHYSICAL BODY TRANSFORMATION/);
+    assert.deepEqual(romance.errors,[]);
+    ok('Synthetic Romance Base generation submits at '+width+'px');
+    await romance.context.close();
+  }
   // Selecting a Mood without a subject must not insert a third row into the deck.
   // Adding a photo makes the dock taller but must not squeeze the Mood thumbnails.
   const stable=await workspace({width:1240,height:900});
