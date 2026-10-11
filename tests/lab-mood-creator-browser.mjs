@@ -109,6 +109,28 @@ try{
   assert.ok(analyzed[0].body.imageDataUrls.every(x=>x.startsWith('data:image/jpeg;base64,')));
   pass('One explicit analysis receives all three photos and the chosen visual focus');
 
+  // The workspace must grow with references and expanded copy, without nested scroll.
+  await page.locator('#mc-upload').setInputFiles(Array.from({length:9},(_,i)=>({name:'extra-'+i+'.png',mimeType:'image/png',buffer:png})));
+  assert.equal(await page.locator('.mc-shot').count(),12);
+  await page.locator('.mc-analysis-details').evaluate(el=>{el.open=true;});
+  for(const width of [1440,1024,390,320]){
+    await page.setViewportSize({width,height:900});
+    const layout=await page.evaluate(()=>{
+      const panel=document.querySelector('.mc-direction-main');
+      const direction=document.querySelector('.mc-direction').getBoundingClientRect();
+      const footer=document.querySelector('.mc-direction-footer').getBoundingClientRect();
+      const board=document.querySelector('.mc-board').getBoundingClientRect();
+      const column=document.querySelector('.mc-board-column').getBoundingClientRect();
+      return {overflow:getComputedStyle(panel).overflowY,viewport:innerWidth,pageWidth:document.documentElement.scrollWidth,
+        footerInside:footer.bottom<=direction.bottom+1,photosInside:board.bottom<=column.bottom+1};
+    });
+    assert.equal(layout.overflow,'visible','Art Direction has no internal scroll at '+width);
+    assert.ok(layout.pageWidth<=layout.viewport+2,'No horizontal overflow at '+width);
+    assert.ok(layout.footerInside&&layout.photosInside,'All twelve references and save controls fit their panels at '+width);
+  }
+  await page.setViewportSize({width:1440,height:900});
+  pass('Mood workspace expands with twelve photos and analysis details on desktop and mobile');
+
   await page.goto(origin+'/lab/explore-moods.html',{waitUntil:'domcontentloaded'});
   await page.locator('.mc-look-card[data-mood-id="hong-kong-nights"]').click();
   await page.locator('#mc-look-direction').fill('Portrait with deep cinematic shadows');
