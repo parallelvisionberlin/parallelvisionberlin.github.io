@@ -390,3 +390,8 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
  .mc-workspace-heading .mc-eyebrow{font-size:9px;letter-spacing:.12em}
  .mc-workspace-heading>button{min-height:36px;padding:8px 13px}
 }
+
+/* Hong Kong Nights: favor the street-level lower part of the original. */
+.mc-frame-two img{object-position:50% 100%}
+.mc-look-card[data-mood-id="hong-kong-nights"] .mc-look-photo img{object-position:50% 100%}
+.mc-look-dialog[data-mood-id="hong-kong-nights"] .mc-look-dialog-media img{object-position:50% 100%}
