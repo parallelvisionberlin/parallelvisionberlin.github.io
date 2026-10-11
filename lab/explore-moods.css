@@ -43,3 +43,32 @@
 }
 /* Do not enlarge a thumbnail with blur or sharpening filters. */
 .mc-discovery--explore .mc-look-photo img{image-rendering:auto}
+
+/* Restore the editorial headline rhythm without wasting the above-fold gallery.
+   The large statement and all four first-row cards remain within the entrance. */
+@media(min-width:1000px){
+ .mc-discovery--explore{padding-top:24px}
+ .mc-discovery--explore .mc-discovery-heading{margin-top:11px;align-items:end}
+ .mc-discovery--explore .mc-discovery-heading h1{
+   font-size:clamp(67px,5.9vw,104px);
+   line-height:.91;letter-spacing:-.094em;font-weight:450;
+ }
+ .mc-discovery--explore .mc-discovery-heading h1 em{color:#dfe9db;font-weight:400}
+ .mc-discovery--explore .mc-discovery-heading p{
+   font-size:clamp(20px,1.68vw,28px);letter-spacing:-.052em;
+   line-height:1.14;margin-top:11px
+ }
+ .mc-discovery--explore .mc-discovery-intro-note{
+   margin:11px 0 15px;max-width:810px;
+   font-size:12.5px;line-height:1.55;color:#b6c0b9
+ }
+ .mc-discovery--explore .mc-discovery-bar{padding:9px 0 11px}
+ .mc-discovery--explore .mc-look-photo{aspect-ratio:1.36}
+}
+@media(min-width:1000px) and (max-height:850px){
+ .mc-discovery--explore{padding-top:15px}
+ .mc-discovery--explore .mc-discovery-heading h1{font-size:clamp(61px,5.2vw,82px)}
+ .mc-discovery--explore .mc-discovery-heading p{margin-top:8px}
+ .mc-discovery--explore .mc-discovery-intro-note{margin:8px 0 11px}
+ .mc-discovery--explore .mc-look-photo{aspect-ratio:1.52}
+}
