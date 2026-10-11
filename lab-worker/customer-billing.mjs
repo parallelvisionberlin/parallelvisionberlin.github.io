@@ -47,7 +47,8 @@ export async function customerSession(env,id){
   const sub=await one(env,'SELECT plan_id,status FROM lab_subscriptions WHERE customer_id=?',id);
   return {customer:true,balanceCredits:c.balance_credits,subscription:sub||{plan_id:null,status:'none'},
     billingReady:enabled(env,id),generationReady:canCustomerGenerate(env,id),
-    products:catalog(),creditMultiplier:CREDIT_MULTIPLIER,
+    pilot:isPrivateLivePilot(env,id),
+    products:isPrivateLivePilot(env,id)?catalog().filter(item=>item.id==='topup10'):catalog(),creditMultiplier:CREDIT_MULTIPLIER,
     soulIdTrainingCredits:SOUL_ID_TRAINING_CREDITS,soul2ImageCredits:CREDIT_MINIMUM};
 }
 async function stripe(env,path,params,method='POST'){
