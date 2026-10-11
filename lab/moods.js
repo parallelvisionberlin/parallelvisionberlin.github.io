@@ -235,7 +235,10 @@ export function preparePersonalMoodPrompt(input='',mood,intensity=60,options={})
   const direction=String(mood.direction||'').trim();
   const baseId=moodById(mood.baseMoodId)?.id||null;
   const strength=Math.max(1,Math.min(100,Math.round(Number(intensity)||60)));
-  let base=baseId?prepareMoodPrompt(original,baseId,strength,options):{prompt:original,error:''};
+  // Saved Moods add their own direction after the curated base; reserve space
+  // for the reference map even when the curated prompt alone would still fit.
+  const baseOptions=baseId==='80s-film'&&Number(options.referenceCount)>0?{...options,compact:true}:options;
+  let base=baseId?prepareMoodPrompt(original,baseId,strength,baseOptions):{prompt:original,error:''};
   const added='PV LAB MY MOOD / '+title+': Apply this REUSABLE LOOK to the current requested image, not as a replacement subject or scenery. '+direction+'. Preserve explicitly assigned reference roles and the user\'s subject and composition. Style guidance only; saved board images are inspiration and are not automatically attached to this request.';
   let prompt=[base.prompt,added].filter(Boolean).join('\n\n');
   // A rich personal style can push the detailed Dreamcore instructions above
