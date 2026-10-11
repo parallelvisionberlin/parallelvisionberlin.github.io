@@ -1004,7 +1004,7 @@ function syncImageComposer(){
   const textbox=$('image-composer-prompt');
   if(document.activeElement!==textbox && textbox.value!==$('prompt').value)
     textbox.value=$('prompt').value;
-  textbox.placeholder=references.length?(referencesOnly()?'Describe the new image you imagine…':'Describe what you want to create or change…'):'Describe the scene you imagine…';
+  textbox.placeholder=window.__PV_LAB_NATIVE__===1?'Anything else? Add a direction (optional)':references.length?(referencesOnly()?'Describe the new image you imagine…':'Describe what you want to create or change…'):'Describe the scene you imagine…';
   syncSoulBar();
   textbox.disabled=busy || $('prompt').disabled;
   $('image-composer-model-label').textContent=imageStudioModelTitle();

@@ -55,9 +55,15 @@ for(const [width,height] of [[390,730],[320,590],[768,900]]){
  await page.locator('#composer-moods-intensity').fill('80');
  assert.equal(await page.locator('#image-composer-generate').isEnabled(),true);
  await page.screenshot({path:out+`/photo-mood-${width}.png`,fullPage:true});
+ await page.click('#mobile-advanced');
+ await page.locator('#image-composer-ratio').selectOption('9:16');
+ await page.locator('#image-composer-resolution').selectOption('1k');
+ await page.click('#mobile-advanced');
  await page.evaluate(()=>window.__PV_LAB_COMMAND__({action:'gallery'}));
  await page.locator('#assets-workspace').waitFor({state:'visible'});
  await page.evaluate(()=>window.__PV_LAB_COMMAND__({action:'create'}));
+ assert.equal(await page.locator('#image-composer-ratio').inputValue(),'9:16');
+ assert.equal(await page.locator('#image-composer-resolution').inputValue(),'1k');
  assert.equal(await page.locator('#image-composer-references img').count(),1,'Switching views keeps the source image');
  assert.equal(await page.locator('#composer-moods-summary').textContent(),'Hong Kong Nights');
  await page.locator('#image-composer-generate').click();
@@ -67,6 +73,13 @@ for(const [width,height] of [[390,730],[320,590],[768,900]]){
  assert.equal(q.settings.moodId,'hong-kong-nights');assert.equal(q.settings.moodIntensity,80);assert.equal(q.referenceSourceIds.length,1);
  assert.deepEqual(errors,[]);
  await page.screenshot({path:out+`/queued-${width}.png`,fullPage:true});
+ await page.evaluate(()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['test-image'],{type:'image/png'}));a.download='test.png';document.body.append(a);a.click();a.remove();});
+ await page.waitForFunction(()=>window.__nativeMessages.some(m=>m.type==='PV_LAB_SHARE'&&m.data.startsWith('data:image/png;base64,')));
+ await page.goto('http://127.0.0.1:4187/lab/mood-creator.html?native=1');
+ await page.waitForFunction(()=>document.querySelector('#mc-signin').hidden);
+ assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,'My Moods fits the screen');
+ await page.screenshot({path:out+`/my-moods-${width}.png`,fullPage:true});
+ assert.deepEqual(errors,[]);
  total++;console.log('PASS',width,'native login, upload, mood, intensity, gallery return, one submission');
  await page.close();
 }
