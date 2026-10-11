@@ -43,10 +43,56 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
       if(view.style.getPropertyValue(property)!==height)view.style.setProperty(property,height);
     }
   }
-  const previewResizeObserver=new ResizeObserver(syncPreviewFit);
+  const previewResizeObserver=new ResizeObserver(()=>{syncPreviewFit();if(base)paintZoom();});
   previewResizeObserver.observe($('precision-source-holder'));
   previewResizeObserver.observe($('precision-output-holder'));
   window.addEventListener('resize',syncPreviewFit);
+  function zoomBounds(){
+    const holder=$('precision-source-holder'),stage=$('precision-stage');
+    const availableWidth=Math.max(1,holder.clientWidth-20);
+    const availableHeight=Math.max(1,holder.clientHeight-20);
+    return {x:Math.max(0,(stage.offsetWidth*zoom-availableWidth)/2),
+      y:Math.max(0,(stage.offsetHeight*zoom-availableHeight)/2)};
+  }
+  function paintZoom(){
+    if(!base)return;
+    const bounds=zoomBounds();
+    panX=Math.max(-bounds.x,Math.min(bounds.x,panX));
+    panY=Math.max(-bounds.y,Math.min(bounds.y,panY));
+    $('precision-stage').style.transform='translate3d('+panX+'px,'+panY+'px,0) scale('+zoom+')';
+    $('precision-zoom-value').textContent=zoom<=1.001?'Fit':Math.round(zoom*100)+'%';
+    $('precision-zoom-out').disabled=zoom<=1.001;
+    $('precision-zoom-in').disabled=zoom>=11.99;
+    $('precision-zoom-fit').classList.toggle('is-active',zoom<=1.001);
+    $('precision-tool-pan').classList.toggle('is-active',mode==='pan');
+    overlay.style.cursor=panDrag?'grabbing':mode==='pan'||spaceHeld?'grab':'crosshair';
+  }
+  function setZoom(next,point=null){
+    if(!base)return;
+    const previous=zoom;
+    zoom=Math.max(1,Math.min(12,Number(next)||1));
+    if(zoom<=1.001){zoom=1;panX=0;panY=0;}
+    else if(point){
+      const bounds=$('precision-source-holder').getBoundingClientRect();
+      const x=point.clientX-(bounds.left+bounds.width/2);
+      const y=point.clientY-(bounds.top+bounds.height/2);
+      panX=x-(x-panX)*(zoom/previous);
+      panY=y-(y-panY)*(zoom/previous);
+    }
+    paintZoom();
+  }
+  function actualPreviewZoom(){
+    if(!base)return 1;
+    // "100%" references the 2,048px working preview, not the original
+    // high-resolution source; the full original is retained for compositing.
+    const rendered=Math.max(1,sourceCanvas.offsetWidth);
+    return Math.max(1,Math.min(12,mask.width/rendered));
+  }
+  function resetZoom(){
+    zoom=1;panX=0;panY=0;panDrag=null;
+    $('precision-stage').style.transform='';
+    if(base)paintZoom();
+  }
   const maskChanged=()=>{
     selected=hasSelection();renderMask();
     // A previous quote is bound to a specific mask PNG. Never allow it to
@@ -141,7 +187,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
   }
   function stroke(point){
     if(!lastPoint)lastPoint=point;
-    const r=Math.max(2,Number($('precision-brush-size').value)*mask.width/Math.max(1,overlay.clientWidth)/2);
+    const r=Math.max(2,Number($('precision-brush-size').value)*mask.width/Math.max(1,overlay.getBoundingClientRect().width)/2);
     maskCtx.save();maskCtx.globalCompositeOperation=mode==='erase'?'destination-out':'source-over';
     maskCtx.lineWidth=r*2;maskCtx.lineCap='round';maskCtx.lineJoin='round';
     maskCtx.strokeStyle='#fff';maskCtx.fillStyle='#fff';
@@ -200,7 +246,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     else if(!base)setStatus('');
     if(!falReady())selectMode('brush');
     refreshButtons();
-    syncPreviewFit();
+    syncPreviewFit();if(base)paintZoom();
     settleRetouchScroll();
   }
   function close(){
@@ -226,6 +272,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     sourceCanvas.height=overlay.height=mask.height=h;
     sc.clearRect(0,0,w,h);sc.drawImage(bitmap,0,0,w,h);
     const stage=$('precision-stage');stage.style.aspectRatio=String(w)+' / '+String(h);
+    resetZoom();
     maskCtx.clearRect(0,0,w,h);resetSelection();workingId=null;resultBlob=null;
     if(resultBitmap){resultBitmap.close();resultBitmap=null;}
     resultCanvas.hidden=true;$('precision-output-empty').hidden=false;
@@ -237,7 +284,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     $('precision-selection-message').textContent='Click an object to select it. Brush tools refine your mask.';
     $('precision-price-review').hidden=true;setStatus('');
     selectMode(falReady()?'magic':'brush');refreshButtons();
-    syncPreviewFit();
+    syncPreviewFit();paintZoom();
     // File-picker/drop imports may resize a previously empty panel. Keep the
     // heading visible after decoding instead of following an old scroll anchor.
     if(isOpen())settleRetouchScroll();
