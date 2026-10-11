@@ -380,7 +380,7 @@ test('80s Film high-fashion feature-cinema prompt scales in five cinematic stage
   const prompts=steps.map(([intensity,stage])=>{
     const r=prepareMoodPrompt(original,'80s-film',intensity,{engine:'seedream',referenceCount:1});
     assert.equal(r.error,'');
-    assert.ok(r.prompt.startsWith(original+'\\n\\n'));
+    assert.ok(r.prompt.startsWith(original+'\n\n'));
     assert.match(r.prompt,stage);
     assert.match(r.prompt,/organic 35mm cinema-negative/);
     assert.match(r.prompt,/suspended dust/);
@@ -413,7 +413,7 @@ test('80s Film cinematic mood keeps multi-reference prompts under provider chara
   const studio=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
   const app=readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8');
   const creator=readFileSync(new URL('../lab/mood-creator.js',import.meta.url),'utf8');
-  assert.match(studio,/lab\\.js\\?v=20261011-80s-cinema1/);
-  assert.match(app,/moods\\.js\\?v=20261011-80s-cinema1/);
-  assert.match(creator,/moods\\.js\\?v=20261011-80s-cinema1/);
+  assert.match(studio,/lab\.js\?v=20261011-80s-cinema1/);
+  assert.match(app,/moods\.js\?v=20261011-80s-cinema1/);
+  assert.match(creator,/moods\.js\?v=20261011-80s-cinema1/);
 });
