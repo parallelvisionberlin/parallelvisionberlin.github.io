@@ -252,7 +252,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
   .mc-direction>.mc-block-caption{margin:0 23px;padding:20px 0 13px}
   .mc-direction-main{
     min-width:0;min-height:0;overflow-y:auto;overflow-x:hidden;
-    overscroll-behavior:contain;scrollbar-width:thin;
+    overscroll-behavior-y:auto;scrollbar-width:thin;
     scrollbar-color:#6c746e transparent;
     padding:15px 23px 12px;
   }
