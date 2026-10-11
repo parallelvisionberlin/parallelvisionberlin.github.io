@@ -9,8 +9,8 @@ export function validateMoodboard(value,fail){
   const baseMoodId=value.baseMoodId==null||value.baseMoodId===''?null:value.baseMoodId;
   const intensity=Number(value.intensity??60);
   const imageIds=value.imageIds??[];
-  if(!name||name.length>64||/[\\u0000-\\u001f]/.test(name))fail(400,'Name the Mood in 64 characters or fewer.');
-  if(direction.length>900||/[\\u0000-\\u0008\\u000b\\u000c\\u000e-\\u001f]/.test(direction))fail(400,'Keep the style direction under 900 characters.');
+  if(!name||name.length>64||/[\x00-\x1f]/.test(name))fail(400,'Name the Mood in 64 characters or fewer.');
+  if(direction.length>900||/[\x00-\x08\x0b\x0c\x0e-\x1f]/.test(direction))fail(400,'Keep the style direction under 900 characters.');
   if(baseMoodId!==null&&!MOODBOARD_BUILTINS.has(baseMoodId))fail(400,'Choose a supported starting Mood.');
   if(!direction&&!baseMoodId)fail(400,'Describe the look, or choose a curated Mood as a starting point.');
   if(!Number.isInteger(intensity)||intensity<1||intensity>100)fail(400,'Mood intensity must be between 1 and 100.');
