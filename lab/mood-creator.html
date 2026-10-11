@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;450;500;550;600;700&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./mood-creator.css?v=20261011-gallery-final3">
+<link rel="stylesheet" href="./mood-creator.css?v=20261011-direction-deck1">
 </head>
 <body>
 <a class="mc-skip" href="#main">Skip to Mood Creator</a>
@@ -157,14 +157,17 @@
   </div>
   <aside class="mc-direction" aria-label="Define your Mood">
     <div class="mc-block-caption"><span>02 / ART DIRECTION</span><span>THE RECIPE</span></div>
+    <div class="mc-direction-main" id="mc-direction-main">
     <div class="mc-field"><label for="mc-name">Name your Mood</label><input id="mc-name" maxlength="64" autocomplete="off" placeholder="Liquid Memory"></div>
     <div class="mc-field">
       <label for="mc-idea">What are you imagining?</label>
       <textarea id="mc-idea" rows="3" maxlength="1400" placeholder="Something humid, nocturnal, romantic. Faded film, wet glass, a feeling of another decade..."></textarea>
     </div>
     <button type="button" id="mc-analyze" class="mc-analyze-button"><span>✳</span><strong>Develop the aesthetic</strong><span aria-hidden="true">↗</span></button>
-    <p class="mc-analysis-note" id="mc-analysis-note">Optional AI style analysis. Only when you click, your selected photograph and/or idea are sent to Google's AI service to interpret their aesthetics. Up to six analyses daily.</p>
-    <button id="mc-use-idea" type="button" class="mc-use-idea">Use my idea as the direction instead <span aria-hidden="true">→</span></button>
+    <div class="mc-analysis-options">
+      <p class="mc-analysis-note" id="mc-analysis-note">Optional AI analysis. Only on click, your selected photo and/or idea are sent to Google's AI service. Up to six analyses daily.</p>
+      <button id="mc-use-idea" type="button" class="mc-use-idea">Use my idea instead <span aria-hidden="true">→</span></button>
+    </div>
     <div id="mc-suggestion" class="mc-suggestion" hidden>
       <span>PROPOSED CREATIVE DIRECTION</span><strong id="mc-suggestion-name"></strong>
       <p id="mc-suggestion-text"></p><button id="mc-suggestion-apply" type="button">Use this direction <span aria-hidden="true">↗</span></button>
@@ -177,6 +180,8 @@
       <textarea id="mc-direction" rows="7" maxlength="900" placeholder="A tactile photographic treatment with delicate halation, pearlescent highlights and atmospheric depth. Preserve the real materials, faces and composition. Let the light carry the surreal effect..."></textarea>
       <small>Describe the visual treatment, not a specific subject. This is what Image will reuse.</small>
     </div>
+    </div>
+    <div class="mc-direction-footer" aria-label="Finish and save your Mood">
     <div class="mc-settings">
       <div class="mc-field"><label for="mc-base">Build on a curated Mood</label><select id="mc-base"><option value="">Original aesthetic</option></select></div>
       <div class="mc-field mc-strength"><div class="mc-field-heading"><label for="mc-intensity">Starting intensity</label><output id="mc-intensity-value" for="mc-intensity">70%</output></div><input id="mc-intensity" type="range" min="1" max="100" value="70"><span>Subtle <i></i> Immersive</span></div>
@@ -187,6 +192,7 @@
       <button type="button" id="mc-use" class="mc-secondary">Use in Image <span aria-hidden="true">→</span></button>
     </div>
     <div id="mc-saved-actions" class="mc-saved-actions" hidden><button id="mc-delete" type="button">Delete this Mood</button><span>Changes to a saved Mood require Save.</span></div>
+    </div>
   </aside>
  </div>
 </section>
