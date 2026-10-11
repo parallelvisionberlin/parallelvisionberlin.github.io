@@ -355,3 +355,19 @@
     object-fit:cover;object-position:20% center;
   }
 }
+
+/* Consistent dark finishing section instead of the old light template panel. */
+.mc-explore-page .mc-explore-ending{
+  background:#0c1210;color:#ecf1e9;
+  border-top:1px solid #3d5142;
+}
+.mc-explore-page .mc-explore-ending .mc-overline{color:#a6bbab}
+.mc-explore-page .mc-explore-ending .mc-overline::before{color:var(--pv-acid)}
+.mc-explore-page .mc-explore-ending p{color:#aebcaf}
+.mc-explore-page .mc-explore-ending>a{
+  background:var(--pv-acid);color:#14200e;border-color:var(--pv-acid);
+  font-weight:650;transition:background .18s;
+}
+.mc-explore-page .mc-explore-ending>a:hover{
+  background:#e0ffaa;color:#14200e;border-color:#e0ffaa;
+}
