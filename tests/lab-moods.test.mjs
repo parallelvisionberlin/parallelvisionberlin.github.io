@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {MOODS,MOOD_MODELS,moodById,prepareMoodPrompt,userFacingImagePrompt,imageHistoryCaption} from '../lab/moods.js';
 import {readFileSync} from 'node:fs';
+import {compileImagePrompt} from '../lab/reference-guidance.js';
 
 test('exactly eleven unique curated moods with imagery',()=>{
   assert.equal(MOODS.length,11);
@@ -123,62 +124,53 @@ test('Moods footer has a larger primary action and a compact accessible explanat
   assert.match(js,/aboutButton\.setAttribute\('aria-expanded',String\(opening\)\)/);
 });
 
-test('Dreamcore V3 uses researched liminal photographic character and five intensity tiers',()=>{
-  const mood=moodById('dreamcore');
-  assert.equal(mood.category,'Experimental');
-  assert.equal(mood.preview,'/lab/mood-previews/dreamcore-train-20261010.webp');
-  assert.match(mood.direction,/imperfect analog film still/i);
-  assert.match(mood.direction,/irregular fine grain/i);
-  assert.match(mood.direction,/one scene-specific spatial impossibility/i);
-  assert.match(mood.direction,/not a pastel filter/i);
-  const values=[20,50,80,95,100];
-  const results=values.map((amount,i)=>prepareMoodPrompt('A person in an existing room','dreamcore',amount,{engine:i%2?'gemini':'seedream',referenceCount:1}));
-  for(const result of results){
-    assert.equal(result.error,'');
-    assert.equal(result.metadata.moodId,'dreamcore');
-    assert.match(result.prompt,/Preserve face, identity, real body proportions/i);
-    assert.match(result.prompt,/light and depth as the transformed environment/i);
-    assert.match(result.prompt,/Follow explicitly assigned reference roles/i);
+test('Dreamcore V4 changes the world and photographic skin finish without losing the subject',()=>{
+  const m=moodById('dreamcore');
+  assert.equal(m.preview,'/lab/mood-previews/dreamcore-train-20261010.webp');
+  assert.match(m.direction,/REAL PHOTOGRAPH/);
+  assert.match(m.subjectRouting,/If a person is visible/);
+  assert.match(m.person,/pearlescent wet-looking skin gloss/);
+  assert.match(m.person,/cut and coverage/);
+  assert.match(m.environment,/Coast stays coastal/);
+  assert.match(m.atmosphere,/Fog is true atmospheric volume/);
+  assert.match(m.avoid,/royal arches/);
+  assert.match(m.avoid,/unrelated beds/);
+  for(const [n,label] of [[1,'SUBTLE'],[34,'SUBTLE'],[35,'ATMOSPHERIC'],[69,'ATMOSPHERIC'],[70,'IMMERSIVE'],[89,'IMMERSIVE'],[90,'IMPOSSIBLE REALITY'],[99,'IMPOSSIBLE REALITY'],[100,'MAXIMUM 100%']]){
+    const x=prepareMoodPrompt('Person in a room','dreamcore',n,{referenceCount:1});
+    assert.equal(x.error,'');
+    assert.equal(x.metadata.moodIntensity,n);
+    assert.match(x.prompt,/Creative intensity \d+\/100/);
+    assert.ok(x.prompt.includes(label));
+    assert.match(x.prompt,/SOURCE ROUTING/);
+    assert.match(x.prompt,/PERSON: KEEP/);
+    assert.match(x.prompt,/SCENE: When no person/);
   }
-  assert.match(results[0].prompt,/SUBTLE \(1-34%\)/);
-  assert.match(results[1].prompt,/ATMOSPHERIC \(35-69%\)/);
-  assert.match(results[2].prompt,/IMMERSIVE \(70-89%\)/);
-  assert.match(results[3].prompt,/IMPOSSIBLE REALITY \(90-99%\)/);
-  assert.match(results[4].prompt,/MAXIMUM \/ 100%/);
-  assert.match(results[4].prompt,/pastel grade alone is a failure/i);
-  assert.match(results[4].prompt,/world-scale spatial impossibility/i);
-  assert.match(results[4].prompt,/substantial existing background architecture/i);
-  assert.doesNotMatch(results[0].prompt,/IMPOSSIBLE REALITY/);
-  assert.doesNotMatch(results[1].prompt,/IMMERSIVE \(70-89%\)/);
-  assert.doesNotMatch(results[2].prompt,/MAXIMUM \/ 100%/);
-  assert.doesNotMatch(results[3].prompt,/MAXIMUM \/ 100%/);
-  assert.equal(new Set(results.map(r=>r.prompt)).size,5);
-  for(const [amount,tier] of [[1,'SUBTLE'],[34,'SUBTLE'],[35,'ATMOSPHERIC'],[69,'ATMOSPHERIC'],[70,'IMMERSIVE'],[89,'IMMERSIVE'],[90,'IMPOSSIBLE REALITY'],[99,'IMPOSSIBLE REALITY'],[100,'MAXIMUM']]){
-    const result=prepareMoodPrompt('Portrait','dreamcore',amount,{referenceCount:1});
-    assert.equal(result.error,'');
-    assert.equal(result.metadata.moodIntensity,amount);
-    assert.ok(result.prompt.includes(tier));
-  }
-  const withoutBase=prepareMoodPrompt('An empty hallway','dreamcore',100,{referenceMode:'references',referenceCount:2});
-  assert.match(withoutBase.prompt,/assigned reference roles/i);
-  assert.doesNotMatch(withoutBase.prompt,/first reference is the base photograph/i);
-  const textOnly=prepareMoodPrompt('An empty nostalgic swimming pool','dreamcore',100,{referenceCount:0});
-  assert.equal(textOnly.error,'');
-  assert.match(textOnly.prompt,/Honor the requested subject and composition/);
-  const hk=prepareMoodPrompt('Portrait','hong-kong-nights',100,{referenceCount:1});
-  assert.match(hk.prompt,/Immersive humid nighttime atmosphere/);
-  assert.doesNotMatch(hk.prompt,/MAXIMUM \/ 100%/);
-  const cinema=prepareMoodPrompt('Portrait','90s-cinema',100,{referenceCount:1});
-  assert.match(cinema.prompt,/glossy 1990s feature-film scene/i);
-  assert.doesNotMatch(cinema.prompt,/MAXIMUM \/ 100%/);
-  assert.equal(mood.preview,'/lab/mood-previews/dreamcore-train-20261010.webp');
-  const css=readFileSync(new URL('../lab/moods.css',import.meta.url),'utf8');
-  assert.ok(css.includes('.moods-look-dreamcore img{filter:none;object-position:center center}'));
-  const html=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
-  assert.match(html,/Eleven curated looks/);
+  const max=prepareMoodPrompt('Portrait','dreamcore',100,{referenceCount:1});
+  assert.match(max.prompt,/FULL DREAM TAKEOVER/);
+  assert.match(max.prompt,/distinctly pearlescent, glossy, wet or subtly metallic/);
+  assert.doesNotMatch(prepareMoodPrompt('Portrait','dreamcore',99,{referenceCount:1}).prompt,/FULL DREAM TAKEOVER/);
+  assert.notEqual(prepareMoodPrompt('Portrait','dreamcore',58,{referenceCount:1}).prompt,prepareMoodPrompt('Portrait','dreamcore',59,{referenceCount:1}).prompt);
+  const many=prepareMoodPrompt('Portrait','dreamcore',100,{referenceCount:10});
+  assert.match(many.prompt,/DREAMCORE: REAL source location/);
+  assert.match(many.prompt,/Base image: keep identity/);
+  const refOnly=prepareMoodPrompt('New portrait','dreamcore',100,{referenceCount:5,referenceMode:'references',engine:'gemini'});
+  assert.equal(refOnly.error,'');
+  assert.match(refOnly.prompt,/Reference-only: follow requested output/);
+  assert.doesNotMatch(refOnly.prompt,/Base image: keep identity/);
+  const text=prepareMoodPrompt('Empty tiled corridor','dreamcore',100);
+  assert.match(text.prompt,/No Base: use the written subject/);
+  assert.equal(userFacingImagePrompt({...max.metadata,prompt:max.prompt}),'Portrait');
+  assert.match(prepareMoodPrompt('Portrait','hong-kong-nights',100,{referenceCount:1}).prompt,/Immersive humid nighttime atmosphere/);
+  assert.match(readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8'),/not a literal opacity percentage/);
+  assert.ok(readFileSync(new URL('../lab/moods.css',import.meta.url),'utf8').includes('.moods-look-dreamcore img{filter:none;object-position:center center}'));
 });
 
-
+test('Dreamcore V4 compact direction fits a ten-photo reference deck',()=>{
+  const refs=Array.from({length:10},(_,i)=>({name:'reference-'+i+'.png',role:i?'none':'base'}));
+  const x=prepareMoodPrompt('Subject stays identifiable','dreamcore',100,{referenceCount:10});
+  assert.equal(x.error,'');
+  assert.ok(compileImagePrompt(x.prompt,refs).length<=5000);
+});
 test('Eleven moods are available, ten initially visible and Sumi-e last',()=>{
   const css=readFileSync(new URL('../lab/moods.css',import.meta.url),'utf8');
   const js=readFileSync(new URL('../lab/moods.js',import.meta.url),'utf8');
