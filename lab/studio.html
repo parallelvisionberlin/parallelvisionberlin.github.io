@@ -75,7 +75,6 @@ document.addEventListener('DOMContentLoaded',()=>{
 <header id="studio-header" class="studio-header"><div class="wrap top"><a class="brand" href="./" aria-label="PV Lab home"><img class="brand-icon" src="./branding/pv-mark.png" alt="" width="42" height="42"><img class="brand-wordmark" src="./branding/pv-wordmark.png" alt="" width="152" height="38"><span class="brand-lab">LAB</span></a><nav class="tool-switch" aria-label="Creative tools">
   <div class="tool-group">
     <button id="tool-image" class="tool-tab active" type="button" aria-pressed="true">Image</button>
-    <a class="studio-mood-link" href="./mood-creator.html" aria-label="Open Mood Creator">Mood Creator <span aria-hidden="true">↗</span></a>
     <button id="tool-retouch" class="tool-tab" type="button" aria-pressed="false">Retouch</button>
     <button id="tool-video" class="tool-tab" type="button" aria-pressed="false">Video</button>
     <button id="tool-upscale" class="tool-tab" type="button" aria-pressed="false">Upscaler</button>
@@ -83,7 +82,14 @@ document.addEventListener('DOMContentLoaded',()=>{
     <button id="tool-fashion" class="tool-tab" type="button" aria-pressed="false">Fashion</button>
   </div>
 
-</nav><div class="actions"><span class="eyebrow" id="identity">Private workspace</span><details id="active" class="queue-popover" hidden>
+</nav><div class="actions"><span class="eyebrow" id="identity">Private workspace</span><a class="studio-mood-icon" href="./mood-creator.html" aria-label="Open Mood Creator" data-tooltip="Mood Creator">
+  <svg viewBox="0 0 24 24" width="21" height="21" fill="none" aria-hidden="true" focusable="false">
+    <rect x="3.7" y="7" width="12.3" height="12.7" rx="1.8" stroke="currentColor" stroke-width="1.35"/>
+    <rect x="8" y="3.5" width="12.3" height="12.7" rx="1.8" fill="#24282a" stroke="currentColor" stroke-width="1.35"/>
+    <path d="m10.8 12.5 2.15-2.35 2.03 1.77 2.45-2.52" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+    <path class="studio-mood-spark" d="M18.4 1.6v3.3m-1.65-1.65h3.3" stroke="#d7dfc8" stroke-width="1.05" stroke-linecap="round"/>
+  </svg>
+</a><details id="active" class="queue-popover" hidden>
       <summary aria-label="Show live generation queue">
         <span class="queue-status-dot" aria-hidden="true"></span>
         <span class="queue-summary-title">Queue</span>
