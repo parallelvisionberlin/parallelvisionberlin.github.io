@@ -74,10 +74,26 @@ test('Create Mood stays prominent across tabs without a duplicate My Moods tile'
   assert.match(css,/min-height:42px;padding:9px 15px/);
   assert.match(css,/transform:translateY\(18px\)/);
   assert.match(css,/\.moods-header-actions\{display:flex;flex:0 0 auto;align-items:flex-start/);
-  assert.match(css,/min-height:38px;padding:7px 10px;font-size:11\.5px;gap:5px;transform:translateY\(16px\)/);
-  assert.match(html,/moods\.css\?v=20261011-preview-first2&berlinRave=1&createMoodHeader=2/);
+  assert.match(css,/\.moods-header-actions\{align-items:center;gap:6px;transform:translateY\(15px\)\}/);
+  assert.match(css,/min-height:44px;padding:9px 12px;font-size:12px;gap:6px;transform:none/);
+  assert.match(css,/flex-basis:38px;width:38px;min-width:38px;height:38px;min-height:38px/);
+  assert.match(html,/moods\.css\?v=20261011-preview-first2&berlinRave=1&createMoodHeader=3/);
   assert.match(css,/@media\(max-width:420px\)/);
   assert.match(css,/\.moods-create-tail\{display:none\}/);
+});
+
+test('Mobile Generate is centered in a dedicated column beside wrapped settings',()=>{
+  const css=readFileSync(new URL('../lab/assets.css',import.meta.url),'utf8');
+  const html=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
+  const block=css.slice(css.indexOf('/* Mobile Image deck:'));
+  assert.match(block,/@media\(max-width:650px\)/);
+  assert.match(block,/#image-composer:not\(\.is-pv-soul\) \.image-composer-toolbar\{\s*display:grid;grid-template-columns:minmax\(0,1fr\) 100px/);
+  assert.match(block,/\.composer-controls\{\s*display:flex;flex-wrap:wrap/);
+  assert.match(block,/\.composer-flex\{display:none\}/);
+  assert.match(block,/\.composer-generate\{\s*grid-column:2;grid-row:1;align-self:center/);
+  assert.match(block,/height:82px;min-height:82px;max-height:82px/);
+  assert.match(block,/@media\(max-width:360px\)/);
+  assert.match(html,/assets\.css\?v=20261011-mood-destinations1&mobileGenerate=1/);
 });
 
 test('My Moods never silently treat the original image subject prompt as a reusable style',()=>{
