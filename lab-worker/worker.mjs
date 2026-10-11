@@ -21,8 +21,9 @@ import {SOUL_PRO_MODELS,soulProParameters,soulProEstimateMicros,buildSoulProInpu
 import {findFalRequest} from './fal-recovery.mjs';
 import {falUploadImage} from './fal-storage.mjs';
 import {REFERENCE_ROLES,normalizeReferenceLabel,supportsReferenceGuidance,compileImagePrompt,canUseReferenceGuidance,referenceGuidanceError} from '../lab/reference-guidance.js';
+import {moodBoardsRoute} from './moodboards.mjs';
 import {characterPreview as soulCharacterPreview,SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-11.1-private-live-pilot';
+export const VERSION = 'pv-lab-2026-10-11.2-private-moodboards';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -176,13 +177,19 @@ function referenceLabels(value,max=10) {
     return normalizeReferenceLabel(x);
   });
 }
-const IMAGE_MOOD_IDS=new Set(['hong-kong-nights','90s-cinema','night-flash','fashion-editorial','80s-film','kodak-gold','soft-pastel-film','frutiger-aero','dreamcore','sumi-ink','hyper-pop']);
+const IMAGE_MOOD_IDS=new Set(['hong-kong-nights','90s-cinema','night-flash','fashion-editorial','80s-film','kodak-gold','soft-pastel-film','frutiger-aero','dreamcore','sumi-ink','hyper-pop','custom']);
 function imageMoodMetadata(value){
   if(value.moodId==null||value.moodId==='')return {};
   if(!IMAGE_MOOD_IDS.has(value.moodId))fail(400,'Unknown image mood.');
   const moodIntensity=Number(value.moodIntensity),moodOriginalPrompt=value.moodOriginalPrompt;
   if(!Number.isInteger(moodIntensity)||moodIntensity<1||moodIntensity>100||typeof moodOriginalPrompt!=='string'||moodOriginalPrompt.length>5000)
     fail(400,'Invalid image mood intensity or original prompt.');
+  if(value.moodId==='custom'){
+    const name=typeof value.customMoodName==='string'?value.customMoodName.trim():'';
+    const boardId=value.customMoodBoardId;
+    if(!name||name.length>64||!UUID.test(boardId||''))fail(400,'Choose a valid saved Mood.');
+    return {moodId:'custom',moodIntensity,moodOriginalPrompt,customMoodName:name,customMoodBoardId:boardId};
+  }
   return {moodId:value.moodId,moodIntensity,moodOriginalPrompt};
 }
 function parameters(value) {
@@ -417,6 +424,8 @@ function linkedSourceIds(row) {
 async function sourceReferenced(env,owner,id) {
   const jobs=await rows(env,'SELECT source_id,output_id,params FROM jobs WHERE owner_id=?',owner);for(const row of jobs)if(row.output_id===id||linkedSourceIds(row).includes(id))return true;
   const packs=await rows(env,'SELECT refs FROM packs WHERE owner_id=?',owner);for(const pack of packs)if(JSON.parse(pack.refs).some(r=>r.id===id))return true;
+  const boards=await rows(env,'SELECT image_ids FROM moodboards WHERE owner_id=?',owner);
+  for(const board of boards)if(JSON.parse(board.image_ids).includes(id))return true;
   const quotes=await rows(env,'SELECT source_id,params FROM quotes WHERE owner_id=?',owner);for(const row of quotes)if(linkedSourceIds(row).includes(id))return true;
   return false;
 }
@@ -1036,6 +1045,8 @@ async function route(request,env,ctx) {
     if(!wallet?.balance_credits)fail(402,'Add PV Lab credits before uploading files.');
   }
   if(path==='/api/library'||path.startsWith('/api/library/'))return json(await libraryRoute(request,env,owner,url,{body,uid,fail,rows,first,run}));
+  if(path==='/api/moodboards'||path.startsWith('/api/moodboards/'))
+    return moodBoardsRoute(request,env,owner,url,{body,uid,fail,rows,first,run,json,now});
   // FASHN balance reports our wholesale API account balance, not the customer's credits.
   if(customer&&path==='/api/fashion/balance'&&method==='GET')return json({connected:!!env.FASHN_API_KEY,credits:null,note:'Your generation allowance is shown in your PV Lab credit wallet.'});
   if(path.startsWith('/api/precision/'))return precisionEditRoute(request,env,owner,url,{
