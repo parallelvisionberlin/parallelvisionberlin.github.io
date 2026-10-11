@@ -16,14 +16,23 @@ export function validateMoodboard(value,fail){
   if(!Number.isInteger(intensity)||intensity<1||intensity>100)fail(400,'Mood intensity must be between 1 and 100.');
   if(!Array.isArray(imageIds)||imageIds.length>12||imageIds.some(id=>typeof id!=='string'||!UUID.test(id))||new Set(imageIds).size!==imageIds.length)
     fail(400,'Choose up to 12 different private images for the Mood.');
-  return {name,direction,baseMoodId,intensity,imageIds};
+  const palette=value.palette??[],qualities=value.qualities??[];
+  if(!Array.isArray(palette)||palette.length>5||palette.some(v=>typeof v!=='string'||!/^#[0-9a-f]{6}$/i.test(v)))
+    fail(400,'Choose up to five valid Mood palette colors.');
+  if(!Array.isArray(qualities)||qualities.length>5||qualities.some(v=>typeof v!=='string'||!v.trim()||v.length>30))
+    fail(400,'Use up to five short Mood qualities.');
+  return {name,direction,baseMoodId,intensity,imageIds,palette,qualities};
 }
-const view=r=>({id:r.id,name:r.name,direction:r.direction,baseMoodId:r.base_mood_id,intensity:r.intensity,imageIds:JSON.parse(r.image_ids),createdAt:r.created_at,updatedAt:r.updated_at});
+const view=(r,details)=>({id:r.id,name:r.name,direction:r.direction,baseMoodId:r.base_mood_id,intensity:r.intensity,imageIds:JSON.parse(r.image_ids),
+  palette:details?.palette?JSON.parse(details.palette):[],qualities:details?.qualities?JSON.parse(details.qualities):[],
+  createdAt:r.created_at,updatedAt:r.updated_at});
 export async function moodBoardsRoute(request,env,owner,url,{body,first,rows,run,uid,fail,json,now}){
   const path=url.pathname,method=request.method;
   if(path==='/api/moodboards'&&method==='GET'){
     const list=await rows(env,'SELECT id,name,direction,base_mood_id,intensity,image_ids,created_at,updated_at FROM moodboards WHERE owner_id=? ORDER BY updated_at DESC',owner);
-    return json({moodboards:list.map(view)});
+    const details=await rows(env,'SELECT id,palette,qualities FROM moodboard_style_data WHERE owner_id=?',owner);
+    const byId=new Map(details.map(x=>[x.id,x]));
+    return json({moodboards:list.map(board=>view(board,byId.get(board.id)))});
   }
   const parts=path.split('/').filter(Boolean),hasId=parts.length===3&&parts[0]==='api'&&parts[1]==='moodboards';
   if(path==='/api/moodboards'&&method==='POST'||hasId&&method==='POST'){
@@ -45,17 +54,25 @@ export async function moodBoardsRoute(request,env,owner,url,{body,first,rows,run
       const id=crypto.randomUUID();
       await run(env,'INSERT INTO moodboards(id,owner_id,name,direction,base_mood_id,intensity,image_ids,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?)',
         id,owner,input.name,input.direction,input.baseMoodId,input.intensity,images,stamp,stamp);
+      await run(env,'INSERT INTO moodboard_style_data(id,owner_id,palette,qualities) VALUES(?,?,?,?)',
+        id,owner,JSON.stringify(input.palette),JSON.stringify(input.qualities));
       return json({moodboard:{id,...input,createdAt:stamp,updatedAt:stamp}},201);
     }
     const id=uid(parts[2]),found=await first(env,'SELECT id FROM moodboards WHERE id=? AND owner_id=?',id,owner);
     if(!found)fail(404,'Moodboard not found.');
     await run(env,'UPDATE moodboards SET name=?,direction=?,base_mood_id=?,intensity=?,image_ids=?,updated_at=? WHERE id=? AND owner_id=?',
       input.name,input.direction,input.baseMoodId,input.intensity,images,stamp,id,owner);
+    // Legacy mini-editor updates without palette fields keep earlier visual notes.
+    if(input.palette.length||input.qualities.length){
+      await run(env,'INSERT INTO moodboard_style_data(id,owner_id,palette,qualities) VALUES(?,?,?,?) ON CONFLICT(id) DO UPDATE SET palette=excluded.palette,qualities=excluded.qualities WHERE owner_id=excluded.owner_id',
+        id,owner,JSON.stringify(input.palette),JSON.stringify(input.qualities));
+    }
     return json({moodboard:{id,...input,updatedAt:stamp}});
   }
   if(hasId&&method==='DELETE'){
     const id=uid(parts[2]),found=await first(env,'SELECT id FROM moodboards WHERE id=? AND owner_id=?',id,owner);
     if(!found)fail(404,'Moodboard not found.');
+    await run(env,'DELETE FROM moodboard_style_data WHERE id=? AND owner_id=?',id,owner);
     await run(env,'DELETE FROM moodboards WHERE id=? AND owner_id=?',id,owner);
     // Deleting a board never deletes an image or generation history record.
     return json({ok:true});
