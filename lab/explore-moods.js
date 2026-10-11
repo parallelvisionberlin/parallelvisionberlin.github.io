@@ -12,6 +12,24 @@ function initialize(){
   const dialog=$('mc-look-dialog'),zone=$('mc-look-dropzone'),fileInput=$('mc-look-file');
   const direction=$('mc-look-direction'),status=$('mc-look-status');
   let mood=null,file=null,fileURL=null,busy=false;
+  const fullPreviews=new Map();
+  function loadFullPreview(selected,priority='low'){
+    const src=selected.previewFull;
+    if(!src||src===selected.preview)return Promise.resolve(null);
+    const cached=fullPreviews.get(src);
+    if(cached){
+      if(priority==='high')cached.image.fetchPriority='high';
+      return cached.ready;
+    }
+    const image=new Image();
+    image.decoding='async';image.fetchPriority=priority;image.src=src;
+    const ready=image.decode().then(()=>image.src,()=>{
+      fullPreviews.delete(src);
+      return null; // Keep the sharp card image if the original cannot load.
+    });
+    fullPreviews.set(src,{image,ready});
+    return ready;
+  }
   function clearPhoto(){
     if(fileURL)URL.revokeObjectURL(fileURL);
     fileURL=null;file=null;fileInput.value='';
@@ -34,17 +52,22 @@ function initialize(){
   }
   function showMood(selected,photo=null){
     if(!selected)return;
-    if(dialog.open)dialog.close();
     mood=selected;clearPhoto();direction.value='';status.textContent='';
-    $('mc-look-preview').src=selected.previewFull||selected.preview;
-    $('mc-look-preview').alt=selected.name+' aesthetic';
+    const preview=$('mc-look-preview');
+    // Reuse the gallery's HD image while the untouched original decodes offscreen.
+    preview.src=selected.preview;
+    preview.alt=selected.name+' aesthetic';
     $('mc-look-title').textContent=selected.name;
     $('mc-look-description').textContent=selected.id==='berlin-rave'?selected.description+'. This mood replaces the outfit while keeping your identity, pose and location.':selected.id==='synthetic-romance'?selected.description+'. This mood reconstructs visible body parts into engineered chrome, cables and synthetic anatomy.':selected.description+'. Keep your own subject and scene.';
     if(photo)attachPhoto(photo);
-    dialog.showModal();
+    if(!dialog.open)dialog.showModal();
+    void loadFullPreview(selected,'high').then(src=>{
+      if(src&&dialog.open&&mood===selected)preview.src=src;
+    });
   }
   function close(){if(dialog.open)dialog.close();}
   dialog.addEventListener('close',()=>{
+    if(dialog.open)return;
     clearPhoto();mood=null;busy=false;
     $('mc-look-make').disabled=false;$('mc-look-continue').disabled=false;
     $('mc-look-preview').removeAttribute('src');
@@ -58,6 +81,9 @@ function initialize(){
   zone.addEventListener('drop',event=>{if(event.dataTransfer?.files?.length){event.preventDefault();zone.classList.remove('is-over');attachPhoto(event.dataTransfer.files[0]);}});
   for(const card of document.querySelectorAll('.mc-look-card[data-mood-id]')){
     const selected=moodById(card.dataset.moodId);if(!selected)continue;
+    const warmPreview=()=>{if(!navigator.connection?.saveData)void loadFullPreview(selected);};
+    card.addEventListener('pointerenter',warmPreview,{once:true});
+    card.addEventListener('focus',warmPreview,{once:true});
     card.onclick=()=>showMood(selected);
     card.addEventListener('dragover',event=>{if(event.dataTransfer?.types?.includes('Files')){event.preventDefault();event.dataTransfer.dropEffect='copy';card.classList.add('is-drag-over');}});
     card.addEventListener('dragleave',()=>card.classList.remove('is-drag-over'));

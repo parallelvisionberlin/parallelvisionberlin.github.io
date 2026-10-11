@@ -78,9 +78,61 @@ try{
   assert.equal(await page.locator('.mc-workspace').count(),0,'Explore has no duplicate Mood Creator workbench');
   pass('Explore Moods shows fifteen looks on a dedicated page');
 
+  // Hold the real original indefinitely: a slow connection must never blank the tray.
+  const filmOriginal='/lab/mood-bank/2026-10-11/80s-film/originals/80s-film.png';
+  let releaseFilm;
+  const filmGate=new Promise(resolve=>{releaseFilm=resolve;});
+  await page.route('**'+filmOriginal,async route=>{await filmGate;await route.continue();});
+  const filmCard=page.locator('.mc-look-card[data-mood-id="80s-film"]');
+  await filmCard.scrollIntoViewIfNeeded();
+  await filmCard.locator('img').evaluate(img=>img.decode());
+  const originalRequest=page.waitForRequest(request=>request.url().endsWith(filmOriginal));
+  await filmCard.hover();
+  await originalRequest;
+  await filmCard.click();
+  const filmPreview=await filmCard.locator('img').getAttribute('src');
+  await page.waitForFunction(src=>{
+    const image=document.getElementById('mc-look-preview');
+    return image.getAttribute('src')===src&&image.complete&&image.naturalWidth>=1600;
+  },filmPreview);
+  assert.equal(await page.locator('#mc-look-dialog').evaluate(el=>el.open),true);
+  releaseFilm();
+  await page.waitForFunction(src=>{
+    const image=document.getElementById('mc-look-preview');
+    return image.src.endsWith(src)&&image.complete&&image.naturalWidth===2048;
+  },filmOriginal);
+  await page.locator('#mc-look-close').click();
+  pass('Slow originals keep the HD card visible and upgrade to full resolution after decoding');
+
+  const flashOriginal='/lab/mood-bank/2026-10-11/night-flash/originals/night-flash.png';
+  let releaseFlash;
+  const flashGate=new Promise(resolve=>{releaseFlash=resolve;});
+  await page.route('**'+flashOriginal,async route=>{await flashGate;await route.continue();});
+  await page.locator('.mc-look-card[data-mood-id="night-flash"]').click();
+  await page.locator('#mc-look-close').click();
+  await page.locator('.mc-look-card[data-mood-id="berlin-rave"]').click();
+  const ravePreview=await page.locator('#mc-look-preview').getAttribute('src');
+  releaseFlash();
+  await page.evaluate(async src=>{
+    const image=new Image();image.src=src;await image.decode();
+    await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+  },flashOriginal);
+  assert.equal(await page.locator('#mc-look-preview').getAttribute('src'),ravePreview,'A late original cannot replace a different Mood');
+  await page.locator('#mc-look-close').click();
+  await page.waitForFunction(()=>!document.getElementById('mc-look-preview').hasAttribute('src'));
+  pass('Closing and switching Moods ignores late image loads');
+
+  await page.route('**/dreamcore/originals/dreamcore-one.png',route=>route.abort());
+  const failedOriginal=page.waitForEvent('requestfailed',request=>request.url().endsWith('/dreamcore/originals/dreamcore-one.png'));
   await page.locator('.mc-look-card[data-mood-id="dreamcore"]').click();
+  await failedOriginal;
   assert.equal(await page.locator('#mc-look-dialog').evaluate(el=>el.open),true);
   assert.equal((await page.locator('#mc-look-title').innerText()).trim(),'Dreamcore');
+  await page.waitForFunction(()=>{
+    const image=document.getElementById('mc-look-preview');
+    return image.src.endsWith('/dreamcore/preview.webp')&&image.complete&&image.naturalWidth>0;
+  });
+  pass('A failed original leaves the existing photograph visible');
   await page.locator('#mc-look-make').click();
   await page.waitForURL(u=>u.pathname.endsWith('/lab/mood-creator.html'),{timeout:16000});
   await page.waitForFunction(()=>document.getElementById('mc-signin').hidden,{timeout:18000});
