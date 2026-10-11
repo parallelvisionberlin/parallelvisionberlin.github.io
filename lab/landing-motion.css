@@ -1,0 +1,27 @@
+/* PV Lab motion assets: the static editorial image remains a reliable fallback. */
+.lab-hero .hero-motion{
+  position:absolute;inset:0;display:block;width:100%;height:100%;z-index:-2;
+  object-fit:cover;object-position:center center;opacity:0;pointer-events:none;
+  transition:opacity .45s ease;
+}
+.lab-hero .hero-motion.is-playing{opacity:1}
+.lab-hero.motion-active .hero-shade{
+  background:linear-gradient(90deg,rgba(0,0,0,.72) 0%,rgba(0,0,0,.28) 42%,rgba(0,0,0,.06) 72%,transparent);
+}
+.tool-card .card-media{isolation:isolate}
+.tool-card .tool-motion{
+  position:absolute;inset:0;display:block;width:100%;height:100%;z-index:1;
+  object-fit:cover;object-position:center center;opacity:0;pointer-events:none;
+  transition:opacity .35s ease;
+}
+.tool-card .tool-motion.is-playing{opacity:1}
+.tool-card .card-caption{position:relative;z-index:2}
+@media(max-width:700px){
+  .lab-hero .hero-motion{object-position:50% 42%}
+  .lab-hero.motion-active .hero-shade{
+    background:linear-gradient(0deg,rgba(9,10,10,.9),rgba(9,10,10,.4) 38%,rgba(9,10,10,.08) 68%);
+  }
+}
+@media(prefers-reduced-motion:reduce){
+ .lab-hero .hero-motion,.tool-card .tool-motion{display:none!important;transition:none}
+}
