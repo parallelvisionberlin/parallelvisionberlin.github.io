@@ -167,13 +167,13 @@ export function imageHistoryCaption(settings={}){
 }
 
 
-export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',referenceCount=0,referenceMode='base'}={}){
+export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',referenceCount=0,referenceMode='base',compact=false}={}){
   const original=String(input||'').trim(),mood=moodById(id);
   if(!mood)return {prompt:original,metadata:{},error:''};
   if(!MOOD_MODELS.includes(engine))return {prompt:original,metadata:{},error:'Moods v1 supports Seedream 5 Pro and Nano Banana Pro. Choose one of these models first.'};
   const intensity=Math.max(1,Math.min(100,Math.round(Number(amount)||60)));
   const dreamcore=mood.id==='dreamcore';
-  const compactDreamcore=dreamcore&&(referenceCount>=3||original.length>=800);
+  const compactDreamcore=dreamcore&&(compact===true||referenceCount>=3||original.length>=800);
   const dreamcoreTier=intensity<=34?'Subtle':intensity<=69?'Moderate':intensity<=89?'Immersive':intensity<=99?'Intense':'Climax';
   const dreamcoreKey=intensity<=34?'subtle':intensity<=69?'moderate':intensity<=89?'immersive':intensity<=99?'intense':'climax';
   const context=referenceCount===0?'No Base: use the written subject.':referenceMode==='references'?'Reference-only: follow requested output and explicitly assigned roles.':'Inspect the first Base image to choose PERSON or SCENE.';
@@ -217,9 +217,16 @@ export function preparePersonalMoodPrompt(input='',mood,intensity=60,options={})
   const direction=String(mood.direction||'').trim();
   const baseId=moodById(mood.baseMoodId)?.id||null;
   const strength=Math.max(1,Math.min(100,Math.round(Number(intensity)||60)));
-  const base=baseId?prepareMoodPrompt(original,baseId,strength,options):{prompt:original,error:''};
+  let base=baseId?prepareMoodPrompt(original,baseId,strength,options):{prompt:original,error:''};
   const added='PV LAB MY MOOD / '+title+': Apply this REUSABLE LOOK to the current requested image, not as a replacement subject or scenery. '+direction+'. Preserve explicitly assigned reference roles and the user\'s subject and composition. Style guidance only; saved board images are inspiration and are not automatically attached to this request.';
-  const prompt=[base.prompt,added].filter(Boolean).join('\n\n');
+  let prompt=[base.prompt,added].filter(Boolean).join('\n\n');
+  // A rich personal style can push the detailed Dreamcore instructions above
+  // the provider limit. Recompile only the base art direction compactly.
+  // Keep the person's own prompt and all authored style details untouched.
+  if(prompt.length>5000&&baseId==='dreamcore'){
+    base=prepareMoodPrompt(original,baseId,strength,{...options,compact:true});
+    prompt=[base.prompt,added].filter(Boolean).join('\n\n');
+  }
   const referenceCount=Number(options.referenceCount)||0;
   return {prompt,metadata:{moodId:'custom',customMoodName:title,customMoodBoardId:mood.id,moodIntensity:strength,moodOriginalPrompt:original},
     error:base.error||(prompt.length>5000?'Your saved Mood and prompt exceed 5,000 characters. Shorten the style direction or reduce reference notes.':(!original&&!referenceCount?'Describe a subject or add an image before using this Mood.':''))};
