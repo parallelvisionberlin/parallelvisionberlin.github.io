@@ -78,3 +78,99 @@
 
 /* Frame the Berlin Rave outfit from the head down on landscape thumbnails. */
 .mc-discovery--explore .mc-look-card[data-mood-id="berlin-rave"] .mc-look-photo img{object-position:50% 12%}
+
+
+/* Mobile visual-first Explore Moods.
+   The desktop editorial grid is untouched: the wrappers flatten on larger screens. */
+.mc-featured-mood,.mc-mood-rail{display:contents}
+.mc-mobile-rail-heading{display:none}
+@media(max-width:600px){
+  .mc-explore-page .mc-header{height:59px;gap:12px;padding-inline:17px}
+  .mc-explore-page .mc-wordmark{font-size:17px;letter-spacing:.06em}
+  .mc-explore-page .mc-navigation{margin-left:auto;gap:14px;font-size:11px;flex:0 1 auto}
+  .mc-explore-page .mc-navigation a:nth-child(3){display:none}
+  .mc-discovery--explore{padding:17px 0 40px;overflow:hidden}
+  .mc-discovery--explore .mc-discovery-intro{padding-inline:17px}
+  .mc-discovery--explore .mc-overline{display:flex;align-items:center;gap:9px;font-size:9px;letter-spacing:.115em;line-height:1.2}
+  .mc-discovery--explore .mc-discovery-edition{white-space:nowrap;font-size:8px;letter-spacing:.07em}
+  .mc-discovery--explore .mc-discovery-heading{display:block;margin-top:15px}
+  .mc-discovery--explore .mc-discovery-heading h1{font-size:clamp(43px,11.5vw,57px);line-height:.98;letter-spacing:-.085em;white-space:nowrap}
+  .mc-discovery--explore .mc-discovery-heading p{margin-top:8px;font-size:15px;line-height:1.25;letter-spacing:-.025em;color:#cbd3ca}
+  .mc-discovery--explore .mc-discovery-actions{display:flex;flex-direction:row;align-items:center;gap:8px;width:auto;margin:17px 0 0}
+  .mc-discovery--explore .mc-discovery-actions a,
+  .mc-discovery--explore .mc-discovery-actions a:last-child{
+    display:inline-flex;align-items:center;justify-content:center;gap:12px;
+    min-height:37px;padding:8px 13px;margin:0;
+    border:1px solid #56635a;border-radius:999px;
+    color:#e5eae2;background:#202722;
+    font-size:11px;line-height:1.1;white-space:nowrap;
+  }
+  .mc-discovery--explore .mc-discovery-actions a:first-child{border-color:#a4b68d;color:#e7f6d8}
+  .mc-discovery--explore .mc-discovery-actions a:active{background:#3a483a}
+  .mc-discovery--explore .mc-discovery-intro-note{display:none}
+  .mc-discovery--explore .mc-discovery-bar{
+    display:flex;align-items:center;justify-content:space-between;
+    margin:17px 17px 10px;padding:10px 0 0;
+    border-color:#465148;font-size:9px;letter-spacing:.12em;
+  }
+  .mc-discovery--explore .mc-discovery-bar span:last-child{font-size:9px;letter-spacing:.07em}
+  .mc-discovery--explore .mc-look-grid{display:block;width:100%;max-width:none;margin:0}
+  .mc-discovery--explore .mc-featured-mood{display:block;padding-inline:17px}
+  .mc-discovery--explore .mc-featured-mood .mc-look-card{position:relative;display:block;width:100%;overflow:hidden}
+  .mc-discovery--explore .mc-featured-mood .mc-look-photo{
+    display:block;aspect-ratio:1.18;min-height:235px;border:1px solid #657366;
+  }
+  .mc-discovery--explore .mc-featured-mood .mc-look-photo:after{
+    inset:42% 0 0;background:linear-gradient(transparent 0%,#050807d9 100%);
+  }
+  .mc-discovery--explore .mc-featured-mood .mc-look-index{left:13px;top:13px;bottom:auto;font-size:9px}
+  .mc-discovery--explore .mc-featured-mood .mc-look-copy{
+    position:absolute;z-index:2;left:15px;right:15px;bottom:37px;margin:0;
+    align-items:end;pointer-events:none;
+  }
+  .mc-discovery--explore .mc-featured-mood .mc-look-copy strong{
+    font-size:clamp(28px,7vw,38px);font-weight:480;line-height:1.03;
+    letter-spacing:-.065em;color:#f5f6f0;text-shadow:0 2px 18px #0009;
+  }
+  .mc-discovery--explore .mc-featured-mood .mc-look-copy>span{font-size:27px;color:#d9fc6b}
+  .mc-discovery--explore .mc-featured-mood .mc-look-card>small{
+    position:absolute;z-index:2;left:15px;bottom:15px;right:15px;
+    color:#e0e6dc;font-size:10px;line-height:1.3;pointer-events:none;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .mc-discovery--explore .mc-mobile-rail-heading{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:21px 17px 11px;gap:8px;
+    color:#a5b3a5;font-size:9px;letter-spacing:.11em;
+  }
+  .mc-discovery--explore .mc-mobile-rail-heading span:last-child{color:#d7f49e}
+  .mc-discovery--explore .mc-mood-rail{
+    display:flex;gap:11px;overflow-x:auto;overflow-y:hidden;
+    scroll-snap-type:x mandatory;scroll-padding-inline:17px;
+    overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;
+    padding:0 17px 15px;scrollbar-width:none;
+  }
+  .mc-discovery--explore .mc-mood-rail::-webkit-scrollbar{display:none}
+  .mc-discovery--explore .mc-mood-rail .mc-look-card{
+    flex:0 0 min(65vw,275px);width:min(65vw,275px);scroll-snap-align:start;gap:5px;
+  }
+  .mc-discovery--explore .mc-mood-rail .mc-look-photo{aspect-ratio:4/4.6}
+  .mc-discovery--explore .mc-mood-rail .mc-look-copy{margin-top:4px}
+  .mc-discovery--explore .mc-mood-rail .mc-look-copy strong{font-size:19px;line-height:1.12}
+  .mc-discovery--explore .mc-mood-rail .mc-look-card>small{font-size:10px;line-height:1.35;min-height:27px}
+  .mc-discovery--explore .mc-discovery-foot{
+    margin:19px 17px 0;padding-top:16px;border-top:1px solid #3c493e;
+    flex-wrap:wrap;line-height:1.6;
+  }
+  .mc-discovery--explore .mc-discovery-foot span{display:none}
+  .mc-discovery--explore .mc-discovery-foot a{font-size:11px}
+  .mc-explore-ending{padding:37px 17px}
+}
+@media(max-width:360px){
+ .mc-discovery--explore .mc-discovery-heading h1{font-size:40px}
+ .mc-discovery--explore .mc-discovery-actions a{padding-inline:10px;font-size:10px}
+ .mc-discovery--explore .mc-discovery-edition{display:none}
+}
+@media(prefers-reduced-motion:reduce){
+ .mc-discovery--explore .mc-look-photo img{transition:none}
+}
