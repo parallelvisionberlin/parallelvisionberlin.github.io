@@ -414,7 +414,8 @@ document.addEventListener('DOMContentLoaded',()=>{
       <div class="moodboard-row"><label for="moodboard-base">Start from a curated Mood</label><select id="moodboard-base"></select></div>
       <div class="moodboard-row"><label for="moodboard-intensity">Starting intensity</label><input id="moodboard-intensity" type="number" min="1" max="100" step="1" value="60" aria-label="Starting mood intensity in percent"></div>
     </div>
-    <div class="moodboard-images-heading"><strong>Inspiration board</strong><span id="moodboard-images-count">0 / 12 images</span></div>
+    <div class="moodboard-images-heading"><strong>Inspiration board</strong><div><label for="moodboard-upload" class="moodboard-upload-label">+ Add images</label><span id="moodboard-images-count">0 / 12 images</span></div></div>
+    <input type="file" id="moodboard-upload" accept="image/png,image/jpeg,image/webp" multiple hidden>
     <div id="moodboard-images" class="moodboard-images" aria-label="Saved private moodboard images"></div>
     <p id="moodboard-editor-status" class="moodboard-editor-status" role="status"></p>
     <div class="moodboard-actions"><button id="moodboard-delete" type="button" hidden>Delete Mood</button><span></span><button id="moodboard-save" type="submit">Save Mood</button></div>
