@@ -160,6 +160,7 @@ export function imageHistoryCaption(settings={}){
     const strength=Number.isInteger(intensity)&&intensity>=1&&intensity<=100?intensity+'%':'';
     return [mood.name,strength,text].filter(Boolean).join(' · ');
   }
+  if(settings?.moodId==='custom')return [settings.customMoodName||'My Mood',Number.isInteger(settings.moodIntensity)?settings.moodIntensity+'%':'',text].filter(Boolean).join(' · ');
   if(settings?.moodId)return ['Mood',text].filter(Boolean).join(' · ');
   if(settings?.mode==='upscale')return 'Image upscale / '+String(settings.resolution||'').toUpperCase();
   return text||'No direction saved.';
@@ -209,7 +210,22 @@ export function moodsPanelViewportGeometry({composerTop,viewportTop=0,viewportHe
   return {gap,maxHeight,overlap:Math.ceil(Math.max(0,minimum-above)),tight:maxHeight<310};
 }
 
-export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange,onOpen}){
+export function preparePersonalMoodPrompt(input='',mood,intensity=60,options={}){
+  const original=String(input||'').trim();
+  if(!mood||!mood.id)return {prompt:original,metadata:{},error:'Choose a saved Mood.'};
+  const title=String(mood.name||'My Mood').trim().slice(0,64);
+  const direction=String(mood.direction||'').trim();
+  const baseId=moodById(mood.baseMoodId)?.id||null;
+  const strength=Math.max(1,Math.min(100,Math.round(Number(intensity)||60)));
+  const base=baseId?prepareMoodPrompt(original,baseId,strength,options):{prompt:original,error:''};
+  const added='PV LAB MY MOOD / '+title+': Apply this REUSABLE LOOK to the current requested image, not as a replacement subject or scenery. '+direction+'. Preserve explicitly assigned reference roles and the user\'s subject and composition. Style guidance only; saved board images are inspiration and are not automatically attached to this request.';
+  const prompt=[base.prompt,added].filter(Boolean).join('\n\n');
+  const referenceCount=Number(options.referenceCount)||0;
+  return {prompt,metadata:{moodId:'custom',customMoodName:title,customMoodBoardId:mood.id,moodIntensity:strength,moodOriginalPrompt:original},
+    error:base.error||(prompt.length>5000?'Your saved Mood and prompt exceed 5,000 characters. Shorten the style direction or reduce reference notes.':(!original&&!referenceCount?'Describe a subject or add an image before using this Mood.':''))};
+}
+
+export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange,onOpen,onCreatePersonal=()=>{},onEditPersonal=()=>{}}){
   const grid=panel.querySelector('#composer-moods-grid');
   const filters=panel.querySelector('#composer-moods-filters');
   const slider=panel.querySelector('#composer-moods-intensity');
@@ -223,13 +239,22 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
   const aboutButton=panel.querySelector('#composer-moods-about');
   const aboutDetails=panel.querySelector('#composer-moods-explanation');
   const backdrop=panel.parentElement.querySelector('#composer-moods-backdrop');
-  let selected=null,intensity=60,category='All';
+  let selected=null,intensity=60,category='All',personalMoods=[];
+  const boardById=id=>personalMoods.find(board=>'custom:'+board.id===id)||null;
+  const findMood=id=>moodById(id)||boardById(id);
   const desktopGridColumns=5,initiallyVisibleRows=2;
   const tabs=new Map(),cards=new Map();
-  for(const name of ['All','Cinema','Fashion','Analog','Experimental']){
+  for(const name of ['All','Cinema','Fashion','Analog','Experimental','My Moods']){
     const tab=document.createElement('button');tab.type='button';tab.className='moods-filter';tab.textContent=name;
     tab.onclick=()=>{category=name;grid.scrollTop=0;render();fitGridViewport();};filters.append(tab);tabs.set(name,tab);
   }
+  const emptyPersonal=document.createElement('div');
+  emptyPersonal.className='moods-my-empty';emptyPersonal.hidden=true;
+  const emptyTitle=document.createElement('strong');emptyTitle.textContent='Your private moodboards';
+  const emptyNote=document.createElement('p');emptyNote.textContent='Save a look from an image result or create a style of your own.';
+  const createButton=document.createElement('button');createButton.type='button';createButton.textContent='+ Create a Mood';
+  createButton.onclick=()=>{close();onCreatePersonal();};
+  emptyPersonal.append(emptyTitle,emptyNote,createButton);grid.append(emptyPersonal);
   for(const mood of MOODS){
     const card=document.createElement('button');card.type='button';card.className='moods-card';
     card.setAttribute('aria-label','Select '+mood.name);card.setAttribute('aria-pressed','false');
@@ -244,9 +269,17 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
   }
   function render(){
     for(const [name,tab] of tabs){tab.classList.toggle('is-selected',category===name);tab.setAttribute('aria-pressed',String(category===name));}
-    for(const mood of MOODS){const card=cards.get(mood.id);card.hidden=category!=='All'&&category!==mood.category;card.classList.toggle('is-selected',mood.id===selected);card.setAttribute('aria-pressed',String(mood.id===selected));}
+    for(const mood of [...MOODS,...personalMoods]){
+      const key=mood.category==='My Moods'?'custom:'+mood.id:mood.id,card=cards.get(key);
+      if(!card)continue;
+      const hidden=category!=='All'&&category!==mood.category;
+      card.hidden=hidden;if(card.customWrap)card.customWrap.hidden=hidden;
+      card.classList.toggle('is-selected',key===selected);
+      card.setAttribute('aria-pressed',String(key===selected));
+    }
+    emptyPersonal.hidden=category!=='My Moods'||personalMoods.length>0;
     slider.value=String(intensity);slider.style.setProperty('--moods-progress',((intensity-1)/99*100).toFixed(2)+'%');slider.disabled=!selected;amount.textContent=intensity+'%';
-    const chosen=moodById(selected);
+    const chosen=findMood(selected);
     summary.textContent=chosen?chosen.name:'Select a mood';
     selectedLabel.hidden=!chosen;
     const compatible=MOOD_MODELS.includes(getEngine());
@@ -274,6 +307,33 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
     panel.style.setProperty('--moods-available-height',available.maxHeight+'px');
     panel.style.setProperty('--moods-overlap',available.overlap+'px');
     panel.classList.toggle('is-viewport-tight',available.tight);
+  }
+  function setPersonalMoods(next=[]){
+    for(const old of personalMoods){const key='custom:'+old.id,card=cards.get(key);card?.customWrap?.remove();cards.delete(key);}
+    personalMoods=next.filter(board=>board&&typeof board.id==='string'&&typeof board.name==='string').slice(0,30).map(board=>({...board,category:'My Moods'}));
+    for(const board of personalMoods){
+      const key='custom:'+board.id,wrap=document.createElement('div');
+      wrap.className='moods-board-wrap';
+      const card=document.createElement('button');card.type='button';card.className='moods-card';
+      card.setAttribute('aria-label','Use saved mood '+board.name);
+      card.setAttribute('aria-pressed',String(selected===key));
+      const media=document.createElement('span');media.className='moods-card-media moods-board-cover';
+      if(board.previewUrl){const img=document.createElement('img');img.src=board.previewUrl;img.alt='';img.decoding='async';img.loading='lazy';media.append(img);}
+      else{const placeholder=document.createElement('span');placeholder.className='moods-board-placeholder';placeholder.textContent='✦';media.append(placeholder);}
+      if(board.imageIds?.length>1){const number=document.createElement('small');number.className='moods-board-count';number.textContent=board.imageIds.length+' images';media.append(number);}
+      const copy=document.createElement('span');copy.className='moods-card-copy';
+      const title=document.createElement('strong');title.textContent=board.name;
+      const sub=document.createElement('small');sub.textContent=board.direction||((moodById(board.baseMoodId)?.name||'Saved')+' creative direction');
+      copy.append(title,sub);card.append(media,copy);
+      card.onclick=()=>{selected=key;intensity=board.intensity||60;render();onChange();};
+      const edit=document.createElement('button');edit.type='button';edit.className='moods-board-edit';edit.textContent='Edit';
+      edit.setAttribute('aria-label','Edit moodboard '+board.name);
+      edit.onclick=event=>{event.stopPropagation();close();onEditPersonal(board);};
+      wrap.append(card,edit);card.customWrap=wrap;grid.append(wrap);cards.set(key,card);
+    }
+    if(selected?.startsWith('custom:')&&!boardById(selected)){selected=null;intensity=60;onChange();}
+    render();
+    if(!panel.hidden){fitPanelViewport();fitGridViewport();}
   }
   // Show exactly two complete rows before the internal scrollbar reveals Sumi-e.
   function fitGridViewport(){
@@ -316,8 +376,18 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
     panel.querySelector('#composer-moods-title')?.focus();
   }
   function clear(silent=false){selected=null;intensity=60;close(!silent);render();if(!silent)onChange();}
-  function restore(settings,silent=false){selected=moodById(settings?.moodId)?.id||null;intensity=Math.min(100,Math.max(1,Number(settings?.moodIntensity)||60));close();render();if(!silent)onChange();}
-  function enrich(prompt,options={}){return prepareMoodPrompt(prompt,selected,intensity,options);}
+  function restore(settings,silent=false){
+    selected=settings?.moodId==='custom'&&typeof settings.customMoodBoardId==='string'?'custom:'+settings.customMoodBoardId:moodById(settings?.moodId)?.id||null;
+    intensity=Math.min(100,Math.max(1,Number(settings?.moodIntensity)||60));
+    close();render();if(!silent)onChange();
+  }
+  function enrich(prompt,options={}){
+    if(selected?.startsWith('custom:')){
+      const mood=boardById(selected);
+      return mood?preparePersonalMoodPrompt(prompt,mood,intensity,options):{prompt:String(prompt||'').trim(),metadata:{},error:'This saved Mood is not available. Open My Moods and choose another.'};
+    }
+    return prepareMoodPrompt(prompt,selected,intensity,options);
+  }
   function error(engine,prompt,count=0,referenceMode='base'){return enrich(prompt,{engine,referenceCount:count,referenceMode}).error;}
   function sync({visible=true,locked=false}={}){button.hidden=!visible;button.disabled=locked;if(!visible||locked)close();if(visible)render();}
   slider.addEventListener('input',()=>{intensity=Number(slider.value);render();onChange();});
@@ -373,7 +443,7 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
     observer.observe(panel.parentElement);
   }
   render();
-  return {active:()=>!!selected,selected:()=>selected,intensity:()=>intensity,enrich,error,
+  return {active:()=>!!selected,selected:()=>selected,intensity:()=>intensity,enrich,error,setPersonalMoods,
     invalid:(engine,prompt,count=0,referenceMode='base')=>!!error(engine,prompt,count,referenceMode),
     sync,open,close,clear,restore};
 }
