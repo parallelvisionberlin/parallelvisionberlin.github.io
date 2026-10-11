@@ -42,7 +42,7 @@ jobs:
         run: |
           node --check lab-worker/moodboards.mjs
           node --check lab-worker/worker.mjs
-          node --test tests/lab-moodboards.test.mjs tests/lab-mood-creator-service.test.mjs
+          node --test tests/lab-moodboards.test.mjs tests/lab-mood-creator-service.test.mjs tests/lab-mood-creator-flow.test.mjs
 
       - name: Deploy parallel-vision-lab
         uses: cloudflare/wrangler-action@v4
