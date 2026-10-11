@@ -12,28 +12,34 @@ The mobile surface uses the same website code, prompts, API, quotes, account and
 
 Deploy the companion Lab web integration (native-account.js, mobile-ui.js, mobile-app.css and Worker native-auth.mjs) before installing this app. Native Clerk tokens are accepted only with the explicit Lab transport marker and permitted origin, and still require signature, issuer, expiry and owner/customer authorization. No rollout, payment or generation flags are changed.
 
-## Validation and local iPhone installation
+## Windows workflow
 
-Default: local builds. Do not start EAS cloud builds or purchase build credits unless Alejandro explicitly requests that route. Expo SDK and local CLI remain in use; removing them is not necessary to avoid cloud build usage.
+Alejandro's existing repository is C:\Users\Alejandro\Documents\GitHub\parallelvisionberlin.github.io. Previous installations used finish-site05.ps1 and EAS preview builds. Build 14 was the last recorded installed version. Use finish-lab01.ps1 for this Lab app; the old script targets Nina.
 
-The web/Worker companion must be deployed before testing the new native session. The code is committed for review, not yet approved for public distribution.
+The default script runs the app tests and iOS JavaScript export in an isolated folder. It never submits a cloud build. Run with -Build only to explicitly request ONE EAS preview using the existing project and signing credentials. It checks the deployed Lab web adapter and Worker before starting, checks upload-file hashes, and stops on failure. It does not overwrite the local app source. It does not retry failed builds.
 
-On a Mac with Xcode installed, open the mobile-lab-moods branch and run from mobile-app/:
+From PowerShell in the repository root, after fetching mobile-lab-moods and extracting its finish-lab01.ps1:
 
-```sh
-npm ci
-npm test
-npx expo run:ios --device
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\mobile-app\finish-lab01.ps1 -CheckOnly
 ```
 
-Connect and trust the iPhone, enable Developer Mode if prompted, select it when the CLI asks, and complete Apple signing in Xcode when required. This builds locally and installs a development copy. It does not launch an EAS cloud build. A compatible Apple signing identity is still required. Do not change the existing app identifier just to bypass signing errors.
+To create the installable preview after the checks:
 
-After the first native build, ordinary JavaScript changes can use `npx expo start` with the local development server. Changes to native dependencies or configuration need another local build. The development copy relies on the development server; an independently running distribution build requires the separate release and signing process.
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\mobile-app\finish-lab01.ps1 -Build
+```
 
-Most changes inside the hosted Lab editor are delivered by the Lab website deployment. Native shell and dependency changes still require a new native build. AI generation continues to use the existing Lab providers and their usage costs.
+The second command uses EAS cloud build allowance. It is not a free local iOS build on Windows. It does not purchase credits or upgrade the account. If existing credentials remain valid, answer No to Apple login and Yes to reusing the provisioning profile, as in the previous installation. If they are expired or the phone is absent from the profile, stop and resolve signing instead of repeatedly rebuilding. Install the resulting preview over the current app.
 
-The existing @parallel63/parallel-vision project remains available, but EAS cloud builds are not the default. Do not use finish-site05.ps1, which pins the old Nina revision.
+No EAS cloud build is started automatically by commits or checks. Expo's SDK and local CLI are free; ordinary app usage does not consume EAS build credits. Most hosted Lab editor changes use the website deployment without another native build. Native shell/dependency changes need a new build. AI generation retains its provider costs.
 
-Validation so far: 26 app tests pass and iOS JavaScript export succeeds. The companion mobile browser flow passes at 320, 390 and 768 pixels with all API calls mocked. An export is not an installable iPhone binary. Physical-device verification still needs native sign-in, photo picker, keyboard, share sheet, app background/resume, and one explicitly approved generation. Wider website regression failures are tracked in PR #124. Public App Store purchase handling is not certified by this internal preview work.
+## Optional local build on a Mac
 
-References: https://docs.expo.dev/guides/local-app-development/ and https://docs.expo.dev/faq/
+A Mac with Xcode can run npm ci, npm test and npx expo run:ios --device from mobile-app/. Apple signing and physical-device setup are still required. Windows cannot compile the iOS binary locally.
+
+## Validation
+
+26 app tests pass and the iOS JavaScript export succeeds. Mobile browser checks pass at 320, 390 and 768 pixels using mocked API calls. These are not physical iPhone checks. Verify native sign-in, photo picker, keyboard, share sheet, background/resume and one explicitly approved generation on the installed preview. Public App Store purchase handling is not certified by this internal preview work.
+
+Sources: https://docs.expo.dev/guides/local-app-development/ and https://docs.expo.dev/build-reference/local-builds/
