@@ -458,20 +458,36 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     const wc=work.getContext('2d',{willReadFrequently:true});
     wc.drawImage(maskImage,0,0,work.width,work.height);
     const pixels=wc.getImageData(0,0,work.width,work.height);
-    for(let i=0;i<pixels.data.length;i+=4){
+    // Work only on the selected bounding region. A full-resolution original
+    // may be 8K x 8K; three additional full-size canvases waste gigabytes.
+    let minX=work.width,minY=work.height,maxX=-1,maxY=-1;
+    for(let y=0;y<work.height;y++)for(let x=0;x<work.width;x++){
+      const i=(y*work.width+x)*4;
       const a=pixels.data[i+3],v=(pixels.data[i]+pixels.data[i+1]+pixels.data[i+2])/3;
+      const strength=a===0?0:Math.max(0,Math.min(255,Math.round(v)));
       pixels.data[i]=pixels.data[i+1]=pixels.data[i+2]=255;
-      pixels.data[i+3]=a===0?0:Math.max(0,Math.min(255,Math.round(v)));
+      pixels.data[i+3]=strength;
+      if(strength>0){
+        minX=Math.min(minX,x);minY=Math.min(minY,y);
+        maxX=Math.max(maxX,x);maxY=Math.max(maxY,y);
+      }
     }
+    if(maxX<minX||maxY<minY)throw new Error('Select an area before generating a composite.');
     wc.putImageData(pixels,0,0);
-    const alpha=document.createElement('canvas');alpha.width=w;alpha.height=h;
-    const ax=alpha.getContext('2d');ax.filter='blur('+Math.max(1,Math.round(Math.max(w,h)/1900))+'px)';
-    ax.drawImage(work,0,0,w,h);ax.filter='none';
-    const patch=document.createElement('canvas');patch.width=w;patch.height=h;
-    const px=patch.getContext('2d');px.drawImage(provider,0,0,w,h);
-    px.globalCompositeOperation='destination-in';px.drawImage(alpha,0,0);px.globalCompositeOperation='source-over';
+    const feather=Math.max(1,Math.round(Math.max(w,h)/1900)),padding=Math.max(6,feather*4);
+    const x0=Math.max(0,Math.floor(minX*w/work.width)-padding);
+    const y0=Math.max(0,Math.floor(minY*h/work.height)-padding);
+    const x1=Math.min(w,Math.ceil((maxX+1)*w/work.width)+padding);
+    const y1=Math.min(h,Math.ceil((maxY+1)*h/work.height)+padding);
+    const patch=document.createElement('canvas');patch.width=x1-x0;patch.height=y1-y0;
+    const px=patch.getContext('2d');
+    px.drawImage(provider,-x0,-y0,w,h);
+    px.globalCompositeOperation='destination-in';
+    px.filter='blur('+feather+'px)';
+    px.drawImage(work,-x0,-y0,w,h);
+    px.filter='none';px.globalCompositeOperation='source-over';
     const result=document.createElement('canvas');result.width=w;result.height=h;
-    const cx=result.getContext('2d');cx.drawImage(original,0,0);cx.drawImage(patch,0,0);
+    const cx=result.getContext('2d');cx.drawImage(original,0,0);cx.drawImage(patch,x0,y0);
     const png=await readBlob(result,'image/png');
     if(png.size<=MAX_COMPOSITE)return {blob:png,mime:'image/png',format:'png'};
     if(!allowJpegFallback)throw new Error('Lossless PNG exceeds 20 MB. Raw paid output is retained in History. Use a smaller photograph before retrying.');
