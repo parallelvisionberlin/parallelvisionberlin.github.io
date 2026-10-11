@@ -11,7 +11,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
   const undoStack=[],maxUndo=12,finalizing=new Map();
   let base=null,mode='magic',drawing=false,lastPoint=null,taskBusy=false,pending=null;
   let selected=false,resultBlob=null,resultBitmap=null,disposed=false,workingId=null,session=0;
-  let resultFormat='png',zoom=1,panX=0,panY=0,panDrag=null,spaceHeld=false;
+  let resultFormat='png',lastResultSourceId=null,zoom=1,panX=0,panY=0,panDrag=null,spaceHeld=false;
   let selectionAllowance=0,consentPoint=null,queueRevision=0,editEpoch=0,latestJobId=null;
   const pendingPolls=new Map();
   const exportRiskPixels=5000000;
@@ -289,7 +289,9 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     resetZoom();
     maskCtx.clearRect(0,0,w,h);resetSelection();workingId=null;resultBlob=null;
     if(resultBitmap){resultBitmap.close();resultBitmap=null;}
+    lastResultSourceId=null;
     resultCanvas.hidden=true;$('precision-output-empty').hidden=false;
+    $('precision-continue').hidden=true;$('precision-continue').disabled=true;
     $('precision-output-empty').querySelector('strong').textContent='Ready for your edit.';
     $('precision-output-empty').querySelector('p').textContent='The result appears here when it is finished.';
     $('precision-compare').value='100';$('precision-compare').disabled=true;
@@ -415,6 +417,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
           const output=await assetBlob(final.outputId);
           if(sourceEpoch!==editEpoch||revision!==queueRevision)return;
           resultBlob=output;resultFormat=final.settings?.precisionOutputFormat==='jpeg'?'jpeg':'png';
+          lastResultSourceId=final.outputId;
           if(resultBitmap)resultBitmap.close();
           resultBitmap=await createImageBitmap(output);showResult(resultBitmap);
           setStatus(resultFormat==='jpeg'?
@@ -552,6 +555,8 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     $('precision-compare-control').hidden=false;$('precision-compare-idle').hidden=true;
     $('precision-compare').disabled=false;$('precision-download').disabled=!resultBlob;
     $('precision-download').hidden=false;
+    $('precision-continue').hidden=!lastResultSourceId;
+    $('precision-continue').disabled=!lastResultSourceId;
     $('precision-download').textContent='Download '+(resultFormat==='jpeg'?'JPG':'PNG')+' ↗';
     renderComparison();
   }
@@ -580,7 +585,9 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     $('precision-source-holder').hidden=true;$('precision-drop').hidden=false;
     $('precision-result-canvas').hidden=true;$('precision-output-empty').hidden=false;
     $('precision-compare-control').hidden=true;$('precision-compare-idle').hidden=false;
-    $('precision-download').hidden=true;resultFormat='png';
+    $('precision-download').hidden=true;
+    $('precision-continue').hidden=true;$('precision-continue').disabled=true;
+    resultFormat='png';lastResultSourceId=null;
     $('precision-source-meta').textContent='DROP IMAGE';
     $('precision-result-label').textContent='AWAITING EDIT';
     $('precision-prompt').value='';setStatus('');refreshButtons();
@@ -630,6 +637,13 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
   $('precision-review-cancel').onclick=()=>{$('precision-price-review').hidden=true;pending=null;};
   $('precision-compare').oninput=renderComparison;
   $('precision-download').onclick=download;
+  $('precision-continue').onclick=()=>handle((async()=>{
+    if(!resultBlob||!lastResultSourceId||taskBusy)return;
+    const format=resultFormat,source=lastResultSourceId,blob=resultBlob;
+    const file=new File([blob],'retouch-next.'+(format==='jpeg'?'jpg':'png'),{type:blob.type||('image/'+format)});
+    await setBase(file,source);
+    setStatus('Ready to refine the result. Your previous version remains in History.');
+  })());
   $('precision-change-photo').onclick=()=>$('precision-photo-input').click();
   $('precision-photo-input').onchange=e=>{if(e.target.files?.[0])handle(setBase(e.target.files[0]));e.target.value='';};
   $('precision-drop').onclick=()=>$('precision-photo-input').click();
