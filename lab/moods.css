@@ -182,13 +182,23 @@
 }
 @media(prefers-reduced-motion:reduce){#image-composer .composer-moods *{scroll-behavior:auto}}
 
-/* Preserve the existing thumbnail proportions. */
+/* Preview-first desktop. Reuse a redundant caption row for larger images,
+   without reducing the intensity track, thumb or primary-action dimensions. */
 @media(min-width:741px){
-  .moods-card-media{aspect-ratio:5/4}
-  .moods-filters{padding-bottom:7px}
+  .moods-card-media{aspect-ratio:6/5}
+  .moods-header p{margin-bottom:7px}
+  .moods-filters{padding-bottom:5px}
   .moods-selection{padding-bottom:10px}
-  .moods-footer{gap:3px;padding-top:7px}
-  .moods-strength{gap:3px}
+  .moods-footer{gap:2px;padding-top:6px}
+  .moods-strength{
+    display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:17px 25px;gap:1px
+  }
+  .moods-strength-header{grid-column:1;grid-row:1;align-self:center;min-width:0}
+  .moods-scale{
+    grid-column:1;grid-row:1;justify-self:center;align-self:center;
+    width:min(310px,53%);max-width:53%;gap:9px;pointer-events:none
+  }
+  #image-composer #composer-moods-intensity{grid-column:1;grid-row:2}
 }
 
 /* My Moods gallery cards remain inside the existing floating mood selector. */
