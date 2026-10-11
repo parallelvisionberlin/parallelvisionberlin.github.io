@@ -3,6 +3,9 @@
 .mc-explore-page [data-hero-carousel] .mc-explore-hero-art img{
   object-position:var(--hero-position,65% center);
 }
+.mc-explore-page [data-hero-carousel] .mc-explore-hero-art img[src*="/three-moods.webp"]{
+  top:-12px;height:calc(100% + 12px);
+}
 .mc-explore-page [data-hero-carousel] .mc-explore-hero-veil{
   background:linear-gradient(90deg,#0a100f 0%,#0a100f 30%,#0a100ffa 35%,#0a100feb 40%,#0a100fa8 47%,#0a100f52 56%,#0a100f14 66%,transparent 76%),linear-gradient(0deg,#0a100f85,transparent 25%);
 }
