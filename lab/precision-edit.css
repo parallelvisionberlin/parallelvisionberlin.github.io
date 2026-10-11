@@ -187,8 +187,11 @@
   .precision-workspace{min-height:auto;padding:13px 0 23px}
   .precision-board{grid-template-columns:1fr;min-height:0;flex:none}
   .precision-panel{min-height:345px}
-  .precision-source-holder,.precision-output-holder{min-height:325px}
-  #precision-source-holder:not([hidden]){min-height:max(325px,calc(min(50vh,640px) + 20px))}
+  .precision-source-holder,.precision-output-holder{min-height:300px}
+  /* A loaded landscape should not leave a huge blank region on mobile.
+     Let the actual portrait/landscape canvas define the holder height. */
+  #precision-source-holder:not([hidden]){height:auto;min-height:280px;flex:0 0 auto}
+  #precision-source-holder:not([hidden]) .precision-stage{max-height:none}
   #precision-source-canvas,#precision-result-canvas{max-height:min(50vh,640px)}
   .precision-tools{align-items:flex-start;flex-wrap:wrap}
   .precision-deck{grid-template-columns:minmax(0,1fr);grid-template-areas:"direction" "actions" "meta";gap:8px;padding:12px}
