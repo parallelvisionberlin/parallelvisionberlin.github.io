@@ -949,6 +949,13 @@ function syncImageComposer(){
   $('composer-options').querySelector('.composer-panel-head strong').textContent=strengthOnly?'Identity strength':'Image options';
   $('image-composer-more').disabled=busy;
   $('image-composer-more').hidden=['seedream','flash','kling'].includes(imageEngine)||isSoul2()&&!hf.current();
+  const clearMood=$('image-composer-moods-clear');
+  if(clearMood){
+    clearMood.hidden=!moodUI.active();
+    clearMood.disabled=busy;
+    clearMood.title=moodUI.active()?'Remove '+($('image-composer-moods').textContent||'selected mood').trim():'Remove selected mood';
+  }
+  imageComposer.classList.toggle('is-gemini',tool==='image'&&imageEngine==='gemini');
   $('image-composer-add').hidden=imageEngine==='soul'&&!isReinterpret();
   $('composer-character').setAttribute('aria-label',imageEngine==='soul'||imageEngine==='soulpro'?'Choose character':'Saved reference photos');
   const generate=$('image-composer-generate');
@@ -982,7 +989,10 @@ function syncImageComposer(){
   }
   // A blocked/uncertain queue belongs in the top navigation Queue popover, not as a third row in the image deck.
   // Keep generation disabled until reviewed, and preserve the reason in the button tooltip.
-  const inlineMessage=queueBlocked?'':message;
+  // Keep duplicate request messages in the Generate tooltip; never add an
+  // extra status row that changes the floating deck height.
+  const exactPreparing=tool==='image'&&fastImageHandoff.has(currentImageSubmissionKey());
+  const inlineMessage=queueBlocked||exactPreparing?'':message;
   block.hidden=!inlineMessage;reason.textContent=inlineMessage;review.hidden=true;
   generate.title=message?(message+(queueBlocked?' Open Queue at the top right to review it.':'')):(isSoul2()?'Review the live Higgsfield price before any charge. PV Soul accepts one base image and one optional trained Soul ID; use Seedream for multiple reference photos.':'');
   syncImageReferences();
@@ -1069,6 +1079,10 @@ for(const [copy,real] of [
 }
 $('composer-review-queue').onclick=()=>{$('active').open=true;$('active').scrollIntoView({behavior:'smooth',block:'start'});$('active').querySelector('summary')?.focus();};
 $('image-composer-generate').onclick=()=>{if(!busy&&tool==='image')$('generate').click();};
+$('image-composer-moods-clear').onclick=event=>{
+  event.preventDefault();event.stopPropagation();
+  if(!busy&&moodUI.active())moodUI.clear();
+};
 $('image-composer-edit-area').onclick=()=>{
   if(busy||tool!=='image')return;
   const photo=imageBaseForRetouch();
