@@ -248,8 +248,18 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
   const eightyCore=compact80s
     ?intensity<=34?mood.compactLow:intensity<=69?mood.compactMid:mood.compact
     :intensity<=34?mood.lowDirection:intensity<=69?mood.midDirection:mood.direction;
+  // Select one morphology for each invocation so the model receives a concrete
+  // physical design choice, not merely an instruction to be random.
+  const syntheticMorphologies=[
+    'SELECTED MORPHOLOGY: recognizable human face, surgically integrated temples, neck, exposed cable spine and engineered shoulders.',
+    'SELECTED MORPHOLOGY: human face emerging from an almost entirely black-chrome android body with articulated torso and limbs.',
+    'SELECTED MORPHOLOGY: asymmetrical synthetic anatomy, partial organic skin, exposed functional cabling and intricate mechanical joints.',
+    'SELECTED MORPHOLOGY: nearly complete humanoid robot with precise cranial plating, subtle human facial structure and complex internal mechanisms.',
+    'SELECTED MORPHOLOGY: restrained facial modification with radical torso and arm reconstruction, layered smoked-metal plates and routed cables.'
+  ];
+  const syntheticMorphology=syntheticRomance&&intensity>=35?syntheticMorphologies[Math.floor(Math.random()*syntheticMorphologies.length)]:'';
   const style=syntheticRomance
-    ?[mood.direction,'Creative intensity '+intensity+'/100: physical reconstruction, NOT a pixel filter.',mood[dreamcoreKey]].join(' ')
+    ?[mood.direction,syntheticMorphology,'Creative intensity '+intensity+'/100: physical reconstruction, NOT a pixel filter.',mood[dreamcoreKey]].join(' ')
     :berlinRave
     ?[compactBerlinRave?mood.compact:mood.direction,
       'Creative intensity '+intensity+'/100: a real outfit transformation, NOT a pixel-opacity filter.',
