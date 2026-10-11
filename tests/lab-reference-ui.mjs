@@ -183,6 +183,17 @@ try{
     'The original viewer must not upscale a compressed thumbnail');
   assert.deepEqual(await x.page.locator('#image-source-preview').evaluate(img=>[img.naturalWidth,img.naturalHeight]),[3072,2048],
     'Opening the preview restores the 3072 × 2048 source, not a 320 px thumbnail');
+  await x.page.waitForFunction(()=>!document.querySelector('#image-source-download').disabled);
+  const originalRequestsBefore=x.requests.filter(r=>r.path==='/api/assets/'+job.sourceId).length;
+  const downloadedSource=x.page.waitForEvent('download');
+  await x.page.locator('#image-source-download').click();
+  const downloaded=await downloadedSource;
+  assert.equal(downloaded.suggestedFilename(),'parallel-vision-source-'+job.sourceId+'.png',
+    'Source download must use the original file format and a distinct name');
+  assert.deepEqual(readFileSync(await downloaded.path()),input,
+    'Download original must contain the exact uploaded image bytes, not WebP thumbnail bytes');
+  assert.equal(x.requests.filter(r=>r.path==='/api/assets/'+job.sourceId).length,originalRequestsBefore,
+    'Downloading an already-open original must not request the full file again');
   assert.equal(await x.page.locator('#image-source-fit').isEnabled(),true);
   await x.page.locator('#image-source-fit').click();
   assert.equal(await x.page.locator('#image-source-stage').evaluate(el=>el.classList.contains('is-zoomed')),true);
