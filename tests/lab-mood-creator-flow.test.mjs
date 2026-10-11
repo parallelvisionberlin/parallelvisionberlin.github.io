@@ -148,7 +148,7 @@ test('Art Direction flows naturally and keeps settings with Save actions',()=>{
   assert.doesNotMatch(css,/--mc-deck-height|scroll-snap-type|overflow-y:auto;overflow-x:hidden/);
   assert.match(css,/\.mc-direction-footer\{[\s\S]*?border-top:1px solid #4e5850/);
   assert.match(css,/@media\(max-width:820px\)\{[\s\S]*?\.mc-direction\{display:flex;flex-direction:column;height:auto/);
-  assert.match(page,/mood-creator\.css\?v=20261011-open-workspace6/);
+  assert.match(page,/mood-creator\.css\?v=20261011-mobile-entry7/);
   assert.match(page,/all selected Moodboard previews and your idea go to Google's AI service/);
   assert.match(js,/save\.onclick=\(\)=>void saveMood\(\)/);
   assert.match(js,/use\.onclick=\(\)=>void \(async\(\)=>\{/);
