@@ -41,7 +41,10 @@ async function workspace({ width=1440, jobs=[], fallback=false }={}) {
       const b=r.postDataBuffer(),id='30000000-0000-4000-8000-'+String(sequence++).padStart(12,'0');
       uploads.push({id,bytes:b.length,sha:createHash('sha256').update(b).digest('hex'),name:decodeURIComponent(r.headers()['x-filename']),type:r.headers()['content-type']});response={id};
     }else if(path==='/api/drafts')response={id:'saved-draft'};
-    else if(path.startsWith('/api/assets/')){await route.fulfill({status:200,contentType:'image/png',body:path.endsWith(outputId)?output:small});return;}
+    else if(path.startsWith('/api/assets/')){
+      const bytes=path.endsWith(outputId)?output:path.endsWith('/thumbnail')?small:path===('/api/assets/'+job.sourceId)?input:small;
+      await route.fulfill({status:200,contentType:'image/png',body:bytes});return;
+    }
     else{await route.fulfill({status:500,contentType:'application/json',body:JSON.stringify({error:'Unexpected request '+path})});return;}
     await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(response)});
   });
@@ -176,8 +179,10 @@ try{
   const originalThumbUrl=await x.page.locator('#image-detail-reference-thumb').getAttribute('src');
   await x.page.locator('#image-detail-reference-wrap').click();
   await x.page.waitForFunction(()=>document.querySelector('#image-source-lightbox').open&&document.querySelector('#image-source-preview').naturalWidth>0);
-  assert.equal(await x.page.locator('#image-source-preview').getAttribute('src'),originalThumbUrl,
-    'Original viewer must reuse the stored private source photo rather than the generated output');
+  assert.notEqual(await x.page.locator('#image-source-preview').getAttribute('src'),originalThumbUrl,
+    'The original viewer must not upscale a compressed thumbnail');
+  assert.deepEqual(await x.page.locator('#image-source-preview').evaluate(img=>[img.naturalWidth,img.naturalHeight]),[3072,2048],
+    'Opening the preview restores the 3072 × 2048 source, not a 320 px thumbnail');
   assert.equal(await x.page.locator('#image-source-fit').isEnabled(),true);
   await x.page.locator('#image-source-fit').click();
   assert.equal(await x.page.locator('#image-source-stage').evaluate(el=>el.classList.contains('is-zoomed')),true);
