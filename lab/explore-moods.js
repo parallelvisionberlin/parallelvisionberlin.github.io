@@ -1,4 +1,4 @@
-import {moodById} from './moods.js?v=20261011-berlin-rave-v2';
+import {moodById} from './moods.js?v=20261011-berlin-rave-v2b';
 import {saveMoodHandoff,validateMoodHandoff} from './mood-handoff.js?v=20261011-discovery1';
 // Discovering and selecting a look must never perform a paid generation.
 export function moodExploreDestination(moodId,{create=false,handoff=null}={}){
