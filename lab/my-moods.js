@@ -88,6 +88,7 @@ export function createMyMoods({api,assetBlob,moodUI,notify,active}){
     const existing=mode==='edit',adding=mode==='add';
     targetRow.hidden=existing||!fromJob;
     for(const el of form.querySelectorAll('.moodboard-config'))el.hidden=adding;
+    name.required=!adding;
     remove.hidden=!existing;
     title.textContent=existing?'Edit your Mood':adding?'Add to Mood':'Create a Mood';
     save.textContent=existing?'Save changes':adding?'Add image to Mood':'Save Mood';
@@ -145,8 +146,9 @@ export function createMyMoods({api,assetBlob,moodUI,notify,active}){
           if(editing)await api('/api/moodboards/'+encodeURIComponent(editing.id),{method:'POST',body:payload});
           else await api('/api/moodboards',{method:'POST',body:payload});
         }
+        const wasEditing=!!editing;
         dialog.close();await refresh();
-        notify(selected?'Image added to '+selected.name+'.':editing?'Mood updated.':'Mood saved to My Moods. No generation charged.');
+        notify(selected?'Image added to '+selected.name+'.':wasEditing?'Mood updated.':'Mood saved to My Moods. No generation charged.');
       }catch(error){flash(error.message,true);}
       finally{saving=false;save.disabled=false;remove.disabled=false;}
     })();
