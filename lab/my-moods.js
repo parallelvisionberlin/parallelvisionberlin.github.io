@@ -135,10 +135,8 @@ export function createMyMoods({api,assetBlob,moodUI,notify,active}){
     name.value='';direction.value='';
     base.value=moodById(settings.moodId)?.id||existingCustom?.baseMoodId||'';
     intensity.value=String(settings.moodIntensity||existingCustom?.intensity||60);
-    if(!base.value&&job){
-      // User-authored text only; never expose compiled private provider instructions.
-      direction.value=userFacingImagePrompt(settings).slice(0,900);
-    }
+    // The result's written prompt may describe a subject, not a reusable style.
+    // Never silently turn that into the saved Mood's style direction.
     setMode(target.value?'add':'create');
     void renderImages();
     if(!dialog.open)dialog.showModal();
@@ -175,6 +173,13 @@ export function createMyMoods({api,assetBlob,moodUI,notify,active}){
       saving=true;save.disabled=true;remove.disabled=true;flash('Saving to your private account…');
       try{
         const selected=fromJob&&target.value?find(target.value):null;
+        const proposed=selected?null:getPayload();
+        if(proposed){
+          if(!proposed.name)throw Error('Give this Mood a name.');
+          if(!proposed.direction&&!proposed.baseMoodId)throw Error('Write a style direction or choose a curated Mood.');
+        }
+        if((selected?selected.imageIds.length:stagedIds.length)+stagedFiles.length>12)
+          throw Error('A Mood can contain at most 12 images.');
         const uploadedIds=await uploadStagedFiles();
         if(selected){
           const ids=[...new Set([...selected.imageIds,...stagedIds,...uploadedIds])];
@@ -183,11 +188,8 @@ export function createMyMoods({api,assetBlob,moodUI,notify,active}){
             name:selected.name,direction:selected.direction,baseMoodId:selected.baseMoodId,intensity:selected.intensity,imageIds:ids
           }});
         }else{
-          const payload=getPayload();
-          payload.imageIds=[...new Set([...payload.imageIds,...uploadedIds])];
+          const payload={...proposed,imageIds:[...new Set([...proposed.imageIds,...uploadedIds])]};
           if(payload.imageIds.length>12)throw Error('A Mood can contain at most 12 images.');
-          if(!payload.name)throw Error('Give this Mood a name.');
-          if(!payload.direction&&!payload.baseMoodId)throw Error('Write a style direction or choose a curated Mood.');
           if(editing)await api('/api/moodboards/'+encodeURIComponent(editing.id),{method:'POST',body:payload});
           else await api('/api/moodboards',{method:'POST',body:payload});
         }
