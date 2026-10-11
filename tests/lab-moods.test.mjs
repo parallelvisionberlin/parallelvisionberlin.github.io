@@ -214,6 +214,8 @@ test('Moods stays inside the viewport and reserves room for the floating compose
   assert.match(js,/function fitPanelViewport\(\)/);
   assert.match(js,/ResizeObserver\(refreshViewport\)/);
   assert.match(js,/backdrop\.onclick=\(\)=>close\(true\)/);
+  assert.match(js,/document\.addEventListener\('click',event=>\{/);
+  assert.match(js,/event\.preventDefault\(\);event\.stopPropagation\(\);\s*close\(true\)/);
   assert.match(js,/event\.key==='Escape'/);
   assert.match(html,/id="composer-moods-backdrop" class="composer-moods-backdrop" aria-hidden="true" hidden/);
   assert.match(html,/id="composer-moods" class="composer-moods" role="dialog"/);
