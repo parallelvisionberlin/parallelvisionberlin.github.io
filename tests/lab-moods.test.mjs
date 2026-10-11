@@ -4,6 +4,21 @@ import {MOODS,MOOD_MODELS,moodById,prepareMoodPrompt,preparePersonalMoodPrompt,u
 import {readFileSync} from 'node:fs';
 import {compileImagePrompt} from '../lab/reference-guidance.js';
 
+test('Synthetic Romance is an invasive physical transformation with identity-aware preservation',()=>{
+  const mood=moodById('synthetic-romance');
+  assert.equal(mood.category,'Cinema');
+  assert.equal(mood.defaultIntensity,82);
+  assert.match(mood.preview,/synthetic-romance-canon-kiss/);
+  const base=prepareMoodPrompt('',mood.id,82,{engine:'seedream',referenceCount:1});
+  assert.equal(base.error,'');
+  assert.match(base.prompt,/INVASIVE PHYSICAL BODY TRANSFORMATION/);
+  assert.match(base.prompt,/ALLOW replacement of wardrobe, skin, limbs/);
+  assert.match(base.prompt,/70-89% \/ MAJOR SYNTHETIC RECONSTRUCTION/);
+  assert.doesNotMatch(base.prompt,/Preserve face, identity, real body proportions, pose, camera, wardrobe and composition/);
+  assert.deepEqual(base.metadata,{moodId:'synthetic-romance',moodIntensity:82,moodOriginalPrompt:''});
+  assert.match(prepareMoodPrompt('A portrait',mood.id,100,{engine:'gemini'}).prompt,/TOTAL SYNTHETIC LIBERATION/);
+});
+
 test('My Moods reuse saved visual direction, not hidden board image references',()=>{
   const id='30000000-0000-4000-8000-000000000012';
   const board={id,name:'Liquid Memory',direction:'Pearlescent skin, humid cyan reflections, analog fog',baseMoodId:'dreamcore',intensity:85,imageIds:['30000000-0000-4000-8000-000000000003']};
@@ -85,7 +100,7 @@ test('Moods category filters have readable touch targets and preserve thumbnail 
 });
 
 test('exactly twelve unique curated moods with imagery',()=>{
-  assert.equal(MOODS.length,12);
+  assert.equal(MOODS.length,14);
   assert.equal(new Set(MOODS.map(m=>m.id)).size,12);
   for(const mood of MOODS)for(const field of ['name','category','preview','direction','subtle','intense','avoid'])assert.ok(mood[field]);
 });
@@ -257,7 +272,7 @@ test('Twelve moods are available, ten initially visible and Sumi-e last',()=>{
   const css=readFileSync(new URL('../lab/moods.css',import.meta.url),'utf8');
   const js=readFileSync(new URL('../lab/moods.js',import.meta.url),'utf8');
   const html=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
-  assert.equal(MOODS.length,12);
+  assert.equal(MOODS.length,14);
   assert.deepEqual(MOODS.slice(9).map(m=>m.id),['dreamcore','hyper-pop','sumi-ink']);
   assert.match(css,/\.moods-grid\{display:grid;grid-template-columns:repeat\(5,minmax\(0,1fr\)\)/);
   assert.match(css,/scrollbar-gutter:stable/);
@@ -384,7 +399,7 @@ test('Preview-first Moods deck enlarges photos while keeping original slider and
   assert.match(css,/#composer-moods-done,[\s\S]*?#composer-moods-switch\{[\s\S]*?min-height:48px/);
   assert.match(css,/max-height:min\(720px,var\(--moods-available-height/);
   assert.match(html,/moods\.css\?v=20261011-preview-first2/);
-  assert.equal(MOODS.length,12);
+  assert.equal(MOODS.length,14);
 });
 
 
