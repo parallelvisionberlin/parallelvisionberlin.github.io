@@ -106,7 +106,7 @@ document.addEventListener('DOMContentLoaded',()=>{
         <button id="resolve" class="quiet" type="button" hidden>Resolve interrupted request</button>
       </div>
     </details><button id="lab-wallet-toggle" class="lab-wallet-toggle" type="button" hidden>Credits</button><details class="account-menu"><summary>Account</summary><div class="account-options"><button id="connection" class="quiet" hidden>Connection</button><button id="studio-invite-friends" class="quiet" type="button" hidden>Invite friends</button><button id="logout" class="quiet" hidden>Sign out</button></div></details></div></div></header>
-<dialog id="lab-credits-dialog" class="lab-credit-dialog" aria-label="Your PV Lab credits"><header><strong>Lab credits</strong><button id="lab-credits-close" type="button" aria-label="Close wallet">×</button></header><p>Every generation reserves credits based on its cost. Failed submissions are automatically refunded when the provider confirms failure.</p><div class="credit-balance" id="lab-credit-balance">0 credits</div><button id="lab-credit-invite" class="lab-wallet-invite" type="button">Invite friends <span>Earn 200 credits each ↗</span></button><div class="lab-credit-list" id="lab-credit-products"></div><div class="lab-strip-actions"><button id="lab-credit-refresh" type="button">Refresh balance</button> <button id="lab-credit-manage" type="button">Manage subscription</button></div><p class="lab-wallet-state" id="lab-wallet-state" role="status"></p></dialog><dialog id="lab-referrals-dialog" class="lab-credit-dialog lab-referrals-dialog" aria-labelledby="lab-referral-title"><header><strong>INVITE / PV LAB</strong><button id="lab-referrals-close" type="button" aria-label="Close invitations">×</button></header><section class="lab-referral-panel" aria-labelledby="lab-referral-title"><span class="lab-referral-eyebrow">Invite friends</span><h2 id="lab-referral-title">Give 200. Get 200.</h2><p>Share PV Lab with a friend. When they make their first purchase of €10 or more, you each receive 200 bonus credits.</p><div class="lab-referral-link-row"><input type="text" id="lab-referral-url" aria-label="Your personal referral link" placeholder="Your invite link" readonly><button type="button" id="lab-referral-copy" disabled>Copy link</button></div><p id="lab-referral-stats" class="lab-referral-stats"></p><p id="lab-referral-status" class="lab-referral-status" role="status"></p></section></dialog>
+<dialog id="lab-credits-dialog" class="lab-credit-dialog" aria-label="Your PV Lab credits"><header><strong>Lab credits</strong><button id="lab-credits-close" type="button" aria-label="Close wallet">×</button></header><p>Every generation reserves credits based on its cost. Failed submissions are automatically refunded when the provider confirms failure.</p><div class="credit-balance" id="lab-credit-balance">0 credits</div><button id="lab-credit-invite" class="lab-wallet-invite" type="button">Invite friends <span>Earn 200 credits each</span></button><div class="lab-credit-list" id="lab-credit-products"></div><div class="lab-strip-actions"><button id="lab-credit-refresh" type="button">Refresh balance</button> <button id="lab-credit-manage" type="button">Manage subscription</button></div><p class="lab-wallet-state" id="lab-wallet-state" role="status"></p></dialog><dialog id="lab-referrals-dialog" class="lab-credit-dialog lab-referrals-dialog" aria-labelledby="lab-referral-title"><header><strong>INVITE / PV LAB</strong><button id="lab-referrals-close" type="button" aria-label="Close invitations">×</button></header><section class="lab-referral-panel" aria-labelledby="lab-referral-title"><span class="lab-referral-eyebrow">Invite friends</span><h2 id="lab-referral-title">Give 200. Get 200.</h2><p>Share PV Lab with a friend. When they make their first purchase of €10 or more, you each receive 200 bonus credits.</p><div class="lab-referral-link-row"><input type="text" id="lab-referral-url" aria-label="Your personal referral link" placeholder="Your invite link" readonly><button type="button" id="lab-referral-copy" disabled>Copy link</button></div><p id="lab-referral-stats" class="lab-referral-stats"></p><p id="lab-referral-status" class="lab-referral-status" role="status"></p></section></dialog>
 <main class="wrap" id="main">
 
 <section id="gate" class="gate" hidden><div class="intro"><div><p class="eyebrow">Private creative workspace</p><h1>Parallel Vision Lab</h1></div><p class="intro-note">Create, queue and refine.<br>Keep working while jobs run.</p></div><p class="eyebrow">Your creative workspace</p><h2>Make an image. Build a world.</h2><p id="auth-status" role="status">Loading your Parallel Vision sign-in…</p><button id="signin" class="primary" disabled>Sign in</button><button id="auth-retry" type="button" class="quiet" hidden>Reload page</button><p class="fine">Create a private account or sign in with Google through Clerk. Your projects are yours.</p></section>
@@ -117,7 +117,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 <section id="precision-workspace" class="precision-workspace" aria-label="Retouch, precision editing workspace" hidden>
     <header class="precision-head">
       <div><span class="precision-eyebrow">PV LAB / RETOUCH / PRECISION EDIT</span><h2>Retouch</h2><p>Change only what you select. Keep the original everywhere else.</p></div>
-      <div class="precision-head-actions"><span class="precision-method">SAM 3 <span>+</span> FLUX</span><button id="precision-return" type="button" aria-label="Back to Image studio"><span aria-hidden="true">←</span> Back to Image</button></div>
+      <div class="precision-head-actions"><span class="precision-method">SAM 3 <span>+</span> FLUX</span><button id="precision-return" type="button" aria-label="Back to Image studio"> Back to Image</button></div>
     </header>
     <p id="precision-access-note" class="precision-access-note" role="status" hidden>Retouch preview. Magic Select and paid generation are not available on customer accounts yet.</p>
     <div class="precision-board">
@@ -128,8 +128,8 @@ document.addEventListener('DOMContentLoaded',()=>{
           <strong>Drop a photograph</strong>
           <span>One image. Change only what you select.</span>
           <div class="precision-drop-actions">
-            <button id="precision-browse-photo" type="button">Choose photo <span aria-hidden="true">↗</span></button>
-            <button id="precision-try-sample" type="button">Try with a sample <span aria-hidden="true">↗</span></button>
+            <button id="precision-browse-photo" type="button">Choose photo </button>
+            <button id="precision-try-sample" type="button">Try with a sample </button>
           </div>
           <small>JPG, PNG, WebP · Maximum 20 MiB</small>
         </div>
@@ -186,8 +186,8 @@ document.addEventListener('DOMContentLoaded',()=>{
         <div class="precision-compare-row">
           <span id="precision-compare-idle" class="precision-compare-idle">Original preserved · Result will appear here</span>
           <label id="precision-compare-control" for="precision-compare" hidden>Before <input id="precision-compare" type="range" min="0" max="100" value="100" aria-label="Compare original and edited image" disabled> After</label>
-          <button id="precision-continue" type="button" disabled hidden>Continue editing ↗</button>
-          <button id="precision-download" type="button" disabled hidden>Download PNG ↗</button>
+          <button id="precision-continue" type="button" disabled hidden>Continue editing</button>
+          <button id="precision-download" type="button" disabled hidden>Download PNG</button>
         </div>
       </section>
     </div>
@@ -196,7 +196,7 @@ document.addEventListener('DOMContentLoaded',()=>{
         <button id="precision-tool-magic" class="is-selected" type="button" aria-pressed="true">✦ Magic select</button>
         <button id="precision-tool-brush" type="button" aria-pressed="false">＋ Add brush</button>
         <button id="precision-tool-erase" type="button" aria-pressed="false">− Erase</button>
-        <button id="precision-expand" type="button" title="Grow the selected region">↗ Expand</button>
+        <button id="precision-expand" type="button" title="Grow the selected region"> Expand</button>
         <button id="precision-undo" type="button" disabled>↶ Undo</button>
         <button id="precision-clear-mask" type="button" disabled>Clear</button>
       </div>
@@ -209,10 +209,10 @@ document.addEventListener('DOMContentLoaded',()=>{
       </div>
       <div class="precision-bottom">
         <div class="precision-strength" title="Lower strength keeps more of the selected area's existing appearance. Higher strength allows more change, always limited to the selection."><label for="precision-strength">Edit strength <span aria-hidden="true">ⓘ</span></label><input id="precision-strength" type="range" min=".3" max="1" step=".05" value=".75" aria-label="Edit strength. Lower keeps more original detail, higher allows more change"><output id="precision-strength-value">0.75</output></div>
-        <button id="precision-generate" type="button" disabled>Review price <span aria-hidden="true">↗</span></button>
+        <button id="precision-generate" type="button" disabled>Review price </button>
       </div>
       <div class="precision-deck-meta">
-        <div class="precision-status"><strong>Precision Edit <span>/ FLUX Inpainting</span></strong><span id="precision-price-note">Add photo → Select area → Describe edit → Review price</span></div>
+        <div class="precision-status"><strong>Precision Edit <span>/ FLUX Inpainting</span></strong><span id="precision-price-note">Add photo · Select area · Describe edit · Review price</span></div>
         <p id="precision-status-text" class="precision-status-text" role="status" aria-live="polite"></p>
         <label id="precision-export-option" class="precision-export-option" hidden>
           <input id="precision-allow-jpeg" type="checkbox">
@@ -280,8 +280,8 @@ document.addEventListener('DOMContentLoaded',()=>{
             <div class="moods-scale" aria-hidden="true"><span>Subtle</span><span>Balanced</span><span>Strong</span></div>
           </div>
           <div class="moods-actions">
-            <button id="composer-moods-switch" type="button" hidden>Use Seedream <span aria-hidden="true">→</span></button>
-            <button id="composer-moods-done" type="button">Use mood <span aria-hidden="true">→</span></button>
+            <button id="composer-moods-switch" type="button" hidden>Use Seedream </button>
+            <button id="composer-moods-done" type="button">Use mood </button>
           </div>
         </div>
         <p id="composer-moods-compat" class="moods-compat" role="status" hidden></p>
@@ -309,7 +309,7 @@ document.addEventListener('DOMContentLoaded',()=>{
         <span class="reference-same-person-mark" aria-hidden="true">◎</span><span><strong>Same person</strong><small>Use Identity for all supporting photos. Adjust each role anytime.</small></span>
       </button>
       <p class="reference-intent-help" id="reference-intent-help">Roles can be changed directly on the thumbnails.</p>
-      <button id="composer-reference-advanced" class="reference-intent-advanced" type="button">Fine-tune roles &amp; notes <span aria-hidden="true">↗</span></button>
+      <button id="composer-reference-advanced" class="reference-intent-advanced" type="button">Fine-tune roles &amp; notes </button>
       <details class="composer-role-preview" id="composer-role-preview"><summary>View model instructions</summary><span id="composer-role-preview-count"></span><pre id="composer-role-preview-text"></pre><p id="composer-role-preview-warning" hidden></p><small>These role instructions travel with the selected image order. A role is guidance, not a guarantee.</small></details>
     </section>
     <div class="image-composer-top">
@@ -327,7 +327,7 @@ document.addEventListener('DOMContentLoaded',()=>{
         <div id="image-composer-model-menu" class="composer-model-menu" hidden>
           <label class="composer-model-search"><span class="visually-hidden">Search models</span><input id="image-composer-model-search" type="search" placeholder="Search models..." autocomplete="off"></label>
           <div id="image-composer-model-items" class="composer-model-items"></div>
-          <div class="composer-model-footer"><button id="image-composer-train" type="button">Create / manage characters <span aria-hidden="true">↗</span></button></div>
+          <div class="composer-model-footer"><button id="image-composer-train" type="button">Create / manage characters </button></div>
         </div>
       </div>
       <button id="image-composer-edit-area" type="button" class="composer-settings-pill" title="Edit just one selected area" aria-label="Open Retouch and edit a selected area">◈ Retouch</button>
@@ -387,7 +387,7 @@ document.addEventListener('DOMContentLoaded',()=>{
           <button id="image-detail-reference-wrap" class="image-detail-reference-wrap" type="button" aria-label="Open original source image at full size" aria-haspopup="dialog" title="View original image" hidden>
             <img id="image-detail-reference-thumb" alt="" width="62" height="75" hidden>
             <span id="image-detail-reference-caption">Source photo</span>
-            <span class="image-detail-reference-open-mark" aria-hidden="true">View ↗</span>
+            <span class="image-detail-reference-open-mark" aria-hidden="true">View</span>
           </button>
           <p id="image-detail-prompt" class="image-detail-prompt"></p>
           <button id="image-detail-expand" class="image-detail-expand" type="button" aria-expanded="false" hidden>Show more <span aria-hidden="true">⌄</span></button>
@@ -435,7 +435,7 @@ document.addEventListener('DOMContentLoaded',()=>{
       <button id="image-source-back" type="button" title="Return to generated result" aria-label="Back to generated result"><span aria-hidden="true">‹</span> Back to result</button>
       <strong id="image-source-title">Original image</strong>
       <div class="image-source-tools">
-        <button id="image-source-download" type="button" title="Download the full-resolution original photograph" aria-label="Download original image" disabled><span aria-hidden="true">↓</span> <span class="image-source-download-long">Download original</span><span class="image-source-download-short">Download</span></button>
+        <button id="image-source-download" type="button" title="Download the full-resolution original photograph" aria-label="Download original image" disabled> <span class="image-source-download-long">Download original</span><span class="image-source-download-short">Download</span></button>
         <button id="image-source-fit" type="button" aria-pressed="false" title="Toggle actual size">Fit</button>
         <button id="image-source-close" type="button" aria-label="Close original image viewer" title="Close original image viewer">×</button>
       </div>
@@ -594,8 +594,8 @@ document.addEventListener('DOMContentLoaded',()=>{
   <p class="empty-title" id="empty-title">Your next scene starts here.</p>
   <small class="empty-description" id="empty-description">Begin with a still, then shape its motion, light and atmosphere.</small>
   <div class="empty-actions">
-    <button id="canvas-import" type="button" class="canvas-import">Choose start frame <span aria-hidden="true">↗</span></button>
-    <button id="canvas-secondary" type="button" class="canvas-secondary">Create an image first <span aria-hidden="true">↗</span></button>
+    <button id="canvas-import" type="button" class="canvas-import">Choose start frame </button>
+    <button id="canvas-secondary" type="button" class="canvas-secondary">Create an image first </button>
   </div>
   <span class="empty-footnote" id="empty-footnote" hidden></span>
 </div><img id="preview" alt="Selected source image" hidden><video id="video" controls playsinline preload="metadata" hidden></video></div><div class="stagefoot"><span id="settings-summary">15 seconds / 1080p</span><button id="download" class="quiet" hidden>Download result</button></div></section>
@@ -656,7 +656,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 <button id="soul-pro-clear-identity" type="button" class="secondary full">Clear active reference photos</button>
 </form>
 </dialog>
-<dialog id="connect-dialog" aria-labelledby="connect-title"><form id="connect-form"><div class="dialoghead"><h2 id="connect-title">Generation connection</h2><button type="button" class="quiet" data-close="connect-dialog">Close</button></div><p>Wan 3.0 and Seedance 2.5 handle video. Seedream 5.0 Pro handles images and reference-based edits. Image Upscaler enlarges a finished image. Your existing provider key is used for these tools. Image Generate starts your selected image count at the live provider price. Upscale starts one paid upscaling job per click without a price-review popup. Video keeps price review before payment. Your computer does not render the media.</p><p class="fine">Provider access, permitted content and model availability must be checked in your own account. A model name alone does not guarantee unrestricted use. No safety filters are bypassed by this Lab.</p><p><a href="https://spicyapi.ai" target="_blank" rel="noopener noreferrer">Open provider ↗</a> · <a href="https://docs.spicyapi.ai/docs/api-reference" target="_blank" rel="noopener noreferrer">API documentation ↗</a></p>
+<dialog id="connect-dialog" aria-labelledby="connect-title"><form id="connect-form"><div class="dialoghead"><h2 id="connect-title">Generation connection</h2><button type="button" class="quiet" data-close="connect-dialog">Close</button></div><p>Wan 3.0 and Seedance 2.5 handle video. Seedream 5.0 Pro handles images and reference-based edits. Image Upscaler enlarges a finished image. Your existing provider key is used for these tools. Image Generate starts your selected image count at the live provider price. Upscale starts one paid upscaling job per click without a price-review popup. Video keeps price review before payment. Your computer does not render the media.</p><p class="fine">Provider access, permitted content and model availability must be checked in your own account. A model name alone does not guarantee unrestricted use. No safety filters are bypassed by this Lab.</p><p><a href="https://spicyapi.ai" target="_blank" rel="noopener noreferrer">Open provider</a> · <a href="https://docs.spicyapi.ai/docs/api-reference" target="_blank" rel="noopener noreferrer">API documentation</a></p>
 <label class="label" for="api-key">Your SpicyAPI key</label><input id="api-key" type="password" autocomplete="off" spellcheck="false" placeholder="Paste here, not in chat"><p class="fine" id="key-note">Stored encrypted on your private backend. Never committed to GitHub or saved in browser storage.</p>
 <label class="label" for="daily-limit">Daily generation budget (USD)</label><input id="daily-limit" type="number" min="1" max="100" step="0.01" value="10"><p class="fine">UTC day. This Lab conservatively counts quoted maximums, including failed or uncertain attempts. Also set limits on the provider API key. Provider invoices remain the billing authority.</p>
 <label class="check"><input id="terms" type="checkbox" required> I have checked that my provider account and its terms allow my intended content, and I have the necessary rights and consent for my inputs.</label>
