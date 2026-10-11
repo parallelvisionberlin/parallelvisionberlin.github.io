@@ -2129,6 +2129,7 @@ $('image-source-preview').onerror=()=>{
   $('image-source-dimensions').textContent='ORIGINAL IMAGE UNAVAILABLE';
 };
 $('image-source-lightbox').addEventListener('close',()=>{
+  if($('image-source-lightbox').open)return; // Ignore a delayed close event if already reopened.
   $('image-source-preview').removeAttribute('src');
   $('image-source-stage').classList.remove('is-zoomed');
   $('image-source-stage').setAttribute('aria-busy','false');
