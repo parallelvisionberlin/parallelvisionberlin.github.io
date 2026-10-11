@@ -161,7 +161,28 @@ try{
   await x.page.locator('#reference-images').setInputFiles({name:'base.png',mimeType:'image/png',buffer:png});
   await waitRefs(x.page,1);
   await x.page.click('#image-composer-moods');
-  await x.page.locator('.moods-card[aria-label="Select Hong Kong Nights"]').click();
+  const beforeMood=await x.page.evaluate(()=>{
+    const modal=document.querySelector('#composer-moods');
+    const card=document.querySelector('.moods-card-media');
+    const footer=document.querySelector('.moods-footer');
+    const slider=document.querySelector('#composer-moods-intensity');
+    const action=document.querySelector('#composer-moods-done');
+    const box=modal.getBoundingClientRect(),photo=card.getBoundingClientRect();
+    return {top:box.top,modalHeight:box.height,footerHeight:footer.getBoundingClientRect().height,
+      photoRatio:photo.width/photo.height,sliderHeight:slider.getBoundingClientRect().height,actionHeight:action.getBoundingClientRect().height};
+  });
+  assert.ok(beforeMood.top>=20,'Moods window must not touch the upper viewport border: '+JSON.stringify(beforeMood));
+  assert.ok(Math.abs(beforeMood.photoRatio-1.25)<0.025,'Thumbnails should have taller 5:4 editorial framing: '+JSON.stringify(beforeMood));
+  assert.ok(beforeMood.footerHeight<=113,'Footer should not dominate the gallery: '+JSON.stringify(beforeMood));
+  assert.ok(beforeMood.sliderHeight>=25&&beforeMood.actionHeight>=40,'Intensity and main button must not shrink: '+JSON.stringify(beforeMood));
+  const hongKong=x.page.locator('.moods-card[aria-label="Select Hong Kong Nights"]');
+  await hongKong.click();
+  assert.equal(await hongKong.getAttribute('aria-pressed'),'true');
+  await hongKong.click();
+  assert.equal(await hongKong.getAttribute('aria-pressed'),'false','Clicking the selected mood again deselects it.');
+  assert.equal(await x.page.locator('#composer-moods-summary').innerText(),'Select a mood');
+  assert.equal(await x.page.locator('#composer-moods-done').isDisabled(),true);
+  await hongKong.click();
   await x.page.locator('#composer-moods-done').click();
   assert.equal(await x.page.locator('#image-composer-moods-clear').isVisible(),true,'Active mood must have a direct removal control');
   await x.page.evaluate(()=>{const el=document.querySelector('#image-engine');el.value='gemini';el.dispatchEvent(new Event('change',{bubbles:true}));});

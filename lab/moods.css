@@ -171,3 +171,32 @@
   #image-composer #composer-moods-switch{gap:6px}
 }
 @media(prefers-reduced-motion:reduce){#image-composer .composer-moods *{scroll-behavior:auto}}
+
+
+/* Gallery-first desktop footer: give the ten visible previews more visual room
+   by combining secondary actions, not by shrinking the intensity control or CTA.
+   The overlay's viewport geometry still owns the top clearance. */
+@media(min-width:741px){
+  .moods-card-media{aspect-ratio:5/4}
+  .moods-filters{padding-bottom:10px}
+  .moods-footer{gap:3px;padding-top:7px}
+  .moods-footer-heading{min-height:20px;gap:8px}
+  .moods-current{display:flex;align-items:center;gap:9px;min-width:0;min-height:20px}
+  .moods-current-label{flex:0 0 auto;white-space:nowrap}
+  .moods-selected{margin-top:0;line-height:1.2}
+  .moods-strength{gap:3px}
+  .moods-actions{
+    display:grid;grid-template-columns:48px minmax(0,1fr);
+    align-items:center;column-gap:6px;row-gap:2px;min-width:0
+  }
+  #image-composer #composer-moods-done,
+  #image-composer #composer-moods-switch{
+    grid-column:1/-1;min-height:40px;padding:9px 12px
+  }
+  #image-composer #composer-moods-none{
+    grid-column:1;min-height:19px;padding:0;white-space:nowrap;
+    font-size:10px;text-align:left
+  }
+  .moods-actions>.moods-about{grid-column:2;min-width:0;min-height:19px;justify-content:flex-end}
+  #image-composer #composer-moods-about{gap:4px;font-size:10px}
+}

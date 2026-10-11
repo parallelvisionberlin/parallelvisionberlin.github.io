@@ -239,7 +239,7 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
     const title=document.createElement('strong');title.textContent=mood.name;
     const subtitle=document.createElement('small');subtitle.textContent=mood.description;info.append(title,subtitle);
     card.append(media,info);
-    card.onclick=()=>{selected=mood.id;render();onChange();};
+    card.onclick=()=>{selected=selected===mood.id?null:mood.id;render();onChange();};
     grid.append(card);cards.set(mood.id,card);
   }
   function render(){
