@@ -175,7 +175,14 @@ const ALL_MOODS=Object.freeze([
     "immersive": "70-89% / MAJOR SYNTHETIC RECONSTRUCTION: extensively replace the visible body with functional biomechanical construction, chrome and routed cables. Keep the human face if suitable, with a visible physical transition into the machinery. Bold industrial film atmosphere, source pose and identity respected.",
     "intense": "90-99% / RADICAL ANDROID: transform nearly the entire visible body into engineered reflective dark metal, retaining recognizable human facial cues where possible. Expose meaningful cables, mechanical joints and intricate assembly. Rebuild atmosphere and background as a credible aged 1980s industrial film set.",
     "climax": "100% / TOTAL SYNTHETIC LIBERATION: full artistic freedom for a breathtaking cyborg or android transformation. Human face can remain within a fully engineered head and body, or become partly synthetic; retain enough source facial structure to anchor identity if Lock Identity is requested. Extreme physical reconstruction, never a generic robot suit. Cinematic analog realism and restrained color remain nonnegotiable.",
-    "avoid": "generic cyberpunk, neon city, Blade Runner scene recreation, flying cars, holograms, luminous circuit skin, glowing eyes by default, superhero armor, glossy plastic, CGI showroom shine, perfect chrome gradient, rubbery AI skin, mirror liquid blobs, pasted fog, random cables, floating machinery, fake red light overlay, excessive teal orange grading, contemporary digital HDR, 3D render, video game, anime, changing pose, inventing extra people, automatic kissing, identical robots, anatomical distortions, losing facial identity when requested, fake film scratches and VHS effects"
+    "avoid": "generic cyberpunk, neon city, Blade Runner scene recreation, flying cars, holograms, luminous circuit skin, glowing eyes by default, superhero armor, glossy plastic, CGI showroom shine, perfect chrome gradient, rubbery AI skin, mirror liquid blobs, pasted fog, random cables, floating machinery, fake red light overlay, excessive teal orange grading, contemporary digital HDR, 3D render, video game, anime, changing pose, inventing extra people, automatic kissing, identical robots, anatomical distortions, losing facial identity when requested, fake film scratches and VHS effects",
+    "compact": "INVASIVE PHYSICAL BODY TRANSFORMATION: human-machine anatomy, not a costume or color grade. One coherent morphology per person; joints, plates, fasteners and routed cables connect with real thickness and contact shadows. Smoked mirror chrome, black nickel, graphite titanium, abraded steel, oxidized seams, organic skin and fine condensation. OPTICAL GLOSS: narrow fluorescent reflections and dim broad sources form curved specular ribbons, dark reflection bands and varied roughness, never a gloss overlay. Early-1980s 35mm negative: irregular shadow grain, dense readable blacks, soft halation at real lights, lens softness, imperfect photochemical color and highlight rolloff. Sparse red practicals, cold-white spill, blue-grey darkness, motivated backlight and thin spatial haze. Aged functional industrial machinery; reflective floors only when credible. Intimacy, loneliness, vulnerability, human tenderness and quiet menace.",
+    "compactSubtle": "1-34% / SUBTLE MUTATION: visible temple, neck or hand implants; mainly human, recognizable location. Anatomy must change.",
+    "compactModerate": "35-69% / PARTIAL CYBORG: replace several body regions with black-chrome joints and cabling; recognizable human face.",
+    "compactImmersive": "70-89% / MAJOR SYNTHETIC RECONSTRUCTION: extensively engineered body, human face transitioning into machinery; industrial atmosphere.",
+    "compactIntense": "90-99% / RADICAL ANDROID: nearly complete dark-metal anatomy, facial cues, functional internals; aged industrial film set.",
+    "compactClimax": "100% / TOTAL SYNTHETIC LIBERATION: fully engineered body and head; retain facial structure with Lock Identity. Never a robot suit.",
+    "compactAvoid": "generic cyberpunk, neon, glowing eyes, CGI/plastic skin, liquid blobs, random cables, fake gloss/fog, extra people, automatic kissing, VHS"
   },
   {
     "id": "kodak-gold",
@@ -268,6 +275,7 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
   // Even one Base adds reference-map instructions after this prompt is built.
   // Reserve that space before validation and submission use the same result.
   const compactBerlinRave=berlinRave&&(compact===true||referenceCount>=1||original.length>=750);
+  const compactSyntheticRomance=syntheticRomance&&(compact===true||referenceCount>=1||original.length>=400);
   const compactDreamcore=dreamcore&&(compact===true||referenceCount>=3||original.length>=800);
   const compact80s=cinematic80s&&(compact===true||referenceCount>=2||original.length>=800||(referenceCount===1&&original.length>=(intensity===100?200:550)));
   const dreamcoreTier=intensity<=34?'Subtle':intensity<=69?'Moderate':intensity<=89?'Immersive':intensity<=99?'Intense':'Climax';
@@ -287,7 +295,7 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
   ];
   const syntheticMorphology=syntheticRomance&&intensity>=35?syntheticMorphologies[Math.floor(Math.random()*syntheticMorphologies.length)]:'';
   const style=syntheticRomance
-    ?[mood.direction,syntheticMorphology,'Creative intensity '+intensity+'/100: physical reconstruction, NOT a pixel filter.',mood[dreamcoreKey]].join(' ')
+    ?[compactSyntheticRomance?mood.compact:mood.direction,syntheticMorphology,'Creative intensity '+intensity+'/100: physical reconstruction, NOT a pixel filter.',compactSyntheticRomance?mood['compact'+dreamcoreTier]:mood[dreamcoreKey]].join(' ')
     :berlinRave
     ?[compactBerlinRave?mood.compact:mood.direction,
       'Creative intensity '+intensity+'/100: wardrobe, night lighting and atmosphere transformation, NOT a pixel-opacity filter.',
@@ -308,7 +316,9 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
     ?referenceMode==='references'
       ?'The uploaded images only supply their assigned reference roles. Keep referenced people recognisable without copying unintended people.'
       :syntheticRomance
-        ?'The first reference is the Base person: preserve facial identity when visible, number of subjects, pose, crop, anatomy proportions and camera. Explicitly ALLOW replacement of wardrobe, skin, limbs, torso and body surfaces with engineered machinery. At high intensity ALLOW industrial scene reconstruction. Respect assigned reference roles and Lock Identity guidance; preservation is not guaranteed.'
+        ?compactSyntheticRomance
+          ?'Base: keep visible facial identity, subject count, proportions, pose, crop and camera. ALLOW replacement of wardrobe, skin, limbs and torso by machinery; high intensity allows industrial scene reconstruction. Honor explicit edits, assigned roles and Lock Identity.'
+          :'The first reference is the Base person: preserve facial identity when visible, number of subjects, pose, crop, anatomy proportions and camera. Explicitly ALLOW replacement of wardrobe, skin, limbs, torso and body surfaces with engineered machinery. At high intensity ALLOW industrial scene reconstruction. Respect assigned reference roles and Lock Identity guidance; preservation is not guaranteed.'
       :berlinRave
         ?'Base: Preserve the same face and identity, expression, hairstyle, anatomy, pose, camera and crop. CHANGE wardrobe, lighting and time of day; high intensity allows industrial scene reconstruction. Explicit user instructions and assigned reference roles override these Mood defaults. Style visible areas only. Identity guidance is not a guarantee.'
         :mood.id==='dreamcore'
@@ -319,7 +329,7 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
           ?'The first reference is the base photograph. Preserve identity, body, pose, clothes, camera and setting unless the user requests changes. Respect assigned roles.'
           :'The first reference is the base photograph. Preserve face, identity, real body proportions, pose, camera, wardrobe and composition unless the user specifically asks to change them. Preservation is guidance, not a guarantee.'
     :'Honor the requested subject and composition.';
-  const prompt=[original,'PV LAB MOOD / '+mood.name+': '+style+' '+preservation+' Avoid: '+(compactDreamcore||compact80s||compactBerlinRave?mood.compactAvoid:mood.avoid)+'.'].filter(Boolean).join('\n\n');
+  const prompt=[original,'PV LAB MOOD / '+mood.name+': '+style+' '+preservation+' Avoid: '+(compactDreamcore||compact80s||compactBerlinRave||compactSyntheticRomance?mood.compactAvoid:mood.avoid)+'.'].filter(Boolean).join('\n\n');
   return {prompt,metadata:{moodId:mood.id,moodIntensity:intensity,moodOriginalPrompt:original},
     error:prompt.length>5000?'Prompt and mood exceed 5,000 characters. Shorten the direction or clear the mood.':(!original&&!referenceCount?'Describe a subject or add an image before generating with a mood.':'')};
 }
@@ -353,7 +363,7 @@ export function preparePersonalMoodPrompt(input='',mood,intensity=60,options={})
   // A rich personal style can push the detailed Dreamcore instructions above
   // the provider limit. Recompile only the base art direction compactly.
   // Keep the person's own prompt and all authored style details untouched.
-  if(prompt.length>5000&&(baseId==='dreamcore'||baseId==='80s-film')){
+  if(prompt.length>5000&&(baseId==='dreamcore'||baseId==='80s-film'||baseId==='synthetic-romance')){
     base=prepareMoodPrompt(original,baseId,strength,{...options,compact:true});
     prompt=[base.prompt,added].filter(Boolean).join('\n\n');
   }

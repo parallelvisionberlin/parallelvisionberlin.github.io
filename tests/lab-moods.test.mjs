@@ -19,6 +19,49 @@ test('Synthetic Romance is an invasive physical transformation with identity-awa
   assert.match(prepareMoodPrompt('A portrait',mood.id,100,{engine:'gemini'}).prompt,/TOTAL SYNTHETIC LIBERATION/);
 });
 
+test('Synthetic Romance fits the final provider prompt across references, intensities and every morphology',()=>{
+  const random=Math.random;
+  try{
+    for(let morphology=0;morphology<5;morphology++){
+      Math.random=()=>morphology/5;
+      for(const engine of ['seedream','gemini'])for(const referenceMode of ['base','references']){
+        for(const referenceCount of [1,2,3,10])for(const intensity of [1,34,35,69,70,82,89,90,99,100]){
+          const original='Keep the same face, pose and composition.';
+          const labels=Array.from({length:referenceCount},(_,i)=>({role:!i&&referenceMode==='base'?'base':'none'}));
+          const result=prepareMoodPrompt(original,'synthetic-romance',intensity,{engine,referenceCount,referenceMode});
+          const prompt=compileImagePrompt(result.prompt,labels);
+          assert.equal(result.error,'');
+          assert.ok(prompt.length<=5000,JSON.stringify({engine,referenceMode,referenceCount,intensity,morphology,length:prompt.length}));
+          assert.equal(result.metadata.moodOriginalPrompt,original);
+          assert.equal(result.metadata.moodIntensity,intensity);
+          for(const detail of ['INVASIVE PHYSICAL BODY TRANSFORMATION','routed cables','Smoked mirror chrome','black nickel','graphite titanium','OPTICAL GLOSS','specular ribbons','dark reflection bands','35mm negative','shadow grain','halation','photochemical color','human tenderness'])assert.ok(prompt.includes(detail),detail);
+          if(intensity>=35)assert.match(prompt,/SELECTED MORPHOLOGY:/);
+          else assert.doesNotMatch(prompt,/SELECTED MORPHOLOGY:/);
+        }
+      }
+    }
+  }finally{Math.random=random;}
+});
+
+test('Synthetic Romance leaves room for authored direction, identity notes and a saved Mood',()=>{
+  const labels=[{role:'base',note:'Keep the same expression.'},{role:'identity',note:'Use these facial proportions.'},{role:'style',note:'Use physical materials and optical reflections.'}];
+  const original='Keep the expression and framing. '.repeat(40).trim();
+  const result=prepareMoodPrompt(original,'synthetic-romance',100,{engine:'gemini',referenceCount:labels.length});
+  assert.equal(result.error,'');
+  const final=compileImagePrompt(result.prompt,labels);
+  assert.ok(final.length<=5000);
+  assert.ok(final.includes(original));
+  assert.match(final,/Use these facial proportions/);
+  assert.match(final,/TOTAL SYNTHETIC LIBERATION/);
+  const board={id:'synthetic-budget-test',name:'My Synthetic Romance',baseMoodId:'synthetic-romance',direction:'Worn black nickel, tender human expression, restrained red practicals.'};
+  const saved=preparePersonalMoodPrompt('',board,82,{engine:'seedream',referenceCount:labels.length});
+  assert.equal(saved.error,'');
+  assert.ok(compileImagePrompt(saved.prompt,labels).length<=5000);
+  assert.ok(saved.prompt.includes(board.direction));
+  assert.match(prepareMoodPrompt('','synthetic-romance',82).error,/Describe a subject/);
+  assert.match(prepareMoodPrompt('X'.repeat(5000),'synthetic-romance',82,{referenceCount:1}).error,/exceed 5,000/);
+});
+
 test('My Moods reuse saved visual direction, not hidden board image references',()=>{
   const id='30000000-0000-4000-8000-000000000012';
   const board={id,name:'Liquid Memory',direction:'Pearlescent skin, humid cyan reflections, analog fog',baseMoodId:'dreamcore',intensity:85,imageIds:['30000000-0000-4000-8000-000000000003']};
@@ -93,7 +136,7 @@ test('Mobile Generate is centered in a dedicated column beside wrapped settings'
   assert.match(block,/\.composer-generate\{\s*grid-column:2;grid-row:1;align-self:center/);
   assert.match(block,/height:82px;min-height:82px;max-height:82px/);
   assert.match(block,/@media\(max-width:360px\)/);
-  assert.match(html,/assets\.css\?v=20261011-mood-destinations1&mobileGenerate=1/);
+  assert.match(html,/assets\.css\?v=[^"]+&mobileGenerate=1/);
 });
 
 test('My Moods never silently treat the original image subject prompt as a reusable style',()=>{
