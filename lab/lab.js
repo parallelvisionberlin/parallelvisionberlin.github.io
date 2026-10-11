@@ -1,4 +1,4 @@
-import {loadLabAccount} from './native-account.js?v=1';
+import {loadLabAccount} from './native-account.js?v=2';
 import {createAssetLibrary} from './assets.js?v=20261010-navigation-media1';
 import {createPrecisionEditor} from './precision-edit.js?v=20261011-retouch-discovery1';
 import {createCustomerWallet} from './customer-wallet.js?v=20261010-referrals3';
@@ -2872,6 +2872,12 @@ if(window.__PV_LAB_NATIVE__===1&&window.ReactNativeWebView){
         if(command.action==='mood'){
           if(command.moodboard){await myMoods.refresh();const board=myMoods.find(command.moodboard);if(!board)throw Error('This Mood is unavailable.');moodUI.restore({moodId:'custom',customMoodBoardId:board.id,moodIntensity:board.intensity});}
           else {const mood=moodById(command.mood);if(!mood)throw Error('This Mood is unavailable.');moodUI.restore({moodId:mood.id,moodIntensity:mood.defaultIntensity||70});}
+          update();
+        }
+        if(command.handoff){
+          const packet=await takeMoodHandoff(command.handoff);
+          if(packet.file)await addReferences([packet.file]);
+          if(packet.prompt)$('prompt').value=packet.prompt;
           update();
         }
         window.scrollTo({top:0,behavior:'smooth'});

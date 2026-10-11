@@ -1,9 +1,9 @@
 // This layout is only enabled by the native app, never by a public query string.
-import {isNativeLab} from './native-account.js?v=1';
+import {isNativeLab} from './native-account.js?v=2';
 export function initLabMobileUI(){
   if(!isNativeLab()||document.documentElement.classList.contains('pv-native-lab'))return;
   document.documentElement.classList.add('pv-native-lab');
-  const css=document.createElement('link');css.rel='stylesheet';css.href='./mobile-app.css?v=1';document.head.append(css);
+  const css=document.createElement('link');css.rel='stylesheet';css.href='./mobile-app.css?v=2';document.head.append(css);
   const $=id=>document.getElementById(id),send=(type,extra={})=>window.ReactNativeWebView.postMessage(JSON.stringify({type,...extra}));
   const composer=$('image-composer');
   if(composer){
@@ -30,6 +30,26 @@ export function initLabMobileUI(){
     };
     new MutationObserver(sync).observe($('app'),{subtree:true,childList:true,attributes:true,attributeFilter:['hidden','disabled']});sync();
     if(grid&&moods)moods.removeAttribute('role');
+  }
+  if(!composer&&$('workspace')&&$('my-moods')){
+    const root=document.documentElement;
+    const bar=document.createElement('div');bar.className='mobile-mood-nav';
+    bar.innerHTML='<button type="button" id="mobile-saved">My Moods</button><button type="button" id="mobile-new">Create a Mood ＋</button>';
+    $('main').prepend(bar);
+    const show=editing=>{root.classList.toggle('mobile-mood-editing',editing);window.scrollTo({top:0});};
+    $('mobile-saved').onclick=()=>show(false);
+    $('mobile-new').onclick=()=>{show(true);$('mc-new').click();};
+    for(const id of ['mc-new','mc-library-create'])$(id)?.addEventListener('click',()=>show(true),true);
+    $('mc-library-grid').addEventListener('click',event=>{if(event.target.closest('button'))show(true);},true);
+    const stages=document.createElement('div');stages.className='mobile-mood-stages';
+    stages.innerHTML='<button type="button" id="mobile-collect" aria-pressed="true">1. Inspiration</button><button type="button" id="mobile-direction" aria-pressed="false">2. Your style</button>';
+    $('workspace').prepend(stages);
+    const stage=direction=>{root.classList.toggle('mobile-mood-direction',direction);$('mobile-collect').setAttribute('aria-pressed',String(!direction));$('mobile-direction').setAttribute('aria-pressed',String(direction));};
+    $('mobile-collect').onclick=()=>stage(false);$('mobile-direction').onclick=()=>stage(true);
+    const next=document.createElement('button');next.type='button';next.className='mobile-mood-next';next.textContent='Shape your Mood →';next.onclick=()=>stage(true);document.querySelector('.mc-board-column').append(next);
+    document.querySelector('.mc-workflow-note a')?.addEventListener('click',()=>stage(true));
+    const route=()=>show(location.hash!=='#my-moods');window.addEventListener('hashchange',route);route();
+    $('mc-library-empty').textContent='Your signature looks will live here. Create your first Mood.';
   }
   document.addEventListener('click',async event=>{
     const a=event.target.closest('a[download]');

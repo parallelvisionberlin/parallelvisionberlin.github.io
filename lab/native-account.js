@@ -28,7 +28,7 @@ export async function loadLabAccount(){
     await clerk.load({ui:{ClerkUI:window.__internal_ClerkUICtor},signInFallbackRedirectUrl:location.href,signUpFallbackRedirectUrl:location.href});
     return clerk;
   }
-  const {initLabMobileUI}=await import('./mobile-ui.js?v=1');
+  const {initLabMobileUI}=await import('./mobile-ui.js?v=2');
   initLabMobileUI();
   const identity=await requestIdentity();
   const signed=!!identity.token&&/^user_[A-Za-z0-9]+$/.test(identity.userId||'')&&/^sess_[A-Za-z0-9]+$/.test(identity.sessionId||'');
