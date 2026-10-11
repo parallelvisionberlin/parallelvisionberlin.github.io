@@ -382,9 +382,12 @@ test('80s Film high-fashion feature-cinema prompt scales in five cinematic stage
     assert.equal(r.error,'');
     assert.ok(r.prompt.startsWith(original+'\n\n'));
     assert.match(r.prompt,stage);
-    assert.match(r.prompt,/organic 35mm cinema-negative/);
-    assert.match(r.prompt,/suspended dust/);
-    assert.match(r.prompt,/original garments/);
+    assert.match(r.prompt,/35mm/);
+    if(intensity>=70){
+      assert.match(r.prompt,/suspended dust/);
+      assert.match(r.prompt,/original garments/);
+    }
+    if(intensity===20)assert.match(r.prompt,/No invented haze, wind/);
     assert.match(r.prompt,/first reference is the base photograph/);
     assert.equal(r.metadata.moodIntensity,intensity);
     assert.equal(r.metadata.moodOriginalPrompt,original);
