@@ -12,14 +12,14 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;450;500;550;600;700&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="./mood-creator.css?v=20261011-mobile-entry7">
+<link rel="stylesheet" href="./mood-creator.css?v=20261011-mobile-flow8">
 </head>
 <body>
 <a class="mc-skip" href="#main">Skip to Mood Creator</a>
 <header class="mc-header">
   <a class="mc-wordmark" href="./" aria-label="PV Lab home">PV LAB<span> / MOOD CREATOR</span></a>
   <nav class="mc-navigation" aria-label="Creative tools">
-    <a href="./studio.html?tool=image">Image <span aria-hidden="true">↗</span></a>
+    <a href="./studio.html?tool=image">Image <span aria-hidden="true"><svg class="mc-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path d="M5 19 19 5M5 5h14v14"/></svg></span></a>
     <a href="./explore-moods.html">Explore Moods</a>
     <a href="./mood-creator.html" aria-current="page">Mood Creator</a>
     <a href="#my-moods">My Moods</a>
@@ -39,7 +39,7 @@
    <p class="mc-hero-note">Bring together photographs, textures, colors and ideas. Turn them into a distinctive aesthetic you can save, refine and use across your creations.</p>
    <div class="mc-start-options" aria-label="How would you like to begin">
      <button id="mc-start-image" type="button" class="mc-start-option">
-       <span class="mc-start-icon" aria-hidden="true">↗</span>
+       <span class="mc-start-icon" aria-hidden="true"><svg class="mc-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path d="M5 19 19 5M5 5h14v14"/></svg></span>
        <span><strong>From a photograph</strong><small>Build a visual Moodboard.</small></span>
        <span class="mc-start-arrow" aria-hidden="true">→</span>
      </button>
@@ -50,8 +50,8 @@
      </button>
    </div>
    <div class="mc-creator-hero-links">
-     <a class="mc-saved-shortcut" href="#my-moods">My Moods ↘</a>
-     <a class="mc-saved-shortcut" href="./explore-moods.html">Explore curated Moods ↗</a>
+     <a class="mc-saved-shortcut" href="#my-moods">My Moods <svg class="mc-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path d="M5 5 19 19M5 19h14V5"/></svg></a>
+     <a class="mc-saved-shortcut" href="./explore-moods.html">Explore curated Moods <svg class="mc-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path d="M5 19 19 5M5 5h14v14"/></svg></a>
    </div>
  </div>
  <div class="mc-editorial" aria-label="Mood Creator photographic inspiration collage">
@@ -66,7 +66,7 @@
 
 <section class="mc-workspace" id="workspace" aria-labelledby="mc-workspace-title">
  <div class="mc-workspace-heading">
-  <div><span class="mc-eyebrow">THE MOOD WORKSPACE / PV LAB</span><h2 id="mc-workspace-title">Your next <em>visual language.</em></h2></div>
+  <div><span class="mc-eyebrow">THE MOOD WORKSPACE / PV LAB</span><h2 id="mc-workspace-title"><span class="mc-workspace-title-full">Your next <em>visual language.</em></span><span class="mc-workspace-title-short">Your Mood</span></h2></div>
   <div class="mc-workspace-intro"><p>Collect references. Shape the feeling.<br>Make it a Mood you can use again.</p><button id="mc-new" type="button">New Mood <span aria-hidden="true">+</span></button></div>
  </div>
  <div class="mc-workspace-body">
@@ -84,7 +84,7 @@
       <input type="file" id="mc-upload" accept="image/jpeg,image/png,image/webp" multiple hidden>
     </div>
     <p class="mc-board-footnote">Every photograph shapes the aesthetic. Select one as your visual focus; drag to reorder.</p>
-    <div class="mc-workflow-note"><span class="mc-note-star" aria-hidden="true">↗</span><p><strong>No photographs yet?</strong> Start with a few words in Art Direction. You can create a Mood from an idea alone.</p><a href="#mc-idea">Start with an idea <span aria-hidden="true">→</span></a></div>
+    <div class="mc-workflow-note"><span class="mc-note-star" aria-hidden="true"><svg class="mc-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path d="M5 19 19 5M5 5h14v14"/></svg></span><p><strong>No photographs yet?</strong> Start with a few words in Art Direction. You can create a Mood from an idea alone.</p><a href="#mc-idea">Start with an idea <span aria-hidden="true">→</span></a></div>
   </div>
   <aside class="mc-direction" aria-label="Define your Mood">
     <div class="mc-block-caption"><span>02 / ART DIRECTION</span><span>SHAPE YOUR MOOD</span></div>
@@ -95,14 +95,14 @@
       <textarea id="mc-idea" rows="3" maxlength="1400" placeholder="Faded film. Wet glass. Something nocturnal and romantic." aria-describedby="mc-idea-hint"></textarea>
       <small id="mc-idea-hint">Use photographs, an idea, or both. Develop the aesthetic to turn them into a reusable style.</small>
     </div>
-    <button type="button" id="mc-analyze" class="mc-analyze-button"><span>✳</span><strong>Develop the aesthetic</strong><span aria-hidden="true">↗</span></button>
+    <button type="button" id="mc-analyze" class="mc-analyze-button"><span><svg class="mc-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M5.6 18.4 18.4 5.6"/></svg></span><strong>Develop the aesthetic</strong><span aria-hidden="true"><svg class="mc-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path d="M5 19 19 5M5 5h14v14"/></svg></span></button>
     <div class="mc-analysis-options">
       <details class="mc-analysis-details"><summary>How AI analysis uses your photos</summary><p class="mc-analysis-note" id="mc-analysis-note">Optional AI analysis. Only when you click, all selected Moodboard previews and your idea go to Google's AI service. Up to six analyses daily. No style model is trained.</p></details>
       <button id="mc-use-idea" type="button" class="mc-use-idea">Use my idea instead <span aria-hidden="true">→</span></button>
     </div>
     <div id="mc-suggestion" class="mc-suggestion" hidden>
       <span>PROPOSED CREATIVE DIRECTION</span><strong id="mc-suggestion-name"></strong>
-      <p id="mc-suggestion-text"></p><button id="mc-suggestion-apply" type="button">Use this direction <span aria-hidden="true">↗</span></button>
+      <p id="mc-suggestion-text"></p><button id="mc-suggestion-apply" type="button">Use this direction <span aria-hidden="true"><svg class="mc-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path d="M5 19 19 5M5 5h14v14"/></svg></span></button>
     </div>
     <div id="mc-analysis-qualities" class="mc-quality-list" aria-label="Suggested visual qualities" hidden></div>
     <div id="mc-analysis-palette" class="mc-palette" aria-label="Extracted color palette" hidden></div>
@@ -121,7 +121,7 @@
     </div>
     <p id="mc-message" class="mc-message" role="status" aria-live="polite"></p>
     <div class="mc-save-row">
-      <button type="button" id="mc-save" class="mc-primary">Save to My Moods <span aria-hidden="true">↗</span></button>
+      <button type="button" id="mc-save" class="mc-primary">Save to My Moods <span aria-hidden="true"><svg class="mc-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path d="M5 19 19 5M5 5h14v14"/></svg></span></button>
       <button type="button" id="mc-use" class="mc-secondary">Create with this Mood <span aria-hidden="true">→</span></button>
     </div>
     <p class="mc-save-hint">Opens Image with this style. Reference photographs stay in your Moodboard.</p>
@@ -133,12 +133,12 @@
 <section class="mc-library" id="my-moods" aria-labelledby="mc-library-title">
  <div class="mc-library-head">
    <div><span class="mc-eyebrow">02 / YOUR PRIVATE COLLECTION</span><h2 id="mc-library-title">My Moods<span id="mc-library-count"></span></h2></div>
-   <button id="mc-library-create" type="button">Create another <span aria-hidden="true">↗</span></button>
+   <button id="mc-library-create" type="button">Create another <span aria-hidden="true"><svg class="mc-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path d="M5 19 19 5M5 5h14v14"/></svg></span></button>
  </div>
  <div id="mc-library-grid" class="mc-library-grid" aria-label="Your saved personal Moods"></div>
  <p class="mc-library-empty" id="mc-library-empty">Your visual worlds will live here. Create your first Mood above.</p>
 </section>
 </main>
-<footer class="mc-footer"><a href="./">PV LAB</a><p>A studio by Parallel Vision</p><a href="./studio.html?tool=image">Continue to Image ↗</a></footer>
-<script type="module" src="./mood-creator.js?v=20261011-mobile-entry7&nativeLab=2&hd=20261011&raveBudget=1&editorialHD=2&moodImageHD=1"></script>
+<footer class="mc-footer"><a href="./">PV LAB</a><p>A studio by Parallel Vision</p><a href="./studio.html?tool=image">Continue to Image <svg class="mc-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path d="M5 19 19 5M5 5h14v14"/></svg></a></footer>
+<script type="module" src="./mood-creator.js?v=20261011-mobile-flow8&nativeLab=2&hd=20261011&raveBudget=1&editorialHD=2&moodImageHD=1"></script>
 </body></html>

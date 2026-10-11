@@ -183,6 +183,20 @@ try{
     });
     assert.ok(entry.top>0&&entry.bottom<entry.height,'Collage upload is visible on first mobile screen: '+JSON.stringify(viewport));
     assert.ok(entry.overflow<=2,'No horizontal overflow in mobile entry');
+    const spacing=await phone.evaluate(()=>{
+      const stage=document.querySelector('.mc-editorial').getBoundingClientRect();
+      const card=document.querySelector('.mc-frame-three').getBoundingClientRect();
+      const workspace=document.getElementById('workspace').getBoundingClientRect();
+      const upload=document.getElementById('mc-drop-trigger').getBoundingClientRect();
+      const heading=document.querySelector('.mc-workspace-heading').getBoundingClientRect();
+      return {cardGap:stage.bottom-card.bottom,uploadOffset:upload.top-workspace.top,headingHeight:heading.height,
+        hasLineIcon:!!document.querySelector('.mc-navigation a svg'),emojiArrow:/[↗↘]/u.test(document.body.textContent)};
+    });
+    assert.ok(spacing.cardGap>=20,'Dreamcore clears the lower border on mobile');
+    assert.ok(spacing.uploadOffset<160,'Mobile workspace reaches upload without stacked introductory paragraphs');
+    assert.ok(spacing.headingHeight<55,'Mobile workspace title and New Mood share one compact row');
+    assert.ok(spacing.hasLineIcon&&!spacing.emojiArrow,'Navigation and saved buttons use line icons instead of emoji arrows');
+
   }
   assert.equal(await phone.locator('.mc-editorial-frame img').count(),3);
   const startY=await phone.evaluate(()=>scrollY);

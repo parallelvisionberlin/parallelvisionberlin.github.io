@@ -420,3 +420,24 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 .mc-frame-two img{object-position:50% 100%}
 .mc-look-card[data-mood-id="hong-kong-nights"] .mc-look-photo img{object-position:50% 100%}
 .mc-look-dialog[data-mood-id="hong-kong-nights"] .mc-look-dialog-media img{object-position:50% 100%}
+
+
+/* Plain line icons stay monochrome on iOS, including dynamic saved-Mood actions. */
+.mc-link-icon{display:inline-block;width:1em;height:1em;vertical-align:-.12em;flex-shrink:0;pointer-events:none}
+.mc-workspace-title-short{display:none}
+
+/* A clear gap beneath Dreamcore; a direct entrance to the mobile workdeck. */
+@media(max-width:820px){
+ .mc-hero--creator .mc-frame-three{bottom:28px;height:54%}
+ .mc-hero--creator .mc-editorial-credit{bottom:8px}
+ .mc-workspace{padding-top:24px}
+ .mc-workspace-heading{align-items:center;flex-wrap:nowrap;gap:12px;margin-bottom:16px;padding-bottom:0;border-bottom:0}
+ .mc-workspace-heading .mc-eyebrow,.mc-workspace-title-full{display:none}
+ .mc-workspace-title-short{display:inline}
+ .mc-workspace-heading h2{font-size:28px;letter-spacing:-.045em;line-height:1.1;margin:0}
+ .mc-workspace .mc-workspace-intro{width:auto;flex:0 0 auto}
+ .mc-workspace .mc-workspace-intro p{display:none}
+ .mc-workspace .mc-panel-intro{display:none}
+ .mc-board-column>.mc-block-caption{margin-bottom:14px;padding-bottom:12px}
+ .mc-board:empty + .mc-add-photo{min-height:240px}
+}

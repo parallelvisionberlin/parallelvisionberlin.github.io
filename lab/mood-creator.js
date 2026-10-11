@@ -112,7 +112,7 @@ function initMoodCreator(){
     $('mc-direction-count').textContent='0 / 900';
     $('mc-analysis-palette').hidden=true;$('mc-analysis-qualities').hidden=true;
     $('mc-suggestion').hidden=true;$('mc-saved-actions').hidden=true;
-    save.innerHTML='Save to My Moods <span aria-hidden="true">↗</span>';
+    save.innerHTML='Save to My Moods <svg class="mc-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path d="M5 19 19 5M5 5h14v14"/></svg>';
     feedback('');renderBoard();
     if(scroll)document.getElementById('workspace').scrollIntoView({behavior:'smooth',block:'start'});
   }
@@ -302,7 +302,7 @@ function initMoodCreator(){
       boardId=response.moodboard.id;
       const id=boardId;
       $('mc-saved-actions').hidden=false;
-      save.innerHTML='Save changes <span aria-hidden="true">↗</span>';
+      save.innerHTML='Save changes <svg class="mc-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path d="M5 19 19 5M5 5h14v14"/></svg>';
       feedback('Saved. Your Mood is now available in My Moods and Image.');
       await loadBoards();
       return id;
@@ -358,7 +358,7 @@ function initMoodCreator(){
       const caption=document.createElement('div');caption.className='mc-library-copy';
       const copy=document.createElement('div'),title=document.createElement('strong'),text=document.createElement('small'),arrow=document.createElement('span');
       title.textContent=item.name;text.textContent=(item.imageIds?.length||0)+' images · '+(moodById(item.baseMoodId)?.name||'Original look');
-      copy.append(title,text);arrow.textContent='↗';caption.append(copy,arrow);
+      copy.append(title,text);arrow.innerHTML='<svg class="mc-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path d="M5 19 19 5M5 5h14v14"/></svg>';caption.append(copy,arrow);
       card.append(picture,caption);
       if(item.palette?.length){
         const row=document.createElement('div');row.className='mc-library-palette';
@@ -401,7 +401,7 @@ function initMoodCreator(){
     items=(selected.imageIds||[]).map(assetId=>({assetId,file:null,localUrl:null}));
     selectedIndex=0;
     $('mc-suggestion').hidden=true;$('mc-saved-actions').hidden=false;
-    save.innerHTML='Save changes <span aria-hidden="true">↗</span>';
+    save.innerHTML='Save changes <svg class="mc-link-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path d="M5 19 19 5M5 5h14v14"/></svg>';
     renderBoard();feedback('Editing '+selected.name+'. Your original board is safe until you press Save.');
     if(scroll)scrollToWorkspace();
   }
