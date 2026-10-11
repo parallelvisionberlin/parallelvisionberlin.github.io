@@ -88,7 +88,12 @@
       <textarea id="mc-idea" rows="3" maxlength="1400" placeholder="Something humid, nocturnal, romantic. Faded film, wet glass, a feeling of another decade..."></textarea>
     </div>
     <button type="button" id="mc-analyze" class="mc-analyze-button"><span>✳</span><strong>Develop the aesthetic</strong><span aria-hidden="true">↗</span></button>
-    <p class="mc-analysis-note" id="mc-analysis-note">Optional AI interpretation. Analyzes one selected photo and/or your written idea only when you ask. Limited free daily uses.</p>
+    <p class="mc-analysis-note" id="mc-analysis-note">Optional AI style analysis. Only when you click, your selected photograph and/or idea are sent to Google's AI service to interpret their aesthetics. Up to six analyses daily.</p>
+    <button id="mc-use-idea" type="button" class="mc-use-idea">Use my idea as the direction instead <span aria-hidden="true">→</span></button>
+    <div id="mc-suggestion" class="mc-suggestion" hidden>
+      <span>PROPOSED CREATIVE DIRECTION</span><strong id="mc-suggestion-name"></strong>
+      <p id="mc-suggestion-text"></p><button id="mc-suggestion-apply" type="button">Use this direction <span aria-hidden="true">↗</span></button>
+    </div>
     <div id="mc-analysis-qualities" class="mc-quality-list" aria-label="Suggested visual qualities" hidden></div>
     <div id="mc-analysis-palette" class="mc-palette" aria-label="Extracted color palette" hidden></div>
     <div class="mc-rule" role="separator"></div>
@@ -120,5 +125,5 @@
 </section>
 </main>
 <footer class="mc-footer"><a href="./">PV LAB</a><p>A studio by Parallel Vision</p><a href="./studio.html?tool=image">Continue to Image ↗</a></footer>
-<script type="module" src="./mood-creator.js?v=20261011-mood-creator1"></script>
+<script type="module" src="./mood-creator.js?v=20261011-mood-creator2"></script>
 </body></html>
