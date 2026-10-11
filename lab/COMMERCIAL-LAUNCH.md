@@ -55,3 +55,60 @@ Customer Soul ID training via Higgsfield Custom References is **400 PV credits**
 Soul 2 image generation remains subject to a **live provider quote**, with the unchanged **7-credit minimum**. For customer accounts only, the Worker refuses the quote if it exceeds **USD 0.015**, before any job starts. Below that threshold the 460 credits/USD formula can charge no more than 7 credits. Owner quote behavior is unchanged, including the existing USD 0.25 abnormal-estimate cap. A purchase of €10 gives 1,000 credits, sufficient for **400 training + 85 × 7 image credits = 995 credits**, leaving 5 credits at current eligible rates. This is a quoted-cost offer, not 85 free images or a guarantee if provider pricing changes. The Customer Soul 2 quote displays PV credits rather than wholesale API USD. The original owner UI still displays the API estimate.
 
 Prices are a commercial launch assumption and need review against production API invoices, actual EUR/USD, German VAT, refund/chargeback exposure, and merchant costs. This feature does **not** enable checkout, public generation, extra provider accounts, or unmetered training. `LAB_PUBLIC_GENERATION_ENABLED` and `LAB_CHECKOUT_ENABLED` remain **false** until the rest of this checklist is completed.
+
+## Private live Checkout pilot (pre-launch)
+
+The owner has configured the dedicated PV Lab Stripe live API secret,
+webhook signing secret and a separate SpicyAPI customer credential with
+limited provider spending. **Global public checkout and generation stay OFF**
+until paid webhooks and per-model charging are verified.
+
+### How to stage one authentic €10 checkout
+
+This change adds a narrow temporary path. It does not turn on payment
+or generation access by itself.
+
+1. Sign in to `https://parallelvisionlabel.com/lab/` with a **separate
+   Google/Clerk customer account**, not the existing owner account.
+2. Identify that test customer's own Clerk `user_...` ID from its
+   authenticated `GET /api/session` response's `ownerId` (or from
+   your Clerk Dashboard > Users). This is a customer identifier, not a
+   password or Stripe API secret.
+3. In Cloudflare **parallel-vision-lab** > Settings > Variables and
+   Secrets, add encrypted **Secret** `LAB_LIVE_PILOT_CUSTOMER_ID` with
+   that exact ID. Never add the ID to GitHub or `wrangler.toml`.
+4. The Worker now allows only that signed-in customer to open Stripe
+   live Checkout, and only for **one €10 pack**. Others still see
+   purchasing and generation disabled. No subscription checkouts or
+   larger packs are allowed in the private pilot.
+5. Before paying, verify the checkout uses the new PV Lab Stripe account,
+   correct product/price and VAT treatment. If it fails to open, inspect
+   Cloudflare logs and Stripe Workbench requests: restricted Stripe keys
+   may need additional resource permissions.
+6. Owner expressly approves a real €10 transaction. On payment, verify
+   the signed `checkout.session.completed` webhook is delivered,
+   the test customer's D1 wallet increases exactly 1,000 credits, and
+   a retry cannot grant duplicate credits.
+7. Start ONE low-cost Seedream image job. Verify the backend quotes the
+   credit amount, the customer ledger decrements atomically and no
+   other account can issue a paid generation.
+8. Remove `LAB_LIVE_PILOT_CUSTOMER_ID` from Cloudflare immediately after
+   the test, closing live checkout and public generation again without
+   redeploy. If the provider refuses a job, verify refund/reconciliation.
+9. Complete legal, Stripe Tax/VAT, subscription cancellation, refunds,
+   chargeback handling and supported model QA before opening to everyone.
+
+### Fail-closed contract
+
+- No pilot ID configured: all customers remain checkout/generation-disabled.
+- Wrong ID: no access, regardless of referral code or browser input.
+- Partial global feature flag activation: still no public access and no
+  pilot override.
+- Missing payment webhook, Stripe API key or SpicyAPI customer key:
+  paid generation and checkout remain disabled.
+- Existing owner's private API access is not modified.
+- When both explicit public flags are finally enabled, the pilot key
+  is ignored and public rollout is separately guarded by launch QA.
+
+Test-only repository changes do not authorize real charges. The owner
+must still deliberately set the secret and approve the €10 live test.
