@@ -107,3 +107,25 @@
 .mc-home--editorial .mc-home-editorial-foot{display:flex;flex-wrap:wrap;gap:21px;margin-top:43px;color:#9baca1;font-size:9px;letter-spacing:.12em}
 @media(max-width:1050px){.mc-home.mc-home--editorial{grid-template-columns:1fr 1fr}.mc-home--editorial .mc-home-editorial-copy{padding:46px 30px}.mc-home--editorial h2{font-size:clamp(54px,7vw,80px)}}
 @media(max-width:700px){.mc-home.mc-home--editorial{display:flex;flex-direction:column;min-height:0}.mc-home--editorial .mc-home-editorial-copy{order:1;padding:54px 24px;border:0}.mc-home--editorial .mc-home-stage{order:2;min-height:420px}.mc-home--editorial h2{font-size:clamp(64px,13vw,90px)}.mc-home--editorial .mc-home-editorial-foot{margin-top:26px}.mc-home--editorial .mc-home-stage-caption{left:24px;bottom:22px}.mc-home--editorial .mc-home-spectrum{left:22px;top:18px}}
+
+/* MOOD CREATOR / EDITORIAL CHAPTER. Unboxed, photographic, non-template. */
+.mc-home.mc-home--chapter{position:relative;display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);min-height:670px;background:#111213;color:#f4f2eb;isolation:isolate;overflow:hidden}
+.mc-home--chapter .mc-chapter-art{position:relative;min-height:670px;overflow:hidden;background:#222627}
+.mc-home--chapter .mc-chapter-art img{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:cover;object-position:50% 43%;filter:saturate(.8) contrast(1.08)}
+.mc-home--chapter .mc-chapter-art:after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,#090c0ed9 0%,transparent 32%),linear-gradient(90deg,transparent 55%,#1112135c);pointer-events:none}
+.mc-home--chapter .mc-chapter-art-index,.mc-home--chapter .mc-chapter-art-mark{position:absolute;z-index:2;color:#f5f4ed;font-size:10px;letter-spacing:.17em;text-shadow:0 1px 12px #000}
+.mc-home--chapter .mc-chapter-art-index{top:35px;left:38px}.mc-home--chapter .mc-chapter-art-mark{bottom:37px;left:38px}
+.mc-home--chapter .mc-chapter-content{position:relative;display:flex;flex-direction:column;justify-content:center;padding:43px clamp(32px,6.3vw,126px);background:radial-gradient(ellipse at 83% 18%,#24282a 0%,transparent 61%),#111213}
+.mc-home--chapter .mc-chapter-topline{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:36px;font-size:10px;letter-spacing:.16em;color:#aebbb3}
+.mc-home--chapter h2{margin:0;font:400 clamp(65px,7.5vw,137px)/.88 'DM Sans',Arial,sans-serif;letter-spacing:-.087em;color:#f0eee8}
+.mc-home--chapter h2 em{font-style:normal;color:#d5f58a}
+.mc-home--chapter .mc-chapter-summary{max-width:700px;margin:30px 0 8px;font-size:clamp(23px,2.15vw,34px);line-height:1.15;letter-spacing:-.045em;color:#f1eee8}
+.mc-home--chapter .mc-chapter-description{max-width:460px;font-size:14px;line-height:1.65;color:#bac2bb;margin:0}
+.mc-home--chapter .mc-chapter-actions{display:flex;align-items:center;gap:30px;flex-wrap:wrap;margin-top:34px}
+.mc-home--chapter .mc-chapter-start{display:flex;justify-content:space-between;align-items:center;gap:42px;min-width:232px;padding:16px 20px;border:1px solid #d6f68a;background:#d6f68a;color:#151713;font-size:13px;font-weight:500;transition:background .2s}
+.mc-home--chapter .mc-chapter-start:hover{background:#eaffb8}
+.mc-home--chapter .mc-chapter-alt{display:flex;align-items:center;gap:18px;border-bottom:1px solid #818b83;padding:12px 0;color:#e3e8e0;font-size:13px}
+.mc-home--chapter .mc-chapter-alt:hover{color:#d6f68a;border-color:#d6f68a}
+.mc-home--chapter .mc-chapter-bottom{display:flex;gap:24px;flex-wrap:wrap;margin-top:42px;padding-top:19px;border-top:1px solid #444948;color:#a5aaa6;font-size:10px;letter-spacing:.1em}
+@media(max-width:1050px){.mc-home.mc-home--chapter{grid-template-columns:.9fr 1.1fr;min-height:590px}.mc-home--chapter .mc-chapter-art{min-height:590px}.mc-home--chapter .mc-chapter-content{padding:45px 36px}.mc-home--chapter h2{font-size:clamp(59px,7vw,92px)}}
+@media(max-width:700px){.mc-home.mc-home--chapter{display:flex;flex-direction:column;min-height:0}.mc-home--chapter .mc-chapter-content{order:1;padding:48px 24px}.mc-home--chapter .mc-chapter-art{order:2;min-height:390px}.mc-home--chapter h2{font-size:clamp(60px,12vw,91px)}.mc-home--chapter .mc-chapter-topline{margin-bottom:27px}.mc-home--chapter .mc-chapter-bottom{margin-top:28px}.mc-home--chapter .mc-chapter-art-index{left:24px;top:22px}.mc-home--chapter .mc-chapter-art-mark{left:24px;bottom:24px}}
