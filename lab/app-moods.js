@@ -11,7 +11,7 @@ $('photo-input').onchange=async event=>{const next=event.target.files[0];if(!nex
 $('remove-photo').onclick=()=>{setPhoto(null);$('photo-input').value='';};
 $('continue-create').onclick=async()=>{if(!file||!selected)return;const button=$('continue-create');button.disabled=true;$('photo-error').textContent='';try{const handoff=await saveMoodHandoff({file});const url=new URL('./studio.html',location.href);url.searchParams.set('tool','image');url.searchParams.set('native','1');url.searchParams.set('mood',selected.id);url.searchParams.set('handoff',handoff);location.href=url.href;}catch(error){$('photo-error').textContent=error.message;}finally{button.disabled=false;}};
 try{
-  const {MOODS,moodPreviewURL}=await import('./moods.js?app=4');
+  const {MOODS,moodPreviewURL}=await import('./moods.js?app=4&raveNight=3');
   previewURL=mood=>moodPreviewURL(mood);detailURL=mood=>moodPreviewURL(mood,{detail:true});
   const order=['hong-kong-nights','night-flash','dreamcore','90s-cinema','polaroid-600'];
   const moods=[...MOODS].sort((a,b)=>(order.includes(a.id)?order.indexOf(a.id):100)-(order.includes(b.id)?order.indexOf(b.id):100));
