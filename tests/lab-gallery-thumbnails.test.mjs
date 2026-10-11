@@ -25,12 +25,12 @@ function fixture({images=true}={}){
    input(stream){assert.ok(stream);return {
      transform(opts){
        calls.transform++;
-       assert.deepEqual(opts,{width:800,height:800,fit:'scale-down'});
+       assert.deepEqual(opts,{width:480,height:480,fit:'scale-down'});
        return this;
      },
      output(opts){
        calls.output++;
-       assert.deepEqual(opts,{format:'image/webp',quality:82,anim:false});
+       assert.deepEqual(opts,{format:'image/webp',quality:80,anim:false});
        return {response:()=>new Response(WEBP,{headers:{'Content-Type':'image/webp'}})};
      }
    };}
@@ -40,9 +40,9 @@ function fixture({images=true}={}){
 
 test('thumbnail is a sharp, downscaled WebP and never overwrites original image',async()=>{
  const {env,objects,calls}=fixture();
- assert.equal(GALLERY_THUMB_EDGE,800);
- assert.equal(GALLERY_THUMB_QUALITY,82);
- assert.match(GALLERY_THUMB_VERSION,/v1/);
+ assert.equal(GALLERY_THUMB_EDGE,480);
+ assert.equal(GALLERY_THUMB_QUALITY,80);
+ assert.match(GALLERY_THUMB_VERSION,/v2/);
  const key=galleryThumbnailKey(asset);
  assert.ok(key.startsWith('owner-a/thumbnails/'));
  assert.ok(key.endsWith('/'+asset.id+'.webp'));
@@ -50,7 +50,7 @@ test('thumbnail is a sharp, downscaled WebP and never overwrites original image'
  assert.equal(first.status,200);
  assert.equal(first.headers.get('content-type'),'image/webp');
  assert.equal(first.headers.get('cache-control'),'private, no-store');
- assert.equal(first.headers.get('x-pv-preview'),'webp-800');
+ assert.equal(first.headers.get('x-pv-preview'),'webp-480');
  assert.deepEqual(new Uint8Array(await first.arrayBuffer()),WEBP);
  assert.deepEqual(objects.get(asset.object_key),PNG);
  assert.deepEqual(objects.get(key),WEBP);
@@ -98,4 +98,8 @@ test('gallery requests previews while modal, download and original inspection lo
  assert.match(worker,/if\(path\.startsWith\('\/api\/assets\/'\)&&method==='GET'\)/);
  assert.match(wrangler,/\[images\]\s*binding\s*=\s*"IMAGES"/);
  assert.match(studio,/galleryThumb=1/);
+ assert.match(studio,/sourceDownload=1/);
+ assert.match(studio,/id="image-source-download"/);
+ assert.match(ui,/\$\('image-source-download'\)\.onclick=/);
+ assert.match(ui,/saveDownload\(imageDetailSourceOriginalURL,'source-'\+imageDetailSourceAssetId,ext\)/);
 });
