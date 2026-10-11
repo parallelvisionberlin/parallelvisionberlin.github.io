@@ -197,17 +197,17 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
     error:prompt.length>5000?'Prompt and mood exceed 5,000 characters. Shorten the direction or clear the mood.':(!original&&!referenceCount?'Describe a subject or add an image before generating with a mood.':'')};
 }
 
-/* Returns the safe dimensions for an anchored popup above a floating composer.
-   When the space is too small, overlap only the dimmed composer rather than
-   losing the Mood title or close button above the top of the screen. */
-export function moodsPanelViewportGeometry({composerTop,viewportTop=0,viewportHeight,viewportWidth}){
+/* Keep the Mood gallery's height independent of the image composer height.
+   The deck may grow when references are added; move the popup over its dimmed
+   upper edge when necessary rather than compressing the gallery rows. */
+export function moodsPanelViewportGeometry({composerTop,viewportTop=0,viewportHeight,viewportWidth,panelHeight}){
   const mobile=viewportWidth<=740;
   const topInset=mobile?14:28,bottomInset=mobile?10:16,gap=mobile?10:14;
   const viewportSpace=Math.max(160,Math.floor(viewportHeight-topInset-bottomInset));
+  const maxHeight=Math.min(720,viewportSpace,mobile?Math.floor(viewportHeight*.7):720);
+  const displayedHeight=Math.min(maxHeight,Number.isFinite(panelHeight)?Math.max(0,panelHeight):(mobile?295:325));
   const above=Math.floor(composerTop-viewportTop-topInset-gap);
-  const minimum=Math.min(viewportSpace,mobile?295:325);
-  const maxHeight=Math.min(720,viewportSpace,Math.max(minimum,above));
-  return {gap,maxHeight,overlap:Math.ceil(Math.max(0,minimum-above)),tight:maxHeight<310};
+  return {gap,maxHeight,overlap:Math.ceil(Math.max(0,displayedHeight-above)),tight:maxHeight<(mobile?420:310)};
 }
 
 export function preparePersonalMoodPrompt(input='',mood,intensity=60,options={}){
@@ -247,7 +247,7 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
   const tabs=new Map(),cards=new Map();
   for(const name of ['All','Cinema','Fashion','Analog','Experimental','My Moods']){
     const tab=document.createElement('button');tab.type='button';tab.className='moods-filter';tab.textContent=name;
-    tab.onclick=()=>{category=name;grid.scrollTop=0;render();fitGridViewport();};filters.append(tab);tabs.set(name,tab);
+    tab.onclick=()=>{category=name;grid.scrollTop=0;render();fitGridViewport();fitPanelViewport();};filters.append(tab);tabs.set(name,tab);
   }
   const emptyPersonal=document.createElement('div');
   emptyPersonal.className='moods-my-empty';emptyPersonal.hidden=true;
@@ -265,7 +265,7 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
     const title=document.createElement('strong');title.textContent=mood.name;
     const subtitle=document.createElement('small');subtitle.textContent=mood.description;info.append(title,subtitle);
     card.append(media,info);
-    card.onclick=()=>{selected=selected===mood.id?null:mood.id;render();onChange();};
+    card.onclick=()=>{selected=selected===mood.id?null:mood.id;render();fitPanelViewport();onChange();};
     grid.append(card);cards.set(mood.id,card);
   }
   const createTile=document.createElement('button');
@@ -310,16 +310,20 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
   function fitPanelViewport(){
     if(panel.hidden)return;
     const visual=window.visualViewport;
-    const available=moodsPanelViewportGeometry({
+    const frame={
       composerTop:panel.parentElement.getBoundingClientRect().top,
       viewportTop:visual?.offsetTop||0,
       viewportHeight:visual?.height||window.innerHeight,
       viewportWidth:window.innerWidth
-    });
+    };
+    // First restore the full viewport-based height. Measuring before this step
+    // would read a compressed panel left over from the previous deck state.
+    const available=moodsPanelViewportGeometry(frame);
     panel.style.setProperty('--moods-anchor-gap',available.gap+'px');
     panel.style.setProperty('--moods-available-height',available.maxHeight+'px');
-    panel.style.setProperty('--moods-overlap',available.overlap+'px');
     panel.classList.toggle('is-viewport-tight',available.tight);
+    const placed=moodsPanelViewportGeometry({...frame,panelHeight:panel.getBoundingClientRect().height});
+    panel.style.setProperty('--moods-overlap',placed.overlap+'px');
   }
   function setPersonalMoods(next=[]){
     for(const old of personalMoods){const key='custom:'+old.id,card=cards.get(key);card?.customWrap?.remove();cards.delete(key);}
@@ -346,7 +350,7 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
     }
     if(selected?.startsWith('custom:')&&!boardById(selected)){selected=null;intensity=60;onChange();}
     render();
-    if(!panel.hidden){fitPanelViewport();fitGridViewport();}
+    if(!panel.hidden){fitGridViewport();fitPanelViewport();}
   }
   // Show exactly two complete rows before the internal scrollbar reveals Sumi-e.
   function fitGridViewport(){
@@ -381,7 +385,7 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
     if(button.disabled)return;
     onOpen();closeAbout();panel.hidden=false;backdrop.hidden=false;
     panel.parentElement.classList.add('is-moods-open');
-    render();fitPanelViewport();grid.scrollTop=0;fitGridViewport();
+    render();grid.scrollTop=0;fitGridViewport();fitPanelViewport();
     if(selected==='sumi-ink'){
       const card=cards.get(selected),viewport=grid.getBoundingClientRect();
       if(card&&card.getBoundingClientRect().bottom>viewport.bottom)
@@ -447,7 +451,7 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
   grid.setAttribute('aria-label','Available moods; scroll down to explore more looks');
   function refreshViewport(){
     if(panel.hidden)return;
-    fitPanelViewport();fitGridViewport();
+    fitGridViewport();fitPanelViewport();
   }
   window.addEventListener('resize',refreshViewport);
   window.visualViewport?.addEventListener('resize',refreshViewport);

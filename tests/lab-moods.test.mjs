@@ -230,23 +230,27 @@ test('Eleven moods are available, ten initially visible and Sumi-e last',()=>{
   assert.match(js,/grid\.style\.maxHeight=firstTwoRows\+'px'/);
   assert.match(html,/Eleven curated looks/);
 });
-test('Moods stays inside the viewport and reserves room for the floating composer',()=>{
+test('Moods preserves its gallery height as the image deck grows and stays in the viewport',()=>{
   for(const [width,height,composerTop] of [
     [1440,900,700],[1280,720,510],[950,650,415],[390,780,490],
     [390,530,245],[360,430,170]
   ]){
-    const g=moodsPanelViewportGeometry({viewportWidth:width,viewportHeight:height,composerTop});
+    const desiredHeight=width<=740?450:650;
+    const g=moodsPanelViewportGeometry({viewportWidth:width,viewportHeight:height,composerTop,panelHeight:desiredHeight});
     const topMargin=width<=740?14:28;
-    const gap=g.gap;
-    const calculatedTop=composerTop-gap+g.overlap-g.maxHeight;
+    const displayedHeight=Math.min(g.maxHeight,desiredHeight);
+    const calculatedTop=composerTop-g.gap+g.overlap-displayedHeight;
     assert.ok(calculatedTop>=topMargin-1,'Moods popup clips at '+width+'x'+height+' top='+calculatedTop);
     assert.ok(g.maxHeight<=720);
     assert.ok(g.maxHeight<=height-topMargin-(width<=740?10:16));
-    assert.ok(g.overlap===0||composerTop-gap+g.overlap>composerTop-gap,'Overlap only when necessary');
+    assert.ok(g.overlap===0||composerTop-g.gap+g.overlap>composerTop-g.gap,'Overlap only when necessary');
   }
-  const ordinary=moodsPanelViewportGeometry({viewportWidth:1400,viewportHeight:900,composerTop:700});
-  assert.equal(ordinary.overlap,0);
-  const tight=moodsPanelViewportGeometry({viewportWidth:390,viewportHeight:530,composerTop:245});
+  const normal=moodsPanelViewportGeometry({viewportWidth:1400,viewportHeight:900,composerTop:700,panelHeight:640});
+  const withReferences=moodsPanelViewportGeometry({viewportWidth:1400,viewportHeight:900,composerTop:540,panelHeight:640});
+  assert.equal(normal.maxHeight,withReferences.maxHeight,'Uploading photos must not change the gallery height cap');
+  assert.equal(normal.overlap,0);
+  assert.equal(withReferences.overlap,142,'A taller deck shifts the Mood popup over the deck instead of shrinking it');
+  const tight=moodsPanelViewportGeometry({viewportWidth:390,viewportHeight:530,composerTop:245,panelHeight:450});
   assert.ok(tight.overlap>0);
   assert.equal(tight.tight,true);
   const css=readFileSync(new URL('../lab/moods.css',import.meta.url),'utf8');
@@ -309,7 +313,8 @@ test('Image Studio active mood removal and stable Generate baseline',()=>{
   assert.match(js,/if\(!busy&&moodUI.active\(\)\)moodUI.clear\(\)/);
   assert.match(css,/#image-composer-moods-clear\[hidden\]\{display:none!important\}/);
   assert.match(css,/#image-composer.is-gemini .composer-controls\{flex-wrap:nowrap!important/);
-  assert.match(js,/const inlineMessage=queueBlocked\|\|exactPreparing\?'':message/);
+  assert.match(js,/const inlineMessage=queueBlocked\|\|exactPreparing\|\|idleMoodNeedsInput\?'':message/);
+  assert.match(js,/const idleMoodNeedsInput=moodUI.active\(\)/);
 });
 
 

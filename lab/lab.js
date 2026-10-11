@@ -8,7 +8,7 @@ captureReferralCode();
 import {createSoul2UI} from './higgsfield-ui.js?v=20261010-soul-price1';
 import {VIDEO_MODELS,engineFor,videoLabel} from './video-models.js?v=20261009-extend1';
 import {REFERENCE_ROLES,REFERENCE_TARGETS,normalizeReferenceLabel,compileImagePrompt,referenceGuidanceError,canUseReferenceGuidance} from './reference-guidance.js?v=20261010-reference-flow2';
-import {createMoodSelector,moodById,userFacingImagePrompt,imageHistoryCaption} from './moods.js?v=20261011-moods-toolbar1';
+import {createMoodSelector,moodById,userFacingImagePrompt,imageHistoryCaption} from './moods.js?v=20261011-mood-steady-deck1';
 import {createMyMoods} from './my-moods.js?v=20261011-my-moods2';
 import {createMediaReferences} from './media-references.js?v=20261009-extend2';
 import { createSessionRequest } from './session-request.js?v=20260927-auth1';
@@ -1000,7 +1000,11 @@ function syncImageComposer(){
   // Keep duplicate request messages in the Generate tooltip; never add an
   // extra status row that changes the floating deck height.
   const exactPreparing=tool==='image'&&fastImageHandoff.has(currentImageSubmissionKey());
-  const inlineMessage=queueBlocked||exactPreparing?'':message;
+  // A selected look without a prompt or photo already has a disabled Generate
+  // button and a tooltip. Repeating the hint inline adds an unwanted third row.
+  const idleMoodNeedsInput=moodUI.active()&&!references.length&&!$('prompt').value.trim()
+    &&message==='Describe a subject or add an image before using this Mood.';
+  const inlineMessage=queueBlocked||exactPreparing||idleMoodNeedsInput?'':message;
   block.hidden=!inlineMessage;reason.textContent=inlineMessage;review.hidden=true;
   generate.title=message?(message+(queueBlocked?' Open Queue at the top right to review it.':'')):(isSoul2()?'Review the live Higgsfield price before any charge. PV Soul accepts one base image and one optional trained Soul ID; use Seedream for multiple reference photos.':'');
   syncImageReferences();

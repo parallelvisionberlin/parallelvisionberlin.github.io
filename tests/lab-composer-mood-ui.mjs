@@ -157,6 +157,50 @@ async function retouchFillsDesktop(page){
 async function imageForm(x){await imageAdvanced(x.page);await x.page.fill('#prompt:visible, #image-composer-prompt:visible',settings.prompt);await x.page.selectOption('#resolution:visible, #image-composer-resolution:visible','2k');await x.page.selectOption('#ratio:visible, #image-composer-ratio:visible','16:9');await x.page.selectOption('#output-format','png');}
 
 try{
+  // Selecting a Mood without a subject must not insert a third row into the deck.
+  // Adding a photo makes the dock taller but must not squeeze the Mood thumbnails.
+  const stable=await workspace({width:1240,height:900});
+  const measureMood=()=>stable.page.evaluate(()=>{
+    const get=id=>document.querySelector(id).getBoundingClientRect();
+    const panel=get('#composer-moods'),grid=get('#composer-moods-grid'),deck=get('#image-composer');
+    const card=document.querySelector('.moods-card[aria-label="Select Hyper Pop"]').getBoundingClientRect();
+    const photo=document.querySelector('.moods-card-media').getBoundingClientRect();
+    return {panelTop:panel.top,panelHeight:panel.height,gridHeight:grid.height,gridBottom:grid.bottom,
+      lastCardBottom:card.bottom,thumbHeight:photo.height,deckTop:deck.top,deckHeight:deck.height};
+  });
+  await stable.page.click('#image-composer-moods');
+  const emptyGallery=await measureMood();
+  await stable.page.locator('.moods-card[aria-label="Select Soft Pastel Film"]').click();
+  const selectedGallery=await measureMood();
+  assert.equal(await stable.page.locator('#composer-generation-block').isHidden(),true,
+    'Mood without a subject must use the Generate tooltip, not an extra deck row');
+  assert.match(await stable.page.locator('#image-composer-generate').getAttribute('title'),/Describe a subject or add an image/);
+  assert.ok(Math.abs(selectedGallery.deckHeight-emptyGallery.deckHeight)<=3,
+    'Selecting a Mood expanded the deck: '+JSON.stringify({emptyGallery,selectedGallery}));
+  assert.ok(Math.abs(selectedGallery.gridHeight-emptyGallery.gridHeight)<=3,
+    'Selecting a Mood resized the thumbnail grid: '+JSON.stringify({emptyGallery,selectedGallery}));
+  assert.ok(Math.abs(selectedGallery.panelHeight-emptyGallery.panelHeight)<=3,
+    'Selecting a Mood resized the gallery panel: '+JSON.stringify({emptyGallery,selectedGallery}));
+  await stable.page.click('#composer-moods-done');
+  await stable.page.locator('#reference-images').setInputFiles({name:'base.png',mimeType:'image/png',buffer:png});
+  await waitRefs(stable.page,1);
+  await stable.page.click('#image-composer-moods');
+  const withBase=await measureMood();
+  assert.ok(withBase.deckHeight>selectedGallery.deckHeight,'Reference tray should retain its intentional space');
+  assert.ok(Math.abs(withBase.gridHeight-selectedGallery.gridHeight)<=3,
+    'Uploaded base compressed the gallery: '+JSON.stringify({selectedGallery,withBase}));
+  assert.ok(Math.abs(withBase.panelHeight-selectedGallery.panelHeight)<=3,
+    'Uploaded base resized the panel: '+JSON.stringify({selectedGallery,withBase}));
+  assert.ok(Math.abs(withBase.thumbHeight-selectedGallery.thumbHeight)<=2,
+    'Uploaded base resized the thumbnails: '+JSON.stringify({selectedGallery,withBase}));
+  assert.ok(withBase.lastCardBottom<=withBase.gridBottom+3,
+    'The second gallery row should remain completely visible: '+JSON.stringify(withBase));
+  assert.ok(withBase.panelTop>=23,
+    'The panel must remain clear of the viewport top: '+JSON.stringify(withBase));
+  assert.ok(withBase.deckTop<selectedGallery.deckTop,
+    'The taller deck should shift the popup, not shrink the gallery');
+  await stable.context.close();
+
   const x=await workspace({width:1240,height:900});
   await x.page.locator('#reference-images').setInputFiles({name:'base.png',mimeType:'image/png',buffer:png});
   await waitRefs(x.page,1);
