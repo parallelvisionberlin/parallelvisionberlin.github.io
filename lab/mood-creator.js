@@ -1,6 +1,6 @@
 import {MOODS,moodById} from './moods.js?v=20261011-80s-cinema1';
 import {createSessionRequest} from './session-request.js?v=20260927-auth1';
-import {saveMoodHandoff,validateMoodHandoff} from './mood-handoff.js?v=20261011-discovery1';
+import {takeMoodHandoff} from './mood-handoff.js?v=20261011-discovery1';
 const API='https://parallel-vision-lab.parallelvision.workers.dev';
 const CLERK_KEY='pk_live_Y2xlcmsucGFyYWxsZWx2aXNpb25sYWJlbC5jb20k';
 const uuid=/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{12}$/i;
@@ -60,7 +60,7 @@ async function blobDataUrl(blob){
   });
 }
 function initMoodCreator(){
-  const q=new URLSearchParams(location.search),chosenBoard=q.get('board'),sourceJob=q.get('fromJob');
+  const q=new URLSearchParams(location.search),chosenBoard=q.get('board'),sourceJob=q.get('fromJob'),initialBase=q.get('base'),initialHandoff=q.get('handoff');
   let clerk=null,account=null,authGeneration=0,sessionVersion=0;
   let boards=[],boardId=null,items=[],urls=new Map(),busy=false,analyzing=false,selectedIndex=0;
   let suggestion=null,analysisApplied=false,loadGeneration=0,libraryGeneration=0,loadedJob=false;
@@ -72,9 +72,6 @@ function initMoodCreator(){
   const library=$('mc-library-grid'),empty=$('mc-library-empty');
   const create=$('mc-new'),createLibrary=$('mc-library-create');
   const upload=$('mc-upload'),uploadTrigger=$('mc-drop-trigger');
-  const lookDialog=$('mc-look-dialog'),lookZone=$('mc-look-dropzone');
-  const lookFile=$('mc-look-file'),lookDirection=$('mc-look-direction'),lookStatus=$('mc-look-status');
-  let selectedLook=null,lookPhoto=null,lookPhotoURL=null,lookSending=false;
   const feedback=(text,error=false)=>{message.textContent=text||'';message.classList.toggle('is-error',!!error);};
   const authenticated=()=>!!clerk?.isSignedIn&&!!account;
   const markBusy=value=>{
@@ -194,127 +191,8 @@ function initMoodCreator(){
     if(event.key==='Enter'||event.key===' '){event.preventDefault();upload.click();}
   });
 
-  // A curated preset first opens a photo/prompt tray. The Image page never
-  // creates a paid job merely from choosing or dropping a file on a Mood.
-  function clearQuickPhoto(){
-    if(lookPhotoURL)URL.revokeObjectURL(lookPhotoURL);
-    lookPhotoURL=null;lookPhoto=null;lookFile.value='';
-    const preview=$('mc-look-file-preview');if(preview)preview.remove();
-    lookZone.classList.remove('has-image');
-    $('mc-look-file-clear').hidden=true;
-    $('mc-look-file-label-text').textContent='Drop a photograph or browse files';
-  }
-  function chooseQuickPhoto(file){
-    const error=file?moodCreatorImageCheck(file):'Choose a photograph.';
-    if(error){lookStatus.textContent=error;return false;}
-    try{validateMoodHandoff({file});}catch(e){lookStatus.textContent=e.message;return false;}
-    clearQuickPhoto();lookPhoto=file;
-    lookPhotoURL=URL.createObjectURL(file);
-    const img=document.createElement('img');img.id='mc-look-file-preview';img.alt='Photograph selected for Image';
-    img.className='mc-look-file-preview';img.src=lookPhotoURL;lookZone.prepend(img);
-    $('mc-look-file-label-text').textContent=file.name;
-    $('mc-look-file-clear').hidden=false;lookZone.classList.add('has-image');
-    lookStatus.textContent='Photograph ready. Continue in Image to apply the selected Mood.';
-    return true;
-  }
-  function showLook(mood,file=null){
-    if(!mood)return;
-    if(lookDialog.open)lookDialog.close();
-    selectedLook=mood;clearQuickPhoto();lookDirection.value='';lookStatus.textContent='';
-    $('mc-look-preview').src=mood.preview;
-    $('mc-look-preview').alt=mood.name+' Mood preview';
-    $('mc-look-title').textContent=mood.name;
-    $('mc-look-description').textContent=mood.description+'. Keep your original scene and add this creative direction.';
-    if(file&&!chooseQuickPhoto(file)){lookStatus.textContent='Choose a JPG, PNG or WebP photo under 20 MB.';}
-    lookDialog.showModal();
-  }
-  lookDialog.addEventListener('close',()=>{
-    clearQuickPhoto();selectedLook=null;lookSending=false;
-    $('mc-look-continue').disabled=false;$('mc-look-make').disabled=false;
-    $('mc-look-preview').removeAttribute('src');
-  });
-  $('mc-look-close').onclick=()=>lookDialog.close();
-  lookDialog.addEventListener('click',event=>{if(event.target===lookDialog)lookDialog.close();});
-  lookFile.addEventListener('change',()=>{
-    if(lookFile.files?.[0])chooseQuickPhoto(lookFile.files[0]);
-  });
-  $('mc-look-file-clear').onclick=()=>{clearQuickPhoto();lookStatus.textContent='Photo removed. You can continue with a written direction.';};
-  lookZone.addEventListener('dragover',event=>{
-    if(event.dataTransfer?.types?.includes('Files')){
-      event.preventDefault();lookZone.classList.add('is-over');
-    }
-  });
-  lookZone.addEventListener('dragleave',()=>lookZone.classList.remove('is-over'));
-  lookZone.addEventListener('drop',event=>{
-    if(!event.dataTransfer?.files?.length)return;
-    event.preventDefault();lookZone.classList.remove('is-over');
-    chooseQuickPhoto(event.dataTransfer.files[0]);
-  });
-  for(const card of document.querySelectorAll('.mc-look-card[data-mood-id]')){
-    const mood=moodById(card.dataset.moodId);
-    if(!mood)continue;
-    card.addEventListener('click',()=>showLook(mood));
-    card.addEventListener('dragover',event=>{
-      if(event.dataTransfer?.types?.includes('Files')){
-        event.preventDefault();event.dataTransfer.dropEffect='copy';
-        card.classList.add('is-drag-over');
-      }
-    });
-    card.addEventListener('dragleave',()=>card.classList.remove('is-drag-over'));
-    card.addEventListener('drop',event=>{
-      card.classList.remove('is-drag-over');
-      if(event.dataTransfer?.files?.length){
-        event.preventDefault();event.stopPropagation();showLook(mood,event.dataTransfer.files[0]);
-      }
-    });
-  }
-  // Dropping outside the curated cards starts an original board without
-  // silently selecting an unrelated preset.
-  const lookGrid=$('mc-look-grid');
-  lookGrid.addEventListener('dragover',event=>{
-    if(event.dataTransfer?.types?.includes('Files'))event.preventDefault();
-  });
-  lookGrid.addEventListener('drop',event=>{
-    if(!event.dataTransfer?.files?.length)return;
-    if(event.target.closest('.mc-look-card[data-mood-id]'))return;
-    event.preventDefault();resetBoard();
-    addFiles([...event.dataTransfer.files]);
-    scrollToWorkspace();
-  });
-  $('mc-create-look').onclick=()=>resetBoard({scroll:true});
-  $('mc-look-continue').onclick=()=>void (async()=>{
-    if(!selectedLook||lookSending)return;
-    lookSending=true;
-    $('mc-look-continue').disabled=true;$('mc-look-make').disabled=true;
-    const selected=selectedLook,photo=lookPhoto,requested=lookDirection.value;
-    lookStatus.textContent='Preparing Image. Nothing is being generated yet.';
-    try{
-      const token=await saveMoodHandoff({file:photo,prompt:requested});
-      const address=new URL('./studio.html',location.href);
-      address.searchParams.set('tool','image');
-      address.searchParams.set('mood',selected.id);
-      if(token)address.searchParams.set('handoff',token);
-      location.assign(address.href);
-    }catch(e){
-      lookStatus.textContent=e.message;
-      lookSending=false;$('mc-look-continue').disabled=false;$('mc-look-make').disabled=false;
-    }
-  })();
-  $('mc-look-make').onclick=()=>{
-    if(!selectedLook||lookSending)return;
-    const mood=selectedLook,photo=lookPhoto,idea=lookDirection.value.trim();
-    if((boardId||items.length||name.value.trim()||direction.value.trim())&&
-       !confirm('Start a new Mood? Your unsaved editor changes will be replaced.'))return;
-    resetBoard();base.value=mood.id;intensity.value='70';
-    $('mc-intensity-value').textContent='70%';
-    // The preview field can describe the subject, not the reusable aesthetic.
-    // Preserve it as an IDEA, never silently as a style recipe.
-    if(idea)concept.value=idea;
-    if(photo)addFiles([photo]);
-    lookDialog.close();scrollToWorkspace();
-    name.focus({preventScroll:true});
-    feedback('Starting with '+mood.name+'. Refine the idea, then save your own creative direction.');
-  };
+  // Curated Mood selection and photo handoff live in Explore Moods.
+  // This page is solely for synthesizing and saving a personal aesthetic.
   $('mc-start-image').onclick=loadFilePicker;
   $('mc-start-idea').onclick=()=>{scrollToWorkspace();concept.focus({preventScroll:true});};
   $('mc-new').onclick=()=>resetBoard({scroll:true});
@@ -589,6 +467,30 @@ function initMoodCreator(){
   if(chosenBoard&&!uuid.test(chosenBoard))feedback('Invalid saved Mood link.',true);
   if(sourceJob&&!uuid.test(sourceJob))feedback('Invalid image result link.',true);
   renderBoard();renderLibrary();
+  if(initialBase&&!moodById(initialBase))
+    feedback('Unknown curated look. Start from an original Mood or explore the collection.',true);
+  if(initialBase&&moodById(initialBase)&&!chosenBoard&&!sourceJob){
+    base.value=initialBase;
+    intensity.value='70';$('mc-intensity-value').textContent='70%';
+    void (async()=>{
+      try{
+        if(initialHandoff){
+          const packet=await takeMoodHandoff(initialHandoff);
+          if(packet.file)addFiles([packet.file]);
+          if(packet.prompt)concept.value=packet.prompt;
+        }
+        feedback('Starting from '+moodById(initialBase).name+'. Your photo and idea are ready to shape into a personal Mood.');
+        scrollToWorkspace();
+      }catch(error){feedback('That temporary photo could not be transferred. '+error.message,true);}
+      finally{
+        if(initialHandoff){
+          const clean=new URL(location.href);clean.searchParams.delete('handoff');
+          history.replaceState(history.state,'',clean);
+        }
+      }
+    })();
+  }
+
   (async()=>{
     try{
       const {Clerk}=await import('https://esm.sh/@clerk/clerk-js@6?bundle');
