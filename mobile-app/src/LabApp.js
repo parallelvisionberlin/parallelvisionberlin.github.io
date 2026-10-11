@@ -10,7 +10,7 @@ import {config} from './config';
 import {isLabURL,LAB_STUDIO,LAB_MOODS,labCommandScript,labReplyScript,moodCommand,nativeLabFlag,readLabMessage,sharePayload} from './labBridge';
 
 function Button({children,onPress,selected=false}){return <Pressable accessibilityRole="button" accessibilityState={{selected}} onPress={onPress} style={({pressed})=>[s.button,selected&&s.selected,pressed&&s.pressed]}><Text style={[s.buttonText,selected&&s.selectedText]}>{children}</Text></Pressable>;}
-function LabWebSurface({source,web,onSignIn,onSignOut,onNavigate,onReady,getIdentity,active}){
+function LabWebSurface({source,web,onSignIn,onSignOut,onNavigate,onReady,onLoading,getIdentity,active}){
   const [attempt,setAttempt]=useState(0),[loading,setLoading]=useState(true),[error,setError]=useState('');
   const epoch=useRef(0),alive=useRef(true),pending=useRef(new Set()),sharing=useRef(false),pageId=useRef('');
   const identity=useRef(getIdentity);identity.current=getIdentity;
@@ -48,7 +48,7 @@ function LabWebSurface({source,web,onSignIn,onSignOut,onNavigate,onReady,getIden
       allowsInlineMediaPlayback mediaPlaybackRequiresUserAction setSupportMultipleWindows={false}
       originWhitelist={['https://*']} bounces={false} contentInsetAdjustmentBehavior="never" automaticallyAdjustContentInsets={false}
       onMessage={receive}
-      onLoadStart={()=>{epoch.current++;pageId.current='';pending.current.clear();setLoading(true);setError('');}}
+      onLoadStart={()=>{onLoading?.();epoch.current++;pageId.current='';pending.current.clear();setLoading(true);setError('');}}
       onLoadEnd={()=>setLoading(false)}
       onError={()=>{setLoading(false);setError('Lab could not load. Check your connection and retry.');}}
       onHttpError={e=>{if(isLabURL(e.nativeEvent.url)&&e.nativeEvent.statusCode>=400){setLoading(false);setError('Lab is temporarily unavailable. Please retry.');}}}
@@ -65,7 +65,7 @@ function LabWebSurface({source,web,onSignIn,onSignOut,onNavigate,onReady,getIden
 function Workspace(){
   const {isLoaded,isSignedIn,getToken,userId,sessionId}=useAuth(),{signOut}=useClerk(),{user}=useUser();
   const [tab,setTab]=useState('create'),[visitedMoods,setVisitedMoods]=useState(false),[profile,setProfile]=useState(false),[moodsSource,setMoodsSource]=useState(LAB_MOODS);
-  const studio=useRef(null),moods=useRef(null),queued=useRef(null),current=useRef({});
+  const studio=useRef(null),moods=useRef(null),queued=useRef(null),studioReady=useRef(false),current=useRef({});
   current.current={isLoaded,isSignedIn,userId,sessionId,getToken};
   const getIdentity=useCallback(async force=>{
     const start=current.current;if(!start.isLoaded)throw Error('Account loading');
@@ -74,7 +74,7 @@ function Workspace(){
     if(current.current.sessionId!==start.sessionId||!current.current.isSignedIn)throw Error('Session changed');
     return {token:token||'',userId:start.userId,sessionId:start.sessionId};
   },[]);
-  const send=command=>{queued.current=command;studio.current?.injectJavaScript(labCommandScript(command));};
+  const send=command=>{if(studioReady.current&&studio.current){queued.current=null;studio.current.injectJavaScript(labCommandScript(command));}else queued.current=command;};
   const select=next=>{setTab(next);if(next==='moods')setVisitedMoods(true);else send({action:next});};
   const logout=()=>Alert.alert('Sign out?','Your saved Lab images and Moods stay in your account.',[{text:'Cancel',style:'cancel'},{text:'Sign out',style:'destructive',onPress:async()=>{await signOut();setProfile(false);setTab('create');setVisitedMoods(false);queued.current=null;}}]);
   useEffect(()=>{if(isSignedIn)setProfile(false);},[isSignedIn]);
@@ -89,7 +89,7 @@ function Workspace(){
   return <SafeAreaView style={s.safe}><StatusBar barStyle="light-content" backgroundColor="#080808"/>
     <View style={s.header}><Text style={s.brand}>PV LAB<Text style={s.brandSmall}>  / PARALLEL VISION</Text></Text><Pressable accessibilityRole="button" accessibilityLabel="Your account" onPress={()=>setProfile(true)} style={s.account}><Text style={s.accountText}>{isSignedIn?(user?.firstName?.[0]||'◎'):'Sign in'}</Text></Pressable></View>
     <View style={s.body}>{isLoaded?<>
-      <LabWebSurface key={'studio-'+(sessionId||'guest')} source={LAB_STUDIO} web={studio} active={tab!=='moods'} getIdentity={getIdentity} onSignIn={()=>setProfile(true)} onSignOut={logout} onNavigate={url=>navigate(url)} onReady={()=>{if(queued.current)studio.current?.injectJavaScript(labCommandScript(queued.current));}}/>
+      <LabWebSurface key={'studio-'+(sessionId||'guest')} source={LAB_STUDIO} web={studio} active={tab!=='moods'} getIdentity={getIdentity} onSignIn={()=>setProfile(true)} onSignOut={logout} onNavigate={url=>navigate(url)} onLoading={()=>{studioReady.current=false;}} onReady={()=>{studioReady.current=true;const command=queued.current;queued.current=null;if(command)studio.current?.injectJavaScript(labCommandScript(command));}}/>
       {visitedMoods&&<LabWebSurface key={'moods-'+(sessionId||'guest')} source={moodsSource} web={moods} active={tab==='moods'} getIdentity={getIdentity} onSignIn={()=>setProfile(true)} onSignOut={logout} onNavigate={url=>navigate(url,true)}/>}
     </>:<ActivityIndicator color="#d9eb5d" style={s.loader}/>}</View>
     <View style={s.nav}><Button selected={tab==='create'} onPress={()=>select('create')}>Create</Button><Button selected={tab==='moods'} onPress={()=>select('moods')}>My Moods</Button><Button selected={tab==='gallery'} onPress={()=>select('gallery')}>Gallery</Button></View>
