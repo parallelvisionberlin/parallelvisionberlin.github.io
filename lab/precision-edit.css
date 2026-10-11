@@ -64,6 +64,19 @@
 .precision-drop strong{font-family:'Space Grotesk',sans-serif;letter-spacing:-.028em;font-size:22px;font-weight:600}
 .precision-drop span:not(.precision-drop-symbol){font-size:13px;color:#b3b6bf}
 .precision-drop small{margin-top:8px;color:#a0a4ae;font-size:11.5px}
+
+/* First interaction: the whole panel remains a drop target. Two distinct
+   accessible actions remove the ambiguity of the previous empty state. */
+.precision-drop-actions{display:flex;gap:9px;justify-content:center;flex-wrap:wrap;margin-top:10px}
+.precision-drop-actions button{min-height:40px;border-radius:9px;padding:9px 14px;border:1px solid #5b5e65;font-size:12px;font-weight:650;line-height:1.2;white-space:nowrap;transition:background .16s ease,border-color .16s ease,transform .16s ease}
+#precision-browse-photo{background:#d7ddc2;border-color:#d7ddc2;color:#171916}
+#precision-browse-photo:hover{background:#eff0e2;border-color:#eff0e2}
+#precision-try-sample{background:#25272d;color:#e2e4e9;border-color:#62666e}
+#precision-try-sample:hover{background:#33363d;border-color:#9ca1ad}
+.precision-drop-actions button:focus-visible{outline:2px solid #f4f5f3;outline-offset:2px}
+.precision-drop-actions button:disabled{opacity:.65;cursor:wait}
+.precision-drop-actions button:active{transform:translateY(1px)}
+
 .precision-source-holder,.precision-output-holder{position:relative;min-height:0;flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#111214;padding:10px}
 .precision-source-holder[hidden]{display:none!important}
 .precision-source-holder.is-dragging{outline:2px dashed #d7ddc2;outline-offset:-4px;background:#1d2421}
@@ -133,6 +146,50 @@
 .precision-output-empty>span{font-size:32px;color:#50555c}
 .precision-output-empty strong{font-size:15px;font-weight:650}
 .precision-output-empty p{font-size:13px;color:#a0a4af;line-height:1.55;margin:0}
+
+/* The empty Result panel teaches the concept through a *selection-only*
+   illustration on real Parallel Vision imagery. It never shows an invented
+   model output, before/after transformation, or fabricated provider result. */
+.precision-workspace[data-phase="empty"] .precision-output-empty{max-width:440px;width:min(440px,100%);gap:9px}
+.precision-demo{display:flex;flex-direction:column;gap:8px;align-items:center;width:min(365px,100%);margin-bottom:2px}
+.precision-demo[hidden]{display:none!important}
+.precision-demo-frame{position:relative;width:100%;height:clamp(150px,23dvh,245px);overflow:hidden;border:1px solid #42464e;border-radius:11px;background:linear-gradient(135deg,#23252b,#131417);isolation:isolate}
+.precision-demo-frame>img{display:block;width:100%;height:100%;object-fit:cover;object-position:center;filter:contrast(1.07) saturate(.8);opacity:.9}
+.precision-demo-topline{position:absolute;left:11px;top:10px;padding:6px 8px;border-radius:5px;background:#0a0c1094;font-size:9px;font-weight:700;letter-spacing:.12em;color:#dde1e7}
+.precision-demo-target{position:absolute;left:37%;top:23%;width:30%;height:53%;border:1.5px solid #e3e9db;border-radius:42% 35% 48% 31%;background:rgba(206,224,199,.11);box-shadow:inset 0 0 22px rgba(225,239,207,.18),0 0 18px rgba(229,236,221,.18);opacity:0;transform:scale(.84);animation:pv-retouch-target 8s ease-in-out infinite}
+.precision-demo-cursor{position:absolute;left:15%;top:81%;z-index:2;color:#e9eedf;font:24px/1 monospace;text-shadow:0 0 10px #000;opacity:0;animation:pv-retouch-cursor 8s ease-in-out infinite}
+.precision-demo-selected{position:absolute;top:23%;left:calc(67% + 7px);color:#e0e8d8;background:#11151abf;padding:5px 6px;border:1px solid #9aa69977;border-radius:4px;font-size:8px;font-weight:750;letter-spacing:.1em;white-space:nowrap;opacity:0;animation:pv-retouch-selected 8s ease-in-out infinite}
+.precision-demo-direction{position:absolute;left:50%;bottom:11px;transform:translate(-50%,7px);width:max-content;max-width:90%;background:#111216e8;border:1px solid #525860;padding:8px 11px;border-radius:7px;color:#e7e9e5;font-size:11px;text-align:center;opacity:0;animation:pv-retouch-direction 8s ease-in-out infinite}
+.precision-demo-guide{position:absolute;top:0;bottom:0;left:50%;width:1px;background:linear-gradient(transparent,#e6e9e1 25%,#e6e9e1 75%,transparent);opacity:0;animation:pv-retouch-guide 8s ease-in-out infinite}
+.precision-demo-sequence{display:flex;gap:5px;width:100%;justify-content:center}
+.precision-demo-sequence span{flex:1;text-align:center;border:1px solid #3c4046;padding:5px 4px;border-radius:5px;font-size:9px;letter-spacing:.08em;font-weight:700;color:#777d86;animation:pv-retouch-step 8s ease-in-out infinite}
+.precision-demo-sequence span:nth-child(2){animation-delay:2.5s}
+.precision-demo-sequence span:nth-child(3){animation-delay:5s}
+.precision-demo-honesty{color:#9aa0aa;font-size:10px;line-height:1.45;text-align:center}
+.precision-ideas{width:min(440px,100%);margin-top:4px;display:flex;flex-direction:column;align-items:center;gap:9px}
+.precision-ideas[hidden]{display:none!important}
+.precision-ideas>span{color:#a9adb6;font-size:10px;letter-spacing:.12em;font-weight:700}
+.precision-ideas>div{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:7px}
+.precision-ideas button{border:1px solid #4b515a;border-radius:7px;background:#24272c;color:#e1e4e9;padding:8px 10px;font-size:11px;font-weight:590;min-height:32px}
+.precision-ideas button:hover:not(:disabled){background:#393d44;border-color:#89919d}
+.precision-ideas button:focus-visible{outline:2px solid #cbd9c3;outline-offset:2px}
+.precision-ideas button:disabled{opacity:.5}
+.precision-workspace[data-phase="select"] .precision-input-panel{border-color:#565d58}
+@keyframes pv-retouch-cursor{0%,8%{opacity:0;transform:translate(0,0)}15%,22%{opacity:1;transform:translate(110%, -210%)}36%,100%{opacity:0;transform:translate(190%,-240%)}}
+@keyframes pv-retouch-target{0%,14%{opacity:0;transform:scale(.84)}23%,59%{opacity:1;transform:scale(1)}73%,100%{opacity:0;transform:scale(1.01)}}
+@keyframes pv-retouch-selected{0%,24%{opacity:0}30%,59%{opacity:1}72%,100%{opacity:0}}
+@keyframes pv-retouch-direction{0%,36%{opacity:0;transform:translate(-50%,7px)}44%,78%{opacity:1;transform:translate(-50%,0)}94%,100%{opacity:0;transform:translate(-50%,3px)}}
+@keyframes pv-retouch-guide{0%,64%{opacity:0}73%,87%{opacity:.85}98%,100%{opacity:0}}
+@keyframes pv-retouch-step{0%,7%,32%,100%{border-color:#3c4046;color:#777d86;background:transparent}11%,26%{border-color:#8e998d;color:#e9ede5;background:#c8d9c012}}
+@media(max-width:900px){.precision-demo-frame{height:clamp(154px,25dvh,220px)}.precision-demo{max-width:330px}.precision-demo-honesty{font-size:9.5px}}
+@media(max-width:520px){.precision-demo-frame{height:158px}.precision-demo{max-width:290px}.precision-drop-actions{flex-direction:column;width:100%;align-items:stretch}.precision-drop-actions button{min-height:40px}.precision-demo-sequence span{font-size:8px}}
+@media(prefers-reduced-motion:reduce){
+  .precision-demo-cursor,.precision-demo-selected,.precision-demo-direction,.precision-demo-guide{animation:none;opacity:0}
+  .precision-demo-target{animation:none;opacity:1;transform:none}
+  .precision-demo-sequence span{animation:none}
+  .precision-demo-sequence span:first-child{border-color:#889486;color:#e5e9e1}
+}
+
 #precision-result-canvas{display:block;max-width:100%;max-height:min(75dvh,var(--precision-result-fit-height,680px));object-fit:contain}
 #precision-result-canvas[hidden],#precision-output-empty[hidden]{display:none!important}
 .precision-compare-row{height:43px;flex:0 0 43px;display:flex;justify-content:space-between;align-items:center;gap:12px;border-top:1px solid #34363a;background:#1b1c20;padding:5px 12px}
