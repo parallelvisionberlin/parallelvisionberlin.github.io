@@ -5,11 +5,29 @@ export const MOOD_ANALYSIS_MODEL='gemini-2.5-flash';
 export const MOOD_ANALYSIS_DAILY_LIMIT=6;
 export const MOOD_ANALYSIS_GLOBAL_LIMIT=100;
 export const BOARD_IMAGE_BYTES_MAX=900000;
+export const MOOD_ANALYSIS_IMAGES_MAX=12;
+export const MOOD_ANALYSIS_TOTAL_IMAGE_BYTES_MAX=1850000;
+export const MOOD_ANALYSIS_IMAGE_BYTES_MAX=160000;
 export function parseMoodAnalysisInput(value,fail){
   if(!value||typeof value!=='object'||Array.isArray(value))fail(400,'Invalid creative brief.');
   const concept=typeof value.concept==='string'?value.concept.trim():'';
-  const imageDataUrl=value.imageDataUrl||null;
   if(concept.length>1400)fail(400,'Keep your creative direction under 1,400 characters.');
+  if(value.imageDataUrls!==undefined){
+    const images=value.imageDataUrls;
+    if(!Array.isArray(images)||images.length>MOOD_ANALYSIS_IMAGES_MAX)
+      fail(400,'Analyze no more than 12 Moodboard photos together.');
+    if(images.some(data=>typeof data!=='string'||data.length>245000))
+      fail(413,'Prepare smaller Moodboard analysis previews.');
+    if(images.some(data=>!/^data:image\/(?:jpeg|png|webp);base64,[a-zA-Z0-9+/]+={0,2}$/.test(data)))
+      fail(415,'Moodboard analysis accepts JPEG, PNG and WebP data only.');
+    if(!concept&&!images.length)fail(400,'Add a photograph or describe your aesthetic.');
+    const focusIndex=images.length?Number(value.focusIndex??0):-1;
+    if(!Number.isInteger(focusIndex)||focusIndex<-1||focusIndex>=images.length||(images.length&&focusIndex<0))
+      fail(400,'Select a valid visual focus image.');
+    return {concept,imageDataUrls:images,focusIndex};
+  }
+  // Legacy single-image requests remain valid for earlier cached clients.
+  const imageDataUrl=value.imageDataUrl||null;
   if(imageDataUrl!==null&&(typeof imageDataUrl!=='string'||imageDataUrl.length>1400000))fail(413,'Use a smaller image for style analysis.');
   if(!concept&&!imageDataUrl)fail(400,'Add a photograph or describe your aesthetic.');
   if(imageDataUrl!==null&&!/^data:image\/(?:jpeg|png|webp);base64,[a-zA-Z0-9+/]+={0,2}$/.test(imageDataUrl))
@@ -27,8 +45,12 @@ export function normalizeMoodAnalysis(value,fail){
 }
 const promptInstruction=[
   'You are PV Lab editorial art director. Analyze AESTHETIC STYLE only.',
-  'For a photo, extract lighting, color palette, film/optical qualities, material finishes,',
-  'texture, atmosphere, contrast and lens behavior from the uploaded scene.',
+  'When multiple photos are provided, synthesize the aesthetic of ALL photographs together.',
+  'Notice what each contributes: lighting, color palette, film/optical qualities,',
+  'surface/material finishes, grain, atmosphere, contrast, and lens behavior.',
+  'Combine compatible elements with intentional tension. Do not simply copy one image,',
+  'average the images into a bland style or ignore a reference.',
+  'The numbered focus photo is a creative anchor, NOT the only source; all images matter.',
   'For a text idea, expand the aesthetic into a reusable photography/art-direction look.',
   'Never reproduce or describe the person, facial identity, age, pose, specific clothing,',
   'setting, recognizable artwork, exact objects or image composition from the input.',
@@ -68,15 +90,28 @@ export async function moodCreatorRoute(request,env,owner,url,{limitedBody,fail,j
     if(!env.GEMINI_API_KEY)fail(503,'AI style analysis is not configured yet. You can still write and save your own Mood.');
     if(!request.headers.get('content-type')?.startsWith('application/json'))fail(415,'Send a creative brief as JSON.');
     let input;
-    try{const bytes=await limitedBody(request,1500000);input=parseMoodAnalysisInput(JSON.parse(new TextDecoder().decode(bytes)),fail);}
+    try{const bytes=await limitedBody(request,3000000);input=parseMoodAnalysisInput(JSON.parse(new TextDecoder().decode(bytes)),fail);}
     catch(e){if(e?.status)throw e;fail(400,'Invalid analysis request.');}
-    const parts=[{text:promptInstruction+'\nCreative idea (may be empty): '+input.concept}];
-    if(input.imageDataUrl){
-      const match=/^data:(image\/(?:jpeg|png|webp));base64,(.*)$/.exec(input.imageDataUrl);
+    const multiple=Array.isArray(input.imageDataUrls);
+    const images=multiple?input.imageDataUrls:(input.imageDataUrl?[input.imageDataUrl]:[]);
+    const intro=multiple
+      ?'\nMoodboard has '+images.length+' photographs in order. Focus photograph: '+(images.length?input.focusIndex+1:'none')+
+       '. Use all photographs to derive ONE coherent reusable style. The focus image is weighted, not exclusive.'
+      :'';
+    const parts=[{text:promptInstruction+intro+'\nCreative idea (may be empty): '+input.concept}];
+    let totalBytes=0;
+    for(let i=0;i<images.length;i++){
+      const match=/^data:(image\/(?:jpeg|png|webp));base64,(.*)$/.exec(images[i]);
+      if(!match)fail(415,'Invalid style image encoding.');
       let binary;
       try{binary=Uint8Array.from(atob(match[2]),character=>character.charCodeAt(0));}
       catch{fail(400,'Image analysis file could not be decoded.');}
-      if(binary.length<64||binary.length>1050000||!sniff(binary,match[1]))fail(413,'Use a smaller JPG, PNG or WebP for analysis.');
+      const limit=multiple?MOOD_ANALYSIS_IMAGE_BYTES_MAX:1050000;
+      totalBytes+=binary.length;
+      if(binary.length<64||binary.length>limit||totalBytes>MOOD_ANALYSIS_TOTAL_IMAGE_BYTES_MAX||!sniff(binary,match[1]))
+        fail(413,'Moodboard photos must be smaller valid images. Try lower-resolution previews.');
+      parts.push({text:'MOODBOARD PHOTO '+(i+1)+' / '+images.length+(multiple&&i===input.focusIndex?' (VISUAL FOCUS)':'')+
+        ': analyze its style qualities, not the specific people or objects.'});
       parts.push({inlineData:{mimeType:match[1],data:match[2]}});
     }
     // Bound both the total API exposure and individual account usage.
