@@ -143,6 +143,13 @@ try{
   assert.match(await page.locator('#precision-source-meta').textContent(),/editorial\.png/);
   assert.match(await page.locator('#precision-prompt').inputValue(),/vivid red material/);
   assert.equal(await page.evaluate(()=>window.pvRequests.length),priorRequests,'Returning does not resubmit paid work');
+  assert.equal(await page.locator('#precision-continue').isEnabled(),true,'Completed edit offers direct iteration');
+  await page.locator('#precision-continue').click();
+  await page.waitForFunction(()=>document.getElementById('precision-source-meta').textContent.includes('retouch-next.png'));
+  assert.equal(await page.locator('#precision-result-canvas').isVisible(),false,
+    'Continuing an edit starts a fresh mask on the saved result');
+  assert.equal(await page.evaluate(()=>window.pvRequests.length),priorRequests,
+    'Continuing an edit reuses its existing asset ID without paid requests');
   // Large originals require explicit export risk acknowledgment before any
   // paid quote. Use a uniformly colored PNG so the synthetic test stays cheap.
   await page.evaluate(async()=>{
