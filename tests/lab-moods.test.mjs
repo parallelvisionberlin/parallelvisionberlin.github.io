@@ -498,7 +498,7 @@ test('Berlin Rave V2 adapts garment architecture to the person and keeps the ori
   assert.match(mood.direction,/do not force a monochrome photograph/);
   assert.match(mood.avoid,/red neon/);
   assert.match(mood.avoid,/fake crowd/);
-  assert.equal(mood.preview,'/lab/mood-previews/berlin-rave-20261011.webp','Do not change thumbnail during V2 prompt work');
+  assert.equal(mood.preview,'/lab/mood-previews/berlin-rave-20261011.webp?v=hd-20261011','Keep the approved Berlin Rave photograph at native resolution');
   assert.match(mood.preview,/berlin-rave-20261011\.webp/);
   for(const intensity of [10,55,80,95,100]){
     const result=prepareMoodPrompt('A person wearing a white T-shirt','berlin-rave',intensity,{engine:'seedream',referenceCount:1});
