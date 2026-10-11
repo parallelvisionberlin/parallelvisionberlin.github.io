@@ -961,3 +961,45 @@ body:has(#app[hidden])>#studio-header .tool-switch{display:none}
  #image-composer.is-gemini .composer-controls>.composer-select-pill select{min-width:36px;max-width:83px;padding:6px 15px 6px 4px;font-size:11px}
  #image-composer.is-gemini .composer-controls>.reference-intent-toggle{max-width:98px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 }
+
+/* A first-class creative destination in the existing satin graphite masthead. */
+#studio-header .tool-switch>.tool-group>.studio-mood-link{
+  position:relative;display:inline-flex;align-items:center;justify-content:center;
+  flex:none;gap:7px;align-self:stretch;min-width:0;min-height:44px;
+  padding:0 2px;color:#f0eedf;font:550 14px/1 'DM Sans',Arial,sans-serif;
+  letter-spacing:-.012em;text-decoration:none;white-space:nowrap;transition:color .18s;
+}
+#studio-header .studio-mood-link span{font-size:11px;opacity:.75;transform:translateY(-2px)}
+#studio-header .tool-switch>.tool-group>.studio-mood-link::after{
+  content:'';position:absolute;bottom:0;left:2px;right:2px;height:2px;
+  background:#e4efc2;opacity:.35;transition:opacity .18s;
+}
+#studio-header .tool-switch>.tool-group>.studio-mood-link:hover{color:#fff}
+#studio-header .tool-switch>.tool-group>.studio-mood-link:hover::after,
+#studio-header .tool-switch>.tool-group>.studio-mood-link:focus-visible::after{opacity:1}
+@media(min-width:900px) and (max-width:1300px){
+  #studio-header .tool-switch>.tool-group{gap:clamp(12px,1.35vw,20px)}
+  #studio-header .tool-switch>.tool-group>button,
+  #studio-header .tool-switch>.tool-group>.studio-mood-link{font-size:12px}
+  body>#studio-header .wrap.top{gap:20px;padding-inline:18px}
+  #studio-header .actions{gap:14px;min-width:130px}
+}
+@media(max-width:899px){
+  body>#studio-header .tool-switch{
+    overflow-x:auto;overflow-y:hidden;scrollbar-width:none;
+    overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;
+  }
+  body>#studio-header .tool-switch::-webkit-scrollbar{display:none}
+  #studio-header .tool-switch>.tool-group{
+    flex:0 0 auto;width:max-content;min-width:100%;justify-content:flex-start;
+    gap:clamp(17px,3vw,25px);
+  }
+  #studio-header .tool-switch>.tool-group>.studio-mood-link{font-size:13px}
+}
+@media(max-width:480px){
+  #studio-header .tool-switch>.tool-group{gap:19px}
+  #studio-header .tool-switch>.tool-group>.studio-mood-link{font-size:12px}
+}
+@media(prefers-reduced-motion:reduce){
+  #studio-header .studio-mood-link,#studio-header .studio-mood-link::after{transition:none}
+}
