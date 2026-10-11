@@ -393,7 +393,7 @@ function initMoodCreator(){
       const row=document.createElement('div');row.className='mc-library-item';
       const useLink=document.createElement('a');useLink.className='mc-library-use';
       useLink.href='./studio.html?tool=image&moodboard='+encodeURIComponent(item.id);
-      useLink.textContent='Use in Image →';
+      useLink.textContent='Use in Image';
       useLink.setAttribute('aria-label','Use '+item.name+' in Image Studio');
       row.append(card,useLink);library.append(row);
     }
