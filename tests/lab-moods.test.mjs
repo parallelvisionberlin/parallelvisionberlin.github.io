@@ -72,12 +72,12 @@ test('Create Mood stays prominent across tabs without a duplicate My Moods tile'
   assert.doesNotMatch(css,/\.moods-board-create/);
   assert.match(css,/#image-composer #composer-moods-create\{/);
   assert.match(css,/min-height:42px;padding:9px 15px/);
-  assert.match(css,/transform:translateY\(18px\)/);
-  assert.match(css,/\.moods-header-actions\{display:flex;flex:0 0 auto;align-items:flex-start/);
-  assert.match(css,/\.moods-header-actions\{align-items:center;gap:6px;transform:translateY\(15px\)\}/);
-  assert.match(css,/min-height:44px;padding:9px 12px;font-size:12px;gap:6px;transform:none/);
-  assert.match(css,/flex-basis:38px;width:38px;min-width:38px;height:38px;min-height:38px/);
-  assert.match(html,/moods\.css\?v=20261011-deck-space1/);
+  assert.doesNotMatch(css,/transform:translateY\((18|15)px\)/);
+  assert.match(css,/\.moods-header-actions\{display:flex;grid-column:2;grid-row:2;align-items:center/);
+  assert.match(css,/\.moods-header-actions\{gap:4px\}/);
+  assert.match(css,/min-height:44px;padding:9px 12px;font-size:12px;gap:6px/);
+  assert.match(css,/flex-basis:44px;width:44px;min-width:44px;height:44px;min-height:44px/);
+  assert.match(html,/moods\.css\?v=20261011-header-align2/);
   assert.match(css,/@media\(max-width:420px\)/);
   assert.match(css,/\.moods-create-tail\{display:none\}/);
 });
@@ -117,7 +117,7 @@ test('Moods category filters have readable touch targets and preserve thumbnail 
   assert.match(css,/\.moods-grid\{display:grid;grid-template-columns:repeat\(5,minmax\(0,1fr\)\)/);
   assert.match(css,/\.moods-card-media\{[^\n]*aspect-ratio:5\/4/);
   assert.match(js,/\['All','Cinema','Fashion','Analog','Experimental','My Moods'\]/);
-  assert.match(html,/moods\.css\?v=20261011-deck-space1/);
+  assert.match(html,/moods\.css\?v=20261011-header-align2/);
 });
 
 test('fifteen unique curated moods with imagery',()=>{
@@ -330,7 +330,7 @@ test('Moods preserves its gallery height as the image deck grows and stays in th
   const html=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
   assert.match(css,/\.moods-grid\{display:grid;grid-template-columns:repeat\(5,minmax\(0,1fr\)\);gap:11px;flex:0 1 auto/);
   assert.match(css,/\.moods-footer\{[\s\S]*?flex:0 0 auto/);
-  assert.match(css,/\.moods-header\{display:flex;flex:0 0 auto/);
+  assert.match(css,/\.moods-header\{display:grid;flex:0 0 auto/);
   assert.match(css,/\.composer-moods-backdrop\{/);
   assert.match(css,/\.is-viewport-tight/);
   assert.match(js,/function fitPanelViewport\(\)/);
@@ -361,7 +361,7 @@ test('Popup stays centered; selected mood and About are in the upper controls',(
   assert.match(html,/id="composer-moods-selection" class="moods-selection" hidden/);
   assert.match(js,/selection\.hidden=!chosen/);
   assert.match(css,/grid-template-columns:minmax\(0,1fr\) 170px/);
-  assert.match(html,/moods\.css\?v=20261011-deck-space1/);
+  assert.match(html,/moods\.css\?v=20261011-header-align2/);
   const worker=readFileSync(new URL('../lab-worker/worker.mjs',import.meta.url),'utf8');
   for(const key of ['sumi-ink','dreamcore'])assert.ok(worker.includes("'"+key+"'"));
 });
@@ -404,7 +404,7 @@ test('Moods prioritizes previews and toggles an already-selected thumbnail off',
   assert.match(css,/#composer-moods-done,[\s\S]*?#composer-moods-switch\{[\s\S]*?min-height:48px/);
   assert.match(css,/#composer-moods-intensity::-webkit-slider-runnable-track\{[\s\S]*?height:7px/);
   assert.match(html,/Clear selected mood/);
-  assert.match(html,/moods\.css\?v=20261011-deck-space1/);
+  assert.match(html,/moods\.css\?v=20261011-header-align2/);
 });
 
 
@@ -419,7 +419,7 @@ test('Preview-first Moods deck enlarges photos while keeping original slider and
   assert.match(css,/#composer-moods-intensity::-webkit-slider-runnable-track\{\s*height:7px/);
   assert.match(css,/#composer-moods-done,[\s\S]*?#composer-moods-switch\{[\s\S]*?min-height:48px/);
   assert.match(css,/max-height:min\(720px,var\(--moods-available-height/);
-  assert.match(html,/moods\.css\?v=20261011-deck-space1/);
+  assert.match(html,/moods\.css\?v=20261011-header-align2/);
   assert.equal(MOODS.length,15);
 });
 
