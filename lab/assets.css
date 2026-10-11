@@ -1058,3 +1058,36 @@ body:has(#app[hidden])>#studio-header .studio-mood-icon{display:none!important}
   #studio-header .studio-mood-icon .studio-mood-spark{transition:none}
   #studio-header .actions>.studio-mood-icon:hover{transform:none}
 }
+
+
+/* Discover and Create are first-class Studio destinations, not more settings.
+   Existing sticky masthead and floating generation deck retain their geometry. */
+#studio-header .tool-switch>.tool-group>a.tool-link{
+  position:relative;display:inline-flex;align-items:center;justify-content:center;
+  flex:none;min-width:0;width:auto;height:100%;min-height:44px;
+  margin:0;padding:0 1px;color:#c5d0c2;
+  font:500 14px/1 'DM Sans',Arial,sans-serif;text-decoration:none;white-space:nowrap;
+}
+#studio-header .tool-switch>.tool-group>a.tool-link:after{
+  content:"";position:absolute;bottom:0;left:0;right:0;height:2px;
+  background:#b7d4a9;opacity:0;transition:opacity .16s;
+}
+#studio-header .tool-switch>.tool-group>a.tool-link:hover{color:#fff}
+#studio-header .tool-switch>.tool-group>a.tool-link:hover:after{opacity:1}
+#studio-header .tool-switch>.tool-group>a.tool-link:focus-visible{outline:2px solid #d8fa70;outline-offset:-5px}
+@media(max-width:1220px){
+  #studio-header .tool-switch>.tool-group{gap:clamp(10px,1.5vw,20px)}
+  #studio-header .tool-switch>.tool-group>button{font-size:12px}
+  #studio-header .tool-switch>.tool-group>a.tool-link{font-size:12px}
+  #studio-header .actions{gap:13px}
+}
+@media(max-width:899px){
+  body>#studio-header .tool-switch{overflow-x:auto;overflow-y:hidden;scrollbar-width:none;overscroll-behavior-x:contain}
+  body>#studio-header .tool-switch::-webkit-scrollbar{display:none}
+  #studio-header .tool-switch>.tool-group{width:max-content;min-width:max-content;justify-content:flex-start;gap:22px}
+  #studio-header .tool-switch>.tool-group>a.tool-link{font-size:13px}
+}
+@media(max-width:480px){
+  #studio-header .tool-switch>.tool-group{gap:18px}
+  #studio-header .tool-switch>.tool-group>a.tool-link{font-size:12px}
+}
