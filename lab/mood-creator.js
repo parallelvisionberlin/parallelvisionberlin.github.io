@@ -1,4 +1,4 @@
-import {MOODS,moodById} from './moods.js?v=20261011-mood-creator1';
+import {MOODS,moodById} from './moods.js?v=20261011-mood-creator-collection3';
 import {createSessionRequest} from './session-request.js?v=20260927-auth1';
 import {saveMoodHandoff,validateMoodHandoff} from './mood-handoff.js?v=20261011-discovery1';
 const API='https://parallel-vision-lab.parallelvision.workers.dev';
