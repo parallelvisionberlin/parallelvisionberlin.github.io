@@ -122,9 +122,6 @@
   text-align:left;cursor:pointer;transition:border-color .18s,box-shadow .18s;
 }
 .mc-explore-page .mc-look-card:hover{border-color:#d0ff77}
-.mc-explore-page .mc-look-card[data-mood-id="hong-kong-nights"]{
-  border:2px solid var(--pv-acid);box-shadow:0 0 0 1px #baff6b1a;
-}
 .mc-explore-page .mc-look-photo{
   position:absolute;inset:0;display:block;box-sizing:border-box;
   width:100%;height:100%;aspect-ratio:auto;margin:0;padding:0;
