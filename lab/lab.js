@@ -2784,8 +2784,7 @@ async function sync(){if(syncing)return;syncing=true;try{if(!clerk.isSignedIn){l
     $('history').setAttribute('aria-busy','true');
     finishLabBoot();
     if(customerMode&&new URLSearchParams(location.search).get('referrals')==='1')wallet.openReferrals();
-    await Promise.all([loadHistory(),loadPacks(),soul.load(),loadSoulProIdentity()]);
-    $('history').removeAttribute('aria-busy');
+    await Promise.all([loadHistory().finally(()=>$('history').removeAttribute('aria-busy')),loadPacks(),soul.load(),loadSoulProIdentity()]);
     void myMoods.refresh().catch(()=>{/* Personal boards must not block image Studio sign-in. */});
     syncVideoStudioMode();await restoreStudioEntry();if(!fashionActive&&fashionController)void fashionController.sync();if(customerMode&&new URLSearchParams(location.search).get('billing')==='success'){notify('Checkout returned. Credits appear when Stripe confirms payment.');void wallet.refresh();}}catch(e){lock();$('auth-status').textContent=e.message;$('signin').disabled=false;$('logout').hidden=!clerk?.isSignedIn;}finally{syncing=false;finishLabBoot();}}
 $('studio-invite-friends').onclick=()=>{$('studio-invite-friends').closest('details').open=false;wallet.openReferrals();};
