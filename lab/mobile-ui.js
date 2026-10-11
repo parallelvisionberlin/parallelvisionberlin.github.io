@@ -46,7 +46,7 @@ export function initLabMobileUI(){
     $('workspace').prepend(stages);
     const stage=direction=>{root.classList.toggle('mobile-mood-direction',direction);$('mobile-collect').setAttribute('aria-pressed',String(!direction));$('mobile-direction').setAttribute('aria-pressed',String(direction));};
     $('mobile-collect').onclick=()=>stage(false);$('mobile-direction').onclick=()=>stage(true);
-    const next=document.createElement('button');next.type='button';next.className='mobile-mood-next';next.textContent='Shape your Mood →';next.onclick=()=>stage(true);document.querySelector('.mc-board-column').append(next);
+    const next=document.createElement('button');next.type='button';next.className='mobile-mood-next';next.textContent='Shape your Mood';next.onclick=()=>stage(true);document.querySelector('.mc-board-column').append(next);
     document.querySelector('.mc-workflow-note a')?.addEventListener('click',()=>stage(true));
     const route=()=>show(location.hash!=='#my-moods');window.addEventListener('hashchange',route);route();
     $('mc-library-empty').textContent='Your signature looks will live here. Create your first Mood.';
