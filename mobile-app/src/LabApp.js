@@ -80,7 +80,7 @@ function Workspace(){
     if(!isSignedIn){resume.current={kind:'studio',command};setAuthOpen(true);return;}
     setVisitedStudio(true);setTab(command.action==='gallery'?'gallery':'create');send(command);
   };
-  const openSaved=url=>{setSavedSource(url||LAB_MOODS);setVisitedSaved(true);setTab('saved');};
+  const openSaved=url=>{if(!isSignedIn){resume.current={kind:'saved',url:url||LAB_MOODS};setAuthOpen(true);return;}setSavedSource(url||LAB_MOODS);setVisitedSaved(true);setTab('saved');};
   const select=next=>{
     if(next==='create'){openStudio();return;}
     if(next==='gallery'&&isSignedIn){openStudio({action:'gallery'});return;}
@@ -93,6 +93,7 @@ function Workspace(){
     if(!isSignedIn)return;
     setAuthOpen(false);const next=resume.current;resume.current=null;
     if(next?.kind==='studio'){queued.current=next.command;setVisitedStudio(true);setTab(next.command.action==='gallery'?'gallery':'create');}
+    if(next?.kind==='saved'){setSavedSource(next.url);setVisitedSaved(true);setTab('saved');}
   },[isSignedIn]);
   useEffect(()=>{const listener=BackHandler.addEventListener('hardwareBackPress',()=>{if(authOpen){setAuthOpen(false);return true;}if(tab!=='moods'){setTab('moods');return true;}return false;});return()=>listener.remove();},[authOpen,tab]);
   useEffect(()=>{const listener=AppState.addEventListener('change',state=>{if(state==='active'&&studioReady.current&&['create','gallery'].includes(tab))studio.current?.injectJavaScript(labCommandScript({action:tab}));});return()=>listener.remove();},[tab]);
