@@ -12,7 +12,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
   let base=null,mode='magic',drawing=false,lastPoint=null,taskBusy=false,pending=null;
   let selected=false,resultBlob=null,resultBitmap=null,disposed=false,workingId=null,session=0;
   let resultFormat='png',zoom=1,panX=0,panY=0,panDrag=null,spaceHeld=false;
-  let selectionAllowance=0,consentPoint=null,queueRevision=0,editEpoch=0;
+  let selectionAllowance=0,consentPoint=null,queueRevision=0,editEpoch=0,latestJobId=null;
   const pendingPolls=new Map();
   const exportRiskPixels=5000000;
   const mimeTypes=new Set(['image/png','image/jpeg','image/webp']);
@@ -401,7 +401,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
       if(job.status==='completed'){
         if(sourceEpoch===editEpoch&&isOpen())setStatus('Finishing the original-preserving composite…');
         const final=await finalize(job);onJob(final);
-        const sameEdit=sourceEpoch===editEpoch&&isOpen()&&base&&base.id===final.settings.precisionOriginalId;
+        const sameEdit=initial.id===latestJobId&&sourceEpoch===editEpoch&&isOpen()&&base&&base.id===final.settings.precisionOriginalId;
         if(sameEdit){
           const output=await assetBlob(final.outputId);
           if(sourceEpoch!==editEpoch||revision!==queueRevision)return;
@@ -412,10 +412,20 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
             'Retouch ready as JPEG. High-quality export re-encodes pixels beyond the edited area.':
             'Retouch ready. Pixels outside the selected area are preserved from the original.');
         }
-      }else if(sourceEpoch===editEpoch&&isOpen()){
-        if(job.status==='failed'||job.status==='resolved')setStatus(job.error||'This edit failed. No automatic resubmission.',true);
-        else if(job.status==='uncertain')setStatus('Provider status uncertain. Check Queue before trying again.',true);
-        else setStatus('Edit still processing in Queue. You can continue working.');
+      }else if(sourceEpoch===editEpoch&&initial.id===latestJobId&&isOpen()){
+        if(job.status==='failed'||job.status==='resolved'){
+          $('precision-result-label').textContent='EDIT FAILED';
+          if(!resultBlob){
+            $('precision-output-empty').querySelector('strong').textContent='This edit did not complete.';
+            $('precision-output-empty').querySelector('p').textContent='No automatic retry. Check Queue for the provider error.';
+          }
+          setStatus(job.error||'This edit failed. No automatic resubmission.',true);
+        }else if(job.status==='uncertain'){
+          $('precision-result-label').textContent='CHECK QUEUE';
+          setStatus('Provider status uncertain. Check Queue before trying again.',true);
+        }else{
+          setStatus('Edit still processing in Queue. You can continue working.');
+        }
       }
     }catch(error){
       if(revision===queueRevision&&sourceEpoch===editEpoch&&isOpen())
@@ -437,6 +447,9 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
       const job=response?.job;
       if(!job?.id)throw new Error('No job ID was returned. Check Queue before retrying.');
       onJob(job);
+      // Later submissions take ownership of the preview; older jobs are always
+      // retained in History and cannot overwrite an active editing session.
+      editEpoch++;latestJobId=job.id;
       $('precision-result-label').textContent='IN QUEUE';
       if(!resultBlob){
         $('precision-output-empty').querySelector('strong').textContent='Edit in Queue';
@@ -552,7 +565,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     if(resultBitmap)resultBitmap.close();resultBitmap=null;resultBlob=null;workingId=null;
     sourceCanvas.width=overlay.width=mask.width=0;sourceCanvas.height=overlay.height=mask.height=0;
     undoStack.length=0;selected=false;pending=null;taskBusy=false;resetZoom();
-    queueRevision++;pendingPolls.clear();selectionAllowance=0;consentPoint=null;
+    queueRevision++;pendingPolls.clear();latestJobId=null;selectionAllowance=0;consentPoint=null;
     if($('precision-select-consent').open)$('precision-select-consent').close();
     $('precision-allow-jpeg').checked=false;$('precision-export-option').hidden=true;
     $('precision-source-holder').hidden=true;$('precision-drop').hidden=false;
