@@ -15,6 +15,15 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
   let selectionAllowance=0,consentPoint=null,queueRevision=0,editEpoch=0,latestJobId=null;
   const pendingPolls=new Map();
   const exportRiskPixels=5000000;
+  // An existing Parallel Vision editorial is used only as a free sample input.
+  // There is no synthetic "after" image or hidden provider request here.
+  const SAMPLE_URL=new URL('../assets/fashion-hero.png',import.meta.url);
+  const ideaPrompts=Object.freeze({
+    outfit:'Replace the selected garment with a structured black leather jacket. Preserve the pose, lighting and everything outside the selection.',
+    material:'Transform only the selected material into realistic reflective liquid chrome. Keep the original light direction, background and pose.',
+    remove:'Remove the selected object and naturally reconstruct what belongs behind it. Leave everything else untouched.',
+    skin:'Give only the selected skin area a subtle glossy editorial finish. Preserve realistic skin texture, identity, lighting and surrounding details.'
+  });
   const mimeTypes=new Set(['image/png','image/jpeg','image/webp']);
   const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
   const readBlob=(canvas,mime='image/png',quality)=>new Promise((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(blob):reject(new Error('Unable to export this image.')),mime,quality));
@@ -167,6 +176,13 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
       'Confirm a quote before starting paid inference.';
     $('precision-zoom-controls').hidden=!have;
     $('precision-export-option').hidden=!highRisk;
+    // The demo is an illustration only. Hide it immediately when any source
+    // is loaded, and show editable prompt directions instead.
+    $('precision-demo').hidden=have;
+    $('precision-empty-icon').hidden=!have;
+    $('precision-ideas').hidden=!have||!!resultBlob;
+    for(const chip of view.querySelectorAll('[data-retouch-idea]'))
+      chip.disabled=!have||taskBusy;
     $('precision-tool-pan').disabled=!have||taskBusy;
     view.querySelector('.precision-deck').classList.toggle('is-ready',have&&selected&&!!$('precision-prompt').value.trim());
     view.dataset.phase=!have?'empty':!selected?'select':$('precision-prompt').value.trim()?'ready':'describe';
@@ -292,8 +308,8 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     lastResultSourceId=null;
     resultCanvas.hidden=true;$('precision-output-empty').hidden=false;
     $('precision-continue').hidden=true;$('precision-continue').disabled=true;
-    $('precision-output-empty').querySelector('strong').textContent='Ready for your edit.';
-    $('precision-output-empty').querySelector('p').textContent='The result appears here when it is finished.';
+    $('precision-empty-title').textContent='Ready to change one detail.';
+    $('precision-empty-description').textContent='Select the area on the left, or try a creative direction below. No generation starts until you approve it.';
     $('precision-compare').value='100';$('precision-compare').disabled=true;
     $('precision-compare-control').hidden=true;$('precision-compare-idle').hidden=false;
     $('precision-download').disabled=true;$('precision-download').hidden=true;
@@ -590,7 +606,41 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     resultFormat='png';lastResultSourceId=null;
     $('precision-source-meta').textContent='DROP IMAGE';
     $('precision-result-label').textContent='AWAITING EDIT';
+    $('precision-empty-title').textContent='See what you can change.';
+    $('precision-empty-description').textContent='Select one area. Describe the change. Keep the rest.';
     $('precision-prompt').value='';setStatus('');refreshButtons();
+  }
+  async function openSample(){
+    if(taskBusy)return;
+    const button=$('precision-try-sample');
+    button.disabled=true;
+    const originalLabel=button.innerHTML;
+    button.textContent='Opening sample…';
+    try{
+      const response=await fetch(SAMPLE_URL,{cache:'force-cache'});
+      if(!response.ok)throw new Error('The Parallel Vision sample is unavailable. Please try your own photograph.');
+      const blob=await response.blob();
+      if(blob.type!=='image/png')throw new Error('The sample did not load as a PNG photograph.');
+      const file=new File([blob],'PV Lab Fashion Sample.png',{type:'image/png'});
+      await setBase(file);
+      // Locally painted free starter region, NOT a SAM 3 segmentation or AI edit.
+      // This makes the example genuinely editable before any billable action.
+      saveUndo();
+      const w=mask.width,h=mask.height;
+      maskCtx.save();maskCtx.fillStyle='#fff';
+      maskCtx.beginPath();
+      maskCtx.ellipse(w*.5,h*.57,w*.16,h*.22,0,0,Math.PI*2);
+      maskCtx.fill();maskCtx.restore();
+      maskChanged();
+      selectMode('brush');
+      $('precision-prompt').value=ideaPrompts.material;
+      $('precision-prompt').dispatchEvent(new Event('input',{bubbles:true}));
+      $('precision-empty-title').textContent='Your local starter selection is ready.';
+      $('precision-empty-description').textContent='Refine the highlighted area with Add brush or Erase, or try another creative direction. This is not an AI-generated result.';
+      setStatus('PV Lab sample opened. The starter mask was painted locally, with no paid selection or generation request.');
+    }finally{
+      button.disabled=false;button.innerHTML=originalLabel;
+    }
   }
   const handle=async promise=>{try{await promise;}catch(e){setStatus(e.message,true);notify(e.message,true);}};
   $('precision-return').onclick=()=>{if(typeof onExit==='function')onExit();else close();};
@@ -646,8 +696,22 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
   })());
   $('precision-change-photo').onclick=()=>$('precision-photo-input').click();
   $('precision-photo-input').onchange=e=>{if(e.target.files?.[0])handle(setBase(e.target.files[0]));e.target.value='';};
-  $('precision-drop').onclick=()=>$('precision-photo-input').click();
-  $('precision-drop').onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();$('precision-photo-input').click();}};
+  $('precision-drop').onclick=e=>{
+    if(e.target.closest('button'))return;
+    $('precision-photo-input').click();
+  };
+  $('precision-browse-photo').onclick=e=>{e.stopPropagation();$('precision-photo-input').click();};
+  $('precision-try-sample').onclick=e=>{e.stopPropagation();handle(openSample());};
+  for(const chip of view.querySelectorAll('[data-retouch-idea]')){
+    chip.onclick=()=>{
+      if(!base||taskBusy)return;
+      const suggestion=ideaPrompts[chip.dataset.retouchIdea];
+      if(!suggestion)return;
+      $('precision-prompt').value=suggestion;
+      $('precision-prompt').dispatchEvent(new Event('input',{bubbles:true}));
+      setStatus('Creative direction added. Adjust the prompt as needed; no paid operation has started.');
+    };
+  }
   for(const name of ['dragenter','dragover'])$('precision-drop').addEventListener(name,e=>{e.preventDefault();$('precision-drop').classList.add('is-dragging');});
   $('precision-drop').addEventListener('dragleave',()=>{$('precision-drop').classList.remove('is-dragging');});
   $('precision-drop').addEventListener('drop',e=>{e.preventDefault();$('precision-drop').classList.remove('is-dragging');if(e.dataTransfer.files[0])handle(setBase(e.dataTransfer.files[0]));});
