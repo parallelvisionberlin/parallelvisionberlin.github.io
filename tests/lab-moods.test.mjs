@@ -48,6 +48,21 @@ test('My Moods never silently treat the original image subject prompt as a reusa
   assert.ok(editor.indexOf('const uploadedIds=await uploadStagedFiles()')>editor.indexOf('if(!proposed.direction&&!proposed.baseMoodId)'));
   assert.match(ui,/Curated Moods remain usable while personal boards are unavailable/);
 });
+test('Moods category filters have readable touch targets and preserve thumbnail proportions',()=>{
+  const css=readFileSync(new URL('../lab/moods.css',import.meta.url),'utf8');
+  const html=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
+  const js=readFileSync(new URL('../lab/moods.js',import.meta.url),'utf8');
+  assert.match(css,/#image-composer \.moods-filter\{[\s\S]*?min-height:39px;padding:9px 15px/);
+  assert.match(css,/#image-composer \.moods-filter\{[\s\S]*?font-size:13px;font-weight:550/);
+  assert.match(css,/#image-composer \.moods-filter\.is-selected\{background:#eee/);
+  assert.match(css,/#image-composer \.moods-filter:hover:not\(\.is-selected\)/);
+  assert.match(css,/\.moods-filters\{display:flex;gap:8px;overflow-x:auto/);
+  assert.match(css,/\.moods-grid\{display:grid;grid-template-columns:repeat\(5,minmax\(0,1fr\)\)/);
+  assert.match(css,/\.moods-card-media\{[^\n]*aspect-ratio:5\/4/);
+  assert.match(js,/\['All','Cinema','Fashion','Analog','Experimental','My Moods'\]/);
+  assert.match(html,/moods\.css\?v=20261011-larger-categories1/);
+});
+
 test('exactly eleven unique curated moods with imagery',()=>{
   assert.equal(MOODS.length,11);
   assert.equal(new Set(MOODS.map(m=>m.id)).size,11);
@@ -289,7 +304,7 @@ test('Popup stays centered; selected mood and About are in the upper controls',(
   assert.match(html,/id="composer-moods-selection" class="moods-selection" hidden/);
   assert.match(js,/selection\.hidden=!chosen/);
   assert.match(css,/grid-template-columns:minmax\(0,1fr\) 170px/);
-  assert.match(html,/moods\.css\?v=20261011-my-moods-tile1/);
+  assert.match(html,/moods\.css\?v=20261011-larger-categories1/);
   const worker=readFileSync(new URL('../lab-worker/worker.mjs',import.meta.url),'utf8');
   for(const key of ['sumi-ink','dreamcore'])assert.ok(worker.includes("'"+key+"'"));
 });
@@ -331,5 +346,5 @@ test('Moods prioritizes previews and toggles an already-selected thumbnail off',
   assert.match(css,/#composer-moods-done,[\s\S]*?#composer-moods-switch\{[\s\S]*?min-height:48px/);
   assert.match(css,/#composer-moods-intensity::-webkit-slider-runnable-track\{[\s\S]*?height:7px/);
   assert.match(html,/Clear selected mood/);
-  assert.match(html,/moods\.css\?v=20261011-my-moods-tile1/);
+  assert.match(html,/moods\.css\?v=20261011-larger-categories1/);
 });
