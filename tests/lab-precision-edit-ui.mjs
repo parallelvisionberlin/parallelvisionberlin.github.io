@@ -115,6 +115,7 @@ try{
     'Paid submission must release the editing controls while the job is in Queue');
   assert.match(await page.locator('#precision-status-text').textContent(),/Queued/i);
   await page.waitForFunction(()=>!!window.pvComposite,{timeout:18000});
+  await page.locator('#precision-result-canvas').waitFor({state:'visible',timeout:10000});
   assert.equal(await page.locator('#precision-result-canvas').isVisible(),true);
   assert.equal(await page.locator('#precision-download').isEnabled(),true);
   const colors=await page.evaluate(async()=>{
