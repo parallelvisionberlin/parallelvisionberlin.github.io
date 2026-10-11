@@ -1,5 +1,6 @@
 import {quoteVideoExtension,submitVideoExtension} from './higgsfield-video.mjs';
 import {ensureCustomer,isLabCustomer,customerSession,customerRoute,stripeWebhook,creditsForUsd} from './customer-billing.mjs';
+import {canCustomerGenerate} from './customer-rollout.mjs';
 import {quoteCustomerImageCredits} from './customer-image-pricing.mjs';
 import {referralRoute} from './referrals.mjs';
 import {fashionRoute,refreshFashionJob} from './fashion-tools.mjs';
@@ -21,7 +22,7 @@ import {findFalRequest} from './fal-recovery.mjs';
 import {falUploadImage} from './fal-storage.mjs';
 import {REFERENCE_ROLES,normalizeReferenceLabel,supportsReferenceGuidance,compileImagePrompt,canUseReferenceGuidance,referenceGuidanceError} from '../lab/reference-guidance.js';
 import {characterPreview as soulCharacterPreview,SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-10.10-seedream-input-pixels';
+export const VERSION = 'pv-lab-2026-10-11.1-private-live-pilot';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -127,7 +128,7 @@ async function decryptKey(env,value) {
 async function config(env,owner) {
   const original=await first(env,'SELECT * FROM settings WHERE owner_id=?',owner);
   if(original)return original;
-  if(env.LAB_PUBLIC_GENERATION_ENABLED!=='true'||!env.LAB_CUSTOMER_SPICY_API_KEY||!await isLabCustomer(env,owner))return null;
+  if(!canCustomerGenerate(env,owner)||!await isLabCustomer(env,owner))return null;
   return {owner_id:owner,encrypted_key:await encryptKey(env,env.LAB_CUSTOMER_SPICY_API_KEY),enabled:1,terms_confirmed:1,daily_limit_microusd:10000000};
 }
 function publicConfig(c,falEnabled=false) {return {concurrency:CONCURRENCY,configured:!!c,enabled:!!(c?.enabled&&c?.terms_confirmed),dailyLimitUsd:(c?.daily_limit_microusd||10000000)/1000000,provider:'SpicyAPI',videoEngines:['wan','wanprime','h3','h3max','h3spicy','seedance',...(falEnabled?['h3maxfal','omni']:[])],model:'Wan 3.0 / Wan Prime / MiniMax H3 / H3 Max / H3 Spicy / H3 Max Reference FAL / Gemini Omni Flash 1.1 / Seedance 2.5 / Seedream 5.0 Pro / Image Upscaler',documentation:DOC,pricingNote:'SpicyAPI videos use a live bound quote. fal.ai video routes use the current published per-second estimate shown before confirmation. Provider billing remains authoritative.'};}
@@ -1000,8 +1001,8 @@ async function route(request,env,ctx) {
       // A read-only, server-calculated quote. The client cannot supply a price.
       // Live provider quotes for Seedream and Higgsfield use their existing,
       // authenticated quote endpoints instead.
-      if(env.LAB_PUBLIC_GENERATION_ENABLED!=='true')
-        fail(503,'Customer generation pricing will open when checkout is verified.');
+      if(!canCustomerGenerate(env,owner))
+        fail(503,'Customer generation pricing is not available for this account.');
       const data=await body(request),p=parameters(data.settings);
       try{return json(quoteCustomerImageCredits(p,Number(data.count??1),{geminiEstimateMicros}));}
       catch(e){fail(400,String(e?.message||'This model cannot be quoted.').slice(0,260));}
@@ -1021,8 +1022,8 @@ async function route(request,env,ctx) {
     path.startsWith('/api/soul/characters/')||
     ['/api/soul/datasets','/api/soul/characters'].includes(path)
   );
-  if(customer&&billable&&env.LAB_PUBLIC_GENERATION_ENABLED!=='true')
-    fail(503,'Customer generation will open after payment and model billing verification. No job submitted.');
+  if(customer&&billable&&!canCustomerGenerate(env,owner))
+    fail(503,'Customer generation is not yet available for this account. No job submitted.');
   // Dataset training and the metered pose-preview route have no job-wallet charge yet.
   if(customer&&method==='POST'&&(
     path==='/api/soul/datasets'||path==='/api/soul/characters'||

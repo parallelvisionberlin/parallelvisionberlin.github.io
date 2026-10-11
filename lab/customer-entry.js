@@ -4,6 +4,7 @@ import {createSessionRequest} from './session-request.js?v=20260927-auth1';
 const API='https://parallel-vision-lab.parallelvision.workers.dev';
 const CLERK_KEY='pk_live_Y2xlcmsucGFyYWxsZWx2aXNpb25sYWJlbC5jb20k';
 const $=id=>document.getElementById(id);
+const pilotSetup=new URLSearchParams(location.search).get('setup-pilot')==='1';
 let clerk=null,loading=false,profile=null;
 const status=message=>{for(const id of ['lab-entry-status','lab-pricing-status'])if($(id))$(id).textContent=message||'';};
 const api=createSessionRequest({baseUrl:API,getSession:()=>clerk?.session});
@@ -23,6 +24,10 @@ function show(){
   accountMenu.hidden=!signed;
   if(!signed)accountMenu.open=false;
   document.querySelectorAll('[data-lab-signin]').forEach(button=>{button.hidden=signed;});
+  if(signed&&pilotSetup){
+    if(customer&&profile?.ownerId)status('Private pilot setup: your test account ID is '+profile.ownerId+'. Copy this ID into the Cloudflare LAB_LIVE_PILOT_CUSTOMER_ID secret. This ID is not a password.');
+    else if(profile&&!customer)status('This is the PV Lab owner account. For a safe live test, sign in using another Google account.');
+  }
   if(signed){
     $('lab-account-summary').textContent=customer?
       'Your PV Lab workspace · '+profile.balanceCredits.toLocaleString()+' credits':
@@ -37,6 +42,7 @@ async function purchase(sku){
   if(!clerk?.isSignedIn){signIn();return;}
   if(!profile){status('Account is still loading.');return;}
   if(!profile.customer){status('Your owner account uses the private studio.');return;}
+  if(profile.pilot&&sku!=='topup10'){status('The private live payment test permits the €10 credit pack only.');return;}
   if(!profile.billingReady){status('Credit checkout is not enabled yet. No payment has been initiated.');return;}
   status('Opening secure checkout…');
   try{

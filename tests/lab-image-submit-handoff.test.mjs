@@ -44,7 +44,7 @@ test('Only one owner Seedream image unlocks before server confirmation',()=>{
   assert.match(source,/const seedreamInput=selectedEngine==='seedream'&&\(snapshot\?true:tool==='image'\)/);
   assert.match(source,/if\(!fastImageHandoff.active\(\)\)cancelImagePreparation\(\)/);
   assert.match(source,/if\(!detached\)\{imageSubmissionPending=false/);
-  assert.match(html,/src="\.\/lab\.js\?v=20261011-fast-queue1/);
+  assert.match(html,/src="\.\/lab\.js\?v=20261011-[^"\s]+&wallet=1/);
 });
 
 test('Detached preparation cannot repaint a later in-flight button',()=>{

@@ -1,4 +1,5 @@
 import {rewardQualifiedReferral} from './referrals.mjs';
+import {canCustomerGenerate,canCustomerCheckout,isPrivateLivePilot,isPermittedPilotPurchase} from './customer-rollout.mjs';
 // Customer billing belongs only to PV Lab's D1 database.
 // All changes in balances are immutable ledger entries. Never trust browser-supplied prices.
 export const CREDIT_MULTIPLIER = 460;
@@ -23,7 +24,7 @@ const json=(data,status=200)=>new Response(JSON.stringify(data),{status,headers:
 const one=(env,sql,...a)=>env.LAB_DB.prepare(sql).bind(...a).first();
 const exec=(env,sql,...a)=>env.LAB_DB.prepare(sql).bind(...a).run();
 const ID=/^user_[a-zA-Z0-9]+$/;
-function enabled(env) {return env.LAB_CHECKOUT_ENABLED==='true'&&env.LAB_PUBLIC_GENERATION_ENABLED==='true'&&!!env.LAB_STRIPE_SECRET_KEY&&!!env.LAB_STRIPE_WEBHOOK_SECRET&&!!env.LAB_CUSTOMER_SPICY_API_KEY;}
+function enabled(env,subject) {return canCustomerCheckout(env,subject);}
 const catalog=()=>Object.entries(PACKS).map(([id,p])=>({id,type:p.type,priceEur:p.cents/100,credits:p.credits,title:p.title}));
 export async function ensureCustomer(env,subject) {
   if(!ID.test(subject))fail(401,'Invalid account identity.');
@@ -45,8 +46,9 @@ export async function customerSession(env,id){
   if(!c)fail(403,'This PV Lab account is unavailable.');
   const sub=await one(env,'SELECT plan_id,status FROM lab_subscriptions WHERE customer_id=?',id);
   return {customer:true,balanceCredits:c.balance_credits,subscription:sub||{plan_id:null,status:'none'},
-    billingReady:enabled(env),generationReady:env.LAB_PUBLIC_GENERATION_ENABLED==='true'&&!!env.LAB_CUSTOMER_SPICY_API_KEY,
-    products:catalog(),creditMultiplier:CREDIT_MULTIPLIER,
+    billingReady:enabled(env,id),generationReady:canCustomerGenerate(env,id),
+    pilot:isPrivateLivePilot(env,id),
+    products:isPrivateLivePilot(env,id)?catalog().filter(item=>item.id==='topup10'):catalog(),creditMultiplier:CREDIT_MULTIPLIER,
     soulIdTrainingCredits:SOUL_ID_TRAINING_CREDITS,soul2ImageCredits:CREDIT_MINIMUM};
 }
 async function stripe(env,path,params,method='POST'){
@@ -77,11 +79,16 @@ export async function customerRoute(request,env,subject){
     const result=await env.LAB_DB.prepare('SELECT delta_credits,kind,reference,created_at FROM lab_credit_entries WHERE customer_id=? ORDER BY created_at DESC LIMIT 30').bind(subject).all();
     return json({...state,activity:result.results});
   }
-  if(p==='/api/customer/catalog'&&method==='GET')return json({products:catalog(),billingReady:enabled(env)});
+  if(p==='/api/customer/catalog'&&method==='GET')return json({products:catalog(),billingReady:enabled(env,subject)});
   if(p==='/api/billing/checkout'&&method==='POST'){
-    if(!enabled(env))fail(503,'Checkout is not enabled yet. No payment was initiated.');
+    if(!enabled(env,subject))fail(503,'Checkout is not enabled yet for this account. No payment was initiated.');
     const data=await request.json().catch(()=>null),sku=String(data?.sku||''),item=PACKS[sku];
     if(!item)fail(400,'Choose an available credit pack or subscription.');
+    if(!isPermittedPilotPurchase(env,subject,sku))fail(403,'The private pilot permits one €10 top-up only. Other products are not on sale yet.');
+    if(isPrivateLivePilot(env,subject)){
+      const previous=await one(env,"SELECT id FROM lab_credit_entries WHERE customer_id=? AND kind='purchase' LIMIT 1",subject);
+      if(previous)fail(409,'This test account already completed its pilot purchase.');
+    }
     const customer=await one(env,'SELECT stripe_customer_id FROM lab_customers WHERE id=?',subject);
     if(!customer)fail(403,'Account unavailable.');
     if(item.type==='subscription'){
@@ -120,7 +127,7 @@ export async function customerRoute(request,env,subject){
     return json({url:paymentUrl,checkoutId:session.id});
   }
   if(p==='/api/billing/portal'&&method==='POST'){
-    if(!enabled(env))fail(503,'Billing management is not configured.');
+    if(!enabled(env,subject))fail(503,'Billing management is not configured for this account.');
     const customer=await one(env,'SELECT stripe_customer_id FROM lab_customers WHERE id=?',subject);
     if(!customer?.stripe_customer_id)fail(404,'No Stripe customer record yet.');
     const session=await stripe(env,'billing_portal/sessions',{customer:customer.stripe_customer_id,return_url:appUrl(env)});
