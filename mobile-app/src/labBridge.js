@@ -1,7 +1,7 @@
 export const LAB_ORIGIN='https://parallelvisionlabel.com';
-export const LAB_STUDIO=LAB_ORIGIN+'/lab/studio.html?tool=image&native=1&app=2';
+export const LAB_STUDIO=LAB_ORIGIN+'/lab/studio.html?tool=image&native=1&app=4';
 export const LAB_MOODS=LAB_ORIGIN+'/lab/mood-creator.html?native=1&app=2#my-moods';
-export const LAB_DISCOVER=LAB_ORIGIN+'/lab/app-moods.html?v=2';
+export const LAB_DISCOVER=LAB_ORIGIN+'/lab/app-moods.html?v=4';
 const paths=new Set(['/lab/studio.html','/lab/mood-creator.html','/lab/app-moods.html']);
 export function isLabURL(value){try{const u=new URL(value);return u.origin===LAB_ORIGIN&&!u.username&&!u.password&&paths.has(u.pathname);}catch{return false;}}
 export function readLabMessage(event){
