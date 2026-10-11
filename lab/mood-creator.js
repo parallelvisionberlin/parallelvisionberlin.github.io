@@ -268,6 +268,19 @@ function initMoodCreator(){
       }
     });
   }
+  // Dropping outside the curated cards starts an original board without
+  // silently selecting an unrelated preset.
+  const lookGrid=$('mc-look-grid');
+  lookGrid.addEventListener('dragover',event=>{
+    if(event.dataTransfer?.types?.includes('Files'))event.preventDefault();
+  });
+  lookGrid.addEventListener('drop',event=>{
+    if(!event.dataTransfer?.files?.length)return;
+    if(event.target.closest('.mc-look-card[data-mood-id]'))return;
+    event.preventDefault();resetBoard();
+    addFiles([...event.dataTransfer.files]);
+    scrollToWorkspace();
+  });
   $('mc-create-look').onclick=()=>resetBoard({scroll:true});
   $('mc-look-continue').onclick=()=>void (async()=>{
     if(!selectedLook||lookSending)return;
@@ -429,8 +442,24 @@ function initMoodCreator(){
       const picture=document.createElement('div');picture.className='mc-library-photo';
       if(item.imageIds?.[0]){
         const img=document.createElement('img');img.alt='Private visual cover of '+item.name;img.loading='lazy';picture.append(img);
-        void getPrivateImage(item.imageIds[0]).then(url=>{if(version===libraryGeneration&&card.isConnected&&url)img.src=url;}).catch(()=>{const hint=document.createElement('span');hint.className='mc-placeholder';hint.textContent='✳';picture.append(hint);});
-      }else{const hint=document.createElement('span');hint.className='mc-placeholder';hint.textContent='✳';picture.append(hint);}
+        void getPrivateImage(item.imageIds[0]).then(url=>{
+          if(version===libraryGeneration&&card.isConnected&&url)img.src=url;
+        }).catch(()=>{
+          const curated=moodById(item.baseMoodId);
+          if(curated?.preview)img.src=curated.preview;
+          else{const hint=document.createElement('span');hint.className='mc-placeholder';hint.textContent='✳';picture.append(hint);}
+        });
+      }else{
+        const curated=moodById(item.baseMoodId);
+        if(curated?.preview){
+          const image=document.createElement('img');
+          image.alt='Curated look used as starting direction';image.loading='lazy';
+          image.src=curated.preview;picture.append(image);
+        }else{
+          const hint=document.createElement('span');hint.className='mc-placeholder';
+          hint.textContent='✳';picture.append(hint);
+        }
+      }
       const caption=document.createElement('div');caption.className='mc-library-copy';
       const copy=document.createElement('div'),title=document.createElement('strong'),text=document.createElement('small'),arrow=document.createElement('span');
       title.textContent=item.name;text.textContent=(item.imageIds?.length||0)+' images · '+(moodById(item.baseMoodId)?.name||'Original look');
@@ -446,7 +475,12 @@ function initMoodCreator(){
         card.append(row);
       }
       card.onclick=()=>void openBoard(item.id,{scroll:true});
-      library.append(card);
+      const row=document.createElement('div');row.className='mc-library-item';
+      const useLink=document.createElement('a');useLink.className='mc-library-use';
+      useLink.href='./studio.html?tool=image&moodboard='+encodeURIComponent(item.id);
+      useLink.textContent='Use in Image →';
+      useLink.setAttribute('aria-label','Use '+item.name+' in Image Studio');
+      row.append(card,useLink);library.append(row);
     }
   }
   async function loadBoards(){
