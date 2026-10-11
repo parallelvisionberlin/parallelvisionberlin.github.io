@@ -1172,3 +1172,42 @@ body:has(#app[hidden])>#studio-header .studio-assets-icon{display:none!important
     transition:none;
   }
 }
+
+
+/* Mobile Image deck: the primary action occupies its own aligned column,
+   instead of wrapping after an unpredictable number of setting chips.
+   Preserve PV Soul's separate media composer. */
+@media(max-width:650px){
+  #image-composer:not(.is-pv-soul) .image-composer-toolbar{
+    display:grid;grid-template-columns:minmax(0,1fr) 100px;
+    gap:8px;align-items:center;width:100%;min-width:0;
+  }
+  #image-composer:not(.is-pv-soul) .composer-controls{
+    display:flex;flex-wrap:wrap;align-content:center;align-items:center;
+    gap:6px;min-width:0;
+    grid-column:1;grid-row:1;
+  }
+  #image-composer:not(.is-pv-soul) .composer-flex{display:none}
+  #image-composer:not(.is-pv-soul) .composer-generate{
+    grid-column:2;grid-row:1;align-self:center;
+    box-sizing:border-box;width:100%;min-width:0;
+    height:82px;min-height:82px;max-height:82px;
+    padding:9px 8px;font-size:13px;
+  }
+  #image-composer:not(.is-pv-soul) .composer-controls>.composer-select-pill{
+    padding-inline:3px;
+  }
+  #image-composer:not(.is-pv-soul) .composer-controls>.composer-select-pill select{
+    min-width:0;max-width:93px;padding-left:5px;padding-right:15px;
+    font-size:11px;
+  }
+}
+@media(max-width:360px){
+  #image-composer:not(.is-pv-soul) .image-composer-toolbar{
+    grid-template-columns:minmax(0,1fr) 90px;gap:6px;
+  }
+  #image-composer:not(.is-pv-soul) .composer-controls{gap:5px}
+  #image-composer:not(.is-pv-soul) .composer-generate{
+    height:78px;min-height:78px;max-height:78px;font-size:12px;
+  }
+}
