@@ -142,3 +142,31 @@ test('Art Direction keeps settings and Save actions in one visible deck footer',
   assert.match(js,/save\.onclick=\(\)=>void saveMood\(\)/);
   assert.match(js,/use\.onclick=\(\)=>void \(async\(\)=>\{/);
 });
+
+test('One explicit style analysis includes every Moodboard image and respects its focus',async()=>{
+  const {invoke}=testRig();
+  const raw=Buffer.alloc(100);raw.set([137,80,78,71,13,10,26,10]);
+  const photo='data:image/png;base64,'+raw.toString('base64');
+  let calls=0,parts=[];
+  const fetchBefore=globalThis.fetch;
+  globalThis.fetch=async (_url,options)=>{
+    calls++;parts=JSON.parse(options.body).contents[0].parts;
+    return Response.json({candidates:[{content:{parts:[{text:JSON.stringify({
+      name:'Silver After Rain',
+      direction:'Film-grain noir, muted teal and copper highlights, wet reflective material, compact atmospheric perspective, natural skin and glass speculars from the entire reference collection, gentle lens falloff and real optical depth.',
+      palette:['#234d4c','#da8560'],qualities:['nocturnal halation','wet material']
+    })}]}}]});
+  };
+  try{
+    const result=await invoke('/api/moodboards/analyze','POST',{concept:'Film texture combining references',imageDataUrls:[photo,photo,photo],focusIndex:2});
+    assert.equal(result.status,200);
+    assert.equal((await result.json()).name,'Silver After Rain');
+    assert.equal(calls,1);
+    assert.equal(parts.length,7,'one instruction, three labels, three images');
+    assert.match(parts[0].text,/synthesize the aesthetic of ALL photographs together/);
+    assert.match(parts[0].text,/Focus photograph: 3/);
+    assert.deepEqual(parts.filter(p=>p.inlineData).map(p=>p.inlineData.mimeType),['image/png','image/png','image/png']);
+    assert.equal(parts.filter(p=>p.text?.includes('(VISUAL FOCUS)')).length,1);
+    assert.match(parts[5].text,/VISUAL FOCUS/);
+  }finally{globalThis.fetch=fetchBefore;}
+});
