@@ -38,6 +38,12 @@ jobs:
           echo "::add-mask::$token"
           printf 'CLOUDFLARE_API_TOKEN=%s\n' "$token" >> "$GITHUB_ENV"
 
+      - name: Test private My Moods and Worker syntax
+        run: |
+          node --check lab-worker/moodboards.mjs
+          node --check lab-worker/worker.mjs
+          node --test tests/lab-moodboards.test.mjs
+
       - name: Deploy parallel-vision-lab
         uses: cloudflare/wrangler-action@v4
         env:
@@ -51,6 +57,7 @@ jobs:
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0006-customers-billing.sql --yes
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0007-lab-referrals.sql --yes
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0008-soul-id-launch-credits.sql --yes
+            wrangler d1 execute parallel-vision-lab --remote --file migrations/0009-moodboards.sql --yes
           command: deploy
 
       - name: Verify production health
