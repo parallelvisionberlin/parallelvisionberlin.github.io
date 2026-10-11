@@ -177,7 +177,7 @@ function initMoodCreator(){
       items.push({assetId:null,file,localUrl:URL.createObjectURL(file)});
       added++;
     }
-    if(added){selectedIndex=items.length-added;feedback(added+' image'+(added===1?'':'s')+' added. Select one to analyze its aesthetic.');}
+    if(added){selectedIndex=items.length-added;feedback(added+' image'+(added===1?'':'s')+' added. All photos shape the aesthetic; select one as your visual focus.');}
     renderBoard();return added;
   }
   function scrollToWorkspace(){document.getElementById('workspace').scrollIntoView({behavior:'smooth',block:'start'});}
