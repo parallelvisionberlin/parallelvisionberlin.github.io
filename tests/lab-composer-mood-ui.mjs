@@ -214,6 +214,15 @@ try{
   await x.page.locator('#reference-images').setInputFiles({name:'base.png',mimeType:'image/png',buffer:png});
   await waitRefs(x.page,1);
   await x.page.click('#image-composer-moods');
+  const moodAppearance=await x.page.evaluate(()=>{
+    const mood=document.querySelector('#image-composer-moods'),retouch=document.querySelector('#image-composer-edit-area');
+    const value=getComputedStyle(mood),neighbor=getComputedStyle(retouch);
+    return {background:value.backgroundImage,color:value.color,height:mood.getBoundingClientRect().height,retouchBackground:neighbor.backgroundImage};
+  });
+  assert.match(moodAppearance.background,/linear-gradient/,'Moods must read as electric citron, not a neutral control');
+  assert.equal(moodAppearance.color,'rgb(25, 34, 15)','Citron needs readable dark lettering');
+  assert.equal(moodAppearance.retouchBackground,'none','Retouch must remain neutral');
+  assert.ok(moodAppearance.height>=39&&moodAppearance.height<=43,'Moods must stay aligned with neighboring controls: '+JSON.stringify(moodAppearance));
   const beforeMood=await x.page.evaluate(()=>{
     const modal=document.querySelector('#composer-moods');
     const card=document.querySelector('.moods-card-media');
@@ -233,6 +242,14 @@ try{
   assert.ok(beforeMood.actionHeight>=46,'Main action must be larger: '+JSON.stringify(beforeMood));
   const hongKong=x.page.locator('.moods-card[aria-label="Select Hong Kong Nights"]');
   await hongKong.click();
+  const selectedLook=await x.page.evaluate(()=>{
+    const mood=getComputedStyle(document.querySelector('#image-composer-moods'));
+    const clear=getComputedStyle(document.querySelector('#image-composer-moods-clear'));
+    return {gradient:mood.backgroundImage,color:mood.color,removeColor:clear.color};
+  });
+  assert.match(selectedLook.gradient,/linear-gradient/,'Selected Moods must retain citron visual prominence');
+  assert.equal(selectedLook.color,'rgb(24, 34, 14)');
+  assert.equal(selectedLook.removeColor,'rgb(27, 42, 9)','Clear X needs dark contrast on citron');
   assert.equal(await x.page.locator('#composer-moods-selection').isVisible(),true);
   assert.equal(await x.page.locator('#composer-moods-summary').innerText(),'Hong Kong Nights');
   assert.equal(await hongKong.getAttribute('aria-pressed'),'true');
