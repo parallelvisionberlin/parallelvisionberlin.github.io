@@ -381,3 +381,12 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 @media(prefers-reduced-motion:reduce){
   html{scroll-snap-type:none}
 }
+
+/* Compact deck title: let the two work surfaces lead on desktop. */
+@media(min-width:821px){
+ .mc-workspace{padding-top:14px}
+ .mc-workspace-heading{align-items:center;margin-bottom:11px}
+ .mc-workspace-heading h2{font-size:clamp(27px,2.1vw,36px);line-height:1.08;letter-spacing:-.05em;margin-top:3px}
+ .mc-workspace-heading .mc-eyebrow{font-size:9px;letter-spacing:.12em}
+ .mc-workspace-heading>button{min-height:36px;padding:8px 13px}
+}
