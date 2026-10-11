@@ -103,7 +103,7 @@ async function restoreStudioEntry(){
       notify('That curated Mood no longer exists. Choose another look in Moods.',true);
       return;
     }
-    if(boardId&&!/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[89ab][a-f0-9]{12}$/i.test(boardId)){
+    if(boardId&&!/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i.test(boardId)){
       notify('Invalid personal Mood link.',true);return;
     }
     try{
