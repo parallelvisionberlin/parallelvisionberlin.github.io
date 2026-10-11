@@ -24,8 +24,10 @@ test('My Moods live in the existing selector, result viewer and authenticated Wo
   const editor=readFileSync(new URL('../lab/my-moods.js',import.meta.url),'utf8');
   const worker=readFileSync(new URL('../lab-worker/worker.mjs',import.meta.url),'utf8');
   assert.match(moods,/'My Moods'/);
-  assert.match(moods,/moods-board-create/);
-  assert.match(moods,/createTile\.hidden=category!=='My Moods'\|\|personalMoods\.length===0/);
+  assert.match(html,/id="composer-moods-create"[^>]*aria-label="Create Mood"/);
+  assert.match(moods,/createMoodButton\.onclick=startPersonalMood/);
+  assert.match(moods,/createButton\.onclick=startPersonalMood/);
+  assert.doesNotMatch(moods,/const createTile=/);
   assert.match(moods,/function setPersonalMoods\(next=\[\]\)/);
   assert.match(ui,/createMyMoods\(\{api,assetBlob,moodUI/);
   assert.match(ui,/image-detail-save-mood/);
@@ -37,6 +39,25 @@ test('My Moods live in the existing selector, result viewer and authenticated Wo
   assert.match(worker,/moodBoardsRoute\(request,env,owner/);
   assert.match(worker,/SELECT image_ids FROM moodboards/);
   assert.match(worker,/customMoodName/);
+});
+
+test('Create Mood stays prominent across tabs without a duplicate My Moods tile',()=>{
+  const html=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
+  const js=readFileSync(new URL('../lab/moods.js',import.meta.url),'utf8');
+  const css=readFileSync(new URL('../lab/moods.css',import.meta.url),'utf8');
+  const action=html.indexOf('id="composer-moods-create"');
+  const close=html.indexOf('id="composer-moods-close"');
+  const toolbar=html.indexOf('id="composer-moods-filters"');
+  assert.ok(action>0&&action<close&&close<toolbar,'Create Mood should live to the left of X in the persistent header');
+  assert.match(html,/class="moods-header-actions"/);
+  assert.match(js,/createMoodButton\.onclick=startPersonalMood/);
+  assert.match(js,/const startPersonalMood=\(\)=>\{close\(\);onCreatePersonal\(\);\}/);
+  assert.match(js,/emptyPersonal\.hidden=category!=='My Moods'\|\|personalMoods\.length>0/);
+  assert.doesNotMatch(js,/\bcreateTile\b/);
+  assert.doesNotMatch(css,/\.moods-board-create/);
+  assert.match(css,/#image-composer #composer-moods-create\{/);
+  assert.match(css,/@media\(max-width:420px\)/);
+  assert.match(css,/\.moods-create-tail\{display:none\}/);
 });
 
 test('My Moods never silently treat the original image subject prompt as a reusable style',()=>{
