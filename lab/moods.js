@@ -1,6 +1,21 @@
 /* PV Lab Moods V1. Editorial generation directions, not pixel filters. */
 const ALL_MOODS=Object.freeze([
   {
+    "id": "synthetic-romance",
+    "name": "Synthetic Romance",
+    "category": "Cinema",
+    "preview": "/lab/mood-previews/synthetic-romance-canon-kiss-20261011.webp",
+    "description": "Black chrome, human longing and 1980s synthetic cinema",
+    "defaultIntensity": 82,
+    "direction": "SYNTHETIC ROMANCE / PARALLEL VISION CANON. Rebuild the uploaded person as an extraordinary human-machine hybrid in the photographic world of the user's original canon references: dark industrial retro-futurism, intimate artificial beings, 1980s photochemical science-fiction cinema. This is an INVASIVE PHYSICAL BODY TRANSFORMATION, not a color grade or costume. Read the actual source person, visible body, pose, expression, number of people, camera and spatial relationships. Reengineer visible anatomy: replace or integrate parts of head, temples, neck, shoulders, arms, torso, hands or legs with precise functional-looking mechanical structures. Choose ONE coherent morphology, not a checklist: almost-human with invasive exposed neck mechanisms; recognizable human face with a complete engineered black-chrome body; segmented cyborg skin with embedded cables and visible internals; or a nearly total android with residual human facial character. Different subjects may have different transformation degrees. Mechanical joints must actually connect, with believable thickness, articulated plates, fasteners, cable routing, contact shadows and worn interfaces. Preserve the source pose, number of subjects, camera perspective and readable identity when a human face is visible; clothing and body surfaces MAY be physically replaced by engineered anatomy, particularly at high intensity. Do not automatically create another robot, a couple, a kiss or an embrace. The photograph must have narrative tension and emotion without repeating the thumbnail scene. MATERIALS: smoked mirror chrome, black nickel, graphite titanium, subtly abraded polished steel, oxidized seams, organic skin, fine condensation and surface wear. REAL OPTICAL GLOSS: reflected narrow fluorescent tubes and broad dim practical sources produce long specular ribbons tracking curved metal anatomy, dark reflection bands between lights, roughness variation, restrained red highlights, physically plausible reflections and imperfect local contrast. No fake gloss overlay. CINEMATOGRAPHY: photographed as an early-1980s 35mm feature-film negative, fine irregular grain in shadows, dense readable blacks, restrained soft halation around actual light sources, subtle lens softness, imperfect photochemical colors and authentic highlight rolloff. Sparse red practicals, cold-white fluorescent spill, blue-grey ambient darkness, motivated backlight and thin atmospheric haze. Wet concrete or reflective flooring only when a new environment is allowed and physically credible. Environment should be functional, aged and industrial, with analog machinery, not neon decoration. At strong intensities, rebuild a bland source environment into a coherent retro-futurist industrial interior without changing subject geometry; at lower intensity keep the location recognizable. Emotion: synthetic romance, loneliness, desire, vulnerability, quiet menace and human tenderness. Respect assigned references and explicit user directions. Create a different visually intelligent transformation each time.",
+    "subtle": "1-34% / SUBTLE MUTATION: clearly introduce engineered mechanical implants around visible temples, neck, shoulders or hands, plus tactile 1980s film photography. The person remains predominantly human, pose and location recognizable. Even low intensity must change anatomy, not just grading.",
+    "moderate": "35-69% / PARTIAL CYBORG: substantially replace several visible body regions with real black-chrome anatomy, articulated plates and plausible internal cabling. Preserve recognizable facial structure and composition. Film lighting and atmosphere deepen.",
+    "immersive": "70-89% / MAJOR SYNTHETIC RECONSTRUCTION: extensively replace the visible body with functional biomechanical construction, chrome and routed cables. Keep the human face if suitable, with a visible physical transition into the machinery. Bold industrial film atmosphere, source pose and identity respected.",
+    "intense": "90-99% / RADICAL ANDROID: transform nearly the entire visible body into engineered reflective dark metal, retaining recognizable human facial cues where possible. Expose meaningful cables, mechanical joints and intricate assembly. Rebuild atmosphere and background as a credible aged 1980s industrial film set.",
+    "climax": "100% / TOTAL SYNTHETIC LIBERATION: full artistic freedom for a breathtaking cyborg or android transformation. Human face can remain within a fully engineered head and body, or become partly synthetic; retain enough source facial structure to anchor identity if Lock Identity is requested. Extreme physical reconstruction, never a generic robot suit. Cinematic analog realism and restrained color remain nonnegotiable.",
+    "avoid": "generic cyberpunk, neon city, Blade Runner scene recreation, flying cars, holograms, luminous circuit skin, glowing eyes by default, superhero armor, glossy plastic, CGI showroom shine, perfect chrome gradient, rubbery AI skin, mirror liquid blobs, pasted fog, random cables, floating machinery, fake red light overlay, excessive teal orange grading, contemporary digital HDR, 3D render, video game, anime, changing pose, inventing extra people, automatic kissing, identical robots, anatomical distortions, losing facial identity when requested, fake film scratches and VHS effects"
+  },
+  {
     "id": "polaroid-600",
     "name": "Polaroid 600",
     "category": "Analog",
@@ -223,7 +238,7 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
   if(!mood)return {prompt:original,metadata:{},error:''};
   if(!MOOD_MODELS.includes(engine))return {prompt:original,metadata:{},error:'Moods v1 supports Seedream 5 Pro and Nano Banana Pro. Choose one of these models first.'};
   const intensity=Math.max(1,Math.min(100,Math.round(Number(amount)||60)));
-  const dreamcore=mood.id==='dreamcore',cinematic80s=mood.id==='80s-film',berlinRave=mood.id==='berlin-rave';
+  const dreamcore=mood.id==='dreamcore',cinematic80s=mood.id==='80s-film',berlinRave=mood.id==='berlin-rave',syntheticRomance=mood.id==='synthetic-romance';
   const compactBerlinRave=berlinRave&&(compact===true||referenceCount>=4||original.length>=750);
   const compactDreamcore=dreamcore&&(compact===true||referenceCount>=3||original.length>=800);
   const compact80s=cinematic80s&&(compact===true||referenceCount>=2||original.length>=800||(referenceCount===1&&original.length>=(intensity===100?200:550)));
@@ -233,7 +248,9 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
   const eightyCore=compact80s
     ?intensity<=34?mood.compactLow:intensity<=69?mood.compactMid:mood.compact
     :intensity<=34?mood.lowDirection:intensity<=69?mood.midDirection:mood.direction;
-  const style=berlinRave
+  const style=syntheticRomance
+    ?[mood.direction,'Creative intensity '+intensity+'/100: physical reconstruction, NOT a pixel filter.',mood[dreamcoreKey]].join(' ')
+    :berlinRave
     ?[compactBerlinRave?mood.compact:mood.direction,
       'Creative intensity '+intensity+'/100: a real outfit transformation, NOT a pixel-opacity filter.',
       compactBerlinRave?mood['compact'+dreamcoreTier]:mood[dreamcoreKey]
@@ -252,6 +269,8 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
   const preservation=referenceCount>0
     ?referenceMode==='references'
       ?'The uploaded images only supply their assigned reference roles. Keep referenced people recognisable without copying unintended people.'
+      :syntheticRomance
+        ?'The first reference is the Base person: preserve facial identity when visible, number of subjects, pose, crop, anatomy proportions and camera. Explicitly ALLOW replacement of wardrobe, skin, limbs, torso and body surfaces with engineered machinery. At high intensity ALLOW industrial scene reconstruction. Respect assigned reference roles and Lock Identity guidance; preservation is not guaranteed.'
       :berlinRave
         ?'The first reference is the Base photograph: REPLACE only the visible wardrobe. Preserve the same face and identity, expression, hairstyle, makeup, natural proportions, hands, pose, camera, crop, existing light, colors and recognizable surroundings unless the user explicitly requests changes. Respect assigned reference roles. Only a trace of haze when physically plausible; never invent scenery or footwear outside the crop. Identity preservation is guidance, not a guarantee.'
         :mood.id==='dreamcore'
