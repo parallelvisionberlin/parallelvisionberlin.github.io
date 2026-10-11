@@ -66,7 +66,7 @@ try{
   const page=await context.newPage(),errors=[];
   page.on('pageerror',err=>errors.push(err.message));
   await page.goto(origin+'/lab/explore-moods.html',{waitUntil:'domcontentloaded'});
-  assert.equal(await page.locator('.mc-look-card[data-mood-id]').count(),12);
+  assert.equal(await page.locator('.mc-look-card[data-mood-id]').count(),14);
   assert.equal(await page.locator('#mc-look-dialog').count(),1);
   const grid=await page.evaluate(()=>{
     const gallery=document.querySelector('.mc-look-grid'),photo=gallery.querySelector('.mc-look-photo').getBoundingClientRect();
