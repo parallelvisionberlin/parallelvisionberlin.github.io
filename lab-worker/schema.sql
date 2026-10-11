@@ -77,6 +77,12 @@ CREATE TABLE IF NOT EXISTS moodboard_analysis_quota(
   used INTEGER NOT NULL CHECK(used BETWEEN 0 AND 6),
   PRIMARY KEY(owner_id,day_key)
 );
+CREATE TABLE IF NOT EXISTS moodboard_style_data(
+  id TEXT PRIMARY KEY REFERENCES moodboards(id) ON DELETE CASCADE,
+  owner_id TEXT NOT NULL,
+  palette TEXT NOT NULL DEFAULT '[]' CHECK(json_valid(palette)),
+  qualities TEXT NOT NULL DEFAULT '[]' CHECK(json_valid(qualities))
+);
 CREATE TABLE IF NOT EXISTS lab_migrations(id TEXT PRIMARY KEY,applied_at INTEGER NOT NULL);
 
 CREATE TABLE IF NOT EXISTS soul_datasets (
