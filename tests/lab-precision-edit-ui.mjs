@@ -180,6 +180,20 @@ try{
   });
   await page.setViewportSize({width:1440,height:900});
   await page.screenshot({path:'test-results/pv-precision-onboarding.png',fullPage:false});
+  await page.setViewportSize({width:390,height:844});
+  await page.screenshot({path:'test-results/pv-precision-onboarding-mobile.png',fullPage:true});
+  const mobileDiscovery=await page.evaluate(()=>{
+    const holder=document.getElementById('precision-output-holder').getBoundingClientRect();
+    const description=document.getElementById('precision-empty-description').getBoundingClientRect();
+    const disclaimer=document.querySelector('.precision-demo-honesty').getBoundingClientRect();
+    return {holderBottom:holder.bottom,descriptionBottom:description.bottom,
+      disclaimerBottom:disclaimer.bottom,scrollWidth:document.documentElement.scrollWidth,viewport:innerWidth};
+  });
+  assert.ok(mobileDiscovery.descriptionBottom<=mobileDiscovery.holderBottom+1&&
+    mobileDiscovery.disclaimerBottom<=mobileDiscovery.holderBottom+1,
+    'The animation and explanation must stay visible inside the mobile Result panel: '+JSON.stringify(mobileDiscovery));
+  assert.ok(mobileDiscovery.scrollWidth<=mobileDiscovery.viewport+3,'Retouch onboarding must not overflow mobile width');
+  await page.setViewportSize({width:1440,height:900});
   const beforeSample=await page.evaluate(()=>window.pvRequests.length);
   await page.locator('#precision-try-sample').click();
   await page.waitForFunction(()=>document.querySelector('#precision-source-meta').textContent.includes('Fashion Sample'));
