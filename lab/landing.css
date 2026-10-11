@@ -32,3 +32,15 @@ footer{display:flex;align-items:center;justify-content:space-between;gap:25px;pa
   .hero-copy h1{font-size:48px}
   .start-link{min-height:46px;padding:13px 24px;gap:24px;font-size:13px}
 }
+
+/* Mobile PV LAB hero: use the existing sharp Image-card portrait, no blurry zoom.
+   Text-only actions are intentional; decorative arrow glyphs are not part of the design. */
+@media(max-width:700px){
+  .lab-hero .hero-poster{object-position:50% 29%;transform:none;animation:none}
+  .lab-hero .hero-shade{
+    background:linear-gradient(0deg,#10160ff0 0%,#10160fc7 20%,#10160f52 43%,transparent 70%);
+  }
+  .lab-hero .hero-copy{z-index:2}
+}
+.start-link{justify-content:center}
+.studio-link span[aria-hidden="true"],.card-arrow:empty{display:none}
