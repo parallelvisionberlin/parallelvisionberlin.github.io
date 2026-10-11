@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "Parallel Vision",
+    "name": "PV Lab",
     "slug": "parallel-vision",
-    "version": "0.4.1",
+    "version": "0.5.0",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
     "scheme": "parallelvision",
@@ -18,7 +18,10 @@
       "icon": "./assets/icon.png",
       "infoPlist": {
         "NSMicrophoneUsageDescription": "Parallel Vision uses the microphone when you choose to speak with Nina FOK live.",
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSPhotoLibraryUsageDescription": "PV Lab lets you choose photographs to create images and Moods.",
+        "NSCameraUsageDescription": "PV Lab lets you take a photograph to use as an image reference.",
+        "NSPhotoLibraryAddUsageDescription": "PV Lab lets you save the images you create to your photo library."
       }
     },
     "android": {

@@ -55,7 +55,7 @@ function Field({ label, value, onChangeText, password = false, code = false, onS
   );
 }
 
-export function AuthPanel({ onContinue, opening = false }) {
+export function AuthPanel({ onContinue, opening = false, description = 'Your conversations, music and time with Nina.', continueLabel = 'TALK TO NINA' }) {
   const { isLoaded, isSignedIn } = useAuth();
   const { user } = useUser();
   const { signOut } = useClerk();
@@ -188,7 +188,7 @@ export function AuthPanel({ onContinue, opening = false }) {
       <Text style={styles.title}>{user?.firstName || 'Your account'}</Text>
       <Text style={styles.copy}>{user?.primaryEmailAddress?.emailAddress || 'Signed in'}</Text>
       {!!message && <Text accessibilityRole="alert" style={styles.error}>{message}</Text>}
-      {onContinue && <Action onPress={onContinue} busy={opening}>TALK TO NINA</Action>}
+      {onContinue && <Action onPress={onContinue} busy={opening}>{continueLabel}</Action>}
       <Action secondary busy={busy === 'signout'} onPress={() => run('signout', () => signOut())}>SIGN OUT</Action>
     </View>
   );
@@ -197,7 +197,7 @@ export function AuthPanel({ onContinue, opening = false }) {
     <View style={styles.panel}>
       <Text style={styles.eyebrow}>PARALLEL VISION ID</Text>
       <Text style={styles.title}>{verification ? 'Check your email' : mode === 'sign-up' ? 'Create account' : 'Sign in'}</Text>
-      <Text style={styles.copy}>{verification ? `Enter the code sent to ${email.trim() || 'your account email'}.` : 'Your conversations, music and time with Nina.'}</Text>
+      <Text style={styles.copy}>{verification ? `Enter the code sent to ${email.trim() || 'your account email'}.` : description}</Text>
       {verification ? <>
         <Field label="VERIFICATION CODE" value={code} onChangeText={setCode} code onSubmitEditing={verify} />
         <Action busy={busy === 'verify'} disabled={!!busy || !code.trim()} onPress={verify}>VERIFY & CONTINUE</Action>
