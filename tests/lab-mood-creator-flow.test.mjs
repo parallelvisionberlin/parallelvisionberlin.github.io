@@ -31,6 +31,21 @@ function testRig(){
  };
  return {db,env,invoke,objects};
 }
+test('Mood Creator gallery handoff accepts saved board UUIDs and preserves an optional idea',()=>{
+  const lab=readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8');
+  const creator=readFileSync(new URL('../lab/mood-creator.js',import.meta.url),'utf8');
+  const homepage=readFileSync(new URL('../lab/index.html',import.meta.url),'utf8');
+  const page=readFileSync(new URL('../lab/mood-creator.html',import.meta.url),'utf8');
+  const goodId='30000000-0000-4000-8000-000000000001';
+  assert.match(lab,/if\(boardId&&!\/\^\[a-f0-9\]\{8\}/);
+  const reg=lab.match(/if\(boardId&&!((?:\/\^.*?\/i))\.test\(boardId\)\)/)?.[1];
+  assert.ok(reg,'Studio board link must have a UUID validator');
+  assert.equal(Function('return '+reg)().test(goodId),true,'Saved Mood UUID must be accepted');
+  assert.match(creator,/const mood=selectedLook,photo=lookPhoto,idea=lookDirection\.value\.trim\(\)/);
+  assert.match(creator,/if\(idea\)concept\.value=idea/);
+  assert.match(page,/href="#my-moods">My Moods/);
+  assert.match(homepage,/mood-creator\.html#discover/);
+});
 test('Mood Creator validates original ideas, image inputs and optional curated base',()=>{
  assert.equal(moodCreatorInputValidation({name:'Liquid Memory',direction:'Pearlescent light, real film grain',baseMoodId:null,imageCount:2}),'');
  assert.equal(moodCreatorInputValidation({name:'Liquid Memory',direction:'',baseMoodId:'dreamcore',imageCount:0}),'');
