@@ -86,6 +86,10 @@ try{
     assert.ok(size.icon.right<=size.queue.x+1&&size.queue.right<=size.account.x+1,
       'Mood Creator must sit before Queue and Account '+width+' '+JSON.stringify(size));
     assert.ok(size.actions.right<=width+2,'Account controls stay on screen at '+width);
+    if(width<900){
+      assert.equal(await icon.evaluate(el=>getComputedStyle(el,'::after').display),'none',
+        'Desktop-only tooltip must never cover mobile navigation at '+width);
+    }
     if(width>=900){
       assert.ok(size.fashion.right<=size.icon.x+1,
         'Normal tabs end before the separate right-hand Mood shortcut at '+width);
