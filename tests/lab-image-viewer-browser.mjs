@@ -22,18 +22,31 @@ const server=http.createServer((req,res)=>{
 });
 await new Promise(r=>server.listen(0,'127.0.0.1',r));
 const browser=await chromium.launch({headless:true,executablePath:process.env.PV_CHROMIUM_EXECUTABLE||undefined});
+const paintedFrame=page=>page.evaluate(()=>{
+  const img=document.querySelector('#image-lightbox-img'),stage=document.querySelector('#image-lightbox-stage');
+  const box=img.getBoundingClientRect(),space=stage.getBoundingClientRect(),style=getComputedStyle(stage);
+  const availableWidth=space.width-parseFloat(style.paddingLeft)-parseFloat(style.paddingRight);
+  const availableHeight=space.height-parseFloat(style.paddingTop)-parseFloat(style.paddingBottom);
+  const scale=Math.min(box.width/img.naturalWidth,box.height/img.naturalHeight);
+  const width=img.naturalWidth*scale,height=img.naturalHeight*scale;
+  return {x:box.x+(box.width-width)/2,y:box.y+(box.height-height)/2,width,height,availableWidth,availableHeight,
+    imageWidth:box.width,imageHeight:box.height,naturalWidth:img.naturalWidth,naturalHeight:img.naturalHeight};
+});
+const assertFitted=frame=>assert.ok(Math.abs(frame.width-frame.availableWidth)<2||Math.abs(frame.height-frame.availableHeight)<2,
+  'Preview must fill the available width or height immediately: '+JSON.stringify(frame));
 try{
-  for(const width of [1440,390]){
+  for(const width of [1440,390])for(const shape of ['landscape','portrait','square']){
     const context=await browser.newContext({viewport:{width,height:1000},acceptDownloads:true});
     const page=await context.newPage(),errors=[],reads=new Map(),gates=new Map(),held=new Map();
     page.on('pageerror',e=>errors.push(e.message));
-    const images=await page.evaluate(()=>Array.from({length:5},(_,i)=>{
-      const canvas=document.createElement('canvas');canvas.width=640+i*100;canvas.height=480;
+    const images=await page.evaluate(shape=>Array.from({length:5},(_,i)=>{
+      const canvas=document.createElement('canvas');canvas.width=640+i*100;
+      canvas.height=shape==='portrait'?1200:shape==='square'?canvas.width:480;
       const ctx=canvas.getContext('2d');ctx.fillStyle=['#c44','#4c4','#44c','#cc4','#c4c'][i];ctx.fillRect(0,0,canvas.width,canvas.height);
-      const full=canvas.toDataURL().split(',')[1];canvas.width=64;canvas.height=48;
-      ctx.fillStyle=['#c44','#4c4','#44c','#cc4','#c4c'][i];ctx.fillRect(0,0,64,48);
+      const full=canvas.toDataURL().split(',')[1];canvas.width/=10;canvas.height/=10;
+      ctx.fillStyle=['#c44','#4c4','#44c','#cc4','#c4c'][i];ctx.fillRect(0,0,canvas.width,canvas.height);
       return {full,thumb:canvas.toDataURL().split(',')[1]};
-    }));
+    }),shape);
     for(let i=0;i<5;i++)gates.set('out-'+i,new Promise(resolve=>held.set('out-'+i,resolve)));
     const jobs=images.map((_,i)=>({id:'job-'+i,outputId:'out-'+i,status:'completed',createdAt:Date.now()-i,
       settings:{type:'image',mode:'image',engine:'seedream',prompt:'Test '+i,resolution:'1k',aspectRatio:'auto'}}));
@@ -60,6 +73,7 @@ try{
     await page.locator('#history .card').first().evaluate(el=>el.click());
     await page.waitForFunction(()=>document.querySelector('#image-lightbox-img').naturalWidth===64);
     assert.equal(await page.locator('#image-lightbox-img').isVisible(),true);
+    assertFitted(await paintedFrame(page));
     assert.equal(await page.locator('#image-detail-next').isDisabled(),false);
     assert.equal(await page.locator('#image-lightbox-download').isDisabled(),true);
     await page.waitForFunction(()=>window.__viewerTest.state().prefetch===2);
@@ -73,6 +87,8 @@ try{
     assert.equal(navigation.job,'job-2','Rapid arrow presses work before originals finish');
     assert.ok(navigation.src.startsWith('blob:'));
     assert.ok(navigation.ms<250,'Preview selection responds without waiting on network');
+    await page.waitForFunction(()=>document.querySelector('#image-lightbox-img').naturalWidth===84);
+    const previewFrame=await paintedFrame(page);assertFitted(previewFrame);
     held.get('out-0')();held.get('out-1')();
     await page.waitForFunction(()=>window.__viewerTest.state().cache>=2);
     assert.equal((await page.evaluate(()=>window.__viewerTest.state())).job,'job-2','Late previous requests cannot replace current metadata');
@@ -80,6 +96,14 @@ try{
     held.get('out-2')();
     await page.waitForFunction(()=>document.querySelector('#image-lightbox-img').naturalWidth===840&&!document.querySelector('#image-lightbox-download').disabled);
     assert.equal((await page.evaluate(()=>window.__viewerTest.state())).result,'out-2');
+    const fullFrame=await paintedFrame(page);assertFitted(fullFrame);
+    for(const key of ['x','y','width','height'])assert.ok(Math.abs(previewFrame[key]-fullFrame[key])<2,
+      'Original must replace preview without moving or resizing: '+JSON.stringify({key,previewFrame,fullFrame}));
+    await page.click('#image-lightbox-fit');
+    const zoom=await paintedFrame(page);
+    assert.equal(zoom.imageWidth,zoom.naturalWidth,'100% zoom must retain original pixel width');
+    assert.equal(zoom.imageHeight,zoom.naturalHeight,'100% zoom must retain original pixel height');
+    await page.click('#image-lightbox-fit');assertFitted(await paintedFrame(page));
     await page.keyboard.press('ArrowLeft');
     await page.waitForFunction(()=>document.querySelector('#image-lightbox-img').naturalWidth===740&&!document.querySelector('#image-lightbox-download').disabled);
     assert.equal(reads.get('out-1'),1,'Returning to a prefetched original reuses its bytes');
@@ -96,7 +120,7 @@ try{
     await page.evaluate(()=>window.__viewerTest.lock());
     assert.equal((await page.evaluate(()=>window.__viewerTest.state())).cache,0,'Sign out clears private original cache');
     assert.deepEqual(errors,[]);
-    console.log(JSON.stringify({width,rapidTwoArrowMs:Math.round(navigation.ms),passed:'instant preview, nonblocking arrows, original upgrade, prefetch, stale responses, correct download, close, sign-out'}));
+    console.log(JSON.stringify({width,shape,previewWidth:Math.round(previewFrame.width),fullWidth:Math.round(fullFrame.width),rapidTwoArrowMs:Math.round(navigation.ms),passed:'stable fitted preview, unchanged frame on original upgrade, native zoom, nonblocking arrows, prefetch, stale responses, correct download, close, sign-out'}));
     await context.close();
   }
 }finally{await browser.close();await new Promise(r=>server.close(r));}
