@@ -416,4 +416,13 @@ test('80s Film cinematic mood keeps multi-reference prompts under provider chara
   assert.match(studio,/lab\.js\?v=20261011-80s-cinema1/);
   assert.match(app,/moods\.js\?v=20261011-80s-cinema1/);
   assert.match(creator,/moods\.js\?v=20261011-80s-cinema1/);
+  const board={id:'10000000-0000-4000-8000-000000000080',name:'Cinematic Night',baseMoodId:'80s-film',direction:'Editorial fashion and elegant fabrics'};
+  for(const count of [1,2,10]){
+    const saved=preparePersonalMoodPrompt('Luxury movie scene',board,100,{engine:'seedream',referenceCount:count});
+    const boardRefs=Array.from({length:count},(_,i)=>({name:'ref-'+i+'.jpg',role:i?'none':'base'}));
+    assert.equal(saved.error,'');
+    assert.ok(compileImagePrompt(saved.prompt,boardRefs).length<=5000,'saved 80s mood fits '+count+' references');
+  }
+  const duo=prepareMoodPrompt('Fashion scene','80s-film',100,{engine:'seedream',referenceCount:2});
+  assert.match(duo.prompt,/80S FILM \/ FASHION CINEMA/);
 });
