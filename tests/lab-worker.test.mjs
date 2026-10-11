@@ -1027,3 +1027,39 @@ test('Seedream rejects >36MP input before a provider quote and accepts a separat
   assert.deepEqual(q.settings.transferSourceIds,[safe]);
   assert.equal(createCount,created,'Working-copy preparation and quotes never submit a paid task.');
 });
+
+
+test('authenticated thumbnail route returns cached compressed WebP, while the original GET remains full-size',async()=>{
+ const{env,objects}=fixture(),id=await setup(env);
+ const WEBP=new Uint8Array([82,73,70,70,8,0,0,0,87,69,66,80,86,80,56,32,1,2,3,4]);
+ let transforms=0;
+ env.IMAGES={input(body){
+   assert.ok(body);
+   return{
+     transform(settings){assert.deepEqual(settings,{width:800,height:800,fit:'scale-down'});return this;},
+     output(settings){
+       transforms++;
+       assert.deepEqual(settings,{format:'image/webp',quality:82,anim:false});
+       return{response:()=>new Response(WEBP,{headers:{'content-type':'image/webp'}})};
+     }
+   };
+ }};
+ const path='/api/assets/'+id;
+ const preview=await req(env,path+'/thumbnail');
+ assert.equal(preview.status,200);
+ assert.equal(preview.headers.get('content-type'),'image/webp');
+ assert.equal(preview.headers.get('cache-control'),'private, no-store');
+ assert.deepEqual(new Uint8Array(await preview.arrayBuffer()),WEBP);
+ assert.equal(transforms,1);
+ const repeat=await req(env,path+'/thumbnail');
+ assert.equal(repeat.status,200);
+ assert.deepEqual(new Uint8Array(await repeat.arrayBuffer()),WEBP);
+ assert.equal(transforms,1,'second view reads stored WebP without transforming');
+ const full=await req(env,path);
+ assert.equal(full.status,200);
+ assert.equal(full.headers.get('content-type'),'image/png');
+ assert.deepEqual(new Uint8Array(await full.arrayBuffer()),new Uint8Array([137,80,78,71,13,10,26,10,0]));
+ assert.equal((await req(env,path+'/thumbnail',{authToken:guest})).status,403,'private thumbnails require an authorized account');
+ assert.equal((await req(env,'/api/assets/'+crypto.randomUUID()+'/thumbnail')).status,404);
+ assert.ok([...objects.keys()].some(key=>key.includes('/thumbnails/v1-800q82/')&&key.endsWith('/'+id+'.webp')));
+});
