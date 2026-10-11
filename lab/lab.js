@@ -135,7 +135,7 @@ const moodUI=createMoodSelector({panel:$('composer-moods'),button:$('image-compo
   chooseEngine:engine=>{if(busy)return;$('image-engine').value=engine;$('image-engine').dispatchEvent(new Event('change',{bubbles:true}));},
   onOpen:()=>{
     closeReferenceIntent();closeImageModelMenu();closeComposerLibrary();toggleImageSettings(false);
-    if(myMoods)void myMoods.refresh().catch(error=>notify('Unable to load My Moods. '+error.message,true));
+    if(myMoods)void myMoods.refresh().catch(()=>{/* Curated Moods remain usable while personal boards are unavailable. */});
   },
   onCreatePersonal:()=>void myMoods?.openCreate(),
   onEditPersonal:board=>myMoods?.openEdit(board),
