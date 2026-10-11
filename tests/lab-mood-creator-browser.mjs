@@ -173,6 +173,29 @@ try{
   assert.equal(await phone.locator('#mc-look-dialog').evaluate(el=>el.open),true);
   assert.deepEqual(mobileErrors,[]);
   pass('Mobile Explore and its quick photo tray work without overflow');
+  await phone.goto(origin+'/lab/mood-creator.html',{waitUntil:'domcontentloaded'});
+  await phone.waitForFunction(()=>document.getElementById('mc-signin').hidden);
+  for(const viewport of [{width:390,height:650},{width:320,height:568}]){
+    await phone.setViewportSize(viewport);
+    const entry=await phone.evaluate(()=>{
+      const cta=document.getElementById('mc-hero-upload').getBoundingClientRect();
+      return {bottom:cta.bottom,height:innerHeight,top:cta.top,overflow:document.documentElement.scrollWidth-innerWidth};
+    });
+    assert.ok(entry.top>0&&entry.bottom<entry.height,'Collage upload is visible on first mobile screen: '+JSON.stringify(viewport));
+    assert.ok(entry.overflow<=2,'No horizontal overflow in mobile entry');
+  }
+  assert.equal(await phone.locator('.mc-editorial-frame img').count(),3);
+  const startY=await phone.evaluate(()=>scrollY);
+  const canceled=phone.waitForEvent('filechooser');
+  await phone.locator('#mc-hero-upload').click();
+  await (await canceled).setFiles([]);
+  assert.equal(await phone.evaluate(()=>scrollY),startY,'Empty file selection leaves the hero in place');
+  const picked=phone.waitForEvent('filechooser');
+  await phone.locator('#mc-hero-upload').click();
+  await (await picked).setFiles({name:'mobile-reference.png',mimeType:'image/png',buffer:png});
+  await phone.waitForFunction(()=>document.querySelectorAll('.mc-shot').length===1&&Math.abs(document.querySelector('.mc-board-column').getBoundingClientRect().top-16)<3);
+  assert.equal(await phone.locator('#mc-board').evaluate(el=>document.activeElement===el),true);
+  pass('Mobile collage upload is above the fold and only a selected image moves to the board');
   await mobile.close();await context.close();
 }finally{
   await browser.close();

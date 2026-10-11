@@ -181,8 +181,12 @@ function initMoodCreator(){
     renderBoard();return added;
   }
   function scrollToWorkspace(){document.getElementById('workspace').scrollIntoView({behavior:'smooth',block:'start'});}
-  function loadFilePicker(){scrollToWorkspace();upload.click();}
-  upload.addEventListener('change',()=>{const added=addFiles([...upload.files]);upload.value='';if(added)scrollToWorkspace();});
+  function loadFilePicker(){if(!busy)upload.click();}
+  function revealUploadedBoard(){
+    board.focus({preventScroll:true});
+    board.closest('.mc-board-column').scrollIntoView({behavior:'smooth',block:'start'});
+  }
+  upload.addEventListener('change',()=>{const added=addFiles([...upload.files]);upload.value='';if(added)revealUploadedBoard();});
   for(const el of [boardShell]){
     el.addEventListener('dragover',event=>{if(event.dataTransfer?.types?.includes('Files')){event.preventDefault();boardShell.classList.add('is-over');}});
     el.addEventListener('dragleave',event=>{if(!boardShell.contains(event.relatedTarget))boardShell.classList.remove('is-over');});
@@ -195,8 +199,8 @@ function initMoodCreator(){
   // Curated Mood selection and photo handoff live in Explore Moods.
   // This page is solely for synthesizing and saving a personal aesthetic.
   $('mc-start-image').onclick=loadFilePicker;
-  $('mc-hero-upload').onclick=()=>{if(!busy)upload.click();};
-  $('mc-start-idea').onclick=()=>{scrollToWorkspace();concept.focus({preventScroll:true});};
+  $('mc-hero-upload').onclick=loadFilePicker;
+  $('mc-start-idea').onclick=()=>{concept.focus({preventScroll:true});concept.scrollIntoView({behavior:'smooth',block:'center'});};
   $('mc-new').onclick=()=>resetBoard({scroll:true});
   $('mc-library-create').onclick=()=>resetBoard({scroll:true});
   intensity.addEventListener('input',()=>{$('mc-intensity-value').textContent=intensity.value+'%';});
