@@ -193,6 +193,20 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
   return {prompt,metadata:{moodId:mood.id,moodIntensity:intensity,moodOriginalPrompt:original},
     error:prompt.length>5000?'Prompt and mood exceed 5,000 characters. Shorten the direction or clear the mood.':(!original&&!referenceCount?'Describe a subject or add an image before generating with a mood.':'')};
 }
+
+/* Returns the safe dimensions for an anchored popup above a floating composer.
+   When the space is too small, overlap only the dimmed composer rather than
+   losing the Mood title or close button above the top of the screen. */
+export function moodsPanelViewportGeometry({composerTop,viewportTop=0,viewportHeight,viewportWidth}){
+  const mobile=viewportWidth<=740;
+  const topInset=mobile?14:28,bottomInset=mobile?10:16,gap=mobile?10:14;
+  const viewportSpace=Math.max(160,Math.floor(viewportHeight-topInset-bottomInset));
+  const above=Math.floor(composerTop-viewportTop-topInset-gap);
+  const minimum=Math.min(viewportSpace,mobile?295:325);
+  const maxHeight=Math.min(720,viewportSpace,Math.max(minimum,above));
+  return {gap,maxHeight,overlap:Math.ceil(Math.max(0,minimum-above)),tight:maxHeight<310};
+}
+
 export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange,onOpen}){
   const grid=panel.querySelector('#composer-moods-grid');
   const filters=panel.querySelector('#composer-moods-filters');
@@ -206,6 +220,7 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
   const clearButton=panel.querySelector('#composer-moods-none');
   const aboutButton=panel.querySelector('#composer-moods-about');
   const aboutDetails=panel.querySelector('#composer-moods-explanation');
+  const backdrop=panel.parentElement.querySelector('#composer-moods-backdrop');
   let selected=null,intensity=60,category='All';
   const desktopGridColumns=5,initiallyVisibleRows=2;
   const tabs=new Map(),cards=new Map();
@@ -244,6 +259,20 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
     button.classList.toggle('is-mood-selected',!!chosen);
     button.setAttribute('aria-expanded',String(!panel.hidden));
   }
+  function fitPanelViewport(){
+    if(panel.hidden)return;
+    const visual=window.visualViewport;
+    const available=moodsPanelViewportGeometry({
+      composerTop:panel.parentElement.getBoundingClientRect().top,
+      viewportTop:visual?.offsetTop||0,
+      viewportHeight:visual?.height||window.innerHeight,
+      viewportWidth:window.innerWidth
+    });
+    panel.style.setProperty('--moods-anchor-gap',available.gap+'px');
+    panel.style.setProperty('--moods-available-height',available.maxHeight+'px');
+    panel.style.setProperty('--moods-overlap',available.overlap+'px');
+    panel.classList.toggle('is-viewport-tight',available.tight);
+  }
   // Show exactly two complete rows before the internal scrollbar reveals Sumi-e.
   function fitGridViewport(){
     if(panel.hidden)return;
@@ -265,10 +294,18 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
     aboutButton.setAttribute('aria-expanded','false');
     if(restoreFocus&&!panel.hidden)aboutButton.focus();
   }
-  function close(){closeAbout();panel.hidden=true;button.setAttribute('aria-expanded','false');}
+  function close(restoreFocus=false){
+    const wasOpen=!panel.hidden;
+    closeAbout();panel.hidden=true;backdrop.hidden=true;
+    panel.parentElement.classList.remove('is-moods-open');
+    button.setAttribute('aria-expanded','false');
+    if(restoreFocus&&wasOpen&&!button.hidden)button.focus();
+  }
   function open(){
     if(button.disabled)return;
-    onOpen();closeAbout();panel.hidden=false;render();grid.scrollTop=0;fitGridViewport();
+    onOpen();closeAbout();panel.hidden=false;backdrop.hidden=false;
+    panel.parentElement.classList.add('is-moods-open');
+    render();fitPanelViewport();grid.scrollTop=0;fitGridViewport();
     if(selected==='sumi-ink'){
       const card=cards.get(selected),viewport=grid.getBoundingClientRect();
       if(card&&card.getBoundingClientRect().bottom>viewport.bottom)
@@ -276,15 +313,16 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
     }
     panel.querySelector('#composer-moods-title')?.focus();
   }
-  function clear(silent=false){selected=null;intensity=60;close();render();if(!silent)onChange();}
+  function clear(silent=false){selected=null;intensity=60;close(!silent);render();if(!silent)onChange();}
   function restore(settings,silent=false){selected=moodById(settings?.moodId)?.id||null;intensity=Math.min(100,Math.max(1,Number(settings?.moodIntensity)||60));close();render();if(!silent)onChange();}
   function enrich(prompt,options={}){return prepareMoodPrompt(prompt,selected,intensity,options);}
   function error(engine,prompt,count=0,referenceMode='base'){return enrich(prompt,{engine,referenceCount:count,referenceMode}).error;}
   function sync({visible=true,locked=false}={}){button.hidden=!visible;button.disabled=locked;if(!visible||locked)close();if(visible)render();}
   slider.addEventListener('input',()=>{intensity=Number(slider.value);render();onChange();});
   button.onclick=()=>{if(panel.hidden)open();else close();};
-  panel.querySelector('#composer-moods-close').onclick=close;
-  done.onclick=close;
+  backdrop.onclick=()=>close(true);
+  panel.querySelector('#composer-moods-close').onclick=()=>close(true);
+  done.onclick=()=>close(true);
   clearButton.onclick=()=>clear();
   aboutButton.addEventListener('click',()=>{
     const opening=aboutDetails.hidden;
@@ -295,15 +333,36 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
     if(!event.target.closest('.moods-about'))closeAbout();
   });
   panel.addEventListener('keydown',event=>{
-    if(event.key==='Escape'&&!aboutDetails.hidden){
-      event.preventDefault();
-      event.stopPropagation();
-      closeAbout(true);
+    if(event.key==='Escape'){
+      event.preventDefault();event.stopPropagation();
+      if(!aboutDetails.hidden)closeAbout(true);
+      else close(true);
+    }
+    if(event.key==='Tab'){
+      const tabbables=[...panel.querySelectorAll('button:not(:disabled),input:not(:disabled)')]
+        .filter(el=>!el.hidden&&!el.closest('[hidden]')&&el.getClientRects().length>0);
+      if(!tabbables.length)return;
+      const first=tabbables[0],last=tabbables[tabbables.length-1];
+      if(event.shiftKey&&(document.activeElement===first||document.activeElement===panel.querySelector('#composer-moods-title'))){
+        event.preventDefault();last.focus();
+      }else if(!event.shiftKey&&document.activeElement===last){
+        event.preventDefault();first.focus();
+      }
     }
   });
   switcher.onclick=()=>{chooseEngine('seedream');render();onChange();};
   grid.setAttribute('aria-label','Available moods; scroll down to explore more looks');
-  window.addEventListener('resize',()=>{if(!panel.hidden)fitGridViewport();});
+  function refreshViewport(){
+    if(panel.hidden)return;
+    fitPanelViewport();fitGridViewport();
+  }
+  window.addEventListener('resize',refreshViewport);
+  window.visualViewport?.addEventListener('resize',refreshViewport);
+  window.visualViewport?.addEventListener('scroll',refreshViewport);
+  if(typeof ResizeObserver==='function'){
+    const observer=new ResizeObserver(refreshViewport);
+    observer.observe(panel.parentElement);
+  }
   render();
   return {active:()=>!!selected,selected:()=>selected,intensity:()=>intensity,enrich,error,
     invalid:(engine,prompt,count=0,referenceMode='base')=>!!error(engine,prompt,count,referenceMode),
