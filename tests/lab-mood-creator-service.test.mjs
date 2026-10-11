@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {parseMoodAnalysisInput,normalizeMoodAnalysis,MOOD_ANALYSIS_DAILY_LIMIT,MOOD_ANALYSIS_GLOBAL_LIMIT,BOARD_IMAGE_BYTES_MAX} from '../lab-worker/mood-creator-service.mjs';
+import {parseMoodAnalysisInput,normalizeMoodAnalysis,MOOD_ANALYSIS_DAILY_LIMIT,MOOD_ANALYSIS_GLOBAL_LIMIT,BOARD_IMAGE_BYTES_MAX,MOOD_ANALYSIS_IMAGES_MAX,MOOD_ANALYSIS_TOTAL_IMAGE_BYTES_MAX,MOOD_ANALYSIS_IMAGE_BYTES_MAX} from '../lab-worker/mood-creator-service.mjs';
 const fail=(code,message)=>{let error=new Error(message);error.status=code;throw error;};
 test('Visual style analysis validates input and requires no public image link',()=>{
   assert.deepEqual(parseMoodAnalysisInput({concept:'Pearly rain at night'},fail),{concept:'Pearly rain at night',imageDataUrl:null});
@@ -16,4 +16,21 @@ test('Style response strips invalid colors and long fields',()=>{
   assert.equal(v.name,'Opal Shore');assert.deepEqual(v.palette,['#ddeeff','#101010']);
   assert.deepEqual(v.qualities,['film grain','liquid softness']);
   assert.throws(()=>normalizeMoodAnalysis({name:'Short',direction:'nice'},fail),/could not describe/);
+});
+
+test('Mood Creator accepts a focused board of 12 small photos and rejects oversized or untrusted requests',()=>{
+  const image='data:image/png;base64,'+'A'.repeat(120);
+  const valid=parseMoodAnalysisInput({concept:'Humid photographic softness',imageDataUrls:Array(12).fill(image),focusIndex:7},fail);
+  assert.equal(valid.imageDataUrls.length,12);
+  assert.equal(valid.focusIndex,7);
+  assert.equal(MOOD_ANALYSIS_IMAGES_MAX,12);
+  assert.ok(MOOD_ANALYSIS_TOTAL_IMAGE_BYTES_MAX<2000000);
+  assert.ok(MOOD_ANALYSIS_IMAGE_BYTES_MAX<=160000);
+  assert.throws(()=>parseMoodAnalysisInput({imageDataUrls:Array(13).fill(image)},fail),/12 Moodboard/);
+  assert.throws(()=>parseMoodAnalysisInput({imageDataUrls:[image],focusIndex:2},fail),/valid visual focus/);
+  assert.throws(()=>parseMoodAnalysisInput({imageDataUrls:[image],focusIndex:-1},fail),/visual focus/);
+  assert.throws(()=>parseMoodAnalysisInput({imageDataUrls:['data:text/plain;base64,AAAA']},fail),/JPEG, PNG/);
+  assert.throws(()=>parseMoodAnalysisInput({imageDataUrls:['data:image/jpeg;base64,'+'A'.repeat(245001)]},fail),/smaller/);
+  assert.throws(()=>parseMoodAnalysisInput({imageDataUrls:[]},fail),/Add a photograph/);
+  assert.deepEqual(parseMoodAnalysisInput({concept:'A single film idea',imageDataUrls:[]},fail),{concept:'A single film idea',imageDataUrls:[],focusIndex:-1});
 });
