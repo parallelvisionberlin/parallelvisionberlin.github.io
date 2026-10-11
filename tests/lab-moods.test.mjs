@@ -98,7 +98,8 @@ test('Older Moods prompts are not exposed in the viewer or history',()=>{
 test('Image viewer, Copy and History render the public-facing prompt only',()=>{
   const js=readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8');
   const html=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
-  assert.match(js,/const mood=moodById\(params.moodId\),promptText=userFacingImagePrompt\(params\)/);
+  assert.match(js,/const mood=moodById\(params.moodId\),customMood=/);
+  assert.match(js,/const promptText=userFacingImagePrompt\(params\)/);
   assert.match(js,/const text=userFacingImagePrompt\(imageDetailJob.settings\)/);
   assert.match(js,/image\?imageHistoryCaption\(j.settings\)/);
   assert.match(html,/id="image-detail-mood-feature"/);
@@ -315,12 +316,13 @@ test('Moods prioritizes previews and toggles an already-selected thumbnail off',
   const css=readFileSync(new URL('../lab/moods.css',import.meta.url),'utf8');
   const html=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
   assert.match(js,/card\.onclick=\(\)=>\{selected=selected===mood\.id\?null:mood\.id;render\(\);onChange\(\);\}/);
-  assert.match(css,/Gallery-first desktop footer/);
+  assert.match(css,/Selected mood is beside filters/);
   assert.match(css,/\.moods-card-media\{aspect-ratio:5\/4\}/);
   assert.match(css,/\.moods-footer\{gap:3px;padding-top:7px\}/);
-  assert.match(css,/\.moods-actions\{[\s\S]*?display:grid;grid-template-columns:48px minmax\(0,1fr\)/);
+  assert.match(css,/\.moods-selection\{display:flex;align-items:center;justify-content:flex-end/);
+  assert.match(css,/\.moods-controls\{[\s\S]*?grid-template-columns:minmax\(0,1fr\) 170px/);
   assert.match(css,/#composer-moods-done,[\s\S]*?#composer-moods-switch\{[\s\S]*?min-height:48px/);
   assert.match(css,/#composer-moods-intensity::-webkit-slider-runnable-track\{[\s\S]*?height:7px/);
   assert.match(html,/Clear selected mood/);
-  assert.match(html,/moods\.css\?v=20261011-my-moods2/);
+  assert.match(html,/moods\.css\?v=20261011-moods-toolbar1/);
 });
