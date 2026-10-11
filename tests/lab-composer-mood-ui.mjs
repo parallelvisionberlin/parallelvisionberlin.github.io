@@ -172,8 +172,17 @@ try{
   const emptyGallery=await measureMood();
   await stable.page.locator('.moods-card[aria-label="Select Soft Pastel Film"]').click();
   const selectedGallery=await measureMood();
+  const emptyMoodStatus=await stable.page.evaluate(()=>({
+    blockHidden:document.getElementById('composer-generation-block').hidden,
+    blockStyle:getComputedStyle(document.getElementById('composer-generation-block')).display,
+    reason:document.getElementById('composer-generation-reason').textContent,
+    title:document.getElementById('image-composer-generate').title,
+    value:document.getElementById('image-composer-prompt').value,
+    mood:document.getElementById('image-composer-moods').textContent,
+    refCount:document.querySelectorAll('#reference-list .reference-item').length
+  }));
   assert.equal(await stable.page.locator('#composer-generation-block').isHidden(),true,
-    'Mood without a subject must use the Generate tooltip, not an extra deck row');
+    'Mood without a subject must use the Generate tooltip, not an extra deck row: '+JSON.stringify(emptyMoodStatus));
   assert.match(await stable.page.locator('#image-composer-generate').getAttribute('title'),/Describe a subject or add an image/);
   assert.ok(Math.abs(selectedGallery.deckHeight-emptyGallery.deckHeight)<=3,
     'Selecting a Mood expanded the deck: '+JSON.stringify({emptyGallery,selectedGallery}));

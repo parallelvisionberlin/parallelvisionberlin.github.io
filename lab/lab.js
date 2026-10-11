@@ -1019,8 +1019,7 @@ function syncImageComposer(){
   const exactPreparing=tool==='image'&&fastImageHandoff.has(currentImageSubmissionKey());
   // A selected look without a prompt or photo already has a disabled Generate
   // button and a tooltip. Repeating the hint inline adds an unwanted third row.
-  const idleMoodNeedsInput=moodUI.active()&&!references.length&&!$('prompt').value.trim()
-    &&message==='Describe a subject or add an image before using this Mood.';
+  const idleMoodNeedsInput=moodUI.active()&&!references.length&&!$('prompt').value.trim();
   const inlineMessage=queueBlocked||exactPreparing||idleMoodNeedsInput?'':message;
   block.hidden=!inlineMessage;reason.textContent=inlineMessage;review.hidden=true;
   generate.title=message?(message+(queueBlocked?' Open Queue at the top right to review it.':'')):(isSoul2()?'Review the live Higgsfield price before any charge. PV Soul accepts one base image and one optional trained Soul ID; use Seedream for multiple reference photos.':'');

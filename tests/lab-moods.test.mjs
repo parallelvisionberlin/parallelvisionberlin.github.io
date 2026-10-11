@@ -322,7 +322,7 @@ test('Moods prioritizes previews and toggles an already-selected thumbnail off',
   const js=readFileSync(new URL('../lab/moods.js',import.meta.url),'utf8');
   const css=readFileSync(new URL('../lab/moods.css',import.meta.url),'utf8');
   const html=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
-  assert.match(js,/card\.onclick=\(\)=>\{selected=selected===mood\.id\?null:mood\.id;render\(\);onChange\(\);\}/);
+  assert.match(js,/card\.onclick=\(\)=>\{selected=selected===mood\.id\?null:mood\.id;render\(\);fitPanelViewport\(\);onChange\(\);\}/);
   assert.match(css,/Selected mood is beside filters/);
   assert.match(css,/\.moods-card-media\{aspect-ratio:5\/4\}/);
   assert.match(css,/\.moods-footer\{gap:3px;padding-top:7px\}/);
