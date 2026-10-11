@@ -11,6 +11,8 @@ on:
       - 'lab/my-moods.js'
       - 'lab/lab.js'
       - 'lab/index.html'
+      - 'lab/studio.html'
+      - 'lab/assets.css'
       - 'tests/lab-mood*'
       - '.github/workflows/pv-lab-mood-creator.yml'
   workflow_dispatch:
@@ -63,3 +65,27 @@ jobs:
         env:
           PV_PLAYWRIGHT_MODULE: /tmp/pv-mood-creator/node_modules/playwright/index.mjs
         run: node tests/lab-mood-creator-browser.mjs
+
+  masthead:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Install Chromium for header layout checks
+        run: |
+          npm install --prefix /tmp/pv-mood-masthead --no-save playwright@1.57.0
+          node /tmp/pv-mood-masthead/node_modules/playwright/cli.js install --with-deps chromium
+      - name: Verify icon, tooltip, six tabs and nine screen widths
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-mood-masthead/node_modules/playwright/index.mjs
+        run: node tests/lab-mood-nav-browser.mjs
+      - name: Save Mood Creator desktop and mobile header previews
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pv-mood-creator-header-preview
+          path: test-results/pv-mood-icon-*.png
+          retention-days: 2
