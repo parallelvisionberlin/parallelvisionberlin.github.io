@@ -138,3 +138,6 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 .mc-add-photo:focus-visible{outline:2px solid #d9fc6b;outline-offset:4px}
 .mc-shot[role="button"]:focus-visible{outline:2px solid #d9fc6b;outline-offset:2px}
 .mc-add-photo.is-disabled{opacity:.5;pointer-events:none}
+
+.mc-library-palette{display:flex;gap:3px;padding:0 0 13px}
+.mc-library-palette span{display:block;flex:1;height:8px;border:1px solid #00000015}
