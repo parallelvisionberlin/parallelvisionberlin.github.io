@@ -246,3 +246,16 @@ test('Soft Pastel Film uses uniquely versioned photo without CSS recoloring',()=
   const html=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
   assert.match(html,/src="\.\/lab\.js\?v=[^"]+"/);
 });
+
+
+test('Image Studio active mood removal and stable Generate baseline',()=>{
+  const html=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
+  const js=readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8');
+  const css=readFileSync(new URL('../lab/assets.css',import.meta.url),'utf8');
+  assert.match(html,/id="image-composer-moods-clear"[^>]+aria-label="Remove selected mood"/);
+  assert.match(js,/clearMood.hidden=!moodUI.active\(\)/);
+  assert.match(js,/if\(!busy&&moodUI.active\(\)\)moodUI.clear\(\)/);
+  assert.match(css,/#image-composer-moods-clear\[hidden\]\{display:none!important\}/);
+  assert.match(css,/#image-composer.is-gemini .composer-controls\{flex-wrap:nowrap!important/);
+  assert.match(js,/const inlineMessage=queueBlocked\|\|exactPreparing\?'':message/);
+});
