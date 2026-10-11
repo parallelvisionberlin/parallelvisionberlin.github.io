@@ -90,11 +90,28 @@ function syncStudioRoute(value,{push=false,retouchFrom=null}={}){
   else history.replaceState(state,'',url);
 }
 async function restoreStudioEntry(){
-  const route=studioRoute();
+  const route=studioRoute(),query=new URLSearchParams(location.search);
   if(route==='assets')await assetLibrary.open();
   else if(route==='fashion')await openFashionStudio();
   else if(route==='retouch')await openRetouch({push:false,autofill:false});
-  else syncStudioRoute(tool);
+  else if(route==='image'&&query.has('moodboard')){
+    // Mood Creator handoff only selects a saved art direction. Paid generation
+    // remains behind the explicit Image Generate action and its normal quote.
+    const id=query.get('moodboard');
+    if(!/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{12}$/i.test(id||'')){
+      notify('Invalid Mood Creator link. Choose a Mood from My Moods.',true);
+      return;
+    }
+    try{
+      await myMoods.refresh();
+      const board=myMoods.find(id);
+      if(!board)throw Error('This saved Mood is not available on your account.');
+      setTool('image');
+      moodUI.restore({moodId:'custom',customMoodBoardId:id,moodIntensity:board.intensity},true);
+      update();
+      notify(board.name+' is ready in Image. Add a photo or write a prompt, then Generate when you are ready. No image has been submitted.');
+    }catch(error){notify('Could not load that Mood. '+error.message,true);}
+  }else syncStudioRoute(tool);
 }
 let sourceUrl=null, lastFile=null, lastSourceId=null, lastUrl=null, references=[], mode='start';
 let engine='seedance', imageEngine='seedream', imageProcessing='normal', soulProModel='soul2', soulProQuality='medium', soulProIdentity={configured:false,count:0,refs:[]}, soulProPackSelection=[], soulProPackUrls=[], poseMapSourceId=null, repairTarget=null, repairImage=null, repairMaskCanvas=null, repairMaskDirty=false;
@@ -137,8 +154,8 @@ const moodUI=createMoodSelector({panel:$('composer-moods'),button:$('image-compo
     closeReferenceIntent();closeImageModelMenu();closeComposerLibrary();toggleImageSettings(false);
     if(myMoods)void myMoods.refresh().catch(()=>{/* Curated Moods remain usable while personal boards are unavailable. */});
   },
-  onCreatePersonal:()=>void myMoods?.openCreate(),
-  onEditPersonal:board=>myMoods?.openEdit(board),
+  onCreatePersonal:()=>location.assign('./mood-creator.html?start=idea'),
+  onEditPersonal:board=>location.assign('./mood-creator.html?board='+encodeURIComponent(board.id)),
   onChange:()=>{autoPreview=null;update();}
 });
 myMoods=createMyMoods({api,assetBlob,moodUI,notify:(...args)=>notify(...args),active:()=>owner});
@@ -2087,7 +2104,8 @@ $('image-detail-reference').onclick=()=>executeImageDetail(useImageAsReference);
 $('image-detail-mood').onclick=()=>executeImageDetail(applyMoodToImage);
 $('image-detail-save-mood').onclick=()=>{
   if(!owner||!imageDetailJob||!hasResult(imageDetailJob))return;
-  void myMoods.openCreate(imageDetailJob);
+  // Reuse this completed result as private board inspiration in the full editor.
+  location.assign('./mood-creator.html?fromJob='+encodeURIComponent(imageDetailJob.id));
 };
 $('image-detail-upscale').onclick=()=>executeImageDetail(upscaleImage);
 $('image-detail-repair').onclick=()=>executeImageDetail(openRepair);
