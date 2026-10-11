@@ -4,6 +4,8 @@ import {FAL_CONTROLLED_INPAINT,controlledRepairParameters,controlledRepairEstima
 
 export const PRECISION_SEGMENT_MODEL='fal-ai/sam-3/image';
 export const PRECISION_SEGMENT_ESTIMATE_MICROS=5000; // fal.ai published $0.005/request, not a bound quote.
+export const PRECISION_LARGE_IMAGE_PIXELS=5000000;
+export const PRECISION_COMPOSITE_LIMIT=20*1024*1024;
 
 export function precisionPoint(value,width,height){
   if(!value||!Number.isFinite(value.x)||!Number.isFinite(value.y)
@@ -19,10 +21,15 @@ export function precisionOutputSize(bytes,mime,dimensions){
   return size;
 }
 export function precisionPrice(p){return controlledRepairEstimateMicros(p);}
-export function precisionFinalMetadata(params,sourceId){
+export function precisionFinalMetadata(params,sourceId,mime=null){
   if(!params.precisionEdit||params.precisionFinalized||params.precisionOriginalId!==sourceId)
     throw new Error('This is not a pending Precision Edit of that original.');
-  return {...params,precisionFinalized:true};
+  if(mime&&!['image/png','image/jpeg'].includes(mime))
+    throw new Error('Unsupported final export format.');
+  if(mime==='image/jpeg'&&!params.precisionAllowJpegFallback)
+    throw new Error('JPEG fallback was not authorized before generation.');
+  return {...params,precisionFinalized:true,
+    ...(mime?{precisionOutputFormat:mime==='image/jpeg'?'jpeg':'png'}:{})};
 }
 const failDefault=(status,message)=>{const e=new Error(message);e.status=status;throw e;};
 const uuid=/^[a-f\d]{8}-[a-f\d]{4}-4[a-f\d]{3}-[89ab][a-f\d]{3}-[a-f\d]{12}$/i;
@@ -64,12 +71,15 @@ async function quotedEdit(request,env,owner,d){
   if(workingSize.width>originalSize.width||workingSize.height>originalSize.height)d.fail(400,'The working image cannot be larger than its source.');
   if(Math.abs(workingSize.width/workingSize.height-originalSize.width/originalSize.height)>.006)
     d.fail(400,'The working image must preserve the original aspect ratio.');
+  const allowJpegFallback=data.allowJpegFallback===true;
+  if(originalSize.width*originalSize.height>=PRECISION_LARGE_IMAGE_PIXELS&&!allowJpegFallback)
+    d.fail(409,'Large originals need explicit JPEG fallback permission before a paid edit. Otherwise a 20 MB PNG could fail after generation.');
   const p=controlledRepairParameters({prompt:data.prompt,sourceWidth:workingSize.width,sourceHeight:workingSize.height,strength:data.strength??.77},{fail:d.fail});
   const price=precisionPrice(p);
   const expires=Date.now()+2*60*1000;
-  const originalInput=[owner,original.id,working.id,mask.id,p.prompt,p.strength,p.sourceWidth,p.sourceHeight,expires].join(':');
+  const originalInput=[owner,original.id,working.id,mask.id,p.prompt,p.strength,p.sourceWidth,p.sourceHeight,expires,allowJpegFallback?'jpeg-ok':'png-only'].join(':');
   const ticket=await signTicket(env,originalInput);
-  return {original,working,mask,p,price,expires,ticket};
+  return {original,working,mask,p,price,expires,ticket,allowJpegFallback};
 }
 export async function precisionEditRoute(request,env,owner,url,d){
   const path=url.pathname,method=request.method;
@@ -133,7 +143,8 @@ export async function precisionEditRoute(request,env,owner,url,d){
   if(path==='/api/precision/quote'&&method==='POST'){
     const q=await quotedEdit(request,env,owner,d),quoteId=crypto.randomUUID();
     const payload={originalSourceId:q.original.id,sourceId:q.working.id,maskSourceId:q.mask.id,
-      prompt:q.p.prompt,strength:q.p.strength,sourceWidth:q.p.sourceWidth,sourceHeight:q.p.sourceHeight,ticket:q.ticket};
+      prompt:q.p.prompt,strength:q.p.strength,sourceWidth:q.p.sourceWidth,sourceHeight:q.p.sourceHeight,
+      allowJpegFallback:q.allowJpegFallback,ticket:q.ticket};
     await d.run(env,'INSERT INTO quotes(id,owner_id,source_id,params,estimate_microusd,expires_at,vendor_quote_id,expected_cost,payload) VALUES(?,?,?,?,?,?,?,?,?)',
       quoteId,owner,q.working.id,JSON.stringify(q.p),q.price,q.expires,'fal-precision-edit',String(q.price/1000000),JSON.stringify(payload));
     return d.json({quoteId,ticket:q.ticket,expiresAt:q.expires,estimatedUsd:q.price/1000000,
@@ -148,19 +159,20 @@ export async function precisionEditRoute(request,env,owner,url,d){
     if(!approved)d.fail(409,'Precision Edit quote expired. Check the price again.');
     const stored=JSON.parse(approved.payload||'{}');
     const sourceData={originalSourceId:data.originalSourceId,sourceId:data.sourceId,maskSourceId:data.maskSourceId,
-      prompt:data.prompt,strength:data.strength,sourceWidth:stored.sourceWidth,sourceHeight:stored.sourceHeight,ticket:data.ticket};
-    for(const field of ['originalSourceId','sourceId','maskSourceId','prompt','strength','sourceWidth','sourceHeight','ticket'])
+      prompt:data.prompt,strength:data.strength,sourceWidth:stored.sourceWidth,sourceHeight:stored.sourceHeight,
+      allowJpegFallback:data.allowJpegFallback===true,ticket:data.ticket};
+    for(const field of ['originalSourceId','sourceId','maskSourceId','prompt','strength','sourceWidth','sourceHeight','allowJpegFallback','ticket'])
       if(sourceData[field]!==stored[field])d.fail(409,'Precision Edit inputs changed since price approval. Check the price again.');
     if(Number(data.expiresAt)!==approved.expires_at||data.ticket!==stored.ticket)
       d.fail(409,'Precision Edit price approval has changed. Check price again.');
     const serialized=new Request(request.url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
     const q=await quotedEdit(serialized,env,owner,d);
-    const payload=[owner,q.original.id,q.working.id,q.mask.id,q.p.prompt,q.p.strength,q.p.sourceWidth,q.p.sourceHeight,approved.expires_at].join(':');
+    const payload=[owner,q.original.id,q.working.id,q.mask.id,q.p.prompt,q.p.strength,q.p.sourceWidth,q.p.sourceHeight,approved.expires_at,q.allowJpegFallback?'jpeg-ok':'png-only'].join(':');
     if(q.price!==approved.estimate_microusd||await signTicket(env,payload)!==data.ticket)
       d.fail(409,'Precision Edit quote no longer matches the images. Check price again.');
     const p={...q.p,precisionEdit:true,precisionFinalized:false,precisionOriginalId:q.original.id,
       precisionWorkingId:q.working.id,maskSourceId:q.mask.id,repairSourceId:q.working.id,
-      precisionPriceEstimateUsd:q.price/1000000};
+      precisionPriceEstimateUsd:q.price/1000000,precisionAllowJpegFallback:q.allowJpegFallback};
     // jobs.quote_id is UNIQUE. Reusing one quote never triggers a second inference.
     const reserved=await d.reserveFalImageJob(env,owner,q.working.id,p,q.price,quoteId);
     if(reserved._precisionReused)return d.json({job:d.jobView(reserved)},202);
@@ -177,7 +189,8 @@ export async function precisionEditRoute(request,env,owner,url,d){
     if(!params.precisionEdit||job.state!=='completed'||!job.output_id)d.fail(409,'Wait for the Precision Edit result before compositing.');
     const original=await d.source(env,owner,params.precisionOriginalId);
     const composed=await d.source(env,owner,composedId);
-    if(composed.mime!=='image/png')d.fail(415,'Upload the completed PNG composite.');
+    if(composed.mime!=='image/png'&&!(composed.mime==='image/jpeg'&&params.precisionAllowJpegFallback))
+      d.fail(415,'The final composite must be PNG, unless JPEG fallback was explicitly approved with this job.');
     const a=precisionOutputSize(await d.falImageBytes(env,original),original.mime,d.storedImageDimensions);
     const b=precisionOutputSize(await d.falImageBytes(env,composed),composed.mime,d.storedImageDimensions);
     if(a.width!==b.width||a.height!==b.height)d.fail(400,'The final image must match original source dimensions.');
@@ -185,7 +198,7 @@ export async function precisionEditRoute(request,env,owner,url,d){
       if(job.output_id!==composedId)d.fail(409,'This Precision Edit was already finalized.');
       return d.json({job:d.jobView(job)});
     }
-    const updated=precisionFinalMetadata(params,original.id);
+    const updated=precisionFinalMetadata(params,original.id,composed.mime);
     const oldId=verifyUuid(data.expectedOutputId,d.fail);
     const result=await d.run(env,
       "UPDATE jobs SET output_id=?,params=?,updated_at=? WHERE id=? AND owner_id=? AND state='completed' AND output_id=?",
