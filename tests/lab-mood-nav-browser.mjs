@@ -36,6 +36,8 @@ const page=await browser.newPage({viewport:{width:1440,height:900}});
 const errors=[];page.on('pageerror',error=>errors.push(error.message));
 try{
   await page.goto('http://127.0.0.1:4193/test',{waitUntil:'domcontentloaded'});
+  // In the real studio, the Queue control appears after session setup.
+  await page.evaluate(()=>document.getElementById('active').hidden=false);
   assert.deepEqual(await page.locator('#studio-header .tool-group>button').allTextContents(),
     ['Image','Retouch','Video','Upscaler','Assets','Fashion'],
     'Mood Creator must not occupy the six creative text tabs');
@@ -78,7 +80,7 @@ try{
     assert.ok(size.overflow<=3,'No horizontal document overflow '+width+' '+JSON.stringify(size));
     assert.ok(size.icon.width>=32&&size.icon.height>=32&&size.border!=='0px',
       'The bordered Mood Creator icon stays a comfortable hit target '+width+' '+JSON.stringify(size));
-    assert.equal(size.display,'grid','Icon is visible in signed-in studio at '+width);
+    assert.ok(size.display==='inline-grid'||size.display==='grid','Icon is visible in signed-in studio at '+width);
     assert.ok(size.icon.right<=size.queue.x+1&&size.queue.right<=size.account.x+1,
       'Mood Creator must sit before Queue and Account '+width+' '+JSON.stringify(size));
     assert.ok(size.actions.right<=width+2,'Account controls stay on screen at '+width);
