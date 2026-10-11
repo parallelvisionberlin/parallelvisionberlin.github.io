@@ -440,7 +440,7 @@ function updateUpscalePrice(){
   $('upscale-check-price').disabled=!active||!owner||!file||busy||!(fal?config.falEnabled:config.enabled);
   $('upscale-check-price').textContent=fal?(upscaleQuoteNeedsCheck?'Check price & size again':'Check price & size'):(upscaleQuoteNeedsCheck?'Check live price again':'Check live price');
   const q=upscaleQuote?.quote;
-  $('upscale-price-status').textContent=customerMode&&q?('Estimated credit charge: '+wallet.describe(q.maxUsd)+'. Valid until '+new Date(q.expiresAt).toLocaleTimeString()+'. No generation submitted.'):q?(q.priceIsEstimate?('Estimated charge: '+money(q.estimatedUsd)+' USD. '+q.settings.sourceWidth+' × '+q.settings.sourceHeight+' → '+q.settings.targetWidth+' × '+q.settings.targetHeight+' output. Not a guaranteed maximum. Valid until '+new Date(q.expiresAt).toLocaleTimeString()+'. No generation submitted.'):('Live price: '+money(q.estimatedUsd)+' USD'+(q.maxUsd!==q.estimatedUsd?' · maximum '+money(q.maxUsd)+' USD':'')+'. Valid until '+new Date(q.expiresAt).toLocaleTimeString()+'. No generation submitted.')):upscalePriceMessage||(fal?'Check the estimated charge and output dimensions before upscaling.':'Check the price for this image before upscaling, or use Upscale directly.');
+  $('upscale-price-status').textContent=customerMode&&q?('Estimated credit charge: '+wallet.describe(q.maxUsd)+'. Valid until '+new Date(q.expiresAt).toLocaleTimeString()+'. No generation submitted.'):q?(q.priceIsEstimate?('Estimated charge: '+money(q.estimatedUsd)+' USD. '+q.settings.sourceWidth+' × '+q.settings.sourceHeight+' to '+q.settings.targetWidth+' × '+q.settings.targetHeight+' output. Not a guaranteed maximum. Valid until '+new Date(q.expiresAt).toLocaleTimeString()+'. No generation submitted.'):('Live price: '+money(q.estimatedUsd)+' USD'+(q.maxUsd!==q.estimatedUsd?' · maximum '+money(q.maxUsd)+' USD':'')+'. Valid until '+new Date(q.expiresAt).toLocaleTimeString()+'. No generation submitted.')):upscalePriceMessage||(fal?'Check the estimated charge and output dimensions before upscaling.':'Check the price for this image before upscaling, or use Upscale directly.');
   if(active&&(fal&&!config.falEnabled||(!fal&&upscaleQuoteNeedsCheck)||upscaleManualReviewRequired))$('generate').disabled=true;
   if(active&&q)$('generate').textContent=customerMode?'Upscale · '+wallet.describe(q.maxUsd):'Upscale · '+(q.priceIsEstimate?'est. ':q.maxUsd!==q.estimatedUsd?'max ':'')+money(q.priceIsEstimate?q.estimatedUsd:q.maxUsd);
 }
@@ -2815,7 +2815,7 @@ async function loadHistory(append=false,incremental=false){
       if(owner)console.warn('Precision Edit composite pending:',error.message);
     });
   if(!incremental||!next)next=data.next;$('more').hidden=!next;
-  $('emptyarchive').hidden=$('history').children.length>0;$('emptyarchive').textContent=assetLibrary?.active()?'No items here yet. Add work using Select → Add to folder, or mark a heart for Favorites.':tool==='upscale'?'No upscaled images yet':'No saved work yet.';
+  $('emptyarchive').hidden=$('history').children.length>0;$('emptyarchive').textContent=assetLibrary?.active()?'No items here yet. Add work using Select to Add to folder, or mark a heart for Favorites.':tool==='upscale'?'No upscaled images yet':'No saved work yet.';
   if(data.concurrency)config.concurrency=data.concurrency;setActiveJobs(data.activeJobs||(data.active?[data.active]:[]));syncImageGalleryEmpty();if(tool==='video'&&!assetLibrary?.active())restoreLatestVideoSelection();
 }
 async function syncHistory(){return loadHistory(false,true);}
@@ -2951,7 +2951,7 @@ async function submitImageSnapshot(){
   let submitted=0;
   try{
     if(provider==='spicy'&&!config.enabled){connection();return;}
-    if(provider==='openrouter'&&!config.openrouterEnabled)throw new Error('Add OPENROUTER_API_KEY as a Secret in Cloudflare → parallel-vision-lab, then deploy and reload.');
+    if(provider==='openrouter'&&!config.openrouterEnabled)throw new Error('Add OPENROUTER_API_KEY as a Secret in Cloudflare to parallel-vision-lab, then deploy and reload.');
     if(['flash','kling'].includes(selected.engine)&&chosen.length>(selected.engine==='flash'?14:1))throw new Error(selected.engine==='kling'?'Kling V3 accepts one base image. Remove extra references or choose Flash.':'Flash accepts up to 14 references.');
     if(provider==='gemini'&&!config.geminiEnabled)throw new Error('Gemini API is not connected.');
     if(provider==='fal'&&!config.falEnabled)throw new Error('FAL API is not connected.');
