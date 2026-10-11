@@ -128,7 +128,7 @@ document.addEventListener('DOMContentLoaded',()=>{
             <button id="precision-zoom-out" type="button" aria-label="Zoom out" title="Zoom out">−</button>
             <output id="precision-zoom-value" aria-live="off">Fit</output>
             <button id="precision-zoom-in" type="button" aria-label="Zoom in" title="Zoom in">+</button>
-            <button id="precision-zoom-actual" type="button" title="Show working preview at 1 pixel per screen pixel">100%</button>
+            <button id="precision-zoom-actual" type="button" title="100% zoom of the working preview. The full-resolution original remains saved.">100%</button>
             <button id="precision-tool-pan" type="button" aria-pressed="false" title="Drag to pan. Hold Space to pan with any editing tool.">Pan</button>
           </div>
         </div>
@@ -161,7 +161,7 @@ document.addEventListener('DOMContentLoaded',()=>{
         <textarea id="precision-prompt" rows="2" maxlength="5000" placeholder="Describe what should change in the selected area..."></textarea>
       </div>
       <div class="precision-bottom">
-        <div class="precision-strength"><label for="precision-strength">Edit strength</label><input id="precision-strength" type="range" min=".3" max="1" step=".05" value=".75"><output id="precision-strength-value">0.75</output></div>
+        <div class="precision-strength" title="Lower strength keeps more of the selected area's existing appearance. Higher strength allows more change, always limited to the selection."><label for="precision-strength">Edit strength <span aria-hidden="true">ⓘ</span></label><input id="precision-strength" type="range" min=".3" max="1" step=".05" value=".75" aria-label="Edit strength. Lower keeps more original detail, higher allows more change"><output id="precision-strength-value">0.75</output></div>
         <button id="precision-generate" type="button" disabled>Review price <span aria-hidden="true">↗</span></button>
       </div>
       <div class="precision-deck-meta">
@@ -174,9 +174,9 @@ document.addEventListener('DOMContentLoaded',()=>{
       </div>
     </div>
     <dialog id="precision-select-consent" class="precision-select-consent" aria-labelledby="precision-select-consent-title">
-      <strong id="precision-select-consent-title">Enable Magic Select</strong>
+      <strong id="precision-select-consent-title">Magic Select · paid action</strong>
       <p>Each SAM 3 object selection is a paid request, approximately $0.005 per click at the current published rate. Authorize up to five selections in this session (approximately $0.025 total). No charge happens until you confirm.</p>
-      <div class="precision-price-actions"><button id="precision-select-cancel" type="button">Use brush instead</button><button id="precision-select-approve" type="button">Enable 5 selections</button></div>
+      <div class="precision-price-actions"><button id="precision-select-cancel" type="button">Use brush instead</button><button id="precision-select-approve" type="button">Approve up to 5 selections</button></div>
     </dialog>
     <div id="precision-price-review" class="precision-price-review" role="dialog" aria-modal="false" aria-labelledby="precision-review-title" hidden>
       <strong id="precision-review-title">Review Precision Edit</strong><p id="precision-review-body"></p><div class="precision-price-actions"><button id="precision-review-cancel" type="button">Cancel</button><button id="precision-review-confirm" type="button">Generate image</button></div>
