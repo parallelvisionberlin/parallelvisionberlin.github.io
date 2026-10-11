@@ -215,8 +215,8 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
   async function ensureBaseId(){
     if(!base)throw new Error('Add a base photograph first.');
     if(base.id)return base.id;
-    const id=await uploadAsset(base.file);
-    if(!base)throw new Error('Source changed during upload.');
+    const current=base,id=await uploadAsset(current.file);
+    if(base!==current)throw new Error('Source changed during upload.');
     base.id=id;return id;
   }
   function resetRetouchScroll(){
@@ -277,7 +277,12 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     if(resultBitmap){resultBitmap.close();resultBitmap=null;}
     resultCanvas.hidden=true;$('precision-output-empty').hidden=false;
     $('precision-compare').value='100';$('precision-compare').disabled=true;
-    $('precision-download').disabled=true;
+    $('precision-compare-control').hidden=true;$('precision-compare-idle').hidden=false;
+    $('precision-download').disabled=true;$('precision-download').hidden=true;
+    resultFormat='png';
+    const highRes=base.width*base.height>=exportRiskPixels;
+    $('precision-export-option').hidden=!highRes;
+    $('precision-allow-jpeg').checked=false;
     $('precision-source-meta').textContent=base.width+' × '+base.height+' / '+base.name;
     $('precision-result-label').textContent='AWAITING EDIT';
     $('precision-drop').hidden=true;$('precision-source-holder').hidden=false;
@@ -459,8 +464,11 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     if(!base)return;
     resultCanvas.width=mask.width;resultCanvas.height=mask.height;
     $('precision-output-empty').hidden=true;resultCanvas.hidden=false;
-    $('precision-result-label').textContent='EDIT COMPLETE';
+    $('precision-result-label').textContent=resultFormat==='jpeg'?'EDIT COMPLETE / JPEG':'EDIT COMPLETE / PNG';
+    $('precision-compare-control').hidden=false;$('precision-compare-idle').hidden=true;
     $('precision-compare').disabled=false;$('precision-download').disabled=!resultBlob;
+    $('precision-download').hidden=false;
+    $('precision-download').textContent='Download '+(resultFormat==='jpeg'?'JPG':'PNG')+' ↗';
     renderComparison();
   }
   function renderComparison(){
@@ -473,7 +481,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
   async function download(){
     if(!resultBlob)return;
     const url=URL.createObjectURL(resultBlob),a=document.createElement('a');
-    a.href=url;a.download='parallel-vision-precision-edit.png';document.body.append(a);a.click();a.remove();
+    a.href=url;a.download='parallel-vision-retouch.'+(resultFormat==='jpeg'?'jpg':'png');document.body.append(a);a.click();a.remove();
     setTimeout(()=>URL.revokeObjectURL(url),5000);
   }
   function reset(){
@@ -481,9 +489,14 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     if(base?.bitmap)base.bitmap.close();base=null;
     if(resultBitmap)resultBitmap.close();resultBitmap=null;resultBlob=null;workingId=null;
     sourceCanvas.width=overlay.width=mask.width=0;sourceCanvas.height=overlay.height=mask.height=0;
-    undoStack.length=0;selected=false;pending=null;taskBusy=false;
+    undoStack.length=0;selected=false;pending=null;taskBusy=false;resetZoom();
+    queueRevision++;pendingPolls.clear();selectionAllowance=0;consentPoint=null;
+    if($('precision-select-consent').open)$('precision-select-consent').close();
+    $('precision-allow-jpeg').checked=false;$('precision-export-option').hidden=true;
     $('precision-source-holder').hidden=true;$('precision-drop').hidden=false;
     $('precision-result-canvas').hidden=true;$('precision-output-empty').hidden=false;
+    $('precision-compare-control').hidden=true;$('precision-compare-idle').hidden=false;
+    $('precision-download').hidden=true;resultFormat='png';
     $('precision-source-meta').textContent='DROP IMAGE';
     $('precision-result-label').textContent='AWAITING EDIT';
     $('precision-prompt').value='';setStatus('');refreshButtons();
@@ -491,6 +504,32 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
   const handle=async promise=>{try{await promise;}catch(e){setStatus(e.message,true);notify(e.message,true);}};
   $('precision-return').onclick=()=>{if(typeof onExit==='function')onExit();else close();};
   $('precision-tool-magic').onclick=()=>selectMode('magic');
+  $('precision-tool-pan').onclick=()=>selectMode(mode==='pan'?'brush':'pan');
+  $('precision-zoom-fit').onclick=()=>setZoom(1);
+  $('precision-zoom-out').onclick=()=>setZoom(zoom/1.45);
+  $('precision-zoom-in').onclick=()=>setZoom(zoom*1.45);
+  $('precision-zoom-actual').onclick=()=>setZoom(actualPreviewZoom());
+  $('precision-source-holder').addEventListener('wheel',event=>{
+    if(!base||taskBusy)return;
+    event.preventDefault();
+    const multiplier=Math.exp(-Math.max(-180,Math.min(180,event.deltaY))*.0025);
+    setZoom(zoom*multiplier,event);
+  },{passive:false});
+  document.addEventListener('keydown',event=>{
+    if(!isOpen()||event.code!=='Space'||event.repeat||event.target.closest('input,textarea,select,button,[contenteditable="true"]'))return;
+    spaceHeld=true;event.preventDefault();if(base)paintZoom();
+  });
+  document.addEventListener('keyup',event=>{
+    if(event.code==='Space'&&spaceHeld){spaceHeld=false;if(base)paintZoom();}
+  });
+  window.addEventListener('blur',()=>{spaceHeld=false;if(base&&isOpen())paintZoom();});
+  $('precision-select-cancel').onclick=()=>{consentPoint=null;$('precision-select-consent').close();selectMode('brush');};
+  $('precision-select-approve').onclick=()=>{
+    const point=consentPoint;consentPoint=null;
+    $('precision-select-consent').close();selectionAllowance=5;
+    if(point&&base)attemptMagic(point);
+  };
+  $('precision-allow-jpeg').onchange=()=>{pending=null;$('precision-price-review').hidden=true;refreshButtons();};
   $('precision-tool-brush').onclick=()=>selectMode('brush');
   $('precision-tool-erase').onclick=()=>selectMode('erase');
   $('precision-undo').onclick=()=>handle(undo());
@@ -511,15 +550,43 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
   for(const name of ['dragenter','dragover'])$('precision-drop').addEventListener(name,e=>{e.preventDefault();$('precision-drop').classList.add('is-dragging');});
   $('precision-drop').addEventListener('dragleave',()=>{$('precision-drop').classList.remove('is-dragging');});
   $('precision-drop').addEventListener('drop',e=>{e.preventDefault();$('precision-drop').classList.remove('is-dragging');if(e.dataTransfer.files[0])handle(setBase(e.dataTransfer.files[0]));});
+  function attemptMagic(point){
+    if(!base||taskBusy||!falReady())return;
+    if(selectionAllowance<=0){
+      consentPoint=point;
+      if(!$('precision-select-consent').open)$('precision-select-consent').showModal();
+      return;
+    }
+    selectionAllowance--;
+    handle(magicSelect(point));
+  }
   overlay.onpointerdown=e=>{
-    if(!base||taskBusy||e.button!==0)return;
-    e.preventDefault();const point=pointAt(e);
-    if(mode==='magic'){handle(magicSelect(point));return;}
+    if(!base||taskBusy)return;
+    const navigating=mode==='pan'||spaceHeld||e.button===1;
+    if(e.button!==0&&!navigating)return;
+    e.preventDefault();
+    if(navigating){
+      panDrag={x:e.clientX,y:e.clientY,panX,panY};
+      overlay.setPointerCapture(e.pointerId);paintZoom();return;
+    }
+    const point=pointAt(e);
+    if(mode==='magic'){attemptMagic(point);return;}
     drawing=true;lastPoint=point;overlay.setPointerCapture(e.pointerId);
     saveUndo();stroke(point);
   };
-  overlay.onpointermove=e=>{if(!drawing)return;stroke(pointAt(e));};
-  for(const name of ['pointerup','pointercancel','lostpointercapture'])overlay.addEventListener(name,()=>{if(drawing){drawing=false;lastPoint=null;maskChanged();}});
+  overlay.onpointermove=e=>{
+    if(panDrag){
+      panX=panDrag.panX+(e.clientX-panDrag.x);
+      panY=panDrag.panY+(e.clientY-panDrag.y);
+      paintZoom();return;
+    }
+    if(drawing)stroke(pointAt(e));
+  };
+  for(const name of ['pointerup','pointercancel','lostpointercapture'])
+    overlay.addEventListener(name,()=>{
+      if(drawing){drawing=false;lastPoint=null;maskChanged();}
+      if(panDrag){panDrag=null;paintZoom();}
+    });
   // No source is opened automatically in the normal gallery. This workspace is opt-in.
   reset();
   return {open,close,isOpen,hasBase:()=>!!base,reset,finalize,setBase};
