@@ -438,9 +438,9 @@ test('80s Film cinematic mood keeps multi-reference prompts under provider chara
   const studio=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
   const app=readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8');
   const creator=readFileSync(new URL('../lab/mood-creator.js',import.meta.url),'utf8');
-  assert.match(studio,/lab\.js\?v=20261011-berlin-rave1/);
-  assert.match(app,/moods\.js\?v=20261011-berlin-rave1/);
-  assert.match(creator,/moods\.js\?v=20261011-berlin-rave1/);
+  assert.match(studio,/lab\.js\?v=20261011-berlin-rave-v2/);
+  assert.match(app,/moods\.js\?v=20261011-berlin-rave-v2/);
+  assert.match(creator,/moods\.js\?v=20261011-berlin-rave-v2/);
   const board={id:'10000000-0000-4000-8000-000000000080',name:'Cinematic Night',baseMoodId:'80s-film',direction:'Editorial fashion and elegant fabrics'};
   for(const count of [1,2,10]){
     const saved=preparePersonalMoodPrompt('Luxury movie scene',board,100,{engine:'seedream',referenceCount:count});
@@ -452,9 +452,17 @@ test('80s Film cinematic mood keeps multi-reference prompts under provider chara
   assert.match(duo.prompt,/80S FILM \/ FASHION CINEMA/);
 });
 
-test('Berlin Rave is an intentional outfit transformation, not a black color filter',()=>{
+test('Berlin Rave V2 adapts garment architecture to the person and keeps the original scene',()=>{
   const mood=moodById('berlin-rave');
   assert.ok(mood);assert.equal(mood.category,'Fashion');assert.equal(mood.defaultIntensity,80);
+  assert.match(mood.direction,/READ THE SUBJECT FIRST/);
+  assert.match(mood.direction,/CHOOSE ONE COHERENT DESIGN LANGUAGE/);
+  assert.match(mood.direction,/hairstyle, makeup character/);
+  assert.match(mood.direction,/fine haze or optical bloom/);
+  assert.match(mood.direction,/do not force a monochrome photograph/);
+  assert.match(mood.avoid,/red neon/);
+  assert.match(mood.avoid,/fake crowd/);
+  assert.equal(mood.preview,'/lab/mood-previews/berlin-rave-20261011.webp','Do not change thumbnail during V2 prompt work');
   assert.match(mood.preview,/berlin-rave-20261011\.webp/);
   for(const intensity of [10,55,80,95,100]){
     const result=prepareMoodPrompt('A person wearing a white T-shirt','berlin-rave',intensity,{engine:'seedream',referenceCount:1});
@@ -462,6 +470,10 @@ test('Berlin Rave is an intentional outfit transformation, not a black color fil
     assert.match(result.prompt,/REPLACE|replace|wardrobe transformation|outfit transformation/i);
     assert.match(result.prompt,/leather/i);
     assert.match(result.prompt,/Preserve the same face and identity/i);
+    assert.match(result.prompt,/hairstyle/);
+    assert.match(result.prompt,/recognizable surroundings/);
+    assert.match(result.prompt,/Wardrobe|outfit|clothes/i);
+    assert.doesNotMatch(result.prompt,/enormous platform boots/i);
     assert.doesNotMatch(result.prompt,/preserve face, identity, real body proportions, pose, camera, wardrobe and composition/);
     assert.equal(result.metadata.moodIntensity,intensity);
   }
@@ -469,6 +481,30 @@ test('Berlin Rave is an intentional outfit transformation, not a black color fil
   assert.equal(byRole.error,'');assert.match(byRole.prompt,/assigned reference roles/);
   const compact=prepareMoodPrompt('A model at a rave','berlin-rave',100,{engine:'seedream',referenceCount:10});
   assert.equal(compact.error,'');assert.match(compact.prompt,/REPLACE source wardrobe/);
+  assert.match(compact.prompt,/one coherent design gesture/);
+  assert.match(compact.prompt,/red neon/);
+  assert.doesNotMatch(compact.prompt,/enormous platform boots/i);
+  const tenRefs=Array.from({length:10},(_,i)=>({name:'rave-ref-'+i+'.png',role:i?'none':'base'}));
+  assert.ok(compileImagePrompt(compact.prompt,tenRefs).length<=5000,'Ten-reference Berlin Rave must fit model limits');
   const saved=preparePersonalMoodPrompt('Portrait', {id:'30000000-0000-4000-8000-000000000121',name:'My Rave',direction:'Worn industrial leather',baseMoodId:'berlin-rave'},80,{engine:'seedream',referenceCount:1});
   assert.equal(saved.error,'');assert.match(saved.prompt,/PV LAB MOOD \/ Berlin Rave/);
+});
+
+test('Berlin Rave V2 respects text directions, non-base reference roles and unchanged thumbnail',()=>{
+  const original='Change only the garment, keep the long hair and daylight';
+  const look=prepareMoodPrompt(original,'berlin-rave',80,{engine:'seedream',referenceCount:1});
+  assert.equal(look.error,'');
+  assert.ok(look.prompt.startsWith(original+'\n\n'));
+  assert.equal(look.metadata.moodOriginalPrompt,original);
+  assert.match(look.prompt,/existing light, colors and recognizable surroundings/);
+  assert.match(look.prompt,/trace of haze/);
+  const refsOnly=prepareMoodPrompt('Black experimental clubwear','berlin-rave',80,{engine:'gemini',referenceCount:3,referenceMode:'references'});
+  assert.equal(refsOnly.error,'');
+  assert.match(refsOnly.prompt,/assigned reference roles/);
+  const longDirection=prepareMoodPrompt('X'.repeat(1000),'berlin-rave',75,{engine:'seedream',referenceCount:8});
+  assert.equal(longDirection.error,'');
+  assert.ok(longDirection.prompt.length<5000);
+  assert.match(prepareMoodPrompt('','berlin-rave',80).error,/Describe a subject or add an image/);
+  const explore=readFileSync(new URL('../lab/explore-moods.html',import.meta.url),'utf8');
+  assert.match(explore,/berlin-rave-20261011\.webp/);
 });
