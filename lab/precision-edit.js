@@ -11,6 +11,10 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
   const undoStack=[],maxUndo=12,finalizing=new Map();
   let base=null,mode='magic',drawing=false,lastPoint=null,taskBusy=false,pending=null;
   let selected=false,resultBlob=null,resultBitmap=null,disposed=false,workingId=null,session=0;
+  let resultFormat='png',zoom=1,panX=0,panY=0,panDrag=null,spaceHeld=false;
+  let selectionAllowance=0,consentPoint=null,queueRevision=0;
+  const pendingPolls=new Map();
+  const exportRiskPixels=5000000;
   const mimeTypes=new Set(['image/png','image/jpeg','image/webp']);
   const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
   const readBlob=canvas=>new Promise((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(blob):reject(new Error('Unable to export this image.')),'image/png'));
@@ -43,7 +47,12 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
   previewResizeObserver.observe($('precision-source-holder'));
   previewResizeObserver.observe($('precision-output-holder'));
   window.addEventListener('resize',syncPreviewFit);
-  const maskChanged=()=>{selected=hasSelection();renderMask();refreshButtons();};
+  const maskChanged=()=>{
+    selected=hasSelection();renderMask();
+    // A previous quote is bound to a specific mask PNG. Never allow it to
+    // survive further selection edits, brush strokes or undo.
+    pending=null;$('precision-price-review').hidden=true;refreshButtons();
+  };
   function hasSelection(){
     if(!mask.width||!mask.height)return false;
     const image=maskCtx.getImageData(0,0,mask.width,mask.height).data;
@@ -52,16 +61,35 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     return false;
   }
   function selectMode(next){
-    if(!['magic','brush','erase'].includes(next))return;
+    if(!['magic','brush','erase','pan'].includes(next))return;
+    if(next==='magic'&&!falReady())next='brush';
     mode=next;
-    for(const m of ['magic','brush','erase']){
-      const b=$('precision-tool-'+m);
+    for(const m of ['magic','brush','erase','pan']){
+      const b=$('precision-tool-'+m);if(!b)continue;
       b.classList.toggle('is-selected',m===mode);
       b.setAttribute('aria-pressed',String(m===mode));
     }
-    $('precision-selection-message').textContent=!base?'Upload a photograph to begin.':
-      mode==='magic'?'Click an object to select the whole area. Each click uses SAM 3.':
-      mode==='erase'?'Erase unwanted parts of the selection.':'Paint to add to the selection.';
+    overlay.style.cursor=mode==='pan'?'grab':'crosshair';
+    refreshGuidance();
+  }
+  function refreshGuidance(){
+    const message=$('precision-selection-message');
+    if(!base){
+      message.textContent='Start by dropping a photograph above.';
+      $('precision-price-note').textContent='Add photo → Select area → Describe edit → Review price';
+      $('precision-result-label').textContent='AWAITING EDIT';
+    }else if(!selected){
+      message.textContent=mode==='pan'?'Drag to move the view. Choose a selection tool to continue.':
+        mode==='magic'?'Click a subject to select · Magic Select ≈ $0.005 per click':
+        'Paint the area to change. Zoom or pan for precise edges.';
+      $('precision-price-note').textContent='1 / Select an area to change · Local brush tools are free';
+    }else{
+      message.textContent=mode==='pan'?'Drag to inspect the selected area.':
+        'Area selected · Refine its edges, then describe the change.';
+      $('precision-price-note').textContent=$('precision-prompt').value.trim()?
+        '3 / Ready to review the FLUX generation price':
+        '2 / Describe what should change inside the selection';
+    }
   }
   function refreshButtons(){
     const have=!!base;
@@ -75,7 +103,15 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     $('precision-change-photo').hidden=!have;
     $('precision-tool-magic').title='Select a whole object with SAM 3. Published price approximately $0.005 per click.';
     $('precision-generate').textContent=taskBusy?'Working…':'Review price ↗';
-    $('precision-generate').title=(!owner()||!falReady())?'Paid Retouch generation is not enabled on this account.':'Confirm a quote before starting paid inference.';
+    $('precision-generate').title=(!owner()||!falReady())?'Paid Retouch generation is not enabled on this account.':
+      !have?'Add a photograph first.':!selected?'Select the area to edit.':
+      !$('precision-prompt').value.trim()?'Describe the edit before reviewing its price.':
+      'Confirm a quote before starting paid inference.';
+    $('precision-zoom-controls').hidden=!have;
+    $('precision-tool-pan').disabled=!have||taskBusy;
+    view.querySelector('.precision-deck').classList.toggle('is-ready',have&&selected&&!!$('precision-prompt').value.trim());
+    view.dataset.phase=!have?'empty':!selected?'select':$('precision-prompt').value.trim()?'ready':'describe';
+    refreshGuidance();
   }
   function renderMask(){
     oc.clearRect(0,0,overlay.width,overlay.height);
