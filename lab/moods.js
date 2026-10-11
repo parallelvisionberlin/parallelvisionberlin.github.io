@@ -1,6 +1,21 @@
 /* PV Lab Moods V1. Editorial generation directions, not pixel filters. */
 const ALL_MOODS=Object.freeze([
   {
+    "id": "polaroid-600",
+    "name": "Polaroid 600",
+    "category": "Analog",
+    "preview": "/lab/mood-previews/soft-pastel-film-portrait-f77111b4.webp",
+    "description": "Intimate instant-film color, imperfect flash and tactile chemistry",
+    "defaultIntensity": 75,
+    "direction": "PV LAB POLAROID 600 / REAL INSTANT FILM. Transform the source into a believable single exposure on integral instant color film, with the physical character of a late-1980s/1990s Polaroid 600 photograph. Personal, spontaneous, tactile and editorial, never a digital retro preset. Moderate optical softness and reduced microcontrast, thick creamy highlights, compressed but detailed shadows, restrained warm/green and cyan/magenta dye irregularities, gently imperfect exposure, rich but imperfect color density and finely textured emulsion. Use credible straight-on camera flash only where source lighting and perspective allow; it can lift a nearby subject while the room falls into natural darkness, but do not invent a new night scene. Maintain the original face, identity, skin, body, clothing, pose, crop and surroundings. These are characteristics of the photograph, NOT instructions to introduce a white Polaroid paper border. Keep the image edge-to-edge unless the user explicitly asks for a print frame. Analog intimacy; considered underground fashion photography.",
+    "subtle": "Subtle instant-film softness and gentle tonal compression, lightly creamy highlights, warm-cool emulsion color variation and faint organic mottling. Keep the subject and original light recognizable. No print border.",
+    "moderate": "Distinct Polaroid 600 color density and soft optical definition, characterful skin texture, compressed shadows, believable close flash where motivated, delicate chemical irregularities and modest exposure drift. No pasted frames or scratches.",
+    "immersive": "Unmistakable integral instant-film rendering: intimate flash falloff when credible, creamy bright exposure rolloff, dense slightly unstable dyes, soft photographic edges, organic emulsion variation and imperfect yet sophisticated fashion-documentary character. Preserve the original scene and anatomy.",
+    "intense": "Strong authentic instant-film personality with substantial optical softness, uneven but physically plausible emulsion color, naturally washed highlight areas, dark flash falloff, conspicuous analog dye shifts and tactile photographic density. Keep realistic skin and the exact person; no artificial paper frame.",
+    "climax": "Maximum believable Polaroid 600 chemistry, exposure accident and editorial immediacy without losing subject recognition. Strong creamy flash exposure, moody muted shadow density, wonderfully inconsistent dye color, significant analog softness and faint uneven chemical development. Edge-to-edge photograph only, never automatic white borders or digital vintage stickers.",
+    "avoid": "automatic white Polaroid frame, scrapbook collage, printed text or handwriting, fake date stamps, fake film scratches, fake light leaks, all-over sepia filter, VHS artifacts, digital HDR clarity, artificial skin smoothing, plastic faces, forced night scenery, changing identity or wardrobe, exaggerated chemical destruction, blurred faces"
+  },
+  {
     "id": "hong-kong-nights",
     "name": "Hong Kong Nights",
     "category": "Cinema",
