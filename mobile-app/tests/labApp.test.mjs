@@ -28,7 +28,7 @@ test('four-tab app starts in public Moods and preserves photo selection through 
   await act(async()=>{renderer=TestRenderer.create(React.createElement(App));});
   const root=renderer.root;
   const tabs=()=>root.findAllByType('Pressable').filter(n=>n.props.accessibilityRole==='tab');
-  assert.deepEqual(tabs().map(n=>n.props.accessibilityLabel),['Gallery','Create','Moods','Profile']);
+  assert.deepEqual(tabs().map(n=>n.props.accessibilityLabel),['Gallery','Moods','Create','Profile']);
   assert.equal(tabs().find(n=>n.props.accessibilityLabel==='Moods').props.accessibilityState.selected,true);
   assert.equal(root.findAllByType('WebView').length,1);
   const discover=root.findByType('WebView');assert.match(discover.props.source.uri,/app-moods.html/);
