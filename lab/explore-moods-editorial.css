@@ -392,3 +392,12 @@
   .mc-explore-page .mc-look-copy .pv-arrow{width:17px;height:17px}
   .mc-explore-page .mc-discovery-actions .pv-arrow{width:19px;height:19px}
 }
+
+/* Arrow-free PV LAB cards. Typography and image are the affordance.
+   Remove empty spacing left by the old decorative icon wrappers. */
+.mc-explore-page .mc-look-copy{gap:0}
+.mc-explore-page .mc-look-copy>span:empty,
+.mc-explore-page .mc-discovery-actions a>span:empty,
+.mc-explore-page .mc-invent-primary>span:empty,
+.mc-explore-page .mc-invent-photo>span:last-child:empty{display:none!important}
+.mc-explore-page .mc-look-card .mc-look-copy strong{max-width:100%}
