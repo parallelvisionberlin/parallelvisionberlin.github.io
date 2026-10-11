@@ -172,6 +172,32 @@ try{
   await x.page.waitForFunction(()=>document.querySelector('#image-detail-reference-thumb').naturalWidth>0
     && !document.querySelector('#image-detail-reference-wrap').hidden);
   assert.equal(await x.page.locator('#image-detail-reference-caption').innerText(),'Source image');
+  assert.equal(await x.page.locator('#image-detail-reference-wrap').getAttribute('aria-haspopup'),'dialog');
+  const originalThumbUrl=await x.page.locator('#image-detail-reference-thumb').getAttribute('src');
+  await x.page.locator('#image-detail-reference-wrap').click();
+  await x.page.waitForFunction(()=>document.querySelector('#image-source-lightbox').open&&document.querySelector('#image-source-preview').naturalWidth>0);
+  assert.equal(await x.page.locator('#image-source-preview').getAttribute('src'),originalThumbUrl,
+    'Original viewer must reuse the stored private source photo rather than the generated output');
+  assert.equal(await x.page.locator('#image-source-fit').isEnabled(),true);
+  await x.page.locator('#image-source-fit').click();
+  assert.equal(await x.page.locator('#image-source-stage').evaluate(el=>el.classList.contains('is-zoomed')),true);
+  await x.page.locator('#image-source-fit').click();
+  assert.equal(await x.page.locator('#image-source-stage').evaluate(el=>el.classList.contains('is-zoomed')),false);
+  await x.page.locator('#image-source-close').click();
+  assert.equal(await x.page.locator('#image-source-lightbox').evaluate(el=>el.open),false);
+  assert.equal(await x.page.locator('#image-lightbox').evaluate(el=>el.open),true);
+  assert.equal(await x.page.locator('#image-lightbox-img').getAttribute('src'),resultUrl,
+    'Closing the source must restore the exact generated result');
+  await x.page.locator('#image-detail-reference-wrap').click();
+  await x.page.keyboard.press('Escape');
+  assert.equal(await x.page.locator('#image-source-lightbox').evaluate(el=>el.open),false,
+    'Escape closes only the original photo');
+  assert.equal(await x.page.locator('#image-lightbox').evaluate(el=>el.open),true,
+    'Escape on original keeps the result viewer open');
+  await x.page.locator('#image-detail-reference-wrap').click();
+  await x.page.locator('#image-source-back').click();
+  assert.equal(await x.page.locator('#image-lightbox').evaluate(el=>el.open),true);
+  pass('Source thumbnail opens original full size, Fit/100%, X, Escape and Back return to the unchanged result');
   const polish=await x.page.evaluate(()=>{
     const close=document.querySelector('#image-lightbox-close').getBoundingClientRect();
     const panel=document.querySelector('.image-detail-inspector').getBoundingClientRect();
@@ -208,6 +234,12 @@ try{
   assert.equal(await x.page.locator('#image-lightbox-counter').innerText(),'1 / 2');
   assert.equal(await x.page.locator('#image-detail-prev').isVisible(),false);
   assert.equal(await x.page.locator('#image-detail-next').isVisible(),true);
+  await x.page.waitForFunction(()=>document.querySelector('#image-detail-reference-wrap')&&!document.querySelector('#image-detail-reference-wrap').hidden);
+  await x.page.locator('#image-detail-reference-wrap').click();
+  await x.page.keyboard.press('ArrowRight');
+  assert.equal(await x.page.locator('#image-lightbox-counter').innerText(),'1 / 2',
+    'Image archive navigation must not change while viewing the original');
+  await x.page.locator('#image-source-back').click();
   await x.page.locator('#image-detail-next').click();
   await x.page.waitForFunction(()=>document.querySelector('#image-detail-prompt').textContent.startsWith('SECOND IMAGE.'));
   assert.equal(await x.page.locator('#image-lightbox-counter').innerText(),'2 / 2');
