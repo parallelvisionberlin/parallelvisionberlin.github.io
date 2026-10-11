@@ -268,6 +268,16 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
     card.onclick=()=>{selected=selected===mood.id?null:mood.id;render();onChange();};
     grid.append(card);cards.set(mood.id,card);
   }
+  const createTile=document.createElement('button');
+  createTile.type='button';createTile.className='moods-card moods-board-create';
+  createTile.hidden=true;createTile.setAttribute('aria-label','Create another private Mood');
+  const tileMedia=document.createElement('span');tileMedia.className='moods-card-media moods-board-create-media';
+  tileMedia.textContent='+';
+  const tileCopy=document.createElement('span');tileCopy.className='moods-card-copy';
+  const tileLabel=document.createElement('strong');tileLabel.textContent='Create Mood';
+  const tileDesc=document.createElement('small');tileDesc.textContent='Start a new visual collection';
+  tileCopy.append(tileLabel,tileDesc);createTile.append(tileMedia,tileCopy);
+  createTile.onclick=()=>{close();onCreatePersonal();};grid.append(createTile);
   function render(){
     for(const [name,tab] of tabs){tab.classList.toggle('is-selected',category===name);tab.setAttribute('aria-pressed',String(category===name));}
     for(const mood of [...MOODS,...personalMoods]){
@@ -279,6 +289,7 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
       card.setAttribute('aria-pressed',String(key===selected));
     }
     emptyPersonal.hidden=category!=='My Moods'||personalMoods.length>0;
+    createTile.hidden=category!=='My Moods'||personalMoods.length===0;
     slider.value=String(intensity);slider.style.setProperty('--moods-progress',((intensity-1)/99*100).toFixed(2)+'%');slider.disabled=!selected;amount.textContent=intensity+'%';
     const chosen=findMood(selected);
     summary.textContent=chosen?chosen.name:'';
@@ -341,6 +352,7 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
   function fitGridViewport(){
     if(panel.hidden)return;
     const visible=[...cards.values()].filter(card=>!card.hidden);
+    if(!createTile.hidden)visible.unshift(createTile);
     grid.style.maxHeight='';
     if(window.innerWidth<=740||visible.length<=desktopGridColumns*initiallyVisibleRows){
       grid.tabIndex=visible.length>desktopGridColumns?0:-1;
