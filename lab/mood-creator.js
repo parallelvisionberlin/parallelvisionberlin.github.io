@@ -184,6 +184,9 @@ function initMoodCreator(){
     el.addEventListener('dragleave',event=>{if(!boardShell.contains(event.relatedTarget))boardShell.classList.remove('is-over');});
     el.addEventListener('drop',event=>{if(event.dataTransfer?.files?.length){event.preventDefault();boardShell.classList.remove('is-over');addFiles([...event.dataTransfer.files]);}});
   }
+  uploadTrigger.addEventListener('keydown',event=>{
+    if(event.key==='Enter'||event.key===' '){event.preventDefault();upload.click();}
+  });
   $('mc-start-image').onclick=loadFilePicker;
   $('mc-start-idea').onclick=()=>{scrollToWorkspace();concept.focus({preventScroll:true});};
   $('mc-new').onclick=()=>resetBoard({scroll:true});
@@ -405,7 +408,10 @@ function initMoodCreator(){
   for(const mood of MOODS)base.add(new Option(mood.name,mood.id));
   const urlStart=q.get('start');
   if(urlStart==='idea'){setTimeout(()=>{scrollToWorkspace();concept.focus({preventScroll:true});},50);}
-  if(urlStart==='image'){setTimeout(loadFilePicker,120);}
+  if(urlStart==='image'){setTimeout(()=>{
+    scrollToWorkspace();uploadTrigger.focus({preventScroll:true});
+    feedback('Drop a photograph here or browse files to begin.');
+  },120);}
   if(chosenBoard&&!uuid.test(chosenBoard))feedback('Invalid saved Mood link.',true);
   if(sourceJob&&!uuid.test(sourceJob))feedback('Invalid image result link.',true);
   renderBoard();renderLibrary();
