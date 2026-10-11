@@ -54,10 +54,10 @@ document.addEventListener('DOMContentLoaded',()=>{
 <link rel="stylesheet" href="./studio.css?v=20261010-upscale-inline-final2">
 <link rel="stylesheet" href="./image-studio.css?v=20261009-strength1">
 <link rel="stylesheet" href="./precision-edit.css?v=20261011-retouch-v2-complete1">
-<link rel="stylesheet" href="./moods.css?v=20261011-mood-gallery-priority1">
+<link rel="stylesheet" href="./moods.css?v=20261011-my-moods1">
 <link rel="stylesheet" href="./detail-video-studio.css?v=20261009-pointer1">
 <link rel="stylesheet" href="./editorial-polish.css?v=20261010-mood-details1">
-<script type="module" src="./lab.js?v=20261011-mood-gallery-priority1&wallet=1&fashiondeck=1&dreamcore=5&moodsLayout=2"></script>
+<script type="module" src="./lab.js?v=20261011-mood-gallery-priority1&wallet=1&fashiondeck=1&dreamcore=5&moodsLayout=2&myMoods=1"></script>
 <link rel="stylesheet" href="./credits.css?v=20261010-referrals3">
 <link rel="stylesheet" href="./higgsfield.css?v=20261010-compact-image-prompt1">
 <link rel="stylesheet" href="./assets.css?v=20261011-composer-mood-flow1">
@@ -388,6 +388,7 @@ document.addEventListener('DOMContentLoaded',()=>{
           <button id="image-detail-reference" type="button">Reference</button>
           <button id="image-lightbox-download" type="button">Download</button>
           <button id="image-detail-upscale" type="button">Upscale</button>
+          <button id="image-detail-save-mood" type="button">✦ Save as Mood</button>
         </div>
         <div class="image-detail-subactions">
           <button id="image-detail-mood" type="button">Apply Mood</button>
@@ -401,6 +402,23 @@ document.addEventListener('DOMContentLoaded',()=>{
       </div>
     </aside>
   </div>
+</dialog>
+
+<dialog id="moodboard-editor" class="moodboard-editor" aria-labelledby="moodboard-editor-title">
+  <form id="moodboard-form">
+    <div class="moodboard-head"><div><span>PV LAB / MY MOODS</span><h2 id="moodboard-editor-title">Create a Mood</h2><p>Collect inspiration images and save an art direction you can reuse.</p></div><button type="button" id="moodboard-cancel" aria-label="Close Mood editor">×</button></div>
+    <div id="moodboard-target-row" class="moodboard-row" hidden><label for="moodboard-target">Save this image into</label><select id="moodboard-target"></select></div>
+    <div class="moodboard-config moodboard-row"><label for="moodboard-name">Name your Mood</label><input id="moodboard-name" maxlength="64" placeholder="Liquid Memory" autocomplete="off" required></div>
+    <div class="moodboard-config moodboard-row"><label for="moodboard-direction">Your style direction</label><textarea id="moodboard-direction" maxlength="900" rows="4" placeholder="Describe the lighting, atmosphere, texture and material qualities you want to repeat…"></textarea><small>Describe the look, not the subject. Images are private inspiration, not automatically analyzed or added to generations.</small></div>
+    <div class="moodboard-config moodboard-settings">
+      <div class="moodboard-row"><label for="moodboard-base">Start from a curated Mood</label><select id="moodboard-base"></select></div>
+      <div class="moodboard-row"><label for="moodboard-intensity">Starting intensity</label><select id="moodboard-intensity"><option value="20">20% · Subtle</option><option value="40">40% · Atmospheric</option><option value="60" selected>60% · Balanced</option><option value="75">75% · Immersive</option><option value="85">85% · Strong</option><option value="95">95% · Extreme</option><option value="100">100% · Maximum</option></select></div>
+    </div>
+    <div class="moodboard-images-heading"><strong>Inspiration board</strong><span id="moodboard-images-count">0 / 12 images</span></div>
+    <div id="moodboard-images" class="moodboard-images" aria-label="Saved private moodboard images"></div>
+    <p id="moodboard-editor-status" class="moodboard-editor-status" role="status"></p>
+    <div class="moodboard-actions"><button id="moodboard-delete" type="button" hidden>Delete Mood</button><span></span><button id="moodboard-save" type="submit">Save Mood</button></div>
+  </form>
 </dialog>
 
 <section id="assets-workspace" hidden aria-label="Assets library"><aside class="assets-sidebar" aria-label="Asset folders"><button id="assets-all" class="active" type="button">All assets</button><button id="assets-favorites" type="button">♡ Favorites</button><div class="folders-label">Folders<button id="assets-new-folder" type="button" aria-label="Create folder">+</button></div><div id="assets-folders"></div></aside><div id="assets-gallery"></div></section>
