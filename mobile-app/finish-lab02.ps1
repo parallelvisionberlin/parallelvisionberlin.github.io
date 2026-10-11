@@ -1,7 +1,7 @@
 param([switch]$Build, [switch]$CheckOnly)
 $ErrorActionPreference = 'Stop'
 $SourceCommit = '9efaa31da9aa09ded7422333b4bba343ab958ebc'
-$Revision = 'PV LAB / 02'
+$Revision = 'PV LAB / 03'
 $OriginalLocation = Get-Location
 $PriorNoVcs = [Environment]::GetEnvironmentVariable('EAS_NO_VCS', 'Process')
 $PriorRoot = [Environment]::GetEnvironmentVariable('EAS_PROJECT_ROOT', 'Process')
