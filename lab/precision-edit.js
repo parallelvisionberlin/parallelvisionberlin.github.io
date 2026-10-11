@@ -140,6 +140,15 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
   }
   function refreshButtons(){
     const have=!!base;
+    // No tool is "selected" before a photograph exists. The empty state
+    // communicates one action only: drop the original.
+    for(const name of ['magic','brush','erase','pan']){
+      const button=$('precision-tool-'+name);
+      if(!button)continue;
+      const active=have&&mode===name;
+      button.classList.toggle('is-selected',active);
+      button.setAttribute('aria-pressed',String(active));
+    }
     for(const id of ['precision-tool-magic','precision-tool-brush','precision-tool-erase','precision-expand','precision-change-photo','precision-prompt','precision-brush-size','precision-strength'])
       $(id).disabled=!have||taskBusy;
     $('precision-tool-magic').disabled=!have||taskBusy||!falReady();
