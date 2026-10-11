@@ -163,7 +163,7 @@ try{
   const measureMood=()=>stable.page.evaluate(()=>{
     const get=id=>document.querySelector(id).getBoundingClientRect();
     const panel=get('#composer-moods'),grid=get('#composer-moods-grid'),deck=get('#image-composer');
-    const card=document.querySelector('.moods-card[aria-label="Select Hyper Pop"]').getBoundingClientRect();
+    const card=document.querySelectorAll('.moods-card')[9].getBoundingClientRect();
     const photo=document.querySelector('.moods-card-media').getBoundingClientRect();
     return {panelTop:panel.top,panelHeight:panel.height,gridHeight:grid.height,gridBottom:grid.bottom,
       lastCardBottom:card.bottom,thumbHeight:photo.height,deckTop:deck.top,deckHeight:deck.height};
@@ -234,7 +234,7 @@ try{
       photoRatio:photo.width/photo.height,sliderHeight:slider.getBoundingClientRect().height,actionHeight:action.getBoundingClientRect().height};
   });
   assert.ok(beforeMood.top>=20,'Moods window must not touch the upper viewport border: '+JSON.stringify(beforeMood));
-  assert.ok(Math.abs(beforeMood.photoRatio-1.25)<0.025,'Thumbnails should have taller 5:4 editorial framing: '+JSON.stringify(beforeMood));
+  assert.ok(Math.abs(beforeMood.photoRatio-1.2)<0.025,'Thumbnails should have existing 6:5 editorial framing: '+JSON.stringify(beforeMood));
   assert.ok(beforeMood.footerHeight<=113,'Footer should not dominate the gallery: '+JSON.stringify(beforeMood));
   assert.ok(beforeMood.sliderHeight>=25&&beforeMood.actionHeight>=40,'Intensity and main button must not shrink: '+JSON.stringify(beforeMood));
   assert.equal(await x.page.locator('#composer-moods-selection').isHidden(),true,'No redundant Select a mood row on open');

@@ -368,6 +368,7 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
   const filters=panel.querySelector('#composer-moods-filters');
   const slider=panel.querySelector('#composer-moods-intensity');
   const amount=panel.querySelector('#composer-moods-amount');
+  const browseCount=panel.querySelector('#composer-moods-browse-count');
   const summary=panel.querySelector('#composer-moods-summary');
   const selection=panel.querySelector('#composer-moods-selection');
   const selectedLabel=panel.querySelector('#composer-moods-current-label');
@@ -382,6 +383,24 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
   const boardById=id=>personalMoods.find(board=>'custom:'+board.id===id)||null;
   const findMood=id=>moodById(id)||boardById(id);
   const desktopGridColumns=5,initiallyVisibleRows=2;
+  // Keep the full creative directions available while making the grid scannable.
+  const captions={
+    'midnight-reverie':'Cyan light, nocturnal blur',
+    'hong-kong-nights':'Emerald haze, night romance',
+    'night-flash':'After-dark flash',
+    'dreamcore':'Pearl light, liminal spaces',
+    '90s-cinema':'35mm warmth and texture',
+    'polaroid-600':'Instant film, imperfect flash',
+    'fashion-editorial':'Refined fashion direction',
+    'berlin-rave':'Underground couture',
+    'soft-pastel-film':'Quiet creamy daylight',
+    '80s-film':'Burned light, saturated color',
+    'synthetic-romance':'Black chrome, human longing',
+    'kodak-gold':'Golden color, organic grain',
+    'frutiger-aero':'Translucent Y2K optimism',
+    'hyper-pop':'Vivid editorial energy',
+    'sumi-ink':'Black ink on warm washi'
+  };
   const tabs=new Map(),cards=new Map();
   for(const name of ['All','Cinema','Fashion','Analog','Experimental','My Moods']){
     const tab=document.createElement('button');tab.type='button';tab.className='moods-filter';tab.textContent=name;
@@ -398,11 +417,12 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
   for(const mood of MOODS){
     const card=document.createElement('button');card.type='button';card.className='moods-card';
     card.setAttribute('aria-label','Select '+mood.name);card.setAttribute('aria-pressed','false');
+    card.title=mood.description;card.setAttribute('aria-description',mood.description);
     const media=document.createElement('span');media.className='moods-card-media moods-look-'+mood.id;
     const image=document.createElement('img');image.src=moodPreviewURL(mood);image.onerror=()=>{image.onerror=null;image.src=mood.preview;};image.alt='';image.loading='lazy';image.decoding='async';media.append(image);
     const info=document.createElement('span');info.className='moods-card-copy';
     const title=document.createElement('strong');title.textContent=mood.name;
-    const subtitle=document.createElement('small');subtitle.textContent=mood.description;info.append(title,subtitle);
+    const subtitle=document.createElement('small');subtitle.textContent=captions[mood.id]||mood.description;info.append(title,subtitle);
     card.append(media,info);
     card.onclick=()=>{selected=selected===mood.id?null:mood.id;if(selected&&mood.defaultIntensity)intensity=mood.defaultIntensity;render();fitPanelViewport();onChange();};
     grid.append(card);cards.set(mood.id,card);
@@ -421,6 +441,7 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
     slider.value=String(intensity);slider.style.setProperty('--moods-progress',((intensity-1)/99*100).toFixed(2)+'%');slider.disabled=!selected;amount.textContent=intensity+'%';
     const chosen=findMood(selected);
     summary.textContent=chosen?chosen.name:'';
+    summary.title=chosen?.description||chosen?.direction||'';
     selection.hidden=!chosen;
     selectedLabel.hidden=!chosen;
     const compatible=MOOD_MODELS.includes(getEngine());
@@ -452,6 +473,7 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
     panel.classList.toggle('is-viewport-tight',available.tight);
     const placed=moodsPanelViewportGeometry({...frame,panelHeight:panel.getBoundingClientRect().height});
     panel.style.setProperty('--moods-overlap',placed.overlap+'px');
+    updateBrowseCount();
   }
   function setPersonalMoods(next=[]){
     for(const old of personalMoods){const key='custom:'+old.id,card=cards.get(key);card?.customWrap?.remove();cards.delete(key);}
@@ -469,6 +491,7 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
       const copy=document.createElement('span');copy.className='moods-card-copy';
       const title=document.createElement('strong');title.textContent=board.name;
       const sub=document.createElement('small');sub.textContent=board.direction||((moodById(board.baseMoodId)?.name||'Saved')+' creative direction');
+      card.title=sub.textContent;card.setAttribute('aria-description',sub.textContent);
       copy.append(title,sub);card.append(media,copy);
       card.onclick=()=>{selected=key;intensity=board.intensity||60;render();onChange();};
       const edit=document.createElement('button');edit.type='button';edit.className='moods-board-edit';edit.textContent='Edit';
@@ -480,7 +503,7 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
     render();
     if(!panel.hidden){fitGridViewport();fitPanelViewport();}
   }
-  // Show exactly two complete rows before the internal scrollbar reveals Sumi-e.
+  // Show exactly two complete rows before scrolling reveals the remaining Moods.
   function fitGridViewport(){
     if(panel.hidden||document.documentElement.classList.contains('pv-native-lab'))return;
     const visible=[...cards.values()].filter(card=>!card.hidden);
@@ -491,10 +514,24 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
     }
     const last=visible[desktopGridColumns*initiallyVisibleRows-1];
     const bounds=grid.getBoundingClientRect(),cardBounds=last.getBoundingClientRect();
-    const firstTwoRows=Math.ceil(cardBounds.bottom-bounds.top+3);
+    const bottomPadding=parseFloat(getComputedStyle(grid).paddingBottom)||0;
+    const firstTwoRows=Math.ceil(cardBounds.bottom-bounds.top+grid.scrollTop+bottomPadding);
     if(firstTwoRows>0)grid.style.maxHeight=firstTwoRows+'px';
     grid.tabIndex=0;
   }
+  function updateBrowseCount(){
+    if(!browseCount||panel.hidden)return;
+    const visible=[...cards.values()].filter(card=>!card.hidden);
+    browseCount.hidden=!visible.length;
+    if(!visible.length)return;
+    const bounds=grid.getBoundingClientRect();
+    let revealed=0;
+    visible.forEach((card,index)=>{if(card.getBoundingClientRect().bottom<=bounds.bottom+2)revealed=index+1;});
+    browseCount.textContent=grid.scrollHeight>grid.clientHeight+2
+      ?revealed+' of '+visible.length+' moods'
+      :visible.length+' mood'+(visible.length===1?'':'s');
+  }
+  grid.addEventListener('scroll',updateBrowseCount,{passive:true});
   function closeAbout(restoreFocus=false){
     if(aboutDetails.hidden)return;
     aboutDetails.hidden=true;
@@ -584,6 +621,7 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
   window.addEventListener('resize',refreshViewport);
   window.visualViewport?.addEventListener('resize',refreshViewport);
   window.visualViewport?.addEventListener('scroll',refreshViewport);
+  document.fonts?.ready.then(refreshViewport);
   if(typeof ResizeObserver==='function'){
     const observer=new ResizeObserver(refreshViewport);
     observer.observe(panel.parentElement);
