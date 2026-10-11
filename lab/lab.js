@@ -251,8 +251,12 @@ const cardUrls=new Set(), requestControllers=new Set();
 // Private, bounded session cache. Gallery and viewer share original bytes and
 // in-flight reads; each surface owns its own revocable object URL.
 const assetBlobs=new Map(),assetReads=new Map();
-let assetBlobBytes=0;
-function clearAssetCache(){assetBlobs.clear();assetReads.clear();assetBlobBytes=0;}
+const thumbnailBlobs=new Map(),thumbnailReads=new Map();
+let assetBlobBytes=0,thumbnailBytes=0;
+function clearAssetCache(){
+  assetBlobs.clear();assetReads.clear();assetBlobBytes=0;
+  thumbnailBlobs.clear();thumbnailReads.clear();thumbnailBytes=0;
+}
 async function assetBlob(id){
   if(!owner)throw new Error('Sign in first.');
   const cached=assetBlobs.get(id);
@@ -270,6 +274,29 @@ async function assetBlob(id){
     return blob;
   }).finally(()=>{if(assetReads.get(id)===pending)assetReads.delete(id);});
   assetReads.set(id,pending);return pending;
+}
+// Image cards use lightweight private R2 WebP previews. Image viewers, Download,
+// Reuse, Upscale and source editing still call assetBlob() for the original.
+async function assetThumbnailBlob(id){
+  if(!owner)throw new Error('Sign in first.');
+  const cached=thumbnailBlobs.get(id);
+  if(cached){thumbnailBlobs.delete(id);thumbnailBlobs.set(id,cached);return cached;}
+  if(thumbnailReads.has(id))return thumbnailReads.get(id);
+  const generation=epoch;
+  const pending=api('/api/assets/'+encodeURIComponent(id)+'/thumbnail',{blob:true}).then(blob=>{
+    if(!blob?.type?.startsWith('image/')||!blob.size)throw Error('Thumbnail unavailable');
+    if(owner&&generation===epoch&&blob.size<=2*1048576){
+      thumbnailBlobs.set(id,blob);thumbnailBytes+=blob.size;
+      while(thumbnailBlobs.size>80||thumbnailBytes>12*1048576){
+        const oldest=thumbnailBlobs.keys().next().value;
+        thumbnailBytes-=thumbnailBlobs.get(oldest).size;thumbnailBlobs.delete(oldest);
+      }
+    }
+    return blob;
+  }).catch(()=>assetBlob(id)).finally(()=>{
+    if(thumbnailReads.get(id)===pending)thumbnailReads.delete(id);
+  });
+  thumbnailReads.set(id,pending);return pending;
 }
 const money=n=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:4}).format(n);
 // Keep Upscaler progress and confirmation alongside its paid action controls.
@@ -2559,7 +2586,7 @@ function pumpGalleryPreviewQueue(){
     const {img,rev}=galleryPreviewQueue.shift();
     if(!owner||rev!==historyRevision||!img.isConnected)continue;
     galleryPreviewReads++;
-    void assetBlob(img.dataset.asset).then(blob=>{
+    void assetThumbnailBlob(img.dataset.asset).then(blob=>{
       if(!owner||rev!==historyRevision||!img.isConnected)return;
       if(!blob.type.startsWith('image/')||!blob.size)throw new Error('Preview unavailable');
       const u=URL.createObjectURL(blob);cardUrls.add(u);img.dataset.objectUrl=u;img.src=u;
