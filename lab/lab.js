@@ -8,7 +8,8 @@ captureReferralCode();
 import {createSoul2UI} from './higgsfield-ui.js?v=20261010-soul-price1';
 import {VIDEO_MODELS,engineFor,videoLabel} from './video-models.js?v=20261009-extend1';
 import {REFERENCE_ROLES,REFERENCE_TARGETS,normalizeReferenceLabel,compileImagePrompt,referenceGuidanceError,canUseReferenceGuidance} from './reference-guidance.js?v=20261010-reference-flow2';
-import {createMoodSelector,moodById,userFacingImagePrompt,imageHistoryCaption} from './moods.js?v=20261011-mood-gallery-priority1';
+import {createMoodSelector,moodById,userFacingImagePrompt,imageHistoryCaption} from './moods.js?v=20261011-my-moods1';
+import {createMyMoods} from './my-moods.js?v=20261011-my-moods1';
 import {createMediaReferences} from './media-references.js?v=20261009-extend2';
 import { createSessionRequest } from './session-request.js?v=20260927-auth1';
 import { createSoulController } from './soul.js?v=20261001-presets2';
@@ -129,11 +130,18 @@ let sourcePixels=0, sourceWidth=0, sourceHeight=0;
 let ratioSourceKey='';
 let imageReferenceMode='base';
 let referenceIntentOpen=false;
+let myMoods=null;
 const moodUI=createMoodSelector({panel:$('composer-moods'),button:$('image-composer-moods'),getEngine:()=>imageEngine,
   chooseEngine:engine=>{if(busy)return;$('image-engine').value=engine;$('image-engine').dispatchEvent(new Event('change',{bubbles:true}));},
-  onOpen:()=>{closeReferenceIntent();closeImageModelMenu();closeComposerLibrary();toggleImageSettings(false);},
+  onOpen:()=>{
+    closeReferenceIntent();closeImageModelMenu();closeComposerLibrary();toggleImageSettings(false);
+    if(myMoods)void myMoods.refresh().catch(error=>notify('Unable to load My Moods. '+error.message,true));
+  },
+  onCreatePersonal:()=>void myMoods?.openCreate(),
+  onEditPersonal:board=>myMoods?.openEdit(board),
   onChange:()=>{autoPreview=null;update();}
 });
+myMoods=createMyMoods({api,assetBlob,moodUI,notify:(...args)=>notify(...args),active:()=>owner});
 $('image-reference-mode').onchange=()=>setImageReferenceMode($('image-reference-mode').value);
 function referencesOnly(){return usesReferenceGuidance()&&imageReferenceMode==='references';}
 function closeReferenceIntent(){
@@ -1942,18 +1950,19 @@ function showImageDetail(job,hasOutput,loading=false){
   $('image-lightbox-fit').disabled=!hasOutput;
   $('image-lightbox-title').textContent=hasOutput||loading?'Image result':'Image record';
   $('image-detail-status').textContent=job.status?.charAt(0).toUpperCase()+String(job.status||'').slice(1);
-  const mood=moodById(params.moodId),promptText=userFacingImagePrompt(params);
-  // The provider's compiled styling stays in the private job record, never in
-  // the customer-facing Image detail panel or its Copy action.
-  $('image-detail-mood-feature').hidden=!mood;
-  $('image-detail-mood-name').textContent=mood?.name||'';
+  const mood=moodById(params.moodId),customMood=params.moodId==='custom'&&params.customMoodName;
+  const moodName=customMood?String(params.customMoodName):mood?.name||'';
+  const promptText=userFacingImagePrompt(params);
+  // The provider's compiled styling stays private, only authored text is displayed.
+  $('image-detail-mood-feature').hidden=!moodName;
+  $('image-detail-mood-name').textContent=moodName;
   const intensity=Number(params.moodIntensity);
-  $('image-detail-mood-strength').textContent=mood&&Number.isFinite(intensity)?Math.round(intensity)+'% intensity':'';
+  $('image-detail-mood-strength').textContent=moodName&&Number.isFinite(intensity)?Math.round(intensity)+'% intensity':'';
   const hasWrittenDirection=!!promptText;
   $('image-detail-prompt-header').hidden=!hasWrittenDirection;
   $('image-detail-prompt').hidden=!hasWrittenDirection;
   $('image-detail-copy').disabled=!hasWrittenDirection;
-  $('image-detail-prompt-heading').textContent=mood?'Your direction':'Prompt';
+  $('image-detail-prompt-heading').textContent=moodName?'Your direction':'Prompt';
   $('image-detail-prompt').textContent=promptText;
   $('image-detail-prompt').classList.toggle('is-collapsible',promptText.length>250);
   $('image-detail-prompt').classList.remove('is-expanded');
@@ -1962,8 +1971,8 @@ function showImageDetail(job,hasOutput,loading=false){
   $('image-detail-expand').hidden=promptText.length<=250;
   $('image-detail-metadata').open=true;
   $('image-detail-model').textContent=detailModelName(job);
-  $('image-detail-mood-row').hidden=!!mood || !params.moodId;
-  $('image-detail-mood-value').textContent=params.moodId?((mood?.name||'Mood')+' · '+(params.moodIntensity||60)+'%'):'';
+  $('image-detail-mood-row').hidden=!!moodName || !params.moodId;
+  $('image-detail-mood-value').textContent=params.moodId?((moodName||'Mood')+' · '+(params.moodIntensity||60)+'%'):'';
   $('image-detail-resolution').textContent=String(params.resolution||'Source').toUpperCase();
   $('image-detail-ratio').textContent=params.aspectRatio==='auto'?'Adaptive':String(params.aspectRatio||'Original');
   $('image-detail-created').textContent=detailDate(job.createdAt);
@@ -2072,6 +2081,10 @@ $('image-detail-video').onclick=()=>executeImageDetail(animateImage);
 $('image-detail-reuse').onclick=()=>executeImageDetail(restore);
 $('image-detail-reference').onclick=()=>executeImageDetail(useImageAsReference);
 $('image-detail-mood').onclick=()=>executeImageDetail(applyMoodToImage);
+$('image-detail-save-mood').onclick=()=>{
+  if(!owner||!imageDetailJob||!hasResult(imageDetailJob))return;
+  void myMoods.openCreate(imageDetailJob);
+};
 $('image-detail-upscale').onclick=()=>executeImageDetail(upscaleImage);
 $('image-detail-repair').onclick=()=>executeImageDetail(openRepair);
 $('image-detail-edit-area').onclick=()=>executeImageDetail(async job=>{
@@ -2632,10 +2645,12 @@ $('history-delete-selected').onclick=()=>action(async()=>{
   setHistorySelectMode(false);await loadHistory();if(assetLibrary?.active())await assetLibrary.load();notify((result.deleted||ids.length)+' History item'+((result.deleted||ids.length)===1?'':'s')+' deleted. Spending history is unchanged.');
 });
 function finishLabBoot(){window.__pvLabFinishBoot?.();}
-function lock(){retouchActive=false;history.scrollRestoration='auto';precisionEditor.reset();$('app').classList.remove('retouch-studio-active');customerMode=false;customerGenerationReady=false;customerImagePricing?.reset();wallet.connect({customer:false});$('studio-invite-friends').hidden=true;fashionController?.lock();setFashionActive(false);assetLibrary?.reset();hf.reset();epoch++;imageSubmissionPending=false;pendingImageCards.clear();moodUI.clear(true);clearAssetCache();for(const p of composerPortraits.values())p.then(url=>{if(url)release(url);});composerPortraits.clear();composerLibraryKey='';composerPortraitKey='';closeComposerLibrary();historySelected.clear();historySelectMode=false;clearSoulProPackPreview();soulProIdentity={configured:false,count:0,refs:[]};workingCopies.clear();fastImageHandoff.clear();autoPreview=null;downloadUrls.forEach(release);downloadUrls.clear();owner=false;userId='';soul.reset();historyRevision++;clearTimeout(timer);timer=null;activeJob=null;activeJobs=[];polling=false;requestControllers.forEach(c=>c.abort());requestControllers.clear();observer.disconnect();cardUrls.forEach(release);cardUrls.clear();clearMedia();$('prompt').value='';$('history').replaceChildren();$('app').hidden=true;$('gate').hidden=false;$('connection').hidden=true;$('logout').hidden=true;$('api-key').value='';for(const d of document.querySelectorAll('dialog[open]'))d.close();currentQuote=null;config={};packs=[];$('pack-select').replaceChildren(new Option('Choose a saved pack',''));closeImageModelMenu();toggleImageSettings(false);$('app').classList.remove('image-studio-active');imageStudio.hidden=true;imageDetailCache.clear();releaseImageDetailSource();videoJobCache.clear();selectedVideoJob=null;syncVideoStudioMode();finishLabBoot();}
+function lock(){retouchActive=false;history.scrollRestoration='auto';precisionEditor.reset();$('app').classList.remove('retouch-studio-active');customerMode=false;customerGenerationReady=false;customerImagePricing?.reset();wallet.connect({customer:false});$('studio-invite-friends').hidden=true;fashionController?.lock();setFashionActive(false);assetLibrary?.reset();hf.reset();epoch++;imageSubmissionPending=false;pendingImageCards.clear();moodUI.clear(true);clearAssetCache();for(const p of composerPortraits.values())p.then(url=>{if(url)release(url);});composerPortraits.clear();composerLibraryKey='';composerPortraitKey='';closeComposerLibrary();historySelected.clear();historySelectMode=false;clearSoulProPackPreview();soulProIdentity={configured:false,count:0,refs:[]};workingCopies.clear();fastImageHandoff.clear();autoPreview=null;downloadUrls.forEach(release);downloadUrls.clear();myMoods.reset();owner=false;userId='';soul.reset();historyRevision++;clearTimeout(timer);timer=null;activeJob=null;activeJobs=[];polling=false;requestControllers.forEach(c=>c.abort());requestControllers.clear();observer.disconnect();cardUrls.forEach(release);cardUrls.clear();clearMedia();$('prompt').value='';$('history').replaceChildren();$('app').hidden=true;$('gate').hidden=false;$('connection').hidden=true;$('logout').hidden=true;$('api-key').value='';for(const d of document.querySelectorAll('dialog[open]'))d.close();currentQuote=null;config={};packs=[];$('pack-select').replaceChildren(new Option('Choose a saved pack',''));closeImageModelMenu();toggleImageSettings(false);$('app').classList.remove('image-studio-active');imageStudio.hidden=true;imageDetailCache.clear();releaseImageDetailSource();videoJobCache.clear();selectedVideoJob=null;syncVideoStudioMode();finishLabBoot();}
 const wallet=createCustomerWallet({api,notify});
 customerImagePricing=createCustomerImagePricing({snapshot:imageCreditQuoteSnapshot,quote:fetchCustomerImagePrice,changed:()=>update()});
-async function sync(){if(syncing)return;syncing=true;try{if(!clerk.isSignedIn){lock();$('auth-status').textContent='Sign in to your PV Lab workspace.';$('signin').disabled=false;return;}if(owner&&userId===clerk.user.id)return;const data=await api('/api/session');owner=true;customerMode=!!data.customer;customerGenerationReady=!!data.generationReady;userId=clerk.user.id;wallet.connect(data);hf.setCustomerPricing(customerMode?{trainingCredits:data.soulIdTrainingCredits,imageCredits:data.soul2ImageCredits}:null);$('studio-invite-friends').hidden=!customerMode;if(customerMode)await claimReferral(code=>api('/api/customer/referrals/claim',{method:'POST',body:{code}}));applyConfig(data.config);$('identity').textContent=customerMode?'My workspace':'Owner workspace';$('gate').hidden=true;$('app').hidden=false;$('connection').hidden=customerMode;$('logout').hidden=false;if(customerMode&&new URLSearchParams(location.search).get('referrals')==='1')wallet.openReferrals();await Promise.all([loadHistory(),loadPacks(),soul.load(),loadSoulProIdentity()]);syncVideoStudioMode();await restoreStudioEntry();if(!fashionActive&&fashionController)void fashionController.sync();if(customerMode&&new URLSearchParams(location.search).get('billing')==='success'){notify('Checkout returned. Credits appear when Stripe confirms payment.');void wallet.refresh();}}catch(e){lock();$('auth-status').textContent=e.message;$('signin').disabled=false;$('logout').hidden=!clerk?.isSignedIn;}finally{syncing=false;finishLabBoot();}}
+async function sync(){if(syncing)return;syncing=true;try{if(!clerk.isSignedIn){lock();$('auth-status').textContent='Sign in to your PV Lab workspace.';$('signin').disabled=false;return;}if(owner&&userId===clerk.user.id)return;const data=await api('/api/session');owner=true;customerMode=!!data.customer;customerGenerationReady=!!data.generationReady;userId=clerk.user.id;wallet.connect(data);hf.setCustomerPricing(customerMode?{trainingCredits:data.soulIdTrainingCredits,imageCredits:data.soul2ImageCredits}:null);$('studio-invite-friends').hidden=!customerMode;if(customerMode)await claimReferral(code=>api('/api/customer/referrals/claim',{method:'POST',body:{code}}));applyConfig(data.config);$('identity').textContent=customerMode?'My workspace':'Owner workspace';$('gate').hidden=true;$('app').hidden=false;$('connection').hidden=customerMode;$('logout').hidden=false;if(customerMode&&new URLSearchParams(location.search).get('referrals')==='1')wallet.openReferrals();await Promise.all([loadHistory(),loadPacks(),soul.load(),loadSoulProIdentity()]);
+    void myMoods.refresh().catch(()=>{/* Personal boards must not block image Studio sign-in. */});
+    syncVideoStudioMode();await restoreStudioEntry();if(!fashionActive&&fashionController)void fashionController.sync();if(customerMode&&new URLSearchParams(location.search).get('billing')==='success'){notify('Checkout returned. Credits appear when Stripe confirms payment.');void wallet.refresh();}}catch(e){lock();$('auth-status').textContent=e.message;$('signin').disabled=false;$('logout').hidden=!clerk?.isSignedIn;}finally{syncing=false;finishLabBoot();}}
 $('studio-invite-friends').onclick=()=>{$('studio-invite-friends').closest('details').open=false;wallet.openReferrals();};
 $('auth-retry').onclick=()=>location.reload();$('signin').onclick=()=>clerk?.openSignIn();$('logout').onclick=async()=>{lock();await clerk?.signOut();$('auth-status').textContent='Signed out. Your archive remains private.';};
 assetLibrary=createAssetLibrary({api,notify,archive,app:$('app'),selected:()=>historySelected,selectMode:setHistorySelectMode,reload:()=>loadHistory(),restoreStudio:()=>{syncImageStudioMode();syncVideoStudioMode();syncStudioNav();},beforeOpen:()=>{++previewRevision;$('video').pause();if(retouchActive)leaveRetouch();setFashionActive(false);syncStudioRoute('assets');},kind:()=>tool==='upscale'?'upscale':tool==='video'?'video':'image',ready:()=>owner});
