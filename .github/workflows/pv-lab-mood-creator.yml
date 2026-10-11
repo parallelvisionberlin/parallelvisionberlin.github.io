@@ -1,0 +1,65 @@
+name: PV Lab Mood Creator quality
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'lab/mood-creator*'
+      - 'lab/mood-home.css'
+      - 'lab/mood-handoff.js'
+      - 'lab/moods.js'
+      - 'lab/my-moods.js'
+      - 'lab/lab.js'
+      - 'lab/index.html'
+      - 'tests/lab-mood*'
+      - '.github/workflows/pv-lab-mood-creator.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pv-lab-mood-creator-checks
+  cancel-in-progress: true
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Syntax and private Moodboard tests
+        run: |
+          node --check lab/mood-creator.js
+          node --check lab/mood-handoff.js
+          node --check lab/my-moods.js
+          node --check lab/moods.js
+          node --check lab-worker/moodboards.mjs
+          node --check lab-worker/mood-creator-service.mjs
+          node --test tests/lab-moods.test.mjs tests/lab-moodboards.test.mjs tests/lab-mood-creator-service.test.mjs tests/lab-mood-creator-flow.test.mjs tests/lab-mood-handoff.test.mjs
+
+  browser:
+    needs: unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            lab
+            lab-worker
+            tests
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Install Chromium for non-billable smoke
+        run: |
+          npm install --prefix /tmp/pv-mood-creator --no-save playwright@1.57.0
+          node /tmp/pv-mood-creator/node_modules/playwright/cli.js install --with-deps chromium
+      - name: Gallery, photo handoff and personal Moods
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-mood-creator/node_modules/playwright/index.mjs
+        run: node tests/lab-mood-creator-browser.mjs
