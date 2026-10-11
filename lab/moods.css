@@ -240,3 +240,8 @@
 #moodboard-editor .moodboard-config[hidden],
 #moodboard-editor #moodboard-target-row[hidden],
 #moodboard-editor #moodboard-delete[hidden]{display:none!important}
+
+#image-composer .moods-board-create[hidden]{display:none!important}
+#image-composer .moods-board-create{cursor:pointer}
+#image-composer .moods-board-create-media{display:grid;place-items:center;border:1px dashed #71777a;background:#272a2b;color:#d6ff00;font-size:34px;font-weight:300}
+#image-composer .moods-board-create:hover .moods-board-create-media{border-color:#d6ff00;background:#32382c}
