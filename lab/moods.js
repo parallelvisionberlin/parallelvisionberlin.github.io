@@ -259,7 +259,9 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
   if(!MOOD_MODELS.includes(engine))return {prompt:original,metadata:{},error:'Moods v1 supports Seedream 5 Pro and Nano Banana Pro. Choose one of these models first.'};
   const intensity=Math.max(1,Math.min(100,Math.round(Number(amount)||60)));
   const dreamcore=mood.id==='dreamcore',cinematic80s=mood.id==='80s-film',berlinRave=mood.id==='berlin-rave',syntheticRomance=mood.id==='synthetic-romance';
-  const compactBerlinRave=berlinRave&&(compact===true||referenceCount>=4||original.length>=750);
+  // Even one Base adds reference-map instructions after this prompt is built.
+  // Reserve that space before validation and submission use the same result.
+  const compactBerlinRave=berlinRave&&(compact===true||referenceCount>=1||original.length>=750);
   const compactDreamcore=dreamcore&&(compact===true||referenceCount>=3||original.length>=800);
   const compact80s=cinematic80s&&(compact===true||referenceCount>=2||original.length>=800||(referenceCount===1&&original.length>=(intensity===100?200:550)));
   const dreamcoreTier=intensity<=34?'Subtle':intensity<=69?'Moderate':intensity<=89?'Immersive':intensity<=99?'Intense':'Climax';

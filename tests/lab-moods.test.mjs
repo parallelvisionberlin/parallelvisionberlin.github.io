@@ -550,3 +550,22 @@ test('Moods remains a compact electric-citron discovery action without recolorin
   assert.doesNotMatch(style,/#image-composer \.composer-settings-pill\{/);
   assert.match(html,/assets\.css\?v=[^"]+&moodsCitron=1/);
 });
+
+
+test('Berlin Rave fits the final reference-map budget for one to ten photos at every intensity',()=>{
+  for(const engine of ['seedream','gemini'])for(const referenceMode of ['base','references']){
+    for(const count of [1,2,3,10])for(const intensity of [1,34,35,69,70,89,90,99,100]){
+      const original='Keep her face and pose; change the outfit';
+      const labels=Array.from({length:count},(_,i)=>({name:'reference-'+i+'.png',role:i===0&&referenceMode==='base'?'base':'none'}));
+      const result=prepareMoodPrompt(original,'berlin-rave',intensity,{engine,referenceCount:count,referenceMode});
+      assert.equal(result.error,'');
+      assert.equal(result.metadata.moodOriginalPrompt,original);
+      assert.equal(result.metadata.moodIntensity,intensity);
+      assert.match(result.prompt,/REPLACE source wardrobe/);
+      assert.ok(compileImagePrompt(result.prompt,labels).length<=5000,engine+' '+referenceMode+' '+count+' photos at '+intensity+'%');
+    }
+  }
+  const saved=preparePersonalMoodPrompt('',{id:'rave-budget-test',name:'My Berlin Rave',direction:'Refined worn leather and lean tailoring',baseMoodId:'berlin-rave'},100,{engine:'seedream',referenceCount:1});
+  assert.equal(saved.error,'');
+  assert.ok(compileImagePrompt(saved.prompt,[{name:'base.png',role:'base',note:'Keep my face and hair.'}]).length<=5000);
+});
