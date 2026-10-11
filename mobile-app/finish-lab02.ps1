@@ -67,8 +67,19 @@ try {
     if ($Health.nativeAppAuth -ne 'mobile-v1') { throw 'The Lab native session is not deployed. No build started.' }
     $WebAdapter = (Invoke-WebRequest -UseBasicParsing -Uri 'https://parallelvisionlabel.com/lab/native-account.js?v=1' -TimeoutSec 20).Content
     if (!$WebAdapter.Contains('isNativeLab')) { throw 'The Lab website adapter is not deployed. No build started.' }
-    $Discovery = (Invoke-WebRequest -UseBasicParsing -Uri 'https://parallelvisionlabel.com/lab/app-moods.html?v=2' -TimeoutSec 20).Content
-    if (!$Discovery.Contains('app-moods.js?v=2')) { throw 'The new Mood discovery page is not deployed. No build started.' }
+    # Website cache versions change independently of the native app release.
+    $DiscoveryUrl = 'https://parallelvisionlabel.com/lab/app-moods.html?install=' + [guid]::NewGuid().ToString('N')
+    $Discovery = (Invoke-WebRequest -UseBasicParsing -Uri $DiscoveryUrl -TimeoutSec 20).Content
+    $DiscoveryScript = [regex]::Match($Discovery, 'src=["''](\./app-moods\.js(?:\?[^"'']*)?)["'']')
+    if (!$DiscoveryScript.Success -or !$Discovery.Contains('id="mood-grid"') -or !$Discovery.Contains('id="photo-input"') -or !$Discovery.Contains('id="continue-create"')) {
+        throw 'The Mood discovery page or photo controls are missing. No build started.'
+    }
+    $DiscoveryScriptUrl = [System.Uri]::new([System.Uri]$DiscoveryUrl, $DiscoveryScript.Groups[1].Value)
+    $DiscoveryCode = (Invoke-WebRequest -UseBasicParsing -Uri $DiscoveryScriptUrl.AbsoluteUri -TimeoutSec 20).Content
+    foreach ($Marker in @('PV_LAB_READY', 'photo-input', 'continue-create')) {
+        if (!$DiscoveryCode.Contains($Marker)) { throw "The Mood discovery script is missing $Marker. No build started." }
+    }
+    Write-Host 'Mood discovery page and photo controls verified live.' -ForegroundColor Green
     $Packaging = $true
     $env:EAS_NO_VCS = '1'
     $env:EAS_PROJECT_ROOT = $App
