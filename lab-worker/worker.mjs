@@ -7,6 +7,7 @@ import {fashionRoute,refreshFashionJob} from './fashion-tools.mjs';
 import {precisionEditRoute} from './precision-edit.mjs';
 import {IMAGE_PRICES,IMAGE_RATIOS,imageModelParameters,buildImageModelInput,requestFlash} from './image-models.mjs';
 import {ensureGalleryDimensions} from './gallery-dimensions.mjs';
+import {serveGalleryThumbnail,galleryThumbnailKey} from './gallery-thumbnails.mjs';
 import {libraryRoute,libraryJobs} from './asset-library.mjs';
 import {higgsfieldRoute,refreshHiggsfield,SOUL2_PRICES,soul2Parameters} from './higgsfield.mjs';
 import {publicSoulPresets} from './soul-presets.mjs';
@@ -435,7 +436,9 @@ async function sourceReferenced(env,owner,id) {
 async function pruneSource(env,owner,id) {
   if(await sourceReferenced(env,owner,id))return;
   const a=await first(env,"SELECT * FROM assets WHERE id=? AND owner_id=? AND kind='source'",id,owner);if(!a)return;
-  await env.LAB_MEDIA.delete(a.object_key);await run(env,'DELETE FROM assets WHERE id=? AND owner_id=?',id,owner);
+  await env.LAB_MEDIA.delete(a.object_key);
+  if(a.mime?.startsWith('image/'))await env.LAB_MEDIA.delete(galleryThumbnailKey(a));
+  await run(env,'DELETE FROM assets WHERE id=? AND owner_id=?',id,owner);
 }
 async function signedInput(env,url,id,ttl=1800) {
   const expires=Math.floor(now()/1000)+ttl,key=await derived(env,'input-url',{name:'HMAC',hash:'SHA-256'},['sign']);
@@ -779,7 +782,7 @@ async function deleteJobRecord(env,owner,j){
     const a=await first(env,'SELECT * FROM assets WHERE id=? AND owner_id=?',j.output_id,owner);
     if(a){
       if(a.kind==='source')await pruneSource(env,owner,a.id);
-      else{await env.LAB_MEDIA.delete(a.object_key);await run(env,'DELETE FROM assets WHERE id=?',a.id);}
+      else{await env.LAB_MEDIA.delete(a.object_key);if(a.mime?.startsWith('image/'))await env.LAB_MEDIA.delete(galleryThumbnailKey(a));await run(env,'DELETE FROM assets WHERE id=?',a.id);}
     }
   }
   for(const sourceId of linked)await pruneSource(env,owner,sourceId);
@@ -1173,6 +1176,12 @@ async function route(request,env,ctx) {
     await env.LAB_MEDIA.put(key,bytes,{httpMetadata:{contentType:mime}});
     try{await run(env,"INSERT INTO assets(id,owner_id,object_key,kind,mime,filename,bytes,created_at) VALUES(?,?,?,'source',?,?,?,?)",id,owner,key,mime,filename,bytes.length,now());}catch(e){await env.LAB_MEDIA.delete(key);throw e;}
     return json({id,filename,bytes:bytes.length},201);
+  }
+  if(path.startsWith('/api/assets/')&&path.endsWith('/thumbnail')&&method==='GET') {
+    const parts=path.split('/');if(parts.length!==5||parts[4]!=='thumbnail')fail(404,'Unknown preview.');
+    const a=await first(env,'SELECT * FROM assets WHERE id=? AND owner_id=?',uid(parts[3]),owner);
+    if(!a)fail(404,'File not found.');
+    return serveGalleryThumbnail(env,a);
   }
   if(path.startsWith('/api/assets/')&&method==='GET') {
     const a=await first(env,'SELECT * FROM assets WHERE id=? AND owner_id=?',uid(path.split('/')[3]),owner);if(!a)fail(404,'File not found.');return media(request,env,a);
