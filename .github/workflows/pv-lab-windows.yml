@@ -1,7 +1,7 @@
 name: PV Lab Windows preparation
 on:
   push:
-    branches: [mobile-lab-moods]
+    branches: [mobile-lab-moods, app-moods-v2]
     paths: ['mobile-app/**', '.github/workflows/pv-lab-windows.yml']
   workflow_dispatch:
 permissions:
@@ -19,4 +19,4 @@ jobs:
           node-version: '22.17.0'
       - name: Verify Windows preparation without a cloud build
         shell: powershell
-        run: .\mobile-app\finish-lab01.ps1 -CheckOnly
+        run: .\mobile-app\finish-lab02.ps1 -CheckOnly

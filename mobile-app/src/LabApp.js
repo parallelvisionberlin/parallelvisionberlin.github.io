@@ -7,7 +7,7 @@ import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import {AuthPanel} from './AuthPanel';
 import {config} from './config';
-import {isLabURL,LAB_STUDIO,LAB_MOODS,labCommandScript,labReplyScript,moodCommand,nativeLabFlag,readLabMessage,sharePayload} from './labBridge';
+import {isLabURL,LAB_STUDIO,LAB_MOODS,LAB_DISCOVER,labCommandScript,labReplyScript,moodCommand,nativeLabFlag,readLabMessage,sharePayload} from './labBridge';
 
 function Button({children,onPress,selected=false}){return <Pressable accessibilityRole="button" accessibilityState={{selected}} onPress={onPress} style={({pressed})=>[s.button,selected&&s.selected,pressed&&s.pressed]}><Text style={[s.buttonText,selected&&s.selectedText]}>{children}</Text></Pressable>;}
 function LabWebSurface({source,web,onSignIn,onSignOut,onNavigate,onReady,onLoading,getIdentity,active}){
@@ -64,8 +64,8 @@ function LabWebSurface({source,web,onSignIn,onSignOut,onNavigate,onReady,onLoadi
 }
 function Workspace(){
   const {isLoaded,isSignedIn,getToken,userId,sessionId}=useAuth(),{signOut}=useClerk(),{user}=useUser();
-  const [tab,setTab]=useState('create'),[visitedMoods,setVisitedMoods]=useState(false),[profile,setProfile]=useState(false),[moodsSource,setMoodsSource]=useState(LAB_MOODS);
-  const studio=useRef(null),moods=useRef(null),queued=useRef(null),studioReady=useRef(false),current=useRef({});
+  const [tab,setTab]=useState('moods'),[visitedStudio,setVisitedStudio]=useState(false),[visitedSaved,setVisitedSaved]=useState(false),[authOpen,setAuthOpen]=useState(false),[savedSource,setSavedSource]=useState(LAB_MOODS);
+  const studio=useRef(null),discover=useRef(null),saved=useRef(null),queued=useRef(null),studioReady=useRef(false),current=useRef({}),resume=useRef(null);
   current.current={isLoaded,isSignedIn,userId,sessionId,getToken};
   const getIdentity=useCallback(async force=>{
     const start=current.current;if(!start.isLoaded)throw Error('Account loading');
@@ -75,28 +75,52 @@ function Workspace(){
     return {token:token||'',userId:start.userId,sessionId:start.sessionId};
   },[]);
   const send=command=>{if(studioReady.current&&studio.current){queued.current=null;studio.current.injectJavaScript(labCommandScript(command));}else queued.current=command;};
-  const select=next=>{setTab(next);if(next==='moods')setVisitedMoods(true);else send({action:next});};
-  const logout=()=>Alert.alert('Sign out?','Your saved Lab images and Moods stay in your account.',[{text:'Cancel',style:'cancel'},{text:'Sign out',style:'destructive',onPress:async()=>{await signOut();setProfile(false);setTab('create');setVisitedMoods(false);queued.current=null;}}]);
-  useEffect(()=>{if(isSignedIn)setProfile(false);},[isSignedIn]);
-  useEffect(()=>{const handler=BackHandler.addEventListener('hardwareBackPress',()=>{if(profile){setProfile(false);return true;}if(tab!=='create'){select('create');return true;}return false;});return()=>handler.remove();},[profile,tab]);
-  useEffect(()=>{const listener=AppState.addEventListener('change',state=>{if(state==='active'&&tab!=='moods')studio.current?.injectJavaScript(labCommandScript({action:tab}));});return()=>listener.remove();},[tab]);
-  const navigate=(url,fromMoods=false)=>{
+  const openStudio=(command={action:'create'})=>{
+    queued.current=command;
+    if(!isSignedIn){resume.current={kind:'studio',command};setAuthOpen(true);return;}
+    setVisitedStudio(true);setTab(command.action==='gallery'?'gallery':'create');send(command);
+  };
+  const openSaved=url=>{if(!isSignedIn){resume.current={kind:'saved',url:url||LAB_MOODS};setAuthOpen(true);return;}setSavedSource(url||LAB_MOODS);setVisitedSaved(true);setTab('saved');};
+  const select=next=>{
+    if(next==='create'){openStudio();return;}
+    if(next==='gallery'&&isSignedIn){openStudio({action:'gallery'});return;}
+    setTab(next);
+  };
+  const logout=()=>Alert.alert('Sign out?','Your saved images and Moods stay in your account.',[{text:'Cancel',style:'cancel'},{text:'Sign out',style:'destructive',onPress:async()=>{
+    studioReady.current=false;queued.current=null;resume.current=null;setVisitedStudio(false);setVisitedSaved(false);setTab('moods');await signOut();
+  }}]);
+  useEffect(()=>{
+    if(!isSignedIn)return;
+    setAuthOpen(false);const next=resume.current;resume.current=null;
+    if(next?.kind==='studio'){queued.current=next.command;setVisitedStudio(true);setTab(next.command.action==='gallery'?'gallery':'create');}
+    if(next?.kind==='saved'){setSavedSource(next.url);setVisitedSaved(true);setTab('saved');}
+  },[isSignedIn]);
+  useEffect(()=>{const listener=BackHandler.addEventListener('hardwareBackPress',()=>{if(authOpen){setAuthOpen(false);return true;}if(tab!=='moods'){setTab('moods');return true;}return false;});return()=>listener.remove();},[authOpen,tab]);
+  useEffect(()=>{const listener=AppState.addEventListener('change',state=>{if(state==='active'&&studioReady.current&&['create','gallery'].includes(tab))studio.current?.injectJavaScript(labCommandScript({action:tab}));});return()=>listener.remove();},[tab]);
+  const navigate=(url,from)=>{
     const u=new URL(url);
-    if(u.pathname.endsWith('mood-creator.html')){if(fromMoods)return true;setMoodsSource(url);setVisitedMoods(true);setTab('moods');return false;}
-    if(fromMoods){setTab('create');send(moodCommand(url)||{action:'create'});return false;}
+    if(u.pathname.endsWith('app-moods.html')){if(from==='discover')return true;setTab('moods');return false;}
+    if(u.pathname.endsWith('mood-creator.html')){if(from==='saved')return true;openSaved(url);return false;}
+    if(from!=='studio'){openStudio(moodCommand(url)||{action:'create'});return false;}
     return true;
   };
+  const signIn=()=>{resume.current=null;setAuthOpen(true);};
   return <SafeAreaView style={s.safe}><StatusBar barStyle="light-content" backgroundColor="#080808"/>
-    <View style={s.header}><Text style={s.brand}>PV LAB<Text style={s.brandSmall}>  / PARALLEL VISION</Text></Text><Pressable accessibilityRole="button" accessibilityLabel="Your account" onPress={()=>setProfile(true)} style={s.account}><Text style={s.accountText}>{isSignedIn?(user?.firstName?.[0]||'◎'):'Sign in'}</Text></Pressable></View>
+    <View style={s.header}><Text style={s.brand}>PV LAB<Text style={s.brandSmall}>  / PARALLEL VISION</Text></Text><Text style={s.sectionLabel}>{tab==='saved'?'MY MOODS':tab.toUpperCase()}</Text></View>
     <View style={s.body}>{isLoaded?<>
-      <LabWebSurface key={'studio-'+(sessionId||'guest')} source={LAB_STUDIO} web={studio} active={tab!=='moods'} getIdentity={getIdentity} onSignIn={()=>setProfile(true)} onSignOut={logout} onNavigate={url=>navigate(url)} onLoading={()=>{studioReady.current=false;}} onReady={()=>{studioReady.current=true;const command=queued.current;queued.current=null;if(command)studio.current?.injectJavaScript(labCommandScript(command));}}/>
-      {visitedMoods&&<LabWebSurface key={'moods-'+(sessionId||'guest')} source={moodsSource} web={moods} active={tab==='moods'} getIdentity={getIdentity} onSignIn={()=>setProfile(true)} onSignOut={logout} onNavigate={url=>navigate(url,true)}/>}
+      <LabWebSurface source={LAB_DISCOVER} web={discover} active={tab==='moods'} getIdentity={getIdentity} onSignIn={signIn} onSignOut={logout} onNavigate={url=>navigate(url,'discover')}/>
+      {visitedStudio&&isSignedIn&&<LabWebSurface key={'studio-'+sessionId} source={LAB_STUDIO} web={studio} active={['create','gallery'].includes(tab)} getIdentity={getIdentity} onSignIn={()=>setAuthOpen(true)} onSignOut={logout} onNavigate={url=>navigate(url,'studio')} onLoading={()=>{studioReady.current=false;}} onReady={()=>{studioReady.current=true;const command=queued.current;queued.current=null;if(command)studio.current?.injectJavaScript(labCommandScript(command));}}/>}
+      {visitedSaved&&<LabWebSurface key={'saved-'+(sessionId||'guest')} source={savedSource} web={saved} active={tab==='saved'} getIdentity={getIdentity} onSignIn={signIn} onSignOut={logout} onNavigate={url=>navigate(url,'saved')}/>}
+      {tab==='gallery'&&!isSignedIn&&<View style={s.empty}><Text style={s.eyebrow}>YOUR PERSONAL COLLECTION</Text><Text style={s.loadingTitle}>Keep what{String.fromCharCode(10)}you create.</Text><Text style={s.copy}>Your images, ready to revisit, save and share.</Text><Button selected onPress={()=>openStudio({action:'gallery'})}>Sign in to your gallery</Button><Button onPress={()=>setTab('moods')}>Explore Moods</Button></View>}
+      {tab==='profile'&&<ScrollView contentContainerStyle={s.profile}><Text style={s.eyebrow}>YOUR CREATIVE SPACE</Text><Text style={s.loadingTitle}>{isSignedIn?(user?.firstName||'Your Lab.'):'Make it yours.'}</Text><Text style={s.copy}>{isSignedIn?user?.primaryEmailAddress?.emailAddress:'Save your signature looks and return to your collection.'}</Text>
+        <View style={s.profileGroup}><Button onPress={()=>openSaved()}>My Moods   ↗</Button><Button onPress={()=>openSaved(LAB_MOODS.split('#')[0]+'#app-create')}>Create a mood   ＋</Button><Button onPress={()=>openStudio({action:'gallery'})}>My gallery   ↗</Button>{isSignedIn&&<Button onPress={()=>openStudio({action:'credits'})}>Lab credits   ↗</Button>}</View>
+        {isSignedIn?<Button onPress={logout}>Sign out</Button>:<Button selected onPress={signIn}>Sign in</Button>}
+        <Text style={s.profileFoot}>PARALLEL VISION / BERLIN</Text>
+      </ScrollView>}
     </>:<ActivityIndicator color="#d9eb5d" style={s.loader}/>}</View>
-    <View style={s.nav}><Button selected={tab==='create'} onPress={()=>select('create')}>Create</Button><Button selected={tab==='moods'} onPress={()=>select('moods')}>My Moods</Button><Button selected={tab==='gallery'} onPress={()=>select('gallery')}>Gallery</Button></View>
-    <Modal visible={profile} animationType="slide" presentationStyle="pageSheet" onRequestClose={()=>setProfile(false)}><SafeAreaView style={s.safe}><View style={s.header}><Text style={s.brand}>YOUR ACCOUNT</Text><Button onPress={()=>setProfile(false)}>Close</Button></View><KeyboardAvoidingView style={s.body} behavior={Platform.OS==='ios'?'padding':'height'}><ScrollView contentContainerStyle={s.profile} keyboardShouldPersistTaps="handled">
-      {isSignedIn?<><Text style={s.loadingTitle}>{user?.firstName||'Your Lab.'}</Text><Text style={s.copy}>{user?.primaryEmailAddress?.emailAddress}</Text><Button onPress={()=>{setProfile(false);setTab('create');send({action:'credits'});}}>Lab credits</Button><Button onPress={logout}>Sign out</Button></>:<AuthPanel description="Your images, saved Moods and Lab credits." continueLabel="OPEN LAB" onContinue={()=>setProfile(false)}/>}
-    </ScrollView></KeyboardAvoidingView></SafeAreaView></Modal>
+    <View style={s.nav}>{[['gallery','▦','Gallery'],['moods','◈','Moods'],['create','＋','Create'],['profile','○','Profile']].map(([id,icon,label])=><Pressable key={id} accessibilityRole="tab" accessibilityLabel={label} accessibilityState={{selected:tab===id||(id==='profile'&&tab==='saved')}} onPress={()=>select(id)} style={s.tab}><Text style={[s.tabIcon,(tab===id||(id==='profile'&&tab==='saved'))&&s.selectedText]}>{icon}</Text><Text style={[s.tabLabel,(tab===id||(id==='profile'&&tab==='saved'))&&s.selectedText]}>{label}</Text></Pressable>)}</View>
+    <Modal visible={authOpen} animationType="slide" presentationStyle="pageSheet" onRequestClose={()=>setAuthOpen(false)}><SafeAreaView style={s.safe}><View style={s.header}><Text style={s.brand}>YOUR ACCOUNT</Text><Button onPress={()=>setAuthOpen(false)}>Close</Button></View><KeyboardAvoidingView style={s.body} behavior={Platform.OS==='ios'?'padding':'height'}><ScrollView contentContainerStyle={s.profile} keyboardShouldPersistTaps="handled"><AuthPanel description="Your chosen Mood and photograph will be waiting for you." continueLabel="CONTINUE CREATING" onContinue={()=>setAuthOpen(false)}/></ScrollView></KeyboardAvoidingView></SafeAreaView></Modal>
   </SafeAreaView>;
 }
 export default function LabApp(){return <ClerkProvider publishableKey={config.clerkPublishableKey} tokenCache={tokenCache}><Workspace/></ClerkProvider>;}
-const s=StyleSheet.create({safe:{flex:1,backgroundColor:'#080808'},body:{flex:1},surface:{flex:1},hidden:{display:'none'},web:{flex:1,backgroundColor:'#080808'},header:{height:54,paddingHorizontal:16,flexDirection:'row',alignItems:'center',justifyContent:'space-between',borderBottomWidth:StyleSheet.hairlineWidth,borderBottomColor:'#2c3029'},brand:{color:'#eef0e9',fontSize:15,fontWeight:'700',letterSpacing:1},brandSmall:{fontSize:8,fontWeight:'400',letterSpacing:1.2,color:'#9da394'},account:{minWidth:44,minHeight:44,alignItems:'center',justifyContent:'center'},accountText:{color:'#d9eb5d',fontSize:13},nav:{flexDirection:'row',justifyContent:'space-around',borderTopWidth:StyleSheet.hairlineWidth,borderTopColor:'#30332c',paddingHorizontal:10,paddingVertical:7,backgroundColor:'#0b0d09'},button:{minHeight:44,paddingHorizontal:18,paddingVertical:12,borderRadius:10,alignItems:'center',justifyContent:'center'},selected:{backgroundColor:'#252c16'},buttonText:{color:'#a6ab9f',fontSize:13,fontWeight:'500'},selectedText:{color:'#dfed93'},pressed:{opacity:.6},overlay:{...StyleSheet.absoluteFillObject,backgroundColor:'#080808',justifyContent:'center',padding:28,gap:20},eyebrow:{color:'#959c8c',fontSize:10,letterSpacing:2},loadingTitle:{color:'#f1f1e9',fontSize:36,fontWeight:'400',letterSpacing:-1.2},copy:{color:'#a9afa1',fontSize:15,lineHeight:23,marginVertical:16},profile:{padding:24,flexGrow:1},loader:{flex:1}});
+const s=StyleSheet.create({safe:{flex:1,backgroundColor:'#080808'},body:{flex:1},surface:{flex:1},hidden:{display:'none'},web:{flex:1,backgroundColor:'#080808'},header:{height:54,paddingHorizontal:16,flexDirection:'row',alignItems:'center',justifyContent:'space-between',borderBottomWidth:StyleSheet.hairlineWidth,borderBottomColor:'#2c3029'},brand:{color:'#eef0e9',fontSize:15,fontWeight:'700',letterSpacing:1},brandSmall:{fontSize:8,fontWeight:'400',letterSpacing:1.2,color:'#9da394'},account:{minWidth:44,minHeight:44,alignItems:'center',justifyContent:'center'},accountText:{color:'#d9eb5d',fontSize:13},nav:{flexDirection:'row',justifyContent:'space-around',borderTopWidth:StyleSheet.hairlineWidth,borderTopColor:'#30332c',paddingHorizontal:10,paddingVertical:7,backgroundColor:'#0b0d09'},button:{minHeight:44,paddingHorizontal:18,paddingVertical:12,borderRadius:10,alignItems:'center',justifyContent:'center'},selected:{backgroundColor:'#252c16'},buttonText:{color:'#a6ab9f',fontSize:13,fontWeight:'500'},selectedText:{color:'#dfed93'},pressed:{opacity:.6},overlay:{...StyleSheet.absoluteFillObject,backgroundColor:'#080808',justifyContent:'center',padding:28,gap:20},eyebrow:{color:'#959c8c',fontSize:10,letterSpacing:2},loadingTitle:{color:'#f1f1e9',fontSize:36,fontWeight:'400',letterSpacing:-1.2},copy:{color:'#a9afa1',fontSize:15,lineHeight:23,marginVertical:16},sectionLabel:{fontSize:9,letterSpacing:1.4,color:'#9da394'},tab:{flex:1,minHeight:54,alignItems:'center',justifyContent:'center',gap:3},tabIcon:{fontSize:24,color:'#8f948b'},tabLabel:{fontSize:10,color:'#8f948b',fontWeight:'500'},empty:{flex:1,padding:28,justifyContent:'center'},profileGroup:{borderTopWidth:1,borderBottomWidth:1,borderColor:'#30332c',marginVertical:20,paddingVertical:12},profileFoot:{color:'#777d72',fontSize:9,letterSpacing:2,marginTop:40},profile:{padding:24,flexGrow:1},loader:{flex:1}});
