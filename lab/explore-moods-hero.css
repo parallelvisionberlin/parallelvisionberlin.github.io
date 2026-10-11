@@ -1,7 +1,7 @@
 /* The photographs dissolve independently of the fixed headline and actions. */
 .mc-explore-page [data-hero-carousel] .mc-explore-hero-art{inset:0}
 .mc-explore-page [data-hero-carousel] .mc-explore-hero-art img{
-  object-position:var(--hero-position,65%) center;
+  object-position:var(--hero-position,65% center);
 }
 .mc-explore-page [data-hero-carousel] .mc-explore-hero-veil{
   background:linear-gradient(90deg,#0a100ff2 0%,#0a100fdf 24%,#0a100f82 43%,transparent 72%),linear-gradient(0deg,#0a100f85,transparent 25%);

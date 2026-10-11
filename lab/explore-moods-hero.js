@@ -2,11 +2,9 @@
 const hero = document.querySelector('[data-hero-carousel]');
 if (hero) {
   const slides = [
-    ['dreamcore-train', 'Dreamcore Train', '65%'],
-    ['90s-cinema', '90s Cinema', '70%'],
-    ['pool-memory', 'Pool Memory', '66%'],
-    ['white-suit', 'White Suit Editorial', '72%'],
-    ['three-moods', 'Three Moods', '66%'],
+    ['three-moods', 'Fashion Triptych', '66% top'],
+    ['90s-cinema', '90s Cinema', '70% center'],
+    ['dreamcore-train', 'Last Train', '65% center'],
   ];
   const art = hero.querySelector('.mc-explore-hero-art');
   const controls = hero.querySelector('.mc-hero-controls');
@@ -27,7 +25,7 @@ if (hero) {
       img.alt = '';
       img.decoding = 'async';
       img.style.setProperty('--hero-position', slides[index][2]);
-      img.src = `/lab/mood-previews/hero/${slides[index][0]}.webp`;
+      img.src = `/lab/mood-previews/hero/${slides[index][0]}.webp?v=20261012-editorial-order1`;
       cache.set(index, img.decode().then(() => img).catch(() => {
         cache.delete(index);
         return null;
