@@ -7,7 +7,7 @@ import { resolve, extname } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { createHash } from 'node:crypto';
 const { chromium } = await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE).href);
-const source = readFileSync('lab/lab.js', 'utf8'), boot = source.indexOf("try{const {Clerk}=await import(");
+const source = readFileSync('lab/lab.js', 'utf8'), boot = source.indexOf("try{clerk=await loadLabAccount();");
 assert.ok(boot > 0);
 const injected = source.slice(0, boot) + `clerk={session:{getToken:async()=> 'synthetic-token'},signOut:async()=>{}};owner=true;userId='test';config={enabled:true,concurrency:{image:4,video:1}};$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();update();window.__labTest={lock,refs:()=>references.map(r=>({name:r.file.name,size:r.file.size,type:r.file.type,width:r.width,height:r.height,role:r.role,note:r.note,target:r.target})),file:()=>file};`;
 const server = http.createServer((req, res) => {

@@ -88,6 +88,7 @@ export function createSessionRequest({ baseUrl, getSession, fetchImpl = globalTh
       checkSession();
       const headers = new Headers(init.headers);
       headers.set('Authorization', 'Bearer ' + currentToken);
+      if(session.labNative===true)headers.set('X-PV-Lab-Client','mobile-v1');
       const response = await fetchImpl(url.href, { ...init, headers, redirect: 'error' });
       checkSession();
       return response;

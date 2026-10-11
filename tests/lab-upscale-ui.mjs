@@ -7,7 +7,7 @@ import {resolve, extname} from 'node:path';
 import {pathToFileURL} from 'node:url';
 const {chromium}=await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE).href);
 const source=readFileSync('lab/lab.js','utf8');
-const boot=source.indexOf("try{const {Clerk}=await import(");
+const boot=source.indexOf("try{clerk=await loadLabAccount();");
 const bootEnd=source.indexOf("\n// Soul composer:",boot);
 assert.ok(boot>0&&bootEnd>boot,'Preserve the current image composer after replacing only Clerk bootstrap');
 const testSource=source.slice(0,boot)+source.slice(bootEnd)+

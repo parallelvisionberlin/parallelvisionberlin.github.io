@@ -8,7 +8,7 @@ import {pathToFileURL} from 'node:url';
 
 const {chromium}=await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE).href);
 const root=resolve('.'),source=readFileSync('lab/lab.js','utf8');
-const boot=source.indexOf("try{const {Clerk}=await import(");
+const boot=source.indexOf("try{clerk=await loadLabAccount();");
 assert.ok(boot>0,'Studio bootstrap must be found');
 const authEnd=source.indexOf('\n',boot);
 assert.ok(authEnd>boot,'Clerk bootstrap must end before editor tool handlers');

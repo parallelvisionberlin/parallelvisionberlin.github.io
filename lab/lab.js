@@ -1,3 +1,4 @@
+import {loadLabAccount} from './native-account.js?v=1';
 import {createAssetLibrary} from './assets.js?v=20261010-navigation-media1';
 import {createPrecisionEditor} from './precision-edit.js?v=20261011-retouch-discovery1';
 import {createCustomerWallet} from './customer-wallet.js?v=20261010-referrals3';
@@ -2854,12 +2855,32 @@ async function sync(){if(syncing)return;syncing=true;try{if(!clerk.isSignedIn){l
     if(customerMode&&new URLSearchParams(location.search).get('referrals')==='1')wallet.openReferrals();
     await Promise.all([loadHistory().finally(()=>$('history').removeAttribute('aria-busy')),loadPacks(),soul.load(),loadSoulProIdentity()]);
     void myMoods.refresh().catch(()=>{/* Personal boards must not block image Studio sign-in. */});
-    syncVideoStudioMode();await restoreStudioEntry();if(!fashionActive&&fashionController)void fashionController.sync();if(customerMode&&new URLSearchParams(location.search).get('billing')==='success'){notify('Checkout returned. Credits appear when Stripe confirms payment.');void wallet.refresh();}}catch(e){lock();$('auth-status').textContent=e.message;$('signin').disabled=false;$('logout').hidden=!clerk?.isSignedIn;}finally{syncing=false;finishLabBoot();}}
+    syncVideoStudioMode();await restoreStudioEntry();if(!fashionActive&&fashionController)void fashionController.sync();if(customerMode&&new URLSearchParams(location.search).get('billing')==='success'){notify('Checkout returned. Credits appear when Stripe confirms payment.');void wallet.refresh();}}catch(e){lock();$('auth-status').textContent=e.message;$('signin').disabled=false;$('logout').hidden=!clerk?.isSignedIn;}finally{syncing=false;finishLabBoot();if(owner&&window.__PV_LAB_NATIVE__===1)window.ReactNativeWebView?.postMessage(JSON.stringify({type:'PV_LAB_READY'}));}}
 $('studio-invite-friends').onclick=()=>{$('studio-invite-friends').closest('details').open=false;wallet.openReferrals();};
 $('auth-retry').onclick=()=>location.reload();$('signin').onclick=()=>clerk?.openSignIn();$('logout').onclick=async()=>{lock();await clerk?.signOut();$('auth-status').textContent='Signed out. Your archive remains private.';};
 assetLibrary=createAssetLibrary({api,notify,archive,app:$('app'),selected:()=>historySelected,selectMode:setHistorySelectMode,reload:()=>loadHistory(),restoreStudio:()=>{syncImageStudioMode();syncVideoStudioMode();syncStudioNav();},beforeOpen:()=>{++previewRevision;$('video').pause();if(retouchActive)leaveRetouch();setFashionActive(false);syncStudioRoute('assets');},kind:()=>tool==='upscale'?'upscale':tool==='video'?'video':'image',ready:()=>owner});
 setTool(['fashion','assets','retouch'].includes(studioRoute())?'image':studioRoute());
-try{const {Clerk}=await import('https://esm.sh/@clerk/clerk-js@6?bundle');await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='https://clerk.parallelvisionlabel.com/npm/@clerk/ui@1/dist/ui.browser.js';s.onload=resolve;s.onerror=reject;document.head.append(s);});clerk=new Clerk('pk_live_Y2xlcmsucGFyYWxsZWx2aXNpb25sYWJlbC5jb20k');await clerk.load({ui:{ClerkUI:window.__internal_ClerkUICtor},signInFallbackRedirectUrl:location.href,signUpFallbackRedirectUrl:location.href});clerk.addListener(()=>void sync());await sync();}catch{$('gate').hidden=false;$('auth-retry').hidden=false;$('signin').disabled=true;$('auth-status').textContent='Sign-in could not load. Check your connection and reload the page.';finishLabBoot();}
+// Commands from the trusted app shell reuse the same editor and never submit jobs.
+if(window.__PV_LAB_NATIVE__===1&&window.ReactNativeWebView){
+  window.__PV_LAB_COMMAND__=async command=>{
+    if(!owner)return;
+    try{
+      if(command?.action==='gallery'){await assetLibrary.open();return;}
+      if(command?.action==='credits'){if(customerMode)$('lab-wallet-toggle').click();else notify('Owner workspace. Provider costs appear before generation.');return;}
+      if(command?.action==='create'||command?.action==='mood'){
+        assetLibrary.close();setTool('image');
+        if(command.action==='mood'){
+          if(command.moodboard){await myMoods.refresh();const board=myMoods.find(command.moodboard);if(!board)throw Error('This Mood is unavailable.');moodUI.restore({moodId:'custom',customMoodBoardId:board.id,moodIntensity:board.intensity});}
+          else {const mood=moodById(command.mood);if(!mood)throw Error('This Mood is unavailable.');moodUI.restore({moodId:mood.id,moodIntensity:mood.defaultIntensity||70});}
+          update();
+        }
+        window.scrollTo({top:0,behavior:'smooth'});
+      }
+    }catch(e){notify(e.message,true);}
+  };
+}
+
+try{clerk=await loadLabAccount();clerk.addListener(()=>void sync());await sync();}catch{$('gate').hidden=false;$('auth-retry').hidden=false;$('signin').disabled=true;$('auth-status').textContent='Sign-in could not load. Check your connection and reload the page.';finishLabBoot();}
 
 
 
@@ -3064,4 +3085,5 @@ async function submitImageSnapshot(){
     }
   }
 }
+
 
