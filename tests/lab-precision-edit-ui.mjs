@@ -9,7 +9,7 @@ const studio=readFileSync('lab/studio.html','utf8');
 const start=studio.indexOf('<section id="precision-workspace"');
 const end=studio.indexOf('<section id="image-studio"',start);
 assert.ok(start>0&&end>start,'Real Precision Edit markup must be present in the studio');
-const html='<html><head><meta name="viewport" content="width=device-width,initial-scale=1">'
+const html='<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
   +'<link rel="stylesheet" href="/lab/precision-edit.css"></head>'
   +'<body style="background:#101114;margin:0;color:white"><div id="app" class="retouch-studio-active" style="display:block;padding:12px;max-width:1400px;margin:auto">'
   +studio.slice(start,end)+'</div></body></html>';
