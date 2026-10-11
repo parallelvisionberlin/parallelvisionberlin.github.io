@@ -27,6 +27,12 @@ export async function moodBoardsRoute(request,env,owner,url,{body,first,rows,run
   }
   const parts=path.split('/').filter(Boolean),hasId=parts.length===3&&parts[0]==='api'&&parts[1]==='moodboards';
   if(path==='/api/moodboards'&&method==='POST'||hasId&&method==='POST'){
+    // Verify board ownership BEFORE checking any submitted asset IDs.
+    // Otherwise an unrelated user could learn about image availability.
+    if(hasId){
+      const boardId=uid(parts[2]),existing=await first(env,'SELECT id FROM moodboards WHERE id=? AND owner_id=?',boardId,owner);
+      if(!existing)fail(404,'Moodboard not found.');
+    }
     const input=validateMoodboard(await body(request),fail);
     for(const id of input.imageIds){
       const asset=await first(env,"SELECT id FROM assets WHERE id=? AND owner_id=? AND kind='source' AND mime IN ('image/jpeg','image/png','image/webp')",id,owner);
