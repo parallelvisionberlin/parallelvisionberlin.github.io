@@ -132,7 +132,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     const message=$('precision-selection-message');
     if(!base){
       message.textContent='Start by dropping a photograph above.';
-      $('precision-price-note').textContent='Add photo → Select area → Describe edit → Review price';
+      $('precision-price-note').textContent='Add photo · Select area · Describe edit · Review price';
       $('precision-result-label').textContent='AWAITING EDIT';
     }else if(!selected){
       message.textContent=mode==='pan'?'Drag to move the view. Choose a selection tool to continue.':
@@ -169,7 +169,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     $('precision-generate').disabled=!have||!selected||!$('precision-prompt').value.trim()||taskBusy||!owner()||!falReady()||!exportReady;
     $('precision-change-photo').hidden=!have;
     $('precision-tool-magic').title='Select a whole object with SAM 3. Published price approximately $0.005 per click.';
-    $('precision-generate').textContent=taskBusy?'Working…':'Review price ↗';
+    $('precision-generate').textContent=taskBusy?'Working…':'Review price';
     $('precision-generate').title=(!owner()||!falReady())?'Paid Retouch generation is not enabled on this account.':
       !have?'Add a photograph first.':!selected?'Select the area to edit.':
       !$('precision-prompt').value.trim()?'Describe the edit before reviewing its price.':
@@ -573,7 +573,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     $('precision-download').hidden=false;
     $('precision-continue').hidden=!lastResultSourceId;
     $('precision-continue').disabled=!lastResultSourceId;
-    $('precision-download').textContent='Download '+(resultFormat==='jpeg'?'JPG':'PNG')+' ↗';
+    $('precision-download').textContent='Download '+(resultFormat==='jpeg'?'JPG':'PNG');
     renderComparison();
   }
   function renderComparison(){
