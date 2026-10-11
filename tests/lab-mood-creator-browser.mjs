@@ -8,7 +8,7 @@ import {pathToFileURL} from 'node:url';
 const {chromium}=await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE).href);
 const root=resolve('.');
 const creatorSource=readFileSync('lab/mood-creator.js','utf8');
-const begin=creatorSource.indexOf("  (async()=>{\n    try{\n      const {Clerk}=await import(");
+const begin=creatorSource.indexOf("  (async()=>{\n    try{\n      clerk=await loadLabAccount();");
 const finish=creatorSource.indexOf("\n  })();",begin);
 assert.ok(begin>0&&finish>begin,'Locate Mood Creator authentication bootstrap');
 const token='synthetic.'+Buffer.from(JSON.stringify({exp:Math.floor(Date.now()/1000)+3600})).toString('base64url')+'.signature';
