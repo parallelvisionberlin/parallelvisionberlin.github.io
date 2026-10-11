@@ -42,7 +42,11 @@ try{
   await page.waitForFunction(()=>[...document.querySelectorAll('#studio-header .brand img')].every(img=>img.complete&&img.naturalWidth>0));
   assert.deepEqual(await page.locator('#studio-header .tool-group>button').allTextContents(),
     ['Image','Retouch','Video','Upscaler','Assets','Fashion'],
-    'Mood Creator must not occupy the six creative text tabs');
+    'The six existing studio tool buttons remain unchanged');
+  const moodLinks=page.locator('#studio-header .tool-group>a.tool-link');
+  assert.deepEqual(await moodLinks.allTextContents(),['Moods','Mood Creator']);
+  assert.equal(await page.locator('#tool-explore-moods').getAttribute('href'),'./explore-moods.html');
+  assert.equal(await page.locator('#tool-mood-creator').getAttribute('href'),'./mood-creator.html');
   assert.equal(await page.locator('#studio-header .studio-mood-link').count(),0,
     'Old navigation link is removed');
   const icon=page.locator('#studio-header .actions>.studio-mood-icon');
@@ -91,8 +95,10 @@ try{
         'Desktop-only tooltip must never cover mobile navigation at '+width);
     }
     if(width>=900){
-      assert.ok(size.fashion.right<=size.icon.x+1,
-        'Normal tabs end before the separate right-hand Mood shortcut at '+width);
+      assert.ok(size.nav.right<=size.actions.x+2,
+        'Navigation is contained before Queue/Account at '+width+' '+JSON.stringify(size));
+      if(width>1250)assert.ok(size.fashion.right<=size.icon.x+1,
+        'Desktop tabs end before the Mood shortcut at '+width);
       assert.ok(Math.abs(size.header.height-70)<=2,'Desktop header remains 70px tall');
     }else{
       assert.ok(size.brand.right<=size.actions.x+2,
@@ -110,7 +116,7 @@ try{
     }
   }
   assert.deepEqual(errors,[],'No browser script errors');
-  console.log('PASS Mood Creator icon-only right header shortcut, PV graphite styling, tooltip and nine breakpoints');
+  console.log('PASS six original tools, Explore Moods and Mood Creator links, icon shortcut, and nine breakpoints');
 }finally{
   await browser.close();
   await new Promise(done=>server.close(done));
