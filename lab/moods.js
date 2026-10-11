@@ -320,6 +320,13 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
   function sync({visible=true,locked=false}={}){button.hidden=!visible;button.disabled=locked;if(!visible||locked)close();if(visible)render();}
   slider.addEventListener('input',()=>{intensity=Number(slider.value);render();onChange();});
   button.onclick=()=>{if(panel.hidden)open();else close();};
+  // Close when clicking anywhere outside the popup; consume that first click
+  // so an underlying gallery card or Generate button is not activated.
+  document.addEventListener('click',event=>{
+    if(panel.hidden||panel.contains(event.target)||event.target===button)return;
+    event.preventDefault();event.stopPropagation();
+    close(true);
+  },true);
   backdrop.onclick=()=>close(true);
   panel.querySelector('#composer-moods-close').onclick=()=>close(true);
   done.onclick=()=>close(true);
