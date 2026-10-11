@@ -364,3 +364,56 @@ test('Preview-first Moods deck enlarges photos while keeping original slider and
   assert.match(html,/moods\.css\?v=20261011-preview-first2/);
   assert.equal(MOODS.length,11);
 });
+
+
+test('80s Film high-fashion feature-cinema prompt scales in five cinematic stages',()=>{
+  const preset=moodById('80s-film');
+  assert.equal(preset.description,'35mm movie scenes, burned light and saturated color');
+  const original='Preserve this person and bedroom composition';
+  const steps=[
+    [20,/SUBTLE 1-34% \/ ANALOG TREATMENT/],
+    [50,/CINEMATIC COLOR 35-69%/],
+    [80,/MOVIE STILL 70-89%/],
+    [93,/FULL CINEMATIC SCENE 90-99%/],
+    [100,/MAXIMUM 100% \/ FULL MOVIE PRODUCTION/]
+  ];
+  const prompts=steps.map(([intensity,stage])=>{
+    const r=prepareMoodPrompt(original,'80s-film',intensity,{engine:'seedream',referenceCount:1});
+    assert.equal(r.error,'');
+    assert.ok(r.prompt.startsWith(original+'\\n\\n'));
+    assert.match(r.prompt,stage);
+    assert.match(r.prompt,/organic 35mm cinema-negative/);
+    assert.match(r.prompt,/suspended dust/);
+    assert.match(r.prompt,/original garments/);
+    assert.match(r.prompt,/first reference is the base photograph/);
+    assert.equal(r.metadata.moodIntensity,intensity);
+    assert.equal(r.metadata.moodOriginalPrompt,original);
+    return r.prompt;
+  });
+  assert.equal(new Set(prompts).size,steps.length);
+  assert.doesNotMatch(prompts[3],/MAXIMUM 100% \/ FULL MOVIE PRODUCTION/);
+  assert.match(prompts[4],/luminous real air/);
+  assert.match(prompts[4],/DO NOT replace clothes/);
+  const textOnly=prepareMoodPrompt('Fashion model emerging into an 80s movie scene','80s-film',100);
+  assert.equal(textOnly.error,'');
+  assert.match(textOnly.prompt,/designer-quality clothes/);
+  const refsOnly=prepareMoodPrompt('Cinematic fashion still','80s-film',100,{referenceCount:2,referenceMode:'references',engine:'gemini'});
+  assert.equal(refsOnly.error,'');
+  assert.match(refsOnly.prompt,/Reference-only: follow requested output/);
+});
+
+test('80s Film cinematic mood keeps multi-reference prompts under provider character limit',()=>{
+  const refs=Array.from({length:10},(_,i)=>({name:'film-ref-'+i+'.jpg',role:i?'none':'base'}));
+  for(const amount of [20,50,80,93,100]){
+    const r=prepareMoodPrompt('High-fashion actor in a room','80s-film',amount,{referenceCount:10,engine:'seedream'});
+    assert.equal(r.error,'');
+    assert.match(r.prompt,/80S FILM \/ FASHION CINEMA/);
+    assert.ok(compileImagePrompt(r.prompt,refs).length<=5000,'ten-reference prompt should fit at '+amount+'%');
+  }
+  const studio=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
+  const app=readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8');
+  const creator=readFileSync(new URL('../lab/mood-creator.js',import.meta.url),'utf8');
+  assert.match(studio,/lab\\.js\\?v=20261011-80s-cinema1/);
+  assert.match(app,/moods\\.js\\?v=20261011-80s-cinema1/);
+  assert.match(creator,/moods\\.js\\?v=20261011-80s-cinema1/);
+});
