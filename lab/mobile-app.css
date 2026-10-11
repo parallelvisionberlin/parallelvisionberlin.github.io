@@ -75,3 +75,26 @@
 @media(min-width:600px){.pv-native-lab #image-composer{max-width:650px!important;align-self:center}.pv-native-lab #image-composer-references .composer-reference-tile{width:440px!important}}
 
 .pv-native-lab #image-studio .archive{min-height:0!important;padding:0!important}
+
+/* App collection and progressive personal Mood editor. */
+.pv-native-lab .mobile-mood-nav{display:flex;gap:10px;padding:18px 16px 0;justify-content:space-between}
+.pv-native-lab .mobile-mood-nav button,.pv-native-lab .mobile-mood-stages button{font:500 13px/1.3 'DM Sans',sans-serif;min-height:44px;padding:10px 12px;background:transparent;border:1px solid #3b4133;border-radius:9px;color:#cdd3c3}
+.pv-native-lab .mobile-mood-nav #mobile-new{color:#d9eb5d}
+.pv-native-lab:not(.mobile-mood-editing) #workspace,.pv-native-lab.mobile-mood-editing #my-moods{display:none!important}
+.pv-native-lab .mc-library{background:#080808!important;color:#eef0e9!important;min-height:65dvh}
+.pv-native-lab .mc-library-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.pv-native-lab .mc-library-head h2{font-size:32px!important;letter-spacing:-.05em}
+.pv-native-lab .mc-library-empty{font-size:15px;color:#a5ae98!important;line-height:1.6;border-color:#333a2b!important}
+.pv-native-lab #mc-library-create{display:none}
+.pv-native-lab .mobile-mood-stages{display:flex;gap:10px;margin-bottom:22px}
+.pv-native-lab .mobile-mood-stages button{flex:1}
+.pv-native-lab .mobile-mood-stages button[aria-pressed=true]{color:#d9eb5d;border-color:#8c9a4c;background:#202614}
+.pv-native-lab:not(.mobile-mood-direction) .mc-direction,.pv-native-lab.mobile-mood-direction .mc-board-column{display:none!important}
+.pv-native-lab .mc-workspace-body{display:block!important}
+.pv-native-lab .mc-direction{border:0!important}
+.pv-native-lab .mc-workspace-heading{margin-bottom:20px!important}
+.pv-native-lab .mc-workspace-intro{display:none!important}
+.pv-native-lab .mobile-mood-next{width:100%;min-height:52px;background:#d9eb5d;color:#10120b;border:0;border-radius:10px;font-size:15px;margin-top:20px}
+.pv-native-lab .mc-save-row{display:flex!important;flex-direction:column;gap:10px}
+.pv-native-lab .mc-save-row button{min-height:52px;font-size:15px;border-radius:10px}
+.pv-native-lab .mc-direction-main,.pv-native-lab .mc-direction-footer{padding:16px!important}
