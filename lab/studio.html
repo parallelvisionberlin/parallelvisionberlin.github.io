@@ -412,7 +412,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     <div class="moodboard-config moodboard-row"><label for="moodboard-direction">Your style direction</label><textarea id="moodboard-direction" maxlength="900" rows="4" placeholder="Describe the lighting, atmosphere, texture and material qualities you want to repeat…"></textarea><small>Describe the look, not the subject. Images are private inspiration, not automatically analyzed or added to generations.</small></div>
     <div class="moodboard-config moodboard-settings">
       <div class="moodboard-row"><label for="moodboard-base">Start from a curated Mood</label><select id="moodboard-base"></select></div>
-      <div class="moodboard-row"><label for="moodboard-intensity">Starting intensity</label><select id="moodboard-intensity"><option value="20">20% · Subtle</option><option value="40">40% · Atmospheric</option><option value="60" selected>60% · Balanced</option><option value="75">75% · Immersive</option><option value="85">85% · Strong</option><option value="95">95% · Extreme</option><option value="100">100% · Maximum</option></select></div>
+      <div class="moodboard-row"><label for="moodboard-intensity">Starting intensity</label><input id="moodboard-intensity" type="number" min="1" max="100" step="1" value="60" aria-label="Starting mood intensity in percent"></div>
     </div>
     <div class="moodboard-images-heading"><strong>Inspiration board</strong><span id="moodboard-images-count">0 / 12 images</span></div>
     <div id="moodboard-images" class="moodboard-images" aria-label="Saved private moodboard images"></div>
