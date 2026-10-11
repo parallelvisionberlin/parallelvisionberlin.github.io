@@ -68,12 +68,12 @@ until paid webhooks and per-model charging are verified.
 This change adds a narrow temporary path. It does not turn on payment
 or generation access by itself.
 
-1. Sign in to `https://parallelvisionlabel.com/lab/` with a **separate
-   Google/Clerk customer account**, not the existing owner account.
-2. Identify that test customer's own Clerk `user_...` ID from its
-   authenticated `GET /api/session` response's `ownerId` (or from
-   your Clerk Dashboard > Users). This is a customer identifier, not a
-   password or Stripe API secret.
+1. Open `https://parallelvisionlabel.com/lab/?setup-pilot=1` and sign in
+   with a **separate Google/Clerk customer account**, not the owner.
+2. The page displays that signed-in test customer's own `user_...` ID.
+   Copy it directly into Cloudflare; no screenshot, password or API
+   secret needs to be shared. This URL only reveals the viewer's own
+   ID from their authenticated `/api/session` response.
 3. In Cloudflare **parallel-vision-lab** > Settings > Variables and
    Secrets, add encrypted **Secret** `LAB_LIVE_PILOT_CUSTOMER_ID` with
    that exact ID. Never add the ID to GitHub or `wrangler.toml`.
