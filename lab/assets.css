@@ -1091,3 +1091,13 @@ body:has(#app[hidden])>#studio-header .studio-mood-icon{display:none!important}
   #studio-header .tool-switch>.tool-group{gap:18px}
   #studio-header .tool-switch>.tool-group>a.tool-link{font-size:12px}
 }
+
+/* At intermediate laptop widths, navigation scrolls inside its own allotted row.
+   The Queue, Account and image composer never move or create page overflow. */
+@media(min-width:900px) and (max-width:1250px){
+  body>#studio-header .tool-switch{
+    overflow-x:auto;overflow-y:hidden;scrollbar-width:none;overscroll-behavior-x:contain;
+  }
+  body>#studio-header .tool-switch::-webkit-scrollbar{display:none}
+  #studio-header .tool-switch>.tool-group{width:max-content;min-width:max-content;justify-content:flex-start}
+}
