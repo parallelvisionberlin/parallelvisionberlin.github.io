@@ -1012,6 +1012,11 @@ body:has(#app[hidden])>#studio-header .studio-mood-icon{display:none!important}
   #studio-header .actions{gap:14px;min-width:0}
 }
 @media(max-width:899px){
+  /* A touch tap follows the shortcut immediately. Do not let the desktop
+     hover label obscure the second navigation row. Keyboard focus remains. */
+  #studio-header .studio-mood-icon:hover:not(:focus-visible)::after{
+    opacity:0;visibility:hidden;
+  }
   body>#studio-header .tool-switch{
     overflow-x:auto;overflow-y:hidden;scrollbar-width:none;
     overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;
