@@ -1,6 +1,6 @@
 param([switch]$Build, [switch]$CheckOnly)
 $ErrorActionPreference = 'Stop'
-$SourceCommit = '9efaa31da9aa09ded7422333b4bba343ab958ebc'
+$SourceCommit = '8ed0c75f3e439ae0c549c1b4ebcca3cb1f7c2840'
 $Revision = 'PV LAB / 03'
 $OriginalLocation = Get-Location
 $PriorNoVcs = [Environment]::GetEnvironmentVariable('EAS_NO_VCS', 'Process')
@@ -27,11 +27,11 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Run this from the Parallel Vision mobile-app folder.' }
     $Origin = (& git.exe -C $Repository remote get-url origin)
     if ($LASTEXITCODE -ne 0 -or $Origin -notmatch 'github\.com[:/]parallelvisionberlin/parallelvisionberlin\.github\.io(?:\.git)?$') { throw 'Unexpected repository.' }
-    Invoke-Checked 'git.exe' @('-C', $Repository, 'fetch', 'origin', 'app-moods-v2')
+    Invoke-Checked 'git.exe' @('-C', $Repository, 'fetch', 'origin', 'mobile-app-v1')
     Invoke-Checked 'git.exe' @('-C', $Repository, 'cat-file', '-e', "${SourceCommit}^{commit}")
     & git.exe -C $Repository diff --quiet $SourceCommit FETCH_HEAD -- mobile-app/App.js mobile-app/NinaApp.js mobile-app/src mobile-app/assets mobile-app/tests mobile-app/scripts mobile-app/app.json mobile-app/eas.json mobile-app/package.json mobile-app/package-lock.json mobile-app/.easignore mobile-app/.npmrc
     if ($LASTEXITCODE -ne 0) { throw 'Newer app code exists. Stopped rather than building the wrong version.' }
-    $Name = 'PVLAB02_' + (Get-Date -Format 'yyyyMMdd_HHmmss') + '_' + ([guid]::NewGuid().ToString('N').Substring(0, 6))
+    $Name = 'PVLAB03_' + (Get-Date -Format 'yyyyMMdd_HHmmss') + '_' + ([guid]::NewGuid().ToString('N').Substring(0, 6))
     $Workspace = Join-Path (Join-Path $env:LOCALAPPDATA 'ParallelVision\Builds') $Name
     New-Item -ItemType Directory -Path $Workspace -Force | Out-Null
     $Archive = Join-Path $Workspace 'source.tar'
