@@ -49,7 +49,7 @@ function update(){
   const title=busy?'Preparing…':'Review price';
   if($('quote').dataset.caption!==title){
     $('quote').dataset.caption=title;
-    const arrow=document.createElement('span');arrow.textContent='↗';arrow.setAttribute('aria-hidden','true');
+    const arrow=document.createElement('span');arrow.textContent='';arrow.setAttribute('aria-hidden','true');
     $('quote').replaceChildren(document.createTextNode(title+' '),arrow);
   }
   const person=!!$('person-file').files.length,garment=!!$('garment-file').files.length;
