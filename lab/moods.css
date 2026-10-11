@@ -200,3 +200,52 @@
   .moods-actions>.moods-about{grid-column:2;min-width:0;min-height:19px;justify-content:flex-end}
   #image-composer #composer-moods-about{gap:4px;font-size:10px}
 }
+
+
+/* My Moods gallery cards remain inside the existing floating mood selector. */
+#image-composer .moods-my-empty[hidden],#image-composer .moods-board-wrap[hidden]{display:none!important}
+.moods-my-empty{grid-column:1/-1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-height:145px;padding:24px;border:1px dashed #515357;border-radius:12px;text-align:center;color:#e4e5e8}
+.moods-my-empty strong{font-size:14px}
+.moods-my-empty p{margin:0;color:#a7aaac;font-size:12px;line-height:1.5}
+#image-composer .moods-my-empty button{margin-top:5px;min-height:37px;padding:8px 16px;border:1px solid #d6ff00;border-radius:9px;background:#d6ff00;color:#181a18;font-size:12px;font-weight:660}
+.moods-board-wrap{position:relative;min-width:0}
+#image-composer .moods-board-wrap>.moods-card{width:100%}
+#image-composer .moods-board-wrap>.moods-board-edit{position:absolute;top:8px;right:8px;min-height:28px;padding:4px 9px;border-radius:7px;border:1px solid #fff6;background:#121417d9;color:#fff;font-size:10px}
+#image-composer .moods-board-wrap>.moods-board-edit:hover{background:#383b3c}
+.moods-board-cover{display:grid;place-items:center}
+.moods-board-placeholder{display:grid;place-items:center;height:100%;font-size:32px;background:linear-gradient(120deg,#263333,#40404a);color:#d5ffc4}
+.moods-board-count{position:absolute;left:7px;bottom:7px;font-size:10px;color:#f5f5f5;background:#111b;padding:4px 7px;border-radius:5px}
+/* Private saved style editor. Not part of the fixed generation deck. */
+#moodboard-editor{box-sizing:border-box;width:min(560px,calc(100vw - 28px));max-width:none;max-height:min(86dvh,760px);margin:auto;padding:0;border:1px solid #57595d;border-radius:18px;background:#1c1d20;color:#f0f0f1;box-shadow:0 32px 95px #000b;overflow:auto;font-family:inherit}
+#moodboard-editor::backdrop{background:#07080ac9;backdrop-filter:blur(5px)}
+#moodboard-editor form{display:flex;flex-direction:column;gap:17px;margin:0;padding:24px}
+.moodboard-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}
+.moodboard-head span{font-size:10px;letter-spacing:.13em;color:#adacb0}
+.moodboard-head h2{margin:5px 0 7px;color:#fff;font-size:25px;font-weight:580;letter-spacing:-.045em}
+.moodboard-head p{margin:0;font-size:12px;line-height:1.5;color:#adb0b4}
+#moodboard-cancel{flex:0 0 35px;width:35px;height:35px;min-height:35px;padding:0;background:#303136;border:1px solid #45464a;border-radius:50%;font-size:22px;line-height:1;color:#e2e4e7}
+.moodboard-row{display:flex;flex-direction:column;gap:7px;min-width:0}
+.moodboard-row label{color:#d6d8db;font-size:12px;font-weight:590}
+#moodboard-editor :is(input,textarea,select){box-sizing:border-box;width:100%;min-height:42px;padding:10px 12px;border:1px solid #4a4c50;border-radius:9px;background:#282a2e;color:#f4f4f5;font:inherit;font-size:13px}
+#moodboard-editor textarea{min-height:103px;resize:vertical;line-height:1.55}
+#moodboard-editor :is(input,textarea,select):focus-visible{outline:2px solid #d6ff00;outline-offset:1px}
+.moodboard-row small{font-size:11px;line-height:1.5;color:#a3a6a9}
+.moodboard-settings{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+.moodboard-images-heading{display:flex;justify-content:space-between;align-items:center;color:#e2e2e3;font-size:12px}
+.moodboard-images-heading span{font-size:11px;color:#9a9ea1}
+.moodboard-images{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}
+.moodboard-image-tile{position:relative;aspect-ratio:4/5;min-width:0;background:#33363a;border-radius:8px;overflow:hidden}
+.moodboard-image-tile img{display:block;width:100%;height:100%;object-fit:cover}
+#moodboard-editor .moodboard-image-remove{position:absolute;top:4px;right:4px;display:grid;place-items:center;width:22px;height:22px;min-height:22px;padding:0;border:1px solid #ffffff57;border-radius:50%;background:#13151add;color:#fff;font-size:15px}
+.moodboard-actions{display:flex;align-items:center;gap:12px;margin-top:2px;border-top:1px solid #3c3e42;padding-top:14px}
+.moodboard-actions span{flex:1}
+#moodboard-delete{min-height:37px;padding:7px 10px;border:1px solid #544448;border-radius:8px;background:none;color:#c99ca5;font-size:11px}
+#moodboard-save{min-width:155px;min-height:43px;padding:10px 16px;border:1px solid #d6ff00;border-radius:9px;background:#d6ff00;color:#171917;font:inherit;font-size:13px;font-weight:700}
+#moodboard-save:hover{background:#e7ff7c}
+#moodboard-save:disabled{opacity:.55;cursor:not-allowed}
+.moodboard-editor-status{min-height:0;margin:0;color:#aab0b2;font-size:11px}
+.moodboard-editor-status:empty{display:none}
+.moodboard-editor-status.error{color:#efb2b2}
+.image-detail-action-grid #image-detail-save-mood{grid-column:1/-1;min-height:37px;border-color:#63695c;color:#ddedc6;background:#30352d;font-size:12px}
+.image-detail-action-grid #image-detail-save-mood:hover{background:#3c4534}
+@media(max-width:560px){#moodboard-editor form{padding:17px;gap:13px}.moodboard-settings{grid-template-columns:1fr}.moodboard-images{grid-template-columns:repeat(4,minmax(0,1fr))}.moodboard-head h2{font-size:22px}}
