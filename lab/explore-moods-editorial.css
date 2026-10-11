@@ -459,3 +459,49 @@
   .mc-explore-page .mc-look-card{aspect-ratio:auto}
   .mc-explore-page .mc-look-card .mc-look-copy strong{font-size:14px}
 }
+
+/* Soft, photographic Mood preview with a single primary action. */
+.mc-explore-page .mc-look-dialog{
+  border-radius:18px;border-color:#afc1b12b;max-height:90dvh;
+  box-shadow:0 28px 90px #0009;overscroll-behavior:contain;
+}
+.mc-explore-page .mc-look-dialog-body{gap:14px;padding:48px 30px 26px}
+.mc-explore-page .mc-look-dialog-body h2{margin:0;max-width:none}
+.mc-explore-page .mc-look-dialog-body>p{margin:0}
+.mc-explore-page .mc-look-dialog-eyebrow{padding-right:30px}
+.mc-explore-page .mc-look-close{
+  top:10px;right:10px;width:44px;height:44px;min-height:44px;
+  display:grid;place-items:center;padding:0;border:0;border-radius:10px;
+  background:transparent;font-size:25px;font-weight:300;line-height:1;color:#cdd6ce;
+}
+.mc-explore-page .mc-look-close:hover{background:#ffffff09;color:#fff}
+.mc-explore-page .mc-look-dropzone{
+  border-radius:10px;border-color:#a7b8a74d;background:#ffffff04;margin-top:2px;
+}
+.mc-explore-page .mc-look-prompt textarea{
+  border-radius:10px;border-color:#a7b8a733;background:#ffffff04;
+}
+.mc-explore-page .mc-look-prompt textarea:focus-visible,
+.mc-explore-page .mc-look-dialog button:focus-visible{
+  outline:2px solid var(--pv-acid);outline-offset:3px;
+}
+.mc-explore-page .mc-look-dialog-actions{
+  flex-direction:column;flex-wrap:nowrap;gap:5px;padding-top:4px;
+}
+.mc-explore-page .mc-look-dialog-actions>.mc-look-continue{
+  flex:none;width:100%;min-height:50px;border-radius:10px;justify-content:center;font-size:14px;
+}
+.mc-explore-page .mc-look-dialog-actions>.mc-look-make{
+  flex:none;align-self:center;min-height:44px;padding:10px 16px;
+  border:0;border-radius:10px;justify-content:center;color:#b8c3b9;
+  font-size:12px;text-decoration:underline;text-underline-offset:4px;
+}
+.mc-explore-page .mc-look-footer{text-align:center;line-height:1.5}
+@media(max-width:600px){
+  .mc-explore-page .mc-look-dialog{width:calc(100vw - 24px)}
+  .mc-explore-page .mc-look-dialog-media{height:clamp(200px,57vw,280px);min-height:0}
+  .mc-explore-page .mc-look-dialog-body{padding:26px 18px 20px;gap:13px}
+  .mc-explore-page .mc-look-dialog-eyebrow{font-size:8px;padding-right:35px}
+  .mc-explore-page .mc-look-dialog-body h2{font-size:clamp(32px,9vw,44px)}
+  .mc-explore-page .mc-look-prompt textarea{min-height:76px;font-size:16px}
+}

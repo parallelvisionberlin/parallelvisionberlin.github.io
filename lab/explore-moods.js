@@ -62,6 +62,8 @@ function initialize(){
     $('mc-look-description').textContent=selected.id==='berlin-rave'?selected.description+'. Transforms wardrobe and lighting into a night-flash editorial while keeping your identity, pose and framing.':selected.id==='synthetic-romance'?selected.description+'. This mood reconstructs visible body parts into engineered chrome, cables and synthetic anatomy.':selected.description+'. Keep your own subject and scene.';
     if(photo)attachPhoto(photo);
     if(!dialog.open)dialog.showModal();
+    dialog.focus({preventScroll:true});
+    dialog.scrollTop=0;
     void loadFullPreview(selected,'high').then(src=>{
       if(src&&dialog.open&&mood===selected)preview.src=src;
     });
