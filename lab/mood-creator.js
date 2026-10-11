@@ -59,10 +59,10 @@ async function blobDataUrl(blob){
   });
 }
 function initMoodCreator(){
-  const q=new URLSearchParams(location.search),chosenBoard=q.get('board');
+  const q=new URLSearchParams(location.search),chosenBoard=q.get('board'),sourceJob=q.get('fromJob');
   let clerk=null,account=null,authGeneration=0,sessionVersion=0;
   let boards=[],boardId=null,items=[],urls=new Map(),busy=false,analyzing=false,selectedIndex=0;
-  let suggestion=null,loadGeneration=0,libraryGeneration=0,uploadedForSave=0;
+  let suggestion=null,loadGeneration=0,libraryGeneration=0,loadedJob=false;
   const sessionRequest=createSessionRequest({baseUrl:API,getSession:()=>clerk?.session});
   const label=$('mc-account-label'),signin=$('mc-signin'),signout=$('mc-signout');
   const message=$('mc-message'),board=$('mc-board'),boardShell=$('mc-drop-zone');
@@ -93,7 +93,6 @@ function initMoodCreator(){
     intensity:Number(intensity.value),
     imageIds:items.map(item=>item.assetId).filter(Boolean)
   });
-  const isDirty=()=>true; // Explicit Save always captures current visual order and text.
   function clearItemUrls(){
     for(const item of items)if(item.localUrl)URL.revokeObjectURL(item.localUrl);
     items=[];
@@ -336,6 +335,31 @@ function initMoodCreator(){
     renderBoard();feedback('Editing '+selected.name+'. Your original board is safe until you press Save.');
     if(scroll)scrollToWorkspace();
   }
+  async function openImageResult(jobId){
+    if(!authenticated()||!uuid.test(jobId||''))return;
+    const data=await call('/api/jobs/'+encodeURIComponent(jobId));
+    const job=data?.job;
+    if(!job||job.status!=='completed'||job.settings?.type!=='image'||!uuid.test(job.outputId||'')){
+      throw Error('This image result is not available on your account.');
+    }
+    const settings=job.settings||{};
+    if(settings.moodId==='custom'&&uuid.test(settings.customMoodBoardId||'')&&
+       boards.some(x=>x.id===settings.customMoodBoardId)){
+      await openBoard(settings.customMoodBoardId,{scroll:false});
+    }else{
+      resetBoard();
+      base.value=moodById(settings.moodId)?.id||'';
+      intensity.value=String(settings.moodIntensity||70);
+      $('mc-intensity-value').textContent=intensity.value+'%';
+    }
+    if(!items.some(item=>item.assetId===job.outputId)){
+      if(items.length>=12)throw Error('This Mood already contains 12 images. Remove one before adding the result.');
+      items.push({assetId:job.outputId,file:null,localUrl:null});
+    }
+    selectedIndex=items.findIndex(item=>item.assetId===job.outputId);
+    renderBoard();scrollToWorkspace();
+    feedback('Image result added. Use Develop the aesthetic to extract its style, then save the Mood. No generation is started.');
+  }
   function showAuth(){
     const signed=authenticated();
     signin.hidden=signed;signout.hidden=!clerk?.isSignedIn;
@@ -360,6 +384,10 @@ function initMoodCreator(){
       if(local!==authGeneration)return;
       if(chosenBoard&&uuid.test(chosenBoard)&&boards.some(b=>b.id===chosenBoard)){
         await openBoard(chosenBoard,{scroll:true});
+      }else if(sourceJob&&!loadedJob){
+        loadedJob=true;
+        try{await openImageResult(sourceJob);}
+        catch(error){feedback('Unable to bring in your result. '+error.message,true);}
       }
     }catch(error){if(local===authGeneration){account=null;showAuth();feedback('Sign-in worked, but your private Mood collection could not load. '+error.message,true);}}
   }
@@ -370,6 +398,7 @@ function initMoodCreator(){
   if(urlStart==='idea'){setTimeout(()=>{scrollToWorkspace();concept.focus({preventScroll:true});},50);}
   if(urlStart==='image'){setTimeout(loadFilePicker,120);}
   if(chosenBoard&&!uuid.test(chosenBoard))feedback('Invalid saved Mood link.',true);
+  if(sourceJob&&!uuid.test(sourceJob))feedback('Invalid image result link.',true);
   renderBoard();renderLibrary();
   (async()=>{
     try{
