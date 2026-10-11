@@ -63,7 +63,7 @@ test('The editor is a distinct page, preserves Image prices and has two entry po
  const studio=readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8');
  assert.match(home,/id="mood-creator"/);
  assert.match(home,/href="\.\/mood-creator.html"/);
- assert.match(home,/href="\.\/mood-creator.html\?start=image"/);
+ assert.match(home,/href="\.\/mood-creator.html#discover"/);
  assert.match(page,/id="mc-start-image"/);
  assert.match(page,/id="mc-start-idea"/);
  assert.match(page,/id="mc-board"/);
@@ -75,9 +75,9 @@ test('The editor is a distinct page, preserves Image prices and has two entry po
  assert.match(js,/await call\('\/api\/moodboards\/image'/);
  assert.match(js,/signInFallbackRedirectUrl:location\.href/);
  assert.match(js,/location\.assign\('\.\/studio\.html\?tool=image&moodboard='/);
- assert.match(studio,/moodUI\.restore\(\{moodId:'custom',customMoodBoardId:id,moodIntensity:board\.intensity\}/);
+ assert.match(studio,/moodUI\.restore\(\{moodId:'custom',customMoodBoardId:boardId,moodIntensity:personal\.intensity\}/);
  assert.doesNotMatch(js,/fetch\('https:\/\/api\.spicyapi\.ai/);
- assert.match(style,/\.mc-editorial/);
+ assert.match(style,/\.mc-look-grid/);
  assert.match(style,/\.mc-workspace-body/);
  assert.match(style,/\.mc-library-grid/);
 });
