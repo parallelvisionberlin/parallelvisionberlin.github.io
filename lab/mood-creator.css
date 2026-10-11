@@ -134,3 +134,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 .mc-suggestion button{border:1px solid #d9fc6b;background:#d9fc6b;color:#151a13;padding:8px 12px;font-size:11px}
 @media(max-width:1120px){.mc-board-add-tile{min-height:190px}}
 @media(max-width:540px){.mc-board-add-tile{min-height:176px}}
+
+.mc-add-photo:focus-visible{outline:2px solid #d9fc6b;outline-offset:4px}
+.mc-shot[role="button"]:focus-visible{outline:2px solid #d9fc6b;outline-offset:2px}
+.mc-add-photo.is-disabled{opacity:.5;pointer-events:none}
