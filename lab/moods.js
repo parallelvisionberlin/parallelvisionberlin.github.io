@@ -64,7 +64,7 @@ const ALL_MOODS=Object.freeze([
     "id": "polaroid-600",
     "name": "Polaroid 600",
     "category": "Analog",
-    "preview": "/lab/mood-previews/berlin-rave-20261011.webp",
+    "preview": "/lab/mood-previews/polaroid-600-reference.svg",
     "description": "Intimate instant-film color, imperfect flash and tactile chemistry",
     "defaultIntensity": 75,
     "direction": "PV LAB POLAROID 600 / REAL INSTANT FILM. Transform the source into a believable single exposure on integral instant color film, with the physical character of a late-1980s/1990s Polaroid 600 photograph. Personal, spontaneous, tactile and editorial, never a digital retro preset. Moderate optical softness and reduced microcontrast, thick creamy highlights, compressed but detailed shadows, restrained warm/green and cyan/magenta dye irregularities, gently imperfect exposure, rich but imperfect color density and finely textured emulsion. Use credible straight-on camera flash only where source lighting and perspective allow; it can lift a nearby subject while the room falls into natural darkness, but do not invent a new night scene. Maintain the original face, identity, skin, body, clothing, pose, crop and surroundings. These are characteristics of the photograph, NOT instructions to introduce a white Polaroid paper border. Keep the image edge-to-edge unless the user explicitly asks for a print frame. Analog intimacy; considered underground fashion photography.",
