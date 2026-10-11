@@ -255,3 +255,8 @@
 #moodboard-editor .moodboard-upload-label:hover{border-color:#88916c;background:#363e31}
 #moodboard-editor #moodboard-upload[hidden]{display:none}
 @media(max-width:390px){.moodboard-images-heading>div{gap:6px}#moodboard-editor .moodboard-upload-label{font-size:10px;padding:6px}}
+
+/* Author CSS must explicitly respect native hidden state. */
+#moodboard-editor .moodboard-config[hidden],
+#moodboard-editor #moodboard-target-row[hidden],
+#moodboard-editor #moodboard-delete[hidden]{display:none!important}
