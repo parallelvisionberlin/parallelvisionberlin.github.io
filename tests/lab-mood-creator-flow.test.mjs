@@ -118,3 +118,27 @@ test('Moodboard image uploads use private small copies without generation charge
  env.GEMINI_API_KEY='';
  await assert.rejects(()=>invoke('/api/moodboards/analyze','POST',{concept:'vintage photo'}),/not configured/);
 });
+
+test('Art Direction keeps settings and Save actions in one visible deck footer',()=>{
+  const page=readFileSync(new URL('../lab/mood-creator.html',import.meta.url),'utf8');
+  const css=readFileSync(new URL('../lab/mood-creator.css',import.meta.url),'utf8');
+  const js=readFileSync(new URL('../lab/mood-creator.js',import.meta.url),'utf8');
+  const start=page.indexOf('<aside class="mc-direction"');
+  const aside=page.slice(start,page.indexOf('</aside>',start));
+  assert.ok(start>=0);
+  assert.match(aside,/class="mc-direction-main" id="mc-direction-main"/);
+  assert.match(aside,/class="mc-direction-footer" aria-label="Finish and save your Mood"/);
+  const footerStart=aside.indexOf('class="mc-direction-footer"');
+  for(const id of ['mc-name','mc-idea','mc-analyze','mc-analysis-note','mc-use-idea','mc-direction'])
+    assert.ok(aside.indexOf('id="'+id+'"')>0&&aside.indexOf('id="'+id+'"')<footerStart,'Art direction field '+id);
+  for(const id of ['mc-base','mc-intensity','mc-message','mc-save','mc-use','mc-saved-actions'])
+    assert.ok(aside.indexOf('id="'+id+'"')>footerStart,'Final action '+id);
+  assert.match(css,/\.mc-direction\{\s*display:grid;grid-template-rows:auto minmax\(0,1fr\) auto/);
+  assert.match(css,/\.mc-direction-main\{[\s\S]*?overflow-y:auto;overflow-x:hidden/);
+  assert.match(css,/\.mc-direction-footer\{[\s\S]*?border-top:1px solid #4e5850/);
+  assert.match(css,/@media\(max-width:820px\)\{[\s\S]*?\.mc-direction\{display:flex;flex-direction:column;height:auto/);
+  assert.match(page,/mood-creator\.css\?v=20261011-direction-deck1/);
+  assert.match(page,/selected photo and\/or idea are sent to Google's AI service/);
+  assert.match(js,/save\.onclick=\(\)=>void saveMood\(\)/);
+  assert.match(js,/use\.onclick=\(\)=>void \(async\(\)=>\{/);
+});
