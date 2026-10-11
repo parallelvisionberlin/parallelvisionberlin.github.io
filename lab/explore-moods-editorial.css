@@ -169,8 +169,30 @@
 .mc-explore-page .mc-look-card[data-mood-id="fashion-editorial"] img{object-position:50% 35%}
 .mc-explore-page .mc-look-card[data-mood-id="synthetic-romance"] img{object-position:60% 50%}
 /* Keep each opened photograph framed correctly through the full-resolution swap. */
-#mc-look-preview[data-mood-id="synthetic-romance"]{object-position:58% 50%}
-#mc-look-preview[data-mood-id="90s-cinema"]{transform:scale(1.06)}
+#mc-look-preview[data-mood-id="synthetic-romance"]{object-position:56% 50%}
+#mc-look-preview[data-mood-id="90s-cinema"]{object-position:64% 50%;transform:scale(1.06)}
+/* A selected file fits inside the original drop area without growing the dialog. */
+.mc-explore-page .mc-look-dropzone{height:130px;min-height:130px;flex:0 0 130px;box-sizing:border-box}
+.mc-explore-page .mc-look-dropzone.has-image{
+  display:grid;grid-template-columns:62px minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto;
+  column-gap:14px;row-gap:3px;
+}
+.mc-explore-page .mc-look-file-preview{
+  grid-column:1;grid-row:1 / -1;align-self:center;width:62px;height:76px;
+  margin:0;object-fit:contain;
+}
+.mc-explore-page .mc-look-dropzone.has-image>label{
+  grid-column:2;grid-row:1;min-width:0;align-items:flex-start;text-align:left;
+}
+.mc-explore-page .mc-look-dropzone.has-image #mc-look-upload-symbol{display:none}
+.mc-explore-page .mc-look-dropzone.has-image>label strong{
+  max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.mc-explore-page .mc-look-dropzone.has-image>button{grid-column:2;grid-row:2;justify-self:start}
+@media(max-width:600px){
+  .mc-explore-page .mc-look-dropzone{height:110px;min-height:110px;flex-basis:110px}
+  .mc-explore-page .mc-look-file-preview{height:66px}
+}
 .mc-explore-page .mc-look-card[data-mood-id="polaroid-600"] img{
   object-fit:contain;object-position:50% 50%;background:#dddcd3;
 }

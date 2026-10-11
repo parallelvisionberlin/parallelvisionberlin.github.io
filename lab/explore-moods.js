@@ -47,7 +47,7 @@ function initialize(){
     zone.prepend(photo);
     $('mc-look-file-label-text').textContent=file.name;
     $('mc-look-file-clear').hidden=false;zone.classList.add('has-image');
-    status.textContent='Photograph ready. Continue in Image to transform it.';
+    status.textContent='';
     return true;
   }
   function showMood(selected,photo=null){
@@ -76,7 +76,7 @@ function initialize(){
   $('mc-look-close').onclick=close;
   dialog.addEventListener('click',event=>{if(event.target===dialog)close();});
   fileInput.addEventListener('change',()=>{if(fileInput.files?.[0])attachPhoto(fileInput.files[0]);});
-  $('mc-look-file-clear').onclick=()=>{clearPhoto();status.textContent='Photograph removed. You may still continue with a written idea.';};
+  $('mc-look-file-clear').onclick=()=>{clearPhoto();status.textContent='';};
   zone.addEventListener('dragover',event=>{if(event.dataTransfer?.types?.includes('Files')){event.preventDefault();zone.classList.add('is-over');}});
   zone.addEventListener('dragleave',()=>zone.classList.remove('is-over'));
   zone.addEventListener('drop',event=>{if(event.dataTransfer?.files?.length){event.preventDefault();zone.classList.remove('is-over');attachPhoto(event.dataTransfer.files[0]);}});
