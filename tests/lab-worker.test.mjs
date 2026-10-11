@@ -1036,10 +1036,10 @@ test('authenticated thumbnail route returns cached compressed WebP, while the or
  env.IMAGES={input(body){
    assert.ok(body);
    return{
-     transform(settings){assert.deepEqual(settings,{width:800,height:800,fit:'scale-down'});return this;},
+     transform(settings){assert.deepEqual(settings,{width:480,height:480,fit:'scale-down'});return this;},
      output(settings){
        transforms++;
-       assert.deepEqual(settings,{format:'image/webp',quality:82,anim:false});
+       assert.deepEqual(settings,{format:'image/webp',quality:80,anim:false});
        return{response:()=>new Response(WEBP,{headers:{'content-type':'image/webp'}})};
      }
    };
@@ -1048,7 +1048,7 @@ test('authenticated thumbnail route returns cached compressed WebP, while the or
  const preview=await req(env,path+'/thumbnail');
  assert.equal(preview.status,200);
  assert.equal(preview.headers.get('content-type'),'image/webp');
- assert.equal(preview.headers.get('cache-control'),'private, no-store');
+ assert.equal(preview.headers.get('cache-control'),'no-store','Worker middleware disables all caching of private responses');
  assert.deepEqual(new Uint8Array(await preview.arrayBuffer()),WEBP);
  assert.equal(transforms,1);
  const repeat=await req(env,path+'/thumbnail');
@@ -1061,5 +1061,22 @@ test('authenticated thumbnail route returns cached compressed WebP, while the or
  assert.deepEqual(new Uint8Array(await full.arrayBuffer()),new Uint8Array([137,80,78,71,13,10,26,10,0]));
  assert.equal((await req(env,path+'/thumbnail',{authToken:guest})).status,403,'private thumbnails require an authorized account');
  assert.equal((await req(env,'/api/assets/'+crypto.randomUUID()+'/thumbnail')).status,404);
- assert.ok([...objects.keys()].some(key=>key.includes('/thumbnails/v1-800q82/')&&key.endsWith('/'+id+'.webp')));
+ assert.ok([...objects.keys()].some(key=>key.includes('/thumbnails/v2-480q80/')&&key.endsWith('/'+id+'.webp')));
+});
+
+test('native Lab session keeps signature verification and explicit origin/transport restrictions',async()=>{
+ const {env}=fixture();const native=await token('user_Owner',{azp:undefined,sid:'sess_MobileFixture'});
+ assert.equal((await req(env,'/api/session',{authToken:native,headers:{'X-PV-Lab-Client':'mobile-v1'}})).status,200);
+ assert.equal((await req(env,'/api/session',{authToken:native})).status,401);
+ assert.equal((await req(env,'/api/session',{authToken:native,headers:{'X-PV-Lab-Client':'mobile-v1',Origin:'https://evil.example'}})).status,403);
+ const badParty=await token('user_Owner',{azp:'https://evil.example',sid:'sess_MobileFixture'});
+ assert.equal((await req(env,'/api/session',{authToken:badParty,headers:{'X-PV-Lab-Client':'mobile-v1'}})).status,401);
+ const pieces=native.split('.');pieces[2]=(pieces[2][0]==='A'?'B':'A')+pieces[2].slice(1);
+ assert.equal((await req(env,'/api/session',{authToken:pieces.join('.'),headers:{'X-PV-Lab-Client':'mobile-v1'}})).status,401);
+ const expired=await token('user_Owner',{azp:undefined,sid:'sess_MobileFixture',exp:1});
+ assert.equal((await req(env,'/api/session',{authToken:expired,headers:{'X-PV-Lab-Client':'mobile-v1'}})).status,401);
+ const pending=await token('user_Owner',{azp:undefined,sid:'sess_MobileFixture',sts:'pending'});
+ assert.equal((await req(env,'/api/session',{authToken:pending,headers:{'X-PV-Lab-Client':'mobile-v1'}})).status,401);
+ const guest=await token('user_Guest',{azp:undefined,sid:'sess_MobileFixture'});
+ assert.equal((await req(env,'/api/session',{authToken:guest,headers:{'X-PV-Lab-Client':'mobile-v1'}})).status,403);
 });

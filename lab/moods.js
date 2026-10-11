@@ -204,6 +204,8 @@ const ALL_MOODS=Object.freeze([
     "avoid": "anime or manga, ink cartoon outline, random kanji or seals, digital grayscale-filter photographs, brightly colored accents, messy paint splatters, watercolor postcards, glossy AI airbrush skin"
   }
 ]);
+// Keep the public catalogue shared by Studio, My Moods and Mood Creator.
+export const MOODS=ALL_MOODS;
 export const MOOD_MODELS=Object.freeze(['seedream','gemini']);
 export const moodById=id=>ALL_MOODS.find(m=>m.id===id)||null;
 // This is intentionally presentation-only. Jobs retain the full provider prompt for

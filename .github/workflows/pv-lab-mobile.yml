@@ -1,0 +1,32 @@
+name: PV Lab mobile review
+on:
+  workflow_dispatch:
+  push:
+    branches: [mobile-lab-moods-web]
+permissions:
+  contents: read
+jobs:
+  mobile-review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Native session and browser authentication regression tests
+        run: |
+          node --test tests/lab-auth.test.mjs
+          node --test --test-name-pattern='native Lab session|Public health works' tests/lab-worker.test.mjs
+      - name: Install browser review dependencies
+        run: |
+          npm install --prefix /tmp/pv-mobile-browser --no-audit --no-fund @playwright/test@1.55.1
+          /tmp/pv-mobile-browser/node_modules/.bin/playwright install --with-deps chromium
+      - name: Check mobile flow without real generation
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-mobile-browser/node_modules/@playwright/test/index.mjs
+        run: node tests/lab-native-mobile-ui.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pv-lab-mobile-review
+          path: /tmp/pv-lab-mobile-review

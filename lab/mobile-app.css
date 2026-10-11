@@ -1,0 +1,77 @@
+/* Scoped to an authenticated native host. The public desktop/mobile site is unchanged. */
+.pv-native-lab{color-scheme:dark;background:#080808;--header-h:0px;--studio-header-height:0px}
+.pv-native-lab body{background:#080808!important;overflow-x:hidden;padding:0!important;min-height:100dvh}
+.pv-native-lab #studio-header,.pv-native-lab body>footer,.pv-native-lab .mc-header,.pv-native-lab .mc-hero{display:none!important}
+.pv-native-lab main.wrap,.pv-native-lab #main{padding:0!important;max-width:100%!important;width:100%!important;margin:0!important}
+.pv-native-lab #image-studio{padding:0!important;min-height:100dvh;display:flex!important;flex-direction:column}
+.pv-native-lab #image-studio[hidden]{display:none!important}
+.pv-native-lab .image-gallery-shell{order:2;min-height:0!important;padding:0 16px 20px!important}
+.pv-native-lab #image-gallery-empty,.pv-native-lab .image-gallery-shell .archivehead{display:none!important}
+.pv-native-lab #image-composer{order:1;position:relative!important;left:auto!important;right:auto!important;bottom:auto!important;transform:none!important;width:100%!important;max-width:none!important;margin:0!important;padding:18px 16px 20px!important;display:flex!important;flex-direction:column!important;gap:16px!important;border:0!important;border-radius:0!important;background:#080808!important;box-shadow:none!important;backdrop-filter:none!important;overflow:visible!important}
+.pv-native-lab .mobile-create-intro span{font:600 10px/1.5 'DM Sans',sans-serif;letter-spacing:.16em;color:#a6aaa3}
+.pv-native-lab .mobile-create-intro h1{font:500 clamp(27px,8vw,36px)/1.03 'DM Sans',sans-serif;letter-spacing:-.045em;color:#f4f4ec;margin:8px 0 0}
+.pv-native-lab .mobile-photo{position:relative;background:#121312;border:1px solid #353734;border-radius:16px;min-height:164px;overflow:hidden;flex-shrink:0}
+.pv-native-lab .mobile-add-photo{display:flex;min-height:164px;width:100%;padding:16px;align-items:center;justify-content:center;flex-direction:column;gap:6px;border:0;background:transparent;color:#eee;cursor:pointer}
+.pv-native-lab .mobile-add-photo>span{font-size:30px;color:#d9eb5d;font-weight:300}
+.pv-native-lab .mobile-add-photo strong{font-size:19px;font-weight:500;letter-spacing:-.03em}
+.pv-native-lab .mobile-add-photo small{color:#90958c;font-size:11px}
+.pv-native-lab .mobile-photo.has-photo .mobile-add-photo{position:absolute;right:8px;top:8px;min-height:44px;width:44px;padding:0;z-index:2;background:#111b;border-radius:50%}
+.pv-native-lab .mobile-photo.has-photo .mobile-add-photo strong,.pv-native-lab .mobile-photo.has-photo .mobile-add-photo small{display:none}
+.pv-native-lab #image-composer-references{display:flex;overflow-x:auto;gap:10px;padding:8px;max-height:none!important;flex-wrap:nowrap!important;width:100%!important;align-items:center}
+.pv-native-lab #image-composer-references[hidden]{display:none!important}
+.pv-native-lab #image-composer-references .composer-reference-tile{width:calc(100vw - 68px)!important;max-width:440px;height:205px!important;flex:0 0 auto!important;aspect-ratio:auto!important;border-radius:10px}
+.pv-native-lab #image-composer-references .composer-reference-tile img{width:100%;height:100%;object-fit:contain!important;background:#101110}
+.pv-native-lab .composer-reference-remove{width:44px!important;height:44px!important;right:auto!important;left:5px!important;top:5px!important;font-size:22px!important}
+.pv-native-lab .composer-reference-role{min-height:36px;font-size:12px}
+.pv-native-lab .composer-reference-add{min-width:52px;min-height:64px}
+.pv-native-lab #image-composer #composer-moods{position:static!important;inset:auto!important;display:flex!important;flex-direction:column!important;transform:none!important;width:100%!important;max-width:none!important;max-height:none!important;height:auto!important;min-height:0!important;padding:0!important;gap:10px!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;overflow:visible!important}
+.pv-native-lab #composer-moods-backdrop,.pv-native-lab #composer-moods-close,.pv-native-lab #composer-moods-done,.pv-native-lab .moods-kicker,.pv-native-lab .moods-header-copy>p,.pv-native-lab .moods-scale,.pv-native-lab .moods-about{display:none!important}
+.pv-native-lab .moods-header{padding:0!important;min-height:0!important;border:0!important;gap:8px}
+.pv-native-lab #composer-moods-title{font-size:19px;letter-spacing:-.03em}
+.pv-native-lab #composer-moods-create{min-height:44px;font-size:12px}
+.pv-native-lab .moods-toolbar{display:flex;flex-direction:column;align-items:stretch;gap:8px;padding:0!important;min-height:0!important}
+.pv-native-lab .moods-filters{display:flex;overflow:auto;flex-wrap:nowrap!important;gap:7px;max-width:100%;padding:0!important;scrollbar-width:none}
+.pv-native-lab .moods-filter{flex-shrink:0;min-height:36px;font-size:11px;padding:7px 11px}
+.pv-native-lab #composer-moods-grid{display:flex!important;gap:10px!important;overflow-x:auto!important;overflow-y:hidden!important;width:calc(100% + 32px)!important;max-height:none!important;height:auto!important;padding:0 16px 4px!important;margin:0 -16px!important;scroll-snap-type:x proximity;scrollbar-width:none}
+.pv-native-lab .moods-card{flex:0 0 142px!important;width:142px!important;min-width:142px!important;min-height:172px!important;max-height:none!important;aspect-ratio:4/5!important;scroll-snap-align:start}
+.pv-native-lab .moods-card[hidden]{display:none!important}
+.pv-native-lab .moods-card-name{font-size:13px!important}
+.pv-native-lab .moods-footer{padding:0!important;border:0!important;min-height:0!important;background:transparent!important}
+.pv-native-lab .moods-controls{display:flex;align-items:center;gap:12px;width:100%}
+.pv-native-lab .moods-strength{flex:1;max-width:none!important;width:auto!important}
+.pv-native-lab #composer-moods-intensity{min-height:36px}
+.pv-native-lab .moods-selection{width:100%;min-height:28px}
+.pv-native-lab .image-composer-top{display:block!important;min-height:0!important;padding:0!important;width:100%}
+.pv-native-lab #image-composer #image-composer-prompt{font-size:15px!important;min-height:48px!important;max-height:140px!important;padding:12px!important;background:#141514!important;border:1px solid #30332c!important;border-radius:10px!important;width:100%!important;box-sizing:border-box;line-height:22px!important}
+.pv-native-lab .image-composer-toolbar{display:flex!important;flex-wrap:wrap!important;gap:10px!important;align-items:stretch!important;padding:0!important;width:100%!important}
+.pv-native-lab .composer-controls{display:none!important;flex-wrap:wrap!important;overflow:visible!important;max-width:100%;gap:8px!important}
+.pv-native-lab .mobile-show-advanced .composer-controls{display:flex!important;width:100%}
+.pv-native-lab .composer-flex,.pv-native-lab #composer-character,.pv-native-lab #image-composer-edit-area,.pv-native-lab #image-composer-moods,.pv-native-lab #image-composer-moods-clear{display:none!important}
+.pv-native-lab #image-composer #image-composer-generate{width:100%!important;min-height:54px!important;flex:1 0 100%;border-radius:12px!important;font-size:16px!important;background:#d9eb5d!important;color:#10120b!important}
+.pv-native-lab #image-composer #image-composer-generate:disabled{background:#353a27!important;color:#a3ac82!important;opacity:1!important}
+.pv-native-lab .mobile-advanced{align-self:flex-start;min-height:44px;border:0;background:transparent;color:#b7bab2;padding:0 3px;font-size:12px}
+.pv-native-lab #composer-options,.pv-native-lab #composer-reference-intent,.pv-native-lab #composer-library{position:relative!important;inset:auto!important;transform:none!important;width:100%!important;max-height:none!important;order:5}
+.pv-native-lab #image-settings-scrim{top:0!important}
+.pv-native-lab #gate{margin:0!important;padding:30px 22px!important;min-height:70dvh}
+.pv-native-lab #gate .intro,.pv-native-lab #gate>.eyebrow,.pv-native-lab #gate>.fine{display:none}
+.pv-native-lab #gate h2{font-size:34px;line-height:1.05;letter-spacing:-.04em}
+.pv-native-lab.mobile-gallery #image-studio{display:none!important}
+.pv-native-lab #assets-workspace{padding:18px 12px!important;grid-template-columns:1fr!important}
+.pv-native-lab .assets-sidebar{position:static!important;display:flex!important;flex-wrap:wrap;gap:8px;width:100%!important;border:0!important;padding:0 0 14px!important}
+.pv-native-lab .assets-sidebar button{min-height:44px}
+.pv-native-lab #assets-folders{display:flex;gap:8px;flex-wrap:wrap}
+.pv-native-lab #assets-gallery{min-width:0}
+.pv-native-lab .archivehead{gap:10px;padding:0!important}
+.pv-native-lab .archivehead h2{font-size:25px}
+.pv-native-lab .archivehead p{display:none}
+.pv-native-lab #history{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
+.pv-native-lab dialog{max-width:calc(100vw - 20px)!important;max-height:calc(100dvh - 20px)!important}
+.pv-native-lab .mc-workspace,.pv-native-lab .mc-library{padding:24px 18px!important;margin:0!important;width:100%!important;box-sizing:border-box}
+.pv-native-lab .mc-workspace-heading h2,.pv-native-lab .mc-library-heading h2{font-size:25px!important}
+.pv-native-lab .mc-board-shell{min-height:190px!important}
+.pv-native-lab .mc-workspace-body{grid-template-columns:1fr!important}
+.pv-native-lab .mc-library-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+.pv-native-lab input,.pv-native-lab textarea,.pv-native-lab select{font-size:16px}
+@media(min-width:600px){.pv-native-lab #image-composer{max-width:650px!important;align-self:center}.pv-native-lab #image-composer-references .composer-reference-tile{width:440px!important}}
+
+.pv-native-lab #image-studio .archive{min-height:0!important;padding:0!important}

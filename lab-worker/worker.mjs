@@ -1,3 +1,4 @@
+import {allowedLabParty} from './native-auth.mjs';
 import {quoteVideoExtension,submitVideoExtension} from './higgsfield-video.mjs';
 import {ensureCustomer,isLabCustomer,customerSession,customerRoute,stripeWebhook,creditsForUsd} from './customer-billing.mjs';
 import {canCustomerGenerate} from './customer-rollout.mjs';
@@ -25,7 +26,7 @@ import {REFERENCE_ROLES,normalizeReferenceLabel,supportsReferenceGuidance,compil
 import {moodBoardsRoute} from './moodboards.mjs';
 import {moodCreatorRoute} from './mood-creator-service.mjs';
 import {characterPreview as soulCharacterPreview,SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-11.4-webp-gallery';
+export const VERSION = 'pv-lab-2026-10-11.5-native-lab';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -99,7 +100,7 @@ async function authenticate(request,env) {
   const token=header.slice(7), [a,b,c]=token.split('.');let h,p;
   try{h=JSON.parse(dec.decode(unbase(a)));p=JSON.parse(dec.decode(unbase(b)));}catch{fail(401,'Invalid sign-in token.');}
   const t=Math.floor(now()/1000);
-  if(h.alg!=='RS256'||typeof h.kid!=='string'||p.iss!==ISSUER||!/^user_[A-Za-z0-9]+$/.test(p.sub||'')||!ORIGINS.has(p.azp)||!Number.isFinite(p.exp)||p.exp<=t||!Number.isFinite(p.iat)||p.iat>t+5||(p.nbf!==undefined&&(!Number.isFinite(p.nbf)||p.nbf>t+5)))fail(401,'Sign-in expired or invalid. Please sign in again.');
+  if(h.alg!=='RS256'||typeof h.kid!=='string'||p.iss!==ISSUER||!/^user_[A-Za-z0-9]+$/.test(p.sub||'')||!allowedLabParty(p,request,ORIGINS)||!Number.isFinite(p.exp)||p.exp<=t||!Number.isFinite(p.iat)||p.iat>t+5||(p.nbf!==undefined&&(!Number.isFinite(p.nbf)||p.nbf>t+5)))fail(401,'Sign-in expired or invalid. Please sign in again.');
   let key=(await getJwks()).find(k=>k.kid===h.kid&&k.kty==='RSA');
   if(!key)key=(await getJwks(true)).find(k=>k.kid===h.kid&&k.kty==='RSA');
   if(!key)fail(401,'Unknown sign-in key.');
@@ -1000,8 +1001,8 @@ async function saveFlashResult(env,j){
 async function route(request,env,ctx) {
   const url=new URL(request.url),origin=request.headers.get('origin')||'';
   if(origin&&!ORIGINS.has(origin))fail(403,'Origin not allowed.');
-  if(request.method==='OPTIONS')return new Response(null,{status:204,headers:{'Access-Control-Allow-Methods':'GET,HEAD,POST,DELETE,OPTIONS','Access-Control-Allow-Headers':'Authorization,Content-Type,X-Filename,X-Photo-Count,Range','Access-Control-Max-Age':'600'}});
-  if(url.pathname==='/health'&&request.method==='GET')return json({ok:true,version:VERSION});
+  if(request.method==='OPTIONS')return new Response(null,{status:204,headers:{'Access-Control-Allow-Methods':'GET,HEAD,POST,DELETE,OPTIONS','Access-Control-Allow-Headers':'Authorization,Content-Type,X-Filename,X-Photo-Count,Range,X-PV-Lab-Client','Access-Control-Max-Age':'600'}});
+  if(url.pathname==='/health'&&request.method==='GET')return json({ok:true,version:VERSION,nativeAppAuth:'mobile-v1'});
 
   if(url.pathname.startsWith('/input/')&&(request.method==='GET'||request.method==='HEAD'))return publicInput(request,env,url);
   if(url.pathname.startsWith('/soul-dataset/')&&request.method==='GET')return publicSoulDataset(request,env,url,soulDeps());

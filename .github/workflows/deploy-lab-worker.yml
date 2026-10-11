@@ -40,6 +40,7 @@ jobs:
 
       - name: Test private My Moods and Worker syntax
         run: |
+          node --test tests/lab-auth.test.mjs tests/lab-worker.test.mjs
           node --check lab-worker/moodboards.mjs
           node --check lab-worker/worker.mjs
           node --check lab-worker/gallery-thumbnails.mjs
@@ -60,7 +61,7 @@ jobs:
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0008-soul-id-launch-credits.sql --yes
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0009-moodboards.sql --yes
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0010-mood-creator-analysis.sql --yes
-          command: deploy
+          command: deploy --keep-vars
 
       - name: Verify production health
         shell: bash

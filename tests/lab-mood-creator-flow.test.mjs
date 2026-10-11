@@ -77,7 +77,9 @@ test('The editor is a distinct page, preserves Image prices and has two entry po
  assert.match(page,/id="mc-library-grid"/);
  assert.match(js,/await call\('\/api\/moodboards\/analyze'/);
  assert.match(js,/await call\('\/api\/moodboards\/image'/);
- assert.match(js,/signInFallbackRedirectUrl:location\.href/);
+ assert.match(js,/clerk=await loadLabAccount\(\)/);
+ const account=readFileSync(new URL('../lab/native-account.js',import.meta.url),'utf8');
+ assert.match(account,/signInFallbackRedirectUrl:location\.href/);
  assert.match(js,/location\.assign\('\.\/studio\.html\?tool=image&moodboard='/);
  assert.match(studio,/moodUI\.restore\(\{moodId:'custom',customMoodBoardId:boardId,moodIntensity:personal\.intensity\}/);
  assert.doesNotMatch(js,/fetch\('https:\/\/api\.spicyapi\.ai/);

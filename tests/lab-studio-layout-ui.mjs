@@ -8,7 +8,7 @@ import {pathToFileURL} from 'node:url';
 const {chromium}=await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE).href);
 const root=resolve('.');
 const source=readFileSync('lab/lab.js','utf8');
-const boot=source.indexOf("try{const {Clerk}=await import(");
+const boot=source.indexOf("try{clerk=await loadLabAccount();");
 const bootEnd=source.indexOf("\n// Soul composer:",boot);
 assert.ok(boot>0&&bootEnd>boot,'Expected distinct auth bootstrap and Soul composer tail');
 // Replace only remote Clerk bootstrap. Preserve all remaining local Studio helpers.

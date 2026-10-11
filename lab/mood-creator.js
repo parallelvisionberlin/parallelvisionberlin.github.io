@@ -1,3 +1,4 @@
+import {loadLabAccount} from './native-account.js?v=1';
 import {MOODS,moodById} from './moods.js?v=20261011-polaroid-order2';
 import {createSessionRequest} from './session-request.js?v=20260927-auth1';
 import {takeMoodHandoff} from './mood-handoff.js?v=20261011-discovery1';
@@ -495,14 +496,7 @@ function initMoodCreator(){
 
   (async()=>{
     try{
-      const {Clerk}=await import('https://esm.sh/@clerk/clerk-js@6?bundle');
-      await new Promise((resolve,reject)=>{
-        const script=document.createElement('script');script.src='https://clerk.parallelvisionlabel.com/npm/@clerk/ui@1/dist/ui.browser.js';
-        script.onload=resolve;script.onerror=reject;document.head.append(script);
-      });
-      clerk=new Clerk(CLERK_KEY);
-      await clerk.load({ui:{ClerkUI:window.__internal_ClerkUICtor},
-        signInFallbackRedirectUrl:location.href,signUpFallbackRedirectUrl:location.href});
+      clerk=await loadLabAccount();
       clerk.addListener(()=>void syncAuth());
       await syncAuth();
     }catch{feedback('Account sign-in is currently unavailable. You can compose a Mood here and try saving later.',true);signin.disabled=true;}
