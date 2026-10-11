@@ -3,7 +3,7 @@ import {isNativeLab} from './native-account.js?v=2';
 export function initLabMobileUI(){
   if(!isNativeLab()||document.documentElement.classList.contains('pv-native-lab'))return;
   document.documentElement.classList.add('pv-native-lab');
-  const css=document.createElement('link');css.rel='stylesheet';css.href='./mobile-app.css?v=2';document.head.append(css);
+  const css=document.createElement('link');css.rel='stylesheet';css.href='./mobile-app.css?v=4';document.head.append(css);
   const $=id=>document.getElementById(id),send=(type,extra={})=>window.ReactNativeWebView.postMessage(JSON.stringify({type,...extra}));
   const composer=$('image-composer');
   if(composer){
@@ -20,6 +20,14 @@ export function initLabMobileUI(){
     composer.insertBefore(advanced,composer.querySelector('.image-composer-toolbar'));
     $('image-composer-prompt').placeholder='Anything else? Add a direction (optional)';
     const grid=$('composer-moods-grid'),moods=$('composer-moods');
+    // Keep the paid action on the photo screen. Custom Mood authoring lives in Profile.
+    const customCreate=$('composer-moods-create');
+    if(customCreate){customCreate.hidden=true;customCreate.tabIndex=-1;}
+    const generate=$('image-composer-generate');
+    const dock=document.createElement('div');dock.className='mobile-generation-dock';dock.id='mobile-generation-dock';
+    const status=$('composer-generation-reason');
+    dock.append(generate);if(status)dock.append(status);
+    document.body.append(dock);
     // The inline selector stays logically closed, so its modal focus trap and
     // outside-click handler never swallow an upload or generation tap.
     const sync=()=>{
@@ -28,7 +36,13 @@ export function initLabMobileUI(){
       const assets=$('app').classList.contains('assets-active');
       document.documentElement.classList.toggle('mobile-gallery',assets);
     };
-    new MutationObserver(sync).observe($('app'),{subtree:true,childList:true,attributes:true,attributeFilter:['hidden','disabled']});sync();
+    let syncFrame=0;
+    const scheduleSync=()=>{if(!syncFrame)syncFrame=requestAnimationFrame(()=>{syncFrame=0;sync();});};
+    const observer=new MutationObserver(scheduleSync);
+    observer.observe($('image-composer-references'),{subtree:true,childList:true});
+    observer.observe($('image-composer-add'),{attributes:true,attributeFilter:['disabled']});
+    observer.observe($('app'),{attributes:true,attributeFilter:['class','hidden']});
+    sync();
     if(grid&&moods)moods.removeAttribute('role');
   }
   if(!composer&&$('workspace')&&$('my-moods')){

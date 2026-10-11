@@ -226,6 +226,12 @@ const ALL_MOODS=Object.freeze([
 ]);
 // Keep the public catalogue shared by Studio, My Moods and Mood Creator.
 export const MOODS=ALL_MOODS;
+export function moodPreviewURL(mood,{detail=false}={}){
+  if(typeof window!=='undefined'&&window.__PV_LAB_NATIVE__===1)
+    return '/lab/mood-previews/mobile/v1/'+mood.id+(detail?'-detail':'')+'.jpg';
+  return detail?(mood.previewFull||mood.preview):mood.preview;
+}
+
 export const MOOD_MODELS=Object.freeze(['seedream','gemini']);
 export const moodById=id=>ALL_MOODS.find(m=>m.id===id)||null;
 // This is intentionally presentation-only. Jobs retain the full provider prompt for
@@ -393,7 +399,7 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
     const card=document.createElement('button');card.type='button';card.className='moods-card';
     card.setAttribute('aria-label','Select '+mood.name);card.setAttribute('aria-pressed','false');
     const media=document.createElement('span');media.className='moods-card-media moods-look-'+mood.id;
-    const image=document.createElement('img');image.src=mood.preview;image.alt='';image.loading='lazy';image.decoding='async';media.append(image);
+    const image=document.createElement('img');image.src=moodPreviewURL(mood);image.onerror=()=>{image.onerror=null;image.src=mood.preview;};image.alt='';image.loading='lazy';image.decoding='async';media.append(image);
     const info=document.createElement('span');info.className='moods-card-copy';
     const title=document.createElement('strong');title.textContent=mood.name;
     const subtitle=document.createElement('small');subtitle.textContent=mood.description;info.append(title,subtitle);
@@ -430,7 +436,7 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
     button.setAttribute('aria-expanded',String(!panel.hidden));
   }
   function fitPanelViewport(){
-    if(panel.hidden)return;
+    if(panel.hidden||document.documentElement.classList.contains('pv-native-lab'))return;
     const visual=window.visualViewport;
     const frame={
       composerTop:panel.parentElement.getBoundingClientRect().top,
@@ -476,7 +482,7 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
   }
   // Show exactly two complete rows before the internal scrollbar reveals Sumi-e.
   function fitGridViewport(){
-    if(panel.hidden)return;
+    if(panel.hidden||document.documentElement.classList.contains('pv-native-lab'))return;
     const visible=[...cards.values()].filter(card=>!card.hidden);
     grid.style.maxHeight='';
     if(window.innerWidth<=740||visible.length<=desktopGridColumns*initiallyVisibleRows){
@@ -572,7 +578,7 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
   switcher.onclick=()=>{chooseEngine('seedream');render();onChange();};
   grid.setAttribute('aria-label','Available moods; scroll down to explore more looks');
   function refreshViewport(){
-    if(panel.hidden)return;
+    if(panel.hidden||document.documentElement.classList.contains('pv-native-lab'))return;
     fitGridViewport();fitPanelViewport();
   }
   window.addEventListener('resize',refreshViewport);
