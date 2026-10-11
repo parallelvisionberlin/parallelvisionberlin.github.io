@@ -12,13 +12,13 @@
 <link rel="preload" href="./visuals/ivory-motion.webp" as="image" media="(max-width:700px)" fetchpriority="high">
 <link rel="stylesheet" href="./landing.css?v=20261010-hero-refinement1">
 <link rel="stylesheet" href="./credits.css?v=20261010-pricing-card-hover1">
-<link rel="stylesheet" href="./mood-home.css?v=20261011-mood-creator1">
+<link rel="stylesheet" href="./mood-home.css?v=20261011-discovery-front1">
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
 <header class="landing-header">
   <a class="lab-brand" href="./" aria-label="PV Lab home">PV LAB</a>
-  <nav aria-label="Creative tools"><a href="./studio.html?tool=image">Image</a><a href="./studio.html?tool=retouch">Retouch</a><a href="./studio.html?tool=video">Video</a><a href="./studio.html?tool=upscale">Upscaler</a><a href="./fashion.html">Fashion</a><a href="#pricing">Pricing</a></nav>
+  <nav aria-label="Creative tools"><a href="./studio.html?tool=image">Image</a><a href="./mood-creator.html" class="lab-mood-nav">Mood Creator</a><a href="./studio.html?tool=retouch">Retouch</a><a href="./studio.html?tool=video">Video</a><a href="./studio.html?tool=upscale">Upscaler</a><a href="./fashion.html">Fashion</a><a href="#pricing">Pricing</a></nav>
   <div class="landing-header-actions">
     <button class="lab-auth-link" id="lab-header-signin" type="button">Sign in</button>
     <a class="studio-link" href="./studio.html"><span class="studio-link-label-full">Open studio</span><span class="studio-link-label-compact">Studio</span><span aria-hidden="true">↗</span></a>
@@ -40,14 +40,6 @@
 <div class="hero-copy"><h1 id="hero-title">PV LAB</h1><h2>Fashion. <br>Reimagined.</h2><p class="hero-description">Create images, reinterpret photographs<br class="desktop-break"> and bring them into motion.</p><a class="start-link" href="./studio.html?tool=image">Start creating <span aria-hidden="true">↗</span></a><div class="hero-auth-row"><button class="lab-auth-link" data-lab-signin type="button">Continue with Google</button><p id="lab-entry-status" role="status" aria-live="polite"></p></div></div>
 <div class="hero-bottom"><a class="explore-link" href="#tools">Explore the studio <span aria-hidden="true">↓</span></a><span class="film-credit">A studio by Parallel Vision</span></div>
 </section>
-<section class="tools-section" id="tools" aria-labelledby="tools-title">
-<h2 class="sr-only" id="tools-title">Explore the studio</h2>
-<div class="tool-cards">
-<a class="tool-card" href="./studio.html?tool=image"><div class="card-media"><img src="./visuals/greenhouse-portrait.webp" alt="Portrait in an ivory sculptural collar and transparent coat" width="800" height="1000" loading="lazy"></div><div class="card-caption"><div><h3>Image</h3><p>Create &amp; reinterpret</p></div><span class="card-arrow" aria-hidden="true">↗</span></div></a>
-<a class="tool-card video-card" href="./studio.html?tool=video"><div class="card-media"><img src="./visuals/vessel-card.webp" alt="Vessel silver dress with a flowing transparent sleeve" width="800" height="1422" loading="lazy"></div><div class="card-caption"><div><h3>Video</h3><p>Bring images into motion</p></div><span class="card-arrow" aria-hidden="true">↗</span></div></a>
-<a class="tool-card" href="./studio.html?tool=upscale"><div class="card-media detail-media"><img src="./visuals/reptare-detail.webp" alt="Macro photograph of silver forms and fine ivory fibers" width="900" height="900" loading="lazy"></div><div class="card-caption"><div><h3>Upscaler</h3><p>Refine every detail</p></div><span class="card-arrow" aria-hidden="true">↗</span></div></a>
-</div>
-</section>
 <section class="mc-home" id="mood-creator" aria-labelledby="mc-home-title">
   <div class="mc-home-images" aria-hidden="true">
     <div class="mc-home-image"><img src="./visuals/greenhouse-portrait.webp" alt="" width="800" height="1000" loading="lazy"></div>
@@ -60,9 +52,17 @@
     <h2 id="mc-home-title">MOOD<span>CREATOR.</span></h2>
     <h3>Build a visual language<br>of your own.</h3>
     <p>Start with an image, an idea, or a collection of references. Discover the atmosphere, define the look, save it as your signature. Use it again whenever you create.</p>
-    <div class="mc-home-links"><a class="mc-home-main" href="./mood-creator.html">Create your Mood <span aria-hidden="true">↗</span></a><a class="mc-home-secondary" href="./mood-creator.html?start=image">From an image ↗</a></div>
+    <div class="mc-home-links"><a class="mc-home-main" href="./mood-creator.html">Create your Mood <span aria-hidden="true">↗</span></a><a class="mc-home-secondary" href="./mood-creator.html#explore-moods">Explore all Moods ↗</a></div>
     <span class="mc-home-last">FROM AN IMAGE / FROM AN IDEA / MAKE IT YOURS</span>
   </div>
+</section>
+<section class="tools-section" id="tools" aria-labelledby="tools-title">
+<h2 class="sr-only" id="tools-title">Explore the studio</h2>
+<div class="tool-cards">
+<a class="tool-card" href="./studio.html?tool=image"><div class="card-media"><img src="./visuals/greenhouse-portrait.webp" alt="Portrait in an ivory sculptural collar and transparent coat" width="800" height="1000" loading="lazy"></div><div class="card-caption"><div><h3>Image</h3><p>Create &amp; reinterpret</p></div><span class="card-arrow" aria-hidden="true">↗</span></div></a>
+<a class="tool-card video-card" href="./studio.html?tool=video"><div class="card-media"><img src="./visuals/vessel-card.webp" alt="Vessel silver dress with a flowing transparent sleeve" width="800" height="1422" loading="lazy"></div><div class="card-caption"><div><h3>Video</h3><p>Bring images into motion</p></div><span class="card-arrow" aria-hidden="true">↗</span></div></a>
+<a class="tool-card" href="./studio.html?tool=upscale"><div class="card-media detail-media"><img src="./visuals/reptare-detail.webp" alt="Macro photograph of silver forms and fine ivory fibers" width="900" height="900" loading="lazy"></div><div class="card-caption"><div><h3>Upscaler</h3><p>Refine every detail</p></div><span class="card-arrow" aria-hidden="true">↗</span></div></a>
+</div>
 </section>
 <section class="lab-plans" id="pricing" aria-labelledby="lab-plans-title"><div class="lab-plans-inner">
   <span class="lab-plans-kicker">PV Lab / Your creative workspace</span>
