@@ -342,3 +342,13 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 
 /* Selected reference is a creative focus, not the only image analyzed. */
 .mc-shot.is-active::before{content:"VISUAL FOCUS · ALL IMAGES USED"}
+
+/* Direct photo-to-board affordance over Mood Creator's editorial hero. */
+.mc-hero--creator .mc-editorial{position:relative}
+.mc-hero-upload{position:absolute;z-index:8;left:50%;top:51%;transform:translate(-50%,-50%);display:flex;align-items:center;gap:12px;padding:8px 15px 8px 8px;border:1px solid #c9d0c0a6;border-radius:40px;background:#171a1bec;color:#f2f4ed;box-shadow:0 12px 35px #0009;cursor:pointer;font:500 12px/1.2 'DM Sans',Arial,sans-serif;white-space:nowrap;transition:background .18s,border-color .18s,transform .18s}
+.mc-hero-upload>span{display:grid;place-items:center;width:39px;height:39px;border-radius:50%;background:#d7f97b;color:#181b18;font:300 32px/1 Arial,sans-serif}
+.mc-hero-upload small{font:inherit;letter-spacing:.005em}
+.mc-hero-upload:hover{transform:translate(-50%,-50%) scale(1.045);background:#292d2b;border-color:#e3f5c5}
+.mc-hero-upload:focus-visible{outline:2px solid #d7f97b;outline-offset:4px}
+@media(max-width:540px){.mc-hero-upload{top:52%;padding:6px 12px 6px 6px;font-size:11px}.mc-hero-upload>span{width:34px;height:34px;font-size:29px}}
+@media(prefers-reduced-motion:reduce){.mc-hero-upload{transition:none}}
