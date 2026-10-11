@@ -5,6 +5,7 @@ on:
     paths:
       - 'lab/**'
       - 'tests/lab-fastqueue-browser.mjs'
+      - 'tests/lab-composer-mood-ui.mjs'
       - '.github/workflows/pv-lab-fastqueue-browser.yml'
   workflow_dispatch:
 permissions:
@@ -31,3 +32,7 @@ jobs:
         env:
           PV_PLAYWRIGHT_MODULE: /tmp/pv-fastqueue/node_modules/playwright/index.mjs
         run: node tests/lab-fastqueue-browser.mjs
+      - name: Verify Nano mood deck, direct clear and stable queue geometry
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-fastqueue/node_modules/playwright/index.mjs
+        run: node tests/lab-composer-mood-ui.mjs
