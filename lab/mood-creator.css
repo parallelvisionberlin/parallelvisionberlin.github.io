@@ -220,3 +220,22 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 .mc-library-use:hover{color:#0d2011;border-color:#263f2b}
 .mc-look-file-preview{width:106px;height:76px;display:block;object-fit:cover;border:1px solid #6f896d;margin-bottom:5px}
 .mc-look-dropzone.has-image{border-color:#a9c192;background:#2e3930}
+
+/* Gallery-first navigation points to Explore and the private collection. */
+.mc-navigation a[aria-current="page"]{
+  color:#e0f0d3;text-decoration:underline;
+  text-decoration-color:#a2b891;text-underline-offset:7px;
+}
+@media(max-width:840px){
+  .mc-header{gap:12px;padding-inline:clamp(14px,2.8vw,22px)}
+  .mc-navigation{gap:clamp(11px,1.75vw,20px);font-size:11px}
+  .mc-account{min-width:0}
+}
+@media(max-width:540px){
+  .mc-header{gap:7px;padding-inline:13px}
+  .mc-wordmark span{display:none}
+  .mc-navigation{gap:10px;font-size:10px;overflow-x:auto;scrollbar-width:none}
+  .mc-navigation::-webkit-scrollbar{display:none}
+  .mc-account{gap:4px}
+  .mc-account button{font-size:10px;padding:8px 9px}
+}
