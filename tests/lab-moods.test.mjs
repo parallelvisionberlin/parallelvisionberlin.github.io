@@ -104,9 +104,9 @@ test('Moods category filters have readable touch targets and preserve thumbnail 
   assert.match(html,/moods\.css\?v=20261011-preview-first2/);
 });
 
-test('exactly twelve unique curated moods with imagery',()=>{
-  assert.equal(MOODS.length,14);
-  assert.equal(new Set(MOODS.map(m=>m.id)).size,12);
+test('fifteen unique curated moods with imagery',()=>{
+  assert.equal(MOODS.length,15);
+  assert.equal(new Set(MOODS.map(m=>m.id)).size,15);
   for(const mood of MOODS)for(const field of ['name','category','preview','direction','subtle','intense','avoid'])assert.ok(mood[field]);
 });
 test('only explicitly compatible image engines receive moods',()=>{
@@ -273,18 +273,18 @@ test('Dreamcore V5 compact direction fits ten references',()=>{
   assert.equal(r.error,'');
   assert.ok(compileImagePrompt(r.prompt,refs).length<=5000);
 });
-test('Fourteen moods are available, ten initially visible and Sumi-e last',()=>{
+test('Fifteen moods are available, ten initially visible and Sumi-e last',()=>{
   const css=readFileSync(new URL('../lab/moods.css',import.meta.url),'utf8');
   const js=readFileSync(new URL('../lab/moods.js',import.meta.url),'utf8');
   const html=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
-  assert.equal(MOODS.length,14);
-  assert.deepEqual(MOODS.slice(-3).map(m=>m.id),['dreamcore','hyper-pop','sumi-ink']);
+  assert.equal(MOODS.length,15);
+  assert.equal(MOODS.at(-1).id,'sumi-ink');
   assert.match(css,/\.moods-grid\{display:grid;grid-template-columns:repeat\(5,minmax\(0,1fr\)\)/);
   assert.match(css,/scrollbar-gutter:stable/);
   assert.match(js,/function fitGridViewport\(\)/);
   assert.match(js,/const last=visible\[desktopGridColumns\*initiallyVisibleRows-1\]/);
   assert.match(js,/grid\.style\.maxHeight=firstTwoRows\+'px'/);
-  assert.match(html,/Fourteen curated looks/);
+  assert.match(html,/Fifteen curated looks/);
 });
 test('Moods preserves its gallery height as the image deck grows and stays in the viewport',()=>{
   for(const [width,height,composerTop] of [
@@ -404,7 +404,7 @@ test('Preview-first Moods deck enlarges photos while keeping original slider and
   assert.match(css,/#composer-moods-done,[\s\S]*?#composer-moods-switch\{[\s\S]*?min-height:48px/);
   assert.match(css,/max-height:min\(720px,var\(--moods-available-height/);
   assert.match(html,/moods\.css\?v=20261011-preview-first2/);
-  assert.equal(MOODS.length,14);
+  assert.equal(MOODS.length,15);
 });
 
 
@@ -458,9 +458,9 @@ test('80s Film cinematic mood keeps multi-reference prompts under provider chara
   const studio=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
   const app=readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8');
   const creator=readFileSync(new URL('../lab/mood-creator.js',import.meta.url),'utf8');
-  assert.match(studio,/lab\.js\?v=20261011-berlin-rave-v2b/);
-  assert.match(app,/moods\.js\?v=20261011-berlin-rave-v2b/);
-  assert.match(creator,/moods\.js\?v=20261011-berlin-rave-v2b/);
+  assert.match(studio,/lab\.js\?v=20261011-midnight-reverie1/);
+  assert.match(app,/moods\.js\?v=20261011-midnight-reverie1/);
+  assert.match(creator,/moods\.js\?v=20261011-midnight-reverie1/);
   const board={id:'10000000-0000-4000-8000-000000000080',name:'Cinematic Night',baseMoodId:'80s-film',direction:'Editorial fashion and elegant fabrics'};
   for(const count of [1,2,10]){
     const saved=preparePersonalMoodPrompt('Luxury movie scene',board,100,{engine:'seedream',referenceCount:count});

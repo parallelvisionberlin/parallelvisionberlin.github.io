@@ -1,6 +1,18 @@
 /* PV Lab Moods V1. Editorial generation directions, not pixel filters. */
 const ALL_MOODS=Object.freeze([
   {
+    "id": "midnight-reverie",
+    "name": "Midnight Reverie",
+    "category": "Cinema",
+    "preview": "/lab/mood-previews/midnight-reverie-original-20261011.png",
+    "description": "Cyan light, fleeting movement and intimate night-film texture",
+    "defaultIntensity": 65,
+    "direction": "MIDNIGHT REVERIE / CANDID ANALOG NIGHT PHOTOGRAPHY. Apply this reusable photographic treatment to the requested subject or Base image. Uneven available light, restrained cyan practical-light spill, small amber or red accents only where motivated, deep green-black shadows and gently imperfect exposure. Brief directional background light trails and slight movement softness at moving edges; facial features stay believable and gently unresolved, with continuous photographic structure in skin, hair and fabric. Localised glow belongs to bright light sources, never an all-over fog layer. Fine irregular film grain stays restrained and does not replace material detail. The capture feels intimate and unposed, not retouched or studio-lit. With a Base image, preserve its person, expression, pose, clothing, framing and recognizable setting; adapt the treatment to existing lighting without inventing a street, car, rain, signs or a new model. With text alone, follow the user's subject and setting and use candid framing. This mood changes photographic capture and light, not anatomy or wardrobe.",
+    "subtle": "Gentle candid analog photographic treatment: faint fine irregular grain, modest cool shadow separation, a trace of localised glow on existing bright lights and slight optical softness. Preserve believable skin, hair, fabric and scene structure; no painted texture or beauty retouching. Preserve the Base image and source lighting.",
+    "intense": "Stronger cyan light spill, deeper shadows and brief directional motion trails. Increase localised bloom while keeping grain fine, features readable and material detail intact. Preserve identity and setting.",
+    "avoid": "watercolor, painted or stippled skin, canvas texture, coarse uniform noise overlay, waxy skin, airbrushing, beauty-campaign lighting, overly crisp portrait bokeh, uniform fog, neon overload, generic cyberpunk, invented rain or wet glass, replacing the person or scene, fake film borders, text or interface icons"
+  },
+  {
     "id": "hong-kong-nights",
     "name": "Hong Kong Nights",
     "category": "Cinema",
