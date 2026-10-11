@@ -1,4 +1,4 @@
-import {moodById} from './moods.js?v=20261011-midnight-reverie1&hd=20261011&raveBudget=1';
+import {moodById} from './moods.js?v=20261011-midnight-reverie1&hd=20261011&raveBudget=1&editorialHD=1';
 import {saveMoodHandoff,validateMoodHandoff} from './mood-handoff.js?v=20261011-discovery1';
 // Discovering and selecting a look must never perform a paid generation.
 export function moodExploreDestination(moodId,{create=false,handoff=null}={}){
@@ -83,6 +83,37 @@ function initialize(){
   }
   $('mc-look-continue').onclick=()=>void continueWithMood();
   $('mc-look-make').onclick=()=>void continueWithMood(true);
+
+  // Reveal the complete collection without forcing every card into the first viewport.
+  const extraMoods=$('mc-expanded-moods'),viewAll=$('mc-view-all');
+  if(viewAll&&extraMoods){
+    viewAll.addEventListener('click',()=>{
+      const expanding=extraMoods.hidden;
+      extraMoods.hidden=!expanding;
+      viewAll.setAttribute('aria-expanded',String(expanding));
+      viewAll.innerHTML=(expanding?'SHOW FEWER MOODS':'VIEW ALL MOODS')+' <span aria-hidden="true">'+(expanding?'↑':'→')+'</span>';
+      if(expanding)extraMoods.scrollIntoView({block:'nearest',behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
+    });
+  }
+  // Mobile navigation follows the native PV Lab links, with a genuine close action.
+  const header=$('mc-explore-header'),menu=$('mc-menu-toggle');
+  if(header&&menu){
+    const closeMenu=()=>{
+      header.classList.remove('is-menu-open');
+      menu.setAttribute('aria-expanded','false');
+      menu.setAttribute('aria-label','Open navigation menu');
+    };
+    menu.addEventListener('click',()=>{
+      const opening=!header.classList.contains('is-menu-open');
+      header.classList.toggle('is-menu-open',opening);
+      menu.setAttribute('aria-expanded',String(opening));
+      menu.setAttribute('aria-label',opening?'Close navigation menu':'Open navigation menu');
+    });
+    document.addEventListener('click',event=>{if(!header.contains(event.target))closeMenu()});
+    document.addEventListener('keydown',event=>{if(event.key==='Escape')closeMenu()});
+    header.querySelectorAll('.mc-navigation a').forEach(link=>link.addEventListener('click',closeMenu));
+  }
+
   const requested=new URLSearchParams(location.search).get('mood');
   if(requested&&moodById(requested))showMood(moodById(requested));
 }
