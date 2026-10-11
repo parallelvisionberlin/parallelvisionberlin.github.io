@@ -1,6 +1,6 @@
 import {loadLabAccount} from './native-account.js?v=2';
 import {createAssetLibrary} from './assets.js?v=20261010-navigation-media1';
-import {createPrecisionEditor} from './precision-edit.js?v=20261011-retouch-discovery1';
+import {createPrecisionEditor} from './precision-edit.js?v=20261011-no-emoji1';
 import {createCustomerWallet} from './customer-wallet.js?v=20261010-referrals3';
 import {createCustomerImagePricing} from './customer-image-pricing.js?v=20261010-customer-credits1';
 import {customerImagePriceKey,pricedBoundQuotes,imageAutoRatio} from './image-credit-preview.js?v=20261010-customer-credits1';
