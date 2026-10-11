@@ -1,0 +1,64 @@
+/* Mobile result viewer: photo, useful actions, then details in one scroll. */
+#image-lightbox .image-detail-media-actions #image-lightbox-close{
+  order:3;min-width:44px;width:44px;min-height:44px;border:0;background:transparent;
+}
+#image-lightbox .image-detail-media-actions #image-lightbox-download{
+  order:2;min-height:44px;padding:0 14px;font-size:12px;
+}
+#image-lightbox .image-detail-media-actions #image-lightbox-fit{min-height:44px}
+@media(max-width:720px){
+  #image-lightbox .image-detail-layout{
+    display:block;height:100%;overflow-x:hidden;overflow-y:auto;
+    overscroll-behavior:contain;scroll-padding-top:60px;
+  }
+  #image-lightbox .image-detail-media{display:contents}
+  #image-lightbox .image-detail-topbar{
+    position:sticky;top:0;z-index:5;height:56px;padding:0 12px;gap:8px;
+    background:#111216f5;
+  }
+  #image-lightbox #image-lightbox-title{font-size:12px;white-space:nowrap}
+  #image-lightbox #image-lightbox-counter{font-size:10px;letter-spacing:0;margin-left:auto;margin-right:0}
+  #image-lightbox .image-detail-media-actions{gap:4px;margin-left:4px}
+  #image-lightbox .image-detail-media-actions #image-lightbox-fit{padding:0 9px;font-size:11px}
+  #image-lightbox .image-detail-media-actions #image-lightbox-download{padding:0 10px}
+  #image-lightbox .image-lightbox-stage{
+    height:clamp(240px,49dvh,560px)!important;padding:12px!important;
+  }
+  #image-lightbox .image-detail-bottomline{height:28px;font-size:10px}
+  #image-lightbox .image-detail-inspector{
+    display:flex;height:auto;min-height:0;overflow:visible;border:0;
+  }
+  #image-lightbox .image-detail-actions{
+    order:0;position:static;padding:14px 14px 18px;gap:10px;
+    border-top:0;border-bottom:1px solid #ffffff16;
+  }
+  #image-lightbox .image-detail-actions .detail-primary{min-height:52px;font-size:15px}
+  #image-lightbox .image-detail-action-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+  #image-lightbox .image-detail-action-grid button{min-height:50px;padding:10px 6px;font-size:13px}
+  #image-lightbox #image-detail-save-mood{grid-column:1 / -1;min-height:50px;font-size:14px}
+  #image-lightbox .image-detail-inspector-head{
+    order:1;position:static;min-height:54px;padding:0 16px;border-bottom:0;
+  }
+  #image-lightbox .image-detail-inspector-scroll{
+    order:2;flex:none;overflow:visible;height:auto;max-height:none;
+    padding:0 14px max(24px,env(safe-area-inset-bottom));
+  }
+  #image-lightbox .image-detail-prompt-card{max-height:none;overflow:visible}
+  #image-lightbox .image-detail-prompt{overflow:visible;max-height:none;font-size:13px}
+  #image-lightbox .image-detail-prompt.is-collapsible:not(.is-expanded){max-height:none;display:block}
+  #image-lightbox #image-detail-expand{display:none}
+  #image-lightbox .image-detail-reference-wrap{padding:12px;gap:12px;min-height:100px}
+  #image-lightbox #image-detail-reference-thumb{width:76px;min-width:76px;height:88px;flex-basis:76px;object-fit:contain}
+  #image-lightbox .image-detail-reference-open-mark{font-size:13px}
+}
+@media(max-width:360px){
+  #image-lightbox #image-lightbox-title{font-size:11px}
+  #image-lightbox .image-detail-topbar{padding:0 8px;gap:4px}
+  #image-lightbox .image-detail-media-actions #image-lightbox-download{padding:0 8px;font-size:11px}
+}
+@media(min-width:721px){
+  #image-lightbox .image-detail-action-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  #image-lightbox .image-detail-action-grid button{min-width:0;padding:8px 5px}
+  #image-lightbox #image-detail-save-mood{grid-column:1 / -1}
+  #image-lightbox .image-detail-subactions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+}
