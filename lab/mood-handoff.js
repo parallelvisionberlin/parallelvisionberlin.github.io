@@ -35,7 +35,7 @@ export async function saveMoodHandoff({file=null,prompt=''}={}){
   }finally{db.close();}
 }
 export async function takeMoodHandoff(id){
-  if(typeof id!=='string'||!/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[89ab][a-f0-9]{12}$/i.test(id))
+  if(typeof id!=='string'||!/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i.test(id))
     throw Error('Invalid temporary photo handoff.');
   const db=await openHandoffDb();
   try{
