@@ -1,4 +1,4 @@
-import {moodById} from './moods.js?v=20261011-midnight-reverie1&hd=20261011&raveBudget=1&editorialHD=2&hongKongStreet=1&moodImageHD=1';
+import {moodById} from './moods.js?v=20261011-midnight-reverie1&hd=20261011&raveBudget=1&editorialHD=2&hongKongStreet=1&moodImageHD=1&raveNight=3';
 import {saveMoodHandoff,validateMoodHandoff} from './mood-handoff.js?v=20261011-discovery1';
 // Discovering and selecting a look must never perform a paid generation.
 export function moodExploreDestination(moodId,{create=false,handoff=null}={}){
@@ -59,7 +59,7 @@ function initialize(){
     preview.src=selected.preview;
     preview.alt=selected.name+' aesthetic';
     $('mc-look-title').textContent=selected.name;
-    $('mc-look-description').textContent=selected.id==='berlin-rave'?selected.description+'. This mood replaces the outfit while keeping your identity, pose and location.':selected.id==='synthetic-romance'?selected.description+'. This mood reconstructs visible body parts into engineered chrome, cables and synthetic anatomy.':selected.description+'. Keep your own subject and scene.';
+    $('mc-look-description').textContent=selected.id==='berlin-rave'?selected.description+'. Transforms wardrobe and lighting into a night-flash editorial while keeping your identity, pose and framing.':selected.id==='synthetic-romance'?selected.description+'. This mood reconstructs visible body parts into engineered chrome, cables and synthetic anatomy.':selected.description+'. Keep your own subject and scene.';
     if(photo)attachPhoto(photo);
     if(!dialog.open)dialog.showModal();
     void loadFullPreview(selected,'high').then(src=>{

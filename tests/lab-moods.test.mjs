@@ -488,16 +488,16 @@ test('80s Film cinematic mood keeps multi-reference prompts under provider chara
   assert.match(duo.prompt,/80S FILM \/ FASHION CINEMA/);
 });
 
-test('Berlin Rave V2 adapts garment architecture to the person and keeps the original scene',()=>{
+test('Berlin Rave V3 transforms wardrobe and night lighting while preserving identity',()=>{
   const mood=moodById('berlin-rave');
   assert.ok(mood);assert.equal(mood.category,'Fashion');assert.equal(mood.defaultIntensity,80);
-  assert.match(mood.direction,/READ THE SUBJECT FIRST/);
-  assert.match(mood.direction,/CHOOSE ONE COHERENT DESIGN LANGUAGE/);
-  assert.match(mood.direction,/hairstyle, makeup character/);
-  assert.match(mood.direction,/fine haze or optical bloom/);
-  assert.match(mood.direction,/do not force a monochrome photograph/);
+  assert.match(mood.direction,/direct on-camera flash/);
+  assert.match(mood.direction,/black leather and glossy latex/);
+  assert.match(mood.direction,/sensual dystopian/);
+  assert.match(mood.direction,/facial identity, expression, hairstyle/i);
+  assert.match(mood.direction,/Remove sunlight and daytime fill/);
   assert.match(mood.avoid,/red neon/);
-  assert.match(mood.avoid,/fake crowd/);
+  assert.match(mood.avoid,/invented crowd/);
   assert.equal(mood.preview,'/lab/mood-previews/berlin-rave-20261011.webp?v=hd-20261011','Keep the approved Berlin Rave photograph at native resolution');
   assert.match(mood.preview,/berlin-rave-20261011\.webp/);
   for(const intensity of [10,55,80,95,100]){
@@ -507,7 +507,10 @@ test('Berlin Rave V2 adapts garment architecture to the person and keeps the ori
     assert.match(result.prompt,/leather/i);
     assert.match(result.prompt,/Preserve the same face and identity/i);
     assert.match(result.prompt,/hairstyle/);
-    assert.match(result.prompt,/recognizable surroundings/);
+    assert.match(result.prompt,/CHANGE wardrobe, lighting and time of day/);
+    assert.match(result.prompt,/direct on-camera flash/);
+    assert.match(result.prompt,/leather AND glossy latex/);
+    assert.doesNotMatch(result.prompt,/REPLACE only the visible wardrobe|Keep original.*light and location|never invent scenery|no scene change|not maximum bulk or scene change/);
     assert.match(result.prompt,/Wardrobe|outfit|clothes/i);
     assert.doesNotMatch(result.prompt,/enormous platform boots/i);
     assert.doesNotMatch(result.prompt,/preserve face, identity, real body proportions, pose, camera, wardrobe and composition/);
@@ -517,7 +520,9 @@ test('Berlin Rave V2 adapts garment architecture to the person and keeps the ori
   assert.equal(byRole.error,'');assert.match(byRole.prompt,/assigned reference roles/);
   const compact=prepareMoodPrompt('A model at a rave','berlin-rave',100,{engine:'seedream',referenceCount:10});
   assert.equal(compact.error,'');assert.match(compact.prompt,/REPLACE source wardrobe/);
-  assert.match(compact.prompt,/one coherent design gesture/);
+  assert.match(compact.prompt,/one coherent body-contouring/);
+  assert.match(compact.prompt,/100%: REQUIRED dark nighttime setting/);
+  assert.match(compact.prompt,/jacket-only edit fails this brief/);
   assert.match(compact.prompt,/red neon/);
   assert.doesNotMatch(compact.prompt,/enormous platform boots/i);
   const tenRefs=Array.from({length:10},(_,i)=>({name:'rave-ref-'+i+'.png',role:i?'none':'base'}));
@@ -526,14 +531,13 @@ test('Berlin Rave V2 adapts garment architecture to the person and keeps the ori
   assert.equal(saved.error,'');assert.match(saved.prompt,/PV LAB MOOD \/ Berlin Rave/);
 });
 
-test('Berlin Rave V2 respects text directions, non-base reference roles and unchanged thumbnail',()=>{
+test('Berlin Rave V3 lets explicit directions and reference roles override its night defaults',()=>{
   const original='Change only the garment, keep the long hair and daylight';
   const look=prepareMoodPrompt(original,'berlin-rave',80,{engine:'seedream',referenceCount:1});
   assert.equal(look.error,'');
   assert.ok(look.prompt.startsWith(original+'\n\n'));
   assert.equal(look.metadata.moodOriginalPrompt,original);
-  assert.match(look.prompt,/existing light, colors and recognizable surroundings/);
-  assert.match(look.prompt,/trace of haze/);
+  assert.match(look.prompt,/Explicit user instructions and assigned reference roles override these Mood defaults/);
   const refsOnly=prepareMoodPrompt('Black experimental clubwear','berlin-rave',80,{engine:'gemini',referenceCount:3,referenceMode:'references'});
   assert.equal(refsOnly.error,'');
   assert.match(refsOnly.prompt,/assigned reference roles/);
@@ -545,6 +549,20 @@ test('Berlin Rave V2 respects text directions, non-base reference roles and unch
   assert.match(explore,/berlin-rave-20261011\.webp/);
 });
 
+
+test('Berlin Rave 100% sends night, flash and latex through the final provider prompt',()=>{
+  for(const engine of ['seedream','gemini'])for(const referenceCount of [0,1,10]){
+    const result=prepareMoodPrompt(referenceCount?'':'A fashion portrait','berlin-rave',100,{engine,referenceCount});
+    const labels=Array.from({length:referenceCount},(_,i)=>({role:i?'none':'base'}));
+    const finalPrompt=compileImagePrompt(result.prompt,labels);
+    assert.equal(result.error,'');
+    assert.match(finalPrompt,/direct on-camera flash/);
+    assert.match(finalPrompt,/dark nighttime (setting|surroundings)/);
+    assert.match(finalPrompt,/complete sensual dystopian leather-and-latex outfit/);
+    assert.doesNotMatch(finalPrompt,/Do not invent a new club|source relighting|changing face, hair, pose, original light or scene|not maximum bulk or scene change/);
+    assert.ok(finalPrompt.length<=5000);
+  }
+});
 
 test('Moods remains a compact electric-citron discovery action without recoloring other controls',()=>{
   const css=readFileSync(new URL('../lab/assets.css',import.meta.url),'utf8');
