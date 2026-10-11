@@ -72,3 +72,6 @@
  .mc-discovery--explore .mc-discovery-intro-note{margin:8px 0 11px}
  .mc-discovery--explore .mc-look-photo{aspect-ratio:1.52}
 }
+
+/* Hong Kong Nights: frame the street and car, not the high skyline. */
+.mc-discovery--explore .mc-look-card[data-mood-id="hong-kong-nights"] .mc-look-photo img{object-position:50% 100%}
