@@ -1914,6 +1914,7 @@ const imageDetailCache=new Map();
 let imageDetailNavBusy=false;
 let imageDetailSourceURL=null; // small inspector preview
 let imageDetailSourceOriginalURL=null; // full resolution, only while opened
+let imageDetailSourceOriginalMime=null;
 let imageDetailSourceAssetId=null;
 let imageDetailSourceRevision=0,imageDetailSourceOpenRevision=0;
 function imageDetailSequence(){
@@ -1946,6 +1947,8 @@ function closeImageSourceViewer(){
   if($('image-source-lightbox').open)$('image-source-lightbox').close();
   $('image-source-preview').removeAttribute('src');
   if(imageDetailSourceOriginalURL){release(imageDetailSourceOriginalURL);imageDetailSourceOriginalURL=null;}
+  imageDetailSourceOriginalMime=null;
+  $('image-source-download').disabled=true;
 }
 function releaseImageDetailSource(){
   ++imageDetailSourceRevision;
@@ -1988,6 +1991,8 @@ function openImageDetailSource(){
   $('image-source-fit').textContent='Fit';
   $('image-source-fit').setAttribute('aria-pressed','false');
   $('image-source-fit').disabled=true;
+  $('image-source-download').disabled=true;
+  imageDetailSourceOriginalMime=null;
   $('image-source-dimensions').textContent='LOADING ORIGINAL IMAGE…';
   $('image-source-unavailable').textContent='Loading original image…';
   $('image-source-unavailable').hidden=false;
@@ -1998,6 +2003,7 @@ function openImageDetailSource(){
     if(!owner||openRevision!==imageDetailSourceOpenRevision||sourceRevision!==imageDetailSourceRevision||!dialog.open||imageDetailSourceAssetId!==assetId)return;
     if(!blob?.type?.startsWith('image/'))throw Error('Original image unavailable');
     imageDetailSourceOriginalURL=URL.createObjectURL(blob);
+    imageDetailSourceOriginalMime=blob.type.split(';')[0];
     img.src=imageDetailSourceOriginalURL;
     img.hidden=false;
     $('image-source-unavailable').hidden=true;
@@ -2013,6 +2019,7 @@ function updateImageSourceDimensions(){
   if(!$('image-source-lightbox').open||!img.naturalWidth||!img.naturalHeight)return;
   $('image-source-stage').setAttribute('aria-busy','false');
   $('image-source-fit').disabled=false;
+  $('image-source-download').disabled=!imageDetailSourceOriginalURL||!imageDetailSourceOriginalMime;
   $('image-source-dimensions').textContent=img.naturalWidth+' × '+img.naturalHeight+' / ORIGINAL RATIO';
 }
 
@@ -2157,6 +2164,14 @@ $('image-lightbox-close').onclick=closeImageDetail;
 $('image-detail-reference-wrap').onclick=openImageDetailSource;
 $('image-source-close').onclick=closeImageSourceViewer;
 $('image-source-back').onclick=closeImageSourceViewer;
+$('image-source-download').onclick=()=>{
+  // The actual original is already loaded inside the source viewer. Never
+  // download its compressed card thumbnail, and never request a second copy.
+  if(!owner||!$('image-source-lightbox').open||!imageDetailSourceOriginalURL||!imageDetailSourceAssetId)return;
+  const ext=({'image/jpeg':'jpg','image/png':'png','image/webp':'webp'})[imageDetailSourceOriginalMime];
+  if(!ext||$('image-source-download').disabled)return;
+  saveDownload(imageDetailSourceOriginalURL,'source-'+imageDetailSourceAssetId,ext);
+};
 $('image-source-stage').onclick=event=>{
   if(event.target===$('image-source-stage'))closeImageSourceViewer();
 };
@@ -2173,6 +2188,7 @@ $('image-source-preview').onerror=()=>{
   $('image-source-stage').setAttribute('aria-busy','false');
   $('image-source-preview').hidden=true;
   $('image-source-fit').disabled=true;
+  $('image-source-download').disabled=true;
   $('image-source-unavailable').hidden=false;
   $('image-source-dimensions').textContent='ORIGINAL IMAGE UNAVAILABLE';
 };
@@ -2180,6 +2196,8 @@ $('image-source-lightbox').addEventListener('close',()=>{
   if($('image-source-lightbox').open)return; // Ignore a delayed close event if already reopened.
   ++imageDetailSourceOpenRevision;
   if(imageDetailSourceOriginalURL){release(imageDetailSourceOriginalURL);imageDetailSourceOriginalURL=null;}
+  imageDetailSourceOriginalMime=null;
+  $('image-source-download').disabled=true;
   $('image-source-preview').removeAttribute('src');
   $('image-source-stage').classList.remove('is-zoomed');
   $('image-source-stage').setAttribute('aria-busy','false');
