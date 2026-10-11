@@ -22,8 +22,9 @@ import {findFalRequest} from './fal-recovery.mjs';
 import {falUploadImage} from './fal-storage.mjs';
 import {REFERENCE_ROLES,normalizeReferenceLabel,supportsReferenceGuidance,compileImagePrompt,canUseReferenceGuidance,referenceGuidanceError} from '../lab/reference-guidance.js';
 import {moodBoardsRoute} from './moodboards.mjs';
+import {moodCreatorRoute} from './mood-creator-service.mjs';
 import {characterPreview as soulCharacterPreview,SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-11.2-private-moodboards';
+export const VERSION = 'pv-lab-2026-10-11.3-mood-creator';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -1045,6 +1046,10 @@ async function route(request,env,ctx) {
     if(!wallet?.balance_credits)fail(402,'Add PV Lab credits before uploading files.');
   }
   if(path==='/api/library'||path.startsWith('/api/library/'))return json(await libraryRoute(request,env,owner,url,{body,uid,fail,rows,first,run}));
+  // Explicit creative-direction analysis and private low-res board uploads.
+  // Must precede /api/moodboards/:id so "analyze"/"image" are not parsed as IDs.
+  if((path==='/api/moodboards/analyze'||path==='/api/moodboards/image')&&method==='POST')
+    return moodCreatorRoute(request,env,owner,url,{limitedBody,fail,json,first,run,rows,now,sniff,maxStorage:MAX_STORAGE});
   if(path==='/api/moodboards'||path.startsWith('/api/moodboards/'))
     return moodBoardsRoute(request,env,owner,url,{body,uid,fail,rows,first,run,json,now});
   // FASHN balance reports our wholesale API account balance, not the customer's credits.
