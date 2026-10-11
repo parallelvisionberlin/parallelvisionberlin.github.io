@@ -219,6 +219,15 @@ function initMoodCreator(){
     feedback('Art direction ready. Refine it, name your Mood, then save.');
   }
   $('mc-suggestion-apply').onclick=applyAnalysisResult;
+  $('mc-use-idea').onclick=()=>{
+    const text=concept.value.trim();
+    if(!text){feedback('Write a few words about the aesthetic first.',true);concept.focus();return;}
+    if(direction.value.trim()&&!confirm('Replace the current style direction with your written idea?'))return;
+    direction.value=text.slice(0,900);
+    $('mc-direction-count').textContent=direction.value.length+' / 900';
+    $('mc-suggestion').hidden=true;
+    feedback('Your words are now the reusable art direction. No AI analysis was needed.');
+  };
   async function analyzeStyle(){
     if(analyzing||busy)return;
     if(!authenticated()){feedback('Sign in to develop a style from a photograph or idea.',true);signin.click();return;}
