@@ -16,11 +16,13 @@
   };
   const startHero = () => {
     if (!hero) return;
-    if (reduced.matches) {
+    if (reduced.matches || narrow.matches) {
       reset(hero);
       heroSection?.classList.remove('motion-active');
-      hero.removeAttribute('src');
-      hero.load();
+      if (hero.hasAttribute('src')) {
+        hero.removeAttribute('src');
+        hero.load();
+      }
       return;
     }
     const next = narrow.matches ? hero.dataset.mobileSrc : hero.dataset.desktopSrc;
