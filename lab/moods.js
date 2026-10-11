@@ -93,25 +93,27 @@ const ALL_MOODS=Object.freeze([
     "name": "Dreamcore",
     "category": "Experimental",
     "preview": "/lab/mood-previews/dreamcore-train-20261010.webp",
-    "description": "Glossy dream light, physical fog, impossible liminal spaces",
-    "direction": "PV LAB DREAMCORE: A REAL PHOTOGRAPH taken inside a dream, not fantasy illustration or CGI. Read the source and create ONE impossible event growing from its actual location and geometry. Keep the original camera viewpoint and real textures: pores, grain, weathered materials, shadows and reflections. Use source-led pearl aqua, soft pink, cyan, lavender and iridescent highlights instead of a generic gradient. Aim for quiet uncanny nostalgia, tactile gloss, luminous air and real spatial depth.",
-    "subtle": "SUBTLE (1-34%): Preserve location and composition. Slight analog bloom, pastel ambient light, faint depth haze and delicate skin or fabric gloss. No spatial event.",
-    "moderate": "ATMOSPHERIC (35-69%): Distinct luminous mist and iridescent reflected light, one modest surreal cue in the existing place. People receive natural-looking pearly skin and material highlights.",
-    "immersive": "IMMERSIVE (70-89%): Strong scene-specific spatial transformation, physical clouds or impossible depth in the actual environment. Layered fog and light interact with the whole image; people gain visible opalescent or satin-metallic surfaces.",
-    "intense": "IMPOSSIBLE REALITY (90-99%): The source location becomes a convincing impossibility, not just a new sky. Let ONE spatial phenomenon inhabit the original architecture or terrain, from foreground to background. Strong wet pearl gloss on existing skin or garments, preserved anatomy and outfit cut.",
-    "climax": "MAXIMUM 100%: FULL DREAM TAKEOVER. One spectacular impossible event must occupy foreground, middle ground and depth, physically growing from the real setting. Clouds, water-light or mist can flow through existing openings and surfaces, with shared light, realistic occlusion and reflective air. The SAME person can acquire distinctly pearlescent, glossy, wet or subtly metallic skin and clothing finish, never a new face, body, pose or outfit coverage. Keep the real photographic lens and texture. Only a pastel grade, unrelated fantasy building or woman pasted before clouds is failure.",
-    "avoid": "royal arches, palaces, castles, fantasy terraces, unrelated beds, angelic heaven, resort architecture, inserted trains, stock cloud wallpaper, pasted fog, fake wet floor, cartoon colors, chrome dolls, over-smooth skin, false silhouettes, altered face, body or outfit coverage, artificial CGI",
-    "subjectRouting": "SOURCE ROUTING: If a person is visible in the Base image or requested output, follow PERSON. Otherwise follow SCENE. For text-only use the written subject; for reference-only respect assigned roles. This selection is a visual instruction to the generation model, not a separate classifier.",
-    "person": "PERSON: KEEP the same face, hair silhouette, expression, body proportions, anatomy, pose, framing and camera viewpoint. Transform surface FINISH too: physically plausible pearlescent wet-looking skin gloss, soft-metallic or opalescent highlights that follow natural anatomy, pores and the actual light. Existing garments may gain satin shine or iridescent reflections while retaining their cut and coverage unless the user asks otherwise. Never replace the person or cut them out from the scene.",
-    "environment": "SCENE: When no person is present, preserve the original setting's type and recognizable geometry while making its space impossible. Coast stays coastal, corridors stay passages, real pools stay aquatic, and streets remain urban. Choose ONE surreal event growing from an actual surface, doorway, horizon or vanishing point; never copy the mood preview's objects. If a person exists, transform the surroundings as well. Do not invent an unrelated palace, resort, bed or train.",
-    "atmosphere": "PHYSICAL FOG AND GLOSS: Fog is true atmospheric volume with variable depth. It scatters scene light, partly obscures distant objects, wraps some nearby contours, crosses in front of and behind objects, and creates coherent reflections. Never a white overlay or clouds pasted behind a cutout subject. Maintain readable facial features, material imperfections, real contact shadows and physically motivated glossy highlights.",
-    "compact": "DREAMCORE: REAL source location photographed inside a dream, not CGI. Read source or written direction. IF PERSON: same face, hair, anatomy, pose and framing; allow luminous pearly wet skin gloss and subtle metallic or satin sheen on existing clothes, retaining cut and coverage. IF NO PERSON: preserve place type and viewpoint, transform its own geometry and depth without adding people. ONE source-led impossible event. Fog is physical volume: coherent depth, light scattering and occlusion, not overlay. Keep skin pores and real texture, use pale aqua/lilac/pink accents sparingly.",
-    "compactSubtle": "SUBTLE (1-34%): Minor color, haze, film texture and gloss only.",
-    "compactModerate": "ATMOSPHERIC (35-69%): Layered luminous fog, pearly skin or material and one small surreal cue.",
-    "compactImmersive": "IMMERSIVE (70-89%): Substantial source-led transformation with dimensional haze, reflections and gloss.",
-    "compactIntense": "IMPOSSIBLE REALITY (90-99%): Major impossible event from real space with strong volumetric light and sheen.",
-    "compactClimax": "MAXIMUM 100%: FULL DREAM TAKEOVER. One large impossible transformation affects foreground, midground and depth; preserve identity and pose, allow strong opalescent skin or fabric FINISH. Photographically integrated fog and reflection.",
-    "compactAvoid": "royal architecture, random bed, fake fantasy CGI, pasted clouds, fake wet floor, cutout human, altered body, outfit replacement"
+    "description": "Pearlescent reality, iridescent mist and liminal light",
+    "direction": "PV LAB DREAMCORE V5: A real photograph inside a softly impossible dream. Keep source camera, location, composition and natural material texture. Transform existing matter, light and atmosphere rather than inventing fantasy structures. Pearl cyan, lavender and pink are reflected-light accents, not universal filters.",
+    "subtle": "SUBTLE 1-34%: Faint natural bloom, soft haze and subtle material sheen; real geometry stays intact.",
+    "moderate": "ATMOSPHERIC 35-69%: Organic matter and portraits gain discernible pearly gloss, iridescent reflections and mist. Built spaces gain restrained color and atmosphere.",
+    "immersive": "IMMERSIVE 70-89%: Organic water, foam and skin gain strong luminous material changes and physical fog; portraits richer gloss; architecture preserves structure with stronger light.",
+    "intense": "IMPOSSIBLE REALITY 90-99%: Organic transformation becomes spectacular but photographic, portrait opalescence bold; built geometry remains real and quietly uncanny.",
+    "climax": "MAXIMUM 100%: ORGANIC: exceptional wet pearlescent skin, luminous sea foam, shimmering wet rocks, iridescent water and naturally scattered fog integrated across foreground, middle distance and depth. PORTRAIT: vivid photographic opalescence on the SAME person, pose and clothes. ARCHITECTURE: keep the real building and furniture; use deeply atmospheric coherent light and only one subtle local impossibility, never fantasy structures. No flat pastel tint, pasted smoke or generic woman in front of clouds.",
+    "avoid": "palaces, royal arches, castles, fantasy resorts, inserted beds, CGI dream buildings, stock cloud wallpaper, fake indoor floods, pasted fog, plastic skin, random neon patches, anatomy changes, lost identity, new outfits or different coverage",
+    "person": "PERSON PRESERVATION: Preserve SAME face, eyes, hair, expression, proportions, anatomy, pose, crop and camera. Skin may become realistically pearlescent, wet-glossy or faintly metallic, but keep skin pores and truthful light on body curvature. Existing outfits can gain modest color shifts, satin or opalescent sheen, keeping garment cut and coverage. No replaced identity or cutout figure.",
+    "atmosphere": "FOG PHYSICS: Fog occupies real volume, changes density with distance, scatters the actual light, occludes some distant surfaces and wraps contours. Gloss must belong to existing skin, water, foam, glass and fabric. No pasted fog, random wet floor, plastic skin, CGI walls or decorative rainbow spray.",
+    "compact": "DREAMCORE: Real source photographed inside a dream, no fantasy CGI. Read scene and route: ORGANIC if beach, sea, water, foam, rocks or nature, even WITH a person; ARCHITECTURE for real rooms, houses, façades or streets; otherwise PORTRAIT for a person with simple background. Preserve every person's face, pose, proportions, crop and outfit coverage. ORGANIC: strong pearly water/foam, wet skin gloss and luminous real mist. PORTRAIT: realistic opalescent skin and fabric with coherent haze. ARCHITECTURE: retain walls, windows, furniture and camera; only light, reflections and restrained haze may change. Fog has real depth, scattering and occlusion.",
+    "compactSubtle": "SUBTLE 1-34%: Soft haze, gloss and bloom only.",
+    "compactModerate": "ATMOSPHERIC 35-69%: Layered mist, real pearl highlights; built scene restrained.",
+    "compactImmersive": "IMMERSIVE 70-89%: Strong organic iridescence, glossy people, preserved built geometry.",
+    "compactIntense": "IMPOSSIBLE REALITY 90-99%: Spectacular organic matter, spatial fog, subdued architecture.",
+    "compactClimax": "MAXIMUM 100%: ORGANIC intense luminous water/foam/skin; PORTRAIT bold pearly sheen and identity preserved; ARCHITECTURE real building, liminal light only.",
+    "compactAvoid": "palaces, royal arches, random bed, CGI buildings, cloud wallpaper, pasted fog, mannequin skin, lost identity",
+    "routing": "SOURCE ROUTING: Inspect source and choose ONE route. ORGANIC if sea, foam, water, beach, wet rocks, vegetation or natural landscape dominates, EVEN WHEN A PERSON IS PRESENT. ARCHITECTURE if houses, corridors, interiors, façades or streets dominate. Otherwise PORTRAIT if a person dominates a simple background. Every visible person follows PERSON PRESERVATION. Never use a new place as a default.",
+    "organic": "ORGANIC ROUTE, STRONGEST: Make REAL foam, water, wet rock, sand, foliage and skin physically extraordinary with luminous iridescence, pearly wet highlights, refracted color and mist naturally rising from the scene. Keep actual coast, horizon, terrain, waves and subjects recognizable. No invented architecture or fantasy props.",
+    "portrait": "PORTRAIT ROUTE: In studio or simple settings, preserve person and camera; give skin and existing clothing elegant opalescent gloss and reflective color. Create coherent atmospheric depth around the person, not a stock cloud backdrop or new model.",
+    "architecture": "ARCHITECTURE ROUTE, CONTROLLED: Preserve existing rooms, buildings, windows, façades, doors, furniture and perspective. Add natural optical bloom, site-specific colored reflections and subtle real atmospheric haze. Even at 100%, alter light and one small source-led detail, never the actual architectural design. No palace arches, fantasy terraces, resorts or invented beds."
   },
   {
     "id": "sumi-ink",
@@ -170,12 +172,12 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
   if(!MOOD_MODELS.includes(engine))return {prompt:original,metadata:{},error:'Moods v1 supports Seedream 5 Pro and Nano Banana Pro. Choose one of these models first.'};
   const intensity=Math.max(1,Math.min(100,Math.round(Number(amount)||60)));
   const dreamcore=mood.id==='dreamcore';
-  const compactDreamcore=dreamcore&&(referenceCount>=4||original.length>=1100);
+  const compactDreamcore=dreamcore&&(referenceCount>=3||original.length>=800);
   const dreamcoreTier=intensity<=34?'Subtle':intensity<=69?'Moderate':intensity<=89?'Immersive':intensity<=99?'Intense':'Climax';
   const dreamcoreKey=intensity<=34?'subtle':intensity<=69?'moderate':intensity<=89?'immersive':intensity<=99?'intense':'climax';
   const context=referenceCount===0?'No Base: use the written subject.':referenceMode==='references'?'Reference-only: follow requested output and explicitly assigned roles.':'Inspect the first Base image to choose PERSON or SCENE.';
   const style=dreamcore
-    ?[compactDreamcore?mood.compact:[mood.direction,mood.subjectRouting,mood.person,mood.environment,mood.atmosphere].join(' '),
+    ?[compactDreamcore?mood.compact:[mood.direction,mood.routing,mood.person,mood.organic,mood.portrait,mood.architecture,mood.atmosphere].join(' '),
       context,'Creative intensity '+intensity+'/100; artistic instruction strength, NOT literal pixel opacity.',
       compactDreamcore?mood['compact'+dreamcoreTier]:mood[dreamcoreKey]
     ].join(' ')
@@ -185,8 +187,8 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
       ?'The uploaded images only supply their assigned reference roles. Keep referenced people recognisable without copying unintended people.'
       :mood.id==='dreamcore'
         ?compactDreamcore
-          ?'Base image: keep identity, anatomy, pose, camera and garment coverage; transform surface and scene. Follow reference roles.'
-          :'Base image: preserve human identity, proportions, pose and recognizable outfit coverage, but transform material finish and environment. If no person, preserve scene type and camera while transforming atmosphere and space. Respect reference roles. Guidance, not a guarantee.'
+          ?'Base: preserve identity, pose, camera, garment coverage and scene type; transform atmosphere and materials. Respect assigned roles.'
+          :'Base: preserve person identity, pose, camera, proportions and garment coverage where present; keep original scene recognizable and follow ORGANIC, PORTRAIT or ARCHITECTURE direction. Respect reference roles. Guidance, not a guarantee.'
         :'The first reference is the base photograph. Preserve face, identity, real body proportions, pose, camera, wardrobe and composition unless the user specifically asks to change them. Preservation is guidance, not a guarantee.'
     :'Honor the requested subject and composition.';
   const prompt=[original,'PV LAB MOOD / '+mood.name+': '+style+' '+preservation+' Avoid: '+(compactDreamcore?mood.compactAvoid:mood.avoid)+'.'].filter(Boolean).join('\n\n');
