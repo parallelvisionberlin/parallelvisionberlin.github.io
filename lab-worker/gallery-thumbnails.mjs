@@ -1,9 +1,9 @@
 // PV LAB / PRIVATE IMAGE GALLERY PREVIEWS
 // Resizes an authenticated R2 image once, stores a compact WebP next to it,
 // and returns only the derivative. The untouched original stays in its R2 key.
-export const GALLERY_THUMB_EDGE=800;
-export const GALLERY_THUMB_QUALITY=82;
-export const GALLERY_THUMB_VERSION='v1-800q82';
+export const GALLERY_THUMB_EDGE=480;
+export const GALLERY_THUMB_QUALITY=80;
+export const GALLERY_THUMB_VERSION='v2-480q80';
 const IMAGE_INPUT_LIMIT=20_000_000; // Images binding raw-byte input limit.
 const THUMB_BYTE_LIMIT=2*1024*1024;
 
@@ -19,7 +19,7 @@ function thumbResponse(body,size){
     'Content-Type':'image/webp',
     'Content-Length':String(size),
     'Cache-Control':'private, no-store',
-    'X-PV-Preview':'webp-800'
+    'X-PV-Preview':'webp-480'
   }});
 }
 function thumbnailError(status,message){
