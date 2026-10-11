@@ -1,4 +1,4 @@
-import {MOODS,moodById} from './moods.js?v=20261011-80s-cinema2';
+import {MOODS,moodById} from './moods.js?v=20261011-berlin-rave1';
 import {createSessionRequest} from './session-request.js?v=20260927-auth1';
 import {takeMoodHandoff} from './mood-handoff.js?v=20261011-discovery1';
 const API='https://parallel-vision-lab.parallelvision.workers.dev';
@@ -459,6 +459,7 @@ function initMoodCreator(){
   signin.onclick=()=>clerk?.openSignIn?.();
   signout.onclick=()=>void clerk?.signOut?.();
   for(const mood of MOODS)base.add(new Option(mood.name,mood.id));
+  base.addEventListener('change',()=>{const selectedMood=moodById(base.value);if(selectedMood?.defaultIntensity){intensity.value=String(selectedMood.defaultIntensity);$('mc-intensity-value').textContent=intensity.value+'%';}});
   const urlStart=q.get('start');
   if(urlStart==='idea'){setTimeout(()=>{scrollToWorkspace();concept.focus({preventScroll:true});},50);}
   if(urlStart==='image'){setTimeout(()=>{
@@ -472,7 +473,7 @@ function initMoodCreator(){
     feedback('Unknown curated look. Start from an original Mood or explore the collection.',true);
   if(initialBase&&moodById(initialBase)&&!chosenBoard&&!sourceJob){
     base.value=initialBase;
-    intensity.value='70';$('mc-intensity-value').textContent='70%';
+    intensity.value=String(moodById(initialBase).defaultIntensity||70);$('mc-intensity-value').textContent=intensity.value+'%';
     void (async()=>{
       try{
         if(initialHandoff){

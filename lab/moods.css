@@ -267,3 +267,6 @@
 
 /* Hong Kong Nights: retain the lower roadway/car in deck thumbnails. */
 .moods-look-hong-kong-nights img{object-position:50% 100%}
+
+/* Berlin Rave: show the face, exaggerated shoulders and layered leather, not a midriff crop. */
+.moods-look-berlin-rave img{object-position:50% 12%;filter:none}

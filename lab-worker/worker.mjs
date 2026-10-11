@@ -178,7 +178,7 @@ function referenceLabels(value,max=10) {
     return normalizeReferenceLabel(x);
   });
 }
-const IMAGE_MOOD_IDS=new Set(['hong-kong-nights','90s-cinema','night-flash','fashion-editorial','80s-film','kodak-gold','soft-pastel-film','frutiger-aero','dreamcore','sumi-ink','hyper-pop','custom']);
+const IMAGE_MOOD_IDS=new Set(['hong-kong-nights','90s-cinema','night-flash','fashion-editorial','berlin-rave','80s-film','kodak-gold','soft-pastel-film','frutiger-aero','dreamcore','sumi-ink','hyper-pop','custom']);
 function imageMoodMetadata(value){
   if(value.moodId==null||value.moodId==='')return {};
   if(!IMAGE_MOOD_IDS.has(value.moodId))fail(400,'Unknown image mood.');

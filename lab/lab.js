@@ -8,7 +8,7 @@ captureReferralCode();
 import {createSoul2UI} from './higgsfield-ui.js?v=20261010-soul-price1';
 import {VIDEO_MODELS,engineFor,videoLabel} from './video-models.js?v=20261009-extend1';
 import {REFERENCE_ROLES,REFERENCE_TARGETS,normalizeReferenceLabel,compileImagePrompt,referenceGuidanceError,canUseReferenceGuidance} from './reference-guidance.js?v=20261010-reference-flow2';
-import {createMoodSelector,moodById,userFacingImagePrompt,imageHistoryCaption} from './moods.js?v=20261011-80s-cinema2';
+import {createMoodSelector,moodById,userFacingImagePrompt,imageHistoryCaption} from './moods.js?v=20261011-berlin-rave1';
 import {createMyMoods} from './my-moods.js?v=20261011-mood-creator-collection3';
 import {takeMoodHandoff} from './mood-handoff.js?v=20261011-discovery1';
 import {createMediaReferences} from './media-references.js?v=20261009-extend2';
@@ -117,7 +117,7 @@ async function restoreStudioEntry(){
         title=personal.name;
       }else{
         const mood=moodById(moodId);
-        moodUI.restore({moodId:mood.id,moodIntensity:70},true);
+        moodUI.restore({moodId:mood.id,moodIntensity:mood.defaultIntensity||70},true);
         title=mood.name;
       }
       let hadPhoto=false;

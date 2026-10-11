@@ -1,4 +1,4 @@
-import {moodById} from './moods.js?v=20261011-explore-separate1';
+import {moodById} from './moods.js?v=20261011-berlin-rave1';
 import {saveMoodHandoff,validateMoodHandoff} from './mood-handoff.js?v=20261011-discovery1';
 // Discovering and selecting a look must never perform a paid generation.
 export function moodExploreDestination(moodId,{create=false,handoff=null}={}){
@@ -39,7 +39,7 @@ function initialize(){
     $('mc-look-preview').src=selected.preview;
     $('mc-look-preview').alt=selected.name+' aesthetic';
     $('mc-look-title').textContent=selected.name;
-    $('mc-look-description').textContent=selected.description+'. Keep your own subject and scene.';
+    $('mc-look-description').textContent=selected.id==='berlin-rave'?selected.description+'. This mood replaces the outfit while keeping your identity, pose and location.':selected.description+'. Keep your own subject and scene.';
     if(photo)attachPhoto(photo);
     dialog.showModal();
   }

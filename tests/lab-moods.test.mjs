@@ -63,8 +63,8 @@ test('Moods category filters have readable touch targets and preserve thumbnail 
   assert.match(html,/moods\.css\?v=20261011-preview-first2/);
 });
 
-test('exactly eleven unique curated moods with imagery',()=>{
-  assert.equal(MOODS.length,11);
+test('exactly twelve unique curated moods with imagery',()=>{
+  assert.equal(MOODS.length,12);
   assert.equal(new Set(MOODS.map(m=>m.id)).size,11);
   for(const mood of MOODS)for(const field of ['name','category','preview','direction','subtle','intense','avoid'])assert.ok(mood[field]);
 });
@@ -236,7 +236,7 @@ test('Eleven moods are available, ten initially visible and Sumi-e last',()=>{
   const css=readFileSync(new URL('../lab/moods.css',import.meta.url),'utf8');
   const js=readFileSync(new URL('../lab/moods.js',import.meta.url),'utf8');
   const html=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
-  assert.equal(MOODS.length,11);
+  assert.equal(MOODS.length,12);
   assert.deepEqual(MOODS.slice(8).map(m=>m.id),['dreamcore','hyper-pop','sumi-ink']);
   assert.match(css,/\.moods-grid\{display:grid;grid-template-columns:repeat\(5,minmax\(0,1fr\)\)/);
   assert.match(css,/scrollbar-gutter:stable/);
@@ -362,7 +362,7 @@ test('Preview-first Moods deck enlarges photos while keeping original slider and
   assert.match(css,/#composer-moods-done,[\s\S]*?#composer-moods-switch\{[\s\S]*?min-height:48px/);
   assert.match(css,/max-height:min\(720px,var\(--moods-available-height/);
   assert.match(html,/moods\.css\?v=20261011-preview-first2/);
-  assert.equal(MOODS.length,11);
+  assert.equal(MOODS.length,12);
 });
 
 
@@ -416,9 +416,9 @@ test('80s Film cinematic mood keeps multi-reference prompts under provider chara
   const studio=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
   const app=readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8');
   const creator=readFileSync(new URL('../lab/mood-creator.js',import.meta.url),'utf8');
-  assert.match(studio,/lab\.js\?v=20261011-80s-cinema2/);
-  assert.match(app,/moods\.js\?v=20261011-80s-cinema2/);
-  assert.match(creator,/moods\.js\?v=20261011-80s-cinema2/);
+  assert.match(studio,/lab\.js\?v=20261011-berlin-rave1/);
+  assert.match(app,/moods\.js\?v=20261011-berlin-rave1/);
+  assert.match(creator,/moods\.js\?v=20261011-berlin-rave1/);
   const board={id:'10000000-0000-4000-8000-000000000080',name:'Cinematic Night',baseMoodId:'80s-film',direction:'Editorial fashion and elegant fabrics'};
   for(const count of [1,2,10]){
     const saved=preparePersonalMoodPrompt('Luxury movie scene',board,100,{engine:'seedream',referenceCount:count});
@@ -428,4 +428,25 @@ test('80s Film cinematic mood keeps multi-reference prompts under provider chara
   }
   const duo=prepareMoodPrompt('Fashion scene','80s-film',100,{engine:'seedream',referenceCount:2});
   assert.match(duo.prompt,/80S FILM \/ FASHION CINEMA/);
+});
+
+test('Berlin Rave is an intentional outfit transformation, not a black color filter',()=>{
+  const mood=moodById('berlin-rave');
+  assert.ok(mood);assert.equal(mood.category,'Fashion');assert.equal(mood.defaultIntensity,80);
+  assert.match(mood.preview,/berlin-rave-20261011\.webp/);
+  for(const intensity of [10,55,80,95,100]){
+    const result=prepareMoodPrompt('A person wearing a white T-shirt','berlin-rave',intensity,{engine:'seedream',referenceCount:1});
+    assert.equal(result.error,'');
+    assert.match(result.prompt,/REPLACE|replace|wardrobe transformation|outfit transformation/i);
+    assert.match(result.prompt,/leather/i);
+    assert.match(result.prompt,/Preserve the same face and identity/i);
+    assert.doesNotMatch(result.prompt,/preserve face, identity, real body proportions, pose, camera, wardrobe and composition/);
+    assert.equal(result.metadata.moodIntensity,intensity);
+  }
+  const byRole=prepareMoodPrompt('An editorial portrait','berlin-rave',85,{engine:'gemini',referenceCount:2,referenceMode:'references'});
+  assert.equal(byRole.error,'');assert.match(byRole.prompt,/assigned reference roles/);
+  const compact=prepareMoodPrompt('A model at a rave','berlin-rave',100,{engine:'seedream',referenceCount:10});
+  assert.equal(compact.error,'');assert.match(compact.prompt,/REPLACE source wardrobe/);
+  const saved=preparePersonalMoodPrompt('Portrait', {id:'30000000-0000-4000-8000-000000000121',name:'My Rave',direction:'Worn industrial leather',baseMoodId:'berlin-rave'},80,{engine:'seedream',referenceCount:1});
+  assert.equal(saved.error,'');assert.match(saved.prompt,/PV LAB MOOD \/ Berlin Rave/);
 });

@@ -66,7 +66,7 @@ try{
   const page=await context.newPage(),errors=[];
   page.on('pageerror',err=>errors.push(err.message));
   await page.goto(origin+'/lab/explore-moods.html',{waitUntil:'domcontentloaded'});
-  assert.equal(await page.locator('.mc-look-card[data-mood-id]').count(),11);
+  assert.equal(await page.locator('.mc-look-card[data-mood-id]').count(),12);
   assert.equal(await page.locator('#mc-look-dialog').count(),1);
   const grid=await page.evaluate(()=>{
     const gallery=document.querySelector('.mc-look-grid'),photo=gallery.querySelector('.mc-look-photo').getBoundingClientRect();
@@ -76,7 +76,7 @@ try{
   assert.ok(grid.width>=200&&grid.height>=250);
   assert.ok(grid.top<900,'The first image row should be visible without scrolling');
   assert.equal(await page.locator('.mc-workspace').count(),0,'Explore has no duplicate Mood Creator workbench');
-  pass('Explore Moods shows eleven big looks on a dedicated page');
+  pass('Explore Moods shows twelve big looks on a dedicated page');
 
   await page.locator('.mc-look-card[data-mood-id="dreamcore"]').click();
   assert.equal(await page.locator('#mc-look-dialog').evaluate(el=>el.open),true);

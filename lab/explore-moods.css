@@ -75,3 +75,6 @@
 
 /* Hong Kong Nights: frame the street and car, not the high skyline. */
 .mc-discovery--explore .mc-look-card[data-mood-id="hong-kong-nights"] .mc-look-photo img{object-position:50% 100%}
+
+/* Frame the Berlin Rave outfit from the head down on landscape thumbnails. */
+.mc-discovery--explore .mc-look-card[data-mood-id="berlin-rave"] .mc-look-photo img{object-position:50% 12%}

@@ -45,6 +45,27 @@ const ALL_MOODS=Object.freeze([
     "avoid": "generic e-commerce photo, airbrushed skin, physically impossible fabrics"
   },
   {
+    "id": "berlin-rave",
+    "name": "Berlin Rave",
+    "category": "Fashion",
+    "preview": "/lab/mood-previews/berlin-rave-20261011.webp",
+    "description": "Extreme leather silhouettes, underground Berlin",
+    "defaultIntensity": 80,
+    "direction": "BERLIN RAVE / WARDROBE TRANSFORMATION. This is a complete avant-garde OUTFIT RESTYLE, not just a dark color filter. Replace existing clothing with an extraordinary Berlin underground rave look: exaggerated Rick Owens-inspired architecture, sculptural oversized black leather outerwear, severe cocoon or angular shoulders, draped and shredded layers of authentic heavy leather, long asymmetrical hanging panels, wrapped fabrics, technical straps and industrial metal fittings, enormous platform boots. Outfit silhouettes must feel dramatically elongated and dystopian without distorting the person's anatomy. Luxury independent-designer execution: physically convincing weight, stitching, garment structure, wear and gloss. Photographic direction: Berlin underground fashion editorial, raw direct flash, real skin, moody industrial shadows, nuanced worn concrete. Keep the original setting unless the user explicitly requests a new one. No generic cyberpunk or cosplay.",
+    "subtle": "1-34%: visibly REPLACE the old outfit with understated black leather tailoring, angular jacket layers, asymmetric draped details and heavy boots. Retain the original light and setting. This is still an outfit change, not a darkening filter.",
+    "moderate": "35-69%: complete outfit transformation into high-end Berlin rave fashion with oversized leather shoulders, draped asymmetric construction, industrial fittings and platform boots. Strong materials, restrained photographic darkness, real-world tailoring.",
+    "immersive": "70-89%: dramatic architectural leather couture, massive shaped shoulders, bold draped and distressed black layers, long fabric panels and extraordinary heavy platforms. Convincing nightclub editorial, tactile flash and shadows. Keep the original person's identity and body.",
+    "intense": "90-99%: maximal extreme Berlin underground silhouette with complex sculptural leather, immense draped panels, brutalist tailoring, exaggerated outerwear and towering boots. Make an exceptional but wearable fashion statement, never a costume.",
+    "climax": "100%: complete dystopian Berlin rave transformation. Monumental black leather architecture, severe angular shoulders, cascading worn and tailored panels, intricate layering, impressive industrial boots and powerful photographic flash. Radical couture, recognizable person and real materials, not a CGI character.",
+    "compact": "BERLIN RAVE: REPLACE source wardrobe, not merely recolor it. Exaggerated Rick Owens-inspired Berlin underground couture: architectural black leather shoulders and coats, long asymmetric weighty drapes, worn layered leather, real hardware and enormous heavy platform boots, direct-flash editorial, genuine textile physics. Keep actual face, body, pose, camera and recognizable setting; only wardrobe is rebuilt.",
+    "compactSubtle": "1-34%: clear but restrained black leather wardrobe replacement and boots.",
+    "compactModerate": "35-69%: full outfit restyle, layered and draped leather, architectural shoulders.",
+    "compactImmersive": "70-89%: immense wearable drapes, dramatic shoulder constructions and platforms.",
+    "compactIntense": "90-99%: maximal radical leather couture silhouette, real materials and tailoring.",
+    "compactClimax": "100%: extreme monumental dystopian leather rave look, still realistic and wearable.",
+    "avoid": "a mere dark filter, existing T-shirt or ordinary clothes left unchanged, cheap sci-fi costumes, generic cyberpunk, neon cliches, fetish-only outfit, exposed nudity, plastic CGI leather, random tattoos, logos, copied specific runway pieces, altered face, new person, distorted natural body, swapped pose, invented room, extra limbs"
+  },
+  {
     "id": "80s-film",
     "name": "80s Film",
     "category": "Analog",
@@ -186,7 +207,8 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
   if(!mood)return {prompt:original,metadata:{},error:''};
   if(!MOOD_MODELS.includes(engine))return {prompt:original,metadata:{},error:'Moods v1 supports Seedream 5 Pro and Nano Banana Pro. Choose one of these models first.'};
   const intensity=Math.max(1,Math.min(100,Math.round(Number(amount)||60)));
-  const dreamcore=mood.id==='dreamcore',cinematic80s=mood.id==='80s-film';
+  const dreamcore=mood.id==='dreamcore',cinematic80s=mood.id==='80s-film',berlinRave=mood.id==='berlin-rave';
+  const compactBerlinRave=berlinRave&&(compact===true||referenceCount>=4||original.length>=750);
   const compactDreamcore=dreamcore&&(compact===true||referenceCount>=3||original.length>=800);
   const compact80s=cinematic80s&&(compact===true||referenceCount>=2||original.length>=800||(referenceCount===1&&original.length>=(intensity===100?200:550)));
   const dreamcoreTier=intensity<=34?'Subtle':intensity<=69?'Moderate':intensity<=89?'Immersive':intensity<=99?'Intense':'Climax';
@@ -195,7 +217,12 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
   const eightyCore=compact80s
     ?intensity<=34?mood.compactLow:intensity<=69?mood.compactMid:mood.compact
     :intensity<=34?mood.lowDirection:intensity<=69?mood.midDirection:mood.direction;
-  const style=dreamcore
+  const style=berlinRave
+    ?[compactBerlinRave?mood.compact:mood.direction,
+      'Creative intensity '+intensity+'/100: a real outfit transformation, NOT a pixel-opacity filter.',
+      compactBerlinRave?mood['compact'+dreamcoreTier]:mood[dreamcoreKey]
+    ].join(' ')
+    :dreamcore
     ?[compactDreamcore?mood.compact:[mood.direction,mood.routing,mood.person,mood.organic,mood.portrait,mood.architecture,mood.atmosphere].join(' '),
       context,'Creative intensity '+intensity+'/100; artistic instruction strength, NOT literal pixel opacity.',
       compactDreamcore?mood['compact'+dreamcoreTier]:mood[dreamcoreKey]
@@ -209,7 +236,9 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
   const preservation=referenceCount>0
     ?referenceMode==='references'
       ?'The uploaded images only supply their assigned reference roles. Keep referenced people recognisable without copying unintended people.'
-      :mood.id==='dreamcore'
+      :berlinRave
+        ?'The first reference is the base photograph. Explicitly REPLACE its clothes. Preserve the same face and identity, natural body proportions, hands, pose, camera angle, framing and recognizable surroundings. Wardrobe replacement is intentional, never a body or location replacement. Respect assigned reference roles.'
+        :mood.id==='dreamcore'
         ?compactDreamcore
           ?'Base: preserve identity, pose, camera, garment coverage and scene type; transform atmosphere and materials. Respect assigned roles.'
           :'Base: preserve person identity, pose, camera, proportions and garment coverage where present; keep original scene recognizable and follow ORGANIC, PORTRAIT or ARCHITECTURE direction. Respect reference roles. Guidance, not a guarantee.'
@@ -300,7 +329,7 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
     const title=document.createElement('strong');title.textContent=mood.name;
     const subtitle=document.createElement('small');subtitle.textContent=mood.description;info.append(title,subtitle);
     card.append(media,info);
-    card.onclick=()=>{selected=selected===mood.id?null:mood.id;render();fitPanelViewport();onChange();};
+    card.onclick=()=>{selected=selected===mood.id?null:mood.id;if(selected&&mood.defaultIntensity)intensity=mood.defaultIntensity;render();fitPanelViewport();onChange();};
     grid.append(card);cards.set(mood.id,card);
   }
   const createTile=document.createElement('button');
