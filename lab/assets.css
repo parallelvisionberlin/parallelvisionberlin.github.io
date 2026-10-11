@@ -1105,3 +1105,70 @@ body:has(#app[hidden])>#studio-header .studio-assets-icon{display:none!important
   body>#studio-header .tool-switch::-webkit-scrollbar{display:none}
   #studio-header .tool-switch>.tool-group{width:max-content;min-width:max-content;justify-content:flex-start}
 }
+
+
+/* PV LAB / MOODS DISCOVERY CTA
+   Electric citron is intentionally reserved for the creative Mood entry.
+   Keep the control as compact as Retouch; color, not size, establishes priority. */
+#image-composer .composer-mood-control #image-composer-moods{
+  min-height:40px;min-width:94px;max-width:100%;
+  padding:8px 12px;
+  border:1px solid #dfff42;border-radius:10px;
+  background:linear-gradient(160deg,#e8ff69 0%,#d6ff00 53%,#c7ee00 100%);
+  color:#19220f;
+  font-family:inherit;font-size:12px;font-weight:740;letter-spacing:-.015em;
+  text-shadow:none;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 1px 4px rgba(0,0,0,.14);
+  transition:background .16s ease,border-color .16s ease,box-shadow .16s ease,transform .16s ease;
+}
+#image-composer .composer-mood-control #image-composer-moods:hover:not(:disabled){
+  border-color:#eaff80;
+  background:linear-gradient(160deg,#efff94 0%,#e0ff28 54%,#cff600 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.52),0 3px 12px rgba(214,255,0,.14);
+  transform:translateY(-1px);
+}
+#image-composer .composer-mood-control #image-composer-moods:active:not(:disabled){
+  transform:translateY(0);
+  box-shadow:inset 0 1px 4px rgba(27,40,5,.16);
+}
+#image-composer .composer-mood-control #image-composer-moods.is-mood-selected{
+  border-color:#cfff19;
+  background:linear-gradient(160deg,#e0ff47 0%,#d1f900 100%);
+  color:#18220e;
+  box-shadow:inset 0 0 0 1px rgba(40,58,0,.2),inset 0 1px rgba(255,255,255,.34);
+}
+#image-composer .composer-mood-control #image-composer-moods.is-mood-selected:hover:not(:disabled){
+  border-color:#eaff80;
+  background:linear-gradient(160deg,#efff94 0%,#e0ff28 54%,#cff600 100%);
+  box-shadow:inset 0 0 0 1px rgba(40,58,0,.13),0 3px 12px rgba(214,255,0,.14);
+}
+#image-composer .composer-mood-control #image-composer-moods[aria-expanded="true"]{
+  box-shadow:inset 0 0 0 1px rgba(40,58,0,.2),0 0 0 2px rgba(214,255,0,.13);
+}
+#image-composer .composer-mood-control #image-composer-moods:focus-visible{
+  outline:2px solid #f8ffdd!important;outline-offset:3px;
+}
+#image-composer .composer-mood-control #image-composer-moods:disabled{
+  opacity:.5;cursor:not-allowed;transform:none;
+}
+#image-composer .composer-mood-control #image-composer-moods-clear{
+  color:#1b2a09;
+  background:rgba(28,42,7,.1);
+  border-radius:6px;
+}
+#image-composer .composer-mood-control #image-composer-moods-clear:hover:not(:disabled){
+  color:#0e1805;background:rgba(28,42,7,.2);
+}
+#image-composer .composer-mood-control #image-composer-moods-clear:focus-visible{
+  outline:2px solid #16240b!important;outline-offset:2px;
+}
+@media(max-width:650px){
+  #image-composer .composer-mood-control #image-composer-moods{
+    min-width:0;padding-inline:9px;font-size:11px;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  #image-composer .composer-mood-control #image-composer-moods{
+    transition:none;
+  }
+}
