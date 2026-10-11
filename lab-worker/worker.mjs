@@ -178,6 +178,8 @@ function referenceLabels(value,max=10) {
     return normalizeReferenceLabel(x);
   });
 }
+// Keep the curated mood IDs synchronized with the Image selector and My Moods;
+// Berlin Rave explicitly changes clothing while retaining face and scene.
 const IMAGE_MOOD_IDS=new Set(['hong-kong-nights','90s-cinema','night-flash','fashion-editorial','berlin-rave','80s-film','kodak-gold','soft-pastel-film','frutiger-aero','dreamcore','sumi-ink','hyper-pop','custom']);
 function imageMoodMetadata(value){
   if(value.moodId==null||value.moodId==='')return {};

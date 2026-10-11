@@ -65,7 +65,7 @@ test('Moods category filters have readable touch targets and preserve thumbnail 
 
 test('exactly twelve unique curated moods with imagery',()=>{
   assert.equal(MOODS.length,12);
-  assert.equal(new Set(MOODS.map(m=>m.id)).size,11);
+  assert.equal(new Set(MOODS.map(m=>m.id)).size,12);
   for(const mood of MOODS)for(const field of ['name','category','preview','direction','subtle','intense','avoid'])assert.ok(mood[field]);
 });
 test('only explicitly compatible image engines receive moods',()=>{
@@ -232,18 +232,18 @@ test('Dreamcore V5 compact direction fits ten references',()=>{
   assert.equal(r.error,'');
   assert.ok(compileImagePrompt(r.prompt,refs).length<=5000);
 });
-test('Eleven moods are available, ten initially visible and Sumi-e last',()=>{
+test('Twelve moods are available, ten initially visible and Sumi-e last',()=>{
   const css=readFileSync(new URL('../lab/moods.css',import.meta.url),'utf8');
   const js=readFileSync(new URL('../lab/moods.js',import.meta.url),'utf8');
   const html=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
   assert.equal(MOODS.length,12);
-  assert.deepEqual(MOODS.slice(8).map(m=>m.id),['dreamcore','hyper-pop','sumi-ink']);
+  assert.deepEqual(MOODS.slice(9).map(m=>m.id),['dreamcore','hyper-pop','sumi-ink']);
   assert.match(css,/\.moods-grid\{display:grid;grid-template-columns:repeat\(5,minmax\(0,1fr\)\)/);
   assert.match(css,/scrollbar-gutter:stable/);
   assert.match(js,/function fitGridViewport\(\)/);
   assert.match(js,/const last=visible\[desktopGridColumns\*initiallyVisibleRows-1\]/);
   assert.match(js,/grid\.style\.maxHeight=firstTwoRows\+'px'/);
-  assert.match(html,/Eleven curated looks/);
+  assert.match(html,/Twelve curated looks/);
 });
 test('Moods preserves its gallery height as the image deck grows and stays in the viewport',()=>{
   for(const [width,height,composerTop] of [
@@ -337,7 +337,8 @@ test('Moods prioritizes previews and toggles an already-selected thumbnail off',
   const js=readFileSync(new URL('../lab/moods.js',import.meta.url),'utf8');
   const css=readFileSync(new URL('../lab/moods.css',import.meta.url),'utf8');
   const html=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
-  assert.match(js,/card\.onclick=\(\)=>\{selected=selected===mood\.id\?null:mood\.id;render\(\);fitPanelViewport\(\);onChange\(\);\}/);
+  assert.match(js,/card\.onclick=\(\)=>\{selected=selected===mood\.id\?null:mood\.id;/);
+  assert.match(js,/if\(selected&&mood\.defaultIntensity\)intensity=mood\.defaultIntensity/);
   assert.match(css,/Selected mood is beside filters/);
   assert.match(css,/\.moods-card-media\{aspect-ratio:6\/5\}/);
   assert.match(css,/\.moods-footer\{gap:2px;padding-top:6px\}/);

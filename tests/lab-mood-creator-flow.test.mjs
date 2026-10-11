@@ -85,7 +85,7 @@ test('The editor is a distinct page, preserves Image prices and has two entry po
  assert.match(page,/class="mc-hero mc-hero--creator"/);
  assert.doesNotMatch(page,/id="mc-look-dialog"/);
  const explore=readFileSync(new URL('../lab/explore-moods.html',import.meta.url),'utf8');
- assert.equal((explore.match(/data-mood-id=/g)||[]).length,11);
+ assert.equal((explore.match(/data-mood-id=/g)||[]).length,12);
  assert.match(style,/\.mc-workspace-body/);
  assert.match(style,/\.mc-library-grid/);
 });
@@ -145,7 +145,7 @@ test('Art Direction keeps settings and Save actions in one visible deck footer',
   assert.match(css,/\.mc-direction-main\{[\s\S]*?overflow-y:auto;overflow-x:hidden/);
   assert.match(css,/\.mc-direction-footer\{[\s\S]*?border-top:1px solid #4e5850/);
   assert.match(css,/@media\(max-width:820px\)\{[\s\S]*?\.mc-direction\{display:flex;flex-direction:column;height:auto/);
-  assert.match(page,/mood-creator\.css\?v=20261011-board-focus1/);
+  assert.match(page,/mood-creator\.css\?v=20261011-direction-deck1/);
   assert.match(page,/all selected Moodboard previews and your idea go to Google's AI service/);
   assert.match(js,/save\.onclick=\(\)=>void saveMood\(\)/);
   assert.match(js,/use\.onclick=\(\)=>void \(async\(\)=>\{/);
