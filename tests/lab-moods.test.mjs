@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {MOODS,MOOD_MODELS,moodById,prepareMoodPrompt,userFacingImagePrompt,imageHistoryCaption} from '../lab/moods.js';
+import {MOODS,MOOD_MODELS,moodById,prepareMoodPrompt,userFacingImagePrompt,imageHistoryCaption,moodsPanelViewportGeometry} from '../lab/moods.js';
 import {readFileSync} from 'node:fs';
 import {compileImagePrompt} from '../lab/reference-guidance.js';
 
@@ -184,19 +184,54 @@ test('Eleven moods are available, ten initially visible and Sumi-e last',()=>{
   assert.match(js,/grid\.style\.maxHeight=firstTwoRows\+'px'/);
   assert.match(html,/Eleven curated looks/);
 });
+test('Moods stays inside the viewport and reserves room for the floating composer',()=>{
+  for(const [width,height,composerTop] of [
+    [1440,900,700],[1280,720,510],[950,650,415],[390,780,490],
+    [390,530,245],[360,430,170]
+  ]){
+    const g=moodsPanelViewportGeometry({viewportWidth:width,viewportHeight:height,composerTop});
+    const topMargin=width<=740?14:28;
+    const gap=g.gap;
+    const calculatedTop=composerTop-gap+g.overlap-g.maxHeight;
+    assert.ok(calculatedTop>=topMargin-1,'Moods popup clips at '+width+'x'+height+' top='+calculatedTop);
+    assert.ok(g.maxHeight<=720);
+    assert.ok(g.maxHeight<=height-topMargin-(width<=740?10:16));
+    assert.ok(g.overlap===0||composerTop-gap+g.overlap>composerTop-gap,'Overlap only when necessary');
+  }
+  const ordinary=moodsPanelViewportGeometry({viewportWidth:1400,viewportHeight:900,composerTop:700});
+  assert.equal(ordinary.overlap,0);
+  const tight=moodsPanelViewportGeometry({viewportWidth:390,viewportHeight:530,composerTop:245});
+  assert.ok(tight.overlap>0);
+  assert.equal(tight.tight,true);
+  const css=readFileSync(new URL('../lab/moods.css',import.meta.url),'utf8');
+  const js=readFileSync(new URL('../lab/moods.js',import.meta.url),'utf8');
+  const html=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
+  assert.match(css,/\.moods-grid\{display:grid;grid-template-columns:repeat\(5,minmax\(0,1fr\)\);gap:11px;flex:0 1 auto/);
+  assert.match(css,/\.moods-footer\{[\s\S]*?flex:0 0 auto/);
+  assert.match(css,/\.moods-header\{display:flex;flex:0 0 auto/);
+  assert.match(css,/\.composer-moods-backdrop\{/);
+  assert.match(css,/\.is-viewport-tight/);
+  assert.match(js,/function fitPanelViewport\(\)/);
+  assert.match(js,/ResizeObserver\(refreshViewport\)/);
+  assert.match(js,/backdrop\.onclick=\(\)=>close\(true\)/);
+  assert.match(js,/event\.key==='Escape'/);
+  assert.match(html,/id="composer-moods-backdrop" class="composer-moods-backdrop" aria-hidden="true" hidden/);
+  assert.match(html,/id="composer-moods" class="composer-moods" role="dialog"/);
+});
+
 test('Popup centered over composer; simplified empty state and About below CTA',()=>{
   const css=readFileSync(new URL('../lab/moods.css',import.meta.url),'utf8');
   const js=readFileSync(new URL('../lab/moods.js',import.meta.url),'utf8');
   const html=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
-  assert.match(css,/position:absolute;bottom:calc\(100% \+ 12px\);left:50%;z-index:125/);
+  assert.match(css,/position:absolute;bottom:calc\(100% \+ var\(--moods-anchor-gap,14px\) - var\(--moods-overlap,0px\)\);left:50%;z-index:125/);
   assert.match(css,/transform:translateX\(-50%\)/);
-  assert.match(css,/width:min\(990px,calc\(100vw - 30px\)\)/);
+  assert.match(css,/width:min\(990px,calc\(100vw - 36px\)\)/);
   assert.match(html,/id="composer-moods-current-label" class="moods-current-label" hidden/);
   assert.match(js,/selectedLabel\.hidden=!chosen/);
   const footer=html.slice(html.indexOf('<div class="moods-footer">'),html.indexOf('<p id="composer-moods-compat"'));
   assert.ok(footer.indexOf('id="composer-moods-about"')>footer.indexOf('id="composer-moods-none"'));
   assert.ok(footer.indexOf('id="composer-moods-about"')>footer.indexOf('id="composer-moods-done"'));
-  assert.match(html,/moods\.css\?v=20261010-centered-moods6/);
+  assert.match(html,/moods\.css\?v=20261011-viewport-float1/);
   const worker=readFileSync(new URL('../lab-worker/worker.mjs',import.meta.url),'utf8');
   for(const key of ['sumi-ink','dreamcore'])assert.ok(worker.includes("'"+key+"'"));
 });
