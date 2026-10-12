@@ -1,41 +1,37 @@
 # PV LAB image result deck
 
-## Objective and reference
+## Objective and accepted design
 - Date: 2026-10-12.
-- User approved the editorial result-deck mockup and requested it on the site.
-- The existing Video Studio must keep its design.
-- Turn into video opens that existing studio with the selected output as Start frame.
-- Approved visual: exec-7efab214-5f46-4c61-91c3-e55780501bce.png in the result-deck conversation.
-- Source baseline: aad1c90 on main, retaining the concurrent pricing and account work.
+- User approved the editorial result deck, then authorized all five visual refinements and live publication.
+- Retain the warm ivory primary action, charcoal inspector and current action arrangement.
+- Keep the existing Video Studio design and image-to-video Start frame handoff.
+- Approved mockup: exec-7efab214-5f46-4c61-91c3-e55780501bce.png.
+- Latest comparison: user screenshots image(20261012-175029).png and image(20261012-175049).png.
+- Baseline: main 33d004667b11150a2ec7d0df8e11a5bbbcac13ef; original deck PR #167.
 
-## Implementation
-- Warm ivory full-width Turn into video, charcoal flat inspector and restrained rules.
-- Reuse, Reference and Upscale form the three-button secondary row.
-- Apply mood and Save as mood share a quiet row.
-- Download, Favorite and an ellipsis menu form the bottom utility row.
-- Repair, Retouch, Delete and existing provider recovery actions remain in the menu.
-- Actual metadata, authored prompts, source preview and original downloads are retained.
-- Prompt is collapsed after four lines; Date, References and Price remain under More details.
-- Favorites use the existing authenticated library endpoint and refresh the gallery.
-- Image-to-video loads the selected original before changing tools and guards session changes.
-- No backend, pricing, model, paid submission or Video Studio layout changes.
-- Mobile retains the existing image-first scroll flow with actions immediately below the image.
+## Current refinement
+- Prompt 15 px, metadata 13 px and action labels 14 px.
+- Secondary controls use filled graphite surfaces, softer borders and 8 px corners.
+- Reduced media toolbar, footer and stage margins give the photo more room.
+- Close is anchored at the full viewer top-right, with a 44 px target.
+- Ordered, deduplicated reference thumbnails replace the single source preview.
+- Each reference opens its own original and downloads its exact original bytes.
+- Reference previews reuse cached thumbnails; originals load on demand.
+- Async guards and object URL cleanup retain private-state isolation on navigation/close/sign-out.
+- Actual original pixel dimensions appear alongside the requested resolution in Details.
+- Original Download, favorites, More menu, mood actions and Video Studio handoff are preserved.
+- No backend, pricing, model or paid generation changes.
 
-## Files and verification
+## Files and validation
 - Interface: lab/studio.html, lab/image-result-deck.css, lab/lab.js.
-- Browser checks: tests/lab-image-viewer-browser.mjs.
-- Existing fastqueue browser workflow uploads the desktop/mobile review screenshots.
+- Browser checks: tests/lab-image-viewer-browser.mjs and tests/lab-reference-ui.mjs.
+- Existing queue workflow uploads result-deck desktop/mobile screenshots.
 - Local JavaScript syntax and diff whitespace checks passed.
-- Local Chromium cannot launch in this environment; existing GitHub browser CI is used.
-- Browser checks include original download, gallery favorite sync, menu/Escape and video handoff.
-- Responsive review covers 1920, 1440, 768, 390 and 320 px.
-- Verified feature source: 889fe9d614ed91c8e5d2c3d2e323c5faafa89562; all ten PR workflows passed.
-- Viewer/queue workflow 38284574976 and complete video/reference workflow 38284574928 passed.
-- Desktop/mobile screenshots inspected; artifact 11761649686 from identical UI revision 7460c02.
-- Retouch regression 38284574973 passed with Repair/Retouch located in the More menu.
-- Published implementation: 00d9033aee4143301a649307419c80a0645bd731, PR #167.
-- Pages build and deployment 38284935364 succeeded on 2026-10-12.
-- Public studio.html, image-result-deck.css and lab.js returned HTTP 200 and matched verified source bytes.
-- Confirmed live: https://parallelvisionlabel.com/lab/studio.html
-- No paid generation was performed. API/browser checks use synthetic media and mocked authentication.
-- Complete; reuse these results unless the affected files change.
+- Local Chromium cannot launch in this environment; use existing GitHub browser CI.
+- Added checks for six distinct original downloads, actual dimensions and full-viewer Close position.
+- Existing responsive checks cover 1920, 1440, 768, 390 and 320 px.
+- Existing regression coverage includes downloads, favorite sync, menu, navigation and Video Studio handoff.
+- Previous deck: all ten workflows passed; Pages deployment 38284935364 succeeded.
+- Current refinements: awaiting browser CI, screenshot review and publication.
+- Live destination: https://parallelvisionlabel.com/lab/studio.html
+- Next action: verify the branch, merge and confirm public files match the verified source.
