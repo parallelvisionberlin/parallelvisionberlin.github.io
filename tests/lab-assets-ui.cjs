@@ -86,8 +86,8 @@ for(const width of [1920,1440,900,899,821,768,390,320]){
   const nav=await page.locator('.studio-header .tool-switch').boundingBox();
   const brand=await page.locator('.studio-header .brand').boundingBox();
   const account=await page.locator('.account-menu').boundingBox();
-  assert.equal(header.height,width>=900?70:100,'Shared header height');
-  if(width>=900){
+  assert.equal(header.height,width>900?82:width>560?109:102,'Approved shared header height');
+  if(width>900){
     assert.ok(Math.abs(brand.y+brand.height/2-(nav.y+nav.height/2))<1,'Brand and navigation share one row');
     assert.ok(brand.x+brand.width<nav.x&&nav.x+nav.width<=account.x,'Navigation fits between brand and account');
   }
