@@ -324,7 +324,12 @@ See [the account interface work state](ACCOUNT-WORK-STATE.md) before changing th
 - Verification: `node --test tests/lab-film-finish.test.mjs tests/lab-moods.test.mjs`, 42 passed.
 - Syntax checks passed for changed modules; diff whitespace check passed.
 - Local Playwright could not launch Chromium because sandbox IPC was denied; escalation is unavailable.
-- Implementation commit: `48ff2c2`; prepared locally on `codex/film-finish-deck`.
+- Published implementation: `0d1f76decd02aa154386a7901ad4a790decfb4d2` on `main`.
 - User explicitly approved pushing to `parallelvisionberlin/parallelvisionberlin.github.io` and publishing to `main` on 2026-10-12 at 17:07 Europe/Berlin.
-- Live browser inspection reached the sign-in page; no authenticated visual verification claimed.
-- Publication authorized; next action: push the prepared change and confirm deployment.
+- GitHub Actions film finishing checks passed: run `38268271726`, including remote pixel processing and desktop/mobile browser coverage at 1440px and 390px.
+- Inspected both browser screenshots: integrated desktop deck, responsive mobile layout and no horizontal overflow.
+- Browser checks also verify independent finishing values, no extra generation requests, saved finish and original download.
+- GitHub Pages deployment succeeded: run `38268271124`.
+- Live `studio.html`, `film-finish.css` and `moods.js` returned HTTP 200 with the new `filmDeck=2` / `20261012-film-deck2` code markers.
+- No outstanding implementation or deployment blocker for this layout. No paid AI generation performed.
+- Next action: none.
