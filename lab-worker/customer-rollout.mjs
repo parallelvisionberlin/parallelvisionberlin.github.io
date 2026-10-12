@@ -21,9 +21,9 @@ export function canCustomerGenerate(env,subject){
 export function canCustomerCheckout(env,subject){
   return canCustomerGenerate(env,subject);
 }
-// Limit the pre-launch commercial canary to exactly one €10 purchase.
-// Subscriptions, bulk top-ups and referral bonuses will be QA-tested
-// separately before public sales start.
+// Restrict the pre-launch commercial canary to the €10 credit pack or the
+// €15/month Starter subscription. Only the expressly whitelisted customer can
+// access either; other plans remain unavailable until the public launch.
 export function isPermittedPilotPurchase(env,subject,sku) {
-  return !isPrivateLivePilot(env,subject)||sku==='topup10';
+  return !isPrivateLivePilot(env,subject)||sku==='topup10'||sku==='starter';
 }
