@@ -69,7 +69,7 @@ try{
   await x.page.click('#mode-text');
   await x.page.locator('#prompt').fill('Gentle camera movement.');
   assert.equal(await x.page.locator('#generate').isEnabled(),true);
-  assert.equal(await x.page.locator('#generate').evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(237, 236, 229)','Ready Video Generate uses the approved warm white');
+  await x.page.waitForFunction(()=>getComputedStyle(document.querySelector('#generate')).backgroundColor==='rgb(237, 236, 229)',{},{timeout:3000});
   await x.page.screenshot({path:'test-results/lab-video-white-generate.png',fullPage:false});
   await x.page.locator('#prompt').fill('');
   await x.page.click('#mode-start');
