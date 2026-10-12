@@ -1,7 +1,10 @@
 // Credit wallet UI. Backend verifies every price, balance, webhook and receipt.
+import {referralsAvailable} from './account-menu.js?v=20261012-account2';
 export function createCustomerWallet({api,notify=()=>{},onClosed=()=>{},onBalance=()=>{}}){
   const $=id=>document.getElementById(id);
   let account=false,billingReady=false,balance=0,products=[],referralLoading=false,referralEpoch=0,soulIdTrainingCredits=null,billingReview=false,accountClosed=false,accountEpoch=0;
+  let dismissed=false,purchasing=false,refreshing=null,refreshAgain=false;
+  const add=$('lab-add-credits'),banner=$('lab-credit-banner');
   const toggle=$('lab-wallet-toggle'),dialog=$('lab-credits-dialog'),referralDialog=$('lab-referrals-dialog'),amount=$('lab-credit-balance'),
         list=$('lab-credit-products'),state=$('lab-wallet-state'),
         referralUrl=$('lab-referral-url'),referralCopy=$('lab-referral-copy'),
@@ -15,37 +18,45 @@ export function createCustomerWallet({api,notify=()=>{},onClosed=()=>{},onBalanc
   }
   function update(){
     toggle.hidden=!account;
-    if(!account){if(dialog?.open)dialog.close();if(referralDialog?.open)referralDialog.close();return;}
+    if(add)add.hidden=!account;
+    if(balance>0)dismissed=false;
+    if(banner)banner.hidden=!account||balance>0||dismissed||!!accountClosed||billingReview;
+    if(!account){if(dialog?.open)dialog.close();if(referralDialog?.open)referralDialog.close();list.replaceChildren();amount.textContent='0 credits';state.textContent='';return;}
     onBalance(balance);
     toggle.textContent=balance.toLocaleString()+' credits';
     amount.textContent=balance.toLocaleString()+' credits';
-    state.textContent=accountClosed?'Your PV Lab account is closed. Content deletion is '+(accountClosed.state==='deleted'?'complete.':'queued. Contact support if you need help.')+' Billing management remains available.':billingReview?'A refund or dispute is under review. Contact support; billing management remains available.':billingReady?'Your private credit balance.':'Checkout setup is being finalized. Payments are not being accepted yet.';
+    state.textContent=accountClosed?'Your PV Lab account is closed. Visit Plans & billing for account support.':billingReview?'A refund or dispute is under review. Contact support; billing management remains available.':purchasing?'Opening secure checkout…':billingReady?'':'Checkout setup is being finalized. Payments are not being accepted yet.';
     list.replaceChildren();
-    for(const p of products){
+    for(const p of products.filter(p=>p.type==='payment')){
       const button=document.createElement('button');button.type='button';
-      const label=document.createElement('span'),price=document.createElement('span');
-      label.textContent=p.title.replace('PV Lab · ','').replace('PV Lab ','');
-      price.textContent=p.credits.toLocaleString()+' credits · €'+p.priceEur.toFixed(2);
-      button.append(label,price);button.disabled=!billingReady;
+      const label=document.createElement('span'),unit=document.createElement('span'),price=document.createElement('span'),action=document.createElement('span');
+      label.className='lab-credit-pack-amount';label.textContent=p.credits.toLocaleString('en-GB');
+      unit.className='lab-credit-pack-unit';unit.textContent='credits';
+      price.className='lab-credit-pack-price';price.textContent=new Intl.NumberFormat('en-IE',{style:'currency',currency:'EUR',maximumFractionDigits:2,minimumFractionDigits:0}).format(p.priceEur);
+      action.className='lab-credit-pack-action';action.textContent='Buy credits ↗';
+      button.append(label,unit,price,action);button.disabled=!billingReady||!!accountClosed||billingReview||purchasing;
+      button.setAttribute('aria-label','Buy '+p.credits.toLocaleString('en-GB')+' credits for '+price.textContent+', one-time payment');
       button.onclick=()=>void purchase(p.id);
       list.append(button);
     }
   }
   async function purchase(sku){
-    if(!account||!billingReady){state.textContent='Checkout has not been enabled. No payment was attempted.';return;}
-    state.textContent='Opening secure checkout…';
+    if(purchasing)return;
+    if(!account||!billingReady||accountClosed||billingReview){state.textContent='Checkout has not been enabled. No payment was attempted.';return;}
+    const current=accountEpoch;purchasing=true;update();
     try{
       const data=await api('/api/billing/checkout',{method:'POST',body:{sku}});
+      if(!account||current!==accountEpoch)return;
       const uri=new URL(data.url);
       if(uri.protocol!=='https:'||!(uri.hostname==='stripe.com'||uri.hostname.endsWith('.stripe.com')))throw new Error('Unverified checkout link.');
       location.assign(uri.href);
-    }catch(e){state.textContent=e.message;notify(e.message,true);}
+    }catch(e){if(current===accountEpoch){purchasing=false;update();state.textContent=e.message;notify(e.message,true);}}
   }
   function open(){
     if(!account)return;
     if(referralDialog.open)referralDialog.close();
     if(!dialog.open)dialog.showModal();
-    void loadAccount();
+    void refresh();
   }
   function openReferrals(){
     if(!account)return;
@@ -73,6 +84,9 @@ export function createCustomerWallet({api,notify=()=>{},onClosed=()=>{},onBalanc
     }catch(e){state.textContent=e.message;button.disabled=false;}
   };
   toggle.onclick=open;
+  if(add)add.onclick=open;
+  if($('lab-credit-banner-add'))$('lab-credit-banner-add').onclick=open;
+  if($('lab-credit-banner-dismiss'))$('lab-credit-banner-dismiss').onclick=()=>{dismissed=true;banner.hidden=true;};
   $('lab-credit-invite').onclick=openReferrals;
   $('lab-referrals-close').onclick=()=>referralDialog.close();
   referralCopy.onclick=async()=>{
@@ -82,7 +96,7 @@ export function createCustomerWallet({api,notify=()=>{},onClosed=()=>{},onBalanc
   };
   $('lab-credits-close').onclick=()=>dialog.close();
   $('lab-credit-refresh').onclick=()=>void refresh();
-  $('lab-credit-manage').onclick=async()=>{
+  if($('lab-credit-manage'))$('lab-credit-manage').onclick=async()=>{
     state.textContent='Opening billing management…';
     try{
       const data=await api('/api/billing/portal',{method:'POST'});
@@ -109,21 +123,28 @@ export function createCustomerWallet({api,notify=()=>{},onClosed=()=>{},onBalanc
   }
   async function refresh(){
     if(!account)return;const current=accountEpoch;
+    if(refreshing){refreshAgain=true;return refreshing;}
+    refreshing=(async()=>{
     try{
       const data=await api('/api/customer/wallet');
       if(!account||current!==accountEpoch)return;billingReview=!!data.billingReview;accountClosed=data.accountClosed||false;balance=Number(data.balanceCredits)||0;billingReady=!!data.billingReady;
-      products=Array.isArray(data.products)?data.products:products;update();
-    }catch(e){notify(e.message,true);}
+      products=Array.isArray(data.products)?data.products:products;$('lab-credit-invite').hidden=!referralsAvailable(data);update();
+    }catch(e){if(account&&current===accountEpoch)notify(e.message,true);}
+    finally{refreshing=null;if(refreshAgain){refreshAgain=false;if(account)void refresh();}}
+    })();return refreshing;
   }
   function connect(data){
-    const next=!!data.customer;accountEpoch++;billingReview=!!data.billingReview;accountClosed=data.accountClosed||false;
+    const next=!!data.customer;accountEpoch++;dismissed=false;purchasing=false;refreshAgain=false;billingReview=!!data.billingReview;accountClosed=data.accountClosed||false;
     if($('lab-close-confirm'))$('lab-close-confirm').value='';
     if($('lab-close-account'))$('lab-close-account').disabled=true;
     referralEpoch++;referralLoading=false;
     referralUrl.value='';referralCopy.disabled=true;referralStats.textContent='';referralState.textContent='';
     account=next;soulIdTrainingCredits=account&&Number.isSafeInteger(data.soulIdTrainingCredits)?data.soulIdTrainingCredits:null;
     if(account){balance=Number(data.balanceCredits)||0;billingReady=!!data.billingReady;products=data.products||[];}
+    else{balance=0;billingReady=false;products=[];}
+    $('lab-credit-invite').hidden=!referralsAvailable(data);
     update();
   }
+  window.addEventListener('focus',()=>{if(account&&document.visibilityState==='visible')void refresh();});
   return {connect,refresh,open,openReferrals,cost,describe,jobCharge,isCustomer:()=>account};
 }
