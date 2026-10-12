@@ -250,3 +250,12 @@ body>#studio-header .wrap.top{max-width:none;padding-right:16px}
 }
 .lab-hero #lab-entry-status:empty{display:none}
 .lab-hero #lab-entry-status:not(:empty){margin-top:14px}
+
+/* Center Clerk dialogs in the viewport; tall forms remain scrollable. */
+.cl-modalBackdrop{
+  box-sizing:border-box!important;height:100dvh!important;
+  padding:24px 16px!important;overflow-y:auto!important;
+}
+.cl-modalBackdrop .cl-modalContent{
+  margin:auto 0!important;max-width:100%!important;
+}
