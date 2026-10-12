@@ -67,9 +67,10 @@ function beginImageFeedback(count,selected,ratio){
   return {
     detachButton(){drivesComposerButton=false;},
     phase(title,detail=''){
-      for(const id of ids){const entry=pendingImageCards.get(id);if(entry){entry.title=title;entry.detail=detail;}}
+      const publicTitle=['Uploading references','Preparing provider files','Optimizing references'].includes(title)?'Preparing image':title;
+      for(const id of ids){const entry=pendingImageCards.get(id);if(entry){entry.title=publicTitle;entry.detail='';}}
       if(drivesComposerButton&&imageSubmissionPending){
-        imageSubmissionStage=title==='Uploading references'?'Uploading '+detail:title==='Preparing provider files'?'Preparing files…':title==='Checking price'?'Checking price…':title==='Optimizing references'?'Optimizing…':title==='Submitting'?'Submitting…':'Sending…';
+        imageSubmissionStage=publicTitle+'…';
         const button=$('image-composer-generate');if(button)button.textContent=imageSubmissionStage;
       }
       renderPendingImageCards();
@@ -2105,8 +2106,10 @@ function releaseImageDetailSource(){
   $('image-detail-reference-wrap').hidden=true;
 }
 function imageDetailReferenceIds(job){
-  return [job.sourceId,...(Array.isArray(job.settings?.referenceSourceIds)?job.settings.referenceSourceIds:[])]
-    .filter((value,index,items)=>typeof value==='string'&&value&&items.indexOf(value)===index);
+  const settings=job.settings||{},references=Array.isArray(settings.referenceSourceIds)?settings.referenceSourceIds:[];
+  const internal=new Set(settings.moodId==='hong-kong-nights'?references.filter((id,index)=>isMoodStyleReference(settings.referenceRoles?.[index])):[]);
+  return [job.sourceId,...references]
+    .filter((value,index,items)=>typeof value==='string'&&value&&!internal.has(value)&&items.indexOf(value)===index);
 }
 function showImageDetailSource(job){
   releaseImageDetailSource();
