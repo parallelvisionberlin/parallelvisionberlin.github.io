@@ -1,0 +1,46 @@
+name: Verify film finishing pixels
+on:
+  push:
+    branches: [main, 'codex/hong-kong-film-finish-*']
+    paths: ['lab-worker/film-finish.mjs', 'lab/film-finish.js', 'tests/lab-film*', '.github/workflows/lab-film-finish.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  remote-pixels:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - run: npm ci --no-audit --no-fund
+      - name: Unit tests
+        run: node --test tests/lab-film-finish.test.mjs
+      - name: Normalize existing Cloudflare credential
+        env:
+          RAW_CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          token="$(printf '%s' "$RAW_CLOUDFLARE_API_TOKEN" | tr -d '\r\n\t ')"
+          test -n "$token"
+          echo "::add-mask::$token"
+          printf 'CLOUDFLARE_API_TOKEN=%s\n' "$token" >> "$GITHUB_ENV"
+      - name: Test remote Images binding in an ephemeral preview
+        run: |
+          npx --yes wrangler@4 dev --remote --config tests/lab-film-preview.toml --ip 127.0.0.1 --port 8799 > /tmp/film-preview.log 2>&1 &
+          preview_pid=$!
+          trap 'kill "$preview_pid" 2>/dev/null || true' EXIT
+          ready=0
+          for i in $(seq 1 45); do
+            if curl -fsS http://127.0.0.1:8799/ | grep -q film-preview-ready; then ready=1; break; fi
+            sleep 2
+          done
+          if [ "$ready" != 1 ]; then cat /tmp/film-preview.log; exit 1; fi
+          node tests/lab-film-preview.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: film-finish-visual-check
+          path: test-results/film-finish/
+          retention-days: 5

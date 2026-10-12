@@ -1,3 +1,4 @@
+import {createFilmFinishControls,HONG_KONG_FILM_FINISH} from './film-finish.js?v=20261012-film1';
 import {preparePhotoInput} from './photo-input.js?v=1';
 import {createMoodReferenceLoader,moodReferencePlan,isMoodStyleReference} from './mood-references.js?v=20261012-hk2&raveIdentity=1';
 import {createPrivateMediaCache} from './private-media-cache.js?v=20261012-cache1';
@@ -12,8 +13,8 @@ captureReferralCode();
 import {createSoul2UI} from './higgsfield-ui.js?v=20261010-soul-price1';
 import {VIDEO_MODELS,engineFor,videoLabel} from './video-models.js?v=20261009-extend1';
 import {REFERENCE_ROLES,REFERENCE_TARGETS,normalizeReferenceLabel,compileImagePrompt,referenceGuidanceError,canUseReferenceGuidance,builtInMoodReferenceCount} from './reference-guidance.js?v=20261012-berlin-refs1&dreamcore=7&syntheticRefs=1&raveIdentity=1';
-import {createMoodSelector,moodById,userFacingImagePrompt,imageHistoryCaption} from './moods.js?v=20261011-midnight-reverie1&hd=20261011&raveBudget=1&editorialHD=2&moodImageHD=1&moodDeckSpace=1&raveNight=4&syntheticBudget=1&hongKongRefs=3&dreamcore=7&syntheticRefs=1&raveIdentity=1';
-import {createMyMoods} from './my-moods.js?v=20261011-midnight-reverie1&hd=20261011&raveBudget=1&editorialHD=2&editorialHD=2&moodImageHD=1&raveNight=4&hongKongRefs=3&dreamcore=7&syntheticRefs=1&raveIdentity=1';
+import {createMoodSelector,moodById,userFacingImagePrompt,imageHistoryCaption} from './moods.js?v=20261011-midnight-reverie1&hd=20261011&raveBudget=1&editorialHD=2&moodImageHD=1&moodDeckSpace=1&raveNight=4&syntheticBudget=1&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1';
+import {createMyMoods} from './my-moods.js?v=20261011-midnight-reverie1&hd=20261011&raveBudget=1&editorialHD=2&editorialHD=2&moodImageHD=1&raveNight=4&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1';
 import {takeMoodHandoff,moodGenerationQuote} from './mood-handoff.js?v=20261012-generate1';
 import {createMediaReferences} from './media-references.js?v=20261009-extend2';
 import { createSessionRequest } from './session-request.js?v=20260927-auth1';
@@ -1978,6 +1979,34 @@ function resultFormat(blob){
 
 /* Image detail: full viewport artwork plus a persistent metadata inspector. */
 let imageDetailJob=null;
+const filmPanel=$('image-film-finish');
+const filmControls=createFilmFinishControls(filmPanel);
+const filmActions=document.createElement('div');filmActions.className='film-finish-actions';
+const filmApply=document.createElement('button');filmApply.type='button';filmApply.textContent='Apply finish';
+const filmOriginal=document.createElement('button');filmOriginal.type='button';filmOriginal.textContent='Download original';
+const filmStatus=document.createElement('span');filmStatus.className='film-finish-status';filmStatus.setAttribute('role','status');
+filmActions.append(filmApply,filmOriginal);filmPanel.append(filmActions,filmStatus);
+let filmBusy=false;
+filmApply.onclick=async()=>{
+  const job=imageDetailJob,requestEpoch=epoch;if(!owner||!hasResult(job)||filmBusy)return;
+  filmBusy=true;filmControls.lock(true);filmApply.disabled=true;filmStatus.textContent='Applying grain and glow…';
+  try{
+    const response=await api('/api/jobs/'+job.id+'/film-finish',{method:'POST',body:{outputId:job.outputId,settings:filmControls.get()}});
+    if(!owner||epoch!==requestEpoch)return;
+    imageDetailCache.set(job.id,response.job);
+    surfaceHistoryJob(response.job);
+    if(imageDetailJob?.id===job.id&&$('image-lightbox').open)await openVideo(response.job,{scroll:false,detail:true});
+    notify('Film finish saved. No new AI generation or credit charge.');
+  }catch(e){if(owner&&epoch===requestEpoch&&imageDetailJob?.id===job.id)filmStatus.textContent=e.message;}
+  finally{filmBusy=false;filmControls.lock(false);filmApply.disabled=false;}
+};
+filmOriginal.onclick=async()=>{
+  const job=imageDetailJob,requestEpoch=epoch;if(!owner||!hasResult(job))return;
+  try{const id=job.settings.filmOriginalId||job.outputId,blob=await assetBlob(id);if(!owner||epoch!==requestEpoch)return;
+    const [,ext]=resultFormat(blob),url=URL.createObjectURL(blob);downloadUrls.add(url);saveDownload(url,id,ext);
+    setTimeout(()=>{release(url);downloadUrls.delete(url);},30000);
+  }catch(e){notify(e.message,true);}
+};
 const imageDetailCache=new Map();
 let imageDetailPreviewURL=null;
 let imageDetailNavDirection=1,imageDetailPrefetchReads=0;
@@ -2183,6 +2212,13 @@ function showImageDetail(job,hasOutput,loading=false){
   $('image-lightbox-fit').disabled=!hasOutput||loading;
   $('image-lightbox-title').textContent=hasOutput||loading?'Image result':'Image record';
   $('image-detail-status').textContent=job.status?.charAt(0).toUpperCase()+String(job.status||'').slice(1);
+  filmPanel.hidden=params.moodId!=='hong-kong-nights'||!hasResult(job);
+  if(!filmPanel.hidden){
+    filmControls.set(params.filmFinish||HONG_KONG_FILM_FINISH);filmControls.lock(filmBusy||loading);
+    filmApply.disabled=filmBusy||loading;filmOriginal.disabled=loading;
+    filmStatus.textContent=params.filmFinishStatus==='failed'?'Original saved. Film finish was not applied: '+params.filmFinishError:params.filmFinishStatus==='applied'?'Film finish applied. Original retained.':params.filmFinishStatus==='off'?'Film finish off. Showing original.':'Adjust grain and glow on this image.';
+  }
+
   const mood=moodById(params.moodId),customMood=params.moodId==='custom'&&params.customMoodName;
   const moodName=customMood?String(params.customMoodName):mood?.name||'';
   const promptText=userFacingImagePrompt(params);

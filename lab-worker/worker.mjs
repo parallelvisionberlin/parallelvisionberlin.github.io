@@ -1,3 +1,5 @@
+import {filmFinishSettings} from '../lab/film-finish.js';
+import {prepareFilmAsset} from './film-finish.mjs';
 import {assertCustomerOpen,processAccountClosures} from './customer-lifecycle.mjs';
 import {allowedLabParty} from './native-auth.mjs';
 import {quoteVideoExtension,submitVideoExtension} from './higgsfield-video.mjs';
@@ -30,7 +32,7 @@ import {SYNTHETIC_ROMANCE_REFERENCES,SYNTHETIC_ROMANCE_REFERENCE_VERSION} from '
 import {moodBoardsRoute} from './moodboards.mjs';
 import {moodCreatorRoute} from './mood-creator-service.mjs';
 import {characterPreview as soulCharacterPreview,SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-12.8-berlin-rave-identity';
+export const VERSION = 'pv-lab-2026-10-12.9-film-finish';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -199,7 +201,12 @@ function imageMoodMetadata(value){
     if(!name||name.length>64||!UUID.test(boardId||''))fail(400,'Choose a valid saved Mood.');
     return {moodId:'custom',moodIntensity,moodOriginalPrompt,customMoodName:name,customMoodBoardId:boardId};
   }
-  return {moodId:value.moodId,moodIntensity,moodOriginalPrompt};
+  let filmFinish;
+  if(value.filmFinish!=null){
+    if(value.moodId!=='hong-kong-nights')fail(400,'Film finish is available for Hong Kong Nights.');
+    try{filmFinish=filmFinishSettings(value.filmFinish);}catch(e){fail(400,e.message);}
+  }
+  return {moodId:value.moodId,moodIntensity,moodOriginalPrompt,...(filmFinish?{filmFinish}:{})};
 }
 function parameters(value) {
   if(!value||typeof value!=='object'||Array.isArray(value))fail(400,'Invalid settings.');
@@ -434,7 +441,7 @@ async function sources(env,owner,ids,max=10) {
 }
 function linkedSourceIds(row) {
   const ids=new Set();if(row?.source_id&&UUID.test(row.source_id))ids.add(row.source_id);
-  try{const p=JSON.parse(row?.params||'{}');for(const key of ['lastSourceId','maskSourceId','repairSourceId','poseMapSourceId'])if(UUID.test(p[key]||''))ids.add(p[key]);for(const key of ['referenceSourceIds','transferSourceIds','referenceVideoIds','referenceAudioIds'])if(Array.isArray(p[key]))for(const id of p[key])if(UUID.test(id||''))ids.add(id);}catch{}
+  try{const p=JSON.parse(row?.params||'{}');for(const key of ['lastSourceId','maskSourceId','repairSourceId','poseMapSourceId','filmOriginalId'])if(UUID.test(p[key]||''))ids.add(p[key]);for(const key of ['referenceSourceIds','transferSourceIds','referenceVideoIds','referenceAudioIds'])if(Array.isArray(p[key]))for(const id of p[key])if(UUID.test(id||''))ids.add(id);}catch{}
   return [...ids];
 }
 async function sourceReferenced(env,owner,id) {
@@ -485,6 +492,29 @@ function safeVideoUrl(value) {
   if(u.protocol!=='https:'||u.username||u.password||(u.port&&u.port!=='443')||!(host==='spicyapi.ai'||host.endsWith('.spicyapi.ai')||host==='higgsfield.ai'||host.endsWith('.higgsfield.ai')||host==='fal.media'||host.endsWith('.fal.media')||host==='cdn.fashn.ai'||host==='media.fashn.ai'||host.endsWith('.r2.cloudflarestorage.com')||host.endsWith('.cloudfront.net')))throw new Error('Unexpected provider output location.');
   return u.href;
 }
+function assetInsert(env,a){
+  return stmt(env,'INSERT OR IGNORE INTO assets(id,owner_id,object_key,kind,mime,filename,bytes,created_at) VALUES(?,?,?,?,?,?,?,?)',a.id,a.owner_id,a.object_key,a.kind,a.mime,a.filename,a.bytes,a.created_at);
+}
+async function completeImageResult(env,j,original,storedBytes){
+  const params=JSON.parse(j.params||'{}');let output=original;
+  if(params.moodId==='hong-kong-nights'&&params.filmFinish){
+    params.filmOriginalId=original.id;
+    try{
+      output=await prepareFilmAsset(env,original,params.filmFinish,{first,remaining:MAX_STORAGE-storedBytes-original.bytes});
+      params.filmFinishStatus=output.id===original.id?'off':'applied';
+      delete params.filmFinishError;
+    }catch(e){
+      // A failed finish never loses a paid image, retries inference or refunds a
+      // successful generation. The original remains viewable and downloadable.
+      params.filmFinishStatus='failed';params.filmFinishError=String(e.message||'Film processing is unavailable.').slice(0,180);
+    }
+  }
+  await env.LAB_DB.batch([
+    assetInsert(env,original),...(output.id!==original.id?[assetInsert(env,output)]:[]),
+    stmt(env,"UPDATE jobs SET state='completed',output_id=?,params=?,remote_url=NULL,error='',updated_at=? WHERE id=? AND owner_id=?",output.id,JSON.stringify(params),now(),j.id,j.owner_id)
+  ]);
+  await ensureGalleryDimensions(env,{...j,params:JSON.stringify(params),output_id:output.id});
+}
 async function copyResult(env,j,url) {
   let target=safeVideoUrl(url),r;
   for(let i=0;i<4;i++){
@@ -525,12 +555,16 @@ async function copyResult(env,j,url) {
       await upload.complete(parts);
     }catch(e){await reader.cancel().catch(()=>{});await upload.abort().catch(()=>{});throw e;}
   }
+  if(isImage){
+    await completeImageResult(env,j,{id:j.id,owner_id:j.owner_id,object_key:objectKey,kind:'source',mime:finalMime,filename:'parallel-vision-'+j.id+'.'+ext,bytes,created_at:now()},stored.n);
+    return;
+  }
   await env.LAB_DB.batch([
     stmt(env,'INSERT OR IGNORE INTO assets(id,owner_id,object_key,kind,mime,filename,bytes,created_at) VALUES(?,?,?,?,?,?,?,?)',j.id,j.owner_id,objectKey,isImage?'source':'video',finalMime,'parallel-vision-'+j.id+'.'+ext,bytes,now()),
     stmt(env,"UPDATE jobs SET state='completed',output_id=?,remote_url=NULL,error='',updated_at=? WHERE id=?",j.id,now(),j.id)
   ]);
-  if(isImage)await ensureGalleryDimensions(env,{...j,output_id:j.id});
 }
+
 async function storeRemoteImage(env,owner,url,prefix='fal-image'){
   let target=safeVideoUrl(url),response;
   for(let i=0;i<4;i++){
@@ -755,10 +789,7 @@ async function saveGeminiImage(env,j,response){
   if(stored.n+bytes.length>MAX_STORAGE)throw new Error('Private archive storage limit reached.');
   const ext=part.mime==='image/jpeg'?'jpg':part.mime.split('/')[1],objectKey=`${j.owner_id}/results/${j.id}.${ext}`;
   await env.LAB_MEDIA.put(objectKey,bytes,{httpMetadata:{contentType:part.mime}});
-  await env.LAB_DB.batch([
-    stmt(env,'INSERT OR REPLACE INTO assets(id,owner_id,object_key,kind,mime,filename,bytes,created_at) VALUES(?,?,?,?,?,?,?,?)',j.id,j.owner_id,objectKey,'source',part.mime,'parallel-vision-'+j.id+'.'+ext,bytes.length,now()),
-    stmt(env,"UPDATE jobs SET state='completed',output_id=?,error='',updated_at=? WHERE id=?",j.id,now(),j.id)
-  ]);
+  await completeImageResult(env,j,{id:j.id,owner_id:j.owner_id,object_key:objectKey,kind:'source',mime:part.mime,filename:'parallel-vision-'+j.id+'.'+ext,bytes:bytes.length,created_at:now()},stored.n);
 }
 async function refreshGeminiJob(env,j,p){
   if(p.processing!=='batch'||!j.provider_id)return;
@@ -1548,6 +1579,27 @@ async function route(request,env,ctx) {
   }
   if(path.startsWith('/api/jobs/')) {
     const id=uid(path.split('/')[3]);let j=await first(env,'SELECT * FROM jobs WHERE id=? AND owner_id=?',id,owner);if(!j)fail(404,'Job not found.');
+    if(path.endsWith('/film-finish')&&method==='POST'){
+      const data=await body(request),p=JSON.parse(j.params||'{}');
+      if(j.state!=='completed'||!j.output_id||p.type!=='image'||p.moodId!=='hong-kong-nights')fail(409,'Choose a completed Hong Kong Nights image.');
+      let finish;try{finish=filmFinishSettings(data.settings);}catch(e){fail(400,e.message);}
+      if(data.outputId!==j.output_id)fail(409,'This image changed. Reopen it before applying the finish.');
+      const original=await source(env,owner,p.filmOriginalId||j.output_id);
+      const stored=await first(env,'SELECT COALESCE(SUM(bytes),0) AS n FROM assets WHERE owner_id=?',owner);
+      let output;try{output=await prepareFilmAsset(env,original,finish,{first,remaining:MAX_STORAGE-stored.n});}
+      catch(e){fail(422,String(e.message||'Could not apply film finish. Your current image is unchanged.').slice(0,200));}
+      const settings={...p,filmFinish:finish,filmOriginalId:original.id,filmFinishStatus:output.id===original.id?'off':'applied'};
+      delete settings.filmFinishError;delete settings.galleryDimensions;
+      const writes=await env.LAB_DB.batch([
+        assetInsert(env,output),
+        stmt(env,"UPDATE jobs SET output_id=?,params=?,updated_at=? WHERE id=? AND owner_id=? AND state='completed' AND params=? AND output_id=?",output.id,JSON.stringify(settings),now(),j.id,owner,j.params,j.output_id)
+      ]);
+      if(!writes[1].meta.changes)fail(409,'This image changed while processing. Reopen it to see the saved finish.');
+      const changed={...j,output_id:output.id,params:JSON.stringify(settings)};
+      await ensureGalleryDimensions(env,changed);
+      if(j.output_id!==original.id&&j.output_id!==output.id)await pruneSource(env,owner,j.output_id);
+      return json({job:jobView(await first(env,'SELECT * FROM jobs WHERE id=? AND owner_id=?',j.id,owner))});
+    }
     if(path.endsWith('/reconcile')&&method==='POST'){
       const p=JSON.parse(j.params||'{}');
       const soulPro=p.engine==='soulpro'&&['inline-data-uri','fal-cdn'].includes(p.inputTransport)&&Object.hasOwn(SOUL_PRO_MODELS,p.soulProModel)&&SOUL_PRO_MODELS[p.soulProModel].id===p.model;
