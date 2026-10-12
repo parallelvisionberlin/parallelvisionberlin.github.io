@@ -115,7 +115,7 @@ try{
       await page.evaluate(()=>location.hash='settings');await page.locator('#account-edit-profile').click();assert.equal(await page.evaluate(()=>window.profileOpened),true);
       assert.match(await page.locator('#account-storage-label').textContent(),/1.00 GiB/);await fits(page,'settings '+width);
       await page.screenshot({path:artifacts+'/account-settings-'+width+'.png',fullPage:true});
-      await page.click('#settings-close-account');assert.equal(await page.locator('#account-close-submit').isDisabled(),true);await page.fill('#account-close-confirm','DELETE');assert.equal(await page.locator('#account-close-submit').isDisabled(),true);await page.keyboard.press('Escape');
+      await page.click('#settings-close-account');assert.equal(await page.locator('#account-close-submit').isDisabled(),true);await page.fill('#account-close-confirm','DELETE');assert.equal(await page.locator('#account-close-submit').isDisabled(),true);await page.fill('#account-close-confirm','DELETE MY PV LAB ACCOUNT');assert.equal(await page.locator('#account-close-submit').isDisabled(),false);await page.keyboard.press('Escape');
       rig.holdWallet();await page.evaluate(()=>{document.querySelector('#account-refresh').click();});await page.waitForFunction(()=>!document.querySelector('#account-workspace').hidden);
       await page.evaluate(()=>window.mockClerk.signOut());rig.releaseWallet();await page.waitForFunction(()=>!document.querySelector('#account-gate').hidden);
       assert.equal(await page.locator('#account-workspace').isVisible(),false);assert.equal(await page.locator('#settings-email').textContent(),'');assert.equal(await page.locator('#account-menu').isVisible(),false);
