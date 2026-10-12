@@ -28,12 +28,33 @@ test('Final Berlin Rave prompts fit the budget with all three hidden references'
       const prompt=compileImagePrompt(recipe.prompt,labels,{...settings,engine,...recipe.metadata});
       assert.equal(recipe.error,'');
       assert.ok(prompt.length<=5000,`${engine}/${referenceMode}/${count}/${intensity}: ${prompt.length}`);
-      assert.match(prompt,/BERLIN RAVE V4/);
+      assert.match(prompt,/BERLIN RAVE V5/);
       assert.ok(prompt.includes(`BUILT-IN REFERENCES ${count+1}, ${count+2}, ${count+3}:`));
-      assert.match(prompt,/Never import their people, faces, body shapes, robots, DJ equipment/);
+      assert.match(prompt,/Never import reference faces, bodies, characters, poses or DJ equipment/);
+      assert.match(prompt,/even 100%, retain source face, skin tone, proportions and human\/robot\/cyborg anatomy/);
+      assert.match(prompt,/robot plating, joints, cables and mechanical limbs remain; never turn them into skin/);
+      assert.match(prompt,/Match source presentation, not reference gender/);
+      assert.match(prompt,/Hair cues preserve hairline, texture and character design/);
       assert.match(prompt,/Explicit user instructions and assigned reference roles take priority/);
       if(!count||referenceMode==='references')assert.match(prompt,/These are not Base or identity images/);
       else assert.match(prompt,/The user Base controls identity/);
+    }
+  }
+});
+
+test('Character guidance reaches older recipes and leaves room for authored source details',()=>{
+  for(const engine of ['seedream','gemini']){
+    const oldPrompt=compileImagePrompt('BERLIN RAVE V4: full wardrobe redesign.',[{role:'base'}],{...settings,engine});
+    assert.match(oldPrompt,/At every intensity, even 100%, retain source face, skin tone/);
+    for(const original of ['Dress this robot in rave couture; keep all of its mechanical body and its face.','Keep my brown skin, face and masculine presentation; use a harness and trousers.']){
+      const labels=Array.from({length:7},(_,i)=>i?{role:'none'}:{role:'base',note:'Same character, same anatomy and same skin tone.'});
+      const recipe=prepareMoodPrompt(original,'berlin-rave',100,{engine,referenceCount:7});
+      const prompt=compileImagePrompt(recipe.prompt,labels,{...settings,engine});
+      assert.ok(prompt.includes(original));
+      assert.ok(prompt.length<=5000,`${engine}: ${prompt.length}`);
+      assert.match(prompt,/Only small limb adjustments for garment fit/);
+      assert.match(prompt,/Masculine: harness\/vest with trousers, not default lingerie/);
+      assert.match(prompt,/ORIGINAL skin or machinery/);
     }
   }
 });
