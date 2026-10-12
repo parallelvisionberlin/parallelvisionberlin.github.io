@@ -31,7 +31,11 @@ export function normalizeReferenceLabel(x){
   if(REFERENCE_TARGETS[role])label.target=REFERENCE_TARGETS[role].some(([id])=>id===x?.target)?x.target:(role==='outfit'?'full':'');
   return label;
 }
-export function referenceGuidanceError(labels){
+export function builtInMoodReferenceCount(settings={}){
+  return settings.type==='image'&&settings.mode==='image'&&settings.moodId==='berlin-rave'&&['seedream','gemini'].includes(settings.engine)?3:0;
+}
+export function referenceGuidanceError(labels,settings={}){
+  if(builtInMoodReferenceCount(settings)&&labels.length>7)return 'Berlin Rave accepts up to 7 uploaded photos. Remove a photo or choose another mood.';
   if(labels.filter(r=>r.role==='base').length>1)return 'Choose one Base image. Assign the other references only the properties to copy.';
   if(labels.findIndex(r=>r.role==='base')>0)return 'Move the Base image to Reference 1. The first image also controls the automatic aspect ratio.';
   // General references are valid without manual labels. Explicit roles remain available for precision.
@@ -53,7 +57,17 @@ export function referenceInstruction(raw,index){
   if(r.role==='object')instruction='Use only the '+(target||'object').toLowerCase()+', including its shape and material. Match the target perspective and lighting. Do not copy people or background.';
   return 'Reference '+(index+1)+' ['+(REFERENCE_ROLES.find(([id])=>id===r.role)?.[1]||r.role)+(target?' / '+target:'')+']: '+instruction+(r.note?' Note: '+r.note:'');
 }
-export function compileImagePrompt(direction,labels=[]){
+export function compileImagePrompt(direction,labels=[],settings={}){
+  const prompt=compileUserImagePrompt(direction,labels);
+  const count=builtInMoodReferenceCount(settings);
+  if(!count)return prompt;
+  const numbers=Array.from({length:count},(_,i)=>labels.length+i+1).join(', ');
+  const source=labels.some(r=>r.role==='base')
+    ?'The user Base controls identity, body, pose, subject count, framing and location; honor explicitly requested changes.'
+    :'These are not Base or identity images. Compose the requested subject and scene independently; user references retain their assigned roles.';
+  return [prompt,'BERLIN RAVE BUILT-IN REFERENCES '+numbers+': wardrobe construction and photographic treatment only. Borrow minimal fitted black leather/latex, fine straps, precise cutouts and fastenings, real material reflections, hard direct flash, neutral skin and fine grain. Apply at the selected mood intensity; adult wardrobe only. '+source+' Never import their people, faces, body shapes, robots, DJ equipment, poses or group layout. Explicit user instructions and assigned reference roles take priority.'].filter(Boolean).join('\n\n');
+}
+function compileUserImagePrompt(direction,labels=[]){
   const prompt=String(direction||'').trim();
   if(!labels.length)return prompt;
   const hasBase=labels.some(r=>r.role==='base');

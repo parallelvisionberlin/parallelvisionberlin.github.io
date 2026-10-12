@@ -38,7 +38,7 @@ test('Pixel-limited working copy is independent of the file size limit',()=>{
 
 test('Worker rejects >36 MP Seedream inputs before asking for a paid quote',()=>{
   const backend=src('../lab-worker/worker.mjs');
-  assert.match(backend,/stageImageReferences\(env,owner,p.transferSourceIds,key,10,p.engine==='seedream'\?36000000:0\)/);
+  assert.match(backend,/stageImageReferences\(env,owner,p.transferSourceIds\|\|\[\],key,10,p.engine==='seedream'\?36000000:0,builtIn\)/);
   assert.match(backend,/dimensions.width\*dimensions.height>maxPixels/);
   const validation=backend.indexOf('dimensions.width*dimensions.height>maxPixels');
   const ticket=backend.indexOf("vendorRequest('/common/upload-url',key");
