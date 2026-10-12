@@ -1,17 +1,18 @@
 // This layout is only enabled by the native app, never by a public query string.
-import {isNativeLab} from './native-account.js?v=2';
+import {isNativeLab} from './native-account.js?v=20261012-photo-layout1';
 export function initLabMobileUI(){
   if(!isNativeLab()||document.documentElement.classList.contains('pv-native-lab'))return;
   document.documentElement.classList.add('pv-native-lab');
-  const css=document.createElement('link');css.rel='stylesheet';css.href='./mobile-app.css?v=4';document.head.append(css);
+  const css=document.createElement('link');css.rel='stylesheet';css.href='./mobile-app.css?v=20261012-photo-layout1';document.head.append(css);
   const $=id=>document.getElementById(id),send=(type,extra={})=>window.ReactNativeWebView.postMessage(JSON.stringify({type,...extra}));
+  for(const id of ['reference-images','image','soul-base-image']){const input=$(id);if(input)input.accept='image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif';}
   const composer=$('image-composer');
   if(composer){
     const intro=document.createElement('div');intro.className='mobile-create-intro';
     intro.innerHTML='<span>PV LAB / MOODS</span><h1>Your photo.<br>A different world.</h1>';
     const photo=document.createElement('section');photo.className='mobile-photo';photo.setAttribute('aria-label','Your source photograph');
     const add=document.createElement('button');add.type='button';add.className='mobile-add-photo';add.id='mobile-add-photo';
-    add.innerHTML='<span aria-hidden="true">＋</span><strong>Add your photo</strong><small>JPG, PNG or WebP · up to 10 MB</small>';
+    add.innerHTML='<span aria-hidden="true">＋</span><strong>Add your photo</strong><small>JPG, PNG, WebP or HEIC · up to 20 MB</small>';
     add.onclick=()=>{const button=$('image-composer-add');if(!button.disabled)button.click();};
     photo.append(add,$('image-composer-references'));
     composer.prepend(intro,photo);

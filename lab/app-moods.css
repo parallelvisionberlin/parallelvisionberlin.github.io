@@ -10,3 +10,17 @@
 .intro p{margin:0;font-size:14px;color:#dedee0}
 @media(min-width:600px){.intro{margin:0 -28px 10px;padding:116px 28px 25px;min-height:220px}.intro .create-link{right:28px}.intro p{font-size:17px}}
 @media(max-height:600px){.intro{padding-top:72px;min-height:160px}}
+
+/* Keep the native deck stable before and after account initialization. */
+#mood-detail{outline:none}
+.photo-row{display:flex;align-items:center;gap:10px;min-width:0}
+.photo-row .photo-picker{flex:1;min-width:0;height:100px}
+.photo-row .photo-picker>img{height:76px;max-width:38%;image-orientation:from-image}
+.photo-row .remove-photo{flex:none;align-self:center;min-height:44px;margin:0;font-size:12px}
+.detail-copy p{margin-bottom:12px}
+.detail-controls{gap:8px}
+.direction{font-size:16px}
+/* Trim the white scan edge with CSS, preserving the original photograph. */
+.mood-card[data-mood="midnight-reverie"] .card-image img,
+#mood-detail[data-mood="midnight-reverie"] .detail-art img{width:103%;max-width:none;transform:translateX(-2.5%)}
+#mood-detail[data-mood="midnight-reverie"] .detail-art img{object-position:center 24%}
