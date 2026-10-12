@@ -13,6 +13,59 @@ function randomFor(seed){
   let value=2166136261;for(const char of String(seed))value=Math.imul(value^char.charCodeAt(0),16777619);
   return ()=>{value+=0x6d2b79f5;let n=value;n=Math.imul(n^(n>>>15),n|1);n^=n+Math.imul(n^(n>>>7),n|61);return ((n^(n>>>14))>>>0)/4294967296;};
 }
+async function png(width,height,scan,colorType){
+  const compressed=new Uint8Array(await new Response(new Blob([scan]).stream().pipeThrough(new CompressionStream('deflate'))).arrayBuffer());
+  const header=new Uint8Array(13),view=new DataView(header.buffer);view.setUint32(0,width);view.setUint32(4,height);header[8]=8;header[9]=colorType;
+  return new Uint8Array(await new Blob([signature,chunk('IHDR',header),chunk('IDAT',compressed),chunk('IEND',new Uint8Array())]).arrayBuffer());
+}
+// Decode only our small, Cloudflare-normalized highlight PNG. Converting black
+// to transparent keeps the original dark pixels untouched by normal compositing.
+// Bounds are independent of the source resolution; no full-size pixel buffer.
+export async function transparentHighlights(bytes){
+  let width=0,height=0,depth=0,type=0,palette=null,alpha=null;const parts=[];
+  for(let offset=8;offset+12<=bytes.length;){
+    const view=new DataView(bytes.buffer,bytes.byteOffset+offset),length=view.getUint32(0),end=offset+12+length;
+    if(end>bytes.length)throw Error('Incomplete highlight data.');
+    const name=String.fromCharCode(...bytes.subarray(offset+4,offset+8)),data=bytes.subarray(offset+8,end-4);
+    if(name==='IHDR'){
+      if(length!==13)throw Error('Invalid highlight header.');
+      const h=new DataView(data.buffer,data.byteOffset,data.byteLength);width=h.getUint32(0);height=h.getUint32(4);depth=data[8];type=data[9];
+      if(data[10]||data[11]||data[12])throw Error('Unsupported highlight encoding.');
+    }else if(name==='IDAT')parts.push(data);else if(name==='PLTE')palette=data;else if(name==='tRNS')alpha=data;
+    offset=end;
+  }
+  const channels=({0:1,2:3,3:1,4:2,6:4})[type];
+  if(!width||!height||width*height>1_000_000||!channels||![1,2,4,8,16].includes(depth)||(![0,3].includes(type)&&depth<8)||type===3&&!palette)
+    throw Error('Unsupported highlight pixels.');
+  const rowBytes=Math.ceil(width*channels*depth/8),bpp=Math.max(1,Math.ceil(channels*depth/8));
+  const raw=await bytesFrom(new Response(new Blob(parts).stream().pipeThrough(new DecompressionStream('deflate'))),(rowBytes+1)*height);
+  if(raw.length!==(rowBytes+1)*height)throw Error('Incomplete highlight pixels.');
+  const output=new Uint8Array((width*4+1)*height);
+  function sample(start,index){
+    if(depth===8)return raw[start+index];
+    if(depth===16)return raw[start+index*2];
+    return (raw[start+Math.floor(index*depth/8)]>>>(8-depth-(index*depth)%8))&((1<<depth)-1);
+  }
+  for(let y=0;y<height;y++){
+    const start=y*(rowBytes+1)+1,filter=raw[start-1];if(filter>4)throw Error('Invalid highlight filter.');
+    for(let x=0;x<rowBytes;x++){
+      const a=x>=bpp?raw[start+x-bpp]:0,b=y?raw[start+x-rowBytes-1]:0,c=y&&x>=bpp?raw[start+x-rowBytes-1-bpp]:0;
+      let prediction=0;
+      if(filter===1)prediction=a;else if(filter===2)prediction=b;else if(filter===3)prediction=Math.floor((a+b)/2);
+      else if(filter===4){const p=a+b-c,pa=Math.abs(p-a),pb=Math.abs(p-b),pc=Math.abs(p-c);prediction=pa<=pb&&pa<=pc?a:pb<=pc?b:c;}
+      raw[start+x]=(raw[start+x]+prediction)&255;
+    }
+    for(let x=0;x<width;x++){
+      let r,g,b,a=255;
+      if(type===3){const i=sample(start,x);r=palette[i*3];g=palette[i*3+1];b=palette[i*3+2];a=alpha?.[i]??255;}
+      else if(type===0||type===4){r=g=b=sample(start,x*channels)*(depth<8?255/((1<<depth)-1):1);if(type===4)a=sample(start,x*channels+1);}
+      else{r=sample(start,x*channels);g=sample(start,x*channels+1);b=sample(start,x*channels+2);if(type===6)a=sample(start,x*channels+3);}
+      const max=Math.max(r,g,b),i=y*(width*4+1)+1+x*4;
+      if(max){output[i]=Math.round(r/max*255);output[i+1]=Math.round(g/max*255);output[i+2]=Math.round(b/max*255);output[i+3]=Math.round(max*a/255);}
+    }
+  }
+  return png(width,height,output,6);
+}
 // A full-frame seeded texture, never a repeated tile. Two spatial scales avoid
 // a regular pixel grid; the same original and settings always use the same grain.
 export async function grainPng(width,height,amount,seed){
@@ -29,9 +82,7 @@ export async function grainPng(width,height,amount,seed){
     }
     [previous,current]=[current,previous];
   }
-  const compressed=new Uint8Array(await new Response(new Blob([scan]).stream().pipeThrough(new CompressionStream('deflate'))).arrayBuffer());
-  const header=new Uint8Array(13),view=new DataView(header.buffer);view.setUint32(0,width);view.setUint32(4,height);header[8]=8;header[9]=4;
-  return new Uint8Array(await new Blob([signature,chunk('IHDR',header),chunk('IDAT',compressed),chunk('IEND',new Uint8Array())]).arrayBuffer());
+  return png(width,height,scan,4);
 }
 async function bytesFrom(response,max=OUTPUT_LIMIT){
   if(!response.ok)throw Error('Film processing is temporarily unavailable.');
@@ -50,13 +101,16 @@ export async function renderFilmFinish(images,bytes,settings,seed){
   const scale=Math.max(width,height)/1400;
   let image=images.input(stream(bytes));
   if(finish.glow){
+    const mask=(await images.input(stream(bytes)).transform({brightness:.62}).transform({contrast:12})
+      .transform({width:700,height:700,fit:'scale-down'}).output({format:'image/png',anim:false})).response();
+    const highlightsPng=await transparentHighlights(await bytesFrom(mask,5_000_000));
     // Each overlay is a fresh pipeline. Darken then increase contrast to keep
     // the glow concentrated in highlights, with a small core and a wider falloff.
     // The original itself is never blurred, sharpened or reconstructed.
     for(const [radius,weight] of [[3,.34],[15,.22]]){
-      const highlights=images.input(stream(bytes)).transform({brightness:.62}).transform({contrast:12})
+      const highlights=images.input(stream(highlightsPng)).transform({width,height,fit:'squeeze'})
         .transform({blur:Math.max(1,Math.round(radius*scale))});
-      image=image.draw(highlights,{opacity:finish.glow/100*weight,composite:'lighter'});
+      image=image.draw(highlights,{opacity:finish.glow/100*weight,composite:'over'});
     }
   }
   if(finish.grain){

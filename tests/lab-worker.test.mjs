@@ -1,3 +1,4 @@
+import {grainPng} from '../lab-worker/film-finish.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {DatabaseSync} from 'node:sqlite';
@@ -216,7 +217,7 @@ const imageSettings={type:'image',prompt:'An architectural model on a white plin
 function filmImagesFixture(){
   let renders=0;
   return {get renders(){return renders;},async info(){return {width:64,height:64};},input(){return {
-    transform(){return this;},draw(){return this;},async output(){renders++;return {response:()=>new Response(pngDimensions(64,64),{headers:{'Content-Type':'image/png'}})};}
+    transform(){return this;},draw(){return this;},async output(){renders++;const bytes=await grainPng(64,64,15,'valid-fixture');return {response:()=>new Response(bytes,{headers:{'Content-Type':'image/png'}})};}
   };}};
 }
 test('automatic film finishing retains original, survives failure, adjusts without inference and isolates accounts',async()=>{

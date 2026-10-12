@@ -511,7 +511,7 @@ async function completeImageResult(env,j,original,storedBytes){
   }
   await env.LAB_DB.batch([
     assetInsert(env,original),...(output.id!==original.id?[assetInsert(env,output)]:[]),
-    stmt(env,"UPDATE jobs SET state='completed',output_id=?,params=?,remote_url=NULL,error='',updated_at=? WHERE id=? AND owner_id=?",output.id,JSON.stringify(params),now(),j.id,j.owner_id)
+    stmt(env,"UPDATE jobs SET state='completed',output_id=?,params=json_patch(params,?),remote_url=NULL,error='',updated_at=? WHERE id=? AND owner_id=?",output.id,JSON.stringify(params.filmFinishStatus?{filmOriginalId:params.filmOriginalId,filmFinishStatus:params.filmFinishStatus,filmFinishError:params.filmFinishError||null}:{}),now(),j.id,j.owner_id)
   ]);
   await ensureGalleryDimensions(env,{...j,params:JSON.stringify(params),output_id:output.id});
 }
