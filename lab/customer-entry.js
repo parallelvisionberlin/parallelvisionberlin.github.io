@@ -6,7 +6,40 @@ const API='https://parallel-vision-lab.parallelvision.workers.dev';
 import {loadLabAccount} from './native-account.js?v=20261012-unified-header1';
 const $=id=>document.getElementById(id);
 const pilotSetup=new URLSearchParams(location.search).get('setup-pilot')==='1';
-let clerk=null,profile=null,revision=0;
+let clerk=null,profile=null,profileSessionId=null,revision=0;
+let purchasing=false;
+const buyButtons=[...document.querySelectorAll('[data-lab-buy]')];
+const purchaseKey='pv-lab-purchase-intent';
+const feedbackNodes=new Map();
+for(const button of buyButtons){
+  const container=button.closest('.lab-plan')||button.closest('.lab-topups');
+  if(!container)continue;
+  let note=container.querySelector('.lab-purchase-status');
+  if(!note){note=document.createElement('p');note.className='lab-purchase-status';note.id='lab-buy-status-'+button.dataset.labBuy;note.setAttribute('role','status');note.setAttribute('aria-live','polite');note.hidden=true;container.append(note);}
+  button.setAttribute('aria-describedby',note.id);feedbackNodes.set(button,note);
+}
+function purchaseStatus(button,message){
+  for(const note of new Set(feedbackNodes.values())){note.hidden=true;note.textContent='';}
+  const note=feedbackNodes.get(button);
+  if(!note){status(message);return;}
+  note.hidden=!message;note.textContent=message||'';
+  if(message)requestAnimationFrame(()=>note.scrollIntoView({block:'nearest'}));
+}
+function purchaseBusy(button,busy){
+  for(const item of buyButtons){item.disabled=busy;item.setAttribute('aria-busy',String(busy&&item===button));}
+}
+function clearPurchaseIntent(){try{sessionStorage.removeItem(purchaseKey);}catch{}}
+// Only a same-tab, short-lived intent created by a click can resume after sign-in.
+function returnedPurchase(){
+  const url=new URL(location.href),nonce=url.searchParams.get('lab-checkout');
+  if(!nonce)return null;
+  url.searchParams.delete('lab-checkout');history.replaceState(history.state,'',url);
+  let intent;try{intent=JSON.parse(sessionStorage.getItem(purchaseKey));}catch{}
+  clearPurchaseIntent();
+  if(intent?.nonce!==nonce||!Number.isFinite(intent.at)||Date.now()-intent.at<0||Date.now()-intent.at>15*60*1000)return null;
+  return buyButtons.find(button=>button.dataset.labBuy===intent.sku)||null;
+}
+const resumePurchase=returnedPurchase();
 const headerAccount=createAccountMenu($('lab-account-strip'));
 const status=message=>{for(const id of ['lab-entry-status','lab-pricing-status'])if($(id))$(id).textContent=message||'';};
 const api=createSessionRequest({baseUrl:API,getSession:()=>clerk?.session});
@@ -14,9 +47,10 @@ async function call(path,init){const result=await api(path,init);const data=awai
 async function refresh(){
   const current=++revision;
   try{
-    if(!clerk?.isSignedIn){profile=null;show();return;}
+    if(!clerk?.isSignedIn){profile=null;profileSessionId=null;show();return;}
+    if(profileSessionId!==clerk.session?.id)profile=null;
     const data=await call('/api/session');if(current!==revision)return;
-    profile=data;show();
+    profile=data;profileSessionId=clerk.session?.id;show();
     if(profile.customer)await claimReferral(code=>call('/api/customer/referrals/claim',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code})}));
   }catch(e){if(current===revision){profile=null;status(e.message);show();}}
 }
@@ -31,12 +65,12 @@ function show(){
   }
 
 }
-async function signIn(destination){
+async function signIn(destination,report=status){
   try{
-    if(!clerk){status('Sign-in is loading.');clerk=await loadLabAccount();}
-    if(clerk.isSignedIn){if(destination)location.assign(destination);return;}
-    status('');
-    clerk.openSignIn({
+    if(!clerk){report('Sign-in is loading.');clerk=await loadLabAccount();}
+    if(clerk.isSignedIn){if(destination)location.assign(destination);return true;}
+    report('');
+    await clerk.openSignIn({
       ...(destination?{forceRedirectUrl:destination,signUpForceRedirectUrl:destination}:{}),
       appearance:{variables:{
         colorBackground:'#191919',colorForeground:'#f3f1ec',colorMutedForeground:'#b4b1a9',
@@ -45,20 +79,41 @@ async function signIn(destination){
         fontFamily:'"DM Sans", Arial, sans-serif',borderRadius:'0.625rem'
       }}
     });
-  }catch{status('Sign-in is not currently available. Please try again.');}
+    return true;
+  }catch{report('Sign-in is not currently available. Please try again.');return false;}
 }
-async function purchase(sku){
-  if(!clerk?.isSignedIn){signIn();return;}
-  if(!profile){status('Account is still loading.');return;}
-  if(!profile.customer){status('Your owner account uses the private studio.');return;}
-  if(profile.pilot&&sku!=='topup10'){status('The private live payment test permits the €10 credit pack only.');return;}
-  if(!profile.billingReady){status('Credit checkout is not enabled yet. No payment has been initiated.');return;}
-  status('Opening secure checkout…');
+async function purchase(button){
+  if(purchasing||!buyButtons.includes(button))return;
+  const sku=button.dataset.labBuy;
+  purchasing=true;purchaseBusy(button,true);purchaseStatus(button,'Checking your account…');
+  let sessionId=null,leaving=false;
   try{
+    if(!clerk)clerk=await loadLabAccount();
+    if(!clerk.isSignedIn){
+      const destination=new URL(location.href);destination.hash='pricing';
+      const intent={sku,nonce:crypto.randomUUID(),at:Date.now()};
+      try{sessionStorage.setItem(purchaseKey,JSON.stringify(intent));destination.searchParams.set('lab-checkout',intent.nonce);}catch{}
+      const opened=await signIn(destination.href,message=>purchaseStatus(button,message||'Sign in to continue with this selection.'));
+      if(!opened)clearPurchaseIntent();
+      return;
+    }
+    sessionId=clerk.session?.id;
+    if(!profile||profileSessionId!==sessionId)await refresh();
+    if(!clerk.isSignedIn||clerk.session?.id!==sessionId)throw new Error('Your account changed. Select a plan again.');
+    if(!profile)throw new Error('Your account could not be loaded. Please try again.');
+    if(!profile.customer)throw new Error('You are signed in as the owner. Use a customer account to buy credits.');
+    if(profile.pilot&&sku!=='topup10')throw new Error('Only the €10 credit pack is available for this account.');
+    if(profile.accountClosed||profile.billingReview)throw new Error('Purchases are paused for this account. Open Credits & billing for details.');
+    if(!profile.billingReady)throw new Error('Purchases are not available yet. No payment has been taken.');
+    purchaseStatus(button,'Opening secure checkout…');
     const data=await call('/api/billing/checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sku})});
-    if(!data.url||new URL(data.url).protocol!=='https:')throw new Error('Invalid checkout link.');
-    location.assign(data.url);
-  }catch(e){status(e.message);}
+    if(!clerk.isSignedIn||clerk.session?.id!==sessionId)throw new Error('Your account changed. Select a plan again.');
+    const url=new URL(data.url);
+    if(url.protocol!=='https:'||url.username||url.password||!(url.hostname==='stripe.com'||url.hostname.endsWith('.stripe.com')))throw new Error('Unverified checkout link. Please try again.');
+    location.assign(url.href);
+    leaving=true;
+  }catch(e){purchaseStatus(button,sessionId&&clerk?.session?.id!==sessionId?'Your account changed. Select a plan again.':e.message||'Checkout could not be opened. Please try again.');}
+  finally{if(!leaving){purchasing=false;purchaseBusy(button,false);}}
 }
 $('lab-header-signin')?.addEventListener('click',()=>void signIn());
 document.querySelectorAll('[data-lab-signin]').forEach(button=>button.addEventListener('click',()=>void signIn()));
@@ -67,11 +122,15 @@ document.querySelector('.start-link')?.addEventListener('click',event=>{
   event.preventDefault();void signIn(event.currentTarget.href);
 });
 $('lab-account-refer')?.addEventListener('click',()=>location.assign('./account.html#referrals'));
-$('lab-account-logout')?.addEventListener('click',async()=>{await clerk?.signOut();profile=null;show();});
-document.querySelectorAll('[data-lab-buy]').forEach(button=>button.addEventListener('click',()=>purchase(button.dataset.labBuy)));
+$('lab-account-logout')?.addEventListener('click',async()=>{clearPurchaseIntent();await clerk?.signOut();profile=null;show();});
+buyButtons.forEach(button=>button.addEventListener('click',()=>void purchase(button)));
 
 try{
   clerk=await loadLabAccount();
   clerk.addListener(()=>void refresh());
   await refresh();
+  if(resumePurchase){
+    if(clerk.isSignedIn)await purchase(resumePurchase);
+    else purchaseStatus(resumePurchase,'Sign in to continue with this selection.');
+  }
 }catch(e){status('Sign-in is not currently available. Please try again.');$('lab-header-signin').disabled=true;}
