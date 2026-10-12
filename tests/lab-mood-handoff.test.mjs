@@ -41,3 +41,21 @@ test('Bad file types and overlong directions are rejected without storing privat
   assert.throws(()=>validateMoodHandoff({prompt:'x'.repeat(1401)}),/1,400/);
   assert.equal(validateMoodHandoff({prompt:'  A dream image  '}).prompt,'A dream image');
 });
+
+test('Priced Generate handoffs preserve the approved quote and are consumed once',async()=>{
+  const {moodGenerationQuote}=await import('../lab/mood-handoff.js');
+  const old=globalThis.indexedDB;globalThis.indexedDB=fakeIndexedDB();
+  const generation={userId:'user_A',sourceId:null,quote:{id:'quote_A',provider:'SpicyAPI',maxUsd:.22,expiresAt:Date.now()+120000,settings:{type:'image',engine:'seedream',moodId:'dreamcore'}}};
+  try{
+    const token=await saveMoodHandoff({prompt:'A night train',generation});
+    const packet=await takeMoodHandoff(token);
+    assert.deepEqual(packet.generation,generation);
+    assert.equal(moodGenerationQuote(packet.generation,{userId:'user_A',moodId:'dreamcore'}).id,'quote_A');
+    await assert.rejects(()=>takeMoodHandoff(token),/expired/);
+    assert.throws(()=>moodGenerationQuote(generation,{userId:'user_B',moodId:'dreamcore'}),/account changed/);
+    assert.throws(()=>moodGenerationQuote(generation,{userId:'user_A',moodId:'berlin-rave'}),/matches/);
+    assert.throws(()=>moodGenerationQuote(generation,{userId:'user_A',moodId:'dreamcore',now:generation.quote.expiresAt}),/expired/);
+    const draft=await takeMoodHandoff(await saveMoodHandoff({prompt:'An ordinary draft'}));
+    assert.equal(draft.generation,undefined);
+  }finally{if(old===undefined)delete globalThis.indexedDB;else globalThis.indexedDB=old;}
+});

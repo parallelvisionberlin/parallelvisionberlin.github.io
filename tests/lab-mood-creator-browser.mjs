@@ -188,10 +188,11 @@ try{
   await page.locator('#mc-look-direction').fill('Portrait with deep cinematic shadows');
   await page.locator('#mc-look-file').setInputFiles({name:'source.png',mimeType:'image/png',buffer:png});
   assert.equal(await page.locator('#mc-look-file-clear').isVisible(),true);
-  await page.locator('#mc-look-continue').click();
-  await page.waitForURL(u=>u.pathname.endsWith('/lab/studio.html'),{timeout:16000});
+  await page.route('**/lab/mood-creator.html?*',route=>route.fulfill({contentType:'text/html',body:'<!doctype html><h1>Mood Creator handoff</h1>'}));
+  await page.locator('#mc-look-make').click();
+  await page.waitForURL(u=>u.pathname.endsWith('/lab/mood-creator.html'),{timeout:16000});
   const url=new URL(page.url());
-  assert.equal(url.searchParams.get('mood'),'hong-kong-nights');
+  assert.equal(url.searchParams.get('base'),'hong-kong-nights');
   const handoff=url.searchParams.get('handoff');
   assert.match(handoff,/^[a-f0-9-]{36}$/i);
   const transfer=await page.evaluate(async id=>{
@@ -207,7 +208,7 @@ try{
   assert.ok(!requests.some(x=>/\/api\/(?:jobs|quotes|billing|customer\/image-price)/.test(x.path)),
     'Browsing, composing and saving a Mood must not trigger paid generation');
   assert.deepEqual(errors,[]);
-  pass('Single-use photo handoff to Image does not submit or charge');
+  pass('Single-use photo handoff to Mood Creator does not submit or charge');
 
   const mobile=await browser.newContext({viewport:{width:390,height:844},isMobile:true,deviceScaleFactor:1});
   await fillRoutes(mobile);

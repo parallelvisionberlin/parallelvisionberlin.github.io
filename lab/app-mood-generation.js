@@ -1,8 +1,8 @@
 import {loadLabAccount} from './native-account.js?v=2';
 import {createSessionRequest} from './session-request.js?v=20260927-auth1';
-import {prepareMoodPrompt} from './moods.js?app=5&raveNight=3';
+import {prepareMoodPrompt} from './moods.js?app=5&raveNight=4&syntheticBudget=1';
 import {normalizeReferenceLabel} from './reference-guidance.js?v=20261010-reference-flow2';
-import {imageDimensions,seedreamWorkingCopy} from './image-tools.js?v=20261011-reference-prewarm1';
+import {imageDimensions,seedreamWorkingCopy,providerWorkingCopy,PROVIDER_IMAGE_LIMIT} from './image-tools.js?v=20261011-reference-prewarm1';
 import {pricedBoundQuotes} from './image-credit-preview.js?v=20261010-customer-credits1';
 
 // Reuse the authenticated Worker, original uploads, Mood recipes and bound quotes.
@@ -11,7 +11,7 @@ export function createAppMoodGeneration(){
   let account=null,loading=null,revision=0;
   const request=createSessionRequest({baseUrl:'https://parallel-vision-lab.parallelvision.workers.dev',getSession:()=>account?.session});
   async function identity(){
-    if(account?.isSignedIn)return account;
+    if(account)return account;
     if(!loading)loading=loadLabAccount().then(value=>{account=value;return value;}).finally(()=>{loading=null;});
     return loading;
   }
@@ -25,6 +25,7 @@ export function createAppMoodGeneration(){
   const upload=file=>api('/api/uploads',{method:'POST',headers:{'Content-Type':file.type,'X-Filename':encodeURIComponent(file.name||'source.png')},body:file});
   return {
     cancel(){revision++;},
+    async onAccountChange(listener){return (await identity()).addListener(listener);},
     async signIn(){const user=await identity();if(!user.isSignedIn)user.openSignIn();return user.isSignedIn;},
     async prepare(file,mood,direction){
       const stamp=++revision,user=await identity();
@@ -34,19 +35,23 @@ export function createAppMoodGeneration(){
       const session=await api('/api/session');check();
       if(session.customer&&!session.generationReady)throw Error('Image generation is not available for this account yet.');
       if(!session.config?.enabled)throw Error('Image generation is currently unavailable.');
-      const dimensions=await imageDimensions(file);check();
-      if(Math.min(dimensions.width,dimensions.height)<240||Math.max(dimensions.width,dimensions.height)>8000||Math.max(dimensions.width/dimensions.height,dimensions.height/dimensions.width)>8)throw Error('Choose a photograph between 240 and 8,000 pixels per side.');
-      const recipe=prepareMoodPrompt(direction,mood.id,mood.defaultIntensity||70,{engine:'seedream',referenceCount:1,referenceMode:'base'});
+      if(!file&&!direction.trim())throw Error('Add a photograph or describe what you want to create.');
+      const dimensions=file?await imageDimensions(file):null;check();
+      if(dimensions&&(Math.min(dimensions.width,dimensions.height)<240||Math.max(dimensions.width,dimensions.height)>8000||Math.max(dimensions.width/dimensions.height,dimensions.height/dimensions.width)>8))throw Error('Choose a photograph between 240 and 8,000 pixels per side.');
+      const recipe=prepareMoodPrompt(direction,mood.id,mood.defaultIntensity||70,{engine:'seedream',referenceCount:file?1:0,referenceMode:'base'});
       if(recipe.error)throw Error(recipe.error);
-      const original=await upload(file);check();
-      let transfer=original.id;
-      if(dimensions.width*dimensions.height>36000000){const copy=await seedreamWorkingCopy(file);check();transfer=(await upload(copy)).id;check();}
-      const settings={type:'image',engine:'seedream',processing:'normal',referenceMode:'base',mode:'image',prompt:recipe.prompt,...recipe.metadata,resolution:'1k',aspectRatio:'auto',outputFormat:'png',referenceRoles:[normalizeReferenceLabel({name:file.name,role:'base'})]};
-      const quote=await api('/api/quotes',{method:'POST',body:{sourceId:null,lastSourceId:null,referenceSourceIds:[original.id],transferSourceIds:[transfer],settings}});check();
+      const original=file?await upload(file):null;check();
+      let transfer=original?.id;
+      let copy=file;
+      if(dimensions&&dimensions.width*dimensions.height>36000000){copy=await seedreamWorkingCopy(copy);check();}
+      if(copy&&copy.size>PROVIDER_IMAGE_LIMIT){copy=await providerWorkingCopy(copy);check();}
+      if(copy&&copy!==file){transfer=(await upload(copy)).id;check();}
+      const settings={type:'image',engine:'seedream',processing:'normal',referenceMode:'base',mode:'image',prompt:recipe.prompt,...recipe.metadata,resolution:'1k',aspectRatio:file?'auto':'16:9',outputFormat:'png',referenceRoles:file?[normalizeReferenceLabel({name:file.name,role:'base'})]:[]};
+      const quote=await api('/api/quotes',{method:'POST',body:{sourceId:null,lastSourceId:null,referenceSourceIds:original?[original.id]:[],transferSourceIds:transfer?[transfer]:[],settings}});check();
       if(!quote?.id||quote.settings?.engine!=='seedream'||quote.settings?.moodId!==mood.id||!Number.isFinite(quote.expiresAt)||quote.expiresAt<=Date.now()||!Number.isFinite(quote.maxUsd))throw Error('Could not verify the generation price. Try again.');
       const label=session.customer?pricedBoundQuotes(quote,1,'SpicyAPI').credits+' credits':'$'+quote.maxUsd.toFixed(2)+' max';
       let submitted=false;
-      return {label,expiresAt:quote.expiresAt,async submit(){check();if(submitted)throw Error('This request was already sent. Check Gallery.');if(Date.now()>=quote.expiresAt)throw Error('Price expired. Check the price again.');submitted=true;return api('/api/jobs',{method:'POST',body:{quoteId:quote.id,confirm:true}});}};
+      return {label,expiresAt:quote.expiresAt,handoff(){check();if(submitted)throw Error('This request was already sent. Check Image.');if(Date.now()>=quote.expiresAt)throw Error('Price expired. Check the price again.');return {userId:user.user.id,quote,sourceId:original?.id||null};},async submit(){check();if(submitted)throw Error('This request was already sent. Check Gallery.');if(Date.now()>=quote.expiresAt)throw Error('Price expired. Check the price again.');submitted=true;return api('/api/jobs',{method:'POST',body:{quoteId:quote.id,confirm:true}});}};
     }
   };
 }
