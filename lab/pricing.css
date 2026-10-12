@@ -1,7 +1,7 @@
 /* Approved Analog Club composition. Scoped to the homepage pricing section. */
 #pricing.lab-plans{
   background:#0d0d0d;color:#f6f3ed;
-  padding:clamp(62px,7vw,104px) clamp(22px,4vw,70px) 54px;
+  padding:calc(clamp(62px,7vw,104px) - 36px) clamp(22px,4vw,70px) 54px;
   scroll-margin-top:28px;
 }
 #pricing .lab-plans-inner{max-width:1440px}

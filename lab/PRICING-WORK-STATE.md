@@ -35,4 +35,6 @@
 - GitHub Pages build/deploy run `38273670635` succeeded. Live page verified on 2026-10-12 at `https://parallelvisionlabel.com/lab/#pricing`.
 - Live browser confirms all three images loaded, the approved layout, DM Sans 300 and no horizontal overflow at 1363 pixels. Responsive checks passed at 1440, 390, 320 and 768 pixels in CI.
 - Final scope: `lab/index.html`, `lab/pricing.css`, `lab/README.md`, this state file and `tests/lab-landing-ui.cjs`.
-- Status: implemented, committed and confirmed live. No remaining action or blocker for this pricing design.
+- Approved spacing refinement at 19:15 Europe/Berlin: subtract 36 px from desktop pricing top padding. The existing mobile override remains 48 px. Card and type sizes are retained.
+- Refinement scope: `pricing.css`, its cache version in `index.html`, and this checkpoint. Diff reviewed; no behavior change.
+- Base for refinement: `5552dd636ee59e44e2a7bc6fbad540678002a7ec`. Publication and live verification pending for this spacing adjustment.
