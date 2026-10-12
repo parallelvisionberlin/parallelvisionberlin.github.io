@@ -37,4 +37,7 @@
 - Final scope: `lab/index.html`, `lab/pricing.css`, `lab/README.md`, this state file and `tests/lab-landing-ui.cjs`.
 - Approved spacing refinement at 19:15 Europe/Berlin: subtract 36 px from desktop pricing top padding. The existing mobile override remains 48 px. Card and type sizes are retained.
 - Refinement scope: `pricing.css`, its cache version in `index.html`, and this checkpoint. Diff reviewed; no behavior change.
-- Base for refinement: `5552dd636ee59e44e2a7bc6fbad540678002a7ec`. Publication and live verification pending for this spacing adjustment.
+- Spacing commit: `aad1c905c28df9ae2f1d65c8c709d4be77e31ba9`, based on `5552dd636ee59e44e2a7bc6fbad540678002a7ec`, published to main without force.
+- Refinement validation: static build and asset/runtime checks passed; existing landing tests passed at 1440, 390, 320 and 768 px (run `38283210225`).
+- Spacing refinement confirmed live on 2026-10-12 after successful Pages run `38283210335`: padding decreased from 95.41 px to 59.41 px at a 1363 px viewport, images loaded and no horizontal overflow. Desktop maximum padding is now 68 px; mobile remains 48 px.
+- Status: spacing adjustment implemented, committed and confirmed live. No remaining action for this request.
