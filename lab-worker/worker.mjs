@@ -29,7 +29,7 @@ import {DREAMCORE_REFERENCES,DREAMCORE_REFERENCE_VERSION} from './dreamcore-refe
 import {moodBoardsRoute} from './moodboards.mjs';
 import {moodCreatorRoute} from './mood-creator-service.mjs';
 import {characterPreview as soulCharacterPreview,SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-12.4-dreamcore-references';
+export const VERSION = 'pv-lab-2026-10-12.5-archive-capacity';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -920,7 +920,6 @@ async function reserveFalImageJob(env,owner,sourceId,p,estimate,approvedQuoteId=
     if(!approved||approved.source_id!==sourceId||approved.estimate_microusd!==estimate)
       fail(409,'Precision Edit quote expired or does not match the selected image. Check price again.');
   }
-  if((await first(env,'SELECT COUNT(*) AS n FROM jobs WHERE owner_id=?',owner)).n>=500)fail(409,'History limit reached. Delete old records first.');
   const c=await config(env,owner),limit=c?.daily_limit_microusd||10000000,t=now(),day=Math.floor(t/86400000)*86400000,id=crypto.randomUUID(),quoteId=approvedQuoteId||crypto.randomUUID();
   if(!approvedQuoteId)await run(env,'INSERT INTO quotes(id,owner_id,source_id,params,estimate_microusd,expires_at,vendor_quote_id,expected_cost,payload) VALUES(?,?,?,?,?,?,?,?,?)',
     quoteId,owner,sourceId||null,JSON.stringify(p),estimate,t+600000,p.provider+'-direct',String(estimate/1000000),'{}');
@@ -1187,8 +1186,8 @@ async function route(request,env,ctx) {
     if(!REFERENCE_MIME.has(mime))fail(415,'Choose an MP4/MOV video or MP3/WAV audio reference.');
     const bytes=await limitedBody(request,mime.startsWith('audio/')?15*1024*1024:MAX_IMAGE);
     if(!bytes.length||!sniffReference(bytes,mime))fail(400,'Reference file contents do not match the selected media type.');
-    const usage=await first(env,'SELECT COALESCE(SUM(bytes),0) AS n,COUNT(*) AS count FROM assets WHERE owner_id=?',owner);
-    if(usage.n+bytes.length>MAX_STORAGE||usage.count>=1000)fail(413,'Private archive limit reached.');
+    const usage=await first(env,'SELECT COALESCE(SUM(bytes),0) AS n FROM assets WHERE owner_id=?',owner);
+    if(usage.n+bytes.length>MAX_STORAGE)fail(413,'Private archive storage limit reached (20 GiB).');
     const id=crypto.randomUUID(),objectKey=`${owner}/sources/${id}`;let filename='reference';
     try{filename=decodeURIComponent(request.headers.get('x-filename')||filename).replace(/[\r\n\x00-\x1f]/g,'').slice(0,180);}catch{}
     await env.LAB_MEDIA.put(objectKey,bytes,{httpMetadata:{contentType:mime}});
@@ -1198,8 +1197,8 @@ async function route(request,env,ctx) {
   if(path==='/api/uploads'&&method==='POST') {
     const mime=request.headers.get('content-type')?.split(';')[0];if(!['image/jpeg','image/png','image/webp'].includes(mime))fail(415,'Choose a JPG, PNG or WebP image.');
     const bytes=await limitedBody(request,MAX_IMAGE);if(!bytes.length||!sniff(bytes,mime))fail(400,'File contents do not match a supported image.');
-    const usage=await first(env,'SELECT COALESCE(SUM(bytes),0) AS n,COUNT(*) AS count FROM assets WHERE owner_id=?',owner);
-    if(usage.n+bytes.length>MAX_STORAGE||usage.count>=1000)fail(413,'Private archive limit reached. Delete old records first.');
+    const usage=await first(env,'SELECT COALESCE(SUM(bytes),0) AS n FROM assets WHERE owner_id=?',owner);
+    if(usage.n+bytes.length>MAX_STORAGE)fail(413,'Private archive storage limit reached (20 GiB).');
     const id=crypto.randomUUID(),key=`${owner}/sources/${id}`;let filename='source.'+(mime==='image/jpeg'?'jpg':mime.split('/')[1]);
     try{filename=decodeURIComponent(request.headers.get('x-filename')||filename).replace(/[\r\n\x00-\x1f]/g,'').slice(0,180);}catch{}
     await env.LAB_MEDIA.put(key,bytes,{httpMetadata:{contentType:mime}});
@@ -1218,7 +1217,6 @@ async function route(request,env,ctx) {
   if(path==='/api/drafts'&&method==='POST') {
     const data=await body(request),p=parameters(data.settings),id=crypto.randomUUID();
     const {primary}=await prepareInput(env,owner,data,p,null);
-    if((await first(env,'SELECT COUNT(*) AS n FROM jobs WHERE owner_id=?',owner)).n>=500)fail(409,'History limit reached. Delete old records first.');
     await run(env,"INSERT INTO jobs(id,owner_id,source_id,params,state,created_at,updated_at) VALUES(?,?,?,?,'draft',?,?)",id,owner,primary?.id||null,JSON.stringify(p),now(),now());
     return json({job:jobView(await first(env,'SELECT * FROM jobs WHERE id=?',id))},201);
   }
@@ -1283,7 +1281,6 @@ async function route(request,env,ctx) {
       const active=(await first(env,"SELECT COUNT(*) AS n FROM jobs WHERE owner_id=? AND state IN ('submitting','queued','running','uncertain') AND "+geminiSql+" AND COALESCE(json_extract(params,'$.processing'),'normal')!='batch'",owner)).n;
       if(active>=CONCURRENCY.image)fail(409,'No generation submitted: '+active+' / '+CONCURRENCY.image+' Nano Banana Pro slots are already active. Saving results do not use generation slots.');
     }
-    if((await first(env,'SELECT COUNT(*) AS n FROM jobs WHERE owner_id=?',owner)).n+count>500)fail(409,'History limit reached. Delete old records first.');
     const c=await config(env,owner),limit=c?.daily_limit_microusd||10000000,t=now(),day=Math.floor(t/86400000)*86400000,estimate=geminiEstimateMicros(p),totalEstimate=estimate*count;
     const spent=(await first(env,'SELECT COALESCE(SUM(estimate_microusd),0) AS n FROM spend WHERE owner_id=? AND created_at>=?',owner,day)).n;
     if(spent+totalEstimate>limit)fail(409,'No generation submitted: this Nano Banana Pro request would exceed your Lab daily spending limit.');

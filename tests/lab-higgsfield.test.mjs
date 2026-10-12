@@ -34,6 +34,9 @@ test('live Soul 2 price is quoted without charging and paid generation requires 
   const db=new DatabaseSync(':memory:');db.exec(readFileSync(new URL('../lab-worker/schema.sql',import.meta.url),'utf8'));
   const asset='b0f563e2-97ee-4b12-931f-0307400c7381',reference='c0f563e2-97ee-4b12-931f-0307400c7381';
   db.prepare('INSERT INTO assets VALUES(?,?,?,?,?,?,?,?)').run(asset,'owner','base.png','source','image/png','base.png',100,Date.now());
+  // Old generations must not prevent a new, explicitly paid request.
+  const archived=db.prepare("INSERT INTO jobs(id,owner_id,params,state,created_at,updated_at) VALUES(?,'owner','{}','completed',1,1)");
+  for(let i=0;i<509;i++)archived.run(crypto.randomUUID());
   const first=async(e,sql,...args)=>db.prepare(sql).get(...args),run=async(e,sql,...args)=>({meta:{changes:db.prepare(sql).run(...args).changes}}),rows=async(e,sql,...args)=>db.prepare(sql).all(...args);
   let budget=10_000_000,copied=false;
   const deps={first,run,rows,fail,now:()=>Date.now(),config:async()=>({daily_limit_microusd:budget}),body:r=>r.json(),jobView:j=>j,source:async(e,owner,assetId)=>{const a=await first(e,'SELECT * FROM assets WHERE id=? AND owner_id=?',assetId,owner);if(!a)fail(404,'source');return a;},sources:async(e,owner,ids)=>Promise.all(ids.map(i=>deps.source(e,owner,i))),signedInput:async()=> 'https://lab.example/input/base',storedImageDimensions:()=>({width:1776,height:2368}),safeVideoUrl:x=>x,copyResult:async()=>{copied=true;}};

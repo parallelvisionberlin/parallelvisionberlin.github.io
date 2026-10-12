@@ -211,6 +211,70 @@ test('Saving retries the stored provider output directly and never consumes a Sp
 });
 
 const imageSettings={type:'image',prompt:'An architectural model on a white plinth',resolution:'2k',aspectRatio:'4:5',outputFormat:'png'};
+function seedArchive(db,owner,{files=0,jobs=0}={}){
+  const asset=db.prepare("INSERT INTO assets(id,owner_id,object_key,kind,mime,filename,bytes,created_at) VALUES(?,?,?,'source','image/png','old.png',9,1)");
+  for(let i=0;i<files;i++){const id=crypto.randomUUID();asset.run(id,owner,owner+'/'+id);}
+  const job=db.prepare("INSERT INTO jobs(id,owner_id,params,state,created_at,updated_at) VALUES(?,?,'{}','completed',1,1)");
+  for(let i=0;i<jobs;i++)job.run(crypto.randomUUID(),owner);
+}
+async function archiveAccount(customer){
+  const {env,objects}=fixture();let owner='owner-internal',authToken=auth;
+  if(customer){
+    env.LAB_DB.db.exec(readFileSync(new URL('../lab-worker/migrations/0006-customers-billing.sql',import.meta.url),'utf8'));
+    Object.assign(env,{LAB_CUSTOMER_SIGNUPS_ENABLED:'true',LAB_CHECKOUT_ENABLED:'true',LAB_PUBLIC_GENERATION_ENABLED:'true',LAB_CUSTOMER_SPICY_API_KEY:KEY,LAB_STRIPE_SECRET_KEY:'sk_test_archive',LAB_STRIPE_WEBHOOK_SECRET:'whsec_archive'});
+    owner='user_ArchiveCustomer';authToken=await token(owner);
+    const unfunded=await req(env,'/api/uploads',{method:'POST',authToken,raw:new Uint8Array([137,80,78,71,13,10,26,10,0]),headers:{'Content-Type':'image/png'}});
+    assert.equal(unfunded.status,402,'Unfunded uploads still require credits');
+    env.LAB_DB.db.prepare("INSERT INTO lab_credit_entries VALUES('archive-test',?,1000,'purchase','archive-test',1)").run(owner);
+  }
+  return {env,objects,owner,authToken};
+}
+test('Owner and funded public accounts can upload and retain history beyond the old record caps',async()=>{
+  for(const customer of [false,true]){
+    const {env,objects,owner,authToken}=await archiveAccount(customer),db=env.LAB_DB.db;
+    seedArchive(db,owner,{files:1001,jobs:509});const before=createCount;
+    const image=await req(env,'/api/uploads',{method:'POST',authToken,raw:new Uint8Array([137,80,78,71,13,10,26,10,0]),headers:{'Content-Type':'image/png'}});
+    assert.equal(image.status,201,await image.clone().text());const sourceId=(await image.json()).id;
+    const video=await req(env,'/api/reference-uploads',{method:'POST',authToken,raw:new Uint8Array([0,0,0,24,102,116,121,112,109,112,52,50]),headers:{'Content-Type':'video/mp4'}});
+    assert.equal(video.status,201,await video.clone().text());
+    const draft=await req(env,'/api/drafts',{method:'POST',authToken,data:{sourceId,settings:p}});
+    assert.equal(draft.status,201,await draft.clone().text());
+    assert.equal(db.prepare('SELECT COUNT(*) AS n FROM assets WHERE owner_id=?').get(owner).n,1003);
+    assert.equal(db.prepare('SELECT COUNT(*) AS n FROM jobs WHERE owner_id=?').get(owner).n,510);
+    assert.equal(objects.size,2);assert.equal(createCount,before,'Uploading and drafting do not generate');
+    const seen=new Set();let next=null;
+    do{const page=await(await req(env,'/api/jobs'+(next?'?'+new URLSearchParams(next):''),{authToken})).json();assert.ok(page.jobs.length<=20);for(const job of page.jobs)seen.add(job.id);next=page.next;}while(next);
+    assert.equal(seen.size,510,'Every old history entry remains reachable through pagination');
+    if(customer)assert.equal(db.prepare('SELECT balance_credits AS n FROM lab_customers WHERE id=?').get(owner).n,1000);
+  }
+});
+test('Both upload routes retain the per-account 20 GiB storage boundary without deleting media',async()=>{
+  for(const customer of [false,true])for(const video of [false,true]){
+    const {env,objects,owner,authToken}=await archiveAccount(customer),db=env.LAB_DB.db;
+    const raw=video?new Uint8Array([0,0,0,24,102,116,121,112,109,112,52,50]):new Uint8Array([137,80,78,71,13,10,26,10,0]);
+    seedArchive(db,owner,{files:1});seedArchive(db,'another-account',{files:1});
+    db.prepare('UPDATE assets SET bytes=? WHERE owner_id=?').run(20*1024**3-raw.length,owner);
+    db.prepare('UPDATE assets SET bytes=? WHERE owner_id=?').run(20*1024**3,'another-account');
+    const options={method:'POST',authToken,raw,headers:{'Content-Type':video?'video/mp4':'image/png'}},path=video?'/api/reference-uploads':'/api/uploads';
+    assert.equal((await req(env,path,options)).status,201,'Exact byte capacity is accepted and other accounts do not consume it');
+    const saved=[...objects.entries()],blocked=await req(env,path,options);
+    assert.equal(blocked.status,413);assert.match((await blocked.json()).error,/storage limit reached \(20 GiB\)/);
+    assert.deepEqual([...objects.entries()],saved);assert.equal(db.prepare('SELECT COUNT(*) AS n FROM assets WHERE owner_id=?').get(owner).n,2);
+  }
+});
+test('Gemini batches remain available beyond 500 history entries for owners and funded customers',async()=>{
+  const previous=globalThis.fetch;let submissions=0;
+  globalThis.fetch=async(url,options)=>{if(new URL(url).hostname==='generativelanguage.googleapis.com'){submissions++;return Response.json({name:'batches/archive-capacity-test'});}return previous(url,options);};
+  try{for(const customer of [false,true]){
+    const {env,owner,authToken}=await archiveAccount(customer);env.GEMINI_API_KEY='synthetic-gemini-key';
+    seedArchive(env.LAB_DB.db,owner,{jobs:509});const before=submissions;
+    const result=await req(env,'/api/gemini/jobs',{method:'POST',authToken,data:{count:2,settings:{...imageSettings,engine:'gemini',processing:'batch'}}});
+    assert.equal(result.status,202,await result.clone().text());const {jobs}=await result.json();
+    assert.equal(jobs.length,2);assert.ok(jobs.every(j=>j.status==='queued'));assert.equal(submissions,before+1);
+    assert.equal(env.LAB_DB.db.prepare('SELECT COUNT(*) AS n FROM jobs WHERE owner_id=?').get(owner).n,511);
+    if(customer)assert.equal(env.LAB_DB.db.prepare("SELECT COUNT(*) AS n FROM lab_credit_entries WHERE customer_id=? AND kind='generation'").get(owner).n,2);
+  }}finally{globalThis.fetch=previous;}
+});
 test('new customer: signed signup, paid credits once, generation, private download, return gallery and failed-job refund',async()=>{
   const {env}=fixture(),db=env.LAB_DB.db,customer='user_LaunchQA',other='user_LaunchOther';
   for(const file of ['0006-customers-billing.sql','0007-lab-referrals.sql','0008-soul-id-launch-credits.sql','0011-customer-lifecycle.sql'])db.exec(readFileSync(new URL('../lab-worker/migrations/'+file,import.meta.url),'utf8'));
@@ -600,6 +664,7 @@ test('Definite H3 Max FAL rejection becomes failed and releases its Lab budget r
 
 test('PV Soul Pro saves Nina identity once and reuses it with one base image on Ideogram 4.5',async()=>{
   calls=[];falSubmitCount=0;falState='IN_QUEUE';const {env}=fixture(),id=await setup(env);
+  seedArchive(env.LAB_DB.db,'owner-internal',{jobs:509});
   const refUpload=await req(env,'/api/uploads',{method:'POST',raw:new Uint8Array([137,80,78,71,13,10,26,10,1]),headers:{'Content-Type':'image/png','X-Filename':'identity.png'}});assert.equal(refUpload.status,201);const refId=(await refUpload.json()).id;
   let identity=await req(env,'/api/soul-pro/identity',{method:'POST',data:{referenceSourceIds:[refId]}});assert.equal(identity.status,201,await identity.clone().text());assert.equal((await identity.json()).count,1);
   const saved=await(await req(env,'/api/soul-pro/identity')).json();assert.equal(saved.configured,true);assert.equal(saved.count,1);

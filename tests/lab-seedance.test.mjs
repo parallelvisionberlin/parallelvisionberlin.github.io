@@ -108,6 +108,8 @@ test('Reference media survive shared drafts and are removed only when unreferenc
 });
 test('Seedance extension quotes Higgsfield, binds one owned video, submits once and archives video output',async()=>{
  const {env}=fixture();env.HF_CREDENTIALS='test:secret';await setup(env);const video=await reference(env);
+ const archived=env.LAB_DB.db.prepare("INSERT INTO jobs(id,owner_id,params,state,created_at,updated_at) VALUES(?,'owner-internal','{}','completed',1,1)");
+ for(let i=0;i<509;i++)archived.run(crypto.randomUUID());
  const previous=globalThis.fetch;let estimates=0,submits=0,lastInput,status='queued';const task=crypto.randomUUID();
  globalThis.fetch=async(url,opts={})=>{const u=new URL(url);if(u.hostname==='api.higgsfield.ai'){
   assert.equal(opts.headers.Authorization,'Key test:secret');assert.equal(opts.redirect,'manual');
