@@ -131,7 +131,7 @@ try{
         assert.ok(afterZoom.width>beforeZoom.width*1.2,`${width}: detail control magnifies the photograph`);
         await detail.press('Home');
         assert.equal(await detail.getAttribute('aria-valuetext'),'1.0 times magnification');
-        await detail.evaluate(el=>{el.value='50';el.dispatchEvent(new Event('input',{bubbles:true}));});
+        await detail.evaluate(el=>{el.value=el.defaultValue;el.dispatchEvent(new Event('input',{bubbles:true}));});
         if(width===1440||width===390)await toolsSection.screenshot({path:resolve(artifacts,`studio-tools-${width}.png`)});
         if(width===1440){
           const motionVideo=toolsSection.locator('.studio-tool-video');

@@ -5,7 +5,8 @@
 - Verified deployed source: 12a1da34a8bab708eccd6ba51a1cb96057e5945f.
 - Approved direction: contained, separated editorial cards with titles at the top.
 - User chose in-photo capsule actions over a separate text footer.
-- Latest correction: slightly taller cards, less top space, neutral black instead of green.
+- Latest approved refinement: remove upper decorative arrows; replace the headless outfit with the reference macro.
+- Capsule actions, title positions, card dimensions, black background and HD video remain unchanged.
 - Current desktop card height: 480–620px, bounded by viewport height.
 - Section: 1440px maximum content width; 46px top and 64px bottom padding.
 - Mobile: one column with 20px side padding and 18px card gaps.
@@ -16,19 +17,20 @@
 - Published derivative: video-liquid-dress-hd.mp4, 844×1080, H.264, silent.
 - Ten-second clip size: 1,480,818 bytes; cropped only unused side scenery.
 - Video poster: video-liquid-dress.webp, 37,844 bytes.
-- Upscaler: upscale-golden-weave.webp, 1122×1402, 287,156 bytes.
-- Upscaler source: uploaded Ochre architectural suit in Berlin museum-4.png.
-- Its crop emphasizes the golden sculptural tailoring, mesh and seams.
+- Upscaler source: approved PV LAB Fashion Card Gallery-3(1).png, 1672×941.
+- Reused the existing right-hand macro, no new image generation.
+- Optimized source: upscale-golden-macro-source.webp; CSS frames box x=1118,y=42,w=530,h=724.
+- The crop excludes the source montage's typography and other panels; shows fibres, fabric and skin.
 - Existing detail control genuinely magnifies the original; it is not a before/after enhancement claim.
 - Existing video behavior is unchanged: loads/plays in view, pauses offscreen/hidden.
 - Reduced motion and data-saving behavior remain intact.
 - All primary links still open Studio with tool=image, video or upscale.
 - No changes to hero, Mood Creator, billing, credits, prompts or generation.
 - Files: lab/index.html and lab/studio-tools.css.
-- Preview behavior: lab/studio-tools.js; detail range is 1–3×, initially 2×.
+- Preview behavior: lab/studio-tools.js; detail range is 1–1.8×, initially 1.2×.
 - Assets: lab/visuals/studio-tools/video-liquid-dress-hd.mp4.
 - Assets: lab/visuals/studio-tools/video-liquid-dress.webp.
-- Assets: lab/visuals/studio-tools/upscale-golden-weave.webp.
+- Assets: lab/visuals/studio-tools/upscale-golden-macro-source.webp.
 - Regression suite: tests/lab-landing-stability.mjs.
 - Completed checks: JS syntax, scoped HTML diff, dimensions and exact uploaded binary SHA matches.
 - First code commit: 47fc5c68633cdb3262bf2277ee25832c730ea648.
@@ -40,4 +42,6 @@
 - Final static validation: run 38256952778 passed.
 - Live browser confirmed compact-fashion2 CSS, neutral rgb(12,12,12), 2× outfit detail and playing 1080px video.
 - Desktop/mobile layout reviewed; no horizontal overflow in the five-viewport regression.
-- Blockers: none. No further implementation action pending.
+- Current refinement prepared from 2d63aa88b352c408282c57559884faf1a604a613.
+- Refinement deployment: pending. Prior checks above describe the preceding deployed layout.
+- Next: verify the macro crop and removed arrows on desktop/mobile, then live deployment.
