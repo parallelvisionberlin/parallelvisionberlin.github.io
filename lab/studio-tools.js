@@ -8,7 +8,7 @@
   if (detail && detailCard) {
     const updateDetail = () => {
       const value = Number(detail.value);
-      const scale = 1 + value / 125;
+      const scale = 1 + value / 50;
       detailCard.style.setProperty('--detail-scale', String(scale));
       detailCard.style.setProperty('--detail-position', `${4 + value * .92}%`);
       const label = `${scale.toFixed(1)}× detail`;

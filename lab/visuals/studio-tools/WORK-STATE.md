@@ -20,17 +20,20 @@
 - Upscaler source: uploaded Ochre architectural suit in Berlin museum-4.png.
 - Its crop emphasizes the golden sculptural tailoring, mesh and seams.
 - Existing detail control genuinely magnifies the original; it is not a before/after enhancement claim.
-- Existing video script is unchanged: loads/plays in view, pauses offscreen/hidden.
+- Existing video behavior is unchanged: loads/plays in view, pauses offscreen/hidden.
 - Reduced motion and data-saving behavior remain intact.
 - All primary links still open Studio with tool=image, video or upscale.
 - No changes to hero, Mood Creator, billing, credits, prompts or generation.
 - Files: lab/index.html and lab/studio-tools.css.
-- Preview behavior: lab/studio-tools.js, unchanged in this update.
+- Preview behavior: lab/studio-tools.js; detail range is 1–3×, initially 2×.
 - Assets: lab/visuals/studio-tools/video-liquid-dress-hd.mp4.
 - Assets: lab/visuals/studio-tools/video-liquid-dress.webp.
 - Assets: lab/visuals/studio-tools/upscale-golden-weave.webp.
 - Regression suite: tests/lab-landing-stability.mjs.
 - Completed checks: JS syntax, scoped HTML diff, dimensions and exact uploaded binary SHA matches.
+- First code commit: 47fc5c68633cdb3262bf2277ee25832c730ea648.
+- Landing regression passed: run 38256378046; static validation passed: 38256378070.
+- Desktop/mobile screenshots reviewed; final refinement increases the outfit detail magnification.
 - Added checks: bounded desktop card height/section spacing, real 1080px video decode.
 - Deployment at preparation: not yet verified; inspect the current commit's Actions.
 - Exact next action: verify existing landing suite, desktop/mobile screenshots and live playback.
