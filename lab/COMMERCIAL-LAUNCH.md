@@ -16,6 +16,27 @@ Current source verification: **309 Lab unit tests passed** on 2026-10-12,
 including automatic gallery pagination, billing, customer isolation and sandbox
 webhook replay. Synthetic coverage does not replace the actual customer flow.
 
+### Connected-account configuration verified on 2026-10-12
+
+- The dedicated PV Lab **live** webhook was missing refund and dispute events.
+  Added `charge.refunded` and `charge.dispute.created` to the existing endpoint,
+  preserving its six existing events, URL, API version and signing secret.
+  The sandbox endpoint already subscribes to all eight events.
+- Created and read back the live account's default billing portal configuration:
+  invoice history and payment-method updates are enabled; subscription
+  cancellation is at period end with no proration. Plan changes and the public
+  portal login page remain disabled. Return URL is the existing Lab Studio.
+  Final privacy/terms links are still absent and must be added after approval.
+- Stripe Tax returns **no configured registrations** in the live PV Lab account.
+  This does not establish the merchant's legal VAT status. Do not create a tax
+  registration or enable Automatic Tax until the actual status is confirmed.
+- Cloudflare opens its sign-in screen in the available browser. The isolated
+  billing test page also requires a customer sign-in. No actual Checkout session,
+  payment, fresh-customer generation or deployed deletion was certified.
+- The remaining owner inputs are Cloudflare authentication, a separate
+  Google/Clerk customer login for acceptance testing, and verified merchant,
+  billing-contact and VAT details for the unfinished terms/privacy draft.
+
 Implemented in this release:
 
 - Fixed the two gallery checks that still expected full originals instead of
@@ -57,7 +78,8 @@ Release gates still requiring external evidence:
    encrypted secrets. The key needs Customers create/read, Checkout sessions
    create/read/expire, Billing Portal sessions create, Subscriptions read and
    Charges read. Test webhook retries, async payment, renewal, cancellation,
-   partial/full refund and disputes. Subscribe to the refund/dispute events above.
+   partial/full refund and disputes. Refund/dispute subscriptions are now
+   configured in both Stripe environments; signed delivery remains to be tested.
 2. Run an actual new Google/Clerk customer through signup, a Stripe test purchase,
    exact 1,000-credit delivery, payment retry, one permitted generation, original
    download and return visit. Synthetic tests do not establish third-party account
