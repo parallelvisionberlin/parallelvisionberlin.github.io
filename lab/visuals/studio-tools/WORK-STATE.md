@@ -2,46 +2,41 @@
 
 - Updated: 2026-10-12, Europe/Berlin.
 - Scope: homepage Image / Video / Upscaler entry cards.
-- Verified deployed source: 12a1da34a8bab708eccd6ba51a1cb96057e5945f.
-- Approved direction: contained, separated editorial cards with titles at the top.
-- User chose in-photo capsule actions over a separate text footer.
-- Latest approved refinement: remove upper decorative arrows; replace the headless outfit with the reference macro.
-- Capsule actions, title positions, card dimensions, black background and HD video remain unchanged.
-- Current desktop card height: 480–620px, bounded by viewport height.
-- Section: 1440px maximum content width; 46px top and 64px bottom padding.
-- Mobile: one column with 20px side padding and 18px card gaps.
-- Original Image asset remains image-ivory-suit.webp.
-- Video is the existing silver liquid-metal gown on a reflective pool.
-- Original source: hf_20260201_230812_2c795817-a4f6-414f-ac96-64f4df2e7ee1.mp4.
-- Source was already materialized in the working session; no new generation.
-- Published derivative: video-liquid-dress-hd.mp4, 844×1080, H.264, silent.
-- Ten-second clip size: 1,480,818 bytes; cropped only unused side scenery.
-- Video poster: video-liquid-dress.webp, 37,844 bytes.
-- Upscaler source: approved PV LAB Fashion Card Gallery-3(1).png, 1672×941.
-- Reused the existing right-hand macro, no new image generation.
-- Optimized source: upscale-golden-macro-source.webp; CSS frames box x=1118,y=42,w=530,h=724.
-- The crop excludes the source montage's typography and other panels; shows fibres, fabric and skin.
-- Existing detail control genuinely magnifies the original; it is not a before/after enhancement claim.
-- Existing video behavior is unchanged: loads/plays in view, pauses offscreen/hidden.
-- Reduced motion and data-saving behavior remain intact.
-- All primary links still open Studio with tool=image, video or upscale.
-- No changes to hero, Mood Creator, billing, credits, prompts or generation.
-- Files: lab/index.html and lab/studio-tools.css.
-- Preview behavior: lab/studio-tools.js; detail range is 1–1.8×, initially 1.2×.
-- Assets: lab/visuals/studio-tools/video-liquid-dress-hd.mp4.
-- Assets: lab/visuals/studio-tools/video-liquid-dress.webp.
-- Assets: lab/visuals/studio-tools/upscale-golden-macro-source.webp.
-- Regression suite: tests/lab-landing-stability.mjs.
-- Completed checks: JS syntax, scoped HTML diff, dimensions and exact uploaded binary SHA matches.
-- First code commit: 47fc5c68633cdb3262bf2277ee25832c730ea648.
-- Landing regression passed: run 38256378046; static validation passed: 38256378070.
-- Desktop/mobile screenshots reviewed; final refinement increases the outfit detail magnification.
-- Added checks: bounded desktop card height/section spacing, real 1080px video decode.
-- Deployment confirmed: Pages run 38256952404 completed successfully.
-- Final landing regression: run 38256952726 passed, including 1080px playback and detail controls.
-- Final static validation: run 38256952778 passed.
-- Live browser confirmed compact-fashion2 CSS, neutral rgb(12,12,12), 2× outfit detail and playing 1080px video.
-- Desktop/mobile layout reviewed; no horizontal overflow in the five-viewport regression.
-- Current refinement prepared from 2d63aa88b352c408282c57559884faf1a604a613.
-- Refinement deployment: pending. Prior checks above describe the preceding deployed layout.
-- Next: verify the macro crop and removed arrows on desktop/mobile, then live deployment.
+- Verified deployed source: d9f0a073f9f90628266129a04368e7460abbf3ff.
+- Approved: contained editorial cards, top titles, in-photo capsule actions.
+- Cards remain slightly tall with reduced top space and neutral black background.
+- Decorative upper arrow circles are removed; capsule action arrows remain.
+- Video pause/play is now at the upper right.
+- Desktop: 1440px content maximum, 480–620px cards, 20px gaps.
+- Section: 46px top and 64px bottom padding; background #0c0c0c.
+- Mobile: one column, 20px side padding, 18px gaps.
+- Image: existing image-ivory-suit.webp; unchanged approved photograph.
+- Video: existing silver liquid-metal gown on a reflective pool.
+- Original video: hf_20260201_230812_2c795817-a4f6-414f-ac96-64f4df2e7ee1.mp4.
+- Video derivative: video-liquid-dress-hd.mp4, 844×1080, silent H.264.
+- Ten-second video: 1,480,818 bytes; poster video-liquid-dress.webp: 37,844 bytes.
+- Video behavior unchanged: lazy load/play in view, pause offscreen/hidden.
+- Reduced-motion and data-saving behavior retained.
+- Upscaler uses the exact right-hand macro from PV LAB Fashion Card Gallery-3(1).png.
+- Uploaded reference ID: libfile_864f7a6b8e308191b21e0750959c34e5.
+- Source dimensions: 1672×941. No new image generation.
+- Optimized source: upscale-golden-macro-source.webp, 317,800 bytes.
+- CSS frames only x=1118,y=42,w=530,h=724 from the source montage.
+- Crop excludes source labels and other panels; shows golden fibres, fabric and skin.
+- Macro crop is clipped before magnification to prevent other panels becoming visible.
+- Detail control is real magnification, 1–1.8×, initially 1.2×; not an enhancement before/after.
+- All card links still open Studio with tool=image, video or upscale.
+- Files changed: lab/index.html, lab/studio-tools.css, lab/studio-tools.js.
+- Asset added: lab/visuals/studio-tools/upscale-golden-macro-source.webp.
+- Existing regression file: tests/lab-landing-stability.mjs.
+- Test now restores the slider's actual default instead of hard-coding 50.
+- This work-state file records the current verified scope; README pointer already exists.
+- Checks: syntax, scoped edits, source dimensions and exact binary blob SHA.
+- Landing regression passed: run 38260072335, five desktop/mobile widths.
+- Static validation passed: run 38260072183.
+- Desktop/mobile screenshots reviewed: macro correct, no duplicated upper arrows.
+- Video 1080px playback, pause/resume, magnification and no horizontal overflow passed.
+- Deployment confirmed: Pages run 38260071559 succeeded.
+- Live DOM confirmed macro-clean1 CSS, macro source loaded and zero upper arrows.
+- Hero, Mood Creator, billing, credits, prompts and generation were not modified.
+- Blockers: none. Next action: only further user-directed refinement.
