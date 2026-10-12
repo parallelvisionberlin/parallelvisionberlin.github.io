@@ -25,5 +25,8 @@
 - Implementation commit: `10c8f1a`, local branch `codex/pricing-analog-cards`.
 - Local checks passed: four existing Soul pricing tests, JavaScript syntax, diff whitespace, preserved checkout SKUs, existing image paths and unique HTML IDs.
 - Alejandro explicitly authorized sending these changes to `parallelvisionberlin/parallelvisionberlin.github.io`, verifying desktop/mobile and publishing to `main` on 2026-10-12 at 17:41 Europe/Berlin.
-- Publication state: authorized; preparing the remote branch and landing browser gate. No live deployment is claimed yet.
-- Next action: review the desktop/mobile browser results, publish to main and verify the live pricing section.
+- Remote implementation commit: `3553ace7bb7df34c976cab9dbfa5a2bc832d8e5b` on `codex/pricing-analog-cards`.
+- Remote static build and asset verification passed. Pricing browser checks passed at 1440, 390, 320 and 768 pixels; desktop/mobile captures visually reviewed.
+- Updated an outdated Studio test assertion to verify the existing title overlays inside photographs. No Studio design change.
+- Publication state: authorized; rerunning the complete landing gate after that test correction. No live deployment is claimed yet.
+- Next action: publish the verified branch to main and verify the live pricing section.

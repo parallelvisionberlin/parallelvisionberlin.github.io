@@ -46,6 +46,7 @@ const server=http.createServer((req,res)=>{
   else assert.ok(layout.collection.bottom<=layout.comparison.y+1,'Mobile prices follow the compact image collection');
   await page.getByRole('link',{name:'One-time credits',exact:true}).click();
   assert.equal(new URL(page.url()).hash,'#lab-one-time-credits','One-time credit link reaches the existing packs');
+  await page.evaluate(()=>document.activeElement?.blur());await page.mouse.move(0,0);
   if(width===1440||width===390)console.log('PRICING_CARDS_'+width+'='+Buffer.from(await page.locator('#pricing').screenshot({type:'jpeg',quality:85})).toString('base64'));
   await page.evaluate(()=>scrollTo(0,0));
   if(width===1440||width===390)console.log('SILVER_LANDING_'+width+'='+Buffer.from(await page.screenshot({type:'jpeg',quality:75,fullPage:true})).toString('base64'));
@@ -53,8 +54,11 @@ const server=http.createServer((req,res)=>{
  await page.setViewportSize({width:1440,height:1000});
  await page.goto('http://127.0.0.1:8766/lab/',{waitUntil:'networkidle'});
  for(const card of await page.locator('.studio-tool-link').all()){
- const heading=await card.locator('.studio-tool-head h3').boundingBox(),media=await card.locator('.studio-tool-photo').boundingBox();assert.ok(heading.y+heading.height<=media.y+1,'Titles sit above photographs');
+ const heading=await card.locator('.studio-tool-head h3').boundingBox(),media=await card.locator('.studio-tool-photo').boundingBox();
+ assert.ok(heading.x>=media.x&&heading.y>=media.y&&heading.x+heading.width<=media.x+media.width+1&&heading.y+heading.height<=media.y+media.height+1,'Studio titles remain inside their photographs');
+ const layers=await card.evaluate(el=>({heading:Number(getComputedStyle(el.querySelector('.studio-tool-head')).zIndex),photo:Number(getComputedStyle(el.querySelector('.studio-tool-photo')).zIndex)}));
+ assert.ok(layers.heading>layers.photo,'Studio titles remain visible above the photo layer');
  }
- assert.deepEqual(errors,[]);console.log('PASS editorial landing: responsive portraits, reduced motion, destinations, pricing cards, checkout hit targets, no overflow and titles above photographs');
+ assert.deepEqual(errors,[]);console.log('PASS editorial landing: responsive portraits, reduced motion, destinations, pricing cards, checkout hit targets, no overflow and titles inside photographs');
  await browser.close();server.close();
 })().catch(e=>{console.error(e);server.close();process.exit(1)});
