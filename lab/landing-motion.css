@@ -33,6 +33,7 @@
 }
 .hero-moods-link:hover{background:#ffffff14;border-color:#ffffffc0}
 .lab-hero .hero-bottom{gap:20px}
+.lab-hero .hero-signature{margin-left:auto;font-size:14px;font-weight:300;line-height:1.5;text-align:right;color:#e8e3db}
 .hero-bottom .hero-motion-toggle{
   display:grid;place-items:center;flex:none;min-width:44px;width:44px;height:44px;
   padding:0;border:1px solid #ffffff50;border-radius:50%;background:#14101540;color:#fff;
@@ -74,6 +75,7 @@
   .hero-actions{gap:10px}
   .hero-actions .start-link,.hero-moods-link{min-height:46px;padding:13px 18px;font-size:13px}
   .lab-hero .hero-bottom{gap:12px;justify-content:space-between}
+  .lab-hero .hero-signature{font-size:12px}
   .hero-bottom .hero-motion-toggle{margin-left:auto}
 }
 @media(prefers-reduced-motion:reduce){
