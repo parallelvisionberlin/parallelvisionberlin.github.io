@@ -1,4 +1,4 @@
-import {prepareMoodPrompt} from './moods.js?v=20261012-hk-optics3&filmRevision=3&hkContinuity=4';
+import {prepareMoodPrompt} from './moods.js?v=20261012-hk-optics3&filmRevision=3&hkContinuity=4&hkScene=5';
 import {compileImagePrompt,normalizeReferenceLabel} from './reference-guidance.js?v=20261010-reference-flow2&dreamcore=7&syntheticRefs=1&raveIdentity=1';
 
 // These are photographic treatment references, never a replacement Base.
