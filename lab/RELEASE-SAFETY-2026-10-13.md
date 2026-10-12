@@ -34,6 +34,12 @@ This checkpoint separates **verified configuration**, **source-level checks**, a
 - **Clerk** (https://clerk.com/legal/dpa) publishes a DPA. Check the linked account's signed agreements, data access and retention.
 - Do not falsely represent that all generated content remains exclusively inside the EU or that every model has zero retention.
 
+## Stripe processor use-case constraint
+
+- Stripe's public restricted-business policy (https://stripe.com/legal/restricted-businesses) prohibits pornography and mature-audience imagery/media made for sexual gratification, including AI-generated content satisfying that description. German Gewerbe registration does **not** override Stripe's payment-processor policy.
+- PV Lab's declared Stripe product is a general AI creative/fashion software platform, not a sexually explicit content service. Account `charges_enabled=true` does **not** constitute separate advance clearance to monetize erotic/pornographic generation. Before the public Stripe-backed launch, align the supported customer product and terms with Stripe's policy or obtain explicit processor guidance. Fashion editorial work is the initial product scope; do not falsely claim that any and all adult material is approved.
+- The existing terms prohibit minors, intimate imagery without consent, fraud and unlawful acts. They do not currently explicitly prohibit Stripe-disallowed adult-content use. Decide and enforce an acceptable-use scope before global paid release. Do not silently switch the private owner's creative tools or advertise unrestricted adult paid generation through Stripe.
+
 ## Germany-first administrative review
 
 - Owner confirms an existing German Gewerbe, tax registration and Berlin business address. Do not request a new company or new German tax registration simply to start preparing sales.
