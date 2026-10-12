@@ -32,7 +32,7 @@ const server=http.createServer((req,res)=>{
   res.end(readFileSync(target));
 });
 await new Promise(done=>server.listen(4193,'127.0.0.1',done));
-const browser=await chromium.launch({headless:true});
+const browser=await chromium.launch({headless:true,executablePath:process.env.PV_CHROMIUM_EXECUTABLE||chromium.executablePath()});
 const page=await browser.newPage({viewport:{width:1440,height:900}});
 const errors=[];page.on('pageerror',error=>errors.push(error.message));
 try{
@@ -44,9 +44,9 @@ try{
     ['Image','Retouch','Video','Upscaler','Fashion'],
     'Five text tools remain; Assets is a separate icon');
   const moodLinks=page.locator('#studio-header .tool-group>a.tool-link');
-  assert.deepEqual(await moodLinks.allTextContents(),['My Moods','Mood Creator']);
-  assert.equal(await page.locator('#tool-explore-moods').getAttribute('href'),'./mood-creator.html#my-moods');
-  assert.equal(await page.locator('#tool-mood-creator').getAttribute('href'),'./mood-creator.html');
+  assert.deepEqual(await moodLinks.allTextContents(),['Explore Moods']);
+  assert.equal(await page.locator('#tool-explore-moods').getAttribute('href'),'./moods');
+  assert.equal(await page.locator('#tool-mood-creator').count(),0);
   assert.equal(await page.locator('#studio-header .studio-mood-link').count(),0,
     'Old navigation link is removed');
   const icon=page.locator('#studio-header .actions>.studio-assets-icon');
@@ -78,7 +78,7 @@ try{
         header:rect('#studio-header'),brand:rect('#studio-header .brand'),
         nav:rect('#studio-header .tool-switch'),fashion:rect('#tool-fashion'),
         actions:rect('#studio-header .actions'),
-        icon:rect('.studio-assets-icon'),moodCreator:rect('#tool-mood-creator'),queue:rect('#active>summary'),
+        icon:rect('.studio-assets-icon'),exploreMoods:rect('#tool-explore-moods'),queue:rect('#active>summary'),
         account:rect('#studio-header .account-menu>summary'),
         border:style.borderTopWidth,display:style.display,
         iconText:icon.innerText};
@@ -93,8 +93,8 @@ try{
     if(width>=900){
       assert.ok(size.nav.right<=size.actions.x+2,
         'Navigation is contained before Queue/Account at '+width+' '+JSON.stringify(size));
-      if(width>1250)assert.ok(size.moodCreator.right<=size.icon.x+1,
-        'Desktop Mood Creator link ends before Assets at '+width);
+      if(width>1250)assert.ok(size.exploreMoods.right<=size.icon.x+1,
+        'Desktop Explore Moods link ends before Assets at '+width);
       assert.ok(Math.abs(size.header.height-70)<=2,'Desktop header remains 70px tall');
     }else{
       assert.ok(size.brand.right<=size.actions.x+2,
@@ -112,7 +112,7 @@ try{
     }
   }
   assert.deepEqual(errors,[],'No browser script errors');
-  console.log('PASS original tools, Assets icon, two Mood destinations, and nine breakpoints');
+  console.log('PASS original tools, Assets icon, one Explore Moods destination, and nine breakpoints');
 }finally{
   await browser.close();
   await new Promise(done=>server.close(done));
