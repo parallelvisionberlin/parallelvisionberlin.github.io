@@ -63,6 +63,7 @@ try{
         return route.abort();
       });
       await page.goto(origin+'/lab/',{waitUntil:'domcontentloaded'});
+      assert.equal(await page.locator('[data-lab-signin]').isVisible(),false,'Google sign-in stays hidden on initial render');
       await page.waitForFunction(()=>typeof window.releaseTestAccount==='function');
       await page.waitForFunction(()=>performance.getEntriesByName('first-contentful-paint').length>0);
       // Let the optional font's short initial block expire before releasing it.
@@ -76,6 +77,7 @@ try{
         stable(initial,await geometry(page),`${width}: delayed font`);
       }
       assert.ok(await page.evaluate(()=>[...document.fonts].some(font=>font.family==='DM Sans'&&font.status==='loaded')),'Bundled font decoded successfully');
+      assert.equal(await page.locator('[data-lab-signin]').isVisible(),false,'Google sign-in stays hidden while the account is loading');
       await page.evaluate(()=>window.releaseTestAccount());
       await page.locator('#lab-account-strip').waitFor({state:'visible'});
       assert.equal(await page.locator('[data-lab-signin]').isVisible(),false);
