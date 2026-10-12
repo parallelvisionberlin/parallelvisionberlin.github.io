@@ -423,7 +423,11 @@ See [the result deck work state](RESULT-DECK-WORK-STATE.md) for the approved edi
 - Studio entrypoint cache refreshed with privateMoodRefs=1.
 - Visual evidence: unwanted body halo is present with finish sliders at zero, so it belongs to the generated original, not the finishing renderer.
 - New screenshot assessment: close-crop light works; visible-face identity drift and forced subject halo remain unresolved generation issues.
-- Next action: verify CI and publish this display correction. No paid generation submitted.
+- Published through PR #173, merge `0f45bb419773d1adb586c03c35aee33568766763`; conflict resolution retained concurrent Studio updates.
+- Original branch Lab, reference, queue and related display browser checks passed; the preserved display logic is unchanged by the merge resolution.
+- A later main update superseded the initial Pages build; latest main source still contains the reference filter and clean preparation status.
+- Deployment verification is pending on the newest Pages build. No paid generation submitted.
+- Next action: confirm Pages deployment, then assess identity and generated halos separately from the finishing renderer.
 
 
 ## Sign-in modal centering checkpoint (2026-10-12)
