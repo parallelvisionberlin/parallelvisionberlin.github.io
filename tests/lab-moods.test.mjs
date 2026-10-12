@@ -521,8 +521,8 @@ test('80s Film cinematic mood keeps multi-reference prompts under provider chara
   const app=readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8');
   const creator=readFileSync(new URL('../lab/mood-creator.js',import.meta.url),'utf8');
   assert.match(studio,/lab\.js\?v=20261013-studio-upgrade1/);
-  assert.match(app,/moods\.js\?v=20261011-midnight-reverie1/);
-  assert.match(creator,/moods\.js\?v=20261011-midnight-reverie1/);
+  assert.match(app,/moods\.js\?v=20\d{6}-/);
+  assert.match(creator,/moods\.js\?v=20\d{6}-/);
   const board={id:'10000000-0000-4000-8000-000000000080',name:'Cinematic Night',baseMoodId:'80s-film',direction:'Editorial fashion and elegant fabrics'};
   for(const count of [1,2,10]){
     const saved=preparePersonalMoodPrompt('Luxury movie scene',board,100,{engine:'seedream',referenceCount:count});

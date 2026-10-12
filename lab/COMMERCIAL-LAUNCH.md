@@ -1,4 +1,6 @@
-# PV Lab commercial launch checklist (updated 2026-10-12)
+# PV Lab commercial launch checklist (updated 2026-10-13)
+
+**13 October launch-safety update:** Live Stripe portal legal links and Stripe Tax head-office address have been configured and read back; no public access has been enabled. The whitelisted pilot now permits either one €10 top-up or one €15/month Starter subscription, but no other packs. Customer Higgsfield routes are blocked by default pending written commercial permission under its API terms; owner tools remain available. See [the 13 October release safety audit](./RELEASE-SAFETY-2026-10-13.md). Existing notes below retain historical dates.
 
 ## Active launch checkpoint, 12 October 2026
 
@@ -249,7 +251,7 @@ webhook signing secret and a separate SpicyAPI customer credential with
 limited provider spending. **Global public checkout and generation stay OFF**
 until paid webhooks and per-model charging are verified.
 
-### How to stage one authentic €10 checkout
+### How to stage one authentic €10 top-up or €15/month Starter subscription
 
 This change adds a narrow temporary path. It does not turn on payment
 or generation access by itself.
@@ -264,17 +266,19 @@ or generation access by itself.
    Secrets, add encrypted **Secret** `LAB_LIVE_PILOT_CUSTOMER_ID` with
    that exact ID. Never add the ID to GitHub or `wrangler.toml`.
 4. The Worker now allows only that signed-in customer to open Stripe
-   live Checkout, and only for **one €10 pack**. Others still see
-   purchasing and generation disabled. No subscription checkouts or
-   larger packs are allowed in the private pilot.
+   live Checkout, for **one €10 top-up OR one €15/month Starter
+   subscription**. Other users see checkout and generation disabled.
+   Higher credit packs and subscriptions remain unavailable in the pilot.
 5. Before paying, verify the checkout uses the new PV Lab Stripe account,
    correct product/price and VAT treatment. If it fails to open, inspect
    Cloudflare logs and Stripe Workbench requests: restricted Stripe keys
    may need additional resource permissions.
-6. Owner expressly approves a real €10 transaction. On payment, verify
-   the signed `checkout.session.completed` webhook is delivered,
-   the test customer's D1 wallet increases exactly 1,000 credits, and
-   a retry cannot grant duplicate credits.
+6. Owner expressly approves the later real transaction. For the €10 pack,
+   verify the signed `checkout.session.completed` webhook grants exactly
+   1,000 credits. For the €15/month Starter subscription, verify a **paid
+   subscription invoice** grants exactly 1,600 credits; the browser
+   return or an unpaid Checkout never grants credits. Test duplicate
+   delivery and cancellation at period end. This is a recurring charge.
 7. Start ONE low-cost Seedream image job. Verify the backend quotes the
    credit amount, the customer ledger decrements atomically and no
    other account can issue a paid generation.
@@ -297,4 +301,5 @@ or generation access by itself.
   is ignored and public rollout is separately guarded by launch QA.
 
 Test-only repository changes do not authorize real charges. The owner
-must still deliberately set the secret and approve the €10 live test.
+must still deliberately set the secret and approve whichever live payment
+is selected. Subscription billing renews monthly until cancelled.
