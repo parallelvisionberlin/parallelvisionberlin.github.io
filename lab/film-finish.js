@@ -1,6 +1,6 @@
-// Shared, versioned settings. This pass never submits an image-generation request.
+// Optional post-generation polish; new Hong Kong Nights generations default to the original image.
 export const FILM_FINISH_VERSION=1;
-export const HONG_KONG_FILM_FINISH=Object.freeze({version:1,grain:25,glow:70});
+export const HONG_KONG_FILM_FINISH=Object.freeze({version:1,grain:0,glow:0});
 export function filmFinishSettings(value){
   if(!value||typeof value!=='object'||Array.isArray(value)||value.version!==FILM_FINISH_VERSION)
     throw Error('Choose supported film finish settings.');
