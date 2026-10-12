@@ -30,8 +30,8 @@ test('four real style images follow the Base, fit the prompt budget and survive 
 test('limits and prompt overflow fail before any upload; other moods and models retain their inputs',async()=>{
   let calls=0;
   const loader=createMoodReferenceLoader({upload:()=>{calls++;},fetchFile:()=>{calls++;}});
-  for(const settings of [base(70,7),{...base(),prompt:'x'.repeat(5000)}])
-    await assert.rejects(loader.prepare(settings,{sessionKey:'a'}),/six|5,000/);
+  for(const settings of [base(70,7),{...base(),prompt:'x'.repeat(5000),moodOriginalPrompt:'x'.repeat(5000)}])
+    await assert.rejects(loader.prepare(settings,{sessionKey:'a'}),/six|too long/);
   assert.equal(calls,0);
   for(const settings of [{...base(),moodId:'night-flash'},{...base(),moodId:'custom'}, {...base(),engine:'kling'},{...base(),mode:'upscale'}]){
     const result=await loader.prepare(settings,{sessionKey:'a'});
@@ -67,4 +67,26 @@ test('failed downloads are retriable and cancellation prevents upload',async()=>
   assert.equal((await loader.prepare(base(),{sessionKey:'a'})).references.length,4);
   const stopped=createMoodReferenceLoader({fetchFile:async()=>{cancelled=true;return new Response('image');},upload:async()=>{throw Error('must not upload');}});
   await assert.rejects(stopped.prepare(base(),{sessionKey:'a',check(){if(cancelled)throw Error('Session changed');}}),/Session changed/);
+});
+
+test('long directions compact the built-in recipe without losing direction, role notes or finish choices',async()=>{
+  const direction='Keep the same face, cafe, table and outfit. '.repeat(28).trim();
+  for(const engine of ['seedream','gemini'])for(const intensity of [21,70,100])for(const count of [0,1,6]){
+    const settings={...base(intensity,count),engine,moodOriginalPrompt:direction};
+    settings.prompt=prepareMoodPrompt(direction,'hong-kong-nights',intensity,{engine,referenceCount:count}).prompt;
+    const plan=moodReferencePlan(settings);
+    assert.ok(compileImagePrompt(plan.settings.prompt,plan.settings.referenceRoles).length<=5000);
+    assert.ok(plan.settings.prompt.startsWith(direction));assert.equal(plan.settings.moodOriginalPrompt,direction);
+    assert.equal(plan.settings.filmFinish,settings.filmFinish);
+    assert.equal(moodReferencePlan(plan.settings).references.length,0);
+  }
+  // Old saved full recipes also get a compact fallback at final reference assembly.
+  const settings=base(100);settings.prompt+=' Extra internal recipe wording.'.repeat(70);
+  settings.referenceRoles[0].note='Preserve the cafe and her face exactly.';
+  const plan=moodReferencePlan(settings);
+  assert.ok(compileImagePrompt(plan.settings.prompt,plan.settings.referenceRoles).length<=5000);
+  assert.equal(plan.settings.referenceRoles[0].note,settings.referenceRoles[0].note);
+  assert.ok(plan.settings.prompt.startsWith(settings.moodOriginalPrompt));
+  const source=readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8');
+  assert.match(source,/compileImagePrompt\(planned.settings.prompt,planned.settings.referenceRoles,current\)/,'preview validates the exact planned prompt sent to the provider');
 });

@@ -1,17 +1,18 @@
+import {prepareMoodPrompt} from './moods.js?v=20261012-hk-optics2';
 import {compileImagePrompt,normalizeReferenceLabel} from './reference-guidance.js?v=20261010-reference-flow2&dreamcore=7&syntheticRefs=1&raveIdentity=1';
 
 // These are photographic treatment references, never a replacement Base.
 // Stable labels also prevent adding them twice when a saved job is reopened.
 const HONG_KONG_REFERENCES=Object.freeze([
-  {file:'01-traffic-grain.png',type:'image/png',note:'Borrow irregular grain structure and glowing small lights. Scale grain and contrast to the selected Mood intensity.'},
-  {file:'02-city-haze.jpg',type:'image/jpeg',note:'Borrow emerald depth, dark silhouettes and luminous diffused highlights. Keep depth and contrast through the haze.'},
-  {file:'03-shop-reflections.jpg',type:'image/jpeg',note:'Borrow luminous reflections and strong warm/cool light separation, adapted to the requested scene.'},
-  {file:'04-warm-lamp.png',type:'image/png',note:'Borrow the blurred light-source halo, not an orange rim on people. Ignore screenshot arrows, buttons and interface marks.'}
+  {file:'02-city-haze.jpg',type:'image/jpeg',note:'Primary finish reference: emerald depth, humid diffusion, luminous highlights and dark gaps. Transfer light behavior, never its city or framing.'},
+  {file:'05-passage-diffusion.jpg',type:'image/jpeg',note:'Borrow soft fluorescent diffusion and layered humid light across the whole frame. Preserve the Base location and subject.'},
+  {file:'06-interior-portrait.jpg',type:'image/jpeg',note:'Borrow people integrated into dim green ambient light, gentle skin transitions and deep shadows. Never copy these people, pose or tunnel.'},
+  {file:'03-shop-reflections.jpg',type:'image/jpeg',note:'Borrow wet specular reflections and warm/cool separation only on suitable Base surfaces. Do not add a street, taxi or signage.'}
 ].map(ref=>Object.freeze({...ref,url:'/lab/mood-references/hong-kong-nights/'+ref.file,
   label:Object.freeze({name:'Hong Kong Nights style - '+ref.file,role:'style',note:ref.note})})));
 
 export function isMoodStyleReference(label){
-  return label?.role==='style'&&HONG_KONG_REFERENCES.some(ref=>ref.label.name===label.name);
+  return label?.role==='style'&&(HONG_KONG_REFERENCES.some(ref=>ref.label.name===label.name)||['01-traffic-grain.png','04-warm-lamp.png'].some(file=>label.name==='Hong Kong Nights style - '+file));
 }
 
 export function moodReferencePlan(settings){
@@ -21,9 +22,18 @@ export function moodReferencePlan(settings){
   const references=HONG_KONG_REFERENCES.filter(ref=>!labels.some(label=>label.role==='style'&&label.name===ref.label.name));
   if(labels.length+references.length>10)throw Error('Hong Kong Nights includes four Style references. Keep at most six of your own images, or choose another Mood.');
   const referenceRoles=[...labels,...references.map(ref=>({...ref.label}))];
-  if(compileImagePrompt(settings.prompt,referenceRoles).length>5000)
-    throw Error('Direction, Mood and Style references exceed 5,000 characters. Shorten the direction or optional notes.');
-  return {settings:{...settings,referenceRoles,
+  let prompt=settings.prompt;
+  if(compileImagePrompt(prompt,referenceRoles).length>5000&&typeof settings.moodOriginalPrompt==='string'){
+    // Compact our own recipe, never truncate the user's direction or role notes.
+    const recipe=prepareMoodPrompt(settings.moodOriginalPrompt,settings.moodId,settings.moodIntensity,{
+      engine:settings.engine,referenceCount:labels.filter(label=>!isMoodStyleReference(label)).length,
+      referenceMode:settings.referenceMode||'base',compact:true,filmFinish:settings.filmFinish
+    });
+    prompt=recipe.prompt;
+  }
+  if(compileImagePrompt(prompt,referenceRoles).length>5000)
+    throw Error('Your direction and reference notes are too long even with the compact Mood. Shorten the direction or optional notes.');
+  return {settings:{...settings,prompt,referenceRoles,
     // With text alone, a style photograph must not choose the output framing.
     aspectRatio:!labels.length&&settings.aspectRatio==='auto'?'1:1':settings.aspectRatio},references};
 }

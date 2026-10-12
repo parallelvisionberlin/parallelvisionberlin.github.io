@@ -15,22 +15,17 @@ const glowingBytes=await finish(input,0,100);
 await writeFile(`${dir}/test-light-original.png`,input);await writeFile(`${dir}/test-light-glow.png`,glowingBytes);
 const glowing=await sharp(glowingBytes).removeAlpha().raw().toBuffer();
 console.log('Glow sample row',Array.from({length:40},(_,i)=>glowing[(128*256+110+i)*3]));
-for(const stage of ['mask','blur']){
-  const r=await fetch('http://127.0.0.1:8799/?stage='+stage,{method:'POST',body:input});
-  const bytes=Buffer.from(await r.arrayBuffer());await writeFile(`${dir}/test-light-${stage}.png`,bytes);
-  const values=await sharp(bytes).removeAlpha().raw().toBuffer();console.log(stage,Array.from({length:40},(_,i)=>values[(128*256+110+i)*3]));
-}
 const clean=await sharp(await finish(input,0,0)).removeAlpha().raw().toBuffer();assert.deepEqual(clean,pixels,'zero controls preserve original pixels');
 const fixtures=[['portrait','lab/mood-previews/hd/night-flash-20261011.jpg'],['night-lights','lab/mood-references/hong-kong-nights/03-shop-reflections.jpg']];
 for(const [name,file] of fixtures){
   const base=await sharp(file).resize({width:1000,height:1000,fit:'inside',withoutEnlargement:true}).png().toBuffer();
   const outputs=[base];
-  for(const [label,grain,glow] of [['light',30,30],['default',65,65],['strong',100,100]]){
+  for(const [label,grain,glow] of [['light',30,30],['default',25,70],['strong',100,100]]){
     const bytes=await finish(base,grain,glow);await writeFile(`${dir}/${name}-${label}.png`,bytes);outputs.push(bytes);
   }
   const cells=[];for(let i=0;i<outputs.length;i++){
     const image=await sharp(outputs[i]).resize(360,520,{fit:'contain',background:'#151515'}).png().toBuffer();
-    const label=Buffer.from(`<svg width="360" height="40"><rect width="360" height="40" fill="#151515"/><text x="18" y="26" fill="white" font-family="sans-serif" font-size="16">${['Original','Grain 30 / Glow 30','Grain 65 / Glow 65','Grain 100 / Glow 100'][i]}</text></svg>`);
+    const label=Buffer.from(`<svg width="360" height="40"><rect width="360" height="40" fill="#151515"/><text x="18" y="26" fill="white" font-family="sans-serif" font-size="16">${['Original','Grain 30 / Glow 30','Grain 25 / Glow 70','Grain 100 / Glow 100'][i]}</text></svg>`);
     cells.push({input:image,left:360*i,top:40},{input:label,left:360*i,top:0});
   }
   await sharp({create:{width:1440,height:560,channels:3,background:'#151515'}}).composite(cells).jpeg({quality:92}).toFile(`${dir}/${name}-comparison.jpg`);
@@ -41,3 +36,13 @@ const skin=(50*256+200)*3;
 assert.ok(Math.abs(glowing[skin+1]/glowing[skin]-175/230)<.015,'warm skin must not shift orange');
 assert.ok(Math.abs(glowing[skin+2]/glowing[skin]-140/230)<.015,'warm skin hue should remain stable');
 console.log('Actual Cloudflare pixel checks passed. Original and three finishing strengths exported. No AI calls.');
+
+// Midtone edge below the bloom threshold: only full-frame diffusion can soften it.
+const edge=Buffer.alloc(256*64*3);
+for(let y=0;y<64;y++)for(let x=0;x<256;x++)edge.fill(x<128?50:130,(y*256+x)*3,(y*256+x+1)*3);
+const edgeInput=await sharp(edge,{raw:{width:256,height:64,channels:3}}).png().toBuffer();
+const softened=await sharp(await finish(edgeInput,0,100)).removeAlpha().raw().toBuffer();
+assert.ok(softened[(32*256+127)*3]>50,'diffusion reaches midtone foreground edges');
+assert.ok(softened[(32*256+128)*3]<130,'diffusion softens the bright side too');
+assert.equal(softened[(32*256+20)*3],50,'diffusion preserves distant dark flats');
+console.log('Full-frame optical diffusion confirmed below the highlight threshold.');

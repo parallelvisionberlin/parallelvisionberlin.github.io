@@ -1,6 +1,6 @@
 // Shared, versioned settings. This pass never submits an image-generation request.
 export const FILM_FINISH_VERSION=1;
-export const HONG_KONG_FILM_FINISH=Object.freeze({version:1,grain:65,glow:65});
+export const HONG_KONG_FILM_FINISH=Object.freeze({version:1,grain:25,glow:70});
 export function filmFinishSettings(value){
   if(!value||typeof value!=='object'||Array.isArray(value)||value.version!==FILM_FINISH_VERSION)
     throw Error('Choose supported film finish settings.');
@@ -12,7 +12,7 @@ export function filmFinishSettings(value){
 export function createFilmFinishControls(container,{onChange=()=>{},compact=false}={}){
   const fields=new Map();
   const title=document.createElement('strong');title.textContent='Film finish';
-  const note=document.createElement('p');note.textContent='Grain and light glow. No extra AI generation.';
+  const note=document.createElement('p');note.textContent='Fine grain and whole-image light diffusion. No extra AI generation.';
   container.classList.add('film-finish');container.append(title,note);
   if(compact){
     container.classList.add('film-finish-compact');
