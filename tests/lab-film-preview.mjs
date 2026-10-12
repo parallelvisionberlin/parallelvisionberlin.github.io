@@ -46,3 +46,27 @@ assert.ok(softened[(32*256+127)*3]>50,'diffusion reaches midtone foreground edge
 assert.ok(softened[(32*256+128)*3]<130,'diffusion softens the bright side too');
 assert.equal(softened[(32*256+20)*3],50,'diffusion preserves distant dark flats');
 console.log('Full-frame optical diffusion confirmed below the highlight threshold.');
+
+async function finish35mm(bytes,{grain=0,haze=0,halation=0,film=0}={}){
+  const query=new URLSearchParams({version:'2',grain:String(grain),haze:String(haze),halation:String(halation),film:String(film)});
+  const response=await fetch('http://127.0.0.1:8799/?'+query,{method:'POST',body:bytes,signal:AbortSignal.timeout(120000)});
+  if(!response.ok)throw Error('35mm remote renderer: '+await response.text());
+  return Buffer.from(await response.arrayBuffer());
+}
+const offV2=await finish35mm(input);
+assert.deepEqual(offV2,input,'all four sliders at zero return exact source bytes');
+const fullV2=await finish35mm(input,{grain:36,haze:42,halation:22,film:65});
+await writeFile(`${dir}/35mm-photochemical-default.png`,fullV2);
+const gradeV2=await finish35mm(input,{film:100});
+await writeFile(`${dir}/35mm-print-only.png`,gradeV2);
+const gradePixels=await sharp(gradeV2).removeAlpha().raw().toBuffer();
+const lamp=(126*256+126)*3;
+assert.ok(gradePixels[lamp]>gradePixels[lamp+2],'35mm print curve warms white highlights');
+const fullPixels=await sharp(fullV2).removeAlpha().raw().toBuffer();
+assert.ok(fullPixels[(128*256+135)*3]>pixels[(128*256+135)*3],'light-source haze reaches around an existing lamp');
+assert.ok(fullPixels[(30*256+30)*3]<40,'distant dark shadows remain dark');
+const noLights=await sharp({create:{width:256,height:64,channels:3,background:{r:65,g:83,b:76}}}).png().toBuffer();
+const noLightsWithHaze=await finish35mm(noLights,{haze:100,halation:100});
+const noLightPixel=await sharp(noLightsWithHaze).removeAlpha().raw().toBuffer();
+assert.ok(noLightPixel[0]<80&&noLightPixel[1]<95,'haze cannot invent a bright silhouette when no emitter exists');
+console.log('Actual Cloudflare 35mm photochemical grade, haze, halation, grain and off-bypass checks passed; no AI generation.');
