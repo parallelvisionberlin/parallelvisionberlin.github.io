@@ -1,3 +1,4 @@
+import {grainPng} from '../lab-worker/film-finish.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {DatabaseSync} from 'node:sqlite';
@@ -212,6 +213,62 @@ test('Saving retries the stored provider output directly and never consumes a Sp
 });
 
 const imageSettings={type:'image',prompt:'An architectural model on a white plinth',resolution:'2k',aspectRatio:'4:5',outputFormat:'png'};
+
+function filmImagesFixture(){
+  let renders=0;
+  return {get renders(){return renders;},async info(){return {width:64,height:64};},input(){return {
+    transform(){return this;},draw(){return this;},async output(){renders++;const bytes=await grainPng(64,64,15,'valid-fixture');return {response:()=>new Response(bytes,{headers:{'Content-Type':'image/png'}})};}
+  };}};
+}
+test('automatic film finishing retains original, survives failure, adjusts without inference and isolates accounts',async()=>{
+  for(const available of [true,false]){
+    const {env,objects}=fixture();const settings={...imageSettings,engine:'seedream',mode:'image',moodId:'hong-kong-nights',moodIntensity:100,moodOriginalPrompt:'Portrait',filmFinish:{version:1,grain:65,glow:65}};
+    const id=crypto.randomUUID(),t=Date.now();if(available)env.IMAGES=filmImagesFixture();
+    env.LAB_DB.db.prepare("INSERT INTO jobs(id,owner_id,params,state,provider_id,remote_url,estimate_microusd,created_at,updated_at) VALUES(?,?,?,'saving',?,?,48000,?,?)")
+      .run(id,'owner-internal',JSON.stringify(settings),'one-existing-paid-request','https://cdn.spicyapi.ai/test.png',t,t);
+    const paidBefore=createCount,spendBefore=env.LAB_DB.db.prepare('SELECT * FROM spend').all();
+    let response=await req(env,'/api/jobs/'+id),job=(await response.json()).job;
+    assert.equal(job.status,'completed');assert.equal(job.settings.filmOriginalId,id);
+    assert.equal(job.settings.filmFinishStatus,available?'applied':'failed');
+    assert.equal(job.outputId===id,!available);assert.equal(createCount,paidBefore);
+    const original=Buffer.from(await (await req(env,'/api/assets/'+id)).arrayBuffer());
+    assert.deepEqual([...original],[137,80,78,71,13,10,26,10,0]);
+    if(!available){assert.match(job.settings.filmFinishError,/unavailable/);env.IMAGES=filmImagesFixture();}
+    const route='/api/jobs/'+id+'/film-finish';
+    assert.equal((await req(env,route,{method:'POST',authToken:null,data:{}})).status,401);
+    env.OWNER_DB.db.prepare("INSERT INTO users VALUES('other-owner','clerk','user_Other','owner')").run();
+    assert.equal((await req(env,route,{method:'POST',authToken:await token('user_Other'),data:{}})).status,404);
+    response=await req(env,route,{method:'POST',data:{outputId:job.outputId,settings:{version:1,grain:100,glow:0}}});
+    assert.equal(response.status,200,await response.clone().text());job=(await response.json()).job;
+    const renders=env.IMAGES.renders;
+    response=await req(env,route,{method:'POST',data:{outputId:job.outputId,settings:{version:1,grain:100,glow:0}}});
+    assert.equal(response.status,200);assert.equal(env.IMAGES.renders,renders,'unchanged settings reuse saved pixels');
+    assert.equal((await req(env,route,{method:'POST',data:{outputId:'stale',settings:{version:1,grain:0,glow:0}}})).status,409);
+    response=await req(env,route,{method:'POST',data:{outputId:job.outputId,settings:{version:1,grain:0,glow:0}}});
+    job=(await response.json()).job;assert.equal(job.outputId,id);assert.equal(job.settings.filmFinishStatus,'off');
+    assert.equal(env.IMAGES.renders,renders,'off restores original without rendering');
+    assert.deepEqual(Buffer.from(await (await req(env,'/api/assets/'+id)).arrayBuffer()),original);
+    assert.equal(createCount,paidBefore);assert.deepEqual(env.LAB_DB.db.prepare('SELECT * FROM spend').all(),spendBefore);
+    assert.equal((await req(env,'/api/jobs/'+id,{method:'DELETE'})).status,200);
+    assert.equal(env.LAB_DB.db.prepare('SELECT COUNT(*) AS n FROM assets').get().n,0);
+    assert.equal(objects.size,0,'deleting the job removes unshared original and finished files');
+  }
+});
+test('Gemini applies the same finishing pass after exactly one image generation',async()=>{
+  const {env}=fixture();env.GEMINI_API_KEY='synthetic-gemini-key';env.IMAGES=filmImagesFixture();
+  const previous=globalThis.fetch;let providerCalls=0;
+  globalThis.fetch=async(url,options)=>{
+    if(new URL(url).hostname!=='generativelanguage.googleapis.com')return previous(url,options);
+    providerCalls++;return Response.json({candidates:[{content:{parts:[{inlineData:{mimeType:'image/png',data:Buffer.from(pngDimensions(64,64)).toString('base64')}}]}}]});
+  };
+  try{
+    const recipe=prepareMoodPrompt('Portrait at night','hong-kong-nights',80,{engine:'gemini'});
+    const response=await req(env,'/api/gemini/jobs',{method:'POST',data:{count:1,referenceSourceIds:[],settings:{...imageSettings,engine:'gemini',processing:'normal',prompt:recipe.prompt,...recipe.metadata}}});
+    assert.equal(response.status,202,await response.clone().text());const job=(await response.json()).jobs[0];
+    assert.equal(job.status,'completed');assert.equal(job.settings.filmFinishStatus,'applied');
+    assert.notEqual(job.outputId,job.settings.filmOriginalId);assert.equal(providerCalls,1);
+  }finally{globalThis.fetch=previous;}
+});
 function seedArchive(db,owner,{files=0,jobs=0}={}){
   const asset=db.prepare("INSERT INTO assets(id,owner_id,object_key,kind,mime,filename,bytes,created_at) VALUES(?,?,?,'source','image/png','old.png',9,1)");
   for(let i=0;i<files;i++){const id=crypto.randomUUID();asset.run(id,owner,owner+'/'+id);}

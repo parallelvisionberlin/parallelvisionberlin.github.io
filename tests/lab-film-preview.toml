@@ -1,0 +1,5 @@
+name = "pv-lab-film-preview"
+main = "lab-film-preview-worker.mjs"
+compatibility_date = "2026-09-26"
+[images]
+binding = "IMAGES"

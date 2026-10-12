@@ -1,3 +1,4 @@
+import {HONG_KONG_FILM_FINISH,filmFinishSettings,createFilmFinishControls} from './film-finish.js?v=20261012-film1';
 /* PV Lab Moods V1. Editorial generation directions, not pixel filters. */
 const ALL_MOODS=Object.freeze([
   {
@@ -268,11 +269,12 @@ export function imageHistoryCaption(settings={}){
 }
 
 
-export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',referenceCount=0,referenceMode='base',compact=false}={}){
+export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',referenceCount=0,referenceMode='base',compact=false,filmFinish=HONG_KONG_FILM_FINISH}={}){
   const original=String(input||'').trim(),mood=moodById(id);
   if(!mood)return {prompt:original,metadata:{},error:''};
   if(!MOOD_MODELS.includes(engine))return {prompt:original,metadata:{},error:'Moods v1 supports Seedream 5 Pro and Nano Banana Pro. Choose one of these models first.'};
   const intensity=Math.max(1,Math.min(100,Math.round(Number(amount)||60)));
+  const finish=mood.id==='hong-kong-nights'&&filmFinish?filmFinishSettings(filmFinish):null;
   const dreamcore=mood.id==='dreamcore',cinematic80s=mood.id==='80s-film',berlinRave=mood.id==='berlin-rave',syntheticRomance=mood.id==='synthetic-romance';
   // Even one Base adds reference-map instructions after this prompt is built.
   // Reserve that space before validation and submission use the same result.
@@ -315,7 +317,14 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
         compact80s?mood['compact'+dreamcoreTier]:mood[dreamcoreKey]
       ].join(' ')
       :mood.id==='hong-kong-nights'
-        ?[mood.direction,'Photographic treatment strength '+intensity+'/100; artistic guidance, not literal filter opacity.',intensity<=34?mood.subtle:intensity===100?mood.climax:intensity>=76?mood.intense:mood.moderate].join(' ')
+        ?finish
+          ?['Dreamlike 1990s Hong Kong night-film photography: atmospheric emerald haze, rich cyan-green shadows, warm practical lights and deep blacks between lights. Emerald belongs to light, not a flat tint.',
+            'Photographic treatment strength '+intensity+'/100.',
+            intensity<=34?'Gentle available-light night atmosphere. Keep natural skin tones and recognizable surroundings.':intensity>=76?'Immersive humid nighttime atmosphere, dimensional haze, luminous practical lights and wet reflections where appropriate. Relight frontal flash or daylight with dim emerald ambient side/back light and warm practical spill. Preserve deep shadows and strong warm/cool separation.':'Distinct night atmosphere with rich emerald shadow depth, warm/cool light separation and readable subject detail.',
+            'Keep broad skin and fabric areas below the brightness of lamps and small reflections. Preserve natural pores, subtle skin-tone variation and fine fabric texture.',
+            'GRAIN: retain photographic surface detail without painted texture or heavy generated noise. BLOOM: luminous small lights with readable cores and natural highlight rolloff. HALATION: keep light-source colors, no painted orange edges. Additional grain and glow are applied after generation. Style references guide color, exposure and atmosphere. Keep the Base subject and composition.'
+          ].join(' ')
+          :[mood.direction,'Photographic treatment strength '+intensity+'/100; artistic guidance, not literal filter opacity.',intensity<=34?mood.subtle:intensity===100?mood.climax:intensity>=76?mood.intense:mood.moderate].join(' ')
         :intensity<=34?mood.subtle:intensity>=76?mood.direction+' '+mood.intense:mood.direction;
   const preservation=referenceCount>0
     ?referenceMode==='references'
@@ -335,7 +344,7 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
           :'The first reference is the base photograph. Preserve face, identity, real body proportions, pose, camera, wardrobe and composition unless the user specifically asks to change them. Preservation is guidance, not a guarantee.'
     :'Honor the requested subject and composition.';
   const prompt=[original,'PV LAB MOOD / '+mood.name+': '+style+' '+preservation+' Avoid: '+(compactDreamcore||compact80s||compactBerlinRave||compactSyntheticRomance?mood.compactAvoid:mood.avoid)+'.'].filter(Boolean).join('\n\n');
-  return {prompt,metadata:{moodId:mood.id,moodIntensity:intensity,moodOriginalPrompt:original},
+  return {prompt,metadata:{moodId:mood.id,moodIntensity:intensity,moodOriginalPrompt:original,...(finish?{filmFinish:finish}:{})},
     error:prompt.length>5000?'Prompt and mood exceed 5,000 characters. Shorten the direction or clear the mood.':(!original&&!referenceCount?'Describe a subject or add an image before generating with a mood.':'')};
 }
 
@@ -361,7 +370,7 @@ export function preparePersonalMoodPrompt(input='',mood,intensity=60,options={})
   const strength=Math.max(1,Math.min(100,Math.round(Number(intensity)||60)));
   // Saved Moods add their own direction after the curated base; reserve space
   // for the reference map even when the curated prompt alone would still fit.
-  const baseOptions=baseId==='80s-film'&&Number(options.referenceCount)>0?{...options,compact:true}:options;
+  const baseOptions=baseId==='80s-film'&&Number(options.referenceCount)>0?{...options,compact:true}:{...options,filmFinish:null};
   let base=baseId?prepareMoodPrompt(original,baseId,strength,baseOptions):{prompt:original,error:''};
   const added='PV LAB MY MOOD / '+title+': Apply this REUSABLE LOOK to the current requested image, not as a replacement subject or scenery. '+direction+'. Preserve explicitly assigned reference roles and the user\'s subject and composition. Style guidance only; saved board images are inspiration and are not automatically attached to this request.';
   let prompt=[base.prompt,added].filter(Boolean).join('\n\n');
@@ -395,6 +404,9 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
   const aboutDetails=panel.querySelector('#composer-moods-explanation');
   const backdrop=panel.parentElement.querySelector('#composer-moods-backdrop');
   let selected=null,intensity=60,category='All',personalMoods=[];
+  const finishPanel=document.createElement('div');finishPanel.hidden=true;
+  const finishControls=createFilmFinishControls(finishPanel,{onChange:()=>onChange()});
+  panel.querySelector('.moods-footer')?.append(finishPanel);
   const boardById=id=>personalMoods.find(board=>'custom:'+board.id===id)||null;
   const findMood=id=>moodById(id)||boardById(id);
   const desktopGridColumns=5,initiallyVisibleRows=2;
@@ -454,6 +466,7 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
     }
     emptyPersonal.hidden=category!=='My Moods'||personalMoods.length>0;
     slider.value=String(intensity);slider.style.setProperty('--moods-progress',((intensity-1)/99*100).toFixed(2)+'%');slider.disabled=!selected;amount.textContent=intensity+'%';
+    finishPanel.hidden=selected!=='hong-kong-nights';
     const chosen=findMood(selected);
     summary.textContent=chosen?chosen.name:'';
     summary.title=chosen?.description||chosen?.direction||'';
@@ -572,10 +585,11 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
     }
     panel.querySelector('#composer-moods-title')?.focus();
   }
-  function clear(silent=false){selected=null;intensity=60;close(!silent);render();if(!silent)onChange();}
+  function clear(silent=false){selected=null;intensity=60;finishControls.set();close(!silent);render();if(!silent)onChange();}
   function restore(settings,silent=false){
     selected=settings?.moodId==='custom'&&typeof settings.customMoodBoardId==='string'?'custom:'+settings.customMoodBoardId:moodById(settings?.moodId)?.id||null;
     intensity=Math.min(100,Math.max(1,Number(settings?.moodIntensity)||60));
+    finishControls.set(settings?.filmFinish||HONG_KONG_FILM_FINISH);
     close();render();if(!silent)onChange();
   }
   function enrich(prompt,options={}){
@@ -583,10 +597,10 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
       const mood=boardById(selected);
       return mood?preparePersonalMoodPrompt(prompt,mood,intensity,options):{prompt:String(prompt||'').trim(),metadata:{},error:'This saved Mood is not available. Open My Moods and choose another.'};
     }
-    return prepareMoodPrompt(prompt,selected,intensity,options);
+    return prepareMoodPrompt(prompt,selected,intensity,{...options,filmFinish:finishControls.get()});
   }
   function error(engine,prompt,count=0,referenceMode='base'){return enrich(prompt,{engine,referenceCount:count,referenceMode}).error;}
-  function sync({visible=true,locked=false}={}){button.hidden=!visible;button.disabled=locked;if(!visible||locked)close();if(visible)render();}
+  function sync({visible=true,locked=false}={}){button.hidden=!visible;button.disabled=locked;finishControls.lock(locked);if(!visible||locked)close();if(visible)render();}
   slider.addEventListener('input',()=>{intensity=Number(slider.value);render();onChange();});
   button.onclick=()=>{if(panel.hidden)open();else close();};
   // Close when clicking anywhere outside the popup; consume that first click

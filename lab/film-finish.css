@@ -1,0 +1,13 @@
+.film-finish{display:grid;gap:10px;color:inherit;min-width:0}
+.film-finish[hidden]{display:none!important}
+.film-finish>strong{font-size:13px;font-weight:600;letter-spacing:.02em}
+.film-finish>p{margin:0;font-size:11px;line-height:1.5;opacity:.65}
+.film-finish>label{display:grid;grid-template-columns:1fr auto;gap:5px;font-size:12px;align-items:center}
+.film-finish output{font-variant-numeric:tabular-nums;opacity:.75}
+.film-finish input[type=range]{grid-column:1/-1;width:100%;min-width:0;margin:0;accent-color:#d6ef91}
+.moods-footer>.film-finish{padding:12px 0 4px;border-top:1px solid #ffffff18;grid-template-columns:1fr 1fr;column-gap:18px}
+.moods-footer>.film-finish>strong,.moods-footer>.film-finish>p{grid-column:1/-1}
+.film-finish-actions{display:flex;flex-wrap:wrap;gap:8px}
+.film-finish-actions button{min-height:36px;padding:8px 12px;font:inherit;font-size:12px;border:1px solid #ffffff30;border-radius:6px;color:inherit;background:#ffffff0a;cursor:pointer}
+.film-finish-actions button:disabled{opacity:.45;cursor:wait}
+.film-finish-status{font-size:12px;line-height:1.5;opacity:.75}
