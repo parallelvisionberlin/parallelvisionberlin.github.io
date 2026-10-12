@@ -32,6 +32,13 @@
 - Existing responsive checks cover 1920, 1440, 768, 390 and 320 px.
 - Existing regression coverage includes downloads, favorite sync, menu, navigation and Video Studio handoff.
 - Previous deck: all ten workflows passed; Pages deployment 38284935364 succeeded.
-- Current refinements: awaiting browser CI, screenshot review and publication.
+- Verified feature source: 6e2c10dac0744b89b8593c47fbb3167cd50bdb59; all ten PR workflows passed.
+- Viewer/queue workflow 38287871612 and full video/reference regression 38287871766 passed.
+- Reviewed desktop 1440 px and mobile 320 px screenshots; artifact 11764257448.
+- All six reference downloads matched their own original bytes; Video Studio handoff passed.
+- Published implementation: c5e551770931425d2bf93eecbdb512fca90557c0, PR #169.
+- Confirmed public studio.html, image-result-deck.css and lab.js: HTTP 200 and exact verified-source hashes.
+- Pages runs 38288222445 and 38288279957 were superseded by concurrent main updates.
+- Newer main 20de9fb includes this implementation unchanged; run 38288613296 was still running at the public-file check.
 - Live destination: https://parallelvisionlabel.com/lab/studio.html
-- Next action: verify the branch, merge and confirm public files match the verified source.
+- Complete and confirmed live on 2026-10-12; no paid generations or live account mutations were used.
