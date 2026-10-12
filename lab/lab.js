@@ -1,3 +1,4 @@
+import {createMoodReferenceLoader,moodReferencePlan,isMoodStyleReference} from './mood-references.js?v=20261012-hk1';
 import {createPrivateMediaCache} from './private-media-cache.js?v=20261012-cache1';
 import {loadLabAccount} from './native-account.js?v=2';
 import {createAssetLibrary} from './assets.js?v=20261010-navigation-media1';
@@ -10,8 +11,8 @@ captureReferralCode();
 import {createSoul2UI} from './higgsfield-ui.js?v=20261010-soul-price1';
 import {VIDEO_MODELS,engineFor,videoLabel} from './video-models.js?v=20261009-extend1';
 import {REFERENCE_ROLES,REFERENCE_TARGETS,normalizeReferenceLabel,compileImagePrompt,referenceGuidanceError,canUseReferenceGuidance} from './reference-guidance.js?v=20261010-reference-flow2';
-import {createMoodSelector,moodById,userFacingImagePrompt,imageHistoryCaption} from './moods.js?v=20261011-midnight-reverie1&hd=20261011&raveBudget=1&editorialHD=2&moodImageHD=1&moodDeckSpace=1&raveNight=4&syntheticBudget=1';
-import {createMyMoods} from './my-moods.js?v=20261011-midnight-reverie1&hd=20261011&raveBudget=1&editorialHD=2&editorialHD=2&moodImageHD=1&raveNight=4';
+import {createMoodSelector,moodById,userFacingImagePrompt,imageHistoryCaption} from './moods.js?v=20261011-midnight-reverie1&hd=20261011&raveBudget=1&editorialHD=2&moodImageHD=1&moodDeckSpace=1&raveNight=4&syntheticBudget=1&hongKongRefs=1';
+import {createMyMoods} from './my-moods.js?v=20261011-midnight-reverie1&hd=20261011&raveBudget=1&editorialHD=2&editorialHD=2&moodImageHD=1&raveNight=4&hongKongRefs=1';
 import {takeMoodHandoff,moodGenerationQuote} from './mood-handoff.js?v=20261012-generate1';
 import {createMediaReferences} from './media-references.js?v=20261009-extend2';
 import { createSessionRequest } from './session-request.js?v=20260927-auth1';
@@ -26,6 +27,7 @@ const $=id=>document.getElementById(id), activeStates=new Set(['submitting','que
 let clerk, owner=false, customerMode=false, customerGenerationReady=false, customerImagePricing=null, imageRatioExplicit=false, soulRatioExplicit=false, userId='', epoch=0, syncing=false, config={}, file=null, sourceId=null, imageRevision=0, busy=false;
 let imageSubmissionPending=false,imageSubmissionStage='Sending…';
 const fastImageHandoff=createImageSubmitHandoff();
+const moodReferences=createMoodReferenceLoader({upload:uploadAsset});
 const pendingImageCards=new Map();
 function renderPendingImageCards(){
   const visible=owner&&tool==='image'&&!fashionActive&&!assetLibrary?.active();
@@ -435,8 +437,11 @@ function referenceRoles(){return references.map(r=>normalizeReferenceLabel({name
 function usesReferenceGuidance(){return tool==='image'&&['seedream','gemini','flash','kling'].includes(imageEngine);}
 function imageGuidance(){
   const labels=referenceRoles(),mood=moodUI.enrich($('prompt').value,{engine:imageEngine,referenceCount:references.length,referenceMode:imageReferenceMode});
-  const prompt=compileImagePrompt(mood.prompt,labels);
-  return {prompt,error:referenceGuidanceError(labels)||mood.error||(prompt.length>5000?'Direction, mood and reference instructions exceed 5,000 characters. Shorten the direction or optional notes.':'')};
+  try{
+    const planned=moodReferencePlan({type:'image',mode:'image',engine:imageEngine,...mood.metadata,prompt:mood.prompt,referenceRoles:labels});
+    const prompt=compileImagePrompt(mood.prompt,planned.settings.referenceRoles);
+    return {prompt,error:referenceGuidanceError(labels)||mood.error||(prompt.length>5000?'Direction, mood and reference instructions exceed 5,000 characters. Shorten the direction or optional notes.':'')};
+  }catch(error){return {prompt:compileImagePrompt(mood.prompt,labels),error:error.message};}
 }
 function updateReferenceGuidance(){
   const panel=$('reference-guidance'),active=usesReferenceGuidance();panel.hidden=!active||!references.length;
@@ -529,7 +534,8 @@ function customerImageProviderReady(){
     provider==='openrouter'?!!config.openrouterEnabled:!!config.enabled;
 }
 async function fetchCustomerImagePrice(s,check){
-  const {provider,settings:selected,count,chosen,sourceMode}=s;
+  const {provider,count,chosen,sourceMode}=s;
+  let selected=s.settings;
   if(provider==='spicy'||provider==='higgsfield'){
     const originals=[];
     for(const item of chosen){
@@ -543,6 +549,8 @@ async function fetchCustomerImagePrice(s,check){
       originals.push({id,file:item.file,width:item.width,height:item.height});
     }
     check();
+    const curated=await moodReferences.prepare(selected,{sessionKey:epoch,check});
+    selected=curated.settings;originals.push(...curated.references);
     let inputs={sourceId:sourceMode?originals[0]?.id||null:null,lastSourceId:null,
       referenceSourceIds:sourceMode?[]:originals.map(item=>item.id)};
     if(provider==='spicy'){
@@ -1933,7 +1941,13 @@ async function restore(job){
   if(soulPro){if(job.sourceId)await setImage(await assetFile(job.sourceId,'base-image'),job.sourceId);}
   else{
     const refs=tool==='image'&&imageEngine!=='soul'||p.mode==='reference';
-    if(refs){const ids=p.referenceSourceIds||[];if(ids.length){const files=await Promise.all(ids.map((id,i)=>assetFile(id,(p.referenceRoles?.[i]?.name||'reference-'+(i+1)).replace(/\.[^.]+$/,''))));await addReferences(files,ids,p.referenceRoles||[]);}}
+    if(refs){
+      // Curated Style inputs belong to the selected Mood. Restore only user
+      // images; the loader reattaches styles if that Mood is still selected.
+      const saved=(p.referenceSourceIds||[]).map((id,i)=>({id,label:p.referenceRoles?.[i]||{name:'reference-'+(i+1)}}))
+        .filter(ref=>p.moodId!=='hong-kong-nights'||!isMoodStyleReference(ref.label));
+      if(saved.length){const files=await Promise.all(saved.map(ref=>assetFile(ref.id,ref.label.name.replace(/\.[^.]+$/,''))));await addReferences(files,saved.map(ref=>ref.id),saved.map(ref=>ref.label));}
+    }
     else if(job.sourceId&&p.mode!=='extend'){await setImage(await assetFile(job.sourceId,'start-frame'),job.sourceId);if(p.lastSourceId)await setLastImage(await assetFile(p.lastSourceId,'last-frame'),p.lastSourceId);}
   }
   if(controlledPose)poseMapSourceId=p.poseMapSourceId||null;moodUI.restore(p,true);$('prompt').value=p.moodOriginalPrompt??p.prompt??'';
@@ -2960,7 +2974,7 @@ $('history-delete-selected').onclick=()=>action(async()=>{
   setHistorySelectMode(false);await loadHistory();if(assetLibrary?.active())await assetLibrary.load();notify((result.deleted||ids.length)+' History item'+((result.deleted||ids.length)===1?'':'s')+' deleted. Spending history is unchanged.');
 });
 function finishLabBoot(){window.__pvLabFinishBoot?.();}
-function lock(){void deviceMediaCache.signOut();document.documentElement.classList.remove('pv-native-route-pending');retouchActive=false;history.scrollRestoration='auto';precisionEditor.reset();$('app').classList.remove('retouch-studio-active');customerMode=false;customerGenerationReady=false;customerImagePricing?.reset();wallet.connect({customer:false});$('studio-invite-friends').hidden=true;fashionController?.lock();setFashionActive(false);assetLibrary?.reset();hf.reset();epoch++;imageSubmissionPending=false;pendingImageCards.clear();moodUI.clear(true);clearAssetCache();for(const p of composerPortraits.values())p.then(url=>{if(url)release(url);});composerPortraits.clear();composerLibraryKey='';composerPortraitKey='';closeComposerLibrary();historySelected.clear();historySelectMode=false;clearSoulProPackPreview();soulProIdentity={configured:false,count:0,refs:[]};workingCopies.clear();fastImageHandoff.clear();autoPreview=null;downloadUrls.forEach(release);downloadUrls.clear();myMoods.reset();owner=false;userId='';soul.reset();historyRevision++;galleryPreviewQueue.length=0;clearTimeout(timer);timer=null;activeJob=null;activeJobs=[];polling=false;requestControllers.forEach(c=>c.abort());requestControllers.clear();observer.disconnect();cardUrls.forEach(release);cardUrls.clear();clearMedia();$('prompt').value='';$('history').replaceChildren();$('app').hidden=true;$('gate').hidden=false;$('connection').hidden=true;$('logout').hidden=true;$('api-key').value='';for(const d of document.querySelectorAll('dialog[open]'))d.close();currentQuote=null;config={};packs=[];$('pack-select').replaceChildren(new Option('Choose a saved pack',''));closeImageModelMenu();toggleImageSettings(false);$('app').classList.remove('image-studio-active');imageStudio.hidden=true;imageDetailCache.clear();releaseImageDetailSource();videoJobCache.clear();selectedVideoJob=null;syncVideoStudioMode();finishLabBoot();}
+function lock(){moodReferences.clear();void deviceMediaCache.signOut();document.documentElement.classList.remove('pv-native-route-pending');retouchActive=false;history.scrollRestoration='auto';precisionEditor.reset();$('app').classList.remove('retouch-studio-active');customerMode=false;customerGenerationReady=false;customerImagePricing?.reset();wallet.connect({customer:false});$('studio-invite-friends').hidden=true;fashionController?.lock();setFashionActive(false);assetLibrary?.reset();hf.reset();epoch++;imageSubmissionPending=false;pendingImageCards.clear();moodUI.clear(true);clearAssetCache();for(const p of composerPortraits.values())p.then(url=>{if(url)release(url);});composerPortraits.clear();composerLibraryKey='';composerPortraitKey='';closeComposerLibrary();historySelected.clear();historySelectMode=false;clearSoulProPackPreview();soulProIdentity={configured:false,count:0,refs:[]};workingCopies.clear();fastImageHandoff.clear();autoPreview=null;downloadUrls.forEach(release);downloadUrls.clear();myMoods.reset();owner=false;userId='';soul.reset();historyRevision++;galleryPreviewQueue.length=0;clearTimeout(timer);timer=null;activeJob=null;activeJobs=[];polling=false;requestControllers.forEach(c=>c.abort());requestControllers.clear();observer.disconnect();cardUrls.forEach(release);cardUrls.clear();clearMedia();$('prompt').value='';$('history').replaceChildren();$('app').hidden=true;$('gate').hidden=false;$('connection').hidden=true;$('logout').hidden=true;$('api-key').value='';for(const d of document.querySelectorAll('dialog[open]'))d.close();currentQuote=null;config={};packs=[];$('pack-select').replaceChildren(new Option('Choose a saved pack',''));closeImageModelMenu();toggleImageSettings(false);$('app').classList.remove('image-studio-active');imageStudio.hidden=true;imageDetailCache.clear();releaseImageDetailSource();videoJobCache.clear();selectedVideoJob=null;syncVideoStudioMode();finishLabBoot();}
 const wallet=createCustomerWallet({api,notify,onClosed:async()=>{lock();await clerk.signOut();}});
 customerImagePricing=createCustomerImagePricing({snapshot:imageCreditQuoteSnapshot,quote:fetchCustomerImagePrice,changed:()=>update()});
 async function sync(){if(syncing)return;syncing=true;try{if(!clerk.isSignedIn){lock();$('auth-status').textContent='Sign in to your PV Lab workspace.';$('signin').disabled=false;return;}if(owner&&userId===clerk.user.id)return;if(owner&&userId!==clerk.user.id)lock();const data=await api('/api/session');owner=true;customerMode=!!data.customer;customerGenerationReady=!!data.generationReady;userId=clerk.user.id;void deviceMediaCache.select(userId);wallet.connect(data);hf.setCustomerPricing(customerMode?{trainingCredits:data.soulIdTrainingCredits,imageCredits:data.soul2ImageCredits}:null);$('studio-invite-friends').hidden=!customerMode;if(customerMode)await claimReferral(code=>api('/api/customer/referrals/claim',{method:'POST',body:{code}}));applyConfig(data.config);$('identity').textContent=customerMode?'My workspace':'Owner workspace';if(window.__PV_LAB_NATIVE__===1&&!window.__pvNativeRouteResolved)document.documentElement.classList.add('pv-native-route-pending');$('gate').hidden=true;$('app').hidden=false;$('connection').hidden=customerMode;$('logout').hidden=false;
@@ -3055,7 +3069,8 @@ async function submitImageSnapshot(){
     if(customerGenerationReady)customerImagePricing?.retry();
     return;
   }
-  const sessionEpoch=epoch,selected=structuredClone(settings()),provider=currentProvider();
+  const sessionEpoch=epoch,provider=currentProvider();
+  let selected=structuredClone(settings());
   const requested=Math.max(1,Math.min(imageProcessing==='batch'?20:4,Number($('image-count').value)||1));
   const selectedPose=poseMapSourceId,selectedBase=file,selectedSourceId=sourceId;
   const sourceMode=imageEngine==='soulpro'||isReinterpret();
@@ -3122,7 +3137,9 @@ async function submitImageSnapshot(){
     await Promise.all(Array.from({length:Math.min(3,chosen.length)},uploadNext));
     if(uploadError)throw uploadError;
     check();
-    let inputs={sourceId:originals[0]?.id||null,lastSourceId:null,referenceSourceIds:sourceMode?[]:originals.map(r=>r.id)};
+    const curated=await moodReferences.prepare(selected,{sessionKey:sessionEpoch,check});
+    selected=curated.settings;originals.push(...curated.references);
+    let inputs={sourceId:sourceMode?originals[0]?.id||null:null,lastSourceId:null,referenceSourceIds:sourceMode?[]:originals.map(r=>r.id)};
     if(['flash','kling'].includes(selected.engine)){
       for(let i=0;i<requested;i++){
         const data=await send('/api/image-models/generate',{...inputs,settings:selected});

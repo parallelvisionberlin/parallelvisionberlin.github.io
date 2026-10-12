@@ -27,7 +27,7 @@ const browser=await chromium.launch({headless:true,executablePath:process.env.PV
 const accountSource=guest=>`const callbacks=[];const account={isSignedIn:${!guest},user:${guest?'null':"{id:'user_Test'}"},session:{id:'sess_Test',getToken:async()=> 'test.'+btoa(JSON.stringify({exp:Math.floor(Date.now()/1000)+120}))+'.fixture'},addListener(fn){callbacks.push(fn);fn(account);return()=>{}},openSignIn(){const button=document.createElement('button');button.id='mock-signin';button.textContent='Complete sign-in';button.style='position:fixed;inset:30%;z-index:999999;background:white;color:black';button.onclick=()=>{account.isSignedIn=true;account.user={id:'user_Test'};callbacks.forEach(fn=>fn(account));button.remove();};document.body.append(button);}};export async function loadLabAccount(){return account;}`;
 try{for(const scenario of ['desktop','mobile','small','guest','text','changed','expired','account','blocked','failure','draft']){
  const page=await browser.newPage({viewport:{width:scenario==='small'?320:scenario==='mobile'?390:1440,height:scenario==='small'?640:900}});
- let paid=0,quotes=0;const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ let paid=0,quotes=0,uploads=0;const errors=[];page.on('pageerror',e=>errors.push(e.message));
  if(scenario==='expired')await page.addInitScript(()=>window.testExpired=true);
  if(scenario==='account')await page.addInitScript(()=>window.testUser='user_Other');
  if(scenario==='blocked')await page.addInitScript(()=>window.testBlocked=true);
@@ -36,8 +36,8 @@ try{for(const scenario of ['desktop','mobile','small','guest','text','changed','
   if(url.hostname==='parallel-vision-lab.parallelvision.workers.dev'){
    const send=(data,status=200)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(data)});
    if(url.pathname==='/api/session')return send({customer:scenario!=='desktop',generationReady:true,config:{enabled:true}});
-   if(url.pathname==='/api/uploads')return send({id:'20000000-0000-4000-8000-000000000001'});
-   if(url.pathname==='/api/quotes'){quotes++;const data=req.postDataJSON();assert.equal(data.settings.moodId,'hong-kong-nights');assert.equal(data.settings.resolution,'1k');return send({id:'quote-'+quotes,provider:'SpicyAPI',settings:data.settings,maxUsd:.22,creditCost:4,expiresAt:Date.now()+180000});}
+   if(url.pathname==='/api/uploads')return send({id:'20000000-0000-4000-8000-'+String(++uploads).padStart(12,'0')});
+   if(url.pathname==='/api/quotes'){quotes++;const data=req.postDataJSON();assert.equal(data.settings.moodId,'hong-kong-nights');assert.equal(data.settings.resolution,'1k');assert.equal(data.referenceSourceIds.length,scenario==='text'?4:5);assert.equal(new Set(data.referenceSourceIds).size,data.referenceSourceIds.length);assert.deepEqual(data.transferSourceIds,data.referenceSourceIds);assert.deepEqual(data.settings.referenceRoles.map(r=>r.role),[...(scenario==='text'?[]:['base']),'style','style','style','style']);return send({id:'quote-'+quotes,provider:'SpicyAPI',settings:data.settings,maxUsd:.22,creditCost:4,expiresAt:Date.now()+180000});}
    if(url.pathname==='/api/jobs'){paid++;assert.deepEqual(req.postDataJSON(),{quoteId:'quote-'+quotes,confirm:true});if(scenario==='failure')return send({error:'Not enough credits.'},402);return send({job:{id:'job-test',status:'queued'}});}
    throw Error('Unexpected API '+url.pathname);
   }

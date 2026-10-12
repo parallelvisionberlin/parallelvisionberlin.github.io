@@ -1,6 +1,7 @@
 import {loadLabAccount} from './native-account.js?v=2';
 import {createSessionRequest} from './session-request.js?v=20260927-auth1';
-import {prepareMoodPrompt} from './moods.js?app=5&raveNight=4&syntheticBudget=1';
+import {prepareMoodPrompt} from './moods.js?app=5&raveNight=4&syntheticBudget=1&hongKongRefs=1';
+import {createMoodReferenceLoader} from './mood-references.js?v=20261012-hk1';
 import {normalizeReferenceLabel} from './reference-guidance.js?v=20261010-reference-flow2';
 import {imageDimensions,seedreamWorkingCopy,providerWorkingCopy,PROVIDER_IMAGE_LIMIT} from './image-tools.js?v=20261011-reference-prewarm1';
 import {pricedBoundQuotes} from './image-credit-preview.js?v=20261010-customer-credits1';
@@ -23,6 +24,7 @@ export function createAppMoodGeneration(){
     return blob?response.blob():response.json();
   }
   const upload=file=>api('/api/uploads',{method:'POST',headers:{'Content-Type':file.type,'X-Filename':encodeURIComponent(file.name||'source.png')},body:file});
+  const moodReferences=createMoodReferenceLoader({upload});
   return {
     cancel(){revision++;},
     async onAccountChange(listener){return (await identity()).addListener(listener);},
@@ -47,7 +49,9 @@ export function createAppMoodGeneration(){
       if(copy&&copy.size>PROVIDER_IMAGE_LIMIT){copy=await providerWorkingCopy(copy);check();}
       if(copy&&copy!==file){transfer=(await upload(copy)).id;check();}
       const settings={type:'image',engine:'seedream',processing:'normal',referenceMode:'base',mode:'image',prompt:recipe.prompt,...recipe.metadata,resolution:'1k',aspectRatio:file?'auto':'16:9',outputFormat:'png',referenceRoles:file?[normalizeReferenceLabel({name:file.name,role:'base'})]:[]};
-      const quote=await api('/api/quotes',{method:'POST',body:{sourceId:null,lastSourceId:null,referenceSourceIds:original?[original.id]:[],transferSourceIds:transfer?[transfer]:[],settings}});check();
+      const curated=await moodReferences.prepare(settings,{sessionKey:sessionId,check});check();
+      const styleIds=curated.references.map(ref=>ref.id);
+      const quote=await api('/api/quotes',{method:'POST',body:{sourceId:null,lastSourceId:null,referenceSourceIds:[...(original?[original.id]:[]),...styleIds],transferSourceIds:[...(transfer?[transfer]:[]),...styleIds],settings:curated.settings}});check();
       if(!quote?.id||quote.settings?.engine!=='seedream'||quote.settings?.moodId!==mood.id||!Number.isFinite(quote.expiresAt)||quote.expiresAt<=Date.now()||!Number.isFinite(quote.maxUsd))throw Error('Could not verify the generation price. Try again.');
       const label=session.customer?pricedBoundQuotes(quote,1,'SpicyAPI').credits+' credits':'$'+quote.maxUsd.toFixed(2)+' max';
       let submitted=false;

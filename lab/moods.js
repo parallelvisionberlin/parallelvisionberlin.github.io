@@ -17,11 +17,12 @@ const ALL_MOODS=Object.freeze([
     "name": "Hong Kong Nights",
     "category": "Cinema",
     "preview": "/lab/mood-previews/hong-kong-nights-street-20261011.svg",
-    "description": "Emerald haze, neon bloom and nocturnal melancholy",
-    "direction": "Dreamlike 1990s Hong Kong night-film photography: humid urban darkness, atmospheric emerald haze, softened practical neon, diffused city lights, rain-wet reflections, organic 35mm grain, optical halation and nocturnal melancholy. Respect the original scene and lighting. Emerald green is an atmospheric possibility, not a mandatory color overlay.",
-    "subtle": "Gentle night-film diffusion, soft practical-light bloom, subtle grain and intimate haze. Keep natural skin tones and recognizable surroundings.",
-    "intense": "Immersive humid nighttime atmosphere, thick but realistic haze, luminous diffused neon in scene-appropriate greens or warm tones, wet reflections, deep layered shadows, strong analog halation and grain. Preserve referenced faces, poses and composition.",
-    "avoid": "forced all-green tint, generic cyberpunk, synthetic skin, neon outlines, fake rain pasted onto dry rooms, smudged facial features"
+    "description": "Emerald haze, visible grain and soft light bloom, guided by four Style references",
+    "direction": "Dreamlike 1990s Hong Kong night-film photography: atmospheric emerald haze, deep layered shadows and nocturnal melancholy. Use any attached Style references for photographic treatment only. GRAIN: visible irregular fine-to-medium 35mm emulsion grain, especially in shadow and midtone areas, integrated with skin and fabric detail. BLOOM: small bright practical lights have soft luminous cores and localized, gently blurred halos that fall off into surrounding darkness. HALATION: restrained warm red-orange fringes at intense highlights. Use gentle optical diffusion and smooth highlight rolloff, preserving readable faces and edges. This luminous finish comes from light diffusion, not shiny skin or a gloss coating. Preserve the Base scene, people, clothes, pose and framing; do not import reference streets, cars, houses, signs, fog banks or interface icons. Adapt glow to existing light sources and reflections. Emerald green is an atmospheric possibility, not a mandatory color overlay.",
+    "subtle": "Gentle night-film diffusion, small restrained highlight halos and fine but visible grain. Keep natural skin tones and recognizable surroundings.",
+    "moderate": "Clearly visible film grain and soft glow around existing bright lights. Keep halos localized and preserve detail between lights; adapt atmospheric depth to the original setting.",
+    "intense": "Immersive humid nighttime atmosphere through stronger optical diffusion, pronounced irregular film grain, luminous localized bloom and warm halation at existing highlights. Keep blacks layered and faces readable; preserve the original setting without adding rain or street scenery.",
+    "avoid": "forced all-green tint, generic cyberpunk, synthetic or glossy skin, neon outlines, uniform blur or fog overlay, smooth denoised surfaces, uniform digital noise, fake rain pasted onto dry rooms, smudged facial features, reference scenery or screenshot controls"
   },
   {
     "id": "night-flash",
@@ -311,7 +312,9 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
         'Creative intensity '+intensity+'/100; cinematic generation instructions, NOT a pixel filter.',
         compact80s?mood['compact'+dreamcoreTier]:mood[dreamcoreKey]
       ].join(' ')
-      :intensity<=34?mood.subtle:intensity>=76?mood.direction+' '+mood.intense:mood.direction;
+      :mood.id==='hong-kong-nights'
+        ?[mood.direction,'Photographic treatment strength '+intensity+'/100; artistic guidance, not literal filter opacity.',intensity<=34?mood.subtle:intensity>=76?mood.intense:mood.moderate].join(' ')
+        :intensity<=34?mood.subtle:intensity>=76?mood.direction+' '+mood.intense:mood.direction;
   const preservation=referenceCount>0
     ?referenceMode==='references'
       ?'The uploaded images only supply their assigned reference roles. Keep referenced people recognisable without copying unintended people.'
