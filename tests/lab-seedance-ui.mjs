@@ -98,7 +98,7 @@ try{
   const completedVideo={id:id(80),outputId:id(82),sourceId:null,status:'completed',createdAt:Date.now(),
     settings:{type:'video',engine:'seedance',mode:'start',prompt:'A sculptural object slowly turning in natural light.',
       duration:5,resolution:'720p',aspectRatio:'16:9',referenceSourceIds:[]}};
-  x=await workspace({initial:[completedVideo]});
+  x=await workspace({initial:[completedVideo]});await x.page.click('#tool-video');
   await x.page.waitForFunction(()=>document.querySelector('#video')?.src.startsWith('blob:')&&!document.querySelector('#video').hidden);
   assert.equal(await x.page.locator('#video-feed-center').isVisible(),true,'Completed Video uses center preview');
   assert.equal(await x.page.locator('#video-inspector').isVisible(),true,'Video metadata inspector stays visible');
