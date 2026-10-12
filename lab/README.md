@@ -377,3 +377,6 @@ See [the account interface work state](ACCOUNT-WORK-STATE.md) before changing th
 - Native Mood generation also validates the complete prompt before source/reference uploads.
 - Publication and live frontend/Worker verification are pending.
 - Next action: publish frontend/Worker and verify live version and references.
+
+### Image result deck: current state (2026-10-12)
+See [the result deck work state](RESULT-DECK-WORK-STATE.md) for the approved editorial inspector, existing Video Studio handoff, verification and release status.

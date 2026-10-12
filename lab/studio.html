@@ -62,13 +62,14 @@ document.addEventListener('DOMContentLoaded',()=>{
 <link rel="stylesheet" href="./moods.css?v=20261011-header-align2&filmDeck=2">
 <link rel="stylesheet" href="./detail-video-studio.css?v=20261009-pointer1&sourceViewer=1&sourceDownload=1">
 <link rel="stylesheet" href="./editorial-polish.css?v=20261010-mood-details1&sourceViewer=1&viewerFit=1">
-<script type="module" src="./lab.js?v=20261011-midnight-reverie1&filmDeck=2&filmOptics=2&account=20261012-account2&iphonePhoto=20261012&moodGenerate=20261012&nativeLab=2&wallet=1&creditNotice=20261012-creditbar1&fashiondeck=1&moodsLayout=2&myMoods=2&moodDiscovery=3&sourceViewer=1&galleryPerf=1&galleryScroll=20261012&deviceCache=20261012&galleryThumb=1&sourceDownload=1&createMoodHeader=1&hd=20261011&raveBudget=1&editorialHD=2&moodImageHD=1&noEmojiArrows=1&moodDeckSpace=1&raveNight=4&viewerFast=1&nativeEntry=2&syntheticBudget=1&berlinRefs=1&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1"></script>
+<script type="module" src="./lab.js?v=20261011-midnight-reverie1&filmDeck=2&filmOptics=2&account=20261012-account2&iphonePhoto=20261012&moodGenerate=20261012&nativeLab=2&wallet=1&creditNotice=20261012-creditbar1&fashiondeck=1&moodsLayout=2&myMoods=2&moodDiscovery=3&sourceViewer=1&galleryPerf=1&galleryScroll=20261012&deviceCache=20261012&galleryThumb=1&sourceDownload=1&createMoodHeader=1&hd=20261011&raveBudget=1&editorialHD=2&moodImageHD=1&noEmojiArrows=1&moodDeckSpace=1&raveNight=4&viewerFast=1&resultDeck=20261012-editorial1&nativeEntry=2&syntheticBudget=1&berlinRefs=1&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1"></script>
 <link rel="stylesheet" href="./credits.css?v=20261010-referrals3">
 <link rel="stylesheet" href="./higgsfield.css?v=20261010-compact-image-prompt1">
 <link rel="stylesheet" href="./assets.css?v=20261012-clean-viewer1&mobileGenerate=1&moodsCitron=1">
 <link rel="stylesheet" href="./video-refresh.css?v=20261009-extend2">
 <script type="module" src="./gallery-layout.js?v=20261010-upscale-history1"></script>
 <link rel="stylesheet" href="./image-detail-mobile.css?v=20261012-flow1">
+<link rel="stylesheet" href="./image-result-deck.css?v=20261012-editorial1">
 <link rel="stylesheet" href="./public-header.css?v=20261012-refined-access1">
 <link rel="stylesheet" href="./account-menu.css?v=20261012-account2">
 <link rel="stylesheet" href="./studio-credits.css?v=20261012-creditbar1">
@@ -386,11 +387,11 @@ document.addEventListener('DOMContentLoaded',()=>{
   <div class="image-detail-layout">
     <div class="image-detail-media">
       <div class="image-detail-topbar">
+        <span class="image-detail-brand">PV LAB</span>
         <span id="image-lightbox-title">Image</span>
         <span id="image-lightbox-counter">PARALLEL VISION LAB</span>
         <div class="image-detail-media-actions">
           <button id="image-lightbox-fit" type="button" title="Toggle actual size" aria-pressed="false">Fit</button>
-          <button id="image-lightbox-download" type="button">Download</button>
           <button id="image-lightbox-close" type="button" aria-label="Close image viewer" title="Close image viewer">×</button>
         </div>
       </div>
@@ -417,13 +418,13 @@ document.addEventListener('DOMContentLoaded',()=>{
             <span class="detail-label" id="image-detail-prompt-heading">Prompt</span>
             <button id="image-detail-copy" class="detail-inline-button" type="button">Copy <span aria-hidden="true">⧉</span></button>
           </div>
+          <p id="image-detail-prompt" class="image-detail-prompt"></p>
+          <button id="image-detail-expand" class="image-detail-expand" type="button" aria-expanded="false" hidden>Show more <span aria-hidden="true">⌄</span></button>
           <button id="image-detail-reference-wrap" class="image-detail-reference-wrap" type="button" aria-label="Open original source image at full size" aria-haspopup="dialog" title="View original image" hidden>
             <img id="image-detail-reference-thumb" alt="" width="62" height="75" hidden>
             <span id="image-detail-reference-caption">Source photo</span>
             <span class="image-detail-reference-open-mark" aria-hidden="true">View</span>
           </button>
-          <p id="image-detail-prompt" class="image-detail-prompt"></p>
-          <button id="image-detail-expand" class="image-detail-expand" type="button" aria-expanded="false" hidden>Show more <span aria-hidden="true">⌄</span></button>
         </section>
         <section id="image-film-finish" class="image-detail-card" hidden></section>
         <details id="image-detail-metadata" class="image-detail-card image-detail-data" open>
@@ -432,31 +433,40 @@ document.addEventListener('DOMContentLoaded',()=>{
             <div><dt>Model</dt><dd id="image-detail-model"></dd></div>
             <div id="image-detail-mood-row" hidden><dt>Mood</dt><dd id="image-detail-mood-value"></dd></div>
             <div><dt>Resolution</dt><dd id="image-detail-resolution"></dd></div>
-            <div><dt>Requested ratio</dt><dd id="image-detail-ratio"></dd></div>
+            <div><dt>Ratio</dt><dd id="image-detail-ratio"></dd></div>
+          </dl>
+          <details class="image-detail-secondary-data"><summary>More details <span aria-hidden="true">⌄</span></summary><dl>
             <div><dt>Date</dt><dd id="image-detail-created"></dd></div>
             <div><dt>References</dt><dd id="image-detail-references"></dd></div>
             <div><dt>Price</dt><dd id="image-detail-price"></dd></div>
-          </dl>
+          </dl></details>
         </details>
         <div id="image-detail-status-help" class="image-detail-warning" hidden></div>
       </div>
       <div class="image-detail-actions">
-        <button id="image-detail-video" class="detail-primary" type="button"> <span aria-hidden="true">▹</span> Turn into video</button>
+        <button id="image-detail-video" class="detail-primary" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="12" height="12" rx="2"/><path d="m15 10 6-4v12l-6-4z"/></svg><span>Turn into video</span></button>
         <div class="image-detail-action-grid">
-          <button id="image-detail-reuse" type="button">Reuse</button>
-          <button id="image-detail-reference" type="button">Reference</button>
-          <button id="image-detail-upscale" type="button">Upscale</button>
-          <button id="image-detail-save-mood" type="button">✦ Save as Mood</button>
+          <button id="image-detail-reuse" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2 6M20 4v7h-7"/></svg><span>Reuse</span></button>
+          <button id="image-detail-reference" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="6" width="14" height="14" rx="2"/><path d="m4 17 4-4 3 3 3-4 4 4M16 3h5v5"/><circle cx="9" cy="10" r="1"/></svg><span>Reference</span></button>
+          <button id="image-detail-upscale" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 18 18 6M6 6h12v12"/></svg><span>Upscale</span></button>
         </div>
-        <div class="image-detail-subactions">
-          <button id="image-detail-mood" type="button">Apply Mood</button>
-           <button id="image-detail-repair" type="button">Repair</button>
-          <button id="image-detail-edit-area" type="button">Retouch</button>
-          <button id="image-detail-delete" type="button">Delete</button>
+        <div class="image-detail-mood-actions">
+          <button id="image-detail-mood" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 4C8 3 3 8 5 15c6 4 13 1 15-11Z M4 20 15 9"/></svg><span>Apply mood</span></button>
+          <button id="image-detail-save-mood" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 21V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v17l-6-4-6 4Z"/></svg><span>Save as mood</span></button>
         </div>
-        <details id="image-detail-extra" class="detail-extra" hidden>
-          <summary>More actions</summary><div id="image-detail-extra-list" class="detail-extra-list"></div>
-        </details>
+        <div class="image-detail-utility-row">
+          <button id="image-lightbox-download" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M4 15v5h16v-5"/></svg><span>Download</span></button>
+          <button id="image-detail-favorite" class="image-detail-icon-button" type="button" aria-label="Add to favorites" title="Add to favorites" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/></svg></button>
+          <details id="image-detail-extra" class="detail-extra">
+            <summary aria-label="More image actions" title="More image actions"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg></summary>
+            <div class="image-detail-more-menu">
+              <button id="image-detail-repair" type="button">Repair</button>
+              <button id="image-detail-edit-area" type="button">Retouch</button>
+              <div id="image-detail-extra-list" class="detail-extra-list"></div>
+              <button id="image-detail-delete" type="button">Delete</button>
+            </div>
+          </details>
+        </div>
       </div>
     </aside>
   </div>

@@ -39,6 +39,13 @@ jobs:
         env:
           PV_PLAYWRIGHT_MODULE: /tmp/pv-fastqueue/node_modules/playwright/index.mjs
         run: node tests/lab-image-viewer-browser.mjs
+      - name: Save result deck review screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pv-result-deck
+          path: test-results/result-deck
+          if-no-files-found: ignore
       - name: Verify independent Seedream preparations without paid requests
         env:
           PV_PLAYWRIGHT_MODULE: /tmp/pv-fastqueue/node_modules/playwright/index.mjs

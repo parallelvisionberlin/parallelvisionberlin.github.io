@@ -1984,6 +1984,15 @@ function resultFormat(blob){
 
 /* Image detail: full viewport artwork plus a persistent metadata inspector. */
 let imageDetailJob=null;
+const imageDetailFavoritePending=new Set();
+function paintImageDetailFavorite(){
+  const job=imageDetailJob,button=$('image-detail-favorite');
+  const favorite=!!job?.favorite;
+  button.disabled=!job||job.favorite===undefined||imageDetailFavoritePending.has(job.id);
+  button.setAttribute('aria-pressed',String(favorite));
+  button.setAttribute('aria-label',favorite?'Remove from favorites':'Add to favorites');
+  button.title=button.getAttribute('aria-label');
+}
 const filmPanel=$('image-film-finish');
 const filmControls=createFilmFinishControls(filmPanel);
 const filmActions=document.createElement('div');filmActions.className='film-finish-actions';
@@ -2203,7 +2212,7 @@ function fillDetailExtraActions(job,kind){
       box.append(btn);
     }
   }
-  extra.hidden=box.children.length===0;
+  extra.hidden=kind==='image'?false:box.children.length===0;
 }
 function showImageDetail(job,hasOutput,loading=false){
   if(!job||!owner)return;
@@ -2217,6 +2226,8 @@ function showImageDetail(job,hasOutput,loading=false){
   $('image-lightbox-fit').disabled=!hasOutput||loading;
   $('image-lightbox-title').textContent=hasOutput||loading?'Image result':'Image record';
   $('image-detail-status').textContent=job.status?.charAt(0).toUpperCase()+String(job.status||'').slice(1);
+  $('image-detail-status').dataset.status=job.status||'';
+  paintImageDetailFavorite();
   filmPanel.hidden=params.moodId!=='hong-kong-nights'||!hasResult(job);
   if(!filmPanel.hidden){
     filmControls.set(params.filmFinish||HONG_KONG_FILM_FINISH);filmControls.lock(filmBusy||loading);
@@ -2238,12 +2249,13 @@ function showImageDetail(job,hasOutput,loading=false){
   $('image-detail-copy').disabled=!hasWrittenDirection;
   $('image-detail-prompt-heading').textContent=moodName?'Your direction':'Prompt';
   $('image-detail-prompt').textContent=promptText;
-  $('image-detail-prompt').classList.toggle('is-collapsible',promptText.length>250);
+  $('image-detail-prompt').classList.toggle('is-collapsible',promptText.length>160);
   $('image-detail-prompt').classList.remove('is-expanded');
   $('image-detail-expand').setAttribute('aria-expanded','false');
   $('image-detail-expand').innerHTML='Show more <span aria-hidden="true">⌄</span>';
-  $('image-detail-expand').hidden=promptText.length<=250;
+  $('image-detail-expand').hidden=promptText.length<=160;
   $('image-detail-metadata').open=true;
+  document.querySelector('#image-detail-metadata .image-detail-secondary-data').open=false;
   $('image-detail-model').textContent=detailModelName(job);
   $('image-detail-mood-row').hidden=!!moodName || !params.moodId;
   $('image-detail-mood-value').textContent=params.moodId?((moodName||'Mood')+' · '+(params.moodIntensity||60)+'%'):'';
@@ -2258,7 +2270,7 @@ function showImageDetail(job,hasOutput,loading=false){
   $('image-lightbox-unavailable').textContent=job.status==='uncertain'?'Provider status is unknown. Nothing will be resubmitted automatically.':job.status==='draft'?'Saved draft. Choose Reuse to continue editing.':'No finished output file is available for this record.';
   $('image-detail-status-help').hidden=!['failed','uncertain'].includes(job.status);
   $('image-detail-status-help').textContent=job.error||(job.status==='uncertain'?'Verify the provider request before trying again.':'The provider did not return an output.');
-  for(const id of ['image-detail-video','image-detail-reference','image-detail-upscale','image-detail-repair','image-detail-edit-area','image-lightbox-download'])
+  for(const id of ['image-detail-video','image-detail-reference','image-detail-upscale','image-detail-repair','image-detail-edit-area','image-detail-mood','image-detail-save-mood','image-lightbox-download'])
     $(id).disabled=!hasOutput||loading;
   $('image-detail-delete').disabled=activeStates.has(job.status);
   fillDetailExtraActions(job,'image');
@@ -2357,6 +2369,10 @@ $('image-detail-expand').onclick=()=>{
 };
 document.addEventListener('keydown',event=>{
   if(!$('image-lightbox').open||$('image-source-lightbox').open||event.altKey||event.ctrlKey||event.metaKey||event.target.closest('input,textarea,select,[contenteditable="true"]'))return;
+  if(event.key==='Escape'&&$('image-detail-extra').open){
+    event.preventDefault();$('image-detail-extra').open=false;
+    $('image-detail-extra').querySelector('summary').focus();return;
+  }
   if(event.key==='ArrowLeft'||event.key==='ArrowRight'){
     event.preventDefault();
     void navigateImageDetail(event.key==='ArrowLeft'?-1:1);
@@ -2399,6 +2415,25 @@ $('image-detail-copy').onclick=async()=>{
   }
 };
 $('image-detail-video').onclick=()=>executeImageDetail(animateImage);
+$('image-lightbox').addEventListener('click',event=>{
+  const menu=$('image-detail-extra');if(menu.open&&!menu.contains(event.target))menu.open=false;
+});
+$('image-detail-favorite').onclick=async()=>{
+  const job=imageDetailJob,requestEpoch=epoch;
+  if(!owner||!job||job.favorite===undefined||imageDetailFavoritePending.has(job.id))return;
+  const favorite=!job.favorite;
+  imageDetailFavoritePending.add(job.id);paintImageDetailFavorite();
+  try{
+    await api('/api/library/members',{method:'POST',body:{ids:[job.id],favorite}});
+    if(!owner||epoch!==requestEpoch)return;
+    job.favorite=favorite;
+    const cached=imageDetailCache.get(job.id);if(cached)cached.favorite=favorite;
+    if(imageDetailJob?.id===job.id)imageDetailJob.favorite=favorite;
+    // Refresh the existing gallery heart and Favorites view from the saved state.
+    if(assetLibrary?.active())await loadHistory();else await syncHistory();
+  }catch(error){if(owner&&epoch===requestEpoch)notify(error.message,true);}
+  finally{imageDetailFavoritePending.delete(job.id);if(owner&&epoch===requestEpoch)paintImageDetailFavorite();}
+};
 $('image-detail-reuse').onclick=()=>executeImageDetail(restore);
 $('image-detail-reference').onclick=()=>executeImageDetail(useImageAsReference);
 $('image-detail-mood').onclick=()=>executeImageDetail(applyMoodToImage);
@@ -2654,7 +2689,16 @@ async function upscaleImage(job){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
-async function animateImage(job){clearMedia();setTool('video');setMode('start');await setImage(await assetFile(job.outputId,'generated-image'),job.outputId);$('prompt').value='';update();notify('Generated image loaded as the video start frame. Add motion direction and review the price.');window.scrollTo({top:0,behavior:'smooth'});}
+async function animateImage(job){
+  if(!hasResult(job)||job.settings.type!=='image')throw new Error('Choose a completed image first.');
+  const requestEpoch=epoch,firstFrame=await assetFile(job.outputId,'generated-image');
+  if(!owner||epoch!==requestEpoch)return;
+  clearMedia();setTool('video');setMode('start');
+  await setImage(firstFrame,job.outputId);
+  $('prompt').value='';update();
+  notify('Generated image loaded as the video start frame. Add motion direction and review the price.');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
 async function refineInSeedream(job,preset='full'){
   if(!hasResult(job)||job.settings.type!=='image')throw new Error('Choose a completed image first.');
   if(!config.enabled)throw new Error('SpicyAPI is not connected.');
