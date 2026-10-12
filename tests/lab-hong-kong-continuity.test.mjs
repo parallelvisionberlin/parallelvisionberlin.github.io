@@ -29,3 +29,16 @@ test('Hong Kong final provider budget retains identity constraints and authored 
   assert.match(prompt,/no body outline|no body halo/);
  }
 });
+test('Hong Kong generation recipe never changes with Film Finish',()=>{
+ for(const engine of ['seedream','gemini'])for(const intensity of [34,70,100])for(const count of [1,3]){
+  const base={engine,referenceCount:count};
+  const on=prepareMoodPrompt('Keep the room and person.','hong-kong-nights',intensity,{...base,filmFinish:{version:1,grain:100,glow:100}});
+  const off=prepareMoodPrompt('Keep the room and person.','hong-kong-nights',intensity,{...base,filmFinish:null});
+  assert.equal(on.prompt,off.prompt);
+  assert.match(off.prompt,/atmospheric emerald haze/i);
+  assert.match(off.prompt,/IDENTITY FIRST/);
+  assert.match(off.prompt,/WET \/ GLOSS/);
+  assert.match(off.prompt,/HALATION:/);
+  if(intensity===100)assert.match(off.prompt,/black letterbox bars/);
+ }
+});
