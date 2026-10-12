@@ -23,16 +23,19 @@ const server=http.createServer((req,res)=>{
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'No overflow at '+width);
   assert.equal(await page.locator('.hero-poster').evaluate(el=>getComputedStyle(el).animationName),'none');
   assert.equal(await page.locator('#motion-toggle').count(),0);
-  const current=await page.locator('.hero-poster').evaluate(el=>el.currentSrc);assert.ok(current.includes(width<=700?'ivory-motion':'greenhouse-hero'));
+  const current=await page.locator('.hero-poster').evaluate(el=>el.currentSrc);
+  assert.ok(current.endsWith(width<=700?'/flesh-zero/hero-poster-mobile.webp':'/flesh-zero/hero-poster.webp'),'Flesh Zero poster matches the viewport');
+  assert.equal(await page.locator('#pv-hero-motion').getAttribute('src'),null,'Reduced motion does not download the hero video');
+  assert.equal(await page.locator('#hero-motion-toggle').isVisible(),false,'Reduced motion hides playback controls');
   await page.locator('#tools').scrollIntoViewIfNeeded();await page.locator('.tool-card img').evaluateAll(imgs=>Promise.all(imgs.map(img=>img.decode())));
   await page.evaluate(()=>scrollTo(0,0));
   if(width===1440||width===390)console.log('SILVER_LANDING_'+width+'='+Buffer.from(await page.screenshot({type:'jpeg',quality:75,fullPage:true})).toString('base64'));
  }
- await page.emulateMedia({reducedMotion:'no-preference'});
- assert.equal(await page.locator('.hero-poster').evaluate(el=>getComputedStyle(el).animationName),'none');
+ await page.setViewportSize({width:1440,height:1000});
+ await page.goto('http://127.0.0.1:8766/lab/',{waitUntil:'networkidle'});
  for(const card of await page.locator('.tool-card').all()){
  const heading=await card.locator('.card-caption').boundingBox(),media=await card.locator('.card-media').boundingBox();assert.ok(heading.y+heading.height<=media.y+1,'Titles sit above photographs');
  }
- assert.deepEqual(errors,[]);console.log('PASS ivory landing: images, destinations, Fashion, four responsive widths, static hero and titles above photographs');
+ assert.deepEqual(errors,[]);console.log('PASS Flesh Zero landing: responsive posters, reduced-motion fallback, destinations, no overflow and desktop titles above photographs');
  await browser.close();server.close();
 })().catch(e=>{console.error(e);server.close();process.exit(1)});

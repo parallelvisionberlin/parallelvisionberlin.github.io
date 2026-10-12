@@ -10,7 +10,7 @@ import {pathToFileURL} from 'node:url';
 const {chromium}=await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE).href);
 const root=resolve('.'),source=readFileSync('lab/lab.js','utf8');
 const boot=source.indexOf("try{clerk=await loadLabAccount();");const bootEnd=source.indexOf("\n// Soul composer:",boot);assert.ok(boot>0&&bootEnd>boot);
-const testSource=source.slice(0,boot)+source.slice(bootEnd)+`clerk={isSignedIn:true,user:{id:'test'},session:{id:'synthetic-session',getToken:async()=> 'synthetic-token'},signOut:async()=>{}};owner=true;userId='test';config={enabled:true,geminiEnabled:true,falEnabled:true,dailyLimitUsd:10,concurrency:{image:4,video:1}};$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();await loadSoulProIdentity();await restoreStudioEntry();update();window.__labTest={lock,setBusy:value=>{busy=!!value;update();},setCustomerMode:value=>{customerMode=!!value;update();}};`;
+const testSource=source.slice(0,boot)+source.slice(bootEnd)+`clerk={isSignedIn:true,user:{id:'test'},session:{id:'synthetic-session',getToken:async()=> 'synthetic-token'},signOut:async()=>{}};owner=true;userId='test';config={enabled:true,geminiEnabled:true,falEnabled:true,dailyLimitUsd:10,concurrency:{image:4,video:1}};$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();await loadSoulProIdentity();await restoreStudioEntry();update();window.__labTest={lock,settled:()=>!busy&&!imageSubmissionPending&&!fastImageHandoff.active(),setBusy:value=>{busy=!!value;update();},setCustomerMode:value=>{customerMode=!!value;update();}};`;
 const server=http.createServer((req,res)=>{const pathname=new URL(req.url,'http://localhost').pathname;const path=resolve(root,'.'+pathname+(pathname.endsWith('/')?'index.html':''));if(!path.startsWith(root+'/')||!existsSync(path)){res.writeHead(404).end();return;}res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css'})[extname(path)]||'text/plain');res.end(pathname==='/lab/lab.js'?testSource:readFileSync(path));});
 await new Promise(r=>server.listen(4179,'127.0.0.1',r));
 const browser=await chromium.launch({headless:true});
@@ -82,7 +82,7 @@ async function workspace({failure='',width=1440,height=1000,initial=[],savedPack
  return {page,context,requests,errors,dialogs,jobs,accepted:()=>accepted};
 }
 const count=(x,path,method='POST')=>x.requests.filter(r=>r.path===path&&r.method===method).length;
-const ready=page=>page.waitForFunction(()=>!document.querySelector('#resolution').disabled);
+const ready=page=>page.waitForFunction(()=>!document.querySelector('#resolution').disabled&&window.__labTest.settled());
 const waitAccepted=async(x,n)=>{const until=Date.now()+7000;while(x.accepted()<n&&Date.now()<until)await new Promise(r=>setTimeout(r,40));};
 const waitRefs=(page,n)=>page.waitForFunction(expected=>document.querySelectorAll('#reference-list .reference-item').length===expected,n);
 async function retouchTopAndBackButton(page){
@@ -314,7 +314,7 @@ try{
   assert.equal(x.requests.find(r=>r.path==='/api/quotes').data.count,2);
   assert.equal(new Set(x.requests.filter(r=>r.path==='/api/jobs'&&r.method==='POST').map(r=>r.data.quoteId)).size,2);
   ok('Two Seedream images share one price-check request and each use a distinct price');assert.deepEqual(x.errors,[]);await x.context.close();
- x=await workspace({historyDelay:1200});await imageForm(x);const releaseStarted=Date.now();await x.page.click('#generate:visible, #image-composer-generate:visible');await x.page.waitForFunction(()=>!document.querySelector('#resolution').disabled,{timeout:700});assert.ok(Date.now()-releaseStarted<900);assert.equal(x.accepted(),1);assert.equal(await x.page.locator('.card[data-state="queued"]').count(),1);ok('Image submission releases the editor before the background History refresh finishes');assert.deepEqual(x.errors,[]);await x.context.close();
+ x=await workspace({historyDelay:1200});await imageForm(x);const releaseStarted=Date.now();await x.page.click('#generate:visible, #image-composer-generate:visible');await x.page.waitForFunction(()=>!document.querySelector('#resolution').disabled,{timeout:700});assert.ok(Date.now()-releaseStarted<900);await x.page.waitForFunction(()=>document.querySelector('.card[data-state="queued"]'),undefined,{timeout:700});assert.equal(x.accepted(),1);assert.equal(await x.page.locator('.card[data-state="queued"]').count(),1);ok('Image submission releases the editor before the background History refresh finishes');assert.deepEqual(x.errors,[]);await x.context.close();
  x=await workspace();await imageForm(x);await x.page.locator('#reference-images').setInputFiles({name:'sculpture.png',mimeType:'image/png',buffer:png});await ready(x.page);await x.page.click('#generate:visible, #image-composer-generate:visible');await ready(x.page);const edit=x.requests.find(r=>r.path==='/api/quotes').data;assert.equal(edit.referenceSourceIds.length,1);assert.equal(edit.transferSourceIds.length,1);assert.equal(x.accepted(),1);assert.equal(await x.page.locator('#quote-dialog').isVisible(),false);ok('Reference edit submits once without review and preserves reference inputs');await x.context.close();
 
 
@@ -329,7 +329,7 @@ try{
   });
   const importError=x.page.locator('#image-composer-status');
   await importError.waitFor({state:'visible'});
-  assert.match(await importError.innerText(),/Image too large.*20 MB/i);
+  assert.match(await importError.innerText(),/Image too large.*20 MB/is);
   assert.match(await importError.innerText(),/MIN 240 × 240 PX/);
   assert.match(await importError.innerText(),/MAX 20 MB/);
   assert.equal(await importError.locator('.import-toast-title').innerText(),'Image too large');
@@ -337,7 +337,7 @@ try{
   assert.equal(await x.page.locator('#image-composer-references .composer-reference-tile').count(),0);
   assert.equal(count(x,'/api/uploads'),0);
   assert.equal(count(x,'/api/quotes'),0);
-  await importError.getByRole('button',{name:'Dismiss image upload error'}).click();
+  await importError.getByRole('button',{name:'Dismiss PV Lab notification'}).click();
   assert.equal(await importError.isVisible(),false);
   await x.page.locator('#reference-images').setInputFiles({name:'valid.png',mimeType:'image/png',buffer:png});
   await ready(x.page);

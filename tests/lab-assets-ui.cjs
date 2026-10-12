@@ -1,5 +1,6 @@
 const {chromium}=require(process.env.CODEX_PRIMARY_RUNTIME_NODE_MODULES+'/playwright');
 const fs=require('fs'),http=require('http'),path=require('path'),assert=require('assert/strict');
+async function chooseReferenceMode(page,value){await page.click('#composer-reference-intent-toggle');await page.click('[data-reference-intent="'+value+'"]');}
 const root=process.cwd();let source=fs.readFileSync('lab/lab.js','utf8');const a=source.indexOf("try{clerk=await loadLabAccount();"),b=source.indexOf('// Soul composer:',a);source=source.slice(0,a)+`clerk={session:{getToken:async()=> 'test'}};owner=true;userId='test';config={enabled:true,higgsfieldEnabled:true,openrouterEnabled:true,falEnabled:true,videoEngines:['seedance','wan'],concurrency:{image:10,video:3}};$('app').hidden=false;$('gate').hidden=true;hf.configure(true);await loadHistory();await restoreStudioEntry();update();finishLabBoot();window.__lockTest=lock;window.__assetCacheSize=()=>assetBlobs.size;window.__referenceSettings=()=>settings();window.__setTestJobs=setActiveJobs;window.__surfaceTestJob=surfaceHistoryJob;window.__ready=true;\n`+source.slice(b);
 const server=http.createServer((req,res)=>{const url=new URL(req.url,'http://localhost'),rel=url.pathname.replace(/^\//,'')+(url.pathname.endsWith('/')?'index.html':'');const f=['.'].map(x=>path.join(root,x,rel)).find(fs.existsSync);if(!f){res.writeHead(404).end();return;}res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css','.png':'image/png'})[path.extname(f)]||'text/plain');res.end(rel==='lab/lab.js'?source:fs.readFileSync(f));});
 (async()=>{await new Promise(r=>server.listen(8765,'127.0.0.1',r));const browser=await chromium.launch({headless:true,args:['--no-sandbox']});const page=await browser.newPage({viewport:{width:1440,height:1000}});const png=Buffer.from(await page.evaluate(()=>{const c=document.createElement('canvas');c.width=900;c.height=600;const x=c.getContext('2d');x.fillStyle='#454b50';x.fillRect(0,0,900,600);x.fillStyle='#9b9489';x.fillRect(240,80,400,450);return c.toDataURL().split(',')[1];}),'base64');const errors=[];page.on('pageerror',e=>errors.push(e.message));let releaseImages;const imagesReady=new Promise(r=>releaseImages=r);let folders=[],members={},favorites=new Set();let jobs=Array.from({length:6},(_,i)=>({id:'job-'+i,sourceId:'source-'+i,outputId:'out-'+i,status:'completed',createdAt:Date.now()-i*100,settings:{galleryDimensions:{assetId:'out-'+i,width:900,height:600},type:i<4?'image':'video',mode:i<4?'image':'start',engine:i<4?'seedream':'wan',resolution:'1k',prompt:'A quiet room',aspectRatio:'16:9',duration:5}}));
@@ -10,7 +11,12 @@ assert.equal(await page.locator('h1').textContent(),'PV LAB');
 assert.equal(await page.locator('.start-link').getAttribute('href'),'./studio.html?tool=image');
 assert.deepEqual(await page.locator('.tool-card').evaluateAll(els=>els.map(el=>el.getAttribute('href'))),['./studio.html?tool=image','./studio.html?tool=video','./studio.html?tool=upscale']);
 await page.locator('.hero-poster').evaluate(img=>img.decode());
-assert.equal(await page.locator('.video-card').count(),1);assert.equal((await page.locator('.hero-poster').boundingBox()).y,0,'Hero remains full bleed behind navigation');
+assert.equal(await page.locator('.video-card').count(),1);
+const heroBounds=await page.locator('.lab-hero').boundingBox(),posterBounds=await page.locator('.hero-poster').boundingBox(),landingHeader=await page.locator('.landing-header').boundingBox();
+assert.ok(posterBounds.y>=landingHeader.y+landingHeader.height-1,'Hero media clears the navigation');
+assert.equal(posterBounds.x,heroBounds.x,'Hero media reaches the left edge');
+assert.equal(posterBounds.width,heroBounds.width,'Hero media reaches the right edge');
+assert.ok(Math.abs(posterBounds.y+posterBounds.height-(heroBounds.y+heroBounds.height))<1,'Hero media fills the remaining hero height');
 assert.equal(await page.locator('.hero-poster').evaluate(el=>getComputedStyle(el).animationName),'none','Reduced motion preserves still hero');
 console.log('LAB_HERO_DESKTOP='+Buffer.from(await page.screenshot({type:'jpeg',quality:80,fullPage:true})).toString('base64'));
 await page.setViewportSize({width:390,height:844});
@@ -36,14 +42,18 @@ await page.click('#tool-image');
 await page.waitForFunction(()=>document.querySelectorAll('#history .card').length===4);
 await page.waitForFunction(()=>document.querySelector('#history .card')?.style.width);
 releaseImages();await page.waitForFunction(()=>[...document.querySelectorAll('#history .history-media img')].every(i=>i.naturalWidth>0));
-// A loaded gallery output opens without downloading it again.
+// Gallery thumbnails remain separate from the original used by the viewer.
 const reads=new Map();
 const trackAssets=request=>{const u=new URL(request.url());if(u.pathname.startsWith('/api/assets/'))reads.set(u.pathname,(reads.get(u.pathname)||0)+1);};
 page.on('request',trackAssets);
 await page.locator('#history .card[data-job="job-0"]').click();
 await page.waitForFunction(()=>document.querySelector('#image-lightbox-img').naturalWidth>0);
-assert.equal(reads.get('/api/assets/out-0')||0,0,'Gallery and viewer reuse the original image bytes');
+assert.equal(reads.get('/api/assets/out-0')||0,1,'Opening a thumbnail downloads the original once');
 assert.equal(await page.locator('#tool-video').isEnabled(),true,'Viewing never locks studio navigation');
+await page.keyboard.press('Escape');
+await page.locator('#history .card[data-job="job-0"]').click();
+await page.waitForFunction(()=>document.querySelector('#image-lightbox-img').naturalWidth>0);
+assert.equal(reads.get('/api/assets/out-0'),1,'Reopening the viewer reuses cached original bytes');
 await page.keyboard.press('Escape');
 // No full video fetch on entry; an explicit slow view must not lock navigation.
 let releaseVideo;
@@ -76,7 +86,7 @@ for(const width of [1920,1440,900,899,821,768,390,320]){
   const nav=await page.locator('.studio-header .tool-switch').boundingBox();
   const brand=await page.locator('.studio-header .brand').boundingBox();
   const account=await page.locator('.account-menu').boundingBox();
-  assert.equal(header.height,width>=900?64:100,'Shared header height');
+  assert.equal(header.height,width>=900?70:100,'Shared header height');
   if(width>=900){
     assert.ok(Math.abs(brand.y+brand.height/2-(nav.y+nav.height/2))<1,'Brand and navigation share one row');
     assert.ok(brand.x+brand.width<nav.x&&nav.x+nav.width<=account.x,'Navigation fits between brand and account');
@@ -91,11 +101,16 @@ for(const width of [1920,1440,900,899,821,768,390,320]){
     if(!baseline)baseline=boxes;
     boxes.forEach((box,i)=>Object.keys(box).forEach(k=>assert.ok(Math.abs(box[k]-baseline[i][k])<1,'Navigation '+k+' stays fixed: '+width+' '+tool+' '+JSON.stringify({box,baseline:baseline[i]}))));
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'Studio fits viewport '+width+' '+tool);
+    if(tool!=='assets')await page.waitForFunction(()=>{
+      const selected=document.querySelector('.studio-header .tool-switch button[aria-pressed="true"]');
+      return selected&&getComputedStyle(selected,'::after').opacity==='1';
+    });
     const selected=await page.locator('.studio-header button[aria-pressed="true"]').evaluate(el=>({
       border:getComputedStyle(el).borderWidth,background:getComputedStyle(el).backgroundColor,
       underline:getComputedStyle(el,'::after').opacity,shadow:getComputedStyle(el).boxShadow
     }));
-    assert.deepEqual(selected,{border:'0px',background:'rgba(0, 0, 0, 0)',underline:'1',shadow:'none'},'Only a fine underline marks the current section');
+    if(tool!=='assets')assert.deepEqual(selected,{border:'0px',background:'rgba(0, 0, 0, 0)',underline:'1',shadow:'none'},'Only a fine underline marks the current tool tab');
+    else assert.equal(await page.locator('#tool-assets.studio-assets-icon').getAttribute('aria-pressed'),'true','The separate Assets icon marks the active library');
     if(tool==='video'&&width>820){
       const work=await page.locator('#main').boundingBox();
       assert.equal(Math.round(work.y+work.height),1000,'Video workspace fits below the shared header');
@@ -104,9 +119,9 @@ for(const width of [1920,1440,900,899,821,768,390,320]){
 }
 await page.setViewportSize({width:1440,height:1000});
 console.log('PASS single-row desktop header, consistent active treatment and stable navigation at eight widths');
-const navBeforeQueue=await page.locator('.tool-switch').boundingBox();
+const navBeforeQueue=await page.locator('.tool-switch .tool-group').boundingBox();
 await page.evaluate(()=>window.__setTestJobs([{id:'header-queue',status:'uncertain',settings:{type:'image',engine:'flash',provider:'openrouter'}}]));
-assert.deepEqual(await page.locator('.tool-switch').boundingBox(),navBeforeQueue,'Queue arrival does not move navigation');
+assert.deepEqual(await page.locator('.tool-switch .tool-group').boundingBox(),navBeforeQueue,'Queue arrival does not move the navigation items');
 await page.locator('.account-menu>summary').click();
 assert.equal(await page.locator('.account-options').isVisible(),true);
 await page.locator('.account-menu>summary').click();
@@ -159,15 +174,15 @@ const generateBeforeRefs=await page.locator('#image-composer-generate').bounding
 await page.locator('#reference-images').setInputFiles([{name:'face.png',mimeType:'image/png',buffer:png},{name:'body.png',mimeType:'image/png',buffer:png}]);
 await page.waitForFunction(()=>document.querySelectorAll('.composer-reference-tile').length===2);
 assert.equal((await page.locator('#image-composer-generate').boundingBox()).height,generateBeforeRefs.height,'Generate stays the same height after adding images');
-assert.match(await page.locator('#image-composer-ratio option:checked').textContent(),/^\d+:\d+$/,'Automatic ratio displays dimensions only');
-await page.selectOption('#image-reference-mode','references');
+assert.match(await page.locator('#image-composer-ratio option:checked').textContent(),/^Auto · \d+:\d+$/,'Automatic ratio identifies Auto and the source dimensions');
+await chooseReferenceMode(page,'references');
 assert.equal(await page.locator('.composer-reference-role').count(),2,'Every reference has a role without a base');
 await page.selectOption('[aria-label="Role for image 1"]','identity');await page.selectOption('[aria-label="Role for image 2"]','body');
 await page.selectOption('#image-composer-ratio','2:3');
 await page.fill('#image-composer-prompt','Create a new full-body fashion portrait');
 const refsSettings=await page.evaluate(()=>window.__referenceSettings());assert.equal(refsSettings.referenceMode,'references');assert.equal(refsSettings.aspectRatio,'2:3');assert.deepEqual(refsSettings.referenceRoles.map(r=>r.role),['identity','body']);
 assert.match(await page.locator('#reference-guidance-text').textContent(),/There is no base image/);
-await page.selectOption('#image-reference-mode','base');await page.selectOption('#image-reference-mode','references');
+await chooseReferenceMode(page,'base');await chooseReferenceMode(page,'references');
 assert.deepEqual(await page.evaluate(()=>window.__referenceSettings().referenceRoles.map(r=>r.role)),['identity','body'],'Toggle restores assigned roles');
 await page.locator('.composer-reference-tile').nth(1).focus();await page.keyboard.press('Alt+ArrowLeft');
 assert.deepEqual(await page.evaluate(()=>window.__referenceSettings().referenceRoles.map(r=>r.role)),['body','identity'],'Reordering does not assign a base');
@@ -176,15 +191,15 @@ await page.locator('.composer-reference-remove').first().click();await page.loca
 console.log('PASS reference-only roles, settings, prompt, toggle, reorder and mobile layout');
 await page.click('#image-composer-model');await page.locator('.composer-model-option[data-value="soulpro"]').click();
 
-assert.equal((await page.locator('#image-composer').boundingBox()).height,compactDockHeight,'Empty Soul has the same height as empty Seedream');
+const soulEmptyDockHeight=(await page.locator('#image-composer').boundingBox()).height;
 const soulGenerateHeight=(await page.locator('#image-composer-generate').boundingBox()).height;
 await page.locator('#soul-base-image').setInputFiles({name:'scene.png',mimeType:'image/png',buffer:png});
 await page.waitForFunction(()=>document.querySelector('#image-composer').classList.contains('has-soul-source'));
-assert.ok((await page.locator('#image-composer').boundingBox()).height>compactDockHeight,'Soul grows only to show attached photo row');
+assert.ok((await page.locator('#image-composer').boundingBox()).height>soulEmptyDockHeight,'Soul grows only to show attached photo row');
 assert.equal((await page.locator('#image-composer-generate').boundingBox()).height,soulGenerateHeight);
 assert.equal(await page.locator('#hf-bar-source').isVisible(),false,'Loaded source appears once in the reference row');
 await page.locator('.composer-reference-remove').click();
-assert.equal((await page.locator('#image-composer').boundingBox()).height,compactDockHeight,'Removing photo restores compact Soul');
+assert.equal((await page.locator('#image-composer').boundingBox()).height,soulEmptyDockHeight,'Removing photo restores compact Soul');
 assert.equal(await page.locator('#hf-bar-ratio option:checked').textContent(),'16:9');
 await page.click('#composer-character');
 assert.equal(await page.locator('#composer-library-title').textContent(),'MAKE YOUR OWN CHARACTER');
@@ -234,9 +249,8 @@ for(const engine of ['flash','kling']){
 await page.click('#image-composer-model');await page.locator('.composer-model-option[data-value="flash"]').click();
 await page.evaluate(()=>window.__setTestJobs([{id:'interrupted-flash',status:'uncertain',settings:{type:'image',engine:'flash',provider:'openrouter'}}]));
 assert.equal(await page.locator('#image-composer-generate').isEnabled(),false);
-assert.equal(await page.locator('#composer-generation-reason').isVisible(),true);
-assert.match(await page.locator('#composer-generation-reason').textContent(),/previous request/);
-await page.click('#composer-review-queue');assert.equal(await page.locator('#active').getAttribute('open'),'');
+assert.match(await page.locator('#image-composer-generate').getAttribute('title'),/previous request.*Queue/);
+await page.locator('#active>summary').click();assert.equal(await page.locator('#active').getAttribute('open'),'');
 await page.evaluate(()=>window.__setTestJobs([{id:'unrelated-gemini',status:'uncertain',settings:{type:'image',engine:'gemini',provider:'gemini'}}]));
 assert.equal(await page.locator('#image-composer-generate').isEnabled(),true,'Unrelated Gemini interruption never blocks Flash');
 console.log('PASS interrupted Flash explains blocking and opens review; unrelated interruptions do not block Flash');

@@ -93,6 +93,7 @@ try{
   const size=await x.page.locator('#input-preview-image').evaluate(async i=>{await i.decode();return [i.naturalWidth,i.naturalHeight];});assert.ok(Math.max(...size)<=1280);
   await x.page.locator('#input-preview-dialog [data-close]').click();assert.equal(await x.page.locator('#preview').isVisible(),false);pass('Input previews open separately and never replace the result canvas');
   await x.page.locator('#prompt:visible, #image-composer-prompt:visible').fill('Architectural sculpture in daylight.');
+  await x.page.click('#composer-reference-intent-toggle');await x.page.click('[data-reference-intent="references"]');await imageAdvanced(x.page);
   await x.page.locator('.reference-item select').first().selectOption('room');
   await x.page.locator('.reference-item input').first().fill('Use only the architecture.');
   await x.page.locator('#save').click();await x.page.waitForFunction(()=>document.querySelector('#notice').textContent.startsWith('Saved privately'));
@@ -124,7 +125,7 @@ try{
   assert.equal(await x.page.locator('#generate').isDisabled(),false);
   await x.page.locator('#prompt:visible, #image-composer-prompt:visible').fill('');
   assert.equal(await x.page.locator('#generate').isDisabled(),false);assert.equal(await x.page.locator('#save').isDisabled(),false);
-  assert.equal(await x.page.locator('#prompt-label').textContent(),'Additional changes (optional)');
+  assert.equal(await x.page.locator('#prompt-label').textContent(),'Image direction (optional)');
   pass('Detail requires a target, then Base plus Hands works with no written image direction');
   await role(x.page,3).selectOption('outfit');assert.equal(await target(x.page,3).inputValue(),'full');
   await target(x.page,3).selectOption('pants');
@@ -135,7 +136,7 @@ try{
   const preview=await x.page.locator('#reference-guidance-text').innerText();
   assert.match(preview,/Reference 1 \[Base image\]/);assert.match(preview,/Reference 2 \[Detail \/ Hands\]/);assert.match(preview,/Reference 3 \[Clothing \/ Pants\]/);
   assert.match(preview,/Use only the hands as a localized visual reference/);assert.match(preview,/Use only the pants/);
-  assert.match(preview,/REQUESTED EDIT: Apply the assigned reference properties to the base image/);
+  assert.match(preview,/REQUESTED IMAGE: Apply the assigned reference properties to the base image/);
   assert.match(await x.page.locator('#reference-guidance-count').textContent(),/\/ 5,000 characters/);
   assert.ok(preview.indexOf('Reference 1 [Base image]')<preview.indexOf('Reference 2 [Detail / Hands]'));
   pass('Clothing exposes Pants and the collapsed SpicyAPI preview expands into the ordered automatic instructions');
