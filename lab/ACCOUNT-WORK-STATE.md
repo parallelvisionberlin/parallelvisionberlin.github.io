@@ -80,7 +80,7 @@
 - Live: https://parallelvisionlabel.com/lab/studio.html
 - Next: no remaining work for this scope; reuse these results unless relevant files change.
 
-## Active: refined sign-in and Studio controls (2026-10-12)
+## Refined sign-in and Studio controls (2026-10-12)
 - Approved: Google belongs inside the sign-in panel; keep two hero actions only.
 - Approved: Assets, Queue and avatar form a compact group at the Studio's right edge.
 - References: image(20261012-165335).png and image(20261012-165357).png in the design conversation.
@@ -93,4 +93,11 @@
 - Checks: tests/lab-landing-stability.mjs and tests/lab-account-browser.mjs cover the affected flow/layout.
 - Local syntax, account identity/referral checks and diff whitespace passed.
 - Existing CI provides desktop/mobile verification; no local browser or new imagery needed.
-- Next: verify affected CI, publish and confirm the served revision.
+- Published implementation: fc970b82c4bfa3dfeaa7b15fe705285214f6d90b, PR #166.
+- Landing workflow 38281522737 and account workflow 38281516758 passed at 57eb2f9dfe475fd67c41a2aba56a4c0843835e3a.
+- Landing widths: 1912/1440/768/390/320 px, including delayed font/account recovery and signed-out entry.
+- Desktop/mobile landing and Studio screenshots inspected; no horizontal overflow.
+- Reusable screenshots: artifacts 11761606797 (landing) and 11761512005 (account); local header-review folder in this conversation.
+- Pages run 38281749385 succeeded. Public index.html, studio.html, public-header.css and customer-entry.js returned HTTP 200 and matched the release bytes.
+- Account-provider calls are mocked in CI; no real Google login or payment was performed.
+- Complete: https://parallelvisionlabel.com/lab/ and /lab/studio.html. Reuse these checks for the unchanged revision.
