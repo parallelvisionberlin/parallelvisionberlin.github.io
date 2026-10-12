@@ -25,3 +25,10 @@
   .lab-home-group>.lab-home-link{font-size:12px}
   .mc-header:has(.lab-home-group){height:102px;padding:13px 18px 7px}
 }
+
+/* Keep Home clear of customer credit controls on narrow phones. */
+@media(max-width:380px){
+  body>#studio-header .wrap.top{column-gap:4px}
+  #studio-header .lab-home-group{gap:8px}
+  #studio-header .actions{gap:4px}
+}

@@ -45,8 +45,9 @@
 - Shared scoped styles: home-navigation.css; the existing logo links remain intact.
 - Small-screen Mood Creator uses a two-row header; Account uses the existing compact Studio label.
 - Static link and stylesheet checks passed. Local Chromium cannot start in this execution environment.
-- Existing account browser workflow provides desktop/mobile regression coverage after commit.
-- Deployment and live navigation verification are pending for this revision.
+- Home released in 8fbf3b63989a76604c14bdd672cd69066ffe0a3e; account workflow 38272993924 and Pages run 38272992764 passed.
+- Desktop and mobile screenshots inspected. Final <=380px Studio spacing refinement preserves Add credits and Queue.
+- Narrow-phone refinement verification pending; all Home links target /lab/.
 
 ## Active: approved Studio credit notice (2026-10-12)
 - User approved the white out-of-credits Studio bar and asked for a simple Add credits deck.
