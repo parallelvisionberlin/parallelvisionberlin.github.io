@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 <link rel="stylesheet" href="./moods.css?v=20261011-header-align2">
 <link rel="stylesheet" href="./detail-video-studio.css?v=20261009-pointer1&sourceViewer=1&sourceDownload=1">
 <link rel="stylesheet" href="./editorial-polish.css?v=20261010-mood-details1&sourceViewer=1&viewerFit=1">
-<script type="module" src="./lab.js?v=20261011-midnight-reverie1&iphonePhoto=20261012&moodGenerate=20261012&nativeLab=2&wallet=1&fashiondeck=1&moodsLayout=2&myMoods=2&moodDiscovery=3&sourceViewer=1&galleryPerf=1&galleryScroll=20261012&deviceCache=20261012&galleryThumb=1&sourceDownload=1&createMoodHeader=1&hd=20261011&raveBudget=1&editorialHD=2&moodImageHD=1&noEmojiArrows=1&moodDeckSpace=1&raveNight=4&viewerFast=1&nativeEntry=2&syntheticBudget=1&berlinRefs=1&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1"></script>
+<script type="module" src="./lab.js?v=20261011-midnight-reverie1&account=20261012-account2&iphonePhoto=20261012&moodGenerate=20261012&nativeLab=2&wallet=1&fashiondeck=1&moodsLayout=2&myMoods=2&moodDiscovery=3&sourceViewer=1&galleryPerf=1&galleryScroll=20261012&deviceCache=20261012&galleryThumb=1&sourceDownload=1&createMoodHeader=1&hd=20261011&raveBudget=1&editorialHD=2&moodImageHD=1&noEmojiArrows=1&moodDeckSpace=1&raveNight=4&viewerFast=1&nativeEntry=2&syntheticBudget=1&berlinRefs=1&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1"></script>
 <link rel="stylesheet" href="./credits.css?v=20261010-referrals3">
 <link rel="stylesheet" href="./higgsfield.css?v=20261010-compact-image-prompt1">
 <link rel="stylesheet" href="./assets.css?v=20261012-clean-viewer1&mobileGenerate=1&moodsCitron=1">
@@ -70,6 +70,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 <script type="module" src="./gallery-layout.js?v=20261010-upscale-history1"></script>
 <link rel="stylesheet" href="./image-detail-mobile.css?v=20261012-flow1">
 <link rel="stylesheet" href="./public-header.css?v=20261012-context-nav1">
+<link rel="stylesheet" href="./account-menu.css?v=20261012-account2">
 </head>
 <body class="lab-booting">
 <div id="lab-boot" role="status" aria-live="polite" aria-label="Opening Parallel Vision Lab"><div class="lab-boot-content"><div class="lab-boot-brand" aria-label="Parallel Vision Lab"><img id="lab-boot-wordmark" src="./branding/pv-wordmark.png" alt="Parallel Vision" width="242" height="61" decoding="async"><span class="lab-boot-fallback" id="lab-boot-name">PARALLEL VISION</span><span class="lab-boot-sub">LAB <span aria-hidden="true">/</span> CREATIVE STUDIO</span></div><div class="lab-boot-track" aria-hidden="true"></div><p class="lab-boot-status" id="lab-boot-status">Opening your workspace</p><button id="lab-boot-retry" type="button" hidden>Reload page</button></div></div>
@@ -111,8 +112,19 @@ document.addEventListener('DOMContentLoaded',()=>{
         <p class="fine" id="active-detail" aria-live="polite"></p>
         <button id="resolve" class="quiet" type="button" hidden>Resolve interrupted request</button>
       </div>
-    </details><button id="lab-wallet-toggle" class="lab-wallet-toggle" type="button" hidden>Credits</button><details class="account-menu"><summary>Account</summary><div class="account-options"><button id="connection" class="quiet" hidden>Connection</button><button id="studio-invite-friends" class="quiet" type="button" hidden>Invite friends</button><button id="logout" class="quiet" hidden>Sign out</button></div></details></div></div></header>
-<dialog id="lab-credits-dialog" class="lab-credit-dialog" aria-label="Your PV Lab credits"><header><strong>Lab credits</strong><button id="lab-credits-close" type="button" aria-label="Close wallet">×</button></header><p>Every generation reserves credits based on its cost. Failed submissions are automatically refunded when the provider confirms failure.</p><div class="credit-balance" id="lab-credit-balance">0 credits</div><button id="lab-credit-invite" class="lab-wallet-invite" type="button">Invite friends <span>Earn 200 credits each</span></button><div class="lab-credit-list" id="lab-credit-products"></div><div class="lab-strip-actions"><button id="lab-credit-refresh" type="button">Refresh balance</button> <button id="lab-credit-manage" type="button">Manage subscription</button></div><p class="lab-wallet-state" id="lab-wallet-state" role="status"></p>
+    </details><button id="lab-wallet-toggle" class="lab-wallet-toggle" type="button" hidden>Credits</button><details id="studio-account-menu" class="pv-account-menu" hidden>
+      <summary aria-label="Open account menu" aria-expanded="false"><span class="pv-account-avatar" data-account-avatar aria-hidden="true"></span></summary>
+      <div class="pv-account-panel">
+        <div class="pv-account-details"><strong data-account-name>Your account</strong><small data-account-balance></small></div>
+        <a href="./account.html#balance">Credits &amp; billing</a>
+        <a href="./mood-creator.html#my-moods">My moods</a>
+        <button id="studio-invite-friends" type="button" data-account-referrals hidden>Invite friends</button>
+        <a href="./account.html#settings">Settings</a>
+        <button id="connection" type="button" data-account-connection hidden>Connection</button>
+        <button id="logout" type="button" data-account-signout>Sign out</button>
+      </div>
+    </details></div></div></header>
+<dialog id="lab-credits-dialog" class="lab-credit-dialog" aria-label="Your PV Lab credits"><header><strong>Lab credits</strong><button id="lab-credits-close" type="button" aria-label="Close wallet">×</button></header><p>Every generation reserves credits based on its cost. Failed submissions are automatically refunded when the provider confirms failure.</p><div class="credit-balance" id="lab-credit-balance">0 credits</div><button id="lab-credit-invite" class="lab-wallet-invite" type="button">Invite friends <span>Earn 200 credits each</span></button><div class="lab-credit-list" id="lab-credit-products"></div><div class="lab-strip-actions"><button id="lab-credit-refresh" type="button">Refresh balance</button> <button id="lab-credit-manage" type="button">Manage billing</button></div><p class="lab-wallet-state" id="lab-wallet-state" role="status"></p>
 <details class="lab-account-storage"><summary>Storage and account</summary>
 <p id="lab-storage-status" role="status">Loading storage…</p>
 <p><a href="./customer-care.html">Storage, privacy and billing help</a></p>

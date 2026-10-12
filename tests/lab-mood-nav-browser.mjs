@@ -42,8 +42,8 @@ const page=await browser.newPage({viewport:{width:1440,height:900}});
 const errors=[];page.on('pageerror',error=>errors.push(error.message));
 try{
   await page.goto('http://127.0.0.1:4193/test',{waitUntil:'domcontentloaded'});
-  // In the real studio, the Queue control appears after session setup.
-  await page.evaluate(()=>document.getElementById('active').hidden=false);
+  // In the real studio, Queue and the account control appear after session setup.
+  await page.evaluate(()=>{document.getElementById('active').hidden=false;document.getElementById('studio-account-menu').hidden=false;});
   assert.equal(await page.locator('#studio-header .brand').innerText(),'PV LAB');
   await page.evaluate(()=>document.fonts.ready);
   assert.deepEqual(await page.locator('#studio-header .tool-group>button').allTextContents(),
@@ -86,7 +86,7 @@ try{
         nav:rect('#studio-header .tool-switch'),fashion:rect('#tool-fashion'),
         actions:rect('#studio-header .actions'),
         icon:rect('.studio-assets-icon'),exploreMoods:rect('#tool-explore-moods'),queue:rect('#active>summary'),
-        account:rect('#studio-header .account-menu>summary'),
+        account:rect('#studio-header .pv-account-menu>summary'),
         border:style.borderTopWidth,display:style.display,
         iconText:icon.innerText};
     });

@@ -1,3 +1,4 @@
+import {createAccountMenu} from './account-menu.js?v=20261012-account2';
 import {loadLabAccount} from './native-account.js?v=2';
 import {MOODS,moodById} from './moods.js?v=20261011-midnight-reverie1&hd=20261011&raveBudget=1&editorialHD=2&moodImageHD=1&raveNight=4&dreamcore=7&syntheticRefs=1&raveIdentity=1';
 import {createSessionRequest} from './session-request.js?v=20260927-auth1';
@@ -450,7 +451,10 @@ function initMoodCreator(){
     renderBoard();scrollToWorkspace();
     feedback('Image result added. Use Develop the aesthetic to extract its style, then save the Mood. No generation is started.');
   }
+  const headerAccount=createAccountMenu($('mc-account-menu'));
+  $('mc-account-refer').onclick=()=>location.assign('./account.html#referrals');
   function showAuth(){
+    headerAccount.update({signed:!!clerk?.isSignedIn,user:clerk?.user,profile:account});
     const signed=authenticated();
     signin.hidden=signed;signout.hidden=!clerk?.isSignedIn;
     label.hidden=!signed;

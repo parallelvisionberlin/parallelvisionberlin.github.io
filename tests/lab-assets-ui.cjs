@@ -1,7 +1,7 @@
 const {chromium}=require(process.env.CODEX_PRIMARY_RUNTIME_NODE_MODULES+'/playwright');
 const fs=require('fs'),http=require('http'),path=require('path'),assert=require('assert/strict');
 async function chooseReferenceMode(page,value){await page.click('#composer-reference-intent-toggle');await page.click('[data-reference-intent="'+value+'"]');}
-const root=process.cwd();let source=fs.readFileSync('lab/lab.js','utf8');const a=source.indexOf("try{clerk=await loadLabAccount();"),b=source.indexOf('// Soul composer:',a);source=source.slice(0,a)+`clerk={session:{getToken:async()=> 'test'}};owner=true;userId='test';config={enabled:true,higgsfieldEnabled:true,openrouterEnabled:true,falEnabled:true,videoEngines:['seedance','wan'],concurrency:{image:10,video:3}};$('app').hidden=false;$('gate').hidden=true;hf.configure(true);await loadHistory();await restoreStudioEntry();update();finishLabBoot();window.__lockTest=lock;window.__assetCacheSize=()=>assetBlobs.size;window.__referenceSettings=()=>settings();window.__setTestJobs=setActiveJobs;window.__surfaceTestJob=surfaceHistoryJob;window.__ready=true;\n`+source.slice(b);
+const root=process.cwd();let source=fs.readFileSync('lab/lab.js','utf8');const a=source.indexOf("try{clerk=await loadLabAccount();"),b=source.indexOf('// Soul composer:',a);source=source.slice(0,a)+`clerk={session:{getToken:async()=> 'test'}};owner=true;userId='test';studioAccount.update({signed:true,user:{fullName:'Test Owner'},profile:{customer:false}});config={enabled:true,higgsfieldEnabled:true,openrouterEnabled:true,falEnabled:true,videoEngines:['seedance','wan'],concurrency:{image:10,video:3}};$('app').hidden=false;$('gate').hidden=true;hf.configure(true);await loadHistory();await restoreStudioEntry();update();finishLabBoot();window.__lockTest=lock;window.__assetCacheSize=()=>assetBlobs.size;window.__referenceSettings=()=>settings();window.__setTestJobs=setActiveJobs;window.__surfaceTestJob=surfaceHistoryJob;window.__ready=true;\n`+source.slice(b);
 const server=http.createServer((req,res)=>{const url=new URL(req.url,'http://localhost'),rel=url.pathname.replace(/^\//,'')+(url.pathname.endsWith('/')?'index.html':'');const f=['.'].map(x=>path.join(root,x,rel)).find(fs.existsSync);if(!f){res.writeHead(404).end();return;}res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css','.png':'image/png'})[path.extname(f)]||'text/plain');res.end(rel==='lab/lab.js'?source:fs.readFileSync(f));});
 (async()=>{await new Promise(r=>server.listen(8765,'127.0.0.1',r));const browser=await chromium.launch({headless:true,args:['--no-sandbox']});const page=await browser.newPage({viewport:{width:1440,height:1000}});const png=Buffer.from(await page.evaluate(()=>{const c=document.createElement('canvas');c.width=900;c.height=600;const x=c.getContext('2d');x.fillStyle='#454b50';x.fillRect(0,0,900,600);x.fillStyle='#9b9489';x.fillRect(240,80,400,450);return c.toDataURL().split(',')[1];}),'base64');const errors=[];page.on('pageerror',e=>errors.push(e.message));let releaseImages;const imagesReady=new Promise(r=>releaseImages=r);let folders=[],members={},favorites=new Set();let jobs=Array.from({length:6},(_,i)=>({id:'job-'+i,sourceId:'source-'+i,outputId:'out-'+i,status:'completed',createdAt:Date.now()-i*100,settings:{galleryDimensions:{assetId:'out-'+i,width:900,height:600},type:i<4?'image':'video',mode:i<4?'image':'start',engine:i<4?'seedream':'wan',resolution:'1k',prompt:'A quiet room',aspectRatio:'16:9',duration:5}}));
 await page.route('https://**/*',async route=>{const req=route.request(),u=new URL(req.url());if(!u.href.includes('parallel-vision-lab.parallelvision.workers.dev'))return route.abort();let result={};const d=req.method()==='POST'?req.postDataJSON():{};if(u.pathname==='/api/jobs'){let list=jobs.filter(j=>(u.searchParams.get('unfiled')!=='1'||u.searchParams.get('folder')||u.searchParams.get('favorite')||!Object.values(members).some(ids=>ids.includes(j.id)))&&(!u.searchParams.get('kind')||j.settings.type===u.searchParams.get('kind'))&&(!u.searchParams.get('mode')||j.settings.mode===u.searchParams.get('mode'))&&(!u.searchParams.get('favorite')||favorites.has(j.id))&&(!u.searchParams.get('folder')||(members[u.searchParams.get('folder')]||[]).includes(j.id)));result={jobs:list.map(j=>({...j,favorite:favorites.has(j.id)})),next:null,activeJobs:[]};}else if(u.pathname==='/api/library')result={folders:folders.map(f=>({...f,count:(members[f.id]||[]).length}))};else if(u.pathname==='/api/library/folders'){const folder={id:'folder-'+folders.length,name:d.name};folders.push(folder);result={folder};}else if(u.pathname==='/api/library/archive'){let folder=folders.find(f=>f.name==='Archive');if(!folder){folder={id:'archive',name:'Archive'};folders.push(folder);}members[folder.id]=[...new Set([...(members[folder.id]||[]),...d.ids])];}else if(u.pathname==='/api/library/members'){for(const id of d.ids){if(typeof d.favorite==='boolean'){d.favorite?favorites.add(id):favorites.delete(id);}else{const m=new Set(members[d.folderId]||[]);d.remove?m.delete(id):m.add(id);members[d.folderId]=[...m];}}}else if(u.pathname==='/api/jobs/bulk-delete'){jobs=jobs.filter(j=>!d.ids.includes(j.id));result={deleted:d.ids.length};}else if(u.pathname.startsWith('/api/assets/')){await imagesReady;return route.fulfill({contentType:/out-[45]$/.test(u.pathname)?'video/mp4':'image/png',body:/out-[45]$/.test(u.pathname)?Buffer.from('mock video bytes'):png});}return route.fulfill({contentType:'application/json',body:JSON.stringify(result)});});
@@ -9,9 +9,9 @@ await page.emulateMedia({reducedMotion:'reduce'});
 await page.goto('http://127.0.0.1:8765/lab/',{waitUntil:'domcontentloaded'});
 assert.equal(await page.locator('h1').textContent(),'PV LAB');
 assert.equal(await page.locator('.start-link').getAttribute('href'),'./studio.html?tool=image');
-assert.deepEqual(await page.locator('.tool-card').evaluateAll(els=>els.map(el=>el.getAttribute('href'))),['./studio.html?tool=image','./studio.html?tool=video','./studio.html?tool=upscale']);
+assert.deepEqual(await page.locator('.studio-tool-link').evaluateAll(els=>els.map(el=>el.getAttribute('href'))),['./studio.html?tool=image','./studio.html?tool=video','./studio.html?tool=upscale']);
 await page.locator('.hero-poster').evaluate(img=>img.decode());
-assert.equal(await page.locator('.video-card').count(),1);
+assert.equal(await page.locator('.studio-tool--video').count(),1);
 const heroBounds=await page.locator('.lab-hero').boundingBox(),posterBounds=await page.locator('.hero-poster').boundingBox(),landingHeader=await page.locator('.landing-header').boundingBox();
 assert.ok(posterBounds.y>=landingHeader.y+landingHeader.height-1,'Hero media clears the navigation');
 assert.equal(posterBounds.x,heroBounds.x,'Hero media reaches the left edge');
@@ -22,7 +22,7 @@ console.log('LAB_HERO_DESKTOP='+Buffer.from(await page.screenshot({type:'jpeg',q
 await page.setViewportSize({width:390,height:844});
 assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'Landing fits mobile');
 console.log('LAB_HERO_MOBILE='+Buffer.from(await page.screenshot({type:'jpeg',quality:80,fullPage:true})).toString('base64'));
-await page.click('.tool-card[href="./studio.html?tool=upscale"]');await page.waitForFunction(()=>window.__ready);
+await page.click('.studio-tool-link[href="./studio.html?tool=upscale"]');await page.waitForFunction(()=>window.__ready);
 assert.equal(await page.locator('#tool-upscale').getAttribute('aria-pressed'),'true','Landing card opens Upscaler directly');
 await page.setViewportSize({width:1440,height:1000});await page.emulateMedia({reducedMotion:'no-preference'});
 console.log('PASS public fashion hero, accessible reduced motion, three destinations, direct Upscaler entry and mobile layout');
@@ -85,7 +85,7 @@ for(const width of [1920,1440,900,899,821,768,390,320]){
   const header=await page.locator('.studio-header').boundingBox();
   const nav=await page.locator('.studio-header .tool-switch').boundingBox();
   const brand=await page.locator('.studio-header .brand').boundingBox();
-  const account=await page.locator('.account-menu').boundingBox();
+  const account=await page.locator('.pv-account-menu').boundingBox();
   assert.equal(header.height,width>900?82:width>560?109:102,'Approved shared header height');
   if(width>900){
     assert.ok(Math.abs(brand.y+brand.height/2-(nav.y+nav.height/2))<1,'Brand and navigation share one row');
@@ -122,9 +122,9 @@ console.log('PASS single-row desktop header, consistent active treatment and sta
 const navBeforeQueue=await page.locator('.tool-switch .tool-group').boundingBox();
 await page.evaluate(()=>window.__setTestJobs([{id:'header-queue',status:'uncertain',settings:{type:'image',engine:'flash',provider:'openrouter'}}]));
 assert.deepEqual(await page.locator('.tool-switch .tool-group').boundingBox(),navBeforeQueue,'Queue arrival does not move the navigation items');
-await page.locator('.account-menu>summary').click();
-assert.equal(await page.locator('.account-options').isVisible(),true);
-await page.locator('.account-menu>summary').click();
+await page.locator('.pv-account-menu>summary').click();
+assert.equal(await page.locator('.pv-account-panel').isVisible(),true);
+await page.locator('.pv-account-menu>summary').click();
 await page.locator('#active>summary').click();
 assert.equal(await page.locator('.queue-popover-panel').isVisible(),true);
 await page.locator('#active>summary').click();

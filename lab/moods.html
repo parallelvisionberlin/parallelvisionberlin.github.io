@@ -14,6 +14,7 @@
 <link rel="stylesheet" href="./explore-moods-editorial.css?v=20261012-card-type1">
 <link rel="stylesheet" href="./explore-moods-hero.css?v=20261012-photo-lift1">
 <link rel="stylesheet" href="./public-header.css?v=20261012-context-nav1">
+<link rel="stylesheet" href="./account-menu.css?v=20261012-account2">
 </head>
 <body class="mc-explore-page">
 <a class="mc-skip" href="#discover">Skip to Moods</a>
@@ -23,13 +24,16 @@
   <div class="landing-header-actions">
     <button class="lab-auth-link" id="lab-header-signin" type="button">Sign in</button>
     <a class="studio-link" href="./studio.html"><span class="studio-link-label-full">Open studio</span><span class="studio-link-label-compact">Studio</span></a>
-    <details id="lab-account-strip" class="lab-account-menu" hidden>
-      <summary aria-label="Open account menu">Account <span aria-hidden="true">⌄</span></summary>
-      <div class="lab-account-panel">
-        <div class="lab-account-details"><span class="lab-account-eyebrow">PV LAB / YOUR WORKSPACE</span><strong id="lab-account-summary">Your workspace</strong></div>
-        <button id="lab-account-buy" type="button">Buy credits </button>
-        <button id="lab-account-refer" type="button">Invite friends </button>
-        <button id="lab-account-logout" type="button">Sign out</button>
+    <details id="lab-account-strip" class="pv-account-menu" hidden>
+      <summary aria-label="Open account menu" aria-expanded="false"><span class="pv-account-avatar" data-account-avatar aria-hidden="true"></span></summary>
+      <div class="pv-account-panel">
+        <div class="pv-account-details"><strong data-account-name>Your account</strong><small data-account-balance></small></div>
+        <a href="./account.html#balance">Credits &amp; billing</a>
+        <a href="./mood-creator.html#my-moods">My moods</a>
+        <button id="lab-account-refer" type="button" data-account-referrals hidden>Invite friends</button>
+        <a href="./account.html#settings">Settings</a>
+
+        <button id="lab-account-logout" type="button" data-account-signout>Sign out</button>
       </div>
     </details>
   </div>
@@ -203,6 +207,6 @@
 <footer class="mc-footer"><a href="./">PV LAB</a><p>Image. Atmosphere. Possibility.</p><a href="./mood-creator.html#my-moods">My Moods </a></footer>
 <script type="module" src="./explore-moods.js?v=20261012-unified-header1&moodImageHD=1&raveNight=4&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1"></script>
 <script type="module" src="./explore-moods-hero.js?v=20261012-editorial-order1"></script>
-<script type="module" src="./customer-entry.js?v=20261012-unified-header1"></script>
+<script type="module" src="./customer-entry.js?v=20261012-account2"></script>
 </body>
 </html>

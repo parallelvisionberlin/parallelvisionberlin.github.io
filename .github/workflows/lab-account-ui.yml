@@ -1,0 +1,33 @@
+name: PV Lab account interface
+on:
+  push:
+    paths: ['lab/account*', 'lab/customer-entry.js', 'lab/customer-wallet.js', 'lab/lab.js', 'lab/index.html', 'lab/moods.html', 'lab/studio.html', 'lab/mood-creator*', 'tests/lab-account*', '.github/workflows/lab-account-ui.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  account:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            lab
+            tests
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node --test tests/lab-account-menu.test.mjs tests/lab-referral-ui.test.mjs
+      - run: npm install --prefix /tmp/pv-account-browser --no-audit --no-fund playwright@1.62.1
+      - run: /tmp/pv-account-browser/node_modules/.bin/playwright install --with-deps chromium
+      - name: Check account, shared menus and session isolation on desktop and mobile
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-account-browser/node_modules/playwright/index.mjs
+        run: node tests/lab-account-browser.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pv-lab-account-review
+          path: /tmp/pv-lab-account-review
+          retention-days: 3

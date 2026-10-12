@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#101110">
+<title>My account / PV LAB</title>
+<link rel="icon" href="./branding/pv-mark.png" type="image/png">
+<link rel="stylesheet" href="./public-header.css?v=20261012-unified-header1">
+<link rel="stylesheet" href="./account-menu.css?v=20261012-account2">
+<link rel="stylesheet" href="./account.css?v=20261012-account2">
+</head>
+<body class="pv-account-page">
+<a class="account-skip" href="#account-main">Skip to my account</a>
+<header class="landing-header landing-header--moods">
+  <a class="lab-brand" href="./" aria-label="PV Lab home">PV LAB</a>
+  <nav aria-label="Creative tools"><a href="./moods">Explore Moods</a><a href="./mood-creator.html#my-moods">My moods</a></nav>
+  <div class="landing-header-actions">
+    <a class="studio-link" href="./studio.html">Open studio</a>
+    <button id="account-signin" class="lab-auth-link" type="button" disabled>Sign in</button>
+    <details id="account-menu" class="pv-account-menu" hidden>
+      <summary aria-label="Open account menu" aria-expanded="false"><span class="pv-account-avatar" data-account-avatar aria-hidden="true"></span></summary>
+      <div class="pv-account-panel">
+        <div class="pv-account-details"><strong data-account-name></strong><small data-account-balance></small></div>
+        <a href="#balance">Credits &amp; billing</a><a href="./mood-creator.html#my-moods">My moods</a>
+        <a href="#referrals" data-account-referrals hidden>Invite friends</a><a href="#settings">Settings</a>
+        <button id="account-signout" data-account-signout type="button">Sign out</button>
+      </div>
+    </details>
+  </div>
+</header>
+<main id="account-main" class="account-shell">
+  <div class="account-intro"><p class="account-eyebrow">PV LAB / YOUR WORKSPACE</p><h1>My account.</h1><p id="account-identity">Your creative space, in one place.</p></div>
+  <p id="account-status" class="account-status" role="status" aria-live="polite">Loading your account…</p>
+  <div id="account-gate" class="account-gate" hidden><h2>Your workspace awaits.</h2><p>Sign in to see your credits, billing and account settings.</p><button id="account-gate-signin" class="account-button" type="button">Sign in</button></div>
+  <div id="account-workspace" class="account-layout" hidden>
+    <aside class="account-sidebar"><nav aria-label="Account sections"><a href="#balance" data-section-link="credits">Credits &amp; billing</a><a href="./mood-creator.html#my-moods">My moods <span aria-hidden="true">↗</span></a><a href="#referrals" data-section-link="referrals" id="account-referrals-link" hidden>Invite friends</a><a href="#settings" data-section-link="settings">Settings</a></nav><a class="account-help" href="./customer-care.html">Need a hand? ↗</a></aside>
+    <label class="account-mobile-nav">Account section<select id="account-section"><option value="balance">Credits &amp; billing</option><option value="referrals" id="account-referrals-option" hidden>Invite friends</option><option value="settings">Settings</option><option value="moods">My moods</option></select></label>
+    <div class="account-content">
+      <section id="section-credits" data-account-section="credits" aria-labelledby="credits-title">
+        <div class="account-section-head"><h2 id="credits-title">Credits &amp; billing</h2><button id="account-refresh" class="account-text-button" type="button">Refresh</button></div>
+        <nav class="account-tabs" aria-label="Credits and billing views"><a href="#balance" data-tab="balance">Balance</a><a href="#usage" data-tab="usage">Usage</a><a href="#billing" data-tab="billing">Billing</a></nav>
+        <div id="owner-billing" class="account-empty" hidden><p class="account-eyebrow">OWNER WORKSPACE</p><h3>Your creative workspace.</h3><p>Your owner account uses its connected providers. Customer credit balances and purchases are managed separately.</p><a class="account-button account-button-outline" href="./studio.html?settings=connection">Manage connection ↗</a></div>
+        <div data-credit-view="balance">
+          <div class="account-balance"><span class="account-eyebrow">AVAILABLE CREDITS</span><div><strong id="account-balance">…</strong><span>credits</span></div><p>Ready for your next idea.</p></div>
+          <div class="account-section-head"><h3>Add credits</h3><span class="account-muted">One-time purchase</span></div>
+          <p id="account-checkout-state" class="account-muted"></p><div id="account-products" class="account-products"></div>
+        </div>
+        <div data-credit-view="usage" hidden><div class="account-section-head"><h3>Recent activity</h3><span class="account-muted">Latest 30 movements</span></div><p class="account-muted">Generation charges, purchases and returned credits.</p><div id="account-activity" class="account-activity"></div></div>
+        <div data-credit-view="billing" hidden>
+          <div class="account-billing-row"><div><h3>Payment details &amp; invoices</h3><p class="account-muted">View your payment history, available invoices and payment methods in secure billing.</p></div><button id="account-portal" class="account-button account-button-outline" type="button">Manage billing ↗</button></div>
+          <div id="account-subscription" class="account-billing-row" hidden><div><h3>Your subscription</h3><p id="account-plan" class="account-muted"></p></div></div>
+          <section id="account-plans-section" hidden><div class="account-section-head"><h3>Monthly plans</h3><span class="account-muted">Recurring billing</span></div><p class="account-muted">Credits each month. Manage or cancel your plan in Billing.</p><div id="account-plans" class="account-products"></div></section>
+          <h3 class="account-history-title">Credit purchases</h3><div id="account-purchases" class="account-activity"></div>
+        </div>
+      </section>
+      <section id="section-referrals" data-account-section="referrals" hidden aria-labelledby="referrals-title"><p class="account-eyebrow">GOOD IDEAS TRAVEL</p><h2 id="referrals-title">Invite friends.</h2><p class="account-lead" id="referrals-description">Share your creative space.</p><div id="referrals-content" hidden><label class="account-field">Your invite link<div class="account-copy"><input id="referrals-url" type="url" readonly><button id="referrals-copy" class="account-button" type="button">Copy link</button></div></label><div class="account-referral-stats"><div><strong id="referrals-invited">0</strong><span>Friends joined</span></div><div><strong id="referrals-rewarded">0</strong><span>Qualified invites</span></div><div><strong id="referrals-earned">0</strong><span>Credits awarded</span></div></div></div><p id="referrals-status" class="account-muted" role="status"></p></section>
+      <section id="section-settings" data-account-section="settings" hidden aria-labelledby="settings-title"><h2 id="settings-title">Settings</h2><div class="account-billing-row"><div><h3>Profile &amp; sign-in</h3><p id="settings-name"></p><p id="settings-email" class="account-muted"></p><p class="account-muted">Your name, profile photo, email and sign-in security.</p></div><button id="account-edit-profile" class="account-button account-button-outline" type="button">Edit profile ↗</button></div><div id="settings-native" hidden><p class="account-muted">Manage your sign-in profile on the PV Lab website.</p></div><div id="account-storage" class="account-billing-row" hidden><div><h3>Your storage</h3><p id="account-storage-label" class="account-muted"></p><meter id="account-storage-meter" min="0" max="1" value="0">Storage used</meter></div></div><div class="account-billing-row"><div><h3>Account &amp; support</h3><p class="account-muted">Storage, privacy, account closure and payment help.</p></div><a class="account-button account-button-outline" href="./customer-care.html">Account help ↗</a></div><a id="settings-connection" class="account-text-link" href="./studio.html?settings=connection" hidden>Manage generation connection ↗</a><button id="settings-close-account" class="account-text-button" type="button" hidden>Close PV Lab account</button></section>
+    </div>
+  </div>
+  <dialog id="account-close-dialog" class="account-close-dialog" aria-labelledby="account-close-title"><form method="dialog"><button class="account-text-button account-close-x" aria-label="Close dialog">Close</button></form><h2 id="account-close-title">Close your PV Lab account?</h2><p>This permanently removes your Lab images, videos, prompts, moods and references. Download anything you want to keep first. Cancel recurring billing and let running jobs finish before continuing.</p><p>Financial records and your shared Parallel Vision sign-in are kept separately.</p><label class="account-field">Type DELETE MY PV LAB ACCOUNT<input id="account-close-confirm" autocomplete="off"></label><button id="account-close-submit" class="account-button" type="button" disabled>Close account and delete creative data</button><p id="account-close-status" role="status"></p></dialog>
+</main>
+<script type="module" src="./account.js?v=20261012-account2"></script>
+</body>
+</html>
