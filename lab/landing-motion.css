@@ -10,7 +10,15 @@
 .lab-hero .hero-shade,.lab-hero.motion-active .hero-shade{
   background:linear-gradient(90deg,rgba(10,8,12,.8),rgba(10,8,12,.48) 28%,rgba(10,8,12,.08) 55%,transparent 75%),linear-gradient(0deg,rgba(10,8,12,.55),transparent 20%);
 }
-.lab-hero .hero-copy{bottom:clamp(100px,16vh,190px);max-width:36vw}
+.lab-hero .hero-copy{bottom:clamp(100px,16vh,190px);max-width:36vw;padding-bottom:14px}
+/* Account recovery must not move the title and primary actions above it.
+   Keep the existing signed-in copy position and place optional access below. */
+.lab-hero .hero-auth-row{position:absolute;top:100%;left:0;right:0;margin-top:0}
+/* Sign in and Account share one slot; Open studio never changes columns. */
+.landing-header-actions{display:grid;grid-template-columns:auto 76px;min-height:42px}
+.landing-header-actions>.studio-link{grid-area:1 / 1}
+.landing-header-actions>#lab-header-signin,
+.landing-header-actions>#lab-account-strip{grid-area:1 / 2;justify-self:end}
 .lab-hero .hero-copy h1{font-size:clamp(56px,6vw,96px);margin-bottom:18px}
 .lab-hero .hero-copy h2{font-size:clamp(34px,3.5vw,60px);line-height:1.06;white-space:normal;margin-bottom:24px}
 .lab-hero .hero-copy h2 br{display:block}
@@ -70,4 +78,7 @@
 }
 @media(prefers-reduced-motion:reduce){
  .lab-hero .hero-motion,.tool-card .tool-motion{display:none!important;transition:none}
+}
+@media(max-width:560px){
+  .landing-header-actions{grid-template-columns:auto 64px;min-height:38px}
 }
