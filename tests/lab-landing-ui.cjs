@@ -34,7 +34,7 @@ const server=http.createServer((req,res)=>{
  await page.setViewportSize({width:1440,height:1000});
  await page.goto('http://127.0.0.1:8766/lab/',{waitUntil:'networkidle'});
  for(const card of await page.locator('.studio-tool-link').all()){
- const heading=await card.locator('.studio-tool-head').boundingBox(),media=await card.locator('.studio-tool-photo').boundingBox();assert.ok(heading.y+heading.height<=media.y+1,'Titles sit above photographs');
+ const heading=await card.locator('.studio-tool-head h3').boundingBox(),media=await card.locator('.studio-tool-photo').boundingBox();assert.ok(heading.y+heading.height<=media.y+1,'Titles sit above photographs');
  }
  assert.deepEqual(errors,[]);console.log('PASS editorial landing: responsive portraits, reduced motion, destinations, no overflow and titles above photographs');
  await browser.close();server.close();
