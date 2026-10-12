@@ -354,7 +354,17 @@ for(const width of [768,390,320]){
   await page.setViewportSize({width,height:844});
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'Fashion fits viewport '+width+' '+JSON.stringify(await page.evaluate(()=>[...document.querySelectorAll('body *'),...document.querySelector('#fashion-studio').shadowRoot.querySelectorAll('*')].map(el=>({tag:el.tagName,id:el.id,class:el.className,x:el.getBoundingClientRect().x,right:el.getBoundingClientRect().right,w:el.getBoundingClientRect().width})).filter(r=>r.w&&r.right>innerWidth+1).slice(0,18))));
 }
-assert.ok((await page.locator('#tool-fashion').boundingBox()).x+(await page.locator('#tool-fashion').boundingBox()).width<=320,'All five tabs fit the narrow mobile viewport');
+const mobileTools=page.locator('#studio-header .tool-switch');
+assert.equal(await mobileTools.evaluate(el=>getComputedStyle(el).overflowX),'auto','Narrow mobile tools remain horizontally scrollable');
+for(const id of ['tool-image','tool-retouch','tool-video','tool-upscale','tool-fashion','tool-explore-moods']){
+  const tab=page.locator('#'+id);
+  await tab.focus();
+  const bounds=await tab.boundingBox(),navBounds=await mobileTools.boundingBox();
+  assert.ok(bounds.x>=navBounds.x-1&&bounds.x+bounds.width<=navBounds.x+navBounds.width+1,id+' is fully reachable by keyboard in the mobile navigation');
+}
+await page.locator('#tool-fashion').click();
+assert.equal(await page.locator('#tool-fashion').getAttribute('aria-pressed'),'true','Fashion remains usable after scrolling the mobile tools');
+assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'Scrolling tools never widens the mobile page');
 console.log('FASHION_IN_STUDIO_MOBILE='+Buffer.from(await page.screenshot({type:'jpeg',quality:75,fullPage:true})).toString('base64'));
 await page.setViewportSize({width:1440,height:1000});
 await page.click('#tool-assets');
