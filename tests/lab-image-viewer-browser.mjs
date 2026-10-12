@@ -1,7 +1,7 @@
 // Real browser, synthetic images and held downloads. No account or paid requests.
 import assert from 'node:assert/strict';
 import http from 'node:http';
-import {readFileSync,existsSync} from 'node:fs';
+import {readFileSync,existsSync,mkdirSync} from 'node:fs';
 import {resolve,extname} from 'node:path';
 import {pathToFileURL} from 'node:url';
 const {chromium}=await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE).href);
@@ -13,7 +13,7 @@ clerk={session:{id:'test-session',getToken:async()=> 'synthetic-token'}};
 owner=true;userId='test';await deviceMediaCache.select(userId);config={enabled:true,concurrency:{image:4,video:1}};
 $('app').hidden=false;$('gate').hidden=true;
 await loadHistory();await restoreStudioEntry();update();finishLabBoot();
-window.__viewerTest={lock,flush:async()=>{await Promise.allSettled([...assetReads.values(),...thumbnailReads.values()]);await deviceMediaCache.select(userId);},customer:()=>wallet.connect({customer:true,balanceCredits:1000,billingReady:false,products:[]}),state:()=>({job:imageDetailJob?.id,result:resultId,cache:assetBlobs.size,prefetch:imageDetailPrefetchReads})};`;
+window.__viewerTest={lock,flush:async()=>{await Promise.allSettled([...assetReads.values(),...thumbnailReads.values()]);await deviceMediaCache.select(userId);},customer:()=>wallet.connect({customer:true,balanceCredits:1000,billingReady:false,products:[]}),state:()=>({job:imageDetailJob?.id,result:resultId,cache:assetBlobs.size,prefetch:imageDetailPrefetchReads,tool,mode,sourceId,hasFile:!!file,prompt:$('prompt').value})};`;
 const server=http.createServer((req,res)=>{
   const pathname=new URL(req.url,'http://localhost').pathname,path=resolve(root,'.'+pathname);
   if(!path.startsWith(root+'/')||!existsSync(path)){res.writeHead(404).end();return;}
@@ -48,12 +48,18 @@ try{
       return {full,thumb:canvas.toDataURL().split(',')[1]};
     }),shape);
     for(let i=0;i<5;i++)gates.set('out-'+i,new Promise(resolve=>held.set('out-'+i,resolve)));
-    const jobs=images.map((_,i)=>({id:'job-'+i,outputId:'out-'+i,status:'completed',createdAt:Date.now()-i,
-      settings:{type:'image',mode:'image',engine:'seedream',prompt:'Test '+i,resolution:'1k',aspectRatio:'auto'}}));
+    const writes=[];
+    const jobs=images.map((_,i)=>({id:'job-'+i,outputId:'out-'+i,status:'completed',favorite:false,createdAt:Date.now()-i,
+      settings:{type:'image',mode:'image',engine:'seedream',prompt:'Editorial portrait by the window. Warm lamplight, natural texture, quiet atmosphere. Preserve the existing composition and lighting, with understated styling and a photographic finish. Image '+i,resolution:'1k',aspectRatio:'auto'}}));
     await context.route('https://**/*',async route=>{
       const req=route.request(),url=new URL(req.url()),path=url.pathname;
       if(url.origin!=='https://parallel-vision-lab.parallelvision.workers.dev')return route.abort();
-      assert.equal(req.method(),'GET','Viewing must not submit a generation or any write');
+      if(path==='/api/library/members'&&req.method()==='POST'){
+        const body=req.postDataJSON();writes.push(body);
+        for(const job of jobs)if(body.ids.includes(job.id))job.favorite=body.favorite;
+        return route.fulfill({contentType:'application/json',body:'{}'});
+      }
+      assert.equal(req.method(),'GET','Viewer actions must not submit a generation');
       const send=body=>route.fulfill({contentType:'application/json',body:JSON.stringify(body)});
       if(path==='/api/jobs')return send({jobs,activeJobs:[],next:null});
       if(path==='/api/customer/account')return send({storage:{bytes:1024**3,files:5,limitBytes:20*1024**3}});
@@ -124,12 +130,57 @@ try{
     await page.locator('#history .card').nth(1).evaluate(el=>el.click());
     await page.waitForFunction(()=>!document.querySelector('#image-lightbox-download').disabled);
     assert.deepEqual([...reads.entries()],beforeReload,'Returning to the gallery reuses originals across a page reload');
+    if(shape==='landscape'){
+      assert.equal(await page.locator('.image-detail-utility-row #image-lightbox-download').count(),1);
+      assert.equal(await page.locator('.image-detail-media-actions #image-lightbox-download').count(),0);
+      await page.click('#image-detail-favorite');
+      await page.waitForFunction(()=>document.querySelector('#image-detail-favorite').getAttribute('aria-pressed')==='true'&&!document.querySelector('#image-detail-favorite').disabled);
+      assert.deepEqual(writes,[{ids:['job-1'],favorite:true}]);
+      assert.equal(await page.locator('#history [data-job="job-1"] .asset-heart').getAttribute('aria-pressed'),'true');
+      await page.click('#image-detail-extra summary');
+      assert.equal(await page.locator('#image-detail-repair').isVisible(),true);
+      assert.equal(await page.locator('#image-detail-edit-area').isVisible(),true);
+      assert.equal(await page.locator('#image-detail-delete').isVisible(),true);
+      await page.keyboard.press('Escape');
+      assert.equal(await page.locator('#image-detail-extra').evaluate(el=>el.open),false);
+      assert.equal(await page.locator('#image-lightbox').evaluate(el=>el.open),true);
+      await page.click('#image-detail-favorite');
+      await page.waitForFunction(()=>document.querySelector('#image-detail-favorite').getAttribute('aria-pressed')==='false'&&!document.querySelector('#image-detail-favorite').disabled);
+      if(width===1440){
+        mkdirSync('test-results/result-deck',{recursive:true});
+        for(const layoutWidth of [1920,1440,768,390,320]){
+          await page.setViewportSize({width:layoutWidth,height:1000});
+          await page.locator('#image-detail-video').scrollIntoViewIfNeeded();
+          const layout=await page.evaluate(()=>{
+            const panel=document.querySelector('.image-detail-layout');
+            const actions=document.querySelector('.image-detail-actions');
+            const main=document.querySelector('#image-detail-video');
+            const buttons=[...actions.querySelectorAll(':scope>button,.image-detail-action-grid>button,.image-detail-mood-actions>button,.image-detail-utility-row>button,.image-detail-utility-row summary')];
+            return {fits:panel.scrollWidth<=panel.clientWidth+1,buttonFits:buttons.every(b=>{const r=b.getBoundingClientRect();return r.x>=0&&r.right<=innerWidth+1&&r.height>=42;}),color:getComputedStyle(main).backgroundColor};
+          });
+          await page.screenshot({path:'test-results/result-deck/result-'+layoutWidth+'.png'});
+          assert.equal(layout.fits,true,'Result viewer fits '+layoutWidth);
+          assert.equal(layout.buttonFits,true,'All deck actions remain reachable at '+layoutWidth);
+          assert.equal(layout.color,'rgb(237, 236, 229)','Primary action matches the approved warm ivory');
+        }
+        await page.setViewportSize({width,height:1000});
+      }
+    }
+
     await page.click('#image-lightbox-close');
     await page.evaluate(()=>window.__viewerTest.customer());await page.click('#lab-add-credits');
     // Storage and account closure now live on the account page; lab-account-browser covers both.
     assert.equal(await page.locator('#lab-credits-dialog a').getAttribute('href'),'./account.html#billing','The compact purchase deck keeps account management reachable');
     assert.equal(await page.locator('#lab-credits-dialog').evaluate(el=>el.scrollWidth<=el.clientWidth+1),true,'Credit controls fit the dialog');
     await page.click('#lab-credits-close');
+    await page.locator('#history .card').nth(1).evaluate(el=>el.click());
+    await page.waitForFunction(()=>!document.querySelector('#image-detail-video').disabled);
+    await page.click('#image-detail-video');
+    await page.waitForFunction(()=>window.__viewerTest.state().tool==='video'&&window.__viewerTest.state().hasFile);
+    const handoff=await page.evaluate(()=>window.__viewerTest.state());
+    assert.equal(handoff.mode,'start');assert.equal(handoff.sourceId,'out-1');assert.equal(handoff.prompt,'');
+    assert.equal(new URL(page.url()).searchParams.get('tool'),'video');
+    assert.equal(await page.locator('#image-lightbox').evaluate(el=>el.open),false);
     await page.evaluate(()=>window.__viewerTest.lock());
     assert.equal((await page.evaluate(()=>window.__viewerTest.state())).cache,0,'Sign out clears private original cache');
     assert.deepEqual(errors,[]);
