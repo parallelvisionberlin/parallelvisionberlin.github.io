@@ -28,7 +28,7 @@ import {BERLIN_RAVE_REFERENCES,BERLIN_RAVE_REFERENCE_VERSION} from './berlin-rav
 import {moodBoardsRoute} from './moodboards.mjs';
 import {moodCreatorRoute} from './mood-creator-service.mjs';
 import {characterPreview as soulCharacterPreview,SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-12.2-berlin-rave-references';
+export const VERSION = 'pv-lab-2026-10-12.3-reference-upload-recovery';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -602,9 +602,19 @@ async function stageImageReferences(env,owner,ids,key,max=10,maxPixels=0,builtIn
         const target=validUploadUrl(ticket.uploadUrl),headers=new Headers(ticket.headers);
         if(headers.has('authorization')||headers.has('cookie')||headers.get('content-type')!==a.mime||
           headers.get('content-length')!==String(bytes.length))throw new Error('Provider upload headers do not match the reference file.');
-        const put=await fetch(target,{method:'PUT',headers,body:bytes,redirect:'manual',signal:AbortSignal.timeout(20000)});
-        if(!put.ok)throw new Error('Reference transfer was rejected (HTTP '+put.status+').');
-        await put.body?.cancel();
+        // Only retry the idempotent upload of the same bytes to the same ticket.
+        // Never retry paid task creation or change the declared file/headers.
+        let put;
+        for(let attempt=0;attempt<2;attempt++){
+          put=await fetch(target,{method:'PUT',headers,body:bytes,redirect:'manual',signal:AbortSignal.timeout(20000)});
+          await put.body?.cancel();
+          if(put.ok||attempt===1||![408,500,502,503,504].includes(put.status))break;
+          await new Promise(resolve=>setTimeout(resolve,500));
+        }
+        if(!put.ok){
+          const reference=i<ids.length?'Uploaded photo '+(i+1):'Built-in mood reference '+(i-ids.length+1);
+          throw new Error(reference+' could not be transferred (HTTP '+put.status+').'+([408,500,502,503,504].includes(put.status)?' The provider upload service failed after one retry. Please try again shortly.':''));
+        }
         const committed=await vendorRequest('/files/'+encodeURIComponent(ticket.fileId)+'/commit',key,undefined,undefined,'POST');
         if(!committed||committed.status!=='ready'||committed.fileId!==ticket.fileId||
           committed.bytes!==bytes.length||committed.contentType!==a.mime||!FILE_URI.test(committed.uri||'')||
