@@ -84,7 +84,7 @@ export function createCustomerWallet({api,notify=()=>{},onClosed=()=>{},onBalanc
     }catch(e){state.textContent=e.message;button.disabled=false;}
   };
   toggle.onclick=open;
-  if(add)add.onclick=open;
+  if(add)add.onclick=()=>{window.location.assign('./#pricing');};
   if($('lab-credit-banner-add'))$('lab-credit-banner-add').onclick=open;
   if($('lab-credit-banner-dismiss'))$('lab-credit-banner-dismiss').onclick=()=>{dismissed=true;banner.hidden=true;};
   $('lab-credit-invite').onclick=openReferrals;
