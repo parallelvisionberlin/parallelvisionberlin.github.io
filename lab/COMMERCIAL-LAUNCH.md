@@ -1,5 +1,20 @@
 # PV Lab commercial launch checklist (updated 2026-10-12)
 
+## Launch review at 19:55 Europe/Berlin, 12 October 2026
+
+- Merchant name, address, support email and declared Kleinunternehmer status are supplied.
+- Owner approved discreet invoice wording: "Umsatzsteuerbefreit gemäß § 19 UStG."
+  Recorded in CUSTOMER-TERMS-DRAFT.md; actual Stripe invoice configuration remains pending.
+- Current main source still sets LAB_PUBLIC_GENERATION_ENABLED=false and LAB_CHECKOUT_ENABLED=false.
+- One-time Checkout does not explicitly enable invoice creation or set a footer.
+  Do not report the wording as already appearing on Stripe invoices.
+- Customer generation/debit/download verification remains pending. Sandbox billing
+  credits cannot be spent in production and the sandbox has no generation endpoint.
+- Terms/privacy draft still contains unresolved withdrawal, provider retention,
+  international transfer and financial retention fields. It is not launch-ready.
+- Next: implement and verify invoice delivery/footer, finish outstanding disclosures,
+  then run the isolated customer pilot before enabling global paid access.
+
 ## Verified implementation and remaining release gates
 
 **Sandbox payment and credit delivery verified on 12 October 2026 at 17:43 Europe/Berlin.**
