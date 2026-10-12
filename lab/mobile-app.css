@@ -7,7 +7,7 @@
 .pv-native-lab #image-studio[hidden]{display:none!important}
 .pv-native-lab .image-gallery-shell{order:2;min-height:0!important;padding:0 16px 20px!important}
 .pv-native-lab #image-gallery-empty,.pv-native-lab .image-gallery-shell .archivehead{display:none!important}
-.pv-native-lab #image-composer{order:1;position:relative!important;left:auto!important;right:auto!important;bottom:auto!important;transform:none!important;width:100%!important;max-width:none!important;margin:0!important;padding:18px 16px 20px!important;display:flex!important;flex-direction:column!important;gap:16px!important;border:0!important;border-radius:0!important;background:#080808!important;box-shadow:none!important;backdrop-filter:none!important;overflow:visible!important}
+.pv-native-lab #image-composer{order:1;position:relative!important;left:auto!important;right:auto!important;bottom:auto!important;transform:none!important;width:100%!important;max-width:none!important;margin:0!important;padding:4px 16px 20px!important;display:flex!important;flex-direction:column!important;gap:16px!important;border:0!important;border-radius:0!important;background:#080808!important;box-shadow:none!important;backdrop-filter:none!important;overflow:visible!important}
 .pv-native-lab .mobile-create-intro span{font:600 10px/1.5 'DM Sans',sans-serif;letter-spacing:.16em;color:#a6aaa3}
 .pv-native-lab .mobile-create-intro h1{font:500 clamp(27px,8vw,36px)/1.03 'DM Sans',sans-serif;letter-spacing:-.045em;color:#f4f4ec;margin:8px 0 0}
 .pv-native-lab .mobile-photo{position:relative;background:#121312;border:1px solid #353734;border-radius:16px;min-height:164px;overflow:hidden;flex-shrink:0}
@@ -65,7 +65,7 @@
 .pv-native-lab .archivehead h2{font-size:25px}
 .pv-native-lab .archivehead p{display:none}
 .pv-native-lab #history{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
-.pv-native-lab dialog{max-width:calc(100vw - 20px)!important;max-height:calc(100dvh - 20px)!important}
+.pv-native-lab dialog:not(#mood-detail){max-width:calc(100vw - 20px)!important;max-height:calc(100dvh - 20px)!important}
 .pv-native-lab .mc-workspace,.pv-native-lab .mc-library{padding:24px 18px!important;margin:0!important;width:100%!important;box-sizing:border-box}
 .pv-native-lab .mc-workspace-heading h2,.pv-native-lab .mc-library-heading h2{font-size:25px!important}
 .pv-native-lab .mc-board-shell{min-height:190px!important}
@@ -114,3 +114,5 @@
 .pv-native-lab .moods-header-actions{transform:none!important}
 .pv-native-lab .mobile-photo{min-height:164px;max-height:225px}
 .pv-native-lab .composer-reference-remove{border:0!important;background:#10110fb3!important}
+
+.pv-native-lab .moods-look-midnight-reverie img{width:103%!important;max-width:none;transform:translateX(-2.5%)}

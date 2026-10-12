@@ -1,4 +1,4 @@
-import {loadLabAccount} from './native-account.js?v=2';
+import {loadLabAccount} from './native-account.js?v=20261012-photo-layout1';
 import {createSessionRequest} from './session-request.js?v=20260927-auth1';
 import {prepareMoodPrompt} from './moods.js?app=5&raveNight=4&syntheticBudget=1&hongKongRefs=3&dreamcore=7&syntheticRefs=1';
 import {createMoodReferenceLoader} from './mood-references.js?v=20261012-hk2';

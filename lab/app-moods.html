@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="color-scheme" content="dark"><title>Moods / PV Lab</title><link rel="stylesheet" href="./app-moods.css?v=20261012-scroll1"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;450;500;600;700&display=swap" media="print" onload="this.media='all'"></head>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="color-scheme" content="dark"><title>Moods / PV Lab</title><link rel="stylesheet" href="./app-moods.css?v=20261012-photo-layout1"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;450;500;600;700&display=swap" media="print" onload="this.media='all'"></head>
 <body>
 <main class="collection" id="collection">
   <header class="intro"><img class="intro-photo" src="./mood-previews/hero/dreamcore-train.webp" alt="" width="1920" height="768" fetchpriority="high" decoding="async"><a class="create-link" href="./mood-creator.html?native=1#app-create">Create a Mood <span aria-hidden="true">+</span></a><h1>Find your Mood.</h1><p>Choose a look. Make it yours.</p></header>
@@ -12,13 +12,13 @@
   <div class="detail-art"><img id="detail-image" alt=""></div>
   <div class="detail-copy"><h2 id="detail-title"></h2><p>Your image, another reality.</p></div>
   <form id="deck-form" class="detail-controls">
-    <label id="photo-picker" class="photo-picker"><input id="photo-input" type="file" accept="image/jpeg,image/png,image/webp" aria-label="Add your image"><span class="photo-placeholder"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18"/><path d="M20 10v20M10 20h20"/></svg><b>Add your image</b><small>Choose a photo</small></span><img id="photo-preview" alt="Your selected photograph" hidden><span id="photo-change" hidden>Change photo</span></label>
-    <button type="button" id="remove-photo" class="quiet remove-photo" hidden>Remove photo</button>
+    <div class="photo-row"><label id="photo-picker" class="photo-picker"><input id="photo-input" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif" aria-label="Add your image"><span class="photo-placeholder"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18"/><path d="M20 10v20M10 20h20"/></svg><b>Add your image</b><small>Choose a photo</small></span><img id="photo-preview" alt="Your selected photograph" hidden><span id="photo-change" hidden>Change photo</span></label>
+    <button type="button" id="remove-photo" class="quiet remove-photo" hidden>Remove photo</button></div>
     <input id="detail-direction" class="direction" type="text" maxlength="1000" aria-label="Add a detail (optional)" placeholder="Add a detail (optional)">
     <p id="photo-error" role="status" aria-live="polite"></p>
     <button id="continue-create" class="primary" type="submit" disabled>Generate</button>
     <p id="disclosure" class="fine">Your result will appear in Gallery.</p>
   </form>
 </dialog>
-<script type="module" src="./app-moods.js?v=20261011-cards-deck5&hongKongRefs=3&dreamcore=7&syntheticRefs=1"></script>
+<script type="module" src="./app-moods.js?v=20261012-photo-layout1&hongKongRefs=3&dreamcore=7&syntheticRefs=1"></script>
 </body></html>

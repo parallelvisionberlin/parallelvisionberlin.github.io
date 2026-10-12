@@ -1,6 +1,7 @@
+import {preparePhotoInput} from './photo-input.js?v=1';
 import {createMoodReferenceLoader,moodReferencePlan,isMoodStyleReference} from './mood-references.js?v=20261012-hk2';
 import {createPrivateMediaCache} from './private-media-cache.js?v=20261012-cache1';
-import {loadLabAccount} from './native-account.js?v=2';
+import {loadLabAccount} from './native-account.js?v=20261012-photo-layout1';
 import {createAssetLibrary} from './assets.js?v=20261010-navigation-media1';
 import {createPrecisionEditor} from './precision-edit.js?v=20261011-no-emoji1';
 import {createCustomerWallet} from './customer-wallet.js?v=20261012-account1';
@@ -1271,7 +1272,7 @@ imageComposer.addEventListener('drop',e=>{
   const list=[...(e.dataTransfer?.files||[])];
   // Internal reference reordering and gallery drag behavior remain unchanged.
   if(!list.length)return;
-  const unsupported=list.find(f=>!['image/jpeg','image/png','image/webp'].includes(f.type));
+  const unsupported=window.__PV_LAB_NATIVE__===1?null:list.find(f=>!['image/jpeg','image/png','image/webp'].includes(f.type));
   if(unsupported){notify('Unsupported image format: '+(unsupported.name||'file')+'. Use JPG, PNG or WebP.',true);return;}
   void action(async()=>{
     if(imageEngine==='soulpro'){
@@ -1544,6 +1545,7 @@ $('input-preview-dialog').addEventListener('close',()=>{$('input-preview-image')
 
 function clearMedia(){imageReferenceMode='base';closeReferenceIntent();imageRatioExplicit=false;soulRatioExplicit=false;customerImagePricing?.reset();clearUpscalePrice();mediaRefs.clear();if(!fastImageHandoff.active())cancelImagePreparation();seedreamPreparer.clear();closeInputPreview();poseMapSourceId=null;$('pose-preview-status').textContent='';$('reference-progress').textContent='';imageRevision++;sourcePixels=0;sourceWidth=0;sourceHeight=0;release(sourceUrl);release(lastUrl);sourceUrl=null;lastUrl=null;file=null;sourceId=null;lastFile=null;lastSourceId=null;$('image').value='';$('last-image').value='';for(const r of references)releaseReference(r);references=[];$('reference-images').value='';$('filemeta').textContent=sourceHelp();$('last-filemeta').textContent='Leave empty for an open ending.';renderReferences();clearResult();resetPreview();update();}
 async function inspectImage(candidate){
+  if(window.__PV_LAB_NATIVE__===1)candidate=await preparePhotoInput(candidate,{maxBytes:20*1024*1024});
   if(!candidate)throw new Error('No image was provided. Drop a JPG, PNG or WebP photograph.');
   if(candidate.size>20*1024*1024)throw new Error('Image too large: '+(candidate.name||'photograph')+' ('+(Math.ceil(candidate.size/104857.6)/10).toFixed(1)+' MB). Maximum size is 20 MB per image. Compress it and try again.');
   if(!['image/jpeg','image/png','image/webp'].includes(candidate.type))throw new Error('Unsupported image format: '+(candidate.name||'file')+'. Use JPG, PNG or WebP.');
