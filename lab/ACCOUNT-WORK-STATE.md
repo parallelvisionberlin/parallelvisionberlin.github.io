@@ -32,5 +32,8 @@
 - Revised owner screenshots and overflow checks cover 1920, 1440, 768, 390 and 320 px.
 - Account browser workflow 38260446528 passed on 12d1131a444840de5dc55e3f5e7222676bedfedc.
 - Desktop owner/customer and mobile owner screenshots inspected; no overflow.
-- Editorial revision is verified and ready for production publication.
-- Next action: publish to main and verify the Pages deployment and public account assets.
+- Published implementation: 41dfbf3905a881dc4680a59aac5532384fd35b1b.
+- GitHub Pages run 38260839030 completed successfully on 2026-10-12.
+- Public account.html, account.css and account.js returned HTTP 200 with the new revision markers.
+- Confirmed live: https://parallelvisionlabel.com/lab/account.html
+- No blockers. Next action: await visual feedback; reuse these results for this unchanged revision.
