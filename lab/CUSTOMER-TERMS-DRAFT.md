@@ -26,10 +26,13 @@ Do not use "Kleinunternehmer" as a customer-facing brand label. This wording is
 scoped to applicable exempt transactions; it is not a worldwide tax exemption.
 Legal reference: https://www.gesetze-im-internet.de/ustdv_1980/__34a.html
 Checkout now supports explicit one-time invoice creation and a server-configured
-footer. Enabled in the isolated sandbox only; Stripe accepted the exact merchant
-details and wording in a test Checkout session. No payment was made in that check,
-so the resulting paid invoice PDF and email delivery remain unverified.
-Production invoice creation remains off pending approval of Stripe's additional
+footer. Enabled in the isolated sandbox only. An actual test Checkout completed with a
+Stripe test card; invoice `in_1UPnfDAdMTXISgShscc9SUQb` is paid in test mode.
+The downloaded PDF confirms the approved footer is legible. Its issuer header
+still contains the sandbox's dummy public address/phone and needs correction.
+The live account has no public support address/email configured; the owner must
+complete those Stripe public business settings. Real-customer email delivery
+remains unverified. Production invoice creation remains off pending approval of Stripe's additional
 0.4% post-payment invoice fee and applicable tax scope. Subscription invoices use
 Stripe account invoice settings separately; this change does not configure them.
 
