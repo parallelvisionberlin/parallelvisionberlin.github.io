@@ -8,6 +8,9 @@
   const narrow = window.matchMedia('(max-width: 700px)');
   const hoverDevice = window.matchMedia('(hover: hover) and (pointer: fine)');
   const cards = Array.from(document.querySelectorAll('.tool-card'));
+  const heroToggle = document.getElementById('hero-motion-toggle');
+  let heroPausedByUser = Boolean(navigator.connection?.saveData);
+  let heroVisible = true;
   let visibleCard = null;
   const reset = (video) => {
     if (!video) return;
@@ -16,13 +19,18 @@
   };
   const startHero = () => {
     if (!hero) return;
-    if (reduced.matches || narrow.matches) {
+    if (heroToggle) heroToggle.hidden = reduced.matches;
+    if (reduced.matches) {
       reset(hero);
       heroSection?.classList.remove('motion-active');
       if (hero.hasAttribute('src')) {
         hero.removeAttribute('src');
         hero.load();
       }
+      return;
+    }
+    if (heroPausedByUser || document.hidden || !heroVisible) {
+      hero.pause();
       return;
     }
     const next = narrow.matches ? hero.dataset.mobileSrc : hero.dataset.desktopSrc;
@@ -33,16 +41,25 @@
       hero.setAttribute('src', next);
       hero.load();
     }
-    hero.play().catch(() => {/* keep the poster visible */});
+    hero.play().catch(() => { updateHeroToggle(); });
+  };
+  const updateHeroToggle = () => {
+    if (!heroToggle || !hero) return;
+    const playing = !hero.paused && !hero.ended;
+    heroToggle.dataset.state = playing ? 'playing' : 'paused';
+    heroToggle.setAttribute('aria-label', playing ? 'Pause background video' : 'Play background video');
   };
   if (hero) {
     hero.addEventListener('playing', () => {
       hero.classList.add('is-playing');
       heroSection?.classList.add('motion-active');
+      updateHeroToggle();
     });
+    hero.addEventListener('pause', updateHeroToggle);
     hero.addEventListener('error', () => {
       hero.classList.remove('is-playing');
       heroSection?.classList.remove('motion-active');
+      if (heroToggle) heroToggle.hidden = true;
     });
     hero.addEventListener('stalled', () => {
       if (hero.readyState < 2) {
@@ -50,8 +67,21 @@
         heroSection?.classList.remove('motion-active');
       }
     });
+    heroToggle?.addEventListener('click', () => {
+      heroPausedByUser = !hero.paused;
+      if (heroPausedByUser) hero.pause();
+      else startHero();
+      updateHeroToggle();
+    });
     startHero();
     narrow.addEventListener('change', startHero);
+    if (heroSection && typeof IntersectionObserver === 'function') {
+      new IntersectionObserver(entries => {
+        heroVisible = entries[0].isIntersecting;
+        if (heroVisible) startHero();
+        else hero.pause();
+      }, {threshold:0}).observe(heroSection);
+    }
   }
   const playCard = (card) => {
     if (!card || reduced.matches) return;
@@ -91,8 +121,7 @@
     : null;
   cards.forEach(card => observer?.observe(card));
   const suspendAll = () => {
-    reset(hero);
-    heroSection?.classList.remove('motion-active');
+    hero?.pause();
     cards.forEach(pauseCard);
   };
   document.addEventListener('visibilitychange', () => {
@@ -101,7 +130,7 @@
   });
   reduced.addEventListener('change', () => {
     if (reduced.matches) suspendAll();
-    else startHero();
+    startHero();
   });
   hoverDevice.addEventListener('change', () => cards.forEach(pauseCard));
 })();
