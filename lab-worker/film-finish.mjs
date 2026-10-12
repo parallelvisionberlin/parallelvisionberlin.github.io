@@ -1,5 +1,6 @@
 import {filmFinishSettings} from '../lab/film-finish.js';
 
+export const FILM_RENDER_REVISION=2;
 const INPUT_LIMIT=20_000_000,OUTPUT_LIMIT=20*1024*1024;
 const signature=new Uint8Array([137,80,78,71,13,10,26,10]);
 const crcTable=Uint32Array.from({length:256},(_,n)=>{for(let k=0;k<8;k++)n=n&1?0xedb88320^(n>>>1):n>>>1;return n>>>0;});
@@ -18,10 +19,9 @@ async function png(width,height,scan,colorType){
   const header=new Uint8Array(13),view=new DataView(header.buffer);view.setUint32(0,width);view.setUint32(4,height);header[8]=8;header[9]=colorType;
   return new Uint8Array(await new Blob([signature,chunk('IHDR',header),chunk('IDAT',compressed),chunk('IEND',new Uint8Array())]).arrayBuffer());
 }
-// Decode only our small, Cloudflare-normalized highlight PNG. Converting black
-// to transparent keeps the original dark pixels untouched by normal compositing.
-// Bounds are independent of the source resolution; no full-size pixel buffer.
-async function convertHighlights(bytes,asMask=false){
+// Decode only bounded, Cloudflare-normalized PNGs. Never allocate source-sized
+// pixel buffers, even when the original is a 6K photograph.
+async function normalizedPixels(bytes){
   if(!signature.every((n,i)=>bytes[i]===n))throw Error('Invalid highlight image.');
   let width=0,height=0,depth=0,type=0,palette=null,alpha=null;const parts=[];
   for(let offset=8;offset+12<=bytes.length;){
@@ -41,7 +41,7 @@ async function convertHighlights(bytes,asMask=false){
   const rowBytes=Math.ceil(width*channels*depth/8),bpp=Math.max(1,Math.ceil(channels*depth/8));
   const raw=await bytesFrom(new Response(new Blob(parts).stream().pipeThrough(new DecompressionStream('deflate'))),(rowBytes+1)*height);
   if(raw.length!==(rowBytes+1)*height)throw Error('Incomplete highlight pixels.');
-  const output=new Uint8Array((width*4+1)*height);
+  const pixels=new Uint8Array(width*height*4);
   function sample(start,index){
     if(depth===8)return raw[start+index];
     if(depth===16)return raw[start+index*2];
@@ -61,34 +61,51 @@ async function convertHighlights(bytes,asMask=false){
       if(type===3){const i=sample(start,x);r=palette[i*3];g=palette[i*3+1];b=palette[i*3+2];a=alpha?.[i]??255;}
       else if(type===0||type===4){r=g=b=sample(start,x*channels)*(depth<8?255/((1<<depth)-1):1);if(type===4)a=sample(start,x*channels+1);}
       else{r=sample(start,x*channels);g=sample(start,x*channels+1);b=sample(start,x*channels+2);if(type===6)a=sample(start,x*channels+3);}
-      const max=Math.max(r,g,b),i=y*(width*4+1)+1+x*4;
-      if(asMask){
-        // One luminance weight for all three channels preserves hue. Independent
-        // per-channel contrast would turn warm skin into red/orange patches.
-        const luminance=(.2126*r+.7152*g+.0722*b)/255,saturation=max?(max-Math.min(r,g,b))/max:0;
-        const brightness=saturation>.6&&max>235?Math.max(luminance,max/255*.88):luminance;
-        const weight=Math.min(1,Math.max(0,(brightness-.70)/.28))**2*a/255;
-        output[i]=Math.round(r*weight);output[i+1]=Math.round(g*weight);output[i+2]=Math.round(b*weight);output[i+3]=255;
-      }else if(max){output[i]=Math.round(r/max*255);output[i+1]=Math.round(g/max*255);output[i+2]=Math.round(b/max*255);output[i+3]=Math.round(max*a/255);}
+      pixels.set([r,g,b,a],(y*width+x)*4);
     }
+  }
+  return {width,height,pixels};
+}
+async function convertHighlights(bytes,asMask=false){
+  const {width,height,pixels}=await normalizedPixels(bytes),output=new Uint8Array((width*4+1)*height);
+  for(let y=0;y<height;y++)for(let x=0;x<width;x++){
+    const j=(y*width+x)*4,[r,g,b,a]=pixels.subarray(j,j+4),max=Math.max(r,g,b),i=y*(width*4+1)+1+x*4;
+    if(asMask){
+      // A soft shoulder includes reflective highlights without turning broad
+      // skin midtones into orange patches. One weight preserves source hue.
+      const luminance=(.2126*r+.7152*g+.0722*b)/255,saturation=max?(max-Math.min(r,g,b))/max:0;
+      const brightness=saturation>.6&&max>235?Math.max(luminance,max/255*.88):luminance;
+      const t=Math.min(1,Math.max(0,(brightness-.58)/.40)),weight=t*t*(3-2*t)*a/255;
+      output[i]=Math.round(r*weight);output[i+1]=Math.round(g*weight);output[i+2]=Math.round(b*weight);output[i+3]=255;
+    }else if(max){output[i]=Math.round(r/max*255);output[i+1]=Math.round(g/max*255);output[i+2]=Math.round(b/max*255);output[i+3]=Math.round(max*a/255);}
   }
   return png(width,height,output,6);
 }
 export const transparentHighlights=bytes=>convertHighlights(bytes,false);
 export const highlightMask=bytes=>convertHighlights(bytes,true);
-// A full-frame seeded texture, never a repeated tile. Two spatial scales avoid
-// a regular pixel grid; the same original and settings always use the same grain.
-export async function grainPng(width,height,amount,seed){
+// Fine, non-tiled, seeded grain follows source exposure. Equal positive and
+// negative luminance changes avoid the gray veil of black/white alpha noise.
+export async function grainPng(width,height,amount,seed,source=null){
   const random=randomFor(seed),stride=width*2+1,scan=new Uint8Array(stride*height);
   let previous=new Float32Array(width),current=new Float32Array(width);
-  const strength=amount/100*.25;
+  const strength=amount/100*14;
   for(let y=0;y<height;y++){
     let left=0;
     for(let x=0;x<width;x++){
       const fine=(random()+random()+random()-1.5)/1.5;
-      const coarse=.45*left+.3*previous[x]+.25*(random()*2-1);current[x]=coarse;left=coarse;
-      const noise=.65*fine+.35*coarse,index=y*stride+1+x*2;
-      scan[index]=noise>=0?255:0;scan[index+1]=Math.round(Math.abs(noise)*strength*255);
+      const coarse=.25*left+.25*previous[x]+.5*(random()*2-1);current[x]=coarse;left=coarse;
+      const noise=.8*fine+.2*coarse,index=y*stride+1+x*2;
+      let luminance=127.5,alpha=1;
+      if(source){
+        const sx=Math.min(source.width-1,Math.floor((x+.5)*source.width/width)),sy=Math.min(source.height-1,Math.floor((y+.5)*source.height/height));
+        const i=(sy*source.width+sx)*4,p=source.pixels;
+        luminance=.2126*p[i]+.7152*p[i+1]+.0722*p[i+2];alpha=p[i+3]/255;
+      }
+      const l=luminance/255,envelope=Math.sin(Math.PI*l)**.8;
+      const delta=Math.abs(noise)*strength*envelope*alpha;
+      const room=noise>=0?255-luminance:luminance;
+      scan[index]=noise>=0?255:0;
+      scan[index+1]=Math.round(Math.min(.16,delta/Math.max(1,room))*255);
     }
     [previous,current]=[current,previous];
   }
@@ -108,27 +125,32 @@ export async function renderFilmFinish(images,bytes,settings,seed){
   const info=await images.info(stream(bytes)),width=Number(info.width),height=Number(info.height);
   if(!Number.isInteger(width)||!Number.isInteger(height)||width<1||height<1||width*height>36_000_000)
     throw Error('Unsupported image dimensions for the film finish.');
-  let image=images.input(stream(bytes));
+  let image=images.input(stream(bytes)),sourcePng=null;
+  if(finish.glow||finish.grain){
+    const source=(await images.input(stream(bytes)).transform({width:1000,height:1000,fit:'scale-down'})
+      .output({format:'image/png',anim:false})).response();
+    sourcePng=await bytesFrom(source,5_000_000);
+  }
   if(finish.glow){
-    const mask=(await images.input(stream(bytes))
-      .transform({width:700,height:700,fit:'scale-down'}).output({format:'image/png',anim:false})).response();
-    const maskPng=await highlightMask(await bytesFrom(mask,5_000_000)),maskScale=Math.min(Math.max(width,height),700)/1400;
-    // Each overlay is a fresh pipeline. Spread the selected highlight energy
-    // with a small core and a wider falloff.
-    // The original itself is never blurred, sharpened or reconstructed.
-    for(const [radius,weight] of [[3,.34],[15,.22]]){
-      // Blur opaque light energy before converting it to transparency. Blurring
-      // straight RGBA would mix transparent black into the bright light cores.
-      const spread=(await images.input(stream(maskPng)).transform({blur:Math.max(1,Math.round(radius*maskScale))})
+    const amount=finish.glow/100,scale=Math.min(Math.max(width,height),1000)/1400;
+    // A restrained full-frame diffusion layer softens foreground transitions
+    // too. The sharp original remains dominant, preserving pores and fabrics.
+    const diffusion=images.input(stream(bytes)).transform({blur:Math.max(1,Math.round(Math.max(width,height)/1400*2))});
+    image=image.draw(diffusion,{opacity:amount*.24,composite:'over'});
+    const maskPng=await highlightMask(sourcePng);
+    // Broad, source-colored halos give wet/glossy highlights depth without a
+    // global green overlay or a uniform fog veil.
+    for(const [radius,weight] of [[4,.30],[22,.20]]){
+      const spread=(await images.input(stream(maskPng)).transform({blur:Math.max(1,Math.round(radius*scale))})
         .output({format:'image/png',anim:false})).response();
       const highlightsPng=await transparentHighlights(await bytesFrom(spread,5_000_000));
       const highlights=images.input(stream(highlightsPng)).transform({width,height,fit:'squeeze'});
-      image=image.draw(highlights,{opacity:finish.glow/100*weight,composite:'over'});
+      image=image.draw(highlights,{opacity:amount*weight,composite:'over'});
     }
   }
   if(finish.grain){
-    const textureScale=Math.min(1,1400/Math.max(width,height));
-    const grain=await grainPng(Math.max(1,Math.round(width*textureScale)),Math.max(1,Math.round(height*textureScale)),finish.grain,seed);
+    const source=await normalizedPixels(sourcePng),textureScale=Math.min(1,2000/Math.max(width,height));
+    const grain=await grainPng(Math.max(1,Math.round(width*textureScale)),Math.max(1,Math.round(height*textureScale)),finish.grain,seed,source);
     const texture=images.input(stream(grain)).transform({width,height,fit:'squeeze'});
     image=image.draw(texture,{opacity:1,composite:'over'});
   }
@@ -138,7 +160,7 @@ export async function renderFilmFinish(images,bytes,settings,seed){
   return result;
 }
 export async function filmAssetId(owner,originalId,settings){
-  const digest=new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify([owner,originalId,filmFinishSettings(settings)]))));
+  const digest=new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify([FILM_RENDER_REVISION,owner,originalId,filmFinishSettings(settings)]))));
   digest[6]=(digest[6]&15)|64;digest[8]=(digest[8]&63)|128;
   const s=Array.from(digest.slice(0,16),n=>n.toString(16).padStart(2,'0')).join('');
   return `${s.slice(0,8)}-${s.slice(8,12)}-${s.slice(12,16)}-${s.slice(16,20)}-${s.slice(20)}`;
@@ -158,7 +180,7 @@ export async function prepareFilmAsset(env,original,settings,{first,remaining}){
   const input=await bytesFrom(new Response(source.body),INPUT_LIMIT);
   const bytes=await renderFilmFinish(env.IMAGES,input,finish,original.id);
   if(bytes.length>remaining)throw Error('There is not enough archive space for a finished copy.');
-  const object_key=original.owner_id+'/film-finish/v1/'+id+'.png';
+  const object_key=original.owner_id+'/film-finish/v'+FILM_RENDER_REVISION+'/'+id+'.png';
   await env.LAB_MEDIA.put(object_key,bytes,{httpMetadata:{contentType:'image/png'}});
   return {id,owner_id:original.owner_id,object_key,kind:'source',mime:'image/png',filename:'parallel-vision-film-'+id+'.png',bytes:bytes.length,created_at:Date.now()};
 }

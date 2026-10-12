@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {inflateSync} from 'node:zlib';
-import {grainPng,filmAssetId,prepareFilmAsset,renderFilmFinish} from '../lab-worker/film-finish.mjs';
+import {grainPng,filmAssetId,prepareFilmAsset,renderFilmFinish,FILM_RENDER_REVISION} from '../lab-worker/film-finish.mjs';
 import {filmFinishSettings,HONG_KONG_FILM_FINISH} from '../lab/film-finish.js';
 import {prepareMoodPrompt,preparePersonalMoodPrompt} from '../lab/moods.js';
 
@@ -35,4 +35,28 @@ test('Hong Kong finish controls change metadata independently of creative intens
   assert.match(a.prompt,/Preserve natural pores/);assert.doesNotMatch(a.prompt,/Heavy irregular clustered grain/);
   assert.equal(prepareMoodPrompt('Portrait','berlin-rave',100).metadata.filmFinish,undefined);
   assert.equal(preparePersonalMoodPrompt('Portrait',{id:'board',name:'Mine',baseMoodId:'hong-kong-nights',direction:'Quiet light'},60).metadata.filmFinish,undefined);
+});
+
+test('source-aware grain preserves black and white, favors midtones and does not add a gray veil',async()=>{
+  const width=600,height=100,pixels=new Uint8Array(width*height*4),levels=[0,12,64,128,240,255];
+  for(let y=0;y<height;y++)for(let x=0;x<width;x++)pixels.set([levels[Math.floor(x/100)],levels[Math.floor(x/100)],levels[Math.floor(x/100)],255],(y*width+x)*4);
+  const bytes=await grainPng(width,height,100,'luminance',{width,height,pixels});
+  let offset=8,parts=[];while(offset<bytes.length){const n=new DataView(bytes.buffer,bytes.byteOffset+offset,4).getUint32(0);if(Buffer.from(bytes.slice(offset+4,offset+8)).toString()==='IDAT')parts.push(bytes.slice(offset+8,offset+8+n));offset+=n+12;}
+  const scan=inflateSync(Buffer.concat(parts)),mean=levels.map(()=>0),energy=levels.map(()=>0);
+  for(let y=0;y<height;y++)for(let x=0;x<width;x++){
+    const k=Math.floor(x/100),i=y*(width*2+1)+1+x*2,delta=(scan[i]-levels[k])*scan[i+1]/255;
+    mean[k]+=delta/10000;energy[k]+=delta*delta/10000;
+  }
+  assert.equal(energy[0],0);assert.equal(energy[5],0);
+  assert.ok(energy[3]>energy[1]*3);assert.ok(energy[3]>energy[4]*3);
+  for(const m of mean)assert.ok(Math.abs(m)<.15,'grain must not lift shadows or depress highlights systematically');
+  assert.equal(FILM_RENDER_REVISION,2,'new processing must not reuse v1 cached derivatives');
+});
+test('Hong Kong optical finish preserves the setting and addresses foreground light at every tier',()=>{
+  for(const intensity of [21,70,100]){
+    const {prompt,error}=prepareMoodPrompt('Portrait','hong-kong-nights',intensity,{referenceCount:1});
+    assert.equal(error,'');assert.match(prompt,/entire photograph, including people, skin, fabric and background/);
+    assert.match(prompt,/Keep the Base location, architecture/);assert.match(prompt,/WET \/ GLOSS/);
+    assert.match(prompt,/no coarse generated noise/);
+  }
 });

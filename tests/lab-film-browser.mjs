@@ -48,7 +48,7 @@ try{
     await page.waitForFunction(()=>!!window.__filmTest);
     await page.evaluate(()=>window.__filmTest.select());
     const composer=page.locator('#composer-moods .film-finish');await composer.waitFor({state:'visible'});
-    assert.equal(await composer.getByRole('slider',{name:'Film grain'}).inputValue(),'65');
+    assert.equal(await composer.getByRole('slider',{name:'Film grain'}).inputValue(),'25');
     await composer.getByRole('slider',{name:'Film grain'}).fill('90');
     const settings=await page.evaluate(()=>window.__filmTest.settings());assert.equal(settings.filmFinish.grain,90);assert.equal(settings.moodIntensity,80);
     assert.equal(await page.locator('#composer-moods').evaluate(el=>el.scrollWidth<=el.clientWidth+1),true,'Mood controls fit on mobile and desktop');
