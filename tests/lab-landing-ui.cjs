@@ -18,7 +18,7 @@ const server=http.createServer((req,res)=>{
   await page.locator('.hero-poster').evaluate(img=>img.decode());
   assert.equal(await page.locator('h1').textContent(),'PV LAB');
   assert.equal(await page.locator('.start-link').getAttribute('href'),'./studio.html?tool=image');
-  assert.deepEqual(await page.locator('.tool-card').evaluateAll(els=>els.map(el=>el.getAttribute('href'))),['./studio.html?tool=image','./studio.html?tool=video','./studio.html?tool=upscale']);
+  assert.deepEqual(await page.locator('.studio-tool-link').evaluateAll(els=>els.map(el=>el.getAttribute('href'))),['./studio.html?tool=image','./studio.html?tool=video','./studio.html?tool=upscale']);
   assert.deepEqual(await page.locator('.landing-header nav a').allTextContents(),['Image','Video','Upscaler','Explore Moods','Pricing']);
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'No overflow at '+width);
   assert.equal(await page.locator('.hero-poster').evaluate(el=>getComputedStyle(el).animationName),'none');
@@ -27,14 +27,14 @@ const server=http.createServer((req,res)=>{
   assert.ok(current.endsWith(width<=700?'/leather-editorial/hero-mobile.webp':'/leather-editorial/hero-desktop.webp'),'Approved editorial portrait matches the viewport');
   assert.equal(await page.locator('#pv-hero-motion').count(),0,'The selected still hero does not request an old hero video');
   assert.equal(await page.locator('#hero-motion-toggle').count(),0,'The still hero needs no playback control');
-  await page.locator('#tools').scrollIntoViewIfNeeded();await page.locator('.tool-card img').evaluateAll(imgs=>Promise.all(imgs.map(img=>img.decode())));
+  await page.locator('#tools').scrollIntoViewIfNeeded();await page.locator('.studio-tool-link img').evaluateAll(imgs=>Promise.all(imgs.map(img=>img.decode())));
   await page.evaluate(()=>scrollTo(0,0));
   if(width===1440||width===390)console.log('SILVER_LANDING_'+width+'='+Buffer.from(await page.screenshot({type:'jpeg',quality:75,fullPage:true})).toString('base64'));
  }
  await page.setViewportSize({width:1440,height:1000});
  await page.goto('http://127.0.0.1:8766/lab/',{waitUntil:'networkidle'});
- for(const card of await page.locator('.tool-card').all()){
- const heading=await card.locator('.card-caption').boundingBox(),media=await card.locator('.card-media').boundingBox();assert.ok(heading.y+heading.height<=media.y+1,'Titles sit above photographs');
+ for(const card of await page.locator('.studio-tool-link').all()){
+ const heading=await card.locator('.studio-tool-head').boundingBox(),media=await card.locator('.studio-tool-photo').boundingBox();assert.ok(heading.y+heading.height<=media.y+1,'Titles sit above photographs');
  }
  assert.deepEqual(errors,[]);console.log('PASS editorial landing: responsive portraits, reduced motion, destinations, no overflow and titles above photographs');
  await browser.close();server.close();

@@ -16,6 +16,7 @@
 .pv-account-menu .pv-account-panel :is(a,button):hover{background:#ffffff09;color:#fff}
 .pv-account-menu .pv-account-panel [data-account-signout]{margin-top:5px;border-top:1px solid #ffffff1c;border-radius:0;color:#aaa9a2}
 .pv-account-menu :is(summary,a,button):focus-visible{outline:2px solid #e4e0d7;outline-offset:1px}
+.landing-header-actions{min-height:44px}
 .landing-header-actions>#lab-account-strip{grid-area:1 / 2;justify-self:end}
 .mc-account .pv-account-menu{display:block}
 .mc-account:has(.pv-account-menu:not([hidden]))>#mc-account-label{display:none}

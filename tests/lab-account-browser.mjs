@@ -13,6 +13,7 @@ const server=createServer(async(req,res)=>{
 await new Promise(r=>server.listen(0,'127.0.0.1',r));const origin='http://127.0.0.1:'+server.address().port;
 const browser=await chromium.launch({headless:true});
 const products=[{id:'topup10',type:'payment',credits:1000,priceEur:10},{id:'topup29',type:'payment',credits:3000,priceEur:29},{id:'topup75',type:'payment',credits:8000,priceEur:75},{id:'starter',type:'subscription',credits:1600,priceEur:15}];
+for(const product of products)product.title='PV Lab '+product.id;
 const clerkMock=`export class Clerk {
   constructor(){window.mockClerk=this;this.listeners=[];this.isSignedIn=true;this.user={id:'user_Test',fullName:'Alex Test',hasImage:false,primaryEmailAddress:{emailAddress:'alex@example.test'}};this.session={id:'sess_Test',getToken:async()=> 'synthetic-token'};}
   async load(){} addListener(fn){this.listeners.push(fn);} async signOut(){this.isSignedIn=false;this.user=null;this.session=null;this.listeners.forEach(fn=>fn());}
@@ -73,7 +74,7 @@ try{
         try{
           await page.goto(origin+path);const summary=page.locator('.pv-account-menu>summary');await summary.waitFor({state:'visible'});
           await summary.click();await page.locator('[data-account-name]').getByText('Alex Test',{exact:true}).waitFor();
-          assert.match(await page.locator('[data-account-balance]').textContent(),customer?/1,234 credits/:/Owner workspace/);
+          assert.match(await page.locator('[data-account-balance]').textContent(),customer?/1,234 credits/:/Owner workspace/,path+' '+await page.locator('body').innerText());
           const avatar=await page.locator('[data-account-avatar]').boundingBox();assert.equal(Math.round(avatar.width),32);assert.equal(Math.round(avatar.height),32);
           const panel=await page.locator('.pv-account-panel').boundingBox();assert.ok(panel.x>=0&&panel.x+panel.width<=width+1,'menu fits viewport');
           assert.equal(await page.locator('[data-account-referrals]').isVisible(),customer);
