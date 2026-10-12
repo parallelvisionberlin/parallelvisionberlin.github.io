@@ -2,7 +2,7 @@
 
 - Updated: 2026-10-12, Europe/Berlin.
 - Scope: homepage Image / Video / Upscaler entry cards.
-- Verified starting source: 9b310c6f5e637e55b47e3013f3d1524ecc775422.
+- Verified deployed source: 12a1da34a8bab708eccd6ba51a1cb96057e5945f.
 - Approved direction: contained, separated editorial cards with titles at the top.
 - User chose in-photo capsule actions over a separate text footer.
 - Latest correction: slightly taller cards, less top space, neutral black instead of green.
@@ -35,5 +35,9 @@
 - Landing regression passed: run 38256378046; static validation passed: 38256378070.
 - Desktop/mobile screenshots reviewed; final refinement increases the outfit detail magnification.
 - Added checks: bounded desktop card height/section spacing, real 1080px video decode.
-- Deployment at preparation: not yet verified; inspect the current commit's Actions.
-- Exact next action: verify existing landing suite, desktop/mobile screenshots and live playback.
+- Deployment confirmed: Pages run 38256952404 completed successfully.
+- Final landing regression: run 38256952726 passed, including 1080px playback and detail controls.
+- Final static validation: run 38256952778 passed.
+- Live browser confirmed compact-fashion2 CSS, neutral rgb(12,12,12), 2× outfit detail and playing 1080px video.
+- Desktop/mobile layout reviewed; no horizontal overflow in the five-viewport regression.
+- Blockers: none. No further implementation action pending.
