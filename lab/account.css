@@ -1,0 +1,83 @@
+:root{color-scheme:dark}
+*{box-sizing:border-box}
+body.pv-account-page{margin:0;background:#101110;color:#eeeae2;font:400 14px/1.6 'PV Lab Navigation',Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.pv-account-page [hidden]{display:none!important}
+.pv-account-page a{color:inherit;text-decoration:none}
+.pv-account-page button,.pv-account-page input,.pv-account-page select{font:inherit}
+.pv-account-page button{cursor:pointer}
+.pv-account-page button:disabled{cursor:not-allowed;opacity:.45}
+.pv-account-page :is(a,button,input,select):focus-visible{outline:2px solid #eeeae2;outline-offset:4px}
+.account-skip{position:fixed;top:-80px;left:20px;z-index:200;padding:12px;background:#eeeae2;color:#101110!important}
+.account-skip:focus{top:12px}
+.account-shell{max-width:1344px;margin:auto;padding:64px var(--lab-page-gutter) 100px}
+.landing-header-actions>#account-menu,.landing-header-actions>#account-signin{grid-area:1 / 2;justify-self:end}
+.account-intro{padding-bottom:40px;border-bottom:1px solid #ffffff26}
+.account-eyebrow{display:block;margin:0 0 20px;color:#aaa9a1;font-size:10px;letter-spacing:.17em}
+.account-intro h1{margin:0;font-size:clamp(42px,5vw,66px);font-weight:400;letter-spacing:-.045em;line-height:1.12}
+.account-intro>p:last-child{color:#aaa9a1;margin:18px 0 0}
+.account-status{margin:14px 0 0;color:#c9c5bc;overflow-wrap:anywhere}
+.account-status:empty{display:none}
+.account-layout{display:grid;grid-template-columns:210px minmax(0,1fr);gap:58px;padding-top:44px}
+.account-sidebar nav{display:flex;flex-direction:column;gap:4px}
+.account-sidebar nav a{padding:11px 0;color:#a4a49c;border-right:1px solid transparent;font-size:13px}
+.account-sidebar nav a[aria-current="page"]{color:#f8f5ef;border-color:#f8f5ef}
+.account-sidebar nav a:hover{color:#fff}
+.account-sidebar nav a span{margin-left:8px}
+.account-help{display:inline-block;margin-top:62px;color:#8d8e86!important;font-size:12px}
+.account-mobile-nav{display:none}
+.account-content{min-width:0}
+.account-content h2,.account-gate h2,.account-close-dialog h2{margin:0 0 25px;font-size:30px;line-height:1.2;font-weight:400;letter-spacing:-.025em}
+.account-content h3{font-weight:400;font-size:16px;margin:0 0 10px}
+.account-section-head{display:flex;align-items:baseline;justify-content:space-between;gap:14px}
+.account-tabs{display:flex;gap:30px;border-bottom:1px solid #ffffff20;margin:0 0 30px}
+.account-tabs a{padding:0 0 13px;color:#aaa9a1;border-bottom:1px solid transparent;font-size:13px}
+.account-tabs a[aria-current="page"]{color:#f4f1e9;border-color:#f4f1e9}
+.account-balance{padding:16px 0 40px}
+.account-balance .account-eyebrow{margin-bottom:8px}
+.account-balance strong{font-size:clamp(55px,7vw,84px);line-height:1.15;letter-spacing:-.055em;font-weight:400;font-variant-numeric:tabular-nums}
+.account-balance div>span{color:#a5a69d;margin-left:14px;font-size:16px}
+.account-balance p{color:#96978f;margin:14px 0 0}
+.account-products{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:20px 0 35px}
+.account-product{display:flex;flex-direction:column;align-items:flex-start;min-width:0;padding:24px 20px;background:#171815;border:1px solid #3b3d36;border-radius:2px;color:#eeeae2;text-align:left;transition:border-color .2s,background .2s}
+.account-product:not(:disabled):hover{border-color:#b6b7a9;background:#1d1f1a}
+.account-product strong{font-size:28px;font-weight:400;letter-spacing:-.03em}
+.account-product small{font-size:11px;color:#a9aaa1;margin-top:1px}
+.account-product span{margin-top:22px;font-size:16px}
+.account-product em{margin-top:18px;font-size:11px;font-style:normal;color:#b2b2a9}
+.account-muted{color:#a5a59c;font-size:13px}
+.account-section-head>.account-muted{font-size:11px}
+.account-button{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:44px;padding:11px 20px;background:#eeeae2;border:1px solid #eeeae2;border-radius:40px;color:#131410!important;font-size:12px!important;text-decoration:none;white-space:nowrap}
+.account-button-outline{background:transparent;color:#eeeae2!important;border-color:#6a6b62}
+.account-button-outline:hover{border-color:#eeeae2}
+.account-text-button{padding:8px 0;border:0;background:transparent;color:#b6b6ad;font-size:12px!important}
+.account-text-button:hover,.account-text-link:hover{color:#fff}
+.account-billing-row{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:26px 0;margin-bottom:16px;border-bottom:1px solid #ffffff20}
+.account-billing-row>div{min-width:0;max-width:460px;overflow-wrap:anywhere}
+.account-billing-row .account-muted{margin:8px 0}
+.account-billing-row .account-button{flex:none}
+.account-history-title{margin-top:35px!important}
+.account-activity-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:16px;padding:18px 0;border-bottom:1px solid #ffffff16}
+.account-activity-row strong{font-weight:400;font-size:13px}
+.account-activity-row small{display:block;font-size:11px;color:#919389;margin-top:4px}
+.account-activity-row>span{font-variant-numeric:tabular-nums;font-size:13px;white-space:nowrap}
+.account-empty{padding:32px 0;color:#aeaea4;max-width:540px}
+.account-empty h3{color:#eeeae2;font-size:24px}
+.account-empty .account-button{margin-top:18px}
+.account-field{display:block;font-size:12px;color:#a9aaa0;margin:35px 0 24px}
+.account-field input{display:block;width:100%;min-width:0;border:1px solid #47493e;border-radius:4px;background:#1a1c17;padding:13px 15px;color:#eeeae2;font-size:13px;margin-top:10px}
+.account-copy{display:flex;gap:12px;align-items:center}
+.account-copy input{margin-top:10px}.account-copy button{margin-top:10px;flex:none}
+.account-lead{font-size:19px;color:#bebeb3;max-width:540px}
+.account-referral-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:25px;padding:30px 0;border-top:1px solid #ffffff20}
+.account-referral-stats strong{display:block;font-size:36px;font-weight:400;letter-spacing:-.04em}
+.account-referral-stats span{display:block;font-size:11px;color:#a0a297;margin-top:8px}
+#account-storage-meter{width:min(100%,360px);height:7px;margin-top:10px;accent-color:#aeb4a0}
+.account-text-link{display:block;margin:24px 0;font-size:13px;color:#a9aaa0!important}
+.account-gate{padding:50px 0}
+.account-close-dialog{width:min(530px,calc(100vw - 36px));max-height:85vh;padding:30px;background:#1a1b19;color:#eeeae2;border:1px solid #4a4b45;border-radius:12px;font-size:13px}
+.account-close-dialog::backdrop{background:#000a}
+.account-close-x{display:block;margin-left:auto;margin-bottom:16px}
+.account-close-dialog .account-button{white-space:normal;width:100%}
+@media(max-width:900px){.account-shell{padding-top:44px}.account-layout{grid-template-columns:160px minmax(0,1fr);gap:30px}.account-products{gap:8px}.account-product{padding:18px 12px}.account-product strong{font-size:25px}.account-billing-row{align-items:flex-start;flex-direction:column}}
+@media(max-width:600px){.account-shell{padding-top:34px;padding-bottom:60px}.account-intro{padding-bottom:28px}.account-layout{display:block;padding-top:25px}.account-sidebar{display:none}.account-mobile-nav{display:block;margin-bottom:30px;color:#989a8f;font-size:11px}.account-mobile-nav select{display:block;width:100%;min-height:44px;border:1px solid #494b42;border-radius:4px;background:#191b16;color:#eeeae2;padding:10px 12px;margin-top:8px;font-size:14px}.account-content h2{font-size:26px}.account-balance{padding-bottom:28px}.account-products{grid-template-columns:1fr}.account-product{display:grid;grid-template-columns:1fr auto;align-items:center;padding:18px 20px}.account-product strong{grid-row:1;grid-column:1}.account-product small{grid-row:2;grid-column:1}.account-product span{grid-row:1;grid-column:2;margin:0}.account-product em{grid-row:2;grid-column:2;margin:4px 0 0}.account-copy{flex-wrap:wrap;gap:6px}.account-copy input{flex:1 1 100%}.account-referral-stats{gap:12px}.account-referral-stats strong{font-size:30px}.account-intro>p:last-child{overflow-wrap:anywhere}.account-close-dialog{padding:22px}.account-help{margin-top:25px}}
+@media(prefers-reduced-motion:reduce){.account-product{transition:none}}

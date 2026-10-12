@@ -1,5 +1,5 @@
 // Credit wallet UI. Backend verifies every price, balance, webhook and receipt.
-export function createCustomerWallet({api,notify=()=>{},onClosed=()=>{}}){
+export function createCustomerWallet({api,notify=()=>{},onClosed=()=>{},onBalance=()=>{}}){
   const $=id=>document.getElementById(id);
   let account=false,billingReady=false,balance=0,products=[],referralLoading=false,referralEpoch=0,soulIdTrainingCredits=null,billingReview=false,accountClosed=false,accountEpoch=0;
   const toggle=$('lab-wallet-toggle'),dialog=$('lab-credits-dialog'),referralDialog=$('lab-referrals-dialog'),amount=$('lab-credit-balance'),
@@ -16,6 +16,7 @@ export function createCustomerWallet({api,notify=()=>{},onClosed=()=>{}}){
   function update(){
     toggle.hidden=!account;
     if(!account){if(dialog?.open)dialog.close();if(referralDialog?.open)referralDialog.close();return;}
+    onBalance(balance);
     toggle.textContent=balance.toLocaleString()+' credits';
     amount.textContent=balance.toLocaleString()+' credits';
     state.textContent=accountClosed?'Your PV Lab account is closed. Content deletion is '+(accountClosed.state==='deleted'?'complete.':'queued. Contact support if you need help.')+' Billing management remains available.':billingReview?'A refund or dispute is under review. Contact support; billing management remains available.':billingReady?'Your private credit balance.':'Checkout setup is being finalized. Payments are not being accepted yet.';

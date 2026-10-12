@@ -10,9 +10,9 @@ const wallet=read('../lab/customer-wallet.js');
 test('customer Studio account menu has one guarded Invite friends control',()=>{
   assert.equal((html.match(/id="studio-invite-friends"/g)||[]).length,1);
   assert.match(html,/id="studio-invite-friends"[^>]*hidden>Invite friends<\/button>/);
-  assert.match(app,/\$\('studio-invite-friends'\)\.hidden=!customerMode/);
+  assert.match(app,/studioAccount\.update\(\{signed:true,user:clerk\.user,profile:data\}\)/);
   assert.match(app,/\$\('studio-invite-friends'\)\.hidden=true/);
-  assert.match(app,/\$\('studio-invite-friends'\)\.onclick=.*wallet\.openReferrals\(\)/);
+  assert.match(app,/\$\('studio-invite-friends'\)\.onclick=.*account\.html#referrals/);
 });
 test('invite link opens a dedicated modal, not the purchasing wallet',()=>{
   assert.equal((html.match(/id="lab-referrals-dialog"/g)||[]).length,1);
