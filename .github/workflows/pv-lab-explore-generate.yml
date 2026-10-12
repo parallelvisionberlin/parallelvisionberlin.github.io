@@ -1,5 +1,17 @@
 name: PV Lab Explore Generate
 on:
+  pull_request:
+    paths:
+      - 'lab/mood-references.js'
+      - 'lab/mood-references/**'
+      - 'lab/moods.js'
+      - 'lab/app-mood-generation.js'
+      - 'lab/explore-moods.js'
+      - 'lab/lab.js'
+      - 'tests/lab-mood-references.test.mjs'
+      - 'tests/lab-explore-generation.mjs'
+      - 'tests/lab-native-mobile-ui.mjs'
+      - '.github/workflows/pv-lab-explore-generate.yml'
   push:
     branches: [main, codex/mood-generate]
     paths:
@@ -7,6 +19,9 @@ on:
       - 'lab/moods.html'
       - 'lab/app-mood-generation.js'
       - 'lab/mood-handoff.js'
+      - 'lab/mood-references.js'
+      - 'lab/mood-references/**'
+      - 'lab/moods.js'
       - 'lab/lab.js'
       - 'lab/studio.html'
       - 'tests/lab-explore-generation.mjs'
@@ -25,7 +40,7 @@ jobs:
         with:
           node-version: '22.16.0'
       - name: Verify one-shot generation handoffs
-        run: node --test tests/lab-mood-handoff.test.mjs
+        run: node --test tests/lab-mood-handoff.test.mjs tests/lab-mood-references.test.mjs
       - name: Install browser
         run: |
           npm install --prefix /tmp/pv-mood-generate --no-save playwright@1.57.0
@@ -33,7 +48,9 @@ jobs:
       - name: Check desktop, mobile, sign-in, pricing and single submission
         env:
           PV_PLAYWRIGHT_MODULE: /tmp/pv-mood-generate/node_modules/playwright/index.mjs
-        run: node tests/lab-explore-generation.mjs
+        run: |
+          node tests/lab-explore-generation.mjs
+          node tests/lab-native-mobile-ui.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
