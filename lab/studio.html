@@ -72,7 +72,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 <link rel="stylesheet" href="./image-result-deck.css?v=20261012-editorial2">
 <link rel="stylesheet" href="./public-header.css?v=20261012-refined-access1">
 <link rel="stylesheet" href="./account-menu.css?v=20261012-account2">
-<link rel="stylesheet" href="./studio-credits.css?v=20261012-creditbar1">
+<link rel="stylesheet" href="./studio-credits.css?v=20261013-upgrade1">
 <link rel="stylesheet" href="./home-navigation.css?v=20261012-home2">
 <link rel="stylesheet" href="/lab/legal-links.css">
 </head>
@@ -116,7 +116,7 @@ document.addEventListener('DOMContentLoaded',()=>{
         <p class="fine" id="active-detail" aria-live="polite"></p>
         <button id="resolve" class="quiet" type="button" hidden>Resolve interrupted request</button>
       </div>
-    </details><button id="lab-wallet-toggle" class="lab-wallet-toggle" type="button" hidden>Credits</button><button id="lab-add-credits" class="lab-add-credits" type="button" hidden>Add credits <span aria-hidden="true">↗</span></button><details id="studio-account-menu" class="pv-account-menu" hidden>
+    </details><button id="lab-wallet-toggle" class="lab-wallet-toggle" type="button" hidden>Credits</button><button id="lab-add-credits" class="lab-add-credits" type="button" hidden aria-label="View plans and credits">Upgrade <span aria-hidden="true">↗</span></button><details id="studio-account-menu" class="pv-account-menu" hidden>
       <summary aria-label="Open account menu" aria-expanded="false"><span class="pv-account-avatar" data-account-avatar aria-hidden="true"></span></summary>
       <div class="pv-account-panel">
         <div class="pv-account-details"><strong data-account-name>Your account</strong><small data-account-balance></small></div>
@@ -130,8 +130,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     </details></div></div></header>
 <section id="lab-credit-banner" class="lab-credit-banner" aria-label="Credit balance notice" hidden>
   <span class="lab-credit-banner-icon" aria-hidden="true">i</span>
-  <p role="status"><strong>You’re out of credits.</strong> <span>Add credits to continue.</span></p>
-  <button id="lab-credit-banner-add" type="button">Add credits <span aria-hidden="true">↗</span></button>
+  <p role="status"><strong>Your credits are empty.</strong> <span>Choose a plan to keep creating.</span></p>
   <button id="lab-credit-banner-dismiss" type="button" aria-label="Dismiss credit notice">×</button>
 </section>
 <dialog id="lab-credits-dialog" class="lab-credit-dialog lab-credit-deck" aria-labelledby="lab-credit-title" aria-describedby="lab-credit-description">
