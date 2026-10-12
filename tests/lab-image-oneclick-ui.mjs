@@ -1,5 +1,6 @@
 async function clickAdvanced(page){await page.evaluate(()=>document.querySelector('#image-composer-more').click());}
-async function chooseImageModel(page,value){await page.click('#image-composer-model');await page.click('.composer-model-option[data-value="'+value+'"]');await clickAdvanced(page);}
+// Preserve coverage for saved FAL identities; the public Soul entry now defaults to Higgsfield Soul 2.
+async function chooseImageModel(page,value){await page.click('#image-composer-model');await page.click('.composer-model-option[data-value="'+value+'"]');if(value==='soulpro'){await page.evaluate(()=>{const model=document.querySelector('#soul-pro-model');model.value='ideogram45';model.dispatchEvent(new Event('change',{bubbles:true}));});}await clickAdvanced(page);}
 async function imageAdvanced(page){await page.click('#tool-image');const open=await page.locator('#app').evaluate(el=>el.classList.contains('image-settings-open'));if(!open){const control=page.locator('#image-composer-more');if(await control.isVisible())await control.click();else await page.evaluate(()=>document.querySelector('#image-composer-more').click());}}
 // Mock-only browser verification. No real credentials, private media or paid generations.
 import assert from 'node:assert/strict';
@@ -10,7 +11,7 @@ import {pathToFileURL} from 'node:url';
 const {chromium}=await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE).href);
 const root=resolve('.'),source=readFileSync('lab/lab.js','utf8');
 const boot=source.indexOf("try{clerk=await loadLabAccount();");const bootEnd=source.indexOf("\n// Soul composer:",boot);assert.ok(boot>0&&bootEnd>boot);
-const testSource=source.slice(0,boot)+source.slice(bootEnd)+`clerk={isSignedIn:true,user:{id:'test'},session:{id:'synthetic-session',getToken:async()=> 'synthetic-token'},signOut:async()=>{}};owner=true;userId='test';config={enabled:true,geminiEnabled:true,falEnabled:true,dailyLimitUsd:10,concurrency:{image:4,video:1}};$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();await loadSoulProIdentity();await restoreStudioEntry();update();window.__labTest={lock,setBusy:value=>{busy=!!value;update();},setCustomerMode:value=>{customerMode=!!value;update();}};`;
+const testSource=source.slice(0,boot)+source.slice(bootEnd)+`clerk={isSignedIn:true,user:{id:'test'},session:{id:'synthetic-session',getToken:async()=> 'synthetic-token'},signOut:async()=>{}};owner=true;userId='test';config={enabled:true,geminiEnabled:true,falEnabled:true,dailyLimitUsd:10,videoEngines:['wan','seedance'],concurrency:{image:4,video:1}};$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();await loadSoulProIdentity();await restoreStudioEntry();update();window.__labTest={lock,settled:()=>!busy&&!imageSubmissionPending&&!fastImageHandoff.active(),setBusy:value=>{busy=!!value;update();},setCustomerMode:value=>{customerMode=!!value;update();}};`;
 const server=http.createServer((req,res)=>{const pathname=new URL(req.url,'http://localhost').pathname;const path=resolve(root,'.'+pathname+(pathname.endsWith('/')?'index.html':''));if(!path.startsWith(root+'/')||!existsSync(path)){res.writeHead(404).end();return;}res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css'})[extname(path)]||'text/plain');res.end(pathname==='/lab/lab.js'?testSource:readFileSync(path));});
 await new Promise(r=>server.listen(4179,'127.0.0.1',r));
 const browser=await chromium.launch({headless:true});
@@ -54,7 +55,7 @@ async function workspace({failure='',width=1440,height=1000,initial=[],savedPack
    if(quoteDelay)await new Promise(r=>setTimeout(r,quoteDelay));
    if(failure==='quote')return send({error:'Provider quote unavailable. No generation submitted.'},502);
    const makeQuote=()=>{
-    const q={id:id(sequence++),estimatedUsd:0.036,maxUsd:0.036,expiresAt:Date.now()+(failure==='expired'?-1:180000),settings:{...data.settings,mode:failure==='wrong-model'?(data.settings.mode==='upscale'?'image':'upscale'):data.settings.mode,referenceSourceIds:data.referenceSourceIds||[],transferNotes:[]}};
+    const q={id:id(sequence++),estimatedUsd:0.036,maxUsd:0.036,expiresAt:Date.now()+(failure==='expired'?-1:180000),settings:{...data.settings,...(data.settings.type==='video'?{model:'bytedance/seedance-2.5/'+({start:'image-to-video',text:'text-to-video',reference:'reference-to-video'})[data.settings.mode]}:{}),mode:failure==='wrong-model'?(data.settings.mode==='upscale'?'image':'upscale'):data.settings.mode,referenceSourceIds:data.referenceSourceIds||[],transferNotes:[]}};
     quotes.set(q.id,{q,data});return q;
    };
    if(data.count!==undefined){
@@ -82,7 +83,7 @@ async function workspace({failure='',width=1440,height=1000,initial=[],savedPack
  return {page,context,requests,errors,dialogs,jobs,accepted:()=>accepted};
 }
 const count=(x,path,method='POST')=>x.requests.filter(r=>r.path===path&&r.method===method).length;
-const ready=page=>page.waitForFunction(()=>!document.querySelector('#resolution').disabled);
+const ready=page=>page.waitForFunction(()=>!document.querySelector('#resolution').disabled&&window.__labTest.settled());
 const waitAccepted=async(x,n)=>{const until=Date.now()+7000;while(x.accepted()<n&&Date.now()<until)await new Promise(r=>setTimeout(r,40));};
 const waitRefs=(page,n)=>page.waitForFunction(expected=>document.querySelectorAll('#reference-list .reference-item').length===expected,n);
 async function retouchTopAndBackButton(page){
@@ -314,7 +315,7 @@ try{
   assert.equal(x.requests.find(r=>r.path==='/api/quotes').data.count,2);
   assert.equal(new Set(x.requests.filter(r=>r.path==='/api/jobs'&&r.method==='POST').map(r=>r.data.quoteId)).size,2);
   ok('Two Seedream images share one price-check request and each use a distinct price');assert.deepEqual(x.errors,[]);await x.context.close();
- x=await workspace({historyDelay:1200});await imageForm(x);const releaseStarted=Date.now();await x.page.click('#generate:visible, #image-composer-generate:visible');await x.page.waitForFunction(()=>!document.querySelector('#resolution').disabled,{timeout:700});assert.ok(Date.now()-releaseStarted<900);assert.equal(x.accepted(),1);assert.equal(await x.page.locator('.card[data-state="queued"]').count(),1);ok('Image submission releases the editor before the background History refresh finishes');assert.deepEqual(x.errors,[]);await x.context.close();
+ x=await workspace({historyDelay:1200});await imageForm(x);const releaseStarted=Date.now();await x.page.click('#generate:visible, #image-composer-generate:visible');await x.page.waitForFunction(()=>!document.querySelector('#resolution').disabled,undefined,{timeout:700});assert.ok(Date.now()-releaseStarted<900);await x.page.waitForFunction(()=>document.querySelector('.card[data-state="queued"]'),undefined,{timeout:700});assert.equal(x.accepted(),1);assert.equal(await x.page.locator('.card[data-state="queued"]').count(),1);ok('Image submission releases the editor before the background History refresh finishes');assert.deepEqual(x.errors,[]);await x.context.close();
  x=await workspace();await imageForm(x);await x.page.locator('#reference-images').setInputFiles({name:'sculpture.png',mimeType:'image/png',buffer:png});await ready(x.page);await x.page.click('#generate:visible, #image-composer-generate:visible');await ready(x.page);const edit=x.requests.find(r=>r.path==='/api/quotes').data;assert.equal(edit.referenceSourceIds.length,1);assert.equal(edit.transferSourceIds.length,1);assert.equal(x.accepted(),1);assert.equal(await x.page.locator('#quote-dialog').isVisible(),false);ok('Reference edit submits once without review and preserves reference inputs');await x.context.close();
 
 
@@ -329,7 +330,7 @@ try{
   });
   const importError=x.page.locator('#image-composer-status');
   await importError.waitFor({state:'visible'});
-  assert.match(await importError.innerText(),/Image too large.*20 MB/i);
+  assert.match(await importError.innerText(),/Image too large.*20 MB/is);
   assert.match(await importError.innerText(),/MIN 240 × 240 PX/);
   assert.match(await importError.innerText(),/MAX 20 MB/);
   assert.equal(await importError.locator('.import-toast-title').innerText(),'Image too large');
@@ -337,7 +338,7 @@ try{
   assert.equal(await x.page.locator('#image-composer-references .composer-reference-tile').count(),0);
   assert.equal(count(x,'/api/uploads'),0);
   assert.equal(count(x,'/api/quotes'),0);
-  await importError.getByRole('button',{name:'Dismiss image upload error'}).click();
+  await importError.getByRole('button',{name:'Dismiss PV Lab notification'}).click();
   assert.equal(await importError.isVisible(),false);
   await x.page.locator('#reference-images').setInputFiles({name:'valid.png',mimeType:'image/png',buffer:png});
   await ready(x.page);
@@ -479,7 +480,7 @@ try{
  assert.equal(await x.page.locator('#reference-mode').isVisible(),false);assert.match(await x.page.locator('#soul-pro-identity-status').innerText(),/Saved Nina identity.*2 references/);
  assert.equal(await x.page.locator('#generate').isDisabled(),true);
  await x.page.locator('#image').setInputFiles({name:'base.png',mimeType:'image/png',buffer:png});await ready(x.page);
- assert.equal(await x.page.locator('#generate').isDisabled(),false);assert.equal(await x.page.locator('#generate').innerText(),'Generate identity edit');
+ assert.equal(await x.page.locator('#generate').isDisabled(),false);assert.equal(await x.page.locator('#generate').innerText(),'Generate');
  assert.equal(await x.page.locator('#soul-pro-settings').isVisible(),true);assert.equal(await x.page.locator('#resolution-control').isVisible(),false);assert.equal(await x.page.locator('#ratio-control').isVisible(),false);
  assert.match(await x.page.locator('#generation-help').innerText(),/one base image only/i);assert.match(await x.page.locator('#generation-help').innerText(),/\$0\.06/);
  await x.page.click('#generate:visible, #image-composer-generate:visible');await ready(x.page);assert.equal(count(x,'/api/fal/soul-pro'),1);assert.equal(x.accepted(),1);
@@ -502,7 +503,7 @@ try{
 
  for(const tool of ['video']){
   x=await workspace();await x.page.click('#tool-'+tool);if(tool==='image')await clickAdvanced(x.page);await x.page.locator('#image').setInputFiles({name:'sculpture.png',mimeType:'image/png',buffer:png});await ready(x.page);if(tool==='video')await x.page.fill('#prompt:visible, #image-composer-prompt:visible','The camera slowly moves around the sculpture.');
-  assert.match(await x.page.locator('#generate').innerText(),/^Review price/);await x.page.click('#generate:visible, #image-composer-generate:visible');await x.page.locator('#quote-dialog').waitFor({state:'visible'});assert.equal(x.accepted(),0);assert.equal(count(x,'/api/jobs'),0);await x.page.click('#confirm-generation');await ready(x.page);assert.equal(x.accepted(),1);ok(tool+': separate price confirmation remains required');await x.context.close();
+  assert.equal(await x.page.locator('#generate').innerText(),'Generate');await x.page.click('#generate:visible, #image-composer-generate:visible');await x.page.locator('#quote-dialog').waitFor({state:'visible'});assert.equal(x.accepted(),0);assert.equal(count(x,'/api/jobs'),0);await x.page.click('#confirm-generation');await ready(x.page);assert.equal(x.accepted(),1);ok(tool+': separate price confirmation remains required');await x.context.close();
  }
 
  // Image upscaling is one paid job per click, independent of the Image batch selector.
@@ -520,11 +521,11 @@ try{
  }
  const failedFal={id:id(901),status:'failed',sourceId:id(902),settings:{type:'video',provider:'fal',engine:'h3maxfal',mode:'reference',model:'minimax/h3-max/reference-to-video',prompt:'test',duration:10,resolution:'1080p',aspectRatio:'16:9'},createdAt:Date.now(),estimatedUsd:1.721,error:'fal.ai: Provider rejected the request.',providerTaskId:'fal_failed'};
  const uncertainFal={id:id(903),status:'uncertain',sourceId:id(904),settings:{type:'video',provider:'fal',engine:'h3maxfal',mode:'reference',model:'minimax/h3-max/reference-to-video',prompt:'test',duration:10,resolution:'1080p',aspectRatio:'16:9'},createdAt:Date.now()-1,estimatedUsd:1.721,error:'fal.ai submission status is uncertain.',providerTaskId:'fal_uncertain'};
- x=await workspace({initial:[failedFal,uncertainFal]});
+ x=await workspace({initial:[failedFal,uncertainFal]});await x.page.click('#tool-video');
  const cards=x.page.locator('.card');
- const failedCard=cards.filter({hasText:'FAILED /'});assert.equal(await failedCard.locator('.history-no-result strong').innerText(),'Generation failed');assert.doesNotMatch(await failedCard.innerText(),/Result pending/);assert.match(await failedCard.innerText(),/Lab estimate released: \$1\.721/);
- const uncertainCard=cards.filter({hasText:'UNCERTAIN /'});assert.equal(await uncertainCard.locator('.history-no-result strong').innerText(),'Status unknown');assert.doesNotMatch(await uncertainCard.innerText(),/Result pending/);assert.match(await uncertainCard.innerText(),/provider status unknown/);
- assert.equal(await failedCard.getByRole('button',{name:'Recover FAL output'}).count(),1);
+ const failedCard=cards.filter({hasText:'FAILED /'});assert.equal(await failedCard.locator('.history-no-result strong').innerText(),'Generation failed');assert.doesNotMatch(await failedCard.innerText(),/Result pending/);assert.match(await failedCard.textContent(),/Lab estimate released: \$1\.721/);
+ const uncertainCard=cards.filter({hasText:'UNCERTAIN /'});assert.equal(await uncertainCard.locator('.history-no-result strong').innerText(),'Status unknown');assert.doesNotMatch(await uncertainCard.innerText(),/Result pending/);assert.match(await uncertainCard.textContent(),/provider status unknown/);
+ await failedCard.click();await x.page.locator('#video-detail-extra summary').click();assert.equal(await x.page.locator('#video-detail-extra-list').getByRole('button',{name:'Recover FAL output'}).count(),1);
  ok('History distinguishes definite FAL failure from uncertain provider status and offers FAL recovery');await x.context.close();
 
  const inactive=n=>({id:id(1000+n),status:'failed',sourceId:id(1100+n),settings:{type:'image',provider:'fal',engine:'soulpro',mode:'identity-edit',soulProModel:'ideogram45',soulProQuality:'medium',resolution:'source',prompt:''},createdAt:Date.now()-n,estimatedUsd:.06,error:'test failure',providerTaskId:'fal-'+n});

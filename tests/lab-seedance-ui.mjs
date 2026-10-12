@@ -64,7 +64,7 @@ mkdirSync('test-results',{recursive:true});
 if(!existsSync('test-results/seedance-motion.mp4'))execFileSync('ffmpeg',['-hide_banner','-loglevel','error','-f','lavfi','-i','color=c=gray:s=320x320:r=24:d=3','-an','-c:v','libx264','-pix_fmt','yuv420p','-movflags','+faststart','-y','test-results/seedance-motion.mp4']);
 const motion=readFileSync('test-results/seedance-motion.mp4');
 const sound=Buffer.alloc(44+8000*3*2);sound.write('RIFF');sound.writeUInt32LE(sound.length-8,4);sound.write('WAVE',8);sound.write('fmt ',12);sound.writeUInt32LE(16,16);sound.writeUInt16LE(1,20);sound.writeUInt16LE(1,22);sound.writeUInt32LE(8000,24);sound.writeUInt32LE(16000,28);sound.writeUInt16LE(2,32);sound.writeUInt16LE(16,34);sound.write('data',36);sound.writeUInt32LE(sound.length-44,40);
-const choose=async(x,mode='start')=>{await x.page.selectOption('#video-engine','seedance');await x.page.click('#mode-'+mode);await x.page.fill('#prompt','A ceramic sculpture under soft daylight. The camera moves slowly.');};
+const choose=async(x,mode='start')=>{await x.page.click('#tool-video');await x.page.selectOption('#video-engine','seedance');await x.page.click('#mode-'+mode);await x.page.fill('#prompt','A ceramic sculpture under soft daylight. The camera moves slowly.');};
 const still=async(x,id='image')=>{await x.page.locator('#'+id).setInputFiles({name:'sculpture.png',mimeType:'image/png',buffer:png});await ready(x.page);};
 try{
  let x=await workspace();await choose(x);
@@ -75,8 +75,8 @@ try{
  await x.page.locator('.card').first().click();await x.page.click('#video-detail-reuse');await ready(x.page);assert.equal(await x.page.locator('#video-engine').inputValue(),'seedance');assert.match(await x.page.locator('#filemeta').innerText(),/320/);assert.match(await x.page.locator('#last-filemeta').innerText(),/320/);assert.equal(count(x,'/api/jobs'),1);ok('Reuse restores model, first/last images and exact settings without generating');assert.deepEqual(x.errors,[]);await x.context.close();
  x=await workspace();await choose(x,'text');assert.equal(await x.page.locator('#start-mode').isVisible(),false);assert.equal(await x.page.locator('#reference-mode').isVisible(),false);await x.page.selectOption('#ratio','21:9');await x.page.selectOption('#duration','12');await x.page.click('#generate');await x.page.locator('#quote-dialog').waitFor({state:'visible'});assert.equal(count(x,'/api/uploads'),0);assert.equal(x.requests.find(r=>r.path==='/api/quotes').data.sourceId,null);assert.match(await x.page.locator('#quote-settings').innerText(),/Text to Video/);assert.equal(x.accepted(),0);ok('Text-to-video sends no hidden image and supports 21:9 and whole seconds');await x.context.close();
  x=await workspace();await choose(x,'reference');await still(x,'reference-images');
- await x.page.locator('#video-references').setInputFiles({name:'motion.mp4',mimeType:'video/mp4',buffer:motion});await ready(x.page);assert.match(await x.page.locator('#video-ref-count').innerText(),/1 \/ 10/);
- await x.page.locator('#audio-references').setInputFiles({name:'score.wav',mimeType:'audio/wav',buffer:sound});await ready(x.page);assert.match(await x.page.locator('#audio-ref-count').innerText(),/1 \/ 10/);
+ await x.page.locator('#video-references').setInputFiles({name:'motion.mp4',mimeType:'video/mp4',buffer:motion});await x.page.waitForFunction(()=>document.querySelector('#video-ref-count').textContent.startsWith('1 / 10'));assert.match(await x.page.locator('#video-ref-count').innerText(),/1 \/ 10/);
+ await x.page.locator('#audio-references').setInputFiles({name:'score.wav',mimeType:'audio/wav',buffer:sound});await x.page.waitForFunction(()=>document.querySelector('#audio-ref-count').textContent.startsWith('1 / 10'));assert.match(await x.page.locator('#audio-ref-count').innerText(),/1 \/ 10/);
  await x.page.locator('#video-reference-list input').fill('Camera movement only.');await x.page.locator('#audio-reference-list input').fill('Rhythm.');
  await x.page.click('#save');await ready(x.page);assert.equal(count(x,'/api/jobs'),0);assert.equal(count(x,'/api/reference-uploads'),2);
  await x.page.click('#clear');await x.page.locator('.card[data-state="draft"]').click();await x.page.click('#video-detail-reuse');await ready(x.page);
@@ -98,16 +98,21 @@ try{
   const completedVideo={id:id(80),outputId:id(82),sourceId:null,status:'completed',createdAt:Date.now(),
     settings:{type:'video',engine:'seedance',mode:'start',prompt:'A sculptural object slowly turning in natural light.',
       duration:5,resolution:'720p',aspectRatio:'16:9',referenceSourceIds:[]}};
-  x=await workspace({initial:[completedVideo]});
-  await x.page.waitForFunction(()=>document.querySelector('#video')?.src.startsWith('blob:')&&!document.querySelector('#video').hidden);
+  x=await workspace({initial:[completedVideo]});await x.page.click('#tool-video');
+  await x.page.waitForFunction(()=>document.querySelector('#video-detail-prompt').textContent.includes('sculptural object'));
+  assert.equal(count(x,'/api/assets/'+completedVideo.outputId,'GET'),0,'Opening Video does not automatically download the MP4');
   assert.equal(await x.page.locator('#video-feed-center').isVisible(),true,'Completed Video uses center preview');
   assert.equal(await x.page.locator('#video-inspector').isVisible(),true,'Video metadata inspector stays visible');
   assert.match(await x.page.locator('#video-detail-prompt').innerText(),/sculptural object/i);
   assert.equal(await x.page.locator('#video-detail-model').innerText(),'Seedance 2.5');
   assert.equal(await x.page.locator('#video-detail-watch').isEnabled(),true);
+  await x.page.locator('#history .card[data-job="'+completedVideo.id+'"]').click();
+  await x.page.waitForFunction(()=>document.querySelector('#video')?.src.startsWith('blob:')&&!document.querySelector('#video').hidden);
+  assert.equal(count(x,'/api/assets/'+completedVideo.outputId,'GET'),1);
+  assert.equal(x.accepted(),0);
   await x.page.screenshot({path:'test-results/lab-video-selected-result.png',fullPage:false});
   assert.deepEqual(x.errors,[]);
-  ok('Latest completed video previews in center with right inspector and no paid job');
+  ok('Latest video shows its inspector first, loads on request and submits no paid job');
   await x.context.close();
  console.log('SEEDANCE_STANDARD_BROWSER_CHECKS_PASSED='+passed);
 }finally{await browser.close();await new Promise(r=>server.close(r));}

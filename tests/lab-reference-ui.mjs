@@ -93,6 +93,7 @@ try{
   const size=await x.page.locator('#input-preview-image').evaluate(async i=>{await i.decode();return [i.naturalWidth,i.naturalHeight];});assert.ok(Math.max(...size)<=1280);
   await x.page.locator('#input-preview-dialog [data-close]').click();assert.equal(await x.page.locator('#preview').isVisible(),false);pass('Input previews open separately and never replace the result canvas');
   await x.page.locator('#prompt:visible, #image-composer-prompt:visible').fill('Architectural sculpture in daylight.');
+  await x.page.click('#composer-reference-intent-toggle');await x.page.click('[data-reference-intent="references"]');await imageAdvanced(x.page);
   await x.page.locator('.reference-item select').first().selectOption('room');
   await x.page.locator('.reference-item input').first().fill('Use only the architecture.');
   await x.page.locator('#save').click();await x.page.waitForFunction(()=>document.querySelector('#notice').textContent.startsWith('Saved privately'));
@@ -124,7 +125,7 @@ try{
   assert.equal(await x.page.locator('#generate').isDisabled(),false);
   await x.page.locator('#prompt:visible, #image-composer-prompt:visible').fill('');
   assert.equal(await x.page.locator('#generate').isDisabled(),false);assert.equal(await x.page.locator('#save').isDisabled(),false);
-  assert.equal(await x.page.locator('#prompt-label').textContent(),'Additional changes (optional)');
+  assert.equal(await x.page.locator('#prompt-label').textContent(),'Image direction (optional)');
   pass('Detail requires a target, then Base plus Hands works with no written image direction');
   await role(x.page,3).selectOption('outfit');assert.equal(await target(x.page,3).inputValue(),'full');
   await target(x.page,3).selectOption('pants');
@@ -135,7 +136,7 @@ try{
   const preview=await x.page.locator('#reference-guidance-text').innerText();
   assert.match(preview,/Reference 1 \[Base image\]/);assert.match(preview,/Reference 2 \[Detail \/ Hands\]/);assert.match(preview,/Reference 3 \[Clothing \/ Pants\]/);
   assert.match(preview,/Use only the hands as a localized visual reference/);assert.match(preview,/Use only the pants/);
-  assert.match(preview,/REQUESTED EDIT: Apply the assigned reference properties to the base image/);
+  assert.match(preview,/REQUESTED IMAGE: Apply the assigned reference properties to the base image/);
   assert.match(await x.page.locator('#reference-guidance-count').textContent(),/\/ 5,000 characters/);
   assert.ok(preview.indexOf('Reference 1 [Base image]')<preview.indexOf('Reference 2 [Detail / Hands]'));
   pass('Clothing exposes Pants and the collapsed SpicyAPI preview expands into the ordered automatic instructions');
@@ -156,8 +157,9 @@ try{
   assert.deepEqual(x.errors,[]);await x.context.close();
 
   x=await workspace({jobs:[job]});await imageAdvanced(x.page);await clickAdvanced(x.page);await x.page.locator('#history .card[data-kind="image"]').first().click();
-  await x.page.waitForFunction(()=>document.querySelector('#image-lightbox').open);const resultUrl=await x.page.locator('#preview').getAttribute('src');
+  await x.page.waitForFunction(()=>document.querySelector('#image-lightbox').open);
   await x.page.locator('#image-lightbox-img').evaluate(async img=>{await img.decode();});
+  const resultUrl=await x.page.locator('#image-lightbox-img').getAttribute('src');
   const detail=await x.page.evaluate(()=>{
     const rect=id=>{const r=document.querySelector(id).getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height};};
     return {dialog:rect('#image-lightbox'),stage:rect('#image-lightbox-stage'),image:rect('#image-lightbox-img'),
@@ -171,7 +173,7 @@ try{
   assert.ok(detail.image.right<=detail.right.left,'Complete image cannot extend beneath inspector');
   assert.ok(detail.image.width<=detail.stage.width&&detail.image.height<=detail.stage.height,'Image fits its stage without cropping');
   assert.deepEqual(detail.imageSize,[960,640],'Native image retains landscape dimensions');
-  assert.ok(Math.abs(detail.image.width/detail.image.height-1.5)<.02,'Full image retains source aspect ratio');
+  assert.equal(await x.page.locator('#image-lightbox-img').evaluate(img=>getComputedStyle(img).objectFit),'contain','The viewer preserves the original aspect ratio inside its stable image box');
   assert.equal(await x.page.locator('#image-detail-prompt').innerText(),'A ceramic sculpture.');
   assert.equal(await x.page.locator('#image-detail-model').innerText(),'Seedream 5 Pro');
   await x.page.waitForFunction(()=>document.querySelector('#image-detail-reference-thumb').naturalWidth>0
@@ -218,13 +220,14 @@ try{
   pass('Source thumbnail opens original full size, Fit/100%, X, Escape and Back return to the unchanged result');
   const polish=await x.page.evaluate(()=>{
     const close=document.querySelector('#image-lightbox-close').getBoundingClientRect();
-    const panel=document.querySelector('.image-detail-inspector').getBoundingClientRect();
-    return {closeRight:close.right,panelLeft:panel.left,viewportWidth:innerWidth,
+    const topbar=document.querySelector('.image-detail-topbar').getBoundingClientRect();
+    const download=document.querySelector('#image-lightbox-download').getBoundingClientRect();
+    return {close:{left:close.left,right:close.right,top:close.top,bottom:close.bottom},topbar:{right:topbar.right,top:topbar.top,bottom:topbar.bottom},downloadRight:download.right,
       promptBorder:getComputedStyle(document.querySelector('.image-detail-prompt-card')).borderTopWidth,
       detailsBorder:getComputedStyle(document.querySelector('#image-detail-metadata')).borderTopWidth};
   });
-  assert.ok(polish.closeRight>=polish.viewportWidth-34&&polish.closeRight>polish.panelLeft,
-    'Close X occupies the upper-right corner of the inspector');
+  assert.ok(polish.close.left>=polish.downloadRight&&polish.close.right<=polish.topbar.right&&polish.close.top>=polish.topbar.top&&polish.close.bottom<=polish.topbar.bottom,
+    'Close X is accessible beside Download within the media toolbar');
   assert.equal(polish.promptBorder,'1px','Prompt is in a bordered card');
   assert.equal(polish.detailsBorder,'1px','Details is in a separate bordered card');
   await x.page.locator('#image-detail-metadata summary').click();
@@ -238,7 +241,7 @@ try{
   mkdirSync('test-results',{recursive:true});
   await x.page.screenshot({path:'test-results/lab-image-detail-fullscreen.png',fullPage:false});
   await x.page.locator('#reference-images').setInputFiles(references());await ready(x.page);
-  assert.equal(await x.page.locator('#preview').getAttribute('src'),resultUrl);assert.equal(await x.page.locator('#preview').getAttribute('alt'),'Generated image result');
+  assert.equal(await x.page.locator('#image-lightbox-img').getAttribute('src'),resultUrl);assert.equal(await x.page.locator('#image-lightbox-img').getAttribute('alt'),'Generated image, full-size preview');
   assert.equal(await x.page.locator('#image-lightbox-download').isVisible(),true);pass('Adding references preserves the real result and visible Image viewer download');
   await x.page.evaluate(()=>window.__labTest.lock());assert.equal(await x.page.locator('#app').isVisible(),false);assert.equal(await x.page.locator('.reference-item').count(),0);assert.equal(await x.page.locator('#input-preview-image').getAttribute('src'),null);pass('Sign-out clears input previews, result previews and private reference state');await x.context.close();
 
