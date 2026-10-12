@@ -23,11 +23,12 @@ import {falUpscaleParameters,storedImageDimensions,setFalUpscaleDimensions,falUp
 import {SOUL_PRO_MODELS,soulProParameters,soulProEstimateMicros,buildSoulProInput} from './soul-pro.mjs';
 import {findFalRequest} from './fal-recovery.mjs';
 import {falUploadImage} from './fal-storage.mjs';
-import {REFERENCE_ROLES,normalizeReferenceLabel,supportsReferenceGuidance,compileImagePrompt,canUseReferenceGuidance,referenceGuidanceError} from '../lab/reference-guidance.js';
+import {REFERENCE_ROLES,normalizeReferenceLabel,supportsReferenceGuidance,compileImagePrompt,canUseReferenceGuidance,referenceGuidanceError,builtInMoodReferenceCount} from '../lab/reference-guidance.js';
+import {BERLIN_RAVE_REFERENCES,BERLIN_RAVE_REFERENCE_VERSION} from './berlin-rave-references.mjs';
 import {moodBoardsRoute} from './moodboards.mjs';
 import {moodCreatorRoute} from './mood-creator-service.mjs';
 import {characterPreview as soulCharacterPreview,SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-12.1-launch-readiness';
+export const VERSION = 'pv-lab-2026-10-12.2-berlin-rave-references';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -263,13 +264,19 @@ function parameters(value) {
   const prime=value.engine==='wanprime';
   return {type:'video',engine:prime?'wanprime':'wan',model:prime?(mode==='reference'?'alibaba/wan-3.0-prime/reference-to-video':'alibaba/wan-3.0-prime/image-to-video'):(mode==='reference'?MODEL_REFERENCE:MODEL_IMAGE),mode,prompt,duration,resolution,aspectRatio:ratio,seed,audio:value.audio!==false,referenceRoles};
 }
+function builtInMoodReferences(p){
+  if(!builtInMoodReferenceCount(p))return [];
+  p.moodReferenceVersion=BERLIN_RAVE_REFERENCE_VERSION;
+  p.moodReferenceCount=BERLIN_RAVE_REFERENCES.length;
+  return BERLIN_RAVE_REFERENCES;
+}
 function assembledPrompt(p) {
   if(supportsReferenceGuidance(p)){
     const count=p.referenceSourceIds?.length||0,labels=p.referenceRoles||[];
     if(labels.length&&labels.length!==count)fail(400,'Reference roles must match the selected images in order.');
     p.referenceRoles=Array.from({length:count},(_,i)=>normalizeReferenceLabel(labels[i]));
-    const error=referenceGuidanceError(p.referenceRoles);if(error)fail(400,error);
-    const prompt=compileImagePrompt(p.prompt,p.referenceRoles);
+    const error=referenceGuidanceError(p.referenceRoles,p);if(error)fail(400,error);
+    const prompt=compileImagePrompt(p.prompt,p.referenceRoles,p);
     if(prompt.length>5000)fail(400,'Prompt plus automatic reference instructions is too long. Shorten the direction or reference notes.');
     return prompt;
   }
@@ -374,7 +381,7 @@ async function prepareInput(env,owner,data,p,url) {
     if(url){const weights=await soulWeightUrl(env,url,character,soulDeps());input.loras=[{path:weights,scale:p.identityStrength}];}
   }else if(p.type==='image'){
     const refs=data.referenceSourceIds?.length?await sources(env,owner,data.referenceSourceIds):[];
-    primary=refs[0]||null;p.referenceSourceIds=refs.map(a=>a.id);p.lastSourceId=null;p.model=refs.length?STILL_EDIT:STILL_TEXT;
+    primary=refs[0]||null;p.referenceSourceIds=refs.map(a=>a.id);p.lastSourceId=null;p.model=refs.length||builtInMoodReferenceCount(p)?STILL_EDIT:STILL_TEXT;
     input={resolution:p.resolution,aspect_ratio:p.aspectRatio==='auto'&&!refs.length?'1:1':p.aspectRatio,output_format:p.outputFormat};
     if(refs.length&&url)input.image_urls=await Promise.all(refs.map(a=>signedInput(env,url,a.id)));
   }else if(['h3','h3max','h3spicy'].includes(p.engine)){
@@ -561,8 +568,9 @@ function validUploadUrl(value) {
     throw new Error('Unexpected provider upload location.');
   return u.href;
 }
-async function stageImageReferences(env,owner,ids,key,max=10,maxPixels=0) {
-  const assets=await sources(env,owner,ids,max);
+async function stageImageReferences(env,owner,ids,key,max=10,maxPixels=0,builtIn=[]) {
+  const assets=[...(ids.length?await sources(env,owner,ids,max):[]),...builtIn];
+  if(assets.length>max)fail(400,'Too many image references for this model.');
   // Validate the entire batch before any transfer. Keep the private originals unchanged.
   for(const a of assets)if(!['image/jpeg','image/png','image/webp'].includes(a.mime)||a.bytes<=0||a.bytes>MAX_PROVIDER_IMAGE)
     fail(400,'SpicyAPI image uploads are limited to 10 MiB per file. Prepare a working copy in the Lab before requesting a price. Your original remains unchanged. No generation was submitted.');
@@ -571,9 +579,13 @@ async function stageImageReferences(env,owner,ids,key,max=10,maxPixels=0) {
     while(!stopped){
       const i=cursor++;if(i>=assets.length)return;
       try{
-        const a=assets[i],object=await env.LAB_MEDIA.get(a.object_key);
-        if(!object)throw new Error('Stored reference image is unavailable.');
-        const bytes=await limitedBody(new Response(object.body),MAX_PROVIDER_IMAGE);
+        const a=assets[i];let bytes;
+        if(a.data)bytes=Uint8Array.from(atob(a.data),c=>c.charCodeAt(0));
+        else{
+          const object=await env.LAB_MEDIA.get(a.object_key);
+          if(!object)throw new Error('Stored reference image is unavailable.');
+          bytes=await limitedBody(new Response(object.body),MAX_PROVIDER_IMAGE);
+        }
         if(bytes.length!==a.bytes||!sniff(bytes,a.mime))throw new Error('Stored reference image failed verification.');
         if(maxPixels){
           let dimensions;
@@ -703,7 +715,8 @@ async function geminiParts(env,owner,p,referenceSourceIds=[]){
   if(ids.length>10)fail(400,'Nano Banana Pro accepts up to 10 image references in this Lab.');
   const refs=ids.length?await sources(env,owner,ids):[];p.referenceSourceIds=refs.map(a=>a.id);
   const parts=[{text:assembledPrompt(p)}];
-  let total=0;
+  const builtIn=builtInMoodReferences(p);
+  let total=builtIn.reduce((n,a)=>n+a.bytes,0);
   for(let i=0;i<refs.length;i++){
     const a=refs[i];if(!['image/jpeg','image/png','image/webp'].includes(a.mime))fail(400,'Nano Banana Pro references must be JPG, PNG or WebP.');
     total+=a.bytes;if(total>14*1024*1024)fail(413,'Nano Banana Pro references exceed the 14 MiB inline-input limit for this Lab. Use fewer or smaller reference images.');
@@ -713,6 +726,7 @@ async function geminiParts(env,owner,p,referenceSourceIds=[]){
     if(note)parts.push({text:'Reference '+(i+1)+': '+note});
     parts.push({inlineData:{mimeType:a.mime,data:standardBase64(bytes)}});
   }
+  for(const a of builtIn)parts.push({inlineData:{mimeType:a.mime,data:a.data}});
   return {parts,refs,totalBytes:total};
 }
 function geminiGenerateRequest(p,parts){
@@ -1385,6 +1399,7 @@ async function route(request,env,ctx) {
     }
     if(p.type==='image'){
       const originals=['upscale','reinterpret'].includes(p.mode)?[primary.id]:p.referenceSourceIds;
+      const builtIn=builtInMoodReferences(p);
       if(originals.length){
         const ids=data.transferSourceIds??originals;
         if(!Array.isArray(ids)||ids.length!==originals.length||new Set(ids).size!==ids.length)fail(400,'Working copies must match the original images in order.');
@@ -1392,7 +1407,9 @@ async function route(request,env,ctx) {
         const originalsData=await sources(env,owner,originals);
         p.transferSourceIds=transfers.map(a=>a.id);
         p.transferNotes=transfers.map((a,i)=>a.id===originals[i]?'':originalsData[i].filename+': original '+(originalsData[i].bytes/1048576).toFixed(2)+' MiB; provider working copy '+(a.bytes/1048576).toFixed(2)+' MiB.').filter(Boolean);
-        const uris=await stageImageReferences(env,owner,p.transferSourceIds,key,10,p.engine==='seedream'?36000000:0);
+      }
+      if(originals.length||builtIn.length){
+        const uris=await stageImageReferences(env,owner,p.transferSourceIds||[],key,10,p.engine==='seedream'?36000000:0,builtIn);
         if(['upscale','reinterpret'].includes(p.mode))input.image_url=uris[0];else input.image_urls=uris;
       }
     }

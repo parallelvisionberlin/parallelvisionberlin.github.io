@@ -9,7 +9,7 @@ import {captureReferralCode,claimReferral} from './referral-capture.js?v=2026101
 captureReferralCode();
 import {createSoul2UI} from './higgsfield-ui.js?v=20261010-soul-price1';
 import {VIDEO_MODELS,engineFor,videoLabel} from './video-models.js?v=20261009-extend1';
-import {REFERENCE_ROLES,REFERENCE_TARGETS,normalizeReferenceLabel,compileImagePrompt,referenceGuidanceError,canUseReferenceGuidance} from './reference-guidance.js?v=20261010-reference-flow2';
+import {REFERENCE_ROLES,REFERENCE_TARGETS,normalizeReferenceLabel,compileImagePrompt,referenceGuidanceError,canUseReferenceGuidance,builtInMoodReferenceCount} from './reference-guidance.js?v=20261012-berlin-refs1';
 import {createMoodSelector,moodById,userFacingImagePrompt,imageHistoryCaption} from './moods.js?v=20261011-midnight-reverie1&hd=20261011&raveBudget=1&editorialHD=2&moodImageHD=1&moodDeckSpace=1&raveNight=4&syntheticBudget=1';
 import {createMyMoods} from './my-moods.js?v=20261011-midnight-reverie1&hd=20261011&raveBudget=1&editorialHD=2&editorialHD=2&moodImageHD=1&raveNight=4';
 import {takeMoodHandoff,moodGenerationQuote} from './mood-handoff.js?v=20261012-generate1';
@@ -435,10 +435,12 @@ function referenceRoles(){return references.map(r=>normalizeReferenceLabel({name
 function usesReferenceGuidance(){return tool==='image'&&['seedream','gemini','flash','kling'].includes(imageEngine);}
 function imageGuidance(){
   const labels=referenceRoles(),mood=moodUI.enrich($('prompt').value,{engine:imageEngine,referenceCount:references.length,referenceMode:imageReferenceMode});
-  const prompt=compileImagePrompt(mood.prompt,labels);
-  return {prompt,error:referenceGuidanceError(labels)||mood.error||(prompt.length>5000?'Direction, mood and reference instructions exceed 5,000 characters. Shorten the direction or optional notes.':'')};
+  const current={type:'image',mode:'image',engine:imageEngine,...mood.metadata},prompt=compileImagePrompt(mood.prompt,labels,current);
+  return {prompt,error:referenceGuidanceError(labels,current)||mood.error||(prompt.length>5000?'Direction, mood and reference instructions exceed 5,000 characters. Shorten the direction or optional notes.':'')};
 }
 function updateReferenceGuidance(){
+  $('ref-count').textContent=references.length+' / '+referenceLimit();
+  $('reference-drop').querySelector('small').textContent='Up to '+referenceLimit()+' images';
   const panel=$('reference-guidance'),active=usesReferenceGuidance();panel.hidden=!active||!references.length;
   if(!active)return;
   const {prompt,error}=imageGuidance();
@@ -1626,7 +1628,7 @@ async function addReferences(list,ids=[],labels=[]){
   }
 }
 
-function referenceLimit(){if(tool==='image'&&imageEngine==='flash')return 14;if(tool==='image'&&imageEngine==='kling')return 1;return tool==='video'?VIDEO_MODELS[engine].maxImages:tool==='image'&&imageEngine==='soulpro'?4:tool==='image'&&imageEngine==='soul'?soul.referenceLimit():tool==='image'&&imageEngine==='fal'?5:10;}
+function referenceLimit(){if(tool==='image'&&imageEngine==='flash')return 14;if(tool==='image'&&imageEngine==='kling')return 1;return tool==='video'?VIDEO_MODELS[engine].maxImages:tool==='image'&&imageEngine==='soulpro'?4:tool==='image'&&imageEngine==='soul'?soul.referenceLimit():tool==='image'&&imageEngine==='fal'?5:10-builtInMoodReferenceCount({type:tool,mode:'image',engine:imageEngine,moodId:moodUI.selected()});}
 function configureVideoControls(){
   const isVideo=tool==='video',model=VIDEO_MODELS[engine],sd=engine==='seedance',h3=engine==='h3',h3max=engine==='h3max',h3spicy=engine==='h3spicy',h3maxfal=engine==='h3maxfal',omni=engine==='omni',minimax=h3||h3max||h3spicy||h3maxfal;
   $('app').classList.toggle('video-extend-active',isVideo&&mode==='extend');

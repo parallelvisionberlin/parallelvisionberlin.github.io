@@ -72,6 +72,10 @@ jobs:
         run: |
           npm install --prefix /tmp/pv-lab-browser --no-audit --no-fund playwright@1.62.1
           /tmp/pv-lab-browser/node_modules/.bin/playwright install --with-deps chromium
+      - name: Verify built-in Berlin Rave references on desktop and mobile
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-lab-browser/node_modules/playwright/index.mjs
+        run: node tests/lab-berlin-rave-browser.mjs
       - name: Verify desktop and mobile gallery, original downloads and account cache
         env:
           PV_PLAYWRIGHT_MODULE: /tmp/pv-lab-browser/node_modules/playwright/index.mjs
