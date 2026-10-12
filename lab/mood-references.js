@@ -1,13 +1,13 @@
-import {prepareMoodPrompt} from './moods.js?v=20261012-hk-optics2';
+import {prepareMoodPrompt} from './moods.js?v=20261012-hk-optics3&filmRevision=3';
 import {compileImagePrompt,normalizeReferenceLabel} from './reference-guidance.js?v=20261010-reference-flow2&dreamcore=7&syntheticRefs=1&raveIdentity=1';
 
 // These are photographic treatment references, never a replacement Base.
 // Stable labels also prevent adding them twice when a saved job is reopened.
 const HONG_KONG_REFERENCES=Object.freeze([
-  {file:'02-city-haze.jpg',type:'image/jpeg',note:'Primary finish reference: emerald depth, humid diffusion, luminous highlights and dark gaps. Transfer light behavior, never its city or framing.'},
-  {file:'05-passage-diffusion.jpg',type:'image/jpeg',note:'Borrow soft fluorescent diffusion and layered humid light across the whole frame. Preserve the Base location and subject.'},
-  {file:'06-interior-portrait.jpg',type:'image/jpeg',note:'Borrow people integrated into dim green ambient light, gentle skin transitions and deep shadows. Never copy these people, pose or tunnel.'},
-  {file:'03-shop-reflections.jpg',type:'image/jpeg',note:'Borrow wet specular reflections and warm/cool separation only on suitable Base surfaces. Do not add a street, taxi or signage.'}
+  {file:'06-interior-portrait.jpg',type:'image/jpeg',note:'Primary people reference: soft skin/hair transitions, dim green light and luminous practicals. Keep Base identity, pose and scene; never copy couple or tunnel.'},
+  {file:'05-passage-diffusion.jpg',type:'image/jpeg',note:'Optical reference: fluorescent light spread, soft edges and humid depth across people and setting. Never copy passage or figures.'},
+  {file:'02-city-haze.jpg',type:'image/jpeg',note:'Atmosphere: emerald depth, humid diffusion, luminous highlights and dark gaps. Transfer light, never city or framing.'},
+  {file:'03-shop-reflections.jpg',type:'image/jpeg',note:'Surfaces: wet reflections and warm/cool separation where suitable. Interiors stay indoors; never add street, taxi or signage.'}
 ].map(ref=>Object.freeze({...ref,url:'/lab/mood-references/hong-kong-nights/'+ref.file,
   label:Object.freeze({name:'Hong Kong Nights style - '+ref.file,role:'style',note:ref.note})})));
 

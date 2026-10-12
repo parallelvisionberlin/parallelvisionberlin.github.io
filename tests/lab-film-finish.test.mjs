@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {inflateSync} from 'node:zlib';
-import {grainPng,filmAssetId,prepareFilmAsset,renderFilmFinish,FILM_RENDER_REVISION} from '../lab-worker/film-finish.mjs';
+import {grainPng,filmAssetId,prepareFilmAsset,renderFilmFinish,shoulderPng,FILM_RENDER_REVISION} from '../lab-worker/film-finish.mjs';
 import {filmFinishSettings,HONG_KONG_FILM_FINISH} from '../lab/film-finish.js';
 import {prepareMoodPrompt,preparePersonalMoodPrompt} from '../lab/moods.js';
 
@@ -32,7 +32,7 @@ test('Hong Kong finish controls change metadata independently of creative intens
   const a=prepareMoodPrompt('One woman by a window','hong-kong-nights',100,{referenceCount:1,filmFinish:{version:1,grain:20,glow:80}});
   const b=prepareMoodPrompt('One woman by a window','hong-kong-nights',100,{referenceCount:1,filmFinish:{version:1,grain:100,glow:0}});
   assert.equal(a.prompt,b.prompt);assert.equal(a.metadata.moodIntensity,100);assert.equal(b.metadata.filmFinish.grain,100);
-  assert.match(a.prompt,/Preserve natural pores/);assert.doesNotMatch(a.prompt,/Heavy irregular clustered grain/);
+  assert.match(a.prompt,/allowing pores, hair and fabric edges to soften/);assert.doesNotMatch(a.prompt,/Heavy irregular clustered grain/);
   assert.equal(prepareMoodPrompt('Portrait','berlin-rave',100).metadata.filmFinish,undefined);
   assert.equal(preparePersonalMoodPrompt('Portrait',{id:'board',name:'Mine',baseMoodId:'hong-kong-nights',direction:'Quiet light'},60).metadata.filmFinish,undefined);
 });
@@ -50,7 +50,7 @@ test('source-aware grain preserves black and white, favors midtones and does not
   assert.equal(energy[0],0);assert.equal(energy[5],0);
   assert.ok(energy[3]>energy[1]*3);assert.ok(energy[3]>energy[4]*3);
   for(const m of mean)assert.ok(Math.abs(m)<.15,'grain must not lift shadows or depress highlights systematically');
-  assert.equal(FILM_RENDER_REVISION,2,'new processing must not reuse v1 cached derivatives');
+  assert.equal(FILM_RENDER_REVISION,3,'new processing must not reuse earlier cached derivatives');
 });
 test('Hong Kong optical finish preserves the setting and addresses foreground light at every tier',()=>{
   for(const intensity of [21,70,100]){
@@ -59,4 +59,16 @@ test('Hong Kong optical finish preserves the setting and addresses foreground li
     assert.match(prompt,/Keep the Base location, architecture/);assert.match(prompt,/WET \/ GLOSS/);
     assert.match(prompt,/no coarse generated noise/);
   }
+});
+
+
+test('neutral highlight shoulder preserves black, midtones and warm source hue',async()=>{
+  const input=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAQAAAABCAIAAAB2XpiaAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAAFUlEQVQImWNgYGBoaGj4////s/U9AB+aBp+Ia7giAAAAAElFTkSuQmCC','base64');
+  const bytes=await shoulderPng(input),parts=[];
+  for(let p=8;p<bytes.length;){const n=new DataView(bytes.buffer,bytes.byteOffset+p,4).getUint32(0);if(Buffer.from(bytes.slice(p+4,p+8)).toString()==='IDAT')parts.push(bytes.slice(p+8,p+8+n));p+=n+12;}
+  const row=inflateSync(Buffer.concat(parts));
+  assert.deepEqual([...row.slice(1,4)],[0,0,0]);
+  assert.deepEqual([...row.slice(5,8)],[128,128,128]);
+  assert.ok(row[9]<255&&row[9]>235);assert.equal(row[9],row[10]);assert.equal(row[10],row[11]);
+  assert.ok(Math.abs(row[14]/row[13]-175/230)<.01);assert.ok(Math.abs(row[15]/row[13]-140/230)<.01);
 });

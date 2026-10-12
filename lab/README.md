@@ -380,3 +380,27 @@ See [the account interface work state](ACCOUNT-WORK-STATE.md) before changing th
 
 ### Image result deck: current state (2026-10-12)
 See [the result deck work state](RESULT-DECK-WORK-STATE.md) for the approved editorial inspector, existing Video Studio handoff, verification and release status.
+
+
+### Hong Kong photographic finish revision 3: current state (2026-10-12)
+
+- Objective: improve the failed visual finish shown in the user's three result/source pairs.
+- User authorized prompt/reference/renderer revision, verification and publication.
+- Source baseline: `21cb0f5`; original-image recovery and no additional generation charge remain intact.
+- Four existing reference assets retained; portrait and fluorescent passage now lead the reference order.
+- Notes emphasize skin/hair softness and integrated subject lighting; exterior references guide atmosphere and suitable surfaces.
+- Prompt permits optical softening of fine detail while preserving identity, anatomy, pose, wardrobe and location.
+- Built-in compact recipe still retains authored directions and notes within the provider budget.
+- Grain uses isotropic multiscale stochastic fields with exposure-dependent amplitude, reduced extreme strength and stable seeds.
+- Glow adds stronger full-frame diffusion, a neutral highlight shoulder and wider source-colored light spread.
+- This is a custom artistic emulation, not a calibrated film-stock simulation or an exact camera reconstruction.
+- Renderer revision 3 uses new derivative cache IDs; slider/settings schema and original downloads remain compatible.
+- Existing images can receive revised processing through Apply finish, without a new model generation.
+- Worker version: `pv-lab-2026-10-12.11-film-optics3`; frontend imports carry filmRevision=3.
+- Relevant files: `lab-worker/film-finish.mjs`, `lab-worker/worker.mjs`, `lab/moods.js`, `lab/mood-references.js` and their versioned entrypoints.
+- Local full Lab suite: 316 passed before the new neutral-shoulder regression check.
+- Local comparison inspected on supplied hallway-source screenshot and approved portrait reference at Grain 25 / Glow 70.
+- Sharp preview is approximate; no claim of raw-generation comparison or exact Cloudflare blend equivalence.
+- No paid AI generation submitted; revised generation prompt still requires the next real output for aesthetic assessment.
+- Publication and actual Cloudflare pixel/browser checks pending.
+- Next action: push revision branch, verify remote processing, merge and confirm live frontend/Worker.

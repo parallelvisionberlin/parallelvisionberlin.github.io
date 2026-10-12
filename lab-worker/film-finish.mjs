@@ -1,6 +1,6 @@
 import {filmFinishSettings} from '../lab/film-finish.js';
 
-export const FILM_RENDER_REVISION=2;
+export const FILM_RENDER_REVISION=3;
 const INPUT_LIMIT=20_000_000,OUTPUT_LIMIT=20*1024*1024;
 const signature=new Uint8Array([137,80,78,71,13,10,26,10]);
 const crcTable=Uint32Array.from({length:256},(_,n)=>{for(let k=0;k<8;k++)n=n&1?0xedb88320^(n>>>1):n>>>1;return n>>>0;});
@@ -83,33 +83,46 @@ async function convertHighlights(bytes,asMask=false){
 }
 export const transparentHighlights=bytes=>convertHighlights(bytes,false);
 export const highlightMask=bytes=>convertHighlights(bytes,true);
-// Fine, non-tiled, seeded grain follows source exposure. Equal positive and
-// negative luminance changes avoid the gray veil of black/white alpha noise.
+// Custom multiscale grain, not a measured film-stock model. Isotropic smooth
+// fields avoid row-direction artifacts and pixel-white speckles. Output scale
+// is normalized by the caller; source exposure controls amplitude, not mean.
 export async function grainPng(width,height,amount,seed,source=null){
   const random=randomFor(seed),stride=width*2+1,scan=new Uint8Array(stride*height);
-  let previous=new Float32Array(width),current=new Float32Array(width);
-  const strength=amount/100*14;
-  for(let y=0;y<height;y++){
-    let left=0;
-    for(let x=0;x<width;x++){
-      const fine=(random()+random()+random()-1.5)/1.5;
-      const coarse=.25*left+.25*previous[x]+.5*(random()*2-1);current[x]=coarse;left=coarse;
-      const noise=.8*fine+.2*coarse,index=y*stride+1+x*2;
-      let luminance=127.5,alpha=1;
-      if(source){
-        const sx=Math.min(source.width-1,Math.floor((x+.5)*source.width/width)),sy=Math.min(source.height-1,Math.floor((y+.5)*source.height/height));
-        const i=(sy*source.width+sx)*4,p=source.pixels;
-        luminance=.2126*p[i]+.7152*p[i+1]+.0722*p[i+2];alpha=p[i+3]/255;
-      }
-      const l=luminance/255,envelope=Math.sin(Math.PI*l)**.8;
-      const delta=Math.abs(noise)*strength*envelope*alpha;
-      const room=noise>=0?255-luminance:luminance;
-      scan[index]=noise>=0?255:0;
-      scan[index+1]=Math.round(Math.min(.16,delta/Math.max(1,room))*255);
+  const gaussian=()=>Math.sqrt(-2*Math.log(Math.max(1e-9,random())))*Math.cos(2*Math.PI*random());
+  function field(cell){
+    const w=Math.ceil(width/cell)+2,h=Math.ceil(height/cell)+2,values=Float32Array.from({length:w*h},gaussian);
+    return (x,y)=>{
+      const gx=x/cell,gy=y/cell,ix=Math.floor(gx),iy=Math.floor(gy);
+      const fx=gx-ix,fy=gy-iy,u=fx*fx*(3-2*fx),v=fy*fy*(3-2*fy);
+      return (values[iy*w+ix]*(1-u)+values[iy*w+ix+1]*u)*(1-v)+(values[(iy+1)*w+ix]*(1-u)+values[(iy+1)*w+ix+1]*u)*v;
+    };
+  }
+  const fine=field(1.15),body=field(2.3),strength=amount/100*10;
+  for(let y=0;y<height;y++)for(let x=0;x<width;x++){
+    const noise=Math.tanh(.72*fine(x+.37,y+.61)+.28*body(x+.83,y+.29)),index=y*stride+1+x*2;
+    let luminance=127.5,alpha=1;
+    if(source){
+      const sx=Math.min(source.width-1,Math.floor((x+.5)*source.width/width)),sy=Math.min(source.height-1,Math.floor((y+.5)*source.height/height));
+      const i=(sy*source.width+sx)*4,p=source.pixels;
+      luminance=.2126*p[i]+.7152*p[i+1]+.0722*p[i+2];alpha=p[i+3]/255;
     }
-    [previous,current]=[current,previous];
+    const envelope=Math.sin(Math.PI*luminance/255)**.8,delta=Math.abs(noise)*strength*envelope*alpha;
+    const room=noise>=0?255-luminance:luminance;
+    scan[index]=noise>=0?255:0;
+    scan[index+1]=Math.round(Math.min(.16,delta/Math.max(1,room))*255);
   }
   return png(width,height,scan,4);
+}
+// A gentle neutral shoulder reduces bright digital glare without re-grading
+// Seedream's colors. Hue ratios are preserved. This is an artistic curve.
+export async function shoulderPng(bytes){
+  const {width,height,pixels}=await normalizedPixels(bytes),scan=new Uint8Array((width*4+1)*height);
+  for(let y=0;y<height;y++)for(let x=0;x<width;x++){
+    const i=(y*width+x)*4,j=y*(width*4+1)+1+x*4,max=Math.max(pixels[i],pixels[i+1],pixels[i+2]);
+    const t=Math.max(0,(max-150)/105),mapped=max-12*t*t,ratio=max?mapped/max:1;
+    scan[j]=Math.round(pixels[i]*ratio);scan[j+1]=Math.round(pixels[i+1]*ratio);scan[j+2]=Math.round(pixels[i+2]*ratio);scan[j+3]=pixels[i+3];
+  }
+  return png(width,height,scan,6);
 }
 async function bytesFrom(response,max=OUTPUT_LIMIT){
   if(!response.ok)throw Error('Film processing is temporarily unavailable.');
@@ -136,11 +149,13 @@ export async function renderFilmFinish(images,bytes,settings,seed){
     // A restrained full-frame diffusion layer softens foreground transitions
     // too. The sharp original remains dominant, preserving pores and fabrics.
     const diffusion=images.input(stream(bytes)).transform({blur:Math.max(1,Math.round(Math.max(width,height)/1400*2))});
-    image=image.draw(diffusion,{opacity:amount*.24,composite:'over'});
+    image=image.draw(diffusion,{opacity:amount*.58,composite:'over'});
+    const shoulder=images.input(stream(await shoulderPng(sourcePng))).transform({width,height,fit:'squeeze'});
+    image=image.draw(shoulder,{opacity:amount*.32,composite:'over'});
     const maskPng=await highlightMask(sourcePng);
     // Broad, source-colored halos give wet/glossy highlights depth without a
     // global green overlay or a uniform fog veil.
-    for(const [radius,weight] of [[4,.30],[22,.20]]){
+    for(const [radius,weight] of [[6,.34],[30,.24]]){
       const spread=(await images.input(stream(maskPng)).transform({blur:Math.max(1,Math.round(radius*scale))})
         .output({format:'image/png',anim:false})).response();
       const highlightsPng=await transparentHighlights(await bytesFrom(spread,5_000_000));
