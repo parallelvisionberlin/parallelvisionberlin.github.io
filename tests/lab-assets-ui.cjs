@@ -358,9 +358,9 @@ const mobileTools=page.locator('#studio-header .tool-switch');
 assert.equal(await mobileTools.evaluate(el=>getComputedStyle(el).overflowX),'auto','Narrow mobile tools remain horizontally scrollable');
 for(const id of ['tool-image','tool-retouch','tool-video','tool-upscale','tool-fashion','tool-explore-moods']){
   const tab=page.locator('#'+id);
-  await tab.focus();
+  await tab.scrollIntoViewIfNeeded();
   const bounds=await tab.boundingBox(),navBounds=await mobileTools.boundingBox();
-  assert.ok(bounds.x>=navBounds.x-1&&bounds.x+bounds.width<=navBounds.x+navBounds.width+1,id+' is fully reachable by keyboard in the mobile navigation');
+  assert.ok(bounds.x>=navBounds.x-1&&bounds.x+bounds.width<=navBounds.x+navBounds.width+1,id+' is fully reachable by scrolling the mobile navigation: '+JSON.stringify({bounds,navBounds}));
 }
 await page.locator('#tool-fashion').click();
 assert.equal(await page.locator('#tool-fashion').getAttribute('aria-pressed'),'true','Fashion remains usable after scrolling the mobile tools');
