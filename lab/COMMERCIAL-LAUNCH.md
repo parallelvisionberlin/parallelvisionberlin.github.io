@@ -3,10 +3,18 @@
 ## Verified implementation and remaining release gates
 
 **Public launch remains blocked.** Signup is enabled; public checkout and paid
-generation remain disabled. The account connected to the development session is
-the existing label Stripe live account, not the dedicated PV Lab sandbox. Sandbox
-health reported `configured:false`; no genuine Stripe test purchase, Google OAuth
-signup or live customer generation has been certified by this change.
+generation remain disabled. The dedicated **PV Lab sandbox** is now connected to
+the development session. Its test webhook is enabled at
+`https://parallel-vision-lab-sandbox.parallelvision.workers.dev/api/stripe/webhook`
+for Checkout success, async success, invoices, subscription changes, refunds and
+disputes. Stripe currently reports **no Checkout sessions** in this sandbox.
+The current Cloudflare session requires sign-in before the Worker's encrypted
+secrets and receiver health can be verified. No actual Stripe test purchase,
+new Google OAuth signup or live customer generation is certified.
+
+Current source verification: **309 Lab unit tests passed** on 2026-10-12,
+including automatic gallery pagination, billing, customer isolation and sandbox
+webhook replay. Synthetic coverage does not replace the actual customer flow.
 
 Implemented in this release:
 
@@ -43,8 +51,9 @@ to `OWNER_DB`.
 
 Release gates still requiring external evidence:
 
-1. Connect the dedicated PV Lab Stripe **sandbox/test account**, then configure its
-   restricted test API key and separately signed webhook in the sandbox Worker's
+1. The dedicated PV Lab Stripe **sandbox/test account is connected** and its
+   webhook endpoint is enabled. Verify its restricted test API key and matching
+   webhook signing secret in the sandbox Worker's
    encrypted secrets. The key needs Customers create/read, Checkout sessions
    create/read/expire, Billing Portal sessions create, Subscriptions read and
    Charges read. Test webhook retries, async payment, renewal, cancellation,
