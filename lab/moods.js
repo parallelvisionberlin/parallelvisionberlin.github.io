@@ -1,4 +1,4 @@
-import {HONG_KONG_FILM_FINISH,filmFinishSettings,createFilmFinishControls} from './film-finish.js?v=20261012-film1';
+import {HONG_KONG_FILM_FINISH,filmFinishSettings,createFilmFinishControls} from './film-finish.js?v=20261012-film-deck2';
 /* PV Lab Moods V1. Editorial generation directions, not pixel filters. */
 const ALL_MOODS=Object.freeze([
   {
@@ -405,8 +405,9 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
   const backdrop=panel.parentElement.querySelector('#composer-moods-backdrop');
   let selected=null,intensity=60,category='All',personalMoods=[];
   const finishPanel=document.createElement('div');finishPanel.hidden=true;
-  const finishControls=createFilmFinishControls(finishPanel,{onChange:()=>onChange()});
-  panel.querySelector('.moods-footer')?.append(finishPanel);
+  const finishControls=createFilmFinishControls(finishPanel,{onChange:()=>onChange(),compact:true});
+  const controlDeck=panel.querySelector('.moods-controls');
+  controlDeck?.insertBefore(finishPanel,controlDeck.querySelector('.moods-actions'));
   const boardById=id=>personalMoods.find(board=>'custom:'+board.id===id)||null;
   const findMood=id=>moodById(id)||boardById(id);
   const desktopGridColumns=5,initiallyVisibleRows=2;
@@ -467,6 +468,7 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
     emptyPersonal.hidden=category!=='My Moods'||personalMoods.length>0;
     slider.value=String(intensity);slider.style.setProperty('--moods-progress',((intensity-1)/99*100).toFixed(2)+'%');slider.disabled=!selected;amount.textContent=intensity+'%';
     finishPanel.hidden=selected!=='hong-kong-nights';
+    controlDeck?.classList.toggle('has-film-finish',!finishPanel.hidden);
     const chosen=findMood(selected);
     summary.textContent=chosen?chosen.name:'';
     summary.title=chosen?.description||chosen?.direction||'';

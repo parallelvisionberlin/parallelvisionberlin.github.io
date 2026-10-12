@@ -305,3 +305,26 @@ See [the scoped Studio cards work state](visuals/studio-tools/WORK-STATE.md) for
 ### Account interface: current state
 
 See [the account interface work state](ACCOUNT-WORK-STATE.md) before changing the account page or shared profile menus.
+
+### Film Finish control deck: current state (2026-10-12)
+
+- Objective: integrate the Hong Kong Nights finishing controls into the existing Moods footer.
+- Verified starting source: `97c1680` on `main`.
+- Approved reference: user screenshot `image(20261012-143348).png` and requested horizontal Film finish / Grain / Bloom row.
+- Desktop: Intensity remains first; Film finish, Grain and Bloom share the second row.
+- Use mood stays in the right column, vertically centered across both rows.
+- Small screens stack the action below the controls; Grain and Bloom retain usable two-column sliders.
+- Both finishing sliders now use Intensity's existing citron track and handle design.
+- The finishing explanation is available through a keyboard-focusable information icon.
+- Bloom is the compact UI label; serialized settings retain the existing `glow` key.
+- Controls are still shown only for Hong Kong Nights.
+- Finishing defaults, model prompts, processing, credits and result-viewer controls are unchanged.
+- Relevant sources: `film-finish.js`, `film-finish.css`, `moods.js`, `moods.css`.
+- Loader cache versions updated in `lab.js` and `studio.html`.
+- Verification: `node --test tests/lab-film-finish.test.mjs tests/lab-moods.test.mjs`, 42 passed.
+- Syntax checks passed for changed modules; diff whitespace check passed.
+- Local Playwright could not launch Chromium because sandbox IPC was denied; escalation is unavailable.
+- Implementation commit: `48ff2c2`; prepared locally on `codex/film-finish-deck`.
+- User explicitly approved pushing to `parallelvisionberlin/parallelvisionberlin.github.io` and publishing to `main` on 2026-10-12 at 17:07 Europe/Berlin.
+- Live browser inspection reached the sign-in page; no authenticated visual verification claimed.
+- Publication authorized; next action: push the prepared change and confirm deployment.

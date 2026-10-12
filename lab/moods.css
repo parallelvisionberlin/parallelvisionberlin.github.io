@@ -142,22 +142,30 @@
   min-width:36px;color:#e5e5e5;font-size:12px;font-weight:650;
   font-variant-numeric:tabular-nums;text-align:right
 }
+#image-composer .film-finish-compact input[type=range],
 #image-composer #composer-moods-intensity{
   -webkit-appearance:none;appearance:none;display:block;min-width:0;width:100%;height:25px;
   margin:0;border:0;background:transparent;cursor:pointer;accent-color:#d6ff00
 }
+#image-composer .film-finish-compact input[type=range]::-webkit-slider-runnable-track,
 #image-composer #composer-moods-intensity::-webkit-slider-runnable-track{
   height:7px;border-radius:999px;
   background:linear-gradient(to right,#d6ff00 0%,#d6ff00 var(--moods-progress,60%),#515457 var(--moods-progress,60%),#515457 100%)
 }
+#image-composer .film-finish-compact input[type=range]::-webkit-slider-thumb,
 #image-composer #composer-moods-intensity::-webkit-slider-thumb{
   -webkit-appearance:none;appearance:none;width:19px;height:19px;margin-top:-6px;
   border:2px solid #242526;border-radius:50%;background:#d6ff00;box-shadow:0 0 0 1px #d6ff0030
 }
+#image-composer .film-finish-compact input[type=range]::-moz-range-track,
 #image-composer #composer-moods-intensity::-moz-range-track{height:7px;border:0;border-radius:999px;background:#515457}
+#image-composer .film-finish-compact input[type=range]::-moz-range-progress,
 #image-composer #composer-moods-intensity::-moz-range-progress{height:7px;border:0;border-radius:999px;background:#d6ff00}
+#image-composer .film-finish-compact input[type=range]::-moz-range-thumb,
 #image-composer #composer-moods-intensity::-moz-range-thumb{width:17px;height:17px;border:2px solid #242526;border-radius:50%;background:#d6ff00}
+#image-composer .film-finish-compact input[type=range]:focus-visible,
 #image-composer #composer-moods-intensity:focus-visible{outline:2px solid #d6ff00;outline-offset:3px;border-radius:10px}
+#image-composer .film-finish-compact input[type=range]:disabled,
 #image-composer #composer-moods-intensity:disabled{opacity:.3;cursor:not-allowed}
 .moods-actions{display:flex;flex-direction:column;align-items:stretch;justify-content:center;gap:2px;min-width:0}
 #image-composer .moods-actions button{
