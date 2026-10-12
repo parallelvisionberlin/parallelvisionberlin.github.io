@@ -133,7 +133,8 @@ try{
       await page.locator('#app').waitFor({state:'visible'});
       await fits(page,'zero-credit studio '+width);
       await page.screenshot({path:artifacts+'/credit-banner-'+width+'.png'});
-      await page.click('#lab-credit-banner-add');
+      assert.equal(await page.locator('#lab-credit-banner-add').count(),0,'no duplicate credit CTA in the notice');
+      await page.click('#lab-wallet-toggle');
       await page.locator('#lab-credits-dialog[open]').waitFor();
       assert.equal(await page.locator('#lab-credit-products button').count(),3);
       assert.equal(await page.locator('#lab-credit-products').getByText('€29',{exact:true}).count(),1);
@@ -142,11 +143,11 @@ try{
       await page.screenshot({path:artifacts+'/credit-deck-'+width+'.png'});
       await page.keyboard.press('Escape');
       await page.fill('#image-composer-prompt','Keep this exact draft.');
-      await page.click('#lab-add-credits');await page.keyboard.press('Escape');
+      await page.click('#lab-wallet-toggle');await page.keyboard.press('Escape');
       assert.equal(await page.locator('#image-composer-prompt').inputValue(),'Keep this exact draft.');
       assert.equal(writes.some(x=>x.path==='/api/billing/checkout'||x.path==='/api/jobs'||x.path==='/api/image-models/generate'),false,'opening/closing the credit deck never submits a payment or generation');
       await page.click('#lab-credit-banner-dismiss');assert.equal(await page.locator('#lab-credit-banner').isVisible(),false);
-      await page.click('#lab-add-credits');await page.click('#lab-credit-refresh');
+      await page.click('#lab-wallet-toggle');await page.click('#lab-credit-refresh');
       assert.equal(await page.locator('#lab-credit-banner').isVisible(),false,'dismissal survives refresh at the same empty balance');
       session.balanceCredits=1000;await page.click('#lab-credit-refresh');
       await page.waitForFunction(()=>document.querySelector('#lab-credit-balance').textContent==='1,000 credits');
