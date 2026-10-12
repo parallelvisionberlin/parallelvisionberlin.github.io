@@ -47,7 +47,9 @@
 - Static link and stylesheet checks passed. Local Chromium cannot start in this execution environment.
 - Home released in 8fbf3b63989a76604c14bdd672cd69066ffe0a3e; account workflow 38272993924 and Pages run 38272992764 passed.
 - Desktop and mobile screenshots inspected. Final <=380px Studio spacing refinement preserves Add credits and Queue.
-- Narrow-phone refinement verification pending; all Home links target /lab/.
+- Final source: 900e82c6d8b7786148423d1d2affe25fd71156d6; account browser run 38277187841 passed.
+- Pages run 38277187963 succeeded; live Studio confirms home2 stylesheet. Home click on Account verified to /lab/.
+- Complete: Home on Account, Explore Moods, Mood Creator/My Moods and Studio; no pending work for this scope.
 
 ## Active: approved Studio credit notice (2026-10-12)
 - User approved the white out-of-credits Studio bar and asked for a simple Add credits deck.
