@@ -213,9 +213,12 @@ export async function renderFilmFinish(images,bytes,settings,seed){
     if(mask.active){
       // Scene-scale humid diffusion is separate from tight source halation.
       // Both only draw energy originating in actual bright source pixels.
+      // Cloudflare Images enforces a ten-transform graph limit. One larger
+      // haze pass plus one smaller source-halation pass leaves room for the
+      // separate print curve, fine grain and restrained scene diffusion.
       const stages=[
-        ...(finish.haze?[[22,finish.haze/100*.24],[52,finish.haze/100*.14]]:[]),
-        ...(finish.halation?[[4,finish.halation/100*.28],[12,finish.halation/100*.14]]:[])
+        ...(finish.haze?[[43,finish.haze/100*.31]]:[]),
+        ...(finish.halation?[[9,finish.halation/100*.32]]:[])
       ];
       const scale=Math.max(.35,Math.min(1,Math.max(width,height)/1400));
       for(const [radius,opacity] of stages){
