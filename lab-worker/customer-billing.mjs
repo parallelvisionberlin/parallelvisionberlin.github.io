@@ -51,7 +51,7 @@ export async function customerSession(env,id){
     billingReady:!restrictions.closed&&!restrictions.billingReview&&enabled(env,id),generationReady:!restrictions.closed&&!restrictions.billingReview&&canCustomerGenerate(env,id),
     billingReview:restrictions.billingReview,accountClosed:restrictions.closed,
     pilot:isPrivateLivePilot(env,id),
-    products:isPrivateLivePilot(env,id)?catalog().filter(item=>item.id==='topup10'):catalog(),creditMultiplier:CREDIT_MULTIPLIER,
+    products:isPrivateLivePilot(env,id)?catalog().filter(item=>['topup10','starter'].includes(item.id)):catalog(),creditMultiplier:CREDIT_MULTIPLIER,
     soulIdTrainingCredits:SOUL_ID_TRAINING_CREDITS,soul2ImageCredits:CREDIT_MINIMUM};
 }
 async function stripe(env,path,params,method='POST',idempotencyKey){
@@ -99,10 +99,10 @@ export async function customerRoute(request,env,subject){
     const invoiceFooter=typeof env.LAB_STRIPE_INVOICE_FOOTER==='string'?env.LAB_STRIPE_INVOICE_FOOTER.trim():'';
     if(invoiceEnabled&&(!invoiceFooter||invoiceFooter.length>1000))
       fail(503,'Invoice details are not configured. No payment was initiated.');
-    if(!isPermittedPilotPurchase(env,subject,sku))fail(403,'The private pilot permits one €10 top-up only. Other products are not on sale yet.');
+    if(!isPermittedPilotPurchase(env,subject,sku))fail(403,'The private pilot permits one €10 top-up or €15/month Starter subscription only. Other products are not on sale yet.');
     if(isPrivateLivePilot(env,subject)){
-      const previous=await one(env,"SELECT id FROM lab_credit_entries WHERE customer_id=? AND kind='purchase' LIMIT 1",subject);
-      if(previous)fail(409,'This test account already completed its pilot purchase.');
+      const previous=await one(env,"SELECT id FROM lab_credit_entries WHERE customer_id=? AND kind IN ('purchase','subscription') LIMIT 1",subject);
+      if(previous)fail(409,'This test account already completed its pilot purchase or subscription.');
     }
     const customer=await one(env,'SELECT stripe_customer_id FROM lab_customers WHERE id=?',subject);
     if(!customer)fail(403,'Account unavailable.');
