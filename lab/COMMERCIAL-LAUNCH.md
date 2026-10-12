@@ -12,7 +12,16 @@
   provider DPAs/transfer safeguards/retention, tax/sales scope and any necessary
   early-performance consent flow before opening public sales.
 - This change is static HTML/CSS only; public checkout/generation remain off.
-- Deployment and live URL verification pending at this checkpoint.
+- Implementation commit: b8ae62407df0438c2021d2f4c0ccf709cb0e510f.
+  Pages run 38292198015 was superseded; successor 38292419126 succeeded.
+  All three live pages opened and their content verified in the browser.
+  Customer support desktop rendering checked; responsive CSS uses a fluid width.
+  Static-site validation, Lab tests and landing-load CI passed on this commit.
+  Local HTML/internal links and git diff whitespace checks passed.
+- Owner next for this task: paste /lab/privacy/, /lab/terms/ and
+  /lab/customersupport/ into the corresponding Stripe public-profile fields.
+- Legal references checked: BGB sections 355 and 357 (gesetze-im-internet.de)
+  and Berlin DPA complaint guidance. Provider contract verification remains open.
 
 - Implementation committed to main as `20de9fb95cbe4bda01564628f891edc0a5eb1ba5`.
   Includes merchant page, optional Checkout invoices, sandbox configuration and tests.
