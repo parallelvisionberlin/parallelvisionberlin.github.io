@@ -45,8 +45,9 @@
 #app.video-studio-active .seed-settings summary{font-size:11px;letter-spacing:0;text-transform:none;color:#91959e}
 #app.video-studio-active .workspace.video-layout .generate-zone{padding:12px 14px;border-top:1px solid #2c2e34;background:#151619}
 #app.video-studio-active .workspace.video-layout #generate{width:100%;height:52px;min-height:52px;border:1px solid #edece5;border-radius:12px;box-shadow:0 3px 14px #0002;font:650 15px 'DM Sans',Arial,sans-serif;background:#edece5;color:#181a18}
-#app.video-studio-active .workspace.video-layout #generate:hover:not(:disabled){background:#fff;border-color:#fff;box-shadow:0 4px 18px #0003;transform:none}
-#app.video-studio-active .workspace.video-layout #generate:focus-visible{outline:2px solid #edece5;outline-offset:3px}
+#app.video-studio-active .workspace.video-layout #generate:not(:disabled){background:#edece5!important;border-color:#edece5!important;color:#181a18!important}
+#app.video-studio-active .workspace.video-layout #generate:hover:not(:disabled){background:#fff!important;border-color:#fff!important;box-shadow:0 4px 18px #0003;transform:none}
+#app.video-studio-active .workspace.video-layout #generate:focus-visible{outline:2px solid #edece5!important;outline-offset:3px}
 #app.video-studio-active .workspace.video-layout #generate:disabled{background:#303238!important;border-color:#3a3d43!important;color:#868a94!important}
 #app.video-studio-active #generation-help{display:none}
 #app.video-studio-active #save{width:auto;display:block;margin:8px auto 0;padding:5px 10px;min-height:26px;background:transparent;border:0;font:400 11px 'DM Sans',Arial,sans-serif;color:#9599a3}
