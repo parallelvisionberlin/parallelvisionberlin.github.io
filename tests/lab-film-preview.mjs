@@ -10,9 +10,15 @@ async function finish(bytes,grain,glow){
 const pixels=Buffer.alloc(256*256*3,15);
 for(let y=123;y<133;y++)for(let x=123;x<133;x++)for(let c=0;c<3;c++)pixels[(y*256+x)*3+c]=255;
 const input=await sharp(pixels,{raw:{width:256,height:256,channels:3}}).png().toBuffer();
-const glowing=await sharp(await finish(input,0,100)).removeAlpha().raw().toBuffer();
-assert.ok(glowing[(128*256+135)*3]>pixels[(128*256+135)*3],'bright point should spread light');
-assert.equal(glowing[(30*256+30)*3],15,'distant dark areas should remain dark');
+const glowingBytes=await finish(input,0,100);
+await writeFile(`${dir}/test-light-original.png`,input);await writeFile(`${dir}/test-light-glow.png`,glowingBytes);
+const glowing=await sharp(glowingBytes).removeAlpha().raw().toBuffer();
+console.log('Glow sample row',Array.from({length:40},(_,i)=>glowing[(128*256+110+i)*3]));
+for(const stage of ['mask','blur']){
+  const r=await fetch('http://127.0.0.1:8799/?stage='+stage,{method:'POST',body:input});
+  const bytes=Buffer.from(await r.arrayBuffer());await writeFile(`${dir}/test-light-${stage}.png`,bytes);
+  const values=await sharp(bytes).removeAlpha().raw().toBuffer();console.log(stage,Array.from({length:40},(_,i)=>values[(128*256+110+i)*3]));
+}
 const clean=await sharp(await finish(input,0,0)).removeAlpha().raw().toBuffer();assert.deepEqual(clean,pixels,'zero controls preserve original pixels');
 const fixtures=[['portrait','lab/mood-previews/hd/night-flash-20261011.jpg'],['night-lights','lab/mood-references/hong-kong-nights/03-shop-reflections.jpg']];
 for(const [name,file] of fixtures){
@@ -28,4 +34,6 @@ for(const [name,file] of fixtures){
   }
   await sharp({create:{width:1440,height:560,channels:3,background:'#151515'}}).composite(cells).jpeg({quality:92}).toFile(`${dir}/${name}-comparison.jpg`);
 }
+assert.ok(glowing[(128*256+135)*3]>pixels[(128*256+135)*3],'bright point should spread light');
+assert.equal(glowing[(30*256+30)*3],15,'distant dark areas should remain dark');
 console.log('Actual Cloudflare pixel checks passed. Original and three finishing strengths exported. No AI calls.');

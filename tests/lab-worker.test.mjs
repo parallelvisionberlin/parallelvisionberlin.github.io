@@ -253,6 +253,21 @@ test('automatic film finishing retains original, survives failure, adjusts witho
     assert.equal(objects.size,0,'deleting the job removes unshared original and finished files');
   }
 });
+test('Gemini applies the same finishing pass after exactly one image generation',async()=>{
+  const {env}=fixture();env.GEMINI_API_KEY='synthetic-gemini-key';env.IMAGES=filmImagesFixture();
+  const previous=globalThis.fetch;let providerCalls=0;
+  globalThis.fetch=async(url,options)=>{
+    if(new URL(url).hostname!=='generativelanguage.googleapis.com')return previous(url,options);
+    providerCalls++;return Response.json({candidates:[{content:{parts:[{inlineData:{mimeType:'image/png',data:Buffer.from(pngDimensions(64,64)).toString('base64')}}]}}]});
+  };
+  try{
+    const recipe=prepareMoodPrompt('Portrait at night','hong-kong-nights',80,{engine:'gemini'});
+    const response=await req(env,'/api/gemini/jobs',{method:'POST',data:{count:1,referenceSourceIds:[],settings:{...imageSettings,engine:'gemini',processing:'normal',prompt:recipe.prompt,...recipe.metadata}}});
+    assert.equal(response.status,202,await response.clone().text());const job=(await response.json()).jobs[0];
+    assert.equal(job.status,'completed');assert.equal(job.settings.filmFinishStatus,'applied');
+    assert.notEqual(job.outputId,job.settings.filmOriginalId);assert.equal(providerCalls,1);
+  }finally{globalThis.fetch=previous;}
+});
 function seedArchive(db,owner,{files=0,jobs=0}={}){
   const asset=db.prepare("INSERT INTO assets(id,owner_id,object_key,kind,mime,filename,bytes,created_at) VALUES(?,?,?,'source','image/png','old.png',9,1)");
   for(let i=0;i<files;i++){const id=crypto.randomUUID();asset.run(id,owner,owner+'/'+id);}
