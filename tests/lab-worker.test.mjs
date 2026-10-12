@@ -262,7 +262,7 @@ test('Gemini applies the same finishing pass after exactly one image generation'
     providerCalls++;return Response.json({candidates:[{content:{parts:[{inlineData:{mimeType:'image/png',data:Buffer.from(pngDimensions(64,64)).toString('base64')}}]}}]});
   };
   try{
-    const recipe=prepareMoodPrompt('Portrait at night','hong-kong-nights',80,{engine:'gemini'});
+    const recipe=prepareMoodPrompt('Portrait at night','hong-kong-nights',80,{engine:'gemini',filmFinish:{version:1,grain:65,glow:65}});
     const response=await req(env,'/api/gemini/jobs',{method:'POST',data:{count:1,referenceSourceIds:[],settings:{...imageSettings,engine:'gemini',processing:'normal',prompt:recipe.prompt,...recipe.metadata}}});
     assert.equal(response.status,202,await response.clone().text());const job=(await response.json()).jobs[0];
     assert.equal(job.status,'completed');assert.equal(job.settings.filmFinishStatus,'applied');
