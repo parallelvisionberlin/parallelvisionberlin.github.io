@@ -11,7 +11,9 @@ const lab=readFileSync('lab/lab.js','utf8');
 const entry=lab.slice(lab.indexOf('async function restoreStudioEntry()'),lab.indexOf('let sourceUrl=null'));
 const submit=lab.slice(lab.indexOf('async function submitQuotedGeneration('),lab.indexOf("$('generate').onclick="));
 const harness=`<!doctype html><div id="notice"></div><input id="prompt"><input id="image-engine"><input id="resolution"><input id="image-count"><input id="ratio"><dialog id="quote-dialog"></dialog><script type="module">
-import {takeMoodHandoff,moodGenerationQuote} from './mood-handoff.js';import {moodById} from './moods.js';
+import {takeMoodHandoff as readMoodHandoff,moodGenerationQuote} from './mood-handoff.js';
+async function takeMoodHandoff(id){const packet=await readMoodHandoff(id);if(window.testExpired&&packet.generation)packet.generation.quote.expiresAt=Date.now()-1;return packet;}
+import {moodById} from './moods.js';
 let owner=true,config={enabled:true},customerMode=false,customerGenerationReady=true,userId=window.testUser||'user_Test',epoch=1,busy=false,imageSubmissionPending=false,imageSubmissionStage='',references=[],imageEngine='',imageProcessing='',imageReferenceMode='',tool='image',previewRevision=0,autoPreview=null;
 const $=id=>document.getElementById(id),studioRoute=()=>new URLSearchParams(location.search).get('tool')||'image',setTool=t=>tool=t,syncStudioRoute=()=>{},clearMedia=()=>references=[],update=()=>{},notify=s=>$('notice').textContent=s,submissionBlocked=()=>window.testBlocked||false;
 const moodUI={restore(value){window.restoredMood=value}},beginImageFeedback=()=>({phase(){},finish(){},fail(e){window.failure=e.message}});
@@ -26,6 +28,7 @@ const accountSource=guest=>`const callbacks=[];const account={isSignedIn:${!gues
 try{for(const scenario of ['desktop','mobile','small','guest','text','changed','expired','account','blocked','failure','draft']){
  const page=await browser.newPage({viewport:{width:scenario==='small'?320:scenario==='mobile'?390:1440,height:scenario==='small'?640:900}});
  let paid=0,quotes=0;const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ if(scenario==='expired')await page.addInitScript(()=>window.testExpired=true);
  if(scenario==='account')await page.addInitScript(()=>window.testUser='user_Other');
  if(scenario==='blocked')await page.addInitScript(()=>window.testBlocked=true);
  await page.route('**/*',async route=>{const req=route.request(),url=new URL(req.url());
@@ -49,7 +52,6 @@ try{for(const scenario of ['desktop','mobile','small','guest','text','changed','
  if(scenario==='changed'){await page.locator('#mc-look-direction').fill('Sharper flash');assert.equal(await button.isDisabled(),true);await page.waitForFunction(()=>document.querySelector('#mc-look-continue').textContent.includes(' · '));assert.equal(quotes,2);}
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);assert.equal(await page.locator('#mc-look-dialog').evaluate(el=>el.scrollWidth>el.clientWidth),false);
  if(['desktop','mobile','small'].includes(scenario))await page.screenshot({path:out+'/'+scenario+'.png'});
- if(scenario==='expired')await page.route('**/lab/studio.html?*',async route=>{await page.evaluate(async()=>{const db=await new Promise(r=>{const req=indexedDB.open('pv-lab-mood-handoff-v1');req.onsuccess=()=>r(req.result)});await new Promise(r=>{const tx=db.transaction('one-shot','readwrite'),store=tx.objectStore('one-shot'),req=store.getAll();req.onsuccess=()=>{for(const row of req.result){row.generation.quote.expiresAt=Date.now()-1;store.put(row)}};tx.oncomplete=r;});db.close();});await route.continue();});
  if(scenario==='draft'){await page.route('**/lab/mood-creator.html?*',route=>route.fulfill({contentType:'text/html',body:'<p>Creator</p>'}));await page.locator('#mc-look-make').click();await page.waitForURL('**/lab/mood-creator.html?*');assert.equal(paid,0);}
  else{await button.evaluate(el=>{el.click();el.click();});await page.waitForURL('**/lab/studio.html?*');await page.waitForFunction(()=>window.entryFinished);assert.equal(paid,['expired','account','blocked'].includes(scenario)?0:1);assert.equal(new URL(page.url()).searchParams.has('handoff'),false);if(scenario!=='text')assert.equal(await page.evaluate(()=>window.restoredFile),'source.png');if(scenario==='failure')assert.match(await page.locator('#notice').textContent(),/Not enough credits/);const before=paid;await page.reload();await page.waitForFunction(()=>window.entryFinished);assert.equal(paid,before,'refresh never repeats generation');}
  assert.deepEqual(errors,[]);await page.close();console.log('PASS',scenario);
