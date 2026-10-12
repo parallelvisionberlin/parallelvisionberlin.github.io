@@ -410,3 +410,17 @@ See [the result deck work state](RESULT-DECK-WORK-STATE.md) for the approved edi
 - Live `moods.js`, `mood-references.js`, `lab.js` and `studio.html` returned HTTP 200 and exactly matched reviewed revision-3 source.
 - Pages run `38292008162` was superseded by another main deployment; live source verification confirms this revision reached production.
 - Next action: refresh Studio, reopen an existing Hong Kong result and Apply finish at Grain 25 / Glow 70. Assess new generation instructions only on the next needed generation.
+
+
+### Hong Kong internal reference display (2026-10-12)
+
+- User requested removal of the internal five-reference preparation detail shown in History.
+- Pending image cards now show Preparing image / Checking price without provider reference counts, quote counts or no-charge debug text.
+- Generate button uses the same public preparation wording.
+- Result/source viewer excludes recognized built-in Hong Kong Style references, including legacy labels, from thumbnails and counts.
+- User-uploaded Base, Identity and Style references remain visible; generation inputs and prices are unchanged.
+- Pure reference regression checks passed for user identity retention, internal/legacy exclusion, empty sources and other moods.
+- Studio entrypoint cache refreshed with privateMoodRefs=1.
+- Visual evidence: unwanted body halo is present with finish sliders at zero, so it belongs to the generated original, not the finishing renderer.
+- New screenshot assessment: close-crop light works; visible-face identity drift and forced subject halo remain unresolved generation issues.
+- Next action: verify CI and publish this display correction. No paid generation submitted.
