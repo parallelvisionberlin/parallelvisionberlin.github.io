@@ -1,6 +1,8 @@
 name: PV Lab Mood Creator quality
 
 on:
+  pull_request:
+    paths: ['lab/studio.html', 'lab/public-header.css', 'lab/moods.html', 'tests/lab-mood-nav-browser.mjs', '.github/workflows/pv-lab-mood-creator.yml']
   push:
     branches: [main]
     paths:
@@ -15,6 +17,7 @@ on:
       - 'lab/index.html'
       - 'lab/studio.html'
       - 'lab/assets.css'
+      - 'lab/public-header.css'
       - 'tests/lab-mood*'
       - '.github/workflows/pv-lab-mood-creator.yml'
   workflow_dispatch:
@@ -23,7 +26,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: pv-lab-mood-creator-checks
+  group: pv-lab-mood-creator-checks-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
