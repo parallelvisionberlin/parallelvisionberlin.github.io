@@ -337,3 +337,43 @@ See [the account interface work state](ACCOUNT-WORK-STATE.md) before changing th
 - Live `studio.html`, `film-finish.css` and `moods.js` returned HTTP 200 with the new `filmDeck=2` / `20261012-film-deck2` code markers.
 - No outstanding implementation or deployment blocker for this layout. No paid AI generation performed.
 - Next action: none.
+
+### Hong Kong Nights optical finish: current state (2026-10-12)
+
+- Objective: restore the humid, wet, luminous photographic finish across both foreground and setting.
+- Starting production source: `916f6068bd782316775041c23a6ae1e6a7375d17`.
+- User authorized the complete prompt, references and finishing revision on 2026-10-12.
+- Canon remains `02-city-haze.jpg`, the user's `hong-kong-nights-detail(1).jpg`.
+- Four style references remain; no extra reference slots are consumed.
+- Replace traffic-grain and warm-lamp injection with `05-passage-diffusion.jpg` and `06-interior-portrait.jpg`.
+- New references are unchanged copies of supplied `173a9f302b4fea1aabc0912bde215b37.jpg` and `FALLEN.jpg`.
+- Keep `03-shop-reflections.jpg` for suitable wet surfaces and warm/cool separation.
+- Role notes transfer photographic treatment and explicitly reject copying streets, people or framing.
+- Retired reference labels remain recognizable when saved jobs are reused.
+- Active prompt restores whole-image optical softness, gradual highlight rolloff and dimensional humidity.
+- Wet/gloss language now covers water, glass, polished materials and plausible damp outdoor surfaces at every tier.
+- Medium/high treatment addresses frontal-flash contrast and coherent foreground/background lighting.
+- Preserve the Base location, architecture, subject, wardrobe, camera and composition unless explicitly requested otherwise.
+- Avoid forced rain, wet skin, lacquered clothes, flat green tint and coarse generated noise.
+- New default finishing values: Grain 25%, Bloom 70%; stored user choices are preserved.
+- Bloom combines a restrained full-frame diffusion layer with two source-colored highlight halos.
+- Grain is finer, seeded, exposure-aware and balanced to avoid a gray veil; strongest in midtones.
+- Pure black/white receive no grain; original pixels remain available and both controls at zero bypass processing.
+- Renderer revision 2 has separate derivative IDs and `film-finish/v2/` storage; settings schema stays backward-compatible at version 1.
+- Sources: `moods.js`, `mood-references.js`, `film-finish.js`, `lab-worker/film-finish.mjs`.
+- Affected Studio / app Mood module URLs are cache-busted; Worker version is `pv-lab-2026-10-12.10-film-optics`.
+- Prompt budgeting now compacts only the built-in Hong Kong recipe when final reference assembly needs space.
+- User-authored direction, assigned roles and optional notes are retained; Studio validates the exact planned provider prompt.
+- Tested long directions with zero, one and six user references on Seedream and Gemini at low, medium and maximum strength.
+- Local verification: 49 mood/reference/finishing tests plus 100 Worker/auth/lifecycle/billing tests passed.
+- Local processing previews inspected on supplied café, window and boat screenshots with a Sharp adapter.
+- These previews are approximate screenshot-level checks, not a controlled comparison on raw generated originals.
+- No paid AI generations were made. Revised generation aesthetics remain to be assessed on the next real output.
+- Full local Lab gate: 314 tests passed.
+- Verified implementation commit: `aae7d6f53258dc8121e7dcf9c815c15b93068bbf`.
+- Remote Cloudflare pixel checks and desktop/mobile browser checks passed: run `38272246886`.
+- Source-aware grain, light spread, stable skin hue, dark-area preservation and full-frame midtone diffusion passed.
+- Browser checks passed at 1440px and 390px: independent sliders, original download, no extra generation, no overflow.
+- Native Mood generation also validates the complete prompt before source/reference uploads.
+- Publication and live frontend/Worker verification are pending.
+- Next action: publish frontend/Worker and verify live version and references.

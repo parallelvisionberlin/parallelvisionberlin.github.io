@@ -1,0 +1,27 @@
+/* A consistent, explicit route back to PV LAB from internal workspaces. */
+.lab-home-group{display:flex;align-items:center;gap:24px;min-width:max-content}
+.lab-home-group>.lab-home-link{
+  display:inline-flex;align-items:center;min-height:44px;padding:0;
+  color:#c7c5bf;text-decoration:none;white-space:nowrap;
+  font:400 14px/1.3 'PV Lab Navigation','DM Sans',Arial,sans-serif;
+}
+.lab-home-group>.lab-home-link:hover{color:#fff}
+.lab-home-group>.lab-home-link:focus-visible{outline:2px solid #fff;outline-offset:4px}
+@media(max-width:1100px){.mc-header .lab-home-group .mc-wordmark span{display:none}}
+@media(max-width:900px){
+  .landing-header>.lab-home-group,#studio-header .wrap.top>.lab-home-group{grid-area:brand}
+  .mc-header:has(.lab-home-group){
+    display:grid;grid-template-columns:minmax(0,1fr) auto;
+    grid-template-areas:'brand actions' 'nav nav';gap:2px 16px;
+    height:109px;padding:15px 22px 8px;
+  }
+  .mc-header>.lab-home-group{grid-area:brand}
+  .mc-header>.mc-account{grid-area:actions}
+  .mc-header>.mc-navigation{grid-area:nav;min-width:0;width:100%;margin:0;overflow-x:auto;white-space:nowrap;scrollbar-width:none}
+  .mc-header>.mc-navigation a{flex:none;padding:11px 0}
+}
+@media(max-width:560px){
+  .lab-home-group{gap:14px}
+  .lab-home-group>.lab-home-link{font-size:12px}
+  .mc-header:has(.lab-home-group){height:102px;padding:13px 18px 7px}
+}

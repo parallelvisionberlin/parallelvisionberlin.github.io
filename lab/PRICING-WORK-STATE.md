@@ -28,5 +28,7 @@
 - Remote implementation commit: `3553ace7bb7df34c976cab9dbfa5a2bc832d8e5b` on `codex/pricing-analog-cards`.
 - Remote static build and asset verification passed. Pricing browser checks passed at 1440, 390, 320 and 768 pixels; desktop/mobile captures visually reviewed.
 - Updated an outdated Studio test assertion to verify the existing title overlays inside photographs. No Studio design change.
-- Publication state: authorized; rerunning the complete landing gate after that test correction. No live deployment is claimed yet.
+- Complete landing browser gate passed on `72efaa2f47554bf1bd408c4e701ed9383b0b4b06` (run `38273144722`).
+- Integrated concurrent main changes through `8fbf3b63989a76604c14bdd672cd69066ffe0a3e`; the README merged cleanly and unrelated work is preserved.
+- Publication state: authorized; checking the integrated branch before main publication. No live deployment is claimed yet.
 - Next action: publish the verified branch to main and verify the live pricing section.

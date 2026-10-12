@@ -1,13 +1,13 @@
 import {createAccountMenu} from './account-menu.js?v=20261012-account2';
 const studioAccount=createAccountMenu(document.getElementById('studio-account-menu'));
-import {createFilmFinishControls,HONG_KONG_FILM_FINISH} from './film-finish.js?v=20261012-film-deck2';
+import {createFilmFinishControls,HONG_KONG_FILM_FINISH} from './film-finish.js?v=20261012-film-optics2';
 import {preparePhotoInput} from './photo-input.js?v=1';
-import {createMoodReferenceLoader,moodReferencePlan,isMoodStyleReference} from './mood-references.js?v=20261012-hk2&raveIdentity=1';
+import {createMoodReferenceLoader,moodReferencePlan,isMoodStyleReference} from './mood-references.js?v=20261012-hk-optics2&raveIdentity=1';
 import {createPrivateMediaCache} from './private-media-cache.js?v=20261012-cache1';
 import {loadLabAccount} from './native-account.js?v=20261012-photo-layout1';
 import {createAssetLibrary} from './assets.js?v=20261010-navigation-media1';
 import {createPrecisionEditor} from './precision-edit.js?v=20261011-no-emoji1';
-import {createCustomerWallet} from './customer-wallet.js?v=20261012-account2';
+import {createCustomerWallet} from './customer-wallet.js?v=20261012-creditbar1';
 import {createCustomerImagePricing} from './customer-image-pricing.js?v=20261010-customer-credits1';
 import {customerImagePriceKey,pricedBoundQuotes,imageAutoRatio} from './image-credit-preview.js?v=20261010-customer-credits1';
 import {captureReferralCode,claimReferral} from './referral-capture.js?v=20261010-referrals1';
@@ -15,7 +15,7 @@ captureReferralCode();
 import {createSoul2UI} from './higgsfield-ui.js?v=20261010-soul-price1';
 import {VIDEO_MODELS,engineFor,videoLabel} from './video-models.js?v=20261009-extend1';
 import {REFERENCE_ROLES,REFERENCE_TARGETS,normalizeReferenceLabel,compileImagePrompt,referenceGuidanceError,canUseReferenceGuidance,builtInMoodReferenceCount} from './reference-guidance.js?v=20261012-berlin-refs1&dreamcore=7&syntheticRefs=1&raveIdentity=1';
-import {createMoodSelector,moodById,userFacingImagePrompt,imageHistoryCaption} from './moods.js?v=20261011-midnight-reverie1&filmDeck=2&hd=20261011&raveBudget=1&editorialHD=2&moodImageHD=1&moodDeckSpace=1&raveNight=4&syntheticBudget=1&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1';
+import {createMoodSelector,moodById,userFacingImagePrompt,imageHistoryCaption} from './moods.js?v=20261011-midnight-reverie1&filmDeck=2&filmOptics=2&hd=20261011&raveBudget=1&editorialHD=2&moodImageHD=1&moodDeckSpace=1&raveNight=4&syntheticBudget=1&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1';
 import {createMyMoods} from './my-moods.js?v=20261011-midnight-reverie1&hd=20261011&raveBudget=1&editorialHD=2&editorialHD=2&moodImageHD=1&raveNight=4&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1';
 import {takeMoodHandoff,moodGenerationQuote} from './mood-handoff.js?v=20261012-generate1';
 import {createMediaReferences} from './media-references.js?v=20261009-extend2';
@@ -444,7 +444,7 @@ function imageGuidance(){
   const current={type:'image',mode:'image',engine:imageEngine,...mood.metadata};
   try{
     const planned=moodReferencePlan({type:'image',mode:'image',engine:imageEngine,...mood.metadata,prompt:mood.prompt,referenceRoles:labels});
-    const prompt=compileImagePrompt(mood.prompt,planned.settings.referenceRoles,current);
+    const prompt=compileImagePrompt(planned.settings.prompt,planned.settings.referenceRoles,current);
     return {prompt,error:referenceGuidanceError(labels,current)||mood.error||(prompt.length>5000?'Direction, mood and reference instructions exceed 5,000 characters. Shorten the direction or optional notes.':'')};
   }catch(error){return {prompt:compileImagePrompt(mood.prompt,labels,current),error:error.message};}
 }
@@ -1511,8 +1511,11 @@ async function api(path,options={}) {
     if(b!==undefined&&!(b instanceof Blob)&&!(b instanceof ArrayBuffer)){headers['Content-Type']='application/json';b=JSON.stringify(b);}
     const r=await sessionRequest(path,{method:options.method||'GET',headers,body:b,cache:'no-store',credentials:'omit',signal:controller.signal},assertCurrent);
     assertCurrent();
-    if(!r.ok){const d=await r.json().catch(()=>({}));throw new Error(d.error||`Request failed (${r.status}).`);}
-    const value=options.blob?await r.blob():await r.json();assertCurrent();if(options.method==='DELETE'||path==='/api/jobs/bulk-delete'){clearAssetCache();void deviceMediaCache.clear();}return value;
+    if(!r.ok){const d=await r.json().catch(()=>({}));if(customerMode&&r.status===402)void wallet.refresh();throw new Error(d.error||`Request failed (${r.status}).`);}
+    const value=options.blob?await r.blob():await r.json();assertCurrent();
+    // Refresh the real wallet after a reserved job or a confirmed failed job. Never infer a debit locally.
+    if(customerMode&&((options.method==='POST'&&(value?.job||Array.isArray(value?.jobs)))||(/^\/api\/jobs\/[^/]+$/.test(path)&&value?.job?.status==='failed')))void wallet.refresh();
+    if(options.method==='DELETE'||path==='/api/jobs/bulk-delete'){clearAssetCache();void deviceMediaCache.clear();}return value;
   }finally{clearTimeout(timeout);requestControllers.delete(controller);}
 }
 async function action(fn){if(busy)return;busy=true;update();try{await fn();}catch(e){notify(e.name==='AbortError'?'Request interrupted. Refresh history before trying another generation.':e.message,true);}finally{busy=false;update();}}

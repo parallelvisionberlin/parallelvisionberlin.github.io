@@ -12,14 +12,15 @@
 <link rel="stylesheet" href="./public-header.css?v=20261012-unified-header1">
 <link rel="stylesheet" href="./account-menu.css?v=20261012-account2">
 <link rel="stylesheet" href="./account.css?v=20261012-editorial-account1">
+<link rel="stylesheet" href="./home-navigation.css?v=20261012-home1">
 </head>
 <body class="pv-account-page">
 <a class="account-skip" href="#account-main">Skip to my account</a>
 <header class="landing-header landing-header--moods">
-  <a class="lab-brand" href="./" aria-label="PV Lab home">PV LAB</a>
+  <div class="lab-home-group"><a class="lab-brand" href="./" aria-label="PV Lab home">PV LAB</a><a class="lab-home-link" href="./">Home</a></div>
   <nav aria-label="Creative tools"><a href="./moods">Explore Moods</a><a href="./mood-creator.html#my-moods">My moods</a></nav>
   <div class="landing-header-actions">
-    <a class="studio-link" href="./studio.html">Open studio</a>
+    <a class="studio-link" href="./studio.html"><span class="studio-link-label-full">Open studio</span><span class="studio-link-label-compact">Studio</span></a>
     <button id="account-signin" class="lab-auth-link" type="button" disabled>Sign in</button>
     <details id="account-menu" class="pv-account-menu" hidden>
       <summary aria-label="Open account menu" aria-expanded="false"><span class="pv-account-avatar" data-account-avatar aria-hidden="true"></span></summary>
