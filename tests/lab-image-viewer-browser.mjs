@@ -125,7 +125,7 @@ try{
     await page.waitForFunction(()=>!document.querySelector('#image-lightbox-download').disabled);
     assert.deepEqual([...reads.entries()],beforeReload,'Returning to the gallery reuses originals across a page reload');
     await page.click('#image-lightbox-close');
-    await page.evaluate(()=>window.__viewerTest.customer());await page.click('#lab-wallet-toggle');
+    await page.evaluate(()=>window.__viewerTest.customer());await page.click('#lab-add-credits');
     // Storage and account closure now live on the account page; lab-account-browser covers both.
     assert.equal(await page.locator('#lab-credits-dialog a').getAttribute('href'),'./account.html#billing','The compact purchase deck keeps account management reachable');
     assert.equal(await page.locator('#lab-credits-dialog').evaluate(el=>el.scrollWidth<=el.clientWidth+1),true,'Credit controls fit the dialog');
