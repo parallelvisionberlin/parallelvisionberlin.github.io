@@ -8,6 +8,7 @@ import {storedImageDimensions} from '../lab-worker/fal-upscale.mjs';
 import {buildSoulProInput} from '../lab-worker/soul-pro.mjs';
 import {BERLIN_RAVE_REFERENCES} from '../lab-worker/berlin-rave-references.mjs';
 import {DREAMCORE_REFERENCES} from '../lab-worker/dreamcore-references.mjs';
+import {SYNTHETIC_ROMANCE_REFERENCES} from '../lab-worker/synthetic-romance-references.mjs';
 import {prepareMoodPrompt} from '../lab/moods.js';
 const ORIGIN='https://parallelvisionlabel.com',BASE='https://parallel-vision-lab.parallelvision.workers.dev',KEY='sk-spicy-synthetic-test-only-not-a-real-key';
 const keypair=await crypto.subtle.generateKey({name:'RSASSA-PKCS1-v1_5',modulusLength:2048,publicExponent:new Uint8Array([1,0,1]),hash:'SHA-256'},true,['sign','verify']);
@@ -490,7 +491,7 @@ test('Reference uploads retry a transient storage error once with identical byte
   }finally{globalThis.fetch=prior;}
 });
 
-for(const [moodId,refVersion,builtInRefs] of [['berlin-rave','berlin-rave-refs-v1',BERLIN_RAVE_REFERENCES],['dreamcore','dreamcore-refs-v1',DREAMCORE_REFERENCES]]){
+for(const [moodId,refVersion,builtInRefs] of [['berlin-rave','berlin-rave-refs-v1',BERLIN_RAVE_REFERENCES],['dreamcore','dreamcore-refs-v1',DREAMCORE_REFERENCES],['synthetic-romance','synthetic-romance-refs-v1',SYNTHETIC_ROMANCE_REFERENCES]]){
 test(moodId+' stages its approved photographs after user images and binds them to the quote',async()=>{
   const {env}=fixture();await setup(env);
   const ids=await Promise.all(['base','outfit'].map((name,i)=>uploadGuidanceReference(env,name+'.png',i+1)));
