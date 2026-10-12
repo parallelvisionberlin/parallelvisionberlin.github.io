@@ -3,10 +3,39 @@
 ## Verified implementation and remaining release gates
 
 **Public launch remains blocked.** Signup is enabled; public checkout and paid
-generation remain disabled. The account connected to the development session is
-the existing label Stripe live account, not the dedicated PV Lab sandbox. Sandbox
-health reported `configured:false`; no genuine Stripe test purchase, Google OAuth
-signup or live customer generation has been certified by this change.
+generation remain disabled. The dedicated **PV Lab sandbox** is now connected to
+the development session. Its test webhook is enabled at
+`https://parallel-vision-lab-sandbox.parallelvision.workers.dev/api/stripe/webhook`
+for Checkout success, async success, invoices, subscription changes, refunds and
+disputes. Stripe currently reports **no Checkout sessions** in this sandbox.
+The current Cloudflare session requires sign-in before the Worker's encrypted
+secrets and receiver health can be verified. No actual Stripe test purchase,
+new Google OAuth signup or live customer generation is certified.
+
+Current source verification: **309 Lab unit tests passed** on 2026-10-12,
+including automatic gallery pagination, billing, customer isolation and sandbox
+webhook replay. Synthetic coverage does not replace the actual customer flow.
+
+### Connected-account configuration verified on 2026-10-12
+
+- The dedicated PV Lab **live** webhook was missing refund and dispute events.
+  Added `charge.refunded` and `charge.dispute.created` to the existing endpoint,
+  preserving its six existing events, URL, API version and signing secret.
+  The sandbox endpoint already subscribes to all eight events.
+- Created and read back the live account's default billing portal configuration:
+  invoice history and payment-method updates are enabled; subscription
+  cancellation is at period end with no proration. Plan changes and the public
+  portal login page remain disabled. Return URL is the existing Lab Studio.
+  Final privacy/terms links are still absent and must be added after approval.
+- Stripe Tax returns **no configured registrations** in the live PV Lab account.
+  This does not establish the merchant's legal VAT status. Do not create a tax
+  registration or enable Automatic Tax until the actual status is confirmed.
+- Cloudflare opens its sign-in screen in the available browser. The isolated
+  billing test page also requires a customer sign-in. No actual Checkout session,
+  payment, fresh-customer generation or deployed deletion was certified.
+- The remaining owner inputs are Cloudflare authentication, a separate
+  Google/Clerk customer login for acceptance testing, and verified merchant,
+  billing-contact and VAT details for the unfinished terms/privacy draft.
 
 Implemented in this release:
 
@@ -43,12 +72,14 @@ to `OWNER_DB`.
 
 Release gates still requiring external evidence:
 
-1. Connect the dedicated PV Lab Stripe **sandbox/test account**, then configure its
-   restricted test API key and separately signed webhook in the sandbox Worker's
+1. The dedicated PV Lab Stripe **sandbox/test account is connected** and its
+   webhook endpoint is enabled. Verify its restricted test API key and matching
+   webhook signing secret in the sandbox Worker's
    encrypted secrets. The key needs Customers create/read, Checkout sessions
    create/read/expire, Billing Portal sessions create, Subscriptions read and
    Charges read. Test webhook retries, async payment, renewal, cancellation,
-   partial/full refund and disputes. Subscribe to the refund/dispute events above.
+   partial/full refund and disputes. Refund/dispute subscriptions are now
+   configured in both Stripe environments; signed delivery remains to be tested.
 2. Run an actual new Google/Clerk customer through signup, a Stripe test purchase,
    exact 1,000-credit delivery, payment retry, one permitted generation, original
    download and return visit. Synthetic tests do not establish third-party account

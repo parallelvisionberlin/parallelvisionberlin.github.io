@@ -60,8 +60,8 @@ try{
   let d=await geometry(x.page);
   console.log('DESKTOP_LAYOUT',JSON.stringify(d));
   assert.equal(d.heroHidden,true,'Large marketing hero must not appear in signed-in workspace');
-  assert.ok(d.navigation.top-d.header.bottom<=2,'Tool tabs start directly under header');
-  assert.ok(d.workspace.top-d.navigation.bottom<=3,'No second bar or giant gap before workspace');
+  assert.ok(d.navigation.top>=d.header.top&&d.navigation.bottom<=d.header.bottom,'Tool tabs stay inside the shared header');
+  assert.ok(Math.abs(d.workspace.top-d.header.bottom)<=3,'Workspace starts directly below the shared header');
   assert.ok(d.workspace.top<140,'Workspace must be above the fold');
   assert.ok(d.dock.height>=64&&d.dock.bottom<=d.panel.bottom+2,'Generation controls must have a real fixed dock');
   assert.ok(d.generate.bottom<=d.panel.bottom+2,'Generate dock must remain inside left panel');
@@ -135,10 +135,8 @@ try{
   assert.ok(d.stage.height<=741&&d.canvas.height<650,'Preview never exceeds viewport cap');
   assert.ok(d.modes.top-d.model.bottom<110,'Start/reference buttons remain near model info');
   assert.equal(d.explanationCollapsed,true);
-  const images=await x.page.locator('.brand img').evaluateAll(async nodes=>Promise.all(nodes.map(async img=>{try{await img.decode()}catch{}return {src:img.getAttribute('src'),complete:img.complete,width:img.naturalWidth}})));
-  console.log('BRAND_IMAGES',JSON.stringify(images));
-  assert.ok(images[0].complete&&images[0].width>0,'Official PV icon must load');
-  assert.ok(images[1].complete&&images[1].width>0,'Official PV wordmark must load');
+  assert.equal(await x.page.locator('#studio-header .lab-brand').innerText(),'PV LAB','Studio uses the same PV LAB identity as the public pages');
+  assert.equal(await x.page.locator('#studio-header .lab-brand').getAttribute('href'),'./','The brand returns to the Lab homepage');
   assert.equal(await x.page.locator('#lab-boot').isVisible(),false,'Loading screen must disappear after workspace becomes usable');
   assert.equal(await x.page.locator('#gate').isVisible(),false,'Login gate must never flash inside signed-in workspace');
   assert.notEqual(d.accent,'rgb(141, 99, 255)','No default purple selection');

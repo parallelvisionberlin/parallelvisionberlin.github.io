@@ -86,8 +86,8 @@ for(const width of [1920,1440,900,899,821,768,390,320]){
   const nav=await page.locator('.studio-header .tool-switch').boundingBox();
   const brand=await page.locator('.studio-header .brand').boundingBox();
   const account=await page.locator('.account-menu').boundingBox();
-  assert.equal(header.height,width>=900?70:100,'Shared header height');
-  if(width>=900){
+  assert.equal(header.height,width>900?82:width>560?109:102,'Approved shared header height');
+  if(width>900){
     assert.ok(Math.abs(brand.y+brand.height/2-(nav.y+nav.height/2))<1,'Brand and navigation share one row');
     assert.ok(brand.x+brand.width<nav.x&&nav.x+nav.width<=account.x,'Navigation fits between brand and account');
   }
@@ -354,7 +354,17 @@ for(const width of [768,390,320]){
   await page.setViewportSize({width,height:844});
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'Fashion fits viewport '+width+' '+JSON.stringify(await page.evaluate(()=>[...document.querySelectorAll('body *'),...document.querySelector('#fashion-studio').shadowRoot.querySelectorAll('*')].map(el=>({tag:el.tagName,id:el.id,class:el.className,x:el.getBoundingClientRect().x,right:el.getBoundingClientRect().right,w:el.getBoundingClientRect().width})).filter(r=>r.w&&r.right>innerWidth+1).slice(0,18))));
 }
-assert.ok((await page.locator('#tool-fashion').boundingBox()).x+(await page.locator('#tool-fashion').boundingBox()).width<=320,'All five tabs fit the narrow mobile viewport');
+const mobileTools=page.locator('#studio-header .tool-switch');
+assert.equal(await mobileTools.evaluate(el=>getComputedStyle(el).overflowX),'auto','Narrow mobile tools remain horizontally scrollable');
+for(const id of ['tool-image','tool-retouch','tool-video','tool-upscale','tool-fashion','tool-explore-moods']){
+  const tab=page.locator('#'+id);
+  await tab.scrollIntoViewIfNeeded();
+  const bounds=await tab.boundingBox(),navBounds=await mobileTools.boundingBox();
+  assert.ok(bounds.x>=navBounds.x-1&&bounds.x+bounds.width<=navBounds.x+navBounds.width+1,id+' is fully reachable by scrolling the mobile navigation: '+JSON.stringify({bounds,navBounds}));
+}
+await page.locator('#tool-fashion').click();
+assert.equal(await page.locator('#tool-fashion').getAttribute('aria-pressed'),'true','Fashion remains usable after scrolling the mobile tools');
+assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'Scrolling tools never widens the mobile page');
 console.log('FASHION_IN_STUDIO_MOBILE='+Buffer.from(await page.screenshot({type:'jpeg',quality:75,fullPage:true})).toString('base64'));
 await page.setViewportSize({width:1440,height:1000});
 await page.click('#tool-assets');
