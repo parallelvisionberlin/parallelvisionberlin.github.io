@@ -1,6 +1,6 @@
-/* Flesh Zero: matching still/video framing with room for the editorial copy. */
+/* Editorial hero: keep the portrait high and leave room for the copy. */
 .lab-hero{background:#100e13}
-.lab-hero .hero-poster{top:82px;height:calc(100% - 82px);object-position:35% center}
+.lab-hero .hero-poster{top:82px;height:calc(100% - 82px);object-position:50% top}
 .lab-hero .hero-motion{
   position:absolute;inset:82px 0 0;display:block;width:100%;height:calc(100% - 82px);z-index:-2;
   object-fit:cover;object-position:35% center;opacity:0;pointer-events:none;
@@ -54,7 +54,7 @@
 @media(max-width:700px){
   .lab-hero{min-height:780px}
   .lab-hero .hero-poster,.lab-hero .hero-motion{
-    top:102px;height:calc(100% - 102px);object-position:50% top;
+    top:102px;height:calc(100% - 102px);object-position:70% top;
   }
   .lab-hero .hero-shade,.lab-hero.motion-active .hero-shade{
     background:linear-gradient(0deg,#100e13 0%,#100e13e8 20%,#100e1380 43%,transparent 70%);
