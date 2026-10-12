@@ -14,6 +14,21 @@ Prepared 12 October 2026. **Do not present this draft as accepted customer terms
 | Privacy | Processor agreements, subprocessors, international transfer arrangements and applicable supervisory authority |
 | Withdrawal | Confirm legal classification and final statutory information/form; approve any separate immediate-performance consent flow |
 
+## Approved invoice presentation (12 October 2026)
+
+Use **PV LAB** as the primary brand, with the confirmed legal merchant name and
+address in the issuer details. For transactions covered by the declared German
+section 19 exemption, the owner approved this exact discreet, legible footer:
+
+> Umsatzsteuerbefreit gemäß § 19 UStG.
+
+Do not use "Kleinunternehmer" as a customer-facing brand label. This wording is
+scoped to applicable exempt transactions; it is not a worldwide tax exemption.
+Legal reference: https://www.gesetze-im-internet.de/ustdv_1980/__34a.html
+The footer is approved here but has not yet been configured or verified on an
+actual Stripe-generated invoice. The current Checkout code does not explicitly
+request invoice creation for one-time payments or set an invoice footer.
+
 ## Proposed sales terms
 
 1. **Service and account.** PV Lab is an online creative service for generating and editing images and video. The contracting business is **Alejandro Molinari, trading as PV LAB, Knorrpromenade 9, 10245 Berlin, Germany**. Sign-in is provided through Parallel Vision's authentication service. Keep your account secure and use an email address at which you can receive service communications.
