@@ -1,4 +1,4 @@
-import {HONG_KONG_FILM_FINISH,filmFinishSettings,createFilmFinishControls} from './film-finish.js?v=20261012-film-optics2';
+import {HONG_KONG_FILM_FINISH,filmFinishSettings,createFilmFinishControls} from './film-finish.js?v=20261012-film-optics3';
 /* PV Lab Moods V1. Editorial generation directions, not pixel filters. */
 const ALL_MOODS=Object.freeze([
   {
@@ -320,19 +320,19 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
       :mood.id==='hong-kong-nights'
         ?finish
           ?compactHongKong
-            ?['1990s Hong Kong night-film finish across the entire photograph: atmospheric emerald haze, warm practicals, saturated source colors, deep blacks, soft local contrast and gradual highlight rolloff on people AND setting. Emerald is light, not a flat tint.',
+            ?['1990s Hong Kong photographic treatment across people AND setting: emerald haze, warm practicals, deep blacks, softened detail and gradual highlight rolloff. Emerald is light, not a flat tint.',
               'Treatment '+intensity+'/100.',
               intensity<=34?'Gentle available-light diffusion; retain exposure balance and natural skin.':intensity>=76?'Immersive layered humid fog and broad halos; replace frontal flash/daylight with dim ambient side/back light and warm spill.':'Dimensional humid haze and luminous color; reduce frontal-flash contrast and integrate subject lighting.',
-              'WET / GLOSS: reflect lights on existing water, glass, polished surfaces or plausible damp outdoor ground. Keep skin natural and fabric texture; no forced rain or lacquer.',
-              'GRAIN: fine photographic texture, no coarse generated noise. BLOOM: whole-frame softness and layered source-colored halos; retain light cores and shadow depth. HALATION: delicate spill from lights, no orange body rims. Extra grain/diffusion follows generation.',
+              'WET / GLOSS: light reflections on suitable existing surfaces. Allow optical softness on skin/fabric; no forced rain or lacquer.',
+              'BLOOM: whole-frame diffusion and light-source halos; preserve light cores and dark gaps. HALATION: delicate source spill, no orange body rims. The renderer adds grain; generate no noise overlay.',
               'Keep the Base location, architecture, identity, body, pose, clothes, camera and composition unless explicitly changed. Style references supply finish only; never transplant their people, streets or props.'
             ].join(' ')
           :['Dreamlike 1990s Hong Kong night-film photography. One coherent optical finish across the entire photograph, including people, skin, fabric and background: softened local edge contrast, gradual highlight rolloff, atmospheric emerald haze, rich emerald/cyan shadow light, warm luminous practicals and deep blacks between lights. Emerald belongs to light, not a flat tint.',
             'Photographic treatment strength '+intensity+'/100; artistic guidance, not literal filter opacity.',
             intensity<=34?'Gentle humid available-light atmosphere, restrained halos and fine diffusion. Preserve the Base exposure balance and natural skin tones.':intensity>=76?'Immersive humid nighttime atmosphere with layered fog receding through depth, saturated luminous color and broad fading halos. Replace frontal flash or daylight exposure with dim ambient side/back light and warm practical spill; integrate the person into the same light as the setting.':'Distinct humid night atmosphere, dimensional haze, saturated light-source colors and soft highlight transitions across subject and setting. Reduce frontal-flash contrast; retain readable faces in ambient light.',
             'WET / GLOSS: luminous reflections on existing water, glass, polished surfaces or plausible outdoor damp ground; preserve material texture and small specular highlights. Interiors stay interiors. No forced rain, wet skin or lacquered clothing.',
-            'Keep broad skin and fabric areas below the brightness of lamps and small reflections. Preserve natural pores, subtle skin-tone variation and fine fabric texture; diffuse contrast without airbrushing.',
-            'GRAIN: preserve fine photographic texture, no coarse generated noise. BLOOM: optical softness throughout the photograph plus layered halos around luminous areas; retain light cores and shadow depth. HALATION: delicate light-colored spill tied to bright sources, no painted orange outlines. Additional fine grain and diffusion are applied after generation.',
+            'Keep broad skin and fabric areas below the brightness of lamps and small reflections. Preserve facial structure and natural skin-tone variation, while allowing pores, hair and fabric edges to soften through optical diffusion. No beauty smoothing or digital sharpening.',
+            'GRAIN: preserve fine photographic texture, no coarse generated noise. BLOOM: optical softness throughout the photograph plus layered halos around luminous areas; retain light cores and shadow depth. HALATION: delicate light-colored spill tied to bright sources, no painted orange outlines. The finishing renderer supplies grain and diffusion; do not paint additional noise into the image.',
             'Style references guide finish and light behavior only. Keep the Base location, architecture, subject, wardrobe, pose, camera and composition unless explicitly asked to change them. Do not transplant reference streets, skylines, people or props.'
           ].join(' ')
           :[mood.direction,'Photographic treatment strength '+intensity+'/100; artistic guidance, not literal filter opacity.',intensity<=34?mood.subtle:intensity===100?mood.climax:intensity>=76?mood.intense:mood.moderate].join(' ')
