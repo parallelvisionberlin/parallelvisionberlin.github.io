@@ -276,7 +276,8 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
   // Even one Base adds reference-map instructions after this prompt is built.
   // Reserve that space before validation and submission use the same result.
   const compactBerlinRave=berlinRave&&(compact===true||referenceCount>=1||original.length>=750);
-  const compactSyntheticRomance=syntheticRomance&&(compact===true||referenceCount>=1||original.length>=400);
+  // Three built-in canon images add guidance even without user-uploaded photos.
+  const compactSyntheticRomance=syntheticRomance;
   const compactDreamcore=dreamcore&&(compact===true||referenceCount>=1||original.length>=300);
   const compact80s=cinematic80s&&(compact===true||referenceCount>=2||original.length>=800||(referenceCount===1&&original.length>=(intensity===100?200:550)));
   const dreamcoreTier=intensity<=34?'Subtle':intensity<=69?'Moderate':intensity<=89?'Immersive':intensity<=99?'Intense':'Climax';

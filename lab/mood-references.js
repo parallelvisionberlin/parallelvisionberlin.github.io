@@ -1,4 +1,4 @@
-import {compileImagePrompt,normalizeReferenceLabel} from './reference-guidance.js?v=20261010-reference-flow2&dreamcore=6';
+import {compileImagePrompt,normalizeReferenceLabel} from './reference-guidance.js?v=20261010-reference-flow2&dreamcore=6&syntheticRefs=1';
 
 // These are photographic treatment references, never a replacement Base.
 // Stable labels also prevent adding them twice when a saved job is reopened.

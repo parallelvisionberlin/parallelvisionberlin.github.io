@@ -26,10 +26,11 @@ import {falUploadImage} from './fal-storage.mjs';
 import {REFERENCE_ROLES,normalizeReferenceLabel,supportsReferenceGuidance,compileImagePrompt,canUseReferenceGuidance,referenceGuidanceError,builtInMoodReferenceCount} from '../lab/reference-guidance.js';
 import {BERLIN_RAVE_REFERENCES,BERLIN_RAVE_REFERENCE_VERSION} from './berlin-rave-references.mjs';
 import {DREAMCORE_REFERENCES,DREAMCORE_REFERENCE_VERSION} from './dreamcore-references.mjs';
+import {SYNTHETIC_ROMANCE_REFERENCES,SYNTHETIC_ROMANCE_REFERENCE_VERSION} from './synthetic-romance-references.mjs';
 import {moodBoardsRoute} from './moodboards.mjs';
 import {moodCreatorRoute} from './mood-creator-service.mjs';
 import {characterPreview as soulCharacterPreview,SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-12.5-archive-capacity';
+export const VERSION = 'pv-lab-2026-10-12.6-synthetic-romance-references';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -267,8 +268,8 @@ function parameters(value) {
 }
 function builtInMoodReferences(p){
   if(!builtInMoodReferenceCount(p))return [];
-  const dreamcore=p.moodId==='dreamcore',refs=dreamcore?DREAMCORE_REFERENCES:BERLIN_RAVE_REFERENCES;
-  p.moodReferenceVersion=dreamcore?DREAMCORE_REFERENCE_VERSION:BERLIN_RAVE_REFERENCE_VERSION;
+  const [refs,version]=p.moodId==='synthetic-romance'?[SYNTHETIC_ROMANCE_REFERENCES,SYNTHETIC_ROMANCE_REFERENCE_VERSION]:p.moodId==='dreamcore'?[DREAMCORE_REFERENCES,DREAMCORE_REFERENCE_VERSION]:[BERLIN_RAVE_REFERENCES,BERLIN_RAVE_REFERENCE_VERSION];
+  p.moodReferenceVersion=version;
   p.moodReferenceCount=refs.length;
   return refs;
 }
