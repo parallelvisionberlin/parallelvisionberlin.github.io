@@ -301,6 +301,10 @@ The built-in Berlin Rave Fashion mood keeps its existing thumbnail and 80% defau
 
 See [the scoped Studio cards work state](visuals/studio-tools/WORK-STATE.md) for approved layout, original media, verification and deployment status. Read it before changing the homepage Image / Video / Upscaler entries.
 
+### Homepage pricing: current state
+
+See [the pricing work state](PRICING-WORK-STATE.md) for the approved Analog Club cards, right-side plan comparison, original images and verification status.
+
 
 ### Account interface: current state
 

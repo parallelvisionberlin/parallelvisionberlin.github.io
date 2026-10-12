@@ -1,0 +1,29 @@
+# Homepage pricing: current state
+
+- Date: 2026-10-12.
+- Starting source: `916f606` on `main`.
+- Scope: homepage pricing presentation, approved by Alejandro for application and commit.
+- Approved proposal: `06-Create-Without-Interruption.png`, Library ID `libfile_1c262a37046c8191842574a95519bf63`.
+- Follow-up refinements approved: heading approximately 20% smaller; only mood names on cards; subtle borders and shadows.
+- Preserve the right-side price rows and shared left image collection.
+- Heading: Create without interruption. DM Sans 300, tracking -0.052em, following the existing hero.
+- Palette: neutral near-black and warm white. No olive or green interface styling.
+- Cards: Polaroid 600, 90s Cinema and 80s Film, matching the user's Analog Club selection.
+- Image sources: existing `mood-previews/hd/polaroid-600-20261011.jpg`, `90s-cinema-clean-final-20261011.jpg`, `80s-film-20261011.jpg`.
+- Images are not regenerated or re-encoded. The Polaroid print border is cropped through CSS.
+- Desktop: compact collection on the left and three monthly plan rows on the right.
+- Mobile: compact collection above pricing; all three plans remain directly comparable.
+- One-time credits link scrolls to the existing three credit-pack buttons.
+- All six original `data-lab-buy` SKUs, existing product prices and credit quantities are retained.
+- Existing Soul offer, billing notice, status live region and checkout gating remain present.
+- Creator has a cream arrow for visual emphasis; no popularity claim is introduced.
+- No billing logic, authorization, provider costs or paid generation code is changed.
+- Relevant sources: `index.html`, scoped `pricing.css`, existing `customer-entry.js` (unchanged).
+- Verification uses the existing `tests/lab-landing-ui.cjs` at 1440, 390, 320 and 768 pixels.
+- Coverage: visual geometry, image loading, hero typography, zero horizontal overflow, six actionable checkout buttons and credit-pack navigation.
+- Review desktop/mobile pricing images from `PRICING_CARDS_1440` and `PRICING_CARDS_390` in the landing CI log.
+- Implementation commit: `10c8f1a`, local branch `codex/pricing-analog-cards`.
+- Local checks passed: four existing Soul pricing tests, JavaScript syntax, diff whitespace, preserved checkout SKUs, existing image paths and unique HTML IDs.
+- Alejandro explicitly authorized sending these changes to `parallelvisionberlin/parallelvisionberlin.github.io`, verifying desktop/mobile and publishing to `main` on 2026-10-12 at 17:41 Europe/Berlin.
+- Publication state: authorized; preparing the remote branch and landing browser gate. No live deployment is claimed yet.
+- Next action: review the desktop/mobile browser results, publish to main and verify the live pricing section.

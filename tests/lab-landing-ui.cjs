@@ -28,6 +28,25 @@ const server=http.createServer((req,res)=>{
   assert.equal(await page.locator('#pv-hero-motion').count(),0,'The selected still hero does not request an old hero video');
   assert.equal(await page.locator('#hero-motion-toggle').count(),0,'The still hero needs no playback control');
   await page.locator('#tools').scrollIntoViewIfNeeded();await page.locator('.studio-tool-link img').evaluateAll(imgs=>Promise.all(imgs.map(img=>img.decode())));
+  await page.locator('#pricing').scrollIntoViewIfNeeded();
+  await page.locator('.lab-pricing-mood img').evaluateAll(imgs=>Promise.all(imgs.map(img=>img.decode())));
+  assert.equal(await page.locator('.lab-pricing-mood').count(),3,'Three approved mood cards');
+  assert.deepEqual(await page.locator('#pricing [data-lab-buy]').evaluateAll(els=>els.map(el=>el.dataset.labBuy)),['starter','creator','studio','topup10','topup29','topup75'],'All existing checkout products remain connected');
+  for(const button of await page.locator('#pricing [data-lab-buy]').all())await button.click({trial:true});
+  const layout=await page.locator('#pricing').evaluate(section=>{
+   const collection=section.querySelector('.lab-pricing-collection').getBoundingClientRect();
+   const comparison=section.querySelector('.lab-pricing-comparison').getBoundingClientRect();
+   const title=section.querySelector('h2');
+   return {collection:{right:collection.right,bottom:collection.bottom},comparison:{x:comparison.x,y:comparison.y},weight:getComputedStyle(title).fontWeight,background:getComputedStyle(section).backgroundColor,overflow:document.documentElement.scrollWidth>innerWidth};
+  });
+  assert.equal(layout.overflow,false,'Pricing does not overflow at '+width);
+  assert.equal(layout.weight,'300','Pricing reuses the light hero typography');
+  assert.equal(layout.background,'rgb(13, 13, 13)','Neutral black pricing background');
+  if(width>760)assert.ok(layout.collection.right<=layout.comparison.x,'Desktop prices sit beside the image collection');
+  else assert.ok(layout.collection.bottom<=layout.comparison.y+1,'Mobile prices follow the compact image collection');
+  await page.getByRole('link',{name:'One-time credits',exact:true}).click();
+  assert.equal(new URL(page.url()).hash,'#lab-one-time-credits','One-time credit link reaches the existing packs');
+  if(width===1440||width===390)console.log('PRICING_CARDS_'+width+'='+Buffer.from(await page.locator('#pricing').screenshot({type:'jpeg',quality:85})).toString('base64'));
   await page.evaluate(()=>scrollTo(0,0));
   if(width===1440||width===390)console.log('SILVER_LANDING_'+width+'='+Buffer.from(await page.screenshot({type:'jpeg',quality:75,fullPage:true})).toString('base64'));
  }
@@ -36,6 +55,6 @@ const server=http.createServer((req,res)=>{
  for(const card of await page.locator('.studio-tool-link').all()){
  const heading=await card.locator('.studio-tool-head h3').boundingBox(),media=await card.locator('.studio-tool-photo').boundingBox();assert.ok(heading.y+heading.height<=media.y+1,'Titles sit above photographs');
  }
- assert.deepEqual(errors,[]);console.log('PASS editorial landing: responsive portraits, reduced motion, destinations, no overflow and titles above photographs');
+ assert.deepEqual(errors,[]);console.log('PASS editorial landing: responsive portraits, reduced motion, destinations, pricing cards, checkout hit targets, no overflow and titles above photographs');
  await browser.close();server.close();
 })().catch(e=>{console.error(e);server.close();process.exit(1)});
