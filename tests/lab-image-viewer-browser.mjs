@@ -13,7 +13,7 @@ clerk={session:{id:'test-session',getToken:async()=> 'synthetic-token'}};
 owner=true;userId='test';await deviceMediaCache.select(userId);config={enabled:true,concurrency:{image:4,video:1}};
 $('app').hidden=false;$('gate').hidden=true;
 await loadHistory();await restoreStudioEntry();update();finishLabBoot();
-window.__viewerTest={lock,flush:async()=>{await Promise.allSettled([...assetReads.values(),...thumbnailReads.values()]);await deviceMediaCache.select(userId);},customer:()=>wallet.connect({customer:true,balanceCredits:1000,billingReady:false,products:[]}),state:()=>({job:imageDetailJob?.id,result:resultId,cache:assetBlobs.size,prefetch:imageDetailPrefetchReads,tool,mode,sourceId,hasFile:!!file,prompt:$('prompt').value})};`;
+window.__viewerTest={lock,seedVideo:()=>{const job={id:'older-video',status:'completed',outputId:'older-output',settings:{type:'video',engine:'seedance',prompt:'OLDER VIDEO PROMPT'}};videoJobCache.set(job.id,job);selectedVideoJob=job;},refreshVideo:restoreLatestVideoSelection,flush:async()=>{await Promise.allSettled([...assetReads.values(),...thumbnailReads.values()]);await deviceMediaCache.select(userId);},customer:()=>wallet.connect({customer:true,balanceCredits:1000,billingReady:false,products:[]}),state:()=>({job:imageDetailJob?.id,result:resultId,cache:assetBlobs.size,prefetch:imageDetailPrefetchReads,tool,mode,sourceId,hasFile:!!file,prompt:$('prompt').value})};`;
 const server=http.createServer((req,res)=>{
   const pathname=new URL(req.url,'http://localhost').pathname,path=resolve(root,'.'+pathname);
   if(!path.startsWith(root+'/')||!existsSync(path)){res.writeHead(404).end();return;}
@@ -194,10 +194,15 @@ try{
     await page.click('#lab-credits-close');
     await page.locator('#history .card').nth(1).evaluate(el=>el.click());
     await page.waitForFunction(()=>!document.querySelector('#image-detail-video').disabled);
+    await page.evaluate(()=>window.__viewerTest.seedVideo());
     await page.click('#image-detail-video');
     await page.waitForFunction(()=>window.__viewerTest.state().tool==='video'&&window.__viewerTest.state().hasFile);
     const handoff=await page.evaluate(()=>window.__viewerTest.state());
     assert.equal(handoff.mode,'start');assert.equal(handoff.sourceId,'out-1');assert.equal(handoff.prompt,'');
+    await page.evaluate(()=>window.__viewerTest.refreshVideo());
+    assert.equal(await page.locator('#notice').textContent(),'','Successful handoff leaves no persistent overlay');
+    assert.equal(await page.locator('#video-inspector-selected').isVisible(),false,'A start frame does not inherit an older video record');
+    assert.match(await page.locator('#video-inspector-empty').textContent(),/Start frame ready/);
     assert.equal(new URL(page.url()).searchParams.get('tool'),'video');
     assert.equal(await page.locator('#image-lightbox').evaluate(el=>el.open),false);
     await page.evaluate(()=>window.__viewerTest.lock());

@@ -15,19 +15,20 @@ const browser=await chromium.launch({headless:true});
 const products=[{id:'topup10',type:'payment',credits:1000,priceEur:10},{id:'topup29',type:'payment',credits:3000,priceEur:29},{id:'topup75',type:'payment',credits:8000,priceEur:75},{id:'starter',type:'subscription',credits:1600,priceEur:15}];
 for(const product of products)product.title='PV Lab '+product.id;
 const clerkMock=`export class Clerk {
-  constructor(){window.mockClerk=this;this.listeners=[];this.isSignedIn=true;this.user={id:'user_Test',fullName:'Alex Test',hasImage:false,primaryEmailAddress:{emailAddress:'alex@example.test'}};this.session={id:'sess_Test',getToken:async()=> 'synthetic-token'};}
+  constructor(){window.mockClerk=this;this.listeners=[];this.isSignedIn=sessionStorage.getItem('mock-auth')!=='out';this.user={id:'user_Test',fullName:'Alex Test',hasImage:false,primaryEmailAddress:{emailAddress:'alex@example.test'}};this.session=this.isSignedIn?{id:'sess_Test',getToken:async()=> 'synthetic-token'}:null;}
   async load(){} addListener(fn){this.listeners.push(fn);} async signOut(){this.isSignedIn=false;this.user=null;this.session=null;this.listeners.forEach(fn=>fn());}
-  openSignIn(){window.signInOpened=true;} openUserProfile(){window.profileOpened=true;}
+  openSignIn(options){window.signInOpened=true;window.signInOptions=options;} openUserProfile(){window.profileOpened=true;}
 }`;
 async function setup(width,customer=true,overrides={}){
   const context=await browser.newContext({viewport:{width,height:950},reducedMotion:'reduce'}),page=await context.newPage();
-  const errors=[],writes=[];let heldWallet=null,releaseWallet=null,heldCheckout=null,releaseCheckout=null;
+  const errors=[],writes=[];let heldWallet=null,releaseWallet=null,heldCheckout=null,releaseCheckout=null,checkoutUrl='javascript:alert(1)';
   page.on('pageerror',e=>errors.push(e.message));
   const session={customer,ownerId:'user_Test',balanceCredits:1234,billingReady:true,generationReady:true,products,subscription:{plan_id:null,status:'none'},config:{enabled:true,configured:true,concurrency:{image:4,video:1},videoEngines:['wan']},...overrides};
   await page.route('https://**/*',async route=>{
     const request=route.request(),url=new URL(request.url());
     if(url.hostname==='esm.sh'&&url.pathname.includes('clerk-js'))return route.fulfill({contentType:'text/javascript',body:clerkMock});
     if(url.hostname==='clerk.parallelvisionlabel.com')return route.fulfill({contentType:'text/javascript',body:''});
+    if(url.hostname==='checkout.stripe.com')return route.fulfill({contentType:'text/html',body:'<h1>Intercepted checkout test</h1>'});
     if(url.hostname!=='parallel-vision-lab.parallelvision.workers.dev')return route.abort();
     if(request.method()!=='GET')writes.push({path:url.pathname,body:request.postData()});
     const send=data=>route.fulfill({contentType:'application/json',body:JSON.stringify(data)});
@@ -38,14 +39,91 @@ async function setup(width,customer=true,overrides={}){
     }
     if(url.pathname==='/api/customer/account')return send({storage:{bytes:1024**3,limitBytes:20*1024**3,files:15}});
     if(url.pathname==='/api/billing/portal')return send({url:'https://evil.example/stripe.com'});
-    if(url.pathname==='/api/billing/checkout'){if(heldCheckout)await heldCheckout;return send({url:'javascript:alert(1)'});}
+    if(url.pathname==='/api/billing/checkout'){if(heldCheckout)await heldCheckout;return send({url:checkoutUrl});}
     if(url.pathname==='/api/customer/referrals')return send({rewardsAvailable:false});
     return send({jobs:[],activeJobs:[],next:null,packs:[],characters:[],moods:[],boards:[],folders:[],models:[],configured:false});
   });
-  return {context,page,errors,writes,session,holdCheckout(){heldCheckout=new Promise(r=>releaseCheckout=r);},releaseCheckout(){heldCheckout=null;releaseCheckout?.();},holdWallet(){heldWallet=new Promise(r=>releaseWallet=r);},releaseWallet(){heldWallet=null;releaseWallet?.();}};
+  return {context,page,errors,writes,session,setCheckoutUrl(url){checkoutUrl=url;},holdCheckout(){heldCheckout=new Promise(r=>releaseCheckout=r);},releaseCheckout(){heldCheckout=null;releaseCheckout?.();},holdWallet(){heldWallet=new Promise(r=>releaseWallet=r);},releaseWallet(){heldWallet=null;releaseWallet?.();}};
 }
 async function fits(page,label){assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true,label+' horizontal overflow');}
 try{
+  // Homepage purchases: every arrow responds next to its product, with no real payment.
+  for(const width of [1440,390]){
+    for(const customer of [false,true]){
+      const rig=await setup(width,customer,{billingReady:false}),{page,writes,errors}=rig;
+      try{
+        await page.goto(origin+'/lab/#pricing');await page.locator('.pv-account-menu>summary').waitFor({state:'visible'});
+        await page.mouse.move(0,0);
+        const idle=await page.locator('#pricing .lab-plan>button').evaluateAll(els=>els.map(el=>getComputedStyle(el).backgroundColor));
+        assert.deepEqual(idle,['rgba(0, 0, 0, 0)','rgba(0, 0, 0, 0)','rgba(0, 0, 0, 0)'],'No plan arrow remains highlighted at rest');
+        for(const button of await page.locator('#pricing [data-lab-buy]').all()){
+          await button.click();
+          const note=page.locator('#'+await button.getAttribute('aria-describedby'));
+          await note.getByText(customer?'Purchases are not available yet. No payment has been taken.':'You are signed in as the owner. Use a customer account to buy credits.',{exact:true}).waitFor();
+          await page.waitForFunction(id=>{const r=document.getElementById(id).getBoundingClientRect();return r.top>=0&&r.bottom<=innerHeight;},await button.getAttribute('aria-describedby'));
+          assert.equal(await page.locator('.lab-purchase-status:not([hidden])').count(),1,'Only the clicked product shows feedback');
+          assert.equal(await button.getAttribute('aria-busy'),'false');
+          assert.equal(await button.isDisabled(),false);
+        }
+        assert.equal(writes.filter(x=>x.path==='/api/billing/checkout').length,0,'Owner and unavailable checkout guards remain enforced');
+        await fits(page,'pricing feedback '+width);
+        await page.screenshot({path:artifacts+'/pricing-feedback-'+width+'-'+(customer?'customer':'owner')+'.png'});
+        assert.deepEqual(errors,[]);
+      }finally{await rig.context.close();}
+    }
+  }
+  {
+    const rig=await setup(1440),{page,writes,errors,session}=rig;
+    try{
+      await page.goto(origin+'/lab/#pricing');await page.locator('.pv-account-menu>summary').waitFor({state:'visible'});
+      const checkoutWrites=()=>writes.filter(x=>x.path==='/api/billing/checkout');
+      rig.holdCheckout();
+      const checkoutRequest=page.waitForRequest(request=>request.url().endsWith('/api/billing/checkout'));
+      await page.locator('[data-lab-buy="creator"]').evaluate(button=>{button.click();button.click();});
+      await page.waitForFunction(()=>document.querySelector('[data-lab-buy="creator"]').getAttribute('aria-busy')==='true');
+      await checkoutRequest;
+      assert.equal(checkoutWrites().length,1,'A double click creates only one checkout');
+      assert.equal(await page.locator('#pricing [data-lab-buy]:disabled').count(),6);
+      assert.deepEqual(JSON.parse(checkoutWrites()[0].body),{sku:'creator'});
+      rig.releaseCheckout();await page.getByText('Unverified checkout link. Please try again.',{exact:true}).waitFor();
+      assert.equal(await page.locator('#pricing [data-lab-buy]:disabled').count(),0,'Failure makes all products usable again');
+      session.pilot=true;await page.reload();await page.locator('.pv-account-menu>summary').waitFor({state:'visible'});
+      await page.locator('[data-lab-buy="studio"]').click();await page.getByText('Only the €10 credit pack is available for this account.',{exact:true}).waitFor();
+      assert.equal(checkoutWrites().length,1,'Pilot restriction does not send an unavailable SKU');
+      rig.holdCheckout();await page.locator('[data-lab-buy="topup10"]').click();
+      await page.getByText('Opening secure checkout…',{exact:true}).waitFor();
+      await page.evaluate(()=>window.mockClerk.signOut());rig.releaseCheckout();
+      await page.getByText('Your account changed. Select a plan again.',{exact:true}).waitFor();
+      assert.ok(page.url().startsWith(origin),'Session change cannot redirect to checkout');
+      assert.deepEqual(errors,[]);
+    }finally{rig.releaseCheckout();await rig.context.close();}
+  }
+  {
+    const rig=await setup(390),{page,writes,errors}=rig;
+    try{
+      await page.addInitScript(()=>{if(sessionStorage.getItem('mock-auth')===null)sessionStorage.setItem('mock-auth','out');});
+      await page.goto(origin+'/lab/#pricing');await page.locator('[data-lab-buy="topup29"]').click();
+      await page.waitForFunction(()=>window.signInOpened===true);
+      await page.getByText('Sign in to continue with this selection.',{exact:true}).waitFor();
+      assert.equal(writes.filter(x=>x.path==='/api/billing/checkout').length,0);
+      const destination=await page.evaluate(()=>window.signInOptions.forceRedirectUrl);
+      assert.equal(new URL(destination).origin,origin);
+      await page.evaluate(()=>sessionStorage.setItem('mock-auth','in'));await page.goto(destination);
+      await page.getByText('Unverified checkout link. Please try again.',{exact:true}).waitFor();
+      assert.deepEqual(writes.filter(x=>x.path==='/api/billing/checkout').map(x=>JSON.parse(x.body)),[{sku:'topup29'}],'Sign-in return preserves and resumes the clicked pack exactly once');
+      assert.equal(new URL(page.url()).searchParams.has('lab-checkout'),false);
+      await page.reload();await page.locator('.pv-account-menu>summary').waitFor({state:'visible'});
+      assert.equal(writes.filter(x=>x.path==='/api/billing/checkout').length,1,'Reload does not replay a consumed purchase');
+      await page.goto(origin+'/lab/?lab-checkout=untrusted#pricing');await page.locator('.pv-account-menu>summary').waitFor({state:'visible'});
+      assert.equal(writes.filter(x=>x.path==='/api/billing/checkout').length,1,'URL alone cannot initiate checkout');
+      rig.setCheckoutUrl('https://checkout.stripe.com/c/pay/cs_test_frontend');
+      await page.locator('[data-lab-buy="starter"]').click();
+      await page.waitForURL('https://checkout.stripe.com/c/pay/cs_test_frontend');
+      assert.deepEqual(JSON.parse(writes.at(-1).body),{sku:'starter'},'An available product reaches the intercepted Stripe checkout');
+      assert.deepEqual(errors,[]);
+    }finally{await rig.context.close();}
+  }
+  console.log('PASS all homepage purchase arrows, visible feedback, idle states, sign-in selection, duplicate and session guards');
   // Checkout is intercepted: verify zero-balance recovery without any real payment or generation.
   for(const width of [1440,768,390,320]){
     const rig=await setup(width,true,{balanceCredits:0}),{page,session,writes,errors}=rig;

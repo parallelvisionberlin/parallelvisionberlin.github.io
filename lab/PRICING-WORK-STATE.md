@@ -16,9 +16,9 @@
 - One-time credits link scrolls to the existing three credit-pack buttons.
 - All six original `data-lab-buy` SKUs, existing product prices and credit quantities are retained.
 - Existing Soul offer, billing notice, status live region and checkout gating remain present.
-- Creator has a cream arrow for visual emphasis; no popularity claim is introduced.
-- No billing logic, authorization, provider costs or paid generation code is changed.
-- Relevant sources: `index.html`, scoped `pricing.css`, existing `customer-entry.js` (unchanged).
+- All plan arrows share the same neutral resting state; cream highlighting appears on hover, keyboard focus or while opening checkout.
+- Backend billing rules, authorization, provider costs and paid generation code are unchanged.
+- Relevant sources: `index.html`, scoped `pricing.css` and `customer-entry.js`.
 - Verification uses the existing `tests/lab-landing-ui.cjs` at 1440, 390, 320 and 768 pixels.
 - Coverage: visual geometry, image loading, hero typography, zero horizontal overflow, six actionable checkout buttons and credit-pack navigation.
 - Review desktop/mobile pricing images from `PRICING_CARDS_1440` and `PRICING_CARDS_390` in the landing CI log.
@@ -40,4 +40,10 @@
 - Spacing commit: `aad1c905c28df9ae2f1d65c8c709d4be77e31ba9`, based on `5552dd636ee59e44e2a7bc6fbad540678002a7ec`, published to main without force.
 - Refinement validation: static build and asset/runtime checks passed; existing landing tests passed at 1440, 390, 320 and 768 px (run `38283210225`).
 - Spacing refinement confirmed live on 2026-10-12 after successful Pages run `38283210335`: padding decreased from 95.41 px to 59.41 px at a 1363 px viewport, images loaded and no horizontal overflow. Desktop maximum padding is now 68 px; mobile remains 48 px.
-- Status: spacing adjustment implemented, committed and confirmed live. No remaining action for this request.
+- Spacing adjustment is confirmed live. New request at 21:16 Europe/Berlin: make every purchase arrow visibly respond and remove the permanent Creator highlight.
+- Purchase feedback now appears beside the clicked plan or beneath credit packs. Owner, pilot, unavailable billing and account restrictions remain enforced.
+- A clicked SKU is retained in same-tab session storage for up to 15 minutes and consumed once on the matching sign-in return. A URL alone cannot initiate checkout. Failed attempts are not automatically retried.
+- Checkout clicks are locked while pending, require the same signed-in session, and accept only HTTPS Stripe destinations. No backend billing enablement or pricing change.
+- Verification extends `tests/lab-account-browser.mjs` with all six arrows, owner/unavailable feedback on desktop/mobile, neutral idle states, duplicate clicks, sign-in continuation, invalid destinations and session changes. All payment requests are intercepted.
+- Purchase implementation `059c0deb792541ef104a5b7feb0ad4349e5042cf` passed the account browser gate (run `38297348525`), including every arrow, retained SKU, intercepted Stripe navigation, duplicate-click prevention and session/URL guards. Landing and static build gates also passed.
+- Integrated concurrent main changes through `10b67b678de39d7794f7ac39d4544a8e769c7360`, preserving the latest sign-in modal positioning. Publishing and live verification pending.

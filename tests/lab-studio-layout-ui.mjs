@@ -30,7 +30,7 @@ const geometry=async page=>page.evaluate(()=>{
   return {
     header:rect('header'),navigation:rect('.tool-switch'),workspace:rect('.workspace'),
     panel:rect('.controls'),scroll:rect('.controls-body'),dock:rect('.controls>.generate-zone'),
-    generate:rect('#generate'),stage:rect('.stage'),canvas:rect('.canvas'),
+    generate:rect('#generate'),stage:rect('.stage'),inspector:rect('#video-inspector'),canvas:rect('.canvas'),
     model:rect('#video-model-control'),modes:rect('#video-modes'),
     viewport:{width:innerWidth,height:innerHeight},
     documentWidth:document.documentElement.scrollWidth,
@@ -65,6 +65,14 @@ try{
   assert.ok(d.workspace.top<140,'Workspace must be above the fold');
   assert.ok(d.dock.height>=64&&d.dock.bottom<=d.panel.bottom+2,'Generation controls must have a real fixed dock');
   assert.ok(d.generate.bottom<=d.panel.bottom+2,'Generate dock must remain inside left panel');
+  assert.ok(Math.abs(d.stage.top-d.inspector.top)<2&&Math.abs(d.stage.bottom-d.inspector.bottom)<2,'Video preview and right inspector share their top and bottom edges');
+  await x.page.click('#mode-text');
+  await x.page.locator('#prompt').fill('Gentle camera movement.');
+  assert.equal(await x.page.locator('#generate').isEnabled(),true);
+  await x.page.waitForFunction(()=>getComputedStyle(document.querySelector('#generate')).backgroundColor==='rgb(237, 236, 229)',{},{timeout:3000});
+  await x.page.screenshot({path:'test-results/lab-video-white-generate.png',fullPage:false});
+  await x.page.locator('#prompt').fill('');
+  await x.page.click('#mode-start');
   const videoLayout=await x.page.evaluate(()=>{
     const workspace=document.querySelector('.workspace'),feed=document.querySelector('#video-feed-center');
     const editor=document.querySelector('.controls'),panel=document.querySelector('#video-inspector');
