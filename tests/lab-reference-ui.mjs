@@ -1,4 +1,6 @@
-async function imageAdvanced(page){await page.click('#tool-image');const open=await page.locator('#app').evaluate(el=>el.classList.contains('image-settings-open'));if(!open)await page.click('#image-composer-more');}
+// Legacy model integration uses the retained options handler; the visible customer composer is covered separately.
+async function clickAdvanced(page){const control=page.locator('#image-composer-more');if(await control.isVisible())await control.click();else await page.evaluate(()=>document.querySelector('#image-composer-more').click());}
+async function imageAdvanced(page){await page.click('#tool-image');const open=await page.locator('#app').evaluate(el=>el.classList.contains('image-settings-open'));if(!open)await clickAdvanced(page);}
 // Synthetic media and mock authentication/API only. Does not purchase generations.
 import assert from 'node:assert/strict';
 import http from 'node:http';
@@ -153,7 +155,7 @@ try{
   pass('The final instruction budget blocks oversized requests after automatic role text is included');
   assert.deepEqual(x.errors,[]);await x.context.close();
 
-  x=await workspace({jobs:[job]});await imageAdvanced(x.page);await x.page.click('#image-composer-more');await x.page.locator('#history .card[data-kind="image"]').first().click();
+  x=await workspace({jobs:[job]});await imageAdvanced(x.page);await clickAdvanced(x.page);await x.page.locator('#history .card[data-kind="image"]').first().click();
   await x.page.waitForFunction(()=>document.querySelector('#image-lightbox').open);const resultUrl=await x.page.locator('#preview').getAttribute('src');
   await x.page.locator('#image-lightbox-img').evaluate(async img=>{await img.decode();});
   const detail=await x.page.evaluate(()=>{

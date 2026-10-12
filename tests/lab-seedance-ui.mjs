@@ -1,4 +1,6 @@
-async function imageAdvanced(page){await page.click('#tool-image');const open=await page.locator('#app').evaluate(el=>el.classList.contains('image-settings-open'));if(!open)await page.click('#image-composer-more');}
+// Legacy model integration uses the retained options handler; the visible customer composer is covered separately.
+async function clickAdvanced(page){const control=page.locator('#image-composer-more');if(await control.isVisible())await control.click();else await page.evaluate(()=>document.querySelector('#image-composer-more').click());}
+async function imageAdvanced(page){await page.click('#tool-image');const open=await page.locator('#app').evaluate(el=>el.classList.contains('image-settings-open'));if(!open)await clickAdvanced(page);}
 // Mock-only browser verification. No real credentials, private media or paid generations.
 import assert from 'node:assert/strict';
 import http from 'node:http';
