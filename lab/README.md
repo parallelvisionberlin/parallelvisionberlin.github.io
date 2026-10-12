@@ -424,3 +424,14 @@ See [the result deck work state](RESULT-DECK-WORK-STATE.md) for the approved edi
 - Visual evidence: unwanted body halo is present with finish sliders at zero, so it belongs to the generated original, not the finishing renderer.
 - New screenshot assessment: close-crop light works; visible-face identity drift and forced subject halo remain unresolved generation issues.
 - Next action: verify CI and publish this display correction. No paid generation submitted.
+
+
+## Sign-in modal centering checkpoint (2026-10-12)
+
+- User approved vertically centering the sign-in card, preserving its size and horizontal position.
+- Source commit `10b67b678de39d7794f7ac39d4544a8e769c7360`; change in `lab/public-header.css` only.
+- Live DOM diagnosis: Clerk backdrop uses flex-start and the card has a fixed 64px top margin. At a 936px viewport, the 459.89px card had 64px above and 412.11px below.
+- Override uses automatic vertical card margins, a 100dvh backdrop, 24px/16px edge padding, max-width:100% and vertical scrolling for tall forms. No authentication or billing changes.
+- Source build succeeded in Pages run 38297295001. Its deploy was cancelled by concurrent commits; successor 38297647481 was also cancelled. Latest source read confirms centering CSS is preserved.
+- Live verification remains pending: browser still served the old 64px margin when checked. Desktop/mobile post-deployment verification must not be claimed complete.
+- Next: after a Pages deployment succeeds, reload /lab/, open Sign in and compare upper/lower card margins. Check narrow/short viewport scrolling when a resizable browser is available.
