@@ -2,15 +2,25 @@
 
 ## Verified implementation and remaining release gates
 
-**Public launch remains blocked.** Signup is enabled; public checkout and paid
-generation remain disabled. The dedicated **PV Lab sandbox** is now connected to
-the development session. Its test webhook is enabled at
-`https://parallel-vision-lab-sandbox.parallelvision.workers.dev/api/stripe/webhook`
-for Checkout success, async success, invoices, subscription changes, refunds and
-disputes. Stripe currently reports **no Checkout sessions** in this sandbox.
-The current Cloudflare session requires sign-in before the Worker's encrypted
-secrets and receiver health can be verified. No actual Stripe test purchase,
-new Google OAuth signup or live customer generation is certified.
+**Sandbox payment and credit delivery verified on 12 October 2026 at 17:43 Europe/Berlin.**
+A EUR 10 test Checkout completed in the dedicated PV Lab sandbox; Stripe reported
+successful event delivery with zero pending webhooks, and the owner's screenshot
+showed exactly 1,000 test credits. No real charge was made.
+The initial API key belonged to another test environment. The owner replaced it
+with the dedicated sandbox key and cleared only the stale sandbox customer mapping.
+Do not repeat that repair or the initial purchase test.
+
+Public sales and customer generation have not been activated by this work.
+Actual customer generation, debit, download and return-visit verification remain
+pending, as do the unresolved legal/privacy and invoicing items below.
+The agent's Cloudflare browser remains signed out; the owner performed the
+configuration changes in their own browser.
+
+Owner confirmed merchant details at 19:25 Europe/Berlin:
+Alejandro Molinari, trading as PV LAB; Knorrpromenade 9, 10245 Berlin, Germany;
+support contact@parallelvisionlabel.com; self-declared Kleinunternehmer status.
+These details are incorporated in CUSTOMER-TERMS-DRAFT.md. This records the owner's
+statement, not a determination of cross-border tax treatment.
 
 Current source verification: **309 Lab unit tests passed** on 2026-10-12,
 including automatic gallery pagination, billing, customer isolation and sandbox
@@ -30,12 +40,9 @@ webhook replay. Synthetic coverage does not replace the actual customer flow.
 - Stripe Tax returns **no configured registrations** in the live PV Lab account.
   This does not establish the merchant's legal VAT status. Do not create a tax
   registration or enable Automatic Tax until the actual status is confirmed.
-- Cloudflare opens its sign-in screen in the available browser. The isolated
-  billing test page also requires a customer sign-in. No actual Checkout session,
-  payment, fresh-customer generation or deployed deletion was certified.
-- The remaining owner inputs are Cloudflare authentication, a separate
-  Google/Clerk customer login for acceptance testing, and verified merchant,
-  billing-contact and VAT details for the unfinished terms/privacy draft.
+- The isolated test purchase, webhook delivery and 1,000-credit wallet balance are verified above.
+- Fresh-customer generation and deployed deletion remain unverified. Merchant identity,
+  address, support email and self-declared tax status have been supplied; do not ask again.
 
 Implemented in this release:
 
