@@ -1,7 +1,7 @@
-import {MOODS,moodPreviewURL} from './moods.js?app=5&raveNight=3&hongKongRefs=1';
+import {MOODS,moodPreviewURL} from './moods.js?app=5&raveNight=3&hongKongRefs=1&dreamcore=6';
 const $=id=>document.getElementById(id),detail=$('mood-detail'),button=$('continue-create');
 let selected=null,file=null,photoURL='',opener=null,quote=null,revision=0,timer=null,expiry=null,service=null,serviceLoading=null,needsSignIn=false,sending=false,completed=false;
-const generation=()=>service?Promise.resolve(service):serviceLoading||(serviceLoading=import('./app-mood-generation.js?v=20261011-cards-deck5&hongKongRefs=1').then(({createAppMoodGeneration})=>service=createAppMoodGeneration()));
+const generation=()=>service?Promise.resolve(service):serviceLoading||(serviceLoading=import('./app-mood-generation.js?v=20261011-cards-deck5&hongKongRefs=1&dreamcore=6').then(({createAppMoodGeneration})=>service=createAppMoodGeneration()));
 function resetPrice(){revision++;clearTimeout(timer);clearTimeout(expiry);service?.cancel();quote=null;needsSignIn=false;button.disabled=!file;button.textContent=file?'Check price':'Generate';}
 function clearPhoto(){if(photoURL)URL.revokeObjectURL(photoURL);photoURL='';file=null;$('photo-preview').removeAttribute('src');$('photo-preview').hidden=true;$('photo-change').hidden=true;$('remove-photo').hidden=true;$('photo-input').value='';resetPrice();}
 function lockControls(value){$('photo-input').disabled=value;$('remove-photo').disabled=value;$('detail-direction').disabled=value;$('close-detail').disabled=value;$('back-detail').disabled=value;}
