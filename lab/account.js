@@ -25,7 +25,8 @@ function route(){
 }
 function clearPrivateView(){
   profile=null;referralLoaded=false;referralRevision++;
-  menu.update();$('account-workspace').hidden=true;$('account-identity').textContent='Your creative space, in one place.';
+  menu.update();$('account-workspace').hidden=true;$('account-identity').textContent='Your creative space.';
+  $('account-profile-mark').textContent='PV';$('account-profile-kind').textContent='Image. Motion. Your direction.';
   for(const id of ['account-products','account-plans','account-activity','account-purchases'])$(id).replaceChildren();
   for(const id of ['settings-name','settings-email','account-storage-label','account-plan','referrals-status'])$(id).textContent='';
   $('account-balance').textContent='…';$('referrals-url').value='';$('referrals-content').hidden=true;
@@ -42,6 +43,8 @@ function paintRoute(){
   document.querySelectorAll('[data-tab]').forEach(el=>{if(el.dataset.tab===tab)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current');});
   document.querySelectorAll('[data-credit-view]').forEach(el=>{el.hidden=!profile?.customer||el.dataset.creditView!==tab;});
   $('owner-billing').hidden=!profile||!!profile.customer;
+  $('account-credit-tabs').hidden=!profile?.customer;
+  $('credits-title').textContent=profile&&!profile.customer?'Your workspace':'Credits & billing';
   $('account-section').value=section==='credits'?'balance':section;
   if(section==='referrals'&&profile)void loadReferrals();
 }
@@ -78,6 +81,10 @@ function drawActivity(id,entries,empty){
 }
 function drawProfile(){
   const identity=accountIdentity(clerk.user);$('account-identity').textContent=identity.name;
+  const mark=$('account-profile-mark');mark.textContent=identity.initials;
+  if(identity.image){const img=document.createElement('img');img.alt='';img.src=identity.image;img.referrerPolicy='no-referrer';img.addEventListener('error',()=>img.remove());mark.append(img);}
+  $('account-profile-kind').textContent=profile.customer?'Personal account':'Owner workspace';
+  for(const id of ['account-primary-label','account-primary-option'])$(id).textContent=profile.customer?'Credits & billing':'Workspace';
   $('settings-name').textContent=identity.name;$('settings-email').textContent=identity.email;
   $('account-edit-profile').hidden=typeof clerk.openUserProfile!=='function';$('settings-native').hidden=typeof clerk.openUserProfile==='function';
   $('settings-connection').hidden=!!profile.customer;
