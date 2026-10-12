@@ -5,6 +5,7 @@
 <meta name="robots" content="noindex,nofollow,noarchive"><meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#101114"><title>Parallel Vision Lab</title>
 <link rel="icon" href="./branding/pv-mark.png" type="image/png">
+<link rel="preload" href="./fonts/dm-sans-latin-v17.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;450;500;550;600;650;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet"><style id="lab-boot-style">
@@ -68,6 +69,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 <link rel="stylesheet" href="./video-refresh.css?v=20261009-extend2">
 <script type="module" src="./gallery-layout.js?v=20261010-upscale-history1"></script>
 <link rel="stylesheet" href="./image-detail-mobile.css?v=20261012-flow1">
+<link rel="stylesheet" href="./public-header.css?v=20261012-context-nav1">
 </head>
 <body class="lab-booting">
 <div id="lab-boot" role="status" aria-live="polite" aria-label="Opening Parallel Vision Lab"><div class="lab-boot-content"><div class="lab-boot-brand" aria-label="Parallel Vision Lab"><img id="lab-boot-wordmark" src="./branding/pv-wordmark.png" alt="Parallel Vision" width="242" height="61" decoding="async"><span class="lab-boot-fallback" id="lab-boot-name">PARALLEL VISION</span><span class="lab-boot-sub">LAB <span aria-hidden="true">/</span> CREATIVE STUDIO</span></div><div class="lab-boot-track" aria-hidden="true"></div><p class="lab-boot-status" id="lab-boot-status">Opening your workspace</p><button id="lab-boot-retry" type="button" hidden>Reload page</button></div></div>
@@ -77,7 +79,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 })();
 </script>
 <a class="skip" href="#main">Skip to workspace</a>
-<header id="studio-header" class="studio-header"><div class="wrap top"><a class="brand" href="./" aria-label="PV Lab home"><img class="brand-icon" src="./branding/pv-mark.png" alt="" width="42" height="42"><img class="brand-wordmark" src="./branding/pv-wordmark.png" alt="" width="152" height="38"><span class="brand-lab">LAB</span></a><nav class="tool-switch" aria-label="Creative tools">
+<header id="studio-header" class="studio-header"><div class="wrap top"><a class="brand lab-brand" href="./" aria-label="PV Lab home">PV LAB</a><nav class="tool-switch" aria-label="Creative tools">
   <div class="tool-group">
     <button id="tool-image" class="tool-tab active" type="button" aria-pressed="true">Image</button>
     <button id="tool-retouch" class="tool-tab" type="button" aria-pressed="false">Retouch</button>

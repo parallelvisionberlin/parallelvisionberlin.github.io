@@ -14,13 +14,18 @@ assert.ok(start>0&&end>start,'Real PV Lab header is present');
 const header=studio.slice(start,end+'</header>'.length);
 const html='<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
   +'<base href="/lab/">'
-  +'<link rel="stylesheet" href="/lab/lab.css"><link rel="stylesheet" href="/lab/studio.css">'
-  +'<link rel="stylesheet" href="/lab/assets.css">'
+  +[...studio.matchAll(/<link rel="stylesheet"[^>]+>/g)].map(match=>match[0]).join('')
   +'</head><body>'+header+'<main id="main" class="wrap"><div id="app" aria-label="Test studio"></div></main></body></html>';
 const mime={'.css':'text/css','.png':'image/png','.webp':'image/webp','.svg':'image/svg+xml','.jpg':'image/jpeg'};
 const root=resolve('.');
 const server=http.createServer((req,res)=>{
   const pathname=new URL(req.url,'http://localhost').pathname;
+  if(['/landing-header','/moods-header'].includes(pathname)){
+    const source=readFileSync(pathname==='/landing-header'?'lab/index.html':'lab/moods.html','utf8');
+    const styles=[...source.matchAll(/<link rel="stylesheet"[^>]+>/g)].map(match=>match[0]).join('');
+    const masthead=source.match(/<header class="landing-header[\s\S]*?<\/header>/)[0];
+    res.writeHead(200,{'Content-Type':'text/html; charset=utf-8'}).end('<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><base href="/lab/">'+styles+'</head><body>'+masthead+'</body></html>');return;
+  }
   if(pathname==='/test'){
     res.writeHead(200,{'Content-Type':'text/html; charset=utf-8'}).end(html);return;
   }
@@ -39,7 +44,8 @@ try{
   await page.goto('http://127.0.0.1:4193/test',{waitUntil:'domcontentloaded'});
   // In the real studio, the Queue control appears after session setup.
   await page.evaluate(()=>document.getElementById('active').hidden=false);
-  await page.waitForFunction(()=>[...document.querySelectorAll('#studio-header .brand img')].every(img=>img.complete&&img.naturalWidth>0));
+  assert.equal(await page.locator('#studio-header .brand').innerText(),'PV LAB');
+  await page.evaluate(()=>document.fonts.ready);
   assert.deepEqual(await page.locator('#studio-header .tool-group>button').allTextContents(),
     ['Image','Retouch','Video','Upscaler','Fashion'],
     'Five text tools remain; Assets is a separate icon');
@@ -64,7 +70,8 @@ try{
     'Icon explains itself with a small hover label '+JSON.stringify(tooltip));
   mkdirSync('test-results',{recursive:true});
   await page.screenshot({path:'test-results/pv-mood-icon-desktop.png'});
-  const sizes=[1920,1440,1100,900,899,768,390,360,320];
+  const studioGeometry=new Map();
+  const sizes=[1920,1440,1270,1100,901,900,899,768,560,390,360,320];
   for(const width of sizes){
     await page.setViewportSize({width,height:900});
     const size=await page.evaluate(()=>{
@@ -83,6 +90,7 @@ try{
         border:style.borderTopWidth,display:style.display,
         iconText:icon.innerText};
     });
+    studioGeometry.set(width,size);
     assert.ok(size.overflow<=3,'No horizontal document overflow '+width+' '+JSON.stringify(size));
     assert.ok(size.icon.width>=32&&size.icon.height>=32&&size.border!=='0px',
       'The Assets icon stays a comfortable hit target '+width+' '+JSON.stringify(size));
@@ -90,18 +98,28 @@ try{
     assert.ok(size.icon.right<=size.queue.x+1&&size.queue.right<=size.account.x+1,
       'Assets stays before Queue and Account '+width+' '+JSON.stringify(size));
     assert.ok(size.actions.right<=width+2,'Account controls stay on screen at '+width);
-    if(width>=900){
+    if(width>900){
       assert.ok(size.nav.right<=size.actions.x+2,
         'Navigation is contained before Queue/Account at '+width+' '+JSON.stringify(size));
       if(width>1250)assert.ok(size.exploreMoods.right<=size.icon.x+1,
         'Desktop Explore Moods link ends before Assets at '+width);
-      assert.ok(Math.abs(size.header.height-70)<=2,'Desktop header remains 70px tall');
+      assert.ok(Math.abs(size.header.height-82)<=2,'Desktop header matches the public 82px masthead');
     }else{
       assert.ok(size.brand.right<=size.actions.x+2,
         'Brand does not overlap Mood/Queue/Account at '+width+' '+JSON.stringify(size));
-      assert.ok(Math.abs(size.header.height-100)<=2,
-        'Mobile two-row header retains its existing height at '+width);
+      assert.ok(Math.abs(size.header.height-(width<=560?102:109))<=2,
+        'Mobile header matches the public masthead at '+width);
     }
+    // A customer sees a credit balance as well as Queue and Account.
+    await page.evaluate(()=>{const wallet=document.getElementById('lab-wallet-toggle');wallet.hidden=false;wallet.textContent='120,000 credits';});
+    const customer=await page.evaluate(()=>{
+      const brand=document.querySelector('#studio-header .brand').getBoundingClientRect();
+      const actions=document.querySelector('#studio-header .actions').getBoundingClientRect();
+      return {brandRight:brand.right,actionsLeft:actions.left,actionsRight:actions.right,overflow:document.documentElement.scrollWidth-innerWidth};
+    });
+    assert.ok(customer.overflow<=1&&customer.actionsRight<=width+1&&customer.brandRight<=customer.actionsLeft,
+      'Customer wallet and account remain accessible at '+width+' '+JSON.stringify(customer));
+    await page.evaluate(()=>document.getElementById('lab-wallet-toggle').hidden=true);
     if(width===390){
       await page.mouse.move(3,600);
       await page.screenshot({path:'test-results/pv-mood-icon-mobile.png'});
@@ -111,8 +129,30 @@ try{
       await page.screenshot({path:'test-results/pv-mood-icon-320.png'});
     }
   }
+  for(const route of ['landing','moods']){
+    await page.goto('http://127.0.0.1:4193/'+route+'-header');
+    assert.deepEqual(await page.locator('.landing-header nav a').allTextContents(),route==='landing'
+      ?['Image','Video','Upscaler','Explore Moods','Pricing']:['My Moods','Create a Mood']);
+    if(route==='moods'){
+      assert.equal(await page.getByRole('link',{name:'My Moods',exact:true}).getAttribute('href'),'./mood-creator.html#my-moods');
+      assert.equal(await page.getByRole('link',{name:'Create a Mood',exact:true}).getAttribute('href'),'./mood-creator.html');
+    }
+    for(const width of sizes){
+      await page.setViewportSize({width,height:900});
+      const geometry=await page.evaluate(()=>{
+        const header=document.querySelector('.landing-header').getBoundingClientRect();
+        const brand=document.querySelector('.lab-brand').getBoundingClientRect();
+        return {height:header.height,brandX:brand.x,overflow:document.documentElement.scrollWidth-innerWidth};
+      });
+      const studio=studioGeometry.get(width);
+      assert.ok(geometry.overflow<=1,route+' stays inside viewport at '+width);
+      assert.ok(Math.abs(geometry.height-studio.header.height)<=1&&Math.abs(geometry.brandX-studio.brand.x)<=1,
+        route+' shares Studio header height and logo alignment at '+width+' '+JSON.stringify(geometry));
+      if(width===1440||width===390)await page.screenshot({path:'test-results/pv-mood-icon-'+route+'-'+width+'.png'});
+    }
+  }
   assert.deepEqual(errors,[],'No browser script errors');
-  console.log('PASS original tools, Assets icon, one Explore Moods destination, and nine breakpoints');
+  console.log('PASS Studio tools, Assets, Queue, customer credits and shared masthead at twelve breakpoints');
 }finally{
   await browser.close();
   await new Promise(done=>server.close(done));
