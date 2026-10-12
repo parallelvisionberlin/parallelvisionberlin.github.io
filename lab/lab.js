@@ -1301,12 +1301,18 @@ const mainWorkspace=document.querySelector('#app>.workspace');
 const mediaStage=mainWorkspace.querySelector('.stage');
 const videoJobCache=new Map();
 let selectedVideoJob=null;
+let videoStartFrameHandoff=false;
 let videoSelectionRevision=0;
 function updateVideoInspector(job){
   if(!videoInspector)return;
   $('video-inspector-empty').hidden=!!job;
   $('video-inspector-selected').hidden=!job;
-  if(!job){$('video-detail-status').textContent='';return;}
+  if(!job){
+    $('video-detail-status').textContent=videoStartFrameHandoff&&file?'Start frame':'';
+    $('video-inspector-empty').textContent=videoStartFrameHandoff&&file?'Start frame ready. Add motion direction in the controls to create your video.':'Select a video to see its settings and actions.';
+    for(const card of $('history').querySelectorAll('.is-current-video'))card.classList.remove('is-current-video');
+    return;
+  }
   const settings=job.settings||{},ready=hasResult(job);
   $('video-detail-status').textContent=String(job.status||'').replace(/^./,c=>c.toUpperCase());
   $('video-detail-model').textContent=videoLabel(settings);
@@ -1324,6 +1330,7 @@ function updateVideoInspector(job){
 }
 function showVideoHistoryRecord(job,{play=true}={}){
   if(!job||!owner)return;
+  videoStartFrameHandoff=false;
   selectedVideoJob=job;
   ++videoSelectionRevision;
   updateVideoInspector(job);
@@ -1344,6 +1351,7 @@ function restoreLatestVideoSelection(){
     return;
   }
   $('video-feed-empty').hidden=true;
+  if(videoStartFrameHandoff&&!resultId){selectedVideoJob=null;updateVideoInspector(null);return;}
   if(selectedVideoJob&&videoJobCache.has(selectedVideoJob.id)){
     selectedVideoJob=videoJobCache.get(selectedVideoJob.id);
     updateVideoInspector(selectedVideoJob);
@@ -1549,7 +1557,7 @@ function viewReference(item,index){
 }
 $('input-preview-dialog').addEventListener('close',()=>{$('input-preview-image').removeAttribute('src');});
 
-function clearMedia(){imageReferenceMode='base';closeReferenceIntent();imageRatioExplicit=false;soulRatioExplicit=false;customerImagePricing?.reset();clearUpscalePrice();mediaRefs.clear();if(!fastImageHandoff.active())cancelImagePreparation();seedreamPreparer.clear();closeInputPreview();poseMapSourceId=null;$('pose-preview-status').textContent='';$('reference-progress').textContent='';imageRevision++;sourcePixels=0;sourceWidth=0;sourceHeight=0;release(sourceUrl);release(lastUrl);sourceUrl=null;lastUrl=null;file=null;sourceId=null;lastFile=null;lastSourceId=null;$('image').value='';$('last-image').value='';for(const r of references)releaseReference(r);references=[];$('reference-images').value='';$('filemeta').textContent=sourceHelp();$('last-filemeta').textContent='Leave empty for an open ending.';renderReferences();clearResult();resetPreview();update();}
+function clearMedia(){videoStartFrameHandoff=false;imageReferenceMode='base';closeReferenceIntent();imageRatioExplicit=false;soulRatioExplicit=false;customerImagePricing?.reset();clearUpscalePrice();mediaRefs.clear();if(!fastImageHandoff.active())cancelImagePreparation();seedreamPreparer.clear();closeInputPreview();poseMapSourceId=null;$('pose-preview-status').textContent='';$('reference-progress').textContent='';imageRevision++;sourcePixels=0;sourceWidth=0;sourceHeight=0;release(sourceUrl);release(lastUrl);sourceUrl=null;lastUrl=null;file=null;sourceId=null;lastFile=null;lastSourceId=null;$('image').value='';$('last-image').value='';for(const r of references)releaseReference(r);references=[];$('reference-images').value='';$('filemeta').textContent=sourceHelp();$('last-filemeta').textContent='Leave empty for an open ending.';renderReferences();clearResult();resetPreview();update();}
 async function inspectImage(candidate){
   if(window.__PV_LAB_NATIVE__===1)candidate=await preparePhotoInput(candidate,{maxBytes:20*1024*1024});
   if(!candidate)throw new Error('No image was provided. Drop a JPG, PNG or WebP photograph.');
@@ -2710,10 +2718,11 @@ async function animateImage(job){
   if(!hasResult(job)||job.settings.type!=='image')throw new Error('Choose a completed image first.');
   const requestEpoch=epoch,firstFrame=await assetFile(job.outputId,'generated-image');
   if(!owner||epoch!==requestEpoch)return;
-  clearMedia();setTool('video');setMode('start');
-  await setImage(firstFrame,job.outputId);
-  $('prompt').value='';update();
-  notify('Generated image loaded as the video start frame. Add motion direction and review the price.');
+  clearMedia();videoStartFrameHandoff=true;selectedVideoJob=null;setTool('video');setMode('start');
+  if(!await setImage(firstFrame,job.outputId)||!owner||epoch!==requestEpoch)return;
+  $('prompt').value='';update();restoreLatestVideoSelection();
+  notify('');
+  videoFeedCenter.scrollTo({top:0,behavior:'instant'});
   window.scrollTo({top:0,behavior:'smooth'});
 }
 async function refineInSeedream(job,preset='full'){
