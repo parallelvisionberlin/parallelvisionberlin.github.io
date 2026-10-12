@@ -11,6 +11,9 @@
   background:linear-gradient(90deg,rgba(10,8,12,.8),rgba(10,8,12,.48) 28%,rgba(10,8,12,.08) 55%,transparent 75%),linear-gradient(0deg,rgba(10,8,12,.55),transparent 20%);
 }
 .lab-hero .hero-copy{bottom:clamp(100px,16vh,190px);max-width:36vw;padding-bottom:14px}
+@media(min-width:901px){
+  .lab-hero .hero-copy{top:calc(50% + var(--lab-header-height,82px)/2);bottom:auto;transform:translateY(-50%)}
+}
 /* Account recovery must not move the title and primary actions above it.
    Keep the existing signed-in copy position and place optional access below. */
 .lab-hero .hero-auth-row{position:absolute;top:100%;left:0;right:0;margin-top:0}

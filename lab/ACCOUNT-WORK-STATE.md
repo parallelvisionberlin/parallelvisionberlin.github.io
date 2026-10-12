@@ -101,3 +101,12 @@
 - Pages run 38281749385 succeeded. Public index.html, studio.html, public-header.css and customer-entry.js returned HTTP 200 and matched the release bytes.
 - Account-provider calls are mocked in CI; no real Google login or payment was performed.
 - Complete: https://parallelvisionlabel.com/lab/ and /lab/studio.html. Reuse these checks for the unchanged revision.
+
+## Desktop hero position (2026-10-12)
+- Approved: lift the complete hero copy and actions into a balanced vertical position; preserve the shared left margin and type sizes.
+- Reference: image(20261012-173957).png. Final user direction: place it where it fits best professionally.
+- Baseline: 33d004667b11150a2ec7d0df8e11a5bbbcac13ef; preserves concurrent result deck and pricing work.
+- Above 900 px, center the whole copy block in the photograph below the header. This adapts to the viewport instead of using one fixed offset.
+- Mobile/tablet composition, portrait crop, navigation and buttons are unchanged.
+- Files: lab/landing-motion.css and its version in lab/index.html. No new tests or assets.
+- Next: existing landing-stability CI and desktop/mobile screenshots, then publish and verify the served revision.
