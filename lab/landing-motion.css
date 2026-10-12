@@ -15,6 +15,15 @@
 .lab-hero .hero-copy h2{font-size:clamp(34px,3.5vw,60px);line-height:1.06;white-space:normal;margin-bottom:24px}
 .lab-hero .hero-copy h2 br{display:block}
 .lab-hero .hero-description{max-width:28vw;font-size:clamp(14px,1.15vw,18px);margin-bottom:24px}
+.hero-actions{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+.hero-actions>a{flex:none;white-space:nowrap}
+.hero-moods-link{
+  display:inline-flex;align-items:center;justify-content:center;min-height:50px;
+  padding:15px 24px;border:1px solid #ffffff70;border-radius:99px;
+  background:#100e1326;color:#f5f2eb;font-size:14px;font-weight:400;
+  transition:background .2s,border-color .2s;
+}
+.hero-moods-link:hover{background:#ffffff14;border-color:#ffffffc0}
 .lab-hero .hero-bottom{gap:20px}
 .hero-bottom .hero-motion-toggle{
   display:grid;place-items:center;flex:none;min-width:44px;width:44px;height:44px;
@@ -54,7 +63,10 @@
   .lab-hero .hero-copy h1{font-size:40px;margin-bottom:12px}
   .lab-hero .hero-copy h2{font-size:clamp(36px,10.8vw,46px);line-height:1.04;margin-bottom:18px}
   .lab-hero .hero-description{max-width:290px;font-size:13px;margin-bottom:20px}
+  .hero-actions{gap:10px}
+  .hero-actions .start-link,.hero-moods-link{min-height:46px;padding:13px 18px;font-size:13px}
   .lab-hero .hero-bottom{gap:12px;justify-content:space-between}
+  .hero-bottom .hero-motion-toggle{margin-left:auto}
 }
 @media(prefers-reduced-motion:reduce){
  .lab-hero .hero-motion,.tool-card .tool-motion{display:none!important;transition:none}

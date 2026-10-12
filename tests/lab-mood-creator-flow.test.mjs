@@ -66,7 +66,8 @@ test('The editor is a distinct page, preserves Image prices and has two entry po
  const js=readFileSync(new URL('../lab/mood-creator.js',import.meta.url),'utf8');
  const studio=readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8');
  assert.match(home,/id="mood-creator"/);
- assert.match(home,/href="\.\/mood-creator.html"/);
+ assert.match(home,/href="\.\/mood-creator\.html\?start=image"/);
+ assert.match(home,/href="\.\/mood-creator\.html\?start=idea"/);
  assert.match(home,/href="\.\/moods"/);
  assert.match(page,/id="mc-start-image"/);
  assert.match(page,/id="mc-start-idea"/);
