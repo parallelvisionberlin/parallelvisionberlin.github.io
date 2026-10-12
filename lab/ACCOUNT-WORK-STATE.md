@@ -109,4 +109,8 @@
 - Above 900 px, center the whole copy block in the photograph below the header. This adapts to the viewport instead of using one fixed offset.
 - Mobile/tablet composition, portrait crop, navigation and buttons are unchanged.
 - Files: lab/landing-motion.css and its version in lab/index.html. No new tests or assets.
-- Next: existing landing-stability CI and desktop/mobile screenshots, then publish and verify the served revision.
+- Published: 8687506edda7f3532cdac65b606c37750605ec08, PR #168.
+- Landing-stability run 38287658538 passed at 59d925495daeb8d34a5a76d2d40d8ee2bedfbd63 across desktop/mobile sizes.
+- Desktop/mobile screenshots inspected; reusable artifact 11763463490, local hero-position-review folder.
+- Pages run 38287852016 succeeded. Live index.html and landing-motion.css returned HTTP 200 and matched the release bytes.
+- Complete: https://parallelvisionlabel.com/lab/. No pending work for this adjustment.
