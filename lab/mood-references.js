@@ -3,10 +3,10 @@ import {compileImagePrompt,normalizeReferenceLabel} from './reference-guidance.j
 // These are photographic treatment references, never a replacement Base.
 // Stable labels also prevent adding them twice when a saved job is reopened.
 const HONG_KONG_REFERENCES=Object.freeze([
-  {file:'01-traffic-grain.png',type:'image/png',note:'Match irregular film grain and small warm halos around bright practical lights.'},
-  {file:'02-city-haze.jpg',type:'image/jpeg',note:'Match emerald atmospheric depth and softly diffused distant highlights.'},
-  {file:'03-shop-reflections.jpg',type:'image/jpeg',note:'Match luminous highlight rolloff and warm/cool light separation; no added rain.'},
-  {file:'04-warm-lamp.png',type:'image/png',note:'Match the soft amber lamp halo. Ignore screenshot arrows, buttons and interface marks.'}
+  {file:'01-traffic-grain.png',type:'image/png',note:'Borrow irregular grain structure and glowing small lights. Scale grain and contrast to the selected Mood intensity.'},
+  {file:'02-city-haze.jpg',type:'image/jpeg',note:'Borrow emerald depth, dark silhouettes and luminous diffused highlights. Keep depth and contrast through the haze.'},
+  {file:'03-shop-reflections.jpg',type:'image/jpeg',note:'Borrow luminous reflections and strong warm/cool light separation, adapted to the requested scene.'},
+  {file:'04-warm-lamp.png',type:'image/png',note:'Borrow the blurred light-source halo, not an orange rim on people. Ignore screenshot arrows, buttons and interface marks.'}
 ].map(ref=>Object.freeze({...ref,url:'/lab/mood-references/hong-kong-nights/'+ref.file,
   label:Object.freeze({name:'Hong Kong Nights style - '+ref.file,role:'style',note:ref.note})})));
 
