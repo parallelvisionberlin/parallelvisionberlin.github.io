@@ -270,7 +270,7 @@ export function imageHistoryCaption(settings={}){
 }
 
 
-export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',referenceCount=0,referenceMode='base',compact=false,filmFinish=HONG_KONG_FILM_FINISH}={}){
+export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',referenceCount=0,referenceMode='base',compact=false,ultraCompact=false,filmFinish=HONG_KONG_FILM_FINISH}={}){
   const original=String(input||'').trim(),mood=moodById(id);
   if(!mood)return {prompt:original,metadata:{},error:''};
   if(!MOOD_MODELS.includes(engine))return {prompt:original,metadata:{},error:'Moods v1 supports Seedream 5 Pro and Nano Banana Pro. Choose one of these models first.'};
@@ -279,7 +279,8 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
   const dreamcore=mood.id==='dreamcore',cinematic80s=mood.id==='80s-film',berlinRave=mood.id==='berlin-rave',syntheticRomance=mood.id==='synthetic-romance';
   // Even one Base adds reference-map instructions after this prompt is built.
   // Reserve that space before validation and submission use the same result.
-  const compactHongKong=mood.id==='hong-kong-nights'&&(compact===true||original.length>=750||referenceCount>=3);
+  const compactHongKong=mood.id==='hong-kong-nights'&&(compact===true||ultraCompact===true||original.length>=750||referenceCount>=3);
+  const ultraHongKong=mood.id==='hong-kong-nights'&&ultraCompact===true;
   const compactBerlinRave=berlinRave&&(compact===true||referenceCount>=1||original.length>=750);
   // Three built-in canon images add guidance even without user-uploaded photos.
   const compactSyntheticRomance=syntheticRomance;
@@ -319,7 +320,13 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
         compact80s?mood['compact'+dreamcoreTier]:mood[dreamcoreKey]
       ].join(' ')
       :mood.id==='hong-kong-nights'
-        ?[
+        ?ultraHongKong
+          ?[
+            '1990s Hong Kong night-film still on 35mm: atmospheric emerald haze with real depth, warm amber practicals, deep shadows, soft optical light diffusion and reflective moisture only on believable existing surfaces. Relight the entire original scene at night, never a flat green filter.',
+            intensity===100?'MAXIMUM 100%: dense luminous humid air; thin black letterbox bars top/bottom without hiding the subject.':intensity>=70?'Strong night atmosphere and luminous haze with rich dark gaps.':'Gentle photographic night atmosphere.',
+            'IDENTITY FIRST: keep Base/Identity facial geometry, expression, hairline, anatomy, outfit, pose, place and framing. Style references guide optics, not faces. GRAIN: fine integrated film texture. BLOOM: optical softness of people and setting. HALATION: only existing lamps, windows and specular reflections, no body halo or bright backdrop patch. WET / GLOSS: plausible glass and polished surfaces, no invented rain.'
+          ].join(' ')
+          :[
           compactHongKong?mood.compact:mood.direction,
           'Photographic treatment strength '+intensity+'/100: reconstruct atmospheric night lighting in the generation, NOT a color overlay or post-process filter.',
           intensity<=34?mood.subtle:intensity<=69?mood.moderate:intensity<100?mood.intense:mood.climax,
