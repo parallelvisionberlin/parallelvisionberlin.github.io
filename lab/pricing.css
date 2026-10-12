@@ -54,16 +54,24 @@
   font:300 23px/1 "DM Sans",Arial,sans-serif;
 }
 #pricing .lab-plan>button[data-lab-buy]>span[aria-hidden]{font-size:23px;line-height:1}
-#pricing .lab-plan[data-featured="true"]>button[data-lab-buy]{background:#f6f3ed;color:#151515;border-color:#f6f3ed}
 #pricing .lab-plan:hover{border-bottom-color:#8f8a80!important;box-shadow:none;transform:none}
 #pricing .lab-plan:hover>button[data-lab-buy]{border-color:#f6f3ed;background:#f6f3ed;color:#151515}
 #pricing .lab-plan:has(>button[data-lab-buy]:focus-visible){outline:2px solid #f6f3ed;outline-offset:5px;box-shadow:none;transform:none}
+#pricing .lab-plan>button[data-lab-buy]:focus-visible,#pricing .lab-plan>button[data-lab-buy][aria-busy="true"]{background:#f6f3ed;color:#151515;border-color:#f6f3ed}
+#pricing [data-lab-buy]{transition:background .18s,color .18s,border-color .18s,transform .18s}
+#pricing [data-lab-buy]:active{transform:translateY(1px)}
+#pricing [data-lab-buy]:disabled{cursor:wait}
+#pricing .lab-purchase-status{margin:8px 0 0;color:#e6e0d5;font-size:12px;font-weight:300;line-height:1.5;overflow-wrap:anywhere;scroll-margin:24px}
+#pricing .lab-purchase-status[hidden]{display:none!important}
+#pricing .lab-plan>.lab-purchase-status{grid-column:1/-1;grid-row:3}
+#pricing .lab-topups>.lab-purchase-status{flex-basis:100%;margin:0}
 #pricing .lab-topups{justify-content:flex-start;gap:clamp(22px,5vw,78px);margin-top:58px;padding-top:28px;border-color:#343330;scroll-margin-top:35px}
 #pricing .lab-topups p{font-size:13px;font-weight:300;color:#c7c1b7}
 #pricing .lab-topups-actions{gap:12px}
 #pricing .lab-topups-actions button{display:flex;align-items:center;justify-content:space-between;gap:34px;min-height:42px;padding:11px 20px;border-color:#625e56;color:#f6f3ed;font-weight:300}
 #pricing .lab-topups-actions button span{font-size:17px;line-height:1}
 #pricing .lab-topups-actions button:hover{background:#f6f3ed;color:#141414;border-color:#f6f3ed}
+#pricing .lab-topups-actions button:focus-visible,#pricing .lab-topups-actions button[aria-busy="true"]{background:#f6f3ed;color:#141414;border-color:#f6f3ed}
 #pricing .lab-soul-offer{margin-top:34px;border-color:#343330;padding-top:28px}
 #pricing .lab-soul-offer h3{font-weight:300;font-size:clamp(25px,2.5vw,34px)}
 #pricing .lab-soul-offer-description p{color:#bcb6ad;font-size:13px}
