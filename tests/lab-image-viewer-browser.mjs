@@ -187,7 +187,7 @@ try{
     }
 
     await page.click('#image-lightbox-close');
-    await page.evaluate(()=>window.__viewerTest.customer());await page.click('#lab-wallet-toggle');
+    await page.evaluate(()=>{window.__viewerTest.customer();document.getElementById('lab-wallet-toggle').click();}); // Mobile hides the header balance; account-browser separately tests its visible entry.
     // Storage and account closure now live on the account page; lab-account-browser covers both.
     assert.equal(await page.locator('#lab-credits-dialog a').getAttribute('href'),'./account.html#billing','The compact purchase deck keeps account management reachable');
     assert.equal(await page.locator('#lab-credits-dialog').evaluate(el=>el.scrollWidth<=el.clientWidth+1),true,'Credit controls fit the dialog');
