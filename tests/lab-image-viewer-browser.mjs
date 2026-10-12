@@ -1,7 +1,7 @@
 // Real browser, synthetic images and held downloads. No account or paid requests.
 import assert from 'node:assert/strict';
 import http from 'node:http';
-import {readFileSync,existsSync,mkdirSync} from 'node:fs';
+import {readFileSync,existsSync,mkdirSync,statSync} from 'node:fs';
 import {resolve,extname} from 'node:path';
 import {pathToFileURL} from 'node:url';
 const {chromium}=await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE).href);
@@ -16,7 +16,7 @@ await loadHistory();await restoreStudioEntry();update();finishLabBoot();
 window.__viewerTest={lock,seedVideo:()=>{const job={id:'older-video',status:'completed',outputId:'older-output',settings:{type:'video',engine:'seedance',prompt:'OLDER VIDEO PROMPT'}};videoJobCache.set(job.id,job);selectedVideoJob=job;},refreshVideo:restoreLatestVideoSelection,flush:async()=>{await Promise.allSettled([...assetReads.values(),...thumbnailReads.values()]);await deviceMediaCache.select(userId);},customer:()=>wallet.connect({customer:true,balanceCredits:1000,billingReady:false,products:[]}),state:()=>({job:imageDetailJob?.id,result:resultId,cache:assetBlobs.size,prefetch:imageDetailPrefetchReads,tool,mode,sourceId,hasFile:!!file,prompt:$('prompt').value})};`;
 const server=http.createServer((req,res)=>{
   const pathname=new URL(req.url,'http://localhost').pathname,path=resolve(root,'.'+pathname);
-  if(!path.startsWith(root+'/')||!existsSync(path)){res.writeHead(404).end();return;}
+  if(!path.startsWith(root+'/')||!existsSync(path)||!statSync(path).isFile()){res.writeHead(404).end();return;}
   res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css'})[extname(path)]||'text/plain');
   res.end(pathname==='/lab/lab.js'?testSource:readFileSync(path));
 });
