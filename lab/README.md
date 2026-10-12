@@ -426,8 +426,8 @@ See [the result deck work state](RESULT-DECK-WORK-STATE.md) for the approved edi
 - Published through PR #173, merge `0f45bb419773d1adb586c03c35aee33568766763`; conflict resolution retained concurrent Studio updates.
 - Original branch Lab, reference, queue and related display browser checks passed; the preserved display logic is unchanged by the merge resolution.
 - A later main update superseded the initial Pages build; latest main source still contains the reference filter and clean preparation status.
-- Deployment verification is pending on the newest Pages build. No paid generation submitted.
-- Next action: confirm Pages deployment, then assess identity and generated halos separately from the finishing renderer.
+- Production `lab.js` returned HTTP 200 with the internal-reference filter and public preparation wording; Production `studio.html` also returned HTTP 200 with `privateMoodRefs=1`, confirming the refreshed entrypoint. No paid generation submitted.
+- Next action: assess and constrain visible-face identity drift and generated subject halos; display correction is confirmed live.
 
 
 ## Sign-in modal centering checkpoint (2026-10-12)
