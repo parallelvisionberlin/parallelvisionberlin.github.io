@@ -1,4 +1,4 @@
-import {moodById} from './moods.js?v=20261011-midnight-reverie1&hd=20261011&raveBudget=1&editorialHD=2&hongKongStreet=1&moodImageHD=1&raveNight=4&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=3';
+import {moodById} from './moods.js?v=20261011-midnight-reverie1&hd=20261011&raveBudget=1&editorialHD=2&hongKongStreet=1&moodImageHD=1&raveNight=4&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=3&hkContinuity=4';
 import {saveMoodHandoff,validateMoodHandoff} from './mood-handoff.js?v=20261012-generate1';
 // Browsing and uploads only prepare a price. Generate explicitly authorizes one job.
 export function moodExploreDestination(moodId,{create=false,handoff=null}={}){
@@ -16,7 +16,7 @@ function initialize(){
   const generate=$('mc-look-continue');
   function generationService(){
     if(service)return Promise.resolve(service);
-    return serviceLoading||(serviceLoading=import('./app-mood-generation.js?v=20261012-unified-header1&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=3').then(({createAppMoodGeneration})=>{
+    return serviceLoading||(serviceLoading=import('./app-mood-generation.js?v=20261012-unified-header1&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=3&hkContinuity=4').then(({createAppMoodGeneration})=>{
       service=createAppMoodGeneration();
       let accountId;
       void service.onAccountChange(account=>{

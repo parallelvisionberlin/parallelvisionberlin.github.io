@@ -1,4 +1,4 @@
-import {MOODS,userFacingImagePrompt,moodById} from './moods.js?v=20261011-midnight-reverie1&hd=20261011&raveBudget=1&editorialHD=2&moodImageHD=1&raveNight=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=3';
+import {MOODS,userFacingImagePrompt,moodById} from './moods.js?v=20261011-midnight-reverie1&hd=20261011&raveBudget=1&editorialHD=2&moodImageHD=1&raveNight=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=3&hkContinuity=4';
 
 // Personal moodboards: authenticated, private, and independent of paid generation.
 // Reference photos are inspiration only; they are not secretly sent to a model.

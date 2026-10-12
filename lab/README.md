@@ -439,3 +439,20 @@ See [the result deck work state](RESULT-DECK-WORK-STATE.md) for the approved edi
 - Source build succeeded in Pages run 38297295001. Its deploy was cancelled by concurrent commits; successor 38297647481 was also cancelled. Latest source read confirms centering CSS is preserved.
 - Live verification remains pending: browser still served the old 64px margin when checked. Desktop/mobile post-deployment verification must not be claimed complete.
 - Next: after a Pages deployment succeeds, reload /lab/, open Sign in and compare upper/lower card margins. Check narrow/short viewport scrolling when a resizable browser is available.
+
+
+### Hong Kong face and motivated-light correction (2026-10-12)
+
+- Objective: correct visible-face drift and the body halo observed in generated originals with finish disabled.
+- Baseline: b5d241ea982a0bf5a0d90760aef8fcd2b45f51d3; user authorized implementation and publication.
+- Removed high-strength instructions to invent side/back light and broad halos from both full and compact active recipes.
+- Existing light direction, lamps, windows and specular reflections now motivate glow; haze recedes in depth.
+- Base/Identity facial geometry, age, expression and hairline take priority at every intensity; Style references cannot supply faces.
+- Explicitly reject body outlines, glowing silhouettes, invented backlights and bright backdrop patches.
+- Retain emerald atmosphere, warm/cool separation, optical softness, plausible wet reflections and the existing four references.
+- Film renderer, slider behavior, generation billing and reference display are unchanged.
+- Sources: lab/moods.js; hkContinuity=4 cache versions in its existing consumers and entrypoints.
+- Added tests/lab-hong-kong-continuity.test.mjs covering full/compact/finish-disabled routes, both engines, strength tiers and final reference budgets.
+- Local verification: 40 mood/continuity tests plus four reference loader/budget checks passed.
+- No paid generation submitted. Prompt constraints do not guarantee pixel-identical faces or aesthetic success.
+- Publication/live verification pending; next verify deployed hkContinuity=4 source, then assess the next necessary visible-face generation.
