@@ -16,7 +16,7 @@ function initialize(){
   const generate=$('mc-look-continue');
   function generationService(){
     if(service)return Promise.resolve(service);
-    return serviceLoading||(serviceLoading=import('./app-mood-generation.js?v=20261012-explore-generate1&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1').then(({createAppMoodGeneration})=>{
+    return serviceLoading||(serviceLoading=import('./app-mood-generation.js?v=20261012-unified-header1&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1').then(({createAppMoodGeneration})=>{
       service=createAppMoodGeneration();
       let accountId;
       void service.onAccountChange(account=>{

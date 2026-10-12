@@ -98,18 +98,21 @@ export async function renderFilmFinish(images,bytes,settings,seed){
   const info=await images.info(stream(bytes)),width=Number(info.width),height=Number(info.height);
   if(!Number.isInteger(width)||!Number.isInteger(height)||width<1||height<1||width*height>36_000_000)
     throw Error('Unsupported image dimensions for the film finish.');
-  const scale=Math.max(width,height)/1400;
   let image=images.input(stream(bytes));
   if(finish.glow){
     const mask=(await images.input(stream(bytes)).transform({brightness:.62}).transform({contrast:12})
       .transform({width:700,height:700,fit:'scale-down'}).output({format:'image/png',anim:false})).response();
-    const highlightsPng=await transparentHighlights(await bytesFrom(mask,5_000_000));
+    const maskPng=await bytesFrom(mask,5_000_000),maskScale=Math.min(Math.max(width,height),700)/1400;
     // Each overlay is a fresh pipeline. Darken then increase contrast to keep
     // the glow concentrated in highlights, with a small core and a wider falloff.
     // The original itself is never blurred, sharpened or reconstructed.
     for(const [radius,weight] of [[3,.34],[15,.22]]){
-      const highlights=images.input(stream(highlightsPng)).transform({width,height,fit:'squeeze'})
-        .transform({blur:Math.max(1,Math.round(radius*scale))});
+      // Blur opaque light energy before converting it to transparency. Blurring
+      // straight RGBA would mix transparent black into the bright light cores.
+      const spread=(await images.input(stream(maskPng)).transform({blur:Math.max(1,Math.round(radius*maskScale))})
+        .output({format:'image/png',anim:false})).response();
+      const highlightsPng=await transparentHighlights(await bytesFrom(spread,5_000_000));
+      const highlights=images.input(stream(highlightsPng)).transform({width,height,fit:'squeeze'});
       image=image.draw(highlights,{opacity:finish.glow/100*weight,composite:'over'});
     }
   }

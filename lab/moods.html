@@ -7,24 +7,33 @@
 <title>Explore Moods / PV LAB</title>
 <link rel="canonical" href="https://parallelvisionlabel.com/lab/moods">
 <link rel="icon" href="./branding/pv-mark.png" type="image/png">
+<link rel="preload" href="./fonts/dm-sans-latin-v17.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;450;500;550;600;700&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="./mood-creator.css?v=20261011-direction-deck1">
 <link rel="stylesheet" href="./explore-moods-editorial.css?v=20261012-card-type1">
 <link rel="stylesheet" href="./explore-moods-hero.css?v=20261012-photo-lift1">
+<link rel="stylesheet" href="./public-header.css?v=20261012-unified1">
 </head>
 <body class="mc-explore-page">
 <a class="mc-skip" href="#discover">Skip to Moods</a>
-<header class="mc-header mc-explore-header" id="mc-explore-header">
-  <a class="mc-wordmark" href="./" aria-label="PV Lab home">PV LAB<span> / EXPLORE MOODS</span></a>
-  <a class="mc-mobile-section" href="#discover" aria-current="page">Explore Moods</a>
-  <button class="mc-menu-toggle" id="mc-menu-toggle" type="button" aria-expanded="false" aria-controls="mc-explore-nav" aria-label="Open navigation menu"><span></span><span></span><span></span></button>
-  <nav class="mc-navigation" id="mc-explore-nav" aria-label="Creative tools">
-    <a href="./studio.html?tool=image">Image </a>
-    <a href="./moods" aria-current="page">Explore Moods</a>
-    <a href="./mood-creator.html">Mood Creator</a>
-    <a href="./mood-creator.html#my-moods">My Moods</a>
-  </nav>
+<header class="landing-header landing-header--moods">
+  <a class="lab-brand" href="./" aria-label="PV Lab home">PV LAB</a>
+  <nav aria-label="Creative tools"><a href="./studio.html?tool=image">Image</a><a href="./studio.html?tool=video">Video</a><a href="./studio.html?tool=upscale">Upscaler</a><a href="./moods" class="lab-moods-nav" aria-current="page">Explore Moods</a><a href="./#pricing">Pricing</a></nav>
+  <div class="landing-header-actions">
+    <button class="lab-auth-link" id="lab-header-signin" type="button">Sign in</button>
+    <a class="studio-link" href="./studio.html"><span class="studio-link-label-full">Open studio</span><span class="studio-link-label-compact">Studio</span></a>
+    <details id="lab-account-strip" class="lab-account-menu" hidden>
+      <summary aria-label="Open account menu">Account <span aria-hidden="true">⌄</span></summary>
+      <div class="lab-account-panel">
+        <div class="lab-account-details"><span class="lab-account-eyebrow">PV LAB / YOUR WORKSPACE</span><strong id="lab-account-summary">Your workspace</strong></div>
+        <button id="lab-account-buy" type="button">Buy credits </button>
+        <button id="lab-account-refer" type="button">Invite friends </button>
+        <button id="lab-account-logout" type="button">Sign out</button>
+      </div>
+    </details>
+  </div>
+  <p class="lab-header-status" id="lab-entry-status" role="status" aria-live="polite"></p>
 </header>
 <main id="main">
 <section class="mc-discovery mc-discovery--explore" id="discover" aria-labelledby="mc-headline">
@@ -192,7 +201,8 @@
 </section>
 </main>
 <footer class="mc-footer"><a href="./">PV LAB</a><p>Image. Atmosphere. Possibility.</p><a href="./mood-creator.html#my-moods">My Moods </a></footer>
-<script type="module" src="./explore-moods.js?v=20261012-drop-highlight1&moodImageHD=1&raveNight=4&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1"></script>
+<script type="module" src="./explore-moods.js?v=20261012-unified-header1&moodImageHD=1&raveNight=4&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1"></script>
 <script type="module" src="./explore-moods-hero.js?v=20261012-editorial-order1"></script>
+<script type="module" src="./customer-entry.js?v=20261012-unified-header1"></script>
 </body>
 </html>
