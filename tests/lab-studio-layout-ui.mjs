@@ -309,7 +309,7 @@ try{
     await labScriptHeld;
     await route.continue();
   });
-  await bootPage.goto('http://127.0.0.1:4182/lab/',{waitUntil:'commit'});
+  await bootPage.goto('http://127.0.0.1:4182/lab/studio.html',{waitUntil:'commit'});
   await bootPage.waitForSelector('#lab-boot');
   assert.equal(await bootPage.locator('#lab-boot').isVisible(),true,'Brand loading appears before external JS');
   assert.equal(await bootPage.locator('#gate').isVisible(),false,'No half-loaded sign-in page');
