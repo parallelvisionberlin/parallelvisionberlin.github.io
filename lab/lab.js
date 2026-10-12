@@ -1,8 +1,8 @@
 import {createAccountMenu} from './account-menu.js?v=20261012-account2';
 const studioAccount=createAccountMenu(document.getElementById('studio-account-menu'));
-import {createFilmFinishControls,HONG_KONG_FILM_FINISH} from './film-finish.js?v=20261012-film-optics3&hkScene=5';
+import {createFilmFinishControls,HONG_KONG_FILM_FINISH} from './film-finish.js?v=20261013-print35mm1';
 import {preparePhotoInput} from './photo-input.js?v=1';
-import {createMoodReferenceLoader,moodReferencePlan,isMoodStyleReference} from './mood-references.js?v=20261012-hk-optics3&raveIdentity=1&filmRevision=3&hkContinuity=4&hkScene=5';
+import {createMoodReferenceLoader,moodReferencePlan,isMoodStyleReference} from './mood-references.js?v=20261012-hk-optics3&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5';
 import {createPrivateMediaCache} from './private-media-cache.js?v=20261012-cache1';
 import {loadLabAccount} from './native-account.js?v=20261012-photo-layout1';
 import {createAssetLibrary} from './assets.js?v=20261010-navigation-media1';
@@ -15,8 +15,8 @@ captureReferralCode();
 import {createSoul2UI} from './higgsfield-ui.js?v=20261010-soul-price1';
 import {VIDEO_MODELS,engineFor,videoLabel} from './video-models.js?v=20261009-extend1';
 import {REFERENCE_ROLES,REFERENCE_TARGETS,normalizeReferenceLabel,compileImagePrompt,referenceGuidanceError,canUseReferenceGuidance,builtInMoodReferenceCount} from './reference-guidance.js?v=20261012-berlin-refs1&dreamcore=7&syntheticRefs=1&raveIdentity=1';
-import {createMoodSelector,moodById,userFacingImagePrompt,imageHistoryCaption} from './moods.js?v=20261011-midnight-reverie1&filmDeck=2&filmOptics=2&hd=20261011&raveBudget=1&editorialHD=2&moodImageHD=1&moodDeckSpace=1&raveNight=4&syntheticBudget=1&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=3&hkContinuity=4&hkScene=5';
-import {createMyMoods} from './my-moods.js?v=20261011-midnight-reverie1&hd=20261011&raveBudget=1&editorialHD=2&editorialHD=2&moodImageHD=1&raveNight=4&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=3&hkContinuity=4&hkScene=5';
+import {createMoodSelector,moodById,userFacingImagePrompt,imageHistoryCaption} from './moods.js?v=20261011-midnight-reverie1&filmDeck=2&filmOptics=2&hd=20261011&raveBudget=1&editorialHD=2&moodImageHD=1&moodDeckSpace=1&raveNight=4&syntheticBudget=1&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5';
+import {createMyMoods} from './my-moods.js?v=20261011-midnight-reverie1&hd=20261011&raveBudget=1&editorialHD=2&editorialHD=2&moodImageHD=1&raveNight=4&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5';
 import {takeMoodHandoff,moodGenerationQuote} from './mood-handoff.js?v=20261012-generate1';
 import {createMediaReferences} from './media-references.js?v=20261009-extend2';
 import { createSessionRequest } from './session-request.js?v=20260927-auth1';
@@ -2012,7 +2012,7 @@ filmActions.append(filmApply,filmOriginal);filmPanel.append(filmActions,filmStat
 let filmBusy=false;
 filmApply.onclick=async()=>{
   const job=imageDetailJob,requestEpoch=epoch;if(!owner||!hasResult(job)||filmBusy)return;
-  filmBusy=true;filmControls.lock(true);filmApply.disabled=true;filmStatus.textContent='Applying grain and glow…';
+  filmBusy=true;filmControls.lock(true);filmApply.disabled=true;filmStatus.textContent='Applying 35mm film finish…';
   try{
     const response=await api('/api/jobs/'+job.id+'/film-finish',{method:'POST',body:{outputId:job.outputId,settings:filmControls.get()}});
     if(!owner||epoch!==requestEpoch)return;
@@ -2258,7 +2258,7 @@ function showImageDetail(job,hasOutput,loading=false){
   if(!filmPanel.hidden){
     filmControls.set(params.filmFinish||HONG_KONG_FILM_FINISH);filmControls.lock(filmBusy||loading);
     filmApply.disabled=filmBusy||loading;filmOriginal.disabled=loading;
-    filmStatus.textContent=params.filmFinishStatus==='failed'?'Original saved. Film finish was not applied: '+params.filmFinishError:params.filmFinishStatus==='applied'?'Film finish applied. Original retained.':params.filmFinishStatus==='off'?'Film finish off. Showing original.':'Adjust grain and glow on this image.';
+    filmStatus.textContent=params.filmFinishStatus==='failed'?'Original saved. Film finish was not applied: '+params.filmFinishError:params.filmFinishStatus==='applied'?'35mm film finish applied. Original retained.':params.filmFinishStatus==='off'?'Film finish off. Showing original.':'Adjust Grain, Haze, Halation and Film; original stays safe.';
   }
 
   const mood=moodById(params.moodId),customMood=params.moodId==='custom'&&params.customMoodName;

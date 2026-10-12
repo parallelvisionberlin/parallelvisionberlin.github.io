@@ -33,3 +33,24 @@
 .film-finish-actions button{min-height:36px;padding:8px 12px;font:inherit;font-size:12px;border:1px solid #ffffff30;border-radius:6px;color:inherit;background:#ffffff0a;cursor:pointer}
 .film-finish-actions button:disabled{opacity:.45;cursor:wait}
 .film-finish-status{font-size:12px;line-height:1.5;opacity:.75}
+
+/* 35mm finishing: compact, separate Grain / Haze / Halation / Film controls. */
+#image-film-finish{gap:9px}
+#image-film-finish>strong{font-size:13px}
+#image-film-finish>p{line-height:1.4}
+#image-film-finish>label{grid-template-columns:72px minmax(0,1fr) 35px;gap:8px;min-height:30px;font-size:11px}
+#image-film-finish>label>span{grid-column:1;grid-row:1}
+#image-film-finish>label>input[type=range]{grid-column:2;grid-row:1;cursor:pointer}
+#image-film-finish>label>output{grid-column:3;grid-row:1}
+.moods-controls>.film-finish-compact{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 15px}
+.film-finish-compact>strong{grid-column:1/-1;font-size:12px}
+.film-finish-compact>label{grid-template-columns:minmax(0,1fr) auto;gap:4px 6px;min-width:0}
+.film-finish-compact>label>span{grid-column:1;grid-row:1}
+.film-finish-compact>label>output{grid-column:2;grid-row:1}
+.film-finish-compact>label>input[type=range]{grid-column:1/-1;grid-row:2;width:100%;min-width:0}
+.film-finish-compact>p{width:320px}
+.film-finish-actions{gap:7px}
+.film-finish-actions button{min-height:34px;padding:7px 11px}
+.film-finish-status{font-size:11px}
+@media(max-width:740px){.moods-controls>.film-finish-compact{grid-column:1;grid-row:2;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 12px}}
+@media(max-width:370px){.moods-controls>.film-finish-compact{gap:7px 9px}}
