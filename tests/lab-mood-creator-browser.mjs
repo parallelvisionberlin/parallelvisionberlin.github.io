@@ -16,7 +16,8 @@ const localBoot="  clerk={isSignedIn:true,user:{id:'test-owner'},session:{id:'te
 const patched=creatorSource.slice(0,begin)+localBoot+creatorSource.slice(finish+"\n  })();".length);
 const types={'.html':'text/html','.js':'text/javascript','.css':'text/css','.webp':'image/webp','.svg':'image/svg+xml','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg'};
 const server=http.createServer((request,response)=>{
-  const path=new URL(request.url,'http://localhost').pathname;
+  const requestedPath=new URL(request.url,'http://localhost').pathname;
+  const path=requestedPath==='/lab/moods'?'/lab/moods.html':requestedPath;
   if(path==='/lab/studio.html'){
     response.writeHead(200,{'Content-Type':'text/html'});
     response.end('<!doctype html><title>Image handoff received</title><h1>Image Studio</h1>');
@@ -66,6 +67,9 @@ try{
   const page=await context.newPage(),errors=[];
   page.on('pageerror',err=>errors.push(err.message));
   await page.goto(origin+'/lab/explore-moods.html',{waitUntil:'domcontentloaded'});
+  await page.waitForURL(origin+'/lab/moods');
+  assert.equal(new URL(page.url()).pathname,'/lab/moods','Old Explore URL redirects to the short route');
+  await page.reload({waitUntil:'domcontentloaded'});
   assert.equal(await page.locator('.mc-look-card[data-mood-id]').count(),15);
   assert.equal(await page.locator('#mc-look-dialog').count(),1);
   const grid=await page.evaluate(()=>{
