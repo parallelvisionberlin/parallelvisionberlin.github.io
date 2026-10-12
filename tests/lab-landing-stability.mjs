@@ -22,7 +22,7 @@ const clerkMock=`export class Clerk {
   async load(){await new Promise(resolve=>window.releaseTestAccount=()=>{this.isSignedIn=true;resolve();});}
   addListener(fn){this.listener=fn;}
   async signOut(){this.isSignedIn=false;this.listener?.();}
-  openSignIn(){window.testSignInOpened=true;}
+  openSignIn(options){window.testSignInOpened=true;window.testSignInOptions=options;}
 }`;
 const selectors=['.landing-header','.landing-header .lab-brand','.landing-header nav','.landing-header .studio-link','.hero-poster','.hero-copy h1','.hero-copy h2','.hero-description','.start-link','.hero-moods-link'];
 async function geometry(page){
@@ -84,16 +84,20 @@ try{
       stable(initial,await geometry(page),`${width}: account recovery`);
       await page.locator('#lab-account-strip>summary').click();
       await page.getByRole('button',{name:'Sign out',exact:true}).click();
-      await page.locator('[data-lab-signin]').waitFor({state:'visible'});
+      await page.locator('#lab-header-signin').waitFor({state:'visible'});
+      assert.equal(await page.locator('.lab-hero [data-lab-signin]').count(),0,'No separate Google button in the hero');
       stable(initial,await geometry(page),`${width}: sign out`);
-      await page.locator('[data-lab-signin]').click();
+      await page.locator('#lab-header-signin').click();
       assert.equal(await page.evaluate(()=>window.testSignInOpened),true);
       assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`${width}: no horizontal overflow`);
       const heading=await page.locator('#hero-title').boundingBox(),header=await page.locator('.landing-header').boundingBox();
       assert.ok(heading.y>=header.y+header.height,`${width}: heading clears the navigation`);
-      const access=await page.locator('[data-lab-signin]').boundingBox(),actions=await page.locator('.hero-actions').boundingBox(),hero=await page.locator('.lab-hero').boundingBox();
-      assert.ok(access.y>=actions.y+actions.height,`${width}: access does not overlap primary actions`);
-      assert.ok(access.y+access.height<=hero.y+hero.height,`${width}: access stays within hero`);
+      assert.equal(await page.evaluate(()=>window.testSignInOptions.forceRedirectUrl),undefined,'Header sign-in stays on the current page');
+      await page.locator('.start-link').click();
+      const destination=origin+'/lab/studio.html?tool=image';
+      assert.equal(await page.evaluate(()=>window.testSignInOptions.forceRedirectUrl),destination);
+      assert.equal(await page.evaluate(()=>window.testSignInOptions.signUpForceRedirectUrl),destination);
+      assert.equal(new URL(page.url()).pathname,'/lab/','Signed-out Start creating opens access before navigation');
       assert.deepEqual(errors,[]);
       if(!slowFont&&(width===1440||width===390))await page.screenshot({path:resolve(artifacts,`landing-${width}.png`)});
       // The Studio entries stay legible and actionable at every tested viewport.

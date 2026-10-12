@@ -31,7 +31,22 @@ function show(){
   }
 
 }
-function signIn(){if(!clerk){status('Sign-in is loading.');return;}clerk.openSignIn();}
+async function signIn(destination){
+  try{
+    if(!clerk){status('Sign-in is loading.');clerk=await loadLabAccount();}
+    if(clerk.isSignedIn){if(destination)location.assign(destination);return;}
+    status('');
+    clerk.openSignIn({
+      ...(destination?{forceRedirectUrl:destination,signUpForceRedirectUrl:destination}:{}),
+      appearance:{variables:{
+        colorBackground:'#191919',colorForeground:'#f3f1ec',colorMutedForeground:'#b4b1a9',
+        colorPrimary:'#eeeae2',colorPrimaryForeground:'#151515',colorNeutral:'#f3f1ec',
+        colorInput:'#232323',colorInputForeground:'#f3f1ec',colorBorder:'#41413d',
+        fontFamily:'"DM Sans", Arial, sans-serif',borderRadius:'0.625rem'
+      }}
+    });
+  }catch{status('Sign-in is not currently available. Please try again.');}
+}
 async function purchase(sku){
   if(!clerk?.isSignedIn){signIn();return;}
   if(!profile){status('Account is still loading.');return;}
@@ -45,8 +60,12 @@ async function purchase(sku){
     location.assign(data.url);
   }catch(e){status(e.message);}
 }
-$('lab-header-signin')?.addEventListener('click',signIn);
-document.querySelectorAll('[data-lab-signin]').forEach(button=>button.addEventListener('click',signIn));
+$('lab-header-signin')?.addEventListener('click',()=>void signIn());
+document.querySelectorAll('[data-lab-signin]').forEach(button=>button.addEventListener('click',()=>void signIn()));
+document.querySelector('.start-link')?.addEventListener('click',event=>{
+  if(event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey||clerk?.isSignedIn)return;
+  event.preventDefault();void signIn(event.currentTarget.href);
+});
 $('lab-account-refer')?.addEventListener('click',()=>location.assign('./account.html#referrals'));
 $('lab-account-logout')?.addEventListener('click',async()=>{await clerk?.signOut();profile=null;show();});
 document.querySelectorAll('[data-lab-buy]').forEach(button=>button.addEventListener('click',()=>purchase(button.dataset.labBuy)));
