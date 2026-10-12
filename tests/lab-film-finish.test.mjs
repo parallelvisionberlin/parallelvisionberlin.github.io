@@ -16,16 +16,17 @@ test('grain is a valid non-tiled PNG, repeatable by image and scalable by streng
 });
 test('settings reject unsupported values and stable asset IDs isolate owners and settings',async()=>{
   for(const value of [null,{},[],{version:2,grain:10,glow:10},{version:1,grain:101,glow:10},{version:1,grain:1.5,glow:0}])assert.throws(()=>filmFinishSettings(value));
-  const a=await filmAssetId('owner-a','image',HONG_KONG_FILM_FINISH);
-  assert.equal(a,await filmAssetId('owner-a','image',HONG_KONG_FILM_FINISH));
-  assert.notEqual(a,await filmAssetId('owner-b','image',HONG_KONG_FILM_FINISH));
-  assert.notEqual(a,await filmAssetId('owner-a','image',{...HONG_KONG_FILM_FINISH,glow:0}));
+  const enabled={version:1,grain:65,glow:65};
+  const a=await filmAssetId('owner-a','image',enabled);
+  assert.equal(a,await filmAssetId('owner-a','image',enabled));
+  assert.notEqual(a,await filmAssetId('owner-b','image',enabled));
+  assert.notEqual(a,await filmAssetId('owner-a','image',{...enabled,glow:0}));
 });
 test('off bypasses processing and cached derivatives bypass all rendering',async()=>{
   const original={id:'original',owner_id:'owner',bytes:100,object_key:'owner/original'};
   assert.equal(await prepareFilmAsset({},original,{version:1,grain:0,glow:0},{}),original);
   const saved={id:'finished',owner_id:'owner',object_key:'owner/finished'};
-  assert.equal(await prepareFilmAsset({LAB_MEDIA:{head:async()=>({size:100})}},original,HONG_KONG_FILM_FINISH,{first:async()=>saved}),saved);
+  assert.equal(await prepareFilmAsset({LAB_MEDIA:{head:async()=>({size:100})}},original,{version:1,grain:65,glow:65},{first:async()=>saved}),saved);
   await assert.rejects(renderFilmFinish(null,new Uint8Array(),HONG_KONG_FILM_FINISH,'x'),/unavailable/);
 });
 test('Hong Kong finish controls change metadata independently of creative intensity and preserve references',()=>{
