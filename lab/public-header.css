@@ -259,3 +259,15 @@ body>#studio-header .wrap.top{max-width:none;padding-right:16px}
 .cl-modalBackdrop .cl-modalContent{
   margin:auto 0!important;max-width:100%!important;
 }
+
+/* Homepage navigation: emphasize entry without competing with the hero CTA. */
+@media(min-width:901px){
+  .landing-header--home .landing-header-actions{gap:14px;grid-template-columns:auto 65px}
+  .landing-header--home .studio-link{min-height:42px;padding:12px 23px;font-size:13px;font-weight:400}
+  .landing-header--home .lab-auth-link{display:inline-flex;align-items:center;justify-content:flex-end;min-height:42px;padding:10px 0;font-size:13px;font-weight:400}
+  .landing-header--home nav a{color:#f0ede7}
+}
+@media(min-width:901px) and (max-width:1270px){
+  .landing-header--home .studio-link{padding-inline:17px}
+  .landing-header--home .landing-header-actions{gap:11px}
+}
