@@ -60,7 +60,7 @@ try{
     await finish.getByRole('slider',{name:'Grain intensity'}).fill('85');await finish.getByRole('slider',{name:'Haze intensity'}).fill('40');await finish.getByRole('slider',{name:'Film intensity'}).fill('70');
     await finish.getByRole('button',{name:'Apply finish',exact:true}).click();
     await page.waitForFunction(()=>document.querySelector('#image-film-finish').textContent.includes('film finish applied'));
-    assert.equal(writes.length,1);assert.equal(await finish.getByRole('slider',{name:'Film grain'}).inputValue(),'85');
+    assert.equal(writes.length,1);assert.equal(await finish.getByRole('slider',{name:'Grain intensity'}).inputValue(),'85');
     assert.equal(await page.locator('#image-lightbox').evaluate(el=>el.scrollWidth<=el.clientWidth+1),true);
     const download=page.waitForEvent('download');await finish.getByRole('button',{name:'Download original',exact:true}).click();
     assert.match((await download).suggestedFilename(),/original\.jpg$/);
