@@ -52,7 +52,8 @@
   transition:opacity .35s ease;
 }
 .tool-card .tool-motion.is-playing{opacity:1}
-.tool-card .card-caption{position:relative;z-index:2}
+/* Reset overlay offsets before positioning the desktop captions above the images. */
+.tool-card .card-caption{position:relative;inset:auto;z-index:2}
 @media(min-width:701px) and (max-width:1000px){
   .lab-hero .hero-copy{max-width:42vw}
   .lab-hero .hero-description{max-width:36vw}
