@@ -28,9 +28,14 @@ const selectors=['.landing-header','.landing-header .lab-brand','.landing-header
 async function geometry(page){
   return page.evaluate(selectors=>Object.fromEntries(selectors.map(selector=>{
     const el=document.querySelector(selector),box=el.getBoundingClientRect();
-    const range=document.createRange();range.selectNodeContents(el);
-    const text=range.getBoundingClientRect();
-    return [selector,{x:box.x,y:box.y,width:box.width,height:box.height,textWidth:text.width,textHeight:text.height}];
+    const metrics={x:box.x,y:box.y,width:box.width,height:box.height};
+    // Only compare persistent visible copy, not changing account-menu contents.
+    if(el.matches('h1,h2,p,a,nav')){
+      const range=document.createRange();range.selectNodeContents(el);
+      const text=range.getBoundingClientRect();
+      Object.assign(metrics,{textWidth:text.width,textHeight:text.height});
+    }
+    return [selector,metrics];
   })),selectors);
 }
 function stable(before,after,label){
@@ -70,6 +75,7 @@ try{
         await page.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));
         stable(initial,await geometry(page),`${width}: delayed font`);
       }
+      assert.ok(await page.evaluate(()=>[...document.fonts].some(font=>font.family==='DM Sans'&&font.status==='loaded')),'Bundled font decoded successfully');
       await page.evaluate(()=>window.releaseTestAccount());
       await page.locator('#lab-account-strip').waitFor({state:'visible'});
       assert.equal(await page.locator('[data-lab-signin]').isVisible(),false);
@@ -92,4 +98,8 @@ try{
       await context.close();
     }
   }
+}catch(error){
+  const page=browser.contexts().at(-1)?.pages().at(-1);
+  if(page)await page.screenshot({path:resolve(artifacts,'failure.png')});
+  throw error;
 }finally{await browser.close();await new Promise(r=>server.close(r));}
