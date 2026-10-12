@@ -6,9 +6,9 @@ Prepared 12 October 2026. **Do not present this draft as accepted customer terms
 
 | Field | Required decision or verified information |
 | --- | --- |
-| Contracting business / data controller | Legal name, legal form, service address, register details where applicable, authorized representative |
-| Contact | Confirm `contact@parallelvisionlabel.com` as the monitored billing and privacy contact |
-| VAT | Merchant VAT status, applicable registrations, classification, invoice requirements and tax-inclusive price calculations |
+| Contracting business / data controller | Owner-confirmed 12 October 2026: Alejandro Molinari, trading as PV LAB; Knorrpromenade 9, 10245 Berlin, Germany. Register details where applicable remain to be checked. |
+| Contact | Owner confirmed `contact@parallelvisionlabel.com` as the support contact on 12 October 2026. |
+| VAT | Owner declares Kleinunternehmer status (12 October 2026). Verify applicable invoice wording and cross-border treatment; do not infer worldwide tax exemption. |
 | Payment and cancellation | Confirm dedicated PV Lab Stripe account, portal cancellation configuration, supported territories and currencies |
 | Retention | Accounting and dispute record schedule; provider-specific retention/deletion arrangements; any backup retention |
 | Privacy | Processor agreements, subprocessors, international transfer arrangements and applicable supervisory authority |
@@ -16,7 +16,7 @@ Prepared 12 October 2026. **Do not present this draft as accepted customer terms
 
 ## Proposed sales terms
 
-1. **Service and account.** PV Lab is an online creative service for generating and editing images and video. The contracting business is **[verified legal merchant name and address]**. Sign-in is provided through Parallel Vision's authentication service. Keep your account secure and use an email address at which you can receive service communications.
+1. **Service and account.** PV Lab is an online creative service for generating and editing images and video. The contracting business is **Alejandro Molinari, trading as PV LAB, Knorrpromenade 9, 10245 Berlin, Germany**. Sign-in is provided through Parallel Vision's authentication service. Keep your account secure and use an email address at which you can receive service communications.
 
 2. **Prices and ordering.** The checkout displays the selected product, currency and total before you confirm payment. Proposed catalog: €10 / 1,000 credits, €29 / 3,000 credits, €75 / 8,000 credits; monthly subscriptions €15 / 1,600 credits, €39 / 4,500 credits, €99 / 12,000 credits. **Confirm VAT treatment and final gross prices before making this clause effective.** Do not represent an unfinished tax setup as VAT-compliant.
 
@@ -34,7 +34,7 @@ Prepared 12 October 2026. **Do not present this draft as accepted customer terms
 
 9. **Outputs.** These terms do not transfer ownership of your uploads to PV Lab. You authorize the processing needed to provide the requested service. Rights in generated output depend on applicable law, your inputs and the selected model/provider terms; the service does not promise copyright, exclusivity or freedom from third-party rights. No separate permission to publish your private images for advertising is implied by using the service.
 
-10. **Refunds and withdrawal.** Contact **[verified support contact]** with your receipt for payment errors, duplicate charges, refund requests or statutory withdrawal requests. Returned generation credits are separate from a refund to a payment method. Statutory consumer rights remain unaffected. **Insert the approved withdrawal information and form before public sales.** Do not infer waiver from sign-in, payment or a redirect, and do not enable an immediate-performance waiver without the required separate consent and durable record.
+10. **Refunds and withdrawal.** Contact **contact@parallelvisionlabel.com** with your receipt for payment errors, duplicate charges, refund requests or statutory withdrawal requests. Returned generation credits are separate from a refund to a payment method. Statutory consumer rights remain unaffected. **Insert the approved withdrawal information and form before public sales.** Do not infer waiver from sign-in, payment or a redirect, and do not enable an immediate-performance waiver without the required separate consent and durable record.
 
 11. **Refund/dispute review.** A verified payment refund or dispute pauses new purchases and generation while support reconciles the payment, used credits and any associated rewards. Billing management remains available. Support must complete this review using the payment and immutable credit records; a disputed payment is not automatically an allegation of customer wrongdoing.
 
@@ -44,7 +44,7 @@ Prepared 12 October 2026. **Do not present this draft as accepted customer terms
 
 ## Proposed privacy notice
 
-- **Controller and contact:** **[verified merchant/controller details, privacy contact and supervisory authority]**.
+- **Controller and contact:** **Alejandro Molinari, Knorrpromenade 9, 10245 Berlin, Germany; contact@parallelvisionlabel.com. [Applicable supervisory authority to be verified]**.
 - **Data used:** account identifier and authentication information; uploaded media and prompts; generated outputs, references and saved moods; job status and technical metadata; credit transactions, billing references and subscription state; necessary support and abuse-review records. Card entry is handled by Stripe-hosted checkout; PV Lab does not store full card details.
 - **Purposes and proposed legal bases:** account access, requested generation, file delivery and billing for contractual performance; mandatory accounting/recordkeeping for applicable legal obligations; narrowly justified security and abuse prevention interests. Identify the concrete basis, required notices and any special-category-data implications before enabling relevant uses. Do not claim blanket consent for all processing.
 - **Providers:** Cloudflare supplies the Lab database, storage and application infrastructure; Clerk supplies sign-in; Stripe handles payments. Media/prompts may be sent to the generation provider selected for the requested operation, including the integrations actually enabled in PV Lab. Confirm the contractual role, processor/subprocessor list, retention, training-use terms and transfer mechanism for each enabled provider before launch. Do not promise that all providers retain nothing or never train on submitted data without verifying their actual contracts/settings.
