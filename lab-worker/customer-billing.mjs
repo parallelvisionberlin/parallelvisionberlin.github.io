@@ -1,3 +1,4 @@
+import {assertCustomerOpen,customerRestrictions,customerAccount,requestAccountClosure} from './customer-lifecycle.mjs';
 import {rewardQualifiedReferral} from './referrals.mjs';
 import {canCustomerGenerate,canCustomerCheckout,isPrivateLivePilot,isPermittedPilotPurchase} from './customer-rollout.mjs';
 // Customer billing belongs only to PV Lab's D1 database.
@@ -44,18 +45,20 @@ export async function isLabCustomer(env,id){
 export async function customerSession(env,id){
   const c=await one(env,'SELECT balance_credits,stripe_customer_id FROM lab_customers WHERE id=?',id);
   if(!c)fail(403,'This PV Lab account is unavailable.');
+  const restrictions=await customerRestrictions(env,id);
   const sub=await one(env,'SELECT plan_id,status FROM lab_subscriptions WHERE customer_id=?',id);
   return {customer:true,balanceCredits:c.balance_credits,subscription:sub||{plan_id:null,status:'none'},
-    billingReady:enabled(env,id),generationReady:canCustomerGenerate(env,id),
+    billingReady:!restrictions.closed&&!restrictions.billingReview&&enabled(env,id),generationReady:!restrictions.closed&&!restrictions.billingReview&&canCustomerGenerate(env,id),
+    billingReview:restrictions.billingReview,accountClosed:restrictions.closed,
     pilot:isPrivateLivePilot(env,id),
     products:isPrivateLivePilot(env,id)?catalog().filter(item=>item.id==='topup10'):catalog(),creditMultiplier:CREDIT_MULTIPLIER,
     soulIdTrainingCredits:SOUL_ID_TRAINING_CREDITS,soul2ImageCredits:CREDIT_MINIMUM};
 }
-async function stripe(env,path,params,method='POST'){
+async function stripe(env,path,params,method='POST',idempotencyKey){
   if(!env.LAB_STRIPE_SECRET_KEY)fail(503,'Stripe billing is not configured.');
   const res=await fetch('https://api.stripe.com/v1/'+path,{
     method,redirect:'manual',
-    headers:{Authorization:'Bearer '+env.LAB_STRIPE_SECRET_KEY,...(method==='POST'?{'Content-Type':'application/x-www-form-urlencoded'}:{})},
+    headers:{Authorization:'Bearer '+env.LAB_STRIPE_SECRET_KEY,...(idempotencyKey?{'Idempotency-Key':idempotencyKey}:{}),...(method==='POST'?{'Content-Type':'application/x-www-form-urlencoded'}:{})},
     body:method==='POST'?new URLSearchParams(params).toString():undefined,
     signal:AbortSignal.timeout(20000)
   });
@@ -74,6 +77,11 @@ function safeUrl(url){
 }
 export async function customerRoute(request,env,subject){
   const url=new URL(request.url),p=url.pathname,method=request.method;
+  if(p==='/api/customer/account'&&method==='GET')return json(await customerAccount(env,subject));
+  if(p==='/api/customer/account'&&method==='DELETE'){
+    const data=await request.json().catch(()=>null);
+    return json(await requestAccountClosure(env,subject,data?.confirmation),202);
+  }
   if(p==='/api/customer/wallet'&&method==='GET') {
     const state=await customerSession(env,subject);
     const result=await env.LAB_DB.prepare('SELECT delta_credits,kind,reference,created_at FROM lab_credit_entries WHERE customer_id=? ORDER BY created_at DESC LIMIT 30').bind(subject).all();
@@ -81,6 +89,7 @@ export async function customerRoute(request,env,subject){
   }
   if(p==='/api/customer/catalog'&&method==='GET')return json({products:catalog(),billingReady:enabled(env,subject)});
   if(p==='/api/billing/checkout'&&method==='POST'){
+    await assertCustomerOpen(env,subject,{spending:true});
     if(!enabled(env,subject))fail(503,'Checkout is not enabled yet for this account. No payment was initiated.');
     const data=await request.json().catch(()=>null),sku=String(data?.sku||''),item=PACKS[sku];
     if(!item)fail(400,'Choose an available credit pack or subscription.');
@@ -94,6 +103,13 @@ export async function customerRoute(request,env,subject){
     if(item.type==='subscription'){
       const active=await one(env,"SELECT stripe_subscription_id FROM lab_subscriptions WHERE customer_id=? AND status IN ('active','trialing','past_due','unpaid')",subject);
       if(active?.stripe_subscription_id)fail(409,'You already have a subscription. Manage it through Billing.');
+    }
+    if(!customer.stripe_customer_id){
+      // Repeated checkouts must use one processor customer. Link before issuing
+      // checkout so simultaneous purchases and closure can be reconciled safely.
+      const created=await stripe(env,'customers',{'metadata[lab_customer_id]':subject},'POST','pv-lab-customer:'+subject);
+      await setStripeCustomer(env,subject,created.id);
+      customer.stripe_customer_id=created.id;
     }
     const form={
       mode:item.type,
@@ -127,7 +143,6 @@ export async function customerRoute(request,env,subject){
     return json({url:paymentUrl,checkoutId:session.id});
   }
   if(p==='/api/billing/portal'&&method==='POST'){
-    if(!enabled(env,subject))fail(503,'Billing management is not configured for this account.');
     const customer=await one(env,'SELECT stripe_customer_id FROM lab_customers WHERE id=?',subject);
     if(!customer?.stripe_customer_id)fail(404,'No Stripe customer record yet.');
     const session=await stripe(env,'billing_portal/sessions',{customer:customer.stripe_customer_id,return_url:appUrl(env)});
@@ -161,14 +176,31 @@ async function credit(env,customerId,credits,kind,reference){
     reference,customerId,credits,kind,reference,now());
 }
 async function setStripeCustomer(env,subject,customerId){
-  if(!subject||!customerId||typeof customerId!=='string'||!customerId.startsWith('cus_'))return;
+  if(!subject||typeof customerId!=='string'||!/^cus_[A-Za-z0-9_]+$/.test(customerId))fail(400,'Invalid Stripe customer mapping.');
   if(!await isLabCustomer(env,subject))fail(400,'Stripe payment refers to an unknown PV Lab customer.');
-  await exec(env,'UPDATE lab_customers SET stripe_customer_id=COALESCE(stripe_customer_id,?),updated_at=? WHERE id=? AND (stripe_customer_id IS NULL OR stripe_customer_id=?)',
+  const existing=await one(env,'SELECT stripe_customer_id FROM lab_customers WHERE id=?',subject);
+  if(existing?.stripe_customer_id&&existing.stripe_customer_id!==customerId)fail(409,'Stripe customer mapping requires review.');
+  const linked=await one(env,'SELECT id FROM lab_customers WHERE stripe_customer_id=?',customerId);
+  if(linked&&linked.id!==subject)fail(409,'Stripe customer is already linked to another account.');
+  const result=await exec(env,'UPDATE lab_customers SET stripe_customer_id=COALESCE(stripe_customer_id,?),updated_at=? WHERE id=? AND (stripe_customer_id IS NULL OR stripe_customer_id=?)',
     customerId,now(),subject,customerId);
+  if(!result.meta?.changes)fail(409,'Stripe customer mapping changed. Retry after reviewing the account.');
 }
 async function subscriptionDetails(env,id){
   if(!/^sub_[A-Za-z0-9]+$/.test(id||''))fail(400,'Invalid Stripe subscription.');
   return stripe(env,'subscriptions/'+id,null,'GET');
+}
+export async function verifyClosureBilling(env,customerId){
+  const customer=encodeURIComponent(customerId);
+  const sessions=await stripe(env,'checkout/sessions?customer='+customer+'&status=open&limit=100',null,'GET');
+  if(!Array.isArray(sessions.data))return false;
+  for(const session of sessions.data){
+    if(!/^cs_[A-Za-z0-9_]+$/.test(session.id||''))return false;
+    await stripe(env,'checkout/sessions/'+session.id+'/expire',{});
+  }
+  if(sessions.has_more)return false;
+  const subscriptions=await stripe(env,'subscriptions?customer='+customer+'&status=all&limit=100',null,'GET');
+  return Array.isArray(subscriptions.data)&&!subscriptions.has_more&&subscriptions.data.every(sub=>['canceled','incomplete_expired'].includes(sub.status));
 }
 async function syncSubscription(env,sub) {
   const subject=sub.metadata?.lab_customer_id,sku=sub.metadata?.lab_sku;
@@ -185,6 +217,8 @@ async function syncSubscription(env,sub) {
 }
 export async function stripeWebhook(request,env){
   const event=await verifyStripeEvent(env,request);
+  const keyMode=/^(?:sk|rk)_(test|live)_/.exec(env.LAB_STRIPE_SECRET_KEY||'')?.[1];
+  if(keyMode&&event.livemode!==(keyMode==='live'))fail(400,'Stripe event mode does not match this billing environment.');
   if(await one(env,'SELECT event_id FROM lab_stripe_events WHERE event_id=?',event.id))return json({received:true,duplicate:true});
   const data=event.data?.object||{};
   if(['checkout.session.completed','checkout.session.async_payment_succeeded'].includes(event.type)){
@@ -207,13 +241,25 @@ export async function stripeWebhook(request,env){
     if(id&&data.status==='paid'){
       const sub=await subscriptionDetails(env,id);
       const meta=await syncSubscription(env,sub);
-      if(meta&&data.currency==='eur'&&data.id&&sub.customer&&Number(data.amount_paid)>=PACKS[meta.sku].cents){
+      if(meta&&['subscription_create','subscription_cycle'].includes(data.billing_reason)&&data.currency==='eur'&&data.id&&sub.customer&&Number(data.amount_paid)===PACKS[meta.sku].cents){
         await credit(env,meta.subject,PACKS[meta.sku].credits,'subscription','invoice:'+data.id);
         await rewardQualifiedReferral(env,meta.subject,'invoice:'+data.id,Number(data.amount_paid));
       }
     }
   } else if(['customer.subscription.updated','customer.subscription.deleted','customer.subscription.created'].includes(event.type)){
-    if(data.id)await syncSubscription(env,data);
+    // Event delivery is unordered. Read current Stripe state before persisting.
+    if(data.id)await syncSubscription(env,await subscriptionDetails(env,data.id));
+  }
+  if(['charge.refunded','charge.dispute.created'].includes(event.type)){
+    let charge=data;
+    if(event.type==='charge.dispute.created'){
+      const id=typeof data.charge==='string'?data.charge:data.charge?.id;
+      if(!/^ch_[A-Za-z0-9]+$/.test(id||''))fail(400,'Invalid disputed charge.');
+      charge=await stripe(env,'charges/'+id,null,'GET');
+    }
+    const stripeCustomer=typeof charge.customer==='string'?charge.customer:charge.customer?.id;
+    const customer=stripeCustomer&&await one(env,'SELECT id FROM lab_customers WHERE stripe_customer_id=?',stripeCustomer);
+    if(customer)await exec(env,"INSERT OR IGNORE INTO lab_billing_reviews(event_id,customer_id,object_id,reason,amount_cents,created_at) VALUES(?,?,?,?,?,?)",event.id,customer.id,String(data.id||''),event.type,Number(data.amount_refunded??data.amount)||0,now());
   }
   await exec(env,'INSERT OR IGNORE INTO lab_stripe_events(event_id,event_type,processed_at) VALUES(?,?,?)',event.id,event.type,now());
   return json({received:true});

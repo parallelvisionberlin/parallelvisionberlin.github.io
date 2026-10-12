@@ -1,7 +1,7 @@
 // Credit wallet UI. Backend verifies every price, balance, webhook and receipt.
-export function createCustomerWallet({api,notify=()=>{}}){
+export function createCustomerWallet({api,notify=()=>{},onClosed=()=>{}}){
   const $=id=>document.getElementById(id);
-  let account=false,billingReady=false,balance=0,products=[],referralLoading=false,referralEpoch=0,soulIdTrainingCredits=null;
+  let account=false,billingReady=false,balance=0,products=[],referralLoading=false,referralEpoch=0,soulIdTrainingCredits=null,billingReview=false,accountClosed=false,accountEpoch=0;
   const toggle=$('lab-wallet-toggle'),dialog=$('lab-credits-dialog'),referralDialog=$('lab-referrals-dialog'),amount=$('lab-credit-balance'),
         list=$('lab-credit-products'),state=$('lab-wallet-state'),
         referralUrl=$('lab-referral-url'),referralCopy=$('lab-referral-copy'),
@@ -18,7 +18,7 @@ export function createCustomerWallet({api,notify=()=>{}}){
     if(!account){if(dialog?.open)dialog.close();if(referralDialog?.open)referralDialog.close();return;}
     toggle.textContent=balance.toLocaleString()+' credits';
     amount.textContent=balance.toLocaleString()+' credits';
-    state.textContent=billingReady?'Your private credit balance.':'Checkout setup is being finalized. Payments are not being accepted yet.';
+    state.textContent=accountClosed?'Your PV Lab account is closed. Content deletion is '+(accountClosed.state==='deleted'?'complete.':'queued. Contact support if you need help.')+' Billing management remains available.':billingReview?'A refund or dispute is under review. Contact support; billing management remains available.':billingReady?'Your private credit balance.':'Checkout setup is being finalized. Payments are not being accepted yet.';
     list.replaceChildren();
     for(const p of products){
       const button=document.createElement('button');button.type='button';
@@ -44,6 +44,7 @@ export function createCustomerWallet({api,notify=()=>{}}){
     if(!account)return;
     if(referralDialog.open)referralDialog.close();
     if(!dialog.open)dialog.showModal();
+    void loadAccount();
   }
   function openReferrals(){
     if(!account)return;
@@ -51,6 +52,25 @@ export function createCustomerWallet({api,notify=()=>{}}){
     if(!referralDialog.open)referralDialog.showModal();
     void loadReferral();
   }
+  async function loadAccount(){
+    const current=accountEpoch;
+    try{
+      const data=await api('/api/customer/account');if(!account||current!==accountEpoch)return;
+      const used=(data.storage.bytes/1024**3).toFixed(2);
+      if($('lab-storage-status'))$('lab-storage-status').textContent=used+' GiB used / '+(data.storage.limitBytes/1024**3)+' GiB · '+data.storage.files+' files';
+    }catch(e){if(current===accountEpoch&&$('lab-storage-status'))$('lab-storage-status').textContent=e.message;}
+  }
+  if($('lab-close-confirm'))$('lab-close-confirm').oninput=()=>{
+    $('lab-close-account').disabled=$('lab-close-confirm').value!=='DELETE MY PV LAB ACCOUNT';
+  };
+  if($('lab-close-account'))$('lab-close-account').onclick=async()=>{
+    const button=$('lab-close-account');button.disabled=true;
+    try{
+      await api('/api/customer/account',{method:'DELETE',body:{confirmation:$('lab-close-confirm').value}});
+      await onClosed();
+      notify('Your PV Lab account is closed. Creative data deletion is queued. Contact support for any remaining billing or data request.');
+    }catch(e){state.textContent=e.message;button.disabled=false;}
+  };
   toggle.onclick=open;
   $('lab-credit-invite').onclick=openReferrals;
   $('lab-referrals-close').onclick=()=>referralDialog.close();
@@ -87,15 +107,17 @@ export function createCustomerWallet({api,notify=()=>{}}){
     finally{if(epoch===referralEpoch)referralLoading=false;}
   }
   async function refresh(){
-    if(!account)return;
+    if(!account)return;const current=accountEpoch;
     try{
       const data=await api('/api/customer/wallet');
-      if(!account)return;balance=Number(data.balanceCredits)||0;billingReady=!!data.billingReady;
+      if(!account||current!==accountEpoch)return;billingReview=!!data.billingReview;accountClosed=data.accountClosed||false;balance=Number(data.balanceCredits)||0;billingReady=!!data.billingReady;
       products=Array.isArray(data.products)?data.products:products;update();
     }catch(e){notify(e.message,true);}
   }
   function connect(data){
-    const next=!!data.customer;
+    const next=!!data.customer;accountEpoch++;billingReview=!!data.billingReview;accountClosed=data.accountClosed||false;
+    if($('lab-close-confirm'))$('lab-close-confirm').value='';
+    if($('lab-close-account'))$('lab-close-account').disabled=true;
     referralEpoch++;referralLoading=false;
     referralUrl.value='';referralCopy.disabled=true;referralStats.textContent='';referralState.textContent='';
     account=next;soulIdTrainingCredits=account&&Number.isSafeInteger(data.soulIdTrainingCredits)?data.soulIdTrainingCredits:null;

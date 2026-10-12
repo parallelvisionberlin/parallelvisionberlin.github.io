@@ -1,6 +1,7 @@
+import {assertCustomerOpen,processAccountClosures} from './customer-lifecycle.mjs';
 import {allowedLabParty} from './native-auth.mjs';
 import {quoteVideoExtension,submitVideoExtension} from './higgsfield-video.mjs';
-import {ensureCustomer,isLabCustomer,customerSession,customerRoute,stripeWebhook,creditsForUsd} from './customer-billing.mjs';
+import {ensureCustomer,isLabCustomer,customerSession,customerRoute,stripeWebhook,creditsForUsd,verifyClosureBilling} from './customer-billing.mjs';
 import {canCustomerGenerate} from './customer-rollout.mjs';
 import {quoteCustomerImageCredits} from './customer-image-pricing.mjs';
 import {referralRoute} from './referrals.mjs';
@@ -26,7 +27,7 @@ import {REFERENCE_ROLES,normalizeReferenceLabel,supportsReferenceGuidance,compil
 import {moodBoardsRoute} from './moodboards.mjs';
 import {moodCreatorRoute} from './mood-creator-service.mjs';
 import {characterPreview as soulCharacterPreview,SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-11.5-native-lab';
+export const VERSION = 'pv-lab-2026-10-12.1-launch-readiness';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -454,7 +455,7 @@ async function publicInput(request,env,url) {
   if(!valid)fail(403,'Invalid input link.');
   const a=await first(env,"SELECT * FROM assets WHERE id=? AND kind='source'",id);if(!a)fail(404,'Not found.');
   const owner=await env.OWNER_DB.prepare("SELECT id FROM users WHERE id=? AND role='owner' AND auth_provider='clerk'").bind(a.owner_id).first();
-  if(!owner&&!await isLabCustomer(env,a.owner_id))fail(403,'Access revoked.');return media(request,env,a);
+  if(!owner){if(!await isLabCustomer(env,a.owner_id))fail(403,'Access revoked.');await assertCustomerOpen(env,a.owner_id);}return media(request,env,a);
 }
 async function media(request,env,a) {
   const rangeRequested=request.method==='GET'&&request.headers.has('range');
@@ -1011,6 +1012,7 @@ async function route(request,env,ctx) {
   if(!url.pathname.startsWith('/api/'))fail(404,'Not found.');
   const owner=await authenticate(request,env),path=url.pathname,method=request.method;
   const customer=await isLabCustomer(env,owner);
+  if(customer&&!['/api/session','/api/customer/wallet','/api/customer/account','/api/billing/portal'].includes(path))await assertCustomerOpen(env,owner,{spending:method==='POST'&&!path.startsWith('/api/customer/')});
   if(path.startsWith('/api/customer/')||path.startsWith('/api/billing/')){
     if(!customer)fail(403,'Only customer accounts use the PV Lab credit wallet.');
     if(path==='/api/customer/image-price'&&method==='POST'){
@@ -1573,10 +1575,11 @@ async function maintenance(env) {
   await run(env,'DELETE FROM quotes WHERE expires_at<? AND NOT EXISTS(SELECT 1 FROM jobs WHERE jobs.quote_id=quotes.id)',now());
   const unused=await rows(env,"SELECT * FROM assets WHERE kind='source' AND created_at<? ORDER BY created_at LIMIT 30",now()-86400000);
   for(const a of unused)await pruneSource(env,a.owner_id,a.id);
+  await processAccountClosures(env,verifyClosureBilling);
 }
 export default {
   async fetch(request,env,ctx) {
-    let response;try{response=await route(request,env,ctx);}catch(e){const depleted=/Insufficient PV Lab credits/.test(String(e?.message||''));response=json({error:depleted?'Insufficient PV Lab credits. Add credits before generating.':e instanceof HttpError?e.message:'The Lab could not finish this request. Your stored work is unchanged.'},depleted?402:e instanceof HttpError?e.status:500);}
+    let response;try{response=await route(request,env,ctx);}catch(e){const known=e instanceof HttpError||(Number.isInteger(e?.status)&&e.status>=400&&e.status<=599);const depleted=/Insufficient PV Lab credits/.test(String(e?.message||''));response=json({error:depleted?'Insufficient PV Lab credits. Add credits before generating.':known?e.message:'The Lab could not finish this request. Your stored work is unchanged.'},depleted?402:known?e.status:500);}
     return decorate(response,request.headers.get('origin')||'');
   },
   async scheduled(event,env,ctx) {ctx.waitUntil(maintenance(env));}

@@ -1,4 +1,83 @@
-# PV Lab commercial launch checklist (2026-10-10)
+# PV Lab commercial launch checklist (updated 2026-10-12)
+
+## Verified implementation and remaining release gates
+
+**Public launch remains blocked.** Signup is enabled; public checkout and paid
+generation remain disabled. The account connected to the development session is
+the existing label Stripe live account, not the dedicated PV Lab sandbox. Sandbox
+health reported `configured:false`; no genuine Stripe test purchase, Google OAuth
+signup or live customer generation has been certified by this change.
+
+Implemented in this release:
+
+- Fixed the two gallery checks that still expected full originals instead of
+  thumbnails. Existing 480px WebP previews remain private; originals remain intact.
+- Added a bounded browser image cache: per authenticated account, 128 MiB / 120
+  entries, 24-hour expiry, cleared on sign-out, account change and content deletion
+  in that browser. Reduced speculative original preloads to one at a time. Added
+  desktop/mobile browser CI covering rapid navigation, originals, repeat visits,
+  account cache clearing and viewport fit.
+- Added synthetic end-to-end coverage from a new signed customer identity through
+  signed payment, concurrent webhook replay, exact credits, generation, download,
+  returning gallery, other-account denial and confirmed-failure refund.
+- Linked a stable Stripe Customer before Checkout using an idempotency key; reject
+  mismatched customer mappings and test/live webhook environments. Subscription
+  credit grants require an exact catalog payment and a creation/renewal invoice,
+  not a proration invoice. Current subscription state is retrieved from Stripe so
+  out-of-order event delivery cannot restore stale state.
+- Billing portal remains available with sales disabled. Signed `charge.refunded`
+  and `charge.dispute.created` events create durable billing-review holds. Holds
+  stop new purchases and paid jobs, including at the database insertion boundary.
+- Added customer storage usage and an explicit account-closure request. Creative
+  access closes immediately; scheduled cleanup deletes the account's R2 prefix
+  and creative D1 rows in bounded, retryable passes. Active/uncertain jobs and
+  locally active subscriptions prevent closure. Before file deletion, Stripe is
+  checked again for recurring subscriptions and open Checkout sessions are expired.
+  Financial audit rows, the closure marker, shared Clerk identity and Nina remain.
+- Published factual [customer service information](./customer-care.html). This is
+  not a substitute for approved sales terms and the full privacy notice.
+
+Apply `0011-customer-lifecycle.sql` to **LAB_DB and the isolated billing sandbox
+database only**. Both deployment workflows include it. Never apply Lab migrations
+to `OWNER_DB`.
+
+Release gates still requiring external evidence:
+
+1. Connect the dedicated PV Lab Stripe **sandbox/test account**, then configure its
+   restricted test API key and separately signed webhook in the sandbox Worker's
+   encrypted secrets. The key needs Customers create/read, Checkout sessions
+   create/read/expire, Billing Portal sessions create, Subscriptions read and
+   Charges read. Test webhook retries, async payment, renewal, cancellation,
+   partial/full refund and disputes. Subscribe to the refund/dispute events above.
+2. Run an actual new Google/Clerk customer through signup, a Stripe test purchase,
+   exact 1,000-credit delivery, payment retry, one permitted generation, original
+   download and return visit. Synthetic tests do not establish third-party account
+   configuration, production latency or real provider billing.
+3. Approve the legal merchant identity/address, full privacy notice and processor
+   disclosures, provider retention/deletion process, financial retention schedule,
+   credit validity, cancellation terms and statutory withdrawal process. If an
+   immediate digital-service waiver is used, implement and retain the required
+   explicit consent and acknowledgement after legal review. Do not infer consent
+   from signup or a purchase redirect.
+4. Confirm VAT registrations and the service's tax classification with the
+   merchant's tax adviser; test domestic/EU/non-EU and valid business VAT-ID
+   invoices. `tax_behavior=inclusive` alone does not calculate or remit VAT.
+   Automatic Tax is not enabled until active registration and applicability are
+   verified in the actual PV Lab Stripe account.
+5. Reconcile every open `lab_billing_reviews` row against the actual Stripe refund
+   or dispute. Use an immutable adjustment ledger entry with a unique reference;
+   never subtract below zero. Reconcile spent/referral credits and resolve any
+   remaining debt before marking the review resolved. Dispute closure does not
+   automatically unfreeze an account. No automatic cash refund is implemented.
+6. Verify account cleanup in deployed R2/D1 and monitor queued closure age; fulfill
+   separate Clerk/provider erasure requests and legally required retention. The
+   current deletion flow closes PV Lab only, not the shared Parallel Vision login.
+
+Primary implementation references: [Stripe fulfillment](https://docs.stripe.com/checkout/fulfillment),
+[Stripe refunds](https://docs.stripe.com/refunds),
+[Stripe Tax in Checkout](https://docs.stripe.com/tax/checkout),
+[BGB §356](https://www.gesetze-im-internet.de/bgb/__356.html),
+[EU data-protection guidance](https://europa.eu/youreurope/business/dealing-with-customers/data-protection/data-protection-gdpr/index_en.htm).
  
 The creative owner Studio remains available at /lab/studio.html. The Lab marketing landing is /lab/.
 Customer identity records, credit ledger, subscriptions and history live **only** in the Lab D1 database.

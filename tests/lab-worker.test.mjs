@@ -208,6 +208,42 @@ test('Saving retries the stored provider output directly and never consumes a Sp
 });
 
 const imageSettings={type:'image',prompt:'An architectural model on a white plinth',resolution:'2k',aspectRatio:'4:5',outputFormat:'png'};
+test('new customer: signed signup, paid credits once, generation, private download, return gallery and failed-job refund',async()=>{
+  const {env}=fixture(),db=env.LAB_DB.db,customer='user_LaunchQA',other='user_LaunchOther';
+  for(const file of ['0006-customers-billing.sql','0007-lab-referrals.sql','0008-soul-id-launch-credits.sql','0011-customer-lifecycle.sql'])db.exec(readFileSync(new URL('../lab-worker/migrations/'+file,import.meta.url),'utf8'));
+  Object.assign(env,{LAB_CUSTOMER_SIGNUPS_ENABLED:'true',LAB_CHECKOUT_ENABLED:'true',LAB_PUBLIC_GENERATION_ENABLED:'true',LAB_CUSTOMER_SPICY_API_KEY:KEY,LAB_STRIPE_SECRET_KEY:'sk_test_synthetic',LAB_STRIPE_WEBHOOK_SECRET:'whsec_synthetic'});
+  const authToken=await token(customer),otherToken=await token(other);
+  const balance=()=>db.prepare('SELECT balance_credits AS n FROM lab_customers WHERE id=?').get(customer).n;
+  const initial=await req(env,'/api/session',{authToken});assert.equal(initial.status,200);assert.equal((await initial.json()).balanceCredits,0);
+  assert.equal(env.OWNER_DB.db.prepare('SELECT COUNT(*) AS n FROM users').get().n,2,'Signup does not write Nina identities');
+  const event={id:'evt_launchpaid',type:'checkout.session.completed',livemode:false,data:{object:{id:'cs_test_launch',customer:'cus_launch',mode:'payment',payment_status:'paid',currency:'eur',amount_total:1000,metadata:{lab_customer_id:customer,lab_sku:'topup10'},client_reference_id:customer}}};
+  async function payment(){
+    const raw=JSON.stringify(event),stamp=Math.floor(Date.now()/1000);
+    const key=await crypto.subtle.importKey('raw',new TextEncoder().encode(env.LAB_STRIPE_WEBHOOK_SECRET),{name:'HMAC',hash:'SHA-256'},false,['sign']);
+    const signature=Buffer.from(await crypto.subtle.sign('HMAC',key,new TextEncoder().encode(stamp+'.'+raw))).toString('hex');
+    return req(env,'/api/stripe/webhook',{method:'POST',raw,authToken:null,headers:{'Stripe-Signature':'t='+stamp+',v1='+signature}});
+  }
+  const paid=await Promise.all([payment(),payment()]);assert.ok(paid.every(r=>r.status===200));assert.equal(balance(),1000);
+  await req(env,'/api/session',{authToken:otherToken});
+  const previousPrice=maxPrice;maxPrice='0.018000';createMode='ok';providerState='queued';createCount=0;
+  try{
+    const quoteResponse=await req(env,'/api/quotes',{method:'POST',authToken,data:{settings:imageSettings,referenceSourceIds:[]}});assert.equal(quoteResponse.status,200);const q=await quoteResponse.json();
+    const created=await req(env,'/api/jobs',{method:'POST',authToken,data:{quoteId:q.id,confirm:true}});assert.equal(created.status,202);const job=(await created.json()).job;assert.equal(balance(),991);
+    assert.equal((await req(env,'/api/jobs',{method:'POST',authToken:otherToken,data:{quoteId:q.id,confirm:true}})).status,409);
+    assert.equal(createCount,1,'Cross-account quote never submits another provider job');
+    providerState='succeeded';const done=(await(await req(env,'/api/jobs/'+job.id,{authToken})).json()).job;assert.equal(done.status,'completed');
+    const download=await req(env,'/api/assets/'+done.outputId,{authToken});assert.equal(download.status,200);assert.equal(download.headers.get('content-type'),'image/png');assert.ok((await download.arrayBuffer()).byteLength>0);
+    assert.equal((await req(env,'/api/assets/'+done.outputId,{authToken:otherToken})).status,404);
+    assert.equal((await req(env,'/api/jobs/'+job.id,{authToken:otherToken})).status,404);
+    const returning=await token(customer);const gallery=await(await req(env,'/api/jobs',{authToken:returning})).json();assert.ok(gallery.jobs.some(j=>j.id===job.id&&j.outputId===done.outputId));assert.equal(createCount,1);
+    createMode='pricechange';providerState='queued';
+    const next=await(await req(env,'/api/quotes',{method:'POST',authToken,data:{settings:{...imageSettings,prompt:'Another image'},referenceSourceIds:[]}})).json();
+    await req(env,'/api/jobs',{method:'POST',authToken,data:{quoteId:next.id,confirm:true}});
+    assert.equal(balance(),991,'Definite provider rejection refunds its own charge');
+    assert.equal(db.prepare("SELECT COUNT(*) AS n FROM lab_credit_entries WHERE customer_id=? AND kind='refund'").get(customer).n,1);
+    assert.equal(db.prepare("SELECT COUNT(*) AS n FROM lab_credit_entries WHERE customer_id=? AND kind='purchase'").get(customer).n,1);
+  }finally{maxPrice=previousPrice;createMode='ok';providerState='queued';}
+});
 test('Text-to-image quotes need no source; image outputs can be reused by video without losing the source',async()=>{
   createMode='ok';createCount=0;providerState='queued';const {env}=fixture();await setup(env);
   let r=await req(env,'/api/quotes',{method:'POST',data:{settings:imageSettings,referenceSourceIds:[]}});assert.equal(r.status,200);const q=await r.json();assert.equal(quotedRequest.model,'bytedance/seedream-5.0-pro/text-to-image');assert.equal(quotedRequest.input.aspect_ratio,'4:5');assert.equal(quotedRequest.input.resolution,'2k');assert.ok(!('image_urls' in quotedRequest.input));assert.equal(createCount,0);

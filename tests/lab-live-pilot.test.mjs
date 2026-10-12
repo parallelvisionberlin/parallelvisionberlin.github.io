@@ -82,6 +82,11 @@ test('authenticated pilot sees wallet and can open mocked real Checkout, while o
   let calls=0;
   const prev=globalThis.fetch;
   globalThis.fetch=async(url,init)=>{
+    if(url==='https://api.stripe.com/v1/customers'){
+      assert.equal(init.headers['Idempotency-Key'],'pv-lab-customer:'+PILOT);
+      assert.equal(new URLSearchParams(init.body).get('metadata[lab_customer_id]'),PILOT);
+      return Response.json({id:'cus_pilotTest'});
+    }
     assert.equal(url,'https://api.stripe.com/v1/checkout/sessions');
     assert.equal(init.method,'POST');
     assert.equal(init.headers.Authorization,'Bearer '+secrets.LAB_STRIPE_SECRET_KEY);
@@ -91,6 +96,7 @@ test('authenticated pilot sees wallet and can open mocked real Checkout, while o
     assert.equal(data.get('metadata[lab_customer_id]'),PILOT);
     assert.equal(data.get('metadata[lab_sku]'),'topup10');
     assert.equal(data.get('mode'),'payment');
+    assert.equal(data.get('customer'),'cus_pilotTest');
     calls++;
     return Response.json({id:'cs_live_mockPilot1',url:'https://checkout.stripe.com/c/pay/cs_live_mockPilot1'});
   };
