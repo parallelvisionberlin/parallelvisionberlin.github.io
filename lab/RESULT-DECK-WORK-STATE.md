@@ -29,5 +29,13 @@
 - Local Chromium cannot launch in this environment; existing GitHub browser CI is used.
 - Browser checks include original download, gallery favorite sync, menu/Escape and video handoff.
 - Responsive review covers 1920, 1440, 768, 390 and 320 px.
-- Release and browser verification pending on the feature branch.
-- Next action: inspect CI screenshots, merge and verify GitHub Pages release.
+- Verified feature source: 889fe9d614ed91c8e5d2c3d2e323c5faafa89562; all ten PR workflows passed.
+- Viewer/queue workflow 38284574976 and complete video/reference workflow 38284574928 passed.
+- Desktop/mobile screenshots inspected; artifact 11761649686 from identical UI revision 7460c02.
+- Retouch regression 38284574973 passed with Repair/Retouch located in the More menu.
+- Published implementation: 00d9033aee4143301a649307419c80a0645bd731, PR #167.
+- Pages build and deployment 38284935364 succeeded on 2026-10-12.
+- Public studio.html, image-result-deck.css and lab.js returned HTTP 200 and matched verified source bytes.
+- Confirmed live: https://parallelvisionlabel.com/lab/studio.html
+- No paid generation was performed. API/browser checks use synthetic media and mocked authentication.
+- Complete; reuse these results unless the affected files change.
