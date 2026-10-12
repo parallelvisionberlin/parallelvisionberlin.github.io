@@ -19,11 +19,11 @@ const clerkMock=`export class Clerk {
   async load(){} addListener(fn){this.listeners.push(fn);} async signOut(){this.isSignedIn=false;this.user=null;this.session=null;this.listeners.forEach(fn=>fn());}
   openSignIn(){window.signInOpened=true;} openUserProfile(){window.profileOpened=true;}
 }`;
-async function setup(width,customer=true){
+async function setup(width,customer=true,overrides={}){
   const context=await browser.newContext({viewport:{width,height:950},reducedMotion:'reduce'}),page=await context.newPage();
-  const errors=[],writes=[];let heldWallet=null,releaseWallet=null;
+  const errors=[],writes=[];let heldWallet=null,releaseWallet=null,heldCheckout=null,releaseCheckout=null;
   page.on('pageerror',e=>errors.push(e.message));
-  const session={customer,ownerId:'user_Test',balanceCredits:1234,billingReady:true,generationReady:true,products,subscription:{plan_id:null,status:'none'},config:{enabled:true,configured:true,concurrency:{image:4,video:1},videoEngines:['wan']}};
+  const session={customer,ownerId:'user_Test',balanceCredits:1234,billingReady:true,generationReady:true,products,subscription:{plan_id:null,status:'none'},config:{enabled:true,configured:true,concurrency:{image:4,video:1},videoEngines:['wan']},...overrides};
   await page.route('https://**/*',async route=>{
     const request=route.request(),url=new URL(request.url());
     if(url.hostname==='esm.sh'&&url.pathname.includes('clerk-js'))return route.fulfill({contentType:'text/javascript',body:clerkMock});
@@ -38,14 +38,66 @@ async function setup(width,customer=true){
     }
     if(url.pathname==='/api/customer/account')return send({storage:{bytes:1024**3,limitBytes:20*1024**3,files:15}});
     if(url.pathname==='/api/billing/portal')return send({url:'https://evil.example/stripe.com'});
-    if(url.pathname==='/api/billing/checkout')return send({url:'javascript:alert(1)'});
+    if(url.pathname==='/api/billing/checkout'){if(heldCheckout)await heldCheckout;return send({url:'javascript:alert(1)'});}
     if(url.pathname==='/api/customer/referrals')return send({rewardsAvailable:false});
     return send({jobs:[],activeJobs:[],next:null,packs:[],characters:[],moods:[],boards:[],folders:[],models:[],configured:false});
   });
-  return {context,page,errors,writes,holdWallet(){heldWallet=new Promise(r=>releaseWallet=r);},releaseWallet(){heldWallet=null;releaseWallet?.();}};
+  return {context,page,errors,writes,session,holdCheckout(){heldCheckout=new Promise(r=>releaseCheckout=r);},releaseCheckout(){heldCheckout=null;releaseCheckout?.();},holdWallet(){heldWallet=new Promise(r=>releaseWallet=r);},releaseWallet(){heldWallet=null;releaseWallet?.();}};
 }
 async function fits(page,label){assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true,label+' horizontal overflow');}
 try{
+  // Checkout is intercepted: verify zero-balance recovery without any real payment or generation.
+  for(const width of [1440,768,390,320]){
+    const rig=await setup(width,true,{balanceCredits:0}),{page,session,writes,errors}=rig;
+    try{
+      await page.goto(origin+'/lab/studio.html');
+      await page.locator('#lab-credit-banner').waitFor({state:'visible'});
+      await page.locator('#app').waitFor({state:'visible'});
+      await page.fill('#prompt','Keep this exact draft.');
+      await fits(page,'zero-credit studio '+width);
+      await page.screenshot({path:artifacts+'/credit-banner-'+width+'.png'});
+      await page.click('#lab-credit-banner-add');
+      await page.locator('#lab-credits-dialog[open]').waitFor();
+      assert.equal(await page.locator('#lab-credit-products button').count(),3);
+      assert.equal(await page.locator('#lab-credit-products').getByText('€29',{exact:true}).count(),1);
+      await fits(page,'credit deck '+width);
+      const deck=await page.locator('#lab-credits-dialog').boundingBox();assert.ok(deck.x>=0&&deck.x+deck.width<=width+1);
+      await page.screenshot({path:artifacts+'/credit-deck-'+width+'.png'});
+      await page.keyboard.press('Escape');
+      assert.equal(await page.locator('#prompt').inputValue(),'Keep this exact draft.');
+      assert.equal(writes.length,0,'opening/closing the credit deck never submits a payment or generation');
+      await page.click('#lab-credit-banner-dismiss');assert.equal(await page.locator('#lab-credit-banner').isVisible(),false);
+      await page.click('#lab-add-credits');await page.click('#lab-credit-refresh');
+      assert.equal(await page.locator('#lab-credit-banner').isVisible(),false,'dismissal survives refresh at the same empty balance');
+      session.balanceCredits=1000;await page.click('#lab-credit-refresh');
+      await page.waitForFunction(()=>document.querySelector('#lab-credit-balance').textContent==='1,000 credits');
+      assert.equal(await page.locator('#lab-credit-banner').isVisible(),false);
+      session.balanceCredits=0;await page.click('#lab-credit-refresh');
+      await page.locator('#lab-credit-banner').waitFor({state:'visible'});
+      session.billingReady=false;await page.click('#lab-credit-refresh');
+      await page.waitForFunction(()=>document.querySelector('#lab-credit-products button').disabled);
+      assert.equal(await page.locator('#lab-credit-products button:not([disabled])').count(),0);
+      session.billingReady=true;session.products=products.filter(p=>p.id==='topup10');session.pilot=true;
+      await page.click('#lab-credit-refresh');await page.waitForFunction(()=>document.querySelectorAll('#lab-credit-products button').length===1&&!document.querySelector('#lab-credit-products button').disabled);
+      assert.equal(await page.locator('#lab-credit-invite').isVisible(),false,'private pilot does not advertise referrals');
+      rig.holdCheckout();
+      await page.locator('#lab-credit-products button').evaluate(button=>{button.click();button.click();});
+      await page.waitForFunction(()=>document.querySelector('#lab-wallet-state').textContent.includes('Opening secure checkout'));
+      assert.equal(writes.filter(x=>x.path==='/api/billing/checkout').length,1,'one checkout request while pending');
+      assert.deepEqual(JSON.parse(writes.at(-1).body),{sku:'topup10'});
+      rig.releaseCheckout();await page.waitForFunction(()=>document.querySelector('#lab-wallet-state').textContent.includes('Unverified checkout link'));
+      assert.ok(page.url().startsWith(origin),'untrusted checkout cannot navigate');
+      rig.holdCheckout();await page.locator('#lab-credit-products button').click();
+      await page.evaluate(()=>window.mockClerk.signOut());rig.releaseCheckout();
+      await page.locator('#gate').waitFor({state:'visible'});
+      assert.equal(await page.locator('#lab-credit-banner').isVisible(),false);
+      assert.equal(await page.locator('#lab-add-credits').isVisible(),false);
+      assert.equal(await page.locator('#lab-credits-dialog').isVisible(),false);
+      assert.equal(await page.locator('#lab-credit-products button').count(),0);
+      assert.deepEqual(errors,[]);
+      console.log('PASS credit banner, deck, real balance changes, pilot products, checkout guards and sign-out at '+width+'px');
+    }finally{rig.releaseCheckout();await rig.context.close();}
+  }
   for(const width of [1440,390,320]){
     const rig=await setup(width),{page,errors,writes}=rig;
     try{

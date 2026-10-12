@@ -7,7 +7,7 @@ import {createPrivateMediaCache} from './private-media-cache.js?v=20261012-cache
 import {loadLabAccount} from './native-account.js?v=20261012-photo-layout1';
 import {createAssetLibrary} from './assets.js?v=20261010-navigation-media1';
 import {createPrecisionEditor} from './precision-edit.js?v=20261011-no-emoji1';
-import {createCustomerWallet} from './customer-wallet.js?v=20261012-account2';
+import {createCustomerWallet} from './customer-wallet.js?v=20261012-creditbar1';
 import {createCustomerImagePricing} from './customer-image-pricing.js?v=20261010-customer-credits1';
 import {customerImagePriceKey,pricedBoundQuotes,imageAutoRatio} from './image-credit-preview.js?v=20261010-customer-credits1';
 import {captureReferralCode,claimReferral} from './referral-capture.js?v=20261010-referrals1';
@@ -1511,8 +1511,11 @@ async function api(path,options={}) {
     if(b!==undefined&&!(b instanceof Blob)&&!(b instanceof ArrayBuffer)){headers['Content-Type']='application/json';b=JSON.stringify(b);}
     const r=await sessionRequest(path,{method:options.method||'GET',headers,body:b,cache:'no-store',credentials:'omit',signal:controller.signal},assertCurrent);
     assertCurrent();
-    if(!r.ok){const d=await r.json().catch(()=>({}));throw new Error(d.error||`Request failed (${r.status}).`);}
-    const value=options.blob?await r.blob():await r.json();assertCurrent();if(options.method==='DELETE'||path==='/api/jobs/bulk-delete'){clearAssetCache();void deviceMediaCache.clear();}return value;
+    if(!r.ok){const d=await r.json().catch(()=>({}));if(customerMode&&r.status===402)void wallet.refresh();throw new Error(d.error||`Request failed (${r.status}).`);}
+    const value=options.blob?await r.blob():await r.json();assertCurrent();
+    // Refresh the real wallet after a reserved job or a confirmed failed job. Never infer a debit locally.
+    if(customerMode&&((options.method==='POST'&&(value?.job||Array.isArray(value?.jobs)))||(/^\/api\/jobs\/[^/]+$/.test(path)&&value?.job?.status==='failed')))void wallet.refresh();
+    if(options.method==='DELETE'||path==='/api/jobs/bulk-delete'){clearAssetCache();void deviceMediaCache.clear();}return value;
   }finally{clearTimeout(timeout);requestControllers.delete(controller);}
 }
 async function action(fn){if(busy)return;busy=true;update();try{await fn();}catch(e){notify(e.name==='AbortError'?'Request interrupted. Refresh history before trying another generation.':e.message,true);}finally{busy=false;update();}}

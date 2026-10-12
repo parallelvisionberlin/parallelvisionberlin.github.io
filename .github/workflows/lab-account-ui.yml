@@ -1,7 +1,7 @@
 name: PV Lab account interface
 on:
   push:
-    paths: ['lab/account*', 'lab/customer-entry.js', 'lab/customer-wallet.js', 'lab/lab.js', 'lab/index.html', 'lab/moods.html', 'lab/studio.html', 'lab/mood-creator*', 'tests/lab-account*', '.github/workflows/lab-account-ui.yml']
+    paths: ['lab/account*', 'lab/studio-credits.css', 'lab/customer-entry.js', 'lab/customer-wallet.js', 'lab/lab.js', 'lab/index.html', 'lab/moods.html', 'lab/studio.html', 'lab/mood-creator*', 'tests/lab-account*', '.github/workflows/lab-account-ui.yml']
   workflow_dispatch:
 permissions:
   contents: read

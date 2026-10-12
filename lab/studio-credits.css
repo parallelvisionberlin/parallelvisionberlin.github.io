@@ -1,0 +1,63 @@
+/* Studio credit notice and compact purchase deck. Prices come from the wallet API. */
+.lab-add-credits{display:inline-flex;align-items:center;justify-content:center;gap:12px;flex:none;border:1px solid #eeeae2;border-radius:999px;background:#eeeae2;color:#151515;padding:11px 17px;white-space:nowrap;font:500 12px/1.2 'DM Sans',Arial,sans-serif;cursor:pointer}
+.lab-add-credits:hover{background:#fff;border-color:#fff}
+.lab-add-credits[hidden],.lab-credit-banner[hidden]{display:none!important}
+.lab-credit-banner{display:flex;align-items:center;gap:22px;margin:0;padding:16px var(--lab-page-gutter,24px);background:#eeeae2;color:#171717;border-bottom:1px solid #d6d2cb;font:400 13px/1.5 'DM Sans',Arial,sans-serif}
+.lab-credit-banner-icon{display:grid;place-items:center;flex:none;width:29px;height:29px;border:1px solid currentColor;border-radius:50%;font:italic 19px/1 Georgia,serif}
+.lab-credit-banner p{flex:1;min-width:0;margin:0;color:inherit;font:inherit}
+.lab-credit-banner strong{font-weight:600;margin-right:6px}
+.lab-credit-banner button{display:inline-flex;align-items:center;justify-content:center;gap:14px;flex:none;min-height:40px;border:1px solid #171717;border-radius:999px;background:#171717;color:#f4f0e9;padding:10px 20px;white-space:nowrap;font:500 12px/1.2 'DM Sans',Arial,sans-serif;cursor:pointer}
+.lab-credit-banner button:hover{background:#303030}
+.lab-credit-banner #lab-credit-banner-dismiss{width:40px;padding:0;border:0;border-radius:0;background:transparent;color:#171717;font-size:27px;font-weight:300}
+.lab-credit-banner button:focus-visible{outline:2px solid #171717;outline-offset:3px}
+.lab-credit-deck{width:min(760px,calc(100vw - 32px));max-height:calc(100dvh - 32px);padding:30px;border:1px solid #484744;border-radius:12px;background:#151515;color:#eeeae2;box-shadow:0 24px 100px #0009}
+.lab-credit-deck::backdrop{background:#0009;backdrop-filter:blur(5px)}
+.lab-credit-deck header{position:static;display:flex;align-items:flex-start;justify-content:space-between;padding:0 0 24px;background:none;backdrop-filter:none;border:0;border-bottom:1px solid #383735}
+.lab-credit-eyebrow{display:block;color:#a6a39d;font:400 10px/1.3 'DM Sans',Arial,sans-serif;letter-spacing:.16em}
+.lab-credit-deck h2{margin:11px 0 0;font:400 32px/1.1 'DM Sans',Arial,sans-serif;letter-spacing:-.04em;color:#eeeae2}
+.lab-credit-deck header button{display:grid;place-items:center;flex:none;width:36px;height:36px;min-height:36px;margin:-7px -8px 0 12px;padding:0;border:0;border-radius:50%;background:transparent;color:inherit;font-size:27px;font-weight:300;cursor:pointer}
+.lab-credit-deck header button:hover{background:#252525}
+.lab-credit-deck-intro{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:20px 0}
+.lab-credit-deck .lab-credit-deck-intro p{margin:0;color:#b5b2ab;font-size:12px}
+.lab-credit-deck .lab-credit-available{white-space:nowrap}
+.lab-credit-available strong{color:#eeeae2;font-weight:500;margin-left:6px}
+.lab-credit-deck .lab-credit-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:0}
+.lab-credit-deck .lab-credit-list:has(>button:only-child){grid-template-columns:1fr}
+.lab-credit-deck .lab-credit-list button{display:flex;flex-direction:column;align-items:flex-start;gap:0;min-width:0;padding:23px 20px 18px;border:1px solid #454440;border-radius:7px;background:#1d1d1c;color:#eeeae2;font-family:'DM Sans',Arial,sans-serif;text-align:left;cursor:pointer;transition:background .15s,color .15s,border-color .15s}
+.lab-credit-deck .lab-credit-list button:not(:disabled):hover{background:#eeeae2;color:#151515;border-color:#eeeae2}
+.lab-credit-deck .lab-credit-list button:disabled{opacity:.5;cursor:not-allowed}
+.lab-credit-deck .lab-credit-pack-amount{font-size:38px;font-weight:400;letter-spacing:-.055em;line-height:1.12}
+.lab-credit-deck .lab-credit-pack-unit{margin-top:3px;font-size:12px;opacity:.7}
+.lab-credit-deck .lab-credit-pack-price{margin-top:26px;font-size:23px;line-height:1.2;font-weight:400;letter-spacing:-.035em}
+.lab-credit-deck .lab-credit-list button .lab-credit-pack-action{width:100%;border-top:1px solid #7775;margin-top:20px;padding-top:13px;color:inherit;font-size:11px;white-space:normal}
+.lab-credit-deck .lab-credit-checkout-note{margin:16px 0 0;font-size:11px;color:#99968f}
+.lab-credit-deck .lab-wallet-state{color:#cbc7be;min-height:0;margin:12px 0 0}
+.lab-credit-deck .lab-wallet-state:empty{display:none}
+.lab-credit-deck .lab-credit-deck-footer{display:flex;align-items:center;flex-wrap:wrap;justify-content:flex-start;gap:12px 22px;margin:24px 0 0;padding:17px 0 0;border:0;border-top:1px solid #383735;background:transparent;font:400 11px/1.4 'DM Sans',Arial,sans-serif;text-transform:none;letter-spacing:0}
+.lab-credit-deck-footer button,.lab-credit-deck-footer a{padding:6px 0;border:0;border-radius:0;background:none;color:#b8b5af;font:inherit;text-decoration:none;cursor:pointer}
+.lab-credit-deck-footer a{margin-left:auto}
+.lab-credit-deck-footer :is(a,button):hover{color:#fff}
+.lab-credit-deck-footer [hidden]{display:none!important}
+.lab-credit-deck :is(a,button):focus-visible{outline:2px solid #eeeae2;outline-offset:3px}
+@media(max-width:560px){
+  #studio-header .lab-wallet-toggle{display:none}
+  #studio-header .lab-add-credits{gap:8px;padding:9px 12px;font-size:11px}
+  .lab-credit-banner{display:grid;grid-template-columns:22px minmax(0,1fr) 30px;gap:10px 12px;align-items:start;padding:16px 18px}
+  .lab-credit-banner-icon{width:22px;height:22px;margin-top:1px;font-size:16px}
+  .lab-credit-banner p{font-size:12px;line-height:1.5}
+  .lab-credit-banner strong{display:block;margin-bottom:3px}
+  .lab-credit-banner #lab-credit-banner-add{grid-column:2;justify-self:start;min-height:36px;padding:9px 16px;font-size:11px}
+  .lab-credit-banner #lab-credit-banner-dismiss{grid-column:3;grid-row:1;width:30px;height:30px;min-height:30px;margin-top:-4px}
+  .lab-credit-deck{padding:23px 20px;width:calc(100vw - 24px);max-height:calc(100dvh - 24px)}
+  .lab-credit-deck header{padding-bottom:20px}
+  .lab-credit-deck h2{font-size:29px}
+  .lab-credit-deck-intro{align-items:flex-start;flex-direction:column;gap:7px;margin:17px 0}
+  .lab-credit-deck .lab-credit-list{grid-template-columns:1fr;gap:8px}
+  .lab-credit-deck .lab-credit-list button{display:grid;grid-template-columns:1fr auto;grid-template-rows:auto auto;padding:16px 18px}
+  .lab-credit-deck .lab-credit-pack-amount{font-size:30px}
+  .lab-credit-deck .lab-credit-pack-unit{grid-column:1;grid-row:2;font-size:11px}
+  .lab-credit-deck .lab-credit-pack-price{grid-column:2;grid-row:1;margin:0;align-self:center;font-size:23px}
+  .lab-credit-deck .lab-credit-list button .lab-credit-pack-action{grid-column:2;grid-row:2;border:0;margin:3px 0 0;padding:0;font-size:10px;text-align:right}
+  .lab-credit-deck .lab-credit-deck-footer{margin-top:20px;gap:4px 14px}
+}
+@media(prefers-reduced-motion:reduce){.lab-credit-deck .lab-credit-list button{transition:none}}
