@@ -179,9 +179,9 @@ try{
   await x.page.waitForFunction(()=>document.querySelector('#image-detail-reference-thumb').naturalWidth>0
     && !document.querySelector('#image-detail-reference-wrap').hidden);
   assert.equal(await x.page.locator('#image-detail-reference-caption').innerText(),'Source image');
-  assert.equal(await x.page.locator('#image-detail-reference-wrap').getAttribute('aria-haspopup'),'dialog');
+  assert.equal(await x.page.locator('.image-detail-reference-item').first().getAttribute('aria-haspopup'),'dialog');
   const originalThumbUrl=await x.page.locator('#image-detail-reference-thumb').getAttribute('src');
-  await x.page.locator('#image-detail-reference-wrap').click();
+  await x.page.locator('.image-detail-reference-item').first().click();
   await x.page.waitForFunction(()=>document.querySelector('#image-source-lightbox').open&&document.querySelector('#image-source-preview').naturalWidth>0);
   assert.notEqual(await x.page.locator('#image-source-preview').getAttribute('src'),originalThumbUrl,
     'The original viewer must not upscale a compressed thumbnail');
@@ -208,13 +208,13 @@ try{
   assert.equal(await x.page.locator('#image-lightbox').evaluate(el=>el.open),true);
   assert.equal(await x.page.locator('#image-lightbox-img').getAttribute('src'),resultUrl,
     'Closing the source must restore the exact generated result');
-  await x.page.locator('#image-detail-reference-wrap').click();
+  await x.page.locator('.image-detail-reference-item').first().click();
   await x.page.keyboard.press('Escape');
   assert.equal(await x.page.locator('#image-source-lightbox').evaluate(el=>el.open),false,
     'Escape closes only the original photo');
   assert.equal(await x.page.locator('#image-lightbox').evaluate(el=>el.open),true,
     'Escape on original keeps the result viewer open');
-  await x.page.locator('#image-detail-reference-wrap').click();
+  await x.page.locator('.image-detail-reference-item').first().click();
   await x.page.locator('#image-source-back').click();
   assert.equal(await x.page.locator('#image-lightbox').evaluate(el=>el.open),true);
   pass('Source thumbnail opens original full size, Fit/100%, X, Escape and Back return to the unchanged result');
@@ -226,8 +226,9 @@ try{
       promptBorder:getComputedStyle(document.querySelector('.image-detail-prompt-card')).borderTopWidth,
       detailsBorder:getComputedStyle(document.querySelector('#image-detail-metadata')).borderTopWidth};
   });
-  assert.ok(polish.close.right<=polish.topbar.right&&polish.close.top>=polish.topbar.top&&polish.close.bottom<=polish.topbar.bottom,
-    'Close X remains accessible in the media toolbar');
+  assert.ok(polish.close.right>=1420&&polish.close.right<=1440&&polish.close.top>=0&&polish.close.bottom<=64,
+    'Close X is at the top-right of the complete viewer');
+  assert.equal(await x.page.locator('#image-detail-pixels').innerText(),'960 × 640 px');
   assert.equal(polish.promptBorder,'0px','Prompt uses the approved flat inspector');
   assert.equal(await x.page.locator('.image-detail-utility-row #image-lightbox-download').count(),1,'Download is in the pinned utility row');
   assert.equal(polish.detailsBorder,'0px','Details uses the approved flat inspector');
@@ -257,7 +258,7 @@ try{
   assert.equal(await x.page.locator('#image-detail-prev').isVisible(),false);
   assert.equal(await x.page.locator('#image-detail-next').isVisible(),true);
   await x.page.waitForFunction(()=>document.querySelector('#image-detail-reference-wrap')&&!document.querySelector('#image-detail-reference-wrap').hidden);
-  await x.page.locator('#image-detail-reference-wrap').click();
+  await x.page.locator('.image-detail-reference-item').first().click();
   await x.page.keyboard.press('ArrowRight');
   assert.equal(await x.page.locator('#image-lightbox-counter').innerText(),'1 / 2',
     'Image archive navigation must not change while viewing the original');

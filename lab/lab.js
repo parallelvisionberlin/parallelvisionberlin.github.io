@@ -2056,7 +2056,8 @@ function pumpImageDetailPrefetch(){
     void assetBlob(id).catch(()=>{}).finally(()=>{imageDetailPrefetchReads--;pumpImageDetailPrefetch();});
   }
 }
-let imageDetailSourceURL=null; // small inspector preview
+const imageDetailSourceURLs=new Set(); // small inspector previews
+let imageDetailSourceIds=[];
 let imageDetailSourceOriginalURL=null; // full resolution, only while opened
 let imageDetailSourceOriginalMime=null;
 let imageDetailSourceAssetId=null;
@@ -2097,37 +2098,51 @@ function releaseImageDetailSource(){
   ++imageDetailSourceRevision;
   closeImageSourceViewer();
   $('image-source-preview').removeAttribute('src');
-  if(imageDetailSourceURL){release(imageDetailSourceURL);imageDetailSourceURL=null;}
+  for(const url of imageDetailSourceURLs)release(url);
+  imageDetailSourceURLs.clear();imageDetailSourceIds=[];
   imageDetailSourceAssetId=null;
-  $('image-detail-reference-thumb').hidden=true;
-  $('image-detail-reference-thumb').removeAttribute('src');
+  $('image-detail-reference-strip').replaceChildren();
   $('image-detail-reference-wrap').hidden=true;
+}
+function imageDetailReferenceIds(job){
+  return [job.sourceId,...(Array.isArray(job.settings?.referenceSourceIds)?job.settings.referenceSourceIds:[])]
+    .filter((value,index,items)=>typeof value==='string'&&value&&items.indexOf(value)===index);
 }
 function showImageDetailSource(job){
   releaseImageDetailSource();
-  const refIds=[job.sourceId,...(Array.isArray(job.settings?.referenceSourceIds)?job.settings.referenceSourceIds:[])]
-    .filter((value,index,items)=>typeof value==='string'&&value&&items.indexOf(value)===index);
+  const refIds=imageDetailReferenceIds(job);
   if(!refIds.length)return;
-  const assetId=refIds[0],revision=imageDetailSourceRevision;
-  imageDetailSourceAssetId=assetId;
-  $('image-detail-reference-caption').textContent=refIds.length===1?'Source image':'Source image · '+refIds.length+' references';
-  void assetThumbnailBlob(assetId).then(blob=>{
-    if(!owner||revision!==imageDetailSourceRevision||imageDetailJob?.id!==job.id||!$('image-lightbox').open)return;
-    if(!blob?.type.startsWith('image/'))return;
-    imageDetailSourceURL=URL.createObjectURL(blob);
-    const img=$('image-detail-reference-thumb');
-    img.src=imageDetailSourceURL;
-    img.hidden=false;
-    $('image-detail-reference-wrap').hidden=false;
-  }).catch(()=>{/* Reference thumbnail is optional, never block viewing the generated result. */});
+  const revision=imageDetailSourceRevision;
+  imageDetailSourceIds=refIds;
+  $('image-detail-reference-caption').textContent=refIds.length===1?'Source image':'References · '+refIds.length;
+  $('image-detail-reference-wrap').hidden=false;
+  refIds.forEach((assetId,index)=>{
+    const button=document.createElement('button');button.type='button';
+    button.className='image-detail-reference-item';
+    button.setAttribute('aria-label','Open original reference '+(index+1)+' of '+refIds.length);
+    button.setAttribute('aria-haspopup','dialog');button.title='View original reference '+(index+1);
+    const img=document.createElement('img');img.alt='';img.width=58;img.height=68;img.hidden=true;
+    if(index===0)img.id='image-detail-reference-thumb';
+    const number=document.createElement('span');number.textContent=String(index+1);number.setAttribute('aria-hidden','true');
+    button.append(img,number);button.onclick=()=>openImageDetailSource(assetId);
+    $('image-detail-reference-strip').append(button);
+    void assetThumbnailBlob(assetId).then(blob=>{
+      if(!owner||revision!==imageDetailSourceRevision||imageDetailJob?.id!==job.id||!$('image-lightbox').open)return;
+      if(!blob?.type.startsWith('image/'))return;
+      const url=URL.createObjectURL(blob);imageDetailSourceURLs.add(url);
+      img.src=url;img.hidden=false;
+    }).catch(()=>{/* The numbered tile still opens the original when its thumbnail is unavailable. */});
+  });
 }
 
-function openImageDetailSource(){
-  if(!owner||!$('image-lightbox').open||!imageDetailSourceAssetId||$('image-detail-reference-wrap').hidden)return;
+function openImageDetailSource(assetId){
+  if(!owner||!$('image-lightbox').open||!imageDetailSourceIds.includes(assetId)||$('image-detail-reference-wrap').hidden)return;
   const dialog=$('image-source-lightbox');
   if(dialog.open)return;
+  imageDetailSourceAssetId=assetId;
+  $('image-source-title').textContent=imageDetailSourceIds.length===1?'Original image':'Reference '+(imageDetailSourceIds.indexOf(assetId)+1)+' of '+imageDetailSourceIds.length;
   const stage=$('image-source-stage'),img=$('image-source-preview');
-  const assetId=imageDetailSourceAssetId,sourceRevision=imageDetailSourceRevision;
+  const sourceRevision=imageDetailSourceRevision;
   const openRevision=++imageDetailSourceOpenRevision;
   stage.classList.remove('is-zoomed');
   stage.setAttribute('aria-busy','true');
@@ -2260,9 +2275,10 @@ function showImageDetail(job,hasOutput,loading=false){
   $('image-detail-mood-row').hidden=!!moodName || !params.moodId;
   $('image-detail-mood-value').textContent=params.moodId?((moodName||'Mood')+' · '+(params.moodIntensity||60)+'%'):'';
   $('image-detail-resolution').textContent=String(params.resolution||'Source').toUpperCase();
+  $('image-detail-pixels').textContent='';
   $('image-detail-ratio').textContent=params.aspectRatio==='auto'?'Adaptive':String(params.aspectRatio||'Original');
   $('image-detail-created').textContent=detailDate(job.createdAt);
-  $('image-detail-references').textContent=String(params.referenceSourceIds?.length||0);
+  $('image-detail-references').textContent=String(imageDetailReferenceIds(job).length);
   $('image-detail-price').textContent=customerMode?(job.estimatedUsd!=null?wallet.jobCharge(job):'Not charged'):job.settledUsd!=null?money(job.settledUsd):job.estimatedUsd!=null?'Estimate '+money(job.estimatedUsd):'Not reported';
   $('image-detail-dimensions').textContent=loading?(hasOutput?'PREVIEW / LOADING FULL IMAGE…':'Loading image…'):hasOutput?'FIT TO VIEW / ORIGINAL RATIO':'NO RESULT AVAILABLE';
   $('image-lightbox-img').hidden=!hasOutput;
@@ -2315,7 +2331,6 @@ async function useImageAsReference(job){
   notify('Image added to the current references. Choose its role in Controls if needed.');
 }
 $('image-lightbox-close').onclick=closeImageDetail;
-$('image-detail-reference-wrap').onclick=openImageDetailSource;
 $('image-source-close').onclick=closeImageSourceViewer;
 $('image-source-back').onclick=closeImageSourceViewer;
 $('image-source-download').onclick=()=>{
@@ -2400,8 +2415,10 @@ $('image-lightbox-fit').onclick=()=>{
 $('image-lightbox-img').onload=()=>{
   const img=$('image-lightbox-img');
   if($('image-lightbox-stage').getAttribute('aria-busy')==='true')return;
-  if(img.naturalWidth&&img.naturalHeight)
+  if(img.naturalWidth&&img.naturalHeight&&resultId===imageDetailJob?.outputId){
     $('image-detail-dimensions').textContent=img.naturalWidth+' × '+img.naturalHeight+' / ORIGINAL RATIO';
+    $('image-detail-pixels').textContent=img.naturalWidth+' × '+img.naturalHeight+' px';
+  }
 };
 $('image-detail-copy').onclick=async()=>{
   if(!imageDetailJob)return;

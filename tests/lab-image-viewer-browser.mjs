@@ -49,8 +49,8 @@ try{
     }),shape);
     for(let i=0;i<5;i++)gates.set('out-'+i,new Promise(resolve=>held.set('out-'+i,resolve)));
     const writes=[];
-    const jobs=images.map((_,i)=>({id:'job-'+i,outputId:'out-'+i,status:'completed',favorite:false,createdAt:Date.now()-i,
-      settings:{type:'image',mode:'image',engine:'seedream',prompt:'Editorial portrait by the window. Warm lamplight, natural texture, quiet atmosphere. Preserve the existing composition and lighting, with understated styling and a photographic finish. Image '+i,resolution:'1k',aspectRatio:'auto'}}));
+    const jobs=images.map((_,i)=>({id:'job-'+i,outputId:'out-'+i,status:'completed',favorite:false,createdAt:Date.now()-i,sourceId:i===1?'ref-0':undefined,
+      settings:{type:'image',mode:'image',engine:'seedream',prompt:'Editorial portrait by the window. Warm lamplight, natural texture, quiet atmosphere. Preserve the existing composition and lighting, with understated styling and a photographic finish. Image '+i,resolution:'1k',aspectRatio:'auto',referenceSourceIds:i===1?Array.from({length:6},(_,n)=>'ref-'+n):[]}}));
     await context.route('https://**/*',async route=>{
       const req=route.request(),url=new URL(req.url()),path=url.pathname;
       if(url.origin!=='https://parallel-vision-lab.parallelvision.workers.dev')return route.abort();
@@ -66,7 +66,7 @@ try{
       if(path.startsWith('/api/assets/')){
         const id=path.split('/')[3],i=Number(id.split('-')[1]),thumbnail=path.endsWith('/thumbnail');
         if(!thumbnail){reads.set(id,(reads.get(id)||0)+1);await gates.get(id);}
-        try{return await route.fulfill({contentType:'image/png',body:Buffer.from(images[i][thumbnail?'thumb':'full'],'base64')});}catch{}
+        try{return await route.fulfill({contentType:'image/png',body:Buffer.from(images[i%images.length][thumbnail?'thumb':'full'],'base64')});}catch{}
         return;
       }
       return send({folders:[],packs:[],souls:[],moods:[],configured:false});
@@ -131,6 +131,23 @@ try{
     await page.waitForFunction(()=>!document.querySelector('#image-lightbox-download').disabled);
     assert.deepEqual([...reads.entries()],beforeReload,'Returning to the gallery reuses originals across a page reload');
     if(shape==='landscape'){
+      const thumbnails=page.locator('.image-detail-reference-item');
+      await page.waitForFunction(()=>document.querySelectorAll('.image-detail-reference-item img:not([hidden])').length===6);
+      assert.equal(await thumbnails.count(),6,'Source and references deduplicate into six ordered thumbnails');
+      assert.equal(await page.locator('#image-detail-reference-caption').innerText(),'References · 6');
+      assert.equal(await page.locator('#image-detail-pixels').innerText(),'740 × 480 px','Details use the original dimensions');
+      assert.ok(![...reads.keys()].some(id=>id.startsWith('ref-')),'Thumbnails do not eagerly download reference originals');
+      for(let i=0;i<6;i++){
+        await thumbnails.nth(i).click();
+        await page.waitForFunction(()=>document.querySelector('#image-source-lightbox').open&&!document.querySelector('#image-source-download').disabled);
+        assert.equal(await page.locator('#image-source-title').innerText(),'Reference '+(i+1)+' of 6');
+        const download=page.waitForEvent('download');await page.click('#image-source-download');
+        const original=await download;
+        assert.equal(original.suggestedFilename(),'parallel-vision-source-ref-'+i+'.png');
+        assert.deepEqual(readFileSync(await original.path()),Buffer.from(images[i%images.length].full,'base64'),'Each thumbnail downloads its own original bytes');
+        await page.click('#image-source-back');
+      }
+      await page.locator('#image-detail-reference-strip').evaluate(el=>{el.scrollLeft=0;});
       assert.equal(await page.locator('.image-detail-utility-row #image-lightbox-download').count(),1);
       assert.equal(await page.locator('.image-detail-media-actions #image-lightbox-download').count(),0);
       await page.click('#image-detail-favorite');
@@ -156,9 +173,11 @@ try{
             const actions=document.querySelector('.image-detail-actions');
             const main=document.querySelector('#image-detail-video');
             const buttons=[...actions.querySelectorAll(':scope>button,.image-detail-action-grid>button,.image-detail-mood-actions>button,.image-detail-utility-row>button,.image-detail-utility-row summary')];
-            return {fits:panel.scrollWidth<=panel.clientWidth+1,buttonFits:buttons.every(b=>{const r=b.getBoundingClientRect();return r.x>=0&&r.right<=innerWidth+1&&r.height>=42;}),color:getComputedStyle(main).backgroundColor};
+            const close=document.querySelector('#image-lightbox-close').getBoundingClientRect();
+            return {closeFits:close.right<=innerWidth&&close.right>=innerWidth-16&&close.top>=0&&close.bottom<=64, fits:panel.scrollWidth<=panel.clientWidth+1,buttonFits:buttons.every(b=>{const r=b.getBoundingClientRect();return r.x>=0&&r.right<=innerWidth+1&&r.height>=42;}),color:getComputedStyle(main).backgroundColor};
           });
           await page.screenshot({path:'test-results/result-deck/result-'+layoutWidth+'.png'});
+          assert.equal(layout.closeFits,true,'Close remains at the complete viewer top-right at '+layoutWidth);
           assert.equal(layout.fits,true,'Result viewer fits '+layoutWidth);
           assert.equal(layout.buttonFits,true,'All deck actions remain reachable at '+layoutWidth);
           assert.equal(layout.color,'rgb(237, 236, 229)','Primary action matches the approved warm ivory');
@@ -183,6 +202,7 @@ try{
     assert.equal(await page.locator('#image-lightbox').evaluate(el=>el.open),false);
     await page.evaluate(()=>window.__viewerTest.lock());
     assert.equal((await page.evaluate(()=>window.__viewerTest.state())).cache,0,'Sign out clears private original cache');
+    assert.equal(await page.locator('.image-detail-reference-item').count(),0,'Sign out clears all private reference thumbnails');
     assert.deepEqual(errors,[]);
     console.log(JSON.stringify({width,shape,previewWidth:Math.round(previewFrame.width),fullWidth:Math.round(fullFrame.width),rapidTwoArrowMs:Math.round(navigation.ms),passed:'stable fitted preview, unchanged frame on original upgrade, native zoom, nonblocking arrows, prefetch, stale responses, correct download, close, sign-out'}));
     await context.close();
