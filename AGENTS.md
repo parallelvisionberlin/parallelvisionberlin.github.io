@@ -85,3 +85,26 @@ Do not repeatedly ask for confirmation for normal implementation decisions.
 - Never rewrite Git history.
 - Do not delete working code without a clear reason.
 - Prefer one coherent commit per task.
+
+## Automatic continuity and usage efficiency
+
+Standing instruction from Alejandro: preserve quality, speed and autonomy while eliminating repeated work. Apply without reminders or repeated confirmations.
+
+### Start
+1. Read applicable AGENTS.md instructions and the existing scoped handoff/current-state summary before exploring source files.
+2. For PV LAB, use the relevant sections of `lab/README.md`; for a specific feature, find its heading first instead of reading the full historical log. For Nina, locate the existing Nina/Worker README or handoff by filename and reuse it.
+3. Check the summary's recorded commit and date against current Git state. Read only the changed or task-relevant files. Current code and verified results override stale notes.
+4. Reuse approved designs, asset paths, previous findings and existing authorization. Do not reconstruct completed work or repeat searches for known assets.
+
+### During work
+- Scope retrieval and tool output to the next unresolved decision. Batch independent reads; avoid full repository scans, repeated screenshots, broad logs and repeated tests without a concrete reason.
+- Diagnose failures before retrying. Check uncertain paid jobs before resubmission. Do not create unsolicited generation variants.
+- Group related fixes and verify affected behavior. Preserve required checks for payments, credits, security and data integrity.
+- Keep implementation, commit and confirmed deployment status distinct. Do not infer that a commit is live.
+
+### Finish automatically
+- Update the existing scoped handoff/current-state summary after each meaningful work unit, before the final reply. No user reminder is required.
+- Keep the active summary about 30 to 60 lines: objective, date and verified source commit, relevant file paths, approved decisions/assets, completed work, checks already run, actual deployment status, blockers and exact next action.
+- Link to detailed history instead of copying it. Preserve other active tasks and collaborators' entries. Never include credentials or private transcripts.
+- If no scoped handoff exists, create `WORK-STATE.md` beside the relevant component and add a short pointer in its README or AGENTS.md. Initialize it from verified work only, not historical assumptions.
+- Save through the project's normal authorized version-control workflow. Report a save or deployment failure clearly. Do not claim that these instructions retroactively changed an already-running chat.
