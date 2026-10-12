@@ -296,3 +296,7 @@ The floating Moods panel now has a compact **+ Create Mood** button to the left 
 
 ### Berlin Rave V2: source-adaptive garment design (2026-10-11)
 The built-in Berlin Rave Fashion mood keeps its existing thumbnail and 80% default. V2 first reads the source's visual styling cues and selects **one coherent silhouette**, rather than applying oversized leather coats, massive shoulders, dangling straps and heavy boots to everybody. It explores precise tailoring, close-cut clubwear, sculptural leather, draping, deconstruction and utilitarian construction. The replacement targets the visible wardrobe and preserves facial identity, hairstyle, makeup, proportions, pose, original room/location, lighting, color and framing unless the user says otherwise. Subtle haze is optional and physically motivated; no arbitrary red lighting, crowds, fake wet-floor nightclub, all-black scene filter or CGI look. Full and compact prompts both encode these constraints, including with many references. The mood preview remains `/lab/mood-previews/berlin-rave-20261011.webp` until separately approved. No paid inference is performed by selecting the mood.
+
+### Homepage Studio cards: current state
+
+See [the scoped Studio cards work state](visuals/studio-tools/WORK-STATE.md) for approved layout, original media, verification and deployment status. Read it before changing the homepage Image / Video / Upscaler entries.

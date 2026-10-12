@@ -1,0 +1,36 @@
+# Studio tool cards: current state
+
+- Updated: 2026-10-12, Europe/Berlin.
+- Scope: homepage Image / Video / Upscaler entry cards.
+- Verified starting source: 9b310c6f5e637e55b47e3013f3d1524ecc775422.
+- Approved direction: contained, separated editorial cards with titles at the top.
+- User chose in-photo capsule actions over a separate text footer.
+- Latest correction: slightly taller cards, less top space, neutral black instead of green.
+- Current desktop card height: 480–620px, bounded by viewport height.
+- Section: 1440px maximum content width; 46px top and 64px bottom padding.
+- Mobile: one column with 20px side padding and 18px card gaps.
+- Original Image asset remains image-ivory-suit.webp.
+- Video is the existing silver liquid-metal gown on a reflective pool.
+- Original source: hf_20260201_230812_2c795817-a4f6-414f-ac96-64f4df2e7ee1.mp4.
+- Source was already materialized in the working session; no new generation.
+- Published derivative: video-liquid-dress-hd.mp4, 844×1080, H.264, silent.
+- Ten-second clip size: 1,480,818 bytes; cropped only unused side scenery.
+- Video poster: video-liquid-dress.webp, 37,844 bytes.
+- Upscaler: upscale-golden-weave.webp, 1122×1402, 287,156 bytes.
+- Upscaler source: uploaded Ochre architectural suit in Berlin museum-4.png.
+- Its crop emphasizes the golden sculptural tailoring, mesh and seams.
+- Existing detail control genuinely magnifies the original; it is not a before/after enhancement claim.
+- Existing video script is unchanged: loads/plays in view, pauses offscreen/hidden.
+- Reduced motion and data-saving behavior remain intact.
+- All primary links still open Studio with tool=image, video or upscale.
+- No changes to hero, Mood Creator, billing, credits, prompts or generation.
+- Files: lab/index.html and lab/studio-tools.css.
+- Preview behavior: lab/studio-tools.js, unchanged in this update.
+- Assets: lab/visuals/studio-tools/video-liquid-dress-hd.mp4.
+- Assets: lab/visuals/studio-tools/video-liquid-dress.webp.
+- Assets: lab/visuals/studio-tools/upscale-golden-weave.webp.
+- Regression suite: tests/lab-landing-stability.mjs.
+- Completed checks: JS syntax, scoped HTML diff, dimensions and exact uploaded binary SHA matches.
+- Added checks: bounded desktop card height/section spacing, real 1080px video decode.
+- Deployment at preparation: not yet verified; inspect the current commit's Actions.
+- Exact next action: verify existing landing suite, desktop/mobile screenshots and live playback.

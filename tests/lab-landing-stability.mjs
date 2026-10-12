@@ -100,6 +100,13 @@ try{
       const toolsSection=page.locator('#tools.studio-tools');
       const toolCards=toolsSection.locator('.studio-tool');
       assert.equal(await toolCards.count(),3);
+      if(width>=1000){
+        const layout=await toolsSection.evaluate(el=>{
+          const style=getComputedStyle(el),card=el.querySelector('.studio-tool').getBoundingClientRect();
+          return {height:card.height,top:parseFloat(style.paddingTop),bottom:parseFloat(style.paddingBottom)};
+        });
+        assert.ok(layout.height<=620&&layout.top>=32&&layout.bottom>=40,`${width}: compact cards leave room above and below`);
+      }
       for(const [i,tool] of ['image','video','upscale'].entries()){
         const card=toolCards.nth(i);
         await card.scrollIntoViewIfNeeded();
@@ -131,6 +138,7 @@ try{
           assert.equal(await motionVideo.getAttribute('src'),null,'Reduced motion does not download the video');
           await page.emulateMedia({reducedMotion:'no-preference'});
           await page.waitForFunction(()=>{const v=document.querySelector('.studio-tool-video');return v.readyState>=2&&!v.paused&&v.currentTime>.1;});
+          assert.equal(await motionVideo.evaluate(v=>v.videoHeight),1080,'Fashion preview retains HD detail');
           assert.equal(await toolsSection.locator('.studio-motion-toggle').getAttribute('aria-pressed'),'true');
           await toolsSection.getByRole('button',{name:'Pause motion preview'}).click();
           assert.equal(await motionVideo.evaluate(v=>v.paused),true);
