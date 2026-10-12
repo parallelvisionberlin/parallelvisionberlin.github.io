@@ -40,7 +40,7 @@ jobs:
 
       - name: Test private My Moods and Worker syntax
         run: |
-          node --test tests/lab-auth.test.mjs tests/lab-worker.test.mjs tests/lab-customer-lifecycle.test.mjs tests/lab-sandbox-billing.test.mjs
+          node --test tests/lab-auth.test.mjs tests/lab-worker.test.mjs tests/lab-customer-lifecycle.test.mjs tests/lab-sandbox-billing.test.mjs tests/lab-live-pilot.test.mjs
           node --check lab-worker/moodboards.mjs
           node --check lab-worker/worker.mjs
           node --check lab-worker/gallery-thumbnails.mjs

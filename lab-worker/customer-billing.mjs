@@ -93,6 +93,12 @@ export async function customerRoute(request,env,subject){
     if(!enabled(env,subject))fail(503,'Checkout is not enabled yet for this account. No payment was initiated.');
     const data=await request.json().catch(()=>null),sku=String(data?.sku||''),item=PACKS[sku];
     if(!item)fail(400,'Choose an available credit pack or subscription.');
+    // Post-payment invoices carry an additional Stripe fee. Enable explicitly
+    // per environment, after the merchant approves its fee and tax wording.
+    const invoiceEnabled=item.type==='payment'&&env.LAB_STRIPE_INVOICES_ENABLED==='true';
+    const invoiceFooter=typeof env.LAB_STRIPE_INVOICE_FOOTER==='string'?env.LAB_STRIPE_INVOICE_FOOTER.trim():'';
+    if(invoiceEnabled&&(!invoiceFooter||invoiceFooter.length>1000))
+      fail(503,'Invoice details are not configured. No payment was initiated.');
     if(!isPermittedPilotPurchase(env,subject,sku))fail(403,'The private pilot permits one €10 top-up only. Other products are not on sale yet.');
     if(isPrivateLivePilot(env,subject)){
       const previous=await one(env,"SELECT id FROM lab_credit_entries WHERE customer_id=? AND kind='purchase' LIMIT 1",subject);
@@ -124,10 +130,11 @@ export async function customerRoute(request,env,subject){
       'success_url':appUrl(env)+(appUrl(env).includes('?')?'&':'?')+'billing=success',
       'cancel_url':appUrl(env)+(appUrl(env).includes('?')?'&':'?')+'billing=cancel',
       'billing_address_collection':'required',
-      'customer_update[address]':'auto'
+      'customer_update[address]':'auto',
+      'customer_update[name]':'auto'
     };
     if(customer.stripe_customer_id)form.customer=customer.stripe_customer_id;
-    else {delete form['customer_update[address]'];form.customer_creation=item.type==='payment'?'always':undefined;}
+    else {delete form['customer_update[address]'];delete form['customer_update[name]'];form.customer_creation=item.type==='payment'?'always':undefined;}
     if(item.type==='subscription'){
       form['line_items[0][price_data][recurring][interval]']='month';
       form['subscription_data[metadata][lab_customer_id]']=subject;
@@ -135,6 +142,12 @@ export async function customerRoute(request,env,subject){
     } else {
       form['payment_intent_data[metadata][lab_customer_id]']=subject;
       form['payment_intent_data[metadata][lab_sku]']=sku;
+      if(invoiceEnabled){
+        form['invoice_creation[enabled]']='true';
+        form['invoice_creation[invoice_data][footer]']=invoiceFooter;
+        form['invoice_creation[invoice_data][metadata][lab_customer_id]']=subject;
+        form['invoice_creation[invoice_data][metadata][lab_sku]']=sku;
+      }
     }
     Object.keys(form).forEach(k=>form[k]===undefined&&delete form[k]);
     await assertCustomerOpen(env,subject,{spending:true});

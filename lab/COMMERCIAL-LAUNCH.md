@@ -1,19 +1,47 @@
 # PV Lab commercial launch checklist (updated 2026-10-12)
 
-## Launch review at 19:55 Europe/Berlin, 12 October 2026
+## Active launch checkpoint, 12 October 2026
 
-- Merchant name, address, support email and declared Kleinunternehmer status are supplied.
-- Owner approved discreet invoice wording: "Umsatzsteuerbefreit gemäß § 19 UStG."
-  Recorded in CUSTOMER-TERMS-DRAFT.md; actual Stripe invoice configuration remains pending.
-- Current main source still sets LAB_PUBLIC_GENERATION_ENABLED=false and LAB_CHECKOUT_ENABLED=false.
-- One-time Checkout does not explicitly enable invoice creation or set a footer.
-  Do not report the wording as already appearing on Stripe invoices.
-- Customer generation/debit/download verification remains pending. Sandbox billing
-  credits cannot be spent in production and the sandbox has no generation endpoint.
-- Terms/privacy draft still contains unresolved withdrawal, provider retention,
-  international transfer and financial retention fields. It is not launch-ready.
-- Next: implement and verify invoice delivery/footer, finish outstanding disclosures,
-  then run the isolated customer pilot before enabling global paid access.
+- Base reviewed: `8687506` (current main at checkout); preserve concurrent design work.
+- Merchant: PV LAB / Alejandro Molinari, Knorrpromenade 9, 10245 Berlin,
+  Germany; contact@parallelvisionlabel.com. Owner supplied and approved these details.
+- The customer-care page now identifies the legal operator and address.
+- Implemented one-time Checkout invoice creation behind
+  `LAB_STRIPE_INVOICES_ENABLED=true`, with required `LAB_STRIPE_INVOICE_FOOTER`.
+  Missing/invalid footer stops payment initiation when invoicing is enabled.
+- Checkout saves the entered customer name/address for invoice details.
+  Browser-submitted invoice text cannot override the configured footer.
+- Sandbox configuration enables invoices with the approved merchant details and
+  “Umsatzsteuerbefreit gemäß § 19 UStG.” Production invoicing remains off by default.
+- Stripe sandbox accepted these exact invoice parameters in session
+  `cs_test_a146GSr0GWHnU6OHwnMlOUmaeNM0xqcmVin2oN1HByNWE4L84heM93ccbU`.
+  This was an unpaid API configuration check, not a completed payment or PDF check.
+  Session expires automatically; the connector did not expose an expire operation.
+- No real transaction or added production fee was initiated. Stripe documents a
+  0.4% post-payment invoice fee (EUR 0.04 on EUR 10); owner fee approval pending.
+  https://support.stripe.com/questions/pricing-for-post-payment-invoices-for-one-time-purchases-via-checkout-and-payment-links
+- Invoices are not enabled for subscription Checkout by this change. Subscription
+  footer settings and renewals still need separate verification before sale.
+- Verification: all 316 Lab unit tests passed locally, including 20 focused billing,
+  pilot, sandbox and lifecycle tests. New cases cover invoice opt-in, invalid config,
+  subscription compatibility and no duplicate top-up credit from invoice.paid.
+- Both Worker deployment workflows now run the invoice/pilot regression tests.
+- Deployment: source prepared; deployment confirmation is pending for this change.
+- Existing successful EUR 10 sandbox payment and exact 1,000 credits remain verified
+  below. Do not ask the owner to repeat the original secret/customer repair.
+- Both public sales/generation flags remain false. The isolated sandbox cannot
+  generate images and its credits cannot be spent in production.
+- Actual customer generation, debit, original download and account cleanup remain
+  unverified. Use the existing one-customer private pilot, not owner access.
+- Remaining legal facts: target sales territories/tax scope, provider contracts and
+  retention/transfer arrangements, final withdrawal information and retention rules.
+  Do not invent these or present CUSTOMER-TERMS-DRAFT.md as finalized terms.
+- Owner next: approve the invoice fee; open /lab/?setup-pilot=1 using a separate
+  customer Google login and provide the displayed user_ ID (never password/token).
+  Configure that ID as LAB_LIVE_PILOT_CUSTOMER_ID on the production Worker;
+  a real EUR 10 pilot payment requires the owner's explicit payment authorization.
+- Next agent: confirm deployment, complete the bounded customer pilot and invoice PDF
+  verification, resolve outstanding legal fields, then deliberately enable public sales.
 
 ## Verified implementation and remaining release gates
 

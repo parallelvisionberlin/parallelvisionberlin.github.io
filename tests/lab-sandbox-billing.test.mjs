@@ -98,6 +98,18 @@ test('never accept LIVE signed events or live API keys on the sandbox Worker',as
   assert.equal(invalid.status,400);
   assert.equal(balance(db),0);
 });
+test('post-payment invoice event never adds a second credit grant for a top-up',async t=>{
+  const {env,db}=setup(t);await ensureCustomer(env,'user_SandboxABC1');
+  await worker.fetch(sign(env,checkoutEvent()),env);
+  const invoice={id:'evt_TopupInvoice',type:'invoice.paid',livemode:false,data:{object:{
+    id:'in_TopupInvoice',status:'paid',currency:'eur',amount_paid:1000,billing_reason:'manual',
+    customer:'cus_sandbox001',metadata:{lab_customer_id:'user_SandboxABC1',lab_sku:'topup10'}
+  }}};
+  assert.equal((await worker.fetch(sign(env,invoice),env)).status,200);
+  assert.equal((await worker.fetch(sign(env,invoice),env)).status,200);
+  assert.equal(balance(db),1000);
+  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM lab_credit_entries').get().n,1);
+});
 test('concurrent event replay, async success and mismatched customer links never duplicate or misroute credits',async t=>{
   const {env,db}=setup(t);await ensureCustomer(env,'user_SandboxABC1');await ensureCustomer(env,'user_Other');
   const responses=await Promise.all([worker.fetch(sign(env,checkoutEvent()),env),worker.fetch(sign(env,checkoutEvent()),env)]);

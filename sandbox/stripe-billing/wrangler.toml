@@ -6,6 +6,8 @@ workers_dev = true
 
 [vars]
 LAB_SANDBOX_MODE = "true"
+LAB_STRIPE_INVOICES_ENABLED = "true"
+LAB_STRIPE_INVOICE_FOOTER = "PV LAB · Alejandro Molinari\nKnorrpromenade 9, 10245 Berlin, Germany\ncontact@parallelvisionlabel.com\nUmsatzsteuerbefreit gemäß § 19 UStG."
 LAB_PUBLIC_APP_URL = "https://parallelvisionlabel.com/lab/billing-sandbox.html"
 
 [observability]

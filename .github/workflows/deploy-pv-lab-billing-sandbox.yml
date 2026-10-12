@@ -35,7 +35,7 @@ jobs:
           node --check lab/billing-sandbox.js
           node --check tests/lab-sandbox-billing.test.mjs
       - name: Run signed webhook and isolated-wallet tests
-        run: node --test tests/lab-sandbox-billing.test.mjs
+        run: node --test tests/lab-sandbox-billing.test.mjs tests/lab-live-pilot.test.mjs
 
   deploy:
     needs: verify

@@ -97,6 +97,7 @@ test('authenticated pilot sees wallet and can open mocked real Checkout, while o
     assert.equal(data.get('metadata[lab_sku]'),'topup10');
     assert.equal(data.get('mode'),'payment');
     assert.equal(data.get('customer'),'cus_pilotTest');
+    assert.equal(data.has('invoice_creation[enabled]'),false,'no added invoice fee without explicit opt-in');
     calls++;
     return Response.json({id:'cs_live_mockPilot1',url:'https://checkout.stripe.com/c/pay/cs_live_mockPilot1'});
   };
@@ -113,6 +114,37 @@ test('authenticated pilot sees wallet and can open mocked real Checkout, while o
     await assert.rejects(()=>customerRoute(j({sku:'topup10'}),env,PILOT),/already completed/);
     assert.equal(calls,1);
   }finally{globalThis.fetch=prev;}
+});
+test('one-time invoice settings are server-controlled, optional, and never sent to subscriptions',async t=>{
+  const {db,env}=fixture(t);await ensureCustomer(env,PILOT);
+  db.prepare('UPDATE lab_customers SET stripe_customer_id=? WHERE id=?').run('cus_invoiceTest',PILOT);
+  const footer='PV LAB · Alejandro Molinari\nUmsatzsteuerbefreit gemäß § 19 UStG.';
+  Object.assign(env,{LAB_CHECKOUT_ENABLED:'true',LAB_PUBLIC_GENERATION_ENABLED:'true',
+    LAB_STRIPE_INVOICES_ENABLED:'true',LAB_STRIPE_INVOICE_FOOTER:footer});
+  const previous=globalThis.fetch;t.after(()=>{globalThis.fetch=previous;});
+  const forms=[];
+  globalThis.fetch=async(url,init)=>{
+    assert.equal(url,'https://api.stripe.com/v1/checkout/sessions');
+    forms.push(new URLSearchParams(init.body));
+    return Response.json({id:'cs_test_invoice',url:'https://checkout.stripe.com/c/pay/cs_test_invoice'});
+  };
+  await customerRoute(j({sku:'topup10',invoiceFooter:'UNTRUSTED',invoice_creation:{enabled:false}}),env,PILOT);
+  const form=forms[0];
+  assert.equal(form.get('invoice_creation[enabled]'),'true');
+  assert.equal(form.get('invoice_creation[invoice_data][footer]'),footer);
+  assert.equal(form.get('invoice_creation[invoice_data][metadata][lab_customer_id]'),PILOT);
+  assert.equal(form.get('invoice_creation[invoice_data][metadata][lab_sku]'),'topup10');
+  assert.equal(form.get('customer_update[name]'),'auto');
+  assert.equal(form.get('customer_update[address]'),'auto');
+  assert.equal(db.prepare('SELECT balance_credits FROM lab_customers WHERE id=?').get(PILOT).balance_credits,0);
+  await customerRoute(j({sku:'starter'}),env,PILOT);
+  assert.equal(forms[1].get('mode'),'subscription');
+  assert.ok([...forms[1].keys()].every(key=>!key.startsWith('invoice_creation')));
+  for(const bad of ['', ' '.repeat(2), 'x'.repeat(1001)]){
+    env.LAB_STRIPE_INVOICE_FOOTER=bad;
+    await assert.rejects(()=>customerRoute(j({sku:'topup10'}),env,PILOT),/Invoice details are not configured/);
+  }
+  assert.equal(forms.length,2,'invalid invoice configuration must not initiate payment');
 });
 test('production source continues to have both public switches off, with pilot ID only in Cloudflare Secret',()=>{
   const vars=readFileSync(new URL('../lab-worker/wrangler.toml',import.meta.url),'utf8');

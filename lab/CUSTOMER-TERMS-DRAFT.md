@@ -25,9 +25,13 @@ section 19 exemption, the owner approved this exact discreet, legible footer:
 Do not use "Kleinunternehmer" as a customer-facing brand label. This wording is
 scoped to applicable exempt transactions; it is not a worldwide tax exemption.
 Legal reference: https://www.gesetze-im-internet.de/ustdv_1980/__34a.html
-The footer is approved here but has not yet been configured or verified on an
-actual Stripe-generated invoice. The current Checkout code does not explicitly
-request invoice creation for one-time payments or set an invoice footer.
+Checkout now supports explicit one-time invoice creation and a server-configured
+footer. Enabled in the isolated sandbox only; Stripe accepted the exact merchant
+details and wording in a test Checkout session. No payment was made in that check,
+so the resulting paid invoice PDF and email delivery remain unverified.
+Production invoice creation remains off pending approval of Stripe's additional
+0.4% post-payment invoice fee and applicable tax scope. Subscription invoices use
+Stripe account invoice settings separately; this change does not configure them.
 
 ## Proposed sales terms
 
