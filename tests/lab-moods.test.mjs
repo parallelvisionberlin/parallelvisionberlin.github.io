@@ -285,7 +285,7 @@ test('Moods footer has a larger primary action and a compact accessible explanat
   assert.match(js,/aboutButton\.setAttribute\('aria-expanded',String\(opening\)\)/);
 });
 
-test('Dreamcore V5 routes organic nature, people and built environments',()=>{
+test('Dreamcore V6 routes organic nature, people and built environments',()=>{
   const m=moodById('dreamcore');
   assert.equal(m.preview,'/lab/mood-bank/2026-10-11/dreamcore/preview.webp');
   assert.match(m.routing,/EVEN WHEN A PERSON IS PRESENT/);
@@ -294,11 +294,14 @@ test('Dreamcore V5 routes organic nature, people and built environments',()=>{
   assert.match(m.person,/Skin may become realistically pearlescent/);
   assert.match(m.organic,/ORGANIC ROUTE, STRONGEST/);
   assert.match(m.organic,/REAL foam, water, wet rock/);
-  assert.match(m.architecture,/Even at 100%/);
+  assert.match(m.architecture,/factories|industrial scenes/);
+  assert.match(m.architecture,/luminous depth/);
+  assert.match(m.architecture,/Rough concrete and brick keep pores/);
+  assert.doesNotMatch(m.architecture,/one small source-led detail|subtle real atmospheric haze/);
   assert.match(m.atmosphere,/Fog occupies real volume/);
   assert.match(m.climax,/ARCHITECTURE: keep the real building/);
   for(const [n,label] of [[1,'SUBTLE'],[34,'SUBTLE'],[35,'ATMOSPHERIC'],[69,'ATMOSPHERIC'],[70,'IMMERSIVE'],[89,'IMMERSIVE'],[90,'IMPOSSIBLE REALITY'],[99,'IMPOSSIBLE REALITY'],[100,'MAXIMUM 100%']]){
-    const r=prepareMoodPrompt('Portrait at sea','dreamcore',n,{referenceCount:1});
+    const r=prepareMoodPrompt('Portrait at sea','dreamcore',n,{referenceCount:0});
     assert.equal(r.error,'');
     assert.equal(r.metadata.moodIntensity,n);
     assert.ok(r.prompt.includes(label));
@@ -308,8 +311,8 @@ test('Dreamcore V5 routes organic nature, people and built environments',()=>{
     assert.match(r.prompt,/ARCHITECTURE ROUTE/);
   }
   const max=prepareMoodPrompt('Portrait at sea','dreamcore',100,{referenceCount:1});
-  assert.match(max.prompt,/luminous sea foam/);
-  assert.match(max.prompt,/real building and furniture/);
+  assert.match(max.prompt,/ORGANIC luminous water/);
+  assert.match(max.prompt,/ARCHITECTURE real building/);
   assert.doesNotMatch(prepareMoodPrompt('Portrait','dreamcore',99,{referenceCount:1}).prompt,/MAXIMUM 100%/);
   const compact=prepareMoodPrompt('Model by the sea','dreamcore',100,{referenceCount:10});
   assert.equal(compact.error,'');
@@ -326,7 +329,7 @@ test('Dreamcore V5 routes organic nature, people and built environments',()=>{
   assert.match(readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8'),/not a literal opacity percentage/);
 });
 
-test('Dreamcore V5 compact direction fits ten references',()=>{
+test('Dreamcore V6 compact direction fits ten references',()=>{
   const refs=Array.from({length:10},(_,i)=>({name:'ref-'+i+'.png',role:i?'none':'base'}));
   const r=prepareMoodPrompt('A model at the sea','dreamcore',100,{referenceCount:10});
   assert.equal(r.error,'');

@@ -1,5 +1,5 @@
 import {loadLabAccount} from './native-account.js?v=2';
-import {MOODS,moodById} from './moods.js?v=20261011-midnight-reverie1&hd=20261011&raveBudget=1&editorialHD=2&moodImageHD=1&raveNight=4';
+import {MOODS,moodById} from './moods.js?v=20261011-midnight-reverie1&hd=20261011&raveBudget=1&editorialHD=2&moodImageHD=1&raveNight=4&dreamcore=6';
 import {createSessionRequest} from './session-request.js?v=20260927-auth1';
 import {takeMoodHandoff} from './mood-handoff.js?v=20261011-discovery1';
 const API='https://parallel-vision-lab.parallelvision.workers.dev';

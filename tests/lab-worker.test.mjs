@@ -7,6 +7,7 @@ import {compileImagePrompt} from '../lab/reference-guidance.js';
 import {storedImageDimensions} from '../lab-worker/fal-upscale.mjs';
 import {buildSoulProInput} from '../lab-worker/soul-pro.mjs';
 import {BERLIN_RAVE_REFERENCES} from '../lab-worker/berlin-rave-references.mjs';
+import {DREAMCORE_REFERENCES} from '../lab-worker/dreamcore-references.mjs';
 import {prepareMoodPrompt} from '../lab/moods.js';
 const ORIGIN='https://parallelvisionlabel.com',BASE='https://parallel-vision-lab.parallelvision.workers.dev',KEY='sk-spicy-synthetic-test-only-not-a-real-key';
 const keypair=await crypto.subtle.generateKey({name:'RSASSA-PKCS1-v1_5',modulusLength:2048,publicExponent:new Uint8Array([1,0,1]),hash:'SHA-256'},true,['sign','verify']);
@@ -395,59 +396,6 @@ test('Image role-only edits compile automatically; invalid mappings and oversize
   }
 });
 
-test('Berlin Rave stages its approved photographs after user images and binds them to the quote',async()=>{
-  const {env}=fixture();await setup(env);
-  const ids=await Promise.all(['base','outfit'].map((name,i)=>uploadGuidanceReference(env,name+'.png',i+1)));
-  const prior=globalThis.fetch,staged=new Map();let sequence=0,failBuiltIn=false,priceCount=0;
-  globalThis.fetch=async(url,options={})=>{
-    const u=new URL(url);
-    if(u.hostname==='api.spicyapi.ai'&&u.pathname.endsWith('/common/upload-url')){
-      const input=JSON.parse(options.body),fileId='fil_berlin_reference_'+(++sequence);staged.set(fileId,{input});
-      return Response.json({code:200,data:{fileId,uploadUrl:'https://test.r2.cloudflarestorage.com/'+fileId,method:'PUT',headers:{'Content-Type':input.contentType,'Content-Length':String(input.bytes)},maxBytes:10485760,expiresAt:new Date(Date.now()+1200000).toISOString()}});
-    }
-    if(u.hostname==='test.r2.cloudflarestorage.com'){
-      const item=staged.get(u.pathname.slice(1));item.bytes=new Uint8Array(options.body);
-      return new Response(null,{status:failBuiltIn&&item.input.contentType==='image/jpeg'?503:200});
-    }
-    if(u.hostname==='api.spicyapi.ai'&&u.pathname.endsWith('/commit')){
-      const fileId=u.pathname.split('/').at(-2),item=staged.get(fileId);
-      return Response.json({code:200,data:{fileId,status:'ready',bytes:item.bytes.length,contentType:item.input.contentType,sha256:Buffer.from(await crypto.subtle.digest('SHA-256',item.bytes)).toString('hex'),uri:'spicy://f/'+fileId,expiresAt:new Date(Date.now()+86400000).toISOString()}});
-    }
-    if(u.pathname.endsWith('/jobs/quote'))priceCount++;
-    return prior(url,options);
-  };
-  try{
-    for(const referenceMode of ['base','references'])for(const userIds of [ids,[]]){
-      const labels=userIds.map((_,i)=>({role:i===0&&referenceMode==='base'?'base':'outfit'}));
-      const recipe=prepareMoodPrompt('One adult dancer','berlin-rave',80,{referenceCount:userIds.length,referenceMode});
-      const settings={...imageSettings,engine:'seedream',mode:'image',referenceMode,prompt:recipe.prompt,...recipe.metadata,referenceRoles:labels};
-      const assetsBefore=env.LAB_DB.db.prepare('SELECT COUNT(*) AS n FROM assets').get().n,before=createCount;
-      const res=await req(env,'/api/quotes',{method:'POST',data:{settings,referenceSourceIds:userIds}});
-      assert.equal(res.status,200,await res.clone().text());const q=await res.json();
-      assert.equal(createCount,before,'Quotes do not submit a generation');
-      assert.equal(q.settings.moodReferenceVersion,'berlin-rave-refs-v1');
-      assert.equal(q.settings.moodReferenceCount,3);
-      assert.deepEqual(q.settings.referenceSourceIds,userIds);
-      assert.equal(q.settings.referenceRoles.length,userIds.length);
-      assert.equal(env.LAB_DB.db.prepare('SELECT COUNT(*) AS n FROM assets').get().n,assetsBefore,'Built-ins never become gallery assets');
-      const saved=env.LAB_DB.db.prepare('SELECT source_id,payload FROM quotes WHERE id=?').get(q.id),payload=JSON.parse(saved.payload);
-      assert.equal(saved.source_id,userIds[0]||null);
-      assert.equal(payload.model,'bytedance/seedream-5.0-pro/edit');
-      assert.equal(payload.input.aspect_ratio,'4:5');
-      assert.equal(payload.input.image_urls.length,userIds.length+3);
-      assert.equal(payload.input.prompt,compileImagePrompt(recipe.prompt,labels,settings));
-      const bytes=payload.input.image_urls.map(uri=>staged.get(uri.split('/').at(-1)).bytes);
-      assert.deepEqual(bytes.slice(userIds.length).map(x=>Buffer.from(x).toString('base64')),BERLIN_RAVE_REFERENCES.map(x=>x.data));
-      if(userIds.length)assert.deepEqual(bytes.slice(0,userIds.length).map(x=>x.at(-1)),[1,2]);
-      assert.doesNotMatch(JSON.stringify(q),/base64|image\/jpeg/,'Reference bytes stay on the service');
-    }
-    failBuiltIn=true;const before=priceCount;
-    const recipe=prepareMoodPrompt('One dancer','berlin-rave',80);
-    const response=await req(env,'/api/quotes',{method:'POST',data:{referenceSourceIds:[],settings:{...imageSettings,engine:'seedream',prompt:recipe.prompt,...recipe.metadata}}});
-    assert.equal(response.status,502);assert.equal(priceCount,before,'Do not quote a render missing the locked references');
-  }finally{globalThis.fetch=prior;}
-});
-
 test('Reference uploads retry a transient storage error once with identical bytes and never retry a paid job',async()=>{
   const {env}=fixture();await setup(env);const id=await uploadGuidanceReference(env,'base.png',42);
   const prior=globalThis.fetch;let attempts=[],statuses=[];
@@ -478,18 +426,72 @@ test('Reference uploads retry a transient storage error once with identical byte
   }finally{globalThis.fetch=prior;}
 });
 
-test('Berlin Rave rejects excessive photos and oversized final prompts before any transfer',async()=>{
+for(const [moodId,refVersion,builtInRefs] of [['berlin-rave','berlin-rave-refs-v1',BERLIN_RAVE_REFERENCES],['dreamcore','dreamcore-refs-v1',DREAMCORE_REFERENCES]]){
+test(moodId+' stages its approved photographs after user images and binds them to the quote',async()=>{
+  const {env}=fixture();await setup(env);
+  const ids=await Promise.all(['base','outfit'].map((name,i)=>uploadGuidanceReference(env,name+'.png',i+1)));
+  const prior=globalThis.fetch,staged=new Map();let sequence=0,failBuiltIn=false,priceCount=0;
+  globalThis.fetch=async(url,options={})=>{
+    const u=new URL(url);
+    if(u.hostname==='api.spicyapi.ai'&&u.pathname.endsWith('/common/upload-url')){
+      const input=JSON.parse(options.body),fileId='fil_berlin_reference_'+(++sequence);staged.set(fileId,{input});
+      return Response.json({code:200,data:{fileId,uploadUrl:'https://test.r2.cloudflarestorage.com/'+fileId,method:'PUT',headers:{'Content-Type':input.contentType,'Content-Length':String(input.bytes)},maxBytes:10485760,expiresAt:new Date(Date.now()+1200000).toISOString()}});
+    }
+    if(u.hostname==='test.r2.cloudflarestorage.com'){
+      const item=staged.get(u.pathname.slice(1));item.bytes=new Uint8Array(options.body);
+      return new Response(null,{status:failBuiltIn&&item.input.contentType==='image/jpeg'?503:200});
+    }
+    if(u.hostname==='api.spicyapi.ai'&&u.pathname.endsWith('/commit')){
+      const fileId=u.pathname.split('/').at(-2),item=staged.get(fileId);
+      return Response.json({code:200,data:{fileId,status:'ready',bytes:item.bytes.length,contentType:item.input.contentType,sha256:Buffer.from(await crypto.subtle.digest('SHA-256',item.bytes)).toString('hex'),uri:'spicy://f/'+fileId,expiresAt:new Date(Date.now()+86400000).toISOString()}});
+    }
+    if(u.pathname.endsWith('/jobs/quote'))priceCount++;
+    return prior(url,options);
+  };
+  try{
+    for(const referenceMode of ['base','references'])for(const userIds of [ids,[]]){
+      const labels=userIds.map((_,i)=>({role:i===0&&referenceMode==='base'?'base':'outfit'}));
+      const recipe=prepareMoodPrompt('One adult dancer',moodId,80,{referenceCount:userIds.length,referenceMode});
+      const settings={...imageSettings,engine:'seedream',mode:'image',referenceMode,prompt:recipe.prompt,...recipe.metadata,referenceRoles:labels};
+      const assetsBefore=env.LAB_DB.db.prepare('SELECT COUNT(*) AS n FROM assets').get().n,before=createCount;
+      const res=await req(env,'/api/quotes',{method:'POST',data:{settings,referenceSourceIds:userIds}});
+      assert.equal(res.status,200,await res.clone().text());const q=await res.json();
+      assert.equal(createCount,before,'Quotes do not submit a generation');
+      assert.equal(q.settings.moodReferenceVersion,refVersion);
+      assert.equal(q.settings.moodReferenceCount,3);
+      assert.deepEqual(q.settings.referenceSourceIds,userIds);
+      assert.equal(q.settings.referenceRoles.length,userIds.length);
+      assert.equal(env.LAB_DB.db.prepare('SELECT COUNT(*) AS n FROM assets').get().n,assetsBefore,'Built-ins never become gallery assets');
+      const saved=env.LAB_DB.db.prepare('SELECT source_id,payload FROM quotes WHERE id=?').get(q.id),payload=JSON.parse(saved.payload);
+      assert.equal(saved.source_id,userIds[0]||null);
+      assert.equal(payload.model,'bytedance/seedream-5.0-pro/edit');
+      assert.equal(payload.input.aspect_ratio,'4:5');
+      assert.equal(payload.input.image_urls.length,userIds.length+3);
+      assert.equal(payload.input.prompt,compileImagePrompt(recipe.prompt,labels,settings));
+      const bytes=payload.input.image_urls.map(uri=>staged.get(uri.split('/').at(-1)).bytes);
+      assert.deepEqual(bytes.slice(userIds.length).map(x=>Buffer.from(x).toString('base64')),builtInRefs.map(x=>x.data));
+      if(userIds.length)assert.deepEqual(bytes.slice(0,userIds.length).map(x=>x.at(-1)),[1,2]);
+      assert.doesNotMatch(JSON.stringify(q),/base64|image\/jpeg/,'Reference bytes stay on the service');
+    }
+    failBuiltIn=true;const before=priceCount;
+    const recipe=prepareMoodPrompt('One dancer',moodId,80);
+    const response=await req(env,'/api/quotes',{method:'POST',data:{referenceSourceIds:[],settings:{...imageSettings,engine:'seedream',prompt:recipe.prompt,...recipe.metadata}}});
+    assert.equal(response.status,502);assert.equal(priceCount,before,'Do not quote a render missing the locked references');
+  }finally{globalThis.fetch=prior;}
+});
+
+test(moodId+' rejects excessive photos and oversized final prompts before any transfer',async()=>{
   const{env}=fixture();await setup(env);
   const ids=await Promise.all(Array.from({length:8},(_,i)=>uploadGuidanceReference(env,'ref-'+i+'.png',i)));
   for(const [userIds,prompt,match] of [[ids,'A dancer',/7 uploaded photos/],[ids.slice(0,1),'x'.repeat(4500),/too long/]]){
     const before=calls.length;
-    const response=await req(env,'/api/quotes',{method:'POST',data:{referenceSourceIds:userIds,settings:{...imageSettings,engine:'seedream',moodId:'berlin-rave',moodIntensity:80,moodOriginalPrompt:'A dancer',prompt,referenceRoles:userIds.map((_,i)=>({role:i?'none':'base'}))}}});
+    const response=await req(env,'/api/quotes',{method:'POST',data:{referenceSourceIds:userIds,settings:{...imageSettings,engine:'seedream',moodId:moodId,moodIntensity:80,moodOriginalPrompt:'A dancer',prompt,referenceRoles:userIds.map((_,i)=>({role:i?'none':'base'}))}}});
     assert.equal(response.status,400);assert.match((await response.json()).error,match);
     assert.equal(calls.slice(before).filter(c=>/\/jobs\/(quote|createTask)$|\/common\/upload-url$/.test(new URL(c.url).pathname)).length,0);
   }
 });
 
-test('Nano Banana includes Berlin Rave references in normal and batch payloads without assigning a new Base',async()=>{
+test('Nano Banana includes '+moodId+' references in normal and batch payloads without assigning a new Base',async()=>{
   const{env,objects}=fixture();env.GEMINI_API_KEY='synthetic-gemini-key';const base=await setup(env);
   const get=env.LAB_MEDIA.get;env.LAB_MEDIA.get=async(key)=>{const obj=await get(key);return obj?{...obj,arrayBuffer:async()=>objects.get(key).slice().buffer}:null;};
   const prior=globalThis.fetch;let submitted;
@@ -502,7 +504,7 @@ test('Nano Banana includes Berlin Rave references in normal and batch payloads w
   };
   try{
     for(const processing of ['normal','batch'])for(const ids of [[base],[]]){
-      const labels=ids.map(()=>({role:'base'})),recipe=prepareMoodPrompt('One dancer','berlin-rave',80,{engine:'gemini',referenceCount:ids.length});
+      const labels=ids.map(()=>({role:'base'})),recipe=prepareMoodPrompt('One dancer',moodId,80,{engine:'gemini',referenceCount:ids.length});
       const settings={...imageSettings,engine:'gemini',mode:'image',processing,prompt:recipe.prompt,...recipe.metadata,referenceRoles:labels};
       const response=await req(env,'/api/gemini/jobs',{method:'POST',data:{count:1,referenceSourceIds:ids,settings}});
       assert.equal(response.status,202,await response.clone().text());const job=(await response.json()).jobs[0];
@@ -512,10 +514,12 @@ test('Nano Banana includes Berlin Rave references in normal and batch payloads w
       const parts=request.contents[0].parts,images=parts.filter(p=>p.inlineData);
       assert.equal(parts[0].text,compileImagePrompt(recipe.prompt,labels,settings));
       assert.equal(images.length,ids.length+3);
-      assert.deepEqual(images.slice(ids.length).map(p=>p.inlineData.data),BERLIN_RAVE_REFERENCES.map(p=>p.data));
+      assert.deepEqual(images.slice(ids.length).map(p=>p.inlineData.data),builtInRefs.map(p=>p.data));
     }
   }finally{globalThis.fetch=prior;}
 });
+
+}
 
 test('Nano Banana accepts the same role-only guidance with image order and target metadata intact',async()=>{
   const{env,objects}=fixture();env.GEMINI_API_KEY='synthetic-gemini-key';const base=await setup(env),detail=await uploadGuidanceReference(env,'hands.png',1);
