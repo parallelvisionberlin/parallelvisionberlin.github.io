@@ -31,15 +31,12 @@
 - Added checks for six distinct original downloads, actual dimensions and full-viewer Close position.
 - Existing responsive checks cover 1920, 1440, 768, 390 and 320 px.
 - Existing regression coverage includes downloads, favorite sync, menu, navigation and Video Studio handoff.
-- Previous deck: all ten workflows passed; Pages deployment 38284935364 succeeded.
 - Verified feature source: 6e2c10dac0744b89b8593c47fbb3167cd50bdb59; all ten PR workflows passed.
 - Viewer/queue workflow 38287871612 and full video/reference regression 38287871766 passed.
 - Reviewed desktop 1440 px and mobile 320 px screenshots; artifact 11764257448.
 - All six reference downloads matched their own original bytes; Video Studio handoff passed.
 - Published implementation: c5e551770931425d2bf93eecbdb512fca90557c0, PR #169.
 - Confirmed public studio.html, image-result-deck.css and lab.js: HTTP 200 and exact verified-source hashes.
-- Pages runs 38288222445 and 38288279957 were superseded by concurrent main updates.
-- Newer main 20de9fb includes this implementation unchanged; run 38288613296 was still running at the public-file check.
 - Live destination: https://parallelvisionlabel.com/lab/studio.html
 - Complete and confirmed live on 2026-10-12; no paid generations or live account mutations were used.
 
@@ -52,4 +49,10 @@
 - Success is shown inline; no persistent overlay. History selection still restores normal video details/actions.
 - Preview and right inspector share one desktop height; mobile retains its stacked layout.
 - Existing viewer and layout browser checks cover these fixes without paid generation.
-- Current status: syntax/whitespace checks passed; browser CI and live verification pending.
+- Verified source: 4173d338d83f8bf728eb45bd8d8f8d6990d27674; all ten PR workflows passed.
+- Video/browser regression 38297210579 and image handoff checks 38297210509 passed.
+- Desktop warm-white Generate and mobile screenshots reviewed; artifact 11768978866.
+- Published implementation: e078e33cebb76bf2ba15dc3ccb34e27b0045ae28, PR #172.
+- Public verification: all three UI files HTTP 200, exact CSS bytes and new HTML/JS handoff markers.
+- Concurrent site updates are retained in public HTML/JS; the original persistent banner is absent.
+- Confirmed live on 2026-10-12; no paid generation. Complete.
