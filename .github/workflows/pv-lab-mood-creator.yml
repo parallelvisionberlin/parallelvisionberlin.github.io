@@ -6,6 +6,7 @@ on:
     paths:
       - 'lab/mood-creator*'
       - 'lab/explore-moods*'
+      - 'lab/moods.html'
       - 'lab/mood-home.css'
       - 'lab/mood-handoff.js'
       - 'lab/moods.js'

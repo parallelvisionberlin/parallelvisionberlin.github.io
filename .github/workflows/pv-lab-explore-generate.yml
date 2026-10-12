@@ -4,6 +4,7 @@ on:
     branches: [main, codex/mood-generate]
     paths:
       - 'lab/explore-moods*'
+      - 'lab/moods.html'
       - 'lab/app-mood-generation.js'
       - 'lab/mood-handoff.js'
       - 'lab/lab.js'

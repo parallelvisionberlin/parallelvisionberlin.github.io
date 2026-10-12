@@ -41,14 +41,14 @@ test('Mood Creator gallery handoff accepts saved board UUIDs and preserves an op
   const reg=lab.match(/if\(boardId&&!((?:\/\^.*?\/i))\.test\(boardId\)\)/)?.[1];
   assert.ok(reg,'Studio board link must have a UUID validator');
   assert.equal(Function('return '+reg)().test(goodId),true,'Saved Mood UUID must be accepted');
-  const explore=readFileSync(new URL('../lab/explore-moods.html',import.meta.url),'utf8');
+  const explore=readFileSync(new URL('../lab/moods.html',import.meta.url),'utf8');
   const exploreCode=readFileSync(new URL('../lab/explore-moods.js',import.meta.url),'utf8');
   assert.match(explore,/data-mood-id="dreamcore"/);
   assert.match(exploreCode,/const token=await saveMoodHandoff\(\{file,prompt:direction\.value\.trim\(\)\}\)/);
   assert.match(exploreCode,/location\.assign\(moodExploreDestination\(mood\.id,\{create,handoff:token\}\)\)/);
   assert.match(creator,/if\(packet\.prompt\)concept\.value=packet\.prompt/);
   assert.match(page,/href="#my-moods">My Moods/);
-  assert.match(homepage,/href="\.\/explore-moods\.html"/);
+  assert.match(homepage,/href="\.\/moods"/);
 });
 test('Mood Creator validates original ideas, image inputs and optional curated base',()=>{
  assert.equal(moodCreatorInputValidation({name:'Liquid Memory',direction:'Pearlescent light, real film grain',baseMoodId:null,imageCount:2}),'');
@@ -67,7 +67,7 @@ test('The editor is a distinct page, preserves Image prices and has two entry po
  const studio=readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8');
  assert.match(home,/id="mood-creator"/);
  assert.match(home,/href="\.\/mood-creator.html"/);
- assert.match(home,/href="\.\/explore-moods.html"/);
+ assert.match(home,/href="\.\/moods"/);
  assert.match(page,/id="mc-start-image"/);
  assert.match(page,/id="mc-start-idea"/);
  assert.match(page,/id="mc-board"/);
@@ -86,7 +86,7 @@ test('The editor is a distinct page, preserves Image prices and has two entry po
  assert.match(style,/\.mc-editorial/);
  assert.match(page,/class="mc-hero mc-hero--creator"/);
  assert.doesNotMatch(page,/id="mc-look-dialog"/);
- const explore=readFileSync(new URL('../lab/explore-moods.html',import.meta.url),'utf8');
+ const explore=readFileSync(new URL('../lab/moods.html',import.meta.url),'utf8');
  assert.equal((explore.match(/data-mood-id=/g)||[]).length,15);
  assert.match(style,/\.mc-workspace-body/);
  assert.match(style,/\.mc-library-grid/);
