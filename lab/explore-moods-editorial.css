@@ -76,7 +76,7 @@
 }
 .mc-explore-page .mc-explore-intro{
   max-width:520px;margin:16px 0 19px;color:#c3cec5;
-  font-size:13px;line-height:1.55;font-weight:400;
+  font-size:14px;line-height:1.55;font-weight:400;
 }
 .mc-explore-page .mc-discovery-edition{
   position:absolute;right:clamp(20px,4vw,72px);top:43px;
@@ -87,10 +87,10 @@
 }
 .mc-explore-page .mc-discovery-actions a,
 .mc-explore-page .mc-discovery-actions a:last-child{
-  display:inline-flex;align-items:center;justify-content:space-between;gap:27px;
-  box-sizing:border-box;min-width:230px;height:50px;margin:0;padding:0 22px;
+  display:inline-flex;align-items:center;justify-content:center;gap:27px;
+  box-sizing:border-box;min-width:230px;height:54px;margin:0;padding:0 22px;
   border:1px solid #87988b;border-radius:999px;background:#0b110fa8;
-  text-decoration:none;color:#f2f6f1;font:500 14px/1 'DM Sans',Arial,sans-serif;
+  text-decoration:none;color:#f2f6f1;font:500 16px/1 'DM Sans',Arial,sans-serif;
   transition:background .16s,border-color .16s,transform .16s;
 }
 .mc-explore-page .mc-discovery-actions a span{font-size:23px;font-weight:400;line-height:1}
@@ -347,7 +347,7 @@
  }
  .mc-explore-page .mc-discovery-actions a,
  .mc-explore-page .mc-discovery-actions a:last-child{
-   width:100%;height:43px;min-width:0;padding:0 16px;gap:12px;font-size:12px;
+   width:100%;height:43px;min-width:0;padding:0 16px;gap:12px;font-size:16px;
  }
  .mc-explore-page .mc-discovery-actions a span{font-size:19px}
  .mc-explore-page .mc-explore-collection{padding:0 17px 32px}
