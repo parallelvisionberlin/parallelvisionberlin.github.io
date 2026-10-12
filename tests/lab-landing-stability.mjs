@@ -80,7 +80,7 @@ try{
       await page.locator('#lab-account-strip').waitFor({state:'visible'});
       assert.equal(await page.locator('[data-lab-signin]').isVisible(),false);
       stable(initial,await geometry(page),`${width}: account recovery`);
-      await page.getByRole('button',{name:'Open account menu'}).click();
+      await page.locator('#lab-account-strip>summary').click();
       await page.getByRole('button',{name:'Sign out',exact:true}).click();
       await page.locator('[data-lab-signin]').waitFor({state:'visible'});
       stable(initial,await geometry(page),`${width}: sign out`);
