@@ -47,7 +47,7 @@ function LabWebSurface({source,web,onSignIn,onSignOut,onNavigate,onReady,onLoadi
       javaScriptEnabled domStorageEnabled sharedCookiesEnabled={false} thirdPartyCookiesEnabled={false}
       allowsInlineMediaPlayback mediaPlaybackRequiresUserAction setSupportMultipleWindows={false}
       originWhitelist={['https://*']} bounces={false} contentInsetAdjustmentBehavior="never" automaticallyAdjustContentInsets={false}
-      decelerationRate={source===LAB_DISCOVER?'normal':'fast'}
+      decelerationRate={source===LAB_DISCOVER||source===LAB_STUDIO?'normal':'fast'}
       onMessage={receive}
       onLoadStart={()=>{onLoading?.();epoch.current++;pageId.current='';pending.current.clear();setLoading(true);setError('');}}
       onLoadEnd={()=>setLoading(false)}
