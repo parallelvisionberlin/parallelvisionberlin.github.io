@@ -482,6 +482,10 @@
 .mc-explore-page .mc-look-dropzone{
   border-radius:10px;border-color:#a7b8a74d;background:#ffffff04;margin-top:2px;
 }
+.mc-explore-page .mc-look-dropzone.is-over{
+  border-color:var(--pv-acid);border-style:solid;background:#c5ff620d;
+  box-shadow:0 0 0 1px #c5ff6266,0 0 18px #c5ff6214;
+}
 .mc-explore-page .mc-look-prompt textarea{
   border-radius:10px;border-color:#a7b8a733;background:#ffffff04;
 }

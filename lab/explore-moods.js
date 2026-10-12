@@ -11,7 +11,7 @@ function initialize(){
   const $=id=>document.getElementById(id);
   const dialog=$('mc-look-dialog'),zone=$('mc-look-dropzone'),fileInput=$('mc-look-file');
   const direction=$('mc-look-direction'),status=$('mc-look-status');
-  let mood=null,file=null,fileURL=null,busy=false;
+  let mood=null,file=null,fileURL=null,busy=false,dragDepth=0;
   let price=null,priceRevision=0,priceTimer=null,expiryTimer=null,service=null,serviceLoading=null,needsSignIn=false;
   const generate=$('mc-look-continue');
   function generationService(){
@@ -59,6 +59,7 @@ function initialize(){
   }
   function setBusy(value){
     busy=value;
+    if(value)clearDropHighlight();
     for(const control of [generate,$('mc-look-make'),fileInput,direction,$('mc-look-file-clear'),$('mc-look-close')])control.disabled=value;
   }
   const fullPreviews=new Map();
@@ -79,7 +80,12 @@ function initialize(){
     fullPreviews.set(src,{image,ready});
     return ready;
   }
+  function clearDropHighlight(){
+    dragDepth=0;
+    zone.classList.remove('is-over');
+  }
   function clearPhoto(){
+    clearDropHighlight();
     if(fileURL)URL.revokeObjectURL(fileURL);
     fileURL=null;file=null;fileInput.value='';
     $('mc-look-file-preview')?.remove();
@@ -130,9 +136,29 @@ function initialize(){
   fileInput.addEventListener('change',()=>{if(fileInput.files?.[0])attachPhoto(fileInput.files[0]);});
   $('mc-look-file-clear').onclick=()=>{if(!busy){clearPhoto();schedulePrice();}};
   direction.addEventListener('input',schedulePrice);
-  zone.addEventListener('dragover',event=>{if(event.dataTransfer?.types?.includes('Files')){event.preventDefault();zone.classList.add('is-over');}});
-  zone.addEventListener('dragleave',()=>zone.classList.remove('is-over'));
-  zone.addEventListener('drop',event=>{if(event.dataTransfer?.files?.length){event.preventDefault();zone.classList.remove('is-over');attachPhoto(event.dataTransfer.files[0]);}});
+  zone.addEventListener('dragenter',event=>{
+    if(!event.dataTransfer?.types?.includes('Files'))return;
+    event.preventDefault();
+    if(busy)return;
+    dragDepth++;zone.classList.add('is-over');
+  });
+  zone.addEventListener('dragover',event=>{
+    if(!event.dataTransfer?.types?.includes('Files'))return;
+    event.preventDefault();event.dataTransfer.dropEffect=busy?'none':'copy';
+    if(!busy)zone.classList.add('is-over');
+  });
+  zone.addEventListener('dragleave',()=>{
+    // Child labels and previews also fire drag events. Stay lit until the box is left.
+    dragDepth=Math.max(0,dragDepth-1);
+    if(!dragDepth)clearDropHighlight();
+  });
+  zone.addEventListener('drop',event=>{
+    clearDropHighlight();
+    if(event.dataTransfer?.files?.length){event.preventDefault();attachPhoto(event.dataTransfer.files[0]);}
+  });
+  document.addEventListener('drop',clearDropHighlight);
+  document.addEventListener('dragend',clearDropHighlight);
+  window.addEventListener('blur',clearDropHighlight);
   for(const card of document.querySelectorAll('.mc-look-card[data-mood-id]')){
     const selected=moodById(card.dataset.moodId);if(!selected)continue;
     const warmPreview=()=>{if(!navigator.connection?.saveData)void loadFullPreview(selected);};
