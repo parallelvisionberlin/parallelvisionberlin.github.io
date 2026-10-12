@@ -158,10 +158,10 @@ try{
             const buttons=[...actions.querySelectorAll(':scope>button,.image-detail-action-grid>button,.image-detail-mood-actions>button,.image-detail-utility-row>button,.image-detail-utility-row summary')];
             return {fits:panel.scrollWidth<=panel.clientWidth+1,buttonFits:buttons.every(b=>{const r=b.getBoundingClientRect();return r.x>=0&&r.right<=innerWidth+1&&r.height>=42;}),color:getComputedStyle(main).backgroundColor};
           });
+          await page.screenshot({path:'test-results/result-deck/result-'+layoutWidth+'.png'});
           assert.equal(layout.fits,true,'Result viewer fits '+layoutWidth);
           assert.equal(layout.buttonFits,true,'All deck actions remain reachable at '+layoutWidth);
           assert.equal(layout.color,'rgb(237, 236, 229)','Primary action matches the approved warm ivory');
-          await page.screenshot({path:'test-results/result-deck/result-'+layoutWidth+'.png'});
         }
         await page.setViewportSize({width,height:1000});
       }
