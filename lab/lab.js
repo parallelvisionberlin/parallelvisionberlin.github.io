@@ -12,7 +12,7 @@ import {VIDEO_MODELS,engineFor,videoLabel} from './video-models.js?v=20261009-ex
 import {REFERENCE_ROLES,REFERENCE_TARGETS,normalizeReferenceLabel,compileImagePrompt,referenceGuidanceError,canUseReferenceGuidance} from './reference-guidance.js?v=20261010-reference-flow2';
 import {createMoodSelector,moodById,userFacingImagePrompt,imageHistoryCaption} from './moods.js?v=20261011-midnight-reverie1&hd=20261011&raveBudget=1&editorialHD=2&moodImageHD=1&moodDeckSpace=1&raveNight=4&syntheticBudget=1';
 import {createMyMoods} from './my-moods.js?v=20261011-midnight-reverie1&hd=20261011&raveBudget=1&editorialHD=2&editorialHD=2&moodImageHD=1&raveNight=4';
-import {takeMoodHandoff} from './mood-handoff.js?v=20261011-discovery1';
+import {takeMoodHandoff,moodGenerationQuote} from './mood-handoff.js?v=20261012-generate1';
 import {createMediaReferences} from './media-references.js?v=20261009-extend2';
 import { createSessionRequest } from './session-request.js?v=20260927-auth1';
 import { createSoulController } from './soul.js?v=20261001-presets2';
@@ -98,8 +98,8 @@ async function restoreStudioEntry(){
   else if(route==='fashion')await openFashionStudio();
   else if(route==='retouch')await openRetouch({push:false,autofill:false});
   else if(route==='image'&&(query.has('moodboard')||query.has('mood'))){
-    // Both curated and custom Moods are selected without quoting, paying
-    // for or automatically submitting a new image-generation request.
+    // Plain Mood links only select a look. A one-shot, priced Generate
+    // handoff is the only entry point that submits a job here.
     const moodId=query.get('mood'),boardId=query.get('moodboard');
     if(moodId&&!moodById(moodId)){
       notify('That curated Mood no longer exists. Choose another look in Moods.',true);
@@ -122,11 +122,20 @@ async function restoreStudioEntry(){
         moodUI.restore({moodId:mood.id,moodIntensity:mood.defaultIntensity||70},true);
         title=mood.name;
       }
-      let hadPhoto=false;
+      let hadPhoto=false,generation=null;
       if(query.has('handoff')){
         try{
           const packet=await takeMoodHandoff(query.get('handoff'));
-          if(packet.file){await addReferences([packet.file]);hadPhoto=true;}
+          if(packet.generation){
+            generation=packet.generation;
+            // Restore the exact default used to price this request, even if
+            // the previous Image workspace used another model or batch size.
+            clearMedia();imageEngine='seedream';imageProcessing='normal';imageReferenceMode='base';
+            $('image-engine').value='seedream';setTool('image');
+            $('resolution').value='1k';$('image-count').value='1';
+          }
+          if(packet.file){await addReferences([packet.file],generation?.sourceId?[generation.sourceId]:[]);hadPhoto=true;}
+          if(generation)$('ratio').value=hadPhoto?'auto':'16:9';
           if(packet.prompt)$('prompt').value=packet.prompt;
         }finally{
           // The handoff token is one-shot; a refresh may still re-select the
@@ -137,9 +146,31 @@ async function restoreStudioEntry(){
         }
       }
       update();
+      if(generation){await submitMoodGeneration(generation,moodId);return;}
       notify(title+' is selected. '+(hadPhoto?'Your photograph is ready. ':'')+'Press Generate when you are ready. No generation was submitted.');
     }catch(error){notify('Could not prepare your Mood. '+error.message,true);}
   }else syncStudioRoute(tool);
+}
+async function submitMoodGeneration(generation,moodId){
+  const q=moodGenerationQuote(generation,{userId,moodId});
+  if(!owner||!config.enabled||customerMode&&!customerGenerationReady)throw Error('Image generation is not available for this account yet.');
+  if(busy||imageSubmissionPending||submissionBlocked())throw Error('The generation queue is busy. Review Image before trying again.');
+  const sessionEpoch=epoch;
+  imageSubmissionPending=true;imageSubmissionStage='Generating…';update();
+  const ratio=references[0]?.width/references[0]?.height;
+  const feedback=beginImageFeedback(1,q.settings,ratio>0?ratio:16/9);
+  let dispatched=false;
+  try{
+    feedback.phase('Submitting','Starting '+(moodById(moodId)?.name||'your Mood')+'.');
+    dispatched=true;
+    await submitQuotedGeneration(q,sessionEpoch);
+    feedback.finish();
+  }catch(error){
+    feedback.fail(error,dispatched);
+    notify(error.message,true);
+  }finally{
+    if(epoch===sessionEpoch){imageSubmissionPending=false;imageSubmissionStage='Sending…';update();}
+  }
 }
 let sourceUrl=null, lastFile=null, lastSourceId=null, lastUrl=null, references=[], mode='start';
 let engine='seedance', imageEngine='seedream', imageProcessing='normal', soulProModel='soul2', soulProQuality='medium', soulProIdentity={configured:false,count:0,refs:[]}, soulProPackSelection=[], soulProPackUrls=[], poseMapSourceId=null, repairTarget=null, repairImage=null, repairMaskCanvas=null, repairMaskDirty=false;

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="description" content="Explore 15 curated PV Lab fashion and photographic Moods. Choose a look, add your photo, and continue in Image.">
+<meta name="description" content="Explore 15 curated PV Lab fashion and photographic Moods. Choose a look, add your photo, and generate your image.">
 <meta name="theme-color" content="#151717">
 <title>Explore Moods / PV LAB</title>
 <link rel="icon" href="./branding/pv-mark.png" type="image/png">
@@ -165,10 +165,10 @@
     <div class="mc-look-prompt"><label for="mc-look-direction">Your direction <span>(optional)</span></label><textarea id="mc-look-direction" maxlength="1400" rows="3" placeholder="Or describe what you want to create with this look…"></textarea></div>
     <p id="mc-look-status" class="mc-look-status" role="status"></p>
     <div class="mc-look-dialog-actions">
-      <button id="mc-look-continue" class="mc-look-continue" type="button">Continue in Image </button>
+      <button id="mc-look-continue" class="mc-look-continue" type="button" disabled>Generate image</button>
       <button id="mc-look-make" class="mc-look-make" type="button">Make it your own </button>
     </div>
-    <p class="mc-look-footer">Nothing is generated or charged until you press Generate in Image.</p>
+    <p class="mc-look-footer">Generate starts one image at the shown price. Follow its progress in Image.</p>
   </div>
 </dialog>
 <section class="mc-explore-ending" id="invent-your-own" aria-labelledby="mc-invent-title">
@@ -191,7 +191,8 @@
 </section>
 </main>
 <footer class="mc-footer"><a href="./">PV LAB</a><p>Image. Atmosphere. Possibility.</p><a href="./mood-creator.html#my-moods">My Moods </a></footer>
-<script type="module" src="./explore-moods.js?v=20261012-rounded-dialog1&moodImageHD=1&raveNight=4"></script>
+<script type="module" src="./explore-moods.js?v=20261012-generate1&moodImageHD=1&raveNight=4"></script>
 <script type="module" src="./explore-moods-hero.js?v=20261012-editorial-order1"></script>
 </body>
 </html>
+

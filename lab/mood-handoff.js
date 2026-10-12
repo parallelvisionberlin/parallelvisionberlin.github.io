@@ -19,15 +19,26 @@ export function validateMoodHandoff({file=null,prompt=''}={}){
   if(typeof prompt!=='string'||prompt.length>1400)throw Error('Use an image direction under 1,400 characters.');
   return {file,prompt:prompt.trim()};
 }
-export async function saveMoodHandoff({file=null,prompt=''}={}){
+// Only the explicit Generate click creates this packet. A Mood URL alone
+// never authorizes generation; the Worker still owns pricing and billing.
+export function moodGenerationQuote(generation,{userId,moodId,now=Date.now()}={}){
+  if(!generation||generation.userId!==userId)throw Error('Your account changed. Review the price in Image before generating.');
+  const q=generation.quote;
+  if(!q||typeof q.id!=='string'||!q.id||q.provider!=='SpicyAPI'||q.settings?.type!=='image'||q.settings?.engine!=='seedream'||q.settings?.moodId!==moodId||!Number.isFinite(q.maxUsd)||q.maxUsd<0)
+    throw Error('This generation request no longer matches your Mood. Review it in Image.');
+  if(!Number.isFinite(q.expiresAt)||q.expiresAt<=now)throw Error('The price expired. Review the updated price in Image and press Generate.');
+  return q;
+}
+export async function saveMoodHandoff({file=null,prompt='',generation=null}={}){
   const input=validateMoodHandoff({file,prompt});
+  if(generation)moodGenerationQuote(generation,{userId:generation.userId,moodId:generation.quote?.settings?.moodId});
   if(!input.file&&!input.prompt)return null;
   const db=await openHandoffDb(),id=crypto.randomUUID();
   try{
     return await new Promise((resolve,reject)=>{
       const tx=db.transaction(STORE,'readwrite'),store=tx.objectStore(STORE);
       store.clear();
-      store.put({id,createdAt:Date.now(),name:input.file?.name||'',mime:input.file?.type||'',blob:input.file,prompt:input.prompt});
+      store.put({id,createdAt:Date.now(),name:input.file?.name||'',mime:input.file?.type||'',blob:input.file,prompt:input.prompt,...(generation?{generation}:{})});
       tx.oncomplete=()=>resolve(id);
       tx.onerror=()=>reject(Error('This browser could not pass the photo to Image. Try opening Image and uploading there.'));
       tx.onabort=()=>reject(Error('Photo handoff was cancelled. No image was sent or generated.'));
@@ -51,6 +62,7 @@ export async function takeMoodHandoff(id){
       throw Error('Your temporary photograph has expired. Select it again in Image.');
     const blob=record.blob;
     const file=blob instanceof Blob&&record.mime?new File([blob],String(record.name||'mood-photo.png'),{type:record.mime}):null;
-    return validateMoodHandoff({file,prompt:record.prompt||''});
+    return {...validateMoodHandoff({file,prompt:record.prompt||''}),...(record.generation?{generation:record.generation}:{})};
   }finally{db.close();}
 }
+

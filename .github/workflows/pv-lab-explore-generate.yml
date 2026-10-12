@@ -1,0 +1,41 @@
+name: PV Lab Explore Generate
+on:
+  push:
+    branches: [main, codex/mood-generate]
+    paths:
+      - 'lab/explore-moods*'
+      - 'lab/app-mood-generation.js'
+      - 'lab/mood-handoff.js'
+      - 'lab/lab.js'
+      - 'lab/studio.html'
+      - 'tests/lab-explore-generation.mjs'
+      - 'tests/lab-mood-handoff.test.mjs'
+      - '.github/workflows/pv-lab-explore-generate.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16.0'
+      - name: Verify one-shot generation handoffs
+        run: node --test tests/lab-mood-handoff.test.mjs
+      - name: Install browser
+        run: |
+          npm install --prefix /tmp/pv-mood-generate --no-save playwright@1.57.0
+          node /tmp/pv-mood-generate/node_modules/playwright/cli.js install --with-deps chromium
+      - name: Check desktop, mobile, sign-in, pricing and single submission
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-mood-generate/node_modules/playwright/index.mjs
+        run: node tests/lab-explore-generation.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pv-explore-generate-preview
+          path: /tmp/pv-explore-generation/*.png
+          retention-days: 2

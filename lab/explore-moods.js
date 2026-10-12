@@ -1,6 +1,6 @@
 import {moodById} from './moods.js?v=20261011-midnight-reverie1&hd=20261011&raveBudget=1&editorialHD=2&hongKongStreet=1&moodImageHD=1&raveNight=4';
-import {saveMoodHandoff,validateMoodHandoff} from './mood-handoff.js?v=20261011-discovery1';
-// Discovering and selecting a look must never perform a paid generation.
+import {saveMoodHandoff,validateMoodHandoff} from './mood-handoff.js?v=20261012-generate1';
+// Browsing and uploads only prepare a price. Generate explicitly authorizes one job.
 export function moodExploreDestination(moodId,{create=false,handoff=null}={}){
   if(!moodById(moodId))throw Error('Choose a valid PV Lab Mood.');
   const query=new URLSearchParams(create?{base:moodId}:{tool:'image',mood:moodId});
@@ -12,6 +12,55 @@ function initialize(){
   const dialog=$('mc-look-dialog'),zone=$('mc-look-dropzone'),fileInput=$('mc-look-file');
   const direction=$('mc-look-direction'),status=$('mc-look-status');
   let mood=null,file=null,fileURL=null,busy=false;
+  let price=null,priceRevision=0,priceTimer=null,expiryTimer=null,service=null,serviceLoading=null,needsSignIn=false;
+  const generate=$('mc-look-continue');
+  function generationService(){
+    if(service)return Promise.resolve(service);
+    return serviceLoading||(serviceLoading=import('./app-mood-generation.js?v=20261012-explore-generate1').then(({createAppMoodGeneration})=>{
+      service=createAppMoodGeneration();
+      let accountId;
+      void service.onAccountChange(account=>{
+        const next=account.user?.id||'';
+        if(accountId!==undefined&&next!==accountId&&dialog.open&&!busy){
+          if(next&&!dialog.matches(':modal')){dialog.close();dialog.showModal();}
+          schedulePrice();
+        }
+        accountId=next;
+      }).catch(()=>{});
+      return service;
+    }).catch(error=>{serviceLoading=null;throw error;}));
+  }
+  function resetPrice(){
+    priceRevision++;clearTimeout(priceTimer);clearTimeout(expiryTimer);service?.cancel();
+    price=null;needsSignIn=false;
+    generate.textContent='Generate image';generate.disabled=true;
+  }
+  function schedulePrice(){
+    resetPrice();status.textContent='';
+    if(!mood||(!file&&!direction.value.trim()))return;
+    generate.textContent='Checking price…';
+    const stamp=priceRevision;
+    priceTimer=setTimeout(()=>void preparePrice(stamp),650);
+  }
+  async function preparePrice(stamp=priceRevision){
+    clearTimeout(priceTimer);
+    generate.disabled=true;generate.textContent='Checking price…';
+    try{
+      const client=await generationService();if(stamp!==priceRevision)return;
+      const ready=await client.prepare(file,mood,direction.value.trim());
+      if(stamp!==priceRevision||!dialog.open)return;
+      price=ready;generate.textContent='Generate image · '+ready.label;generate.disabled=false;
+      expiryTimer=setTimeout(()=>{if(stamp===priceRevision&&!busy)schedulePrice();},Math.max(0,ready.expiresAt-Date.now()-20000));
+    }catch(error){
+      if(stamp!==priceRevision||!dialog.open)return;
+      needsSignIn=error.code==='SIGN_IN';status.textContent=error.message;
+      generate.textContent=needsSignIn?'Sign in to generate':'Retry price';generate.disabled=false;
+    }
+  }
+  function setBusy(value){
+    busy=value;
+    for(const control of [generate,$('mc-look-make'),fileInput,direction,$('mc-look-file-clear'),$('mc-look-close')])control.disabled=value;
+  }
   const fullPreviews=new Map();
   function loadFullPreview(selected,priority='low'){
     const src=selected.previewFull;
@@ -39,6 +88,7 @@ function initialize(){
     zone.classList.remove('has-image');
   }
   function attachPhoto(input){
+    if(busy)return false;
     try{validateMoodHandoff({file:input});}catch(error){status.textContent=error.message;return false;}
     clearPhoto();file=input;
     fileURL=URL.createObjectURL(file);
@@ -47,12 +97,12 @@ function initialize(){
     zone.prepend(photo);
     $('mc-look-file-label-text').textContent=file.name;
     $('mc-look-file-clear').hidden=false;zone.classList.add('has-image');
-    status.textContent='';
+    schedulePrice();
     return true;
   }
   function showMood(selected,photo=null){
-    if(!selected)return;
-    mood=selected;clearPhoto();direction.value='';status.textContent='';
+    if(!selected||busy)return;
+    resetPrice();mood=selected;clearPhoto();direction.value='';status.textContent='';
     const preview=$('mc-look-preview');
     preview.dataset.moodId=selected.id;
     // Reuse the gallery's HD image while the untouched original decodes offscreen.
@@ -68,17 +118,18 @@ function initialize(){
       if(src&&dialog.open&&mood===selected)preview.src=src;
     });
   }
-  function close(){if(dialog.open)dialog.close();}
+  function close(){if(dialog.open&&!busy)dialog.close();}
+  dialog.addEventListener('cancel',event=>{if(busy)event.preventDefault();});
   dialog.addEventListener('close',()=>{
     if(dialog.open)return;
-    clearPhoto();mood=null;busy=false;
-    $('mc-look-make').disabled=false;$('mc-look-continue').disabled=false;
+    resetPrice();clearPhoto();mood=null;setBusy(false);generate.disabled=true;
     $('mc-look-preview').removeAttribute('src');
   });
   $('mc-look-close').onclick=close;
   dialog.addEventListener('click',event=>{if(event.target===dialog)close();});
   fileInput.addEventListener('change',()=>{if(fileInput.files?.[0])attachPhoto(fileInput.files[0]);});
-  $('mc-look-file-clear').onclick=()=>{clearPhoto();status.textContent='';};
+  $('mc-look-file-clear').onclick=()=>{if(!busy){clearPhoto();schedulePrice();}};
+  direction.addEventListener('input',schedulePrice);
   zone.addEventListener('dragover',event=>{if(event.dataTransfer?.types?.includes('Files')){event.preventDefault();zone.classList.add('is-over');}});
   zone.addEventListener('dragleave',()=>zone.classList.remove('is-over'));
   zone.addEventListener('drop',event=>{if(event.dataTransfer?.files?.length){event.preventDefault();zone.classList.remove('is-over');attachPhoto(event.dataTransfer.files[0]);}});
@@ -99,17 +150,37 @@ function initialize(){
   });
   async function continueWithMood(create=false){
     if(!mood||busy)return;
-    busy=true;$('mc-look-continue').disabled=true;$('mc-look-make').disabled=true;
+    resetPrice();setBusy(true);
     status.textContent='Preparing your private photo handoff. Nothing is being generated.';
     try{
       const token=await saveMoodHandoff({file,prompt:direction.value.trim()});
       location.assign(moodExploreDestination(mood.id,{create,handoff:token}));
     }catch(error){
       status.textContent=error.message;
-      busy=false;$('mc-look-continue').disabled=false;$('mc-look-make').disabled=false;
+      setBusy(false);schedulePrice();status.textContent=error.message;
     }
   }
-  $('mc-look-continue').onclick=()=>void continueWithMood();
+  generate.onclick=()=>void (async()=>{
+    if(!mood||busy)return;
+    if(needsSignIn){
+      try{
+        const client=await generationService();
+        // Clerk renders outside the native dialog's top layer. Keep the draft
+        // visible, but let its sign-in modal receive focus and pointer input.
+        if(dialog.matches(':modal')){dialog.close();dialog.show();}
+        if(await client.signIn())schedulePrice();
+      }
+      catch(error){status.textContent=error.message;}
+      return;
+    }
+    if(!price||price.expiresAt<=Date.now()+5000){await preparePrice();return;}
+    setBusy(true);clearTimeout(expiryTimer);generate.textContent='Opening Image…';status.textContent='';
+    try{
+      const generation=price.handoff();
+      const token=await saveMoodHandoff({file,prompt:direction.value.trim(),generation});
+      location.assign(moodExploreDestination(mood.id,{handoff:token}));
+    }catch(error){setBusy(false);schedulePrice();status.textContent=error.message;}
+  })();
   $('mc-look-make').onclick=()=>void continueWithMood(true);
 
   // Mobile navigation follows the native PV Lab links, with a genuine close action.
@@ -131,7 +202,9 @@ function initialize(){
     header.querySelectorAll('.mc-navigation a').forEach(link=>link.addEventListener('click',closeMenu));
   }
 
+  window.addEventListener('pageshow',event=>{if(event.persisted){setBusy(false);if(dialog.open)schedulePrice();}});
   const requested=new URLSearchParams(location.search).get('mood');
   if(requested&&moodById(requested))showMood(moodById(requested));
 }
 if(typeof document!=='undefined')initialize();
+
