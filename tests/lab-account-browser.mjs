@@ -50,7 +50,7 @@ try{
     const rig=await setup(width),{page,errors,writes}=rig;
     try{
       await page.goto(origin+'/lab/account.html');await page.waitForFunction(()=>document.querySelector('#account-balance').textContent==='1,234');
-      await fits(page,'account '+width);assert.equal(await page.locator('#account-products button').count(),3);
+      await fits(page,'account '+width);await page.locator('.account-cover img').evaluate(img=>img.decode());assert.equal(await page.locator('#account-products button').count(),3);
       await page.screenshot({path:artifacts+'/account-balance-'+width+'.png',fullPage:true});
       await page.click('[data-tab="usage"]');await page.locator('#account-activity').getByText('Generation',{exact:true}).waitFor();
       assert.match(await page.locator('#account-activity').textContent(),/-42 credits/);
@@ -86,6 +86,20 @@ try{
     }
     console.log('PASS account, shared menus, keyboard, private state and billing guards at '+width+'px');
   }
-  const rig=await setup(1440,false);
-  try{await rig.page.goto(origin+'/lab/account.html');await rig.page.locator('#owner-billing').waitFor({state:'visible'});assert.equal(await rig.page.locator('[data-credit-view="balance"]').isVisible(),false);assert.equal(await rig.page.locator('#account-referrals-link').isVisible(),false);assert.deepEqual(rig.errors,[]);}finally{await rig.context.close();}
+  for(const width of [1920,1440,768,390,320]){
+    const rig=await setup(width,false);
+    try{
+      const page=rig.page;await page.goto(origin+'/lab/account.html');await page.locator('#owner-billing').waitFor({state:'visible'});
+      assert.equal(await page.locator('[data-credit-view="balance"]').isVisible(),false);
+      assert.equal(await page.locator('#account-credit-tabs').isVisible(),false,'Owner has workspace navigation instead of empty billing tabs');
+      assert.equal(await page.locator('#account-referrals-link').isVisible(),false);
+      assert.equal(await page.locator('#credits-title').textContent(),'Your workspace');
+      assert.equal(await page.locator('#owner-billing a[href="./studio.html"]').count(),1);
+      await page.locator('.account-cover img').evaluate(img=>img.decode());
+      await fits(page,'owner account '+width);
+      await page.screenshot({path:artifacts+'/account-owner-'+width+'.png',fullPage:true});
+      await page.evaluate(()=>location.hash='settings');await page.locator('#settings-connection').waitFor({state:'visible'});
+      await fits(page,'owner settings '+width);assert.deepEqual(rig.errors,[]);
+    }finally{await rig.context.close();}
+  }
 }catch(error){console.error(error);throw error;}finally{await browser.close();await new Promise(r=>server.close(r));}
