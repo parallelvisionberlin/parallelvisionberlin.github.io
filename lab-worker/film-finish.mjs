@@ -1,6 +1,6 @@
 import {filmFinishSettings} from '../lab/film-finish.js';
 
-export const FILM_RENDER_REVISION=3;
+export const FILM_RENDER_REVISION=4;
 const INPUT_LIMIT=20_000_000,OUTPUT_LIMIT=20*1024*1024;
 const signature=new Uint8Array([137,80,78,71,13,10,26,10]);
 const crcTable=Uint32Array.from({length:256},(_,n)=>{for(let k=0;k<8;k++)n=n&1?0xedb88320^(n>>>1):n>>>1;return n>>>0;});
@@ -81,6 +81,60 @@ async function convertHighlights(bytes,asMask=false){
   }
   return png(width,height,output,6);
 }
+
+// Optical finish: light masks are built only from bright source pixels, never
+// from general image edges. No person segmentation or new lights are invented.
+const clamp=(n,min=0,max=1)=>Math.max(min,Math.min(max,n));
+const smooth=(a,b,x)=>{const t=clamp((x-a)/(b-a));return t*t*(3-2*t);};
+export function sourceLightWeight(r,g,b,localContrast=0){
+  const l=(.2126*r+.7152*g+.0722*b)/255,max=Math.max(r,g,b)/255,min=Math.min(r,g,b)/255;
+  const saturated=max>.94&&max-min>.45&&l>.52?smooth(.94,1,max)*.55:0;
+  const core=Math.max(smooth(.79,.98,l),saturated);
+  return core*(.3+.7*smooth(.035,.22,localContrast));
+}
+export async function luminousMaskPng(bytes){
+  const {width,height,pixels}=await normalizedPixels(bytes),out=new Uint8Array((width*4+1)*height);
+  const light=(x,y)=>{
+    x=Math.max(0,Math.min(width-1,x));y=Math.max(0,Math.min(height-1,y));
+    const p=(y*width+x)*4;return (.2126*pixels[p]+.7152*pixels[p+1]+.0722*pixels[p+2])/255;
+  };
+  let active=false;
+  for(let y=0;y<height;y++)for(let x=0;x<width;x++){
+    const i=(y*width+x)*4,j=y*(width*4+1)+1+x*4;
+    const current=light(x,y),d=Math.max(4,Math.round(Math.min(width,height)/55));
+    const around=(light(x-d,y)+light(x+d,y)+light(x,y-d)+light(x,y+d))/4;
+    const weight=sourceLightWeight(pixels[i],pixels[i+1],pixels[i+2],current-around);
+    if(weight>.008)active=true;
+    out[j]=Math.round(pixels[i]*weight);out[j+1]=Math.round(pixels[i+1]*weight);
+    out[j+2]=Math.round(pixels[i+2]*weight);out[j+3]=255;
+  }
+  return {bytes:await png(width,height,out,6),active};
+}
+// Artistic 35mm print simulation, not a calibrated stock or camera profile.
+// Neutral curves first; gentle cool shadows / warm practical highlights next.
+// No neon-green tint, auto exposure, edge sharpening or faux dust/scratches.
+export function photochemicalPixel(r,g,b){
+  const l=(.2126*r+.7152*g+.0722*b)/255;
+  const shadow=1-smooth(.07,.48,l),highlight=smooth(.62,.97,l);
+  // Mild print toe, shaped midtone contrast and non-clipping highlight shoulder.
+  const target=clamp(l+.055*(l-.5)*(1-Math.abs(2*l-1))-.043*highlight+.006*shadow);
+  const ratio=l>.006?target/l:1;
+  const greenExcess=Math.max(0,g-(r+b)*.5);
+  return [
+    Math.round(clamp(r*ratio+6*highlight-1*shadow,0,255)),
+    Math.round(clamp(g*ratio+2*highlight+1*shadow-greenExcess*.065,0,255)),
+    Math.round(clamp(b*ratio-3*highlight+4*shadow,0,255))
+  ];
+}
+export async function printGradePng(bytes){
+  const {width,height,pixels}=await normalizedPixels(bytes),scan=new Uint8Array((width*4+1)*height);
+  for(let y=0;y<height;y++)for(let x=0;x<width;x++){
+    const i=(y*width+x)*4,j=y*(width*4+1)+1+x*4,graded=photochemicalPixel(pixels[i],pixels[i+1],pixels[i+2]);
+    scan[j]=graded[0];scan[j+1]=graded[1];scan[j+2]=graded[2];scan[j+3]=pixels[i+3];
+  }
+  return png(width,height,scan,6);
+}
+
 export const transparentHighlights=bytes=>convertHighlights(bytes,false);
 export const highlightMask=bytes=>convertHighlights(bytes,true);
 // Custom multiscale grain, not a measured film-stock model. Isotropic smooth
@@ -138,34 +192,44 @@ export async function renderFilmFinish(images,bytes,settings,seed){
   const info=await images.info(stream(bytes)),width=Number(info.width),height=Number(info.height);
   if(!Number.isInteger(width)||!Number.isInteger(height)||width<1||height<1||width*height>36_000_000)
     throw Error('Unsupported image dimensions for the film finish.');
-  let image=images.input(stream(bytes)),sourcePng=null;
-  if(finish.glow||finish.grain){
-    const source=(await images.input(stream(bytes)).transform({width:1000,height:1000,fit:'scale-down'})
-      .output({format:'image/png',anim:false})).response();
-    sourcePng=await bytesFrom(source,5_000_000);
+  let image=images.input(stream(bytes));
+  if(!(finish.grain||finish.haze||finish.halation||finish.film))return bytes;
+  const resized=(await images.input(stream(bytes)).transform({width:1000,height:1000,fit:'scale-down'})
+    .output({format:'image/png',anim:false})).response();
+  const sourcePng=await bytesFrom(resized,5_000_000);
+  if(finish.film){
+    // Blend a graded low-res negative/print layer over the native-resolution
+    // photograph. Fine image detail remains in the original underneath.
+    const grade=images.input(stream(await printGradePng(sourcePng))).transform({width,height,fit:'squeeze'});
+    image=image.draw(grade,{opacity:finish.film/100*.88,composite:'over'});
   }
-  if(finish.glow){
-    const amount=finish.glow/100,scale=Math.min(Math.max(width,height),1000)/1400;
-    // A restrained full-frame diffusion layer softens foreground transitions
-    // too. The sharp original remains dominant, preserving pores and fabrics.
-    const diffusion=images.input(stream(bytes)).transform({blur:Math.max(1,Math.round(Math.max(width,height)/1400*2))});
-    image=image.draw(diffusion,{opacity:amount*.58,composite:'over'});
-    const shoulder=images.input(stream(await shoulderPng(sourcePng))).transform({width,height,fit:'squeeze'});
-    image=image.draw(shoulder,{opacity:amount*.32,composite:'over'});
-    const maskPng=await highlightMask(sourcePng);
-    // Broad, source-colored halos give wet/glossy highlights depth without a
-    // global green overlay or a uniform fog veil.
-    for(const [radius,weight] of [[6,.34],[30,.24]]){
-      const spread=(await images.input(stream(maskPng)).transform({blur:Math.max(1,Math.round(radius*scale))})
-        .output({format:'image/png',anim:false})).response();
-      const highlightsPng=await transparentHighlights(await bytesFrom(spread,5_000_000));
-      const highlights=images.input(stream(highlightsPng)).transform({width,height,fit:'squeeze'});
-      image=image.draw(highlights,{opacity:amount*weight,composite:'over'});
+  if(finish.haze){
+    // Subtle optical softness everywhere, but no global gray veil or green tint.
+    const diffuse=images.input(stream(bytes)).transform({blur:Math.max(1,Math.round(Math.max(width,height)/2400))});
+    image=image.draw(diffuse,{opacity:finish.haze/100*.09,composite:'over'});
+  }
+  if(finish.haze||finish.halation){
+    const mask=await luminousMaskPng(sourcePng);
+    if(mask.active){
+      // Scene-scale humid diffusion is separate from tight source halation.
+      // Both only draw energy originating in actual bright source pixels.
+      const stages=[
+        ...(finish.haze?[[22,finish.haze/100*.24],[52,finish.haze/100*.14]]:[]),
+        ...(finish.halation?[[4,finish.halation/100*.28],[12,finish.halation/100*.14]]:[])
+      ];
+      const scale=Math.max(.35,Math.min(1,Math.max(width,height)/1400));
+      for(const [radius,opacity] of stages){
+        const spread=(await images.input(stream(mask.bytes)).transform({blur:Math.max(1,Math.round(radius*scale))})
+          .output({format:'image/png',anim:false})).response();
+        const halo=await transparentHighlights(await bytesFrom(spread,5_000_000));
+        const layer=images.input(stream(halo)).transform({width,height,fit:'squeeze'});
+        image=image.draw(layer,{opacity,composite:'over'});
+      }
     }
   }
   if(finish.grain){
-    const source=await normalizedPixels(sourcePng),textureScale=Math.min(1,2000/Math.max(width,height));
-    const grain=await grainPng(Math.max(1,Math.round(width*textureScale)),Math.max(1,Math.round(height*textureScale)),finish.grain,seed,source);
+    const source=await normalizedPixels(sourcePng),scale=Math.min(1,2000/Math.max(width,height));
+    const grain=await grainPng(Math.max(1,Math.round(width*scale)),Math.max(1,Math.round(height*scale)),finish.grain,seed,source);
     const texture=images.input(stream(grain)).transform({width,height,fit:'squeeze'});
     image=image.draw(texture,{opacity:1,composite:'over'});
   }
@@ -185,7 +249,7 @@ export async function filmAssetId(owner,originalId,settings){
 // generation quote or wallet debit exists anywhere in this module.
 export async function prepareFilmAsset(env,original,settings,{first,remaining}){
   const finish=filmFinishSettings(settings);
-  if(!finish.grain&&!finish.glow)return original;
+  if(!finish.grain&&!finish.haze&&!finish.halation&&!finish.film)return original;
   const id=await filmAssetId(original.owner_id,original.id,finish);
   const cached=await first(env,'SELECT * FROM assets WHERE id=? AND owner_id=?',id,original.owner_id);
   if(cached&&await env.LAB_MEDIA.head(cached.object_key))return cached;

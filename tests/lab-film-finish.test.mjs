@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {inflateSync} from 'node:zlib';
-import {grainPng,filmAssetId,prepareFilmAsset,renderFilmFinish,shoulderPng,FILM_RENDER_REVISION} from '../lab-worker/film-finish.mjs';
-import {filmFinishSettings,HONG_KONG_FILM_FINISH} from '../lab/film-finish.js';
+import {grainPng,filmAssetId,prepareFilmAsset,renderFilmFinish,shoulderPng,FILM_RENDER_REVISION,photochemicalPixel,sourceLightWeight,printGradePng,luminousMaskPng} from '../lab-worker/film-finish.mjs';
+import {filmFinishSettings,HONG_KONG_FILM_FINISH,FILM_FINISH_OFF} from '../lab/film-finish.js';
 import {prepareMoodPrompt,preparePersonalMoodPrompt} from '../lab/moods.js';
 
 test('grain is a valid non-tiled PNG, repeatable by image and scalable by strength',async()=>{
@@ -15,11 +15,11 @@ test('grain is a valid non-tiled PNG, repeatable by image and scalable by streng
   assert.ok(high>low*1.4);assert.ok(low>0);
 });
 test('settings reject unsupported values and stable asset IDs isolate owners and settings',async()=>{
-  for(const value of [null,{},[],{version:2,grain:10,glow:10},{version:1,grain:101,glow:10},{version:1,grain:1.5,glow:0}])assert.throws(()=>filmFinishSettings(value));
+  for(const value of [null,{},[],{version:3,grain:10,haze:10,halation:10,film:10},{version:1,grain:101,glow:10},{version:1,grain:1.5,glow:0}])assert.throws(()=>filmFinishSettings(value));
   const a=await filmAssetId('owner-a','image',HONG_KONG_FILM_FINISH);
   assert.equal(a,await filmAssetId('owner-a','image',HONG_KONG_FILM_FINISH));
   assert.notEqual(a,await filmAssetId('owner-b','image',HONG_KONG_FILM_FINISH));
-  assert.notEqual(a,await filmAssetId('owner-a','image',{...HONG_KONG_FILM_FINISH,glow:0}));
+  assert.notEqual(a,await filmAssetId('owner-a','image',{...HONG_KONG_FILM_FINISH,film:0}));
 });
 test('off bypasses processing and cached derivatives bypass all rendering',async()=>{
   const original={id:'original',owner_id:'owner',bytes:100,object_key:'owner/original'};
@@ -50,7 +50,7 @@ test('source-aware grain preserves black and white, favors midtones and does not
   assert.equal(energy[0],0);assert.equal(energy[5],0);
   assert.ok(energy[3]>energy[1]*3);assert.ok(energy[3]>energy[4]*3);
   for(const m of mean)assert.ok(Math.abs(m)<.15,'grain must not lift shadows or depress highlights systematically');
-  assert.equal(FILM_RENDER_REVISION,3,'new processing must not reuse earlier cached derivatives');
+  assert.equal(FILM_RENDER_REVISION,4,'new processing must not reuse earlier cached derivatives');
 });
 test('Hong Kong optical finish preserves the setting and addresses foreground light at every tier',()=>{
   for(const intensity of [21,70,100]){
@@ -71,4 +71,24 @@ test('neutral highlight shoulder preserves black, midtones and warm source hue',
   assert.deepEqual([...row.slice(5,8)],[128,128,128]);
   assert.ok(row[9]<255&&row[9]>235);assert.equal(row[9],row[10]);assert.equal(row[10],row[11]);
   assert.ok(Math.abs(row[14]/row[13]-175/230)<.01);assert.ok(Math.abs(row[15]/row[13]-140/230)<.01);
+});
+
+test('old film settings stay readable, v2 sliders validate and off is an exact original',async()=>{
+  assert.deepEqual(filmFinishSettings({version:1,grain:100,glow:100}),{version:2,grain:100,haze:55,halation:35,film:0});
+  assert.deepEqual(filmFinishSettings({version:1,grain:0,glow:0}),FILM_FINISH_OFF);
+  for(const value of [{version:2,grain:20,haze:0,halation:0},{version:2,grain:0,haze:101,halation:0,film:0},{version:2,grain:0,haze:0,halation:-1,film:0},{version:2,grain:0,haze:0,halation:0,film:12.5}])
+    assert.throws(()=>filmFinishSettings(value));
+  assert.equal(await prepareFilmAsset({}, {id:'a',owner_id:'b'}, FILM_FINISH_OFF,{}).then(v=>v.id),'a');
+  assert.notEqual(await filmAssetId('owner','image',{...HONG_KONG_FILM_FINISH,film:65}),
+    await filmAssetId('owner','image',{...HONG_KONG_FILM_FINISH,film:95}));
+});
+test('35mm print curve shifts bright neutrals warm, shadows cool, keeps luminance and no artificial edge source',()=>{
+  const warm=photochemicalPixel(239,239,239);
+  const dark=photochemicalPixel(26,26,26);
+  assert.ok(warm[0]>warm[2],'print highlight warms, blue rolls off');
+  assert.ok(dark[2]>dark[0],'cool shadow crossover');
+  assert.ok(warm.every(n=>n>210),'highlights remain luminous');
+  assert.equal(sourceLightWeight(108,130,111,0.6),0,'skin/background midtones never become invented glow sources');
+  assert.ok(sourceLightWeight(250,245,222,0.24)>.4,'only near-white luminous sources spread');
+  assert.ok(sourceLightWeight(14,30,30,0.5)<.01,'dark silhouettes cannot seed halos');
 });

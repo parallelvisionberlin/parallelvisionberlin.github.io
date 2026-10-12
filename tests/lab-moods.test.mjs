@@ -178,7 +178,7 @@ test('original prompt is not lost; mood metadata can be restored',()=>{
   assert.ok(data.prompt.startsWith('Nina sitting by a window\n\n'));
   assert.match(data.prompt,/atmospheric emerald haze/);
   assert.match(data.prompt,/first reference is the base/);
-  assert.deepEqual(data.metadata,{moodId:'hong-kong-nights',moodIntensity:64,moodOriginalPrompt:'Nina sitting by a window',filmFinish:{version:1,grain:0,glow:0}});
+  assert.deepEqual(data.metadata,{moodId:'hong-kong-nights',moodIntensity:64,moodOriginalPrompt:'Nina sitting by a window',filmFinish:{version:1,grain:36,haze:42,halation:22,film:65}});
   assert.equal(data.error,'');
 });
 test('mood intensity actually affects the generated directions',()=>{
