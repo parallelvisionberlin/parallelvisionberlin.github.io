@@ -134,6 +134,7 @@
 
 /* Align both public pages to the same horizontal grid. Hero heights stay page-specific. */
 .lab-hero .hero-copy{left:var(--lab-page-gutter)}
+@media(min-width:901px){.lab-hero .hero-copy{left:calc(var(--lab-page-gutter) + 35px)}}
 .lab-hero :is(.hero-poster,.hero-motion){top:var(--lab-header-height);height:calc(100% - var(--lab-header-height))}
 .mc-explore-page .mc-explore-hero-copy{padding-left:var(--lab-page-gutter)}
 .mc-explore-page .mc-explore-collection{padding-inline:var(--lab-page-gutter)}

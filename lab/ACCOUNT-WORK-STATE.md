@@ -114,3 +114,11 @@
 - Desktop/mobile screenshots inspected; reusable artifact 11763463490, local hero-position-review folder.
 - Pages run 38287852016 succeeded. Live index.html and landing-motion.css returned HTTP 200 and matched the release bytes.
 - Complete: https://parallelvisionlabel.com/lab/. No pending work for this adjustment.
+
+## Desktop hero horizontal inset (2026-10-12)
+- Approved from image(20261012-182541).png: move the full hero copy/actions 30–40 px right on desktop.
+- Add 35 px to the existing hero gutter above 900 px. Preserve navigation, vertical centering, type sizes and mobile/tablet layout.
+- Files: lab/public-header.css, its cache version in lab/index.html, and this checkpoint.
+- Baseline: c980a84ce88aa39e605d0c913437c89ff3f81a34. No new images, dependencies or tests.
+- Verification: reuse the existing landing-stability workflow and its desktop/mobile screenshots.
+- Next: verify CI, publish and confirm the live revision.
