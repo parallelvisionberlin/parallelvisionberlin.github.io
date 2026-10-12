@@ -20,22 +20,54 @@
   }
   const toggle = section.querySelector('.studio-motion-toggle');
   const motionCard = section.querySelector('.studio-tool--video');
+  const video = motionCard?.querySelector('.studio-tool-video');
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
-  const setMotion = active => {
-    const playing = active && !reduced.matches;
+  const setPlaying = playing => {
     motionCard?.classList.toggle('is-previewing', playing);
     toggle?.setAttribute('aria-pressed', String(playing));
     toggle?.setAttribute('aria-label', playing ? 'Pause motion preview' : 'Play motion preview');
   };
-  if (toggle && motionCard) {
+  if (toggle && motionCard && video) {
+    let visible = false;
+    let userPaused = false;
+    let failed = false;
+    const pause = () => { video.pause(); setPlaying(false); };
+    const play = () => {
+      if (reduced.matches || document.hidden || failed) return;
+      if (!video.getAttribute('src')) {
+        video.src = video.dataset.src;
+        video.load();
+      }
+      video.muted = true;
+      video.play().catch(() => setPlaying(false));
+    };
+    const sync = () => {
+      if (visible && !userPaused && !navigator.connection?.saveData && !reduced.matches && !document.hidden) play();
+      else pause();
+    };
     toggle.hidden = reduced.matches;
-    toggle.addEventListener('click', () => setMotion(toggle.getAttribute('aria-pressed') !== 'true'));
-    reduced.addEventListener('change', () => { toggle.hidden = reduced.matches; setMotion(false); });
-    document.addEventListener('visibilitychange', () => { if (document.hidden) setMotion(false); });
+    video.addEventListener('loadeddata', () => video.classList.add('is-ready'));
+    video.addEventListener('playing', () => setPlaying(true));
+    video.addEventListener('pause', () => setPlaying(false));
+    video.addEventListener('error', () => {
+      failed = true;
+      video.classList.remove('is-ready');
+      toggle.hidden = true;
+      pause();
+    });
+    toggle.addEventListener('click', () => {
+      userPaused = !video.paused;
+      if (userPaused) pause();
+      else play();
+    });
+    reduced.addEventListener('change', () => { toggle.hidden = reduced.matches || failed; sync(); });
+    document.addEventListener('visibilitychange', sync);
     if ('IntersectionObserver' in window) {
       new IntersectionObserver(entries => {
-        if (!entries[0].isIntersecting) setMotion(false);
-      }).observe(motionCard);
-    }
+        visible = entries[0].isIntersecting && entries[0].intersectionRatio >= .2;
+        sync();
+      }, { threshold: [0, .2] }).observe(motionCard);
+    } else { visible = true; sync(); }
   }
 })();
+

@@ -6,7 +6,7 @@ import {resolve,extname} from 'node:path';
 const {chromium}=await import(process.env.PV_PLAYWRIGHT_MODULE||'playwright');
 const root=resolve('.'),artifacts=resolve(process.env.PV_UI_ARTIFACTS||'/tmp/pv-landing-stability');
 await mkdir(artifacts,{recursive:true});
-const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.woff2':'font/woff2','.webp':'image/webp','.png':'image/png'};
+const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.woff2':'font/woff2','.webp':'image/webp','.png':'image/png','.mp4':'video/mp4'};
 const server=createServer(async(req,res)=>{
   const pathname=new URL(req.url,'http://localhost').pathname;
   const file=resolve(root,'.'+pathname+(pathname.endsWith('/')?'index.html':''));
@@ -127,12 +127,20 @@ try{
         await detail.evaluate(el=>{el.value='50';el.dispatchEvent(new Event('input',{bubbles:true}));});
         if(width===1440||width===390)await toolsSection.screenshot({path:resolve(artifacts,`studio-tools-${width}.png`)});
         if(width===1440){
+          const motionVideo=toolsSection.locator('.studio-tool-video');
+          assert.equal(await motionVideo.getAttribute('src'),null,'Reduced motion does not download the video');
           await page.emulateMedia({reducedMotion:'no-preference'});
-          const play=toolsSection.getByRole('button',{name:'Play motion preview'});
-          await play.click();
+          await page.waitForFunction(()=>{const v=document.querySelector('.studio-tool-video');return v.readyState>=2&&!v.paused&&v.currentTime>.1;});
           assert.equal(await toolsSection.locator('.studio-motion-toggle').getAttribute('aria-pressed'),'true');
           await toolsSection.getByRole('button',{name:'Pause motion preview'}).click();
+          assert.equal(await motionVideo.evaluate(v=>v.paused),true);
           assert.equal(await toolsSection.locator('.studio-motion-toggle').getAttribute('aria-pressed'),'false');
+          await toolsSection.getByRole('button',{name:'Play motion preview'}).click();
+          await page.waitForFunction(()=>!document.querySelector('.studio-tool-video').paused);
+          assert.equal(await motionVideo.evaluate(v=>v.muted&&v.loop&&v.playsInline),true);
+          await page.emulateMedia({reducedMotion:'reduce'});
+          await page.waitForFunction(()=>document.querySelector('.studio-tool-video').paused);
+          assert.equal(await motionVideo.evaluate(v=>v.paused),true);
         }
       }
       console.log(`PASS ${width}x${height}: ${slowFont?'delayed':'ready'} font, account recovery, sign out, navigation and hero geometry`);
@@ -144,4 +152,5 @@ try{
   if(page)await page.screenshot({path:resolve(artifacts,'failure.png')});
   throw error;
 }finally{await browser.close();await new Promise(r=>server.close(r));}
+
 
