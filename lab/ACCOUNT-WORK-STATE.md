@@ -47,3 +47,32 @@
 - Static link and stylesheet checks passed. Local Chromium cannot start in this execution environment.
 - Existing account browser workflow provides desktop/mobile regression coverage after commit.
 - Deployment and live navigation verification are pending for this revision.
+
+## Active: approved Studio credit notice (2026-10-12)
+- User approved the white out-of-credits Studio bar and asked for a simple Add credits deck.
+- Rejected: Keep creating / Find your rhythm marketing headings and the large comparison designs.
+- Reference: generated image exec-571e8dfa-0030-44ec-942f-0102b37ca003.png in the design conversation.
+- Baseline: main 916f6068bd782316775041c23a6ae1e6a7375d17; preserves the newer Film Finish changes.
+- White dismissible notice below navigation, driven by the real customer balance at zero.
+- Header Add credits opens a compact dialog listing only actual one-time products from the API.
+- Monthly plans and account management remain on account.html#billing.
+- Balance refreshes after reserved jobs, confirmed failed jobs, wallet opening and window focus.
+- No local credit deduction; existing checkout request and Stripe URL guard retained.
+- Checkout blocks duplicate pending submissions and ignores responses after a session change.
+- Notice is hidden for owners, signed-out, closed or review-restricted accounts.
+- No new imagery, prices, backend code, provider credentials or rollout flags.
+- Files: lab/studio.html, lab/studio-credits.css, lab/customer-wallet.js, lab/lab.js.
+- Tests: tests/lab-account-browser.mjs, tests/lab-image-viewer-browser.mjs, .github/workflows/lab-account-ui.yml.
+- Local checks: JS syntax, diff whitespace and 18 account/referral/billing/image-quote tests passed.
+- Browser workflow 38272089739 passed at be0acac979cea20b4bbfc3bece7f99b5854299cc, PR #165.
+- Desktop and mobile screenshots inspected; no horizontal overflow.
+- Existing wallet=1 script marker retained; new creditNotice parameter refreshes the script cache.
+- Storage/closure assertions moved to existing account-page coverage; compact deck links there.
+- Screenshots cover 1440/768/390/320 px; intercepted checkout only, no real payments.
+- Source published: b25fa89eefa76952c8731e1e110a82d8d4ba2785 (PR #165).
+- Unrelated landing test expects titles above photos; same failure verified on baseline run 38268271852.
+- Gallery/queue workflow 38272411110 and Lab tests 38272411132 passed at e92704f425a26cddce924dfb50ff99b5854299cc.
+- Combined Home + credits account workflow 38272993924 passed at 8fbf3b63989a76604c14bdd672cd69066ffe0a3e.
+- Pages run 38272992764 succeeded; production Studio HTML, CSS, wallet and app JS verified against that release.
+- Live: https://parallelvisionlabel.com/lab/studio.html
+- Next: no remaining work for this scope; reuse these results unless relevant files change.
