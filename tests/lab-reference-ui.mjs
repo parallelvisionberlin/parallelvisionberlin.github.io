@@ -226,13 +226,14 @@ try{
       promptBorder:getComputedStyle(document.querySelector('.image-detail-prompt-card')).borderTopWidth,
       detailsBorder:getComputedStyle(document.querySelector('#image-detail-metadata')).borderTopWidth};
   });
-  assert.ok(polish.close.left>=polish.downloadRight&&polish.close.right<=polish.topbar.right&&polish.close.top>=polish.topbar.top&&polish.close.bottom<=polish.topbar.bottom,
-    'Close X is accessible beside Download within the media toolbar');
-  assert.equal(polish.promptBorder,'1px','Prompt is in a bordered card');
-  assert.equal(polish.detailsBorder,'1px','Details is in a separate bordered card');
-  await x.page.locator('#image-detail-metadata summary').click();
+  assert.ok(polish.close.right<=polish.topbar.right&&polish.close.top>=polish.topbar.top&&polish.close.bottom<=polish.topbar.bottom,
+    'Close X remains accessible in the media toolbar');
+  assert.equal(polish.promptBorder,'0px','Prompt uses the approved flat inspector');
+  assert.equal(await x.page.locator('.image-detail-utility-row #image-lightbox-download').count(),1,'Download is in the pinned utility row');
+  assert.equal(polish.detailsBorder,'0px','Details uses the approved flat inspector');
+  await x.page.locator('#image-detail-metadata > summary').click();
   assert.equal(await x.page.locator('#image-detail-metadata').evaluate(el=>el.open),false);
-  await x.page.locator('#image-detail-metadata summary').click();
+  await x.page.locator('#image-detail-metadata > summary').click();
   assert.equal(await x.page.locator('#image-detail-metadata').evaluate(el=>el.open),true);
   await x.page.locator('#image-lightbox-fit').click();
   assert.equal(await x.page.locator('#image-lightbox-stage').evaluate(e=>e.classList.contains('is-zoomed')),true,'100% zoom must be available on demand');

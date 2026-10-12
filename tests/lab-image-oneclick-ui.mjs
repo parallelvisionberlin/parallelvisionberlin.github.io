@@ -263,6 +263,7 @@ try{
     createdAt:Date.now(),estimatedUsd:.02};
   x=await workspace({initial:[completed]});
   await x.page.locator('#history .card[data-state="completed"]').first().click();
+  await x.page.locator('#image-detail-extra summary').click();
   await x.page.locator('#image-detail-edit-area').click();
   await x.page.waitForFunction(()=>document.getElementById('app').classList.contains('retouch-studio-active')&&
     !document.getElementById('precision-source-holder').hidden);
