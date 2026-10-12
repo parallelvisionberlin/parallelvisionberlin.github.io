@@ -9,6 +9,7 @@ async function finish(bytes,grain,glow){
 // Exercise the actual remote Images binding, not a mock of its blend semantics.
 const pixels=Buffer.alloc(256*256*3,15);
 for(let y=123;y<133;y++)for(let x=123;x<133;x++)for(let c=0;c<3;c++)pixels[(y*256+x)*3+c]=255;
+for(let y=20;y<80;y++)for(let x=170;x<230;x++)for(let c=0;c<3;c++)pixels[(y*256+x)*3+c]=[230,175,140][c];
 const input=await sharp(pixels,{raw:{width:256,height:256,channels:3}}).png().toBuffer();
 const glowingBytes=await finish(input,0,100);
 await writeFile(`${dir}/test-light-original.png`,input);await writeFile(`${dir}/test-light-glow.png`,glowingBytes);
@@ -36,4 +37,7 @@ for(const [name,file] of fixtures){
 }
 assert.ok(glowing[(128*256+135)*3]>pixels[(128*256+135)*3],'bright point should spread light');
 assert.equal(glowing[(30*256+30)*3],15,'distant dark areas should remain dark');
+const skin=(50*256+200)*3;
+assert.ok(Math.abs(glowing[skin+1]/glowing[skin]-175/230)<.015,'warm skin must not shift orange');
+assert.ok(Math.abs(glowing[skin+2]/glowing[skin]-140/230)<.015,'warm skin hue should remain stable');
 console.log('Actual Cloudflare pixel checks passed. Original and three finishing strengths exported. No AI calls.');

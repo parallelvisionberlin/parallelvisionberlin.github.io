@@ -21,7 +21,8 @@ async function png(width,height,scan,colorType){
 // Decode only our small, Cloudflare-normalized highlight PNG. Converting black
 // to transparent keeps the original dark pixels untouched by normal compositing.
 // Bounds are independent of the source resolution; no full-size pixel buffer.
-export async function transparentHighlights(bytes){
+async function convertHighlights(bytes,asMask=false){
+  if(!signature.every((n,i)=>bytes[i]===n))throw Error('Invalid highlight image.');
   let width=0,height=0,depth=0,type=0,palette=null,alpha=null;const parts=[];
   for(let offset=8;offset+12<=bytes.length;){
     const view=new DataView(bytes.buffer,bytes.byteOffset+offset),length=view.getUint32(0),end=offset+12+length;
@@ -61,11 +62,20 @@ export async function transparentHighlights(bytes){
       else if(type===0||type===4){r=g=b=sample(start,x*channels)*(depth<8?255/((1<<depth)-1):1);if(type===4)a=sample(start,x*channels+1);}
       else{r=sample(start,x*channels);g=sample(start,x*channels+1);b=sample(start,x*channels+2);if(type===6)a=sample(start,x*channels+3);}
       const max=Math.max(r,g,b),i=y*(width*4+1)+1+x*4;
-      if(max){output[i]=Math.round(r/max*255);output[i+1]=Math.round(g/max*255);output[i+2]=Math.round(b/max*255);output[i+3]=Math.round(max*a/255);}
+      if(asMask){
+        // One luminance weight for all three channels preserves hue. Independent
+        // per-channel contrast would turn warm skin into red/orange patches.
+        const luminance=(.2126*r+.7152*g+.0722*b)/255,saturation=max?(max-Math.min(r,g,b))/max:0;
+        const brightness=saturation>.6&&max>235?Math.max(luminance,max/255*.88):luminance;
+        const weight=Math.min(1,Math.max(0,(brightness-.70)/.28))**2*a/255;
+        output[i]=Math.round(r*weight);output[i+1]=Math.round(g*weight);output[i+2]=Math.round(b*weight);output[i+3]=255;
+      }else if(max){output[i]=Math.round(r/max*255);output[i+1]=Math.round(g/max*255);output[i+2]=Math.round(b/max*255);output[i+3]=Math.round(max*a/255);}
     }
   }
   return png(width,height,output,6);
 }
+export const transparentHighlights=bytes=>convertHighlights(bytes,false);
+export const highlightMask=bytes=>convertHighlights(bytes,true);
 // A full-frame seeded texture, never a repeated tile. Two spatial scales avoid
 // a regular pixel grid; the same original and settings always use the same grain.
 export async function grainPng(width,height,amount,seed){
@@ -100,11 +110,11 @@ export async function renderFilmFinish(images,bytes,settings,seed){
     throw Error('Unsupported image dimensions for the film finish.');
   let image=images.input(stream(bytes));
   if(finish.glow){
-    const mask=(await images.input(stream(bytes)).transform({brightness:.62}).transform({contrast:12})
+    const mask=(await images.input(stream(bytes))
       .transform({width:700,height:700,fit:'scale-down'}).output({format:'image/png',anim:false})).response();
-    const maskPng=await bytesFrom(mask,5_000_000),maskScale=Math.min(Math.max(width,height),700)/1400;
-    // Each overlay is a fresh pipeline. Darken then increase contrast to keep
-    // the glow concentrated in highlights, with a small core and a wider falloff.
+    const maskPng=await highlightMask(await bytesFrom(mask,5_000_000)),maskScale=Math.min(Math.max(width,height),700)/1400;
+    // Each overlay is a fresh pipeline. Spread the selected highlight energy
+    // with a small core and a wider falloff.
     // The original itself is never blurred, sharpened or reconstructed.
     for(const [radius,weight] of [[3,.34],[15,.22]]){
       // Blur opaque light energy before converting it to transparency. Blurring
