@@ -24,6 +24,33 @@
   transition:background .2s,border-color .2s;
 }
 .hero-moods-link:hover{background:#ffffff14;border-color:#ffffffc0}
+.hero-eyebrow{
+  margin:0 0 16px;color:#d8d5dd;
+  font:400 11px/1.4 ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:.14em;
+}
+.hero-launcher{
+  width:420px;max-width:100%;padding:12px;
+  border:1px solid #ffffff38;border-radius:12px;background:#100e13b8;
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+}
+.hero-tool-picker{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;
+  padding-bottom:12px;margin-bottom:12px;border-bottom:1px solid #ffffff1f;
+}
+.hero-tool-choice{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  min-width:0;min-height:44px;padding:8px;border:1px solid transparent;border-radius:6px;
+  background:transparent;color:#c4c0ca;font-size:13px;font-weight:400;
+  transition:color .2s,background .2s,border-color .2s;
+}
+.hero-tool-choice svg{flex:none;width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.25;stroke-linecap:round;stroke-linejoin:round}
+.hero-tool-choice:hover{color:#fff;background:#ffffff0c}
+.hero-tool-choice[aria-pressed="true"]{background:#ffffff14;border-color:#ffffff42;color:#fff}
+.hero-launcher .hero-actions{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}
+.hero-launcher .hero-actions>a{min-width:0;min-height:46px;padding:12px 8px;border-radius:6px;font-size:13px;line-height:1.35}
+.hero-launcher .hero-moods-link{border-color:transparent;background:transparent}
+.hero-launcher .hero-moods-link:hover{background:#ffffff0c;border-color:#ffffff30}
+.hero-launcher :is(a,button):focus-visible{outline-offset:2px}
 .lab-hero .hero-bottom{gap:20px}
 .hero-bottom .hero-motion-toggle{
   display:grid;place-items:center;flex:none;min-width:44px;width:44px;height:44px;
@@ -65,6 +92,12 @@
   .lab-hero .hero-description{max-width:290px;font-size:13px;margin-bottom:20px}
   .hero-actions{gap:10px}
   .hero-actions .start-link,.hero-moods-link{min-height:46px;padding:13px 18px;font-size:13px}
+  .hero-eyebrow{font-size:10px;margin-bottom:12px}
+  .hero-launcher{padding:10px;border-radius:10px}
+  .hero-tool-picker{padding-bottom:10px;margin-bottom:10px}
+  .hero-tool-choice{gap:6px;padding:7px 5px;font-size:12px}
+  .hero-tool-choice svg{width:15px;height:15px}
+  .hero-launcher .hero-actions>a{font-size:12px;padding-inline:6px}
   .lab-hero .hero-bottom{gap:12px;justify-content:space-between}
   .hero-bottom .hero-motion-toggle{margin-left:auto}
 }
