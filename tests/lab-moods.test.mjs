@@ -285,7 +285,7 @@ test('Moods footer has a larger primary action and a compact accessible explanat
   assert.match(js,/aboutButton\.setAttribute\('aria-expanded',String\(opening\)\)/);
 });
 
-test('Dreamcore V6 routes organic nature, people and built environments',()=>{
+test('Dreamcore V7 routes organic nature, people and built environments',()=>{
   const m=moodById('dreamcore');
   assert.equal(m.preview,'/lab/mood-bank/2026-10-11/dreamcore/preview.webp');
   assert.match(m.routing,/EVEN WHEN A PERSON IS PRESENT/);
@@ -329,7 +329,7 @@ test('Dreamcore V6 routes organic nature, people and built environments',()=>{
   assert.match(readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8'),/not a literal opacity percentage/);
 });
 
-test('Dreamcore V6 compact direction fits ten references',()=>{
+test('Dreamcore V7 compact direction fits ten references',()=>{
   const refs=Array.from({length:10},(_,i)=>({name:'ref-'+i+'.png',role:i?'none':'base'}));
   const r=prepareMoodPrompt('A model at the sea','dreamcore',100,{referenceCount:10});
   assert.equal(r.error,'');

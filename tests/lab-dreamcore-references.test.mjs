@@ -28,12 +28,11 @@ test('Dreamcore final payload preserves reference numbering, roles and prompt bu
       const prompt=compileImagePrompt(recipe.prompt,labels,{...settings,engine,...recipe.metadata});
       assert.equal(recipe.error,'');
       assert.ok(prompt.length<=5000,`${engine}/${referenceMode}/${count}/${intensity}: ${prompt.length}`);
-      assert.match(prompt,/DREAMCORE V6/);
+      assert.match(prompt,/DREAMCORE V7/);
       assert.ok(prompt.includes(`BUILT-IN REFERENCES ${count+1}, ${count+2}, ${count+3}:`));
       assert.match(prompt,/Do not copy trains, pools/);
       assert.match(prompt,/User instructions and assigned roles take priority/);
-      if(!count||referenceMode==='references')assert.match(prompt,/These are not Base or identity images/);
-      else assert.match(prompt,/The user Base controls identity/);
+      assert.match(prompt,/User sources and assigned roles control identity and camera/);
     }
   }
 });
@@ -42,4 +41,23 @@ test('Dreamcore reserves three slots without silently discarding user references
   assert.match(referenceGuidanceError(labels,settings),/Dreamcore accepts up to 7 uploaded photos/);
   assert.equal(referenceGuidanceError(labels.slice(0,7),settings),'');
   assert.equal(referenceGuidanceError(labels,{...settings,moodId:'night-flash'}),'');
+});
+
+test('Dreamcore high intensity transforms the person and supports while retaining explicit user direction',()=>{
+  for(const engine of ['seedream','gemini'])for(const intensity of [70,89,90,99,100]){
+    const direction='Keep the same face and sunglasses. Keep the jacket black when requested.';
+    const labels=[{role:'base'},{role:'identity',note:'Use this facial structure.'}];
+    const recipe=prepareMoodPrompt(direction,'dreamcore',intensity,{engine,referenceCount:labels.length});
+    const prompt=compileImagePrompt(recipe.prompt,labels,{...settings,engine,...recipe.metadata});
+    assert.ok(prompt.length<=5000);
+    assert.ok(prompt.includes(direction));
+    assert.match(prompt,/skin gains broad pearly luminosity with pores/);
+    assert.match(prompt,/recolor garments/);
+    assert.match(prompt,/WHOLE FRAME/);
+    assert.match(prompt,/remove incompatible cushions\/backrests/);
+    assert.match(prompt,/minimally adjust contact points only if needed/);
+    assert.match(prompt,/keeping cut, coverage and folds/);
+    assert.match(prompt,/User instructions and assigned roles take priority/);
+    assert.doesNotMatch(prompt,/SAME person, pose and clothes|modest color shifts/);
+  }
 });
