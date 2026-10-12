@@ -402,5 +402,11 @@ See [the result deck work state](RESULT-DECK-WORK-STATE.md) for the approved edi
 - Local comparison inspected on supplied hallway-source screenshot and approved portrait reference at Grain 25 / Glow 70.
 - Sharp preview is approximate; no claim of raw-generation comparison or exact Cloudflare blend equivalence.
 - No paid AI generation submitted; revised generation prompt still requires the next real output for aesthetic assessment.
-- Publication and actual Cloudflare pixel/browser checks pending.
-- Next action: push revision branch, verify remote processing, merge and confirm live frontend/Worker.
+- Implementation commit: `af88ac4be4d42eb5df635f58a45191b5d87668f8`; published merge: `ea5ec5b1a2d8f5579fc0eb441d26b0df03757a2e` (PR #170).
+- Full Lab, reference/queue/Studio regression checks passed on the PR; neutral-shoulder regression passed.
+- Actual Cloudflare pixel and desktop/mobile checks passed on branch run `38291531675` and main run `38292009574`.
+- Remote processing comparison images inspected at light, default and maximum strengths; original skin hues/dark flats preserved.
+- Worker deployment `38292009361` and its expected-version production health check passed.
+- Live `moods.js`, `mood-references.js`, `lab.js` and `studio.html` returned HTTP 200 and exactly matched reviewed revision-3 source.
+- Pages run `38292008162` was superseded by another main deployment; live source verification confirms this revision reached production.
+- Next action: refresh Studio, reopen an existing Hong Kong result and Apply finish at Grain 25 / Glow 70. Assess new generation instructions only on the next needed generation.
