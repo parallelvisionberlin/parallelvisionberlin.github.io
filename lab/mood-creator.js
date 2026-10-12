@@ -496,18 +496,22 @@ function initMoodCreator(){
   renderBoard();renderLibrary();
   if(initialBase&&!moodById(initialBase))
     feedback('Unknown curated look. Start from an original Mood or explore the collection.',true);
-  if(initialBase&&moodById(initialBase)&&!chosenBoard&&!sourceJob){
-    base.value=initialBase;syncFlow();
-    intensity.value=String(moodById(initialBase).defaultIntensity||70);$('mc-intensity-value').textContent=intensity.value+'%';
+  const startingMood=initialBase&&moodById(initialBase);
+  if((initialHandoff||startingMood)&&!chosenBoard&&!sourceJob){
+    if(startingMood){
+      base.value=initialBase;syncFlow();
+      intensity.value=String(startingMood.defaultIntensity||70);$('mc-intensity-value').textContent=intensity.value+'%';
+    }
     void (async()=>{
       try{
         if(initialHandoff){
           const packet=await takeMoodHandoff(initialHandoff);
           if(packet.file)addFiles([packet.file]);
           if(packet.prompt)concept.value=packet.prompt;
+          syncFlow();
         }
-        feedback('Starting from '+moodById(initialBase).name+'. Your photo and idea are ready to shape into a personal Mood.');
-        scrollToWorkspace();
+        if(startingMood)feedback('Starting from '+startingMood.name+'. Your photo and idea are ready to shape into a personal Mood.');
+        if(items.length)revealUploadedBoard();else scrollToWorkspace();
       }catch(error){feedback('That temporary photo could not be transferred. '+error.message,true);}
       finally{
         if(initialHandoff){

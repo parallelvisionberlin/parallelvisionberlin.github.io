@@ -11,7 +11,7 @@
 <link rel="preload" href="./visuals/leather-editorial/hero-mobile.webp" as="image" media="(max-width:700px)" fetchpriority="high">
 <link rel="stylesheet" href="./landing.css?v=20261012-stable-entry1">
 <link rel="stylesheet" href="./credits.css?v=20261011-compact-pricing2">
-<link rel="stylesheet" href="./mood-home.css?v=20261011-integrated-mood2">
+<link rel="stylesheet" href="./mood-home.css?v=20261012-collection-drop1">
 <link rel="stylesheet" href="./landing-motion.css?v=20261012-artistic-signature1">
 <link rel="stylesheet" href="./public-header.css?v=20261012-unified1">
 </head>
@@ -42,23 +42,27 @@
 <div class="hero-bottom"><span class="hero-signature">Made for artistic freedom.</span></div>
 </section>
 
-<section class="mc-home mc-home--chapter" id="mood-creator" aria-labelledby="mc-home-title">
-  <div class="mc-chapter-art" aria-hidden="true">
-    <img src="./visuals/reptare-detail.webp" alt="" loading="lazy" decoding="async">
-    <span class="mc-chapter-art-index">PV LAB / STUDY 002</span>
-    <span class="mc-chapter-art-mark">AESTHETICS ARE MADE.</span>
-  </div>
-  <div class="mc-chapter-content">
-    <div class="mc-chapter-topline"><span>THE CREATIVE PROCESS / 002</span><span>YOUR REFERENCES. YOUR RULES.</span></div>
-    <h2 id="mc-home-title">MAKE<br>YOUR OWN<br><em>MOOD.</em></h2>
-    <p class="mc-chapter-summary">An image. A feeling. A whole new visual language.</p>
-    <p class="mc-chapter-description">Collect references, develop their atmosphere, and save an aesthetic that is yours to reuse.</p>
-    <div class="mc-chapter-actions">
-      <a href="./mood-creator.html?start=image" class="mc-chapter-start"><span>Start with an image</span></a>
-      <a href="./mood-creator.html?start=idea" class="mc-chapter-alt">Or start from an idea </a>
+<section class="mc-home mc-home--collection" id="mood-creator" aria-labelledby="mc-home-title">
+  <div class="mc-collection-copy">
+    <span class="mc-collection-kicker">PV LAB / YOUR OWN CREATIVE DIRECTION</span>
+    <h2 id="mc-home-title">Mood Creator.</h2>
+    <p class="mc-collection-lead">Build a visual language of your own.</p>
+    <p class="mc-collection-description">Bring together images, colours and ideas.<br>Create a mood you can save and use again.</p>
+    <div class="mc-collection-actions">
+      <a href="./mood-creator.html?start=image" data-mc-home-upload><span>Start with a photo</span><span aria-hidden="true">+</span></a>
+      <a href="./mood-creator.html?start=idea"><span>Start with an idea</span><span aria-hidden="true">+</span></a>
     </div>
-    <div class="mc-chapter-bottom"><span>01 / COLLECT</span><span>02 / INTERPRET</span><span>03 / CREATE</span></div>
+    <div class="mc-collection-links"><a href="./mood-creator.html#my-moods">My Moods</a><a href="./moods">Explore curated Moods</a></div>
+    <p class="mc-collection-status" id="mc-home-status" role="status" aria-live="polite" hidden></p>
   </div>
+  <a class="mc-collection-drop" id="mc-home-drop" href="./mood-creator.html?start=image" data-mc-home-upload aria-label="Drop a photograph here or choose an image to start your Mood" aria-describedby="mc-home-file-hint">
+    <span class="mc-collection-photo mc-collection-photo--blue"><img src="./mood-previews/midnight-reverie-original-20261011.png" alt="" width="399" height="668" loading="lazy" decoding="async" draggable="false"></span>
+    <span class="mc-collection-photo mc-collection-photo--ivory"><img src="./visuals/greenhouse-portrait.webp" alt="" width="850" height="1133" loading="lazy" decoding="async" draggable="false"></span>
+    <span class="mc-collection-photo mc-collection-photo--train"><img src="./mood-bank/2026-10-11/dreamcore/preview.webp" alt="" width="1448" height="1086" loading="lazy" decoding="async" draggable="false"></span>
+    <span class="mc-collection-upload"><span class="mc-collection-plus" aria-hidden="true">+</span><span><strong id="mc-home-drop-label">Drop your image here</strong><small>or click to upload</small></span></span>
+  </a>
+  <input type="file" id="mc-home-upload" accept="image/jpeg,image/png,image/webp" hidden>
+  <span class="sr-only" id="mc-home-file-hint">Choose one JPG, PNG or WebP photograph up to 20 MB. You can add more in Mood Creator.</span>
 </section>
 <section class="tools-section" id="tools" aria-labelledby="tools-title">
 <h2 class="sr-only" id="tools-title">Explore the studio</h2>
@@ -88,6 +92,7 @@
 <section class="lab-invite-promo" aria-labelledby="lab-invite-promo-title"><div><span class="lab-plans-kicker">PV Lab / Invite a creator</span><h2 id="lab-invite-promo-title">Give 200. Get 200.</h2><p>Bring a friend into the studio. After their first purchase of €10 or more, you both receive 200 generation credits. Rewards become usable when public billing launches.</p></div><a href="./studio.html?referrals=1">Get your invite link </a></section>
 </main>
 <footer><a href="/" aria-label="Visit Parallel Vision"><img src="./branding/pv-wordmark.png" alt="Parallel Vision" width="145" height="37"></a><p>Image. Motion. Possibility.</p><a href="./fashion.html">Explore Fashion </a></footer>
+<script type="module" src="./mood-home.js?v=20261012-collection-drop1"></script>
 <script defer src="./landing-motion.js?v=20261012-editorial-restored1"></script>
 <script type="module" src="./customer-entry.js?v=20261012-unified-header1"></script>
 </body>
