@@ -98,6 +98,47 @@ test('never accept LIVE signed events or live API keys on the sandbox Worker',as
   assert.equal(invalid.status,400);
   assert.equal(balance(db),0);
 });
+test('concurrent event replay, async success and mismatched customer links never duplicate or misroute credits',async t=>{
+  const {env,db}=setup(t);await ensureCustomer(env,'user_SandboxABC1');await ensureCustomer(env,'user_Other');
+  const responses=await Promise.all([worker.fetch(sign(env,checkoutEvent()),env),worker.fetch(sign(env,checkoutEvent()),env)]);
+  assert.ok(responses.every(r=>r.status===200));assert.equal(balance(db),1000);
+  const asyncPaid=checkoutEvent({id:'evt_AsyncSuccess'});asyncPaid.type='checkout.session.async_payment_succeeded';
+  assert.equal((await worker.fetch(sign(env,asyncPaid),env)).status,200);assert.equal(balance(db),1000);
+  const wrong=checkoutEvent({id:'evt_WrongCustomer'});wrong.data.object.id='cs_test_other';wrong.data.object.client_reference_id='user_Other';wrong.data.object.metadata.lab_customer_id='user_Other';
+  assert.equal((await worker.fetch(sign(env,wrong),env)).status,409);assert.equal(db.prepare("SELECT balance_credits FROM lab_customers WHERE id='user_Other'").get().balance_credits,0);
+});
+test('verified refunds create a durable spending hold once; no negative balance or arbitrary wallet adjustment',async t=>{
+  const {env,db}=setup(t);await ensureCustomer(env,'user_SandboxABC1');await worker.fetch(sign(env,checkoutEvent()),env);
+  const refund={id:'evt_RefundABC',type:'charge.refunded',livemode:false,data:{object:{id:'ch_refundABC',customer:'cus_sandbox001',amount_refunded:1000}}};
+  assert.equal((await worker.fetch(sign(env,refund),env)).status,200);assert.equal((await worker.fetch(sign(env,refund),env)).status,200);
+  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM lab_billing_reviews').get().n,1);assert.equal(balance(db),1000);
+  assert.throws(()=>db.prepare("INSERT INTO jobs(id,owner_id,params,state,created_at,updated_at) VALUES('held','user_SandboxABC1','{}','queued',1,1)").run(),/billing review required/);
+});
+test('subscriptions grant the exact plan credits per paid billing cycle, ignore prorations and read current cancellation state',async t=>{
+  const {env,db}=setup(t);await ensureCustomer(env,'user_SandboxABC1');
+  let status='active';const old=globalThis.fetch;t.after(()=>{globalThis.fetch=old;});
+  globalThis.fetch=async url=>{
+    assert.equal(url,'https://api.stripe.com/v1/subscriptions/sub_planABC');
+    return Response.json({id:'sub_planABC',customer:'cus_sandbox001',status,metadata:{lab_customer_id:'user_SandboxABC1',lab_sku:'starter'},items:{data:[{price:{unit_amount:1500,currency:'eur'}}]}});
+  };
+  const invoice=(id,reason='subscription_cycle',amount=1500)=>({id:'evt_'+id,type:'invoice.paid',livemode:false,data:{object:{id:'in_'+id,status:'paid',currency:'eur',amount_paid:amount,billing_reason:reason,subscription:'sub_planABC'}}});
+  assert.equal((await worker.fetch(sign(env,invoice('first','subscription_create')),env)).status,200);assert.equal(balance(db),1600);
+  const results=await Promise.all([worker.fetch(sign(env,invoice('renewal')),env),worker.fetch(sign(env,invoice('renewal')),env)]);assert.ok(results.every(r=>r.status===200));assert.equal(balance(db),3200);
+  await worker.fetch(sign(env,invoice('proration','subscription_update')),env);
+  await worker.fetch(sign(env,invoice('underpaid','subscription_cycle',500)),env);assert.equal(balance(db),3200);
+  status='canceled';
+  const stale={id:'evt_staleActive',type:'customer.subscription.updated',livemode:false,data:{object:{id:'sub_planABC',status:'active'}}};
+  assert.equal((await worker.fetch(sign(env,stale),env)).status,200);
+  assert.equal(db.prepare('SELECT status FROM lab_subscriptions').get().status,'canceled');
+});
+test('a signed dispute resolves the Stripe charge customer before pausing that wallet',async t=>{
+  const {env,db}=setup(t);await ensureCustomer(env,'user_SandboxABC1');await worker.fetch(sign(env,checkoutEvent()),env);
+  const old=globalThis.fetch;t.after(()=>{globalThis.fetch=old;});
+  globalThis.fetch=async url=>{assert.equal(url,'https://api.stripe.com/v1/charges/ch_disputedABC');return Response.json({id:'ch_disputedABC',customer:'cus_sandbox001'});};
+  const dispute={id:'evt_disputeABC',type:'charge.dispute.created',livemode:false,data:{object:{id:'dp_testABC',charge:'ch_disputedABC',amount:1000}}};
+  assert.equal((await worker.fetch(sign(env,dispute),env)).status,200);
+  assert.equal(db.prepare('SELECT customer_id FROM lab_billing_reviews').get().customer_id,'user_SandboxABC1');
+});
 test('billing endpoints require real Clerk identity; false sandbox flags prevent billing',async t=>{
   const {env}=setup(t);
   const noToken=await worker.fetch(new Request('https://test/api/session'),env);

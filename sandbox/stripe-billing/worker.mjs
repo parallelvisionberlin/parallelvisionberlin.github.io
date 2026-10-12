@@ -2,7 +2,7 @@
 // production billing routes. One isolated test-mode Stripe wallet in its own D1.
 import {ensureCustomer,customerSession,customerRoute,stripeWebhook,verifyStripeEvent} from '../../lab-worker/customer-billing.mjs';
 
-export const VERSION='pv-lab-billing-sandbox-2026-10-10.1';
+export const VERSION='pv-lab-billing-sandbox-2026-10-12.1';
 const ISSUER='https://clerk.parallelvisionlabel.com';
 const ORIGINS=new Set(['https://parallelvisionlabel.com','https://www.parallelvisionlabel.com']);
 const encoder=new TextEncoder();

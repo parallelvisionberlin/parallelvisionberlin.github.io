@@ -263,10 +263,14 @@ try{
   await x.context.close();
   console.log('PASS desktop workspace, canvas import, image tab and no hero');
 
-  // Regression for the exact owner complaint: duration, resolution and aspect ratio
-  // must be visible ABOVE the Generate dock without page scrolling on a desktop.
+  // Start-frame modes follow their source ratio. Text mode exposes an explicit
+  // ratio; its controls must be reachable inside the independently scrolling
+  // form while Generate stays fixed and the document does not scroll.
   for(const [width,height] of [[1440,768],[1440,820],[1728,820]]){
     const compact=await open(width,height);
+    assert.equal(await compact.page.locator('#ratio-control').isVisible(),false,'Start-frame mode inherits the source ratio');
+    await compact.page.click('#mode-text');
+    await compact.page.locator('#ratio-control').scrollIntoViewIfNeeded();
     const parts=await compact.page.evaluate(()=>{
       const rect=id=>{const r=document.querySelector(id).getBoundingClientRect();return {top:r.top,bottom:r.bottom,height:r.height};};
       return {duration:rect('#duration-control'),resolution:rect('#resolution-control'),ratio:rect('#ratio-control'),
@@ -279,7 +283,7 @@ try{
     assert.equal(parts.scrollY,0,'No scrolling required before viewing controls');
     assert.equal(parts.visible,true,'Video parameters must be shown');
     for(const id of ['duration','resolution','ratio']){
-      assert.ok(parts[id].bottom<=parts.dock.top-4,id+' must be fully above the Generate dock');
+      assert.ok(parts[id].top>=70&&parts[id].bottom<=parts.dock.top+1,id+' must be fully above the Generate dock');
       assert.ok(parts[id].bottom<height,id+' must fit inside the viewport');
     }
     assert.ok(parts.generate.bottom<height,'Generate button must also be visible on first view');
@@ -287,7 +291,7 @@ try{
     assert.deepEqual(compact.errors,[]);
     await compact.context.close();
   }
-  console.log('PASS video settings + Generate fit without scrolling at 768px and 820px desktop heights');
+  console.log('PASS mode-specific video settings remain reachable with a fixed Generate dock at 768px and 820px heights');
 
   // Verify branded first paint while the JS module is deliberately delayed.
   const bootContext=await browser.newContext({viewport:{width:1440,height:900}});
@@ -305,7 +309,7 @@ try{
     await labScriptHeld;
     await route.continue();
   });
-  await bootPage.goto('http://127.0.0.1:4182/lab/',{waitUntil:'commit'});
+  await bootPage.goto('http://127.0.0.1:4182/lab/studio.html',{waitUntil:'commit'});
   await bootPage.waitForSelector('#lab-boot');
   assert.equal(await bootPage.locator('#lab-boot').isVisible(),true,'Brand loading appears before external JS');
   assert.equal(await bootPage.locator('#gate').isVisible(),false,'No half-loaded sign-in page');

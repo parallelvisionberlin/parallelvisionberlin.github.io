@@ -6,6 +6,9 @@ on:
     branches: [main]
     paths:
       - 'sandbox/stripe-billing/**'
+      - 'lab-worker/customer-billing.mjs'
+      - 'lab-worker/customer-lifecycle.mjs'
+      - 'lab-worker/migrations/0011-customer-lifecycle.sql'
       - 'tests/lab-sandbox-billing.test.mjs'
       - '.github/workflows/deploy-pv-lab-billing-sandbox.yml'
 
@@ -65,6 +68,7 @@ jobs:
             wrangler d1 execute parallel-vision-lab-sandbox --remote --file ../../lab-worker/migrations/0006-customers-billing.sql --yes
             wrangler d1 execute parallel-vision-lab-sandbox --remote --file ../../lab-worker/migrations/0007-lab-referrals.sql --yes
             wrangler d1 execute parallel-vision-lab-sandbox --remote --file ../../lab-worker/migrations/0008-soul-id-launch-credits.sql --yes
+            wrangler d1 execute parallel-vision-lab-sandbox --remote --file ../../lab-worker/migrations/0011-customer-lifecycle.sql --yes
           command: deploy
       - name: Confirm test-only Worker health
         shell: bash

@@ -19,7 +19,7 @@ test('authenticated Image studio can paint before account-dependent history comp
   assert.match(html,/galleryPerf=1/);
 });
 
-test('image gallery allows at most four simultaneous original-image downloads',async()=>{
+test('image gallery allows at most four simultaneous thumbnail downloads',async()=>{
   const begin=lab.indexOf('const MAX_GALLERY_PREVIEW_READS=4;');
   const end=lab.indexOf('function historyPreviewFailed',begin);
   assert.ok(begin>=0&&end>begin);
@@ -32,7 +32,7 @@ test('image gallery allows at most four simultaneous original-image downloads',a
   }
   const factory=new Function('requestBlob','makeUrl','urls','FakeObserver','launched','unavailable',`
     let owner=true,historyRevision=1;
-    const assetBlob=id=>{launched.push(id);return requestBlob(id)};
+    const assetThumbnailBlob=id=>{launched.push(id);return requestBlob(id)};
     const URL={createObjectURL:makeUrl};
     const cardUrls=urls;
     const historyPreviewFailed=img=>unavailable.push(img.dataset.asset);
@@ -63,7 +63,8 @@ test('image gallery allows at most four simultaneous original-image downloads',a
 });
 
 test('gallery preserves authenticated original bytes and never changes generation',()=>{
-  assert.match(lab,/assetBlob\(img\.dataset\.asset\)/);
+  assert.match(lab,/assetThumbnailBlob\(img\.dataset\.asset\)/);
+  assert.match(lab,/const original=assetBlob\(job\.outputId\)/);
   assert.match(lab,/MAX_GALLERY_PREVIEW_READS=4/);
   assert.match(lab,/galleryPreviewQueue\.length=0;cardUrls/);
   assert.match(lab,/historyRevision\+\+;galleryPreviewQueue\.length=0;clearTimeout\(timer\)/);

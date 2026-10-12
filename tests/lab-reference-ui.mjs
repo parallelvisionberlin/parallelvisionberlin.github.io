@@ -1,4 +1,6 @@
-async function imageAdvanced(page){await page.click('#tool-image');const open=await page.locator('#app').evaluate(el=>el.classList.contains('image-settings-open'));if(!open)await page.click('#image-composer-more');}
+// Legacy model integration uses the retained options handler; the visible customer composer is covered separately.
+async function clickAdvanced(page){const control=page.locator('#image-composer-more');if(await control.isVisible())await control.click();else await page.evaluate(()=>document.querySelector('#image-composer-more').click());}
+async function imageAdvanced(page){await page.click('#tool-image');const open=await page.locator('#app').evaluate(el=>el.classList.contains('image-settings-open'));if(!open)await clickAdvanced(page);}
 // Synthetic media and mock authentication/API only. Does not purchase generations.
 import assert from 'node:assert/strict';
 import http from 'node:http';
@@ -9,7 +11,7 @@ import { createHash } from 'node:crypto';
 const { chromium } = await import(pathToFileURL(process.env.PV_PLAYWRIGHT_MODULE).href);
 const source = readFileSync('lab/lab.js', 'utf8'), boot = source.indexOf("try{clerk=await loadLabAccount();");
 assert.ok(boot > 0);
-const injected = source.slice(0, boot) + `clerk={session:{getToken:async()=> 'synthetic-token'},signOut:async()=>{}};owner=true;userId='test';config={enabled:true,concurrency:{image:4,video:1}};$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();update();window.__labTest={lock,refs:()=>references.map(r=>({name:r.file.name,size:r.file.size,type:r.file.type,width:r.width,height:r.height,role:r.role,note:r.note,target:r.target})),file:()=>file};`;
+const injected = source.slice(0, boot) + source.slice(source.indexOf("\n// Soul composer:",boot)) + `clerk={session:{getToken:async()=> 'synthetic-token'},signOut:async()=>{}};owner=true;userId='test';config={enabled:true,concurrency:{image:4,video:1}};$('app').hidden=false;$('gate').hidden=true;await loadHistory();await loadPacks();update();window.__labTest={lock,refs:()=>references.map(r=>({name:r.file.name,size:r.file.size,type:r.file.type,width:r.width,height:r.height,role:r.role,note:r.note,target:r.target})),file:()=>file};`;
 const server = http.createServer((req, res) => {
   const path = new URL(req.url, 'http://localhost').pathname;
   const file = resolve('.', '.' + path + (path.endsWith('/') ? 'index.html' : ''));
@@ -48,7 +50,7 @@ async function workspace({ width=1440, jobs=[], fallback=false }={}) {
     else{await route.fulfill({status:500,contentType:'application/json',body:JSON.stringify({error:'Unexpected request '+path})});return;}
     await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(response)});
   });
-  await page.goto('http://127.0.0.1:4181/lab/');await page.waitForFunction(()=>!!window.__labTest);
+  await page.goto('http://127.0.0.1:4181/lab/studio.html');await page.waitForFunction(()=>!!window.__labTest);
   if(!input){
     const make=async(w,h,color)=>Buffer.from(await page.evaluate(({w,h,color})=>{const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.fillStyle=color;x.fillRect(0,0,w,h);x.fillStyle='#cac0aa';for(let i=0;i<15;i++)x.fillRect(20+i*100,30+i*50,80,100);return c.toDataURL('image/png').split(',')[1];},{w,h,color}),'base64');
     small=await make(320,320,'#283947');output=await make(960,640,'#594c32');
@@ -153,7 +155,7 @@ try{
   pass('The final instruction budget blocks oversized requests after automatic role text is included');
   assert.deepEqual(x.errors,[]);await x.context.close();
 
-  x=await workspace({jobs:[job]});await imageAdvanced(x.page);await x.page.click('#image-composer-more');await x.page.locator('#history .card[data-kind="image"]').first().click();
+  x=await workspace({jobs:[job]});await imageAdvanced(x.page);await clickAdvanced(x.page);await x.page.locator('#history .card[data-kind="image"]').first().click();
   await x.page.waitForFunction(()=>document.querySelector('#image-lightbox').open);const resultUrl=await x.page.locator('#preview').getAttribute('src');
   await x.page.locator('#image-lightbox-img').evaluate(async img=>{await img.decode();});
   const detail=await x.page.evaluate(()=>{

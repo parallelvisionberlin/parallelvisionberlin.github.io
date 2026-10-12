@@ -10,10 +10,10 @@ const start=source.indexOf('try{clerk=await loadLabAccount();'),end=source.index
 assert.ok(start>0&&end>start);
 const testSource=source.slice(0,start)+source.slice(end)+`
 clerk={session:{id:'test-session',getToken:async()=> 'synthetic-token'}};
-owner=true;userId='test';config={enabled:true,concurrency:{image:4,video:1}};
+owner=true;userId='test';await deviceMediaCache.select(userId);config={enabled:true,concurrency:{image:4,video:1}};
 $('app').hidden=false;$('gate').hidden=true;
 await loadHistory();await restoreStudioEntry();update();finishLabBoot();
-window.__viewerTest={lock,state:()=>({job:imageDetailJob?.id,result:resultId,cache:assetBlobs.size,prefetch:imageDetailPrefetchReads})};`;
+window.__viewerTest={lock,flush:async()=>{await Promise.allSettled([...assetReads.values(),...thumbnailReads.values()]);await deviceMediaCache.select(userId);},customer:()=>wallet.connect({customer:true,balanceCredits:1000,billingReady:false,products:[]}),state:()=>({job:imageDetailJob?.id,result:resultId,cache:assetBlobs.size,prefetch:imageDetailPrefetchReads})};`;
 const server=http.createServer((req,res)=>{
   const pathname=new URL(req.url,'http://localhost').pathname,path=resolve(root,'.'+pathname);
   if(!path.startsWith(root+'/')||!existsSync(path)){res.writeHead(404).end();return;}
@@ -56,6 +56,7 @@ try{
       assert.equal(req.method(),'GET','Viewing must not submit a generation or any write');
       const send=body=>route.fulfill({contentType:'application/json',body:JSON.stringify(body)});
       if(path==='/api/jobs')return send({jobs,activeJobs:[],next:null});
+      if(path==='/api/customer/account')return send({storage:{bytes:1024**3,files:5,limitBytes:20*1024**3}});
       if(path.startsWith('/api/assets/')){
         const id=path.split('/')[3],i=Number(id.split('-')[1]),thumbnail=path.endsWith('/thumbnail');
         if(!thumbnail){reads.set(id,(reads.get(id)||0)+1);await gates.get(id);}
@@ -76,8 +77,8 @@ try{
     assertFitted(await paintedFrame(page));
     assert.equal(await page.locator('#image-detail-next').isDisabled(),false);
     assert.equal(await page.locator('#image-lightbox-download').isDisabled(),true);
-    await page.waitForFunction(()=>window.__viewerTest.state().prefetch===2);
-    assert.ok(reads.size<=3,'Only current image and two speculative reads start');
+    await page.waitForFunction(()=>window.__viewerTest.state().prefetch===1);
+    assert.ok(reads.size<=2,'Only current image and one speculative read start');
     const navigation=await page.evaluate(()=>{
       const start=performance.now();
       document.querySelector('#image-detail-next').click();
@@ -117,6 +118,20 @@ try{
     assert.equal(await page.locator('#image-lightbox').evaluate(el=>el.open),false);
     assert.equal((await page.evaluate(()=>window.__viewerTest.state())).result,null);
     assert.ok([...reads.values()].every(n=>n===1),'Concurrent selection and prefetch share each request');
+    await page.evaluate(()=>window.__viewerTest.flush());
+    const beforeReload=[...reads.entries()];
+    await page.reload();await page.waitForFunction(()=>!!window.__viewerTest);
+    await page.locator('#history .card').nth(1).evaluate(el=>el.click());
+    await page.waitForFunction(()=>!document.querySelector('#image-lightbox-download').disabled);
+    assert.deepEqual([...reads.entries()],beforeReload,'Returning to the gallery reuses originals across a page reload');
+    await page.click('#image-lightbox-close');
+    await page.evaluate(()=>window.__viewerTest.customer());await page.click('#lab-wallet-toggle');
+    await page.locator('.lab-account-storage summary').click();
+    await page.waitForFunction(()=>document.querySelector('#lab-storage-status').textContent.includes('1.00 GiB'));
+    await page.locator('#lab-close-confirm').fill('DELETE MY PV LAB ACCOUNT');
+    assert.equal(await page.locator('#lab-close-account').isDisabled(),false);
+    assert.equal(await page.locator('#lab-credits-dialog').evaluate(el=>el.scrollWidth<=el.clientWidth+1),true,'Account controls fit the dialog');
+    await page.click('#lab-credits-close');
     await page.evaluate(()=>window.__viewerTest.lock());
     assert.equal((await page.evaluate(()=>window.__viewerTest.state())).cache,0,'Sign out clears private original cache');
     assert.deepEqual(errors,[]);
