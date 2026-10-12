@@ -9,20 +9,6 @@
   const hoverDevice = window.matchMedia('(hover: hover) and (pointer: fine)');
   const cards = Array.from(document.querySelectorAll('.tool-card'));
   const heroToggle = document.getElementById('hero-motion-toggle');
-  const heroStartLink = document.getElementById('hero-start-link');
-  const heroToolChoices = Array.from(document.querySelectorAll('[data-hero-tool]'));
-  const heroToolActions = {
-    image: {label:'Create an image', href:'./studio.html?tool=image'},
-    video: {label:'Create a video', href:'./studio.html?tool=video'},
-    upscale: {label:'Upscale an image', href:'./studio.html?tool=upscale'}
-  };
-  heroToolChoices.forEach(choice => choice.addEventListener('click', () => {
-    const action = heroToolActions[choice.dataset.heroTool];
-    if (!action || !heroStartLink) return;
-    heroToolChoices.forEach(button => button.setAttribute('aria-pressed', String(button === choice)));
-    heroStartLink.textContent = action.label;
-    heroStartLink.setAttribute('href', action.href);
-  }));
   let heroPausedByUser = Boolean(navigator.connection?.saveData);
   let heroVisible = true;
   let visibleCard = null;

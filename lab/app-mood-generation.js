@@ -1,8 +1,8 @@
 import {loadLabAccount} from './native-account.js?v=2';
 import {createSessionRequest} from './session-request.js?v=20260927-auth1';
-import {prepareMoodPrompt} from './moods.js?app=5&raveNight=4&syntheticBudget=1&hongKongRefs=2&dreamcore=6&syntheticRefs=1';
+import {prepareMoodPrompt} from './moods.js?app=5&raveNight=4&syntheticBudget=1&hongKongRefs=2&dreamcore=7&syntheticRefs=1';
 import {createMoodReferenceLoader} from './mood-references.js?v=20261012-hk2';
-import {normalizeReferenceLabel} from './reference-guidance.js?v=20261010-reference-flow2&dreamcore=6&syntheticRefs=1';
+import {normalizeReferenceLabel} from './reference-guidance.js?v=20261010-reference-flow2&dreamcore=7&syntheticRefs=1';
 import {imageDimensions,seedreamWorkingCopy,providerWorkingCopy,PROVIDER_IMAGE_LIMIT} from './image-tools.js?v=20261011-reference-prewarm1';
 import {pricedBoundQuotes} from './image-credit-preview.js?v=20261010-customer-credits1';
 
