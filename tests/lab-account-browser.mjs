@@ -126,6 +126,11 @@ try{
         const rig=await setup(width,customer),{page,errors}=rig;
         try{
           await page.goto(origin+path);const summary=page.locator('.pv-account-menu>summary');await summary.waitFor({state:'visible'});
+          if(path==='/lab/studio.html'){
+            const actions=await page.locator('#studio-header .actions').boundingBox();
+            const viewport=await page.evaluate(()=>document.documentElement.clientWidth);
+            assert.ok(Math.abs(viewport-actions.x-actions.width-(width<=640?10:16))<1,'Studio controls align to the gallery edge');
+          }
           await summary.click();await page.locator('[data-account-name]').getByText('Alex Test',{exact:true}).waitFor();
           assert.match(await page.locator('[data-account-balance]').textContent(),customer?/1,234 credits/:/Owner workspace/,path+' '+await page.locator('body').innerText());
           const avatar=await page.locator('[data-account-avatar]').boundingBox();assert.equal(Math.round(avatar.width),32);assert.equal(Math.round(avatar.height),32);

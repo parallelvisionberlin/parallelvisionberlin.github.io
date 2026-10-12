@@ -79,3 +79,18 @@
 - Pages run 38272992764 succeeded; production Studio HTML, CSS, wallet and app JS verified against that release.
 - Live: https://parallelvisionlabel.com/lab/studio.html
 - Next: no remaining work for this scope; reuse these results unless relevant files change.
+
+## Active: refined sign-in and Studio controls (2026-10-12)
+- Approved: Google belongs inside the sign-in panel; keep two hero actions only.
+- Approved: Assets, Queue and avatar form a compact group at the Studio's right edge.
+- References: image(20261012-165335).png and image(20261012-165357).png in the design conversation.
+- Baseline: e1398f1b4899ccbd5c065b062aff44c87b98d187; preserves Home, credits and Analog Club pricing.
+- Hero Google button removed; header Sign in opens the existing account panel with charcoal/ivory styling.
+- Signed-out Start creating opens that same panel and returns to Image Studio after sign-in or sign-up.
+- Signed-in and modified link clicks retain normal navigation; early clicks wait for account loading.
+- Studio controls align to the gallery edge; Assets has a flat quiet surface and the avatar a subtle border.
+- Source: lab/index.html, lab/customer-entry.js, lab/public-header.css, lab/studio.html.
+- Checks: tests/lab-landing-stability.mjs and tests/lab-account-browser.mjs cover the affected flow/layout.
+- Local syntax, account identity/referral checks and diff whitespace passed.
+- Existing CI provides desktop/mobile verification; no local browser or new imagery needed.
+- Next: verify affected CI, publish and confirm the served revision.

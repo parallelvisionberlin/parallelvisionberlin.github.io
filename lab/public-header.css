@@ -229,3 +229,23 @@ body>#studio-header .tool-switch::-webkit-scrollbar{display:none}
   #studio-header .actions:has(.lab-wallet-toggle:not([hidden])) .queue-popover>summary{min-width:18px}
 }
 @media(prefers-reduced-motion:reduce){#studio-header *{transition:none!important}}
+
+/* Workspace controls sit at the gallery edge, with quiet monochrome surfaces. */
+body>#studio-header .wrap.top{max-width:none;padding-right:16px}
+#studio-header .actions{justify-self:end;align-items:center;gap:12px}
+#studio-header .actions>#tool-assets.studio-assets-icon{
+  border-color:#ffffff24;background:transparent;box-shadow:none;color:#d5d3ce;
+}
+#studio-header .actions>#tool-assets.studio-assets-icon:hover{
+  border-color:#ffffff50;background:#ffffff08;color:#f3f1ec;
+}
+#studio-header .actions>#tool-assets.studio-assets-icon[aria-pressed="true"]{
+  border-color:#ffffff70;background:#ffffff0e;color:#f3f1ec;
+}
+#studio-header .pv-account-avatar{border-color:#ffffff30;box-shadow:none}
+@media(max-width:640px){
+  body>#studio-header .wrap.top{padding-right:10px}
+  #studio-header .actions{gap:8px}
+}
+.lab-hero #lab-entry-status:empty{display:none}
+.lab-hero #lab-entry-status:not(:empty){margin-top:14px}
