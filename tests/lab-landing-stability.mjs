@@ -96,6 +96,45 @@ try{
       assert.ok(access.y+access.height<=hero.y+hero.height,`${width}: access stays within hero`);
       assert.deepEqual(errors,[]);
       if(!slowFont&&(width===1440||width===390))await page.screenshot({path:resolve(artifacts,`landing-${width}.png`)});
+      // The Studio entries stay legible and actionable at every tested viewport.
+      const toolsSection=page.locator('#tools.studio-tools');
+      const toolCards=toolsSection.locator('.studio-tool');
+      assert.equal(await toolCards.count(),3);
+      for(const [i,tool] of ['image','video','upscale'].entries()){
+        const card=toolCards.nth(i);
+        await card.scrollIntoViewIfNeeded();
+        await card.locator('img').evaluate(img=>img.complete&&img.naturalWidth>0?Promise.resolve():new Promise((resolve,reject)=>{img.addEventListener('load',resolve,{once:true});img.addEventListener('error',reject,{once:true});}));
+        assert.equal(await card.locator('.studio-tool-link').getAttribute('href'),`./studio.html?tool=${tool}`);
+        const boxes=await card.evaluate(el=>{
+          const card=el.getBoundingClientRect();
+          return ['h3','.studio-tool-cta'].map(selector=>{
+            const box=el.querySelector(selector).getBoundingClientRect();
+            return box.left>=card.left&&box.right<=card.right&&box.top>=card.top&&box.bottom<=card.bottom;
+          });
+        });
+        assert.ok(boxes.every(Boolean),`${width}: tool ${tool} title and action stay within the card`);
+      }
+      assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`${width}: Studio section has no horizontal overflow`);
+      if(!slowFont){
+        const detail=toolsSection.locator('[data-detail-zoom]');
+        const detailPhoto=toolsSection.locator('.studio-tool--upscale img');
+        const beforeZoom=await detailPhoto.boundingBox();
+        await detail.focus();await detail.press('End');
+        const afterZoom=await detailPhoto.boundingBox();
+        assert.ok(afterZoom.width>beforeZoom.width*1.2,`${width}: detail control magnifies the photograph`);
+        await detail.press('Home');
+        assert.equal(await detail.getAttribute('aria-valuetext'),'1.0 times magnification');
+        await detail.evaluate(el=>{el.value='50';el.dispatchEvent(new Event('input',{bubbles:true}));});
+        if(width===1440||width===390)await toolsSection.screenshot({path:resolve(artifacts,`studio-tools-${width}.png`)});
+        if(width===1440){
+          await page.emulateMedia({reducedMotion:'no-preference'});
+          const play=toolsSection.getByRole('button',{name:'Play motion preview'});
+          await play.click();
+          assert.equal(await toolsSection.locator('.studio-motion-toggle').getAttribute('aria-pressed'),'true');
+          await toolsSection.getByRole('button',{name:'Pause motion preview'}).click();
+          assert.equal(await toolsSection.locator('.studio-motion-toggle').getAttribute('aria-pressed'),'false');
+        }
+      }
       console.log(`PASS ${width}x${height}: ${slowFont?'delayed':'ready'} font, account recovery, sign out, navigation and hero geometry`);
       await context.close();
     }
@@ -105,3 +144,4 @@ try{
   if(page)await page.screenshot({path:resolve(artifacts,'failure.png')});
   throw error;
 }finally{await browser.close();await new Promise(r=>server.close(r));}
+
