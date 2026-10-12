@@ -2831,7 +2831,7 @@ function renderCards(jobs,{upsert=false}={}){
   const items=upsert?[...jobs].reverse():jobs;
   for(const j of items){
     if(!historyJobVisible(j))continue;
-    const existing=upsert?[...$('history').children].find(el=>el.dataset.job===j.id):null,fingerprint=historyFingerprint(j);
+    const existing=[...$('history').children].find(el=>el.dataset.job===j.id),fingerprint=historyFingerprint(j);
     if(existing?.dataset.fingerprint===fingerprint)continue;
     if(j.settings.type==='image')imageDetailCache.set(j.id,j);
     const card=document.createElement('article');card.className='card';card.dataset.kind=j.settings.type==='image'?'image':'video';card.dataset.job=j.id;card.dataset.state=j.status;card.dataset.fingerprint=fingerprint;card.dataset.deletable=String(!activeStates.has(j.status));
@@ -2933,24 +2933,56 @@ function renderCards(jobs,{upsert=false}={}){
   updateHistorySelectionUi();
   if(tool==='video'&&!assetLibrary?.active())restoreLatestVideoSelection();
 }
-let historyLoadId=0;
+let historyLoadId=0,historyLoading=false,historyHasPage=false,historyAutoLoadPaused=false,historyPaginationFrame=0;
+const historyPageObserver=new IntersectionObserver(entries=>{
+  if(entries.some(entry=>entry.isIntersecting)&&!historyAutoLoadPaused)void loadEarlierHistory();
+},{rootMargin:'0px 0px 600px 0px'});
+function updateHistoryPagination(){
+  historyPageObserver.disconnect();cancelAnimationFrame(historyPaginationFrame);
+  const more=$('more');
+  more.hidden=!owner||!next;more.disabled=historyLoading;
+  more.textContent=historyLoading?'Loading earlier work…':historyAutoLoadPaused?'Retry loading earlier work':'Load earlier work';
+  more.setAttribute('aria-busy',String(historyLoading));
+  if(owner&&next&&!historyLoading&&!historyAutoLoadPaused){
+    // Recheck after the gallery has laid out the appended cards, including short
+    // pages that still leave the end of the gallery inside the viewport.
+    historyPaginationFrame=requestAnimationFrame(()=>historyPageObserver.observe(more));
+  }
+}
+async function loadEarlierHistory(){
+  if(!owner||!next||historyLoading)return;
+  const rev=historyRevision;
+  historyAutoLoadPaused=false;
+  try{await loadHistory(true);}catch(error){
+    if(owner&&rev===historyRevision&&error.name!=='AbortError')notify('Could not load earlier work. Tap Retry to try again.',true);
+  }
+}
 async function loadHistory(append=false,incremental=false){
+  if(!owner||(append&&(!next||historyLoading)))return;
   assetLibrary?.heading();
-  if(!append&&!incremental){historySelected.clear();next=null;videoJobCache.clear();imageDetailCache.clear();historyRevision++;observer.disconnect();galleryPreviewQueue.length=0;cardUrls.forEach(release);cardUrls.clear();$('history').replaceChildren();updateHistorySelectionUi();}
+  if(!append&&!incremental){historySelected.clear();next=null;historyHasPage=false;historyAutoLoadPaused=false;videoJobCache.clear();imageDetailCache.clear();historyRevision++;observer.disconnect();galleryPreviewQueue.length=0;cardUrls.forEach(release);cardUrls.clear();$('history').replaceChildren();updateHistorySelectionUi();}
   renderPendingImageCards();
   const rev=historyRevision,loadId=++historyLoadId,q=assetLibrary?.query()||new URLSearchParams();
   if(append&&next){q.set('before',next.before);q.set('afterId',next.afterId);}
-  const data=await api('/api/jobs?'+q);
-  if(!owner||rev!==historyRevision||loadId!==historyLoadId)return;
-  renderCards(data.jobs,{upsert:incremental});
-  // A completed provider result may need local pixel-preserving compositing after a reload.
-  for(const job of data.jobs||[])if(job?.status==='completed'&&job.settings?.precisionEdit&&!job.settings?.precisionFinalized)
-    void precisionEditor.finalize(job).then(updated=>surfaceHistoryJob(updated)).catch(error=>{
-      if(owner)console.warn('Precision Edit composite pending:',error.message);
-    });
-  if(!incremental||!next)next=data.next;$('more').hidden=!next;
-  $('emptyarchive').hidden=$('history').children.length>0;$('emptyarchive').textContent=assetLibrary?.active()?'No items here yet. Add work using Select to Add to folder, or mark a heart for Favorites.':tool==='upscale'?'No upscaled images yet':'No saved work yet.';
-  if(data.concurrency)config.concurrency=data.concurrency;setActiveJobs(data.activeJobs||(data.active?[data.active]:[]));syncImageGalleryEmpty();if(tool==='video'&&!assetLibrary?.active())restoreLatestVideoSelection();
+  historyLoading=true;updateHistoryPagination();
+  try{
+    const data=await api('/api/jobs?'+q);
+    if(!owner||rev!==historyRevision||loadId!==historyLoadId)return;
+    renderCards(data.jobs,{upsert:incremental});
+    // A completed provider result may need local pixel-preserving compositing after a reload.
+    for(const job of data.jobs||[])if(job?.status==='completed'&&job.settings?.precisionEdit&&!job.settings?.precisionFinalized)
+      void precisionEditor.finalize(job).then(updated=>surfaceHistoryJob(updated)).catch(error=>{
+        if(owner)console.warn('Precision Edit composite pending:',error.message);
+      });
+    if(!incremental||!historyHasPage)next=data.next;historyHasPage=true;
+    $('emptyarchive').hidden=$('history').children.length>0;$('emptyarchive').textContent=assetLibrary?.active()?'No items here yet. Add work using Select to Add to folder, or mark a heart for Favorites.':tool==='upscale'?'No upscaled images yet':'No saved work yet.';
+    if(data.concurrency)config.concurrency=data.concurrency;setActiveJobs(data.activeJobs||(data.active?[data.active]:[]));syncImageGalleryEmpty();if(tool==='video'&&!assetLibrary?.active())restoreLatestVideoSelection();
+  }catch(error){
+    if(append&&rev===historyRevision&&loadId===historyLoadId)historyAutoLoadPaused=true;
+    throw error;
+  }finally{
+    if(loadId===historyLoadId){historyLoading=false;updateHistoryPagination();}
+  }
 }
 async function syncHistory(){return loadHistory(false,true);}
 function surfaceHistoryJob(job){
@@ -2962,7 +2994,7 @@ function refreshHistorySoon(){
   const expectedEpoch=epoch;
   queueMicrotask(()=>syncHistory().catch(error=>{if(owner&&epoch===expectedEpoch)notify('History refresh delayed. Your queued job is safe. '+error.message,true);}));
 }
-$('refresh').onclick=()=>action(()=>loadHistory());$('more').onclick=()=>action(()=>loadHistory(true));
+$('refresh').onclick=()=>action(()=>loadHistory());$('more').onclick=loadEarlierHistory;
 $('history-select').onclick=()=>setHistorySelectMode(true);
 $('history-cancel-select').onclick=()=>setHistorySelectMode(false);
 $('history-select-all').onclick=()=>{
@@ -2977,7 +3009,7 @@ $('history-delete-selected').onclick=()=>action(async()=>{
   setHistorySelectMode(false);await loadHistory();if(assetLibrary?.active())await assetLibrary.load();notify((result.deleted||ids.length)+' History item'+((result.deleted||ids.length)===1?'':'s')+' deleted. Spending history is unchanged.');
 });
 function finishLabBoot(){window.__pvLabFinishBoot?.();}
-function lock(){moodReferences.clear();void deviceMediaCache.signOut();document.documentElement.classList.remove('pv-native-route-pending');retouchActive=false;history.scrollRestoration='auto';precisionEditor.reset();$('app').classList.remove('retouch-studio-active');customerMode=false;customerGenerationReady=false;customerImagePricing?.reset();wallet.connect({customer:false});$('studio-invite-friends').hidden=true;fashionController?.lock();setFashionActive(false);assetLibrary?.reset();hf.reset();epoch++;imageSubmissionPending=false;pendingImageCards.clear();moodUI.clear(true);clearAssetCache();for(const p of composerPortraits.values())p.then(url=>{if(url)release(url);});composerPortraits.clear();composerLibraryKey='';composerPortraitKey='';closeComposerLibrary();historySelected.clear();historySelectMode=false;clearSoulProPackPreview();soulProIdentity={configured:false,count:0,refs:[]};workingCopies.clear();fastImageHandoff.clear();autoPreview=null;downloadUrls.forEach(release);downloadUrls.clear();myMoods.reset();owner=false;userId='';soul.reset();historyRevision++;galleryPreviewQueue.length=0;clearTimeout(timer);timer=null;activeJob=null;activeJobs=[];polling=false;requestControllers.forEach(c=>c.abort());requestControllers.clear();observer.disconnect();cardUrls.forEach(release);cardUrls.clear();clearMedia();$('prompt').value='';$('history').replaceChildren();$('app').hidden=true;$('gate').hidden=false;$('connection').hidden=true;$('logout').hidden=true;$('api-key').value='';for(const d of document.querySelectorAll('dialog[open]'))d.close();currentQuote=null;config={};packs=[];$('pack-select').replaceChildren(new Option('Choose a saved pack',''));closeImageModelMenu();toggleImageSettings(false);$('app').classList.remove('image-studio-active');imageStudio.hidden=true;imageDetailCache.clear();releaseImageDetailSource();videoJobCache.clear();selectedVideoJob=null;syncVideoStudioMode();finishLabBoot();}
+function lock(){moodReferences.clear();void deviceMediaCache.signOut();document.documentElement.classList.remove('pv-native-route-pending');retouchActive=false;history.scrollRestoration='auto';precisionEditor.reset();$('app').classList.remove('retouch-studio-active');customerMode=false;customerGenerationReady=false;customerImagePricing?.reset();wallet.connect({customer:false});$('studio-invite-friends').hidden=true;fashionController?.lock();setFashionActive(false);assetLibrary?.reset();hf.reset();epoch++;imageSubmissionPending=false;pendingImageCards.clear();moodUI.clear(true);clearAssetCache();for(const p of composerPortraits.values())p.then(url=>{if(url)release(url);});composerPortraits.clear();composerLibraryKey='';composerPortraitKey='';closeComposerLibrary();historySelected.clear();historySelectMode=false;clearSoulProPackPreview();soulProIdentity={configured:false,count:0,refs:[]};workingCopies.clear();fastImageHandoff.clear();autoPreview=null;downloadUrls.forEach(release);downloadUrls.clear();myMoods.reset();owner=false;updateHistoryPagination();userId='';soul.reset();historyRevision++;galleryPreviewQueue.length=0;clearTimeout(timer);timer=null;activeJob=null;activeJobs=[];polling=false;requestControllers.forEach(c=>c.abort());requestControllers.clear();observer.disconnect();cardUrls.forEach(release);cardUrls.clear();clearMedia();$('prompt').value='';$('history').replaceChildren();$('app').hidden=true;$('gate').hidden=false;$('connection').hidden=true;$('logout').hidden=true;$('api-key').value='';for(const d of document.querySelectorAll('dialog[open]'))d.close();currentQuote=null;config={};packs=[];$('pack-select').replaceChildren(new Option('Choose a saved pack',''));closeImageModelMenu();toggleImageSettings(false);$('app').classList.remove('image-studio-active');imageStudio.hidden=true;imageDetailCache.clear();releaseImageDetailSource();videoJobCache.clear();selectedVideoJob=null;syncVideoStudioMode();finishLabBoot();}
 const wallet=createCustomerWallet({api,notify,onClosed:async()=>{lock();await clerk.signOut();}});
 customerImagePricing=createCustomerImagePricing({snapshot:imageCreditQuoteSnapshot,quote:fetchCustomerImagePrice,changed:()=>update()});
 async function sync(){if(syncing)return;syncing=true;try{if(!clerk.isSignedIn){lock();$('auth-status').textContent='Sign in to your PV Lab workspace.';$('signin').disabled=false;return;}if(owner&&userId===clerk.user.id)return;if(owner&&userId!==clerk.user.id)lock();const data=await api('/api/session');owner=true;customerMode=!!data.customer;customerGenerationReady=!!data.generationReady;userId=clerk.user.id;void deviceMediaCache.select(userId);wallet.connect(data);hf.setCustomerPricing(customerMode?{trainingCredits:data.soulIdTrainingCredits,imageCredits:data.soul2ImageCredits}:null);$('studio-invite-friends').hidden=!customerMode;if(customerMode)await claimReferral(code=>api('/api/customer/referrals/claim',{method:'POST',body:{code}}));applyConfig(data.config);$('identity').textContent=customerMode?'My workspace':'Owner workspace';if(window.__PV_LAB_NATIVE__===1&&!window.__pvNativeRouteResolved)document.documentElement.classList.add('pv-native-route-pending');$('gate').hidden=true;$('app').hidden=false;$('connection').hidden=customerMode;$('logout').hidden=false;
