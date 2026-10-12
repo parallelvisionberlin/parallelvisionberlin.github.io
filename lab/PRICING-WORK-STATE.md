@@ -30,5 +30,9 @@
 - Updated an outdated Studio test assertion to verify the existing title overlays inside photographs. No Studio design change.
 - Complete landing browser gate passed on `72efaa2f47554bf1bd408c4e701ed9383b0b4b06` (run `38273144722`).
 - Integrated concurrent main changes through `8fbf3b63989a76604c14bdd672cd69066ffe0a3e`; the README merged cleanly and unrelated work is preserved.
-- Publication state: authorized; checking the integrated branch before main publication. No live deployment is claimed yet.
-- Next action: publish the verified branch to main and verify the live pricing section.
+- Integrated commit `2f49444fb955ed76a27b6d5add48ec0aef6e55d7` passed static build, landing browser, asset/runtime and account gates (runs `38273393001`, `38273393132`, `38273393716`).
+- Published to `main` by a non-forced fast-forward. Subsequent documentation commit `bce889a57079c362803203139419502c1eed4eb4` preserves this implementation.
+- GitHub Pages build/deploy run `38273670635` succeeded. Live page verified on 2026-10-12 at `https://parallelvisionlabel.com/lab/#pricing`.
+- Live browser confirms all three images loaded, the approved layout, DM Sans 300 and no horizontal overflow at 1363 pixels. Responsive checks passed at 1440, 390, 320 and 768 pixels in CI.
+- Final scope: `lab/index.html`, `lab/pricing.css`, `lab/README.md`, this state file and `tests/lab-landing-ui.cjs`.
+- Status: implemented, committed and confirmed live. No remaining action or blocker for this pricing design.
