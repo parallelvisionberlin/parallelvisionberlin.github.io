@@ -365,5 +365,11 @@ See [the account interface work state](ACCOUNT-WORK-STATE.md) before changing th
 - Local processing previews inspected on supplied café, window and boat screenshots with a Sharp adapter.
 - These previews are approximate screenshot-level checks, not a controlled comparison on raw generated originals.
 - No paid AI generations were made. Revised generation aesthetics remain to be assessed on the next real output.
-- Cloudflare pixel checks, desktop/mobile browser checks and publication are pending for this revision.
-- Next action: pass remote finishing verification, publish frontend/Worker, verify live version and references.
+- Full local Lab gate: 314 tests passed.
+- Verified implementation commit: `aae7d6f53258dc8121e7dcf9c815c15b93068bbf`.
+- Remote Cloudflare pixel checks and desktop/mobile browser checks passed: run `38272246886`.
+- Source-aware grain, light spread, stable skin hue, dark-area preservation and full-frame midtone diffusion passed.
+- Browser checks passed at 1440px and 390px: independent sliders, original download, no extra generation, no overflow.
+- Native Mood generation also validates the complete prompt before source/reference uploads.
+- Publication and live frontend/Worker verification are pending.
+- Next action: publish frontend/Worker and verify live version and references.
