@@ -1,7 +1,7 @@
 /* Video Studio uses the same type, surfaces and buttons as PV Lab. */
 .video-frame-thumb,.video-frame-label{display:none}
 #main:has(>#app.video-studio-active){max-width:none;padding:0 12px}
-#app.video-studio-active{font-family:'DM Sans',Arial,sans-serif}
+#app.video-studio-active{--video-preview-height:clamp(240px,calc(100dvh - 175px),1000px);font-family:'DM Sans',Arial,sans-serif}
 #app.video-studio-active .tool-switch{padding-inline:12px}
 #app.video-studio-active>.workspace.video-layout{grid-template-columns:310px minmax(0,1fr) 235px;gap:10px;border:0;border-radius:0;background:#101114;height:calc(100dvh - 108px);min-height:540px}
 #app.video-studio-active .workspace.video-layout>.controls{border:1px solid #292b30;border-radius:16px;background:#151619}
@@ -44,13 +44,15 @@
 #app.video-studio-active .seed-settings{margin-top:10px}
 #app.video-studio-active .seed-settings summary{font-size:11px;letter-spacing:0;text-transform:none;color:#91959e}
 #app.video-studio-active .workspace.video-layout .generate-zone{padding:12px 14px;border-top:1px solid #2c2e34;background:#151619}
-#app.video-studio-active .workspace.video-layout #generate{width:100%;height:48px;min-height:48px;border:0;border-radius:10px;box-shadow:none;font:600 15px 'DM Sans',Arial,sans-serif;background:#edb455;color:#141414}
+#app.video-studio-active .workspace.video-layout #generate{width:100%;height:52px;min-height:52px;border:1px solid #edece5;border-radius:12px;box-shadow:0 3px 14px #0002;font:650 15px 'DM Sans',Arial,sans-serif;background:#edece5;color:#181a18}
+#app.video-studio-active .workspace.video-layout #generate:hover:not(:disabled){background:#fff;border-color:#fff;box-shadow:0 4px 18px #0003;transform:none}
+#app.video-studio-active .workspace.video-layout #generate:focus-visible{outline:2px solid #edece5;outline-offset:3px}
 #app.video-studio-active .workspace.video-layout #generate:disabled{background:#303238!important;border-color:#3a3d43!important;color:#868a94!important}
 #app.video-studio-active #generation-help{display:none}
 #app.video-studio-active #save{width:auto;display:block;margin:8px auto 0;padding:5px 10px;min-height:26px;background:transparent;border:0;font:400 11px 'DM Sans',Arial,sans-serif;color:#9599a3}
 #app.video-studio-active #save:disabled{display:none}
 #app.video-studio-active .video-feed-center{padding:0 0 18px;background:#101114;scrollbar-width:thin;scrollbar-color:#2c2f35 transparent;overscroll-behavior:auto}
-#app.video-studio-active .video-feed-center>.stage{height:clamp(380px,calc(100dvh - 175px),1000px);border:1px solid #292b30;border-radius:15px;background:#121316;grid-template-rows:43px minmax(0,1fr) 40px}
+#app.video-studio-active .video-feed-center>.stage{height:var(--video-preview-height);border:1px solid #292b30;border-radius:15px;background:#121316;grid-template-rows:43px minmax(0,1fr) 40px}
 #app.video-studio-active .video-feed-center .stagehead,#app.video-studio-active .video-feed-center .stagefoot{background:#121316;border:0;padding:0 13px;font:400 12px 'DM Sans',Arial,sans-serif;letter-spacing:0;text-transform:none}
 #app.video-studio-active .stagehead .eyebrow{font:500 12px 'DM Sans',Arial,sans-serif;letter-spacing:0;text-transform:none;color:#b0b4bc}
 #app.video-studio-active .video-feed-center .canvas{padding:0;background:#0d0e10}
@@ -61,7 +63,7 @@
 #app.video-studio-active .video-feed-center .archivehead h2{font:500 14px 'DM Sans',Arial,sans-serif;letter-spacing:0}
 #app.video-studio-active .video-feed-center #history{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 #app.video-studio-active .video-feed-center #history .card[data-kind="video"]{border-color:#2e3036;border-radius:10px;background:#191b20}
-#app.video-studio-active .workspace.video-layout>.video-inspector{border:1px solid #292b30;border-radius:15px;background:#151619;overflow:hidden}
+#app.video-studio-active .workspace.video-layout>.video-inspector{align-self:start;height:var(--video-preview-height);border:1px solid #292b30;border-radius:15px;background:#151619;overflow:hidden}
 #app.video-studio-active .video-inspector-heading{min-height:43px;padding:0 14px;border-bottom:1px solid #292b30;font:500 13px 'DM Sans',Arial,sans-serif}
 #app.video-studio-active .video-inspector-body{padding:16px 14px}
 #app.video-studio-active .video-detail-model{padding:5px 8px;border-color:#36383f;border-radius:7px;background:#202227;font:500 11px 'DM Sans',Arial,sans-serif}

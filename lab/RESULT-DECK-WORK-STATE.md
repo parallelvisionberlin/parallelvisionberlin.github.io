@@ -42,3 +42,14 @@
 - Newer main 20de9fb includes this implementation unchanged; run 38288613296 was still running at the public-file check.
 - Live destination: https://parallelvisionlabel.com/lab/studio.html
 - Complete and confirmed live on 2026-10-12; no paid generations or live account mutations were used.
+
+## Video handoff follow-up, 2026-10-12
+- User requested removing the persistent handoff message and matching the right panel height to the media card.
+- References: image(20261012-190843).png and image(20261012-191108).png.
+- User also approved a warm-white Generate button matching the Image deck.
+- Baseline: c980a84; changes scoped to lab.js, studio.html and video-refresh.css.
+- Handoff clears old video selection, preserves the selected Start frame and opens the feed at its top.
+- Success is shown inline; no persistent overlay. History selection still restores normal video details/actions.
+- Preview and right inspector share one desktop height; mobile retains its stacked layout.
+- Existing viewer and layout browser checks cover these fixes without paid generation.
+- Current status: syntax/whitespace checks passed; browser CI and live verification pending.
