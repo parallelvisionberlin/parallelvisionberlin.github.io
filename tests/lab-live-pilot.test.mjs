@@ -60,9 +60,10 @@ test('production stays entirely closed until a real exact customer ID is deliber
   assert.equal(canCustomerCheckout({
     ...secrets,LAB_PUBLIC_GENERATION_ENABLED:'true',LAB_CHECKOUT_ENABLED:'true'},OTHER),true);
 });
-test('pilot offers one €10 top-up, no subscriptions and no other packs',()=>{
+test('pilot offers the €10 top-up or Starter subscription, no higher packs',()=>{
   assert.equal(isPermittedPilotPurchase(pilotEnv,PILOT,'topup10'),true);
-  for(const sku of ['topup29','topup75','starter','creator','studio'])
+  assert.equal(isPermittedPilotPurchase(pilotEnv,PILOT,'starter'),true);
+  for(const sku of ['topup29','topup75','creator','studio'])
     assert.equal(isPermittedPilotPurchase(pilotEnv,PILOT,sku),false);
   assert.equal(isPermittedPilotPurchase(pilotEnv,OTHER,'starter'),true);
 });
@@ -77,7 +78,8 @@ test('authenticated pilot sees wallet and can open mocked real Checkout, while o
   assert.equal(outsider.billingReady,false);
   assert.equal(outsider.generationReady,false);
   await assert.rejects(()=>customerRoute(j({sku:'topup10'}),env,OTHER),/not enabled/);
-  for(const sku of ['starter','topup29'])
+  assert.deepEqual(pilot.products.map(p=>p.id),['topup10','starter']);
+  for(const sku of ['topup29','creator'])
     await assert.rejects(()=>customerRoute(j({sku}),env,PILOT),/pilot permits one/);
   let calls=0;
   const prev=globalThis.fetch;
@@ -114,6 +116,44 @@ test('authenticated pilot sees wallet and can open mocked real Checkout, while o
     await assert.rejects(()=>customerRoute(j({sku:'topup10'}),env,PILOT),/already completed/);
     assert.equal(calls,1);
   }finally{globalThis.fetch=prev;}
+});
+test('whitelisted account can prepare a single Starter monthly subscription without charging or granting credits',async t=>{
+  const {db,env}=fixture(t);
+  await ensureCustomer(env,PILOT);
+  await ensureCustomer(env,OTHER);
+  db.prepare('UPDATE lab_customers SET stripe_customer_id=? WHERE id=?').run('cus_starterPilot',PILOT);
+  const before=globalThis.fetch;t.after(()=>{globalThis.fetch=before;});
+  const forms=[];
+  globalThis.fetch=async(url,init)=>{
+    assert.equal(url,'https://api.stripe.com/v1/checkout/sessions');
+    const form=new URLSearchParams(init.body);forms.push(form);
+    return Response.json({id:'cs_live_starterPilot',url:'https://checkout.stripe.com/c/pay/cs_live_starterPilot'});
+  };
+  await assert.rejects(()=>customerRoute(j({sku:'starter'}),env,OTHER),/not enabled/);
+  const response=await customerRoute(j({sku:'starter'}),env,PILOT);
+  assert.equal(response.status,200);
+  assert.equal(forms.length,1);
+  const form=forms[0];
+  assert.equal(form.get('mode'),'subscription');
+  assert.equal(form.get('client_reference_id'),PILOT);
+  assert.equal(form.get('customer'),'cus_starterPilot');
+  assert.equal(form.get('line_items[0][price_data][unit_amount]'),'1500');
+  assert.equal(form.get('line_items[0][price_data][recurring][interval]'),'month');
+  assert.equal(form.get('metadata[lab_sku]'),'starter');
+  assert.equal(form.get('subscription_data[metadata][lab_customer_id]'),PILOT);
+  assert.equal(form.get('subscription_data[metadata][lab_sku]'),'starter');
+  assert.ok([...form.keys()].every(key=>!key.startsWith('invoice_creation')));
+  assert.equal(db.prepare('SELECT balance_credits FROM lab_customers WHERE id=?').get(PILOT).balance_credits,0);
+  // A verified paid invoice is the only path to a subscription credit grant.
+  db.prepare("INSERT INTO lab_credit_entries(id,customer_id,delta_credits,kind,reference,created_at) VALUES('starterpaid',?,1600,'subscription','invoice:in_starterPilot',1)").run(PILOT);
+  await assert.rejects(()=>customerRoute(j({sku:'starter'}),env,PILOT),/already completed/);
+  await assert.rejects(()=>customerRoute(j({sku:'topup10'}),env,PILOT),/already completed/);
+  assert.equal(forms.length,1);
+});
+test('customer Higgsfield generation remains disabled until separately licensed',()=>{
+  const source=readFileSync(new URL('../lab-worker/worker.mjs',import.meta.url),'utf8');
+  assert.match(source,/customer&&env\.LAB_CUSTOMER_HIGGSFIELD_ENABLED!=='true'/);
+  assert.match(source,/higgsfieldEnabled:ready&&!!env\.HF_CREDENTIALS&&env\.LAB_CUSTOMER_HIGGSFIELD_ENABLED==='true'/);
 });
 test('one-time invoice settings are server-controlled, optional, and never sent to subscriptions',async t=>{
   const {db,env}=fixture(t);await ensureCustomer(env,PILOT);
