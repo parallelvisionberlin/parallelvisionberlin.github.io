@@ -37,3 +37,13 @@
 - Public account.html, account.css and account.js returned HTTP 200 with the new revision markers.
 - Confirmed live: https://parallelvisionlabel.com/lab/account.html
 - No blockers. Next action: await visual feedback; reuse these results for this unchanged revision.
+
+## Explicit Home navigation (2026-10-12)
+- Approved: a quiet Home text link beside PV LAB on internal pages, always targeting /lab/.
+- Source baseline: ea2c68cc09f485a0259129acf03b36aa3c913a4e; preserve concurrent account and billing work.
+- Pages: account.html, moods.html, studio.html and mood-creator.html (including My Moods).
+- Shared scoped styles: home-navigation.css; the existing logo links remain intact.
+- Small-screen Mood Creator uses a two-row header; Account uses the existing compact Studio label.
+- Static link and stylesheet checks passed. Local Chromium cannot start in this execution environment.
+- Existing account browser workflow provides desktop/mobile regression coverage after commit.
+- Deployment and live navigation verification are pending for this revision.
