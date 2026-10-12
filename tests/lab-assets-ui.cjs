@@ -460,8 +460,8 @@ const layoutImages=await page.evaluate(sizes=>sizes.map(([width,height],i)=>{
 }),layoutSizes);
 jobs=layoutSizes.map(([width,height],i)=>({id:'layout-'+i,sourceId:'layout-source-'+i,outputId:'layout-output-'+i,status:'completed',createdAt:Date.now()-i*100,settings:{type:i===5?'video':'image',mode:i===5?'start':i===4?'upscale':'image',engine:'seedream',aspectRatio:width+':'+height,galleryDimensions:{assetId:'layout-output-'+i,width,height},resolution:'1k',prompt:'Mixed gallery proportions'}}));
 let releaseLayout;const layoutReady=new Promise(resolve=>releaseLayout=resolve);
-await page.route('**/api/assets/layout-*',async route=>{
-  await layoutReady;const i=Number(new URL(route.request().url()).pathname.split('-').at(-1));
+await page.route(/\/api\/assets\/layout-(?:source|output)-\d+(?:\/thumbnail)?$/,async route=>{
+  await layoutReady;const i=Number(new URL(route.request().url()).pathname.match(/layout-(?:source|output)-(\d+)/)[1]);
   return route.fulfill({contentType:'image/png',body:Buffer.from(layoutImages[i],'base64')});
 });
 await page.setViewportSize({width:1911,height:1000});
