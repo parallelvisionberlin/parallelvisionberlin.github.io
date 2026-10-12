@@ -534,7 +534,7 @@ test('80s Film cinematic mood keeps multi-reference prompts under provider chara
   assert.match(duo.prompt,/80S FILM \/ FASHION CINEMA/);
 });
 
-test('Berlin Rave V4 carries minimal clothing, flash and source composition through every tier',()=>{
+test('Berlin Rave V5 carries minimal clothing, flash and source composition through every tier',()=>{
   const mood=moodById('berlin-rave');
   assert.equal(mood.category,'Fashion');assert.equal(mood.defaultIntensity,80);
   assert.equal(mood.preview,'/lab/mood-previews/berlin-rave-20261011.webp?v=hd-20261011');
@@ -543,9 +543,9 @@ test('Berlin Rave V4 carries minimal clothing, flash and source composition thro
     const labels=Array.from({length:referenceCount},(_,i)=>({role:i?'none':'base'}));
     const prompt=compileImagePrompt(result.prompt,labels);
     assert.equal(result.error,'');
-    assert.match(prompt,/BERLIN RAVE V4/);
+    assert.match(prompt,/BERLIN RAVE V5/);
     assert.match(prompt,/black leather and glossy latex/);
-    assert.match(prompt,/narrow harness straps/);
+    assert.match(prompt,/narrow harness straps/i);
     assert.match(prompt,/direct on-camera flash/);
     assert.match(prompt,/Nearby walls/);
     assert.match(prompt,/camera distance/);
@@ -558,7 +558,7 @@ test('Berlin Rave V4 carries minimal clothing, flash and source composition thro
     assert.equal(result.metadata.moodIntensity,intensity);
   }
   assert.match(prepareMoodPrompt('Portrait','berlin-rave',10,{referenceCount:1}).prompt,/recognizable original outfit/);
-  assert.match(prepareMoodPrompt('Portrait','berlin-rave',100,{referenceCount:1}).prompt,/substantial cutouts, exposed skin/);
+  assert.match(prepareMoodPrompt('Portrait','berlin-rave',100,{referenceCount:1}).prompt,/substantial cutouts, original skin or machinery visible/);
 });
 
 test('Berlin Rave preserves user instructions and optional reference roles',()=>{
@@ -578,9 +578,9 @@ test('Berlin Rave preserves user instructions and optional reference roles',()=>
   assert.match(final,/Clothing \/ Full outfit/);
   assert.match(final,/Fit it to the target subject and pose/);
   assert.ok(final.length<=5000);
-  const saved=preparePersonalMoodPrompt('Portrait',{id:'rave-v4',name:'My Rave',direction:'Refined worn leather',baseMoodId:'berlin-rave'},100,{referenceCount:1});
+  const saved=preparePersonalMoodPrompt('Portrait',{id:'rave-v5',name:'My Rave',direction:'Refined worn leather',baseMoodId:'berlin-rave'},100,{referenceCount:1});
   assert.equal(saved.error,'');
-  assert.match(saved.prompt,/BERLIN RAVE V4/);
+  assert.match(saved.prompt,/BERLIN RAVE V5/);
   assert.ok(compileImagePrompt(saved.prompt,[{role:'base'}]).length<=5000);
   assert.match(prepareMoodPrompt('','berlin-rave',80).error,/Describe a subject or add an image/);
   assert.match(prepareMoodPrompt('X'.repeat(5000),'berlin-rave',100,{referenceCount:1}).error,/exceed 5,000/);
