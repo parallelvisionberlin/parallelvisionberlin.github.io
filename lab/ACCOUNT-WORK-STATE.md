@@ -121,4 +121,8 @@
 - Files: lab/public-header.css, its cache version in lab/index.html, and this checkpoint.
 - Baseline: c980a84ce88aa39e605d0c913437c89ff3f81a34. No new images, dependencies or tests.
 - Verification: reuse the existing landing-stability workflow and its desktop/mobile screenshots.
-- Next: verify CI, publish and confirm the live revision.
+- Published: 7f96a352798565cb68a4c5713e0b87c3e81ed48c, PR #171.
+- Landing-stability run 38296031846 passed at 504fd198ac93133580efb632cc83f87186661809 across desktop/mobile widths; screenshots inspected.
+- Reusable screenshots: artifact 11768432488, local hero-inset-review folder.
+- Pages run 38296277169 built and deployed successfully. Live index.html and public-header.css returned HTTP 200 and matched release bytes.
+- Complete: https://parallelvisionlabel.com/lab/. Reuse these checks for this unchanged revision.
