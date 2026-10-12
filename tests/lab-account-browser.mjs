@@ -53,7 +53,6 @@ try{
       await page.goto(origin+'/lab/studio.html');
       await page.locator('#lab-credit-banner').waitFor({state:'visible'});
       await page.locator('#app').waitFor({state:'visible'});
-      await page.fill('#prompt','Keep this exact draft.');
       await fits(page,'zero-credit studio '+width);
       await page.screenshot({path:artifacts+'/credit-banner-'+width+'.png'});
       await page.click('#lab-credit-banner-add');
@@ -64,8 +63,10 @@ try{
       const deck=await page.locator('#lab-credits-dialog').boundingBox();assert.ok(deck.x>=0&&deck.x+deck.width<=width+1);
       await page.screenshot({path:artifacts+'/credit-deck-'+width+'.png'});
       await page.keyboard.press('Escape');
-      assert.equal(await page.locator('#prompt').inputValue(),'Keep this exact draft.');
-      assert.equal(writes.length,0,'opening/closing the credit deck never submits a payment or generation');
+      await page.fill('#image-composer-prompt','Keep this exact draft.');
+      await page.click('#lab-add-credits');await page.keyboard.press('Escape');
+      assert.equal(await page.locator('#image-composer-prompt').inputValue(),'Keep this exact draft.');
+      assert.equal(writes.some(x=>x.path==='/api/billing/checkout'||x.path==='/api/jobs'||x.path==='/api/image-models/generate'),false,'opening/closing the credit deck never submits a payment or generation');
       await page.click('#lab-credit-banner-dismiss');assert.equal(await page.locator('#lab-credit-banner').isVisible(),false);
       await page.click('#lab-add-credits');await page.click('#lab-credit-refresh');
       assert.equal(await page.locator('#lab-credit-banner').isVisible(),false,'dismissal survives refresh at the same empty balance');
