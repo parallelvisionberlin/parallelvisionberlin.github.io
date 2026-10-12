@@ -30,6 +30,14 @@ export function moodReferencePlan(settings){
       referenceMode:settings.referenceMode||'base',compact:true,filmFinish:settings.filmFinish
     });
     prompt=recipe.prompt;
+    if(compileImagePrompt(prompt,referenceRoles).length>5000){
+      // Last resort: shorten only our automatic art direction, never authored text or role notes.
+      const small=prepareMoodPrompt(settings.moodOriginalPrompt,settings.moodId,settings.moodIntensity,{
+        engine:settings.engine,referenceCount:labels.filter(label=>!isMoodStyleReference(label)).length,
+        referenceMode:settings.referenceMode||'base',compact:true,ultraCompact:true,filmFinish:settings.filmFinish
+      });
+      prompt=small.prompt;
+    }
   }
   if(compileImagePrompt(prompt,referenceRoles).length>5000)
     throw Error('Your direction and reference notes are too long even with the compact Mood. Shorten the direction or optional notes.');
