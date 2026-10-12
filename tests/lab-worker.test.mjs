@@ -242,6 +242,10 @@ test('new customer: signed signup, paid credits once, generation, private downlo
     assert.equal(balance(),991,'Definite provider rejection refunds its own charge');
     assert.equal(db.prepare("SELECT COUNT(*) AS n FROM lab_credit_entries WHERE customer_id=? AND kind='refund'").get(customer).n,1);
     assert.equal(db.prepare("SELECT COUNT(*) AS n FROM lab_credit_entries WHERE customer_id=? AND kind='purchase'").get(customer).n,1);
+    const closing=await req(env,'/api/customer/account',{method:'DELETE',authToken,data:{confirmation:'DELETE MY PV LAB ACCOUNT'}});assert.equal(closing.status,202);
+    const closedSession=await req(env,'/api/session',{authToken});assert.equal(closedSession.status,200);assert.equal((await closedSession.json()).accountClosed.state,'requested');
+    assert.equal((await req(env,'/api/customer/wallet',{authToken})).status,200,'Closed accounts can still read billing records');
+    assert.equal((await req(env,'/api/jobs',{authToken})).status,403,'Closed accounts cannot read creative records');
   }finally{maxPrice=previousPrice;createMode='ok';providerState='queued';}
 });
 test('Text-to-image quotes need no source; image outputs can be reused by video without losing the source',async()=>{

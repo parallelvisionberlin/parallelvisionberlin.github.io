@@ -1,4 +1,4 @@
-// Device cache for authenticated images only. No tokens, URLs or API credentials.
+// Device cache for authenticated images only. No tokens, provider URLs or API credentials.
 // Account selection happens only after /api/session succeeds. Private browsing or
 // a storage failure simply falls back to the authenticated network request.
 export function createPrivateMediaCache({storage=globalThis.caches,origin=globalThis.location?.origin||'https://parallelvisionlabel.com',clock=Date.now,maxBytes=128*1048576,maxEntries=120,ttl=86400000}={}){

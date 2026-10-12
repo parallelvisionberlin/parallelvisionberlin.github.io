@@ -137,6 +137,7 @@ export async function customerRoute(request,env,subject){
       form['payment_intent_data[metadata][lab_sku]']=sku;
     }
     Object.keys(form).forEach(k=>form[k]===undefined&&delete form[k]);
+    await assertCustomerOpen(env,subject,{spending:true});
     const session=await stripe(env,'checkout/sessions',form);
     const paymentUrl=safeUrl(session.url);
     if(!paymentUrl)fail(502,'Stripe did not return a verified checkout URL.');

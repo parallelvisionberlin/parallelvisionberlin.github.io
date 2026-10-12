@@ -2933,6 +2933,12 @@ function lock(){void deviceMediaCache.signOut();document.documentElement.classLi
 const wallet=createCustomerWallet({api,notify,onClosed:async()=>{lock();await clerk.signOut();}});
 customerImagePricing=createCustomerImagePricing({snapshot:imageCreditQuoteSnapshot,quote:fetchCustomerImagePrice,changed:()=>update()});
 async function sync(){if(syncing)return;syncing=true;try{if(!clerk.isSignedIn){lock();$('auth-status').textContent='Sign in to your PV Lab workspace.';$('signin').disabled=false;return;}if(owner&&userId===clerk.user.id)return;if(owner&&userId!==clerk.user.id)lock();const data=await api('/api/session');owner=true;customerMode=!!data.customer;customerGenerationReady=!!data.generationReady;userId=clerk.user.id;void deviceMediaCache.select(userId);wallet.connect(data);hf.setCustomerPricing(customerMode?{trainingCredits:data.soulIdTrainingCredits,imageCredits:data.soul2ImageCredits}:null);$('studio-invite-friends').hidden=!customerMode;if(customerMode)await claimReferral(code=>api('/api/customer/referrals/claim',{method:'POST',body:{code}}));applyConfig(data.config);$('identity').textContent=customerMode?'My workspace':'Owner workspace';if(window.__PV_LAB_NATIVE__===1&&!window.__pvNativeRouteResolved)document.documentElement.classList.add('pv-native-route-pending');$('gate').hidden=true;$('app').hidden=false;$('connection').hidden=customerMode;$('logout').hidden=false;
+    if(data.accountClosed){
+      await deviceMediaCache.signOut();$('studio-invite-friends').hidden=true;
+      $('app').hidden=true;$('gate').hidden=false;$('signin').disabled=true;
+      $('auth-status').textContent='Your PV Lab account is closed. Use Credits for deletion status and billing management, or contact support.';
+      wallet.open();return;
+    }
     // The authenticated studio is already usable. History and optional account
     // resources can finish loading without holding the entire screen behind boot.
     $('emptyarchive').textContent='Loading your images…';
