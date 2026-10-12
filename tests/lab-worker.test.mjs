@@ -396,6 +396,36 @@ test('Image role-only edits compile automatically; invalid mappings and oversize
   }
 });
 
+test('Reference uploads retry a transient storage error once with identical bytes and never retry a paid job',async()=>{
+  const {env}=fixture();await setup(env);const id=await uploadGuidanceReference(env,'base.png',42);
+  const prior=globalThis.fetch;let attempts=[],statuses=[];
+  globalThis.fetch=async(url,options={})=>{
+    if(new URL(url).hostname==='test.r2.cloudflarestorage.com'){
+      attempts.push({url:String(url),headers:[...new Headers(options.headers)],bytes:Buffer.from(options.body).toString('base64'),redirect:options.redirect});
+      const status=statuses.shift();if(status)return new Response('Storage error',{status});
+    }
+    return prior(url,options);
+  };
+  try{
+    for(const testCase of [
+      {statuses:[500],expected:200,attempts:2},
+      {statuses:[503],expected:200,attempts:2},
+      {statuses:[500,500],expected:502,attempts:2},
+      {statuses:[403],expected:502,attempts:1}
+    ]){
+      attempts=[];statuses=[...testCase.statuses];const before=createCount,callsBefore=calls.length;
+      const response=await req(env,'/api/quotes',{method:'POST',data:{referenceSourceIds:[id],settings:{...imageSettings,engine:'seedream',referenceRoles:[{role:'base'}]}}});
+      assert.equal(response.status,testCase.expected,await response.clone().text());assert.equal(attempts.length,testCase.attempts);
+      assert.equal(createCount,before,'A media-upload retry must never buy a generation');
+      if(attempts.length===2)assert.deepEqual(attempts[0],attempts[1],'Retry only the same bytes, URL and signed headers');
+      if(response.status!==200){
+        assert.match((await response.json()).error,/Uploaded photo 1.*HTTP (500|403)/);
+        assert.equal(calls.slice(callsBefore).filter(c=>new URL(c.url).pathname.endsWith('/jobs/quote')).length,0);
+      }
+    }
+  }finally{globalThis.fetch=prior;}
+});
+
 for(const [moodId,refVersion,builtInRefs] of [['berlin-rave','berlin-rave-refs-v1',BERLIN_RAVE_REFERENCES],['dreamcore','dreamcore-refs-v1',DREAMCORE_REFERENCES]]){
 test(moodId+' stages its approved photographs after user images and binds them to the quote',async()=>{
   const {env}=fixture();await setup(env);
