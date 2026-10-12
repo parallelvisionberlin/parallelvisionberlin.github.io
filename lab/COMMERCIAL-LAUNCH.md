@@ -2,6 +2,18 @@
 
 ## Active launch checkpoint, 12 October 2026
 
+- Legal/support publication prepared from main `21cb0f5`: /lab/privacy/,
+  /lab/terms/ and /lab/customersupport/. Old customer-care.html redirects.
+  Landing/studio footers and account help point to the published routes.
+- Notices use confirmed merchant details, current storage/billing behavior,
+  provider categories and consumer withdrawal instructions/form. No claimed
+  blanket provider no-training policy, EU-only storage or withdrawal waiver.
+- Pages publication does not approve the full commercial launch. Still verify
+  provider DPAs/transfer safeguards/retention, tax/sales scope and any necessary
+  early-performance consent flow before opening public sales.
+- This change is static HTML/CSS only; public checkout/generation remain off.
+- Deployment and live URL verification pending at this checkpoint.
+
 - Implementation committed to main as `20de9fb95cbe4bda01564628f891edc0a5eb1ba5`.
   Includes merchant page, optional Checkout invoices, sandbox configuration and tests.
 - Production Worker deployment + health passed: Actions run 38288613210.
