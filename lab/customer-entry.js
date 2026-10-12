@@ -2,7 +2,7 @@ import {captureReferralCode,claimReferral} from './referral-capture.js?v=2026101
 captureReferralCode();
 import {createSessionRequest} from './session-request.js?v=20260927-auth1';
 const API='https://parallel-vision-lab.parallelvision.workers.dev';
-const CLERK_KEY='pk_live_Y2xlcmsucGFyYWxsZWx2aXNpb25sYWJlbC5jb20k';
+import {loadLabAccount} from './native-account.js?v=20261012-unified-header1';
 const $=id=>document.getElementById(id);
 const pilotSetup=new URLSearchParams(location.search).get('setup-pilot')==='1';
 let clerk=null,loading=false,profile=null;
@@ -68,11 +68,7 @@ document.addEventListener('keydown',event=>{
   }
 });
 try{
-  const {Clerk}=await import('https://esm.sh/@clerk/clerk-js@6?bundle');
-  await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='https://clerk.parallelvisionlabel.com/npm/@clerk/ui@1/dist/ui.browser.js';s.onload=resolve;s.onerror=reject;document.head.append(s);});
-  clerk=new Clerk(CLERK_KEY);
-  await clerk.load({ui:{ClerkUI:window.__internal_ClerkUICtor},
-    signInFallbackRedirectUrl:location.href,signUpFallbackRedirectUrl:location.href});
+  clerk=await loadLabAccount();
   clerk.addListener(()=>void refresh());
   await refresh();
 }catch(e){status('Sign-in is not currently available. Please try again.');$('lab-header-signin').disabled=true;}

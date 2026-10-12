@@ -20,7 +20,12 @@ function requestIdentity(force=false){
     pending.set(id,{resolve,reject,timer});post('PV_LAB_AUTH',{id,force});
   });
 }
-export async function loadLabAccount(){
+let accountLoading=null;
+export function loadLabAccount(){
+  if(!accountLoading)accountLoading=createLabAccount().catch(error=>{accountLoading=null;throw error;});
+  return accountLoading;
+}
+async function createLabAccount(){
   if(!isNativeLab()){
     const {Clerk}=await import('https://esm.sh/@clerk/clerk-js@6?bundle');
     await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='https://clerk.parallelvisionlabel.com/npm/@clerk/ui@1/dist/ui.browser.js';s.onload=resolve;s.onerror=reject;document.head.append(s);});

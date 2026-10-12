@@ -19,8 +19,8 @@
 .landing-header-actions>.studio-link{grid-area:1 / 1}
 .landing-header-actions>#lab-header-signin,
 .landing-header-actions>#lab-account-strip{grid-area:1 / 2;justify-self:end}
-.lab-hero .hero-copy h1{font-size:clamp(56px,6vw,96px);margin-bottom:18px}
-.lab-hero .hero-copy h2{font-size:clamp(34px,3.5vw,60px);line-height:1.06;white-space:normal;margin-bottom:24px}
+.lab-hero .hero-copy h1{font-size:clamp(64.4px,6.9vw,110.4px);margin-bottom:18px}
+.lab-hero .hero-copy h2{font-size:clamp(37.4px,3.85vw,66px);line-height:1.06;white-space:normal;margin-bottom:24px}
 .lab-hero .hero-copy h2 br{display:block}
 .lab-hero .hero-description{max-width:28vw;font-size:clamp(14px,1.15vw,18px);margin-bottom:24px}
 .hero-actions{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
