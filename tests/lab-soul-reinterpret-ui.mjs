@@ -76,7 +76,16 @@ async function workspace({failure='',width=1440,initial=[],quoteDelay=0,adapterR
 }
 const count=(x,path,method='POST')=>x.requests.filter(r=>r.path===path&&r.method===method).length;
 const ready=page=>page.waitForFunction(()=>!document.querySelector('#resolution').disabled&&window.__labTest.settled());
-async function imageForm(x){await imageAdvanced(x.page);await x.page.fill('#prompt:visible, #image-composer-prompt:visible',settings.prompt);await x.page.selectOption('#resolution:visible, #image-composer-resolution:visible','2k');await x.page.selectOption('#ratio:visible, #image-composer-ratio:visible','16:9');await x.page.selectOption('#output-format','png');}
+async function imageForm(x){
+  await imageAdvanced(x.page);
+  await x.page.fill('#prompt:visible, #image-composer-prompt:visible',settings.prompt);
+  // Web mobile puts resolution and image count behind More; open it as a user would.
+  const mobileMore=x.page.locator('#image-composer-mobile-more');
+  if(await mobileMore.isVisible()&&!await x.page.locator('#image-composer-resolution').isVisible())await mobileMore.click();
+  await x.page.selectOption('#resolution:visible, #image-composer-resolution:visible','2k');
+  await x.page.selectOption('#ratio:visible, #image-composer-ratio:visible','16:9');
+  await x.page.selectOption('#output-format','png');
+}
 async function soulForm(x){await imageAdvanced(x.page);await chooseImageModel(x.page,'soul');}
 async function reForm(x){await soulForm(x);await x.page.evaluate(()=>document.querySelector('#soul-mode-reinterpret').click());}
 async function baseImage(x){await x.page.locator('#soul-base-image').setInputFiles({name:'base.png',mimeType:'image/png',buffer:png});await ready(x.page);await imageAdvanced(x.page);}

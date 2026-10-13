@@ -148,7 +148,16 @@ async function retouchFillsDesktop(page){
   }
   assert.ok(g.horizontalOverflow<=3,'No horizontal scroll allowed: '+JSON.stringify(g));
 }
-async function imageForm(x){await imageAdvanced(x.page);await x.page.fill('#prompt:visible, #image-composer-prompt:visible',settings.prompt);await x.page.selectOption('#resolution:visible, #image-composer-resolution:visible','2k');await x.page.selectOption('#ratio:visible, #image-composer-ratio:visible','16:9');await x.page.selectOption('#output-format','png');}
+async function imageForm(x){
+  await imageAdvanced(x.page);
+  await x.page.fill('#prompt:visible, #image-composer-prompt:visible',settings.prompt);
+  // Web mobile puts resolution and image count behind More; open it as a user would.
+  const mobileMore=x.page.locator('#image-composer-mobile-more');
+  if(await mobileMore.isVisible()&&!await x.page.locator('#image-composer-resolution').isVisible())await mobileMore.click();
+  await x.page.selectOption('#resolution:visible, #image-composer-resolution:visible','2k');
+  await x.page.selectOption('#ratio:visible, #image-composer-ratio:visible','16:9');
+  await x.page.selectOption('#output-format','png');
+}
 
 try{
   const x=await workspace({quoteDelay:3500});

@@ -65,16 +65,16 @@ const server=http.createServer((req,res)=>{
       visibleHeight:innerHeight,
       deckMargin:getComputedStyle(deck).marginTop,
       rowHeights:rows.map(row=>row.getBoundingClientRect().height),
-      inviteBg:getComputedStyle(invite).backgroundColor,
+      inviteBg:getComputedStyle(invite).backgroundImage,
       inviteText:getComputedStyle(invite).color,
-      inviteParagraph:getComputedStyle(invite.querySelector('p')).color,
+      inviteParagraph:getComputedStyle(invite.querySelector('.lab-invite-promo__description')).color,
       overflow:document.documentElement.scrollWidth>innerWidth
     };
   });
   assert.ok(details.sectionHeight>=details.visibleHeight-1,'Pricing occupies at least one viewport');
-  assert.equal(details.inviteBg,'rgb(20, 20, 20)','Referral promotion continues in subtle near-black');
-  assert.equal(details.inviteText,'rgb(246, 243, 237)','Referral typography remains readable');
-  assert.equal(details.inviteParagraph,'rgb(182, 176, 165)','Referral description has contrast on dark background');
+  assert.match(details.inviteBg,/gradient/,'Referral promotion keeps its new editorial gradient');
+  assert.equal(details.inviteText,'rgb(245, 241, 234)','Referral typography remains readable');
+  assert.equal(details.inviteParagraph,'rgb(216, 209, 198)','Referral description has contrast on dark background');
   if(width>760){
     assert.equal(details.deckMargin,'20px','Desktop image collection is balanced lower by 20px');
     assert.ok(details.rowHeights.every(n=>n>=110&&n<=114),'Desktop pricing rows have relaxed 112px rhythm');
