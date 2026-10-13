@@ -1105,7 +1105,15 @@ function syncImageComposer(){
   const textbox=$('image-composer-prompt');
   if(document.activeElement!==textbox && textbox.value!==$('prompt').value)
     textbox.value=$('prompt').value;
-  textbox.placeholder=window.__PV_LAB_NATIVE__===1?'Anything else? Add a direction (optional)':imageEngine==='zspicy'?'Describe an image to create from words…':imageInputReferences().length?(referencesOnly()?(moodUI.active()?'Describe a new image in this Mood…':'Describe the new image you imagine…'):(moodUI.active()?'Optional: what should change in this photo?':'Optional: describe what to change in this photo…')):(moodUI.active()?'Describe an image to create with this Mood…':'Add a photo with +, or describe an image…');
+  const hasPhotoReferences=imageInputReferences().length>0;
+  const hasBasePhoto=(imageEngine==='soulpro'||isReinterpret())&&!!sourceUrl;
+  textbox.placeholder=window.__PV_LAB_NATIVE__===1
+    ?'Anything else? Add a direction (optional)'
+    :!hasPhotoReferences&&!hasBasePhoto
+      ?'What do you imagine?'
+      :referencesOnly()||imageEngine==='fal'
+        ?'Describe the image you want to create...'
+        :'What would you like to change?';
   updateComposerPromptBudget();
   syncSoulBar();
   textbox.disabled=busy || $('prompt').disabled;

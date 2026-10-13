@@ -456,3 +456,7 @@ See [the result deck work state](RESULT-DECK-WORK-STATE.md) for the approved edi
 - Local verification: 40 mood/continuity tests plus four reference loader/budget checks passed.
 - No paid generation submitted. Prompt constraints do not guarantee pixel-identical faces or aesthetic success.
 - Publication/live verification pending; next verify deployed hkContinuity=4 source, then assess the next necessary visible-face generation.
+
+## Image composer placeholder (2026-10-14)
+
+See [the scoped image prompt work state](IMAGE-PROMPT-WORK-STATE.md) for the approved web composer placeholder copy and context rules. This is UI guidance only. Models, Moods, prompt compilation, references, and billing remain unchanged.
