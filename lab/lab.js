@@ -369,7 +369,7 @@ function clearImageComposerNotice(){
 }
 function isImageContentRestriction(message){
   // Treat provider moderation refusals separately from input and transport failures.
-  return /content[_\\s-]*policy[_\\s-]*violation|flagged by (?:a )?content (?:checker|filter)|(?:content|safety)[_\\s-]*(?:checker|filter)[_\\s-]*(?:blocked|rejected|flagged)|(?:blocked|rejected|flagged) (?:by|for|due to) (?:a |the )?(?:content|safety|moderation)|moderation[_\\s-]*(?:rejected|blocked|failed)|\\bNSFW\\b|prohibited (?:sexual |adult )?content|sexual(?:ly)? explicit content (?:is )?not allowed/i.test(String(message||''));
+  return /content[_\s-]*policy[_\s-]*violation|flagged by (?:a )?content (?:checker|filter)|(?:content|safety)[_\s-]*(?:checker|filter)[_\s-]*(?:blocked|rejected|flagged)|(?:blocked|rejected|flagged) (?:by|for|due to) (?:a |the )?(?:content|safety|moderation)|moderation[_\s-]*(?:rejected|blocked|failed)|\bNSFW\b|prohibited (?:sexual |adult )?content|sexual(?:ly)? explicit content (?:is )?not allowed/i.test(String(message||''));
 }
 function imageContentGuidance(job){
   return galleryImageModelName(job)+" couldn't process this request under its content guidelines. Try a different direction or explore another model.";
