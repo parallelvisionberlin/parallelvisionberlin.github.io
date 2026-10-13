@@ -99,6 +99,12 @@ try{
           docWidth:document.documentElement.scrollWidth
         };
       });
+      if(kind==='seedream'){
+        const before=metrics.dock.height;
+        await page.evaluate(()=>{document.getElementById('image-composer-references').hidden=true;window.__resizePVPrompt();});
+        const after=await page.locator('#image-composer').evaluate(el=>el.getBoundingClientRect().height);
+        assert.ok(Math.abs(before-after)<3,'Desktop image deck size stays stable with and without references');
+      }
       assert.ok(metrics.prompt.height<=178,kind+': editor must never fill the screen');
       if(width<=740)assert.ok(metrics.prompt.height<=124,kind+': mobile prompt stays smaller');
       if(kind==='soul')assert.ok(metrics.prompt.height>=120,
