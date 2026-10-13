@@ -646,5 +646,5 @@ test('Text-only Z-Image parks references and stable image docks keep controls in
   assert.match(css,/#image-composer\.is-seedream\{[^}]*min-height:224px/);
   assert.match(css,/#image-composer\.is-seedream \.composer-controls\{[^}]*flex-wrap:nowrap/);
   assert.match(css,/#image-composer\.is-text-only \.image-composer-references\{display:none!important\}/);
-  assert.match(html,/stableImageDeck=1&zTextOnly=1/);
+  assert.match(html,/stableImageDeck=1&zTextOnly=2/);
 });
