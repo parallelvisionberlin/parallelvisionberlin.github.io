@@ -23,8 +23,8 @@ test('Midnight Reverie V2 defaults to vivid 82 percent cobalt flash-memory captu
     assert.match(recipe.prompt,/location|setting|place/i);
   }
   assert.match(normal.prompt,/35–69%: obvious flash-frozen subject/);
-  assert.match(hero.prompt,/IMMERSIVE 70/);
-  assert.match(maximum.prompt,/MAXIMUM 100/);
+  assert.match(hero.prompt,/70–89%: voluptuous electric cobalt memory/);
+  assert.match(maximum.prompt,/100%: sublime cobalt flash dream/);
   assert.notEqual(normal.prompt,hero.prompt);
   assert.notEqual(hero.prompt,maximum.prompt);
 });
