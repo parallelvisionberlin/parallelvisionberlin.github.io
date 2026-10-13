@@ -1211,3 +1211,26 @@ body:has(#app[hidden])>#studio-header .studio-assets-icon{display:none!important
     height:78px;min-height:78px;max-height:78px;font-size:12px;
   }
 }
+
+/* Image gallery: full-resolution download appears on hover, focus, or touch. */
+#app #history .history-hover-download{
+  position:absolute;top:49px;right:9px;z-index:13;
+  display:grid;place-items:center;width:36px;height:36px;min-width:36px;min-height:36px;padding:0;
+  border:1px solid #ffffff46;border-radius:50%;background:#151719d9;color:#f3f2ed;
+  backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px);
+  opacity:0;transform:translateY(-4px);pointer-events:none;cursor:pointer;
+  transition:opacity .16s ease,transform .16s ease,background .16s ease;
+}
+#app #history .history-hover-download svg{display:block;width:19px;height:19px}
+#app #history .card:hover .history-hover-download,
+#app #history .card:focus-within .history-hover-download,
+#app #history .history-hover-download:focus-visible{
+  opacity:1;transform:translateY(0);pointer-events:auto;
+}
+#app #history .history-hover-download:hover{background:#393c3e}
+#app #history .history-hover-download:focus-visible{outline:2px solid #f0eee8;outline-offset:2px}
+#app #history.is-selecting .history-hover-download{display:none!important}
+@media(hover:none){
+  #app #history .history-hover-download{opacity:1;transform:none;pointer-events:auto;width:42px;height:42px;min-width:42px;min-height:42px}
+}
+@media(prefers-reduced-motion:reduce){#app #history .history-hover-download{transition:none}}

@@ -3043,6 +3043,12 @@ function renderCards(jobs,{upsert=false}={}){
       const {figure,img}=historyImage(j.outputId,'Generated image',true);previews.push(img);card.append(figure);
       img.tabIndex=0;img.setAttribute('role','button');img.setAttribute('aria-label','View generated image at full size');
       img.onclick=e=>{e.stopPropagation();openCard();};img.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();img.click();}};
+      // Full-resolution download exists only on completed images, never on failed records.
+      const quickDownload=document.createElement('button');quickDownload.type='button';quickDownload.className='history-hover-download';
+      quickDownload.title='Download full-resolution image';quickDownload.setAttribute('aria-label','Download full-resolution image');
+      quickDownload.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M4 16v4h16v-4"/></svg>';
+      quickDownload.onclick=event=>{event.preventDefault();event.stopPropagation();if(!historySelectMode)void viewMedia(()=>downloadJob(j));};
+      card.append(quickDownload);
     }else if(ready&&j.sourceId){
       const {figure,img}=historyImage(j.sourceId,'Source thumbnail / generated video ready');previews.push(img);card.append(figure);
     }else{
@@ -3052,7 +3058,7 @@ function renderCards(jobs,{upsert=false}={}){
         const kicker=document.createElement('small');kicker.className='content-restriction-kicker';kicker.textContent='PV LAB / CONTENT GUIDELINES';
         const title=document.createElement('strong');title.textContent='Not with this model.';
         const detail=document.createElement('p');detail.className='content-restriction-copy';detail.textContent=imageContentGuidance(j);
-        const edit=button('Edit in Studio ↗',()=>restore(j));edit.classList.add('content-restriction-edit');
+        const edit=button('Reuse prompt',()=>restore(j));edit.classList.add('content-restriction-edit');
         const foot=document.createElement('div');foot.className='content-restriction-foot';
         const saved=document.createElement('small');saved.textContent='Your prompt is saved.';foot.append(saved);
         if(imageCreditsReturned(j)){
