@@ -32,3 +32,7 @@
   #studio-header .lab-home-group{gap:8px}
   #studio-header .actions{gap:4px}
 }
+
+/* Studio uses its PV LAB wordmark as the sole Home action. Defend against stale header markup. */
+#studio-header .lab-home-link{display:none!important}
+#studio-header .lab-home-group{gap:0}
