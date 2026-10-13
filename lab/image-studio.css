@@ -334,6 +334,10 @@
   .composer-model-items:focus-within::-webkit-scrollbar-thumb {background:#53585f}
 }
 .composer-model-items::-webkit-scrollbar-thumb:hover {background:#757a82!important}
+@media(hover:none){
+  .composer-model-items {scrollbar-color:#53585f transparent}
+  .composer-model-items::-webkit-scrollbar-thumb {background:#53585f}
+}
 
 #app.image-studio-active.image-settings-open>.tool-switch {
   position:relative;z-index:115;
