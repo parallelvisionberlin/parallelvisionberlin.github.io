@@ -88,7 +88,7 @@ try{
       rig.releaseCheckout();await page.getByText('Unverified checkout link. Please try again.',{exact:true}).waitFor();
       assert.equal(await page.locator('#pricing [data-lab-buy]:disabled').count(),0,'Failure makes all products usable again');
       session.pilot=true;await page.reload();await page.locator('.pv-account-menu>summary').waitFor({state:'visible'});
-      await page.locator('[data-lab-buy="studio"]').click();await page.getByText('Only the €10 credit pack is available for this account.',{exact:true}).waitFor();
+      await page.locator('[data-lab-buy="studio"]').click();await page.getByText('This private account can choose only the €10 credit pack or €15/month Starter plan.',{exact:true}).waitFor();
       assert.equal(checkoutWrites().length,1,'Pilot restriction does not send an unavailable SKU');
       rig.holdCheckout();await page.locator('[data-lab-buy="topup10"]').click();
       await page.getByText('Opening secure checkout…',{exact:true}).waitFor();
