@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {inflateSync} from 'node:zlib';
-import {grainPng,filmAssetId,prepareFilmAsset,renderFilmFinish,shoulderPng,FILM_RENDER_REVISION,photochemicalPixel,sourceLightWeight,printGradePng,luminousMaskPng} from '../lab-worker/film-finish.mjs';
+import {grainPng,filmAssetId,prepareFilmAsset,renderFilmFinish,shoulderPng,FILM_RENDER_REVISION,photochemicalPixel,sourceLightWeight,printGradePng,luminousMaskPng,deluxeResponse,photochemicalPlan} from '../lab-worker/film-finish.mjs';
 import {filmFinishSettings,HONG_KONG_FILM_FINISH,FILM_FINISH_OFF} from '../lab/film-finish.js';
 import {prepareMoodPrompt,preparePersonalMoodPrompt} from '../lab/moods.js';
 
@@ -50,7 +50,7 @@ test('source-aware grain preserves black and white, favors midtones and does not
   assert.equal(energy[0],0);assert.equal(energy[5],0);
   assert.ok(energy[3]>energy[1]*3);assert.ok(energy[3]>energy[4]*3);
   for(const m of mean)assert.ok(Math.abs(m)<.15,'grain must not lift shadows or depress highlights systematically');
-  assert.equal(FILM_RENDER_REVISION,4,'new processing must not reuse earlier cached derivatives');
+  assert.equal(FILM_RENDER_REVISION,5,'new processing must not reuse earlier cached derivatives');
 });
 test('Hong Kong optical finish preserves the setting and addresses foreground light at every tier',()=>{
   for(const intensity of [21,70,100]){
@@ -91,4 +91,44 @@ test('35mm print curve shifts bright neutrals warm, shadows cool, keeps luminanc
   assert.equal(sourceLightWeight(108,130,111,0.6),0,'skin/background midtones never become invented glow sources');
   assert.ok(sourceLightWeight(250,245,222,0.24)>.4,'only near-white luminous sources spread');
   assert.ok(sourceLightWeight(14,30,30,0.5)<.01,'dark silhouettes cannot seed halos');
+});
+
+test('deluxe photochemical response builds progressively above 70 without changing calibrated defaults',()=>{
+  assert.equal(deluxeResponse(0),0);assert.equal(deluxeResponse(70),0);
+  assert.equal(deluxeResponse(100),1);
+  assert.ok(deluxeResponse(90)>deluxeResponse(80));
+  const baseline=photochemicalPlan(HONG_KONG_FILM_FINISH);
+  assert.equal(baseline.signature,0);
+  assert.equal(baseline.hazeRadius,43);
+  const full=photochemicalPlan({version:2,grain:100,haze:100,halation:100,film:100});
+  assert.equal(full.signature,1);
+  assert.ok(full.grainAmount>125&&full.grainAmount<=134);
+  assert.ok(full.hazeRadius>60&&full.hazeOpacity>.45);
+  assert.ok(full.halationOpacity>.45&&full.halationRadius>11);
+  assert.ok(full.printOpacity>.95&&full.printStrength===1);
+  assert.ok(full.diffusionOpacity>baseline.diffusionOpacity);
+  const clean=photochemicalPlan(FILM_FINISH_OFF);
+  assert.equal(clean.printOpacity,0);assert.equal(clean.hazeOpacity,0);
+  const mid=photochemicalPlan({version:2,grain:65,haze:65,halation:65,film:65});
+  assert.equal(mid.signature,0);
+  assert.equal(mid.grainAmount,65);
+});
+test('deluxe 35mm crossover is stronger than standard without inventing a skin halo',()=>{
+  const standard=photochemicalPixel(235,228,212),deluxe=photochemicalPixel(235,228,212,1);
+  assert.ok(deluxe[0]-deluxe[2]>standard[0]-standard[2],'warm highlights separate on pushed print');
+  const dark=photochemicalPixel(35,38,44,1);
+  assert.ok(dark.every(n=>n>=0&&n<=255));
+  assert.equal(sourceLightWeight(108,130,111,.6),0);
+  assert.ok(sourceLightWeight(14,30,30,.5)<.01);
+});
+test('film result UI keeps source-safe controls visible and accessible',()=>{
+  const css=readFileSync(new URL('../lab/image-result-deck.css',import.meta.url),'utf8');
+  const ui=readFileSync(new URL('../lab/film-finish.js',import.meta.url),'utf8');
+  const app=readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8');
+  assert.match(css,/#image-lightbox #image-film-finish\{[\s\S]*?grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+  assert.match(css,/#image-lightbox #image-film-apply\{/);
+  assert.match(css,/scroll-padding-bottom:36px/);
+  assert.match(ui,/aria-expanded/);assert.match(ui,/Photochemical texture, atmospheric light and analog color/);
+  assert.match(app,/filmApply.id='image-film-apply'/);
+  assert.match(app,/filmOriginal.id='image-film-original'/);
 });

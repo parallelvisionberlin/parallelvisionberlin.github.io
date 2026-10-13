@@ -95,3 +95,73 @@
   #image-lightbox .image-detail-actions{padding-left:12px;padding-right:12px}
   #image-lightbox .image-detail-mood-actions button{gap:5px}
 }
+
+/* Hong Kong Nights: compact, accessible 2×2 finishing deck. The inspector
+   itself scrolls independently of the persistent image-action footer. */
+#image-lightbox .image-detail-inspector-scroll{
+  scroll-padding-bottom:36px;
+  padding-bottom:max(36px,env(safe-area-inset-bottom));
+  overscroll-behavior:contain;
+}
+#image-lightbox #image-film-finish{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  column-gap:14px;row-gap:12px;align-items:start;min-width:0;
+  scroll-margin-bottom:32px;
+}
+#image-lightbox #image-film-finish[hidden]{display:none!important}
+#image-lightbox #image-film-finish>strong,
+#image-lightbox #image-film-finish>.film-finish-summary,
+#image-lightbox #image-film-finish>.film-finish-explanation,
+#image-lightbox #image-film-finish>.film-finish-actions,
+#image-lightbox #image-film-finish>.film-finish-status{grid-column:1/-1}
+#image-lightbox #image-film-finish>strong{
+  display:flex;align-items:center;gap:9px;color:#f3f2ee;font-size:14px;
+  margin:0;letter-spacing:0;
+}
+#image-lightbox #image-film-finish>.film-finish-summary{
+  color:#cdd1cd;font-size:12px;line-height:1.45;opacity:1;margin:0
+}
+#image-lightbox #image-film-finish>.film-finish-explanation:not([hidden]){
+  color:#c5c9c5;font-size:12px;line-height:1.6;opacity:1;
+  margin:0;padding:0 0 0 12px;border-left:1px solid #737872
+}
+#image-lightbox #image-film-finish>label{
+  display:grid;grid-template-columns:minmax(0,1fr) auto;
+  grid-template-rows:auto 24px;gap:5px 6px;min-width:0;min-height:56px;
+  align-items:center;margin:0;font-size:12px;color:#e4e6e1
+}
+#image-lightbox #image-film-finish>label>span{
+  grid-row:1;grid-column:1;font-weight:550;color:#eef0e9
+}
+#image-lightbox #image-film-finish>label>output{
+  grid-row:1;grid-column:2;font-size:12px;font-weight:550;
+  color:#e1e4dc;opacity:1;text-align:right
+}
+#image-lightbox #image-film-finish>label>input[type=range]{
+  grid-row:2;grid-column:1/-1;width:100%;min-width:0;cursor:pointer
+}
+#image-lightbox #image-film-finish>.film-finish-actions{
+  display:grid;grid-template-columns:minmax(0,1fr);gap:8px;margin-top:2px;
+}
+#image-lightbox #image-film-apply{
+  display:flex;align-items:center;justify-content:center;width:100%;
+  min-height:46px;padding:10px 12px;background:var(--result-ivory);
+  border:1px solid var(--result-ivory);border-radius:8px;
+  color:#171918;font-size:13px;font-weight:700
+}
+#image-lightbox #image-film-apply:hover:not(:disabled){
+  background:#fff;border-color:#fff;color:#111
+}
+#image-lightbox #image-film-original{
+  justify-self:start;min-height:36px;padding:6px 0;
+  border:0;background:transparent;color:#d2d6d0;
+  font-size:12px;font-weight:520
+}
+#image-lightbox #image-film-original:hover:not(:disabled){color:#fff}
+#image-lightbox #image-film-finish>.film-finish-status{
+  color:#b8bdb7;font-size:11px;line-height:1.5;opacity:1
+}
+@media(max-width:720px){
+  #image-lightbox .image-detail-inspector-scroll{padding-bottom:max(36px,env(safe-area-inset-bottom))}
+  #image-lightbox #image-film-finish{column-gap:12px;row-gap:10px}
+}

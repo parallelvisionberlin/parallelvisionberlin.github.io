@@ -1,6 +1,6 @@
 import {filmFinishSettings} from '../lab/film-finish.js';
 
-export const FILM_RENDER_REVISION=4;
+export const FILM_RENDER_REVISION=5;
 const INPUT_LIMIT=20_000_000,OUTPUT_LIMIT=20*1024*1024;
 const signature=new Uint8Array([137,80,78,71,13,10,26,10]);
 const crcTable=Uint32Array.from({length:256},(_,n)=>{for(let k=0;k<8;k++)n=n&1?0xedb88320^(n>>>1):n>>>1;return n>>>0;});
@@ -92,6 +92,29 @@ export function sourceLightWeight(r,g,b,localContrast=0){
   const core=Math.max(smooth(.79,.98,l),saturated);
   return core*(.3+.7*smooth(.035,.22,localContrast));
 }
+// 0-70 stays calibrated. 70-100 progressively opens a photochemical
+// overdrive without inventing scene lighting or new processing passes.
+export function deluxeResponse(value){
+  const t=clamp((value-70)/30);
+  return t*t*(3-2*t);
+}
+export function photochemicalPlan(value){
+  const f=filmFinishSettings(value);
+  const grainTop=deluxeResponse(f.grain),hazeTop=deluxeResponse(f.haze);
+  const lightTop=deluxeResponse(f.halation),filmTop=deluxeResponse(f.film);
+  const signature=filmTop*Math.min(hazeTop,lightTop);
+  return {
+    grainAmount:Math.min(134,f.grain*(1+.22*grainTop+.12*signature)),
+    printStrength:.62*filmTop+.38*signature,
+    printOpacity:Math.min(.98,f.film/100*.88+.07*filmTop+.03*signature),
+    hazeRadius:43*(1+.35*hazeTop+.20*signature),
+    hazeOpacity:Math.min(.56,f.haze/100*(.31+.09*hazeTop+.10*signature)),
+    halationRadius:9*(1+.20*lightTop+.17*signature),
+    halationOpacity:Math.min(.54,f.halation/100*(.32+.06*lightTop+.10*signature)),
+    diffusionOpacity:Math.min(.16,f.haze/100*(.09+.035*hazeTop+.025*signature)),
+    signature
+  };
+}
 export async function luminousMaskPng(bytes){
   const {width,height,pixels}=await normalizedPixels(bytes),out=new Uint8Array((width*4+1)*height);
   const light=(x,y)=>{
@@ -113,23 +136,26 @@ export async function luminousMaskPng(bytes){
 // Artistic 35mm print simulation, not a calibrated stock or camera profile.
 // Neutral curves first; gentle cool shadows / warm practical highlights next.
 // No neon-green tint, auto exposure, edge sharpening or faux dust/scratches.
-export function photochemicalPixel(r,g,b){
+export function photochemicalPixel(r,g,b,deluxe=0){
+  const push=clamp(Number(deluxe)||0);
   const l=(.2126*r+.7152*g+.0722*b)/255;
   const shadow=1-smooth(.07,.48,l),highlight=smooth(.62,.97,l);
-  // Mild print toe, shaped midtone contrast and non-clipping highlight shoulder.
-  const target=clamp(l+.055*(l-.5)*(1-Math.abs(2*l-1))-.043*highlight+.006*shadow);
+  const midShape=(.055+.025*push)*(l-.5)*(1-Math.abs(2*l-1));
+  // Warmer practical highlights, a longer shoulder, cooler shadow crossover
+  // and compressed 35mm print midtones. Preserve natural skin and dark gaps.
+  const target=clamp(l+midShape-(.043+.033*push)*highlight+.006*shadow+.004*push*shadow*smooth(.02,.18,l));
   const ratio=l>.006?target/l:1;
   const greenExcess=Math.max(0,g-(r+b)*.5);
   return [
-    Math.round(clamp(r*ratio+6*highlight-1*shadow,0,255)),
-    Math.round(clamp(g*ratio+2*highlight+1*shadow-greenExcess*.065,0,255)),
-    Math.round(clamp(b*ratio-3*highlight+4*shadow,0,255))
+    Math.round(clamp(r*ratio+(6+10*push)*highlight-1*shadow,0,255)),
+    Math.round(clamp(g*ratio+2*highlight+1*shadow-greenExcess*(.065+.06*push),0,255)),
+    Math.round(clamp(b*ratio-(3+9*push)*highlight+4*shadow+4*push*shadow*smooth(.03,.22,l),0,255))
   ];
 }
-export async function printGradePng(bytes){
+export async function printGradePng(bytes,deluxe=0){
   const {width,height,pixels}=await normalizedPixels(bytes),scan=new Uint8Array((width*4+1)*height);
   for(let y=0;y<height;y++)for(let x=0;x<width;x++){
-    const i=(y*width+x)*4,j=y*(width*4+1)+1+x*4,graded=photochemicalPixel(pixels[i],pixels[i+1],pixels[i+2]);
+    const i=(y*width+x)*4,j=y*(width*4+1)+1+x*4,graded=photochemicalPixel(pixels[i],pixels[i+1],pixels[i+2],deluxe);
     scan[j]=graded[0];scan[j+1]=graded[1];scan[j+2]=graded[2];scan[j+3]=pixels[i+3];
   }
   return png(width,height,scan,6);
@@ -152,6 +178,7 @@ export async function grainPng(width,height,amount,seed,source=null){
     };
   }
   const fine=field(1.15),body=field(2.3),strength=amount/100*10;
+  const pushed=Math.max(0,Math.min(1,(amount-100)/34)),clusters=pushed?field(4.2):null;
   for(let y=0;y<height;y++)for(let x=0;x<width;x++){
     const noise=Math.tanh(.72*fine(x+.37,y+.61)+.28*body(x+.83,y+.29)),index=y*stride+1+x*2;
     let luminance=127.5,alpha=1;
@@ -160,7 +187,9 @@ export async function grainPng(width,height,amount,seed,source=null){
       const i=(sy*source.width+sx)*4,p=source.pixels;
       luminance=.2126*p[i]+.7152*p[i+1]+.0722*p[i+2];alpha=p[i+3]/255;
     }
-    const envelope=Math.sin(Math.PI*luminance/255)**.8,delta=Math.abs(noise)*strength*envelope*alpha;
+    const envelope=Math.sin(Math.PI*luminance/255)**.8;
+    const clusteredDensity=clusters?Math.max(.7,1+pushed*.32*Math.tanh(clusters(x+.51,y+.27))):1;
+    const delta=Math.abs(noise)*strength*envelope*alpha*clusteredDensity;
     const room=noise>=0?255-luminance:luminance;
     scan[index]=noise>=0?255:0;
     scan[index+1]=Math.round(Math.min(.16,delta/Math.max(1,room))*255);
@@ -197,16 +226,17 @@ export async function renderFilmFinish(images,bytes,settings,seed){
   const resized=(await images.input(stream(bytes)).transform({width:1000,height:1000,fit:'scale-down'})
     .output({format:'image/png',anim:false})).response();
   const sourcePng=await bytesFrom(resized,5_000_000);
+  const plan=photochemicalPlan(finish);
   if(finish.film){
     // Blend a graded low-res negative/print layer over the native-resolution
     // photograph. Fine image detail remains in the original underneath.
-    const grade=images.input(stream(await printGradePng(sourcePng))).transform({width,height,fit:'squeeze'});
-    image=image.draw(grade,{opacity:finish.film/100*.88,composite:'over'});
+    const grade=images.input(stream(await printGradePng(sourcePng,plan.printStrength))).transform({width,height,fit:'squeeze'});
+    image=image.draw(grade,{opacity:plan.printOpacity,composite:'over'});
   }
   if(finish.haze){
     // Subtle optical softness everywhere, but no global gray veil or green tint.
     const diffuse=images.input(stream(bytes)).transform({blur:Math.max(1,Math.round(Math.max(width,height)/2400))});
-    image=image.draw(diffuse,{opacity:finish.haze/100*.09,composite:'over'});
+    image=image.draw(diffuse,{opacity:plan.diffusionOpacity,composite:'over'});
   }
   if(finish.haze||finish.halation){
     const mask=await luminousMaskPng(sourcePng);
@@ -217,8 +247,8 @@ export async function renderFilmFinish(images,bytes,settings,seed){
       // haze pass plus one smaller source-halation pass leaves room for the
       // separate print curve, fine grain and restrained scene diffusion.
       const stages=[
-        ...(finish.haze?[[43,finish.haze/100*.31]]:[]),
-        ...(finish.halation?[[9,finish.halation/100*.32]]:[])
+        ...(finish.haze?[[plan.hazeRadius,plan.hazeOpacity]]:[]),
+        ...(finish.halation?[[plan.halationRadius,plan.halationOpacity]]:[])
       ];
       const scale=Math.max(.35,Math.min(1,Math.max(width,height)/1400));
       for(const [radius,opacity] of stages){
@@ -232,7 +262,7 @@ export async function renderFilmFinish(images,bytes,settings,seed){
   }
   if(finish.grain){
     const source=await normalizedPixels(sourcePng),scale=Math.min(1,2000/Math.max(width,height));
-    const grain=await grainPng(Math.max(1,Math.round(width*scale)),Math.max(1,Math.round(height*scale)),finish.grain,seed,source);
+    const grain=await grainPng(Math.max(1,Math.round(width*scale)),Math.max(1,Math.round(height*scale)),plan.grainAmount,seed,source);
     const texture=images.input(stream(grain)).transform({width,height,fit:'squeeze'});
     image=image.draw(texture,{opacity:1,composite:'over'});
   }

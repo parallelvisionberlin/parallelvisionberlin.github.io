@@ -1,6 +1,6 @@
 import {createAccountMenu} from './account-menu.js?v=20261012-account2';
 const studioAccount=createAccountMenu(document.getElementById('studio-account-menu'));
-import {createFilmFinishControls,HONG_KONG_FILM_FINISH} from './film-finish.js?v=20261013-print35mm1';
+import {createFilmFinishControls,HONG_KONG_FILM_FINISH} from './film-finish.js?v=20261013-deluxe2';
 import {preparePhotoInput} from './photo-input.js?v=1';
 import {createMoodReferenceLoader,moodReferencePlan,isMoodStyleReference} from './mood-references.js?v=20261012-hk-optics3&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5';
 import {createPrivateMediaCache} from './private-media-cache.js?v=20261012-cache1';
@@ -2005,8 +2005,8 @@ function paintImageDetailFavorite(){
 const filmPanel=$('image-film-finish');
 const filmControls=createFilmFinishControls(filmPanel);
 const filmActions=document.createElement('div');filmActions.className='film-finish-actions';
-const filmApply=document.createElement('button');filmApply.type='button';filmApply.textContent='Apply finish';
-const filmOriginal=document.createElement('button');filmOriginal.type='button';filmOriginal.textContent='Download original';
+const filmApply=document.createElement('button');filmApply.id='image-film-apply';filmApply.type='button';filmApply.textContent='Apply finish';
+const filmOriginal=document.createElement('button');filmOriginal.id='image-film-original';filmOriginal.type='button';filmOriginal.textContent='Download original';
 const filmStatus=document.createElement('span');filmStatus.className='film-finish-status';filmStatus.setAttribute('role','status');
 filmActions.append(filmApply,filmOriginal);filmPanel.append(filmActions,filmStatus);
 let filmBusy=false;

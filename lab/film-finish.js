@@ -19,29 +19,37 @@ export function hasFilmFinish(value){
 }
 export function createFilmFinishControls(container,{onChange=()=>{},compact=false}={}){
   const fields=new Map();
-  const title=document.createElement('strong');title.textContent='35mm film finish';
-  const note=document.createElement('p');
-  note.textContent='Grain: pushed negative texture. Haze: existing lights through humid air. Halation: source-bound glow, no body outlines. Film: 35mm print contrast, warmer highlights, cooler shadows and gentle rolloff. No new AI generation.';
-  container.classList.add('film-finish');container.append(title,note);
-  if(compact){
-    container.classList.add('film-finish-compact');
-    const help=document.createElement('button');help.type='button';help.className='film-finish-help';
-    help.textContent='i';help.setAttribute('aria-label','About 35mm finishing');
-    help.setAttribute('aria-describedby','mood-film-finish-note');
-    note.id='mood-film-finish-note';note.setAttribute('role','tooltip');title.append(help);
-  }
+  const title=document.createElement('strong');title.textContent='35mm Film Finish';
+  const help=document.createElement('button');
+  help.type='button';help.className='film-finish-help';help.textContent='i';
+  help.setAttribute('aria-label','About 35mm film finish');
+  const detailId=(container.id||'composer-film-finish')+'-explanation';
+  help.setAttribute('aria-controls',detailId);help.setAttribute('aria-expanded','false');
+  title.append(help);
+  const note=document.createElement('p');note.className='film-finish-summary';
+  note.textContent='Photochemical texture, atmospheric light and analog color.';
+  const explanation=document.createElement('p');explanation.className='film-finish-explanation';
+  explanation.id=detailId;explanation.hidden=true;
+  explanation.textContent='Grain: irregular pushed-negative texture. Haze: practical light scattering through humid air. Halation: light-source bloom without body outlines. Film: 35mm print contrast, warm highlights, cool shadows and soft rolloff. At high strengths the finish becomes more expressive. No extra AI generation.';
+  help.onclick=()=>{
+    explanation.hidden=!explanation.hidden;
+    help.setAttribute('aria-expanded',String(!explanation.hidden));
+  };
+  container.classList.add('film-finish');
+  if(compact)container.classList.add('film-finish-compact');
+  container.append(title,note,explanation);
   const sync=(input,output)=>{output.textContent=input.value+'%';input.style.setProperty('--moods-progress',input.value+'%');};
-  for(const [key,label,help] of [
-    ['grain','Grain','Luminance-aware organic 35mm grain'],
-    ['haze','Haze','Soft atmospheric diffusion around visible light sources'],
-    ['halation','Halation','Restrained light-source glow, not a silhouette'],
-    ['film','Film','35mm print tone curve, highlight rolloff and color crossover']
+  for(const [key,label,description] of [
+    ['grain','Grain','Organic pushed 35mm negative texture'],
+    ['haze','Haze','Humid optical diffusion from actual light sources'],
+    ['halation','Halation','Light-source bloom without glowing silhouettes'],
+    ['film','Film','35mm print curve, warm highlights and cool shadows']
   ]){
     const row=document.createElement('label'),caption=document.createElement('span');
-    caption.textContent=label;row.title=help;
+    caption.textContent=label;row.title=description;
     const output=document.createElement('output'),input=document.createElement('input');
     input.type='range';input.min='0';input.max='100';input.step='1';
-    input.setAttribute('aria-label',label+' intensity');input.title=help;
+    input.setAttribute('aria-label',label+' intensity');input.title=description;
     row.append(caption,output,input);container.append(row);fields.set(key,{input,output});
     input.oninput=()=>{sync(input,output);onChange();};
   }
