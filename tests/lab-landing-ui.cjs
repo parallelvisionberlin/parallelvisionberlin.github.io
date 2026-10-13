@@ -56,6 +56,8 @@ const server=http.createServer((req,res)=>{
     return {
       sectionHeight:pricing.getBoundingClientRect().height,
       topPadding:parseFloat(getComputedStyle(pricing).paddingTop),
+      topSpace:pricing.querySelector('.lab-plans-inner').getBoundingClientRect().top-pricing.getBoundingClientRect().top,
+      bottomSpace:pricing.getBoundingClientRect().bottom-pricing.querySelector('.lab-plans-inner').getBoundingClientRect().bottom,
       headlineSize:parseFloat(getComputedStyle(pricing.querySelector('h2')).fontSize),
       visibleHeight:innerHeight,
       deckMargin:getComputedStyle(deck).marginTop,
@@ -74,7 +76,7 @@ const server=http.createServer((req,res)=>{
     assert.equal(details.deckMargin,'20px','Desktop image collection is balanced lower by 20px');
     assert.ok(details.rowHeights.every(n=>n>=110&&n<=114),'Desktop pricing rows have relaxed 112px rhythm');
     if(width>=1200){
-      assert.ok(details.topPadding>=95,'Pricing composition is lowered into its viewport');
+      assert.ok(Math.abs(details.topSpace-details.bottomSpace)<=3,'Pricing composition centers in its viewport');
       assert.ok(details.headlineSize>=47,'Desktop pricing heading has hero-scale typography');
       assert.ok(layout.cardGap>=60,'Mood images have room before the pricing text');
     }
