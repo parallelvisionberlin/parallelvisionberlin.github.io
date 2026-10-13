@@ -220,7 +220,7 @@ Once all checks pass, deliberately set LAB_PUBLIC_GENERATION_ENABLED=true, then 
  
 Top-ups: €10/1000, €29/3000, €75/8000.
 Subscriptions: €15/1600, €39/4500, €99/12000 per billing month.
-1 USD of quoted API cost reserves 460 PV credits, minimum 7 credits; the backend stores one debit for each paid job and a refund when the job is definitively failed. This credit multiplier is a **launch assumption**, not a verified sustainable unit cost. Review per-provider actual usage and processor fees before selling.
+Default image and other API jobs reserve 460 PV credits per USD quoted, with a minimum 7 credits. New Seedance video routes use 320 (1.5 Pro Motion), 230 (normal 2.5) and 190 (2.5 upscaled 4K) credits per USD from an exact bound quote. Existing paid entries remain unchanged. Detailed approved launch model pricing: [MODEL-PRICING-2026-10-13.md](./MODEL-PRICING-2026-10-13.md). The backend stores a debit for every paid job and a refund when the job is definitively failed. This credit multiplier is a **launch assumption**, not a verified sustainable unit cost. Review per-provider actual usage and processor fees before selling.
  
 Billing actions must only be considered complete when the signed webhook has been accepted and the durable ledger has updated. A browser redirect alone must never grant credits.
 
