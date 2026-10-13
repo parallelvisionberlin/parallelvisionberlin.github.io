@@ -41,7 +41,7 @@ test('Only one owner Seedream image unlocks before server confirmation',()=>{
   assert.match(source,/imageSubmissionPending=false;imageSubmissionStage='Sending…';update\(\)/);
   assert.match(source,/fastImageHandoff.has\(currentImageSubmissionKey\(\)\)/);
   assert.match(source,/fastImageHandoff.slots\('spicy'\)/);
-  assert.match(source,/const seedreamInput=selectedEngine==='seedream'&&\(snapshot\?true:tool==='image'\)/);
+  assert.match(source,/const seedreamInput=\['seedream','seedreamlite'\]\.includes\(selectedEngine\)&&\(snapshot\?true:tool==='image'\)/);
   assert.match(source,/if\(!fastImageHandoff.active\(\)\)cancelImagePreparation\(\)/);
   assert.match(source,/if\(!detached\)\{imageSubmissionPending=false/);
   assert.match(html,/src="\.\/lab\.js\?v=20261013-[^"\s]+&wallet=1/);
