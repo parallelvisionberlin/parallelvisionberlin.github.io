@@ -139,13 +139,13 @@ for(const [name,asset] of [
   await comparison(name,original);
 }
 // Controlled emitter on a dark field, processed with optical controls only.
-const glowing=Buffer.alloc(320*256*3);
+const neonRaw=Buffer.alloc(320*256*3);
 for(let y=0;y<256;y++)for(let x=0;x<320;x++){
  const px=(y*320+x)*3,d=(x-154)**2+(y-127)**2;
  const col=d<11**2?[12,211,122]:[13,23,21];
- glowing[px]=col[0];glowing[px+1]=col[1];glowing[px+2]=col[2];
+ neonRaw[px]=col[0];neonRaw[px+1]=col[1];neonRaw[px+2]=col[2];
 }
-const neon=await sharp(glowing,{raw:{width:320,height:256,channels:3}}).png().toBuffer();
+const neon=await sharp(neonRaw,{raw:{width:320,height:256,channels:3}}).png().toBuffer();
 const optics={grain:0,haze:100,halation:100,film:0};
 const neonOld=await gradeWithEngine(neon,'v6',optics),neonNew=await gradeWithEngine(neon,'v3',optics);
 await sharp(neonNew).png().toFile(`${dir}/v3-colored-practical.png`);
