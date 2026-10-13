@@ -238,11 +238,11 @@ for(const engine of ['flash','kling']){
   await page.click('#image-composer-model');await page.locator('.composer-model-option[data-value="'+engine+'"]').click();
   await page.fill('#image-composer-prompt','Editorial architecture in daylight');
   await page.selectOption('#image-composer-count','1');
-  assert.equal(await page.locator('#resolution').inputValue(),'1k');
+  assert.equal(await page.locator('#resolution').inputValue(),engine==='flash'?'2k':'1k');
   assert.equal(await page.locator('#composer-character').isVisible(),false,'No redundant plus in the new models');
   const send=page.waitForRequest(r=>r.url().endsWith('/api/image-models/generate')&&r.method()==='POST');
   await page.click('#image-composer-generate');const payload=(await send).postDataJSON();
-  assert.equal(payload.settings.engine,engine);assert.equal(payload.settings.outputFormat,'png');assert.deepEqual(payload.referenceSourceIds,[]);
+  assert.equal(payload.settings.engine,engine);assert.equal(payload.settings.resolution,engine==='flash'?'2k':'1k');assert.equal(payload.settings.outputFormat,'png');assert.deepEqual(payload.referenceSourceIds,[]);
   await page.waitForFunction(()=>!document.querySelector('#image-composer-generate').disabled);
   await page.setViewportSize({width:390,height:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);await page.setViewportSize({width:1440,height:1000});
 }
@@ -254,7 +254,7 @@ await page.locator('#active>summary').click();assert.equal(await page.locator('#
 await page.evaluate(()=>window.__setTestJobs([{id:'unrelated-gemini',status:'uncertain',settings:{type:'image',engine:'gemini',provider:'gemini'}}]));
 assert.equal(await page.locator('#image-composer-generate').isEnabled(),true,'Unrelated Gemini interruption never blocks Flash');
 console.log('PASS interrupted Flash explains blocking and opens review; unrelated interruptions do not block Flash');
-assert.deepEqual(errors,[]);console.log('PASS Flash/Kling selection, default 1K, PNG, text-only submission and mobile geometry');
+assert.deepEqual(errors,[]);console.log('PASS Flash defaults to 2K, Kling remains 1K, PNG, text-only submission and mobile geometry');
 await page.evaluate(()=>window.__setTestJobs([]));
 await page.click('#tool-upscale');
 assert.equal(await page.locator('#canvas-import').isVisible(),true);
