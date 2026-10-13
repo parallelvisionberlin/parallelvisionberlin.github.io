@@ -208,6 +208,10 @@ try{
   await x.page.fill('#image-composer-model-search','seedream');
   await x.page.locator('.composer-model-option[data-value="seedream"]').click();
   assert.equal(await x.page.locator('#image-engine').inputValue(),'seedream');
+  assert.equal(await x.page.locator('#image-composer-prompt').getAttribute('placeholder'),'What do you imagine?');
+  const compactImageHeight=await x.page.locator('#image-composer').evaluate(el=>el.getBoundingClientRect().height);
+  assert.ok(compactImageHeight>=105&&compactImageHeight<170,
+    'The empty Image deck must keep its original compact proportions: '+compactImageHeight);
 
   await x.page.click('#image-composer-add');
   assert.equal(await x.page.locator('#composer-add-menu').isVisible(),true,'The single plus opens the upload and packs menu');
@@ -231,6 +235,10 @@ try{
   await x.page.waitForFunction(()=>document.querySelectorAll('#image-composer-references .composer-reference-tile').length===1);
   assert.equal(await x.page.locator('.composer-reference-tile img').count(),1,'Reference thumbnail lives inside floating bar');
   assert.equal(await x.page.locator('.composer-reference-index').innerText(),'BASE','First reference defaults to Base in Seedream base-image mode');
+  assert.equal(await x.page.locator('#image-composer-prompt').getAttribute('placeholder'),'What would you like to change?');
+  const photoImageHeight=await x.page.locator('#image-composer').evaluate(el=>el.getBoundingClientRect().height);
+  assert.ok(photoImageHeight>compactImageHeight+35&&photoImageHeight<300,
+    'Only the attached photo row may expand the compact Image deck: '+JSON.stringify({compactImageHeight,photoImageHeight}));
   const inlineGeometry=await x.page.evaluate(()=>{
     const ref=document.querySelector('.composer-reference-tile').getBoundingClientRect();
     const prompt=document.querySelector('#image-composer-prompt').getBoundingClientRect();
@@ -245,6 +253,10 @@ try{
   await x.page.click('.composer-reference-remove');
   await x.page.waitForFunction(()=>document.querySelectorAll('.composer-reference-tile').length===0);
   assert.equal(await x.page.locator('#ref-count').textContent().then(t=>t.includes('0')),true,'Removing in-bar thumbnail updates true reference list');
+  assert.equal(await x.page.locator('#image-composer-prompt').getAttribute('placeholder'),'What do you imagine?');
+  const resetImageHeight=await x.page.locator('#image-composer').evaluate(el=>el.getBoundingClientRect().height);
+  assert.ok(Math.abs(resetImageHeight-compactImageHeight)<7,
+    'Removing the photo must restore the original compact Image deck height: '+JSON.stringify({compactImageHeight,resetImageHeight}));
   await x.page.locator('#image-composer-prompt').fill('A sculptural, atmospheric photographic still.');
   assert.equal(await x.page.locator('#prompt').inputValue(),'A sculptural, atmospheric photographic still.','Prompt is synchronized with real Image form');
   assert.equal(await x.page.locator('#image-composer-generate').isDisabled(),false,'Image generation button enables from floating prompt');

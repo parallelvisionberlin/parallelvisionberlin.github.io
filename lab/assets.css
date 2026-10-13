@@ -1280,36 +1280,7 @@ body:has(#app[hidden])>#studio-header .studio-assets-icon{display:none!important
 }
 @media(prefers-reduced-motion:reduce){#app #history .history-hover-download{transition:none}}
 
-/* Standard image models share one stable photo-first deck. Reference uploads and
-   switching text-only models must not move Generate or force new control rows. */
-@media(min-width:900px){
-  #image-composer.is-seedream{
-    box-sizing:border-box;min-height:224px;
-    grid-template-columns:minmax(0,1fr) 144px;
-    grid-template-rows:minmax(0,1fr) minmax(40px,auto);
-  }
-  #image-composer.is-seedream .image-composer-top{grid-column:1;grid-row:1;min-width:0;align-self:stretch}
-  #image-composer.is-seedream .composer-controls{
-    grid-column:1;grid-row:2;min-width:0;min-height:40px;flex-wrap:nowrap;gap:5px;
-  }
-  #image-composer.is-seedream .composer-model-wrap{flex:0 1 180px;max-width:180px;min-width:0}
-  #image-composer.is-seedream .composer-model-pill{width:100%;max-width:100%;min-width:0;padding-inline:7px;gap:4px}
-  #image-composer.is-seedream #image-composer-model-label{flex:1;min-width:0;max-width:126px}
-  #image-composer.is-seedream .composer-mood-control{flex:0 1 165px;min-width:115px}
-  #image-composer.is-seedream .composer-controls>.composer-settings-pill{flex:0 0 auto;padding-inline:7px;font-size:11px}
-  #image-composer.is-seedream .composer-controls>.reference-intent-toggle{max-width:105px;overflow:hidden;text-overflow:ellipsis}
-  #image-composer.is-seedream .composer-controls>.composer-select-pill{padding-inline:3px}
-  #image-composer.is-seedream .composer-controls>.composer-select-pill select{
-    min-width:42px;max-width:90px;padding:6px 15px 6px 4px;font-size:11px;
-  }
-  #image-composer.is-seedream .image-composer-top:has(.image-composer-references:not([hidden])) textarea{
-    min-height:42px;max-height:56px;padding-top:3px!important;
-  }
-}
-/* Smaller laptop screens reserve room for two control lines. Mobile stays independent. */
-@media(min-width:900px) and (max-width:1179px){
-  #image-composer.is-seedream{min-height:272px}
-  #image-composer.is-seedream .composer-controls{flex-wrap:wrap;align-content:center;min-height:82px}
-}
+/* Natural, photo-first Image deck dimensions: keep the original compact
+   idle composer, adding the reference row only when photos are attached. */
 /* Preserved images never appear while a text-only engine is selected. */
 #image-composer.is-text-only .image-composer-references{display:none!important}
