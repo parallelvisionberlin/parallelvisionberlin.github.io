@@ -1,0 +1,36 @@
+/* PV LAB Studio Finish V2. Scoped to the studio, without changing billing or other pages. */
+@media(min-width:901px){
+ #studio-header .tool-switch>.tool-group>button,
+ #studio-header .tool-switch>.tool-group>a.tool-link{
+   font-weight:500!important;color:#efede7!important;
+ }
+ #studio-header .tool-switch>.tool-group>button[aria-selected="true"],
+ #studio-header .tool-switch>.tool-group>.active,
+ #studio-header .tool-switch>.tool-group>a[aria-current="page"]{color:#fff!important}
+}
+#image-composer{
+ background:linear-gradient(115deg,rgba(255,255,255,.065) 0%,rgba(255,255,255,.015) 24%,transparent 47%),linear-gradient(180deg,#232425 0%,#191a1b 48%,#171819 100%)!important;
+ border:1px solid #555654!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.17),inset 0 -1px 0 rgba(255,255,255,.025),0 23px 66px rgba(0,0,0,.48)!important;
+}
+#image-composer:focus-within{border-color:#72736f!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.19),0 25px 70px rgba(0,0,0,.52)!important}
+#image-composer #image-composer-prompt::placeholder{color:#b9bbb9!important;opacity:1}
+#image-composer #image-composer-prompt{color:#f5f3ef}
+#image-composer .image-composer-bottom button:not(.composer-generate),
+#image-composer .image-composer-bottom select{
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.075);
+}
+#image-composer .composer-generate:not(:disabled):not(.is-submitting){
+ background:#f0eee8!important;border-color:#f0eee8!important;color:#151515!important;
+ box-shadow:inset 0 1px 0 #fff,0 4px 20px rgba(240,238,232,.12)!important;
+ font-weight:650!important;transition:background .18s,border-color .18s,box-shadow .18s;
+}
+#image-composer .composer-generate:hover:not(:disabled):not(.is-submitting){
+ background:#fff!important;border-color:#fff!important;
+ box-shadow:inset 0 1px 0 #fff,0 5px 25px rgba(240,238,232,.18)!important;
+}
+#image-composer .composer-generate:disabled:not(.is-submitting){
+ background:#292b30!important;border-color:#42454b!important;color:#adb1ba!important;
+ box-shadow:inset 0 1px rgba(255,255,255,.035)!important;cursor:not-allowed;
+}
+@media(prefers-reduced-motion:reduce){#image-composer .composer-generate{transition:none!important}}
