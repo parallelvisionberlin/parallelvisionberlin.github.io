@@ -239,6 +239,29 @@ try{
   const photoImageHeight=await x.page.locator('#image-composer').evaluate(el=>el.getBoundingClientRect().height);
   assert.ok(photoImageHeight>compactImageHeight+35&&photoImageHeight<300,
     'Only the attached photo row may expand the compact Image deck: '+JSON.stringify({compactImageHeight,photoImageHeight}));
+  // Controlled Pose may need more references, but its instructional hint
+  // must never expand the dock or shift the Generate button below its row.
+  await x.page.click('#image-composer-model');
+  await x.page.locator('.composer-model-option[data-value="fal"]').click();
+  assert.equal(await x.page.locator('#image-engine').inputValue(),'fal');
+  assert.equal(await x.page.locator('#composer-generation-block').isVisible(),false,
+    'Controlled Pose hint never adds a third deck row');
+  const poseModelHint=await x.page.locator('#image-composer-model').getAttribute('title');
+  assert.match(poseModelHint||'',/Pose photo.*Identity photos/i,
+    'Controlled Pose instructions remain available in the model tooltip');
+  assert.match(await x.page.locator('#image-composer-model').getAttribute('aria-description')||'',/Pose photo/,
+    'Controlled Pose guidance stays accessible to screen readers');
+  const poseImageHeight=await x.page.locator('#image-composer').evaluate(el=>el.getBoundingClientRect().height);
+  assert.ok(Math.abs(poseImageHeight-photoImageHeight)<14,
+    'Switching to Controlled Pose must keep the same photo-loaded deck dimensions: '+
+    JSON.stringify({photoImageHeight,poseImageHeight}));
+  await x.page.click('#image-composer-model');
+  await x.page.locator('.composer-model-option[data-value="seedream"]').click();
+  assert.equal(await x.page.locator('#image-engine').inputValue(),'seedream');
+  assert.equal(await x.page.locator('#image-composer-model').getAttribute('title'),null,
+    'Controlled Pose help does not leak into other models');
+  assert.equal(await x.page.locator('#image-composer-references .composer-reference-tile').count(),1,
+    'Changing the model does not remove the uploaded photograph');
   const inlineGeometry=await x.page.evaluate(()=>{
     const ref=document.querySelector('.composer-reference-tile').getBoundingClientRect();
     const prompt=document.querySelector('#image-composer-prompt').getBoundingClientRect();

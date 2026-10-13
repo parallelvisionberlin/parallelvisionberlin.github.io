@@ -1258,8 +1258,22 @@ function syncImageComposer(){
   // A selected look without a prompt or photo already has a disabled Generate
   // button and a tooltip. Repeating the hint inline adds an unwanted third row.
   const idleMoodNeedsInput=moodUI.active()&&!imageInputReferences().length&&!$('prompt').value.trim();
-  const inlineMessage=queueBlocked||exactPreparing||idleMoodNeedsInput?'':message;
+  // Controlled Pose instructions belong to accessible hover guidance, not a
+  // third row that changes the approved Image deck geometry.
+  const inlineMessage=imageEngine==='fal'||queueBlocked||exactPreparing||idleMoodNeedsInput?'':message;
   block.hidden=!inlineMessage;reason.textContent=inlineMessage;review.hidden=true;
+  const poseHint='Controlled Pose: add one Pose photo, 1–4 Identity photos, and a prompt.';
+  const modelButton=$('image-composer-model');
+  if(imageEngine==='fal'){
+    const hint=message||poseHint;
+    modelButton.title=hint;
+    modelButton.setAttribute('aria-description',hint);
+  }else{
+    modelButton.removeAttribute('title');
+    modelButton.removeAttribute('aria-description');
+  }
+  if(message)generate.setAttribute('aria-description',message);
+  else generate.removeAttribute('aria-description');
   generate.title=message?(message+(queueBlocked?' Open Queue at the top right to review it.':'')):(isSoul2()?'Review the live Higgsfield price before any charge. PV Soul accepts one base image and one optional trained Soul ID; use Seedream for multiple reference photos.':'');
   syncImageReferences();
   fitImageComposerPrompt();

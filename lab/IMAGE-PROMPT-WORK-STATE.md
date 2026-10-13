@@ -15,3 +15,15 @@
 - No paid generation or changes to credits, pricing, provider APIs or customer data.
 - Status: pending CI and GitHub Pages deployment confirmation.
 - Next action: verify browser sizing checks and published source; leave unrelated homepage tests untouched.
+
+## Controlled Pose guidance (2026-10-14)
+
+- Starting commit: `238342f3a3966397469473951ec8268d29979271` on `main`.
+- A disabled Controlled Pose Generate action previously surfaced generic input guidance as an inline `composer-generation-block` row, making its image deck taller than Seedream/Nano.
+- For the `fal` engine, guidance is now provided on the model selector and disabled Generate tooltips and as accessible descriptions, without an inline row.
+- Errors and validation still disable submission exactly as before; the underlying `message` is not discarded.
+- The original model-specific input instructions remain available, including one Pose photo, 1–4 Identity photos and a prompt.
+- No layout CSS, reference roles, model switches, Moods, pricing or backend changed.
+- UI regression verifies that switching from a photo-loaded Seedream deck to Controlled Pose keeps comparable dimensions and that guidance is accessible and does not leak after switching back.
+- Updated files: `lab/lab.js`, `lab/studio.html`, `tests/lab-studio-layout-ui.mjs`, `lab/IMAGE-PROMPT-WORK-STATE.md`.
+- CI/deployment status: pending verification after commit.
