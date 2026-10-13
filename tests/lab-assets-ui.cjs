@@ -554,10 +554,10 @@ await page.route('**/api/jobs',async route=>{
   return route.fulfill({contentType:'application/json',body:JSON.stringify({job})});
 });
 await page.click('#image-composer-generate');
-await page.waitForFunction(()=>document.querySelector('.submission-title')?.textContent==='Uploading references');
+await page.waitForFunction(()=>document.querySelector('.submission-title')?.textContent==='Preparing image');
 assert.equal(await page.locator('[data-local-submission]').count(),1,'Card appears before any upload completes');
 assert.equal(submitCount,0);assert.equal(quoteCount,0);
-await page.waitForFunction(()=>document.querySelector('.submission-detail')?.textContent==='0 / 5');
+assert.equal(await page.locator('.submission-detail').innerText(),'','Compact pending card does not display a redundant upload counter');
 // The upload routes are already held open; allow their request handlers to run.
 await threeUploadsStarted;
 assert.equal(maxInflight,3,'Three references upload concurrently');
@@ -571,8 +571,11 @@ await page.setViewportSize({width:390,height:844});
 assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'Pending card fits mobile');
 console.log('IMAGE_SUBMISSION_PROGRESS='+Buffer.from(await page.screenshot({type:'jpeg',quality:75})).toString('base64'));
 await page.setViewportSize({width:1440,height:1000});
+// Quoting starts only after originals and working copies are fully uploaded.
+const uploadQuoteRequest=page.waitForRequest('**/api/quotes');
 releaseUploads();
-await page.waitForFunction(()=>document.querySelector('.submission-title')?.textContent==='Preparing provider files');
+await uploadQuoteRequest;
+assert.equal(await page.locator('.submission-title').innerText(),'Preparing image');
 assert.equal(dialogs,0,'Automatic working copies do not interrupt Generate with a confirmation');
 assert.equal(originalNames.length,5);assert.equal(copyNames.length,2);assert.equal(uploadCount,7);
 releaseQuote();
