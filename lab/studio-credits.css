@@ -3,13 +3,13 @@
 .lab-add-credits:hover{background:#fff;border-color:#fff}
 .lab-add-credits:focus-visible{outline:2px solid #fff;outline-offset:3px}
 .lab-add-credits[hidden],.lab-credit-banner[hidden]{display:none!important}
-.lab-credit-banner{display:flex;align-items:center;gap:8px;margin:0;padding:11px var(--lab-page-gutter,24px);background:#141516;color:#bcbeba;border-bottom:1px solid #292b2c;font:400 13px/1.45 'DM Sans',Arial,sans-serif}
-.lab-credit-banner-icon{display:grid;place-items:center;flex:none;width:20px;height:20px;border:1px solid #747776;border-radius:50%;color:#bbb; font:italic 13px/1 Georgia,serif}
+.lab-credit-banner{display:flex;align-items:center;gap:13px;margin:0;padding:13px var(--lab-page-gutter,24px);background:#eae8e2;color:#4f4e4a;border-bottom:1px solid #d4d1ca;font:400 14px/1.5 'DM Sans',Arial,sans-serif}
+.lab-credit-banner-icon{display:grid;place-items:center;flex:none;width:27px;height:27px;border:1px solid #65635e;border-radius:50%;color:#34332f;font:italic 17px/1 Georgia,serif}
 .lab-credit-banner p{flex:1;min-width:0;margin:0;color:inherit;font:inherit}
-.lab-credit-banner strong{color:#f0efeb;font-weight:600;margin-right:4px}
-.lab-credit-banner #lab-credit-banner-dismiss{display:grid;place-items:center;flex:none;width:28px;height:28px;min-height:28px;padding:0;border:0;border-radius:50%;background:transparent;color:#999;font:300 23px/1 'DM Sans',Arial,sans-serif;cursor:pointer}
-.lab-credit-banner #lab-credit-banner-dismiss:hover{background:#292b2c;color:#fff}
-.lab-credit-banner #lab-credit-banner-dismiss:focus-visible{outline:2px solid #eeeae2;outline-offset:2px}
+.lab-credit-banner strong{color:#131313;font-weight:650;margin-right:7px}
+.lab-credit-banner #lab-credit-banner-dismiss{display:grid;place-items:center;flex:none;width:32px;height:32px;min-height:32px;padding:0;border:0;border-radius:50%;background:transparent;color:#494844;font:300 24px/1 'DM Sans',Arial,sans-serif;cursor:pointer}
+.lab-credit-banner #lab-credit-banner-dismiss:hover{background:#d7d4ce;color:#111}
+.lab-credit-banner #lab-credit-banner-dismiss:focus-visible{outline:2px solid #151515;outline-offset:2px}
 .lab-credit-deck{max-width:760px;width:min(760px,calc(100vw - 32px));max-height:calc(100dvh - 32px);padding:30px;border:1px solid #484744;border-radius:12px;background:#151515;color:#eeeae2;box-shadow:0 24px 100px #0009}
 .lab-credit-deck::backdrop{background:#0009;backdrop-filter:blur(5px)}
 .lab-credit-deck header{position:static;display:flex;align-items:flex-start;justify-content:space-between;padding:0 0 24px;background:none;backdrop-filter:none;border:0;border-bottom:1px solid #383735}
@@ -42,9 +42,9 @@
 @media(max-width:560px){
   #studio-header .lab-wallet-toggle{display:none}
   #studio-header .lab-add-credits{gap:8px;padding:9px 12px;font-size:11px}
-  .lab-credit-banner{gap:9px;padding:10px 15px}
-  .lab-credit-banner-icon{width:18px;height:18px;font-size:12px}
-  .lab-credit-banner p{font-size:11px;line-height:1.4}
+  .lab-credit-banner{gap:10px;padding:12px 18px}
+  .lab-credit-banner-icon{width:23px;height:23px;font-size:15px}
+  .lab-credit-banner p{font-size:12.5px;line-height:1.45}
   .lab-credit-banner strong{display:inline;margin:0 3px 0 0}
   .lab-credit-banner #lab-credit-banner-dismiss{width:28px;height:28px}
   .lab-credit-deck{padding:23px 20px;width:calc(100vw - 24px);max-height:calc(100dvh - 24px)}
