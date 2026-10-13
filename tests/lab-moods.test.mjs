@@ -586,17 +586,22 @@ test('Berlin Rave preserves user instructions and optional reference roles',()=>
   assert.match(prepareMoodPrompt('X'.repeat(5000),'berlin-rave',100,{referenceCount:1}).error,/exceed 5,000/);
 });
 
-test('Moods remains a compact electric-citron discovery action without recoloring other controls',()=>{
+test('Moods stays dark at rest and uses solid citron only when selected',()=>{
   const css=readFileSync(new URL('../lab/assets.css',import.meta.url),'utf8');
   const html=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
-  const start=css.indexOf('/* PV LAB / MOODS DISCOVERY CTA');
+  const start=css.indexOf('/* PV LAB / MOODS: dark idle control');
   assert.ok(start>0);
   const style=css.slice(start);
   assert.match(style,/#image-composer \.composer-mood-control #image-composer-moods\{/);
-  assert.match(style,/background:linear-gradient\(160deg,#e8ff69 0%,#d6ff00 53%,#c7ee00 100%\)/);
-  assert.match(style,/color:#19220f/);
+  assert.match(style,/background:#232523/);
+  assert.match(style,/color:#d6ff00/);
+  assert.match(style,/border:1px solid #383a37;border-radius:9px/);
+  assert.match(style,/background:#2d302c/);
+  assert.match(style,/\.is-mood-selected\[aria-expanded="true"\]/);
   assert.match(style,/min-height:40px;min-width:94px/);
   assert.match(style,/#image-composer \.composer-mood-control #image-composer-moods\.is-mood-selected\{/);
+  assert.match(style,/background:linear-gradient\(160deg,#e0ff47 0%,#d1f900 100%\)/);
+  assert.match(style,/color:#18220e/);
   assert.match(style,/#image-composer \.composer-mood-control #image-composer-moods-clear\{/);
   assert.match(style,/color:#1b2a09/);
   assert.match(style,/@media\(max-width:740px\)/);
@@ -604,7 +609,7 @@ test('Moods remains a compact electric-citron discovery action without recolorin
   assert.match(style,/@media\(prefers-reduced-motion:reduce\)/);
   assert.doesNotMatch(style,/#image-composer \.composer-generate/);
   assert.doesNotMatch(style,/#image-composer \.composer-settings-pill\{/);
-  assert.match(html,/assets\.css\?v=[^"]+&moodsCitron=1/);
+  assert.match(html,/assets\.css\?v=[^"]+&moodsCitron=2/);
 });
 
 
