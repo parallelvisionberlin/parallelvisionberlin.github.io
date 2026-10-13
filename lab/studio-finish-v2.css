@@ -35,42 +35,40 @@
 }
 @media(prefers-reduced-motion:reduce){#image-composer .composer-generate{transition:none!important}}
 
-/* Image dock micro-polish: optical alignment without changing deck or control dimensions. */
+/* Image deck typography remains compact. Existing dock and control dimensions are preserved. */
 @media(min-width:900px){
-  #image-composer:not(.is-pv-soul) .composer-generate{align-self:center}
-  #image-composer:not(.is-pv-soul) #image-composer-edit-area,
-  #image-composer:not(.is-pv-soul) .composer-mood-control #image-composer-moods{
-    font-size:clamp(12px,.78vw,13px);font-weight:700;line-height:1.15;text-align:center;
-  }
+ #image-composer:not(.is-pv-soul) .composer-generate{align-self:center}
+ #image-composer:not(.is-pv-soul) #image-composer-edit-area,
+ #image-composer:not(.is-pv-soul) .composer-mood-control #image-composer-moods{font-size:clamp(12px,.78vw,13px);font-weight:700;line-height:1.15}
 }
-/* Keep Gemini's narrow laptop toolbar in its compact 11px mode. */
 @media(min-width:900px) and (max-width:1440px){
-  #image-composer.is-gemini #image-composer-edit-area,
-  #image-composer.is-gemini .composer-mood-control #image-composer-moods{font-size:11px}
+ #image-composer.is-gemini #image-composer-edit-area,
+ #image-composer.is-gemini .composer-mood-control #image-composer-moods{font-size:11px}
 }
-/* Center the idle Moods label as a whole, but reserve room for Clear when active. */
-#image-composer:not(.is-pv-soul) .composer-mood-control #image-composer-moods:not(.is-mood-selected){
-  justify-content:center;text-align:center;
+/* The Mood star and label are centered as one flex group, not aligned from the left. */
+#image-composer .composer-mood-control #image-composer-moods{box-sizing:border-box;justify-content:center;gap:5px;text-align:center}
+#image-composer .composer-mood-control .composer-mood-icon{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;font-size:13px;font-weight:600;line-height:1;white-space:pre}
+#image-composer .composer-mood-control .composer-mood-label{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.18}
+/* The fallback model symbol was zero-size, leaving Controlled Pose with an empty left slot. */
+#image-composer .composer-model-symbol:not(:has(img)){font-size:17px}
+/* Actual inline icon and independent action text survive every Generate label update. */
+#image-composer:not(.is-pv-soul) .composer-generate{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;box-sizing:border-box;padding-inline:12px;text-align:center;line-height:1.17}
+#image-composer:not(.is-pv-soul) .composer-generate-label{display:block;max-width:100%;min-width:0;white-space:normal;overflow-wrap:break-word}
+#image-composer:not(.is-pv-soul) .composer-generate-sparkle{display:block;flex:0 0 13px;width:13px;height:13px;opacity:.78;pointer-events:none}
+#image-composer:not(.is-pv-soul) .composer-generate-sparkle[hidden]{display:none!important}
+#image-composer:not(.is-pv-soul) .composer-generate.is-long-label{font-size:13px!important;line-height:1.18}
+#image-composer:not(.is-pv-soul) .composer-generate.is-submitting{flex-direction:row;gap:7px}
+#image-composer:not(.is-pv-soul) .composer-generate.is-submitting::before{margin-right:0;flex:0 0 10px}
+/* Narrow screens omit the sparkle for lengthy actions, not increase button height. */
+@media(max-width:899px){
+ #image-composer:not(.is-pv-soul) .composer-generate{gap:3px}
+ #image-composer:not(.is-pv-soul) .composer-generate.is-long-label .composer-generate-sparkle{display:none}
 }
-/* CSS-only decorative icon: JavaScript replaces this button's text when preparing. */
-#image-composer:not(.is-pv-soul) .composer-generate:not(.is-submitting){
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;
+@media(max-width:650px){
+ html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) .composer-generate{padding-block:5px!important}
+ #image-composer:not(.is-pv-soul) .composer-generate-sparkle{width:10px;height:10px;flex-basis:10px}
 }
-#image-composer:not(.is-pv-soul) .composer-generate:not(.is-submitting)::after{
-  content:"";display:block;flex:0 0 12px;width:12px;height:12px;
-  background:currentColor;opacity:.68;pointer-events:none;
-  clip-path:polygon(50% 0%,61% 39%,100% 50%,61% 61%,50% 100%,39% 61%,0% 50%,39% 39%);
-}
-/* A restrained pearl-white finish, within the existing dark PV LAB palette. */
-#image-composer:not(.is-pv-soul) .composer-generate:not(:disabled):not(.is-submitting){
-  background:linear-gradient(155deg,#f8f6f0 0%,#ece8e0 100%)!important;
-  border-color:#f0eee8!important;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.8),0 4px 20px rgba(240,238,232,.12)!important;
-}
-#image-composer:not(.is-pv-soul) .composer-generate:hover:not(:disabled):not(.is-submitting){
-  background:linear-gradient(155deg,#fff 0%,#f3f0e9 100%)!important;
-  border-color:#fff!important;
-}
-#image-composer:not(.is-pv-soul) .composer-generate:disabled:not(.is-submitting){
-  background:linear-gradient(155deg,#303238 0%,#292b30 100%)!important;
-}
+/* Restrained pearl-white surface, retaining the existing disabled and submitting palettes. */
+#image-composer:not(.is-pv-soul) .composer-generate:not(:disabled):not(.is-submitting){background:linear-gradient(155deg,#f8f6f0 0%,#ece8e0 100%)!important;border-color:#f0eee8!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.8),0 4px 20px rgba(240,238,232,.12)!important}
+#image-composer:not(.is-pv-soul) .composer-generate:hover:not(:disabled):not(.is-submitting){background:linear-gradient(155deg,#fff 0%,#f3f0e9 100%)!important;border-color:#fff!important}
+#image-composer:not(.is-pv-soul) .composer-generate:disabled:not(.is-submitting){background:linear-gradient(155deg,#303238 0%,#292b30 100%)!important}

@@ -529,7 +529,9 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
     done.hidden=!compatible;
     done.disabled=!chosen;
     clearButton.disabled=!chosen;
-    button.textContent=chosen?'✦ '+chosen.name:'✦ Moods';
+    const moodLabel=button.querySelector('.composer-mood-label');
+    if(moodLabel)moodLabel.textContent=chosen?chosen.name:'Moods';
+    else button.textContent=chosen?'✦ '+chosen.name:'✦ Moods';
     button.classList.toggle('is-mood-selected',!!chosen);
     button.setAttribute('aria-expanded',String(!panel.hidden));
   }
