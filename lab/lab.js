@@ -218,7 +218,7 @@ let myMoods=null;
 const moodUI=createMoodSelector({panel:$('composer-moods'),button:$('image-composer-moods'),getEngine:()=>imageEngine,
   chooseEngine:engine=>{if(busy)return;$('image-engine').value=engine;$('image-engine').dispatchEvent(new Event('change',{bubbles:true}));},
   onOpen:()=>{
-    closeReferenceIntent();closeImageModelMenu();closeComposerLibrary();toggleImageSettings(false);
+    closeReferenceIntent();closeImageModelMenu();closeComposerLibrary();closeComposerAddMenu();toggleImageSettings(false);
     if(myMoods)void myMoods.refresh().catch(()=>{/* Curated Moods remain usable while personal boards are unavailable. */});
   },
   onCreatePersonal:()=>location.assign('./mood-creator.html?start=idea'),
@@ -841,6 +841,7 @@ window.addEventListener('popstate',()=>{
 });
 const archive = document.querySelector('.archive');
 let imageMenuOpen = false;
+let composerAddOpen = false;
 const composerPortraits=new Map();
 const composerHomes=new Map();
 let composerLibraryKey='',composerPortraitKey='',soulProEditingCurrent=false;
@@ -892,6 +893,18 @@ function syncComposerOptions(){
 function closeComposerLibrary(){
   $('composer-library').hidden=true;$('composer-character').setAttribute('aria-expanded','false');
 }
+function closeComposerAddMenu(){
+  composerAddOpen=false;
+  $('composer-add-menu').hidden=true;
+  $('image-composer-add').setAttribute('aria-expanded','false');
+}
+function openComposerLibrary(){
+  if(busy)return;
+  toggleImageSettings(false);closeImageModelMenu();closeComposerAddMenu();
+  $('composer-library').hidden=false;
+  $('composer-character').setAttribute('aria-expanded','true');
+  renderComposerLibrary();
+}
 function renderComposerLibrary(){
   $('composer-library').classList.toggle('is-character-library',isSoul2());
   $('composer-character-create').hidden=!isSoul2();
@@ -913,6 +926,8 @@ function renderComposerLibrary(){
   $('composer-library-manage').textContent='Manage trained LoRAs';
   $('composer-library-delete').hidden=trained;
   $('composer-library-delete').disabled=busy||!$('pack-select').value;
+  $('composer-library-create').disabled=busy||(!trained&&!identity&&!references.length);
+  $('composer-library-create').title=!trained&&!identity&&!references.length?'Add photos before saving a pack':'';
   if(key===composerLibraryKey)return;composerLibraryKey=key;
   const grid=$('composer-library-cards');grid.replaceChildren();
   for(const entry of entries){
@@ -932,7 +947,7 @@ function renderComposerLibrary(){
   }
   if(!entries.length){const empty=document.createElement('p');empty.className='fine';empty.textContent=trained?'No trained characters yet. Train one to keep it here.':'No saved packs yet. Add photos and save a pack to reuse it here.';grid.append(empty);}
 }
-$('composer-character').onclick=()=>{if(busy)return;const open=$('composer-library').hidden;toggleImageSettings(false);closeImageModelMenu();$('composer-library').hidden=!open;$('composer-character').setAttribute('aria-expanded',String(open));if(open)renderComposerLibrary();};
+$('composer-character').onclick=()=>{if(busy)return;if($('composer-library').hidden)openComposerLibrary();else closeComposerLibrary();};
 $('composer-library-close').onclick=closeComposerLibrary;
 $('composer-character-create').onclick=()=>{if(busy)return;closeComposerLibrary();void hf.open({create:true});};
 $('composer-library-delete').onclick=()=>{if(!busy)$('pack-delete').click();};
@@ -1097,7 +1112,7 @@ function syncImageComposer(){
   moodUI.sync({visible:image,locked:busy});
   imageStudio.hidden=!image;
   syncComposerOptions();
-  if(!image)return;
+  if(!image){closeComposerAddMenu();return;}
   // Keep the two-mode selection synchronized without adding another toolbar button.
   $('image-reference-mode-wrap').hidden=true;
   $('image-reference-mode').value=imageReferenceMode;$('image-reference-mode').disabled=busy;
@@ -1116,6 +1131,10 @@ function syncImageComposer(){
         :'What would you like to change?';
   updateComposerPromptBudget();
   syncSoulBar();
+  // Trained characters keep their identity tile. Reference image models use only the left +.
+  const trainedCharacterTile=imageEngine==='soul'||isSoul2();
+  imageComposer.classList.toggle('has-character-picker',imageEngine==='soul'&&!isSoul2());
+  $('composer-character').hidden=!trainedCharacterTile;
   textbox.disabled=busy || $('prompt').disabled;
   $('image-composer-model-label').textContent=imageStudioModelTitle();
   setModelIcon(document.querySelector('.composer-model-symbol'),imageEngine);
@@ -1145,8 +1164,16 @@ function syncImageComposer(){
     clearMood.title=moodUI.active()?'Remove '+($('image-composer-moods').textContent||'selected mood').trim():'Remove selected mood';
   }
   imageComposer.classList.toggle('is-gemini',tool==='image'&&imageEngine==='gemini');
-  $('image-composer-add').hidden=imageEngine==='zspicy'||imageEngine==='soul'&&!isReinterpret();
-  $('composer-character').setAttribute('aria-label',imageEngine==='soul'||imageEngine==='soulpro'?'Choose character':'Saved reference photos');
+  const addHidden=imageEngine==='zspicy'||imageEngine==='soul'&&!isReinterpret();
+  $('composer-add-wrap').hidden=addHidden;
+  $('image-composer-add').hidden=addHidden;
+  if(addHidden)closeComposerAddMenu();
+  const baseUpload=imageEngine==='soulpro'||isReinterpret();
+  $('composer-add-upload-title').textContent=baseUpload?'Upload base photo':'Upload photos';
+  $('composer-add-upload-note').textContent=baseUpload?'Choose or replace the source image':'Add new reference images';
+  $('composer-add-saved-title').textContent=isSoul2()?'Soul IDs':imageEngine==='soul'?'Trained LoRAs':'Saved photo packs';
+  $('composer-add-saved-note').textContent=isSoul2()?'Choose a trained identity':imageEngine==='soul'?'Choose a trained character':'Reuse your reference collections';
+  $('composer-character').setAttribute('aria-label','Choose trained character');
   const generate=$('image-composer-generate');
   generate.classList.toggle('is-submitting',imageSubmissionPending);
   generate.disabled=$('generate').disabled;
@@ -1249,13 +1276,13 @@ function toggleImageSettings(force){
   $('image-settings-scrim').hidden=true;
   $('composer-options').hidden=!open;
   $('image-composer-more').setAttribute('aria-expanded',String(open));
-  if(open){closeImageModelMenu();closeComposerLibrary();}
+  if(open){closeImageModelMenu();closeComposerLibrary();closeComposerAddMenu();}
 }
 function syncImageStudioMode(){
   const isImage=tool==='image'&&!fashionActive&&!retouchActive;
   $('app').classList.toggle('image-studio-active',isImage);
   imageStudio.hidden=!isImage;
-  if(!isImage)closeComposerLibrary();
+  if(!isImage){closeComposerLibrary();closeComposerAddMenu();}
   if(isImage){
     if(archive.parentElement!==$('image-gallery-host'))$('image-gallery-host').append(archive);
   }else{
@@ -1297,18 +1324,38 @@ $('image-composer-edit-area').onclick=()=>{
   const photo=imageBaseForRetouch();
   void openRetouch({file:photo?.file||null,id:photo?.id||null});
 };
+function openComposerPhotoInput(){
+  const input=imageEngine==='soulpro'||isReinterpret()?$('soul-base-image'):$('reference-images');
+  if(input&&!input.disabled)input.click();
+}
 $('image-composer-add').onclick=()=>{
   if(busy)return;
-  const input=imageEngine==='soulpro'||isReinterpret()?$('soul-base-image'):$('reference-images');
   if(imageEngine==='soul'&&!isReinterpret()){$('composer-character').click();return;}
-  if(input&&!input.disabled)input.click();
+  if(composerAddOpen){closeComposerAddMenu();return;}
+  closeComposerLibrary();closeImageModelMenu();closeReferenceIntent();toggleImageSettings(false);moodUI.close();
+  composerAddOpen=true;
+  $('composer-add-menu').hidden=false;
+  $('image-composer-add').setAttribute('aria-expanded','true');
+  $('composer-add-upload').focus({preventScroll:true});
 };
+$('composer-add-upload').onclick=()=>{if(busy)return;closeComposerAddMenu();openComposerPhotoInput();};
+$('composer-add-saved').onclick=()=>{if(busy)return;openComposerLibrary();$('composer-library-close').focus({preventScroll:true});};
+$('composer-add-menu').addEventListener('keydown',event=>{
+  if(!['ArrowDown','ArrowUp','Home','End'].includes(event.key))return;
+  event.preventDefault();
+  const options=[$('composer-add-upload'),$('composer-add-saved')].filter(option=>!option.disabled);
+  if(!options.length)return;
+  const current=options.indexOf(document.activeElement);
+  const next=event.key==='Home'?0:event.key==='End'?options.length-1:
+    (current+(event.key==='ArrowDown'?1:-1)+options.length)%options.length;
+  options[next].focus();
+});
 $('image-composer-more').onclick=()=>toggleImageSettings();
 $('image-settings-scrim').onclick=()=>toggleImageSettings(false);
 $('image-composer-model').onclick=()=>{
   moodUI.close();
   if(busy)return;
-  closeComposerLibrary();toggleImageSettings(false);
+  closeComposerAddMenu();closeComposerLibrary();toggleImageSettings(false);
   imageMenuOpen=!imageMenuOpen;
   if(imageMenuOpen)closeReferenceIntent();
   $('image-composer-model-menu').hidden=!imageMenuOpen;
@@ -1321,10 +1368,11 @@ $('image-composer-train').onclick=()=>{
   if(!busy)void hf.open();
 };
 document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'){moodUI.close();if($('soul-pro-identity-dialog').open){$('soul-pro-identity-dialog').close();return;}closeImageModelMenu();toggleImageSettings(false);closeComposerLibrary();}
+  if(e.key==='Escape'){const wasAddOpen=composerAddOpen;moodUI.close();if($('soul-pro-identity-dialog').open){$('soul-pro-identity-dialog').close();return;}closeComposerAddMenu();closeImageModelMenu();toggleImageSettings(false);closeComposerLibrary();if(wasAddOpen&&!$('image-composer-add').hidden)$('image-composer-add').focus({preventScroll:true});}
 });
 document.addEventListener('click',e=>{
   if(imageMenuOpen&&!e.target.closest('.composer-model-wrap'))closeImageModelMenu();
+  if(composerAddOpen&&!e.target.closest('.composer-add-wrap'))closeComposerAddMenu();
   if(!e.target.closest('#composer-moods,#image-composer-moods'))moodUI.close();
 });
 imageComposer.addEventListener('dragover',e=>{
@@ -1570,7 +1618,7 @@ $('tool-fashion').onclick=()=>void openFashionStudio();
 $('tool-retouch').onclick=()=>{if(!busy)void openRetouch({autofill:true});};
 $('tool-image').onclick=()=>{if(!busy)setTool('image');};
 $('tool-video').onclick=()=>{if(!busy)setTool('video');};
-$('image-engine').onchange=()=>{if(busy)return;const value=$('image-engine').value;imageRatioExplicit=false;soulRatioExplicit=false;imageEngine=['flash','kling','qwen3','zspicy','seedreamlite'].includes(value)?value:value==='gemini'?'gemini':value==='soulpro'?'soulpro':value==='soul'?'soul':value==='fal'?'fal':'seedream';if(imageEngine==='kling'&&imageReferenceMode==='references')imageReferenceMode='base';poseMapSourceId=null;$('pose-preview-status').textContent='';$('image-processing').value=imageProcessing;setTool('image');renderReferences();prewarmSeedreamDeck();if(imageEngine==='zspicy')$('image-composer-prompt').focus({preventScroll:true});};
+$('image-engine').onchange=()=>{if(busy)return;closeComposerAddMenu();closeComposerLibrary();const value=$('image-engine').value;imageRatioExplicit=false;soulRatioExplicit=false;imageEngine=['flash','kling','qwen3','zspicy','seedreamlite'].includes(value)?value:value==='gemini'?'gemini':value==='soulpro'?'soulpro':value==='soul'?'soul':value==='fal'?'fal':'seedream';if(imageEngine==='kling'&&imageReferenceMode==='references')imageReferenceMode='base';poseMapSourceId=null;$('pose-preview-status').textContent='';$('image-processing').value=imageProcessing;setTool('image');renderReferences();prewarmSeedreamDeck();if(imageEngine==='zspicy')$('image-composer-prompt').focus({preventScroll:true});};
 $('image-processing').onchange=()=>{if(busy)return;imageProcessing=$('image-processing').value==='batch'?'batch':'normal';setTool('image');};
 function updateSoulProModelUi(){
   $('hf-settings').hidden=soulProModel!=='soul2';$('soul-pro-reference-profile').hidden=soulProModel==='soul2';
