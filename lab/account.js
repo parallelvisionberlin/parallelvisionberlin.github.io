@@ -1,3 +1,4 @@
+import {metaConsentGranted,trackLabEvent,trackLabRegistration} from './meta-pixel.js?v=20261013-a1';
 import {loadLabAccount} from './native-account.js?v=20261012-unified-header1';
 import {createSessionRequest} from './session-request.js?v=20260927-auth1';
 import {accountIdentity,createAccountMenu,referralsAvailable} from './account-menu.js?v=20261012-account2';
@@ -100,7 +101,7 @@ async function refresh(){
   if(!signed){status(clerk?'':'Sign-in is loading…');$('account-gate').hidden=!clerk;return;}
   try{
     const data=await api('/api/session');if(current!==revision)return;
-    profile=data;drawProfile();$('account-workspace').hidden=false;status('');paintRoute();
+    profile=data;if(profile.customer)trackLabRegistration(profile.ownerId,profile.createdAt);drawProfile();$('account-workspace').hidden=false;status('');paintRoute();
     if(!profile.customer)return;
     const [wallet,storage]=await Promise.allSettled([api('/api/customer/wallet'),api('/api/customer/account')]);
     if(current!==revision)return;
@@ -133,7 +134,14 @@ async function openPayment(path,body){
   if(paymentPending||!profile?.customer)return;
   if(path.endsWith('/checkout')&&!profile.billingReady){status('Checkout is not enabled for this account.');return;}
   paymentPending=true;const current=revision;status('Opening secure billing…');$('account-portal').disabled=true;
-  try{const data=await api(path,{method:'POST',body});if(current!==revision)return;location.assign(stripeDestination(data.url));}
+  try{
+    const checkout=path.endsWith('/checkout');
+    const payload=checkout&&metaConsentGranted()?{...body,metaConsent:true}:body;
+    const data=await api(path,{method:'POST',body:payload});if(current!==revision)return;
+    const destination=stripeDestination(data.url);
+    if(checkout)trackLabEvent('InitiateCheckout',{currency:'EUR',content_name:String(body?.sku||'')});
+    location.assign(destination);
+  }
   catch(error){if(current===revision)status(error.message==='No Stripe customer record yet.'?'Your billing history becomes available after your first checkout.':error.message);}
   finally{paymentPending=false;$('account-portal').disabled=false;}
 }

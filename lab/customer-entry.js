@@ -1,4 +1,5 @@
 import {createAccountMenu} from './account-menu.js?v=20261012-account2';
+import {metaConsentGranted,trackLabEvent,trackLabRegistration} from './meta-pixel.js?v=20261013-a1';
 import {captureReferralCode,claimReferral} from './referral-capture.js?v=20261010-referrals1';
 captureReferralCode();
 import {createSessionRequest} from './session-request.js?v=20260927-auth1';
@@ -51,6 +52,7 @@ async function refresh(){
     if(profileSessionId!==clerk.session?.id)profile=null;
     const data=await call('/api/session');if(current!==revision)return;
     profile=data;profileSessionId=clerk.session?.id;show();
+    if(profile.customer)trackLabRegistration(profile.ownerId,profile.createdAt);
     if(profile.customer)await claimReferral(code=>call('/api/customer/referrals/claim',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code})}));
   }catch(e){if(current===revision){profile=null;status(e.message);show();}}
 }
@@ -107,10 +109,11 @@ async function purchase(button){
     if(profile.accountClosed||profile.billingReview)throw new Error('Purchases are paused for this account. Open Credits & billing for details.');
     if(!profile.billingReady)throw new Error('Purchases are not available yet. No payment has been taken.');
     purchaseStatus(button,'Opening secure checkout…');
-    const data=await call('/api/billing/checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sku})});
+    const data=await call('/api/billing/checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(metaConsentGranted()?{sku,metaConsent:true}:{sku})});
     if(!clerk.isSignedIn||clerk.session?.id!==sessionId)throw new Error('Your account changed. Select a plan again.');
     const url=new URL(data.url);
     if(url.protocol!=='https:'||url.username||url.password||!(url.hostname==='stripe.com'||url.hostname.endsWith('.stripe.com')))throw new Error('Unverified checkout link. Please try again.');
+    trackLabEvent('InitiateCheckout',{currency:'EUR',content_name:sku});
     location.assign(url.href);
     leaving=true;
   }catch(e){purchaseStatus(button,sessionId&&clerk?.session?.id!==sessionId?'Your account changed. Select a plan again.':e.message||'Checkout could not be opened. Please try again.');}

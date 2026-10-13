@@ -1,5 +1,6 @@
 import {assertCustomerOpen,customerRestrictions,customerAccount,requestAccountClosure} from './customer-lifecycle.mjs';
 import {rewardQualifiedReferral} from './referrals.mjs';
+import {labMetaOptIn,sendLabMetaPurchase} from './meta-capi.mjs';
 import {canCustomerGenerate,canCustomerCheckout,isPrivateLivePilot,isPermittedPilotPurchase} from './customer-rollout.mjs';
 // Customer billing belongs only to PV Lab's D1 database.
 // All changes in balances are immutable ledger entries. Never trust browser-supplied prices.
@@ -43,11 +44,11 @@ export async function isLabCustomer(env,id){
   }
 }
 export async function customerSession(env,id){
-  const c=await one(env,'SELECT balance_credits,stripe_customer_id FROM lab_customers WHERE id=?',id);
+  const c=await one(env,'SELECT balance_credits,stripe_customer_id,created_at FROM lab_customers WHERE id=?',id);
   if(!c)fail(403,'This PV Lab account is unavailable.');
   const restrictions=await customerRestrictions(env,id);
   const sub=await one(env,'SELECT plan_id,status FROM lab_subscriptions WHERE customer_id=?',id);
-  return {customer:true,balanceCredits:c.balance_credits,subscription:sub||{plan_id:null,status:'none'},
+  return {customer:true,balanceCredits:c.balance_credits,createdAt:c.created_at,subscription:sub||{plan_id:null,status:'none'},
     billingReady:!restrictions.closed&&!restrictions.billingReview&&enabled(env,id),generationReady:!restrictions.closed&&!restrictions.billingReview&&canCustomerGenerate(env,id),
     billingReview:restrictions.billingReview,accountClosed:restrictions.closed,
     pilot:isPrivateLivePilot(env,id),
@@ -92,6 +93,7 @@ export async function customerRoute(request,env,subject){
     await assertCustomerOpen(env,subject,{spending:true});
     if(!enabled(env,subject))fail(503,'Checkout is not enabled yet for this account. No payment was initiated.');
     const data=await request.json().catch(()=>null),sku=String(data?.sku||''),item=PACKS[sku];
+    const metaConsent=labMetaOptIn(data?.metaConsent);
     if(!item)fail(400,'Choose an available credit pack or subscription.');
     // Post-payment invoices carry an additional Stripe fee. Enable explicitly
     // per environment, after the merchant approves its fee and tax wording.
@@ -122,6 +124,7 @@ export async function customerRoute(request,env,subject){
       'client_reference_id':subject,
       'metadata[lab_customer_id]':subject,
       'metadata[lab_sku]':sku,
+      'metadata[lab_meta_consent]':metaConsent?'1':'0',
       'line_items[0][price_data][currency]':'eur',
       'line_items[0][price_data][unit_amount]':String(item.cents),
       'line_items[0][price_data][product_data][name]':item.title,
@@ -139,6 +142,7 @@ export async function customerRoute(request,env,subject){
       form['line_items[0][price_data][recurring][interval]']='month';
       form['subscription_data[metadata][lab_customer_id]']=subject;
       form['subscription_data[metadata][lab_sku]']=sku;
+      form['subscription_data[metadata][lab_meta_consent]']=metaConsent?'1':'0';
     } else {
       form['payment_intent_data[metadata][lab_customer_id]']=subject;
       form['payment_intent_data[metadata][lab_sku]']=sku;
@@ -229,12 +233,13 @@ async function syncSubscription(env,sub) {
     subject,sub.id,customerId,sku,sub.status||'incomplete',now());
   return {subject,sku};
 }
-export async function stripeWebhook(request,env){
+export async function stripeWebhook(request,env,ctx){
   const event=await verifyStripeEvent(env,request);
   const keyMode=/^(?:sk|rk)_(test|live)_/.exec(env.LAB_STRIPE_SECRET_KEY||'')?.[1];
   if(keyMode&&event.livemode!==(keyMode==='live'))fail(400,'Stripe event mode does not match this billing environment.');
   if(await one(env,'SELECT event_id FROM lab_stripe_events WHERE event_id=?',event.id))return json({received:true,duplicate:true});
   const data=event.data?.object||{};
+  let metaPurchase=null;
   if(['checkout.session.completed','checkout.session.async_payment_succeeded'].includes(event.type)){
     const subject=data.metadata?.lab_customer_id,sku=data.metadata?.lab_sku,item=PACKS[sku];
     if(subject&&item&&data.client_reference_id===subject&&data.currency==='eur'){
@@ -242,6 +247,7 @@ export async function stripeWebhook(request,env){
         await setStripeCustomer(env,subject,typeof data.customer==='string'?data.customer:data.customer?.id);
         await credit(env,subject,item.credits,'purchase','checkout:'+data.id);
         await rewardQualifiedReferral(env,subject,'checkout:'+data.id,item.cents);
+        if(data.metadata?.lab_meta_consent==='1')metaPurchase={subject,transactionId:data.id,amountCents:item.cents,consented:true};
       } else if(data.mode==='subscription'&&item.type==='subscription'&&data.subscription){
         const sub=await subscriptionDetails(env,typeof data.subscription==='string'?data.subscription:data.subscription.id);
         await syncSubscription(env,sub);
@@ -258,6 +264,7 @@ export async function stripeWebhook(request,env){
       if(meta&&['subscription_create','subscription_cycle'].includes(data.billing_reason)&&data.currency==='eur'&&data.id&&sub.customer&&Number(data.amount_paid)===PACKS[meta.sku].cents){
         await credit(env,meta.subject,PACKS[meta.sku].credits,'subscription','invoice:'+data.id);
         await rewardQualifiedReferral(env,meta.subject,'invoice:'+data.id,Number(data.amount_paid));
+        if(data.billing_reason==='subscription_create'&&sub.metadata?.lab_meta_consent==='1')metaPurchase={subject:meta.subject,transactionId:data.id,amountCents:Number(data.amount_paid),consented:true};
       }
     }
   } else if(['customer.subscription.updated','customer.subscription.deleted','customer.subscription.created'].includes(event.type)){
@@ -276,5 +283,7 @@ export async function stripeWebhook(request,env){
     if(customer)await exec(env,"INSERT OR IGNORE INTO lab_billing_reviews(event_id,customer_id,object_id,reason,amount_cents,created_at) VALUES(?,?,?,?,?,?)",event.id,customer.id,String(data.id||''),event.type,Number(data.amount_refunded??data.amount)||0,now());
   }
   await exec(env,'INSERT OR IGNORE INTO lab_stripe_events(event_id,event_type,processed_at) VALUES(?,?,?)',event.id,event.type,now());
+  // Meta is optional; never delay verified credit delivery or report unpaid checkouts.
+  if(metaPurchase){const task=sendLabMetaPurchase(env,metaPurchase).catch(()=>({sent:false}));if(ctx?.waitUntil)ctx.waitUntil(task);else await task;}
   return json({received:true});
 }
