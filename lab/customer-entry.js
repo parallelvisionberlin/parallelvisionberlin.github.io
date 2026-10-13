@@ -126,6 +126,16 @@ $('lab-account-refer')?.addEventListener('click',()=>location.assign('./account.
 $('lab-account-logout')?.addEventListener('click',async()=>{clearPurchaseIntent();await clerk?.signOut();profile=null;show();});
 buyButtons.forEach(button=>button.addEventListener('click',()=>void purchase(button)));
 
+// Browsers may restore this page from the back-forward cache after Stripe Checkout.
+// The outgoing checkout deliberately keeps its button busy; reset only on return.
+window.addEventListener('pageshow',event=>{
+  if(!event.persisted)return;
+  purchasing=false;
+  purchaseBusy(null,false);
+  for(const note of new Set(feedbackNodes.values())){note.hidden=true;note.textContent='';}
+  void refresh();
+});
+
 try{
   clerk=await loadLabAccount();
   clerk.addListener(()=>void refresh());
