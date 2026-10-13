@@ -17,6 +17,7 @@
 <link rel="stylesheet" href="./studio-tools.css?v=20261012-macro-clean1">
 <link rel="stylesheet" href="./account-menu.css?v=20261012-account2">
 <link rel="stylesheet" href="./pricing.css?v=20261013-pricing-hero7">
+<link rel="stylesheet" href="./mobile-polish.css?v=20261013-mobile-ux1">
 <link rel="stylesheet" href="/lab/legal-links.css">
 <link rel="stylesheet" href="./invite-hero.css?v=20261013-editorial1">
 <link rel="stylesheet" href="/lab/site-footer.css?v=20261013-footer1">
@@ -29,7 +30,7 @@
   <div class="landing-header-actions">
     <button class="lab-auth-link" id="lab-header-signin" type="button">Sign in</button>
     <a class="studio-link" href="./studio.html"><span class="studio-link-label-full">Open studio</span><span class="studio-link-label-compact">Studio</span></a>
-    <a class="lab-home-upgrade" id="lab-home-upgrade" href="#pricing" hidden>Upgrade <span aria-hidden="true">↗</span></a>
+    <a class="lab-home-upgrade" id="lab-home-upgrade" href="#pricing" hidden>Upgrade <span class="pv-arrow-icon" aria-hidden="true"><svg class="pv-arrow-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 17 17 7M8 7h9v9"/></svg></span></a>
     <details id="lab-account-strip" class="pv-account-menu" hidden>
       <summary aria-label="Open account menu" aria-expanded="false"><span class="pv-account-avatar" data-account-avatar aria-hidden="true"></span></summary>
       <div class="pv-account-panel">
@@ -136,18 +137,18 @@
       <p class="lab-plans-intro">One credit balance for images, video and upscaling. See the cost before you create.</p>
       <div class="lab-pricing-options" role="tablist" aria-label="Choose a credit purchase type"><button type="button" role="tab" id="lab-tab-monthly" aria-selected="true" aria-controls="lab-monthly-plans" tabindex="0">Monthly plans</button><button type="button" role="tab" id="lab-tab-onetime" aria-selected="false" aria-controls="lab-one-time-credits" tabindex="-1">One-time credits</button></div>
       <div class="lab-plans-grid" id="lab-monthly-plans" role="tabpanel" aria-labelledby="lab-tab-monthly">
-        <article class="lab-plan"><span class="lab-plan-name">Starter</span><div class="lab-plan-price">€15 <small>/ month</small></div><div class="lab-plan-credits">1,600 credits / month</div><p class="lab-plan-description sr-only">For exploring scenes, references and editing.</p><button type="button" data-lab-buy="starter"><span class="sr-only">Choose Starter</span><span aria-hidden="true">↗</span></button></article>
-        <article class="lab-plan"><span class="lab-plan-name">Creator</span><div class="lab-plan-price">€39 <small>/ month</small></div><div class="lab-plan-credits">4,500 credits / month</div><p class="lab-plan-description sr-only">A complete workspace for regular image and motion projects.</p><button type="button" data-lab-buy="creator"><span class="sr-only">Choose Creator</span><span aria-hidden="true">↗</span></button></article>
-        <article class="lab-plan"><span class="lab-plan-name">Studio</span><div class="lab-plan-price">€99 <small>/ month</small></div><div class="lab-plan-credits">12,000 credits / month</div><p class="lab-plan-description sr-only">For production runs, creative teams and ambitious volumes.</p><button type="button" data-lab-buy="studio"><span class="sr-only">Choose Studio</span><span aria-hidden="true">↗</span></button></article>
+        <article class="lab-plan"><span class="lab-plan-name">Starter</span><div class="lab-plan-price">€15 <small>/ month</small></div><div class="lab-plan-credits">1,600 credits / month</div><p class="lab-plan-description sr-only">For exploring scenes, references and editing.</p><button type="button" data-lab-buy="starter"><span class="sr-only">Choose Starter</span><span class="pv-arrow-icon" aria-hidden="true"><svg class="pv-arrow-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 17 17 7M8 7h9v9"/></svg></span></button></article>
+        <article class="lab-plan"><span class="lab-plan-name">Creator</span><div class="lab-plan-price">€39 <small>/ month</small></div><div class="lab-plan-credits">4,500 credits / month</div><p class="lab-plan-description sr-only">A complete workspace for regular image and motion projects.</p><button type="button" data-lab-buy="creator"><span class="sr-only">Choose Creator</span><span class="pv-arrow-icon" aria-hidden="true"><svg class="pv-arrow-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 17 17 7M8 7h9v9"/></svg></span></button></article>
+        <article class="lab-plan"><span class="lab-plan-name">Studio</span><div class="lab-plan-price">€99 <small>/ month</small></div><div class="lab-plan-credits">12,000 credits / month</div><p class="lab-plan-description sr-only">For production runs, creative teams and ambitious volumes.</p><button type="button" data-lab-buy="studio"><span class="sr-only">Choose Studio</span><span class="pv-arrow-icon" aria-hidden="true"><svg class="pv-arrow-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 17 17 7M8 7h9v9"/></svg></span></button></article>
       </div>
       <div class="lab-plans-grid" id="lab-one-time-credits" role="tabpanel" aria-labelledby="lab-tab-onetime" hidden>
-        <article class="lab-plan"><span class="lab-plan-name">1,000 credits</span><div class="lab-plan-price">€10</div><div class="lab-plan-credits">One-time credit pack</div><p class="lab-plan-description sr-only">A one-time pack of 1,000 credits.</p><button type="button" data-lab-buy="topup10"><span class="sr-only">Buy 1,000 credits</span><span aria-hidden="true">↗</span></button></article>
-        <article class="lab-plan"><span class="lab-plan-name">3,000 credits</span><div class="lab-plan-price">€29</div><div class="lab-plan-credits">One-time credit pack</div><p class="lab-plan-description sr-only">A one-time pack of 3,000 credits.</p><button type="button" data-lab-buy="topup29"><span class="sr-only">Buy 3,000 credits</span><span aria-hidden="true">↗</span></button></article>
-        <article class="lab-plan"><span class="lab-plan-name">8,000 credits</span><div class="lab-plan-price">€75</div><div class="lab-plan-credits">One-time credit pack</div><p class="lab-plan-description sr-only">A one-time pack of 8,000 credits.</p><button type="button" data-lab-buy="topup75"><span class="sr-only">Buy 8,000 credits</span><span aria-hidden="true">↗</span></button></article>
+        <article class="lab-plan"><span class="lab-plan-name">1,000 credits</span><div class="lab-plan-price">€10</div><div class="lab-plan-credits">One-time credit pack</div><p class="lab-plan-description sr-only">A one-time pack of 1,000 credits.</p><button type="button" data-lab-buy="topup10"><span class="sr-only">Buy 1,000 credits</span><span class="pv-arrow-icon" aria-hidden="true"><svg class="pv-arrow-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 17 17 7M8 7h9v9"/></svg></span></button></article>
+        <article class="lab-plan"><span class="lab-plan-name">3,000 credits</span><div class="lab-plan-price">€29</div><div class="lab-plan-credits">One-time credit pack</div><p class="lab-plan-description sr-only">A one-time pack of 3,000 credits.</p><button type="button" data-lab-buy="topup29"><span class="sr-only">Buy 3,000 credits</span><span class="pv-arrow-icon" aria-hidden="true"><svg class="pv-arrow-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 17 17 7M8 7h9v9"/></svg></span></button></article>
+        <article class="lab-plan"><span class="lab-plan-name">8,000 credits</span><div class="lab-plan-price">€75</div><div class="lab-plan-credits">One-time credit pack</div><p class="lab-plan-description sr-only">A one-time pack of 8,000 credits.</p><button type="button" data-lab-buy="topup75"><span class="sr-only">Buy 8,000 credits</span><span class="pv-arrow-icon" aria-hidden="true"><svg class="pv-arrow-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 17 17 7M8 7h9v9"/></svg></span></button></article>
       </div>
       <div class="lab-pricing-footnote" aria-label="Billing information">
         <p id="lab-pricing-billing-copy">Renews monthly until cancelled.</p>
-        <a href="/lab/terms/">Billing terms <span aria-hidden="true">↗</span></a>
+        <a href="/lab/terms/">Billing terms <span class="pv-arrow-icon" aria-hidden="true"><svg class="pv-arrow-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 17 17 7M8 7h9v9"/></svg></span></a>
       </div>
       <p id="lab-pricing-status" role="status" aria-live="polite" class="lab-pricing-status"></p>
     </div>
@@ -193,7 +194,7 @@
       <p class="lab-invite-promo__description">Invite a friend. You both receive 200 credits after their first qualifying purchase.</p>
     </div>
     <div class="lab-invite-promo__actions">
-      <a class="lab-invite-promo__cta" href="./account.html#referrals">Get your invite link <span aria-hidden="true">↗</span></a>
+      <a class="lab-invite-promo__cta" href="./account.html#referrals">Get your invite link <span class="pv-arrow-icon" aria-hidden="true"><svg class="pv-arrow-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 17 17 7M8 7h9v9"/></svg></span></a>
       <p class="lab-invite-promo__fineprint">First purchase of €10 or more. Credits issued after verified payment.</p>
     </div>
     <div class="lab-invite-promo__reward" aria-hidden="true"><span>+200</span><span>+200</span></div>

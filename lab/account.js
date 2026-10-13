@@ -57,7 +57,8 @@ function drawProducts(products){
     const monthly=item.type==='subscription',button=document.createElement('button');button.type='button';button.className='account-product';
     const credits=document.createElement('strong'),unit=document.createElement('small'),price=document.createElement('span'),action=document.createElement('em');
     credits.textContent=item.credits.toLocaleString();unit.textContent=monthly?'credits / month':'credits';price.textContent=money(item.priceEur)+(monthly?' / mo':'');
-    action.textContent=monthly?(activePlan?'Manage in billing ↗':'Choose plan ↗'):'Add credits ↗';
+    action.textContent=monthly?(activePlan?'Manage in billing':'Choose plan'):'Add credits';
+    const icon=document.createElementNS('http://www.w3.org/2000/svg','svg');icon.setAttribute('viewBox','0 0 24 24');icon.setAttribute('class','pv-arrow-svg');icon.setAttribute('aria-hidden','true');icon.innerHTML='<path d="M7 17 17 7M8 7h9v9"/>';action.append(' ',icon);
     button.append(credits,unit,price,action);button.disabled=!profile.billingReady||!!(monthly&&activePlan);
     button.addEventListener('click',()=>void openPayment('/api/billing/checkout',{sku:item.id}));
     $(monthly?'account-plans':'account-products').append(button);

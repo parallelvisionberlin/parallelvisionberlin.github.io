@@ -363,6 +363,14 @@ try{
   });
   assert.ok(compactComposer.left>=0&&compactComposer.right<=390,'Floating Image bar fits on mobile');
   assert.ok(await x.page.locator('#image-composer-add').isVisible(),'Mobile Image bar keeps in-bar reference action');
+  assert.ok(await x.page.locator('#image-composer-mobile-more').isVisible(),'Mobile secondary settings have an explicit More disclosure');
+  assert.equal(await x.page.locator('#image-composer-resolution').isVisible(),false,'Secondary resolution is collapsed initially');
+  await x.page.locator('#image-composer-mobile-more').click();
+  assert.equal(await x.page.locator('#image-composer-resolution').isVisible(),true,'More exposes the original resolution select');
+  assert.equal(await x.page.locator('#image-composer-count').isVisible(),true,'More exposes the original image count select');
+  await x.page.locator('#image-composer-mobile-more').click();
+  assert.equal(await x.page.locator('#image-composer-resolution').isVisible(),false,'More collapses without changing selected values');
+  assert.equal(await x.page.locator('#image-composer-generate').evaluate(el=>Math.round(el.getBoundingClientRect().width)),await x.page.locator('#image-composer .image-composer-toolbar').evaluate(el=>Math.round(el.getBoundingClientRect().width)),'Generate is a full-width action underneath the controls');
   await x.page.screenshot({path:'test-results/lab-image-floating-mobile.png',fullPage:false});
   await x.page.click('#tool-video');
   assert.ok(await x.page.locator('.empty-actions').evaluate(el=>el.getBoundingClientRect().width<=document.querySelector('.canvas').getBoundingClientRect().width),'Empty actions must fit the mobile preview');

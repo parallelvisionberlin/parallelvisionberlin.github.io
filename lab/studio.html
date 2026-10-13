@@ -76,6 +76,8 @@ document.addEventListener('DOMContentLoaded',()=>{
 <link rel="stylesheet" href="./studio-credits.css?v=20261013-unified-upgrade2">
 <link rel="stylesheet" href="./home-navigation.css?v=20261013-remove-studio-home3">
 <link rel="stylesheet" href="./studio-finish-v2.css?v=20261013-luxe1">
+<link rel="stylesheet" href="./mobile-polish.css?v=20261013-mobile-ux1">
+<script defer src="./mobile-composer-polish.js?v=20261013-mobile-ux1"></script>
 <link rel="stylesheet" href="/lab/legal-links.css">
 <link rel="stylesheet" href="/lab/site-footer.css?v=20261013-footer1">
 </head>
@@ -119,7 +121,7 @@ document.addEventListener('DOMContentLoaded',()=>{
         <p class="fine" id="active-detail" aria-live="polite"></p>
         <button id="resolve" class="quiet" type="button" hidden>Resolve interrupted request</button>
       </div>
-    </details><button id="lab-wallet-toggle" class="lab-wallet-toggle" type="button" hidden>Credits</button><button id="lab-add-credits" class="lab-add-credits" type="button" hidden aria-label="View plans and credits">Upgrade <span aria-hidden="true">↗</span></button><details id="studio-account-menu" class="pv-account-menu" hidden>
+    </details><button id="lab-wallet-toggle" class="lab-wallet-toggle" type="button" hidden>Credits</button><button id="lab-add-credits" class="lab-add-credits" type="button" hidden aria-label="View plans and credits">Upgrade <span class="pv-arrow-icon" aria-hidden="true"><svg class="pv-arrow-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 17 17 7M8 7h9v9"/></svg></span></button><details id="studio-account-menu" class="pv-account-menu" hidden>
       <summary aria-label="Open account menu" aria-expanded="false"><span class="pv-account-avatar" data-account-avatar aria-hidden="true"></span></summary>
       <div class="pv-account-panel">
         <div class="pv-account-details"><strong data-account-name>Your account</strong><small data-account-balance></small></div>
@@ -142,7 +144,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   <div class="lab-credit-list" id="lab-credit-products"></div>
   <p class="lab-credit-checkout-note">One-time payment. Final total shown at checkout.</p>
   <p class="lab-wallet-state" id="lab-wallet-state" role="status"></p>
-  <footer class="lab-credit-deck-footer"><button id="lab-credit-refresh" type="button">Refresh balance</button><a href="./account.html#billing">Plans &amp; billing <span aria-hidden="true">↗</span></a><button id="lab-credit-invite" type="button" hidden>Invite friends</button></footer>
+  <footer class="lab-credit-deck-footer"><button id="lab-credit-refresh" type="button">Refresh balance</button><a href="./account.html#billing">Plans &amp; billing <span class="pv-arrow-icon" aria-hidden="true"><svg class="pv-arrow-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 17 17 7M8 7h9v9"/></svg></span></a><button id="lab-credit-invite" type="button" hidden>Invite friends</button></footer>
 </dialog><dialog id="lab-referrals-dialog" class="lab-credit-dialog lab-referrals-dialog" aria-labelledby="lab-referral-title"><header><strong>INVITE / PV LAB</strong><button id="lab-referrals-close" type="button" aria-label="Close invitations">×</button></header><section class="lab-referral-panel" aria-labelledby="lab-referral-title"><span class="lab-referral-eyebrow">Invite friends</span><h2 id="lab-referral-title">Give 200. Get 200.</h2><p>Share PV Lab with a friend. When they make their first purchase of €10 or more, you each receive 200 bonus credits.</p><div class="lab-referral-link-row"><input type="text" id="lab-referral-url" aria-label="Your personal referral link" placeholder="Your invite link" readonly><button type="button" id="lab-referral-copy" disabled>Copy link</button></div><p id="lab-referral-stats" class="lab-referral-stats"></p><p id="lab-referral-status" class="lab-referral-status" role="status"></p></section></dialog>
 <main class="wrap" id="main">
 
@@ -371,9 +373,10 @@ document.addEventListener('DOMContentLoaded',()=>{
       <button id="composer-reference-intent-toggle" type="button" class="composer-settings-pill reference-intent-toggle" aria-controls="composer-reference-intent" aria-expanded="false" hidden>Base image ⌄</button>
        <label id="image-reference-mode-wrap" class="composer-select-pill" hidden title="How to use reference images"><span class="visually-hidden">Reference mode</span><select id="image-reference-mode" aria-label="Reference mode"><option value="base">Base image</option><option value="references">References only</option></select></label>
       <label class="composer-select-pill" title="Aspect ratio"><span class="visually-hidden">Aspect ratio</span><select id="image-composer-ratio" aria-label="Aspect ratio"></select></label>
-      <label class="composer-select-pill" title="Resolution"><span class="visually-hidden">Image resolution</span><select id="image-composer-resolution" aria-label="Resolution"></select></label>
+      <label id="image-composer-resolution-wrap" class="composer-select-pill" title="Resolution"><span class="visually-hidden">Image resolution</span><select id="image-composer-resolution" aria-label="Resolution"></select></label>
       <label id="image-composer-count-wrap" class="composer-select-pill" title="Image count"><span class="visually-hidden">Number of images</span><select id="image-composer-count" aria-label="Number of images"></select></label>
       <button id="image-composer-more" type="button" class="composer-settings-pill" aria-expanded="false" aria-controls="composer-options" title="Image options">Options</button>
+      <button id="image-composer-mobile-more" type="button" class="composer-settings-pill composer-mobile-more" aria-expanded="false" aria-controls="image-composer-resolution-wrap image-composer-count-wrap" aria-label="Show more image settings"><span>More</span><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m6 9 6 6 6-6"/></svg></button>
       <label class="composer-select-pill hf-bar-control" hidden><span class="visually-hidden">Aspect ratio</span><select id="hf-bar-ratio" aria-label="Soul aspect ratio"><option value="source">16:9</option><option>16:9</option><option>9:16</option><option>4:3</option><option>3:4</option><option>1:1</option><option>2:3</option><option>3:2</option></select></label>
       <label class="composer-select-pill hf-bar-control" hidden><span class="visually-hidden">Resolution</span><select id="hf-bar-resolution" aria-label="Soul resolution"><option value="1080p">1080p</option><option value="720p">720p</option></select></label>
       </div><span class="composer-flex"></span>

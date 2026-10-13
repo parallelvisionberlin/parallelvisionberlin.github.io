@@ -33,7 +33,8 @@ export function createCustomerWallet({api,notify=()=>{},onClosed=()=>{},onBalanc
       label.className='lab-credit-pack-amount';label.textContent=p.credits.toLocaleString('en-GB');
       unit.className='lab-credit-pack-unit';unit.textContent='credits';
       price.className='lab-credit-pack-price';price.textContent=new Intl.NumberFormat('en-IE',{style:'currency',currency:'EUR',maximumFractionDigits:2,minimumFractionDigits:0}).format(p.priceEur);
-      action.className='lab-credit-pack-action';action.textContent='Buy credits ↗';
+      action.className='lab-credit-pack-action';action.textContent='Buy credits';
+      const icon=document.createElementNS('http://www.w3.org/2000/svg','svg');icon.setAttribute('viewBox','0 0 24 24');icon.setAttribute('class','pv-arrow-svg');icon.setAttribute('aria-hidden','true');icon.innerHTML='<path d="M7 17 17 7M8 7h9v9"/>';action.append(' ',icon);
       button.append(label,unit,price,action);button.disabled=!billingReady||!!accountClosed||billingReview||purchasing;
       button.setAttribute('aria-label','Buy '+p.credits.toLocaleString('en-GB')+' credits for '+price.textContent+', one-time payment');
       button.onclick=()=>void purchase(p.id);

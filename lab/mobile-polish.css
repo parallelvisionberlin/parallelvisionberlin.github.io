@@ -1,0 +1,123 @@
+/* PV LAB editorial arrows and compact responsive workspace.
+   Inline SVGs never depend on iOS emoji font substitution. */
+.pv-arrow-svg{
+  display:inline-block;width:16px;height:16px;flex:none;
+  fill:none;stroke:currentColor;stroke-width:1.65;
+  stroke-linecap:round;stroke-linejoin:round;
+  vertical-align:-.2em;
+}
+.pv-arrow-icon{display:inline-flex;align-items:center;justify-content:center;vertical-align:middle}
+#pricing .lab-plan>button[data-lab-buy]>.pv-arrow-svg{
+  width:18px;height:18px;stroke-width:1.7;
+}
+.account-nav-arrow,.account-destination-arrow{display:inline-flex;align-items:center;justify-content:center}
+.account-nav-arrow>.pv-arrow-svg,.account-destination-arrow>.pv-arrow-svg{width:17px;height:17px}
+.account-product em>.pv-arrow-svg,.lab-credit-pack-action>.pv-arrow-svg{width:14px;height:14px;margin-left:7px}
+#image-composer .composer-mobile-more{display:none!important}
+
+@media(max-width:560px){
+  /* Keep one quiet primary header action, not competing Studio/Upgrade pills. */
+  .landing-header--home .landing-header-actions{
+    grid-template-columns:auto 34px;column-gap:10px;
+  }
+  .landing-header--home .landing-header-actions>.lab-home-upgrade{
+    display:none!important;
+  }
+  .landing-header--home .landing-header-actions>#lab-header-signin,
+  .landing-header--home .landing-header-actions>#lab-account-strip{
+    grid-area:1 / 2;justify-self:end;margin-left:0;
+  }
+  .landing-header--home .landing-header-actions>.studio-link{grid-area:1 / 1}
+  .landing-header--home .studio-link{padding:10px 13px}
+  /* Utility controls and the navigation keep two distinct, orderly rows. */
+  body>#studio-header .wrap.top{row-gap:1px;column-gap:10px}
+  #studio-header .actions{gap:9px}
+  body>#studio-header .tool-switch{scroll-padding-inline:0;-webkit-overflow-scrolling:touch}
+  #studio-header .tool-switch>.tool-group{gap:21px}
+}
+
+/* Web Studio mobile image composer. PV Lab's native photo-first UI is separate. */
+@media(max-width:650px){
+  html:not(.pv-native-lab) #image-composer:not(.is-pv-soul){
+    padding:11px 12px 12px;border-radius:21px;
+  }
+  html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) .image-composer-top{
+    min-height:45px;gap:8px;
+    padding-bottom:6px;margin-bottom:1px;
+    border-bottom:1px solid rgba(255,255,255,.10);
+  }
+  html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) #image-composer-prompt{
+    min-height:42px;height:42px;font-size:13px!important;
+    padding:5px 3px!important;
+  }
+  html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) .image-composer-toolbar{
+    display:flex;flex-direction:column;align-items:stretch;
+    width:100%;min-height:0;gap:9px;margin-top:9px;
+  }
+  html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) .composer-controls{
+    display:flex;flex-wrap:wrap;align-items:center;align-content:flex-start;
+    width:100%;min-width:0;gap:7px;justify-content:flex-start;
+  }
+  html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) .composer-controls>*{order:9}
+  html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) #image-composer-add{
+    order:0;flex:0 0 38px;min-width:38px;width:38px;height:38px;min-height:38px;
+  }
+  html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) .composer-model-wrap{
+    order:1;flex:1 1 120px;min-width:0;max-width:calc(100% - 154px);
+  }
+  html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) .composer-model-pill{
+    display:flex;width:100%;min-width:0;height:38px;min-height:38px;
+    justify-content:flex-start;gap:7px;padding:7px 9px;
+  }
+  html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) #image-composer-model-label{
+    flex:1;min-width:0;max-width:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) .composer-mood-control{order:2;flex:none}
+  html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) .composer-mood-control #image-composer-moods{
+    min-height:38px;height:38px;padding:7px 10px;
+  }
+  html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) #image-composer-edit-area{order:3;min-height:36px}
+  html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) .composer-select-pill:has(#image-composer-ratio){
+    order:4;height:36px;
+  }
+  html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) .composer-select-pill:has(#image-composer-ratio) select{height:34px;min-height:34px}
+  html:not(.pv-native-lab) #image-composer.mobile-polish-ready:not(.is-pv-soul) .composer-mobile-more{
+    order:5;display:inline-flex!important;align-items:center;justify-content:center;
+    min-height:36px;height:36px;gap:5px;padding:7px 10px;
+    color:#d5d7d2;background:#252726;border-color:#50524f;
+    font-size:11px;font-weight:550;
+  }
+  #image-composer .composer-mobile-more svg{
+    width:13px;height:13px;fill:none;stroke:currentColor;
+    stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;
+    transition:transform .17s ease;
+  }
+  #image-composer .composer-mobile-more[aria-expanded="true"] svg{transform:rotate(180deg)}
+  html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) #composer-reference-intent-toggle{order:6}
+  html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) #image-reference-mode-wrap{order:6}
+  html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) #image-composer-resolution-wrap{order:7}
+  html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) #image-composer-count-wrap{order:8}
+  html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) #image-composer-more{order:9}
+  html:not(.pv-native-lab) #image-composer.mobile-polish-ready:not(.is-pv-soul):not([data-mobile-settings="open"]) #image-composer-resolution-wrap,
+  html:not(.pv-native-lab) #image-composer.mobile-polish-ready:not(.is-pv-soul):not([data-mobile-settings="open"]) #image-composer-count-wrap{
+    display:none!important;
+  }
+  html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) .composer-flex{display:none}
+  html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) .composer-generate{
+    display:flex;align-items:center;justify-content:center;
+    align-self:stretch;flex:none;width:100%;min-width:0;
+    height:46px;min-height:46px;max-height:46px;padding:10px 14px;
+    border-radius:12px;font-size:13px;
+  }
+  html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) #composer-character{
+    align-self:flex-start;
+  }
+}
+@media(max-width:360px){
+  html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) .composer-controls{gap:6px}
+  html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) .composer-model-wrap{max-width:calc(100% - 146px)}
+  html:not(.pv-native-lab) #image-composer:not(.is-pv-soul) .composer-mood-control #image-composer-moods{padding-inline:8px}
+}
+@media(prefers-reduced-motion:reduce){
+  #image-composer .composer-mobile-more svg{transition:none}
+}
