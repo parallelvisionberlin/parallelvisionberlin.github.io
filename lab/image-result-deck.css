@@ -201,3 +201,107 @@
 #image-lightbox #image-film-finish[data-film-pending="true"]>strong>.film-finish-status{
   color:#e4cfaa;
 }
+
+
+/* Provider content refusals: the archive remains a fashion editorial, not an API log. */
+#app #history .history-no-result.is-content-restricted{
+  box-sizing:border-box;width:100%;height:100%;min-height:175px;padding:clamp(17px,3vw,36px);
+  display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:0;
+  border:0;border-top:1px solid #b7a99365;
+  background:radial-gradient(circle at 90% 9%,#6a594a20,transparent 58%),linear-gradient(145deg,#252628,#1b1c1f 76%);
+  text-align:left;color:#eeebe4;
+}
+#app #history .history-no-result.is-content-restricted .content-restriction-kicker{
+  display:block;max-width:100%;color:#c5b8a5;
+  font:500 10px/1.35 var(--pv-text,'DM Sans',sans-serif);
+  letter-spacing:.14em;text-transform:uppercase;
+}
+#app #history .history-no-result.is-content-restricted strong{
+  display:block;margin:14px 0 0;max-width:100%;color:#f1ede5;
+  font-family:'Iowan Old Style',Baskerville,'Palatino Linotype',Georgia,serif;
+  font-size:clamp(25px,2.25vw,38px);line-height:1.08;font-weight:400;letter-spacing:-.043em;
+}
+#app #history .history-no-result.is-content-restricted .content-restriction-copy{
+  display:block!important;flex:none;margin:11px 0 0;max-width:39ch;max-height:none;overflow:visible;
+  color:#c0bebb;font:400 clamp(11px,1.04vw,14px)/1.53 var(--pv-text,'DM Sans',sans-serif);
+  letter-spacing:0;overflow-wrap:break-word;
+}
+#app #history .history-no-result.is-content-restricted button.content-restriction-edit{
+  display:inline-flex;align-items:center;min-height:30px;width:auto;padding:3px 0 4px;margin-top:14px;
+  background:transparent!important;border:0!important;border-bottom:1px solid #c4b8a66e!important;border-radius:0!important;
+  box-shadow:none!important;color:#eee6d9!important;cursor:pointer;
+  font:500 12px/1.3 var(--pv-text,'DM Sans',sans-serif);letter-spacing:.01em;
+}
+#app #history .history-no-result.is-content-restricted button.content-restriction-edit:hover{
+  color:#fff!important;border-bottom-color:#fff!important;
+}
+#app #history .history-no-result.is-content-restricted button.content-restriction-edit:focus-visible{
+  outline:2px solid #e6d5b7;outline-offset:5px;
+}
+#app #history .history-no-result.is-content-restricted .content-restriction-foot{
+  display:flex;align-items:center;gap:8px 12px;flex-wrap:wrap;margin-top:13px;
+  font:400 10px/1.35 var(--pv-text,'DM Sans',sans-serif);color:#918f8a;
+}
+#app #history .history-no-result.is-content-restricted .content-restriction-credits,
+#image-lightbox #image-lightbox-content-credits{
+  display:inline-flex;align-items:center;width:max-content;padding:3px 7px;
+  border:1px solid #a3ae8963;border-radius:30px;background:#a3ae8914;color:#c9d4ae;
+  font:500 10px/1.4 var(--pv-text,'DM Sans',sans-serif);white-space:nowrap;
+}
+#image-lightbox .detail-state[data-status='restricted']{color:#d4baa0}
+#image-lightbox .image-lightbox-stage.is-content-restricted{
+  background:radial-gradient(ellipse at 50% 46%,#242426 0%,#141617 44%,#0d0f10 76%);
+}
+#image-lightbox #image-lightbox-content-notice{
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:2;
+  display:flex;flex-direction:column;align-items:flex-start;width:min(520px,calc(100% - 60px));
+  padding:5px 0 5px clamp(17px,2vw,28px);box-sizing:border-box;
+  border-left:1px solid #b9a9928a;text-align:left;color:#e9e6df;
+}
+#image-lightbox #image-lightbox-content-notice[hidden],
+#image-lightbox #image-lightbox-content-credits[hidden]{display:none!important}
+#image-lightbox #image-lightbox-content-notice .image-content-notice-kicker{
+  color:#cbbba4;font:500 11px/1.3 var(--pv-text,'DM Sans',sans-serif);
+  letter-spacing:.17em;text-transform:uppercase;
+}
+#image-lightbox #image-lightbox-content-notice h2{
+  margin:17px 0 0;color:#f1ece4;
+  font:400 clamp(34px,4vw,58px)/1.05 'Iowan Old Style',Baskerville,'Palatino Linotype',Georgia,serif;
+  letter-spacing:-.045em;
+}
+#image-lightbox #image-lightbox-content-notice p{
+  max-width:43ch;margin:17px 0 0;color:#bfc0bb;
+  font:400 15px/1.68 var(--pv-text,'DM Sans',sans-serif);
+}
+#image-lightbox .image-content-notice-foot{
+  display:flex;align-items:center;flex-wrap:wrap;gap:9px 14px;margin-top:19px;
+  color:#989992;font:400 11px/1.4 var(--pv-text,'DM Sans',sans-serif);
+}
+#image-lightbox #image-lightbox-content-edit{
+  display:inline-flex;align-items:center;gap:12px;width:auto;min-height:35px;margin:24px 0 0;padding:0 0 5px;
+  border:0;border-bottom:1px solid #d0c0a37d;border-radius:0;background:transparent;
+  color:#efeee8;font:500 14px/1.35 var(--pv-text,'DM Sans',sans-serif);cursor:pointer;
+}
+#image-lightbox #image-lightbox-content-edit:hover{border-color:#f6f1e7;color:#fff}
+#image-lightbox #image-lightbox-content-edit:focus-visible{outline:2px solid #f6f1e7;outline-offset:5px}
+#image-lightbox #image-lightbox-content-edit span{font-size:16px;line-height:1}
+@media(max-width:720px){
+  #app #history .history-no-result.is-content-restricted{padding:16px 18px}
+  #app #history .history-no-result.is-content-restricted strong{margin-top:9px;font-size:clamp(22px,5vw,30px)}
+  #app #history .history-no-result.is-content-restricted .content-restriction-copy{
+    margin-top:8px;font-size:11px;line-height:1.45;
+    display:-webkit-box!important;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden;
+  }
+  #app #history .history-no-result.is-content-restricted button.content-restriction-edit{margin-top:9px;min-height:24px;font-size:11px}
+  #app #history .history-no-result.is-content-restricted .content-restriction-foot{margin-top:8px}
+  #app #history .history-no-result.is-content-restricted .content-restriction-foot small:not(.content-restriction-credits){display:none}
+  #image-lightbox #image-lightbox-content-notice{width:calc(100% - 44px);padding-left:17px}
+  #image-lightbox #image-lightbox-content-notice .image-content-notice-kicker{font-size:9px}
+  #image-lightbox #image-lightbox-content-notice h2{margin-top:12px;font-size:clamp(32px,7.3vw,44px)}
+  #image-lightbox #image-lightbox-content-notice p{margin-top:13px;font-size:13px;line-height:1.55}
+  #image-lightbox .image-content-notice-foot{margin-top:12px}
+  #image-lightbox #image-lightbox-content-edit{margin-top:17px;font-size:13px}
+}
+@media(prefers-reduced-motion:reduce){
+  #app #history .history-no-result.is-content-restricted button.content-restriction-edit{transition:none}
+}
