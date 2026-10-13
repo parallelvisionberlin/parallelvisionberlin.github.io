@@ -1421,3 +1421,69 @@ test('Z-Image Spicy routes only text to image and never bills an unsupported ref
   assert.equal(createCount,1);
   assert.equal((await submitted.json()).job.settings.engine,'zspicy');
 });
+
+
+test('Seedance 1.5 Motion and 2.5 4K routes quote exact provider parameters without paid generation',async()=>{
+  const {env}=fixture(),id=await setup(env);
+  createCount=0;maxPrice='2.700000';providerState='queued';createMode='ok';
+  const motion={type:'video',engine:'seedance15',mode:'start',duration:10,resolution:'720p',
+    aspectRatio:'16:9',prompt:'Camera stays fixed while the coat ripples.',audio:false,cameraFixed:true,seed:13,referenceRoles:[]};
+  const one=await req(env,'/api/quotes',{method:'POST',data:{settings:motion,sourceId:id}});
+  assert.equal(one.status,200,await one.clone().text());
+  const a=await one.json();
+  assert.equal(a.settings.model,'bytedance/seedance-1.5-pro/image-to-video');
+  assert.equal(a.creditCost,864,'320 credits per quoted USD for 1.5 Pro');
+  assert.equal(quotedRequest.input.camera_fixed,true);
+  assert.equal(quotedRequest.input.generate_audio,false);
+  assert.equal(quotedRequest.input.duration_seconds,10);
+  assert.equal(quotedRequest.input.resolution,'720p');
+  assert.equal(quotedRequest.input.seed,13);
+  assert.match(quotedRequest.input.image_url,/^https:\/\//);
+  assert.equal(createCount,0,'A provider quote does not submit a paid job');
+  const textMode=await req(env,'/api/quotes',{method:'POST',data:{settings:{...motion,mode:'text'},sourceId:null}});
+  assert.equal(textMode.status,200,await textMode.clone().text());
+  assert.equal(quotedRequest.model,'bytedance/seedance-1.5-pro/text-to-video');
+  assert.equal(quotedRequest.input.image_url,undefined);
+  const fourK={type:'video',engine:'seedance4k',mode:'start',duration:10,resolution:'4k',
+    aspectRatio:'auto',prompt:'A model turns toward the lens.',audio:true,seed:'',referenceRoles:[]};
+  const q=await req(env,'/api/quotes',{method:'POST',data:{settings:fourK,sourceId:id}});
+  assert.equal(q.status,200,await q.clone().text());
+  assert.equal((await q.json()).creditCost,513,'190 credits per quoted USD on premium 4K');
+  assert.equal(quotedRequest.model,'bytedance/seedance-2.5-spicy/image-to-video');
+  assert.equal(quotedRequest.input.resolution,'4k');
+  assert.equal(quotedRequest.input.aspect_ratio,undefined);
+  assert.equal(quotedRequest.input.camera_fixed,undefined);
+  assert.equal(createCount,0);
+});
+
+test('Seedream 5 Lite quotes and submits both text and reference edit with exact 2K size presets',async()=>{
+  const {env}=fixture(),id=await setup(env);
+  createCount=0;maxPrice='0.035000';providerState='queued';createMode='ok';
+  const lite={type:'image',engine:'seedreamlite',mode:'image',
+    prompt:'High fashion photograph with directional flash.',resolution:'2k',
+    aspectRatio:'16:9',outputFormat:'png',referenceRoles:[]};
+  const txt=await req(env,'/api/quotes',{method:'POST',data:{settings:lite,referenceSourceIds:[]}});
+  assert.equal(txt.status,200,await txt.clone().text());
+  const p=await txt.json();
+  assert.equal(p.creditCost,17,'Image pricing remains 460 credits per USD');
+  assert.equal(quotedRequest.model,'bytedance/seedream-5.0-lite/text-to-image');
+  assert.equal(quotedRequest.input.size,'2848*1600');
+  assert.equal(quotedRequest.input.resolution,undefined);
+  assert.equal(createCount,0);
+  const edit=await req(env,'/api/quotes',{method:'POST',data:{
+    settings:{...lite,aspectRatio:'3:4',referenceRoles:[{role:'base'}]},
+    referenceSourceIds:[id]
+  }});
+  assert.equal(edit.status,200,await edit.clone().text());
+  const editQuote=await edit.json();
+  assert.equal(quotedRequest.model,'bytedance/seedream-5.0-lite/edit');
+  assert.equal(quotedRequest.input.size,'1728*2304');
+  assert.equal(quotedRequest.input.image_urls.length,1);
+  assert.match(quotedRequest.input.image_urls[0],/^spicy:\/\/f\//);
+  const submit=await req(env,'/api/jobs',{method:'POST',data:{quoteId:editQuote.id,confirm:true}});
+  assert.equal(submit.status,202,await submit.clone().text());
+  assert.equal(createCount,1);
+  assert.equal((await submit.json()).job.settings.engine,'seedreamlite');
+  assert.equal((await req(env,'/api/jobs',{method:'POST',data:{quoteId:editQuote.id,confirm:true}})).status,200);
+  assert.equal(createCount,1,'One bound quote cannot create duplicate paid jobs');
+});
