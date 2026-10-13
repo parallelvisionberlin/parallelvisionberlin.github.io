@@ -462,6 +462,29 @@ dialog.image-lightbox::backdrop {background:rgba(4,5,7,.86);backdrop-filter:blur
 #image-composer .composer-library-card{display:flex;flex-direction:column;gap:8px;flex:0 0 124px;width:124px;background:transparent;color:#eee;border:0;padding:0;text-align:left}
 .composer-library-photo{display:grid;place-items:center;width:124px;height:124px;overflow:hidden;border:1px solid #434446;border-radius:12px;background:#262728;color:#aaa;font-size:28px}
 .composer-library-photo img{width:100%;height:100%;object-fit:cover}
+.composer-library-photo.is-photo-loading,
+.hf-preview-saved.is-photo-loading,
+#composer-character-photo.is-photo-loading{
+  background:linear-gradient(110deg,#252725 15%,#383b37 43%,#252725 68%);
+  background-size:250% 100%;
+  animation:pvPackPhotoLoading 1.65s ease-in-out infinite;
+}
+@keyframes pvPackPhotoLoading{
+  from{background-position:100% 0}
+  to{background-position:-100% 0}
+}
+.composer-library-photo.is-photo-unavailable,
+.hf-preview-saved.is-photo-unavailable{background:#282a28;color:#858a83}
+.composer-photo-fallback{
+  display:grid;place-items:center;width:38px;height:38px;margin:auto;
+  border:1px solid #414640;border-radius:10px;background:#2e312e;color:#9ca39a;
+}
+.composer-photo-fallback svg{display:block;width:20px;height:20px}
+@media(prefers-reduced-motion:reduce){
+  .composer-library-photo.is-photo-loading,
+  .hf-preview-saved.is-photo-loading,
+  #composer-character-photo.is-photo-loading{animation:none}
+}
 .composer-library-card[aria-pressed=true] .composer-library-photo{border:2px solid #eee}
 .composer-library-card strong{font-size:12px;font-weight:500;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .composer-library-actions{display:flex;gap:8px;padding-top:12px;border-top:1px solid #333}

@@ -846,22 +846,69 @@ const composerPortraits=new Map();
 const composerHomes=new Map();
 let composerLibraryKey='',composerPortraitKey='',soulProEditingCurrent=false;
 function composerAssetPhoto(host,id,characterName='',characterId=''){
+  // Never insert an <img> until its image has actually loaded: an empty src
+  // makes Chromium paint its native broken-image symbol and alt text.
+  const token=Symbol('composer-photo');
+  host._composerPhotoToken=token;
   host.replaceChildren();
+  host.classList.remove('is-photo-loading','is-photo-unavailable');
+  host.removeAttribute('aria-busy');
+  host.removeAttribute('title');
   const cover=/^nina[\s._-]*fok$/i.test(characterName.trim())?'/assets/optimized/nina-fok/Canon.webp':null;
-  const placeholder=()=>{host.textContent=characterName?characterName.trim().split(/\s+/).map(s=>s[0]).slice(0,2).join('').toUpperCase():'+';};
+  const initials=characterName.trim().split(/\s+/).filter(Boolean).map(s=>s[0]).slice(0,2).join('').toUpperCase();
+  const current=()=>host._composerPhotoToken===token;
+  const placeholder=(failed=false)=>{
+    if(!current())return;
+    host.replaceChildren();
+    host.classList.remove('is-photo-loading');
+    host.classList.toggle('is-photo-unavailable',failed);
+    host.removeAttribute('aria-busy');
+    if(!failed){host.textContent=initials||'+';return;}
+    host.title='Preview unavailable';
+    if(initials){host.textContent=initials;return;}
+    const icon=document.createElement('span');
+    icon.className='composer-photo-fallback';
+    icon.setAttribute('aria-hidden','true');
+    icon.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9" r="1.5"/><path d="m4 17 5-5 4 4 3-3 4 4"/></svg>';
+    host.append(icon);
+  };
   if(!id&&!cover&&!characterId){placeholder();return;}
-  const img=document.createElement('img');img.alt=characterName?characterName+' portrait':'Saved identity preview';img.onerror=()=>{if(img.isConnected)placeholder();};host.append(img);
-  if(cover){img.src=cover;return;}
+  host.classList.add('is-photo-loading');
+  host.setAttribute('aria-busy','true');
+  const reveal=url=>{
+    if(!current()||!host.isConnected)return;
+    if(!url){placeholder(true);return;}
+    const img=new Image();
+    img.alt=''; // The card name is already visible beneath the decorative image.
+    img.decoding='async';
+    img.onload=()=>{
+      if(!current()||!host.isConnected)return;
+      if(!img.naturalWidth){placeholder(true);return;}
+      host.replaceChildren(img);
+      host.classList.remove('is-photo-loading','is-photo-unavailable');
+      host.removeAttribute('aria-busy');
+    };
+    img.onerror=()=>{if(current())placeholder(true);};
+    img.src=url;
+  };
+  if(cover){reveal(cover);return;}
   const cacheKey=characterId?'character:'+characterId:id;
   if(!composerPortraits.has(cacheKey)){
     const revision=epoch;
-    const photo=characterId?api('/api/soul/characters/'+encodeURIComponent(characterId)+'/preview',{blob:true}).catch(error=>{if(id)return api('/api/assets/'+encodeURIComponent(id),{blob:true});throw error;}):api('/api/assets/'+encodeURIComponent(id),{blob:true});
-    composerPortraits.set(cacheKey,photo.then(blob=>{
-      if(epoch!==revision||!owner)return null;
-      const url=URL.createObjectURL(blob);return url;
-    }).catch(()=>null));
+    // Preview the private 480px thumbnail rather than download every full original.
+    // The thumbnail helper already falls back to original bytes when needed.
+    const photo=characterId
+      ? api('/api/soul/characters/'+encodeURIComponent(characterId)+'/preview',{blob:true}).catch(error=>{if(id)return assetThumbnailBlob(id);throw error;})
+      : assetThumbnailBlob(id);
+    const pending=photo.then(blob=>{
+      if(epoch!==revision||!owner||!blob?.type?.startsWith('image/')||!blob.size)return null;
+      return URL.createObjectURL(blob);
+    }).catch(()=>null);
+    composerPortraits.set(cacheKey,pending);
+    // A temporary failure should retry when the gallery is reopened.
+    void pending.then(url=>{if(!url&&composerPortraits.get(cacheKey)===pending)composerPortraits.delete(cacheKey);});
   }
-  composerPortraits.get(cacheKey).then(url=>{if(!img.isConnected)return;if(url)img.src=url;else{placeholder();}});
+  void composerPortraits.get(cacheKey).then(reveal);
 }
 function composerCharacterAsset(id){
   const job=[...imageDetailCache.values()].find(j=>j.settings?.characterId===id&&j.outputId);
