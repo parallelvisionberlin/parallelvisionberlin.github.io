@@ -404,7 +404,7 @@ async function prepareInput(env,owner,data,p,url) {
       fail(400,'Seedream Lite only accepts JPEG, PNG or WebP references.');
     primary=refs[0]||null;p.referenceSourceIds=refs.map(a=>a.id);p.lastSourceId=null;
     p.model=refs.length||builtInMoodReferenceCount(p)?SEEDREAM_LITE_EDIT:SEEDREAM_LITE_TEXT;
-    input=seedreamLiteInput(p);
+    input=seedreamLiteInput(p,{prompt:assembledPrompt(p)});
     if(refs.length&&url)input.image_urls=await Promise.all(refs.map(a=>signedInput(env,url,a.id)));
   }else if(p.type==='image'&&['qwen3','zspicy'].includes(p.engine)){
     const ids=data.referenceSourceIds||[];
