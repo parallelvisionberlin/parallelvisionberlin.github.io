@@ -204,8 +204,11 @@ assert.equal(await page.locator('#hf-bar-ratio option:checked').textContent(),'1
 await page.click('#composer-character');
 assert.equal(await page.locator('#composer-library-title').textContent(),'MAKE YOUR OWN CHARACTER');
 assert.equal(await page.locator('#composer-character-create').isVisible(),true);assert.ok((await page.locator('#composer-character-create').boundingBox()).width>=190,'Create character has room for its label');
-await page.setViewportSize({width:390,height:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'Character panel fits mobile');await page.setViewportSize({width:1440,height:1000});
-await page.click('#composer-character-create');await page.waitForFunction(()=>document.querySelector('#hf-dialog').open&&document.activeElement.id==='hf-training-name');await page.click('#hf-close');
+await page.setViewportSize({width:390,height:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'Character panel fits mobile');await page.setViewportSize({width:1440,height:860});
+await page.click('#composer-character-create');await page.waitForFunction(()=>document.querySelector('#hf-dialog').open&&document.activeElement.id==='hf-training-name');
+const characterFormFit=await page.locator('#hf-dialog').evaluate(dialog=>({content:dialog.scrollHeight,available:dialog.clientHeight}));
+assert.ok(characterFormFit.content<=characterFormFit.available+2,'Empty Character Studio form should fit a 1440×860 viewport without inner scrolling');
+await page.click('#hf-close');await page.setViewportSize({width:1440,height:1000});
 console.log('PASS fixed Generate geometry, numeric ratio label and character creation entry');
 assert.equal(await page.locator('#image-composer-generate').isEnabled(),false,'Empty Soul cannot submit');
 await page.fill('#image-composer-prompt','A quiet concrete room in daylight');
