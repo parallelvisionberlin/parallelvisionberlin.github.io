@@ -602,6 +602,7 @@ test('Moods stays dark at rest and uses solid citron only when selected',()=>{
   assert.match(style,/#image-composer \.composer-mood-control #image-composer-moods\.is-mood-selected\{/);
   assert.match(style,/background:linear-gradient\(160deg,#e0ff47 0%,#d1f900 100%\)/);
   assert.match(style,/color:#18220e/);
+  assert.match(style,/#image-composer \.composer-mood-control #image-composer-moods\.is-mood-selected:hover:not\(:disabled\)\{[^}]*color:#18220e;/);
   assert.match(style,/#image-composer \.composer-mood-control #image-composer-moods-clear\{/);
   assert.match(style,/color:#1b2a09/);
   assert.match(style,/@media\(max-width:740px\)/);
@@ -609,7 +610,7 @@ test('Moods stays dark at rest and uses solid citron only when selected',()=>{
   assert.match(style,/@media\(prefers-reduced-motion:reduce\)/);
   assert.doesNotMatch(style,/#image-composer \.composer-generate/);
   assert.doesNotMatch(style,/#image-composer \.composer-settings-pill\{/);
-  assert.match(html,/assets\.css\?v=[^"]+&moodsCitron=2/);
+  assert.match(html,/assets\.css\?v=[^"]+&moodsCitron=3/);
 });
 
 
