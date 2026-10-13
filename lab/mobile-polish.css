@@ -16,19 +16,8 @@
 #image-composer .composer-mobile-more{display:none!important}
 
 @media(max-width:560px){
-  /* Keep one quiet primary header action, not competing Studio/Upgrade pills. */
-  .landing-header--home .landing-header-actions{
-    grid-template-columns:auto 34px;column-gap:10px;
-  }
-  .landing-header--home .landing-header-actions>.lab-home-upgrade{
-    display:none!important;
-  }
-  .landing-header--home .landing-header-actions>#lab-header-signin,
-  .landing-header--home .landing-header-actions>#lab-account-strip{
-    grid-area:1 / 2;justify-self:end;margin-left:0;
-  }
-  .landing-header--home .landing-header-actions>.studio-link{grid-area:1 / 1}
-  .landing-header--home .studio-link{padding:10px 13px}
+  /* Open studio remains primary; credit and avatar actions stay compact. */
+  .landing-header--home .studio-link{padding:10px 11px}
   /* Utility controls and the navigation keep two distinct, orderly rows. */
   body>#studio-header .wrap.top{row-gap:1px;column-gap:10px}
   #studio-header .actions{gap:9px}

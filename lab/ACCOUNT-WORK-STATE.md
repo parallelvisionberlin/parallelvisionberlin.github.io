@@ -126,3 +126,14 @@
 - Reusable screenshots: artifact 11768432488, local hero-inset-review folder.
 - Pages run 38296277169 built and deployed successfully. Live index.html and public-header.css returned HTTP 200 and matched release bytes.
 - Complete: https://parallelvisionlabel.com/lab/. Reuse these checks for this unchanged revision.
+
+## Homepage account and credit header (2026-10-14)
+- User approved replacing the logged-in Upgrade pill with an understated, useful credit control; visitor header, hero image, hero typography and main navigation stay unchanged.
+- Source baseline: main 4b4a19de61208519b7df57cd5ff9ce035de87fd4.
+- Customer shows authenticated integer balance from /api/session, plus a small + link to #pricing. Zero shows Get credits. Missing balance is not misrepresented as zero. Owner and visitor show no credit-sales control.
+- Clicking the avatar exposes My account, Credits & billing, Pricing, My moods, eligible referral entry, Settings and Sign out.
+- On mobile, the header keeps Open studio and account while shortening credit copy; at <=375px an accessible + remains.
+- The real balance refreshes on focus/visibility and history restoration. Checkout, authorization, wallet and Stripe URLs are untouched.
+- Files: lab/index.html, public-header.css, mobile-polish.css, customer-entry.js, tests/lab-landing-stability.mjs, tests/lab-account-browser.mjs and this checkpoint.
+- New browser assertions cover customer, owner, zero balance, refreshed balance and sign-out at several desktop/mobile widths, without real sign-in, payment or generation.
+- Branch: codex/pvlab-home-credit-header-20261014. Check Actions and Pages separately before marking the change live.

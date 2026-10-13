@@ -63,7 +63,19 @@ async function refresh(){
 function show(){
   const signed=!!clerk?.isSignedIn,customer=!!profile?.customer;
   $('lab-header-signin').hidden=signed;
-  const homeUpgrade=$('lab-home-upgrade');if(homeUpgrade)homeUpgrade.hidden=!signed;
+  const homeCredits=$('lab-home-credits');
+  if(homeCredits){
+    homeCredits.hidden=!signed||!customer;
+    if(signed&&customer){
+      const valid=Number.isSafeInteger(profile.balanceCredits)&&profile.balanceCredits>=0;
+      const balance=valid?profile.balanceCredits:null;
+      const empty=balance===0;
+      $('lab-home-credit-copy').textContent=empty?'Get credits':valid?balance.toLocaleString('en-GB'):'Credits';
+      $('lab-home-credit-unit').hidden=!valid||empty;
+      homeCredits.setAttribute('aria-label',empty?'Get credits':valid?balance.toLocaleString('en-GB')+' credits. Buy more credits':'View credits and pricing');
+      homeCredits.title=empty?'Get credits':valid?balance.toLocaleString('en-GB')+' credits. Add credits':'View credits and pricing';
+    }
+  }
   headerAccount.update({signed,user:clerk?.user,profile});
   document.querySelectorAll('[data-lab-signin]').forEach(button=>{button.hidden=signed;});
   if(signed&&pilotSetup){
@@ -132,6 +144,10 @@ document.querySelector('.start-link')?.addEventListener('click',event=>{
 $('lab-account-refer')?.addEventListener('click',()=>location.assign('./account.html#referrals'));
 $('lab-account-logout')?.addEventListener('click',async()=>{clearPurchaseIntent();await clerk?.signOut();profile=null;show();});
 buyButtons.forEach(button=>button.addEventListener('click',()=>void purchase(button)));
+
+// Refresh authenticated balances after creation or purchasing in another tab.
+window.addEventListener('focus',()=>{if(clerk?.isSignedIn&&document.visibilityState==='visible')void refresh();});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&clerk?.isSignedIn)void refresh();});
 
 // Browsers may restore this page from the back-forward cache after Stripe Checkout.
 // The outgoing checkout deliberately keeps its button busy; reset only on return.
