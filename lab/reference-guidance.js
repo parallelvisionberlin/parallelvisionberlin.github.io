@@ -1,7 +1,7 @@
 // Shared by the image UI and Worker so the preview matches the submitted prompt.
 export const REFERENCE_ROLES = Object.freeze([
-  ['none','General reference'],['base','Base image'],['composition','Composition'],
-  ['pose','Pose only'],['identity','Identity'],['body','Body'],['detail','Detail'],
+  ['none','General reference'],['base','Base image'],['identity','Identity'],
+  ['pose','Pose only'],['body','Body'],['composition','Composition'],['detail','Detail'],
   ['outfit','Clothing'],['object','Object'],['room','Environment'],
   ['style','Style'],['lighting','Lighting'],['custom','Custom instruction']
 ]);
