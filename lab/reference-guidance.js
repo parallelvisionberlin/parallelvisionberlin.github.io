@@ -20,7 +20,7 @@ const descriptions = Object.freeze({
   style:'Use photographic treatment, palette and texture only; not people, pose, clothing or layout.',
   lighting:'Use light direction, softness and color only; not identity, pose or background.',
   custom:'Follow only the attached custom instruction.',
-  none:'General visual cues only where relevant; never override the Base, specified roles or requested edit.'
+  none:'General visual reference: optional cues only; never override the Base, specified roles or requested edit.'
 });
 export function supportsReferenceGuidance(p){
   return p?.type==='image' && p.mode==='image' && (!p.engine || ['seedream','seedreamlite','gemini','flash','kling','qwen3'].includes(p.engine));
@@ -53,7 +53,7 @@ export function referenceInstruction(raw,index){
   const r=normalizeReferenceLabel(raw),target=REFERENCE_TARGETS[r.role]?.find(([id])=>id===r.target)?.[1];
   let instruction=descriptions[r.role];
   if(r.role==='detail')instruction='Use only the '+(target||'selected detail').toLowerCase()+' as a localized visual reference; match camera and lighting. Do not copy the wearer, overall pose, outfit or scene.';
-  if(r.role==='outfit')instruction='Use only the '+(target||'full outfit').toLowerCase()+'; fit it to the target subject and pose. Do not copy the wearer, face, body, camera or background.';
+  if(r.role==='outfit')instruction='Use only the '+(target||'full outfit').toLowerCase()+'. Fit it to the target subject and pose. Do not copy the wearer, face, body, camera or background.';
   if(r.role==='object')instruction='Use only the '+(target||'object').toLowerCase()+' and its shape/materials; match perspective and lighting. Do not copy people or scene.';
   return 'Reference '+(index+1)+' ['+(REFERENCE_ROLES.find(([id])=>id===r.role)?.[1]||r.role)+(target?' / '+target:'')+']: '+instruction+(r.note?' Note: '+r.note:'');
 }
@@ -75,7 +75,7 @@ function compileUserImagePrompt(direction,labels=[]){
   const hasBase=labels.some(r=>r.role==='base');
   if(!hasBase){
     const rules='REFERENCE MAP (attached image order). There is no base image. Create a new composition from the direction. Each role provides only its assigned property; General images offer optional cues. Identity defines the face, Body defines body proportions, Pose defines posture. Keep one consistent subject across matching identity references; never import unrelated people or scenes.';
-    return [rules,...labels.map(referenceInstruction),'REQUESTED IMAGE: '+(prompt||'Create one coherent new image from the assigned roles; compose the scene independently.')].join('\n');
+    return [rules,...labels.map(referenceInstruction),'REQUESTED IMAGE: '+(prompt||'Create a cohesive new image inspired by the supplied photographs; follow assigned roles and compose the scene independently.')].join('\n');
   }
   const rules='REFERENCE MAP (attached image order). Base supplies everything else. Each supporting role changes only its named property: Identity sets the face, Body sets proportions, Pose sets posture. General references are optional cues. Respect explicit user edits and match the final perspective and light.';
   const hasExplicitRoles=labels.slice(1).some(ref=>ref.role&&ref.role!=='none'&&ref.role!=='base');

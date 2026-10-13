@@ -1,5 +1,5 @@
 import {prepareMoodPrompt} from './moods.js?v=20261012-hk-optics3&seedreamlite=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1';
-import {compileImagePrompt,normalizeReferenceLabel} from './reference-guidance.js?v=20261013-compact-map1&seedreamlite=1&dreamcore=7&syntheticRefs=1&raveIdentity=1';
+import {compileImagePrompt,normalizeReferenceLabel} from './reference-guidance.js?v=20261013-compact-map2&seedreamlite=1&dreamcore=7&syntheticRefs=1&raveIdentity=1';
 
 // These are photographic treatment references, never a replacement Base.
 // Stable labels also prevent adding them twice when a saved job is reopened.

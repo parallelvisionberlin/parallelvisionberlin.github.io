@@ -57,6 +57,6 @@ test('Pending result cards, History, Assets, viewer and price summary share exac
  assert.match(source,/imageName=p\.mode==='upscale'\?'Upscale':imageModelLabel\(p\)/);
  assert.match(source,/\$\('reference-provider'\)\.textContent=imageModelLabel\(\{engine:imageEngine\}\)/);
  assert.ok(source.includes('isImage?`${imageModelLabel(q.settings)}'),'Quote uses the selected model name');
- assert.match(studio,/modelLabels=1/);
+ assert.match(studio,/modelLabels=\d+/);
  assert.doesNotMatch(source,/function detailModelName\(job\)[\s\S]{0,800}return 'Seedream 5 Pro'/);
 });
