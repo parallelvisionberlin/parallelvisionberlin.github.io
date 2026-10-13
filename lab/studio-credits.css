@@ -6,7 +6,7 @@
 .lab-credit-banner{display:flex;align-items:center;gap:13px;margin:0;padding:13px var(--lab-page-gutter,24px);background:#eae8e2;color:#4f4e4a;border-bottom:1px solid #d4d1ca;font:400 14px/1.5 'DM Sans',Arial,sans-serif}
 .lab-credit-banner-icon{display:grid;place-items:center;flex:none;width:27px;height:27px;border:1px solid #65635e;border-radius:50%;color:#34332f;font:italic 17px/1 Georgia,serif}
 .lab-credit-banner p{flex:1;min-width:0;margin:0;color:inherit;font:inherit}
-.lab-credit-banner strong{color:#131313;font-weight:650;margin-right:7px}
+.lab-credit-banner strong{color:#131313;font-weight:700;margin-right:7px}
 .lab-credit-banner #lab-credit-banner-dismiss{display:grid;place-items:center;flex:none;width:32px;height:32px;min-height:32px;padding:0;border:0;border-radius:50%;background:transparent;color:#494844;font:300 24px/1 'DM Sans',Arial,sans-serif;cursor:pointer}
 .lab-credit-banner #lab-credit-banner-dismiss:hover{background:#d7d4ce;color:#111}
 .lab-credit-banner #lab-credit-banner-dismiss:focus-visible{outline:2px solid #151515;outline-offset:2px}
