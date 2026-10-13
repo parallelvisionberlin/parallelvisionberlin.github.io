@@ -1265,7 +1265,7 @@ function syncImageComposer(){
   const poseHint='Controlled Pose: add one Pose photo, 1–4 Identity photos, and a prompt.';
   const modelButton=$('image-composer-model');
   if(imageEngine==='fal'){
-    const hint=message||poseHint;
+    const hint=poseHint;
     modelButton.title=hint;
     modelButton.setAttribute('aria-description',hint);
   }else{
