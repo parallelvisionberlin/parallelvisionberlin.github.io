@@ -169,7 +169,7 @@ test('fifteen unique curated moods with imagery',()=>{
   for(const mood of MOODS)for(const field of ['name','category','preview','direction','subtle','intense','avoid'])assert.ok(mood[field]);
 });
 test('only explicitly compatible image engines receive moods',()=>{
-  assert.deepEqual([...MOOD_MODELS],['seedream','gemini','qwen3','zspicy']);
+  assert.deepEqual([...MOOD_MODELS],['seedream','seedreamlite','gemini','qwen3','zspicy']);
   assert.match(prepareMoodPrompt('portrait','night-flash',60,{engine:'soulpro'}).error,/does not support Moods/);
   assert.equal(moodById('fake'),null);
 });
