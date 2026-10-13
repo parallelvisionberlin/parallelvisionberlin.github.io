@@ -14,7 +14,7 @@ export function createCustomerWallet({api,notify=()=>{},onClosed=()=>{},onBalanc
   function jobCharge(job){
     if(job?.settings?.provider==='higgsfield'&&job.settings.mode==='soul-id-training'&&soulIdTrainingCredits!==null)
       return soulIdTrainingCredits.toLocaleString()+' credits';
-    return describe(job?.estimatedUsd);
+    return Number.isSafeInteger(job?.creditCost)&&job.creditCost>=7?job.creditCost.toLocaleString()+' credits':describe(job?.estimatedUsd);
   }
   function update(){
     toggle.hidden=!account;

@@ -1,5 +1,5 @@
-import {prepareMoodPrompt} from './moods.js?v=20261012-hk-optics3&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1';
-import {compileImagePrompt,normalizeReferenceLabel} from './reference-guidance.js?v=20261010-reference-flow2&dreamcore=7&syntheticRefs=1&raveIdentity=1';
+import {prepareMoodPrompt} from './moods.js?v=20261012-hk-optics3&seedreamlite=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1';
+import {compileImagePrompt,normalizeReferenceLabel} from './reference-guidance.js?v=20261010-reference-flow2&seedreamlite=1&dreamcore=7&syntheticRefs=1&raveIdentity=1';
 
 // These are photographic treatment references, never a replacement Base.
 // Stable labels also prevent adding them twice when a saved job is reopened.
@@ -16,21 +16,22 @@ export function isMoodStyleReference(label){
 }
 
 export function moodReferencePlan(settings){
-  if(settings?.type!=='image'||settings.mode!=='image'||settings.moodId!=='hong-kong-nights'||!['seedream','gemini'].includes(settings.engine))
+  if(settings?.type!=='image'||settings.mode!=='image'||settings.moodId!=='hong-kong-nights'||!['seedream','seedreamlite','gemini'].includes(settings.engine))
     return {settings,references:[]};
   const labels=(settings.referenceRoles||[]).map(normalizeReferenceLabel);
   const references=HONG_KONG_REFERENCES.filter(ref=>!labels.some(label=>label.role==='style'&&label.name===ref.label.name));
   if(labels.length+references.length>10)throw Error('Hong Kong Nights includes four Style references. Keep at most six of your own images, or choose another Mood.');
   const referenceRoles=[...labels,...references.map(ref=>({...ref.label}))];
   let prompt=settings.prompt;
-  if(compileImagePrompt(prompt,referenceRoles).length>5000&&typeof settings.moodOriginalPrompt==='string'){
+  const budget=settings.engine==='seedreamlite'?3000:5000;
+  if(compileImagePrompt(prompt,referenceRoles).length>budget&&typeof settings.moodOriginalPrompt==='string'){
     // Compact our own recipe, never truncate the user's direction or role notes.
     const recipe=prepareMoodPrompt(settings.moodOriginalPrompt,settings.moodId,settings.moodIntensity,{
       engine:settings.engine,referenceCount:labels.filter(label=>!isMoodStyleReference(label)).length,
       referenceMode:settings.referenceMode||'base',compact:true,filmFinish:settings.filmFinish
     });
     prompt=recipe.prompt;
-    if(compileImagePrompt(prompt,referenceRoles).length>5000){
+    if(compileImagePrompt(prompt,referenceRoles).length>budget){
       // Last resort: shorten only our automatic art direction, never authored text or role notes.
       const small=prepareMoodPrompt(settings.moodOriginalPrompt,settings.moodId,settings.moodIntensity,{
         engine:settings.engine,referenceCount:labels.filter(label=>!isMoodStyleReference(label)).length,
@@ -39,8 +40,8 @@ export function moodReferencePlan(settings){
       prompt=small.prompt;
     }
   }
-  if(compileImagePrompt(prompt,referenceRoles).length>5000)
-    throw Error('Your direction and reference notes are too long even with the compact Mood. Shorten the direction or optional notes.');
+  if(compileImagePrompt(prompt,referenceRoles).length>budget)
+    throw Error('Direction and reference notes are too long for this model’s '+budget.toLocaleString()+' character limit, even with the compact Mood. Shorten optional notes.');
   return {settings:{...settings,prompt,referenceRoles,
     // With text alone, a style photograph must not choose the output framing.
     aspectRatio:!labels.length&&settings.aspectRatio==='auto'?'1:1':settings.aspectRatio},references};
