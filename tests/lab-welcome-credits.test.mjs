@@ -17,14 +17,21 @@ function fixture(t) {
       async all(){return {results:stmt.all(...params)};}
     };
   }});
+  // One local SQLite connection needs transaction serialization; production
+  // Cloudflare D1 serializes its own atomic batch transactions.
+  let pending=Promise.resolve();
   const env={LAB_DB:{
     prepare,
-    async batch(statements) {
-      const output=[];db.exec('BEGIN IMMEDIATE');
-      try{
-        for(const statement of statements)output.push(await statement.run());
-        db.exec('COMMIT');return output;
-      }catch(error){db.exec('ROLLBACK');throw error;}
+    batch(statements) {
+      const transaction=pending.then(async()=>{
+        const output=[];db.exec('BEGIN IMMEDIATE');
+        try{
+          for(const statement of statements)output.push(await statement.run());
+          db.exec('COMMIT');return output;
+        }catch(error){db.exec('ROLLBACK');throw error;}
+      });
+      pending=transaction.catch(()=>{});
+      return transaction;
     }
   },LAB_WELCOME_CREDITS_ENABLED:'false',LAB_WELCOME_CREDITS_ACTIVATED_AT:'0'};
   const count=(subject)=>db.prepare('SELECT COUNT(*) AS n FROM lab_credit_entries WHERE customer_id=? AND reference LIKE ?').get(subject,'welcome:120:v1:%').n;
@@ -60,8 +67,9 @@ test('only accounts created from activation time receive 120 credits, once',asyn
   await ensureCustomer(f.env,subject);
   assert.equal(f.balance(subject),120);
   assert.equal(f.count(subject),1);
-  assert.deepEqual(f.db.prepare('SELECT kind,delta_credits FROM lab_credit_entries WHERE customer_id=?').get(subject),
-    {kind:'adjustment',delta_credits:120});
+  const entry=f.db.prepare('SELECT kind,delta_credits FROM lab_credit_entries WHERE customer_id=?').get(subject);
+  assert.equal(entry.kind,'adjustment');
+  assert.equal(entry.delta_credits,120);
 });
 
 test('repeated and simultaneous authenticated requests do not mint duplicate welcome credits',async t=>{
