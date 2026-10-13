@@ -186,7 +186,7 @@ try{
     assert.equal(quote.data.settings.moodId,'synthetic-romance');
     assert.equal(quote.data.settings.moodIntensity,82);
     assert.equal(quote.data.settings.moodOriginalPrompt,'');
-    assert.ok(compileImagePrompt(quote.data.settings.prompt,quote.data.settings.referenceRoles).length<=5000);
+    assert.ok(compileImagePrompt(quote.data.settings.prompt,quote.data.settings.referenceRoles,quote.data.settings).length<=5000);
     assert.match(quote.data.settings.prompt,/INVASIVE PHYSICAL BODY TRANSFORMATION/);
     assert.deepEqual(romance.errors,[]);
     ok('Synthetic Romance Base generation submits at '+width+'px');

@@ -1,5 +1,5 @@
 import {prepareMoodPrompt} from './moods.js?v=20261012-hk-optics3&seedreamlite=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1';
-import {compileImagePrompt,normalizeReferenceLabel} from './reference-guidance.js?v=20261013-compact-map2&seedreamlite=1&dreamcore=7&syntheticRefs=1&raveIdentity=1';
+import {compileImagePrompt,normalizeReferenceLabel} from './reference-guidance.js?v=20261013-compact-map2&seedreamlite=1&dreamcore=7&syntheticRefs=1&raveIdentity=1&refMode=20261014-contextual-reference1';
 
 // These are photographic treatment references, never a replacement Base.
 // Stable labels also prevent adding them twice when a saved job is reopened.
@@ -24,14 +24,14 @@ export function moodReferencePlan(settings){
   const referenceRoles=[...labels,...references.map(ref=>({...ref.label}))];
   let prompt=settings.prompt;
   const budget=settings.engine==='seedreamlite'?3000:5000;
-  if(compileImagePrompt(prompt,referenceRoles).length>budget&&typeof settings.moodOriginalPrompt==='string'){
+  if(compileImagePrompt(prompt,referenceRoles,{...settings,referenceRoles}).length>budget&&typeof settings.moodOriginalPrompt==='string'){
     // Compact our own recipe, never truncate the user's direction or role notes.
     const recipe=prepareMoodPrompt(settings.moodOriginalPrompt,settings.moodId,settings.moodIntensity,{
       engine:settings.engine,referenceCount:labels.filter(label=>!isMoodStyleReference(label)).length,
       referenceMode:settings.referenceMode||'base',compact:true,filmFinish:settings.filmFinish
     });
     prompt=recipe.prompt;
-    if(compileImagePrompt(prompt,referenceRoles).length>budget){
+    if(compileImagePrompt(prompt,referenceRoles,{...settings,referenceRoles}).length>budget){
       // Last resort: shorten only our automatic art direction, never authored text or role notes.
       const small=prepareMoodPrompt(settings.moodOriginalPrompt,settings.moodId,settings.moodIntensity,{
         engine:settings.engine,referenceCount:labels.filter(label=>!isMoodStyleReference(label)).length,
@@ -40,7 +40,7 @@ export function moodReferencePlan(settings){
       prompt=small.prompt;
     }
   }
-  if(compileImagePrompt(prompt,referenceRoles).length>budget)
+  if(compileImagePrompt(prompt,referenceRoles,{...settings,referenceRoles}).length>budget)
     throw Error('Direction and reference notes are too long for this model’s '+budget.toLocaleString()+' character limit, even with the compact Mood. Shorten optional notes.');
   return {settings:{...settings,prompt,referenceRoles,
     // With text alone, a style photograph must not choose the output framing.

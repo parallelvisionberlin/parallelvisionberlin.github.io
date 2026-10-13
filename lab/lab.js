@@ -2,7 +2,7 @@ import {createAccountMenu} from './account-menu.js?v=20261012-account2';
 const studioAccount=createAccountMenu(document.getElementById('studio-account-menu'));
 import {createFilmFinishControls,HONG_KONG_FILM_FINISH,FILM_FINISH_RENDER_REVISION} from './film-finish.js?v=20261013-green-preserving-v3';
 import {preparePhotoInput} from './photo-input.js?v=1';
-import {createMoodReferenceLoader,moodReferencePlan,isMoodStyleReference} from './mood-references.js?v=20261013-compact-map2&seedreamlite=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&nano21=1';
+import {createMoodReferenceLoader,moodReferencePlan,isMoodStyleReference} from './mood-references.js?v=20261013-compact-map2&seedreamlite=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&nano21=1&refMode=20261014-contextual-reference1';
 import {createPrivateMediaCache} from './private-media-cache.js?v=20261012-cache1';
 import {loadLabAccount} from './native-account.js?v=20261012-photo-layout1';
 import {createAssetLibrary} from './assets.js?v=20261010-navigation-media1';
@@ -15,7 +15,7 @@ captureReferralCode();
 import {createSoul2UI} from './higgsfield-ui.js?v=20261013-character-studio1';
 import {VIDEO_MODELS,engineFor,videoLabel} from './video-models.js?v=20261009-extend1&seedance15-4k=1';
 import {imageModelLabel} from './model-labels.js?v=20261013-exact-models2&nano21=1';
-import {REFERENCE_ROLES,REFERENCE_TARGETS,normalizeReferenceLabel,compileImagePrompt,referenceGuidanceError,canUseReferenceGuidance,builtInMoodReferenceCount} from './reference-guidance.js?v=20261013-compact-map2&seedreamlite=1&dreamcore=7&syntheticRefs=1&raveIdentity=1&qwen3-zimage=1&nano21=1';
+import {REFERENCE_ROLES,REFERENCE_TARGETS,normalizeReferenceLabel,compileImagePrompt,referenceGuidanceError,canUseReferenceGuidance,builtInMoodReferenceCount} from './reference-guidance.js?v=20261013-compact-map2&seedreamlite=1&dreamcore=7&syntheticRefs=1&raveIdentity=1&qwen3-zimage=1&nano21=1&refMode=20261014-contextual-reference1';
 import {createMoodSelector,moodById,userFacingImagePrompt,imageHistoryCaption} from './moods.js?v=20261011-midnight-reverie1&seedreamlite=1&filmDeck=2&filmOptics=2&hd=20261011&raveBudget=1&editorialHD=2&moodImageHD=1&moodDeckSpace=1&raveNight=4&syntheticBudget=1&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&qwen3-zimage=1&nano21=1';
 import {createMyMoods} from './my-moods.js?v=20261011-midnight-reverie1&hd=20261011&raveBudget=1&editorialHD=2&editorialHD=2&moodImageHD=1&raveNight=4&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1';
 import {takeMoodHandoff,moodGenerationQuote} from './mood-handoff.js?v=20261012-generate1';
@@ -457,9 +457,9 @@ function imageInputReferences(){return tool==='image'&&imageEngine==='zspicy'?[]
 function usesReferenceGuidance(){return tool==='image'&&['seedream','seedreamlite','gemini','gemini21','flash','kling','qwen3'].includes(imageEngine);}
 function imageGuidance(){
   const labels=referenceRoles(),mood=moodUI.enrich($('prompt').value,{engine:imageEngine,referenceCount:references.length,referenceMode:imageReferenceMode,...(imageEngine==='seedreamlite'?{compact:true,ultraCompact:true}:{})});
-  const current={type:'image',mode:'image',engine:imageEngine,...mood.metadata};
+  const current={type:'image',mode:'image',engine:imageEngine,referenceMode:imageReferenceMode,...mood.metadata};
   try{
-    const planned=moodReferencePlan({type:'image',mode:'image',engine:imageEngine,...mood.metadata,prompt:mood.prompt,referenceRoles:labels});
+    const planned=moodReferencePlan({type:'image',mode:'image',engine:imageEngine,referenceMode:imageReferenceMode,...mood.metadata,prompt:mood.prompt,referenceRoles:labels});
     const prompt=compileImagePrompt(planned.settings.prompt,planned.settings.referenceRoles,current);
     const limit=imageEngine==='seedreamlite'?3000:5000;
     const over=prompt.length-limit;

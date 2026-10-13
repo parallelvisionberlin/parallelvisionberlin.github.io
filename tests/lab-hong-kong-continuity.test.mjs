@@ -22,7 +22,7 @@ test('Hong Kong final provider budget retains identity constraints and authored 
   const settings={type:'image',mode:'image',engine,aspectRatio:'auto',prompt:recipe.prompt,...recipe.metadata,
    referenceRoles:Array.from({length:count},(_,i)=>({name:'source-'+i+'.png',role:i?'identity':'base',note:''}))};
   const plan=moodReferencePlan(settings);
-  const prompt=compileImagePrompt(plan.settings.prompt,plan.settings.referenceRoles);
+  const prompt=compileImagePrompt(plan.settings.prompt,plan.settings.referenceRoles,plan.settings);
   assert.ok(prompt.length<=5000,prompt.length);
   assert.ok(plan.settings.prompt.startsWith(original));
   assert.match(prompt,/IDENTITY FIRST/);
@@ -64,7 +64,7 @@ test('scene-aware relighting survives final provider compile without truncating 
   const recipe=prepareMoodPrompt(author,'hong-kong-nights',100,{engine,referenceCount:count});
   const roles=Array.from({length:count},(_,i)=>({name:'source-'+i+'.png',role:i?'identity':'base',note:''}));
   const plan=moodReferencePlan({type:'image',mode:'image',engine,aspectRatio:'auto',prompt:recipe.prompt,...recipe.metadata,referenceRoles:roles});
-  const compiled=compileImagePrompt(plan.settings.prompt,plan.settings.referenceRoles);
+  const compiled=compileImagePrompt(plan.settings.prompt,plan.settings.referenceRoles,plan.settings);
   assert.ok(compiled.length<=5000,compiled.length);
   assert.ok(plan.settings.prompt.startsWith(author));
   assert.match(compiled,/DIRECT FLASH/);

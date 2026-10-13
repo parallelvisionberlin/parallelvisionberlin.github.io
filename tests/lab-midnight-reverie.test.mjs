@@ -53,7 +53,7 @@ test('Midnight Reverie prompt budget protects user instructions and all referenc
           const author='Keep the same person, clothing and camera. '.repeat(Math.ceil(size/43)).slice(0,size).trim();
           const refs=Array.from({length:count},(_,i)=>({name:'ref-'+i+'.png',role:i?'identity':'base',note:''}));
           const result=prepareMoodPrompt(author,'midnight-reverie',strength,{engine,referenceCount:count});
-          const provider=compileImagePrompt(result.prompt,refs);
+          const provider=compileImagePrompt(result.prompt,refs,{...result.metadata,referenceMode:'base'});
           assert.equal(result.error,'');
           assert.ok(result.prompt.startsWith(author));
           assert.ok(provider.length<=5000,'provider budget exceeded: '+JSON.stringify({engine,strength,count,size,length:provider.length}));

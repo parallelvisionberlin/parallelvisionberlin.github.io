@@ -29,7 +29,7 @@ test('Synthetic Romance fits the final provider prompt across references, intens
           const original='Keep the same face, pose and composition.';
           const labels=Array.from({length:referenceCount},(_,i)=>({role:!i&&referenceMode==='base'?'base':'none'}));
           const result=prepareMoodPrompt(original,'synthetic-romance',intensity,{engine,referenceCount,referenceMode});
-          const prompt=compileImagePrompt(result.prompt,labels);
+          const prompt=compileImagePrompt(result.prompt,labels,{...result.metadata,referenceMode});
           assert.equal(result.error,'');
           assert.ok(prompt.length<=5000,JSON.stringify({engine,referenceMode,referenceCount,intensity,morphology,length:prompt.length}));
           assert.equal(result.metadata.moodOriginalPrompt,original);
@@ -48,7 +48,7 @@ test('Synthetic Romance leaves room for authored direction, identity notes and a
   const original='Keep the expression and framing. '.repeat(40).trim();
   const result=prepareMoodPrompt(original,'synthetic-romance',100,{engine:'gemini',referenceCount:labels.length});
   assert.equal(result.error,'');
-  const final=compileImagePrompt(result.prompt,labels);
+  const final=compileImagePrompt(result.prompt,labels,{...result.metadata,referenceMode:'base'});
   assert.ok(final.length<=5000);
   assert.ok(final.includes(original));
   assert.match(final,/Use these facial proportions/);
@@ -56,7 +56,7 @@ test('Synthetic Romance leaves room for authored direction, identity notes and a
   const board={id:'synthetic-budget-test',name:'My Synthetic Romance',baseMoodId:'synthetic-romance',direction:'Worn black nickel, tender human expression, restrained red practicals.'};
   const saved=preparePersonalMoodPrompt('',board,82,{engine:'seedream',referenceCount:labels.length});
   assert.equal(saved.error,'');
-  assert.ok(compileImagePrompt(saved.prompt,labels).length<=5000);
+  assert.ok(compileImagePrompt(saved.prompt,labels,{...saved.metadata,referenceMode:'base'}).length<=5000);
   assert.ok(saved.prompt.includes(board.direction));
   assert.match(prepareMoodPrompt('','synthetic-romance',82).error,/Describe a subject/);
   assert.match(prepareMoodPrompt('X'.repeat(5000),'synthetic-romance',82,{referenceCount:1}).error,/exceed 5,000/);
@@ -333,7 +333,7 @@ test('Dreamcore V7 compact direction fits ten references',()=>{
   const refs=Array.from({length:10},(_,i)=>({name:'ref-'+i+'.png',role:i?'none':'base'}));
   const r=prepareMoodPrompt('A model at the sea','dreamcore',100,{referenceCount:10});
   assert.equal(r.error,'');
-  assert.ok(compileImagePrompt(r.prompt,refs).length<=5000);
+  assert.ok(compileImagePrompt(r.prompt,refs,{...r.metadata,referenceMode:'base'}).length<=5000);
 });
 test('Fifteen moods are available, ten initially visible and Sumi-e last',()=>{
   const css=readFileSync(new URL('../lab/moods.css',import.meta.url),'utf8');
@@ -517,7 +517,7 @@ test('80s Film cinematic mood keeps multi-reference prompts under provider chara
     const r=prepareMoodPrompt('High-fashion actor in a room','80s-film',amount,{referenceCount:10,engine:'seedream'});
     assert.equal(r.error,'');
     assert.match(r.prompt,/80S FILM \/ (?:FASHION CINEMA|SUBTLE|CINEMATIC COLOR)/);
-    assert.ok(compileImagePrompt(r.prompt,refs).length<=5000,'ten-reference prompt should fit at '+amount+'%');
+    assert.ok(compileImagePrompt(r.prompt,refs,{...r.metadata,referenceMode:'base'}).length<=5000,'ten-reference prompt should fit at '+amount+'%');
   }
   const studio=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
   const app=readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8');
@@ -530,7 +530,7 @@ test('80s Film cinematic mood keeps multi-reference prompts under provider chara
     const saved=preparePersonalMoodPrompt('Luxury movie scene',board,100,{engine:'seedream',referenceCount:count});
     const boardRefs=Array.from({length:count},(_,i)=>({name:'ref-'+i+'.jpg',role:i?'none':'base'}));
     assert.equal(saved.error,'');
-    assert.ok(compileImagePrompt(saved.prompt,boardRefs).length<=5000,'saved 80s mood fits '+count+' references');
+    assert.ok(compileImagePrompt(saved.prompt,boardRefs,{...saved.metadata,referenceMode:'base'}).length<=5000,'saved 80s mood fits '+count+' references');
   }
   const duo=prepareMoodPrompt('Fashion scene','80s-film',100,{engine:'seedream',referenceCount:2});
   assert.match(duo.prompt,/80S FILM \/ FASHION CINEMA/);
@@ -543,7 +543,7 @@ test('Berlin Rave V5 carries minimal clothing, flash and source composition thro
   for(const referenceCount of [0,1,10])for(const intensity of [10,55,80,95,100]){
     const result=prepareMoodPrompt('A person in a white shirt','berlin-rave',intensity,{referenceCount});
     const labels=Array.from({length:referenceCount},(_,i)=>({role:i?'none':'base'}));
-    const prompt=compileImagePrompt(result.prompt,labels);
+    const prompt=compileImagePrompt(result.prompt,labels,{...result.metadata,referenceMode:'base'});
     assert.equal(result.error,'');
     assert.match(prompt,/BERLIN RAVE V5/);
     assert.match(prompt,/black leather and glossy latex/);
@@ -576,14 +576,14 @@ test('Berlin Rave preserves user instructions and optional reference roles',()=>
   assert.doesNotMatch(refsOnly.prompt,/Base: preserve/);
   const labels=[{role:'base',note:'Keep both people full-length.'},{role:'outfit',target:'full'},{role:'lighting'}];
   const result=prepareMoodPrompt('Adapt the reference garments to each person.','berlin-rave',100,{referenceCount:labels.length});
-  const final=compileImagePrompt(result.prompt,labels);
+  const final=compileImagePrompt(result.prompt,labels,{...result.metadata,referenceMode:'base'});
   assert.match(final,/Clothing \/ Full outfit/);
   assert.match(final,/Fit it to the target subject and pose/);
   assert.ok(final.length<=5000);
   const saved=preparePersonalMoodPrompt('Portrait',{id:'rave-v5',name:'My Rave',direction:'Refined worn leather',baseMoodId:'berlin-rave'},100,{referenceCount:1});
   assert.equal(saved.error,'');
   assert.match(saved.prompt,/BERLIN RAVE V5/);
-  assert.ok(compileImagePrompt(saved.prompt,[{role:'base'}]).length<=5000);
+  assert.ok(compileImagePrompt(saved.prompt,[{role:'base'}],{...saved.metadata,referenceMode:'base'}).length<=5000);
   assert.match(prepareMoodPrompt('','berlin-rave',80).error,/Describe a subject or add an image/);
   assert.match(prepareMoodPrompt('X'.repeat(5000),'berlin-rave',100,{referenceCount:1}).error,/exceed 5,000/);
 });
@@ -626,12 +626,12 @@ test('Berlin Rave fits the final reference-map budget for one to ten photos at e
       assert.equal(result.metadata.moodOriginalPrompt,original);
       assert.equal(result.metadata.moodIntensity,intensity);
       assert.match(result.prompt,/Reinterpret adult outfits/);
-      assert.ok(compileImagePrompt(result.prompt,labels).length<=5000,engine+' '+referenceMode+' '+count+' photos at '+intensity+'%');
+      assert.ok(compileImagePrompt(result.prompt,labels,{...result.metadata,referenceMode}).length<=5000,engine+' '+referenceMode+' '+count+' photos at '+intensity+'%');
     }
   }
   const saved=preparePersonalMoodPrompt('',{id:'rave-budget-test',name:'My Berlin Rave',direction:'Refined worn leather and lean tailoring',baseMoodId:'berlin-rave'},100,{engine:'seedream',referenceCount:1});
   assert.equal(saved.error,'');
-  assert.ok(compileImagePrompt(saved.prompt,[{name:'base.png',role:'base',note:'Keep my face and hair.'}]).length<=5000);
+  assert.ok(compileImagePrompt(saved.prompt,[{name:'base.png',role:'base',note:'Keep my face and hair.'}],{...saved.metadata,referenceMode:'base'}).length<=5000);
 });
 
 test('Text-only Z-Image parks references without expanding the compact Image deck',()=>{

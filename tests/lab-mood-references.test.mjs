@@ -17,7 +17,7 @@ test('four real style images follow the Base, fit the prompt budget and survive 
     assert.deepEqual(plan.settings.referenceRoles.map(r=>r.role),['base','style','style','style','style']);
     assert.equal(settings.referenceRoles.length,1,'snapshot is not mutated');
     assert.equal(plan.settings.aspectRatio,'auto');
-    assert.ok(compileImagePrompt(plan.settings.prompt,plan.settings.referenceRoles).length<=5000);
+    assert.ok(compileImagePrompt(plan.settings.prompt,plan.settings.referenceRoles,plan.settings).length<=5000);
     assert.equal(moodReferencePlan(plan.settings).references.length,0,'restored jobs do not double-attach');
     assert.deepEqual(plan.settings.referenceRoles.filter(label=>!isMoodStyleReference(label)),settings.referenceRoles);
     assert.equal(plan.references.length,4);
@@ -41,7 +41,7 @@ test('limits and prompt overflow fail before any upload; other moods and models 
   const text=moodReferencePlan(base(70,0));
   assert.equal(text.settings.aspectRatio,'1:1');
   assert.ok(text.settings.referenceRoles.every(r=>r.role==='style'));
-  assert.match(compileImagePrompt(text.settings.prompt,text.settings.referenceRoles),/There is no base image/);
+  assert.match(compileImagePrompt(text.settings.prompt,text.settings.referenceRoles,text.settings),/There is no base image/);
 });
 
 test('reference uploads retain order, reuse IDs within a session and cannot cross accounts',async()=>{
@@ -75,7 +75,7 @@ test('long directions compact the built-in recipe without losing direction, role
     const settings={...base(intensity,count),engine,moodOriginalPrompt:direction};
     settings.prompt=prepareMoodPrompt(direction,'hong-kong-nights',intensity,{engine,referenceCount:count}).prompt;
     const plan=moodReferencePlan(settings);
-    assert.ok(compileImagePrompt(plan.settings.prompt,plan.settings.referenceRoles).length<=5000);
+    assert.ok(compileImagePrompt(plan.settings.prompt,plan.settings.referenceRoles,plan.settings).length<=5000);
     assert.ok(plan.settings.prompt.startsWith(direction));assert.equal(plan.settings.moodOriginalPrompt,direction);
     assert.equal(plan.settings.filmFinish,settings.filmFinish);
     assert.equal(moodReferencePlan(plan.settings).references.length,0);
@@ -84,7 +84,7 @@ test('long directions compact the built-in recipe without losing direction, role
   const settings=base(100);settings.prompt+=' Extra internal recipe wording.'.repeat(70);
   settings.referenceRoles[0].note='Preserve the cafe and her face exactly.';
   const plan=moodReferencePlan(settings);
-  assert.ok(compileImagePrompt(plan.settings.prompt,plan.settings.referenceRoles).length<=5000);
+  assert.ok(compileImagePrompt(plan.settings.prompt,plan.settings.referenceRoles,plan.settings).length<=5000);
   assert.equal(plan.settings.referenceRoles[0].note,settings.referenceRoles[0].note);
   assert.ok(plan.settings.prompt.startsWith(settings.moodOriginalPrompt));
   const source=readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8');
