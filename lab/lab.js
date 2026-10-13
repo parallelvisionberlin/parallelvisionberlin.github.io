@@ -1292,11 +1292,11 @@ function syncImageComposer(){
   syncImageGalleryEmpty();
 }
 function fitImageModelMenu(){
-  // Fill the space above the deck but keep an 18px breathing gap below the navigation.
+  // Fill the available space while keeping an 8px gap below the navigation.
   const menu=$('image-composer-model-menu'),trigger=$('image-composer-model'),header=$('studio-header');
   if(!menu||!trigger)return;
-  // The menu ends 12px above the trigger, leaving 18px below the header.
-  const available=trigger.getBoundingClientRect().top-(header?.getBoundingClientRect().bottom||0)-30;
+  // The menu ends 8px above the trigger and stays 8px below the header.
+  const available=trigger.getBoundingClientRect().top-(header?.getBoundingClientRect().bottom||0)-16;
   menu.style.setProperty('--pv-model-menu-available',Math.max(112,Math.floor(available))+'px');
   // The menu can be wider than its trigger. Clamp it to the visual viewport,
   // rather than letting a right-side model pill push it off-screen on mobile.
