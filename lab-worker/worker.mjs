@@ -20,6 +20,9 @@ import {reinterpretParameters,buildReinterpretInput} from './soul-reinterpret.mj
 /* Parallel Vision Lab. Private owner-only workspace, no public media bucket.
    The hosted provider is opt-in; no provider key or moderation bypass in source. */
 import {seedanceParameters, prepareSeedance, REFERENCE_MIME, sniffReference} from './seedance.mjs';
+import {seedanceVariantParameters,prepareSeedanceVariant} from './seedance-variants.mjs';
+import {seedreamLiteParameters,seedreamLiteInput,SEEDREAM_LITE_TEXT,SEEDREAM_LITE_EDIT} from './seedream-lite.mjs';
+import {creditsForJobUsd} from './job-pricing.mjs';
 import {FAL_CONTROLLED_POSE,FAL_CONTROLLED_INPAINT,FAL_DWPOSE,controlledPoseParameters,controlledRepairParameters,controlledPoseRefs,controlledRepairRefs,controlledPoseEstimateMicros,controlledRepairEstimateMicros,buildControlledPoseInput,buildRepairInput,falSubmit,falStatus,falResult,falAwait} from './fal-controlled-pose.mjs';
 import {falVideoParameters,falVideoEstimateMicros,buildFalVideoInput} from './fal-video.mjs';
 import {falUpscaleParameters,storedImageDimensions,setFalUpscaleDimensions,falUpscaleEstimateMicros,buildFalUpscaleInput} from './fal-upscale.mjs';
@@ -33,7 +36,7 @@ import {SYNTHETIC_ROMANCE_REFERENCES,SYNTHETIC_ROMANCE_REFERENCE_VERSION} from '
 import {moodBoardsRoute} from './moodboards.mjs';
 import {moodCreatorRoute} from './mood-creator-service.mjs';
 import {characterPreview as soulCharacterPreview,SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-13.1-qwen3-zimage';
+export const VERSION = 'pv-lab-2026-10-13.2-seedance-lite-pricing';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -142,7 +145,7 @@ async function config(env,owner) {
   if(!canCustomerGenerate(env,owner)||!await isLabCustomer(env,owner))return null;
   return {owner_id:owner,encrypted_key:await encryptKey(env,env.LAB_CUSTOMER_SPICY_API_KEY),enabled:1,terms_confirmed:1,daily_limit_microusd:10000000};
 }
-function publicConfig(c,falEnabled=false) {return {concurrency:CONCURRENCY,configured:!!c,enabled:!!(c?.enabled&&c?.terms_confirmed),dailyLimitUsd:(c?.daily_limit_microusd||10000000)/1000000,provider:'SpicyAPI',videoEngines:['wan','wanprime','h3','h3max','h3spicy','seedance',...(falEnabled?['h3maxfal','omni']:[])],model:'Wan 3.0 / Wan Prime / MiniMax H3 / H3 Max / H3 Spicy / H3 Max Reference FAL / Gemini Omni Flash 1.1 / Seedance 2.5 / Seedream 5.0 Pro / Image Upscaler',documentation:DOC,pricingNote:'SpicyAPI videos use a live bound quote. fal.ai video routes use the current published per-second estimate shown before confirmation. Provider billing remains authoritative.'};}
+function publicConfig(c,falEnabled=false) {return {concurrency:CONCURRENCY,configured:!!c,enabled:!!(c?.enabled&&c?.terms_confirmed),dailyLimitUsd:(c?.daily_limit_microusd||10000000)/1000000,provider:'SpicyAPI',videoEngines:['wan','wanprime','h3','h3max','h3spicy','seedance','seedance15','seedance4k',...(falEnabled?['h3maxfal','omni']:[])],model:'Wan 3.0 / Wan Prime / MiniMax H3 / H3 Max / H3 Spicy / H3 Max Reference FAL / Gemini Omni Flash 1.1 / Seedance 2.5 / Seedream 5.0 Pro / Image Upscaler',documentation:DOC,pricingNote:'SpicyAPI videos use a live bound quote. fal.ai video routes use the current published per-second estimate shown before confirmation. Provider billing remains authoritative.'};}
 async function vendorRequest(path,key,data,idempotency,method=data?'POST':'GET') {
   let r;
   try {
@@ -219,16 +222,18 @@ function parameters(value) {
   }
   if(value.type!=='image'&&['h3maxfal','omni'].includes(value.engine))return falVideoParameters(value,{fail,referenceLabels});
   if(value.type!=='image'&&value.engine==='seedance')return seedanceParameters(value,{fail,referenceLabels});
+  if(value.type!=='image'&&['seedance15','seedance4k'].includes(value.engine))return seedanceVariantParameters(value,{fail});
   if(value.engine&&!['wan','wanprime','h3','h3max','h3spicy'].includes(value.engine)&&value.type!=='image')fail(400,'Unknown video model.');
   const prompt=typeof value.prompt==='string'?value.prompt.trim():'';
   const referenceMode=value.referenceMode==='references'?'references':'base';
   const referenceRoles=referenceLabels(value.referenceRoles,value.type==='image'&&value.engine==='flash'?14:10);
-  if(value.type==='image'&&['seedream','gemini','flash','kling','qwen3'].includes(value.engine)&&referenceMode==='references'){
+  if(value.type==='image'&&['seedream','seedreamlite','gemini','flash','kling','qwen3'].includes(value.engine)&&referenceMode==='references'){
     for(const r of referenceRoles)if(r.role==='base')r.role='none';
     if(!value.aspectRatio||value.aspectRatio==='auto')value={...value,aspectRatio:'16:9'};
   }
   if(value.type==='image'&&['flash','kling'].includes(value.engine))return imageModelParameters({...value,referenceMode},{fail,referenceRoles});
   if(value.type==='image'&&['qwen3','zspicy'].includes(value.engine))return experimentalImageParameters(value,{fail,referenceRoles,moodMetadata:imageMoodMetadata});
+  if(value.type==='image'&&value.engine==='seedreamlite')return seedreamLiteParameters(value,{fail,referenceRoles,moodMetadata:imageMoodMetadata});
   if(value.type==='image'&&value.engine==='soulpro'&&value.soulProModel==='soul2')return soul2Parameters(value,fail);
   if(value.type==='image'&&value.engine==='soulpro')return soulProParameters({...value,referenceRoles},{fail,referenceLabels});
   if(value.type==='image'&&value.engine==='fal')return value.mode==='controlled-repair'?controlledRepairParameters({...value,referenceRoles},{fail}):controlledPoseParameters({...value,referenceRoles},{fail});
@@ -311,6 +316,8 @@ async function prepareInput(env,owner,data,p,url) {
     setFalUpscaleDimensions(p,prepared.dimensions,{fail});
     return {primary:prepared.asset,input:buildFalUpscaleInput(p),prepared};
   }
+  if(['seedance15','seedance4k'].includes(p.engine))
+    return prepareSeedanceVariant(env,owner,data,p,url,{fail,source,sources,signedInput});
   if(p.engine==='seedance'){
     const prepared=await prepareSeedance(env,owner,data,p,url,{fail,source,sources,signedInput});
     if(p.prompt)prepared.input.prompt=assembledPrompt(p);return prepared;
@@ -391,6 +398,14 @@ async function prepareInput(env,owner,data,p,url) {
     const finalPrompt=prefix+'\n'+direction;if(finalPrompt.length>5000)fail(400,'PV Soul prompt plus identity instruction is too long.');
     input={prompt:finalPrompt,output_format:p.outputFormat,aspect_ratio:p.aspectRatio};
     if(url){const weights=await soulWeightUrl(env,url,character,soulDeps());input.loras=[{path:weights,scale:p.identityStrength}];}
+  }else if(p.type==='image'&&p.engine==='seedreamlite'){
+    const refs=data.referenceSourceIds?.length?await sources(env,owner,data.referenceSourceIds,10):[];
+    if(refs.some(a=>!['image/jpeg','image/png','image/webp'].includes(a.mime)))
+      fail(400,'Seedream Lite only accepts JPEG, PNG or WebP references.');
+    primary=refs[0]||null;p.referenceSourceIds=refs.map(a=>a.id);p.lastSourceId=null;
+    p.model=refs.length||builtInMoodReferenceCount(p)?SEEDREAM_LITE_EDIT:SEEDREAM_LITE_TEXT;
+    input=seedreamLiteInput(p);
+    if(refs.length&&url)input.image_urls=await Promise.all(refs.map(a=>signedInput(env,url,a.id)));
   }else if(p.type==='image'&&['qwen3','zspicy'].includes(p.engine)){
     const ids=data.referenceSourceIds||[];
     if(!Array.isArray(ids))fail(400,'Reference photos must be a list.');
@@ -440,7 +455,10 @@ async function prepareInput(env,owner,data,p,url) {
       if(p.aspectRatio!=='auto'&&p.aspectRatio!=='21:9')input.aspect_ratio=p.aspectRatio;
     }
   }
-  if((p.prompt||supportsReferenceGuidance(p))&&p.engine!=='soul')input.prompt=assembledPrompt(p);if(p.type!=='image'&&p.seed!==null)input.seed=p.seed;
+  if((p.prompt||supportsReferenceGuidance(p))&&p.engine!=='soul')input.prompt=assembledPrompt(p);
+  if(p.engine==='seedreamlite'&&(input.prompt?.length<3||input.prompt.length>3000))
+    fail(400,'Seedream Lite direction, Mood and reference instructions must fit 3,000 characters. Shorten your direction or notes.');
+  if(p.type!=='image'&&p.seed!==null)input.seed=p.seed;
   return {primary,input};
 }
 async function source(env,owner,id) {
@@ -1434,7 +1452,7 @@ async function route(request,env,ctx) {
     const data=await body(request),p=parameters(data.settings);
     const quoteCount=data.count===undefined?1:Number(data.count);
     if(!Number.isInteger(quoteCount)||quoteCount<1||quoteCount>4)fail(400,'Choose 1 to 4 images for one price check.');
-    if(quoteCount>1&&!(p.type==='image'&&['seedream','qwen3','zspicy'].includes(p.engine)&&p.mode==='image'&&p.provider==='spicy'))fail(400,'Multiple prices in one request are supported only for Seedream, Qwen 3 and Z-Image Spicy generation.');
+    if(quoteCount>1&&!(p.type==='image'&&['seedream','seedreamlite','qwen3','zspicy'].includes(p.engine)&&p.mode==='image'&&p.provider==='spicy'))fail(400,'Multiple prices in one request are supported only for Seedream, Qwen 3 and Z-Image Spicy generation.');
     if(!['upscale','reinterpret'].includes(p.mode)&&!p.prompt&&!(supportsReferenceGuidance(p)&&Array.isArray(data.referenceSourceIds)&&data.referenceSourceIds.length>0))fail(400,'Add a prompt or at least one reference photograph.');
     if(p.provider==='higgsfield'&&p.mode==='extend')return json(await quoteVideoExtension(env,owner,data,p,url,hfDeps()));
     if(p.provider==='fal'&&p.mode==='upscale'){
@@ -1494,7 +1512,7 @@ async function route(request,env,ctx) {
     const insertArgs=q=>[q.id,owner,primary?.id||null,paramsJson,Math.round(q.maxUsd*1000000),q.expiresAt,q.vendorQuoteId,q.expectedCost,payloadJson];
     if(quoteCount===1)await run(env,statement,...insertArgs(priced[0]));
     else await env.LAB_DB.batch(priced.map(q=>stmt(env,statement,...insertArgs(q))));
-    const response=priced.map(({vendorQuoteId,expectedCost,...publicQuote})=>({...publicQuote,creditCost:creditsForUsd(publicQuote.maxUsd)}));
+    const response=priced.map(({vendorQuoteId,expectedCost,...publicQuote})=>({...publicQuote,creditCost:creditsForJobUsd(publicQuote.maxUsd,publicQuote.settings)}));
     return json(quoteCount===1?response[0]:{quotes:response});
   }
   if(path==='/api/jobs'&&method==='POST') {
@@ -1536,7 +1554,7 @@ async function route(request,env,ctx) {
       return json({job:jobView(await first(env,'SELECT * FROM jobs WHERE id=?',id))},202);
     }
     const {c,key}=await requireConfigured(env,owner);
-    if([STILL_EDIT,QWEN3_EDIT].includes(savedPayload.model)&&(!Array.isArray(savedPayload.input?.image_urls)||!savedPayload.input.image_urls.length||savedPayload.input.image_urls.some(uri=>!FILE_URI.test(uri))))
+    if([STILL_EDIT,QWEN3_EDIT,SEEDREAM_LITE_EDIT].includes(savedPayload.model)&&(!Array.isArray(savedPayload.input?.image_urls)||!savedPayload.input.image_urls.length||savedPayload.input.image_urls.some(uri=>!FILE_URI.test(uri))))
       fail(409,'This image quote uses the old reference transfer. Review a fresh price to verify your images before generating. Nothing was submitted.');
     if(savedPayload.model===UPSCALER&&!FILE_URI.test(savedPayload.input?.image_url||''))fail(409,'Review a fresh upscale quote to verify the input file. Nothing was submitted.');
     for(const assetId of linkedSourceIds(q))await source(env,owner,assetId);
