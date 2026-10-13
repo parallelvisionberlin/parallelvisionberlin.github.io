@@ -11,16 +11,16 @@ export const REFERENCE_TARGETS = Object.freeze({
   object: [['product','Product'],['furniture','Furniture'],['prop','Prop'],['accessory','Accessory']]
 });
 const descriptions = Object.freeze({
-  base:'Use as the base photograph. Preserve its framing, camera, pose, scene and lighting except for properties explicitly changed by the other assigned roles or the requested edit.',
-  composition:'Use only the spatial composition, perspective and framing. Do not copy subject identity, clothing or visual style.',
-  pose:'Use only the body pose and limb placement. Do not copy identity, clothing, camera, lighting or background.',
-  identity:'Use for the subject identity and consistent facial features. Do not copy pose, clothing, framing, lighting or background.',
-  body:'Use only the subject body proportions, build and anatomy consistently. Do not copy facial identity, pose, clothing, framing, lighting or background.',
-  room:'Use only the environment and architecture. Do not copy people, their identity, pose or clothing.',
-  style:'Use only the photographic treatment, palette and texture. Do not copy subjects, pose, clothing or scene layout.',
-  lighting:'Use only the light direction, softness and color. Do not copy identity, pose, clothing or background.',
-  custom:'Use only for the specific instruction below.',
-  none:'General visual reference. Use only details relevant to the requested image or its specific reference note. Do not replace the base identity, composition, clothing, pose or environment unless the prompt explicitly asks for that change.'
+  base:'Base photograph: preserve its framing, camera, pose, scene and lighting except explicit edits or assigned reference changes.',
+  composition:'Use framing, perspective and layout only; not identity, clothing or visual style.',
+  pose:'Use pose and limb placement only; not face, clothing, camera or background.',
+  identity:'Match the subject’s facial identity and features; not pose, clothing, framing, light or background.',
+  body:'Match body proportions and build only; not facial identity, pose, clothing or scene.',
+  room:'Use architecture and environment only; not people, identity, pose or clothing.',
+  style:'Use photographic treatment, palette and texture only; not people, pose, clothing or layout.',
+  lighting:'Use light direction, softness and color only; not identity, pose or background.',
+  custom:'Follow only the attached custom instruction.',
+  none:'General visual cues only where relevant; never override the Base, specified roles or requested edit.'
 });
 export function supportsReferenceGuidance(p){
   return p?.type==='image' && p.mode==='image' && (!p.engine || ['seedream','seedreamlite','gemini','flash','kling','qwen3'].includes(p.engine));
@@ -52,9 +52,9 @@ export function canUseReferenceGuidance(labels){
 export function referenceInstruction(raw,index){
   const r=normalizeReferenceLabel(raw),target=REFERENCE_TARGETS[r.role]?.find(([id])=>id===r.target)?.[1];
   let instruction=descriptions[r.role];
-  if(r.role==='detail')instruction='Use only the '+(target||'selected detail').toLowerCase()+' as a localized visual reference. Match it to the final composition perspective and lighting. Do not copy the reference person, overall pose, clothing or background.';
-  if(r.role==='outfit')instruction='Use only the '+(target||'full outfit').toLowerCase()+'. Fit it to the target subject and pose. Do not copy the wearer, face, body, camera or background.';
-  if(r.role==='object')instruction='Use only the '+(target||'object').toLowerCase()+', including its shape and material. Match the target perspective and lighting. Do not copy people or background.';
+  if(r.role==='detail')instruction='Use only the '+(target||'selected detail').toLowerCase()+' as a localized visual reference; match camera and lighting. Do not copy the wearer, overall pose, outfit or scene.';
+  if(r.role==='outfit')instruction='Use only the '+(target||'full outfit').toLowerCase()+'; fit it to the target subject and pose. Do not copy the wearer, face, body, camera or background.';
+  if(r.role==='object')instruction='Use only the '+(target||'object').toLowerCase()+' and its shape/materials; match perspective and lighting. Do not copy people or scene.';
   return 'Reference '+(index+1)+' ['+(REFERENCE_ROLES.find(([id])=>id===r.role)?.[1]||r.role)+(target?' / '+target:'')+']: '+instruction+(r.note?' Note: '+r.note:'');
 }
 export function compileImagePrompt(direction,labels=[],settings={}){
@@ -73,10 +73,12 @@ function compileUserImagePrompt(direction,labels=[]){
   const prompt=String(direction||'').trim();
   if(!labels.length)return prompt;
   const hasBase=labels.some(r=>r.role==='base');
-  if(!hasBase)return ['REFERENCE MAP (same order as the attached images). Create a new image, not an edit of any one reference. There is no base image. Image order does not assign priority or composition. Honor each explicitly assigned property; treat General references as optional visual guidance only where relevant to the request. Identity defines facial features; Body defines physique and proportions, not pose. Compose the new scene, pose, clothing, framing and lighting according to the prompt unless a reference is explicitly assigned that property. Keep one consistent subject when the references show the same person.',...labels.map(referenceInstruction),'REQUESTED IMAGE: '+(prompt||'Create one cohesive new image inspired by the supplied photographs. Use their relevant details and aesthetics as visual guidance, preserving any consistently depicted person when applicable. Compose the new scene independently.')].join('\n');
-  const rules='REFERENCE MAP (same order as the attached images). Respect explicitly assigned properties. General references supply only cues relevant to the request; the Base supplies everything else; other roles change only their assigned property. A separate Pose role changes posture only. Identity references define the person; detail, clothing and object references do not replace that identity. Match the final lighting consistently. Follow explicit requested changes.';
+  if(!hasBase){
+    const rules='REFERENCE MAP (attached image order). There is no base image. Create a new composition from the direction. Each role provides only its assigned property; General images offer optional cues. Identity defines the face, Body defines body proportions, Pose defines posture. Keep one consistent subject across matching identity references; never import unrelated people or scenes.';
+    return [rules,...labels.map(referenceInstruction),'REQUESTED IMAGE: '+(prompt||'Create one coherent new image from the assigned roles; compose the scene independently.')].join('\n');
+  }
+  const rules='REFERENCE MAP (attached image order). Base supplies everything else. Each supporting role changes only its named property: Identity sets the face, Body sets proportions, Pose sets posture. General references are optional cues. Respect explicit user edits and match the final perspective and light.';
   const hasExplicitRoles=labels.slice(1).some(ref=>ref.role&&ref.role!=='none'&&ref.role!=='base');
-  const defaultDirection=hasExplicitRoles?'Apply the assigned reference properties to the base image, preserving everything else.':'Create a thoughtful variation of the Base photograph with the main subject recognizable and the overall composition coherent. Integrate the relevant cues from other reference images without arbitrarily replacing the subject or scene.';
+  const defaultDirection=hasExplicitRoles?'Apply the assigned reference properties to the base image; preserve everything else.':'Create a thoughtful variation of the Base photograph; keep its subject and scene recognizable and borrow only relevant reference cues.';
   return [rules,...labels.map(referenceInstruction),'REQUESTED IMAGE: '+(prompt||defaultDirection)].join('\n');
 }
-

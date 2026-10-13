@@ -13,3 +13,19 @@ test('base editing and plain text retain their original behavior',()=>{
  assert.match(prompt,/Base supplies everything else/);assert.match(prompt,/REQUESTED IMAGE/);
  assert.equal(compileImagePrompt('A quiet room',[]),'A quiet room');
 });
+
+test('compact reference map preserves roles and notes while leaving room for direction',()=>{
+ const direction='A'.repeat(3500);
+ const roles=[
+  {role:'base'}, {role:'identity',note:'Preserve the small scar and distinctive eye shape.'},
+  {role:'pose'}, {role:'lighting'}
+ ].map(normalizeReferenceLabel);
+ const result=compileImagePrompt(direction,roles);
+ assert.ok(result.length<5000,'Four roles must fit beside a 3,500-character direction');
+ assert.ok(result.includes(direction),'The user direction must remain intact');
+ assert.match(result,/Reference 2 \[Identity\]/);
+ assert.match(result,/Reference 3 \[Pose only\]/);
+ assert.match(result,/Reference 4 \[Lighting\]/);
+ assert.match(result,/Note: Preserve the small scar and distinctive eye shape\./);
+ assert.match(result,/Base supplies everything else/);
+});

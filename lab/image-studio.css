@@ -539,3 +539,15 @@ html:has(#image-lightbox[open]),body:has(#image-lightbox[open]){overflow:hidden}
 #composer-options-fields[data-compact="true"]>:not(#soul-controls),
 #composer-options-fields[data-compact="true"] #soul-controls>:not(.soul-strength){display:none!important}
 #composer-options-fields[data-compact="true"] #soul-controls>.soul-strength{flex:1 1 100%;margin:0}
+/* Photo-first Image composer: show the entire compiled prompt budget without a third dock row. */
+#image-composer .image-composer-top{position:relative}
+#image-composer .image-composer-top.has-prompt-budget #image-composer-prompt{padding-bottom:21px!important}
+#image-composer .composer-prompt-budget{
+  position:absolute;right:7px;bottom:1px;z-index:1;pointer-events:none;
+  font-family:'DM Sans',Arial,sans-serif;font-size:10px;line-height:1.2;
+  font-weight:550;letter-spacing:.02em;font-variant-numeric:tabular-nums;
+  color:#9299a2;background:#202125;border-radius:4px;padding:2px 5px;
+}
+#image-composer .composer-prompt-budget[hidden]{display:none!important}
+#image-composer .composer-prompt-budget.is-over{color:#f4a2a2}
+

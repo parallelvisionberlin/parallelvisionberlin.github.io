@@ -1,8 +1,8 @@
 import {loadLabAccount} from './native-account.js?v=20261012-unified-header1';
 import {createSessionRequest} from './session-request.js?v=20260927-auth1';
 import {prepareMoodPrompt} from './moods.js?filmOptics=2&app=5&raveNight=4&syntheticBudget=1&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1';
-import {createMoodReferenceLoader,moodReferencePlan} from './mood-references.js?v=20261012-hk-optics3&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1';
-import {normalizeReferenceLabel} from './reference-guidance.js?v=20261010-reference-flow2&dreamcore=7&syntheticRefs=1&raveIdentity=1';
+import {createMoodReferenceLoader,moodReferencePlan} from './mood-references.js?v=20261013-compact-map1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1';
+import {normalizeReferenceLabel} from './reference-guidance.js?v=20261013-compact-map1&dreamcore=7&syntheticRefs=1&raveIdentity=1';
 import {imageDimensions,seedreamWorkingCopy,providerWorkingCopy,PROVIDER_IMAGE_LIMIT} from './image-tools.js?v=20261011-reference-prewarm1';
 import {pricedBoundQuotes} from './image-credit-preview.js?v=20261010-customer-credits1';
 

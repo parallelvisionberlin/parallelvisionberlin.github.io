@@ -2,7 +2,7 @@ import {createAccountMenu} from './account-menu.js?v=20261012-account2';
 const studioAccount=createAccountMenu(document.getElementById('studio-account-menu'));
 import {createFilmFinishControls,HONG_KONG_FILM_FINISH,FILM_FINISH_RENDER_REVISION} from './film-finish.js?v=20261013-green-preserving-v3';
 import {preparePhotoInput} from './photo-input.js?v=1';
-import {createMoodReferenceLoader,moodReferencePlan,isMoodStyleReference} from './mood-references.js?v=20261012-hk-optics3&seedreamlite=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1';
+import {createMoodReferenceLoader,moodReferencePlan,isMoodStyleReference} from './mood-references.js?v=20261013-compact-map1&seedreamlite=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1';
 import {createPrivateMediaCache} from './private-media-cache.js?v=20261012-cache1';
 import {loadLabAccount} from './native-account.js?v=20261012-photo-layout1';
 import {createAssetLibrary} from './assets.js?v=20261010-navigation-media1';
@@ -15,7 +15,7 @@ captureReferralCode();
 import {createSoul2UI} from './higgsfield-ui.js?v=20261010-soul-price1';
 import {VIDEO_MODELS,engineFor,videoLabel} from './video-models.js?v=20261009-extend1&seedance15-4k=1';
 import {imageModelLabel} from './model-labels.js?v=20261013-exact-models2';
-import {REFERENCE_ROLES,REFERENCE_TARGETS,normalizeReferenceLabel,compileImagePrompt,referenceGuidanceError,canUseReferenceGuidance,builtInMoodReferenceCount} from './reference-guidance.js?v=20261012-berlin-refs1&seedreamlite=1&dreamcore=7&syntheticRefs=1&raveIdentity=1&qwen3-zimage=1';
+import {REFERENCE_ROLES,REFERENCE_TARGETS,normalizeReferenceLabel,compileImagePrompt,referenceGuidanceError,canUseReferenceGuidance,builtInMoodReferenceCount} from './reference-guidance.js?v=20261013-compact-map1&seedreamlite=1&dreamcore=7&syntheticRefs=1&raveIdentity=1&qwen3-zimage=1';
 import {createMoodSelector,moodById,userFacingImagePrompt,imageHistoryCaption} from './moods.js?v=20261011-midnight-reverie1&seedreamlite=1&filmDeck=2&filmOptics=2&hd=20261011&raveBudget=1&editorialHD=2&moodImageHD=1&moodDeckSpace=1&raveNight=4&syntheticBudget=1&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&qwen3-zimage=1';
 import {createMyMoods} from './my-moods.js?v=20261011-midnight-reverie1&hd=20261011&raveBudget=1&editorialHD=2&editorialHD=2&moodImageHD=1&raveNight=4&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1';
 import {takeMoodHandoff,moodGenerationQuote} from './mood-handoff.js?v=20261012-generate1';
@@ -459,8 +459,24 @@ function imageGuidance(){
   try{
     const planned=moodReferencePlan({type:'image',mode:'image',engine:imageEngine,...mood.metadata,prompt:mood.prompt,referenceRoles:labels});
     const prompt=compileImagePrompt(planned.settings.prompt,planned.settings.referenceRoles,current);
-    return {prompt,error:(imageEngine==='qwen3'&&labels.length>3?'Qwen Image 3.0 supports at most three reference photographs. Remove the others.':'')||referenceGuidanceError(labels,current)||mood.error||(prompt.length>(imageEngine==='seedreamlite'?3000:5000)?'Direction, mood and reference instructions exceed '+(imageEngine==='seedreamlite'?'3,000':'5,000')+' characters. Shorten the direction or optional notes.':'')};
+    const limit=imageEngine==='seedreamlite'?3000:5000;
+    const over=prompt.length-limit;
+    const budgetError=over>0?'Direction, Mood and reference instructions exceed '+limit.toLocaleString()+' characters by '+over.toLocaleString()+'. Keep the Mood; shorten your direction or optional reference notes.':'';
+    return {prompt,error:(imageEngine==='qwen3'&&labels.length>3?'Qwen Image 3.0 supports at most three reference photographs. Remove the others.':'')||referenceGuidanceError(labels,current)||budgetError||mood.error};
   }catch(error){return {prompt:compileImagePrompt(mood.prompt,labels,current),error:error.message};}
+}
+function updateComposerPromptBudget(){
+  const counter=$('composer-prompt-budget');
+  if(!counter)return;
+  const visible=tool==='image'&&usesReferenceGuidance()&&(moodUI.active()||references.length>0);
+  counter.hidden=!visible;
+  $('image-composer').querySelector('.image-composer-top').classList.toggle('has-prompt-budget',!!visible);
+  if(!visible)return;
+  const {prompt}=imageGuidance(),limit=imageEngine==='seedreamlite'?3000:5000;
+  const remaining=limit-prompt.length;
+  counter.textContent=remaining>=0?remaining.toLocaleString()+' left':(-remaining).toLocaleString()+' over';
+  counter.classList.toggle('is-over',remaining<0);
+  counter.title=prompt.length.toLocaleString()+' / '+limit.toLocaleString()+' characters including written direction, Mood and reference instructions.';
 }
 function updateReferenceGuidance(){
   $('ref-count').textContent=references.length+' / '+referenceLimit();
@@ -1085,7 +1101,8 @@ function syncImageComposer(){
   const textbox=$('image-composer-prompt');
   if(document.activeElement!==textbox && textbox.value!==$('prompt').value)
     textbox.value=$('prompt').value;
-  textbox.placeholder=window.__PV_LAB_NATIVE__===1?'Anything else? Add a direction (optional)':references.length?(referencesOnly()?'Describe the new image you imagine…':'Describe what you want to create or change…'):'Describe the scene you imagine…';
+  textbox.placeholder=window.__PV_LAB_NATIVE__===1?'Anything else? Add a direction (optional)':references.length?(referencesOnly()?(moodUI.active()?'Describe a new image in this Mood…':'Describe the new image you imagine…'):(moodUI.active()?'Optional: what should change in this photo?':'Optional: describe what to change in this photo…')):(moodUI.active()?'Describe an image to create with this Mood…':'Add a photo with +, or describe an image…');
+  updateComposerPromptBudget();
   syncSoulBar();
   textbox.disabled=busy || $('prompt').disabled;
   $('image-composer-model-label').textContent=imageStudioModelTitle();
