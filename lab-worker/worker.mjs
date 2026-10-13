@@ -1489,7 +1489,7 @@ async function route(request,env,ctx) {
         p.transferNotes=transfers.map((a,i)=>a.id===originals[i]?'':originalsData[i].filename+': original '+(originalsData[i].bytes/1048576).toFixed(2)+' MiB; provider working copy '+(a.bytes/1048576).toFixed(2)+' MiB.').filter(Boolean);
       }
       if(originals.length||builtIn.length){
-        const uris=await stageImageReferences(env,owner,p.transferSourceIds||[],key,10,p.engine==='seedream'?36000000:0,builtIn);
+        const uris=await stageImageReferences(env,owner,p.transferSourceIds||[],key,10,['seedream','seedreamlite'].includes(p.engine)?36000000:0,builtIn);
         if(['upscale','reinterpret'].includes(p.mode))input.image_url=uris[0];else input.image_urls=uris;
       }
     }
