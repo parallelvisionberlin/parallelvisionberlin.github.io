@@ -190,15 +190,20 @@ try{
   const menuGeometry=await x.page.locator('#image-composer-model-menu').evaluate(el=>{
     const r=el.getBoundingClientRect(),head=document.getElementById('studio-header').getBoundingClientRect();
     const items=el.querySelector('.composer-model-items');
-    return {width:r.width,height:r.height,top:r.top,headerBottom:head.bottom,itemsScroll:items.scrollHeight,itemsClient:items.clientHeight,
-      searchTop:el.querySelector('.composer-model-search').getBoundingClientRect().top,
-      footerBottom:el.querySelector('.composer-model-footer').getBoundingClientRect().bottom,
+    const search=el.querySelector('.composer-model-search').getBoundingClientRect();
+    const footer=el.querySelector('.composer-model-footer').getBoundingClientRect();
+    const trigger=document.getElementById('image-composer-model').getBoundingClientRect();
+    return {width:r.width,height:r.height,top:r.top,bottom:r.bottom,headerBottom:head.bottom,triggerTop:trigger.top,
+      available:Math.max(112,Math.floor(trigger.top-head.bottom-30)),
+      itemsScroll:items.scrollHeight,itemsClient:items.clientHeight,
+      searchTop:search.top,searchBottom:search.bottom,footerTop:footer.top,footerBottom:footer.bottom,
       limit:getComputedStyle(el).maxHeight};
   });
-  assert.ok(menuGeometry.width>=423&&menuGeometry.width<=427,'Model menu should have editorial 425px desktop width: '+JSON.stringify(menuGeometry));
-  assert.ok(menuGeometry.height<=681&&menuGeometry.height>510,'Expanded model menu should use the available height: '+JSON.stringify(menuGeometry));
-  assert.ok(menuGeometry.top>=menuGeometry.headerBottom+6,'Model menu must not cover the desktop navigation: '+JSON.stringify(menuGeometry));
-  assert.ok(menuGeometry.itemsClient>=380,'More model options fit before scrolling: '+JSON.stringify(menuGeometry));
+  assert.ok(menuGeometry.width>=423&&menuGeometry.width<=427,'Model menu should keep its 425px desktop width: '+JSON.stringify(menuGeometry));
+  assert.ok(menuGeometry.height<=menuGeometry.available+2&&menuGeometry.height>510,'Model dropdown should fill only the available height, never use the old fixed 680px cap: '+JSON.stringify(menuGeometry));
+  assert.ok(menuGeometry.top>=menuGeometry.headerBottom+16,'Model dropdown must leave clear space below navigation: '+JSON.stringify(menuGeometry));
+  assert.ok(menuGeometry.searchTop>=menuGeometry.top&&menuGeometry.footerBottom<=menuGeometry.bottom+1,'Search and character shortcut stay inside menu: '+JSON.stringify(menuGeometry));
+  assert.ok(menuGeometry.itemsClient>=380,'Compact model rows leave useful space before scrolling: '+JSON.stringify(menuGeometry));
   assert.equal(await x.page.locator('.composer-model-option[data-value="qwen3"] img').getAttribute('src'),'./branding/qwen.svg?v=20261013-mono1','Qwen uses refreshed local icon');
   await x.page.screenshot({path:'test-results/lab-image-model-popup.png',fullPage:false});
   await x.page.fill('#image-composer-model-search','banana');
