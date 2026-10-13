@@ -32,7 +32,7 @@ const server=http.createServer((req,res)=>{
   await page.locator('.lab-pricing-mood img').evaluateAll(imgs=>Promise.all(imgs.map(img=>img.decode())));
   assert.equal(await page.locator('.lab-pricing-mood').count(),3,'Three approved mood cards');
   assert.deepEqual(await page.locator('#pricing [data-lab-buy]').evaluateAll(els=>els.map(el=>el.dataset.labBuy)),['starter','creator','studio','topup10','topup29','topup75'],'All existing checkout products remain connected');
-  for(const button of await page.locator('#pricing [data-lab-buy]').all())await button.click({trial:true});
+  for(const button of await page.locator('#lab-monthly-plans [data-lab-buy]').all())await button.click({trial:true});
   const layout=await page.locator('#pricing').evaluate(section=>{
    const collection=section.querySelector('.lab-pricing-collection').getBoundingClientRect();
    const comparison=section.querySelector('.lab-pricing-comparison').getBoundingClientRect();
@@ -44,8 +44,14 @@ const server=http.createServer((req,res)=>{
   assert.equal(layout.background,'rgb(13, 13, 13)','Neutral black pricing background');
   if(width>760)assert.ok(layout.collection.right<=layout.comparison.x,'Desktop prices sit beside the image collection');
   else assert.ok(layout.collection.bottom<=layout.comparison.y+1,'Mobile prices follow the compact image collection');
-  await page.getByRole('link',{name:'One-time credits',exact:true}).click();
-  assert.equal(new URL(page.url()).hash,'#lab-one-time-credits','One-time credit link reaches the existing packs');
+  const tabFont=await page.locator('#lab-tab-onetime').evaluate(el=>parseFloat(getComputedStyle(el).fontSize));
+  assert.ok(tabFont>=14,'Purchase type tabs are readable at '+width);
+  await page.getByRole('tab',{name:'One-time credits',exact:true}).click();
+  assert.equal(await page.locator('#lab-one-time-credits').isVisible(),true,'One-time packs are visible');
+  assert.equal(await page.locator('#lab-monthly-plans').isVisible(),false,'Monthly plans are hidden');
+  for(const button of await page.locator('#lab-one-time-credits [data-lab-buy]').all())await button.click({trial:true});
+  await page.getByRole('tab',{name:'Monthly plans',exact:true}).click();
+  assert.equal(await page.locator('#lab-monthly-plans').isVisible(),true,'Monthly plans are restored');
   await page.evaluate(()=>document.activeElement?.blur());await page.mouse.move(0,0);
   if(width===1440||width===390)console.log('PRICING_CARDS_'+width+'='+Buffer.from(await page.locator('#pricing').screenshot({type:'jpeg',quality:85})).toString('base64'));
   await page.evaluate(()=>scrollTo(0,0));

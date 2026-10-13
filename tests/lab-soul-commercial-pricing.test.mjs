@@ -99,6 +99,7 @@ test('site copy and customer training panel show credits without editing owner p
   assert.match(ui,/customerTrainingCredits\+' credits'/);
   assert.match(app,/hf\.setCustomerPricing\(customerMode\?/);
   assert.match(app,/customerMode\?wallet\.describe\(q\.maxUsd\):money\(q\.estimatedUsd\)/);
-  assert.match(landing,/Soul ID for <strong>400 credits<\/strong>/);
-  assert.match(landing,/up to 85 Soul 2 images/);
+  assert.match(landing,/class="lab-credits-guide"/);
+  assert.match(landing,/See the credit price before you create/);
+  assert.doesNotMatch(landing,/up to 85 Soul 2 images/);
 });
