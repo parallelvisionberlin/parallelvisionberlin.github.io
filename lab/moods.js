@@ -6,12 +6,31 @@ const ALL_MOODS=Object.freeze([
     "name": "Midnight Reverie",
     "category": "Cinema",
     "preview": "/lab/mood-previews/midnight-reverie-original-20261011.png",
-    "description": "Cyan light, fleeting movement and intimate night-film texture",
-    "defaultIntensity": 65,
-    "direction": "MIDNIGHT REVERIE / CANDID ANALOG NIGHT PHOTOGRAPHY. Apply this reusable photographic treatment to the requested subject or Base image. Uneven available light, restrained cyan practical-light spill, small amber or red accents only where motivated, deep green-black shadows and gently imperfect exposure. Brief directional background light trails and slight movement softness at moving edges; facial features stay believable and gently unresolved, with continuous photographic structure in skin, hair and fabric. Localised glow belongs to bright light sources, never an all-over fog layer. Fine irregular film grain stays restrained and does not replace material detail. The capture feels intimate and unposed, not retouched or studio-lit. With a Base image, preserve its person, expression, pose, clothing, framing and recognizable setting; adapt the treatment to existing lighting without inventing a street, car, rain, signs or a new model. With text alone, follow the user's subject and setting and use candid framing. This mood changes photographic capture and light, not anatomy or wardrobe.",
-    "subtle": "Gentle candid analog photographic treatment: faint fine irregular grain, modest cool shadow separation, a trace of localised glow on existing bright lights and slight optical softness. Preserve believable skin, hair, fabric and scene structure; no painted texture or beauty retouching. Preserve the Base image and source lighting.",
-    "intense": "Stronger cyan light spill, deeper shadows and brief directional motion trails. Increase localised bloom while keeping grain fine, features readable and material detail intact. Preserve identity and setting.",
-    "avoid": "watercolor, painted or stippled skin, canvas texture, coarse uniform noise overlay, waxy skin, airbrushing, beauty-campaign lighting, overly crisp portrait bokeh, uniform fog, neon overload, generic cyberpunk, invented rain or wet glass, replacing the person or scene, fake film borders, text or interface icons"
+    "description": "Slow-sync flash, cobalt afterglow and dreamlike 35mm night film",
+    "defaultIntensity": 82,
+    "direction": "MIDNIGHT REVERIE V2 / SLOW-SYNC FLASH MEMORY. One physical-looking 35mm night photograph, not a blue filter. CAPTURE: a short soft near-axis flash freezes the SAME real face, eyes, skin, hair and clothes, with slightly burned creamy glints and quick natural falloff. A slower ambient shutter exposes vivid cobalt-blue/cyan light in the actual surrounding room, street or background, recording humid luminous air and tiny directional afterimage streaks on moving lights, reflections and loose hair tips. The flash holds a clear face; the blue ambient supplies the moving dream. Relight a clean daylight photograph into physically believable nocturnal exposure across subject AND setting, not just cooler white balance. If an existing flash already makes beautiful warm hot highlights, preserve them rather than double-flash; add nocturnal blue ambient and optical diffusion behind. OPTICS: Black-Pro-Mist-like bloom around real lamps/windows, wide cyan light scatter into depth, soft focus falloff toward outer edges, near-white hot light-source centers, creamy highlight shoulder, visible fine organic pushed-35mm grain and shadow texture. COLOR: saturated cobalt/azure and blue-turquoise ambient against deep petrol-black pockets, with restrained warm flash on real skin and existing amber/red practicals. Keep eyes, lips, identity and materials legible; background and moving reflections may blur, the face must not. Preserve original person, body, wardrobe, camera, composition and recognizable location.",
+    "subtle": "1–34%: a faint flash-kiss, blue ambient depth, real practical diffusion and fine film; eyes clear.",
+    "intense": "90–99%: narcotic intense cobalt-cyan air, flash-frozen realistic skin, deep blacks, luminous soft bloom and moving-light afterimages; no body blur.",
+    "avoid": "uniform cyan cast, global blur, face duplication or double exposure, AI plastic skin, beauty retouch, invented lights or people, added cars/rain, glow outlines, underwater look, greenwashed skin, flat daylight unchanged, impossible anatomy, noisy overlay, film borders, text",
+    "routing": "VISUAL SCENE ROUTING from the Base: DAY/FLAT INTERIOR: dim whole room into blue nighttime, shape one soft flash-pop on person with credible shadows and cobalt practical glow behind. EXISTING FLASH: retain hot realistic frontal flash imprint; expose blue ambient and background afterglow, no duplicate flash. DARK INTERIOR/NIGHT PRACTICAL: actual lamp or window becomes a strong soft cyan halo, dark areas stay dark. PORTRAIT: eyes and face crisp, motion drag only on hair tips and background. EXTERIOR: trailing moving lights and dimensional cold air, no invented rain or cars. Single generated exposure, not multiple calls.",
+    "compact": "MIDNIGHT REVERIE V2: one slow-sync flash night portrait. Short soft flash freezes original person's face, eyes, skin and outfit; longer cobalt-blue/cyan ambient exposure makes real lamps bloom into humid blue air and moving background lights leave delicate trails. Warm lightly burned flash highlights versus deep petrol-black shadows, strong optical diffusion, mild peripheral lens softness and tactile 35mm grain. Relight flat daylight into night across subject AND setting, never a plain blue cast or doubled body. Preserve identity, camera, clothes and place.",
+    "compactRouting": "SCENE: DAY/FLAT -> blue-night room relight plus soft flash imprint; ALREADY FLASHED -> keep warm flash and add blue ambient drag; NIGHT LAMP -> cyan source-bound haze, black gaps; PORTRAIT -> eyes crisp, only moving lights and hair tips smear. No new scene.",
+    "ultra": "MIDNIGHT V2: soft flash freezes face while slower cobalt ambient makes cyan practical-light haze and moving background trails. Creamy burned glints, black gaps and film grain, no global blur.",
+    "ultraRouting": "DAY -> nocturnal blue room; FLASH -> retain warm flash, add cobalt ambient; LAMP -> source glow; keep same eyes, anatomy, clothes, place.",
+    "moderate": "35–69%: obvious flash-frozen subject against saturated cobalt/turquoise night in the same room, strong practical light haze, soft background shutter trails, warm natural skin. Not merely cool white balance.",
+    "immersive": "70–89%: voluptuous electric cobalt memory with creamy sharp flash-lit face, deep blue humid glow from actual lamps/windows, trailing distant lights, fine 35mm grain and delicate lens-edge softness, eyes intact.",
+    "climax": "100%: sublime cobalt flash dream, near-axis flash freezes real expressive face and warm glints while long blue ambient exposure radiates humid light and drifting highlights behind. Dense blue spatial haze, soft optical highlights, analog grain, no duplicated face or underwater effect.",
+    "compactSubtle": "subtle flash, azure night background, real face",
+    "compactModerate": "clear warm flash on subject, strong cyan room haze, gentle motion in distant lights",
+    "compactImmersive": "vivid cobalt night and soft frozen flash, radiant lamps, sharp eyes, 35mm",
+    "compactIntense": "intense blue light source bloom, amber flash accents, dark blacks, only background blur",
+    "compactClimax": "maximum flash-frozen subject + radiant cobalt humid light, afterimages behind, single sharp face",
+    "ultraSubtle": "faint flash + cobalt ambient",
+    "ultraModerate": "flash-frozen person + vivid cyan room",
+    "ultraImmersive": "intense cobalt practical haze, sharp real face",
+    "ultraIntense": "cyan source bloom, flash and moving light trails",
+    "ultraClimax": "maximum blue flash dream, sharp person",
+    "compactAvoid": "uniform blue or green paint, blurred eyes, double faces, invented lamps, replacement scene or clothes, CGI neon"
   },
   {
     "id": "hong-kong-nights",
@@ -280,9 +299,11 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
   if(!MOOD_MODELS.includes(engine))return {prompt:original,metadata:{},error:'Moods v1 supports Seedream 5 Pro and Nano Banana Pro. Choose one of these models first.'};
   const intensity=Math.max(1,Math.min(100,Math.round(Number(amount)||60)));
   const finish=mood.id==='hong-kong-nights'&&filmFinish?filmFinishSettings(filmFinish):null;
-  const dreamcore=mood.id==='dreamcore',cinematic80s=mood.id==='80s-film',berlinRave=mood.id==='berlin-rave',syntheticRomance=mood.id==='synthetic-romance';
+  const dreamcore=mood.id==='dreamcore',cinematic80s=mood.id==='80s-film',berlinRave=mood.id==='berlin-rave',syntheticRomance=mood.id==='synthetic-romance',midnightReverie=mood.id==='midnight-reverie';
   // Even one Base adds reference-map instructions after this prompt is built.
   // Reserve that space before validation and submission use the same result.
+  const compactMidnight=midnightReverie&&(compact===true||ultraCompact===true||original.length>=650||referenceCount>=3);
+  const ultraMidnight=midnightReverie&&(ultraCompact===true||original.length>=1950||referenceCount>=8||(referenceCount>=5&&original.length>=1100));
   const compactHongKong=mood.id==='hong-kong-nights'&&(compact===true||ultraCompact===true||original.length>=750||referenceCount>=3);
   const ultraHongKong=mood.id==='hong-kong-nights'&&ultraCompact===true;
   const compactBerlinRave=berlinRave&&(compact===true||referenceCount>=1||original.length>=750);
@@ -323,6 +344,16 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
         'Creative intensity '+intensity+'/100; cinematic generation instructions, NOT a pixel filter.',
         compact80s?mood['compact'+dreamcoreTier]:mood[dreamcoreKey]
       ].join(' ')
+      :midnightReverie
+        ?[
+          ultraMidnight?mood.ultra:compactMidnight?mood.compact:mood.direction,
+          ultraMidnight?mood.ultraRouting:compactMidnight?mood.compactRouting:mood.routing,
+          ultraMidnight?'One flash plus cobalt ambient, one image.':'CAPTURE then AMBIENT AFTERIMAGE in ONE real-looking exposure and one generation, never two API calls.',
+          ultraMidnight?mood['ultra'+dreamcoreTier]:compactMidnight?mood['compact'+dreamcoreTier]:mood[dreamcoreKey],
+          ultraMidnight
+            ?'IDENTITY FIRST: same face, eyes, outfit, pose and camera. Blur only background moving light.'
+            :'IDENTITY FIRST: same face, eyes, age, anatomy, clothing, pose, camera angle, person count and location. Flash freezes real person; trailing glow lives on lights, not cheeks or limbs.'
+        ].join(' ')
       :mood.id==='hong-kong-nights'
         ?ultraHongKong
           ?[
@@ -359,7 +390,7 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
           ?'The first reference is the base photograph. Preserve identity, body, pose, clothes, camera and setting unless the user requests changes. Respect assigned roles.'
           :'The first reference is the base photograph. Preserve face, identity, real body proportions, pose, camera, wardrobe and composition unless the user specifically asks to change them. Preservation is guidance, not a guarantee.'
     :'Honor the requested subject and composition.';
-  const prompt=[original,'PV LAB MOOD / '+mood.name+': '+style+' '+preservation+' Avoid: '+(compactHongKong?'flat green tint, direct flash unchanged, plastic skin, body halos, invented lamps, facial reshaping, flat fog, copied Style scenes':compactDreamcore||compact80s||compactBerlinRave||compactSyntheticRomance?mood.compactAvoid:mood.avoid)+'.'].filter(Boolean).join('\n\n');
+  const prompt=[original,'PV LAB MOOD / '+mood.name+': '+style+' '+preservation+' Avoid: '+(compactMidnight||ultraMidnight?mood.compactAvoid:compactHongKong?'flat green tint, direct flash unchanged, plastic skin, body halos, invented lamps, facial reshaping, flat fog, copied Style scenes':compactDreamcore||compact80s||compactBerlinRave||compactSyntheticRomance?mood.compactAvoid:mood.avoid)+'.'].filter(Boolean).join('\n\n');
   return {prompt,metadata:{moodId:mood.id,moodIntensity:intensity,moodOriginalPrompt:original,...(finish?{filmFinish:finish}:{})},
     error:prompt.length>5000?'Prompt and mood exceed 5,000 characters. Shorten the direction or clear the mood.':(!original&&!referenceCount?'Describe a subject or add an image before generating with a mood.':'')};
 }
@@ -429,7 +460,7 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
   const desktopGridColumns=5,initiallyVisibleRows=2;
   // Keep the full creative directions available while making the grid scannable.
   const captions={
-    'midnight-reverie':'Cyan light, nocturnal blur',
+    'midnight-reverie':'Flash-frozen, cobalt afterglow',
     'hong-kong-nights':'Emerald haze, night romance',
     'night-flash':'After-dark flash',
     'dreamcore':'Pearl light, liminal spaces',
