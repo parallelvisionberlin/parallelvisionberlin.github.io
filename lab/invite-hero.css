@@ -2,20 +2,17 @@
 #pricing + .lab-invite-promo{
   position:relative;isolation:isolate;overflow:hidden;display:block;
   min-height:338px;padding:clamp(62px,5.1vw,90px) clamp(24px,4.3vw,88px);
-  color:#f5f1ea;background:radial-gradient(ellipse at 65% 109%,rgba(158,146,131,.11),transparent 38%),linear-gradient(108deg,#0b0b0a 0%,#11110f 57%,#090909 100%);
+  color:#f5f1ea;background:#090b0b url('./visuals/invite-wet-editorial.webp') center center/cover no-repeat;
   border-top:1px solid rgba(255,255,255,.12);border-bottom:1px solid rgba(255,255,255,.13);
   font-family:"DM Sans",Arial,sans-serif;
 }
 #pricing + .lab-invite-promo::after{
-  content:"";position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.35;
+  content:"";position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.12;
   background:repeating-linear-gradient(118deg,transparent 0 3px,rgba(255,255,255,.014) 4px,transparent 5px 12px);
-}
-#pricing + .lab-invite-promo > .lab-invite-promo__art{
-  position:absolute;inset:0;z-index:0;pointer-events:none;display:block;width:100%;height:100%;max-width:none;opacity:.79;
 }
 #pricing + .lab-invite-promo > .lab-invite-promo__inner{
   position:relative;z-index:1;display:grid;align-items:center;width:100%;max-width:1680px;margin:0 auto;
-  grid-template-columns:minmax(0,1fr) minmax(235px,280px) 102px;
+  grid-template-columns:minmax(0,1fr) minmax(245px,310px);
   column-gap:clamp(20px,3.2vw,65px);
 }
 #pricing + .lab-invite-promo .lab-invite-promo__copy{min-width:0}
@@ -50,24 +47,14 @@
 #pricing + .lab-invite-promo .lab-invite-promo__fineprint{
   margin:0;color:#bab2a7;font-size:12px;line-height:1.5;
 }
-#pricing + .lab-invite-promo .lab-invite-promo__reward{
-  display:flex;flex-direction:column;align-items:flex-start;gap:5px;
-  padding:17px 0 16px clamp(17px,2.1vw,38px);border-left:1px solid rgba(239,234,226,.23);
-  color:#bcb7b0;font-size:clamp(22px,2vw,31px);font-weight:300;letter-spacing:-.07em;line-height:1.06;
-}
-#pricing + .lab-invite-promo .lab-invite-promo__reward::after{
-  content:"";width:34px;height:1px;margin-top:15px;background:#d3cdc2;
-}
 @media(max-width:1190px){
   #pricing + .lab-invite-promo > .lab-invite-promo__inner{grid-template-columns:minmax(0,1fr) minmax(220px,270px);column-gap:clamp(26px,4vw,54px)}
-  #pricing + .lab-invite-promo .lab-invite-promo__reward{display:none}
   #pricing + .lab-invite-promo .lab-invite-promo__cta{padding-inline:18px;gap:12px;font-size:15px}
   #pricing + .lab-invite-promo h2{font-size:clamp(43px,5.1vw,66px)}
 }
 @media(max-width:760px){
-  #pricing + .lab-invite-promo{min-height:0;padding:55px 24px 60px}
+  #pricing + .lab-invite-promo{min-height:0;padding:55px 24px 60px;background-image:linear-gradient(90deg,rgba(9,11,11,.85),rgba(9,11,11,.57)),url("./visuals/invite-wet-editorial.webp");background-position:67% center;background-size:auto 100%;}
   #pricing + .lab-invite-promo > .lab-invite-promo__inner{grid-template-columns:minmax(0,1fr);row-gap:33px}
-  #pricing + .lab-invite-promo > .lab-invite-promo__art{left:-8%;width:120%;opacity:.42}
   #pricing + .lab-invite-promo .lab-invite-promo__eyebrow{margin-bottom:22px;font-size:9px;letter-spacing:.19em}
   #pricing + .lab-invite-promo h2{font-size:clamp(42px,9vw,66px);max-width:640px;line-height:1.045}
   #pricing + .lab-invite-promo .lab-invite-promo__description{max-width:560px;font-size:15px}
