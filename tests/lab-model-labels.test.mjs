@@ -23,7 +23,7 @@ const cases=[
   [{engine:'soulpro',soulProModel:'soul2',model:'higgsfield-ai/soul/v2/image-to-image'},'Higgsfield Soul 2'],
   [{engine:'soulpro',provider:'higgsfield',mode:'identity-edit'},'PV Soul Pro'],
   [{provider:'higgsfield',mode:'soul-id-training'},'Soul ID training'],
-  [{engine:'soul',mode:'reinterpret',model:'alibaba/z-image-turbo-lora/edit'},'PV Soul · Reinterpret'],
+  [{engine:'soul',mode:'reinterpret',model:'alibaba/z-image-turbo-lora/edit'},'PV Soul'],
   [{engine:'soul',model:'alibaba/qwen-image-2512-lora/text-to-image'},'PV Soul'],
   [{engine:'fal',mode:'controlled-pose',model:'fal-ai/flux-general'},'FLUX Controlled Pose'],
   [{engine:'fal',mode:'controlled-repair',model:'fal-ai/flux-general/inpainting'},'FLUX Precision Edit'],
