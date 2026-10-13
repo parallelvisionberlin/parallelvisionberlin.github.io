@@ -140,6 +140,33 @@
 #image-lightbox #image-film-finish>label>input[type=range]{
   grid-row:2;grid-column:1/-1;width:100%;min-width:0;cursor:pointer
 }
+/* Match the value exactly: at 100% the whole film-finish track is filled, including past the thumb. */
+#image-lightbox #image-film-finish>label>input[type=range]{
+  -webkit-appearance:none;appearance:none;display:block;
+  height:24px;margin:0;padding:0;border:0;background:transparent;
+  accent-color:#d6ef91;
+}
+#image-lightbox #image-film-finish>label>input[type=range]::-webkit-slider-runnable-track{
+  height:7px;border:0;border-radius:999px;
+  background:linear-gradient(to right,#d6ef91 0%,#d6ef91 var(--moods-progress,0%),#515457 var(--moods-progress,0%),#515457 100%);
+}
+#image-lightbox #image-film-finish>label>input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;width:16px;height:16px;margin-top:-4.5px;
+  border:0;border-radius:50%;background:#d6ef91;
+}
+#image-lightbox #image-film-finish>label>input[type=range]::-moz-range-track{
+  height:7px;border:0;border-radius:999px;
+  background:linear-gradient(to right,#d6ef91 0%,#d6ef91 var(--moods-progress,0%),#515457 var(--moods-progress,0%),#515457 100%);
+}
+#image-lightbox #image-film-finish>label>input[type=range]::-moz-range-progress{
+  height:7px;border:0;background:transparent;
+}
+#image-lightbox #image-film-finish>label>input[type=range]::-moz-range-thumb{
+  width:16px;height:16px;border:0;border-radius:50%;background:#d6ef91;
+}
+#image-lightbox #image-film-finish>label>input[type=range]:focus-visible{
+  outline:2px solid #d6ef91;outline-offset:3px;
+}
 #image-lightbox #image-film-finish>.film-finish-actions{
   display:grid;grid-template-columns:minmax(0,1fr);gap:8px;margin-top:2px;
 }
