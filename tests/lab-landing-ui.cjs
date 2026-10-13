@@ -32,6 +32,11 @@ const server=http.createServer((req,res)=>{
   await page.locator('.lab-pricing-mood img').evaluateAll(imgs=>Promise.all(imgs.map(img=>img.decode())));
   assert.equal(await page.locator('.lab-pricing-mood').count(),3,'Three approved mood cards');
   assert.deepEqual(await page.locator('#pricing [data-lab-buy]').evaluateAll(els=>els.map(el=>el.dataset.labBuy)),['starter','creator','studio','topup10','topup29','topup75'],'All existing checkout products remain connected');
+  assert.equal(await page.locator('#pricing .lab-credits-guide').count(),0,'Removed the disconnected credit explanation below the price rows');
+  assert.equal(await page.locator('#pricing .lab-pricing-footnote').count(),1,'Billing clarification lives directly below the selected prices');
+  assert.equal(await page.locator('#lab-pricing-billing-copy').innerText(),'Renews monthly until cancelled.');
+  assert.equal(await page.locator('#pricing .lab-pricing-footnote a').getAttribute('href'),'/lab/terms/');
+  assert.ok((await page.locator('#pricing .lab-plans-intro').innerText()).startsWith('One credit balance'),'Credit explanation is integrated into pricing introduction');
   for(const button of await page.locator('#lab-monthly-plans [data-lab-buy]').all())await button.click({trial:true});
   const layout=await page.locator('#pricing').evaluate(section=>{
    const collection=section.querySelector('.lab-pricing-collection').getBoundingClientRect();
@@ -49,9 +54,11 @@ const server=http.createServer((req,res)=>{
   await page.getByRole('tab',{name:'One-time credits',exact:true}).click();
   assert.equal(await page.locator('#lab-one-time-credits').isVisible(),true,'One-time packs are visible');
   assert.equal(await page.locator('#lab-monthly-plans').isVisible(),false,'Monthly plans are hidden');
+  assert.equal(await page.locator('#lab-pricing-billing-copy').innerText(),'Pay once. No recurring charge.','One-time terms match selected packs');
   for(const button of await page.locator('#lab-one-time-credits [data-lab-buy]').all())await button.click({trial:true});
   await page.getByRole('tab',{name:'Monthly plans',exact:true}).click();
   assert.equal(await page.locator('#lab-monthly-plans').isVisible(),true,'Monthly plans are restored');
+  assert.equal(await page.locator('#lab-pricing-billing-copy').innerText(),'Renews monthly until cancelled.','Monthly terms return with the selected plans');
   await page.evaluate(()=>document.activeElement?.blur());await page.mouse.move(0,0);
   if(width===1440||width===390)console.log('PRICING_CARDS_'+width+'='+Buffer.from(await page.locator('#pricing').screenshot({type:'jpeg',quality:85})).toString('base64'));
   await page.evaluate(()=>scrollTo(0,0));

@@ -5,10 +5,12 @@
   const monthly=section.querySelector('#lab-monthly-plans');
   const onetime=section.querySelector('#lab-one-time-credits');
   const tabs=[section.querySelector('#lab-tab-monthly'),section.querySelector('#lab-tab-onetime')];
+  const billingCopy=section.querySelector('#lab-pricing-billing-copy');
   if(!monthly||!onetime||tabs.some(t=>!t))return;
   function select(which,focus=false){
     const one=which==='onetime';
     monthly.hidden=one;onetime.hidden=!one;
+    if(billingCopy)billingCopy.textContent=one?'Pay once. No recurring charge.':'Renews monthly until cancelled.';
     tabs.forEach((tab,index)=>{
       const active=index===(one?1:0);
       tab.setAttribute('aria-selected',String(active));

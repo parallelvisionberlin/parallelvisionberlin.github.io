@@ -26,7 +26,7 @@
 .lab-pricing-mood--film figcaption{text-align:right}
 .lab-pricing-mood--cinema{width:37%;left:31.5%;top:9%;z-index:2}
 #pricing h2{font-size:clamp(36px,3vw,46px);font-weight:300;line-height:1.06;letter-spacing:-.052em;margin:19px 0 25px;max-width:none}
-#pricing .lab-plans-intro{font-size:15px;font-weight:300;line-height:1.65;color:#bcb6ad;margin:0 0 32px;max-width:420px}
+#pricing .lab-plans-intro{font-size:15px;font-weight:300;line-height:1.65;color:#bcb6ad;margin:0 0 28px;max-width:460px}
 .lab-pricing-options{display:flex;align-items:center;gap:28px;margin-bottom:13px;font-size:12px;line-height:1.4}
 .lab-pricing-options span,.lab-pricing-options a{padding:0 0 12px}
 .lab-pricing-options span{border-bottom:1px solid #d9d5cb}
@@ -73,15 +73,18 @@
 #pricing .lab-topups-actions button:hover{background:#f6f3ed;color:#141414;border-color:#f6f3ed}
 #pricing .lab-topups-actions button:focus-visible,#pricing .lab-topups-actions button[aria-busy="true"]{background:#f6f3ed;color:#141414;border-color:#f6f3ed}
 #pricing #lab-pricing-status:empty{display:none}
-#pricing .lab-credits-guide{
-  display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);
-  gap:clamp(34px,5vw,84px);align-items:start;
-  margin-top:42px;padding-top:24px;border-top:1px solid #343330;
+#pricing .lab-pricing-footnote{
+  display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;
+  gap:7px 20px;margin-top:17px;color:#a9a399;font:300 12px/1.6 "DM Sans",Arial,sans-serif;
 }
-#pricing .lab-credits-guide .lab-plans-kicker{font-size:11px;letter-spacing:.14em}
-#pricing .lab-credits-guide p{margin:0;max-width:540px;color:#c7c1b7;font:300 15px/1.6 "DM Sans",Arial,sans-serif}
-#pricing .lab-pricing-note{margin:22px 0 0;max-width:930px;color:#99938a;font-size:11px;line-height:1.65}
-#pricing .lab-pricing-note a{color:#ded9cf;text-underline-offset:3px}
+#pricing .lab-pricing-footnote p{margin:0;flex:0 1 auto}
+#pricing .lab-pricing-footnote a{
+  flex:none;color:#e2ddd4;text-decoration:none;border-bottom:1px solid rgba(226,221,212,.55);
+  font-weight:400;white-space:nowrap;
+}
+#pricing .lab-pricing-footnote a:hover{color:#fff;border-bottom-color:#fff}
+#pricing .lab-pricing-footnote a:focus-visible{outline:2px solid #e6e0d5;outline-offset:4px}
+#pricing .lab-pricing-status{margin:10px 0 0;color:#e6e0d5;font-size:12px;font-weight:300;line-height:1.55;overflow-wrap:anywhere}
 @media(max-width:1000px){
   .lab-pricing-layout{gap:30px;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
   #pricing .lab-plan{column-gap:15px;grid-template-columns:minmax(0,1fr) auto 38px}
@@ -113,9 +116,7 @@
   #pricing .lab-topups-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:100%;gap:7px}
   #pricing .lab-topups-actions button{font-size:11px;gap:6px;padding:10px;white-space:nowrap}
   #pricing .lab-topups-actions button span{font-size:13px}
-  #pricing .lab-credits-guide{grid-template-columns:1fr;gap:11px;margin-top:28px;padding-top:21px}
-  #pricing .lab-credits-guide p{font-size:14px}
-  #pricing .lab-pricing-note{margin-top:18px}
+  #pricing .lab-pricing-footnote{gap:5px 15px;margin-top:15px;font-size:12px}
 }
 @media(max-width:360px){
   #pricing.lab-plans{padding-inline:18px!important}

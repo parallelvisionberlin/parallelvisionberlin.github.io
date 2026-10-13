@@ -16,7 +16,7 @@
 <link rel="stylesheet" href="./public-header.css?v=20261013-upgrade-slot2">
 <link rel="stylesheet" href="./studio-tools.css?v=20261012-macro-clean1">
 <link rel="stylesheet" href="./account-menu.css?v=20261012-account2">
-<link rel="stylesheet" href="./pricing.css?v=20261013-pricing-flow3">
+<link rel="stylesheet" href="./pricing.css?v=20261013-compact-footer4">
 <link rel="stylesheet" href="/lab/legal-links.css">
 </head>
 <body>
@@ -131,7 +131,7 @@
     <div class="lab-pricing-comparison">
       <span class="lab-plans-kicker">Plans &amp; credits</span>
       <h2 id="lab-plans-title">Create without<br>interruption.</h2>
-      <p class="lab-plans-intro">Images, motion and your own creative direction.</p>
+      <p class="lab-plans-intro">One credit balance for images, video and upscaling. See the cost before you create.</p>
       <div class="lab-pricing-options" role="tablist" aria-label="Choose a credit purchase type"><button type="button" role="tab" id="lab-tab-monthly" aria-selected="true" aria-controls="lab-monthly-plans" tabindex="0">Monthly plans</button><button type="button" role="tab" id="lab-tab-onetime" aria-selected="false" aria-controls="lab-one-time-credits" tabindex="-1">One-time credits</button></div>
       <div class="lab-plans-grid" id="lab-monthly-plans" role="tabpanel" aria-labelledby="lab-tab-monthly">
         <article class="lab-plan"><span class="lab-plan-name">Starter</span><div class="lab-plan-price">€15 <small>/ month</small></div><div class="lab-plan-credits">1,600 credits / month</div><p class="lab-plan-description sr-only">For exploring scenes, references and editing.</p><button type="button" data-lab-buy="starter"><span class="sr-only">Choose Starter</span><span aria-hidden="true">↗</span></button></article>
@@ -143,14 +143,13 @@
         <article class="lab-plan"><span class="lab-plan-name">3,000 credits</span><div class="lab-plan-price">€29</div><div class="lab-plan-credits">One-time credit pack</div><p class="lab-plan-description sr-only">A one-time pack of 3,000 credits.</p><button type="button" data-lab-buy="topup29"><span class="sr-only">Buy 3,000 credits</span><span aria-hidden="true">↗</span></button></article>
         <article class="lab-plan"><span class="lab-plan-name">8,000 credits</span><div class="lab-plan-price">€75</div><div class="lab-plan-credits">One-time credit pack</div><p class="lab-plan-description sr-only">A one-time pack of 8,000 credits.</p><button type="button" data-lab-buy="topup75"><span class="sr-only">Buy 8,000 credits</span><span aria-hidden="true">↗</span></button></article>
       </div>
+      <div class="lab-pricing-footnote" aria-label="Billing information">
+        <p id="lab-pricing-billing-copy">Renews monthly until cancelled.</p>
+        <a href="/lab/terms/">Billing terms <span aria-hidden="true">↗</span></a>
+      </div>
+      <p id="lab-pricing-status" role="status" aria-live="polite" class="lab-pricing-status"></p>
     </div>
   </div>
-  <div class="lab-credits-guide">
-    <span class="lab-plans-kicker">How credits work</span>
-    <p>One credit balance for images, video and upscaling. See the credit price before you create.</p>
-  </div>
-  <p class="lab-pricing-note">Monthly plans renew until cancelled and add credits after confirmed payment. One-time packs do not renew. Prices are shown in euros; final totals are confirmed at checkout. See our <a href="/lab/terms/">terms</a> for applicable taxes and withdrawal rights.</p>
-  <p id="lab-pricing-status" role="status" aria-live="polite" class="lab-pricing-note"></p>
 </div></section>
 <section class="lab-invite-promo" aria-labelledby="lab-invite-promo-title"><div><span class="lab-plans-kicker">PV Lab / Invite a creator</span><h2 id="lab-invite-promo-title">Give 200. Get 200.</h2><p>Bring a friend into the studio. After their first purchase of €10 or more, you both receive 200 generation credits. Bonus credits are issued after a verified qualifying payment.</p></div><a href="./studio.html?referrals=1">Get your invite link </a></section>
 </main>
@@ -158,7 +157,7 @@
 <script type="module" src="./mood-home.js?v=20261012-collection-drop1"></script>
 <script defer src="./landing-motion.js?v=20261012-editorial-restored1"></script>
 <script defer src="./studio-tools.js?v=20261012-macro-clean1"></script>
-<script defer src="./pricing-tabs.js?v=20261013-price-tabs2"></script>
+<script defer src="./pricing-tabs.js?v=20261013-billing-caption3"></script>
 <script type="module" src="./customer-entry.js?v=20261013-pack-return2"></script>
 </body>
 </html>
