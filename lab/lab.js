@@ -2700,7 +2700,7 @@ async function prepareQuoteInputs(inputs,snapshot=null){
   for(const item of originals){
     // Dimensions are known from inspectImage. If a legacy input omitted them,
     // decode it before quoting rather than silently passing through an unsafe ID.
-    const seedreamInput=selectedEngine==='seedream'&&(snapshot?true:tool==='image');
+    const seedreamInput=['seedream','seedreamlite'].includes(selectedEngine)&&(snapshot?true:tool==='image');
     const hasDimensions=Number.isSafeInteger(Number(item.width))&&Number(item.width)>0
       &&Number.isSafeInteger(Number(item.height))&&Number(item.height)>0;
     // Legacy restored drafts may lack width/height. Pass measured dimensions
