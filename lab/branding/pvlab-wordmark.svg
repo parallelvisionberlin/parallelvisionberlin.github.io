@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 218 42" role="img" aria-labelledby="title">
+ <title id="title">PV LAB</title>
+ <g fill="none" stroke="#F5F1EA" stroke-width="3.5" stroke-linejoin="miter" stroke-linecap="square">
+  <path d="M3 36V6h19c8 0 12 4 12 10s-4 10-12 10H3"/>
+  <path d="M44 6l17 30L78 6"/>
+  <path d="M98 6v30h26"/>
+  <path d="M131 36l18-30 18 30M138 25h22"/>
+  <path d="M179 6v30h19c9 0 13-4 13-9 0-5-5-7-11-7h-21m0-14h18c8 0 12 4 12 8 0 5-3 8-12 8"/>
+ </g>
+</svg>

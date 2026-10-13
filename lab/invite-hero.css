@@ -1,72 +1,145 @@
-/* PV LAB editorial invitation. Scoped to the homepage pricing successor. */
-#pricing + .lab-invite-promo{
-  position:relative;isolation:isolate;overflow:hidden;display:block;
-  min-height:338px;padding:clamp(62px,5.1vw,90px) clamp(24px,4.3vw,88px);
-  color:#f5f1ea;background:#090b0b url('./visuals/invite-wet-editorial.webp') center center/cover no-repeat;
-  border-top:1px solid rgba(255,255,255,.12);border-bottom:1px solid rgba(255,255,255,.13);
-  font-family:"DM Sans",Arial,sans-serif;
+/* 14 Oct 2026: faithful editorial rendering of the approved PV LAB invite design.
+   The photographic background is sourced from the user's selected reference,
+   with the type and button retained as real, selectable interface elements. */
+#pricing + .lab-invite-promo {
+  position:relative;
+  isolation:isolate;
+  overflow:hidden;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:clamp(355px,22.55vw,442px);
+  padding:clamp(56px,4.5vw,90px) clamp(24px,5.65vw,112px);
+  color:#f4f1ec;
+  background:#08090a url('./visuals/invite-after-fabric-exact.avif') center center / cover no-repeat;
+  border-top:1px solid rgba(255,255,255,.14);
+  border-bottom:1px solid rgba(255,255,255,.14);
+  font-family:'DM Sans',Arial,sans-serif;
+  box-sizing:border-box;
 }
-#pricing + .lab-invite-promo::after{
-  content:"";position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.12;
-  background:repeating-linear-gradient(118deg,transparent 0 3px,rgba(255,255,255,.014) 4px,transparent 5px 12px);
+#pricing + .lab-invite-promo::after {
+  content:"";
+  position:absolute;inset:0;
+  z-index:0;
+  pointer-events:none;
+  background:linear-gradient(90deg,rgba(3,5,6,.16) 0%,transparent 53%,rgba(2,3,4,.12) 100%);
 }
-#pricing + .lab-invite-promo > .lab-invite-promo__inner{
-  position:relative;z-index:1;display:grid;align-items:center;width:100%;max-width:1680px;margin:0 auto;
-  grid-template-columns:minmax(0,1fr) minmax(245px,310px);
-  column-gap:clamp(20px,3.2vw,65px);
+#pricing + .lab-invite-promo > .lab-invite-promo__inner {
+  position:relative;z-index:1;
+  display:grid;align-items:center;
+  grid-template-columns:minmax(0,1fr) minmax(250px,337px);
+  column-gap:clamp(28px,5vw,100px);
+  width:100%;max-width:1740px;
+  margin:0 auto;
+  transform:translateY(17px);
 }
-#pricing + .lab-invite-promo .lab-invite-promo__copy{min-width:0}
-#pricing + .lab-invite-promo .lab-invite-promo__eyebrow{
-  display:flex;align-items:center;gap:22px;width:fit-content;margin:0 0 23px;
-  color:#c5bfb6;font:500 10px/1.4 "DM Sans",Arial,sans-serif;letter-spacing:.23em;text-transform:uppercase;
+#pricing + .lab-invite-promo .lab-invite-promo__copy {min-width:0}
+#pricing + .lab-invite-promo .lab-invite-promo__eyebrow {
+  display:flex;align-items:center;gap:25px;
+  width:max-content;max-width:100%;
+  margin:0 0 24px;
+  color:#dad4cc;
+  font:500 11px/1.4 'DM Sans',Arial,sans-serif;
+  letter-spacing:.22em;text-transform:uppercase;
 }
-#pricing + .lab-invite-promo .lab-invite-promo__eyebrow::after{content:"";width:58px;height:1px;background:rgba(240,234,225,.65)}
-#pricing + .lab-invite-promo h2{
-  margin:0 0 18px;color:#f6f3ed;font-size:clamp(43px,4.5vw,81px);font-weight:400;line-height:1.035;
-  letter-spacing:-.066em;text-wrap:balance;
+#pricing + .lab-invite-promo .lab-invite-promo__eyebrow::after {
+  content:"";display:block;width:57px;height:1px;
+  background:rgba(230,226,218,.68);
 }
-#pricing + .lab-invite-promo .lab-invite-promo__description{
-  margin:0;max-width:720px;color:#d8d1c6;font-size:clamp(15px,1.1vw,18px);
-  font-weight:400;line-height:1.58;text-wrap:pretty;
+#pricing + .lab-invite-promo h2 {
+  margin:0 0 19px;
+  max-width:800px;
+  color:#f4f1ec;
+  font-size:clamp(46px,4.04vw,80px);
+  font-weight:400;line-height:1.035;
+  letter-spacing:-.065em;
+  text-wrap:balance;
 }
-#pricing + .lab-invite-promo .lab-invite-promo__actions{
-  display:flex;flex-direction:column;align-items:stretch;gap:13px;min-width:0;
+#pricing + .lab-invite-promo .lab-invite-promo__description {
+  margin:0;max-width:780px;
+  color:#ede9e2;
+  font-size:clamp(15px,1vw,19px);
+  font-weight:400;line-height:1.65;
+  text-wrap:pretty;
 }
-#pricing + .lab-invite-promo .lab-invite-promo__cta{
-  display:flex;align-items:center;justify-content:space-between;gap:20px;width:100%;min-height:58px;
-  padding:16px 24px;color:#191816;background:#f4f0e9;border:1px solid #f4f0e9;border-radius:5px;
-  box-shadow:0 10px 30px rgba(0,0,0,.25);text-decoration:none;
-  font:500 16px/1.3 "DM Sans",Arial,sans-serif;white-space:nowrap;
-  transition:background-color .2s,color .2s,transform .2s,box-shadow .2s;
+#pricing + .lab-invite-promo .lab-invite-promo__actions {
+  display:flex;flex-direction:column;align-items:stretch;
+  gap:14px;min-width:0;
 }
-#pricing + .lab-invite-promo .lab-invite-promo__cta span{font-size:22px;line-height:1;font-weight:400}
-#pricing + .lab-invite-promo .lab-invite-promo__cta:hover{
-  background:#fff;border-color:#fff;color:#111;box-shadow:0 14px 34px rgba(0,0,0,.34);transform:translateY(-2px);
+#pricing + .lab-invite-promo .lab-invite-promo__cta {
+  display:flex;align-items:center;justify-content:space-between;
+  gap:14px;min-height:63px;width:100%;
+  padding:17px 26px;
+  color:#171613;background:#f3efe8;
+  border:1px solid rgba(243,239,232,.95);
+  border-radius:5px;
+  font:500 clamp(15px,.95vw,19px)/1.3 'DM Sans',Arial,sans-serif;
+  text-decoration:none;white-space:nowrap;
+  transition:background-color .16s,transform .16s;
 }
-#pricing + .lab-invite-promo .lab-invite-promo__cta:focus-visible{outline:2px solid #fff;outline-offset:5px}
-#pricing + .lab-invite-promo .lab-invite-promo__fineprint{
-  margin:0;color:#bab2a7;font-size:12px;line-height:1.5;
+#pricing + .lab-invite-promo .lab-invite-promo__cta .pv-arrow-icon {
+  display:inline-grid;place-items:center;flex:none;width:22px;height:22px;
 }
-@media(max-width:1190px){
-  #pricing + .lab-invite-promo > .lab-invite-promo__inner{grid-template-columns:minmax(0,1fr) minmax(220px,270px);column-gap:clamp(26px,4vw,54px)}
-  #pricing + .lab-invite-promo .lab-invite-promo__cta{padding-inline:18px;gap:12px;font-size:15px}
-  #pricing + .lab-invite-promo h2{font-size:clamp(43px,5.1vw,66px)}
+#pricing + .lab-invite-promo .lab-invite-promo__cta .pv-arrow-svg {
+  display:block;width:20px;height:20px;
+  fill:none;stroke:currentColor;stroke-width:1.65;
+  stroke-linecap:round;stroke-linejoin:round;
 }
-@media(max-width:760px){
-  #pricing + .lab-invite-promo{min-height:0;padding:55px 24px 60px;background-image:linear-gradient(90deg,rgba(9,11,11,.85),rgba(9,11,11,.57)),url("./visuals/invite-wet-editorial.webp");background-position:67% center;background-size:auto 100%;}
-  #pricing + .lab-invite-promo > .lab-invite-promo__inner{grid-template-columns:minmax(0,1fr);row-gap:33px}
-  #pricing + .lab-invite-promo .lab-invite-promo__eyebrow{margin-bottom:22px;font-size:9px;letter-spacing:.19em}
-  #pricing + .lab-invite-promo h2{font-size:clamp(42px,9vw,66px);max-width:640px;line-height:1.045}
-  #pricing + .lab-invite-promo .lab-invite-promo__description{max-width:560px;font-size:15px}
-  #pricing + .lab-invite-promo .lab-invite-promo__actions{max-width:310px}
-  #pricing + .lab-invite-promo .lab-invite-promo__cta{min-height:54px}
+#pricing + .lab-invite-promo .lab-invite-promo__cta:hover {
+  color:#0c0c0b;background:#fff;border-color:#fff;transform:translateY(-1px);
 }
-@media(max-width:410px){
-  #pricing + .lab-invite-promo{padding:48px 22px 55px}
-  #pricing + .lab-invite-promo h2{font-size:clamp(37px,10.1vw,43px)}
-  #pricing + .lab-invite-promo .lab-invite-promo__eyebrow::after{width:28px}
+#pricing + .lab-invite-promo .lab-invite-promo__cta:focus-visible {
+  outline:2px solid #fff;outline-offset:5px;
 }
-@media(prefers-reduced-motion:reduce){
-  #pricing + .lab-invite-promo .lab-invite-promo__cta{transition:none}
-  #pricing + .lab-invite-promo .lab-invite-promo__cta:hover{transform:none}
+#pricing + .lab-invite-promo .lab-invite-promo__fineprint {
+  margin:0;
+  color:#cac3b9;
+  font-size:13px;
+  line-height:1.55;
+}
+@media(max-width:1100px) {
+  #pricing + .lab-invite-promo {
+    min-height:360px;
+    padding-inline:clamp(26px,4vw,58px);
+  }
+  #pricing + .lab-invite-promo > .lab-invite-promo__inner {
+    grid-template-columns:minmax(0,1fr) minmax(245px,300px);
+    column-gap:28px;
+    transform:translateY(10px);
+  }
+  #pricing + .lab-invite-promo h2 {font-size:clamp(43px,4.7vw,59px)}
+  #pricing + .lab-invite-promo .lab-invite-promo__cta {padding:15px 20px;min-height:56px}
+}
+@media(max-width:720px) {
+  #pricing + .lab-invite-promo {
+    min-height:0;
+    padding:56px 24px 61px;
+    background-image:linear-gradient(90deg,rgba(6,7,8,.84),rgba(6,7,8,.35)),url('./visuals/invite-after-fabric-exact.avif');
+    background-position:62% center;background-size:auto 100%;
+  }
+  #pricing + .lab-invite-promo > .lab-invite-promo__inner {
+    grid-template-columns:minmax(0,1fr);
+    row-gap:34px;
+    transform:none;
+  }
+  #pricing + .lab-invite-promo .lab-invite-promo__eyebrow {
+    font-size:9px;letter-spacing:.17em;margin-bottom:22px;
+  }
+  #pricing + .lab-invite-promo .lab-invite-promo__eyebrow::after {width:28px}
+  #pricing + .lab-invite-promo h2 {
+    font-size:clamp(41px,9vw,64px);line-height:1.05;
+  }
+  #pricing + .lab-invite-promo .lab-invite-promo__description {
+    font-size:15px;line-height:1.6;max-width:560px;
+  }
+  #pricing + .lab-invite-promo .lab-invite-promo__actions {max-width:338px}
+  #pricing + .lab-invite-promo .lab-invite-promo__fineprint {font-size:12px}
+}
+@media(max-width:390px) {
+  #pricing + .lab-invite-promo {padding-inline:20px}
+  #pricing + .lab-invite-promo h2 {font-size:clamp(35px,9.9vw,42px)}
+}
+@media(prefers-reduced-motion:reduce) {
+  #pricing + .lab-invite-promo .lab-invite-promo__cta {transition:none}
+  #pricing + .lab-invite-promo .lab-invite-promo__cta:hover {transform:none}
 }
