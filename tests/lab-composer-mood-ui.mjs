@@ -248,6 +248,12 @@ try{
   const x=await workspace({width:1240,height:900});
   await x.page.locator('#reference-images').setInputFiles({name:'base.png',mimeType:'image/png',buffer:png});
   await waitRefs(x.page,1);
+  // Check idle hover before opening: the Mood panel's backdrop intentionally blocks its deck.
+  await x.page.hover('#image-composer-moods');
+  const idleHover=await x.page.locator('#image-composer-moods').evaluate(el=>({background:getComputedStyle(el).backgroundColor,gradient:getComputedStyle(el).backgroundImage}));
+  assert.equal(idleHover.background,'rgb(45, 48, 44)','Idle hover remains dark');
+  assert.equal(idleHover.gradient,'none','Hover never activates an unselected Mood');
+  await x.page.mouse.move(0,0);
   await x.page.click('#image-composer-moods');
   await x.page.mouse.move(0,0);
   const moodAppearance=await x.page.evaluate(()=>{
@@ -260,11 +266,6 @@ try{
   assert.equal(moodAppearance.gradient,'none','Opening the Mood picker must not look selected');
   assert.equal(moodAppearance.color,'rgb(214, 255, 0)','Idle icon and letters use electric citron');
   assert.ok(moodAppearance.height>=39&&moodAppearance.height<=43,'Moods must stay aligned with neighboring controls: '+JSON.stringify(moodAppearance));
-  await x.page.hover('#image-composer-moods');
-  const idleHover=await x.page.locator('#image-composer-moods').evaluate(el=>({background:getComputedStyle(el).backgroundColor,gradient:getComputedStyle(el).backgroundImage}));
-  assert.equal(idleHover.background,'rgb(45, 48, 44)','Idle hover remains dark');
-  assert.equal(idleHover.gradient,'none','Hover never activates an unselected Mood');
-  await x.page.mouse.move(0,0);
   const beforeMood=await x.page.evaluate(()=>{
     const modal=document.querySelector('#composer-moods');
     const card=document.querySelector('.moods-card-media');
