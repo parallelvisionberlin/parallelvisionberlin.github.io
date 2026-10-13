@@ -1922,8 +1922,11 @@ function currentProvider(){if(tool==='video'&&engine==='seedance'&&mode==='exten
 function jobProvider(j){const s=j?.settings||{};if(s.provider==='openrouter'||s.engine==='flash')return 'openrouter';if(s.provider==='higgsfield')return 'higgsfield';return s.provider==='gemini'||s.engine==='gemini'||String(s.model||'').startsWith('gemini-')?'gemini':s.provider==='fal'||['fal','soulpro','h3maxfal','omni'].includes(s.engine)||String(s.model||'').startsWith('fal-ai/')?'fal':'spicy';}
 function submissionBlocked(){
   const kind=tool==='upscale'?'image':tool,provider=currentProvider(),falUpscale=tool==='upscale'&&provider==='fal';
-  const interrupted=activeJobs.some(j=>j.status==='uncertain'&&jobProvider(j)===provider&&(!falUpscale||j.settings?.mode==='upscale'));
-  const active=activeJobs.filter(j=>{const jobKind=j.settings?.type==='image'?'image':'video',backgroundBatch=j.settings?.provider==='gemini'&&j.settings?.processing==='batch';return slotStates.has(j.status)&&jobKind===kind&&!backgroundBatch&&jobProvider(j)===provider;}).length;
+  // An unconfirmed Gemini request retains its own reserved credits and History
+  // record, but customers can explicitly start a NEW paid image after review.
+  const customerGemini=customerMode&&provider==='gemini';
+  const interrupted=!customerGemini&&activeJobs.some(j=>j.status==='uncertain'&&jobProvider(j)===provider&&(!falUpscale||j.settings?.mode==='upscale'));
+  const active=activeJobs.filter(j=>{const jobKind=j.settings?.type==='image'?'image':'video',backgroundBatch=j.settings?.provider==='gemini'&&j.settings?.processing==='batch';return slotStates.has(j.status)&&!(customerGemini&&j.status==='uncertain')&&jobKind===kind&&!backgroundBatch&&jobProvider(j)===provider;}).length;
   const preparing=tool==='image'?fastImageHandoff.slots(provider):0;
   return interrupted||active+preparing>=(provider==='higgsfield'?2:limitFor(kind));
 }
@@ -1951,12 +1954,13 @@ function setActiveJobs(list){
   const geminiInterrupted=activeJobs.filter(j=>j.status==='uncertain'&&j.settings?.type==='image'&&jobProvider(j)==='gemini').length;
   const falImages=activeJobs.filter(j=>slotStates.has(j.status)&&j.settings?.type==='image'&&jobProvider(j)==='fal').length;
   const videos=activeJobs.filter(j=>slotStates.has(j.status)&&j.settings?.type!=='image').length;
-  $('active-status').textContent='Seedream '+spicyImages+' / '+limitFor('image')+' · Nano '+geminiRunning+' / '+limitFor('image')+(geminiInterrupted?' · '+geminiInterrupted+' old Nano interrupted':'')+(batchImages?' · '+batchImages+' Nano batch queued':'')+' · Controlled Pose '+falImages+' / '+limitFor('image')+' · videos '+videos+' / '+limitFor('video')+(saving?' · '+saving+' saving (no generation slot)':'');
-  const labels={submitting:'Submitting',queued:'Queued',running:'Generating',saving:'Saving to private archive',uncertain:'Interrupted: check provider before another attempt'};
+  $('active-status').textContent='Seedream '+spicyImages+' / '+limitFor('image')+' · Nano '+geminiRunning+' / '+limitFor('image')+(geminiInterrupted?' · '+geminiInterrupted+(customerMode?' Nano result(s) to review':' old Nano interrupted'):'')+(batchImages?' · '+batchImages+' Nano batch queued':'')+' · Controlled Pose '+falImages+' / '+limitFor('image')+' · videos '+videos+' / '+limitFor('video')+(saving?' · '+saving+' saving (no generation slot)':'');
+  const labels={submitting:'Submitting',queued:'Queued',running:'Generating',saving:'Saving to private archive',uncertain:customerMode?'Result unconfirmed; original credits under review':'Interrupted: check provider before another attempt'};
   const providerLabel=j=>jobProvider(j)==='gemini'?'Gemini':jobProvider(j)==='openrouter'?'OpenRouter':jobProvider(j)==='fal'?'FAL':'SpicyAPI';
-  $('active-detail').textContent=activeJobs.map((j,i)=>(i+1)+'. '+(j.settings?.type==='image'?'Image':'Video')+' · '+providerLabel(j)+' · '+labels[j.status]+(j.error?' · '+j.error:'')+(j.providerTaskId?' · '+j.providerTaskId:'')).join('\n');
+  $('active-detail').textContent=activeJobs.map((j,i)=>(i+1)+'. '+(j.settings?.type==='image'?'Image':'Video')+' · '+providerLabel(j)+' · '+labels[j.status]+(j.error?' · '+j.error:'')+(j.providerTaskId?' · '+j.providerTaskId:'')).join('\n')+(customerMode&&uncertainCount?'\nPV LAB cannot confirm this earlier result. No automatic retry or duplicate charge. Its credits remain reserved for provider review. A new generation has a separate charge. Contact support for the original request.':'');
   $('active-detail').style.whiteSpace='pre-line';
-  $('resolve').hidden=!activeJobs.some(j=>j.status==='uncertain');
+  $('resolve').hidden=customerMode||!activeJobs.some(j=>j.status==='uncertain');
+  if($('queue-support'))$('queue-support').hidden=!customerMode||!uncertainCount;
   schedulePoll();update();
 }
 function setActive(job){if(!job)return;setActiveJobs([...activeJobs.filter(j=>j.id!==job.id),job]);}
@@ -3113,7 +3117,7 @@ function renderCards(jobs,{upsert=false}={}){
       await syncHistory();
       notify('FAL status checked. History refreshed. No generation submitted.');
     }));
-    if(j.status==='uncertain')actions.append(button('Mark reviewed',async()=>{
+    if(j.status==='uncertain'&&!customerMode)actions.append(button('Mark reviewed',async()=>{
       if(!confirm('Have you checked this '+(jobProvider(j)==='openrouter'?'OpenRouter':jobProvider(j)==='fal'?'FAL':jobProvider(j)==='gemini'?'Google':'SpicyAPI')+' request in the provider dashboard? This closes only this interruption. The reserved estimate stays in spending history. It does not generate, retry, cancel or refund anything.'))return;
       await api('/api/jobs/'+j.id+'/resolve',{method:'POST',body:{confirm:true}});
       await syncHistory();notify('This interruption was marked reviewed. Nothing was generated or resubmitted.');
@@ -3303,6 +3307,10 @@ window.visualViewport?.addEventListener('resize',()=>{if(!imageComposer.hidden)f
 // The editor stays interactive: a paid submission only reads this captured request.
 async function submitImageSnapshot(){
   if(busy||imageSubmissionPending||!owner||!hasInput()||submissionBlocked()||fastImageHandoff.has(currentImageSubmissionKey()))return;
+  const previousNanoUnconfirmed=customerMode&&currentProvider()==='gemini'&&activeJobs.some(j=>j.status==='uncertain'&&jobProvider(j)==='gemini');
+  // A fresh paid request is NEVER a retry of an unknown provider transaction.
+  // Confirm this *before* consuming the customer's current price snapshot.
+  if(previousNanoUnconfirmed&&!confirm('A previous Nano Banana Pro result could not be confirmed. Its credits remain reserved for review. This starts a NEW image and uses additional credits. No earlier request will be retried or cancelled. Continue?'))return;
   // Customer Generate must be backed by the currently displayed server quote.
   // An error-click retries pricing and never silently submits a paid job.
   const snapshot=customerMode?imageCreditQuoteSnapshot():null;
@@ -3412,7 +3420,7 @@ async function submitImageSnapshot(){
     }else if(provider==='gemini'){
       const batch=selected.processing==='batch';
       for(let i=0;i<(batch?1:requested);i++){
-        const data=await send('/api/gemini/jobs',{...inputs,count:batch?requested:1,settings:selected});
+        const data=await send('/api/gemini/jobs',{...inputs,count:batch?requested:1,settings:selected,confirmNewCharge:previousNanoUnconfirmed});
         if(!data.jobs?.length)throw new Error('No generation record returned. Check History before retrying.');
         for(const job of data.jobs){record(job);submitted++;}
         if(data.jobs.some(job=>['failed','uncertain','resolved'].includes(job.status)))break;

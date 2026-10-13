@@ -36,7 +36,7 @@ import {SYNTHETIC_ROMANCE_REFERENCES,SYNTHETIC_ROMANCE_REFERENCE_VERSION} from '
 import {moodBoardsRoute} from './moodboards.mjs';
 import {moodCreatorRoute} from './mood-creator-service.mjs';
 import {characterPreview as soulCharacterPreview,SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-13.2-seedance-lite-pricing';
+export const VERSION = 'pv-lab-2026-10-13.3-gemini-safe-recovery';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -784,10 +784,20 @@ async function geminiFetch(env,path,{method='GET',body:payload,timeout=60000}={}
     await r.body?.cancel().catch(()=>{});
     const e=new HttpError(502,'Gemini API returned an unexpected redirect. It was not followed. Check Google AI Studio usage before retrying to avoid a duplicate charge.');e.definite=false;throw e;
   }
-  const raw=await r.text();let data=null;try{data=raw?JSON.parse(raw):{};}catch{}
+  // If Google's headers arrived but reading the response fails, the request
+  // could still have generated an image. Do not classify it as a free failure.
+  let raw;try{raw=await r.text();}
+  catch{const e=new HttpError(502,'Gemini response could not be confirmed. Check the original provider activity before retrying.');e.definite=false;throw e;}
+  let data=null;try{data=raw?JSON.parse(raw):{};}catch{}
   if(!r.ok||!data){
     const detail=String(data?.error?.message||('HTTP '+r.status)).replace(/[\r\n]+/g,' ').slice(0,500);
-    const e=new HttpError(r.status>=400&&r.status<500?422:502,'Gemini API: '+detail);e.definite=r.status>=400&&r.status<500&&r.status!==408&&r.status!==429;throw e;
+    const e=new HttpError(r.status>=400&&r.status<500?422:502,'Gemini API: '+detail);
+    // Google explicitly rejected HTTP 429 (RESOURCE_EXHAUSTED). No image
+    // generation was accepted. Treat it as failed, refund customer credits,
+    // and free the provider spending slot, NOT as an unknown paid request.
+    // HTTP 408/network timeouts remain uncertain and are never replayed.
+    e.definite=r.status===429||(r.status>=400&&r.status<500&&r.status!==408);
+    throw e;
   }
   return data;
 }
@@ -810,9 +820,23 @@ async function geminiParts(env,owner,p,referenceSourceIds=[]){
   for(const a of builtIn)parts.push({inlineData:{mimeType:a.mime,data:a.data}});
   return {parts,refs,totalBytes:total};
 }
+// The Gemini REST responseFormat.image fields are enums, NOT display strings.
+// Sending "2K" or "16:9" produces a confirmed HTTP 400, as observed in PV LAB.
+const GEMINI_RESPONSE_SIZES=Object.freeze({
+  '1k':'IMAGE_SIZE_ONE_K','2k':'IMAGE_SIZE_TWO_K','4k':'IMAGE_SIZE_FOUR_K'
+});
+const GEMINI_RESPONSE_RATIOS=Object.freeze({
+  '1:1':'ASPECT_RATIO_ONE_BY_ONE','2:3':'ASPECT_RATIO_TWO_BY_THREE',
+  '3:2':'ASPECT_RATIO_THREE_BY_TWO','3:4':'ASPECT_RATIO_THREE_BY_FOUR',
+  '4:3':'ASPECT_RATIO_FOUR_BY_THREE','4:5':'ASPECT_RATIO_FOUR_BY_FIVE',
+  '5:4':'ASPECT_RATIO_FIVE_BY_FOUR','9:16':'ASPECT_RATIO_NINE_BY_SIXTEEN',
+  '16:9':'ASPECT_RATIO_SIXTEEN_BY_NINE','21:9':'ASPECT_RATIO_TWENTY_ONE_BY_NINE'
+});
 function geminiGenerateRequest(p,parts){
-  const image={imageSize:p.resolution.toUpperCase()};
-  if(p.aspectRatio&&p.aspectRatio!=='auto')image.aspectRatio=p.aspectRatio;
+  const image={imageSize:GEMINI_RESPONSE_SIZES[p.resolution]};
+  if(p.aspectRatio&&p.aspectRatio!=='auto')image.aspectRatio=GEMINI_RESPONSE_RATIOS[p.aspectRatio];
+  if(!image.imageSize||(p.aspectRatio&&p.aspectRatio!=='auto'&&!image.aspectRatio))
+    fail(400,'Unsupported Nano Banana Pro image size or ratio.');
   return {contents:[{role:'user',parts}],generationConfig:{responseModalities:['IMAGE'],responseFormat:{image}}};
 }
 async function saveGeminiImage(env,j,response){
@@ -1345,11 +1369,17 @@ async function route(request,env,ctx) {
     if(p.provider!=='gemini'||p.engine!=='gemini'||(!p.prompt&&!(Array.isArray(data.referenceSourceIds)&&data.referenceSourceIds.length>0)))fail(400,'Choose Nano Banana Pro and add a prompt or reference photograph.');
     const count=Number(data.count||1),max=p.processing==='batch'?20:1;
     if(!Number.isInteger(count)||count<1||count>max)fail(400,p.processing==='batch'?'Batch supports 1 to 20 images.':'Normal mode submits one Nano Banana Pro image per request.');
+    const geminiSql="(COALESCE(json_extract(params,'$.provider'),'')='gemini' OR COALESCE(json_extract(params,'$.engine'),'')='gemini' OR COALESCE(json_extract(params,'$.model'),'') LIKE 'gemini-%')";
+    const interrupted=(await first(env,"SELECT COUNT(*) AS n FROM jobs WHERE owner_id=? AND state='uncertain' AND "+geminiSql,owner)).n;
+    if(interrupted){
+      // The owner checks the vendor directly; customers cannot access that dashboard.
+      // An explicitly confirmed NEW paid request is permitted for customers only.
+      // The uncertain original is never replayed, credited or silently discarded.
+      if(!customer)fail(409,'No generation submitted: a Gemini request is interrupted. Verify it in Google AI Studio before resolving.');
+      if(data.confirmNewCharge!==true)fail(409,'A previous Nano Banana Pro result is unconfirmed. Review Queue and explicitly confirm a NEW credit charge before creating another image. The previous image will not be retried.');
+    }
     if(p.processing==='normal'){
-      const geminiSql="(COALESCE(json_extract(params,'$.provider'),'')='gemini' OR COALESCE(json_extract(params,'$.engine'),'')='gemini' OR COALESCE(json_extract(params,'$.model'),'') LIKE 'gemini-%')";
-      const interrupted=(await first(env,"SELECT COUNT(*) AS n FROM jobs WHERE owner_id=? AND state='uncertain' AND "+geminiSql,owner)).n;
-      if(interrupted)fail(409,'No generation submitted: a Gemini request is interrupted. Resolve that Gemini request after checking Google AI Studio. Seedream and SpicyAPI remain available.');
-      const active=(await first(env,"SELECT COUNT(*) AS n FROM jobs WHERE owner_id=? AND state IN ('submitting','queued','running','uncertain') AND "+geminiSql+" AND COALESCE(json_extract(params,'$.processing'),'normal')!='batch'",owner)).n;
+      const active=(await first(env,"SELECT COUNT(*) AS n FROM jobs WHERE owner_id=? AND state IN ('submitting','queued','running') AND "+geminiSql+" AND COALESCE(json_extract(params,'$.processing'),'normal')!='batch'",owner)).n;
       if(active>=CONCURRENCY.image)fail(409,'No generation submitted: '+active+' / '+CONCURRENCY.image+' Nano Banana Pro slots are already active. Saving results do not use generation slots.');
     }
     const c=await config(env,owner),limit=c?.daily_limit_microusd||10000000,t=now(),day=Math.floor(t/86400000)*86400000,estimate=geminiEstimateMicros(p),totalEstimate=estimate*count;
@@ -1369,7 +1399,13 @@ async function route(request,env,ctx) {
         const response=await geminiFetch(env,'/models/'+GEMINI_MODEL+':generateContent',{method:'POST',body:geminiGenerateRequest(p,prepared.parts),timeout:180000});
         await run(env,"UPDATE jobs SET provider_id='gemini-standard',state='saving',updated_at=? WHERE id=?",now(),id);
         await saveGeminiImage(env,{...j,provider_id:'gemini-standard'},response);
-      }catch(e){await run(env,'UPDATE jobs SET state=?,error=?,updated_at=? WHERE id=?',e.definite===false?'uncertain':'failed',String(e.message||'Gemini generation failed.').slice(0,500),now(),id);}
+      }catch(e){
+        const certain=e.definite!==false;
+        await run(env,'UPDATE jobs SET state=?,error=?,updated_at=? WHERE id=?',certain?'failed':'uncertain',String(e.message||'Gemini generation failed.').slice(0,500),now(),id);
+        // A known provider rejection did not incur Gemini generation cost.
+        // D1 automatically refunds customer credits on this failed state.
+        if(certain)await run(env,'DELETE FROM spend WHERE job_id=?',id);
+      }
       return json({jobs:[jobView(await first(env,'SELECT * FROM jobs WHERE id=?',id))]},202);
     }
     const requests=ids.map((id,i)=>({request:geminiGenerateRequest(p,prepared.parts),metadata:{key:id,index:i}}));
@@ -1379,7 +1415,10 @@ async function route(request,env,ctx) {
       await run(env,"UPDATE jobs SET provider_id=?,state='queued',updated_at=? WHERE owner_id=? AND id IN ("+ids.map(()=>'?').join(',')+")",name,now(),owner,...ids);
     }catch(e){
       const state=e.definite===false?'uncertain':'failed',msg=String(e.message||'Gemini batch submission failed.').slice(0,500);
-      for(const id of ids)await run(env,'UPDATE jobs SET state=?,error=?,updated_at=? WHERE id=?',state,msg,now(),id);
+      for(const id of ids){
+        await run(env,'UPDATE jobs SET state=?,error=?,updated_at=? WHERE id=?',state,msg,now(),id);
+        if(state==='failed')await run(env,'DELETE FROM spend WHERE job_id=?',id);
+      }
     }
     const jobs=[];for(const id of ids)jobs.push(jobView(await first(env,'SELECT * FROM jobs WHERE id=?',id)));
     return json({jobs},202);
@@ -1670,6 +1709,7 @@ async function route(request,env,ctx) {
       return json({job:jobView(await first(env,'SELECT * FROM jobs WHERE id=? AND owner_id=?',id,owner))});
     }
     if(path.endsWith('/resolve')&&method==='POST') {
+      if(customer)fail(403,'PV LAB support must review uncertain provider requests. Customers cannot clear a reserved charge.');
       const data=await body(request);if(j.state!=='uncertain'||data.confirm!==true)fail(409,'Confirm you checked the provider dashboard first.');
       await run(env,"UPDATE jobs SET state='resolved',updated_at=?,error=? WHERE id=?",now(),'Owner resolved the interrupted request. No generation was resubmitted.',id);return json({ok:true});
     }
@@ -1687,7 +1727,11 @@ async function route(request,env,ctx) {
 async function maintenance(env) {
   await backfillFailureDetails(env);
   await soulMaintenance(env,soulDeps());
-  await run(env,"UPDATE jobs SET state='uncertain',error='Submission was interrupted. Check the provider dashboard before retrying.',updated_at=? WHERE state='submitting' AND updated_at<?",now(),now()-120000);
+  // Gemini Normal can legitimately take 180 seconds. The prior global 120s
+  // cleanup falsely classified active requests, disabling Nano Banana Pro.
+  // Leave at least a full provider timeout and 60s grace before review.
+  const checkedAt=now();
+  await run(env,"UPDATE jobs SET state='uncertain',error='Submission was interrupted. No new generation was sent; check provider activity before retrying.',updated_at=? WHERE state='submitting' AND ((COALESCE(json_extract(params,'$.provider'),'')='gemini' AND updated_at<?) OR (COALESCE(json_extract(params,'$.provider'),'')!='gemini' AND updated_at<?))",checkedAt,checkedAt-240000,checkedAt-120000);
   const pending=await rows(env,"SELECT * FROM jobs WHERE state IN ('queued','running','saving') ORDER BY last_poll LIMIT 5");
   for(const j of pending){const owner=await env.OWNER_DB.prepare("SELECT id FROM users WHERE id=? AND role='owner' AND auth_provider='clerk'").bind(j.owner_id).first();if(owner||await isLabCustomer(env,j.owner_id))await refreshJob(env,j);}
   await run(env,'DELETE FROM quotes WHERE expires_at<? AND NOT EXISTS(SELECT 1 FROM jobs WHERE jobs.quote_id=quotes.id)',now());

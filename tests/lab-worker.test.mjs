@@ -693,7 +693,7 @@ test('Gemini keeps status classification and queued batch reservations when manu
     return Response.json({error:{message:'Synthetic provider error'}},{status:responseStatus});
   };
   try{
-    for(const [status,state]of [[400,'failed'],[429,'uncertain'],[500,'uncertain']]){
+    for(const [status,state]of [[400,'failed'],[429,'failed'],[500,'uncertain']]){
       responseStatus=status;providerCalls=0;const{env}=fixture();env.GEMINI_API_KEY='synthetic-gemini-key';
       const response=await req(env,'/api/gemini/jobs',{method:'POST',data:{count:1,referenceSourceIds:[],settings:{...imageSettings,engine:'gemini'}}});assert.equal(response.status,202);assert.equal((await response.json()).jobs[0].status,state);assert.equal(providerCalls,1);
     }
@@ -1494,4 +1494,163 @@ test('Seedream 5 Lite quotes and submits both text and reference edit with exact
   assert.equal(submittedJob.creditCost,17);
   assert.equal((await req(env,'/api/jobs',{method:'POST',data:{quoteId:editQuote.id,confirm:true}})).status,200);
   assert.equal(createCount,1,'One bound quote cannot create duplicate paid jobs');
+});
+
+
+test('An unconfirmed Nano Banana Pro job does not strand public customers or permit silent new charges',async()=>{
+  const {env,owner,authToken}=await archiveAccount(true);
+  env.GEMINI_API_KEY='synthetic-gemini-key';
+  const db=env.LAB_DB.db,t=Date.now(),oldId=crypto.randomUUID();
+  const settings={...imageSettings,type:'image',provider:'gemini',engine:'gemini',model:'gemini-3-pro-image',processing:'normal'};
+  db.prepare("INSERT INTO jobs(id,owner_id,params,state,estimate_microusd,created_at,updated_at) VALUES(?,?,?,'uncertain',?,?,?)")
+    .run(oldId,owner,JSON.stringify(settings),134000,t-300000,t-300000);
+  const balance=()=>db.prepare('SELECT balance_credits AS n FROM lab_customers WHERE id=?').get(owner).n;
+  assert.equal(balance(),938,'Old uncertain transaction retains its reserved 62 credits');
+  const endpoint='/api/gemini/jobs',payload={count:1,referenceSourceIds:[],settings},previous=globalThis.fetch;
+  let paidCalls=0;
+  globalThis.fetch=async(url,options)=>{
+    if(new URL(url).hostname==='generativelanguage.googleapis.com'){
+      paidCalls++;
+      throw new Error('Simulated lost Gemini acknowledgement');
+    }
+    return previous(url,options);
+  };
+  try{
+    const notConfirmed=await req(env,endpoint,{method:'POST',authToken,data:payload});
+    assert.equal(notConfirmed.status,409);
+    assert.match((await notConfirmed.json()).error,/explicitly confirm a NEW credit charge/);
+    assert.equal(paidCalls,0);
+    assert.equal(balance(),938,'A denied request never charges a new image');
+    const selfResolved=await req(env,'/api/jobs/'+oldId+'/resolve',{method:'POST',authToken,data:{confirm:true}});
+    assert.equal(selfResolved.status,403,'A customer cannot clear an unverified paid request');
+    assert.equal(db.prepare('SELECT state FROM jobs WHERE id=?').get(oldId).state,'uncertain');
+
+    const confirmed=await req(env,endpoint,{method:'POST',authToken,data:{...payload,confirmNewCharge:true}});
+    assert.equal(confirmed.status,202,await confirmed.clone().text());
+    const newJob=(await confirmed.json()).jobs[0];
+    assert.equal(newJob.status,'uncertain','Provider rate-limit status is preserved without a hidden retry');
+    assert.notEqual(newJob.id,oldId);
+    assert.equal(paidCalls,1,'One explicit new paid request means exactly one provider call');
+    assert.equal(balance(),876,'Only a separately confirmed image reserves new credits');
+    assert.equal(db.prepare('SELECT state FROM jobs WHERE id=?').get(oldId).state,'uncertain','Original preserved');
+
+    const batchUnconfirmed=await req(env,endpoint,{method:'POST',authToken,data:{...payload,settings:{...settings,processing:'batch'}}});
+    assert.equal(batchUnconfirmed.status,409,'Batch mode must not silently bypass an unconfirmed previous transaction');
+    assert.equal(paidCalls,1);
+  }finally{globalThis.fetch=previous;}
+});
+
+
+test('Nano Banana Pro formats size and aspect ratio using official Gemini responseFormat enums',async()=>{
+  const previous=globalThis.fetch,seen=[];
+  const sizes={'1k':'IMAGE_SIZE_ONE_K','2k':'IMAGE_SIZE_TWO_K','4k':'IMAGE_SIZE_FOUR_K'};
+  const ratios={
+    '1:1':'ASPECT_RATIO_ONE_BY_ONE','2:3':'ASPECT_RATIO_TWO_BY_THREE',
+    '3:2':'ASPECT_RATIO_THREE_BY_TWO','3:4':'ASPECT_RATIO_THREE_BY_FOUR',
+    '4:3':'ASPECT_RATIO_FOUR_BY_THREE','4:5':'ASPECT_RATIO_FOUR_BY_FIVE',
+    '5:4':'ASPECT_RATIO_FIVE_BY_FOUR','9:16':'ASPECT_RATIO_NINE_BY_SIXTEEN',
+    '16:9':'ASPECT_RATIO_SIXTEEN_BY_NINE','21:9':'ASPECT_RATIO_TWENTY_ONE_BY_NINE'
+  };
+  globalThis.fetch=async(url,options)=>{
+    if(new URL(url).hostname!=='generativelanguage.googleapis.com')return previous(url,options);
+    const body=JSON.parse(options.body);
+    const image=body.generationConfig.responseFormat.image;
+    assert.deepEqual(body.generationConfig.responseModalities,['IMAGE']);
+    assert.equal(body.contents[0].role,'user');
+    assert.ok(Array.isArray(body.contents[0].parts));
+    seen.push(image);
+    // This is a confirmed rejection after inspecting outgoing JSON: no image was billed.
+    return Response.json({error:{message:'Synthetic input test complete.'}},{status:400});
+  };
+  try{
+    for(const [size,enumSize]of Object.entries(sizes))
+    for(const ratio of [...Object.keys(ratios),'auto']){
+      const{env}=fixture();env.GEMINI_API_KEY='synthetic-gemini-key';
+      const resp=await req(env,'/api/gemini/jobs',{method:'POST',data:{
+        count:1,settings:{...imageSettings,engine:'gemini',resolution:size,aspectRatio:ratio}
+      }});
+      assert.equal(resp.status,202,await resp.clone().text());
+      const job=(await resp.json()).jobs[0];
+      assert.equal(job.status,'failed','Provider explicitly rejected synthetic validation request');
+      assert.equal(env.LAB_DB.db.prepare('SELECT COUNT(*) AS n FROM spend').get().n,0,
+        'Definite input rejection releases the daily budget');
+      const sent=seen.at(-1);
+      assert.equal(sent.imageSize,enumSize);
+      if(ratio==='auto')assert.equal(Object.hasOwn(sent,'aspectRatio'),false);
+      else assert.equal(sent.aspectRatio,ratios[ratio]);
+    }
+    assert.equal(seen.length,33);
+  }finally{globalThis.fetch=previous;}
+});
+
+test('429 RESOURCE_EXHAUSTED is a failed paid request, refunds customer exactly once and never creates a permanent Nano block',async()=>{
+  const {env,owner,authToken}=await archiveAccount(true);
+  env.GEMINI_API_KEY='synthetic-gemini-key';
+  const previous=globalThis.fetch;let calls=0;
+  globalThis.fetch=async(url,options)=>{
+    if(new URL(url).hostname!=='generativelanguage.googleapis.com')return previous(url,options);
+    calls++;
+    return Response.json({error:{code:429,status:'RESOURCE_EXHAUSTED',message:'Quota exceeded. Try again later.'}},{status:429});
+  };
+  const sql=env.LAB_DB.db,credits=()=>sql.prepare('SELECT balance_credits AS n FROM lab_customers WHERE id=?').get(owner).n;
+  const data={count:1,settings:{...imageSettings,engine:'gemini',processing:'normal'}};
+  try{
+    for(let i=0;i<2;i++){
+      const r=await req(env,'/api/gemini/jobs',{method:'POST',authToken,data});
+      assert.equal(r.status,202,await r.clone().text());
+      const {jobs}=await r.json();assert.equal(jobs[0].status,'failed');
+      assert.match(jobs[0].error,/Quota exceeded/);
+      assert.equal(credits(),1000,'A confirmed Google rejection must return all reserved credits');
+      assert.equal(sql.prepare('SELECT COUNT(*) AS n FROM spend WHERE job_id=?').get(jobs[0].id).n,0);
+      assert.equal(sql.prepare("SELECT COUNT(*) AS n FROM lab_credit_entries WHERE customer_id=? AND kind='refund'").get(owner).n,i+1);
+    }
+    assert.equal(calls,2,'Two explicitly requested images result in two calls, not retries');
+    assert.equal(sql.prepare("SELECT COUNT(*) AS n FROM lab_credit_entries WHERE customer_id=? AND kind='generation'").get(owner).n,2);
+    // Re-reading History cannot generate, duplicate refunds or change balances.
+    await req(env,'/api/jobs',{authToken});
+    await req(env,'/api/jobs',{authToken});
+    assert.equal(credits(),1000);
+    assert.equal(sql.prepare("SELECT COUNT(*) AS n FROM lab_credit_entries WHERE customer_id=? AND kind='refund'").get(owner).n,2);
+  }finally{globalThis.fetch=previous;}
+});
+
+test('Gemini 429 batch rejection returns every reserved credit and releases all estimated spend',async()=>{
+  const {env,owner,authToken}=await archiveAccount(true);
+  env.GEMINI_API_KEY='synthetic-gemini-key';
+  const previous=globalThis.fetch;let calls=0;
+  globalThis.fetch=async(url,options)=>{
+    if(new URL(url).hostname!=='generativelanguage.googleapis.com')return previous(url,options);
+    calls++;
+    return Response.json({error:{message:'RESOURCE_EXHAUSTED'}},{status:429});
+  };
+  try{
+    const r=await req(env,'/api/gemini/jobs',{method:'POST',authToken,data:{
+      count:2,settings:{...imageSettings,engine:'gemini',processing:'batch'}
+    }});
+    assert.equal(r.status,202,await r.clone().text());
+    const {jobs}=await r.json();
+    assert.equal(jobs.length,2);
+    assert.ok(jobs.every(j=>j.status==='failed'));
+    assert.equal(env.LAB_DB.db.prepare('SELECT balance_credits FROM lab_customers WHERE id=?').get(owner).balance_credits,1000);
+    assert.equal(env.LAB_DB.db.prepare('SELECT COUNT(*) AS n FROM spend').get().n,0);
+    assert.equal(env.LAB_DB.db.prepare("SELECT COUNT(*) AS n FROM lab_credit_entries WHERE customer_id=? AND kind='refund'").get(owner).n,2);
+    assert.equal(calls,1,'A failed batch is not resubmitted');
+  }finally{globalThis.fetch=previous;}
+});
+
+test('maintenance never interrupts a Gemini job before its 180-second provider timeout and grace period',async()=>{
+  const {env}=fixture(),db=env.LAB_DB.db,t=Date.now();
+  const make=(provider,age)=>{
+    const id=crypto.randomUUID();
+    db.prepare("INSERT INTO jobs(id,owner_id,params,state,created_at,updated_at) VALUES(?,?,?,'submitting',?,?)")
+      .run(id,'owner-internal',JSON.stringify({type:'image',provider,engine:provider==='gemini'?'gemini':'seedream'}),t-age,t-age);
+    return id;
+  };
+  const youngNano=make('gemini',181000),oldNano=make('gemini',241000),oldSeedream=make('spicy',121000);
+  let task;
+  await worker.scheduled({},env,{waitUntil(p){task=p;}});
+  if(task)await task;
+  assert.equal(db.prepare('SELECT state FROM jobs WHERE id=?').get(youngNano).state,'submitting');
+  assert.equal(db.prepare('SELECT state FROM jobs WHERE id=?').get(oldNano).state,'uncertain');
+  assert.equal(db.prepare('SELECT state FROM jobs WHERE id=?').get(oldSeedream).state,'uncertain');
 });
