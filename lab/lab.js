@@ -367,8 +367,19 @@ function clearImageComposerNotice(){
   if(!status)return;
   status.hidden=true;status.replaceChildren();status.classList.remove('is-import-error');
 }
+function isImageContentRestriction(message){
+  // Treat provider moderation refusals separately from input and transport failures.
+  return /content[_\\s-]*policy[_\\s-]*violation|flagged by (?:a )?content (?:checker|filter)|(?:content|safety)[_\\s-]*(?:checker|filter)[_\\s-]*(?:blocked|rejected|flagged)|(?:blocked|rejected|flagged) (?:by|for|due to) (?:a |the )?(?:content|safety|moderation)|moderation[_\\s-]*(?:rejected|blocked|failed)|\\bNSFW\\b|prohibited (?:sexual |adult )?content|sexual(?:ly)? explicit content (?:is )?not allowed/i.test(String(message||''));
+}
+function imageContentGuidance(job){
+  return galleryImageModelName(job)+" couldn't process this request under its content guidelines. Try a different direction or explore another model.";
+}
+function imageCreditsReturned(job){
+  return !!(customerMode&&job?.status==='failed'&&Number(job.creditCost)>0);
+}
 function imageFailureHeading(message){
   const reason=String(message||'').replace(/^Generation failed:\s*/i,'');
+  if(isImageContentRestriction(reason))return 'Content restricted';
   if(/^Image too small for /i.test(reason))return 'Image too small for model';
   if(/^Unsupported image proportions for /i.test(reason))return 'Unsupported image ratio';
   if(/^(?:Image too large for |Batch input too large for |SpicyAPI image uploads are limited|Nano Banana Pro references exceed|Use smaller reference images:|Kling needs |This Batch would exceed|File or request is too large)/i.test(reason)||/\bHTTP 413\b/i.test(reason))return 'Image exceeds model limit';
@@ -386,16 +397,17 @@ function showImageComposerError(message){
   const fileName=large?.[1]||small?.[1]||dimensions?.[1]||proportions?.[1]||format?.[1]||'';
   const originalDimensions=small||dimensions||proportions;
   const measurement=large?large[2]+' MB':originalDimensions?originalDimensions[2]+' × '+originalDimensions[3]+' px':'';
-  const modelHeading=imageFailureHeading(reason),isModelInputError=modelHeading!=='Generation failed';
+  const moderation=isImageContentRestriction(reason);
+  const modelHeading=imageFailureHeading(reason),isModelInputError=modelHeading!=='Generation failed'&&!moderation;
   const isFileError=!!(fileName||reason.startsWith('This image is empty.')||reason.startsWith('No image was provided.')||isModelInputError);
-  const heading=large?'Image too large':small?'Image too small':dimensions?'Image dimensions too large':proportions?'Unsupported proportions':format?'Unsupported format':reason.startsWith('This image is empty.')?'Empty file':isModelInputError?modelHeading:isFileError?'Image unavailable':message.startsWith('Generation failed:')||imageSubmissionPending?'Generation failed':'Request failed';
+  const heading=large?'Image too large':small?'Image too small':dimensions?'Image dimensions too large':proportions?'Unsupported proportions':format?'Unsupported format':reason.startsWith('This image is empty.')?'Empty file':moderation?'Content restricted':isModelInputError?modelHeading:isFileError?'Image unavailable':message.startsWith('Generation failed:')||imageSubmissionPending?'Generation failed':'Request failed';
   const detail=large?'Maximum file size is 20 MB. Compress this image and try again.':
     small?'Minimum dimensions are 240 × 240 px. Choose a larger image.':
     dimensions?'Each side must be 8,000 px or smaller. Resize this image.':
     proportions?'Image proportions exceed the supported 8:1 range.':
     format?'Use a JPG, PNG or WebP image.':
     reason.startsWith('This image is empty.')?'Choose an image containing actual picture data.':
-    reason.startsWith('No image was provided.')?'Drop or browse for an image file.':reason;
+    reason.startsWith('No image was provided.')?'Drop or browse for an image file.':moderation?'This model could not process the request under its content guidelines. Edit the prompt or choose another model.':reason;
   const el=(tag,className,text)=>{const node=document.createElement(tag);node.className=className;if(text!==undefined)node.textContent=text;return node;};
   const icon=el('span','import-toast-icon','!');icon.setAttribute('aria-hidden','true');
   const copy=el('span','import-toast-copy');
@@ -1820,7 +1832,7 @@ async function submitQuotedGeneration(q, expectedEpoch=epoch) {
   resetPreview();autoPreview={id:data.job.id,revision:previewRevision};setActive(data.job);surfaceHistoryJob(data.job);refreshHistorySoon();
   const failed=['failed','uncertain','resolved'].includes(data.job.status);
   const destination=q.settings.mode==='upscale'?'Upscaled images below and Assets':'History';
-  notify(failed?(data.job.error||(q.settings.mode==='upscale'?'The upscale was not confirmed. Check Queue and Upscaled images before trying again.':'The generation was not confirmed. Check History before another attempt.')):
+  notify(failed?(isImageContentRestriction(data.job.error)?'The selected model declined this request under its content guidelines. Edit your prompt or explore another model in History.':data.job.error||(q.settings.mode==='upscale'?'The upscale was not confirmed. Check Queue and Upscaled images before trying again.':'The generation was not confirmed. Check History before another attempt.')):
     (['image','upscale'].includes(q.settings.mode)?(q.settings.mode==='upscale'?'Upscale requested.':'Image requested.')+(q.priceIsEstimate?' Estimated provider charge: '+money(q.estimatedUsd)+' USD. Not a guaranteed maximum. Results appear in '+destination+'.':' Quoted maximum: '+money(q.maxUsd)+' USD. Results appear in '+destination+'.'):'Generation request recorded. You can leave the page and return to History.'),failed);
 }
 $('generate').onclick=()=>{if(tool==='image')return submitImageSnapshot();return action(async()=>{
@@ -1952,9 +1964,9 @@ async function poll(){
       if(!owner||startedEpoch!==epoch)return;
       if(show&&hasResult(chosen))await openVideo(chosen,{scroll:false});
       const ready=finished.filter(hasResult).length,failed=finished.filter(j=>j.status==='failed');
-      if(failed.length)notify('Generation failed: '+(failed.length>1?failed.length+' jobs failed. ':'')+(failed[0].error||'The provider did not return an image. Check History.'),true);
+      if(failed.length)notify(isImageContentRestriction(failed[0].error)?'This model declined the request under its content guidelines. Your prompt is saved in History. Edit it or explore another model.':'Generation failed: '+(failed.length>1?failed.length+' jobs failed. ':'')+(failed[0].error||'The provider did not return an image. Check History.'),true);
       else if(ready)notify(ready===1?'Result saved. View or download it from History.':ready+' results saved. View or download them from History.');
-      else notify(finished[0].error||'No output file was returned. Nothing is available to download.',true);
+      else notify(isImageContentRestriction(finished[0].error)?'This model declined the request under its content guidelines. Edit the prompt or choose another model in History.':finished[0].error||'No output file was returned. Nothing is available to download.',true);
     }
     if(error)notify(error.message,true);
   }catch(e){if(owner&&startedEpoch===epoch)notify(e.message,true);}
@@ -2289,8 +2301,9 @@ function showImageDetail(job,hasOutput,loading=false){
   $('image-lightbox-fit').textContent='Fit';
   $('image-lightbox-fit').disabled=!hasOutput||loading;
   $('image-lightbox-title').textContent=hasOutput||loading?'Image result':'Image record';
-  $('image-detail-status').textContent=job.status?.charAt(0).toUpperCase()+String(job.status||'').slice(1);
-  $('image-detail-status').dataset.status=job.status||'';
+  const contentRestricted=job.status==='failed'&&isImageContentRestriction(job.error);
+  $('image-detail-status').textContent=contentRestricted?'Restricted':job.status?.charAt(0).toUpperCase()+String(job.status||'').slice(1);
+  $('image-detail-status').dataset.status=contentRestricted?'restricted':job.status||'';
   paintImageDetailFavorite();
   filmPanel.hidden=params.moodId!=='hong-kong-nights'||!hasResult(job);
   if(!filmPanel.hidden){
@@ -2334,13 +2347,17 @@ function showImageDetail(job,hasOutput,loading=false){
   $('image-detail-ratio').textContent=params.aspectRatio==='auto'?'Adaptive':String(params.aspectRatio||'Original');
   $('image-detail-created').textContent=detailDate(job.createdAt);
   $('image-detail-references').textContent=String(imageDetailReferenceIds(job).length);
-  $('image-detail-price').textContent=customerMode?(job.estimatedUsd!=null?wallet.jobCharge(job):'Not charged'):job.settledUsd!=null?money(job.settledUsd):job.estimatedUsd!=null?'Estimate '+money(job.estimatedUsd):'Not reported';
-  $('image-detail-dimensions').textContent=loading?(hasOutput?'PREVIEW / LOADING FULL IMAGE…':'Loading image…'):hasOutput?'FIT TO VIEW / ORIGINAL RATIO':'NO RESULT AVAILABLE';
+  $('image-detail-price').textContent=customerMode?(imageCreditsReturned(job)?'Credits returned':job.estimatedUsd!=null?wallet.jobCharge(job):'Not charged'):job.settledUsd!=null?money(job.settledUsd):job.estimatedUsd!=null?'Estimate '+money(job.estimatedUsd):'Not reported';
+  $('image-detail-dimensions').textContent=loading?(hasOutput?'PREVIEW / LOADING FULL IMAGE…':'Loading image…'):hasOutput?'FIT TO VIEW / ORIGINAL RATIO':contentRestricted?'CONTENT RESTRICTION':'NO RESULT AVAILABLE';
   $('image-lightbox-img').hidden=!hasOutput;
-  $('image-lightbox-unavailable').hidden=hasOutput||loading;
+  stage.classList.toggle('is-content-restricted',contentRestricted);
+  $('image-lightbox-content-notice').hidden=!contentRestricted;
+  $('image-lightbox-content-description').textContent=contentRestricted?imageContentGuidance(job):'';
+  $('image-lightbox-content-credits').hidden=!imageCreditsReturned(job);
+  $('image-lightbox-unavailable').hidden=hasOutput||loading||contentRestricted;
   $('image-lightbox-unavailable').textContent=job.status==='uncertain'?'Provider status is unknown. Nothing will be resubmitted automatically.':job.status==='draft'?'Saved draft. Choose Reuse to continue editing.':'No finished output file is available for this record.';
-  $('image-detail-status-help').hidden=!['failed','uncertain'].includes(job.status);
-  $('image-detail-status-help').textContent=job.error||(job.status==='uncertain'?'Verify the provider request before trying again.':'The provider did not return an output.');
+  $('image-detail-status-help').hidden=contentRestricted||!['failed','uncertain'].includes(job.status);
+  $('image-detail-status-help').textContent=contentRestricted?'':job.error||(job.status==='uncertain'?'Verify the provider request before trying again.':'The provider did not return an output.');
   for(const id of ['image-detail-video','image-detail-reference','image-detail-upscale','image-detail-repair','image-detail-edit-area','image-detail-mood','image-detail-save-mood','image-lightbox-download'])
     $(id).disabled=!hasOutput||loading;
   $('image-detail-delete').disabled=activeStates.has(job.status);
@@ -2507,6 +2524,7 @@ $('image-detail-favorite').onclick=async()=>{
   finally{imageDetailFavoritePending.delete(job.id);if(owner&&epoch===requestEpoch)paintImageDetailFavorite();}
 };
 $('image-detail-reuse').onclick=()=>executeImageDetail(restore);
+$('image-lightbox-content-edit').onclick=()=>executeImageDetail(restore);
 $('image-detail-reference').onclick=()=>executeImageDetail(useImageAsReference);
 $('image-detail-mood').onclick=()=>executeImageDetail(applyMoodToImage);
 $('image-detail-save-mood').onclick=()=>{
@@ -3020,6 +3038,7 @@ function renderCards(jobs,{upsert=false}={}){
       card.addEventListener('keydown',event=>{if(event.target!==card||!historySelectMode||!['Enter',' '].includes(event.key))return;event.preventDefault();toggleSelection();});
     }
     const image=j.settings.type==='image',ready=hasResult(j),previews=[];
+    const contentRestricted=image&&j.status==='failed'&&isImageContentRestriction(j.error);
     if(ready&&image){
       const {figure,img}=historyImage(j.outputId,'Generated image',true);previews.push(img);card.append(figure);
       img.tabIndex=0;img.setAttribute('role','button');img.setAttribute('aria-label','View generated image at full size');
@@ -3028,10 +3047,25 @@ function renderCards(jobs,{upsert=false}={}){
       const {figure,img}=historyImage(j.sourceId,'Source thumbnail / generated video ready');previews.push(img);card.append(figure);
     }else{
       const empty=document.createElement('div');empty.className='history-no-result';
-      const title=document.createElement('strong'),detail=document.createElement('span');
-      title.textContent=j.settings.mode==='soul-id-training'&&j.status==='completed'?'Soul ID ready':j.status==='draft'?'Saved draft':j.status==='failed'?imageFailureHeading(j.error):j.status==='uncertain'?'Status unknown':activeStates.has(j.status)?({submitting:'Submitting',queued:'Queued',running:'Generating',saving:'Saving'}[j.status]||'Result pending'):ready?'Video ready':j.status==='completed'?'Output unavailable':'No result';
-      detail.textContent=j.settings.mode==='soul-id-training'&&j.status==='completed'?'Choose this identity from the Soul ID photo tile to generate.':j.status==='draft'?'No generation submitted.':j.status==='failed'?(j.error||'The provider ended this request without a generated file.'):j.status==='uncertain'?'PV Lab could not confirm the provider state. Check the provider before retrying; nothing will be resubmitted automatically.':activeStates.has(j.status)?'The finished output will appear here.':ready?'View or download your generated video below.':'No generated file is available to view or download.';
-      empty.append(title,detail);card.append(empty);
+      if(contentRestricted){
+        empty.classList.add('is-content-restricted');
+        const kicker=document.createElement('small');kicker.className='content-restriction-kicker';kicker.textContent='PV LAB / CONTENT GUIDELINES';
+        const title=document.createElement('strong');title.textContent='Not with this model.';
+        const detail=document.createElement('p');detail.className='content-restriction-copy';detail.textContent=imageContentGuidance(j);
+        const edit=button('Edit in Studio ↗',()=>restore(j));edit.classList.add('content-restriction-edit');
+        const foot=document.createElement('div');foot.className='content-restriction-foot';
+        const saved=document.createElement('small');saved.textContent='Your prompt is saved.';foot.append(saved);
+        if(imageCreditsReturned(j)){
+          const refunded=document.createElement('small');refunded.className='content-restriction-credits';refunded.textContent='Credits returned';foot.append(refunded);
+        }
+        empty.append(kicker,title,detail,edit,foot);
+      }else{
+        const title=document.createElement('strong'),detail=document.createElement('span');
+        title.textContent=j.settings.mode==='soul-id-training'&&j.status==='completed'?'Soul ID ready':j.status==='draft'?'Saved draft':j.status==='failed'?imageFailureHeading(j.error):j.status==='uncertain'?'Status unknown':activeStates.has(j.status)?({submitting:'Submitting',queued:'Queued',running:'Generating',saving:'Saving'}[j.status]||'Result pending'):ready?'Video ready':j.status==='completed'?'Output unavailable':'No result';
+        detail.textContent=j.settings.mode==='soul-id-training'&&j.status==='completed'?'Choose this identity from the Soul ID photo tile to generate.':j.status==='draft'?'No generation submitted.':j.status==='failed'?(j.error||'The provider ended this request without a generated file.'):j.status==='uncertain'?'PV Lab could not confirm the provider state. Check the provider before retrying; nothing will be resubmitted automatically.':activeStates.has(j.status)?'The finished output will appear here.':ready?'View or download your generated video below.':'No generated file is available to view or download.';
+        empty.append(title,detail);
+      }
+      card.append(empty);
     }
     const body=document.createElement('div');body.className='cardbody';
     const meta=document.createElement('div');meta.className='cardmeta';
@@ -3080,7 +3114,7 @@ function renderCards(jobs,{upsert=false}={}){
     const provider=jobProvider(j),falEstimate=provider==='fal'&&j.estimatedUsd!=null;
     cost.textContent=customerMode?(j.estimatedUsd==null?'Draft / no credits used':j.status==='failed'?'Credits refunded after confirmed failure: '+wallet.jobCharge(j):j.status==='uncertain'?'Credits reserved, provider status unknown: '+wallet.jobCharge(j):'PV Lab charge: '+wallet.jobCharge(j)):j.settledUsd!=null?'Provider settled: '+money(j.settledUsd):falEstimate&&j.status==='failed'?'Lab estimate released: '+money(j.estimatedUsd)+' · provider billing not reported':falEstimate&&j.status==='uncertain'?'Lab estimate reserved: '+money(j.estimatedUsd)+' · provider status unknown':falEstimate?'Lab estimate reserved: '+money(j.estimatedUsd):j.estimatedUsd!=null?'Budget reserved: '+money(j.estimatedUsd):'Draft / no generation charge';
     body.append(meta,p,actions,cost);if(canReconcile){const help=document.createElement('p');help.className='fine';help.textContent='Find the original request; never submits a generation.';body.append(help);}if(j.settings.transferNotes?.length){const note=document.createElement('p');note.className='fine history-error';note.textContent=j.settings.transferNotes.join(' ');body.append(note);}
-    if(j.error){const error=document.createElement('p');error.className='fine history-error';error.textContent=j.error;body.append(error);}
+    if(j.error&&!contentRestricted){const error=document.createElement('p');error.className='fine history-error';error.textContent=j.error;body.append(error);}
     if(!ready&&j.sourceId){
       const refs=document.createElement('details');refs.className='history-source';const summary=document.createElement('summary');summary.textContent='Uploaded reference / not a result';
       const {figure,img}=historyImage(j.sourceId,'Original uploaded reference');previews.push(img);refs.append(summary,figure);body.append(refs);
