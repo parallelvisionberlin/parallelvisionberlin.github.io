@@ -282,7 +282,7 @@
 }
 .composer-model-menu {
   position:absolute;left:0;bottom:calc(100% + 8px);
-  width:min(425px,calc(100vw - 42px));max-height:var(--pv-model-menu-available,calc(100dvh - 150px));
+  width:min(425px,calc(100vw - 42px));height:var(--pv-model-menu-available,calc(100dvh - 150px));max-height:var(--pv-model-menu-available,calc(100dvh - 150px));
   display:flex;flex-direction:column;z-index:120;
   padding:9px;border:1px solid #484b50;border-radius:18px;
   background:linear-gradient(180deg,#242629,#212326);box-shadow:0 20px 75px rgba(0,0,0,.74);
