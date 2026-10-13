@@ -3,8 +3,9 @@
 // public signup grant, browser token, payment-link or bypass route is used.
 //
 // The allowlist is a separate encrypted Cloudflare Worker secret. Until it
-// is set to a valid exact Clerk subject, all users remain gated by the normal
-// public launch switches. Production checks stay false in wrangler.toml.
+// is set to a valid exact Clerk subject, customers are governed by both
+// production rollout switches. The switches may be enabled by an authorized
+// commercial release without changing the owner workspace.
 const SUBJECT=/^user_[A-Za-z0-9]+$/;
 export function isPrivateLivePilot(env,subject) {
   return env.LAB_CHECKOUT_ENABLED!=='true' &&
