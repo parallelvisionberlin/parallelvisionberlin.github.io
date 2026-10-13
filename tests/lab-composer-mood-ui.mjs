@@ -249,15 +249,22 @@ try{
   await x.page.locator('#reference-images').setInputFiles({name:'base.png',mimeType:'image/png',buffer:png});
   await waitRefs(x.page,1);
   await x.page.click('#image-composer-moods');
+  await x.page.mouse.move(0,0);
   const moodAppearance=await x.page.evaluate(()=>{
     const mood=document.querySelector('#image-composer-moods'),retouch=document.querySelector('#image-composer-edit-area');
     const value=getComputedStyle(mood),neighbor=getComputedStyle(retouch);
-    return {background:value.backgroundImage,color:value.color,height:mood.getBoundingClientRect().height,retouchBackground:neighbor.backgroundImage};
+    return {background:value.backgroundColor,gradient:value.backgroundImage,color:value.color,height:mood.getBoundingClientRect().height,retouchBackground:neighbor.backgroundColor};
   });
-  assert.match(moodAppearance.background,/linear-gradient/,'Moods must read as electric citron, not a neutral control');
-  assert.equal(moodAppearance.color,'rgb(25, 34, 15)','Citron needs readable dark lettering');
-  assert.equal(moodAppearance.retouchBackground,'none','Retouch must remain neutral');
+  assert.equal(moodAppearance.background,moodAppearance.retouchBackground,'Idle Moods must match the neighboring dark control');
+  assert.equal(moodAppearance.background,'rgb(35, 37, 35)');
+  assert.equal(moodAppearance.gradient,'none','Opening the Mood picker must not look selected');
+  assert.equal(moodAppearance.color,'rgb(214, 255, 0)','Idle icon and letters use electric citron');
   assert.ok(moodAppearance.height>=39&&moodAppearance.height<=43,'Moods must stay aligned with neighboring controls: '+JSON.stringify(moodAppearance));
+  await x.page.hover('#image-composer-moods');
+  const idleHover=await x.page.locator('#image-composer-moods').evaluate(el=>({background:getComputedStyle(el).backgroundColor,gradient:getComputedStyle(el).backgroundImage}));
+  assert.equal(idleHover.background,'rgb(45, 48, 44)','Idle hover remains dark');
+  assert.equal(idleHover.gradient,'none','Hover never activates an unselected Mood');
+  await x.page.mouse.move(0,0);
   const beforeMood=await x.page.evaluate(()=>{
     const modal=document.querySelector('#composer-moods');
     const card=document.querySelector('.moods-card-media');
@@ -290,6 +297,10 @@ try{
   assert.equal(await hongKong.getAttribute('aria-pressed'),'true');
   await hongKong.click();
   assert.equal(await hongKong.getAttribute('aria-pressed'),'false','Clicking the selected mood again deselects it.');
+  const deselectedLook=await x.page.locator('#image-composer-moods').evaluate(el=>({background:getComputedStyle(el).backgroundColor,gradient:getComputedStyle(el).backgroundImage,color:getComputedStyle(el).color}));
+  assert.equal(deselectedLook.background,'rgb(35, 37, 35)','Deselecting returns to the dark Mood control');
+  assert.equal(deselectedLook.gradient,'none');
+  assert.equal(deselectedLook.color,'rgb(214, 255, 0)');
   assert.equal(await x.page.locator('#composer-moods-selection').isHidden(),true);
   assert.equal(await x.page.locator('#composer-moods-summary').textContent(),'');
   assert.equal(await x.page.locator('#composer-moods-done').isDisabled(),true);
