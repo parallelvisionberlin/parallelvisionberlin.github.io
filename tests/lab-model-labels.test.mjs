@@ -18,6 +18,8 @@ const cases=[
   [{engine:'flash',provider:'openrouter',model:'bytedance-seed/seedream-5-0-flash'},'Seedream Flash'],
   [{engine:'kling',model:'fal-ai/kling-image/v3/text-to-image'},'Kling V3'],
   [{engine:'gemini',model:'gemini-3-pro-image'},'Nano Banana Pro'],
+  [{engine:'gemini21',model:'gemini-nano-banana-2.1'},'Nano Banana 2.1'],
+  [{engine:'gemini21'},'Nano Banana 2.1'],
   [{engine:'soulpro',soulProModel:'ideogram45',model:'ideogram/v4.5/edit'},'Ideogram 4.5'],
   [{engine:'soulpro',soulProModel:'kontextmax',model:'fal-ai/flux-pro/kontext/max/multi'},'FLUX Kontext Max'],
   [{engine:'soulpro',soulProModel:'soul2',model:'higgsfield-ai/soul/v2/image-to-image'},'Higgsfield Soul 2'],

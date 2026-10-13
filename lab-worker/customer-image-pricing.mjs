@@ -1,7 +1,7 @@
 // Customer Image pricing preview for routes whose charge is derived from a
 // server-side model rate instead of a vendor's bound quote. No provider calls,
 // wallet mutations, jobs, reservations or payouts occur here.
-import {creditsForUsd} from './customer-billing.mjs';
+import {creditsForJobUsd} from './job-pricing.mjs';
 import {IMAGE_PRICES} from './image-models.mjs';
 import {soulProEstimateMicros} from './soul-pro.mjs';
 import {controlledPoseEstimateMicros} from './fal-controlled-pose.mjs';
@@ -13,7 +13,8 @@ export function quoteCustomerImageCredits(p,count,{geminiEstimateMicros}={}){
   if(['flash','kling'].includes(p.engine)){
     if(count>4)throw new Error('This model supports up to four images.');
     estimatedMicros=IMAGE_PRICES[p.engine];
-  }else if(p.engine==='gemini'){
+  }else if(['gemini','gemini21'].includes(p.engine)){
+    if(p.engine==='gemini21'&&p.processing==='batch')throw new Error('Nano Banana 2.1 does not use Batch.');
     if(p.processing!=='batch'&&count>4)throw new Error('This model supports up to four normal images.');
     if(p.processing==='batch'&&![1,2,4,10,20].includes(count))
       throw new Error('Choose a supported batch size.');
@@ -29,7 +30,7 @@ export function quoteCustomerImageCredits(p,count,{geminiEstimateMicros}={}){
     throw new Error('This model requires a live, bound provider quote.');
   }
   if(!Number.isSafeInteger(estimatedMicros)||estimatedMicros<=0)throw new Error('Model rate unavailable.');
-  const each=creditsForUsd(estimatedMicros/1e6);
+  const each=creditsForJobUsd(estimatedMicros/1e6,p);
   return Object.freeze({
     kind:'server-estimate',source:'backend-model-rate',
     credits:each*count,perImageCredits:each,count,

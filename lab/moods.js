@@ -266,7 +266,7 @@ export function moodPreviewURL(mood,{detail=false}={}){
   return detail?(mood.previewFull||mood.preview):mood.preview;
 }
 
-export const MOOD_MODELS=Object.freeze(['seedream','seedreamlite','gemini','qwen3','zspicy']);
+export const MOOD_MODELS=Object.freeze(['seedream','seedreamlite','gemini','gemini21','qwen3','zspicy']);
 export const moodById=id=>ALL_MOODS.find(m=>m.id===id)||null;
 // This is intentionally presentation-only. Jobs retain the full provider prompt for
 // reproduction, but the viewer and History show only user-authored text.

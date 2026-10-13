@@ -23,7 +23,7 @@ const descriptions = Object.freeze({
   none:'General visual reference: optional cues only; never override the Base, specified roles or requested edit.'
 });
 export function supportsReferenceGuidance(p){
-  return p?.type==='image' && p.mode==='image' && (!p.engine || ['seedream','seedreamlite','gemini','flash','kling','qwen3'].includes(p.engine));
+  return p?.type==='image' && p.mode==='image' && (!p.engine || ['seedream','seedreamlite','gemini','gemini21','flash','kling','qwen3'].includes(p.engine));
 }
 export function normalizeReferenceLabel(x){
   const role=REFERENCE_ROLES.some(([id])=>id===x?.role)?x.role:'none';
@@ -32,7 +32,7 @@ export function normalizeReferenceLabel(x){
   return label;
 }
 export function builtInMoodReferenceCount(settings={}){
-  return settings.type==='image'&&settings.mode==='image'&&['berlin-rave','dreamcore','synthetic-romance'].includes(settings.moodId)&&['seedream','seedreamlite','gemini'].includes(settings.engine)?3:0;
+  return settings.type==='image'&&settings.mode==='image'&&['berlin-rave','dreamcore','synthetic-romance'].includes(settings.moodId)&&['seedream','seedreamlite','gemini','gemini21'].includes(settings.engine)?3:0;
 }
 export function referenceGuidanceError(labels,settings={}){
   if(builtInMoodReferenceCount(settings)&&labels.length>7)return ({'dreamcore':'Dreamcore','synthetic-romance':'Synthetic Romance','berlin-rave':'Berlin Rave'}[settings.moodId])+' accepts up to 7 uploaded photos. Remove a photo or choose another mood.';

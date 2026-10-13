@@ -1654,3 +1654,32 @@ test('maintenance never interrupts a Gemini job before its 180-second provider t
   assert.equal(db.prepare('SELECT state FROM jobs WHERE id=?').get(oldNano).state,'uncertain');
   assert.equal(db.prepare('SELECT state FROM jobs WHERE id=?').get(oldSeedream).state,'uncertain');
 });
+
+test('Nano Banana 2.1 submits to direct Google Interactions and archives the output in private R2',async()=>{
+  const {env,objects}=fixture();env.GEMINI_API_KEY='synthetic-gemini-key';const id=await setup(env);
+  const origGet=env.LAB_MEDIA.get;
+  env.LAB_MEDIA.get=async k=>{const obj=await origGet(k);return obj?{...obj,arrayBuffer:async()=>objects.get(k).slice().buffer}:null;};
+  const old=globalThis.fetch;let sent,number=0;
+  globalThis.fetch=async(url,options={})=>{
+    if(new URL(url).hostname!=='generativelanguage.googleapis.com')return old(url,options);
+    number++;assert.equal(new URL(url).pathname,'/v1beta/interactions');
+    assert.equal(new Headers(options.headers).get('x-goog-api-key'),'synthetic-gemini-key');
+    assert.equal(options.redirect,'manual');sent=JSON.parse(options.body);
+    return Response.json({model:'gemini-nano-banana-2.1',status:'completed',
+      steps:[{type:'model_output',content:[{type:'image',mime_type:'image/png',
+        data:Buffer.from([137,80,78,71,13,10,26,10,0]).toString('base64')}]}]});
+  };
+  try{
+    const settings={...imageSettings,engine:'gemini21',processing:'normal',resolution:'2k',prompt:'A fashion portrait',referenceRoles:[{role:'base'}]};
+    const r=await req(env,'/api/gemini/jobs',{method:'POST',data:{count:1,referenceSourceIds:[id],settings}});
+    assert.equal(r.status,202,await r.clone().text());const job=(await r.json()).jobs[0];
+    assert.equal(job.status,'completed');assert.equal(job.settings.model,'gemini-nano-banana-2.1');
+    assert.equal(job.creditCost,10);assert.equal(job.estimatedUsd,0.0504);
+    assert.equal(sent.model,'gemini-nano-banana-2.1');
+    assert.deepEqual(sent.response_format,{type:'image',image_size:'2K'});
+    assert.equal(sent.input[0].type,'text');assert.equal(sent.input[1].type,'image');
+    const asset=env.LAB_DB.db.prepare('SELECT object_key FROM assets WHERE id=?').get(job.outputId);
+    assert.deepEqual([...objects.get(asset.object_key)],[137,80,78,71,13,10,26,10,0]);
+    assert.equal(number,1);
+  }finally{globalThis.fetch=old;}
+});

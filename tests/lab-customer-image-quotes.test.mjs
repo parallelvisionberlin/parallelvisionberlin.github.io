@@ -18,6 +18,12 @@ test('backend-rated image quote uses current model costs and counts, never clien
   const batch=quoteCustomerImageCredits({type:'image',engine:'gemini',processing:'batch'},20,{geminiEstimateMicros:()=>67000});
   assert.equal(batch.credits,creditsForUsd(.067)*20);
   assert.throws(()=>quoteCustomerImageCredits({type:'image',engine:'gemini',processing:'normal'},20,{geminiEstimateMicros:()=>134000}),/four normal/);
+  for(const [res,cost,credits] of [['1k',33600,8],['2k',50400,10],['4k',113000,20]]){
+    const p={type:'image',provider:'gemini',engine:'gemini21',model:'gemini-nano-banana-2.1',processing:'normal',resolution:res};
+    const q=quoteCustomerImageCredits(p,2,{geminiEstimateMicros:()=>cost});
+    assert.equal(q.credits,2*credits);
+    assert.equal(q.perImageCredits,credits);
+  }
   assert.throws(()=>quoteCustomerImageCredits({type:'image',engine:'seedream'},1),/bound provider quote/);
   assert.throws(()=>quoteCustomerImageCredits({type:'image',engine:'flash'},0),/supported image count/);
 });

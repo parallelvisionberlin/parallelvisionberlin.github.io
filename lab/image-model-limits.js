@@ -19,12 +19,12 @@ export function modelImageInputIssue(engine, items = [], {count = 1, processing 
   if (engine === 'flash' && total > 16 * MIB)
     return 'Image too large for Seedream Flash: ' + mib(total) + ' MiB across ' + refs.length +
       ' reference image(s). This model accepts a maximum of 16 MiB combined. Compress or remove references. No generation submitted.';
-  if (engine === 'gemini' && total > 14 * MIB)
-    return 'Image too large for Nano Banana Pro: ' + mib(total) + ' MiB across ' + refs.length +
-      ' reference image(s). This Lab supports a maximum of 14 MiB combined for Nano Banana Pro. Compress or remove references. No generation submitted.';
+  if (['gemini','gemini21'].includes(engine) && total > 14 * MIB)
+    return 'Image too large for Nano Banana: ' + mib(total) + ' MiB across ' + refs.length +
+      ' reference image(s). This Lab supports a maximum of 14 MiB combined for Nano Banana. Compress or remove references. No generation submitted.';
   const requested = Math.max(1, Number(count) || 1);
   if (engine === 'gemini' && processing === 'batch' && total * requested * 1.38 > 18 * MIB)
-    return 'Batch input too large for Nano Banana Pro: ' + refs.length + ' reference image(s) repeated across ' +
+    return 'Batch input too large for Nano Banana: ' + refs.length + ' reference image(s) repeated across ' +
       requested + ' generations exceed the Google inline-batch limit. Use fewer references, smaller files or Normal mode. No generation submitted.';
   if (engine === 'kling') {
     for (const item of refs) {

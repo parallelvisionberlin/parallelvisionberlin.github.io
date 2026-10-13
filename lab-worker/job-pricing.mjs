@@ -1,6 +1,7 @@
 // PV LAB pricing policy, only the server controls customer prices.
 // The provider's bound *maximum* quote is always charged/reserved before a job.
 // Existing jobs and subscriptions keep their original immutable ledger entries.
+import {NANO21_CREDITS,isNano21Job} from './nano-banana-21.mjs';
 export const DEFAULT_CREDITS_PER_USD=460;
 export const MODEL_CREDITS_PER_USD=Object.freeze({
   seedance15:320,
@@ -23,6 +24,8 @@ export function creditsPerUsdForJob(settings={}){
 }
 export function creditsForJobUsd(usd,settings={}){
   if(!Number.isFinite(usd)||usd<0)throw Error('Invalid provider quote.');
+  // Fixed introductory price for exact Google Nano Banana 2.1 routes only.
+  if(isNano21Job(settings))return NANO21_CREDITS[settings.resolution];
   // All customer job quote amounts round upward. Minimum applies to all models.
   return Math.max(7,Math.ceil(Math.round(usd*1000000)*creditsPerUsdForJob(settings)/1000000));
 }

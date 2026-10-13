@@ -9,7 +9,8 @@ const exactModelNames=Object.freeze([
   [/^alibaba\/qwen-image-3\.0\//,'Qwen Image 3.0'],
   [/^alibaba\/z-image-spicy\//,'Z-Image Spicy'],
   [/^fal-ai\/kling-image\/v3\//,'Kling V3'],
-  [/^gemini-3-pro-image(?:-|$)/,'Nano Banana Pro']
+  [/^gemini-3-pro-image(?:-|$)/,'Nano Banana Pro'],
+  [/^gemini-nano-banana-2\.1(?:-|$)/,'Nano Banana 2.1']
 ]);
 
 const engineNames=Object.freeze({
@@ -19,7 +20,8 @@ const engineNames=Object.freeze({
   qwen3:'Qwen Image 3.0',
   zspicy:'Z-Image Spicy',
   kling:'Kling V3',
-  gemini:'Nano Banana Pro'
+  gemini:'Nano Banana Pro',
+  gemini21:'Nano Banana 2.1'
 });
 
 export function imageModelLabel(settings={}){

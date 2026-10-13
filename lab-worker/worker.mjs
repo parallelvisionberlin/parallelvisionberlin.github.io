@@ -23,6 +23,7 @@ import {seedanceParameters, prepareSeedance, REFERENCE_MIME, sniffReference} fro
 import {seedanceVariantParameters,prepareSeedanceVariant} from './seedance-variants.mjs';
 import {seedreamLiteParameters,seedreamLiteInput,SEEDREAM_LITE_TEXT,SEEDREAM_LITE_EDIT} from './seedream-lite.mjs';
 import {creditsForJobUsd} from './job-pricing.mjs';
+import {NANO21_MODEL,NANO21_STANDARD_MICROS,nano21Request,nano21ImagePart} from './nano-banana-21.mjs';
 import {FAL_CONTROLLED_POSE,FAL_CONTROLLED_INPAINT,FAL_DWPOSE,controlledPoseParameters,controlledRepairParameters,controlledPoseRefs,controlledRepairRefs,controlledPoseEstimateMicros,controlledRepairEstimateMicros,buildControlledPoseInput,buildRepairInput,falSubmit,falStatus,falResult,falAwait} from './fal-controlled-pose.mjs';
 import {falVideoParameters,falVideoEstimateMicros,buildFalVideoInput} from './fal-video.mjs';
 import {falUpscaleParameters,storedImageDimensions,setFalUpscaleDimensions,falUpscaleEstimateMicros,buildFalUpscaleInput} from './fal-upscale.mjs';
@@ -36,7 +37,7 @@ import {SYNTHETIC_ROMANCE_REFERENCES,SYNTHETIC_ROMANCE_REFERENCE_VERSION} from '
 import {moodBoardsRoute} from './moodboards.mjs';
 import {moodCreatorRoute} from './mood-creator-service.mjs';
 import {characterPreview as soulCharacterPreview,SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-13.3-gemini-safe-recovery';
+export const VERSION = 'pv-lab-2026-10-14.1-google-nano21';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -227,7 +228,7 @@ function parameters(value) {
   const prompt=typeof value.prompt==='string'?value.prompt.trim():'';
   const referenceMode=value.referenceMode==='references'?'references':'base';
   const referenceRoles=referenceLabels(value.referenceRoles,value.type==='image'&&value.engine==='flash'?14:10);
-  if(value.type==='image'&&['seedream','seedreamlite','gemini','flash','kling','qwen3'].includes(value.engine)&&referenceMode==='references'){
+  if(value.type==='image'&&['seedream','seedreamlite','gemini','gemini21','flash','kling','qwen3'].includes(value.engine)&&referenceMode==='references'){
     for(const r of referenceRoles)if(r.role==='base')r.role='none';
     if(!value.aspectRatio||value.aspectRatio==='auto')value={...value,aspectRatio:'16:9'};
   }
@@ -248,10 +249,11 @@ function parameters(value) {
     if(!soulRatios.includes(ratio)||!['png','jpeg'].includes(value.outputFormat||'jpeg'))fail(400,'Choose a supported PV Soul aspect ratio and PNG or JPEG.');
     return {type:'image',provider:'spicy',engine:'soul',model:SOUL_TEXT_MODEL,mode:'image',prompt,characterId:value.characterId,identityStrength:strength,resolution:'native',aspectRatio:ratio,outputFormat:value.outputFormat||'jpeg',referenceRoles};
   }
-  if(value.type==='image'&&value.engine==='gemini'){
-    const processing=value.processing==='batch'?'batch':'normal',ratio=value.aspectRatio||'auto';
-    if(prompt.length>5000||!['1k','2k','4k'].includes(value.resolution)||!GEMINI_RATIOS.includes(ratio))fail(400,'Nano Banana Pro supports 1K, 2K or 4K and the listed image ratios. Maximum prompt length is 5,000.');
-    return {type:'image',provider:'gemini',engine:'gemini',processing,referenceMode,model:GEMINI_MODEL,mode:'image',prompt,resolution:value.resolution,aspectRatio:ratio,outputFormat:'auto',referenceRoles,...imageMoodMetadata(value)};
+  if(value.type==='image'&&['gemini','gemini21'].includes(value.engine)){
+    const is21=value.engine==='gemini21',processing=value.processing==='batch'?'batch':'normal',ratio=value.aspectRatio||'auto';
+    if(is21&&processing==='batch')fail(400,'Nano Banana 2.1 uses immediate generation, not Batch.');
+    if(prompt.length>5000||!['1k','2k','4k'].includes(value.resolution)||!GEMINI_RATIOS.includes(ratio))fail(400,'Nano Banana supports 1K, 2K or 4K and the listed image ratios. Maximum prompt length is 5,000.');
+    return {type:'image',provider:'gemini',engine:value.engine,processing,referenceMode,model:is21?NANO21_MODEL:GEMINI_MODEL,mode:'image',prompt,resolution:value.resolution,aspectRatio:ratio,outputFormat:'auto',referenceRoles,...imageMoodMetadata(value)};
   }
   if(value.type==='image'){
     if(prompt.length>5000||!['1k','2k'].includes(value.resolution)||!RATIOS.includes(value.aspectRatio||'1:1'))fail(400,'Choose 1K or 2K and a supported image ratio. Maximum prompt length is 5,000.');
@@ -519,7 +521,7 @@ async function media(request,env,a) {
   if(partial)h.set('Content-Range',`bytes ${partial.offset}-${partial.offset+partial.length-1}/${obj.size}`);
   return new Response(request.method==='HEAD'?null:obj.body,{status:partial?206:200,headers:h});
 }
-function jobView(j) {const p=JSON.parse(j.params);return {creditCost:j.estimate_microusd>0?(Number.isSafeInteger(p.customerChargeCredits)&&p.customerChargeCredits>=7?p.customerChargeCredits:creditsForUsd(j.estimate_microusd/1000000)):null,id:j.id,sourceId:j.source_id,settings:JSON.parse(j.params),status:j.state,outputId:j.output_id,estimatedUsd:j.estimate_microusd>0?j.estimate_microusd/1000000:null,settledUsd:j.settled_cost,providerTaskId:j.provider_id,error:j.error,createdAt:j.created_at,updatedAt:j.updated_at};}
+function jobView(j) {const p=JSON.parse(j.params);return {creditCost:j.estimate_microusd>0?(Number.isSafeInteger(p.customerChargeCredits)&&p.customerChargeCredits>=7?p.customerChargeCredits:creditsForJobUsd(j.estimate_microusd/1000000,p)):null,id:j.id,sourceId:j.source_id,settings:JSON.parse(j.params),status:j.state,outputId:j.output_id,estimatedUsd:j.estimate_microusd>0?j.estimate_microusd/1000000:null,settledUsd:j.settled_cost,providerTaskId:j.provider_id,error:j.error,createdAt:j.created_at,updatedAt:j.updated_at};}
 function safeVideoUrl(value) {
   const u=new URL(value);const host=u.hostname.toLowerCase();
   if(u.protocol!=='https:'||u.username||u.password||(u.port&&u.port!=='443')||!(host==='spicyapi.ai'||host.endsWith('.spicyapi.ai')||host==='higgsfield.ai'||host.endsWith('.higgsfield.ai')||host==='fal.media'||host.endsWith('.fal.media')||host==='cdn.fashn.ai'||host==='media.fashn.ai'||host.endsWith('.r2.cloudflarestorage.com')||host.endsWith('.cloudfront.net')))throw new Error('Unexpected provider output location.');
@@ -734,6 +736,7 @@ async function backfillFailureDetails(env) {
 
 
 function geminiEstimateMicros(p){
+  if(p.engine==='gemini21')return NANO21_STANDARD_MICROS[p.resolution];
   const standard=p.resolution==='4k'?240000:134000;
   return p.processing==='batch'?Math.ceil(standard/2):standard;
 }
@@ -803,7 +806,7 @@ async function geminiFetch(env,path,{method='GET',body:payload,timeout=60000}={}
 }
 async function geminiParts(env,owner,p,referenceSourceIds=[]){
   const ids=Array.isArray(referenceSourceIds)?referenceSourceIds:[];
-  if(ids.length>10)fail(400,'Nano Banana Pro accepts up to 10 image references in this Lab.');
+  if(ids.length>10)fail(400,'Nano Banana accepts up to 10 uploaded image references in this Lab.');
   const refs=ids.length?await sources(env,owner,ids):[];p.referenceSourceIds=refs.map(a=>a.id);
   const parts=[{text:assembledPrompt(p)}];
   const builtIn=builtInMoodReferences(p);
@@ -1366,7 +1369,7 @@ async function route(request,env,ctx) {
   if(path==='/api/gemini/jobs'&&method==='POST') {
     if(!env.GEMINI_API_KEY)fail(503,'Gemini API key is not configured on this Worker.');
     const data=await body(request),p=parameters(data.settings);
-    if(p.provider!=='gemini'||p.engine!=='gemini'||(!p.prompt&&!(Array.isArray(data.referenceSourceIds)&&data.referenceSourceIds.length>0)))fail(400,'Choose Nano Banana Pro and add a prompt or reference photograph.');
+    if(p.provider!=='gemini'||!['gemini','gemini21'].includes(p.engine)||(!p.prompt&&!(Array.isArray(data.referenceSourceIds)&&data.referenceSourceIds.length>0)))fail(400,'Choose Nano Banana Pro and add a prompt or reference photograph.');
     const count=Number(data.count||1),max=p.processing==='batch'?20:1;
     if(!Number.isInteger(count)||count<1||count>max)fail(400,p.processing==='batch'?'Batch supports 1 to 20 images.':'Normal mode submits one Nano Banana Pro image per request.');
     const geminiSql="(COALESCE(json_extract(params,'$.provider'),'')='gemini' OR COALESCE(json_extract(params,'$.engine'),'')='gemini' OR COALESCE(json_extract(params,'$.model'),'') LIKE 'gemini-%')";
@@ -1396,9 +1399,14 @@ async function route(request,env,ctx) {
     if(p.processing==='normal'){
       const id=ids[0],j=await first(env,'SELECT * FROM jobs WHERE id=?',id);
       try{
-        const response=await geminiFetch(env,'/models/'+GEMINI_MODEL+':generateContent',{method:'POST',body:geminiGenerateRequest(p,prepared.parts),timeout:180000});
-        await run(env,"UPDATE jobs SET provider_id='gemini-standard',state='saving',updated_at=? WHERE id=?",now(),id);
-        await saveGeminiImage(env,{...j,provider_id:'gemini-standard'},response);
+        const is21=p.engine==='gemini21';
+        const response=await geminiFetch(env,is21?'/interactions':'/models/'+GEMINI_MODEL+':generateContent',{
+          method:'POST',body:is21?nano21Request(p,prepared.parts):geminiGenerateRequest(p,prepared.parts),timeout:180000
+        });
+        // Interactions 2.1 and generateContent Pro both use the established private R2 save path.
+        const normalized=is21?(()=>{const output=nano21ImagePart(response);return {candidates:[{content:{parts:[{inlineData:{mimeType:output.mime,data:output.data}}]}}]};})():response;
+        await run(env,"UPDATE jobs SET provider_id=?,state='saving',updated_at=? WHERE id=?",is21?'gemini-interactions':'gemini-standard',now(),id);
+        await saveGeminiImage(env,{...j,provider_id:is21?'gemini-interactions':'gemini-standard'},normalized);
       }catch(e){
         const certain=e.definite!==false;
         await run(env,'UPDATE jobs SET state=?,error=?,updated_at=? WHERE id=?',certain?'failed':'uncertain',String(e.message||'Gemini generation failed.').slice(0,500),now(),id);
