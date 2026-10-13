@@ -38,6 +38,8 @@ test('A stale selected engine cannot override a confirmed different provider mod
  assert.equal(imageModelLabel({engine:'seedream',model:'bytedance/seedream-5.0-lite/edit'}),'Seedream 5 Lite');
  assert.equal(imageModelLabel({engine:'seedreamlite',model:'bytedance/seedream-5.0-pro/edit'}),'Seedream 5 Pro');
  assert.equal(imageModelLabel({engine:'gemini',model:'alibaba/qwen-image-3.0/edit'}),'Qwen Image 3.0');
+ assert.equal(imageModelLabel({engine:'seedream',model:'another-provider/new-model'}),'Image model');
+ assert.equal(imageModelLabel({engine:'soulpro',soulProModel:'ideogram45',model:'higgsfield-ai/soul/v2/image-to-image'}),'Higgsfield Soul 2');
 });
 test('Unknown or incomplete records are never silently called Seedream Pro',()=>{
  for(const unknown of [{},null,{engine:'experimental',model:'next-gen/something'},{provider:'spicy'}])
