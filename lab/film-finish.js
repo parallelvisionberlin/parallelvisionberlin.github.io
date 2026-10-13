@@ -1,6 +1,7 @@
 // Photochemical finishing is a separate local imaging step; no second AI generation.
 // Version 1 remains readable for previously saved Hong Kong Nights results.
 export const FILM_FINISH_VERSION=2;
+export const FILM_FINISH_RENDER_REVISION=6;
 export const HONG_KONG_FILM_FINISH=Object.freeze({version:2,grain:36,haze:42,halation:22,film:65});
 export const FILM_FINISH_OFF=Object.freeze({version:2,grain:0,haze:0,halation:0,film:0});
 const valid=n=>Number.isInteger(n)&&n>=0&&n<=100;

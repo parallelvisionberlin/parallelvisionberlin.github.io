@@ -38,7 +38,7 @@ try{
       if(request.method()==='POST'){
         writes.push(u.pathname);assert.equal(u.pathname,'/api/jobs/film-job/film-finish','Only pixel processing may be submitted');
         const data=request.postDataJSON();assert.equal(data.outputId,job.outputId);assert.equal(data.settings.version,2);assert.equal(data.settings.grain,85);assert.equal(data.settings.haze,40);assert.equal(data.settings.halation,22);assert.equal(data.settings.film,70);
-        job={...job,outputId:'finished',settings:{...job.settings,filmOriginalId:'original',filmFinish:data.settings,filmFinishStatus:'applied'}};return send({job});
+        job={...job,outputId:'finished',settings:{...job.settings,filmOriginalId:'original',filmFinish:data.settings,filmFinishStatus:'applied',filmFinishRevision:6}};return send({job});
       }
       if(u.pathname==='/api/jobs')return send({jobs:[job],activeJobs:[],next:null});
       if(u.pathname.startsWith('/api/assets/')){const done=u.pathname.includes('/finished');return route.fulfill({contentType:done?'image/png':'image/jpeg',body:done?finished:original});}
@@ -79,7 +79,7 @@ try{
 
     await finish.getByRole('slider',{name:'Grain intensity'}).fill('85');await finish.getByRole('slider',{name:'Haze intensity'}).fill('40');await finish.getByRole('slider',{name:'Film intensity'}).fill('70');
     await finish.getByRole('button',{name:'Apply finish',exact:true}).click();
-    await page.waitForFunction(()=>document.querySelector('#image-film-finish').textContent.includes('film finish applied'));
+    await page.waitForFunction(()=>document.querySelector('#image-film-finish').textContent.includes('Applied'));
     assert.equal(writes.length,1);assert.equal(await finish.getByRole('slider',{name:'Grain intensity'}).inputValue(),'85');
     assert.equal(await page.locator('#image-lightbox').evaluate(el=>el.scrollWidth<=el.clientWidth+1),true);
     const download=page.waitForEvent('download');await finish.getByRole('button',{name:'Download original',exact:true}).click();

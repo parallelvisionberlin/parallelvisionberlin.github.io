@@ -1,5 +1,5 @@
 import {filmFinishSettings} from '../lab/film-finish.js';
-import {prepareFilmAsset} from './film-finish.mjs';
+import {prepareFilmAsset,FILM_RENDER_REVISION} from './film-finish.mjs';
 import {assertCustomerOpen,processAccountClosures} from './customer-lifecycle.mjs';
 import {allowedLabParty} from './native-auth.mjs';
 import {quoteVideoExtension,submitVideoExtension} from './higgsfield-video.mjs';
@@ -502,6 +502,7 @@ async function completeImageResult(env,j,original,storedBytes){
     try{
       output=await prepareFilmAsset(env,original,params.filmFinish,{first,remaining:MAX_STORAGE-storedBytes-original.bytes});
       params.filmFinishStatus=output.id===original.id?'off':'applied';
+      if(output.id!==original.id)params.filmFinishRevision=FILM_RENDER_REVISION;
       delete params.filmFinishError;
     }catch(e){
       // A failed finish never loses a paid image, retries inference or refunds a
@@ -511,7 +512,7 @@ async function completeImageResult(env,j,original,storedBytes){
   }
   await env.LAB_DB.batch([
     assetInsert(env,original),...(output.id!==original.id?[assetInsert(env,output)]:[]),
-    stmt(env,"UPDATE jobs SET state='completed',output_id=?,params=json_patch(params,?),remote_url=NULL,error='',updated_at=? WHERE id=? AND owner_id=?",output.id,JSON.stringify(params.filmFinishStatus?{filmOriginalId:params.filmOriginalId,filmFinishStatus:params.filmFinishStatus,filmFinishError:params.filmFinishError||null}:{}),now(),j.id,j.owner_id)
+    stmt(env,"UPDATE jobs SET state='completed',output_id=?,params=json_patch(params,?),remote_url=NULL,error='',updated_at=? WHERE id=? AND owner_id=?",output.id,JSON.stringify(params.filmFinishStatus?{filmOriginalId:params.filmOriginalId,filmFinishStatus:params.filmFinishStatus,filmFinishError:params.filmFinishError||null,filmFinishRevision:params.filmFinishRevision||null}:{}),now(),j.id,j.owner_id)
   ]);
   await ensureGalleryDimensions(env,{...j,params:JSON.stringify(params),output_id:output.id});
 }
@@ -1593,7 +1594,7 @@ async function route(request,env,ctx) {
       const stored=await first(env,'SELECT COALESCE(SUM(bytes),0) AS n FROM assets WHERE owner_id=?',owner);
       let output;try{output=await prepareFilmAsset(env,original,finish,{first,remaining:MAX_STORAGE-stored.n});}
       catch(e){fail(422,String(e.message||'Could not apply film finish. Your current image is unchanged.').slice(0,200));}
-      const settings={...p,filmFinish:finish,filmOriginalId:original.id,filmFinishStatus:output.id===original.id?'off':'applied'};
+      const settings={...p,filmFinish:finish,filmOriginalId:original.id,filmFinishStatus:output.id===original.id?'off':'applied',filmFinishRevision:output.id===original.id?null:FILM_RENDER_REVISION};
       delete settings.filmFinishError;delete settings.galleryDimensions;
       const writes=await env.LAB_DB.batch([
         assetInsert(env,output),

@@ -1,6 +1,6 @@
-import {filmFinishSettings} from '../lab/film-finish.js';
+import {filmFinishSettings,FILM_FINISH_RENDER_REVISION} from '../lab/film-finish.js';
 
-export const FILM_RENDER_REVISION=5;
+export const FILM_RENDER_REVISION=FILM_FINISH_RENDER_REVISION;
 const INPUT_LIMIT=20_000_000,OUTPUT_LIMIT=20*1024*1024;
 const signature=new Uint8Array([137,80,78,71,13,10,26,10]);
 const crcTable=Uint32Array.from({length:256},(_,n)=>{for(let k=0;k<8;k++)n=n&1?0xedb88320^(n>>>1):n>>>1;return n>>>0;});
@@ -141,15 +141,22 @@ export function photochemicalPixel(r,g,b,deluxe=0){
   const l=(.2126*r+.7152*g+.0722*b)/255;
   const shadow=1-smooth(.07,.48,l),highlight=smooth(.62,.97,l);
   const midShape=(.055+.025*push)*(l-.5)*(1-Math.abs(2*l-1));
-  // Warmer practical highlights, a longer shoulder, cooler shadow crossover
-  // and compressed 35mm print midtones. Preserve natural skin and dark gaps.
-  const target=clamp(l+midShape-(.043+.033*push)*highlight+.006*shadow+.004*push*shadow*smooth(.02,.18,l));
+  // Pushed negative density is scene-wide, unlike source-only haze. Target
+  // illuminated shadow midtones and keep black pockets genuinely black.
+  const dense=smooth(.13,.30,l)*(1-smooth(.52,.76,l));
+  const creamy=smooth(.28,.52,l)*(1-smooth(.77,.94,l));
+  const blackGuard=smooth(.005,.16,l);
+  const target=clamp(l+midShape-(.043+.033*push)*highlight+
+    .006*shadow*blackGuard+.004*push*shadow*smooth(.02,.18,l)
+    -push*(.037*dense+.012*creamy));
   const ratio=l>.006?target/l:1;
   const greenExcess=Math.max(0,g-(r+b)*.5);
   return [
-    Math.round(clamp(r*ratio+(6+10*push)*highlight-1*shadow,0,255)),
-    Math.round(clamp(g*ratio+2*highlight+1*shadow-greenExcess*(.065+.06*push),0,255)),
-    Math.round(clamp(b*ratio-(3+9*push)*highlight+4*shadow+4*push*shadow*smooth(.03,.22,l),0,255))
+    Math.round(clamp(r*ratio+(6+15*push)*highlight-1*shadow*blackGuard+3*push*creamy,0,255)),
+    Math.round(clamp(g*ratio+2*highlight+shadow*blackGuard-
+      greenExcess*(.065+.06*push+.065*push*dense),0,255)),
+    Math.round(clamp(b*ratio-(3+12*push)*highlight+(4+4*push)*shadow*blackGuard+
+      4*push*dense,0,255))
   ];
 }
 export async function printGradePng(bytes,deluxe=0){
@@ -177,8 +184,11 @@ export async function grainPng(width,height,amount,seed,source=null){
       return (values[iy*w+ix]*(1-u)+values[iy*w+ix+1]*u)*(1-v)+(values[(iy+1)*w+ix]*(1-u)+values[(iy+1)*w+ix+1]*u)*v;
     };
   }
-  const fine=field(1.15),body=field(2.3),strength=amount/100*10;
-  const pushed=Math.max(0,Math.min(1,(amount-100)/34)),clusters=pushed?field(4.2):null;
+  const fine=field(1.15),body=field(2.3);
+  const pushed=Math.max(0,Math.min(1,(amount-100)/34));
+  // Stronger clustered emulsion exists only above the original calibrated
+  // range; no extra digital white-pixel noise is introduced.
+  const strength=amount/100*(10+5*pushed),clusters=pushed?field(4.2):null;
   for(let y=0;y<height;y++)for(let x=0;x<width;x++){
     const noise=Math.tanh(.72*fine(x+.37,y+.61)+.28*body(x+.83,y+.29)),index=y*stride+1+x*2;
     let luminance=127.5,alpha=1;

@@ -1,6 +1,6 @@
 import {createAccountMenu} from './account-menu.js?v=20261012-account2';
 const studioAccount=createAccountMenu(document.getElementById('studio-account-menu'));
-import {createFilmFinishControls,HONG_KONG_FILM_FINISH} from './film-finish.js?v=20261013-deluxe2';
+import {createFilmFinishControls,HONG_KONG_FILM_FINISH,FILM_FINISH_RENDER_REVISION} from './film-finish.js?v=20261013-deluxe3';
 import {preparePhotoInput} from './photo-input.js?v=1';
 import {createMoodReferenceLoader,moodReferencePlan,isMoodStyleReference} from './mood-references.js?v=20261012-hk-optics3&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5';
 import {createPrivateMediaCache} from './private-media-cache.js?v=20261012-cache1';
@@ -2003,16 +2003,22 @@ function paintImageDetailFavorite(){
   button.title=button.getAttribute('aria-label');
 }
 const filmPanel=$('image-film-finish');
-const filmControls=createFilmFinishControls(filmPanel);
+const filmControls=createFilmFinishControls(filmPanel,{onChange:()=>{
+  if(filmBusy||!imageDetailJob)return;
+  filmPanel.dataset.filmPending='true';
+  filmStatus.textContent='Changes not applied';
+  filmStatus.title='Press Apply finish to update the displayed image.';
+}});
 const filmActions=document.createElement('div');filmActions.className='film-finish-actions';
 const filmApply=document.createElement('button');filmApply.id='image-film-apply';filmApply.type='button';filmApply.textContent='Apply finish';
 const filmOriginal=document.createElement('button');filmOriginal.id='image-film-original';filmOriginal.type='button';filmOriginal.textContent='Download original';
 const filmStatus=document.createElement('span');filmStatus.className='film-finish-status';filmStatus.setAttribute('role','status');
-filmActions.append(filmApply,filmOriginal);filmPanel.append(filmActions,filmStatus);
+filmActions.append(filmApply,filmOriginal);filmPanel.append(filmActions);
+filmPanel.querySelector('strong')?.append(filmStatus);
 let filmBusy=false;
 filmApply.onclick=async()=>{
   const job=imageDetailJob,requestEpoch=epoch;if(!owner||!hasResult(job)||filmBusy)return;
-  filmBusy=true;filmControls.lock(true);filmApply.disabled=true;filmStatus.textContent='Applying 35mm film finish…';
+  filmBusy=true;filmControls.lock(true);filmApply.disabled=true;filmStatus.textContent='Applying…';
   try{
     const response=await api('/api/jobs/'+job.id+'/film-finish',{method:'POST',body:{outputId:job.outputId,settings:filmControls.get()}});
     if(!owner||epoch!==requestEpoch)return;
@@ -2258,7 +2264,13 @@ function showImageDetail(job,hasOutput,loading=false){
   if(!filmPanel.hidden){
     filmControls.set(params.filmFinish||HONG_KONG_FILM_FINISH);filmControls.lock(filmBusy||loading);
     filmApply.disabled=filmBusy||loading;filmOriginal.disabled=loading;
-    filmStatus.textContent=params.filmFinishStatus==='failed'?'Original saved. Film finish was not applied: '+params.filmFinishError:params.filmFinishStatus==='applied'?'35mm film finish applied. Original retained.':params.filmFinishStatus==='off'?'Film finish off. Showing original.':'Adjust Grain, Haze, Halation and Film; original stays safe.';
+    filmPanel.dataset.filmPending='false';
+    const earlierFilm=params.filmFinishStatus==='applied'&&params.filmFinishRevision!==FILM_FINISH_RENDER_REVISION;
+    filmStatus.textContent=params.filmFinishStatus==='failed'?'Finish failed':earlierFilm?'Earlier finish':params.filmFinishStatus==='applied'?'Applied':params.filmFinishStatus==='off'?'Original shown':'Not applied';
+    filmStatus.title=params.filmFinishStatus==='failed'?String(params.filmFinishError||'Film processing failed.'):
+      earlierFilm?'An older film finish was saved. Press Apply finish to update it.':
+      params.filmFinishStatus==='applied'?'The displayed image has this finish applied.':
+      'Slider settings are selected but the image has not been processed. Press Apply finish.';
   }
 
   const mood=moodById(params.moodId),customMood=params.moodId==='custom'&&params.customMoodName;

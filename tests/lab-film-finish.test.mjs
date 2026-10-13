@@ -51,7 +51,7 @@ test('source-aware grain preserves black and white, favors midtones and does not
   assert.equal(energy[0],0);assert.equal(energy[5],0);
   assert.ok(energy[3]>energy[1]*3);assert.ok(energy[3]>energy[4]*3);
   for(const m of mean)assert.ok(Math.abs(m)<.15,'grain must not lift shadows or depress highlights systematically');
-  assert.equal(FILM_RENDER_REVISION,5,'new processing must not reuse earlier cached derivatives');
+  assert.equal(FILM_RENDER_REVISION,6,'new processing must not reuse earlier cached derivatives');
 });
 test('Hong Kong optical finish preserves the setting and addresses foreground light at every tier',()=>{
   for(const intensity of [21,70,100]){
@@ -132,4 +132,18 @@ test('film result UI keeps source-safe controls visible and accessible',()=>{
   assert.match(ui,/aria-expanded/);assert.match(ui,/Photochemical texture, atmospheric light and analog color/);
   assert.match(app,/filmApply.id='image-film-apply'/);
   assert.match(app,/filmOriginal.id='image-film-original'/);
+});
+
+test('v6 analog maximum visibly changes dim midtones and preserves pure black',()=>{
+  for(const rgb of [[32,68,60],[40,97,82],[60,115,94],[120,155,130]]){
+    const a=photochemicalPixel(...rgb,0),b=photochemicalPixel(...rgb,1);
+    const delta=b.reduce((n,v,i)=>n+Math.abs(v-a[i]),0);
+    assert.ok(delta>=6,'deluxe midtone difference: '+JSON.stringify({rgb,a,b,delta}));
+  }
+  assert.deepEqual(photochemicalPixel(0,0,0,1),[0,0,0]);
+  assert.equal(sourceLightWeight(108,130,111,.6),0);
+  const client=readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8');
+  const backend=readFileSync(new URL('../lab-worker/worker.mjs',import.meta.url),'utf8');
+  assert.match(client,/Changes not applied/);assert.match(client,/Earlier finish/);
+  assert.match(backend,/filmFinishRevision:output.id===original.id\?null:FILM_RENDER_REVISION/);
 });

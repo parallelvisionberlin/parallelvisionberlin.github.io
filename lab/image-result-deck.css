@@ -165,3 +165,12 @@
   #image-lightbox .image-detail-inspector-scroll{padding-bottom:max(36px,env(safe-area-inset-bottom))}
   #image-lightbox #image-film-finish{column-gap:12px;row-gap:10px}
 }
+
+/* Visible saved/unsaved state prevents 100% controls from being mistaken for a processed image. */
+#image-lightbox #image-film-finish>strong>.film-finish-status{
+  margin-left:auto;white-space:nowrap;min-width:0;
+  color:#c8cdc7;font-size:10px;font-weight:550;letter-spacing:0;
+}
+#image-lightbox #image-film-finish[data-film-pending="true"]>strong>.film-finish-status{
+  color:#e4cfaa;
+}
