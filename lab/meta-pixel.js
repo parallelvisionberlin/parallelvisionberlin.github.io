@@ -74,12 +74,12 @@ function init() {
   // Only the public marketing entry asks automatically. Never cover working Studio controls.
   else if (!choice && /^\/lab\/(?:index\.html)?$/.test(location.pathname)) showChoices();
   // A lasting preference control permits changing consent later, including withdrawing it.
-  const anchor = document.querySelector('footer nav') || document.querySelector('footer');
+  const anchor = document.querySelector('.pv-lab-footer__group[aria-label="Legal"]') || document.querySelector('footer nav') || document.querySelector('footer');
   const preferences = document.createElement('button');
   preferences.type = 'button';
   preferences.textContent = 'Privacy choices';
   preferences.setAttribute('aria-label','Change PV LAB analytics consent');
-  preferences.style.cssText='border:0;background:transparent;color:inherit;font:inherit;font-size:11px;cursor:pointer;text-decoration:underline;padding:5px';
+  preferences.style.cssText=anchor?.classList?.contains('pv-lab-footer__group') ? 'border:0;background:transparent;color:#b7b3ac;font:400 13px/1.3 "DM Sans",Arial,sans-serif;cursor:pointer;text-align:left;padding:0' : 'border:0;background:transparent;color:inherit;font:inherit;font-size:11px;cursor:pointer;text-decoration:underline;padding:5px';
   preferences.addEventListener('click', () => {
     if (dialog) return;
     showChoices();
