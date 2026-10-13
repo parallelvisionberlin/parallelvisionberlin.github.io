@@ -61,6 +61,7 @@
 @media(max-width:1190px){
   #pricing + .lab-invite-promo > .lab-invite-promo__inner{grid-template-columns:minmax(0,1fr) minmax(220px,270px);column-gap:clamp(26px,4vw,54px)}
   #pricing + .lab-invite-promo .lab-invite-promo__reward{display:none}
+  #pricing + .lab-invite-promo .lab-invite-promo__cta{padding-inline:18px;gap:12px;font-size:15px}
   #pricing + .lab-invite-promo h2{font-size:clamp(43px,5.1vw,66px)}
 }
 @media(max-width:760px){
