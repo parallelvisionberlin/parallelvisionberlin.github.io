@@ -36,12 +36,12 @@ export function imageModelLabel(settings={}){
   if(engine==='soul')return mode==='reinterpret'?'PV Soul · Reinterpret':'PV Soul';
 
   if(engine==='soulpro'||provider==='higgsfield'){
-    if(s.soulProModel==='soul2'||model.startsWith('higgsfield-ai/soul/v2/'))
-      return 'Higgsfield Soul 2';
-    if(s.soulProModel==='ideogram45'||model.startsWith('ideogram/v4.5/'))
-      return 'Ideogram 4.5';
-    if(s.soulProModel==='kontextmax'||model.startsWith('fal-ai/flux-pro/kontext/max/'))
-      return 'FLUX Kontext Max';
+    if(model.startsWith('higgsfield-ai/soul/v2/'))return 'Higgsfield Soul 2';
+    if(model.startsWith('ideogram/v4.5/'))return 'Ideogram 4.5';
+    if(model.startsWith('fal-ai/flux-pro/kontext/max/'))return 'FLUX Kontext Max';
+    if(s.soulProModel==='soul2')return 'Higgsfield Soul 2';
+    if(s.soulProModel==='ideogram45')return 'Ideogram 4.5';
+    if(s.soulProModel==='kontextmax')return 'FLUX Kontext Max';
     return engine==='soulpro'?'PV Soul Pro':'Higgsfield';
   }
 
@@ -55,9 +55,13 @@ export function imageModelLabel(settings={}){
   // If the saved engine and model contradict each other, the actual routed
   // provider model takes precedence: do not falsely call a Lite result Pro.
   for(const [pattern,label] of exactModelNames)if(pattern.test(model))return label;
-  if(Object.hasOwn(engineNames,engine))return engineNames[engine];
 
-  // Older records sometimes omit engine but retain only a provider model;
-  // unknown models must never be mislabeled "Seedream 5 Pro".
+  // Use the engine only when the provider has not assigned a model yet
+  // (e.g., a pending generation). An unknown recorded route must not
+  // inherit a familiar model name from a stale editor engine.
+  if(!model&&Object.hasOwn(engineNames,engine))return engineNames[engine];
+
+  // Older records sometimes omit engine but retain a usable provider model.
+  // Truly unknown routes must never be called "Seedream 5 Pro".
   return 'Image model';
 }
