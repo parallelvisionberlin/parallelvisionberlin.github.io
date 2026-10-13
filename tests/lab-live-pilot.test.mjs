@@ -186,10 +186,11 @@ test('one-time invoice settings are server-controlled, optional, and never sent 
   }
   assert.equal(forms.length,2,'invalid invoice configuration must not initiate payment');
 });
-test('production source continues to have both public switches off, with pilot ID only in Cloudflare Secret',()=>{
+test('public launch switches are explicit, keys stay out of source and pilot does not override global rollout',()=>{
   const vars=readFileSync(new URL('../lab-worker/wrangler.toml',import.meta.url),'utf8');
-  assert.match(vars,/LAB_PUBLIC_GENERATION_ENABLED = "false"/);
-  assert.match(vars,/LAB_CHECKOUT_ENABLED = "false"/);
+  assert.match(vars,/LAB_PUBLIC_GENERATION_ENABLED = "true"/);
+  assert.match(vars,/LAB_CHECKOUT_ENABLED = "true"/);
+  assert.match(vars,/LAB_CUSTOMER_HIGGSFIELD_ENABLED = "true"/);
   assert.doesNotMatch(vars,/LAB_LIVE_PILOT_CUSTOMER_ID\s*=/);
   const frontend=readFileSync(new URL('../lab/customer-entry.js',import.meta.url),'utf8');
   assert.match(frontend,/profile\.billingReady/);

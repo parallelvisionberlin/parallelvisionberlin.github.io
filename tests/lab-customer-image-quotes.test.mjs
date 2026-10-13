@@ -70,15 +70,15 @@ test('outdated asynchronous quotes never replace a changed customer selection or
   assert.equal(controller.current().status,'idle');
   assert.equal(controller.consume('second'),null);
 });
-test('customer preview is read-only and customer generation remains behind deployment flags',()=>{
+test('customer preview is read-only and public generation switches are deliberately enabled',()=>{
   const worker=readFileSync(new URL('../lab-worker/worker.mjs',import.meta.url),'utf8');
   const config=readFileSync(new URL('../lab-worker/wrangler.toml',import.meta.url),'utf8');
   const studio=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
   const lab=readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8');
   assert.match(worker,/path==='\/api\/customer\/image-price'&&method==='POST'/);
   assert.match(worker,/quoteCustomerImageCredits\(p,Number\(data.count\?\?1\)/);
-  assert.match(config,/LAB_PUBLIC_GENERATION_ENABLED = "false"/);
-  assert.match(config,/LAB_CHECKOUT_ENABLED = "false"/);
+  assert.match(config,/LAB_PUBLIC_GENERATION_ENABLED = "true"/);
+  assert.match(config,/LAB_CHECKOUT_ENABLED = "true"/);
   assert.match(studio,/lab\.js\?v=[^"']+&wallet=1/);
   assert.match(lab,/customerImagePricing\?\.consume/);
   assert.match(lab,/\.kind==='bound'&&customerPriced\.provider==='spicy'/);

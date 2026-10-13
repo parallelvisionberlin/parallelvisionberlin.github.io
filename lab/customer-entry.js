@@ -102,7 +102,7 @@ async function purchase(button){
     if(!clerk.isSignedIn||clerk.session?.id!==sessionId)throw new Error('Your account changed. Select a plan again.');
     if(!profile)throw new Error('Your account could not be loaded. Please try again.');
     if(!profile.customer)throw new Error('You are signed in as the owner. Use a customer account to buy credits.');
-    if(profile.pilot&&sku!=='topup10')throw new Error('Only the €10 credit pack is available for this account.');
+    if(profile.pilot&&!['topup10','starter'].includes(sku))throw new Error('This private account can choose only the €10 credit pack or €15/month Starter plan.');
     if(profile.accountClosed||profile.billingReview)throw new Error('Purchases are paused for this account. Open Credits & billing for details.');
     if(!profile.billingReady)throw new Error('Purchases are not available yet. No payment has been taken.');
     purchaseStatus(button,'Opening secure checkout…');
