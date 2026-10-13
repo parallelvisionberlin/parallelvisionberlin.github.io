@@ -26,12 +26,38 @@ const json=(data,status=200)=>new Response(JSON.stringify(data),{status,headers:
 const one=(env,sql,...a)=>env.LAB_DB.prepare(sql).bind(...a).first();
 const exec=(env,sql,...a)=>env.LAB_DB.prepare(sql).bind(...a).run();
 const ID=/^user_[a-zA-Z0-9]+$/;
+export const WELCOME_CREDITS = 120;
+const WELCOME_PREFIX = 'welcome:120:v1:';
+// Activation is deliberately separate from deploying code. Both a true flag
+// and a 13-digit millisecond cutoff are required before any credits are issued.
+function welcomeLaunchTime(env,t) {
+  if(env.LAB_WELCOME_CREDITS_ENABLED!=='true')return null;
+  const raw=String(env.LAB_WELCOME_CREDITS_ACTIVATED_AT||'');
+  if(!/^[0-9]{13}$/.test(raw))return null;
+  const start=Number(raw);
+  return Number.isSafeInteger(start)&&start<=t?start:null;
+}
 function enabled(env,subject) {return canCustomerCheckout(env,subject);}
 const catalog=()=>Object.entries(PACKS).map(([id,p])=>({id,type:p.type,priceEur:p.cents/100,credits:p.credits,title:p.title}));
 export async function ensureCustomer(env,subject) {
   if(!ID.test(subject))fail(401,'Invalid account identity.');
-  const t=now();
-  await exec(env,'INSERT OR IGNORE INTO lab_customers(id,clerk_subject,balance_credits,created_at,updated_at) VALUES(?,?,0,?,?)',subject,subject,t,t);
+  const t=now(),start=welcomeLaunchTime(env,t);
+  const create=env.LAB_DB.prepare('INSERT OR IGNORE INTO lab_customers(id,clerk_subject,balance_credits,created_at,updated_at) VALUES(?,?,0,?,?)').bind(subject,subject,t,t);
+  if(start===null){
+    await create.run();
+    return subject;
+  }
+  // This atomic batch prevents an orphan customer if a first-login grant fails.
+  // Existing customers before activation are ineligible; retries and concurrent
+  // Clerk sessions cannot duplicate the uniquely referenced welcome grant.
+  const reference=WELCOME_PREFIX+subject;
+  const grant=env.LAB_DB.prepare(`
+    INSERT OR IGNORE INTO lab_credit_entries(id,customer_id,delta_credits,kind,reference,created_at)
+    SELECT ?,id,?,'adjustment',?,?
+      FROM lab_customers
+     WHERE id=? AND clerk_subject=? AND created_at>=? AND created_at<=?
+  `).bind(reference,WELCOME_CREDITS,reference,t,subject,subject,start,t);
+  await env.LAB_DB.batch([create,grant]);
   return subject;
 }
 export async function isLabCustomer(env,id){
