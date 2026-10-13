@@ -14,7 +14,12 @@
 .lab-pricing-collection>.lab-plans-kicker{margin-bottom:25px}
 .lab-pricing-deck{position:relative;width:100%;aspect-ratio:1.3;isolation:isolate;margin-top:20px}
 /* On generous desktop widths, give the image fan extra space from the price column. */
-@media(min-width:1001px){#pricing .lab-pricing-deck{transform:translateX(-clamp(22px,2vw,38px))}}
+@media(min-width:1001px){
+  /* Fine editorial positioning: move pricing as a whole up 25px,
+     then nudge only the image fan another 20px to the left. */
+  #pricing .lab-plans-inner{position:relative;top:-25px}
+  #pricing .lab-pricing-deck{transform:translateX(calc(-20px - clamp(22px,2vw,38px)))}
+}
 .lab-pricing-mood{
   position:absolute;width:34%;aspect-ratio:.644;margin:0;overflow:hidden;
   border-radius:13px;background:#181818;border:1px solid rgba(235,230,220,.17);

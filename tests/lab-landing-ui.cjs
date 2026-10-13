@@ -64,6 +64,10 @@ const server=http.createServer((req,res)=>{
       headlineSize:parseFloat(getComputedStyle(pricing.querySelector('h2')).fontSize),
       visibleHeight:innerHeight,
       deckMargin:getComputedStyle(deck).marginTop,
+      deckLeft:deck.getBoundingClientRect().left,
+      columnLeft:pricing.querySelector('.lab-pricing-collection').getBoundingClientRect().left,
+      innerPosition:getComputedStyle(pricing.querySelector('.lab-plans-inner')).position,
+      innerTop:getComputedStyle(pricing.querySelector('.lab-plans-inner')).top,
       rowHeights:rows.map(row=>row.getBoundingClientRect().height),
       inviteBg:getComputedStyle(invite).backgroundImage,
       inviteText:getComputedStyle(invite).color,
@@ -79,7 +83,12 @@ const server=http.createServer((req,res)=>{
     assert.equal(details.deckMargin,'20px','Desktop image collection is balanced lower by 20px');
     assert.ok(details.rowHeights.every(n=>n>=110&&n<=114),'Desktop pricing rows have relaxed 112px rhythm');
     if(width>=1200){
-      assert.ok(Math.abs(details.topSpace-details.bottomSpace)<=3,'Pricing composition centers in its viewport');
+      assert.equal(details.innerPosition,'relative','Desktop pricing composition is offset without changing flow');
+      assert.equal(details.innerTop,'-25px','Desktop pricing content is raised exactly 25px');
+      assert.ok(Math.abs((details.bottomSpace-details.topSpace)-50)<=3,'25px upward shift retains balanced whitespace');
+      const photoShift=details.columnLeft-details.deckLeft;
+      const expectedPhotoShift=20+Math.min(38,Math.max(22,width*.02));
+      assert.ok(Math.abs(photoShift-expectedPhotoShift)<=3,'Photo fan gains another 20px of separation without shifting text');
       assert.ok(details.headlineSize>=47,'Desktop pricing heading has hero-scale typography');
       assert.ok(layout.cardGap>=60,'Mood images have room before the pricing text');
     }
