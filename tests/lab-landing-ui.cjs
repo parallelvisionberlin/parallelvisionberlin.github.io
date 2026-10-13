@@ -47,6 +47,32 @@ const server=http.createServer((req,res)=>{
   assert.equal(layout.overflow,false,'Pricing does not overflow at '+width);
   assert.equal(layout.weight,'300','Pricing reuses the light hero typography');
   assert.equal(layout.background,'rgb(13, 13, 13)','Neutral black pricing background');
+  const details=await page.evaluate(()=>{
+    const pricing=document.querySelector('#pricing');
+    const deck=document.querySelector('.lab-pricing-deck');
+    const rows=[...document.querySelectorAll('#lab-monthly-plans .lab-plan')];
+    const invite=document.querySelector('.lab-invite-promo');
+    return {
+      sectionHeight:pricing.getBoundingClientRect().height,
+      visibleHeight:innerHeight,
+      deckMargin:getComputedStyle(deck).marginTop,
+      rowHeights:rows.map(row=>row.getBoundingClientRect().height),
+      inviteBg:getComputedStyle(invite).backgroundColor,
+      inviteText:getComputedStyle(invite).color,
+      inviteParagraph:getComputedStyle(invite.querySelector('p')).color,
+      overflow:document.documentElement.scrollWidth>innerWidth
+    };
+  });
+  assert.ok(details.sectionHeight>=details.visibleHeight-1,'Pricing occupies at least one viewport');
+  assert.equal(details.inviteBg,'rgb(20, 20, 20)','Referral promotion continues in subtle near-black');
+  assert.equal(details.inviteText,'rgb(246, 243, 237)','Referral typography remains readable');
+  assert.equal(details.inviteParagraph,'rgb(182, 176, 165)','Referral description has contrast on dark background');
+  if(width>760){
+    assert.equal(details.deckMargin,'20px','Desktop image collection is balanced lower by 20px');
+    assert.ok(details.rowHeights.every(n=>n>=102&&n<=105),'Desktop pricing rows are approximately 103px tall');
+  }else{
+    assert.equal(details.deckMargin,'0px','Mobile photography keeps original compact position');
+  }
   if(width>760)assert.ok(layout.collection.right<=layout.comparison.x,'Desktop prices sit beside the image collection');
   else assert.ok(layout.collection.bottom<=layout.comparison.y+1,'Mobile prices follow the compact image collection');
   const tabFont=await page.locator('#lab-tab-onetime').evaluate(el=>parseFloat(getComputedStyle(el).fontSize));
