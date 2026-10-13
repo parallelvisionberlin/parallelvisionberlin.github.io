@@ -431,7 +431,7 @@ test('Image Studio active mood removal and stable Generate baseline',()=>{
   assert.match(js,/if\(!busy&&moodUI.active\(\)\)moodUI.clear\(\)/);
   assert.match(css,/#image-composer-moods-clear\[hidden\]\{display:none!important\}/);
   assert.match(css,/#image-composer.is-gemini .composer-controls\{flex-wrap:nowrap!important/);
-  assert.match(js,/const inlineMessage=imageEngine==='fal'\\|\\|queueBlocked\\|\\|exactPreparing\\|\\|idleMoodNeedsInput\\?'':message/);
+  assert.ok(js.includes("const inlineMessage=imageEngine==='fal'||queueBlocked||exactPreparing||idleMoodNeedsInput?'':message"),'Controlled Pose guidance stays outside the deck');
   assert.match(js,/modelButton\.setAttribute\('aria-description',hint\)/);
   assert.match(js,/modelButton\.removeAttribute\('aria-description'\)/);
   assert.match(js,/const idleMoodNeedsInput=moodUI.active\(\)/);
