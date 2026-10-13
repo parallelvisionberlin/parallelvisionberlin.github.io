@@ -298,3 +298,12 @@ body>#studio-header .wrap.top{max-width:none;padding-right:16px}
  .landing-header--home .lab-home-upgrade{padding:8px 10px;gap:4px;font-size:11px;min-height:36px}
  .landing-header--home .studio-link{padding-inline:10px}
 }
+
+/* Final homepage CTA polish. No changes to editorial navigation or hero. */
+.landing-header--home .studio-link{font-weight:600!important;border-color:rgba(255,255,255,.58)}
+.landing-header--home .studio-link:hover{border-color:#fff;background:rgba(255,255,255,.11)}
+.landing-header--home .lab-home-upgrade{font-weight:600;padding-inline:23px;box-shadow:inset 0 1px 0 rgba(255,255,255,.8)}
+.landing-header--home .lab-home-upgrade:hover{background:#fff;box-shadow:inset 0 1px 0 #fff,0 3px 14px rgba(255,255,255,.09)}
+@media(min-width:901px) and (max-width:1270px){.landing-header--home .lab-home-upgrade{padding-inline:17px}}
+@media(max-width:900px){.landing-header--home .lab-home-upgrade{padding-inline:13px}}
+@media(max-width:560px){.landing-header--home .lab-home-upgrade{padding-inline:10px}}
