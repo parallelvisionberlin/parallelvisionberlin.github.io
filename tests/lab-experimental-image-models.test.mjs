@@ -64,5 +64,9 @@ test('Studio model menu has both models and their dedicated local icons',()=>{
  for(const file of ['qwen.svg','z-image.svg']){
    const svg=readFileSync(new URL('../lab/branding/'+file,import.meta.url),'utf8');
    assert.match(svg,/<svg/);assert.match(svg,/<path/);
+   if(file==='qwen.svg'){
+     assert.match(svg,/fill="#aeb1b6"/i,'Qwen icon uses the neutral provider color');
+     assert.doesNotMatch(svg,/#082dff/i,'Qwen no longer uses electric blue');
+   }
  }
 });

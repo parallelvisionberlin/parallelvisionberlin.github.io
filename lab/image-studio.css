@@ -282,23 +282,23 @@
 }
 .composer-model-menu {
   position:absolute;left:0;bottom:calc(100% + 12px);
-  width:min(385px,calc(100vw - 70px));max-height:min(510px,calc(100dvh - 220px));
+  width:min(425px,calc(100vw - 42px));max-height:min(680px,var(--pv-model-menu-available,calc(100dvh - 180px)));
   display:flex;flex-direction:column;z-index:120;
   padding:10px;border:1px solid #51535b;border-radius:19px;
   background:#24262c;box-shadow:0 20px 75px rgba(0,0,0,.7);
   overflow:hidden;
 }
 .composer-model-menu[hidden] {display:none!important}
-.composer-model-search {display:block;padding:0 0 9px;border-bottom:1px solid #393c43}
+.composer-model-search {display:block;flex:none;padding:0 0 9px;border-bottom:1px solid #393c43}
 #image-composer .composer-model-search input {
   display:block;width:100%;min-height:41px;padding:9px 13px;border-radius:11px;
   border:1px solid #45474e;background:#1b1d23;
   color:#fff;font-size:12px;outline:none;
 }
-.composer-model-items {overflow-y:auto;min-height:0;padding:7px 0 2px}
+.composer-model-items {flex:1 1 auto;overflow-y:auto;min-height:0;padding:7px 0 2px;overscroll-behavior:contain}
 #image-composer .composer-model-option {
-  width:100%;min-height:61px;display:flex;align-items:center;gap:11px;
-  padding:9px 9px;border:1px solid transparent;border-radius:10px;
+  width:100%;min-height:56px;display:flex;align-items:center;gap:11px;
+  padding:7px 9px;border:1px solid transparent;border-radius:10px;
   background:transparent;color:#f3f4f6;text-align:left;
 }
 #image-composer .composer-model-option:hover,
@@ -315,7 +315,7 @@
 .composer-model-info small {font-size:10px;color:#a4a7b1;line-height:1.45}
 .composer-model-check {color:#e9eef5;font-size:17px}
 .composer-model-no-match {font-size:12px;color:#a0a3ad;padding:13px}
-.composer-model-footer {padding:9px 2px 1px;border-top:1px solid #393c43}
+.composer-model-footer {flex:none;padding:9px 2px 1px;border-top:1px solid #393c43}
 #image-composer .composer-model-footer button {
   display:flex;align-items:center;justify-content:space-between;gap:14px;
   width:100%;min-height:38px;padding:8px 11px;
@@ -429,7 +429,7 @@ dialog.image-lightbox::backdrop {background:rgba(4,5,7,.86);backdrop-filter:blur
   #image-composer .composer-select-pill select {height:34px;min-height:34px;max-width:100px;font-size:11px;padding-right:17px}
   #image-composer .composer-settings-pill {min-height:35px;padding:6px 8px;font-size:11px}
   #image-composer .composer-generate {min-height:39px;min-width:108px;padding:7px 12px;font-size:12px}
-  .composer-model-menu {bottom:calc(100% + 9px);left:0;width:min(385px,calc(100vw - 36px))}
+  .composer-model-menu {bottom:calc(100% + 9px);left:0;width:min(425px,calc(100vw - 36px))}
   .image-studio .archive {padding-bottom:230px}
   .image-studio #history .cardbody {opacity:0}
   .image-studio #history .card:focus-within .cardbody {opacity:1}

@@ -187,6 +187,19 @@ try{
 
   await x.page.click('#image-composer-model');
   assert.equal(await x.page.locator('#image-composer-model-menu').isVisible(),true,'Model popup opens above floating bar');
+  const menuGeometry=await x.page.locator('#image-composer-model-menu').evaluate(el=>{
+    const r=el.getBoundingClientRect(),head=document.getElementById('studio-header').getBoundingClientRect();
+    const items=el.querySelector('.composer-model-items');
+    return {width:r.width,height:r.height,top:r.top,headerBottom:head.bottom,itemsScroll:items.scrollHeight,itemsClient:items.clientHeight,
+      searchTop:el.querySelector('.composer-model-search').getBoundingClientRect().top,
+      footerBottom:el.querySelector('.composer-model-footer').getBoundingClientRect().bottom,
+      limit:getComputedStyle(el).maxHeight};
+  });
+  assert.ok(menuGeometry.width>=423&&menuGeometry.width<=427,'Model menu should have editorial 425px desktop width: '+JSON.stringify(menuGeometry));
+  assert.ok(menuGeometry.height<=681&&menuGeometry.height>510,'Expanded model menu should use the available height: '+JSON.stringify(menuGeometry));
+  assert.ok(menuGeometry.top>=menuGeometry.headerBottom+6,'Model menu must not cover the desktop navigation: '+JSON.stringify(menuGeometry));
+  assert.ok(menuGeometry.itemsClient>=380,'More model options fit before scrolling: '+JSON.stringify(menuGeometry));
+  assert.equal(await x.page.locator('.composer-model-option[data-value="qwen3"] img').getAttribute('src'),'./branding/qwen.svg?v=20261013-mono1','Qwen uses refreshed local icon');
   await x.page.screenshot({path:'test-results/lab-image-model-popup.png',fullPage:false});
   await x.page.fill('#image-composer-model-search','banana');
   await x.page.locator('.composer-model-option[data-value="gemini"]').click();
@@ -358,6 +371,14 @@ try{
   assert.ok(d.workspace.top<135,'Mobile editor appears immediately after tool navigation');
   assert.ok(d.stage.height<=620,'Preview remains bounded on mobile');
   await x.page.click('#tool-image');
+  await x.page.click('#image-composer-model');
+  const mobileModelMenu=await x.page.locator('#image-composer-model-menu').evaluate(el=>{
+    const r=el.getBoundingClientRect(),head=document.getElementById('studio-header').getBoundingClientRect();
+    return {top:r.top,left:r.left,right:r.right,bottom:r.bottom,headerBottom:head.bottom,height:r.height};
+  });
+  assert.ok(mobileModelMenu.top>=mobileModelMenu.headerBottom+5,'Model menu must stay below mobile navigation: '+JSON.stringify(mobileModelMenu));
+  assert.ok(mobileModelMenu.left>=0&&mobileModelMenu.right<=390,'Model menu must fit mobile width: '+JSON.stringify(mobileModelMenu));
+  await x.page.keyboard.press('Escape');
   const compactComposer=await x.page.locator('#image-composer').evaluate(el=>{
     const r=el.getBoundingClientRect();return {left:r.left,right:r.right,bottom:r.bottom,width:r.width};
   });

@@ -910,7 +910,7 @@ $('composer-library-manage').onclick=()=>{if(busy)return;if(isSoul2()){closeComp
 function setModelIcon(element,engine){
   const paths={seedream:'bytedance.svg',seedreamlite:'bytedance.svg',flash:'bytedance.svg',qwen3:'qwen.svg',zspicy:'z-image.svg',gemini:'google.svg',soulpro:'pv-mark.png',soul:'pv-mark.png'};
   const path=paths[engine];element.replaceChildren();
-  if(path){const img=document.createElement('img');img.src='./branding/'+path;img.alt='';img.width=20;img.height=20;element.append(img);}
+  if(path){const img=document.createElement('img');img.src='./branding/'+path+(engine==='qwen3'?'?v=20261013-mono1':'');img.alt='';img.width=20;img.height=20;element.append(img);}
   else element.textContent='◈';
 }
 const imageModelDescriptions = Object.freeze({
@@ -1149,6 +1149,14 @@ function syncImageComposer(){
   fitImageComposerPrompt();
   syncImageGalleryEmpty();
 }
+function fitImageModelMenu(){
+  // Never cover the navigation: use actual space above the model trigger.
+  const menu=$('image-composer-model-menu'),trigger=$('image-composer-model'),header=$('studio-header');
+  if(!menu||!trigger)return;
+  const available=trigger.getBoundingClientRect().top-(header?.getBoundingClientRect().bottom||0)-24;
+  menu.style.setProperty('--pv-model-menu-available',Math.max(112,Math.floor(available))+'px');
+}
+window.addEventListener('resize',()=>{if(imageMenuOpen)fitImageModelMenu();});
 function closeImageModelMenu(){
   imageMenuOpen=false;$('image-composer-model-menu').hidden=true;
   $('image-composer-model').setAttribute('aria-expanded','false');
@@ -1254,7 +1262,7 @@ $('image-composer-model').onclick=()=>{
   if(imageMenuOpen)closeReferenceIntent();
   $('image-composer-model-menu').hidden=!imageMenuOpen;
   $('image-composer-model').setAttribute('aria-expanded',String(imageMenuOpen));
-  if(imageMenuOpen){$('image-composer-model-search').value='';populateImageModelMenu();$('image-composer-model-search').focus();}
+  if(imageMenuOpen){fitImageModelMenu();$('image-composer-model-search').value='';populateImageModelMenu();$('image-composer-model-search').focus();}
 };
 $('image-composer-model-search').oninput=()=>populateImageModelMenu($('image-composer-model-search').value);
 $('image-composer-train').onclick=()=>{
