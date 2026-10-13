@@ -19,7 +19,7 @@ const ORIGIN='http://127.0.0.1:4179',API='https://parallel-vision-lab.parallelvi
 let passed=0,png;const ok=name=>{passed++;console.log('PASS '+name);};
 const id=n=>'20000000-0000-4000-8000-'+String(n).padStart(12,'0');
 const settings={type:'image',mode:'image',prompt:'A ceramic sculpture in soft daylight.',resolution:'2k',aspectRatio:'16:9',outputFormat:'png',referenceRoles:[],referenceSourceIds:[]};
-async function workspace({failure='',width=1440,height=1000,initial=[],savedPacks=[],quoteDelay=0,historyDelay=0}={}){
+async function workspace({failure='',width=1440,height=1000,initial=[],savedPacks=[],quoteDelay=0,historyDelay=0,packPreviewGate=null,brokenPreviewAssets=[]}={}){
  const context=await browser.newContext({viewport:{width,height},acceptDownloads:true}),page=await context.newPage();
  const requests=[],errors=[],dialogs=[],jobs=[...initial],quotes=new Map();let sequence=100,accepted=0,renewed=false,historyGets=0;
  page.on('pageerror',e=>errors.push(e.message));page.on('dialog',async d=>{dialogs.push(d.message());await d.accept();});
@@ -36,7 +36,11 @@ async function workspace({failure='',width=1440,height=1000,initial=[],savedPack
   if(path==='/api/soul-pro/identity'&&method==='POST')return send({configured:true,count:(data.referenceSourceIds||[]).length||1,refs:[]},201);
   if(path==='/api/soul-pro/identity'&&method==='DELETE')return send({configured:false,count:0,refs:[]});
   if(path==='/api/uploads')return send({id:id(sequence++)},201);
-  if(path.startsWith('/api/assets/'))return route.fulfill({status:200,contentType:'image/png',body:png});
+  if(path.startsWith('/api/assets/')){
+   if(path.endsWith('/thumbnail')&&packPreviewGate)await packPreviewGate;
+   if(brokenPreviewAssets.some(id=>path.includes('/'+id)))return send({error:'Preview unavailable'},404);
+   return route.fulfill({status:200,contentType:'image/png',body:png});
+  }
   if(path==='/api/drafts'){const job={id:id(sequence++),sourceId:data.sourceId,settings:{...data.settings,referenceSourceIds:data.referenceSourceIds||[]},status:'draft',createdAt:Date.now()};jobs.unshift(job);return send({job},201);}
   if(path==='/api/fal/pose-preview'&&method==='POST')return send({assetId:id(sequence++),billingNote:'synthetic preview'},201);
   if(path==='/api/fal/soul-pro'&&method==='POST'){
@@ -475,6 +479,34 @@ try{
  assert.equal(await x.page.locator('#generate').isDisabled(),false);
  await x.page.locator('#active summary').click();assert.match(await x.page.locator('#active-status').innerText(),/Nano 0 \/ 4/);assert.match(await x.page.locator('#active-status').innerText(),/1 old Nano interrupted/);await x.page.locator('#active summary').click();
  ok('Interrupted Gemini request is labeled as old and does not look like an active Nano generation');await x.context.close();
+ // A slow pack must show loading thumbnails, never a broken browser image glyph.
+ let releasePhotoReads;
+ const packPreviewGate=new Promise(resolve=>{releasePhotoReads=resolve;});
+ const goodId=id(981),badId=id(983);
+ const slowPacks=[
+  {id:id(980),name:'Delayed Editorial',refs:[{id:goodId,name:'editorial.png',role:'none',note:''}]},
+  {id:id(982),name:'Missing Photo',refs:[{id:badId,name:'missing.png',role:'identity',note:''}]}
+ ];
+ x=await workspace({savedPacks:slowPacks,packPreviewGate,brokenPreviewAssets:[badId]});
+ await x.page.click('#image-composer-add');
+ await x.page.click('#composer-add-saved');
+ const photos=x.page.locator('#composer-library-cards .composer-library-photo');
+ assert.equal(await photos.count(),2);
+ assert.equal(await photos.locator('img').count(),0,'Do not insert a blank img while the preview request is pending');
+ assert.equal(await photos.first().getAttribute('aria-busy'),'true');
+ assert.equal(await photos.last().getAttribute('aria-busy'),'true');
+ assert.doesNotMatch(await x.page.locator('#composer-library-cards').innerText(),/Saved identity preview/);
+ releasePhotoReads();
+ await x.page.waitForFunction(()=>document.querySelectorAll('#composer-library-cards .composer-library-photo.is-photo-loading').length===0);
+ assert.equal(await photos.first().locator('img').count(),1,'Available preview replaces shimmer with photo');
+ assert.equal(await photos.first().locator('img').evaluate(i=>i.naturalWidth>0),true);
+ assert.equal(await photos.last().locator('img').count(),0,'Missing image never shows browser broken icon');
+ assert.equal(await photos.last().locator('.composer-photo-fallback').count(),1,'Fallback uses PV LAB icon');
+ assert.equal(await photos.last().getAttribute('title'),'Preview unavailable');
+ assert.deepEqual(x.errors,[]);
+ ok('Saved photo packs: delayed thumbnails and missing previews remain clean');
+ await x.context.close();
+
  const manyPack={id:id(940),name:'Nina Master 8',refs:Array.from({length:8},(_,i)=>({id:id(960+i),name:'nina-'+(i+1)+'.png',role:'identity',note:''}))};
  x=await workspace({savedPacks:[manyPack]});await imageAdvanced(x.page);await chooseImageModel(x.page,'soulpro');await ready(x.page);await x.page.click('#composer-character');await x.page.click('#composer-library-create');
  const packText=await x.page.locator('#soul-pro-pack-select').innerText();assert.match(packText,/Nina Master 8/);assert.match(packText,/8 refs/);
