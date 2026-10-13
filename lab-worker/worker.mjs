@@ -519,7 +519,7 @@ async function media(request,env,a) {
   if(partial)h.set('Content-Range',`bytes ${partial.offset}-${partial.offset+partial.length-1}/${obj.size}`);
   return new Response(request.method==='HEAD'?null:obj.body,{status:partial?206:200,headers:h});
 }
-function jobView(j) {return {id:j.id,sourceId:j.source_id,settings:JSON.parse(j.params),status:j.state,outputId:j.output_id,estimatedUsd:j.estimate_microusd>0?j.estimate_microusd/1000000:null,settledUsd:j.settled_cost,providerTaskId:j.provider_id,error:j.error,createdAt:j.created_at,updatedAt:j.updated_at};}
+function jobView(j) {return {creditCost:j.estimate_microusd>0?creditsForJobUsd(j.estimate_microusd/1000000,JSON.parse(j.params)):null,id:j.id,sourceId:j.source_id,settings:JSON.parse(j.params),status:j.state,outputId:j.output_id,estimatedUsd:j.estimate_microusd>0?j.estimate_microusd/1000000:null,settledUsd:j.settled_cost,providerTaskId:j.provider_id,error:j.error,createdAt:j.created_at,updatedAt:j.updated_at};}
 function safeVideoUrl(value) {
   const u=new URL(value);const host=u.hostname.toLowerCase();
   if(u.protocol!=='https:'||u.username||u.password||(u.port&&u.port!=='443')||!(host==='spicyapi.ai'||host.endsWith('.spicyapi.ai')||host==='higgsfield.ai'||host.endsWith('.higgsfield.ai')||host==='fal.media'||host.endsWith('.fal.media')||host==='cdn.fashn.ai'||host==='media.fashn.ai'||host.endsWith('.r2.cloudflarestorage.com')||host.endsWith('.cloudfront.net')))throw new Error('Unexpected provider output location.');
