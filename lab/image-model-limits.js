@@ -9,6 +9,13 @@ export function modelImageInputIssue(engine, items = [], {count = 1, processing 
     .map(item => item?.file ? item : {file:item})
     .filter(item => item.file && Number.isFinite(Number(item.file.size)));
   const total = refs.reduce((sum, item) => sum + Number(item.file.size), 0);
+  if (engine === 'zspicy' && refs.length)
+    return 'Z-Image Spicy is text-to-image only. Remove reference photographs or choose Qwen Image 3.0. Nothing submitted.';
+  if (engine === 'qwen3' && refs.length > 3)
+    return 'Qwen Image 3.0 accepts up to three reference photos. Remove extras before generating. Nothing submitted.';
+  if (engine === 'qwen3' && refs.some(item=>Number(item.file.size)>10000000))
+    return 'Qwen Image 3.0 supports up to 10 MB per reference photo. Compress the image and try again. Nothing submitted.';
+
   if (engine === 'flash' && total > 16 * MIB)
     return 'Image too large for Seedream Flash: ' + mib(total) + ' MiB across ' + refs.length +
       ' reference image(s). This model accepts a maximum of 16 MiB combined. Compress or remove references. No generation submitted.';
