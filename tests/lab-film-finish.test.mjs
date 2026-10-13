@@ -56,7 +56,7 @@ test('source-aware grain preserves black and white, favors midtones and does not
 test('Hong Kong optical finish preserves the setting and addresses foreground light at every tier',()=>{
   for(const intensity of [21,70,100]){
     const {prompt,error}=prepareMoodPrompt('Portrait','hong-kong-nights',intensity,{referenceCount:1});
-    assert.equal(error,'');assert.match(prompt,/entire photograph, including people, skin, fabric and background/);
+    assert.equal(error,'');assert.match(prompt,/Relight the subject AND its environment as one coherent exposure/);
     assert.match(prompt,/Keep the Base location, architecture/);assert.match(prompt,/WET \/ GLOSS/);
     assert.match(prompt,/no coarse generated noise/);
   }
