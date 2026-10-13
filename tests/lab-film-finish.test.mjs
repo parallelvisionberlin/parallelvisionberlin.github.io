@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {inflateSync} from 'node:zlib';
+import {readFileSync} from 'node:fs';
 import {grainPng,filmAssetId,prepareFilmAsset,renderFilmFinish,shoulderPng,FILM_RENDER_REVISION,photochemicalPixel,sourceLightWeight,printGradePng,luminousMaskPng,deluxeResponse,photochemicalPlan} from '../lab-worker/film-finish.mjs';
 import {filmFinishSettings,HONG_KONG_FILM_FINISH,FILM_FINISH_OFF} from '../lab/film-finish.js';
 import {prepareMoodPrompt,preparePersonalMoodPrompt} from '../lab/moods.js';
