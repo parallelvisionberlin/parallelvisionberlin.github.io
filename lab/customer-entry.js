@@ -57,6 +57,7 @@ async function refresh(){
 function show(){
   const signed=!!clerk?.isSignedIn,customer=!!profile?.customer;
   $('lab-header-signin').hidden=signed;
+  const homeUpgrade=$('lab-home-upgrade');if(homeUpgrade)homeUpgrade.hidden=!signed;
   headerAccount.update({signed,user:clerk?.user,profile});
   document.querySelectorAll('[data-lab-signin]').forEach(button=>{button.hidden=signed;});
   if(signed&&pilotSetup){
