@@ -200,7 +200,7 @@ try{
       limit:getComputedStyle(el).maxHeight};
   });
   assert.ok(menuGeometry.width>=423&&menuGeometry.width<=427,'Model menu should keep its 425px desktop width: '+JSON.stringify(menuGeometry));
-  assert.ok(menuGeometry.height<=menuGeometry.available+2&&menuGeometry.height>510,'Model dropdown should fill only the available height, never use the old fixed 680px cap: '+JSON.stringify(menuGeometry));
+  assert.ok(Math.abs(menuGeometry.height-menuGeometry.available)<=2&&menuGeometry.height>510,'Model dropdown must use the full available height rather than shrinking to its contents: '+JSON.stringify(menuGeometry));
   assert.ok(menuGeometry.top>=menuGeometry.headerBottom+6,'Model dropdown must not touch navigation: '+JSON.stringify(menuGeometry));
   assert.ok(menuGeometry.searchTop>=menuGeometry.top&&menuGeometry.footerBottom<=menuGeometry.bottom+1,'Search and character shortcut stay inside menu: '+JSON.stringify(menuGeometry));
   assert.ok(menuGeometry.itemsClient>=380,'Compact model rows leave useful space before scrolling: '+JSON.stringify(menuGeometry));
