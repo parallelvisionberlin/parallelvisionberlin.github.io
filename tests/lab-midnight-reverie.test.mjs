@@ -22,7 +22,7 @@ test('Midnight Reverie V2 defaults to vivid 82 percent cobalt flash-memory captu
     assert.match(recipe.prompt,/eyes/i);
     assert.match(recipe.prompt,/location|setting|place/i);
   }
-  assert.match(normal.prompt,/DREAM FLASH 35/);
+  assert.match(normal.prompt,/35–69%: obvious flash-frozen subject/);
   assert.match(hero.prompt,/IMMERSIVE 70/);
   assert.match(maximum.prompt,/MAXIMUM 100/);
   assert.notEqual(normal.prompt,hero.prompt);
@@ -50,7 +50,7 @@ test('Midnight Reverie prompt budget protects user instructions and all referenc
     for(const strength of [1,34,35,65,69,70,82,89,90,99,100])
       for(const count of [0,1,3,6,10])
         for(const size of [25,800,1500,2000]){
-          const author='Keep the same person, clothing and camera. '.repeat(Math.ceil(size/43)).slice(0,size);
+          const author='Keep the same person, clothing and camera. '.repeat(Math.ceil(size/43)).slice(0,size).trim();
           const refs=Array.from({length:count},(_,i)=>({name:'ref-'+i+'.png',role:i?'identity':'base',note:''}));
           const result=prepareMoodPrompt(author,'midnight-reverie',strength,{engine,referenceCount:count});
           const provider=compileImagePrompt(result.prompt,refs);
