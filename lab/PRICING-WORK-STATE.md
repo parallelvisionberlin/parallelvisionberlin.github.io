@@ -52,3 +52,5 @@
 - Final purchase-fix scope: `lab/customer-entry.js`, `lab/pricing.css`, `lab/index.html`, `tests/lab-account-browser.mjs` and this checkpoint.
 
 - 2026-10-13 pricing clarity pass: lowered section entry spacing; aligned collection and prices at the top; enlarged Monthly plans/One-time credits tabs and hit targets; gave purchase rows more vertical breathing room. Replaced the confusing Soul ID calculation/quote exception pitch below the rule with a short, model-neutral explanation of how credits work. Kept recurring and one-time terms and all six original SKUs, payment gates and runtime billing rules. Updated landing and Soul copy assertions.
+
+- 2026-10-13 follow-up: reserve signed-out Upgrade header space without exposing a link, preventing navigation reflow on sign-in; restore One-time credits tab for a validated checkout return tied to a one-time SKU. Fix account UI browser coverage to switch between the two panels instead of attempting hidden buttons. No billing or product pricing changes.

@@ -41,6 +41,10 @@ function returnedPurchase(){
   return buyButtons.find(button=>button.dataset.labBuy===intent.sku)||null;
 }
 const resumePurchase=returnedPurchase();
+// A returning one-time purchase stays on its chosen pack rather than reverting to monthly plans.
+if(resumePurchase?.closest('#lab-one-time-credits')){
+  document.querySelector('#lab-tab-onetime')?.click();
+}
 const headerAccount=createAccountMenu($('lab-account-strip'));
 const status=message=>{for(const id of ['lab-entry-status','lab-pricing-status'])if($(id))$(id).textContent=message||'';};
 const api=createSessionRequest({baseUrl:API,getSession:()=>clerk?.session});

@@ -54,16 +54,19 @@ try{
       try{
         await page.goto(origin+'/lab/#pricing');await page.locator('.pv-account-menu>summary').waitFor({state:'visible'});
         await page.mouse.move(0,0);
-        const idle=await page.locator('#pricing .lab-plan>button').evaluateAll(els=>els.map(el=>getComputedStyle(el).backgroundColor));
+        const idle=await page.locator('#lab-monthly-plans .lab-plan>button').evaluateAll(els=>els.map(el=>getComputedStyle(el).backgroundColor));
         assert.deepEqual(idle,['rgba(0, 0, 0, 0)','rgba(0, 0, 0, 0)','rgba(0, 0, 0, 0)'],'No plan arrow remains highlighted at rest');
-        for(const button of await page.locator('#pricing [data-lab-buy]').all()){
-          await button.click();
-          const note=page.locator('#'+await button.getAttribute('aria-describedby'));
-          await note.getByText(customer?'Purchases are not available yet. No payment has been taken.':'You are signed in as the owner. Use a customer account to buy credits.',{exact:true}).waitFor();
-          await page.waitForFunction(id=>{const r=document.getElementById(id).getBoundingClientRect();return r.top>=0&&r.bottom<=innerHeight;},await button.getAttribute('aria-describedby'));
-          assert.equal(await page.locator('.lab-purchase-status:not([hidden])').count(),1,'Only the clicked product shows feedback');
-          assert.equal(await button.getAttribute('aria-busy'),'false');
-          assert.equal(await button.isDisabled(),false);
+        for(const [tab,panel] of [['Monthly plans','#lab-monthly-plans'],['One-time credits','#lab-one-time-credits']]){
+          await page.getByRole('tab',{name:tab,exact:true}).click();
+          for(const button of await page.locator(panel+' [data-lab-buy]').all()){
+            await button.click();
+            const note=page.locator('#'+await button.getAttribute('aria-describedby'));
+            await note.getByText(customer?'Purchases are not available yet. No payment has been taken.':'You are signed in as the owner. Use a customer account to buy credits.',{exact:true}).waitFor();
+            await page.waitForFunction(id=>{const r=document.getElementById(id).getBoundingClientRect();return r.top>=0&&r.bottom<=innerHeight;},await button.getAttribute('aria-describedby'));
+            assert.equal(await page.locator('.lab-purchase-status:not([hidden])').count(),1,'Only the clicked product shows feedback');
+            assert.equal(await button.getAttribute('aria-busy'),'false');
+            assert.equal(await button.isDisabled(),false);
+          }
         }
         assert.equal(writes.filter(x=>x.path==='/api/billing/checkout').length,0,'Owner and unavailable checkout guards remain enforced');
         await fits(page,'pricing feedback '+width);
@@ -90,6 +93,7 @@ try{
       session.pilot=true;await page.reload();await page.locator('.pv-account-menu>summary').waitFor({state:'visible'});
       await page.locator('[data-lab-buy="studio"]').click();await page.getByText('This private account can choose only the €10 credit pack or €15/month Starter plan.',{exact:true}).waitFor();
       assert.equal(checkoutWrites().length,1,'Pilot restriction does not send an unavailable SKU');
+      await page.getByRole('tab',{name:'One-time credits',exact:true}).click();
       rig.holdCheckout();await page.locator('[data-lab-buy="topup10"]').click();
       await page.getByText('Opening secure checkout…',{exact:true}).waitFor();
       await page.evaluate(()=>window.mockClerk.signOut());rig.releaseCheckout();
@@ -102,7 +106,7 @@ try{
     const rig=await setup(390),{page,writes,errors}=rig;
     try{
       await page.addInitScript(()=>{if(sessionStorage.getItem('mock-auth')===null)sessionStorage.setItem('mock-auth','out');});
-      await page.goto(origin+'/lab/#pricing');await page.locator('[data-lab-buy="topup29"]').click();
+      await page.goto(origin+'/lab/#pricing');await page.getByRole('tab',{name:'One-time credits',exact:true}).click();await page.locator('[data-lab-buy="topup29"]').click();
       await page.waitForFunction(()=>window.signInOpened===true);
       await page.getByText('Sign in to continue with this selection.',{exact:true}).waitFor();
       assert.equal(writes.filter(x=>x.path==='/api/billing/checkout').length,0);
@@ -110,6 +114,7 @@ try{
       assert.equal(new URL(destination).origin,origin);
       await page.evaluate(()=>sessionStorage.setItem('mock-auth','in'));await page.goto(destination);
       await page.getByText('Unverified checkout link. Please try again.',{exact:true}).waitFor();
+      assert.equal(await page.locator('#lab-tab-onetime').getAttribute('aria-selected'),'true','Returned one-time purchase keeps the selected credits tab');
       assert.deepEqual(writes.filter(x=>x.path==='/api/billing/checkout').map(x=>JSON.parse(x.body)),[{sku:'topup29'}],'Sign-in return preserves and resumes the clicked pack exactly once');
       assert.equal(new URL(page.url()).searchParams.has('lab-checkout'),false);
       await page.reload();await page.locator('.pv-account-menu>summary').waitFor({state:'visible'});

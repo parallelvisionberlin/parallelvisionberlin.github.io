@@ -311,3 +311,11 @@ body>#studio-header .wrap.top{max-width:none;padding-right:16px}
 /* Separate the account avatar from the two homepage actions. */
 @media(min-width:901px){.landing-header--home .landing-header-actions>#lab-account-strip{margin-left:8px}}
 @media(max-width:900px){.landing-header--home .landing-header-actions>#lab-account-strip{margin-left:4px}}
+
+
+/* Reserve the Upgrade slot while signed out so account recovery cannot move navigation. */
+.landing-header--home .lab-home-upgrade[hidden]{
+  display:inline-flex!important;
+  visibility:hidden;
+  pointer-events:none;
+}
