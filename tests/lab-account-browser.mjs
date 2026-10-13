@@ -217,6 +217,16 @@ try{
           }
           await summary.click();await page.locator('[data-account-name]').getByText('Alex Test',{exact:true}).waitFor();
           assert.match(await page.locator('[data-account-balance]').textContent(),customer?/1,234 credits/:/Owner workspace/,path+' '+await page.locator('body').innerText());
+          if(path==='/lab/index.html'){
+            assert.equal(await page.locator('#lab-home-upgrade').count(),0,'No competing Upgrade button');
+            assert.equal(await page.locator('#lab-home-credits').isVisible(),customer,'Credits only for customers');
+            if(customer){
+              assert.equal(await page.locator('#lab-home-credit-copy').textContent(),'1,234');
+              assert.equal(await page.locator('#lab-home-credits').getAttribute('href'),'#pricing');
+              assert.equal(await page.locator('.pv-account-panel a[href="#pricing"]').count(),1);
+              assert.equal(await page.locator('.pv-account-panel a[href="./account.html"]').count(),1);
+            }
+          }
           const avatar=await page.locator('[data-account-avatar]').boundingBox();assert.equal(Math.round(avatar.width),32);assert.equal(Math.round(avatar.height),32);
           const panel=await page.locator('.pv-account-panel').boundingBox();assert.ok(panel.x>=0&&panel.x+panel.width<=width+1,'menu fits viewport');
           assert.equal(await page.locator('[data-account-referrals]').isVisible(),customer);
@@ -227,6 +237,28 @@ try{
       }
     }
     console.log('PASS account, shared menus, keyboard, private state and billing guards at '+width+'px');
+  }
+  // Empty, updated and signed-out credit states use the same authenticated session source.
+  for(const width of [1440,390,320]){
+    const rig=await setup(width,true,{balanceCredits:0}),{page,session,errors}=rig;
+    try{
+      await page.goto(origin+'/lab/');
+      await page.locator('#lab-home-credits').waitFor({state:'visible'});
+      assert.equal(await page.locator('#lab-home-credit-copy').textContent(),'Get credits');
+      assert.equal(await page.locator('#lab-home-credit-unit').isVisible(),false);
+      assert.equal(await page.locator('#lab-home-credits').getAttribute('aria-label'),'Get credits');
+      await fits(page,'zero balance header '+width);
+      session.balanceCredits=2850;
+      await page.evaluate(()=>window.dispatchEvent(new Event('focus')));
+      await page.waitForFunction(()=>document.getElementById('lab-home-credit-copy').textContent==='2,850');
+      assert.match(await page.locator('#lab-home-credits').getAttribute('aria-label'),/2,850 credits/);
+      await fits(page,'refreshed balance header '+width);
+      await page.evaluate(()=>window.mockClerk.signOut());
+      await page.locator('#lab-header-signin').waitFor({state:'visible'});
+      assert.equal(await page.locator('#lab-home-credits').isVisible(),false);
+      await fits(page,'signed out header '+width);
+      assert.deepEqual(errors,[]);
+    }finally{await rig.context.close();}
   }
   for(const width of [1920,1440,768,390,320]){
     const rig=await setup(width,false);
