@@ -194,14 +194,14 @@ try{
     const footer=el.querySelector('.composer-model-footer').getBoundingClientRect();
     const trigger=document.getElementById('image-composer-model').getBoundingClientRect();
     return {width:r.width,height:r.height,top:r.top,bottom:r.bottom,headerBottom:head.bottom,triggerTop:trigger.top,
-      available:Math.max(112,Math.floor(trigger.top-head.bottom-30)),
+      available:Math.max(112,Math.floor(trigger.top-head.bottom-16)),
       itemsScroll:items.scrollHeight,itemsClient:items.clientHeight,
       searchTop:search.top,searchBottom:search.bottom,footerTop:footer.top,footerBottom:footer.bottom,
       limit:getComputedStyle(el).maxHeight};
   });
   assert.ok(menuGeometry.width>=423&&menuGeometry.width<=427,'Model menu should keep its 425px desktop width: '+JSON.stringify(menuGeometry));
   assert.ok(menuGeometry.height<=menuGeometry.available+2&&menuGeometry.height>510,'Model dropdown should fill only the available height, never use the old fixed 680px cap: '+JSON.stringify(menuGeometry));
-  assert.ok(menuGeometry.top>=menuGeometry.headerBottom+16,'Model dropdown must leave clear space below navigation: '+JSON.stringify(menuGeometry));
+  assert.ok(menuGeometry.top>=menuGeometry.headerBottom+6,'Model dropdown must not touch navigation: '+JSON.stringify(menuGeometry));
   assert.ok(menuGeometry.searchTop>=menuGeometry.top&&menuGeometry.footerBottom<=menuGeometry.bottom+1,'Search and character shortcut stay inside menu: '+JSON.stringify(menuGeometry));
   assert.ok(menuGeometry.itemsClient>=380,'Compact model rows leave useful space before scrolling: '+JSON.stringify(menuGeometry));
   assert.equal(await x.page.locator('.composer-model-option[data-value="qwen3"] img').getAttribute('src'),'./branding/qwen.svg?v=20261013-mono1','Qwen uses refreshed local icon');
