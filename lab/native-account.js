@@ -33,7 +33,7 @@ async function createLabAccount(){
     await clerk.load({ui:{ClerkUI:window.__internal_ClerkUICtor},signInFallbackRedirectUrl:location.href,signUpFallbackRedirectUrl:location.href});
     return clerk;
   }
-  const {initLabMobileUI}=await import('./mobile-ui.js?v=20261012-photo-layout1');
+  const {initLabMobileUI}=await import('./mobile-ui.js?v=20261014-native-photo-picker1');
   initLabMobileUI();
   const identity=await requestIdentity();
   const signed=!!identity.token&&/^user_[A-Za-z0-9]+$/.test(identity.userId||'')&&/^sess_[A-Za-z0-9]+$/.test(identity.sessionId||'');

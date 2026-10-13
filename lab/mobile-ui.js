@@ -1,5 +1,5 @@
 // This layout is only enabled by the native app, never by a public query string.
-import {isNativeLab} from './native-account.js?v=20261012-photo-layout1';
+import {isNativeLab} from './native-account.js?v=20261014-native-photo-picker1';
 export function initLabMobileUI(){
   if(!isNativeLab()||document.documentElement.classList.contains('pv-native-lab'))return;
   document.documentElement.classList.add('pv-native-lab');
