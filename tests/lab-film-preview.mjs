@@ -153,4 +153,4 @@ const at=(buf,width,x,y)=>buf[(y*width+x)*3+1];
 const greenOld=await sharp(neonOld).removeAlpha().raw().toBuffer(),greenNew=await sharp(neonNew).removeAlpha().raw().toBuffer();
 assert.ok(at(greenNew,320,171,127)>at(greenOld,320,171,127)+1,'V3 colored practical must diffuse more visibly');
 assert.ok(at(greenNew,320,20,20)<38,'Unlit dark corner stays dark');
-console.log('V3 Cloudflare visual comparisons passed. Live production still uses approved V6; no AI generation.');
+console.log('V3 Cloudflare comparisons passed. V3 is now production default; explicit V6 comparison remains available. No AI generation.');

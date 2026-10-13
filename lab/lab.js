@@ -1,6 +1,6 @@
 import {createAccountMenu} from './account-menu.js?v=20261012-account2';
 const studioAccount=createAccountMenu(document.getElementById('studio-account-menu'));
-import {createFilmFinishControls,HONG_KONG_FILM_FINISH,FILM_FINISH_RENDER_REVISION} from './film-finish.js?v=20261013-deluxe3';
+import {createFilmFinishControls,HONG_KONG_FILM_FINISH,FILM_FINISH_RENDER_REVISION} from './film-finish.js?v=20261013-green-preserving-v3';
 import {preparePhotoInput} from './photo-input.js?v=1';
 import {createMoodReferenceLoader,moodReferencePlan,isMoodStyleReference} from './mood-references.js?v=20261012-hk-optics3&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1';
 import {createPrivateMediaCache} from './private-media-cache.js?v=20261012-cache1';

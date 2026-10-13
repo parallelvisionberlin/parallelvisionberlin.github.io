@@ -228,7 +228,9 @@ async function bytesFrom(response,max=OUTPUT_LIMIT){
   const bytes=new Uint8Array(size);let offset=0;for(const part of parts){bytes.set(part,offset);offset+=part.length;}return bytes;
 }
 const stream=bytes=>new Blob([bytes]).stream();
-export async function renderFilmFinish(images,bytes,settings,seed,{engine='v6'}={}){
+// V3 is the production default only after fixture, color and browser checks.
+ // V6 remains available as an explicit internal fallback for comparison.
+export async function renderFilmFinish(images,bytes,settings,seed,{engine='v3'}={}){
   if(engine!=='v6'&&engine!=='v3')throw Error('Unknown film engine.');
   const finish=filmFinishSettings(settings);
   if(!images?.input||!images?.info)throw Error('Film processing is temporarily unavailable.');

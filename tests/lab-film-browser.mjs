@@ -38,7 +38,7 @@ try{
       if(request.method()==='POST'){
         writes.push(u.pathname);assert.equal(u.pathname,'/api/jobs/film-job/film-finish','Only pixel processing may be submitted');
         const data=request.postDataJSON();assert.equal(data.outputId,job.outputId);assert.equal(data.settings.version,2);assert.equal(data.settings.grain,85);assert.equal(data.settings.haze,40);assert.equal(data.settings.halation,22);assert.equal(data.settings.film,70);
-        job={...job,outputId:'finished',settings:{...job.settings,filmOriginalId:'original',filmFinish:data.settings,filmFinishStatus:'applied',filmFinishRevision:6}};return send({job});
+        job={...job,outputId:'finished',settings:{...job.settings,filmOriginalId:'original',filmFinish:data.settings,filmFinishStatus:'applied',filmFinishRevision:7}};return send({job});
       }
       if(u.pathname==='/api/jobs')return send({jobs:[job],activeJobs:[],next:null});
       if(u.pathname.startsWith('/api/assets/')){const done=u.pathname.includes('/finished');return route.fulfill({contentType:done?'image/png':'image/jpeg',body:done?finished:original});}

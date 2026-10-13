@@ -1,4 +1,4 @@
-import {HONG_KONG_FILM_FINISH,filmFinishSettings,createFilmFinishControls} from './film-finish.js?v=20261013-print35mm1';
+import {HONG_KONG_FILM_FINISH,filmFinishSettings,createFilmFinishControls} from './film-finish.js?v=20261013-green-preserving-v3';
 /* PV Lab Moods V1. Editorial generation directions, not pixel filters. */
 const ALL_MOODS=Object.freeze([
   {

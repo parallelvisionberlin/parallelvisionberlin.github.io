@@ -51,7 +51,7 @@ test('source-aware grain preserves black and white, favors midtones and does not
   assert.equal(energy[0],0);assert.equal(energy[5],0);
   assert.ok(energy[3]>energy[1]*3);assert.ok(energy[3]>energy[4]*3);
   for(const m of mean)assert.ok(Math.abs(m)<.15,'grain must not lift shadows or depress highlights systematically');
-  assert.equal(FILM_RENDER_REVISION,6,'new processing must not reuse earlier cached derivatives');
+  assert.equal(FILM_RENDER_REVISION,7,'new processing must not reuse earlier cached derivatives');
 });
 test('Hong Kong optical finish preserves the setting and addresses foreground light at every tier',()=>{
   for(const intensity of [21,70,100]){
@@ -146,4 +146,14 @@ test('v6 analog maximum visibly changes dim midtones and preserves pure black',(
   const backend=readFileSync(new URL('../lab-worker/worker.mjs',import.meta.url),'utf8');
   assert.match(client,/Changes not applied/);assert.match(client,/Earlier finish/);
   assert.match(backend,/filmFinishRevision:output.id===original.id\?null:FILM_RENDER_REVISION/);
+});
+
+test('V3 promotion invalidates old derivatives and retains V6 as a reversible internal renderer',async()=>{
+  assert.equal(FILM_RENDER_REVISION,7);
+  const original=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAQAAAABCAIAAAB2XpiaAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAAFUlEQVQImWNgYGBoaGj4////s/U9AB+aBp+Ia7giAAAAAElFTkSuQmCC','base64');
+  const v6=await printGradePng(original,1,'v6');
+  const v3=await printGradePng(original,1,'v3');
+  assert.notDeepEqual(v6,v3,'V3 grade must not be a no-op alias of V6');
+  assert.notEqual(await filmAssetId('owner','image',HONG_KONG_FILM_FINISH),
+    await filmAssetId('owner','image',{...HONG_KONG_FILM_FINISH,film:95}));
 });
