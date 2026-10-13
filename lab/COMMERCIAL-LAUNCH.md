@@ -1,5 +1,22 @@
 # PV Lab commercial launch checklist (updated 2026-10-13)
 
+## Current completion verification, 13 October 2026
+
+- The pending gallery autoload change is merged through PR #163 (`0b108609`).
+  Its final head `6393c0b` passed the gallery, video, queue, Mood and layout checks.
+- Homepage photo-drop collection and contextual navigation are merged. The
+  latest Pages deployment succeeded: run `38473483017`, main `9836573`.
+- The current main contains automatic gallery pagination and its manual retry.
+- Latest successful Lab Worker deployment: run `38472905893`, source `9cf1efbc`.
+  That deployed source sets signup, public checkout, public generation and
+  customer Higgsfield flags to `true`. Earlier off/default-deny statements below
+  are historical and must not be treated as the current deployed flag state.
+- An enabled flag and successful deployment do not certify the complete real
+  customer purchase, generation debit, original download and return-visit flow.
+  Keep those external checks and provider/commercial gates explicit.
+- Cloudflare authentication in this agent session was cancelled. Do not repeat
+  the already verified sandbox purchase or its old customer-mapping repair.
+
 **13 October launch-safety update:** Live Stripe portal legal links and Stripe Tax head-office address have been configured and read back; no public access has been enabled. The whitelisted pilot now permits either one €10 top-up or one €15/month Starter subscription, but no other packs. Customer Higgsfield routes are blocked by default pending written commercial permission under its API terms; owner tools remain available. See [the 13 October release safety audit](./RELEASE-SAFETY-2026-10-13.md). Existing notes below retain historical dates.
 
 ## Active launch checkpoint, 12 October 2026
