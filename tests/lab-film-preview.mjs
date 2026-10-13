@@ -77,3 +77,80 @@ const deluxePixels=await sharp(deluxeAll).removeAlpha().raw().toBuffer();
 assert.equal(deluxePixels.length,fullPixels.length,'deluxe full should preserve source dimensions');
 assert.notDeepEqual(deluxePixels,fullPixels,'100/100/100/100 must be visibly distinct from the balanced finish');
 console.log('Deluxe 100/100/100/100 rendered on real Cloudflare Images without additional AI inference.');
+
+async function gradeWithEngine(bytes,engine,controls={grain:100,haze:100,halation:100,film:100}){
+  const query=new URLSearchParams({engine,version:'2',...Object.fromEntries(Object.entries(controls).map(([k,v])=>[k,String(v)]))});
+  const response=await fetch('http://127.0.0.1:8799/?'+query,{
+    method:'POST',body:bytes,signal:AbortSignal.timeout(120000)
+  });
+  if(!response.ok)throw Error('V3 comparison '+engine+': '+await response.text());
+  return Buffer.from(await response.arrayBuffer());
+}
+async function greenExcess(bytes,region){
+  let image=sharp(bytes);
+  if(region)image=image.extract(region);
+  const data=await image.resize({width:Math.min(region?.width||400,400),fit:'inside',withoutEnlargement:true})
+    .removeAlpha().raw().toBuffer({resolveWithObject:true});
+  let total=0,chromatic=0,n=0;
+  for(let i=0;i<data.data.length;i+=3){
+    const [r,g,b]=data.data.subarray(i,i+3);
+    total+=g-(r+b)*.5;chromatic+=Math.max(r,g,b)-Math.min(r,g,b);n++;
+  }
+  return {green:total/n,chroma:chromatic/n};
+}
+async function comparison(name,bytes){
+  const older=await gradeWithEngine(bytes,'v6');
+  const candidate=await gradeWithEngine(bytes,'v3');
+  const original=await greenExcess(bytes),v6=await greenExcess(older),v3=await greenExcess(candidate);
+  const labels=['Original','Approved V6','V3 candidate'],layers=[bytes,older,candidate],cells=[];
+  for(let i=0;i<3;i++){
+    const frame=await sharp(layers[i]).resize(360,420,{fit:'contain',background:'#151716'}).png().toBuffer();
+    const title=Buffer.from('<svg width="360" height="32"><rect width="360" height="32" fill="#151716"/><text x="12" y="22" fill="#f4f1e8" font-size="15" font-family="sans-serif">'+labels[i]+'</text></svg>');
+    cells.push({input:frame,left:i*360,top:32},{input:title,left:i*360,top:0});
+  }
+  await sharp({create:{width:1080,height:452,channels:3,background:'#151716'}}).composite(cells)
+    .jpeg({quality:91}).toFile(`${dir}/v3-comparison-${name}.jpg`);
+  console.log('V3 color comparison '+name+' '+JSON.stringify({original,v6,v3}));
+  assert.equal((await sharp(candidate).metadata()).width,(await sharp(bytes).metadata()).width);
+  return {original,v6,v3};
+}
+// Six physically interpretable swatches distinguish emerald, skin, neutral
+// shadows and tungsten instead of measuring a global green overlay.
+const printColors=[[32,75,65],[22,98,80],[40,128,106],[185,142,122],[14,26,24],[241,197,116]];
+const card=Buffer.alloc(480*320*3);
+for(let y=0;y<320;y++)for(let x=0;x<480;x++){
+  const [r,g,b]=printColors[Math.floor(x/80)],o=(y*480+x)*3;
+  card[o]=r;card[o+1]=g;card[o+2]=b;
+}
+const calibration=await sharp(card,{raw:{width:480,height:320,channels:3}}).png().toBuffer();
+const summary=await comparison('six-film-colors',calibration);
+const [oldEmerald,newEmerald]=await Promise.all(['v6','v3'].map(async engine=>{
+  const bytes=await gradeWithEngine(calibration,engine,{grain:0,haze:0,halation:0,film:100});
+  return greenExcess(bytes,{left:0,top:0,width:240,height:320});
+}));
+assert.ok(newEmerald.green>oldEmerald.green+2,'V3 must preserve visible emerald against V6');
+for(const [name,asset] of [
+  ['night-interior','lab/mood-references/hong-kong-nights/06-interior-portrait.jpg'],
+  ['passage-haze','lab/mood-references/hong-kong-nights/05-passage-diffusion.jpg'],
+  ['colored-city','lab/mood-references/hong-kong-nights/02-city-haze.jpg'],
+  ['wet-street','lab/mood-references/hong-kong-nights/03-shop-reflections.jpg']
+]){
+  const original=await sharp(asset).resize({width:850,height:850,fit:'inside',withoutEnlargement:true}).png().toBuffer();
+  await comparison(name,original);
+}
+// Controlled emitter on a dark field, processed with optical controls only.
+const glowing=Buffer.alloc(320*256*3);
+for(let y=0;y<256;y++)for(let x=0;x<320;x++){
+ const px=(y*320+x)*3,d=(x-154)**2+(y-127)**2;
+ const col=d<11**2?[12,211,122]:[13,23,21];
+ glowing[px]=col[0];glowing[px+1]=col[1];glowing[px+2]=col[2];
+}
+const neon=await sharp(glowing,{raw:{width:320,height:256,channels:3}}).png().toBuffer();
+const optics={grain:0,haze:100,halation:100,film:0};
+const neonOld=await gradeWithEngine(neon,'v6',optics),neonNew=await gradeWithEngine(neon,'v3',optics);
+await sharp(neonNew).png().toFile(`${dir}/v3-colored-practical.png`);
+const at=(buf,width,x,y)=>buf[(y*width+x)*3+1];
+const greenOld=await sharp(neonOld).removeAlpha().raw().toBuffer(),greenNew=await sharp(neonNew).removeAlpha().raw().toBuffer();
+assert.ok(at(greenNew,320,171,127)>at(greenOld,320,171,127)+1,'V3 colored practical must diffuse more visibly');
+assert.ok(at(greenNew,320,20,20)<38,'Unlit dark corner stays dark');
+console.log('V3 Cloudflare visual comparisons passed. Live production still uses approved V6; no AI generation.');

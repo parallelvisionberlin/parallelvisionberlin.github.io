@@ -1,4 +1,5 @@
 import {filmFinishSettings,FILM_FINISH_RENDER_REVISION} from '../lab/film-finish.js';
+import {filmPrintPixelV3,filmEmitterWeightV3} from './film-engine-v3.mjs';
 
 export const FILM_RENDER_REVISION=FILM_FINISH_RENDER_REVISION;
 const INPUT_LIMIT=20_000_000,OUTPUT_LIMIT=20*1024*1024;
@@ -115,7 +116,7 @@ export function photochemicalPlan(value){
     signature
   };
 }
-export async function luminousMaskPng(bytes){
+export async function luminousMaskPng(bytes,engine='v6'){
   const {width,height,pixels}=await normalizedPixels(bytes),out=new Uint8Array((width*4+1)*height);
   const light=(x,y)=>{
     x=Math.max(0,Math.min(width-1,x));y=Math.max(0,Math.min(height-1,y));
@@ -126,7 +127,10 @@ export async function luminousMaskPng(bytes){
     const i=(y*width+x)*4,j=y*(width*4+1)+1+x*4;
     const current=light(x,y),d=Math.max(4,Math.round(Math.min(width,height)/55));
     const around=(light(x-d,y)+light(x+d,y)+light(x,y-d)+light(x,y+d))/4;
-    const weight=sourceLightWeight(pixels[i],pixels[i+1],pixels[i+2],current-around);
+    const baseline=sourceLightWeight(pixels[i],pixels[i+1],pixels[i+2],current-around);
+    const weight=engine==='v3'
+      ?filmEmitterWeightV3(pixels[i],pixels[i+1],pixels[i+2],current-around,baseline)
+      :baseline;
     if(weight>.008)active=true;
     out[j]=Math.round(pixels[i]*weight);out[j+1]=Math.round(pixels[i+1]*weight);
     out[j+2]=Math.round(pixels[i+2]*weight);out[j+3]=255;
@@ -159,10 +163,10 @@ export function photochemicalPixel(r,g,b,deluxe=0){
       4*push*dense,0,255))
   ];
 }
-export async function printGradePng(bytes,deluxe=0){
+export async function printGradePng(bytes,deluxe=0,engine='v6'){
   const {width,height,pixels}=await normalizedPixels(bytes),scan=new Uint8Array((width*4+1)*height);
   for(let y=0;y<height;y++)for(let x=0;x<width;x++){
-    const i=(y*width+x)*4,j=y*(width*4+1)+1+x*4,graded=photochemicalPixel(pixels[i],pixels[i+1],pixels[i+2],deluxe);
+    const i=(y*width+x)*4,j=y*(width*4+1)+1+x*4,graded=(engine==='v3'?filmPrintPixelV3:photochemicalPixel)(pixels[i],pixels[i+1],pixels[i+2],deluxe);
     scan[j]=graded[0];scan[j+1]=graded[1];scan[j+2]=graded[2];scan[j+3]=pixels[i+3];
   }
   return png(width,height,scan,6);
@@ -224,7 +228,8 @@ async function bytesFrom(response,max=OUTPUT_LIMIT){
   const bytes=new Uint8Array(size);let offset=0;for(const part of parts){bytes.set(part,offset);offset+=part.length;}return bytes;
 }
 const stream=bytes=>new Blob([bytes]).stream();
-export async function renderFilmFinish(images,bytes,settings,seed){
+export async function renderFilmFinish(images,bytes,settings,seed,{engine='v6'}={}){
+  if(engine!=='v6'&&engine!=='v3')throw Error('Unknown film engine.');
   const finish=filmFinishSettings(settings);
   if(!images?.input||!images?.info)throw Error('Film processing is temporarily unavailable.');
   if(bytes.length>INPUT_LIMIT)throw Error('This image is too large for the film finish.');
@@ -240,7 +245,7 @@ export async function renderFilmFinish(images,bytes,settings,seed){
   if(finish.film){
     // Blend a graded low-res negative/print layer over the native-resolution
     // photograph. Fine image detail remains in the original underneath.
-    const grade=images.input(stream(await printGradePng(sourcePng,plan.printStrength))).transform({width,height,fit:'squeeze'});
+    const grade=images.input(stream(await printGradePng(sourcePng,plan.printStrength,engine))).transform({width,height,fit:'squeeze'});
     image=image.draw(grade,{opacity:plan.printOpacity,composite:'over'});
   }
   if(finish.haze){
@@ -249,7 +254,7 @@ export async function renderFilmFinish(images,bytes,settings,seed){
     image=image.draw(diffuse,{opacity:plan.diffusionOpacity,composite:'over'});
   }
   if(finish.haze||finish.halation){
-    const mask=await luminousMaskPng(sourcePng);
+    const mask=await luminousMaskPng(sourcePng,engine);
     if(mask.active){
       // Scene-scale humid diffusion is separate from tight source halation.
       // Both only draw energy originating in actual bright source pixels.
