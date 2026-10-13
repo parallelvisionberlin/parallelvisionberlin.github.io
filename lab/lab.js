@@ -1155,6 +1155,15 @@ function fitImageModelMenu(){
   if(!menu||!trigger)return;
   const available=trigger.getBoundingClientRect().top-(header?.getBoundingClientRect().bottom||0)-24;
   menu.style.setProperty('--pv-model-menu-available',Math.max(112,Math.floor(available))+'px');
+  // The menu can be wider than its trigger. Clamp it to the visual viewport,
+  // rather than letting a right-side model pill push it off-screen on mobile.
+  menu.style.left='0px';
+  const rect=menu.getBoundingClientRect(),parent=menu.parentElement.getBoundingClientRect();
+  if(rect.width){
+    const limit=Math.max(12,window.innerWidth-rect.width-12);
+    const visualLeft=Math.max(12,Math.min(rect.left,limit));
+    menu.style.left=Math.round(visualLeft-parent.left)+'px';
+  }
 }
 window.addEventListener('resize',()=>{if(imageMenuOpen)fitImageModelMenu();});
 function closeImageModelMenu(){

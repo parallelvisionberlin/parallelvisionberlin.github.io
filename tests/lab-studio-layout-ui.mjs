@@ -377,7 +377,7 @@ try{
     return {top:r.top,left:r.left,right:r.right,bottom:r.bottom,headerBottom:head.bottom,height:r.height};
   });
   assert.ok(mobileModelMenu.top>=mobileModelMenu.headerBottom+5,'Model menu must stay below mobile navigation: '+JSON.stringify(mobileModelMenu));
-  assert.ok(mobileModelMenu.left>=0&&mobileModelMenu.right<=390,'Model menu must fit mobile width: '+JSON.stringify(mobileModelMenu));
+  assert.ok(mobileModelMenu.left>=12&&mobileModelMenu.right<=378,'Model menu must keep 12px mobile side margins: '+JSON.stringify(mobileModelMenu));
   await x.page.keyboard.press('Escape');
   const compactComposer=await x.page.locator('#image-composer').evaluate(el=>{
     const r=el.getBoundingClientRect();return {left:r.left,right:r.right,bottom:r.bottom,width:r.width};
