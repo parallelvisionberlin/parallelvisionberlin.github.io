@@ -41,7 +41,7 @@ export function moodReferencePlan(settings){
     }
   }
   if(compileImagePrompt(prompt,referenceRoles).length>budget)
-    throw Error('Direction and reference notes exceed this model’s '+budget.toLocaleString()+' character limit, even with the compact Mood. Shorten optional notes.');
+    throw Error('Direction and reference notes are too long for this model’s '+budget.toLocaleString()+' character limit, even with the compact Mood. Shorten optional notes.');
   return {settings:{...settings,prompt,referenceRoles,
     // With text alone, a style photograph must not choose the output framing.
     aspectRatio:!labels.length&&settings.aspectRatio==='auto'?'1:1':settings.aspectRatio},references};
