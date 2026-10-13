@@ -118,3 +118,22 @@
   #pricing .lab-topups-actions button{font-size:10px;padding:10px 8px}
   .lab-pricing-mood figcaption{font-size:9px;left:8px;right:8px;bottom:11px}
 }
+
+/* Unified editorial pricing rows: the two tabs replace the former bottom pack strip. */
+#pricing .lab-plans-grid[hidden]{display:none!important}
+#pricing .lab-pricing-options{gap:28px}
+#pricing .lab-pricing-options [role="tab"]{
+ appearance:none;border:0;border-bottom:1px solid transparent;border-radius:0;
+ margin:0;padding:0 0 12px;background:transparent;color:#99938a;
+ font:400 12px/1.4 'DM Sans',Arial,sans-serif;cursor:pointer;
+ transition:color .18s,border-color .18s;
+}
+#pricing .lab-pricing-options [role="tab"][aria-selected="true"]{color:#f6f3ed;border-bottom-color:#d9d5cb}
+#pricing .lab-pricing-options [role="tab"]:hover{color:#f6f3ed}
+#pricing .lab-pricing-options [role="tab"]:focus-visible{outline:2px solid #e6e0d5;outline-offset:4px}
+#pricing .lab-pricing-layout{align-items:center}
+#pricing .lab-soul-offer{margin-top:32px}
+@media(max-width:760px){
+ #pricing .lab-pricing-options{gap:24px}
+ #pricing .lab-pricing-options [role="tab"]{font-size:12px;white-space:nowrap}
+}
