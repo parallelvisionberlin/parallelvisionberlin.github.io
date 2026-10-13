@@ -307,3 +307,7 @@ body>#studio-header .wrap.top{max-width:none;padding-right:16px}
 @media(min-width:901px) and (max-width:1270px){.landing-header--home .lab-home-upgrade{padding-inline:17px}}
 @media(max-width:900px){.landing-header--home .lab-home-upgrade{padding-inline:13px}}
 @media(max-width:560px){.landing-header--home .lab-home-upgrade{padding-inline:10px}}
+
+/* Separate the account avatar from the two homepage actions. */
+@media(min-width:901px){.landing-header--home .landing-header-actions>#lab-account-strip{margin-left:8px}}
+@media(max-width:900px){.landing-header--home .landing-header-actions>#lab-account-strip{margin-left:4px}}
