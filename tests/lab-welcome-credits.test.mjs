@@ -50,6 +50,7 @@ test('welcome balance is off by default and cannot be enabled by the bonus flag 
 test('only accounts created from activation time receive 120 credits, once',async t=>{
   const f=fixture(t);
   await ensureCustomer(f.env,'user_AlreadyHere');
+  f.db.prepare('UPDATE lab_customers SET created_at=? WHERE id=?').run(Date.now()-5000,'user_AlreadyHere');
   f.env.LAB_WELCOME_CREDITS_ENABLED='true';
   f.env.LAB_WELCOME_CREDITS_ACTIVATED_AT=String(Date.now()-1000);
   await ensureCustomer(f.env,'user_AlreadyHere');
