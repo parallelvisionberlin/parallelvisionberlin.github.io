@@ -11,7 +11,7 @@ export function seedreamLiteParameters(value,{fail,referenceRoles=[],moodMetadat
   const prompt=String(value.prompt||'').trim();
   if(!['image'].includes(value.mode)||value.type!=='image'||value.engine!=='seedreamlite')
     fail(400,'Choose Seedream Lite Image mode.');
-  if(prompt.length<3||prompt.length>3000)
+  if(prompt.length>3000||(prompt.length<3&&!referenceRoles.length&&!value.moodId))
     fail(400,'Seedream Lite requires 3 to 3,000 characters, including Mood direction.');
   if(value.resolution!=='2k')fail(400,'Seedream Lite uses one 2K resolution tier.');
   const ratio=value.aspectRatio||'16:9';
