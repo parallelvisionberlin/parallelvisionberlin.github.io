@@ -58,3 +58,13 @@ This checkpoint separates **verified configuration**, **source-level checks**, a
 7. Only after the signed-in end-to-end customer test and commercial checks pass, separately authorize the public Worker flags. Review production cash/provider balances, security/logging and roll-back plan.
 
 This file tracks launch readiness. It does not itself deploy secrets, activate public sales, verify third-party signed agreements or charge any customer.
+
+## Footer, referrals and consumer-rights website update (13 October, evening)
+
+- The homepage, Studio, account, mood pages and Fashion page now include a PV LAB-branded four-column footer linking to existing Privacy, Terms, Customer Support and the new `/lab/impressum/`, `/lab/cancel/` and `/lab/withdraw/` information pages.
+- Shared footer deliberately does not display the proprietor's personal name. The separate Impressum must identify the legally responsible individual and cannot be anonymized merely for visual preference.
+- The public homepage's “Get your invite link” now points to the implemented customer account route `/lab/account.html#referrals` instead of `/lab/studio.html?referrals=1`. Referral rewards still depend on eligibility and the public rollout flags.
+- Existing analytics “Privacy choices” control was retargeted to the Legal footer column.
+- **Compliance blocker: these are information and billing-management links, not yet a complete `§ 312k BGB` or `§ 356a BGB` electronic submission feature.** The new cancellation and withdrawal pages presently offer authenticated Stripe portal access or contact-email instructions; they do **not** offer the independently accessible two-step submission interface with legally prescribed confirm action, timestamped durable proof, and immediate electronic receipt acknowledgement. Do not describe these pages as legally compliant cancellation/withdrawal buttons.
+- Before accepting public B2C subscription sales, implement and test the un-gated cancellation and withdrawal notice workflows (with tamper-resistant receipt storage and sender/customer acknowledgement email delivery) and have their applicable scope reviewed. The configured `contact@parallelvisionlabel.com` is used for contact; its existence in website source is not proof of a deployed transactional email sender.
+
