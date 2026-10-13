@@ -23,7 +23,7 @@ const descriptions = Object.freeze({
   none:'General visual reference. Use only details relevant to the requested image or its specific reference note. Do not replace the base identity, composition, clothing, pose or environment unless the prompt explicitly asks for that change.'
 });
 export function supportsReferenceGuidance(p){
-  return p?.type==='image' && p.mode==='image' && (!p.engine || ['seedream','gemini','flash','kling'].includes(p.engine));
+  return p?.type==='image' && p.mode==='image' && (!p.engine || ['seedream','gemini','flash','kling','qwen3'].includes(p.engine));
 }
 export function normalizeReferenceLabel(x){
   const role=REFERENCE_ROLES.some(([id])=>id===x?.role)?x.role:'none';
