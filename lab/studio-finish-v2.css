@@ -46,9 +46,10 @@
  #image-composer.is-gemini .composer-mood-control #image-composer-moods{font-size:11px}
 }
 /* The Mood star and label are centered as one flex group, not aligned from the left. */
-#image-composer .composer-mood-control #image-composer-moods{box-sizing:border-box;justify-content:center;gap:5px;text-align:center}
-#image-composer .composer-mood-control .composer-mood-icon{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;font-size:13px;font-weight:600;line-height:1;white-space:pre}
-#image-composer .composer-mood-control .composer-mood-label{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.18}
+#image-composer .composer-mood-control #image-composer-moods{box-sizing:border-box;justify-content:center;text-align:center}
+#image-composer .composer-mood-control .composer-mood-copy{display:inline-block;min-width:0;max-width:100%;margin-inline:auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;line-height:1.18}
+#image-composer .composer-mood-control .composer-mood-icon{display:inline-block;font-size:13px;font-weight:600;line-height:1;vertical-align:baseline}
+#image-composer .composer-mood-control .composer-mood-label{display:inline}
 /* The fallback model symbol was zero-size, leaving Controlled Pose with an empty left slot. */
 #image-composer .composer-model-symbol:not(:has(img)){font-size:17px}
 /* Actual inline icon and independent action text survive every Generate label update. */
