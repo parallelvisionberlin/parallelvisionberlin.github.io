@@ -631,3 +631,20 @@ test('Berlin Rave fits the final reference-map budget for one to ten photos at e
   assert.equal(saved.error,'');
   assert.ok(compileImagePrompt(saved.prompt,[{name:'base.png',role:'base',note:'Keep my face and hair.'}]).length<=5000);
 });
+
+test('Text-only Z-Image parks references and stable image docks keep controls in place',()=>{
+  const js=readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8');
+  const css=readFileSync(new URL('../lab/assets.css',import.meta.url),'utf8');
+  const html=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
+  assert.match(js,/function imageInputReferences\(\)\{return tool==='image'&&imageEngine==='zspicy'\?\[\]:references;\}/);
+  assert.match(js,/if\(tool==='image'&&imageEngine==='zspicy'\)return !!\$\('prompt'\)\.value\.trim\(\)/);
+  assert.match(js,/imageInputReferences\(\)\.map\(ref=>\(\{file:ref\.file/);
+  assert.match(js,/if\(tool==='image'&&!imageInputReferences\(\)\.length\)return \{sourceId:null,lastSourceId:null,referenceSourceIds:\[\]\}/);
+  assert.match(js,/if\(tool!=='image'\|\|imageEngine==='zspicy'\|\|imageEngine==='soul'/);
+  assert.match(js,/classList\.toggle\('is-seedream',tool==='image'&&\['seedream','seedreamlite','flash','kling','qwen3','zspicy','gemini'\]/);
+  assert.match(js,/const stableImageDock=window\.innerWidth>=900&&imageComposer\.classList\.contains\('is-seedream'\)/);
+  assert.match(css,/#image-composer\.is-seedream\{[^}]*min-height:224px/);
+  assert.match(css,/#image-composer\.is-seedream \.composer-controls\{[^}]*flex-wrap:nowrap/);
+  assert.match(css,/#image-composer\.is-text-only \.image-composer-references\{display:none!important\}/);
+  assert.match(html,/stableImageDeck=1&zTextOnly=1/);
+});
