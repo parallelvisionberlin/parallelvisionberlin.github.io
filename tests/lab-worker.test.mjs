@@ -1458,6 +1458,11 @@ test('Seedance 1.5 Motion and 2.5 4K routes quote exact provider parameters with
 
 test('Seedream 5 Lite quotes and submits both text and reference edit with exact 2K size presets',async()=>{
   const {env}=fixture(),id=await setup(env);
+  // The legacy 9-byte PNG signature cannot pass the real pixel-limit validator.
+  const image=await grainPng(8,8,40,'lite-reference');
+  const row=env.LAB_DB.db.prepare('SELECT object_key FROM assets WHERE id=?').get(id);
+  await env.LAB_MEDIA.put(row.object_key,image);
+  env.LAB_DB.db.prepare('UPDATE assets SET bytes=? WHERE id=?').run(image.length,id);
   createCount=0;maxPrice='0.035000';providerState='queued';createMode='ok';
   const lite={type:'image',engine:'seedreamlite',mode:'image',
     prompt:'High fashion photograph with directional flash.',resolution:'2k',
