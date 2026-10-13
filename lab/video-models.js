@@ -47,6 +47,17 @@ export const VIDEO_MODELS = Object.freeze({
       text: 'google/gemini-omni-flash/v1.1/text-to-video'
     }
   }),
+  seedance15: Object.freeze({
+    label:'Seedance 1.5 Pro · Motion',minSeconds:4,maxSeconds:12,maxImages:0,
+    modes:['start','text'],resolutions:['480p','720p','1080p'],
+    ratios:['16:9','9:16','4:3','3:4','1:1','21:9'],
+    endpoints:{start:'bytedance/seedance-1.5-pro/image-to-video',text:'bytedance/seedance-1.5-pro/text-to-video'}
+  }),
+  seedance4k: Object.freeze({
+    label:'Seedance 2.5 · 4K',minSeconds:4,maxSeconds:30,maxImages:0,
+    modes:['start'],resolutions:['4k'],ratios:['auto'],
+    endpoints:{start:'bytedance/seedance-2.5-spicy/image-to-video'}
+  }),
   seedance: Object.freeze({
     label: 'Seedance 2.5', minSeconds: 4, maxSeconds: 30, maxImages: 30,
     modes: ['start', 'reference', 'text', 'extend'], resolutions: ['480p', '720p', '1080p'],
@@ -57,6 +68,8 @@ export const VIDEO_MODELS = Object.freeze({
 export function engineFor(settings = {}) {
   if (settings.engine === 'omni' || /^google\/gemini-omni-flash\/v1\.1\//.test(settings.model || '')) return 'omni';
   if (settings.engine === 'h3maxfal' || settings.model === 'minimax/h3-max/reference-to-video' && settings.provider === 'fal') return 'h3maxfal';
+  if (settings.engine === 'seedance15' || /^bytedance\/seedance-1\.5-pro\//.test(settings.model || '')) return 'seedance15';
+  if (settings.engine === 'seedance4k' || settings.model === 'bytedance/seedance-2.5-spicy/image-to-video') return 'seedance4k';
   if (settings.engine === 'seedance' || /^bytedance\/seedance-2\.5\//.test(settings.model || '')) return 'seedance';
   if (settings.engine === 'h3spicy' || /^minimax\/h3-spicy\//.test(settings.model || '')) return 'h3spicy';
   if (settings.engine === 'h3max' || /^minimax\/h3-max\//.test(settings.model || '')) return 'h3max';
