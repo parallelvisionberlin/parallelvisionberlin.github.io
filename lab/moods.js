@@ -266,7 +266,7 @@ export function moodPreviewURL(mood,{detail=false}={}){
   return detail?(mood.previewFull||mood.preview):mood.preview;
 }
 
-export const MOOD_MODELS=Object.freeze(['seedream','gemini','qwen3','zspicy']);
+export const MOOD_MODELS=Object.freeze(['seedream','seedreamlite','gemini','qwen3','zspicy']);
 export const moodById=id=>ALL_MOODS.find(m=>m.id===id)||null;
 // This is intentionally presentation-only. Jobs retain the full provider prompt for
 // reproduction, but the viewer and History show only user-authored text.
@@ -296,7 +296,7 @@ export function imageHistoryCaption(settings={}){
 export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',referenceCount=0,referenceMode='base',compact=false,ultraCompact=false,filmFinish=HONG_KONG_FILM_FINISH}={}){
   const original=String(input||'').trim(),mood=moodById(id);
   if(!mood)return {prompt:original,metadata:{},error:''};
-  if(!MOOD_MODELS.includes(engine))return {prompt:original,metadata:{},error:'This image model does not support Moods. Choose Seedream, Nano Banana, Qwen Image 3.0 or Z-Image Spicy.'};
+  if(!MOOD_MODELS.includes(engine))return {prompt:original,metadata:{},error:'This image model does not support Moods. Choose Seedream Pro or Lite, Nano Banana, Qwen Image 3.0 or Z-Image Spicy.'};
   const intensity=Math.max(1,Math.min(100,Math.round(Number(amount)||60)));
   const finish=mood.id==='hong-kong-nights'&&filmFinish?filmFinishSettings(filmFinish):null;
   const dreamcore=mood.id==='dreamcore',cinematic80s=mood.id==='80s-film',berlinRave=mood.id==='berlin-rave',syntheticRomance=mood.id==='synthetic-romance',midnightReverie=mood.id==='midnight-reverie';
@@ -522,7 +522,7 @@ export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange
     selection.hidden=!chosen;
     selectedLabel.hidden=!chosen;
     const compatible=MOOD_MODELS.includes(getEngine());
-    hint.textContent=compatible?'':'This image model does not support Moods. Try Seedream, Nano Banana, Qwen Image 3.0 or Z-Image Spicy.';
+    hint.textContent=compatible?'':'This image model does not support Moods. Try Seedream Pro or Lite, Nano Banana, Qwen Image 3.0 or Z-Image Spicy.';
     hint.hidden=compatible;
     switcher.hidden=compatible;
     switcher.disabled=!chosen;
