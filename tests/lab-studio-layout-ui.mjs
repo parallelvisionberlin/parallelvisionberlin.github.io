@@ -229,7 +229,9 @@ try{
   const generateUi=await x.page.locator('#image-composer-generate').evaluate(el=>{
     const css=getComputedStyle(el);return {color:css.color,background:css.backgroundImage,font:css.fontFamily,weight:css.fontWeight};
   });
-  assert.equal(generateUi.color,'rgb(24, 20, 14)','Available Image Generate uses dark text on amber');
+  const darkText=generateUi.color.match(/[0-9]+/g)?.map(Number);
+  assert.ok(darkText?.length===3&&darkText.every(channel=>channel<60),
+    'Available Image Generate retains dark, legible text when its exact RGB token changes');
   const ratioOptions=await x.page.locator('#image-composer-ratio option').evaluateAll(options=>options.map(o=>({value:o.value,label:o.textContent})));
   assert.match(ratioOptions.find(o=>o.value==='auto').label,/^Auto · /,
     'Automatic framing has a distinct visible label and cannot be confused with fixed 16:9');

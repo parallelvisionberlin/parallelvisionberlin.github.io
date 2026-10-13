@@ -1371,3 +1371,53 @@ test('native Lab session keeps signature verification and explicit origin/transp
  const guest=await token('user_Guest',{azp:undefined,sid:'sess_MobileFixture'});
  assert.equal((await req(env,'/api/session',{authToken:guest,headers:{'X-PV-Lab-Client':'mobile-v1'}})).status,403);
 });
+
+
+test('Qwen Image 3.0 uses its real edit route, staged references and a bounded quote before generation',async()=>{
+  createCount=0;createMode='ok';providerState='queued';const {env}=fixture(),id=await setup(env);
+  const settings={type:'image',engine:'qwen3',mode:'image',prompt:'Keep the face, change the light to cobalt blue.',resolution:'2k',aspectRatio:'3:4',referenceRoles:[{name:'portrait.png',role:'base'}]};
+  const response=await req(env,'/api/quotes',{method:'POST',data:{settings,referenceSourceIds:[id]}});
+  assert.equal(response.status,200,await response.clone().text());
+  const quote=await response.json();
+  assert.equal(quote.settings.model,'alibaba/qwen-image-3.0/edit');
+  assert.equal(quotedRequest.model,quote.settings.model);
+  assert.equal(quotedRequest.input.resolution,'2k');
+  assert.equal(quotedRequest.input.aspect_ratio,'3:4');
+  assert.equal(quotedRequest.input.enable_prompt_expansion,false);
+  assert.equal(quotedRequest.input.num_outputs,1);
+  assert.equal(quotedRequest.input.image_urls.length,1);
+  assert.match(quotedRequest.input.image_urls[0],/^spicy:\/\/f\//);
+  assert.match(quotedRequest.input.prompt,/Keep the face/);
+  assert.equal(createCount,0,'A quote is never a paid generation');
+  const submitted=await req(env,'/api/jobs',{method:'POST',data:{quoteId:quote.id,confirm:true}});
+  assert.equal(submitted.status,202,await submitted.clone().text());
+  assert.equal(createCount,1);
+  assert.equal((await submitted.json()).job.settings.engine,'qwen3');
+  const second=await req(env,'/api/jobs',{method:'POST',data:{quoteId:quote.id,confirm:true}});
+  assert.equal(second.status,200);
+  assert.equal(createCount,1,'No duplicate paid submission');
+  const rejected=await req(env,'/api/quotes',{method:'POST',data:{settings:{...settings,referenceRoles:[{role:'none'},{role:'none'},{role:'none'},{role:'none'}]},referenceSourceIds:[id,id,id,id]}});
+  assert.equal(rejected.status,400,'Qwen exceeds three sources before any provider request');
+});
+
+test('Z-Image Spicy routes only text to image and never bills an unsupported reference edit',async()=>{
+  createCount=0;createMode='ok';providerState='queued';const {env}=fixture(),id=await setup(env);
+  const settings={type:'image',engine:'zspicy',mode:'image',prompt:'A surreal editorial portrait in a cobalt-blue studio',resolution:'1.5k',aspectRatio:'16:9',referenceRoles:[]};
+  const blocked=await req(env,'/api/quotes',{method:'POST',data:{settings,referenceSourceIds:[id]}});
+  assert.equal(blocked.status,400,'A Base photograph must not be silently ignored');
+  assert.equal(createCount,0);
+  const quoteRes=await req(env,'/api/quotes',{method:'POST',data:{settings,referenceSourceIds:[]}});
+  assert.equal(quoteRes.status,200,await quoteRes.clone().text());
+  const quote=await quoteRes.json();
+  assert.equal(quote.settings.model,'alibaba/z-image-spicy/text-to-image');
+  assert.equal(quotedRequest.model,'alibaba/z-image-spicy/text-to-image');
+  assert.deepEqual(Object.keys(quotedRequest.input).sort(),['enable_prompt_expansion','height','prompt','width']);
+  assert.equal(quotedRequest.input.width,1536);
+  assert.equal(quotedRequest.input.height,864);
+  assert.equal(quotedRequest.input.enable_prompt_expansion,false);
+  assert.equal(createCount,0);
+  const submitted=await req(env,'/api/jobs',{method:'POST',data:{quoteId:quote.id,confirm:true}});
+  assert.equal(submitted.status,202,await submitted.clone().text());
+  assert.equal(createCount,1);
+  assert.equal((await submitted.json()).job.settings.engine,'zspicy');
+});

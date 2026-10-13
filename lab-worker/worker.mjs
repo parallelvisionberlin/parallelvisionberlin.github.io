@@ -10,6 +10,7 @@ import {referralRoute} from './referrals.mjs';
 import {fashionRoute,refreshFashionJob} from './fashion-tools.mjs';
 import {precisionEditRoute} from './precision-edit.mjs';
 import {IMAGE_PRICES,IMAGE_RATIOS,imageModelParameters,buildImageModelInput,requestFlash} from './image-models.mjs';
+import {QWEN3_TEXT,QWEN3_EDIT,Z_IMAGE_SPICY,experimentalImageParameters,buildExperimentalImageInput} from './experimental-image-models.mjs';
 import {ensureGalleryDimensions} from './gallery-dimensions.mjs';
 import {serveGalleryThumbnail,galleryThumbnailKey} from './gallery-thumbnails.mjs';
 import {libraryRoute,libraryJobs} from './asset-library.mjs';
@@ -222,11 +223,12 @@ function parameters(value) {
   const prompt=typeof value.prompt==='string'?value.prompt.trim():'';
   const referenceMode=value.referenceMode==='references'?'references':'base';
   const referenceRoles=referenceLabels(value.referenceRoles,value.type==='image'&&value.engine==='flash'?14:10);
-  if(value.type==='image'&&['seedream','gemini','flash','kling'].includes(value.engine)&&referenceMode==='references'){
+  if(value.type==='image'&&['seedream','gemini','flash','kling','qwen3'].includes(value.engine)&&referenceMode==='references'){
     for(const r of referenceRoles)if(r.role==='base')r.role='none';
     if(!value.aspectRatio||value.aspectRatio==='auto')value={...value,aspectRatio:'16:9'};
   }
   if(value.type==='image'&&['flash','kling'].includes(value.engine))return imageModelParameters({...value,referenceMode},{fail,referenceRoles});
+  if(value.type==='image'&&['qwen3','zspicy'].includes(value.engine))return experimentalImageParameters(value,{fail,referenceRoles,moodMetadata:imageMoodMetadata});
   if(value.type==='image'&&value.engine==='soulpro'&&value.soulProModel==='soul2')return soul2Parameters(value,fail);
   if(value.type==='image'&&value.engine==='soulpro')return soulProParameters({...value,referenceRoles},{fail,referenceLabels});
   if(value.type==='image'&&value.engine==='fal')return value.mode==='controlled-repair'?controlledRepairParameters({...value,referenceRoles},{fail}):controlledPoseParameters({...value,referenceRoles},{fail});
@@ -389,6 +391,19 @@ async function prepareInput(env,owner,data,p,url) {
     const finalPrompt=prefix+'\n'+direction;if(finalPrompt.length>5000)fail(400,'PV Soul prompt plus identity instruction is too long.');
     input={prompt:finalPrompt,output_format:p.outputFormat,aspect_ratio:p.aspectRatio};
     if(url){const weights=await soulWeightUrl(env,url,character,soulDeps());input.loras=[{path:weights,scale:p.identityStrength}];}
+  }else if(p.type==='image'&&['qwen3','zspicy'].includes(p.engine)){
+    const ids=data.referenceSourceIds||[];
+    if(!Array.isArray(ids))fail(400,'Reference photos must be a list.');
+    if(p.engine==='zspicy'&&(ids.length||data.sourceId||data.lastSourceId||data.transferSourceIds?.length))
+      fail(400,'Z-Image Spicy is text-to-image only. Remove all photographs or select Qwen Image 3.0.');
+    if(p.engine==='qwen3'&&ids.length>3)
+      fail(400,'Qwen Image 3.0 accepts at most three reference photographs.');
+    const refs=ids.length?await sources(env,owner,ids,3):[];
+    if(refs.some(r=>!r.mime?.startsWith('image/')))fail(400,'Qwen Image 3.0 references must be photographs.');
+    primary=refs[0]||null;p.referenceSourceIds=refs.map(ref=>ref.id);p.lastSourceId=null;
+    p.model=p.engine==='qwen3'?(refs.length?QWEN3_EDIT:QWEN3_TEXT):Z_IMAGE_SPICY;
+    input=buildExperimentalImageInput(p,refs.length);
+    if(refs.length&&url)input.image_urls=await Promise.all(refs.map(ref=>signedInput(env,url,ref.id)));
   }else if(p.type==='image'){
     const refs=data.referenceSourceIds?.length?await sources(env,owner,data.referenceSourceIds):[];
     primary=refs[0]||null;p.referenceSourceIds=refs.map(a=>a.id);p.lastSourceId=null;p.model=refs.length||builtInMoodReferenceCount(p)?STILL_EDIT:STILL_TEXT;
@@ -1419,7 +1434,7 @@ async function route(request,env,ctx) {
     const data=await body(request),p=parameters(data.settings);
     const quoteCount=data.count===undefined?1:Number(data.count);
     if(!Number.isInteger(quoteCount)||quoteCount<1||quoteCount>4)fail(400,'Choose 1 to 4 images for one price check.');
-    if(quoteCount>1&&!(p.type==='image'&&p.engine==='seedream'&&p.mode==='image'&&p.provider==='spicy'))fail(400,'Multiple prices in one request are supported only for Seedream image generation.');
+    if(quoteCount>1&&!(p.type==='image'&&['seedream','qwen3','zspicy'].includes(p.engine)&&p.mode==='image'&&p.provider==='spicy'))fail(400,'Multiple prices in one request are supported only for Seedream, Qwen 3 and Z-Image Spicy generation.');
     if(!['upscale','reinterpret'].includes(p.mode)&&!p.prompt&&!(supportsReferenceGuidance(p)&&Array.isArray(data.referenceSourceIds)&&data.referenceSourceIds.length>0))fail(400,'Add a prompt or at least one reference photograph.');
     if(p.provider==='higgsfield'&&p.mode==='extend')return json(await quoteVideoExtension(env,owner,data,p,url,hfDeps()));
     if(p.provider==='fal'&&p.mode==='upscale'){
@@ -1521,7 +1536,7 @@ async function route(request,env,ctx) {
       return json({job:jobView(await first(env,'SELECT * FROM jobs WHERE id=?',id))},202);
     }
     const {c,key}=await requireConfigured(env,owner);
-    if(savedPayload.model===STILL_EDIT&&(!Array.isArray(savedPayload.input?.image_urls)||!savedPayload.input.image_urls.length||savedPayload.input.image_urls.some(uri=>!FILE_URI.test(uri))))
+    if([STILL_EDIT,QWEN3_EDIT].includes(savedPayload.model)&&(!Array.isArray(savedPayload.input?.image_urls)||!savedPayload.input.image_urls.length||savedPayload.input.image_urls.some(uri=>!FILE_URI.test(uri))))
       fail(409,'This image quote uses the old reference transfer. Review a fresh price to verify your images before generating. Nothing was submitted.');
     if(savedPayload.model===UPSCALER&&!FILE_URI.test(savedPayload.input?.image_url||''))fail(409,'Review a fresh upscale quote to verify the input file. Nothing was submitted.');
     for(const assetId of linkedSourceIds(q))await source(env,owner,assetId);
