@@ -1676,7 +1676,8 @@ test('Nano Banana 2.1 submits to direct Google Interactions and archives the out
     assert.equal(job.status,'completed');assert.equal(job.settings.model,'gemini-nano-banana-2.1');
     assert.equal(job.creditCost,10);assert.equal(job.estimatedUsd,0.0504);
     assert.equal(sent.model,'gemini-nano-banana-2.1');
-    assert.deepEqual(sent.response_format,{type:'image',image_size:'2K'});
+    assert.deepEqual(sent.response_format,{type:'image',image_size:'2K',aspect_ratio:'4:5'});
+    assert.equal(sent.store,false);
     assert.equal(sent.input[0].type,'text');assert.equal(sent.input[1].type,'image');
     const asset=env.LAB_DB.db.prepare('SELECT object_key FROM assets WHERE id=?').get(job.outputId);
     assert.deepEqual([...objects.get(asset.object_key)],[137,80,78,71,13,10,26,10,0]);

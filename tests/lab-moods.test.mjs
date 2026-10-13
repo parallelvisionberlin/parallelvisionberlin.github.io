@@ -169,7 +169,7 @@ test('fifteen unique curated moods with imagery',()=>{
   for(const mood of MOODS)for(const field of ['name','category','preview','direction','subtle','intense','avoid'])assert.ok(mood[field]);
 });
 test('only explicitly compatible image engines receive moods',()=>{
-  assert.deepEqual([...MOOD_MODELS],['seedream','seedreamlite','gemini','qwen3','zspicy']);
+  assert.deepEqual([...MOOD_MODELS],['seedream','seedreamlite','gemini','gemini21','qwen3','zspicy']);
   assert.match(prepareMoodPrompt('portrait','night-flash',60,{engine:'soulpro'}).error,/does not support Moods/);
   assert.equal(moodById('fake'),null);
 });
@@ -643,7 +643,7 @@ test('Text-only Z-Image parks references without expanding the compact Image dec
   assert.match(js,/imageInputReferences\(\)\.map\(ref=>\(\{file:ref\.file/);
   assert.match(js,/if\(tool==='image'&&!imageInputReferences\(\)\.length\)return \{sourceId:null,lastSourceId:null,referenceSourceIds:\[\]\}/);
   assert.match(js,/if\(tool!=='image'\|\|imageEngine==='zspicy'\|\|imageEngine==='soul'/);
-  assert.match(js,/classList\.toggle\('is-seedream',tool==='image'&&\['seedream','seedreamlite','flash','kling','qwen3','zspicy','gemini'\]/);
+  assert.match(js,/classList\.toggle\('is-seedream',tool==='image'&&\['seedream','seedreamlite','flash','kling','qwen3','zspicy','gemini','gemini21'\]/);
   assert.match(js,/const stableImageDock=window\.innerWidth>=900&&imageComposer\.classList\.contains\('is-seedream'\)/);
   assert.match(css,/#image-composer\.is-seedream\{grid-template-columns:minmax\(0,1fr\) 144px\}/);
   assert.doesNotMatch(css,/#image-composer\.is-seedream\{[^}]*min-height:(?:224|272)px/);

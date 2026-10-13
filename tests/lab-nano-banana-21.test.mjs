@@ -7,7 +7,7 @@ import {creditsForJobUsd} from '../lab-worker/job-pricing.mjs';
 const model={type:'image',provider:'gemini',engine:'gemini21',model:NANO21_MODEL,processing:'normal',resolution:'2k',aspectRatio:'16:9'};
 test('Google Interactions request preserves photos, reference instructions and response image',()=>{
   assert.deepEqual(nano21Request(model,[{text:'Portrait'},{inlineData:{mimeType:'image/png',data:'dGVzdA=='}}]),
-    {model:NANO21_MODEL,input:[{type:'text',text:'Portrait'},{type:'image',mime_type:'image/png',data:'dGVzdA=='}],
+    {model:NANO21_MODEL,store:false,input:[{type:'text',text:'Portrait'},{type:'image',mime_type:'image/png',data:'dGVzdA=='}],
      response_format:{type:'image',image_size:'2K',aspect_ratio:'16:9'}});
   assert.deepEqual(nano21ImagePart({status:'completed',steps:[{type:'model_output',content:[{type:'image',mime_type:'image/png',data:'dGVzdA=='}]}]}),{mime:'image/png',data:'dGVzdA=='});
   assert.throws(()=>nano21ImagePart({status:'in_progress'}),/did not confirm/);

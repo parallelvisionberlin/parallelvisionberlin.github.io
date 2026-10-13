@@ -18,7 +18,7 @@ export function nano21Request(p,parts){
   });
   const response_format={type:'image',image_size:p.resolution.toUpperCase()};
   if(p.aspectRatio&&p.aspectRatio!=='auto')response_format.aspect_ratio=p.aspectRatio;
-  return {model:NANO21_MODEL,input,response_format};
+  return {model:NANO21_MODEL,store:false,input,response_format};
 }
 export function nano21ImagePart(res){
   const uncertain=msg=>{const e=Error(msg);e.definite=false;throw e;};
