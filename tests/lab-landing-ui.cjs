@@ -42,7 +42,8 @@ const server=http.createServer((req,res)=>{
    const collection=section.querySelector('.lab-pricing-collection').getBoundingClientRect();
    const comparison=section.querySelector('.lab-pricing-comparison').getBoundingClientRect();
    const title=section.querySelector('h2');
-   return {collection:{right:collection.right,bottom:collection.bottom},comparison:{x:comparison.x,y:comparison.y},weight:getComputedStyle(title).fontWeight,background:getComputedStyle(section).backgroundColor,overflow:document.documentElement.scrollWidth>innerWidth};
+   const cardRight=Math.max(...[...section.querySelectorAll('.lab-pricing-mood')].map(card=>card.getBoundingClientRect().right));
+   return {collection:{right:collection.right,bottom:collection.bottom},comparison:{x:comparison.x,y:comparison.y},cardGap:comparison.x-cardRight,weight:getComputedStyle(title).fontWeight,background:getComputedStyle(section).backgroundColor,overflow:document.documentElement.scrollWidth>innerWidth};
   });
   assert.equal(layout.overflow,false,'Pricing does not overflow at '+width);
   assert.equal(layout.weight,'300','Pricing reuses the light hero typography');
@@ -54,6 +55,8 @@ const server=http.createServer((req,res)=>{
     const invite=document.querySelector('.lab-invite-promo');
     return {
       sectionHeight:pricing.getBoundingClientRect().height,
+      topPadding:parseFloat(getComputedStyle(pricing).paddingTop),
+      headlineSize:parseFloat(getComputedStyle(pricing.querySelector('h2')).fontSize),
       visibleHeight:innerHeight,
       deckMargin:getComputedStyle(deck).marginTop,
       rowHeights:rows.map(row=>row.getBoundingClientRect().height),
@@ -69,7 +72,12 @@ const server=http.createServer((req,res)=>{
   assert.equal(details.inviteParagraph,'rgb(182, 176, 165)','Referral description has contrast on dark background');
   if(width>760){
     assert.equal(details.deckMargin,'20px','Desktop image collection is balanced lower by 20px');
-    assert.ok(details.rowHeights.every(n=>n>=102&&n<=105),'Desktop pricing rows are approximately 103px tall');
+    assert.ok(details.rowHeights.every(n=>n>=110&&n<=114),'Desktop pricing rows have relaxed 112px rhythm');
+    if(width>=1200){
+      assert.ok(details.topPadding>=95,'Pricing composition is lowered into its viewport');
+      assert.ok(details.headlineSize>=47,'Desktop pricing heading has hero-scale typography');
+      assert.ok(layout.cardGap>=60,'Mood images have room before the pricing text');
+    }
   }else{
     assert.equal(details.deckMargin,'0px','Mobile photography keeps original compact position');
   }
