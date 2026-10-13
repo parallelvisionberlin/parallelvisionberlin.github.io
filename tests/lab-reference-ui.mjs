@@ -25,7 +25,7 @@ let passed=0, input, small, output;
 const pass = name => { passed++; console.log('PASS ' + name); };
 const API = 'https://parallel-vision-lab.parallelvision.workers.dev';
 const outputId = '30000000-0000-4000-8000-000000000002';
-const job = { id:'30000000-0000-4000-8000-000000000001',sourceId:'30000000-0000-4000-8000-000000000003',outputId,status:'completed',createdAt:Date.now(),settings:{type:'image',mode:'image',prompt:'A ceramic sculpture.',resolution:'2k',aspectRatio:'1:1',outputFormat:'png',referenceSourceIds:[]},settledUsd:0.036 };
+const job = { id:'30000000-0000-4000-8000-000000000001',sourceId:'30000000-0000-4000-8000-000000000003',outputId,status:'completed',createdAt:Date.now(),settings:{type:'image',mode:'image',engine:'seedream',model:'bytedance/seedream-5.0-pro/edit',prompt:'A ceramic sculpture.',resolution:'2k',aspectRatio:'1:1',outputFormat:'png',referenceSourceIds:[]},settledUsd:0.036 };
 async function workspace({ width=1440, jobs=[], fallback=false }={}) {
   const context=await browser.newContext({viewport:{width,height:1000},acceptDownloads:true});
   if(fallback)await context.addInitScript(()=>{window.Worker=undefined;});
