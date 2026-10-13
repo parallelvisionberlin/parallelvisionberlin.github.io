@@ -1066,7 +1066,7 @@ async function route(request,env,ctx) {
   if(url.pathname.startsWith('/input/')&&(request.method==='GET'||request.method==='HEAD'))return publicInput(request,env,url);
   if(url.pathname.startsWith('/soul-dataset/')&&request.method==='GET')return publicSoulDataset(request,env,url,soulDeps());
   if(url.pathname.startsWith('/soul-weight/')&&(request.method==='GET'||request.method==='HEAD'))return publicSoulWeight(request,env,url,soulDeps());
-  if(url.pathname==='/api/stripe/webhook'&&request.method==='POST')return stripeWebhook(request,env);
+  if(url.pathname==='/api/stripe/webhook'&&request.method==='POST')return stripeWebhook(request,env,ctx);
   if(!url.pathname.startsWith('/api/'))fail(404,'Not found.');
   const owner=await authenticate(request,env),path=url.pathname,method=request.method;
   const customer=await isLabCustomer(env,owner);
