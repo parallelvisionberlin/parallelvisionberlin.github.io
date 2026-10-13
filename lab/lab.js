@@ -1163,7 +1163,6 @@ function syncImageComposer(){
     else if(imageEngine==='soulpro'&&!isSoul2()&&!soulProIdentity.configured)message='Choose and save the identity reference photos.';
     else if(imageEngine==='soul'&&!soul.ready())message='Choose a trained LoRA.';
     else if(imageEngine==='soul'&&isReinterpret()&&!soul.reinterpretReady())message='This character needs a trained Reinterpret identity.';
-    else if(imageEngine==='zspicy'&&!$('prompt').value.trim())message='Describe an image in the prompt to generate with Z-Image Spicy.';
     else if(!hasInput()&&imageEngine==='fal')message='Add one pose image, 1–4 identity photos and a prompt.';
     else if(usesReferenceGuidance()&&imageGuidance().error)message=imageGuidance().error;
     else if(moodUI.invalid(imageEngine,$('prompt').value,imageInputReferences().length,imageEngine==='zspicy'?'base':imageReferenceMode))message=moodUI.error(imageEngine,$('prompt').value,imageInputReferences().length,imageEngine==='zspicy'?'base':imageReferenceMode);
@@ -1176,7 +1175,7 @@ function syncImageComposer(){
   const exactPreparing=tool==='image'&&fastImageHandoff.has(currentImageSubmissionKey());
   // A selected look without a prompt or photo already has a disabled Generate
   // button and a tooltip. Repeating the hint inline adds an unwanted third row.
-  const idleMoodNeedsInput=moodUI.active()&&!references.length&&!$('prompt').value.trim();
+  const idleMoodNeedsInput=moodUI.active()&&!imageInputReferences().length&&!$('prompt').value.trim();
   const inlineMessage=queueBlocked||exactPreparing||idleMoodNeedsInput?'':message;
   block.hidden=!inlineMessage;reason.textContent=inlineMessage;review.hidden=true;
   generate.title=message?(message+(queueBlocked?' Open Queue at the top right to review it.':'')):(isSoul2()?'Review the live Higgsfield price before any charge. PV Soul accepts one base image and one optional trained Soul ID; use Seedream for multiple reference photos.':'');
