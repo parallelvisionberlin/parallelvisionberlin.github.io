@@ -1488,7 +1488,10 @@ test('Seedream 5 Lite quotes and submits both text and reference edit with exact
   const submit=await req(env,'/api/jobs',{method:'POST',data:{quoteId:editQuote.id,confirm:true}});
   assert.equal(submit.status,202,await submit.clone().text());
   assert.equal(createCount,1);
-  assert.equal((await submit.json()).job.settings.engine,'seedreamlite');
+  const submittedJob=(await submit.json()).job;
+  assert.equal(submittedJob.settings.engine,'seedreamlite');
+  assert.equal(submittedJob.settings.customerChargeCredits,17,'Job history keeps its exact quoted credits');
+  assert.equal(submittedJob.creditCost,17);
   assert.equal((await req(env,'/api/jobs',{method:'POST',data:{quoteId:editQuote.id,confirm:true}})).status,200);
   assert.equal(createCount,1,'One bound quote cannot create duplicate paid jobs');
 });
