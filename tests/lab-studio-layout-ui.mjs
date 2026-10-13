@@ -209,10 +209,19 @@ try{
   await x.page.locator('.composer-model-option[data-value="seedream"]').click();
   assert.equal(await x.page.locator('#image-engine').inputValue(),'seedream');
 
-  const floatingChooser=x.page.waitForEvent('filechooser');
   await x.page.click('#image-composer-add');
+  assert.equal(await x.page.locator('#composer-add-menu').isVisible(),true,'The single plus opens the upload and packs menu');
+  assert.equal(await x.page.locator('#composer-add-upload').isVisible(),true);
+  assert.equal(await x.page.locator('#composer-add-saved').isVisible(),true);
+  assert.equal(await x.page.locator('#composer-character').isVisible(),false,'No duplicate right-side references tile');
+  await x.page.click('#composer-add-saved');
+  assert.equal(await x.page.locator('#composer-library-title').textContent(),'Saved photo packs');
+  await x.page.click('#composer-library-close');
+  await x.page.click('#image-composer-add');
+  const floatingChooser=x.page.waitForEvent('filechooser');
+  await x.page.click('#composer-add-upload');
   const imageChooser=await floatingChooser;
-  assert.ok(imageChooser,'Plus button opens reference input from same bar');
+  assert.ok(imageChooser,'Upload photos opens the original reference input');
   const referencePng=await x.page.evaluate(()=>{
     const canvas=document.createElement('canvas');canvas.width=320;canvas.height=320;
     const ctx=canvas.getContext('2d');ctx.fillStyle='#65788a';ctx.fillRect(0,0,320,320);

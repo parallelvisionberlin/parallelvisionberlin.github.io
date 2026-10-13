@@ -1132,8 +1132,8 @@ function syncImageComposer(){
   updateComposerPromptBudget();
   syncSoulBar();
   // Trained characters keep their identity tile. Reference image models use only the left +.
-  const trainedCharacterTile=imageEngine==='soul'||isSoul2();
-  imageComposer.classList.toggle('has-character-picker',imageEngine==='soul'&&!isSoul2());
+  const trainedCharacterTile=imageEngine==='soul'||imageEngine==='soulpro';
+  imageComposer.classList.toggle('has-character-picker',(imageEngine==='soul'||imageEngine==='soulpro')&&!isSoul2());
   $('composer-character').hidden=!trainedCharacterTile;
   textbox.disabled=busy || $('prompt').disabled;
   $('image-composer-model-label').textContent=imageStudioModelTitle();
