@@ -519,7 +519,7 @@ async function media(request,env,a) {
   if(partial)h.set('Content-Range',`bytes ${partial.offset}-${partial.offset+partial.length-1}/${obj.size}`);
   return new Response(request.method==='HEAD'?null:obj.body,{status:partial?206:200,headers:h});
 }
-function jobView(j) {return {creditCost:j.estimate_microusd>0?creditsForJobUsd(j.estimate_microusd/1000000,JSON.parse(j.params)):null,id:j.id,sourceId:j.source_id,settings:JSON.parse(j.params),status:j.state,outputId:j.output_id,estimatedUsd:j.estimate_microusd>0?j.estimate_microusd/1000000:null,settledUsd:j.settled_cost,providerTaskId:j.provider_id,error:j.error,createdAt:j.created_at,updatedAt:j.updated_at};}
+function jobView(j) {const p=JSON.parse(j.params);return {creditCost:j.estimate_microusd>0?(Number.isSafeInteger(p.customerChargeCredits)&&p.customerChargeCredits>=7?p.customerChargeCredits:creditsForUsd(j.estimate_microusd/1000000)):null,id:j.id,sourceId:j.source_id,settings:JSON.parse(j.params),status:j.state,outputId:j.output_id,estimatedUsd:j.estimate_microusd>0?j.estimate_microusd/1000000:null,settledUsd:j.settled_cost,providerTaskId:j.provider_id,error:j.error,createdAt:j.created_at,updatedAt:j.updated_at};}
 function safeVideoUrl(value) {
   const u=new URL(value);const host=u.hostname.toLowerCase();
   if(u.protocol!=='https:'||u.username||u.password||(u.port&&u.port!=='443')||!(host==='spicyapi.ai'||host.endsWith('.spicyapi.ai')||host==='higgsfield.ai'||host.endsWith('.higgsfield.ai')||host==='fal.media'||host.endsWith('.fal.media')||host==='cdn.fashn.ai'||host==='media.fashn.ai'||host.endsWith('.r2.cloudflarestorage.com')||host.endsWith('.cloudfront.net')))throw new Error('Unexpected provider output location.');
@@ -1497,7 +1497,7 @@ async function route(request,env,ctx) {
     // Every quote has its own vendor quote ID; no paid inference begins here.
     const payload={model:p.model,input};
     const replies=await Promise.all(Array.from({length:quoteCount},()=>vendorRequest('/jobs/quote',key,payload)));
-    const time=now(),paramsJson=JSON.stringify(p),payloadJson=JSON.stringify(payload);
+    const time=now(),payloadJson=JSON.stringify(payload);
     const priced=replies.map(q=>{
       const estimate=micros(q.estimatedCost),maximum=micros(q.maxCharge),expiry=Date.parse(q.expiresAt);
       if(q.currency!=='USD'||typeof q.quoteId!=='string'||!q.quoteId||maximum<estimate||!Number.isFinite(expiry)||expiry<=time)
@@ -1509,7 +1509,7 @@ async function route(request,env,ctx) {
     });
     if(new Set(priced.map(q=>q.vendorQuoteId)).size!==priced.length)fail(502,'The provider returned duplicate price identifiers. Nothing generated; please retry the price check.');
     const statement='INSERT INTO quotes(id,owner_id,source_id,params,estimate_microusd,expires_at,vendor_quote_id,expected_cost,payload) VALUES(?,?,?,?,?,?,?,?,?)';
-    const insertArgs=q=>[q.id,owner,primary?.id||null,paramsJson,Math.round(q.maxUsd*1000000),q.expiresAt,q.vendorQuoteId,q.expectedCost,payloadJson];
+    const insertArgs=q=>[q.id,owner,primary?.id||null,JSON.stringify({...p,customerChargeCredits:creditsForJobUsd(q.maxUsd,p)}),Math.round(q.maxUsd*1000000),q.expiresAt,q.vendorQuoteId,q.expectedCost,payloadJson];
     if(quoteCount===1)await run(env,statement,...insertArgs(priced[0]));
     else await env.LAB_DB.batch(priced.map(q=>stmt(env,statement,...insertArgs(q))));
     const response=priced.map(({vendorQuoteId,expectedCost,...publicQuote})=>({...publicQuote,creditCost:creditsForJobUsd(publicQuote.maxUsd,publicQuote.settings)}));
