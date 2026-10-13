@@ -42,3 +42,33 @@ test('Hong Kong generation recipe never changes with Film Finish',()=>{
   if(intensity===100)assert.match(off.prompt,/black letterbox bars/);
  }
 });
+
+test('Hong Kong cinematographer scene routing across all prompt strengths and budgets',()=>{
+ for(const engine of ['seedream','gemini'])
+ for(const intensity of [1,34,35,69,70,90,100])
+ for(const options of [{},{compact:true},{ultraCompact:true}]){
+  const result=prepareMoodPrompt('Keep the same real location and face.','hong-kong-nights',intensity,{engine,referenceCount:1,...options});
+  assert.equal(result.error,'');
+  assert.match(result.prompt,/INTERIOR/);
+  assert.match(result.prompt,/STREET|EXTERIOR/);
+  assert.match(result.prompt,/DIRECT FLASH/);
+  assert.match(result.prompt,/IDENTITY FIRST/);
+  assert.match(result.prompt,/facial geometry/);
+  assert.match(result.prompt,/atmospheric emerald haze/i);
+  if(intensity===100)assert.match(result.prompt,/black letterbox bars/);
+ }
+});
+test('scene-aware relighting survives final provider compile without truncating original request',()=>{
+ for(const engine of ['seedream','gemini'])for(const count of [0,1,3,6]){
+  const author='Keep the same person, original rock and camera angle.';
+  const recipe=prepareMoodPrompt(author,'hong-kong-nights',100,{engine,referenceCount:count});
+  const roles=Array.from({length:count},(_,i)=>({name:'source-'+i+'.png',role:i?'identity':'base',note:''}));
+  const plan=moodReferencePlan({type:'image',mode:'image',engine,aspectRatio:'auto',prompt:recipe.prompt,...recipe.metadata,referenceRoles:roles});
+  const compiled=compileImagePrompt(plan.settings.prompt,plan.settings.referenceRoles);
+  assert.ok(compiled.length<=5000,compiled.length);
+  assert.ok(plan.settings.prompt.startsWith(author));
+  assert.match(compiled,/DIRECT FLASH/);
+  assert.match(compiled,/IDENTITY FIRST/);
+  assert.match(compiled,/rock|setting/);
+ }
+});
