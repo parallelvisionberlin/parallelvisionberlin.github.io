@@ -70,3 +70,10 @@ const noLightsWithHaze=await finish35mm(noLights,{haze:100,halation:100});
 const noLightPixel=await sharp(noLightsWithHaze).removeAlpha().raw().toBuffer();
 assert.ok(noLightPixel[0]<80&&noLightPixel[1]<95,'haze cannot invent a bright silhouette when no emitter exists');
 console.log('Actual Cloudflare 35mm photochemical grade, haze, halation, grain and off-bypass checks passed; no AI generation.');
+
+const deluxeAll=await finish35mm(input,{grain:100,haze:100,halation:100,film:100});
+await writeFile(`${dir}/35mm-deluxe-full-100.png`,deluxeAll);
+const deluxePixels=await sharp(deluxeAll).removeAlpha().raw().toBuffer();
+assert.equal(deluxePixels.length,fullPixels.length,'deluxe full should preserve source dimensions');
+assert.notDeepEqual(deluxePixels,fullPixels,'100/100/100/100 must be visibly distinct from the balanced finish');
+console.log('Deluxe 100/100/100/100 rendered on real Cloudflare Images without additional AI inference.');

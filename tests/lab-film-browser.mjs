@@ -57,6 +57,26 @@ try{
     await page.locator('#history .card').first().evaluate(el=>el.click());
     await page.waitForFunction(()=>!document.querySelector('#image-lightbox-download').disabled);
     const finish=page.locator('#image-film-finish');await finish.waitFor({state:'visible'});
+    const help=finish.getByRole('button',{name:'About 35mm film finish'});
+    await help.click();
+    assert.equal(await finish.locator('.film-finish-explanation').isVisible(),true);
+    await help.click();
+    assert.equal(await finish.locator('.film-finish-explanation').isVisible(),false);
+    const columnCount=await finish.evaluate(el=>getComputedStyle(el).gridTemplateColumns.split(' ').filter(Boolean).length);
+    assert.equal(columnCount,2,'Grain/Haze and Halation/Film must use a compact two-column deck');
+    await finish.getByRole('button',{name:'Apply finish',exact:true}).scrollIntoViewIfNeeded();
+    await finish.getByRole('button',{name:'Download original',exact:true}).scrollIntoViewIfNeeded();
+    if(width>720){
+      const bounds=await page.evaluate(()=>{
+        const apply=document.querySelector('#image-film-apply').getBoundingClientRect();
+        const original=document.querySelector('#image-film-original').getBoundingClientRect();
+        const footer=document.querySelector('#image-lightbox .image-detail-actions').getBoundingClientRect();
+        return {applyBottom:apply.bottom,originalBottom:original.bottom,footerTop:footer.top};
+      });
+      assert.ok(bounds.applyBottom<=bounds.footerTop+2&&bounds.originalBottom<=bounds.footerTop+2,
+        'Finishing actions must clear the fixed result toolbar: '+JSON.stringify(bounds));
+    }
+
     await finish.getByRole('slider',{name:'Grain intensity'}).fill('85');await finish.getByRole('slider',{name:'Haze intensity'}).fill('40');await finish.getByRole('slider',{name:'Film intensity'}).fill('70');
     await finish.getByRole('button',{name:'Apply finish',exact:true}).click();
     await page.waitForFunction(()=>document.querySelector('#image-film-finish').textContent.includes('film finish applied'));

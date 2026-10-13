@@ -92,7 +92,7 @@ export function sourceLightWeight(r,g,b,localContrast=0){
   const core=Math.max(smooth(.79,.98,l),saturated);
   return core*(.3+.7*smooth(.035,.22,localContrast));
 }
-// 0-70 stays calibrated. 70-100 progressively opens a photochemical
+// Deluxe 35mm v5: 0-70 stays calibrated. 70-100 opens a photochemical
 // overdrive without inventing scene lighting or new processing passes.
 export function deluxeResponse(value){
   const t=clamp((value-70)/30);
