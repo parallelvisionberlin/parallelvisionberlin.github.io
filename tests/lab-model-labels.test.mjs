@@ -56,7 +56,7 @@ test('Pending result cards, History, Assets, viewer and price summary share exac
  assert.match(source,/modelLabel=image\?galleryImageModelName\(j\)\.toUpperCase\(\)/);
  assert.match(source,/imageName=p\.mode==='upscale'\?'Upscale':imageModelLabel\(p\)/);
  assert.match(source,/\$\('reference-provider'\)\.textContent=imageModelLabel\(\{engine:imageEngine\}\)/);
- assert.match(source,/isImage?\x60\$\{imageModelLabel\(q\.settings\)\}/);
+ assert.ok(source.includes('isImage?`${imageModelLabel(q.settings)}'),'Quote uses the selected model name');
  assert.match(studio,/modelLabels=1/);
  assert.doesNotMatch(source,/function detailModelName\(job\)[\s\S]{0,800}return 'Seedream 5 Pro'/);
 });
