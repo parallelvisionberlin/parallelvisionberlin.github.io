@@ -1,5 +1,5 @@
-import {createSessionRequest} from './session-request.js?v=20260927-auth1';
-import {loadLabAccount} from './native-account.js?v=20261014-custom-domain1';
+import {createSessionRequest} from './session-request.js?v=20260927-auth1&studioAuth=20261015-1';
+import {loadLabAccount} from './native-account.js?v=20261014-custom-domain1&studioAuth=20261015-1';
 export function createFashionStudio(root=document,{sessionClient=null,onNavigate=null}={}){
 const API='https://parallel-vision-lab.parallelvision.workers.dev';
 const $=id=>root.getElementById(id);
