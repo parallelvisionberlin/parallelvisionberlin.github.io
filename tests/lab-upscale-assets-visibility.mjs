@@ -56,10 +56,10 @@ for(const [width,height,profile] of [[1440,900,'desktop'],[390,844,'mobile']]){
       }
     });
     const deck=await page.evaluate(()=>{
-      const rect=id=>{const r=document.getElementById(id).getBoundingClientRect();return {top:r.top,left:r.left,right:r.right,width:r.width};};
-      return {model:rect('upscale-model-display'),size:rect('upscale-scale'),format:rect('output-format'),generate:rect('generate')};
+      const rect=selector=>{const r=document.querySelector(selector).getBoundingClientRect();return {top:r.top,left:r.left,right:r.right,width:r.width};};
+      // Compare the actual input surfaces, not the model wrapper that also contains its label.
+      return {model:rect('.upscale-model-readout'),size:rect('#upscale-scale'),format:rect('#output-format'),generate:rect('#generate')};
     });
-    console.log('UPSCALE_DECK_GEOMETRY='+JSON.stringify({profile,deck}));
     if(profile==='desktop'){
       const tops=[deck.model.top,deck.size.top,deck.format.top,deck.generate.top];
       assert.ok(Math.max(...tops)-Math.min(...tops)<5,'Desktop model, enlargement, format and Upscale align in one row');
