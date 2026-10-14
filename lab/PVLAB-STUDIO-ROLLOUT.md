@@ -1,43 +1,41 @@
-# pvlab.studio migration checkpoint (14 October 2026)
+# PV LAB independent domain, accounts and zero-loss cutover
 
-## What is established
-- New domain: `pvlab.studio` registered at Porkbun; Cloudflare zone is Active.
-- Static frontend: `pvlab-studio.pages.dev` on a separate Cloudflare Pages project, deployed from this repository. The working Pages build duplicates `lab/` at the deployment root and `/lab/`, and copies the two top-level referenced image assets.
-- Original site: `https://parallelvisionlabel.com/lab/` continues to use the original GitHub Pages hosting and original Clerk.
-- New Clerk application: independent Production instance with `https://clerk.pvlab.studio`; DNS Frontend API, Account Portal and email records verified. SSL issuance was still pending in the last screenshot, so do not assume end-to-end login is working.
-- New Clerk dashboard currently shows the application label `My Application`, which can be renamed to `PV LAB` without changing the integration.
-- Existing backend: `parallel-vision-lab` Worker on the original D1 wallet and media database. Stripe checkout, refunds, image generations, old user identities and owner access are already live. They MUST remain intact.
+State: 15 October 2026. Production release is a separately verified action, not a successful draft preview.
 
-## This branch, safe preparation only
-1. `lab/clerk-instance.js` chooses the existing public Clerk key on the original domain and the independent public Clerk key on `pvlab.studio`. Never expose a secret key.
-2. `lab/native-account.js` loads the matching Clerk Frontend API UI bundle and publishable key. Native mobile authentication remains on its previous bridge.
-3. `lab-worker/clerk-issuer-policy.mjs` requires exact issuer and origin matching. New Clerk tokens are rejected by default.
-4. **The new Clerk backend pilot cannot be opened to the public with this branch.** Only when both Worker settings below are present can one exact new Clerk identity read its own isolated pilot wallet:
-   - `LAB_NEW_CLERK_PILOT_ENABLED=true`
-   - `LAB_NEW_CLERK_PILOT_SUBJECT=user_<exact new Clerk test subject>`
-5. A new pilot identity uses an isolated internal `user_PvLabV2...` namespace. It is never identified with an old account or promoted to owner by matching email or user ID.
-6. On the new issuer, the Worker refuses **all non-GET/HEAD private API requests**. This deliberately prevents purchases, generation, account mutation and balance adjustments during tests.
-7. The old issuer and old customer ledger remain unchanged. `LAB_PUBLIC_APP_URL` and all Stripe return URLs are NOT changed.
+## Confirmed infrastructure
 
-## Why this is NOT a customer migration
-Clerk identities in separate applications have separate `user_...` values. Existing D1 `lab_customers`, `lab_credit_entries`, `lab_subscriptions`, paid work, saved assets and `OWNER_DB` role mappings belong to their previous identity. A shared email address is not sufficient evidence to merge accounts. Existing customer email synchronization has also been under repair; do not use incomplete email records to match customers.
+- Porkbun registration: `pvlab.studio`, Cloudflare DNS zone Active.
+- Cloudflare Pages project `pvlab-studio` already renders the PV LAB interface at `https://pvlab-studio.pages.dev`.
+- Clerk application `My Application`, **Production**: `pvlab.studio` Verified; Frontend API + Account Portal Verified; email 3/3 Verified; Frontend API and Account Portal SSL certificates Issued.
+- Clerk Google SSO: Enabled/Used for sign-in with a separate OAuth client `PV LAB Google Login`, under Google Cloud project `PARALLEL VISION`. Its Google consent project remains in Testing mode. No change to the existing Parallel Vision client was requested.
+- Existing PV LAB front end remains `https://parallelvisionlabel.com/lab/`, and Cloudflare Worker backend remains `parallel-vision-lab`.
+- Production customer signup, live checkout and generation were already enabled on the original website. Existing credit, job, role, gallery and Stripe tables must never be cleared or guessed.
 
-Before production cutover, implement and test an explicit consent-based linking process requiring a verified **old** and **new** Clerk session (or equivalent independently verified ownership). Map each new subject to the existing canonical customer/owner ID; preserve the old D1 ledger, Stripe customer, subscription, gallery and referrals instead of issuing a second independent balance. Prove that unlinked users cannot access linked data, that double linking is impossible, and that expired/replayed transfer proofs are refused.
+## Code architecture (PR #210)
 
-## Operator checklist, in order
-1. Leave the existing Parallel Vision Clerk app and frontend untouched. Do not copy or disclose Clerk secret keys in chats or GitHub.
-2. Confirm Clerk Production `pvlab.studio` Frontend API + Account Portal SSL certificates are **Issued/Active**. If Google social login is intended, complete the production Google OAuth configuration as instructed by Clerk.
-3. Wait for this draft PR's tests and review. Do not merge or deploy on the strength of a successful static preview alone.
-4. Build the **real** existing-account identity migration, then test with fake accounts and a separate external test account. Obtain an owner/customer balances backup or verified financial snapshot before changing anything.
-5. In Cloudflare Pages project `pvlab-studio`, connect `pvlab.studio` as a custom domain **only once login and rollback are ready**. Replace its Porkbun parking A/CNAME records through Cloudflare's guided setup; do not touch DNS for `parallelvisionlabel.com`, `clerk`, `accounts`, or `clkmail` on `pvlab.studio`.
-6. For the optional read-only pilot after code review, configure the two exact pilot variables in the `parallel-vision-lab` Worker. Test `/api/session`, `/api/customer/wallet` and a rejected paid POST. Do not run real paid generations.
-7. Before public launch: adapt Clerk email-sync secrets per issuer and verified user mapping; choose the correct app URLs for Stripe return, voucher, referral and canonical/SEO links; test Google and email sign-in, sign-out, password/email recovery, credit balances, Stripe Checkout and portal, refunds, media/history, mobile, and old-site fallback.
-8. Only after migration and end-to-end verification, change public links, enable new domain generation/billing deliberately, and remove the pilot-only restriction.
+- Domain-aware Clerk SDK in `lab/clerk-instance.js` + `lab/native-account.js`. Legacy domain stays on original Clerk; new domain uses its own, **public** `pk_live_` key.
+- Dual issuer verification in `lab-worker/worker.mjs` and `clerk-issuer-policy.mjs`. JWKS caches are independent, and JWT authorized-party checks are tied to the correct Origin. `LAB_STUDIO_AUTH_ENABLED=false` is deployed in `wrangler.toml` as a **fail-closed default**.
+- `lab-worker/migrations/0017-clerk-domain-links.sql` contains the only new tables, `lab_clerk_identity_links` and `lab_clerk_migration_codes`. Deployment runs 0017 before the Worker.
+- The original identity that already owns D1 ledger, Stripe customer, R2 media, assets and owner-role mapping is preserved as the **canonical ID**; a new Clerk user is mapped to it only by verified one-time transfer.
+- Transfer: old Clerk sign-in at `https://parallelvisionlabel.com/lab/connect-account.html` -> `POST /api/migration/issue` generates a random 32-byte, 10-minute, single-use code. Only its SHA-256 is stored. While independently signed into `https://pvlab.studio/connect-account.html`, the user pastes it -> `POST /api/migration/redeem`. Double links and reused/expired codes are rejected. Owner role is revalidated against the current Nina owner directory.
+- The **new customer** path is a deliberate `POST /api/migration/new` that creates an isolated new wallet with one 200-credit welcome gift. No unsolicited new wallet is created simply by signing in. An unlinked signed-in user is directed to `connect-account.html`.
+- Checkout return, billing portal, referral and voucher links preserve the verified requesting domain. Stripe event IDs, webhook endpoint, balance records and payment products are not migrated or duplicated.
+- `lab-worker/promotions.mjs` supports a separate optional `LAB_CLERK_V2_SECRET_KEY` for checking new-only customers' verified email addresses. Keep it in Cloudflare Worker Secrets. Old customers continue to use the legacy Clerk key.
+- The original Nina client, backend, Clerk key, Stripe webhook, R2 bucket and `LAB_SECRET` must remain unchanged. Never expose private keys in GitHub, Pages build variables or public screenshots.
+
+## Launch checklist
+
+1. Merge only after required tests and preview checks pass. This applies D1 migration 0017 and updates the production Worker with new-domain access **disabled**. Confirm existing `/lab/` customer and owner sign-in still work.
+2. In Cloudflare **Workers & Pages -> pvlab-studio -> Custom domains**, add the apex `pvlab.studio`. It is a zone already in this Cloudflare account. Cloudflare creates the Pages CNAME. If an existing DNS A record blocks the action, remove only the two Porkbun parking A records for `pvlab.studio`: `207.207.210.229` and `207.207.210.107`, then retry. Do not delete any of the five Clerk DNS records. Optionally add `www` later and redirect it to the apex.
+3. Add `LAB_CLERK_V2_SECRET_KEY` under **Worker -> Settings -> Variables and Secrets**, set as Secret. Retrieve it only from the new Clerk `My Application -> Production -> Instance -> API keys`, not the original Clerk. Never paste it into chat.
+4. After DNS and SSL show Active, switch `LAB_STUDIO_AUTH_ENABLED` to `true` in Worker settings (or in the checked-in Wrangler config) and deploy once. A signed-in, unlinked new Clerk user should be offered transfer or new account creation.
+5. Verify transfer with two browser tabs: old account issues a code; new account redeems it; signed-in `/api/session` shows exactly the original customer ID, original wallet balance, gallery and Stripe customer. Repeated/expired code must fail. For owner, check owner dashboard only after linking the old owner.
+6. Verify a fresh unrelated email account receives **exactly** 200 welcome credits, no duplicate grant on refresh. Test one customer-enabled generation only after explicit authorization, and Stripe Checkout/return, subscriptions, portal, refunds, referrals, vouchers, sign-out and mobile.
+7. Check legal links, footer and analytics at new root `/` plus `/lab/`. Verify Google and email login and no leaked private credentials.
+8. Keep `parallelvisionlabel.com/lab/` online for existing users during a transition period. Change public links only after these checks pass.
 
 ## Rollback
-- Do not change the existing production `parallelvisionlabel.com/lab/` DNS, GitHub Pages or Clerk app.
-- Never replace `LAB_SECRET`, D1/R2 bindings, Stripe webhook signing secret, or stored balances to fix a domain issue.
-- Disable `LAB_NEW_CLERK_PILOT_ENABLED` to immediately deny new-instance backend sessions without affecting the old issuer.
-- Keep the old domain available to restore original customer access while resolving the new domain.
 
-No paid external API requests or live user migrations are executed by this branch.
+- Set `LAB_STUDIO_AUTH_ENABLED=false` and redeploy: new Clerk tokens fail closed, old Clerk on original domain remains valid.
+- Keep old registered domains, keys, D1 ledger and Stripe webhook unchanged.
+- Do not delete identity-link rows or remove customer wallets on rollback. No irreversible mass migration is performed.
