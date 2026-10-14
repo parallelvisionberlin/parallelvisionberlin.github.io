@@ -1,16 +1,16 @@
 # PV LAB Premium Upscale work state
 
-Updated: 2026-10-14 (Berlin), visual-brand follow-up.
+Updated: 2026-10-14 (Berlin), model/visual hierarchy correction.
 Scope: curated SeedVR2 default replacing the public economical method.
 Branch: feat/pv-lab-premium-seedvr2-20261014
 Base main commit: 4f41522ee91c2861ae3b6d8f18957b5575f5313e
 
 ## Approved choices
-- Sole public upscale engine remains SeedVR2 on fal.ai; public-facing name **Vision Upscaler**, with visible and accurate “Powered by ByteDance SeedVR2” credit.
+- Sole public upscale engine remains SeedVR2 on fal.ai; public-facing tool name **Upscaler** and dedicated, clearly labeled **Model: ByteDance SeedVR2** in the control deck.
 - 2× Premium: 10 credits; 4× Ultra: 18 credits.
 - Preserve source ratio, original media and history; PNG/JPEG.
 - Noise scale 0.1 and 32 MP output cap.
-- Historical SpicyAPI/Topaz records remain accessible; Reuse selects the same SeedVR2 engine under its new Vision Upscaler name.
+- Historical SpicyAPI/Topaz records remain accessible; Reuse selects the same SeedVR2 engine under the same SeedVR2 model, without a new product name.
 - Do not claim identity with Higgsfield's ByteDance image enhancer, which is unverified.
 
 ## Implementation
@@ -36,3 +36,12 @@ Base main commit: 4f41522ee91c2861ae3b6d8f18957b5575f5313e
 - Backend model, exact 10/18 credit pricing, prompt controls, gallery and mobile sizing unchanged.
 - Code: lab/lab.js, lab/studio.html, lab/assets.css. Browser regression: tests/lab-upscale-ui.mjs.
 - Branch: design/vision-upscaler-brand-20261014, base main 34f00e2c8c04a911b5997f141e25de101411730d; deploy and production status not yet verified.
+
+## User-approved visual correction
+- Tool title is simply **Upscaler**. ByteDance SeedVR2 is visible in its own read-only **Model** control, not branded as an independent PV LAB engine.
+- No public Topaz option is implied; only ByteDance SeedVR2 is offered.
+- Reduce empty-state decoration, use premium editorial type, a quieter solid canvas border and one simple upload CTA.
+- Retain real 2×/4× scale choice, format, and generate button, removing artificial Premium/Ultra labels from the choice.
+- Match results width to editor, softly frame existing result cards; keep the real gallery behavior and stored media.
+- Provider API, customer credits, history and refunds unchanged.
+- Branch design/upscaler-engine-deck-20261014; base e5d615c3b5fdb3b315a8acba311e1258089e271e; production deploy to be verified.
