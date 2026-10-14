@@ -278,6 +278,9 @@ try{
     try{
       await page.goto(origin+'/lab/');
       await page.locator('#lab-home-credits').waitFor({state:'visible'});
+      // Header reserves its dimensions before the authenticated wallet loads.
+      // Wait for the confirmed zero balance, not simply a visible placeholder.
+      await page.waitForFunction(()=>document.getElementById('lab-home-credit-copy')?.textContent==='Get credits');
       assert.equal(await page.locator('#lab-home-credit-copy').textContent(),'Get credits');
       assert.equal(await page.locator('#lab-home-credit-unit').isVisible(),false);
       assert.equal(await page.locator('#lab-home-credits').getAttribute('aria-label'),'Get credits');
