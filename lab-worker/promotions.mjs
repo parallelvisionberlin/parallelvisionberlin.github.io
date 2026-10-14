@@ -107,6 +107,11 @@ export async function labAdminRoute(request,env,owner){
       FROM lab_credit_entries e LEFT JOIN lab_customer_contacts p ON p.customer_id=e.customer_id
       WHERE e.kind IN ('purchase','subscription')
       ORDER BY e.created_at DESC LIMIT 50`);
+    const referrals=await all(env,`SELECT r.referrer_customer_id AS referrerId,a.email AS referrerEmail,
+      r.referred_customer_id AS invitedId,b.email AS invitedEmail,r.attributed_at AS joinedAt,r.rewarded_at AS rewardedAt
+      FROM lab_referrals r LEFT JOIN lab_customer_contacts a ON a.customer_id=r.referrer_customer_id
+      LEFT JOIN lab_customer_contacts b ON b.customer_id=r.referred_customer_id
+      ORDER BY r.attributed_at DESC LIMIT 50`);
     const vouchers=await all(env,`SELECT code,credits,max_redemptions AS maxRedemptions,redeemed_count AS redemptionCount,
       active,expires_at AS expiresAt,created_at AS createdAt,note
       FROM lab_vouchers ORDER BY created_at DESC LIMIT 60`);
