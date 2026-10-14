@@ -16,7 +16,7 @@ function mockApi({spicyError=false,falAccess=false}={}){
     const reply=(data,status=200)=>({status,ok:status>=200&&status<300,json:async()=>data});
     if(u.hostname==='api.spicyapi.ai'&&u.pathname==='/api/v1/chat/credit'){
       if(spicyError)throw Error('Network error must not leak');
-      return reply({code:200,data:{available:'12.34',held:'0.50',total:'12.84'}});
+      return reply({code:200,data:{available:'12.34',held:'0.50',total:'12.84',funding:{prepaidAvailableUsd:'7.00',grantAvailableUsd:'1.34',credit:{availableUsd:'4.00'}}}});
     }
     if(u.hostname==='api.spicyapi.ai'&&u.pathname==='/api/v1/usage'){
       const owner=authorization.includes('OWNER'),month=owner?'3.10':'5.20',today=owner?'1.00':'2.00';
@@ -46,6 +46,7 @@ test('provider snapshot reads only verified GET endpoints, counts shared Spicy f
   const spicy=data.providers[0];
   assert.equal(spicy.balance,'12.34');
   assert.equal(spicy.held,'0.50');
+  assert.deepEqual(spicy.funding,{prepaid:'7.00',grants:'1.34',creditAvailable:'4.00'},'Funding types are shown separately from total wallet');
   assert.equal(spicy.spendToday,'3.00');
   assert.equal(spicy.spendMonth,'8.30');
   assert.equal(spicy.keyUsage[0].spendMonth,'3.10');
