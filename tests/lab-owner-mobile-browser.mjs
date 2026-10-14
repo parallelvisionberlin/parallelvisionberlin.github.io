@@ -24,7 +24,7 @@ const artifactDir='/tmp/pv-lab-owner-mobile';
 await mkdir(artifactDir,{recursive:true});
 const browser=await chromium.launch({headless:true});
 try{
-  for(const width of [320,375,390,430,768,1280]){
+  for(const width of [320,375,390,430,768,1280,1792]){
     const context=await browser.newContext({
       viewport:{width,height:844},deviceScaleFactor:width<=430?3:1,
       isMobile:width<=430,hasTouch:width<=430,reducedMotion:'reduce'
@@ -102,7 +102,15 @@ try{
           directoryTop:document.querySelector('#owner-customers-section').getBoundingClientRect().top,
           sidebarVisible:getComputedStyle(document.querySelector('.owner-sidebar')).display!=='none',
           shellPaddingTop:parseFloat(getComputedStyle(main).paddingTop),
-          heroPaddingBottom:parseFloat(getComputedStyle(document.querySelector('.owner-hero')).paddingBottom)
+          heroPaddingBottom:parseFloat(getComputedStyle(document.querySelector('.owner-hero')).paddingBottom),
+          activityTop:document.querySelector('.owner-activity').getBoundingClientRect().top,
+          activityBottom:document.querySelector('.owner-activity').getBoundingClientRect().bottom,
+          purchasesHeight:document.querySelector('.owner-purchases-panel').getBoundingClientRect().height,
+          clerkHeight:document.querySelector('#owner-integrations').getBoundingClientRect().height,
+          quickActionsBottom:document.querySelector('.owner-quick-actions').getBoundingClientRect().bottom,
+          quickActionsHeight:document.querySelector('.owner-quick-actions').getBoundingClientRect().height,
+          balancesTop:document.querySelector('.owner-balances-overview').getBoundingClientRect().top,
+          viewportHeight:innerHeight
         };
       });
       assert.ok(dimensions.html<=width+1,'Whole page must fit '+width+'px, observed '+JSON.stringify(dimensions));
@@ -111,6 +119,14 @@ try{
       assert.equal(dimensions.firstLabel,'Email / account','Column headings remain available in mobile rows');
       assert.ok(dimensions.signupsTop<dimensions.directoryTop,'Recent signups appear before the full directory');
       assert.ok(dimensions.providerTop<dimensions.detailedTop,'API balance cards appear before the detailed Providers view');
+      assert.ok(dimensions.quickActionsBottom<dimensions.balancesTop,
+        'Quick actions should remain above the API Balances section');
+      if(width>=1600){
+        assert.ok(dimensions.quickActionsBottom<=dimensions.viewportHeight-12,
+          'Entire Quick actions panel must fit the first desktop viewport: '+JSON.stringify(dimensions));
+        assert.ok(dimensions.activityBottom<=dimensions.viewportHeight-12,
+          'Activity area must finish above the desktop fold: '+JSON.stringify(dimensions));
+      }
       assert.equal(dimensions.sidebarVisible,width>920,'Desktop sidebar collapses only for tablet and mobile');
       if(width>=1280){
         assert.equal(dimensions.shellPaddingTop,22,'Desktop shell is raised 16px without changing sidebar');
@@ -139,5 +155,5 @@ try{
       await page.screenshot({path:artifactDir+'/owner-'+width+'.png'});
     }finally{await context.close();}
   }
-  console.log('Owner dashboard widths 320, 375, 390, 430, 768 and 1280: no page-level sideways scrolling.');
+  console.log('Owner dashboard widths 320, 375, 390, 430, 768, 1280 and 1792: no sideways scroll; Quick actions visible above the fold on wide desktop.');
 }finally{await browser.close();}
