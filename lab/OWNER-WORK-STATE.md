@@ -50,3 +50,12 @@ Code reference: compare PR #204 head; do not assume merge or deploy until confir
 - After merge check GitHub Pages and Cloudflare Worker production health version separately.
 - Public owner URL: https://parallelvisionlabel.com/lab/owner.html ; signed-in owner is required to retrieve finances.
 - Open page as owner then Refresh balances to validate actual provider permissions and live values.
+
+## Owner overview alignment refinement (2026-10-14)
+- User confirmed the Proposal 2 sidebar/Providers layout and requested all main desktop content slightly higher.
+- Source baseline main e29ac661418d033ae9c92803225c164c515cfa85, PR #205.
+- Desktop owner shell top inset: 38px → 22px, raising headline and hero by 16px.
+- Desktop hero bottom padding: 27px → 19px, raising KPIs and subsequent cards another 8px (24px total).
+- CSS: lab/owner.css. Cache revision only: lab/owner.html. Regression expectations: tests/lab-owner-mobile-browser.mjs.
+- Narrow sidebar, title typography, metrics and cards, mobile spacings, API Balances, Clerk, vouchers and other owner actions unchanged.
+- Current implementation: fix/owner-hero-lift-20261014; await dedicated owner browser CI, PR merge, then GitHub Pages verification. No Worker deploy needed.
