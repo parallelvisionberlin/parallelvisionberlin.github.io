@@ -139,6 +139,7 @@ try{
   assert.match(preview,/REQUESTED IMAGE: Apply the assigned reference properties to the base image/);
   assert.match(await x.page.locator('#reference-guidance-count').textContent(),/\/ 5,000 characters/);
   assert.match(await x.page.locator('#composer-prompt-budget').textContent(),/left$/);
+  assert.equal(await x.page.locator('#composer-prompt-budget').isVisible(),false,'Healthy counter stays out of the prompt');
   assert.match(await x.page.locator('#composer-prompt-budget').getAttribute('title'),/Mood and reference instructions/);
   assert.ok(preview.indexOf('Reference 1 [Base image]')<preview.indexOf('Reference 2 [Detail / Hands]'));
   pass('Clothing exposes Pants and the collapsed SpicyAPI preview expands into the ordered automatic instructions');
@@ -154,7 +155,8 @@ try{
   pass('Draft keeps role-only direction, ordered originals, detail and clothing targets, and optional notes');
   await x.page.locator('#prompt:visible, #image-composer-prompt:visible').fill('A'.repeat(4900));
   assert.match(await x.page.locator('#reference-guidance-warning').innerText(),/exceed 5,000 characters/);
-  assert.match(await x.page.locator('#composer-prompt-budget').textContent(),/over$/);
+  assert.match(await x.page.locator('#composer-prompt-budget').textContent(),/characters over limit$/);
+  assert.equal(await x.page.locator('#composer-prompt-budget').isVisible(),true,'Only an over-limit warning becomes visible');
   assert.equal(await x.page.locator('#generate').isDisabled(),true);assert.equal(await x.page.locator('#save').isDisabled(),true);
   pass('The final instruction budget blocks oversized requests after automatic role text is included');
   assert.deepEqual(x.errors,[]);await x.context.close();
