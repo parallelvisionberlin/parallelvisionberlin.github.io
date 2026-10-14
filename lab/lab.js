@@ -517,7 +517,7 @@ function upscaleSize(p){return p.targetWidth&&p.targetHeight?p.targetWidth+' × 
 function updateUpscaleModel(){
   const active=tool==='upscale',fal=isFalUpscale(),model=UPSCALE_MODELS[upscaleEngine];$('upscale-model-control').hidden=true;$('upscale-model-display').hidden=!active;$('upscale-topaz-control').hidden=!active||upscaleEngine!=='topaz-precision';$('upscale-scale-control').hidden=!fal;$('mode-heading').parentElement.classList.toggle('upscale-mode',active);
   for(const option of $('upscale-engine').options)option.disabled=option.value!=='spicy'&&!config.falEnabled;
-  if(!active)return;
+  if(!active){$('upscale-model-display').open=false;return;}
   $('resolution-control').hidden=fal;$('engine-name').textContent=model.name.toUpperCase()+' · '+model.provider.toUpperCase();
   const liveUpscaleSettings=settings();
   $('upscale-technical-summary').textContent=upscaleName(liveUpscaleSettings)+' / '+upscaleSize(liveUpscaleSettings)+' / source ratio';
@@ -1771,6 +1771,24 @@ $('canvas-secondary').addEventListener('click',()=>runCanvasEntry($('canvas-seco
 $('soul-use').onclick=()=>{if(busy)return;imageEngine='soul';$('image-engine').value='soul';setTool('image');window.scrollTo({top:0,behavior:'smooth'});};
 $('soul-launch-manage').onclick=()=>{if(busy)return;imageEngine='soul';$('image-engine').value='soul';setTool('image');$('soul-dialog').showModal();void soul.load().catch(e=>notify(e.message,true));};
 $('tool-upscale').onclick=()=>{if(!busy)setTool('upscale');};
+// Keep this native disclosure functional while exposing only the currently enabled upscale model.
+const upscaleModelDetails=$('upscale-model-display');
+$('upscale-model-current-option').onclick=()=>{
+  upscaleModelDetails.open=false;
+  $('upscale-model-trigger').focus({preventScroll:true});
+};
+document.addEventListener('pointerdown',event=>{
+  if(upscaleModelDetails.open&&!upscaleModelDetails.contains(event.target))upscaleModelDetails.open=false;
+});
+document.addEventListener('keydown',event=>{
+  if(event.key==='Escape'&&upscaleModelDetails.open){
+    upscaleModelDetails.open=false;
+    if(upscaleModelDetails.contains(event.target)){
+      event.preventDefault();
+      $('upscale-model-trigger').focus({preventScroll:true});
+    }
+  }
+});
 $('upscale-engine').onchange=()=>{if(busy)return;const value=$('upscale-engine').value;upscaleEngine='seedvr2';$('upscale-engine').value='seedvr2';invalidateUpscalePrice('Upscale method changed. Check the price again before upscaling.');setTool('upscale');};
 for(const id of ['upscale-topaz-model','upscale-scale'])$(id).onchange=()=>{if(busy)return;invalidateUpscalePrice('Upscale settings changed. Check the price and output size again.');update();};
 $('tool-fashion').onclick=()=>void openFashionStudio();
