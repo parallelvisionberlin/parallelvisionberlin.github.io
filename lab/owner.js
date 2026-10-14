@@ -110,7 +110,7 @@ async function refreshDashboard(){
 }
 async function refreshSession(){
   const current=++revision;profile=null;$('owner-dashboard').hidden=true;$('owner-gate').hidden=true;
-  for(const id of ['owner-customers','owner-payments','owner-vouchers'])$(id).replaceChildren();
+  for(const id of ['owner-customers','owner-payments','owner-referrals','owner-vouchers'])$(id).replaceChildren();
   if(!clerk?.isSignedIn){status('');$('owner-gate').hidden=false;return;}
   status('Checking your owner access…');
   try{
