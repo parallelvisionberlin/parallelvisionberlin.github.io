@@ -68,7 +68,8 @@
 @media(max-width:700px){
   .lab-hero .hero-welcome{margin-bottom:14px;font-size:11px;column-gap:7px}
   .lab-hero .hero-welcome small{font-size:10px}
-  .lab-hero .start-link{min-width:0}
+  .lab-hero .hero-actions .start-link{min-width:155px;padding:12px 13px;font-size:12px}
+  .lab-hero .hero-actions .hero-moods-link{padding:12px 13px;font-size:12px}
 }
 @media(max-width:560px){
   #lab-welcome-start{padding:0 2px}
