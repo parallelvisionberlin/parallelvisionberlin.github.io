@@ -148,3 +148,14 @@ body.pv-account-page{margin:0;background:#101010;color:#f1efea;font:400 14px/1.6
  .account-copy{flex-wrap:wrap;gap:6px}.account-copy input{flex:1 1 100%}.account-referral-stats{gap:12px}.account-referral-stats strong{font-size:32px}.account-close-dialog{padding:22px}.account-billing-row{gap:18px;padding-block:22px}.account-lead{font-size:19px}
 }
 @media(prefers-reduced-motion:reduce){.account-product,.account-button,.account-sidebar nav a{transition:none}}
+
+/* PV LAB: quiet, editorial voucher redemption integrated into My account. */
+.account-voucher-form{max-width:680px;margin:36px 0 14px}
+.account-voucher-form .account-field{display:block;margin:0 0 12px;font-size:12px;letter-spacing:.07em;color:#aaa9a2}
+.account-voucher-form .account-copy{display:flex;gap:10px}
+.account-voucher-form input{box-sizing:border-box;flex:1;min-width:0;height:50px;padding:0 16px;background:#191a19;border:1px solid #494a46;border-radius:5px;color:#f1eee8;font:400 15px/1.2 'DM Sans',Arial,sans-serif;letter-spacing:.08em}
+.account-voucher-form input:focus-visible{outline:2px solid #d5d2ca;outline-offset:2px}
+.account-voucher-form button{min-height:50px;white-space:nowrap}
+.account-voucher-note{margin-top:22px;max-width:580px;font-size:12px;line-height:1.7}
+#account-voucher-status{min-height:20px;font-size:13px}
+@media(max-width:600px){.account-voucher-form .account-copy{flex-direction:column}.account-voucher-form button{width:100%}}
