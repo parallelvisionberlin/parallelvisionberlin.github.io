@@ -113,3 +113,44 @@ test('only verified Clerk primary email can be stored as a customer contact',asy
   assert.equal(overview.customers.length,1);
   assert.equal(overview.customers[0].id,'user_ALICE');
 });
+
+test('manual email sync reveals a rejected Clerk backend key without exposing it',async t=>{
+  const f=await setup(t);if(!f)return;
+  f.env.LAB_CLERK_SECRET_KEY='sk_live_fake_for_test';
+  const previous=globalThis.fetch;
+  let calls=0;
+  globalThis.fetch=async()=>{calls++;return new Response('{}',{status:401});};
+  try{
+    const result=await (await f.admin('/api/admin/customers/sync')).json();
+    assert.equal(result.requested,3);
+    assert.equal(result.checked,1);
+    assert.equal(result.synced,0);
+    assert.equal(result.issues.invalidKey,1);
+    assert.equal(calls,1);
+    assert.ok(!JSON.stringify(result).includes('sk_live_'));
+  }finally{globalThis.fetch=previous;}
+});
+test('manual email sync retries an unverified account despite the seven-day cache',async t=>{
+  const f=await setup(t);if(!f)return;
+  f.env.LAB_CLERK_SECRET_KEY='sk_live_fake_for_test';
+  const previous=globalThis.fetch;
+  let verified=false;
+  globalThis.fetch=async url=>{
+    const id=new URL(url).pathname.split('/').pop();
+    return new Response(JSON.stringify({
+      id,primary_email_address_id:'em_primary',
+      email_addresses:[{id:'em_primary',email_address:id+'@example.com',verification:{status:verified?'verified':'unverified'}}]
+    }),{status:200,headers:{'content-type':'application/json'}});
+  };
+  try{
+    assert.equal(await syncCustomerEmail(f.env,'user_ALICE'),true);
+    assert.equal(f.get("SELECT email FROM lab_customer_contacts WHERE customer_id='user_ALICE'").email,null);
+    verified=true;
+    const result=await (await f.admin('/api/admin/customers/sync')).json();
+    assert.equal(result.requested,3);
+    assert.equal(result.checked,3);
+    assert.equal(result.verified,3);
+    assert.equal(result.unverified,0);
+    assert.equal(f.get("SELECT email FROM lab_customer_contacts WHERE customer_id='user_ALICE'").email,'user_alice@example.com');
+  }finally{globalThis.fetch=previous;}
+});
