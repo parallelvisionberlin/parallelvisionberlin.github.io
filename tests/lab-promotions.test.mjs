@@ -135,7 +135,10 @@ test('manual email sync retries an unverified account despite the seven-day cach
   f.env.LAB_CLERK_SECRET_KEY='sk_live_fake_for_test';
   const previous=globalThis.fetch;
   let verified=false;
-  globalThis.fetch=async url=>{
+  globalThis.fetch=async (url,options)=>{
+    assert.equal(options?.method,'GET');
+    assert.equal(options?.redirect,'manual','Workers must use manual redirect handling for Clerk requests');
+    assert.equal(options?.headers?.Authorization,'Bearer sk_live_fake_for_test');
     const id=new URL(url).pathname.split('/').pop();
     return new Response(JSON.stringify({
       id,primary_email_address_id:'em_primary',
@@ -153,4 +156,25 @@ test('manual email sync retries an unverified account despite the seven-day cach
     assert.equal(result.unverified,0);
     assert.equal(f.get("SELECT email FROM lab_customer_contacts WHERE customer_id='user_ALICE'").email,'user_alice@example.com');
   }finally{globalThis.fetch=previous;}
+});
+
+test('Clerk sync refuses redirect responses without fetching a second URL or storing an email',async t=>{
+  const f=await setup(t);if(!f)return;
+  f.env.LAB_CLERK_SECRET_KEY='sk_live_fake_for_test';
+  const original=globalThis.fetch;let requestCount=0;
+  globalThis.fetch=async (url,options)=>{
+    requestCount++;
+    assert.ok(String(url).startsWith('https://api.clerk.com/v1/users/'));
+    assert.equal(options?.method,'GET');
+    assert.equal(options?.redirect,'manual');
+    return new Response(null,{status:302,headers:{Location:'https://example.invalid/steal'}});
+  };
+  try{
+    const report=await (await f.admin('/api/admin/customers/sync')).json();
+    assert.equal(report.verified,0);
+    assert.equal(report.issues.transient,3);
+    assert.equal(requestCount,3,'No redirects followed and only three known accounts checked');
+    assert.equal(f.get('SELECT COUNT(*) AS n FROM lab_customer_contacts').n,0);
+    assert.ok(!JSON.stringify(report).includes('sk_live_'));
+  }finally{globalThis.fetch=original;}
 });

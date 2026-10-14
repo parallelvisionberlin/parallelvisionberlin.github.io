@@ -38,11 +38,14 @@ async function clerkEmailStatus(env,subject,force=false){
   if(!force&&contact?.synced_at&&Date.now()-contact.synced_at<ttl)return 'cached';
   let response;
   try{
+    // Workers does not support redirect:'error'. Use manual and never forward
+    // the private Clerk key to a redirect target.
     response=await fetch('https://api.clerk.com/v1/users/'+encodeURIComponent(subject),{
-      headers:{Authorization:'Bearer '+secret,Accept:'application/json'},redirect:'error',
+      method:'GET',headers:{Authorization:'Bearer '+secret,Accept:'application/json'},redirect:'manual',
       signal:AbortSignal.timeout(8000)
     });
   }catch{return 'network_error';}
+  if(response.status>=300&&response.status<400)return 'upstream_error';
   if(response.status===401||response.status===403)return 'invalid_key';
   if(response.status===404)return 'missing_user';
   if(response.status===429)return 'rate_limited';

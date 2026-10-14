@@ -97,8 +97,9 @@ try{
           })),
           firstLabel:document.querySelector('#owner-customers td')?.dataset.label||'',
           signupsTop:document.querySelector('#owner-recent-signups').getBoundingClientRect().top,
-          providerTop:document.querySelector('#owner-provider-previews').getBoundingClientRect().top,
+          providerOverviewHidden:document.querySelector('.owner-balances-overview').hidden,
           detailedTop:document.querySelector('#owner-providers-section').getBoundingClientRect().top,
+          vouchersTop:document.querySelector('#owner-vouchers-section').getBoundingClientRect().top,
           directoryTop:document.querySelector('#owner-customers-section').getBoundingClientRect().top,
           sidebarVisible:getComputedStyle(document.querySelector('.owner-sidebar')).display!=='none',
           shellPaddingTop:parseFloat(getComputedStyle(main).paddingTop),
@@ -109,7 +110,7 @@ try{
           clerkHeight:document.querySelector('#owner-integrations').getBoundingClientRect().height,
           quickActionsBottom:document.querySelector('.owner-quick-actions').getBoundingClientRect().bottom,
           quickActionsHeight:document.querySelector('.owner-quick-actions').getBoundingClientRect().height,
-          balancesTop:document.querySelector('.owner-balances-overview').getBoundingClientRect().top,
+          providersBelow:document.querySelector('#owner-providers-section').getBoundingClientRect().top,
           viewportHeight:innerHeight
         };
       });
@@ -118,14 +119,13 @@ try{
       assert.ok(dimensions.navLeft>=-1&&dimensions.navRight<=width+1,'Sticky navigation must fit viewport '+JSON.stringify(dimensions));
       assert.equal(dimensions.firstLabel,'Email / account','Column headings remain available in mobile rows');
       assert.ok(dimensions.signupsTop<dimensions.directoryTop,'Recent signups appear before the full directory');
-      assert.ok(dimensions.providerTop<dimensions.detailedTop,'API balance cards appear before the detailed Providers view');
-      assert.ok(dimensions.quickActionsBottom<dimensions.balancesTop,
-        'Quick actions should remain above the API Balances section');
+      assert.equal(dimensions.providerOverviewHidden,true,'API Balances preview must not appear on the overview');
+      assert.ok(dimensions.detailedTop>dimensions.vouchersTop,'Detailed Providers area belongs after the other ledgers');
       if(width>=1600){
-        assert.ok(dimensions.quickActionsBottom<=dimensions.viewportHeight-12,
-          'Entire Quick actions panel must fit the first desktop viewport: '+JSON.stringify(dimensions));
-        assert.ok(dimensions.activityBottom<=dimensions.viewportHeight-12,
-          'Activity area must finish above the desktop fold: '+JSON.stringify(dimensions));
+        assert.ok(dimensions.quickActionsBottom>=dimensions.viewportHeight-65,
+          'Overview cards should reach near the bottom of the desktop viewport: '+JSON.stringify(dimensions));
+        assert.ok(dimensions.quickActionsBottom<=dimensions.viewportHeight+60,
+          'Quick actions should remain near the desktop fold: '+JSON.stringify(dimensions));
       }
       assert.equal(dimensions.sidebarVisible,width>920,'Desktop sidebar collapses only for tablet and mobile');
       if(width>=1280){
@@ -153,6 +153,37 @@ try{
         await page.evaluate(()=>window.scrollTo(0,0));
       }
       await page.screenshot({path:artifactDir+'/owner-'+width+'.png'});
+      if(width===1792){
+        // Exercise automatic Clerk backfill with mocked private API responses only.
+        await page.evaluate(async()=>{
+          let completed=false;window.__syncCalls=0;
+          const original=[
+            {id:'user_one',email:null,joinedAt:Date.UTC(2026,9,14),balanceCredits:200,verifiedPayments:0,subscription:'none',plan:''},
+            {id:'user_two',email:null,joinedAt:Date.UTC(2026,9,13),balanceCredits:200,verifiedPayments:0,subscription:'none',plan:''},
+            {id:'user_three',email:null,joinedAt:Date.UTC(2026,9,12),balanceCredits:200,verifiedPayments:0,subscription:'none',plan:''}
+          ];
+          const overview=()=>({
+            summary:{accounts:3,payingCustomers:0,activeSubscriptions:0,voucherClaims:0,rewardedReferrals:0},
+            customers:original.map(c=>({...c,email:completed?c.id+'@example.com':null})),
+            payments:[],referrals:[],vouchers:[],emailSyncConfigured:true
+          });
+          call=async path=>{
+            if(path.startsWith('/api/admin/overview'))return overview();
+            if(path==='/api/admin/customers/sync'){
+              window.__syncCalls++;completed=true;
+              return {requested:3,checked:3,verified:3,unverified:0,issues:{}};
+            }
+            throw Error('Unexpected private test route');
+          };
+          profile={owner:true};
+          autoClerkSyncAttempted=false;
+          await refreshDashboard();
+        });
+        await page.waitForFunction(()=>document.querySelector('#owner-email-status').textContent.includes('3 verified emails fetched'),{timeout:3000});
+        assert.equal(await page.evaluate(()=>window.__syncCalls),1,'Automatic Clerk backfill should occur once');
+        assert.match(await page.locator('#owner-recent-signups').innerText(),/user_one@example.com/,'Synced verified email appears in Latest signups');
+        assert.equal(await page.locator('#owner-sync-state').innerText(),'Verified emails available','Clerk status reflects verified result');
+      }
     }finally{await context.close();}
   }
   console.log('Owner dashboard widths 320, 375, 390, 430, 768, 1280 and 1792: no sideways scroll; Quick actions visible above the fold on wide desktop.');

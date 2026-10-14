@@ -590,3 +590,8 @@ html,body{width:100%;max-width:100%;overflow-x:clip}
   .owner-quick-actions{min-height:60px;padding:9px 17px}
   .owner-quick-actions a{padding:8px 12px}
 }
+
+/* Owner overview: the financial preview lives only in Providers; activity fills the first screen. */
+@media(min-width:1261px){
+  .owner-activity{min-height:max(430px,calc(100dvh - 390px))}
+}

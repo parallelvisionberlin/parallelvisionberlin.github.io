@@ -9,7 +9,7 @@
 <title>Owner / PV LAB</title>
 <link rel="preload" href="./fonts/dm-sans-latin-v17.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="icon" href="./branding/pv-mark.png" type="image/png">
-<link rel="stylesheet" href="./owner.css?v=20261014-compact-activity1">
+<link rel="stylesheet" href="./owner.css?v=20261014-clerk-layout1">
 </head>
 <body>
 <a class="owner-skip" href="#owner-main">Skip to dashboard</a>
@@ -97,17 +97,10 @@
       </ol>
       <p>Keep the key on the Worker. Never paste a secret into PV LAB's website code or this dashboard.</p>
     </div>
-    <section class="owner-balances-overview" aria-labelledby="owner-api-balances-title">
+    <section class="owner-balances-overview" hidden aria-labelledby="owner-api-balances-title">
       <div class="owner-section-preview-head"><div><span class="owner-index">PROVIDER FINANCE / PRIVATE</span><h2 id="owner-api-balances-title">API Balances<span>.</span></h2><p>Shared funds, actual usage and credit balances, kept separate.</p></div><div class="owner-provider-controls"><span id="owner-balance-updated">Awaiting secure connection</span><button type="button" data-owner-balance-refresh>Refresh balances ↻</button><a href="#owner-providers-section">Detailed view ↗</a></div></div>
       <div id="owner-provider-previews" class="owner-provider-previews" aria-live="polite"><p class="owner-providers-loading">Loading available provider balances…</p></div>
     </section>
-    <section id="owner-providers-section" class="owner-section owner-providers-section" aria-labelledby="owner-providers-title">
-      <div class="owner-section-head"><div><span class="owner-index">05 / API FINANCE</span><h2 id="owner-providers-title">Providers.</h2><p class="owner-section-description">Authenticated read-only account data. No generation or billable requests.</p></div><button type="button" class="owner-provider-detail-refresh" data-owner-balance-refresh>Refresh balances ↻</button></div>
-      <div class="owner-finance-note">USD prepaid balances are not postpaid expenses. FASHN credits and customer wallet credits are independent units. Unavailable data is never estimated or counted as zero.</div>
-      <div id="owner-provider-details" class="owner-provider-details" aria-live="polite"><p class="owner-providers-loading">Waiting for the provider report…</p></div>
-      <div class="owner-finance-separate"><div><span class="owner-index">CUSTOMER WALLETS / SEPARATE LIABILITY</span><strong id="owner-customer-liability">Unavailable</strong><small id="owner-customer-liability-note">Customer credit units are never added to provider cash balances.</small></div><div><span class="owner-index">OTHER CONNECTIONS</span><p id="owner-provider-legacy">Only providers with active generation routes are shown above.</p></div></div>
-    </section>
-
     <section class="owner-section" id="owner-customers-section" aria-labelledby="owner-customers-title">
       <div class="owner-section-head"><div><span class="owner-index">01 / AUDIENCE</span><h2 id="owner-customers-title">Customers.</h2></div><form id="owner-search-form" class="owner-search" role="search"><label for="owner-search">Find an account</label><input id="owner-search" type="search" placeholder="Email or account ID" maxlength="80" autocomplete="off"><button id="owner-search-clear" type="button" hidden>Clear</button><button type="submit">Search</button></form></div>
       <div class="owner-toolbar"><p id="owner-customer-count">Loading customer directory…</p></div>
@@ -164,9 +157,16 @@
       </div>
       <div class="owner-table-wrap owner-vouchers-table"><table><thead><tr><th>Voucher</th><th>Credits</th><th>Redeemed / limit</th><th>Expires</th><th>Status</th><th>Action</th></tr></thead><tbody id="owner-vouchers"></tbody></table></div>
     </section>
+    <section id="owner-providers-section" class="owner-section owner-providers-section" aria-labelledby="owner-providers-title">
+      <div class="owner-section-head"><div><span class="owner-index">05 / API FINANCE</span><h2 id="owner-providers-title">Providers.</h2><p class="owner-section-description">Authenticated read-only account data. No generation or billable requests.</p></div><button type="button" class="owner-provider-detail-refresh" data-owner-balance-refresh>Refresh balances ↻</button></div>
+      <div class="owner-finance-note">USD prepaid balances are not postpaid expenses. FASHN credits and customer wallet credits are independent units. Unavailable data is never estimated or counted as zero.</div>
+      <div id="owner-provider-details" class="owner-provider-details" aria-live="polite"><p class="owner-providers-loading">Waiting for the provider report…</p></div>
+      <div class="owner-finance-separate"><div><span class="owner-index">CUSTOMER WALLETS / SEPARATE LIABILITY</span><strong id="owner-customer-liability">Unavailable</strong><small id="owner-customer-liability-note">Customer credit units are never added to provider cash balances.</small></div><div><span class="owner-index">OTHER CONNECTIONS</span><p id="owner-provider-legacy">Only providers with active generation routes are shown above.</p></div></div>
+    </section>
+
     <footer class="owner-footer"><span>PV LAB / BERLIN</span><span>Owner access is verified on the server for every request.</span></footer>
   </div>
 </main>
-<script type="module" src="./owner.js?v=20261014-editorial-providers1"></script>
+<script type="module" src="./owner.js?v=20261014-clerk-auto1"></script>
 </body>
 </html>
