@@ -46,7 +46,7 @@ export function initLabMobileUI(){
     const generate=$('image-composer-generate');
     const dock=document.createElement('div');dock.className='mobile-generation-dock';dock.id='mobile-generation-dock';
     const status=$('composer-generation-reason');
-    dock.append(generate);if(status)dock.append(status);
+    dock.append(generate);const progress=$('image-composer-status');if(progress)dock.append(progress);if(status)dock.append(status);
     document.body.append(dock);
     // The inline selector stays logically closed, so its modal focus trap and
     // outside-click handler never swallow an upload or generation tap.
