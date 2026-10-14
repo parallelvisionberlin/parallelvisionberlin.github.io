@@ -70,7 +70,19 @@ function show(){
   $('lab-header-signin').hidden=signed;
   const homeCredits=$('lab-home-credits');
   if(homeCredits){
-    homeCredits.hidden=!signed||!customer;
+    // Keep the same header layout for guests and customers. Guests see a CTA, not an invented balance.
+    homeCredits.hidden=false;
+    if(!signed){
+      $('lab-home-credit-copy').textContent='Get credits';
+      $('lab-home-credit-unit').hidden=true;
+      homeCredits.setAttribute('aria-label','Get credits and view pricing');
+      homeCredits.title='Get credits';
+    }else if(!customer){
+      $('lab-home-credit-copy').textContent='Credits';
+      $('lab-home-credit-unit').hidden=true;
+      homeCredits.setAttribute('aria-label','View credits and pricing');
+      homeCredits.title='View credits and pricing';
+    }
     if(signed&&customer){
       const valid=Number.isSafeInteger(profile.balanceCredits)&&profile.balanceCredits>=0;
       const balance=valid?profile.balanceCredits:null;
