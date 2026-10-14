@@ -2,7 +2,8 @@ import {filmFinishSettings} from '../lab/film-finish.js';
 import {prepareFilmAsset,FILM_RENDER_REVISION} from './film-finish.mjs';
 import {assertCustomerOpen,processAccountClosures} from './customer-lifecycle.mjs';
 import {allowedLabParty} from './native-auth.mjs';
-import {BROWSER_ORIGINS,LEGACY_ISSUER,originsForClerkSession} from './clerk-issuer-policy.mjs';
+import {BROWSER_ORIGINS,LEGACY_ISSUER,STUDIO_ISSUER,originsForClerkSession} from './clerk-issuer-policy.mjs';
+import {linkedStudioIdentity,migrationRoute} from './clerk-migration.mjs';
 import {quoteVideoExtension,submitVideoExtension} from './higgsfield-video.mjs';
 import {klingHfParameters,quoteKlingHf,submitKlingHf} from './kling-hf.mjs';
 import {ensureCustomer,isLabCustomer,customerSession,customerRoute,stripeWebhook,creditsForUsd,verifyClosureBilling} from './customer-billing.mjs';
@@ -42,7 +43,7 @@ import {SYNTHETIC_ROMANCE_REFERENCES,SYNTHETIC_ROMANCE_REFERENCE_VERSION} from '
 import {moodBoardsRoute} from './moodboards.mjs';
 import {moodCreatorRoute} from './mood-creator-service.mjs';
 import {characterPreview as soulCharacterPreview,SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-14.11-studio-clerk-pilot';
+export const VERSION = 'pv-lab-2026-10-15.1-studio-account-linking';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -99,7 +100,7 @@ async function body(request) {
 function decorate(response,origin) {
   const h=new Headers(response.headers);
   h.set('Cache-Control','no-store'); h.set('X-Content-Type-Options','nosniff');h.set('Referrer-Policy','no-referrer');h.set('X-Robots-Tag','noindex, nofollow, noarchive');
-  h.set('Vary','Origin'); if(ORIGINS.has(origin)){h.set('Access-Control-Allow-Origin',origin);h.set('Access-Control-Expose-Headers','Content-Disposition, Content-Length, Content-Range');}
+  h.set('Vary','Origin'); if(ORIGINS.has(origin)){h.set('Access-Control-Allow-Origin',origin);h.set('Access-Control-Expose-Headers','Content-Disposition, Content-Length, Content-Range, X-PV-Lab-Onboarding');}
   return new Response(response.body,{status:response.status,headers:h});
 }
 async function getJwks(issuer,refresh=false) {
@@ -130,17 +131,29 @@ async function authenticate(request,env) {
   let valid=false;
   try{const k=await crypto.subtle.importKey('jwk',key,{name:'RSASSA-PKCS1-v1_5',hash:'SHA-256'},false,['verify']);valid=await crypto.subtle.verify('RSASSA-PKCS1-v1_5',k,unbase(c),enc.encode(a+'.'+b));}catch{}
   if(!valid)fail(401,'Invalid sign-in signature.');
-  // Never match a new Clerk subject against the old Nina owner directory.
-  const owner=p.iss===LEGACY_ISSUER
-    ?await env.OWNER_DB.prepare("SELECT id FROM users WHERE auth_provider='clerk' AND auth_subject=? AND role='owner' LIMIT 1").bind(p.sub).first()
-    :null;
-  if(owner)return {id:owner.id,issuer:p.iss};
+  // Two independently verified Clerk subjects are never matched by email.
+  if(p.iss===STUDIO_ISSUER){
+    const link=await linkedStudioIdentity(env,p.sub);
+    if(!link)return {id:null,kind:null,issuer:p.iss,subject:p.sub};
+    if(link.kind==='owner'){
+      // Re-check Nina's owner role after the original user linked accounts.
+      const active=await env.OWNER_DB.prepare(
+        "SELECT id FROM users WHERE id=? AND auth_provider='clerk' AND role='owner' LIMIT 1"
+      ).bind(link.canonical_id).first();
+      if(!active)fail(403,'Owner access has been revoked.');
+    }else if(link.kind==='customer'){
+      if(!await isLabCustomer(env,link.canonical_id))fail(403,'Linked customer account is unavailable.');
+    }else fail(403,'Unrecognized PV Lab account link.');
+    return {id:link.canonical_id,kind:link.kind,issuer:p.iss,subject:p.sub};
+  }
+  // Preserve the old Nina owner identity and its existing billing/media namespace.
+  const owner=await env.OWNER_DB.prepare(
+    "SELECT id FROM users WHERE auth_provider='clerk' AND auth_subject=? AND role='owner' LIMIT 1"
+  ).bind(p.sub).first();
+  if(owner)return {id:owner.id,kind:'owner',issuer:p.iss,subject:p.sub};
   if(env.LAB_CUSTOMER_SIGNUPS_ENABLED!=='true')fail(403,'PV Lab registration is not enabled.');
-  // Keep independent issuers in distinct wallet namespaces. The pilot does NOT
-  // automatically inherit balances, Stripe subscriptions or privileges from old Clerk.
-  const customerId=p.iss===LEGACY_ISSUER?p.sub:'user_PvLabV2'+p.sub.slice(5);
-  const id=await ensureCustomer(env,customerId);
-  return {id,issuer:p.iss};
+  const id=await ensureCustomer(env,p.sub);
+  return {id,kind:'customer',issuer:p.iss,subject:p.sub};
 }
 async function derived(env,label,algorithm,usages) {
   if(!env.LAB_SECRET || env.LAB_SECRET.length<40)fail(503,'Private storage is not configured.');
@@ -1161,13 +1174,15 @@ async function route(request,env,ctx) {
   if(url.pathname.startsWith('/soul-weight/')&&(request.method==='GET'||request.method==='HEAD'))return publicSoulWeight(request,env,url,soulDeps());
   if(url.pathname==='/api/stripe/webhook'&&request.method==='POST')return stripeWebhook(request,env,ctx);
   if(!url.pathname.startsWith('/api/'))fail(404,'Not found.');
-  const {id:owner,issuer:authIssuer}=await authenticate(request,env);
-  const path=url.pathname,method=request.method;
-  // New Clerk pilot: verify sessions and read the empty independent wallet only.
-  // Never allow generation, payment, referral claims or private mutations until
-  // old credits, owner role and Stripe return paths have an audited migration.
-  if(authIssuer!==LEGACY_ISSUER&&method!=='GET'&&method!=='HEAD')
-    fail(403,'PV LAB domain migration is in read-only testing.');
+  const identity=await authenticate(request,env);
+  const {id:owner,issuer:authIssuer}=identity,path=url.pathname,method=request.method;
+  if(path.startsWith('/api/migration/'))
+    return migrationRoute(request,env,identity);
+  if(!owner){
+    return new Response(JSON.stringify({error:'Set up your new PV LAB account to continue.',code:'PVLAB_ONBOARDING_REQUIRED'}),{
+      status:409,headers:{'Content-Type':'application/json','Cache-Control':'no-store','X-PV-Lab-Onboarding':'required'}
+    });
+  }
   if(path.startsWith('/api/admin/'))return labAdminRoute(request,env,owner,{decryptKey});
   const customer=await isLabCustomer(env,owner);
   if(customer&&authIssuer===LEGACY_ISSUER&&path==='/api/session'&&(env.LAB_CLERK_SECRET_KEY||env.CLERK_SECRET_KEY)&&ctx?.waitUntil)
