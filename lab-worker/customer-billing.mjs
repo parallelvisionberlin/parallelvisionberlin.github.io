@@ -81,7 +81,7 @@ async function stripe(env,path,params,method='POST',idempotencyKey){
   const data=await res.json();
   return data;
 }
-function appUrl(env,origin=''){
+export function appUrl(env,origin=''){
   // The caller's origin is checked against the issuer-specific allowlist by
   // the Worker before this billing handler is reached. Never accept an
   // arbitrary checkout return URL from the browser body.
