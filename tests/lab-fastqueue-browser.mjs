@@ -169,6 +169,7 @@ try{
   await x.page.waitForFunction(()=>document.querySelectorAll('[data-local-submission]').length===1);
   assert.equal(x.accepted(),0,'A local preparation card must not imply the provider has queued a job');
   assert.equal(await x.page.locator('#image-composer-generate').isDisabled(),true,'Identical draft is guarded while its quote is preparing');
+  assert.equal((await x.page.locator('#image-composer-generate').textContent()).trim(),'Generate','Generating status must remain outside the paid button while quoting');
   assert.match(await x.page.locator('[data-local-submission]').first().innerText(),/preparing|uploading|checking/i);
   const firstQuote=x.requests.find(req=>req.path==='/api/quotes');
   assert.ok(firstQuote,'Provider quote request must have started without a paid submission');
