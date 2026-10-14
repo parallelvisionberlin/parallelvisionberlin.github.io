@@ -64,7 +64,7 @@ try{
           cards:[...document.querySelectorAll('.owner-table-wrap')].map(el=>({
             width:el.getBoundingClientRect().width,scrollWidth:el.scrollWidth
           })),
-          firstLabel:document.querySelector('#owner-customers tbody td')?.dataset.label||''
+          firstLabel:document.querySelector('#owner-customers td')?.dataset.label||''
         };
       });
       assert.ok(dimensions.html<=width+1,'Whole page must fit '+width+'px, observed '+JSON.stringify(dimensions));
