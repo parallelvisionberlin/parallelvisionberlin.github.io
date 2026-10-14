@@ -1,6 +1,6 @@
 # PV LAB Premium Upscale work state
 
-Updated: 2026-10-14 (Berlin), model/visual hierarchy correction.
+Updated: 2026-10-14 (Berlin), ByteDance Premium menu.
 Scope: curated SeedVR2 default replacing the public economical method.
 Branch: feat/pv-lab-premium-seedvr2-20261014
 Base main commit: 4f41522ee91c2861ae3b6d8f18957b5575f5313e
@@ -28,20 +28,12 @@ Base main commit: 4f41522ee91c2861ae3b6d8f18957b5575f5313e
 - No paid image job submitted during development.
 - CI and production deploy still need verification.
 - After merge, verify migration, health, front-end and one authorized paid image smoke test.
-
-## Brand follow-up
-- Empty canvas: “Vision Upscaler” title plus discreet attribution under description.
-- Loaded canvas: small “VISION UPSCALER · BYTEDANCE SEEDVR2” identification beside Source/preview.
-- Main navigation remains “Upscaler”; primary button remains “Upscale”.
-- Backend model, exact 10/18 credit pricing, prompt controls, gallery and mobile sizing unchanged.
-- Code: lab/lab.js, lab/studio.html, lab/assets.css. Browser regression: tests/lab-upscale-ui.mjs.
-- Branch: design/vision-upscaler-brand-20261014, base main 34f00e2c8c04a911b5997f141e25de101411730d; deploy and production status not yet verified.
-
-## User-approved visual correction
-- Tool title is simply **Upscaler**. ByteDance SeedVR2 is visible in its own read-only **Model** control, not branded as an independent PV LAB engine.
-- No public Topaz option is implied; only ByteDance SeedVR2 is offered.
-- Reduce empty-state decoration, use premium editorial type, a quieter solid canvas border and one simple upload CTA.
-- Retain real 2×/4× scale choice, format, and generate button, removing artificial Premium/Ultra labels from the choice.
-- Match results width to editor, softly frame existing result cards; keep the real gallery behavior and stored media.
-- Provider API, customer credits, history and refunds unchanged.
-- Branch design/upscaler-engine-deck-20261014; base e5d615c3b5fdb3b315a8acba311e1258089e271e; production deploy to be verified.
+ 
+## Current public model menu (2026-10-14)
+- Upscaler is still the tool title, ByteDance is the engine manufacturer, SeedVR2 is the actual model, and Premium labels PV LAB's quality tier, not a new official ByteDance product.
+- Clicking the model readout opens a compact, keyboard-accessible menu that shows one selected available model, ByteDance Premium / SeedVR2, and links to its actual fal.ai information page.
+- Clicking the selected model closes the menu with no quote or paid task. Outside click, Escape, and leaving Upscaler also close it. No fake Topaz entry or unsupported switching.
+- Model disclosure is an overlay on desktop, in-flow on mobile; the rest of the deck and gallery remain intact.
+- Server route, generation parameters, private archive, refunds, and 10-credit 2× / 18-credit 4× billing remain unchanged.
+- Changed files: lab/studio.html, lab/lab.js, lab/assets.css, tests/lab-upscale-ui.mjs, tests/lab-assets-ui.cjs.
+- Source main b4c8dbc6ca4c5c618085cc9d28ddec89cfeb1dce; branch fix/upscale-bytedance-model-menu-20261014. Verify CI and the published Pages run after merge.
