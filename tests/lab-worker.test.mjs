@@ -50,13 +50,19 @@ globalThis.fetch=async (url,options={})=>{const u=new URL(url);calls.push({url:S
  if(u.hostname==='queue.fal.run'){
   assert.equal(new Headers(options.headers).get('authorization'),'Key fal-synthetic-test-key');
   if(falPollError&&options.method!=='POST')return Response.json({detail:'Synthetic lookup error'},{status:falPollError});
-  if(u.pathname.startsWith('/topaz/upscale/')){
+  if(u.pathname.startsWith('/topaz/upscale/')||u.pathname.startsWith('/fal-ai/seedvr/upscale/image')){
     if(options.method==='POST'){
       falSubmitCount++;const input=JSON.parse(options.body);
       assert.match(input.image_url,/^https:\/\/v3\.fal\.media\/files\/inputs\//);
-      assert.equal(input.crop_to_fill,false);assert.equal(input.face_enhancement,false);
-      assert.ok([2,4].includes(input.upscale_factor));assert.ok(['jpeg','png'].includes(input.output_format));
-      assert.deepEqual(Object.keys(input).sort(),['crop_to_fill','face_enhancement','image_url','model','output_format','upscale_factor']);
+      if(u.pathname.includes('/seedvr/')){
+        assert.equal(input.upscale_mode,'factor');assert.equal(input.noise_scale,0.1);
+        assert.ok([2,4].includes(input.upscale_factor));assert.ok(['jpg','png'].includes(input.output_format));
+        assert.deepEqual(Object.keys(input).sort(),['image_url','noise_scale','output_format','upscale_factor','upscale_mode']);
+      }else{
+        assert.equal(input.crop_to_fill,false);assert.equal(input.face_enhancement,false);
+        assert.ok([2,4].includes(input.upscale_factor));assert.ok(['jpeg','png'].includes(input.output_format));
+        assert.deepEqual(Object.keys(input).sort(),['crop_to_fill','face_enhancement','image_url','model','output_format','upscale_factor']);
+      }
       if(falUpscaleMode==='timeout')throw new Error('Synthetic submission timeout');
       if(falUpscaleMode==='rejected')return Response.json({detail:'Unsupported test image.'},{status:422});
       if(falUpscaleMode==='missing-id')return Response.json({});
@@ -987,6 +993,40 @@ const upscaleSettings={type:'image',mode:'upscale',resolution:'4k',outputFormat:
 function pngDimensions(width,height){const bytes=new Uint8Array(33);bytes.set([137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82]);const view=new DataView(bytes.buffer);view.setUint32(16,width);view.setUint32(20,height);bytes[24]=8;bytes[25]=2;return bytes;}
 async function topazSource(env,width=2000,height=1000){const bytes=pngDimensions(width,height),response=await req(env,'/api/uploads',{method:'POST',raw:bytes,headers:{'Content-Type':'image/png','X-Filename':'upscale-test.png'}});assert.equal(response.status,201);return(await response.json()).id;}
 const topazSettings={type:'image',mode:'upscale',upscaleEngine:'topaz-precision',scale:2,topazModel:'Standard V2',outputFormat:'png'};
+
+test('SeedVR2 Premium Upscale checks original dimensions, credits and exact FAL submission once',async()=>{
+ for(const [scale,format,cost,credits] of [[2,'png',.004,10],[4,'jpeg',.013,18]]){
+  const{env}=fixture(),sourceId=await topazSource(env,1000,800);calls=[];falSubmitCount=0;falUpscaleMode='ok';falState='IN_QUEUE';
+  const settings={type:'image',mode:'upscale',upscaleEngine:'seedvr2',scale,outputFormat:format};
+  const response=await req(env,'/api/quotes',{method:'POST',data:{sourceId,settings}});
+  assert.equal(response.status,200,await response.clone().text());const q=await response.json();
+  assert.equal(q.provider,'fal.ai');assert.equal(q.priceIsEstimate,true);assert.equal(q.requiresPriceReview,true);
+  assert.equal(q.estimatedUsd,cost);assert.equal(q.maxUsd,cost);assert.equal(q.creditCost,credits);
+  assert.equal(q.settings.model,'fal-ai/seedvr/upscale/image');assert.equal(q.settings.sourceWidth,1000);assert.equal(q.settings.sourceHeight,800);
+  assert.equal(q.settings.targetWidth,1000*scale);assert.equal(q.settings.targetHeight,800*scale);assert.equal(q.settings.topazModel,undefined);
+  const stored=env.LAB_DB.db.prepare('SELECT params,payload FROM quotes WHERE id=?').get(q.id);
+  assert.equal(JSON.parse(stored.params).customerChargeCredits,credits);
+  assert.deepEqual(JSON.parse(stored.payload).input,{upscale_mode:'factor',upscale_factor:scale,noise_scale:0.1,output_format:format==='jpeg'?'jpg':'png'});
+  assert.equal(falSubmitCount,0);assert.equal((await req(env,'/api/jobs',{method:'POST',data:{quoteId:q.id}})).status,400);
+  const sent=await req(env,'/api/jobs',{method:'POST',data:{quoteId:q.id,confirm:true}});
+  assert.equal(sent.status,202,await sent.clone().text());const job=(await sent.json()).job;
+  assert.equal(job.status,'queued');assert.equal(job.creditCost,credits);assert.equal(falSubmitCount,1);
+  const posted=calls.find(c=>c.url.includes('queue.fal.run/fal-ai/seedvr/upscale/image')&&c.options.method==='POST');
+  assert.ok(posted);const input=JSON.parse(posted.options.body);assert.equal(input.upscale_factor,scale);assert.equal(input.noise_scale,0.1);
+  const repeat=(await(await req(env,'/api/jobs',{method:'POST',data:{quoteId:q.id,confirm:true}})).json()).job;
+  assert.equal(repeat.id,job.id);assert.equal(falSubmitCount,1);
+ }
+});
+test('SeedVR2 rejects too-large outputs and invalid options before spending',async()=>{
+ const{env}=fixture(),sourceId=await topazSource(env,2000,1500);falSubmitCount=0;
+ const settings={type:'image',mode:'upscale',upscaleEngine:'seedvr2',scale:2,outputFormat:'png'};
+ for(const changed of [{scale:4},{scale:8},{topazModel:'Standard V2'},{outputFormat:'webp'}]){
+  const r=await req(env,'/api/quotes',{method:'POST',data:{sourceId,settings:{...settings,...changed}}});
+  assert.equal(r.status,400,await r.clone().text());
+ }
+ assert.equal(falSubmitCount,0);
+});
+
 test('Topaz estimates use stored dimensions, started output-megapixel blocks and no paid provider request',async()=>{
   const cases=[['topaz-precision','Standard V2',4000,1500,0.08],['topaz-precision','High Fidelity V3',4001,1500,0.16],['topaz-wonder','Wonder 3.5',2000,1000,0.08],['topaz-wonder','Wonder 3.5',2001,1000,0.16]];
   for(const[upscaleEngine,topazModel,width,height,price]of cases){
@@ -1018,7 +1058,7 @@ test('Topaz submits the checked source and settings once, archives output and ke
 });
 test('Topaz rejects changed source bytes, unsupported engines, invalid dimensions, formats, factors and expired quotes before spending',async()=>{
   const{env,objects}=fixture(),sourceId=await topazSource(env);falSubmitCount=0;
-  for(const bad of [{...topazSettings,upscaleEngine:'seedvr2'},{...topazSettings,upscaleEngine:'invented'},{...topazSettings,scale:8},{...topazSettings,topazModel:'High Fidelity V2'},{...topazSettings,outputFormat:'webp'}])assert.equal((await req(env,'/api/quotes',{method:'POST',data:{sourceId,settings:bad}})).status,400);
+  for(const bad of [{...topazSettings,upscaleEngine:'old-unsupported'},{...topazSettings,upscaleEngine:'invented'},{...topazSettings,scale:8},{...topazSettings,topazModel:'High Fidelity V2'},{...topazSettings,outputFormat:'webp'}])assert.equal((await req(env,'/api/quotes',{method:'POST',data:{sourceId,settings:bad}})).status,400);
   const tooLarge=await topazSource(env,5000,5000);assert.equal((await req(env,'/api/quotes',{method:'POST',data:{sourceId:tooLarge,settings:{...topazSettings,scale:4}}})).status,400);
   const truncated=await setup(env);assert.equal((await req(env,'/api/quotes',{method:'POST',data:{sourceId:truncated,settings:topazSettings}})).status,400);
   const q=await(await req(env,'/api/quotes',{method:'POST',data:{sourceId,settings:topazSettings}})).json();
