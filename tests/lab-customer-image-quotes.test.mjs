@@ -7,10 +7,7 @@ import {customerImagePriceKey,pricedBoundQuotes,imageAutoRatio} from '../lab/ima
 import {createCustomerImagePricing} from '../lab/customer-image-pricing.js';
 
 test('backend-rated image quote uses current model costs and counts, never client prices',()=>{
-  const flash=quoteCustomerImageCredits({type:'image',engine:'flash'},4);
-  assert.equal(flash.credits,creditsForUsd(.018)*4);
-  assert.equal(flash.kind,'server-estimate');
-  assert.equal(flash.source,'backend-model-rate');
+  assert.throws(()=>quoteCustomerImageCredits({type:'image',engine:'flash'},4),/bound provider quote/);
   const kling=quoteCustomerImageCredits({type:'image',engine:'kling'},3);
   assert.equal(kling.credits,creditsForUsd(.028)*3);
   const gemini=quoteCustomerImageCredits({type:'image',engine:'gemini',processing:'normal'},4,{geminiEstimateMicros:()=>134000});
