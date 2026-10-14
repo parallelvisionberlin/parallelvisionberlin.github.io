@@ -4,33 +4,52 @@
 
 #studio-header #studio-account-menu .pv-account-panel{
   position:fixed;
-  top:calc(var(--lab-header-height,82px) + 9px);
+  top:calc(var(--lab-header-height,82px) + 8px);
   right:16px;
   left:auto;
   z-index:1000;
   box-sizing:border-box;
-  width:min(282px,calc(100vw - 32px));
+  width:min(276px,calc(100vw - 32px));
   max-height:calc(100dvh - var(--lab-header-height,82px) - 24px);
   overflow-y:auto;
   overscroll-behavior:contain;
   scrollbar-width:thin;
   scrollbar-color:#55575c transparent;
   padding:7px 0 0;
-  background:#1b1c20;
+  background:#18191d;
   color:#eae9e5;
-  border:1px solid #3a3d43;
-  border-radius:10px;
-  box-shadow:0 18px 52px rgba(0,0,0,.64);
+  border:1px solid #353840;
+  border-radius:8px;
+  box-shadow:0 14px 36px rgba(0,0,0,.50);
+}
+
+/* A hairline connects the open menu to its avatar, without touching the header.
+   The Studio shell stays separated from the masthead by eight pixels. */
+#studio-header #studio-account-menu[open]::after{
+  content:'';
+  position:fixed;
+  top:var(--lab-header-height,82px);
+  right:37px;
+  width:1px;
+  height:8px;
+  z-index:1001;
+  background:#51555c;
+  pointer-events:none;
+}
+#studio-header #studio-account-menu[open] .pv-account-avatar{
+  border-color:#b6b9be;
+  background:#23252a;
+  box-shadow:0 0 0 2px rgba(255,255,255,.05);
 }
 
 #studio-header #studio-account-menu .pv-account-details{
-  margin:0 17px 5px;
-  padding:15px 3px 16px;
-  border-bottom:1px solid #ffffff25;
+  margin:0 17px 4px;
+  padding:15px 3px 14px;
+  border-bottom:1px solid #35383d;
 }
 #studio-header #studio-account-menu .pv-account-details::before{
-  width:122px;
-  height:25px;
+  width:116px;
+  height:24px;
 }
 #studio-header #studio-account-menu .pv-account-details::after{
   margin-top:4px;
@@ -62,11 +81,12 @@
 }
 #studio-header #studio-account-menu .pv-account-panel > :is(a,button):not([data-account-signout]):hover,
 #studio-header #studio-account-menu .pv-account-panel > :is(a,button):not([data-account-signout]):focus-visible{
-  background:#2a2c32;
+  background:#24262b;
   color:#fff;
+  box-shadow:inset 2px 0 0 #8c9097;
 }
 #studio-header #studio-account-menu .pv-account-panel > :is(a,button):not([data-account-signout]):active{
-  background:#31343b;
+  background:#2b2d33;
 }
 #studio-header #studio-account-menu .pv-account-panel > [data-account-signout]{
   width:100%;
@@ -75,14 +95,14 @@
   padding:12px 21px 13px;
   background:transparent;
   border:0;
-  border-top:1px solid #ffffff25;
+  border-top:1px solid #35383d;
   border-radius:0 0 9px 9px;
   color:#a4a5aa;
   font:400 12px/1.35 'PV Lab Navigation','DM Sans',Arial,sans-serif;
   letter-spacing:0;
 }
 #studio-header #studio-account-menu .pv-account-panel > [data-account-signout]:hover{
-  background:#25272c;
+  background:#24262b;
   color:#eeece8;
 }
 #studio-header #studio-account-menu .pv-account-panel > :is(a,button):focus-visible{
@@ -95,9 +115,10 @@
   }
 }
 @media(max-width:640px){
+  #studio-header #studio-account-menu[open]::after{right:31px}
   #studio-header #studio-account-menu .pv-account-panel{
     right:10px;
-    width:min(282px,calc(100vw - 20px));
+    width:min(276px,calc(100vw - 20px));
   }
   #studio-header #studio-account-menu .pv-account-panel > :is(a,button){
     min-height:44px;
