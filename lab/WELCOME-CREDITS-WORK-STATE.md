@@ -18,9 +18,9 @@ Scope: automatic one-time 200-credit gift for verified non-owner Lab accounts.
 - No migrations, subscriptions, catalog prices, provider credentials or custom job restrictions changed.
 
 ## Verification and rollout
-- Branch: `feature/pv-lab-welcome-200-20261014`.
-- Tests and CI status: pending.
-- Production deployment: not yet confirmed.
-- After merging, verify the Cloudflare Worker deployment workflow succeeds.
+- PR [#191](https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/pull/191) was merged to main on 2026-10-14, squash commit `a83591837ec80331902be4d405dbbac574a2b0d7`.
+- PR test suite (Lab tests, video integration, image references and static validation): all succeeded.
+- Production Cloudflare Worker deployment [run 38499814726](https://github.com/parallelvisionberlin/parallelvisionberlin.github.io/actions/runs/38499814726): succeeded, including remote migrations, deploy and production health verification.
+- Frontend GitHub Pages cache/deployment was not independently verified and other commits are publishing concurrently.
 - Verify with a new external Clerk account and the earlier non-owner test account. Each should show 200 credits once in the account wallet. A priced video over 200 must refuse without charging.
 - Do not initiate any paid vendor generation automatically.
