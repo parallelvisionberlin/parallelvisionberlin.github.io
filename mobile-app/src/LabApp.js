@@ -10,7 +10,7 @@ import {config} from './config';
 import {isLabURL,LAB_STUDIO,LAB_MOODS,LAB_DISCOVER,labCommandScript,labReplyScript,moodCommand,nativeLabFlag,readLabMessage,sharePayload} from './labBridge';
 
 function Button({children,onPress,selected=false}){return <Pressable accessibilityRole="button" accessibilityState={{selected}} onPress={onPress} style={({pressed})=>[s.button,selected&&s.selected,pressed&&s.pressed]}><Text style={[s.buttonText,selected&&s.selectedText]}>{children}</Text></Pressable>;}
-function LabWebSurface({source,web,onSignIn,onSignOut,onNavigate,onReady,onLoading,getIdentity,active}){
+function LabWebSurface({source,web,onSignIn,onSignOut,onNavigate,onTab,onReady,onLoading,getIdentity,active}){
   const [attempt,setAttempt]=useState(0),[loading,setLoading]=useState(true),[error,setError]=useState('');
   const epoch=useRef(0),alive=useRef(true),pending=useRef(new Set()),sharing=useRef(false),pageId=useRef('');
   const identity=useRef(getIdentity);identity.current=getIdentity;
@@ -27,6 +27,7 @@ function LabWebSurface({source,web,onSignIn,onSignOut,onNavigate,onReady,onLoadi
       pending.current.delete(key);
       if(alive.current&&revision===epoch.current)web.current?.injectJavaScript(labReplyScript({...reply,id:m.id,pageId:m.pageId}));
     }else if(m.type==='PV_LAB_READY'){setLoading(false);setError('');onReady?.();}
+    else if(m.type==='PV_LAB_TAB')onTab?.(m.tab);
     else if(m.type==='PV_LAB_SIGN_IN')onSignIn();
     else if(m.type==='PV_LAB_SIGN_OUT')onSignOut();
     else if(m.type==='PV_LAB_NOTICE')Alert.alert('PV Lab',String(m.message||'').slice(0,250));
@@ -113,7 +114,7 @@ function Workspace(){
     <View style={s.header}><Text style={s.brand}>PV LAB<Text style={s.brandSmall}>  / PARALLEL VISION</Text></Text><Text style={s.sectionLabel}>{tab==='saved'?'MY MOODS':tab.toUpperCase()}</Text></View>
     <View style={s.body}>{isLoaded?<>
       <LabWebSurface source={LAB_DISCOVER} web={discover} active={tab==='moods'} getIdentity={getIdentity} onSignIn={signIn} onSignOut={logout} onNavigate={url=>navigate(url,'discover')}/>
-      {visitedStudio&&isSignedIn&&<LabWebSurface key={'studio-'+sessionId} source={LAB_STUDIO} web={studio} active={['create','gallery','retouch'].includes(tab)} getIdentity={getIdentity} onSignIn={()=>setAuthOpen(true)} onSignOut={logout} onNavigate={url=>navigate(url,'studio')} onLoading={()=>{studioReady.current=false;}} onReady={()=>{studioReady.current=true;const command=queued.current;queued.current=null;if(command)studio.current?.injectJavaScript(labCommandScript(command));}}/>}
+      {visitedStudio&&isSignedIn&&<LabWebSurface key={'studio-'+sessionId} source={LAB_STUDIO} web={studio} active={['create','gallery','retouch'].includes(tab)} getIdentity={getIdentity} onSignIn={()=>setAuthOpen(true)} onSignOut={logout} onNavigate={url=>navigate(url,'studio')} onTab={next=>{if(['create','gallery','retouch'].includes(tab))setTab(next);}} onLoading={()=>{studioReady.current=false;}} onReady={()=>{studioReady.current=true;const command=queued.current;queued.current=null;if(command)studio.current?.injectJavaScript(labCommandScript(command));}}/>}
       {visitedSaved&&<LabWebSurface key={'saved-'+(sessionId||'guest')} source={savedSource} web={saved} active={tab==='saved'} getIdentity={getIdentity} onSignIn={signIn} onSignOut={logout} onNavigate={url=>navigate(url,'saved')}/>}
       {tab==='gallery'&&!isSignedIn&&<View style={s.empty}><Text style={s.eyebrow}>YOUR PERSONAL COLLECTION</Text><Text style={s.loadingTitle}>Keep what{String.fromCharCode(10)}you create.</Text><Text style={s.copy}>Your images, ready to revisit, save and share.</Text><Button selected onPress={()=>openStudio({action:'gallery'})}>Sign in to your gallery</Button><Button onPress={()=>setTab('moods')}>Explore Moods</Button></View>}
       {tab==='profile'&&<ScrollView contentContainerStyle={s.profile}>
