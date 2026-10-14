@@ -27,22 +27,27 @@ export function voucherLink(env,code){
 }
 
 // Clerk is authoritative for verified account email. Never accept an email claimed by the browser.
-export async function syncCustomerEmail(env,subject){
+// Provide safe status information for owner-initiated diagnostics without returning Clerk data.
+async function clerkEmailStatus(env,subject,force=false){
   const secret=env.LAB_CLERK_SECRET_KEY||env.CLERK_SECRET_KEY;
-  if(!secret||!/^user_[A-Za-z0-9]+$/.test(subject))return false;
+  if(!secret)return 'missing_key';
+  if(!/^user_[A-Za-z0-9]+$/.test(subject))return 'invalid_subject';
   const contact=await one(env,'SELECT email,synced_at FROM lab_customer_contacts WHERE customer_id=?',subject);
   const ttl=contact?.email?86400000:7*86400000;
-  if(contact?.synced_at&&Date.now()-contact.synced_at<ttl)return true;
+  if(!force&&contact?.synced_at&&Date.now()-contact.synced_at<ttl)return 'cached';
   let response;
-  try {
+  try{
     response=await fetch('https://api.clerk.com/v1/users/'+encodeURIComponent(subject),{
       headers:{Authorization:'Bearer '+secret,Accept:'application/json'},redirect:'error',
       signal:AbortSignal.timeout(8000)
     });
-  }catch{return false;}
-  if(!response.ok)return false;
+  }catch{return 'network_error';}
+  if(response.status===401||response.status===403)return 'invalid_key';
+  if(response.status===404)return 'missing_user';
+  if(response.status===429)return 'rate_limited';
+  if(!response.ok)return 'upstream_error';
   const account=await response.json().catch(()=>null);
-  if(account?.id!==subject||!Array.isArray(account.email_addresses))return false;
+  if(account?.id!==subject||!Array.isArray(account.email_addresses))return 'invalid_response';
   const primary=account.email_addresses.find(item=>item.id===account.primary_email_address_id);
   const email=primary?.verification?.status==='verified'&&typeof primary.email_address==='string'&&
     primary.email_address.length<=254&&EMAIL.test(primary.email_address)?primary.email_address.toLowerCase():null;
@@ -51,7 +56,11 @@ export async function syncCustomerEmail(env,subject){
     VALUES(?,?,?,?)
     ON CONFLICT(customer_id) DO UPDATE SET email=excluded.email,verified_at=excluded.verified_at,synced_at=excluded.synced_at`,
     subject,email,email?t:null,t);
-  return true;
+  return email?'verified':'unverified';
+}
+export async function syncCustomerEmail(env,subject,options={}){
+  const status=await clerkEmailStatus(env,subject,!!options.force);
+  return options.details?{status}:['verified','unverified','cached'].includes(status);
 }
 
 export async function voucherCustomerRoute(request,env,subject){
@@ -157,11 +166,23 @@ export async function labAdminRoute(request,env,owner){
   if(path==='/api/admin/customers/sync'&&method==='POST'){
     if(!(env.LAB_CLERK_SECRET_KEY||env.CLERK_SECRET_KEY))fail(503,'Clerk email sync needs a private Worker secret.');
     const candidates=await all(env,`SELECT c.id FROM lab_customers c LEFT JOIN lab_customer_contacts p ON p.customer_id=c.id
-      WHERE p.synced_at IS NULL OR (p.email IS NULL AND p.synced_at<?)
-      ORDER BY c.created_at DESC LIMIT 12`,Date.now()-7*86400000);
-    let synced=0;
-    for(const {id} of candidates)if(await syncCustomerEmail(env,id))synced++;
-    return json({requested:candidates.length,synced});
+      WHERE p.email IS NULL OR p.synced_at IS NULL OR p.synced_at<?
+      ORDER BY CASE WHEN p.synced_at IS NULL THEN 0 ELSE 1 END,COALESCE(p.synced_at,0),c.created_at DESC LIMIT 12`,Date.now()-86400000);
+    const outcomes={verified:0,unverified:0,invalid_key:0,missing_user:0,rate_limited:0,network_error:0,upstream_error:0,invalid_response:0,missing_key:0,invalid_subject:0};
+    let checked=0;
+    for(const {id} of candidates){
+      const {status}=await syncCustomerEmail(env,id,{force:true,details:true});
+      outcomes[status]=(outcomes[status]||0)+1;
+      checked++;
+      // Stop when the key is rejected or the upstream API asks us to slow down.
+      if(status==='invalid_key'||status==='rate_limited')break;
+    }
+    return json({requested:candidates.length,checked,synced:outcomes.verified+outcomes.unverified,
+      verified:outcomes.verified,unverified:outcomes.unverified,
+      issues:{invalidKey:outcomes.invalid_key,missingUser:outcomes.missing_user,
+        transient:outcomes.rate_limited+outcomes.network_error+outcomes.upstream_error+outcomes.invalid_response,
+        missingKey:outcomes.missing_key,invalidSubject:outcomes.invalid_subject}});
+
   }
   fail(404,'Unknown owner endpoint.');
 }
