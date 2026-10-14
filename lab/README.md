@@ -1,5 +1,9 @@
 # Parallel Vision Lab
 
+## 200 welcome credits (2026-10-14)
+
+Each verified non-owner Clerk customer receives 200 one-time PV Lab credits through the existing wallet. They can be used for any customer-enabled image or video job, including one video that consumes the entire balance. The backend alone prices and debits jobs and refuses prices above available credits. Previous unfunded customer signups get the bonus on their next authenticated request; a unique ledger receipt prevents repeat grants. Closed customer accounts cannot receive it. The production-only switch is `LAB_WELCOME_CREDITS_ENABLED=true`, absent from the billing sandbox. No new database migration or provider API call is required. See [the welcome credit work state](WELCOME-CREDITS-WORK-STATE.md).
+
 ## Higgsfield Kling 3.0 Pro Video (owner-only test, October 14, 2026)
 
 Video Studio now includes Kling 3.0 Pro via the existing private `HF_CREDENTIALS` connection. It supports 3–15s, Text or Start frame, optional final frame, audio on/off (default off), and the exact official `kling-video/v3.0/pro/text-to-video` and `kling-video/v3.0/pro/image-to-video` routes. The HD/1080p display denotes the Pro tier; Higgsfield's Pro API does not accept a numeric `resolution` parameter. One video at a time is explicitly quoted using the account's real `/estimate/<model>` response and then charged only after user confirmation. Quotes expire after 290 seconds, abnormal estimates above $5 are blocked and existing daily spend and queue limits remain. No native Soul Elements integration is represented. The model stays owner-only until resale terms and retail pricing are separately confirmed. No paid request runs on deployment.
