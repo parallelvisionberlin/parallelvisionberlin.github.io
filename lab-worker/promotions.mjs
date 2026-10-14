@@ -115,7 +115,7 @@ export async function labAdminRoute(request,env,owner){
     const vouchers=await all(env,`SELECT code,credits,max_redemptions AS maxRedemptions,redeemed_count AS redemptionCount,
       active,expires_at AS expiresAt,created_at AS createdAt,note
       FROM lab_vouchers ORDER BY created_at DESC LIMIT 60`);
-    return json({summary,customers,payments,
+    return json({summary,customers,payments,referrals,
       vouchers:vouchers.map(v=>({...v,url:voucherLink(env,v.code)})),
       emailSyncConfigured:!!(env.LAB_CLERK_SECRET_KEY||env.CLERK_SECRET_KEY),
       resultLimit:80});
