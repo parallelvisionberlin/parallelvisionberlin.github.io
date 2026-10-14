@@ -40,7 +40,7 @@ import {SYNTHETIC_ROMANCE_REFERENCES,SYNTHETIC_ROMANCE_REFERENCE_VERSION} from '
 import {moodBoardsRoute} from './moodboards.mjs';
 import {moodCreatorRoute} from './mood-creator-service.mjs';
 import {characterPreview as soulCharacterPreview,SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-14.5-higgsfield-kling3-pro';
+export const VERSION = 'pv-lab-2026-10-14.6-seedvr2-premium-upscale';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -219,7 +219,7 @@ function imageMoodMetadata(value){
 function parameters(value) {
   if(!value||typeof value!=='object'||Array.isArray(value))fail(400,'Invalid settings.');
   if(value.type==='image'&&value.mode==='upscale'){
-    const upscaleEngine=value.upscaleEngine??'spicy';
+    const upscaleEngine=value.upscaleEngine??'seedvr2';
     if(upscaleEngine!=='spicy')return falUpscaleParameters(value,{fail});
     if(!['2k','4k','8k'].includes(value.resolution)||!['jpeg','png','webp'].includes(value.outputFormat||'jpeg'))fail(400,'Choose 2K, 4K or 8K and JPEG, PNG or WebP.');
     return {type:'image',provider:'spicy',upscaleEngine:'spicy',model:UPSCALER,mode:'upscale',prompt:'',resolution:value.resolution,aspectRatio:'auto',outputFormat:value.outputFormat||'jpeg',referenceRoles:[]};
@@ -318,7 +318,7 @@ async function prepareInput(env,owner,data,p,url) {
   if(p.provider==='higgsfield'&&p.mode==='extend'){const primary=await source(env,owner,data.sourceId);if(!['video/mp4','video/quicktime'].includes(primary.mime))fail(400,'Choose a video to extend.');p.referenceVideoIds=[primary.id];return {primary,input:{}};}
   if(p.provider==='higgsfield'){if(url)fail(400,'Use the Soul 2 generation route.');const primary=await source(env,owner,data.sourceId);return {primary,input:{}};}
   if(p.mode==='upscale'&&p.provider==='fal'){
-    if(data.lastSourceId||data.referenceSourceIds?.length||data.transferSourceIds?.length)fail(400,'Topaz uses one original source image and no extra references or compressed working copies.');
+    if(data.lastSourceId||data.referenceSourceIds?.length||data.transferSourceIds?.length)fail(400,'Upscale uses one original source image and no extra references or compressed working copies.');
     const prepared=await readFalUpscaleSource(env,owner,data.sourceId);
     setFalUpscaleDimensions(p,prepared.dimensions,{fail});
     return {primary:prepared.asset,input:buildFalUpscaleInput(p),prepared};
@@ -773,7 +773,7 @@ async function falImageDataUri(env,a){
 }
 async function readFalUpscaleSource(env,owner,id){
   const asset=await source(env,owner,id);
-  if(!['image/jpeg','image/png','image/webp'].includes(asset.mime)||asset.bytes<=0||asset.bytes>MAX_IMAGE)fail(400,'Topaz needs one PNG, JPEG or WebP source up to 20 MiB.');
+  if(!['image/jpeg','image/png','image/webp'].includes(asset.mime)||asset.bytes<=0||asset.bytes>MAX_IMAGE)fail(400,'Upscale needs one PNG, JPEG or WebP source up to 20 MiB.');
   const object=await env.LAB_MEDIA.get(asset.object_key);if(!object)fail(404,'The upscale source is missing from private storage.');
   const bytes=await limitedBody(new Response(object.body),MAX_IMAGE);
   if(bytes.length!==asset.bytes||!sniff(bytes,asset.mime))fail(409,'The stored upscale source failed verification. Upload it again.');
@@ -1089,7 +1089,7 @@ async function submitFalUpscaleQuote(env,owner,q,p,payload){
   const c=await config(env,owner),limit=c?.daily_limit_microusd||10000000,id=crypto.randomUUID(),t=now(),day=Math.floor(t/86400000)*86400000;
   const falSql="(COALESCE(json_extract(params,'$.provider'),'')='fal' OR COALESCE(json_extract(params,'$.engine'),'') IN ('fal','soulpro','h3maxfal','omni') OR COALESCE(json_extract(params,'$.model'),'') LIKE 'fal-ai/%' OR COALESCE(json_extract(params,'$.model'),'') LIKE 'topaz/%')";
   // A distinct upscale cannot retry an interrupted identity edit. Keep unknown
-  // upscale submissions blocked across Topaz engines; all FAL jobs still count
+  // upscale submissions blocked across FAL engines; all FAL jobs still count
   // toward the shared image capacity and every held estimate still counts spend.
   const uncertainUpscaleSql=falSql+" AND COALESCE(json_extract(params,'$.mode'),'')='upscale'";
   try{
@@ -1533,8 +1533,8 @@ async function route(request,env,ctx) {
       if(!env.FAL_KEY)fail(503,'fal.ai upscaling is not configured on this Worker.');
       const {primary,input,prepared}=await prepareInput(env,owner,data,p,url),estimate=falUpscaleEstimateMicros(p),id=crypto.randomUUID(),expires=now()+290000;
       const payload={model:p.model,input,source:{id:primary.id,mime:primary.mime,bytes:prepared.bytes.length,sha256:prepared.sha256}};
-      await run(env,'INSERT INTO quotes(id,owner_id,source_id,params,estimate_microusd,expires_at,vendor_quote_id,expected_cost,payload) VALUES(?,?,?,?,?,?,?,?,?)',id,owner,primary.id,JSON.stringify(p),estimate,expires,'fal-upscale-v1',String(estimate/1000000),JSON.stringify(payload));
-      return json({id,estimatedUsd:estimate/1000000,maxUsd:estimate/1000000,expiresAt:expires,settings:p,provider:'fal.ai',priceIsEstimate:true,requiresPriceReview:true,notice:'Estimated from the verified source dimensions and published Topaz output-megapixel pricing. The Lab reserves this estimate only when you submit; it is not a provider price cap. fal.ai billing remains authoritative. No upscale was submitted.'});
+      await run(env,'INSERT INTO quotes(id,owner_id,source_id,params,estimate_microusd,expires_at,vendor_quote_id,expected_cost,payload) VALUES(?,?,?,?,?,?,?,?,?)',id,owner,primary.id,JSON.stringify({...p,customerChargeCredits:creditsForJobUsd(estimate/1000000,p)}),estimate,expires,'fal-upscale-v1',String(estimate/1000000),JSON.stringify(payload));
+      return json({id,estimatedUsd:estimate/1000000,maxUsd:estimate/1000000,creditCost:creditsForJobUsd(estimate/1000000,p),expiresAt:expires,settings:p,provider:'fal.ai',priceIsEstimate:true,requiresPriceReview:true,notice:'Estimated from verified source dimensions and the published output-megapixel price. Not a guaranteed provider charge. No upscale was submitted.'});
     }
     if(p.provider==='fal'&&p.type==='video'){
       if(!env.FAL_KEY)fail(503,'fal.ai video is not configured on this Worker.');
@@ -1720,8 +1720,8 @@ async function route(request,env,ctx) {
     if(path.endsWith('/reconcile')&&method==='POST'){
       const p=JSON.parse(j.params||'{}');
       const soulPro=p.engine==='soulpro'&&['inline-data-uri','fal-cdn'].includes(p.inputTransport)&&Object.hasOwn(SOUL_PRO_MODELS,p.soulProModel)&&SOUL_PRO_MODELS[p.soulProModel].id===p.model;
-      const upscale=p.mode==='upscale'&&['topaz/upscale/image/precision','topaz/upscale/image/generative'].includes(p.model);
-      if(j.state!=='uncertain'||j.provider_id||p.provider!=='fal'||!soulPro&&!upscale)fail(409,'Only interrupted Soul Pro or Topaz requests without a provider task can be checked here.');
+      const upscale=p.mode==='upscale'&&['topaz/upscale/image/precision','topaz/upscale/image/generative','fal-ai/seedvr/upscale/image'].includes(p.model);
+      if(j.state!=='uncertain'||j.provider_id||p.provider!=='fal'||!soulPro&&!upscale)fail(409,'Only interrupted Soul Pro or FAL upscale requests without a provider task can be checked here.');
       if(!env.FAL_KEY)fail(503,'fal.ai is not configured on this Worker.');
       let input,match;
       if(p.inputTransport==='fal-cdn'||upscale){
