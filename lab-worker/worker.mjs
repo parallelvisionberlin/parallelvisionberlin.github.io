@@ -142,7 +142,13 @@ async function authenticate(request,env) {
       ).bind(link.canonical_id).first();
       if(!active)fail(403,'Owner access has been revoked.');
     }else if(link.kind==='customer'){
-      if(!await isLabCustomer(env,link.canonical_id))fail(403,'Linked customer account is unavailable.');
+      if(!await isLabCustomer(env,link.canonical_id)){
+        // Repair only a genuine freshly created V2 account whose link insert
+        // succeeded before the welcome-wallet insert was interrupted.
+        if(link.canonical_id!=='user_PvLabV2'+p.sub.slice(5))
+          fail(403,'Linked customer account is unavailable.');
+        await ensureCustomer(env,link.canonical_id);
+      }
     }else fail(403,'Unrecognized PV Lab account link.');
     return {id:link.canonical_id,kind:link.kind,issuer:p.iss,subject:p.sub};
   }
