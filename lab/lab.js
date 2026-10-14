@@ -1022,15 +1022,15 @@ function setModelIcon(element,engine){
 }
 const imageModelDescriptions = Object.freeze({
   seedream:'Image creation and reference-guided edits',
-  seedreamlite:'Seedream 5 Lite · 2K · text or up to 10 reference images',
-  flash:'Seedream Flash · $0.018/image · up to 14 references',
-  qwen3:'Qwen Image 3.0 · 2K · text or 1–3 reference photos',
+  seedreamlite:'2K · text or up to 10 reference images',
+  flash:'Fast · $0.018/image · up to 14 references',
+  qwen3:'2K · text or 1–3 reference photos',
   zspicy:'Z-Image Spicy · text-only · up to 1536 px',
   kling:'Kling V3 · $0.028/image · text or one base image',
   gemini:'Nano Banana Pro · image and reference editing',
-  gemini21:'Nano Banana 2.1 · Google direct · 1K, 2K, 4K · reference editing',
+  gemini21:'Google · 1K, 2K, 4K · reference editing',
   soulpro:'Create from text or a photograph · optional character',
-  soul:'Krea 2 / Qwen · train and generate with an identity LoRA',
+  soul:'Krea 2 / Qwen · identity LoRA training',
   fal:'Controlled Pose · FAL FLUX image controls'
 });
 function imageStudioModelTitle(){
@@ -1301,10 +1301,10 @@ function syncImageComposer(){
 }
 function fitImageModelMenu(){
   // Natural height when all models fit. For overflow, show whole model rows
-  // and leave an 8px gap to the Studio navigation, never a large empty footer.
+  // and preserve at least 15px of clearance below the Studio navigation.
   const menu=$('image-composer-model-menu'),trigger=$('image-composer-model'),header=$('studio-header');
   if(!menu||!trigger||menu.hidden)return;
-  const available=Math.max(112,Math.floor(trigger.getBoundingClientRect().top-(header?.getBoundingClientRect().bottom||0)-16));
+  const available=Math.max(0,Math.floor(trigger.getBoundingClientRect().top-Math.max(0,header?.getBoundingClientRect().bottom||0)-24));
   menu.style.setProperty('--pv-model-menu-available',available+'px');
   menu.style.removeProperty('--pv-model-menu-fit');
   menu.classList.remove('has-overflow');
@@ -1357,7 +1357,7 @@ function populateImageModelMenu(query=''){
     const icon=document.createElement('span');icon.className='composer-model-icon';setModelIcon(icon,option.value);
     const info=document.createElement('span');info.className='composer-model-info';
     const title=document.createElement('strong');title.textContent=name;
-    const caption=document.createElement('small');caption.textContent=detail;
+    const caption=document.createElement('small');caption.textContent=detail;caption.title=detail;
     info.append(title,caption);
     const active=document.createElement('span');active.className='composer-model-check';
     active.textContent=option.value===imageEngine?'✓':'';
