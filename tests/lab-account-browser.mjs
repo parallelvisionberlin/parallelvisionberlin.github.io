@@ -222,7 +222,7 @@ try{
           assert.match(await page.locator('[data-account-balance]').textContent(),customer?/1,234 credits/:/Owner workspace/,path+' '+await page.locator('body').innerText());
           if(path==='/lab/index.html'){
             assert.equal(await page.locator('#lab-home-upgrade').count(),0,'No competing Upgrade button');
-            assert.equal(await page.locator('#lab-home-credits').isVisible(),customer,'Credits only for customers');
+            assert.equal(await page.locator('#lab-home-credits').isVisible(),true,'Credits entry remains visible for customers and owner');
             if(customer){
               assert.equal(await page.locator('#lab-home-credit-copy').textContent(),'1,234');
               assert.equal(await page.locator('#lab-home-credits').getAttribute('href'),'#pricing');
@@ -289,7 +289,8 @@ try{
       await fits(page,'refreshed balance header '+width);
       await page.evaluate(()=>window.mockClerk.signOut());
       await page.locator('#lab-header-signin').waitFor({state:'visible'});
-      assert.equal(await page.locator('#lab-home-credits').isVisible(),false);
+      assert.equal(await page.locator('#lab-home-credits').isVisible(),true,'Signed-out users see the Get credits CTA');
+      assert.equal(await page.locator('#lab-home-credit-copy').textContent(),'Get credits');
       await fits(page,'signed out header '+width);
       assert.deepEqual(errors,[]);
     }finally{await rig.context.close();}

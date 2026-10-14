@@ -36,6 +36,124 @@ function rowInto(tbody,items,values,emptyMessage='Nothing to show yet.'){
     tbody.append(tr);
   }
 }
+// Customer history stays private to the owner. Render only text, never HTML from job metadata.
+const customerDialog=$('owner-customer-dialog');
+let customerActivitySerial=0;
+const activityDate=stamp=>Number.isFinite(Number(stamp))&&Number(stamp)>0
+  ?new Date(Number(stamp)).toLocaleString('en-GB',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}):'—';
+function activityElement(tag,className,text){
+  const node=document.createElement(tag);
+  if(className)node.className=className;
+  if(text!==undefined)node.textContent=String(text);
+  return node;
+}
+function activityTable(parent,{heading,note,columns,rows,emptyMessage}){
+  const section=activityElement('section','owner-customer-activity-section');
+  const head=activityElement('div','owner-customer-activity-section-head');
+  head.append(activityElement('h3','',heading),activityElement('span','',note));
+  section.append(head);
+  if(!rows.length){section.append(activityElement('p','owner-customer-empty',emptyMessage));parent.append(section);return;}
+  const wrap=activityElement('div','owner-customer-activity-table');
+  const table=document.createElement('table'),thead=document.createElement('thead'),header=document.createElement('tr');
+  for(const column of columns)header.append(activityElement('th','',column));
+  thead.append(header);table.append(thead);
+  const tbody=document.createElement('tbody');
+  for(const data of rows){
+    const tr=document.createElement('tr');
+    data.forEach((value,index)=>{
+      const td=document.createElement('td');td.dataset.label=columns[index];
+      if(value&&typeof value==='object'){
+        if(value.state){
+          const badge=activityElement('span','owner-customer-job-state owner-customer-job-state-'+
+            (['completed','failed','queued','running','submitting','saving','uncertain','resolved','draft'].includes(value.state)?value.state:'other'),value.state);
+          td.append(badge);
+        }else{
+          td.append(activityElement('strong','',value.main||'—'));
+          if(value.sub)td.append(activityElement('small','',value.sub));
+        }
+      }else td.textContent=String(value??'—');
+      tr.append(td);
+    });
+    tbody.append(tr);
+  }
+  table.append(tbody);wrap.append(table);section.append(wrap);parent.append(section);
+}
+function paintCustomerActivity(data){
+  const root=$('owner-customer-dialog-body');root.replaceChildren();
+  const customer=data.customer||{},summary=data.summary||{};
+  $('owner-customer-dialog-identity').textContent=(customer.email||customer.id||'Customer')+
+    (customer.email?'  ·  '+customer.id:'');
+  const stats=activityElement('div','owner-customer-activity-stats');
+  for(const [label,value] of [
+    ['Current balance',formatNumber(customer.balanceCredits)],
+    ['Total jobs',formatNumber(summary.totalJobs)],
+    ['Completed',formatNumber(summary.completedJobs)],
+    ['Net credits spent',formatNumber(summary.netCreditsSpent)]
+  ]){
+    const stat=activityElement('div','owner-customer-activity-stat');
+    stat.append(activityElement('span','',label),activityElement('strong','',value));
+    stats.append(stat);
+  }
+  root.append(stats);
+  root.append(activityElement('p','owner-customer-activity-caption',
+    formatNumber(summary.failedJobs)+' failed jobs · '+
+    formatNumber(summary.creditsCharged)+' credits charged · '+
+    formatNumber(summary.creditsRefunded)+' refunded. Charges are recorded when a job starts, not proof of a finished result.'));
+  const jobs=Array.isArray(data.jobs)?data.jobs:[];
+  activityTable(root,{
+    heading:'Generation history',note:'Latest '+(data.limits?.jobs||50)+' jobs',
+    columns:['Date','Model / provider','Type','Status','Credits'],
+    rows:jobs.map(job=>{
+      const charged=Number(job.chargedCredits)||0,refunded=Number(job.refundedCredits)||0;
+      const type=job.type==='video'?'Video':job.type==='upscale'?'Upscale':job.type==='image'?'Image':job.type||'Job';
+      return [activityDate(job.createdAt),
+        {main:job.model||job.engine||'Model not recorded',sub:job.provider||job.engine||''},
+        type,{state:job.state||'unknown'},
+        charged?{main:charged===refunded?'0 net':'−'+formatNumber(charged-refunded),
+          sub:refunded?'+'+formatNumber(refunded)+' refunded':''}:'No charge'];
+    }),emptyMessage:'No generations recorded for this account.'
+  });
+  activityTable(root,{
+    heading:'Credit movements',note:'Latest '+(data.limits?.entries||80)+' transactions',
+    columns:['Date','Event','Credits'],
+    rows:(Array.isArray(data.entries)?data.entries:[]).map(entry=>[
+      activityDate(entry.createdAt),entry.description||entry.kind,
+      {main:(Number(entry.credits)>0?'+':'')+formatNumber(entry.credits)}
+    ]),emptyMessage:'No credit movements recorded.'
+  });
+  root.append(activityElement('p','owner-customer-activity-caption',
+    'Wallet transactions are authoritative. Deleted generation records may no longer appear in the job list.'));
+}
+async function openCustomerActivity(customer){
+  if(!profile?.owner||!customer?.id)return;
+  const serial=++customerActivitySerial,current=revision;
+  $('owner-customer-dialog-identity').textContent=customer.email||customer.id;
+  $('owner-customer-dialog-body').replaceChildren(activityElement('p','owner-customer-empty','Loading customer activity…'));
+  if(!customerDialog.open)customerDialog.showModal();
+  try{
+    const data=await call('/api/admin/customers/activity?customerId='+encodeURIComponent(customer.id));
+    if(serial!==customerActivitySerial||current!==revision||!customerDialog.open)return;
+    paintCustomerActivity(data);
+  }catch(error){
+    if(serial!==customerActivitySerial||current!==revision||!customerDialog.open)return;
+    $('owner-customer-dialog-body').replaceChildren(activityElement('p','owner-customer-empty',
+      error.message||'Customer history is unavailable. Please retry.'));
+  }
+}
+function customerActivityButtons(customers){
+  const rows=$('owner-customers').rows;
+  customers.forEach((customer,index)=>{
+    const cell=rows[index]?.cells[0];if(!cell)return;
+    const button=activityElement('button','owner-customer-open','View activity ↗');
+    button.type='button';
+    button.setAttribute('aria-label','View generation and credit activity for '+(customer.email||customer.id));
+    button.addEventListener('click',()=>void openCustomerActivity(customer));
+    cell.append(button);
+  });
+}
+$('owner-customer-dialog-close').addEventListener('click',()=>customerDialog.close());
+customerDialog.addEventListener('close',()=>{customerActivitySerial++;});
+
 // Mobile layout reads the real column headings instead of duplicating them in CSS.
 function labelTableCellsForMobile(){
   for(const table of document.querySelectorAll('.owner-table-wrap table')){
@@ -132,6 +250,7 @@ function render(data){
     c=>c.subscription&&c.subscription!=='none'?({primary:c.subscription,secondary:c.plan||''}):'—',
     c=>formatDate(c.lastPaidAt)
   ],query?'No matching accounts. Try a different email or account ID.':'No customer accounts have joined yet.');
+  customerActivityButtons(data.customers||[]);
   rowInto($('owner-payments'),data.payments||[],[
     p=>({primary:p.email||p.customerId,secondary:p.email?p.customerId:''}),
     p=>p.kind==='subscription'?'Subscription invoice':'One-time purchase',
@@ -226,6 +345,7 @@ async function refreshDashboard(){
 }
 async function refreshSession(){
   const current=++revision;fetchSerial++;profile=null;$('owner-dashboard').hidden=true;$('owner-gate').hidden=true;
+  if(customerDialog.open)customerDialog.close();customerActivitySerial++;
   recentCustomers=[];recentPayments=[];recentFilter='all';syncNotice='';$('owner-search').value='';
   providerUI.clear();
   for(const id of ['owner-customers','owner-payments','owner-referrals','owner-vouchers'])$(id).replaceChildren();
