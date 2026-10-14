@@ -4,9 +4,24 @@ let pending=false;
 function schedule(){if(!pending){pending=true;requestAnimationFrame(layout);}}
 function layout(){
   pending=false;
-  const enabled=!!gallery.closest('.image-studio,#assets-gallery,#app.upscale-studio-active');
+  const native=document.documentElement.classList.contains('pv-native-lab');
+  const enabled=!native&&!!gallery.closest('.image-studio,#assets-gallery,#app.upscale-studio-active');
   gallery.classList.toggle('justified-gallery',enabled);
   const cards=[...gallery.children];
+  if(native){
+    // The iPhone gallery is a responsive grid. Old measured inline widths
+    // were left aligned, while panoramas must span both columns.
+    gallery.classList.add('native-gallery-grid');
+    for(const card of cards){
+      card.style.removeProperty('width');card.style.removeProperty('height');
+      const raw=Number(card.dataset.ratio),ratio=Number.isFinite(raw)&&raw>0?raw:1;
+      const wide=ratio>=1.38;
+      card.classList.toggle('native-gallery-wide',wide);
+      card.style.setProperty('--native-gallery-ratio',String(Math.max(wide?1.38:.74,Math.min(wide?2.35:1.2,ratio))));
+    }
+    return;
+  }
+  gallery.classList.remove('native-gallery-grid');
   if(!enabled){for(const card of cards){card.style.removeProperty('width');card.style.removeProperty('height');}return;}
   const width=gallery.clientWidth;if(!width)return;
   const gap=2,target=width<640?160:Math.min(320,width/5.8);
@@ -33,5 +48,6 @@ function layout(){
 new ResizeObserver(schedule).observe(gallery);
 new MutationObserver(schedule).observe(gallery,{childList:true});
 new MutationObserver(schedule).observe(document.getElementById('app'),{attributes:true,attributeFilter:['class']});
+new MutationObserver(schedule).observe(document.documentElement,{attributes:true,attributeFilter:['class']});
 // Image decoding never changes geometry. The API supplies stored dimensions.
 schedule();
