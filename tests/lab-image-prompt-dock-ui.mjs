@@ -86,7 +86,7 @@ try{
         const el=document.querySelector('#image-composer-prompt'),tray=document.querySelector('#image-composer-references');
         return{
           dock:rect('#image-composer'),prompt:rect('#image-composer-prompt'),
-          generate:rect('#image-composer-generate'),row:rect('.image-composer-toolbar'),
+          generate:rect('#image-composer-generate'),row:rect('.image-composer-toolbar'),controls:rect('.composer-controls'),
           viewport:{width:innerWidth,height:innerHeight},
           textScrollHeight:el.scrollHeight,textClientHeight:el.clientHeight,
           textOverflow:getComputedStyle(el).overflowY,
@@ -111,6 +111,11 @@ try{
         await page.evaluate(()=>window.__resizePVPrompt());
       }
       assert.ok(metrics.prompt.height<=178,kind+': editor must never fill the screen');
+      if(kind==='seedream'){
+        assert.ok(metrics.prompt.height>=160,'Long prompts must expand beyond one line before scrolling: '+metrics.prompt.height);
+        assert.ok(Math.abs(metrics.generate.bottom-metrics.controls.bottom)<=6,
+          'Generate remains bottom-aligned with controls after loading references and pasting a long prompt: '+JSON.stringify(metrics));
+      }
       if(width<=740)assert.ok(metrics.prompt.height<=124,kind+': mobile prompt stays smaller');
       if(kind==='soul')assert.ok(metrics.prompt.height>=120,
         'Soul reference cards must not flex-shrink a long prompt down to one visible line');
