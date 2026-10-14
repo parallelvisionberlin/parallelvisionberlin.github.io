@@ -361,3 +361,20 @@
   html.pv-native-lab #image-lightbox .image-detail-inspector-scroll {padding-inline:12px!important}
   html.pv-native-lab #image-lightbox .image-detail-action-grid>button {font-size:11px!important}
 }
+
+/* Preserve hidden states, full-resolution zoom and readable More actions. */
+@media (max-width:960px) {
+  html.pv-native-lab #image-lightbox [hidden] {display:none!important}
+  html.pv-native-lab #image-lightbox .image-lightbox-stage.is-zoomed {
+    display:block!important;
+    overflow:auto!important;
+    touch-action:pan-x pan-y!important;
+    -webkit-overflow-scrolling:touch;
+  }
+  html.pv-native-lab #image-lightbox .image-detail-more-menu button {
+    justify-content:flex-start!important;
+    text-align:left!important;
+    padding:10px 12px!important;
+    min-height:42px!important;
+  }
+}
