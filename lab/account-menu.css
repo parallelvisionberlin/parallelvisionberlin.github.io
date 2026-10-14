@@ -1,115 +1,138 @@
-/* One account control across the public pages and the working Studio. */
-.pv-account-menu{position:relative;flex:none;font:400 13px/1.4 'PV Lab Navigation','DM Sans',Arial,sans-serif;color:#f3f1ec}
+/* PV LAB shared account menu. Self-contained visual treatment; no account or billing behavior here. */
+.pv-account-menu{
+  position:relative;
+  flex:none;
+  font:400 13px/1.4 'PV Lab Navigation','DM Sans',Arial,sans-serif;
+  color:#f4f1ea;
+}
 .pv-account-menu[hidden],.pv-account-menu [hidden]{display:none!important}
-.pv-account-menu>summary,#studio-header .actions>.pv-account-menu>summary{display:flex;align-items:center;justify-content:center;width:44px;height:44px;min-height:44px;padding:6px;border:0;background:transparent;cursor:pointer;list-style:none}
+.pv-account-menu>summary,
+#studio-header .actions>.pv-account-menu>summary{
+  display:flex;align-items:center;justify-content:center;
+  width:44px;height:44px;min-height:44px;padding:6px;
+  border:0;background:transparent;list-style:none;cursor:pointer;
+}
 .pv-account-menu>summary::-webkit-details-marker{display:none}
 .pv-account-menu>summary::marker{content:''}
 .pv-account-menu>summary::after{display:none!important}
-.pv-account-avatar{position:relative;display:grid;place-items:center;flex:none;width:32px;height:32px;border:1px solid #62635e;border-radius:50%;background:#252622;color:#f3f1ec;font:400 11px/1 Arial,sans-serif;letter-spacing:.03em;overflow:hidden;transition:border-color .18s}
-.pv-account-avatar img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.pv-account-menu>summary:hover .pv-account-avatar,.pv-account-menu[open] .pv-account-avatar{border-color:#f3f1ec}
-.pv-account-menu .pv-account-panel{position:absolute;top:calc(100% + 8px);right:0;z-index:100;width:min(268px,calc(100vw - 36px));padding:8px;background:#1a1b19;border:1px solid #41433f;border-radius:12px;box-shadow:0 18px 48px #0007}
-.pv-account-menu .pv-account-details{padding:14px 12px 17px;margin-bottom:5px;border-bottom:1px solid #ffffff1c}
-.pv-account-details strong{display:block;font-size:14px;font-weight:400;overflow-wrap:anywhere}
-.pv-account-details small{display:block;margin-top:5px;font-size:12px;color:#aaa9a2}
-.pv-account-menu .pv-account-panel :is(a,button){display:flex;align-items:center;width:100%;min-height:42px;padding:11px 12px;margin:0;border:0;border-radius:5px;background:transparent;color:#e9e6df;font:inherit;text-align:left;text-decoration:none;cursor:pointer;box-shadow:none}
-.pv-account-menu .pv-account-panel :is(a,button):hover{background:#ffffff09;color:#fff}
-.pv-account-menu .pv-account-panel [data-account-signout]{margin-top:5px;border-top:1px solid #ffffff1c;border-radius:0;color:#aaa9a2}
-.pv-account-menu :is(summary,a,button):focus-visible{outline:2px solid #e4e0d7;outline-offset:1px}
+.pv-account-avatar{
+  position:relative;display:grid;place-items:center;flex:none;
+  width:32px;height:32px;border:1px solid #62635e;border-radius:50%;
+  background:#252622;color:#f3f1ec;
+  font:400 11px/1 Arial,sans-serif;letter-spacing:.03em;
+  overflow:hidden;transition:border-color .18s;
+}
+.pv-account-avatar img{
+  position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+}
+.pv-account-menu>summary:hover .pv-account-avatar,
+.pv-account-menu[open] .pv-account-avatar{border-color:#f3f1ec}
+
+/* Under-avatar editorial panel, without affecting the page header or hero. */
+.pv-account-menu .pv-account-panel{
+  position:absolute;top:calc(100% + 17px);right:0;z-index:1000;
+  box-sizing:border-box;width:min(340px,calc(100vw - 24px));
+  max-height:min(78dvh,570px);overflow-y:auto;overscroll-behavior:contain;
+  padding:0;background:#0d0e0d;
+  color:#f3f0e9;border:1px solid #494843;border-radius:8px;
+  box-shadow:0 22px 56px #000a;scrollbar-width:thin;
+  scrollbar-color:#44443e transparent;
+}
+
+/* The genuine PV LAB wordmark and tagline replace the generic account header.
+   Identity and authenticated credit nodes remain in the DOM for existing scripts
+   and assistive technology, but are visually tucked away. */
+.pv-account-menu .pv-account-details{
+  position:relative;display:flex;flex-direction:column;align-items:flex-start;
+  box-sizing:border-box;margin:0 26px 12px;padding:28px 3px 25px;
+  border-bottom:1px solid #3b3b37;
+}
+.pv-account-menu .pv-account-details::before{
+  content:'';display:block;flex:none;
+  width:157px;height:31px;
+  background:url('./branding/pvlab-wordmark.svg') left center/contain no-repeat;
+}
+.pv-account-menu .pv-account-details::after{
+  content:'Fashion. Reimagined.';display:block;
+  margin-top:7px;color:#a6a29f;
+  font:400 13px/1.4 'PV Lab Navigation','DM Sans',Arial,sans-serif;
+  letter-spacing:-.006em;
+}
+.pv-account-menu .pv-account-details > :is(strong,small){
+  position:absolute!important;display:block!important;
+  width:1px!important;height:1px!important;padding:0!important;
+  margin:-1px!important;border:0!important;overflow:hidden!important;
+  clip-path:inset(50%)!important;white-space:nowrap!important;
+}
+
+/* The homepage already has Pricing in its primary navigation.
+   Keep the existing link in HTML but avoid repeating it in this compact menu. */
+.pv-account-menu .pv-account-panel > a[href='#pricing']{display:none!important}
+.pv-account-menu .pv-account-panel > :is(a,button){
+  display:flex;align-items:center;justify-content:space-between;
+  box-sizing:border-box;width:100%;min-height:48px;margin:0;
+  padding:10px 29px;border:0;border-radius:0;
+  background:transparent;box-shadow:none;color:#efede8;
+  font:300 20px/1.14 'PV Lab Navigation','DM Sans',Arial,sans-serif;
+  letter-spacing:-.045em;text-align:left;text-decoration:none;
+  cursor:pointer;transition:background .16s ease,color .16s ease;
+}
+.pv-account-menu .pv-account-panel > :is(a,button):not([data-account-signout]):hover,
+.pv-account-menu .pv-account-panel > :is(a,button):not([data-account-signout]):focus-visible{
+  background:#f4f0e8;color:#131413;
+}
+.pv-account-menu .pv-account-panel > :is(a,button):not([data-account-signout]):active{
+  background:#ddd9d1;
+}
+.pv-account-menu .pv-account-panel > [data-account-signout]{
+  min-height:66px;margin-top:13px;padding:16px 29px 19px;
+  border-top:1px solid #3b3b37;
+  background:transparent;color:#989994;
+  font-size:13px;font-weight:400;letter-spacing:0;
+}
+.pv-account-menu .pv-account-panel > [data-account-signout]:hover{
+  background:#191a18;color:#f5f2ec;
+}
+.pv-account-menu :is(summary,a,button):focus-visible{
+  outline:2px solid #f3f0e8;outline-offset:2px;
+}
+
+/* Existing layout hooks remain intact on all five PV LAB pages. */
 .landing-header-actions{min-height:44px}
 .landing-header-actions>#lab-account-strip{grid-area:1 / 2;justify-self:end}
 .mc-account .pv-account-menu{display:block}
 .mc-account:has(.pv-account-menu:not([hidden]))>#mc-account-label{display:none}
-@media(prefers-reduced-motion:reduce){.pv-account-avatar{transition:none}}
 
-
-/* PV LAB editorial account panel / 2026-10-14 */
-.pv-account-menu .pv-account-panel{
-  box-sizing:border-box;width:min(308px,calc(100vw - 24px));max-height:min(78dvh,610px);
-  overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;
-  padding:12px;background:#171816;color:#f2f0ea;
-  border:1px solid #444540;border-radius:13px;
-  box-shadow:0 24px 64px #0009,0 2px 7px #0004;
-}
-.pv-account-menu .pv-account-details{
-  margin:0 0 8px;padding:10px 12px 18px;border-bottom:1px solid #ffffff26;
-}
-.pv-account-menu .pv-account-details::before{
-  display:block;content:'PV LAB / YOUR SPACE';margin:0 0 17px;
-  font:500 9px/1.2 'PV Lab Navigation','DM Sans',Arial,sans-serif;
-  letter-spacing:.16em;color:#92948e;
-}
-.pv-account-menu .pv-account-details strong{
-  font:500 17px/1.2 'PV Lab Navigation','DM Sans',Arial,sans-serif;
-  letter-spacing:-.022em;color:#f9f7f0;
-}
-.pv-account-menu .pv-account-details small{
-  display:inline-flex;align-items:center;max-width:100%;margin-top:10px;
-  padding:5px 9px;border:1px solid #ffffff20;border-radius:100px;
-  background:#ffffff08;color:#b5b5af;font-size:11px;line-height:1.2;
-}
-.pv-account-menu .pv-account-details small:empty{display:none}
-.pv-account-menu .pv-account-panel > :is(a,button){
-  display:flex;justify-content:space-between;align-items:center;gap:14px;
-  box-sizing:border-box;min-height:42px;padding:10px 12px;
-  border:1px solid transparent;border-radius:7px;color:#deded7;
-  font:400 13px/1.25 'PV Lab Navigation','DM Sans',Arial,sans-serif;
-  letter-spacing:-.005em;transition:background .17s,border-color .17s,color .17s;
-}
-.pv-account-menu .pv-account-panel > :is(a,button):not([data-account-signout])::after{
-  content:'';display:block;flex:none;width:14px;height:14px;
-  background:center / 14px 14px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b7b9b2' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 17 17 7M8 7h9v9'/%3E%3C/svg%3E");
-  opacity:.55;transform:translate(-2px,2px);transition:opacity .17s,transform .17s;
-}
-.pv-account-menu .pv-account-panel > :is(a,button):hover{
-  background:#ffffff0d;border-color:#ffffff0d;color:#fff;
-}
-.pv-account-menu .pv-account-panel > :is(a,button):hover::after,
-.pv-account-menu .pv-account-panel > :is(a,button):focus-visible::after{
-  opacity:1;transform:translate(0,0);
-}
-.pv-account-menu .pv-account-panel > a[href='./account.html']{
-  background:#ffffff0b;color:#fff;
-}
-.pv-account-menu .pv-account-panel > a[href='./account.html']:hover{
-  background:#ffffff15;border-color:#ffffff15;
-}
-.pv-account-menu .pv-account-panel > :is(a[href$='#settings'],button[data-account-connection]){
-  margin-top:8px;padding-top:14px;min-height:51px;
-  border-top:1px solid #ffffff20;border-top-left-radius:0;border-top-right-radius:0;
-}
-.pv-account-menu .pv-account-panel > [data-account-signout]{
-  margin-top:8px;padding-top:13px;min-height:49px;border-top:1px solid #ffffff20;
-  border-top-left-radius:0;border-top-right-radius:0;
-  color:#969892;font-size:12px;
-}
-.pv-account-menu .pv-account-panel > [data-account-signout]:hover{
-  color:#f3f1ec;background:#ffffff08;border-color:#ffffff20;
-}
-.pv-account-menu .pv-account-avatar{
-  transition:border-color .2s,box-shadow .2s;
-}
-.pv-account-menu>summary:hover .pv-account-avatar,
-.pv-account-menu[open] .pv-account-avatar{
-  border-color:#e8e6de;box-shadow:0 0 0 3px #ffffff09;
-}
-.pv-account-menu :is(summary,a,button):focus-visible{
-  outline:2px solid #e8e4da;outline-offset:2px;
+@media(max-width:900px){
+  .pv-account-menu .pv-account-panel{
+    top:calc(100% + 9px);max-height:calc(100dvh - 90px);
+  }
 }
 @media(max-width:480px){
-  .pv-account-menu .pv-account-panel{width:min(296px,calc(100vw - 22px));padding:10px;border-radius:11px}
-  .pv-account-menu .pv-account-details{padding:9px 12px 16px}
+  .pv-account-menu .pv-account-panel{
+    width:min(328px,calc(100vw - 22px));max-height:calc(100dvh - 84px);
+  }
+  .pv-account-menu .pv-account-details{
+    margin:0 23px 10px;padding:25px 2px 21px;
+  }
+  .pv-account-menu .pv-account-panel > :is(a,button){
+    padding-inline:25px;min-height:46px;font-size:19px;
+  }
+  .pv-account-menu .pv-account-panel > [data-account-signout]{
+    min-height:59px;font-size:13px;
+  }
 }
 @media(prefers-reduced-motion:no-preference){
   .pv-account-menu[open] .pv-account-panel{
-    animation:pv-account-appear .17s ease-out both;transform-origin:top right;
+    animation:pv-menu-reveal .17s ease-out both;transform-origin:top right;
   }
-  @keyframes pv-account-appear{
+  @keyframes pv-menu-reveal{
     from{opacity:0;transform:translateY(-5px)}
     to{opacity:1;transform:translateY(0)}
   }
 }
 @media(prefers-reduced-motion:reduce){
-  .pv-account-menu .pv-account-panel > :is(a,button),
-  .pv-account-menu .pv-account-panel > :is(a,button)::after{transition:none}
+  .pv-account-avatar,.pv-account-menu .pv-account-panel > :is(a,button){
+    transition:none;
+  }
 }
