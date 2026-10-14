@@ -66,6 +66,7 @@ function drawProducts(products){
   $('account-plans-section').hidden=!$('account-plans').children.length;
 }
 function activityLabel(entry){
+  if(String(entry.reference).startsWith('welcome:'))return 'Welcome credits';
   if(String(entry.reference).startsWith('referral:'))return 'Referral reward';
   return ({purchase:'Credit purchase',subscription:'Monthly plan credits',generation:'Generation',debit:'Generation',refund:'Credits returned',adjustment:'Balance adjustment'})[entry.kind]||'Credit movement';
 }
