@@ -100,7 +100,9 @@ try{
           providerTop:document.querySelector('#owner-provider-previews').getBoundingClientRect().top,
           detailedTop:document.querySelector('#owner-providers-section').getBoundingClientRect().top,
           directoryTop:document.querySelector('#owner-customers-section').getBoundingClientRect().top,
-          sidebarVisible:getComputedStyle(document.querySelector('.owner-sidebar')).display!=='none'
+          sidebarVisible:getComputedStyle(document.querySelector('.owner-sidebar')).display!=='none',
+          shellPaddingTop:parseFloat(getComputedStyle(main).paddingTop),
+          heroPaddingBottom:parseFloat(getComputedStyle(document.querySelector('.owner-hero')).paddingBottom)
         };
       });
       assert.ok(dimensions.html<=width+1,'Whole page must fit '+width+'px, observed '+JSON.stringify(dimensions));
@@ -110,6 +112,12 @@ try{
       assert.ok(dimensions.signupsTop<dimensions.directoryTop,'Recent signups appear before the full directory');
       assert.ok(dimensions.providerTop<dimensions.detailedTop,'API balance cards appear before the detailed Providers view');
       assert.equal(dimensions.sidebarVisible,width>920,'Desktop sidebar collapses only for tablet and mobile');
+      if(width>=1280){
+        assert.equal(dimensions.shellPaddingTop,22,'Desktop shell is raised 16px without changing sidebar');
+        assert.equal(dimensions.heroPaddingBottom,19,'Desktop hero-to-metrics spacing is tightened by 8px');
+      } else if(width<=430){
+        assert.equal(dimensions.shellPaddingTop,25,'Mobile top spacing remains unchanged');
+      }
       if(width>=1280){
         console.log('Desktop Control Room geometry:',JSON.stringify(dimensions));
         assert.ok(dimensions.signupsTop<790,'Newest signups visible in the first desktop viewport: '+JSON.stringify(dimensions));
