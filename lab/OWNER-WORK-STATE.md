@@ -1,50 +1,56 @@
 # PV LAB Control Room: active work state
 
 Updated: 2026-10-14
-Component: owner-only Control Room at /lab/owner.html.
-Released foundation: Proposal 2 sidebar and Providers, PR #204, main e29ac661418d033ae9c92803225c164c515cfa85.
-Released vertical lift: PR #205, main f8969375bd883b3cfe44c5002da9f9e8dcb3afba.
-Latest baseline: main ce5632ce72b9ede4a762ad10185967f9b0918ed7.
-Current branch: fix/owner-first-viewport-quick-actions-20261014, PR #206.
+Owner dashboard: https://parallelvisionlabel.com/lab/owner.html
+Latest main at task start: a07ad05f381f76b8b8cb63cead93fc740f1b70d0.
+Current branch: fix/owner-clerk-sync-viewport-20261014, PR #208.
+Previous releases: Proposal 2 sidebar & Providers #204, desktop lift #205, compact cards #206.
 
-## Brand and product constraints
-- Narrow charcoal sidebar: Control room, Customers, Payments, Referrals, Vouchers, Providers.
-- Use existing PV LAB sans-serif, monochrome styling, wordmark and owner-only sign-in.
-- Customer directory, purchases, referral program, credit vouchers and Clerk email sync remain intact.
-- Latest signups and subscribers are based on the real owner ledger; never invent customer data.
-- API Balances overview and Provider details use verified read-only Worker data.
-- Do not change generation prices, provider routing, payments, wallets, auth, data or D1 schema.
+## Brand and navigation
+- Neutral editorial PV LAB sans-serif, monochrome charcoal, narrow owner sidebar.
+- Destinations: Control room, Customers, Payments, Referrals, Vouchers and Providers.
+- Preserve owner-only authentication, production purchases, balances, vouchers and referral logic.
+- No edits to the generation models, pricing, payment ledger, provider routing, or Nina records.
 
-## Provider finance contract
-- Authenticated /api/admin/providers is behind server-side owner authorization.
-- Actual Worker secrets include LAB_CUSTOMER_SPICY_API_KEY, FAL_KEY, FASHN_API_KEY, HF_CREDENTIALS and GEMINI_API_KEY.
-- Personal SpicyAPI key is stored encrypted in Lab settings.
-- SpicyAPI: one shared USD account wallet, separate personal/customer per-key usage where reported.
-- fal.ai USD balance/usage depends on billing permissions; FAL_BILLING_KEY is optional.
-- FASHN API credits are separate units; Gemini/Higgsfield account balances unavailable without verified billing-read support.
-- OpenRouter is configured legacy only, without a new generation route.
-- Customer PV LAB credit units are not added to provider cash or converted to USD.
-- Provider reads cache for about five minutes; manual refresh throttled; credentials never reach the browser.
+## Existing provider finance
+- Secured, read-only GET /api/admin/providers, five-minute cached with refresh throttle.
+- Actual configured credentials: LAB_CUSTOMER_SPICY_API_KEY, FAL_KEY, FASHN_API_KEY,
+  HF_CREDENTIALS, GEMINI_API_KEY; personal SpicyAPI key encrypted in Lab settings.
+- Spicy account wallet fetched once and personal/customer usage separated.
+- fal.ai USD reports depend on billing scope, FASHN API credits kept in their own units.
+- Gemini and Higgsfield balances unavailable without a verified suitable read endpoint.
+- Customer credit liabilities separate from provider cash. OpenRouter remains legacy.
 
-## Latest task: fit Quick actions within first desktop viewport
-- User screenshot shows Quick actions cut off, requiring a small scroll on wide desktop.
-- Leave sidebar, hero, KPIs, type scale and mobile/tablet layout unchanged.
-- Scope only desktop widths greater than 1260px and the three existing activity cards.
-- Reduce Latest signups panel min-height/padding, tabs, row spacing and note margin.
-- Reduce Recent purchases interior height; lay out Clerk text beside Sync action while retaining full diagnostic text.
-- Compact right-column gaps and Quick actions padding, retaining all actions and labels.
-- Keep API Balances immediately after the activity area, not inside this visual scope.
-- Files: lab/owner.css, lab/owner.html CSS cache revision, tests/lab-owner-mobile-browser.mjs.
-- No Worker/backend/provider-key modifications or billable calls.
+## New task: verified Clerk email sync
+- Production D1 read-only query found 3 Lab customers and 0 rows in lab_customer_contacts.
+- Secret LAB_CLERK_SECRET_KEY exists, but presence does not imply valid Clerk authentication.
+- Found fetch(..., redirect:'error') inside clerkEmailStatus in promotions.mjs; same Worker
+  documents this redirect mode as unsupported and uses redirect:'manual' elsewhere.
+- Fix: use GET with redirect:'manual', refuse all 3xx before any further request.
+- Existing 401, 403, 404, 429 and unverified-email diagnostics remain available.
+- Owner dashboard attempts one secure sync per signed-in tab when missing email records exist,
+  and shows results or specific errors, with manual Sync emails still supported.
+- If key is still rejected or user missing, display error; do not invent email addresses.
+- Security test covers 302, not forwarding Clerk secret, verified email persistence.
+- Worker version bumped to pv-lab-2026-10-14.9-clerk-manual-redirect for rollout proof.
+- No D1 migrations and no new credentials or secret disclosures.
 
-## Verification
-- Owner browser CI 38596685501 PASSED on feature commit bc519330cf496fd6b67f3b8783bb0603ecae4ee6.
-- At 1792x844: activity starts y413, Quick actions ends y827, API Balances begins y844.
-- Test uses three synthetic signups; real customer identities and live balances are not retrieved in CI.
-- Mobile/tablet widths 320, 375, 390, 430, 768 and desktop 1280 tested without horizontal overflow.
-- 1280px uses a wrapped metric layout, so the first-fold guarantee is intentionally scoped to wide desktop.
+## New task: hide API preview and fill overview
+- Compact 'API Balances' section is hidden on Control Room; Providers detail remains reachable
+  through the existing sidebar and mobile navigation after full customer ledgers.
+- Provider API data lazy-loads when Providers is selected, keeping overview lightweight.
+- Desktop >1260px activity panel min-height responds to viewport height; right-column
+  Quick actions stays at the bottom, closer to viewport lower border.
+- Tablet and mobile layout stay unchanged, no sideways scrolling.
+- Files: lab-worker/promotions.mjs, lab-worker/worker.mjs,
+  lab/owner.html, lab/owner.css, lab/owner.js,
+  tests/lab-promotions.test.mjs, tests/lab-owner-mobile-browser.mjs.
 
-## Release follow-up
-- Complete relevant PR checks and merge PR #206 into main once reconciled.
-- Verify GitHub Pages deployment success for merge commit and refreshed owner.css URL.
-- Do not report the adjustment as live before Pages confirms successful publication.
+## Verification and release
+- PR #208 promotion/owner-security, Lab tests, owner dashboard UI, account UI,
+  static-site and reference checks passed before handoff update.
+- Synthetic desktop geometry tested at 1792x844; provider overview hidden and details below vouchers.
+- Automatic email sync is tested with simulated owner API responses, not real Clerk credentials.
+- Pending: merge #208, verify Worker health version & GitHub Pages publication independently.
+- After owner page reload check actual D1 contact rows; if still zero, inspect the visible
+  'Clerk sync needs attention' reason and verify the current Production backend key in Clerk.
