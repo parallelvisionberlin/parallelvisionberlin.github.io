@@ -1,61 +1,50 @@
-# PV LAB Control Room / active work state
+# PV LAB Control Room: active work state
 
-Date: 2026-10-14
-Scope: approved Proposal 2 left sidebar plus provider finances, owner-only.
-Base: main 8383c73d9237c54e2abf7135428fbe452eaa835d.
-Implementation branch: feature/owner-editorial-sidebar-20261014, PR #204.
-Code reference: compare PR #204 head; do not assume merge or deploy until confirmed.
+Updated: 2026-10-14
+Component: owner-only Control Room at /lab/owner.html.
+Released foundation: Proposal 2 sidebar and Providers, PR #204, main e29ac661418d033ae9c92803225c164c515cfa85.
+Released vertical lift: PR #205, main f8969375bd883b3cfe44c5002da9f9e8dcb3afba.
+Latest baseline: main ce5632ce72b9ede4a762ad10185967f9b0918ed7.
+Current branch: fix/owner-first-viewport-quick-actions-20261014, PR #206.
 
-## Approved design
-- Narrow desktop sidebar with Control room, Customers, Payments, Referrals, Vouchers and Providers.
-- Mobile navigation becomes six compact tabs; page must never scroll sideways at 320px.
-- Preserve DM Sans and the existing PV LAB wordmark. Large Control room heading is sans-serif.
-- Dark charcoal/editorial surfaces, no green KPI or colorful crypto-dashboard cards.
-- Top metrics, latest signups, customer status, recent purchases, Clerk sync and quick actions.
-- Compact API Balances preview and detailed Providers section in the same page.
-- Do not modify other PV LAB views, generation models, wallets, pricing or routes.
+## Brand and product constraints
+- Narrow charcoal sidebar: Control room, Customers, Payments, Referrals, Vouchers, Providers.
+- Use existing PV LAB sans-serif, monochrome styling, wordmark and owner-only sign-in.
+- Customer directory, purchases, referral program, credit vouchers and Clerk email sync remain intact.
+- Latest signups and subscribers are based on the real owner ledger; never invent customer data.
+- API Balances overview and Provider details use verified read-only Worker data.
+- Do not change generation prices, provider routing, payments, wallets, auth, data or D1 schema.
 
-## Production integration audit (actual Cloudflare Worker binding names)
-- Worker: parallel-vision-lab, Wrangler-deployed production.
-- Configured: LAB_CUSTOMER_SPICY_API_KEY, FAL_KEY, FASHN_API_KEY, HF_CREDENTIALS, GEMINI_API_KEY.
-- Personal Spicy key is encrypted per owner under Lab DB settings.
-- OPENROUTER_API_KEY secret is still present but current generation code has no active route.
-- Secrets are not retrievable as plain text from Cloudflare bindings listing; do not claim authenticated provider reads until they run.
+## Provider finance contract
+- Authenticated /api/admin/providers is behind server-side owner authorization.
+- Actual Worker secrets include LAB_CUSTOMER_SPICY_API_KEY, FAL_KEY, FASHN_API_KEY, HF_CREDENTIALS and GEMINI_API_KEY.
+- Personal SpicyAPI key is stored encrypted in Lab settings.
+- SpicyAPI: one shared USD account wallet, separate personal/customer per-key usage where reported.
+- fal.ai USD balance/usage depends on billing permissions; FAL_BILLING_KEY is optional.
+- FASHN API credits are separate units; Gemini/Higgsfield account balances unavailable without verified billing-read support.
+- OpenRouter is configured legacy only, without a new generation route.
+- Customer PV LAB credit units are not added to provider cash or converted to USD.
+- Provider reads cache for about five minutes; manual refresh throttled; credentials never reach the browser.
 
-## Financial data and integrity
-- New GET /api/admin/providers is behind original signed session and requireOwner.
-- New lab-worker/owner-providers.mjs does read-only authenticated GETs, no paid jobs.
-- SpicyAPI shared USD wallet fetched once, with owner vs customer key settled usage separated.
-- Optional Spicy funding separates prepaid/grants/approved credit, not additive to wallet.
-- fal.ai USD balance API and usage estimates require billing-scoped key permissions.
-- FASHN balance in API credits via verified /v1/credits, not converted to USD.
-- Higgsfield and Gemini have working API credentials, but no verified key-based balance endpoint; show unavailable.
-- Gemini may be prepaid or postpaid; do not infer plan type from generation key.
-- Customer wallet liability is isolated, displayed only in PV LAB credit units.
-- All provider responses use a 5-minute isolate cache with a 30-second manual refresh throttle.
-- Provider requests use timeouts, reject redirects and return sanitized errors.
-- No prices, model settings, owner access, historical credits or D1 migrations changed.
+## Latest task: fit Quick actions within first desktop viewport
+- User screenshot shows Quick actions cut off, requiring a small scroll on wide desktop.
+- Leave sidebar, hero, KPIs, type scale and mobile/tablet layout unchanged.
+- Scope only desktop widths greater than 1260px and the three existing activity cards.
+- Reduce Latest signups panel min-height/padding, tabs, row spacing and note margin.
+- Reduce Recent purchases interior height; lay out Clerk text beside Sync action while retaining full diagnostic text.
+- Compact right-column gaps and Quick actions padding, retaining all actions and labels.
+- Keep API Balances immediately after the activity area, not inside this visual scope.
+- Files: lab/owner.css, lab/owner.html CSS cache revision, tests/lab-owner-mobile-browser.mjs.
+- No Worker/backend/provider-key modifications or billable calls.
 
-## Files touched
-- Frontend: lab/owner.html, lab/owner.css, lab/owner.js, lab/owner-providers-ui.js.
-- Backend: lab-worker/owner-providers.mjs, lab-worker/promotions.mjs, lab-worker/worker.mjs.
-- Tests: tests/lab-owner-providers.test.mjs and tests/lab-owner-mobile-browser.mjs.
-- CI: .github/workflows/pv-lab-owner-dashboard.yml, pv-lab-promotions.yml and deploy-lab-worker.yml.
+## Verification
+- Owner browser CI 38596685501 PASSED on feature commit bc519330cf496fd6b67f3b8783bb0603ecae4ee6.
+- At 1792x844: activity starts y413, Quick actions ends y827, API Balances begins y844.
+- Test uses three synthetic signups; real customer identities and live balances are not retrieved in CI.
+- Mobile/tablet widths 320, 375, 390, 430, 768 and desktop 1280 tested without horizontal overflow.
+- 1280px uses a wrapped metric layout, so the first-fold guarantee is intentionally scoped to wide desktop.
 
-## Checks and release
-- Existing Lab tests, promotions/owner security and 320–1280px owner browser checks passed on PR before final funding-breakdown adjustment.
-- Tested UI uses mock customer/provider data, not actual provider wallet values.
-- The full Lab video browser suite has historical failures on main and is separate from this scope.
-- Re-run CI on final PR head and compare unrelated video baseline before merging.
-- After merge check GitHub Pages and Cloudflare Worker production health version separately.
-- Public owner URL: https://parallelvisionlabel.com/lab/owner.html ; signed-in owner is required to retrieve finances.
-- Open page as owner then Refresh balances to validate actual provider permissions and live values.
-
-## Owner overview alignment refinement (2026-10-14)
-- User confirmed the Proposal 2 sidebar/Providers layout and requested all main desktop content slightly higher.
-- Source baseline main e29ac661418d033ae9c92803225c164c515cfa85, PR #205.
-- Desktop owner shell top inset: 38px → 22px, raising headline and hero by 16px.
-- Desktop hero bottom padding: 27px → 19px, raising KPIs and subsequent cards another 8px (24px total).
-- CSS: lab/owner.css. Cache revision only: lab/owner.html. Regression expectations: tests/lab-owner-mobile-browser.mjs.
-- Narrow sidebar, title typography, metrics and cards, mobile spacings, API Balances, Clerk, vouchers and other owner actions unchanged.
-- Current implementation: fix/owner-hero-lift-20261014; await dedicated owner browser CI, PR merge, then GitHub Pages verification. No Worker deploy needed.
+## Release follow-up
+- Complete relevant PR checks and merge PR #206 into main once reconciled.
+- Verify GitHub Pages deployment success for merge commit and refreshed owner.css URL.
+- Do not report the adjustment as live before Pages confirms successful publication.

@@ -555,3 +555,38 @@ html,body{width:100%;max-width:100%;overflow-x:clip}
   .owner-provider-preview-head{gap:6px}
   .owner-provider-name{font-size:11px}
 }
+
+/* Owner first-fold activity fit: desktop-only compact cards, original mobile untouched. */
+@media(min-width:1261px){
+  .owner-activity{gap:14px}
+  .owner-signups-panel{min-height:405px;padding:18px 26px 14px}
+  .owner-signups-panel .owner-recent-filters{margin:14px 0 12px}
+  .owner-signups-panel .owner-recent-head{padding-bottom:10px}
+  .owner-signups-panel .owner-recent-list>.owner-recent-item{padding:10px 0}
+  .owner-signups-panel .owner-recent-note{margin-top:10px}
+  .owner-activity-side{gap:10px}
+  .owner-purchases-panel{min-height:172px;padding:18px 22px}
+  .owner-payment-list{min-height:60px;margin-top:10px}
+  .owner-payment-list>.owner-recent-empty{min-height:62px;padding:9px}
+  .owner-activity-side .owner-integration{
+    display:grid;grid-template-columns:minmax(0,1fr) auto;
+    align-content:start;column-gap:14px;row-gap:5px;
+    min-height:0;padding:11px 21px 10px;
+  }
+  .owner-activity-side .owner-integration-label,
+  .owner-activity-side .owner-integration-top,
+  .owner-activity-side .owner-email-status{grid-column:1/-1}
+  .owner-activity-side .owner-integration-label{margin:0}
+  .owner-activity-side .owner-integration #owner-sync-copy{
+    grid-column:1;margin:0;min-width:0;font-size:10px;line-height:1.5;
+  }
+  .owner-activity-side .owner-integration-actions{
+    grid-column:2;grid-row:auto;align-self:center;margin:0;
+  }
+  .owner-activity-side .owner-email-status{margin:0;padding-top:4px}
+  .owner-integration-actions button{padding:7px 11px}
+  .owner-purchases-panel .owner-activity-subtitle{margin-top:4px}
+  .owner-payment-list>.owner-recent-empty{min-height:56px}
+  .owner-quick-actions{min-height:60px;padding:9px 17px}
+  .owner-quick-actions a{padding:8px 12px}
+}
