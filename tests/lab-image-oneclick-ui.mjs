@@ -402,7 +402,7 @@ try{
   x=await workspace();await imageForm(x);await x.page.locator('#reference-images').setInputFiles(refPhotos);await waitRefs(x.page,3);await ready(x.page);
   await x.page.fill('#image-composer-prompt','');
   assert.equal(await x.page.locator('#image-composer-generate').isDisabled(),false,'No prompt and unassigned roles must be allowed');
-  assert.match(await x.page.locator('#image-composer-generate').innerText(),/Create variation/);
+  assert.equal(await x.page.locator('#image-composer-generate').innerText(),'Generate','Base-image generation uses the universal image button label');
   await x.page.click('#image-composer-generate');await waitAccepted(x,1);await ready(x.page);
   assert.equal(x.requests.find(req=>req.path==='/api/quotes').data.settings.prompt,'');
   assert.deepEqual(x.requests.find(req=>req.path==='/api/quotes').data.settings.referenceRoles.map(ref=>ref.role),['base','none','none']);
@@ -449,7 +449,7 @@ try{
   await x.page.click('#composer-reference-intent-toggle');await x.page.click('[data-reference-intent="references"]');
   await x.page.fill('#image-composer-prompt','');
   assert.equal(await x.page.locator('#image-composer-generate').isDisabled(),false);
-  assert.match(await x.page.locator('#image-composer-generate').innerText(),/Create from references/);
+  assert.equal(await x.page.locator('#image-composer-generate').innerText(),'Generate','References-only uses the same button label');
   await x.page.click('#image-composer-generate');await waitAccepted(x,1);await ready(x.page);
   assert.equal(x.requests.find(req=>req.path==='/api/quotes').data.settings.prompt,'');
   assert.deepEqual(x.requests.find(req=>req.path==='/api/quotes').data.settings.referenceRoles.map(ref=>ref.role),['none','none']);
@@ -538,7 +538,7 @@ try{
   {name:'identity.png',mimeType:'image/png',buffer:png}
  ]);await ready(x.page);
  const roles=x.page.locator('.reference-fields select');await roles.nth(0).selectOption('pose');await roles.nth(1).selectOption('identity');await ready(x.page);
- assert.equal(await x.page.locator('#generate').isDisabled(),false);assert.equal(await x.page.locator('#generate').innerText(),'Generate controlled pose');
+ assert.equal(await x.page.locator('#generate').isDisabled(),false);assert.equal(await x.page.locator('#generate').innerText(),'Generate','Controlled Pose uses the same button label');
  await x.page.click('#preview-pose');await ready(x.page);assert.equal(count(x,'/api/fal/pose-preview'),1);assert.match(await x.page.locator('#pose-preview-status').innerText(),/Pose ready/);
  await x.page.click('#generate:visible, #image-composer-generate:visible');await ready(x.page);assert.equal(count(x,'/api/fal/controlled-pose'),1);assert.equal(count(x,'/api/gemini/jobs'),0);assert.equal(count(x,'/api/quotes'),0);assert.equal(x.accepted(),1);
  ok('Controlled Pose keeps FAL isolated from Seedream and Nano and reuses the preview pose map');await x.context.close();
