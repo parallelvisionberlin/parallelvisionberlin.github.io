@@ -509,7 +509,7 @@ html,body{width:100%;max-width:100%;overflow-x:clip}
   .owner-hero{padding-bottom:20px}
   .owner-hero h1{font-size:clamp(44px,9vw,57px)}
   .owner-hero-manifesto{display:none}
-  .owner-jumpbar{margin:0 -16px 14px;padding:0 4px}
+  .owner-jumpbar{width:calc(100% + 32px);max-width:none;min-width:0;margin:0 -16px 14px;padding:0 4px;grid-template-columns:repeat(6,minmax(0,1fr))}
   .owner-jumpbar a{font-size:9px;padding:13px 0}
   .owner-metrics>.owner-metric{gap:12px;padding:13px 10px}
   .owner-metric-copy>span{font-size:10px}
