@@ -1,3 +1,4 @@
+import {ownerProviderBalances} from './owner-providers.mjs';
 // PV LAB promotional credits and private customer administration.
 // All money and wallet records belong to LAB_DB. OWNER_DB is read for owner authorization only.
 const CODE=/^[A-Z0-9][A-Z0-9-]{5,23}$/;
@@ -95,9 +96,26 @@ async function requireOwner(env,owner){
   const row=await env.OWNER_DB.prepare("SELECT id FROM users WHERE id=? AND role='owner' AND auth_provider='clerk' LIMIT 1").bind(owner).first();
   if(!row)fail(403,'PV Lab owner access required.');
 }
-export async function labAdminRoute(request,env,owner){
+export async function labAdminRoute(request,env,owner,{decryptKey}={}){
   await requireOwner(env,owner);
   const url=new URL(request.url),path=url.pathname,method=request.method;
+  if(path==='/api/admin/providers'&&method==='GET'){
+    // Financial data is owner-only. This branch executes AFTER requireOwner, not customer auth.
+    const [settings,wallet]=await Promise.all([
+      one(env,'SELECT encrypted_key FROM settings WHERE owner_id=?',owner),
+      one(env,'SELECT COALESCE(SUM(balance_credits),0) AS credits FROM lab_customers')
+    ]);
+    let ownerSpicyKey=null;
+    if(settings?.encrypted_key&&typeof decryptKey==='function'){
+      try{ownerSpicyKey=await decryptKey(env,settings.encrypted_key);}
+      catch{ /* Never expose credential or decryption diagnostics to the browser. */ }
+    }
+    const report=await ownerProviderBalances(env,{
+      ownerSpicyKey,customerWalletCredits:Number.isSafeInteger(Number(wallet?.credits))?String(wallet.credits):null,
+      force:url.searchParams.get('refresh')==='1'
+    });
+    return json(report);
+  }
   if(path==='/api/admin/overview'&&method==='GET'){
     const search=(url.searchParams.get('search')||'').trim().slice(0,80),match='%'+search.replace(/[\\%_]/g,'\\$&')+'%';
     const summary=await one(env,`SELECT COUNT(*) AS accounts,
