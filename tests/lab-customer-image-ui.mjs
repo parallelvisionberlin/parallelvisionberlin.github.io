@@ -61,6 +61,7 @@ await context.route('https://**/*',async route=>{
    assert.equal(data.confirm,true);
    assert.ok(vendorQuotes.has(data.quoteId),'Paid job must reuse existing quoted ID');
    paidJobs++;
+   await new Promise(resolve=>setTimeout(resolve,450));
    return send({job:{id:id(),status:'queued',settings:vendorQuotes.get(data.quoteId).settings,
      estimatedUsd:vendorQuotes.get(data.quoteId).maxUsd,createdAt:Date.now()}},202);
  }
@@ -73,6 +74,9 @@ try{
  await page.goto('http://127.0.0.1:'+port+'/lab/studio.html?tool=image');
  await page.waitForFunction(()=>!!window.__customerTest);
  await page.fill('#image-composer-prompt','Photographic fashion study, natural light.');
+ await page.waitForFunction(()=>document.querySelector('#image-composer-status')?.textContent==='Checking price…');
+ assert.equal(await page.locator('#image-composer-generate').textContent(),'Generate','Price checking must never replace Generate');
+ assert.equal(await page.locator('#image-composer-generate').isDisabled(),true,'Generate waits for its confirmed quote');
  await page.waitForFunction(()=>document.querySelector('#image-composer-generate')?.textContent==='Generate · 17 credits');
  assert.equal(await page.locator('#image-composer-ratio').inputValue(),'16:9');
  assert.equal(requests.filter(x=>x.path==='/api/quotes').length,1);
@@ -87,6 +91,9 @@ try{
  assert.equal(quoteCalls.at(-1).data.count,2);
  console.log('PASS image count produces two bound quotes and their combined price');
  await page.click('#image-composer-generate');
+ await page.waitForFunction(()=>document.querySelector('#image-composer-status')?.textContent==='Submitting…');
+ assert.equal(await page.locator('#image-composer-generate').textContent(),'Generate','Submission progress must not replace Generate');
+ assert.equal(await page.locator('#image-composer-generate').getAttribute('aria-busy'),'true');
  await page.waitForFunction(()=>!document.querySelector('#generate').disabled);
  assert.equal(paidJobs,2);
  const firstSubmission=requests.findIndex(x=>x.path==='/api/jobs'&&x.method==='POST');
