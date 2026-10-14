@@ -3504,6 +3504,7 @@ async function loadHistory(append=false,incremental=false){
     if(data.concurrency)config.concurrency=data.concurrency;setActiveJobs(data.activeJobs||(data.active?[data.active]:[]));syncImageGalleryEmpty();if(tool==='video'&&!assetLibrary?.active())restoreLatestVideoSelection();
   }catch(error){
     if(append&&rev===historyRevision&&loadId===historyLoadId)historyAutoLoadPaused=true;
+    if(!append&&rev===historyRevision&&loadId===historyLoadId)syncImageGalleryEmpty();
     throw error;
   }finally{
     if(loadId===historyLoadId){historyLoading=false;updateHistoryPagination();}
