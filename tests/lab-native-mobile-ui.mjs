@@ -47,9 +47,33 @@ for(const [width,height] of [[390,730],[320,590],[768,900]]){
  await page.evaluate(()=>window.__PV_LAB_COMMAND__({action:'gallery'}));
  assert.equal(await page.locator('#assets-gallery').isVisible(),true,'Initial Gallery command opens Gallery');
  assert.equal(await page.locator('#mobile-add-photo').isVisible(),false,'Gallery keeps Create hidden');
+ // Mobile Gallery must fill the actual display width, not retain measured
+ // half-width justified rows from the browser/desktop image archive.
+ await page.evaluate(()=>{
+   const root=document.getElementById('history');
+   for(const ratio of [1.8,.75,.9]){
+     const card=document.createElement('article');card.className='card native-test-card';
+     card.dataset.ratio=String(ratio);root.append(card);
+   }
+ });
+ await page.waitForFunction(()=>document.querySelector('.native-test-card.native-gallery-wide'));
+ const grid=await page.evaluate(()=>{
+   const root=document.getElementById('history'),cards=[...root.querySelectorAll('.native-test-card')];
+   const box=root.getBoundingClientRect(),items=cards.map(c=>c.getBoundingClientRect());
+   return {display:getComputedStyle(root).display,width:box.width,wide:items[0].width,
+     second:{x:items[1].x,y:items[1].y},third:{x:items[2].x,y:items[2].y}};
+ });
+ assert.equal(grid.display,'grid','Native gallery uses CSS grid rather than desktop justified rows');
+ assert.ok(grid.wide>=grid.width*.95,'Landscape cards use the entire Gallery width');
+ assert.ok(grid.third.x>grid.second.x&&Math.abs(grid.third.y-grid.second.y)<3,'Portrait cards form two actual columns');
+ await page.locator('.native-test-card').evaluateAll(cards=>cards.forEach(c=>c.remove()));
  assert.equal(await page.locator('#lab-boot').isVisible(),false,'Loading screen leaves when destination is ready');
  await page.evaluate(()=>window.__PV_LAB_COMMAND__({action:'create'}));
  await page.locator('#mobile-add-photo').waitFor({state:'visible'});
+ assert.equal(await page.locator('.mobile-image-deck').isVisible(),true,'Create presents an actual image workdeck');
+ assert.equal(await page.locator('#image-composer-model').isVisible(),true,'Model is visible without opening advanced settings');
+ assert.equal(await page.locator('#image-composer-ratio').isVisible(),true,'Aspect ratio is visible next to model');
+ assert.equal(await page.locator('.image-gallery-shell').isVisible(),false,'Create never repeats the Gallery below its workdeck');
  await page.screenshot({path:out+`/create-${width}.png`,fullPage:true});
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,'No horizontal page overflow');
  assert.equal(await page.locator('#composer-moods-grid .moods-card:visible').count()>5,true);
