@@ -10,7 +10,7 @@ export function quoteCustomerImageCredits(p,count,{geminiEstimateMicros}={}){
   if(!p||p.type!=='image')throw new Error('Choose an image model.');
   if(!Number.isInteger(count)||count<1||count>20)throw new Error('Choose a supported image count.');
   let estimatedMicros;
-  if(['flash','kling'].includes(p.engine)){
+  if(p.engine==='kling'){
     if(count>4)throw new Error('This model supports up to four images.');
     estimatedMicros=IMAGE_PRICES[p.engine];
   }else if(['gemini','gemini21'].includes(p.engine)){
