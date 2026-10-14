@@ -88,6 +88,13 @@ CREATE TABLE IF NOT EXISTS moodboard_style_data(
   qualities TEXT NOT NULL DEFAULT '[]' CHECK(json_valid(qualities))
 );
 CREATE TABLE IF NOT EXISTS lab_migrations(id TEXT PRIMARY KEY,applied_at INTEGER NOT NULL);
+CREATE TABLE IF NOT EXISTS lab_clerk_sync_diagnostics (
+  id INTEGER PRIMARY KEY CHECK(id=1),
+  checked_at INTEGER NOT NULL,
+  source TEXT NOT NULL CHECK(source IN ('owner','scheduled')),
+  result_json TEXT NOT NULL CHECK(length(result_json)<=2048)
+);
+
 
 CREATE TABLE IF NOT EXISTS soul_datasets (
   id TEXT PRIMARY KEY,
