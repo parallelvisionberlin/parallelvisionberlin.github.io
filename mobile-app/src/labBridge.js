@@ -9,6 +9,7 @@ export function readLabMessage(event){
   try{
     const m=JSON.parse(event.data);
     if(m.type==='PV_LAB_AUTH')return typeof m.id==='string'&&/^\d{1,8}$/.test(m.id)&&typeof m.pageId==='string'&&/^[a-f0-9-]{36}$/i.test(m.pageId)?m:null;
+    if(m.type==='PV_LAB_TAB')return ['create','gallery','retouch'].includes(m.tab)?m:null;
     return ['PV_LAB_READY','PV_LAB_SIGN_IN','PV_LAB_SIGN_OUT','PV_LAB_SHARE','PV_LAB_NOTICE'].includes(m.type)?m:null;
   }catch{return null;}
 }
