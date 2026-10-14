@@ -43,6 +43,7 @@ const lorem=Array.from({length:48},(_,i)=>[
   'Keep photographic perspective, natural skin, stitching and material details.'
 ].join(' ')).join('\n\n');
 const records=[];
+let seedreamGenerateAppearance=null;
 try{
   for(const {width,height,kind,refs} of [
     {width:1440,height:900,kind:'seedream',refs:14},
@@ -99,6 +100,27 @@ try{
           docWidth:document.documentElement.scrollWidth
         };
       });
+      // The same rendered Generate control must be used for PV Soul and Seedream.
+      // Inspect with the mock button enabled. No provider is called or charged.
+      if(kind==='seedream'||kind==='soul'){
+        const appearance=await page.locator('#image-composer-generate').evaluate(button=>{
+          button.disabled=false;
+          const css=getComputedStyle(button),box=button.getBoundingClientRect();
+          const label=button.querySelector('.composer-generate-label').getBoundingClientRect();
+          const icon=button.querySelector('.composer-generate-sparkle').getBoundingClientRect();
+          return {
+            width:Math.round(box.width),height:Math.round(box.height),
+            background:css.backgroundImage,color:css.color,radius:css.borderTopLeftRadius,
+            weight:css.fontWeight,display:css.display,direction:css.flexDirection,
+            iconBelowLabel:icon.top>=label.bottom-1
+          };
+        });
+        assert.equal(appearance.direction,'column',kind+': Generate label and symbol are stacked');
+        assert.equal(appearance.iconBelowLabel,true,kind+': Generate symbol sits below the label');
+        if(kind==='seedream')seedreamGenerateAppearance=appearance;
+        else assert.deepEqual(appearance,seedreamGenerateAppearance,
+          'PV Soul uses the exact Seedream Generate styling and 144×84px button area');
+      }
       if(kind==='seedream'){
         const withPhotos=metrics.dock.height;
         await textbox.fill('');
