@@ -229,6 +229,24 @@ try{
           }
           const avatar=await page.locator('[data-account-avatar]').boundingBox();assert.equal(Math.round(avatar.width),32);assert.equal(Math.round(avatar.height),32);
           const panel=await page.locator('.pv-account-panel').boundingBox();assert.ok(panel.x>=0&&panel.x+panel.width<=width+1,'menu fits viewport');
+          if(path==='/lab/studio.html'){
+            assert.equal(await page.locator('link[href*="studio-account-menu.css"]').count(),1,'Studio loads its own menu treatment');
+            const metrics=await page.locator('#studio-account-menu .pv-account-panel').evaluate(el=>{
+              const box=el.getBoundingClientRect(),style=getComputedStyle(el);
+              const row=el.querySelector('a:not([hidden])');
+              const logo=getComputedStyle(el.querySelector('.pv-account-details'),'::before');
+              return {position:style.position,width:box.width,top:box.top,headerBottom:document.getElementById('studio-header').getBoundingClientRect().bottom,
+                fontSize:Number.parseFloat(getComputedStyle(row).fontSize),logoWidth:Number.parseFloat(logo.width)};
+            });
+            assert.equal(metrics.position,'fixed','Studio menu follows the sticky header');
+            assert.ok(metrics.width<=284,'Studio menu is compact');
+            assert.ok(metrics.top>=metrics.headerBottom+4,'Studio menu clears the masthead');
+            assert.ok(metrics.fontSize<=14.5,'Studio menu type matches compact controls');
+            assert.ok(metrics.logoWidth>=110&&metrics.logoWidth<=130,'The approved PV LAB wordmark is retained at a Studio scale');
+          }else if(path==='/lab/index.html'&&width===1440){
+            assert.equal(Math.round(panel.width),340,'Homepage retains its approved menu width');
+            assert.equal(await page.locator('link[href*="studio-account-menu.css"]').count(),0,'Studio-specific styling stays out of the homepage');
+          }
           assert.equal(await page.locator('[data-account-referrals]').isVisible(),customer);
           await page.screenshot({path:artifacts+'/'+path.split('/').at(-1).replace('.html','')+'-'+width+'-'+(customer?'customer':'owner')+'.png'});
           await page.keyboard.press('Escape');assert.equal(await page.locator('.pv-account-menu').evaluate(el=>el.open),false);assert.equal(await summary.evaluate(el=>el===document.activeElement),true);
