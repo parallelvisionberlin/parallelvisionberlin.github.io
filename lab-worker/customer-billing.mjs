@@ -6,6 +6,7 @@ import {canCustomerGenerate,canCustomerCheckout,isPrivateLivePilot,isPermittedPi
 // All changes in balances are immutable ledger entries. Never trust browser-supplied prices.
 export const CREDIT_MULTIPLIER = 460;
 export const CREDIT_MINIMUM = 7;
+export const WELCOME_CREDITS = 200;
 // Commercial Soul ID launch price. Keep in sync with migration 0008.
 export const SOUL_ID_TRAINING_CREDITS = 400;
 export const PACKS = Object.freeze({
@@ -32,6 +33,19 @@ export async function ensureCustomer(env,subject) {
   if(!ID.test(subject))fail(401,'Invalid account identity.');
   const t=now();
   await exec(env,'INSERT OR IGNORE INTO lab_customers(id,clerk_subject,balance_credits,created_at,updated_at) VALUES(?,?,0,?,?)',subject,subject,t,t);
+  // The welcome gift uses the same wallet as images, videos and other billable jobs.
+  // A unique ledger reference makes repeat sign-ins and concurrent requests safe.
+  // Also welcome existing test customers whose first signup predated this rollout.
+  if(env.LAB_WELCOME_CREDITS_ENABLED==='true'){
+    const reference='welcome:'+subject;
+    await exec(env,`INSERT OR IGNORE INTO lab_credit_entries
+      (id,customer_id,delta_credits,kind,reference,created_at)
+      SELECT ?,c.id,?,'adjustment',?,?
+        FROM lab_customers c
+       WHERE c.id=?
+         AND NOT EXISTS (SELECT 1 FROM lab_account_closures WHERE customer_id=c.id)`,
+      reference,WELCOME_CREDITS,reference,t,subject);
+  }
   return subject;
 }
 export async function isLabCustomer(env,id){
