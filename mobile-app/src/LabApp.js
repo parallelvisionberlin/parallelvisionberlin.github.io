@@ -63,6 +63,8 @@ function LabWebSurface({source,web,onSignIn,onSignOut,onNavigate,onReady,onLoadi
     {(loading||!!error)&&<View style={s.overlay}><Text style={s.eyebrow}>PARALLEL VISION / LAB</Text><Text style={s.loadingTitle}>{error?'Let’s reconnect.':'Your next mood.'}</Text>{error?<><Text style={s.copy}>{error}</Text><Button onPress={()=>{setError('');setLoading(true);setAttempt(n=>n+1);}}>Retry</Button></>:<ActivityIndicator color="#d9eb5d"/>}</View>}
   </View>;
 }
+// Keep Create in the precise middle of the five native navigation destinations.
+const studioTabFromCommand=command=>command?.action==='gallery'?'gallery':command?.action==='retouch'?'retouch':'create';
 function Workspace(){
   const {isLoaded,isSignedIn,getToken,userId,sessionId}=useAuth(),{signOut}=useClerk(),{user}=useUser();
   const [tab,setTab]=useState('moods'),[visitedStudio,setVisitedStudio]=useState(false),[visitedSaved,setVisitedSaved]=useState(false),[authOpen,setAuthOpen]=useState(false),[savedSource,setSavedSource]=useState(LAB_MOODS);
@@ -79,12 +81,13 @@ function Workspace(){
   const openStudio=(command={action:'create'})=>{
     queued.current=command;
     if(!isSignedIn){resume.current={kind:'studio',command};setAuthOpen(true);return;}
-    setVisitedStudio(true);setTab(command.action==='gallery'?'gallery':'create');send(command);
+    setVisitedStudio(true);setTab(studioTabFromCommand(command));send(command);
   };
   const openSaved=url=>{if(!isSignedIn){resume.current={kind:'saved',url:url||LAB_MOODS};setAuthOpen(true);return;}setSavedSource(url||LAB_MOODS);setVisitedSaved(true);setTab('saved');};
   const select=next=>{
     if(next==='create'){openStudio();return;}
     if(next==='gallery'&&isSignedIn){openStudio({action:'gallery'});return;}
+    if(next==='retouch'){openStudio({action:'retouch'});return;}
     setTab(next);
   };
   const logout=()=>Alert.alert('Sign out?','Your saved images and Moods stay in your account.',[{text:'Cancel',style:'cancel'},{text:'Sign out',style:'destructive',onPress:async()=>{
@@ -93,11 +96,11 @@ function Workspace(){
   useEffect(()=>{
     if(!isSignedIn)return;
     setAuthOpen(false);const next=resume.current;resume.current=null;
-    if(next?.kind==='studio'){queued.current=next.command;setVisitedStudio(true);setTab(next.command.action==='gallery'?'gallery':'create');}
+    if(next?.kind==='studio'){queued.current=next.command;setVisitedStudio(true);setTab(studioTabFromCommand(next.command));}
     if(next?.kind==='saved'){setSavedSource(next.url);setVisitedSaved(true);setTab('saved');}
   },[isSignedIn]);
   useEffect(()=>{const listener=BackHandler.addEventListener('hardwareBackPress',()=>{if(authOpen){setAuthOpen(false);return true;}if(tab!=='moods'){setTab('moods');return true;}return false;});return()=>listener.remove();},[authOpen,tab]);
-  useEffect(()=>{const listener=AppState.addEventListener('change',state=>{if(state==='active'&&studioReady.current&&['create','gallery'].includes(tab))studio.current?.injectJavaScript(labCommandScript({action:tab}));});return()=>listener.remove();},[tab]);
+  useEffect(()=>{const listener=AppState.addEventListener('change',state=>{if(state==='active'&&studioReady.current&&['create','gallery','retouch'].includes(tab))studio.current?.injectJavaScript(labCommandScript({action:tab}));});return()=>listener.remove();},[tab]);
   const navigate=(url,from)=>{
     const u=new URL(url);
     if(u.pathname.endsWith('app-moods.html')){if(from==='discover')return true;setTab('moods');return false;}
@@ -110,7 +113,7 @@ function Workspace(){
     <View style={s.header}><Text style={s.brand}>PV LAB<Text style={s.brandSmall}>  / PARALLEL VISION</Text></Text><Text style={s.sectionLabel}>{tab==='saved'?'MY MOODS':tab.toUpperCase()}</Text></View>
     <View style={s.body}>{isLoaded?<>
       <LabWebSurface source={LAB_DISCOVER} web={discover} active={tab==='moods'} getIdentity={getIdentity} onSignIn={signIn} onSignOut={logout} onNavigate={url=>navigate(url,'discover')}/>
-      {visitedStudio&&isSignedIn&&<LabWebSurface key={'studio-'+sessionId} source={LAB_STUDIO} web={studio} active={['create','gallery'].includes(tab)} getIdentity={getIdentity} onSignIn={()=>setAuthOpen(true)} onSignOut={logout} onNavigate={url=>navigate(url,'studio')} onLoading={()=>{studioReady.current=false;}} onReady={()=>{studioReady.current=true;const command=queued.current;queued.current=null;if(command)studio.current?.injectJavaScript(labCommandScript(command));}}/>}
+      {visitedStudio&&isSignedIn&&<LabWebSurface key={'studio-'+sessionId} source={LAB_STUDIO} web={studio} active={['create','gallery','retouch'].includes(tab)} getIdentity={getIdentity} onSignIn={()=>setAuthOpen(true)} onSignOut={logout} onNavigate={url=>navigate(url,'studio')} onLoading={()=>{studioReady.current=false;}} onReady={()=>{studioReady.current=true;const command=queued.current;queued.current=null;if(command)studio.current?.injectJavaScript(labCommandScript(command));}}/>}
       {visitedSaved&&<LabWebSurface key={'saved-'+(sessionId||'guest')} source={savedSource} web={saved} active={tab==='saved'} getIdentity={getIdentity} onSignIn={signIn} onSignOut={logout} onNavigate={url=>navigate(url,'saved')}/>}
       {tab==='gallery'&&!isSignedIn&&<View style={s.empty}><Text style={s.eyebrow}>YOUR PERSONAL COLLECTION</Text><Text style={s.loadingTitle}>Keep what{String.fromCharCode(10)}you create.</Text><Text style={s.copy}>Your images, ready to revisit, save and share.</Text><Button selected onPress={()=>openStudio({action:'gallery'})}>Sign in to your gallery</Button><Button onPress={()=>setTab('moods')}>Explore Moods</Button></View>}
       {tab==='profile'&&<ScrollView contentContainerStyle={s.profile}>
@@ -125,7 +128,7 @@ function Workspace(){
         <Text style={s.profileFoot}>PARALLEL VISION / BERLIN</Text>
       </ScrollView>}
     </>:<ActivityIndicator color="#d9eb5d" style={s.loader}/>}</View>
-    <View style={s.nav}>{[['gallery','▦','Gallery'],['moods','◈','Moods'],['create','＋','Create'],['profile','○','Profile']].map(([id,icon,label])=><Pressable key={id} accessibilityRole="tab" accessibilityLabel={label} accessibilityState={{selected:tab===id||(id==='profile'&&tab==='saved')}} onPress={()=>select(id)} style={s.tab}>{id==='create'?<View style={s.createIcon}><View style={s.plusHorizontal}/><View style={s.plusVertical}/></View>:<Text style={[s.tabIcon,(tab===id||(id==='profile'&&tab==='saved'))&&s.selectedText]}>{icon}</Text>}<Text style={[s.tabLabel,(tab===id||(id==='profile'&&tab==='saved'))&&s.selectedText]}>{label}</Text></Pressable>)}</View>
+    <View style={s.nav}>{[['gallery','▦','Gallery'],['moods','◈','Moods'],['create','＋','Create'],['retouch','✧','Retouch'],['profile','○','Profile']].map(([id,icon,label])=><Pressable key={id} accessibilityRole="tab" accessibilityLabel={label} accessibilityState={{selected:tab===id||(id==='profile'&&tab==='saved')}} onPress={()=>select(id)} style={s.tab}>{id==='create'?<View style={s.createIcon}><View style={s.plusHorizontal}/><View style={s.plusVertical}/></View>:<Text style={[s.tabIcon,(tab===id||(id==='profile'&&tab==='saved'))&&s.selectedText]}>{icon}</Text>}<Text style={[s.tabLabel,(tab===id||(id==='profile'&&tab==='saved'))&&s.selectedText]}>{label}</Text></Pressable>)}</View>
     <Modal visible={authOpen} animationType="slide" presentationStyle="pageSheet" onRequestClose={()=>setAuthOpen(false)}><SafeAreaView style={s.safe}><View style={s.header}><Text style={s.brand}>YOUR ACCOUNT</Text><Button onPress={()=>setAuthOpen(false)}>Close</Button></View><KeyboardAvoidingView style={s.body} behavior={Platform.OS==='ios'?'padding':'height'}><ScrollView contentContainerStyle={s.profile} keyboardShouldPersistTaps="handled"><AuthPanel description="Your chosen Mood and photograph will be waiting for you." continueLabel="CONTINUE CREATING" onContinue={()=>setAuthOpen(false)}/></ScrollView></KeyboardAvoidingView></SafeAreaView></Modal>
   </SafeAreaView>;
 }
