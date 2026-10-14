@@ -132,7 +132,7 @@ try{
   assert.equal(quoteRequests(x).length,3);assert.equal(countPaid(x),1);assert.deepEqual(x.errors,[]);
   ok('4x/format changes invalidate estimates without repeat billing');await x.context.close();
    x=await workspace();await x.page.click('#tool-upscale');await uploadSmall(x.page);
-   await clickUpscaleCheck(x.page);
+   await checkFalPrice(x);
    assert.equal(quoteRequests(x).length,1);assert.equal(countPaid(x),0);
    await x.page.locator('#upscale-model-trigger').click();
    await x.page.getByRole('menuitemradio',{name:/Topaz Precision/}).click();
