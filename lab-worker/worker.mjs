@@ -16,6 +16,7 @@ import {serveGalleryThumbnail,galleryThumbnailKey} from './gallery-thumbnails.mj
 import {libraryRoute,libraryJobs} from './asset-library.mjs';
 import {higgsfieldRoute,refreshHiggsfield,SOUL2_PRICES,soul2Parameters} from './higgsfield.mjs';
 import {publicSoulPresets} from './soul-presets.mjs';
+import {KREA_MODEL,isKreaTrigger,kreaEstimateMicros,kreaInferenceInput} from './krea-soul.mjs';
 import {reinterpretParameters,buildReinterpretInput} from './soul-reinterpret.mjs';
 /* Parallel Vision Lab. Private owner-only workspace, no public media bucket.
    The hosted provider is opt-in; no provider key or moderation bypass in source. */
@@ -37,7 +38,7 @@ import {SYNTHETIC_ROMANCE_REFERENCES,SYNTHETIC_ROMANCE_REFERENCE_VERSION} from '
 import {moodBoardsRoute} from './moodboards.mjs';
 import {moodCreatorRoute} from './mood-creator-service.mjs';
 import {characterPreview as soulCharacterPreview,SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-14.2-google-nano21-stateless';
+export const VERSION = 'pv-lab-2026-10-14.3-krea2-lora-trial';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -247,7 +248,7 @@ function parameters(value) {
     if(!UUID.test(value.characterId||''))fail(400,'Choose a trained PV Soul character.');
     if(!Number.isFinite(strength)||strength<0.25||strength>1.75)fail(400,'Identity strength must be between 0.25 and 1.75.');
     if(!soulRatios.includes(ratio)||!['png','jpeg'].includes(value.outputFormat||'jpeg'))fail(400,'Choose a supported PV Soul aspect ratio and PNG or JPEG.');
-    return {type:'image',provider:'spicy',engine:'soul',model:SOUL_TEXT_MODEL,mode:'image',prompt,characterId:value.characterId,identityStrength:strength,resolution:'native',aspectRatio:ratio,outputFormat:value.outputFormat||'jpeg',referenceRoles};
+    return {type:'image',provider:value.trainer==='krea2'?'fal':'spicy',engine:'soul',trainer:value.trainer==='krea2'?'krea2':'qwen2512',model:value.trainer==='krea2'?KREA_MODEL:SOUL_TEXT_MODEL,mode:'image',prompt,characterId:value.characterId,identityStrength:strength,resolution:'native',aspectRatio:ratio,outputFormat:value.outputFormat||'jpeg',referenceRoles};
   }
   if(value.type==='image'&&['gemini','gemini21'].includes(value.engine)){
     const is21=value.engine==='gemini21',processing=value.processing==='batch'?'batch':'normal',ratio=value.aspectRatio||'auto';
@@ -391,6 +392,7 @@ async function prepareInput(env,owner,data,p,url) {
     p.referenceSourceIds=[];p.lastSourceId=null;p.reinterpretAdapterId=character.id;
     input=buildReinterpretInput(p,{triggerWord:character.trigger_word,weightsUrl:url?await soulWeightUrl(env,url,character,soulDeps()):null,imageUrl:url?await signedInput(env,url,primary.id):null});
   }else if(p.type==='image'&&p.engine==='soul'){
+    if(p.trainer==='krea2')fail(400,'Use the dedicated FAL Krea endpoint, not the SpicyAPI quote route.');
     if(await first(env,'SELECT * FROM soul_reinterpret_links WHERE adapter_id=?',p.characterId))fail(400,'Use this secondary identity through its original Soul in Reinterpret mode.');
     const character=await readySoulCharacter(env,owner,p.characterId,soulDeps());
     if(data.referenceSourceIds?.length)fail(400,'PV Soul v0.1 does not accept reference images. Use the trained character with a text prompt, or switch to Seedream / Nano Banana for reference editing.');
@@ -1437,6 +1439,27 @@ async function route(request,env,ctx) {
     const data=await body(request),pose=await source(env,owner,data.poseSourceId);
     const map=await createFalPoseMap(env,owner,url,pose,null);
     return json({assetId:map.id,billingNote:'DWPose preview uses fal.ai metered compute and is billed by fal.ai separately from the Lab image estimate.'},201);
+  }
+  if(path==='/api/fal/krea'&&method==='POST'){
+    // Trial-only owner generation: do not expose an unpriced customer model.
+    if(customer)fail(403,'Krea 2 LoRA is not yet available for customer credits.');
+    if(!env.FAL_KEY)fail(503,'fal.ai is not configured on this Worker.');
+    const data=await body(request),p=parameters(data.settings);
+    if(p.provider!=='fal'||p.engine!=='soul'||p.trainer!=='krea2'||p.model!==KREA_MODEL||p.mode!=='image')
+      fail(400,'Choose a trained Krea 2 character.');
+    if(data.sourceId||data.lastSourceId||!Array.isArray(data.referenceSourceIds||[])||data.referenceSourceIds?.length)
+      fail(400,'Krea 2 LoRA accepts a prompt and trained identity only, not reference photos.');
+    if(await first(env,'SELECT adapter_id FROM soul_reinterpret_links WHERE adapter_id=?',p.characterId))
+      fail(400,'Secondary Z-Image adapters cannot generate through Krea 2.');
+    const character=await readySoulCharacter(env,owner,p.characterId,soulDeps());
+    if(!isKreaTrigger(character.trigger_word))fail(409,'This character uses a different LoRA base. Select a trained Krea 2 identity.');
+    p.triggerWord=character.trigger_word;
+    const estimate=kreaEstimateMicros(p.aspectRatio),reserved=await reserveFalImageJob(env,owner,null,p,estimate);
+    const job=await submitReservedFalJob(env,reserved,p,async()=>{
+      const weights=await soulWeightUrl(env,url,character,soulDeps());
+      return kreaInferenceInput({prompt:p.prompt,triggerWord:p.triggerWord,weightUrl:weights,identityStrength:p.identityStrength,aspectRatio:p.aspectRatio,outputFormat:p.outputFormat});
+    });
+    return json({job:jobView(job)},202);
   }
   if(path==='/api/fal/soul-pro'&&method==='POST'){
     if(!env.FAL_KEY)fail(503,'fal.ai is not configured on this Worker.');

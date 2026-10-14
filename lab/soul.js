@@ -51,12 +51,12 @@ export function createSoulController({api,action,notify,changed,owner,modeChange
   function renderSelect(){
     const select=$('soul-character'),keep=selected||select.value;
     const ready=readyCharacters();
-    select.replaceChildren(new Option(ready.length?'Choose character':'No trained characters yet',''),...ready.map(c=>new Option(c.name,c.id)));
+    select.replaceChildren(new Option(ready.length?'Choose character':'No trained characters yet',''),...ready.map(c=>new Option((c.trainer==='krea2'?'Krea 2 · ':'Qwen · ')+c.name,c.id)));
     selected=ready.some(c=>c.id===keep)?keep:(ready[0]?.id||'');
     select.value=selected;
     $('soul-empty').hidden=!!ready.length;
     const target=$('soul-training-target'),previous=target.value;
-    target.replaceChildren(new Option('New Text character',''),...ready.filter(c=>!c.reinterpret).map(c=>new Option('Reinterpret / '+c.name,c.id)));
+    target.replaceChildren(new Option('New Qwen Text character',''),new Option('New Krea 2 LoRA · $3.00','krea2'),...ready.filter(c=>c.trainer!=='krea2'&&!c.reinterpret).map(c=>new Option('Reinterpret / '+c.name,c.id)));
     target.value=[...target.options].some(o=>o.value===previous)?previous:'';
     trainingPurpose();renderMode();changed();
   }
@@ -68,7 +68,7 @@ export function createSoulController({api,action,notify,changed,owner,modeChange
     for(const c of characters){
       const row=document.createElement('div');row.className='soul-character-row';
       const info=document.createElement('div'),name=document.createElement('strong'),meta=document.createElement('span');
-      name.textContent=c.name;meta.textContent=(c.state||'').toUpperCase()+(c.triggerWord?' · '+c.triggerWord:'');
+      name.textContent=c.name;meta.textContent=(c.trainer==='krea2'?'KREA 2 · ':c.adapterFor?'Z-IMAGE · ':'QWEN · ')+(c.state||'').toUpperCase()+(c.triggerWord?' · '+c.triggerWord:'');
       info.append(name,meta);
       if(c.error){const err=document.createElement('small');err.textContent=c.error;info.append(err);}
       const controls=document.createElement('div');
@@ -124,12 +124,12 @@ export function createSoulController({api,action,notify,changed,owner,modeChange
     renderPreset(false);renderMode();
   }
   function trainingPurpose(){
-    const parent=characters.find(c=>c.id===$('soul-training-target').value),re=!!parent;
+    const target=$('soul-training-target').value,parent=characters.find(c=>c.id===target),re=!!parent,krea=target==='krea2';
     $('soul-paid-reinterpret-label').hidden=!re;
-    $('soul-training-detail').textContent=re?'Separate Z-Image Turbo identity for '+parent.name+'. Select 20–80 identity photos. The previous training photos were temporary and are not reused automatically. Published FAL price: $2.26 for 1,000 steps.':'Qwen Image 2512 text identity.';
+    $('soul-training-detail').textContent=re?'Separate Z-Image Turbo identity for '+parent.name+'. Select 20–80 identity photos. The previous training photos were temporary and are not reused automatically. Published FAL price: $2.26 for 1,000 steps.':krea?'Krea 2 Turbo LoRA · text-to-image only. $3.00 for 1,000 training steps, plus $0.01 per generated megapixel. Requires 20–80 photos in this Lab. No base-image editing.':'Qwen Image 2512 text identity.';
     if(!re&&$('soul-name').readOnly)$('soul-name').value='';
     $('soul-name').readOnly=re;if(re)$('soul-name').value=parent.name+' / Reinterpret';
-    $('soul-train').textContent=re?'Train Reinterpret identity · $2.26':'Train character';
+    $('soul-train').textContent=re?'Train Reinterpret identity · $2.26':krea?'Train Krea 2 LoRA · $3.00':'Train Qwen character';
   }
   function renderPreset(defaults){
     const p=(config.soulPresets||[]).find(p=>p.id===$('soul-preset').value);
@@ -145,14 +145,16 @@ export function createSoulController({api,action,notify,changed,owner,modeChange
     $('soul-strength-value').textContent=Number($('soul-strength').value).toFixed(2);
   }
   function renderMode(){
+    const krea=current()?.trainer==='krea2';if(krea&&soulMode==='reinterpret')soulMode='text';
     const re=soulMode==='reinterpret',adapter=current()?.reinterpret;
     for(const m of ['text','reinterpret']){const b=$('soul-mode-'+m);b.classList.toggle('active',soulMode===m);b.setAttribute('aria-selected',String(soulMode===m));}
+    $('soul-mode-reinterpret').disabled=!!krea;
     $('soul-reinterpret-controls').hidden=!re;
-    $('soul-mode-note').textContent=re?'Reinterpret uses a separate Z-Image Turbo identity trained for this Soul. Source preservation and identity quality depend on the image and strength.':'Text uses your trained Qwen Image 2512 identity.';
+    $('soul-mode-note').textContent=re?'Reinterpret uses a separate Z-Image Turbo identity trained for this Soul. Source preservation and identity quality depend on the image and strength.':krea?'Krea 2 Turbo LoRA · prompt + trained identity only · fal.ai $0.01/MP. Reference image editing is not supported.':'Text uses your trained Qwen Image 2512 identity.';
     $('soul-reinterpret-status').textContent=!config.soulReinterpretEnabled?'Reinterpret is not enabled on this backend.':adapter?.state==='ready'?'Reinterpret identity ready.':adapter?'Reinterpret identity: '+adapter.state+'. Check Train / manage.':'A separate Reinterpret identity must be trained before generating. Your Text identity remains available.';
-    $('soul-prepare-reinterpret').hidden=!!adapter||!current()||!config.soulReinterpretEnabled;
+    $('soul-prepare-reinterpret').hidden=!!krea||!!adapter||!current()||!config.soulReinterpretEnabled;
   }
-  function setMode(value){strengths[soulMode]=Number($('soul-strength').value)||1;soulMode=value==='reinterpret'?'reinterpret':'text';$('soul-strength').value=strengths[soulMode];renderPreset(false);renderMode();}
+  function setMode(value){strengths[soulMode]=Number($('soul-strength').value)||1;soulMode=value==='reinterpret'&&current()?.trainer!=='krea2'?'reinterpret':'text';$('soul-strength').value=strengths[soulMode];renderPreset(false);renderMode();}
   $('soul-mode-text').onclick=()=>{setMode('text');modeChanged();};
   $('soul-mode-reinterpret').onclick=()=>{setMode('reinterpret');modeChanged();};
   $('soul-preset').onchange=()=>{renderPreset(true);changed();};
@@ -163,7 +165,7 @@ export function createSoulController({api,action,notify,changed,owner,modeChange
 
   function reset(){clearTimeout(timer);timer=null;characters=[];selected='';soulMode='text';renderSelect();renderCharacters();status('');$('soul-photos').value='';$('soul-photo-count').textContent='0 / 80';}
 
-  $('soul-character').onchange=()=>{selected=$('soul-character').value;renderMode();changed();};
+  $('soul-character').onchange=()=>{selected=$('soul-character').value;renderMode();modeChanged();};
   $('soul-strength').oninput=()=>{$('soul-strength-value').textContent=Number($('soul-strength').value).toFixed(2);changed();};
   $('soul-manage').onclick=()=>{$('soul-dialog').showModal();void load().catch(e=>status(e.message));};
   $('soul-dialog-close').onclick=()=>$('soul-dialog').close();
@@ -175,7 +177,7 @@ export function createSoulController({api,action,notify,changed,owner,modeChange
 
   $('soul-train').onclick=()=>action(async()=>{
     if(!config.soulTrainingEnabled)throw new Error('FAL training is not configured on the Worker.');
-    const reinterpretFor=$('soul-training-target').value||null;
+    const trainingTarget=$('soul-training-target').value,krea=trainingTarget==='krea2',reinterpretFor=krea?null:trainingTarget||null;
     if(reinterpretFor&&!$('soul-paid-reinterpret').checked)throw new Error('Approve the separate $2.26 Reinterpret training first.');
     const name=$('soul-name').value.trim(),files=[...($('soul-photos').files||[])];
     if(!name||name.length>80)throw new Error('Give the character a name up to 80 characters.');
@@ -191,8 +193,8 @@ export function createSoulController({api,action,notify,changed,owner,modeChange
     if(archive.size>64*1024*1024)throw new Error('The prepared training set is still above 64 MiB. Use fewer or smaller source photos.');
     status('Uploading private training set…');
     const dataset=await api('/api/soul/datasets',{method:'POST',headers:{'Content-Type':'application/zip','X-Photo-Count':String(files.length)},body:archive});
-    status('Submitting 1,000-step character training…');
-    const result=await api('/api/soul/characters',{method:'POST',body:{name,datasetId:dataset.id,confirm:true,...(reinterpretFor?{reinterpretFor,confirmPaidTraining:true}:{})}});
+    status('Submitting '+(krea?'Krea 2':'Qwen / Z-Image')+' 1,000-step character training…');
+    const result=await api('/api/soul/characters',{method:'POST',body:{name,datasetId:dataset.id,trainer:krea?'krea2':'qwen2512',confirm:true,...(reinterpretFor?{reinterpretFor,confirmPaidTraining:true}:{})}});
     $('soul-photos').value='';$('soul-photo-count').textContent='0 / 80';$('soul-consent').checked=false;$('soul-paid-reinterpret').checked=false;
     status(result.character.state==='uncertain'?'Submission is uncertain. Check the FAL dashboard before starting another training.':'Training queued. You can close this window; status will update automatically.');
     await load();
@@ -204,6 +206,7 @@ export function createSoulController({api,action,notify,changed,owner,modeChange
     reinterpretSettings:()=>({mode:'reinterpret',preset:$('soul-preset').value,imageFidelity:Number($('soul-fidelity').value),keepComposition:$('soul-keep-composition').checked,keepStyling:$('soul-keep-styling').checked}),
     restore(p){setMode(p.mode);if(p.preset)$('soul-preset').value=p.preset;$('soul-fidelity').value=p.imageFidelity??.82;$('soul-keep-composition').checked=p.keepComposition!==false;$('soul-keep-styling').checked=p.keepStyling!==false;$('soul-strength').value=p.identityStrength??1;strengths[soulMode]=Number($('soul-strength').value);renderPreset(false);renderMode();},
     selectedId:()=>selected,
+    isKrea:()=>current()?.trainer==='krea2',
     strength:()=>Number($('soul-strength').value)||1,
     ready:()=>!!current(),
     character:current,

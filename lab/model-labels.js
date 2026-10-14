@@ -35,7 +35,7 @@ export function imageModelLabel(settings={}){
   // Trained identity models have intentionally different public names from
   // the underlying LoRA, so a Qwen or Z-Image LoRA must not be presented as
   // an ordinary Qwen 3 or Z-Image Spicy generation.
-  if(engine==='soul')return 'PV Soul'; // Reinterpret already appears as the separate operation label.
+  if(engine==='soul')return s.trainer==='krea2'||model==='fal-ai/krea-2/turbo/lora'?'Krea 2 LoRA':'PV Soul'; // Keep legacy Qwen and Z-Image labels.
 
   if(engine==='soulpro'||provider==='higgsfield'){
     if(model.startsWith('higgsfield-ai/soul/v2/'))return 'Higgsfield Soul 2';

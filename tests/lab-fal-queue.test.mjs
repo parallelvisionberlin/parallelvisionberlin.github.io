@@ -12,7 +12,9 @@ test('FAL submission keeps model subpaths; status and results use the owning app
       ['topaz/upscale/image/precision','topaz/upscale'],
       ['topaz/upscale/image/generative','topaz/upscale'],
       ['minimax/h3-max/reference-to-video','minimax/h3-max'],
-      ['fal-ai/dwpose','fal-ai/dwpose']
+      ['fal-ai/dwpose','fal-ai/dwpose'],
+      ['fal-ai/krea-2/turbo/lora','fal-ai/krea-2'],
+      ['fal-ai/krea-2-trainer','fal-ai/krea-2-trainer']
     ]){
       calls.length=0;
       const id=await falSubmit(endpoint,'synthetic-key',{image_url:'data:image/png;base64,c3ludGhldGlj'});
