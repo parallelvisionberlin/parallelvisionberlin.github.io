@@ -4,6 +4,9 @@ export function initLabMobileUI(){
   if(!isNativeLab()||document.documentElement.classList.contains('pv-native-lab'))return;
   document.documentElement.classList.add('pv-native-lab');
   const css=document.createElement('link');css.rel='stylesheet';css.href='./mobile-app.css?v=20261012-photo-layout1';document.head.append(css);
+  // Loaded after the original app stylesheet so only native Create and Gallery
+  // receive the compact workdeck and responsive archive; browser Lab is unchanged.
+  const mobileRefinement=document.createElement('link');mobileRefinement.rel='stylesheet';mobileRefinement.href='./native-create-gallery.css?v=20261014-native-deck-grid1';document.head.append(mobileRefinement);
   const $=id=>document.getElementById(id),send=(type,extra={})=>window.ReactNativeWebView.postMessage(JSON.stringify({type,...extra}));
   for(const id of ['reference-images','image','soul-base-image']){const input=$(id);if(input)input.accept='image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif';}
   const composer=$('image-composer');
@@ -20,8 +23,17 @@ export function initLabMobileUI(){
     composer.prepend(intro,photo);
     const advanced=document.createElement('button');advanced.type='button';advanced.className='mobile-advanced';advanced.id='mobile-advanced';advanced.textContent='More controls';advanced.setAttribute('aria-expanded','false');
     advanced.onclick=()=>{const open=composer.classList.toggle('mobile-show-advanced');advanced.setAttribute('aria-expanded',String(open));advanced.textContent=open?'Fewer controls':'More controls';};
-    composer.insertBefore(advanced,composer.querySelector('.image-composer-toolbar'));
-    $('image-composer-prompt').placeholder='Anything else? Add a direction (optional)';
+    // The app's Create tab is an image editor, not a second gallery. Reuse the
+    // existing real model, ratio and advanced controls inside a single deck.
+    const promptRow=composer.querySelector('.image-composer-top');
+    const toolbar=composer.querySelector('.image-composer-toolbar');
+    const deck=document.createElement('section');deck.className='mobile-image-deck';deck.setAttribute('aria-label','Image generation deck');
+    const deckHeading=document.createElement('div');deckHeading.className='mobile-image-deck-heading';
+    deckHeading.innerHTML='<strong>Image deck</strong><small>Model &amp; direction</small>';
+    promptRow.before(deck);
+    deck.append(deckHeading,promptRow,toolbar,advanced);
+    $('image-composer-ratio')?.closest('.composer-select-pill')?.classList.add('mobile-main-ratio');
+    $('image-composer-prompt').placeholder='Describe your next image (optional)';
     const grid=$('composer-moods-grid'),moods=$('composer-moods');
     // Keep the paid action on the photo screen. Custom Mood authoring lives in Profile.
     const customCreate=$('composer-moods-create');
