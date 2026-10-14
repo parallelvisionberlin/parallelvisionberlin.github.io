@@ -170,6 +170,27 @@ test('PV Soul training ZIP preflight allows its photo-count header',async()=>{
   assert.match(allowed,/X-Photo-Count/i);
   assert.equal(response.headers.get('access-control-allow-origin'),ORIGIN);
 });
+test('Second Clerk application is pilot-only, origin-bound, and never inherits an old owner role',async()=>{
+  const {env}=fixture(),studio='https://pvlab.studio',issuer='https://clerk.pvlab.studio';
+  const newOwnerId=await token('user_Owner',{iss:issuer,azp:studio});
+  assert.equal((await req(env,'/api/session',{authToken:newOwnerId,headers:{Origin:studio}})).status,401,'new issuer disabled without an explicit pilot');
+  assert.equal((await req(env,'/api/session',{headers:{Origin:studio}})).status,401,'old owner token does not authorize the new origin');
+  assert.equal((await req(env,'/api/session',{authToken:newOwnerId})).status,401,'new token does not authorize the old origin');
+  env.LAB_NEW_CLERK_PILOT_ENABLED='true';
+  env.LAB_NEW_CLERK_PILOT_SUBJECT='user_New';
+  assert.equal((await req(env,'/api/session',{authToken:newOwnerId,headers:{Origin:studio}})).status,401,'pilot never grants owner privileges to matching subject strings');
+  env.LAB_DB.db.exec(readFileSync(new URL('../lab-worker/migrations/0006-customers-billing.sql',import.meta.url),'utf8'));
+  const newToken=await token('user_New',{iss:issuer,azp:studio});
+  const response=await req(env,'/api/session',{authToken:newToken,headers:{Origin:studio}});
+  assert.equal(response.status,200);
+  const session=await response.json();
+  assert.equal(session.owner,false);
+  assert.equal(session.customer,true);
+  assert.equal(session.ownerId,'user_PvLabV2New','second issuer has a different wallet namespace');
+  assert.equal(env.LAB_DB.db.prepare('SELECT id FROM lab_customers').get().id,'user_PvLabV2New');
+  assert.equal((await req(env,'/api/session',{authToken:newToken})).status,401,'pilot token is not valid on old domain');
+  assert.equal((await req(env,'/api/session',{authToken:auth})).status,200,'legacy owner still has access');
+});
 test('Public health works; every private operation rejects missing, non-owner and forged authentication',async()=>{const{env}=fixture();assert.equal((await req(env,'/health',{authToken:null})).status,200);for(const path of ['/api/session','/api/jobs','/api/assets/'+crypto.randomUUID()]){assert.equal((await req(env,path,{authToken:null})).status,401);assert.equal((await req(env,path,{authToken:guest})).status,403);}const bad=auth.slice(0,-5)+'aaaaa';assert.equal((await req(env,'/api/session',{authToken:bad})).status,401);assert.equal((await req(env,'/api/session',{authToken:await token('user_Owner',{exp:1})})).status,401);assert.equal((await req(env,'/api/session',{headers:{Origin:'https://evil.example'}})).status,403);});
 test('API keys encrypted; drafts persist all settings; quotes are free, bounded and keep private input URLs',async()=>{calls=[];createCount=0;const{env}=fixture(),id=await setup(env);const dbKey=env.LAB_DB.db.prepare('SELECT encrypted_key FROM settings').get().encrypted_key;assert.ok(!dbKey.includes(KEY));const session=await(await req(env,'/api/session')).text();assert.ok(!session.includes(KEY));assert.ok(!session.includes(dbKey));await req(env,'/api/drafts',{method:'POST',data:{sourceId:id,settings:p}});const h=await(await req(env,'/api/jobs')).json();assert.equal(h.jobs[0].sourceId,id);assert.equal(h.jobs[0].settings.seed,42);assert.equal(h.jobs[0].settings.audio,true);const q=await quote(env,id);assert.equal(q.estimatedUsd,2.7);assert.equal(createCount,0);const input=new URL(quotedRequest.input.image_url);assert.equal((await req(env,input.pathname+input.search,{authToken:null,headers:{Origin:''}})).status,200);assert.equal((await req(env,input.pathname+'?expires=1&signature=no',{authToken:null})).status,403);assert.equal((await req(env,'/api/assets/'+id,{authToken:null})).status,401);});
 test('Wan 21:9 keeps the original source, uses a prepared working crop and sends adaptive upstream',async()=>{calls=[];createCount=0;const{env}=fixture(),id=await setup(env);const upload=await req(env,'/api/uploads',{method:'POST',raw:new Uint8Array([137,80,78,71,13,10,26,10,0]),headers:{'Content-Type':'image/png','X-Filename':'wide-working.webp'}});assert.equal(upload.status,201);const copyId=(await upload.json()).id,settings={...p,aspectRatio:'21:9'};
