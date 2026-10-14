@@ -200,7 +200,7 @@ try{
   }
 }catch(error){
   const page=browser.contexts().at(-1)?.pages().at(-1);
-  if(page)await page.screenshot({path:resolve(artifacts,'failure.png')});
+  if(page)await page.screenshot({path:resolve(artifacts,'failure.png'),timeout:1500}).catch(()=>{}); // Do not conceal the real assertion if fonts are still blocked.
   throw error;
 }finally{await browser.close();await new Promise(r=>server.close(r));}
 
