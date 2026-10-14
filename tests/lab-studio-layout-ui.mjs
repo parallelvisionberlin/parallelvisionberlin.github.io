@@ -196,16 +196,21 @@ try{
     const trigger=document.getElementById('image-composer-model').getBoundingClientRect();
     const overflow=items.scrollHeight>items.clientHeight+2;
     return {width:r.width,height:r.height,top:r.top,bottom:r.bottom,headerBottom:head.bottom,triggerTop:trigger.top,
-      available:Math.max(112,Math.floor(trigger.top-head.bottom-16)),overflow,
+      available:Math.max(0,Math.floor(trigger.top-Math.max(0,head.bottom)-24)),overflow,
       itemsScroll:items.scrollHeight,itemsClient:items.clientHeight,rows:rows.length,
+      rowHeight:rows[0]?.height||0,
+      titleSize:parseFloat(getComputedStyle(items.querySelector('.composer-model-info strong')).fontSize),
+      descriptionWhiteSpace:getComputedStyle(items.querySelector('.composer-model-info small')).whiteSpace,
       partialBottomRow:rows.some(row=>row.top<list.bottom-1&&row.bottom>list.bottom+2),
       emptyTail:rows.length?list.bottom-rows.at(-1).bottom:0,
       searchTop:search.top,searchBottom:search.bottom,footerTop:footer.top,footerBottom:footer.bottom,
       limit:getComputedStyle(el).maxHeight};
   });
-  assert.ok(menuGeometry.width>=423&&menuGeometry.width<=427,'Model menu should keep its 425px desktop width: '+JSON.stringify(menuGeometry));
+  assert.ok(menuGeometry.width>=438&&menuGeometry.width<=442,'Model menu should have its refined 440px desktop width: '+JSON.stringify(menuGeometry));
   assert.ok(menuGeometry.height<=menuGeometry.available+2&&menuGeometry.height>350,'Model dropdown should grow naturally without covering navigation: '+JSON.stringify(menuGeometry));
-  assert.ok(menuGeometry.top>=menuGeometry.headerBottom+6,'Model dropdown must not touch navigation: '+JSON.stringify(menuGeometry));
+  assert.ok(menuGeometry.top>=menuGeometry.headerBottom+14,'Model dropdown must preserve a visible gap below navigation: '+JSON.stringify(menuGeometry));
+  assert.ok(menuGeometry.rowHeight>=57&&menuGeometry.titleSize>=12.5&&menuGeometry.descriptionWhiteSpace==='nowrap',
+    'Model rows must have breathing room and one-line descriptions: '+JSON.stringify(menuGeometry));
   assert.ok(menuGeometry.searchTop>=menuGeometry.top&&menuGeometry.footerBottom<=menuGeometry.bottom+1,'Search and character shortcut stay inside menu: '+JSON.stringify(menuGeometry));
   assert.equal(menuGeometry.partialBottomRow,false,'Only complete model rows should show initially: '+JSON.stringify(menuGeometry));
   if(!menuGeometry.overflow)assert.ok(menuGeometry.emptyTail<7,'No large blank area after the last model: '+JSON.stringify(menuGeometry));
@@ -464,7 +469,7 @@ try{
     const r=el.getBoundingClientRect(),head=document.getElementById('studio-header').getBoundingClientRect();
     return {top:r.top,left:r.left,right:r.right,bottom:r.bottom,headerBottom:head.bottom,height:r.height};
   });
-  assert.ok(mobileModelMenu.top>=mobileModelMenu.headerBottom+5,'Model menu must stay below mobile navigation: '+JSON.stringify(mobileModelMenu));
+  assert.ok(mobileModelMenu.top>=mobileModelMenu.headerBottom+14,'Model menu must have a clear mobile navigation gap: '+JSON.stringify(mobileModelMenu));
   assert.ok(mobileModelMenu.left>=12&&mobileModelMenu.right<=378,'Model menu must keep 12px mobile side margins: '+JSON.stringify(mobileModelMenu));
   await x.page.keyboard.press('Escape');
   const compactComposer=await x.page.locator('#image-composer').evaluate(el=>{
