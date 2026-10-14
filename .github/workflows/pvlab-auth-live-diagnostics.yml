@@ -1,0 +1,91 @@
+name: PV LAB live authentication diagnostics
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/pvlab-auth-live-diagnostics.yml'
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+      - name: Inspect published public sites without credentials
+        shell: bash
+        run: |
+          set -uo pipefail
+          probe(){
+            local label="$1" url="$2" out="$3"
+            local code
+            code="$(curl -LsS --retry 2 --retry-delay 1 --connect-timeout 8 --max-time 25 -o "$out" -w '%{http_code}' "$url")" || code="network-error"
+            printf '%s: %s\n' "$label" "$code"
+            printf '%s\n' "$code" > "$out.status"
+          }
+          probe "pvlab.studio homepage" "https://pvlab.studio/" /tmp/pv-custom-home
+          probe "pvlab.studio account SDK" "https://pvlab.studio/native-account.js" /tmp/pv-custom-account
+          probe "Pages default homepage" "https://pvlab-studio.pages.dev/" /tmp/pv-pages-home
+          probe "Pages default account SDK" "https://pvlab-studio.pages.dev/native-account.js" /tmp/pv-pages-account
+          probe "Clerk account portal" "https://accounts.pvlab.studio/sign-in" /tmp/pv-portal
+          probe "Clerk Frontend API environment" "https://clerk.pvlab.studio/v1/environment" /tmp/pv-clerk
+          probe "Legacy site homepage" "https://parallelvisionlabel.com/lab/" /tmp/pv-legacy-home
+          for entry in "Custom:/tmp/pv-custom-account" "Pages:/tmp/pv-pages-account"; do
+            label="${entry%%:*}"
+            path="${entry#*:}"
+            if [ "$(cat "$path.status")" = "200" ]; then
+              if cmp -s "$path" lab/native-account.js; then
+                echo "$label account SDK: EXACT MATCH with repo"
+              else
+                echo "$label account SDK: NOT CURRENT (different from repo)"
+                echo "$label public SDK sha256: $(sha256sum "$path" | cut -d' ' -f1)"
+                echo "Repository SDK sha256: $(sha256sum lab/native-account.js | cut -d' ' -f1)"
+              fi
+            fi
+          done
+          for entry in "Custom:/tmp/pv-custom-home" "Pages:/tmp/pv-pages-home"; do
+            label="${entry%%:*}"
+            path="${entry#*:}"
+            if [ "$(cat "$path.status")" = "200" ]; then
+              if grep -Fq 'providerPolicy=20261015-google-only1' "$path"; then
+                echo "$label homepage: new auth provider cache marker PRESENT"
+              else
+                echo "$label homepage: new auth provider cache marker MISSING"
+              fi
+            fi
+          done
+      - name: Check browser sign-in entry and Google OAuth redirect without an account
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --prefix /tmp/pv-auth --no-audit --no-fund playwright@1.62.1
+          /tmp/pv-auth/node_modules/.bin/playwright install --with-deps chromium
+          cat > /tmp/pv-auth-check.mjs <<'EOF'
+          import {chromium} from '/tmp/pv-auth/node_modules/playwright/index.mjs';
+          const browser=await chromium.launch({headless:true});
+          const page=await browser.newPage({viewport:{width:1420,height:900}});
+          page.on('pageerror',e=>console.log('Browser JS error category:',e.name));
+          try {
+            const response=await page.goto('https://pvlab.studio/',{waitUntil:'domcontentloaded',timeout:30000});
+            console.log('PV LAB browser homepage status:',response?.status());
+            if(response?.status()!==200)process.exitCode=1;
+            else{
+              const signin=page.locator('#lab-header-signin');
+              await signin.waitFor({state:'visible',timeout:20000});
+              await signin.click();
+              const google=page.getByRole('button',{name:/google/i}).first();
+              await google.waitFor({state:'visible',timeout:20000});
+              console.log('Google social sign-in control: VISIBLE');
+              console.log('GitHub social sign-in visible:',await page.getByRole('button',{name:/github/i}).first().isVisible().catch(()=>false));
+              await google.click();
+              await page.waitForTimeout(3500);
+              const final=new URL(page.url());
+              console.log('After clicking Google, current HOST only:',final.hostname);
+              const errorText=await page.getByText('Unable to complete action at this time',{exact:false}).count();
+              console.log('Clerk generic failure visible:',Boolean(errorText));
+            }
+          }catch(err){console.log('PUBLIC SIGN-IN CHECK FAILED:',err.name,err.message.slice(0,250));process.exitCode=1;}
+          finally{await browser.close()}
+          EOF
+          node /tmp/pv-auth-check.mjs
