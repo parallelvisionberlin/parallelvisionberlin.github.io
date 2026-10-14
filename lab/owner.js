@@ -2,7 +2,7 @@ import {loadLabAccount} from './native-account.js?v=20261012-unified-header1';
 import {createSessionRequest} from './session-request.js?v=20260927-auth1';
 const $=id=>document.getElementById(id);
 const apiBase='https://parallel-vision-lab.parallelvision.workers.dev';
-let clerk=null,revision=0,profile=null,creating=false,syncing=false;
+let clerk=null,revision=0,profile=null,creating=false,syncing=false,emailSyncReady=false,fetchSerial=0,searchTimer=null;
 const request=createSessionRequest({baseUrl:apiBase,getSession:()=>clerk?.session});
 const formatNumber=n=>Number.isSafeInteger(Number(n))?Number(n).toLocaleString('en-GB'):'—';
 const formatDate=t=>Number.isFinite(Number(t))&&Number(t)>0?new Date(Number(t)).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}):'—';
@@ -13,11 +13,11 @@ async function call(path,{method='GET',body}={}){
   if(!response.ok)throw Error(value.error||'Owner request could not be completed.');
   return value;
 }
-function rowInto(tbody,items,values){
+function rowInto(tbody,items,values,emptyMessage='Nothing to show yet.'){
   tbody.replaceChildren();
   if(!items.length){
     const tr=document.createElement('tr'),td=document.createElement('td');td.colSpan=values.length;
-    td.textContent='Nothing to show yet.';tr.append(td);tbody.append(tr);return;
+    td.textContent=emptyMessage;td.className='owner-table-empty';tr.append(td);tbody.append(tr);return;
   }
   for(const item of items){
     const tr=document.createElement('tr');
@@ -41,6 +41,11 @@ function render(data){
   $('owner-subs').textContent=formatNumber(s.activeSubscriptions);
   $('owner-redemptions').textContent=formatNumber(s.voucherClaims);
   $('owner-referral-summary').textContent=formatNumber(s.rewardedReferrals)+' verified referral rewards issued. Recent attribution is listed below.';
+  const customerCount=(data.customers||[]).length,query=$('owner-search').value.trim();
+  $('owner-customer-count').textContent=query
+    ?formatNumber(customerCount)+' matching accounts. Search applies to customers only.'
+    :formatNumber(customerCount)+(customerCount>=80?' most recent accounts shown (limit 80).':' customer accounts shown. Verified emails come directly from Clerk.');
+  $('owner-search-clear').hidden=!query;
   rowInto($('owner-customers'),data.customers||[],[
     c=>({primary:c.email||'Email not synced',secondary:c.id}),
     c=>formatDate(c.joinedAt),
@@ -48,20 +53,20 @@ function render(data){
     c=>formatNumber(c.verifiedPayments),
     c=>c.subscription&&c.subscription!=='none'?({primary:c.subscription,secondary:c.plan||''}):'—',
     c=>formatDate(c.lastPaidAt)
-  ]);
+  ],query?'No matching accounts. Try a different email or account ID.':'No customer accounts have joined yet.');
   rowInto($('owner-payments'),data.payments||[],[
     p=>({primary:p.email||p.customerId,secondary:p.email?p.customerId:''}),
     p=>p.kind==='subscription'?'Subscription invoice':'One-time purchase',
     p=>'+'+formatNumber(p.credits),
     p=>formatDate(p.paidAt),
     p=>p.reference||'—'
-  ]);
+  ],'No verified payments yet.');
   rowInto($('owner-referrals'),data.referrals||[],[
     r=>({primary:r.referrerEmail||r.referrerId,secondary:r.referrerEmail?r.referrerId:''}),
     r=>({primary:r.invitedEmail||r.invitedId,secondary:r.invitedEmail?r.invitedId:''}),
     r=>formatDate(r.joinedAt),
     r=>r.rewardedAt?'200 + 200 credits':'Awaiting qualified payment'
-  ]);
+  ],'No referral invitations have been accepted yet.');
   const vouchers=data.vouchers||[],body=$('owner-vouchers');body.replaceChildren();
   if(!vouchers.length){
     const tr=document.createElement('tr'),td=document.createElement('td');td.colSpan=6;td.textContent='No promotional codes yet.';tr.append(td);body.append(tr);
@@ -93,23 +98,38 @@ function render(data){
     }else actions.textContent='—';
     tr.append(actions);body.append(tr);
   }
-  $('owner-email-status').textContent=data.emailSyncConfigured
-    ?'Only primary Clerk emails with verified status are displayed. Use Sync emails to backfill earlier accounts.'
-    :'Verified signup emails are pending until the LAB_CLERK_SECRET_KEY Worker secret is configured.';
-  $('owner-sync').disabled=!data.emailSyncConfigured;
+  emailSyncReady=!!data.emailSyncConfigured;
+  const shownEmails=(data.customers||[]).filter(customer=>customer.email).length;
+  const directoryText=query
+    ?formatNumber(shownEmails)+' verified emails in these search results.'
+    :formatNumber(shownEmails)+' verified emails visible across '+formatNumber(customerCount)+' listed accounts.';
+  $('owner-sync-state').textContent=emailSyncReady?'Clerk email sync is configured':'Clerk email sync needs setup';
+  $('owner-sync-copy').textContent=emailSyncReady
+    ?directoryText+' Backfill can be run securely from here.'
+    :'Customer accounts and credits are available. Connect a private Clerk key to display verified signup emails.';
+  $('owner-integrations').hidden=false;
+  $('owner-setup-toggle').hidden=emailSyncReady;
+  if(emailSyncReady){$('owner-setup-guide').hidden=true;$('owner-setup-toggle').setAttribute('aria-expanded','false');}
+  $('owner-email-status').textContent=emailSyncReady
+    ?'Only verified primary Clerk emails appear here. Click Sync to check earlier accounts.'
+    :'Email addresses cannot be retrieved without the server-side Clerk key. Open the connection guide above.';
+  $('owner-sync').disabled=!emailSyncReady||syncing;
+  $('owner-last-update').textContent='Updated '+new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
   $('owner-dashboard').hidden=false;
 }
 async function refreshDashboard(){
   if(!profile?.owner)return;
-  const current=revision,search=$('owner-search').value.trim();
+  const current=revision,requestId=++fetchSerial,search=$('owner-search').value.trim();
+  $('owner-refresh').disabled=true;$('owner-refresh').textContent='Refreshing…';
   try{
     const data=await call('/api/admin/overview'+(search?'?search='+encodeURIComponent(search):''));
-    if(current!==revision)return;
+    if(current!==revision||requestId!==fetchSerial)return;
     render(data);status('');
-  }catch(error){if(current===revision)status(error.message);}
+  }catch(error){if(current===revision&&requestId===fetchSerial)status(error.message);}
+  finally{if(current===revision&&requestId===fetchSerial){$('owner-refresh').disabled=false;$('owner-refresh').textContent='Refresh data ↻';}}
 }
 async function refreshSession(){
-  const current=++revision;profile=null;$('owner-dashboard').hidden=true;$('owner-gate').hidden=true;
+  const current=++revision;fetchSerial++;profile=null;$('owner-dashboard').hidden=true;$('owner-gate').hidden=true;
   for(const id of ['owner-customers','owner-payments','owner-referrals','owner-vouchers'])$(id).replaceChildren();
   if(!clerk?.isSignedIn){status('');$('owner-gate').hidden=false;return;}
   status('Checking your owner access…');
@@ -122,7 +142,7 @@ async function refreshSession(){
 async function copyLink(url,button){
   try{
     const parsed=new URL(url);
-    if(parsed.origin!==location.origin||parsed.protocol!=='https:')throw Error();
+    if(parsed.protocol!=='https:'||!['parallelvisionlabel.com','www.parallelvisionlabel.com'].includes(parsed.hostname)||parsed.pathname!=='/lab/account.html'||parsed.username||parsed.password)throw Error();
     await navigator.clipboard.writeText(parsed.href);button.textContent='Copied';
   }catch{button.textContent='Select link to copy';$('owner-voucher-result').hidden=false;$('owner-voucher-link').value=url;$('owner-voucher-link').select();}
 }
@@ -132,14 +152,22 @@ async function deactivate(code,button){
   try{await call('/api/admin/vouchers/deactivate',{method:'POST',body:{code}});await refreshDashboard();}
   catch(error){status(error.message);}finally{button.disabled=false;}
 }
-$('owner-search-form').addEventListener('submit',event=>{event.preventDefault();void refreshDashboard();});
-$('owner-refresh').addEventListener('click',()=>void refreshDashboard());
+$('owner-search-form').addEventListener('submit',event=>{event.preventDefault();clearTimeout(searchTimer);void refreshDashboard();});
+$('owner-search').addEventListener('input',()=>{clearTimeout(searchTimer);$('owner-search-clear').hidden=!$('owner-search').value.trim();searchTimer=setTimeout(()=>void refreshDashboard(),320);});
+$('owner-search-clear').addEventListener('click',()=>{$('owner-search').value='';$('owner-search-clear').hidden=true;clearTimeout(searchTimer);void refreshDashboard();$('owner-search').focus();});
+$('owner-refresh').addEventListener('click',()=>{clearTimeout(searchTimer);void refreshDashboard();});
+$('owner-setup-toggle').addEventListener('click',()=>{
+  const open=$('owner-setup-guide').hidden;$('owner-setup-guide').hidden=!open;
+  $('owner-setup-toggle').setAttribute('aria-expanded',String(open));
+});
 $('owner-sync').addEventListener('click',async()=>{
   if(syncing||!profile?.owner)return;syncing=true;$('owner-sync').disabled=true;$('owner-email-status').textContent='Syncing verified Clerk emails…';
   try{const result=await call('/api/admin/customers/sync',{method:'POST'});await refreshDashboard();
-    $('owner-email-status').textContent='Synced '+result.synced+' of '+result.requested+' account records. Run again if more remain.';}
+    $('owner-email-status').textContent=result.requested===0
+      ?'Everything eligible for email sync is already checked.'
+      :formatNumber(result.synced)+' of '+formatNumber(result.requested)+' account records checked. You can run Sync again for older accounts.';}
   catch(error){$('owner-email-status').textContent=error.message;}
-  finally{syncing=false;$('owner-sync').disabled=false;}
+  finally{syncing=false;$('owner-sync').disabled=!emailSyncReady;}
 });
 $('owner-voucher-form').addEventListener('submit',async event=>{
   event.preventDefault();if(!profile?.owner||creating)return;
@@ -151,13 +179,36 @@ $('owner-voucher-form').addEventListener('submit',async event=>{
       credits:Number(data.get('credits')),maxRedemptions:Number(data.get('maxRedemptions')),
       expiresAt,code:String(data.get('code')||'').trim(),note:String(data.get('note')||'').trim()
     }});
-    $('owner-voucher-link').value=result.voucher.url;$('owner-voucher-result').hidden=false;
+    $('owner-voucher-link').value=result.voucher.url;
+    $('owner-voucher-code').value=result.voucher.code;
+    $('owner-voucher-placeholder').hidden=true;$('owner-voucher-result').hidden=false;
+    $('owner-copy-link').textContent='Copy link';$('owner-copy-code').textContent='Copy code';
     $('owner-create-status').textContent=result.voucher.code+' is ready. No credits are issued until redeemed.';
     await refreshDashboard();
   }catch(error){$('owner-create-status').textContent=error.message;}
   finally{creating=false;$('owner-create-voucher').disabled=false;}
 });
 $('owner-copy-link').addEventListener('click',()=>void copyLink($('owner-voucher-link').value,$('owner-copy-link')));
+$('owner-copy-code').addEventListener('click',async()=>{
+  const button=$('owner-copy-code'),code=$('owner-voucher-code').value;
+  try{await navigator.clipboard.writeText(code);button.textContent='Copied';}
+  catch{$('owner-voucher-code').select();button.textContent='Select to copy';}
+});
+function updateVoucherEstimate(){
+  const credits=Number($('owner-voucher-credits').value),limit=Number($('owner-voucher-limit').value);
+  const valid=Number.isSafeInteger(credits)&&credits>=1&&credits<=20000&&Number.isSafeInteger(limit)&&limit>=1&&limit<=1000;
+  $('owner-voucher-estimate').textContent=valid
+    ?formatNumber(credits)+' credits × '+formatNumber(limit)+(limit===1?' person':' people')+' = '+formatNumber(credits*limit)+' credits maximum. Issued only when claimed.'
+    :'Choose a valid credit amount and redemption limit.';
+  for(const preset of document.querySelectorAll('[data-credit-preset]'))
+    preset.setAttribute('aria-pressed',String(Number(preset.dataset.creditPreset)===credits));
+}
+$('owner-voucher-form').addEventListener('input',updateVoucherEstimate);
+$('owner-voucher-form').addEventListener('change',updateVoucherEstimate);
+for(const preset of document.querySelectorAll('[data-credit-preset]'))preset.addEventListener('click',()=>{
+  $('owner-voucher-credits').value=preset.dataset.creditPreset;updateVoucherEstimate();
+});
+updateVoucherEstimate();
 $('owner-signin').addEventListener('click',()=>clerk?.openSignIn());
 try{clerk=await loadLabAccount();clerk.addListener(()=>void refreshSession());await refreshSession();}
 catch{status('Sign-in could not load. Reload this page to try again.');$('owner-gate').hidden=false;$('owner-signin').disabled=true;}

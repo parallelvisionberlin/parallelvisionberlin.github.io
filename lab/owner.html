@@ -9,7 +9,7 @@
 <title>Owner / PV LAB</title>
 <link rel="preload" href="./fonts/dm-sans-latin-v17.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="icon" href="./branding/pv-mark.png" type="image/png">
-<link rel="stylesheet" href="./owner.css?v=20261014-owner1">
+<link rel="stylesheet" href="./owner.css?v=20261014-owner2">
 </head>
 <body>
 <a class="owner-skip" href="#owner-main">Skip to dashboard</a>
@@ -25,6 +25,32 @@
   <p id="owner-status" class="owner-status" role="status" aria-live="polite">Checking owner access…</p>
   <div id="owner-gate" class="owner-gate" hidden><p>Sign in with the PV LAB owner account to open this workspace.</p><button type="button" id="owner-signin">Sign in</button></div>
   <div id="owner-dashboard" hidden>
+    <div class="owner-jumpbar">
+      <nav aria-label="Dashboard sections">
+        <a href="#owner-customers-section">Customers</a>
+        <a href="#owner-payments-section">Payments</a>
+        <a href="#owner-referrals-section">Referrals</a>
+        <a href="#owner-vouchers-section">Vouchers</a>
+      </nav>
+      <div class="owner-jumpbar-actions"><span id="owner-last-update">Secure owner ledger</span><button id="owner-refresh" type="button">Refresh data ↻</button></div>
+    </div>
+    <div id="owner-integrations" class="owner-integration" hidden>
+      <span class="owner-integration-light" aria-hidden="true"></span>
+      <div class="owner-integration-message"><span class="owner-integration-label">CUSTOMER DIRECTORY / CLERK</span>
+        <strong id="owner-sync-state">Checking connection</strong><p id="owner-sync-copy">Checking secure email availability.</p>
+      </div>
+      <button id="owner-setup-toggle" type="button" aria-expanded="false" aria-controls="owner-setup-guide">Connection guide <span aria-hidden="true">↗</span></button>
+    </div>
+    <div id="owner-setup-guide" class="owner-setup-guide" hidden>
+      <p class="owner-integration-label">ONE-TIME SERVER SETUP</p>
+      <h3>Connect verified customer emails.</h3>
+      <ol>
+        <li>In the <a href="https://dashboard.clerk.com/" target="_blank" rel="noopener noreferrer">Clerk dashboard ↗</a>, locate the backend secret key for the production PV LAB application.</li>
+        <li>In <a href="https://dash.cloudflare.com/" target="_blank" rel="noopener noreferrer">Cloudflare ↗</a>, open Workers &amp; Pages → <strong>parallel-vision-lab</strong> → Settings → Variables and Secrets. Add an encrypted secret named <code>LAB_CLERK_SECRET_KEY</code>.</li>
+        <li>Save and deploy the secret, reload this page, then select <strong>Sync verified emails</strong> to backfill existing accounts.</li>
+      </ol>
+      <p>Keep the key on the Worker. Never paste a secret into PV LAB's website code or this dashboard.</p>
+    </div>
     <section class="owner-metrics" aria-label="Account summary">
       <div><span>Accounts created</span><strong id="owner-total-accounts">0</strong></div>
       <div><span>Customers who paid</span><strong id="owner-paying">0</strong></div>
@@ -32,45 +58,59 @@
       <div><span>Voucher redemptions</span><strong id="owner-redemptions">0</strong></div>
     </section>
 
-    <section class="owner-section" aria-labelledby="owner-customers-title">
-      <div class="owner-section-head"><div><span class="owner-index">01 / AUDIENCE</span><h2 id="owner-customers-title">Customers.</h2></div><form id="owner-search-form" class="owner-search" role="search"><label for="owner-search">Find an account</label><input id="owner-search" type="search" placeholder="Email or account ID" maxlength="80" autocomplete="off"><button type="submit">Search</button></form></div>
-      <div class="owner-toolbar"><p>Verified email is retrieved privately from Clerk, never supplied by the browser. Up to 80 matching accounts are shown.</p><div><button id="owner-sync" type="button">Sync emails</button><button id="owner-refresh" type="button">Refresh</button></div></div>
+    <section class="owner-section" id="owner-customers-section" aria-labelledby="owner-customers-title">
+      <div class="owner-section-head"><div><span class="owner-index">01 / AUDIENCE</span><h2 id="owner-customers-title">Customers.</h2></div><form id="owner-search-form" class="owner-search" role="search"><label for="owner-search">Find an account</label><input id="owner-search" type="search" placeholder="Email or account ID" maxlength="80" autocomplete="off"><button id="owner-search-clear" type="button" hidden>Clear</button><button type="submit">Search</button></form></div>
+      <div class="owner-toolbar"><p id="owner-customer-count">Loading customer directory…</p><div><button id="owner-sync" type="button">Sync verified emails</button></div></div>
       <p id="owner-email-status" class="owner-small" role="status"></p>
       <div class="owner-table-wrap"><table><thead><tr><th>Email / account</th><th>Joined</th><th>Balance</th><th>Paid events</th><th>Subscription</th><th>Last payment</th></tr></thead><tbody id="owner-customers"></tbody></table></div>
     </section>
 
-    <section class="owner-section" aria-labelledby="owner-payments-title">
+    <section class="owner-section" id="owner-payments-section" aria-labelledby="owner-payments-title">
       <div class="owner-section-head"><div><span class="owner-index">02 / CONFIRMED PAYMENTS</span><h2 id="owner-payments-title">Purchases.</h2></div><span class="owner-section-aside">Stripe-verified ledger entries, not checkout clicks</span></div>
       <div class="owner-table-wrap"><table><thead><tr><th>Customer</th><th>Type</th><th>Credits issued</th><th>Paid date</th><th>Receipt</th></tr></thead><tbody id="owner-payments"></tbody></table></div>
       <p class="owner-small">These rows identify settled credit purchases and subscription invoices. They do not estimate gross revenue or taxes from credit values.</p>
     </section>
 
-    <section class="owner-section" aria-labelledby="owner-referrals-title">
+    <section class="owner-section" id="owner-referrals-section" aria-labelledby="owner-referrals-title">
       <div class="owner-section-head"><div><span class="owner-index">03 / CREATOR REFERRALS</span><h2 id="owner-referrals-title">Invitations.</h2></div><span class="owner-section-aside">Give 200. Get 200. After a verified first purchase of €10 or more.</span></div>
       <p id="owner-referral-summary" class="owner-small"></p>
       <div class="owner-table-wrap"><table><thead><tr><th>Invited by</th><th>New member</th><th>Joined</th><th>Reward</th></tr></thead><tbody id="owner-referrals"></tbody></table></div>
     </section>
 
-    <section class="owner-section" aria-labelledby="owner-vouchers-title">
+    <section class="owner-section" id="owner-vouchers-section" aria-labelledby="owner-vouchers-title">
       <div class="owner-section-head"><div><span class="owner-index">04 / GIFTS &amp; CAMPAIGNS</span><h2 id="owner-vouchers-title">Credit invitations.</h2></div><span class="owner-section-aside">A link or a code. The same wallet.</span></div>
       <div class="owner-voucher-layout">
         <form id="owner-voucher-form" class="owner-voucher-form">
           <p class="owner-form-title">Create a voucher</p>
           <div class="owner-form-grid">
-            <label>Credits per person <input name="credits" type="number" min="1" max="20000" step="1" value="200" required></label>
-            <label>Maximum redemptions <input name="maxRedemptions" type="number" min="1" max="1000" step="1" value="1" required></label>
+            <label>Credits per person <input id="owner-voucher-credits" name="credits" type="number" min="1" max="20000" step="1" value="200" required></label>
+            <label>Maximum redemptions <input id="owner-voucher-limit" name="maxRedemptions" type="number" min="1" max="1000" step="1" value="1" required></label>
             <label>Expires on <input name="expires" type="date"></label>
             <label>Custom code <span class="owner-optional">optional</span><input name="code" type="text" maxlength="24" placeholder="Automatically generated" autocomplete="off" spellcheck="false"></label>
           </div>
+          <div class="owner-credit-presets" role="group" aria-label="Credit amount presets">
+            <button type="button" data-credit-preset="200" aria-pressed="true">200 credits</button>
+            <button type="button" data-credit-preset="500" aria-pressed="false">500 credits</button>
+            <button type="button" data-credit-preset="1000" aria-pressed="false">1,000 credits</button>
+          </div>
+          <p id="owner-voucher-estimate" class="owner-voucher-estimate" aria-live="polite">200 credits × 1 recipient = 200 credits maximum.</p>
           <label>Internal note <span class="owner-optional">optional</span><input name="note" type="text" maxlength="160" placeholder="Creator invite / giveaway / campaign" autocomplete="off"></label>
-          <button id="owner-create-voucher" type="submit" class="owner-primary">Generate credit link ↗</button>
+          <button id="owner-create-voucher" type="submit" class="owner-primary">Create invitation <span aria-hidden="true">↗</span></button>
           <p id="owner-create-status" class="owner-small" role="status"></p>
         </form>
+        <div class="owner-voucher-preview" id="owner-voucher-placeholder">
+          <span class="owner-index">YOUR NEXT INVITATION</span>
+          <div class="owner-voucher-preview-icon" aria-hidden="true">↗</div>
+          <h3>Give someone room to create.</h3>
+          <p>Choose an amount, set a limit, then generate a private link. Credits are issued only when redeemed.</p>
+        </div>
         <div class="owner-voucher-result" id="owner-voucher-result" hidden>
           <span class="owner-index">LINK READY</span><h3>Ready to share.</h3>
           <p>The recipient signs in and redeems this voucher. Credits appear in their normal PV LAB balance.</p>
           <label for="owner-voucher-link">Your private credit link</label>
-          <div class="owner-result-copy"><input id="owner-voucher-link" type="url" readonly><button id="owner-copy-link" type="button">Copy link</button></div>
+          <div class="owner-result-copy"><input id="owner-voucher-link" type="url" readonly aria-label="Voucher link"><button id="owner-copy-link" type="button">Copy link</button></div>
+          <label for="owner-voucher-code">Or share the code</label>
+          <div class="owner-result-copy"><input id="owner-voucher-code" type="text" readonly aria-label="Voucher code"><button id="owner-copy-code" type="button">Copy code</button></div>
         </div>
       </div>
       <div class="owner-table-wrap owner-vouchers-table"><table><thead><tr><th>Voucher</th><th>Credits</th><th>Redeemed / limit</th><th>Expires</th><th>Status</th><th>Action</th></tr></thead><tbody id="owner-vouchers"></tbody></table></div>
@@ -78,6 +118,6 @@
     <footer class="owner-footer"><span>PV LAB / BERLIN</span><span>Owner access is verified on the server for every request.</span></footer>
   </div>
 </main>
-<script type="module" src="./owner.js?v=20261014-owner1"></script>
+<script type="module" src="./owner.js?v=20261014-owner2"></script>
 </body>
 </html>
