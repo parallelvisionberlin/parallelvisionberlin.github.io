@@ -1351,7 +1351,7 @@ function populateImageModelMenu(query=''){
   for(const option of $('image-engine').options){
     if(option.hidden)continue;
     const name=option.textContent,detail=imageModelDescriptions[option.value]||'Image creation';
-    if(value&&!(name+' '+detail+(['seedream','seedreamlite','flash'].includes(option.value)?' Artistic Freedom':'')).toLowerCase().includes(value))continue;
+    if(value&&!(name+' '+detail+(['seedream','seedreamlite','flash','zspicy'].includes(option.value)?' Artistic Freedom':'')).toLowerCase().includes(value))continue;
     const row=document.createElement('button');row.type='button';
     row.className='composer-model-option';row.dataset.value=option.value;row.disabled=busy||option.disabled;
     row.setAttribute('role','option');row.setAttribute('aria-selected',String(option.value===imageEngine));
@@ -1359,7 +1359,7 @@ function populateImageModelMenu(query=''){
     const info=document.createElement('span');info.className='composer-model-info';
     const title=document.createElement('strong');title.textContent=name;
     const heading=document.createElement('span');heading.className='composer-model-heading';heading.append(title);
-    if(['seedream','seedreamlite','flash'].includes(option.value)){
+    if(['seedream','seedreamlite','flash','zspicy'].includes(option.value)){
       const badge=document.createElement('span');badge.className='composer-model-freedom';
       badge.title='SpicyAPI adds no platform content filter. The model may still decline a request.';
       const star=document.createElement('span');star.setAttribute('aria-hidden','true');star.textContent='✳';
