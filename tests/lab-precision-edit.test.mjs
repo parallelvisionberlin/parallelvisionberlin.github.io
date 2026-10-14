@@ -2,13 +2,15 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   precisionPoint,precisionOutputSize,precisionPrice,precisionFinalMetadata,
-  precisionEditRoute,PRECISION_SEGMENT_MODEL,PRECISION_SEGMENT_ESTIMATE_MICROS,PRECISION_LARGE_IMAGE_PIXELS,PRECISION_COMPOSITE_LIMIT
+  precisionEditRoute,PRECISION_SEGMENT_MODEL,PRECISION_SEGMENT_ESTIMATE_MICROS,PRECISION_SEGMENT_CUSTOMER_CREDITS,precisionCustomerCredits,PRECISION_LARGE_IMAGE_PIXELS,PRECISION_COMPOSITE_LIMIT
 } from '../lab-worker/precision-edit.mjs';
 import {controlledRepairParameters} from '../lab-worker/fal-controlled-pose.mjs';
 
 test('Magic Select uses the verified SAM 3 endpoint and the current published estimate',()=>{
   assert.equal(PRECISION_SEGMENT_MODEL,'fal-ai/sam-3/image');
   assert.equal(PRECISION_SEGMENT_ESTIMATE_MICROS,5000);
+  assert.equal(PRECISION_SEGMENT_CUSTOMER_CREDITS,7);
+  assert.equal(precisionCustomerCredits(225000),104);
   assert.deepEqual(precisionPoint({x:27.4,y:43.1},500,300),{x:27,y:43,label:1,object_id:1});
   for(const point of [{x:-1,y:20},{x:500,y:1},{x:1,y:300},{x:NaN,y:0},{x:'12',y:2},null])
     assert.throws(()=>precisionPoint(point,500,300),/inside the photograph/);
@@ -54,6 +56,6 @@ test('Precision routes deny unverified customer spending before touching storage
     source:()=>{accessed=true;}};
   const request=new Request('https://parallel-vision-lab.parallelvision.workers.dev/api/precision/segment',{method:'POST'});
   await assert.rejects(precisionEditRoute(request,{FAL_KEY:'synthetic-fal-key',LAB_SECRET:'synthetic-signing-secret'},'customer-1',new URL(request.url),d),
-    e=>e.status===403&&/owner-only/.test(e.message));
+    e=>e.status===403&&/not enabled/.test(e.message));
   assert.equal(accessed,false);
 });
