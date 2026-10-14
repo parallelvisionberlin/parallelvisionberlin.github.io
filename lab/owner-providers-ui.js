@@ -87,6 +87,19 @@ export function renderOwnerProviderFinances(data){
     const link=element('a','','Billing dashboard ↗');
     link.href=billingUrls[p.id];link.target='_blank';link.rel='noopener noreferrer';
     actions.append(statusOf(p),link);row.append(actions);
+    if(p.id==='spicy'&&p.funding){
+      const amounts=element('div','owner-provider-key-usage');
+      amounts.append(element('p','','USD funding breakdown · not additive to wallet balance'));
+      const ul=document.createElement('ul');
+      for(const [key,label] of [['prepaid','Prepaid available'],['grants','Promotional grants'],['creditAvailable','Approved credit available']]){
+        if(p.funding[key]!=null){
+          const item=element('li','');
+          item.append(element('strong','',label),element('span','',' · '+(money(p.funding[key],'USD')||'Unavailable')));
+          ul.append(item);
+        }
+      }
+      amounts.append(ul);row.append(amounts);
+    }
     if(p.id==='spicy'&&Array.isArray(p.keyUsage)){
       const keys=element('div','owner-provider-key-usage');
       keys.append(element('p','','SpicyAPI · one shared wallet; per-key settled spending (UTC)'));
