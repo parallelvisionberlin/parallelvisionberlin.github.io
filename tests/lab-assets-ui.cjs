@@ -279,8 +279,9 @@ assert.deepEqual(errors,[]);console.log('PASS Flash defaults to 2K, Kling remain
 await page.evaluate(()=>window.__setTestJobs([]));
 await page.click('#tool-upscale');
 assert.equal(await page.locator('#canvas-import').isVisible(),true);
-assert.equal(await page.locator('#empty-title').textContent(),'Vision Upscaler');
-assert.equal(await page.locator('#upscale-engine-credit').textContent(),'Powered by ByteDance SeedVR2');
+assert.equal(await page.locator('#empty-title').textContent(),'Upscaler');
+assert.equal(await page.locator('#upscale-model-display').isVisible(),true);
+assert.match(await page.locator('#upscale-model-display').innerText(),/ByteDance.*SeedVR2/s);
 assert.equal(await page.locator('#upscale-info').getAttribute('open'),null);
 console.log('UPSCALE_DESKTOP='+Buffer.from(await page.screenshot({type:'jpeg',quality:75})).toString('base64'));
 const canvasBox=await page.locator('.stage').boundingBox(), controlsBox=await page.locator('.controls').boundingBox();

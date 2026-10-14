@@ -210,7 +210,7 @@ function prewarmSeedreamDeck(){
 let upscaleQuote=null,upscaleQuoteNeedsCheck=false,upscaleQuoteTimer=null,upscalePriceMessage='',upscaleManualReviewRequired=false,upscaleManualReviewKey='';
 let upscaleEngine='seedvr2';
 const UPSCALE_MODELS=Object.freeze({
-  seedvr2:{name:'Vision Upscaler',provider:'ByteDance · fal.ai',model:'fal-ai/seedvr/upscale/image',pricing:'https://fal.ai/models/fal-ai/seedvr/upscale/image',price:'Provider estimate: $0.001 per output megapixel.',description:'Restore photographic detail in hair, skin and fabric. Choose 2× or 4× enlargement, up to 32 megapixels. Generative restoration can subtly alter details.'},
+  seedvr2:{name:'SeedVR2',provider:'ByteDance · fal.ai',model:'fal-ai/seedvr/upscale/image',pricing:'https://fal.ai/models/fal-ai/seedvr/upscale/image',price:'Provider estimate: $0.001 per output megapixel.',description:'Restore photographic detail in hair, skin and fabric. Choose 2× or 4× enlargement, up to 32 megapixels. Generative restoration can subtly alter details.'},
   spicy:{name:'Image Upscaler v1',provider:'SpicyAPI',model:'spicyapi/image-upscaler-v1/upscale',pricing:'https://spicyapi.ai/models/image-upscaler-v1',price:'Published price: $0.012 per image, the same for every size and file format.',description:'Enlarge one finished image, keeping its framing and aspect ratio. Size tiers are approximately 4, 17 and 67 megapixels. Choose a tier above your source size. No prompt, creativity or face controls.'},
   'topaz-precision':{name:'Topaz Precision',provider:'FAL',model:'topaz/upscale/image/precision',pricing:'https://fal.ai/models/topaz/upscale/image/precision',price:'Published price: $0.08 per started 24 megapixels of output.',description:'Enlarge while preserving the photograph. Standard V2 is the general option; High Fidelity V3 is for detailed sources. Choose 2× or 4× width and height. Face enhancement and cropping stay off.'},
   'topaz-wonder':{name:'Topaz Wonder 3.5',provider:'FAL',model:'topaz/upscale/image/generative',pricing:'https://fal.ai/models/topaz/upscale/image/generative',price:'Published price: $0.08 per started 8 megapixels of output.',description:'Restore small or blurry images with reconstructed detail. Texture and facial details may change. Choose 2× or 4× width and height. Face enhancement and cropping stay off.'}
@@ -515,7 +515,7 @@ function upscaleMode(p){return Object.hasOwn(UPSCALE_MODELS,p?.upscaleEngine)?p.
 function upscaleName(p){const model=UPSCALE_MODELS[upscaleMode(p)];return model.name+(upscaleMode(p)==='topaz-precision'?' / '+(p.topazModel||'Standard V2'):'')+' · '+model.provider;}
 function upscaleSize(p){return p.targetWidth&&p.targetHeight?p.targetWidth+' × '+p.targetHeight:p.scale?p.scale+'×':String(p.resolution||'').toUpperCase();}
 function updateUpscaleModel(){
-  const active=tool==='upscale',fal=isFalUpscale(),model=UPSCALE_MODELS[upscaleEngine];$('upscale-model-control').hidden=true;$('upscale-topaz-control').hidden=!active||upscaleEngine!=='topaz-precision';$('upscale-scale-control').hidden=!fal;$('mode-heading').parentElement.classList.toggle('upscale-mode',active);
+  const active=tool==='upscale',fal=isFalUpscale(),model=UPSCALE_MODELS[upscaleEngine];$('upscale-model-control').hidden=true;$('upscale-model-display').hidden=!active;$('upscale-topaz-control').hidden=!active||upscaleEngine!=='topaz-precision';$('upscale-scale-control').hidden=!fal;$('mode-heading').parentElement.classList.toggle('upscale-mode',active);
   for(const option of $('upscale-engine').options)option.disabled=option.value!=='spicy'&&!config.falEnabled;
   if(!active)return;
   $('resolution-control').hidden=fal;$('engine-name').textContent=model.name.toUpperCase()+' · '+model.provider.toUpperCase();
@@ -752,7 +752,7 @@ function setTool(value){
   $('last-upload').hidden=upscale||image&&imageEngine==='soulpro';$('start-label').textContent=upscale?'Image to upscale':image&&imageEngine==='soulpro'?'Base image':'Start frame';
   $('upscale-info').hidden=!upscale;$('prompt').hidden=upscale;$('prompt-label').hidden=upscale;$('resolution-control').hidden=image&&(imageEngine==='soul'&&!isReinterpret()||imageEngine==='fal'||imageEngine==='soulpro');$('ratio-control').hidden=upscale||image&&imageEngine==='soulpro';
   $('mode-heading').textContent=upscale?'03 / Image Upscale':image&&imageEngine==='soulpro'?'02 / PV Soul Pro · Nina Reinterpret':image?'02 / Text to Image + Reference Edit':'01 / Image to Video';
-  $('engine-name').textContent=upscale?'VISION UPSCALER · BYTEDANCE SEEDVR2':image?(imageEngine==='gemini21'?'NANO BANANA 2.1':imageEngine==='gemini'?'NANO BANANA PRO':imageEngine==='soulpro'?'PV SOUL PRO':imageEngine==='soul'?'PV SOUL':imageEngine==='fal'?'CONTROLLED POSE · FAL':imageEngine==='seedreamlite'?'SEEDREAM 5 LITE':imageEngine==='qwen3'?'QWEN IMAGE 3.0':imageEngine==='zspicy'?'Z-IMAGE SPICY':'SEEDREAM 5.0 PRO'):'WAN 3.0';
+  $('engine-name').textContent=upscale?'BYTEDANCE SEEDVR2':image?(imageEngine==='gemini21'?'NANO BANANA 2.1':imageEngine==='gemini'?'NANO BANANA PRO':imageEngine==='soulpro'?'PV SOUL PRO':imageEngine==='soul'?'PV SOUL':imageEngine==='fal'?'CONTROLLED POSE · FAL':imageEngine==='seedreamlite'?'SEEDREAM 5 LITE':imageEngine==='qwen3'?'QWEN IMAGE 3.0':imageEngine==='zspicy'?'Z-IMAGE SPICY':'SEEDREAM 5.0 PRO'):'WAN 3.0';
   $('prompt-label').textContent=image?'Image direction':'Motion direction';$('prompt').maxLength=image?(imageEngine==='seedreamlite'?3000:5000):6000;
   $('prompt').placeholder=image?(imageEngine==='zspicy'?'Describe an original image from words. This model does not accept photographs.':'Describe the image. Add references for identity, wardrobe, a room or an object, or start with text only.'):'One clear action, one camera move, light, atmosphere and sound.';
   options('resolution',upscale?['2k','4k','8k']:image?(imageEngine==='soulpro'?['source']:imageEngine==='fal'?['1k']:['gemini','gemini21'].includes(imageEngine)?['1k','2k','4k']:imageEngine==='zspicy'?['1k','1.5k']:imageEngine==='seedreamlite'?['2k']:imageEngine==='soul'?(isReinterpret()?['1k','1.5k']:['native']):['1k','2k']):['480p','720p','1080p'],upscale?'4k':image?(imageEngine==='soulpro'?'source':imageEngine==='soul'?(isReinterpret()?'1.5k':'native'):imageEngine==='zspicy'?'1.5k':['fal','seedream','kling'].includes(imageEngine)?'1k':'2k'):engine==='seedance'?'720p':'1080p');
@@ -1682,8 +1682,8 @@ $('video-detail-delete').onclick=()=>{
 /* Studio entry actions are UI only: never trigger paid requests. */
 function emptyExperience(){
   if(tool==='upscale')return {
-    title:'Vision Upscaler',
-    description:'Enhance resolution and detail. Keep your original composition.',
+    title:'Upscaler',
+    description:'Restore fine detail and resolution while keeping your original composition.',
     action:'source',button:'Upload image',secondary:'',secondaryAction:'',
     footnote:'UPSCALED OUTPUTS ARE SAVED IN ASSETS'
   };
