@@ -29,14 +29,12 @@
     overflow-x:hidden!important;
     overflow-y:auto!important;
     overscroll-behavior-x:none;
-    overscroll-behavior-y:contain;
+    overscroll-behavior-y:auto;
     -webkit-overflow-scrolling:touch;
     touch-action:pan-y;
     scroll-behavior:auto!important;
     scroll-snap-type:none!important;
-    scrollbar-width:none;
   }
-  html.pv-native-lab #image-lightbox .image-detail-layout::-webkit-scrollbar {display:none}
   html.pv-native-lab #image-lightbox .image-detail-media {
     display:block!important;
     width:100%!important;
