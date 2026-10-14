@@ -1413,68 +1413,54 @@ body:has(#app[hidden])>#studio-header .studio-assets-icon{display:none!important
 }
 @media(prefers-reduced-motion:reduce){#app.upscale-studio-active #canvas-import{transition:none}}
 
-/* Premium ByteDance model information disclosure, Upscaler only. */
-#app #upscale-model-display[hidden]{display:none!important}
-#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-model-display{position:relative;z-index:10}
-#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-model-display[open]{z-index:45}
+/* Real interactive Upscaler models: ByteDance Premium, Topaz Precision and Wonder. */
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-model-display{position:relative;z-index:20}
 #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-model-trigger{
-  display:flex;flex-direction:column;gap:4px;list-style:none;cursor:pointer;outline:none;
+  box-sizing:border-box;width:100%;margin:0;cursor:pointer;text-align:left;
+  font-family:'DM Sans',sans-serif;transition:border-color .15s,background .15s
 }
-#app.upscale-studio-active #upscale-model-trigger::-webkit-details-marker{display:none}
-#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-model-trigger .upscale-model-readout{
-  box-sizing:border-box;width:100%;padding-right:12px;gap:9px;
-  transition:border-color .14s ease,background .14s ease;
+#app.upscale-studio-active #upscale-model-trigger:disabled{cursor:default;opacity:.6}
+#app.upscale-studio-active #upscale-model-trigger:hover:not(:disabled),
+#app.upscale-studio-active #upscale-model-trigger[aria-expanded="true"]{border-color:#626773;background:#292b31}
+#app.upscale-studio-active .upscale-model-chevron{
+  flex:none;width:16px;height:16px;margin-left:1px;fill:none;stroke:#a6a8b0;
+  stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;transition:transform .16s
 }
-#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-model-trigger:hover .upscale-model-readout,
-#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-model-display[open] .upscale-model-readout{
-  border-color:#616570;background:#282a30;
+#app.upscale-studio-active #upscale-model-trigger[aria-expanded="true"] .upscale-model-chevron{transform:rotate(180deg)}
+#app #upscale-model-menu[hidden]{display:none!important}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-model-menu{
+  position:absolute;z-index:140;top:calc(100% + 8px);left:0;box-sizing:border-box;
+  width:100%;min-width:min(330px,calc(100vw - 34px));max-width:calc(100vw - 34px);
+  display:flex;flex-direction:column;gap:3px;padding:6px;
+  border:1px solid #494b55;border-radius:10px;background:#202126;
+  box-shadow:0 18px 48px #000b,inset 0 1px #ffffff10
 }
-#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-model-trigger:focus-visible .upscale-model-readout{
-  outline:2px solid #d8d9de;outline-offset:2px;
+#app.upscale-studio-active .upscale-model-option{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  min-height:62px;width:100%;min-width:0;padding:11px 12px;
+  text-align:left;border:1px solid transparent;border-radius:7px;
+  background:transparent;color:#f0f0f2;cursor:pointer;font-family:'DM Sans',sans-serif
 }
-#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .upscale-model-id{font-size:11px}
-#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .upscale-model-chevron{
-  flex:none;width:14px;height:14px;color:#adb0b8;transition:transform .14s ease;
+#app.upscale-studio-active .upscale-model-option>span:first-child{display:flex;flex-direction:column;gap:5px;min-width:0}
+#app.upscale-studio-active .upscale-model-option strong{font:600 12px/1.2 'DM Sans',sans-serif}
+#app.upscale-studio-active .upscale-model-option small{font:400 10px/1.35 'DM Sans',sans-serif;color:#a3a7af}
+#app.upscale-studio-active .upscale-model-option[aria-checked="true"]{background:#2b2d34;border-color:#454850}
+#app.upscale-studio-active .upscale-model-option:hover{background:#32343b;border-color:#4c505b}
+#app.upscale-studio-active #upscale-model-trigger:focus-visible,
+#app.upscale-studio-active .upscale-model-option:focus-visible{outline:2px solid #e0e1e4;outline-offset:2px}
+#app.upscale-studio-active .upscale-model-selected{visibility:hidden;flex:none;font-size:15px;color:#f0f1f2}
+#app.upscale-studio-active .upscale-model-option[aria-checked="true"] .upscale-model-selected{visibility:visible}
+#app.upscale-studio-active #upscale-topaz-control[hidden]{display:none!important}
+#app.upscale-studio-active #upscale-info #upscale-topaz-control:not([hidden]){
+  display:flex;flex-direction:column;gap:6px;max-width:250px;margin:10px 0 12px
 }
-#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-model-display[open] .upscale-model-chevron{transform:rotate(180deg)}
-#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .upscale-model-popup{
-  position:absolute;left:0;top:calc(100% + 7px);z-index:55;box-sizing:border-box;
-  width:min(405px,calc(100vw - 32px));padding:12px;border:1px solid #474a52;
-  border-radius:10px;background:#1c1e23;box-shadow:0 18px 40px #0009,inset 0 1px #ffffff0a;
-}
-#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .upscale-model-popup-head{
-  display:flex;justify-content:space-between;gap:12px;margin:0 3px 11px;
-  color:#959ba5;font:600 10px/1.4 'DM Sans',sans-serif;letter-spacing:.095em;
-}
-#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .upscale-model-option{
-  display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-width:0;
-  padding:12px;min-height:68px;border:1px solid #50545e;border-radius:7px;
-  background:#292b31;color:#f4f4f5;cursor:pointer;text-align:left;
-}
-#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .upscale-model-option:hover{background:#34363d;border-color:#6c7078}
-#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .upscale-model-option:focus-visible{outline:2px solid #d8d9de;outline-offset:2px}
-#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .upscale-model-option-copy{display:flex;min-width:0;flex-direction:column;gap:6px}
-#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .upscale-model-option-copy strong{font:600 13px/1.2 'DM Sans',sans-serif;color:#f4f4f5}
-#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .upscale-model-option-copy small{font:400 11px/1.4 'DM Sans',sans-serif;color:#aaadb6}
-#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .upscale-model-selected{
-  flex:none;display:grid;place-items:center;width:24px;height:24px;border:1px solid #8b8e96;
-  border-radius:50%;color:#ededee;font:600 12px/1 'DM Sans',sans-serif;
-}
-#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .upscale-model-popup-note{
-  margin:12px 3px 9px;color:#b3b5bc;font:400 11px/1.65 'DM Sans',sans-serif;
-}
-#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .upscale-model-popup-link{
-  margin-left:3px;display:inline-flex;align-items:center;gap:5px;color:#e3e4e7;
-  text-decoration:none;font:500 11px/1.5 'DM Sans',sans-serif;
-}
-#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .upscale-model-popup-link:hover{text-decoration:underline}
-#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .upscale-model-popup-link:focus-visible{outline:2px solid #d8d9de;outline-offset:2px}
+#app.upscale-studio-active #upscale-info #upscale-topaz-model{width:100%}
 @media(max-width:640px){
-  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .upscale-model-popup{
-    position:static;width:100%;margin-top:8px;box-shadow:0 8px 20px #0006;
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-model-menu{
+    min-width:0;max-width:100%
   }
 }
 @media(prefers-reduced-motion:reduce){
   #app.upscale-studio-active .upscale-model-chevron,
-  #app.upscale-studio-active #upscale-model-trigger .upscale-model-readout{transition:none}
+  #app.upscale-studio-active #upscale-model-trigger{transition:none}
 }
