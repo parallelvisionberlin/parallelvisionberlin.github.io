@@ -235,14 +235,21 @@ try{
               const box=el.getBoundingClientRect(),style=getComputedStyle(el);
               const row=el.querySelector('a:not([hidden])');
               const logo=getComputedStyle(el.querySelector('.pv-account-details'),'::before');
+              const root=el.closest('details'),seam=getComputedStyle(root,'::after');
+              const avatarBox=root.querySelector('.pv-account-avatar').getBoundingClientRect();
               return {position:style.position,width:box.width,top:box.top,headerBottom:document.getElementById('studio-header').getBoundingClientRect().bottom,
-                fontSize:Number.parseFloat(getComputedStyle(row).fontSize),logoWidth:Number.parseFloat(logo.width)};
+                fontSize:Number.parseFloat(getComputedStyle(row).fontSize),logoWidth:Number.parseFloat(logo.width),
+                background:style.backgroundColor,seamHeight:Number.parseFloat(seam.height),
+                seamAlignment:Math.abs((innerWidth-Number.parseFloat(seam.right))-(avatarBox.x+avatarBox.width/2))};
             });
             assert.equal(metrics.position,'fixed','Studio menu follows the sticky header');
             assert.ok(metrics.width<=284,'Studio menu is compact');
             assert.ok(metrics.top>=metrics.headerBottom+4,'Studio menu clears the masthead');
             assert.ok(metrics.fontSize<=14.5,'Studio menu type matches compact controls');
             assert.ok(metrics.logoWidth>=110&&metrics.logoWidth<=130,'The approved PV LAB wordmark is retained at a Studio scale');
+            assert.equal(metrics.background,'rgb(24, 25, 29)','Studio dropdown shares the workspace graphite palette');
+            assert.equal(metrics.seamHeight,8,'Studio menu has a subtle connector under the avatar');
+            assert.ok(metrics.seamAlignment<=2,'Studio connector aligns with the account avatar');
           }else if(path==='/lab/index.html'&&width===1440){
             assert.equal(Math.round(panel.width),340,'Homepage retains its approved menu width');
             assert.equal(await page.locator('link[href*="studio-account-menu.css"]').count(),0,'Studio-specific styling stays out of the homepage');
