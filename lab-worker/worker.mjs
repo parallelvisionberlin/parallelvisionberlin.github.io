@@ -2,6 +2,7 @@ import {filmFinishSettings} from '../lab/film-finish.js';
 import {prepareFilmAsset,FILM_RENDER_REVISION} from './film-finish.mjs';
 import {assertCustomerOpen,processAccountClosures} from './customer-lifecycle.mjs';
 import {allowedLabParty} from './native-auth.mjs';
+import {BROWSER_ORIGINS,LEGACY_ISSUER,originsForClerkSession} from './clerk-issuer-policy.mjs';
 import {quoteVideoExtension,submitVideoExtension} from './higgsfield-video.mjs';
 import {klingHfParameters,quoteKlingHf,submitKlingHf} from './kling-hf.mjs';
 import {ensureCustomer,isLabCustomer,customerSession,customerRoute,stripeWebhook,creditsForUsd,verifyClosureBilling} from './customer-billing.mjs';
@@ -41,12 +42,11 @@ import {SYNTHETIC_ROMANCE_REFERENCES,SYNTHETIC_ROMANCE_REFERENCE_VERSION} from '
 import {moodBoardsRoute} from './moodboards.mjs';
 import {moodCreatorRoute} from './mood-creator-service.mjs';
 import {characterPreview as soulCharacterPreview,SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-14.10-clerk-sync-audit';
+export const VERSION = 'pv-lab-2026-10-14.11-studio-clerk-pilot';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
-const ORIGINS = new Set(['https://parallelvisionlabel.com','https://www.parallelvisionlabel.com']);
-const ISSUER = 'https://clerk.parallelvisionlabel.com';
+const ORIGINS = BROWSER_ORIGINS; // CORS preflight only; JWTs are checked against their issuer's own origin set.
 const VENDOR = 'https://api.spicyapi.ai/api/v1';
 const MODEL_IMAGE = 'alibaba/wan-3.0/image-to-video';
 const MODEL_REFERENCE = 'alibaba/wan-3.0/reference-to-video';
@@ -69,7 +69,7 @@ const UUID = /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{1
 const ACTIVE = new Set(['submitting','queued','running','saving','uncertain']);
 const MAX_IMAGE = 20 * 1024 * 1024, MAX_VIDEO = 150 * 1024 * 1024, MAX_STORAGE = 20 * 1024 * 1024 * 1024;
 const enc = new TextEncoder(), dec = new TextDecoder();
-let jwksCache = { keys: [], at: 0 };
+const jwksCache = new Map(); // Never reuse JWKS across independently owned Clerk issuers.
 class HttpError extends Error { constructor(status,message) { super(message); this.status=status; } }
 const fail = (status,message) => { throw new HttpError(status,message); };
 const now = () => Date.now();
@@ -102,33 +102,42 @@ function decorate(response,origin) {
   h.set('Vary','Origin'); if(ORIGINS.has(origin)){h.set('Access-Control-Allow-Origin',origin);h.set('Access-Control-Expose-Headers','Content-Disposition, Content-Length, Content-Range');}
   return new Response(response.body,{status:response.status,headers:h});
 }
-async function getJwks(refresh=false) {
-  if(!refresh && now()-jwksCache.at<600000)return jwksCache.keys;
-  const r=await fetch(ISSUER+'/.well-known/jwks.json',{signal:AbortSignal.timeout(10000)});
+async function getJwks(issuer,refresh=false) {
+  const cached=jwksCache.get(issuer);
+  if(!refresh&&cached&&now()-cached.at<600000)return cached.keys;
+  // issuer is an exact-match, trusted constant selected by originsForClerkSession.
+  const r=await fetch(issuer+'/.well-known/jwks.json',{signal:AbortSignal.timeout(10000)});
   if(!r.ok)fail(503,'Sign-in verification is temporarily unavailable.');
   const data=await r.json();if(!Array.isArray(data.keys))fail(503,'Sign-in verification is temporarily unavailable.');
-  jwksCache={keys:data.keys,at:now()};return data.keys;
+  jwksCache.set(issuer,{keys:data.keys,at:now()});return data.keys;
 }
 async function authenticate(request,env) {
   const header=request.headers.get('authorization') || '';
   if(!/^Bearer [A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(header) || header.length>10000)fail(401,'Sign in with your Parallel Vision owner account.');
   const token=header.slice(7), [a,b,c]=token.split('.');let h,p;
   try{h=JSON.parse(dec.decode(unbase(a)));p=JSON.parse(dec.decode(unbase(b)));}catch{fail(401,'Invalid sign-in token.');}
-  const t=Math.floor(now()/1000);
-  if(h.alg!=='RS256'||typeof h.kid!=='string'||p.iss!==ISSUER||!/^user_[A-Za-z0-9]+$/.test(p.sub||'')||!allowedLabParty(p,request,ORIGINS)||!Number.isFinite(p.exp)||p.exp<=t||!Number.isFinite(p.iat)||p.iat>t+5||(p.nbf!==undefined&&(!Number.isFinite(p.nbf)||p.nbf>t+5)))fail(401,'Sign-in expired or invalid. Please sign in again.');
-  let key=(await getJwks()).find(k=>k.kid===h.kid&&k.kty==='RSA');
-  if(!key)key=(await getJwks(true)).find(k=>k.kid===h.kid&&k.kty==='RSA');
+  const t=Math.floor(now()/1000),issuerOrigins=originsForClerkSession(p.iss,p.sub,env);
+  const requestOrigin=request.headers.get('Origin')||'';
+  // An old-issued token is never accepted from the new PV LAB origin, or vice versa.
+  if(h.alg!=='RS256'||typeof h.kid!=='string'||!issuerOrigins||
+    (requestOrigin&&!issuerOrigins.has(requestOrigin))||
+    !/^user_[A-Za-z0-9]+$/.test(p.sub||'')||!allowedLabParty(p,request,issuerOrigins)||
+    !Number.isFinite(p.exp)||p.exp<=t||!Number.isFinite(p.iat)||p.iat>t+5||
+    (p.nbf!==undefined&&(!Number.isFinite(p.nbf)||p.nbf>t+5)))fail(401,'Sign-in expired or invalid. Please sign in again.');
+  let key=(await getJwks(p.iss)).find(k=>k.kid===h.kid&&k.kty==='RSA');
+  if(!key)key=(await getJwks(p.iss,true)).find(k=>k.kid===h.kid&&k.kty==='RSA');
   if(!key)fail(401,'Unknown sign-in key.');
   let valid=false;
   try{const k=await crypto.subtle.importKey('jwk',key,{name:'RSASSA-PKCS1-v1_5',hash:'SHA-256'},false,['verify']);valid=await crypto.subtle.verify('RSASSA-PKCS1-v1_5',k,unbase(c),enc.encode(a+'.'+b));}catch{}
   if(!valid)fail(401,'Invalid sign-in signature.');
   // Read only: never changes Nina's identity, memory or account tables.
   const owner=await env.OWNER_DB.prepare("SELECT id FROM users WHERE auth_provider='clerk' AND auth_subject=? AND role='owner' LIMIT 1").bind(p.sub).first();
-  if(owner)return owner.id;
-  // Existing private Lab remains owner-only until public registration is explicitly enabled.
+  if(owner)return {id:owner.id,issuer:p.iss};
   if(env.LAB_CUSTOMER_SIGNUPS_ENABLED!=='true')fail(403,'PV Lab registration is not enabled.');
-  // Verified Clerk users have new Lab records, never Nina user records.
-  return ensureCustomer(env,p.sub);
+  // A pilot new-instance subject remains a SEPARATE account; no balances, role or
+  // subscriptions are inferred from matching email addresses. Migration is pending.
+  const id=await ensureCustomer(env,p.sub);
+  return {id,issuer:p.iss};
 }
 async function derived(env,label,algorithm,usages) {
   if(!env.LAB_SECRET || env.LAB_SECRET.length<40)fail(503,'Private storage is not configured.');
@@ -1149,10 +1158,11 @@ async function route(request,env,ctx) {
   if(url.pathname.startsWith('/soul-weight/')&&(request.method==='GET'||request.method==='HEAD'))return publicSoulWeight(request,env,url,soulDeps());
   if(url.pathname==='/api/stripe/webhook'&&request.method==='POST')return stripeWebhook(request,env,ctx);
   if(!url.pathname.startsWith('/api/'))fail(404,'Not found.');
-  const owner=await authenticate(request,env),path=url.pathname,method=request.method;
+  const {id:owner,issuer:authIssuer}=await authenticate(request,env);
+  const path=url.pathname,method=request.method;
   if(path.startsWith('/api/admin/'))return labAdminRoute(request,env,owner,{decryptKey});
   const customer=await isLabCustomer(env,owner);
-  if(customer&&path==='/api/session'&&(env.LAB_CLERK_SECRET_KEY||env.CLERK_SECRET_KEY)&&ctx?.waitUntil)
+  if(customer&&authIssuer===LEGACY_ISSUER&&path==='/api/session'&&(env.LAB_CLERK_SECRET_KEY||env.CLERK_SECRET_KEY)&&ctx?.waitUntil)
     ctx.waitUntil(syncCustomerEmail(env,owner).catch(()=>false));
   if(customer&&!['/api/session','/api/customer/wallet','/api/customer/account','/api/billing/portal'].includes(path))await assertCustomerOpen(env,owner,{spending:method==='POST'&&!path.startsWith('/api/customer/')});
   if(path.startsWith('/api/customer/')||path.startsWith('/api/billing/')){
