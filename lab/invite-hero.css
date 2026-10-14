@@ -11,7 +11,7 @@
   min-height:clamp(355px,22.55vw,442px);
   padding:clamp(56px,4.5vw,90px) clamp(24px,5.65vw,112px);
   color:#f4f1ec;
-  background:#08090a url('./visuals/invite-after-fabric-exact.avif') center center / cover no-repeat;
+  background:#08090a url('./visuals/invite-after-fabric-user-approved-20261014.webp') center 18% / cover no-repeat;
   border-top:1px solid rgba(255,255,255,.14);
   border-bottom:1px solid rgba(255,255,255,.14);
   font-family:'DM Sans',Arial,sans-serif;
@@ -114,7 +114,7 @@
   #pricing + .lab-invite-promo {
     min-height:0;
     padding:56px 24px 61px;
-    background-image:linear-gradient(90deg,rgba(6,7,8,.84),rgba(6,7,8,.35)),url('./visuals/invite-after-fabric-exact.avif');
+    background-image:linear-gradient(90deg,rgba(6,7,8,.84),rgba(6,7,8,.35)),url('./visuals/invite-after-fabric-user-approved-20261014.webp');
     background-position:62% center;background-size:auto 100%;
   }
   #pricing + .lab-invite-promo > .lab-invite-promo__inner {
