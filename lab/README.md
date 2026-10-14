@@ -1,5 +1,11 @@
 # Parallel Vision Lab
 
+## First-party public traffic meter (2026-10-15)
+
+PV LAB's owner Control Room includes a read-only Traffic panel with 7/30-day estimated site entries, page views, Reddit referrals, signup counts, daily trends and source/page breakdowns. Public pages load `lab/traffic.js`, which makes one anonymous POST per actual page load to `/api/public/traffic`. It sends only the page category, broad source category, and estimated entry flag. No cookie, local-storage tracking ID, IP, account ID or full referrer is stored in the aggregated Cloudflare D1 table. Browser GPC/DNT preferences are honored. The table is pruned after 90 days. Bot filtering is approximate, and navigation/referrer restrictions can cause under/overcounting. Never call these numbers unique users or compute an exact signup conversion rate from page views.
+
+Cloudflare Worker migration: `lab-worker/migrations/0018-anonymous-traffic.sql`; owner endpoint: `GET /api/admin/traffic?days=7|30`. Statistics only start when instrumentation is deployed; older campaign page loads cannot be backfilled. The existing Meta Pixel remains optional and unchanged.
+
 ## 200 welcome credits (2026-10-14)
 
 Each verified non-owner Clerk customer receives 200 one-time PV Lab credits through the existing wallet. They can be used for any customer-enabled image or video job, including one video that consumes the entire balance. The backend alone prices and debits jobs and refuses prices above available credits. Previous unfunded customer signups get the bonus on their next authenticated request; a unique ledger receipt prevents repeat grants. Closed customer accounts cannot receive it. The production-only switch is `LAB_WELCOME_CREDITS_ENABLED=true`, absent from the billing sandbox. No new database migration or provider API call is required. See [the welcome credit work state](WELCOME-CREDITS-WORK-STATE.md).
