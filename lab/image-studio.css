@@ -282,7 +282,7 @@
 }
 .composer-model-menu {
   position:absolute;left:0;bottom:calc(100% + 8px);
-  width:min(425px,calc(100vw - 42px));height:var(--pv-model-menu-available,calc(100dvh - 150px));max-height:var(--pv-model-menu-available,calc(100dvh - 150px));
+  width:min(425px,calc(100vw - 42px));height:auto;max-height:var(--pv-model-menu-fit,var(--pv-model-menu-available,calc(100dvh - 150px)));
   display:flex;flex-direction:column;z-index:120;
   padding:9px;border:1px solid #484b50;border-radius:18px;
   background:linear-gradient(180deg,#242629,#212326);box-shadow:0 20px 75px rgba(0,0,0,.74);
@@ -295,11 +295,14 @@
   border:1px solid #41454a;background:#1c1e21;
   color:#fff;font-size:12px;outline:none;
 }
-.composer-model-items {flex:1 1 auto;overflow-y:auto;min-height:0;padding:6px 0 2px;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:transparent transparent}
+.composer-model-items {flex:1 1 auto;overflow-y:auto;min-height:0;padding:6px 0 2px;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:transparent transparent;scroll-snap-type:y mandatory;scroll-padding-block-start:6px}
+/* When there are extra models, fit complete rows without showing a cropped next card. */
+.composer-model-menu.has-overflow .composer-model-items {padding-bottom:0}
 #image-composer .composer-model-option {
   width:100%;min-height:51px;display:flex;align-items:center;gap:10px;
   padding:5px 9px;border:1px solid transparent;border-radius:10px;
   background:transparent;color:#f3f4f6;text-align:left;
+  scroll-snap-align:start;scroll-snap-stop:always;
 }
 #image-composer .composer-model-option:hover,
 #image-composer .composer-model-option[aria-selected="true"] {
