@@ -4,7 +4,7 @@ import {createFilmFinishControls,HONG_KONG_FILM_FINISH,FILM_FINISH_RENDER_REVISI
 import {preparePhotoInput} from './photo-input.js?v=1';
 import {createMoodReferenceLoader,moodReferencePlan,isMoodStyleReference} from './mood-references.js?v=20261013-compact-map2&seedreamlite=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&nano21=1&refMode=20261014-contextual-reference1&moodLock=20261014-mood-consistency1';
 import {createPrivateMediaCache} from './private-media-cache.js?v=20261012-cache1';
-import {loadLabAccount} from './native-account.js?v=20261014-native-photo-picker1&createGallery=20261014-1';
+import {loadLabAccount} from './native-account.js?v=20261014-native-photo-picker1&createGallery=20261014-1&generateStable=20261014-1';
 import {createAssetLibrary} from './assets.js?v=20261010-navigation-media1';
 import {createPrecisionEditor} from './precision-edit.js?v=20261011-no-emoji1';
 import {createCustomerWallet} from './customer-wallet.js?v=20261013-upgrade1&model-rates=1';
