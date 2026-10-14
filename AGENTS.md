@@ -86,6 +86,9 @@ Do not repeatedly ask for confirmation for normal implementation decisions.
 - Do not delete working code without a clear reason.
 - Prefer one coherent commit per task.
 
+## Active feature handoffs
+- PV LAB Control Room: `lab/OWNER-WORK-STATE.md`.
+
 ## Automatic continuity and usage efficiency
 
 Standing instruction from Alejandro: preserve quality, speed and autonomy while eliminating repeated work. Apply without reminders or repeated confirmations.
