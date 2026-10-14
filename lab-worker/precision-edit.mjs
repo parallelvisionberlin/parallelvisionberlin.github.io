@@ -181,7 +181,7 @@ export async function precisionEditRoute(request,env,owner,url,d){
     const maskId=await deterministicMaskId(owner,requestId);
     const old=await d.first(env,'SELECT id FROM assets WHERE id=? AND owner_id=?',maskId,owner);
     if(old)return d.json({status:'completed',maskSourceId:maskId});
-    const state=await falStatus(PRECISION_SEGMENT_MODEL,env.FAL_KEY,requestId),value=String(state?.status||'').toUpperCase();
+    const state=await (d.falStatus||falStatus)(PRECISION_SEGMENT_MODEL,env.FAL_KEY,requestId),value=String(state?.status||'').toUpperCase();
     if(value==='FAILED'||value==='CANCELLED'||value==='CANCELED'){
       if(d.customer){
         const selection=await d.first(env,'SELECT id FROM lab_precision_selections WHERE owner_id=? AND provider_id=?',owner,requestId);
