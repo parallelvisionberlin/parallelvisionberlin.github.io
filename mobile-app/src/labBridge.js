@@ -1,5 +1,5 @@
 export const LAB_ORIGIN='https://parallelvisionlabel.com';
-export const LAB_STUDIO=LAB_ORIGIN+'/lab/studio.html?tool=image&native=1&app=4';
+export const LAB_STUDIO=LAB_ORIGIN+'/lab/studio.html?tool=image&native=1&app=5';
 export const LAB_MOODS=LAB_ORIGIN+'/lab/mood-creator.html?native=1&app=2#my-moods';
 export const LAB_DISCOVER=LAB_ORIGIN+'/lab/app-moods.html?v=5';
 const paths=new Set(['/lab/studio.html','/lab/mood-creator.html','/lab/app-moods.html']);
