@@ -79,6 +79,35 @@ try{
       assert.match(await page.locator('#owner-customer-liability').innerText(),/250 PV LAB credits/,'Customer units are separate');
       assert.equal(await page.locator('a[data-owner-nav][href="#owner-providers-section"]').count(),1,'Dedicated Providers sidebar destination');
 
+      assert.equal(await page.locator('.owner-customer-open').count(),3,'Each customer has a private activity action');
+      if(width===390||width===1792){
+        await page.evaluate(()=>{
+          call=async path=>{
+            if(!path.startsWith('/api/admin/customers/activity?'))throw Error('Unexpected activity test endpoint.');
+            return {
+              customer:{id:'user_active_creator',email:'editorial@example.com',balanceCredits:176},
+              summary:{totalJobs:2,completedJobs:1,failedJobs:1,creditsCharged:34,creditsRefunded:10,netCreditsSpent:24},
+              jobs:[
+                {id:'job_fail',createdAt:Date.UTC(2026,9,14),type:'video',provider:'fal',model:'wan-video',state:'failed',chargedCredits:10,refundedCredits:10},
+                {id:'job_done',createdAt:Date.UTC(2026,9,13),type:'image',provider:'spicy',model:'seedream-v5',state:'completed',chargedCredits:24,refundedCredits:0}
+              ],
+              entries:[
+                {createdAt:Date.UTC(2026,9,14),kind:'refund',credits:10,description:'Generation refund'},
+                {createdAt:Date.UTC(2026,9,13),kind:'adjustment',credits:200,description:'Welcome credits'}
+              ],limits:{jobs:50,entries:80}
+            };
+          };
+        });
+        await page.locator('.owner-customer-open').nth(1).click();
+        await page.locator('#owner-customer-dialog[open]').waitFor();
+        await page.locator('#owner-customer-dialog-body').getByText('seedream-v5').waitFor();
+        assert.match(await page.locator('#owner-customer-dialog-body').innerText(),/Welcome credits/);
+        assert.match(await page.locator('#owner-customer-dialog-body').innerText(),/24/);
+        const dialogWidth=await page.locator('#owner-customer-dialog').evaluate(el=>el.getBoundingClientRect().width);
+        assert.ok(dialogWidth<=width,'Private history dialog must fit viewport');
+        await page.locator('#owner-customer-dialog-close').click();
+        assert.equal(await page.locator('#owner-customer-dialog').evaluate(el=>el.open),false);
+      }
       await page.locator('[data-recent-filter="subscribed"]').click();
       assert.equal(await page.locator('#owner-recent-signups .owner-recent-item').count(),1,'Subscribers filter shows active plans only');
       assert.equal(await page.locator('#owner-recent-title').innerText(),'Latest subscribers.','Filter title is accurate');
