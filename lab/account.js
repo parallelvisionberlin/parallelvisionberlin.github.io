@@ -188,8 +188,14 @@ $('account-voucher-form').addEventListener('submit',async event=>{
   try {
     const result=await api('/api/customer/vouchers/redeem',{method:'POST',body:{code}});
     if(current!==revision)return;
-    $('account-voucher-status').textContent='Added '+Number(result.credits).toLocaleString()+' credits to your balance.';
+    const signedSession=clerk?.session?.id;
     await refresh();
+    if(signedSession===clerk?.session?.id&&profile?.customer){
+      $('account-voucher-code').value='';
+      const currentUrl=new URL(location.href);currentUrl.searchParams.delete('voucher');
+      history.replaceState(history.state,'',currentUrl);
+      $('account-voucher-status').textContent='Added '+Number(result.credits).toLocaleString()+' credits to your balance.';
+    }
   }catch(error){if(current===revision)$('account-voucher-status').textContent=error.message||'Voucher could not be redeemed.';}
   finally{voucherBusy=false;$('account-voucher-submit').disabled=false;}
 });
