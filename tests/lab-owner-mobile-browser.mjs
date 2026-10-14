@@ -107,6 +107,7 @@ try{
         assert.ok(dialogWidth<=width,'Private history dialog must fit viewport');
         await page.locator('#owner-customer-dialog-close').click();
         assert.equal(await page.locator('#owner-customer-dialog').evaluate(el=>el.open),false);
+        await page.evaluate(()=>window.scrollTo(0,0));
       }
       await page.locator('[data-recent-filter="subscribed"]').click();
       assert.equal(await page.locator('#owner-recent-signups .owner-recent-item').count(),1,'Subscribers filter shows active plans only');
