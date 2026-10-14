@@ -1,16 +1,14 @@
 name: Connect PV LAB Pages domain
+# Manual-only until the Cloudflare API token is granted Pages + DNS permissions.
+# Production Worker deployments must not be marked failed by an unrelated DNS task.
 on:
-  workflow_run:
-    workflows: ["Deploy Parallel Vision Lab Worker"]
-    types: [completed]
-    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
   connect:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
