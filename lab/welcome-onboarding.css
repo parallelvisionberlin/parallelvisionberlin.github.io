@@ -1,0 +1,84 @@
+/* PV LAB · welcome offer and first-image onboarding.
+   Presentation only. Real balances and model prices come from the authenticated backend. */
+.lab-hero .hero-welcome {
+  display:flex;align-items:baseline;flex-wrap:wrap;column-gap:9px;row-gap:3px;
+  margin:0 0 21px;color:#f5f2eb;font-size:12px;line-height:1.5;
+  letter-spacing:.005em;
+}
+.lab-hero .hero-welcome-symbol{font-size:13px;color:#e9e6df}
+.lab-hero .hero-welcome strong{font-weight:600}
+.lab-hero .hero-welcome small{font-size:11px;color:#dbd6cd}
+.lab-hero .start-link{min-width:185px}
+#pricing .lab-pricing-welcome{
+  color:#d5d1ca;font-size:12px;line-height:1.55;letter-spacing:0;
+  margin:-7px 0 20px;max-width:460px;
+}
+#pricing .lab-pricing-welcome strong{font-weight:600;color:#f5f2eb}
+#pricing .lab-pricing-welcome a{
+  display:inline-block;color:#f5f2eb;border-bottom:1px solid #aba69f;
+  text-decoration:none;white-space:nowrap;margin-left:2px;padding-bottom:1px;
+}
+#pricing .lab-pricing-welcome a:hover,
+#pricing .lab-pricing-welcome a:focus-visible{border-bottom-color:#fff;color:#fff}
+#lab-image-empty-intro[hidden],#lab-welcome-start[hidden]{display:none!important}
+#lab-welcome-start{
+  width:min(100%,710px);color:#eae7e3;
+  text-align:center;display:flex;flex-direction:column;align-items:center;
+}
+#lab-welcome-start .lab-welcome-kicker{
+  font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#aaa5a1;
+}
+#lab-welcome-start h2{
+  margin:12px 0 0;font-size:clamp(24px,3vw,36px);font-weight:450;
+  line-height:1.12;letter-spacing:-.045em;color:#f4f0eb;
+}
+#lab-welcome-start .lab-welcome-subtitle{
+  margin:9px 0 0;font-size:13px;line-height:1.6;color:#aca7a3;
+}
+#lab-welcome-start .lab-welcome-balance{
+  margin:17px 0 0;font-size:12px;color:#d8d4ce;line-height:1.5;
+}
+#lab-welcome-start .lab-welcome-balance strong{color:#fff;font-weight:650;font-variant-numeric:tabular-nums}
+#lab-welcome-start .lab-welcome-presets{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;
+  width:100%;margin-top:22px;
+}
+#lab-welcome-start .lab-welcome-preset{
+  display:flex;flex-direction:column;align-items:flex-start;justify-content:center;
+  min-height:91px;padding:14px 17px;text-align:left;
+  border:1px solid #545454;background:#252527;border-radius:8px;
+  color:#f6f4f0;cursor:pointer;transition:border-color .18s,background .18s;
+}
+#lab-welcome-start .lab-welcome-preset small{
+  font-size:10px;letter-spacing:.13em;color:#aaa6a0;margin-bottom:8px;
+}
+#lab-welcome-start .lab-welcome-preset strong{
+  font-size:14px;line-height:1.35;letter-spacing:-.015em;font-weight:550;
+}
+#lab-welcome-start .lab-welcome-preset:hover,
+#lab-welcome-start .lab-welcome-preset:focus-visible{
+  border-color:#ded8cf;background:#333335;outline-offset:3px;
+}
+#lab-welcome-start .lab-welcome-preset[aria-pressed="true"]{
+  border-color:#f2eee7;background:#373638;
+}
+#lab-welcome-start .lab-welcome-hint{
+  margin:13px 0 0;font-size:11px;color:#aaa6a1;line-height:1.5;
+}
+@media(max-width:700px){
+  .lab-hero .hero-welcome{margin-bottom:14px;font-size:11px;column-gap:7px}
+  .lab-hero .hero-welcome small{font-size:10px}
+  .lab-hero .start-link{min-width:0}
+}
+@media(max-width:560px){
+  #lab-welcome-start{padding:0 2px}
+  #lab-welcome-start h2{font-size:25px;margin-top:9px}
+  #lab-welcome-start .lab-welcome-subtitle{font-size:12px}
+  #lab-welcome-start .lab-welcome-balance{margin-top:10px}
+  #lab-welcome-start .lab-welcome-presets{grid-template-columns:1fr;gap:7px;margin-top:15px}
+  #lab-welcome-start .lab-welcome-preset{
+    min-height:52px;flex-direction:row;justify-content:flex-start;align-items:center;gap:13px;padding:11px 15px;
+  }
+  #lab-welcome-start .lab-welcome-preset small{margin:0;min-width:20px}
+  #lab-welcome-start .lab-welcome-hint{margin-top:10px}
+}
