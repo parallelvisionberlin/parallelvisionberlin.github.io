@@ -41,7 +41,7 @@ jobs:
       - name: Test private My Moods and Worker syntax
         run: |
           node --test tests/lab-auth.test.mjs tests/lab-worker.test.mjs tests/lab-customer-lifecycle.test.mjs tests/lab-sandbox-billing.test.mjs tests/lab-live-pilot.test.mjs tests/lab-new-models-pricing.test.mjs tests/lab-welcome-credits.test.mjs
-          node --test tests/lab-owner-providers.test.mjs tests/lab-promotions.test.mjs tests/lab-traffic.test.mjs
+          node --test tests/lab-owner-providers.test.mjs tests/lab-promotions.test.mjs tests/lab-traffic.test.mjs tests/lab-traffic-ui.test.mjs
           node --check lab-worker/owner-providers.mjs
           node --check lab-worker/promotions.mjs
           node --check lab-worker/traffic.mjs
