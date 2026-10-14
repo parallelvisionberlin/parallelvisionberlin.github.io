@@ -1,4 +1,3 @@
-import {prepareMoodPrompt} from './moods.js?v=20261012-hk-optics3&seedreamlite=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1';
 import {compileImagePrompt,normalizeReferenceLabel} from './reference-guidance.js?v=20261013-compact-map2&seedreamlite=1&dreamcore=7&syntheticRefs=1&raveIdentity=1&refMode=20261014-contextual-reference1';
 
 // These are photographic treatment references, never a replacement Base.
@@ -22,27 +21,14 @@ export function moodReferencePlan(settings){
   const references=HONG_KONG_REFERENCES.filter(ref=>!labels.some(label=>label.role==='style'&&label.name===ref.label.name));
   if(labels.length+references.length>10)throw Error('Hong Kong Nights includes four Style references. Keep at most six of your own images, or choose another Mood.');
   const referenceRoles=[...labels,...references.map(ref=>({...ref.label}))];
-  let prompt=settings.prompt;
+  // Add the four canonical Style photos without rewriting the selected Mood.
+  // Check the full provider prompt, including the full/compact role map.
   const budget=settings.engine==='seedreamlite'?3000:5000;
-  if(compileImagePrompt(prompt,referenceRoles,{...settings,referenceRoles}).length>budget&&typeof settings.moodOriginalPrompt==='string'){
-    // Compact our own recipe, never truncate the user's direction or role notes.
-    const recipe=prepareMoodPrompt(settings.moodOriginalPrompt,settings.moodId,settings.moodIntensity,{
-      engine:settings.engine,referenceCount:labels.filter(label=>!isMoodStyleReference(label)).length,
-      referenceMode:settings.referenceMode||'base',compact:true,filmFinish:settings.filmFinish
-    });
-    prompt=recipe.prompt;
-    if(compileImagePrompt(prompt,referenceRoles,{...settings,referenceRoles}).length>budget){
-      // Last resort: shorten only our automatic art direction, never authored text or role notes.
-      const small=prepareMoodPrompt(settings.moodOriginalPrompt,settings.moodId,settings.moodIntensity,{
-        engine:settings.engine,referenceCount:labels.filter(label=>!isMoodStyleReference(label)).length,
-        referenceMode:settings.referenceMode||'base',compact:true,ultraCompact:true,filmFinish:settings.filmFinish
-      });
-      prompt=small.prompt;
-    }
-  }
-  if(compileImagePrompt(prompt,referenceRoles,{...settings,referenceRoles}).length>budget)
-    throw Error('Direction and reference notes are too long for this model’s '+budget.toLocaleString()+' character limit, even with the compact Mood. Shorten optional notes.');
-  return {settings:{...settings,prompt,referenceRoles,
+  const compiled=compileImagePrompt(settings.prompt,referenceRoles,{...settings,referenceRoles});
+  const over=compiled.length-budget;
+  if(over>0)
+    throw Error('Direction, Mood and reference instructions exceed '+budget.toLocaleString()+' characters by '+over.toLocaleString()+'. The Mood stays unchanged; shorten your direction or optional reference notes.');
+  return {settings:{...settings,referenceRoles,
     // With text alone, a style photograph must not choose the output framing.
     aspectRatio:!labels.length&&settings.aspectRatio==='auto'?'1:1':settings.aspectRatio},references};
 }

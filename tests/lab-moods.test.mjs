@@ -19,7 +19,7 @@ test('Synthetic Romance is an invasive physical transformation with identity-awa
   assert.match(prepareMoodPrompt('A portrait',mood.id,100,{engine:'gemini'}).prompt,/TOTAL SYNTHETIC LIBERATION/);
 });
 
-test('Synthetic Romance fits the final provider prompt across references, intensities and every morphology',()=>{
+test('Synthetic Romance retains full instructions and stable morphology across reference modes',()=>{
   const random=Math.random;
   try{
     for(let morphology=0;morphology<5;morphology++){
@@ -31,7 +31,10 @@ test('Synthetic Romance fits the final provider prompt across references, intens
           const result=prepareMoodPrompt(original,'synthetic-romance',intensity,{engine,referenceCount,referenceMode});
           const prompt=compileImagePrompt(result.prompt,labels,{...result.metadata,referenceMode});
           assert.equal(result.error,'');
-          assert.ok(prompt.length<=5000,JSON.stringify({engine,referenceMode,referenceCount,intensity,morphology,length:prompt.length}));
+          if(prompt.length>5000)
+            assert.ok(referenceMode==='references'&&referenceCount===10,
+              'Only the large full reference-only map should need a budget warning: '+prompt.length);
+          else assert.ok(prompt.length<=5000,JSON.stringify({engine,referenceMode,referenceCount,intensity,morphology,length:prompt.length}));
           assert.equal(result.metadata.moodOriginalPrompt,original);
           assert.equal(result.metadata.moodIntensity,intensity);
           for(const detail of ['INVASIVE PHYSICAL BODY TRANSFORMATION','routed cables','Smoked mirror chrome','black nickel','graphite titanium','OPTICAL GLOSS','specular ribbons','dark reflection bands','35mm negative','shadow grain','halation','photochemical color','human tenderness'])assert.ok(prompt.includes(detail),detail);
@@ -177,7 +180,7 @@ test('original prompt is not lost; mood metadata can be restored',()=>{
   const data=prepareMoodPrompt('Nina sitting by a window','hong-kong-nights',64,{engine:'gemini',referenceCount:1});
   assert.ok(data.prompt.startsWith('Nina sitting by a window\n\n'));
   assert.match(data.prompt,/atmospheric emerald haze/i);
-  assert.match(data.prompt,/first reference is the base/);
+  assert.match(data.prompt,/Base\/Identity images control facial geometry/);
   assert.deepEqual(data.metadata,{moodId:'hong-kong-nights',moodIntensity:64,moodOriginalPrompt:'Nina sitting by a window',filmFinish:{version:2,grain:36,haze:42,halation:22,film:65}});
   assert.equal(data.error,'');
 });
@@ -305,10 +308,9 @@ test('Dreamcore V7 routes organic nature, people and built environments',()=>{
     assert.equal(r.error,'');
     assert.equal(r.metadata.moodIntensity,n);
     assert.ok(r.prompt.includes(label));
-    assert.match(r.prompt,/SOURCE ROUTING/);
-    assert.match(r.prompt,/ORGANIC ROUTE/);
-    assert.match(r.prompt,/PORTRAIT ROUTE/);
-    assert.match(r.prompt,/ARCHITECTURE ROUTE/);
+    assert.match(r.prompt,/Route ORGANIC if beach or nature dominates/);
+    assert.match(r.prompt,/ARCHITECTURE for rooms\/cities\/industry/);
+    assert.match(r.prompt,/otherwise PORTRAIT/);
   }
   const max=prepareMoodPrompt('Portrait at sea','dreamcore',100,{referenceCount:1});
   assert.match(max.prompt,/ORGANIC luminous water/);
@@ -511,13 +513,18 @@ test('80s Film high-fashion feature-cinema prompt scales in five cinematic stage
   assert.match(refsOnly.prompt,/Reference-only: follow requested output/);
 });
 
-test('80s Film cinematic mood keeps multi-reference prompts under provider character limit',()=>{
+test('80s Film keeps the high-fidelity recipe even when many references exceed the limit',()=>{
+  const direction='High-fashion actor in a room';
   const refs=Array.from({length:10},(_,i)=>({name:'film-ref-'+i+'.jpg',role:i?'none':'base'}));
   for(const amount of [20,50,80,93,100]){
-    const r=prepareMoodPrompt('High-fashion actor in a room','80s-film',amount,{referenceCount:10,engine:'seedream'});
+    const r=prepareMoodPrompt(direction,'80s-film',amount,{referenceCount:10,engine:'seedream'});
+    const one=prepareMoodPrompt(direction,'80s-film',amount,{referenceCount:1,engine:'seedream'});
     assert.equal(r.error,'');
-    assert.match(r.prompt,/80S FILM \/ (?:FASHION CINEMA|SUBTLE|CINEMATIC COLOR)/);
-    assert.ok(compileImagePrompt(r.prompt,refs,{...r.metadata,referenceMode:'base'}).length<=5000,'ten-reference prompt should fit at '+amount+'%');
+    assert.equal(r.prompt,one.prompt,'Adding references must not change the 80s creative recipe');
+    assert.match(r.prompt,/80S FILM \/ HIGH-FASHION FEATURE CINEMA/);
+    const provider=compileImagePrompt(r.prompt,refs,{...r.metadata,referenceMode:'base'});
+    assert.ok(provider.includes(r.prompt),'All authored Mood content remains in the compiled prompt');
+    if(amount===100)assert.ok(provider.length>5000,'The full 100% recipe must not be silently shortened to fit ten references');
   }
   const studio=readFileSync(new URL('../lab/studio.html',import.meta.url),'utf8');
   const app=readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8');
@@ -526,14 +533,17 @@ test('80s Film cinematic mood keeps multi-reference prompts under provider chara
   assert.match(app,/moods\.js\?v=20\d{6}-/);
   assert.match(creator,/moods\.js\?v=20\d{6}-/);
   const board={id:'10000000-0000-4000-8000-000000000080',name:'Cinematic Night',baseMoodId:'80s-film',direction:'Editorial fashion and elegant fabrics'};
+  const single=preparePersonalMoodPrompt('Luxury movie scene',board,100,{engine:'seedream',referenceCount:1});
   for(const count of [1,2,10]){
     const saved=preparePersonalMoodPrompt('Luxury movie scene',board,100,{engine:'seedream',referenceCount:count});
     const boardRefs=Array.from({length:count},(_,i)=>({name:'ref-'+i+'.jpg',role:i?'none':'base'}));
     assert.equal(saved.error,'');
-    assert.ok(compileImagePrompt(saved.prompt,boardRefs,{...saved.metadata,referenceMode:'base'}).length<=5000,'saved 80s mood fits '+count+' references');
+    assert.equal(saved.prompt,single.prompt,'Saved Mood never recompiles itself because more references are attached');
+    const compiled=compileImagePrompt(saved.prompt,boardRefs,{...saved.metadata,referenceMode:'base'});
+    assert.ok(compiled.includes(board.direction),'Authored saved style stays intact');
   }
   const duo=prepareMoodPrompt('Fashion scene','80s-film',100,{engine:'seedream',referenceCount:2});
-  assert.match(duo.prompt,/80S FILM \/ FASHION CINEMA/);
+  assert.match(duo.prompt,/80S FILM \/ HIGH-FASHION FEATURE CINEMA/);
 });
 
 test('Berlin Rave V5 carries minimal clothing, flash and source composition through every tier',()=>{
@@ -550,9 +560,11 @@ test('Berlin Rave V5 carries minimal clothing, flash and source composition thro
     assert.match(prompt,/narrow harness straps/i);
     assert.match(prompt,/direct on-camera flash/);
     assert.match(prompt,/Nearby walls/);
-    assert.match(prompt,/camera distance/);
-    assert.match(prompt,/full-length/i);
-    assert.match(prompt,/back-facing/i);
+    if(referenceCount){
+      assert.match(prompt,/camera distance/);
+      assert.match(prompt,/full-length/i);
+      assert.match(prompt,/back-facing/i);
+    }else assert.match(prompt,/SAME character/);
     assert.match(prompt,/Clothing ref/);
     assert.match(prompt,/Style ref/);
     assert.doesNotMatch(prompt,/industrial scene reconstruction|replace unsuitable scenery|sculpted silhouette/i);
@@ -626,7 +638,10 @@ test('Berlin Rave fits the final reference-map budget for one to ten photos at e
       assert.equal(result.metadata.moodOriginalPrompt,original);
       assert.equal(result.metadata.moodIntensity,intensity);
       assert.match(result.prompt,/Reinterpret adult outfits/);
-      assert.ok(compileImagePrompt(result.prompt,labels,{...result.metadata,referenceMode}).length<=5000,engine+' '+referenceMode+' '+count+' photos at '+intensity+'%');
+      const compiled=compileImagePrompt(result.prompt,labels,{...result.metadata,referenceMode});
+      if(compiled.length>5000)
+        assert.ok(referenceMode==='references'&&count===10,'Only large full reference-only guidance may overflow');
+      else assert.ok(compiled.length<=5000,engine+' '+referenceMode+' '+count+' photos at '+intensity+'%');
     }
   }
   const saved=preparePersonalMoodPrompt('',{id:'rave-budget-test',name:'My Berlin Rave',direction:'Refined worn leather and lean tailoring',baseMoodId:'berlin-rave'},100,{engine:'seedream',referenceCount:1});
@@ -650,4 +665,49 @@ test('Text-only Z-Image parks references without expanding the compact Image dec
   assert.doesNotMatch(css,/#image-composer\.is-seedream \.composer-controls\{[^}]*flex-wrap:nowrap/);
   assert.match(css,/#image-composer\.is-text-only \.image-composer-references\{display:none!important\}/);
   assert.match(html,/stableImageDeck=1&zTextOnly=2/);
+});
+
+test('Mood recipe stays fixed across prompt lengths and reference counts',()=>{
+  for(const mood of MOODS)for(const engine of ['seedream','gemini','seedreamlite']){
+    for(const intensity of [20,80,100])for(const referenceMode of ['base','references']){
+      const short='Editorial portrait';
+      const original=prepareMoodPrompt(short,mood.id,intensity,{engine,referenceMode,referenceCount:1,filmFinish:null});
+      const signature=original.prompt.slice(short.length);
+      for(const direction of ['A', 'An editorial portrait with soft light. '.repeat(30), 'X'.repeat(2400)]){
+        for(const referenceCount of [1,3,6,10]){
+          const authored=direction.trim();
+          const next=prepareMoodPrompt(direction,mood.id,intensity,{engine,referenceMode,referenceCount,filmFinish:null,compact:true,ultraCompact:true});
+          assert.equal(next.prompt.slice(authored.length),signature,
+            mood.id+' '+engine+' '+referenceMode+' '+intensity+'% must retain the same authored Mood');
+          assert.ok(next.prompt.startsWith(authored),'User direction must remain intact');
+          if(next.error&&/exceed/.test(next.error))assert.match(next.error,/exceed (3,000|5,000) characters by [\d,]+/);
+        }
+      }
+    }
+  }
+});
+test('No Mood retains the detailed reference map and large directions are rejected without truncation',()=>{
+  const labels=[{role:'base'},{role:'identity',note:'Keep the exact eye shape.'}];
+  const plain=compileImagePrompt('Change the shirt',labels,{referenceMode:'base'});
+  const withMood=compileImagePrompt('Change the shirt',labels,{referenceMode:'base',moodId:'midnight-reverie'});
+  assert.match(plain,/Use as the base photograph/);
+  assert.match(plain,/Use for the subject identity and consistent facial features/);
+  assert.match(withMood,/Base photograph: preserve its framing/);
+  assert.ok(withMood.length<plain.length);
+  const overflow=prepareMoodPrompt('X'.repeat(4500),'midnight-reverie',80,{engine:'seedream',referenceCount:1});
+  assert.ok(overflow.prompt.startsWith('X'.repeat(4500)));
+  assert.match(overflow.error,/exceed 5,000 characters by [\d,]+/);
+  const refsOnly=compileImagePrompt(overflow.prompt,[{role:'identity',note:'Keep the exact eye shape.'}],{referenceMode:'references',...overflow.metadata});
+  assert.match(refsOnly,/Use for the subject identity and consistent facial features/);
+  assert.match(refsOnly,/Keep the exact eye shape/);
+});
+test('Saved Mood never recompiles its curated base to fit additional user directions',()=>{
+  const board={id:'saved-consistency-test',name:'Studio Film',baseMoodId:'80s-film',direction:'High-fashion analogue cinema'};
+  const input='X'.repeat(1600);
+  const saved=preparePersonalMoodPrompt(input,board,85,{engine:'seedream',referenceCount:1});
+  const plain=prepareMoodPrompt(input,'80s-film',85,{engine:'seedream',referenceCount:1});
+  assert.ok(saved.prompt.startsWith(plain.prompt));
+  assert.ok(saved.prompt.includes(input)&&saved.prompt.includes(board.direction));
+  assert.match(saved.error,/exceed 5,000 characters by [\d,]+/);
+  assert.equal(saved.prompt,preparePersonalMoodPrompt(input,board,85,{engine:'seedream',referenceCount:10}).prompt);
 });

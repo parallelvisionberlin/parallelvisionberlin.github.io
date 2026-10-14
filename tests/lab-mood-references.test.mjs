@@ -31,7 +31,7 @@ test('limits and prompt overflow fail before any upload; other moods and models 
   let calls=0;
   const loader=createMoodReferenceLoader({upload:()=>{calls++;},fetchFile:()=>{calls++;}});
   for(const settings of [base(70,7),{...base(),prompt:'x'.repeat(5000),moodOriginalPrompt:'x'.repeat(5000)}])
-    await assert.rejects(loader.prepare(settings,{sessionKey:'a'}),/six|too long/);
+    await assert.rejects(loader.prepare(settings,{sessionKey:'a'}),/six|exceed/);
   assert.equal(calls,0);
   for(const settings of [{...base(),moodId:'night-flash'},{...base(),moodId:'custom'}, {...base(),engine:'kling'},{...base(),mode:'upscale'}]){
     const result=await loader.prepare(settings,{sessionKey:'a'});
@@ -69,24 +69,34 @@ test('failed downloads are retriable and cancellation prevents upload',async()=>
   await assert.rejects(stopped.prepare(base(),{sessionKey:'a',check(){if(cancelled)throw Error('Session changed');}}),/Session changed/);
 });
 
-test('long directions compact the built-in recipe without losing direction, role notes or finish choices',async()=>{
+test('Hong Kong keeps its fixed optical recipe with long directions and extra Style photos',()=>{
   const direction='Keep the same face, cafe, table and outfit. '.repeat(28).trim();
   for(const engine of ['seedream','gemini'])for(const intensity of [21,70,100])for(const count of [0,1,6]){
-    const settings={...base(intensity,count),engine,moodOriginalPrompt:direction};
-    settings.prompt=prepareMoodPrompt(direction,'hong-kong-nights',intensity,{engine,referenceCount:count}).prompt;
-    const plan=moodReferencePlan(settings);
-    assert.ok(compileImagePrompt(plan.settings.prompt,plan.settings.referenceRoles,plan.settings).length<=5000);
-    assert.ok(plan.settings.prompt.startsWith(direction));assert.equal(plan.settings.moodOriginalPrompt,direction);
-    assert.equal(plan.settings.filmFinish,settings.filmFinish);
-    assert.equal(moodReferencePlan(plan.settings).references.length,0);
+    const short='Same face and real place.';
+    const small=prepareMoodPrompt(short,'hong-kong-nights',intensity,{engine,referenceCount:count});
+    const large=prepareMoodPrompt(direction,'hong-kong-nights',intensity,{engine,referenceCount:count});
+    assert.equal(large.prompt.slice(direction.length),small.prompt.slice(short.length),'Direction length does not switch optics');
+    const settings={...base(intensity,count),engine,prompt:large.prompt,...large.metadata};
+    try{
+      const plan=moodReferencePlan(settings);
+      assert.equal(plan.settings.prompt,settings.prompt,'Mood recipe must be identical after adding Style photos');
+      assert.equal(plan.settings.moodOriginalPrompt,direction);
+      assert.equal(plan.settings.filmFinish,settings.filmFinish);
+      assert.ok(compileImagePrompt(plan.settings.prompt,plan.settings.referenceRoles,plan.settings).length<=5000);
+      assert.equal(moodReferencePlan(plan.settings).references.length,0);
+    }catch(error){
+      assert.match(error.message,/exceed 5,000 characters by [\d,]+/,'Provider limit must be explicit');
+      assert.equal(settings.prompt,large.prompt,'Overflow may not rewrite the Mood or direction');
+    }
   }
-  // Old saved full recipes also get a compact fallback at final reference assembly.
-  const settings=base(100);settings.prompt+=' Extra internal recipe wording.'.repeat(70);
+  const settings=base(100);
+  settings.prompt+=' Extra internal recipe wording.'.repeat(70);
   settings.referenceRoles[0].note='Preserve the cafe and her face exactly.';
-  const plan=moodReferencePlan(settings);
-  assert.ok(compileImagePrompt(plan.settings.prompt,plan.settings.referenceRoles,plan.settings).length<=5000);
-  assert.equal(plan.settings.referenceRoles[0].note,settings.referenceRoles[0].note);
-  assert.ok(plan.settings.prompt.startsWith(settings.moodOriginalPrompt));
+  const unmodified=settings.prompt;
+  assert.throws(()=>moodReferencePlan(settings),/exceed 5,000 characters by [\d,]+/);
+  assert.equal(settings.prompt,unmodified,'No automatic compact fallback is allowed');
+  assert.equal(settings.referenceRoles[0].note,'Preserve the cafe and her face exactly.');
   const source=readFileSync(new URL('../lab/lab.js',import.meta.url),'utf8');
-  assert.match(source,/compileImagePrompt\(planned.settings.prompt,planned.settings.referenceRoles,current\)/,'preview validates the exact planned prompt sent to the provider');
+  assert.match(source,/compileImagePrompt\(planned.settings.prompt,planned.settings.referenceRoles,current\)/,
+    'Frontend preview must validate the exact planned provider instructions');
 });

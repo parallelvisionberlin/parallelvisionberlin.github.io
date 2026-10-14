@@ -42,6 +42,8 @@ test('Midnight Reverie combines flash-imprint and dragged cyan ambient in one ge
       assert.match(recipe.prompt,/eyes/i);
       assert.match(recipe.prompt,/face/i);
       assert.doesNotMatch(recipe.prompt,/replace the person with the preview subject/i);
+      assert.equal(recipe.prompt,prepareMoodPrompt('Same original person and bedroom','midnight-reverie',strength,
+        {engine,referenceCount:1}).prompt,'Legacy compact flags cannot silently change this Mood');
     }
 });
 test('Midnight Reverie prompt budget protects user instructions and all reference roles',()=>{
@@ -54,9 +56,14 @@ test('Midnight Reverie prompt budget protects user instructions and all referenc
           const refs=Array.from({length:count},(_,i)=>({name:'ref-'+i+'.png',role:i?'identity':'base',note:''}));
           const result=prepareMoodPrompt(author,'midnight-reverie',strength,{engine,referenceCount:count});
           const provider=compileImagePrompt(result.prompt,refs,{...result.metadata,referenceMode:'base'});
-          assert.equal(result.error,'');
           assert.ok(result.prompt.startsWith(author));
-          assert.ok(provider.length<=5000,'provider budget exceeded: '+JSON.stringify({engine,strength,count,size,length:provider.length}));
+          assert.ok(provider.includes(result.prompt),'The full recipe is not truncated');
+          if(result.prompt.length>5000){
+            assert.match(result.error,/exceed 5,000 characters by [\d,]+/);
+            assert.equal(Number(result.error.match(/by ([\d,]+)/)[1].replaceAll(',','')),result.prompt.length-5000);
+          }else assert.equal(result.error,'');
+          if(count<=1&&size<=800)assert.ok(provider.length<=5000,'Standard single-photo recipes must fit');
+          if(provider.length>5000)assert.ok(provider.includes(author),'Overflow never removes the user direction');
           assert.match(provider,/IDENTITY FIRST/);
           assert.match(provider,/cobalt/i);
           max=Math.max(max,provider.length);
@@ -83,4 +90,17 @@ test('Midnight Reverie V2 module versions propagate through Studio and Mood disc
  const source=readFileSync(new URL('../lab/moods.js',import.meta.url),'utf8');
  assert.match(source,/Flash-frozen, cobalt afterglow/);
  assert.match(source,/if\(selected&&mood.defaultIntensity\)intensity=mood.defaultIntensity/);
+});
+
+
+test('Midnight Reverie retains one full recipe when notes and photos increase',()=>{
+  const input='Same photo, real face';
+  for(const engine of ['seedream','gemini']){
+    const one=prepareMoodPrompt(input,'midnight-reverie',82,{engine,referenceCount:1,referenceMode:'base'}).prompt;
+    for(const count of [3,6,10]){
+      const extra=prepareMoodPrompt(input,'midnight-reverie',82,{engine,referenceCount:count,referenceMode:'base'}).prompt;
+      assert.equal(extra,one,'Extra references may increase provider budget but cannot downgrade the Mood');
+    }
+    assert.match(one,/MIDNIGHT REVERIE V2 \/ SLOW-SYNC FLASH MEMORY/);
+  }
 });

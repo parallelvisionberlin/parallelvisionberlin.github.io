@@ -293,32 +293,37 @@ export function imageHistoryCaption(settings={}){
 }
 
 
-export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',referenceCount=0,referenceMode='base',compact=false,ultraCompact=false,filmFinish=HONG_KONG_FILM_FINISH}={}){
+export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',referenceCount=0,referenceMode='base',filmFinish=HONG_KONG_FILM_FINISH}={}){
   const original=String(input||'').trim(),mood=moodById(id);
   if(!mood)return {prompt:original,metadata:{},error:''};
   if(!MOOD_MODELS.includes(engine))return {prompt:original,metadata:{},error:'This image model does not support Moods. Choose Seedream Pro or Lite, Nano Banana, Qwen Image 3.0 or Z-Image Spicy.'};
   const intensity=Math.max(1,Math.min(100,Math.round(Number(amount)||60)));
   const finish=mood.id==='hong-kong-nights'&&filmFinish?filmFinishSettings(filmFinish):null;
   const dreamcore=mood.id==='dreamcore',cinematic80s=mood.id==='80s-film',berlinRave=mood.id==='berlin-rave',syntheticRomance=mood.id==='synthetic-romance',midnightReverie=mood.id==='midnight-reverie';
-  // Even one Base adds reference-map instructions after this prompt is built.
-  // Reserve that space before validation and submission use the same result.
-  const compactMidnight=midnightReverie&&(compact===true||ultraCompact===true||original.length>=650||referenceCount>=3);
-  const ultraMidnight=midnightReverie&&(ultraCompact===true||original.length>=1950||referenceCount>=8||(referenceCount>=5&&original.length>=1100));
-  const compactHongKong=mood.id==='hong-kong-nights'&&(compact===true||ultraCompact===true||original.length>=750||referenceCount>=3);
-  const ultraHongKong=mood.id==='hong-kong-nights'&&ultraCompact===true;
-  const compactBerlinRave=berlinRave&&(compact===true||referenceCount>=1||original.length>=750);
-  // Three built-in canon images add guidance even without user-uploaded photos.
+  // FIXED MOOD RECIPE: never switch between full/compact/ultra based on
+  // direction length, reference count or whether a budget is almost exhausted.
+  // Only the selected model and the Mood itself determine its established recipe.
+  // Seedream Lite has a fixed 3,000-character model-specific formulation.
+  // Hong Kong Nights uses its existing compact optical recipe on all 5K models
+  // because its four Style photos and their reference guidance must also fit.
+  // Other compact presets below are existing authored recipes, not truncations.
+  const lite=engine==='seedreamlite';
+  const compactMidnight=midnightReverie&&lite;
+  const ultraMidnight=midnightReverie&&lite;
+  const compactHongKong=mood.id==='hong-kong-nights';
+  const ultraHongKong=compactHongKong&&lite;
+  const compactBerlinRave=berlinRave;
   const compactSyntheticRomance=syntheticRomance;
-  const compactDreamcore=dreamcore&&(compact===true||referenceCount>=1||original.length>=300);
-  const compact80s=cinematic80s&&(compact===true||referenceCount>=2||original.length>=800||(referenceCount===1&&original.length>=(intensity===100?200:550)));
+  const compactDreamcore=dreamcore;
+  const compact80s=cinematic80s&&lite;
   const dreamcoreTier=intensity<=34?'Subtle':intensity<=69?'Moderate':intensity<=89?'Immersive':intensity<=99?'Intense':'Climax';
   const dreamcoreKey=intensity<=34?'subtle':intensity<=69?'moderate':intensity<=89?'immersive':intensity<=99?'intense':'climax';
   const context=referenceCount===0?'No Base: use the written subject.':referenceMode==='references'?'Reference-only: follow requested output and explicitly assigned roles.':'Inspect the first Base image to choose PERSON or SCENE.';
   const eightyCore=compact80s
     ?intensity<=34?mood.compactLow:intensity<=69?mood.compactMid:mood.compact
     :intensity<=34?mood.lowDirection:intensity<=69?mood.midDirection:mood.direction;
-  // Select one morphology for each invocation so the model receives a concrete
-  // physical design choice, not merely an instruction to be random.
+  // Keep the chosen morphology stable for a given intensity. Rebuilding a
+  // quote or updating references must not randomly alter the Mood instruction.
   const syntheticMorphologies=[
     'SELECTED MORPHOLOGY: recognizable human face, surgically integrated temples, neck, exposed cable spine and engineered shoulders.',
     'SELECTED MORPHOLOGY: human face emerging from an almost entirely black-chrome android body with articulated torso and limbs.',
@@ -326,7 +331,7 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
     'SELECTED MORPHOLOGY: nearly complete humanoid robot with precise cranial plating, subtle human facial structure and complex internal mechanisms.',
     'SELECTED MORPHOLOGY: restrained facial modification with radical torso and arm reconstruction, layered smoked-metal plates and routed cables.'
   ];
-  const syntheticMorphology=syntheticRomance&&intensity>=35?syntheticMorphologies[Math.floor(Math.random()*syntheticMorphologies.length)]:'';
+  const syntheticMorphology=syntheticRomance&&intensity>=35?syntheticMorphologies[Math.floor((intensity-35)/13)%syntheticMorphologies.length]:'';
   const style=syntheticRomance
     ?[compactSyntheticRomance?mood.compact:mood.direction,syntheticMorphology,'Creative intensity '+intensity+'/100: physical reconstruction, NOT a pixel filter.',compactSyntheticRomance?mood['compact'+dreamcoreTier]:mood[dreamcoreKey]].join(' ')
     :berlinRave
@@ -391,8 +396,9 @@ export function prepareMoodPrompt(input='',id='',amount=60,{engine='seedream',re
           :'The first reference is the base photograph. Preserve face, identity, real body proportions, pose, camera, wardrobe and composition unless the user specifically asks to change them. Preservation is guidance, not a guarantee.'
     :'Honor the requested subject and composition.';
   const prompt=[original,'PV LAB MOOD / '+mood.name+': '+style+' '+preservation+' Avoid: '+(compactMidnight||ultraMidnight?mood.compactAvoid:compactHongKong?'flat green tint, direct flash unchanged, plastic skin, body halos, invented lamps, facial reshaping, flat fog, copied Style scenes':compactDreamcore||compact80s||compactBerlinRave||compactSyntheticRomance?mood.compactAvoid:mood.avoid)+'.'].filter(Boolean).join('\n\n');
+  const budget=lite?3000:5000,over=prompt.length-budget;
   return {prompt,metadata:{moodId:mood.id,moodIntensity:intensity,moodOriginalPrompt:original,...(finish?{filmFinish:finish}:{})},
-    error:prompt.length>5000?'Prompt and mood exceed 5,000 characters. Shorten the direction or clear the mood.':(!original&&!referenceCount?'Describe a subject or add an image before generating with a mood.':'')};
+    error:over>0?'Direction and Mood exceed '+budget.toLocaleString()+' characters by '+over.toLocaleString()+'. The Mood stays unchanged; shorten your direction.':(!original&&!referenceCount?'Describe a subject or add an image before generating with a mood.':'')};
 }
 
 /* Keep the Mood gallery's height independent of the image composer height.
@@ -415,22 +421,16 @@ export function preparePersonalMoodPrompt(input='',mood,intensity=60,options={})
   const direction=String(mood.direction||'').trim();
   const baseId=moodById(mood.baseMoodId)?.id||null;
   const strength=Math.max(1,Math.min(100,Math.round(Number(intensity)||60)));
-  // Saved Moods add their own direction after the curated base; reserve space
-  // for the reference map even when the curated prompt alone would still fit.
-  const baseOptions=baseId==='80s-film'&&Number(options.referenceCount)>0?{...options,compact:true}:{...options,filmFinish:null};
-  let base=baseId?prepareMoodPrompt(original,baseId,strength,baseOptions):{prompt:original,error:''};
+  // Saved Moods use the same fixed recipe as their curated base.
+  // Never silently recompile the base direction when a user adds text or refs.
+  const base=baseId?prepareMoodPrompt(original,baseId,strength,{...options,filmFinish:null}):{prompt:original,error:''};
   const added='PV LAB MY MOOD / '+title+': Apply this REUSABLE LOOK to the current requested image, not as a replacement subject or scenery. '+direction+'. Preserve explicitly assigned reference roles and the user\'s subject and composition. Style guidance only; saved board images are inspiration and are not automatically attached to this request.';
-  let prompt=[base.prompt,added].filter(Boolean).join('\n\n');
-  // A rich personal style can push the detailed Dreamcore instructions above
-  // the provider limit. Recompile only the base art direction compactly.
-  // Keep the person's own prompt and all authored style details untouched.
-  if(prompt.length>5000&&(baseId==='dreamcore'||baseId==='80s-film'||baseId==='synthetic-romance')){
-    base=prepareMoodPrompt(original,baseId,strength,{...options,compact:true});
-    prompt=[base.prompt,added].filter(Boolean).join('\n\n');
-  }
+  const prompt=[base.prompt,added].filter(Boolean).join('\n\n');
+  const budget=options.engine==='seedreamlite'?3000:5000,over=prompt.length-budget;
   const referenceCount=Number(options.referenceCount)||0;
+  const nonBudgetError=base.error&&!/exceed \d[\d,]* characters by/.test(base.error)?base.error:'';
   return {prompt,metadata:{moodId:'custom',customMoodName:title,customMoodBoardId:mood.id,moodIntensity:strength,moodOriginalPrompt:original},
-    error:base.error||(prompt.length>5000?'Your saved Mood and prompt exceed 5,000 characters. Shorten the style direction or reduce reference notes.':(!original&&!referenceCount?'Describe a subject or add an image before using this Mood.':''))};
+    error:nonBudgetError||(over>0?'Direction and saved Mood exceed '+budget.toLocaleString()+' characters by '+over.toLocaleString()+'. The Mood stays unchanged; shorten your direction or edit your saved Mood.':base.error||(!original&&!referenceCount?'Describe a subject or add an image before using this Mood.':''))};
 }
 
 export function createMoodSelector({panel,button,getEngine,chooseEngine,onChange,onOpen,onCreatePersonal=()=>{},onEditPersonal=()=>{}}){
