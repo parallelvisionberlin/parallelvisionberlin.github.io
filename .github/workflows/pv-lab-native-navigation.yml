@@ -1,0 +1,27 @@
+name: PV Lab native iPhone navigation
+
+on:
+  push:
+    branches: [mobile-app-v1]
+    paths:
+      - 'mobile-app/src/LabApp.js'
+      - 'mobile-app/src/labBridge.js'
+      - 'mobile-app/tests/lab-retouch-tabs.test.mjs'
+      - 'mobile-app/finish-lab02.ps1'
+      - '.github/workflows/pv-lab-native-navigation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native-tabs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify five native destinations and Retouch lifecycle
+        run: node --test mobile-app/tests/lab-retouch-tabs.test.mjs
