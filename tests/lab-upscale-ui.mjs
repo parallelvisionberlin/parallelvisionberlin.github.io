@@ -68,11 +68,17 @@ try{
  assert.equal(await x.page.locator('#upscale-scale').inputValue(),'2');
  assert.equal(await x.page.locator('#settings-summary').isVisible(),false);
  await openUpscaleOptions(x.page);
- assert.match(await x.page.locator('#upscale-model-name').innerText(),/Premium Upscale.*ByteDance/);
+ assert.match(await x.page.locator('#upscale-model-name').innerText(),/Vision Upscaler.*ByteDance/);
  assert.match(await x.page.locator('#upscale-published-price').innerText(),/0\.001 per output megapixel/);
  assert.equal(await x.page.locator('#upscale-content-label').innerText(),'FAL content restrictions');
+ assert.equal(await x.page.locator('#empty-title').innerText(),'Vision Upscaler');
+ assert.equal(await x.page.locator('#upscale-engine-credit').innerText(),'Powered by ByteDance SeedVR2');
+ assert.equal(await x.page.locator('#upscale-engine-credit').isVisible(),true);
+ assert.equal(await x.page.locator('#upscale-stage-signature').isVisible(),false);
  await x.page.locator('#upscale-info summary').click();
  await uploadSmall(x.page);
+ assert.equal(await x.page.locator('#upscale-stage-signature').isVisible(),true);
+ assert.equal(await x.page.locator('#upscale-engine-credit').isVisible(),false);
  assert.equal(countPaid(x),0);
  await x.page.click('#generate:visible, #image-composer-generate:visible');
  await x.page.waitForFunction(()=>window.__labTest.settled());
