@@ -14,8 +14,9 @@ test('referral reward, invite link and activity are one editorial panel',()=>{
   assert.ok(panel.indexOf('id="referrals-url"')<panel.indexOf('id="referrals-invited"'),'link is above activity');
   assert.match(panel,/id="referrals-reward"[^>]*hidden/);
   assert.match(panel,/id="referrals-content" hidden/);
-  assert.match(html,/account\.css\?v=20261014-referrals-compact1/);
-  assert.match(html,/account\.js\?v=20261014-referrals-compact1/);
+  // Account revisions may rotate asset cache keys without altering referrals.
+  assert.match(html,/href="\.\/account\.css\?v=[^"]+"/);
+  assert.match(html,/src="\.\/account\.js\?v=[^"]+"/);
 });
 
 test('referral presentation is dynamic and clears when changing accounts',()=>{

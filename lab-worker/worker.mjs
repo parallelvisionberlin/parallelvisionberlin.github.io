@@ -145,12 +145,16 @@ async function decryptKey(env,value) {
   return dec.decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:unbase(iv),additionalData:enc.encode(MODEL)},key,unbase(cipher)));
 }
 async function config(env,owner) {
-  const original=await first(env,'SELECT * FROM settings WHERE owner_id=?',owner);
-  if(original)return original;
-  if(!canCustomerGenerate(env,owner)||!await isLabCustomer(env,owner))return null;
-  return {owner_id:owner,encrypted_key:await encryptKey(env,env.LAB_CUSTOMER_SPICY_API_KEY),enabled:1,terms_confirmed:1,daily_limit_microusd:10000000};
+  // Customer credit wallets, not an owner-style daily estimate budget, cap purchases.
+  // Always use the isolated customer provider secret, even if a legacy settings row exists.
+  if(await isLabCustomer(env,owner)){
+    if(!canCustomerGenerate(env,owner))return null;
+    return {owner_id:owner,encrypted_key:await encryptKey(env,env.LAB_CUSTOMER_SPICY_API_KEY),
+      enabled:1,terms_confirmed:1,daily_limit_microusd:Number.MAX_SAFE_INTEGER,customer_no_daily_cap:true};
+  }
+  return first(env,'SELECT * FROM settings WHERE owner_id=?',owner);
 }
-function publicConfig(c,falEnabled=false) {return {concurrency:CONCURRENCY,configured:!!c,enabled:!!(c?.enabled&&c?.terms_confirmed),dailyLimitUsd:(c?.daily_limit_microusd||10000000)/1000000,provider:'SpicyAPI',videoEngines:['wan','wanprime','h3','h3max','h3spicy','seedance','seedance15','seedance4k',...(falEnabled?['h3maxfal','omni']:[])],model:'Wan 3.0 / Wan Prime / MiniMax H3 / H3 Max / H3 Spicy / H3 Max Reference FAL / Gemini Omni Flash 1.1 / Seedance 2.5 / Seedream 5.0 Pro / Image Upscaler',documentation:DOC,pricingNote:'SpicyAPI videos use a live bound quote. fal.ai video routes use the current published per-second estimate shown before confirmation. Provider billing remains authoritative.'};}
+function publicConfig(c,falEnabled=false) {return {concurrency:CONCURRENCY,configured:!!c,enabled:!!(c?.enabled&&c?.terms_confirmed),dailyLimitUsd:c?.customer_no_daily_cap?null:(c?.daily_limit_microusd||10000000)/1000000,provider:'SpicyAPI',videoEngines:['wan','wanprime','h3','h3max','h3spicy','seedance','seedance15','seedance4k',...(falEnabled?['h3maxfal','omni']:[])],model:'Wan 3.0 / Wan Prime / MiniMax H3 / H3 Max / H3 Spicy / H3 Max Reference FAL / Gemini Omni Flash 1.1 / Seedance 2.5 / Seedream 5.0 Pro / Image Upscaler',documentation:DOC,pricingNote:'SpicyAPI videos use a live bound quote. fal.ai video routes use the current published per-second estimate shown before confirmation. Provider billing remains authoritative.'};}
 async function vendorRequest(path,key,data,idempotency,method=data?'POST':'GET') {
   let r;
   try {
