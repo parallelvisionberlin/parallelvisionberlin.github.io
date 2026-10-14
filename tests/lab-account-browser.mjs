@@ -222,7 +222,7 @@ try{
           assert.match(await page.locator('[data-account-balance]').textContent(),customer?/1,234 credits/:/Owner workspace/,path+' '+await page.locator('body').innerText());
           if(path==='/lab/index.html'){
             assert.equal(await page.locator('#lab-home-upgrade').count(),0,'No competing Upgrade button');
-            assert.equal(await page.locator('#lab-home-credits').isVisible(),customer,'Credits only for customers');
+            assert.equal(await page.locator('#lab-home-credits').isVisible(),true,'Credits entry remains visible for customers and owner');
             if(customer){
               assert.equal(await page.locator('#lab-home-credit-copy').textContent(),'1,234');
               assert.equal(await page.locator('#lab-home-credits').getAttribute('href'),'#pricing');
