@@ -32,10 +32,10 @@ function clearPrivateView(){
   $('account-profile-mark').textContent='PV';$('account-profile-kind').textContent='Image. Motion. Your direction.';
   for(const id of ['account-products','account-plans','account-activity','account-purchases'])$(id).replaceChildren();
   for(const id of ['settings-name','settings-email','account-storage-label','account-plan','referrals-status'])$(id).textContent='';
-  $('account-balance').textContent='…';$('referrals-url').value='';$('referrals-content').hidden=true;
+  $('account-balance').textContent='…';$('referrals-url').value='';$('referrals-content').hidden=true;$('referrals-reward').hidden=true;$('referrals-bonus').textContent='0';
   $('account-storage').hidden=true;$('account-storage-meter').value=0;
   for(const id of ['referrals-invited','referrals-rewarded','referrals-earned'])$(id).textContent='0';
-  $('referrals-description').textContent='Share your creative space.';
+  $('referrals-description').textContent='Invite a friend into your creative space.';
   $('account-voucher-status').textContent='';$('account-voucher-code').value='';$('account-voucher-submit').disabled=false;voucherBusy=false;
   $('account-close-confirm').value='';$('account-close-submit').disabled=true;
   if($('account-close-dialog').open)$('account-close-dialog').close();
@@ -167,10 +167,13 @@ async function loadReferrals(){
     const data=await api('/api/customer/referrals');if(current!==referralRevision||accountRevision!==revision)return;
     if(!data.rewardsAvailable){$('referrals-status').textContent='Referral rewards are not open yet.';return;}
     const url=new URL(data.url);if(url.protocol!=='https:'||url.origin!==location.origin||url.username||url.password)throw Error('Your invite link is unavailable.');
-    $('referrals-url').value=url.href;$('referrals-content').hidden=false;
-    $('referrals-description').textContent='You and your friend each receive '+Number(data.bonusCredits).toLocaleString()+' credits after their first qualifying payment of '+money(data.qualifyingPurchaseEur)+' or more.';
-    $('referrals-invited').textContent=Number(data.invited).toLocaleString();$('referrals-rewarded').textContent=Number(data.rewarded).toLocaleString();$('referrals-earned').textContent=(Number(data.rewarded)*Number(data.bonusCredits)).toLocaleString();
-    $('referrals-status').textContent='Your friend must join through your link before making their first purchase.';
+    const bonusCredits=Number(data.bonusCredits),qualifyingPurchaseEur=Number(data.qualifyingPurchaseEur);
+    if(!Number.isSafeInteger(bonusCredits)||bonusCredits<=0||!Number.isFinite(qualifyingPurchaseEur)||qualifyingPurchaseEur<=0)throw Error('Referral details are temporarily unavailable.');
+    $('referrals-bonus').textContent=bonusCredits.toLocaleString();
+    $('referrals-description').textContent='Your friend joins through this link and makes a first purchase of '+money(qualifyingPurchaseEur)+' or more. You both receive the reward.';
+    $('referrals-url').value=url.href;$('referrals-content').hidden=false;$('referrals-reward').hidden=false;
+    $('referrals-invited').textContent=Number(data.invited).toLocaleString();$('referrals-rewarded').textContent=Number(data.rewarded).toLocaleString();$('referrals-earned').textContent=(Number(data.rewarded)*bonusCredits).toLocaleString();
+    $('referrals-status').textContent='';
   }catch(error){if(current===referralRevision&&accountRevision===revision){referralLoaded=false;$('referrals-status').textContent=error.message;}}
 }
 $('account-signin').onclick=()=>clerk?.openSignIn();

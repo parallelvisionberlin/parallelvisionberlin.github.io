@@ -338,72 +338,119 @@ body.pv-account-page{margin:0;background:#101010;color:#f1efea;font:400 14px/1.6
   padding:45px 0 0 clamp(42px,5vw,86px);
 }
 
-/* The approved referral experience: strong editorial title, one seamless
- * copy field, and meaningful three-column metrics. No hardcoded user data. */
-.pv-account-page #section-referrals{
-  max-width:1200px;
+/* Invite, reward, link and activity stay in one restrained editorial surface. */
+.pv-account-page #section-referrals{max-width:1120px}
+.pv-account-page #section-referrals .account-referral-panel{
+  box-sizing:border-box;
+  border:1px solid #363631;
+  padding:26px clamp(22px,2.5vw,34px) 25px;
+  background:linear-gradient(120deg,#1a1a19 0%,#151515 78%);
 }
-.pv-account-page #section-referrals>.account-eyebrow{
-  margin-bottom:18px;
-  color:#b7b4ac;
-  font-size:10px;
+.pv-account-page #section-referrals .account-referral-top{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(142px,185px);
+  align-items:start;
+  gap:28px;
+}
+.pv-account-page #section-referrals .account-referral-intro{min-width:0}
+.pv-account-page #section-referrals .account-referral-intro .account-eyebrow{
+  margin:0 0 10px;
+  color:#b6b4ad;
+  font-size:9px;
+  letter-spacing:.18em;
   line-height:1.4;
-  letter-spacing:.2em;
 }
 .pv-account-page #section-referrals #referrals-title{
-  max-width:740px;
-  margin:0 0 16px;
-  color:#f0ede7;
-  font-size:clamp(42px,4.35vw,68px);
+  margin:0 0 9px;
+  font-size:clamp(35px,3.1vw,44px);
+  line-height:1.08;
+  letter-spacing:-.055em;
   font-weight:300;
-  line-height:1.04;
-  letter-spacing:-.065em;
+  color:#f1efe9;
 }
-.pv-account-page #section-referrals #referrals-title span{
-  display:block;
-}
+.pv-account-page #section-referrals #referrals-title span{color:#9b9a93}
 .pv-account-page #section-referrals .account-lead{
-  max-width:690px;
   margin:0;
-  color:#b4b1aa;
-  font-size:clamp(17px,1.38vw,20px);
+  max-width:610px;
+  font-size:14px;
+  font-weight:400;
+  line-height:1.55;
+  letter-spacing:-.005em;
+  color:#b7b4ad;
+}
+.pv-account-page #section-referrals .account-referral-reward{
+  box-sizing:border-box;
+  min-width:0;
+  border-left:1px solid #3e3f3a;
+  padding:3px 0 3px 21px;
+  text-align:right;
+}
+.pv-account-page #section-referrals .account-referral-reward strong{
+  display:block;
+  color:#eae8e1;
+  font-size:clamp(42px,4vw,56px);
+  line-height:1;
   font-weight:300;
-  line-height:1.5;
-  letter-spacing:-.023em;
+  letter-spacing:-.07em;
+  font-variant-numeric:tabular-nums;
+  overflow-wrap:anywhere;
+}
+.pv-account-page #section-referrals .account-referral-reward strong::before{
+  content:'+';
+  display:inline-block;
+  padding-right:2px;
+  font-size:.52em;
+  vertical-align:top;
+  color:#aaa9a2;
+}
+.pv-account-page #section-referrals .account-referral-reward span,
+.pv-account-page #section-referrals .account-referral-reward small{
+  display:block;
+  margin-top:9px;
+  font-size:9px;
+  line-height:1.35;
+  letter-spacing:.12em;
+  color:#dedbd3;
+  white-space:nowrap;
+}
+.pv-account-page #section-referrals .account-referral-reward small{
+  margin-top:4px;
+  font-size:8px;
+  color:#918f89;
 }
 .pv-account-page #section-referrals .account-field{
   display:block;
-  margin:35px 0 0;
-  color:#aeaaa2;
-  font-size:10px;
+  margin:22px 0 8px;
+  color:#aeaca4;
+  font-size:9px;
   font-weight:400;
-  line-height:1.3;
-  letter-spacing:.13em;
+  line-height:1.4;
+  letter-spacing:.14em;
   text-transform:uppercase;
 }
 .pv-account-page #section-referrals .account-copy{
   display:flex;
   align-items:stretch;
   width:100%;
-  min-height:54px;
+  min-height:48px;
   gap:0;
-  margin-top:12px;
-  border:1px solid #4a4944;
-  background:#151515;
+  margin:0;
+  border:1px solid #4a4a46;
+  background:#111;
   flex-wrap:nowrap;
 }
 .pv-account-page #section-referrals .account-copy input{
   flex:1 1 auto;
   width:1px;
   min-width:0;
-  height:54px;
+  height:48px;
   margin:0;
-  padding:0 17px;
+  padding:0 15px;
   border:0;
   border-radius:0;
   background:transparent;
-  color:#e9e6e0;
-  font-size:13px;
+  color:#e9e7e0;
+  font-size:12px;
   line-height:1.2;
   letter-spacing:0;
   text-overflow:ellipsis;
@@ -412,70 +459,65 @@ body.pv-account-page{margin:0;background:#101010;color:#f1efea;font:400 14px/1.6
 .pv-account-page #section-referrals .account-copy button{
   flex:none;
   align-self:stretch;
-  min-width:128px;
-  min-height:54px;
+  min-width:116px;
+  min-height:48px;
   margin:0;
-  padding:0 19px;
+  padding:0 18px;
   border:0;
-  border-left:1px solid #e9e6e0;
+  border-left:1px solid #eae7e0;
   border-radius:0;
   background:#f0ede6;
-  color:#141414!important;
-  font-size:13px!important;
+  color:#151515!important;
+  font-size:12px!important;
   font-weight:500;
   line-height:1.2;
   white-space:nowrap;
   box-shadow:none;
 }
-.pv-account-page #section-referrals .account-copy button:hover{
-  background:#fff;
-  border-color:#fff;
-}
-.pv-account-page #section-referrals #referrals-status{
-  min-height:18px;
-  margin:12px 0 0;
-  color:#9f9f97;
-  font-size:12px;
-}
+.pv-account-page #section-referrals .account-copy button:hover{background:#fff;border-color:#fff}
 .pv-account-page #section-referrals .account-referral-stats{
   display:grid;
   grid-template-columns:repeat(3,minmax(0,1fr));
   gap:0;
-  margin-top:24px;
-  padding:34px 0 0;
-  border-top:1px solid #373834;
+  margin:20px 0 0;
+  padding:17px 0 0;
+  border-top:1px solid #3b3b36;
 }
 .pv-account-page #section-referrals .account-referral-stats>div{
+  box-sizing:border-box;
   min-width:0;
-  padding:1px clamp(16px,2.2vw,38px);
-  border-right:1px solid #373834;
+  padding:0 clamp(12px,1.85vw,30px);
+  border-right:1px solid #383934;
 }
-.pv-account-page #section-referrals .account-referral-stats>div:first-child{
-  padding-left:0;
-}
-.pv-account-page #section-referrals .account-referral-stats>div:last-child{
-  padding-right:0;
-  border-right:0;
-}
+.pv-account-page #section-referrals .account-referral-stats>div:first-child{padding-left:0}
+.pv-account-page #section-referrals .account-referral-stats>div:last-child{padding-right:0;border-right:0}
 .pv-account-page #section-referrals .account-referral-stats strong{
   display:block;
-  color:#f1eee8;
-  font-size:clamp(43px,4.1vw,64px);
+  color:#f0eee8;
+  font-size:clamp(29px,2.5vw,36px);
   font-weight:300;
-  line-height:1.15;
-  letter-spacing:-.07em;
+  line-height:1.1;
+  letter-spacing:-.055em;
   font-variant-numeric:tabular-nums;
   overflow-wrap:anywhere;
 }
 .pv-account-page #section-referrals .account-referral-stats span{
   display:block;
-  margin-top:9px;
-  color:#a4a19b;
-  font-size:10px;
-  letter-spacing:.12em;
-  line-height:1.5;
+  margin-top:7px;
+  color:#aaa79f;
+  font-size:9px;
+  line-height:1.4;
+  letter-spacing:.08em;
   text-transform:uppercase;
 }
+.pv-account-page #section-referrals #referrals-status{
+  min-height:0;
+  margin:12px 0 0;
+  color:#aaa79f;
+  font-size:11px;
+  line-height:1.5;
+}
+.pv-account-page #section-referrals #referrals-status:empty{display:none}
 
 @media(max-width:1100px){
   .pv-account-page .account-intro{
@@ -549,33 +591,40 @@ body.pv-account-page{margin:0;background:#101010;color:#f1efea;font:400 14px/1.6
   .pv-account-page .account-content{
     padding:30px 0 0;
   }
-  .pv-account-page #section-referrals #referrals-title{
-    font-size:clamp(40px,9vw,50px);
-    margin-bottom:14px;
+  .pv-account-page #section-referrals .account-referral-panel{padding:20px 18px}
+  .pv-account-page #section-referrals .account-referral-top{display:flex;flex-direction:column;gap:15px}
+  .pv-account-page #section-referrals #referrals-title{font-size:clamp(33px,8vw,41px);margin-bottom:8px}
+  .pv-account-page #section-referrals .account-lead{font-size:13px}
+  .pv-account-page #section-referrals .account-referral-reward{
+    display:flex;
+    flex-direction:row;
+    align-items:center;
+    gap:14px;
+    width:100%;
+    padding:10px 0 0;
+    border-left:0;
+    border-top:1px solid #3b3c36;
+    text-align:left;
   }
-  .pv-account-page #section-referrals .account-lead{font-size:17px}
-  .pv-account-page #section-referrals .account-field{margin-top:27px}
-  .pv-account-page #section-referrals .account-copy{
-    flex-wrap:nowrap;
-    gap:0;
-    min-height:50px;
-  }
-  .pv-account-page #section-referrals .account-copy input{height:50px;padding-inline:12px;font-size:12px}
-  .pv-account-page #section-referrals .account-copy button{
-    min-width:99px;
-    min-height:50px;
-    padding-inline:12px;
-    font-size:12px!important;
-  }
-  .pv-account-page #section-referrals .account-referral-stats{padding-top:27px;margin-top:20px}
-  .pv-account-page #section-referrals .account-referral-stats>div{padding-inline:14px}
-  .pv-account-page #section-referrals .account-referral-stats strong{font-size:clamp(34px,8vw,42px)}
-  .pv-account-page #section-referrals .account-referral-stats span{font-size:9px;letter-spacing:.06em}
+  .pv-account-page #section-referrals .account-referral-reward strong{font-size:37px}
+  .pv-account-page #section-referrals .account-referral-reward span{margin-top:0}
+  .pv-account-page #section-referrals .account-referral-reward small{margin-top:3px}
+  .pv-account-page #section-referrals .account-field{margin-top:20px}
+  .pv-account-page #section-referrals .account-copy{flex-wrap:nowrap;gap:0;min-height:47px}
+  .pv-account-page #section-referrals .account-copy input{height:47px;padding-inline:11px;font-size:11px}
+  .pv-account-page #section-referrals .account-copy button{min-width:96px;min-height:47px;padding:0 11px;font-size:11px!important}
+  .pv-account-page #section-referrals .account-referral-stats{margin-top:19px;padding-top:16px}
+  .pv-account-page #section-referrals .account-referral-stats>div{padding-inline:9px}
+  .pv-account-page #section-referrals .account-referral-stats strong{font-size:30px}
+  .pv-account-page #section-referrals .account-referral-stats span{font-size:8.5px;letter-spacing:.035em}
 }
 @media(max-width:360px){
   .pv-account-page .account-intro h1{font-size:48px}
-  .pv-account-page #section-referrals #referrals-title{font-size:36px}
-  .pv-account-page #section-referrals .account-referral-stats>div{padding-inline:9px}
+  .pv-account-page #section-referrals .account-referral-panel{padding:18px 14px}
+  .pv-account-page #section-referrals #referrals-title{font-size:32px}
+  .pv-account-page #section-referrals .account-referral-stats>div{padding-inline:6px}
+  .pv-account-page #section-referrals .account-referral-stats strong{font-size:26px}
+  .pv-account-page #section-referrals .account-referral-stats span{font-size:8px}
 }
 @media(prefers-reduced-motion:reduce){
   .pv-account-page .account-sidebar nav a,
