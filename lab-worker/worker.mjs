@@ -1163,6 +1163,11 @@ async function route(request,env,ctx) {
   if(!url.pathname.startsWith('/api/'))fail(404,'Not found.');
   const {id:owner,issuer:authIssuer}=await authenticate(request,env);
   const path=url.pathname,method=request.method;
+  // New Clerk pilot: verify sessions and read the empty independent wallet only.
+  // Never allow generation, payment, referral claims or private mutations until
+  // old credits, owner role and Stripe return paths have an audited migration.
+  if(authIssuer!==LEGACY_ISSUER&&method!=='GET'&&method!=='HEAD')
+    fail(403,'PV LAB domain migration is in read-only testing.');
   if(path.startsWith('/api/admin/'))return labAdminRoute(request,env,owner,{decryptKey});
   const customer=await isLabCustomer(env,owner);
   if(customer&&authIssuer===LEGACY_ISSUER&&path==='/api/session'&&(env.LAB_CLERK_SECRET_KEY||env.CLERK_SECRET_KEY)&&ctx?.waitUntil)
