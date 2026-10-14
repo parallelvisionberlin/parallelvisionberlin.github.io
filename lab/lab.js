@@ -2566,7 +2566,11 @@ function showImageDetail(job,hasOutput,loading=false){
     $(id).disabled=!hasOutput||loading;
   $('image-detail-delete').disabled=activeStates.has(job.status);
   fillDetailExtraActions(job,'image');
+  // Keep the app's one-piece result scroller at the photo when opening or
+  // navigating to a different image. Do not jump during async preview upgrades.
+  const resetViewerScroll=changed||!dialog.open;
   if(!dialog.open)dialog.showModal();
+  if(resetViewerScroll)dialog.querySelector('.image-detail-layout')?.scrollTo({top:0,left:0,behavior:'instant'});
   if(changed)showImageDetailSource(job);
   refreshImageDetailNavigation();
 }
