@@ -3477,7 +3477,9 @@ async function loadEarlierHistory(){
 async function loadHistory(append=false,incremental=false){
   if(!owner||(append&&(!next||historyLoading)))return;
   assetLibrary?.heading();
-  if(!append&&!incremental){historySelected.clear();next=null;historyHasPage=false;historyAutoLoadPaused=false;videoJobCache.clear();imageDetailCache.clear();historyRevision++;observer.disconnect();galleryPreviewQueue.length=0;cardUrls.forEach(release);cardUrls.clear();$('history').replaceChildren();updateHistorySelectionUi();}
+  // Keep the last successful gallery on screen while a fresh page loads.
+  // A temporary API failure must never look like the customer's files were deleted.
+  const replacePage=!append&&!incremental;
   renderPendingImageCards();
   const rev=historyRevision,loadId=++historyLoadId,q=assetLibrary?.query()||new URLSearchParams();
   if(append&&next){q.set('before',next.before);q.set('afterId',next.afterId);}
@@ -3485,6 +3487,12 @@ async function loadHistory(append=false,incremental=false){
   try{
     const data=await api('/api/jobs?'+q);
     if(!owner||rev!==historyRevision||loadId!==historyLoadId)return;
+    if(replacePage){
+      historySelected.clear();next=null;historyHasPage=false;historyAutoLoadPaused=false;
+      videoJobCache.clear();imageDetailCache.clear();historyRevision++;observer.disconnect();
+      galleryPreviewQueue.length=0;cardUrls.forEach(release);cardUrls.clear();
+      $('history').replaceChildren();updateHistorySelectionUi();renderPendingImageCards();
+    }
     renderCards(data.jobs,{upsert:incremental});
     // A completed provider result may need local pixel-preserving compositing after a reload.
     for(const job of data.jobs||[])if(job?.status==='completed'&&job.settings?.precisionEdit&&!job.settings?.precisionFinalized)
@@ -3496,6 +3504,7 @@ async function loadHistory(append=false,incremental=false){
     if(data.concurrency)config.concurrency=data.concurrency;setActiveJobs(data.activeJobs||(data.active?[data.active]:[]));syncImageGalleryEmpty();if(tool==='video'&&!assetLibrary?.active())restoreLatestVideoSelection();
   }catch(error){
     if(append&&rev===historyRevision&&loadId===historyLoadId)historyAutoLoadPaused=true;
+    if(!append&&rev===historyRevision&&loadId===historyLoadId)syncImageGalleryEmpty();
     throw error;
   }finally{
     if(loadId===historyLoadId){historyLoading=false;updateHistoryPagination();}
@@ -3543,9 +3552,19 @@ async function sync(){if(syncing)return;syncing=true;try{if(!clerk.isSignedIn){l
     $('history').setAttribute('aria-busy','true');
     finishLabBoot();
     if(customerMode&&new URLSearchParams(location.search).get('referrals')==='1')wallet.openReferrals();
-    await Promise.all([loadHistory().finally(()=>$('history').removeAttribute('aria-busy')),loadPacks(),soul.load(),loadSoulProIdentity()]);
+    await Promise.all([
+      loadHistory().finally(()=>$('history').removeAttribute('aria-busy')).catch(error=>{
+        notify('Your gallery could not refresh. Your previous work remains saved. Use Refresh or check Assets. '+error.message,true);
+      }),
+      loadPacks().catch(error=>console.warn('Photo packs could not load:',error)),
+      soul.load().catch(error=>console.warn('Saved characters could not load:',error)),
+      loadSoulProIdentity().catch(error=>console.warn('Saved identity could not load:',error))
+    ]);
     void myMoods.refresh().catch(()=>{/* Personal boards must not block image Studio sign-in. */});
-    syncVideoStudioMode();await restoreStudioEntry();if(!fashionActive&&fashionController)void fashionController.sync();if(customerMode&&new URLSearchParams(location.search).get('billing')==='success'){notify('Checkout returned. Credits appear when Stripe confirms payment.');void wallet.refresh();}}catch(e){lock();$('auth-status').textContent=e.message;$('signin').disabled=false;$('logout').hidden=!clerk?.isSignedIn;studioAccount.update({signed:!!clerk?.isSignedIn,user:clerk?.user});}finally{syncing=false;finishLabBoot();if(owner&&window.__PV_LAB_NATIVE__===1){
+    syncVideoStudioMode();
+    try{await restoreStudioEntry();}
+    catch(error){notify('Could not open the requested view. Your workspace is still available. '+error.message,true);if(owner)setTool('image');}
+    if(!fashionActive&&fashionController)void fashionController.sync();if(customerMode&&new URLSearchParams(location.search).get('billing')==='success'){notify('Checkout returned. Credits appear when Stripe confirms payment.');void wallet.refresh();}}catch(e){lock();$('auth-status').textContent=e.message;$('signin').disabled=false;$('logout').hidden=!clerk?.isSignedIn;studioAccount.update({signed:!!clerk?.isSignedIn,user:clerk?.user});}finally{syncing=false;finishLabBoot();if(owner&&window.__PV_LAB_NATIVE__===1){
       window.ReactNativeWebView?.postMessage(JSON.stringify({type:'PV_LAB_READY'}));
       // Older shells may reload without sending a destination command.
       // Release the restored workspace rather than leave an endless loader.

@@ -11,12 +11,17 @@ test('authenticated Image studio can paint before account-dependent history comp
   const boot=lab.slice(start,end);
   const appReady=boot.indexOf("$('app').hidden=false");
   const visible=boot.indexOf('finishLabBoot();',appReady);
-  const wait=boot.indexOf('await Promise.all([loadHistory()',appReady);
+  const wait=boot.indexOf('await Promise.all([',appReady);
   assert.ok(appReady>=0&&visible>appReady&&wait>visible,
     'finish the loading overlay after authenticating and before awaiting all metadata');
   assert.match(boot,/Loading your images…/);
-  assert.match(boot,/loadHistory\(\)\.finally\(\(\)=>\$\('history'\)\.removeAttribute\('aria-busy'\)\)/);
+  assert.match(boot,/loadHistory\(\)\.finally\(\(\)=>\$\('history'\)\.removeAttribute\('aria-busy'\)\)\.catch/);
+  assert.match(boot,/loadPacks\(\)\.catch/);
+  assert.match(boot,/soul\.load\(\)\.catch/);
+  assert.match(boot,/loadSoulProIdentity\(\)\.catch/);
+  assert.match(boot,/catch\(error\)\{notify\('Could not open the requested view/);
   assert.match(html,/galleryPerf=1/);
+  assert.match(html,/galleryRecover=20261015-1/);
 });
 
 test('image gallery allows at most four simultaneous thumbnail downloads',async()=>{
