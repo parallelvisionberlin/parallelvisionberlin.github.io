@@ -1,5 +1,6 @@
 import {loadLabAccount} from './native-account.js?v=20261012-unified-header1';
 import {createSessionRequest} from './session-request.js?v=20260927-auth1';
+import {createOwnerProviderUI} from './owner-providers-ui.js?v=20261014-v2-finance1';
 const $=id=>document.getElementById(id);
 const apiBase='https://parallel-vision-lab.parallelvision.workers.dev';
 let clerk=null,revision=0,profile=null,creating=false,syncing=false,emailSyncReady=false,fetchSerial=0,searchTimer=null,syncNotice='';
@@ -13,6 +14,7 @@ async function call(path,{method='GET',body}={}){
   if(!response.ok)throw Error(value.error||'Owner request could not be completed.');
   return value;
 }
+const providerUI=createOwnerProviderUI({call,getOwner:()=>!!profile?.owner});
 function rowInto(tbody,items,values,emptyMessage='Nothing to show yet.'){
   tbody.replaceChildren();
   if(!items.length){
@@ -49,16 +51,24 @@ function labelTableCellsForMobile(){
 let recentFilter='all',recentCustomers=[],recentPayments=[];
 function recentRow(list,index,{primary,secondary,emphasis,at}){
   const li=document.createElement('li');li.className='owner-recent-item';
-  const number=document.createElement('span');number.className='owner-recent-number';number.textContent=String(index+1).padStart(2,'0');number.setAttribute('aria-hidden','true');
+  const number=document.createElement('span');number.className='owner-recent-number';
+  number.textContent=String(index+1).padStart(2,'0');number.setAttribute('aria-hidden','true');
   const info=document.createElement('div');info.className='owner-recent-person';
+  const avatar=document.createElement('span');avatar.className='owner-recent-avatar';
+  avatar.textContent=String(primary||'U').charAt(0).toUpperCase();avatar.setAttribute('aria-hidden','true');
+  const inner=document.createElement('div');inner.className='owner-recent-person-detail';
   const name=document.createElement('strong');name.textContent=primary||'—';name.title=primary||'';
   const details=document.createElement('small');details.textContent=secondary||'';details.title=secondary||'';
-  info.append(name,details);
-  const trailing=document.createElement('div');trailing.className='owner-recent-trailing';
-  const label=document.createElement('strong');label.textContent=emphasis||'—';
-  const when=document.createElement('time');when.textContent=formatDate(at);
-  if(Number.isFinite(Number(at))&&Number(at)>0)when.dateTime=new Date(Number(at)).toISOString();
-  trailing.append(label,when);li.append(number,info,trailing);list.append(li);
+  inner.append(name,details);info.append(avatar,inner);
+  const label=document.createElement('span');label.className='owner-recent-status';label.textContent=emphasis||'—';
+  const when=document.createElement('time');when.className='owner-recent-date';when.textContent=formatDate(at);
+  if(Number.isFinite(Number(at))&&Number(at)>0){
+    const date=new Date(Number(at));when.dateTime=date.toISOString();
+    const clock=document.createElement('small');
+    clock.textContent=date.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',timeZone:'UTC'})+' UTC';
+    when.append(clock);
+  }
+  li.append(number,info,label,when);list.append(li);
 }
 function paintRecentActivity(){
   for(const button of document.querySelectorAll('[data-recent-filter]'))
@@ -84,7 +94,7 @@ function paintRecentActivity(){
   });
   $('owner-recent-note').textContent=subscribed
     ?'Active or trialing subscribers, ordered by account signup date. Recent 80-account window.'
-    :'Showing the five newest signups. This list stays unfiltered when searching the full directory.';
+    :'Showing '+Math.min(recentCustomers.length,5)+' most recent signup'+(Math.min(recentCustomers.length,5)===1?'':'s')+'. This list stays unfiltered when searching the full directory.';
   const paymentList=$('owner-recent-payments');paymentList.replaceChildren();
   if(!recentPayments.length){
     const li=document.createElement('li');li.className='owner-recent-empty';
@@ -200,13 +210,14 @@ async function refreshDashboard(){
 async function refreshSession(){
   const current=++revision;fetchSerial++;profile=null;$('owner-dashboard').hidden=true;$('owner-gate').hidden=true;
   recentCustomers=[];recentPayments=[];recentFilter='all';syncNotice='';$('owner-search').value='';
+  providerUI.clear();
   for(const id of ['owner-customers','owner-payments','owner-referrals','owner-vouchers'])$(id).replaceChildren();
   if(!clerk?.isSignedIn){status('');$('owner-gate').hidden=false;return;}
   status('Checking your owner access…');
   try{
     const result=await call('/api/session');if(current!==revision)return;
     if(result.owner!==true)throw Error('This page is reserved for the PV LAB owner account.');
-    profile=result;await refreshDashboard();
+    profile=result;await refreshDashboard();void providerUI.refresh();
   }catch(error){if(current===revision){$('owner-dashboard').hidden=true;status(error.message);}}
 }
 async function copyLink(url,button){
@@ -225,6 +236,15 @@ async function deactivate(code,button){
 for(const button of document.querySelectorAll('[data-recent-filter]'))button.addEventListener('click',()=>{
   recentFilter=button.dataset.recentFilter==='subscribed'?'subscribed':'all';
   paintRecentActivity();
+});
+$('owner-quick-search').addEventListener('click',()=>{
+  if(!profile?.owner){clerk?.openSignIn();return;}
+  $('owner-customers-section').scrollIntoView({behavior:'smooth',block:'start'});
+  $('owner-search').focus({preventScroll:true});
+});
+for(const link of document.querySelectorAll('[data-owner-nav]'))link.addEventListener('click',()=>{
+  for(const previous of document.querySelectorAll('[data-owner-nav][aria-current]'))previous.removeAttribute('aria-current');
+  link.setAttribute('aria-current','location');
 });
 $('owner-search-form').addEventListener('submit',event=>{event.preventDefault();clearTimeout(searchTimer);void refreshDashboard();});
 $('owner-search').addEventListener('input',()=>{clearTimeout(searchTimer);$('owner-search-clear').hidden=!$('owner-search').value.trim();searchTimer=setTimeout(()=>void refreshDashboard(),320);});

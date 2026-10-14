@@ -9,76 +9,82 @@
 <title>Owner / PV LAB</title>
 <link rel="preload" href="./fonts/dm-sans-latin-v17.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="icon" href="./branding/pv-mark.png" type="image/png">
-<link rel="stylesheet" href="./owner.css?v=20261014-activity1">
+<link rel="stylesheet" href="./owner.css?v=20261014-editorial-providers1">
 </head>
 <body>
 <a class="owner-skip" href="#owner-main">Skip to dashboard</a>
+<aside class="owner-sidebar" aria-label="Owner workspace">
+  <div class="owner-sidebar-brand"><a class="owner-side-wordmark" href="./">PV LAB</a><span>PRIVATE / OWNER</span></div>
+  <nav class="owner-side-nav" aria-label="Owner sections">
+    <a href="#owner-overview" data-owner-nav aria-current="page" class="owner-sidebar-current"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg><span>Control room</span></a>
+    <a href="#owner-customers-section" data-owner-nav><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3 20v-2a6 6 0 0 1 12 0v2M17 5a3 3 0 0 1 0 6M17 14a5 5 0 0 1 4 5v1"/></svg><span>Customers</span></a>
+    <a href="#owner-payments-section" data-owner-nav><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="2"/><path d="M3 10.5h18"/></svg><span>Payments</span></a>
+    <a href="#owner-referrals-section" data-owner-nav><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20v-5m6 5V9m6 11V4m4 16v-8"/></svg><span>Referrals</span></a>
+    <a href="#owner-vouchers-section" data-owner-nav><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12.5V4a1 1 0 0 1 1-1h8.5L21 11.5 11.5 21 3 12.5z"/><circle cx="8.3" cy="8.3" r="1.1"/></svg><span>Vouchers</span></a>
+    <a href="#owner-providers-section" data-owner-nav><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18m-6 4h3"/></svg><span>Providers</span></a>
+  </nav>
+  <nav class="owner-side-bottom" aria-label="Workspace links">
+    <a href="./account.html#settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M9.2 2.8h5.6l.7 2.1 2.1 1.1 2.1-.6 2.1 3.7-1.6 1.6v2.6l1.6 1.6-2.1 3.7-2.1-.6-2.1 1.1-.7 2.1H9.2l-.7-2.1-2.1-1.1-2.1.6-2.1-3.7 1.6-1.6v-2.6L2.2 9.1l2.1-3.7 2.1.6 2.1-1.1z"/></svg><span>Settings</span></a>
+    <a href="./"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 4h7v7m0-7-10 10"/><path d="M20 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h5"/></svg><span>Back to site</span></a>
+  </nav>
+</aside>
 <header class="owner-header">
-  <div><a class="owner-wordmark" href="./">PV LAB</a><span class="owner-header-label">PRIVATE / OWNER</span></div>
-  <nav aria-label="Owner navigation"><a href="./account.html">My account</a><a href="./studio.html" class="owner-studio">Open studio ↗</a></nav>
+  <div class="owner-header-brand"><a class="owner-wordmark" href="./">PV LAB</a><span class="owner-header-label">PRIVATE / OWNER</span></div>
+  <nav aria-label="Owner navigation">
+    <button type="button" id="owner-quick-search" class="owner-quick-search" aria-label="Find a customer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 5 5"/></svg></button>
+    <span class="owner-header-separator" aria-hidden="true"></span>
+    <a href="./account.html">My account</a>
+    <a href="./studio.html" class="owner-studio">Open studio ↗</a>
+  </nav>
 </header>
 <main id="owner-main" class="owner-shell">
-  <header class="owner-hero">
+  <header id="owner-overview" class="owner-hero">
     <div><p class="owner-eyebrow">PV LAB / YOUR BUSINESS</p><h1>Control room<span>.</span></h1><p class="owner-intro">Your customers and payments, at a glance.</p></div>
-    <p class="owner-hero-aside">Private overview. Real account activity, verified purchases and promotional credits.</p>
+    <div class="owner-hero-aside"><p class="owner-hero-manifesto">REAL PEOPLE.<br>REAL PURCHASES.<br>A MORE INDEPENDENT INTERNET.</p><span class="owner-aside-rule" aria-hidden="true"></span><p>Private overview. Real account activity, verified purchases and promotional credits.</p></div>
   </header>
   <p id="owner-status" class="owner-status" role="status" aria-live="polite">Checking owner access…</p>
   <div id="owner-gate" class="owner-gate" hidden><p>Sign in with the PV LAB owner account to open this workspace.</p><button type="button" id="owner-signin">Sign in</button></div>
   <div id="owner-dashboard" hidden>
-    <div class="owner-jumpbar">
-      <nav aria-label="Dashboard sections">
-        <a href="#owner-customers-section">Customers</a>
-        <a href="#owner-payments-section">Payments</a>
-        <a href="#owner-referrals-section">Referrals</a>
-        <a href="#owner-vouchers-section">Vouchers</a>
-      </nav>
-      <div class="owner-jumpbar-actions"><span id="owner-last-update">Secure owner ledger</span><button id="owner-refresh" type="button" aria-label="Refresh dashboard data">Refresh data ↻</button></div>
-    </div>
+    <nav class="owner-jumpbar" aria-label="Mobile dashboard navigation">
+      <a href="#owner-overview">Overview</a><a href="#owner-customers-section">Customers</a>
+      <a href="#owner-payments-section">Payments</a><a href="#owner-referrals-section">Referrals</a>
+      <a href="#owner-vouchers-section">Vouchers</a><a href="#owner-providers-section">Providers</a>
+    </nav>
     <section class="owner-metrics" aria-label="Account summary">
-      <div><span>Accounts created</span><strong id="owner-total-accounts">0</strong></div>
-      <div><span>Customers who paid</span><strong id="owner-paying">0</strong></div>
-      <div><span>Active subscriptions</span><strong id="owner-subs">0</strong></div>
-      <div><span>Voucher redemptions</span><strong id="owner-redemptions">0</strong></div>
+      <div class="owner-metric"><span class="owner-metric-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3 20v-2a6 6 0 0 1 12 0v2M17 5a3 3 0 0 1 0 6M17 14a5 5 0 0 1 4 5v1"/></svg></span><div class="owner-metric-copy"><span>Accounts created</span><strong id="owner-total-accounts">0</strong><small>Registered accounts</small></div></div>
+      <div class="owner-metric"><span class="owner-metric-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="2"/><path d="M3 10.5h18"/></svg></span><div class="owner-metric-copy"><span>Customers who paid</span><strong id="owner-paying">0</strong><small>Verified paying users</small></div></div>
+      <div class="owner-metric"><span class="owner-metric-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20v-5m6 5V9m6 11V4m4 16v-8"/></svg></span><div class="owner-metric-copy"><span>Active subscriptions</span><strong id="owner-subs">0</strong><small>Active or trialing</small></div></div>
+      <div class="owner-metric"><span class="owner-metric-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12.5V4a1 1 0 0 1 1-1h8.5L21 11.5 11.5 21 3 12.5z"/><circle cx="8.3" cy="8.3" r="1.1"/></svg></span><div class="owner-metric-copy"><span>Voucher redemptions</span><strong id="owner-redemptions">0</strong><small>Successful claims</small></div></div>
+      <div class="owner-metrics-actions"><span>Last updated</span><p id="owner-last-update">Secure owner ledger</p><button id="owner-refresh" type="button">Refresh data ↻</button></div>
     </section>
 
     <section class="owner-activity" aria-label="Recent customer activity">
       <div class="owner-activity-panel owner-signups-panel">
         <div class="owner-activity-head">
-          <div><span class="owner-index">LATEST / CUSTOMER ACTIVITY</span><h2 id="owner-recent-title">Latest signups<span>.</span></h2></div>
+          <div><span class="owner-index">CUSTOMER ACTIVITY</span><h2 id="owner-recent-title">Latest signups<span>.</span></h2><p class="owner-activity-subtitle">The newest accounts in your audience.</p></div>
           <a href="#owner-customers-section">All customers ↗</a>
         </div>
         <div class="owner-recent-filters" role="group" aria-label="Filter recent customers">
           <button type="button" data-recent-filter="all" aria-pressed="true">All signups</button>
           <button type="button" data-recent-filter="subscribed" aria-pressed="false">Subscribers</button>
         </div>
-        <ul id="owner-recent-signups" class="owner-recent-list" aria-live="polite">
-          <li class="owner-recent-empty">Loading recent accounts…</li>
-        </ul>
+        <div class="owner-recent-head" aria-hidden="true"><span>#</span><span>Account</span><span>Status</span><span>Date joined</span></div>
+        <ul id="owner-recent-signups" class="owner-recent-list" aria-live="polite"><li class="owner-recent-empty">Loading recent accounts…</li></ul>
         <p id="owner-recent-note" class="owner-recent-note">Most recent accounts, newest first.</p>
       </div>
       <div class="owner-activity-side">
         <div class="owner-activity-panel owner-purchases-panel">
-          <div class="owner-activity-head">
-            <div><span class="owner-index">LATEST / TRANSACTIONS</span><h2>Recent purchases<span>.</span></h2></div>
-            <a href="#owner-payments-section">All payments ↗</a>
-          </div>
-          <ul id="owner-recent-payments" class="owner-recent-list owner-payment-list" aria-live="polite">
-            <li class="owner-recent-empty">Loading verified purchases…</li>
-          </ul>
+          <div class="owner-activity-head"><div><span class="owner-index">TRANSACTIONS</span><h2>Recent purchases<span>.</span></h2><p class="owner-activity-subtitle">Verified purchases from your customers.</p></div><a href="#owner-payments-section">All payments ↗</a></div>
+          <ul id="owner-recent-payments" class="owner-recent-list owner-payment-list" aria-live="polite"><li class="owner-recent-empty">Loading verified purchases…</li></ul>
         </div>
         <div id="owner-integrations" class="owner-integration" hidden>
-          <span class="owner-integration-light" aria-hidden="true"></span>
-          <div class="owner-integration-message">
-            <span class="owner-integration-label">CUSTOMER EMAILS / CLERK</span>
-            <strong id="owner-sync-state">Checking connection</strong>
-            <p id="owner-sync-copy">Checking secure email availability.</p>
-          </div>
-          <div class="owner-integration-actions">
-            <button id="owner-sync" type="button">Sync emails ↻</button>
-            <button id="owner-setup-toggle" type="button" aria-expanded="false" aria-controls="owner-setup-guide">Connection guide ↗</button>
-          </div>
+          <span class="owner-integration-label">CUSTOMER EMAILS / CLERK</span>
+          <div class="owner-integration-top"><strong id="owner-sync-state">Checking connection</strong><span class="owner-integration-connected"><span class="owner-integration-light" aria-hidden="true"></span>Key configured</span></div>
+          <p id="owner-sync-copy">Checking secure email availability.</p>
+          <div class="owner-integration-actions"><button id="owner-sync" type="button">Sync emails ↻</button><button id="owner-setup-toggle" type="button" aria-expanded="false" aria-controls="owner-setup-guide">Connection guide ↗</button></div>
+          <p id="owner-email-status" class="owner-email-status" role="status" aria-live="polite"></p>
         </div>
-        <p id="owner-email-status" class="owner-email-status" role="status" aria-live="polite"></p>
+        <div class="owner-quick-actions"><div><strong>Quick actions</strong><small>Manage your business.</small></div><a href="#owner-customers-section">View customers ↗</a><a href="#owner-vouchers-section">View vouchers ↗</a></div>
       </div>
     </section>
     <div id="owner-setup-guide" class="owner-setup-guide" hidden>
@@ -91,6 +97,17 @@
       </ol>
       <p>Keep the key on the Worker. Never paste a secret into PV LAB's website code or this dashboard.</p>
     </div>
+    <section class="owner-balances-overview" aria-labelledby="owner-api-balances-title">
+      <div class="owner-section-preview-head"><div><span class="owner-index">PROVIDER FINANCE / PRIVATE</span><h2 id="owner-api-balances-title">API Balances<span>.</span></h2><p>Shared funds, actual usage and credit balances, kept separate.</p></div><div class="owner-provider-controls"><span id="owner-balance-updated">Awaiting secure connection</span><button type="button" data-owner-balance-refresh>Refresh balances ↻</button><a href="#owner-providers-section">Detailed view ↗</a></div></div>
+      <div id="owner-provider-previews" class="owner-provider-previews" aria-live="polite"><p class="owner-providers-loading">Loading available provider balances…</p></div>
+    </section>
+    <section id="owner-providers-section" class="owner-section owner-providers-section" aria-labelledby="owner-providers-title">
+      <div class="owner-section-head"><div><span class="owner-index">05 / API FINANCE</span><h2 id="owner-providers-title">Providers.</h2><p class="owner-section-description">Authenticated read-only account data. No generation or billable requests.</p></div><button type="button" class="owner-provider-detail-refresh" data-owner-balance-refresh>Refresh balances ↻</button></div>
+      <div class="owner-finance-note">USD prepaid balances are not postpaid expenses. FASHN credits and customer wallet credits are independent units. Unavailable data is never estimated or counted as zero.</div>
+      <div id="owner-provider-details" class="owner-provider-details" aria-live="polite"><p class="owner-providers-loading">Waiting for the provider report…</p></div>
+      <div class="owner-finance-separate"><div><span class="owner-index">CUSTOMER WALLETS / SEPARATE LIABILITY</span><strong id="owner-customer-liability">Unavailable</strong><small id="owner-customer-liability-note">Customer credit units are never added to provider cash balances.</small></div><div><span class="owner-index">OTHER CONNECTIONS</span><p id="owner-provider-legacy">Only providers with active generation routes are shown above.</p></div></div>
+    </section>
+
     <section class="owner-section" id="owner-customers-section" aria-labelledby="owner-customers-title">
       <div class="owner-section-head"><div><span class="owner-index">01 / AUDIENCE</span><h2 id="owner-customers-title">Customers.</h2></div><form id="owner-search-form" class="owner-search" role="search"><label for="owner-search">Find an account</label><input id="owner-search" type="search" placeholder="Email or account ID" maxlength="80" autocomplete="off"><button id="owner-search-clear" type="button" hidden>Clear</button><button type="submit">Search</button></form></div>
       <div class="owner-toolbar"><p id="owner-customer-count">Loading customer directory…</p></div>
@@ -150,6 +167,6 @@
     <footer class="owner-footer"><span>PV LAB / BERLIN</span><span>Owner access is verified on the server for every request.</span></footer>
   </div>
 </main>
-<script type="module" src="./owner.js?v=20261014-activity1"></script>
+<script type="module" src="./owner.js?v=20261014-editorial-providers1"></script>
 </body>
 </html>
