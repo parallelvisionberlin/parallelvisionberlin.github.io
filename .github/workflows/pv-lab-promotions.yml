@@ -3,20 +3,24 @@ on:
   pull_request:
     paths:
       - 'lab-worker/promotions.mjs'
+      - 'lab-worker/owner-providers.mjs'
       - 'lab-worker/migrations/0015-lab-promotional-credits.sql'
       - 'lab-worker/worker.mjs'
       - 'lab/account*'
       - 'lab/owner*'
       - 'tests/lab-promotions.test.mjs'
+      - 'tests/lab-owner-providers.test.mjs'
       - '.github/workflows/pv-lab-promotions.yml'
   push:
     paths:
       - 'lab-worker/promotions.mjs'
+      - 'lab-worker/owner-providers.mjs'
       - 'lab-worker/migrations/0015-lab-promotional-credits.sql'
       - 'lab-worker/worker.mjs'
       - 'lab/account*'
       - 'lab/owner*'
       - 'tests/lab-promotions.test.mjs'
+      - 'tests/lab-owner-providers.test.mjs'
       - '.github/workflows/pv-lab-promotions.yml'
 permissions:
   contents: read
@@ -32,10 +36,11 @@ jobs:
       - name: Check isolated backend and account syntax
         run: |
           node --check lab-worker/promotions.mjs
+          node --check lab-worker/owner-providers.mjs
           node --check lab-worker/worker.mjs
           node --check lab/owner.js
           node --check lab/account.js
           node --check lab/account-menu.js
       - name: Verify voucher security, owner access and existing referral rules
         run: |
-          node --test tests/lab-promotions.test.mjs tests/lab-referrals.test.mjs tests/lab-account-menu.test.mjs tests/lab-referral-ui.test.mjs
+          node --test tests/lab-owner-providers.test.mjs tests/lab-promotions.test.mjs tests/lab-referrals.test.mjs tests/lab-account-menu.test.mjs tests/lab-referral-ui.test.mjs
