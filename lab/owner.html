@@ -9,7 +9,7 @@
 <title>Owner / PV LAB</title>
 <link rel="preload" href="./fonts/dm-sans-latin-v17.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="icon" href="./branding/pv-mark.png" type="image/png">
-<link rel="stylesheet" href="./owner.css?v=20261014-clerk-layout1">
+<link rel="stylesheet" href="./owner.css?v=20261015-customer-history1">
 </head>
 <body>
 <a class="owner-skip" href="#owner-main">Skip to dashboard</a>
@@ -105,6 +105,13 @@
       <div class="owner-section-head"><div><span class="owner-index">01 / AUDIENCE</span><h2 id="owner-customers-title">Customers.</h2></div><form id="owner-search-form" class="owner-search" role="search"><label for="owner-search">Find an account</label><input id="owner-search" type="search" placeholder="Email or account ID" maxlength="80" autocomplete="off"><button id="owner-search-clear" type="button" hidden>Clear</button><button type="submit">Search</button></form></div>
       <div class="owner-toolbar"><p id="owner-customer-count">Loading customer directory…</p></div>
       <div class="owner-table-wrap"><table><thead><tr><th>Email / account</th><th>Joined</th><th>Balance</th><th>Paid events</th><th>Subscription</th><th>Last payment</th></tr></thead><tbody id="owner-customers"></tbody></table></div>
+      <dialog class="owner-customer-dialog" id="owner-customer-dialog" aria-labelledby="owner-customer-dialog-title">
+        <div class="owner-customer-dialog-head">
+          <div><span class="owner-index">AUDIENCE / PRIVATE ACTIVITY</span><h2 id="owner-customer-dialog-title">Customer activity<span>.</span></h2><p id="owner-customer-dialog-identity">Select a customer to review their activity.</p></div>
+          <button type="button" id="owner-customer-dialog-close" aria-label="Close customer activity">Close <span aria-hidden="true">×</span></button>
+        </div>
+        <div id="owner-customer-dialog-body" aria-live="polite"></div>
+      </dialog>
     </section>
 
     <section class="owner-section" id="owner-payments-section" aria-labelledby="owner-payments-title">
@@ -167,6 +174,6 @@
     <footer class="owner-footer"><span>PV LAB / BERLIN</span><span>Owner access is verified on the server for every request.</span></footer>
   </div>
 </main>
-<script type="module" src="./owner.js?v=20261014-clerk-auto1"></script>
+<script type="module" src="./owner.js?v=20261015-customer-history1"></script>
 </body>
 </html>
