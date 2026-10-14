@@ -18,8 +18,10 @@ async function payload(request){
   try {const data=JSON.parse(raw);if(!data||Array.isArray(data)||typeof data!=='object')throw Error();return data;}
   catch {fail(400,'Invalid request.');}
 }
-export function voucherLink(env,code){
-  const base=new URL(env.LAB_PUBLIC_APP_URL||'https://parallelvisionlabel.com/lab/studio.html');
+export function voucherLink(env,code,origin=''){
+  const base=new URL(origin==='https://pvlab.studio'?'https://pvlab.studio/studio.html':
+    origin==='https://www.pvlab.studio'?'https://www.pvlab.studio/studio.html':
+    env.LAB_PUBLIC_APP_URL||'https://parallelvisionlabel.com/lab/studio.html');
   if(base.protocol!=='https:'||base.username||base.password)fail(503,'PV Lab URL is not configured.');
   const link=new URL('account.html',base);
   link.searchParams.set('voucher',code);
@@ -221,7 +223,7 @@ export async function labAdminRoute(request,env,owner,{decryptKey,providerFetche
       FROM lab_vouchers ORDER BY created_at DESC LIMIT 60`);
     const clerkSyncDiagnostic=await diagnosticSnapshot(env);
     return json({summary,customers,payments,referrals,
-      vouchers:vouchers.map(v=>({...v,url:voucherLink(env,v.code)})),
+      vouchers:vouchers.map(v=>({...v,url:voucherLink(env,v.code,request.headers.get('Origin')||'')})),
       emailSyncConfigured:!!(env.LAB_CLERK_SECRET_KEY||env.CLERK_SECRET_KEY),
       clerkSyncDiagnostic,
       resultLimit:80});
@@ -242,7 +244,7 @@ export async function labAdminRoute(request,env,owner,{decryptKey,providerFetche
       try {
         await run(env,`INSERT INTO lab_vouchers(code,credits,max_redemptions,redeemed_count,active,expires_at,note,created_at,created_by)
           VALUES(?,?,?,0,1,?,?,?,?)`,code,credits,maximum,expiresAt,note,t,owner);
-        return json({voucher:{code,credits,maxRedemptions:maximum,expiresAt,note,url:voucherLink(env,code)}},201);
+        return json({voucher:{code,credits,maxRedemptions:maximum,expiresAt,note,url:voucherLink(env,code,request.headers.get('Origin')||'')}},201);
       }catch(e){
         if(/unique constraint/i.test(String(e?.message||''))){if(chosen)fail(409,'That voucher code already exists.');continue;}
         throw e;
