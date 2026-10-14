@@ -19,7 +19,52 @@ export function createAccountMenu(root) {
   const voucherLink=document.createElement('a'),adminLink=document.createElement('a');
   voucherLink.href='./account.html#voucher';voucherLink.textContent='Redeem voucher';voucherLink.dataset.accountVouchers='';voucherLink.hidden=true;
   adminLink.href='./owner.html';adminLink.textContent='Owner dashboard';adminLink.dataset.accountAdmin='';adminLink.hidden=true;
-  if(settings){settings.before(voucherLink);settings.before(adminLink);}else if(panel)panel.append(voucherLink,adminLink);
+  // Keep the established wordmark. Add an authenticated identity row and quiet navigation icons.
+  if(settings){settings.before(voucherLink);settings.after(adminLink);}else if(panel)panel.append(voucherLink,adminLink);
+  const identityRow=document.createElement('div');
+  identityRow.className='pv-account-identity';
+  identityRow.hidden=true;
+  const identityAvatar=document.createElement('span');
+  identityAvatar.className='pv-account-identity-avatar';
+  identityAvatar.setAttribute('aria-hidden','true');
+  const identityCopy=document.createElement('span');
+  identityCopy.className='pv-account-identity-copy';
+  const identityName=document.createElement('strong'),identityRole=document.createElement('small');
+  identityCopy.append(identityName,identityRole);
+  identityRow.append(identityAvatar,identityCopy);
+  panel.querySelector('.pv-account-details')?.after(identityRow);
+
+  // Trusted static SVG paths; existing links, click handlers and permission gates remain unchanged.
+  const iconPaths={
+    account:'<circle cx="12" cy="8" r="4"/><path d="M4 20v-2a8 8 0 0 1 16 0v2"/>',
+    wallet:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18m-13 5h5"/>',
+    moods:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
+    invite:'<circle cx="9" cy="8" r="3"/><path d="M3 20v-2a6 6 0 0 1 12 0v2m4-12v8m-4-4h8"/>',
+    voucher:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M10 5v14"/>',
+    owner:'<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 16v-4m5 4V7m5 9v-6"/>',
+    settings:'<path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="2.5"/><circle cx="15" cy="17" r="2.5"/>',
+    connection:'<path d="M8 3v5m8-5v5M5 8h14v3a7 7 0 0 1-14 0zm7 10v3"/>',
+    signout:'<path d="M10 4H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h5m4-4 4-4-4-4m-8 4h12"/>'
+  };
+  for(const item of panel.querySelectorAll(':scope > a, :scope > button')){
+    const href=item.getAttribute('href')||'';
+    const kind=item.hasAttribute('data-account-signout')?'signout':
+      item.hasAttribute('data-account-admin')?'owner':
+      item.hasAttribute('data-account-vouchers')?'voucher':
+      item.hasAttribute('data-account-referrals')?'invite':
+      item.hasAttribute('data-account-connection')?'connection':
+      href.includes('#settings')?'settings':
+      href.includes('#balance')||href.includes('#billing')||href==='#pricing'?'wallet':
+      href.includes('mood-creator')?'moods':'account';
+    const icon=document.createElementNS('http://www.w3.org/2000/svg','svg');
+    icon.classList.add('pv-account-menu-icon');
+    icon.setAttribute('viewBox','0 0 24 24');
+    icon.setAttribute('aria-hidden','true');
+    icon.setAttribute('focusable','false');
+    icon.setAttribute('fill','none');
+    icon.innerHTML=iconPaths[kind];
+    if(kind==='signout')item.append(icon);else item.prepend(icon);
+  }
   let currentProfile=null;
   function close(restore=false){root.open=false;if(restore)summary.focus();}
   document.addEventListener('pointerdown',event=>{if(root.open&&!root.contains(event.target))close();});
@@ -32,8 +77,21 @@ export function createAccountMenu(root) {
   }
   function update({signed=false,user=null,profile=null}={}){
     currentProfile=profile;root.hidden=!signed;
-    if(!signed){close();voucherLink.hidden=true;adminLink.hidden=true;avatar.replaceChildren();delete avatar.dataset.identity;root.querySelector('[data-account-name]').textContent='';root.querySelector('[data-account-balance]').textContent='';return;}
+    if(!signed){close();voucherLink.hidden=true;adminLink.hidden=true;identityRow.hidden=true;identityAvatar.replaceChildren();delete identityAvatar.dataset.identity;avatar.replaceChildren();delete avatar.dataset.identity;root.querySelector('[data-account-name]').textContent='';root.querySelector('[data-account-balance]').textContent='';return;}
     const identity=accountIdentity(user);
+    identityRow.hidden=false;
+    identityName.textContent=identity.name;
+    identityRole.textContent=profile?.owner===true?'Owner account':profile?.customer?'Creator account':'Your workspace';
+    if(identityAvatar.dataset.identity!==identity.initials+identity.image){
+      identityAvatar.dataset.identity=identity.initials+identity.image;
+      identityAvatar.textContent=identity.initials;
+      if(identity.image){
+        const photo=document.createElement('img');
+        photo.alt='';photo.src=identity.image;photo.referrerPolicy='no-referrer';
+        photo.addEventListener('error',()=>photo.remove());
+        identityAvatar.append(photo);
+      }
+    }
     root.querySelector('[data-account-name]').textContent=identity.name;
     summary.setAttribute('aria-label','Account: '+identity.name);
     summary.title='My account';

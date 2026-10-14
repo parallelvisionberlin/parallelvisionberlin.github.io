@@ -1,7 +1,7 @@
 import {metaConsentGranted,trackLabEvent,trackLabRegistration} from './meta-pixel.js?v=20261013-a1';
 import {loadLabAccount} from './native-account.js?v=20261012-unified-header1';
 import {createSessionRequest} from './session-request.js?v=20260927-auth1';
-import {accountIdentity,createAccountMenu,referralsAvailable} from './account-menu.js?v=20261014-vouchers1';
+import {accountIdentity,createAccountMenu,referralsAvailable} from './account-menu.js?v=20261014-editorial-menu1';
 
 const $=id=>document.getElementById(id);
 const menu=createAccountMenu($('account-menu'));

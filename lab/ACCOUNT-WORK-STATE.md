@@ -147,3 +147,12 @@
 - Homepage-only DM Sans action face supports weights 600–700. Both Open studio and Get credits use weight 600; the Studio pill border is slightly stronger.
 - Landing CI verifies first-paint placeholders, delayed customer session, avatar appearing ahead of wallet balance, no geometry shift, guest sign-out, semi-bold computed styles and desktop/mobile no overflow.
 - Branch: codex/pvlab-header-first-paint-20261014. Commit and deployment confirmation pending at time of edit; preserve this distinction.
+
+## Shared editorial account dropdown (2026-10-14)
+- Approved screenshot follow-up: compact dropdown, real identity row, subtle monochrome icons, smaller typography, owner dashboard separated from standard actions.
+- Keep the exact established logo asset `lab/branding/pvlab-wordmark.svg` with its existing 157 x 31 display treatment.
+- Source baseline: main b0ce8364526f4443f74360ed266e66c9b1f5cd50. Scope limited to shared account menu JS/CSS, four module-import cache revisions, five HTML cache revisions, and this checkpoint.
+- Owner link still gated on the verified profile; customer-only voucher/referrals and session-derived balance remain unchanged. Existing direct URLs, sign-out handlers, avatar trigger and authentication remain intact.
+- Studio still loads its dedicated menu overrides after the shared stylesheet; no other Studio design surfaces or backend are changed.
+- Static checks: exact source anchors, stylesheet versions and markup references reviewed; no authenticated browser or live deployment check in this environment.
+- Deployment: unverified until Pages finishes and the menu is inspected in the real browser on desktop/mobile.

@@ -1,4 +1,4 @@
-import {createAccountMenu} from './account-menu.js?v=20261014-vouchers1';
+import {createAccountMenu} from './account-menu.js?v=20261014-editorial-menu1';
 const studioAccount=createAccountMenu(document.getElementById('studio-account-menu'));
 import {createFilmFinishControls,HONG_KONG_FILM_FINISH,FILM_FINISH_RENDER_REVISION} from './film-finish.js?v=20261013-green-preserving-v3';
 import {preparePhotoInput} from './photo-input.js?v=1';
