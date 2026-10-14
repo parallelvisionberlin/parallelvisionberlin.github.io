@@ -3470,6 +3470,9 @@ if(window.__PV_LAB_NATIVE__===1&&window.ReactNativeWebView){
     if(!owner)return;
     try{
       if(command?.action==='gallery'){await assetLibrary.open();return;}
+      // Ready for a fifth native tab. Retouch opens the existing workspace;
+      // the native shell still owns the bottom navigation and selected icon.
+      if(command?.action==='retouch'){await openRetouch({push:false,autofill:false});return;}
       if(command?.action==='credits'){if(customerMode)$('lab-wallet-toggle').click();else notify('Owner workspace. Provider costs appear before generation.');return;}
       if(command?.action==='create'||command?.action==='mood'){
         assetLibrary.close();if(tool!=='image'||retouchActive||fashionActive)setTool('image');else{syncStudioRoute('image');syncImageStudioMode();syncStudioNav();}
