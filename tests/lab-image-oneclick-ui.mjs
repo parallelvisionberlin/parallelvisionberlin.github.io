@@ -598,7 +598,7 @@ try{
   const card=x.page.locator('#history .card[data-job="'+record.id+'"]');
   assert.equal(await card.locator('.history-no-result.is-content-restricted strong').innerText(),'Not with this model.');
   assert.equal(await card.locator('button.content-restriction-edit').count(),1);
-  assert.equal(await card.getByRole('button',{name:'Download image'}).isDisabled(),true);
+  assert.equal(await card.locator('.cardactions button').filter({hasText:'Download image'}).isDisabled(),true);
   assert.doesNotMatch(await card.innerText(),/OpenRouter \(HTTP 400\)|content policy violation|flagged by content checker/i);
  }
  for(const record of technicalJobs){
@@ -630,7 +630,7 @@ try{
   const card=x.page.locator('#history .card[data-job="'+record.id+'"]');
   assert.equal(await card.locator('.history-no-result.is-content-restricted strong').innerText(),'Not with this model.');
   assert.equal(await card.locator('.content-restriction-edit').count(),1);
-  assert.equal(await card.getByRole('button',{name:'Download video'}).isDisabled(),true);
+  assert.equal(await card.locator('.cardactions button').filter({hasText:'Download video'}).isDisabled(),true);
  }
  const seedanceCard=x.page.locator('#history .card[data-job="'+moderatedVideos[0].id+'"]');
  assert.match(await seedanceCard.innerText(),/Seedance/i,'Guidance must name the video model, not an image model');
