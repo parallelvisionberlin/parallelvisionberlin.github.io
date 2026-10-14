@@ -75,10 +75,11 @@
 }
 #lab-welcome-start .lab-welcome-preset{
   display:flex;flex-direction:column;align-items:flex-start;justify-content:center;
-  min-height:91px;padding:14px 17px;text-align:left;
+  min-height:113px;padding:14px 17px;text-align:left;
   border:1px solid #545454;background:#252527;border-radius:8px;
   color:#f6f4f0;cursor:pointer;transition:border-color .18s,background .18s;
 }
+#lab-welcome-start .lab-welcome-icon{width:21px;height:21px;margin-bottom:9px;opacity:.86;flex:none;stroke:#e1ded8}
 #lab-welcome-start .lab-welcome-preset small{
   font-size:10px;letter-spacing:.13em;color:#aaa6a0;margin-bottom:8px;
 }
@@ -108,8 +109,9 @@
   #lab-welcome-start .lab-welcome-balance{margin-top:10px}
   #lab-welcome-start .lab-welcome-presets{grid-template-columns:1fr;gap:7px;margin-top:15px}
   #lab-welcome-start .lab-welcome-preset{
-    min-height:52px;flex-direction:row;justify-content:flex-start;align-items:center;gap:13px;padding:11px 15px;
+    min-height:58px;flex-direction:row;justify-content:flex-start;align-items:center;gap:10px;padding:11px 13px;
   }
+  #lab-welcome-start .lab-welcome-icon{width:18px;height:18px;margin:0;flex:none}
   #lab-welcome-start .lab-welcome-preset small{margin:0;min-width:20px}
   #lab-welcome-start .lab-welcome-hint{margin-top:10px}
 }
