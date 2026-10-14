@@ -1,4 +1,7 @@
 import test from 'node:test';
+import {appUrl} from '../lab-worker/customer-billing.mjs';
+import {referralLink} from '../lab-worker/referrals.mjs';
+import {voucherLink} from '../lab-worker/promotions.mjs';
 import assert from 'node:assert/strict';
 import {LEGACY_CLERK, PVLAB_STUDIO_CLERK, clerkInstanceForHostname} from '../lab/clerk-instance.js';
 import {
@@ -29,4 +32,16 @@ test('The live old Clerk site stays available, while new Clerk authentication is
   assert.ok(!BROWSER_ORIGINS.has('https://pvlab-studio.pages.dev'));
   assert.ok(!BROWSER_ORIGINS.has('https://evil.pvlab.studio'));
   assert.ok(!LEGACY_ORIGINS.has('https://pvlab.studio'));
+});
+
+test('Stripe return, billing portal, referrals and vouchers preserve the verified customer domain',()=>{
+  const env={LAB_PUBLIC_APP_URL:'https://parallelvisionlabel.com/lab/studio.html'};
+  assert.equal(appUrl(env,'https://pvlab.studio'),'https://pvlab.studio/studio.html');
+  assert.equal(appUrl(env,'https://www.pvlab.studio'),'https://www.pvlab.studio/studio.html');
+  assert.equal(appUrl(env,'https://parallelvisionlabel.com'),'https://parallelvisionlabel.com/lab/studio.html');
+  assert.equal(appUrl(env,'https://attacker.example'),'https://parallelvisionlabel.com/lab/studio.html');
+  assert.equal(new URL(referralLink(env,'ABCDEFGH','https://pvlab.studio')).origin,'https://pvlab.studio');
+  assert.equal(new URL(voucherLink(env,'PVABCD10','https://pvlab.studio')).origin,'https://pvlab.studio');
+  assert.equal(new URL(referralLink(env,'ABCDEFGH','https://parallelvisionlabel.com')).origin,'https://parallelvisionlabel.com');
+  assert.equal(new URL(voucherLink(env,'PVABCD10','https://parallelvisionlabel.com')).origin,'https://parallelvisionlabel.com');
 });
