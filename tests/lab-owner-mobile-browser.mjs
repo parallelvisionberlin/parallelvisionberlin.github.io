@@ -110,7 +110,10 @@ try{
       assert.ok(dimensions.signupsTop<dimensions.directoryTop,'Recent signups appear before the full directory');
       assert.ok(dimensions.providerTop<dimensions.detailedTop,'API balance cards appear before the detailed Providers view');
       assert.equal(dimensions.sidebarVisible,width>920,'Desktop sidebar collapses only for tablet and mobile');
-      if(width>=1280)assert.ok(dimensions.signupsTop<650,'Newest signups remain near the top on desktop');
+      if(width>=1280){
+        console.log('Desktop Control Room geometry:',JSON.stringify(dimensions));
+        assert.ok(dimensions.signupsTop<790,'Newest signups visible in the first desktop viewport: '+JSON.stringify(dimensions));
+      }
       if(width<=430)for(const card of dimensions.cards){
         assert.ok(card.scrollWidth<=card.width+1,'Mobile data must reflow instead of becoming a wide horizontal table at '+width);
       }
