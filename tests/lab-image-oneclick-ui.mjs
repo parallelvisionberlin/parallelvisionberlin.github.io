@@ -570,6 +570,78 @@ try{
  await failedCard.click();await x.page.locator('#video-detail-extra summary').click();assert.equal(await x.page.locator('#video-detail-extra-list').getByRole('button',{name:'Recover FAL output'}).count(),1);
  ok('History distinguishes definite FAL failure from uncertain provider status and offers FAL recovery');await x.context.close();
 
+
+ // Provider content refusals must use the same editorial card for EVERY model.
+ // These are synthetic historic jobs: no keys, credits, uploads or new generations.
+ const moderatedImageErrors=[
+  {engine:'flash',provider:'openrouter',error:'OpenRouter (HTTP 400): Seedream blocked this request through content moderation.'},
+  {engine:'seedream',provider:'spicy',error:'SpicyAPI: content policy violation.'},
+  {engine:'gemini',provider:'gemini',error:'Google blocked this prompt by a safety filter.'},
+  {engine:'kling',provider:'fal',error:'fal.ai flagged by content checker.'},
+  {engine:'soulpro',provider:'higgsfield',soulProModel:'soul2',error:'Higgsfield safety policy rejected this request.'}
+ ];
+ const technicalImageErrors=[
+  'OpenRouter (HTTP 429): Rate limit exceeded.',
+  'fal.ai: Provider rejected the request.',
+  'Upload blocked: unsupported content-type.'
+ ];
+ const moderatedJobs=moderatedImageErrors.map((entry,i)=>({
+  id:id(1200+i),status:'failed',settings:{...settings,engine:entry.engine,provider:entry.provider,...(entry.soulProModel?{soulProModel:entry.soulProModel}:{}) ,prompt:'Keep my editorial portrait '+entry.engine},
+  createdAt:Date.now()-i,estimatedUsd:.05,error:entry.error
+ }));
+ const technicalJobs=technicalImageErrors.map((error,i)=>({
+  id:id(1250+i),status:'failed',settings:{...settings,engine:'flash',provider:'openrouter',prompt:'Technical issue '+i},
+  createdAt:Date.now()-10-i,error
+ }));
+ x=await workspace({initial:[...moderatedJobs,...technicalJobs]});
+ for(const record of moderatedJobs){
+  const card=x.page.locator('#history .card[data-job="'+record.id+'"]');
+  assert.equal(await card.locator('.history-no-result.is-content-restricted strong').innerText(),'Not with this model.');
+  assert.equal(await card.locator('button.content-restriction-edit').count(),1);
+  assert.equal(await card.locator('.cardactions button').filter({hasText:'Download image'}).isDisabled(),true);
+  assert.doesNotMatch(await card.innerText(),/OpenRouter \(HTTP 400\)|content policy violation|flagged by content checker/i);
+ }
+ for(const record of technicalJobs){
+  const card=x.page.locator('#history .card[data-job="'+record.id+'"]');
+  assert.equal(await card.locator('.history-no-result strong').innerText(),'Generation failed');
+  assert.equal(await card.locator('.is-content-restricted').count(),0);
+  assert.match(await card.innerText(),/OpenRouter|Provider rejected|content-type/);
+ }
+ const rejectedFlash=x.page.locator('#history .card[data-job="'+moderatedJobs[0].id+'"]');
+ await rejectedFlash.click();
+ await x.page.locator('#image-lightbox-content-notice').waitFor({state:'visible'});
+ assert.equal(await x.page.locator('#image-lightbox-content-notice h2').innerText(),'Not with this model.');
+ assert.equal(await x.page.locator('#image-detail-status').innerText(),'Restricted');
+ assert.equal(await x.page.locator('#image-lightbox-unavailable').isVisible(),false);
+ await x.page.click('#image-lightbox-close');
+ await rejectedFlash.locator('.content-restriction-edit').click();await ready(x.page);
+ assert.equal(await x.page.locator('#prompt').inputValue(),'Keep my editorial portrait flash');
+ assert.equal(await x.page.locator('#image-engine').inputValue(),'flash');
+ assert.equal(x.accepted(),0,'Reuse must not submit a paid request');
+ assert.deepEqual(x.errors,[]);
+ ok('Seedream Flash, Seedream Pro, Nano, Kling and Soul use the editorial moderation card; technical failures stay distinct');await x.context.close();
+
+ const moderatedVideos=[
+  {id:id(1300),status:'failed',settings:{type:'video',engine:'seedance',provider:'spicy',mode:'start',model:'bytedance/seedance-2.5/image-to-video',prompt:'Slow camera push toward the room.',duration:10,resolution:'1080p',aspectRatio:'16:9'},createdAt:Date.now(),error:'Seedance content moderation rejected the request.'},
+  {id:id(1301),status:'failed',settings:{type:'video',engine:'h3maxfal',provider:'fal',mode:'start',model:'minimax/h3-max/image-to-video',prompt:'Slow camera orbit.',duration:10,resolution:'1080p',aspectRatio:'16:9'},createdAt:Date.now()-1,error:'fal.ai: requested content was flagged by a content filter.'}
+ ];
+ x=await workspace({initial:moderatedVideos});await x.page.click('#tool-video');
+ for(const record of moderatedVideos){
+  const card=x.page.locator('#history .card[data-job="'+record.id+'"]');
+  assert.equal(await card.locator('.history-no-result.is-content-restricted strong').innerText(),'Not with this model.');
+  assert.equal(await card.locator('.content-restriction-edit').count(),1);
+  assert.equal(await card.locator('.cardactions button').filter({hasText:'Download video'}).isDisabled(),true);
+ }
+ const seedanceCard=x.page.locator('#history .card[data-job="'+moderatedVideos[0].id+'"]');
+ assert.match(await seedanceCard.innerText(),/Seedance/i,'Guidance must name the video model, not an image model');
+ await seedanceCard.click();
+ assert.equal(await x.page.locator('#video-detail-status').innerText(),'Restricted');
+ await seedanceCard.locator('.content-restriction-edit').click();await ready(x.page);
+ assert.equal(await x.page.locator('#prompt').inputValue(),'Slow camera push toward the room.');
+ assert.equal(x.accepted(),0,'Video prompt reuse must not submit a paid request');
+ assert.deepEqual(x.errors,[]);
+ ok('Seedance and FAL video refusals use the same card and restore the original prompt without generation');await x.context.close();
+
  const inactive=n=>({id:id(1000+n),status:'failed',sourceId:id(1100+n),settings:{type:'image',provider:'fal',engine:'soulpro',mode:'identity-edit',soulProModel:'ideogram45',soulProQuality:'medium',resolution:'source',prompt:''},createdAt:Date.now()-n,estimatedUsd:.06,error:'test failure',providerTaskId:'fal-'+n});
  x=await workspace({initial:[inactive(1),inactive(2),inactive(3),active(1040)]});await x.page.click('#tool-image');
  await x.page.click('#history-select');assert.equal(await x.page.locator('#history-selection').isVisible(),true);
