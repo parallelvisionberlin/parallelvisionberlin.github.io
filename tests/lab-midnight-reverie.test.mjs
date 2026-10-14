@@ -82,12 +82,15 @@ test('Midnight Reverie never injects a preview person or changes other establish
 });
 test('Midnight Reverie V2 module versions propagate through Studio and Mood discovery',()=>{
  const files=['studio.html','lab.js','moods.html','explore-moods.js','app-moods.html','app-moods.js',
-   'app-mood-generation.js','mood-creator.html','mood-creator.js','my-moods.js','mood-references.js'];
+   'app-mood-generation.js','mood-creator.html','mood-creator.js','my-moods.js'];
  for(const file of files){
    const source=readFileSync(new URL('../lab/'+file,import.meta.url),'utf8');
    assert.match(source,/midnightFlashV2=1/,'stale mood version in '+file);
  }
  const source=readFileSync(new URL('../lab/moods.js',import.meta.url),'utf8');
+ const planner=readFileSync(new URL('../lab/mood-references.js',import.meta.url),'utf8');
+ assert.doesNotMatch(planner,/prepareMoodPrompt/,'Reference planning must never recompile or downgrade the Mood');
+ assert.match(planner,/The Mood stays unchanged/,'The provider limit rejects rather than modifying creative direction');
  assert.match(source,/Flash-frozen, cobalt afterglow/);
  assert.match(source,/if\(selected&&mood.defaultIntensity\)intensity=mood.defaultIntensity/);
 });

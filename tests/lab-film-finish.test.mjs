@@ -33,7 +33,9 @@ test('Hong Kong finish controls change metadata independently of creative intens
   const a=prepareMoodPrompt('One woman by a window','hong-kong-nights',100,{referenceCount:1,filmFinish:{version:1,grain:20,glow:80}});
   const b=prepareMoodPrompt('One woman by a window','hong-kong-nights',100,{referenceCount:1,filmFinish:{version:1,grain:100,glow:0}});
   assert.equal(a.prompt,b.prompt);assert.equal(a.metadata.moodIntensity,100);assert.equal(b.metadata.filmFinish.grain,100);
-  assert.match(a.prompt,/allowing pores, hair and fabric edges to soften/);assert.doesNotMatch(a.prompt,/Heavy irregular clustered grain/);
+  assert.match(a.prompt,/Preserve realistic skin, architecture, identity and camera/);
+  assert.match(a.prompt,/BLOOM: motivated scene-wide optical softness/);
+  assert.doesNotMatch(a.prompt,/Heavy irregular clustered grain/);
   assert.equal(prepareMoodPrompt('Portrait','berlin-rave',100).metadata.filmFinish,undefined);
   assert.equal(preparePersonalMoodPrompt('Portrait',{id:'board',name:'Mine',baseMoodId:'hong-kong-nights',direction:'Quiet light'},60).metadata.filmFinish,undefined);
 });
@@ -56,8 +58,8 @@ test('source-aware grain preserves black and white, favors midtones and does not
 test('Hong Kong optical finish preserves the setting and addresses foreground light at every tier',()=>{
   for(const intensity of [21,70,100]){
     const {prompt,error}=prepareMoodPrompt('Portrait','hong-kong-nights',intensity,{referenceCount:1});
-    assert.equal(error,'');assert.match(prompt,/Relight the subject AND its environment as one coherent exposure/);
-    assert.match(prompt,/Keep the Base location, architecture/);assert.match(prompt,/WET \/ GLOSS/);
+    assert.equal(error,'');assert.match(prompt,/Relight whole Base \(face, clothes and room\/rock\)/);
+    assert.match(prompt,/Preserve body, pose, wardrobe, camera and original scene/);assert.match(prompt,/WET \/ GLOSS/);
     assert.match(prompt,/no coarse generated noise/);
   }
 });

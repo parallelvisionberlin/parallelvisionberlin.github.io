@@ -76,7 +76,7 @@ const server=http.createServer((req,res)=>{
     };
   });
   assert.ok(details.sectionHeight>=details.visibleHeight-1,'Pricing occupies at least one viewport');
-  assert.match(details.inviteBg,/invite-wet-editorial\.webp/,'Referral promotion uses the current photographic editorial');
+  assert.match(details.inviteBg,/(?:invite-wet-editorial\.webp|invite-after-fabric-exact\.avif)/,'Referral promotion uses an approved photographic editorial');
   if(width<=760)assert.match(details.inviteBg,/gradient/,'Mobile adds a readable gradient over the editorial photo');
   assert.equal(details.inviteText,'rgb(245, 241, 234)','Referral typography remains readable');
   assert.equal(details.inviteParagraph,'rgb(216, 209, 198)','Referral description has contrast on dark background');

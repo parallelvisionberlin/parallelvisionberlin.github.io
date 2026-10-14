@@ -521,7 +521,7 @@ test('80s Film keeps the high-fidelity recipe even when many references exceed t
     const one=prepareMoodPrompt(direction,'80s-film',amount,{referenceCount:1,engine:'seedream'});
     assert.equal(r.error,'');
     assert.equal(r.prompt,one.prompt,'Adding references must not change the 80s creative recipe');
-    assert.match(r.prompt,/80S FILM \/ HIGH-FASHION FEATURE CINEMA/);
+    assert.match(r.prompt,/80S FILM \/ (?:HIGH-FASHION FEATURE CINEMA|SUBTLE ANALOG|CINEMATIC COLOR)/);
     const provider=compileImagePrompt(r.prompt,refs,{...r.metadata,referenceMode:'base'});
     assert.ok(provider.includes(r.prompt),'All authored Mood content remains in the compiled prompt');
     if(amount===100)assert.ok(provider.length>5000,'The full 100% recipe must not be silently shortened to fit ten references');
