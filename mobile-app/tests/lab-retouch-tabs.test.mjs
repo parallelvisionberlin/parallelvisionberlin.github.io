@@ -34,3 +34,9 @@ test('native tab controls retain safe touch targets and accessibility',()=>{
   assert.match(source,/accessibilityState=\{\{selected:/);
   assert.match(source,/tab:\{flex:1,minHeight:54,/);
 });
+
+test('in-workspace Retouch back navigation updates the native selected tab safely',()=>{
+  assert.match(bridge,/if\(m\.type==='PV_LAB_TAB'\)return \['create','gallery','retouch'\]\.includes\(m\.tab\)\?m:null/);
+  assert.match(source,/else if\(m\.type==='PV_LAB_TAB'\)onTab\?\.\(m\.tab\)/);
+  assert.match(source,/onTab=\{next=>\{if\(\['create','gallery','retouch'\]\.includes\(tab\)\)setTab\(next\);\}\}/);
+});
