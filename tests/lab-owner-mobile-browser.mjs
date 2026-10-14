@@ -48,7 +48,7 @@ try{
             kind:'purchase',credits:200,paidAt:Date.UTC(2026,9,13),reference:'stripe_verified_test'}],
           referrals:[],vouchers:[],emailSyncConfigured:true
         });
-        renderProviderFinances({
+        renderOwnerProviderFinances({
           asOf:new Date(Date.UTC(2026,9,14,14,30)).toISOString(),cached:false,
           customerWallet:{credits:'250',note:'Separate from provider cash.'},
           legacy:[{name:'OpenRouter',status:'legacy configured'}],
