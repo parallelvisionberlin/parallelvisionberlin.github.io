@@ -56,6 +56,12 @@ function render(data){
     p=>formatDate(p.paidAt),
     p=>p.reference||'—'
   ]);
+  rowInto($('owner-referrals'),data.referrals||[],[
+    r=>({primary:r.referrerEmail||r.referrerId,secondary:r.referrerEmail?r.referrerId:''}),
+    r=>({primary:r.invitedEmail||r.invitedId,secondary:r.invitedEmail?r.invitedId:''}),
+    r=>formatDate(r.joinedAt),
+    r=>r.rewardedAt?'200 + 200 credits':'Awaiting qualified payment'
+  ]);
   const vouchers=data.vouchers||[],body=$('owner-vouchers');body.replaceChildren();
   if(!vouchers.length){
     const tr=document.createElement('tr'),td=document.createElement('td');td.colSpan=6;td.textContent='No promotional codes yet.';tr.append(td);body.append(tr);
