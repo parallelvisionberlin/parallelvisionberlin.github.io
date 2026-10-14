@@ -1283,3 +1283,25 @@ body:has(#app[hidden])>#studio-header .studio-assets-icon{display:none!important
    idle composer, adding the reference row only when photos are attached. */
 /* Preserved images never appear while a text-only engine is selected. */
 #image-composer.is-text-only .image-composer-references{display:none!important}
+
+/* Vision Upscaler identity: quiet provider attribution, no model-picker changes. */
+#app .upscale-engine-credit,
+#app .upscale-stage-signature{display:none}
+#app.upscale-studio-active .empty .upscale-engine-credit{
+  display:block;margin-top:9px;
+  font:500 10px/1.5 'DM Sans',sans-serif;
+  letter-spacing:.035em;color:#979ba5;text-transform:none;
+}
+#app.upscale-studio-active:has(#preview:not([hidden])) .upscale-stage-signature{
+  display:inline-flex;align-items:center;gap:5px;
+  margin-left:auto;margin-right:12px;white-space:nowrap;
+  color:#a6a9b2;font:600 10px/1.3 'DM Sans',sans-serif;
+  letter-spacing:.075em;text-transform:uppercase;
+}
+#app.upscale-studio-active .upscale-stage-signature span{
+  color:#858b96;font-size:9px;font-weight:500;letter-spacing:.035em;
+}
+@media(max-width:640px){
+  #app.upscale-studio-active .upscale-stage-signature span{display:none}
+  #app.upscale-studio-active .upscale-stage-signature{margin-right:8px;font-size:9px;letter-spacing:.02em}
+}
