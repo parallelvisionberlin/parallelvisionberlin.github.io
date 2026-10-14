@@ -32,6 +32,11 @@ export function initLabMobileUI(){
     deckHeading.innerHTML='<strong>Image deck</strong><small>Model &amp; direction</small>';
     promptRow.before(deck);
     deck.append(deckHeading,promptRow,toolbar,advanced);
+    // These drawers used to render above the photo on iPhone because they
+    // were positioned as siblings. Keep each drawer beside its trigger.
+    for(const id of ['composer-options','composer-reference-intent','composer-library']){
+      const drawer=$(id);if(drawer)deck.append(drawer);
+    }
     $('image-composer-ratio')?.closest('.composer-select-pill')?.classList.add('mobile-main-ratio');
     $('image-composer-prompt').placeholder='Describe your next image (optional)';
     const grid=$('composer-moods-grid'),moods=$('composer-moods');
