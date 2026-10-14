@@ -407,7 +407,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
       if(!quoted?.quoteId||!quoted.ticket)throw new Error('Precision Edit did not return a reusable price approval.');
       pending={...body,quoteId:quoted.quoteId,ticket:quoted.ticket,expiresAt:quoted.expiresAt,maskSourceId};
       const usd=Number(quoted.estimatedUsd||0);
-      $('precision-review-body').textContent='FLUX Inpainting · '+(customer()?Number(quoted.credits)+' PV Lab credits · ':'')+'estimated USD '+usd.toFixed(3)+' provider cost. Confirm to authorize one paid generation. Your original file remains unchanged.'+(allowJpegFallback?' If lossless PNG exceeds 20 MB, a high-quality JPEG may be used. JPEG recompresses pixels outside the selected region.':' PNG retains exact original pixels outside the selection.');
+      $('precision-review-body').textContent='FLUX Inpainting · '+(customer()?Number(quoted.credits)+' PV Lab credits · ':'')+'estimated '+String.fromCharCode(36)+usd.toFixed(3)+' USD (published estimate). Confirm to authorize one paid generation. Your original file remains unchanged.'+(allowJpegFallback?' If lossless PNG exceeds 20 MB, a high-quality JPEG may be used. JPEG recompresses pixels outside the selected region.':' PNG retains exact original pixels outside the selection.');
       $('precision-price-review').hidden=false;
       setStatus('Price checked. No generation has started.');
     }catch(e){pending=null;setStatus(e.message,true);}
