@@ -58,7 +58,7 @@ try{
         await fontGate;
         await route.fulfill({contentType:'font/woff2',body:await readFile(resolve(root,'.'+new URL(route.request().url()).pathname))});
       });
-      await page.route('https://**/*',route=>{
+      await page.route('https://**/*',async route=>{
         const url=new URL(route.request().url());
         if(url.hostname==='esm.sh')return route.fulfill({contentType:'text/javascript',body:clerkMock});
         if(url.hostname==='clerk.parallelvisionlabel.com')return route.fulfill({contentType:'text/javascript',body:'window.__internal_ClerkUICtor=class{};'});
