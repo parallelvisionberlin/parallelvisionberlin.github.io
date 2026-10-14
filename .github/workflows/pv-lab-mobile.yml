@@ -6,6 +6,13 @@ on:
     paths:
       - 'lab/app-moods.*'
       - 'lab/app-mood-generation.js'
+      - 'lab/mobile-ui.js'
+      - 'lab/mobile-app.css'
+      - 'lab/native-create-gallery.css'
+      - 'lab/gallery-layout.js'
+      - 'lab/native-account.js'
+      - 'lab/studio.html'
+      - 'tests/lab-native-mobile-ui.mjs'
       - 'tests/lab-app*.mjs'
       - '.github/workflows/pv-lab-mobile.yml'
 permissions:
