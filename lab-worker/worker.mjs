@@ -130,13 +130,16 @@ async function authenticate(request,env) {
   let valid=false;
   try{const k=await crypto.subtle.importKey('jwk',key,{name:'RSASSA-PKCS1-v1_5',hash:'SHA-256'},false,['verify']);valid=await crypto.subtle.verify('RSASSA-PKCS1-v1_5',k,unbase(c),enc.encode(a+'.'+b));}catch{}
   if(!valid)fail(401,'Invalid sign-in signature.');
-  // Read only: never changes Nina's identity, memory or account tables.
-  const owner=await env.OWNER_DB.prepare("SELECT id FROM users WHERE auth_provider='clerk' AND auth_subject=? AND role='owner' LIMIT 1").bind(p.sub).first();
+  // Never match a new Clerk subject against the old Nina owner directory.
+  const owner=p.iss===LEGACY_ISSUER
+    ?await env.OWNER_DB.prepare("SELECT id FROM users WHERE auth_provider='clerk' AND auth_subject=? AND role='owner' LIMIT 1").bind(p.sub).first()
+    :null;
   if(owner)return {id:owner.id,issuer:p.iss};
   if(env.LAB_CUSTOMER_SIGNUPS_ENABLED!=='true')fail(403,'PV Lab registration is not enabled.');
-  // A pilot new-instance subject remains a SEPARATE account; no balances, role or
-  // subscriptions are inferred from matching email addresses. Migration is pending.
-  const id=await ensureCustomer(env,p.sub);
+  // Keep independent issuers in distinct wallet namespaces. The pilot does NOT
+  // automatically inherit balances, Stripe subscriptions or privileges from old Clerk.
+  const customerId=p.iss===LEGACY_ISSUER?p.sub:'user_PvLabV2'+p.sub.slice(5);
+  const id=await ensureCustomer(env,customerId);
   return {id,issuer:p.iss};
 }
 async function derived(env,label,algorithm,usages) {
