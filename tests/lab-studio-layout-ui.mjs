@@ -211,6 +211,34 @@ try{
   if(!menuGeometry.overflow)assert.ok(menuGeometry.emptyTail<7,'No large blank area after the last model: '+JSON.stringify(menuGeometry));
   assert.ok(menuGeometry.itemsClient>=250,'Model list stays usable before scrolling: '+JSON.stringify(menuGeometry));
   assert.equal(await x.page.locator('.composer-model-option[data-value="qwen3"] img').getAttribute('src'),'./branding/qwen.svg?v=20261013-mono1','Qwen uses refreshed local icon');
+  // Simulate future models: the menu must clip at a full row and never insert
+  // a large empty zone between the final visible card and the fixed footer.
+  await x.page.locator('#image-composer-model-items').evaluate(list=>{
+    const model=list.querySelector('.composer-model-option');
+    for(let i=0;i<6;i++){
+      const extra=model.cloneNode(true);
+      extra.dataset.value='test-extra-model-'+i;
+      extra.setAttribute('aria-selected','false');
+      extra.classList.add('test-overflow-model');
+      list.append(extra);
+    }
+    window.dispatchEvent(new Event('resize'));
+  });
+  const expandedMenu=await x.page.locator('#image-composer-model-menu').evaluate(el=>{
+    const list=el.querySelector('.composer-model-items'),viewport=list.getBoundingClientRect();
+    const rows=[...list.querySelectorAll('.composer-model-option')].map(row=>row.getBoundingClientRect());
+    return {height:el.getBoundingClientRect().height,maxHeight:parseFloat(getComputedStyle(el).maxHeight),
+      scrollable:list.scrollHeight>list.clientHeight+2,snap:getComputedStyle(list).scrollSnapType,
+      partial:rows.some(row=>row.top<viewport.bottom-1&&row.bottom>viewport.bottom+2)};
+  });
+  assert.ok(expandedMenu.scrollable,'Additional models should scroll within the list: '+JSON.stringify(expandedMenu));
+  assert.ok(expandedMenu.height<=expandedMenu.maxHeight+2,'Expanded model list must not cover navigation: '+JSON.stringify(expandedMenu));
+  assert.equal(expandedMenu.partial,false,'Overflow must stop after a full row, not cut a model: '+JSON.stringify(expandedMenu));
+  assert.equal(expandedMenu.snap,'y mandatory','Scrolling should settle at a complete model row');
+  await x.page.locator('#image-composer-model-items').evaluate(list=>{
+    list.querySelectorAll('.test-overflow-model').forEach(row=>row.remove());
+    window.dispatchEvent(new Event('resize'));
+  });
   await x.page.screenshot({path:'test-results/lab-image-model-popup.png',fullPage:false});
   await x.page.fill('#image-composer-model-search','banana');
   const filteredMenu=await x.page.locator('#image-composer-model-menu').evaluate(el=>{
