@@ -1917,10 +1917,9 @@ async function addReferences(list,ids=[],labels=[]){
 function referenceLimit(){if(tool==='image'&&imageEngine==='flash')return 10;if(tool==='image'&&imageEngine==='qwen3')return 3;if(tool==='image'&&imageEngine==='zspicy')return 0;if(tool==='image'&&imageEngine==='kling')return 1;return tool==='video'?VIDEO_MODELS[engine].maxImages:tool==='image'&&imageEngine==='soulpro'?4:tool==='image'&&imageEngine==='soul'?soul.referenceLimit():tool==='image'&&imageEngine==='fal'?5:10-builtInMoodReferenceCount({type:tool,mode:'image',engine:imageEngine,moodId:moodUI.selected()});}
 function configureVideoControls(){
   const isVideo=tool==='video',model=VIDEO_MODELS[engine],sd=engine==='seedance',sd15=engine==='seedance15',sd4k=engine==='seedance4k',klingHf=engine==='klinghf',
-  // Resolve unsupported modes BEFORE calculating which panels are visible.
-  // In particular, switching from Seedance Extend to Kling Start must reveal
-  // the start-frame controls instead of leaving a hidden video editor.
-  if(!model.modes.includes(mode))mode=model.modes[0];h3=engine==='h3',h3max=engine==='h3max',h3spicy=engine==='h3spicy',h3maxfal=engine==='h3maxfal',omni=engine==='omni',minimax=h3||h3max||h3spicy||h3maxfal;
+    h3=engine==='h3',h3max=engine==='h3max',h3spicy=engine==='h3spicy',h3maxfal=engine==='h3maxfal',omni=engine==='omni',minimax=h3||h3max||h3spicy||h3maxfal;
+  // Resolve unsupported modes before calculating which panels are visible.
+  if(!model.modes.includes(mode))mode=model.modes[0];
   $('app').classList.toggle('video-extend-active',isVideo&&mode==='extend');
   $('video-camera-lock-wrap').hidden=!isVideo||!sd15;
   $('video-task-switch').hidden=!isVideo||!sd;
