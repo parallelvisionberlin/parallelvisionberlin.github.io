@@ -188,6 +188,8 @@ test('Second Clerk application is pilot-only, origin-bound, and never inherits a
   assert.equal(session.customer,true);
   assert.equal(session.ownerId,'user_PvLabV2New','second issuer has a different wallet namespace');
   assert.equal(env.LAB_DB.db.prepare('SELECT id FROM lab_customers').get().id,'user_PvLabV2New');
+  assert.equal((await req(env,'/api/billing/checkout',{method:'POST',authToken:newToken,headers:{Origin:studio},data:{sku:'topup10'}})).status,403,'new instance cannot bill before identity migration');
+  assert.equal((await req(env,'/api/jobs',{method:'POST',authToken:newToken,headers:{Origin:studio},data:{}})).status,403,'new instance cannot submit paid work');
   assert.equal((await req(env,'/api/session',{authToken:newToken})).status,401,'pilot token is not valid on old domain');
   assert.equal((await req(env,'/api/session',{authToken:auth})).status,200,'legacy owner still has access');
 });
