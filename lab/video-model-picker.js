@@ -40,7 +40,8 @@ export function createVideoModelPicker({select,getBusy=()=>false,isActive=()=>tr
   head.append(heading,total);
 
   const searchWrap=document.createElement('div');searchWrap.className='pv-video-model-search-wrap';
-  const searchIcon=document.createElement('span');searchIcon.className='pv-video-search-icon';searchIcon.setAttribute('aria-hidden','true');searchIcon.textContent='⌕';
+  const searchIcon=document.createElement('span');searchIcon.className='pv-video-search-icon';searchIcon.setAttribute('aria-hidden','true');
+  searchIcon.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.8" cy="10.8" r="6.6"/><path d="m15.8 15.8 4.3 4.3"/></svg>';
   const search=document.createElement('input');search.type='search';search.autocomplete='off';
   search.placeholder='Search video models';search.setAttribute('aria-label','Search video models');
   searchWrap.append(searchIcon,search);
