@@ -1,0 +1,25 @@
+/* PV LAB homepage: unified guest and customer presentation, 2026-10-14. */
+@media(min-width:901px){
+  .landing-header--home + main .lab-hero .hero-copy{
+    width:min(660px,52vw);
+    max-width:none;
+  }
+  .landing-header--home + main .lab-hero .hero-description{
+    max-width:none;
+    width:max-content;
+    white-space:normal;
+  }
+  .landing-header--home + main .lab-hero .hero-description .desktop-break{display:none}
+}
+/* Fixed actions grid and meaningful CTA even without auth JavaScript. */
+.landing-header--home .landing-header-actions>.lab-home-credits:not([hidden]){
+  visibility:visible;
+}
+.landing-header--home .lab-home-credit-placeholder,
+.landing-header--home .lab-home-avatar-placeholder{display:none!important}
+@media(min-width:901px){
+  .landing-header--home .landing-header-actions{
+    grid-template-columns:auto 136px 76px;
+    column-gap:12px;
+  }
+}
