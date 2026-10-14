@@ -11,7 +11,7 @@ import {BERLIN_RAVE_REFERENCES} from '../lab-worker/berlin-rave-references.mjs';
 import {DREAMCORE_REFERENCES} from '../lab-worker/dreamcore-references.mjs';
 import {SYNTHETIC_ROMANCE_REFERENCES} from '../lab-worker/synthetic-romance-references.mjs';
 import {prepareMoodPrompt} from '../lab/moods.js';
-const ORIGIN='https://parallelvisionlabel.com',BASE='https://parallel-vision-lab.parallelvision.workers.dev',KEY='sk-spicy-synthetic-test-only-not-a-real-key';
+const ORIGIN='https://parallelvisionlabel.com',BASE='https://parallel-vision-lab.parallelvision.workers.dev',KEY='sk-spicy-synthetic-test-only-not-a-real-key',CUSTOMER_KEY='sk-spicy-isolated-customer-test-key-not-real';
 const keypair=await crypto.subtle.generateKey({name:'RSASSA-PKCS1-v1_5',modulusLength:2048,publicExponent:new Uint8Array([1,0,1]),hash:'SHA-256'},true,['sign','verify']);
 const jwk=await crypto.subtle.exportKey('jwk',keypair.publicKey);jwk.kid='test-key';
 async function token(subject='user_Owner',extra={}) {const b=x=>Buffer.from(JSON.stringify(x)).toString('base64url');const a=b({alg:'RS256',kid:'test-key'}),p=b({iss:'https://clerk.parallelvisionlabel.com',sub:subject,azp:ORIGIN,iat:Math.floor(Date.now()/1000),exp:Math.floor(Date.now()/1000)+3600,...extra});const signature=await crypto.subtle.sign('RSASSA-PKCS1-v1_5',keypair.privateKey,new TextEncoder().encode(a+'.'+p));return a+'.'+p+'.'+Buffer.from(signature).toString('base64url');}
@@ -103,7 +103,7 @@ globalThis.fetch=async (url,options={})=>{const u=new URL(url);calls.push({url:S
  if(u.hostname==='v3b.fal.media'){const bytes=new Uint8Array([1,2,3,4,5,6,7,8]);return new Response(bytes,{headers:{'content-type':'application/octet-stream','content-length':String(bytes.length)}});}
 if(u.hostname==='cdn.spicyapi.ai'){assert.ok(!options.headers?.Authorization);if(u.pathname.endsWith('.png'))return new Response(new Uint8Array([137,80,78,71,13,10,26,10,0]),{headers:{'content-type':'image/png'}});return new Response(new Uint8Array([0,0,0,24,102,116,121,112,109,112,52,50]),{headers:{'content-type':'video/mp4'}});}
  if(u.hostname==='test.r2.cloudflarestorage.com'){assert.equal(options.method,'PUT');assert.equal(new Headers(options.headers).get('authorization'),null);uploadedReference=new Uint8Array(options.body);return new Response(null,{status:200});}
- assert.equal(u.hostname,'api.spicyapi.ai');assert.equal(options.headers.Authorization,'Bearer '+KEY);
+ assert.equal(u.hostname,'api.spicyapi.ai');assert.ok([KEY,CUSTOMER_KEY].some(key=>options.headers.Authorization==='Bearer '+key),'Only known synthetic keys may call SpicyAPI');
  if(u.pathname.endsWith('/chat/credit'))return Response.json({code:200,data:{available:'10',held:'0',total:'10'}});
  if(u.pathname.endsWith('/common/upload-url')){const input=JSON.parse(options.body);return Response.json({code:200,data:{fileId:'fil_synthetic_reference',uploadUrl:'https://test.r2.cloudflarestorage.com/reference',method:'PUT',headers:{'Content-Type':input.contentType,'Content-Length':String(input.bytes)},maxBytes:10485760,expiresAt:new Date(Date.now()+1200000).toISOString()}});}
  if(u.pathname.endsWith('/files/fil_synthetic_reference/commit')){assert.equal(options.method,'POST');return Response.json({code:200,data:{fileId:'fil_synthetic_reference',status:'ready',bytes:uploadedReference.length,contentType:'image/png',sha256:Buffer.from(await crypto.subtle.digest('SHA-256',uploadedReference)).toString('hex'),uri:'spicy://f/fil_synthetic_reference',expiresAt:new Date(Date.now()+86400000).toISOString()}});}
@@ -377,6 +377,47 @@ test('new customer: signed signup, paid credits once, generation, private downlo
     const closedSession=await req(env,'/api/session',{authToken});assert.equal(closedSession.status,200);assert.equal((await closedSession.json()).accountClosed.state,'requested');
     assert.equal((await req(env,'/api/customer/wallet',{authToken})).status,200,'Closed accounts can still read billing records');
     assert.equal((await req(env,'/api/jobs',{authToken})).status,403,'Closed accounts cannot read creative records');
+  }finally{maxPrice=previousPrice;createMode='ok';providerState='queued';}
+});
+test('Customer SpicyAPI jobs use only the isolated key with no daily estimate cap, while owner cap stays',async()=>{
+  const {env}=fixture(),db=env.LAB_DB.db,customer='user_IsolatedCustomer';
+  for(const file of ['0006-customers-billing.sql','0007-lab-referrals.sql','0008-soul-id-launch-credits.sql','0011-customer-lifecycle.sql'])
+    db.exec(readFileSync(new URL('../lab-worker/migrations/'+file,import.meta.url),'utf8'));
+  Object.assign(env,{LAB_CUSTOMER_SIGNUPS_ENABLED:'true',LAB_CHECKOUT_ENABLED:'true',LAB_PUBLIC_GENERATION_ENABLED:'true',
+    LAB_CUSTOMER_SPICY_API_KEY:CUSTOMER_KEY,LAB_STRIPE_SECRET_KEY:'sk_test_synthetic',LAB_STRIPE_WEBHOOK_SECRET:'whsec_synthetic'});
+  await setup(env); // Owner stores a distinct personal provider credential and a $10/day cap.
+  const encryptedOwnerKey=db.prepare('SELECT encrypted_key FROM settings WHERE owner_id=?').get('owner-internal').encrypted_key;
+  const customerToken=await token(customer);
+  assert.equal((await req(env,'/api/session',{authToken:customerToken})).status,200);
+  // A legacy row must never override the shared customer key or reactivate a daily cap.
+  db.prepare('INSERT INTO settings(owner_id,encrypted_key,enabled,terms_confirmed,daily_limit_microusd,updated_at) VALUES(?,?,?,?,?,?)')
+    .run(customer,encryptedOwnerKey,1,1,1000000,Date.now());
+  db.prepare('INSERT INTO lab_credit_entries(id,customer_id,delta_credits,kind,reference,created_at) VALUES(?,?,?,?,?,?)')
+    .run('funding:'+customer,customer,20000,'adjustment','test-wallet:'+customer,Date.now());
+  const session=(await(await req(env,'/api/session',{authToken:customerToken})).json());
+  assert.equal(session.config.dailyLimitUsd,null,'Customer is constrained by credit balance, not owner daily budget');
+  assert.equal(session.config.enabled,true);
+  const previousPrice=maxPrice;maxPrice='12.000000';createMode='ok';createCount=0;providerState='queued';calls=[];
+  try{
+    const qResponse=await req(env,'/api/quotes',{method:'POST',authToken:customerToken,data:{settings:imageSettings,referenceSourceIds:[]}});
+    assert.equal(qResponse.status,200,await qResponse.clone().text());
+    const q=await qResponse.json();assert.equal(q.maxUsd,12);
+    const submitted=await req(env,'/api/jobs',{method:'POST',authToken:customerToken,data:{quoteId:q.id,confirm:true}});
+    assert.equal(submitted.status,202,await submitted.clone().text());
+    assert.equal((await submitted.json()).job.status,'queued');
+    assert.equal(createCount,1);
+    const billableCalls=calls.filter(c=>/\/jobs\/(quote|createTask)$/.test(new URL(c.url).pathname));
+    assert.equal(billableCalls.length,2);
+    assert.ok(billableCalls.every(c=>c.options.headers.Authorization==='Bearer '+CUSTOMER_KEY),'Customer never uses personal provider key');
+    assert.equal(db.prepare('SELECT balance_credits FROM lab_customers WHERE id=?').get(customer).balance_credits,20000-q.creditCost);
+    assert.equal(db.prepare('SELECT COALESCE(SUM(estimate_microusd),0) AS n FROM spend WHERE owner_id=?').get(customer).n,12000000);
+    calls=[];
+    const ownerResponse=await req(env,'/api/quotes',{method:'POST',data:{settings:imageSettings,referenceSourceIds:[]}});
+    assert.equal(ownerResponse.status,200,await ownerResponse.clone().text());
+    const ownerProviderCall=calls.find(c=>new URL(c.url).pathname.endsWith('/jobs/quote'));
+    assert.equal(ownerProviderCall.options.headers.Authorization,'Bearer '+KEY);
+    const ownerSession=(await(await req(env,'/api/session')).json());
+    assert.equal(ownerSession.config.dailyLimitUsd,10);
   }finally{maxPrice=previousPrice;createMode='ok';providerState='queued';}
 });
 test('Text-to-image quotes need no source; image outputs can be reused by video without losing the source',async()=>{
