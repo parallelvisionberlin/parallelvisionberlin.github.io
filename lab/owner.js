@@ -3,7 +3,7 @@ import {createSessionRequest} from './session-request.js?v=20260927-auth1';
 import {createOwnerProviderUI} from './owner-providers-ui.js?v=20261014-v2-finance1';
 const $=id=>document.getElementById(id);
 const apiBase='https://parallel-vision-lab.parallelvision.workers.dev';
-let clerk=null,revision=0,profile=null,creating=false,syncing=false,emailSyncReady=false,fetchSerial=0,searchTimer=null,syncNotice='';
+let clerk=null,revision=0,profile=null,creating=false,syncing=false,emailSyncReady=false,fetchSerial=0,searchTimer=null,syncNotice='',autoClerkSyncAttempted=false;
 const request=createSessionRequest({baseUrl:apiBase,getSession:()=>clerk?.session});
 const formatNumber=n=>Number.isSafeInteger(Number(n))?Number(n).toLocaleString('en-GB'):'—';
 const formatDate=t=>Number.isFinite(Number(t))&&Number(t)>0?new Date(Number(t)).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}):'—';
@@ -181,10 +181,17 @@ function render(data){
   const directoryText=query
     ?formatNumber(shownEmails)+' verified emails in these search results.'
     :formatNumber(shownEmails)+' verified emails visible across '+formatNumber(customerCount)+' listed accounts.';
-  $('owner-sync-state').textContent=emailSyncReady?'Clerk key installed':'Clerk email sync needs setup';
-  $('owner-sync-copy').textContent=emailSyncReady
-    ?directoryText+' Select Sync to check Clerk API access and fetch verified emails.'
-    :'Customer accounts and credits are available. Connect a private Clerk key to display verified signup emails.';
+  // A secret binding alone does not prove that the Clerk API accepts the key.
+  const clerkSyncFailed=/^(Clerk rejected|Clerk could not|The Cloudflare Clerk secret is missing|Unable to sync Clerk emails)/.test(syncNotice);
+  $('owner-sync-state').textContent=!emailSyncReady?'Clerk email sync needs setup'
+    :clerkSyncFailed?'Clerk sync needs attention'
+    :syncing?'Checking Clerk connection'
+    :shownEmails>0?'Verified emails available':'Clerk key configured, not verified';
+  $('owner-sync-copy').textContent=!emailSyncReady
+    ?'Connect the production Clerk backend key securely to fetch verified signup emails.'
+    :directoryText+(syncing?' Checking Clerk securely now.':clerkSyncFailed?' Review the sync message below.':
+      shownEmails>0?' Verified customer emails are available in your directory.':
+      ' A secure sync runs once when this workspace opens; you can retry using Sync emails.');
   $('owner-integrations').hidden=false;
   $('owner-setup-toggle').hidden=emailSyncReady;
   if(emailSyncReady){$('owner-setup-guide').hidden=true;$('owner-setup-toggle').setAttribute('aria-expanded','false');}
@@ -204,6 +211,11 @@ async function refreshDashboard(){
     const data=await call('/api/admin/overview'+(search?'?search='+encodeURIComponent(search):''));
     if(current!==revision||requestId!==fetchSerial)return;
     render(data);status('');
+    if(!autoClerkSyncAttempted&&!syncing&&!search&&data.emailSyncConfigured&&
+        Array.isArray(data.customers)&&data.customers.some(c=>!c.email)){
+      autoClerkSyncAttempted=true;
+      void synchronizeClerkEmails(true);
+    }
   }catch(error){if(current===revision&&requestId===fetchSerial)status(error.message);}
   finally{if(current===revision&&requestId===fetchSerial){$('owner-refresh').disabled=false;$('owner-refresh').textContent='Refresh data ↻';}}
 }
@@ -212,7 +224,7 @@ async function refreshSession(){
   recentCustomers=[];recentPayments=[];recentFilter='all';syncNotice='';$('owner-search').value='';
   providerUI.clear();
   for(const id of ['owner-customers','owner-payments','owner-referrals','owner-vouchers'])$(id).replaceChildren();
-  if(!clerk?.isSignedIn){status('');$('owner-gate').hidden=false;return;}
+  if(!clerk?.isSignedIn){autoClerkSyncAttempted=false;status('');$('owner-gate').hidden=false;return;}
   status('Checking your owner access…');
   try{
     const result=await call('/api/session');if(current!==revision)return;
@@ -267,18 +279,34 @@ function syncFeedback(result){
   if(Number(result.synced)===0)return 'No emails were synchronized. The Worker did not provide a reason. Check the deployed Worker version and its Clerk connection.';
   return Number(result.synced)+' account(s) checked. Refresh to confirm their emails.';
 }
-$('owner-sync').addEventListener('click',async()=>{
+async function synchronizeClerkEmails(automatic=false){
   if(syncing||!profile?.owner)return;
-  syncing=true;$('owner-sync').disabled=true;syncNotice='Checking Clerk securely…';
+  const current=revision;
+  syncing=true;$('owner-sync').disabled=true;
+  syncNotice=automatic?'Checking the missing Clerk emails automatically…':'Checking Clerk securely…';
   $('owner-email-status').textContent=syncNotice;
+  $('owner-sync-state').textContent='Checking Clerk connection';
   try{
     const result=await call('/api/admin/customers/sync',{method:'POST'});
+    if(current!==revision)return;
     syncNotice=syncFeedback(result);
     await refreshDashboard();
+    if(current!==revision)return;
     $('owner-email-status').textContent=syncNotice;
-  }catch(error){syncNotice=error.message||'Unable to sync Clerk emails.';$('owner-email-status').textContent=syncNotice;}
-  finally{syncing=false;$('owner-sync').disabled=!emailSyncReady;}
-});
+    if(result.issues?.invalidKey||result.issues?.missingUser||result.issues?.transient)
+      $('owner-sync-state').textContent='Clerk sync needs attention';
+    else if(Number(result.verified)>0)$('owner-sync-state').textContent='Verified emails available';
+    else $('owner-sync-state').textContent='Clerk checked, emails unavailable';
+  }catch(error){
+    if(current!==revision)return;
+    syncNotice=error.message||'Unable to sync Clerk emails.';
+    $('owner-email-status').textContent=syncNotice;
+    $('owner-sync-state').textContent='Clerk sync needs attention';
+  }finally{
+    syncing=false;$('owner-sync').disabled=!emailSyncReady;
+  }
+}
+$('owner-sync').addEventListener('click',()=>{autoClerkSyncAttempted=true;void synchronizeClerkEmails(false);});
 
 $('owner-voucher-form').addEventListener('submit',async event=>{
   event.preventDefault();if(!profile?.owner||creating)return;
