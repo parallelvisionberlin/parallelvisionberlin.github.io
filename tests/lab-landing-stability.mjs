@@ -51,6 +51,9 @@ try{
       page.on('pageerror',e=>errors.push(e.message));
       let releaseFonts;
       const fontGate=slowFont?new Promise(r=>releaseFonts=r):Promise.resolve();
+      const holdCustomerSession=width===1440&&!slowFont;
+      let releaseSession;
+      const customerSessionGate=holdCustomerSession?new Promise(r=>releaseSession=r):null;
       await page.route('**/*.woff2',async route=>{
         await fontGate;
         await route.fulfill({contentType:'font/woff2',body:await readFile(resolve(root,'.'+new URL(route.request().url()).pathname))});
@@ -59,10 +62,16 @@ try{
         const url=new URL(route.request().url());
         if(url.hostname==='esm.sh')return route.fulfill({contentType:'text/javascript',body:clerkMock});
         if(url.hostname==='clerk.parallelvisionlabel.com')return route.fulfill({contentType:'text/javascript',body:'window.__internal_ClerkUICtor=class{};'});
-        if(url.hostname==='parallel-vision-lab.parallelvision.workers.dev'&&url.pathname==='/api/session')return route.fulfill({contentType:'application/json',body:JSON.stringify({customer:true,ownerId:'test-owner',balanceCredits:1200,billingReady:false})});
+        if(url.hostname==='parallel-vision-lab.parallelvision.workers.dev'&&url.pathname==='/api/session'){
+          if(customerSessionGate)await customerSessionGate;
+          return route.fulfill({contentType:'application/json',body:JSON.stringify({customer:true,ownerId:'test-owner',balanceCredits:1200,billingReady:false})});
+        }
         return route.abort();
       });
       await page.goto(origin+'/lab/',{waitUntil:'domcontentloaded'});
+      assert.equal(await page.locator('#lab-header-signin').isVisible(),false,'Sign-in does not flash before identity is known');
+      assert.equal(await page.locator('.lab-home-credit-placeholder').isVisible(),true,'Credit slot exists from first paint');
+      assert.equal(await page.locator('.lab-home-avatar-placeholder').isVisible(),true,'Avatar slot exists from first paint');
       assert.equal(await page.locator('[data-lab-signin]').isVisible(),false,'Google sign-in stays hidden on initial render');
       await page.waitForFunction(()=>typeof window.releaseTestAccount==='function');
       await page.waitForFunction(()=>performance.getEntriesByName('first-contentful-paint').length>0);
@@ -80,7 +89,20 @@ try{
       assert.equal(await page.locator('[data-lab-signin]').isVisible(),false,'Google sign-in stays hidden while the account is loading');
       await page.evaluate(()=>window.releaseTestAccount());
       await page.locator('#lab-account-strip').waitFor({state:'visible'});
+      if(holdCustomerSession){
+        assert.equal(await page.locator('.lab-home-avatar-placeholder').isVisible(),false,'Verified avatar replaces its shell before balance loads');
+        assert.equal(await page.locator('.lab-home-credit-placeholder').isVisible(),true,'Credit shell remains while balance loads');
+        assert.equal(await page.locator('#lab-home-credits').isVisible(),false,'No guessed credits during balance loading');
+        releaseSession();
+      }
       await page.locator('#lab-home-credits').waitFor({state:'visible'});
+      assert.equal(await page.locator('.lab-home-credit-placeholder').isVisible(),false);
+      assert.equal(await page.locator('.lab-home-avatar-placeholder').isVisible(),false);
+      const actionWeights=await page.evaluate(()=>({
+        studio:Number.parseInt(getComputedStyle(document.querySelector('.landing-header--home .studio-link')).fontWeight,10),
+        credits:Number.parseInt(getComputedStyle(document.querySelector('.landing-header--home .lab-home-credits')).fontWeight,10)
+      }));
+      assert.ok(actionWeights.studio>=600&&actionWeights.credits>=600,'Home actions use true semi-bold weights');
       assert.equal(await page.locator('#lab-home-credit-copy').textContent(),'1,200');
       assert.equal(await page.locator('#lab-home-credit-unit').isVisible(),width>560);
       assert.equal(await page.locator('#lab-home-credits').getAttribute('href'),'#pricing');
@@ -92,6 +114,8 @@ try{
       await page.locator('#lab-account-strip>summary').click();
       await page.getByRole('button',{name:'Sign out',exact:true}).click();
       await page.locator('#lab-header-signin').waitFor({state:'visible'});
+      assert.equal(await page.locator('.lab-home-credit-placeholder').isVisible(),false,'Signed-out state clears loading shells');
+      assert.equal(await page.locator('.lab-home-avatar-placeholder').isVisible(),false,'Signed-out state clears avatar shell');
       assert.equal(await page.locator('#lab-home-credits').isVisible(),false,'Credits are removed on sign out');
       assert.equal(await page.locator('.lab-hero [data-lab-signin]').count(),0,'No separate Google button in the hero');
       stable(initial,await geometry(page),`${width}: sign out`);

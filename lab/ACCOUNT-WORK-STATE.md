@@ -137,3 +137,13 @@
 - Files: lab/index.html, public-header.css, mobile-polish.css, customer-entry.js, tests/lab-landing-stability.mjs, tests/lab-account-browser.mjs and this checkpoint.
 - New browser assertions cover customer, owner, zero balance, refreshed balance and sign-out at several desktop/mobile widths, without real sign-in, payment or generation.
 - Branch: codex/pvlab-home-credit-header-20261014. Check Actions and Pages separately before marking the change live.
+
+## Homepage first-paint and type polish (2026-10-14)
+- User screenshots show visitor Sign in replaced by account avatar and Get credits after a slow Clerk load. Approved: make both Open studio and Get credits visibly semi-bold and keep the right-hand header composed during authentication.
+- Baseline main: 76baa089f84a2a133af45a2296f5e5cd723e62c6. Changes limited to homepage HTML, homepage-scoped public-header CSS, customer-entry session presentation, landing browser test and this checkpoint.
+- First paint shows fixed-width neutral credit and circle placeholders instead of speculative Sign in or user data. No loading animation, no cached identity or guessed wallet values. CSS reserves identical geometry across anonymous, loading, customer and owner states.
+- Clerk identity completion reveals avatar before the slower customer /api/session fetch. That fetch later replaces the credit placeholder with the actual wallet balance or Get credits at zero. Guests see Sign in only after Clerk confirms they are signed out.
+- Native auth, checkout, payment products, wallet API, account authorization, images, hero composition and Studio layout are unchanged.
+- Homepage-only DM Sans action face supports weights 600–700. Both Open studio and Get credits use weight 600; the Studio pill border is slightly stronger.
+- Landing CI verifies first-paint placeholders, delayed customer session, avatar appearing ahead of wallet balance, no geometry shift, guest sign-out, semi-bold computed styles and desktop/mobile no overflow.
+- Branch: codex/pvlab-header-first-paint-20261014. Commit and deployment confirmation pending at time of edit; preserve this distinction.

@@ -7,7 +7,7 @@ const API='https://parallel-vision-lab.parallelvision.workers.dev';
 import {loadLabAccount} from './native-account.js?v=20261012-unified-header1';
 const $=id=>document.getElementById(id);
 const pilotSetup=new URLSearchParams(location.search).get('setup-pilot')==='1';
-let clerk=null,profile=null,profileSessionId=null,revision=0;
+let clerk=null,profile=null,profileSessionId=null,revision=0,profileLoading=false;
 let purchasing=false;
 const buyButtons=[...document.querySelectorAll('[data-lab-buy]')];
 const purchaseKey='pv-lab-purchase-intent';
@@ -52,16 +52,21 @@ async function call(path,init){const result=await api(path,init);const data=awai
 async function refresh(){
   const current=++revision;
   try{
-    if(!clerk?.isSignedIn){profile=null;profileSessionId=null;show();return;}
+    if(!clerk?.isSignedIn){profile=null;profileSessionId=null;profileLoading=false;show();return;}
     if(profileSessionId!==clerk.session?.id)profile=null;
+    profileLoading=true;
+    show(); // Present the verified avatar as soon as identity loads, before the wallet request.
     const data=await call('/api/session');if(current!==revision)return;
-    profile=data;profileSessionId=clerk.session?.id;show();
+    profile=data;profileSessionId=clerk.session?.id;profileLoading=false;show();
     if(profile.customer)trackLabRegistration(profile.ownerId,profile.createdAt);
     if(profile.customer)await claimReferral(code=>call('/api/customer/referrals/claim',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code})}));
-  }catch(e){if(current===revision){profile=null;status(e.message);show();}}
+  }catch(e){if(current===revision){profile=null;profileLoading=false;status(e.message);show();}}
 }
 function show(){
   const signed=!!clerk?.isSignedIn,customer=!!profile?.customer;
+  const header=document.querySelector('.landing-header--home');
+  header?.classList.toggle('is-credit-loading',signed&&profileLoading&&!profile);
+  header?.classList.add('is-account-ready');
   $('lab-header-signin').hidden=signed;
   const homeCredits=$('lab-home-credits');
   if(homeCredits){
@@ -167,4 +172,9 @@ try{
     if(clerk.isSignedIn)await purchase(resumePurchase);
     else purchaseStatus(resumePurchase,'Sign in to continue with this selection.');
   }
-}catch(e){status('Sign-in is not currently available. Please try again.');$('lab-header-signin').disabled=true;}
+}catch(e){
+  status('Sign-in is not currently available. Please try again.');
+  document.querySelector('.landing-header--home')?.classList.add('is-account-ready');
+  $('lab-header-signin').hidden=false;
+  $('lab-header-signin').disabled=true;
+}

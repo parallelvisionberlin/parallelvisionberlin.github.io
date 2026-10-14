@@ -13,7 +13,7 @@
 <link rel="stylesheet" href="./credits.css?v=20261011-compact-pricing2">
 <link rel="stylesheet" href="./mood-home.css?v=20261012-collection-drop1">
 <link rel="stylesheet" href="./landing-motion.css?v=20261012-hero-center1">
-<link rel="stylesheet" href="./public-header.css?v=20261014-home-credits1">
+<link rel="stylesheet" href="./public-header.css?v=20261014-header-ready2">
 <link rel="stylesheet" href="./studio-tools.css?v=20261012-macro-clean1">
 <link rel="stylesheet" href="./account-menu.css?v=20261012-account2">
 <link rel="stylesheet" href="./pricing.css?v=20261013-pricing-hero8">
@@ -28,9 +28,10 @@
   <a class="lab-brand" href="./" aria-label="PV Lab home">PV LAB</a>
   <nav aria-label="Creative tools"><a href="./studio.html?tool=image">Image</a><a href="./studio.html?tool=video">Video</a><a href="./studio.html?tool=upscale">Upscaler</a><a href="./moods" class="lab-moods-nav">Explore Moods</a><a href="#pricing">Pricing</a></nav>
   <div class="landing-header-actions">
-    <button class="lab-auth-link" id="lab-header-signin" type="button">Sign in</button>
+    <button class="lab-auth-link" id="lab-header-signin" type="button" hidden>Sign in</button>
     <a class="studio-link" href="./studio.html"><span class="studio-link-label-full">Open studio</span><span class="studio-link-label-compact">Studio</span></a>
     <a class="lab-home-credits" id="lab-home-credits" href="#pricing" aria-label="View credits and pricing" hidden><span class="lab-home-credit-copy" id="lab-home-credit-copy">Credits</span><span class="lab-home-credit-unit" id="lab-home-credit-unit" hidden>credits</span><span class="lab-home-credit-plus" aria-hidden="true">+</span></a>
+    <span class="lab-home-credit-placeholder" aria-hidden="true"></span>
     <details id="lab-account-strip" class="pv-account-menu" hidden>
       <summary aria-label="Open account menu" aria-expanded="false"><span class="pv-account-avatar" data-account-avatar aria-hidden="true"></span></summary>
       <div class="pv-account-panel">
@@ -45,6 +46,7 @@
         <button id="lab-account-logout" type="button" data-account-signout>Sign out</button>
       </div>
     </details>
+    <span class="lab-home-avatar-placeholder" aria-hidden="true"></span>
   </div>
 </header>
 <main id="main">
@@ -205,7 +207,7 @@
 <script defer src="./landing-motion.js?v=20261012-editorial-restored1"></script>
 <script defer src="./studio-tools.js?v=20261012-macro-clean1"></script>
 <script defer src="./pricing-tabs.js?v=20261013-billing-caption3"></script>
-<script type="module" src="./customer-entry.js?v=20261014-home-credits1"></script>
+<script type="module" src="./customer-entry.js?v=20261014-header-ready2"></script>
 </body>
 </html>
 
