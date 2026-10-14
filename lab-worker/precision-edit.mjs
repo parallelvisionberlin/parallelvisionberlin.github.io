@@ -1,9 +1,12 @@
 // Precision Edit: owner-only SAM 3 object selection and masked FLUX editing.
 // Both provider credentials and private source media remain on the Worker.
 import {FAL_CONTROLLED_INPAINT,controlledRepairParameters,controlledRepairEstimateMicros,buildRepairInput,falSubmit,falStatus,falResult} from './fal-controlled-pose.mjs';
+import {creditsForUsd} from './customer-billing.mjs';
 
 export const PRECISION_SEGMENT_MODEL='fal-ai/sam-3/image';
 export const PRECISION_SEGMENT_ESTIMATE_MICROS=5000; // fal.ai published $0.005/request, not a bound quote.
+export const PRECISION_SEGMENT_CUSTOMER_CREDITS=7; // Existing minimum per metered request.
+export const precisionCustomerCredits=estimateMicros=>creditsForUsd(estimateMicros/1000000);
 export const PRECISION_LARGE_IMAGE_PIXELS=5000000;
 export const PRECISION_COMPOSITE_LIMIT=20*1024*1024;
 
@@ -44,6 +47,15 @@ async function signTicket(env,data){
   const signature=await crypto.subtle.sign('HMAC',key,bytes);
   return Array.from(new Uint8Array(signature),x=>x.toString(16).padStart(2,'0')).join('');
 }
+async function refundSelection(env,owner,id,d){
+  const reference='precision:selection:'+owner+':'+id;
+  const refund='precision:refund:'+owner+':'+id;
+  // A definite vendor failure is refundable once. Uncertain submissions remain
+  // charged pending manual reconciliation to prevent a free duplicate call.
+  await d.run(env,
+    "INSERT OR IGNORE INTO lab_credit_entries(id,customer_id,delta_credits,kind,reference,created_at) SELECT ?,customer_id,-delta_credits,'refund',?,? FROM lab_credit_entries WHERE id=? AND customer_id=?",
+    refund,refund,Date.now(),reference,owner);
+}
 function allowedAssetUrl(value){
   const url=new URL(value);
   const host=url.hostname.toLowerCase();
@@ -83,7 +95,8 @@ async function quotedEdit(request,env,owner,d){
 }
 export async function precisionEditRoute(request,env,owner,url,d){
   const path=url.pathname,method=request.method;
-  if(d.customer)d.fail(403,'Precision Edit is currently owner-only until selection and FLUX credit billing are verified.');
+  if(d.customer&&(!d.customerGenerationReady||env.LAB_CUSTOMER_RETOUCH_ENABLED!=='true'))
+    d.fail(403,'Retouch is not enabled for this customer account. No paid request submitted.');
   if(!env.FAL_KEY)d.fail(503,'Magic Select and Precision Edit require the existing FAL_KEY Worker secret.');
   if(!env.LAB_SECRET)d.fail(503,'Precision Edit private signing is not configured.');
   if(path==='/api/precision/segment'&&method==='POST'){
@@ -98,17 +111,63 @@ export async function precisionEditRoute(request,env,owner,url,d){
     const used=await d.first(env,'SELECT COALESCE(SUM(estimate_microusd),0) AS n FROM spend WHERE owner_id=? AND created_at>=?',owner,Math.floor(Date.now()/86400000)*86400000);
     if((used?.n||0)+PRECISION_SEGMENT_ESTIMATE_MICROS>(settings?.daily_limit_microusd||10000000))
       d.fail(409,'Magic Select would exceed your daily spending limit.');
-    const requestId=verifyRequestId(await falSubmit(PRECISION_SEGMENT_MODEL,env.FAL_KEY,{
-      image_url:await d.signedInput(env,url,source.id,86400),
-      point_prompts:[point],prompt:'',apply_mask:false,output_format:'png',
-      return_multiple_masks:false,max_masks:1
-    }),d.fail);
     const expires=Math.floor(Date.now()/1000)+3600;
-    const ticket=await signTicket(env,[owner,source.id,requestId,expires].join(':'));
-    // Owner-only published-price estimate. No customer-wallet debit or automated retry.
+    const selectionId=d.customer?verifyUuid(data.selectionId,d.fail):null;
+    // A durable request ID and a wallet debit are created BEFORE the paid vendor call.
+    // Retrying the same selection can never initiate another provider request.
+    if(d.customer){
+      const created=Date.now();
+      const inserted=await d.run(env,
+        "INSERT OR IGNORE INTO lab_precision_selections(id,owner_id,source_id,point_x,point_y,state,expires_at,created_at,updated_at) VALUES(?,?,?,?,?,'reserving',?,?,?)",
+        selectionId,owner,source.id,point.x,point.y,expires,created,created);
+      if(!inserted.meta?.changes){
+        const previous=await d.first(env,'SELECT * FROM lab_precision_selections WHERE id=? AND owner_id=?',selectionId,owner);
+        if(previous?.source_id!==source.id||previous?.point_x!==point.x||previous?.point_y!==point.y)
+          d.fail(409,'This selection approval belongs to a different photograph or point.');
+        if(previous.state==='queued'&&previous.provider_id){
+          const ticket=await signTicket(env,[owner,source.id,previous.provider_id,previous.expires_at].join(':'));
+          return d.json({status:'queued',requestId:previous.provider_id,sourceId:source.id,
+            expires:previous.expires_at,ticket,credits:PRECISION_SEGMENT_CUSTOMER_CREDITS},202);
+        }
+        d.fail(409,'This selection is '+previous.state+'. No duplicate paid request was started. Check support before trying a new selection if the provider status is uncertain.');
+      }
+      const receipt='precision:selection:'+owner+':'+selectionId;
+      try{
+        // The existing lab_apply_credits trigger rejects insufficient funds atomically.
+        await d.run(env,'INSERT INTO lab_credit_entries(id,customer_id,delta_credits,kind,reference,created_at) VALUES(?,?,?,?,?,?)',
+          receipt,owner,-PRECISION_SEGMENT_CUSTOMER_CREDITS,'generation',receipt,created);
+      }catch(error){
+        await d.run(env,"UPDATE lab_precision_selections SET state='failed',updated_at=? WHERE id=? AND owner_id=?",Date.now(),selectionId,owner);
+        if(/Insufficient PV Lab credits/i.test(String(error?.message||'')))
+          d.fail(402,'Magic Select costs 7 credits per selection. Add credits before trying again. Nothing was submitted.');
+        throw error;
+      }
+      await d.run(env,"UPDATE lab_precision_selections SET state='submitting',updated_at=? WHERE id=? AND owner_id=?",Date.now(),selectionId,owner);
+    }
+    let requestId;
+    try{
+      requestId=verifyRequestId(await (d.falSubmit||falSubmit)(PRECISION_SEGMENT_MODEL,env.FAL_KEY,{
+        image_url:await d.signedInput(env,url,source.id,86400),
+        point_prompts:[point],prompt:'',apply_mask:false,output_format:'png',
+        return_multiple_masks:false,max_masks:1
+      }),d.fail);
+    }catch(error){
+      if(d.customer){
+        const definite=error?.definite===true;
+        await d.run(env,"UPDATE lab_precision_selections SET state=?,updated_at=? WHERE id=? AND owner_id=?",
+          definite?'failed':'uncertain',Date.now(),selectionId,owner);
+        if(definite)await refundSelection(env,owner,selectionId,d);
+      }
+      throw error;
+    }
+    if(d.customer)await d.run(env,
+      "UPDATE lab_precision_selections SET provider_id=?,state='queued',updated_at=? WHERE id=? AND owner_id=? AND state='submitting'",
+      requestId,Date.now(),selectionId,owner);
     await d.run(env,'INSERT OR IGNORE INTO spend(job_id,owner_id,estimate_microusd,created_at) VALUES(?,?,?,?)',
       'precision-segment:'+requestId,owner,PRECISION_SEGMENT_ESTIMATE_MICROS,Date.now());
-    return d.json({status:'queued',requestId,sourceId:source.id,expires,ticket,publishedEstimateUsd:.005},202);
+    const ticket=await signTicket(env,[owner,source.id,requestId,expires].join(':'));
+    return d.json({status:'queued',requestId,sourceId:source.id,expires,ticket,
+      publishedEstimateUsd:.005,...(d.customer?{credits:PRECISION_SEGMENT_CUSTOMER_CREDITS}:{})},202);
   }
   if(path==='/api/precision/segment'&&method==='GET'){
     const sourceId=verifyUuid(url.searchParams.get('sourceId'),d.fail);
@@ -123,7 +182,16 @@ export async function precisionEditRoute(request,env,owner,url,d){
     const old=await d.first(env,'SELECT id FROM assets WHERE id=? AND owner_id=?',maskId,owner);
     if(old)return d.json({status:'completed',maskSourceId:maskId});
     const state=await falStatus(PRECISION_SEGMENT_MODEL,env.FAL_KEY,requestId),value=String(state?.status||'').toUpperCase();
-    if(value==='FAILED'||value==='CANCELLED'||value==='CANCELED')d.fail(422,'Magic Select could not segment this object. Try another point or use the brush.');
+    if(value==='FAILED'||value==='CANCELLED'||value==='CANCELED'){
+      if(d.customer){
+        const selection=await d.first(env,'SELECT id FROM lab_precision_selections WHERE owner_id=? AND provider_id=?',owner,requestId);
+        if(selection){
+          await d.run(env,"UPDATE lab_precision_selections SET state='failed',updated_at=? WHERE id=? AND owner_id=?",Date.now(),selection.id,owner);
+          await refundSelection(env,owner,selection.id,d);
+        }
+      }
+      d.fail(422,'Magic Select could not segment this object. Its selection credits have been refunded if this was a customer request.');
+    }
     if(value!=='COMPLETED')return d.json({status:value==='IN_PROGRESS'?'running':'queued'},202);
     const result=await falResult(PRECISION_SEGMENT_MODEL,env.FAL_KEY,requestId);
     const masks=result?.masks;
@@ -138,6 +206,7 @@ export async function precisionEditRoute(request,env,owner,url,d){
     await env.LAB_MEDIA.put(key,bytes,{httpMetadata:{contentType:'image/png'}});
     await d.run(env,"INSERT OR IGNORE INTO assets(id,owner_id,object_key,kind,mime,filename,bytes,created_at) VALUES(?,?,?,'source','image/png',?,?,?)",
       maskId,owner,key,'magic-selection-'+maskId+'.png',bytes.length,Date.now());
+    if(d.customer)await d.run(env,"UPDATE lab_precision_selections SET state='completed',updated_at=? WHERE owner_id=? AND provider_id=?",Date.now(),owner,requestId);
     return d.json({status:'completed',maskSourceId:maskId});
   }
   if(path==='/api/precision/quote'&&method==='POST'){
@@ -148,6 +217,7 @@ export async function precisionEditRoute(request,env,owner,url,d){
     await d.run(env,'INSERT INTO quotes(id,owner_id,source_id,params,estimate_microusd,expires_at,vendor_quote_id,expected_cost,payload) VALUES(?,?,?,?,?,?,?,?,?)',
       quoteId,owner,q.working.id,JSON.stringify(q.p),q.price,q.expires,'fal-precision-edit',String(q.price/1000000),JSON.stringify(payload));
     return d.json({quoteId,ticket:q.ticket,expiresAt:q.expires,estimatedUsd:q.price/1000000,
+      ...(d.customer?{credits:precisionCustomerCredits(q.price)}:{}),
       priceIsEstimate:true,model:FAL_CONTROLLED_INPAINT,notice:'Published fal.ai estimate, not a live bound quote. No generation submitted.'});
   }
   if(path==='/api/precision/submit'&&method==='POST'){
