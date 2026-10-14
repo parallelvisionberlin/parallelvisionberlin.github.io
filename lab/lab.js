@@ -4,7 +4,7 @@ import {createFilmFinishControls,HONG_KONG_FILM_FINISH,FILM_FINISH_RENDER_REVISI
 import {preparePhotoInput} from './photo-input.js?v=1';
 import {createMoodReferenceLoader,moodReferencePlan,isMoodStyleReference} from './mood-references.js?v=20261013-compact-map2&seedreamlite=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&nano21=1&refMode=20261014-contextual-reference1&moodLock=20261014-mood-consistency1';
 import {createPrivateMediaCache} from './private-media-cache.js?v=20261012-cache1';
-import {loadLabAccount} from './native-account.js?v=20261014-native-photo-picker1&createGallery=20261014-1';
+import {loadLabAccount} from './native-account.js?v=20261014-native-photo-picker1&createGallery=20261014-1&generateStable=20261014-1';
 import {createAssetLibrary} from './assets.js?v=20261010-navigation-media1';
 import {createPrecisionEditor} from './precision-edit.js?v=20261011-no-emoji1';
 import {createCustomerWallet} from './customer-wallet.js?v=20261013-upgrade1&model-rates=1';
@@ -73,14 +73,9 @@ function beginImageFeedback(count,selected,ratio){
       for(const id of ids){const entry=pendingImageCards.get(id);if(entry){entry.title=publicTitle;entry.detail='';}}
       if(drivesComposerButton&&imageSubmissionPending){
         imageSubmissionStage=publicTitle+'…';
-        const button=$('image-composer-generate');
-        if(button){
-          const label=button.querySelector('.composer-generate-label');
-          if(label)label.textContent=imageSubmissionStage;
-          const sparkle=button.querySelector('.composer-generate-sparkle');
-          if(sparkle)sparkle.hidden=true;
-          button.classList.add('is-submitting');
-        }
+        // Keep the paid action fixed; progress lives outside the Generate button.
+        const status=$('image-composer-status');
+        if(status){status.textContent=imageSubmissionStage;status.hidden=false;}
       }
       renderPendingImageCards();
     },
@@ -662,10 +657,10 @@ function applyCustomerImagePriceToGenerate(){
     button.title=estimated?'Backend-calculated estimate. The server validates the cost again before submission.':
       'Live, bound provider quote. The amount updates with your selections.';
   }else if(quote?.status==='error'){
-    button.textContent='Retry price';
-    button.title=quote.message||'Could not check price. No generation was submitted.';
+    button.textContent='Generate';
+    button.title=(quote.message||'Could not check price. No generation was submitted.')+' Click Generate to retry the quote.';
   }else if(quote?.status==='checking'){
-    button.textContent='Checking price…';
+    button.textContent='Generate';
     button.disabled=true;
     button.title='Checking the selected model, resolution, references and image count. No generation has started.';
   }
@@ -1254,13 +1249,21 @@ function syncImageComposer(){
   $('composer-add-saved-note').textContent=isSoul2()?'Choose a trained identity':imageEngine==='soul'?'Choose a trained character':'Reuse your reference collections';
   $('composer-character').setAttribute('aria-label','Choose trained character');
   const generate=$('image-composer-generate');
-  const generateActionLabel=imageSubmissionPending?imageSubmissionStage:$('generate').textContent;
-  generate.classList.toggle('is-submitting',imageSubmissionPending);
+  const generateActionLabel=$('generate').textContent;
+  generate.classList.remove('is-submitting');
   generate.classList.toggle('is-long-label',generateActionLabel.length>16);
   generate.disabled=$('generate').disabled;
+  generate.setAttribute('aria-busy',String(imageSubmissionPending));
   generate.querySelector('.composer-generate-label').textContent=generateActionLabel;
   const generateSparkle=generate.querySelector('.composer-generate-sparkle');
-  if(generateSparkle)generateSparkle.hidden=imageSubmissionPending||generateActionLabel.startsWith('Connect ')||generateActionLabel.includes('not connected');
+  if(generateSparkle)generateSparkle.hidden=generateActionLabel.startsWith('Connect ')||generateActionLabel.includes('not connected');
+  // Pricing and submission feedback must never replace the Generate action.
+  const priceState=customerMode?customerImagePricing?.current():null;
+  const progress=imageSubmissionPending?imageSubmissionStage:
+    customerMode&&customerGenerationReady&&priceState?.status==='checking'?'Checking price…':
+    customerMode&&customerGenerationReady&&priceState?.status==='error'?'Price unavailable · click Generate to retry':'';
+  const progressLine=$('image-composer-status');
+  if(progressLine){progressLine.textContent=progress;progressLine.hidden=!progress;}
   if(tool==='image'&&fastImageHandoff.has(currentImageSubmissionKey()))
     generate.title='This exact request is already preparing. Change the direction or wait for confirmation.';
   else generate.removeAttribute('title');
