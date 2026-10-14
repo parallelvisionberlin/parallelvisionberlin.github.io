@@ -38,8 +38,10 @@ if(!existing){
 const records=await api('/zones/'+zone.id+'/dns_records?name='+encodeURIComponent(name)+'&per_page=100');
 const root=records.filter(r=>r.name===name);
 const parking=root.filter(r=>r.type==='A'&&['207.207.210.229','207.207.210.107'].includes(r.content));
-const other=root.filter(r=>!parking.includes(r) && !(r.type==='CNAME'&&r.content===project+'.pages.dev'));
-if(other.length)throw Error('Unexpected apex DNS records present. Leave DNS unchanged and inspect pvlab.studio manually.');
+const other=root.filter(r=>['A','AAAA','CNAME'].includes(r.type)&&
+  !parking.includes(r)&&!(r.type==='CNAME'&&r.content===project+'.pages.dev'));
+if(other.length)throw Error('Unexpected apex web-routing DNS records present. Leave DNS unchanged and inspect pvlab.studio manually.');
+// TXT, MX and other non-routing records must never be modified by this job.
 // Remove ONLY the two Porkbun parking addresses observed and confirmed earlier.
 // Leave Clerk authentication, email, any MX/TXT and other domain zones untouched.
 for(const record of parking){
