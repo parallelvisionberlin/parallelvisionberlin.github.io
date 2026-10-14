@@ -1,7 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {labAdminRoute,voucherCustomerRoute,voucherLink,syncCustomerEmail} from '../lab-worker/promotions.mjs';
+import {labAdminRoute,voucherCustomerRoute,voucherLink,syncCustomerEmail,scheduledClerkBackfill} from '../lab-worker/promotions.mjs';
 
 async function setup(t) {
   let sqlite;
@@ -10,7 +10,7 @@ async function setup(t) {
   t.after(()=>db.close());
   const file=name=>readFileSync(new URL(name,import.meta.url),'utf8');
   db.exec(file('../lab-worker/schema.sql'));
-  for(const migration of ['0006-customers-billing','0007-lab-referrals','0011-customer-lifecycle','0015-lab-promotional-credits'])db.exec(file('../lab-worker/migrations/'+migration+'.sql'));
+  for(const migration of ['0006-customers-billing','0007-lab-referrals','0011-customer-lifecycle','0015-lab-promotional-credits','0016-clerk-sync-diagnostics'])db.exec(file('../lab-worker/migrations/'+migration+'.sql'));
   db.exec(file('../lab-worker/migrations/0015-lab-promotional-credits.sql')); // safely applied more than once
   const dbBinding={
     prepare(sql){return {bind(...values){const stmt=db.prepare(sql);return {
@@ -177,4 +177,75 @@ test('Clerk sync refuses redirect responses without fetching a second URL or sto
     assert.equal(f.get('SELECT COUNT(*) AS n FROM lab_customer_contacts').n,0);
     assert.ok(!JSON.stringify(report).includes('sk_live_'));
   }finally{globalThis.fetch=original;}
+});
+
+
+test('scheduled Clerk backfill verifies emails, records only sanitized outcomes and limits repeated reads',async t=>{
+  const f=await setup(t);if(!f)return;
+  f.env.LAB_CLERK_SECRET_KEY='sk_live_private_never_in_db';
+  const previous=globalThis.fetch;let calls=0;
+  globalThis.fetch=async (url,options)=>{
+    calls++;
+    assert.equal(options?.method,'GET');
+    assert.equal(options?.redirect,'manual');
+    assert.equal(options?.headers.Authorization,'Bearer sk_live_private_never_in_db');
+    const id=new URL(url).pathname.split('/').pop();
+    return new Response(JSON.stringify({
+      id,primary_email_address_id:'em_primary',
+      email_addresses:[{id:'em_primary',email_address:id+'@example.com',verification:{status:'verified'}}]
+    }),{status:200,headers:{'content-type':'application/json'}});
+  };
+  try{
+    const one=await scheduledClerkBackfill(f.env);
+    assert.equal(one.requested,3);
+    assert.equal(one.verified,3);
+    assert.equal(calls,3);
+    assert.equal(f.get('SELECT COUNT(*) AS n FROM lab_customer_contacts WHERE email IS NOT NULL').n,3);
+    const record=f.get('SELECT source,checked_at,result_json FROM lab_clerk_sync_diagnostics WHERE id=1');
+    assert.equal(record.source,'scheduled');
+    const data=JSON.parse(record.result_json);
+    assert.equal(data.verified,3);
+    assert.ok(record.checked_at>0);
+    assert.ok(!record.result_json.includes('sk_live_'));
+    assert.ok(!record.result_json.includes('@example.com'));
+    assert.ok(!record.result_json.includes('user_ALICE'));
+    assert.equal(await scheduledClerkBackfill(f.env),null,'Cron cooldown prevents repeated provider requests');
+    assert.equal(calls,3);
+    const owner=(await (await f.admin('/api/admin/overview',null,'GET')).json());
+    assert.equal(owner.clerkSyncDiagnostic.verified,3);
+    assert.equal(owner.clerkSyncDiagnostic.source,'scheduled');
+    assert.ok(!JSON.stringify(owner.clerkSyncDiagnostic).includes('@example.com'));
+  }finally{globalThis.fetch=previous;}
+});
+test('Clerk diagnostics identify wrong app, never invent an email, and allow forced owner retry',async t=>{
+  const f=await setup(t);if(!f)return;
+  f.env.LAB_CLERK_SECRET_KEY='sk_live_private_wrong_app';
+  const previous=globalThis.fetch;let called=0;
+  globalThis.fetch=async()=>{called++;return new Response('{}',{status:404});};
+  try{
+    const first=await scheduledClerkBackfill(f.env);
+    assert.equal(first.issues.missingUser,3);
+    assert.equal(first.verified,0);
+    assert.equal(f.get('SELECT COUNT(*) AS n FROM lab_customer_contacts').n,0);
+    assert.equal(called,3);
+    assert.equal(await scheduledClerkBackfill(f.env),null);
+    const current=(await (await f.admin('/api/admin/overview',null,'GET')).json()).clerkSyncDiagnostic;
+    assert.equal(current.issues.missingUser,3);
+    assert.equal(current.source,'scheduled');
+    // The explicit owner retry bypasses the scheduled throttling.
+    const retried=await (await f.admin('/api/admin/customers/sync')).json();
+    assert.equal(retried.issues.missingUser,3);
+    assert.equal(called,6);
+    assert.equal(f.get('SELECT source FROM lab_clerk_sync_diagnostics WHERE id=1').source,'owner');
+    assert.ok(!JSON.stringify(retried).includes('sk_live_'));
+    await assert.rejects(()=>f.admin('/api/admin/customers/sync',null,'POST','user_ALICE'),/owner access required/);
+  }finally{globalThis.fetch=previous;}
+});
+test('missing Clerk secret is recorded as aggregate-only diagnostics, not a fabricated success',async t=>{
+  const f=await setup(t);if(!f)return;
+  const summary=await scheduledClerkBackfill(f.env);
+  assert.equal(summary.verified,0);
+  assert.equal(summary.issues.missingKey,1);
+  assert.equal(f.get('SELECT COUNT(*) AS n FROM lab_customer_contacts').n,0);
+  assert.equal(f.get('SELECT source FROM lab_clerk_sync_diagnostics WHERE id=1').source,'scheduled');
 });
