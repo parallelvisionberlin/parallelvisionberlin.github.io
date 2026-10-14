@@ -1,0 +1,35 @@
+name: PV LAB owner dashboard
+on:
+  pull_request:
+    paths: ['lab/owner.*', 'tests/lab-owner-mobile-browser.mjs', '.github/workflows/pv-lab-owner-dashboard.yml']
+  push:
+    paths: ['lab/owner.*', 'tests/lab-owner-mobile-browser.mjs', '.github/workflows/pv-lab-owner-dashboard.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  owner:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            lab
+            tests
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node --check lab/owner.js
+      - run: npm install --prefix /tmp/pv-owner-browser --no-audit --no-fund playwright@1.62.1
+      - run: /tmp/pv-owner-browser/node_modules/.bin/playwright install --with-deps chromium
+      - name: Verify real owner renderer, recent subscriber filter and mobile fit
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-owner-browser/node_modules/playwright/index.mjs
+        run: node tests/lab-owner-mobile-browser.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pv-owner-dashboard-screenshots
+          path: /tmp/pv-lab-owner-mobile
+          retention-days: 3
