@@ -106,9 +106,9 @@ try{
         credits:Number.parseInt(getComputedStyle(document.querySelector('.landing-header--home .lab-home-credits')).fontWeight,10)
       }));
       assert.ok(actionWeights.studio>=600&&actionWeights.credits>=600,'Home actions use true semi-bold weights');
-      await page.waitForFunction(()=>document.querySelector('#lab-home-credit-copy')?.textContent==='1,200',{
-        timeout:10000
-      }).catch(()=>{}); // Body rendered early; wait for the authenticated wallet, not just a visible placeholder.
+      // The avatar is shown before the wallet responds. Wait for the real
+      // authenticated balance, not merely a visible placeholder slot.
+      await page.waitForFunction(()=>document.querySelector('#lab-home-credit-copy')?.textContent==='1,200',null,{timeout:10000});
       assert.equal(await page.locator('#lab-home-credit-copy').textContent(),'1,200');
       assert.equal(await page.locator('#lab-home-credit-unit').isVisible(),width>560);
       assert.equal(await page.locator('#lab-home-credits').getAttribute('href'),'#pricing');
