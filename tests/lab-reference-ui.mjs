@@ -157,6 +157,13 @@ try{
   assert.match(await x.page.locator('#reference-guidance-warning').innerText(),/exceed 5,000 characters/);
   assert.match(await x.page.locator('#composer-prompt-budget').textContent(),/characters over limit$/);
   assert.equal(await x.page.locator('#composer-prompt-budget').isVisible(),true,'Only an over-limit warning becomes visible');
+  const budgetPosition=await x.page.evaluate(()=>{
+    const badge=document.querySelector('#composer-prompt-budget').getBoundingClientRect();
+    const editor=document.querySelector('#image-composer-prompt').getBoundingClientRect();
+    return {badgeBottom:badge.bottom,editorTop:editor.top};
+  });
+  assert.ok(budgetPosition.badgeBottom<=budgetPosition.editorTop,
+    'Over-limit warning floats above the input instead of covering written text: '+JSON.stringify(budgetPosition));
   assert.equal(await x.page.locator('#generate').isDisabled(),true);assert.equal(await x.page.locator('#save').isDisabled(),true);
   pass('The final instruction budget blocks oversized requests after automatic role text is included');
   assert.deepEqual(x.errors,[]);await x.context.close();
