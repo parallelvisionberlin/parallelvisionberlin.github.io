@@ -1293,14 +1293,36 @@ function syncImageComposer(){
   syncImageGalleryEmpty();
 }
 function fitImageModelMenu(){
-  // Fill the available space while keeping an 8px gap below the navigation.
+  // Natural height when all models fit. For overflow, show whole model rows
+  // and leave an 8px gap to the Studio navigation, never a large empty footer.
   const menu=$('image-composer-model-menu'),trigger=$('image-composer-model'),header=$('studio-header');
-  if(!menu||!trigger)return;
-  // The menu ends 8px above the trigger and stays 8px below the header.
-  const available=trigger.getBoundingClientRect().top-(header?.getBoundingClientRect().bottom||0)-16;
-  menu.style.setProperty('--pv-model-menu-available',Math.max(112,Math.floor(available))+'px');
-  // The menu can be wider than its trigger. Clamp it to the visual viewport,
-  // rather than letting a right-side model pill push it off-screen on mobile.
+  if(!menu||!trigger||menu.hidden)return;
+  const available=Math.max(112,Math.floor(trigger.getBoundingClientRect().top-(header?.getBoundingClientRect().bottom||0)-16));
+  menu.style.setProperty('--pv-model-menu-available',available+'px');
+  menu.style.removeProperty('--pv-model-menu-fit');
+  menu.classList.remove('has-overflow');
+  const items=$('image-composer-model-items');
+  if(items){
+    // Measure the actual rows: descriptions can wrap on smaller viewports.
+    const chrome=menu.getBoundingClientRect().height-items.getBoundingClientRect().height;
+    const style=getComputedStyle(items);
+    const topPadding=parseFloat(style.paddingTop)||0,bottomPadding=parseFloat(style.paddingBottom)||0;
+    const space=Math.max(0,available-chrome-topPadding-bottomPadding);
+    const rows=[...items.children];
+    let fitted=0,rowsHeight=0;
+    for(const row of rows){
+      const height=row.getBoundingClientRect().height;
+      if(rowsHeight+height>space+.25)break;
+      rowsHeight+=height;
+      fitted++;
+    }
+    // Keep Search and Create / manage characters fixed. Only the list scrolls.
+    if(fitted>0&&fitted<rows.length){
+      menu.style.setProperty('--pv-model-menu-fit',Math.min(available,Math.ceil(chrome+topPadding+rowsHeight))+'px');
+      menu.classList.add('has-overflow');
+    }
+  }
+  // Clamp horizontal positioning to the visual viewport on mobile.
   menu.style.left='0px';
   const rect=menu.getBoundingClientRect(),parent=menu.parentElement.getBoundingClientRect();
   if(rect.width){
@@ -1436,9 +1458,9 @@ $('image-composer-model').onclick=()=>{
   if(imageMenuOpen)closeReferenceIntent();
   $('image-composer-model-menu').hidden=!imageMenuOpen;
   $('image-composer-model').setAttribute('aria-expanded',String(imageMenuOpen));
-  if(imageMenuOpen){fitImageModelMenu();$('image-composer-model-search').value='';populateImageModelMenu();$('image-composer-model-search').focus();}
+  if(imageMenuOpen){$('image-composer-model-search').value='';populateImageModelMenu();fitImageModelMenu();$('image-composer-model-search').focus();}
 };
-$('image-composer-model-search').oninput=()=>populateImageModelMenu($('image-composer-model-search').value);
+$('image-composer-model-search').oninput=()=>{populateImageModelMenu($('image-composer-model-search').value);$('image-composer-model-items').scrollTop=0;fitImageModelMenu();};
 $('image-composer-train').onclick=()=>{
   closeImageModelMenu();
   if(!busy)void hf.open();
