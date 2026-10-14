@@ -626,6 +626,13 @@ body.pv-account-page{margin:0;background:#101010;color:#f1efea;font:400 14px/1.6
   .pv-account-page #section-referrals .account-referral-stats strong{font-size:26px}
   .pv-account-page #section-referrals .account-referral-stats span{font-size:8px}
 }
+/* Delete account is a discrete PV LAB action, never the shared Label identity. */
+.pv-account-page #section-settings .account-danger-row{margin-top:36px;padding-top:28px;border-top:1px solid #594547}
+.pv-account-page #section-settings .account-danger-row h3{color:#f1e8e5}
+.pv-account-page #section-settings .account-delete-action{border-color:#805659;color:#e7c8c6!important;background:transparent}
+.pv-account-page #section-settings .account-delete-action:hover{border-color:#d69c9c;background:#302122;color:#fff!important}
+.pv-account-page #section-settings .account-deletion-state{margin-top:22px;padding:16px 0;border-top:1px solid #45423d;color:#d9d4ca}
+@media(max-width:600px){.pv-account-page #section-settings .account-delete-action{width:100%}}
 @media(prefers-reduced-motion:reduce){
   .pv-account-page .account-sidebar nav a,
   .pv-account-page #section-referrals .account-copy button{transition:none}

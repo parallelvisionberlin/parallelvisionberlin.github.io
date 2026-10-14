@@ -38,6 +38,7 @@ function clearPrivateView(){
   $('referrals-description').textContent='Invite a friend into your creative space.';
   $('account-voucher-status').textContent='';$('account-voucher-code').value='';$('account-voucher-submit').disabled=false;voucherBusy=false;
   $('account-close-confirm').value='';$('account-close-submit').disabled=true;
+  $('settings-delete-row').hidden=true;$('settings-deletion-state').hidden=true;$('settings-deletion-state').textContent='';
   if($('account-close-dialog').open)$('account-close-dialog').close();
 }
 function paintRoute(){
@@ -100,7 +101,15 @@ function drawProfile(){
   $('account-admin-link').hidden=profile.owner!==true;
   $('account-admin-option').hidden=profile.owner!==true;
   if(profile.customer&&/^[A-Z0-9][A-Z0-9-]{5,23}$/.test(voucherFromLink)&&!$('account-voucher-code').value)$('account-voucher-code').value=voucherFromLink;
-  $('settings-close-account').hidden=!profile.customer||!!profile.accountClosed;
+  const canDelete=!!profile.customer&&!profile.accountClosed;
+  $('settings-delete-row').hidden=!canDelete;$('settings-close-account').hidden=!canDelete;
+  const deletionState=$('settings-deletion-state');
+  deletionState.hidden=!profile.accountClosed;
+  deletionState.textContent=profile.accountClosed
+    ? (profile.accountClosed.state==='deleted'
+      ? 'Your PV Lab creative data has been deleted. Your Parallel Vision Label sign-in remains active.'
+      : 'PV Lab account deletion is queued. New generations and purchases are disabled.')
+    : '';
   const referrals=referralsAvailable(profile);$('account-referrals-link').hidden=!referrals;$('account-referrals-option').hidden=!referrals;
   menu.update({signed:true,user:clerk.user,profile});
 }
@@ -207,7 +216,7 @@ $('referrals-copy').onclick=async()=>{
   try{await navigator.clipboard.writeText($('referrals-url').value);if(current===revision)$('referrals-status').textContent='Invite link copied.';}
   catch{if(current===revision){$('referrals-url').focus();$('referrals-url').select();$('referrals-status').textContent='Select and copy your invite link.';}}
 };
-$('settings-close-account').onclick=()=>{$('account-close-confirm').value='';$('account-close-submit').disabled=true;$('account-close-status').textContent='';$('account-close-dialog').showModal();};
+$('settings-close-account').onclick=()=>{if(!profile?.customer||profile.accountClosed)return;$('account-close-confirm').value='';$('account-close-submit').disabled=true;$('account-close-status').textContent='';$('account-close-dialog').showModal();};
 $('account-close-confirm').oninput=()=>{$('account-close-submit').disabled=$('account-close-confirm').value!=='DELETE MY PV LAB ACCOUNT';};
 $('account-close-submit').onclick=async()=>{
   const current=revision;$('account-close-submit').disabled=true;$('account-close-status').textContent='Submitting your closure request…';
