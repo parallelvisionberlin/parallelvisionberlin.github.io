@@ -3582,6 +3582,15 @@ function surfaceHistoryJob(job){
   if(assetLibrary?.active()){void syncHistory().catch(e=>notify(e.message,true));return;}
   renderCards([job],{upsert:true});$('emptyarchive').hidden=true;if(tool==='video'&&!assetLibrary?.active())restoreLatestVideoSelection();
 }
+let lastCustomerHistoryWake=0;
+function refreshCustomerHistoryOnWake(){
+  if(!owner||!customerMode||document.hidden||historyLoading)return;
+  const now=Date.now();if(now-lastCustomerHistoryWake<10000)return;
+  lastCustomerHistoryWake=now;
+  void syncHistory().catch(error=>{if(owner&&customerMode)console.warn('History refresh failed:',error.message);});
+}
+window.addEventListener('focus',refreshCustomerHistoryOnWake);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshCustomerHistoryOnWake();});
 function refreshHistorySoon(){
   const expectedEpoch=epoch;
   queueMicrotask(()=>syncHistory().catch(error=>{if(owner&&epoch===expectedEpoch)notify('History refresh delayed. Your queued job is safe. '+error.message,true);}));
