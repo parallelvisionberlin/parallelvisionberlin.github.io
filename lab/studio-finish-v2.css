@@ -35,9 +35,10 @@
 }
 @media(prefers-reduced-motion:reduce){#image-composer .composer-generate{transition:none!important}}
 
-/* Image deck typography remains compact. Existing dock and control dimensions are preserved. */
+/* Image deck typography remains compact. Generate is anchored to the bottom
+   control row even as the prompt and reference tray expand. */
 @media(min-width:900px){
- #image-composer:not(.is-pv-soul) .composer-generate{align-self:center}
+ #image-composer:not(.is-pv-soul) .composer-generate{align-self:end}
  #image-composer:not(.is-pv-soul) #image-composer-edit-area,
  #image-composer:not(.is-pv-soul) .composer-mood-control #image-composer-moods{font-size:clamp(12px,.78vw,13px);font-weight:700;line-height:1.15}
 }
