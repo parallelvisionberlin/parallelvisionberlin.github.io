@@ -40,6 +40,7 @@ function render(data){
   $('owner-paying').textContent=formatNumber(s.payingCustomers);
   $('owner-subs').textContent=formatNumber(s.activeSubscriptions);
   $('owner-redemptions').textContent=formatNumber(s.voucherClaims);
+  $('owner-referral-summary').textContent=formatNumber(s.rewardedReferrals)+' verified referral rewards issued. Recent attribution is listed below.';
   rowInto($('owner-customers'),data.customers||[],[
     c=>({primary:c.email||'Email not synced',secondary:c.id}),
     c=>formatDate(c.joinedAt),
