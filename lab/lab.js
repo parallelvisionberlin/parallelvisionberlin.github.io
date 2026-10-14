@@ -1480,8 +1480,14 @@ document.addEventListener('click',e=>{
   if(composerAddOpen&&!e.target.closest('.composer-add-wrap'))closeComposerAddMenu();
   if(!e.target.closest('#composer-moods,#image-composer-moods'))moodUI.close();
 });
+const HISTORY_IMAGE_DRAG_TYPE='application/x-pvlab-history-asset';
 imageComposer.addEventListener('dragover',e=>{
-  if(e.dataTransfer?.types.includes('Files')){e.preventDefault();imageComposer.classList.add('is-dragging');}
+  const types=Array.from(e.dataTransfer?.types||[]);
+  if(types.includes('Files')||types.includes(HISTORY_IMAGE_DRAG_TYPE)){
+    e.preventDefault();
+    e.dataTransfer.dropEffect='copy';
+    imageComposer.classList.add('is-dragging');
+  }
 });
 imageComposer.addEventListener('dragleave',e=>{
   if(!imageComposer.contains(e.relatedTarget))imageComposer.classList.remove('is-dragging');
@@ -1490,8 +1496,30 @@ imageComposer.addEventListener('drop',e=>{
   e.preventDefault();imageComposer.classList.remove('is-dragging');
   if(!owner||busy||tool!=='image')return;
   if(imageEngine==='zspicy'){notify('Z-Image creates from text only. Your photos are saved for when you switch back to an image model.',true);return;}
+  // History uses small 480px gallery WebPs. Native image dragging may include
+  // that thumbnail as a File, even when the saved original is much larger.
+  // Prefer the authenticated saved output ID over the browser's preview file.
+  if(Array.from(e.dataTransfer?.types||[]).includes(HISTORY_IMAGE_DRAG_TYPE)){
+    const assetId=e.dataTransfer.getData(HISTORY_IMAGE_DRAG_TYPE);
+    const available=/^[a-z0-9_-]{8,128}$/i.test(assetId)&&
+      [...$('history').querySelectorAll('.history-media.is-result img[data-asset]')]
+        .some(img=>img.dataset.asset===assetId&&img.dataset.result==='true');
+    if(!available){
+      notify('Could not locate that original in History. Refresh the gallery and try again.',true);
+      return;
+    }
+    const session=epoch;
+    void action(async()=>{
+      const original=await assetFile(assetId,'history-image');
+      if(!owner||session!==epoch||tool!=='image')return;
+      if(imageEngine==='soulpro')await setImage(original,assetId);
+      else await addReferences([original],[assetId]);
+      syncImageComposer();
+    });
+    return;
+  }
   const list=[...(e.dataTransfer?.files||[])];
-  // Internal reference reordering and gallery drag behavior remain unchanged.
+  // External file drops retain existing validation and reference behavior.
   if(!list.length)return;
   const unsupported=window.__PV_LAB_NATIVE__===1?null:list.find(f=>!['image/jpeg','image/png','image/webp'].includes(f.type));
   if(unsupported){notify('Unsupported image format: '+(unsupported.name||'file')+'. Use JPG, PNG or WebP.',true);return;}
@@ -3218,6 +3246,16 @@ function renderCards(jobs,{upsert=false}={}){
     if(ready&&image){
       const {figure,img}=historyImage(j.outputId,'Generated image',true);previews.push(img);card.append(figure);
       img.tabIndex=0;img.setAttribute('role','button');img.setAttribute('aria-label','View generated image at full size');
+      img.title='Drag to the Image deck to reuse the full-resolution original';
+      figure.draggable=true;img.draggable=true;
+      figure.addEventListener('dragstart',event=>{
+        if(!owner||historySelectMode||busy||!event.dataTransfer||!j.outputId){
+          event.preventDefault();return;
+        }
+        event.dataTransfer.effectAllowed='copy';
+        event.dataTransfer.setData(HISTORY_IMAGE_DRAG_TYPE,j.outputId);
+      });
+      figure.addEventListener('dragend',()=>imageComposer.classList.remove('is-dragging'));
       img.onclick=e=>{e.stopPropagation();openCard();};img.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();img.click();}};
       // Full-resolution download exists only on completed images, never on failed records.
       const quickDownload=document.createElement('button');quickDownload.type='button';quickDownload.className='history-hover-download';
