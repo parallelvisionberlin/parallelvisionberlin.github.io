@@ -81,8 +81,13 @@ async function stripe(env,path,params,method='POST',idempotencyKey){
   const data=await res.json();
   return data;
 }
-function appUrl(env){
-  const src=env.LAB_PUBLIC_APP_URL||'https://parallelvisionlabel.com/lab/studio.html';
+function appUrl(env,origin=''){
+  // The caller's origin is checked against the issuer-specific allowlist by
+  // the Worker before this billing handler is reached. Never accept an
+  // arbitrary checkout return URL from the browser body.
+  const src=origin==='https://pvlab.studio'?'https://pvlab.studio/studio.html':
+    origin==='https://www.pvlab.studio'?'https://www.pvlab.studio/studio.html':
+    env.LAB_PUBLIC_APP_URL||'https://parallelvisionlabel.com/lab/studio.html';
   const u=new URL(src);
   if(u.protocol!=='https:'||u.username||u.password||u.hash)fail(503,'Invalid PV Lab checkout return URL.');
   return u.href;
@@ -133,6 +138,7 @@ export async function customerRoute(request,env,subject){
       await setStripeCustomer(env,subject,created.id);
       customer.stripe_customer_id=created.id;
     }
+    const returnUrl=appUrl(env,request.headers.get('Origin')||'');
     const form={
       mode:item.type,
       'client_reference_id':subject,
@@ -144,8 +150,8 @@ export async function customerRoute(request,env,subject){
       'line_items[0][price_data][product_data][name]':item.title,
       'line_items[0][price_data][tax_behavior]':'inclusive',
       'line_items[0][quantity]':'1',
-      'success_url':appUrl(env)+(appUrl(env).includes('?')?'&':'?')+'billing=success',
-      'cancel_url':appUrl(env)+(appUrl(env).includes('?')?'&':'?')+'billing=cancel',
+      'success_url':returnUrl+(returnUrl.includes('?')?'&':'?')+'billing=success',
+      'cancel_url':returnUrl+(returnUrl.includes('?')?'&':'?')+'billing=cancel',
       'billing_address_collection':'required',
       'customer_update[address]':'auto',
       'customer_update[name]':'auto'
@@ -177,7 +183,7 @@ export async function customerRoute(request,env,subject){
   if(p==='/api/billing/portal'&&method==='POST'){
     const customer=await one(env,'SELECT stripe_customer_id FROM lab_customers WHERE id=?',subject);
     if(!customer?.stripe_customer_id)fail(404,'No Stripe customer record yet.');
-    const session=await stripe(env,'billing_portal/sessions',{customer:customer.stripe_customer_id,return_url:appUrl(env)});
+    const session=await stripe(env,'billing_portal/sessions',{customer:customer.stripe_customer_id,return_url:appUrl(env,request.headers.get('Origin')||'')});
     const portalUrl=safeUrl(session.url);
     if(!portalUrl)fail(502,'Stripe did not return a verified billing portal.');
     return json({url:portalUrl});
