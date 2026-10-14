@@ -505,7 +505,7 @@ function updateReferenceGuidance(){
   $('reference-guidance-text').textContent=prompt;
   $('reference-guidance-count').textContent=prompt.length.toLocaleString()+' / '+(imageEngine==='seedreamlite'?'3,000':'5,000')+' characters';
   const warning=$('reference-guidance-warning');warning.textContent=error;warning.hidden=!error;warning.classList.toggle('error',!!error);
-  const referenceVendor=imageEngine==='flash'?'OpenRouter':imageEngine==='kling'?'FAL':['gemini','gemini21'].includes(imageEngine)?'Google':'SpicyAPI';
+  const referenceVendor=imageEngine==='kling'?'FAL':['gemini','gemini21'].includes(imageEngine)?'Google':'SpicyAPI';
   $('reference-provider').textContent=imageModelLabel({engine:imageEngine})+' · '+referenceVendor;
   $('reference-help').textContent=referencesOnly()?'Create a new composition from references. General references are prompt-guided; optional roles specify exactly what each image contributes.':'The first photo is the base, but the prompt can change it. Optional roles define what to borrow from other references.';
   $('prompt-label').textContent=references.length?'Image direction (optional)':'Image direction';
@@ -587,7 +587,7 @@ function customerImageProviderReady(){
   return provider==='higgsfield'?!!config.higgsfieldEnabled:
     provider==='gemini'?!!config.geminiEnabled:
     provider==='fal'?!!config.falEnabled:
-    provider==='openrouter'?!!config.openrouterEnabled:!!config.enabled;
+    !!config.enabled;
 }
 async function fetchCustomerImagePrice(s,check){
   const {provider,count,chosen,sourceMode}=s;
@@ -1024,7 +1024,7 @@ function setModelIcon(element,engine){
 const imageModelDescriptions = Object.freeze({
   seedream:'Image creation and reference-guided edits',
   seedreamlite:'2K · text or up to 10 reference images',
-  flash:'Fast · $0.018/image · up to 14 references',
+  flash:'Fast · from $0.029/image · up to 10 references',
   qwen3:'2K · text or 1–3 reference photos',
   zspicy:'Z-Image Spicy · text-only · up to 1536 px',
   kling:'Kling V3 · $0.028/image · text or one base image',
@@ -1351,15 +1351,22 @@ function populateImageModelMenu(query=''){
   for(const option of $('image-engine').options){
     if(option.hidden)continue;
     const name=option.textContent,detail=imageModelDescriptions[option.value]||'Image creation';
-    if(value&&!(name+' '+detail).toLowerCase().includes(value))continue;
+    if(value&&!(name+' '+detail+(['seedream','seedreamlite','flash'].includes(option.value)?' Artistic Freedom':'')).toLowerCase().includes(value))continue;
     const row=document.createElement('button');row.type='button';
     row.className='composer-model-option';row.dataset.value=option.value;row.disabled=busy||option.disabled;
     row.setAttribute('role','option');row.setAttribute('aria-selected',String(option.value===imageEngine));
     const icon=document.createElement('span');icon.className='composer-model-icon';setModelIcon(icon,option.value);
     const info=document.createElement('span');info.className='composer-model-info';
     const title=document.createElement('strong');title.textContent=name;
+    const heading=document.createElement('span');heading.className='composer-model-heading';heading.append(title);
+    if(['seedream','seedreamlite','flash'].includes(option.value)){
+      const badge=document.createElement('span');badge.className='composer-model-freedom';
+      badge.title='SpicyAPI adds no platform content filter. The model may still decline a request.';
+      const star=document.createElement('span');star.setAttribute('aria-hidden','true');star.textContent='✳';
+      badge.append(star,document.createTextNode('Artistic Freedom'));heading.append(badge);
+    }
     const caption=document.createElement('small');caption.textContent=detail;caption.title=detail;
-    info.append(title,caption);
+    info.append(heading,caption);
     const active=document.createElement('span');active.className='composer-model-check';
     active.textContent=option.value===imageEngine?'✓':'';
     row.append(icon,info,active);
@@ -1907,7 +1914,7 @@ async function addReferences(list,ids=[],labels=[]){
   }
 }
 
-function referenceLimit(){if(tool==='image'&&imageEngine==='flash')return 14;if(tool==='image'&&imageEngine==='qwen3')return 3;if(tool==='image'&&imageEngine==='zspicy')return 0;if(tool==='image'&&imageEngine==='kling')return 1;return tool==='video'?VIDEO_MODELS[engine].maxImages:tool==='image'&&imageEngine==='soulpro'?4:tool==='image'&&imageEngine==='soul'?soul.referenceLimit():tool==='image'&&imageEngine==='fal'?5:10-builtInMoodReferenceCount({type:tool,mode:'image',engine:imageEngine,moodId:moodUI.selected()});}
+function referenceLimit(){if(tool==='image'&&imageEngine==='flash')return 10;if(tool==='image'&&imageEngine==='qwen3')return 3;if(tool==='image'&&imageEngine==='zspicy')return 0;if(tool==='image'&&imageEngine==='kling')return 1;return tool==='video'?VIDEO_MODELS[engine].maxImages:tool==='image'&&imageEngine==='soulpro'?4:tool==='image'&&imageEngine==='soul'?soul.referenceLimit():tool==='image'&&imageEngine==='fal'?5:10-builtInMoodReferenceCount({type:tool,mode:'image',engine:imageEngine,moodId:moodUI.selected()});}
 function configureVideoControls(){
   const isVideo=tool==='video',model=VIDEO_MODELS[engine],sd=engine==='seedance',sd15=engine==='seedance15',sd4k=engine==='seedance4k',h3=engine==='h3',h3max=engine==='h3max',h3spicy=engine==='h3spicy',h3maxfal=engine==='h3maxfal',omni=engine==='omni',minimax=h3||h3max||h3spicy||h3maxfal;
   $('app').classList.toggle('video-extend-active',isVideo&&mode==='extend');
@@ -2113,8 +2120,8 @@ $('confirm-generation').onclick=async()=>{
   await action(()=>submitQuotedGeneration(q));
 };
 function limitFor(kind){const n=Number(config.concurrency?.[kind]);return Number.isInteger(n)&&n>0?n:1;}
-function currentProvider(){if(tool==='image'&&imageEngine==='soul'&&soul.isKrea())return 'fal';if(tool==='video'&&engine==='seedance'&&mode==='extend')return 'higgsfield';if(tool==='image'&&imageEngine==='flash')return 'openrouter';if(tool==='image'&&imageEngine==='kling')return 'fal';if(isSoul2())return 'higgsfield';return isFalUpscale()?'fal':tool==='image'&&['gemini','gemini21'].includes(imageEngine)?'gemini':tool==='image'&&['fal','soulpro'].includes(imageEngine)?'fal':tool==='video'&&['h3maxfal','omni'].includes(engine)?'fal':'spicy';}
-function jobProvider(j){const s=j?.settings||{};if(s.provider==='openrouter'||s.engine==='flash')return 'openrouter';if(s.provider==='higgsfield')return 'higgsfield';return s.provider==='gemini'||s.engine==='gemini'||String(s.model||'').startsWith('gemini-')?'gemini':s.provider==='fal'||['fal','soulpro','h3maxfal','omni'].includes(s.engine)||String(s.model||'').startsWith('fal-ai/')?'fal':'spicy';}
+function currentProvider(){if(tool==='image'&&imageEngine==='soul'&&soul.isKrea())return 'fal';if(tool==='video'&&engine==='seedance'&&mode==='extend')return 'higgsfield';if(tool==='image'&&imageEngine==='kling')return 'fal';if(isSoul2())return 'higgsfield';return isFalUpscale()?'fal':tool==='image'&&['gemini','gemini21'].includes(imageEngine)?'gemini':tool==='image'&&['fal','soulpro'].includes(imageEngine)?'fal':tool==='video'&&['h3maxfal','omni'].includes(engine)?'fal':'spicy';}
+function jobProvider(j){const s=j?.settings||{};if(s.provider==='openrouter')return 'openrouter';if(s.provider==='higgsfield')return 'higgsfield';return s.provider==='gemini'||s.engine==='gemini'||String(s.model||'').startsWith('gemini-')?'gemini':s.provider==='fal'||['fal','soulpro','h3maxfal','omni'].includes(s.engine)||String(s.model||'').startsWith('fal-ai/')?'fal':'spicy';}
 function submissionBlocked(){
   const kind=tool==='upscale'?'image':tool,provider=currentProvider(),falUpscale=tool==='upscale'&&provider==='fal';
   // An unconfirmed Gemini request retains its own reserved credits and History
@@ -3554,8 +3561,7 @@ async function submitImageSnapshot(){
   let submitted=0;
   try{
     if(provider==='spicy'&&!config.enabled){connection();return;}
-    if(provider==='openrouter'&&!config.openrouterEnabled)throw new Error('Add OPENROUTER_API_KEY as a Secret in Cloudflare to parallel-vision-lab, then deploy and reload.');
-    if(['flash','kling'].includes(selected.engine)&&chosen.length>(selected.engine==='flash'?14:1))throw new Error(selected.engine==='kling'?'Kling V3 accepts one base image. Remove extra references or choose Flash.':'Flash accepts up to 14 references.');
+    if(['flash','kling'].includes(selected.engine)&&chosen.length>(selected.engine==='flash'?10:1))throw new Error(selected.engine==='kling'?'Kling V3 accepts one base image. Remove extra references or choose Flash.':'Flash accepts up to 10 references.');
     if(provider==='gemini'&&!config.geminiEnabled)throw new Error('Gemini API is not connected.');
     if(provider==='fal'&&!config.falEnabled)throw new Error('FAL API is not connected.');
     if(provider==='higgsfield'&&!config.higgsfieldEnabled)throw new Error('Higgsfield API is not connected.');
@@ -3599,7 +3605,7 @@ async function submitImageSnapshot(){
     const curated=await moodReferences.prepare(selected,{sessionKey:sessionEpoch,check});
     selected=curated.settings;originals.push(...curated.references);
     let inputs={sourceId:sourceMode?originals[0]?.id||null:null,lastSourceId:null,referenceSourceIds:sourceMode?[]:originals.map(r=>r.id)};
-    if(['flash','kling'].includes(selected.engine)){
+    if(selected.engine==='kling'){
       for(let i=0;i<requested;i++){
         const data=await send('/api/image-models/generate',{...inputs,settings:selected});
         if(!data.job)throw new Error('No generation record returned. Check History before retrying.');
@@ -3643,7 +3649,7 @@ async function submitImageSnapshot(){
         inputs=bound.inputs;
       }else inputs=await prepareQuoteInputs(inputs,{originals,engine:selected.engine,detached,onProgress:(...args)=>feedback.phase(...args)});
       if(!inputs)return;
-      const batchSeedream=selected.engine==='seedream'&&requested>1;
+      const batchSeedream=['seedream','flash'].includes(selected.engine)&&requested>1;
       const refCount=inputs.referenceSourceIds?.length||0;
       const pricingTitle=refCount?'Preparing provider files':'Checking price';
       const priceDetail=refCount?refCount+' references · '+requested+' price'+(requested===1?'':'s')+' · no paid generation yet':requested+' live price'+(requested===1?'':'s')+' · no paid generation yet';
