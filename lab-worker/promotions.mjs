@@ -30,6 +30,9 @@ export function voucherLink(env,code){
 export async function syncCustomerEmail(env,subject){
   const secret=env.LAB_CLERK_SECRET_KEY||env.CLERK_SECRET_KEY;
   if(!secret||!/^user_[A-Za-z0-9]+$/.test(subject))return false;
+  const contact=await one(env,'SELECT email,synced_at FROM lab_customer_contacts WHERE customer_id=?',subject);
+  const ttl=contact?.email?86400000:7*86400000;
+  if(contact?.synced_at&&Date.now()-contact.synced_at<ttl)return true;
   let response;
   try {
     response=await fetch('https://api.clerk.com/v1/users/'+encodeURIComponent(subject),{
@@ -90,7 +93,7 @@ export async function labAdminRoute(request,env,owner){
     const search=(url.searchParams.get('search')||'').trim().slice(0,80),match='%'+search.replace(/[\\%_]/g,'\\$&')+'%';
     const summary=await one(env,`SELECT COUNT(*) AS accounts,
       (SELECT COUNT(DISTINCT customer_id) FROM lab_credit_entries WHERE kind IN ('purchase','subscription')) AS payingCustomers,
-      (SELECT COUNT(*) FROM lab_subscriptions WHERE status IN ('active','trialing','past_due')) AS activeSubscriptions,
+      (SELECT COUNT(*) FROM lab_subscriptions WHERE status IN ('active','trialing')) AS activeSubscriptions,
       (SELECT COUNT(*) FROM lab_voucher_redemptions) AS voucherClaims,
       (SELECT COUNT(*) FROM lab_referrals WHERE rewarded_at IS NOT NULL) AS rewardedReferrals
       FROM lab_customers`);
