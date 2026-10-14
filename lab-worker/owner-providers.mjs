@@ -5,9 +5,9 @@ let snapshot=null, lastStarted=0, pending=null;
 const providerMeta=Object.freeze([
   {id:'spicy',name:'SpicyAPI',billingType:'USD wallet · funding may vary',billingUrl:'https://spicyapi.ai/console/billing',logoUrl:'https://spicyapi.ai/favicon.ico'},
   {id:'fal',name:'fal.ai',billingType:'USD credits · check plan',billingUrl:'https://fal.ai/dashboard/billing',logoUrl:'https://fal.ai/favicon.ico'},
-  {id:'higgsfield',name:'Higgsfield',billingType:'Credits / top-up',billingUrl:'https://open.higgsfield.ai',logoUrl:'https://higgsfield.ai/favicon.ico'},
+  {id:'higgsfield',name:'Higgsfield',billingType:'Credits / top-up',billingUrl:'https://open.higgsfield.ai/billing',logoUrl:'https://higgsfield.ai/favicon.ico'},
   {id:'gemini',name:'Google Gemini',billingType:'Prepay or postpay (verify in console)',billingUrl:'https://aistudio.google.com/billing',logoUrl:'https://aistudio.google.com/favicon.ico'},
-  {id:'fashn',name:'FASHN',billingType:'API credits',billingUrl:'https://app.fashn.ai/billing/api',logoUrl:'https://fashn.ai/favicon.ico'}
+  {id:'fashn',name:'FASHN',billingType:'API credits',billingUrl:'https://app.fashn.ai/api',logoUrl:'https://fashn.ai/favicon.ico'}
 ]);
 const EMPTY={amount:null,currency:null};
 const cleanAmount=value=>{
