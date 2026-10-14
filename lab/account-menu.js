@@ -14,6 +14,12 @@ export function referralsAvailable(profile) {
 export function createAccountMenu(root) {
   if(!root)return {update(){},updateBalance(){}};
   const summary=root.querySelector('summary'),avatar=root.querySelector('[data-account-avatar]');
+  // All menu surfaces share these links. Only a verified owner session reveals the dashboard.
+  const panel=root.querySelector('.pv-account-panel'),settings=panel?.querySelector('a[href$="#settings"]');
+  const voucherLink=document.createElement('a'),adminLink=document.createElement('a');
+  voucherLink.href='./account.html#voucher';voucherLink.textContent='Redeem voucher';voucherLink.dataset.accountVouchers='';voucherLink.hidden=true;
+  adminLink.href='./owner.html';adminLink.textContent='Owner dashboard';adminLink.dataset.accountAdmin='';adminLink.hidden=true;
+  if(settings){settings.before(voucherLink);settings.before(adminLink);}else if(panel)panel.append(voucherLink,adminLink);
   let currentProfile=null;
   function close(restore=false){root.open=false;if(restore)summary.focus();}
   document.addEventListener('pointerdown',event=>{if(root.open&&!root.contains(event.target))close();});
@@ -26,7 +32,7 @@ export function createAccountMenu(root) {
   }
   function update({signed=false,user=null,profile=null}={}){
     currentProfile=profile;root.hidden=!signed;
-    if(!signed){close();avatar.replaceChildren();delete avatar.dataset.identity;root.querySelector('[data-account-name]').textContent='';root.querySelector('[data-account-balance]').textContent='';return;}
+    if(!signed){close();voucherLink.hidden=true;adminLink.hidden=true;avatar.replaceChildren();delete avatar.dataset.identity;root.querySelector('[data-account-name]').textContent='';root.querySelector('[data-account-balance]').textContent='';return;}
     const identity=accountIdentity(user);
     root.querySelector('[data-account-name]').textContent=identity.name;
     summary.setAttribute('aria-label','Account: '+identity.name);
@@ -38,6 +44,8 @@ export function createAccountMenu(root) {
     root.querySelector('[data-account-balance]').textContent=profile?(profile.customer?'':'Owner workspace'):'Account unavailable';
     updateBalance(profile?.balanceCredits);
     root.querySelector('[data-account-referrals]').hidden=!referralsAvailable(profile);
+    voucherLink.hidden=!profile?.customer||!!profile?.accountClosed;
+    adminLink.hidden=profile?.owner!==true;
     const connection=root.querySelector('[data-account-connection]');if(connection)connection.hidden=!profile||!!profile.customer;
   }
   return {update,updateBalance};

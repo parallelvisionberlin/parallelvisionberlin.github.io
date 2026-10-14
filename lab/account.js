@@ -1,12 +1,14 @@
 import {metaConsentGranted,trackLabEvent,trackLabRegistration} from './meta-pixel.js?v=20261013-a1';
 import {loadLabAccount} from './native-account.js?v=20261012-unified-header1';
 import {createSessionRequest} from './session-request.js?v=20260927-auth1';
-import {accountIdentity,createAccountMenu,referralsAvailable} from './account-menu.js?v=20261012-account2';
+import {accountIdentity,createAccountMenu,referralsAvailable} from './account-menu.js?v=20261014-vouchers1';
 
 const $=id=>document.getElementById(id);
 const menu=createAccountMenu($('account-menu'));
 const request=createSessionRequest({baseUrl:'https://parallel-vision-lab.parallelvision.workers.dev',getSession:()=>clerk?.session});
-let clerk=null,profile=null,revision=0,referralRevision=0,paymentPending=false,referralLoaded=false;
+let clerk=null,profile=null,revision=0,referralRevision=0,paymentPending=false,referralLoaded=false,voucherBusy=false;
+const voucherFromLink=(new URLSearchParams(location.search).get('voucher')||'').trim().toUpperCase();
+if(/^[A-Z0-9][A-Z0-9-]{5,23}$/.test(voucherFromLink)){document.getElementById('account-voucher-code').value=voucherFromLink;if(!location.hash)location.hash='voucher';}
 const money=value=>new Intl.NumberFormat('en',{style:'currency',currency:'EUR',maximumFractionDigits:2}).format(value);
 const status=message=>{$('account-status').textContent=message||'';};
 
@@ -22,7 +24,7 @@ export function stripeDestination(value){
   return url.href;
 }
 function route(){
-  const value=location.hash.slice(1);return ['balance','usage','billing','referrals','settings'].includes(value)?value:'balance';
+  const value=location.hash.slice(1);return ['balance','usage','billing','referrals','voucher','settings'].includes(value)?value:'balance';
 }
 function clearPrivateView(){
   profile=null;referralLoaded=false;referralRevision++;
@@ -34,11 +36,13 @@ function clearPrivateView(){
   $('account-storage').hidden=true;$('account-storage-meter').value=0;
   for(const id of ['referrals-invited','referrals-rewarded','referrals-earned'])$(id).textContent='0';
   $('referrals-description').textContent='Share your creative space.';
+  $('account-voucher-status').textContent='';$('account-voucher-code').value='';$('account-voucher-submit').disabled=false;voucherBusy=false;
   $('account-close-confirm').value='';$('account-close-submit').disabled=true;
   if($('account-close-dialog').open)$('account-close-dialog').close();
 }
 function paintRoute(){
   const tab=route(),section=['balance','usage','billing'].includes(tab)?'credits':tab;
+  if(tab==='admin'){location.assign('./owner.html');return;}
   document.querySelectorAll('[data-account-section]').forEach(el=>{el.hidden=el.dataset.accountSection!==section;});
   document.querySelectorAll('[data-section-link]').forEach(el=>{if(el.dataset.sectionLink===section)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current');});
   document.querySelectorAll('[data-tab]').forEach(el=>{if(el.dataset.tab===tab)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current');});
@@ -91,6 +95,11 @@ function drawProfile(){
   $('settings-name').textContent=identity.name;$('settings-email').textContent=identity.email;
   $('account-edit-profile').hidden=typeof clerk.openUserProfile!=='function';$('settings-native').hidden=typeof clerk.openUserProfile==='function';
   $('settings-connection').hidden=!!profile.customer;
+  $('account-voucher-link').hidden=!profile.customer||!!profile.accountClosed;
+  $('account-voucher-option').hidden=!profile.customer||!!profile.accountClosed;
+  $('account-admin-link').hidden=profile.owner!==true;
+  $('account-admin-option').hidden=profile.owner!==true;
+  if(profile.customer&&/^[A-Z0-9][A-Z0-9-]{5,23}$/.test(voucherFromLink)&&!$('account-voucher-code').value)$('account-voucher-code').value=voucherFromLink;
   $('settings-close-account').hidden=!profile.customer||!!profile.accountClosed;
   const referrals=referralsAvailable(profile);$('account-referrals-link').hidden=!referrals;$('account-referrals-option').hidden=!referrals;
   menu.update({signed:true,user:clerk.user,profile});
@@ -169,8 +178,27 @@ $('account-gate-signin').onclick=()=>clerk?.isSignedIn?void refresh():clerk?.ope
 $('account-signout').onclick=async()=>{++revision;clearPrivateView();try{await clerk?.signOut();await refresh();}catch(error){status(error.message);}};
 $('account-refresh').onclick=()=>void refresh();
 $('account-portal').onclick=()=>void openPayment('/api/billing/portal');
-$('account-section').onchange=event=>{if(event.target.value==='moods')location.assign('./mood-creator.html#my-moods');else location.hash=event.target.value;};
+$('account-section').onchange=event=>{if(event.target.value==='moods')location.assign('./mood-creator.html#my-moods');else if(event.target.value==='admin')location.assign('./owner.html');else location.hash=event.target.value;};
 $('account-edit-profile').onclick=()=>clerk?.openUserProfile?.({appearance:{variables:{colorBackground:'#1a1b19',colorText:'#eeeae2',colorTextSecondary:'#aaa9a1',colorPrimary:'#eeeae2',colorInputBackground:'#252622',colorInputText:'#eeeae2',borderRadius:'8px'}}});
+$('account-voucher-form').addEventListener('submit',async event=>{
+  event.preventDefault();if(voucherBusy||!profile?.customer)return;
+  const code=$('account-voucher-code').value.trim().toUpperCase();
+  if(!/^[A-Z0-9][A-Z0-9-]{5,23}$/.test(code)){$('account-voucher-status').textContent='Enter a valid voucher code.';return;}
+  const current=revision;voucherBusy=true;$('account-voucher-submit').disabled=true;$('account-voucher-status').textContent='Redeeming your code…';
+  try {
+    const result=await api('/api/customer/vouchers/redeem',{method:'POST',body:{code}});
+    if(current!==revision)return;
+    const signedSession=clerk?.session?.id;
+    await refresh();
+    if(signedSession===clerk?.session?.id&&profile?.customer){
+      $('account-voucher-code').value='';
+      const currentUrl=new URL(location.href);currentUrl.searchParams.delete('voucher');
+      history.replaceState(history.state,'',currentUrl);
+      $('account-voucher-status').textContent='Added '+Number(result.credits).toLocaleString()+' credits to your balance.';
+    }
+  }catch(error){if(current===revision)$('account-voucher-status').textContent=error.message||'Voucher could not be redeemed.';}
+  finally{voucherBusy=false;$('account-voucher-submit').disabled=false;}
+});
 $('referrals-copy').onclick=async()=>{
   const current=revision;
   try{await navigator.clipboard.writeText($('referrals-url').value);if(current===revision)$('referrals-status').textContent='Invite link copied.';}

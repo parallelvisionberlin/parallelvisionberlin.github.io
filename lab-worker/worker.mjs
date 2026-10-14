@@ -8,6 +8,7 @@ import {ensureCustomer,isLabCustomer,customerSession,customerRoute,stripeWebhook
 import {canCustomerGenerate} from './customer-rollout.mjs';
 import {quoteCustomerImageCredits} from './customer-image-pricing.mjs';
 import {referralRoute} from './referrals.mjs';
+import {labAdminRoute,voucherCustomerRoute,syncCustomerEmail} from './promotions.mjs';
 import {fashionRoute,refreshFashionJob} from './fashion-tools.mjs';
 import {precisionEditRoute} from './precision-edit.mjs';
 import {IMAGE_PRICES,IMAGE_RATIOS,imageModelParameters,buildImageModelInput} from './image-models.mjs';
@@ -1145,7 +1146,10 @@ async function route(request,env,ctx) {
   if(url.pathname==='/api/stripe/webhook'&&request.method==='POST')return stripeWebhook(request,env,ctx);
   if(!url.pathname.startsWith('/api/'))fail(404,'Not found.');
   const owner=await authenticate(request,env),path=url.pathname,method=request.method;
+  if(path.startsWith('/api/admin/'))return labAdminRoute(request,env,owner);
   const customer=await isLabCustomer(env,owner);
+  if(customer&&path==='/api/session'&&(env.LAB_CLERK_SECRET_KEY||env.CLERK_SECRET_KEY)&&ctx?.waitUntil)
+    ctx.waitUntil(syncCustomerEmail(env,owner).catch(()=>false));
   if(customer&&!['/api/session','/api/customer/wallet','/api/customer/account','/api/billing/portal'].includes(path))await assertCustomerOpen(env,owner,{spending:method==='POST'&&!path.startsWith('/api/customer/')});
   if(path.startsWith('/api/customer/')||path.startsWith('/api/billing/')){
     if(!customer)fail(403,'Only customer accounts use the PV Lab credit wallet.');
@@ -1159,6 +1163,7 @@ async function route(request,env,ctx) {
       try{return json(quoteCustomerImageCredits(p,Number(data.count??1),{geminiEstimateMicros}));}
       catch(e){fail(400,String(e?.message||'This model cannot be quoted.').slice(0,260));}
     }
+    if(path.startsWith('/api/customer/vouchers'))return voucherCustomerRoute(request,env,owner);
     if(path.startsWith('/api/customer/referrals')){
       try{return await referralRoute(request,env,owner);}
       catch(e){if(Number.isInteger(e?.status)&&e.status>=400&&e.status<=599)fail(e.status,e.message);throw e;}
