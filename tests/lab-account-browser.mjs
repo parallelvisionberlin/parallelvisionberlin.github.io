@@ -230,6 +230,12 @@ try{
               assert.equal(await page.locator('.pv-account-panel a[href="./account.html"]').count(),1);
             }
           }
+          const identity=page.locator('.pv-account-identity');
+          assert.equal(await identity.isVisible(),true,'Authenticated identity appears beneath the original wordmark');
+          assert.equal(await identity.locator('strong').textContent(),'Alex Test');
+          assert.equal(await identity.locator('.pv-account-identity-avatar').textContent(),'AT');
+          assert.match(await page.locator('.pv-account-details').evaluate(el=>getComputedStyle(el,'::before').backgroundImage),/pvlab-wordmark\.svg/,'Existing PV LAB logo asset is retained');
+          assert.ok(await page.locator('.pv-account-panel > a .pv-account-menu-icon').count()>0,'Links retain subtle visible icons');
           const avatar=await page.locator('[data-account-avatar]').boundingBox();assert.equal(Math.round(avatar.width),32);assert.equal(Math.round(avatar.height),32);
           const panel=await page.locator('.pv-account-panel').boundingBox();assert.ok(panel.x>=0&&panel.x+panel.width<=width+1,'menu fits viewport');
           if(path==='/lab/studio.html'){
@@ -254,7 +260,7 @@ try{
             assert.equal(metrics.seamHeight,8,'Studio menu has a subtle connector under the avatar');
             assert.ok(metrics.seamAlignment<=2,'Studio connector aligns with the account avatar');
           }else if(path==='/lab/index.html'&&width===1440){
-            assert.equal(Math.round(panel.width),340,'Homepage retains its approved menu width');
+            assert.equal(Math.round(panel.width),288,'Homepage uses the approved compact editorial menu width');
             assert.equal(await page.locator('link[href*="studio-account-menu.css"]').count(),0,'Studio-specific styling stays out of the homepage');
           }
           assert.equal(await page.locator('[data-account-referrals]').isVisible(),customer);
