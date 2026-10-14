@@ -156,3 +156,11 @@
 - Studio still loads its dedicated menu overrides after the shared stylesheet; no other Studio design surfaces or backend are changed.
 - Static checks: exact source anchors, stylesheet versions and markup references reviewed; no authenticated browser or live deployment check in this environment.
 - Deployment: unverified until Pages finishes and the menu is inspected in the real browser on desktop/mobile.
+
+## Account dropdown neutral charcoal color correction (2026-10-14)
+- Screenshot confirmed the compact dropdown is released but its slight green/olive cast clashes with the black/grey My Account page.
+- Approved: remove green undertones in panel fill, borders, separators, badges, hovers and text, using neutral monochrome charcoal, grey and white.
+- Preserve the exact `pvlab-wordmark.svg`, all spacing and typography, account/user roles, menu icon graphics, links and logic. Studio-specific graphite overlay remains separate.
+- Baseline: main 1faafac43c4abceb49ca98d83fcbb39b0f12b733. Changes: `lab/account-menu.css`, five shared CSS cache tags, and this state checkpoint only.
+- No authenticated session logic, billing or API changes.
+- Verify account/landing CI and GitHub Pages deployment separately; do not assume the new revision is live until its Pages run completes.

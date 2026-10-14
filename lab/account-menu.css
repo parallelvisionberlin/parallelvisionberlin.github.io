@@ -2,7 +2,7 @@
 .pv-account-menu{
   position:relative;flex:none;
   font:400 13px/1.4 'PV Lab Navigation','DM Sans',Arial,sans-serif;
-  color:#f4f1ea;
+  color:#f3f3f3;
 }
 .pv-account-menu[hidden],.pv-account-menu [hidden]{display:none!important}
 .pv-account-menu>summary,
@@ -16,8 +16,8 @@
 .pv-account-menu>summary::after{display:none!important}
 .pv-account-avatar{
   position:relative;display:grid;place-items:center;flex:none;
-  width:32px;height:32px;border:1px solid #62635e;border-radius:50%;
-  background:#252622;color:#f3f1ec;
+  width:32px;height:32px;border:1px solid #656565;border-radius:50%;
+  background:#252525;color:#f3f3f3;
   font:400 11px/1 Arial,sans-serif;letter-spacing:.03em;
   overflow:hidden;transition:border-color .18s;
 }
@@ -25,17 +25,17 @@
   position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
 }
 .pv-account-menu>summary:hover .pv-account-avatar,
-.pv-account-menu[open] .pv-account-avatar{border-color:#f3f1ec}
+.pv-account-menu[open] .pv-account-avatar{border-color:#f3f3f3}
 
 /* A smaller, calmer floating panel; keep it separated from the header. */
 .pv-account-menu .pv-account-panel{
   position:absolute;top:calc(100% + 24px);right:0;z-index:1000;
   box-sizing:border-box;width:min(288px,calc(100vw - 20px));
   max-height:min(78dvh,570px);overflow-y:auto;overscroll-behavior:contain;
-  padding:0;background:#111211;
-  color:#f1efea;border:1px solid #383a37;border-radius:9px;
+  padding:0;background:#111111;
+  color:#ededed;border:1px solid #363636;border-radius:9px;
   box-shadow:0 18px 48px #0009;scrollbar-width:thin;
-  scrollbar-color:#44443e transparent;
+  scrollbar-color:#444444 transparent;
 }
 
 /* Preserve the EXISTING wordmark, not a typed or substitute PV LAB logo. */
@@ -50,7 +50,7 @@
 }
 .pv-account-menu .pv-account-details::after{
   content:'Fashion. Reimagined.';display:block;
-  margin-top:5px;color:#aaa9a5;
+  margin-top:5px;color:#a8a8a8;
   font:400 11px/1.4 'PV Lab Navigation','DM Sans',Arial,sans-serif;
   letter-spacing:0;
 }
@@ -63,13 +63,13 @@
 .pv-account-menu .pv-account-identity{
   display:flex;align-items:center;gap:11px;
   min-height:59px;margin:0 18px 8px;padding:10px 3px 14px;
-  border-bottom:1px solid #333532;
+  border-bottom:1px solid #343434;
 }
 .pv-account-menu .pv-account-identity-avatar{
   position:relative;display:grid;place-items:center;flex:none;
   width:32px;height:32px;box-sizing:border-box;
-  border:1px solid #777972;border-radius:50%;
-  background:#272925;color:#f4f2eb;overflow:hidden;
+  border:1px solid #777777;border-radius:50%;
+  background:#272727;color:#f3f3f3;overflow:hidden;
   font:500 10px/1 'PV Lab Navigation','DM Sans',Arial,sans-serif;
   letter-spacing:.025em;
 }
@@ -85,7 +85,7 @@
   letter-spacing:-.014em;
 }
 .pv-account-menu .pv-account-identity-copy small{
-  color:#aaa9a5;
+  color:#a8a8a8;
   font:400 11px/1.2 'PV Lab Navigation','DM Sans',Arial,sans-serif;
 }
 
@@ -95,7 +95,7 @@
   display:flex;align-items:center;justify-content:flex-start;gap:11px;
   box-sizing:border-box;width:calc(100% - 18px);min-height:40px;
   margin:2px 9px;padding:9px 12px;border:0;border-radius:6px;
-  background:transparent;box-shadow:none;color:#e5e5e0;
+  background:transparent;box-shadow:none;color:#e6e6e6;
   font:450 13px/1.3 'PV Lab Navigation','DM Sans',Arial,sans-serif;
   letter-spacing:-.008em;text-align:left;text-decoration:none;
   cursor:pointer;transition:background .16s ease,color .16s ease;
@@ -107,33 +107,33 @@
 }
 .pv-account-menu .pv-account-panel > :is(a,button):not([data-account-signout]):hover,
 .pv-account-menu .pv-account-panel > :is(a,button):not([data-account-signout]):focus-visible{
-  background:#252724;color:#fff;
+  background:#242424;color:#fff;
 }
-.pv-account-menu .pv-account-panel > :is(a,button):not([data-account-signout]):active{background:#2b2d29}
+.pv-account-menu .pv-account-panel > :is(a,button):not([data-account-signout]):active{background:#2b2b2b}
 .pv-account-menu .pv-account-panel > :is(a,button):hover .pv-account-menu-icon{opacity:1}
 .pv-account-menu .pv-account-panel > [data-account-admin]{
   position:relative;margin-top:21px;
-  color:#f4f1eb;font-weight:500;
+  color:#f3f3f3;font-weight:500;
 }
 .pv-account-menu .pv-account-panel > [data-account-admin]::before{
   content:'';position:absolute;top:-12px;left:9px;right:9px;height:1px;
-  background:#333532;pointer-events:none;
+  background:#343434;pointer-events:none;
 }
 .pv-account-menu .pv-account-panel > [data-account-admin]::after{
-  content:'↗';margin-left:auto;color:#92968f;
+  content:'↗';margin-left:auto;color:#949494;
   font:400 15px/1 'PV Lab Navigation','DM Sans',Arial,sans-serif;
 }
 .pv-account-menu .pv-account-panel > [data-account-signout]{
   width:100%;min-height:51px;margin:10px 0 0;
-  padding:13px 21px 14px;border-top:1px solid #333532;border-radius:0 0 8px 8px;
-  background:transparent;color:#a2a49e;font:400 12px/1.3 'PV Lab Navigation','DM Sans',Arial,sans-serif;
+  padding:13px 21px 14px;border-top:1px solid #343434;border-radius:0 0 8px 8px;
+  background:transparent;color:#a5a5a5;font:400 12px/1.3 'PV Lab Navigation','DM Sans',Arial,sans-serif;
   letter-spacing:0;justify-content:space-between;
 }
 .pv-account-menu .pv-account-panel > [data-account-signout]:hover{
-  background:#1b1d1a;color:#f4f1ea;
+  background:#1c1c1c;color:#f3f3f3;
 }
 .pv-account-menu :is(summary,a,button):focus-visible{
-  outline:2px solid #f3f0e8;outline-offset:2px;
+  outline:2px solid #f1f1f1;outline-offset:2px;
 }
 
 /* Original account trigger and responsive header geometry remain in place. */
