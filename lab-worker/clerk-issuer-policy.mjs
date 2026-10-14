@@ -13,9 +13,8 @@ export const BROWSER_ORIGINS = new Set([...LEGACY_ORIGINS, ...STUDIO_ORIGINS]);
 
 export function originsForClerkSession(issuer, subject, env) {
   if (issuer === LEGACY_ISSUER) return LEGACY_ORIGINS;
-  if (issuer !== STUDIO_ISSUER || env?.LAB_NEW_CLERK_PILOT_ENABLED !== 'true') return null;
-  // One new test account only. Do not allow the whole new Clerk user base yet.
-  const pilot = env.LAB_NEW_CLERK_PILOT_SUBJECT;
-  if (typeof pilot !== 'string' || !/^user_[A-Za-z0-9]+$/.test(pilot) || pilot !== subject) return null;
+  // Domain onboarding is enabled only after the account-linking migration was
+  // deployed. Each new JWT is independently verified, then resolved through D1.
+  if (issuer !== STUDIO_ISSUER || env?.LAB_STUDIO_AUTH_ENABLED !== 'true') return null;
   return STUDIO_ORIGINS;
 }
