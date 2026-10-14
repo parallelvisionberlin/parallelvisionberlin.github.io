@@ -3,6 +3,7 @@ import {prepareFilmAsset,FILM_RENDER_REVISION} from './film-finish.mjs';
 import {assertCustomerOpen,processAccountClosures} from './customer-lifecycle.mjs';
 import {allowedLabParty} from './native-auth.mjs';
 import {quoteVideoExtension,submitVideoExtension} from './higgsfield-video.mjs';
+import {klingHfParameters,quoteKlingHf,submitKlingHf} from './kling-hf.mjs';
 import {ensureCustomer,isLabCustomer,customerSession,customerRoute,stripeWebhook,creditsForUsd,verifyClosureBilling} from './customer-billing.mjs';
 import {canCustomerGenerate} from './customer-rollout.mjs';
 import {quoteCustomerImageCredits} from './customer-image-pricing.mjs';
@@ -39,7 +40,7 @@ import {SYNTHETIC_ROMANCE_REFERENCES,SYNTHETIC_ROMANCE_REFERENCE_VERSION} from '
 import {moodBoardsRoute} from './moodboards.mjs';
 import {moodCreatorRoute} from './mood-creator-service.mjs';
 import {characterPreview as soulCharacterPreview,SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-14.4-flash-spicyapi';
+export const VERSION = 'pv-lab-2026-10-14.5-higgsfield-kling3-pro';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -225,6 +226,7 @@ function parameters(value) {
   }
   if(value.type!=='image'&&['h3maxfal','omni'].includes(value.engine))return falVideoParameters(value,{fail,referenceLabels});
   if(value.type!=='image'&&value.engine==='seedance')return seedanceParameters(value,{fail,referenceLabels});
+  if(value.type!=='image'&&value.engine==='klinghf')return klingHfParameters(value,{fail});
   if(value.type!=='image'&&['seedance15','seedance4k'].includes(value.engine))return seedanceVariantParameters(value,{fail});
   if(value.engine&&!['wan','wanprime','h3','h3max','h3spicy'].includes(value.engine)&&value.type!=='image')fail(400,'Unknown video model.');
   const prompt=typeof value.prompt==='string'?value.prompt.trim():'';
@@ -1214,7 +1216,7 @@ async function route(request,env,ctx) {
     }
     await run(env,"DELETE FROM spend WHERE owner_id=? AND job_id IN (SELECT id FROM jobs WHERE owner_id=? AND state='failed' AND COALESCE(json_extract(params,'$.provider'),'')='fal')",owner,owner);
     const c=await config(env,owner),spent=await first(env,'SELECT COALESCE(SUM(estimate_microusd),0) AS n FROM spend WHERE owner_id=? AND created_at>=?',owner,Math.floor(now()/86400000)*86400000);
-    return json({owner:true,ownerId:owner,version:VERSION,config:{...publicConfig(c,!!env.FAL_KEY),higgsfieldEnabled:!!env.HF_CREDENTIALS,higgsfieldPrices:SOUL2_PRICES,geminiEnabled:!!env.GEMINI_API_KEY,soulTrainingEnabled:!!env.FAL_KEY,soulReinterpretEnabled:true,soulPresets:publicSoulPresets(),falEnabled:!!env.FAL_KEY},estimatedSpentToday:spent.n/1000000});
+    return json({owner:true,ownerId:owner,version:VERSION,config:{...publicConfig(c,!!env.FAL_KEY),videoEngines:[...publicConfig(c,!!env.FAL_KEY).videoEngines,...(env.HF_CREDENTIALS?['klinghf']:[])],higgsfieldEnabled:!!env.HF_CREDENTIALS,higgsfieldPrices:SOUL2_PRICES,geminiEnabled:!!env.GEMINI_API_KEY,soulTrainingEnabled:!!env.FAL_KEY,soulReinterpretEnabled:true,soulPresets:publicSoulPresets(),falEnabled:!!env.FAL_KEY},estimatedSpentToday:spent.n/1000000});
   }
   if(path==='/api/soul-pro/identity'&&method==='GET'){
     const pack=await first(env,'SELECT id,refs,created_at FROM packs WHERE owner_id=? AND name=? ORDER BY created_at DESC LIMIT 1',owner,SOUL_PRO_IDENTITY_PACK);
@@ -1523,6 +1525,10 @@ async function route(request,env,ctx) {
     if(quoteCount>1&&!(p.type==='image'&&['seedream','seedreamlite','flash','qwen3','zspicy'].includes(p.engine)&&p.mode==='image'&&p.provider==='spicy'))fail(400,'Multiple prices in one request are supported only for SpicyAPI image generation.');
     if(!['upscale','reinterpret'].includes(p.mode)&&!p.prompt&&!(supportsReferenceGuidance(p)&&Array.isArray(data.referenceSourceIds)&&data.referenceSourceIds.length>0))fail(400,'Add a prompt or at least one reference photograph.');
     if(p.provider==='higgsfield'&&p.mode==='extend')return json(await quoteVideoExtension(env,owner,data,p,url,hfDeps()));
+    if(p.provider==='higgsfield'&&p.engine==='klinghf'){
+      if(customer)fail(403,'Higgsfield Kling Pro is currently owner-only. No video submitted.');
+      return json(await quoteKlingHf(env,owner,data,p,url,hfDeps()));
+    }
     if(p.provider==='fal'&&p.mode==='upscale'){
       if(!env.FAL_KEY)fail(503,'fal.ai upscaling is not configured on this Worker.');
       const {primary,input,prepared}=await prepareInput(env,owner,data,p,url),estimate=falUpscaleEstimateMicros(p),id=crypto.randomUUID(),expires=now()+290000;
@@ -1591,6 +1597,10 @@ async function route(request,env,ctx) {
     if(!q)fail(409,'Quote expired. Review the cost again.');
     const params=JSON.parse(q.params||'{}'),savedPayload=JSON.parse(q.payload);
     if(params.provider==='higgsfield'&&params.mode==='extend')return json({job:jobView(await submitVideoExtension(env,owner,q,params,savedPayload,hfDeps()))},202);
+    if(params.provider==='higgsfield'&&params.engine==='klinghf'){
+      if(customer)fail(403,'Higgsfield Kling Pro is currently owner-only. No video submitted.');
+      return json({job:jobView(await submitKlingHf(env,owner,q,params,savedPayload,hfDeps()))},202);
+    }
     if(params.provider==='fal'&&params.mode==='upscale')return json({job:jobView(await submitFalUpscaleQuote(env,owner,q,params,savedPayload))},202);
     if(params.provider==='fal'&&params.type==='video'){
       if(!env.FAL_KEY)fail(503,'fal.ai video is not configured on this Worker.');

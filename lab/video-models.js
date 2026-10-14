@@ -58,6 +58,11 @@ export const VIDEO_MODELS = Object.freeze({
     modes:['start'],resolutions:['4k'],ratios:['auto'],
     endpoints:{start:'bytedance/seedance-2.5-spicy/image-to-video'}
   }),
+  klinghf: Object.freeze({
+    label:'Kling 3.0 Pro · Higgsfield',minSeconds:3,maxSeconds:15,maxImages:0,
+    modes:['start','text'],resolutions:['1080p'],ratios:['auto','16:9','9:16','1:1'],
+    endpoints:{start:'kling-video/v3.0/pro/image-to-video',text:'kling-video/v3.0/pro/text-to-video'}
+  }),
   seedance: Object.freeze({
     label: 'Seedance 2.5', minSeconds: 4, maxSeconds: 30, maxImages: 30,
     modes: ['start', 'reference', 'text', 'extend'], resolutions: ['480p', '720p', '1080p'],
@@ -66,6 +71,7 @@ export const VIDEO_MODELS = Object.freeze({
   })
 });
 export function engineFor(settings = {}) {
+  if(settings.engine==='klinghf'||/^kling-video\/v3\.0\/pro\/(image-to-video|text-to-video)$/.test(settings.model||''))return 'klinghf';
   if (settings.engine === 'omni' || /^google\/gemini-omni-flash\/v1\.1\//.test(settings.model || '')) return 'omni';
   if (settings.engine === 'h3maxfal' || settings.model === 'minimax/h3-max/reference-to-video' && settings.provider === 'fal') return 'h3maxfal';
   if (settings.engine === 'seedance15' || /^bytedance\/seedance-1\.5-pro\//.test(settings.model || '')) return 'seedance15';

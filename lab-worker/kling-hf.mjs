@@ -85,6 +85,7 @@ export async function submitKlingHf(env,owner,q,p,payload,d){
     !Object.hasOwn(KLING_HF_PRO,p.mode)||p.model!==KLING_HF_PRO[p.mode]||payload.model!==p.model||!payload.input||
     q.estimate_microusd<=0||q.estimate_microusd>MAX_QUOTE_MICROS)
     fail(409,'Review a fresh Higgsfield Kling Pro estimate.');
+  if(q.expires_at<=now())fail(409,'This Kling quote expired. Check price again.');
   const old=await first(env,'SELECT * FROM jobs WHERE quote_id=? AND owner_id=?',q.id,owner);
   if(old)return old;
   if(p.mode==='start'){
