@@ -96,7 +96,7 @@ async function requireOwner(env,owner){
   const row=await env.OWNER_DB.prepare("SELECT id FROM users WHERE id=? AND role='owner' AND auth_provider='clerk' LIMIT 1").bind(owner).first();
   if(!row)fail(403,'PV Lab owner access required.');
 }
-export async function labAdminRoute(request,env,owner,{decryptKey}={}){
+export async function labAdminRoute(request,env,owner,{decryptKey,providerFetcher,providerClock}={}){
   await requireOwner(env,owner);
   const url=new URL(request.url),path=url.pathname,method=request.method;
   if(path==='/api/admin/providers'&&method==='GET'){
@@ -112,7 +112,9 @@ export async function labAdminRoute(request,env,owner,{decryptKey}={}){
     }
     const report=await ownerProviderBalances(env,{
       ownerSpicyKey,customerWalletCredits:Number.isSafeInteger(Number(wallet?.credits))?String(wallet.credits):null,
-      force:url.searchParams.get('refresh')==='1'
+      force:url.searchParams.get('refresh')==='1',
+      ...(providerFetcher?{fetcher:providerFetcher}:{}),
+      ...(providerClock?{clock:providerClock}:{})
     });
     return json(report);
   }
