@@ -71,6 +71,7 @@ jobs:
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0014-premium-upscale-credits.sql --yes
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0015-lab-promotional-credits.sql --yes
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0016-clerk-sync-diagnostics.sql --yes
+            wrangler d1 execute parallel-vision-lab --remote --file migrations/0017-clerk-domain-links.sql --yes
           command: deploy --keep-vars
 
       - name: Verify production health

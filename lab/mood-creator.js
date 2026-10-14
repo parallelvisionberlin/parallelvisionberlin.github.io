@@ -1,10 +1,9 @@
 import {createAccountMenu} from './account-menu.js?v=20261014-editorial-menu1';
-import {loadLabAccount} from './native-account.js?v=2';
+import {loadLabAccount} from './native-account.js?v=2&studioAuth=20261015-1';
 import {MOODS,moodById} from './moods.js?v=20261011-midnight-reverie1&hd=20261011&raveBudget=1&editorialHD=2&moodImageHD=1&raveNight=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&moodLock=20261014-mood-consistency1';
-import {createSessionRequest} from './session-request.js?v=20260927-auth1';
+import {createSessionRequest} from './session-request.js?v=20260927-auth1&studioAuth=20261015-1';
 import {takeMoodHandoff} from './mood-handoff.js?v=20261011-discovery1';
 const API='https://parallel-vision-lab.parallelvision.workers.dev';
-const CLERK_KEY='pk_live_Y2xlcmsucGFyYWxsZWx2aXNpb25sYWJlbC5jb20k';
 const uuid=/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{12}$/i;
 const $=id=>document.getElementById(id);
 export function moodCreatorInputValidation({name,direction,baseMoodId,imageCount}){

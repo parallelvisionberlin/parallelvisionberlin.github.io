@@ -23,8 +23,10 @@ export function generateReferralCode() {
   const bytes = crypto.getRandomValues(new Uint8Array(8));
   return Array.from(bytes, byte => ALPHABET[byte & 31]).join('');
 }
-export function referralLink(env, code) {
-  const url = new URL(env.LAB_PUBLIC_APP_URL || 'https://parallelvisionlabel.com/lab/studio.html');
+export function referralLink(env, code, origin='') {
+  const url = new URL(origin==='https://pvlab.studio'?'https://pvlab.studio/studio.html':
+    origin==='https://www.pvlab.studio'?'https://www.pvlab.studio/studio.html':
+    env.LAB_PUBLIC_APP_URL || 'https://parallelvisionlabel.com/lab/studio.html');
   if (url.protocol !== 'https:' || url.username || url.password) fail(503, 'Referral URL is not configured.');
   url.pathname = url.pathname.replace(/studio\.html$/, '');
   url.search = new URLSearchParams({ ref: code }).toString();
@@ -77,7 +79,7 @@ export async function referralRoute(request, env, subject) {
         COALESCE(SUM(CASE WHEN rewarded_at IS NOT NULL THEN 1 ELSE 0 END),0) AS rewarded
        FROM lab_referrals WHERE referrer_customer_id=?`, subject);
     return response({
-      code, url: referralLink(env, code),
+      code, url: referralLink(env, code, request.headers.get('Origin')||''),
       bonusCredits: REFERRAL_BONUS_CREDITS,
       qualifyingPurchaseEur: REFERRAL_MIN_PURCHASE_CENTS / 100,
       invited: totals?.invited || 0, rewarded: totals?.rewarded || 0,

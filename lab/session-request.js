@@ -38,6 +38,19 @@ async function waitWithAbort(promise, signal) {
   finally { signal.removeEventListener('abort', cancel); }
 }
 
+// Redirect signed-in, unlinked customers to explicit account choice. Only
+// the authenticated API response with this marker can initiate navigation.
+function maybeOnboard(response){
+  if(response.status!==409||response.headers.get('X-PV-Lab-Onboarding')!=='required')return response;
+  if(typeof window==='undefined'||!window.location)return response;
+  const {hostname,pathname,search,hash,origin}=window.location;
+  if(!['pvlab.studio','www.pvlab.studio','pvlab-studio.pages.dev'].includes(hostname))return response;
+  if(pathname.endsWith('/connect-account.html'))return response;
+  const link=new URL('/connect-account.html',origin);
+  link.searchParams.set('next',pathname+search+hash);
+  window.location.replace(link.href);
+  return response;
+}
 export function createSessionRequest({ baseUrl, getSession, fetchImpl = globalThis.fetch, clock = Date.now }) {
   const base = new URL(baseUrl);
   const pendingRefreshes = new WeakMap();
@@ -94,7 +107,7 @@ export function createSessionRequest({ baseUrl, getSession, fetchImpl = globalTh
       return response;
     };
     let response = await send(token);
-    if (response.status !== 401) return response;
+    if (response.status !== 401) return maybeOnboard(response);
     const data = await response.clone().json().catch(() => ({}));
     checkSession();
     // Only these Lab authentication responses occur BEFORE route handling and paid submission.
@@ -110,6 +123,6 @@ export function createSessionRequest({ baseUrl, getSession, fetchImpl = globalTh
       await response.body?.cancel();
       throw new LabSignInError();
     }
-    return response;
+    return maybeOnboard(response);
   };
 }

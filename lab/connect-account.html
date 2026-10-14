@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#111214"><title>Secure account transfer · PV LAB</title>
+<link rel="icon" href="./branding/pv-mark.png" type="image/png">
+<style>
+:root{color-scheme:dark;font-family:Arial,Helvetica,sans-serif;background:#101113;color:#f3f2f0}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:#101113}
+header{height:70px;display:flex;align-items:center;justify-content:space-between;padding:0 clamp(20px,5vw,72px);border-bottom:1px solid #292a2c}
+header a{text-decoration:none;color:#f1f0ee}header .brand{font-size:17px;letter-spacing:.06em}
+header .site{font-size:12px;color:#aaa}
+main{max-width:660px;margin:clamp(52px,10vh,128px) auto;padding:0 22px 70px}
+small.kicker{font-size:11px;letter-spacing:.16em;color:#aaa}
+h1{font-size:clamp(34px,6vw,57px);font-weight:400;line-height:1.06;letter-spacing:-.05em;margin:18px 0 22px}
+p{font-size:15px;line-height:1.65;color:#bcbcc1;max-width:610px}
+h2{font-size:18px;font-weight:500;letter-spacing:-.02em;margin:0 0 10px}
+.panel{border:1px solid #343536;border-radius:14px;padding:clamp(20px,4vw,30px);margin-top:22px;background:#191a1d}
+.panel[hidden], [hidden]{display:none!important}
+label{display:block;font-size:13px;margin:25px 0 9px;color:#dadade}
+input{width:100%;background:#0e0f10;border:1px solid #525255;border-radius:8px;color:#f1f1f1;padding:14px;font:inherit;font-size:14px;letter-spacing:.02em}
+input:focus-visible,button:focus-visible,a:focus-visible{outline:2px solid #e7e7e7;outline-offset:3px}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
+button,.button{display:inline-flex;justify-content:center;align-items:center;padding:13px 19px;border-radius:8px;border:1px solid #66676b;background:transparent;color:white;font:inherit;font-size:13px;cursor:pointer;text-decoration:none}
+.primary{background:#f3f2f0;color:#121315;border-color:#f3f2f0;font-weight:600}
+button:disabled{opacity:.55;cursor:wait}button:hover:not(:disabled){border-color:white}
+.tip{font-size:12px;color:#9fa0a5}#status{min-height:24px;margin:18px 0;color:#ddd;font-size:13px}#status.error{color:#f3b0a8}
+footer{font-size:12px;color:#808187;padding:24px;text-align:center;border-top:1px solid #28292b}
+footer a{color:#b7b8ba}
+</style>
+</head>
+<body>
+<header><a class="brand" href="./">PV LAB</a><span class="site">ACCOUNT CONTINUITY</span></header>
+<main>
+<small class="kicker">PV LAB / SECURE ACCESS</small>
+<h1>Keep your work.<br>Move forward.</h1>
+<p>You can move from the original Parallel Vision website to the independent PV LAB address without losing your saved work, credits or billing history. Both sign-ins must belong to you. No passwords or credit card details are transferred.</p>
+<div id="auth" class="panel" hidden>
+  <h2>Sign in to continue</h2><p id="auth-explain">Use the account associated with this website.</p>
+  <div class="actions"><button id="sign-in" class="primary" type="button">Sign in</button></div>
+</div>
+<div id="old" class="panel" hidden>
+  <h2>Your existing PV LAB account</h2>
+  <p>While signed in here, generate a one-time transfer code. Keep this tab open, then sign in on the new website in a separate tab.</p>
+  <div class="actions"><button id="issue" class="primary" type="button">Generate transfer code</button><a class="button" href="https://pvlab.studio/connect-account.html" rel="noopener" target="_blank">Open new PV LAB</a></div>
+  <div id="issued" hidden>
+    <label for="transfer-code">One-time transfer code</label><input id="transfer-code" readonly autocomplete="off" spellcheck="false">
+    <div class="actions"><button id="copy" type="button">Copy code</button></div>
+    <p class="tip">Expires in 10 minutes. Generate another code if it expires. The code is shown only in this tab and is not placed in a URL.</p>
+  </div>
+</div>
+<div id="new" class="panel" hidden>
+  <h2>Already used PV LAB?</h2>
+  <p>Sign into your account on <a href="https://parallelvisionlabel.com/lab/connect-account.html" target="_blank" rel="noopener" style="color:#e0e0e0">the original PV LAB website</a> in another tab. Generate a transfer code there, then enter it below.</p>
+  <label for="redeem-code">Transfer code from original account</label>
+  <input id="redeem-code" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Paste your one-time code">
+  <div class="actions"><button id="redeem" class="primary" type="button">Link existing account</button></div>
+  <p class="tip">Your saved images, remaining credits and Stripe account stay linked to the same original wallet.</p>
+</div>
+<div id="fresh" class="panel" hidden>
+  <h2>New to PV LAB?</h2>
+  <p>Start with a new account and receive your one-time welcome credits. Choose this only if you do not need an account from the older website.</p>
+  <div class="actions"><button id="create" type="button">Create a new PV LAB account</button></div>
+</div>
+<div id="linked" class="panel" hidden>
+  <h2>Your account is ready.</h2>
+  <p>Continue to the Studio. Your account is linked securely.</p>
+  <div class="actions"><a class="button primary" id="continue" href="./studio.html?tool=image">Open studio</a></div>
+</div>
+<p id="status" role="status" aria-live="polite"></p>
+</main>
+<footer><a href="./privacy/">Privacy</a> · <a href="./terms/">Terms</a> · <a href="./customersupport/">Support</a></footer>
+<script type="module" src="./connect-account.js?v=20261015-v1"></script>
+</body>
+</html>
