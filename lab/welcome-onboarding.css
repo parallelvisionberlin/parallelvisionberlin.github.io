@@ -21,6 +21,36 @@
 #pricing .lab-pricing-welcome a:hover,
 #pricing .lab-pricing-welcome a:focus-visible{border-bottom-color:#fff;color:#fff}
 #lab-image-empty-intro[hidden],#lab-welcome-start[hidden]{display:none!important}
+
+/* Shared empty-image gallery: three quiet line-icon actions, independent of wallet state.
+   Keep the existing floating composer dimensions and position unchanged. */
+#lab-image-empty-intro{width:min(100%,570px);max-width:570px}
+#lab-image-empty-intro .image-empty-quick-actions{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;
+  width:min(100%,470px);margin:24px auto 0;
+}
+#lab-image-empty-intro .image-empty-quick-action{
+  appearance:none;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-width:0;min-height:87px;gap:11px;padding:13px 9px;
+  border:1px solid rgba(233,232,230,.115);border-radius:10px;
+  background:rgba(255,255,255,.018);color:#c7c7ca;
+  font:500 12px/1.3 var(--pv-text,'DM Sans',sans-serif);cursor:pointer;
+  transition:background .17s ease,border-color .17s ease,color .17s ease;
+}
+#lab-image-empty-intro .image-empty-quick-action svg{
+  width:22px;height:22px;flex:none;opacity:.8;
+}
+#lab-image-empty-intro .image-empty-quick-action:hover,
+#lab-image-empty-intro .image-empty-quick-action:focus-visible{
+  border-color:rgba(238,235,227,.48);background:rgba(255,255,255,.055);color:#f5f2ed;
+}
+#lab-image-empty-intro .image-empty-quick-action:focus-visible{outline:2px solid #d4d0c9;outline-offset:3px}
+@media(max-width:520px){
+  #lab-image-empty-intro .image-empty-quick-actions{gap:7px;margin-top:18px}
+  #lab-image-empty-intro .image-empty-quick-action{min-height:76px;padding:10px 5px;gap:8px;font-size:10px}
+  #lab-image-empty-intro .image-empty-quick-action svg{width:19px;height:19px}
+}
+
 #lab-welcome-start{
   width:min(100%,710px);color:#eae7e3;
   text-align:center;display:flex;flex-direction:column;align-items:center;
