@@ -1,4 +1,4 @@
-import {createAccountMenu} from './account-menu.js?v=20261012-account2';
+import {createAccountMenu} from './account-menu.js?v=20261014-vouchers1';
 import {metaConsentGranted,trackLabEvent,trackLabRegistration} from './meta-pixel.js?v=20261013-a1';
 import {captureReferralCode,claimReferral} from './referral-capture.js?v=20261010-referrals1';
 captureReferralCode();
@@ -82,6 +82,13 @@ function show(){
     }
   }
   headerAccount.update({signed,user:clerk?.user,profile});
+  const invitation=document.querySelector('.lab-invite-promo__cta');
+  if(invitation){
+    const owner=profile?.owner===true;
+    invitation.href=owner?'./owner.html':'./account.html#referrals';
+    const label=invitation.querySelector('[data-lab-invite-text]');
+    if(label)label.textContent=owner?'Owner dashboard':'Get your invite link';
+  }
   document.querySelectorAll('[data-lab-signin]').forEach(button=>{button.hidden=signed;});
   if(signed&&pilotSetup){
     if(customer&&profile?.ownerId)status('Private pilot setup: your test account ID is '+profile.ownerId+'. Copy this ID into the Cloudflare LAB_LIVE_PILOT_CUSTOMER_ID secret. This ID is not a password.');
