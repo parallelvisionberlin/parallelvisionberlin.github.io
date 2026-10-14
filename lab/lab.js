@@ -478,13 +478,19 @@ function updateComposerPromptBudget(){
   const counter=$('composer-prompt-budget');
   if(!counter)return;
   const visible=tool==='image'&&usesReferenceGuidance()&&(moodUI.active()||references.length>0);
-  counter.hidden=!visible;
-  $('image-composer').querySelector('.image-composer-top').classList.toggle('has-prompt-budget',!!visible);
+  const promptTop=$('image-composer').querySelector('.image-composer-top');
+  // Keep numbers invisible while writing. Warn only when the full compiled
+  // prompt exceeds its limit, without adding an extra deck row.
+  counter.hidden=true;
+  promptTop.classList.remove('has-prompt-budget');
   if(!visible)return;
   const {prompt}=imageGuidance(),limit=imageEngine==='seedreamlite'?3000:5000;
   const remaining=limit-prompt.length;
-  counter.textContent=remaining>=0?remaining.toLocaleString()+' left':(-remaining).toLocaleString()+' over';
-  counter.classList.toggle('is-over',remaining<0);
+  const over=remaining<0;
+  counter.textContent=over?(-remaining).toLocaleString()+' characters over limit':remaining.toLocaleString()+' left';
+  counter.classList.toggle('is-over',over);
+  counter.hidden=!over;
+  promptTop.classList.toggle('has-prompt-budget',over);
   counter.title=prompt.length.toLocaleString()+' / '+limit.toLocaleString()+' characters including written direction, Mood and reference instructions.';
 }
 function updateReferenceGuidance(){
@@ -1142,8 +1148,9 @@ function fitImageComposerPrompt(){
   const short=window.innerHeight<=640;
   const minimum=narrow?47:42;
   const viewport=window.visualViewport?.height||window.innerHeight;
-  const stableImageDock=window.innerWidth>=900&&imageComposer.classList.contains('is-seedream');
-  const maximum=stableImageDock?56:Math.max(minimum,Math.min(narrow?122:176,Math.floor(viewport*(short ? 0.21 : narrow ? 0.22 : 0.25))));
+  // Expand pasted direction until the bounded scroll height. Seedream must not
+  // collapse to a single 56px line on desktop.
+  const maximum=Math.max(minimum,Math.min(narrow?122:176,Math.floor(viewport*(short ? 0.21 : narrow ? 0.22 : 0.25))));
   const previousScroll=textbox.scrollTop;
   const top=imageComposer.querySelector('.image-composer-top');
   top.style.removeProperty('min-height');
