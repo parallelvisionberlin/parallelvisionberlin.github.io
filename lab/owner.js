@@ -176,6 +176,11 @@ function render(data){
     }else actions.textContent='—';
     tr.append(actions);body.append(tr);
   }
+  // Show the server's last sanitized Clerk sync outcome even after a page reload.
+  // The diagnostic contains only status counts, never provider keys or emails.
+  if(!syncNotice&&data.clerkSyncDiagnostic?.checkedAt&&
+      Date.now()-data.clerkSyncDiagnostic.checkedAt<7*86400000)
+    syncNotice=syncFeedback(data.clerkSyncDiagnostic);
   emailSyncReady=!!data.emailSyncConfigured;
   const shownEmails=(data.customers||[]).filter(customer=>customer.email).length;
   const directoryText=query
@@ -189,7 +194,7 @@ function render(data){
     :shownEmails>0?'Verified emails available':'Clerk key configured, not verified';
   $('owner-sync-copy').textContent=!emailSyncReady
     ?'Connect the production Clerk backend key securely to fetch verified signup emails.'
-    :directoryText+(syncing?' Checking Clerk securely now.':clerkSyncFailed?' Review the sync message below.':
+    :directoryText+(syncing?' Checking Clerk securely now.':clerkSyncFailed?' '+syncNotice:
       shownEmails>0?' Verified customer emails are available in your directory.':
       ' A secure sync runs once when this workspace opens; you can retry using Sync emails.');
   $('owner-integrations').hidden=false;
@@ -273,8 +278,12 @@ $('owner-setup-toggle').addEventListener('click',()=>{
 function syncFeedback(result){
   const issues=result.issues||{},requested=Number(result.requested)||0,verified=Number(result.verified)||0,unverified=Number(result.unverified)||0;
   if(issues.invalidKey)return 'Clerk rejected the secret key. Check that LAB_CLERK_SECRET_KEY contains the sk_live_ key from Parallel Vision → Production, then save and deploy.';
-  if(issues.missingUser)return 'Clerk could not find '+issues.missingUser+' customer record(s). Verify the secret belongs to the same Production Clerk application as PV LAB.';
-  if(issues.transient)return 'Clerk could not complete '+issues.transient+' request(s). Try again later. The key and network connection may need checking.';
+  if(issues.missingUser)return 'Clerk could not find '+issues.missingUser+' customer record(s). Verify LAB_CLERK_SECRET_KEY belongs to the same Production Clerk application used for PV LAB sign-in.';
+  if(issues.networkError)return 'Clerk could not be reached from the Cloudflare Worker ('+issues.networkError+' request). Check Worker outbound access and retry.';
+  if(issues.upstreamError)return 'Clerk returned an upstream HTTP error ('+issues.upstreamError+' request). Try again or inspect Clerk API status.';
+  if(issues.invalidResponse)return 'Clerk returned an unexpected user response ('+issues.invalidResponse+' request). Check the configured Clerk instance.';
+  if(issues.rateLimited)return 'Clerk API rate limited '+issues.rateLimited+' request(s). Wait before retrying.';
+  if(issues.transient)return 'Clerk could not complete '+issues.transient+' request(s). Check API connectivity and try again.';
   if(issues.missingKey)return 'The Cloudflare Clerk secret is missing. Check LAB_CLERK_SECRET_KEY.';
   if(!requested)return 'All currently eligible customer email records have been checked.';
   if(verified)return verified+' verified email'+(verified===1?'':'s')+' fetched from Clerk.'+(unverified?' '+unverified+' account(s) have no verified primary email.':'');

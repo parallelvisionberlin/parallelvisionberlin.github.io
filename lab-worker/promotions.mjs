@@ -67,6 +67,75 @@ export async function syncCustomerEmail(env,subject,options={}){
   return options.details?{status}:['verified','unverified','cached'].includes(status);
 }
 
+// A bounded read-only Clerk API lookup with private, aggregate-only D1 diagnostics.
+// The scheduled path never trusts client input and does not read OWNER_DB.
+const CLERK_STATUS_NAMES=['verified','unverified','invalid_key','missing_user','rate_limited',
+  'network_error','upstream_error','invalid_response','missing_key','invalid_subject','cached'];
+const CLERK_CRON_GAP_MS=45*60*1000;
+function responseForOutcomes(outcomes,requested,checked){
+  return {
+    requested,checked,synced:outcomes.verified+outcomes.unverified,
+    verified:outcomes.verified,unverified:outcomes.unverified,
+    issues:{
+      invalidKey:outcomes.invalid_key,missingUser:outcomes.missing_user,
+      transient:outcomes.rate_limited+outcomes.network_error+outcomes.upstream_error+outcomes.invalid_response,
+      rateLimited:outcomes.rate_limited,networkError:outcomes.network_error,
+      upstreamError:outcomes.upstream_error,invalidResponse:outcomes.invalid_response,
+      missingKey:outcomes.missing_key,invalidSubject:outcomes.invalid_subject
+    }
+  };
+}
+async function diagnosticSnapshot(env){
+  const row=await one(env,'SELECT checked_at,source,result_json FROM lab_clerk_sync_diagnostics WHERE id=1');
+  if(!row)return null;
+  let result=null;
+  try{result=JSON.parse(row.result_json);}catch{return null;}
+  return {...result,checkedAt:row.checked_at,source:row.source};
+}
+async function syncMissingClerkBatch(env,{source='scheduled',force=false}={}){
+  if(!['owner','scheduled'].includes(source))throw Error('Unsupported Clerk sync source.');
+  const prior=source==='scheduled'?await diagnosticSnapshot(env):null;
+  if(source==='scheduled'&&prior?.checkedAt&&Date.now()-prior.checkedAt<CLERK_CRON_GAP_MS)return null;
+  const t=Date.now(),freshness=source==='scheduled'?t-86400000:t-86400000;
+  // Missing email records are eligible on the first attempt. The periodic job
+  // respects a 24-hour per-contact interval, and the owner button bypasses it.
+  const condition=source==='scheduled'
+    ?'WHERE p.synced_at IS NULL OR p.synced_at<?'
+    :'WHERE p.email IS NULL OR p.synced_at IS NULL OR p.synced_at<?';
+  const candidates=await all(env,`SELECT c.id FROM lab_customers c
+    LEFT JOIN lab_customer_contacts p ON p.customer_id=c.id
+    ${condition}
+    ORDER BY CASE WHEN p.synced_at IS NULL THEN 0 ELSE 1 END,COALESCE(p.synced_at,0),c.created_at DESC LIMIT 12`,
+    freshness);
+  const outcomes=Object.fromEntries(CLERK_STATUS_NAMES.map(name=>[name,0]));
+  let checked=0;
+  const missingSecret=!(env.LAB_CLERK_SECRET_KEY||env.CLERK_SECRET_KEY);
+  if(missingSecret){
+    outcomes.missing_key=candidates.length?1:0;
+  }else{
+    for(const {id} of candidates){
+      const {status}=await syncCustomerEmail(env,id,{force:force||source==='scheduled',details:true});
+      if(Object.hasOwn(outcomes,status))outcomes[status]++;
+      else outcomes.invalid_response++;
+      checked++;
+      if(status==='invalid_key'||status==='rate_limited')break;
+    }
+  }
+  const report=responseForOutcomes(outcomes,candidates.length,checked);
+  // Store only bounded counters. No customer IDs, emails, provider responses or secrets.
+  await run(env,`INSERT INTO lab_clerk_sync_diagnostics(id,checked_at,source,result_json)
+    VALUES(1,?,?,?) ON CONFLICT(id) DO UPDATE SET checked_at=excluded.checked_at,
+    source=excluded.source,result_json=excluded.result_json`,
+    t,source,JSON.stringify(report));
+  return report;
+}
+// The existing five-minute Worker cron checks a small batch, at most once per
+// 45 minutes, so historical missing customers can be repaired without a page visit.
+export async function scheduledClerkBackfill(env){
+  try{return await syncMissingClerkBatch(env,{source:'scheduled'});}
+  catch{return null;}
+}
+
 export async function voucherCustomerRoute(request,env,subject){
   const path=new URL(request.url).pathname;
   if(path==='/api/customer/vouchers'&&request.method==='GET'){
@@ -150,9 +219,11 @@ export async function labAdminRoute(request,env,owner,{decryptKey,providerFetche
     const vouchers=await all(env,`SELECT code,credits,max_redemptions AS maxRedemptions,redeemed_count AS redemptionCount,
       active,expires_at AS expiresAt,created_at AS createdAt,note
       FROM lab_vouchers ORDER BY created_at DESC LIMIT 60`);
+    const clerkSyncDiagnostic=await diagnosticSnapshot(env);
     return json({summary,customers,payments,referrals,
       vouchers:vouchers.map(v=>({...v,url:voucherLink(env,v.code)})),
       emailSyncConfigured:!!(env.LAB_CLERK_SECRET_KEY||env.CLERK_SECRET_KEY),
+      clerkSyncDiagnostic,
       resultLimit:80});
   }
   if(path==='/api/admin/vouchers'&&method==='POST'){
@@ -187,25 +258,8 @@ export async function labAdminRoute(request,env,owner,{decryptKey,providerFetche
     return json({deactivated:true});
   }
   if(path==='/api/admin/customers/sync'&&method==='POST'){
-    if(!(env.LAB_CLERK_SECRET_KEY||env.CLERK_SECRET_KEY))fail(503,'Clerk email sync needs a private Worker secret.');
-    const candidates=await all(env,`SELECT c.id FROM lab_customers c LEFT JOIN lab_customer_contacts p ON p.customer_id=c.id
-      WHERE p.email IS NULL OR p.synced_at IS NULL OR p.synced_at<?
-      ORDER BY CASE WHEN p.synced_at IS NULL THEN 0 ELSE 1 END,COALESCE(p.synced_at,0),c.created_at DESC LIMIT 12`,Date.now()-86400000);
-    const outcomes={verified:0,unverified:0,invalid_key:0,missing_user:0,rate_limited:0,network_error:0,upstream_error:0,invalid_response:0,missing_key:0,invalid_subject:0};
-    let checked=0;
-    for(const {id} of candidates){
-      const {status}=await syncCustomerEmail(env,id,{force:true,details:true});
-      outcomes[status]=(outcomes[status]||0)+1;
-      checked++;
-      // Stop when the key is rejected or the upstream API asks us to slow down.
-      if(status==='invalid_key'||status==='rate_limited')break;
-    }
-    return json({requested:candidates.length,checked,synced:outcomes.verified+outcomes.unverified,
-      verified:outcomes.verified,unverified:outcomes.unverified,
-      issues:{invalidKey:outcomes.invalid_key,missingUser:outcomes.missing_user,
-        transient:outcomes.rate_limited+outcomes.network_error+outcomes.upstream_error+outcomes.invalid_response,
-        missingKey:outcomes.missing_key,invalidSubject:outcomes.invalid_subject}});
-
+    const report=await syncMissingClerkBatch(env,{source:'owner',force:true});
+    return json(report);
   }
   fail(404,'Unknown owner endpoint.');
 }

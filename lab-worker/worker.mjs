@@ -8,7 +8,7 @@ import {ensureCustomer,isLabCustomer,customerSession,customerRoute,stripeWebhook
 import {canCustomerGenerate} from './customer-rollout.mjs';
 import {quoteCustomerImageCredits} from './customer-image-pricing.mjs';
 import {referralRoute} from './referrals.mjs';
-import {labAdminRoute,voucherCustomerRoute,syncCustomerEmail} from './promotions.mjs';
+import {labAdminRoute,voucherCustomerRoute,syncCustomerEmail,scheduledClerkBackfill} from './promotions.mjs';
 import {fashionRoute,refreshFashionJob} from './fashion-tools.mjs';
 import {precisionEditRoute} from './precision-edit.mjs';
 import {IMAGE_PRICES,IMAGE_RATIOS,imageModelParameters,buildImageModelInput} from './image-models.mjs';
@@ -41,7 +41,7 @@ import {SYNTHETIC_ROMANCE_REFERENCES,SYNTHETIC_ROMANCE_REFERENCE_VERSION} from '
 import {moodBoardsRoute} from './moodboards.mjs';
 import {moodCreatorRoute} from './mood-creator-service.mjs';
 import {characterPreview as soulCharacterPreview,SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-14.9-clerk-manual-redirect';
+export const VERSION = 'pv-lab-2026-10-14.10-clerk-sync-audit';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -1792,7 +1792,11 @@ export default {
     let response;try{response=await route(request,env,ctx);}catch(e){const known=e instanceof HttpError||(Number.isInteger(e?.status)&&e.status>=400&&e.status<=599);const depleted=/Insufficient PV Lab credits/.test(String(e?.message||''));response=json({error:depleted?'Insufficient PV Lab credits. Add credits before generating.':known?e.message:'The Lab could not finish this request. Your stored work is unchanged.'},depleted?402:known?e.status:500);}
     return decorate(response,request.headers.get('origin')||'');
   },
-  async scheduled(event,env,ctx) {ctx.waitUntil(maintenance(env));}
+  async scheduled(event,env,ctx) {
+    // Customer-email repair is isolated from potentially failing generation maintenance.
+    ctx.waitUntil(scheduledClerkBackfill(env));
+    ctx.waitUntil(maintenance(env));
+  }
 };
 
 
