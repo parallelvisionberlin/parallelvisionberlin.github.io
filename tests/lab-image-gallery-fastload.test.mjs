@@ -21,6 +21,7 @@ test('authenticated Image studio can paint before account-dependent history comp
   assert.match(boot,/loadSoulProIdentity\(\)\.catch/);
   assert.match(boot,/catch\(error\)\{notify\('Could not open the requested view/);
   assert.match(html,/galleryPerf=1/);
+  assert.match(html,/galleryRecover=20261015-1/);
 });
 
 test('image gallery allows at most four simultaneous thumbnail downloads',async()=>{
