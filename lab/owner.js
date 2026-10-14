@@ -2,7 +2,7 @@ import {loadLabAccount} from './native-account.js?v=20261012-unified-header1';
 import {createSessionRequest} from './session-request.js?v=20260927-auth1';
 const $=id=>document.getElementById(id);
 const apiBase='https://parallel-vision-lab.parallelvision.workers.dev';
-let clerk=null,revision=0,profile=null,creating=false,syncing=false,emailSyncReady=false,fetchSerial=0,searchTimer=null;
+let clerk=null,revision=0,profile=null,creating=false,syncing=false,emailSyncReady=false,fetchSerial=0,searchTimer=null,syncNotice='';
 const request=createSessionRequest({baseUrl:apiBase,getSession:()=>clerk?.session});
 const formatNumber=n=>Number.isSafeInteger(Number(n))?Number(n).toLocaleString('en-GB'):'—';
 const formatDate=t=>Number.isFinite(Number(t))&&Number(t)>0?new Date(Number(t)).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}):'—';
@@ -114,16 +114,16 @@ function render(data){
   const directoryText=query
     ?formatNumber(shownEmails)+' verified emails in these search results.'
     :formatNumber(shownEmails)+' verified emails visible across '+formatNumber(customerCount)+' listed accounts.';
-  $('owner-sync-state').textContent=emailSyncReady?'Clerk email sync is configured':'Clerk email sync needs setup';
+  $('owner-sync-state').textContent=emailSyncReady?'Clerk key installed':'Clerk email sync needs setup';
   $('owner-sync-copy').textContent=emailSyncReady
-    ?directoryText+' Backfill can be run securely from here.'
+    ?directoryText+' Select Sync to check Clerk API access and fetch verified emails.'
     :'Customer accounts and credits are available. Connect a private Clerk key to display verified signup emails.';
   $('owner-integrations').hidden=false;
   $('owner-setup-toggle').hidden=emailSyncReady;
   if(emailSyncReady){$('owner-setup-guide').hidden=true;$('owner-setup-toggle').setAttribute('aria-expanded','false');}
-  $('owner-email-status').textContent=emailSyncReady
+  $('owner-email-status').textContent=syncNotice||(emailSyncReady
     ?'Only verified primary Clerk emails appear here. Click Sync to check earlier accounts.'
-    :'Email addresses cannot be retrieved without the server-side Clerk key. Open the connection guide above.';
+    :'Email addresses cannot be retrieved without the server-side Clerk key. Open the connection guide above.');
   $('owner-sync').disabled=!emailSyncReady||syncing;
   $('owner-last-update').textContent='Updated '+new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
   labelTableCellsForMobile();
@@ -172,15 +172,32 @@ $('owner-setup-toggle').addEventListener('click',()=>{
   const open=$('owner-setup-guide').hidden;$('owner-setup-guide').hidden=!open;
   $('owner-setup-toggle').setAttribute('aria-expanded',String(open));
 });
+function syncFeedback(result){
+  const issues=result.issues||{},requested=Number(result.requested)||0,verified=Number(result.verified)||0,unverified=Number(result.unverified)||0;
+  if(issues.invalidKey)return 'Clerk rejected the secret key. Check that LAB_CLERK_SECRET_KEY contains the sk_live_ key from Parallel Vision → Production, then save and deploy.';
+  if(issues.missingUser)return 'Clerk could not find '+issues.missingUser+' customer record(s). Verify the secret belongs to the same Production Clerk application as PV LAB.';
+  if(issues.transient)return 'Clerk could not complete '+issues.transient+' request(s). Try again later. The key and network connection may need checking.';
+  if(issues.missingKey)return 'The Cloudflare Clerk secret is missing. Check LAB_CLERK_SECRET_KEY.';
+  if(!requested)return 'All currently eligible customer email records have been checked.';
+  if(verified)return verified+' verified email'+(verified===1?'':'s')+' fetched from Clerk.'+(unverified?' '+unverified+' account(s) have no verified primary email.':'');
+  if(unverified)return 'Clerk is responding, but '+unverified+' account(s) have no verified primary email. Check email verification in Clerk → Users.';
+  // Older deployed Workers may not yet include diagnostic fields.
+  if(Number(result.synced)===0)return 'No emails were synchronized. The Worker did not provide a reason. Check the deployed Worker version and its Clerk connection.';
+  return Number(result.synced)+' account(s) checked. Refresh to confirm their emails.';
+}
 $('owner-sync').addEventListener('click',async()=>{
-  if(syncing||!profile?.owner)return;syncing=true;$('owner-sync').disabled=true;$('owner-email-status').textContent='Syncing verified Clerk emails…';
-  try{const result=await call('/api/admin/customers/sync',{method:'POST'});await refreshDashboard();
-    $('owner-email-status').textContent=result.requested===0
-      ?'Everything eligible for email sync is already checked.'
-      :formatNumber(result.synced)+' of '+formatNumber(result.requested)+' account records checked. You can run Sync again for older accounts.';}
-  catch(error){$('owner-email-status').textContent=error.message;}
+  if(syncing||!profile?.owner)return;
+  syncing=true;$('owner-sync').disabled=true;syncNotice='Checking Clerk securely…';
+  $('owner-email-status').textContent=syncNotice;
+  try{
+    const result=await call('/api/admin/customers/sync',{method:'POST'});
+    syncNotice=syncFeedback(result);
+    await refreshDashboard();
+    $('owner-email-status').textContent=syncNotice;
+  }catch(error){syncNotice=error.message||'Unable to sync Clerk emails.';$('owner-email-status').textContent=syncNotice;}
   finally{syncing=false;$('owner-sync').disabled=!emailSyncReady;}
 });
+
 $('owner-voucher-form').addEventListener('submit',async event=>{
   event.preventDefault();if(!profile?.owner||creating)return;
   const form=event.currentTarget,data=new FormData(form);
