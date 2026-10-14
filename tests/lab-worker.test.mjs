@@ -989,7 +989,7 @@ test('Atomic image migration preserves existing completed video, private media p
   const before=db.prepare('SELECT * FROM jobs').get();db.exec('BEGIN');db.exec(readFileSync(new URL('../lab-worker/migrations/0002-images.sql',import.meta.url),'utf8'));db.exec('COMMIT');assert.deepEqual(db.prepare('SELECT * FROM jobs').get(),before);assert.equal(db.prepare('SELECT encrypted_key FROM settings').get().encrypted_key,'encrypted-key');assert.equal(db.prepare('SELECT SUM(estimate_microusd) AS n FROM spend').get().n,2700000);assert.deepEqual(db.prepare('PRAGMA foreign_key_check').all(),[]);db.exec("INSERT INTO jobs(id,owner_id,source_id,params,state,created_at,updated_at) VALUES('image-job','owner',NULL,'{}','draft',2,2)");assert.equal(db.prepare('SELECT COUNT(*) AS n FROM jobs').get().n,2);
 });
 
-const upscaleSettings={type:'image',mode:'upscale',resolution:'4k',outputFormat:'png'};
+const upscaleSettings={type:'image',mode:'upscale',upscaleEngine:'spicy',resolution:'4k',outputFormat:'png'};
 function pngDimensions(width,height){const bytes=new Uint8Array(33);bytes.set([137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82]);const view=new DataView(bytes.buffer);view.setUint32(16,width);view.setUint32(20,height);bytes[24]=8;bytes[25]=2;return bytes;}
 async function topazSource(env,width=2000,height=1000){const bytes=pngDimensions(width,height),response=await req(env,'/api/uploads',{method:'POST',raw:bytes,headers:{'Content-Type':'image/png','X-Filename':'upscale-test.png'}});assert.equal(response.status,201);return(await response.json()).id;}
 const topazSettings={type:'image',mode:'upscale',upscaleEngine:'topaz-precision',scale:2,topazModel:'Standard V2',outputFormat:'png'};

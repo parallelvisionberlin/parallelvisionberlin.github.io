@@ -220,7 +220,7 @@ function parameters(value) {
   if(!value||typeof value!=='object'||Array.isArray(value))fail(400,'Invalid settings.');
   if(value.type==='image'&&value.mode==='upscale'){
     const upscaleEngine=value.upscaleEngine??'seedvr2';
-    if(upscaleEngine!=='spicy')return falUpscaleParameters(value,{fail});
+    if(upscaleEngine!=='spicy')return falUpscaleParameters({...value,upscaleEngine},{fail});
     if(!['2k','4k','8k'].includes(value.resolution)||!['jpeg','png','webp'].includes(value.outputFormat||'jpeg'))fail(400,'Choose 2K, 4K or 8K and JPEG, PNG or WebP.');
     return {type:'image',provider:'spicy',upscaleEngine:'spicy',model:UPSCALER,mode:'upscale',prompt:'',resolution:value.resolution,aspectRatio:'auto',outputFormat:value.outputFormat||'jpeg',referenceRoles:[]};
   }
