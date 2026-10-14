@@ -9,7 +9,7 @@
 <title>Owner / PV LAB</title>
 <link rel="preload" href="./fonts/dm-sans-latin-v17.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="icon" href="./branding/pv-mark.png" type="image/png">
-<link rel="stylesheet" href="./owner.css?v=20261015-customer-history1">
+<link rel="stylesheet" href="./owner.css?v=20261015-traffic1">
 </head>
 <body>
 <a class="owner-skip" href="#owner-main">Skip to dashboard</a>
@@ -17,6 +17,7 @@
   <div class="owner-sidebar-brand"><a class="owner-side-wordmark" href="./">PV LAB</a><span>PRIVATE / OWNER</span></div>
   <nav class="owner-side-nav" aria-label="Owner sections">
     <a href="#owner-overview" data-owner-nav aria-current="page" class="owner-sidebar-current"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg><span>Control room</span></a>
+    <a href="#owner-traffic-section" data-owner-nav><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 19V5m0 14h18M7 15l4-5 4 2 5-7"/></svg><span>Traffic</span></a>
     <a href="#owner-customers-section" data-owner-nav><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3 20v-2a6 6 0 0 1 12 0v2M17 5a3 3 0 0 1 0 6M17 14a5 5 0 0 1 4 5v1"/></svg><span>Customers</span></a>
     <a href="#owner-payments-section" data-owner-nav><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="2"/><path d="M3 10.5h18"/></svg><span>Payments</span></a>
     <a href="#owner-referrals-section" data-owner-nav><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20v-5m6 5V9m6 11V4m4 16v-8"/></svg><span>Referrals</span></a>
@@ -46,7 +47,7 @@
   <div id="owner-gate" class="owner-gate" hidden><p>Sign in with the PV LAB owner account to open this workspace.</p><button type="button" id="owner-signin">Sign in</button></div>
   <div id="owner-dashboard" hidden>
     <nav class="owner-jumpbar" aria-label="Mobile dashboard navigation">
-      <a href="#owner-overview">Overview</a><a href="#owner-customers-section">Customers</a>
+      <a href="#owner-overview">Overview</a><a href="#owner-traffic-section">Traffic</a><a href="#owner-customers-section">Customers</a>
       <a href="#owner-payments-section">Payments</a><a href="#owner-referrals-section">Referrals</a>
       <a href="#owner-vouchers-section">Vouchers</a><a href="#owner-providers-section">Providers</a>
     </nav>
@@ -100,6 +101,40 @@
     <section class="owner-balances-overview" hidden aria-labelledby="owner-api-balances-title">
       <div class="owner-section-preview-head"><div><span class="owner-index">PROVIDER FINANCE / PRIVATE</span><h2 id="owner-api-balances-title">API Balances<span>.</span></h2><p>Shared funds, actual usage and credit balances, kept separate.</p></div><div class="owner-provider-controls"><span id="owner-balance-updated">Awaiting secure connection</span><button type="button" data-owner-balance-refresh>Refresh balances ↻</button><a href="#owner-providers-section">Detailed view ↗</a></div></div>
       <div id="owner-provider-previews" class="owner-provider-previews" aria-live="polite"><p class="owner-providers-loading">Loading available provider balances…</p></div>
+    </section>
+    <section class="owner-section owner-traffic" id="owner-traffic-section" aria-labelledby="owner-traffic-title">
+      <div class="owner-section-head owner-traffic-heading">
+        <div><span class="owner-index">AUDIENCE / ACQUISITION</span><h2 id="owner-traffic-title">Traffic<span>.</span></h2><p class="owner-traffic-lead">Real visits to your creative studio, measured from the day tracking starts.</p></div>
+        <div class="owner-traffic-actions" role="group" aria-label="Traffic date range">
+          <button type="button" data-traffic-days="7" aria-pressed="true">7 days</button>
+          <button type="button" data-traffic-days="30" aria-pressed="false">30 days</button>
+          <button type="button" id="owner-traffic-refresh" aria-label="Refresh traffic statistics">Refresh ↻</button>
+        </div>
+      </div>
+      <p id="owner-traffic-status" class="owner-traffic-status" aria-live="polite">Traffic statistics will load after owner verification.</p>
+      <div id="owner-traffic-content" hidden>
+        <div class="owner-traffic-metrics">
+          <div><span>Estimated entries</span><strong id="owner-traffic-entries">—</strong><small>Arrivals to PV LAB, not unique people</small></div>
+          <div><span>Page views</span><strong id="owner-traffic-views">—</strong><small>Measured public page loads</small></div>
+          <div><span>From Reddit</span><strong id="owner-traffic-reddit">—</strong><small>Identifiable Reddit entrances</small></div>
+          <div><span>New accounts</span><strong id="owner-traffic-signups">—</strong><small>Signed-up accounts in the period</small></div>
+        </div>
+        <div class="owner-traffic-breakdown">
+          <div class="owner-traffic-chart-card">
+            <div class="owner-traffic-card-heading"><h3>Entrances over time</h3><span id="owner-traffic-range">Last 7 days</span></div>
+            <div id="owner-traffic-chart" class="owner-traffic-chart" role="img" aria-label="Daily estimated PV LAB site entrances"></div>
+          </div>
+          <div class="owner-traffic-source-card">
+            <div class="owner-traffic-card-heading"><h3>Where people come from</h3><span>Estimated entries</span></div>
+            <div id="owner-traffic-sources" class="owner-traffic-sources"></div>
+          </div>
+          <div class="owner-traffic-source-card">
+            <div class="owner-traffic-card-heading"><h3>Most viewed pages</h3><span>Page loads</span></div>
+            <div id="owner-traffic-pages" class="owner-traffic-sources"></div>
+          </div>
+        </div>
+        <p class="owner-traffic-disclaimer" id="owner-traffic-disclaimer">Traffic statistics are approximate and start only after deployment.</p>
+      </div>
     </section>
     <section class="owner-section" id="owner-customers-section" aria-labelledby="owner-customers-title">
       <div class="owner-section-head"><div><span class="owner-index">01 / AUDIENCE</span><h2 id="owner-customers-title">Customers.</h2></div><form id="owner-search-form" class="owner-search" role="search"><label for="owner-search">Find an account</label><input id="owner-search" type="search" placeholder="Email or account ID" maxlength="80" autocomplete="off"><button id="owner-search-clear" type="button" hidden>Clear</button><button type="submit">Search</button></form></div>
@@ -174,6 +209,6 @@
     <footer class="owner-footer"><span>PV LAB / BERLIN</span><span>Owner access is verified on the server for every request.</span></footer>
   </div>
 </main>
-<script type="module" src="./owner.js?v=20261015-customer-history1"></script>
+<script type="module" src="./owner.js?v=20261015-traffic1"></script>
 </body>
 </html>
