@@ -1,0 +1,110 @@
+/* PV LAB Studio-only account navigation.
+ * The public landing, Moods, and Account menus retain their approved styles.
+ * This follows the Studio's charcoal controls and restrained 12-14px type. */
+
+#studio-header #studio-account-menu .pv-account-panel{
+  position:fixed;
+  top:calc(var(--lab-header-height,82px) + 9px);
+  right:16px;
+  left:auto;
+  z-index:1000;
+  box-sizing:border-box;
+  width:min(282px,calc(100vw - 32px));
+  max-height:calc(100dvh - var(--lab-header-height,82px) - 24px);
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  scrollbar-width:thin;
+  scrollbar-color:#55575c transparent;
+  padding:7px 0 0;
+  background:#1b1c20;
+  color:#eae9e5;
+  border:1px solid #3a3d43;
+  border-radius:10px;
+  box-shadow:0 18px 52px rgba(0,0,0,.64);
+}
+
+#studio-header #studio-account-menu .pv-account-details{
+  margin:0 17px 5px;
+  padding:15px 3px 16px;
+  border-bottom:1px solid #ffffff25;
+}
+#studio-header #studio-account-menu .pv-account-details::before{
+  width:122px;
+  height:25px;
+}
+#studio-header #studio-account-menu .pv-account-details::after{
+  margin-top:4px;
+  color:#a9aab0;
+  font:400 11px/1.4 'PV Lab Navigation','DM Sans',Arial,sans-serif;
+  letter-spacing:0;
+}
+
+/* Quiet list rows with technical-Studio density, rather than large
+ * landing-page typography or bright ivory fill on hover. */
+#studio-header #studio-account-menu .pv-account-panel > :is(a,button){
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  width:calc(100% - 16px);
+  min-height:42px;
+  margin:0 8px;
+  padding:10px 13px;
+  border:0;
+  border-radius:6px;
+  box-shadow:none;
+  background:transparent;
+  color:#d9dbe0;
+  font:450 14px/1.35 'PV Lab Navigation','DM Sans',Arial,sans-serif;
+  letter-spacing:-.012em;
+  text-align:left;
+  text-decoration:none;
+  transition:background .15s ease,color .15s ease;
+}
+#studio-header #studio-account-menu .pv-account-panel > :is(a,button):not([data-account-signout]):hover,
+#studio-header #studio-account-menu .pv-account-panel > :is(a,button):not([data-account-signout]):focus-visible{
+  background:#2a2c32;
+  color:#fff;
+}
+#studio-header #studio-account-menu .pv-account-panel > :is(a,button):not([data-account-signout]):active{
+  background:#31343b;
+}
+#studio-header #studio-account-menu .pv-account-panel > [data-account-signout]{
+  width:100%;
+  min-height:48px;
+  margin:8px 0 0;
+  padding:12px 21px 13px;
+  background:transparent;
+  border:0;
+  border-top:1px solid #ffffff25;
+  border-radius:0 0 9px 9px;
+  color:#a4a5aa;
+  font:400 12px/1.35 'PV Lab Navigation','DM Sans',Arial,sans-serif;
+  letter-spacing:0;
+}
+#studio-header #studio-account-menu .pv-account-panel > [data-account-signout]:hover{
+  background:#25272c;
+  color:#eeece8;
+}
+#studio-header #studio-account-menu .pv-account-panel > :is(a,button):focus-visible{
+  outline:1px solid #d7d8dc;
+  outline-offset:-3px;
+}
+@media(max-width:900px){
+  #studio-header #studio-account-menu .pv-account-panel{
+    top:calc(var(--lab-header-height,109px) + 8px);
+  }
+}
+@media(max-width:640px){
+  #studio-header #studio-account-menu .pv-account-panel{
+    right:10px;
+    width:min(282px,calc(100vw - 20px));
+  }
+  #studio-header #studio-account-menu .pv-account-panel > :is(a,button){
+    min-height:44px;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  #studio-header #studio-account-menu .pv-account-panel > :is(a,button){
+    transition:none;
+  }
+}
