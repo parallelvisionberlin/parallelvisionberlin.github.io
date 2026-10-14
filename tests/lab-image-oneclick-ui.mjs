@@ -59,7 +59,9 @@ async function workspace({failure='',width=1440,height=1000,initial=[],savedPack
    if(quoteDelay)await new Promise(r=>setTimeout(r,quoteDelay));
    if(failure==='quote')return send({error:'Provider quote unavailable. No generation submitted.'},502);
    const makeQuote=()=>{
-    const q={id:id(sequence++),estimatedUsd:0.036,maxUsd:0.036,expiresAt:Date.now()+(failure==='expired'?-1:180000),settings:{...data.settings,...(data.settings.type==='video'?{model:'bytedance/seedance-2.5/'+({start:'image-to-video',text:'text-to-video',reference:'reference-to-video'})[data.settings.mode]}:{}),mode:failure==='wrong-model'?(data.settings.mode==='upscale'?'image':'upscale'):data.settings.mode,referenceSourceIds:data.referenceSourceIds||[],transferNotes:[]}};
+    const premiumUpscale=data.settings.mode==='upscale'&&data.settings.upscaleEngine==='seedvr2';
+     const upscaleSize=320*(Number(data.settings.scale)||2);
+     const q={id:id(sequence++),estimatedUsd:premiumUpscale?.001:0.036,maxUsd:premiumUpscale?.001:0.036,expiresAt:Date.now()+(failure==='expired'?-1:180000),...(premiumUpscale?{provider:'fal.ai',priceIsEstimate:true,requiresPriceReview:true,creditCost:Number(data.settings.scale)===4?18:10}:{}),settings:{...data.settings,...(data.settings.type==='video'?{model:'bytedance/seedance-2.5/'+({start:'image-to-video',text:'text-to-video',reference:'reference-to-video'})[data.settings.mode]}:{}),...(premiumUpscale?{model:'fal-ai/seedvr/upscale/image',type:'image',mode:'upscale',sourceWidth:320,sourceHeight:320,targetWidth:upscaleSize,targetHeight:upscaleSize}:{}),mode:failure==='wrong-model'?(data.settings.mode==='upscale'?'image':'upscale'):data.settings.mode,referenceSourceIds:data.referenceSourceIds||[],transferNotes:[]}};
     quotes.set(q.id,{q,data});return q;
    };
    if(data.count!==undefined){
