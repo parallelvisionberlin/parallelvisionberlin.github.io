@@ -19,6 +19,7 @@ jobs:
         with:
           node-version: '24'
       - run: node --test tests/lab-account-menu.test.mjs tests/lab-referral-ui.test.mjs
+      - run: node --check lab/account.js && node --check lab/owner.js
       - run: npm install --prefix /tmp/pv-account-browser --no-audit --no-fund playwright@1.62.1
       - run: /tmp/pv-account-browser/node_modules/.bin/playwright install --with-deps chromium
       - name: Check account, shared menus and session isolation on desktop and mobile
