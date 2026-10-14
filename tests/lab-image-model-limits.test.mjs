@@ -5,10 +5,10 @@ import {modelImageInputIssue} from '../lab/image-model-limits.js';
 const MiB = 1024 * 1024;
 const image = (size, width=800, height=800, name='reference.jpg') => ({file:{size,name},width,height});
 
-test('Flash validates combined references below the paid route', () => {
-  assert.equal(modelImageInputIssue('flash',[image(9*MiB),image(6*MiB)]),'');
-  assert.match(modelImageInputIssue('flash',[image(9*MiB),image(9*MiB)]),/16 MiB combined/);
-  assert.match(modelImageInputIssue('flash',[image(17*MiB)]),/No generation submitted/);
+test('SpicyAPI Flash accepts ten references and stages oversized working copies', () => {
+  assert.equal(modelImageInputIssue('flash',Array(10).fill(image(9*MiB))),'');
+  assert.equal(modelImageInputIssue('flash',[image(17*MiB)]),'');
+  assert.match(modelImageInputIssue('flash',Array(11).fill(image(MiB))),/up to 10/);
 });
 test('Kling validates decimal file limit, resolution and ratio', () => {
   assert.equal(modelImageInputIssue('kling',[image(10000000)]),'');
