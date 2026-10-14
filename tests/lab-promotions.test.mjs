@@ -98,7 +98,7 @@ test('owner customer activity shows actual job states, net credit usage, and ref
   f.insert("INSERT INTO lab_credit_entries(id,customer_id,delta_credits,kind,reference,created_at) VALUES (?,?,?,?,?,?)",
     'welcome:user_ALICE','user_ALICE',200,'adjustment','welcome:user_ALICE',at);
   f.insert("INSERT INTO jobs(id,owner_id,params,state,estimate_microusd,created_at,updated_at) VALUES (?,?,?,?,?,?,?)",
-    'job_completed','user_ALICE',JSON.stringify({type:'image',provider:'spicy',model:'seedream-5',prompt:'private customer prompt',sourceUrl:'https://private.example/image'}),'completed',52174,at+1,at+1);
+    'job_completed','user_ALICE',JSON.stringify({type:'image',provider:'spicy',model:'seedream-5',prompt:'private customer prompt',sourceUrl:'https://private.example/image'}),'completed',52173,at+1,at+1);
   f.insert("INSERT INTO jobs(id,owner_id,params,state,estimate_microusd,created_at,updated_at) VALUES (?,?,?,?,?,?,?)",
     'job_refunded','user_ALICE',JSON.stringify({type:'video',model:'wan-video'}),'queued',20000,at+2,at+2);
   f.insert("UPDATE jobs SET state='failed',updated_at=? WHERE id='job_refunded'",at+3);
