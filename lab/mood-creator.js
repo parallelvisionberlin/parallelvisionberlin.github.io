@@ -4,7 +4,6 @@ import {MOODS,moodById} from './moods.js?v=20261011-midnight-reverie1&hd=2026101
 import {createSessionRequest} from './session-request.js?v=20260927-auth1';
 import {takeMoodHandoff} from './mood-handoff.js?v=20261011-discovery1';
 const API='https://parallel-vision-lab.parallelvision.workers.dev';
-const CLERK_KEY='pk_live_Y2xlcmsucGFyYWxsZWx2aXNpb25sYWJlbC5jb20k';
 const uuid=/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{12}$/i;
 const $=id=>document.getElementById(id);
 export function moodCreatorInputValidation({name,direction,baseMoodId,imageCount}){
