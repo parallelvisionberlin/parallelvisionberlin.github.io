@@ -4,7 +4,7 @@ import {captureReferralCode,claimReferral} from './referral-capture.js?v=2026101
 captureReferralCode();
 import {createSessionRequest} from './session-request.js?v=20260927-auth1&studioAuth=20261015-1';
 const API='https://parallel-vision-lab.parallelvision.workers.dev';
-import {loadLabAccount} from './native-account.js?v=20261012-unified-header1&studioAuth=20261015-1';
+import {loadLabAccount} from './native-account.js?v=20261012-unified-header1&studioAuth=20261015-1&providerPolicy=20261015-google-only1';
 const $=id=>document.getElementById(id);
 const pilotSetup=new URLSearchParams(location.search).get('setup-pilot')==='1';
 let clerk=null,profile=null,profileSessionId=null,revision=0,profileLoading=false;
