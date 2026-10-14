@@ -1185,7 +1185,7 @@ async function route(request,env,ctx) {
   }
   if(path.startsWith('/api/admin/'))return labAdminRoute(request,env,owner,{decryptKey});
   const customer=await isLabCustomer(env,owner);
-  if(customer&&authIssuer===LEGACY_ISSUER&&path==='/api/session'&&(env.LAB_CLERK_SECRET_KEY||env.CLERK_SECRET_KEY)&&ctx?.waitUntil)
+  if(customer&&path==='/api/session'&&(env.LAB_CLERK_SECRET_KEY||env.CLERK_SECRET_KEY||env.LAB_CLERK_V2_SECRET_KEY)&&ctx?.waitUntil)
     ctx.waitUntil(syncCustomerEmail(env,owner).catch(()=>false));
   if(customer&&!['/api/session','/api/customer/wallet','/api/customer/account','/api/billing/portal'].includes(path))await assertCustomerOpen(env,owner,{spending:method==='POST'&&!path.startsWith('/api/customer/')});
   if(path.startsWith('/api/customer/')||path.startsWith('/api/billing/')){
