@@ -166,6 +166,103 @@ function labelTableCellsForMobile(){
   }
 }
 
+// Cookie-free acquisition totals. Public pages report aggregates, never visitor identities.
+let trafficDays=7,trafficSerial=0;
+const trafficLabels={
+  reddit:'Reddit',instagram:'Instagram',tiktok:'TikTok',facebook:'Facebook',
+  youtube:'YouTube',google:'Google',search:'Other search',newsletter:'Newsletter',
+  'parallel-vision':'Parallel Vision',direct:'Direct / unknown',other:'Other websites',
+  internal:'Internal'
+};
+const trafficPageLabels={
+  home:'PV LAB home',studio:'Studio',moods:'Moods','mood-creator':'Mood Creator',
+  fashion:'Fashion',account:'Account',other:'Other Lab pages'
+};
+function createTrafficNode(tag,className,text){
+  const node=document.createElement(tag);
+  if(className)node.className=className;
+  if(text!==undefined)node.textContent=String(text);
+  return node;
+}
+function trafficComparison(containerId,items,labelMap){
+  const container=$(containerId);container.replaceChildren();
+  if(!items.length){
+    container.append(createTrafficNode('p','owner-traffic-no-data','Nothing recorded for this period.'));
+    return;
+  }
+  const maximum=Math.max(1,...items.map(item=>Number(item.count)||0));
+  for(const item of items.slice(0,6)){
+    const row=createTrafficNode('div','owner-traffic-source-row');
+    const top=createTrafficNode('div','owner-traffic-source-top');
+    top.append(createTrafficNode('span','',labelMap[item.source||item.page]||'Other'),
+      createTrafficNode('strong','',formatNumber(item.count)));
+    const track=createTrafficNode('div','owner-traffic-source-track');
+    const bar=createTrafficNode('span','owner-traffic-source-fill');
+    bar.style.width=Math.max(0,(Number(item.count)||0)/maximum*100)+'%';
+    track.append(bar);row.append(top,track);container.append(row);
+  }
+}
+function paintTraffic(data){
+  const summary=data.summary||{};
+  const content=$('owner-traffic-content'),statusNode=$('owner-traffic-status');
+  for(const button of document.querySelectorAll('[data-traffic-days]'))
+    button.setAttribute('aria-pressed',String(Number(button.dataset.trafficDays)===trafficDays));
+  if(!data.measured){
+    content.hidden=true;
+    statusNode.textContent='Traffic measurement starts with the new deployment. Earlier Reddit visits cannot be reconstructed.';
+    return;
+  }
+  content.hidden=false;statusNode.textContent='';
+  $('owner-traffic-entries').textContent=formatNumber(summary.entrances);
+  $('owner-traffic-views').textContent=formatNumber(summary.views);
+  $('owner-traffic-reddit').textContent=formatNumber(summary.redditEntrances);
+  $('owner-traffic-signups').textContent=formatNumber(summary.newAccounts);
+  $('owner-traffic-range').textContent='Last '+data.days+' days · UTC';
+  const chart=$('owner-traffic-chart');chart.replaceChildren();
+  const daily=Array.isArray(data.trend)?data.trend:[];
+  const maximum=Math.max(1,...daily.map(item=>Number(item.entrances)||0));
+  for(const [index,item] of daily.entries()){
+    const column=createTrafficNode('div','owner-traffic-chart-column');
+    const well=createTrafficNode('div','owner-traffic-chart-well');
+    const bar=createTrafficNode('div','owner-traffic-chart-bar');
+    const value=Number(item.entrances)||0;
+    bar.style.height=(value?Math.max(4,value/maximum*100):0)+'%';
+    bar.title=item.date+': '+formatNumber(value)+' estimated entries';
+    well.append(bar);
+    const tick=createTrafficNode('span','owner-traffic-chart-day',
+      data.days===7||index%5===0||index===daily.length-1?item.date.slice(5):'');
+    column.append(well,tick);chart.append(column);
+  }
+  chart.setAttribute('aria-label','Estimated site entries per day over the past '+data.days+
+    ' days. Total: '+formatNumber(summary.entrances)+'.');
+  trafficComparison('owner-traffic-sources',Array.isArray(data.sources)?data.sources:[],trafficLabels);
+  trafficComparison('owner-traffic-pages',Array.isArray(data.pages)?data.pages:[],trafficPageLabels);
+  $('owner-traffic-disclaimer').textContent='Counting since '+data.firstTrackedDay+
+    '. Estimated entrances and page views, not unique people. Referral sources can be hidden by browser privacy settings. '+
+    'New accounts are period totals, not proof that a source caused a signup.';
+}
+async function refreshTraffic(){
+  if(!profile?.owner)return;
+  const current=revision,id=++trafficSerial,button=$('owner-traffic-refresh');
+  button.disabled=true;
+  $('owner-traffic-status').textContent='Refreshing anonymous traffic totals…';
+  try{
+    const data=await call('/api/admin/traffic?days='+trafficDays);
+    if(current!==revision||id!==trafficSerial)return;
+    paintTraffic(data);
+  }catch(error){
+    if(current!==revision||id!==trafficSerial)return;
+    $('owner-traffic-content').hidden=true;
+    $('owner-traffic-status').textContent='Traffic data unavailable: '+(error.message||'Try again later.');
+  }finally{if(current===revision&&id===trafficSerial)button.disabled=false;}
+}
+for(const button of document.querySelectorAll('[data-traffic-days]'))button.addEventListener('click',()=>{
+  if(!profile?.owner)return;
+  trafficDays=Number(button.dataset.trafficDays);
+  void refreshTraffic();
+});
+$('owner-traffic-refresh').addEventListener('click',()=>void refreshTraffic());
+
 let recentFilter='all',recentCustomers=[],recentPayments=[];
 function recentRow(list,index,{primary,secondary,emphasis,at}){
   const li=document.createElement('li');li.className='owner-recent-item';
@@ -335,6 +432,7 @@ async function refreshDashboard(){
     const data=await call('/api/admin/overview'+(search?'?search='+encodeURIComponent(search):''));
     if(current!==revision||requestId!==fetchSerial)return;
     render(data);status('');
+    if(!search)void refreshTraffic();
     if(!autoClerkSyncAttempted&&!syncing&&!search&&data.emailSyncConfigured&&
         Array.isArray(data.customers)&&data.customers.some(c=>!c.email)){
       autoClerkSyncAttempted=true;
@@ -345,6 +443,8 @@ async function refreshDashboard(){
 }
 async function refreshSession(){
   const current=++revision;fetchSerial++;profile=null;$('owner-dashboard').hidden=true;$('owner-gate').hidden=true;
+  trafficSerial++;$('owner-traffic-content').hidden=true;
+  $('owner-traffic-status').textContent='Traffic statistics will load after owner verification.';
   if(customerDialog.open)customerDialog.close();customerActivitySerial++;
   recentCustomers=[];recentPayments=[];recentFilter='all';syncNotice='';$('owner-search').value='';
   providerUI.clear();

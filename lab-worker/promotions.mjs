@@ -1,4 +1,5 @@
 import {ownerProviderBalances} from './owner-providers.mjs';
+import {labTrafficReport} from './traffic.mjs';
 // PV LAB promotional credits and private customer administration.
 // All money and wallet records belong to LAB_DB. OWNER_DB is read for owner authorization only.
 const CODE=/^[A-Z0-9][A-Z0-9-]{5,23}$/;
@@ -179,6 +180,10 @@ async function requireOwner(env,owner){
 export async function labAdminRoute(request,env,owner,{decryptKey,providerFetcher,providerClock}={}){
   await requireOwner(env,owner);
   const url=new URL(request.url),path=url.pathname,method=request.method;
+  if(path==='/api/admin/traffic'&&method==='GET'){
+    const days=Number(url.searchParams.get('days')||'7');
+    return json(await labTrafficReport(env,{days}));
+  }
   if(path==='/api/admin/providers'&&method==='GET'){
     // Financial data is owner-only. This branch executes AFTER requireOwner, not customer auth.
     const [settings,wallet]=await Promise.all([

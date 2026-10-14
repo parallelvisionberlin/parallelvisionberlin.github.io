@@ -79,6 +79,28 @@ try{
       assert.match(await page.locator('#owner-customer-liability').innerText(),/250 PV LAB credits/,'Customer units are separate');
       assert.equal(await page.locator('a[data-owner-nav][href="#owner-providers-section"]').count(),1,'Dedicated Providers sidebar destination');
 
+      await page.evaluate(()=>paintTraffic({
+        days:7,measured:true,firstTrackedDay:'2026-10-15',
+        summary:{entrances:14,views:29,redditEntrances:6,newAccounts:2},
+        trend:[
+          {date:'2026-10-09',entrances:0,views:0,reddit:0},
+          {date:'2026-10-10',entrances:0,views:0,reddit:0},
+          {date:'2026-10-11',entrances:1,views:2,reddit:0},
+          {date:'2026-10-12',entrances:2,views:4,reddit:1},
+          {date:'2026-10-13',entrances:3,views:6,reddit:2},
+          {date:'2026-10-14',entrances:4,views:8,reddit:2},
+          {date:'2026-10-15',entrances:4,views:9,reddit:1}
+        ],sources:[{source:'reddit',count:6},{source:'direct',count:5},{source:'google',count:3}],
+        pages:[{page:'home',count:20},{page:'studio',count:9}]
+      }));
+      assert.equal(await page.locator('#owner-traffic-entries').textContent(),'14');
+      assert.equal(await page.locator('#owner-traffic-reddit').textContent(),'6');
+      assert.equal(await page.locator('#owner-traffic-signups').textContent(),'2');
+      assert.equal(await page.locator('#owner-traffic-chart .owner-traffic-chart-column').count(),7);
+      assert.ok((await page.locator('#owner-traffic-sources').innerText()).includes('Reddit'));
+      assert.equal(await page.locator('a[data-owner-nav][href="#owner-traffic-section"]').count(),1,'Traffic has a dedicated sidebar link');
+
+
       assert.equal(await page.locator('.owner-customer-open').count(),3,'Each customer has a private activity action');
       if(width===390||width===1792){
         await page.evaluate(()=>{
