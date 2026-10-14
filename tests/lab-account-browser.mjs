@@ -289,7 +289,8 @@ try{
       await fits(page,'refreshed balance header '+width);
       await page.evaluate(()=>window.mockClerk.signOut());
       await page.locator('#lab-header-signin').waitFor({state:'visible'});
-      assert.equal(await page.locator('#lab-home-credits').isVisible(),false);
+      assert.equal(await page.locator('#lab-home-credits').isVisible(),true,'Signed-out users see the Get credits CTA');
+      assert.equal(await page.locator('#lab-home-credit-copy').textContent(),'Get credits');
       await fits(page,'signed out header '+width);
       assert.deepEqual(errors,[]);
     }finally{await rig.context.close();}
