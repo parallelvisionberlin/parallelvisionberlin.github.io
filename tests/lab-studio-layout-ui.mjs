@@ -189,24 +189,35 @@ try{
   assert.equal(await x.page.locator('#image-composer-model-menu').isVisible(),true,'Model popup opens above floating bar');
   const menuGeometry=await x.page.locator('#image-composer-model-menu').evaluate(el=>{
     const r=el.getBoundingClientRect(),head=document.getElementById('studio-header').getBoundingClientRect();
-    const items=el.querySelector('.composer-model-items');
+    const items=el.querySelector('.composer-model-items'),list=items.getBoundingClientRect();
+    const rows=[...items.querySelectorAll('.composer-model-option')].map(row=>row.getBoundingClientRect());
     const search=el.querySelector('.composer-model-search').getBoundingClientRect();
     const footer=el.querySelector('.composer-model-footer').getBoundingClientRect();
     const trigger=document.getElementById('image-composer-model').getBoundingClientRect();
+    const overflow=items.scrollHeight>items.clientHeight+2;
     return {width:r.width,height:r.height,top:r.top,bottom:r.bottom,headerBottom:head.bottom,triggerTop:trigger.top,
-      available:Math.max(112,Math.floor(trigger.top-head.bottom-16)),
-      itemsScroll:items.scrollHeight,itemsClient:items.clientHeight,
+      available:Math.max(112,Math.floor(trigger.top-head.bottom-16)),overflow,
+      itemsScroll:items.scrollHeight,itemsClient:items.clientHeight,rows:rows.length,
+      partialBottomRow:rows.some(row=>row.top<list.bottom-1&&row.bottom>list.bottom+2),
+      emptyTail:rows.length?list.bottom-rows.at(-1).bottom:0,
       searchTop:search.top,searchBottom:search.bottom,footerTop:footer.top,footerBottom:footer.bottom,
       limit:getComputedStyle(el).maxHeight};
   });
   assert.ok(menuGeometry.width>=423&&menuGeometry.width<=427,'Model menu should keep its 425px desktop width: '+JSON.stringify(menuGeometry));
-  assert.ok(Math.abs(menuGeometry.height-menuGeometry.available)<=2&&menuGeometry.height>510,'Model dropdown must use the full available height rather than shrinking to its contents: '+JSON.stringify(menuGeometry));
+  assert.ok(menuGeometry.height<=menuGeometry.available+2&&menuGeometry.height>350,'Model dropdown should grow naturally without covering navigation: '+JSON.stringify(menuGeometry));
   assert.ok(menuGeometry.top>=menuGeometry.headerBottom+6,'Model dropdown must not touch navigation: '+JSON.stringify(menuGeometry));
   assert.ok(menuGeometry.searchTop>=menuGeometry.top&&menuGeometry.footerBottom<=menuGeometry.bottom+1,'Search and character shortcut stay inside menu: '+JSON.stringify(menuGeometry));
-  assert.ok(menuGeometry.itemsClient>=380,'Compact model rows leave useful space before scrolling: '+JSON.stringify(menuGeometry));
+  assert.equal(menuGeometry.partialBottomRow,false,'Only complete model rows should show initially: '+JSON.stringify(menuGeometry));
+  if(!menuGeometry.overflow)assert.ok(menuGeometry.emptyTail<7,'No large blank area after the last model: '+JSON.stringify(menuGeometry));
+  assert.ok(menuGeometry.itemsClient>=250,'Model list stays usable before scrolling: '+JSON.stringify(menuGeometry));
   assert.equal(await x.page.locator('.composer-model-option[data-value="qwen3"] img').getAttribute('src'),'./branding/qwen.svg?v=20261013-mono1','Qwen uses refreshed local icon');
   await x.page.screenshot({path:'test-results/lab-image-model-popup.png',fullPage:false});
   await x.page.fill('#image-composer-model-search','banana');
+  const filteredMenu=await x.page.locator('#image-composer-model-menu').evaluate(el=>{
+    const list=el.querySelector('.composer-model-items');
+    return {height:el.getBoundingClientRect().height,listScroll:list.scrollHeight,listClient:list.clientHeight};
+  });
+  assert.ok(filteredMenu.height<menuGeometry.height,'Filtered list should shrink the menu instead of preserving empty space: '+JSON.stringify(filteredMenu));
   await x.page.locator('.composer-model-option[data-value="gemini"]').click();
   assert.equal(await x.page.locator('#image-engine').inputValue(),'gemini','Model menu changes actual provider selection');
   await x.page.click('#image-composer-model');
