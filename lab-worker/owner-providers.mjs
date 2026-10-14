@@ -109,9 +109,10 @@ async function fetchSpicy(env,ownerKey,fetcher,t){
   p.lastChecked=iso(t);return p;
 }
 async function fetchFal(env,fetcher,t){
-  const p=provider('fal',!!env.FAL_KEY);if(!p.configured)return p;
+  const key=env.FAL_BILLING_KEY||env.FAL_KEY;
+  const p=provider('fal',!!key);if(!p.configured)return p;
   p.balanceUnit='USD';p.spendUnit='USD';p.spendKind='provider usage estimates';
-  const dates=boundaries(t),header='Key',key=env.FAL_KEY;
+  const dates=boundaries(t),header='Key';
   const a='https://api.fal.ai/v1/account/billing?expand=credits';
   const q=new URL('https://api.fal.ai/v1/models/usage');
   q.searchParams.set('start',dates.month);q.searchParams.set('end',iso(t));
@@ -137,7 +138,7 @@ async function fetchFal(env,fetcher,t){
         if(!p.lastSuccess)p.lastSuccess=iso(t);}
       else p.note='Usage report contained an unknown currency or amount.';
     }else p.note='Full fal.ai usage report unavailable or paginated; no partial totals displayed.';
-  }else p.note='Usage requires fal.ai billing/reporting permissions. The default generation key may not include them.';
+  }else p.note='Usage requires fal.ai billing/reporting permissions. Configure FAL_BILLING_KEY (a separate billing-scoped key) when FAL_KEY only has generation access.';
   p.lastChecked=iso(t);return p;
 }
 async function fetchFashn(env,fetcher,t){
