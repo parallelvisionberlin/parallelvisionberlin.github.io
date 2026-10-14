@@ -3,8 +3,8 @@
 const FIVE_MINUTES=300000, MIN_FORCE_GAP=30000;
 let snapshot=null, lastStarted=0, pending=null;
 const providerMeta=Object.freeze([
-  {id:'spicy',name:'SpicyAPI',billingType:'Prepaid USD',billingUrl:'https://spicyapi.ai/console/billing',logoUrl:'https://spicyapi.ai/favicon.ico'},
-  {id:'fal',name:'fal.ai',billingType:'Prepaid USD',billingUrl:'https://fal.ai/dashboard/billing',logoUrl:'https://fal.ai/favicon.ico'},
+  {id:'spicy',name:'SpicyAPI',billingType:'USD wallet · funding may vary',billingUrl:'https://spicyapi.ai/console/billing',logoUrl:'https://spicyapi.ai/favicon.ico'},
+  {id:'fal',name:'fal.ai',billingType:'USD credits · check plan',billingUrl:'https://fal.ai/dashboard/billing',logoUrl:'https://fal.ai/favicon.ico'},
   {id:'higgsfield',name:'Higgsfield',billingType:'Credits / top-up',billingUrl:'https://open.higgsfield.ai',logoUrl:'https://higgsfield.ai/favicon.ico'},
   {id:'gemini',name:'Google Gemini',billingType:'Prepay or postpay (verify in console)',billingUrl:'https://aistudio.google.com/billing',logoUrl:'https://aistudio.google.com/favicon.ico'},
   {id:'fashn',name:'FASHN',billingType:'API credits',billingUrl:'https://app.fashn.ai/billing/api',logoUrl:'https://fashn.ai/favicon.ico'}
@@ -66,7 +66,7 @@ async function fetchSpicy(env,ownerKey,fetcher,t){
   const keys=[{label:'Parallel Vision Lab · personal',key:ownerKey},{label:'PV Lab Customers',key:env.LAB_CUSTOMER_SPICY_API_KEY}];
   const dates=boundaries(t),active=keys.filter(k=>!!k.key),current=keys.map(k=>({label:k.label,configured:!!k.key,spendToday:null,spendMonth:null,status:k.key?'checking':'not-configured'}));
   p.keyUsage=current;p.balanceUnit='USD';p.spendUnit='USD';p.spendKind='settled provider charges';
-  p.note='One shared wallet. Usage is separated by key; no account-wide spend total is asserted for other keys.';
+  p.note='One shared USD wallet, which may include prepaid funds, grants or approved credit. Usage is separated by key; additional account keys are not covered.';
   // Wallet is account-level. Read it only once, never once per key.
   const preferred=env.LAB_CUSTOMER_SPICY_API_KEY||ownerKey;
   const outcomes=await Promise.allSettled([
@@ -77,7 +77,20 @@ async function fetchSpicy(env,ownerKey,fetcher,t){
   if(balance.status==='fulfilled'&&balance.value?.code===200){
     const b=balance.value.data?.funding?.wallet||balance.value.data;
     const available=asUsd(b?.available),held=asUsd(b?.held);
-    if(available&&held){p.balance=available.amount;p.held=held.amount;p.lastSuccess=iso(t);p.status='live';p.low=Number(available.amount)<10;}
+    if(available&&held){
+      p.balance=available.amount;p.held=held.amount;p.lastSuccess=iso(t);p.status='live';p.low=Number(available.amount)<10;
+      // Optional funding breakdown from SpicyAPI: never add a credit facility to prepaid cash.
+      const funding=balance.value.data?.funding;
+      if(funding&&typeof funding==='object'){
+        const prepaid=asUsd(funding.prepaidAvailableUsd),grants=asUsd(funding.grantAvailableUsd),
+          credit=asUsd(funding.credit?.availableUsd);
+        if(prepaid||grants||credit)p.funding={
+          ...(prepaid?{prepaid:prepaid.amount}:{}),
+          ...(grants?{grants:grants.amount}:{}),
+          ...(credit?{creditAvailable:credit.amount}:{})
+        };
+      }
+    }
     else {p.status='unavailable';p.error='Unexpected SpicyAPI balance format.';}
   } else if(balance.status==='rejected')failed(p,balance.reason,t);
   else {p.status='unavailable';p.error='Unexpected SpicyAPI balance response.';}
@@ -101,9 +114,9 @@ async function fetchFal(env,fetcher,t){
   const dates=boundaries(t),header='Key',key=env.FAL_KEY;
   const a='https://api.fal.ai/v1/account/billing?expand=credits';
   const q=new URL('https://api.fal.ai/v1/models/usage');
-  q.searchParams.set('start',dates.month);q.searchParams.set('end',dates.end);
+  q.searchParams.set('start',dates.month);q.searchParams.set('end',iso(t));
   q.searchParams.set('timezone','UTC');q.searchParams.set('timeframe','day');q.searchParams.set('expand','time_series');
-  q.searchParams.set('bound_to_timeframe','false');q.searchParams.set('limit','1000');
+  q.searchParams.set('bound_to_timeframe','false');q.searchParams.set('limit','100');
   const [balance,usage]=await Promise.allSettled([readJson(a,key,header,fetcher),readJson(q.href,key,header,fetcher)]);
   if(balance.status==='fulfilled'){
     const b=balance.value.credits;
