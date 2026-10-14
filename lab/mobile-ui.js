@@ -3,7 +3,7 @@ import {isNativeLab} from './native-account.js?v=20261014-native-photo-picker1';
 export function initLabMobileUI(){
   if(!isNativeLab()||document.documentElement.classList.contains('pv-native-lab'))return;
   document.documentElement.classList.add('pv-native-lab');
-  const css=document.createElement('link');css.rel='stylesheet';css.href='./mobile-app.css?v=20261012-photo-layout1';document.head.append(css);
+  const css=document.createElement('link');css.rel='stylesheet';css.href='./mobile-app.css?v=20261012-photo-layout1&generateStable=20261014-1';document.head.append(css);
   // Loaded after the original app stylesheet so only native Create and Gallery
   // receive the compact workdeck and responsive archive; browser Lab is unchanged.
   const mobileRefinement=document.createElement('link');mobileRefinement.rel='stylesheet';mobileRefinement.href='./native-create-gallery.css?v=20261014-native-deck-grid1';document.head.append(mobileRefinement);
