@@ -359,3 +359,13 @@ body>#studio-header .wrap.top{max-width:none;padding-right:16px}
   .landing-header--home .lab-home-credit-plus{width:24px;height:24px;font-size:16px}
 }
 @media(prefers-reduced-motion:reduce){.landing-header--home .lab-home-credits{transition:none}}
+
+
+/* Consistent desktop hero regardless of account state. Keep the same editorial text block. */
+@media(min-width:901px){
+  .landing-header--home + main .lab-hero .hero-copy{max-width:min(620px,52vw)}
+  .landing-header--home + main .lab-hero .hero-description{
+    max-width:620px;
+    white-space:nowrap;
+  }
+}
