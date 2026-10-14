@@ -514,8 +514,34 @@ function isFalUpscale(){return tool==='upscale'&&upscaleEngine!=='spicy';}
 function upscaleMode(p){return Object.hasOwn(UPSCALE_MODELS,p?.upscaleEngine)?p.upscaleEngine:'seedvr2';}
 function upscaleName(p){const model=UPSCALE_MODELS[upscaleMode(p)];return model.name+(upscaleMode(p)==='topaz-precision'?' / '+(p.topazModel||'Standard V2'):'')+' · '+model.provider;}
 function upscaleSize(p){return p.targetWidth&&p.targetHeight?p.targetWidth+' × '+p.targetHeight:p.scale?p.scale+'×':String(p.resolution||'').toUpperCase();}
+const UPSCALE_PUBLIC_ENGINES=Object.freeze(['seedvr2','topaz-precision','topaz-wonder']);
+const UPSCALE_MODEL_UI=Object.freeze({
+  seedvr2:{brand:'ByteDance Premium',version:'SeedVR2'},
+  'topaz-precision':{brand:'Topaz Precision',version:'Standard V2'},
+  'topaz-wonder':{brand:'Topaz Wonder',version:'3.5'}
+});
+function closeUpscaleModelMenu(focusTrigger=false){
+  const menu=$('upscale-model-menu'),trigger=$('upscale-model-trigger');
+  if(menu.hidden)return;
+  menu.hidden=true;trigger.setAttribute('aria-expanded','false');
+  if(focusTrigger)trigger.focus({preventScroll:true});
+}
+function openUpscaleModelMenu(){
+  if(tool!=='upscale'||busy||!config.falEnabled)return;
+  const menu=$('upscale-model-menu'),trigger=$('upscale-model-trigger');
+  menu.hidden=false;trigger.setAttribute('aria-expanded','true');
+  (menu.querySelector('[data-upscale-engine="'+upscaleEngine+'"]')||menu.querySelector('button'))?.focus({preventScroll:true});
+}
 function updateUpscaleModel(){
   const active=tool==='upscale',fal=isFalUpscale(),model=UPSCALE_MODELS[upscaleEngine];$('upscale-model-control').hidden=true;$('upscale-model-display').hidden=!active;$('upscale-topaz-control').hidden=!active||upscaleEngine!=='topaz-precision';$('upscale-scale-control').hidden=!fal;$('mode-heading').parentElement.classList.toggle('upscale-mode',active);
+  if(!active)closeUpscaleModelMenu();
+  const shown=UPSCALE_MODEL_UI[upscaleEngine]||UPSCALE_MODEL_UI.seedvr2;
+  $('upscale-engine').value=upscaleEngine;
+  $('upscale-model-brand').textContent=shown.brand;
+  $('upscale-model-id').textContent=upscaleEngine==='topaz-precision'?$('upscale-topaz-model').value:shown.version;
+  $('upscale-model-trigger').setAttribute('aria-label','Choose upscale model, currently '+shown.brand+' '+$('upscale-model-id').textContent);
+  $('upscale-model-trigger').disabled=!active||busy||!config.falEnabled;
+  for(const item of $('upscale-model-menu').querySelectorAll('[data-upscale-engine]'))item.setAttribute('aria-checked',String(item.dataset.upscaleEngine===upscaleEngine));
   for(const option of $('upscale-engine').options)option.disabled=option.value!=='spicy'&&!config.falEnabled;
   if(!active)return;
   $('resolution-control').hidden=fal;$('engine-name').textContent=model.name.toUpperCase()+' · '+model.provider.toUpperCase();
@@ -550,7 +576,7 @@ function updateUpscalePrice(){
   $('upscale-price-status').textContent=customerMode&&q?('Estimated credit charge: '+(Number.isSafeInteger(q.creditCost)?q.creditCost+' credits':wallet.describe(q.maxUsd))+'. Valid until '+new Date(q.expiresAt).toLocaleTimeString()+'. No generation submitted.'):q?(q.priceIsEstimate?('Estimated charge: '+money(q.estimatedUsd)+' USD. '+q.settings.sourceWidth+' × '+q.settings.sourceHeight+' to '+q.settings.targetWidth+' × '+q.settings.targetHeight+' output. Not a guaranteed maximum. Valid until '+new Date(q.expiresAt).toLocaleTimeString()+'. No generation submitted.'):('Live price: '+money(q.estimatedUsd)+' USD'+(q.maxUsd!==q.estimatedUsd?' · maximum '+money(q.maxUsd)+' USD':'')+'. Valid until '+new Date(q.expiresAt).toLocaleTimeString()+'. No generation submitted.')):upscalePriceMessage||(fal?'Check the estimated charge and output dimensions before upscaling.':'Check the price for this image before upscaling, or use Upscale directly.');
   if(active&&(fal&&!config.falEnabled||(!fal&&upscaleQuoteNeedsCheck)||upscaleManualReviewRequired))$('generate').disabled=true;
   if(active&&q)$('generate').textContent=customerMode?'Upscale · '+(Number.isSafeInteger(q.creditCost)?q.creditCost+' credits':wallet.describe(q.maxUsd)):'Upscale · '+(q.priceIsEstimate?'est. ':q.maxUsd!==q.estimatedUsd?'max ':'')+money(q.priceIsEstimate?q.estimatedUsd:q.maxUsd);
-  else if(active&&customerMode)$('generate').textContent='Upscale · '+(Number($('upscale-scale').value)===4?18:10)+' credits';
+  else if(active&&customerMode)$('generate').textContent=upscaleEngine==='seedvr2'?'Upscale · '+(Number($('upscale-scale').value)===4?18:10)+' credits':'Upscale';
 }
 function validateUpscaleQuote(q,selected){
   const which=upscaleMode(selected),fal=which!=='spicy',p=q?.settings,wrong=!q||!p||q.provider!==(fal?'fal.ai':'SpicyAPI')||p.model!==UPSCALE_MODELS[which].model||p.type!=='image'||p.mode!=='upscale'||upscaleMode(p)!==which||p.outputFormat!==selected.outputFormat||!q.id||!Number.isFinite(q.estimatedUsd)||q.estimatedUsd<0||!Number.isFinite(q.maxUsd)||q.maxUsd<q.estimatedUsd||!Number.isFinite(q.expiresAt)||q.expiresAt<=Date.now();
@@ -1771,7 +1797,49 @@ $('canvas-secondary').addEventListener('click',()=>runCanvasEntry($('canvas-seco
 $('soul-use').onclick=()=>{if(busy)return;imageEngine='soul';$('image-engine').value='soul';setTool('image');window.scrollTo({top:0,behavior:'smooth'});};
 $('soul-launch-manage').onclick=()=>{if(busy)return;imageEngine='soul';$('image-engine').value='soul';setTool('image');$('soul-dialog').showModal();void soul.load().catch(e=>notify(e.message,true));};
 $('tool-upscale').onclick=()=>{if(!busy)setTool('upscale');};
-$('upscale-engine').onchange=()=>{if(busy)return;const value=$('upscale-engine').value;upscaleEngine='seedvr2';$('upscale-engine').value='seedvr2';invalidateUpscalePrice('Upscale method changed. Check the price again before upscaling.');setTool('upscale');};
+$('upscale-model-trigger').onclick=()=>{
+  if(busy)return;
+  if($('upscale-model-menu').hidden)openUpscaleModelMenu();else closeUpscaleModelMenu();
+};
+$('upscale-model-trigger').onkeydown=event=>{
+  if(event.key==='ArrowDown'||event.key==='ArrowUp'){event.preventDefault();openUpscaleModelMenu();}
+};
+$('upscale-model-menu').addEventListener('click',event=>{
+  const option=event.target.closest('[data-upscale-engine]');
+  if(!option||!$('upscale-model-menu').contains(option)||busy)return;
+  const value=option.dataset.upscaleEngine;
+  if(!UPSCALE_PUBLIC_ENGINES.includes(value))return;
+  $('upscale-engine').value=value;
+  $('upscale-engine').dispatchEvent(new Event('change',{bubbles:true}));
+  closeUpscaleModelMenu(true);
+});
+$('upscale-model-menu').addEventListener('keydown',event=>{
+  if(event.key==='Escape'){event.preventDefault();closeUpscaleModelMenu(true);return;}
+  const choices=[...$('upscale-model-menu').querySelectorAll('button:not(:disabled)')],index=choices.indexOf(document.activeElement);
+  if(['ArrowUp','ArrowDown','Home','End'].includes(event.key)){
+    event.preventDefault();
+    const next=event.key==='Home'?0:event.key==='End'?choices.length-1:event.key==='ArrowUp'?(index-1+choices.length)%choices.length:(index+1)%choices.length;
+    choices[next]?.focus({preventScroll:true});
+  }
+});
+document.addEventListener('pointerdown',event=>{
+  if(!$('upscale-model-menu').hidden&&!event.target.closest('#upscale-model-display'))closeUpscaleModelMenu();
+});
+document.addEventListener('keydown',event=>{
+  if(event.key==='Escape'&&!$('upscale-model-menu').hidden){event.preventDefault();closeUpscaleModelMenu(true);}
+});
+$('upscale-engine').onchange=()=>{
+  if(busy){$('upscale-engine').value=upscaleEngine;return;}
+  const value=$('upscale-engine').value;
+  if(!UPSCALE_PUBLIC_ENGINES.includes(value)){$('upscale-engine').value=upscaleEngine;return;}
+  if(value===upscaleEngine){updateUpscaleModel();return;}
+  upscaleEngine=value;
+  clearUpscalePrice();
+  upscalePriceMessage='Model changed. A fresh estimate is checked before upscaling. No job submitted.';
+  if(value==='topaz-precision')$('upscale-info').open=true;
+  $('notice').textContent='';$('notice').classList.remove('error');
+  update();
+};
 for(const id of ['upscale-topaz-model','upscale-scale'])$(id).onchange=()=>{if(busy)return;invalidateUpscalePrice('Upscale settings changed. Check the price and output size again.');update();};
 $('tool-fashion').onclick=()=>void openFashionStudio();
 $('tool-retouch').onclick=()=>{if(!busy)void openRetouch({autofill:true});};
@@ -2234,7 +2302,7 @@ async function assetFile(id,name='source'){const blob=await api('/api/assets/'+i
 async function restore(job){
   clearMedia();const p=job.settings||{};engine=engineFor(p);imageReferenceMode=p.referenceMode==='references'?'references':'base';
   if(p.mode==='upscale'){
-    upscaleEngine='seedvr2';$('upscale-engine').value=upscaleEngine;
+    upscaleEngine=UPSCALE_PUBLIC_ENGINES.includes(p.upscaleEngine)?p.upscaleEngine:'seedvr2';$('upscale-engine').value=upscaleEngine;
     $('upscale-scale').value=String(p.scale===4?4:2);
     $('upscale-topaz-model').value=p.topazModel==='High Fidelity V3'?'High Fidelity V3':'Standard V2';
   }else if(p.type==='image'){
