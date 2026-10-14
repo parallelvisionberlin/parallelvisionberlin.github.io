@@ -11,7 +11,7 @@ const owner='user_RetouchCustomer';
 const requestId='sam_customer_request_0123456789';
 function fixture(initialCredits=50){
   const db=new DatabaseSync(':memory:');
-  db.exec('CREATE TABLE lab_migrations(id TEXT PRIMARY KEY,applied_at INTEGER); CREATE TABLE jobs(id TEXT PRIMARY KEY,owner_id TEXT,params TEXT,state TEXT,estimate_microusd INTEGER,created_at INTEGER,updated_at INTEGER); CREATE TABLE spend(job_id TEXT PRIMARY KEY,owner_id TEXT,estimate_microusd INTEGER,created_at INTEGER);');
+  db.exec('CREATE TABLE lab_migrations(id TEXT PRIMARY KEY,applied_at INTEGER); CREATE TABLE jobs(id TEXT PRIMARY KEY,owner_id TEXT,params TEXT,state TEXT,estimate_microusd INTEGER,created_at INTEGER,updated_at INTEGER); CREATE TABLE spend(job_id TEXT PRIMARY KEY,owner_id TEXT,estimate_microusd INTEGER,created_at INTEGER); CREATE TABLE assets(id TEXT PRIMARY KEY,owner_id TEXT);');
   db.exec(readFileSync(new URL('../lab-worker/migrations/0006-customers-billing.sql',import.meta.url),'utf8'));
   db.exec(readFileSync(new URL('../lab-worker/migrations/0016-retouch-selection-credits.sql',import.meta.url),'utf8'));
   db.prepare('INSERT INTO lab_customers(id,clerk_subject,balance_credits,created_at,updated_at) VALUES(?,?,0,1,1)').run(owner,owner);
