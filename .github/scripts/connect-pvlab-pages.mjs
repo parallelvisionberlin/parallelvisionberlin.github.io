@@ -23,17 +23,23 @@ if(page.name!==project)throw Error('Wrong Cloudflare Pages project. No DNS chang
 const zones=await api('/zones?name='+encodeURIComponent(name)+'&per_page=20');
 const zone=zones.find(z=>z.name===name&&z.account?.id===account);
 if(!zone||zone.status!=='active')throw Error('PV LAB Cloudflare DNS zone is not active or belongs to another account. No DNS changed.');
-const records=await api('/zones/'+zone.id+'/dns_records?name='+encodeURIComponent(name)+'&per_page=100');
-const root=records.filter(r=>r.name===name);
-const parking=root.filter(r=>r.type==='A'&&['207.207.210.229','207.207.210.107'].includes(r.content));
-const other=root.filter(r=>!parking.includes(r) && !(r.type==='CNAME'&&r.content===project+'.pages.dev'));
-if(other.length)throw Error('Unexpected apex DNS records present. No DNS changed; inspect pvlab.studio manually.');
 const paths='/accounts/'+account+'/pages/projects/'+project+'/domains';
 let domains=await api(paths);
 const existing=domains.find(d=>d.name===name);
 if(existing?.status==='active'){
   console.log('pvlab.studio is already an active Pages custom domain.');process.exit(0);
 }
+// First verify Pages Write by attaching the exact domain. Failure here cannot
+// alter DNS or interfere with Clerk.
+if(!existing){
+  await api(paths,{method:'POST',data:{name}});
+  console.log('Attached pvlab.studio to Cloudflare Pages project pvlab-studio.');
+}
+const records=await api('/zones/'+zone.id+'/dns_records?name='+encodeURIComponent(name)+'&per_page=100');
+const root=records.filter(r=>r.name===name);
+const parking=root.filter(r=>r.type==='A'&&['207.207.210.229','207.207.210.107'].includes(r.content));
+const other=root.filter(r=>!parking.includes(r) && !(r.type==='CNAME'&&r.content===project+'.pages.dev'));
+if(other.length)throw Error('Unexpected apex DNS records present. Leave DNS unchanged and inspect pvlab.studio manually.');
 // Remove ONLY the two Porkbun parking addresses observed and confirmed earlier.
 // Leave Clerk authentication, email, any MX/TXT and other domain zones untouched.
 for(const record of parking){
@@ -47,13 +53,8 @@ if(!apex){
       comment:'PV LAB independent Cloudflare Pages site'}});
   console.log('Created proxied PV LAB apex CNAME.');
 }
-if(!existing){
-  await api(paths,{method:'POST',data:{name}});
-  console.log('Attached pvlab.studio to Cloudflare Pages project pvlab-studio.');
-}else{
-  await api(paths+'/'+name,{method:'PATCH'});
-  console.log('Retried existing Pages custom-domain validation.');
-}
+await api(paths+'/'+name,{method:'PATCH'});
+console.log('Retried Pages custom-domain validation with the new DNS target.');
 const domain=(await api(paths)).find(d=>d.name===name);
 if(!domain)throw Error('Pages custom domain did not appear after attachment.');
 console.log('PV LAB Pages domain status:',domain.status);
