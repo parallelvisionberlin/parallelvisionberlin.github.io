@@ -790,6 +790,7 @@ const precisionEditor=createPrecisionEditor({host:$('app'),api,assetBlob,uploadA
   onExit:()=>returnToImageFromRetouch(),
   onJob:job=>{surfaceHistoryJob(job);refreshHistorySoon();}});
 // Retouch is an independent route. Image state stays in its existing deck.
+let lastNativeStudioTab='';
 function syncStudioNav(){
   const selected=retouchActive?'retouch':assetLibrary?.active()?'assets':fashionActive?'fashion':tool;
   for(const name of ['image','retouch','video','upscale','assets','fashion']){
@@ -797,6 +798,16 @@ function syncStudioNav(){
     const active=selected===name;
     tab.classList.toggle('active',active);
     tab.setAttribute('aria-pressed',String(active));
+  }
+  // Native tab navigation is owned by the Expo shell. Notify it only after
+  // its first destination command has resolved, avoiding a false Create flash.
+  // This also keeps Back to Image in the Retouch workspace in sync.
+  if(window.__PV_LAB_NATIVE__===1&&window.__pvNativeRouteResolved===true&&window.ReactNativeWebView){
+    const nativeTab=selected==='assets'?'gallery':selected==='retouch'?'retouch':selected==='image'?'create':null;
+    if(nativeTab&&nativeTab!==lastNativeStudioTab){
+      lastNativeStudioTab=nativeTab;
+      window.ReactNativeWebView.postMessage(JSON.stringify({type:'PV_LAB_TAB',tab:nativeTab}));
+    }
   }
 }
 function imageBaseForRetouch(){
