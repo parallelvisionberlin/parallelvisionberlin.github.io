@@ -1290,7 +1290,11 @@ function syncImageComposer(){
     customerMode&&customerGenerationReady&&priceState?.status==='checking'?'Checking price…':
     customerMode&&customerGenerationReady&&priceState?.status==='error'?'Price unavailable · click Generate to retry':'';
   const progressLine=$('image-composer-status');
-  if(progressLine){progressLine.textContent=progress;progressLine.hidden=!progress;}
+  // Preserve an import error toast until the user dismisses it. A routine
+  // render must not hide the oversize/invalid-file warning immediately.
+  if(progressLine&&!progressLine.classList.contains('is-import-error')){
+    progressLine.textContent=progress;progressLine.hidden=!progress;
+  }
   if(tool==='image'&&fastImageHandoff.has(currentImageSubmissionKey()))
     generate.title='This exact request is already preparing. Change the direction or wait for confirmation.';
   else generate.removeAttribute('title');
