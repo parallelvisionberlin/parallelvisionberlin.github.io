@@ -89,6 +89,47 @@ test('owner-only dashboard reads verified ledger payments without treating vouch
   assert.equal(result.payments.length,1);
   assert.equal(result.payments[0].credits,1000);
 });
+test('owner customer activity shows actual job states, net credit usage, and refunds without exposing prompts',async t=>{
+  const f=await setup(t);if(!f)return;
+  await assert.rejects(()=>f.admin('/api/admin/customers/activity?customerId=user_ALICE',null,'GET','user_ALICE'),/owner access required/);
+  await assert.rejects(()=>f.admin('/api/admin/customers/activity?customerId=%27%3Bdrop',null,'GET'),/Invalid customer/);
+  await assert.rejects(()=>f.admin('/api/admin/customers/activity?customerId=user_MISSING',null,'GET'),/Customer not found/);
+  const at=Date.now();
+  f.insert("INSERT INTO lab_credit_entries(id,customer_id,delta_credits,kind,reference,created_at) VALUES (?,?,?,?,?,?)",
+    'welcome:user_ALICE','user_ALICE',200,'adjustment','welcome:user_ALICE',at);
+  f.insert("INSERT INTO jobs(id,owner_id,params,state,estimate_microusd,created_at,updated_at) VALUES (?,?,?,?,?,?,?)",
+    'job_completed','user_ALICE',JSON.stringify({type:'image',provider:'spicy',model:'seedream-5',prompt:'private customer prompt',sourceUrl:'https://private.example/image'}),'completed',52174,at+1,at+1);
+  f.insert("INSERT INTO jobs(id,owner_id,params,state,estimate_microusd,created_at,updated_at) VALUES (?,?,?,?,?,?,?)",
+    'job_refunded','user_ALICE',JSON.stringify({type:'video',model:'wan-video'}),'queued',20000,at+2,at+2);
+  f.insert("UPDATE jobs SET state='failed',updated_at=? WHERE id='job_refunded'",at+3);
+  const response=await f.admin('/api/admin/customers/activity?customerId=user_ALICE',null,'GET');
+  assert.equal(response.status,200);
+  assert.equal(response.headers.get('Cache-Control'),'no-store');
+  const activity=await response.json();
+  assert.equal(activity.customer.balanceCredits,176);
+  assert.equal(activity.summary.totalJobs,2);
+  assert.equal(activity.summary.completedJobs,1);
+  assert.equal(activity.summary.failedJobs,1);
+  assert.equal(activity.summary.creditsCharged,34);
+  assert.equal(activity.summary.creditsRefunded,10);
+  assert.equal(activity.summary.netCreditsSpent,24);
+  assert.deepEqual(activity.jobs.map(job=>job.state),['failed','completed']);
+  assert.equal(activity.jobs[0].type,'video');
+  assert.equal(activity.jobs[0].chargedCredits,10);
+  assert.equal(activity.jobs[0].refundedCredits,10);
+  assert.equal(activity.jobs[1].model,'seedream-5');
+  assert.equal(activity.jobs[1].chargedCredits,24);
+  assert.ok(activity.entries.some(entry=>entry.description==='Welcome credits'&&entry.credits===200));
+  assert.ok(activity.entries.some(entry=>entry.kind==='refund'&&entry.credits===10));
+  assert.ok(!JSON.stringify(activity).includes('private customer prompt'));
+  assert.ok(!JSON.stringify(activity).includes('private.example'));
+  const other=await (await f.admin('/api/admin/customers/activity?customerId=user_BOB',null,'GET')).json();
+  assert.equal(other.summary.totalJobs,0);
+  assert.equal(other.customer.balanceCredits,0);
+  assert.equal(other.jobs.length,0);
+  assert.equal(other.entries.length,0);
+});
+
 test('invalid administrative voucher values are rejected and do not create credits',async t=>{
   const f=await setup(t);if(!f)return;
   for(const body of [{credits:0,maxRedemptions:1},{credits:200,maxRedemptions:0},{credits:200,maxRedemptions:2000},{credits:200,maxRedemptions:1,code:'bad code!'}, {credits:200,maxRedemptions:1,expiresAt:Date.now()-1}]){
