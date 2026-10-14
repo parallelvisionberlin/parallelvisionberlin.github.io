@@ -1,5 +1,5 @@
-import {loadLabAccount} from './native-account.js?v=20261012-unified-header1';
-import {createSessionRequest} from './session-request.js?v=20260927-auth1';
+import {loadLabAccount} from './native-account.js?v=20261012-unified-header1&studioAuth=20261015-1';
+import {createSessionRequest} from './session-request.js?v=20260927-auth1&studioAuth=20261015-1';
 import {prepareMoodPrompt} from './moods.js?filmOptics=2&app=5&raveNight=4&syntheticBudget=1&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&moodLock=20261014-mood-consistency1';
 import {createMoodReferenceLoader,moodReferencePlan} from './mood-references.js?v=20261013-compact-map2&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&refMode=20261014-contextual-reference1&moodLock=20261014-mood-consistency1';
 import {normalizeReferenceLabel} from './reference-guidance.js?v=20261013-compact-map2&dreamcore=7&syntheticRefs=1&raveIdentity=1&refMode=20261014-contextual-reference1';
