@@ -1,4 +1,5 @@
-import {createSessionRequest} from './session-request.js?v=20260927-auth1';
+import {createSessionRequest} from './session-request.js?v=20260927-auth1&studioAuth=20261015-1';
+import {loadLabAccount} from './native-account.js?v=20261014-custom-domain1&studioAuth=20261015-1';
 export function createFashionStudio(root=document,{sessionClient=null,onNavigate=null}={}){
 const API='https://parallel-vision-lab.parallelvision.workers.dev';
 const $=id=>root.getElementById(id);
@@ -357,13 +358,7 @@ update();
 const ready=(async()=>{
 if(sessionClient){clerk=sessionClient;await sync();return;}
 try{
-  const {Clerk}=await import('https://esm.sh/@clerk/clerk-js@6?bundle');
-  await new Promise((resolve,reject)=>{
-    const script=document.createElement('script');script.src='https://clerk.parallelvisionlabel.com/npm/@clerk/ui@1/dist/ui.browser.js';
-    script.onload=resolve;script.onerror=reject;document.head.append(script);
-  });
-  clerk=new Clerk('pk_live_Y2xlcmsucGFyYWxsZWx2aXNpb25sYWJlbC5jb20k');
-  await clerk.load({ui:{ClerkUI:window.__internal_ClerkUICtor},signInFallbackRedirectUrl:location.href,signUpFallbackRedirectUrl:location.href});
+  clerk=await loadLabAccount();
   clerk.addListener(()=>void sync());await sync();
 }catch{
   $('auth-status').textContent='Sign-in could not load. Reload the page.';

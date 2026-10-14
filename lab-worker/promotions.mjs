@@ -18,8 +18,10 @@ async function payload(request){
   try {const data=JSON.parse(raw);if(!data||Array.isArray(data)||typeof data!=='object')throw Error();return data;}
   catch {fail(400,'Invalid request.');}
 }
-export function voucherLink(env,code){
-  const base=new URL(env.LAB_PUBLIC_APP_URL||'https://parallelvisionlabel.com/lab/studio.html');
+export function voucherLink(env,code,origin=''){
+  const base=new URL(origin==='https://pvlab.studio'?'https://pvlab.studio/studio.html':
+    origin==='https://www.pvlab.studio'?'https://www.pvlab.studio/studio.html':
+    env.LAB_PUBLIC_APP_URL||'https://parallelvisionlabel.com/lab/studio.html');
   if(base.protocol!=='https:'||base.username||base.password)fail(503,'PV Lab URL is not configured.');
   const link=new URL('account.html',base);
   link.searchParams.set('voucher',code);
@@ -30,9 +32,15 @@ export function voucherLink(env,code){
 // Clerk is authoritative for verified account email. Never accept an email claimed by the browser.
 // Provide safe status information for owner-initiated diagnostics without returning Clerk data.
 async function clerkEmailStatus(env,subject,force=false){
-  const secret=env.LAB_CLERK_SECRET_KEY||env.CLERK_SECRET_KEY;
-  if(!secret)return 'missing_key';
   if(!/^user_[A-Za-z0-9]+$/.test(subject))return 'invalid_subject';
+  // Verified new Clerk identity maps to an internal D1 wallet ID; never infer identity by email.
+  const link=subject.startsWith('user_PvLabV2')
+    ?await one(env,"SELECT new_subject FROM lab_clerk_identity_links WHERE canonical_id=? AND kind='customer'",subject)
+    :null;
+  const studio=!!link&&subject==='user_PvLabV2'+link.new_subject.slice(5);
+  const realSubject=studio?link.new_subject:subject;
+  const secret=studio?env.LAB_CLERK_V2_SECRET_KEY:(env.LAB_CLERK_SECRET_KEY||env.CLERK_SECRET_KEY);
+  if(!secret)return 'missing_key';
   const contact=await one(env,'SELECT email,synced_at FROM lab_customer_contacts WHERE customer_id=?',subject);
   const ttl=contact?.email?86400000:7*86400000;
   if(!force&&contact?.synced_at&&Date.now()-contact.synced_at<ttl)return 'cached';
@@ -40,7 +48,7 @@ async function clerkEmailStatus(env,subject,force=false){
   try{
     // Workers does not support redirect:'error'. Use manual and never forward
     // the private Clerk key to a redirect target.
-    response=await fetch('https://api.clerk.com/v1/users/'+encodeURIComponent(subject),{
+    response=await fetch('https://api.clerk.com/v1/users/'+encodeURIComponent(realSubject),{
       method:'GET',headers:{Authorization:'Bearer '+secret,Accept:'application/json'},redirect:'manual',
       signal:AbortSignal.timeout(8000)
     });
@@ -51,7 +59,7 @@ async function clerkEmailStatus(env,subject,force=false){
   if(response.status===429)return 'rate_limited';
   if(!response.ok)return 'upstream_error';
   const account=await response.json().catch(()=>null);
-  if(account?.id!==subject||!Array.isArray(account.email_addresses))return 'invalid_response';
+  if(account?.id!==realSubject||!Array.isArray(account.email_addresses))return 'invalid_response';
   const primary=account.email_addresses.find(item=>item.id===account.primary_email_address_id);
   const email=primary?.verification?.status==='verified'&&typeof primary.email_address==='string'&&
     primary.email_address.length<=254&&EMAIL.test(primary.email_address)?primary.email_address.toLowerCase():null;
@@ -268,7 +276,7 @@ export async function labAdminRoute(request,env,owner,{decryptKey,providerFetche
       FROM lab_vouchers ORDER BY created_at DESC LIMIT 60`);
     const clerkSyncDiagnostic=await diagnosticSnapshot(env);
     return json({summary,customers,payments,referrals,
-      vouchers:vouchers.map(v=>({...v,url:voucherLink(env,v.code)})),
+      vouchers:vouchers.map(v=>({...v,url:voucherLink(env,v.code,request.headers.get('Origin')||'')})),
       emailSyncConfigured:!!(env.LAB_CLERK_SECRET_KEY||env.CLERK_SECRET_KEY),
       clerkSyncDiagnostic,
       resultLimit:80});
@@ -289,7 +297,7 @@ export async function labAdminRoute(request,env,owner,{decryptKey,providerFetche
       try {
         await run(env,`INSERT INTO lab_vouchers(code,credits,max_redemptions,redeemed_count,active,expires_at,note,created_at,created_by)
           VALUES(?,?,?,0,1,?,?,?,?)`,code,credits,maximum,expiresAt,note,t,owner);
-        return json({voucher:{code,credits,maxRedemptions:maximum,expiresAt,note,url:voucherLink(env,code)}},201);
+        return json({voucher:{code,credits,maxRedemptions:maximum,expiresAt,note,url:voucherLink(env,code,request.headers.get('Origin')||'')}},201);
       }catch(e){
         if(/unique constraint/i.test(String(e?.message||''))){if(chosen)fail(409,'That voucher code already exists.');continue;}
         throw e;

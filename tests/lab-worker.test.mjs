@@ -170,6 +170,85 @@ test('PV Soul training ZIP preflight allows its photo-count header',async()=>{
   assert.match(allowed,/X-Photo-Count/i);
   assert.equal(response.headers.get('access-control-allow-origin'),ORIGIN);
 });
+test('Independent Clerk domain authenticates only after signed-in account choice and keeps original credits',async()=>{
+  const {env}=fixture(),studio='https://pvlab.studio',issuer='https://clerk.pvlab.studio';
+  const newToken=await token('user_New',{iss:issuer,azp:studio});
+  const newRequest=(path,options={})=>req(env,path,{authToken:newToken,headers:{Origin:studio},...options});
+  assert.equal((await newRequest('/api/session')).status,401,'new issuer is disabled before domain cutover');
+  assert.equal((await req(env,'/api/session',{authToken:newToken})).status,401,'new issuer never authenticates on old origin');
+  assert.equal((await req(env,'/api/session',{headers:{Origin:studio}})).status,401,'legacy issuer never authenticates on new origin');
+  env.LAB_DB.db.exec(readFileSync(new URL('../lab-worker/migrations/0006-customers-billing.sql',import.meta.url),'utf8'));
+  env.LAB_DB.db.exec(readFileSync(new URL('../lab-worker/migrations/0017-clerk-domain-links.sql',import.meta.url),'utf8'));
+  env.LAB_STUDIO_AUTH_ENABLED='true';env.LAB_CUSTOMER_SIGNUPS_ENABLED='true';env.LAB_WELCOME_CREDITS_ENABLED='true';
+  const unlinked=await newRequest('/api/session');
+  assert.equal(unlinked.status,409);
+  assert.equal(unlinked.headers.get('x-pv-lab-onboarding'),'required');
+  assert.equal(env.LAB_DB.db.prepare('SELECT COUNT(*) AS n FROM lab_customers').get().n,0,
+    'an unlinked new user cannot be silently given an independent wallet');
+  assert.equal((await newRequest('/api/billing/checkout',{method:'POST',data:{sku:'topup10'}})).status,409);
+  assert.equal((await req(env,'/api/session',{authToken:guest})).status,200,'old customer creates the original wallet');
+  assert.equal(env.LAB_DB.db.prepare('SELECT balance_credits FROM lab_customers WHERE id=?').get('user_Guest').balance_credits,200);
+  const issued=await req(env,'/api/migration/issue',{method:'POST',authToken:guest});
+  assert.equal(issued.status,200);
+  const {code}=await issued.json();
+  assert.match(code,/^[A-Za-z0-9_-]{43}$/);
+  assert.notEqual(env.LAB_DB.db.prepare('SELECT code_hash FROM lab_clerk_migration_codes').get().code_hash,code,
+    'raw transfer code is never stored in D1');
+  assert.equal((await newRequest('/api/migration/redeem',{method:'POST',data:{code:'invalid'}})).status,400);
+  assert.equal((await newRequest('/api/migration/redeem',{method:'POST',data:{code}})).status,200);
+  const linked=await newRequest('/api/session');assert.equal(linked.status,200);
+  const session=await linked.json();
+  assert.equal(session.customer,true);assert.equal(session.owner,false);
+  assert.equal(session.ownerId,'user_Guest');
+  assert.equal(session.balanceCredits,200,'existing welcome credits are retained, never reissued');
+  assert.equal(env.LAB_DB.db.prepare('SELECT COUNT(*) AS n FROM lab_customers').get().n,1);
+  assert.equal(env.LAB_DB.db.prepare('SELECT COUNT(*) AS n FROM lab_credit_entries').get().n,1);
+  assert.equal((await newRequest('/api/migration/redeem',{method:'POST',data:{code}})).status,409);
+  assert.equal((await req(env,'/api/session',{authToken:newToken})).status,401);
+  assert.equal((await req(env,'/api/session',{authToken:auth})).status,200,'existing Nina owner remains active');
+});
+test('Existing owner role transfers only using one-time proof from the old owner login',async()=>{
+  const {env}=fixture(),studio='https://pvlab.studio';
+  env.LAB_STUDIO_AUTH_ENABLED='true';
+  env.LAB_DB.db.exec(readFileSync(new URL('../lab-worker/migrations/0017-clerk-domain-links.sql',import.meta.url),'utf8'));
+  const ownerFromNew=await token('user_NewOwner',{iss:'https://clerk.pvlab.studio',azp:studio});
+  const userFromNew=await token('user_Owner',{iss:'https://clerk.pvlab.studio',azp:studio});
+  const newCall=(authToken,path,options={})=>req(env,path,{authToken,headers:{Origin:studio},...options});
+  assert.equal((await newCall(userFromNew,'/api/session')).status,409,
+    'identical subject string in different issuer never inherits owner role');
+  const issue=await req(env,'/api/migration/issue',{method:'POST'});
+  const {code}=await issue.json();assert.match(code,/^[A-Za-z0-9_-]{43}$/);
+  assert.equal((await newCall(ownerFromNew,'/api/migration/redeem',{method:'POST',data:{code}})).status,200);
+  const old=await req(env,'/api/session');const modern=await newCall(ownerFromNew,'/api/session');
+  assert.equal(old.status,200);assert.equal(modern.status,200);
+  const state=await modern.json();assert.equal(state.owner,true);assert.equal(state.ownerId,'owner-internal');
+  const attacker=await newCall(userFromNew,'/api/migration/redeem',{method:'POST',data:{code}});
+  assert.notEqual(attacker.status,200,'used code does not authorize another new account');
+  env.OWNER_DB.db.prepare("UPDATE users SET role='user' WHERE id='owner-internal'").run();
+  assert.equal((await newCall(ownerFromNew,'/api/session')).status,403,
+    'revoking original owner role immediately revokes linked new owner');
+});
+test('Fresh new users receive welcome credits once and expired transfer codes cannot be redeemed',async()=>{
+  const {env}=fixture(),studio='https://pvlab.studio';
+  env.LAB_STUDIO_AUTH_ENABLED='true';env.LAB_CUSTOMER_SIGNUPS_ENABLED='true';env.LAB_WELCOME_CREDITS_ENABLED='true';
+  env.LAB_DB.db.exec(readFileSync(new URL('../lab-worker/migrations/0006-customers-billing.sql',import.meta.url),'utf8'));
+  env.LAB_DB.db.exec(readFileSync(new URL('../lab-worker/migrations/0017-clerk-domain-links.sql',import.meta.url),'utf8'));
+  const newToken=await token('user_Fresh',{iss:'https://clerk.pvlab.studio',azp:studio});
+  const newCall=(path,options={})=>req(env,path,{authToken:newToken,headers:{Origin:studio},...options});
+  const issued=await req(env,'/api/migration/issue',{method:'POST',authToken:guest});
+  const {code}=await issued.json();
+  env.LAB_DB.db.prepare('UPDATE lab_clerk_migration_codes SET expires_at=?').run(Date.now()-1000);
+  assert.equal((await newCall('/api/migration/redeem',{method:'POST',data:{code}})).status,400);
+  assert.equal((await newCall('/api/migration/new',{method:'POST'})).status,201);
+  assert.equal((await newCall('/api/migration/new',{method:'POST'})).status,409);
+  const session=await(await newCall('/api/session')).json();
+  assert.equal(session.owner,false);assert.equal(session.customer,true);
+  assert.equal(session.ownerId,'user_PvLabV2Fresh');
+  assert.equal(session.balanceCredits,200);
+  assert.equal(env.LAB_DB.db.prepare('SELECT COUNT(*) AS n FROM lab_credit_entries WHERE customer_id=?')
+    .get('user_PvLabV2Fresh').n,1);
+  assert.equal((await req(env,'/api/session',{authToken:auth})).status,200);
+});
 test('Public health works; every private operation rejects missing, non-owner and forged authentication',async()=>{const{env}=fixture();assert.equal((await req(env,'/health',{authToken:null})).status,200);for(const path of ['/api/session','/api/jobs','/api/assets/'+crypto.randomUUID()]){assert.equal((await req(env,path,{authToken:null})).status,401);assert.equal((await req(env,path,{authToken:guest})).status,403);}const bad=auth.slice(0,-5)+'aaaaa';assert.equal((await req(env,'/api/session',{authToken:bad})).status,401);assert.equal((await req(env,'/api/session',{authToken:await token('user_Owner',{exp:1})})).status,401);assert.equal((await req(env,'/api/session',{headers:{Origin:'https://evil.example'}})).status,403);});
 test('API keys encrypted; drafts persist all settings; quotes are free, bounded and keep private input URLs',async()=>{calls=[];createCount=0;const{env}=fixture(),id=await setup(env);const dbKey=env.LAB_DB.db.prepare('SELECT encrypted_key FROM settings').get().encrypted_key;assert.ok(!dbKey.includes(KEY));const session=await(await req(env,'/api/session')).text();assert.ok(!session.includes(KEY));assert.ok(!session.includes(dbKey));await req(env,'/api/drafts',{method:'POST',data:{sourceId:id,settings:p}});const h=await(await req(env,'/api/jobs')).json();assert.equal(h.jobs[0].sourceId,id);assert.equal(h.jobs[0].settings.seed,42);assert.equal(h.jobs[0].settings.audio,true);const q=await quote(env,id);assert.equal(q.estimatedUsd,2.7);assert.equal(createCount,0);const input=new URL(quotedRequest.input.image_url);assert.equal((await req(env,input.pathname+input.search,{authToken:null,headers:{Origin:''}})).status,200);assert.equal((await req(env,input.pathname+'?expires=1&signature=no',{authToken:null})).status,403);assert.equal((await req(env,'/api/assets/'+id,{authToken:null})).status,401);});
 test('Wan 21:9 keeps the original source, uses a prepared working crop and sends adaptive upstream',async()=>{calls=[];createCount=0;const{env}=fixture(),id=await setup(env);const upload=await req(env,'/api/uploads',{method:'POST',raw:new Uint8Array([137,80,78,71,13,10,26,10,0]),headers:{'Content-Type':'image/png','X-Filename':'wide-working.webp'}});assert.equal(upload.status,201);const copyId=(await upload.json()).id,settings={...p,aspectRatio:'21:9'};

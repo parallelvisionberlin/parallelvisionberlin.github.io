@@ -1,3 +1,4 @@
+import {clerkInstanceForHostname} from './clerk-instance.js?v=20261014-custom-domain1';
 // Native tokens remain in memory. The Worker still verifies every signed claim.
 export const isNativeLab=()=>typeof window!=='undefined'&&window.__PV_LAB_NATIVE__===1&&typeof window.ReactNativeWebView?.postMessage==='function';
 const pending=new Map();
@@ -28,8 +29,9 @@ export function loadLabAccount(){
 async function createLabAccount(){
   if(!isNativeLab()){
     const {Clerk}=await import('https://esm.sh/@clerk/clerk-js@6?bundle');
-    await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='https://clerk.parallelvisionlabel.com/npm/@clerk/ui@1/dist/ui.browser.js';s.onload=resolve;s.onerror=reject;document.head.append(s);});
-    const clerk=new Clerk('pk_live_Y2xlcmsucGFyYWxsZWx2aXNpb25sYWJlbC5jb20k');
+    const {frontendApi,publishableKey}=clerkInstanceForHostname(location.hostname);
+    await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src=frontendApi+'/npm/@clerk/ui@1/dist/ui.browser.js';s.onload=resolve;s.onerror=reject;document.head.append(s);});
+    const clerk=new Clerk(publishableKey);
     await clerk.load({ui:{ClerkUI:window.__internal_ClerkUICtor},signInFallbackRedirectUrl:location.href,signUpFallbackRedirectUrl:location.href});
     return clerk;
   }
