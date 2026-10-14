@@ -135,3 +135,80 @@ td strong{font-weight:450;color:#fff}
 .owner-vouchers-table td:last-child button{margin:0 5px 6px 0}
 @media(max-width:900px){.owner-jumpbar-actions span{display:none}.owner-jumpbar{gap:10px}.owner-jumpbar nav{gap:19px}}
 @media(max-width:600px){.owner-shell{padding-top:36px}.owner-hero{padding-bottom:26px}.owner-jumpbar{margin:0 -20px;padding:0 20px;gap:10px}.owner-jumpbar nav a{padding:18px 0 15px;font-size:10px}.owner-jumpbar-actions button{padding:8px;font-size:10px}.owner-integration{grid-template-columns:auto 1fr;align-items:start;gap:12px;margin-top:16px;padding:15px}.owner-integration button{grid-column:2;justify-self:start}.owner-setup-guide{padding:20px}.owner-metrics>div{min-height:100px;padding-top:17px;padding-bottom:13px}.owner-section{padding:38px 0}.owner-section-head{margin-bottom:16px}.owner-search{gap:7px}.owner-search input{min-width:90px;max-width:none}.owner-toolbar>div{align-self:flex-start}.owner-voucher-layout{gap:16px}.owner-voucher-preview,.owner-voucher-result{min-height:240px;padding:22px}.owner-voucher-preview-icon{font-size:46px}}
+
+
+/* Owner mobile overflow fix: the document stays viewport-wide, data reflows into lists. */
+html,body{width:100%;max-width:100%;overflow-x:clip}
+.owner-shell,#owner-dashboard,.owner-section,.owner-section-head,.owner-toolbar,
+.owner-jumpbar,.owner-jumpbar nav,.owner-voucher-layout,.owner-voucher-form,
+.owner-voucher-preview,.owner-voucher-result,.owner-table-wrap{min-width:0}
+.owner-table-wrap{max-width:100%}
+.owner-table-wrap td,.owner-table-wrap td strong,.owner-table-wrap td small{overflow-wrap:anywhere}
+@supports not (overflow:clip){html,body{overflow-x:hidden}}
+
+@media(max-width:600px){
+  /* Four fixed section tabs and a compact refresh control, with no sideways tab rail. */
+  .owner-jumpbar{
+    display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:4px;
+    width:calc(100% + 40px);max-width:none;margin-inline:-20px;padding:0 12px;
+  }
+  .owner-jumpbar nav{
+    display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;
+    width:100%;min-width:0;overflow:visible;scrollbar-width:none;
+  }
+  .owner-jumpbar nav a{
+    display:flex;align-items:center;justify-content:center;min-width:0;
+    padding:17px 1px 15px;font-size:10px;line-height:1.25;text-align:center;
+  }
+  .owner-jumpbar-actions{min-width:0;gap:0}
+  .owner-jumpbar-actions button{
+    position:relative;display:grid;place-items:center;width:38px;min-width:38px;
+    height:39px;padding:0;border-radius:4px;font-size:0;line-height:0;
+  }
+  .owner-jumpbar-actions button::after{content:'↻';font-size:20px;line-height:1}
+  /* Replace 680px desktop tables with elegant stacked rows on narrow screens. */
+  .owner-table-wrap{width:100%;max-width:100%;overflow:visible}
+  .owner-table-wrap table,.owner-table-wrap tbody,.owner-table-wrap tr,.owner-table-wrap td{
+    display:block;width:100%;min-width:0;max-width:100%;
+  }
+  .owner-table-wrap table{min-width:0;border-collapse:separate}
+  .owner-table-wrap thead{
+    position:absolute;width:1px;height:1px;padding:0;margin:-1px;
+    overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0;
+  }
+  .owner-table-wrap tbody tr{
+    margin:0;padding:12px 0 14px;border-top:1px solid #41423e;
+    border-bottom:0;background:transparent;
+  }
+  .owner-table-wrap tbody tr:last-child{border-bottom:1px solid #41423e}
+  .owner-table-wrap tbody td{
+    display:grid;grid-template-columns:minmax(0,96px) minmax(0,1fr);
+    column-gap:13px;align-items:start;padding:8px 0;
+    border:0;color:#e1dfd9;font-size:12px;line-height:1.5;
+    white-space:normal;overflow-wrap:anywhere;word-break:normal;
+  }
+  .owner-table-wrap tbody td[data-label]::before{
+    content:attr(data-label);display:block;min-width:0;padding-top:2px;
+    font-size:9px;line-height:1.45;letter-spacing:.10em;
+    text-transform:uppercase;color:#90928b;overflow-wrap:anywhere;
+  }
+  .owner-table-wrap tbody td:first-child:not([colspan]){
+    display:flex;flex-direction:column;gap:5px;padding:8px 0 12px;
+  }
+  .owner-table-wrap tbody td:first-child:not([colspan])::before{
+    align-self:stretch;margin-bottom:2px;
+  }
+  .owner-table-wrap tbody td strong,.owner-table-wrap tbody td small{
+    display:block;min-width:0;overflow-wrap:anywhere;word-break:break-word;
+  }
+  .owner-table-wrap tbody td small{margin:0;color:#90928b;font-size:11px}
+  .owner-table-wrap tbody td[colspan]{padding:19px 0}
+  .owner-vouchers-table tbody td:last-child:not([colspan]){
+    display:flex;align-items:center;flex-wrap:wrap;gap:7px;
+  }
+  .owner-vouchers-table tbody td:last-child:not([colspan])::before{flex-basis:100%}
+  .owner-vouchers-table td:last-child button{margin:0}
+  .owner-voucher-layout,.owner-voucher-form,.owner-voucher-preview,.owner-voucher-result,
+  .owner-form-grid,.owner-result-copy{width:100%;max-width:100%;min-width:0}
+  .owner-voucher-form input,.owner-result-copy input{max-width:100%}
+}

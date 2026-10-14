@@ -1,7 +1,9 @@
 name: PV Lab account interface
 on:
+  pull_request:
+    paths: ['lab/owner*', 'tests/lab-owner-mobile-browser.mjs', '.github/workflows/lab-account-ui.yml']
   push:
-    paths: ['lab/account*', 'lab/studio-credits.css', 'lab/customer-entry.js', 'lab/customer-wallet.js', 'lab/lab.js', 'lab/index.html', 'lab/moods.html', 'lab/studio.html', 'lab/mood-creator*', 'tests/lab-account*', '.github/workflows/lab-account-ui.yml']
+    paths: ['lab/account*', 'lab/studio-credits.css', 'lab/customer-entry.js', 'lab/customer-wallet.js', 'lab/lab.js', 'lab/index.html', 'lab/moods.html', 'lab/studio.html', 'lab/mood-creator*', 'tests/lab-account*', 'lab/owner*', 'tests/lab-owner-mobile-browser.mjs', '.github/workflows/lab-account-ui.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -26,9 +28,15 @@ jobs:
         env:
           PV_PLAYWRIGHT_MODULE: /tmp/pv-account-browser/node_modules/playwright/index.mjs
         run: node tests/lab-account-browser.mjs
+      - name: Keep owner dashboard locked to iPhone width
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-account-browser/node_modules/playwright/index.mjs
+        run: node tests/lab-owner-mobile-browser.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: pv-lab-account-review
-          path: /tmp/pv-lab-account-review
+          path: |
+            /tmp/pv-lab-account-review
+            /tmp/pv-lab-owner-mobile
           retention-days: 3

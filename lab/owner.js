@@ -34,6 +34,17 @@ function rowInto(tbody,items,values,emptyMessage='Nothing to show yet.'){
     tbody.append(tr);
   }
 }
+// Mobile layout reads the real column headings instead of duplicating them in CSS.
+function labelTableCellsForMobile(){
+  for(const table of document.querySelectorAll('.owner-table-wrap table')){
+    const headings=Array.from(table.querySelectorAll('thead th'),th=>th.textContent.trim());
+    for(const row of table.tBodies[0]?.rows||[]){
+      Array.from(row.cells).forEach((cell,index)=>{
+        if(cell.colSpan===1&&headings[index])cell.dataset.label=headings[index];
+      });
+    }
+  }
+}
 function render(data){
   const s=data.summary||{};
   $('owner-total-accounts').textContent=formatNumber(s.accounts);
@@ -115,6 +126,7 @@ function render(data){
     :'Email addresses cannot be retrieved without the server-side Clerk key. Open the connection guide above.';
   $('owner-sync').disabled=!emailSyncReady||syncing;
   $('owner-last-update').textContent='Updated '+new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+  labelTableCellsForMobile();
   $('owner-dashboard').hidden=false;
 }
 async function refreshDashboard(){
