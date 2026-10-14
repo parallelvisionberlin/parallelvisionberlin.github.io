@@ -1,5 +1,7 @@
 # Parallel Vision Lab
 
+Active work and verified provider routes: [WORK-STATE.md](WORK-STATE.md).
+
 ## Krea 2 LoRA trial (2026-10-14)
 Owner-only: Image > Character LoRAs > Train / manage > New Krea 2 LoRA. Uses the existing FAL_KEY and private soul_datasets/soul_characters storage. The browser makes the same WebP ZIP as the Qwen workflow; the Krea trainer receives `images_data_url`, a nonempty `trigger_phrase`, `auto_captioning: Off`, 1,000 steps and 1024 training resolution. No database migration or existing Qwen/Z-Image identity conversion is required. Krea records use the `pvk_` trigger prefix, and its completed `lora_file.url` is archived in private R2. Its inference uses `fal-ai/krea-2/turbo/lora` (prompt and one saved identity, never a source image), with safe generation defaults and a fixed aspect-ratio size. Fal's published estimates checked 2026-10-14 are $3.00 per 1,000 training steps and $0.01/MP for inference. One paid job per explicit action, no auto-retries; active training and daily Lab budget limits remain. Customer training and Krea generation remain blocked until commercial credit pricing is explicitly designed and tested. This launch makes no paid training request automatically. GitHub Actions deploys Worker on main changes.
 

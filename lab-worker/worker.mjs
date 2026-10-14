@@ -9,7 +9,8 @@ import {quoteCustomerImageCredits} from './customer-image-pricing.mjs';
 import {referralRoute} from './referrals.mjs';
 import {fashionRoute,refreshFashionJob} from './fashion-tools.mjs';
 import {precisionEditRoute} from './precision-edit.mjs';
-import {IMAGE_PRICES,IMAGE_RATIOS,imageModelParameters,buildImageModelInput,requestFlash} from './image-models.mjs';
+import {IMAGE_PRICES,IMAGE_RATIOS,imageModelParameters,buildImageModelInput} from './image-models.mjs';
+import {FLASH_TEXT,FLASH_EDIT,seedreamFlashParameters,seedreamFlashInput} from './seedream-flash.mjs';
 import {QWEN3_TEXT,QWEN3_EDIT,Z_IMAGE_SPICY,experimentalImageParameters,buildExperimentalImageInput} from './experimental-image-models.mjs';
 import {ensureGalleryDimensions} from './gallery-dimensions.mjs';
 import {serveGalleryThumbnail,galleryThumbnailKey} from './gallery-thumbnails.mjs';
@@ -38,7 +39,7 @@ import {SYNTHETIC_ROMANCE_REFERENCES,SYNTHETIC_ROMANCE_REFERENCE_VERSION} from '
 import {moodBoardsRoute} from './moodboards.mjs';
 import {moodCreatorRoute} from './mood-creator-service.mjs';
 import {characterPreview as soulCharacterPreview,SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-14.3-krea2-lora-trial';
+export const VERSION = 'pv-lab-2026-10-14.4-flash-spicyapi';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -228,12 +229,13 @@ function parameters(value) {
   if(value.engine&&!['wan','wanprime','h3','h3max','h3spicy'].includes(value.engine)&&value.type!=='image')fail(400,'Unknown video model.');
   const prompt=typeof value.prompt==='string'?value.prompt.trim():'';
   const referenceMode=value.referenceMode==='references'?'references':'base';
-  const referenceRoles=referenceLabels(value.referenceRoles,value.type==='image'&&value.engine==='flash'?14:10);
+  const referenceRoles=referenceLabels(value.referenceRoles,10);
   if(value.type==='image'&&['seedream','seedreamlite','gemini','gemini21','flash','kling','qwen3'].includes(value.engine)&&referenceMode==='references'){
     for(const r of referenceRoles)if(r.role==='base')r.role='none';
     if(!value.aspectRatio||value.aspectRatio==='auto')value={...value,aspectRatio:'16:9'};
   }
-  if(value.type==='image'&&['flash','kling'].includes(value.engine))return imageModelParameters({...value,referenceMode},{fail,referenceRoles});
+  if(value.type==='image'&&value.engine==='flash')return seedreamFlashParameters({...value,referenceMode},{fail,referenceRoles,moodMetadata:imageMoodMetadata});
+  if(value.type==='image'&&value.engine==='kling')return imageModelParameters({...value,referenceMode},{fail,referenceRoles});
   if(value.type==='image'&&['qwen3','zspicy'].includes(value.engine))return experimentalImageParameters(value,{fail,referenceRoles,moodMetadata:imageMoodMetadata});
   if(value.type==='image'&&value.engine==='seedreamlite')return seedreamLiteParameters(value,{fail,referenceRoles,moodMetadata:imageMoodMetadata});
   if(value.type==='image'&&value.engine==='soulpro'&&value.soulProModel==='soul2')return soul2Parameters(value,fail);
@@ -310,7 +312,7 @@ function assembledPrompt(p) {
   return prompt;
 }
 async function prepareInput(env,owner,data,p,url) {
-  if(['flash','kling'].includes(p.engine)){if(url)fail(400,'Use the image model generation route.');const ids=data.referenceSourceIds||[],refs=ids.length?await sources(env,owner,ids,p.engine==='flash'?14:1):[];p.referenceSourceIds=refs.map(a=>a.id);return {primary:refs[0]||null,input:{}};}
+  if(p.engine==='kling'){if(url)fail(400,'Use the Kling image generation route.');const ids=data.referenceSourceIds||[],refs=ids.length?await sources(env,owner,ids,1):[];p.referenceSourceIds=refs.map(a=>a.id);return {primary:refs[0]||null,input:{}};}
   if(p.provider==='higgsfield'&&p.mode==='extend'){const primary=await source(env,owner,data.sourceId);if(!['video/mp4','video/quicktime'].includes(primary.mime))fail(400,'Choose a video to extend.');p.referenceVideoIds=[primary.id];return {primary,input:{}};}
   if(p.provider==='higgsfield'){if(url)fail(400,'Use the Soul 2 generation route.');const primary=await source(env,owner,data.sourceId);return {primary,input:{}};}
   if(p.mode==='upscale'&&p.provider==='fal'){
@@ -402,6 +404,16 @@ async function prepareInput(env,owner,data,p,url) {
     const finalPrompt=prefix+'\n'+direction;if(finalPrompt.length>5000)fail(400,'PV Soul prompt plus identity instruction is too long.');
     input={prompt:finalPrompt,output_format:p.outputFormat,aspect_ratio:p.aspectRatio};
     if(url){const weights=await soulWeightUrl(env,url,character,soulDeps());input.loras=[{path:weights,scale:p.identityStrength}];}
+  }else if(p.type==='image'&&p.engine==='flash'){
+    const ids=data.referenceSourceIds||[];
+    if(!Array.isArray(ids))fail(400,'Reference photographs must be a list.');
+    const refs=ids.length?await sources(env,owner,ids,10):[];
+    if(refs.some(a=>!['image/jpeg','image/png','image/webp'].includes(a.mime)))
+      fail(400,'Seedream Flash accepts JPEG, PNG or WebP reference images.');
+    primary=refs[0]||null;p.referenceSourceIds=refs.map(a=>a.id);p.lastSourceId=null;
+    p.model=refs.length?FLASH_EDIT:FLASH_TEXT;
+    input=seedreamFlashInput(p,refs.length);
+    if(refs.length&&url)input.image_urls=await Promise.all(refs.map(a=>signedInput(env,url,a.id)));
   }else if(p.type==='image'&&p.engine==='seedreamlite'){
     const refs=data.referenceSourceIds?.length?await sources(env,owner,data.referenceSourceIds,10):[];
     if(refs.some(a=>!['image/jpeg','image/png','image/webp'].includes(a.mime)))
@@ -1198,11 +1210,11 @@ async function route(request,env,ctx) {
       const account=await customerSession(env,owner);
       const c=await config(env,owner);
       const ready=account.generationReady;
-      return json({...account,owner:false,ownerId:owner,version:VERSION,config:{...publicConfig(c,ready&&!!env.FAL_KEY),enabled:ready,configured:ready,customer:true,videoEngines:ready?publicConfig(c,!!env.FAL_KEY).videoEngines:[],higgsfieldEnabled:ready&&!!env.HF_CREDENTIALS&&env.LAB_CUSTOMER_HIGGSFIELD_ENABLED==='true',geminiEnabled:ready&&!!env.GEMINI_API_KEY,openrouterEnabled:ready&&!!env.OPENROUTER_API_KEY,soulTrainingEnabled:false,soulReinterpretEnabled:false,soulPresets:publicSoulPresets(),falEnabled:ready&&!!env.FAL_KEY}});
+      return json({...account,owner:false,ownerId:owner,version:VERSION,config:{...publicConfig(c,ready&&!!env.FAL_KEY),enabled:ready,configured:ready,customer:true,videoEngines:ready?publicConfig(c,!!env.FAL_KEY).videoEngines:[],higgsfieldEnabled:ready&&!!env.HF_CREDENTIALS&&env.LAB_CUSTOMER_HIGGSFIELD_ENABLED==='true',geminiEnabled:ready&&!!env.GEMINI_API_KEY,soulTrainingEnabled:false,soulReinterpretEnabled:false,soulPresets:publicSoulPresets(),falEnabled:ready&&!!env.FAL_KEY}});
     }
     await run(env,"DELETE FROM spend WHERE owner_id=? AND job_id IN (SELECT id FROM jobs WHERE owner_id=? AND state='failed' AND COALESCE(json_extract(params,'$.provider'),'')='fal')",owner,owner);
     const c=await config(env,owner),spent=await first(env,'SELECT COALESCE(SUM(estimate_microusd),0) AS n FROM spend WHERE owner_id=? AND created_at>=?',owner,Math.floor(now()/86400000)*86400000);
-    return json({owner:true,ownerId:owner,version:VERSION,config:{...publicConfig(c,!!env.FAL_KEY),higgsfieldEnabled:!!env.HF_CREDENTIALS,higgsfieldPrices:SOUL2_PRICES,geminiEnabled:!!env.GEMINI_API_KEY,openrouterEnabled:!!env.OPENROUTER_API_KEY,soulTrainingEnabled:!!env.FAL_KEY,soulReinterpretEnabled:true,soulPresets:publicSoulPresets(),falEnabled:!!env.FAL_KEY},estimatedSpentToday:spent.n/1000000});
+    return json({owner:true,ownerId:owner,version:VERSION,config:{...publicConfig(c,!!env.FAL_KEY),higgsfieldEnabled:!!env.HF_CREDENTIALS,higgsfieldPrices:SOUL2_PRICES,geminiEnabled:!!env.GEMINI_API_KEY,soulTrainingEnabled:!!env.FAL_KEY,soulReinterpretEnabled:true,soulPresets:publicSoulPresets(),falEnabled:!!env.FAL_KEY},estimatedSpentToday:spent.n/1000000});
   }
   if(path==='/api/soul-pro/identity'&&method==='GET'){
     const pack=await first(env,'SELECT id,refs,created_at FROM packs WHERE owner_id=? AND name=? ORDER BY created_at DESC LIMIT 1',owner,SOUL_PRO_IDENTITY_PACK);
@@ -1321,18 +1333,21 @@ async function route(request,env,ctx) {
     return json({job:jobView(await first(env,'SELECT * FROM jobs WHERE id=?',id))},201);
   }
   if(path==='/api/image-models/generate'&&method==='POST'){
+    // This legacy endpoint is reserved for FAL Kling. Flash is priced and submitted
+    // exclusively through SpicyAPI /api/quotes and /api/jobs.
     const data=await body(request),p=parameters(data.settings);
-    if(!['flash','kling'].includes(p.engine))fail(400,'Choose Seedream Flash or Kling.');
-    if(p.engine==='flash'&&!env.OPENROUTER_API_KEY)fail(503,'Add OPENROUTER_API_KEY as a Secret in the parallel-vision-lab Worker, then deploy.');
-    if(p.engine==='kling'&&!env.FAL_KEY)fail(503,'FAL API is not connected.');
-    const ids=data.referenceSourceIds||[];if(!Array.isArray(ids))fail(400,'Invalid image references.');
-    const refs=ids.length?await sources(env,owner,ids,p.engine==='flash'?14:1):[];
+    if(p.engine!=='kling')fail(400,'Use the live SpicyAPI quote route for Seedream Flash.');
+    if(!env.FAL_KEY)fail(503,'FAL API is not connected.');
+    const ids=data.referenceSourceIds||[];
+    if(!Array.isArray(ids))fail(400,'Invalid image references.');
+    const refs=ids.length?await sources(env,owner,ids,1):[];
     p.referenceSourceIds=refs.map(a=>a.id);p.referenceRoles=p.referenceRoles.slice(0,refs.length);
     if(refs.reduce((n,a)=>n+a.bytes,0)>16*1024*1024)fail(413,'Use smaller reference images: this route accepts up to 16 MiB combined.');
     const verified=[];
     for(const ref of refs){
       const bytes=await falImageBytes(env,ref),dimensions=storedImageDimensions(bytes,ref.mime);
-      if(p.engine==='kling'&&(bytes.length>10000000||dimensions.width<300||dimensions.height<300||dimensions.width/dimensions.height<0.4||dimensions.width/dimensions.height>2.5))fail(400,'Kling needs a PNG, JPEG or WebP under 10 MB, at least 300 × 300 pixels, with a ratio between 0.4 and 2.5.');
+      if(bytes.length>10000000||dimensions.width<300||dimensions.height<300||dimensions.width/dimensions.height<0.4||dimensions.width/dimensions.height>2.5)
+        fail(400,'Kling needs a PNG, JPEG or WebP under 10 MB, at least 300 × 300 pixels, with a ratio between 0.4 and 2.5.');
       verified.push({ref,bytes,dimensions});
     }
     if(p.aspectRatio==='auto'){
@@ -1341,32 +1356,15 @@ async function route(request,env,ctx) {
     }
     const prompt=assembledPrompt(p);
     if(!prompt.trim())fail(400,'Add a prompt or at least one reference photograph. No generation started.');
-    if(p.engine==='kling'&&prompt.length>2500)fail(400,'Kling prompt plus reference instructions exceeds 2,500 characters. Shorten the direction or notes.');
-    if(p.engine==='kling')p.model='fal-ai/kling-image/v3/'+(refs.length?'image-to-image':'text-to-image');
-    // Validate all input before reserving or sending a paid request.
+    if(prompt.length>2500)fail(400,'Kling prompt plus reference instructions exceeds 2,500 characters. Shorten the direction or notes.');
+    p.model='fal-ai/kling-image/v3/'+(refs.length?'image-to-image':'text-to-image');
     buildImageModelInput(p,refs.map(()=>''),prompt);
-    const reserved=await reserveFalImageJob(env,owner,refs[0]?.id||null,p,IMAGE_PRICES[p.engine]);
-    if(p.engine==='kling'){
-      const job=await submitReservedFalJob(env,reserved,p,async()=>{
-        const urls=await Promise.all(verified.map(({ref,bytes})=>falUploadImage(env.FAL_KEY,bytes,ref.mime)));
-        return buildImageModelInput(p,urls,prompt);
-      });
-      return json({job:jobView(job)},202);
-    }
-    let accepted=false,started=false,cached=false;
-    try{
-      const urls=verified.map(({ref,bytes})=>'data:'+ref.mime+';base64,'+standardBase64(bytes));
-      const input=buildImageModelInput(p,urls,prompt);started=true;
-      const result=await requestFlash(env.OPENROUTER_API_KEY,input);accepted=true;
-      await env.LAB_MEDIA.put(owner+'/pending-images/'+reserved.id+'.json',JSON.stringify(result),{httpMetadata:{contentType:'application/json'}});cached=true;
-      await run(env,"UPDATE jobs SET state='saving',provider_id='openrouter-image',updated_at=? WHERE id=?",now(),reserved.id);
-      await saveFlashResult(env,reserved);
-    }catch(e){
-      const state=cached?'saving':accepted||started&&e.definite!==true?'uncertain':'failed';
-      await run(env,'UPDATE jobs SET state=?,provider_id=COALESCE(?,provider_id),error=?,updated_at=? WHERE id=?',state,cached?'openrouter-image':null,String(e.message||'OpenRouter image request failed.').slice(0,500),now(),reserved.id);
-      if(state==='failed')await run(env,'DELETE FROM spend WHERE job_id=?',reserved.id);
-    }
-    return json({job:jobView(await first(env,'SELECT * FROM jobs WHERE id=?',reserved.id))},202);
+    const reserved=await reserveFalImageJob(env,owner,refs[0]?.id||null,p,IMAGE_PRICES.kling);
+    const job=await submitReservedFalJob(env,reserved,p,async()=>{
+      const urls=await Promise.all(verified.map(({ref,bytes})=>falUploadImage(env.FAL_KEY,bytes,ref.mime)));
+      return buildImageModelInput(p,urls,prompt);
+    });
+    return json({job:jobView(job)},202);
   }
   if(path==='/api/gemini/jobs'&&method==='POST') {
     if(!env.GEMINI_API_KEY)fail(503,'Gemini API key is not configured on this Worker.');
@@ -1522,7 +1520,7 @@ async function route(request,env,ctx) {
     const data=await body(request),p=parameters(data.settings);
     const quoteCount=data.count===undefined?1:Number(data.count);
     if(!Number.isInteger(quoteCount)||quoteCount<1||quoteCount>4)fail(400,'Choose 1 to 4 images for one price check.');
-    if(quoteCount>1&&!(p.type==='image'&&['seedream','seedreamlite','qwen3','zspicy'].includes(p.engine)&&p.mode==='image'&&p.provider==='spicy'))fail(400,'Multiple prices in one request are supported only for Seedream, Qwen 3 and Z-Image Spicy generation.');
+    if(quoteCount>1&&!(p.type==='image'&&['seedream','seedreamlite','flash','qwen3','zspicy'].includes(p.engine)&&p.mode==='image'&&p.provider==='spicy'))fail(400,'Multiple prices in one request are supported only for SpicyAPI image generation.');
     if(!['upscale','reinterpret'].includes(p.mode)&&!p.prompt&&!(supportsReferenceGuidance(p)&&Array.isArray(data.referenceSourceIds)&&data.referenceSourceIds.length>0))fail(400,'Add a prompt or at least one reference photograph.');
     if(p.provider==='higgsfield'&&p.mode==='extend')return json(await quoteVideoExtension(env,owner,data,p,url,hfDeps()));
     if(p.provider==='fal'&&p.mode==='upscale'){
@@ -1559,7 +1557,7 @@ async function route(request,env,ctx) {
         p.transferNotes=transfers.map((a,i)=>a.id===originals[i]?'':originalsData[i].filename+': original '+(originalsData[i].bytes/1048576).toFixed(2)+' MiB; provider working copy '+(a.bytes/1048576).toFixed(2)+' MiB.').filter(Boolean);
       }
       if(originals.length||builtIn.length){
-        const uris=await stageImageReferences(env,owner,p.transferSourceIds||[],key,10,['seedream','seedreamlite'].includes(p.engine)?36000000:0,builtIn);
+        const uris=await stageImageReferences(env,owner,p.transferSourceIds||[],key,10,['seedream','seedreamlite','flash'].includes(p.engine)?36000000:0,builtIn);
         if(['upscale','reinterpret'].includes(p.mode))input.image_url=uris[0];else input.image_urls=uris;
       }
     }
@@ -1624,7 +1622,7 @@ async function route(request,env,ctx) {
       return json({job:jobView(await first(env,'SELECT * FROM jobs WHERE id=?',id))},202);
     }
     const {c,key}=await requireConfigured(env,owner);
-    if([STILL_EDIT,QWEN3_EDIT,SEEDREAM_LITE_EDIT].includes(savedPayload.model)&&(!Array.isArray(savedPayload.input?.image_urls)||!savedPayload.input.image_urls.length||savedPayload.input.image_urls.some(uri=>!FILE_URI.test(uri))))
+    if([STILL_EDIT,QWEN3_EDIT,SEEDREAM_LITE_EDIT,FLASH_EDIT].includes(savedPayload.model)&&(!Array.isArray(savedPayload.input?.image_urls)||!savedPayload.input.image_urls.length||savedPayload.input.image_urls.some(uri=>!FILE_URI.test(uri))))
       fail(409,'This image quote uses the old reference transfer. Review a fresh price to verify your images before generating. Nothing was submitted.');
     if(savedPayload.model===UPSCALER&&!FILE_URI.test(savedPayload.input?.image_url||''))fail(409,'Review a fresh upscale quote to verify the input file. Nothing was submitted.');
     for(const assetId of linkedSourceIds(q))await source(env,owner,assetId);
@@ -1633,7 +1631,7 @@ async function route(request,env,ctx) {
       const kind=JSON.parse(q.params).type==='image'?'image':'video';
       // Reserve both a per-kind slot and spending atomically. Concurrent tabs cannot overbook.
       // Other providers do not consume SpicyAPI slots or block them with interrupted jobs, including legacy rows without a provider field.
-      const spicySql="NOT (COALESCE(json_extract(params,'$.provider'),'') IN ('gemini','fal','higgsfield') OR COALESCE(json_extract(params,'$.engine'),'') IN ('gemini','fal','soulpro','h3maxfal','omni') OR COALESCE(json_extract(params,'$.model'),'') LIKE 'gemini-%' OR COALESCE(json_extract(params,'$.model'),'') LIKE 'fal-ai/%')";
+      const spicySql="NOT (COALESCE(json_extract(params,'$.provider'),'') IN ('gemini','fal','higgsfield','openrouter') OR COALESCE(json_extract(params,'$.engine'),'') IN ('gemini','fal','soulpro','h3maxfal','omni') OR COALESCE(json_extract(params,'$.model'),'') LIKE 'gemini-%' OR COALESCE(json_extract(params,'$.model'),'') LIKE 'fal-ai/%')";
       const inserted=await run(env,"INSERT INTO jobs(id,owner_id,source_id,quote_id,params,state,estimate_microusd,created_at,updated_at) SELECT ?,?,?,?,?,'submitting',?,?,? WHERE NOT EXISTS(SELECT 1 FROM jobs WHERE owner_id=? AND state='uncertain' AND "+spicySql+") AND (SELECT COUNT(*) FROM jobs WHERE owner_id=? AND state IN ('submitting','queued','running','uncertain') AND "+spicySql+" AND CASE WHEN json_extract(params,'$.type')='image' THEN 'image' ELSE 'video' END=?)<? AND (SELECT COALESCE(SUM(estimate_microusd),0) FROM spend WHERE owner_id=? AND created_at>=?)+?<=?",id,owner,q.source_id,q.id,q.params,q.estimate_microusd,t,t,owner,owner,kind,CONCURRENCY[kind],owner,day,q.estimate_microusd,c.daily_limit_microusd);
       if(!inserted.meta.changes){
         const uncertain=(await first(env,"SELECT COUNT(*) AS n FROM jobs WHERE owner_id=? AND state='uncertain' AND "+spicySql,owner)).n;

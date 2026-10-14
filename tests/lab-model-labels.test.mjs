@@ -16,6 +16,8 @@ const cases=[
   [{engine:'qwen3',model:'alibaba/qwen-image-3.0/edit'},'Qwen Image 3.0'],
   [{engine:'zspicy',model:'alibaba/z-image-spicy/text-to-image'},'Z-Image Spicy'],
   [{engine:'flash',provider:'openrouter',model:'bytedance-seed/seedream-5-0-flash'},'Seedream Flash'],
+  [{engine:'flash',provider:'spicy',model:'bytedance/seedream-5.0-flash/text-to-image'},'Seedream Flash'],
+  [{engine:'flash',provider:'spicy',model:'bytedance/seedream-5.0-flash/edit'},'Seedream Flash'],
   [{engine:'kling',model:'fal-ai/kling-image/v3/text-to-image'},'Kling V3'],
   [{engine:'gemini',model:'gemini-3-pro-image'},'Nano Banana Pro'],
   [{engine:'gemini21',model:'gemini-nano-banana-2.1'},'Nano Banana 2.1'],

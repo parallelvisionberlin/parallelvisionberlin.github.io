@@ -16,9 +16,10 @@ export function modelImageInputIssue(engine, items = [], {count = 1, processing 
   if (engine === 'qwen3' && refs.some(item=>Number(item.file.size)>10000000))
     return 'Qwen Image 3.0 supports up to 10 MB per reference photo. Compress the image and try again. Nothing submitted.';
 
-  if (engine === 'flash' && total > 16 * MIB)
-    return 'Image too large for Seedream Flash: ' + mib(total) + ' MiB across ' + refs.length +
-      ' reference image(s). This model accepts a maximum of 16 MiB combined. Compress or remove references. No generation submitted.';
+  // SpicyAPI accepts ten Flash references. Files over 10 MiB use the
+  // existing prepared working-copy flow without modifying their originals.
+  if (engine === 'flash' && refs.length > 10)
+    return 'Seedream Flash accepts up to 10 reference images. Remove extras before generating. No generation submitted.';
   if (['gemini','gemini21'].includes(engine) && total > 14 * MIB)
     return 'Image too large for Nano Banana: ' + mib(total) + ' MiB across ' + refs.length +
       ' reference image(s). This Lab supports a maximum of 14 MiB combined for Nano Banana. Compress or remove references. No generation submitted.';

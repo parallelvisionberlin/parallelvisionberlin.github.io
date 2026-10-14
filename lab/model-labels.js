@@ -5,7 +5,8 @@
 const exactModelNames=Object.freeze([
   [/^bytedance\/seedream-5\.0-lite\//,'Seedream 5 Lite'],
   [/^bytedance\/seedream-5\.0-pro\//,'Seedream 5 Pro'],
-  [/^bytedance-seed\/seedream-5-0-flash(?:\/|$)/,'Seedream Flash'],
+  [/^bytedance-seed\/seedream-5-0-flash(?:\/|$)/,'Seedream Flash'], // Historical OpenRouter records
+  [/^bytedance\/seedream-5\.0-flash\//,'Seedream Flash'],
   [/^alibaba\/qwen-image-3\.0\//,'Qwen Image 3.0'],
   [/^alibaba\/z-image-spicy\//,'Z-Image Spicy'],
   [/^fal-ai\/kling-image\/v3\//,'Kling V3'],
