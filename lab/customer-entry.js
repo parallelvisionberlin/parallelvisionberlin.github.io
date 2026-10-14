@@ -64,6 +64,8 @@ async function refresh(){
 }
 function show(){
   const signed=!!clerk?.isSignedIn,customer=!!profile?.customer;
+  const startLink=document.querySelector('.start-link');
+  if(startLink)startLink.textContent=signed?'Start creating':'Start creating free';
   const header=document.querySelector('.landing-header--home');
   header?.classList.toggle('is-credit-loading',signed&&profileLoading&&!profile);
   header?.classList.add('is-account-ready');
@@ -161,10 +163,10 @@ async function purchase(button){
 }
 $('lab-header-signin')?.addEventListener('click',()=>void signIn());
 document.querySelectorAll('[data-lab-signin]').forEach(button=>button.addEventListener('click',()=>void signIn()));
-document.querySelector('.start-link')?.addEventListener('click',event=>{
+document.querySelectorAll('.start-link,[data-lab-welcome-start]').forEach(link=>link.addEventListener('click',event=>{
   if(event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey||clerk?.isSignedIn)return;
   event.preventDefault();void signIn(event.currentTarget.href);
-});
+}));
 $('lab-account-refer')?.addEventListener('click',()=>location.assign('./account.html#referrals'));
 $('lab-account-logout')?.addEventListener('click',async()=>{clearPurchaseIntent();await clerk?.signOut();profile=null;show();});
 buyButtons.forEach(button=>button.addEventListener('click',()=>void purchase(button)));

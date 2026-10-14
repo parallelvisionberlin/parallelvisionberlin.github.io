@@ -40,6 +40,9 @@ async function geometry(page){
 }
 function stable(before,after,label){
   for(const selector of selectors)for(const key of Object.keys(before[selector])){
+    // Returning customers see Start creating; visitors see Start creating free.
+    // The button footprint stays fixed while the wording changes.
+    if(selector==='.start-link'&&key.startsWith('text'))continue;
     assert.ok(Math.abs(before[selector][key]-after[selector][key])<.5,`${label}: ${selector} ${key} moved from ${before[selector][key]} to ${after[selector][key]}`);
   }
 }
@@ -70,8 +73,8 @@ try{
       });
       await page.goto(origin+'/lab/',{waitUntil:'domcontentloaded'});
       assert.equal(await page.locator('#lab-header-signin').isVisible(),false,'Sign-in does not flash before identity is known');
-      assert.equal(await page.locator('.lab-home-credit-placeholder').isVisible(),true,'Credit slot exists from first paint');
-      assert.equal(await page.locator('.lab-home-avatar-placeholder').isVisible(),true,'Avatar slot exists from first paint');
+      assert.equal(await page.locator('.lab-home-credit-placeholder').count(),0,'No outdated placeholder credit element');
+      assert.equal(await page.locator('.lab-home-avatar-placeholder').count(),0,'No outdated placeholder avatar element');
       assert.equal(await page.locator('[data-lab-signin]').isVisible(),false,'Google sign-in stays hidden on initial render');
       await page.waitForFunction(()=>typeof window.releaseTestAccount==='function');
       await page.waitForFunction(()=>performance.getEntriesByName('first-contentful-paint').length>0);
@@ -90,14 +93,14 @@ try{
       await page.evaluate(()=>window.releaseTestAccount());
       await page.locator('#lab-account-strip').waitFor({state:'visible'});
       if(holdCustomerSession){
-        assert.equal(await page.locator('.lab-home-avatar-placeholder').isVisible(),false,'Verified avatar replaces its shell before balance loads');
-        assert.equal(await page.locator('.lab-home-credit-placeholder').isVisible(),true,'Credit shell remains while balance loads');
-        assert.equal(await page.locator('#lab-home-credits').isVisible(),false,'No guessed credits during balance loading');
+        assert.equal(await page.locator('#lab-account-strip').isVisible(),true,'Verified avatar appears before balance loads');
+        assert.equal(await page.locator('#lab-home-credit-copy').textContent(),'Credits','Header does not guess a balance while session loads');
+        assert.equal(await page.locator('#lab-home-credits').isVisible(),true,'Header keeps a stable credits slot while session loads');
         releaseSession();
       }
       await page.locator('#lab-home-credits').waitFor({state:'visible'});
-      assert.equal(await page.locator('.lab-home-credit-placeholder').isVisible(),false);
-      assert.equal(await page.locator('.lab-home-avatar-placeholder').isVisible(),false);
+      assert.equal(await page.locator('.lab-home-credit-placeholder').count(),0);
+      assert.equal(await page.locator('.lab-home-avatar-placeholder').count(),0);
       const actionWeights=await page.evaluate(()=>({
         studio:Number.parseInt(getComputedStyle(document.querySelector('.landing-header--home .studio-link')).fontWeight,10),
         credits:Number.parseInt(getComputedStyle(document.querySelector('.landing-header--home .lab-home-credits')).fontWeight,10)
@@ -114,10 +117,15 @@ try{
       await page.locator('#lab-account-strip>summary').click();
       await page.getByRole('button',{name:'Sign out',exact:true}).click();
       await page.locator('#lab-header-signin').waitFor({state:'visible'});
-      assert.equal(await page.locator('.lab-home-credit-placeholder').isVisible(),false,'Signed-out state clears loading shells');
-      assert.equal(await page.locator('.lab-home-avatar-placeholder').isVisible(),false,'Signed-out state clears avatar shell');
-      assert.equal(await page.locator('#lab-home-credits').isVisible(),false,'Credits are removed on sign out');
+      assert.equal(await page.locator('.lab-home-credit-placeholder').count(),0,'No loading credit shell after sign out');
+      assert.equal(await page.locator('.lab-home-avatar-placeholder').count(),0,'No loading avatar shell after sign out');
+      assert.equal(await page.locator('#lab-home-credits').isVisible(),true,'Guests have a Get credits CTA in the same header slot');
+      assert.equal(await page.locator('#lab-home-credit-copy').textContent(),'Get credits');
       assert.equal(await page.locator('.lab-hero [data-lab-signin]').count(),0,'No separate Google button in the hero');
+      assert.match(await page.locator('.hero-welcome').innerText(),/200 free credits/i);
+      assert.match(await page.locator('.lab-pricing-welcome').innerText(),/No purchase required/);
+      assert.equal(await page.locator('[data-lab-welcome-start]').getAttribute('href'),'./studio.html?tool=image&welcome=1');
+      assert.equal(await page.locator('.start-link').textContent(),'Start creating free');
       stable(initial,await geometry(page),`${width}: sign out`);
       await page.locator('#lab-header-signin').click();
       assert.equal(await page.evaluate(()=>window.testSignInOpened),true);
@@ -126,7 +134,7 @@ try{
       assert.ok(heading.y>=header.y+header.height,`${width}: heading clears the navigation`);
       assert.equal(await page.evaluate(()=>window.testSignInOptions.forceRedirectUrl),undefined,'Header sign-in stays on the current page');
       await page.locator('.start-link').click();
-      const destination=origin+'/lab/studio.html?tool=image';
+      const destination=origin+'/lab/studio.html?tool=image&welcome=1';
       assert.equal(await page.evaluate(()=>window.testSignInOptions.forceRedirectUrl),destination);
       assert.equal(await page.evaluate(()=>window.testSignInOptions.signUpForceRedirectUrl),destination);
       assert.equal(new URL(page.url()).pathname,'/lab/','Signed-out Start creating opens access before navigation');
@@ -193,7 +201,7 @@ try{
   }
 }catch(error){
   const page=browser.contexts().at(-1)?.pages().at(-1);
-  if(page)await page.screenshot({path:resolve(artifacts,'failure.png')});
+  if(page)await page.screenshot({path:resolve(artifacts,'failure.png'),timeout:1500}).catch(()=>{}); // Do not conceal the real assertion if fonts are still blocked.
   throw error;
 }finally{await browser.close();await new Promise(r=>server.close(r));}
 

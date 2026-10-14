@@ -1097,6 +1097,61 @@ function syncImageGalleryEmpty(){
   const imageCards=$('history').querySelectorAll('.card[data-kind="image"]').length;
   $('image-gallery-empty').hidden=imageCards>0;
 }
+
+// A one-time, text-first welcome path. Authentication, wallet funding, model
+// quotations and final Generate all remain owned by their existing flows.
+const welcomeRequested=new URLSearchParams(location.search).get('welcome')==='1';
+const welcomePrompts=Object.freeze({
+  'night-flash':'An authentic late-night fashion portrait on a Berlin side street, direct on-camera flash, black tailored jacket, natural skin texture, spontaneous expression, rich dark background, documentary editorial photography.',
+  'polaroid-600':'A candid studio fashion portrait of a person in a dark tailored jacket, intimate direct light, natural expression, tactile fabrics and real skin texture, restrained composition, convincing analog photographic detail.',
+  '90s-cinema':'An atmospheric 1990s film still of two friends browsing vinyl records in a dim independent record shop, warm window light, relaxed gestures, layered clothing, believable interior, realistic photography.'
+});
+function resetWelcomeStart(){
+  const panel=$('lab-welcome-start'),intro=$('lab-image-empty-intro');
+  if(panel)panel.hidden=true;
+  if(intro)intro.hidden=false;
+  document.querySelectorAll('[data-welcome-mood]').forEach(button=>button.setAttribute('aria-pressed','false'));
+}
+function showWelcomeStart(session){
+  const panel=$('lab-welcome-start');
+  if(!panel)return;
+  // Do not infer new-user eligibility from the URL or a localStorage flag.
+  // Show only after authenticated /api/session and history have both arrived.
+  const eligible=welcomeRequested&&owner&&customerMode&&customerGenerationReady
+    &&session?.customer===true&&session?.generationReady===true
+    &&session.accountClosed!==true&&session.billingReview!==true
+    &&Number.isSafeInteger(session.balanceCredits)&&session.balanceCredits>0
+    &&!$('history').querySelector('.card[data-kind="image"]');
+  if(!eligible){resetWelcomeStart();return;}
+  const amount=$('lab-welcome-balance');
+  if(amount)amount.textContent=session.balanceCredits.toLocaleString('en-GB')+' credits';
+  panel.hidden=false;
+  $('lab-image-empty-intro').hidden=true;
+  syncImageGalleryEmpty();
+}
+function useWelcomeMood(id){
+  if(!Object.prototype.hasOwnProperty.call(welcomePrompts,id)||!moodById(id)
+    ||!owner||!customerMode||!customerGenerationReady||busy||imageSubmissionPending
+    ||$('lab-welcome-start')?.hidden)return;
+  if(imageEngine!=='seedream'){
+    $('image-engine').value='seedream';
+    $('image-engine').dispatchEvent(new Event('change',{bubbles:true}));
+  }else if(tool!=='image')setTool('image');
+  // This is a single text-first image, not an automatic paid submission.
+  imageProcessing='normal';$('image-processing').value='normal';
+  $('resolution').value='1k';$('image-count').value='1';
+  if(!references.length&&!file){$('ratio').value='16:9';imageRatioExplicit=false;}
+  moodUI.restore({moodId:id,moodIntensity:60},true);
+  $('prompt').value=welcomePrompts[id];
+  $('prompt').dispatchEvent(new Event('input',{bubbles:true}));
+  document.querySelectorAll('[data-welcome-mood]').forEach(button=>{
+    button.setAttribute('aria-pressed',String(button.dataset.welcomeMood===id));
+  });
+  $('image-composer-prompt').focus({preventScroll:true});
+}
+document.querySelectorAll('[data-welcome-mood]').forEach(button=>{
+  button.addEventListener('click',()=>useWelcomeMood(button.dataset.welcomeMood));
+});
 let draggedComposerReference=null;
 function moveComposerReference(ref,target,after=false){
   if(busy||ref===target)return;
@@ -3526,7 +3581,7 @@ $('history-delete-selected').onclick=()=>action(async()=>{
   setHistorySelectMode(false);await loadHistory();if(assetLibrary?.active())await assetLibrary.load();notify((result.deleted||ids.length)+' History item'+((result.deleted||ids.length)===1?'':'s')+' deleted. Spending history is unchanged.');
 });
 function finishLabBoot(){window.__pvLabFinishBoot?.();}
-function lock(){studioAccount.update();moodReferences.clear();void deviceMediaCache.signOut();document.documentElement.classList.remove('pv-native-route-pending');retouchActive=false;history.scrollRestoration='auto';precisionEditor.reset();$('app').classList.remove('retouch-studio-active');customerMode=false;customerGenerationReady=false;customerImagePricing?.reset();wallet.connect({customer:false});$('studio-invite-friends').hidden=true;fashionController?.lock();setFashionActive(false);assetLibrary?.reset();hf.reset();epoch++;imageSubmissionPending=false;pendingImageCards.clear();moodUI.clear(true);clearAssetCache();for(const p of composerPortraits.values())p.then(url=>{if(url)release(url);});composerPortraits.clear();composerLibraryKey='';composerPortraitKey='';closeComposerLibrary();historySelected.clear();historySelectMode=false;clearSoulProPackPreview();soulProIdentity={configured:false,count:0,refs:[]};workingCopies.clear();fastImageHandoff.clear();autoPreview=null;downloadUrls.forEach(release);downloadUrls.clear();myMoods.reset();owner=false;updateHistoryPagination();userId='';soul.reset();historyRevision++;galleryPreviewQueue.length=0;clearTimeout(timer);timer=null;activeJob=null;activeJobs=[];polling=false;requestControllers.forEach(c=>c.abort());requestControllers.clear();observer.disconnect();cardUrls.forEach(release);cardUrls.clear();clearMedia();$('prompt').value='';$('history').replaceChildren();$('app').hidden=true;$('gate').hidden=false;$('connection').hidden=true;$('logout').hidden=true;$('api-key').value='';for(const d of document.querySelectorAll('dialog[open]'))d.close();currentQuote=null;config={};packs=[];$('pack-select').replaceChildren(new Option('Choose a saved pack',''));closeImageModelMenu();toggleImageSettings(false);$('app').classList.remove('image-studio-active');imageStudio.hidden=true;imageDetailCache.clear();releaseImageDetailSource();videoJobCache.clear();selectedVideoJob=null;syncVideoStudioMode();finishLabBoot();}
+function lock(){resetWelcomeStart();studioAccount.update();moodReferences.clear();void deviceMediaCache.signOut();document.documentElement.classList.remove('pv-native-route-pending');retouchActive=false;history.scrollRestoration='auto';precisionEditor.reset();$('app').classList.remove('retouch-studio-active');customerMode=false;customerGenerationReady=false;customerImagePricing?.reset();wallet.connect({customer:false});$('studio-invite-friends').hidden=true;fashionController?.lock();setFashionActive(false);assetLibrary?.reset();hf.reset();epoch++;imageSubmissionPending=false;pendingImageCards.clear();moodUI.clear(true);clearAssetCache();for(const p of composerPortraits.values())p.then(url=>{if(url)release(url);});composerPortraits.clear();composerLibraryKey='';composerPortraitKey='';closeComposerLibrary();historySelected.clear();historySelectMode=false;clearSoulProPackPreview();soulProIdentity={configured:false,count:0,refs:[]};workingCopies.clear();fastImageHandoff.clear();autoPreview=null;downloadUrls.forEach(release);downloadUrls.clear();myMoods.reset();owner=false;updateHistoryPagination();userId='';soul.reset();historyRevision++;galleryPreviewQueue.length=0;clearTimeout(timer);timer=null;activeJob=null;activeJobs=[];polling=false;requestControllers.forEach(c=>c.abort());requestControllers.clear();observer.disconnect();cardUrls.forEach(release);cardUrls.clear();clearMedia();$('prompt').value='';$('history').replaceChildren();$('app').hidden=true;$('gate').hidden=false;$('connection').hidden=true;$('logout').hidden=true;$('api-key').value='';for(const d of document.querySelectorAll('dialog[open]'))d.close();currentQuote=null;config={};packs=[];$('pack-select').replaceChildren(new Option('Choose a saved pack',''));closeImageModelMenu();toggleImageSettings(false);$('app').classList.remove('image-studio-active');imageStudio.hidden=true;imageDetailCache.clear();releaseImageDetailSource();videoJobCache.clear();selectedVideoJob=null;syncVideoStudioMode();finishLabBoot();}
 const wallet=createCustomerWallet({api,notify,onBalance:value=>studioAccount.updateBalance(value),onClosed:async()=>{lock();await clerk.signOut();}});
 customerImagePricing=createCustomerImagePricing({snapshot:imageCreditQuoteSnapshot,quote:fetchCustomerImagePrice,changed:()=>update()});
 async function sync(){if(syncing)return;syncing=true;try{if(!clerk.isSignedIn){lock();$('auth-status').textContent='Sign in to your PV Lab workspace.';$('signin').disabled=false;return;}if(owner&&userId===clerk.user.id)return;if(owner&&userId!==clerk.user.id)lock();const data=await api('/api/session');owner=true;customerMode=!!data.customer;customerGenerationReady=!!data.generationReady;userId=clerk.user.id;void deviceMediaCache.select(userId);wallet.connect(data);studioAccount.update({signed:true,user:clerk.user,profile:data});hf.setCustomerPricing(customerMode?{trainingCredits:data.soulIdTrainingCredits,imageCredits:data.soul2ImageCredits}:null);if(customerMode)await claimReferral(code=>api('/api/customer/referrals/claim',{method:'POST',body:{code}}));applyConfig(data.config);$('identity').textContent=customerMode?'My workspace':'Owner workspace';if(window.__PV_LAB_NATIVE__===1&&!window.__pvNativeRouteResolved)document.documentElement.classList.add('pv-native-route-pending');$('gate').hidden=true;$('app').hidden=false;$('connection').hidden=customerMode;$('logout').hidden=false;
@@ -3545,7 +3600,7 @@ async function sync(){if(syncing)return;syncing=true;try{if(!clerk.isSignedIn){l
     if(customerMode&&new URLSearchParams(location.search).get('referrals')==='1')wallet.openReferrals();
     await Promise.all([loadHistory().finally(()=>$('history').removeAttribute('aria-busy')),loadPacks(),soul.load(),loadSoulProIdentity()]);
     void myMoods.refresh().catch(()=>{/* Personal boards must not block image Studio sign-in. */});
-    syncVideoStudioMode();await restoreStudioEntry();if(!fashionActive&&fashionController)void fashionController.sync();if(customerMode&&new URLSearchParams(location.search).get('billing')==='success'){notify('Checkout returned. Credits appear when Stripe confirms payment.');void wallet.refresh();}}catch(e){lock();$('auth-status').textContent=e.message;$('signin').disabled=false;$('logout').hidden=!clerk?.isSignedIn;studioAccount.update({signed:!!clerk?.isSignedIn,user:clerk?.user});}finally{syncing=false;finishLabBoot();if(owner&&window.__PV_LAB_NATIVE__===1){
+    syncVideoStudioMode();await restoreStudioEntry();showWelcomeStart(data);if(!fashionActive&&fashionController)void fashionController.sync();if(customerMode&&new URLSearchParams(location.search).get('billing')==='success'){notify('Checkout returned. Credits appear when Stripe confirms payment.');void wallet.refresh();}}catch(e){lock();$('auth-status').textContent=e.message;$('signin').disabled=false;$('logout').hidden=!clerk?.isSignedIn;studioAccount.update({signed:!!clerk?.isSignedIn,user:clerk?.user});}finally{syncing=false;finishLabBoot();if(owner&&window.__PV_LAB_NATIVE__===1){
       window.ReactNativeWebView?.postMessage(JSON.stringify({type:'PV_LAB_READY'}));
       // Older shells may reload without sending a destination command.
       // Release the restored workspace rather than leave an endless loader.

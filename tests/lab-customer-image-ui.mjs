@@ -22,6 +22,11 @@ wallet.connect({customer:true,balanceCredits:1000,billingReady:true,products:[],
 $('app').hidden=false;$('gate').hidden=true;
 await loadHistory();await loadPacks();await loadSoulProIdentity();
 setTool('image');update();
+if(new URLSearchParams(location.search).get('welcome')==='1'){
+  wallet.connect({customer:true,balanceCredits:200,billingReady:true,products:[],
+    soulIdTrainingCredits:400,soul2ImageCredits:7});
+  showWelcomeStart({customer:true,generationReady:true,balanceCredits:200,accountClosed:false,billingReview:false});
+}
 window.__customerTest={lock};
 `;
 const port=4194;
@@ -116,6 +121,28 @@ try{
  await page.waitForFunction(()=>document.querySelector('#image-composer-generate')?.textContent==='Generate · 74 credits');
  assert.equal(await page.locator('#image-composer-ratio').inputValue(),'1:1');
  console.log('PASS explicit aspect ratio overrides Auto and remains selected');
+ // The new welcome route uses the same priced composer. Presets NEVER charge on selection.
+ const welcome=await context.newPage();
+ welcome.on('pageerror',e=>errors.push(e.message));
+ await welcome.goto('http://127.0.0.1:'+port+'/lab/studio.html?tool=image&welcome=1');
+ await welcome.waitForFunction(()=>!!window.__customerTest);
+ assert.equal(await welcome.locator('#lab-welcome-start').isVisible(),true);
+ assert.equal(await welcome.locator('#lab-welcome-balance').textContent(),'200 credits');
+ assert.equal(await welcome.locator('[data-welcome-mood]').count(),3);
+ const beforeWelcomeSubmit=paidJobs;
+ await welcome.click('[data-welcome-mood="night-flash"]');
+ assert.match(await welcome.locator('#image-composer-prompt').inputValue(),/late-night fashion portrait/i);
+ assert.equal(await welcome.locator('#image-engine').inputValue(),'seedream');
+ assert.equal(await welcome.locator('#image-composer-resolution').inputValue(),'1k');
+ assert.equal(await welcome.locator('#image-composer-count').inputValue(),'1');
+ assert.equal(await welcome.locator('#image-composer-ratio').inputValue(),'16:9');
+ await welcome.waitForFunction(()=>document.querySelector('#image-composer-generate')?.textContent==='Generate · 17 credits');
+ assert.equal(paidJobs,beforeWelcomeSubmit,'Choosing the free welcome starter must not submit or charge');
+ await welcome.click('#image-composer-generate');
+ await welcome.waitForFunction(()=>!document.querySelector('#generate').disabled);
+ assert.equal(paidJobs,beforeWelcomeSubmit+1,'Only the explicit Generate click submits one provider job');
+ console.log('PASS welcome starter uses authenticated balance, one Seedream 1K image, real quote and explicit submission');
+ await welcome.close();
  assert.deepEqual(errors,[]);
 }finally{
  await context.close();await browser.close();await new Promise(resolve=>server.close(resolve));

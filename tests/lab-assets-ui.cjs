@@ -8,7 +8,7 @@ await page.route('https://**/*',async route=>{const req=route.request(),u=new UR
 await page.emulateMedia({reducedMotion:'reduce'});
 await page.goto('http://127.0.0.1:8765/lab/',{waitUntil:'domcontentloaded'});
 assert.equal(await page.locator('h1').textContent(),'PV LAB');
-assert.equal(await page.locator('.start-link').getAttribute('href'),'./studio.html?tool=image');
+assert.equal(await page.locator('.start-link').getAttribute('href'),'./studio.html?tool=image&welcome=1');
 assert.deepEqual(await page.locator('.studio-tool-link').evaluateAll(els=>els.map(el=>el.getAttribute('href'))),['./studio.html?tool=image','./studio.html?tool=video','./studio.html?tool=upscale']);
 await page.locator('.hero-poster').evaluate(img=>img.decode());
 assert.equal(await page.locator('.studio-tool--video').count(),1);

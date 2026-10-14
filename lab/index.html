@@ -22,6 +22,7 @@
 <link rel="stylesheet" href="./invite-hero.css?v=20261014-approved-hd2">
 <link rel="stylesheet" href="/lab/site-footer.css?v=20261014-angularfooter1">
 <link rel="stylesheet" href="./homepage-unified.css?v=20261014-unified2">
+<link rel="stylesheet" href="./welcome-onboarding.css?v=20261015-1">
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
@@ -32,7 +33,7 @@
     <button class="lab-auth-link" id="lab-header-signin" type="button" hidden>Sign in</button>
     <a class="studio-link" href="./studio.html"><span class="studio-link-label-full">Open studio</span><span class="studio-link-label-compact">Studio</span></a>
     <a class="lab-home-credits" id="lab-home-credits" href="#pricing" aria-label="Get credits and view pricing"><span class="lab-home-credit-copy" id="lab-home-credit-copy">Get credits</span><span class="lab-home-credit-unit" id="lab-home-credit-unit" hidden>credits</span><span class="lab-home-credit-plus" aria-hidden="true">+</span></a>
-    
+
     <details id="lab-account-strip" class="pv-account-menu" hidden>
       <summary aria-label="Open account menu" aria-expanded="false"><span class="pv-account-avatar" data-account-avatar aria-hidden="true"></span></summary>
       <div class="pv-account-panel">
@@ -47,14 +48,14 @@
         <button id="lab-account-logout" type="button" data-account-signout>Sign out</button>
       </div>
     </details>
-    
+
   </div>
 </header>
 <main id="main">
 <section class="lab-hero" aria-labelledby="hero-title">
 <picture><source media="(max-width:700px)" srcset="./visuals/leather-editorial/hero-mobile.webp"><img class="hero-poster" src="./visuals/leather-editorial/hero-desktop.webp" alt="Fashion portrait with wet hair and a black leather jacket against a dark backdrop" width="2048" height="1536" fetchpriority="high"></picture>
 <div class="hero-shade" aria-hidden="true"></div>
-<div class="hero-copy"><h1 id="hero-title">PV LAB</h1><h2>Fashion. <br>Reimagined.</h2><p class="hero-description">Create images, reinterpret photographs<br class="desktop-break"> and bring them into motion.</p><div class="hero-actions"><a class="start-link" href="./studio.html?tool=image">Start creating</a><a class="hero-moods-link" href="./moods">Explore Moods</a></div><p id="lab-entry-status" role="status" aria-live="polite"></p></div>
+<div class="hero-copy"><h1 id="hero-title">PV LAB</h1><h2>Fashion. <br>Reimagined.</h2><p class="hero-description">Create images, reinterpret photographs<br class="desktop-break"> and bring them into motion.</p><p class="hero-welcome"><span class="hero-welcome-symbol" aria-hidden="true">✳</span><strong>200 free credits when you join.</strong><small>No purchase required.</small></p><div class="hero-actions"><a class="start-link" href="./studio.html?tool=image&amp;welcome=1">Start creating free</a><a class="hero-moods-link" href="./moods">Explore Moods</a></div><p id="lab-entry-status" role="status" aria-live="polite"></p></div>
 <div class="hero-bottom"><span class="hero-signature">Create beyond convention.</span></div>
 </section>
 
@@ -140,6 +141,7 @@
       <span class="lab-plans-kicker">Plans &amp; credits</span>
       <h2 id="lab-plans-title">Create without<br>interruption.</h2>
       <p class="lab-plans-intro">One credit balance for images, video and upscaling. See the cost before you create.</p>
+      <p class="lab-pricing-welcome">New to PV LAB? <strong>Start with 200 free credits.</strong> No purchase required. <a data-lab-welcome-start href="./studio.html?tool=image&amp;welcome=1">Start creating</a></p>
       <div class="lab-pricing-options" role="tablist" aria-label="Choose a credit purchase type"><button type="button" role="tab" id="lab-tab-monthly" aria-selected="true" aria-controls="lab-monthly-plans" tabindex="0">Monthly plans</button><button type="button" role="tab" id="lab-tab-onetime" aria-selected="false" aria-controls="lab-one-time-credits" tabindex="-1">One-time credits</button></div>
       <div class="lab-plans-grid" id="lab-monthly-plans" role="tabpanel" aria-labelledby="lab-tab-monthly">
         <article class="lab-plan"><span class="lab-plan-name">Starter</span><div class="lab-plan-price">€15 <small>/ month</small></div><div class="lab-plan-credits">1,600 credits / month</div><p class="lab-plan-description sr-only">For exploring scenes, references and editing.</p><button type="button" data-lab-buy="starter"><span class="sr-only">Choose Starter</span><span class="pv-arrow-icon" aria-hidden="true"><svg class="pv-arrow-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 17 17 7M8 7h9v9"/></svg></span></button></article>
@@ -208,7 +210,7 @@
 <script defer src="./landing-motion.js?v=20261012-editorial-restored1"></script>
 <script defer src="./studio-tools.js?v=20261012-macro-clean1"></script>
 <script defer src="./pricing-tabs.js?v=20261013-billing-caption3"></script>
-<script type="module" src="./customer-entry.js?v=20261014-guest-credits-stable1&menu=20261014-editorial1"></script>
+<script type="module" src="./customer-entry.js?v=20261015-welcome1&menu=20261014-editorial1"></script>
 </body>
 </html>
 
