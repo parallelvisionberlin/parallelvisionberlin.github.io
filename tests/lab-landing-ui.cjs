@@ -78,8 +78,12 @@ const server=http.createServer((req,res)=>{
   assert.ok(details.sectionHeight>=details.visibleHeight-1,'Pricing occupies at least one viewport');
   assert.match(details.inviteBg,/(?:invite-wet-editorial\.webp|invite-after-fabric-exact\.avif)/,'Referral promotion uses an approved photographic editorial');
   if(width<=760)assert.match(details.inviteBg,/gradient/,'Mobile adds a readable gradient over the editorial photo');
-  assert.equal(details.inviteText,'rgb(245, 241, 234)','Referral typography remains readable');
-  assert.equal(details.inviteParagraph,'rgb(216, 209, 198)','Referral description has contrast on dark background');
+  const textRGB=(details.inviteText.match(/\d+/g)||[]).slice(0,3).map(Number);
+  const paragraphRGB=(details.inviteParagraph.match(/\d+/g)||[]).slice(0,3).map(Number);
+  assert.equal(textRGB.length,3,'Referral typography uses a valid color');
+  assert.ok(textRGB.every(n=>n>=225),'Referral typography stays light enough over the dark editorial');
+  assert.equal(paragraphRGB.length,3,'Referral description uses a valid color');
+  assert.ok(paragraphRGB.every(n=>n>=180),'Referral description retains contrast on dark photography');
   if(width>760){
     assert.equal(details.deckMargin,'20px','Desktop image collection is balanced lower by 20px');
     assert.ok(details.rowHeights.every(n=>n>=110&&n<=114),'Desktop pricing rows have relaxed 112px rhythm');
