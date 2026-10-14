@@ -1,6 +1,6 @@
 /* Precision Edit: large base canvas, SAM 3 point segmentation, mask brushes,
    non-destructive FLUX inpainting and original-pixel client-side compositing. */
-export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,owner,falReady,onJob,onExit}){
+export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,owner,falReady,onJob,onExit,customer=()=>false,onBilled=()=>{}}){
   const $=id=>document.getElementById(id);
   const view=$('precision-workspace'),sourceCanvas=$('precision-source-canvas'),
     overlay=$('precision-selection-canvas'),resultCanvas=$('precision-result-canvas');
@@ -168,7 +168,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     const exportReady=!highRisk||$('precision-allow-jpeg').checked;
     $('precision-generate').disabled=!have||!selected||!$('precision-prompt').value.trim()||taskBusy||!owner()||!falReady()||!exportReady;
     $('precision-change-photo').hidden=!have;
-    $('precision-tool-magic').title='Select a whole object with SAM 3. Published price approximately $0.005 per click.';
+    $('precision-tool-magic').title=customer()?'Select an object with SAM 3 · 7 PV Lab credits per click.':'Select a whole object with SAM 3. Published price approximately $0.005 per click.';
     $('precision-generate').textContent=taskBusy?'Working…':'Review price';
     $('precision-generate').title=(!owner()||!falReady())?'Paid Retouch generation is not enabled on this account.':
       !have?'Add a photograph first.':!selected?'Select the area to edit.':
@@ -369,7 +369,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
       setStatus('SAM 3 is selecting the object. This selection uses a metered API request.');
       const p={x:Math.min(base.width-1,Math.round(point.x*base.width/mask.width)),
         y:Math.min(base.height-1,Math.round(point.y*base.height/mask.height))};
-      const reply=await api('/api/precision/segment',{method:'POST',body:{sourceId,point:p}});
+      const reply=await api('/api/precision/segment',{method:'POST',body:{sourceId,point:p,selectionId:crypto.randomUUID()}});
       if(!reply?.requestId||!reply.ticket)throw new Error('Segmentation did not return a request ID.');
       let ready=null;
       for(let attempt=0;attempt<65&&revision===session;attempt++){
@@ -384,7 +384,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
       try{await saveUndo();maskFromSam(bitmap,point);}finally{bitmap.close();}
       setStatus('Object selected. Click another garment to add it, or refine with the brush.');
     }catch(e){setStatus(e.message,true);}
-    finally{taskBusy=false;$('precision-source-holder').classList.remove('is-busy');refreshButtons();}
+    finally{if(customer())onBilled();taskBusy=false;$('precision-source-holder').classList.remove('is-busy');refreshButtons();}
   }
   function maskExport(){
     const c=document.createElement('canvas');c.width=mask.width;c.height=mask.height;
@@ -407,7 +407,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
       if(!quoted?.quoteId||!quoted.ticket)throw new Error('Precision Edit did not return a reusable price approval.');
       pending={...body,quoteId:quoted.quoteId,ticket:quoted.ticket,expiresAt:quoted.expiresAt,maskSourceId};
       const usd=Number(quoted.estimatedUsd||0);
-      $('precision-review-body').textContent='FLUX Inpainting · estimated $'+usd.toFixed(3)+' USD (published estimate). Confirm to authorize one paid generation. Your original file remains unchanged.'+(allowJpegFallback?' If lossless PNG exceeds 20 MB, a high-quality JPEG may be used. JPEG recompresses pixels outside the selected region.':' PNG retains exact original pixels outside the selection.');
+      $('precision-review-body').textContent='FLUX Inpainting · '+(customer()?Number(quoted.credits)+' PV Lab credits · ':'')+'estimated '+String.fromCharCode(36)+usd.toFixed(3)+' USD (published estimate). Confirm to authorize one paid generation. Your original file remains unchanged.'+(allowJpegFallback?' If lossless PNG exceeds 20 MB, a high-quality JPEG may be used. JPEG recompresses pixels outside the selected region.':' PNG retains exact original pixels outside the selection.');
       $('precision-price-review').hidden=false;
       setStatus('Price checked. No generation has started.');
     }catch(e){pending=null;setStatus(e.message,true);}
@@ -492,6 +492,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     }catch(error){
       setStatus('Generation was not confirmed. Check Queue before trying again: '+error.message,true);
     }finally{
+      if(customer())onBilled();
       taskBusy=false;refreshButtons();
     }
   }
@@ -747,6 +748,7 @@ export function createPrecisionEditor({host,api,assetBlob,uploadAsset,notify,own
     if(!base||taskBusy||!falReady())return;
     if(selectionAllowance<=0){
       consentPoint=point;
+      $('precision-select-consent-copy').textContent=customer()?'Each SAM 3 selection costs 7 PV Lab credits. Approve up to five selections (maximum 35 credits), charged per click. Free brush selection is always available. No charge happens until you confirm.':'Each SAM 3 object selection is a paid provider request, approximately $0.005 per click at the published rate. Authorize up to five selections in this session. No charge happens until you confirm.';
       if(!$('precision-select-consent').open)$('precision-select-consent').showModal();
       return;
     }

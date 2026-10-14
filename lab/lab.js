@@ -6,7 +6,7 @@ import {createMoodReferenceLoader,moodReferencePlan,isMoodStyleReference} from '
 import {createPrivateMediaCache} from './private-media-cache.js?v=20261012-cache1';
 import {loadLabAccount} from './native-account.js?v=20261014-native-photo-picker1&createGallery=20261014-1&generateStable=20261014-1';
 import {createAssetLibrary} from './assets.js?v=20261010-navigation-media1';
-import {createPrecisionEditor} from './precision-edit.js?v=20261011-no-emoji1';
+import {createPrecisionEditor} from './precision-edit.js?v=20261014-public-retouch1';
 import {createCustomerWallet} from './customer-wallet.js?v=20261013-upgrade1&model-rates=1';
 import {createCustomerImagePricing} from './customer-image-pricing.js?v=20261010-customer-credits1';
 import {customerImagePriceKey,pricedBoundQuotes,imageAutoRatio} from './image-credit-preview.js?v=20261010-customer-credits1';
@@ -809,7 +809,8 @@ function setTool(value){
 const imageStudio = $('image-studio');
 const imageComposer = $('image-composer');
 const precisionEditor=createPrecisionEditor({host:$('app'),api,assetBlob,uploadAsset,notify,
-  owner:()=>owner,falReady:()=>!!config.falEnabled&&!customerMode,
+  owner:()=>owner,falReady:()=>!!config.falEnabled&&(!customerMode||!!config.retouchEnabled),
+  customer:()=>customerMode,onBilled:()=>{if(customerMode)void wallet.refresh();},
   onExit:()=>returnToImageFromRetouch(),
   onJob:job=>{surfaceHistoryJob(job);refreshHistorySoon();}});
 // Retouch is an independent route. Image state stays in its existing deck.
@@ -861,7 +862,7 @@ async function openRetouch({file:chosenFile=null,id=null,autofill=false,push=tru
   if(assetLibrary?.active())assetLibrary.close();
   retouchActive=true;
   $('app').classList.add('retouch-studio-active');
-  $('precision-access-note').hidden=!customerMode;
+  $('precision-access-note').hidden=!customerMode||!!config.retouchEnabled;
   syncStudioRoute('retouch',{push:push&&from!=='retouch',retouchFrom:from});
   syncImageStudioMode();syncVideoStudioMode();syncStudioNav();
   // Reuse the exact File object and uploaded asset ID. Do not upload or bill here.
@@ -1289,7 +1290,11 @@ function syncImageComposer(){
     customerMode&&customerGenerationReady&&priceState?.status==='checking'?'Checking price…':
     customerMode&&customerGenerationReady&&priceState?.status==='error'?'Price unavailable · click Generate to retry':'';
   const progressLine=$('image-composer-status');
-  if(progressLine){progressLine.textContent=progress;progressLine.hidden=!progress;}
+  // Preserve an import error toast until the user dismisses it. A routine
+  // render must not hide the oversize/invalid-file warning immediately.
+  if(progressLine&&!progressLine.classList.contains('is-import-error')){
+    progressLine.textContent=progress;progressLine.hidden=!progress;
+  }
   if(tool==='image'&&fastImageHandoff.has(currentImageSubmissionKey()))
     generate.title='This exact request is already preparing. Change the direction or wait for confirmation.';
   else generate.removeAttribute('title');

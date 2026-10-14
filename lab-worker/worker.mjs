@@ -1206,7 +1206,7 @@ async function route(request,env,ctx) {
   // FASHN balance reports our wholesale API account balance, not the customer's credits.
   if(customer&&path==='/api/fashion/balance'&&method==='GET')return json({connected:!!env.FASHN_API_KEY,credits:null,note:'Your generation allowance is shown in your PV Lab credit wallet.'});
   if(path.startsWith('/api/precision/'))return precisionEditRoute(request,env,owner,url,{
-    customer,fail,body,first,run,source,signedInput,config,storedImageDimensions,falImageBytes,
+    customer,customerGenerationReady:!customer||canCustomerGenerate(env,owner),fail,body,first,run,source,signedInput,config,storedImageDimensions,falImageBytes,
     reserveFalImageJob,submitReservedFalJob,jobView,json,limitedBody,sniff
   });
   if(path.startsWith('/api/fashion/'))return json(await fashionRoute(request,env,owner,url,{fail,body,first,run,stmt,jobView,source,signedInput,config,storedImageDimensions,falImageBytes,falSubmit}),path==='/api/fashion/submit'?202:200);
@@ -1221,7 +1221,7 @@ async function route(request,env,ctx) {
       const account=await customerSession(env,owner);
       const c=await config(env,owner);
       const ready=account.generationReady;
-      return json({...account,owner:false,ownerId:owner,version:VERSION,config:{...publicConfig(c,ready&&!!env.FAL_KEY),enabled:ready,configured:ready,customer:true,videoEngines:ready?publicConfig(c,!!env.FAL_KEY).videoEngines:[],higgsfieldEnabled:ready&&!!env.HF_CREDENTIALS&&env.LAB_CUSTOMER_HIGGSFIELD_ENABLED==='true',geminiEnabled:ready&&!!env.GEMINI_API_KEY,soulTrainingEnabled:false,soulReinterpretEnabled:false,soulPresets:publicSoulPresets(),falEnabled:ready&&!!env.FAL_KEY}});
+      return json({...account,owner:false,ownerId:owner,version:VERSION,config:{...publicConfig(c,ready&&!!env.FAL_KEY),enabled:ready,configured:ready,customer:true,videoEngines:ready?publicConfig(c,!!env.FAL_KEY).videoEngines:[],higgsfieldEnabled:ready&&!!env.HF_CREDENTIALS&&env.LAB_CUSTOMER_HIGGSFIELD_ENABLED==='true',geminiEnabled:ready&&!!env.GEMINI_API_KEY,soulTrainingEnabled:false,soulReinterpretEnabled:false,soulPresets:publicSoulPresets(),falEnabled:ready&&!!env.FAL_KEY,retouchEnabled:ready&&!!env.FAL_KEY&&env.LAB_CUSTOMER_RETOUCH_ENABLED==='true'}});
     }
     await run(env,"DELETE FROM spend WHERE owner_id=? AND job_id IN (SELECT id FROM jobs WHERE owner_id=? AND state='failed' AND COALESCE(json_extract(params,'$.provider'),'')='fal')",owner,owner);
     const c=await config(env,owner),spent=await first(env,'SELECT COALESCE(SUM(estimate_microusd),0) AS n FROM spend WHERE owner_id=? AND created_at>=?',owner,Math.floor(now()/86400000)*86400000);
