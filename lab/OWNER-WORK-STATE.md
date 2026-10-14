@@ -1,56 +1,50 @@
-# PV LAB Control Room: active work state
+# PV LAB owner Control Room: active state
 
-Updated: 2026-10-14
-Owner dashboard: https://parallelvisionlabel.com/lab/owner.html
-Latest main at task start: a07ad05f381f76b8b8cb63cead93fc740f1b70d0.
-Current branch: fix/owner-clerk-sync-viewport-20261014, PR #208.
-Previous releases: Proposal 2 sidebar & Providers #204, desktop lift #205, compact cards #206.
+Date: 2026-10-14
+Production dashboard: https://parallelvisionlabel.com/lab/owner.html
+Production Worker: parallel-vision-lab
+Main baseline before this task: 1fb1efa7cd24cfdd3c63f8923df4ad9eaa762dd4 (PR #208).
+Current implementation branch: fix/clerk-prod-sync-diagnostics-20261014 (PR #209).
+Status: pending merge and deployment; verify separately.
 
-## Brand and navigation
-- Neutral editorial PV LAB sans-serif, monochrome charcoal, narrow owner sidebar.
-- Destinations: Control room, Customers, Payments, Referrals, Vouchers and Providers.
-- Preserve owner-only authentication, production purchases, balances, vouchers and referral logic.
-- No edits to the generation models, pricing, payment ledger, provider routing, or Nina records.
+## Existing design and safety
+- Proposal 2 narrow monochrome sidebar, DM Sans, Customers/Payments/Referrals/Vouchers/Providers.
+- Owner-only authorization for customer activity and provider finance.
+- Existing verified purchases, Stripe checkout, credit wallets, referral/voucher ledgers unchanged.
+- No generated prices, FAL/Spicy/FASHN/Gemini/Higgsfield routing changed.
+- Providers finance uses secure /api/admin/providers, cached and separated by currency.
+- API Balances preview hidden on Control Room; detailed Providers remains accessible.
+- Desktop activity cards expanded near lower viewport edge, mobile unchanged.
 
-## Existing provider finance
-- Secured, read-only GET /api/admin/providers, five-minute cached with refresh throttle.
-- Actual configured credentials: LAB_CUSTOMER_SPICY_API_KEY, FAL_KEY, FASHN_API_KEY,
-  HF_CREDENTIALS, GEMINI_API_KEY; personal SpicyAPI key encrypted in Lab settings.
-- Spicy account wallet fetched once and personal/customer usage separated.
-- fal.ai USD reports depend on billing scope, FASHN API credits kept in their own units.
-- Gemini and Higgsfield balances unavailable without a verified suitable read endpoint.
-- Customer credit liabilities separate from provider cash. OpenRouter remains legacy.
+## Clerk sync problem confirmed
+- Cloudflare D1 has 4 lab_customers but ZERO lab_customer_contacts records.
+- LAB_CLERK_SECRET_KEY exists as a secret binding; validity and instance match not verified.
+- PR #208 fixed unsupported redirect:'error' to redirect:'manual' with 3xx refusal.
+- Owner UI attempts to sync missing emails, but still reports Clerk sync needs attention.
+- Backend failure reason cannot be inferred from the key's presence or missing emails alone.
+- Official Clerk getUser API: GET https://api.clerk.com/v1/users/{id}, backend secret per application and environment.
+- User must never be asked to expose Clerk secret in browser/chat; verified Clerk data is authoritative.
 
-## New task: verified Clerk email sync
-- Production D1 read-only query found 3 Lab customers and 0 rows in lab_customer_contacts.
-- Secret LAB_CLERK_SECRET_KEY exists, but presence does not imply valid Clerk authentication.
-- Found fetch(..., redirect:'error') inside clerkEmailStatus in promotions.mjs; same Worker
-  documents this redirect mode as unsupported and uses redirect:'manual' elsewhere.
-- Fix: use GET with redirect:'manual', refuse all 3xx before any further request.
-- Existing 401, 403, 404, 429 and unverified-email diagnostics remain available.
-- Owner dashboard attempts one secure sync per signed-in tab when missing email records exist,
-  and shows results or specific errors, with manual Sync emails still supported.
-- If key is still rejected or user missing, display error; do not invent email addresses.
-- Security test covers 302, not forwarding Clerk secret, verified email persistence.
-- Worker version bumped to pv-lab-2026-10-14.9-clerk-manual-redirect for rollout proof.
-- No D1 migrations and no new credentials or secret disclosures.
+## PR #209 diagnosis and repair
+- Migration: lab-worker/migrations/0016-clerk-sync-diagnostics.sql
+- Fresh schema: lab-worker/schema.sql
+- Only one D1 aggregate diagnostic row: checked_at, source, result_json of safe counts.
+- NEVER store secret values, user IDs, email strings, upstream response bodies or raw tokens in the audit.
+- Owner POST /api/admin/customers/sync records sanitized outcome; owner overview reads latest audit.
+- Worker existing */5 min scheduled event retries eligible missing emails at most every 45 minutes.
+- Cron runs independent of generation maintenance failures; tries a maximum of 12 existing customers.
+- Respect 24h per-contact freshness for scheduled sync; owner manual retry bypasses this.
+- Stop promptly on invalid key or rate limit; distinguish 401/403, 404, 429, network/HTTP/invalid responses.
+- Owner displays backend diagnostic directly in Clerk status line, including after page reload.
+- Worker VERSION set to pv-lab-2026-10-14.10-clerk-sync-audit.
+- Production deploy workflow applies migration 0016 before Worker deploy.
 
-## New task: hide API preview and fill overview
-- Compact 'API Balances' section is hidden on Control Room; Providers detail remains reachable
-  through the existing sidebar and mobile navigation after full customer ledgers.
-- Provider API data lazy-loads when Providers is selected, keeping overview lightweight.
-- Desktop >1260px activity panel min-height responds to viewport height; right-column
-  Quick actions stays at the bottom, closer to viewport lower border.
-- Tablet and mobile layout stay unchanged, no sideways scrolling.
-- Files: lab-worker/promotions.mjs, lab-worker/worker.mjs,
-  lab/owner.html, lab/owner.css, lab/owner.js,
-  tests/lab-promotions.test.mjs, tests/lab-owner-mobile-browser.mjs.
-
-## Verification and release
-- PR #208 promotion/owner-security, Lab tests, owner dashboard UI, account UI,
-  static-site and reference checks passed before handoff update.
-- Synthetic desktop geometry tested at 1792x844; provider overview hidden and details below vouchers.
-- Automatic email sync is tested with simulated owner API responses, not real Clerk credentials.
-- Pending: merge #208, verify Worker health version & GitHub Pages publication independently.
-- After owner page reload check actual D1 contact rows; if still zero, inspect the visible
-  'Clerk sync needs attention' reason and verify the current Production backend key in Clerk.
+## Verification and next actions
+- Regression tests in tests/lab-promotions.test.mjs: 3 verified users, wrong-app 404,
+  one audit row, private diagnostic, scheduled cooldown, owner retry and missing key.
+- Existing promotions, owner security and account browser suites remain required.
+- Merge PR #209 after relevant tests; verify Cloudflare Worker health and Pages deploy.
+- Wait for one scheduled sync then inspect aggregate D1 lab_clerk_sync_diagnostics row and email counts.
+- If invalid key or missing users persist, confirm Clerk Production secret is for the same
+  app as the PV LAB sign-in instance. Secret values must stay in encrypted Worker settings.
+- Never claim live email sync complete until D1 confirmed contacts with verified emails.
