@@ -15,7 +15,7 @@ assert.ok(authEnd>boot,'Clerk bootstrap must end before editor tool handlers');
 const mocked=source.slice(0,boot)+source.slice(authEnd+1)+`
 clerk={isSignedIn:true,user:{id:'user_browser'},session:{id:'test-customer-session',getToken:async()=> 'synthetic-token'}};
 owner=true;customerMode=true;customerGenerationReady=true;userId='user_browser';
-config={enabled:true,configured:true,geminiEnabled:true,openrouterEnabled:true,falEnabled:true,
+config={enabled:true,configured:true,geminiEnabled:true,falEnabled:true,
   higgsfieldEnabled:false,videoEngines:['wan'],concurrency:{image:10,video:3}};
 wallet.connect({customer:true,balanceCredits:1000,billingReady:true,products:[],
   soulIdTrainingCredits:400,soul2ImageCredits:7});
