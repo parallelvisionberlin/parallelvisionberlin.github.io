@@ -17,7 +17,9 @@ const server=http.createServer((req,res)=>{
   await page.setViewportSize({width,height});await page.goto('http://127.0.0.1:8766/lab/',{waitUntil:'networkidle'});await page.evaluate(()=>document.fonts.ready);
   await page.locator('.hero-poster').evaluate(img=>img.decode());
   assert.equal(await page.locator('h1').textContent(),'PV LAB');
-  assert.equal(await page.locator('.start-link').getAttribute('href'),'./studio.html?tool=image');
+  assert.match(await page.locator('.hero-welcome').textContent(),/200 free credits/);
+  assert.match(await page.locator('.lab-pricing-welcome').textContent(),/No purchase required/);
+  assert.equal(await page.locator('.start-link').getAttribute('href'),'./studio.html?tool=image&welcome=1');
   assert.deepEqual(await page.locator('.studio-tool-link').evaluateAll(els=>els.map(el=>el.getAttribute('href'))),['./studio.html?tool=image','./studio.html?tool=video','./studio.html?tool=upscale']);
   assert.deepEqual(await page.locator('.landing-header nav a').allTextContents(),['Image','Video','Upscaler','Explore Moods','Pricing']);
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'No overflow at '+width);
