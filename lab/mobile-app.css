@@ -116,3 +116,12 @@
 .pv-native-lab .composer-reference-remove{border:0!important;background:#10110fb3!important}
 
 .pv-native-lab .moods-look-midnight-reverie img{width:103%!important;max-width:none;transform:translateX(-2.5%)}
+
+/* Native Image dock progress: separate from Generate, overlaid without layout shifts. */
+.pv-native-lab .mobile-generation-dock #image-composer-status:not([hidden]){
+ position:absolute;right:16px;top:-18px;margin:0;
+ max-width:calc(100vw - 32px);font-size:10px;line-height:12px;
+ white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right;
+ color:#bfc7b2;text-shadow:0 1px 4px #090a08;pointer-events:none;
+}
+.pv-native-lab .mobile-generation-dock #image-composer-status[hidden]{display:none!important}
