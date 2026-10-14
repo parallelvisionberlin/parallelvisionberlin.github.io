@@ -24,6 +24,8 @@ export function creditsPerUsdForJob(settings={}){
 }
 export function creditsForJobUsd(usd,settings={}){
   if(!Number.isFinite(usd)||usd<0)throw Error('Invalid provider quote.');
+  // Exact-model Premium Upscale retail prices; client labels cannot select a price.
+  if(settings.type==='image'&&settings.provider==='fal'&&settings.mode==='upscale'&&settings.upscaleEngine==='seedvr2'&&settings.model==='fal-ai/seedvr/upscale/image'&&(settings.scale===2||settings.scale===4))return settings.scale===2?10:18;
   // Fixed introductory price for exact Google Nano Banana 2.1 routes only.
   if(isNano21Job(settings))return NANO21_CREDITS[settings.resolution];
   // All customer job quote amounts round upward. Minimum applies to all models.

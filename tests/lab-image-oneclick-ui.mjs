@@ -59,7 +59,9 @@ async function workspace({failure='',width=1440,height=1000,initial=[],savedPack
    if(quoteDelay)await new Promise(r=>setTimeout(r,quoteDelay));
    if(failure==='quote')return send({error:'Provider quote unavailable. No generation submitted.'},502);
    const makeQuote=()=>{
-    const q={id:id(sequence++),estimatedUsd:0.036,maxUsd:0.036,expiresAt:Date.now()+(failure==='expired'?-1:180000),settings:{...data.settings,...(data.settings.type==='video'?{model:'bytedance/seedance-2.5/'+({start:'image-to-video',text:'text-to-video',reference:'reference-to-video'})[data.settings.mode]}:{}),mode:failure==='wrong-model'?(data.settings.mode==='upscale'?'image':'upscale'):data.settings.mode,referenceSourceIds:data.referenceSourceIds||[],transferNotes:[]}};
+    const premiumUpscale=data.settings.mode==='upscale'&&data.settings.upscaleEngine==='seedvr2';
+     const upscaleSize=320*(Number(data.settings.scale)||2);
+     const q={id:id(sequence++),estimatedUsd:premiumUpscale?.001:0.036,maxUsd:premiumUpscale?.001:0.036,expiresAt:Date.now()+(failure==='expired'?-1:180000),...(premiumUpscale?{provider:'fal.ai',priceIsEstimate:true,requiresPriceReview:true,creditCost:Number(data.settings.scale)===4?18:10}:{}),settings:{...data.settings,...(data.settings.type==='video'?{model:'bytedance/seedance-2.5/'+({start:'image-to-video',text:'text-to-video',reference:'reference-to-video'})[data.settings.mode]}:{}),...(premiumUpscale?{model:'fal-ai/seedvr/upscale/image',type:'image',mode:'upscale',sourceWidth:320,sourceHeight:320,targetWidth:upscaleSize,targetHeight:upscaleSize}:{}),mode:failure==='wrong-model'?(data.settings.mode==='upscale'?'image':'upscale'):data.settings.mode,referenceSourceIds:data.referenceSourceIds||[],transferNotes:[]}};
     quotes.set(q.id,{q,data});return q;
    };
    if(data.count!==undefined){
@@ -558,7 +560,8 @@ try{
   x=await workspace({failure});await upscaleForm(x);await x.page.click('#generate:visible, #image-composer-generate:visible');await ready(x.page);await x.page.waitForTimeout(150);assert.equal(x.accepted(),0);assert.equal(count(x,'/api/quotes'),1);assert.equal(count(x,'/api/jobs'),['quote','expired','wrong-model'].includes(failure)?0:1);assert.equal(await x.page.locator('#quote-dialog').isVisible(),false);assert.ok((await x.page.locator('#notice').innerText()).length>0);ok('Upscale '+failure+': stops without automatic repricing or retry');await x.context.close();
  }
  x=await workspace({failure:'auth'});await upscaleForm(x);await x.page.click('#generate:visible, #image-composer-generate:visible');await ready(x.page);const upscaleSubmissions=x.requests.filter(r=>r.path==='/api/jobs'&&r.method==='POST');assert.equal(upscaleSubmissions.length,2);assert.deepEqual(upscaleSubmissions[0].data,upscaleSubmissions[1].data);assert.equal(x.accepted(),1);ok('Upscale authentication-only renewal reuses the exact quote ID');await x.context.close();
- for(const initial of [[active(1),active(2),active(3),active(4)],[{...active(5),status:'uncertain'}]]){
+ const activeUpscale=n=>({...active(n),settings:{type:'image',provider:'fal',engine:'upscale',mode:'upscale',upscaleEngine:'seedvr2',model:'fal-ai/seedvr/upscale/image'}});
+ for(const initial of [[activeUpscale(1),activeUpscale(2),activeUpscale(3),activeUpscale(4)],[{...activeUpscale(5),status:'uncertain'}]]){
   x=await workspace({initial});await upscaleForm(x);assert.equal(await x.page.locator('#generate').isDisabled(),true);assert.equal(count(x,'/api/jobs'),0);ok('Capacity and interrupted-request gates still block Upscale');await x.context.close();
  }
  const failedFal={id:id(901),status:'failed',sourceId:id(902),settings:{type:'video',provider:'fal',engine:'h3maxfal',mode:'reference',model:'minimax/h3-max/reference-to-video',prompt:'test',duration:10,resolution:'1080p',aspectRatio:'16:9'},createdAt:Date.now(),estimatedUsd:1.721,error:'fal.ai: Provider rejected the request.',providerTaskId:'fal_failed'};

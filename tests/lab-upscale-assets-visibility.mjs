@@ -48,30 +48,30 @@ for(const [width,height,profile] of [[1440,900,'desktop'],[390,844,'mobile']]){
       app.classList.add('upscale-studio-active');
       const tool=document.getElementById('tool-upscale');tool.classList.add('active');tool.setAttribute('aria-pressed','true');
       // Set the same visibility flags the authenticated Upscaler uses, without providers.
-      for(const id of ['upscale-model-control','upscale-info','upscale-price','format-control']){
+      for(const id of ['upscale-scale-control','upscale-info','upscale-price','format-control']){
         document.getElementById(id).hidden=false;
       }
-      for(const id of ['duration-control','image-processing-control','image-count-control','ratio-control','prompt','prompt-label','video-model-control','video-modes','video-task-switch','video-utilities','soul-controls','start-mode']){
+      for(const id of ['duration-control','image-processing-control','image-count-control','ratio-control','prompt','prompt-label','video-model-control','video-modes','video-task-switch','video-utilities','soul-controls','start-mode','resolution-control','upscale-model-control']){
         const el=document.getElementById(id);if(el)el.hidden=true;
       }
     });
     const deck=await page.evaluate(()=>{
       const rect=id=>{const r=document.getElementById(id).getBoundingClientRect();return {top:r.top,left:r.left,right:r.right,width:r.width};};
-      return {method:rect('upscale-engine'),size:rect('resolution'),format:rect('output-format'),generate:rect('generate')};
+      return {size:rect('upscale-scale'),format:rect('output-format'),generate:rect('generate')};
     });
     if(profile==='desktop'){
-      const tops=[deck.method.top,deck.size.top,deck.format.top,deck.generate.top];
-      assert.ok(Math.max(...tops)-Math.min(...tops)<5,'Desktop method, size, format and Upscale align in one row');
-      assert.ok(deck.method.left<deck.size.left&&deck.size.left<deck.format.left&&deck.format.left<deck.generate.left,'Desktop upscale controls follow logical order');
+      const tops=[deck.size.top,deck.format.top,deck.generate.top];
+      assert.ok(Math.max(...tops)-Math.min(...tops)<5,'Desktop enlargement, format and Upscale align in one row');
+      assert.ok(deck.size.left<deck.format.left&&deck.format.left<deck.generate.left,'Desktop upscale controls follow logical order');
     }else{
-      assert.ok(deck.method.width>0&&deck.generate.width>0,'Mobile upscale controls remain usable');
+      assert.ok(deck.size.width>0&&deck.generate.width>0,'Mobile upscale controls remain usable');
       assert.ok(deck.generate.top>deck.size.top,'Mobile Upscale button wraps below settings');
     }
     const geometry=await page.evaluate(()=>{
       const rect=selector=>{const r=document.querySelector(selector).getBoundingClientRect();return {top:r.top,bottom:r.bottom,left:r.left,right:r.right,height:r.height};};
       return {
         canvas:rect('#upscale-canvas'),deck:rect('#app .workspace>.controls'),results:rect('.archive'),
-        options:rect('#upscale-info summary'),size:rect('#resolution'),imageLoaded:false
+        options:rect('#upscale-info summary'),size:rect('#upscale-scale'),imageLoaded:false
       };
     });
     const spacing=await page.evaluate(()=>{

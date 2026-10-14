@@ -102,3 +102,31 @@ test('future customer jobs use new SQLite pricing trigger; failures refund and o
  db.prepare("UPDATE jobs SET state='failed' WHERE id='normal'").run();
  assert.equal(db.prepare("SELECT COUNT(*) AS n FROM lab_credit_entries WHERE reference='refund:job:normal'").get().n,1);
 });
+
+test('Premium Upscale charges 10 or 18 credits with exact route validation and refunds',t=>{
+ const p={type:'image',mode:'upscale',provider:'fal',engine:'upscale',upscaleEngine:'seedvr2',model:'fal-ai/seedvr/upscale/image',scale:2};
+ assert.equal(creditsForJobUsd(.004,p),10);assert.equal(creditsForJobUsd(.013,{...p,scale:4}),18);
+ assert.equal(creditsForJobUsd(.013,{...p,scale:8}),7);
+ assert.equal(creditsForJobUsd(.013,{...p,provider:'spicy'}),7);
+ assert.equal(creditsForJobUsd(.013,{...p,model:'topaz/upscale/image/precision'}),7);
+ const db=new DatabaseSync(':memory:');t.after(()=>db.close());
+ for(const file of ['../lab-worker/schema.sql','../lab-worker/migrations/0006-customers-billing.sql',
+ '../lab-worker/migrations/0008-soul-id-launch-credits.sql',
+ '../lab-worker/migrations/0012-video-tiered-pricing.sql',
+ '../lab-worker/migrations/0013-nano-banana-21-pricing.sql',
+ '../lab-worker/migrations/0014-premium-upscale-credits.sql'])db.exec(readFileSync(new URL(file,import.meta.url),'utf8'));
+ const now=Date.now(),customer='user_Premium';
+ db.prepare('INSERT INTO lab_customers(id,clerk_subject,created_at,updated_at) VALUES(?,?,?,?)').run(customer,customer,now,now);
+ db.prepare("INSERT INTO lab_credit_entries(id,customer_id,delta_credits,kind,reference,created_at) VALUES('premium-wallet',?,1000,'purchase','topup',?)").run(customer,now);
+ const put=(id,owner,settings,cost)=>db.prepare("INSERT INTO jobs(id,owner_id,params,state,estimate_microusd,created_at,updated_at) VALUES(?,?,?,'queued',?,?,?)").run(id,owner,JSON.stringify(settings),cost,now,now);
+ const debit=id=>db.prepare('SELECT delta_credits AS n FROM lab_credit_entries WHERE reference=?').get('job:'+id)?.n;
+ put('seed2',customer,p,4000);put('seed4',customer,{...p,scale:4},13000);
+ put('topaz',customer,{...p,upscaleEngine:'topaz-precision',model:'topaz/upscale/image/precision'},80000);
+ put('owner','owner-private',p,4000);
+ assert.equal(debit('seed2'),-10);assert.equal(debit('seed4'),-18);
+ assert.equal(debit('topaz'),-37);assert.equal(debit('owner'),undefined);
+ assert.equal(db.prepare('SELECT balance_credits AS n FROM lab_customers WHERE id=?').get(customer).n,935);
+ db.prepare("UPDATE jobs SET state='failed' WHERE id='seed4'").run();
+ assert.equal(db.prepare('SELECT balance_credits AS n FROM lab_customers WHERE id=?').get(customer).n,953);
+ assert.equal(db.prepare("SELECT COUNT(*) AS n FROM lab_credit_entries WHERE reference='refund:job:seed4'").get().n,1);
+});

@@ -4,18 +4,20 @@
 // Local estimates do not reserve a provider price or override provider policies.
 export const FAL_UPSCALERS=Object.freeze({
   'topaz-precision':{endpoint:'topaz/upscale/image/precision',pixelsPerUnit:24000000},
-  'topaz-wonder':{endpoint:'topaz/upscale/image/generative',pixelsPerUnit:8000000}
+  'topaz-wonder':{endpoint:'topaz/upscale/image/generative',pixelsPerUnit:8000000},
+  seedvr2:{endpoint:'fal-ai/seedvr/upscale/image',pixelsPerUnit:1000000}
 });
 // Lab archive guard, not a claim about the provider's maximum supported size.
 export const MAX_UPSCALE_PIXELS=67108864;
 
 export function falUpscaleParameters(value,{fail}){
   const upscaleEngine=value.upscaleEngine;
-  if(!Object.hasOwn(FAL_UPSCALERS,upscaleEngine))fail(400,'Choose SpicyAPI, Topaz Precision or Topaz Wonder 3.5.');
+  if(!Object.hasOwn(FAL_UPSCALERS,upscaleEngine))fail(400,'Choose a supported image upscale engine.');
   const scale=Number(value.scale??2),outputFormat=value.outputFormat||'png';
-  if(![2,4].includes(scale))fail(400,'Topaz supports 2x or 4x enlargement in this Lab.');
-  if(!['png','jpeg'].includes(outputFormat))fail(400,'Topaz image upscaling supports PNG or JPEG.');
-  const topazModel=upscaleEngine==='topaz-wonder'?'Wonder 3.5':value.topazModel||'Standard V2';
+  if(![2,4].includes(scale))fail(400,'Upscale supports 2x or 4x enlargement in this Lab.');
+  if(!['png','jpeg'].includes(outputFormat))fail(400,'Image upscaling supports PNG or JPEG.');
+  const topazModel=upscaleEngine==='seedvr2'?undefined:upscaleEngine==='topaz-wonder'?'Wonder 3.5':value.topazModel||'Standard V2';
+  if(upscaleEngine==='seedvr2'&&value.topazModel!=null)fail(400,'Topaz options do not apply to Premium Upscale.');
   if(upscaleEngine==='topaz-precision'&&!['Standard V2','High Fidelity V3'].includes(topazModel))fail(400,'Choose Standard V2 or High Fidelity V3 for Topaz Precision.');
   if(upscaleEngine==='topaz-wonder'&&value.topazModel&&value.topazModel!=='Wonder 3.5')fail(400,'This Topaz Wonder option uses Wonder 3.5.');
   return {type:'image',provider:'fal',engine:'upscale',upscaleEngine,model:FAL_UPSCALERS[upscaleEngine].endpoint,mode:'upscale',prompt:'',scale,topazModel,resolution:scale+'x',aspectRatio:'source',outputFormat,referenceRoles:[],referenceSourceIds:[],lastSourceId:null};
@@ -71,7 +73,8 @@ export function storedImageDimensions(bytes,mime){
 
 export function setFalUpscaleDimensions(p,{width,height},{fail}){
   const targetWidth=width*p.scale,targetHeight=height*p.scale,pixels=targetWidth*targetHeight;
-  if(!Number.isSafeInteger(pixels)||pixels>MAX_UPSCALE_PIXELS)fail(400,'This enlargement exceeds the Lab limit of 67 megapixels. Choose 2x or a smaller source image.');
+  const pixelLimit=p.upscaleEngine==='seedvr2'?32000000:MAX_UPSCALE_PIXELS;
+  if(!Number.isSafeInteger(pixels)||pixels>pixelLimit)fail(400,'This enlargement exceeds the output limit for the selected upscaler. Choose 2x or a smaller source image.');
   Object.assign(p,{sourceWidth:width,sourceHeight:height,targetWidth,targetHeight,inputTransport:'inline-data-uri'});
   return p;
 }
@@ -79,9 +82,12 @@ export function setFalUpscaleDimensions(p,{width,height},{fail}){
 export function falUpscaleEstimateMicros(p){
   const pixels=p.targetWidth*p.targetHeight;
   if(!Number.isSafeInteger(pixels)||pixels<1||!FAL_UPSCALERS[p.upscaleEngine])throw new Error('Verified upscale dimensions are required before estimating.');
+  // Conservative published SeedVR2 estimate ($0.001 / output MP, rounded up to a full MP).
+  if(p.upscaleEngine==='seedvr2')return Math.ceil(pixels/1000000)*1000;
   return Math.ceil(pixels/FAL_UPSCALERS[p.upscaleEngine].pixelsPerUnit)*80000;
 }
 
 export function buildFalUpscaleInput(p){
+  if(p.upscaleEngine==='seedvr2')return {upscale_mode:'factor',upscale_factor:p.scale,noise_scale:0.1,output_format:p.outputFormat==='jpeg'?'jpg':p.outputFormat};
   return {model:p.topazModel,upscale_factor:p.scale,output_format:p.outputFormat,crop_to_fill:false,face_enhancement:false};
 }

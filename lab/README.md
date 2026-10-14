@@ -475,3 +475,9 @@ See [the result deck work state](RESULT-DECK-WORK-STATE.md) for the approved edi
 ## Image composer placeholder (2026-10-14)
 
 See [the scoped image prompt work state](IMAGE-PROMPT-WORK-STATE.md) for the approved web composer placeholder copy and context rules. This is UI guidance only. Models, Moods, prompt compilation, references, and billing remain unchanged.
+
+## Premium Upscale rollout (2026-10-14)
+
+PV LAB now offers **Premium Upscale** as the sole visible Upscaler method, using ByteDance SeedVR2 via the existing server-side fal.ai connection. The compact responsive deck offers 2× (10 credits) and 4× (18 credits), PNG/JPEG, and hides the retired economical and Topaz options. Historic outputs retain their original model names; Reuse selects Premium Upscale without charging. The server preserves signed original inputs, private R2 archives, source hash verification, a 32 MP output cap, noise_scale 0.1 and idempotent quotes. Published provider charges are estimates, not guaranteed maximums. Migration `0014-premium-upscale-credits.sql` must run after `0013` to enforce both prices in D1. Existing subscriptions, Stripe, ledger history and other models remain unchanged. No paid upscale was initiated.
+
+See [Premium Upscale work state](UPSCALE-WORK-STATE.md) for scope and verification details.
