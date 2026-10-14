@@ -212,3 +212,89 @@ html,body{width:100%;max-width:100%;overflow-x:clip}
   .owner-form-grid,.owner-result-copy{width:100%;max-width:100%;min-width:0}
   .owner-voucher-form input,.owner-result-copy input{max-width:100%}
 }
+
+/* Owner activity-first layout: a compact overview before detailed ledgers. */
+.owner-shell{padding-top:29px}
+.owner-hero{align-items:end;gap:28px;padding-bottom:20px}
+.owner-hero h1{margin:12px 0 10px;font-size:clamp(46px,4.9vw,70px);line-height:.99}
+.owner-intro{margin:0;color:#b9bab3;font-size:14px}
+.owner-hero-aside{max-width:260px;font-size:11px;line-height:1.55}
+.owner-jumpbar nav a{padding:15px 0 13px}
+.owner-metrics{margin-top:18px}
+.owner-metrics>div{min-height:96px;padding:17px 20px 14px}
+.owner-metrics span{margin-bottom:10px;font-size:11px}
+.owner-metrics strong{font-size:clamp(30px,2.7vw,40px)}
+.owner-activity{display:grid;grid-template-columns:minmax(0,1.34fr) minmax(0,.92fr);align-items:stretch;gap:16px;margin-top:20px;scroll-margin-top:62px}
+.owner-activity-panel{min-width:0;padding:21px 24px 16px;border:1px solid #393a36;background:#171816}
+.owner-activity-head{display:flex;align-items:end;justify-content:space-between;gap:12px}
+.owner-activity-head>div{min-width:0}
+.owner-activity-head h2{margin:7px 0 0;font-size:clamp(25px,2.25vw,32px);font-weight:300;letter-spacing:-.055em;line-height:1.12}
+.owner-activity-head h2 span{color:#777972}
+.owner-activity-head a{flex:none;padding-bottom:3px;color:#b7b9b0;font-size:11px;white-space:nowrap}
+.owner-activity-head a:hover,.owner-activity-head a:focus-visible{color:#fff}
+.owner-recent-filters{display:flex;gap:19px;margin-top:15px;border-bottom:1px solid #373932}
+.owner-recent-filters button{padding:9px 0 10px;margin:0 0 -1px;border:0;border-bottom:1px solid transparent;background:transparent;color:#8f938a;font-size:11px}
+.owner-recent-filters button[aria-pressed=true]{color:#eeeae3;border-bottom-color:#eeeae3}
+.owner-recent-filters button:hover{color:#fff}
+.owner-recent-list{margin:0;padding:0;list-style:none}
+.owner-recent-item{display:flex;align-items:center;gap:15px;min-width:0;padding:15px 0;border-bottom:1px solid #343630}
+.owner-recent-item:last-child{border-bottom:0}
+.owner-recent-number{flex:0 0 18px;color:#757970;font-size:10px;letter-spacing:.06em;font-variant-numeric:tabular-nums}
+.owner-recent-person{flex:1;min-width:0}
+.owner-recent-person strong{display:block;overflow:hidden;color:#e9e7e1;font-size:12px;font-weight:500;text-overflow:ellipsis;white-space:nowrap}
+.owner-recent-person small{display:block;overflow:hidden;margin-top:5px;color:#888c83;font-size:10px;text-overflow:ellipsis;white-space:nowrap}
+.owner-recent-trailing{flex:0 0 auto;min-width:83px;text-align:right}
+.owner-recent-trailing strong{display:block;font-size:11px;font-weight:500;color:#cccfc5}
+.owner-recent-trailing time{display:block;margin-top:5px;color:#8e9189;font-size:10px}
+.owner-recent-empty{padding:22px 0;color:#9b9e96;font-size:12px;line-height:1.6}
+.owner-recent-note{margin:10px 0 0;color:#898c83;font-size:10px;line-height:1.5}
+.owner-activity-side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.owner-purchases-panel{flex:1;min-height:190px}
+.owner-payment-list{margin-top:16px}
+.owner-payment-list .owner-recent-item{padding:12px 0}
+.owner-activity-side .owner-integration{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:start;gap:9px 12px;margin:0;padding:16px 18px}
+.owner-activity-side .owner-integration-light{margin-top:5px}
+.owner-activity-side .owner-integration-label{margin-bottom:4px}
+.owner-activity-side .owner-integration-message strong{font-size:12px}
+.owner-activity-side .owner-integration-message p{font-size:10px;line-height:1.5}
+.owner-integration-actions{grid-column:2;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.owner-integration-actions button{padding:8px 10px;font-size:10px}
+.owner-email-status{margin:0;color:#a4a69d;font-size:10px;line-height:1.6}
+.owner-email-status:empty{display:none}
+.owner-setup-guide{margin-top:0}
+.owner-section{padding:39px 0 38px;scroll-margin-top:61px}
+.owner-section-head{margin-bottom:16px}
+.owner-section h2{font-size:clamp(33px,3.5vw,46px)}
+.owner-toolbar{margin-bottom:12px}
+@media(max-width:940px){
+  .owner-activity{grid-template-columns:1fr}
+  .owner-activity-side{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start}
+  .owner-activity-side .owner-email-status{grid-column:1/-1}
+  .owner-purchases-panel{height:100%}
+}
+@media(max-width:600px){
+  .owner-shell{padding-top:22px}
+  .owner-hero{padding-bottom:18px}
+  .owner-hero h1{margin:10px 0 9px;font-size:clamp(42px,10.7vw,58px)}
+  .owner-intro{font-size:12px}
+  .owner-hero-aside{display:none}
+  .owner-jumpbar nav a{padding:13px 0 12px}
+  .owner-metrics{margin-top:13px}
+  .owner-metrics>div{min-height:87px;padding:13px 12px}
+  .owner-metrics span{margin-bottom:9px;font-size:10px}
+  .owner-metrics strong{font-size:31px}
+  .owner-activity{margin-top:14px;gap:12px}
+  .owner-activity-panel{padding:17px 16px 12px}
+  .owner-activity-head h2{font-size:26px}
+  .owner-activity-head a{font-size:10px}
+  .owner-recent-filters{margin-top:10px}
+  .owner-recent-item{gap:9px;padding:12px 0}
+  .owner-recent-number{flex-basis:17px;font-size:10px}
+  .owner-recent-trailing{min-width:70px;max-width:90px}
+  .owner-recent-trailing strong{font-size:10px}
+  .owner-recent-trailing time{font-size:9px}
+  .owner-activity-side{display:flex;gap:10px}
+  .owner-purchases-panel{min-height:0}
+  .owner-activity-side .owner-integration{padding:14px}
+  .owner-section{padding:32px 0}
+}

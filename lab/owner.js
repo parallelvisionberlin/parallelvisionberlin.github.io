@@ -45,6 +45,57 @@ function labelTableCellsForMobile(){
     }
   }
 }
+
+let recentFilter='all',recentCustomers=[],recentPayments=[];
+function recentRow(list,index,{primary,secondary,emphasis,at}){
+  const li=document.createElement('li');li.className='owner-recent-item';
+  const number=document.createElement('span');number.className='owner-recent-number';number.textContent=String(index+1).padStart(2,'0');number.setAttribute('aria-hidden','true');
+  const info=document.createElement('div');info.className='owner-recent-person';
+  const name=document.createElement('strong');name.textContent=primary||'—';name.title=primary||'';
+  const details=document.createElement('small');details.textContent=secondary||'';details.title=secondary||'';
+  info.append(name,details);
+  const trailing=document.createElement('div');trailing.className='owner-recent-trailing';
+  const label=document.createElement('strong');label.textContent=emphasis||'—';
+  const when=document.createElement('time');when.textContent=formatDate(at);
+  if(Number.isFinite(Number(at))&&Number(at)>0)when.dateTime=new Date(Number(at)).toISOString();
+  trailing.append(label,when);li.append(number,info,trailing);list.append(li);
+}
+function paintRecentActivity(){
+  for(const button of document.querySelectorAll('[data-recent-filter]'))
+    button.setAttribute('aria-pressed',String(button.dataset.recentFilter===recentFilter));
+  const subscribed=recentFilter==='subscribed';
+  $('owner-recent-title').firstChild.textContent=subscribed?'Latest subscribers':'Latest signups';
+  const eligible=subscribed
+    ?recentCustomers.filter(customer=>['active','trialing'].includes(customer.subscription))
+    :recentCustomers;
+  const visible=eligible.slice(0,5),signupList=$('owner-recent-signups');signupList.replaceChildren();
+  if(!visible.length){
+    const li=document.createElement('li');li.className='owner-recent-empty';
+    li.textContent=subscribed?'No active or trialing subscribers among the recent accounts.':'No customer signups yet.';
+    signupList.append(li);
+  }
+  visible.forEach((customer,index)=>{
+    const isSubscriber=['active','trialing'].includes(customer.subscription);
+    recentRow(signupList,index,{
+      primary:customer.email||customer.id,secondary:customer.email?customer.id:'Email pending Clerk sync',
+      emphasis:customer.subscription==='trialing'?'Trial':isSubscriber?'Subscribed':Number(customer.verifiedPayments)>0?'Purchased':'Joined',
+      at:customer.joinedAt
+    });
+  });
+  $('owner-recent-note').textContent=subscribed
+    ?'Active or trialing subscribers, ordered by account signup date. Recent 80-account window.'
+    :'Showing the five newest signups. This list stays unfiltered when searching the full directory.';
+  const paymentList=$('owner-recent-payments');paymentList.replaceChildren();
+  if(!recentPayments.length){
+    const li=document.createElement('li');li.className='owner-recent-empty';
+    li.textContent='No verified purchases yet.';paymentList.append(li);
+  }
+  recentPayments.slice(0,3).forEach((payment,index)=>recentRow(paymentList,index,{
+    primary:payment.email||payment.customerId,
+    secondary:payment.kind==='subscription'?'Subscription invoice':'One-time credit purchase',
+    emphasis:'+'+formatNumber(payment.credits)+' credits',at:payment.paidAt
+  }));
+}
 function render(data){
   const s=data.summary||{};
   $('owner-total-accounts').textContent=formatNumber(s.accounts);
@@ -53,6 +104,12 @@ function render(data){
   $('owner-redemptions').textContent=formatNumber(s.voucherClaims);
   $('owner-referral-summary').textContent=formatNumber(s.rewardedReferrals)+' verified referral rewards issued. Recent attribution is listed below.';
   const customerCount=(data.customers||[]).length,query=$('owner-search').value.trim();
+  // The directory search must not replace the account-wide latest-signups feed.
+  if(!query){
+    recentCustomers=Array.isArray(data.customers)?data.customers:[];
+    recentPayments=Array.isArray(data.payments)?data.payments:[];
+  }
+  paintRecentActivity();
   $('owner-customer-count').textContent=query
     ?formatNumber(customerCount)+' matching accounts. Search applies to customers only.'
     :formatNumber(customerCount)+(customerCount>=80?' most recent accounts shown (limit 80).':' customer accounts shown. Verified emails come directly from Clerk.');
@@ -142,6 +199,7 @@ async function refreshDashboard(){
 }
 async function refreshSession(){
   const current=++revision;fetchSerial++;profile=null;$('owner-dashboard').hidden=true;$('owner-gate').hidden=true;
+  recentCustomers=[];recentPayments=[];recentFilter='all';syncNotice='';$('owner-search').value='';
   for(const id of ['owner-customers','owner-payments','owner-referrals','owner-vouchers'])$(id).replaceChildren();
   if(!clerk?.isSignedIn){status('');$('owner-gate').hidden=false;return;}
   status('Checking your owner access…');
@@ -164,6 +222,10 @@ async function deactivate(code,button){
   try{await call('/api/admin/vouchers/deactivate',{method:'POST',body:{code}});await refreshDashboard();}
   catch(error){status(error.message);}finally{button.disabled=false;}
 }
+for(const button of document.querySelectorAll('[data-recent-filter]'))button.addEventListener('click',()=>{
+  recentFilter=button.dataset.recentFilter==='subscribed'?'subscribed':'all';
+  paintRecentActivity();
+});
 $('owner-search-form').addEventListener('submit',event=>{event.preventDefault();clearTimeout(searchTimer);void refreshDashboard();});
 $('owner-search').addEventListener('input',()=>{clearTimeout(searchTimer);$('owner-search-clear').hidden=!$('owner-search').value.trim();searchTimer=setTimeout(()=>void refreshDashboard(),320);});
 $('owner-search-clear').addEventListener('click',()=>{$('owner-search').value='';$('owner-search-clear').hidden=true;clearTimeout(searchTimer);void refreshDashboard();$('owner-search').focus();});

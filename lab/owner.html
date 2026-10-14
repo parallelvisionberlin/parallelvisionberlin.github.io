@@ -9,7 +9,7 @@
 <title>Owner / PV LAB</title>
 <link rel="preload" href="./fonts/dm-sans-latin-v17.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="icon" href="./branding/pv-mark.png" type="image/png">
-<link rel="stylesheet" href="./owner.css?v=20261014-mobile3">
+<link rel="stylesheet" href="./owner.css?v=20261014-activity1">
 </head>
 <body>
 <a class="owner-skip" href="#owner-main">Skip to dashboard</a>
@@ -19,8 +19,8 @@
 </header>
 <main id="owner-main" class="owner-shell">
   <header class="owner-hero">
-    <div><p class="owner-eyebrow">PV LAB / YOUR BUSINESS</p><h1>Control room<span>.</span></h1><p class="owner-intro">Customers. Payments. Creative invitations.</p></div>
-    <p class="owner-hero-aside">A private overview of your PV LAB customer activity, verified purchases and promotional credits.</p>
+    <div><p class="owner-eyebrow">PV LAB / YOUR BUSINESS</p><h1>Control room<span>.</span></h1><p class="owner-intro">Your customers and payments, at a glance.</p></div>
+    <p class="owner-hero-aside">Private overview. Real account activity, verified purchases and promotional credits.</p>
   </header>
   <p id="owner-status" class="owner-status" role="status" aria-live="polite">Checking owner access…</p>
   <div id="owner-gate" class="owner-gate" hidden><p>Sign in with the PV LAB owner account to open this workspace.</p><button type="button" id="owner-signin">Sign in</button></div>
@@ -34,23 +34,6 @@
       </nav>
       <div class="owner-jumpbar-actions"><span id="owner-last-update">Secure owner ledger</span><button id="owner-refresh" type="button" aria-label="Refresh dashboard data">Refresh data ↻</button></div>
     </div>
-    <div id="owner-integrations" class="owner-integration" hidden>
-      <span class="owner-integration-light" aria-hidden="true"></span>
-      <div class="owner-integration-message"><span class="owner-integration-label">CUSTOMER DIRECTORY / CLERK</span>
-        <strong id="owner-sync-state">Checking connection</strong><p id="owner-sync-copy">Checking secure email availability.</p>
-      </div>
-      <button id="owner-setup-toggle" type="button" aria-expanded="false" aria-controls="owner-setup-guide">Connection guide <span aria-hidden="true">↗</span></button>
-    </div>
-    <div id="owner-setup-guide" class="owner-setup-guide" hidden>
-      <p class="owner-integration-label">ONE-TIME SERVER SETUP</p>
-      <h3>Connect verified customer emails.</h3>
-      <ol>
-        <li>In the <a href="https://dashboard.clerk.com/" target="_blank" rel="noopener noreferrer">Clerk dashboard ↗</a>, locate the backend secret key for the production PV LAB application.</li>
-        <li>In <a href="https://dash.cloudflare.com/" target="_blank" rel="noopener noreferrer">Cloudflare ↗</a>, open Workers &amp; Pages → <strong>parallel-vision-lab</strong> → Settings → Variables and Secrets. Add an encrypted secret named <code>LAB_CLERK_SECRET_KEY</code>.</li>
-        <li>Save and deploy the secret, reload this page, then select <strong>Sync verified emails</strong> to backfill existing accounts.</li>
-      </ol>
-      <p>Keep the key on the Worker. Never paste a secret into PV LAB's website code or this dashboard.</p>
-    </div>
     <section class="owner-metrics" aria-label="Account summary">
       <div><span>Accounts created</span><strong id="owner-total-accounts">0</strong></div>
       <div><span>Customers who paid</span><strong id="owner-paying">0</strong></div>
@@ -58,10 +41,59 @@
       <div><span>Voucher redemptions</span><strong id="owner-redemptions">0</strong></div>
     </section>
 
+    <section class="owner-activity" aria-label="Recent customer activity">
+      <div class="owner-activity-panel owner-signups-panel">
+        <div class="owner-activity-head">
+          <div><span class="owner-index">LATEST / CUSTOMER ACTIVITY</span><h2 id="owner-recent-title">Latest signups<span>.</span></h2></div>
+          <a href="#owner-customers-section">All customers ↗</a>
+        </div>
+        <div class="owner-recent-filters" role="group" aria-label="Filter recent customers">
+          <button type="button" data-recent-filter="all" aria-pressed="true">All signups</button>
+          <button type="button" data-recent-filter="subscribed" aria-pressed="false">Subscribers</button>
+        </div>
+        <ul id="owner-recent-signups" class="owner-recent-list" aria-live="polite">
+          <li class="owner-recent-empty">Loading recent accounts…</li>
+        </ul>
+        <p id="owner-recent-note" class="owner-recent-note">Most recent accounts, newest first.</p>
+      </div>
+      <div class="owner-activity-side">
+        <div class="owner-activity-panel owner-purchases-panel">
+          <div class="owner-activity-head">
+            <div><span class="owner-index">LATEST / TRANSACTIONS</span><h2>Recent purchases<span>.</span></h2></div>
+            <a href="#owner-payments-section">All payments ↗</a>
+          </div>
+          <ul id="owner-recent-payments" class="owner-recent-list owner-payment-list" aria-live="polite">
+            <li class="owner-recent-empty">Loading verified purchases…</li>
+          </ul>
+        </div>
+        <div id="owner-integrations" class="owner-integration" hidden>
+          <span class="owner-integration-light" aria-hidden="true"></span>
+          <div class="owner-integration-message">
+            <span class="owner-integration-label">CUSTOMER EMAILS / CLERK</span>
+            <strong id="owner-sync-state">Checking connection</strong>
+            <p id="owner-sync-copy">Checking secure email availability.</p>
+          </div>
+          <div class="owner-integration-actions">
+            <button id="owner-sync" type="button">Sync emails ↻</button>
+            <button id="owner-setup-toggle" type="button" aria-expanded="false" aria-controls="owner-setup-guide">Connection guide ↗</button>
+          </div>
+        </div>
+        <p id="owner-email-status" class="owner-email-status" role="status" aria-live="polite"></p>
+      </div>
+    </section>
+    <div id="owner-setup-guide" class="owner-setup-guide" hidden>
+      <p class="owner-integration-label">ONE-TIME SERVER SETUP</p>
+      <h3>Connect verified customer emails.</h3>
+      <ol>
+        <li>In the <a href="https://dashboard.clerk.com/" target="_blank" rel="noopener noreferrer">Clerk dashboard ↗</a>, locate the backend secret key for the production PV LAB application.</li>
+        <li>In <a href="https://dash.cloudflare.com/" target="_blank" rel="noopener noreferrer">Cloudflare ↗</a>, open Workers &amp; Pages → <strong>parallel-vision-lab</strong> → Settings → Variables and Secrets. Add an encrypted secret named <code>LAB_CLERK_SECRET_KEY</code>.</li>
+        <li>Save and deploy the secret, reload this page, then select <strong>Sync emails</strong> to backfill existing accounts.</li>
+      </ol>
+      <p>Keep the key on the Worker. Never paste a secret into PV LAB's website code or this dashboard.</p>
+    </div>
     <section class="owner-section" id="owner-customers-section" aria-labelledby="owner-customers-title">
       <div class="owner-section-head"><div><span class="owner-index">01 / AUDIENCE</span><h2 id="owner-customers-title">Customers.</h2></div><form id="owner-search-form" class="owner-search" role="search"><label for="owner-search">Find an account</label><input id="owner-search" type="search" placeholder="Email or account ID" maxlength="80" autocomplete="off"><button id="owner-search-clear" type="button" hidden>Clear</button><button type="submit">Search</button></form></div>
-      <div class="owner-toolbar"><p id="owner-customer-count">Loading customer directory…</p><div><button id="owner-sync" type="button">Sync verified emails</button></div></div>
-      <p id="owner-email-status" class="owner-small" role="status"></p>
+      <div class="owner-toolbar"><p id="owner-customer-count">Loading customer directory…</p></div>
       <div class="owner-table-wrap"><table><thead><tr><th>Email / account</th><th>Joined</th><th>Balance</th><th>Paid events</th><th>Subscription</th><th>Last payment</th></tr></thead><tbody id="owner-customers"></tbody></table></div>
     </section>
 
@@ -118,6 +150,6 @@
     <footer class="owner-footer"><span>PV LAB / BERLIN</span><span>Owner access is verified on the server for every request.</span></footer>
   </div>
 </main>
-<script type="module" src="./owner.js?v=20261014-clerk-email-sync1"></script>
+<script type="module" src="./owner.js?v=20261014-activity1"></script>
 </body>
 </html>
