@@ -78,7 +78,7 @@ test('five minute cache and refresh throttle prevent repeated provider reads; er
   const updated=await ownerProviderBalances(bindings,{...options,fetcher:broken,clock:()=>TIME+32000,force:true});
   assert.equal(updated.cached,false);
   assert.equal(updated.providers[0].balance,null,'Not misreported as zero after a failed balance call');
-  assert.equal(updated.providers[0].lastSuccess,new Date(TIME).toISOString(),'Retain last successful sync timestamp');
+  assert.equal(updated.providers[0].lastSuccess,new Date(TIME+32000).toISOString(),'A verified usage refresh is a successful sync even if balance failed');
   assert.equal(updated.providers[1].status,'permission-required');
   assert.equal(updated.providers[1].balance,null);
   assert.ok(!JSON.stringify(updated).includes('Network error must not leak'),'Remote error details are not returned');
