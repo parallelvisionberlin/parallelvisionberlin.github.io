@@ -1400,7 +1400,7 @@ body:has(#app[hidden])>#studio-header .studio-assets-icon{display:none!important
 }
 @media(max-width:640px){
   #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active)>.workspace>.controls{
-    grid-template-columns:minmax(0,1fr) minmax(0,1fr);padding:14px 12px 11px;gap:9px;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr);padding:14px 12px 12px;gap:9px;
   }
   #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-model-display{grid-column:1/-1}
   #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .controls-body>.parameter-grid{grid-column:1}
