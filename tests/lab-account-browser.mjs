@@ -199,6 +199,9 @@ try{
       await page.evaluate(()=>location.hash='settings');await page.locator('#account-edit-profile').click();assert.equal(await page.evaluate(()=>window.profileOpened),true);
       assert.match(await page.locator('#account-storage-label').textContent(),/1.00 GiB/);await fits(page,'settings '+width);
       await page.screenshot({path:artifacts+'/account-settings-'+width+'.png',fullPage:true});
+      assert.equal(await page.locator('#settings-delete-row').isVisible(),true,'customer delete action is visible in Settings');
+      assert.equal((await page.locator('#settings-close-account').textContent()).trim(),'Delete account');
+      assert.equal(await page.locator('#account-close-dialog').isVisible(),false,'deletion requires opening the confirmation dialog');
       await page.click('#settings-close-account');assert.equal(await page.locator('#account-close-submit').isDisabled(),true);await page.fill('#account-close-confirm','DELETE');assert.equal(await page.locator('#account-close-submit').isDisabled(),true);await page.fill('#account-close-confirm','DELETE MY PV LAB ACCOUNT');assert.equal(await page.locator('#account-close-submit').isDisabled(),false);await page.keyboard.press('Escape');
       rig.holdWallet();await page.evaluate(()=>{document.querySelector('#account-refresh').click();});await page.waitForFunction(()=>!document.querySelector('#account-workspace').hidden);
       await page.evaluate(()=>window.mockClerk.signOut());rig.releaseWallet();await page.waitForFunction(()=>!document.querySelector('#account-gate').hidden);
