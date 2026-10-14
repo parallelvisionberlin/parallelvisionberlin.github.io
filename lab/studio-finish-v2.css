@@ -87,3 +87,12 @@
  color:#bfc2c6;text-shadow:0 1px 5px rgba(0,0,0,.95);pointer-events:none;
 }
 #image-composer #image-composer-status[hidden]{display:none!important}
+
+/* Compact composer and persistent, clear action; blocked requests remain disabled. */
+#image-composer .composer-generate:disabled:not(.is-submitting){background:#e9e7e0!important;border-color:#e9e7e0!important;color:#777671!important;box-shadow:none!important;cursor:not-allowed}
+#image-composer .composer-generate.has-credit-cost:not(.is-submitting)::after{content:attr(data-credits);display:block;font-size:11px;font-weight:500;line-height:1;color:inherit;opacity:.72}
+#image-composer .composer-generate.has-credit-cost .composer-generate-sparkle{display:none!important}
+@media(min-width:901px){
+#image-composer .image-composer-top{padding-top:9px!important;padding-bottom:3px!important}
+#image-composer .image-composer-toolbar{padding-top:4px!important;padding-bottom:9px!important}
+}
