@@ -1117,7 +1117,8 @@ function showWelcomeStart(session){
   if(!panel)return;
   // Do not infer new-user eligibility from the URL or a localStorage flag.
   // Show only after authenticated /api/session and history have both arrived.
-  const eligible=welcomeRequested&&owner&&customerMode&&customerGenerationReady
+  // Normal Image entry is as eligible as the promotional welcome link.
+  const eligible=(welcomeRequested||tool==='image')&&owner&&customerMode&&customerGenerationReady
     &&session?.customer===true&&session?.generationReady===true
     &&session.accountClosed!==true&&session.billingReview!==true
     &&Number.isSafeInteger(session.balanceCredits)&&session.balanceCredits>0
@@ -1151,6 +1152,17 @@ function useWelcomeMood(id){
 }
 document.querySelectorAll('[data-welcome-mood]').forEach(button=>{
   button.addEventListener('click',()=>useWelcomeMood(button.dataset.welcomeMood));
+});
+// Empty-gallery shortcuts dispatch the same existing composer actions.
+// They never bypass review, price checks, or explicit Generate.
+$('image-empty-add')?.addEventListener('click',()=>{
+  if(owner&&tool==='image')$('image-composer-add')?.click();
+});
+$('image-empty-write')?.addEventListener('click',()=>{
+  if(owner&&tool==='image')$('image-composer-prompt')?.focus({preventScroll:true});
+});
+$('image-empty-moods')?.addEventListener('click',()=>{
+  if(owner&&tool==='image')$('image-composer-moods')?.click();
 });
 let draggedComposerReference=null;
 function moveComposerReference(ref,target,after=false){
