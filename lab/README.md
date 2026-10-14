@@ -1,5 +1,10 @@
 # Parallel Vision Lab
 
+## Higgsfield Kling 3.0 Pro Video (owner-only test, October 14, 2026)
+
+Video Studio now includes Kling 3.0 Pro via the existing private `HF_CREDENTIALS` connection. It supports 3–15s, Text or Start frame, optional final frame, audio on/off (default off), and the exact official `kling-video/v3.0/pro/text-to-video` and `kling-video/v3.0/pro/image-to-video` routes. The HD/1080p display denotes the Pro tier; Higgsfield's Pro API does not accept a numeric `resolution` parameter. One video at a time is explicitly quoted using the account's real `/estimate/<model>` response and then charged only after user confirmation. Quotes expire after 290 seconds, abnormal estimates above $5 are blocked and existing daily spend and queue limits remain. No native Soul Elements integration is represented. The model stays owner-only until resale terms and retail pricing are separately confirmed. No paid request runs on deployment.
+
+
 Active work and verified provider routes: [WORK-STATE.md](WORK-STATE.md).
 
 ## Krea 2 LoRA trial (2026-10-14)

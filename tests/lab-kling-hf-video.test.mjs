@@ -36,7 +36,7 @@ test('live quote cannot submit a video; explicit confirmation is single-use',asy
     run:async(e,sql,...a)=>{
       if(sql.startsWith('INSERT INTO quotes'))quotes.set(a[0],{id:a[0],owner_id:a[1],source_id:a[2],params:a[3],estimate_microusd:a[4],expires_at:a[5],vendor_quote_id:a[6],payload:a[8]});
       else if(sql.startsWith('INSERT INTO jobs'))jobs.set(a[0],{id:a[0],owner_id:a[1],source_id:a[2],quote_id:a[3],params:a[4],estimate_microusd:a[5],state:'submitting'});
-      else if(sql.startsWith("UPDATE jobs SET provider_id")){const j=jobs.get(a[4]);Object.assign(j,{provider_id:a[0],params:a[1],state:'queued'});}
+      else if(sql.startsWith("UPDATE jobs SET provider_id")){const j=jobs.get(a[3]);Object.assign(j,{provider_id:a[0],params:a[1],state:'queued'});}
       return {meta:{changes:1}};
     }
   };
