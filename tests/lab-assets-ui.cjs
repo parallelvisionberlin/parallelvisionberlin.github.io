@@ -295,6 +295,36 @@ assert.equal(await page.locator('#history-select-all').evaluate(el=>getComputedS
 console.log('PASS centered Upscaler, compact details, mobile layout and cohesive selection typography');
 await page.goto('http://127.0.0.1:8765/lab/studio.html?tool=video',{waitUntil:'domcontentloaded'});await page.waitForFunction(()=>window.__ready);
 assert.equal(await page.locator('#video-engine').inputValue(),'seedance','Video starts with Seedance');
+
+assert.equal(await page.locator('#video-model-current').textContent(),'Seedance 2.5','Video trigger reflects the actual model');
+await page.click('#video-model-trigger');
+assert.equal(await page.locator('#video-model-popover').isVisible(),true,'Curated Video picker opens as a floating panel');
+const videoPickerDesktop=await page.locator('#video-model-popover').evaluate(el=>{
+ const r=el.getBoundingClientRect(),head=document.querySelector('#studio-header').getBoundingClientRect();
+ const list=el.querySelector('.pv-video-model-list'),search=el.querySelector('.pv-video-model-search-wrap').getBoundingClientRect();
+ return {top:r.top,left:r.left,right:r.right,width:r.width,headerBottom:head.bottom,
+  scrollable:list.scrollHeight>list.clientHeight+3,
+  searchInside:search.top>=r.top&&search.bottom<=r.bottom};
+});
+assert.ok(videoPickerDesktop.width>=390&&videoPickerDesktop.width<=410,'Video picker keeps its desktop width: '+JSON.stringify(videoPickerDesktop));
+assert.ok(videoPickerDesktop.top>=videoPickerDesktop.headerBottom+14,'Video picker stays below navigation: '+JSON.stringify(videoPickerDesktop));
+assert.equal(videoPickerDesktop.scrollable,true,'Only model rows scroll in the compact Video picker');
+assert.equal(videoPickerDesktop.searchInside,true,'Search stays inside the fixed menu header');
+assert.equal(await page.locator('.pv-video-model-group h3').count(),4,'Video models are grouped in curated sections');
+await page.fill('.pv-video-model-search-wrap input','wan 3.0');
+assert.equal(await page.locator('.pv-video-model-item').count(),2,'Video model search narrows results');
+await page.locator('.pv-video-model-item[data-model="wan"]').click();
+assert.equal(await page.locator('#video-engine').inputValue(),'wan','Custom picker uses the original engine event');
+assert.equal(await page.locator('#video-model-current').textContent(),'Wan 3.0','Video trigger updates after model change');
+assert.equal(await page.locator('#video-model-popover').isVisible(),false,'Selecting a model closes the picker');
+await page.click('#video-model-trigger');
+await page.keyboard.press('Escape');
+assert.equal(await page.locator('#video-model-popover').isVisible(),false,'Escape dismisses the picker');
+assert.equal(await page.locator('#video-model-trigger').getAttribute('aria-expanded'),'false');
+await page.click('#video-model-trigger');
+await page.locator('.pv-video-model-item[data-model="seedance"]').click();
+assert.equal(await page.locator('#video-engine').inputValue(),'seedance','Default engine can be restored without generation');
+
 assert.equal(await page.locator('#duration').inputValue(),'5');assert.equal(await page.locator('#resolution').inputValue(),'720p');
 const videoFrame=fs.readFileSync('assets/optimized/liquid-metal-hero.webp');
 await page.setInputFiles('#image',{name:'editorial-frame.webp',mimeType:'image/webp',buffer:videoFrame});
@@ -311,6 +341,17 @@ await page.selectOption('#video-engine','wan');assert.equal(await page.locator('
 await page.click('#tool-image');await page.click('#tool-video');assert.equal(await page.locator('#video-engine').inputValue(),'wan','Explicit model choice persists between tools');
 await page.selectOption('#video-engine','seedance');await page.setViewportSize({width:390,height:844});
 assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'Video editor fits mobile');
+
+await page.click('#video-model-trigger');
+const videoPickerMobile=await page.locator('#video-model-popover').evaluate(el=>{
+ const r=el.getBoundingClientRect(),head=document.querySelector('#studio-header').getBoundingClientRect();
+ return {top:r.top,left:r.left,right:r.right,headerBottom:head.bottom,width:r.width};
+});
+assert.ok(videoPickerMobile.left>=11&&videoPickerMobile.right<=379,'Mobile picker keeps viewport margins: '+JSON.stringify(videoPickerMobile));
+assert.ok(videoPickerMobile.top>=videoPickerMobile.headerBottom+14,'Mobile picker never covers navigation: '+JSON.stringify(videoPickerMobile));
+await page.click('#prompt',{force:true});
+assert.equal(await page.locator('#video-model-popover').isVisible(),false,'Outside click closes the floating picker');
+
 console.log('VIDEO_REFRESH_MOBILE='+Buffer.from(await page.screenshot({type:'jpeg',quality:75,fullPage:true})).toString('base64'));
 await page.click('#clear');assert.equal(await page.locator('#video-start-thumb').isVisible(),false);assert.equal(await page.locator('#video-end-thumb').isVisible(),false);
 assert.deepEqual(errors,[]);console.log('PASS Seedance defaults, real frame thumbnails, model choice preservation, typography and mobile Video layout');
