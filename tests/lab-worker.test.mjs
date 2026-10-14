@@ -178,6 +178,7 @@ test('Second Clerk application is pilot-only, origin-bound, and never inherits a
   assert.equal((await req(env,'/api/session',{authToken:newOwnerId})).status,401,'new token does not authorize the old origin');
   env.LAB_NEW_CLERK_PILOT_ENABLED='true';
   env.LAB_NEW_CLERK_PILOT_SUBJECT='user_New';
+  env.LAB_CUSTOMER_SIGNUPS_ENABLED='true';
   assert.equal((await req(env,'/api/session',{authToken:newOwnerId,headers:{Origin:studio}})).status,401,'pilot never grants owner privileges to matching subject strings');
   env.LAB_DB.db.exec(readFileSync(new URL('../lab-worker/migrations/0006-customers-billing.sql',import.meta.url),'utf8'));
   const newToken=await token('user_New',{iss:issuer,azp:studio});
