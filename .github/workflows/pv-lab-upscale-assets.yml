@@ -34,6 +34,10 @@ jobs:
           PV_PLAYWRIGHT_MODULE: /tmp/pv-upscale-visibility/node_modules/playwright/index.mjs
           PV_UPSCALE_NOTICE_SMOKE: '1'
         run: node tests/lab-upscale-ui.mjs
+      - name: Verify full ByteDance and Topaz model selection, quote integrity and history reuse
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-upscale-visibility/node_modules/playwright/index.mjs
+        run: node tests/lab-upscale-ui.mjs
       - name: Keep desktop and mobile screenshots for review
         if: always()
         uses: actions/upload-artifact@v4
