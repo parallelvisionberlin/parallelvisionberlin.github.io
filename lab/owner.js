@@ -229,7 +229,7 @@ async function refreshSession(){
   try{
     const result=await call('/api/session');if(current!==revision)return;
     if(result.owner!==true)throw Error('This page is reserved for the PV LAB owner account.');
-    profile=result;await refreshDashboard();void providerUI.refresh();
+    profile=result;await refreshDashboard();if(location.hash==='#owner-providers-section')void providerUI.refresh();
   }catch(error){if(current===revision){$('owner-dashboard').hidden=true;status(error.message);}}
 }
 async function copyLink(url,button){
@@ -248,6 +248,10 @@ async function deactivate(code,button){
 for(const button of document.querySelectorAll('[data-recent-filter]'))button.addEventListener('click',()=>{
   recentFilter=button.dataset.recentFilter==='subscribed'?'subscribed':'all';
   paintRecentActivity();
+});
+// Providers is now a dedicated sidebar destination, not an overview widget.
+window.addEventListener('hashchange',()=>{
+  if(profile?.owner&&location.hash==='#owner-providers-section')void providerUI.refresh();
 });
 $('owner-quick-search').addEventListener('click',()=>{
   if(!profile?.owner){clerk?.openSignIn();return;}
