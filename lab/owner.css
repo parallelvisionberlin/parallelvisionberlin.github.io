@@ -320,8 +320,8 @@ html,body{width:100%;max-width:100%;overflow-x:clip}
 .owner-quick-search{padding:5px;display:grid;place-items:center;color:#eee;border:0;background:none}
 .owner-quick-search svg{width:19px;height:19px}
 .owner-quick-search:hover{color:#fff}
-.owner-shell{max-width:none;margin:0 0 0 var(--owner-sidebar-width);padding:38px clamp(24px,3vw,52px) 58px}
-.owner-hero{align-items:end;gap:50px;padding-bottom:27px;border:0}
+.owner-shell{max-width:none;margin:0 0 0 var(--owner-sidebar-width);padding:22px clamp(24px,3vw,52px) 58px}
+.owner-hero{align-items:end;gap:50px;padding-bottom:19px;border:0}
 .owner-hero h1{margin:12px 0 7px;font-size:clamp(50px,5.15vw,82px);font-family:'PV Owner Sans',sans-serif;font-weight:300;letter-spacing:-.075em;line-height:.99}
 .owner-eyebrow,.owner-index{font-size:10px;letter-spacing:.18em;color:#a1a1a1}
 .owner-intro{margin:8px 0 0;font-size:14px;color:#bdbdbd}
