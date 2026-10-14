@@ -22,11 +22,13 @@ wallet.connect({customer:true,balanceCredits:1000,billingReady:true,products:[],
 $('app').hidden=false;$('gate').hidden=true;
 await loadHistory();await loadPacks();await loadSoulProIdentity();
 setTool('image');update();
-if(new URLSearchParams(location.search).get('welcome')==='1'){
+const isWelcomeLink=new URLSearchParams(location.search).get('welcome')==='1';
+if(isWelcomeLink){
   wallet.connect({customer:true,balanceCredits:200,billingReady:true,products:[],
     soulIdTrainingCredits:400,soul2ImageCredits:7});
-  showWelcomeStart({customer:true,generationReady:true,balanceCredits:200,accountClosed:false,billingReview:false});
 }
+// The normal Image route must welcome eligible first-time customers too.
+showWelcomeStart({customer:true,generationReady:true,balanceCredits:isWelcomeLink?200:1000,accountClosed:false,billingReview:false});
 window.__customerTest={lock};
 `;
 const port=4194;
@@ -78,6 +80,8 @@ await context.route('https://**/*',async route=>{
 try{
  await page.goto('http://127.0.0.1:'+port+'/lab/studio.html?tool=image');
  await page.waitForFunction(()=>!!window.__customerTest);
+assert.equal(await page.locator('#lab-welcome-start').isVisible(),true,'Default Image route must not hide first-image onboarding');
+assert.equal(await page.locator('#lab-welcome-balance').textContent(),'1,000 credits');
  await page.fill('#image-composer-prompt','Photographic fashion study, natural light.');
  await page.waitForFunction(()=>document.querySelector('#image-composer-status')?.textContent==='Checking price…');
  assert.equal(await page.locator('#image-composer-generate').textContent(),'Generate','Price checking must never replace Generate');
