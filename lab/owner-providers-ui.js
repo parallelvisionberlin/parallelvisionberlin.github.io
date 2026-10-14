@@ -11,9 +11,9 @@ const logos=Object.freeze({
 const billingUrls=Object.freeze({
   spicy:'https://spicyapi.ai/console/billing',
   fal:'https://fal.ai/dashboard/billing',
-  higgsfield:'https://open.higgsfield.ai',
+  higgsfield:'https://open.higgsfield.ai/billing',
   gemini:'https://aistudio.google.com/billing',
-  fashn:'https://app.fashn.ai/billing/api'
+  fashn:'https://app.fashn.ai/api'
 });
 const element=(tag,cls,content)=>{
   const el=document.createElement(tag);
@@ -84,7 +84,7 @@ export function renderOwnerProviderFinances(data){
       stat('Last successful sync',timeString(p.lastSuccess),p.lastChecked?'Checked '+timeString(p.lastChecked):'')
     );
     const actions=element('div','owner-provider-detail-action');
-    const link=element('a','','Billing dashboard ↗');
+    const link=element('a','',p.id==='fashn'?'API dashboard ↗':'Billing dashboard ↗');
     link.href=billingUrls[p.id];link.target='_blank';link.rel='noopener noreferrer';
     actions.append(statusOf(p),link);row.append(actions);
     if(p.id==='spicy'&&p.funding){
