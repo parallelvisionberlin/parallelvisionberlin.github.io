@@ -349,7 +349,7 @@ const videoPickerMobile=await page.locator('#video-model-popover').evaluate(el=>
 });
 assert.ok(videoPickerMobile.left>=11&&videoPickerMobile.right<=379,'Mobile picker keeps viewport margins: '+JSON.stringify(videoPickerMobile));
 assert.ok(videoPickerMobile.top>=videoPickerMobile.headerBottom+14,'Mobile picker never covers navigation: '+JSON.stringify(videoPickerMobile));
-await page.click('#prompt',{force:true});
+await page.mouse.click(385,Math.min(800,videoPickerMobile.top+40));
 assert.equal(await page.locator('#video-model-popover').isVisible(),false,'Outside click closes the floating picker');
 
 console.log('VIDEO_REFRESH_MOBILE='+Buffer.from(await page.screenshot({type:'jpeg',quality:75,fullPage:true})).toString('base64'));
