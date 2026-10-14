@@ -595,3 +595,49 @@ html,body{width:100%;max-width:100%;overflow-x:clip}
 @media(min-width:1261px){
   .owner-activity{min-height:max(430px,calc(100dvh - 390px))}
 }
+
+/* Private per-customer history. Keeps the Control Room's monochrome editorial treatment. */
+.owner-customer-open{display:block;margin-top:8px;padding:0;border:0;background:transparent;color:#bcbfba;font-size:11px;letter-spacing:.01em;text-align:left}
+.owner-customer-open:hover,.owner-customer-open:focus-visible{color:#fff;text-decoration:underline;text-underline-offset:3px}
+.owner-customer-dialog{position:fixed;inset:0;margin:auto;width:min(980px,calc(100vw - 36px));max-width:none;max-height:min(90dvh,980px);overflow:auto;overscroll-behavior:contain;padding:28px 34px 34px;background:#141514;color:#eaeae6;border:1px solid #484a45;border-radius:4px;box-shadow:0 22px 100px rgba(0,0,0,.65)}
+.owner-customer-dialog::backdrop{background:rgba(0,0,0,.8)}
+.owner-customer-dialog-head{display:flex;align-items:start;justify-content:space-between;gap:20px;padding-bottom:23px;border-bottom:1px solid #3a3b38}
+.owner-customer-dialog .owner-customer-dialog-head h2{margin:8px 0 9px;font-size:clamp(28px,3.2vw,43px);font-weight:300;letter-spacing:-.055em;line-height:1.1}
+.owner-customer-dialog-head h2 span{color:#999}
+.owner-customer-dialog-head p{margin:0;color:#92948d;font-size:11px;overflow-wrap:anywhere;line-height:1.6}
+#owner-customer-dialog-close{flex:none;padding:9px 12px;background:#252725;border:1px solid #474943;border-radius:3px;color:#deded9;font-size:12px}
+#owner-customer-dialog-close span{margin-left:8px;font-size:17px;vertical-align:middle}
+#owner-customer-dialog-close:hover{border-color:#eee}
+.owner-customer-activity-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;padding:24px 0;border-bottom:1px solid #3a3b38}
+.owner-customer-activity-stat{padding:0 18px;border-right:1px solid #30322e;min-width:0}
+.owner-customer-activity-stat:first-child{padding-left:0}
+.owner-customer-activity-stat:last-child{border-right:0}
+.owner-customer-activity-stat span{display:block;color:#969992;text-transform:uppercase;font-size:9px;letter-spacing:.08em}
+.owner-customer-activity-stat strong{display:block;margin-top:13px;color:#f4f4ef;font-size:clamp(23px,3.2vw,35px);line-height:1;font-weight:350;font-variant-numeric:tabular-nums}
+.owner-customer-activity-caption{margin:14px 0 0;color:#92958e;font-size:11px;line-height:1.65}
+.owner-customer-activity-section{margin-top:29px}
+.owner-customer-activity-section-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:13px}
+.owner-customer-activity-section-head h3{margin:0;font-size:18px;font-weight:400;letter-spacing:-.03em}
+.owner-customer-activity-section-head span{color:#858982;font-size:10px}
+.owner-customer-activity-table{width:100%;overflow-x:auto;scrollbar-width:thin}
+.owner-customer-activity-table table{width:100%;min-width:620px;border-collapse:collapse;table-layout:auto}
+.owner-customer-activity-table th{padding:10px 10px 10px 0;color:#969990;font-size:9px;border-top:1px solid #484945;border-bottom:1px solid #484945}
+.owner-customer-activity-table td{padding:13px 12px 13px 0;max-width:310px;color:#d8d8d2;font-size:11px;border-bottom:1px solid #30312e}
+.owner-customer-activity-table td strong{display:block;font-size:11px;font-weight:500;overflow-wrap:anywhere}
+.owner-customer-activity-table td small{display:block;margin-top:4px;color:#888c84;font-size:10px}
+.owner-customer-job-state{display:inline-block;padding:4px 8px;border-radius:20px;border:1px solid #494b45;background:#222421;color:#c8cac4;text-transform:capitalize;font-size:10px;white-space:nowrap}
+.owner-customer-job-state-completed{color:#b9d1bb;border-color:#405746}
+.owner-customer-job-state-failed{color:#dab0ad;border-color:#634340}
+.owner-customer-job-state-uncertain{color:#e3ce9e;border-color:#65573a}
+.owner-customer-empty{padding:34px 0;color:#a0a19a;font-size:12px;line-height:1.5}
+@media(max-width:680px){
+  .owner-customer-dialog{width:calc(100vw - 16px);max-height:94dvh;padding:22px 17px 26px}
+  .owner-customer-dialog-head{gap:10px}
+  .owner-customer-dialog .owner-customer-dialog-head h2{font-size:29px}
+  #owner-customer-dialog-close{padding:7px 9px}
+  .owner-customer-activity-stats{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:21px}
+  .owner-customer-activity-stat{padding:0 12px}
+  .owner-customer-activity-stat:nth-child(odd){padding-left:0}
+  .owner-customer-activity-stat:nth-child(even){border-right:0}
+  .owner-customer-activity-stat strong{font-size:26px}
+}
