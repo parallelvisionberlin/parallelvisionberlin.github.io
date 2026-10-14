@@ -1,7 +1,7 @@
 param([switch]$Build, [switch]$CheckOnly)
 $ErrorActionPreference = 'Stop'
-$SourceCommit = '207a6552d30ecc568471a176d6131538da0ed797'
-$Revision = 'PV LAB / 03'
+$SourceCommit = '222f8e3236bb61a9f1ef40caecdfef9d45408cdc'
+$Revision = 'PV LAB / 04'
 $OriginalLocation = Get-Location
 $PriorNoVcs = [Environment]::GetEnvironmentVariable('EAS_NO_VCS', 'Process')
 $PriorRoot = [Environment]::GetEnvironmentVariable('EAS_PROJECT_ROOT', 'Process')
@@ -31,7 +31,7 @@ try {
     Invoke-Checked 'git.exe' @('-C', $Repository, 'cat-file', '-e', "${SourceCommit}^{commit}")
     & git.exe -C $Repository diff --quiet $SourceCommit FETCH_HEAD -- mobile-app/App.js mobile-app/NinaApp.js mobile-app/src mobile-app/assets mobile-app/tests mobile-app/scripts mobile-app/app.json mobile-app/eas.json mobile-app/package.json mobile-app/package-lock.json mobile-app/.easignore mobile-app/.npmrc
     if ($LASTEXITCODE -ne 0) { throw 'Newer app code exists. Stopped rather than building the wrong version.' }
-    $Name = 'PVLAB03_' + (Get-Date -Format 'yyyyMMdd_HHmmss') + '_' + ([guid]::NewGuid().ToString('N').Substring(0, 6))
+    $Name = 'PVLAB04_' + (Get-Date -Format 'yyyyMMdd_HHmmss') + '_' + ([guid]::NewGuid().ToString('N').Substring(0, 6))
     $Workspace = Join-Path (Join-Path $env:LOCALAPPDATA 'ParallelVision\Builds') $Name
     New-Item -ItemType Directory -Path $Workspace -Force | Out-Null
     $Archive = Join-Path $Workspace 'source.tar'
@@ -107,7 +107,7 @@ try {
     if ($Build -and !$CheckOnly) {
         Write-Host 'Building ONE iPhone preview. Apple login: No if the account is still locked / reuse profile: Yes.' -ForegroundColor Cyan
         Invoke-Checked 'eas.cmd' @('build', '--platform', 'ios', '--profile', 'preview')
-        Write-Host "Install from THIS build link over the current app. Verify Moods, Create, Gallery, Profile, photo upload and saving an image." -ForegroundColor Green
+        Write-Host "Install from THIS build link over the current app. Verify Gallery, Moods, centered Create, Retouch, Profile, photo upload and saving an image." -ForegroundColor Green
     }
 } catch {
     Write-Host ("STOP: " + $_.Exception.Message) -ForegroundColor Red
