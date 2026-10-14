@@ -81,14 +81,32 @@ test('changing filters or signing out prevents stale older pages from entering t
   const r=fixture(),initial=r.loadHistory();
   r.requests[0].resolve(page('image-1',cursor));await initial;r.paint();r.near();
   const changed=r.changeKind('video');
-  assert.equal(r.elements.history.children.length,0);
+  assert.deepEqual(r.elements.history.children.map(j=>j.id),['image-1'],
+    'show the last successful gallery until the replacement request succeeds');
   assert.match(r.requests[2].url,/kind=video$/);
   r.requests[1].resolve(page('stale-image',cursor));await settle();
-  assert.equal(r.elements.history.children.length,0);
+  assert.deepEqual(r.elements.history.children.map(j=>j.id),['image-1'],
+    'a stale response cannot replace the visible cards');
   assert.equal(r.state().historyLoading,true,'an old response must not clear the new request guard');
   r.requests[2].resolve(page('video-1',cursor));await changed;r.paint();r.near();r.signOut();
   assert.equal(r.elements.more.hidden,true);
   r.requests[3].resolve(page('stale-video'));await settle();r.paint();
   assert.deepEqual(r.elements.history.children.map(j=>j.id),['video-1']);
   assert.equal(r.observations.length,0);
+});
+
+
+test('failed full-page refresh preserves earlier gallery cards and cursor until a successful retry',async()=>{
+  const r=fixture(),initial=r.loadHistory();
+  r.requests[0].resolve(page('first-image',cursor));await initial;r.paint();
+  const refresh=r.loadHistory();
+  assert.deepEqual(r.elements.history.children.map(j=>j.id),['first-image']);
+  r.requests[1].reject(Error('Offline'));
+  await assert.rejects(refresh,/Offline/);
+  assert.deepEqual(r.elements.history.children.map(j=>j.id),['first-image']);
+  assert.deepEqual(r.state().next,cursor);
+  const retry=r.loadHistory();
+  r.requests[2].resolve(page('new-image'));
+  await retry;
+  assert.deepEqual(r.elements.history.children.map(j=>j.id),['new-image']);
 });
