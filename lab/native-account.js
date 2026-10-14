@@ -30,9 +30,27 @@ async function createLabAccount(){
   if(!isNativeLab()){
     const {Clerk}=await import('https://esm.sh/@clerk/clerk-js@6?bundle');
     const {frontendApi,publishableKey}=clerkInstanceForHostname(location.hostname);
+    // Presentation policy for the independent PV LAB domain only.
+    // Clerk's production SSO settings still control whether GitHub is enabled.
+    const studioClerk=frontendApi==='https://clerk.pvlab.studio';
+    if(studioClerk&&!document.getElementById('pvlab-social-provider-policy')){
+      const style=document.createElement('style');
+      style.id='pvlab-social-provider-policy';
+      style.textContent='.cl-socialButtonsBlockButton__github,.cl-socialButtonsIconButton__github{display:none!important}.cl-socialButtons{grid-template-columns:minmax(0,1fr)!important}';
+      document.head.append(style);
+    }
     await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src=frontendApi+'/npm/@clerk/ui@1/dist/ui.browser.js';s.onload=resolve;s.onerror=reject;document.head.append(s);});
     const clerk=new Clerk(publishableKey);
-    await clerk.load({ui:{ClerkUI:window.__internal_ClerkUICtor},signInFallbackRedirectUrl:location.href,signUpFallbackRedirectUrl:location.href});
+    await clerk.load({
+      ui:{ClerkUI:window.__internal_ClerkUICtor},
+      signInFallbackRedirectUrl:location.href,
+      signUpFallbackRedirectUrl:location.href,
+      ...(studioClerk?{appearance:{elements:{
+        socialButtonsBlockButton__github:{display:'none'},
+        socialButtonsIconButton__github:{display:'none'},
+        socialButtons:{gridTemplateColumns:'minmax(0,1fr)'}
+      }}}:{})
+    });
     return clerk;
   }
   const {initLabMobileUI}=await import('./mobile-ui.js?v=20261014-native-photo-picker1&createGallery=20261014-1&generateStable=20261014-1');
