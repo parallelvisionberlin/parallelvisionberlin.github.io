@@ -473,6 +473,17 @@ try{
   const bootGeometry=await loaderLogo.boundingBox();
   assert.ok(Math.abs(bootGeometry.x-logoBefore.x)<1&&Math.abs(bootGeometry.y-logoBefore.y)<1,
     'Brand stays at identical coordinates during the entire loading state');
+  await bootPage.evaluate(()=>{
+    document.getElementById('lab-boot-status').classList.add('is-slow');
+    document.getElementById('lab-boot-retry').hidden=false;
+  });
+  const delayedLogo=await loaderLogo.boundingBox();
+  assert.ok(Math.abs(delayedLogo.x-logoBefore.x)<1&&Math.abs(delayedLogo.y-logoBefore.y)<1,
+    'Even a delayed-load notice and Reload button cannot move the centered brand');
+  await bootPage.evaluate(()=>{
+    document.getElementById('lab-boot-status').classList.remove('is-slow');
+    document.getElementById('lab-boot-retry').hidden=true;
+  });
   assert.ok(bootGeometry&&bootGeometry.x>=0&&bootGeometry.x+bootGeometry.width<=1440,'Brand stays inside the desktop viewport');
   await bootPage.setViewportSize({width:390,height:844});
   const mobileBootGeometry=await loaderLogo.boundingBox();
