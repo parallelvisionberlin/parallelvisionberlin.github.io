@@ -44,7 +44,8 @@ test('Only one owner Seedream image unlocks before server confirmation',()=>{
   assert.match(source,/const seedreamInput=\['seedream','seedreamlite'\]\.includes\(selectedEngine\)&&\(snapshot\?true:tool==='image'\)/);
   assert.match(source,/if\(!fastImageHandoff.active\(\)\)cancelImagePreparation\(\)/);
   assert.match(source,/if\(!detached\)\{imageSubmissionPending=false/);
-  assert.match(html,/src="\.\/lab\.js\?v=20261013-[^"\s]+&wallet=1/);
+  // Asset revision dates change frequently; require the live studio script and wallet feature marker.
+  assert.match(html,/<script type="module" src="\.\/lab\.js\?v=20\d{6}-[^"]+&wallet=1[^"]*"><\/script>/);
 });
 
 test('Detached preparation cannot repaint a later in-flight button',()=>{
