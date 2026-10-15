@@ -249,6 +249,47 @@ test('Fresh new users receive welcome credits once and expired transfer codes ca
     .get('user_PvLabV2Fresh').n,1);
   assert.equal((await req(env,'/api/session',{authToken:auth})).status,200);
 });
+test('An unused V2 welcome wallet may be linked to the proven original owner without losing the owner ID',async()=>{
+  const {env}=fixture(),studio='https://pvlab.studio';
+  env.LAB_STUDIO_AUTH_ENABLED='true';env.LAB_CUSTOMER_SIGNUPS_ENABLED='true';env.LAB_WELCOME_CREDITS_ENABLED='true';
+  env.LAB_DB.db.exec(readFileSync(new URL('../lab-worker/migrations/0006-customers-billing.sql',import.meta.url),'utf8'));
+  env.LAB_DB.db.exec(readFileSync(new URL('../lab-worker/migrations/0017-clerk-domain-links.sql',import.meta.url),'utf8'));
+  const newToken=await token('user_StudioOwner',{iss:'https://clerk.pvlab.studio',azp:studio});
+  const fresh=(path,options={})=>req(env,path,{authToken:newToken,headers:{Origin:studio},...options});
+  assert.equal((await fresh('/api/migration/new',{method:'POST'})).status,201);
+  const before=await(await fresh('/api/migration/status')).json();
+  assert.equal(before.linked,true);assert.equal(before.kind,'customer');assert.equal(before.relinkEligible,true);
+  const legacyCode=await(await req(env,'/api/migration/issue',{method:'POST'})).json();
+  assert.equal((await fresh('/api/migration/redeem',{method:'POST',data:{code:legacyCode.code}})).status,200);
+  const recovered=await(await fresh('/api/session')).json();
+  assert.equal(recovered.owner,true);assert.equal(recovered.ownerId,'owner-internal');
+  assert.equal(recovered.customer,undefined);
+  assert.equal((await(await fresh('/api/migration/status')).json()).relinkEligible,false);
+  assert.equal(env.LAB_DB.db.prepare('SELECT balance_credits FROM lab_customers WHERE id=?')
+    .get('user_PvLabV2StudioOwner').balance_credits,200,
+    'unused starter ledger remains untouched and separate from the original owner account');
+  assert.equal((await fresh('/api/migration/redeem',{method:'POST',data:{code:legacyCode.code}})).status,409,
+    'a previously redeemed owner code is never usable again');
+});
+test('A new customer with saved work cannot be silently relinked or lose their gallery',async()=>{
+  const {env}=fixture(),studio='https://pvlab.studio';
+  env.LAB_STUDIO_AUTH_ENABLED='true';env.LAB_CUSTOMER_SIGNUPS_ENABLED='true';env.LAB_WELCOME_CREDITS_ENABLED='true';
+  env.LAB_DB.db.exec(readFileSync(new URL('../lab-worker/migrations/0006-customers-billing.sql',import.meta.url),'utf8'));
+  env.LAB_DB.db.exec(readFileSync(new URL('../lab-worker/migrations/0017-clerk-domain-links.sql',import.meta.url),'utf8'));
+  const newToken=await token('user_WithWork',{iss:'https://clerk.pvlab.studio',azp:studio});
+  const fresh=(path,options={})=>req(env,path,{authToken:newToken,headers:{Origin:studio},...options});
+  assert.equal((await fresh('/api/migration/new',{method:'POST'})).status,201);
+  const id='user_PvLabV2WithWork';
+  env.LAB_DB.db.prepare('INSERT INTO assets(id,owner_id,object_key,kind,mime,filename,bytes,created_at) VALUES(?,?,?,?,?,?,?,?)')
+    .run(crypto.randomUUID(),id,id+'/existing-photo','source','image/png','photo.png',124,Date.now());
+  const state=await(await fresh('/api/migration/status')).json();
+  assert.equal(state.relinkEligible,false);
+  const code=await(await req(env,'/api/migration/issue',{method:'POST'})).json();
+  assert.equal((await fresh('/api/migration/redeem',{method:'POST',data:{code:code.code}})).status,409);
+  assert.equal((await(await fresh('/api/session')).json()).ownerId,id);
+  assert.equal(env.LAB_DB.db.prepare('SELECT COUNT(*) AS n FROM assets WHERE owner_id=?').get(id).n,1);
+});
+
 test('Public health works; every private operation rejects missing, non-owner and forged authentication',async()=>{const{env}=fixture();assert.equal((await req(env,'/health',{authToken:null})).status,200);for(const path of ['/api/session','/api/jobs','/api/assets/'+crypto.randomUUID()]){assert.equal((await req(env,path,{authToken:null})).status,401);assert.equal((await req(env,path,{authToken:guest})).status,403);}const bad=auth.slice(0,-5)+'aaaaa';assert.equal((await req(env,'/api/session',{authToken:bad})).status,401);assert.equal((await req(env,'/api/session',{authToken:await token('user_Owner',{exp:1})})).status,401);assert.equal((await req(env,'/api/session',{headers:{Origin:'https://evil.example'}})).status,403);});
 test('API keys encrypted; drafts persist all settings; quotes are free, bounded and keep private input URLs',async()=>{calls=[];createCount=0;const{env}=fixture(),id=await setup(env);const dbKey=env.LAB_DB.db.prepare('SELECT encrypted_key FROM settings').get().encrypted_key;assert.ok(!dbKey.includes(KEY));const session=await(await req(env,'/api/session')).text();assert.ok(!session.includes(KEY));assert.ok(!session.includes(dbKey));await req(env,'/api/drafts',{method:'POST',data:{sourceId:id,settings:p}});const h=await(await req(env,'/api/jobs')).json();assert.equal(h.jobs[0].sourceId,id);assert.equal(h.jobs[0].settings.seed,42);assert.equal(h.jobs[0].settings.audio,true);const q=await quote(env,id);assert.equal(q.estimatedUsd,2.7);assert.equal(createCount,0);const input=new URL(quotedRequest.input.image_url);assert.equal((await req(env,input.pathname+input.search,{authToken:null,headers:{Origin:''}})).status,200);assert.equal((await req(env,input.pathname+'?expires=1&signature=no',{authToken:null})).status,403);assert.equal((await req(env,'/api/assets/'+id,{authToken:null})).status,401);});
 test('Wan 21:9 keeps the original source, uses a prepared working crop and sends adaptive upstream',async()=>{calls=[];createCount=0;const{env}=fixture(),id=await setup(env);const upload=await req(env,'/api/uploads',{method:'POST',raw:new Uint8Array([137,80,78,71,13,10,26,10,0]),headers:{'Content-Type':'image/png','X-Filename':'wide-working.webp'}});assert.equal(upload.status,201);const copyId=(await upload.json()).id,settings={...p,aspectRatio:'21:9'};
