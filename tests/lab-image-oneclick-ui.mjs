@@ -390,7 +390,7 @@ try{
  {
   x=await workspace();await imageForm(x);
   const refPhotos=[{name:'front.png',mimeType:'image/png',buffer:png},{name:'side.png',mimeType:'image/png',buffer:png},{name:'back.png',mimeType:'image/png',buffer:png}];
-  assert.equal(await x.page.locator('#composer-reference-intent-toggle').isVisible(),false);
+  assert.equal(await x.page.locator('#composer-reference-intent-toggle').isVisible(),true);
   await x.page.locator('#reference-images').setInputFiles(refPhotos);await waitRefs(x.page,3);await ready(x.page);
   assert.equal(await x.page.locator('#composer-reference-intent').isVisible(),false,'Upload must not open a compulsory chooser');
   assert.match(await x.page.locator('#composer-reference-intent-toggle').innerText(),/Base image/);
@@ -418,8 +418,8 @@ try{
 
 
   x=await workspace();await imageForm(x);await x.page.locator('#reference-images').setInputFiles(refPhotos);await waitRefs(x.page,3);await ready(x.page);
-  await x.page.click('#composer-reference-intent-toggle');
-  assert.equal(await x.page.locator('#composer-reference-intent').isVisible(),true);
+  await clickAdvanced(x.page);
+  assert.equal(await x.page.locator('#composer-reference-same-person').isVisible(),true);
   await x.page.click('#composer-reference-same-person');
   assert.equal(await x.page.locator('#image-reference-mode').inputValue(),'base');
   assert.deepEqual(await x.page.locator('.composer-reference-role').evaluateAll(a=>a.map(el=>el.value)),['identity','identity']);
@@ -497,8 +497,7 @@ try{
   {id:id(982),name:'Missing Photo',refs:[{id:badId,name:'missing.png',role:'identity',note:''}]}
  ];
  x=await workspace({savedPacks:slowPacks,packPreviewGate,brokenPreviewAssets:[badId]});
- await x.page.click('#image-composer-add');
- await x.page.click('#composer-add-saved');
+ await x.page.click('#composer-add-saved-toggle');
  const photos=x.page.locator('#composer-library-cards .composer-library-photo');
  assert.equal(await photos.count(),2);
  assert.equal(await photos.locator('img').count(),0,'Do not insert a blank img while the preview request is pending');
