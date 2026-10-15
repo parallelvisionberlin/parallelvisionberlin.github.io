@@ -22,6 +22,7 @@ import {REFERENCE_ROLES,REFERENCE_TARGETS,normalizeReferenceLabel,compileImagePr
 import {createMoodSelector,moodById,userFacingImagePrompt,imageHistoryCaption} from './moods.js?v=20261011-midnight-reverie1&seedreamlite=1&deckLabelCenter=1&filmDeck=2&filmOptics=2&hd=20261011&raveBudget=1&editorialHD=2&moodImageHD=1&moodDeckSpace=1&raveNight=4&syntheticBudget=1&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&qwen3-zimage=1&nano21=1&moodLock=20261014-mood-consistency1&dreamBlur=20261015v1&filmCapture=20261016-preserve1';
 import {createMyMoods} from './my-moods.js?v=20261011-midnight-reverie1&hd=20261011&raveBudget=1&editorialHD=2&editorialHD=2&moodImageHD=1&raveNight=4&hongKongRefs=4&dreamcore=7&syntheticRefs=1&raveIdentity=1&filmRevision=4&hkContinuity=4&hkScene=5&hkCinematography=1&midnightFlashV2=1&moodLock=20261014-mood-consistency1';
 import {takeMoodHandoff,moodGenerationQuote} from './mood-handoff.js?v=20261012-generate1';
+import {saveStudioReturnDraft,readStudioReturnDraft,clearStudioReturnDraft,storedImageFile} from './studio-return-draft.js?v=20261016-moods-return1';
 import {createMediaReferences} from './media-references.js?v=20261009-extend2';
 import { createSessionRequest } from './session-request.js?v=20261015-canonical-studio1';
 import { createSoulController } from './soul.js?v=20261014-krea2-training1';
@@ -39,6 +40,101 @@ let imageSubmissionPending=false,imageSubmissionStage='Sending…';
 const fastImageHandoff=createImageSubmitHandoff();
 const moodReferences=createMoodReferenceLoader({upload:uploadAsset});
 const pendingImageCards=new Map();
+// Move only the currently edited Image workspace when navigating to Explore.
+// IndexedDB stores File blobs privately, and the token is specific to this tab.
+function studioReturnPhoto(item){
+  if(!item?.file)return null;
+  return {file:item.file,name:item.file.name,type:item.file.type,lastModified:item.file.lastModified,
+    id:item.id||null,role:item.role||'none',note:item.note||'',target:item.target||'',nonBaseRole:item.nonBaseRole||''};
+}
+async function saveImageForMoods(){
+  if(!owner||tool!=='image'||fashionActive)return false;
+  if(busy||imageSubmissionPending)throw Error('Wait until the current Image action finishes before opening Moods.');
+  const state={
+    settings:settings(),prompt:$('prompt').value,model:imageEngine,processing:imageProcessing,
+    referenceMode:imageReferenceMode,imageRatioExplicit,soulRatioExplicit,
+    ratio:$('ratio').value,resolution:$('resolution').value,
+    count:$('image-count').value,outputFormat:$('output-format').value,
+    exactPrompt:$('composer-exact-prompt').checked,source:studioReturnPhoto(file?{file,id:sourceId}:null),
+    references:references.map(studioReturnPhoto),
+    mood:{selected:moodUI.selected(),intensity:moodUI.intensity()},
+    soulCharacter:$('soul-character').value,
+    poseStrength:$('pose-strength').value,identityStrength:$('identity-strength').value,
+    controlledPoseSeed:$('controlled-pose-seed').value
+  };
+  await saveStudioReturnDraft(userId,state);
+  return true;
+}
+async function restoreStudioFromMoods(){
+  const state=await readStudioReturnDraft(userId);
+  if(!state)return false;
+  const p=state.settings||{};
+  if(p.type!=='image'||!state.model||typeof state.prompt!=='string')
+    throw Error('The temporary Image workspace could not be validated.');
+  if(busy||imageSubmissionPending)throw Error('Finish the active Image task before restoring your workspace.');
+  clearMedia();
+  imageEngine=state.model;
+  imageProcessing=state.processing==='batch'?'batch':'normal';
+  imageReferenceMode=state.referenceMode==='references'?'references':'base';
+  $('image-engine').value=imageEngine;
+  $('image-processing').value=imageProcessing;
+  $('composer-exact-prompt').checked=state.exactPrompt===true;
+  if(imageEngine==='soul'){soul.setSelected(p.characterId||state.soulCharacter||'');soul.restore(p);}
+  if(imageEngine==='soulpro'){
+    soulProModel=['soul2','kontextmax'].includes(p.soulProModel)?p.soulProModel:'ideogram45';
+    if(soulProModel==='soul2'){hf.select(p.characterId||'');$('hf-bar-ratio').value=p.aspectRatio||'source';}
+    soulProQuality=['very_low','low','medium','high'].includes(p.soulProQuality)?p.soulProQuality:'medium';
+    $('soul-pro-model').value=soulProModel;$('soul-pro-quality').value=soulProQuality;
+    $('soul-pro-seed').value=p.seed??'';updateSoulProModelUi();
+  }
+  setTool('image');
+  if(state.mood?.selected?.startsWith('custom:'))await myMoods.refresh();
+  moodUI.restore(p.moodId? p : {moodId:state.mood?.selected,moodIntensity:state.mood?.intensity},true);
+  const chosen=Array.isArray(state.references)?state.references:[];
+  if(state.source)await setImage(storedImageFile(state.source),state.source.id||null);
+  if(chosen.length){
+    await addReferences(chosen.map(storedImageFile),chosen.map(r=>r.id||null),
+      chosen.map(r=>({role:r.role,note:r.note,target:r.target})));
+    // Preserve non-base role for a later toggle back to References only.
+    for(let i=0;i<chosen.length;i++)if(references[i])references[i].nonBaseRole=chosen[i].nonBaseRole||'none';
+  }
+  const selectIfAvailable=(id,value)=>{
+    const select=$(id);
+    if([...select.options].some(o=>o.value===String(value)))select.value=String(value);
+  };
+  selectIfAvailable('resolution',state.resolution);
+  selectIfAvailable('ratio',state.ratio);
+  selectIfAvailable('image-count',state.count);
+  selectIfAvailable('output-format',state.outputFormat);
+  if(imageEngine==='fal'){
+    $('pose-strength').value=state.poseStrength||'1';
+    $('identity-strength').value=state.identityStrength||'0.7';
+    $('controlled-pose-seed').value=state.controlledPoseSeed||'';
+  }
+  imageRatioExplicit=state.imageRatioExplicit===true;
+  soulRatioExplicit=state.soulRatioExplicit===true;
+  $('prompt').value=state.prompt;
+  update();
+  await clearStudioReturnDraft();
+  notify('Your Image workspace is restored. No generation was started.');
+  return true;
+}
+function bindExploreMoodsReturn(){
+  const link=$('tool-explore-moods');
+  if(!link)return;
+  link.addEventListener('click',event=>{
+    if(event.defaultPrevented||event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;
+    if(!owner||tool!=='image'||fashionActive)return;
+    event.preventDefault();
+    if(link.dataset.savingDraft==='1')return;
+    link.dataset.savingDraft='1';link.setAttribute('aria-busy','true');
+    void saveImageForMoods().then(()=>location.assign(link.href)).catch(error=>{
+      notify('Could not preserve your Image workspace: '+error.message,true);
+      link.removeAttribute('aria-busy');delete link.dataset.savingDraft;
+    });
+  });
+}
+bindExploreMoodsReturn();
 function renderPendingImageCards(){
   const visible=owner&&tool==='image'&&!fashionActive&&!assetLibrary?.active();
   for(const card of $('history').querySelectorAll('[data-local-submission]'))
@@ -109,6 +205,18 @@ function syncStudioRoute(value,{push=false,retouchFrom=null}={}){
 }
 async function restoreStudioEntry(){
   const route=studioRoute(),query=new URLSearchParams(location.search);
+  if(query.get('returnToDraft')==='1'){
+    // This is navigation only; never auto-generate or submit a quote.
+    await restoreStudioFromMoods();
+    const clean=new URL(location.href);
+    clean.searchParams.delete('returnToDraft');
+    history.replaceState(history.state,'',clean);
+    if(route==='retouch')await openRetouch({push:false,autofill:false});
+    else if(route==='fashion')await openFashionStudio();
+    else if(route==='assets')await assetLibrary.open();
+    else if(route!=='image')setTool(route);
+    return;
+  }
   if(route==='assets')await assetLibrary.open();
   else if(route==='fashion')await openFashionStudio();
   else if(route==='retouch')await openRetouch({push:false,autofill:false});

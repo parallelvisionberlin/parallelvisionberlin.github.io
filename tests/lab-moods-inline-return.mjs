@@ -1,0 +1,34 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+const read=file=>readFileSync(new URL('../'+file,import.meta.url),'utf8');
+
+test('Explore Moods header links back to each Studio tool and keeps My Moods anchor',()=>{
+  const page=read('lab/moods.html');
+  for(const tool of ['image','retouch','video','upscale','fashion'])
+    assert.match(page,new RegExp('studio\\.html\\?tool='+tool+'\\&amp;returnToDraft=1'));
+  assert.match(page,/href="\.\/mood-creator\.html#my-moods">My Moods<\/a>/);
+  assert.match(page,/aria-current="page">Explore Moods<\/a>/);
+});
+test('Mood generate is submitted only in the modal and does not redirect to Studio',()=>{
+  const js=read('lab/explore-moods.js'),service=read('lab/app-mood-generation.js');
+  const handler=js.split('generate.onclick=')[1].split("$('mc-look-result-download')")[0];
+  assert.match(handler,/currentPrice\.submit\(\)/);
+  assert.doesNotMatch(handler,/location\.assign/);
+  assert.match(js,/client\.jobStatus\(id\)/);
+  assert.match(js,/client\.outputBlob\(job\.outputId\)/);
+  assert.match(service,/jobStatus\(id\).*?\/api\/jobs/s);
+  assert.match(service,/outputBlob\(id\).*?\/api\/assets/s);
+  assert.match(js,/mc-look-result-download/);
+});
+test('Studio Moods return is local, account scoped and restores model, images and prompt',()=>{
+  const js=read('lab/lab.js'),draft=read('lab/studio-return-draft.js');
+  assert.match(js,/bindExploreMoodsReturn\(\)/);
+  assert.match(js,/saveImageForMoods/);
+  assert.match(js,/readStudioReturnDraft\(userId\)/);
+  assert.match(js,/addReferences\(chosen\.map\(storedImageFile\)/);
+  assert.match(js,/moodUI\.restore/);
+  assert.match(draft,/sessionStorage\.setItem\(TOKEN,id\)/);
+  assert.match(draft,/record\.userId!==userId/);
+  assert.doesNotMatch(draft,/fetch\(/);
+});
