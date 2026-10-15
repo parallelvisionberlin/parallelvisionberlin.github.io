@@ -1629,7 +1629,7 @@ test('Seedance 1.5 Motion and 2.5 4K routes quote exact provider parameters with
   assert.equal(one.status,200,await one.clone().text());
   const a=await one.json();
   assert.equal(a.settings.model,'bytedance/seedance-1.5-pro/image-to-video');
-  assert.equal(a.creditCost,864,'320 credits per quoted USD for 1.5 Pro');
+  assert.equal(a.creditCost,810,'300 credits per quoted USD for silent 1.5 Pro 720p');
   assert.equal(quotedRequest.input.camera_fixed,true);
   assert.equal(quotedRequest.input.generate_audio,false);
   assert.equal(quotedRequest.input.duration_seconds,10);
@@ -1640,6 +1640,7 @@ test('Seedance 1.5 Motion and 2.5 4K routes quote exact provider parameters with
   const textMode=await req(env,'/api/quotes',{method:'POST',data:{settings:{...motion,mode:'text'},sourceId:null}});
   assert.equal(textMode.status,200,await textMode.clone().text());
   assert.equal(quotedRequest.model,'bytedance/seedance-1.5-pro/text-to-video');
+  assert.equal((await textMode.json()).creditCost,810,'same discounted rate on silent Seedance 1.5 text-to-video');
   assert.equal(quotedRequest.input.image_url,undefined);
   const fourK={type:'video',engine:'seedance4k',mode:'start',duration:10,resolution:'4k',
     aspectRatio:'auto',prompt:'A model turns toward the lens.',audio:true,seed:'',referenceRoles:[]};

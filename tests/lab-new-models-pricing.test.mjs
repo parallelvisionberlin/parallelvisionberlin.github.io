@@ -18,14 +18,28 @@ function still(changes={},references=[]){
 }
 test('tiered customer pricing checks engine AND model and preserves generic charges',()=>{
  const base=video('seedance15'),normal={type:'video',engine:'seedance',model:'bytedance/seedance-2.5/image-to-video'},
-       fourk=video('seedance4k');
- assert.equal(creditsPerUsdForJob(base),320);
+       fourk=video('seedance4k'),wan1080={type:'video',engine:'wan',model:'alibaba/wan-3.0/image-to-video',resolution:'1080p'};
+ assert.equal(creditsPerUsdForJob(base),300);
+ assert.equal(creditsPerUsdForJob({...base,mode:'text',model:SEEDANCE15.text}),300);
+ assert.equal(creditsPerUsdForJob({...base,audio:true}),320);
+ assert.equal(creditsPerUsdForJob({...base,resolution:'480p'}),320);
+ assert.equal(creditsPerUsdForJob({...base,resolution:'1080p'}),320);
+ assert.equal(creditsPerUsdForJob(wan1080),388);
+ assert.equal(creditsPerUsdForJob({...wan1080,model:'alibaba/wan-3.0/reference-to-video'}),388);
+ assert.equal(creditsPerUsdForJob({...wan1080,resolution:'720p'}),460);
+ assert.equal(creditsPerUsdForJob({...wan1080,engine:'wanprime',model:'alibaba/wan-3.0-prime/image-to-video'}),460);
+ assert.equal(creditsPerUsdForJob({...wan1080,provider:'higgsfield'}),460);
+ assert.equal(creditsPerUsdForJob({...wan1080,provider:'fal'}),460);
+ assert.equal(creditsPerUsdForJob({...wan1080,model:'alibaba/wan-3.0-prime/image-to-video'}),460);
  assert.equal(creditsPerUsdForJob(normal),160);
  assert.equal(creditsPerUsdForJob(fourk),190);
  assert.equal(creditsPerUsdForJob({...base,model:'made-up'}),460);
  assert.equal(creditsPerUsdForJob({...fourk,provider:'higgsfield'}),460);
  assert.equal(creditsPerUsdForJob({...fourk,type:'image'}),460);
- assert.equal(creditsForJobUsd(.23,base),74);
+ assert.equal(creditsForJobUsd(.227,base),69);
+ assert.equal(creditsForJobUsd(.23,base),69);
+ assert.equal(creditsForJobUsd(1.8,wan1080),699);
+ assert.equal(creditsForJobUsd(1.8,{...wan1080,resolution:'720p'}),828);
  assert.equal(creditsForJobUsd(2.31,normal),370);
  assert.equal(creditsForJobUsd(21.6,fourk),4104);
  assert.equal(creditsForJobUsd(.035,still()),17);
@@ -132,6 +146,46 @@ test('current D1 migration cuts only future standard Seedance 2.5 jobs to 160 cr
  db.prepare("UPDATE jobs SET state='failed' WHERE id='discount'").run();
  assert.equal(db.prepare('SELECT balance_credits AS n FROM lab_customers WHERE id=?').get(user).n,5805);
  assert.equal(db.prepare("SELECT COUNT(*) AS n FROM lab_credit_entries WHERE reference='refund:job:discount'").get().n,1);
+});
+
+test('0020 migration charges only the approved two video modes and refunds exact credits',t=>{
+ const db=new DatabaseSync(':memory:');t.after(()=>db.close());
+ for(const file of ['../lab-worker/schema.sql','../lab-worker/migrations/0006-customers-billing.sql',
+  '../lab-worker/migrations/0008-soul-id-launch-credits.sql',
+  '../lab-worker/migrations/0012-video-tiered-pricing.sql',
+  '../lab-worker/migrations/0013-nano-banana-21-pricing.sql',
+  '../lab-worker/migrations/0014-premium-upscale-credits.sql',
+  '../lab-worker/migrations/0019-video-value-pricing.sql',
+  '../lab-worker/migrations/0020-wan-seedance-budget-pricing.sql'])
+  db.exec(readFileSync(new URL(file,import.meta.url),'utf8'));
+ const when=Date.now(),buyer='user_BudgetVideo';
+ db.prepare('INSERT INTO lab_customers(id,clerk_subject,created_at,updated_at) VALUES(?,?,?,?)').run(buyer,buyer,when,when);
+ db.prepare("INSERT INTO lab_credit_entries(id,customer_id,delta_credits,kind,reference,created_at) VALUES('purchase-budget',?,10000,'purchase','checkout:budget',?)").run(buyer,when);
+ const put=(id,owner,settings,micros)=>db.prepare("INSERT INTO jobs(id,owner_id,params,state,estimate_microusd,created_at,updated_at) VALUES(?,?,?,'queued',?,?,?)").run(id,owner,JSON.stringify(settings),micros,when,when);
+ const debit=id=>db.prepare("SELECT delta_credits FROM lab_credit_entries WHERE reference=?").get('job:'+id)?.delta_credits;
+ const base=video('seedance15'),wan={type:'video',engine:'wan',mode:'start',model:'alibaba/wan-3.0/image-to-video',resolution:'1080p',audio:false};
+ const normal={type:'video',engine:'seedance',model:'bytedance/seedance-2.5/image-to-video'};
+ const upscale={type:'image',mode:'upscale',provider:'fal',engine:'upscale',upscaleEngine:'seedvr2',model:'fal-ai/seedvr/upscale/image',scale:2};
+ const cases=[
+  ['silent720',base,227000,-69],
+  ['silentText720',{...base,mode:'text',model:SEEDANCE15.text},227000,-69],
+  ['sound720',{...base,audio:true},227000,-73],
+  ['silent1080',{...base,resolution:'1080p'},227000,-73],
+  ['wan1080',wan,1800000,-699],
+  ['wanRef1080',{...wan,mode:'reference',model:'alibaba/wan-3.0/reference-to-video'},1800000,-699],
+  ['wan720',{...wan,resolution:'720p'},1800000,-828],
+  ['wanPrime',{...wan,engine:'wanprime',model:'alibaba/wan-3.0-prime/image-to-video'},1800000,-828],
+  ['wanFal',{...wan,provider:'fal'},1800000,-828],
+  ['seedance25',normal,2773000,-444],
+  ['upscale',upscale,4000,-10]
+ ];
+ for(const [id,settings,micros,cost] of cases){put(id,buyer,settings,micros);assert.equal(debit(id),cost,id);}
+ put('owner','private-owner',wan,1800000);assert.equal(debit('owner'),undefined,'owners are not billed PV credits');
+ const creditsBefore=db.prepare('SELECT balance_credits FROM lab_customers WHERE id=?').get(buyer).balance_credits;
+ db.prepare("UPDATE jobs SET state='failed' WHERE id='wan1080'").run();
+ assert.equal(db.prepare('SELECT balance_credits FROM lab_customers WHERE id=?').get(buyer).balance_credits,creditsBefore+699,'failed video returns exact credits');
+ db.prepare("UPDATE jobs SET state='failed' WHERE id='wan1080'").run();
+ assert.equal(db.prepare("SELECT COUNT(*) AS total FROM lab_credit_entries WHERE reference='refund:job:wan1080'").get().total,1,'refund is exactly once');
 });
 
 test('Premium Upscale charges 10 or 18 credits with exact route validation and refunds',t=>{

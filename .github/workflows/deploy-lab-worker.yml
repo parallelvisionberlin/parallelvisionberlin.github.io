@@ -75,6 +75,7 @@ jobs:
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0017-clerk-domain-links.sql --yes
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0018-anonymous-traffic.sql --yes
             wrangler d1 execute parallel-vision-lab --remote --file migrations/0019-video-value-pricing.sql --yes
+            wrangler d1 execute parallel-vision-lab --remote --file migrations/0020-wan-seedance-budget-pricing.sql --yes
           command: deploy --keep-vars
 
       - name: Verify production health
