@@ -157,9 +157,12 @@ try{
   await page.screenshot({path:'test-results/photo-packs/saved-library-mobile.png'});
   await page.locator('#pack-studio-new').click();
   await page.locator('#pack-studio-name').fill('Mobile reference pack');
+  const mobileChooser=page.waitForEvent('filechooser');
   await page.locator('#pack-studio-from-device').click();
-  // Close the browser file chooser by choosing an actual image.
-  // Playwright's filechooser event works even when triggered inside a modal.
+  await (await mobileChooser).setFiles({name:'mobile-portrait.png',mimeType:'image/png',buffer:PNG});
+  assert.equal(await page.locator('#pack-studio-previews .pack-studio-preview').count(),1);
+  assert.equal(await page.locator('#pack-studio-save').isEnabled(),true);
+  await page.screenshot({path:'test-results/photo-packs/create-pack-mobile.png'});
   console.log('PASS mobile gallery and creation stage fit within viewport');
   assert.deepEqual(errors,[]);
   await context.close();
