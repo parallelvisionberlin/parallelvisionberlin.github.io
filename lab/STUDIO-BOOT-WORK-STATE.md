@@ -59,9 +59,7 @@ Source: `lab/studio.html`; browser regression: `tests/lab-studio-layout-ui.mjs`.
 - The logo is crisp even for fast-loading pages; its outgoing blur only plays on readiness, with pointer-events removed immediately.
 
 ## October 15 Image Studio loading-width correction
-- User reported a small apparent expansion of /studio.html?tool=image as the page finishes loading, without deliberate automatic scrolling.
-- The boot sequence hides the scrollbar until splash exit. Authenticated Image History loads asynchronously after the editor becomes available and can introduce a classic desktop scrollbar, shifting content width.
-- Image-only early CSS now reserves a stable root scrollbar gutter whenever #app.image-studio-active exists; Video, Fashion and other tools retain their current gutter behavior. No paid generation, login, data, gallery fetch, or pricing logic changed.
-- Standalone mock-only Chromium regression tests the live Studio HTML/CSS at 1440x900 and 390x844. It checks image gallery and fixed composer geometry while locked, after splash exit, and as the simulated image history grows. It also verifies no automatic scrolling and no gutter change to other tools. Run via the account UI browser workflow.
-
-- Responsive correction: reserve Image scrollbar space only at desktop/tablet widths >=761px. Phone scrollbars overlay the content; reserving an extra 15px there would miscenter the fixed composer. The header alignment regression now compares against the usable page content edge, not the outer browser viewport.
+- The Image page's scrollbar is hidden during the loading animation and restored afterward, while image History loads asynchronously. In classic-scrollbar browsers that can change available gallery width, creating an apparent size/scroll movement.
+- The early Studio boot CSS reserves a stable root scrollbar gutter for the web Image workspace on desktop/tablet widths >=761px. Mobile remains unreserved so the floating composer stays centered; all other Studio tools keep the existing layout.
+- A mock-only browser regression tests the actual Studio HTML/CSS at 1440x900 and 390x844 before boot release, afterward and after a simulated increase in History height. Root/gallery/composer geometry remains constant and scrollY stays zero.
+- Account menu alignment tests use the usable page geometry when a reserved scrollbar is active. No generation, provider, payment, authentication, or gallery data code changed.

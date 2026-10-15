@@ -1,4 +1,6 @@
 // Shared by the image UI and Worker so the preview matches the submitted prompt.
+import {imageQualityGuidance,referenceRoleAdvisories} from './prompt-quality.js';
+export {referenceRoleAdvisories};
 export const REFERENCE_ROLES = Object.freeze([
   ['none','General reference'],['base','Base image'],['identity','Identity'],
   ['pose','Pose only'],['body','Body'],['composition','Composition'],['detail','Detail'],
@@ -81,7 +83,9 @@ export function compileImagePrompt(direction,labels=[],settings={}){
   // Preserve full original guidance unless an active Mood is editing a Base photograph.
   // References-only always gets the full detailed map, even when a Mood is selected.
   const compact=Boolean(settings?.moodId&&settings.referenceMode!=='references'&&labels.some(ref=>normalizeReferenceLabel(ref).role==='base'));
-  const prompt=compact?compileCompactUserImagePrompt(direction,labels):compileUserImagePrompt(direction,labels);
+  const original=compact?compileCompactUserImagePrompt(direction,labels):compileUserImagePrompt(direction,labels);
+  const quality=imageQualityGuidance(direction,labels,settings,original.length);
+  const prompt=quality?[original,quality].filter(Boolean).join('\n\n'):original;
   const count=builtInMoodReferenceCount(settings);
   if(!count)return prompt;
   const numbers=Array.from({length:count},(_,i)=>labels.length+i+1).join(', ');

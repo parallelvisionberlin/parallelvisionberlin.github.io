@@ -44,7 +44,7 @@ import {SYNTHETIC_ROMANCE_REFERENCES,SYNTHETIC_ROMANCE_REFERENCE_VERSION} from '
 import {moodBoardsRoute} from './moodboards.mjs';
 import {moodCreatorRoute} from './mood-creator-service.mjs';
 import {characterPreview as soulCharacterPreview,SOUL_TEXT_MODEL,readyReinterpretCharacter,listCharacters as listSoulCharacters,createDataset as createSoulDataset,createCharacter as createSoulCharacter,deleteCharacter as deleteSoulCharacter,resolveCharacter as resolveSoulCharacter,retryCharacter as retrySoulCharacter,publicDataset as publicSoulDataset,publicWeight as publicSoulWeight,readyCharacter as readySoulCharacter,weightUrl as soulWeightUrl,maintenance as soulMaintenance} from './soul.mjs';
-export const VERSION = 'pv-lab-2026-10-15.4-budget-video-rates';
+export const VERSION = 'pv-lab-2026-10-15.6-quality-retouch-ci';
 // Production redeploy sync: PV Soul frontend/backend.
 const UPSCALER = 'spicyapi/image-upscaler-v1/upscale';
 const CONCURRENCY = Object.freeze({image:10,video:3});
@@ -253,7 +253,7 @@ function imageMoodMetadata(value){
   }
   return {moodId:value.moodId,moodIntensity,moodOriginalPrompt,...(filmFinish?{filmFinish}:{})};
 }
-function parameters(value) {
+function parseParameters(value) {
   if(!value||typeof value!=='object'||Array.isArray(value))fail(400,'Invalid settings.');
   if(value.type==='image'&&value.mode==='upscale'){
     const upscaleEngine=value.upscaleEngine??'seedvr2';
@@ -323,6 +323,12 @@ function parameters(value) {
   }
   const prime=value.engine==='wanprime';
   return {type:'video',engine:prime?'wanprime':'wan',model:prime?(mode==='reference'?'alibaba/wan-3.0-prime/reference-to-video':'alibaba/wan-3.0-prime/image-to-video'):(mode==='reference'?MODEL_REFERENCE:MODEL_IMAGE),mode,prompt,duration,resolution,aspectRatio:ratio,seed,audio:value.audio!==false,referenceRoles};
+}
+function parameters(value){
+  const p=parseParameters(value);
+  // Exact Prompt skips optional quality guidance but retains all reference instructions.
+  if(p?.type==='image'&&supportsReferenceGuidance(p)&&value?.exactPrompt===true)p.exactPrompt=true;
+  return p;
 }
 function builtInMoodReferences(p){
   if(!builtInMoodReferenceCount(p))return [];
@@ -1220,7 +1226,7 @@ async function route(request,env,ctx) {
   // accounts are read-only. Do not accidentally spend admin provider balances.
   const billable=method==='POST'&&(
     ['/api/jobs','/api/quotes','/api/gemini/jobs','/api/image-models/generate'].includes(path)||
-    path.startsWith('/api/higgsfield/')||path.startsWith('/api/fal/')||
+    path.startsWith('/api/higgsfield/')||path.startsWith('/api/fal/')||path.startsWith('/api/precision/')||
     path.startsWith('/api/fashion/')||
     path.startsWith('/api/soul/characters/')||
     ['/api/soul/datasets','/api/soul/characters'].includes(path)
@@ -1249,7 +1255,7 @@ async function route(request,env,ctx) {
   if(customer&&path==='/api/fashion/balance'&&method==='GET')return json({connected:!!env.FASHN_API_KEY,credits:null,note:'Your generation allowance is shown in your PV Lab credit wallet.'});
   if(path.startsWith('/api/precision/'))return precisionEditRoute(request,env,owner,url,{
     customer,fail,body,first,run,source,signedInput,config,storedImageDimensions,falImageBytes,
-    reserveFalImageJob,submitReservedFalJob,jobView,json,limitedBody,sniff
+    reserveFalImageJob,submitReservedFalJob,jobView,json,limitedBody,sniff,creditsForJobUsd
   });
   if(path.startsWith('/api/fashion/'))return json(await fashionRoute(request,env,owner,url,{fail,body,first,run,stmt,jobView,source,signedInput,config,storedImageDimensions,falImageBytes,falSubmit}),path==='/api/fashion/submit'?202:200);
   if(path.startsWith('/api/higgsfield/')){
