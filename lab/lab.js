@@ -1240,13 +1240,7 @@ function syncImageReferences(){
     }
     tray.append(tile);
   }
-  const remaining=Math.max(0,referenceLimit()-references.length);
-  if(items.length&&remaining>0&&imageEngine!=='soulpro'&&imageEngine!=='soul'){
-    const more=document.createElement('button');more.type='button';
-    more.className='composer-add-tile';more.textContent='+';
-    more.title='Add more references';more.setAttribute('aria-label','Add more image references');
-    more.onclick=()=>$('image-composer-add').click();tray.append(more);
-  }
+  // Keep upload and saved packs in the clearly labelled toolbar control.
   tray.hidden=!items.length;
 }
 // Keep even very long pasted prompts inside the scrollable editor. The
