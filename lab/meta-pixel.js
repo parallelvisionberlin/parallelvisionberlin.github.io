@@ -57,7 +57,9 @@ function showChoices() {
   dialog.id = 'pv-lab-meta-consent';
   dialog.setAttribute('aria-label','Optional advertising measurement');
   dialog.setAttribute('role','region');
-  dialog.innerHTML = '<p>PV LAB uses optional Meta analytics to understand visits and purchases. You can decline and still use the studio. <a href="/lab/privacy/">Privacy</a></p><div><button type="button" data-choice="denied">Decline</button><button type="button" data-choice="granted">Allow analytics</button></div>';
+  const standalone = /^(?:www\.)?pvlab\.studio$/.test(location.hostname.toLowerCase()) || location.hostname.toLowerCase() === 'pvlab-studio.pages.dev';
+  const privacyPath = standalone ? '/privacy/' : '/lab/privacy/';
+  dialog.innerHTML = '<p>PV LAB uses optional Meta analytics to understand visits and purchases. You can decline and still use the studio. <a href="' + privacyPath + '">Privacy</a></p><div><button type="button" data-choice="denied">Decline</button><button type="button" data-choice="granted">Allow analytics</button></div>';
   dialog.style.cssText='position:fixed;bottom:16px;left:16px;z-index:2147483000;box-sizing:border-box;max-width:min(430px,calc(100vw - 32px));padding:16px 18px;background:#212225;color:#f0f0ec;border:1px solid #55585b;border-radius:13px;box-shadow:0 8px 32px #0008;font:13px/1.5 Arial,sans-serif';
   dialog.querySelector('p').style.cssText='margin:0 0 12px';
   dialog.querySelector('a').style.cssText='color:#f0f0ec;text-decoration:underline';
@@ -69,10 +71,16 @@ function showChoices() {
   }
   document.body.append(dialog);
 }
+export function isLabMarketingLanding(pathname, hostname) {
+  const host = String(hostname || '').toLowerCase();
+  const standalone = host === 'pvlab.studio' || host === 'www.pvlab.studio' || host === 'pvlab-studio.pages.dev';
+  return /^\/lab\/(?:index\.html)?$/.test(pathname) || (standalone && /^\/(?:index\.html)?$/.test(pathname));
+}
 function init() {
   if (choice === 'granted') bootPixel();
-  // Only the public marketing entry asks automatically. Never cover working Studio controls.
-  else if (!choice && /^\/lab\/(?:index\.html)?$/.test(location.pathname)) showChoices();
+  // The old /lab/ path and standalone pvlab.studio / are marketing entry points.
+  // Ask once there, never cover Studio controls or consent by default.
+  else if (!choice && isLabMarketingLanding(location.pathname, location.hostname)) showChoices();
   // A lasting preference control permits changing consent later, including withdrawing it.
   const anchor = document.querySelector('.pv-lab-footer__group[aria-label="Legal"]') || document.querySelector('footer nav') || document.querySelector('footer');
   const preferences = document.createElement('button');
