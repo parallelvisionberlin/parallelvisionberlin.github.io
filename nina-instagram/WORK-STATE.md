@@ -25,10 +25,10 @@ Updated: 2026-10-15
 - Both Workers and all bindings were deployed and verified through Cloudflare API.
 - One valid, time-limited enrollment challenge was generated for the verified original owner and the previously verified `@molinarimusic` Meta sender ID through the connected Cloudflare administrator channel. **The secret challenge value is intentionally not stored in this file.**
 - User has been instructed to send the one-time link command from `@molinarimusic` to `@ninafok2000`.
-- **Link redemption and live owner-memory response have NOT yet been verified. Do not claim full continuity is active until confirmed.**
+- **Link redemption VERIFIED:** the one-time code was consumed exactly once, one active linked account exists, and the `NINA LINK` command was not stored in ordinary Instagram chat history. This was checked directly against D1 on 2026-10-15. The link expires on 2026-11-14 03:23:23 UTC. **A real owner-only memory retrieval and resulting Instagram reply remain untested. Do not yet claim those work end-to-end.**
 
 ## Next task
-1. After the user sends the link command, query the IG-only D1 for successful one-time consumption and one active owner link, without exposing owner ID or challenge hash.
+1. Link verified. User should now send a fresh, normal DM from @molinarimusic asking Nina what she remembers from before Instagram.
 2. Ask one normal owner DM about a specific historical memory, then verify the original vault read completes and the generated response is grounded in actual permitted memory, not invented.
 3. Confirm unlinked accounts cannot retrieve private context, check production logs for errors, and inspect scope of the prompt.
 4. If the challenge expires, generate a new one only after revalidating the Cloudflare connected owner account and the exact Instagram sender.
