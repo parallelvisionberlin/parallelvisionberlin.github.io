@@ -1,5 +1,5 @@
-/* 15 Oct 2026: return to the tactile, wet-look editorial reference.
-   Dark photographic shadows protect live text without generated-looking scenery. */
+/* 15 Oct 2026: approved dark editorial art direction.
+   Liquid chrome desktop, black satin mobile. Both are live backgrounds behind accessible UI. */
 #pricing + .lab-invite-promo {
   position:relative;
   isolation:isolate;
@@ -10,7 +10,7 @@
   min-height:clamp(355px,22.55vw,442px);
   padding:clamp(56px,4.5vw,90px) clamp(24px,5.65vw,112px);
   color:#f4f1ec;
-  background:#050607 url('./visuals/invite-wet-editorial.webp') center center / cover no-repeat;
+  background:#080808 url('./visuals/invite-liquid-chrome-20261015.jpg') center center / cover no-repeat;
   border-top:1px solid rgba(255,255,255,.14);
   border-bottom:1px solid rgba(255,255,255,.14);
   font-family:'DM Sans',Arial,sans-serif;
@@ -115,8 +115,11 @@
   #pricing + .lab-invite-promo {
     min-height:0;
     padding:56px 24px 61px;
-    background-image:linear-gradient(90deg,rgba(5,6,7,.88),rgba(5,6,7,.38)),url('./visuals/invite-wet-editorial.webp');
-    background-position:60% center;background-size:auto 100%;
+    background-image:linear-gradient(90deg,rgba(0,0,0,.36),rgba(0,0,0,.12)),url('./visuals/invite-black-satin-20261015.jpg');
+    background-position:64% center;background-size:auto 100%;
+  }
+  #pricing + .lab-invite-promo::after {
+    background:linear-gradient(180deg,rgba(0,0,0,.22) 0%,rgba(0,0,0,.22) 65%,rgba(0,0,0,.56) 100%);
   }
   #pricing + .lab-invite-promo > .lab-invite-promo__inner {
     grid-template-columns:minmax(0,1fr);
