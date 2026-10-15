@@ -1,5 +1,5 @@
 import {loadLabAccount} from './native-account.js?v=20261015-clerk-v2';
-import {createSessionRequest} from './session-request.js?v=20261015-account-link';
+import {createSessionRequest} from './session-request.js?v=20261015-direct-studio1';
 const $=id=>document.getElementById(id);
 const studio=new Set(['pvlab.studio','www.pvlab.studio','pvlab-studio.pages.dev']).has(location.hostname.toLowerCase());
 let clerk=null,busy=false;
@@ -30,7 +30,13 @@ async function refresh(){
   const state=await call('/api/migration/status');
   if(studio){
     if(state.linked){
-      $('continue').href=destination();show('linked',true);
+      if(state.relinkEligible){
+        // An unused newly-created V2 welcome wallet can still be joined to
+        // the owner's prior account through the original one-time proof.
+        show('new',true);
+      }else{
+        $('continue').href=destination();show('linked',true);
+      }
     }else{show('new',true);show('fresh',true);}
   }else{show('old',true);}
 }
