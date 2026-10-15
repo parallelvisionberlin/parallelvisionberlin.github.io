@@ -1619,7 +1619,8 @@ async function route(request,env,ctx) {
       }
     }
     // Stage the exact reference bytes once, then price each image independently.
-    // Every quote has its own vendor quote ID; no paid inference begins here.
+    // Identical provider inputs may share a vendor quote ID, while each PV LAB
+    // quote and paid task still has its own internal ID; no paid inference begins here.
     const payload={model:p.model,input};
     const replies=await Promise.all(Array.from({length:quoteCount},()=>vendorRequest('/jobs/quote',key,payload)));
     const time=now(),payloadJson=JSON.stringify(payload);
@@ -1632,7 +1633,19 @@ async function route(request,env,ctx) {
         settings:p,provider:'SpicyAPI',vendorQuoteId:q.quoteId,expectedCost:String(q.estimatedCost),
         notice:'This quote is bound to your exact input. Generation starts only when you confirm. Provider terms apply; a result you dislike is still a paid generation.'};
     });
-    if(new Set(priced.map(q=>q.vendorQuoteId)).size!==priced.length)fail(502,'The provider returned duplicate price identifiers. Nothing generated; please retry the price check.');
+    // The vendor quote identifies an exact payload and price, not a paid task.
+    // It may be repeated for identical requests. Keep independent internal quote
+    // IDs and submission idempotency keys, but reject inconsistent bound prices.
+    const sharedProviderQuotes=new Map();
+    for(const q of priced){
+      const prior=sharedProviderQuotes.get(q.vendorQuoteId);
+      if(prior){
+        if(prior.expectedCost!==q.expectedCost||prior.estimatedUsd!==q.estimatedUsd||prior.maxUsd!==q.maxUsd)
+          fail(502,'The provider returned inconsistent amounts for a shared price identifier. Nothing generated; please retry the price check.');
+        prior.expiresAt=Math.min(prior.expiresAt,q.expiresAt);
+      }else sharedProviderQuotes.set(q.vendorQuoteId,{...q});
+    }
+    for(const q of priced)q.expiresAt=sharedProviderQuotes.get(q.vendorQuoteId).expiresAt;
     const statement='INSERT INTO quotes(id,owner_id,source_id,params,estimate_microusd,expires_at,vendor_quote_id,expected_cost,payload) VALUES(?,?,?,?,?,?,?,?,?)';
     const insertArgs=q=>[q.id,owner,primary?.id||null,JSON.stringify({...p,customerChargeCredits:creditsForJobUsd(q.maxUsd,p)}),Math.round(q.maxUsd*1000000),q.expiresAt,q.vendorQuoteId,q.expectedCost,payloadJson];
     if(quoteCount===1)await run(env,statement,...insertArgs(priced[0]));
