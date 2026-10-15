@@ -152,3 +152,71 @@
 #app.video-studio-active .controls-body select option:disabled {
   color: #a4a8b0;
 }
+
+/* A video request owns the central preview while it is submitting or processing.
+   Source frames remain in the composer, not behind the progress surface. */
+#app.video-studio-active .video-feed-center .canvas{position:relative}
+#app.video-studio-active .video-job-stage{
+  position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;
+  align-items:stretch;justify-content:space-between;min-width:0;
+  padding:24px clamp(18px,3vw,38px) 22px;
+  background:radial-gradient(ellipse at 50% 45%,#282a30 0%,#191b20 48%,#111216 100%);
+  color:#e9e9ed;text-align:center;overflow:hidden;
+}
+#app.video-studio-active .video-job-stage-status{
+  display:inline-flex;align-items:center;gap:9px;align-self:flex-start;
+  padding:7px 12px;border:1px solid #44474f;border-radius:999px;
+  background:#25272db3;color:#dfe0e4;font-size:12px;font-weight:500;
+}
+#app.video-studio-active .video-job-stage-indicator{
+  display:block;flex:0 0 auto;width:13px;height:13px;
+  border:1.6px solid #777b84;border-top-color:#f2f1ec;border-radius:50%;
+  animation:pv-video-stage-spin 1s linear infinite;
+}
+#app.video-studio-active .video-job-stage-main{
+  display:flex;flex-direction:column;align-items:center;gap:12px;
+  max-width:490px;min-width:0;margin:auto;
+}
+#app.video-studio-active .video-job-stage-motion{
+  display:flex;align-items:center;justify-content:center;gap:6px;height:55px;
+  margin-bottom:5px;
+}
+#app.video-studio-active .video-job-stage-motion i{
+  display:block;width:5px;height:20px;border-radius:6px;background:#a5a8b0;
+  animation:pv-video-stage-pulse 1.7s ease-in-out infinite;
+}
+#app.video-studio-active .video-job-stage-motion i:nth-child(2),
+#app.video-studio-active .video-job-stage-motion i:nth-child(4){animation-delay:.16s}
+#app.video-studio-active .video-job-stage-motion i:nth-child(3){animation-delay:.32s}
+#app.video-studio-active .video-job-stage-title{
+  color:#f4f4f3;font-size:clamp(23px,2.5vw,34px);font-weight:500;
+  line-height:1.13;letter-spacing:-.045em;
+}
+#app.video-studio-active .video-job-stage-main p{
+  max-width:390px;color:#a7aab3;font-size:13px;line-height:1.6;
+}
+#app.video-studio-active .video-job-stage-meta{
+  align-self:center;margin:0;color:#868b95;font-size:11px;
+  line-height:1.5;overflow-wrap:anywhere;
+}
+#app.video-studio-active .video-job-stage[data-phase="completed"] .video-job-stage-indicator,
+#app.video-studio-active .video-job-stage[data-phase="failed"] .video-job-stage-indicator,
+#app.video-studio-active .video-job-stage[data-phase="resolved"] .video-job-stage-indicator,
+#app.video-studio-active .video-job-stage[data-phase="uncertain"] .video-job-stage-indicator{
+  animation:none;border-color:#9a9ea8;background:#9a9ea8;
+}
+#app.video-studio-active .video-job-stage[data-phase="completed"] .video-job-stage-motion i,
+#app.video-studio-active .video-job-stage[data-phase="failed"] .video-job-stage-motion i,
+#app.video-studio-active .video-job-stage[data-phase="resolved"] .video-job-stage-motion i,
+#app.video-studio-active .video-job-stage[data-phase="uncertain"] .video-job-stage-motion i{animation:none;height:5px;opacity:.5}
+@keyframes pv-video-stage-spin{to{transform:rotate(360deg)}}
+@keyframes pv-video-stage-pulse{0%,100%{height:12px;opacity:.35}50%{height:43px;opacity:.9}}
+@media(max-width:640px){
+  #app.video-studio-active .video-job-stage{padding:17px}
+  #app.video-studio-active .video-job-stage-title{font-size:25px}
+  #app.video-studio-active .video-job-stage-main p{font-size:12px}
+}
+@media(prefers-reduced-motion:reduce){
+  #app.video-studio-active .video-job-stage-indicator,
+  #app.video-studio-active .video-job-stage-motion i{animation:none}
+}
