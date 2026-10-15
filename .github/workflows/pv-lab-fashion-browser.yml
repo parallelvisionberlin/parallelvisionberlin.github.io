@@ -7,6 +7,7 @@ on:
       - 'lab/studio.html'
       - 'lab/lab.js'
       - 'tests/lab-fashion-ui.mjs'
+      - 'tests/lab-studio-layout-ui.mjs'
       - '.github/workflows/pv-lab-fashion-browser.yml'
   push:
     branches: [main]
@@ -16,6 +17,7 @@ on:
       - 'lab/studio.html'
       - 'lab/lab.js'
       - 'tests/lab-fashion-ui.mjs'
+      - 'tests/lab-studio-layout-ui.mjs'
       - '.github/workflows/pv-lab-fashion-browser.yml'
   workflow_dispatch:
 permissions:
@@ -37,6 +39,10 @@ jobs:
         env:
           PV_PLAYWRIGHT_MODULE: /tmp/pv-fashion-browser/node_modules/playwright/index.mjs
         run: node tests/lab-fashion-ui.mjs
+      - name: Verify direct Studio entry never exposes the wrong editor
+        env:
+          PV_PLAYWRIGHT_MODULE: /tmp/pv-fashion-browser/node_modules/playwright/index.mjs
+        run: node tests/lab-studio-layout-ui.mjs
 
       - name: Capture desktop/mobile verification screens
         if: always()

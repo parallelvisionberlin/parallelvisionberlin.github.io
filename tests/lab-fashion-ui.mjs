@@ -33,6 +33,8 @@ const context=await browser.newContext({viewport:{width:1440,height:900},acceptD
 const page=await context.newPage(),errors=[],calls=[];
 const imageIds=['11111111-1111-4111-8111-111111111111','22222222-2222-4222-8222-222222222222'];
 let uploaded=0;
+let releaseSecondary;
+const secondaryHeld=new Promise(resolve=>{releaseSecondary=resolve;});
 const fakePng=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+Xfy8AAAAASUVORK5CYII=','base64');
 const completedFashion=(id,outputId,model='fashnmax')=>({
   id,status:'completed',outputId,createdAt:Date.now()-3600000,
@@ -50,6 +52,7 @@ page.on('pageerror',e=>errors.push(e.message));
 await page.route('https://**/*',async route=>{
   const request=route.request(),url=new URL(request.url()),path=url.pathname;calls.push({path,method:request.method()});
   if(url.hostname!=='parallel-vision-lab.parallelvision.workers.dev')return route.abort();
+  if(request.method()==='GET'&&(path==='/api/jobs'||path==='/api/fashion/balance'))await secondaryHeld;
   if(path.startsWith('/api/assets/')&&request.method()==='GET'){
     return route.fulfill({status:200,contentType:'image/png',body:fakePng});
   }
@@ -83,6 +86,11 @@ try{
   }
   assert.equal(await page.locator('#workspace').isVisible(),true);
   assert.equal(await page.locator('#gate').isVisible(),false);
+  assert.equal(await page.locator('#model-select').isVisible(),true,
+    'Fashion editor opens before secondary gallery and balance responses');
+  assert.equal(await page.locator('#fashion-history .history-item').count(),0,
+    'The gallery remains pending while the main editor is usable');
+  releaseSecondary();
   // The Fashion gallery lives below the editor and receives real private image
   // blobs; mixed image/video job types must not leak into this view.
   await page.waitForFunction(()=>document.querySelectorAll('#fashion-history .history-item').length===5);
@@ -114,6 +122,7 @@ try{
   assert.equal(galleryLayout.overflow,'visible','No tiny gallery scrollbar');
   assert.equal(galleryLayout.maxHeight,'none','No 110px gallery limit');
   assert.equal(await page.locator('#fashion-history button[aria-pressed="true"]').count(),0);
+  await page.waitForFunction(()=>document.getElementById('fashn-api-state').textContent.includes('Connected · 100 credits'));
   assert.match(await page.locator('#fashn-api-state').innerText(),/Connected · 100 credits/);
   assert.equal(calls.filter(c=>c.path==='/api/fashion/balance').length,1);
   await page.locator('#check-fashn').click();

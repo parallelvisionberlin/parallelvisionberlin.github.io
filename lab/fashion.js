@@ -345,7 +345,10 @@ async function sync(){
     if(authenticated&&sessionId===clerk.session?.id)return;
     const session=await api('/api/session');isCustomer=!!session.customer;const info=await api('/api/fashion/models');
     models=info.models||[];authenticated=true;sessionId=clerk.session?.id||'';
-    $('gate').hidden=true;$('workspace').hidden=false;update();await Promise.all([loadHistory(),checkFashnBalance()]);
+    $('gate').hidden=true;$('workspace').hidden=false;update();
+    // Secondary gallery and provider-balance reads must never delay the editor.
+    void loadHistory();
+    void checkFashnBalance();
   }catch(e){if(version===authVersion){lock();$('auth-status').textContent=e.message;}}
   finally{signingIn=false;}
 }

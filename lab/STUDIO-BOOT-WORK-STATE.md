@@ -31,6 +31,9 @@ Source: `lab/studio.html`; browser regression: `tests/lab-studio-layout-ui.mjs`.
 - Backend health check accepts any compatible version from `2026-10-15.1` onward, instead of failing on new releases such as source version `2026-10-15.4`. Existing production CORS origin check remains mandatory.
 - Standalone mock-only Fashion browser coverage now runs automatically for Studio/Fashion changes on main, not only manual dispatch or pull requests.
 - CI and domain probes will determine the final publish status. No live provider calls or real payments are made by these workflow checks.
+- Fashion's embedded controller previously awaited private gallery pagination and a provider balance query before reporting readiness. Both now run as background read-only operations once account and models are verified.
+- A mock Fashion regression holds gallery and balance responses to verify the editor appears before they return, then verifies normal private gallery behavior.
+- Independent Fashion CI now also runs the Studio first-paint regression even when unrelated backend unit checks fail.
 
 ## Verification
 - Regression source asserts the still, crisp initial wordmark and exit animation after readiness, first paint, desktop/mobile bounds, and a hidden overlay after completion. Native Gallery test waits for the 240 ms exit.
