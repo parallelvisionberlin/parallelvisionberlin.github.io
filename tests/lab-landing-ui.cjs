@@ -78,7 +78,7 @@ const server=http.createServer((req,res)=>{
     };
   });
   assert.ok(details.sectionHeight>=details.visibleHeight-1,'Pricing occupies at least one viewport');
-  assert.match(details.inviteBg,/(?:invite-wet-editorial\.webp|invite-after-fabric-exact\.avif)/,'Referral promotion uses an approved photographic editorial');
+  assert.match(details.inviteBg,/(?:invite-wet-editorial\.webp|invite-after-fabric-exact\.avif|invite-after-fabric-user-approved-20261014\.webp)/,'Referral promotion uses an approved photographic editorial');
   if(width<=760)assert.match(details.inviteBg,/gradient/,'Mobile adds a readable gradient over the editorial photo');
   const textRGB=(details.inviteText.match(/\d+/g)||[]).slice(0,3).map(Number);
   const paragraphRGB=(details.inviteParagraph.match(/\d+/g)||[]).slice(0,3).map(Number);
@@ -87,23 +87,20 @@ const server=http.createServer((req,res)=>{
   assert.equal(paragraphRGB.length,3,'Referral description uses a valid color');
   assert.ok(paragraphRGB.every(n=>n>=180),'Referral description retains contrast on dark photography');
   if(width>760){
-    assert.equal(details.deckMargin,'20px','Desktop image collection is balanced lower by 20px');
-    assert.ok(details.rowHeights.every(n=>n>=110&&n<=114),'Desktop pricing rows have relaxed 112px rhythm');
-    if(width>=1200){
-      assert.equal(details.innerPosition,'relative','Desktop pricing composition is offset without changing flow');
-      assert.equal(details.innerTop,'-25px','Desktop pricing content is raised exactly 25px');
-      assert.ok(Math.abs((details.bottomSpace-details.topSpace)-50)<=3,'25px upward shift retains balanced whitespace');
-      const photoShift=details.columnLeft-details.deckLeft;
-      const expectedPhotoShift=20+Math.min(38,Math.max(22,width*.02));
-      assert.ok(Math.abs(photoShift-expectedPhotoShift)<=3,'Photo fan gains another 20px of separation without shifting text');
-      assert.ok(details.headlineSize>=47,'Desktop pricing heading has hero-scale typography');
-      assert.ok(layout.cardGap>=60,'Mood images have room before the pricing text');
-    }
+    assert.ok(details.rowHeights.every(n=>n>=(width>=1200?165:145)&&n<=210),'Editorial rows include readable model examples');
+    assert.ok(layout.collection.right<=layout.comparison.x,'Desktop prices sit beside the film collection');
+    assert.ok(layout.cardGap>=0,'Film deck does not hide the checkout column');
+    assert.ok(details.headlineSize>=37,'Editorial pricing heading stays prominent');
   }else{
-    assert.equal(details.deckMargin,'0px','Mobile photography keeps original compact position');
+    assert.ok(layout.collection.bottom>layout.comparison.y,'Mobile places checkout before the decorative film collection');
+    assert.ok(details.rowHeights.every(n=>n>=145),'Mobile purchase options include usable detail');
   }
-  if(width>760)assert.ok(layout.collection.right<=layout.comparison.x,'Desktop prices sit beside the image collection');
-  else assert.ok(layout.collection.bottom<=layout.comparison.y+1,'Mobile prices follow the compact image collection');
+  assert.equal(await page.locator('#pricing .lab-pricing-collection .lab-pricing-welcome').count(),1,'Welcome offer sits below photography');
+  const offerBelowPhoto=await page.locator('#pricing').evaluate(section=>section.querySelector('.lab-pricing-welcome').getBoundingClientRect().top>=Math.max(...[...section.querySelectorAll('.lab-pricing-mood')].map(card=>card.getBoundingClientRect().bottom))+10);
+  assert.ok(offerBelowPhoto,'Free-credit offer clears the photograph fan');
+  assert.equal(await page.locator('#pricing .lab-pricing-welcome [data-lab-welcome-start]').count(),1,'Welcome CTA keeps original sign-in flow');
+  assert.equal(await page.locator('#lab-monthly-plans .lab-plan-usage').count(),3,'Monthly pricing shows example model usage');
+  assert.equal(await page.locator('#lab-one-time-credits .lab-plan-usage').count(),3,'One-time pricing shows example model usage');
   const tabFont=await page.locator('#lab-tab-onetime').evaluate(el=>parseFloat(getComputedStyle(el).fontSize));
   assert.ok(tabFont>=14,'Purchase type tabs are readable at '+width);
   await page.getByRole('tab',{name:'One-time credits',exact:true}).click();
