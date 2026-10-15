@@ -16,9 +16,8 @@ export function initLabMobileUI(){
     const photo=document.createElement('section');photo.className='mobile-photo';photo.setAttribute('aria-label','Your source photograph');
     const add=document.createElement('button');add.type='button';add.className='mobile-add-photo';add.id='mobile-add-photo';
     add.innerHTML='<span aria-hidden="true">＋</span><strong>Add your photo</strong><small>JPG, PNG, WebP or HEIC · up to 20 MB</small>';
-    // On native Create this means upload a photo immediately, not open the desktop + menu.
-    // Delegate to its existing upload action so model-specific source selection stays shared.
-    add.onclick=()=>{const button=$('image-composer-add');if(button&&!button.disabled&&!button.hidden)$('composer-add-upload')?.click();};
+    // The shared + action opens the photo picker directly on both web and native.
+    add.onclick=()=>{const button=$('image-composer-add');if(button&&!button.disabled&&!button.hidden)button.click();};
     photo.append(add,$('image-composer-references'));
     composer.prepend(intro,photo);
     const advanced=document.createElement('button');advanced.type='button';advanced.className='mobile-advanced';advanced.id='mobile-advanced';advanced.textContent='More controls';advanced.setAttribute('aria-expanded','false');
