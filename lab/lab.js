@@ -989,10 +989,10 @@ function composerMove(id,target){
 function syncComposerOptions(){
   const image=tool==='image',target=$('composer-options-fields');
   for(const id of ['format-control','image-processing-control','soul-controls','soul-pro-settings','controlled-pose-settings','reference-list','composer-reference-same-person','reference-guidance'])composerMove(id,image?target:null);
-  for(const id of ['save','clear'])composerMove(id,image?$('composer-session-actions'):null);
+  // Draft and reset remain available to Video/Upscaler, not as Image toolbar controls.
+  for(const id of ['save','clear'])composerMove(id,null);
   if(!image){$('reference-list').hidden=false;return;}
   $('composer-exact-prompt-option').hidden=!usesReferenceGuidance();
-  $('composer-session-tools').hidden=isSoul2()||(imageEngine==='soul'&&!isReinterpret());
   $('composer-exact-prompt').disabled=busy;
   target.dataset.engine=imageEngine;
   target.dataset.compact=String(imageEngine==='soul'&&!isReinterpret());
@@ -1338,14 +1338,23 @@ function syncImageComposer(){
   $('image-composer-edit-area').hidden=customerMode;
   $('image-composer-add').disabled=busy;
   $('composer-add-saved-toggle').disabled=busy;
+  // Only genuinely model-specific or reference-detail controls need the menu.
+  // The standard image workflow has just the small inline Exact switch.
   const strengthOnly=isSoul2()||imageEngine==='soul'&&!isReinterpret();
-  $('image-composer-more').querySelector('.composer-more-label').textContent=strengthOnly?'Identity '+Number($(isSoul2()?'hf-strength':'soul-strength').value).toFixed(2):'Options';
-  $('image-composer-more').classList.toggle('is-identity-adjustment',strengthOnly);
-  $('image-composer-more').setAttribute('aria-label',strengthOnly?'Adjust identity strength':'Advanced image settings');
-  $('image-composer-more').title=strengthOnly?'Adjust trained character identity strength':'Image options';
-  $('composer-options').querySelector('.composer-panel-head strong').textContent=strengthOnly?'Identity strength':'Image settings';
-  $('image-composer-more').disabled=busy;
-  $('image-composer-more').hidden=isSoul2()&&!hf.current();
+  const referenceDetails=usesReferenceGuidance()&&references.length>0;
+  const specialSettings=['gemini','fal','soul','soulpro'].includes(imageEngine);
+  const showSettings=(specialSettings||referenceDetails)&&(!isSoul2()||!!hf.current());
+  const settingsLabel=strengthOnly?'Identity '+Number($(isSoul2()?'hf-strength':'soul-strength').value).toFixed(2):imageEngine==='fal'?'Pose':imageEngine==='gemini'?'Batch':referenceDetails?'Refs':'Controls';
+  const more=$('image-composer-more');
+  more.querySelector('.composer-more-label').textContent=settingsLabel;
+  more.classList.toggle('is-identity-adjustment',strengthOnly);
+  more.setAttribute('aria-label',strengthOnly?'Adjust identity strength':imageEngine==='gemini'?'Batch processing':imageEngine==='fal'?'Pose controls':referenceDetails?'Reference details':'Model controls');
+  more.title=more.getAttribute('aria-label');
+  $('composer-options').querySelector('.composer-panel-head strong').textContent=strengthOnly?'Identity strength':referenceDetails&&!specialSettings?'Reference details':'Model controls';
+  more.disabled=busy;
+  more.hidden=!showSettings;
+  $('composer-more-anchor').hidden=!showSettings;
+  if(!showSettings&&!$('composer-options').hidden)toggleImageSettings(false);
   const clearMood=$('image-composer-moods-clear');
   if(clearMood){
     clearMood.hidden=!moodUI.active();

@@ -37,3 +37,13 @@
 - Exact prompt stays optional. Save draft and Reset editor remain fully wired under a collapsed “Save or reset” disclosure; PV Soul strength-only settings hide this disclosure.
 - Changed scope: `lab/studio.html`, `lab/assets.css`, `lab/lab.js`, `tests/lab-studio-layout-ui.mjs`, this state file. No backend, pricing, image generation or user-data changes.
 - Mock browser regression added for Seedream menu layout, PNG visibility, Exact Prompt and unchanged Generate geometry; CI/deployed status to verify after commit.
+
+## No ordinary Image settings menu (2026-10-16)
+- Starting repository main head: `6427e0b842dba9d87829196b7c6ec7519d6a6606`.
+- User rejected both the full Image settings popup and the compact popover. Only a subtle Exact Prompt on/off switch is retained next to the prompt, disabled by default. The existing backend uses its checked state without a new paid call.
+- Seedream, Lite, Flash, Qwen, Kling, Gemini 2.1 and text-only models do not show a generic Options icon when no reference details are present.
+- Models with genuine controls (Nano Banana Batch, Controlled Pose, Soul identity settings), or images with optional reference note/target fields, retain a contextual advanced control so the existing functionality is not lost.
+- Save draft and Reset editor are no longer exposed in Image Studio; Video and Upscaler keep their existing controls. Important verified behavior: Reset cleared media and Mood but never deleted typed prompt text. Ctrl+A Delete affects the focused prompt only.
+- Only HTML/CSS/UI wiring and mock/static tests changed. No credit, model, provider, billing, job submission or customer-data changes.
+- Scope: `lab/studio.html`, `lab/assets.css`, `lab/lab.js`, `tests/lab-studio-layout-ui.mjs`, `tests/lab-smart-prompt-ui.test.mjs`, this state file.
+- Regression: verify tiny toggle, visible only for supported image engines; standard toolbar has no gear, Save or Reset; hidden options are preserved for model-specific cases, and no Generate geometry shifts. CI and deployment must be confirmed separately.

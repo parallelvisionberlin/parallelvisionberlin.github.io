@@ -287,30 +287,28 @@ try{
     'Saved packs have their own small arrow beside +');
   assert.equal(await x.page.locator('#composer-reference-intent-toggle').isVisible(),true,
     'Composition mode stays available before photos are uploaded');
-  assert.equal(await x.page.locator('#image-composer-more').isVisible(),true,
-    'Compact advanced settings are always accessible, without appearing only after uploads');
-  const beforeImageOptions=await x.page.locator('#image-composer').evaluate(el=>el.getBoundingClientRect().height);
-  await x.page.click('#image-composer-more');
-  assert.equal(await x.page.locator('#composer-options').isVisible(),true,
-    'Image settings opens directly from the Options button');
-  assert.equal(await x.page.locator('#format-control').isVisible(),false,
-    'Seedream enforces PNG and must not offer an ignored JPEG option');
+  assert.equal(await x.page.locator('#image-composer-more').isVisible(),false,
+    'Standard Seedream has no unnecessary Options menu');
   assert.equal(await x.page.locator('#composer-exact-prompt-option').isVisible(),true,
-    'Exact prompt remains available to reference-capable models');
-  assert.equal(await x.page.locator('#composer-session-tools').evaluate(el=>el.open),false,
-    'Draft and reset controls stay collapsed by default');
-  const compactOptions=await x.page.evaluate(()=>{
-    const rect=id=>{const r=document.getElementById(id).getBoundingClientRect();return {top:r.top,bottom:r.bottom,width:r.width,height:r.height};};
-    return {panel:rect('composer-options'),dock:rect('image-composer'),viewportHeight:innerHeight};
+    'Exact Prompt stays available as a tiny inline switch');
+  assert.equal(await x.page.locator('#composer-exact-prompt').isChecked(),false,
+    'Automatic prompt enhancement remains enabled by default');
+  const exactMetrics=await x.page.evaluate(()=>{
+    const box=id=>{const r=document.getElementById(id).getBoundingClientRect();return {top:r.top,bottom:r.bottom,width:r.width,height:r.height};};
+    return {prompt:box('image-composer-prompt'),exact:box('composer-exact-prompt-option'),deck:box('image-composer')};
   });
-  assert.ok(compactOptions.panel.width<=350&&compactOptions.panel.top>=0&&compactOptions.panel.bottom<=compactOptions.viewportHeight,
-    'Image settings must fit the viewport in a small anchored popover: '+JSON.stringify(compactOptions));
-  assert.ok(Math.abs(compactOptions.dock.height-beforeImageOptions)<=2,
-    'Opening settings must not expand or move the fixed Generate deck');
-  await x.page.locator('#composer-session-tools summary').click();
-  assert.equal(await x.page.locator('#save').isVisible(),true,'Save draft remains accessible on demand');
-  await x.page.click('#image-composer-more');
-  assert.equal(await x.page.locator('#composer-options').isVisible(),false,'The Options button closes the same popover');
+  assert.ok(exactMetrics.exact.width<90&&exactMetrics.exact.height<32&&Math.abs(exactMetrics.prompt.top-exactMetrics.exact.top)<28,
+    'Exact control must be quiet and beside the text prompt: '+JSON.stringify(exactMetrics));
+  assert.equal(await x.page.locator('#save').isVisible(),false,
+    'Save draft stays out of the Image creation flow');
+  assert.equal(await x.page.locator('#clear').isVisible(),false,
+    'Misleading Reset editor is removed from Image creation');
+  await x.page.locator('#composer-exact-prompt').check();
+  assert.equal(await x.page.locator('#composer-exact-prompt').isChecked(),true);
+  await x.page.locator('#composer-exact-prompt').uncheck();
+  assert.equal(await x.page.locator('#composer-exact-prompt').isChecked(),false);
+  assert.ok(Math.abs((await x.page.locator('#image-composer').evaluate(el=>el.getBoundingClientRect().height))-compactImageHeight)<3,
+    'The inline Exact switch cannot resize the compact Generate deck');
 
   assert.equal(await x.page.locator('#composer-character').isVisible(),false,'No duplicate right-side references tile');
   await x.page.click('#composer-add-saved-toggle');
@@ -404,8 +402,8 @@ try{
   assert.equal(await x.page.locator('#ratio').inputValue(),'auto','Auto framing stays available as an intentional separate choice');
   await x.page.selectOption('#image-composer-ratio',{value:'16:9'});
   assert.equal(await x.page.locator('#ratio').inputValue(),'16:9','Selecting fixed ratio after Auto is preserved');
-  assert.equal(await x.page.locator('#image-composer-more').isVisible(),true,
-    'A compact settings icon stays in the same place before and after uploading');
+  assert.equal(await x.page.locator('#image-composer-more').isVisible(),false,
+    'No Options button returns after removing the final reference');
   assert.equal(await x.page.locator('#image-composer-ratio').isVisible(),true,
     'Seedream aspect ratio is always accessible in the composer');
   assert.equal(await x.page.locator('#image-composer-resolution').isVisible(),true,
