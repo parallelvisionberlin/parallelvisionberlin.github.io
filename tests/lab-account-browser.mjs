@@ -240,7 +240,7 @@ try{
           const panel=await page.locator('.pv-account-panel').boundingBox();assert.ok(panel.x>=0&&panel.x+panel.width<=width+1,'menu fits viewport');
           assert.equal(await page.locator('.pv-account-panel > a[href="./account.html"]').count(),1,'Each account menu contains one My account entry');
           const desiredEdgeGap=width<=480?10:16;
-          assert.ok(Math.abs(width-panel.x-panel.width-desiredEdgeGap)<2,'All account menus align near the screen edge');
+          assert.ok(Math.abs(width-panel.x-panel.width-desiredEdgeGap)<2,`All account menus align near the screen edge: ${path} at ${width}px, actual gap ${width-panel.x-panel.width}px, expected ${desiredEdgeGap}px`);
           if(path==='/lab/studio.html'){
             assert.equal(await page.locator('link[href*="studio-account-menu.css"]').count(),0,'Studio no longer overrides the canonical account menu');
             const metrics=await page.locator('#studio-account-menu .pv-account-panel').evaluate(el=>{
