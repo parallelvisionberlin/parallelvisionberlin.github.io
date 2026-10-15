@@ -84,8 +84,8 @@ export function createAccountMenu(root) {
     const top=Math.max(8,Math.min(Math.round(anchor.bottom+gap),window.innerHeight-90));
     panel.style.setProperty('--pv-account-menu-top',top+'px');
     // Studio reserves a stable scrollbar gutter. Measure the actual visible
-    // edge so the dropdown has the same 16px/10px gap on every page.
-    const edge=window.matchMedia('(max-width:480px)').matches?10:16;
+    // edge so the dropdown has the same 24px/14px gap on every page.
+    const edge=window.matchMedia('(max-width:480px)').matches?14:24;
     panel.style.right=edge+'px';
     if(root.open){
       const visibleGap=window.innerWidth-panel.getBoundingClientRect().right;
