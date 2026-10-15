@@ -116,6 +116,28 @@ const server=http.createServer((req,res)=>{
   assert.equal(await page.locator('#lab-one-time-credits .lab-plan-usage').count(),3,'One-time pricing shows example model usage');
   assert.equal(await page.locator('#pricing .lab-pricing-usage-note').count(),0,'No small model-rate paragraph under plans');
   assert.equal(await page.locator('#pricing .lab-estimate-details').count(),6,'All purchase rows explain estimate rates on demand');
+
+  assert.equal(await page.locator('#pricing .lab-plan-tag').count(),0,'No promotional plan badge disturbs editorial hierarchy');
+  const infoAtEnd=await page.locator('#pricing .lab-plan-usage-stats').evaluateAll(rows=>rows.every(row=>row.lastElementChild?.classList.contains('lab-estimate-details')));
+  assert.equal(infoAtEnd,true,'Estimate info icon follows images, videos and upscaling on all six options');
+  const statsStyle=await page.locator('#lab-monthly-plans .lab-plan-usage-stats').first().evaluate(el=>({
+    size:parseFloat(getComputedStyle(el).fontSize),
+    weight:parseFloat(getComputedStyle(el).fontWeight),
+    color:getComputedStyle(el).color
+  }));
+  assert.ok(statsStyle.size>=11.5,'Image and video estimates are readable at '+width+': '+JSON.stringify(statsStyle));
+  assert.ok(statsStyle.weight>=400,'Usage figures are legible without relying on thin typography');
+  if(width>760){
+    const row=page.locator('#lab-monthly-plans .lab-plan').first();
+    const before=await row.boundingBox();
+    await row.locator('button[data-lab-buy]').hover();
+    const after=await row.boundingBox();
+    const rowBackground=await row.evaluate(el=>getComputedStyle(el).backgroundColor);
+    assert.ok(rowBackground!=='rgba(0, 0, 0, 0)'&&rowBackground!=='transparent','Pricing row gives a subtle purchase hover response: '+rowBackground);
+    assert.ok(before&&after&&Math.abs(before.height-after.height)<1,'Hover does not shift plan layout');
+    await page.mouse.move(0,0);
+  }
+
   const estimate=page.locator('#lab-monthly-plans .lab-estimate-details').first();
   const estimateButton=estimate.locator('.lab-estimate-toggle');
   const estimatePopover=estimate.locator('.lab-estimate-popover');
