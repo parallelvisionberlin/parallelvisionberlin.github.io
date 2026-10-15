@@ -19,6 +19,7 @@ test('Generates a single EUR purchase with stable event ID and hashed subject',a
   const y=await labMetaPurchasePayload(purchase,1791843760000);
   assert.equal(x.data.length,1);
   assert.equal(x.data[0].event_id,y.data[0].event_id);
+  assert.equal(x.data[0].event_source_url,'https://pvlab.studio/');
   assert.equal(x.data[0].custom_data.currency,'EUR');
   assert.equal(x.data[0].custom_data.value,10);
   assert.equal(x.data[0].user_data.external_id[0].length,64);
