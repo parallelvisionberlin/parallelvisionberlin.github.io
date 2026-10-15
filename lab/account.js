@@ -169,7 +169,10 @@ async function openPayment(path,body){
     const payload=checkout&&metaConsentGranted()?{...body,metaConsent:true}:body;
     const data=await api(path,{method:'POST',body:payload});if(current!==revision)return;
     const destination=stripeDestination(data.url);
-    if(checkout)trackLabEvent('InitiateCheckout',{currency:'EUR',content_name:String(body?.sku||'')});
+    // A short flush window prevents Stripe navigation interrupting Meta's browser request.
+    if(checkout&&trackLabEvent('InitiateCheckout',{currency:'EUR',content_name:String(body?.sku||'')}))
+      await new Promise(resolve=>setTimeout(resolve,240));
+    if(current!==revision)return;
     location.assign(destination);
   }
   catch(error){if(current===revision)status(error.message==='No Stripe customer record yet.'?'Your billing history becomes available after your first checkout.':error.message);}
