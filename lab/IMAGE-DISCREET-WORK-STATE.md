@@ -34,5 +34,13 @@ Initial implementation commits: 85db913, ea6d648, 90c7d985.
 - Updated pvlab-domain-smoke workflow to confirm the new CSS version and fixed grid, hidden-state visibility, vignette on the actual custom domain.
 - This is CSS-only behavior, no account/media/credit/API alterations. Browser interaction was not authenticated in-chat; live domain smoke and static build verify deployment, not UX in a real customer session.
 
+
+## October 15 late evening: anchor eye to far-right edge
+- User confirmed the eye looked isolated over the blank hidden scene. Both viewports showed the eye's position was stable relative to the right margin, but the intentionally invisible Select/Refresh slots lay **to its right**, creating an awkward gap.
+- Reordered only the CSS grid to [Select 54px] [Refresh 62px] [gap 12px] [Eye 34px] (compact mobile sizes 50px, 58px, 8px, 34px). The eye now stays at the far-right border of the History bar, with the action group to its left only when visible.
+- The invisible buttons still reserve their slots, now **left** of the eye; no horizontal jump on toggle, no floating button in the middle of empty space.
+- Updated lab/studio.html cache key to image-discreet.css?v=20261015-right-edge3 and the production smoke to verify the rightmost grid placement.
+- No change to gallery visibility, saved preference, model API, credit flow or accessibility labels. Signed-in visual behavior should still be checked.
+
 ## Handoff
 Next action: confirm production smoke after this CSS update, then do authenticated desktop/mobile eye toggles and refresh persistence. Do not change unrelated tools.
