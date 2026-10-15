@@ -417,6 +417,36 @@ try{
   assert.equal(x.accepted(),1);ok('No prompt + no roles creates a labeled variation without guessing an edit');assert.deepEqual(x.errors,[]);await x.context.close();
 
 
+  // The + menu's recent output and saved-pack rows must really add private
+  // originals to the existing deck. Browsing never starts a paid generation.
+  const recentOutput=id(985),recentReference=id(986);
+  x=await workspace({initial:[{id:id(984),sourceId:recentReference,outputId:recentOutput,status:'completed',createdAt:Date.now(),
+    settings:{...settings,referenceSourceIds:[recentReference]}}]});
+  await x.page.fill('#image-composer-prompt','Keep this exact creative direction.');
+  await x.page.click('#image-composer-add');
+  await x.page.click('#composer-add-recent');
+  await x.page.waitForFunction(()=>document.querySelectorAll('#composer-add-items .composer-add-saved-row').length===2);
+  assert.match(await x.page.locator('#composer-add-items').innerText(),/Generated image/);
+  assert.match(await x.page.locator('#composer-add-items').innerText(),/Reference image/);
+  await x.page.locator('#composer-add-items .composer-add-saved-row').first().click();
+  await waitRefs(x.page,1);
+  assert.equal(await x.page.locator('#image-composer-prompt').inputValue(),'Keep this exact creative direction.');
+  assert.equal(x.requests.some(req=>req.path==='/api/assets/'+recentOutput&&req.method==='GET'),true);
+  assert.equal(count(x,'/api/jobs'),0,'Selecting a recent image does not submit a billable generation');
+  assert.equal(await x.page.locator('#composer-add-menu').isVisible(),false);
+  ok('Recent generated images and source references load privately through + without generating');assert.deepEqual(x.errors,[]);await x.context.close();
+
+  const sourcePack={id:id(987),name:'Private studio portraits',refs:[{id:id(988),name:'portrait.png',role:'identity',note:''}]};
+  x=await workspace({savedPacks:[sourcePack]});
+  await x.page.click('#image-composer-add');
+  await x.page.click('#composer-add-packs');
+  assert.match(await x.page.locator('#composer-add-items').innerText(),/Private studio portraits/);
+  await x.page.locator('#composer-add-items .composer-add-saved-row').first().click();
+  await waitRefs(x.page,1);
+  assert.equal(count(x,'/api/jobs'),0,'Selecting a saved pack does not submit a billable generation');
+  assert.equal(await x.page.locator('#composer-add-menu').isVisible(),false);
+  ok('Saved packs load through the compact + menu with reference roles preserved');assert.deepEqual(x.errors,[]);await x.context.close();
+
   x=await workspace();await imageForm(x);await x.page.locator('#reference-images').setInputFiles(refPhotos);await waitRefs(x.page,3);await ready(x.page);
   await clickAdvanced(x.page);
   assert.equal(await x.page.locator('#composer-reference-same-person').isVisible(),true);
