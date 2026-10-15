@@ -156,7 +156,10 @@ async function purchase(button){
     if(!clerk.isSignedIn||clerk.session?.id!==sessionId)throw new Error('Your account changed. Select a plan again.');
     const url=new URL(data.url);
     if(url.protocol!=='https:'||url.username||url.password||!(url.hostname==='stripe.com'||url.hostname.endsWith('.stripe.com')))throw new Error('Unverified checkout link. Please try again.');
-    trackLabEvent('InitiateCheckout',{currency:'EUR',content_name:sku});
+    // Do not cancel the Pixel request by navigating away in the same task.
+    if(trackLabEvent('InitiateCheckout',{currency:'EUR',content_name:sku}))
+      await new Promise(resolve=>setTimeout(resolve,240));
+    if(!clerk.isSignedIn||clerk.session?.id!==sessionId)throw new Error('Your account changed. Select a plan again.');
     location.assign(url.href);
     leaving=true;
   }catch(e){purchaseStatus(button,sessionId&&clerk?.session?.id!==sessionId?'Your account changed. Select a plan again.':e.message||'Checkout could not be opened. Please try again.');}
