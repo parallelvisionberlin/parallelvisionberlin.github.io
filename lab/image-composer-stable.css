@@ -120,7 +120,8 @@ html:not(.pv-native-lab) #image-composer #image-composer-add[aria-expanded="true
   border-color:#9aa099!important;background:#363a37!important;color:#fff
 }
 html:not(.pv-native-lab) #image-composer .composer-add-menu{
-  left:0;bottom:calc(100% + 13px);z-index:155;
+  /* Clear the whole two-row composer, not merely the + control row. */
+  left:0;bottom:calc(100% + 100px);z-index:155;
   box-sizing:border-box;width:min(312px,calc(100vw - 32px));
   max-height:min(448px,calc(100dvh - 170px));overflow:hidden;
   padding:8px;border:1px solid #555a54;border-radius:14px;
@@ -223,6 +224,7 @@ html:not(.pv-native-lab) #image-composer #composer-add-manage span{float:right}
     flex:0 0 36px!important;width:36px!important;min-width:36px!important
   }
   html:not(.pv-native-lab) #image-composer .composer-add-menu{
+    bottom:calc(100% + 85px);
     width:min(300px,calc(100vw - 30px));
     max-height:min(420px,calc(100dvh - 210px))
   }
