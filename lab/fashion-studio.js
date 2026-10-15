@@ -11,6 +11,9 @@ export async function mountFashionStudio(host,options){
   const source=new DOMParser().parseFromString(html,'text/html');
   const content=source.getElementById('content');
   if(!content)throw new Error('Fashion workspace is unavailable.');
+  // The standalone Fashion page needs its footer. Studio already provides one,
+  // so remove the nested copy only when mounting Fashion inside Studio.
+  content.querySelector('footer.pv-lab-footer')?.remove();
   if(!document.getElementById('fashion-fonts')){
     const font=source.querySelector('link[href*="fonts.googleapis.com/css"]');
     if(font){const link=document.importNode(font,true);link.id='fashion-fonts';document.head.append(link);}
