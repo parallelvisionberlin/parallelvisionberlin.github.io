@@ -49,7 +49,7 @@ export function createVideoModelPicker({select,getBusy=()=>false,isActive=()=>tr
   const list=document.createElement('div');list.className='pv-video-model-list';
   list.setAttribute('role','group');list.setAttribute('aria-label','Available video models');
   const foot=document.createElement('div');foot.className='pv-video-model-foot';
-  foot.textContent='*Uncensored is SpicyAPI\'s model label: no added provider scan. Seedance can still refuse a request. Your selection never changes automatically.';
+  foot.textContent='*SpicyAPI lists standard Seedance as uncensored: no added provider scan. Extend uses Higgsfield. Models may still refuse requests.';
   popover.append(head,searchWrap,list,foot);
   document.body.append(popover);
   let open=false,lastFingerprint='',lastSelection='',searchText='';
