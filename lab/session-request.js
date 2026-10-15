@@ -38,23 +38,23 @@ async function waitWithAbort(promise, signal) {
   finally { signal.removeEventListener('abort', cancel); }
 }
 
-// Redirect signed-in, unlinked customers to the first-use welcome. Only
-// the authenticated API response with this marker can initiate navigation.
-function maybeOnboard(response){
-  if(response.status!==409||response.headers.get('X-PV-Lab-Onboarding')!=='required')return response;
-  if(typeof window==='undefined'||!window.location)return response;
-  const {hostname,pathname,search,hash,origin}=window.location;
-  if(!['pvlab.studio','www.pvlab.studio','pvlab-studio.pages.dev'].includes(hostname))return response;
-  if(pathname.endsWith('/connect-account.html')||pathname.endsWith('/welcome.html'))return response;
-  const link=new URL('/welcome.html',origin);
-  link.searchParams.set('next',pathname+search+hash);
-  window.location.replace(link.href);
-  return response;
+// The studio is the destination, not a second signup page. A verified 409
+// from the authenticated Worker is the only signal for new-account setup.
+const STUDIO_HOSTS=new Set(['pvlab.studio','www.pvlab.studio','pvlab-studio.pages.dev']);
+function onboardingRequired(response){
+  return response.status===409&&response.headers.get('X-PV-Lab-Onboarding')==='required';
 }
-export function createSessionRequest({ baseUrl, getSession, fetchImpl = globalThis.fetch, clock = Date.now }) {
+function studioBrowser(){
+  if(typeof window==='undefined'||!window.location)return null;
+  const location=window.location;
+  return STUDIO_HOSTS.has(location.hostname.toLowerCase())?location:null;
+}
+export function createSessionRequest({ baseUrl, getSession, fetchImpl = globalThis.fetch, clock = Date.now, onNewCustomer = () => {} }) {
   const base = new URL(baseUrl);
   const pendingRefreshes = new WeakMap();
   const recentRefreshes = new WeakMap();
+  const pendingOnboarding = new WeakMap();
+  const greetedSessions = new WeakSet();
 
   async function refresh(session, rejectedToken) {
     const recent = recentRefreshes.get(session);
@@ -106,8 +106,58 @@ export function createSessionRequest({ baseUrl, getSession, fetchImpl = globalTh
       checkSession();
       return response;
     };
+    async function finishOnboarding(response) {
+      if(!onboardingRequired(response))return response;
+      const browser=studioBrowser();
+      if(!browser)return response;
+      if(browser.pathname.endsWith('/connect-account.html'))return response;
+      if(browser.pathname!=='/studio.html') {
+        // A customer arriving from the homepage goes straight into Studio.
+        window.location.replace(new URL('/studio.html?tool=image',browser.origin).href);
+        return response;
+      }
+      // Only the initial read-only session handshake may initialize a fresh
+      // customer wallet. Never auto-create for paid jobs, checkout or uploads.
+      if(url.pathname!=='/api/session'||(init.method||'GET').toUpperCase()!=='GET')return response;
+      let pending=pendingOnboarding.get(session);
+      if(!pending){
+        pending=(async()=>{
+          checkSession();
+          const headers=new Headers();
+          headers.set('Authorization','Bearer '+token);
+          if(session.labNative===true)headers.set('X-PV-Lab-Client','mobile-v1');
+          const created=await fetchImpl(new URL('/api/migration/new',base).href,{
+            method:'POST',headers,redirect:'error',credentials:'omit',cache:'no-store',signal:init.signal
+          });
+          checkSession();
+          if(!created.ok&&created.status!==409){
+            const detail=await created.json().catch(()=>({}));
+            throw Error(detail.error||'Unable to prepare the Studio account. Please try again.');
+          }
+          return created.status===201;
+        })();
+        pendingOnboarding.set(session,pending);
+        void pending.finally(()=>{if(pendingOnboarding.get(session)===pending)pendingOnboarding.delete(session);}).catch(()=>{});
+      }
+      const createdNow=await waitWithAbort(pending,init.signal);
+      checkSession();
+      // A fresh session must be reverified by the Worker, including its
+      // wallet balance. No local credit balance can authorize generation.
+      const verified=await send(token);
+      if(createdNow&&verified.ok){
+        const profile=await verified.clone().json().catch(()=>null);
+        checkSession();
+        if(profile?.customer===true&&profile.owner===false&&
+          Number.isSafeInteger(profile.balanceCredits)&&profile.balanceCredits>=200&&
+          !greetedSessions.has(session)){
+          greetedSessions.add(session);
+          onNewCustomer({credits:200,ownerId:profile.ownerId,sessionId});
+        }
+      }
+      return verified;
+    }
     let response = await send(token);
-    if (response.status !== 401) return maybeOnboard(response);
+    if (response.status !== 401) return finishOnboarding(response);
     const data = await response.clone().json().catch(() => ({}));
     checkSession();
     // Only these Lab authentication responses occur BEFORE route handling and paid submission.
@@ -123,6 +173,6 @@ export function createSessionRequest({ baseUrl, getSession, fetchImpl = globalTh
       await response.body?.cancel();
       throw new LabSignInError();
     }
-    return maybeOnboard(response);
+    return finishOnboarding(response);
   };
 }
