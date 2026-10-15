@@ -54,6 +54,7 @@ export function createSessionRequest({ baseUrl, getSession, fetchImpl = globalTh
   const pendingRefreshes = new WeakMap();
   const recentRefreshes = new WeakMap();
   const pendingOnboarding = new WeakMap();
+  const greetedSessions = new WeakSet();
 
   async function refresh(session, rejectedToken) {
     const recent = recentRefreshes.get(session);
@@ -147,7 +148,9 @@ export function createSessionRequest({ baseUrl, getSession, fetchImpl = globalTh
         const profile=await verified.clone().json().catch(()=>null);
         checkSession();
         if(profile?.customer===true&&profile.owner===false&&
-          Number.isSafeInteger(profile.balanceCredits)&&profile.balanceCredits>=200){
+          Number.isSafeInteger(profile.balanceCredits)&&profile.balanceCredits>=200&&
+          !greetedSessions.has(session)){
+          greetedSessions.add(session);
           onNewCustomer({credits:200,ownerId:profile.ownerId,sessionId});
         }
       }
