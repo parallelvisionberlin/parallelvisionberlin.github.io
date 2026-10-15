@@ -1,5 +1,7 @@
 # Parallel Vision Lab
 
+Studio loading identity and motion work: [Studio boot work state](STUDIO-BOOT-WORK-STATE.md).
+
 ## First-party public traffic meter (2026-10-15)
 
 PV LAB's owner Control Room includes a read-only Traffic panel with 7/30-day estimated site entries, page views, Reddit referrals, signup counts, daily trends and source/page breakdowns. Public pages load `lab/traffic.js`, which makes one anonymous POST per actual page load to `/api/public/traffic`. It sends only the page category, broad source category, and estimated entry flag. No cookie, local-storage tracking ID, IP, account ID or full referrer is stored in the aggregated Cloudflare D1 table. Browser GPC/DNT preferences are honored. The table is pruned after 90 days. Bot filtering is approximate, and navigation/referrer restrictions can cause under/overcounting. Never call these numbers unique users or compute an exact signup conversion rate from page views.
