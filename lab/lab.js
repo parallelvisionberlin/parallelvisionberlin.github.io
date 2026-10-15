@@ -998,8 +998,114 @@ function closeComposerLibrary(){
   $('composer-character').setAttribute('aria-expanded','false');
   $('composer-add-saved-toggle').setAttribute('aria-expanded','false');
 }
-function closeComposerAddMenu(){
-  // The + opens the native file chooser directly. Saved packs have their own arrow.
+let composerAddRequest=0;
+function closeComposerAddMenu({focus=false}={}){
+  const menu=$('composer-add-menu'),opened=!menu.hidden;
+  composerAddRequest++;
+  menu.hidden=true;
+  $('image-composer-add').setAttribute('aria-expanded','false');
+  $('composer-add-source-view').hidden=false;
+  $('composer-add-items-view').hidden=true;
+  $('composer-add-items').replaceChildren();
+  if(opened&&focus)$('image-composer-add').focus({preventScroll:true});
+}
+function openComposerAddMenu(){
+  if(busy||tool!=='image')return;
+  moodUI.close();closeReferenceIntent();closeImageModelMenu();closeComposerLibrary();toggleImageSettings(false);
+  composerAddRequest++;
+  $('composer-add-source-view').hidden=false;
+  $('composer-add-items-view').hidden=true;
+  $('composer-add-items').replaceChildren();
+  $('composer-add-menu').hidden=false;
+  $('image-composer-add').setAttribute('aria-expanded','true');
+}
+function showComposerAddChoices(title,manage=false){
+  $('composer-add-source-view').hidden=true;
+  $('composer-add-items-view').hidden=false;
+  $('composer-add-list-title').textContent=title;
+  $('composer-add-manage-wrap').hidden=!manage;
+  const list=$('composer-add-items');list.replaceChildren();return list;
+}
+function composerAddEmpty(message){
+  const p=document.createElement('p');p.className='composer-add-empty';p.textContent=message;return p;
+}
+function composerAddSavedRow({id,title,detail,select}){
+  const button=document.createElement('button');button.type='button';button.className='composer-add-saved-row';
+  const photo=document.createElement('span');photo.className='composer-add-thumb';
+  const copy=document.createElement('span');copy.className='composer-add-saved-copy';
+  const name=document.createElement('strong');name.textContent=title;
+  const context=document.createElement('small');context.textContent=detail;
+  const chevron=document.createElement('span');chevron.className='composer-add-chevron';chevron.textContent='+';
+  copy.append(name,context);button.append(photo,copy,chevron);
+  composerAssetPhoto(photo,id);
+  button.onclick=select;
+  return button;
+}
+function openComposerSavedPacks(){
+  composerAddRequest++;
+  const list=showComposerAddChoices('Saved reference packs',true);
+  const entries=packs.filter(p=>p.refs?.length);
+  if(!entries.length){list.append(composerAddEmpty('No packs saved yet. Add photographs to the deck, then save a pack.'));return;}
+  for(const pack of entries){
+    list.append(composerAddSavedRow({
+      id:pack.refs[0].id,title:pack.name,
+      detail:pack.refs.length+' photo'+(pack.refs.length===1?'':'s')+' · saved roles',
+      select:()=>{
+        if(!owner||busy)return;
+        closeComposerAddMenu();
+        $('pack-select').value=pack.id;
+        $('pack-load').click();
+      }
+    }));
+  }
+}
+async function openComposerRecentImages(){
+  const list=showComposerAddChoices('Recent images');
+  list.append(composerAddEmpty('Loading your images…'));
+  const request=++composerAddRequest,sessionEpoch=epoch;
+  try{
+    // The same authenticated, owner-scoped History endpoint used by the gallery.
+    const data=await api('/api/jobs');
+    if(request!==composerAddRequest||sessionEpoch!==epoch||!owner||$('composer-add-menu').hidden)return;
+    list.replaceChildren();
+    const items=[],seen=new Set();
+    const include=(id,label,kind)=>{
+      if(!id||seen.has(id)||items.length>=12)return;
+      seen.add(id);items.push({id,label,kind});
+    };
+    for(const job of data.jobs||[]){
+      if(job.settings?.type!=='image')continue;
+      if(job.outputId&&job.status==='completed')include(job.outputId,'Generated image','From History');
+      for(const id of job.settings?.referenceSourceIds||[])include(id,'Reference image','Used in a previous image');
+      if(job.sourceId)include(job.sourceId,'Source image','Previously uploaded');
+      if(items.length>=12)break;
+    }
+    if(!items.length){list.append(composerAddEmpty('No recent images yet. Upload a photograph or create an image first.'));return;}
+    for(let i=0;i<items.length;i++){
+      const item=items[i];
+      list.append(composerAddSavedRow({
+        id:item.id,title:item.label,detail:item.kind+' · '+String(i+1).padStart(2,'0'),
+        select:()=>{
+          if(!owner||busy)return;
+          closeComposerAddMenu();
+          void action(async()=>{
+            if(references.some(ref=>ref.id===item.id)&&imageEngine!=='soulpro'&&!isReinterpret())throw new Error('This image is already in your reference deck.');
+            const session=epoch,photo=await assetFile(item.id,'recent-image');
+            if(session!==epoch||!owner)return;
+            if(imageEngine==='soulpro'||isReinterpret())await setImage(photo,item.id);
+            else await addReferences([photo],[item.id]);
+            notify('Recent image added. Your prompt and selected Mood are unchanged.');
+          });
+        }
+      }));
+    }
+  }catch(error){
+    if(request!==composerAddRequest||sessionEpoch!==epoch||$('composer-add-menu').hidden)return;
+    list.replaceChildren();
+    const message=composerAddEmpty('Could not load your private image history.');
+    const retry=document.createElement('button');retry.type='button';retry.className='composer-add-retry';retry.textContent='Try again';retry.onclick=()=>void openComposerRecentImages();
+    list.append(message,retry);
+  }
 }
 function openComposerLibrary(){
   if(busy)return;
@@ -1321,6 +1427,7 @@ function syncImageComposer(){
   $('image-composer-edit-area').disabled=busy||!owner||customerMode;
   $('image-composer-edit-area').hidden=customerMode;
   $('image-composer-add').disabled=busy;
+  $('image-composer-add').setAttribute('aria-label',window.__PV_LAB_NATIVE__===1?'Upload images':'Add images');
   $('composer-add-saved-toggle').disabled=busy;
   const strengthOnly=isSoul2()||imageEngine==='soul'&&!isReinterpret();
   $('image-composer-more').querySelector('.composer-more-label').textContent=strengthOnly?'Identity '+Number($(isSoul2()?'hf-strength':'soul-strength').value).toFixed(2):'Options';
@@ -1566,9 +1673,26 @@ function openComposerPhotoInput(){
 $('image-composer-add').onclick=()=>{
   if(busy)return;
   if(imageEngine==='soul'&&!isReinterpret()){$('composer-character').click();return;}
-  closeComposerLibrary();closeImageModelMenu();closeReferenceIntent();toggleImageSettings(false);moodUI.close();
-  openComposerPhotoInput();
+  // The native app keeps its original one-tap system photo picker.
+  if(window.__PV_LAB_NATIVE__===1){
+    closeComposerLibrary();closeImageModelMenu();closeReferenceIntent();toggleImageSettings(false);moodUI.close();
+    openComposerPhotoInput();return;
+  }
+  if($('composer-add-menu').hidden)openComposerAddMenu();
+  else closeComposerAddMenu();
 };
+$('composer-add-computer').onclick=()=>{if(busy)return;closeComposerAddMenu();openComposerPhotoInput();};
+$('composer-add-recent').onclick=()=>{if(!busy)void openComposerRecentImages();};
+$('composer-add-packs').onclick=()=>{if(!busy)openComposerSavedPacks();};
+$('composer-add-back').onclick=()=>{
+  if(busy)return;
+  composerAddRequest++;$('composer-add-items').replaceChildren();
+  $('composer-add-items-view').hidden=true;$('composer-add-source-view').hidden=false;
+};
+$('composer-add-manage').onclick=()=>{if(busy)return;closeComposerAddMenu();openComposerLibrary();};
+document.addEventListener('pointerdown',event=>{
+  if(!$('composer-add-menu').hidden&&!event.target.closest('#composer-add-wrap'))closeComposerAddMenu();
+});
 $('composer-add-saved-toggle').onclick=()=>{
   if(busy)return;
   if(!$('composer-library').hidden){closeComposerLibrary();return;}
@@ -3649,7 +3773,7 @@ $('history-delete-selected').onclick=()=>action(async()=>{
   setHistorySelectMode(false);await loadHistory();if(assetLibrary?.active())await assetLibrary.load();notify((result.deleted||ids.length)+' History item'+((result.deleted||ids.length)===1?'':'s')+' deleted. Spending history is unchanged.');
 });
 function finishLabBoot(){window.__pvLabFinishBoot?.();document.documentElement.classList.remove('pv-studio-route-pending');}
-function lock(){newCustomerGrant=null;hideFirstCreditToast();resetWelcomeStart();studioAccount.update();moodReferences.clear();void deviceMediaCache.signOut();document.documentElement.classList.remove('pv-native-route-pending');retouchActive=false;history.scrollRestoration='auto';precisionEditor.reset();$('app').classList.remove('retouch-studio-active');customerMode=false;customerGenerationReady=false;customerImagePricing?.reset();wallet.connect({customer:false});$('studio-invite-friends').hidden=true;fashionController?.lock();setFashionActive(false);assetLibrary?.reset();hf.reset();epoch++;imageSubmissionPending=false;pendingImageCards.clear();moodUI.clear(true);clearAssetCache();for(const p of composerPortraits.values())p.then(url=>{if(url)release(url);});composerPortraits.clear();composerLibraryKey='';composerPortraitKey='';closeComposerLibrary();historySelected.clear();historySelectMode=false;clearSoulProPackPreview();soulProIdentity={configured:false,count:0,refs:[]};workingCopies.clear();fastImageHandoff.clear();autoPreview=null;downloadUrls.forEach(release);downloadUrls.clear();myMoods.reset();owner=false;updateHistoryPagination();userId='';soul.reset();historyRevision++;galleryPreviewQueue.length=0;clearTimeout(timer);timer=null;activeJob=null;activeJobs=[];polling=false;requestControllers.forEach(c=>c.abort());requestControllers.clear();observer.disconnect();cardUrls.forEach(release);cardUrls.clear();clearMedia();$('prompt').value='';$('history').replaceChildren();$('app').hidden=true;$('gate').hidden=false;$('connection').hidden=true;$('logout').hidden=true;$('api-key').value='';for(const d of document.querySelectorAll('dialog[open]'))d.close();currentQuote=null;config={};packs=[];$('pack-select').replaceChildren(new Option('Choose a saved pack',''));closeImageModelMenu();toggleImageSettings(false);$('app').classList.remove('image-studio-active');imageStudio.hidden=true;imageDetailCache.clear();releaseImageDetailSource();videoJobCache.clear();selectedVideoJob=null;syncVideoStudioMode();finishLabBoot();}
+function lock(){newCustomerGrant=null;hideFirstCreditToast();resetWelcomeStart();studioAccount.update();moodReferences.clear();void deviceMediaCache.signOut();document.documentElement.classList.remove('pv-native-route-pending');retouchActive=false;history.scrollRestoration='auto';precisionEditor.reset();$('app').classList.remove('retouch-studio-active');customerMode=false;customerGenerationReady=false;customerImagePricing?.reset();wallet.connect({customer:false});$('studio-invite-friends').hidden=true;fashionController?.lock();setFashionActive(false);assetLibrary?.reset();hf.reset();epoch++;imageSubmissionPending=false;pendingImageCards.clear();moodUI.clear(true);clearAssetCache();for(const p of composerPortraits.values())p.then(url=>{if(url)release(url);});composerPortraits.clear();composerLibraryKey='';composerPortraitKey='';closeComposerAddMenu();closeComposerLibrary();historySelected.clear();historySelectMode=false;clearSoulProPackPreview();soulProIdentity={configured:false,count:0,refs:[]};workingCopies.clear();fastImageHandoff.clear();autoPreview=null;downloadUrls.forEach(release);downloadUrls.clear();myMoods.reset();owner=false;updateHistoryPagination();userId='';soul.reset();historyRevision++;galleryPreviewQueue.length=0;clearTimeout(timer);timer=null;activeJob=null;activeJobs=[];polling=false;requestControllers.forEach(c=>c.abort());requestControllers.clear();observer.disconnect();cardUrls.forEach(release);cardUrls.clear();clearMedia();$('prompt').value='';$('history').replaceChildren();$('app').hidden=true;$('gate').hidden=false;$('connection').hidden=true;$('logout').hidden=true;$('api-key').value='';for(const d of document.querySelectorAll('dialog[open]'))d.close();currentQuote=null;config={};packs=[];$('pack-select').replaceChildren(new Option('Choose a saved pack',''));closeImageModelMenu();toggleImageSettings(false);$('app').classList.remove('image-studio-active');imageStudio.hidden=true;imageDetailCache.clear();releaseImageDetailSource();videoJobCache.clear();selectedVideoJob=null;syncVideoStudioMode();finishLabBoot();}
 const wallet=createCustomerWallet({api,notify,onBalance:value=>studioAccount.updateBalance(value),onClosed:async()=>{lock();await clerk.signOut();}});
 customerImagePricing=createCustomerImagePricing({snapshot:imageCreditQuoteSnapshot,quote:fetchCustomerImagePrice,changed:()=>update()});
 async function sync(){if(syncing)return;syncing=true;try{if(!clerk.isSignedIn){lock();$('auth-status').textContent='Sign in to your PV Lab workspace.';$('signin').hidden=false;$('signin').disabled=false;$('auth-retry').hidden=true;return;}if(owner&&userId===clerk.user.id)return;if(owner&&userId!==clerk.user.id)lock();
