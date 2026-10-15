@@ -106,17 +106,19 @@ try{
         const appearance=await page.locator('#image-composer-generate').evaluate(button=>{
           button.disabled=false;
           const css=getComputedStyle(button),box=button.getBoundingClientRect();
-          const label=button.querySelector('.composer-generate-label').getBoundingClientRect();
-          const icon=button.querySelector('.composer-generate-sparkle').getBoundingClientRect();
+          const label=button.querySelector('.composer-generate-label');
+          const icon=button.querySelector('.composer-generate-sparkle');
           return {
             width:Math.round(box.width),height:Math.round(box.height),
             background:css.backgroundImage,color:css.color,radius:css.borderTopLeftRadius,
             weight:css.fontWeight,display:css.display,direction:css.flexDirection,
-            iconBelowLabel:icon.top>=label.bottom-1
+            iconHidden:getComputedStyle(icon).display==='none',
+            labelSize:parseFloat(getComputedStyle(label).fontSize)
           };
         });
-        assert.equal(appearance.direction,'column',kind+': Generate label and symbol are stacked');
-        assert.equal(appearance.iconBelowLabel,true,kind+': Generate symbol sits below the label');
+        assert.equal(appearance.direction,'column',kind+': Generate action remains centered');
+        assert.equal(appearance.iconHidden,true,kind+': decorative symbol is removed');
+        assert.ok(appearance.labelSize>=17,kind+': primary Generate label is legible: '+appearance.labelSize);
         if(kind==='seedream')seedreamGenerateAppearance=appearance;
         else assert.deepEqual(appearance,seedreamGenerateAppearance,
           'PV Soul uses the exact Seedream Generate styling and 144×84px button area');
