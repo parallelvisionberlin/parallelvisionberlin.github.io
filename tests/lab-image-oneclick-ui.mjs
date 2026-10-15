@@ -497,7 +497,11 @@ try{
   {id:id(982),name:'Missing Photo',refs:[{id:badId,name:'missing.png',role:'identity',note:''}]}
  ];
  x=await workspace({savedPacks:slowPacks,packPreviewGate,brokenPreviewAssets:[badId]});
- await x.page.click('#composer-add-saved-toggle');
+ await x.page.click('#image-composer-add');
+ await x.page.click('#composer-add-packs');
+ assert.equal(await x.page.locator('#composer-add-items .composer-add-saved-row').count(),2,
+   'Saved packs appear in the compact + chooser with no duplicate toolbar arrow');
+ await x.page.click('#composer-add-manage');
  const photos=x.page.locator('#composer-library-cards .composer-library-photo');
  assert.equal(await photos.count(),2);
  assert.equal(await photos.locator('img').count(),0,'Do not insert a blank img while the preview request is pending');
