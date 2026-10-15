@@ -87,7 +87,7 @@ const server=http.createServer((req,res)=>{
   assert.equal(paragraphRGB.length,3,'Referral description uses a valid color');
   assert.ok(paragraphRGB.every(n=>n>=180),'Referral description retains contrast on dark photography');
   if(width>760){
-    assert.ok(details.rowHeights.every(n=>n>=145&&n<=195),'Editorial rows include readable model examples');
+    assert.ok(details.rowHeights.every(n=>n>=(width>=1200?165:145)&&n<=210),'Editorial rows include readable model examples');
     assert.ok(layout.collection.right<=layout.comparison.x,'Desktop prices sit beside the film collection');
     assert.ok(layout.cardGap>=0,'Film deck does not hide the checkout column');
     assert.ok(details.headlineSize>=37,'Editorial pricing heading stays prominent');
@@ -96,6 +96,8 @@ const server=http.createServer((req,res)=>{
     assert.ok(details.rowHeights.every(n=>n>=145),'Mobile purchase options include usable detail');
   }
   assert.equal(await page.locator('#pricing .lab-pricing-collection .lab-pricing-welcome').count(),1,'Welcome offer sits below photography');
+  const offerBelowPhoto=await page.locator('#pricing').evaluate(section=>section.querySelector('.lab-pricing-welcome').getBoundingClientRect().top>=Math.max(...[...section.querySelectorAll('.lab-pricing-mood')].map(card=>card.getBoundingClientRect().bottom))+10);
+  assert.ok(offerBelowPhoto,'Free-credit offer clears the photograph fan');
   assert.equal(await page.locator('#pricing .lab-pricing-welcome [data-lab-welcome-start]').count(),1,'Welcome CTA keeps original sign-in flow');
   assert.equal(await page.locator('#lab-monthly-plans .lab-plan-usage').count(),3,'Monthly pricing shows example model usage');
   assert.equal(await page.locator('#lab-one-time-credits .lab-plan-usage').count(),3,'One-time pricing shows example model usage');
