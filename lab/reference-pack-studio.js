@@ -40,9 +40,10 @@ export function createReferencePackStudio({
     choose.title='Load '+pack.name+' into the Image deck';
     choose.setAttribute('aria-label','Load '+pack.name+', '+pack.refs.length+' photographs');
     const cover=document.createElement('span');cover.className='pack-studio-card-photo';
+    const photo=document.createElement('span');photo.className='pack-studio-card-media';
     const count=document.createElement('span');count.className='pack-studio-card-count';
     count.textContent=String(pack.refs.length).padStart(2,'0')+' PHOTOS';
-    cover.append(count);
+    cover.append(photo,count);
     const name=document.createElement('strong');name.className='pack-studio-card-name';
     name.textContent=pack.name;name.title=pack.name;
     const info=document.createElement('small');info.className='pack-studio-card-detail';
@@ -73,7 +74,7 @@ export function createReferencePackStudio({
       }
     };
     card.append(choose,remove);
-    assetPhoto(cover,pack.refs[0]?.id||null);
+    assetPhoto(photo,pack.refs[0]?.id||null);
     return card;
   }
   function renderLibrary(){
@@ -179,8 +180,8 @@ export function createReferencePackStudio({
     $('pack-studio-create-status').textContent='';
     renderCreate();
   }
-  function close(){
-    if(!modal.open||saving)return;
+  function close({force=false}={}){
+    if(!modal.open||(saving&&!force))return;
     modal.close();
   }
   function open(){
@@ -263,5 +264,5 @@ export function createReferencePackStudio({
   modal.addEventListener('click',event=>{
     if(event.target===modal&&!saving)close();
   });
-  return {open,close,isOpen,refresh:()=>{if(isOpen()&&stage==='library')renderLibrary();}};
+  return {open,close,isOpen,refresh:()=>{if(isOpen()&&stage==='library')renderLibrary();},forceClose:()=>close({force:true})};
 }
