@@ -184,7 +184,7 @@
 #pricing .lab-pricing-deck{
   height:clamp(430px,36vw,550px);
   aspect-ratio:auto;
-  margin-top:7px;
+  margin-top:20px;
   transform:translateX(-16px);
 }
 #pricing .lab-pricing-mood{width:39%;border-radius:10px;box-shadow:0 12px 32px rgba(0,0,0,.38),0 2px 5px rgba(0,0,0,.25)}
@@ -198,7 +198,7 @@
   text-shadow:0 1px 5px rgba(0,0,0,.4);
 }
 #pricing .lab-pricing-welcome{
-  margin:26px 0 0 2px;max-width:570px;
+  margin:84px 0 0 2px;max-width:570px;
   display:flex;flex-direction:column;align-items:flex-start;
 }
 #pricing .lab-pricing-welcome h3{
@@ -219,9 +219,9 @@
 #pricing .lab-pricing-free-cta:hover,
 #pricing .lab-pricing-free-cta:focus-visible{background:#f6f3ed;color:#141414;border-color:#f6f3ed}
 #pricing .lab-pricing-free-cta:focus-visible{outline:2px solid #f6f3ed;outline-offset:4px}
-#pricing .lab-pricing-comparison{padding-top:31px}
+#pricing .lab-pricing-comparison{padding-top:0}
 #pricing h2{font-size:clamp(42px,3.6vw,53px);margin:18px 0 23px;line-height:1.055}
-#pricing .lab-plans-intro{font-size:16px;line-height:1.58;max-width:490px;margin:0 0 26px;color:#b8b5b0}
+#pricing .lab-plans-intro{font-size:16px;line-height:1.58;max-width:490px;margin:0 0 39px;color:#b8b5b0}
 #pricing .lab-pricing-options{
   display:flex;gap:clamp(28px,4vw,60px);align-items:stretch;margin:0;
   border-bottom:1px solid #323232;
@@ -236,7 +236,7 @@
 }
 #pricing .lab-plans-grid{display:grid;grid-template-columns:1fr;gap:0!important}
 #pricing .lab-plan{
-  min-height:158px!important;padding:22px 0 19px!important;
+  min-height:169px!important;padding:22px 0 19px!important;
   grid-template-columns:minmax(0,1fr) auto 47px;
   grid-template-areas:"name price action" "credits price action" "usage usage usage";
   column-gap:clamp(14px,1.9vw,27px);row-gap:5px;
