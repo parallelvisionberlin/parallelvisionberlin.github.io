@@ -22,11 +22,20 @@ main{min-height:calc(100svh - 125px);display:flex;flex-direction:column;align-it
 .confirmation svg{height:26px;width:26px;stroke:currentColor;stroke-width:1.7;fill:none;stroke-linecap:round;stroke-linejoin:round}
 h1{font-size:clamp(33px,5.1vw,52px);letter-spacing:-.055em;line-height:1.08;font-weight:450;margin:0}
 .subtitle{margin:16px 0 31px;font-size:14px;line-height:1.6;color:#a5a7a8}
-.gift{padding:27px 22px 25px;background:#1b1d1e;border:1px solid #36383a;border-radius:12px;text-align:center}
-.gift .gift-label{font-size:10px;letter-spacing:.17em;color:#a2a5a6}
-.gift .amount{margin-top:10px;display:flex;justify-content:center;align-items:baseline;gap:8px;font-size:43px;letter-spacing:-.06em;font-weight:500;font-variant-numeric:tabular-nums}
-.gift .amount span{font-size:25px;letter-spacing:-.035em;font-weight:400}
-.gift p{margin:6px 0 0;color:#b8bab9;font-size:13px}
+.credit-toast{
+  position:fixed;left:50%;bottom:clamp(76px,13vh,156px);z-index:30;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  width:max-content;max-width:calc(100vw - 36px);padding:16px 36px 15px;
+  color:#f2f1ef;text-align:center;pointer-events:none;
+  border-radius:999px;background:rgba(40,42,43,.81);
+  -webkit-backdrop-filter:blur(24px) saturate(80%);backdrop-filter:blur(24px) saturate(80%);
+  box-shadow:0 16px 55px rgba(0,0,0,.34),0 0 42px rgba(210,214,213,.08);
+  opacity:0;transform:translate(-50%,13px) scale(.97);
+  transition:opacity .48s ease,transform .58s cubic-bezier(.2,.8,.2,1);
+}
+.credit-toast.is-visible{opacity:1;transform:translate(-50%,0) scale(1)}
+.credit-toast strong{font-size:14px;font-weight:550;letter-spacing:-.015em;line-height:1.4}
+.credit-toast span{font-size:11px;font-weight:400;color:#bcbfbe;line-height:1.45}
 button{font-family:inherit;cursor:pointer}
 .primary{display:flex;align-items:center;justify-content:center;gap:11px;min-height:51px;border:1px solid #f1f0ed;border-radius:8px;background:#f1f0ed;color:#151617;font-size:13px;font-weight:650;letter-spacing:.005em}
 .primary svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
@@ -45,8 +54,8 @@ button:focus-visible,a:focus-visible{outline:2px solid #edece8;outline-offset:4p
 .site-footer a:hover{color:#ededeb}
 .loader{font-size:12px;color:#a7aaaa;letter-spacing:.02em}
 @keyframes ring-enter{from{opacity:.2;transform:scale(.87)}to{opacity:1;transform:scale(1)}}
-@media(max-width:580px){.site-header{height:64px;padding:0 21px}.site-header small{font-size:9px}main{min-height:calc(100svh - 116px);padding:34px 20px}.kicker{margin-bottom:24px}.confirmation{width:56px;height:56px;margin-bottom:23px}.subtitle{margin:13px 0 26px}.gift{padding:25px 16px}.gift .amount{font-size:40px}.gift .amount span{font-size:23px}.existing{margin-top:27px}}
-@media(prefers-reduced-motion:reduce){.confirmation{animation:none}}
+@media(max-width:580px){.site-header{height:64px;padding:0 21px}.site-header small{font-size:9px}main{min-height:calc(100svh - 116px);padding:34px 20px}.kicker{margin-bottom:24px}.confirmation{width:56px;height:56px;margin-bottom:23px}.subtitle{margin:13px 0 26px}.credit-toast{bottom:clamp(70px,10vh,120px);padding:14px 29px}.existing{margin-top:27px}}
+@media(prefers-reduced-motion:reduce){.confirmation{animation:none}.credit-toast{transition:none}}
 </style>
 </head>
 <body>
@@ -64,18 +73,16 @@ button:focus-visible,a:focus-visible{outline:2px solid #edece8;outline-offset:4p
     <div class="confirmation" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12 4.5 4.5L19 7"/></svg></div>
     <h1 id="welcome-title">Welcome to PV LAB.</h1>
     <p class="subtitle">Your creative space is ready.</p>
-    <div class="gift" aria-label="200 welcome credits">
-      <span class="gift-label">YOUR WELCOME GIFT</span>
-      <div class="amount">200 <span>credits</span></div>
-      <p>On us. Make something interesting.</p>
-    </div>
     <button class="primary" type="button" id="enter"><span id="enter-label">Enter the Studio</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19 19 5M8 5h11v11"/></svg></button>
-    <p class="fine">Your welcome credits are added when you enter the Studio.</p>
     <p class="existing">Used PV LAB on the original Parallel Vision website? <a id="transfer" href="./connect-account.html">Transfer your existing account</a></p>
   </section>
   <p id="status" class="error" role="alert" aria-live="polite" hidden></p>
+  <div id="credit-toast" class="credit-toast" role="status" aria-live="polite" aria-atomic="true" hidden>
+    <strong>200 credits added</strong>
+    <span>Ready to create.</span>
+  </div>
 </main>
 <footer class="site-footer"><a href="./privacy/">Privacy</a><a href="./terms/">Terms</a><a href="./customersupport/">Support</a></footer>
-<script type="module" src="./welcome.js?v=20261015-first-login1"></script>
+<script type="module" src="./welcome.js?v=20261015-floating-toast1"></script>
 </body>
 </html>
