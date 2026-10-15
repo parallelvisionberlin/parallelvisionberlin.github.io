@@ -1,5 +1,17 @@
 # PV LAB independent domain, accounts and zero-loss cutover
 
+## Verified public launch follow-up, 2026-10-15
+
+- The active Cloudflare Pages project is `pvlab-studio`; apex `pvlab.studio` is active.
+- `www.pvlab.studio` no longer uses Porkbun parking DNS. Its proxied CNAME targets `pvlab-studio.pages.dev`. A single Cloudflare dynamic-redirect rule (`pvlab_www_to_apex_v1`) sends it to `https://pvlab.studio` with a **301**, preserving path and query. External GitHub Actions run `38660168240` verified the actual redirect.
+- The new Clerk Google OAuth client is in production and its invalid client-secret error was resolved; the owner confirmed Google sign-in works. GitHub login is disabled in Clerk Production.
+- **Still requires explicit owner sign-in:** no new Clerk identities had been securely linked to old PV LAB accounts at the last read-only D1 check (4 legacy customer wallets, 0 new links, 0 unused migration codes). This does not mean records are lost. The old and new authenticated accounts must complete the one-time migration code flow; never infer links from matching emails.
+- **Still requires Clerk Production secret in Cloudflare:** `LAB_CLERK_V2_SECRET_KEY` is absent from Worker `parallel-vision-lab`. Copy the **new** Clerk application's `sk_live_` value from its Production → API Keys directly into Cloudflare Worker Settings → Variables and Secrets as a Secret. Never put it in GitHub, a chat or source code. This supports trusted customer-email sync, not the OAuth callback.
+- **Stripe proof outstanding:** PV Lab's live webhook endpoint is enabled, but as checked the live Stripe account had 7 Checkout sessions, all unpaid/expired, and no PaymentIntents. D1 recorded 0 `lab_stripe_events`. A user-authorized real purchase, signed webhook, wallet credit, generation, persistence and invoice/receipt check are still required; do not claim an end-to-end paid purchase was verified.
+- Clerk's new app is still displayed as `My Application`. Rename it to `PV LAB` from Clerk application settings (separate from the old application). Retire the obsolete Google OAuth client secret once replacement login is confirmed.
+- Commercial permission remains a launch decision: `LAB_CUSTOMER_HIGGSFIELD_ENABLED=true` is deployed, but written permission for stand-alone or substantially competing API generation resale was not verified. Review Higgsfield API Terms §4.2 and obtain written consent before relying on public access. Do not change customer availability silently.
+- CI coverage was refreshed to avoid stale version-key and image-preview assertions, without changing models, charging providers, or editing the database. Always verify the latest CI run separately from Pages deployment.
+
 State: 15 October 2026. Production release is a separately verified action, not a successful draft preview.
 
 ## Confirmed infrastructure
@@ -7,7 +19,7 @@ State: 15 October 2026. Production release is a separately verified action, not 
 - Porkbun registration: `pvlab.studio`, Cloudflare DNS zone Active.
 - Cloudflare Pages project `pvlab-studio` already renders the PV LAB interface at `https://pvlab-studio.pages.dev`.
 - Clerk application `My Application`, **Production**: `pvlab.studio` Verified; Frontend API + Account Portal Verified; email 3/3 Verified; Frontend API and Account Portal SSL certificates Issued.
-- Clerk Google SSO: Enabled/Used for sign-in with a separate OAuth client `PV LAB Google Login`, under Google Cloud project `PARALLEL VISION`. Its Google consent project remains in Testing mode. No change to the existing Parallel Vision client was requested.
+- Clerk Google SSO: Enabled/Used for sign-in with the dedicated OAuth client `PV LAB Google Login` under Google Cloud project `PARALLEL VISION`. Google OAuth audience is now **In production**. Its previous client secret caused `invalid_client` token-exchange failures; the owner rotated the dedicated client secret in Google and saved it in the new production Clerk instance, then confirmed Google login worked. The original Parallel Vision client was not changed.
 - Existing PV LAB front end remains `https://parallelvisionlabel.com/lab/`, and Cloudflare Worker backend remains `parallel-vision-lab`.
 - Production customer signup, live checkout and generation were already enabled on the original website. Existing credit, job, role, gallery and Stripe tables must never be cleared or guessed.
 
