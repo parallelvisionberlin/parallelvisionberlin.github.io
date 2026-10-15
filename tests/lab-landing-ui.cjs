@@ -142,6 +142,10 @@ const server=http.createServer((req,res)=>{
   assert.ok(tabFont>=14,'Purchase type tabs are readable at '+width);
   await page.getByRole('tab',{name:'One-time credits',exact:true}).click();
   assert.equal(await page.locator('#lab-one-time-credits').isVisible(),true,'One-time packs are visible');
+  const packEstimate=page.locator('#lab-one-time-credits .lab-estimate-toggle').first();
+  await packEstimate.hover();
+  assert.equal(await page.locator('#lab-one-time-credits .lab-estimate-popover').first().isVisible(),true,'One-time purchase rates also have a hover explanation');
+  await page.mouse.move(0,0);
   assert.equal(await page.locator('#lab-monthly-plans').isVisible(),false,'Monthly plans are hidden');
   assert.equal(await page.locator('#lab-pricing-billing-copy').innerText(),'Pay once. No recurring charge.','One-time terms match selected packs');
   for(const button of await page.locator('#lab-one-time-credits [data-lab-buy]').all())await button.click({trial:true});
