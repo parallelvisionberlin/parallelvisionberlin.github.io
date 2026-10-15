@@ -27,7 +27,7 @@ import { createSoulController } from './soul.js?v=20261014-krea2-training1';
 import { PROVIDER_IMAGE_LIMIT, SEEDREAM_INPUT_MAX_PIXELS, UPSCALE_PIXELS, imageDimensions, providerWorkingCopy, seedreamWorkingCopy, canPrepareImagesInBackground, wanUltrawideWorkingCopy, imagePreview, cancelImagePreparation } from './image-tools.js?v=20261011-reference-prewarm1';
 import {modelImageInputIssue} from './image-model-limits.js?v=20261010-model-limits1&qwen3-zimage=1&nano21=1';
 import {createImageSubmitHandoff} from './image-submit-handoff.js?v=20261011-fast-queue1';
-import {createUpscaleResultUI} from './upscale-result-ui.js?v=20261015-flow1';
+import {createUpscaleResultUI} from './upscale-result-ui.js?v=20261015-flow2';
 import {createSeedreamReferencePreparer} from './seedream-reference-prep.js?v=20261011-reference-prewarm1';
 // General-purpose private image-to-video workspace. Credentials never enter browser storage.
 const API='https://parallel-vision-lab.parallelvision.workers.dev';
@@ -368,7 +368,7 @@ function syncNoticePlacement(){
   const notice=$('notice'),slot=$('upscale-notice-slot'),inline=tool==='upscale'&&owner&&!assetLibrary?.active()&&!fashionActive;
   if(inline&&notice.parentElement!==slot)slot.append(notice);
   else if(!inline&&notice.parentElement===slot)$('archive-rest-anchor').before(notice);
-  slot.hidden=!inline||!notice.textContent.trim();
+  slot.hidden=!inline||!notice.textContent.trim()||!notice.classList.contains('error');
 }
 function clearImageComposerNotice(){
   const status=$('image-composer-status');

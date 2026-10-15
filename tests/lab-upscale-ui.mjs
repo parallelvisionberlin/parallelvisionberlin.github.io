@@ -111,6 +111,7 @@ try{
  assert.deepEqual(x.requests.find(r=>r.path==='/api/jobs'&&r.method==='POST').data,{quoteId:'10000000-0000-4000-8000-000000000088',confirm:true});
  assert.match(await x.page.locator('#notice').innerText(),/Upscale requested/);
  assert.equal(await x.page.locator('#notice').evaluate(el=>el.parentElement.id),'upscale-notice-slot');
+ assert.equal(await x.page.locator('#upscale-notice-slot').isVisible(),false,'Routine upscale messages should not occupy space below the action row');
  assert.deepEqual(x.errors,[]);ok('Premium 2x Upscale submits one checked quote without a second provider option');
  await imageAdvanced(x.page);assert.equal(await x.page.locator('#notice').evaluate(el=>el.nextElementSibling?.id),'archive-rest-anchor');
  await x.page.click('#tool-video');assert.equal(await x.page.locator('#last-upload').isVisible(),true);

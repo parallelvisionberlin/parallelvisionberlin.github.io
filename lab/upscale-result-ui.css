@@ -106,3 +106,51 @@
   #app.upscale-studio-active .upscale-spinner,#app.upscale-studio-active #upscale-complete-toast{animation:none}
   #app.upscale-studio-active .upscale-result-actions button{transition:none}
 }
+
+/* Result-state polish: a quieter workspace and a more decisive completion bar.
+   Original and output pixel counts remain visible above the canvas. */
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .upscale-result-dimensions{
+  display:none!important;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-result-toolbar{
+  position:relative;isolation:isolate;overflow:hidden;gap:16px;
+  margin-top:12px;padding:17px 19px;
+  background:linear-gradient(110deg,#232329 0%,#1b1c21 76%);
+  border:1px solid rgba(237,187,97,.42);border-radius:12px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.055),0 10px 25px rgba(0,0,0,.22);
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-result-toolbar::before{
+  content:"";position:absolute;top:13px;bottom:13px;left:0;width:2px;
+  border-radius:2px;background:linear-gradient(180deg,#f1cc82,#b48643);pointer-events:none;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .upscale-result-title{
+  font-size:16px;font-weight:700;letter-spacing:-.022em;gap:10px;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .upscale-result-check{
+  width:23px;height:23px;flex:none;font-size:13px;
+  border-color:rgba(237,187,97,.62);color:#f0c676;background:rgba(237,187,97,.07);
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .upscale-result-scale{
+  display:inline-flex;align-items:center;justify-content:center;min-height:23px;
+  padding:4px 9px;border-radius:99px;
+  background:rgba(237,187,97,.13);border:1px solid rgba(237,187,97,.36);
+  color:#f0c676;font-size:10px;line-height:1;font-weight:700;letter-spacing:.015em;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .upscale-result-actions button{
+  min-height:42px;padding:11px 15px;border-color:#484951;
+}
+#app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .upscale-result-actions .upscale-download-button{
+  min-width:151px;border-color:#edbb61;
+  box-shadow:0 4px 15px rgba(237,187,97,.16);
+}
+@media(max-width:650px){
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) #upscale-result-toolbar{
+    padding:14px;gap:12px;
+  }
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .upscale-result-title{
+    font-size:15px;
+  }
+  #app.upscale-studio-active:not(.assets-active):not(.fashion-studio-active) .upscale-result-actions button{
+    min-width:0;padding:10px 9px;
+  }
+}
