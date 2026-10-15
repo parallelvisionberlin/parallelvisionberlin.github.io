@@ -51,6 +51,11 @@ jobs:
               && curl -fsSL --connect-timeout 6 --max-time 20 "https://pvlab.studio/?verify=20261015" -o /tmp/live-root.html \
               && grep -Fq "location.replace('./studio.html?tool=image')" /tmp/live-legacy-welcome.html \
               && grep -Fq 'id="pv-credit-toast"' /tmp/live-studio.html \
+              && grep -Fq 'id="history-preview-toggle"' /tmp/live-studio.html \
+              && grep -Fq 'image-discreet.css?v=20261015-1' /tmp/live-studio.html \
+              && grep -Fq 'image-discreet.js?v=20261015-1' /tmp/live-studio.html \
+              && curl -fsSL --connect-timeout 6 --max-time 20 "https://pvlab.studio/image-discreet.js?verify=20261015" | grep -Fq 'pv-lab-image-previews-hidden-v1' \
+              && curl -fsSL --connect-timeout 6 --max-time 20 "https://pvlab.studio/image-discreet.css?verify=20261015" | grep -Fq 'pv-image-previews-hidden' \
               && grep -Fq 'id="gate"' /tmp/live-canonical-studio.html \
               && grep -Fq 'canonicalStudio=20261015-1' /tmp/live-canonical-studio.html \
               && grep -Fq 'pv-studio-route-pending' /tmp/live-canonical-studio.html \
