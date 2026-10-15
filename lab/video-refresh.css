@@ -133,6 +133,14 @@
 
 /* Keep Windows/Chrome native dropdown menus readable in Video Studio.
    The compact control uses light text, so its system popup must be dark too. */
+/* Give the active Follow reference label enough space without wrapping the row. */
+#app.video-studio-active .controls-body > .parameter-grid > #ratio-control {
+  flex: 2 1 0;
+  min-width: 110px;
+}
+#app.video-studio-active .controls-body > .parameter-grid #ratio {
+  font-size: 12px;
+}
 #app.video-studio-active .controls-body select {
   color-scheme: dark;
 }
