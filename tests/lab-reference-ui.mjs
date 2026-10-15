@@ -146,7 +146,9 @@ try{
   await x.page.getByLabel('Note for reference 2',{exact:true}).fill('Keep the existing hand position.');
   await x.page.locator('#save').click();await x.page.waitForFunction(()=>document.querySelector('#notice').textContent.startsWith('Saved privately'));
   const guidedDraft=x.requests.find(r=>r.path==='/api/drafts').data;
-  assert.equal(guidedDraft.settings.prompt,'');assert.equal(guidedDraft.referenceSourceIds.length,7);
+  assert.match(guidedDraft.settings.prompt,/^Create a natural photographic variation of the base image/,
+    'Blank written direction receives approved base-image variation guidance');
+  assert.equal(guidedDraft.referenceSourceIds.length,7);
   assert.deepEqual(guidedDraft.settings.referenceRoles.slice(0,3).map(({role,target})=>({role,...(target===undefined?{}:{target})})),[{role:'base'},{role:'detail',target:'hands'},{role:'outfit',target:'pants'}]);
   assert.equal(guidedDraft.settings.referenceRoles[0].name,'architecture-reference-4.png');
   assert.equal(guidedDraft.settings.referenceRoles[1].note,'Keep the existing hand position.');
